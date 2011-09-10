@@ -686,6 +686,12 @@ nsMsgProtocol::GetContentDispositionFilename(nsAString &aContentDispositionFilen
   return NS_ERROR_NOT_AVAILABLE;
 }
 
+NS_IMETHODIMP
+nsMsgProtocol::GetContentDispositionHeader(nsAString &aContentDispositionHeader)
+{
+  return NS_ERROR_NOT_AVAILABLE;
+}
+
 NS_IMETHODIMP nsMsgProtocol::GetContentLength(PRInt32 *aContentLength)
 {
   *aContentLength = mContentLength;

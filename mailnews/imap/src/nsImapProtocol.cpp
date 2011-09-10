@@ -9402,6 +9402,24 @@ NS_IMETHODIMP nsImapMockChannel::SetContentCharset(const nsACString &aContentCha
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP
+nsImapMockChannel::GetContentDisposition(PRUint32 *aContentDisposition)
+{
+  return NS_ERROR_NOT_AVAILABLE;
+}
+
+NS_IMETHODIMP
+nsImapMockChannel::GetContentDispositionFilename(nsAString &aContentDispositionFilename)
+{
+  return NS_ERROR_NOT_AVAILABLE;
+}
+
+NS_IMETHODIMP
+nsImapMockChannel::GetContentDispositionHeader(nsAString &aContentDispositionHeader)
+{
+  return NS_ERROR_NOT_AVAILABLE;
+}
+
 NS_IMETHODIMP nsImapMockChannel::GetContentLength(PRInt32 * aContentLength)
 {
   *aContentLength = mContentLength;

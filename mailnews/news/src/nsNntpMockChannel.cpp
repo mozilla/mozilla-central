@@ -235,6 +235,24 @@ NS_IMETHODIMP nsNntpMockChannel::SetContentCharset(const nsACString &aCharset)
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsNntpMockChannel::GetContentDisposition(PRUint32 *aContentDisposition)
+{
+  return NS_ERROR_NOT_AVAILABLE;
+}
+
+NS_IMETHODIMP
+nsNntpMockChannel::GetContentDispositionFilename(nsAString &aContentDispositionFilename)
+{
+  return NS_ERROR_NOT_AVAILABLE;
+}
+
+NS_IMETHODIMP
+nsNntpMockChannel::GetContentDispositionHeader(nsAString &aContentDispositionHeader)
+{
+  return NS_ERROR_NOT_AVAILABLE;
+}
+
 NS_IMETHODIMP nsNntpMockChannel::GetContentLength(PRInt32 *length)
 {
   FORWARD_CALL(GetContentLength, length)
