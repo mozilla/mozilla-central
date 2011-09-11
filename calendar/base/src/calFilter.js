@@ -306,13 +306,13 @@ function durationFromFilter(aFilter) {
     //Get the unit
     var duration = createDuration();
     switch( unitReg.exec(aFilter)[1]) {
-      case "weeks": 
+      case "weeks":
         duration.weeks = modifier*period;
         break;
-      case "days": 
+      case "days":
         duration.days = modifier*period;
         break;
-      case "hours": 
+      case "hours":
         duration.hours = modifier*period;
         break;
       default:
