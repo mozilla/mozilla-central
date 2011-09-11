@@ -69,7 +69,7 @@ class BloatRunTestOptions(optparse.OptionParser):
         self.add_option("--brand",
                         action = "store", type = "string", dest = "brand",
                         help = "The current branding, including Debug if necessary")
-        defaults["brand"] = "Shredder"
+        defaults["brand"] = "Daily"
 
         self.add_option("--symbols-path",
                         action = "store", type = "string", dest = "symbols",
