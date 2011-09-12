@@ -76,7 +76,8 @@ function installInto(module) {
  *
  * @return A pair of (the loaded migration assistant window wrapped in a
  *     MozMillController with the contentFrame displaying the appropriate pane,
- *     the pane's content window wrapped in a MozMillController).
+ *     the pane's content window wrapped in a MozMillController). The latter is
+ *     null if no pane is specified.
  */
 function open_migration_assistant(mc, aPane) {
   // Open the migration assistant.
@@ -84,7 +85,7 @@ function open_migration_assistant(mc, aPane) {
   mc.click(new elib.Elem(mc.menus.helpMenu.featureConfigurator));
   let fc = wh.wait_for_new_window("mailnews:featureconfigurator");
   if (!aPane)
-    return fc;
+    return [fc, null];
 
   // Navigate to the specified pane.
   let index = fc.featureConfigurator.subpages.indexOf(aPane);
