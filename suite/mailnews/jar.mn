@@ -8,7 +8,6 @@ messenger.jar:
 % overlay chrome://communicator/content/pref/pref-scripts.xul                  chrome://messenger/content/mailPrefsOverlay.xul
 % overlay chrome://communicator/content/pref/pref-cookies.xul                  chrome://messenger/content/mailPrefsOverlay.xul
 % overlay chrome://editor/content/editorTasksOverlay.xul                       chrome://messenger/content/mailTasksOverlay.xul
-% overlay chrome://navigator/content/navigatorOverlay.xul                      chrome://messenger/content/mailOverlay.xul
 % overlay chrome://messenger/content/addressbook/addressbook.xul               chrome://messenger/content/mailABOverlay.xul
 % overlay chrome://messenger/content/addressbook/abSelectAddressesDialog.xul   chrome://messenger/content/mailOverlay.xul
 % overlay chrome://editor/content/composerOverlay.xul                          chrome://messenger/content/mailEditorOverlay.xul
