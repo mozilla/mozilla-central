@@ -79,11 +79,7 @@
   <stringbundleset id="stringbundleset"/>
 
   <!-- keys are appended from the overlay -->
-  <keyset id="tasksKeys">
-    <keyset id="navKeys">
-      <key id="showHideSidebar"/>
-    </keyset>
-  </keyset>
+  <keyset id="navKeys"/>
 
   <!-- commands are appended from the overlay -->
   <commandset id="commands">
