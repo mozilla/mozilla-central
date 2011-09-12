@@ -691,6 +691,12 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::GetParentNode(nsIDOMNode * *aParentNode
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+// readonly attribute nsIDOMNode parentElement
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetParentElement(nsIDOMElement * *aParentElement)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 // readonly attribute nsIDOMNodeList childNodes
 NS_IMETHODIMP nsOutlookHTMLImageElement::GetChildNodes(nsIDOMNodeList * *aChildNodes)
 {
