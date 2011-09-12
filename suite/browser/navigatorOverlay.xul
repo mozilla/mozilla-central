@@ -45,6 +45,7 @@
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/viewZoomOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/tasksOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/bookmarks/placesOverlay.xul"?>
 <?xul-overlay href="chrome://global/content/charsetOverlay.xul"?>
 <?xul-overlay href="chrome://navigator/content/mailNavigatorOverlay.xul"?>
 <?xul-overlay href="chrome://navigator/content/platformNavigationBindings.xul"?>
@@ -61,6 +62,18 @@
 <overlay id="navigatorOverlay"
          xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+  <!-- Navigator -->
+  <script type="application/javascript"
+          src="chrome://navigator/content/browser.js"/>
+  <script type="application/javascript"
+          src="chrome://navigator/content/navigator.js"/>
+
+  <!-- Places Bookmarks Utilities -->
+  <script type="application/javascript"
+          src="chrome://communicator/content/places/browserPlacesViews.js"/>
+  <script type="application/javascript"
+          src="chrome://communicator/content/bookmarks/browser-places.js"/>
 
   <stringbundleset id="stringbundleset">
     <stringbundle id="bundle_navigator"

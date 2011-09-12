@@ -46,7 +46,6 @@
 <?xul-overlay href="chrome://navigator/content/linkToolbarOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/contentAreaContextOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/sidebar/sidebarOverlay.xul"?>
-<?xul-overlay href="chrome://communicator/content/bookmarks/placesOverlay.xul"?>
 
 
 <!DOCTYPE window [
@@ -86,14 +85,10 @@
 
   <!-- Navigator -->
   <script type="application/javascript" src="chrome://navigator/content/fullScreen.js"/>
-  <script type="application/javascript" src="chrome://navigator/content/browser.js"/>
-  <script type="application/javascript" src="chrome://navigator/content/navigator.js"/>
   <script type="application/javascript" src="chrome://navigator/content/navigatorDD.js"/>
   <script type="application/javascript" src="chrome://navigator/content/sessionHistoryUI.js"/>
 
   <!-- Places Bookmarks Utilities -->
-  <script type="application/javascript" src="chrome://communicator/content/places/browserPlacesViews.js"/>
-  <script type="application/javascript" src="chrome://communicator/content/bookmarks/browser-places.js"/>
   <script type="application/javascript" src="chrome://communicator/content/bookmarks/editBookmarkOverlay.js"/>
 
   <!-- hook for stringbundle overlays -->

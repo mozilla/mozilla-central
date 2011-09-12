@@ -38,7 +38,6 @@
  ***** END LICENSE BLOCK ***** -->
 
 <?xul-overlay href="chrome://navigator/content/navigatorOverlay.xul"?>
-<?xul-overlay href="chrome://communicator/content/bookmarks/placesOverlay.xul"?>
 
 <!-- hiddenwindow is a "minimal" XUL window intended for creating the,
      er, hidden window.  This window is never shown, but on platforms
@@ -67,14 +66,6 @@
   titlemenuseparator="&mainWindow.titlemodifiermenuseparator;"
   onload="hiddenWindowStartup();"
   onunload="Shutdown();">
-
-  <!-- JS from navigator.xul, to handle the menu commands -->
-  <script type="application/javascript" src="chrome://navigator/content/browser.js"/>
-  <script type="application/javascript" src="chrome://navigator/content/navigator.js"/>
-
-  <!-- Places Bookmarks Utilities -->
-  <script type="application/javascript" src="chrome://communicator/content/places/browserPlacesViews.js"/>
-  <script type="application/javascript" src="chrome://communicator/content/bookmarks/browser-places.js"/>
 
   <stringbundleset id="stringbundleset"/>
 
