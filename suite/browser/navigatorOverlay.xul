@@ -63,6 +63,12 @@
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
   <stringbundleset id="stringbundleset">
+    <stringbundle id="bundle_navigator"
+                  src="chrome://navigator/locale/navigator.properties"/>
+    <stringbundle id="bundle_brand"
+                  src="chrome://branding/locale/brand.properties"/>
+    <stringbundle id="bundle_navigator_region"
+                  src="chrome://navigator-region/locale/region.properties"/>
     <stringbundle id="bundle_viewZoom"/>
   </stringbundleset>
 

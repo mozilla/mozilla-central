@@ -76,11 +76,7 @@
   <script type="application/javascript" src="chrome://communicator/content/places/browserPlacesViews.js"/>
   <script type="application/javascript" src="chrome://communicator/content/bookmarks/browser-places.js"/>
 
-  <stringbundleset id="stringbundleset">
-    <stringbundle id="bundle_navigator" src="chrome://navigator/locale/navigator.properties"/>
-    <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
-    <stringbundle id="bundle_navigator_region" src="chrome://navigator-region/locale/region.properties"/>
-  </stringbundleset>
+  <stringbundleset id="stringbundleset"/>
 
   <!-- keys are appended from the overlay -->
   <keyset id="tasksKeys">
