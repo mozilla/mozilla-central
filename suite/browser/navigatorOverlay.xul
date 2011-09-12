@@ -171,6 +171,10 @@
     <command id="cmd_delete"/>
     <command id="cmd_selectAll" observes="isImage"/>
     <command id="cmd_switchTextDirection"/>
+    <commandset id="globalEditMenuItems"/>
+    <commandset id="selectEditMenuItems"/>
+    <commandset id="undoEditMenuItems"/>
+    <commandset id="clipboardEditMenuItems"/>
 
     <!-- Content area context menu -->
     <command id="cmd_copyLink"/>
@@ -213,6 +217,7 @@
              label="&manBookmarksCmd.label;" accesskey="&manBookmarksCmd.accesskey;"
              oncommand="PlacesCommandHook.showBookmarksManager('AllBookmarks');"/>
     <command id="feedsMenu" disabled="true"/>
+    <commandset id="placesCommands"/>
 
     <!-- Go Menu -->  
     <command id="Browser:Home"    oncommand="BrowserHome(event);"/>

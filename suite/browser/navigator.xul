@@ -103,17 +103,10 @@
 
   <commandset id="commands">
     <commandset id="findTypeMenuItems"/>
-    <commandset id="globalEditMenuItems"/>
-    <commandset id="selectEditMenuItems"/>
-    <commandset id="undoEditMenuItems"/>
-    <commandset id="clipboardEditMenuItems"/>
-    <!-- <command id="cmd_pageSetup"/> -->
     <command id="toggleSidebar"/>
   </commandset>
 
   <commandset id="mainCommandSet"/> <!-- Firefox extension compatibility -->
-
-  <commandset id="placesCommands"/>
 
   <!-- broadcasters are appended from the overlay -->
   <broadcasterset id="navBroadcasters"/>

@@ -82,14 +82,7 @@
   <keyset id="navKeys"/>
 
   <!-- commands are appended from the overlay -->
-  <commandset id="commands">
-    <commandset id="tasksCommands"/>
-    <commandset id="globalEditMenuItems"/>
-    <commandset id="selectEditMenuItems"/>
-    <commandset id="undoEditMenuItems"/>
-    <commandset id="clipboardEditMenuItems"/>
-    <commandset id="placesCommands"/>
-  </commandset>
+  <commandset id="commands"/>
 
   <broadcasterset id="navBroadcasters"/>
 
