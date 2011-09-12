@@ -57,6 +57,6 @@ function setupModule(module) {
  */
 function test_open_and_close_folderpanecolumns() {
   // Open the migration assistant, and navigate to the folderpanecolumns page.
-  let fc = open_migration_assistant(mc, "folderpanecolumns");
+  let [fc, ] = open_migration_assistant(mc, "folderpanecolumns");
   close_migration_assistant(fc);
 }

@@ -58,43 +58,38 @@ function setupModule(module) {
  * Make sure the migration assistant, has opened automatically when we upgrade.
  */
 function test_open_and_close_migration_assistant() {
+  function substringChecker(substring) {
+    return function (url) (url.spec.indexOf(substring) != -1);
+  }
+
   // Ensure that the migration assistant is opened on upgrade.
   let fc = wait_for_existing_window("mailnews:featureconfigurator");
 
   // The first page should be the introduction page.
-  let content = fc.e("contentFrame");
-  url = content.getAttribute("src");
-  assert_true(url.indexOf("introduction") != -1,
-              "The first page (" + url + ") isn't the introduction page!");
+  wait_for_frame_load(fc.contentFrame, substringChecker("introduction"));
   check_introduction_page(fc);
 
   // Move to the next page, which should be the autosync page.
   fc.click(fc.eid("nextButton"));
-  url = content.getAttribute("src");
-  assert_true(url.indexOf("autosync") != -1,
-              "The second page (" + url + ") isn't the autosync page!");
-  check_autosync_page(fc);
+  let as = wait_for_frame_load(fc.contentFrame, substringChecker("autosync"));
+  check_autosync_page(fc, as);
 
   // Move to the next page, which should be the toolbar page.
   fc.click(fc.eid("nextButton"));
-  url = content.getAttribute("src");
-  assert_true(url.indexOf("toolbar") != -1,
-              "The third page (" + url + ") isn't the toolbar page!");
-  check_toolbar_page(fc);
+  let tb = wait_for_frame_load(fc.contentFrame, substringChecker("toolbar"));
+  check_toolbar_page(fc, tb);
 
   // Move to the next page, which should be the compactheader page.
   fc.click(fc.eid("nextButton"));
-  url = content.getAttribute("src");
-  assert_true(url.indexOf("compactheader") != -1,
-              "The fourth page (" + url + ") isn't the compactheader page!");
-  check_compactheader_page(fc);
+  let ch = wait_for_frame_load(fc.contentFrame,
+                               substringChecker("compactheader"));
+  check_compactheader_page(fc, ch);
 
   // Move to the next page, which should be the folderpanecolumns page.
   fc.click(fc.eid("nextButton"));
-  url = content.getAttribute("src");
-  assert_true(url.indexOf("folderpanecolumns") != -1,
-              "The fifth page (" + url + ") isn't the folderpanecolumns page!");
-  check_folderpanecolumns_page(fc);
+  let fp = wait_for_frame_load(fc.contentFrame,
+                               substringChecker("folderpanecolumns"));
+  check_folderpanecolumns_page(fc, fp);
 
   // And finally, close the migration assistant.
   close_migration_assistant(fc);
@@ -114,9 +109,8 @@ function check_introduction_page(fc) {
 /**
  * Make sure that the autosync page works correctly.
  */
-function check_autosync_page(fc) {
+function check_autosync_page(fc, as) {
   // There should only be one account, for "blaketestwinton@gmail.com".
-  let as = get_subpage(fc);
   let accountList = as.e("account_list");
   assert_equals(accountList.childNodes.length, 1, "More than one account!");
 
@@ -135,9 +129,8 @@ function check_autosync_page(fc) {
 /**
  * Make sure that the toolbar page works correctly.
  */
-function check_toolbar_page(fc) {
+function check_toolbar_page(fc, tb) {
   // Toolbar radio buttons should be set to "Message Buttons Toolbar".
-  let tb = get_subpage(fc);
   tb.assertChecked(tb.eid("toolbar-new"));
   tb.assertNotChecked(tb.eid("toolbar-original"));
 }
@@ -145,9 +138,8 @@ function check_toolbar_page(fc) {
 /**
  * Make sure that the compactheader page works correctly.
  */
-function check_compactheader_page(fc) {
+function check_compactheader_page(fc, ch) {
   // Compact header strong text should be shown.
-  let ch = get_subpage(fc);
   assert_equals(get_display(ch, "weak"), "none",
               "The weak message should not be displayed.");
   assert_equals(get_display(ch, "strong"), "block",
@@ -167,13 +159,12 @@ function check_compactheader_page(fc) {
 /**
  * Make sure that the folderpanecolumns page works correctly.
  */
-function check_folderpanecolumns_page(fc) {
+function check_folderpanecolumns_page(fc, fp) {
   // This should be the last page.
   let nextButton = fc.e("nextButton");
   assert_true(nextButton.disabled, "We can go forward from the last page!");
 
   // Folder Pane strong text should be shown.
-  let fp = get_subpage(fc);
   assert_equals(get_display(fp, "weak"), "none",
               "The weak message should not be displayed.");
   assert_equals(get_display(fp, "strong"), "block",

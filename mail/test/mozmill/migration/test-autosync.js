@@ -58,12 +58,12 @@ function setupModule(module) {
 function test_open_and_close_autosync() {
   // Open the migration assistant, and try to navigate to the autosync page.
   try {
-    let fc = open_migration_assistant(mc, "autosync");
+    let [fc, ] = open_migration_assistant(mc, "autosync");
     close_migration_assistant(fc);
   }
   catch (e) {
     // If it's not the error we were expecting, throw it!
-    if (e.message != "Didn't find autosync in Migration Assistant!")
+    if (e.message != "Pane 'autosync' not found in the list of subpages")
       throw e;
     // Otherwise, return before we throw the error below.
     return;

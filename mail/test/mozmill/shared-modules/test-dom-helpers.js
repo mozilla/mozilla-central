@@ -44,6 +44,8 @@ var mozmill = {};
 Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
 var controller = {};
 Cu.import('resource://mozmill/modules/controller.js', controller);
+var utils = {};
+Cu.import('resource://mozmill/modules/utils.js', utils);
 
 const MODULE_NAME = 'dom-helpers';
 
@@ -75,6 +77,8 @@ function installInto(module) {
   module.assert_element_visible = assert_element_visible;
   module.assert_element_not_visible = assert_element_not_visible;
 }
+
+
 
 /**
  * This function takes either a string or an elementlibs.Elem, and returns

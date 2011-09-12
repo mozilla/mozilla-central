@@ -57,7 +57,7 @@ function setupModule(module) {
  */
 function test_open_and_close_compactheader() {
   // Open the migration assistant, and navigate to the compactheader page.
-  let fc = open_migration_assistant(mc, "compactheader");
+  let [fc, ] = open_migration_assistant(mc, "compactheader");
   close_migration_assistant(fc);
 }
 
@@ -66,8 +66,7 @@ function test_open_and_close_compactheader() {
  */
 function test_weak_message_by_default() {
   // Open the migration assistant, and navigate to the compactheader page.
-  let fc = open_migration_assistant(mc, "compactheader");
-  let ch = get_subpage(fc);
+  let [fc, ch] = open_migration_assistant(mc, "compactheader");
   let weak = ch.window.getComputedStyle(ch.e("weak"), null)
                       .getPropertyValue("display");
   let strong = ch.window.getComputedStyle(ch.e("strong"), null)

@@ -51,6 +51,7 @@ var utils = {};
 Cu.import('resource://mozmill/modules/utils.js', utils);
 
 Cu.import('resource:///modules/iteratorUtils.jsm');
+Cu.import('resource://gre/modules/NetUtil.jsm');
 
 const MODULE_NAME = 'window-helpers';
 
@@ -126,6 +127,9 @@ function installInto(module) {
   module.wait_for_window_close = wait_for_window_close;
   module.close_window = close_window;
   module.wait_for_existing_window = wait_for_existing_window;
+
+  module.wait_for_browser_load = wait_for_browser_load;
+  module.wait_for_frame_load = wait_for_frame_load;
 
   module.plan_for_observable_event = plan_for_observable_event;
   module.wait_for_observable_event = wait_for_observable_event;
@@ -656,6 +660,79 @@ function close_window(aController) {
   wait_for_window_close();
 }
 
+/**
+ * Given a <browser>, waits for it to completely load.
+ *
+ * @param aBrowser The <browser> element to wait for.
+ * @param aURLOrPredicate The URL that should be loaded (string) or a predicate
+ *                        for the URL (function).
+ * @returns The browser's content window wrapped in a MozMillController.
+ */
+function wait_for_browser_load(aBrowser, aURLOrPredicate) {
+  // aBrowser has all the fields we need already.
+  return _wait_for_generic_load(aBrowser, aURLOrPredicate);
+}
+
+/**
+ * Given an HTML <frame> or <iframe>, waits for it to completely load.
+ *
+ * @param aFrame The element to wait for.
+ * @param aURLOrPredicate The URL that should be loaded (string) or a predicate
+ *                        for the URL (function).
+ * @returns The frame wrapped in a MozMillController.
+ */
+function wait_for_frame_load(aFrame, aURLOrPredicate) {
+  let details = {
+    // Not sure whether all of these really need to be getters, but this is the
+    // safest thing to do.
+    get webProgress () (aFrame.contentWindow.QueryInterface(Ci.nsIInterfaceRequestor)
+                              .getInterface(Ci.nsIWebNavigation)
+                              .QueryInterface(Ci.nsIWebProgress)),
+    get currentURI () (NetUtil.newURI(aFrame.getAttribute("src"))),
+    get contentWindow () (aFrame.contentWindow),
+  };
+  return _wait_for_generic_load(details, aURLOrPredicate);
+}
+
+/**
+ * Generic function to wait for some sort of document to load. We expect
+ * aDetails to have three fields:
+ * - webProgress: an nsIWebProgress associated with the contentWindow.
+ * - currentURI: the currently loaded page (nsIURI). 
+ * - contentWindow: the content window.
+ */
+function _wait_for_generic_load(aDetails, aURLOrPredicate) {
+  let predicate;
+  if (typeof aURLOrPredicate == "string") {
+    let expectedURL = NetUtil.newURI(aURLOrPredicate);
+    predicate = function (url) (expectedURL.equals(url));
+  }
+  else {
+    predicate = aURLOrPredicate;
+  }
+
+  function isLoadedChecker() {
+    if (aDetails.webProgress.isLoadingDocument !== false)
+      return false;
+
+    return predicate(aDetails.currentURI);
+  }
+
+  try {
+    utils.waitFor(isLoadedChecker);
+  } catch (e if e instanceof utils.TimeoutError) {
+    mark_failure(["Timeout waiting for content page to load. Current URL is:",
+                  aDetails.currentURI.spec]);
+  }
+
+  // Lie to mozmill to convince it to not explode because these frames never
+  // get a mozmillDocumentLoaded attribute (bug 666438).
+  let contentWindow = aDetails.contentWindow;
+  contentWindow.mozmillDocumentLoaded = true;
+  let cwc = new controller.MozMillController(contentWindow);
+  return augment_controller(cwc);
+}
+
 
 let obsService = Cc["@mozilla.org/observer-service;1"]
                    .getService(Ci.nsIObserverService);
@@ -1158,7 +1235,19 @@ var PerWindowTypeAugmentations = {
         return this.folderDisplay.view.dbView;
       }
     }
-  }
+  },
+
+  /**
+   * The feature configurator.
+   */
+  "mailnews:featureconfigurator": {
+    elementsToExpose: {
+      contentFrame: "contentFrame",
+    },
+    globalsToExposeViaGetters: {
+      featureConfigurator: "FeatureConfigurator",
+    },
+  },
 };
 
 function _augment_helper(aController, aAugmentDef) {

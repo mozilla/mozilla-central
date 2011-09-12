@@ -144,7 +144,7 @@ function assert_checked_and_unchecked(aChecked, aUnchecked) {
  */
 function test_open_and_close_toolbar() {
   // Open the migration assistant, and navigate to the toolbar page.
-  let fc = open_migration_assistant(mc, "toolbar");
+  let [fc, ] = open_migration_assistant(mc, "toolbar");
   close_migration_assistant(fc);
 }
 
@@ -153,8 +153,7 @@ function test_open_and_close_toolbar() {
  */
 function test_new_toolbar_with_default_tb3() {
   // Open the migration assistant, and navigate to the toolbar page.
-  let fc = open_migration_assistant(mc, "toolbar");
-  let ch = get_subpage(fc);
+  let [fc, ch] = open_migration_assistant(mc, "toolbar");
   let tbNew = ch.e("toolbar-new");
   let tbOrig = ch.e("toolbar-original");
 
@@ -190,8 +189,7 @@ function test_new_toolbar_with_custom_tb3() {
   newbar.parentNode.setAttribute("iconsize", "small");
 
   // Open the migration assistant, and navigate to the toolbar page.
-  let fc = open_migration_assistant(mc, "toolbar");
-  let ch = get_subpage(fc);
+  let [fc, ch] = open_migration_assistant(mc, "toolbar");
   let tbNew = ch.e("toolbar-new");
   let tbOrig = ch.e("toolbar-original");
 

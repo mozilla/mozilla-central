@@ -84,8 +84,8 @@ const ABOUT_SUPPORT_ERROR_STRINGS = ["undefined", "null"];
  * @returns the about:support tab.
  */
 function open_about_support() {
-  let tab = open_content_tab_with_click(mc.menus.helpMenu.aboutsupport_open);
-  assert_content_tab_has_url(tab, "about:support");
+  let tab = open_content_tab_with_click(mc.menus.helpMenu.aboutsupport_open,
+                                        "about:support");
   // We have one variable that's asynchronously populated -- wait for it to be
   // populated.
   mc.waitFor(function () tab.browser.contentWindow.gExtensions !== undefined,

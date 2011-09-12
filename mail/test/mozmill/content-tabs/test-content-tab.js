@@ -70,10 +70,9 @@ function test_content_tab_open() {
   // Set the pref so that what's new opens a local url
   Services.prefs.setCharPref("mailnews.start_page.override_url", whatsUrl);
 
-  let tab = open_content_tab_with_click(mc.menus.helpMenu.whatsNew);
+  let tab = open_content_tab_with_click(mc.menus.helpMenu.whatsNew, whatsUrl);
 
   assert_tab_has_title(tab, "What's New Content Test");
-  assert_content_tab_has_url(tab, whatsUrl);
   // Check the location of the what's new image, this is via the link element
   // and therefore should be set and not favicon.png.
   assert_content_tab_has_favicon(tab, url + "whatsnew.png");
@@ -145,10 +144,9 @@ function test_content_tab_default_favicon() {
   // Set the pref so that what's new opens a local url
   Services.prefs.setCharPref("mailnews.start_page.override_url", whatsUrl1);
 
-  let tab = open_content_tab_with_click(mc.menus.helpMenu.whatsNew);
+  let tab = open_content_tab_with_click(mc.menus.helpMenu.whatsNew, whatsUrl1);
 
   assert_tab_has_title(tab, "What's New Content Test 1");
-  assert_content_tab_has_url(tab, whatsUrl1);
   // Check the location of the favicon, this should be the site favicon in this
   // test.
   assert_content_tab_has_favicon(tab, url + "favicon.ico");

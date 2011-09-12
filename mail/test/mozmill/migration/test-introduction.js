@@ -57,6 +57,6 @@ function setupModule(module) {
  */
 function test_open_and_close_migration_assistant() {
   // Open the migration assistant, and navigate to the autosync page.
-  let fc = open_migration_assistant(mc, "introduction");
+  let [fc, ] = open_migration_assistant(mc, "introduction");
   close_migration_assistant(fc);
 }

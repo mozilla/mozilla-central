@@ -50,6 +50,7 @@ var controller = {};
 Cu.import('resource://mozmill/modules/controller.js', controller);
 
 var wh;
+var dh;
 
 function setupModule() {
   wh = collector.getModule("window-helpers");
@@ -60,7 +61,6 @@ function installInto(module) {
 
   // Now copy helper functions
   module.open_migration_assistant = open_migration_assistant;
-  module.get_subpage = get_subpage;
   module.close_migration_assistant = close_migration_assistant;
 }
 
@@ -74,8 +74,9 @@ function installInto(module) {
  *     mail/base/content/featureConfigurator.js.  If unspecified, we will
  *     stay on the first pane of the migration assistant.
  *
- * @return The loaded migration assistant window wrapped in a MozmillController
- *     with the contentFrame displaying the appropriate pane.
+ * @return A pair of (the loaded migration assistant window wrapped in a
+ *     MozMillController with the contentFrame displaying the appropriate pane,
+ *     the pane's content window wrapped in a MozMillController).
  */
 function open_migration_assistant(mc, aPane) {
   // Open the migration assistant.
@@ -86,21 +87,16 @@ function open_migration_assistant(mc, aPane) {
     return fc;
 
   // Navigate to the specified pane.
-  let content = fc.e("contentFrame");
-  let url = content.getAttribute("src");
-  while (url.indexOf(aPane) == -1) {
-    prevUrl = url;
-    fc.click(fc.eid("nextButton"));
-    url = content.getAttribute("src");
-
-    // If we didn't change urls, then we've hit the end, and still haven't
-    // found the correct pane, so throw an error.
-    if (url == prevUrl) {
-      close_migration_assistant(fc);
-      throw new Error("Didn't find " + aPane + " in Migration Assistant!");
-    }
+  let index = fc.featureConfigurator.subpages.indexOf(aPane);
+  if (index == -1) {
+    close_migration_assistant(fc);
+    throw new Error("Pane '" + aPane + "' not found in the list of subpages");
   }
-  return fc;
+
+  fc.featureConfigurator.index = index;
+  let panec = wh.wait_for_frame_load(fc.contentFrame,
+                                     function (uri) (uri.spec.indexOf(aPane) != -1));
+  return [fc, panec];
 }
 
 /**
@@ -112,27 +108,4 @@ function close_migration_assistant(fc) {
   wh.plan_for_window_close(fc);
   fc.click(fc.eid("closeButton"));
   wh.wait_for_window_close();
-}
-
-/**
- * Call this to get a MozmillController-wrapped window for the subpage
- * (a.k.a. the contents of the iframe).
- *
- * @param fc the migration assistant window wrapped in a MozmillController.
- *
- * @return The subpage's window wrapped in a MozmillController with the
- *     contentFrame displaying the appropriate pane.
- */
-function get_subpage(fc) {
-  let contentWindow = fc.e("contentFrame").contentWindow;
-  // XXX this is not my fault, but I'm not going to fix it.  just make it less
-  // broken:
-
-  // Lie to mozmill to convince it to not explode because these frames never
-  // get a mozmillDocumentLoaded attribute.
-  contentWindow.mozmillDocumentLoaded = true;
-  // And sleep so the page has a chance to load
-  controller.sleep(1000);
-  let aController = new controller.MozMillController(contentWindow);
-  return wh.augment_controller(aController);
 }

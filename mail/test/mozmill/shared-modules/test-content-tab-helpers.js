@@ -51,7 +51,7 @@ const MODULE_NAME = 'content-tab-helpers';
 const RELATIVE_ROOT = '../shared-modules';
 
 // we need this for the main controller
-const MODULE_REQUIRES = ['folder-display-helpers'];
+const MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
 const NORMAL_TIMEOUT = 6000;
 const FAST_TIMEOUT = 1000;
@@ -59,6 +59,7 @@ const FAST_INTERVAL = 100;
 
 var folderDisplayHelper;
 var mc;
+var wh;
 
 // logHelper (and therefore folderDisplayHelper) exports
 var mark_failure;
@@ -67,6 +68,8 @@ function setupModule() {
   folderDisplayHelper = collector.getModule('folder-display-helpers');
   mc = folderDisplayHelper.mc;
   mark_failure = folderDisplayHelper.mark_failure;
+
+  wh = collector.getModule('window-helpers');
 }
 
 function installInto(module) {
@@ -119,7 +122,7 @@ function open_content_tab_with_url(aURL, aClickHandler, aBackground, aController
   // We append new tabs at the end, so check the last one.
   let expectedNewTab = aController.tabmail.tabInfo[preCount];
   folderDisplayHelper.assert_selected_tab(expectedNewTab);
-  wait_for_content_tab_load(expectedNewTab);
+  wait_for_content_tab_load(expectedNewTab, aURL);
   return expectedNewTab;
 }
 
@@ -129,11 +132,12 @@ function open_content_tab_with_url(aURL, aClickHandler, aBackground, aController
  * the given controller.
  *
  * @param aElem The element to click.
+ * @param aExpectedURL The URL that is expected to be opened (string).
  * @param [aController] The controller the element is associated with. Defaults
  *                      to |mc|.
  * @returns The newly-opened tab.
  */
-function open_content_tab_with_click(aElem, aController) {
+function open_content_tab_with_click(aElem, aExpectedURL, aController) {
   if (aController === undefined)
     aController = mc;
 
@@ -148,7 +152,7 @@ function open_content_tab_with_click(aElem, aController) {
   let expectedNewTab = aController.tabmail.tabInfo[preCount];
   folderDisplayHelper.assert_selected_tab(expectedNewTab);
   folderDisplayHelper.assert_tab_mode_name(expectedNewTab, "contentTab");
-  wait_for_content_tab_load(expectedNewTab);
+  wait_for_content_tab_load(expectedNewTab, aExpectedURL);
   return expectedNewTab;
 }
 
@@ -167,16 +171,17 @@ function plan_for_content_tab_load(aTab) {
 }
 
 /**
- * Waits for the given content tab to load completely. This is expected to be
- * accompanied by a |plan_for_content_tab_load| right before the action
- * triggering the page load takes place.
+ * Waits for the given content tab to load completely with the given URL. This
+ * is expected to be accompanied by a |plan_for_content_tab_load| right before
+ * the action triggering the page load takes place.
  *
  * Note that you cannot call |plan_for_content_tab_load| if you're opening a new
  * tab. That is fine, because pageLoaded is initially false.
  *
  * @param [aTab] optional tab, defaulting to the current tab.
+ * @param aURL The URL being loaded in the tab.
  */
-function wait_for_content_tab_load(aTab) {
+function wait_for_content_tab_load(aTab, aURL) {
   if (aTab === undefined)
     aTab = mc.tabmail.currentTabInfo;
 
@@ -185,10 +190,7 @@ function wait_for_content_tab_load(aTab) {
     if (!aTab.pageLoaded)
       return false;
     // Also require that our tab infrastructure thinks that the page is loaded.
-    if (aTab.busy)
-      return false;
-    // Finally, require that the tab's browser thinks that no page is being loaded.
-    return !(aTab.browser.isLoadingDocument);
+    return (!aTab.busy);
   }
 
   utils.waitFor(isLoadedChecker,
@@ -196,6 +198,8 @@ function wait_for_content_tab_load(aTab) {
   // the above may return immediately, meaning the event queue might not get a
   //  chance.  give it a chance now.
   mc.sleep(0);
+  // Finally, require that the tab's browser thinks that no page is being loaded.
+  wh.wait_for_browser_load(aTab.browser, aURL);
 }
 
 /**

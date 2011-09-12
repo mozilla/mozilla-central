@@ -52,8 +52,7 @@ function test_open_addons_with_url() {
   mc.sleep(0);
 
   let tab = mc.tabmail.currentTabInfo;
-  wait_for_content_tab_load(tab);
-  assert_content_tab_has_url(tab, 'about:addons');
+  wait_for_content_tab_load(tab, 'about:addons');
   assert_true(content_tab_e(tab, 'category-theme').selected,
               "Themes category should be selected!");
 
@@ -63,8 +62,7 @@ function test_open_addons_with_url() {
   mc.sleep(0);
 
   tab = mc.tabmail.currentTabInfo;
-  wait_for_content_tab_load(tab);
-  assert_content_tab_has_url(tab, 'about:addons');
+  wait_for_content_tab_load(tab, 'about:addons');
   assert_true(content_tab_e(tab, 'category-plugin').selected,
               "Plugins category should be selected!");
 }
