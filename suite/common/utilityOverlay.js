@@ -175,6 +175,17 @@ function setProxyTypeUI()
   panel.setAttribute("tooltiptext", gUtilityBundle.getString(onlineTooltip));
 }
 
+function SetStringPref(aPref, aValue)
+{
+  const nsISupportsString = Components.interfaces.nsISupportsString;
+  try {
+    var str = Components.classes["@mozilla.org/supports-string;1"]
+                        .createInstance(nsISupportsString);
+    str.data = aValue;
+    Services.prefs.setComplexValue(aPref, nsISupportsString, str);
+  } catch (e) {}
+}
+
 function GetStringPref(name)
 {
   try {

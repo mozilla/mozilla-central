@@ -120,11 +120,7 @@ function accept()
                                 gOpenAppList.value);
   }
 
-  var str = Components.classes["@mozilla.org/supports-string;1"]
-                      .createInstance(Components.interfaces.nsISupportsString);
-  str.data = gInput.value;
-  Services.prefs.setComplexValue(gLastPref,
-                                 Components.interfaces.nsISupportsString, str);
+  SetStringPref(gLastPref, gInput.value);
 }
 
 function onChooseFile()

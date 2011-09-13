@@ -2208,10 +2208,7 @@ function ChangeLanguage(event)
   if (spellChecker.dictionary != event.target.value)
   {
     spellChecker.dictionary = event.target.value;
-    var str = Components.classes["@mozilla.org/supports-string;1"]
-                        .createInstance(nsISupportsString);
-    str.data = event.target.value;
-    sPrefs.setComplexValue("spellchecker.dictionary", nsISupportsString, str);
+    SetStringPref("spellchecker.dictionary", event.target.value);
 
     // now check the document and the subject over again with the new dictionary
     if (InlineSpellCheckerUI.enabled)
