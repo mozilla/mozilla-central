@@ -248,12 +248,12 @@ function openEventDialog(calendarItem, calendar, mode, callback, job, initialDat
 
     var isItemSupported;
     if (isToDo(calendarItem)) {
-        isItemSupported = function isTodoSupported(cal) {
-            return (cal.getProperty("capabilities.tasks.supported") !== false);
+        isItemSupported = function isTodoSupported(aCalendar) {
+            return (aCalendar.getProperty("capabilities.tasks.supported") !== false);
         };
     } else if (isEvent(calendarItem)) {
-        isItemSupported = function isEventSupported(cal) {
-            return (cal.getProperty("capabilities.events.supported") !== false);
+        isItemSupported = function isEventSupported(aCalendar) {
+            return (aCalendar.getProperty("capabilities.events.supported") !== false);
         };
     }
 

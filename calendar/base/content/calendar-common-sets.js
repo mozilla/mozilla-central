@@ -574,10 +574,10 @@ var calendarController = {
     get all_local_calendars_readonly() {
         // We might want to speed this part up by keeping track of this in the
         // calendar manager.
-        var cals = getCalendarManager().getCalendars({});
-        var count = cals.length;
-        for each (var cal in cals) {
-            if (!isCalendarWritable(cal)) {
+        var calendars = getCalendarManager().getCalendars({});
+        var count = calendars.length;
+        for each (var calendar in calendars) {
+            if (!isCalendarWritable(calendar)) {
                 count--;
             }
         }
@@ -603,9 +603,9 @@ var calendarController = {
         // XXX We might want to cache this
         var calendars = getCalendarManager().getCalendars({});
 
-        for each (var cal in calendars) {
-            if (isCalendarWritable(cal) &&
-                cal.getProperty("capabilities.tasks.supported") !== false) {
+        for each (var calendar in calendars) {
+            if (isCalendarWritable(calendar) &&
+                calendar.getProperty("capabilities.tasks.supported") !== false) {
                 return true;
             }
         }
@@ -621,9 +621,9 @@ var calendarController = {
         // XXX We might want to cache this
         var calendars = getCalendarManager().getCalendars({});
 
-        for each (var cal in calendars) {
-            if (isCalendarWritable(cal) &&
-                cal.getProperty("capabilities.events.supported") !== false) {
+        for each (var calendar in calendars) {
+            if (isCalendarWritable(calendar) &&
+                calendar.getProperty("capabilities.events.supported") !== false) {
                 return true;
             }
         }

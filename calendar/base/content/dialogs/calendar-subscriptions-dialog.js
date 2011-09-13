@@ -130,8 +130,8 @@ function onSearch() {
     richListBox.clear();
 
     var registeredCals = {};
-    for each (var cal in getCalendarManager().getCalendars({})) {
-        registeredCals[cal.id] = true;
+    for each (var calendar in getCalendarManager().getCalendars({})) {
+        registeredCals[calendar.id] = true;
     }
 
     var opListener = {

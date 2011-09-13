@@ -1933,9 +1933,9 @@
         this.calendarView.selectedDay = this.mDate;
 
         // If the selected calendar is readOnly, we don't want any sweeping.
-        let cal = getSelectedCalendar();
-        if (!isCalendarWritable(cal) ||
-            cal.getProperty("capabilities.events.supported") === false) {
+        let calendar = getSelectedCalendar();
+        if (!isCalendarWritable(calendar) ||
+            calendar.getProperty("capabilities.events.supported") === false) {
             return;
         }
 

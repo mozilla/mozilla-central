@@ -65,13 +65,13 @@ var gShowTimeAs = null;
  * Checks if the given calendar supports notifying attendees. The item is needed
  * since calendars may support notifications for only some types of items.
  *
- * @param calendar    The calendar to check
+ * @param aCalendar   The calendar to check
  * @param item        The item to check support for.
  */
-function canNotifyAttendees(calendar, item) {
+function canNotifyAttendees(aCalendar, item) {
     try {
-        var cal = calendar.QueryInterface(Components.interfaces.calISchedulingSupport);
-        return (cal.canNotify("REQUEST", item) && cal.canNotify("CANCEL", item));
+        var calendar = aCalendar.QueryInterface(Components.interfaces.calISchedulingSupport);
+        return (calendar.canNotify("REQUEST", item) && calendar.canNotify("CANCEL", item));
     } catch (exc) {
         return false;
     }

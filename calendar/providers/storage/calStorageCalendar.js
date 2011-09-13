@@ -124,8 +124,8 @@ calStorageCalendar.prototype = {
         throw NS_ERROR_NOT_IMPLEMENTED;
     },
 
-    deleteCalendar: function cSC_deleteCalendar(cal, listener) {
-        cal = cal.wrappedJSObject;
+    deleteCalendar: function cSC_deleteCalendar(aCalendar, listener) {
+        aCalendar = aCalendar.wrappedJSObject;
 
         for each (let stmt in this.mDeleteEventExtras) {
             try {
@@ -168,7 +168,7 @@ calStorageCalendar.prototype = {
 
         try {
             if (listener) {
-                listener.onDeleteCalendar(cal, Components.results.NS_OK, null);
+                listener.onDeleteCalendar(aCalendar, Components.results.NS_OK, null);
             }
         } catch (ex) {
             this.logError("error calling listener.onDeleteCalendar", ex);

@@ -310,25 +310,25 @@ var gDataMigrator = {
             var nodes = aDoc.getElementsByTagNameNS(RDFNS, "Description");
             LOG("nodes: " + nodes.length);
             for (var i = 0; i < nodes.length; i++) {
-                LOG("Beginning cal node");
-                var cal;
+                LOG("Beginning calendar node");
+                var calendar;
                 var node = nodes[i];
                 if (getRDFAttr(node, "remote") == "false") {
                     LOG("not remote");
                     var localFile = Components.classes["@mozilla.org/file/local;1"]
                                     .createInstance(Components.interfaces.nsILocalFile);
                     localFile.initWithPath(getRDFAttr(node, "path"));
-                    cal = gDataMigrator.importICSToStorage(localFile);
+                    calendar = gDataMigrator.importICSToStorage(localFile);
                 } else {
                     // Remote subscription
                     // XXX check for duplicates
                     var url = makeURL(getRDFAttr(node, "remotePath"));
-                    cal = calManager.createCalendar("ics", url);
+                    calendar = calManager.createCalendar("ics", url);
                 }
-                cal.name = getRDFAttr(node, "name");
-                cal.setProperty("color", getRDFAttr(node, "color"));
-                calManager.registerCalendar(cal);
-                getCompositeCalendar().addCalendar(cal);
+                calendar.name = getRDFAttr(node, "name");
+                calendar.setProperty("color", getRDFAttr(node, "color"));
+                calManager.registerCalendar(calendar);
+                getCompositeCalendar().addCalendar(calendar);
             }
             aCallback();
         }
@@ -454,11 +454,11 @@ var gDataMigrator = {
                 convStream.init(stream, 'UTF-8', 0, 0x0000);
                 convStream.writeString(str);
 
-                var cal = gDataMigrator.importICSToStorage(tempFile);
-                cal.name = "iCalendar"+i;
+                var calendar = gDataMigrator.importICSToStorage(tempFile);
+                calendar.name = "iCalendar"+i;
                 i++;
-                calManager.registerCalendar(cal);
-                getCompositeCalendar().addCalendar(cal);
+                calManager.registerCalendar(calendar);
+                getCompositeCalendar().addCalendar(calendar);
             }
             LOG("icalMig making callback");
             aCallback();
@@ -505,10 +505,10 @@ var gDataMigrator = {
             function evoDataMigrate(dataStore) {
                 LOG("Migrating evolution data file in " + dataStore.path);
                 if (dataStore.exists()) {
-                    var cal = gDataMigrator.importICSToStorage(dataStore);
-                    cal.name = "Evolution " + (i++);
-                    calManager.registerCalendar(cal);
-                    getCompositeCalendar().addCalendar(cal);
+                    var calendar = gDataMigrator.importICSToStorage(dataStore);
+                    calendar.name = "Evolution " + (i++);
+                    calManager.registerCalendar(calendar);
+                    getCompositeCalendar().addCalendar(calendar);
                 }
                 return dataStore.exists();
             }
@@ -539,7 +539,7 @@ var gDataMigrator = {
      */
     importICSToStorage: function migrateIcsStorage(icsFile) {
         const uri = 'moz-storage-calendar://';
-        let cal = cal.getCalendarManager().createCalendar("storage", makeURL(uri));
+        let calendar = cal.getCalendarManager().createCalendar("storage", makeURL(uri));
         let icsImporter = Components.classes["@mozilla.org/calendar/import;1?type=ics"]
                                     .getService(Components.interfaces.calIImporter);
 
@@ -563,9 +563,9 @@ var gDataMigrator = {
         }
 
         // Defined in import-export.js
-        putItemsIntoCal(cal, items);
+        putItemsIntoCal(calendar, items);
 
-        return cal;
+        return calendar;
     },
 
     /**

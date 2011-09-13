@@ -91,11 +91,11 @@ calItemBase.prototype = {
     get hashId() {
         if (this.mHashId === null) {
             var rid = this.recurrenceId;
-            var cal = this.calendar;
+            var calendar = this.calendar;
             // some unused delim character:
             this.mHashId = [encodeURIComponent(this.id),
                             rid ? rid.getInTimezone(UTC()).icalString : "",
-                            cal ? encodeURIComponent(cal.id) : ""].join("#");
+                            calendar ? encodeURIComponent(calendar.id) : ""].join("#");
         }
         return this.mHashId;
     },

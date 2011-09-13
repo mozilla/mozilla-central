@@ -561,13 +561,13 @@ calWcapSession.prototype = {
                         }
 
                         if (hasSubscriptions) {
-                            calprops_resp = function(cal) {
-                                if (cal.isDefaultCalendar) {
+                            calprops_resp = function(aCalendar) {
+                                if (aCalendar.isDefaultCalendar) {
                                     // tweak name:
-                                    cal.setProperty("name", cal.displayName);
+                                    aCalendar.setProperty("name", aCalendar.displayName);
                                 } else {
-                                    log("registering subscribed calendar: " + cal.calId, this_);
-                                    cal.getCalendarManager().registerCalendar(cal);
+                                    log("registering subscribed calendar: " + aCalendar.calId, this_);
+                                    cal.getCalendarManager().registerCalendar(aCalendar);
                                 }
                             }
                             // do only once:
@@ -619,17 +619,17 @@ calWcapSession.prototype = {
                     var ar = filterXmlNodes("X-NSCP-CALPROPS-RELATIVE-CALID", node);
                     if (ar.length > 0) {
                         var calId = ar[0];
-                        var cal = cals[calId];
-                        if (cal === null) {
-                            cal = new calWcapCalendar(this_);
+                        let calendar = cals[calId];
+                        if (calendar === null) {
+                            calendar = new calWcapCalendar(this_);
                             var uri = this_.uri.clone();
                             uri.path += ("?calid=" + encodeURIComponent(calId));
-                            cal.uri = uri;
+                            calendar.uri = uri;
                         }
-                        if (cal) {
-                            cal.m_calProps = node;
+                        if (calendar) {
+                            calendar.m_calProps = node;
                             if (respFunc) {
-                                respFunc(cal);
+                                respFunc(calendar);
                             }
                         }
                     }
@@ -669,15 +669,15 @@ calWcapSession.prototype = {
                             if (result.length < 1) {
                                 throw Components.results.NS_ERROR_UNEXPECTED;
                             }
-                            for each (var cal in result) {
+                            for each (let calendar in result) {
                                 // user may have dangling users referred in his subscription list, so
                                 // retrieve each by each, don't break:
                                 try {
-                                    var calId = cal.calId;
+                                    var calId = calendar.calId;
                                     if ((cals[calId] !== undefined) && !retrievedCals[calId]) {
-                                        retrievedCals[calId] = cal;
+                                        retrievedCals[calId] = calendar;
                                         if (respFunc) {
-                                            respFunc(cal);
+                                            respFunc(calendar);
                                         }
                                     }
                                 }
@@ -956,16 +956,16 @@ calWcapSession.prototype = {
                             var ar = filterXmlNodes("X-NSCP-CALPROPS-RELATIVE-CALID", node);
                             if (ar.length > 0) {
                                 var calId = ar[0];
-                                var cal = registeredCalendars[calId];
-                                if (cal) {
-                                    cal.m_calProps = node; // update calprops
+                                let calendar = registeredCalendars[calId];
+                                if (calendar) {
+                                    calendar.m_calProps = node; // update calprops
                                 } else {
-                                    cal = new calWcapCalendar(this_, node);
+                                    calendar = new calWcapCalendar(this_, node);
                                     var uri = this_.uri.clone();
                                     uri.path += ("?calid=" + encodeURIComponent(calId));
-                                    cal.uri = uri;
+                                    calendar.uri = uri;
                                 }
-                                ret.push(cal);
+                                ret.push(calendar);
                             }
                         } catch (exc) {
                             switch (getResultCode(exc)) {
@@ -1100,19 +1100,19 @@ calWcapSession.prototype = {
     // calICalendarManagerObserver:
 
     // called after the calendar is registered
-    onCalendarRegistered: function calWcapSession_onCalendarRegistered(cal) {
+    onCalendarRegistered: function calWcapSession_onCalendarRegistered(aCalendar) {
         try {
             // make sure the calendar belongs to this session:
-            if (this.belongsTo(cal)) {
+            if (this.belongsTo(aCalendar)) {
 
                 function assureDefault(pref, val) {
-                    if (cal.getProperty(pref) === null) {
-                        cal.setProperty(pref, val);
+                    if (aCalendar.getProperty(pref) === null) {
+                        aCalendar.setProperty(pref, val);
                     }
                 }
 
                 assureDefault("shared_context", this.m_contextId);
-                assureDefault("name", cal.name);
+                assureDefault("name", aCalendar.name);
 
                 const s_colors = ["#FFCCCC", "#FFCC99", "#FFFF99", "#FFFFCC", "#99FF99",
                                   "#99FFFF", "#CCFFFF", "#CCCCFF", "#FFCCFF", "#FF6666",
@@ -1135,12 +1135,12 @@ calWcapSession.prototype = {
     },
 
     // called before the unregister actually takes place
-    onCalendarUnregistering: function calWcapSession_onCalendarUnregistering(cal) {
+    onCalendarUnregistering: function calWcapSession_onCalendarUnregistering(aCalendar) {
         try {
             // make sure the calendar belongs to this session and is the default calendar,
             // then remove all subscribed calendars:
-            cal = this.belongsTo(cal);
-            if (cal && cal.isDefaultCalendar) {
+            aCalendar = this.belongsTo(aCalendar);
+            if (aCalendar && aCalendar.isDefaultCalendar) {
                 getFreeBusyService().removeProvider(this);
                 getCalendarSearchService().removeProvider(this);
                 var registeredCalendars = this.getRegisteredCalendars();
@@ -1160,7 +1160,7 @@ calWcapSession.prototype = {
     },
 
     // called before the delete actually takes place
-    onCalendarDeleting: function calWcapSession_onCalendarDeleting(cal) {
+    onCalendarDeleting: function calWcapSession_onCalendarDeleting(aCalendar) {
     }
 };
 

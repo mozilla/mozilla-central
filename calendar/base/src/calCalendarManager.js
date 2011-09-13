@@ -107,8 +107,8 @@ var gCalendarManagerAddonListener = {
         const features = "chrome,titlebar,resizable,modal";
         let calMgr = cal.getCalendarManager();
         let affectedCalendars =
-            [ cal for each (cal in calMgr.getCalendars({}))
-              if (cal.providerID == aAddon.id) ];
+            [ calendar for each (calendar in calMgr.getCalendars({}))
+              if (calendar.providerID == aAddon.id) ];
         if (!affectedCalendars.length) {
             // If no calendars are affected, then everything is fine.
             return true;
@@ -198,8 +198,8 @@ calCalendarManager.prototype = {
     },
 
     shutdown: function ccm_shutdown(aCompleteListener) {
-        for each (var cal in this.mCache) {
-            cal.removeObserver(this.mCalObservers[cal.id]);
+        for each (var calendar in this.mCache) {
+            calendar.removeObserver(this.mCalObservers[calendar.id]);
         }
 
         this.cleanupOfflineObservers();
@@ -251,9 +251,9 @@ calCalendarManager.prototype = {
             case "timer-callback":
                 // Refresh all the calendars that can be refreshed.
                 var cals = this.getCalendars({});
-                for each (var cal in cals) {
-                    if (!cal.getProperty("disabled") && cal.canRefresh) {
-                        cal.refresh();
+                for each (var calendar in cals) {
+                    if (!calendar.getProperty("disabled") && calendar.canRefresh) {
+                        calendar.refresh();
                     }
                 }
                 break;
@@ -788,8 +788,8 @@ calCalendarManager.prototype = {
     getCalendars: function cmgr_getCalendars(count) {
         this.assureCache();
         var calendars = [];
-        for each (var cal in this.mCache) {
-            calendars.push(cal);
+        for each (var calendar in this.mCache) {
+            calendars.push(calendar);
         }
         count.value = calendars.length;
         return calendars;

@@ -72,26 +72,26 @@
             calendars = sortCalendarArray(calendars);
 
             for (var i = 0; i < calendars.length; i++) {
-                var cal = calendars[i];
+                var calendar = calendars[i];
                 var listItem = document.createElement("listitem");
 
                 var colorCell = document.createElement("listcell");
                 try {
-                    var calColor = cal.getProperty('color');
+                    var calColor = calendar.getProperty('color');
                     colorCell.style.background = calColor || "#a8c2e1";
                 } catch(e) {} 
                 listItem.appendChild(colorCell);
 
                 var nameCell = document.createElement("listcell");
-                nameCell.setAttribute("label", cal.name);
+                nameCell.setAttribute("label", calendar.name);
                 listItem.appendChild(nameCell);
 
-                listItem.calendar = cal;
+                listItem.calendar = calendar;
                 listbox.appendChild(listItem);
                 listItem.setAttribute("flex","1");
 
                 // Select the default calendar of the opening calendar window.
-                if (cal.id == composite.defaultCalendar.id) {
+                if (calendar.id == composite.defaultCalendar.id) {
                     selectedIndex = i;
                 }
             }

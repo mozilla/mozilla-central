@@ -97,8 +97,8 @@ calTransactionManager.prototype = {
             if (transaction) {
                 function checkItem(item) {
                     if (item) {
-                        var cal = item.calendar;
-                        if (cal && !isCalendarWritable(cal)) {
+                        var calendar = item.calendar;
+                        if (calendar && !isCalendarWritable(calendar)) {
                             return false;
                         }
                     }

@@ -1383,7 +1383,7 @@ function calWcapCalendar_replayChangesOn(destCal, listener) {
     try {
         var writeListener = {
             onGetResult: function() {},
-            onOperationComplete: function(cal, status, opType, id, detail) {
+            onOperationComplete: function(aCalendar, status, opType, id, detail) {
                 if (!Components.isSuccessCode(status)) {
                     request.execRespFunc(status); // any error on writing breaks whole operation
                 }

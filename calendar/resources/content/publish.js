@@ -66,18 +66,18 @@ function publishCalendarDataDialogResponse(CalendarPublishObject, aProgressDialo
  * publishEntireCalendar
  * Show publish dialog, ask for URL and publish all items from the calendar.
  *
- * @param cal   (optional) The calendar that will be published. If ommitted
- *                         the user will be prompted to select a calendar.
+ * @param aCalendar   (optional) The calendar that will be published. If ommitted
+ *                               the user will be prompted to select a calendar.
  */
-function publishEntireCalendar(cal)
+function publishEntireCalendar(aCalendar)
 {
-    if (!cal) {
+    if (!aCalendar) {
         var count = new Object();
         var calendars = getCalendarManager().getCalendars(count);
 
         if (count.value == 1) {
             // Do not ask user for calendar if only one calendar exists
-            cal = calendars[0];
+            aCalendar = calendars[0];
         } else {
             // Ask user to select the calendar that should be published.
             // publishEntireCalendar() will be called again if OK is pressed
@@ -97,10 +97,10 @@ function publishEntireCalendar(cal)
 
     args.onOk =  self.publishEntireCalendarDialogResponse;
 
-    publishObject.calendar = cal;
+    publishObject.calendar = aCalendar;
 
     // restore the remote ics path preference from the calendar passed in
-    var remotePath = cal.getProperty("remote-ics-path");
+    var remotePath = aCalendar.getProperty("remote-ics-path");
     if (remotePath && remotePath.length && remotePath.length > 0) {
         publishObject.remotePath = remotePath;
     }
