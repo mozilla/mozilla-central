@@ -1286,7 +1286,7 @@ nsAbOSXDirectory::FallbackSearch(nsIAbBooleanExpression *aExpression,
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIAbDirectory> directory;
-  rv = abManager->GetDirectory(nsDependentCString(mURINoQuery), getter_AddRefs(directory));
+  rv = abManager->GetDirectory(mURINoQuery, getter_AddRefs(directory));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Initiate the proxy query with the no query directory
