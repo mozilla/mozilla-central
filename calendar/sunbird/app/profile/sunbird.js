@@ -80,6 +80,10 @@ pref("calendar.previousweeks.inview", 0);
 // Disable use of worker threads. Restart needed.
 pref("calendar.threading.disabled", false);
 
+// Enable support for multiple realms on one server with the payoff that you
+// will get multiple password dialogs (one for each calendar)
+pref("calendar.network.multirealm", false);
+
 // default transparency of allday items; could be switched to e.g. "OPAQUE":
 pref("calendar.allday.defaultTransparency", "TRANSPARENT");
 
