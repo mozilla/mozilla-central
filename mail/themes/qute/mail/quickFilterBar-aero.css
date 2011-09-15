@@ -103,26 +103,19 @@
   }
 }
 
-#quick-filter-bar[filterActive="searching"] {
-  
-}
-#threadTree[filterActive="searching"] {
-  background-color: #ffffcc;
-}
+@media all and (-moz-windows-default-theme) {
+  #threadTree[filterActive="searching"] {
+    background-color: #ffffcc;
+  }
 
-#quick-filter-bar[filterActive="matches"] {
-  
-}
-#threadTree[filterActive="matches"] {
-  background-color: #f2f9fc;
-}
+  #threadTree[filterActive="matches"] {
+    background-color: #f2f9fc;
+  }
 
-#quick-filter-bar[filterActive="nomatches"] {
-  
-}
-#threadTree[filterActive="nomatches"] {
-  background: -moz-repeating-linear-gradient(top left -45deg, #fff0f4,
-              #fff0f4 5px, white 5px, white 10px);
+  #threadTree[filterActive="nomatches"] {
+    background: -moz-repeating-linear-gradient(top left -45deg, #fff0f4,
+                #fff0f4 5px, white 5px, white 10px);
+  }
 }
 
 /* :::: Filter Buttons :::: */
