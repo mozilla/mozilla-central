@@ -148,16 +148,12 @@ function InitProxyMenu()
     networkProxyPac.setAttribute("disabled", "true");
   }
 
-  var networkProxyType;
-  try {
-    networkProxyType = Services.prefs.getIntPref("network.proxy.type");
-  } catch(e) {}
-
   // The pref value 3 for network.proxy.type is unused to maintain
   // backwards compatibility. Treat 3 equally to 0. See bug 115720.
   var networkProxyStatus = [networkProxyNo, networkProxyManual, networkProxyPac,
                             networkProxyNo, networkProxyWpad,
                             networkProxySystem];
+  var networkProxyType = GetIntPref("network.proxy.type", 0);
   networkProxyStatus[networkProxyType].setAttribute("checked", "true");
 }
 
@@ -167,11 +163,7 @@ function setProxyTypeUI()
   if (!panel)
     return;
 
-  try {
-    var networkProxyType = Services.prefs.getIntPref("network.proxy.type");
-  } catch(e) {}
-
-  var onlineTooltip = "onlineTooltip" + networkProxyType;
+  var onlineTooltip = "onlineTooltip" + GetIntPref("network.proxy.type", 0);
   panel.setAttribute("tooltiptext", gUtilityBundle.getString(onlineTooltip));
 }
 
@@ -246,11 +238,8 @@ function setOfflineUI(offline)
 
   // Checking for a preference "network.online", if it's locked, disabling
   // network icon and menu item
-  var offlineLocked = Services.prefs.prefIsLocked("network.online");
-
-  if (offlineLocked ) {
-      broadcaster.setAttribute("disabled","true");
-  }
+  if (Services.prefs.prefIsLocked("network.online"))
+    broadcaster.setAttribute("disabled", "true");
 
   if (offline)
     {
@@ -264,11 +253,7 @@ function setOfflineUI(offline)
       broadcaster.removeAttribute("offline");
       broadcaster.removeAttribute("checked");
       panel.setAttribute("context", "networkProperties");
-      try {
-        var networkProxyType = Services.prefs.getIntPref("network.proxy.type");
-      } catch(e) {}
-      var onlineTooltip = "onlineTooltip" + networkProxyType;
-      panel.setAttribute("tooltiptext", gUtilityBundle.getString(onlineTooltip));
+      setProxyTypeUI();
     }
 }
 
@@ -1296,6 +1281,16 @@ function getBoolPref(prefname, def)
   catch (er) {
     return def;
   }
+}
+
+function GetIntPref(aPrefName, aDefaultValue)
+{
+  try {
+    return Services.prefs.getIntPref(aPrefName);
+  } catch (e) {
+    Components.utils.reportError("Couldn't get " + aPrefName + " pref: " + e);
+  }
+  return aDefaultValue;
 }
 
 // openUILink handles clicks on UI elements that cause URLs to load.
