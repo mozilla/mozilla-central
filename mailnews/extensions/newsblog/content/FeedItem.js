@@ -414,10 +414,19 @@ function FeedEnclosure(aURL, aContentType, aLength)
   {
     var ioService = Components.classes["@mozilla.org/network/io-service;1"]
                               .getService(Components.interfaces.nsIIOService);
-    var enclosureURL  = ioService.newURI(this.mURL, null, null)
-                                 .QueryInterface(Components.interfaces.nsIURL);
-    if (enclosureURL)
-      this.mFileName = enclosureURL.fileName;
+    var enclosureURL, fileName;
+    try
+    {
+      enclosureURL  = ioService.newURI(this.mURL, null, null)
+                               .QueryInterface(Components.interfaces.nsIURL);
+      fileName = enclosureURL.fileName;
+    }
+    catch(ex)
+    {
+      fileName = this.mURL;
+    }
+    if (fileName)
+      this.mFileName = fileName;
   }
 }
 
