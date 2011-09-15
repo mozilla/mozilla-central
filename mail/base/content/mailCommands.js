@@ -146,7 +146,8 @@ function getIdentityForHeader(hdr, type)
       for each (var tempID in fixIterator(allIdentities,
                 Components.interfaces.nsIMsgIdentity)) {
         // If the deliver-to header contains the defined identity
-        if (deliveredTos[i].indexOf(tempID.email.toLowerCase()) != -1) {
+        if (tempID.email &&
+            deliveredTos[i].indexOf(tempID.email.toLowerCase()) != -1) {
           hintForIdentity = tempID.email;
           break;
         }
