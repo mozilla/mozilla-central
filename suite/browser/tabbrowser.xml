@@ -886,9 +886,10 @@
             this.mProgressListeners.forEach(
               function notifyUrlBar(element) {
                 try {
-                  element.onLocationChange(aWebProgress, aRequest, aLocation);
+                  if ("onLocationChange" in element)
+                    element.onLocationChange(aWebProgress, aRequest, aLocation);
                   // If switching tabs, the security may have changed.
-                  if (aSecurityUI)
+                  if (aSecurityUI && "onSecurityChange" in element)
                     element.onSecurityChange(aWebProgress, null, aSecurityUI.state);
                   // If the document already exists, just resend cached data.
                   if (!aRequest && aWebProgress.DOMWindow == aBrowser.contentWindow) {
