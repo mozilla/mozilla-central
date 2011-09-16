@@ -141,7 +141,7 @@ calIcsParser.prototype = {
                 if (Components.classes["@mozilla.org/alerts-service;1"]) {
                     let notifier = Components.classes["@mozilla.org/alerts-service;1"]
                                              .getService(Components.interfaces.nsIAlertsService);
-                    let title = calGetString("calendar", "TimezoneErrorsAlertTitle")
+                    let title = calGetString("calendar", "TimezoneErrorsAlertTitle");
                     let text = calGetString("calendar", "TimezoneErrorsSeeConsole");
                     notifier.showAlertNotification("", title, text, false, null, null, title);
                 }
