@@ -639,6 +639,10 @@ daypicker-monthday {
     list-style-image: url(chrome://calendar/skin/abcard.png);
 }
 
+.status-icon > .menu-iconic-left {
+    visibility: inherit;
+}
+
 .status-icon {
     margin: 0 3px;
     list-style-image: url("chrome://calendar/skin/calendar-event-dialog-attendees.png");
