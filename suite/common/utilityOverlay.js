@@ -1115,16 +1115,12 @@ function BrowserOnCommand(event)
     if (ot.getAttribute('anonid') == 'exceptionDialogButton') {
       var params = { exceptionAdded : false };
 
-      try {
-        switch (Services.prefs.getIntPref("browser.ssl_override_behavior")) {
-          case 2 : // Pre-fetch & pre-populate.
-            params.prefetchCert = true;
-            // Fall through.
-          case 1 : // Pre-populate.
-            params.location = ownerDoc.location.href;
-        }
-      } catch (e) {
-        Components.utils.reportError("Couldn't get ssl_override pref: " + e);
+      switch (GetIntPref("browser.ssl_override_behavior", 2)) {
+        case 2 : // Pre-fetch & pre-populate.
+          params.prefetchCert = true;
+          // Fall through.
+        case 1 : // Pre-populate.
+          params.location = ownerDoc.location.href;
       }
 
       window.openDialog('chrome://pippki/content/exceptionDialog.xul',

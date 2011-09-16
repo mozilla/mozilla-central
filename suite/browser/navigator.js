@@ -615,23 +615,19 @@ function Startup()
     if (window.arguments[0]) {
       uriArray = window.arguments[0].toString().split('\n'); // stringify and split
     } else {
-      try {
-        switch (Services.prefs.getIntPref("browser.windows.loadOnNewWindow"))
-        {
-          default:
-            uriArray = ["about:blank"];
-            break;
-          case 1:
-            uriArray = getHomePage();
-            break;
-          case 2:
-            var history = Components.classes["@mozilla.org/browser/global-history;2"]
-                                    .getService(Components.interfaces.nsIBrowserHistory);
-            uriArray = [history.lastPageVisited];
-            break;
-        }
-      } catch(e) {
-        uriArray = ["about:blank"];
+      switch (GetIntPref("browser.windows.loadOnNewWindow", 0))
+      {
+        default:
+          uriArray = ["about:blank"];
+          break;
+        case 1:
+          uriArray = getHomePage();
+          break;
+        case 2:
+          var history = Components.classes["@mozilla.org/browser/global-history;2"]
+                                  .getService(Components.interfaces.nsIBrowserHistory);
+          uriArray = [history.lastPageVisited];
+          break;
       }
     }
     uriToLoad = uriArray.splice(0, 1)[0];
@@ -1354,24 +1350,20 @@ function BrowserOpenTab()
 {
   if (!gInPrintPreviewMode) {
     var uriToLoad;
-    try {
-      switch ( Services.prefs.getIntPref("browser.tabs.loadOnNewTab") )
-      {
-        default:
-          uriToLoad = "about:blank";
-          break;
-        case 1:
-          uriToLoad = GetLocalizedStringPref("browser.startup.homepage");
-          break;
-        case 2:
-          uriToLoad = gBrowser ? getWebNavigation().currentURI.spec
-                               : Components.classes["@mozilla.org/browser/global-history;2"]
-                                           .getService(Components.interfaces.nsIBrowserHistory)
-                                           .lastPageVisited;
-          break;
-      }
-    } catch(e) {
-      uriToLoad = "about:blank";
+    switch (GetIntPref("browser.tabs.loadOnNewTab", 0))
+    {
+      default:
+        uriToLoad = "about:blank";
+        break;
+      case 1:
+        uriToLoad = GetLocalizedStringPref("browser.startup.homepage");
+        break;
+      case 2:
+        uriToLoad = gBrowser ? getWebNavigation().currentURI.spec
+                             : Components.classes["@mozilla.org/browser/global-history;2"]
+                                         .getService(Components.interfaces.nsIBrowserHistory)
+                                         .lastPageVisited;
+        break;
     }
 
     // Open a new window if someone requests a new tab when no browser window is open
@@ -1410,12 +1402,7 @@ function selectFileToOpen(label, prefRoot)
   const lastDirPref = prefRoot + "dir";
 
   // use a pref to remember the filterIndex selected by the user.
-  var index = 0;
-  try {
-    index = Services.prefs.getIntPref(filterIndexPref);
-  } catch (ex) {
-  }
-  fp.filterIndex = index;
+  fp.filterIndex = GetIntPref(filterIndexPref, 0);
 
   // use a pref to remember the displayDirectory selected by the user.
   try {

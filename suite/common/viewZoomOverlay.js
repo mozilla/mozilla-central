@@ -143,11 +143,7 @@ var FullZoom = {
     pref += ".action";
 
     // Don't do anything if this isn't a "zoom" scroll event.
-    var isZoomEvent = false;
-    try {
-      isZoomEvent = (Services.prefs.getIntPref(pref) == MOUSE_SCROLL_ZOOM);
-    } catch (e) {}
-    if (!isZoomEvent)
+    if (GetIntPref(pref, 0) != MOUSE_SCROLL_ZOOM)
       return;
 
     // XXX Lazily cache all the possible action prefs so we don't have to get
