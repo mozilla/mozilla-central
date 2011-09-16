@@ -37,7 +37,7 @@
 
 #include <tchar.h>
 #include "nscore.h"
-#include "nsOE5File.cpp"
+#include "nsOE5File.h"
 #include "wabobject.h"
 
 enum {
