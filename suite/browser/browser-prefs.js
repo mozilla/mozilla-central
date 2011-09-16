@@ -284,6 +284,11 @@ pref("browser.tabs.tabClipWidth", 140);
 // 3  at the end of the tabstrip
 pref("browser.tabs.closeButtons", 3);
 
+// Mouse wheel action when over the tab bar:
+// false  The mouse wheel scrolls the whole tab bar like Firefox (default).
+// true   The mouse wheel advances the selected tab.
+pref("browser.tabs.mouseScrollAdvancesTab", false);
+
 // lets new tab/window load something different than first window
 // -1 - use navigator startup preference
 //  0 - loads blank page
@@ -728,6 +733,12 @@ pref("toolbar.customization.usesheet", true);
 #ifdef XP_UNIX
 // For the download dialog
 pref("browser.download.progressDnldDialog.enable_launch_reveal_buttons", false);
+
+// Mouse wheel action when over the tab bar:
+// false  The mouse wheel scrolls the whole tab bar like Firefox.
+// true   The mouse wheel advances the selected tab.
+pref("browser.tabs.mouseScrollAdvancesTab", true);
+
 pref("browser.urlbar.clickSelectsAll", false);
 
 // 0 goes back
