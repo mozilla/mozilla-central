@@ -161,44 +161,44 @@ var ltnImipBar = {
     },
 
     executeAction: function ltnExecAction(partStat) {
-        cal.itip.promptCalendar(ltnImipBar.actionFunc.method, ltnImipBar.itipItem, window);
+        if (cal.itip.promptCalendar(ltnImipBar.actionFunc.method, ltnImipBar.itipItem, window)) {
+            // hide the buttons now, to disable pressing them twice...
+            hideElement("imip-button1");
+            hideElement("imip-button2");
+            hideElement("imip-button3");
 
-        // hide the buttons now, to disable pressing them twice...
-        hideElement("imip-button1");
-        hideElement("imip-button2");
-        hideElement("imip-button3");
+            let opListener = {
+                onOperationComplete: function ltnItipActionListener_onOperationComplete(aCalendar,
+                                                                                        aStatus,
+                                                                                        aOperationType,
+                                                                                        aId,
+                                                                                        aDetail) {
+                    // For now, we just state the status for the user something very simple
+                    let imipBar = document.getElementById("imip-bar");
+                    let label = cal.itip.getCompleteText(aStatus, aOperationType);
+                    imipBar.setAttribute("label", label);
 
-        let opListener = {
-            onOperationComplete: function ltnItipActionListener_onOperationComplete(aCalendar,
-                                                                                    aStatus,
-                                                                                    aOperationType,
-                                                                                    aId,
-                                                                                    aDetail) {
-                // For now, we just state the status for the user something very simple
-                let imipBar = document.getElementById("imip-bar");
-                let label = cal.itip.getCompleteText(aStatus, aOperationType);
-                imipBar.setAttribute("label", label);
-
-                if (!Components.isSuccessCode(aStatus)) {
-                  showError(label);
+                    if (!Components.isSuccessCode(aStatus)) {
+                        showError(label);
+                    }
+                },
+                onGetResult: function ltnItipActionListener_onGetResult(aCalendar,
+                                                                        aStatus,
+                                                                        aItemType,
+                                                                        aDetail,
+                                                                        aCount,
+                                                                        aItems) {
                 }
-            },
-            onGetResult: function ltnItipActionListener_onGetResult(aCalendar,
-                                                                    aStatus,
-                                                                    aItemType,
-                                                                    aDetail,
-                                                                    aCount,
-                                                                    aItems) {
+            };
+
+            try {
+                ltnImipBar.actionFunc(opListener, partStat);
+            } catch (exc) {
+                Components.utils.reportError(exc);
             }
-        };
-
-        try {
-            ltnImipBar.actionFunc(opListener, partStat);
-        } catch (exc) {
-            Components.utils.reportError(exc);
+            return true;
         }
-
-        return true;
+        return false;
     }
 };
 

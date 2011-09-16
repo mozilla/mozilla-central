@@ -420,9 +420,12 @@ cal.itip = {
      * @param aMethod       The method to check.
      * @param aItipItem     The itip item to set the target calendar on.
      * @param aWindow       The window to open the dialog on.
+     * @return              True, if a calendar was selected or no selection is
+     *                        needed.
      */
     promptCalendar: function promptCalendar(aMethod, aItipItem, aWindow) {
         let needsCalendar = false;
+        let targetCalendar = null;
         switch (aMethod) {
             // methods that don't require the calendar chooser:
             case "REFRESH":
@@ -439,7 +442,6 @@ cal.itip = {
         }
 
         if (needsCalendar) {
-            let targetCalendar = null;
             let calendars = cal.getCalendarManager().getCalendars({}).filter(cal.itip.isSchedulingCalendar);
 
             if (aItipItem.receivedMethod == "REQUEST") {
@@ -478,6 +480,8 @@ cal.itip = {
               aItipItem.targetCalendar = targetCalendar;
             }
         }
+
+        return (!needsCalendar || targetCalendar != null);
     },
 
     /**
