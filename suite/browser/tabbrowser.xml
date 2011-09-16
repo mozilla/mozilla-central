@@ -509,6 +509,8 @@
                   this.mBlank = false;
 
                 this.mTab.removeAttribute("busy");
+                if (!this.mTab.selected)
+                  this.mTab.setAttribute("unread", "true");
 
                 var location = this.mBrowser.currentURI;
                 if (this.mBrowser.mIconURL) {
@@ -1051,6 +1053,7 @@
             newBrowser.docShell.isActive = true;
             this.mCurrentBrowser = newBrowser;
             this.mCurrentTab = this.selectedTab;
+            this.mCurrentTab.removeAttribute("unread");
             var tabListener = this.mTabListeners[this.tabContainer.selectedIndex];
 
             // Update the URL bar.
