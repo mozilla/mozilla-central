@@ -199,10 +199,8 @@ function openDownload(aDownload)
   var file = aDownload.targetFile;
 
   if (file.isExecutable()) {
-    var alertOnEXEOpen = true;
-    try {
-      alertOnEXEOpen = gPrefService.getBoolPref("browser.download.manager.alertOnEXEOpen");
-    } catch (e) { }
+    var alertOnEXEOpen = GetBoolPref("browser.download.manager.alertOnEXEOpen",
+                                     true);
 
     // On Vista and above, we rely on native security prompting for
     // downloaded content unless it's disabled.

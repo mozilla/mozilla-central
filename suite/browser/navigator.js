@@ -910,7 +910,7 @@ function OpenSessionHistoryIn(aWhere, aDelta, aTab)
                       .getService(Components.interfaces.nsISessionStore)
                       .duplicateTab(win, aTab, aDelta, true);
 
-  var loadInBackground = getBoolPref("browser.tabs.loadInBackground", false);
+  var loadInBackground = GetBoolPref("browser.tabs.loadInBackground", false);
 
   switch (aWhere) {
   case "tabfocused":
@@ -1231,11 +1231,7 @@ const BrowserSearch = {
     }
 
     // should we try and open up the sidebar to show the "Search Results" panel?
-    var autoOpenSidebar = false;
-    try {
-      autoOpenSidebar = Services.prefs.getBoolPref("browser.search.opensidebarsearchpanel");
-    } catch (e) {}
-    if (autoOpenSidebar)
+    if (GetBoolPref("browser.search.opensidebarsearchpanel", false))
       this.revealSidebar();
   },
 
@@ -1636,11 +1632,7 @@ function handleURLBarCommand(aUserAction, aTriggeringEvent)
     // Option       | Shift       | Save URL (show Filepicker)
 
     // If false, the save modifier is Alt, which is Option on Mac.
-    var modifierIsShift = true;
-    try {
-      modifierIsShift = Services.prefs.getBoolPref("ui.key.saveLink.shift");
-    }
-    catch (ex) {}
+    var modifierIsShift = GetBoolPref("ui.key.saveLink.shift", true);
 
     var shiftPressed = false;
     var saveModifier = false; // if the save modifier was pressed
@@ -1659,13 +1651,7 @@ function handleURLBarCommand(aUserAction, aTriggeringEvent)
         (('ctrlKey' in aTriggeringEvent && aTriggeringEvent.ctrlKey) ||
          ('metaKey' in aTriggeringEvent && aTriggeringEvent.metaKey))) {
       // Check if user requests Tabs instead of windows
-      var openTab = false;
-      try {
-        openTab = Services.prefs.getBoolPref("browser.tabs.opentabfor.urlbar");
-      }
-      catch (ex) {}
-
-      if (openTab) {
+      if (GetBoolPref("browser.tabs.opentabfor.urlbar", false)) {
         // Open link in new tab
         var t = browser.addTab(url, {allowThirdPartyFixup: true, postData: postData.value});
 

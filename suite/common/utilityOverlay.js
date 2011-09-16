@@ -321,7 +321,7 @@ function goCustomizeToolbar(toolbox)
 
   var customizeURL = "chrome://global/content/customizeToolbar.xul";
 
-  gCustomizeSheet = getBoolPref("toolbar.customization.usesheet", false);
+  gCustomizeSheet = GetBoolPref("toolbar.customization.usesheet", false);
 
   if (gCustomizeSheet) {
     var sheetFrame = document.getElementById("customizeToolbarSheetIFrame");
@@ -1273,14 +1273,12 @@ function closeMenus(node)
   }
 }
 
-function getBoolPref(prefname, def)
+function GetBoolPref(aPrefName, aDefaultValue)
 {
   try {
-    return Services.prefs.getBoolPref(prefname);
-  }
-  catch (er) {
-    return def;
-  }
+    return Services.prefs.getBoolPref(aPrefName);
+  } catch (e) {}
+  return aDefaultValue;
 }
 
 function GetIntPref(aPrefName, aDefaultValue)
@@ -1329,16 +1327,15 @@ function whereToOpenLink(e, ignoreButton, ignoreSave, ignoreBackground)
   var middle = !ignoreButton && e.button == 1;
 
   if (meta || ctrl || middle) {
-    if (getBoolPref("browser.tabs.opentabfor.middleclick", true))
+    if (GetBoolPref("browser.tabs.opentabfor.middleclick", true))
       return ignoreBackground ? "tabfocused" : shift ? "tabshifted" : "tab";
-    if (getBoolPref("middlemouse.openNewWindow", true))
+    if (GetBoolPref("middlemouse.openNewWindow", true))
       return "window";
     if (middle)
       return null;
   }
   if (!ignoreSave) {
-    var saveKey = getBoolPref("ui.key.saveLink.shift", true) ? shift : alt;
-    if (saveKey)
+    if (GetBoolPref("ui.key.saveLink.shift", true) ? shift : alt)
       return "save";
   }
   if (alt || shift || meta || ctrl)
@@ -1395,7 +1392,7 @@ function openUILinkIn(url, where, aAllowThirdPartyFixup, aPostData, aReferrerURI
                              null, null, aPostData, aAllowThirdPartyFixup);
   }
 
-  var loadInBackground = getBoolPref("browser.tabs.loadInBackground", false);
+  var loadInBackground = GetBoolPref("browser.tabs.loadInBackground", false);
 
   // reuse the browser if its current tab is empty
   if (isBrowserEmpty(w.getBrowser()))
@@ -1452,7 +1449,7 @@ function openUILinkArrayIn(urlArray, where, allowThirdPartyFixup)
                              null, null, null, allowThirdPartyFixup);
   }
 
-  var loadInBackground = getBoolPref("browser.tabs.loadInBackground", false);
+  var loadInBackground = GetBoolPref("browser.tabs.loadInBackground", false);
 
   var browser = w.getBrowser();
   switch (where) {
