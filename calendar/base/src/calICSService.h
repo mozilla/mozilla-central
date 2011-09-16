@@ -42,6 +42,7 @@
 #include "calIICSService.h"
 #include "calITimezoneProvider.h"
 #include "nsInterfaceHashtable.h"
+#include "nsThreadUtils.h"
 #include "calUtils.h"
 
 extern "C" {
@@ -52,6 +53,42 @@ class calICSService : public calIICSService,
                       public nsIClassInfo,
                       public cal::XpcomBase
 {
+protected:
+    class ParserWorker : public nsRunnable {
+    public:
+      ParserWorker(nsIThread *callingThread,
+                   const nsACString &icsString,
+                   calITimezoneProvider *tzProvider,
+                   calIIcsComponentParsingListener *listener) :
+        mString(icsString), mProvider(tzProvider),
+         mListener(listener), mThread(callingThread)
+      {
+      }
+
+      NS_DECL_NSIRUNNABLE
+
+    protected:
+      nsCString mString;
+      nsCOMPtr<calITimezoneProvider> mProvider;
+      nsCOMPtr<calIIcsComponentParsingListener> mListener;
+      nsCOMPtr<nsIThread> mThread;
+
+      class ParserWorkerCompleter : public nsRunnable {
+      public:
+        ParserWorkerCompleter(nsresult status,
+                              calIIcalComponent *component,
+                              calIIcsComponentParsingListener *listener) :
+          mListener(listener), mComp(component), mStatus(status)
+        {
+        }
+
+        NS_DECL_NSIRUNNABLE
+      protected:
+        nsCOMPtr<calIIcsComponentParsingListener> mListener;
+        nsCOMPtr<calIIcalComponent> mComp;
+        nsresult mStatus;
+      };
+    };
 public:
     calICSService();
 
@@ -104,7 +141,7 @@ public:
     calIcalComponent(icaltimezone * icaltz, icalcomponent * ical) : mComponent(ical), mTimezone(icaltz) {
         mReferencedTimezones.Init();
     }
-    
+
     NS_DECL_ISUPPORTS
     NS_DECL_NSICLASSINFO
     NS_DECL_CALIICALCOMPONENT

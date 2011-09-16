@@ -70,14 +70,14 @@ calIcsParser.prototype = {
     flags: Components.interfaces.nsIClassInfo.THREADSAFE,
 
     QueryInterface: function ip_QueryInterface(aIID) {
-        return doQueryInterface(this, calIcsParser.prototype, aIID, null, this);
+        return cal.doQueryInterface(this, calIcsParser.prototype, aIID, null, this);
     },
 
-    processIcalComponent: function ip_processIcalComponent(rootComp) {
+    processIcalComponent: function ip_processIcalComponent(rootComp, aAsyncParsing) {
         let calComp;
         // libical returns the vcalendar component if there is just one vcalendar.
         // If there are multiple vcalendars, it returns an xroot component, with
-        // those vcalendar children. We need to handle both.
+        // vcalendar children. We need to handle both cases.
         if (rootComp) {
             if (rootComp.componentType == 'VCALENDAR') {
                 calComp = rootComp;
@@ -87,157 +87,97 @@ calIcsParser.prototype = {
         }
 
         if (!calComp) {
-            cal.ERROR("Parser Error. Could not find 'VCALENDAR' component in: \n" + rootComp + "\nStack: \n" + cal.STACK(10));
+            cal.ERROR("Parser Error. Could not find 'VCALENDAR' component: \n" +
+                      rootComp + "\nStack: \n" + cal.STACK(10));
         }
 
-        let uid2parent = {};
-        let excItems = [];
-        let fakedParents = {};
-
-        let tzErrors = {};
-        function checkTimezone(item, dt) {
-            if (dt && cal.isPhantomTimezone(dt.timezone)) {
-                let tzid = dt.timezone.tzid;
-                let hid = item.hashId + "#" + tzid;
-                if (tzErrors[hid] === undefined) {
-                    // For now, publish errors to console and alert user.
-                    // In future, maybe make them available through an interface method
-                    // so this UI code can be removed from the parser, and caller can
-                    // choose whether to alert, or show user the problem items and ask
-                    // for fixes, or something else.
-                    let msg = (calGetString("calendar", "unknownTimezoneInItem",
-                                            [tzid, item.title, cal.getDateFormatter().formatDateTime(dt)]) +
-                               "\n" + item.icalString);
-                    cal.ERROR(msg);
-                    tzErrors[hid] = true;
-                }
-            }
-        }
+        let self = this;
+        let state = new parserState(this, aAsyncParsing);
 
         while (calComp) {
-
-            // Get unknown properties
-            this.mProperties = [ prop for (prop in cal.ical.propertyIterator(calComp))
-                                      if (prop.propertyName != "VERSION" &&
-                                          prop.propertyName != "PRODID") ];
-
-            let prodId = calComp.getFirstProperty("PRODID");
-            let isFromOldSunbird = (prodId && prodId.value == "-//Mozilla.org/NONSGML Mozilla Calendar V1.0//EN");
+            // Get unknown properties from the VCALENDAR
+            this.mProperties = this.mProperties.concat(
+                [ prop for (prop in cal.ical.propertyIterator(calComp))
+                        if (prop.propertyName != "VERSION" &&
+                            prop.propertyName != "PRODID") ]);
 
             for (let subComp in cal.ical.subcomponentIterator(calComp)) {
-                let item = null;
-                switch (subComp.componentType) {
-                    case "VEVENT":
-                        item = cal.createEvent();
-                        item.icalComponent = subComp;
-                        checkTimezone(item, item.startDate);
-                        checkTimezone(item, item.endDate);
-                        break;
-                    case "VTODO":
-                        item = cal.createTodo();
-                        item.icalComponent = subComp;
-                        checkTimezone(item, item.entryDate);
-                        checkTimezone(item, item.dueDate);
-                        // completed is defined to be in UTC
-                        break;
-                    case "VTIMEZONE":
-                        // this should already be attached to the relevant
-                        // events in the calendar, so there's no need to
-                        // do anything with it here.
-                        break;
-                    default:
-                        this.mComponents.push(subComp);
-                        break;
-                }
-
-                if (item) {
-                    // Only try to fix ICS from Sunbird 0.2 (and earlier) if it
-                    // has an EXDATE.
-                    let hasExdate = subComp.getFirstProperty("EXDATE");
-                    if (isFromOldSunbird && hasExdate) {
-                        item = fixOldSunbirdExceptions(item);
-                    }
-
-                    let rid = item.recurrenceId;
-                    if (!rid) {
-                        this.mItems.push(item);
-                        if (item.recurrenceInfo) {
-                            uid2parent[item.id] = item;
-                        }
-                    } else {
-                        excItems.push(item);
-                    }
-                }
+                state.submit(subComp);
             }
             calComp = rootComp.getNextSubcomponent("VCALENDAR");
         }
 
-        // tag "exceptions", i.e. items with rid:
-        for each (let item in excItems) {
-            let parent = uid2parent[item.id];
+        state.join(function() {
+            let fakedParents = {};
+            // tag "exceptions", i.e. items with rid:
+            for each (let item in state.excItems) {
+                let parent = state.uid2parent[item.id];
 
-            if (!parent) { // a parentless one, fake a master and override it's occurrence
-                parent = isEvent(item) ? createEvent() : createTodo();
-                parent.id = item.id;
-                parent.setProperty("DTSTART", item.recurrenceId);
-                parent.setProperty("X-MOZ-FAKED-MASTER", "1"); // this tag might be useful in the future
-                parent.recurrenceInfo = cal.createRecurrenceInfo(parent);
-                fakedParents[item.id] = true;
-                uid2parent[item.id] = parent;
-                this.mItems.push(parent);
-            }
-            if (item.id in fakedParents) {
-                let rdate = Components.classes["@mozilla.org/calendar/recurrence-date;1"]
-                                      .createInstance(Components.interfaces.calIRecurrenceDate);
-                rdate.date = item.recurrenceId;
-                parent.recurrenceInfo.appendRecurrenceItem(rdate);
-                // we'll keep the parentless-API until we switch over using itip-process for import (e.g. in dnd code)
-                this.mParentlessItems.push(item);
+                if (!parent) { // a parentless one, fake a master and override it's occurrence
+                    parent = isEvent(item) ? createEvent() : createTodo();
+                    parent.id = item.id;
+                    parent.setProperty("DTSTART", item.recurrenceId);
+                    parent.setProperty("X-MOZ-FAKED-MASTER", "1"); // this tag might be useful in the future
+                    parent.recurrenceInfo = cal.createRecurrenceInfo(parent);
+                    fakedParents[item.id] = true;
+                    state.uid2parent[item.id] = parent;
+                    state.items.push(parent);
+                }
+                if (item.id in fakedParents) {
+                    let rdate = Components.classes["@mozilla.org/calendar/recurrence-date;1"]
+                                          .createInstance(Components.interfaces.calIRecurrenceDate);
+                    rdate.date = item.recurrenceId;
+                    parent.recurrenceInfo.appendRecurrenceItem(rdate);
+                    // we'll keep the parentless-API until we switch over using itip-process for import (e.g. in dnd code)
+                    self.mParentlessItems.push(item);
+                }
+
+                parent.recurrenceInfo.modifyException(item, true);
             }
 
-            parent.recurrenceInfo.modifyException(item, true);
-        }
-
-        for (let e in tzErrors) { // if any error has occurred
-            // Use an alert rather than a prompt because problems may appear in
-            // remote subscribed calendars the user cannot change.
-            if (Components.classes["@mozilla.org/alerts-service;1"]) {
-                let notifier = Components.classes["@mozilla.org/alerts-service;1"]
-                                         .getService(Components.interfaces.nsIAlertsService);
-                let title = calGetString("calendar", "TimezoneErrorsAlertTitle")
-                let text = calGetString("calendar", "TimezoneErrorsSeeConsole");
-                notifier.showAlertNotification("", title, text, false, null, null, title);
+            if (Object.keys(state.tzErrors).length > 0) {
+                // Use an alert rather than a prompt because problems may appear in
+                // remote subscribed calendars the user cannot change.
+                if (Components.classes["@mozilla.org/alerts-service;1"]) {
+                    let notifier = Components.classes["@mozilla.org/alerts-service;1"]
+                                             .getService(Components.interfaces.nsIAlertsService);
+                    let title = calGetString("calendar", "TimezoneErrorsAlertTitle")
+                    let text = calGetString("calendar", "TimezoneErrorsSeeConsole");
+                    notifier.showAlertNotification("", title, text, false, null, null, title);
+                }
             }
-            break;
-        }
+
+            // We are done, push the items to the parser and notify the listener
+            self.mItems = self.mItems.concat(state.items);
+            self.mComponents = self.mComponents.concat(state.extraComponents);
+
+            if (aAsyncParsing) {
+                aAsyncParsing.onParsingComplete(Components.results.NS_OK, self);
+            }
+        });
     },
 
     parseString: function ip_parseString(aICSString, aTzProvider, aAsyncParsing) {
         if (aAsyncParsing) {
-            let this_ = this;
-            let rootComp = null;
+            let self = this;
 
-            let wf = Components.classes["@mozilla.org/threads/workerfactory;1"]
-                               .createInstance(Components.interfaces.nsIWorkerFactory);
+            let start = new Date();
 
-            let worker = wf.newChromeWorker("resource://calendar/calendar-js/calIcsParser-worker.js");
-
-            worker.onmessage = {
-                handleEvent: function(event) {
-                    let rootComp = event.data.QueryInterface(Components.interfaces.calIIcalComponent);
-                    this_.processIcalComponent(rootComp);
-                    aAsyncParsing.onParsingComplete(Components.results.NS_OK, this_);
+            // We are using two types of very similar listeners here:
+            // aAsyncParsing is a calIcsParsingListener that returns the ics
+            //   parser containing the processed items.
+            // The listener passed to parseICSAsync is a calICsComponentParsingListener
+            //   required by the ics service, that receives the parsed root component.
+            cal.getIcsService().parseICSAsync(aICSString, aTzProvider, {
+                onParsingComplete: function(rc, rootComp) {
+                    if (Components.isSuccessCode(rc)) {
+                        self.processIcalComponent(rootComp, aAsyncParsing);
+                    } else {
+                        cal.ERROR("Error Parsing ICS: " + rc);
+                        aAsyncParsing.onParsingComplete(rc, self);
+                    }
                 }
-            };
-
-            worker.onerror = {
-                handleEvent: function(error) {
-                    cal.ERROR("Error Parsing ICS: " + error.message);
-                    aAsyncParsing.onParsingComplete(Components.results.NS_ERROR_FAILURE, this_);
-                }
-            };
-
-            worker.postMessage({ icsString: aICSString, tzProvider: aTzProvider });
+            });
         } else {
             this.processIcalComponent(cal.getIcsService().parseICS(aICSString, aTzProvider));
         }
@@ -298,35 +238,140 @@ calIcsParser.prototype = {
     }
 };
 
+/**
+ * The parser state, which helps process ical components without clogging up the
+ * event queue.
+ *
+ * @param aParser       The parser that is using this state
+ */
+function parserState(aParser) {
+    this.parser = aParser;
 
-// Helper function to deal with the busted exdates from Sunbird 0.2
-// When Sunbird 0.2 (and earlier) creates EXDATEs, they are set to
-// 00:00:00 floating rather than to the item's DTSTART. This fixes that.
-// (bug 354073)
-function fixOldSunbirdExceptions(aItem) {
-    const kCalIRecurrenceDate = Components.interfaces.calIRecurrenceDate;
+    this.extraComponents = [];
+    this.items = [];
+    this.uid2parent = {};
+    this.excItems = [];
+    this.tzErrors = {};
+}
 
-    let item = aItem;
-    let ritems = aItem.recurrenceInfo.getRecurrenceItems({});
-    for each (let ritem in ritems) {
-        // EXDATEs are represented as calIRecurrenceDates, which are
-        // negative and finite.
-        if (calInstanceOf(ritem, kCalIRecurrenceDate) &&
-            ritem.isNegative &&
-            ritem.isFinite) {
-            // Only mess with the exception if its time is wrong.
-            let oldDate = aItem.startDate || aItem.entryDate;
-            if (ritem.date.compare(oldDate) != 0) {
-                let newRitem = ritem.clone();
-                // All we want from aItem is the time and timezone.
-                newRitem.date.timezone = oldDate.timezone;
-                newRitem.date.hour     = oldDate.hour;
-                newRitem.date.minute   = oldDate.minute;
-                newRitem.date.second   = oldDate.second;
-                item.recurrenceInfo.appendRecurrenceItem(newRitem);
-                item.recurrenceInfo.deleteRecurrenceItem(ritem);
+parserState.prototype = {
+    parser: null,
+    joinFunc: null,
+    threadCount: 0,
+
+    extraComponents: null,
+    items: null,
+    uid2parent: null,
+    excItems: null,
+    tzErrors: null,
+
+    /**
+     * Checks if the timezones are missing and notifies the user via error console
+     *
+     * @param item      The item to check for
+     * @param dt        The datetime object to check with
+     */
+    checkTimezone: function checkTimezone(item, dt) {
+        if (dt && cal.isPhantomTimezone(dt.timezone)) {
+            let tzid = dt.timezone.tzid;
+            let hid = item.hashId + "#" + tzid;
+            if (!(hid in this.tzErrors)) {
+                // For now, publish errors to console and alert user.
+                // In future, maybe make them available through an interface method
+                // so this UI code can be removed from the parser, and caller can
+                // choose whether to alert, or show user the problem items and ask
+                // for fixes, or something else.
+                let msg = (calGetString("calendar", "unknownTimezoneInItem",
+                                        [tzid, item.title, cal.getDateFormatter().formatDateTime(dt)]) +
+                           "\n" + item.icalString);
+                cal.ERROR(msg);
+                this.tzErrors[hid] = true;
             }
         }
+    },
+
+    /**
+     * Submit processing of a subcomponent to the event queue
+     *
+     * @param subComp       The component to process
+     */
+    submit: function submit(subComp) {
+        let state = this;
+        let runner = {
+            run: function run() {
+                let item = null;
+                switch (subComp.componentType) {
+                    case "VEVENT":
+                        item = cal.createEvent();
+                        item.icalComponent = subComp;
+                        state.checkTimezone(item, item.startDate);
+                        state.checkTimezone(item, item.endDate);
+                        break;
+                    case "VTODO":
+                        item = cal.createTodo();
+                        item.icalComponent = subComp;
+                        state.checkTimezone(item, item.entryDate);
+                        state.checkTimezone(item, item.dueDate);
+                        // completed is defined to be in UTC
+                        break;
+                    case "VTIMEZONE":
+                        // this should already be attached to the relevant
+                        // events in the calendar, so there's no need to
+                        // do anything with it here.
+                        break;
+                    default:
+                        state.extraComponents.push(subComp);
+                        break;
+                }
+
+                if (item) {
+                    let rid = item.recurrenceId;
+                    if (!rid) {
+                        state.items.push(item);
+                        if (item.recurrenceInfo) {
+                            state.uid2parent[item.id] = item;
+                        }
+                    } else {
+                        state.excItems.push(item);
+                    }
+                }
+                state.threadCount--;
+                state.checkCompletion();
+            }
+        };
+
+        this.threadCount++;
+        if (this.listener) {
+            // If we have a listener, we are doing this asynchronously. Go ahead
+            // and use the thread manager to dispatch the above runner
+            Services.tm.currentThread.dispatch(runner, Components.interfaces.nsIEventTarget.DISPATCH_NORMAL);
+        } else {
+            // No listener means synchonous. Just run the runner instead
+            runner.run();
+        }
+    },
+
+    /**
+     * Checks if the processing of all events has completed. If a join function
+     * has been set, this function is called.
+     *
+     * @return      True, if all tasks have been completed
+     */
+    checkCompletion: function() {
+        if (this.joinFunc && this.threadCount == 0) {
+            this.joinFunc();
+            return true;
+        }
+        return false;
+    },
+
+    /**
+     * Sets a join function that is called when all tasks have been completed
+     *
+     * @param joinFunc      The join function to call
+     */
+    join: function join(joinFunc) {
+        this.joinFunc = joinFunc;
+        this.checkCompletion();
     }
-    return item;
-}
+};

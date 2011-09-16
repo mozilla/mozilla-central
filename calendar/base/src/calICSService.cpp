@@ -59,8 +59,7 @@ calIcalProperty::~calIcalProperty()
 }
 
 NS_IMPL_CLASSINFO(calIcalProperty, NULL, 0, CAL_ICALPROPERTY_CID)
-NS_IMPL_ISUPPORTS1(calIcalProperty, calIIcalProperty)
-NS_IMPL_CI_INTERFACE_GETTER1(calIcalProperty, calIIcalProperty)
+NS_IMPL_ISUPPORTS1_CI(calIcalProperty, calIIcalProperty)
 
 NS_IMETHODIMP_(icalproperty *)
 calIcalProperty::GetIcalProperty()
@@ -99,7 +98,7 @@ NS_IMETHODIMP
 calIcalProperty::GetValue(nsACString &str)
 {
     icalvalue *value = icalproperty_get_value(mProperty);
-    icalvalue_kind valuekind = icalvalue_isa(value); 
+    icalvalue_kind valuekind = icalvalue_isa(value);
 
     const char *icalstr;
     if (valuekind == ICAL_TEXT_VALUE) {
@@ -125,7 +124,7 @@ calIcalProperty::GetValue(nsACString &str)
             str.SetIsVoid(PR_TRUE);
             return NS_OK;
         }
-        
+
 #ifdef DEBUG
         fprintf(stderr, "Error getting string value: %d (%s)\n",
                 icalerrno, icalerror_strerror(icalerrno));
@@ -171,7 +170,7 @@ calIcalProperty::GetValueAsIcalString(nsACString &str)
             str.SetIsVoid(PR_TRUE);
             return NS_OK;
         }
-        
+
 #ifdef DEBUG
         fprintf(stderr, "Error getting string value: %d (%s)\n",
                 icalerrno, icalerror_strerror(icalerrno));
@@ -186,7 +185,7 @@ calIcalProperty::GetValueAsIcalString(nsACString &str)
 NS_IMETHODIMP
 calIcalProperty::SetValueAsIcalString(const nsACString &str)
 {
-    const char *kindstr = 
+    const char *kindstr =
         icalvalue_kind_to_string(icalproperty_kind_to_value_kind(icalproperty_isa(mProperty)));
     icalproperty_set_value_from_string(mProperty,
                                        PromiseFlatCString(str).get(),
@@ -226,7 +225,7 @@ NS_IMETHODIMP
 calIcalProperty::GetParameter(const nsACString &param, nsACString &value)
 {
     // More ridiculous parameter/X-PARAMETER handling.
-    icalparameter_kind paramkind = 
+    icalparameter_kind paramkind =
         icalparameter_string_to_kind(PromiseFlatCString(param).get());
 
     if (paramkind == ICAL_NO_PARAMETER)
@@ -258,7 +257,7 @@ calIcalProperty::GetParameter(const nsACString &param, nsACString &value)
 NS_IMETHODIMP
 calIcalProperty::SetParameter(const nsACString &param, const nsACString &value)
 {
-    icalparameter_kind paramkind = 
+    icalparameter_kind paramkind =
         icalparameter_string_to_kind(PromiseFlatCString(param).get());
 
     if (paramkind == ICAL_NO_PARAMETER)
@@ -290,13 +289,13 @@ calIcalProperty::SetParameter(const nsACString &param, const nsACString &value)
         RemoveParameter(param);
     }
 
-    icalparameter *icalparam = 
+    icalparameter *icalparam =
         icalparameter_new_from_value_string(paramkind,
                                             PromiseFlatCString(value).get());
     if (!icalparam)
         return NS_ERROR_OUT_OF_MEMORY;
 
-    // You might ask me "why does libical not do this for us?" and I would 
+    // You might ask me "why does libical not do this for us?" and I would
     // just nod knowingly but sadly at you in return.
     //
     // You might also, if you were not too distracted by the first question,
@@ -306,7 +305,7 @@ calIcalProperty::SetParameter(const nsACString &param, const nsACString &value)
         icalparameter_set_xname(icalparam, PromiseFlatCString(param).get());
     else if (paramkind == ICAL_IANA_PARAMETER)
         icalparameter_set_iana_name(icalparam, PromiseFlatCString(param).get());
-    
+
     icalproperty_add_parameter(mProperty, icalparam);
     // XXX check ical errno
     return NS_OK;
@@ -1132,12 +1131,12 @@ calIcalComponent::GetFirstProperty(const nsACString &kind,
 
     icalproperty *icalprop = nsnull;
     if (propkind == ICAL_X_PROPERTY) {
-        for (icalprop = 
+        for (icalprop =
                  icalcomponent_get_first_property(mComponent, ICAL_X_PROPERTY);
              icalprop;
              icalprop = icalcomponent_get_next_property(mComponent,
                                                         ICAL_X_PROPERTY)) {
-            
+
             if (kind.Equals(icalproperty_get_x_name(icalprop)))
                 break;
         }
@@ -1168,12 +1167,12 @@ calIcalComponent::GetNextProperty(const nsACString &kind, calIIcalProperty **pro
         return NS_ERROR_INVALID_ARG;
     icalproperty *icalprop = nsnull;
     if (propkind == ICAL_X_PROPERTY) {
-        for (icalprop = 
+        for (icalprop =
                  icalcomponent_get_next_property(mComponent, ICAL_X_PROPERTY);
              icalprop;
              icalprop = icalcomponent_get_next_property(mComponent,
                                                         ICAL_X_PROPERTY)) {
-            
+
             if (kind.Equals(icalproperty_get_x_name(icalprop)))
                 break;
         }
@@ -1268,10 +1267,61 @@ calICSService::ParseICS(const nsACString& serialized,
 }
 
 NS_IMETHODIMP
+calICSService::ParserWorker::Run()
+{
+    icalcomponent *ical =
+        icalparser_parse_string(PromiseFlatCString(mString).get());
+    nsresult status = NS_OK;
+    calIIcalComponent *comp = nsnull;
+
+    if (ical) {
+        comp = new calIcalComponent(ical, nsnull, mProvider);
+        if (!comp) {
+            icalcomponent_free(ical);
+            status = NS_ERROR_OUT_OF_MEMORY;
+        }
+    } else {
+        status = calIErrors::ICS_ERROR_BASE + icalerrno;
+    }
+
+    nsCOMPtr<nsIRunnable> completer = new ParserWorkerCompleter(status, comp, mListener);
+    mThread->Dispatch(completer, NS_DISPATCH_NORMAL);
+
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+calICSService::ParserWorker::ParserWorkerCompleter::Run()
+{
+    mListener->OnParsingComplete(mStatus, mComp);
+    return NS_OK;
+}
+
+NS_IMETHODIMP
+calICSService::ParseICSAsync(const nsACString& serialized,
+                             calITimezoneProvider *tzProvider,
+                             calIIcsComponentParsingListener *listener)
+{
+    nsresult rv;
+    NS_ENSURE_ARG_POINTER(listener);
+
+    nsCOMPtr<nsIThread> workerThread;
+    nsCOMPtr<nsIThread> currentThread;
+    rv = NS_GetCurrentThread(getter_AddRefs(currentThread));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIRunnable> worker = new ParserWorker(currentThread, serialized, tzProvider, listener);
+    NS_ENSURE_TRUE(worker, NS_ERROR_OUT_OF_MEMORY);
+    rv = NS_NewThread(getter_AddRefs(workerThread), worker);
+    NS_ENSURE_SUCCESS(rv, rv);
+    return NS_OK;
+}
+
+NS_IMETHODIMP
 calICSService::CreateIcalComponent(const nsACString &kind, calIIcalComponent **comp)
 {
     NS_ENSURE_ARG_POINTER(comp);
-    icalcomponent_kind compkind = 
+    icalcomponent_kind compkind =
         icalcomponent_string_to_kind(PromiseFlatCString(kind).get());
 
     // Maybe someday I'll support X-COMPONENTs
@@ -1296,7 +1346,7 @@ NS_IMETHODIMP
 calICSService::CreateIcalProperty(const nsACString &kind, calIIcalProperty **prop)
 {
     NS_ENSURE_ARG_POINTER(prop);
-    icalproperty_kind propkind = 
+    icalproperty_kind propkind =
         icalproperty_string_to_kind(PromiseFlatCString(kind).get());
 
     if (propkind == ICAL_NO_PROPERTY)
