@@ -339,6 +339,7 @@ var DefaultController =
       case "cmd_editAsNew":
       case "cmd_openMessage":
       case "button_print":
+      case "cmd_print":
       case "cmd_viewPageSource":
       case "cmd_reload":
       case "cmd_applyFiltersToSelection":
@@ -359,7 +360,8 @@ var DefaultController =
           // Check if we have a collapsed thread selected and are summarizing it.
           // If so, selectedIndices.length won't match numSelected. Also check
           // that we're not displaying a message, which handles the case
-          // where we failed to summarize the selection and fell back to                  // displaying a message.
+          // where we failed to summarize the selection and fell back to
+          // displaying a message.
           if (gFolderDisplay.selectedIndices.length != numSelected &&
               command != "cmd_applyFiltersToSelection" &&
               gDBView && gDBView.currentlyDisplayedMessage == nsMsgViewIndex_None)
@@ -372,16 +374,10 @@ var DefaultController =
           return true;
         }
         return false;
-      case "cmd_print":
-        // We can print both a single message and a thread summary
-        return (GetNumSelectedMessages() > 0);
       case "cmd_printpreview":
-        if (!gMessageDisplay.singleMessageDisplay)
-          return false;
-        else if (GetNumSelectedMessages() == 1)
+        if (GetNumSelectedMessages() == 1)
           return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.cmdRequiringMsgBody);
-        else
-          return false;
+        return false;
       case "cmd_printSetup":
       case "cmd_viewAllHeader":
       case "cmd_viewNormalHeader":

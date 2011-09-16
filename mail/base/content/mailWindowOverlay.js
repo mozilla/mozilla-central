@@ -2231,12 +2231,8 @@ function PrintEnginePrintInternal(doPrintPreview, msgType)
 
 function PrintEnginePrint()
 {
-  if (gMessageDisplay.singleMessageDisplay)
-    return PrintEnginePrintInternal(false,
-      Components.interfaces.nsIMsgPrintEngine.MNAB_PRINT_MSG);
-  else
-    return document.getElementById("multimessage")
-      .contentWindow.print();
+  return PrintEnginePrintInternal(false,
+    Components.interfaces.nsIMsgPrintEngine.MNAB_PRINT_MSG);
 }
 
 function PrintEnginePrintPreview()
