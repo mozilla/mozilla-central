@@ -88,6 +88,8 @@ nsMimeConverter::DecodeMimeHeader(const char *header,
                                   PRBool eatContinuations,
                                   nsAString& decodedString)
 {
+  NS_ENSURE_ARG_POINTER(header);
+
   char *decodedCstr = nsnull;
 
   // apply MIME decode.
