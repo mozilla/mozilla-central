@@ -37,7 +37,10 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/NetUtil.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
 const nsISupports              = Components.interfaces.nsISupports;
 
@@ -405,6 +408,27 @@ var nsMailDefaultHandler = {
           let promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                                         .getService(Components.interfaces.nsIPromptService);
           promptService.alert(null, title, message);
+        }
+      }
+      else if (/\.vcf$/i.test(uri)) {
+        // A VCard! Be smart and open the "add contact" dialog.
+        let file = cmdLine.resolveFile(uri);
+        if (file.exists() && file.fileSize > 0) {
+          NetUtil.asyncFetch(file, function(inputStream, status) {
+            if (!Components.isSuccessCode(status)) {
+              return;
+            }
+
+            let data = NetUtil.readInputStreamToString(
+              inputStream, inputStream.available());
+            let card = MailServices.ab.escapedVCardToAbCard(data);
+            Services.ww.openWindow(
+              null,
+              "chrome://messenger/content/addressbook/abNewCardDialog.xul",
+              "_blank",
+              "chrome,resizable=no,titlebar,modal,centerscreen",
+              card);
+          });
         }
       }
       else {
