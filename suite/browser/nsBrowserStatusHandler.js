@@ -304,13 +304,13 @@ nsBrowserStatusHandler.prototype =
     if (gContextMenu) {
       // Optimise for the common case
       if (aWebProgress.DOMWindow == content)
-        gContextMenu.menu.hidePopup();
+        document.getElementById("contentAreaContextMenu").hidePopup();
       else {
         for (var contextWindow = gContextMenu.target.ownerDocument.defaultView;
              contextWindow != contextWindow.parent;
              contextWindow = contextWindow.parent) {
           if (contextWindow == aWebProgress.DOMWindow) {
-            gContextMenu.menu.hidePopup();
+            document.getElementById("contentAreaContextMenu").hidePopup();
             break;
           }
         }
