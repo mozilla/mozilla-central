@@ -21,6 +21,7 @@
  *   Michael Buettner <michael.buettner@sun.com>
  *   Markus Adrario <Mozilla@Adrario.de>
  *   Gianfranco Balza <bv1578@gmail.com>
+ *   Richard Marti <mozilla@paenglab.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,6 +41,24 @@
 #calendar-task-dialog {
     padding: 0px;
 }
+
+#event-toolbar {
+    -moz-appearance: menubar;
+}
+
+#event-toolbox toolbarbutton {
+    color: MenuText;
+}
+
+#event-toolbox toolbarbutton:hover:not([disabled]) .toolbarbutton-text {
+    color: -moz-buttonhovertext;
+}
+
+#event-toolbox toolbarbutton[open="true"],
+#event-toolbox toolbarbutton:hover:active:not([disabled]) .toolbarbutton-text {
+    color: ButtonText;
+}
+
 
 #yearly-period-of-label,
 label.label {
