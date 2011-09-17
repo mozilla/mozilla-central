@@ -1112,10 +1112,16 @@ function SwitchPaneFocus(event)
 
   // First, build an array of panes to cycle through based on our current state.
   // This will usually be something like [threadPane, messagePane, folderPane].
-  let panes = [GetThreadTree()];
+  let panes = [];
+  if (gFolderDisplay.isAccountCentralDisplayed) {
+    panes.push(document.getElementById("accountCentralPane"));
+  }
+  else {
+    panes.push(GetThreadTree());
 
-  if (!IsMessagePaneCollapsed())
-    panes.push(messagePane);
+    if (!IsMessagePaneCollapsed())
+      panes.push(messagePane);
+  }
 
   if (gFolderDisplay.folderPaneVisible)
     panes.push(document.getElementById("folderTree"));

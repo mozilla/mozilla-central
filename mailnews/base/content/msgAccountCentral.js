@@ -97,6 +97,15 @@ function OnInit()
         var protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + serverType];
         protocolInfo = protocolInfo.getService(Components.interfaces.nsIMsgProtocolInfo);
         ArrangeAccountCentralItems(selectedServer, protocolInfo, msgFolder);
+
+        // If something directly focuses the window and nothing else inside has
+        // focus, then focus on the first element. This allows scrolling with
+        // the arrow keys to work properly when hitting F6 from the folder pane.
+        window.addEventListener("focus", function(e) {
+            if (e.explicitOriginalTarget == window &&
+                document.commandDispatcher.focusedElement === null)
+                document.commandDispatcher.advanceFocus();
+        }, false);
     }
     catch(ex) {
         dump("Error -> " + ex + "\n");
