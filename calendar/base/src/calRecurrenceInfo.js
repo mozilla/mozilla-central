@@ -182,7 +182,7 @@ calRecurrenceInfo.prototype = {
     get isFinite() {
         this.ensureBaseItem();
 
-        for each (ritem in this.mRecurrenceItems) {
+        for each (let ritem in this.mRecurrenceItems) {
             if (!ritem.isFinite) {
                 return false;
             }

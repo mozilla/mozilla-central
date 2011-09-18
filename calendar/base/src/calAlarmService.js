@@ -279,7 +279,7 @@ calAlarmService.prototype = {
 
         getCalendarManager().addObserver(this.calendarManagerObserver);
 
-        for each(let calendar in getCalendarManager().getCalendars({})) {
+        for each (let calendar in getCalendarManager().getCalendars({})) {
             this.observeCalendar(calendar);
         }
 

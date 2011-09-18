@@ -522,7 +522,7 @@ calOutlookCSVExporter.prototype = {
         str += exportLineEnding;
         aStream.write(str, str.length);
 
-        for each (item in aItems) {
+        for each (let item in aItems) {
             if (!cal.isEvent(item)) {
                 // XXX TODO: warn the user (once) that tasks are not supported
                 // (bug 336175)

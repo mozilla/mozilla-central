@@ -363,7 +363,7 @@ function exportEntireCalendar(aCalendar) {
         },
         onGetResult: function(aCalendar, aStatus, aItemType, aDetail, aCount, aItems)
         {
-            for each (item in aItems) {
+            for each (let item in aItems) {
                 itemArray.push(item);
             }
         }

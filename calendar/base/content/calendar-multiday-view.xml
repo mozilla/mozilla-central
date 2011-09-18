@@ -648,11 +648,13 @@
 
       <method name="clear">
         <body><![CDATA[
-          while (this.bgbox && this.bgbox.hasChildNodes())
+          while (this.bgbox && this.bgbox.hasChildNodes()) {
               this.bgbox.removeChild(this.bgbox.lastChild);
-          while (this.topbox && this.topbox.hasChildNodes())
+          }
+          while (this.topbox && this.topbox.hasChildNodes()) {
               this.topbox.removeChild(this.topbox.lastChild);
-          for each (handler in this.mHandlersToRemove){
+          }
+          for each (let handler in this.mHandlersToRemove) {
               this.calendarView.viewBroadcaster.removeEventListener(this.calendarView.getAttribute("type") + "viewresized", handler, true);
           }
           this.mHandlersToRemove = [];
@@ -2076,7 +2078,7 @@
       <method name="unselectOccurrence">
         <parameter name="aItem"/>
         <body><![CDATA[
-          for each (itemBox in this.mItemBoxes) {
+          for each (let itemBox in this.mItemBoxes) {
             if (aItem && (itemBox.occurrence.hashId == aItem.hashId)) {
               itemBox.selected = false;
             }
@@ -2787,7 +2789,7 @@
           for each (var item in this.mSelectedItems) {
               for each (var occ in this.getItemOccurrencesInView(item)) {
                   var cols = this.findColumnsForItem(occ);
-                  for each (col in cols) {
+                  for each (let col in cols) {
                       col.header.unselectOccurrence(occ);
                       col.column.unselectOccurrence(occ);
                   }
@@ -2800,7 +2802,7 @@
                   var cols = this.findColumnsForItem(occ);
                   if (cols.length > 0) {
                       var start = item.startDate || item.entryDate;
-                      for each (col in cols) {
+                      for each (let col in cols) {
                           if (start.isDate) {
                               col.header.selectOccurrence(occ);
                           } else {
@@ -3364,7 +3366,7 @@
           if (!cols.length)
               return;
 
-          for each (col in cols) {
+          for each (let col in cols) {
               var column = col.column;
               var header = col.header;
 
@@ -3387,7 +3389,7 @@
           if (!cols.length)
               return;
 
-          for each (col in cols) {
+          for each (let col in cols) {
               var column = col.column;
               var header = col.header;
 

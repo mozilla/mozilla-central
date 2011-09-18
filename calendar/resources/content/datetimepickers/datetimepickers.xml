@@ -220,8 +220,8 @@
           // Now for the cool 'next' and 'last'
           var words = val.split(' ');
           var offset, day;
-          for each (word in words) {
-            for each (rel in this.mRelationWords) {
+          for each (let word in words) {
+            for each (let rel in this.mRelationWords) {
               if (word == rel.word) {
                 offset = rel.offset;
                 break;
