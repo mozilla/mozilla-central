@@ -78,8 +78,15 @@
 
 /* restyle splitter-border to match Thunderbird's layout */
 #calendar-view-splitter {
-    border: none;
-    min-height: 5px;
+   -moz-appearance: none;
+   border-bottom: 1px solid ThreeDShadow;
+   /* splitter grip area */
+   height: 5px;
+   /* make only the splitter border visible */
+   margin-top: -5px;
+   /* because of the negative margin needed to make the splitter visible */
+   position: relative;
+   z-index: 10;
 }
 
 /* added for new id ..... search box ..... */

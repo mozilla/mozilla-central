@@ -37,16 +37,15 @@
  * ***** END LICENSE BLOCK ***** */
 
 #calendar-task-view-splitter {
-    border: none;
-    min-height: 5px;
-}
-
-#calendar-task-details-container {
-    border-top: 1px solid ThreeDShadow;
-    border-left: 1px solid ThreeDShadow;
-    border-right: 0px;
-    border-bottom: 0px;
-    overflow: hidden;
+     -moz-appearance: none;
+    border-bottom: 1px solid ThreeDShadow;
+    /* splitter grip area */
+    height: 5px;
+    /* make only the splitter border visible */
+    margin-top: -5px;
+    /* because of the negative margin needed to make the splitter visible */
+    position: relative;
+    z-index: 10;
 }
 
 #calendar-header-name-column,

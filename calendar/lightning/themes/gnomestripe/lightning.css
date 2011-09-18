@@ -39,12 +39,45 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#calsidebar_splitter {
-    border-right: none;
+#calsidebar_splitter,
+#today-splitter {
+  -moz-appearance: none;
+  border-left: 1px solid ThreeDShadow;
+  /* splitter grip area */
+  width: 5px;
+  margin-top: 0;
+  /* make only the splitter border visible */
+  -moz-margin-end: -5px;
+  /* because of the negative margin needed to make the splitter visible */
+  position: relative;
+  z-index: 10;
+  -moz-transition: border-width .3s ease-in;
 }
 
 #today-splitter {
-    border-right: none;
+  -moz-margin-start: -5px;
+  -moz-margin-end: 0;
+}
+
+/* Until Bug 621351 is fixed we need border-right and border-left in
+ * combination with -moz-locale-dir instead of -moz-border-end and
+ * -moz-border-start for -moz-transition
+ */
+
+#calsidebar_splitter:-moz-locale-dir(rtl),
+#today-splitter:-moz-locale-dir(ltr) {
+  border-right: 1px solid ThreeDShadow;
+  border-left: none;
+}
+
+#calsidebar_splitter[state="collapsed"]:hover:-moz-locale-dir(ltr),
+#today-splitter[state="collapsed"]:hover:-moz-locale-dir(rtl) {
+  border-left: 4px solid highlight;
+}
+
+#calsidebar_splitter[state="collapsed"]:hover:-moz-locale-dir(rtl),
+#today-splitter[state="collapsed"]:hover:-moz-locale-dir(ltr) {
+  border-right: 4px solid highlight;
 }
 
 /* Calendar list rules */

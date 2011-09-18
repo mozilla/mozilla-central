@@ -50,7 +50,6 @@
 #today-pane-panel {
   background-color: -moz-Dialog;
   color: -moz-DialogText;
-  border-left: 1px solid ThreeDShadow;
 }
 
 #today-pane-panel:-moz-lwtheme {
@@ -75,6 +74,18 @@
 #mini-day-box,
 #today-minimonth-box {
   background-color: white;
+}
+
+#today-pane-splitter {
+  -moz-appearance: none;
+  border-bottom: 1px solid ThreeDShadow;
+  /* splitter grip area */
+  height: 5px;
+  /* make only the splitter border visible */
+  margin-top: -5px;
+  /* because of the negative margin needed to make the splitter visible */
+  position: relative;
+  z-index: 10;
 }
 
 #weekdayNameContainer {

@@ -698,9 +698,8 @@ calendar-event-box[status="CANCELLED"] .calendar-color-box {
 
 /* Navigation controls for the views */
 #calendar-nav-control {
-    background-color: #E8E8E8;
-    border: solid ThreeDShadow;
-    border-width: 1px 0 0 1px;
+    background-color: AppWorkspace;
+    -moz-border-start: 1px solid ThreeDShadow;
     padding-top: 1px;
 }
 
