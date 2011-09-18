@@ -543,6 +543,7 @@ calendar-editable-item[selected="true"] .calendar-event-selection {
 
 .calendar-category-box-gradient {
     list-style-image: url("chrome://calendar/skin/category-overlay.png");
+    width: 7px;
 }
 
 calendar-event-gripbar {
