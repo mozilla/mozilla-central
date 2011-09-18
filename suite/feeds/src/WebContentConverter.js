@@ -846,27 +846,15 @@ WebContentConverterRegistrar.prototype = {
     return this.QueryInterface(iid);
   },
 
-  /**
-   * See nsIClassInfo
-   */
-  getInterfaces: function getInterfaces(countRef) {
-    var interfaces = [Components.interfaces.nsIWebContentConverterService,
-                      Components.interfaces.nsIWebContentHandlerRegistrar,
-                      Components.interfaces.nsIObserver,
-                      Components.interfaces.nsIClassInfo,
-                      Components.interfaces.nsIFactory,
-                      Components.interfaces.nsISupports];
-    countRef.value = interfaces.length;
-    return interfaces;
-  },
-
- getHelperForLanguage: function getHelperForLanguage(language) {
-    return null;
-  },
-
   classID: WCCR_CLASSID,
-  implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
-  flags: Components.interfaces.nsIClassInfo.DOM_OBJECT,
+  classInfo: XPCOMUtils.generateCI({
+	  classID: WCCR_CLASSID,
+	  contractID: WCCR_CONTRACTID,
+      interfaces: [Components.interfaces.nsIWebContentConverterService,
+                   Components.interfaces.nsIWebContentHandlerRegistrar,
+                   Components.interfaces.nsIObserver,
+                   Components.interfaces.nsIFactory],
+      flags: Components.interfaces.nsIClassInfo.DOM_OBJECT}),
 
   /**
    * See nsISupports
@@ -875,9 +863,7 @@ WebContentConverterRegistrar.prototype = {
     [Components.interfaces.nsIWebContentConverterService,
      Components.interfaces.nsIWebContentHandlerRegistrar,
      Components.interfaces.nsIObserver,
-     Components.interfaces.nsIClassInfo,
-     Components.interfaces.nsIFactory,
-     Components.interfaces.nsISupports])
+     Components.interfaces.nsIFactory])
 };
 
 var NSGetFactory = XPCOMUtils.generateNSGetFactory([WebContentConverterRegistrar]);
