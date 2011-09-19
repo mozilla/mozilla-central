@@ -1883,8 +1883,8 @@ var GlodaDatastore = {
     let indexingPriority = GlodaFolder.prototype.kIndexingDefaultPriority;
     // Do not walk into trash/junk folders, unless the user is explicitly
     //  telling us to do so.
-    if (aFolder.flags & (Ci.nsMsgFolderFlags.Trash
-                         | Ci.nsMsgFolderFlags.Junk))
+    let specialFolderFlags = Ci.nsMsgFolderFlags.Trash | Ci.nsMsgFolderFlags.Junk;
+    if (aFolder.isSpecialFolder(specialFolderFlags, true))
       indexingPriority = aAllowSpecialFolderIndexing ?
                            GlodaFolder.prototype.kIndexingDefaultPriority :
                            GlodaFolder.prototype.kIndexingNeverPriority;

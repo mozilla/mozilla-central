@@ -398,6 +398,27 @@ function make_empty_folder(aFolderName, aSpecialFlags) {
   return testFolder;
 }
 
+// Small helper for moving folder. You have to yield move_folder(f1, f2);
+function move_folder(aSource, aTarget) {
+  let cs = Cc["@mozilla.org/messenger/messagecopyservice;1"]
+          .getService(Ci.nsIMsgCopyService);
+  let array = toXPCOMArray([get_nsIMsgFolder(aSource)], Ci.nsIMutableArray);
+  // we're doing a true move
+  cs.CopyFolders(array, get_nsIMsgFolder(aTarget), true, {
+    /* nsIMsgCopyServiceListener implementation */
+    OnStartCopy: function() {},
+    OnProgress: function(aProgress, aProgressMax) {},
+    SetMessageKey: function(aKey) {},
+    SetMessageId: function(aMessageId) {},
+    OnStopCopy: function(aStatus) {
+      async_driver();
+    }
+  }, null);
+
+  // Wait for the call above to async_driver to be issued
+  return false;
+}
+
 /**
  * Get/create the junk folder handle.  Use get_real_injection_folder if you
  *  need the underlying nsIMsgDBFolder.
@@ -509,9 +530,15 @@ function make_folder_and_contents_offline(aFolderHandle) {
  *
  * @param aSynSetDefs A synthetic set definition, as appropriate to pass to
  *     make_new_sets_in_folder.
- * @return A list whose first element is the nsIMsgLocalMailFolder created and
- *     whose subsequent items are the SyntheticMessageSets used to populate the
- *     folder (as returned by make_new_sets_in_folder).
+ * @return A list whose first element is the folder created and whose subsequent
+ *     items are the SyntheticMessageSets used to populate the folder (as returned
+ *     by make_new_sets_in_folder).
+ *  Please note that the folder is either a nsIMsgLocalMailFolder, or a folder
+ *     URI, depending on whether we're in local injection mode, or on IMAP. This
+ *     should be transparent to you, unless you start trying to inject messages
+ *     into a folder that hasn't been created by make_folder_with_sets. See
+ *     test_folder_deletion_nested in base_index_messages.js for an example of
+ *     such pain.
  */
 function make_folder_with_sets(aSynSetDefs) {
   let msgFolder = make_empty_folder();

@@ -57,6 +57,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource:///modules/iteratorUtils.jsm");
+Cu.import("resource:///modules/MailUtils.js");
 
 Cu.import("resource:///modules/gloda/log4moz.js");
 
@@ -2517,24 +2518,42 @@ var GlodaMsgIndexer = {
      */
     _folderRenameHelper: function gloda_indexer_folderRenameHelper(aOrigFolder,
                                                                    aNewURI) {
-      let descendentFolders = Cc["@mozilla.org/supports-array;1"].
-                                createInstance(Ci.nsISupportsArray);
-      aOrigFolder.ListDescendents(descendentFolders);
+      let newFolder = MailUtils.getFolderForURI(aNewURI);
+      let specialFolderFlags = Ci.nsMsgFolderFlags.Trash | Ci.nsMsgFolderFlags.Junk;
+      if (newFolder.isSpecialFolder(specialFolderFlags, true)) {
+        let descendentFolders = Cc["@mozilla.org/supports-array;1"].
+                                  createInstance(Ci.nsISupportsArray);
+        newFolder.ListDescendents(descendentFolders);
 
-      let origURI = aOrigFolder.URI;
-      // this rename is straightforward.
-      GlodaDatastore.renameFolder(aOrigFolder, aNewURI);
+        // First thing to do: make sure we don't index the resulting folder and
+        //  its descendents.
+        GlodaMsgIndexer.resetFolderIndexingPriority(newFolder);
+        for (let folder in fixIterator(descendentFolders, Ci.nsIMsgFolder)) {
+          GlodaMsgIndexer.resetFolderIndexingPriority(folder);
+        }
 
-      for (let folder in fixIterator(descendentFolders, Ci.nsIMsgFolder)) {
-        let oldSubURI = folder.URI;
-        // mangle a new URI from the old URI.  we could also try and do a
-        //  parallel traversal of the new folder hierarchy, but that seems like
-        //  more work.
-        let newSubURI = aNewURI + oldSubURI.substring(origURI.length);
-        this.indexer._datastore.renameFolder(oldSubURI, newSubURI);
+        // Remove from the index messages from the original folder
+        this.folderDeleted(aOrigFolder);
+      } else {
+        let descendentFolders = Cc["@mozilla.org/supports-array;1"].
+                                  createInstance(Ci.nsISupportsArray);
+        aOrigFolder.ListDescendents(descendentFolders);
+
+        let origURI = aOrigFolder.URI;
+        // this rename is straightforward.
+        GlodaDatastore.renameFolder(aOrigFolder, aNewURI);
+
+        for (let folder in fixIterator(descendentFolders, Ci.nsIMsgFolder)) {
+          let oldSubURI = folder.URI;
+          // mangle a new URI from the old URI.  we could also try and do a
+          //  parallel traversal of the new folder hierarchy, but that seems like
+          //  more work.
+          let newSubURI = aNewURI + oldSubURI.substring(origURI.length);
+          this.indexer._datastore.renameFolder(oldSubURI, newSubURI);
+        }
+
+        this.indexer._log.debug("folder renamed: " + origURI + " to " + aNewURI);
       }
-
-      this.indexer._log.debug("folder renamed: " + origURI + " to " + aNewURI);
     },
 
     /**

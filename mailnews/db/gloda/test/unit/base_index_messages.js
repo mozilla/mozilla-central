@@ -52,6 +52,8 @@
 
 load("resources/glodaTestHelper.js");
 
+Components.utils.import("resource:///modules/MailUtils.js");
+
 // Whether we can expect fulltext results
 var expectFulltextResults = true;
 
@@ -912,12 +914,75 @@ function test_folder_nuking_message_deletion() {
 
 /* ===== Folder Move/Rename/Copy (Single and Nested) ===== */
 
-function test_folder_deletion_single() {
+function get_nsIMsgFolder(aFolder) {
+  if (!(aFolder instanceof Ci.nsIMsgFolder))
+    return MailUtils.getFolderForURI(aFolder);
+  else
+    return aFolder;
+}
 
+function get_testFolder(aFolder) {
+  if ((typeof aFolder) != "string")
+    return aFolder.URI;
+  else
+    return aFolder;
 }
 
 function test_folder_deletion_nested() {
+  // add a folder with a bunch of messages
+  let [folder1, msgSet1] = make_folder_with_sets([{count: 1}]);
+  yield wait_for_message_injection();
 
+  let [folder2, msgSet2] = make_folder_with_sets([{count: 1}]);
+  yield wait_for_message_injection();
+
+  // index these folders, and augment the msgSet with the glodaMessages array
+  // for later use by sqlExpectCount
+  yield wait_for_gloda_indexer([msgSet1, msgSet2], { augment: true });
+  // the move has to be performed after the indexing, because otherwise, on
+  // IMAP, the moved message header are different entities and it's not msgSet2
+  // that ends up indexed, but the fresh headers
+  yield move_folder(folder2, folder1);
+
+  // add a trash folder, and move folder1 into it
+  let trash = make_empty_folder(null, [Ci.nsMsgFolderFlags.Trash]);
+  yield move_folder(folder1, trash);
+
+  let descendentFolders = Cc["@mozilla.org/supports-array;1"]
+                          .createInstance(Ci.nsISupportsArray);
+  get_nsIMsgFolder(trash).ListDescendents(descendentFolders);
+  let folders = [folder for (folder in fixIterator(descendentFolders, Ci.nsIMsgFolder))];
+  do_check_eq(folders.length, 2);
+  let [newFolder1, newFolder2] = folders;
+
+  let glodaFolder1 = Gloda.getFolderForFolder(newFolder1);
+  let glodaFolder2 = Gloda.getFolderForFolder(newFolder2);
+
+  // verify that Gloda properly marked this folder as not to be indexed anymore 
+  do_check_eq(glodaFolder1.indexingPriority, glodaFolder1.kIndexingNeverPriority);
+
+  // check that existing message is marked as deleted
+  yield wait_for_gloda_indexer([], {deleted: [msgSet1, msgSet2]});
+
+  // make sure the deletion hit the database
+  yield sqlExpectCount(1,
+    "SELECT COUNT(*) from folderLocations WHERE id = ? AND indexingPriority = ?",
+     glodaFolder1.id, glodaFolder1.kIndexingNeverPriority);
+  yield sqlExpectCount(1,
+    "SELECT COUNT(*) from folderLocations WHERE id = ? AND indexingPriority = ?",
+     glodaFolder2.id, glodaFolder2.kIndexingNeverPriority);
+
+  if (_messageInjectionSetup.injectionConfig.mode == "local") {
+    // add another message
+    make_new_sets_in_folder(newFolder1, [{count: 1}]);
+    yield wait_for_message_injection();
+    make_new_sets_in_folder(newFolder2, [{count: 1}]);
+    yield wait_for_message_injection();
+
+    // make sure that indexing returns nothing
+    GlodaMsgIndexer.indexingSweepNeeded = true;
+    yield wait_for_gloda_indexer([]);
+  }
 }
 
 /* ===== IMAP Nuances ===== */
@@ -1085,4 +1150,6 @@ var tests = [
 
   test_indexing_never_priority,
   test_setting_indexing_priority_never_while_indexing,
+
+  test_folder_deletion_nested,
 ];
