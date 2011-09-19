@@ -238,9 +238,7 @@ function openContentTab(url, where, handlerRegExp)
     let tabmail = document.getElementById("tabmail");
     if (!tabmail) {
       // Try opening new tabs in an existing 3pane window
-      let mail3PaneWindow = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                                      .getService(Components.interfaces.nsIWindowMediator)
-                                      .getMostRecentWindow("mail:3pane");
+      let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
       if (mail3PaneWindow) {
         tabmail = mail3PaneWindow.document.getElementById("tabmail");
         mail3PaneWindow.focus();
@@ -288,4 +286,17 @@ function openDictionaryList(where) {
   let dictUrl = Services.urlFormatter
     .formatURLPref("spellchecker.dictionaries.download.url");
   openContentTab(dictUrl, where, "^https://addons.mozilla.org/");
+}
+
+/**
+ * Open the privacy policy in a new content tab, if possible in an available
+ * mail:3pane window, otherwise by opening a new mail:3pane.
+ *
+ * @param where the context to open the privacy policy in (e.g. 'tab',
+ *        'window'). See openContentTab for more details.
+ */
+function openPrivacyPolicy(where) {
+  const kTelemetryInfoUrl = "toolkit.telemetry.infoURL";
+  let url = Services.prefs.getCharPref(kTelemetryInfoUrl);
+  openContentTab(url, where, "^http://www.mozilla.org/");
 }

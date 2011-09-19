@@ -323,6 +323,9 @@ pref("general.config.obscure_value", 0); // for MCD .cfg files
 pref("browser.display.auto_quality_min_font_size", 0);
 
 pref("view_source.syntax_highlight", false);
+
+pref("toolkit.telemetry.infoURL", "http://www.mozilla.org/thunderbird/legal/privacy/#telemetry");
+
 /////////////////////////////////////////////////////////////////
 // End core all.js pref overrides
 ///////////////////////////////////////////////////////////////// 

@@ -253,7 +253,7 @@
             <separator/>
             <hbox>
               <label id="downloadDictionaries" class="text-link"
-                     onclick="if (event.button == 0) { openDictionaryList('window'); }"
+                     onclick="if (event.button == 0) { openDictionaryList('tab'); }"
                      value="&downloadDictionaries.label;"/>
               <spacer flex="1"/>
             </hbox>

@@ -509,3 +509,7 @@ splitter {
 .tabmail-tab[type="message"] {
   list-style-image: url("chrome://messenger/skin/icons/message-mail.png");
 }
+
+.telemetry-text-link {
+  color: #fff;
+}

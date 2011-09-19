@@ -38,6 +38,7 @@
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/AddonManager.jsm");
+Components.utils.import("resource:///modules/StringBundle.js");
 
 function tabProgressListener(aTab, aStartsBlank) {
   this.mTab = aTab;
@@ -245,6 +246,10 @@ const DOMLinkHandler = {
   }
 };
 
+const kTelemetryPrompted    = "toolkit.telemetry.prompted";
+const kTelemetryEnabled     = "toolkit.telemetry.enabled";
+const kTelemetryServerOwner = "toolkit.telemetry.server_owner";
+
 var specialTabs = {
   _kAboutRightsVersion: 1,
   get _protocolSvc() {
@@ -310,6 +315,8 @@ var specialTabs = {
     // Show the about rights notification if we need to.
     if (this.shouldShowAboutRightsNotification(prefs))
       this.showAboutRightsNotification(prefs);
+    else if (this.shouldShowTelemetryNotification(prefs))
+      this.showTelemetryNotification(prefs);
   },
 
   /**
@@ -635,6 +642,71 @@ var specialTabs = {
     openWhatsNew();
   },
 
+  /**
+   * Looks at the existing prefs and determines if we should suggest the user
+   * enables telemetry or not.
+   *
+   * This is controlled by the pref toolkit.telemetry.prompted
+   */
+  shouldShowTelemetryNotification: function(prefs) {
+    // toolkit has decided that the pref should have no default value
+    try {
+      if (prefs.getBoolPref(kTelemetryPrompted) || prefs.getBoolPref(kTelemetryEnabled))
+        return false;
+    } catch (e) { }
+    return true;
+  },
+
+  showTelemetryNotification: function(prefs) {
+    var notifyBox = document.getElementById("mail-notification-box");
+
+    var brandBundle =
+      new StringBundle("chrome://branding/locale/brand.properties");
+    var telemetryBundle =
+      new StringBundle("chrome://messenger/locale/telemetry.properties");
+
+    var productName = brandBundle.get("brandFullName");
+    var serverOwner = prefs.getCharPref(kTelemetryServerOwner);
+    var telemetryText = telemetryBundle.get("telemetryText", [productName, serverOwner]);
+
+    var buttons = [
+      {
+        label:     telemetryBundle.get("telemetryYesButtonLabel"),
+        accessKey: telemetryBundle.get("telemetryYesButtonAccessKey"),
+        popup:     null,
+        callback:  function(aNotificationBar, aButton) {
+          prefs.setBoolPref(kTelemetryEnabled, true);
+        }
+      },
+      {
+        label:     telemetryBundle.get("telemetryNoButtonLabel"),
+        accessKey: telemetryBundle.get("telemetryNoButtonAccessKey"),
+        popup:     null,
+        callback:  function(aNotificationBar, aButton) {}
+      }
+    ];
+
+    // Set pref to indicate we've shown the notification.
+    prefs.setBoolPref(kTelemetryPrompted, true);
+
+    var notification = notifyBox.appendNotification(telemetryText, "telemetry", null, notifyBox.PRIORITY_INFO_LOW, buttons);
+    notification.persistence = 3; // arbitrary number, just so bar sticks around for a bit
+
+    let XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+    let link = notification.ownerDocument.createElementNS(XULNS, "label");
+    link.className = "text-link telemetry-text-link";
+    link.setAttribute("value", telemetryBundle.get("telemetryLinkLabel"));
+    link.addEventListener('click', function() {
+      openPrivacyPolicy('tab');
+      // Remove the notification on which the user clicked
+      notification.parentNode.removeNotification(notification, true);
+      // Add a new notification to that tab, with no "Learn more" link
+      notifyBox.appendNotification(telemetryText, "telemetry", null, notifyBox.PRIORITY_INFO_LOW, buttons);
+    }, false);
+
+    let description = notification.ownerDocument.getAnonymousElementByAttribute(notification, "anonid", "messageText");
+    description.appendChild(link);
+  },
   /**
    * Looks at the existing prefs and determines if we should show about:rights
    * or not.

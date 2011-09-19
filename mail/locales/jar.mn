@@ -10,6 +10,7 @@
   locale/@AB_CD@/messenger/aboutRights.properties                       (%chrome/messenger/aboutRights.properties)
   locale/@AB_CD@/messenger/aboutSupportMail.dtd                         (%chrome/messenger/aboutSupportMail.dtd)
   locale/@AB_CD@/messenger/aboutSupportMail.properties                  (%chrome/messenger/aboutSupportMail.properties)
+  locale/@AB_CD@/messenger/telemetry.properties                         (%chrome/messenger/telemetry.properties)
   locale/@AB_CD@/messenger/accountCreation.dtd                          (%chrome/messenger/accountCreation.dtd)
   locale/@AB_CD@/messenger/accountCreation.properties                   (%chrome/messenger/accountCreation.properties)
   locale/@AB_CD@/messenger/accountCreationModel.properties              (%chrome/messenger/accountCreationModel.properties)

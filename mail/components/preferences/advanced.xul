@@ -61,6 +61,7 @@
 
   <prefpane id="paneAdvanced" onpaneload="gAdvancedPane.init();">
     <script type="application/javascript" src="chrome://messenger/content/preferences/advanced.js"/>
+    <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
 
     <preferences id="advancedPreferences">
       <preference id="mail.preferences.advanced.selectedTabIndex"
@@ -68,6 +69,9 @@
       <!-- General tab -->
       <preference id="mailnews.database.global.indexer.enabled" 
                   name="mailnews.database.global.indexer.enabled" 
+                  type="bool"/>
+      <preference id="toolkit.telemetry.enabled" 
+                  name="toolkit.telemetry.enabled" 
                   type="bool"/>
 #ifdef HAVE_SHELL_SERVICE
       <preference id="mail.shell.checkDefaultClient"
@@ -196,6 +200,19 @@
                           preference="mailnews.database.global.indexer.enabled"
                           label="&enableGlodaSearch.label;"
                           accesskey="&enableGlodaSearch.accesskey;"/>
+              </hbox>
+              <hbox>
+                <checkbox id="submitTelemetry"
+                          preference="toolkit.telemetry.enabled"
+                          label="&submitTelemetry.label;"
+                          accesskey="&submitTelemetry.accesskey;"/>
+              </hbox>
+              <hbox>
+                <label id="telemetryInfoLink"
+                       class="text-link"
+                       onclick="if (event.button == 0) openPrivacyPolicy('tab');"
+                       value="&telemetryInfoLink.label;" />
+
               </hbox>
             </vbox>
             <vbox>
