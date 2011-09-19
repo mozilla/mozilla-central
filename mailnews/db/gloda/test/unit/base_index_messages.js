@@ -655,6 +655,47 @@ function test_attributes_explicit() {
   // -- Forwarded
 }
 
+
+/**
+ * Test non-query-able attributes
+ */
+function test_attributes_cant_query() {
+  let [folder, msgSet] = make_folder_with_sets([{count: 1}]);
+  yield wait_for_message_injection();
+  yield wait_for_gloda_indexer(msgSet, {augment: true});
+  let gmsg = msgSet.glodaMessages[0];
+
+  // -- Star
+  mark_sub_test_start("Star");
+  msgSet.setStarred(true);
+  yield wait_for_gloda_indexer(msgSet);
+  do_check_eq(gmsg.starred, true);
+
+  msgSet.setStarred(false);
+  yield wait_for_gloda_indexer(msgSet);
+  do_check_eq(gmsg.starred, false);
+
+  // -- Read / Unread
+  mark_sub_test_start("Read/Unread");
+  msgSet.setRead(true);
+  yield wait_for_gloda_indexer(msgSet);
+  do_check_eq(gmsg.read, true);
+
+  msgSet.setRead(false);
+  yield wait_for_gloda_indexer(msgSet);
+  do_check_eq(gmsg.read, false);
+
+  let readDbAttr = Gloda.getAttrDef(Gloda.BUILT_IN, "read");
+  let readId = readDbAttr.id;
+
+  yield sqlExpectCount(0, "SELECT COUNT(*) FROM messageAttributes WHERE attributeID = ?1",
+                       readId);
+
+  // -- Replied To
+
+  // -- Forwarded
+}
+
 /* ===== Fulltext Indexing ===== */
 
 /**
@@ -1187,6 +1228,7 @@ var tests = [
   test_attributes_fundamental_from_disk,
   test_moved_message_attributes,
   test_attributes_explicit,
+  test_attributes_cant_query,
 
   test_streamed_bodies_are_size_capped,
 

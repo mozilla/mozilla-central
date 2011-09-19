@@ -197,6 +197,7 @@ var GlodaABAttrs = {
       specialColumnName: "name",
       subjectNouns: [Gloda.NOUN_CONTACT],
       objectNoun: Gloda.NOUN_STRING,
+      canQuery: true,
       }); // tested-by: test_attributes_fundamental
     this._attrContactPopularity = Gloda.defineAttribute({
       provider: this,
@@ -208,6 +209,7 @@ var GlodaABAttrs = {
       specialColumnName: "popularity",
       subjectNouns: [Gloda.NOUN_CONTACT],
       objectNoun: Gloda.NOUN_NUMBER,
+      canQuery: true,
       }); // not-tested
     this._attrContactFrecency = Gloda.defineAttribute({
       provider: this,
@@ -219,6 +221,7 @@ var GlodaABAttrs = {
       specialColumnName: "frecency",
       subjectNouns: [Gloda.NOUN_CONTACT],
       objectNoun: Gloda.NOUN_NUMBER,
+      canQuery: true,
       }); // not-tested
 
     /* ***** Identities ***** */
@@ -234,6 +237,7 @@ var GlodaABAttrs = {
       valueStorageAttributeName: "_contact",
       subjectNouns: [Gloda.NOUN_IDENTITY],
       objectNoun: Gloda.NOUN_CONTACT,
+      canQuery: true,
       }); // tested-by: test_attributes_fundamental
     this._attrIdentityKind = Gloda.defineAttribute({
       provider: this,
@@ -245,6 +249,7 @@ var GlodaABAttrs = {
       specialColumnName: "kind",
       subjectNouns: [Gloda.NOUN_IDENTITY],
       objectNoun: Gloda.NOUN_STRING,
+      canQuery: true,
       }); // tested-by: test_attributes_fundamental
     this._attrIdentityValue = Gloda.defineAttribute({
       provider: this,
@@ -256,6 +261,7 @@ var GlodaABAttrs = {
       specialColumnName: "value",
       subjectNouns: [Gloda.NOUN_IDENTITY],
       objectNoun: Gloda.NOUN_STRING,
+      canQuery: true,
       }); // tested-by: test_attributes_fundamental
 
     /* ***** Contact Meta ***** */
@@ -263,17 +269,18 @@ var GlodaABAttrs = {
     //  we differentiate for now because of fundamental implementation
     //  differences.
     this._attrFreeTag = Gloda.defineAttribute({
-                        provider: this,
-                        extensionName: Gloda.BUILT_IN,
-                        attributeType: Gloda.kAttrExplicit,
-                        attributeName: "freetag",
-                        bind: true,
-                        bindName: "freeTags",
-                        singular: false,
-                        subjectNouns: [Gloda.NOUN_CONTACT],
-                        objectNoun: Gloda.lookupNoun("freetag"),
-                        parameterNoun: null,
-                        }); // not-tested
+      provider: this,
+      extensionName: Gloda.BUILT_IN,
+      attributeType: Gloda.kAttrExplicit,
+      attributeName: "freetag",
+      bind: true,
+      bindName: "freeTags",
+      singular: false,
+      subjectNouns: [Gloda.NOUN_CONTACT],
+      objectNoun: Gloda.lookupNoun("freetag"),
+      parameterNoun: null,
+      canQuery: true,
+      }); // not-tested
     // we need to find any existing bound freetag attributes, and use them to
     //  populate to FreeTagNoun's understanding
     for (let freeTagName in this._attrFreeTag.parameterBindings) {

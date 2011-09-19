@@ -495,7 +495,7 @@ function test_query_conversations_by_subject_text() {
 function test_query_messages_by_subject_text() {
   // we only need to use one conversation
   let convNum = 0;
-dump("convNum: " + convNum + " blah: " + world.conversationLists[convNum] + "\n");
+  // dump("convNum: " + convNum + " blah: " + world.conversationLists[convNum] + "\n");
   let query = Gloda.newQuery(Gloda.NOUN_MESSAGE);
   let convSubjectTerm = uniqueTermGenerator(
     UNIQUE_OFFSET_SUBJECT + UNIQUE_OFFSET_CONV + convNum);

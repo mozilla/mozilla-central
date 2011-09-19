@@ -1486,6 +1486,7 @@ var Gloda = {
     // -- the query constraint helpers
     if (aSubjectNounDef.queryClass !== undefined) {
       let constrainer;
+      let canQuery = true;
       if (aAttrDef.special == this.kSpecialFulltext) {
         constrainer = function() {
           let constraint = [GlodaDatastore.kConstraintFulltext, aAttrDef];
@@ -1496,7 +1497,7 @@ var Gloda = {
           return this;
         };
       }
-      else {
+      else if (aAttrDef.canQuery || aAttrDef.attributeName[0] == "_") {
         constrainer = function() {
           let constraint = [GlodaDatastore.kConstraintIn, aAttrDef];
           for (let iArg = 0; iArg < arguments.length; iArg++) {
@@ -1505,9 +1506,23 @@ var Gloda = {
           this._constraints.push(constraint);
           return this;
         };
+      } else {
+        constrainer = function() {
+          throw new Error(
+              "Cannot query on attribute "+aAttrDef.attributeName
+            + " because its canQuery parameter hasn't been set to true."
+            + " Reading the comments about Gloda.defineAttribute may be a"
+            + " sensible thing to do now.");
+        }
+        canQuery = false;
       }
 
       aSubjectNounDef.queryClass.prototype[aAttrDef.boundName] = constrainer;
+
+      // Don't bind extra query-able attributes if we're unable to perform a
+      // search on the attribute.
+      if (!canQuery)
+        return;
 
       // - ranged value helper: fooRange
       if (objectNounDef.continuous) {
@@ -1636,6 +1651,9 @@ var Gloda = {
     // -- Fill in defaults
     if (!("emptySetIsSignificant" in aAttrDef))
       aAttrDef.emptySetIsSignificant = false;
+
+    if (!("canQuery" in aAttrDef))
+      aAttrDef.canQuery = aAttrDef.facet ? true : false;
 
     // return if the attribute has already been defined
     if (aAttrDef.dbDef)
@@ -2009,10 +2027,27 @@ var Gloda = {
           jsonDict[attrib.id] = value;
       }
 
+      let oldValue = aOldItem[key];
+
+      // the 'old' item is still the canonical one; update it
+      // do the update now, because we may skip operations on addDBAttribs and
+      //  removeDBattribs, if the attribute is not to generate entries in
+      //  messageAttributes
+      if (oldValue !== undefined || !aIsConceptuallyNew)
+        aOldItem[key] = value;
+
+      // the new canQuery property has to be explicitly set to generate entries
+      // in the messageAttributes table, hence making the message query-able.
+      if (!attrib.canQuery) {
+        this._log.debug("Not inserting attribute "+attrib.attributeName
+            +" into the db, since we don't plan on querying on it");
+        continue;
+      }
+      this._log.debug("Inserting attribute "+attrib.attributeName);
+
       // - database index attributes
 
       // perform a delta analysis against the old value, if we have one
-      let oldValue = aOldItem[key];
       if (oldValue !== undefined) {
         // in the singular case if they don't match, it's one add and one remove
         if (attrib.singular) {
@@ -2075,16 +2110,9 @@ var Gloda = {
           else if (!value.length && oldValue.length)
             addDBAttribs.push([GlodaDatastore.kEmptySetAttrId, attribDB.id]);
         }
-
-        // replace the old value with the new values... (the 'old' item is
-        //  canonical)
-        aOldItem[key] = value;
       }
       // no old value, all values are new
       else {
-        // the 'old' item is still the canonical one; update it
-        if (!aIsConceptuallyNew)
-          aOldItem[key] = value;
         // add the db reps on the new values
         if (attrib.singular)
           value = [value];
@@ -2113,6 +2141,17 @@ var Gloda = {
       if (attrib === undefined) {
         continue;
       }
+
+      // delete these from the old item, as the old item is canonical, and
+      //  should no longer have these values
+      delete aOldItem[key];
+
+      if (!attrib.canQuery) {
+        this._log.debug("Not inserting attribute "+attrib.attributeName
+            +" into the db, since we don't plan on querying on it");
+        continue;
+      }
+
       if (attrib.singular)
         value = [value];
       let attribDB = attrib.dbDef;
@@ -2121,9 +2160,6 @@ var Gloda = {
       // remove the empty set marker if there should have been one
       if (!value.length && attrib.emptySetIsSignificant)
         removeDBAttribs.push([GlodaDatastore.kEmptySetAttrId, attribDB.id]);
-      // delete these from the old item, as the old item is canonical, and
-      //  should no longer have these values
-      delete aOldItem[key];
     }
 
     aItem._jsonText = JSON.stringify(jsonDict);

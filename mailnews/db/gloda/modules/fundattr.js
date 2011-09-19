@@ -151,6 +151,7 @@ var GlodaFundAttr = {
       specialColumnName: "messageKey",
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_NUMBER,
+      canQuery: true,
       }); // tested-by: test_attributes_fundamental
 
     // We need to surface the deleted attribute for querying, but there is no
@@ -269,6 +270,7 @@ var GlodaFundAttr = {
       valueStorageAttributeName: "_conversation",
       subjectNouns: [Gloda.NOUN_MESSAGE],
       objectNoun: Gloda.NOUN_CONVERSATION,
+      canQuery: true,
       });
 
     // --- Fundamental
@@ -342,6 +344,7 @@ var GlodaFundAttr = {
                         specialColumnName: "headerMessageID",
                         subjectNouns: [Gloda.NOUN_MESSAGE],
                         objectNoun: Gloda.NOUN_STRING,
+                        canQuery: true,
                         }); // tested-by: test_attributes_fundamental
 
     // Attachment MIME Types
