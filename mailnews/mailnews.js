@@ -809,6 +809,9 @@ pref("mailnews.database.global.logging.console", false);
 pref("mailnews.database.global.logging.dump", false);
 // Should we consider outputting all levels via the network?
 pref("mailnews.database.global.logging.net", false);
+// Rate of growth of the gloda cache, whose maximum value is 8 MiB and max is 64 MiB.
+// See more: https://developer.mozilla.org/en/Thunderbird/gloda#Cache_Size"
+pref("mailnews.database.global.datastore.cache_to_memory_permillage", 10);
 
 // default field order in the fieldmap
 pref("mailnews.import.text.fieldmap", "+0,+1,+2,+3,+4,+5,+36,+6,+7,+8,+9,+10,+11,+12,+13,+14,+15,+16,+17,+18,+19,+20,+21,+22,+23,+24,+25,+26,+27,+28,+29,+30,+31,+32,+33,+34,+35");

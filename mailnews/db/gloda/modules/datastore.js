@@ -57,13 +57,11 @@ Cu.import("resource:///modules/gloda/datamodel.js");
 Cu.import("resource:///modules/gloda/databind.js");
 Cu.import("resource:///modules/gloda/collection.js");
 
-let PCH_LOG = Log4Moz.repository.getLogger("gloda.ds.pch");
+const MIN_CACHE_SIZE = 8 * 1048576;
+const MAX_CACHE_SIZE = 64 * 1048576;
+const MEMSIZE_FALLBACK_BYTES = 256 * 1048576;
 
-/**
- * Bug 507414 introduces support for true asynchronous statements.  We can tell
- * we've got it if there is a mozIStorageAsyncStatement interface.
- */
-const HAVE_TRUE_ASYNC = "mozIStorageAsyncStatement" in Ci;
+let PCH_LOG = Log4Moz.repository.getLogger("gloda.ds.pch");
 
 /**
  * Commit async handler; hands off the notification to
@@ -723,7 +721,7 @@ var GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 21,
+  _schemaVersion: 26,
   _schema: {
     tables: {
 
@@ -1003,8 +1001,9 @@ var GlodaDatastore = {
       // (Exceptions may be thrown if the database is corrupt)
       try {
         dbConnection = dbService.openUnsharedDatabase(dbFile);
+        let cacheSize = this._determineCachePages(dbConnection);
         // see _createDB...
-        dbConnection.executeSimpleSQL("PRAGMA cache_size = 8192");
+        dbConnection.executeSimpleSQL("PRAGMA cache_size = "+cacheSize);
         dbConnection.executeSimpleSQL("PRAGMA synchronous = FULL");
 
         // Register custom tokenizer to index all language text
@@ -1155,13 +1154,10 @@ var GlodaDatastore = {
       //  exist, and it may be advisable to attempt to track and cancel those.
       //  For simplicity we don't currently do this, and I expect this should
       //  not pose a major problem, but those are famous last words.
-      // Note: In the HAVE_TRUE_ASYNC case asyncClose does not spin a nested
-      //  event loop, but the thread manager shutdown code will spin the
-      //  async thread's event loop, so it nets out to be the same.
-      if (HAVE_TRUE_ASYNC)
-        this.asyncConnection.asyncClose();
-      else
-        this.asyncConnection.close();
+      // Note: asyncClose does not spin a nested event loop, but the thread
+      //  manager shutdown code will spin the async thread's event loop, so it
+      //  nets out to be the same.
+      this.asyncConnection.asyncClose();
     }
     catch (ex) {
       this._log.debug("Potentially expected exception during connection " +
@@ -1172,22 +1168,49 @@ var GlodaDatastore = {
     this.syncConnection = null;
   },
 
+  _determineCachePages: function gloda_ds_determineCachePages(aDBConn) {
+    try {
+      // For the details of the computations, one should read
+      //  nsNavHistory::InitDB. We're slightly diverging from them in the sense
+      //  that we won't allow gloda to use insane amounts of memory cache, and
+      //  we start with 1% instead of 6% like them.
+      let pageStmt = aDBConn.createStatement("PRAGMA page_size");
+      pageStmt.executeStep();
+      let pageSize = pageStmt.row.page_size;
+      pageStmt.finalize();
+      let cachePermillage = this._prefBranch
+                            .getIntPref("cache_to_memory_permillage");
+      cachePermillage = Math.min(cachePermillage, 50);
+      cachePermillage = Math.max(cachePermillage, 0);
+      let physMem = IOUtils.getPhysicalMemorySize();
+      if (physMem == 0)
+        physMem = MEMSIZE_FALLBACK_BYTES;
+      let cacheSize = Math.round(physMem * cachePermillage / 1000);
+      cacheSize = Math.max(cacheSize, MIN_CACHE_SIZE);
+      cacheSize = Math.min(cacheSize, MAX_CACHE_SIZE);
+      let cachePages = Math.round(cacheSize / pageSize);
+      return cachePages;
+    } catch (ex) {
+      this._log.warn("Error determining cache size: " + ex);
+      // A little bit lower than on my personal machine, will result in ~40M.
+      return 1000;
+    }
+  },
+
   /**
    * Create our database; basically a wrapper around _createSchema.
    */
   _createDB: function gloda_ds_createDB(aDBService, aDBFile) {
     var dbConnection = aDBService.openUnsharedDatabase(aDBFile);
-    // Explicitly choose a page size of 1024 which is the default.  According
-    //  to bug 401985 this is actually the optimal page size for Linux and OS X
-    //  (while there are alleged performance improvements with 4k pages on
-    //  windows).  Increasing the page size to 4096 increases the actual byte
-    //  turnover significantly for rollback journals than a page size of 1024,
-    //  and since the rollback journal has to be fsynced, that is undesirable.
-    dbConnection.executeSimpleSQL("PRAGMA page_size = 1024");
+    // We now follow the Firefox strategy for places, which mainly consists in
+    //  picking a default 32k page size, and then figuring out the amount of
+    //  cache accordingly. The default 32k come from mozilla/toolkit/storage,
+    //  but let's get it directly from sqlite in case they change it.
+    let cachePages = this._determineCachePages(dbConnection);
     // This is a maximum number of pages to be used.  If the database does not
     //  get this large, then the memory does not get used.
     // Do not forget to update the code in _init if you change this value.
-    dbConnection.executeSimpleSQL("PRAGMA cache_size = 8192");
+    dbConnection.executeSimpleSQL("PRAGMA cache_size = "+cachePages);
     // The mozStorage default is NORMAL which shaves off some fsyncs in the
     //  interest of performance.  Since everything we do after bootstrap is
     //  async, we do not care about the performance, but we really want the
@@ -1354,22 +1377,13 @@ var GlodaDatastore = {
     // (version 22-25 GAP being left for incremental, non-explodey change. jump
     //  the schema to 26 if 22 is the next number but you have an explodey
     //  change!)
+    // version 26
+    // - bump page size and also cache size
 
-    // If it's not version 20 or inside our safe bound-range of 25, nuke.
-    if (aCurVersion < 20 || aCurVersion > 25) {
-      aDBConnection.close();
-      aDBFile.remove(false);
-      this._log.warn("Global database has been purged due to schema change.");
-      return this._createDB(aDBService, aDBFile);
-    }
-
-    this._log.warn("Global database performing schema update.");
-    // version 21
-    aDBConnection.executeSimpleSQL(
-      "CREATE INDEX messageAttribFastDeletion ON messageAttributes(messageID)");
-
-    aDBConnection.schemaVersion = aNewVersion;
-    return aDBConnection;
+    aDBConnection.close();
+    aDBFile.remove(false);
+    this._log.warn("Global database has been purged due to schema change.");
+    return this._createDB(aDBService, aDBFile);
   },
 
   _outstandingAsyncStatements: [],
@@ -1385,10 +1399,7 @@ var GlodaDatastore = {
                                                                 aWillFinalize) {
     let statement = null;
     try {
-      if (HAVE_TRUE_ASYNC)
-        statement = this.asyncConnection.createAsyncStatement(aSQLString);
-      else
-        statement = this.asyncConnection.createStatement(aSQLString);
+      statement = this.asyncConnection.createAsyncStatement(aSQLString);
     }
     catch(ex) {
        throw("error creating async statement " + aSQLString + " - " +

@@ -75,4 +75,10 @@ var IOUtils =
    * This is provided by the JS component loader.
    */
   btoa: btoa,
+
+  getPhysicalMemorySize: function IOUtils_getPhysicalMemorySize() {
+    let systemInfo = Cc["@mozilla.org/system-info;1"]
+                      .createInstance(Ci.nsIPropertyBag2);
+    return systemInfo.getPropertyAsInt64("memsize");
+  },
 };
