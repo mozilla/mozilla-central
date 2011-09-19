@@ -311,8 +311,7 @@
                       >
                   <!-- first panel in displayDeck is Account Central -->
                   <vbox id="accountCentralBox" flex="1">
-                    <iframe name="accountCentralPane" id="accountCentralPane"
-                            width="150" flex="1" src="about:blank"/>
+                    <iframe name="accountCentralPane" width="150" flex="1" src="about:blank"/>
                   </vbox>
                   <!-- The threadPaneBox is the basis for the vertical view and you
                        should not put anything in it, because the messagepane will

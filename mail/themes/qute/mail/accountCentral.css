@@ -112,11 +112,6 @@ separator.thin {
   color: -moz-html-CellHighlight;
 }
 
-.acctCentralLinkText:-moz-focusring {
-  outline: 1px dotted -moz-NativeHyperlinkText;
-  outline-offset: -1px;
-}
-
 #ReadMessages label {
   background: url("chrome://messenger/skin/accountcentral/read-messages.png") no-repeat !important;
 }

@@ -41,18 +41,13 @@
 var MODULE_NAME = "test-pane-focus";
 
 var RELATIVE_ROOT = "../shared-modules";
-var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers"];
-
-var elib = {};
-Cu.import('resource://mozmill/modules/elementslib.js', elib);
+var MODULE_REQUIRES = ["folder-display-helpers"];
 
 var folder;
 
 function setupModule(module) {
   let fdh = collector.getModule("folder-display-helpers");
   fdh.installInto(module);
-  let wh = collector.getModule("window-helpers");
-  wh.installInto(module);
 
   folder = create_folder("PaneFocus");
   let msg1 = create_thread(1);
@@ -67,14 +62,13 @@ function setupModule(module) {
 
 /**
  * Get the currently-focused pane in the 3pane. One of the folder pane, thread
- * pane, message pane (single- or multi-message), or account central pane.
+ * pane, or message pane (single- or multi-message).
  *
  * @return the focused pane
  */
 function get_focused_pane() {
   let panes = [mc.e(id) for each (id in [
-    "threadTree", "folderTree", "messagepane", "multimessage",
-    "accountCentralPane"
+    "threadTree", "folderTree", "messagepane", "multimessage"
   ])];
 
   let currentNode = mc.window.top.document.activeElement;
@@ -94,7 +88,7 @@ function get_focused_pane() {
  *
  * @param multimessage true if the multimessage pane should be active
  */
-function check_folder_pane_cycling(multimessage) {
+function check_pane_cycling(multimessage) {
   let folderPane = mc.e("folderTree");
   let threadPane = mc.e("threadTree");
   let messagePane = mc.e(multimessage ? "multimessage" : "messagepane");
@@ -116,67 +110,12 @@ function check_folder_pane_cycling(multimessage) {
   assert_equals(folderPane, get_focused_pane());
 }
 
-function test_account_central() {
-  be_in_folder(folder.rootFolder);
-
-  let folderPane = mc.e("folderTree");
-  let accountCentralPane = mc.e("accountCentralPane");
-
-  folderPane.focus();
-
-  mc.keypress(null, "VK_F6", {});
-  assert_equals(accountCentralPane, get_focused_pane());
-  mc.keypress(null, "VK_F6", {});
-  assert_equals(folderPane, get_focused_pane());
-
-  mc.keypress(null, "VK_F6", {shiftKey: true});
-  assert_equals(accountCentralPane, get_focused_pane());
-  mc.keypress(null, "VK_F6", {shiftKey: true});
-  assert_equals(folderPane, get_focused_pane());
-}
-
-function test_account_central_focus_tweaks() {
-  be_in_folder(folder.rootFolder);
-
-  let folderPane = mc.e("folderTree");
-  let accountCentralPane = mc.e("accountCentralPane");
-
-  folderPane.focus();
-
-  // Ensure we focus the first clickable item in the account central pane.
-  mc.keypress(null, "VK_F6", {});
-  assert_equals(accountCentralPane.contentDocument.activeElement.value,
-                "View settings for this account");
-
-  // Ensure that focusing elsewhere in the 3pane and then returning to account
-  // central maintains the previous focus.
-  mc.keypress(null, "VK_TAB", {});
-  let focusedElement = accountCentralPane.contentDocument.activeElement;
-  assert_equals(focusedElement.value, "Create a new account");
-
-  mc.keypress(null, "VK_F6", {shiftKey: true});
-  mc.keypress(null, "VK_F6", {});
-  assert_equals(accountCentralPane.contentDocument.activeElement,
-                focusedElement);
-
-  // Ensure that opening a dialog from account central and closing it maintains
-  // focus.
-  plan_for_modal_dialog("mail:autoconfig", function(acc) {
-    close_window(acc);
-  });
-  mc.click(new elib.Elem(focusedElement));
-  let acc = wait_for_modal_dialog("mail:autoconfig");
-
-  assert_equals(accountCentralPane.contentDocument.activeElement,
-                focusedElement);
-}
-
 function test_no_messages_selected() {
   be_in_folder(folder);
 
   // Select nothing
   select_none();
-  check_folder_pane_cycling(false);
+  check_pane_cycling(false);
 }
 
 function test_one_message_selected() {
@@ -184,7 +123,7 @@ function test_one_message_selected() {
 
   // Select a message
   select_click_row(0);
-  check_folder_pane_cycling(false);
+  check_pane_cycling(false);
 }
 
 function test_n_messages_selected() {
@@ -192,7 +131,7 @@ function test_n_messages_selected() {
 
   // Select a thread
   select_click_row(1);
-  check_folder_pane_cycling(true);
+  check_pane_cycling(true);
 }
 
 function test_between_tab_and_single_message() {
