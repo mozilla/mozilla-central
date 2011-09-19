@@ -554,7 +554,12 @@ static void copy_stemmer(const unsigned char *zIn, const int nBytesIn,
 ** Stemming never increases the length of the word.  So there is
 ** no chance of overflowing the zOut buffer.
 */
-static void porter_stemmer(const unsigned char *zIn, unsigned int nIn, unsigned char *zOut, int *pnOut){
+static void porter_stemmer(
+  const unsigned char *zIn,
+  unsigned int nIn,
+  unsigned char *zOut,
+  int *pnOut
+){
   unsigned int i, j, c;
   char zReverse[28];
   char *z, *z2;
@@ -1071,18 +1076,24 @@ static int porterNext(
       c->iPrevBigramOffset = 0;
     }
 
-    /* Only emit tokens of 2 characters or more unless we think this is a
-     *  query and wildcard magic is desired.  We think is a wildcard query
-     *  when we have a single character, it starts at the start of the buffer,
-     *  it's CJK, our current offset is one shy of nInput and the character at
-     *  iOffset is '*'.  Because the state gets clobbered by the incidence of
-     *  '*' our requirement for CJK is that the implied character length is at
-     *  least 3 given that it takes at least 3 bytes to encode to 0x2000.
+    /* We emit a token if:
+     *  - there are two ideograms together,
+     *  - there are three chars or more,
+     *  - we think this is a query and wildcard magic is desired.
+     * We think is a wildcard query when we have a single character, it starts
+     *  at the start of the buffer, it's CJK, our current offset is one shy of
+     *  nInput and the character at iOffset is '*'.  Because the state gets
+     *  clobbered by the incidence of '*' our requirement for CJK is that the
+     *  implied character length is at least 3 given that it takes at least 3
+     *  bytes to encode to 0x2000.
      */
     // It is possible we have no token to emit here if iPrevBigramOffset was not
     //  0 on entry and there was no second CJK character.  iPrevBigramOffset
     //  will now be 0 if that is the case (and c->iOffset == iStartOffset).
-    if (numChars >= 2 ||
+    if (// allow two-character words only if in bigram
+        (numChars == 2 && state == BIGRAM_USE) ||
+        // otherwise, drop two-letter words (considered stop-words)
+        (numChars >=3) ||
         // wildcard case:
         (numChars == 1 && iStartOffset == 0 &&
          (c->iOffset >= 3) &&

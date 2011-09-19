@@ -310,7 +310,12 @@ GlodaMsgSearcher.prototype = {
       // Our tokenizer treats anything at/above 0x2000 as CJK for now.
       else if (term.length == 1 && term.charCodeAt(0) >= 0x2000)
         fulltextQueryString += term + "*";
-      else
+      else if (
+          term.length == 2 &&
+            term.charCodeAt(0) >= 0x2000 &&
+            term.charCodeAt(1) >= 0x2000
+          || term.length >= 3
+      )
         fulltextQueryString += '"' + term + '"';
 
     }
