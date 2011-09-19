@@ -57,7 +57,7 @@ nsGlodaRankerFunction::~nsGlodaRankerFunction()
 {
 }
 
-static PRInt32 COLUMN_SATURATION[] = {1, 10, 1, 1, 1};
+static PRInt32 COLUMN_SATURATION[] = {10, 1, 1, 1, 1};
 
 /**
  * Our ranking function basically just multiplies the weight of the column

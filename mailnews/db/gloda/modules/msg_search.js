@@ -53,7 +53,7 @@ Cu.import("resource:///modules/gloda/public.js");
 const FUZZSCORE_TIMESTAMP_FACTOR = 1000 * 1000 * 60 * 60 * 24 * 7;
 
 const RANK_USAGE =
-  "glodaRank(matchinfo(messagesText), 2.0, 1.0, 2.0, 1.5, 1.5)";
+  "glodaRank(matchinfo(messagesText), 1.0, 2.0, 2.0, 1.5, 1.5)";
 
 const DASCORE =
   "(((" + RANK_USAGE + " + messages.notability) * " +
@@ -138,7 +138,7 @@ function reduceSum(accum, curValue) {
 }
 
 /*
- * Columns are: subject, body, attachment names, author, recipients
+ * Columns are: body, subject, attachment names, author, recipients
  */
 
 /**
@@ -151,12 +151,12 @@ function reduceSum(accum, curValue) {
  *  display name on the address book card associated with the e-mail adress)
  *  a contact is going to bias towards matching multiple times.
  */
-const COLUMN_ALL_MATCH_SCORES = [20, 4, 20, 16, 12];
+const COLUMN_ALL_MATCH_SCORES = [4, 20, 20, 16, 12];
 /**
  * Score for each distinct term that matches in the column.  This is capped
  *  by COLUMN_ALL_SCORES.
  */
-const COLUMN_PARTIAL_PER_MATCH_SCORES = [4, 1, 4, 4, 3];
+const COLUMN_PARTIAL_PER_MATCH_SCORES = [1, 4, 4, 4, 3];
 /**
  * If a term matches multiple times, what is the marginal score for each
  *  additional match.  We count the total number of matches beyond the
@@ -166,8 +166,8 @@ const COLUMN_PARTIAL_PER_MATCH_SCORES = [4, 1, 4, 4, 3];
  *  and the value in COLUMN_MULTIPLE_MATCH_LIMIT and multiply by the value in
  *  COLUMN_MULTIPLE_MATCH_SCORES.
  */
-const COLUMN_MULTIPLE_MATCH_SCORES = [0, 1, 0, 0, 0];
-const COLUMN_MULTIPLE_MATCH_LIMIT = [0, 10, 0, 0, 0];
+const COLUMN_MULTIPLE_MATCH_SCORES = [1, 0, 0, 0, 0];
+const COLUMN_MULTIPLE_MATCH_LIMIT = [10, 0, 0, 0, 0];
 
 /**
  * Score the message on its offsets (from stashedColumns).

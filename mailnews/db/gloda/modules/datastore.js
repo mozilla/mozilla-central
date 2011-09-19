@@ -802,10 +802,11 @@ var GlodaDatastore = {
         },
 
         // note: if reordering the columns, you need to change this file's
-        //  row-loading logic as well as msg_search.js's ranking usages.
+        //  row-loading logic, msg_search.js's ranking usages and also the
+        //  column saturations in nsGlodaRankerFunction
         fulltextColumns: [
-          ["subject", "TEXT"],
           ["body", "TEXT"],
+          ["subject", "TEXT"],
           ["attachmentNames", "TEXT"],
           ["author", "TEXT"],
           ["recipients", "TEXT"],
@@ -2650,14 +2651,14 @@ var GlodaDatastore = {
       jsonText = aRow.getString(7);
     // only queryFromQuery queries will have these columns
     if (aRow.numEntries >= 14) {
-      if (aRow.getTypeOfIndex(9) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
+      if (aRow.getTypeOfIndex(10) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
         subject = undefined;
       else
-        subject = aRow.getString(9);
-      if (aRow.getTypeOfIndex(10) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
+        subject = aRow.getString(10);
+      if (aRow.getTypeOfIndex(9) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
         indexedBodyText = undefined;
       else
-        indexedBodyText = aRow.getString(10);
+        indexedBodyText = aRow.getString(9);
       if (aRow.getTypeOfIndex(11) == Ci.mozIStorageValueArray.VALUE_TYPE_NULL)
         attachmentNames = null;
       else {
