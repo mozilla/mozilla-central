@@ -47,6 +47,13 @@ const Cu = Components.utils;
  *  reside elsewhere.
  */
 var GlodaUtils = {
+
+  /**
+   * This Regexp is super-complicated and used at least in two different parts of
+   * the code, so let's expose it from one single location.
+   */
+  PART_RE: new RegExp("^[^?]+\\?(?:/;section=\\d+\\?)?(?:[^&]+&)*part=([^&]+)(?:&[^&]+)*$"),
+
   _mimeConverter: null,
   deMime: function gloda_utils_deMime(aString) {
     if (this._mimeConverter == null) {

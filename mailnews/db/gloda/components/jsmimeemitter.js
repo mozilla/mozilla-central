@@ -85,8 +85,11 @@ const MAX_SANE_BODY_PART_SIZE = 20 * 1024;
 function MimeMessageEmitter() {
   this._mimeMsg = {};
   Cu.import("resource:///modules/gloda/mimemsg.js", this._mimeMsg);
+  this._utils = {};
+  Cu.import("resource:///modules/gloda/utils.js", this._utils);
 
   this._url = null;
+  this._partRE = this._utils.GlodaUtils.PART_RE;
 
   this._outputListener = null;
 
@@ -104,8 +107,6 @@ const deathToNewlines = /\n/g;
 
 MimeMessageEmitter.prototype = {
   classID: Components.ID("{8cddbbbc-7ced-46b0-a936-8cddd1928c24}"),
-
-  _partRE: new RegExp("^[^?]+\\?(?:/;section=\\d+\\?)?(?:[^&]+&)*part=([^&]+)(?:&[^&]+)*$"),
 
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIMimeEmitter]),
 

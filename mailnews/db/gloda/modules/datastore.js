@@ -3310,8 +3310,8 @@ var GlodaDatastore = {
           selects.push(select);
         }
         else
-          this._log.warning("Unable to translate constraint of type " +
-            constraintType + " on attribute bound as " + aAttrDef.boundName);
+          this._log.warn("Unable to translate constraint of type " +
+            constraintType + " on attribute bound as " + nounDef.name);
 
         lastConstraintWasSpecial = curConstraintIsSpecial;
       }
@@ -3537,7 +3537,7 @@ var GlodaDatastore = {
         if (attrib.singular) {
           // For consistency with the non-singular case, we don't assign the
           //  attribute if undefined is returned.
-          let deserialized = objectNounDef.fromJSON(jsonValue);
+          let deserialized = objectNounDef.fromJSON(jsonValue, aItem);
           if (deserialized !== undefined)
             aItem[attrib.boundName] = deserialized;
         }
@@ -3546,7 +3546,7 @@ var GlodaDatastore = {
           //  values. (TagNoun will do this if the tag is now dead.)
           let outList = [];
           for each (let [, val] in Iterator(jsonValue)) {
-            let deserialized = objectNounDef.fromJSON(val);
+            let deserialized = objectNounDef.fromJSON(val, aItem);
             if (deserialized !== undefined)
               outList.push(deserialized);
           }

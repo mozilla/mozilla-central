@@ -606,8 +606,9 @@ var _indexMessageState = {
     for each (let [, item] in Iterator(aItems)) {
       if (item.headerMessageID in this._glodaMessagesByMessageId)
         mark_failure(
-          ["Gloda message", item, "already indexed once since the last" +
-            "wait_for_gloda_indexer call!"]);
+          ["Gloda message", item.folderMessage,
+            "already indexed once since the last" + "wait_for_gloda_indexer call!"
+          ]);
 
       this._glodaMessagesByMessageId[item.headerMessageID] = item;
     }

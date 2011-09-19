@@ -44,10 +44,20 @@ const Ci = Components.interfaces;
 const Cr = Components.results;
 const Cu = Components.utils;
 
+Cu.import("resource:///modules/mailServices.js");
+
 Cu.import("resource:///modules/gloda/log4moz.js");
 const LOG = Log4Moz.repository.getLogger("gloda.datamodel");
 
 Cu.import("resource:///modules/gloda/utils.js");
+
+// Make it lazy.
+let gMessenger;
+function getMessenger () {
+  if (!gMessenger)
+    gMessenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);
+  return gMessenger;
+}
 
 /**
  * @class Represents a gloda attribute definition's DB form.  This class
@@ -845,12 +855,14 @@ GlodaIdentity.prototype = {
 /**
  * An attachment, with as much information as we can gather on it
  */
-function GlodaAttachment(aName, aContentType, aSize, aURL, aIsExternal) {
+function GlodaAttachment(aGlodaMessage, aName, aContentType, aSize, aPart, aExternalUrl, aIsExternal) {
   // _datastore set on the prototype by GlodaDatastore
+  this._glodaMessage = aGlodaMessage;
   this._name = aName;
   this._contentType = aContentType;
   this._size = aSize;
-  this._url = aURL;
+  this._part = aPart;
+  this._externalUrl = aExternalUrl;
   this._isExternal = aIsExternal;
 }
 
@@ -860,7 +872,22 @@ GlodaAttachment.prototype = {
   get name() { return this._name; },
   get contentType() { return this._contentType; },
   get size() { return this._size; },
-  get url() { return this._url; },
+  get url() {
+    if (this.isExternal)
+      return this._externalUrl;
+    else {
+      let uri = this._glodaMessage.folderMessageURI;
+      if (!uri)
+        throw new Error("The message doesn't exist anymore, unable to rebuild attachment URL");
+      let neckoURL = {};
+      let msgService = getMessenger().messageServiceFromURI(uri);
+      msgService.GetUrlForUri(uri, neckoURL, null);
+      let url = neckoURL.value.spec;
+      let hasParamAlready = url.match(/\?[a-z]+=[^\/]+$/);
+      let sep = hasParamAlready ? "&" : "?";
+      return url+sep+"part="+this._part+"&filename="+this._name;
+    }
+  },
   get isExternal() { return this._isExternal; },
 
   toString: function gloda_attachment_toString() {

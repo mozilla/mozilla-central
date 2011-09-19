@@ -1354,16 +1354,18 @@ var Gloda = {
       allowsArbitraryAttrs: false,
       isPrimitive: false,
       toJSON: function (x) {
-          return {
-            name: x.name,
-            contentType: x.contentType,
-            size: x.size,
-            url: x.url,
-            isExternal: x.isExternal,
-          }
+          return [
+            x._name,
+            x._contentType,
+            x._size,
+            x._part,
+            x._externalUrl,
+            x._isExternal
+          ]
         },
-      fromJSON: function (x) {
-          return new GlodaAttachment(x.name, x.contentType, x.size, x.url, x.isExternal);
+      fromJSON: function (x, aGlodaMessage) {
+          let [name, contentType, size, _part, _externalUrl, isExternal] = x;
+          return new GlodaAttachment(aGlodaMessage, name, contentType, size, _part, _externalUrl, isExternal);
         },
       }, this.NOUN_ATTACHMENT);
 

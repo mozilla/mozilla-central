@@ -53,6 +53,7 @@
 load("resources/glodaTestHelper.js");
 
 Components.utils.import("resource:///modules/MailUtils.js");
+Components.utils.import("resource://gre/modules/NetUtil.jsm");
 
 // Whether we can expect fulltext results
 var expectFulltextResults = true;
@@ -408,6 +409,12 @@ function verify_attachment_flag(smsg, gmsg) {
 var fundamentalSyntheticMessage;
 var fundamentalFolderHandle;
 /**
+ * We're saving this one so that we can move the message later and verify that
+ * the attributes are consistent.
+ */
+var fundamentalMsgSet;
+var fundamentalGlodaMsgAttachmentUrls;
+/**
  * Save the resulting gloda message id corresponding to the
  *  fundamentalSyntheticMessage.
  */
@@ -434,6 +441,7 @@ function test_attributes_fundamental() {
   // save it off for test_attributes_fundamental_from_disk
   fundamentalSyntheticMessage = smsg;
   let msgSet = new SyntheticMessageSet([smsg]);
+  fundamentalMsgSet = msgSet;
   let folder = fundamentalFolderHandle = make_empty_folder();
   yield add_sets_to_folders(folder, [msgSet]);
 
@@ -444,14 +452,14 @@ function test_attributes_fundamental() {
     // now the next indexer wait will wait for the next indexing pass...
   }
 
-  yield wait_for_gloda_indexer(msgSet,
-                               {verifier: verify_attributes_fundamental});
+  yield wait_for_gloda_indexer(msgSet, { verifier: verify_attributes_fundamental });
 
 }
 
 function verify_attributes_fundamental(smsg, gmsg) {
   // save off the message id for test_attributes_fundamental_from_disk
   fundamentalGlodaMessageId = gmsg.id;
+  fundamentalGlodaMsgAttachmentUrls = [att.url for each (att in gmsg.attachmentInfos)];
 
   do_check_eq(gmsg.folderURI,
               get_real_injection_folder(fundamentalFolderHandle).URI);
@@ -497,9 +505,14 @@ function verify_attributes_fundamental(smsg, gmsg) {
         do_check_eq(attInfos[k], expectedInfos[i][k]);
       // because it's unreliable and depends on the platform
       do_check_true(Math.abs(attInfos.size - expectedSize) <= 2);
-      // because the url contains the path to the folder on disk which depends
-      // on the test setup
-      do_check_true(attInfos.url.length > 0);
+      // check that the attachment URLs are correct
+      let channel = NetUtil.newChannel(attInfos.url);
+      try {
+        // will throw if the URL is invalid
+        channel.open();
+      } catch (e) {
+        do_throw(new Error("Invalid attachment URL"));
+      }
     }
   }
   else {
@@ -507,6 +520,45 @@ function verify_attributes_fundamental(smsg, gmsg) {
     do_check_eq(gmsg.attachmentTypes, null);
     do_check_eq(gmsg.attachmentNames, null);
   }
+}
+
+/**
+ * We now move the message into another folder, wait for it to be indexed,
+ * and make sure the magic url getter for GlodaAttachment returns a proper
+ * URL.
+ */
+function test_moved_message_attributes() {
+  if (!expectFulltextResults)
+    return;
+
+  // Don't ask me why, let destFolder = make_empty_folder would result in a
+  // random error when running test_index_messages_imap_offline.js ...
+  let [destFolder, ignoreSet] = make_folder_with_sets([{count: 2}]);
+  yield wait_for_message_injection();
+  yield wait_for_gloda_indexer([ignoreSet]);
+
+  // this is a fast move (third parameter set to true)
+  yield async_move_messages(fundamentalMsgSet, destFolder, true);
+
+  yield wait_for_gloda_indexer(fundamentalMsgSet, {
+    verifier: function (newSynMsg, newGlodaMsg) {
+      // verify we still have the same number of attachments
+      do_check_eq(fundamentalGlodaMsgAttachmentUrls.length,
+        newGlodaMsg.attachmentInfos.length);
+      for each (let [i, attInfos] in Iterator(newGlodaMsg.attachmentInfos)) {
+        // verify the url has changed
+        do_check_neq(fundamentalGlodaMsgAttachmentUrls[i], attInfos.url);
+        // and verify that the new url is still valid
+        let channel = NetUtil.newChannel(attInfos.url);
+        try {
+          channel.open();
+        } catch (e) {
+          do_throw(new Error("Invalid attachment URL"));
+        }
+      }
+    },
+    fullyIndexed: 0,
+  });
 }
 
 /**
@@ -1133,6 +1185,7 @@ var tests = [
   test_attachment_flag,
   test_attributes_fundamental,
   test_attributes_fundamental_from_disk,
+  test_moved_message_attributes,
   test_attributes_explicit,
 
   test_streamed_bodies_are_size_capped,

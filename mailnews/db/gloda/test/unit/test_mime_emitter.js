@@ -66,6 +66,11 @@ const scenarios = gMessageScenarioFactory = new MessageScenarioFactory(msgGen);
 
 Components.utils.import("resource:///modules/gloda/mimemsg.js");
 
+// While we're at it, we'll also test the correctness of the GlodaAttachment
+// representation, esp. its "I just need the part information to rebuild the
+// URLs" claim.
+Components.utils.import("resource:///modules/gloda/fundattr.js");
+
 var partText = new SyntheticPartLeaf("I am text! Woo!");
 var partHtml = new SyntheticPartLeaf(
   "<html><head></head><body>I am HTML! Woo! </body></html>",
@@ -544,6 +549,17 @@ function test_attachments_correctness () {
         do_check_eq(aMimeMsg.allUserAttachments.length, expected.allUserAttachmentsContentTypes.length);
         for each (let [j, att] in Iterator(aMimeMsg.allUserAttachments))
           do_check_eq(att.contentType, expected.allUserAttachmentsContentTypes[j]);
+
+        // Test
+        for each (let [, att] in Iterator(aMimeMsg.allUserAttachments)) {
+          let uri = aMsgHdr.folder.getUriForMsg(aMsgHdr);
+          let glodaAttachment =
+            GlodaFundAttr.glodaAttFromMimeAtt({ folderMessageURI: uri }, att);
+          // The GlodaAttachment appends the filename, which is not always
+          // present
+          do_check_eq(glodaAttachment.url.indexOf(att.url), 0);
+        }
+
       } catch (e) {
         dump(aMimeMsg.prettyString()+"\n");
         do_throw(e);

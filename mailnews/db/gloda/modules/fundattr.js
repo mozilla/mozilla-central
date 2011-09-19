@@ -610,15 +610,7 @@ var GlodaFundAttr = {
       // means yencode won't be supported. Oh, I feel really bad.
       let attachmentInfos = [];
       for each (let [, att] in Iterator(aMimeMsg.allUserAttachments)) {
-        if (att.isRealAttachment) {
-          attachmentInfos.push(
-            new GlodaAttachment(att.name,
-                                att.contentType,
-                                att.size,
-                                att.url,
-                                att.isExternal)
-          );
-        }
+        attachmentInfos.push(this.glodaAttFromMimeAtt(aGlodaMessage, att));
       }
       aGlodaMessage.attachmentInfos = attachmentInfos;
     }
@@ -629,6 +621,31 @@ var GlodaFundAttr = {
     //  logic for quoting purposes, etc. too.)
 
     yield Gloda.kWorkDone;
+  },
+
+  glodaAttFromMimeAtt:
+      function gloda_fundattr_glodaAttFromMimeAtt(aGlodaMessage, aAtt) {
+    // So we don't want to store the URL because it can change over time if
+    // the message is moved. What we do is store the full URL if it's a
+    // detached attachment, otherwise just keep the part information, and
+    // rebuild the URL according to where the message is sitting.
+    let part, externalUrl;
+    if (aAtt.isExternal) {
+      externalUrl = aAtt.url;
+    } else {
+      let matches = aAtt.url.match(GlodaUtils.PART_RE);
+      if (matches && matches.length)
+        part = matches[1];
+      else
+        this._log.error("Error processing attachment: " + aAtt.url);
+    }
+    return new GlodaAttachment(aGlodaMessage,
+                               aAtt.name,
+                               aAtt.contentType,
+                               aAtt.size,
+                               part,
+                               externalUrl,
+                               aAtt.isExternal);
   },
 
   optimize: function gloda_fundattr_optimize(aGlodaMessage, aRawReps,
