@@ -1979,6 +1979,7 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
       //
       nsCString email;
       mUserIdentity->GetEmail(email);
+      email.StripWhitespace();
       m_attachments[i].m_content_id = mime_gen_content_id(locCount+1, email.get());
 
       if (!m_attachments[i].m_content_id)
