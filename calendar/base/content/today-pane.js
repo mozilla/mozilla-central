@@ -46,6 +46,7 @@ var TodayPane = {
     paneViews: null,
     start: null,
     cwlabel: null,
+    previousMode:  null,
 
     /**
      * Load Handler, sets up the today pane controls.
@@ -63,6 +64,7 @@ var TodayPane = {
 
         document.getElementById("today-splitter").addEventListener("command", onCalendarViewResize, false);
         TodayPane.updateSplitterState();
+        TodayPane.previousMode = document.getElementById("modeBroadcaster").getAttribute("mode");
     },
 
     /**
@@ -279,8 +281,14 @@ var TodayPane = {
      */
     onModeModified: function onModeModified(aEvent) {
         if (aEvent.attrName == "mode") {
+            let todaypane = document.getElementById("today-pane-panel");
+            // Store the previous mode panel's width.
+            todaypane.setModeAttribute("modewidths", todaypane.width, TodayPane.previousMode);
+
             TodayPane.setTodayHeader();
             TodayPane.updateSplitterState();
+            todaypane.width = todaypane.getModeAttribute("modewidths", "width");
+            TodayPane.previousMode = document.getElementById("modeBroadcaster").getAttribute("mode");
         }
     },
 
@@ -302,28 +310,21 @@ var TodayPane = {
     updateSplitterState: function updateSplitterState() {
         let splitter = document.getElementById("today-splitter");
         let todaypane = document.getElementById("today-pane-panel");
-        if (todaypane.isVisible()) {
-            splitter.removeAttribute("hidden");
-            todaypane.width = todaypane.getModeAttribute("modewidths", "width");
-            let splitterState = todaypane.getModeAttribute("modesplitterstates", "state");
-            splitter.setAttribute("state", splitterState);
-            if (splitterState == "collapsed") {
-                todaypane.setAttribute("collapsed", "true");
-            }
-        } else {
-            splitter.hidden = true;
-        }
+        splitter.setAttribute("state", todaypane.isVisible() ? "open" : "collapsed");
+        setElementValue(splitter, !todaypane.isVisible() && "true", "hidden");
     },
 
     /**
-     * Store mode dependent values for today-pane width and today-splitter state
-     * when today-splitter is dragged or collapsed.
+     * Generates the todaypane toggle command when the today-splitter
+     * is being collapsed or uncollapsed.
      */
-    storeWidthAndState: function storeWidthAndState() {
+    onCommandTodaySplitter: function onCommandTodaySplitter() {
         let todaypane = document.getElementById("today-pane-panel");
         let splitterState = document.getElementById('today-splitter').getAttribute("state");
-        todaypane.setModeAttribute("modesplitterstates", splitterState ? splitterState : "open");
-        todaypane.setModeAttribute("modewidths", todaypane.width);
+        if (splitterState == "collapsed" && todaypane.isVisible() ||
+            splitterState != "collapsed" && !todaypane.isVisible()) {
+              document.getElementById('calendar_toggle_todaypane_command').doCommand();
+        }
     }
 };
 

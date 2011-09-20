@@ -51,6 +51,7 @@
 #today-pane-panel {
   background-color: -moz-Dialog;
   color: -moz-DialogText;
+  min-width: 100px;
 }
 
 #today-pane-panel:-moz-lwtheme {

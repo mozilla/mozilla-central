@@ -65,7 +65,7 @@
     <modevbox id="today-pane-panel"
               mode="mail,calendar,task" modewidths="200,200,200" modesplitterstates="open,open,open"
               refcontrol="calendar_toggle_todaypane_command"
-              broadcaster="modeBroadcaster" persist="modewidths modesplitterstates">
+              broadcaster="modeBroadcaster" persist="modewidths">
       <sidebarheader align="center">
         <label id ="today-pane-header"/>
         <spacer flex="1"/>

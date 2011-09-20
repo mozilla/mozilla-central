@@ -578,11 +578,11 @@
 
   <hbox id="tabmail-container">
     <splitter id="today-splitter"
-              collapse="after"
+              collapse="none"
               resizebefore="closest"
               state="collapsed"
               class="calendar-sidebar-splitter"
-              oncommand="TodayPane.storeWidthAndState();">
+              oncommand="TodayPane.onCommandTodaySplitter();">
       <grippy/>
     </splitter>
     <modevbox id="today-pane-panel" />
