@@ -65,7 +65,6 @@
       <field name="mTimezone">null</field>
       <field name="mFlashingEvents">new Object()</field>
       <field name="mSelectedItems">[]</field>
-      <field name="mBatchCount">0</field>
       <field name="mLongWeekdayTotalPixels">-1</field>
       <field name="mResizeHandler">null</field>
       <field name="mDropShadowsLength">null</field>
@@ -127,13 +126,8 @@
             calView: this,
 
             onStartBatch: function onStartBatch() {
-                this.calView.mBatchCount++;
             },
             onEndBatch: function onEndBatch() {
-                this.calView.mBatchCount--;
-                if (this.calView.mBatchCount == 0) {
-                    this.calView.refresh();
-                }
             },
 
             onLoad: function onLoad() {
@@ -141,9 +135,6 @@
             },
 
             onAddItem: function onAddItem(aItem) {
-                if (this.calView.mBatchCount) {
-                    return;
-                }
 
                 if (isToDo(aItem)) {
                     if (!aItem.entryDate || !aItem.dueDate) {
@@ -167,9 +158,6 @@
             },
 
             onModifyItem: function onModifyItem(aNewItem, aOldItem) {
-                if (this.calView.mBatchCount) {
-                    return;
-                }
 
                 if (isToDo(aNewItem) && isToDo(aOldItem) &&
                     !this.calView.mTasksInView) {
@@ -204,9 +192,6 @@
             },
 
             onDeleteItem: function onDeleteItem(aItem) {
-                if (this.calView.mBatchCount) {
-                    return;
-                }
 
                 if (isToDo(aItem)) {
                     if (!this.calView.mTasksInView) {
@@ -563,7 +548,7 @@
 
       <method name="refresh">
         <body><![CDATA[
-          if (this.mBatchCount == 0 && this.isVisible()) {
+          if (this.isVisible()) {
               var refreshJob = {};
               this.mRefreshQueue.push(refreshJob);
               this.popRefreshQueue();

@@ -667,7 +667,7 @@
         <body><![CDATA[
           this.rangeStartDate = aStartDate;
           this.rangeEndDate = aEndDate;
-          this.mStartDate = getWeekInfoService().getStartOfWeek(aStartDate.getInTimezone(this.mTimezone))
+          this.mStartDate = getWeekInfoService().getStartOfWeek(aStartDate.getInTimezone(this.mTimezone));
           this.mEndDate = getWeekInfoService().getEndOfWeek(aEndDate.getInTimezone(this.mTimezone));
           this.refresh();
 
@@ -986,13 +986,11 @@
       <method name="deleteItemsFromCalendar">
         <parameter name="aCalendar"/>
         <body><![CDATA[
-          let deleteHash = {};
           for each (let box in this.mDateBoxes) {
             for each (let node in box.mItemHash) {
               let item = node.item;
-              if (!deleteHash[item.hashId] && item.calendar.id == aCalendar.id) {
-                deleteHash[item.hashId] = true;
-                this.doDeleteItem(item);
+              if (item.calendar.id == aCalendar.id) {
+                box.deleteItem(item);
               }
             }
           }

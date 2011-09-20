@@ -2494,7 +2494,6 @@
       <field name="mDateList">null</field>
       <!-- array of { date: calIDatetime, column: colbox, header: hdrbox }  -->
       <field name="mDateColumns">null</field>
-      <field name="mBatchCount">0</field>
       <field name="mPixPerMin">0.6</field>
       <field name="mMinPixelsPerMinute">0.1</field>
       <field name="mSelectedDayCol">null</field>
@@ -3421,15 +3420,13 @@
       <method name="deleteItemsFromCalendar">
         <parameter name="aCalendar"/>
         <body><![CDATA[
-          let deleteHash = {};
           for each (let col in this.mDateColumns) {
               // get all-day events in column header and events within the column
               let colEvents = [ box.occurrence for each (box in col.header.mItemBoxes) ]
                               .concat([ info.event for each (info in col.column.mEventInfos) ]);
 
               for each (let event in colEvents) {
-                  if (!(event.hashId in deleteHash) && event.calendar.id == aCalendar.id) {
-                      deleteHash[event.hashId] = true;
+                  if (event.calendar.id == aCalendar.id) {
                       this.doDeleteItem(event);
                   }
               }

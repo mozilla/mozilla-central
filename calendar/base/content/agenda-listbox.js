@@ -632,10 +632,7 @@ function setupContextMenu(popup) {
  */
 agendaListbox.refreshCalendarQuery =
 function refreshCalendarQuery(aStart, aEnd, aCalendar) {
-    if (this.mBatchCount > 0) {
-        return;
-    }
-    var pendingRefresh = this.pendingRefresh;
+    let pendingRefresh = this.pendingRefresh;
     if (pendingRefresh) {
         if (calInstanceOf(pendingRefresh, Components.interfaces.calIOperation)) {
             this.pendingRefresh = null;
@@ -905,16 +902,10 @@ function agenda_QI(aIID) {
 
 // calIObserver:
 agendaListbox.calendarObserver.onStartBatch = function agenda_onBatchStart() {
-    this.mBatchCount++;
 };
 
 agendaListbox.calendarObserver.onEndBatch =
 function() {
-    this.mBatchCount--;
-    if (this.mBatchCount == 0) {
-        // Rebuild everything
-        this.agendaListbox.refreshCalendarQuery();
-    }
 };
 
 agendaListbox.calendarObserver.onLoad = function() {
@@ -924,9 +915,6 @@ agendaListbox.calendarObserver.onLoad = function() {
 agendaListbox.calendarObserver.onAddItem =
 function observer_onAddItem(item)
 {
-  if (this.mBatchCount) {
-      return;
-  }
   if (!isEvent(item)) {
       return;
   }
@@ -954,9 +942,6 @@ function observer_onDeleteItem(item, rebuildFlag) {
 
 agendaListbox.calendarObserver.onLocalDeleteItem =
 function observer_onLocalDeleteItem(item, moveSelection) {
-    if (this.mBatchCount) {
-      return false;
-    }
     if (!isEvent(item)) {
         return false;
     }
@@ -974,9 +959,6 @@ function observer_onLocalDeleteItem(item, moveSelection) {
 
 agendaListbox.calendarObserver.onModifyItem =
 function observer_onModifyItem(newItem, oldItem) {
-    if (this.mBatchCount) {
-        return;
-    }
     var selectedItemHashId = this.onLocalDeleteItem(oldItem, false);
     if (!isEvent(newItem)) {
         return;
