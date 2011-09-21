@@ -93,13 +93,11 @@ DIST_FILES = application.ini
 LOCAL_INCLUDES += \
   -I$(MOZILLA_SRCDIR)/toolkit/xre \
   -I$(MOZILLA_SRCDIR)/xpcom/base \
+  -I$(MOZILLA_SRCDIR)/xpcom/build \
   $(NULL)
 
-ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
-LIBS += $(DIST)/bin/XUL
-else
-EXTRA_DSO_LIBS += xul
-endif
+DEFINES += -DXPCOM_GLUE
+STL_FLAGS=
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 TK_LIBS := -framework Cocoa $(TK_LIBS)
@@ -108,10 +106,8 @@ endif
 APP_XPCOM_LIBS = $(XPCOM_GLUE_LDOPTS)
 
 LIBS += \
-	$(STATIC_COMPONENTS_LINKER_PATH) \
 	$(EXTRA_DSO_LIBS) \
-	$(APP_XPCOM_LIBS) \
-	$(NSPR_LIBS) \
+	$(XPCOM_STANDALONE_GLUE_LDOPTS) \
 	$(NULL)
 
 ifdef MOZ_JPROF
