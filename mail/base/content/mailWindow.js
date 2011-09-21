@@ -460,25 +460,6 @@ nsMsgWindowCommands.prototype =
 }
 
 /**
- * @returns the pref name to use for fetching the start page url. Every time the application version changes,
- * return "mailnews.start_page.override_url". If this is the first time the application has been
- * launched, return "mailnews.start_page.welcome_url". Otherwise return "mailnews.start_page.url".
- */
-function startPageUrlPref()
-{
-  var prefForStartPageUrl = "mailnews.start_page.url";
-  var savedVersion = null;
-  try {
-    savedVersion = pref.getCharPref("mailnews.start_page_override.mstone");
-  } catch (ex) {}
-
-  if (!savedVersion && savedVersion != "ignore")
-    prefForStartPageUrl = "mailnews.start_page.welcome_url";
-
-  return prefForStartPageUrl;
-}
-
-/**
  * Loads the mail start page.
  */
 function loadStartPage(aForce)
@@ -491,7 +472,7 @@ function loadStartPage(aForce)
   gMessageNotificationBar.clearMsgNotifications();
   let startpage = Components.classes["@mozilla.org/toolkit/URLFormatterService;1"]
                             .getService(Components.interfaces.nsIURLFormatter)
-                            .formatURLPref(startPageUrlPref());
+                            .formatURLPref("mailnews.start_page.url");
   if (startpage)
   {
     try {
