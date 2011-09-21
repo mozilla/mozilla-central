@@ -87,7 +87,8 @@ calFilter.prototype = {
     mPropertyFilterBag: { 
         all: filterAll,
         notstarted: function cF_filterNotStarted(item) {
-            return (percentCompleted(item) <= 0);
+            return !item.isCompleted &&
+                   (percentCompleted(item) <= 0);
         },
         overdue: function cF_filterOverdue(item) {
             // in case the item has no due date
@@ -95,14 +96,14 @@ calFilter.prototype = {
             if (item.dueDate == null) {
                 return false;
             }
-            return (percentCompleted(item) < 100) &&
-            !(item.dueDate.compare(now()) > 0);
+            return !item.isCompleted &&
+                   !(item.dueDate.compare(now()) > 0);
         },
-        open: function cF_filterCompleted(item) {
-            return (percentCompleted(item) < 100);
+        open: function cF_filterOpen(item) {
+            return !item.isCompleted;
         },
         completed: function cF_filterCompleted(item) {
-            return (percentCompleted(item) >= 100);
+            return item.isCompleted;
         },
         repeating: function cF_filterRepeating(item) {
             return (item.recurrenceInfo != null);
