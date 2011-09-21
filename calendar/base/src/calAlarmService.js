@@ -403,8 +403,11 @@ calAlarmService.prototype = {
                 snoozeDate = cal.createDateTime(snoozeDate);
             }
 
-            // If the alarm was snoozed, the snooze time is more important.
-            alarmDate = snoozeDate || alarmDate;
+            // an alarm can only be snoozed to a later time, if earlier it's from another alarm.
+            if (snoozeDate && snoozeDate.compare(alarmDate) > 0) {
+                // If the alarm was snoozed, the snooze time is more important.
+                alarmDate = snoozeDate;
+            }
 
             let now = nowUTC();
             if (alarmDate.timezone.isFloating) {
