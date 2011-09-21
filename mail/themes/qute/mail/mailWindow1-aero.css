@@ -1,5 +1,9 @@
 %include mailWindow1.css
 
+treecol.threadColumnHeader {
+  -moz-padding-end: 2px;
+}
+
 treechildren::-moz-tree-image(news, threadCol, watch) {
   -moz-margin-start: -2px;
 }
