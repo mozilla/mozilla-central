@@ -181,8 +181,8 @@ mime_dump_attachments ( nsMsgAttachmentData *attachData )
     printf("Real Type         : %s\n", tmp->m_realType.get());
     printf("Real Encoding     : %s\n", tmp->m_realEncoding.get());
     printf("Description       : %s\n", tmp->m_description.get());
-    printf("Mac Type          : %s\n", tmp->m_xMacType);
-    printf("Mac Creator       : %s\n", tmp->m_xMacCreator);
+    printf("Mac Type          : %s\n", tmp->m_xMacType.get());
+    printf("Mac Creator       : %s\n", tmp->m_xMacCreator.get());
     printf("Size in bytes     : %d\n", tmp->m_size);
     i++;
     tmp++;
