@@ -170,7 +170,6 @@ calendar.jar:
 % style chrome://calendar/content/calendar-occurrence-prompt.xul chrome://calendar/skin/calendar-aero.css os=WINNT osversion>=6
     skin/calendar/calendar-aero.css                        (themes/@THEME@/calendar-aero.css)
     skin/calendar/calendar-event-dialog-toolbar-aero.png   (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-aero.png)
-    skin/calendar/calendar-event-dialog-toolbar-small-aero.png   (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-small-aero.png)
     skin/calendar/calendar-occurrence-prompt-aero.png      (themes/@THEME@/images/calendar-occurrence-prompt-aero.png)
     skin/calendar/tasks-actions-aero.png                   (themes/@THEME@/images/tasks-actions-aero.png)
     skin/calendar/toolbar-large-aero.png                   (themes/@THEME@/images/toolbar-large-aero.png)
