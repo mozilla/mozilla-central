@@ -36,13 +36,11 @@
 
 
 treenode-checkbox {
-  -moz-box-align:       center;
-  padding-top:          4px;
-  padding-bottom:       4px;
-  -moz-padding-start:   4px;
-  -moz-padding-end:    4px;
-  font-weight:          bold;
-  border-bottom:        1px dotted #c0c0c0;
+  -moz-box-align: center;
+  padding-top: 4px;
+  -moz-padding-start: 4px;
+  -moz-padding-end: 4px;
+  font-weight: bold;
 }
 
 .checkbox-label-box {
@@ -70,9 +68,12 @@ treenode-checkbox > .checkbox-check {
   -moz-appearance: treetwisty;
 }
 
-.treenode-checkbox {
-  -moz-margin-start: 4px;
-  -moz-margin-end: 4px;
+#task-tree-filtergroup {
+  -moz-padding-start: 18px;
+}
+
+calendar-list-tree .tree-scrollable-columns {
+   -moz-padding-start: 18px;
 }
 
 .view-navigation-button {

@@ -76,7 +76,7 @@ calendar-list-tree > tree > treechildren::-moz-tree-image(status-treecol, readfa
 calendar-list-tree > tree {
   border: none;
   padding: 0;
-  margin: 4px;
+  margin: 4px 0;
   -moz-border-top-colors: none;
   -moz-border-right-colors: none;
   -moz-border-bottom-colors: none;

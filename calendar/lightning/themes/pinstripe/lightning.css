@@ -41,7 +41,7 @@
 
 /* Calendar list rules */
 #calendar-panel {
-    padding: 0px 5px 5px;
+    padding-bottom: 5px;
 }
 
 /* Lightning preferences icon */
@@ -108,10 +108,6 @@ radio[pane=paneLightning] {
 /* Lightning sidebar background in calendar and task mode */
 #ltnSidebar {
   background-color: -moz-field;  
-}
-
-.task-tree-subpane {
-  -moz-margin-start: 12px;
 }
 
 /* Write button */
