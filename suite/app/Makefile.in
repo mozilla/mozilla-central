@@ -53,6 +53,7 @@ DEFINES += \
 	-DAPP_VERSION="$(MOZ_APP_VERSION)" \
 	-DGRE_MILESTONE=$(GRE_MILESTONE) \
 	-DGRE_BUILDID=$(GRE_BUILDID) \
+	-DNO_BLOCKLIST_CRASHREPORTER \
 	$(NULL)
 
 MOZ_SOURCE_STAMP = $(firstword $(shell hg -R $(topsrcdir) parent --template="{node|short}\n" 2>/dev/null))
