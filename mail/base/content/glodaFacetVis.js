@@ -210,6 +210,7 @@ DateFacetVis.prototype = {
     let width = barPix * (rules.length - 1);
 
     let totalAxisLabelHeight = 0;
+    let isRTL = window.getComputedStyle(this.binding, null).direction == "rtl";
 
     // we need to do some font-metric calculations, so create a canvas...
     let fontMetricCanvas = document.createElement("canvas");
@@ -299,7 +300,8 @@ DateFacetVis.prototype = {
       .bottom(0)
       .height(function (d) Math.floor(d.items.length * binScale))
       .width(function() barWidth)
-      .left(function() this.index * barPix)
+      .left(function() isRTL ? null : (this.index * barPix))
+      .right(function() isRTL ? (this.index * barPix) : null)
       .fillStyle("#add2fb")
       .event("mouseover", function(d) this.fillStyle("#3465a4"))
       .event("mouseout", function(d) this.fillStyle("#add2fb"))
@@ -324,7 +326,8 @@ DateFacetVis.prototype = {
         .data(labelTier.displayValues)
         .bottom(-totalAxisLabelHeight + labelTier.vertOffset)
         .height(labelTier.vertHeight)
-        .left(function(d) Math.floor(width * d[0]))
+        .left(function(d) isRTL ? null : Math.floor(width * d[0]))
+        .right(function(d) isRTL ? Math.floor(width * d[0]) : null)
         .width(function(d)
                  Math.floor(width * d[1]) - Math.floor(width * d[0]) - 1)
         .fillStyle("#dddddd")
