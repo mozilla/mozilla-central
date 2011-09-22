@@ -143,7 +143,7 @@ bridge_new_new_uri(void *bridgeStream, nsIURI *aURI, PRInt32 aOutputType)
       if  ( (aOutputType == nsMimeOutput::nsMimeMessageDraftOrTemplate) ||
             (aOutputType == nsMimeOutput::nsMimeMessageEditorTemplate) )
       {
-        struct mime_draft_data *mdd = (struct mime_draft_data *)session->data_object;
+        mime_draft_data *mdd = (mime_draft_data *)session->data_object;
         if (mdd->options)
         {
           default_charset = &(mdd->options->default_charset);
@@ -280,7 +280,7 @@ bridge_set_mime_stream_converter_listener(void *bridgeStream, nsIMimeStreamConve
     if  ( (aOutputType == nsMimeOutput::nsMimeMessageDraftOrTemplate) ||
           (aOutputType == nsMimeOutput::nsMimeMessageEditorTemplate) )
     {
-      struct mime_draft_data *mdd = (struct mime_draft_data *)session->data_object;
+      mime_draft_data *mdd = (mime_draft_data *)session->data_object;
       if (mdd->options)
       {
         if (listener)
@@ -1058,7 +1058,7 @@ nsStreamConverter::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresul
       if  ( (mOutputType == nsMimeOutput::nsMimeMessageDraftOrTemplate) ||
             (mOutputType == nsMimeOutput::nsMimeMessageEditorTemplate) )
       {
-        struct mime_draft_data *mdd = (struct mime_draft_data *)tSession->data_object;
+        mime_draft_data *mdd = (mime_draft_data *)tSession->data_object;
         if (mdd)
           workHeaders = &(mdd->headers);
       }

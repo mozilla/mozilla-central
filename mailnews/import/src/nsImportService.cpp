@@ -71,6 +71,7 @@
 #include "nsCRTGlue.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
+#include "nsIMutableArray.h"
 
 PRLogModuleInfo *IMPORTLOGMODULE = nsnull;
 
@@ -325,7 +326,7 @@ public:
                        const char *attachment1_type,
                        const char *attachment1_body,
                        PRUint32 attachment1_body_length,
-                       const nsMsgAttachedFile *loaded_attachments,
+                       nsIArray *loaded_attachments,
                        nsIMsgSendListener *aListener);
   NS_DECL_NSIRUNNABLE
 private:
@@ -336,7 +337,7 @@ private:
   nsCString m_bodyType;
   nsCString m_body;
   PRUint32 m_bodyLength;
-  const nsMsgAttachedFile *m_loadedAttachments;
+  nsCOMPtr<nsIArray> m_loadedAttachments;
   nsCOMPtr<nsIMsgSendListener> m_listener;
 
 };
@@ -347,7 +348,7 @@ nsProxySendRunnable::nsProxySendRunnable(nsIEditor *aEditor, nsIMsgIdentity *aId
                                          const char *aBodyType,
                                          const char *aBody,
                                          PRUint32 aBodyLength,
-                                         const nsMsgAttachedFile *aLoadedAttachments,
+                                         nsIArray *aLoadedAttachments,
                                          nsIMsgSendListener *aListener) :
   m_editor(aEditor), m_identity(aIdentity), m_compFields(aMsgFields),
   m_deliverMode(aDeliverMode), m_bodyType(aBodyType),
@@ -366,7 +367,7 @@ NS_IMETHODIMP nsProxySendRunnable::Run()
                                        PR_FALSE, PR_TRUE, 
                                        m_deliverMode, nsnull, m_bodyType.get(), m_body.get(),
                                        m_bodyLength, nsnull, m_loadedAttachments,
-                                       nsnull, nsnull, nsnull, m_listener, nsnull,
+                                       nsnull, nsnull, m_listener, nsnull,
                                        EmptyCString(), nsnull);
 }
 
@@ -377,7 +378,7 @@ NS_IMETHODIMP nsImportService::ProxySend(nsIEditor *aEditor, nsIMsgIdentity *aId
                                          const char *attachment1_type,
                                          const char *attachment1_body,
                                          PRUint32 attachment1_body_length,
-                                         const nsMsgAttachedFile *loaded_attachments,
+                                         nsIArray *loaded_attachments,
                                          nsIMsgSendListener *aListener)
 {
     nsRefPtr<nsProxySendRunnable> runnable =

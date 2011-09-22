@@ -55,7 +55,7 @@
 
 #include "nsMsgBaseCID.h"
 #include "nsMsgCompCID.h"
-
+#include "nsIArray.h"
 #include "nsIMsgCompose.h"
 #include "nsIMsgCompFields.h"
 #include "nsIMsgAccountManager.h"
@@ -326,7 +326,8 @@ nsresult nsOutlookCompose::ComposeTheMessage(nsMsgDeliverMode mode, CMapiMessage
   // These will replace the originals on import. All the other headers
   // will be copied to the destination unaltered in CopyComposedMessage().
 
-  nsMsgAttachedFile *pAttach = msg.GetAttachments();
+  nsCOMPtr<nsIArray> pAttach;
+  msg.GetAttachments(getter_AddRefs(pAttach));
 
   nsString bodyW;
   // Bug 593907
@@ -404,9 +405,6 @@ nsresult nsOutlookCompose::ComposeTheMessage(nsMsgDeliverMode mode, CMapiMessage
       rv = NS_ERROR_FAILURE;
     }
   }
-
-  if (pAttach)
-    msg.DisposeAttachments(pAttach);
 
   if (pListen->m_location) {
     pListen->m_location->Clone(pMsg);

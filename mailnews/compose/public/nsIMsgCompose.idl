@@ -318,7 +318,7 @@ interface nsIMsgCompose : nsIMsgSendListener {
 };
 
 /* send listener interface */
-[noscript, uuid(ACC72780-2CEA-11D5-9DAA-BACDEAC1EEFC)]
+[uuid(ACC72780-2CEA-11D5-9DAA-BACDEAC1EEFC)]
 interface nsIMsgComposeSendListener : nsISupports {
 
   void setMsgCompose(in nsIMsgCompose msgCompose);

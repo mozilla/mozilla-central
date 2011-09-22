@@ -160,8 +160,7 @@ private:
   void    ExtractCharset( nsString& str);
   void    ExtractType( nsString& str);
 
-  nsMsgAttachedFile * GetLocalAttachments( void);
-  void        CleanUpAttach( nsMsgAttachedFile *a, PRInt32 count);
+  nsresult GetLocalAttachments(nsIArray **aArray);
 
   nsresult  ReadHeaders( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& copy, SimpleBufferTonyRCopiedOnce& header);
   PRInt32    FindNextEndLine( SimpleBufferTonyRCopiedOnce& data);

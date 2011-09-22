@@ -139,6 +139,28 @@
  {0xbf, 0xb6, 0x8a, 0xf, 0x8d, 0x9, 0xce, 0x89}}
 
 //
+// nsMsgAttachmentData
+//
+#define NS_MSGATTACHMENTDATA_CONTRACTID \
+  "@mozilla.org/messengercompose/attachmentdata;1"
+
+#define NS_MSGATTACHMENTDATA_CID                    \
+{ /* 9e16958d-d9e9-4cae-b723-a5bccf104998 */ \
+ 0x9e16958d, 0xd9e9, 0x4cae, \
+ {0xb7, 0x23, 0xa5, 0xbc, 0xcf, 0x10, 0x49, 0x98}}
+
+//
+// nsMsgAttachedFile
+//
+#define NS_MSGATTACHEDFILE_CONTRACTID \
+  "@mozilla.org/messengercompose/attachedfile;1"
+
+#define NS_MSGATTACHEDFILE_CID                    \
+{ /* ef173501-4e14-42b9-ae1f-7770de235c29 */ \
+ 0xef173501, 0x4e14, 0x42b9, \
+ {0xae, 0x1f, 0x77, 0x70, 0xde, 0x23, 0x5c, 0x29}}
+
+//
 // nsMsgSend
 //
 #define NS_MSGSEND_CONTRACTID \

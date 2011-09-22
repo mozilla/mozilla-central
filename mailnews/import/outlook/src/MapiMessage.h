@@ -184,9 +184,8 @@ public:
   ~CMapiMessage();
 
   // Attachments
-  // Ordinary (not embedded) attachments; result MUST be disposed of with DisposeAttachments()
-  nsMsgAttachedFile* GetAttachments();
-  static void DisposeAttachments(nsMsgAttachedFile* att) { delete[] att; }
+  // Ordinary (not embedded) attachments.
+  nsresult GetAttachments(nsIArray **aArray);
   // Embedded attachments
   size_t EmbeddedAttachmentsCount() const { return m_embattachments.size(); }
   bool GetEmbeddedAttachmentInfo(unsigned int i, nsIURI **uri, const char **cid,

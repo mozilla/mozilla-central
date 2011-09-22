@@ -145,24 +145,10 @@ nsresult nsSimpleZipper::AddToZip(nsIZipWriter *aZipWriter,
 nsMsgAttachmentHandler::nsMsgAttachmentHandler() :
   mRequest(nsnull),
   mCompFields(nsnull),   // Message composition fields for the sender
-  
-  m_x_mac_type(nsnull),
-  m_x_mac_creator(nsnull),
-
+  m_bogus_attachment(PR_FALSE),
   m_done(PR_FALSE),
-  m_charset(nsnull),
-  m_content_id(nsnull),
-  m_type(nsnull),
-  m_type_param(nsnull),
-  m_override_type(nsnull),
-  m_override_encoding(nsnull),
-  m_desired_type(nsnull),
-  m_description(nsnull),
-  m_real_name(nsnull),
-  m_encoding(nsnull),
   m_already_encoded_p(PR_FALSE),
   m_decrypted_p(PR_FALSE),
-  
   mDeleteFile(PR_FALSE),
   mMHTMLPart(PR_FALSE),
   mPartUserOmissionOverride(PR_FALSE),
@@ -184,8 +170,7 @@ nsMsgAttachmentHandler::nsMsgAttachmentHandler() :
   m_file_analyzed(PR_FALSE),
 
   // Mime
-  m_encoder_data(nsnull),
-  m_uri(nsnull)
+  m_encoder_data(nsnull)
 {
 }
 
@@ -193,25 +178,11 @@ nsMsgAttachmentHandler::~nsMsgAttachmentHandler()
 {
   if (mTmpFile && mDeleteFile)
     mTmpFile->Remove(PR_FALSE);
-    
+
   if (mOutFile)
     mOutFile->Close();
-    
-  CleanupTempFile();
 
-  PR_Free(m_charset);
-  PR_Free(m_type);
-  PR_Free(m_type_param);
-  PR_Free(m_content_id);
-  PR_Free(m_desired_type);
-  PR_Free(m_encoding);
-  PR_Free(m_override_type);
-  PR_Free(m_description);
-  PR_Free(m_real_name);
-  PR_Free(m_override_encoding);
-  PR_Free(m_x_mac_type);
-  PR_Free(m_x_mac_creator);
-  PR_Free(m_uri);
+  CleanupTempFile();
 }
 
 void
@@ -339,7 +310,7 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
   if (pPrefBranch)
     pPrefBranch->GetBoolPref ("mail.file_attach_binary", &forceB64);
 
-  if (!mMainBody && (forceB64 || mime_type_requires_b64_p (m_type) ||
+  if (!mMainBody && (forceB64 || mime_type_requires_b64_p (m_type.get()) ||
     m_have_cr+m_have_lf+m_have_crlf != 1 || m_current_column != 0))
   {
   /* If the content-type is "image/" or something else known to be binary
@@ -384,36 +355,30 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
 
         /* MIME requires a special case that these types never be encoded.
       */
-      if (!PL_strncasecmp (m_type, "message", 7) ||
-        !PL_strncasecmp (m_type, "multipart", 9))
+      if (StringBeginsWith(m_type, NS_LITERAL_CSTRING("message"),
+                           nsCaseInsensitiveCStringComparator()) ||
+         StringBeginsWith(m_type, NS_LITERAL_CSTRING("multipart"),
+                          nsCaseInsensitiveCStringComparator()))
       {
         encode_p = PR_FALSE;
-        if (m_desired_type && !PL_strcasecmp (m_desired_type, TEXT_PLAIN))
-        {
-          PR_Free (m_desired_type);
-          m_desired_type = 0;
-        }
+        if (m_desiredType.LowerCaseEqualsLiteral(TEXT_PLAIN))
+          m_desiredType.Truncate();
       }
 
       // If the Mail charset is multibyte, we force it to use Base64 for attachments.
       if ((!mMainBody && charset && nsMsgI18Nmultibyte_charset(charset)) &&
-        ((PL_strcasecmp(m_type, TEXT_HTML) == 0) ||
-        (PL_strcasecmp(m_type, TEXT_MDL) == 0) ||
-        (PL_strcasecmp(m_type, TEXT_PLAIN) == 0) ||
-        (PL_strcasecmp(m_type, TEXT_RICHTEXT) == 0) ||
-        (PL_strcasecmp(m_type, TEXT_ENRICHED) == 0) ||
-        (PL_strcasecmp(m_type, TEXT_VCARD) == 0) ||
-        (PL_strcasecmp(m_type, APPLICATION_DIRECTORY) == 0) || /* text/x-vcard synonym */
-        (PL_strcasecmp(m_type, TEXT_CSS) == 0) ||
-        (PL_strcasecmp(m_type, TEXT_JSSS) == 0)))
-      {
+          (m_type.LowerCaseEqualsLiteral(TEXT_HTML) ||
+           m_type.LowerCaseEqualsLiteral(TEXT_MDL) ||
+           m_type.LowerCaseEqualsLiteral(TEXT_PLAIN) ||
+           m_type.LowerCaseEqualsLiteral(TEXT_RICHTEXT) ||
+           m_type.LowerCaseEqualsLiteral(TEXT_ENRICHED) ||
+           m_type.LowerCaseEqualsLiteral(TEXT_VCARD) ||
+           m_type.LowerCaseEqualsLiteral(APPLICATION_DIRECTORY) || /* text/x-vcard synonym */
+           m_type.LowerCaseEqualsLiteral(TEXT_CSS) ||
+           m_type.LowerCaseEqualsLiteral(TEXT_JSSS)))
         needsB64 = PR_TRUE;
-      }
       else if (charset && nsMsgI18Nstateful_charset(charset))
-      {
-        PR_Free(m_encoding);
-        m_encoding = PL_strdup (ENCODING_7BIT);
-      }
+        m_encoding = ENCODING_7BIT;
       else if (encode_p &&
         m_unprintable_count > (m_size / 10))
         /* If the document contains more than 10% unprintable characters,
@@ -421,39 +386,28 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
         quoted-printable.
         */
         needsB64 = PR_TRUE;
-      else if (encode_p) {
-        PR_Free(m_encoding);
-        m_encoding = PL_strdup (ENCODING_QUOTED_PRINTABLE);
-      }
-      else if (m_highbit_count > 0) {
-        PR_Free(m_encoding);
-        m_encoding = PL_strdup (ENCODING_8BIT);
-      }
-      else {
-        PR_Free(m_encoding);
-        m_encoding = PL_strdup (ENCODING_7BIT);
-      }
+      else if (encode_p)
+        m_encoding = ENCODING_QUOTED_PRINTABLE;
+      else if (m_highbit_count > 0)
+        m_encoding = ENCODING_8BIT;
+      else
+        m_encoding = ENCODING_7BIT;
   }
 
+  // always base64 binary data.
   if (needsB64)
-  {
-    //
-    // always base64 binary data.
-    //
-    PR_Free(m_encoding);
-    m_encoding = PL_strdup (ENCODING_BASE64);
-  }
+    m_encoding = ENCODING_BASE64;
 
   /* Now that we've picked an encoding, initialize the filter.
   */
   NS_ASSERTION(!m_encoder_data, "not-null m_encoder_data");
-  if (!PL_strcasecmp(m_encoding, ENCODING_BASE64))
+  if (m_encoding.LowerCaseEqualsLiteral(ENCODING_BASE64))
   {
     m_encoder_data = MIME_B64EncoderInit(mime_encoder_output_fn,
       mime_delivery_state);
     if (!m_encoder_data) return NS_ERROR_OUT_OF_MEMORY;
   }
-  else if (!PL_strcasecmp(m_encoding, ENCODING_QUOTED_PRINTABLE))
+  else if (m_encoding.LowerCaseEqualsLiteral(ENCODING_QUOTED_PRINTABLE))
   {
     m_encoder_data = MIME_QPEncoderInit(mime_encoder_output_fn,
       mime_delivery_state);
@@ -485,17 +439,15 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
           lightly encoded data.)
   */
 DONE:
-  if (!m_type || !*m_type || !PL_strcasecmp(m_type, UNKNOWN_CONTENT_TYPE))
+  if (m_type.IsEmpty() || m_type.LowerCaseEqualsLiteral(UNKNOWN_CONTENT_TYPE))
   {
-    PR_Free(m_type);
     if (m_already_encoded_p)
-      m_type = PL_strdup (APPLICATION_OCTET_STREAM);
-    else if (m_encoding &&
-         (!PL_strcasecmp(m_encoding, ENCODING_BASE64) ||
-         !PL_strcasecmp(m_encoding, ENCODING_UUENCODE)))
-         m_type = PL_strdup (APPLICATION_OCTET_STREAM);
+      m_type = APPLICATION_OCTET_STREAM;
+    else if (m_encoding.LowerCaseEqualsLiteral(ENCODING_BASE64) ||
+             m_encoding.LowerCaseEqualsLiteral(ENCODING_UUENCODE))
+      m_type = APPLICATION_OCTET_STREAM;
     else
-      m_type = PL_strdup (TEXT_PLAIN);
+      m_type = TEXT_PLAIN;
   }
   return 0;
 }
@@ -512,7 +464,7 @@ public:
   virtual ~CharsetDetectionObserver() {};
   NS_IMETHOD Notify(const char* aCharset, nsDetectionConfident aConf)
   {
-    m_attachment->m_charset = PL_strdup(aCharset);
+    m_attachment->m_charset = aCharset;
     return NS_OK;
   };
 
@@ -526,8 +478,8 @@ nsresult
 nsMsgAttachmentHandler::PickCharset()
 {
 
-  if (m_charset || strcmp(m_type, TEXT_PLAIN))
-    return NS_OK;;
+  if (!m_charset.IsEmpty() || !m_type.LowerCaseEqualsLiteral(TEXT_PLAIN))
+    return NS_OK;
 
   nsCOMPtr<nsILocalFile> tmpFile =
     do_QueryInterface(mTmpFile);
@@ -616,19 +568,13 @@ FetcherURLDoneCallback(nsresult aStatus,
       if (!ma->mEncodedWorkingFile)
 #else
         // can't send appledouble on non-macs
-        if (!aContentType.EqualsLiteral("multipart/appledouble"))
+      if (!aContentType.EqualsLiteral("multipart/appledouble"))
 #endif
-      {
-        PR_Free(ma->m_type);
-        ma->m_type = ToNewCString(aContentType);
-      }
+        ma->m_type = aContentType;
     }
 
     if (!aCharset.IsEmpty())
-    {
-      PR_Free(ma->m_charset);
-      ma->m_charset = ToNewCString(aCharset);
-    }
+      ma->m_charset = aCharset;
 
     return ma->UrlExit(aStatus, aMsg);
   }
@@ -642,7 +588,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
   nsresult rv = NS_ERROR_INVALID_ARG;
   nsCOMPtr <nsIMsgMessageService> messageService;
 
-  if (PL_strcasestr(m_uri, "-message:"))
+  if (m_uri.Find("-message:", CaseInsensitiveCompare) != -1)
   {
     nsCOMPtr <nsIFile> tmpFile;
     rv = nsMsgCreateTempFile("nsmail.tmp", getter_AddRefs(tmpFile));
@@ -650,10 +596,8 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
     mTmpFile = do_QueryInterface(tmpFile);
     mDeleteFile = PR_TRUE;
     mCompFields = compFields;
-    PR_Free(m_type);
-    m_type = PL_strdup(MESSAGE_RFC822);
-    PR_Free(m_override_type);
-    m_override_type = PL_strdup(MESSAGE_RFC822);
+    m_type = MESSAGE_RFC822;
+    m_overrideType = MESSAGE_RFC822;
     if (!mTmpFile)
     {
       rv = NS_ERROR_FAILURE;
@@ -687,7 +631,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
     }
 
     rv = fetcher->Initialize(mTmpFile, mOutFile, FetcherURLDoneCallback, this);
-    rv = GetMessageServiceFromURI(nsDependentCString(m_uri), getter_AddRefs(messageService));
+    rv = GetMessageServiceFromURI(m_uri, getter_AddRefs(messageService));
     if (NS_SUCCEEDED(rv) && messageService)
     {
       nsCAutoString uri(m_uri);
@@ -865,20 +809,18 @@ nsMsgAttachmentHandler::ConvertToZipFile(nsILocalFileMac *aSourceFile)
   rv = nsMsgCreateTempFile(zippedName.get(), getter_AddRefs(tmpFile));
   NS_ENSURE_SUCCESS(rv, rv);
   mEncodedWorkingFile = do_QueryInterface(tmpFile);
-  
+
   // point our URL at the zipped temp file
   NS_NewFileURI(getter_AddRefs(mURL), mEncodedWorkingFile);
-  
+
   // zip it!
   rv = nsSimpleZipper::Zip(aSourceFile, mEncodedWorkingFile);
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   // set some metadata for this attachment, that will affect the MIME headers.
-  PR_Free(m_type);
-  m_type = PL_strdup(APPLICATION_ZIP);
-  PR_Free(m_real_name);
-  m_real_name = PL_strdup(zippedName.get());
-  
+  m_type = APPLICATION_ZIP;
+  m_real_name = zippedName.get();
+
   return NS_OK;
 }
 
@@ -899,15 +841,13 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
   if (NS_FAILED(rv))
     return PR_FALSE;
   PR_snprintf(fileInfo, sizeof(fileInfo), "%X", type);
-  PR_Free(m_x_mac_type);
-  m_x_mac_type = PL_strdup(fileInfo);
+  m_xMacType = fileInfo;
 
   rv = aSourceFile->GetFileCreator(&creator);
   if (NS_FAILED(rv))
     return PR_FALSE;
   PR_snprintf(fileInfo, sizeof(fileInfo), "%X", creator);
-  PR_Free(m_x_mac_creator);
-  m_x_mac_creator = PL_strdup(fileInfo);
+  m_xMacCreator = fileInfo;
 
   FSRef fsRef;
   aSourceFile->GetFSRef(&fsRef);
@@ -1062,8 +1002,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
     char        tmp[128];
     PR_snprintf(tmp, sizeof(tmp), MULTIPART_APPLEDOUBLE ";\r\n boundary=\"%s\"", separator);
     PR_FREEIF(separator);
-    PR_Free(m_type);
-    m_type = PL_strdup(tmp);
+    m_type = tmp;
   }
   else
   {
@@ -1076,7 +1015,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
 
     PRBool    useDefault;
     char      *macType, *macEncoding;
-    if (m_type == NULL || !PL_strcasecmp (m_type, TEXT_PLAIN))
+    if (m_type.IsEmpty() || m_type.LowerCaseEqualsLiteral(TEXT_PLAIN))
     {
 # define TEXT_TYPE  0x54455854  /* the characters 'T' 'E' 'X' 'T' */
 # define text_TYPE  0x74657874  /* the characters 't' 'e' 'x' 't' */
@@ -1084,7 +1023,6 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
       if (type != TEXT_TYPE && type != text_TYPE)
       {
         MacGetFileType(aSourceFile, &useDefault, &macType, &macEncoding);
-        PR_Free(m_type);
         m_type = macType;
       }
     }
@@ -1122,7 +1060,7 @@ nsMsgAttachmentHandler::LoadDataFromFile(nsILocalFile *file, nsString &sigData, 
   nsDependentCString cstringReadBuf(readBuf, bytesRead);
   if (charsetConversion)
   {
-    if (NS_FAILED(ConvertToUnicode(m_charset, cstringReadBuf, sigData)))
+    if (NS_FAILED(ConvertToUnicode(m_charset.get(), cstringReadBuf, sigData)))
       CopyASCIItoUTF16(cstringReadBuf, sigData);
   }
   else
@@ -1182,19 +1120,9 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
   // This is needed only when the charset is not set already.
   // (e.g. a charset may be specified in HTTP header)
   //
-  if ( (m_type) &&  (*m_type) &&
-       (!m_charset || !(*m_charset)) )
-  {
-    if (PL_strcasecmp(m_type, TEXT_HTML) == 0)
-    {
-      char *tmpCharset = (char *)nsMsgI18NParseMetaCharset(mTmpFile);
-      if (tmpCharset[0] != '\0')
-      {
-        PR_Free(m_charset);
-        m_charset = PL_strdup(tmpCharset);
-      }
-    }
-  }
+  if (!m_type.IsEmpty() && m_charset.IsEmpty() &&
+      m_type.LowerCaseEqualsLiteral(TEXT_HTML))
+    m_charset = nsMsgI18NParseMetaCharset(mTmpFile);
 
   nsresult mimeDeliveryStatus;
   m_mime_delivery_state->GetStatus(&mimeDeliveryStatus);
@@ -1223,18 +1151,17 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
       bundle->GetStringFromID(NS_MSG_FAILURE_ON_OBJ_EMBED_WHILE_SAVING, getter_Copies(msg));
     else
       bundle->GetStringFromID(NS_MSG_FAILURE_ON_OBJ_EMBED_WHILE_SENDING, getter_Copies(msg));
-    if (m_real_name && *m_real_name)
-      printfString = nsTextFormatter::smprintf(msg.get(), m_real_name);
-    else
-    if (NS_SUCCEEDED(mURL->GetSpec(turl)) && !turl.IsEmpty())
-      {
-        nsCAutoString unescapedUrl;
-        MsgUnescapeString(turl, 0, unescapedUrl);
-        if (unescapedUrl.IsEmpty())
-          printfString = nsTextFormatter::smprintf(msg.get(), turl.get());
-        else
-          printfString = nsTextFormatter::smprintf(msg.get(), unescapedUrl.get());
-      }
+    if (!m_realName.IsEmpty())
+      printfString = nsTextFormatter::smprintf(msg.get(), m_realName.get());
+    else if (NS_SUCCEEDED(mURL->GetSpec(turl)) && !turl.IsEmpty())
+    {
+      nsCAutoString unescapedUrl;
+      MsgUnescapeString(turl, 0, unescapedUrl);
+      if (unescapedUrl.IsEmpty())
+        printfString = nsTextFormatter::smprintf(msg.get(), turl.get());
+      else
+        printfString = nsTextFormatter::smprintf(msg.get(), unescapedUrl.get());
+    }
     else
       printfString = nsTextFormatter::smprintf(msg.get(), "?");
 
@@ -1268,72 +1195,68 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
   // a need to do conversion to plain text...if so, the magic happens here,
   // otherwise, just move on to other attachments...
   //
-  if (NS_SUCCEEDED(status) && m_type && PL_strcasecmp(m_type, TEXT_PLAIN) )
+  if (NS_SUCCEEDED(status) && m_type.LowerCaseEqualsLiteral(TEXT_PLAIN) &&
+      m_desiredType.LowerCaseEqualsLiteral(TEXT_PLAIN))
   {
-    if (m_desired_type && !PL_strcasecmp(m_desired_type, TEXT_PLAIN) )
+    //
+    // Conversion to plain text desired.
+    //
+    PRInt32       width = 72;
+    nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
+    if (pPrefBranch)
+      pPrefBranch->GetIntPref("mailnews.wraplength", &width);
+    // Let sanity reign!
+    if (width == 0)
+      width = 72;
+    else if (width < 10)
+      width = 10;
+    else if (width > 30000)
+      width = 30000;
+
+    //
+    // Now use the converter service here to do the right
+    // thing and convert this data to plain text for us!
+    //
+    nsAutoString      conData;
+
+    if (NS_SUCCEEDED(LoadDataFromFile(mTmpFile, conData, PR_TRUE)))
     {
-      //
-      // Conversion to plain text desired.
-      //
-      PRInt32       width = 72;
-      nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
-      if (pPrefBranch)
-        pPrefBranch->GetIntPref("mailnews.wraplength", &width);
-      // Let sanity reign!
-      if (width == 0)
-        width = 72;
-      else if (width < 10)
-        width = 10;
-      else if (width > 30000)
-        width = 30000;
-
-      //
-      // Now use the converter service here to do the right
-      // thing and convert this data to plain text for us!
-      //
-      nsAutoString      conData;
-
-      if (NS_SUCCEEDED(LoadDataFromFile(mTmpFile, conData, PR_TRUE)))
+      if (NS_SUCCEEDED(ConvertBufToPlainText(conData, UseFormatFlowed(m_charset.get()))))
       {
-        if (NS_SUCCEEDED(ConvertBufToPlainText(conData, UseFormatFlowed(m_charset))))
+        if (mDeleteFile)
+          mTmpFile->Remove(PR_FALSE);
+
+        nsCOMPtr<nsIOutputStream> outputStream;
+        nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), mTmpFile,  PR_WRONLY | PR_CREATE_FILE, 00600);
+
+        if (NS_SUCCEEDED(rv))
         {
-          if (mDeleteFile)
-            mTmpFile->Remove(PR_FALSE);
-
-          nsCOMPtr<nsIOutputStream> outputStream;
-          nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), mTmpFile,  PR_WRONLY | PR_CREATE_FILE, 00600);
-
-          if (NS_SUCCEEDED(rv))
+          nsCAutoString tData;
+          if (NS_FAILED(ConvertFromUnicode(m_charset.get(), conData, tData)))
+            LossyCopyUTF16toASCII(conData, tData);
+          if (!tData.IsEmpty())
           {
-            nsCAutoString tData;
-            if (NS_FAILED(ConvertFromUnicode(m_charset, conData, tData)))
-              LossyCopyUTF16toASCII(conData, tData);
-            if (!tData.IsEmpty())
-            {
-              PRUint32 bytesWritten;
-              (void) outputStream->Write(tData.get(), tData.Length(), &bytesWritten);
-            }
-            outputStream->Close();
-            // this silliness is because Windows nsILocalFile caches its file size
-            // so if an output stream writes to it, it will still return the original
-            // cached size.
-            if (mTmpFile)
-            {
-              nsCOMPtr <nsIFile> tmpFile;
-              mTmpFile->Clone(getter_AddRefs(tmpFile));
-              mTmpFile = do_QueryInterface(tmpFile);
-            }
-
+            PRUint32 bytesWritten;
+            (void) outputStream->Write(tData.get(), tData.Length(), &bytesWritten);
           }
+          outputStream->Close();
+          // this silliness is because Windows nsILocalFile caches its file size
+          // so if an output stream writes to it, it will still return the original
+          // cached size.
+          if (mTmpFile)
+          {
+            nsCOMPtr <nsIFile> tmpFile;
+            mTmpFile->Clone(getter_AddRefs(tmpFile));
+            mTmpFile = do_QueryInterface(tmpFile);
+          }
+
         }
       }
-
-      PR_FREEIF(m_type);
-      m_type = m_desired_type;
-      m_desired_type = nsnull;
-      PR_FREEIF(m_encoding);
-      m_encoding = nsnull;
     }
+
+    m_type = m_desiredType;
+    m_desiredType.Truncate();
+    m_encoding.Truncate();
   }
 
   PRUint32 pendingAttachmentCount = 0;
@@ -1369,7 +1292,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
         // should just mark it fetched and move on! We probably ignored
         // this earlier on in the send process.
         //
-        if ( (!next->mURL) && (!next->m_uri) )
+        if ( (!next->mURL) && (next->m_uri.IsEmpty()) )
         {
           attachments[i].m_done = PR_TRUE;
           m_mime_delivery_state->GetPendingAttachmentCount(&pendingAttachmentCount);

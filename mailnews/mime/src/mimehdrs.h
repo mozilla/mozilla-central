@@ -106,7 +106,7 @@ extern char *MimeHeaders_make_crypto_stamp(PRBool encrypted_p,
  */
 extern char *MimeHeaders_get_name(MimeHeaders *hdrs, MimeDisplayOptions *opt);
 
-extern char *mime_decode_filename(char *name, const char* charset,
+extern char *mime_decode_filename(const char *name, const char* charset,
                                   MimeDisplayOptions *opt);
 
 extern "C"  char * MIME_StripContinuations(char *original);

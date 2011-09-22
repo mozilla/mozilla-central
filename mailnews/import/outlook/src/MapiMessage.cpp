@@ -50,6 +50,8 @@
 #include "nsMsgUtils.h"
 #include "nsMimeTypes.h"
 
+#include "nsMsgCompCID.h"
+#include "nsIMutableArray.h"
 #include "MapiDbgLog.h"
 #include "MapiApi.h"
 
@@ -1207,24 +1209,25 @@ void CMapiMessage::ProcessAttachments()
   pTable->Release();
 }
 
-nsMsgAttachedFile* CMapiMessage::GetAttachments()
+nsresult CMapiMessage::GetAttachments(nsIArray **aArray)
 {
-  nsMsgAttachedFile* result = new nsMsgAttachedFile[m_stdattachments.size()+1];
-  if (!result)
-    return 0;
-  memset(result, 0, sizeof(nsMsgAttachedFile)*m_stdattachments.size()+1);
+  nsresult rv;
+  nsCOMPtr<nsIMutableArray> attachments (do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  NS_IF_ADDREF(*aArray = attachments);
 
-  nsMsgAttachedFile* pos=result;
   for (std::vector<attach_data*>::const_iterator it = m_stdattachments.begin();
-       it != m_stdattachments.end(); pos++, it++) {
-    pos->orig_url = (*it)->orig_url;
-    pos->tmp_file = (*it)->tmp_file;
-    pos->encoding = (*it)->encoding;
-    pos->real_name = (*it)->real_name;
-    pos->type = (*it)->type;
+       it != m_stdattachments.end(); it++) {
+    nsCOMPtr<nsIMsgAttachedFile> a(do_CreateInstance(NS_MSGATTACHEDFILE_CONTRACTID, &rv));
+    NS_ENSURE_SUCCESS(rv, rv);
+    a->SetOrigUrl((*it)->orig_url);
+    a->SetTmpFile((*it)->tmp_file);
+    a->SetEncoding(nsDependentCString((*it)->encoding));
+    a->SetRealName(nsDependentCString((*it)->real_name));
+    a->SetType(nsDependentCString((*it)->type));
+    attachments->AppendElement(a, PR_FALSE);
   }
-
-  return result;
+  return rv;
 }
 
 bool CMapiMessage::GetEmbeddedAttachmentInfo(unsigned int i, nsIURI **uri,

@@ -769,7 +769,7 @@ real_write(MimeMultipartRelated* relobj, const char* buf, PRInt32 size)
     // then restore it when we are done. Not sure if we shouldn't just turn it off
     // permanently though.
 
-    struct mime_draft_data *mdd = (struct mime_draft_data *) obj->options->stream_closure;
+    mime_draft_data *mdd = (mime_draft_data *) obj->options->stream_closure;
     MimeDecoderData* old_decoder_data = mdd->decoder_data;
     mdd->decoder_data = nsnull;
     int status = obj->options->decompose_file_output_fn

@@ -528,9 +528,6 @@ NS_IMETHODIMP ImportEudoraMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
   NS_PRECONDITION(pDestination != nsnull, "null ptr");
   NS_PRECONDITION(fatalError != nsnull, "null ptr");
 
-
-  nsCOMPtr<nsIStringBundle> bundle( dont_AddRef( nsEudoraStringBundle::GetStringBundle()));
-
   nsString  success;
   nsString  error;
   if (!pSource || !pDestination || !fatalError)

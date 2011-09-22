@@ -132,33 +132,31 @@ ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
   MimeObject    *child = obj;
 
   n = 1;
-  *data = (nsMsgAttachmentData *)PR_Malloc( (n + 1) * sizeof(nsMsgAttachmentData));
+  *data = new nsMsgAttachmentData[2];
   if (!*data)
     return NS_ERROR_OUT_OF_MEMORY;
 
   tmp = *data;
-  memset(*data, 0, (n + 1) * sizeof(nsMsgAttachmentData));
-  tmp->real_type = child->content_type ? strdup(child->content_type) : NULL;
-  tmp->real_encoding = child->encoding ? strdup(child->encoding) : NULL;
+  tmp->m_realType = child->content_type;
+  tmp->m_realEncoding = child->encoding;
   disp = MimeHeaders_get(child->headers, HEADER_CONTENT_DISPOSITION, PR_FALSE, PR_FALSE);
-  tmp->real_name = MimeHeaders_get_parameter(disp, "name", &charset, NULL);
-  if (tmp->real_name)
+  tmp->m_realName.Adopt(MimeHeaders_get_parameter(disp, "name", &charset, NULL));
+  if (!tmp->m_realName.IsEmpty())
   {
     char *fname = NULL;
-    fname = mime_decode_filename(tmp->real_name, charset, obj->options);
+    fname = mime_decode_filename(tmp->m_realName.get(), charset, obj->options);
     nsMemory::Free(charset);
-    if (fname && fname != tmp->real_name)
-    {
-      PR_Free(tmp->real_name);
-      tmp->real_name = fname;
-    }
+    if (fname)
+      tmp->m_realName.Adopt(fname);
   }
   else
   {
-    tmp->real_name = MimeHeaders_get_name(child->headers, obj->options);
+    tmp->m_realName.Adopt(MimeHeaders_get_name(child->headers, obj->options));
   }
 
-  if ( (!tmp->real_name) && (tmp->real_type) && (PL_strncasecmp(tmp->real_type, "text", 4)) )
+  if (tmp->m_realName.IsEmpty() &&
+      StringBeginsWith(tmp->m_realType, NS_LITERAL_CSTRING("text"),
+                       nsCaseInsensitiveCStringComparator()))
     ValidateRealName(tmp, child->headers);
 
   char  *tmpURL = nsnull;
@@ -184,16 +182,16 @@ ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
     {
       // if this is an IMAP part.
       tmpURL = mime_set_url_imap_part(url, id_imap, id);
-      rv = nsMimeNewURI(&(tmp->url), tmpURL, nsnull);
+      rv = nsMimeNewURI(getter_AddRefs(tmp->m_url), tmpURL, nsnull);
     }
     else
     {
       // This is just a normal MIME part as usual.
       tmpURL = mime_set_url_part(url, id, PR_TRUE);
-      rv = nsMimeNewURI(&(tmp->url), tmpURL, nsnull);
+      rv = nsMimeNewURI(getter_AddRefs(tmp->m_url), tmpURL, nsnull);
     }
 
-    if ( (!tmp->url) || (NS_FAILED(rv)) )
+    if (!tmp->m_url || NS_FAILED(rv))
     {
       PR_FREEIF(*data);
       PR_FREEIF(id);
@@ -204,7 +202,7 @@ ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
   PR_FREEIF(id);
   PR_FREEIF(id_imap);
   PR_FREEIF(tmpURL);
-  tmp->description = MimeHeaders_get(child->headers, HEADER_CONTENT_DESCRIPTION, PR_FALSE, PR_FALSE);
+  tmp->m_description.Adopt(MimeHeaders_get(child->headers, HEADER_CONTENT_DESCRIPTION, PR_FALSE, PR_FALSE));
   return NS_OK;
 }
 
@@ -234,34 +232,38 @@ ValidateRealName(nsMsgAttachmentData *aAttach, MimeHeaders *aHdrs)
     return;
 
   // Do we need to validate?
-  if ( (aAttach->real_name) && (*(aAttach->real_name)) )
+  if (!aAttach->m_realName.IsEmpty())
     return;
 
   // Internal MIME structures need not be named!
-  if ( (!aAttach->real_type) || (aAttach->real_type &&
-                                 !PL_strncasecmp(aAttach->real_type, "multipart", 9)) )
+  if (aAttach->m_realType.IsEmpty() ||
+      StringBeginsWith(aAttach->m_realType, NS_LITERAL_CSTRING("multipart"),
+                       nsCaseInsensitiveCStringComparator()))
     return;
 
   // Special case...if this is a enclosed RFC822 message, give it a nice
   // name.
-  if (aAttach->real_type && !PL_strcasecmp(aAttach->real_type, MESSAGE_RFC822))
+  if (aAttach->m_realType.LowerCaseEqualsLiteral(MESSAGE_RFC822))
   {
     NS_ASSERTION(aHdrs, "How comes the object's headers is null!");
     if (aHdrs && aHdrs->munged_subject)
-      aAttach->real_name = PR_smprintf("%s.eml", aHdrs->munged_subject);
+    {
+      aAttach->m_realName.Assign(aHdrs->munged_subject);
+      aAttach->m_realName.Append(".eml");
+    }
     else
-      NS_MsgSACopy(&(aAttach->real_name), "ForwardedMessage.eml");
+      aAttach->m_realName = "ForwardedMessage.eml";
     return;
   }
 
   //
   // Now validate any other name we have for the attachment!
   //
-  if (!aAttach->real_name || *aAttach->real_name == 0)
+  if (aAttach->m_realName.IsEmpty())
   {
-    nsCString newAttachName(NS_LITERAL_CSTRING("attachment"));
+    aAttach->m_realName = "attachment";
     nsresult rv = NS_OK;
-    nsCAutoString contentType (aAttach->real_type);
+    nsCAutoString contentType (aAttach->m_realType);
     PRInt32 pos = contentType.FindChar(';');
     if (pos > 0)
       contentType.SetLength(pos);
@@ -274,12 +276,10 @@ ValidateRealName(nsMsgAttachmentData *aAttach, MimeHeaders *aHdrs)
 
       if (NS_SUCCEEDED(rv) && !fileExtension.IsEmpty())
       {
-        newAttachName.Append('.');
-        newAttachName.Append(fileExtension);
+        aAttach->m_realName.Append('.');
+        aAttach->m_realName.Append(fileExtension);
       }
     }
-
-    aAttach->real_name = ToNewCString(newAttachName);
   }
 }
 
@@ -341,13 +341,13 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
 
   nsMsgAttachmentData *tmp = &(aAttachData[attIndex++]);
 
-  tmp->real_type = object->content_type ? strdup(object->content_type) : nsnull;
-  tmp->real_encoding = object->encoding ? strdup(object->encoding) : nsnull;
-  tmp->isExternalAttachment = isExternalAttachment;
-  tmp->size = attSize;
+  tmp->m_realType = object->content_type;
+  tmp->m_realEncoding = object->encoding;
+  tmp->m_isExternalAttachment = isExternalAttachment;
+  tmp->m_size = attSize;
 
   char *part_addr = mime_imap_part_address(object);
-  tmp->isDownloaded = (part_addr == nsnull);
+  tmp->m_isDownloaded = (part_addr == nsnull);
   PR_FREEIF(part_addr);
 
   PRInt32 i;
@@ -355,17 +355,17 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   char *disp = MimeHeaders_get(object->headers, HEADER_CONTENT_DISPOSITION, PR_FALSE, PR_FALSE);
   if (disp)
   {
-    tmp->real_name = MimeHeaders_get_parameter(disp, "filename", &charset, nsnull);
+    tmp->m_realName.Adopt(MimeHeaders_get_parameter(disp, "filename", &charset, nsnull));
     if (isAnAppleDoublePart)
-      for (i = 0; i < 2 && !tmp->real_name; i ++)
+      for (i = 0; i < 2 && tmp->m_realName.IsEmpty(); i ++)
       {
         PR_FREEIF(disp);
         nsMemory::Free(charset);
         disp = MimeHeaders_get(((MimeContainer *)object)->children[i]->headers, HEADER_CONTENT_DISPOSITION, PR_FALSE, PR_FALSE);
-        tmp->real_name = MimeHeaders_get_parameter(disp, "filename", &charset, nsnull);
+        tmp->m_realName.Adopt(MimeHeaders_get_parameter(disp, "filename", &charset, nsnull));
       }
 
-    if (tmp->real_name)
+    if (!tmp->m_realName.IsEmpty())
     {
       // check encoded type
       //
@@ -374,14 +374,11 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
       // So we should parse both types.
 
       char *fname = nsnull;
-      fname = mime_decode_filename(tmp->real_name, charset, options);
+      fname = mime_decode_filename(tmp->m_realName.get(), charset, options);
       nsMemory::Free(charset);
 
-      if (fname && fname != tmp->real_name)
-      {
-        PR_FREEIF(tmp->real_name);
-        tmp->real_name = fname;
-      }
+      if (fname)
+        tmp->m_realName.Adopt(fname);
     }
 
     PR_FREEIF(disp);
@@ -390,27 +387,26 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   disp = MimeHeaders_get(object->headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
   if (disp)
   {
-    tmp->x_mac_type   = MimeHeaders_get_parameter(disp, PARAM_X_MAC_TYPE, nsnull, nsnull);
-    tmp->x_mac_creator= MimeHeaders_get_parameter(disp, PARAM_X_MAC_CREATOR, nsnull, nsnull);
+    tmp->m_xMacType.Adopt(MimeHeaders_get_parameter(disp, PARAM_X_MAC_TYPE, nsnull, nsnull));
+    tmp->m_xMacCreator.Adopt(MimeHeaders_get_parameter(disp, PARAM_X_MAC_CREATOR, nsnull, nsnull));
 
-    if (!tmp->real_name || *tmp->real_name == 0)
+    if (tmp->m_realName.IsEmpty())
     {
-      PR_FREEIF(tmp->real_name);
-      tmp->real_name = MimeHeaders_get_parameter(disp, "name", &charset, nsnull);
+      tmp->m_realName.Adopt(MimeHeaders_get_parameter(disp, "name", &charset, nsnull));
       if (isAnAppleDoublePart)
         // the data fork is the 2nd part, and we should ALWAYS look there first for the file name
-        for (i = 1; i >= 0 && !tmp->real_name; i --)
+        for (i = 1; i >= 0 && tmp->m_realName.IsEmpty(); i --)
         {
           PR_FREEIF(disp);
           nsMemory::Free(charset);
           disp = MimeHeaders_get(((MimeContainer *)object)->children[i]->headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
-          tmp->real_name = MimeHeaders_get_parameter(disp, "name", &charset, nsnull);
-          tmp->real_type =
+          tmp->m_realName.Adopt(MimeHeaders_get_parameter(disp, "name", &charset, nsnull));
+          tmp->m_realType.Adopt(
             MimeHeaders_get(((MimeContainer *)object)->children[i]->headers,
-                            HEADER_CONTENT_TYPE, PR_TRUE, PR_FALSE);
+                            HEADER_CONTENT_TYPE, PR_TRUE, PR_FALSE));
         }
 
-      if (tmp->real_name)
+      if (!tmp->m_realName.IsEmpty())
       {
         // check encoded type
         //
@@ -419,68 +415,62 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
         // So we should parse both types.
 
         char *fname = nsnull;
-        fname = mime_decode_filename(tmp->real_name, charset, options);
+        fname = mime_decode_filename(tmp->m_realName.get(), charset, options);
         nsMemory::Free(charset);
 
-        if (fname && fname != tmp->real_name)
-        {
-          PR_Free(tmp->real_name);
-          tmp->real_name = fname;
-        }
+        if (fname)
+          tmp->m_realName.Adopt(fname);
       }
     }
     PR_FREEIF(disp);
   }
 
-  tmp->description = MimeHeaders_get(object->headers, HEADER_CONTENT_DESCRIPTION,
-                                     PR_FALSE, PR_FALSE);
+  tmp->m_description.Adopt(MimeHeaders_get(object->headers, HEADER_CONTENT_DESCRIPTION,
+                                           PR_FALSE, PR_FALSE));
 
   // Now, do the right thing with the name!
-  if (!tmp->real_name && PL_strcasecmp(tmp->real_type, MESSAGE_RFC822))
+  if (tmp->m_realName.IsEmpty() && !(tmp->m_realType.LowerCaseEqualsLiteral(MESSAGE_RFC822)))
   {
     // Keep in mind that the name was provided by us and this is probably not a
     // real attachment.
-    tmp->hasFilename = PR_FALSE;
+    tmp->m_hasFilename = PR_FALSE;
     /* If this attachment doesn't have a name, just give it one... */
-    tmp->real_name = MimeGetStringByID(MIME_MSG_DEFAULT_ATTACHMENT_NAME);
-    if (tmp->real_name)
+    tmp->m_realName.Adopt(MimeGetStringByID(MIME_MSG_DEFAULT_ATTACHMENT_NAME));
+    if (!tmp->m_realName.IsEmpty())
     {
-      char *newName = PR_smprintf(tmp->real_name, part.get());
+      char *newName = PR_smprintf(tmp->m_realName.get(), part.get());
       if (newName)
-      {
-        PR_Free(tmp->real_name);
-        tmp->real_name = newName;
-      }
+        tmp->m_realName.Adopt(newName);
     }
     else
-      tmp->real_name = mime_part_address(object);
+      tmp->m_realName.Adopt(mime_part_address(object));
   } else {
-    tmp->hasFilename = PR_TRUE;
+    tmp->m_hasFilename = PR_TRUE;
   }
   nsCString urlString(urlSpec);
 
-  if (tmp->real_name && !tmp->isExternalAttachment)
+  if (!tmp->m_realName.IsEmpty() && !tmp->m_isExternalAttachment)
   {
     urlString.Append("&filename=");
     nsCAutoString aResult;
-    if (NS_SUCCEEDED(MsgEscapeString(nsDependentCString(tmp->real_name),
+    if (NS_SUCCEEDED(MsgEscapeString(tmp->m_realName,
                                      nsINetUtil::ESCAPE_XALPHAS, aResult)))
       urlString.Append(aResult);
     else
-      urlString.Append(tmp->real_name);
-    if (tmp->real_type && !strcmp(tmp->real_type, "message/rfc822") &&
+      urlString.Append(tmp->m_realName);
+    if (tmp->m_realType.EqualsLiteral("message/rfc822") &&
            !StringEndsWith(urlString, NS_LITERAL_CSTRING(".eml"), nsCaseInsensitiveCStringComparator()))
       urlString.Append(".eml");
-  } else if (tmp->isExternalAttachment) {
+  } else if (tmp->m_isExternalAttachment) {
     // Allows the JS mime emitter to figure out the part information.
     urlString.Append("?part=");
     urlString.Append(part);
   }
-  nsresult rv = nsMimeNewURI(&(tmp->url), urlString.get(), nsnull);
+  nsresult rv = nsMimeNewURI(getter_AddRefs(tmp->m_url), urlString.get(), nsnull);
 
   PR_FREEIF(urlSpec);
 
-  if ( (NS_FAILED(rv)) || (!tmp->url) )
+  if (NS_FAILED(rv) || !tmp->m_url)
     return NS_ERROR_OUT_OF_MEMORY;
 
   ValidateRealName(tmp, object->headers);
@@ -629,12 +619,11 @@ MimeGetAttachmentList(MimeObject *tobj, const char *aMessageURL, nsMsgAttachment
   if (isAnInlineMessage)
     n ++;
 
-  *data = (nsMsgAttachmentData *)PR_Malloc( (n + 1) * sizeof(nsMsgAttachmentData));
+  *data = new nsMsgAttachmentData[n + 1];
   if (!*data)
     return NS_ERROR_OUT_OF_MEMORY;
 
   attIndex = 0;
-  memset(*data, 0, (n + 1) * sizeof(nsMsgAttachmentData));
 
   // Now, build the list!
 
@@ -651,26 +640,7 @@ MimeGetAttachmentList(MimeObject *tobj, const char *aMessageURL, nsMsgAttachment
 extern "C" void
 MimeFreeAttachmentList(nsMsgAttachmentData *data)
 {
-  if (data)
-  {
-    nsMsgAttachmentData   *tmp;
-    for (tmp = data ; tmp->url ; tmp++)
-    {
-      /* Can't do PR_FREEIF on `const' values... */
-      NS_IF_RELEASE(tmp->url);
-      if (tmp->real_type) PR_Free((char *) tmp->real_type);
-      if (tmp->real_encoding) PR_Free((char *) tmp->real_encoding);
-      if (tmp->real_name) PR_Free((char *) tmp->real_name);
-      if (tmp->x_mac_type) PR_Free((char *) tmp->x_mac_type);
-      if (tmp->x_mac_creator) PR_Free((char *) tmp->x_mac_creator);
-      if (tmp->description) PR_Free((char *) tmp->description);
-      tmp->url = 0;
-      tmp->real_type = 0;
-      tmp->real_name = 0;
-      tmp->description = 0;
-    }
-    PR_Free(data);
-  }
+  delete [] data;
 }
 
 extern "C" void
@@ -678,14 +648,15 @@ NotifyEmittersOfAttachmentList(MimeDisplayOptions     *opt,
                                nsMsgAttachmentData    *data)
 {
   PRInt32     i = 0;
-  struct      nsMsgAttachmentData  *tmp = data;
+  nsMsgAttachmentData  *tmp = data;
 
   if (!tmp)
     return;
 
-  while (tmp->url)
+  while (tmp->m_url)
   {
-    if (!tmp->real_name || (!tmp->hasFilename && (opt->html_as_p != 4 || opt->metadata_only)))
+    if (tmp->m_realName.IsEmpty() || (!tmp->m_hasFilename &&
+        (opt->html_as_p != 4 || opt->metadata_only)))
     {
       ++i;
       ++tmp;
@@ -693,15 +664,16 @@ NotifyEmittersOfAttachmentList(MimeDisplayOptions     *opt,
     }
 
     nsCAutoString spec;
-    if ( tmp->url )
-      tmp->url->GetSpec(spec);
+    if (tmp->m_url)
+      tmp->m_url->GetSpec(spec);
 
     nsCAutoString sizeStr;
-    sizeStr.AppendInt(tmp->size);
+    sizeStr.AppendInt(tmp->m_size);
     nsCAutoString downloadedStr;
-    downloadedStr.AppendInt(tmp->isDownloaded);
+    downloadedStr.AppendInt(tmp->m_isDownloaded);
 
-    mimeEmitterStartAttachment(opt, tmp->real_name, tmp->real_type, spec.get(), tmp->isExternalAttachment);
+    mimeEmitterStartAttachment(opt, tmp->m_realName.get(), tmp->m_realType.get(),
+                               spec.get(), tmp->m_isExternalAttachment);
     mimeEmitterAddAttachmentField(opt, HEADER_X_MOZILLA_PART_URL, spec.get());
     mimeEmitterAddAttachmentField(opt, HEADER_X_MOZILLA_PART_SIZE, sizeStr.get());
     mimeEmitterAddAttachmentField(opt, HEADER_X_MOZILLA_PART_DOWNLOADED, downloadedStr.get());
@@ -711,22 +683,9 @@ NotifyEmittersOfAttachmentList(MimeDisplayOptions     *opt,
          (opt->format_out == nsMimeOutput::nsMimeMessageSaveAs) ||
          (opt->format_out == nsMimeOutput::nsMimeMessagePrintOutput))
     {
-      mimeEmitterAddAttachmentField(opt, HEADER_CONTENT_DESCRIPTION, tmp->description);
-      mimeEmitterAddAttachmentField(opt, HEADER_CONTENT_TYPE, tmp->real_type);
-      mimeEmitterAddAttachmentField(opt, HEADER_CONTENT_ENCODING,    tmp->real_encoding);
-
-      /* rhp - for now, just leave these here, but they are really
-               not necessary
-      printf("URL for Part      : %s\n", spec.get());
-      printf("Real Name         : %s\n", tmp->real_name);
-      printf("Desired Type      : %s\n", tmp->desired_type);
-      printf("Real Type         : %s\n", tmp->real_type);
-      printf("Real Encoding     : %s\n", tmp->real_encoding);
-      printf("Description       : %s\n", tmp->description);
-      printf("Mac Type          : %s\n", tmp->x_mac_type);
-      printf("Mac Creator       : %s\n", tmp->x_mac_creator);
-      printf("Size              : %d\n", tmp->size);
-      */
+      mimeEmitterAddAttachmentField(opt, HEADER_CONTENT_DESCRIPTION, tmp->m_description.get());
+      mimeEmitterAddAttachmentField(opt, HEADER_CONTENT_TYPE, tmp->m_realType.get());
+      mimeEmitterAddAttachmentField(opt, HEADER_CONTENT_ENCODING, tmp->m_realEncoding.get());
     }
 
     mimeEmitterEndAttachment(opt);
@@ -1998,8 +1957,8 @@ mimeEmitterEndHeader(MimeDisplayOptions *opt)
         msd->format_out == nsMimeOutput::nsMimeMessageHeaderDisplay ||
         msd->format_out == nsMimeOutput::nsMimeMessageBodyDisplay) {
       nsresult rv = MimeGetAttachmentList(msd->obj, msd->url_name, &attachments);
-      if (NS_SUCCEEDED(rv) && attachments && attachments->real_name)
-        name.Assign(attachments->real_name);
+      if (NS_SUCCEEDED(rv) && attachments)
+        name.Assign(attachments->m_realName);
     }
 
     MimeHeaders_convert_header_value(opt, name, false);

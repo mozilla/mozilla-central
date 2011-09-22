@@ -130,23 +130,19 @@ struct mime_stream_data {           /* This struct is the state we pass around
 };
 
 //
-// This struct is the state we use for loading drafts and templates...
+// This object is the state we use for loading drafts and templates...
 //
-struct mime_draft_data
+class mime_draft_data
 {
-  /* WARNING: You cannot use a c++ object, in that structure, which is dependent on its constructor or
-           destructor as mime_draft_data is not created using the new operator. nsCOMPtr however are ok
-           to use as long you set it to null before the structure get freed.
-  */
-
+public:
+  mime_draft_data();
   char                *url_name;           // original url name */
   nsMimeOutputType    format_out;          // intended output format; should be FO_OPEN_DRAFT */
   nsMIMESession       *stream;             // not used for now
   MimeObject          *obj;                // The root
   MimeDisplayOptions  *options;            // data for communicating with libmime
   MimeHeaders         *headers;            // Copy of outer most mime header
-  PRInt32             attachments_count;   // how many attachments we have
-  nsMsgAttachedFile   *attachments;        // attachments
+  nsTArray<nsMsgAttachedFile*> attachments;// attachments
   nsMsgAttachedFile   *messageBody;        // message body
   nsMsgAttachedFile   *curAttachment;       // temp
 

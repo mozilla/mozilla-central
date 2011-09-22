@@ -1035,9 +1035,8 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
                     m_composeHTML?TEXT_HTML:TEXT_PLAIN, // const char                        *attachment1_type,
                     bodyString,                         // const char                        *attachment1_body,
                     bodyLength,                         // PRUint32                          attachment1_body_length,
-                    nsnull,                             // const struct nsMsgAttachmentData  *attachments,
-                    nsnull,                             // const struct nsMsgAttachedFile    *preloaded_attachments,
-                    nsnull,                             // nsMsgSendPart                     *relatedPart,
+                    nsnull,                             // nsIArray  *attachments,
+                    nsnull,                             // nsIArray preloaded_attachments,
                     m_window,                           // nsIDOMWindow                      *parentWindow;
                     mProgress,                          // nsIMsgProgress                    *progress,
                     sendListener,                       // listener

@@ -102,6 +102,14 @@ extern int          MimeHeaders_build_heads_list(MimeHeaders *hdrs);
 // CID's
 static NS_DEFINE_CID(kCMsgComposeServiceCID,  NS_MSGCOMPOSESERVICE_CID);
 
+mime_draft_data::mime_draft_data() : url_name(nsnull), format_out(0),
+  stream(nsnull), obj(nsnull), options(nsnull), headers(nsnull),
+  messageBody(nsnull), curAttachment(nsnull),
+  decoder_data(nsnull), mailcharset(nsnull), forwardInline(PR_FALSE),
+  forwardInlineFilter(PR_FALSE), overrideComposeFormat(PR_FALSE),
+  originalMsgURI(nsnull)
+{
+}
 ////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////
 // THIS SHOULD ALL MOVE TO ANOTHER FILE AFTER LANDING!
@@ -156,26 +164,26 @@ extern "C" void
 mime_dump_attachments ( nsMsgAttachmentData *attachData )
 {
   PRInt32     i = 0;
-  struct nsMsgAttachmentData  *tmp = attachData;
+  class nsMsgAttachmentData  *tmp = attachData;
 
-  while ( (tmp) && (tmp->real_name) )
+  while ( (tmp) && (tmp->m_url) )
   {
-    printf("Real Name         : %s\n", tmp->real_name);
+    printf("Real Name         : %s\n", tmp->m_realName.get());
 
-    if ( tmp->url )
+    if ( tmp->m_url )
     {
       nsCAutoString spec;
-      tmp->url->GetSpec(spec);
+      tmp->m_url->GetSpec(spec);
       printf("URL               : %s\n", spec.get());
     }
 
-    printf("Desired Type      : %s\n", tmp->desired_type ? tmp->desired_type : "nsnull");
-    printf("Real Type         : %s\n", tmp->real_type ? tmp->real_type : "nsnull");
-    printf("Real Encoding     : %s\n", tmp->real_encoding ? tmp->real_encoding : "nsnull");
-    printf("Description       : %s\n", tmp->description ? tmp->description : "nsnull");
-    printf("Mac Type          : %s\n", tmp->x_mac_type ? tmp->x_mac_type : "nsnull");
-    printf("Mac Creator       : %s\n", tmp->x_mac_creator ? tmp->x_mac_creator : "nsnull");
-    printf("Size in bytes     : %d\n", tmp->size);
+    printf("Desired Type      : %s\n", tmp->m_desiredType.get());
+    printf("Real Type         : %s\n", tmp->m_realType.get());
+    printf("Real Encoding     : %s\n", tmp->m_realEncoding.get());
+    printf("Description       : %s\n", tmp->m_description.get());
+    printf("Mac Type          : %s\n", tmp->m_xMacType);
+    printf("Mac Creator       : %s\n", tmp->m_xMacCreator);
+    printf("Size in bytes     : %d\n", tmp->m_size);
     i++;
     tmp++;
   }
@@ -201,25 +209,25 @@ nsresult CreateComposeParams(nsCOMPtr<nsIMsgComposeParams> &pMsgComposeParams,
   {
     nsCAutoString spec;
 
-    while (curAttachment && curAttachment->real_name) //JFD: Why do we check for real_name?
+    while (curAttachment && curAttachment->m_url)
     {
-      rv = curAttachment->url->GetSpec(spec);
+      rv = curAttachment->m_url->GetSpec(spec);
       if (NS_SUCCEEDED(rv))
       {
         nsCOMPtr<nsIMsgAttachment> attachment = do_CreateInstance(NS_MSGATTACHMENT_CONTRACTID, &rv);
         if (NS_SUCCEEDED(rv) && attachment)
         {
           nsAutoString nameStr;
-          rv = ConvertToUnicode("UTF-8", curAttachment->real_name, nameStr);
+          rv = ConvertToUnicode("UTF-8", curAttachment->m_realName.get(), nameStr);
           if (NS_FAILED(rv))
-            CopyASCIItoUTF16(nsDependentCString(curAttachment->real_name), nameStr);
+            CopyASCIItoUTF16(curAttachment->m_realName, nameStr);
           attachment->SetName(nameStr);
           attachment->SetUrl(spec);
           attachment->SetTemporary(PR_TRUE);
-          attachment->SetContentType(curAttachment->real_type);
-          attachment->SetMacType(curAttachment->x_mac_type);
-          attachment->SetMacCreator(curAttachment->x_mac_creator);
-          attachment->SetSize(curAttachment->size);
+          attachment->SetContentType(curAttachment->m_realType.get());
+          attachment->SetMacType(curAttachment->m_xMacType.get());
+          attachment->SetMacCreator(curAttachment->m_xMacCreator.get());
+          attachment->SetSize(curAttachment->m_size);
           compFields->AddAttachment(attachment);
         }
       }
@@ -461,7 +469,7 @@ dummy_file_write( char *buf, PRInt32 size, void *fileHandle )
 static int
 mime_parse_stream_write ( nsMIMESession *stream, const char *buf, PRInt32 size )
 {
-  struct mime_draft_data *mdd = (struct mime_draft_data *) stream->data_object;
+  mime_draft_data *mdd = (mime_draft_data *) stream->data_object;
   NS_ASSERTION ( mdd, "null mime draft data!" );
 
   if ( !mdd || !mdd->obj )
@@ -471,53 +479,20 @@ mime_parse_stream_write ( nsMIMESession *stream, const char *buf, PRInt32 size )
 }
 
 static void
-mime_free_attach_data ( nsMsgAttachmentData *attachData)
+mime_free_attachments(nsTArray<nsMsgAttachedFile *> &attachments)
 {
-  struct nsMsgAttachmentData  *tmp = attachData;
-
-  while (tmp && tmp->real_name)
-  {
-    NS_IF_RELEASE(tmp->url);
-    PR_FREEIF(tmp->real_name);
-
-    PR_FREEIF(tmp->desired_type);
-    PR_FREEIF(tmp->real_type);
-    PR_FREEIF(tmp->real_encoding);
-    PR_FREEIF(tmp->description);
-    PR_FREEIF(tmp->x_mac_type);
-    PR_FREEIF(tmp->x_mac_creator);
-
-    tmp++;
-  }
-}
-
-static void
-mime_free_attachments ( nsMsgAttachedFile *attachments, int count )
-{
-  int               i;
-  nsMsgAttachedFile *cur = attachments;
-
-  NS_ASSERTION ( attachments && count > 0, "freeing attachments but there aren't any");
-  if ( !attachments || count <= 0 )
+  if (attachments.Length() <= 0)
     return;
 
-  for ( i = 0; i < count; i++, cur++ )
+  for (int i = 0; i < attachments.Length(); i++)
   {
-    cur->orig_url=nsnull;
-
-    PR_FREEIF ( cur->type );
-    PR_FREEIF ( cur->encoding );
-    PR_FREEIF ( cur->description );
-    PR_FREEIF ( cur->x_mac_type );
-    PR_FREEIF ( cur->x_mac_creator );
-    if ( cur->tmp_file )
+    if (attachments[i]->m_tmpFile)
     {
-      cur->tmp_file->Remove(PR_FALSE);
-      cur->tmp_file = nsnull;
+      attachments[i]->m_tmpFile->Remove(PR_FALSE);
+      attachments[i]->m_tmpFile = nsnull;
     }
+    delete attachments[i];
   }
-
-  PR_FREEIF( attachments );
 }
 
 static nsMsgAttachmentData *
@@ -528,107 +503,74 @@ mime_draft_process_attachments(mime_draft_data *mdd)
 
   nsMsgAttachmentData         *attachData = NULL, *tmp = NULL;
   nsMsgAttachedFile           *tmpFile = NULL;
-  int                         i;
 
   //It's possible we must treat the message body as attachment!
   PRBool bodyAsAttachment = PR_FALSE;
   if (  mdd->messageBody &&
-        mdd->messageBody->type && *mdd->messageBody->type &&
-        ( PL_strcasestr(mdd->messageBody->type, "text/html") == nsnull ) &&
-        ( PL_strcasestr(mdd->messageBody->type, "text/plain") == nsnull ) &&
-        ( PL_strcasecmp(mdd->messageBody->type, "text") != 0 )
-     )
+        mdd->messageBody->m_type.Find("text/html", CaseInsensitiveCompare) == -1 &&
+        mdd->messageBody->m_type.Find("text/plain", CaseInsensitiveCompare) == -1 &&
+        mdd->messageBody->m_type.Find("text", CaseInsensitiveCompare) == -1)
      bodyAsAttachment = PR_TRUE;
 
-  if ( (!mdd->attachments || !mdd->attachments_count) && !bodyAsAttachment)
+  if (!mdd->attachments.Length() && !bodyAsAttachment)
     return nsnull;
 
-  PRInt32 totalCount = mdd->attachments_count;
+  PRInt32 totalCount = mdd->attachments.Length();
   if (bodyAsAttachment)
-    totalCount ++;
-  attachData = (nsMsgAttachmentData *) PR_CALLOC( ( (totalCount + 1) * sizeof (nsMsgAttachmentData) ) );
+    totalCount++;
+  attachData = new nsMsgAttachmentData[totalCount + 1];
   if ( !attachData )
     return nsnull;
 
-  //mdd->messageBody and mdd->attachments are the same type!
-  if (bodyAsAttachment)
-    tmpFile = mdd->messageBody;
-  else
-    tmpFile = mdd->attachments;
   tmp = attachData;
 
-  for ( i=0; i < totalCount; i++, tmp++)
+  for (int i = 0, attachmentsIndex = 0; i < totalCount; i++, tmp++)
   {
-    if (tmpFile->type)
-    {
-      if (PL_strcasecmp ( tmpFile->type, "text/x-vcard") == 0)
-        NS_MsgSACopy (&(tmp->real_name), tmpFile->description);
-    }
+    if (bodyAsAttachment && i == 0)
+      tmpFile = mdd->messageBody;
+    else
+      tmpFile = mdd->attachments[attachmentsIndex++];
 
-    if ( tmpFile->orig_url )
+    if (tmpFile->m_type.LowerCaseEqualsLiteral("text/x-vcard"))
+      tmp->m_realName = tmpFile->m_description;
+
+    if ( tmpFile->m_origUrl )
     {
       nsCAutoString tmpSpec;
-      if (NS_FAILED(tmpFile->orig_url->GetSpec(tmpSpec)))
+      if (NS_FAILED(tmpFile->m_origUrl->GetSpec(tmpSpec)))
         goto FAIL;
 
-      if (NS_FAILED(nsMimeNewURI(&(tmp->url), tmpSpec.get(), nsnull)))
+      if (NS_FAILED(nsMimeNewURI(getter_AddRefs(tmp->m_url), tmpSpec.get(), nsnull)))
         goto FAIL;
 
-      if (!tmp->real_name)
+      if (tmp->m_realName.IsEmpty())
       {
-        if (tmpFile->real_name)
-          NS_MsgSACopy ( &(tmp->real_name), tmpFile->real_name );
+        if (!tmpFile->m_realName.IsEmpty())
+          tmp->m_realName = tmpFile->m_realName;
         else {
-          if (PL_strstr(tmpFile->type, MESSAGE_RFC822))
+          if (tmpFile->m_type.Find(MESSAGE_RFC822, CaseInsensitiveCompare) != -1)
             // we have the odd case of processing an e-mail that had an unnamed
             // eml message attached
-            NS_MsgSACopy( &(tmp->real_name), "ForwardedMessage.eml" );
+            tmp->m_realName = "ForwardedMessage.eml";
 
           else
-            NS_MsgSACopy ( &(tmp->real_name), tmpSpec.get() );
+            tmp->m_realName = tmpSpec.get();
         }
       }
     }
 
-    if ( tmpFile->type )
-    {
-      NS_MsgSACopy ( &(tmp->desired_type), tmpFile->type );
-      NS_MsgSACopy ( &(tmp->real_type), tmpFile->type );
-    }
-
-    if ( tmpFile->encoding )
-    {
-      NS_MsgSACopy ( &(tmp->real_encoding), tmpFile->encoding );
-    }
-
-    if ( tmpFile->description )
-    {
-      NS_MsgSACopy ( &(tmp->description), tmpFile->description );
-    }
-
-    if ( tmpFile->x_mac_type )
-    {
-      NS_MsgSACopy ( &(tmp->x_mac_type), tmpFile->x_mac_type );
-    }
-
-    if ( tmpFile->x_mac_creator )
-    {
-      NS_MsgSACopy ( &(tmp->x_mac_creator), tmpFile->x_mac_creator );
-    }
-
-    tmp->size = tmpFile->size;
-
-    if (bodyAsAttachment && (i == 0))
-      tmpFile = mdd->attachments;
-    else
-      tmpFile++;
+    tmp->m_desiredType = tmpFile->m_type;
+    tmp->m_realType = tmpFile->m_type;
+    tmp->m_realEncoding = tmpFile->m_encoding;
+    tmp->m_description = tmpFile->m_description;
+    tmp->m_xMacType = tmpFile->m_xMacType;
+    tmp->m_xMacCreator = tmpFile->m_xMacCreator;
+    tmp->m_size = tmpFile->m_size;
   }
-
-  return (attachData);
+  return attachData;
 
 FAIL:
-  mime_free_attach_data (attachData);
-  PR_FREEIF(attachData);
+  delete [] attachData;
   return nsnull;
 }
 
@@ -1223,7 +1165,7 @@ mime_insert_forwarded_message_headers(char            **body,
 static void
 mime_parse_stream_complete (nsMIMESession *stream)
 {
-  struct mime_draft_data *mdd = (struct mime_draft_data *) stream->data_object;
+  mime_draft_data *mdd = (mime_draft_data *) stream->data_object;
   nsCOMPtr<nsIMsgCompFields> fields;
   int htmlAction = 0;
   int lineWidth = 0;
@@ -1430,18 +1372,16 @@ mime_parse_stream_complete (nsMIMESession *stream)
     if (mdd->messageBody)
     {
       MSG_ComposeFormat composeFormat = nsIMsgCompFormat::Default;
-      if (mdd->messageBody->type && *mdd->messageBody->type)
+      if (!mdd->messageBody->m_type.IsEmpty())
       {
-        if( PL_strcasestr(mdd->messageBody->type, "text/html"))
+        if(mdd->messageBody->m_type.Find("text/html", CaseInsensitiveCompare) != -1)
           composeFormat = nsIMsgCompFormat::HTML;
-        else if ( PL_strcasestr(mdd->messageBody->type, "text/plain") ||
-                  !PL_strcasecmp(mdd->messageBody->type, "text") )
+        else if (mdd->messageBody->m_type.Find("text/plain", CaseInsensitiveCompare) != -1 ||
+                 mdd->messageBody->m_type.LowerCaseEqualsLiteral("text"))
           composeFormat = nsIMsgCompFormat::PlainText;
         else
-        {
           //We cannot use this kind of data for the message body! Therefore, move it as attachment
           bodyAsAttachment = PR_TRUE;
-        }
       }
       else
         composeFormat = nsIMsgCompFormat::PlainText;
@@ -1453,10 +1393,10 @@ mime_parse_stream_complete (nsMIMESession *stream)
       {
         PRInt64 fileSize;
         nsCOMPtr<nsIFile> tempFileCopy;
-        mdd->messageBody->tmp_file->Clone(getter_AddRefs(tempFileCopy));
-        mdd->messageBody->tmp_file = do_QueryInterface(tempFileCopy);
+        mdd->messageBody->m_tmpFile->Clone(getter_AddRefs(tempFileCopy));
+        mdd->messageBody->m_tmpFile = do_QueryInterface(tempFileCopy);
         tempFileCopy = nsnull;
-        mdd->messageBody->tmp_file->GetFileSize(&fileSize);
+        mdd->messageBody->m_tmpFile->GetFileSize(&fileSize);
         bodyLen = fileSize;
         body = (char *)PR_MALLOC (bodyLen + 1);
         if (body)
@@ -1466,7 +1406,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
           PRUint32 bytesRead;
           nsCOMPtr <nsIInputStream> inputStream;
 
-          nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), mdd->messageBody->tmp_file);
+          nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), mdd->messageBody->m_tmpFile);
           if (NS_FAILED(rv))
             return;
 
@@ -1478,7 +1418,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
           char *mimeCharset = nsnull;
           // Get a charset from the header if no override is set.
           if (!charsetOverride)
-            mimeCharset = MimeHeaders_get_parameter (mdd->messageBody->type, "charset", nsnull, nsnull);
+            mimeCharset = MimeHeaders_get_parameter (mdd->messageBody->m_type.get(), "charset", nsnull, nsnull);
           // If no charset is specified in the header then use the default.
           char *bodyCharset = mimeCharset ? mimeCharset : mdd->mailcharset;
           if (bodyCharset)
@@ -1666,20 +1606,15 @@ mime_parse_stream_complete (nsMIMESession *stream)
   // files we need on disk
   //
   if (bodyAsAttachment)
-    mdd->messageBody->tmp_file = nsnull;
+    mdd->messageBody->m_tmpFile = nsnull;
+  else if (mdd->messageBody->m_tmpFile)
+    mdd->messageBody->m_tmpFile->Remove(PR_FALSE);
 
-  mime_free_attachments (mdd->messageBody, 1);
+  delete mdd->messageBody;
 
-  if (mdd->attachments)
-  {
-    int               i;
-    nsMsgAttachedFile *cur = mdd->attachments;
+  for (int i = 0; i < mdd->attachments.Length(); i++)
+    mdd->attachments[i]->m_tmpFile = nsnull;
 
-    for ( i = 0; i < mdd->attachments_count; i++, cur++ )
-        cur->tmp_file = nsnull;
-
-    mime_free_attachments( mdd->attachments, mdd->attachments_count );
-  }
   PR_FREEIF(mdd->mailcharset);
 
   mdd->identity = nsnull;
@@ -1705,13 +1640,13 @@ mime_parse_stream_complete (nsMIMESession *stream)
   PR_FREEIF(draftInfo);
   PR_Free(identityKey);
 
-  mime_free_attach_data(newAttachData);
+  delete [] newAttachData;
 }
 
 static void
 mime_parse_stream_abort (nsMIMESession *stream, int status )
 {
-  struct mime_draft_data *mdd = (struct mime_draft_data *) stream->data_object;
+  mime_draft_data *mdd = (mime_draft_data *) stream->data_object;
   NS_ASSERTION (mdd, "null mime draft data");
 
   if (!mdd)
@@ -1747,8 +1682,7 @@ mime_parse_stream_abort (nsMIMESession *stream, int status )
     MimeHeaders_free (mdd->headers);
 
 
-  if (mdd->attachments)
-    mime_free_attachments( mdd->attachments, mdd->attachments_count );
+  mime_free_attachments(mdd->attachments);
 
   PR_FREEIF(mdd->mailcharset);
 
@@ -1758,7 +1692,7 @@ mime_parse_stream_abort (nsMIMESession *stream, int status )
 static int
 make_mime_headers_copy ( void *closure, MimeHeaders *headers )
 {
-  struct mime_draft_data *mdd = (struct mime_draft_data *) closure;
+  mime_draft_data *mdd = (mime_draft_data *) closure;
 
   NS_ASSERTION ( mdd && headers, "null mime draft data and/or headers" );
 
@@ -1776,7 +1710,7 @@ make_mime_headers_copy ( void *closure, MimeHeaders *headers )
 nsresult
 mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
 {
-  struct mime_draft_data *mdd = (struct mime_draft_data *) stream_closure;
+  mime_draft_data *mdd = (mime_draft_data *) stream_closure;
   nsMsgAttachedFile *attachments = 0, *newAttachment = 0;
   int nAttachments = 0;
   //char *hdr_value = NULL;
@@ -1793,18 +1727,16 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
   {
     mdd->options->decompose_init_count++;
     NS_ASSERTION(mdd->curAttachment, "missing attachment in mime_decompose_file_init_fn");
-    if (mdd->curAttachment) {
-      char *ct = MimeHeaders_get(headers, HEADER_CONTENT_TYPE, PR_TRUE, PR_FALSE);
-      if (ct)
-        NS_MsgSACopy(&(mdd->curAttachment->type), ct);
-      PR_FREEIF(ct);
-    }
+    if (mdd->curAttachment)
+      mdd->curAttachment->m_type.Adopt(MimeHeaders_get(headers,
+                                                       HEADER_CONTENT_TYPE,
+                                                       PR_TRUE, PR_FALSE));
     return 0;
   }
   else
     mdd->options->decompose_init_count++;
 
-  nAttachments = mdd->attachments_count;
+  nAttachments = mdd->attachments.Length();
 
   if (!nAttachments && !mdd->messageBody)
   {
@@ -1814,7 +1746,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
         mdd->mailcharset = strdup(mdd->options->default_charset);
     else
     {
-      char *contentType = NULL;
+      char *contentType;
       contentType = MimeHeaders_get(headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
       if (contentType)
       {
@@ -1823,8 +1755,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
       }
     }
 
-    mdd->messageBody = PR_NEWZAP (nsMsgAttachedFile);
-    NS_ASSERTION (mdd->messageBody, "missing messageBody in mime_decompose_file_init_fn");
+    mdd->messageBody = new nsMsgAttachedFile;
     if (!mdd->messageBody)
       return MIME_OUT_OF_MEMORY;
     newAttachment = mdd->messageBody;
@@ -1835,49 +1766,29 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
   {
     /* always allocate one more extra; don't ask me why */
     needURL = PR_TRUE;
-    if ( nAttachments )
-    {
-      NS_ASSERTION (mdd->attachments, "no attachments");
-
-      attachments = (nsMsgAttachedFile *)PR_REALLOC(mdd->attachments,
-                                                    sizeof (nsMsgAttachedFile) *
-                                                    (nAttachments + 2));
-    if (!attachments)
-        return MIME_OUT_OF_MEMORY;
-      mdd->attachments = attachments;
-      mdd->attachments_count++;
-    }
-    else {
-      NS_ASSERTION (!mdd->attachments, "have attachments but count is 0");
-
-      attachments = (nsMsgAttachedFile *) PR_MALLOC ( sizeof (nsMsgAttachedFile) * 2);
-      if (!attachments)
-        return MIME_OUT_OF_MEMORY;
-      mdd->attachments_count++;
-      mdd->attachments = attachments;
-    }
-
-    newAttachment = attachments + nAttachments;
-    memset ( newAttachment, 0, sizeof (nsMsgAttachedFile) * 2 );
+    newAttachment = new nsMsgAttachedFile;
+    if (!newAttachment)
+      return MIME_OUT_OF_MEMORY;
+    mdd->attachments.AppendElement(newAttachment);
   }
 
   char *workURLSpec = nsnull;
   char *contLoc = nsnull;
 
-  newAttachment->real_name = MimeHeaders_get_name ( headers, mdd->options );
+  newAttachment->m_realName.Adopt(MimeHeaders_get_name(headers, mdd->options));
   contLoc = MimeHeaders_get( headers, HEADER_CONTENT_LOCATION, PR_FALSE, PR_FALSE );
   if (!contLoc)
       contLoc = MimeHeaders_get( headers, HEADER_CONTENT_BASE, PR_FALSE, PR_FALSE );
 
-  if ( (!contLoc) && (newAttachment->real_name) )
-    workURLSpec = strdup(newAttachment->real_name);
+  if (!contLoc && !newAttachment->m_realName.IsEmpty())
+    workURLSpec = ToNewCString(newAttachment->m_realName);
   if ( (contLoc) && (!workURLSpec) )
     workURLSpec = strdup(contLoc);
 
   PR_FREEIF(contLoc);
 
   mdd->curAttachment = newAttachment;
-  newAttachment->type =  MimeHeaders_get ( headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE );
+  newAttachment->m_type.Adopt(MimeHeaders_get ( headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE ));
 
   //
   // This is to handle the degenerated Apple Double attachment.
@@ -1891,23 +1802,25 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
     if (boundary)
       tmp_value = PR_smprintf("; boundary=\"%s\"", boundary);
     if (tmp_value)
-      NS_MsgSACat(&(newAttachment->type), tmp_value);
-    newAttachment->x_mac_type = MimeHeaders_get_parameter(parm_value, "x-mac-type", NULL, NULL);
-    newAttachment->x_mac_creator = MimeHeaders_get_parameter(parm_value, "x-mac-creator", NULL, NULL);
+      newAttachment->m_type = tmp_value;
+    newAttachment->m_xMacType.Adopt(
+      MimeHeaders_get_parameter(parm_value, "x-mac-type", NULL, NULL));
+    newAttachment->m_xMacCreator.Adopt(
+      MimeHeaders_get_parameter(parm_value, "x-mac-creator", NULL, NULL));
     PR_FREEIF(parm_value);
     PR_FREEIF(boundary);
     PR_FREEIF(tmp_value);
   }
-  newAttachment->size = 0;
-  newAttachment->encoding = MimeHeaders_get ( headers, HEADER_CONTENT_TRANSFER_ENCODING,
-                                              PR_FALSE, PR_FALSE );
-  newAttachment->description = MimeHeaders_get( headers, HEADER_CONTENT_DESCRIPTION,
-                                                PR_FALSE, PR_FALSE );
+  newAttachment->m_size = 0;
+  newAttachment->m_encoding.Adopt(MimeHeaders_get (headers, HEADER_CONTENT_TRANSFER_ENCODING,
+                                                   PR_FALSE, PR_FALSE ));
+  newAttachment->m_description.Adopt(MimeHeaders_get(headers, HEADER_CONTENT_DESCRIPTION,
+                                                     PR_FALSE, PR_FALSE ));
   //
   // If we came up empty for description or the orig URL, we should do something about it.
   //
-  if  ( ( (!newAttachment->description) || (!*newAttachment->description) ) && (workURLSpec) )
-    newAttachment->description = strdup(workURLSpec);
+  if (newAttachment->m_description.IsEmpty() && workURLSpec)
+    newAttachment->m_description = workURLSpec;
 
   nsCOMPtr <nsIFile> tmpFile = nsnull;
   {
@@ -1917,7 +1830,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
     PRBool extensionAdded = PR_FALSE;
     // the content type may contain a charset. i.e. text/html; ISO-2022-JP...we want to strip off the charset
     // before we ask the mime service for a mime info for this content type.
-    nsCAutoString contentType (newAttachment->type);
+    nsCAutoString contentType (newAttachment->m_type);
     PRInt32 pos = contentType.FindChar(';');
     if (pos > 0)
       contentType.SetLength(pos);
@@ -1953,7 +1866,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
       nsCAutoString fileURL;
       rv = NS_GetURLSpecFromFile(tmpFile, fileURL);
       if (NS_SUCCEEDED(rv))
-        nsMimeNewURI(getter_AddRefs(newAttachment->orig_url),
+        nsMimeNewURI(getter_AddRefs(newAttachment->m_origUrl),
                      fileURL.get(), nsnull);
   }
 
@@ -1963,7 +1876,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
 
   mdd->tmpFile = do_QueryInterface(tmpFile);
 
-  newAttachment->tmp_file = mdd->tmpFile;
+  newAttachment->m_tmpFile = mdd->tmpFile;
 
   rv = MsgNewBufferedFileOutputStream(getter_AddRefs(mdd->tmpFileStream), tmpFile,PR_WRONLY | PR_CREATE_FILE, 00600);
   if (NS_FAILED(rv))
@@ -1978,11 +1891,9 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
     //
     // Initialize a decoder if necessary.
     //
-    if (!newAttachment->encoding)
-      ;
-    else if (!PL_strcasecmp(newAttachment->encoding, ENCODING_BASE64))
+    if (newAttachment->m_encoding.LowerCaseEqualsLiteral(ENCODING_BASE64))
       fn = &MimeB64DecoderInit;
-    else if (!PL_strcasecmp(newAttachment->encoding, ENCODING_QUOTED_PRINTABLE))
+    else if (newAttachment->m_encoding.LowerCaseEqualsLiteral(ENCODING_QUOTED_PRINTABLE))
     {
       mdd->decoder_data = MimeQPDecoderInit (/* The (nsresult (*) ...) cast is to turn the `void' argument into `MimeObject'. */
                               ((nsresult (*) (const char *, PRInt32, void *))
@@ -1990,12 +1901,12 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
       if (!mdd->decoder_data)
         return MIME_OUT_OF_MEMORY;
     }
-    else if (!PL_strcasecmp(newAttachment->encoding, ENCODING_UUENCODE) ||
-             !PL_strcasecmp(newAttachment->encoding, ENCODING_UUENCODE2) ||
-             !PL_strcasecmp(newAttachment->encoding, ENCODING_UUENCODE3) ||
-             !PL_strcasecmp(newAttachment->encoding, ENCODING_UUENCODE4))
+    else if (newAttachment->m_encoding.LowerCaseEqualsLiteral(ENCODING_UUENCODE) ||
+             newAttachment->m_encoding.LowerCaseEqualsLiteral(ENCODING_UUENCODE2) ||
+             newAttachment->m_encoding.LowerCaseEqualsLiteral(ENCODING_UUENCODE3) ||
+             newAttachment->m_encoding.LowerCaseEqualsLiteral(ENCODING_UUENCODE4))
       fn = &MimeUUDecoderInit;
-    else if (!PL_strcasecmp(newAttachment->encoding, ENCODING_YENCODE))
+    else if (newAttachment->m_encoding.LowerCaseEqualsLiteral(ENCODING_YENCODE))
       fn = &MimeYDecoderInit;
 
     if (fn)
@@ -2016,7 +1927,7 @@ mime_decompose_file_output_fn (const char     *buf,
                                PRInt32  size,
                                void     *stream_closure )
 {
-  struct mime_draft_data *mdd = (struct mime_draft_data *) stream_closure;
+  mime_draft_data *mdd = (mime_draft_data *) stream_closure;
   int ret = 0;
 
   NS_ASSERTION (mdd && buf, "missing mime draft data and/or buf");
@@ -2030,7 +1941,7 @@ mime_decompose_file_output_fn (const char     *buf,
     PRInt32 outsize;
     ret = MimeDecoderWrite(mdd->decoder_data, buf, size, &outsize);
     if (ret == -1) return -1;
-    mdd->curAttachment->size += outsize;
+    mdd->curAttachment->m_size += outsize;
   }
   else
   {
@@ -2038,7 +1949,7 @@ mime_decompose_file_output_fn (const char     *buf,
     mdd->tmpFileStream->Write(buf, size, &bytesWritten);
     if (bytesWritten < size)
       return MIME_ERROR_WRITING_FILE;
-    mdd->curAttachment->size += size;
+    mdd->curAttachment->m_size += size;
   }
 
   return NS_OK;
@@ -2047,7 +1958,7 @@ mime_decompose_file_output_fn (const char     *buf,
 nsresult
 mime_decompose_file_close_fn ( void *stream_closure )
 {
-  struct mime_draft_data *mdd = (struct mime_draft_data *) stream_closure;
+  mime_draft_data *mdd = (mime_draft_data *) stream_closure;
 
   if ( !mdd || !mdd->tmpFileStream )
     return -1;
@@ -2078,13 +1989,13 @@ mime_bridge_create_draft_stream(
 {
   int                     status = 0;
   nsMIMESession           *stream = nsnull;
-  struct mime_draft_data  *mdd = nsnull;
+  mime_draft_data  *mdd = nsnull;
   MimeObject              *obj = nsnull;
 
   if ( !uri )
     return nsnull;
 
-  mdd = PR_NEWZAP(struct mime_draft_data);
+  mdd = new mime_draft_data;
   if (!mdd)
     return nsnull;
 

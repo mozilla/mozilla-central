@@ -1604,14 +1604,13 @@ void
 msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnichar *proposedName, const char *charset)
 {
   const char *s, *s2;
-  char *s3;
 
-  if ( (attachment->m_real_name) && (*attachment->m_real_name))
+  if (!attachment->m_realName.IsEmpty())
     return;
 
   if (proposedName && *proposedName)
   {
-    attachment->m_real_name = ToNewUTF8String(nsAutoString(proposedName));
+    attachment->m_realName.Adopt(ToNewUTF8String(nsAutoString(proposedName)));
   }
   else //Let's extract the name from the URL
   {
@@ -1644,9 +1643,8 @@ msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnichar *propose
         PRInt32 endFilename = nonDataPart.FindChar(';', filenamePos);
         if (endFilename == -1)
           endFilename = endNonData;
-        PR_FREEIF(attachment->m_real_name);
-        attachment->m_real_name = ToNewCString(Substring(nonDataPart, filenamePos,
-                                                         endFilename - filenamePos));
+        attachment->m_realName = Substring(nonDataPart, filenamePos,
+                                           endFilename - filenamePos);
       }
       else
       {
@@ -1668,8 +1666,7 @@ msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnichar *propose
           filename.Append(filePrefix[i] + 'a');
         filename.Append('.');
         filename.Append(extension);
-        PR_FREEIF(attachment->m_real_name);
-        attachment->m_real_name = ToNewCString(filename);
+        attachment->m_realName = filename;
       }
     }
     else
@@ -1681,19 +1678,19 @@ msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnichar *propose
 
       if (s2) s = s2+1;
       /* Copy it into the attachment struct. */
-      PR_FREEIF(attachment->m_real_name);
-      attachment->m_real_name = PL_strdup (s);
+      attachment->m_realName = s;
+      PRInt32 charPos = attachment->m_realName.FindChar('?');
+      if (charPos != -1)
+        attachment->m_realName.SetLength(charPos);
       /* Now trim off any named anchors or search data. */
-      s3 = PL_strchr (attachment->m_real_name, '?');
-      if (s3) *s3 = 0;
-      s3 = PL_strchr (attachment->m_real_name, '#');
-      if (s3) *s3 = 0;
+      charPos = attachment->m_realName.FindChar('#');
+      if (charPos != -1)
+        attachment->m_realName.SetLength(charPos);
     }
     /* Now lose the %XX crap. */
     nsCString unescaped_real_name;
-    MsgUnescapeString(nsDependentCString(attachment->m_real_name), 0, unescaped_real_name);
-    NS_Free(attachment->m_real_name);
-    attachment->m_real_name = ToNewCString(unescaped_real_name);
+    MsgUnescapeString(attachment->m_realName, 0, unescaped_real_name);
+    attachment->m_realName = unescaped_real_name;
   }
 
   /* Now a special case for attaching uuencoded files...
@@ -1711,13 +1708,8 @@ msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnichar *propose
    cope with that; the code which copes with that is in the MIME parser, in
    libmime/mimei.c.
    */
-  if (attachment->m_already_encoded_p &&
-    attachment->m_encoding)
+  if (attachment->m_already_encoded_p && !attachment->m_encoding.IsEmpty())
   {
-    char *result = attachment->m_real_name;
-    PRInt32 L = PL_strlen(result);
-    const char **exts = 0;
-
     /* #### TOTAL KLUDGE.
      I'd like to ask the mime.types file, "what extensions correspond
      to obj->encoding (which happens to be "x-uuencode") but doing that
@@ -1728,27 +1720,15 @@ msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnichar *propose
 
      Note that it's special-cased in a similar way in libmime/mimei.c.
      */
-    if (!PL_strcasecmp(attachment->m_encoding, ENCODING_UUENCODE) ||
-      !PL_strcasecmp(attachment->m_encoding, ENCODING_UUENCODE2) ||
-      !PL_strcasecmp(attachment->m_encoding, ENCODING_UUENCODE3) ||
-      !PL_strcasecmp(attachment->m_encoding, ENCODING_UUENCODE4))
+    if (attachment->m_encoding.LowerCaseEqualsLiteral(ENCODING_UUENCODE) ||
+        attachment->m_encoding.LowerCaseEqualsLiteral(ENCODING_UUENCODE2) ||
+        attachment->m_encoding.LowerCaseEqualsLiteral(ENCODING_UUENCODE3) ||
+        attachment->m_encoding.LowerCaseEqualsLiteral(ENCODING_UUENCODE4))
     {
-      static const char *uue_exts[] = { "uu", "uue", 0 };
-      exts = uue_exts;
-    }
-
-    while (exts && *exts)
-    {
-      const char *ext = *exts;
-      PRInt32 L2 = PL_strlen(ext);
-      if (L > L2 + 1 &&             /* long enough */
-        result[L - L2 - 1] == '.' &&      /* '.' in right place*/
-        !PL_strcasecmp(ext, result + (L - L2))) /* ext matches */
-      {
-        result[L - L2 - 1] = 0;   /* truncate at '.' and stop. */
-        break;
-      }
-      exts++;
+      if (StringEndsWith(attachment->m_realName, NS_LITERAL_CSTRING(".uu")))
+        attachment->m_realName.Cut(attachment->m_realName.Length() - 3, 3);
+      else if (StringEndsWith(attachment->m_realName, NS_LITERAL_CSTRING(".uue")))
+        attachment->m_realName.Cut(attachment->m_realName.Length() - 4, 4);
     }
   }
 }

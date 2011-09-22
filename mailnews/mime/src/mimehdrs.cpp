@@ -692,7 +692,7 @@ extern PRInt16 INTL_DefaultMailToWinCharSetID(PRInt16 csid);
 /* Given text purporting to be a qtext header value, strip backslashes that
   may be escaping other chars in the string. */
 char *
-mime_decode_filename(char *name, const char *charset,
+mime_decode_filename(const char *name, const char *charset,
                      MimeDisplayOptions *opt)
 {
   nsresult rv;

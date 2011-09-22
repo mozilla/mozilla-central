@@ -52,8 +52,9 @@ interface nsIImportFieldMap;
 interface nsIMsgSendListener;
 interface nsIMsgCompFields;
 interface nsIMsgSendListener;
+interface nsIArray;
 
-[scriptable, uuid(55a52e05-8ce7-4e23-8a2f-a9226b01bcfb)]
+[scriptable, uuid(8de585fc-8557-402e-b784-875b82e79b1a)]
 interface nsIImportService : nsISupports
 {
     void DiscoverModules();
@@ -76,7 +77,7 @@ interface nsIImportService : nsISupports
                             in string attachment1_type,
                             in string attachment1_body,
                             in PRUint32 attachment1_body_length,
-                            [const] in nsMsgAttachedFile loaded_attachments,
+                            in nsIArray loaded_attachments,
                             in nsIMsgSendListener aListener);
 
 };

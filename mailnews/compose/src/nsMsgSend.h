@@ -161,7 +161,6 @@
 #include "nsIMsgComposeSecure.h"
 #include "nsAutoPtr.h"
 #include "nsISupportsArray.h"
-
 //
 // Some necessary defines...
 //
@@ -197,7 +196,7 @@ public:
   // we can get away without all of the listener array code.
   //
   void (*m_attachments_done_callback) (nsresult  status,
-        const PRUnichar *error_msg, struct nsMsgAttachedFile *attachments);
+        const PRUnichar *error_msg, nsMsgAttachedFile *attachments);
 
   //
   // Define QueryInterface, AddRef and Release for this class
@@ -250,8 +249,8 @@ public:
                    const char       *attachment1_type,
                    const char       *attachment1_body,
                    PRUint32         attachment1_body_length,
-                   const nsMsgAttachmentData   *attachments,
-                   const nsMsgAttachedFile     *preloaded_attachments,
+                   nsIArray   *attachments,
+                   nsIArray     *preloaded_attachments,
                    const char       *password,
                    const nsACString &aOriginalMsgURI,
                    MSG_ComposeType  aType);
@@ -270,8 +269,8 @@ public:
   //
   // Attachment processing...
   //
-  nsresult    HackAttachments(const struct nsMsgAttachmentData *attachments,
-                              const struct nsMsgAttachedFile *preloaded_attachments);
+  nsresult    HackAttachments(nsIArray *attachments,
+                              nsIArray *preloaded_attachments);
   nsresult    CountCompFieldAttachments();
   nsresult    AddCompFieldLocalAttachments();
   nsresult    AddCompFieldRemoteAttachments(PRUint32  aStartLocation, PRInt32 *aMailboxCount, PRInt32 *aNewsCount);
