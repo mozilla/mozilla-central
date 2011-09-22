@@ -45,103 +45,105 @@
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
     onload="parent.onPanelLoaded('am-mdn.xul');">
 
-  <stringbundle id="bundle_smime" src="chrome://messenger/locale/am-mdn.properties"/> 
-  <script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
-  <script type="application/javascript" src="chrome://messenger/content/am-mdn.js"/>
-  
-  <dialogheader title="&pane.title;"/>
+  <vbox flex="1" style="overflow: auto;">
+    <stringbundle id="bundle_smime" src="chrome://messenger/locale/am-mdn.properties"/>
+    <script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
+    <script type="application/javascript" src="chrome://messenger/content/am-mdn.js"/>
 
-  <groupbox>
+    <dialogheader title="&pane.title;"/>
 
-    <caption label="&pane.title;"/>
+    <groupbox>
 
-    <hbox id="prefChoices" align="center">
-      <radiogroup id="identity.use_custom_prefs" wsm_persist="true" genericattr="true" 
-                  preftype="bool" prefstring="mail.identity.%identitykey%.use_custom_prefs" 
-                  oncommand="EnableDisableCustomSettings();">
-        <radio id="identity.select_global_prefs" value="false" label="&useGlobalPrefs.label;"
-               accesskey="&useGlobalPrefs.accesskey;"/>
-        <radio id="identity.select_custom_prefs" value="true" label="&useCustomPrefs.label;"
-               accesskey="&useCustomPrefs.accesskey;"/>
-      </radiogroup>
-    </hbox>
+      <caption label="&pane.title;"/>
 
-    <vbox id="returnReceiptSettings" class="indent" align="start">
-      <checkbox id="identity.request_return_receipt_on" label="&requestReceipt.label;"
-                accesskey="&requestReceipt.accesskey;"
-                wsm_persist="true" genericattr="true" iscontrolcontainer="true"
-                preftype="bool" prefstring="mail.identity.%identitykey%.request_return_receipt_on"/>
-
-      <vbox id="receiptArrive">
-        <label id="receiptArriveLabel" control="server.incorporate_return_receipt">&receiptArrive.label;</label>
-        <radiogroup id="server.incorporate_return_receipt" wsm_persist="true" genericattr="true" 
-                    preftype="int" prefstring="mail.server.%serverkey%.incorporate_return_receipt">
-          <radio id="leave_in_inbox" value="0" label="&leaveIt.label;"
-                 accesskey="&leaveIt.accesskey;"/>
-          <radio id="move_to_sent" value="1" label="&moveToSent.label;"
-                 accesskey="&moveToSent.accesskey;"/>
+      <hbox id="prefChoices" align="center">
+        <radiogroup id="identity.use_custom_prefs" wsm_persist="true" genericattr="true"
+                    preftype="bool" prefstring="mail.identity.%identitykey%.use_custom_prefs"
+                    oncommand="EnableDisableCustomSettings();">
+          <radio id="identity.select_global_prefs" value="false" label="&useGlobalPrefs.label;"
+                 accesskey="&useGlobalPrefs.accesskey;"/>
+          <radio id="identity.select_custom_prefs" value="true" label="&useCustomPrefs.label;"
+                 accesskey="&useCustomPrefs.accesskey;"/>
         </radiogroup>
+      </hbox>
+
+      <vbox id="returnReceiptSettings" class="indent" align="start">
+        <checkbox id="identity.request_return_receipt_on" label="&requestReceipt.label;"
+                  accesskey="&requestReceipt.accesskey;"
+                  wsm_persist="true" genericattr="true" iscontrolcontainer="true"
+                  preftype="bool" prefstring="mail.identity.%identitykey%.request_return_receipt_on"/>
+
+        <vbox id="receiptArrive">
+          <label id="receiptArriveLabel" control="server.incorporate_return_receipt">&receiptArrive.label;</label>
+          <radiogroup id="server.incorporate_return_receipt" wsm_persist="true" genericattr="true"
+                      preftype="int" prefstring="mail.server.%serverkey%.incorporate_return_receipt">
+            <radio id="leave_in_inbox" value="0" label="&leaveIt.label;"
+                   accesskey="&leaveIt.accesskey;"/>
+            <radio id="move_to_sent" value="1" label="&moveToSent.label;"
+                   accesskey="&moveToSent.accesskey;"/>
+          </radiogroup>
+        </vbox>
+
+        <vbox id="receiptRequest">
+          <label id="receiptRequestLabel" control="server.mdn_report_enabled">&requestMDN.label;</label>
+          <radiogroup id="server.mdn_report_enabled" wsm_persist="true" genericattr="true"
+                      preftype="bool" prefstring="mail.server.%serverkey%.mdn_report_enabled"
+                      oncommand="EnableDisableAllowedReceipts();">
+            <radio id="never_return" value="false" label="&never.label;"
+                   accesskey="&never.accesskey;"/>
+            <radio id="return_some" value="true" label="&returnSome.label;"
+                   accesskey="&returnSome.accesskey;"/>
+          </radiogroup>
+
+          <hbox id="receiptSendIf" class="indent">
+            <grid>
+              <columns><column/><column/></columns>
+              <rows>
+                <row align="center">
+                  <label id="notInToCcLabel" value="&notInToCc.label;"
+                         accesskey="&notInToCc.accesskey;" control="server.mdn_not_in_to_cc"/>
+                  <menulist id="server.mdn_not_in_to_cc" wsm_persist="true" genericattr="true"
+                            preftype="int" prefstring="mail.server.%serverkey%.mdn_not_in_to_cc">
+                    <menupopup>
+                      <menuitem value="0" label="&neverSend.label;"/>
+                      <menuitem value="1" label="&alwaysSend.label;"/>
+                      <menuitem value="2" label="&askMe.label;"/>
+                    </menupopup>
+                  </menulist>
+                </row>
+                <row align="center">
+                  <label id="outsideDomainLabel" value="&outsideDomain.label;"
+                         accesskey="&outsideDomain.accesskey;" control="server.mdn_outside_domain"/>
+                  <menulist id="server.mdn_outside_domain" wsm_persist="true" genericattr="true"
+                            preftype="int" prefstring="mail.server.%serverkey%.mdn_outside_domain">
+                    <menupopup>
+                      <menuitem value="0" label="&neverSend.label;"/>
+                      <menuitem value="1" label="&alwaysSend.label;"/>
+                      <menuitem value="2" label="&askMe.label;"/>
+                    </menupopup>
+                  </menulist>
+                </row>
+                <row align="center">
+                  <label id="otherCasesLabel" value="&otherCases.label;"
+                         accesskey="&otherCases.accesskey;" control="server.mdn_other"/>
+                  <menulist id="server.mdn_other" wsm_persist="true" genericattr="true"
+                            preftype="int" prefstring="mail.server.%serverkey%.mdn_other">
+                    <menupopup>
+                      <menuitem value="0" label="&neverSend.label;"/>
+                      <menuitem value="1" label="&alwaysSend.label;"/>
+                      <menuitem value="2" label="&askMe.label;"/>
+                    </menupopup>
+                  </menulist>
+                </row>
+              </rows>
+            </grid>
+          </hbox>
+
+        </vbox>
+
       </vbox>
 
-      <vbox id="receiptRequest">
-        <label id="receiptRequestLabel" control="server.mdn_report_enabled">&requestMDN.label;</label>
-        <radiogroup id="server.mdn_report_enabled" wsm_persist="true" genericattr="true" 
-                    preftype="bool" prefstring="mail.server.%serverkey%.mdn_report_enabled" 
-                    oncommand="EnableDisableAllowedReceipts();">
-          <radio id="never_return" value="false" label="&never.label;"
-                 accesskey="&never.accesskey;"/>
-          <radio id="return_some" value="true" label="&returnSome.label;"
-                 accesskey="&returnSome.accesskey;"/>
-        </radiogroup>
-
-        <hbox id="receiptSendIf" class="indent">
-          <grid>
-            <columns><column/><column/></columns>
-            <rows>
-              <row align="center">
-                <label id="notInToCcLabel" value="&notInToCc.label;"
-                       accesskey="&notInToCc.accesskey;" control="server.mdn_not_in_to_cc"/>
-                <menulist id="server.mdn_not_in_to_cc" wsm_persist="true" genericattr="true" 
-                          preftype="int" prefstring="mail.server.%serverkey%.mdn_not_in_to_cc">
-                  <menupopup>
-                    <menuitem value="0" label="&neverSend.label;"/>
-                    <menuitem value="1" label="&alwaysSend.label;"/>
-                    <menuitem value="2" label="&askMe.label;"/>
-                  </menupopup>
-                </menulist>
-              </row>
-              <row align="center">
-                <label id="outsideDomainLabel" value="&outsideDomain.label;"
-                       accesskey="&outsideDomain.accesskey;" control="server.mdn_outside_domain"/>
-                <menulist id="server.mdn_outside_domain" wsm_persist="true" genericattr="true" 
-                          preftype="int" prefstring="mail.server.%serverkey%.mdn_outside_domain">
-                  <menupopup>
-                    <menuitem value="0" label="&neverSend.label;"/>
-                    <menuitem value="1" label="&alwaysSend.label;"/>
-                    <menuitem value="2" label="&askMe.label;"/>
-                  </menupopup>
-                </menulist>
-              </row>
-              <row align="center">
-                <label id="otherCasesLabel" value="&otherCases.label;"
-                       accesskey="&otherCases.accesskey;" control="server.mdn_other"/>
-                <menulist id="server.mdn_other" wsm_persist="true" genericattr="true" 
-                          preftype="int" prefstring="mail.server.%serverkey%.mdn_other">
-                  <menupopup>
-                    <menuitem value="0" label="&neverSend.label;"/>
-                    <menuitem value="1" label="&alwaysSend.label;"/>
-                    <menuitem value="2" label="&askMe.label;"/>
-                  </menupopup>
-                </menulist>
-              </row>
-            </rows>
-          </grid>
-        </hbox>
-
-      </vbox>
-
-    </vbox>
-
-  </groupbox>
+    </groupbox>
+  </vbox>
 
 </page>

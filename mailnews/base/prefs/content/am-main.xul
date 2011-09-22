@@ -7,6 +7,7 @@
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       onload="parent.onPanelLoaded('am-main.xul');">
 
+  <vbox flex="1" style="overflow: auto;">
     <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/>
     <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
 
@@ -135,5 +136,6 @@
               accesskey="&manageIdentities.accesskey;"
               wsm_persist="true" id="identity.manageIdentitiesbutton"/>
     </hbox>
+  </vbox>
 
 </page>

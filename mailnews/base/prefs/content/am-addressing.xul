@@ -47,6 +47,8 @@
 <page xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
       title="&addressing.label;"
       onload="onLoad();">
-  <dialogheader title="&addressing.label;"/>
-  <vbox id="compositionAndAddressing"/>
+  <vbox flex="1" style="overflow: auto;">
+    <dialogheader title="&addressing.label;"/>
+    <vbox id="compositionAndAddressing"/>
+  </vbox>
 </page>

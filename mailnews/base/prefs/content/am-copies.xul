@@ -8,8 +8,10 @@
       title="&copyAndFolderTitle.label;"
       onload="parent.onPanelLoaded('am-copies.xul');">
 
-  <script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
-  
-  <dialogheader title="&copyAndFolderTitle.label;"/>
-  <vbox id="copiesAndFolders"/>
+  <vbox flex="1" style="overflow: auto;">
+    <script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
+
+    <dialogheader title="&copyAndFolderTitle.label;"/>
+    <vbox id="copiesAndFolders"/>
+  </vbox>
 </page>

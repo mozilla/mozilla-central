@@ -55,100 +55,101 @@
       title="&junkSettings.label;"
       onload="parent.onPanelLoaded('am-junk.xul');">
 
-  <script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
-  <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
-  <script type="application/javascript" src="chrome://messenger/content/am-junk.js"/>
-  <script type="application/javascript" src="chrome://messenger/content/am-prefs.js"/>
-  <script type="application/javascript" src="chrome://messenger/content/amUtils.js"/>
-  <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
-  
-  <dialogheader title="&junkSettings.label;"/>
-  <description width="1">&trainingWarning.label;</description>
-  <separator class="thin"/>
-  
-  <broadcaster id="broadcaster_moveMode"/>
-  
-  <label hidden="true"  id="server.spamLevel"
-         wsm_persist="true" pref="true" preftype="int" prefattribute="value" genericattr="true"
-         prefstring="mail.server.%serverkey%.spamLevel"/>
-  <label hidden="true" id="server.spamActionTargetAccount" 
-         wsm_persist="true" pref="true" preftype="string" prefattribute="value" genericattr="true"
-         prefstring="mail.server.%serverkey%.spamActionTargetAccount"/>
-  <label hidden="true" id="server.spamActionTargetFolder" 
-         wsm_persist="true" pref="true" preftype="string" prefattribute="value" genericattr="true"
-         prefstring="mail.server.%serverkey%.spamActionTargetFolder"/>
-  <label hidden="true" id="server.whiteListAbURI" 
-         wsm_persist="true" pref="true" preftype="string" prefattribute="value" genericattr="true"
-         prefstring="mail.server.%serverkey%.whiteListAbURI"/>
-  <label hidden="true" id="server.serverFilterName" 
-         wsm_persist="true" pref="true" preftype="string" prefattribute="value" genericattr="true"
-         prefstring="mail.server.%serverkey%.serverFilterName"/>         
+  <vbox flex="1" style="overflow: auto;">
+    <script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
+    <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
+    <script type="application/javascript" src="chrome://messenger/content/am-junk.js"/>
+    <script type="application/javascript" src="chrome://messenger/content/am-prefs.js"/>
+    <script type="application/javascript" src="chrome://messenger/content/amUtils.js"/>
+    <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
 
-  <checkbox id="spamLevel" oncommand="updateSpamLevel();"
-            accesskey="&level.accesskey;"  label="&level.label;"/>
-  <separator class="thin"/>
+    <dialogheader title="&junkSettings.label;"/>
+    <description width="1">&trainingWarning.label;</description>
+    <separator class="thin"/>
 
-  <checkbox hidden="true" id="server.useWhiteList"
-            genericattr="true" pref="true" wsm_persist="true" preftype="bool"
-            prefstring="mail.server.%serverkey%.useWhiteList"/>
-  <label value="&whitelist.label;" accesskey="&whitelist.accesskey;"
-         control="whiteListAbURI"/>
-  <listbox id="whiteListAbURI" rows="5"/>
+    <broadcaster id="broadcaster_moveMode"/>
 
-  <vbox>
-    <hbox>
-      <checkbox id="server.useServerFilter" label="&ispHeaders.label;"
-                accesskey="&ispHeaders.accesskey;"
-                genericattr="true" pref="true" wsm_persist="true" preftype="bool"
-                oncommand="onServerFilterToggle(this.checked);"
-                prefstring="mail.server.%serverkey%.useServerFilter"/>
-      <menulist id="useServerFilterList" oncommand="onServerFilterListChange();"
-                aria-labelledby="server.useServerFilter"/>
-    </hbox>
-  </vbox>
+    <label hidden="true"  id="server.spamLevel"
+           wsm_persist="true" pref="true" preftype="int" prefattribute="value" genericattr="true"
+           prefstring="mail.server.%serverkey%.spamLevel"/>
+    <label hidden="true" id="server.spamActionTargetAccount" 
+           wsm_persist="true" pref="true" preftype="string" prefattribute="value" genericattr="true"
+           prefstring="mail.server.%serverkey%.spamActionTargetAccount"/>
+    <label hidden="true" id="server.spamActionTargetFolder" 
+           wsm_persist="true" pref="true" preftype="string" prefattribute="value" genericattr="true"
+           prefstring="mail.server.%serverkey%.spamActionTargetFolder"/>
+    <label hidden="true" id="server.whiteListAbURI" 
+           wsm_persist="true" pref="true" preftype="string" prefattribute="value" genericattr="true"
+           prefstring="mail.server.%serverkey%.whiteListAbURI"/>
+    <label hidden="true" id="server.serverFilterName" 
+           wsm_persist="true" pref="true" preftype="string" prefattribute="value" genericattr="true"
+           prefstring="mail.server.%serverkey%.serverFilterName"/>         
 
-  <checkbox id="server.moveOnSpam" label="&move.label;" accesskey="&move.accesskey;"
-            oncommand="updateMoveTargetMode(this.checked);"
-            wsm_persist="true" pref="true" preftype="bool" genericattr="true"
-            prefstring="mail.server.%serverkey%.moveOnSpam"/>
-            
-      <radiogroup id="server.moveTargetMode"
-                  aria-labelledby="server.moveOnSpam"
-                  prefstring="mail.server.%serverkey%.moveTargetMode"
-                  wsm_persist="true" pref="true" preftype="int" genericattr="true"
-                  prefvalue="value">
-        
-        <grid class="specialFolderPickerGrid indent">
-          <columns>
-            <column/>
-            <column flex="1"/>
-          </columns>
-          <rows>
-            <row>
-              <radio id="moveTargetMode0" value="0" label="&junkFolderOn.label;"
-                     accesskey="&junkFolderOn.accesskey;" observes="broadcaster_moveMode"/>
-              <menulist id="actionTargetAccount" observes="broadcaster_moveMode"
-                        aria-labelledby="moveTargetMode0"
-                        oncommand="onActionTargetChange(event, 'server.spamActionTargetAccount');">
-                <menupopup id="actionAccountPopup" type="folder"
-                           class="menulist-menupopup"
-                           expandFolders="false" mode="filing"/>
-              </menulist>
-            </row>
-            <row>
-              <radio id="moveTargetMode1" value="1" label="&otherFolder.label;"
-                     accesskey="&otherFolder.accesskey;" observes="broadcaster_moveMode"/>
-              <menulist id="actionTargetFolder" observes="broadcaster_moveMode"
-                        aria-labelledby="moveTargetMode1"
-                        oncommand="onActionTargetChange(event, 'server.spamActionTargetFolder');">
-                <menupopup id="actionFolderPopup" type="folder" mode="junk"
-                           showFileHereLabel="true"
-                           fileHereLabel="&filemessageschoosethis.label;"/>
-              </menulist>
-            </row>
-          </rows>
-        </grid>
-      </radiogroup>
+    <checkbox id="spamLevel" oncommand="updateSpamLevel();"
+              accesskey="&level.accesskey;"  label="&level.label;"/>
+    <separator class="thin"/>
+
+    <checkbox hidden="true" id="server.useWhiteList"
+              genericattr="true" pref="true" wsm_persist="true" preftype="bool"
+              prefstring="mail.server.%serverkey%.useWhiteList"/>
+    <label value="&whitelist.label;" accesskey="&whitelist.accesskey;"
+           control="whiteListAbURI"/>
+    <listbox id="whiteListAbURI" rows="5"/>
+
+    <vbox>
+      <hbox>
+        <checkbox id="server.useServerFilter" label="&ispHeaders.label;"
+                  accesskey="&ispHeaders.accesskey;"
+                  genericattr="true" pref="true" wsm_persist="true" preftype="bool"
+                  oncommand="onServerFilterToggle(this.checked);"
+                  prefstring="mail.server.%serverkey%.useServerFilter"/>
+        <menulist id="useServerFilterList" oncommand="onServerFilterListChange();"
+                  aria-labelledby="server.useServerFilter"/>
+      </hbox>
+    </vbox>
+
+    <checkbox id="server.moveOnSpam" label="&move.label;" accesskey="&move.accesskey;"
+              oncommand="updateMoveTargetMode(this.checked);"
+              wsm_persist="true" pref="true" preftype="bool" genericattr="true"
+              prefstring="mail.server.%serverkey%.moveOnSpam"/>
+
+    <radiogroup id="server.moveTargetMode"
+                aria-labelledby="server.moveOnSpam"
+                prefstring="mail.server.%serverkey%.moveTargetMode"
+                wsm_persist="true" pref="true" preftype="int" genericattr="true"
+                prefvalue="value">
+
+      <grid class="specialFolderPickerGrid indent">
+        <columns>
+          <column/>
+          <column flex="1"/>
+        </columns>
+        <rows>
+          <row>
+            <radio id="moveTargetMode0" value="0" label="&junkFolderOn.label;"
+                   accesskey="&junkFolderOn.accesskey;" observes="broadcaster_moveMode"/>
+            <menulist id="actionTargetAccount" observes="broadcaster_moveMode"
+                      aria-labelledby="moveTargetMode0"
+                      oncommand="onActionTargetChange(event, 'server.spamActionTargetAccount');">
+              <menupopup id="actionAccountPopup" type="folder"
+                         class="menulist-menupopup"
+                         expandFolders="false" mode="filing"/>
+            </menulist>
+          </row>
+          <row>
+            <radio id="moveTargetMode1" value="1" label="&otherFolder.label;"
+                   accesskey="&otherFolder.accesskey;" observes="broadcaster_moveMode"/>
+            <menulist id="actionTargetFolder" observes="broadcaster_moveMode"
+                      aria-labelledby="moveTargetMode1"
+                      oncommand="onActionTargetChange(event, 'server.spamActionTargetFolder');">
+              <menupopup id="actionFolderPopup" type="folder" mode="junk"
+                         showFileHereLabel="true"
+                         fileHereLabel="&filemessageschoosethis.label;"/>
+            </menulist>
+          </row>
+        </rows>
+      </grid>
+    </radiogroup>
 
     <hbox align="center" class="indent">
       <checkbox id="server.purgeSpam" genericattr="true" pref="true" wsm_persist="true" preftype="bool"
@@ -158,4 +159,5 @@
                 prefstring="mail.server.%serverkey%.purgeSpamInterval"/>
       <label id="purgeLabel" value="&purge2.label;" observes="broadcaster_moveMode" control="server.purgeSpamInterval"/>
     </hbox>
+  </vbox>
 </page>

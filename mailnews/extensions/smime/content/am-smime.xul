@@ -49,11 +49,13 @@
         onload="parent.onPanelLoaded('am-smime.xul');"
         ondialogaccept="smimeOnAcceptEditor();">
 
-  <script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
-  <script type="application/javascript" src="chrome://messenger/content/am-smime.js"/>
+  <vbox flex="1" style="overflow: auto;">
+    <script type="application/javascript" src="chrome://messenger/content/AccountManager.js"/>
+    <script type="application/javascript" src="chrome://messenger/content/am-smime.js"/>
 
-  <dialogheader title="&securityTitle.label;"/>
+    <dialogheader title="&securityTitle.label;"/>
 
-  <vbox flex="1" id="smimeEditing"/>
+    <vbox flex="1" id="smimeEditing"/>
+  </vbox>
 
 </page>
