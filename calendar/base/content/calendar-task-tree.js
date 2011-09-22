@@ -110,6 +110,11 @@ function changeContextMenuForTask(aEvent) {
         (idnode == "calendar-task-tree" || sunbird);
     document.getElementById("task-context-menu-modify-todaypane").hidden =
         (idnode == "calendar-task-tree" || sunbird);
+    document.getElementById("task-context-menu-filter-todaypane").hidden =
+        (idnode == "calendar-task-tree" || sunbird);
+    document.getElementById("task-context-menu-separator-filter").hidden =
+        (idnode == "calendar-task-tree" || sunbird);
+
     let tasksSelected = (items.length > 0);
     applyAttributeToMenuChildren(aEvent.target, "disabled", (!tasksSelected));
     if (calendarController.isCommandEnabled("calendar_new_todo_command") &&
@@ -120,6 +125,11 @@ function changeContextMenuForTask(aEvent) {
         document.getElementById("calendar_new_todo_command").setAttribute("disabled", "true");
         document.getElementById("calendar_new_todo_todaypane_command").setAttribute("disabled", "true");
     }
+
+    // make sure the filter menu is enabled
+    document.getElementById("task-context-menu-filter-todaypane").removeAttribute("disabled");
+    applyAttributeToMenuChildren(document.getElementById("task-context-menu-filter-todaypane-popup"),
+                                 "disabled", false);
 
     changeMenuForTask(aEvent);
 

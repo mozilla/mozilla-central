@@ -23,6 +23,7 @@
    - Simon Paquet <bugzilla@babylonsounds.com>
    - Berend Cornelius <berend.cornelius@sun.com>
    - Martin Schroeder <mschroeder@mozilla.x-home.org>
+   - Matthew Mecca <matthew.mecca@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -54,6 +55,9 @@
   <broadcasterset id="calendar_broadcasters">
     <broadcaster id="modeBroadcaster" mode="calendar"/>
     <broadcaster id="calendarviewBroadcaster"/>
+    <broadcaster id="unifinder-todo-filter-broadcaster"
+                 persist="value"
+                 value="throughcurrent"/>
   </broadcasterset>
 
   <commandset id="calendar_commands"
@@ -115,6 +119,7 @@
     <command id="calendar_toggle_minimonthpane_command" oncommand="document.getElementById('minimonth-pane').togglePane(event)"/>
     <command id="calendar_toggle_calendarlist_command" oncommand="document.getElementById('calendar-list-pane').togglePane(event)"/>
     <command id="calendar_task_filter_command" oncommand="taskViewUpdate(event.explicitOriginalTarget.getAttribute('value'))"/>
+    <command id="calendar_task_filter_todaypane_command" oncommand="updateCalendarToDoUnifinder(event.explicitOriginalTarget.getAttribute('value'))"/>
     <command id="calendar_toggle_filter_command" oncommand="document.getElementById('task-filter-pane').togglePane(event)"/>
     <command id="calendar_view_next_command" oncommand="goDoCommand('calendar_view_next_command')"/>
     <command id="calendar_view_today_command" oncommand="currentView().moveView()"/>
@@ -483,6 +488,72 @@
                     scope="all-occurrences"
                     name="task-context-attendance-all"
                     label="&read.only.needs.action.label;" value="NEEDS-ACTION"/>
+        </menupopup>
+      </menu>
+      <menuseparator id="task-context-menu-separator-filter"/>
+      <menu id="task-context-menu-filter-todaypane"
+            label="&calendar.tasks.view.filtertasks.label;"
+            accesskey="&calendar.tasks.view.filtertasks.accesskey;">
+        <menupopup id="task-context-menu-filter-todaypane-popup">
+          <observes element="unifinder-todo-filter-broadcaster"
+                    attribute="value"
+                    onbroadcast="checkRadioControl(this.parentNode, document.getElementById(this.getAttribute('element')).getAttribute('value'));"/>
+          <menuitem id="task-context-menu-filter-todaypane-current"
+                    name="filtergrouptodaypane"
+                    value="throughcurrent"
+                    type="radio"
+                    command="calendar_task_filter_todaypane_command"
+                    label="&calendar.task.filter.current.label;"
+                    accesskey="&calendar.task.filter.current.accesskey;"/>
+          <menuitem id="task-context-menu-filter-todaypane-today"
+                    name="filtergrouptodaypane"
+                    value="today"
+                    type="radio"
+                    command="calendar_task_filter_todaypane_command"
+                    label="&calendar.task.filter.today.label;"
+                    accesskey="&calendar.task.filter.today.accesskey;"/>
+          <menuitem id="task-context-menu-filter-todaypane-next7days"
+                    name="filtergrouptodaypane"
+                    value="next7days"
+                    type="radio"
+                    command="calendar_task_filter_todaypane_command"
+                    label="&calendar.task.filter.next7days.label;"
+                    accesskey="&calendar.task.filter.next7days.accesskey;"/>
+          <menuitem id="task-context-menu-filter-todaypane-notstarted"
+                    name="filtergrouptodaypane"
+                    value="notstarted"
+                    type="radio"
+                    command="calendar_task_filter_todaypane_command"
+                    label="&calendar.task.filter.notstarted.label;"
+                    accesskey="&calendar.task.filter.notstarted.accesskey;"/>
+          <menuitem id="task-context-menu-filter-todaypane-overdue"
+                    name="filtergrouptodaypane"
+                    value="overdue"
+                    type="radio"
+                    command="calendar_task_filter_todaypane_command"
+                    label="&calendar.task.filter.overdue.label;"
+                    accesskey="&calendar.task.filter.overdue.accesskey;"/>
+          <menuitem id="task-context-menu-filter-todaypane-completed"
+                    name="filtergrouptodaypane"
+                    type="radio"
+                    value="completed"
+                    command="calendar_task_filter_todaypane_command"
+                    label="&calendar.task.filter.completed.label;"
+                    accesskey="&calendar.task.filter.completed.accesskey;"/>
+          <menuitem id="task-context-menu-filter-todaypane-open"
+                    name="filtergrouptodaypane"
+                    type="radio"
+                    value="open"
+                    command="calendar_task_filter_todaypane_command"
+                    label="&calendar.task.filter.open.label;"
+                    accesskey="&calendar.task.filter.open.accesskey;"/>
+          <menuitem id="task-context-menu-filter-todaypane-all"
+                    name="filtergrouptodaypane"
+                    value="all"
+                    type="radio"
+                    command="calendar_task_filter_todaypane_command"
+                    label="&calendar.task.filter.all.label;"
+                    accesskey="&calendar.task.filter.all.accesskey;"/>
         </menupopup>
       </menu>
     </menupopup>

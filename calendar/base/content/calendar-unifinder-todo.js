@@ -28,6 +28,7 @@
  *                 Mark Swaffer <swaff@fudo.org>
  *                 Michael Buettner <michael.buettner@sun.com>
  *                 Philipp Kewisch <mozilla@kewis.ch>
+ *                 Matthew Mecca <matthew.mecca@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -59,15 +60,29 @@ function prepareCalendarToDoUnifinder() {
 
 /**
  * Updates the applied filter and show completed view of the unifinder todo.
+ *
+ * @param aFilter        The filter name to set.
  */
-function updateCalendarToDoUnifinder() {
+function updateCalendarToDoUnifinder(aFilter) {
     // Set up hiding completed tasks for the unifinder-todo tree
-    var showCompleted = document.getElementById("show-completed-checkbox").checked;
-    var tree = document.getElementById("unifinder-todo-tree");
+    let showCompleted = document.getElementById("show-completed-checkbox").checked;
+    let tree = document.getElementById("unifinder-todo-tree");
+    let oldFilter = document.getElementById("unifinder-todo-filter-broadcaster").getAttribute("value");
+    let filter = oldFilter;
+
+    // This function acts as an event listener, in which case we get the Event as the 
+    // parameter instead of a filter.
+    if (aFilter && !(aFilter instanceof Event)) {
+        filter = aFilter;
+    }
+
+    if (filter && (filter != oldFilter)) {
+        document.getElementById("unifinder-todo-filter-broadcaster").setAttribute("value", aFilter);
+    }
 
     // update the filter
     tree.showCompleted = showCompleted;
-    tree.updateFilter();
+    tree.updateFilter(filter);
 }
 
 /**

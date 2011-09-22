@@ -83,6 +83,7 @@ var calendarController = {
         "calendar_month-view_command": true,
 
         "calendar_task_filter_command": true,
+        "calendar_task_filter_todaypane_command": true,
         "calendar_reload_remote_calendars": true,
         "calendar_show_unifinder_command": true,
         "calendar_toggle_completed_command": true,

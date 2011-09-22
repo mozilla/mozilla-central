@@ -31,6 +31,7 @@
    -   Philipp Kewisch <mozilla@kewis.ch>
    -   Lars Wohlfahrt <thetux.moz@googlemail.com>
    -   Fred Jendrzejewski <fred.jen@web.de>
+   -   Matthew Mecca <matthew.mecca@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -1245,6 +1246,18 @@
               let initialDate = agendaListbox.today ? agendaListbox.today.start : now();
               return initialDate ? initialDate : now();
             ]]></body>
+      </method>
+      <method name="updateFilter">
+        <parameter name="aFilter"/>
+        <body><![CDATA[
+            this.mFilter.selectedDate = agendaListbox.today && agendaListbox.today.start ? 
+                                        agendaListbox.today.start : now();
+            this.mFilter.propertyFilter = aFilter || this.mFilter.propertyFilter || "all";
+            this.mDateRangeFilter = aFilter || this.mDateRangeFilter || "all";
+            this.mFilter.setDateFilter(this.mDateRangeFilter);
+
+            this.refresh();
+        ]]></body>
       </method>
     </implementation>    
   </binding>
