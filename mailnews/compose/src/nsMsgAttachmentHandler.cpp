@@ -819,7 +819,7 @@ nsMsgAttachmentHandler::ConvertToZipFile(nsILocalFileMac *aSourceFile)
 
   // set some metadata for this attachment, that will affect the MIME headers.
   m_type = APPLICATION_ZIP;
-  m_real_name = zippedName.get();
+  m_realName = zippedName.get();
 
   return NS_OK;
 }
