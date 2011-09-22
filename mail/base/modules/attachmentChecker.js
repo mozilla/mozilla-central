@@ -101,7 +101,7 @@ function GetAttachmentKeywords(mailData,keywordsInCsv)
   return keywordsFound;
 }
 
-function onmessage(event)
+onmessage = function(event)
 {
   var keywordsFound = GetAttachmentKeywords(event.data[0], event.data[1]);
   postMessage(keywordsFound);
