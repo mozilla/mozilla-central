@@ -432,10 +432,21 @@
   <key id="key_print" key="&printCmd.key;"                           oncommand="goDoCommand('cmd_print')" modifiers="accel"/>
   <key id="key_saveAsFile" key="&saveAsFileCmd.key;"                 oncommand="goDoCommand('cmd_saveAsFile')" modifiers="accel"/>
   <key id="key_viewPageSource" key="&pageSourceCmd.key;"             oncommand="goDoCommand('cmd_viewPageSource')" modifiers="accel"/>
+#ifdef XP_MACOSX
+  <key id="key_getNewMessagesAlt" keycode="VK_F5"
+       oncommand="goDoCommand('cmd_getNewMessages');"/>
+  <key id="key_getAllNewMessagesAlt" keycode="VK_F5" modifiers="shift"
+       oncommand="goDoCommand('cmd_getMsgsForAuthAccounts');"/>
+  <key id="key_getNewMessages" key="&getNewMessagesCmd.key;" modifiers="accel"
+       oncommand="goDoCommand('cmd_getNewMessages');"/>
+  <key id="key_getAllNewMessages" key="&getAllNewMessagesCmd.key;" modifiers="accel, shift"
+       oncommand="goDoCommand('cmd_getMsgsForAuthAccounts');"/>
+#else
   <key id="key_getNewMessages" keycode="VK_F5"
        oncommand="goDoCommand('cmd_getNewMessages');"/>
   <key id="key_getAllNewMessages" keycode="VK_F5" modifiers="shift"
        oncommand="goDoCommand('cmd_getMsgsForAuthAccounts');"/>
+#endif
 #ifdef XP_GNOME
   <key id="key_getNewMessages2" keycode="VK_F9"
        oncommand="goDoCommand('cmd_getNewMessages');"/>
