@@ -414,7 +414,6 @@ nsresult nsEudoraFilters::LoadServers()
     rv = NS_NewISupportsArray(getter_AddRefs(m_pFilterArray));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIMsgFilterList> filterList;
   nsCOMPtr<nsIMsgAccountManager> accountMgr = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 

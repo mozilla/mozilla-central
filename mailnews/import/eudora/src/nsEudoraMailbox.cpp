@@ -301,7 +301,6 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
     SimpleBufferTonyRCopiedOnce    headers;
     SimpleBufferTonyRCopiedOnce    body;
     SimpleBufferTonyRCopiedOnce    copy;
-    nsCString            fromLine(eudoraFromLine);
 
     headers.m_convertCRs = PR_TRUE;
     body.m_convertCRs = PR_TRUE;
