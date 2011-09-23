@@ -97,10 +97,18 @@ else
 	@exit 1
 endif
 
+ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
+SHORTOS = osx
+else
+# For now, osx is the only special case. Therefore, we can just fallback to
+# detecting linux which should be the second argument.
+SHORTOS = linux
+endif
+
 # Repack the existing lightning to contain all locales in lightning-all.xpi
 repack-l10n-all: AB_CD=all
 repack-l10n-all: L10N_XPI_NAME=lightning-all
-repack-l10n-all: repack-clobber-all $(addprefix libs-,$(shell cat $(topsrcdir)/calendar/locales/shipped-locales))
+repack-l10n-all: repack-clobber-all $(addprefix libs-,$(shell awk '{ if ($$2 == "" || $$2 == "$(SHORTOS)") { print $$1 } }' $(topsrcdir)/calendar/locales/shipped-locales))
 
 .PHONY : repack-l10n-all
 
@@ -140,3 +148,20 @@ $(LIBXUL_DIST)/bin/platform.ini:
 	 $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(DIST)/xpi-stage/$(XPI_NAME)/application.ini App BuildID >> $(LIBXUL_DIST)/bin/platform.ini
 
 recreate-platformini: $(LIBXUL_DIST)/bin/platform.ini
+
+UPLOAD_FILES = \
+  lightning.xpi \
+  gdata-provider.xpi \
+  $(NULL)
+
+upload:
+	$(NSINSTALL) -D $(DIST)/$(MOZ_PKG_PLATFORM)
+ifdef UNIVERSAL_BINARY
+	cp -RL $(DIST)/universal/xpi-stage/lightning-all.xpi $(DIST)/$(MOZ_PKG_PLATFORM)/lightning.xpi
+	$(INSTALL) $(IFLAGS1) $(DIST)/universal/xpi-stage/gdata-provider.xpi $(DIST)/$(MOZ_PKG_PLATFORM)
+else
+	cp -RL $(DIST)/xpi-stage/lightning-all.xpi $(DIST)/$(MOZ_PKG_PLATFORM)/lightning.xpi
+	$(INSTALL) $(IFLAGS1) $(DIST)/xpi-stage/gdata-provider.xpi $(DIST)/$(MOZ_PKG_PLATFORM)
+endif
+	$(PYTHON) $(MOZILLA_DIR)/build/upload.py --base-path $(DIST) \
+	  $(addprefix $(DIST)/$(MOZ_PKG_PLATFORM)/,$(UPLOAD_FILES))
