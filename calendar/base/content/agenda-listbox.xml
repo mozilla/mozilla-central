@@ -222,6 +222,7 @@
             this.mOccurrence = aItem;
             let titlebox = document.getAnonymousElementByAttribute(this, "anonid", "agenda-event-title");
             titlebox.value = aItem.title;
+            this.setAttribute("status", aItem.status);
             let dateFormatter = Components.classes["@mozilla.org/calendar/datetime-formatter;1"]
                                   .getService(Components.interfaces.calIDateTimeFormatter);
 
