@@ -584,6 +584,26 @@ function getMostRecentMailWindow() {
 }
 
 /**
+ * Create a sanitized display name for an attachment in order to help prevent
+ * people from hiding malicious extensions behind a run of spaces, etc. To do
+ * this, we strip leading/trailing whitespace and collapse long runs of either
+ * whitespace or identical characters. Windows especially will drop trailing
+ * dots and whitespace from filename extensions.
+ *
+ * @param aAttachment the AttachmentInfo object
+ * @return a sanitized display name for the attachment
+ */
+function SanitizeAttachmentDisplayName(aAttachment)
+{
+  let displayName = aAttachment.name.trim();
+  return displayName.replace(/\s+/g, " ")
+#ifdef XP_WIN
+                    .replace(/[ \.]+$/, "")
+#endif
+                    .replace(/(.)\1{9,}/g, "$1…$1");
+}
+
+/**
  * Create a TransferData object for a message attachment, either from the
  * message reader or the composer.
  *

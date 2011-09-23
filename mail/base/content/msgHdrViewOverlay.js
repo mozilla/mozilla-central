@@ -1922,16 +1922,6 @@ function attachmentItemCommand(event)
   HandleSelectedAttachments("open");
 }
 
-function createAttachmentDisplayName(aAttachment)
-{
-  // Strip any white space at the end of the display name to avoid
-  // attachment name spoofing (especially Windows will drop trailing dots
-  // and whitespace from filename extensions). Leading and internal
-  // whitespace will be taken care of by the crop="center" attribute.
-  // We must not change the actual filename, though.
-  return aAttachment.name.trimRight();
-}
-
 var AttachmentListController =
 {
   supportsCommand: function(command)
@@ -2022,7 +2012,7 @@ function displayAttachmentsForExpandedView()
     var unknownSize = false;
     for each (let [, attachment] in Iterator(currentAttachments)) {
       // Create a new attachment widget
-      var displayName = createAttachmentDisplayName(attachment);
+      var displayName = SanitizeAttachmentDisplayName(attachment);
       var item = attachmentList.appendItem(attachment, displayName);
       item.setAttribute("tooltiptext", attachment.name);
       item.addEventListener("command", attachmentItemCommand, false);
@@ -2043,7 +2033,7 @@ function displayAttachmentsForExpandedView()
 
     if (numAttachments == 1) {
       let count = bundle.getString("attachmentCountSingle");
-      let name = createAttachmentDisplayName(currentAttachments[0]);
+      let name = SanitizeAttachmentDisplayName(currentAttachments[0]);
 
       attachmentCount.setAttribute("value", count);
       attachmentName.hidden = false;
@@ -2235,7 +2225,7 @@ function addAttachmentToPopup(popup, attachment, attachmentIndex)
   while (popup.childNodes[indexOfSeparator].localName != 'menuseparator')
     indexOfSeparator++;
 
-  var displayName = createAttachmentDisplayName(attachment);
+  var displayName = SanitizeAttachmentDisplayName(attachment);
   var label = document.getElementById("bundle_messenger")
                       .getFormattedString("attachmentDisplayNameFormat",
                                           [attachmentIndex, displayName]);

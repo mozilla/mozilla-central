@@ -87,10 +87,11 @@ var setupModule = function (module) {
                       filename: 'ubik.txt',
                       format: '' }],
     },
-    // binary attachment
+    // binary attachment; filename has 9 "1"s, which should be just within the
+    // limit for showing the original name
     { attachments: [{ body: binaryAttachment,
                       contentType: 'application/octet-stream',
-                      filename: 'ubik.xxyyzz',
+                      filename: 'ubik-111111111.xxyyzz',
                       format: '' }],
     },
     // multiple attachments
@@ -102,7 +103,34 @@ var setupModule = function (module) {
                       filename: 'ubik.xxyyzz',
                       format: '' }],
     },
+    // evilly-named attachment; spaces should be collapsed and trimmed on the
+    // ends
+    { attachments: [{ body: textAttachment,
+                      contentType: 'application/octet-stream',
+                      filename: ' ubik  .txt                            .evil ',
+                      sanitizedFilename: 'ubik .txt .evil',
+                      format: '' }],
+    },
+    // another evilly-named attachment; filename has 10 "_"s, which should be
+    // just enough to trigger the sanitizer
+    { attachments: [{ body: textAttachment,
+                      contentType: 'application/octet-stream',
+                      filename: 'ubik.txt__________.evil',
+                      sanitizedFilename: 'ubik.txt_…_.evil',
+                      format: '' }],
+    },
   ];
+
+  // Add another evilly-named attachment for Windows tests, to ensure that
+  // trailing periods are stripped.
+  if ('@mozilla.org/windows-registry-key;1' in Components.classes) {
+    messages.push({ attachments: [{ body: textAttachment,
+                                    contentType: 'application/octet-stream',
+                                    filename: 'ubik.evil. . . . . . . . . ....',
+                                    sanitizedFilename: 'ubik.evil',
+                                    format: '' }],
+                  });
+  }
 
   for (let i = 0; i < messages.length; i++)
     add_message_to_folder(folder, create_message(messages[i]));
@@ -128,6 +156,30 @@ function test_attachment_view_expanded() {
     if (mc.e("attachmentView").collapsed)
       throw new Error("Attachment pane collapsed (on message #"+i+
                       " when it shouldn't be!");
+  }
+}
+
+function test_attachment_name_sanitization() {
+  be_in_folder(folder);
+
+  let attachmentList = mc.e("attachmentList");
+
+  for (let i = 0; i < messages.length; i++) {
+    if ("attachments" in messages[i]) {
+      select_click_row(i);
+      assert_selected_and_displayed(i);
+
+      let attachments = messages[i].attachments;
+      if (messages[i].attachments.length == 1)
+        assert_equals(mc.e("attachmentName").value,
+                      attachments[0].sanitizedFilename ||
+                      attachments[0].filename);
+
+      for (let j = 0; j < attachments.length; j++)
+        assert_equals(attachmentList.getItemAtIndex(j).getAttribute("name"),
+                      attachments[j].sanitizedFilename ||
+                      attachments[j].filename);
+    }
   }
 }
 
