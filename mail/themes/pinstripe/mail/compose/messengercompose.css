@@ -50,6 +50,10 @@
   background-position: top right;
 }
 
+#attachmentBucket {
+  width: 15em;
+}
+
 /* Inactive window state */
 #compose-toolbox > toolbar:-moz-window-inactive {
   border-top-color: rgba(255,255,255,0.45);

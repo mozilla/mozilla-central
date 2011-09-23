@@ -77,10 +77,6 @@ attachmentitem {
   -moz-box-orient: horizontal;
 }
 
-attachmentitem {
-  width: 15em;
-}
-
 attachmentlist[view="large"] .attachmentcell-content {
   -moz-box-orient: horizontal;
 }
@@ -100,7 +96,11 @@ attachmentlist[view="tile"] .attachmentcell-text {
   -moz-box-orient: vertical;
 }
 
-attachmentlist[view="tile"] > attachmentitem {
+attachmentlist[orient="horizontal"] > attachmentitem {
+  width: 15em;
+}
+
+attachmentlist[orient="horizontal"][view="tile"] > attachmentitem {
   width: 9em;
 }
 

@@ -51,6 +51,10 @@
   background-position: top right;
 }
 
+#attachmentBucket {
+  width: 15em;
+}
+
 /* ::::: primary toolbar buttons ::::: */
  
 .toolbarbutton-1 {
