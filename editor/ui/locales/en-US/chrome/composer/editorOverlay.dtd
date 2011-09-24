@@ -68,10 +68,6 @@
 <!ENTITY publishAsCmd.accesskey "h">
 <!ENTITY saveAsChangeEncodingCmd.label "Save And Change Character Encoding">
 <!ENTITY saveAsChangeEncodingCmd.accesskey "E">
-<!ENTITY printCmd.label "Print…">
-<!ENTITY printCmd.accesskey "P">
-<!ENTITY printPreviewCmd.label "Print Preview">
-<!ENTITY printPreviewCmd.accesskey "v">
 
 <!-- Edit menu items -->
 <!ENTITY editMenu.label "Edit">

@@ -107,10 +107,6 @@
 <!ENTITY downloadSelectedCmd.accesskey "t">
 <!ENTITY downloadFlaggedCmd.label "Get Flagged Messages">
 <!ENTITY downloadFlaggedCmd.accesskey "G">
-<!ENTITY printCmd.label "Print…">
-<!ENTITY printCmd.accesskey "P">
-<!ENTITY printPreviewCmd.label "Print Preview">
-<!ENTITY printPreviewCmd.accesskey "v">
 
 <!-- Edit Menu -->
 <!ENTITY deleteMsgCmd.label "Delete Message">

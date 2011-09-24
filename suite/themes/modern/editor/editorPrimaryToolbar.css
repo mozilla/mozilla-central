@@ -138,23 +138,6 @@
   -moz-image-region: rect(204px 199px 237px 150px) !important;
 }
 
-#printButton {
-  list-style-image: url("chrome://communicator/skin/icons/btn1.gif");
-  -moz-image-region: rect(34px 49px 67px 0);
-}
-
-#printButton:hover {
-  -moz-image-region: rect(34px 99px 67px 50px);
-}
-
-#printButton:hover:active {
-  -moz-image-region: rect(34px 149px 67px 100px);
-}
-
-#printButton[disabled="true"] {
-  -moz-image-region: rect(34px 199px 67px 150px);
-}
-
 #linkButton {
   -moz-image-region: rect(102px 49px 135px 0);
 }

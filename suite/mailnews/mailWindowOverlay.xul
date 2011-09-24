@@ -2252,25 +2252,10 @@
                         command="cmd_markAsFlagged"/>
           </menupopup>
     </toolbarbutton>
-    <toolbarbutton id="button-print"
-                   class="toolbarbutton-1"
-                   type="menu-button"
+    <toolbarbutton id="print-button"
                    label="&printButton.label;"
                    observes="button_print"
-                   oncommand="goDoCommand('cmd_print')"
-                   tooltiptext="&printButton.tooltip;">
-      <menupopup id="printMenu"
-                 onpopupshowing="goUpdateCommand('cmd_printpreview');">
-        <menuitem id="button-printMenu"
-                  label="&printCmd.label;"
-                  accesskey="&printCmd.accesskey;"
-                  default="true"/>
-        <menuitem id="button-printPreviewMenu"
-                  label="&printPreviewCmd.label;"
-                  accesskey="&printPreviewCmd.accesskey;"
-                  command="cmd_printpreview"/>
-      </menupopup>
-    </toolbarbutton>
+                   tooltiptext="&printButton.tooltip;"/>
     <toolbarbutton id="button-stop"
                    class="toolbarbutton-1"
                    label="&stopButton.label;"

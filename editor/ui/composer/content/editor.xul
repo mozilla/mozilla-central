@@ -271,7 +271,7 @@
     <toolbarbutton id="cutButton"/>
     <toolbarbutton id="copyButton"/>
     <toolbarbutton id="pasteButton"/>
-    <toolbarbutton id="printButton"/>
+    <toolbarbutton id="print-button"/>
     <toolbarbutton id="findButton"/>
     <toolbarseparator class="toolbarseparator-primary"/>
     <toolbarbutton id="linkButton"/>

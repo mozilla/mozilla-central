@@ -162,7 +162,7 @@
       <toolbarbutton id="newButton"/>
       <toolbarbutton id="openButton"/>
       <toolbarbutton id="saveButton"/>
-      <toolbarbutton id="printButton"/>
+      <toolbarbutton id="print-button"/>
       <toolbarseparator class="toolbarseparator-primary"/>
       <toolbarbutton id="spellingButton"/>
       <spacer flex="1"/>

@@ -371,18 +371,9 @@
         <searchbar id="searchbar" flex="1"/>
       </toolbaritem>
 
-      <toolbarbutton id="print-button" type="menu-button"
-                     class="toolbarbutton-1 chromeclass-toolbar-additional"
+      <toolbarbutton id="print-button"
                      label="&printButton.label;"
-                     oncommand="if (event.target==this) PrintUtils.print();"
-                     tooltiptext="&printButton.tooltip;">
-        <menupopup id="printMenu">
-          <menuitem id="printMenuItemToolbar" label="&printCmd.label;" accesskey="&printCmd.accesskey;"
-                    default="true" oncommand="PrintUtils.print()"/>
-          <menuitem id="printPreviewMenuItemToolbar" label="&printPreviewCmd.label;" accesskey="&printPreviewCmd.accesskey;"
-                    oncommand="setTimeout(BrowserPrintPreview, 0);"/>
-        </menupopup>
-      </toolbarbutton>
+                     tooltiptext="&printButton.tooltip;"/>
 
       <toolbaritem id="throbber-box" align="center">
         <button id="navigator-throbber"

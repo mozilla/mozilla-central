@@ -265,23 +265,6 @@ toolbarpaletteitem > #button-delete {
   -moz-image-region: rect(544px 199px 577px 150px) !important;
 }
 
-#button-print {
-  list-style-image: url("chrome://communicator/skin/icons/btn1.gif");
-  -moz-image-region: rect(34px 49px 67px 0);
-}
-
-#button-print:hover {
-  -moz-image-region: rect(34px 99px 67px 50px);
-}
-
-#button-print:hover:active {
-  -moz-image-region: rect(34px 149px 67px 100px);
-}
-
-#button-print[disabled] {
-  -moz-image-region: rect(34px 199px 67px 150px) !important;
-}
-
 #button-stop {
   list-style-image: url("chrome://communicator/skin/icons/btn1.gif");
   -moz-image-region: rect(68px 49px 101px 0);
@@ -339,23 +322,6 @@ toolbar[iconsize="small"] #button-junk {}
 toolbar[iconsize="small"] #button-delete {}
 toolbar[iconsize="small"] #button-mark {}
 */
-
-toolbar[iconsize="small"] #button-print {
-  list-style-image: url("chrome://communicator/skin/icons/common-small.png");
-  -moz-image-region: rect(0 19px 19px 0);
-}
-
-toolbar[iconsize="small"] #button-print:hover {
-  -moz-image-region: rect(0 38px 19px 19px);
-}
-
-toolbar[iconsize="small"] #button-print:hover:active {
-  -moz-image-region: rect(0 57px 19px 38px);
-}
-
-toolbar[iconsize="small"] #button-print[disabled] {
-  -moz-image-region: rect(0 76px 19px 57px) !important;
-}
 
 toolbar[iconsize="small"] #button-stop {
   list-style-image: url("chrome://communicator/skin/icons/common-small.png");

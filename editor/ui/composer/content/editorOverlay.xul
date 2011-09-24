@@ -1136,21 +1136,11 @@
                  command="cmd_paste"
                  tooltiptext="&pasteToolbarCmd.tooltip;"/>
 
-  <toolbarbutton id="printButton" type="menu-button" class="toolbarbutton-1"
+  <toolbarbutton id="print-button"
                  label="&printToolbarCmd.label;"
-                 tooltiptext="&printToolbarCmd.tooltip;"
-                 oncommand="if (event.target==this) goDoCommand('cmd_print');">
-    <menupopup id="printMenu">
-      <menuitem id="printMenuItemToolbar" accesskey="&printCmd.accesskey;" label="&printCmd.label;" default="true"
-                oncommand="goDoCommand('cmd_print');"/>
+                 tooltiptext="&printToolbarCmd.tooltip;"/>
       <!-- 'printSetupToolbar' is merged in here from platformGlobalOverlay.xul -->
-      <menuitem id="printPreviewMenuItemToolbar"
-                label="&printPreviewCmd.label;"
-                accesskey="&printPreviewCmd.accesskey;"
-                oncommand="goDoCommand('cmd_printpreview');"/>
-    </menupopup>
-  </toolbarbutton>
-    
+
   <toolbarbutton id="findButton"
                  class="toolbarbutton-1"
                  label="&findToolbarCmd.label;"

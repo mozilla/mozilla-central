@@ -14,11 +14,6 @@
 <!ENTITY editPageCmd.accesskey "E">
 <!ENTITY editPageCmd.commandkey "e">
 
-<!ENTITY printPreviewCmd.label "Print Preview">
-<!ENTITY printPreviewCmd.accesskey "v">
-<!ENTITY printCmd.label "Print…">
-<!ENTITY printCmd.accesskey "p">
-
 <!ENTITY navbarCmd.label "Navigation Toolbar">
 <!ENTITY navbarCmd.accesskey "N">
 <!ENTITY personalbarCmd.label "Personal Toolbar">

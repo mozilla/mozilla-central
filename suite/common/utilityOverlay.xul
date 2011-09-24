@@ -478,6 +478,23 @@
     <!-- Additional items are generated, see popupNotificationMenuShowing() -->
   </menupopup>
 
+  <toolbarbutton id="print-button"
+                 type="menu-button"
+                 class="toolbarbutton-1 chromeclass-toolbar-additional"
+                 command="cmd_print">
+    <menupopup id="printMenu">
+      <menuitem id="printMenuItemToolbar"
+                label="&printCmd.label;"
+                accesskey="&printCmd.accesskey;"
+                default="true"
+                command="cmd_print"/>
+      <menuitem id="printPreviewMenuItemToolbar"
+                label="&printPreviewCmd.label;"
+                accesskey="&printPreviewCmd.accesskey;"
+                command="cmd_printpreview"/>
+    </menupopup>
+  </toolbarbutton>
+
   <!-- Sync toolbar button -->
   <toolbarbutton id="sync-button"
                  class="toolbarbutton-1 chromeclass-toolbar-additional"

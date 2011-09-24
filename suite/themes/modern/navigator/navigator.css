@@ -123,23 +123,6 @@ toolbox {
   -moz-image-region: rect(39px 168px 78px 126px) !important;
 }
 
-#print-button {
-  list-style-image: url("chrome://communicator/skin/icons/common.png");
-  -moz-image-region: rect(0 42px 39px 0);
-}
-
-#print-button:hover {
-  -moz-image-region: rect(0 84px 39px 42px);
-}
-
-#print-button:hover:active {
-  -moz-image-region: rect(0 126px 39px 84px);
-}
-
-#print-button[disabled="true"] {
-  -moz-image-region: rect(0 168px 39px 126px) !important;
-}
-
 #home-button {
   list-style-image: url("chrome://communicator/skin/icons/common.png");
   -moz-image-region: rect(156px 42px 195px 0);
@@ -244,24 +227,6 @@ toolbar[iconsize="small"] > #stop-button:hover:active {
 
 toolbar[iconsize="small"] > #stop-button[disabled="true"] {
   -moz-image-region: rect(19px 76px 38px 57px) !important;
-}
-
-toolbar[iconsize="small"] > toolbarpaletteitem > #print-button,
-toolbar[iconsize="small"] > #print-button {
-  list-style-image: url("chrome://communicator/skin/icons/common-small.png");
-  -moz-image-region: rect(0 19px 19px 0);
-}
-
-toolbar[iconsize="small"] > #print-button:hover {
-  -moz-image-region: rect(0 38px 19px 19px);
-}
-
-toolbar[iconsize="small"] > #print-button:hover:active {
-  -moz-image-region: rect(0 57px 19px 38px);
-}
-
-toolbar[iconsize="small"] > #print-button[disabled="true"] {
-  -moz-image-region: rect(0 76px 19px 57px) !important;
 }
 
 toolbar[iconsize="small"] > toolbarpaletteitem > #home-button,
