@@ -49,7 +49,7 @@
 
 <!-- File menu items -->
 <!ENTITY exportToTextCmd.label "Export to Text…">
-<!ENTITY exportToTextCmd.accesskey "T">
+<!ENTITY exportToTextCmd.accesskey "x">
 <!ENTITY previewCmd.label "Browse Page">
 <!ENTITY previewCmd.accesskey "w">
 <!ENTITY sendPageCmd.label "Send Page…">

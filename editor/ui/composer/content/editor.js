@@ -72,6 +72,7 @@ var gContentWindowDeck;
 var gFormatToolbar;
 var gFormatToolbarHidden = false;
 var gViewFormatToolbar;
+var gChromeState;
 var gColorObj = { LastTextColor:"", LastBackgroundColor:"", LastHighlightColor:"",
                   Type:"", SelectedType:"", NoDefault:false, Cancel:false,
                   HighlightColor:"", BackgroundColor:"", PageColor:"",
@@ -656,6 +657,80 @@ function EditorSharedStartup()
   gColorObj.LastTextColor = "";
   gColorObj.LastBackgroundColor = "";
   gColorObj.LastHighlightColor = "";
+}
+
+function toggleAffectedChrome(aHide)
+{
+  // chrome to toggle includes:
+  //   (*) menubar
+  //   (*) toolbox
+  //   (*) sidebar
+  //   (*) statusbar
+
+  if (!gChromeState)
+    gChromeState = new Object;
+
+  var statusbar = document.getElementById("status-bar");
+
+  // sidebar states map as follows:
+  //   hidden    => hide/show nothing
+  //   collapsed => hide/show only the splitter
+  //   shown     => hide/show the splitter and the box
+  if (aHide)
+  {
+    // going into print preview mode
+    gChromeState.sidebar = SidebarGetState();
+    SidebarSetState("hidden");
+
+    // deal with the Status Bar
+    gChromeState.statusbarWasHidden = statusbar.hidden;
+    statusbar.hidden = true;
+  }
+  else
+  {
+    // restoring normal mode (i.e., leaving print preview mode)
+    SidebarSetState(gChromeState.sidebar);
+
+    // restore the Status Bar
+    statusbar.hidden = gChromeState.statusbarWasHidden;
+  }
+
+  // if we are unhiding and sidebar used to be there rebuild it
+  if (!aHide && gChromeState.sidebar == "visible")
+    SidebarRebuild();
+
+  document.getElementById("EditorToolbox").hidden = aHide;
+  document.getElementById("appcontent").collapsed = aHide;
+}
+
+var PrintPreviewListener = {
+  getPrintPreviewBrowser: function () {
+    var browser = document.getElementById("ppBrowser");
+    if (!browser) {
+      browser = document.createElement("browser");
+      browser.setAttribute("id", "ppBrowser");
+      browser.setAttribute("flex", "1");
+      browser.setAttribute("disablehistory", "true");
+      browser.setAttribute("disablesecurity", "true");
+      browser.setAttribute("type", "content");
+      document.getElementById("sidebar-parent").
+        insertBefore(browser, document.getElementById("appcontent"));
+    }
+    return browser;
+  },
+  getSourceBrowser: function () {
+    return GetCurrentEditorElement();
+  },
+  getNavToolbox: function () {
+    return document.getElementById("EditorToolbox");
+  },
+  onEnter: function () {
+    toggleAffectedChrome(true);
+  },
+  onExit: function () {
+    document.getElementById("ppBrowser").collapsed = true;
+    toggleAffectedChrome(false);
+  }
 }
 
 // This method is only called by Message composer when recycling a compose window

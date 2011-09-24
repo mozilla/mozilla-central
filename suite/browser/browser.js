@@ -96,24 +96,14 @@ function toggleAffectedChrome(aHide)
   var findbar = document.getElementById("FindToolbar")
 
   // sidebar states map as follows:
-  //   was-hidden    => hide/show nothing
-  //   was-collapsed => hide/show only the splitter
-  //   was-shown     => hide/show the splitter and the box
+  //   hidden    => hide/show nothing
+  //   collapsed => hide/show only the splitter
+  //   shown     => hide/show the splitter and the box
   if (aHide)
   {
     // going into print preview mode
-    if (sidebar_is_collapsed())
-    {
-      gChromeState.sidebar = "was-collapsed";
-    }
-    else if (sidebar_is_hidden())
-      gChromeState.sidebar = "was-hidden";
-    else 
-    {
-      gChromeState.sidebar = "was-visible";
-    }
-    document.getElementById("sidebar-box").hidden = true;
-    document.getElementById("sidebar-splitter").hidden = true;
+    gChromeState.sidebar = SidebarGetState();
+    SidebarSetState("hidden");
 
     // deal with tab browser
     gBrowser.mStrip.setAttribute("moz-collapsed", "true");
@@ -147,11 +137,7 @@ function toggleAffectedChrome(aHide)
   else
   {
     // restoring normal mode (i.e., leaving print preview mode)
-    if (gChromeState.sidebar == "was-collapsed" ||
-        gChromeState.sidebar == "was-visible")
-      document.getElementById("sidebar-splitter").hidden = false;
-    if (gChromeState.sidebar == "was-visible")
-      document.getElementById("sidebar-box").hidden = false;
+    SidebarSetState(gChromeState.sidebar);
 
     // restore tab browser
     gBrowser.mStrip.removeAttribute("moz-collapsed");
@@ -170,7 +156,7 @@ function toggleAffectedChrome(aHide)
   }
 
   // if we are unhiding and sidebar used to be there rebuild it
-  if (!aHide && gChromeState.sidebar == "was-visible")
+  if (!aHide && gChromeState.sidebar == "visible")
     SidebarRebuild();
 }
 

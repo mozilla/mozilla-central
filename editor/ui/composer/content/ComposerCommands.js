@@ -188,6 +188,7 @@ function SetupComposerWindowCommands()
   commandTable.registerCommand("cmd_preview",        nsPreviewCommand);
   commandTable.registerCommand("cmd_editSendPage",   nsSendPageCommand);
   commandTable.registerCommand("cmd_print",          nsPrintCommand);
+  commandTable.registerCommand("cmd_printpreview",   nsPrintPreviewCommand);
   commandTable.registerCommand("cmd_printSetup",     nsPrintSetupCommand);
   commandTable.registerCommand("cmd_quit",           nsQuitCommand);
   commandTable.registerCommand("cmd_close",          nsCloseCommand);
@@ -2306,6 +2307,27 @@ var nsPrintCommand =
     FinishHTMLSource();
     try {
       PrintUtils.print();
+    } catch (e) {}
+  }
+};
+
+//-----------------------------------------------------------------------------------
+var nsPrintPreviewCommand =
+{
+  isCommandEnabled: function(aCommand, dummy)
+  {
+    return true;    // we can always do this
+  },
+
+  getCommandStateParams: function(aCommand, aParams, aRefCon) {},
+  doCommandParams: function(aCommand, aParams, aRefCon) {},
+
+  doCommand: function(aCommand)
+  {
+    // In editor.js
+    FinishHTMLSource();
+    try {
+      PrintUtils.printPreview(PrintPreviewListener);
     } catch (e) {}
   }
 };

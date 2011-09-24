@@ -1221,6 +1221,19 @@ function SidebarShowHide() {
   window.content.focus();
 }
 
+function SidebarGetState() {
+  if (sidebar_is_hidden())
+    return "hidden";
+  if (sidebar_is_collapsed())
+    return "collapsed";
+  return "visible";
+}
+
+function SidebarSetState(aState) {
+  document.getElementById("sidebar-box").hidden = aState != "visible";
+  document.getElementById("sidebar-splitter").hidden = aState == "hidden";
+}
+
 function SidebarBuildPickerPopup() {
   var menu = document.getElementById('sidebar-panel-picker-popup');
   menu.database.AddDataSource(sidebarObj.datasource);

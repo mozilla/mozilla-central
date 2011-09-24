@@ -168,6 +168,7 @@
     <command id="cmd_open"                                          oncommand="goDoCommand('cmd_open')"/>
     <command id="cmd_openRemote"   label="&openRemoteCmd.label;"    oncommand="goDoCommand('cmd_openRemote')"/>
     <command id="cmd_printSetup"   oncommand="goDoCommand('cmd_printSetup')"/>
+    <command id="cmd_printpreview" oncommand="goDoCommand('cmd_printpreview');"/>
     <command id="cmd_print"        oncommand="goDoCommand('cmd_print')"/>
     <command id="cmd_close"        oncommand="goDoCommand('cmd_close');"/>
     <command id="cmd_quit"         oncommand="goDoCommand('cmd_quit')"/>
@@ -409,6 +410,7 @@
       <menuseparator id="fileMenuAfterFileRevertSeparator"/>
       <!-- menuitems are merged in here from composerOverlay.xul -->
       <menuitem id="menu_printSetup"/>
+      <menuitem id="menu_printPreview"/>
       <menuitem id="menu_print"/>
       <!-- The Exit/Quit item is merged from platformGlobalOverlay.xul -->
     </menupopup>
@@ -1142,6 +1144,10 @@
       <menuitem id="printMenuItemToolbar" accesskey="&printCmd.accesskey;" label="&printCmd.label;" default="true"
                 oncommand="goDoCommand('cmd_print');"/>
       <!-- 'printSetupToolbar' is merged in here from platformGlobalOverlay.xul -->
+      <menuitem id="printPreviewMenuItemToolbar"
+                label="&printPreviewCmd.label;"
+                accesskey="&printPreviewCmd.accesskey;"
+                oncommand="goDoCommand('cmd_printpreview');"/>
     </menupopup>
   </toolbarbutton>
     
