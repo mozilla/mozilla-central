@@ -48,7 +48,7 @@ function toggleTabsFromOtherComputers()
     let menuitem = document.getElementById("sync-tabs-menuitem");
 
     // If Sync isn't configured yet, then don't show the menuitem.
-    if (Weave.Status.service == Weave.CLIENT_NOT_CONFIGURED ||
+    if (Weave.Status.checkSetup() == Weave.CLIENT_NOT_CONFIGURED ||
         Weave.Svc.Prefs.get("firstSync", "") == "notReady") {
       menuitem.hidden = true;
       return;
