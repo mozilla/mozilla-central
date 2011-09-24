@@ -413,7 +413,7 @@ Section "-Application" APP_IDX
   ; An empty string is used for the 5th param because SeaMonkeyHTML is not a
   ; protocol handler
   ${AddHandlerValues} "SOFTWARE\Classes\SeaMonkeyHTML" "$3" \
-                      "$INSTDIR\chrome\icons\default\html-file.ico" \
+                      "$INSTDIR\chrome\icons\default\html-file.ico,0" \
                       "${AppRegName} Document" "" ""
   ${AddDDEHandlerValues} "SeaMonkeyURL" "$1" "$8,0" "${AppRegName} URL" "" \
                          "${DDEApplication}" "$2" "WWW_OpenURL"
