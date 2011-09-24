@@ -69,6 +69,7 @@
   <key id="key_findTypeLinks"
        key="&findTypeLinksCmd.key;"/>
 
+  <menuitem id="menu_printPreview" hidden="true"/>
   <menuitem id="printPreviewMenuItem" hidden="true"/>
   <menuitem id="printPreviewMenuItemToolbar" hidden="true"/>
   <menuitem id="printPreviewAddressBook" hidden="true"/>
