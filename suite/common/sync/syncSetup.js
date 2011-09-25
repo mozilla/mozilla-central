@@ -333,7 +333,7 @@ var gSyncSetup = {
     if (password.value == document.getElementById("weavePassphrase").value) {
       // xxxmpc - hack, sigh
       valid = false;
-      str = Weave.Utils.getErrorString("change.password.pwSameAsSyncKey");
+      str = Weave.Utils.getErrorString("change.password.pwSameAsRecoveryKey");
     }
     else {
       let pwconfirm = document.getElementById("weavePasswordConfirm");

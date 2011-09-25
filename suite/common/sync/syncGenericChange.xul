@@ -100,8 +100,8 @@
                    onfocus="this.select();"
                    oninput="Change.validate();"/>
           <button id="generatePassphraseButton"
-                  label="&syncKeyGenerate.label;"
-                  accesskey="&syncKeyGenerate.accesskey;"
+                  label="&recoveryKeyGenerate.label;"
+                  accesskey="&recoveryKeyGenerate.accesskey;"
                   oncommand="event.stopPropagation();
                              Change.doGeneratePassphrase();"/>
         </row>

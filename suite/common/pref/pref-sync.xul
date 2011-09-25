@@ -99,8 +99,8 @@
                   <menuitem label="&changePassword.label;"
                             accesskey="&changePassword.accesskey;"
                             oncommand="gSyncUtils.changePassword();"/>
-                  <menuitem label="&mySyncKey.label;"
-                            accesskey="&mySyncKey.accesskey;"
+                  <menuitem label="&myRecoveryKey.label;"
+                            accesskey="&myRecoveryKey.accesskey;"
                             oncommand="gSyncUtils.resetPassphrase();"/>
                   <menuseparator/>
                   <menuitem label="&resetSync.label;"
