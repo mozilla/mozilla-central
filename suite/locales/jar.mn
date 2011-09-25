@@ -40,6 +40,8 @@
   locale/@AB_CD@/communicator/typeaheadfind.properties                      (%chrome/common/typeaheadfind.properties)
   locale/@AB_CD@/communicator/utilityOverlay.dtd                            (%chrome/common/utilityOverlay.dtd)
   locale/@AB_CD@/communicator/utilityOverlay.properties                     (%chrome/common/utilityOverlay.properties)
+  locale/@AB_CD@/communicator/viewApplyThemeOverlay.dtd                     (%chrome/common/viewApplyThemeOverlay.dtd)
+  locale/@AB_CD@/communicator/viewApplyThemeOverlay.properties              (%chrome/common/viewApplyThemeOverlay.properties)
   locale/@AB_CD@/communicator/viewZoomOverlay.dtd                           (%chrome/common/viewZoomOverlay.dtd)
   locale/@AB_CD@/communicator/viewZoomOverlay.properties                    (%chrome/common/viewZoomOverlay.properties)
   locale/@AB_CD@/communicator/about.dtd                                     (%chrome/common/about.dtd)

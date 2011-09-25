@@ -82,6 +82,8 @@ comm.jar:
    content/communicator/tasksOverlay.xul
    content/communicator/utilityOverlay.js
    content/communicator/utilityOverlay.xul
+   content/communicator/viewApplyThemeOverlay.xul
+   content/communicator/viewApplyThemeOverlay.js
    content/communicator/viewSourceOverlay.js
    content/communicator/viewSourceOverlay.xul
    content/communicator/viewZoomOverlay.xul

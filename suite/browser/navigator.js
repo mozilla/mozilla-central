@@ -39,7 +39,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://gre/modules/AddonManager.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/DownloadTaskbarIntegration.jsm");
 
@@ -68,7 +67,6 @@ var gClickAtEndSelects = false;
 var gIgnoreFocus = false;
 var gIgnoreClick = false;
 var gURIFixup = null;
-var gThemes = [];
 
 var gInitialPages = [
   "about:blank",
@@ -77,27 +75,6 @@ var gInitialPages = [
 
 //cached elements
 var gBrowser = null;
-
-function ReloadThemes()
-{
-  AddonManager.getAddonsByTypes(["theme"], function(themes) {
-    gThemes = themes.sort(function(a, b) {
-      return a.name.localeCompare(b.name);
-    });
-  });
-}
-
-const gAddonListener = {
-  onEnabling: function(val) {},
-  onEnabled: function(val) {},
-  onDisabling: function(val) {},
-  onDisabled: function(val) {},
-  onInstalling: function(val) {},
-  onInstalled: ReloadThemes,
-  onUninstalling: function(val) {},
-  onUninstalled: ReloadThemes,
-  onOperationCancelled: ReloadThemes
-};
 
 const gTabStripPrefListener =
 {
@@ -484,9 +461,6 @@ function HandleAppCommandEvent(aEvent)
  */
 function Startup()
 {
-  AddonManager.addAddonListener(gAddonListener);
-  ReloadThemes();
-
   // init globals
   gNavigatorBundle = document.getElementById("bundle_navigator");
   gBrandBundle = document.getElementById("bundle_brand");
@@ -791,8 +765,6 @@ function WindowFocusTimerCallback(element)
 
 function Shutdown()
 {
-  AddonManager.removeAddonListener(gAddonListener);
-
   PlacesStarButton.uninit();
 
   // shut down browser access support
@@ -1894,9 +1866,6 @@ function BrowserPageInfo(doc, initialTab)
 
 function hiddenWindowStartup()
 {
-  AddonManager.addAddonListener(gAddonListener);
-  ReloadThemes();
-
   // focus the hidden window
   window.focus();
 
@@ -2172,72 +2141,6 @@ function setStyleDisabled(disabled) {
   getMarkupDocumentViewer().authorStyleDisabled = disabled;
 }
 
-function restartApp() {
-  // Notify all windows that an application quit has been requested.
-  var cancelQuit = Components.classes["@mozilla.org/supports-PRBool;1"]
-                             .createInstance(Components.interfaces.nsISupportsPRBool);
-
-  Services.obs.notifyObservers(cancelQuit, "quit-application-requested", "restart");
-
-  // Something aborted the quit process.
-  if (cancelQuit.data)
-    return;
-
-  Services.prefs.setBoolPref("browser.sessionstore.resume_session_once", true);
-  const nsIAppStartup = Components.interfaces.nsIAppStartup;
-  Components.classes["@mozilla.org/toolkit/app-startup;1"]
-            .getService(nsIAppStartup)
-            .quit(nsIAppStartup.eRestart | nsIAppStartup.eAttemptQuit);
- }
-
-function applyTheme(menuitem)
-{
-  if (!menuitem.theme)
-    return;
-
-  menuitem.theme.userDisabled = false;
-  if (!menuitem.theme.isActive) {
-    var promptTitle = gNavigatorBundle.getString("switchskinstitle");
-    var brandName = gBrandBundle.getString("brandShortName");
-    var promptMsg = gNavigatorBundle.getFormattedString("switchskins", [brandName]);
-    var promptNow = gNavigatorBundle.getString("switchskinsnow");
-    var promptLater = gNavigatorBundle.getString("switchskinslater");
-    var check = {value: false};
-    var flags = Services.prompt.BUTTON_POS_0 * Services.prompt.BUTTON_TITLE_IS_STRING +
-                Services.prompt.BUTTON_POS_1 * Services.prompt.BUTTON_TITLE_IS_STRING;
-    var pressedVal = Services.prompt.confirmEx(window, promptTitle, promptMsg,
-                                               flags, promptNow, promptLater,
-                                               null, null, check);
-
-    if (pressedVal == 0)
-      restartApp();
-  }
-}
-
-function getNewThemes()
-{
-  // get URL for more themes from prefs
-  try {
-    openTopWin(Services.urlFormatter.formatURLPref("extensions.getMoreThemesURL"));
-  }
-  catch (ex) {
-    dump(ex);
-  }
-}
-
-function getPersonas()
-{
-  // get URL for more themes from prefs
-  try
-  {
-    openTopWin(Services.urlFormatter.formatURLPref("extensions.getPersonasURL"));
-  }
-  catch (ex)
-  {
-    dump(ex);
-  }
-}
-
 function URLBarFocusHandler(aEvent)
 {
   if (gIgnoreFocus)
@@ -2477,24 +2380,6 @@ function popupBlockerMenuShowing(event)
 function toHistory()
 {
   toOpenWindowByType("history:manager", "chrome://communicator/content/history/history.xul");
-}
-
-function checkTheme(popup)
-{
-  while (popup.lastChild.localName != 'menuseparator')
-    popup.removeChild(popup.lastChild);
-  gThemes.forEach(function(theme) {
-    var menuitem = document.createElement('menuitem');
-    menuitem.setAttribute("label", theme.name);
-    menuitem.setAttribute("type", "radio");
-    menuitem.setAttribute("name", "themeGroup");
-    if (!theme.userDisabled)
-      menuitem.setAttribute("checked", "true");
-    else if (!(theme.permissions & AddonManager.PERM_CAN_ENABLE))
-      menuitem.setAttribute("disabled", "true");
-    menuitem.theme = theme;
-    popup.appendChild(menuitem);
-  });
 }
 
 // opener may not have been initialized by load time (chrome windows only)

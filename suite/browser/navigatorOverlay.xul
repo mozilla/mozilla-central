@@ -44,6 +44,7 @@
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/viewZoomOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/viewApplyThemeOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/tasksOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/bookmarks/placesOverlay.xul"?>
 <?xul-overlay href="chrome://global/content/charsetOverlay.xul"?>
@@ -83,6 +84,7 @@
     <stringbundle id="bundle_navigator_region"
                   src="chrome://navigator-region/locale/region.properties"/>
     <stringbundle id="bundle_viewZoom"/>
+    <stringbundle id="bundle_viewApplyTheme"/>
   </stringbundleset>
 
   <!-- Keysets -->
@@ -391,19 +393,8 @@
         <menuitem accesskey="&pageSourceCmd.accesskey;" label="&pageSourceCmd.label;" key="key_viewSource" command="View:PageSource"/>
         <menuitem accesskey="&pageInfoCmd.accesskey;"   label="&pageInfoCmd.label;"   key="key_viewInfo"   command="View:PageInfo"/>
         <menuseparator />
-        <menu label="&applyTheme.label;" accesskey="&applyTheme.accesskey;">
-          <menupopup id="menu_ViewApplyTheme_Popup"
-                     onpopupshowing="checkTheme(this);"
-                     oncommand="applyTheme(event.target);">
-            <menuitem label="&getNewThemesCmd.label;"
-                      accesskey="&getNewThemesCmd.accesskey;"
-                      oncommand="getNewThemes();"/>
-            <menuitem label="&getPersonasCmd.label;"
-                      accesskey="&getPersonasCmd.accesskey;"
-                      oncommand="getPersonas();"/>
-            <menuseparator/>
-          </menupopup>
-        </menu>
+        <!-- overlayed from viewApplyThemeOverlay.xul -->
+        <menu id="menu_viewApplyTheme"/>
       </menupopup>
     </menu>
 

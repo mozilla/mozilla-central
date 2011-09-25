@@ -45,6 +45,7 @@
 <?xul-overlay href="chrome://global/content/charsetOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/contentAreaContextOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/viewZoomOverlay.xul"?>
+<?xul-overlay href="chrome://communicator/content/viewApplyThemeOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/msgHdrViewOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/mailOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/platformMailnewsOverlay.xul"?>
@@ -86,6 +87,7 @@
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
   <stringbundle id="bundle_offlinePrompts" src="chrome://messenger/locale/offline.properties"/>
   <stringbundle id="bundle_viewZoom"/>
+  <stringbundle id="bundle_viewApplyTheme"/>
   <stringbundle id="findBundle" src="chrome://global/locale/finddialog.properties"/>
 </stringbundleset>
 
@@ -1366,6 +1368,9 @@
       <menu id="mailviewCharsetMenu" />
       <menuseparator id="viewAfterCharsetSeparator"/>
       <menuitem id="pageSourceMenuItem" label="&pageSourceCmd.label;" key="key_viewPageSource" accesskey="&pageSourceCmd.accesskey;" command="cmd_viewPageSource"/>
+      <menuseparator observes="mailHideMenus"/>
+      <!-- overlayed from viewApplyThemeOverlay.xul -->
+      <menu id="menu_viewApplyTheme" observes="mailHideMenus"/>
     </menupopup>
   </menu>
 
