@@ -189,7 +189,7 @@ let gSyncUtils = {
    */
   passphraseSave: function(elid) {
     let dialogTitle = this._stringBundle.GetStringFromName("save.recoverykey.title");
-    let defaultSaveName = this.bundle.GetStringFromName("save.recoverykey.defaultfilename");
+    let defaultSaveName = this._stringBundle.GetStringFromName("save.recoverykey.defaultfilename");
     this._preparePPiframe(elid, function(iframe) {
       let filepicker = Cc["@mozilla.org/filepicker;1"]
                          .createInstance(Ci.nsIFilePicker);
