@@ -216,7 +216,8 @@ toolbar[iconsize="small"] .toolbarbutton-1 > .toolbarbutton-icon {
     #button-previous, #button-mark, #button-tag, #button-goback,
     #button-goforward, #button-compact, #button-archive, #hdrArchiveButton,
     #hdrReplyButton, #hdrReplyToSenderButton, #hdrReplyAllButton,
-    #hdrReplyListButton, #hdrForwardButton, #hdrTrashButton, #hdrJunkButton
+    #hdrReplyOnlyButton, #hdrReplyListButton, #hdrForwardButton,
+    #hdrTrashButton, #hdrJunkButton
     ) .toolbarbutton-icon {
   margin: 0 !important;
   width: auto !important;
