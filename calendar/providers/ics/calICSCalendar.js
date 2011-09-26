@@ -216,6 +216,7 @@ calICSCalendar.prototype = {
             channel.asyncOpen(streamLoader, prbForce);
         } catch(e) {
             // File not found: a new calendar. No problem.
+            cal.LOG("[calICSCalendar] Error occurred opening channel: " + e);
             this.unlock();
         }
     },
@@ -232,9 +233,17 @@ calICSCalendar.prototype = {
     onStreamComplete: function(loader, ctxt, status, resultLength, result)
     {
         let forceRefresh = ctxt.QueryInterface(Components.interfaces.nsISupportsPRBool).data;
+        let cont = false;
 
-        // Allow the hook to get needed data (like an etag) of the channel
-        let cont = this.mHooks.onAfterGet(forceRefresh);
+        if (Components.isSuccessCode(status)) {
+            // Allow the hook to get needed data (like an etag) of the channel
+            cont = this.mHooks.onAfterGet(forceRefresh);
+        } else {
+            // Failure may be due to temporary connection issue, keep old data to
+            // prevent potential data loss if it becomes available again.
+            cal.LOG("[calICSCalendar] Unable to load stream - status: " + status);
+        }
+
         if (!cont) {
             // no need to process further, we can use the previous data
             this.unlock();
@@ -913,25 +922,38 @@ httpHooks.prototype = {
 
         return true;
     },
-    
-    onAfterGet: function(aForceRefresh) {
-        var httpchannel = this.mChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
 
-        switch (httpchannel.responseStatus) {
+    onAfterGet: function(aForceRefresh) {
+        let httpchannel = this.mChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
+        let responseStatus = 0;
+
+        try {
+            responseStatus = httpchannel.responseStatus;
+        } catch(e) {
+            // Error might have been a temporary connection issue, keep old data to
+            // prevent potential data loss if it becomes available again.
+            cal.LOG("[calICSCalendar] Unable to get response status.");
+            return false;
+        }
+
+        switch (responseStatus) {
             case 304:
                 // 304: Not Modified
                 // Can use the old data, so tell the caller that it can skip parsing.
+                cal.LOG("[calICSCalendar] Response status 304: Not Modified. Using the existing data.");
                 return false;
             case 404:
                 // 404: Not Found
                 // This is a new calendar. Shouldn't try to parse it. But it also
                 // isn't a failure, so don't throw.
+                cal.LOG("[calICSCalendar] Response status 404: Not Found. This is a new calendar.");
                 return false;
 
             case 401:
             case 403:
                 // 401/403: Not Authorized
                 // The user likely cancelled the login dialog.
+                cal.LOG("[calICSCalendar] Response status 401/403: Not Authorized. Login dialog cancelled.");
                 this.mCalendar.setProperty("disabled", "true");
                 this.mCalendar.setProperty("auto-enabled", "true");
                 return false;
@@ -957,7 +979,7 @@ httpHooks.prototype = {
         }
         return true;
     },
-    
+
     onAfterPut: function(aChannel, aRespFunc) {
         var httpchannel = aChannel.QueryInterface(Components.interfaces.nsIHttpChannel);
         try {
