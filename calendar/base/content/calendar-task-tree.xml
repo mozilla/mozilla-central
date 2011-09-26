@@ -1072,19 +1072,23 @@
           // immediately start the next job on the queue.
           this.popRefreshQueue();
 
-          var tree = document.getAnonymousNodes(this)[0];
-          if(this.mTreeView.selectedColumn) {
+          if (this.mTreeView.selectedColumn) {
               this.sortItems();
           } else {
               this.recreateHashTable();
           }
 
-          var tree = document.getAnonymousElementByAttribute(
+          let tree = document.getAnonymousElementByAttribute(
               this, "anonid", "calendar-task-tree");
           tree.view = this.mTreeView;
 
+          // make sure the tree's current index is still valid
+          if (tree.currentIndex >= this.mTaskArray.length) {
+              tree.currentIndex = (this.mTaskArray.length - 1);
+          }
+
           // we also need to notify potential listeners.
-          var event = document.createEvent('Events');
+          let event = document.createEvent('Events');
           event.initEvent('select', true, false);
           this.dispatchEvent(event);
         ]]></body>
