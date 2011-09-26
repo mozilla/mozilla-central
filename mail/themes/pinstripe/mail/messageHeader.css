@@ -194,7 +194,7 @@
 #attachmentName:hover,
 #attachmentName[selected="true"] {
   cursor: pointer;
-  background-color: #fcaf3e; /* tango orange */
+  background: -moz-linear-gradient(top, #F9CE90, #F6A942); /* orange gradient */
 }
 
 #attachmentName:focus {
@@ -607,7 +607,7 @@ window[inlinetoolbox] #wrapper-spring {
 
 .emailDisplayButton:hover {
   cursor: pointer;
-  background-color: #fcaf3e; /* tango orange */
+  background: -moz-linear-gradient(top, #F9CE90, #F6A942); /* orange gradient */
 }
 
 mail-emailaddress[selected="true"] .emailDisplayButton{
@@ -616,7 +616,7 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
     tweak the bottom to blend in more w/ the menu */
   cursor: pointer;
   border-radius: 3px;
-  background-color: #fcaf3e; /* tango orange */
+  background: -moz-linear-gradient(top, #F9CE90, #F6A942); /* orange gradient */
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
 }
@@ -636,7 +636,10 @@ mail-emailaddress[selected="true"] .emailDisplayButton{
 }
 
 .emailDisplayButton:focus {
-  border: 1px dotted #fcaf3e; /* tango orange */
+  border-top: 1px dotted #F6A942; /* Lightest hue from orange gradient */
+  border-bottom: 1px dotted #F9CE90; /* Darkest hue from orange gradient */
+  border-left: 1px dotted #F8BA67; /* Middle hue from orange gradient */
+  border-right: 1px dotted #F8BA67; /* Middle hue from orange gradient */
 }
 
 .emailStar:focus {
