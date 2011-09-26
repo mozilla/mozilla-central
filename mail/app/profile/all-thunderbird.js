@@ -700,6 +700,25 @@ pref("dom.ipc.plugins.enabled", true);
 pref("dom.ipc.plugins.nativeCursorSupport", true);
 #endif
 
+// plugin finder service url
+pref("pfs.datasource.url", "https://pfs.mozilla.org/plugins/PluginFinderService.
+php?mimetype=%PLUGIN_MIMETYPE%&appID=%APP_ID%&appVersion=%APP_VERSION%&clientOS=
+%CLIENT_OS%&chromeLocale=%CHROME_LOCALE%&appRelease=%APP_RELEASE%");
+
+// By default we show an infobar message when pages require plugins the user has
+// not installed, or are outdated.
+pref("plugins.hide_infobar_for_missing_plugin", false);
+pref("plugins.hide_infobar_for_outdated_plugin", false);
+
+#ifdef XP_MACOSX
+pref("plugins.use_layers", false);
+pref("plugins.hide_infobar_for_carbon_failure_plugin", false);
+#endif
+
+pref("plugins.update.url", "https://www.mozilla.com/%LOCALE%/plugincheck/");
+pref("plugins.update.notifyUser", false);
+pref("plugins.crash.supportUrl", "https://live.mozillamessaging.com/%APP%/plugin-crashed?locale=%LOCALE%&version=%VERSION%&os=%OS%&buildid=%APPBUILDID%");
+
 // Windows taskbar support
 #ifdef XP_WIN
 pref("mail.taskbar.lists.enabled", true);

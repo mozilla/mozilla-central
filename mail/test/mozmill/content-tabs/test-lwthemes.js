@@ -65,34 +65,6 @@ var setupModule = function (module) {
 
 const ALERT_TIMEOUT = 10000;
 
-let AlertWatcher = {
-  planForAlert: function(aController) {
-    this.alerted = false;
-    aController.window.document.addEventListener("AlertActive",
-                                                 this.alertActive, false);
-  },
-  waitForAlert: function(aController) {
-    if (!this.alerted) {
-      aController.waitFor(function () this.alerted, "Timeout waiting for alert",
-                          ALERT_TIMEOUT, 100, this);
-    }
-    // Double check the notification box has finished animating.
-    let notificationBox =
-      mc.tabmail.selectedTab.panel.getElementsByTagName("notificationbox")[0];
-    if (notificationBox && notificationBox._animating)
-      aController.waitFor(function () !notificationBox._animating,
-                          "Timeout waiting for notification box animation to finish",
-                          ALERT_TIMEOUT, 100);
-
-    aController.window.document.removeEventListener("AlertActive",
-                                                    this.alertActive, false);
-  },
-  alerted: false,
-  alertActive: function() {
-    AlertWatcher.alerted = true;
-  }
-};
-
 function check_and_click_notification_box_action_in_current_tab(totalButtons,
                                                                 selectButton) {
   let notificationBox =
@@ -123,18 +95,18 @@ function install_theme(themeNo, previousThemeNo) {
 
   // Clicking the button will bring up a notification box requesting to allow
   // installation of the theme
-  AlertWatcher.planForAlert(mc);
+  NotificationWatcher.planForNotification(mc);
   mc.click(new elib.Elem(mc.window.content.document
                            .getElementById("install" + themeNo)));
-  AlertWatcher.waitForAlert(mc);
+  NotificationWatcher.waitForNotification(mc);
 
   // We're going to acknowledge the theme installation being allowed, and
   // in doing so, the theme will be installed. However, we also will get a new
   // notification box displayed saying the installation is complete, so we'll
   // have to handle that here as well.
-  AlertWatcher.planForAlert(mc);
+  NotificationWatcher.planForNotification(mc);
   check_and_click_notification_box_action_in_current_tab(1, 0);
-  AlertWatcher.waitForAlert(mc);
+  NotificationWatcher.waitForNotification(mc);
 
   // Before we do anything more, check what we've got installed.
   if (!currentLwTheme())
@@ -160,18 +132,18 @@ function install_theme(themeNo, previousThemeNo) {
   }
 
   // Now Click again to install, and this time, we'll leave it there.
-  AlertWatcher.planForAlert(mc);
+  NotificationWatcher.planForNotification(mc);
   mc.click(new elib.Elem(mc.window.content.document
                            .getElementById("install" + themeNo)));
-  AlertWatcher.waitForAlert(mc);
+  NotificationWatcher.waitForNotification(mc);
 
   // We're going to acknowledge the theme installation being allowed, and
   // in doing so, the theme will be installed. However, we also will get a new
   // notification box displayed saying the installation is complete, so we'll
   // have to handle that here as well.
-  AlertWatcher.planForAlert(mc);
+  NotificationWatcher.planForNotification(mc);
   check_and_click_notification_box_action_in_current_tab(1, 0);
-  AlertWatcher.waitForAlert(mc);
+  NotificationWatcher.waitForNotification(mc);
 
   // Now just close the notification box
   close_notification_box_in_current_tab();

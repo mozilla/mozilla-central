@@ -46,6 +46,7 @@ messenger.jar:
 *   content/messenger/ABSearchDialog.js             (content/ABSearchDialog.js)
 *   content/messenger/FilterListDialog.xul          (content/FilterListDialog.xul)
 *   content/messenger/FilterListDialog.js           (content/FilterListDialog.js)
+*   content/messenger/plugins.js                    (content/plugins.js)
     content/messenger/specialTabs.js                (content/specialTabs.js)
     content/messenger/specialTabs.xul               (content/specialTabs.xul)
 *   content/messenger/subscribe.xul                 (content/subscribe.xul)

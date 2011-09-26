@@ -408,6 +408,7 @@ var specialTabs = {
       aTab.tabNode.setAttribute("onerror", "this.removeAttribute('image');");
 
       aTab.browser.addEventListener("DOMLinkAdded", DOMLinkHandler, false);
+      gPluginHandler.addEventListeners(aTab.browser);
 
       // Now initialise the find bar.
       aTab.findbar = aTab.panel.getElementsByTagName("findbar")[0];
@@ -462,6 +463,7 @@ var specialTabs = {
       aTab.browser.removeEventListener("DOMWindowClose",
                                        aTab.closeListener, true);
       aTab.browser.removeEventListener("DOMLinkAdded", DOMLinkHandler, false);
+      gPluginHandler.removeEventListeners(aTab.browser);
       aTab.browser.webProgress.removeProgressListener(aTab.filter);
       aTab.filter.removeProgressListener(aTab.progressListener);
       aTab.browser.destroy();

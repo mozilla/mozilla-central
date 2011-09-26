@@ -45,6 +45,7 @@ var mozmill = {};
 Cu.import('resource://mozmill/modules/mozmill.js', mozmill);
 var utils = {};
 Cu.import('resource://mozmill/modules/utils.js', utils);
+Cu.import("resource://gre/modules/Services.jsm");
 
 const MODULE_NAME = 'content-tab-helpers';
 
@@ -90,7 +91,45 @@ function installInto(module) {
   module.wait_for_content_tab_element_display_value = wait_for_content_tab_element_display_value;
   module.assert_content_tab_text_present = assert_content_tab_text_present;
   module.assert_content_tab_text_absent = assert_content_tab_text_absent;
+  module.NotificationWatcher = NotificationWatcher;
+  module.get_notification_bar_for_tab = get_notification_bar_for_tab;
+  module.get_test_plugin = get_test_plugin;
+  module.plugins_run_in_separate_processes = plugins_run_in_separate_processes;
 }
+
+/* Allows for planning / capture of notification events within
+ * content tabs, for example: plugin crash notifications, theme
+ * install notifications.
+ */
+const ALERT_TIMEOUT = 10000;
+
+let NotificationWatcher = {
+  planForNotification: function(aController) {
+    this.alerted = false;
+    aController.window.document.addEventListener("AlertActive",
+                                                 this.alertActive, false);
+  },
+  waitForNotification: function(aController) {
+    if (!this.alerted) {
+      aController.waitFor(function () this.alerted, "Timeout waiting for alert",
+                          ALERT_TIMEOUT, 100, this);
+    }
+    // Double check the notification box has finished animating.
+    let notificationBox =
+      mc.tabmail.selectedTab.panel.getElementsByTagName("notificationbox")[0];
+    if (notificationBox && notificationBox._animating)
+      aController.waitFor(function () !notificationBox._animating,
+                          "Timeout waiting for notification box animation to finish",
+                          ALERT_TIMEOUT, 100);
+
+    aController.window.document.removeEventListener("AlertActive",
+                                                    this.alertActive, false);
+  },
+  alerted: false,
+  alertActive: function() {
+    NotificationWatcher.alerted = true;
+  }
+};
 
 /**
  * Opens a content tab with the given URL.
@@ -298,4 +337,62 @@ function assert_content_tab_text_absent(aTab, aText) {
   if (html.indexOf(aText) != -1) {
     mark_failure(["Found string \"" + aText + "\" on the content tab's page"]);
   }
+}
+
+/**
+ * Returns the notification bar for a tab if one is currently visible,
+ * null if otherwise.
+ */
+function get_notification_bar_for_tab(aTab) {
+  let notificationBoxEls = mc.tabmail.selectedTab.panel.getElementsByTagName("notificationbox");
+  if (notificationBoxEls.length == 0)
+    return null;
+
+  return notificationBoxEls[0];
+}
+
+/**
+ * Returns the nsIPluginTag for the test plug-in, if it is available.
+ * Returns null otherwise.
+ */
+function get_test_plugin() {
+  var ph = Components.classes["@mozilla.org/plugin/host;1"]
+           .getService(Components.interfaces.nsIPluginHost);
+  var tags = ph.getPluginTags();
+
+  // Find the test plugin
+  for (var i = 0; i < tags.length; i++) {
+    if (tags[i].name == "Test Plug-in")
+      return tags[i];
+  }
+  return null;
+}
+
+/* Returns true if we're currently set up to run plugins in seperate
+ * processes, false otherwise.
+ */
+function plugins_run_in_separate_processes(aController) {
+  let supportsOOPP = false;
+
+  if (aController.mozmillModule.isMac) {
+    if (Services.appinfo.XPCOMABI.match(/x86-/)) {
+      try {
+        supportsOOPP = Services.prefs.getBoolPref("dom.ipc.plugins.enabled.i386.test.plugin");
+      } catch(e) {
+        supportsOOPP = Services.prefs.getBoolPref("dom.ipc.plugins.enabled.i386");
+      }
+    }
+    else if (Services.appinfo.XPCOMABI.match(/x86_64-/)) {
+      try {
+        supportsOOPP = Services.prefs.getBoolPref("dom.ipc.plugins.enabled.x86_64.test.plugin");
+      } catch(e) {
+        supportsOOPP = Services.prefs.getBoolPref("dom.ipc.plugins.enabled.x86_64");
+      }
+    }
+  }
+  else {
+    supportsOOPP = Services.prefs.getBoolPref("dom.ipc.plugins.enabled");
+  }
+
+  return supportsOOPP;
 }

@@ -394,6 +394,8 @@ function OnLoadMessenger()
                                     LightWeightThemeWebInstaller, false, true);
   }
 
+  Services.obs.addObserver(gPluginHandler.pluginCrashed, "plugin-crashed", false);
+
   // This also registers the contentTabType ("contentTab")
   specialTabs.openSpecialTabsOnStartup();
 
@@ -589,6 +591,8 @@ function OnUnloadMessenger()
   mailSession.RemoveFolderListener(folderListener);
 
   gPhishingDetector.shutdown();
+
+  Services.obs.removeObserver(gPluginHandler.pluginCrashed, "plugin-crashed");
 
   // FIX ME - later we will be able to use onload from the overlay
   OnUnloadMsgHeaderPane();
