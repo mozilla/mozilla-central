@@ -1,7 +1,7 @@
 #aboutDialogContainer {
   background-image: url("chrome://branding/content/about-background.png");
   background-repeat: no-repeat;
-  background-color: #ce5c00;
+  background-color: #3465a4;
   color: #fff;
 }
 
@@ -16,5 +16,5 @@
 }
 
 #bottomBox {
-  background-color: rgba(0,0,0,.7);
+  background-color: #2a3569;
 }
