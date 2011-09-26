@@ -1195,7 +1195,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
   // a need to do conversion to plain text...if so, the magic happens here,
   // otherwise, just move on to other attachments...
   //
-  if (NS_SUCCEEDED(status) && m_type.LowerCaseEqualsLiteral(TEXT_PLAIN) &&
+  if (NS_SUCCEEDED(status) && !m_type.LowerCaseEqualsLiteral(TEXT_PLAIN) &&
       m_desiredType.LowerCaseEqualsLiteral(TEXT_PLAIN))
   {
     //
