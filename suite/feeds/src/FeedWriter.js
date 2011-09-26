@@ -1386,7 +1386,7 @@ FeedWriter.prototype = {
   classInfo: XPCOMUtils.generateCI({classID: FEEDWRITER_CID,
                                     contractID: FEEDWRITER_CONTRACTID,
                                     interfaces: [Components.interfaces.nsIFeedWriter],
-                                    flags: Components.interfaces.nsIClassInfo.DOM_OBJECT})
+                                    flags: Components.interfaces.nsIClassInfo.DOM_OBJECT}),
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIFeedWriter,
                                           Components.interfaces.nsIDOMEventListener,
                                           Components.interfaces.nsINavHistoryObserver,
