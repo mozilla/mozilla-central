@@ -546,11 +546,12 @@ var BookmarksEventHandler = {
   },
 
   onPopupShowing: function BEH_onPopupShowing(aEvent) {
+    var browser = getBrowser();
     if (!aEvent.currentTarget.parentNode._placesView)
       new PlacesMenu(aEvent, 'place:folder=BOOKMARKS_MENU');
 
     document.getElementById("Browser:BookmarkAllTabs")
-            .setAttribute("disabled", getBrowser().tabs.length == 1);
+            .setAttribute("disabled", !browser || browser.tabs.length == 1);
   },
   
   fillInBHTooltip: function BEH_fillInBHTooltip(aDocument, aEvent) {
