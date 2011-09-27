@@ -316,8 +316,6 @@ nsresult nsOutlookCompose::ComposeTheMessage(nsMsgDeliverMode mode, CMapiMessage
   m_pMsgFields->SetCc(unival);
   headers->UnfoldValue(CMapiMessageHeaders::hdrReplyTo, unival, msg.GetBodyCharset());
   m_pMsgFields->SetReplyTo(unival);
-
-  // Message-Id cannot fold
   m_pMsgFields->SetMessageId(headers->Value(CMapiMessageHeaders::hdrMessageID));
 
   // We only use those headers that may need to be processed by Thunderbird
