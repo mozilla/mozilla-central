@@ -433,22 +433,6 @@ static const char kPkcs11ContractID[] = NS_PKCS11_CONTRACTID;
 #endif
 static const char sPopStatePrefStr[] = "browser.history.allowPopState";
 
-static PRBool
-IsAboutBlank(nsIURI* aURI)
-{
-  NS_PRECONDITION(aURI, "Must have URI");
-    
-  // GetSpec can be expensive for some URIs, so check the scheme first.
-  PRBool isAbout = PR_FALSE;
-  if (NS_FAILED(aURI->SchemeIs("about", &isAbout)) || !isAbout) {
-    return PR_FALSE;
-  }
-    
-  nsCAutoString str;
-  aURI->GetSpec(str);
-  return str.EqualsLiteral("about:blank");  
-}
-
 class nsDummyJavaPluginOwner : public nsIPluginInstanceOwner
 {
 public:
@@ -520,8 +504,8 @@ nsDummyJavaPluginOwner::SetInstance(nsNPAPIPluginInstance *aInstance)
 NS_IMETHODIMP
 nsDummyJavaPluginOwner::GetInstance(nsNPAPIPluginInstance **aInstance)
 {
-  NS_IF_ADDREF(mInstance);
   *aInstance = mInstance;
+  NS_IF_ADDREF(*aInstance);
 
   return NS_OK;
 }
@@ -1615,7 +1599,7 @@ nsGlobalWindow::WouldReuseInnerWindow(nsIDocument *aNewDocument)
     return PR_FALSE;
   }
   
-  NS_ASSERTION(IsAboutBlank(mDoc->GetDocumentURI()),
+  NS_ASSERTION(NS_IsAboutBlank(mDoc->GetDocumentURI()),
                "How'd this happen?");
   
   // Great, we're the original document, check for one of the other
@@ -1664,8 +1648,8 @@ nsGlobalWindow::SetOpenerScriptPrincipal(nsIPrincipal* aPrincipal)
     // something is really weird.
     nsCOMPtr<nsIURI> uri;
     mDoc->NodePrincipal()->GetURI(getter_AddRefs(uri));
-    NS_ASSERTION(uri && IsAboutBlank(uri) &&
-                 IsAboutBlank(mDoc->GetDocumentURI()),
+    NS_ASSERTION(uri && NS_IsAboutBlank(uri) &&
+                 NS_IsAboutBlank(mDoc->GetDocumentURI()),
                  "Unexpected original document");
 #endif
 
@@ -5013,7 +4997,7 @@ nsGlobalWindow::Focus()
     NS_ASSERTION(doc, "Bogus doc?");
     nsIURI* ourURI = doc->GetDocumentURI();
     if (ourURI) {
-      lookForPresShell = !IsAboutBlank(ourURI);
+      lookForPresShell = !NS_IsAboutBlank(ourURI);
     }
   }
 
@@ -8175,6 +8159,11 @@ nsGlobalWindow::GetGlobalStorage(nsIDOMStorageList ** aGlobalStorage)
 {
   NS_ENSURE_ARG_POINTER(aGlobalStorage);
 
+  nsCOMPtr<nsIDocument> document = do_QueryInterface(GetExtantDocument());
+  if (document) {
+    document->WarnOnceAbout(nsIDocument::eGlobalStorage);
+  }
+
   if (!Preferences::GetBool(kStorageEnabled)) {
     *aGlobalStorage = nsnull;
     return NS_OK;
@@ -8979,6 +8968,8 @@ nsGlobalWindow::SetTimeoutOrInterval(nsIScriptTimeoutHandler *aHandler,
       return rv;
     }
 
+    nsRefPtr<nsTimeout> copy = timeout;
+
     rv = timeout->mTimer->InitWithFuncCallback(TimerCallback, timeout,
                                                realInterval,
                                                nsITimer::TYPE_ONE_SHOT);
@@ -8987,7 +8978,7 @@ nsGlobalWindow::SetTimeoutOrInterval(nsIScriptTimeoutHandler *aHandler,
     }
 
     // The timeout is now also held in the timer's closure.
-    timeout->AddRef();
+    copy.forget();
   } else {
     // If we are frozen, however, then we instead simply set
     // timeout->mTimeRemaining to be the "time remaining" in the timeout (i.e.,

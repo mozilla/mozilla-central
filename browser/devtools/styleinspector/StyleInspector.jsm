@@ -21,7 +21,8 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Mike Ratcliffe <mratcliffe@mozilla.com>
+ *   Mike Ratcliffe <mratcliffe@mozilla.com> (Original Author)
+ *   Rob Campbell <rcampbell@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -68,6 +69,7 @@ var StyleInspector = {
     let ns = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
     let panel = win.document.createElementNS(ns, "panel");
 
+    panel.setAttribute("class", "styleInspector");
     panel.setAttribute("orient", "vertical");
     panel.setAttribute("ignorekeys", "true");
     panel.setAttribute("noautofocus", "true");
@@ -75,11 +77,8 @@ var StyleInspector = {
     panel.setAttribute("titlebar", "normal");
     panel.setAttribute("close", "true");
     panel.setAttribute("label", StyleInspector.l10n("panelTitle"));
-
-    // size panel to 200px wide by half browser height - 60.
-    let contentWindow = win.gBrowser.selectedBrowser.contentWindow;
-    panel.setAttribute("width", 200);
-    panel.setAttribute("height", contentWindow.outerHeight / 2 - 60);
+    panel.setAttribute("width", 350);
+    panel.setAttribute("height", win.screen.height / 2);
 
     let vbox = win.document.createElement("vbox");
     vbox.setAttribute("flex", "1");
@@ -111,8 +110,6 @@ var StyleInspector = {
     let iframeReady = false;
     function SI_iframeOnload() {
       iframe.removeEventListener("load", SI_iframeOnload, true);
-      panel.cssLogic = new CssLogic();
-      panel.cssHtmlTree = new CssHtmlTree(iframe, panel.cssLogic, panel);
       iframeReady = true;
       if (panelReady) {
         SI_popupShown.call(panel);
@@ -126,6 +123,10 @@ var StyleInspector = {
     function SI_popupShown() {
       panelReady = true;
       if (iframeReady) {
+        if (!this.cssLogic) {
+          this.cssLogic = new CssLogic();
+          this.cssHtmlTree = new CssHtmlTree(iframe, this.cssLogic, this);
+        }
         let selectedNode = this.selectedNode || null;
         this.cssLogic.highlight(selectedNode);
         this.cssHtmlTree.highlight(selectedNode);
@@ -164,12 +165,9 @@ var StyleInspector = {
     panel.selectNode = function SI_selectNode(aNode)
     {
       this.selectedNode = aNode;
-      if (this.isOpen()) {
+      if (this.isOpen() && !this.hasAttribute("dimmed")) {
         this.cssLogic.highlight(aNode);
         this.cssHtmlTree.highlight(aNode);
-      } else {
-        let win = Services.wm.getMostRecentWindow("navigator:browser");
-        this.openPopup(win.gBrowser.selectedBrowser, "end_before", 0, 0, false, false);
       }
     };
 
@@ -178,12 +176,47 @@ var StyleInspector = {
      */
     panel.destroy = function SI_destroy()
     {
+      if (!this.cssLogic)
+        return;
+      if (this.isOpen())
+        this.hideTool();
       this.cssLogic = null;
       this.cssHtmlTree = null;
       this.removeEventListener("popupshown", SI_popupShown);
       this.removeEventListener("popuphidden", SI_popupHidden);
       this.parentNode.removeChild(this);
       Services.obs.notifyObservers(null, "StyleInspector-closed", null);
+    };
+
+    /**
+     * Dim or undim a panel by setting or removing a dimmed attribute.
+     *
+     * @param aState
+     *        true = dim, false = undim
+     */
+    panel.dimTool = function SI_dimTool(aState)
+    {
+      if (!this.isOpen())
+        return;
+
+      if (aState) {
+        this.setAttribute("dimmed", "true");
+      } else if (this.hasAttribute("dimmed")) {
+        this.removeAttribute("dimmed");
+      }
+    };
+
+    panel.showTool = function SI_showTool(aSelection)
+    {
+      this.selectNode(aSelection);
+      let win = Services.wm.getMostRecentWindow("navigator:browser");
+      this.openPopup(win.gBrowser.selectedBrowser, "end_before", 0, 0,
+        false, false);
+    };
+
+    panel.hideTool = function SI_hideTool()
+    {
+      this.hidePopup();
     };
 
     /**
