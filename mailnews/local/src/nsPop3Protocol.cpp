@@ -1370,7 +1370,10 @@ PRInt32 nsPop3Protocol::SendData(nsIURI * aURL, const char * dataBuffer, PRBool 
     m_pop3ConData->next_state = POP3_WAIT_FOR_RESPONSE;
   }
   else
+  {
     m_pop3ConData->next_state = POP3_ERROR_DONE;
+    PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS, ("SendData faild: %lx", result));
+  }
 
   return 0;
 }
