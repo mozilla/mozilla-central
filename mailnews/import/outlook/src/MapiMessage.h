@@ -100,47 +100,49 @@ public:
                        hdrMax // utility value
                      };
 
-  CMapiMessageHeaders(const wchar_t* headers = 0) { Assign(headers); }
-  CMapiMessageHeaders(const char* headers)
-  {
-    nsString uniHeaders;
-    CopyASCIItoUTF16(headers, uniHeaders);
-    Assign(uniHeaders.get());
-  }
+  CMapiMessageHeaders(const char* headers = 0) { Assign(headers); }
   ~CMapiMessageHeaders();
-  void Assign(const wchar_t* headers);
+  void Assign(const char* headers);
 
   inline bool IsEmpty() const { return m_headerFields.empty(); }
   // if no such header exists then 0 is returned, else the first value returned
-  const wchar_t* Value(const wchar_t* name) const;
+  const char* Value(const char* name) const;
   // if no such header exists then 0 is returned
-  const wchar_t* Value(SpecialHeader special) const;
+  const char* Value(SpecialHeader special) const;
 
-  void UnfoldValue(const wchar_t* name, nsString& dest) const;
-  void UnfoldValue(SpecialHeader special, nsString& dest) const;
+  void UnfoldValue(const char* name, nsString& dest, const char* fallbackCharset) const;
+  void UnfoldValue(SpecialHeader special, nsString& dest, const char* fallbackCharset) const;
 
+  // value must be utf-8 or 7-bit; supposed that this function will be called
+  // when the charset of the value is known
   // TODO: if replace is set, then all headers with this name will be removed
   //  and one with this value will be added, otherwise a new header is added
   // (Unnecessary for now)
-  int SetValue(const wchar_t* name, const wchar_t* value, bool replace = true);
-  int SetValue(SpecialHeader special, const wchar_t* value);
+  int SetValue(const char* name, const char* value, bool replace = true);
+  int SetValue(SpecialHeader special, const char* value);
+
+  static const char* SpecialName(SpecialHeader special);
 
   nsresult ToStream(nsIOutputStream *pDst) const;
 private:
   class CHeaderField {
   public:
-    CHeaderField(const wchar_t* begin, int len);
-    CHeaderField(const wchar_t* name, const wchar_t* body);
+    CHeaderField(const char* begin, int len);
+    CHeaderField(const char* name, const char* body, bool utf8 = false);
     ~CHeaderField();
     inline bool Valid() const { return m_fname; }
-    inline const wchar_t* fname() const { return m_fname; }
-    inline const wchar_t* fbody() const { return m_fbody; }
-    void set_fbody(const wchar_t* txt);
+    inline const char* fname() const { return m_fname; }
+    inline const char* fbody() const { return m_fbody; }
+    
+    // txt must be utf-8 or 7-bit; supposed that this function will be called
+    // when the charset of the txt is known
+    void set_fbody(const char* txt);
 
-    static void UnfoldFoldedSpaces(const wchar_t* body, nsString& dest);
+    void GetUnfoldedString(nsString& dest, const char* fallbackCharset) const;
   private:
-    wchar_t* m_fname;
-    wchar_t* m_fbody;
+    char* m_fname;
+    char* m_fbody;
+    bool m_fbody_utf8;
   }; //class HeaderField
 
   class write_to_stream {
@@ -156,23 +158,23 @@ private:
   // Search helper
   class fname_equals {
   public:
-    fname_equals(const wchar_t* search) : m_search(search) {}
-    inline bool operator () (const CHeaderField* f) const { return wcsicmp(f->fname(), m_search) == 0; }
+    fname_equals(const char* search) : m_search(search) {}
+    inline bool operator () (const CHeaderField* f) const { return stricmp(f->fname(), m_search) == 0; }
   private:
-    const wchar_t* m_search;
+    const char* m_search;
   }; // class fname_equals
 
   // The common array of special headers' names
-  static const wchar_t* Specials[hdrMax];
+  static const char* Specials[hdrMax];
   
   std::vector<CHeaderField*> m_headerFields;
   CHeaderField* m_SpecialHeaders[hdrMax]; // Pointers into the m_headerFields
 
   void ClearHeaderFields();
   void Add(CHeaderField* f);
-  SpecialHeader CheckSpecialHeader(const wchar_t* fname) const;
-  const CHeaderField* CFind(const wchar_t* name) const;
-  inline CHeaderField* Find(const wchar_t* name) { return const_cast<CHeaderField*>(CFind(name)); }
+  static SpecialHeader CheckSpecialHeader(const char* fname);
+  const CHeaderField* CFind(const char* name) const;
+  inline CHeaderField* Find(const char* name) { return const_cast<CHeaderField*>(CFind(name)); }
 
 }; // class CMapiMessageHeaders
 
@@ -292,7 +294,7 @@ private:
 
   void    ProcessContentType();
   bool    CheckBodyInCharsetRange(const char* charset);
-  void    FormatDateTime( SYSTEMTIME & tm, nsString& s, bool includeTZ = true);
+  void    FormatDateTime(SYSTEMTIME& tm, nsCString& s, bool includeTZ = true);
   void    BuildFromLine( void);
 
   inline static bool IsSpace( char c) {

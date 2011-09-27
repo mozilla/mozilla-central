@@ -304,23 +304,22 @@ nsresult nsOutlookCompose::ComposeTheMessage(nsMsgDeliverMode mode, CMapiMessage
 
   CMapiMessageHeaders* headers = msg.GetHeaders();
 
-  nsString val;
-  headers->UnfoldValue(CMapiMessageHeaders::hdrFrom, val);
-  m_pMsgFields->SetFrom(val);
-  headers->UnfoldValue(CMapiMessageHeaders::hdrTo, val);
-  m_pMsgFields->SetTo(val);
-  headers->UnfoldValue(CMapiMessageHeaders::hdrSubject, val);
-  m_pMsgFields->SetSubject(val);
-  m_pMsgFields->SetCharacterSet( msg.GetBodyCharset() );
-  headers->UnfoldValue(CMapiMessageHeaders::hdrCc, val);
-  m_pMsgFields->SetCc(val);
-  headers->UnfoldValue(CMapiMessageHeaders::hdrReplyTo, val);
-  m_pMsgFields->SetReplyTo(val);
+  nsString unival;
+  headers->UnfoldValue(CMapiMessageHeaders::hdrFrom, unival, msg.GetBodyCharset());
+  m_pMsgFields->SetFrom(unival);
+  headers->UnfoldValue(CMapiMessageHeaders::hdrTo, unival, msg.GetBodyCharset());
+  m_pMsgFields->SetTo(unival);
+  headers->UnfoldValue(CMapiMessageHeaders::hdrSubject, unival, msg.GetBodyCharset());
+  m_pMsgFields->SetSubject(unival);
+  m_pMsgFields->SetCharacterSet(msg.GetBodyCharset());
+  headers->UnfoldValue(CMapiMessageHeaders::hdrCc, unival, msg.GetBodyCharset());
+  m_pMsgFields->SetCc(unival);
+  headers->UnfoldValue(CMapiMessageHeaders::hdrReplyTo, unival, msg.GetBodyCharset());
+  m_pMsgFields->SetReplyTo(unival);
 
-  nsCAutoString asciiHeaderVal;
-  LossyCopyUTF16toASCII(headers->Value(CMapiMessageHeaders::hdrMessageID),
-                        asciiHeaderVal); // Message-Id cannot fold
-  m_pMsgFields->SetMessageId(asciiHeaderVal.get());
+  // Message-Id cannot fold
+  m_pMsgFields->SetMessageId(headers->Value(CMapiMessageHeaders::hdrMessageID));
+
   // We only use those headers that may need to be processed by Thunderbird
   // to create a good rfc822 document, or need to be encoded (like To and Cc).
   // These will replace the originals on import. All the other headers
@@ -555,15 +554,28 @@ void nsOutlookCompose::UpdateHeader(CMapiMessageHeaders& oldHeaders,
                                     CMapiMessageHeaders::SpecialHeader header,
                                     bool addIfAbsent)
 {
-  if (!addIfAbsent && !oldHeaders.Value(header))
+  const char* oldVal = oldHeaders.Value(header);
+  if (!addIfAbsent && !oldVal)
     return;
-  const wchar_t* newVal = newHeaders.Value(header);
-  if (newVal) oldHeaders.SetValue(header, newVal);
+  const char* newVal = newHeaders.Value(header);
+  if (!newVal)
+    return;
   // Bug 145150 - Turn "Content-Type: application/ms-tnef" into "Content-Type: text/plain"
   //              so the body text can be displayed normally (instead of in an attachment).
   if (header == CMapiMessageHeaders::hdrContentType)
-    if (!wcsicmp(oldHeaders.Value(header), L"application/ms-tnef"))
-      oldHeaders.SetValue(header, L"text/plain");
+    if (stricmp(newVal, "application/ms-tnef") == 0)
+      newVal = "text/plain";
+  // End Bug 145150
+  if (oldVal) {
+    if (strcmp(oldVal, newVal) == 0)
+      return;
+    // Backup the old header value
+    nsCString backupHdrName("X-MozillaBackup-");
+    backupHdrName += CMapiMessageHeaders::SpecialName(header);
+    oldHeaders.SetValue(backupHdrName.get(), oldVal, false);
+  }
+  // Now replace it with new value
+  oldHeaders.SetValue(header, newVal);
 }
 
 void nsOutlookCompose::UpdateHeaders(CMapiMessageHeaders& oldHeaders, const CMapiMessageHeaders& newHeaders)

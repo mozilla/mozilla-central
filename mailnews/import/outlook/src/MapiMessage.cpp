@@ -75,14 +75,14 @@ extern LPMAPIFREEBUFFER gpMapiFreeBuffer;
 typedef const char * PC_S8;
 
 static const char * kWhitespace = "\b\t\r\n ";
-static const wchar_t * sFromLine = L"From - ";
-static const wchar_t * sFromDate = L"Mon Jan 1 00:00:00 1965";
-static const wchar_t * sDaysOfWeek[7] = {
-  L"Sun", L"Mon", L"Tue", L"Wed", L"Thu", L"Fri", L"Sat"
+static const char * sFromLine = "From - ";
+static const char * sFromDate = "Mon Jan 1 00:00:00 1965";
+static const char * sDaysOfWeek[7] = {
+  "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
 };
 
-static const wchar_t *sMonths[12] = {
-  L"Jan", L"Feb", L"Mar", L"Apr", L"May", L"Jun", L"Jul", L"Aug", L"Sep", L"Oct", L"Nov", L"Dec"
+static const char *sMonths[12] = {
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
 };
 
 CMapiMessage::CMapiMessage( LPMESSAGE lpMsg)
@@ -115,48 +115,47 @@ CMapiMessage::~CMapiMessage()
   NS_IF_RELEASE(m_pIOService);
 }
 
-
-void CMapiMessage::FormatDateTime( SYSTEMTIME & tm, nsString& s, bool includeTZ)
+void CMapiMessage::FormatDateTime(SYSTEMTIME& tm, nsCString& s, bool includeTZ)
 {
   long offset = _timezone;
   s += sDaysOfWeek[tm.wDayOfWeek];
-  s += L", ";
+  s += ", ";
   s.AppendInt((PRInt32) tm.wDay);
-  s += L" ";
+  s += " ";
   s += sMonths[tm.wMonth - 1];
-  s += L" ";
+  s += " ";
   s.AppendInt((PRInt32) tm.wYear);
-  s += L" ";
+  s += " ";
   int val = tm.wHour;
   if (val < 10)
-    s += L"0";
+    s += "0";
   s.AppendInt((PRInt32) val);
-  s += L":";
+  s += ":";
   val = tm.wMinute;
   if (val < 10)
-    s += L"0";
+    s += "0";
   s.AppendInt((PRInt32) val);
-  s += L":";
+  s += ":";
   val = tm.wSecond;
   if (val < 10)
-    s += L"0";
+    s += "0";
   s.AppendInt((PRInt32) val);
   if (includeTZ) {
-    s += L" ";
+    s += " ";
     if (offset < 0) {
       offset *= -1;
-      s += L"+";
+      s += "+";
     }
     else
-      s += L"-";
+      s += "-";
     offset /= 60;
     val = (int) (offset / 60);
     if (val < 10)
-      s += L"0";
+      s += "0";
     s.AppendInt((PRInt32) val);
     val = (int) (offset % 60);
     if (val < 10)
-      s += L"0";
+      s += "0";
     s.AppendInt((PRInt32) val);
   }
 }
@@ -167,14 +166,25 @@ bool CMapiMessage::EnsureHeader(CMapiMessageHeaders::SpecialHeader special,
   if (m_headers.Value(special))
     return true;
 
-  nsString value;
   LPSPropValue pVal = CMapiApi::GetMapiProperty(m_lpMsg, mapiTag);
-  if (CMapiApi::GetStringFromProp(pVal, value) && !value.IsEmpty()) {
-    m_headers.SetValue(special, value.get());
-    return true;
+  bool success = false;
+  if (pVal) {
+    if (PROP_TYPE(pVal->ulPropTag) == PT_STRING8) {
+      if (pVal->Value.lpszA && strlen(pVal->Value.lpszA)) {
+        m_headers.SetValue(special, pVal->Value.lpszA);
+        success = true;
+      }
+    }
+    else if (PROP_TYPE(pVal->ulPropTag) == PT_UNICODE) {
+      if (pVal->Value.lpszW && wcslen(pVal->Value.lpszW)) {
+        m_headers.SetValue(special, NS_ConvertUTF16toUTF8(pVal->Value.lpszW).get());
+        success = true;
+      }
+    }
+    CMapiApi::MAPIFreeBuffer(pVal);
   }
 
-  return false;
+  return success;
 }
 
 bool CMapiMessage::EnsureDate()
@@ -192,9 +202,9 @@ bool CMapiMessage::EnsureDate()
     CMapiApi::MAPIFreeBuffer(pVal);
     // FormatDateTime would append the local time zone, so don't use it.
     // Instead, we just append +0000 for GMT/UTC here.
-    nsString str;
-    FormatDateTime( st, str, false);
-    str += L" +0000";
+    nsCString str;
+    FormatDateTime(st, str, false);
+    str += " +0000";
     m_headers.SetValue(CMapiMessageHeaders::hdrDate, str.get());
     return true;
   }
@@ -204,19 +214,18 @@ bool CMapiMessage::EnsureDate()
 
 void CMapiMessage::BuildFromLine( void)
 {
-  nsString fromLine(sFromLine);
-  LPSPropValue pVal = CMapiApi::GetMapiProperty( m_lpMsg, PR_CREATION_TIME);
+  m_fromLine = sFromLine;
+  LPSPropValue pVal = CMapiApi::GetMapiProperty(m_lpMsg, PR_CREATION_TIME);
   if (pVal) {
     SYSTEMTIME st;
-    ::FileTimeToSystemTime( &(pVal->Value.ft), &st);
-    CMapiApi::MAPIFreeBuffer( pVal);
-    FormatDateTime( st, fromLine, FALSE);
+    ::FileTimeToSystemTime(&(pVal->Value.ft), &st);
+    CMapiApi::MAPIFreeBuffer(pVal);
+    FormatDateTime(st, m_fromLine, FALSE);
   }
   else
-    fromLine += sFromDate;
+    m_fromLine += sFromDate;
 
-  fromLine += L"\x0D\x0A";
-  CopyUTF16toUTF8(fromLine, m_fromLine);
+  m_fromLine += "\x0D\x0A";
 }
 
 #ifndef dispidHeaderItem
@@ -264,24 +273,25 @@ void CMapiMessage::GetDownloadState()
 // and PR_CREATION_TIME if needed?
 bool CMapiMessage::FetchHeaders( void)
 {
-  // Get the Unicode string right away -> no need to double-convert,
-  // no possible conversion problems.
-  ULONG tag = PR_TRANSPORT_MESSAGE_HEADERS_W;
+  ULONG tag = PR_TRANSPORT_MESSAGE_HEADERS_A;
   LPSPropValue pVal = CMapiApi::GetMapiProperty(m_lpMsg, tag);
   if (!pVal)
-    pVal = CMapiApi::GetMapiProperty(m_lpMsg, tag = PR_TRANSPORT_MESSAGE_HEADERS_A);
+    pVal = CMapiApi::GetMapiProperty(m_lpMsg, tag = PR_TRANSPORT_MESSAGE_HEADERS_W);
   if (pVal) {
     if (CMapiApi::IsLargeProperty(pVal)) {
-      nsString headers;
+      nsCString headers;
       CMapiApi::GetLargeStringProperty(m_lpMsg, tag, headers);
       m_headers.Assign(headers.get());
     }
-    else if ((PROP_TYPE(pVal->ulPropTag) == PT_UNICODE) &&
-             (pVal->Value.lpszW) && (*(pVal->Value.lpszW)))
-      m_headers.Assign(pVal->Value.lpszW);
     else if ((PROP_TYPE(pVal->ulPropTag) == PT_STRING8) &&
              (pVal->Value.lpszA) && (*(pVal->Value.lpszA)))
-      m_headers.Assign(NS_ConvertASCIItoUTF16(pVal->Value.lpszA).get());
+      m_headers.Assign(pVal->Value.lpszA);
+    else if ((PROP_TYPE(pVal->ulPropTag) == PT_UNICODE) &&
+             (pVal->Value.lpszW) && (*(pVal->Value.lpszW))) {
+      nsCString headers;
+      LossyCopyUTF16toASCII(pVal->Value.lpszW, headers);
+      m_headers.Assign(headers.get());
+    }
 
     CMapiApi::MAPIFreeBuffer(pVal);
   }
@@ -318,12 +328,12 @@ void CMapiMessage::ProcessContentType()
   m_mimeBoundary.Truncate();
   m_mimeCharset.Truncate();
 
-  const wchar_t* contentType = m_headers.Value(CMapiMessageHeaders::hdrContentType);
+  const char* contentType = m_headers.Value(CMapiMessageHeaders::hdrContentType);
   if (!contentType)
     return;
 
-  const wchar_t *begin = contentType, *end;
-  nsString tStr;
+  const char *begin = contentType, *end;
+  nsCString tStr;
 
   // Note: this isn't a complete parser, the content type
   // we extract could have rfc822 comments in it
@@ -332,10 +342,9 @@ void CMapiMessage::ProcessContentType()
   if (!(*begin))
     return;
   end = begin;
-  while (*end && (*end != L';'))
+  while (*end && (*end != ';'))
     end++;
-  tStr.Assign(begin, end-begin);
-  CopyUTF16toUTF8(tStr, m_mimeContentType);
+  m_mimeContentType.Assign(begin, end-begin);
   if (!(*end))
     return;
   // look for "boundary="
@@ -350,7 +359,7 @@ void CMapiMessage::ProcessContentType()
     if (!(*begin))
       return;
     end = begin;
-    while (*end && (*end != L'='))
+    while (*end && (*end != '='))
       end++;
     if (end - begin) {
       tStr.Assign(begin, end-begin);
@@ -364,7 +373,7 @@ void CMapiMessage::ProcessContentType()
     begin = end+1;
     while (*begin && IsSpace(*begin))
       begin++;
-    if (*begin == L'"') {
+    if (*begin == '"') {
       begin++;
       bool slash = false;
       tStr.Truncate();
@@ -373,20 +382,20 @@ void CMapiMessage::ProcessContentType()
           slash = false;
           tStr.Append(*begin);
         }
-        else if (*begin == L'"')
+        else if (*begin == '"')
           break;
-        else if (*begin != L'\\')
+        else if (*begin != '\\')
           tStr.Append(*begin);
         else
           slash = true;
         begin++;
       }
       if (haveB) {
-        CopyUTF16toUTF8(tStr, m_mimeBoundary);
+        m_mimeBoundary = tStr;
         haveB = false;
       }
       if (haveC) {
-        CopyUTF16toUTF8(tStr, m_mimeCharset);
+        m_mimeCharset = tStr;
         haveC = false;
       }
       if (!(*begin))
@@ -394,16 +403,16 @@ void CMapiMessage::ProcessContentType()
       begin++;
     }
     tStr.Truncate();
-    while (*begin && (*begin != L';')) {
+    while (*begin && (*begin != ';')) {
       tStr.Append(*(begin++));
     }
     if (haveB) {
       tStr.Trim(kWhitespace);
-      CopyUTF16toUTF8(tStr, m_mimeBoundary);
+      m_mimeBoundary = tStr;
     }
     if (haveC) {
       tStr.Trim(kWhitespace);
-      CopyUTF16toUTF8(tStr, m_mimeCharset);
+      m_mimeCharset = tStr;
     }
     if (*begin)
       begin++;
@@ -1248,34 +1257,34 @@ bool CMapiMessage::GetEmbeddedAttachmentInfo(unsigned int i, nsIURI **uri,
 //////////////////////////////////////////////////////
 
 // begin and end MUST point to the same string
-wchar_t* dup(const wchar_t* begin, const wchar_t* end)
+char* dup(const char* begin, const char* end)
 {
   if (begin >= end)
     return 0;
-  wchar_t* str = new wchar_t[end-begin+1];
+  char* str = new char[end-begin+1];
   memcpy(str, begin, (end-begin)*sizeof(begin[0]));
   str[end - begin] = 0;
   return str;
 }
 
 // See RFC822
-inline bool IsPrintableASCII(wchar_t c) { return (c > 32) && (c < 127); }
-inline bool IsWSP(wchar_t c) { return (c == 32) || (c == 9); }
+inline bool IsPrintableASCII(char c) { return (c > 32) && (c < 127); }
+inline bool IsWSP(char c) { return (c == 32) || (c == 9); }
 
-CMapiMessageHeaders::CHeaderField::CHeaderField(const wchar_t* begin, int len)
-  : m_fname(0), m_fbody(0)
+CMapiMessageHeaders::CHeaderField::CHeaderField(const char* begin, int len)
+  : m_fname(0), m_fbody(0), m_fbody_utf8(false)
 {
-  const wchar_t *end = begin+len, *fname_end = begin;
-  while ((fname_end < end) && IsPrintableASCII(*fname_end) && (*fname_end != L':'))
+  const char *end = begin+len, *fname_end = begin;
+  while ((fname_end < end) && IsPrintableASCII(*fname_end) && (*fname_end != ':'))
     ++fname_end;
-  if ((fname_end == end) || (*fname_end != L':'))
+  if ((fname_end == end) || (*fname_end != ':'))
     return; // Not a valid header!
   m_fname = dup(begin, fname_end+1); // including colon
   m_fbody = dup(fname_end+1, end);
 }
 
-CMapiMessageHeaders::CHeaderField::CHeaderField(const wchar_t* name, const wchar_t* body)
-  : m_fname(dup(name, name+wcslen(name))), m_fbody(dup(body, body+wcslen(body)))
+CMapiMessageHeaders::CHeaderField::CHeaderField(const char* name, const char* body, bool utf8)
+  : m_fname(dup(name, name+strlen(name))), m_fbody(dup(body, body+strlen(body))), m_fbody_utf8(utf8)
 {
 }
 
@@ -1285,45 +1294,51 @@ CMapiMessageHeaders::CHeaderField::~CHeaderField()
   delete[] m_fbody;
 }
 
-void CMapiMessageHeaders::CHeaderField::set_fbody(const wchar_t* txt)
+void CMapiMessageHeaders::CHeaderField::set_fbody(const char* txt)
 {
   if (m_fbody == txt)
     return; // to avoid assigning to self
-  wchar_t* oldbody = m_fbody;
-  m_fbody = dup(txt, txt+wcslen(txt));
+  char* oldbody = m_fbody;
+  m_fbody = dup(txt, txt+strlen(txt));
   delete[] oldbody;
+  m_fbody_utf8 = true;
 }
 
-void CMapiMessageHeaders::CHeaderField::UnfoldFoldedSpaces(const wchar_t* body,
-                                                           nsString& dest)
+void CMapiMessageHeaders::CHeaderField::GetUnfoldedString(nsString& dest,
+                                          const char* fallbackCharset) const
 {
   dest.Truncate();
-  if (!body)
+  if (!m_fbody)
     return;
-  const wchar_t* pos = body;
+  nsCString unfolded;
+  const char* pos = m_fbody;
   while (*pos) {
-    if ((*pos == '\x0D') && (*(pos+1) == '\x0A') && *(pos+2) && IsWSP(*(pos+2)))
+    if ((*pos == '\x0D') && (*(pos+1) == '\x0A') && IsWSP(*(pos+2)))
       pos += 2; // Skip CRLF if it is followed by SPACE or TAB
     else
-      dest.Append(*(pos++));
+      unfolded.Append(*(pos++));
   }
+  if (m_fbody_utf8)
+    CopyUTF8toUTF16(unfolded, dest);
+  else
+    nsMsgI18NConvertToUnicode(fallbackCharset, unfolded, dest);
 }
 
 ////////////////////////////////////////
 
-const wchar_t* CMapiMessageHeaders::Specials[hdrMax] = {
-  L"Date:",
-  L"From:",
-  L"Sender:",
-  L"Reply-To:",
-  L"To:",
-  L"Cc:",
-  L"Bcc:",
-  L"Message-ID:",
-  L"Subject:",
-  L"Mime-Version:",
-  L"Content-Type:",
-  L"Content-Transfer-Encoding:"
+const char* CMapiMessageHeaders::Specials[hdrMax] = {
+  "Date:",
+  "From:",
+  "Sender:",
+  "Reply-To:",
+  "To:",
+  "Cc:",
+  "Bcc:",
+  "Message-ID:",
+  "Subject:",
+  "Mime-Version:",
+  "Content-Type:",
+  "Content-Transfer-Encoding:"
 };
 
 CMapiMessageHeaders::~CMapiMessageHeaders()
@@ -1339,16 +1354,16 @@ void CMapiMessageHeaders::ClearHeaderFields()
   m_headerFields.clear();
 }
 
-void CMapiMessageHeaders::Assign(const wchar_t* headers)
+void CMapiMessageHeaders::Assign(const char* headers)
 {
   for (int i=0; i<hdrMax; i++)
     m_SpecialHeaders[i] = 0;
   ClearHeaderFields();
   if (!headers)
     return;
-  const wchar_t *start=headers, *end=headers;
+  const char *start=headers, *end=headers;
   while (*end) {
-    if ((*end == L'\x0D') && (*(end+1) == L'\x0A')) { // CRLF
+    if ((*end == '\x0D') && (*(end+1) == '\x0A')) { // CRLF
       if (!IsWSP(*(end+2))) { // Not SPACE nor TAB (avoid FSP) -> next header or EOF
         Add(new CHeaderField(start, end-start));
         start = ++end + 1;
@@ -1387,16 +1402,16 @@ void CMapiMessageHeaders::Add(CHeaderField* f)
   m_headerFields.push_back(f);
 }
 
-CMapiMessageHeaders::SpecialHeader CMapiMessageHeaders::CheckSpecialHeader(const wchar_t* fname) const
+CMapiMessageHeaders::SpecialHeader CMapiMessageHeaders::CheckSpecialHeader(const char* fname)
 {
   for (int i = hdrFirst; i < hdrMax; i++)
-    if (!wcsicmp(fname, Specials[i]))
+    if (stricmp(fname, Specials[i]) == 0)
       return static_cast<SpecialHeader>(i);
 
   return hdrNone;
 }
 
-const CMapiMessageHeaders::CHeaderField* CMapiMessageHeaders::CFind(const wchar_t* name) const
+const CMapiMessageHeaders::CHeaderField* CMapiMessageHeaders::CFind(const char* name) const
 {
   SpecialHeader special = CheckSpecialHeader(name);
   if ((special > hdrNone) && (special < hdrMax))
@@ -1408,47 +1423,63 @@ const CMapiMessageHeaders::CHeaderField* CMapiMessageHeaders::CFind(const wchar_
   return *iter;
 }
 
-const wchar_t* CMapiMessageHeaders::Value(SpecialHeader special) const
+const char* CMapiMessageHeaders::SpecialName(SpecialHeader special)
+{
+  if ((special <= hdrNone) || (special >= hdrMax))
+    return 0;
+  return Specials[special];
+}
+
+const char* CMapiMessageHeaders::Value(SpecialHeader special) const
 {
   if ((special <= hdrNone) || (special >= hdrMax))
     return 0;
   return (m_SpecialHeaders[special]) ? m_SpecialHeaders[special]->fbody() : 0;
 }
 
-const wchar_t* CMapiMessageHeaders::Value(const wchar_t* name) const
+const char* CMapiMessageHeaders::Value(const char* name) const
 {
   const CHeaderField* result = CFind(name);
   return result ? result->fbody() : 0;
 }
 
-void CMapiMessageHeaders::UnfoldValue(const wchar_t* name, nsString& dest) const
+void CMapiMessageHeaders::UnfoldValue(const char* name, nsString& dest, const char* fallbackCharset) const
 {
-  CHeaderField::UnfoldFoldedSpaces(Value(name), dest);
-}
-
-void CMapiMessageHeaders::UnfoldValue(SpecialHeader special, nsString& dest) const
-{
-  CHeaderField::UnfoldFoldedSpaces(Value(special), dest);
-}
-
-int CMapiMessageHeaders::SetValue(const wchar_t* name, const wchar_t* value, bool replace)
-{
-  CHeaderField* result = Find(name);
-  if (result) {
-    result->set_fbody(value);
-  }
+  const CHeaderField* result = CFind(name);
+  if (result)
+    result->GetUnfoldedString(dest, fallbackCharset);
   else
-    Add(new CHeaderField(name, value));
+    dest.Truncate();
+}
+
+void CMapiMessageHeaders::UnfoldValue(SpecialHeader special, nsString& dest, const char* fallbackCharset) const
+{
+  if ((special <= hdrNone) || (special >= hdrMax) || (!m_SpecialHeaders[special]))
+    dest.Truncate();
+  else
+    m_SpecialHeaders[special]->GetUnfoldedString(dest, fallbackCharset);
+}
+
+int CMapiMessageHeaders::SetValue(const char* name, const char* value, bool replace)
+{
+  if (!replace) {
+    CHeaderField* result = Find(name);
+    if (result) {
+      result->set_fbody(value);
+      return 0;
+    }
+  }
+  Add(new CHeaderField(name, value, true));
   return 0; // No sensible result is returned; maybe do something senseful later
 }
 
-int CMapiMessageHeaders::SetValue(SpecialHeader special, const wchar_t* value)
+int CMapiMessageHeaders::SetValue(SpecialHeader special, const char* value)
 {
   CHeaderField* result = m_SpecialHeaders[special];
   if (result)
     result->set_fbody(value);
   else
-    Add(new CHeaderField(Specials[special], value));
+    Add(new CHeaderField(Specials[special], value, true));
   return 0;
 }
 
@@ -1457,14 +1488,13 @@ void CMapiMessageHeaders::write_to_stream::operator () (const CHeaderField* f)
   if (!f || NS_FAILED(m_rv))
     return;
 
-  nsCString str;
   PRUint32 written;
-  LossyCopyUTF16toASCII(f->fname(), str);
-  m_rv = m_pDst->Write( str.get(), str.Length(), &written);
+  m_rv = m_pDst->Write( f->fname(), strlen(f->fname()), &written);
   NS_ENSURE_SUCCESS(m_rv,);
-  LossyCopyUTF16toASCII(f->fbody(), str);
-  m_rv = m_pDst->Write(str.get(), str.Length(), &written);
-  NS_ENSURE_SUCCESS(m_rv,);
+  if (f->fbody()) {
+    m_rv = m_pDst->Write(f->fbody(), strlen(f->fbody()), &written);
+    NS_ENSURE_SUCCESS(m_rv,);
+  }
   m_rv = m_pDst->Write( "\x0D\x0A", 2, &written);
 }
 
