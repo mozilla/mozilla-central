@@ -1,0 +1,104 @@
+Libjingle
+
+0.6.1 - Sep 15, 2011
+  - Add dummydevicemanager.
+  - Remove underscores from the files names for app/webrtc folder.
+  - Remove PeerConnection OnLocalStreamInitialized callback.
+  - Fix webrtcjson.cc numeric locale formatting issue.
+  - Don't start playout until the local content has been set.
+
+0.6.0 - Sep 13, 2011
+  - Add pub sub support
+  - Add unit tests
+
+0.5.9 - Aug 31, 2011
+  - Add app/webrtc
+  - Add webrtcvoiceengine/webrtcvideoengine
+  - Add some unit tests
+  - Add XMPP MUC room config classes
+  - Update STUN support some more (RFC 5389)
+  - Add video output scaling
+  - Refactoring and bug fixes
+
+0.5.8 - July 1, 2011
+  - Support for loudest speaker detection
+
+0.5.7 - Jun 23, 2011
+  - Support for setting MUC display name
+  - Update STUN support to RFC5389
+  - Handle description-info message
+  - New call flag: --debugsrtp
+
+0.5.6 - Jun 2, 2011
+  - Improved mac socket server
+  - Add IqTask
+  - Flush output in examples/call
+  - Bug fixes
+
+0.5.5 - May 26, 2011
+  - Refactor async sockets
+  - Improve MUC joining
+  - Add OSX video renderer
+  - Bug fixes
+
+0.5.4 - May 13, 2011
+  - Support for MUC lookup by name
+  - Bug fixes
+
+0.5.3 - May 10, 2011
+  - Stream notification and selection.
+  - Better XEP-0045 support.
+  - Easier to create composite media engines where one part is fake.
+  - Make GtkVideoRenderer thread-safe.
+
+0.5.2 - Jan 11, 2010
+  - Fixed build on Windows 7 with VS 2010
+  - Fixed build on Windows x64
+  - Fixed build on Mac OSX
+  - Added option to examples/call to enable encryption
+  - Improved logging
+  - Bug fixes
+
+0.5.1 - Nov 2, 2010
+  - Added support for call encryption.
+  - Added addtional XEP-166 and XEP-167 features:
+    - Call redirection
+    - Candidates in session-accept or session-initiate
+  - Added support for bandwidth control.
+  - Added features in examples/call:
+    - bandwidth control on initiate or accept
+    - turn on/off SSL
+    - control signaling protocol
+    - send chat message
+
+0.5.0 - Sep 16, 2010
+  - Implemented Jingle protocols XEP-166 and XEP-167.
+  - Backward compatible with Google Talk Call Signaling protocol implemented
+    in previous versions.
+  - Builds on Windows, Linux, and Mac OS X with swtoolkit.
+  - Removed GipsLiteMediaEngine.
+  - Added video support.
+  - Added FileMediaEngine to support both voice and video via RTP dump.
+  - Many bug fixes.
+
+0.4.0 - Feb 01, 2007
+  - Updated protocol.
+  - Added relay server support.
+  - Added proxy detection support.
+  - Many other assorted changes.
+
+0.3.0 - Mar 16 2006
+  - New GipsLiteMediaEngine included to make calls using the GIPS
+    VoiceEngine Lite media componentry on Windows.
+
+0.2.0 - Jan 27 2006
+  - Windows build fixes with Visual Studio Express project files.
+  - Pseudo-TCP support provides TCP-like reliability over a P2PSocket
+  - TunnelSessionClient establishes sessions for reliably sending data
+    using Pseudo-TCP.
+  - A new pcp example application transfers files from one user to
+    another using TunnelSessionClient.
+  - TLS login support for both example applications.
+
+0.1.0 - Dec 15 2005
+  - Initial release.

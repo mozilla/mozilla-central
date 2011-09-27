@@ -1,0 +1,53 @@
+/*
+ * libjingle
+ * Copyright 2004--2011, Google Inc.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  1. Redistributions of source code must retain the above copyright notice,
+ *     this list of conditions and the following disclaimer.
+ *  2. Redistributions in binary form must reproduce the above copyright notice,
+ *     this list of conditions and the following disclaimer in the documentation
+ *     and/or other materials provided with the distribution.
+ *  3. The name of the author may not be used to endorse or promote products
+ *     derived from this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+ * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+#include "talk/base/gunit.h"
+#include "talk/base/logging.h"
+#include "talk/base/time.h"
+#include "talk/base/messagequeue.h"
+
+using namespace talk_base;
+
+TEST(MessageQueue, DelayedPostsWithIdenticalTimesAreProcessedInFifoOrder) {
+  MessageQueue q;
+
+  TimeStamp now = Time();
+  q.PostAt(now, NULL, 3);
+  q.PostAt(now - 2, NULL, 0);
+  q.PostAt(now - 1, NULL, 1);
+  q.PostAt(now, NULL, 4);
+  q.PostAt(now - 1, NULL, 2);
+
+  Message msg;
+  for (size_t i=0; i<5; ++i) {
+    memset(&msg, 0, sizeof(msg));
+    EXPECT_TRUE(q.Get(&msg, 0));
+    EXPECT_EQ(i, msg.message_id);
+  }
+
+  EXPECT_FALSE(q.Get(&msg, 0));  // No more messages
+}

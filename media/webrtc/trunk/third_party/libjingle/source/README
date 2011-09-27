@@ -1,0 +1,154 @@
+Libjingle
+
+1. Introduction
+
+Libjingle is a set of components provided by Google to implement Jingle
+protocols XEP-166 (http://xmpp.org/extensions/xep-0166.html) and XEP-167
+(http://xmpp.org/extensions/xep-0167.html). Libjingle is also backward
+compatible with Google Talk Call Signaling
+(http://code.google.com/apis/talk/call_signaling.html). This package will
+create several static libraries you may link to your projects as needed.
+
+-talk               - No source files in talk/, just these subdirectories
+|-base              - Contains basic low-level portable utility functions for
+|                     things like threads and sockets
+|-p2p               - The P2P stack
+  |-base            - Base p2p functionality
+  |-client          - Hooks to tie it into XMPP
+|-session           - Signaling
+  |-phone           - Signaling code specific to making phone calls
+    |-testdata      - Samples of RTP voice and video dump
+  |-tunnel          - Tunnel session and channel
+|-third_party       - Folder for third party libraries
+  |-libudev         - Folder containing libudev.h
+|-xmllite           - XML parser
+|-xmpp              - XMPP engine
+
+In addition, this package contains two examples in talk/examples which
+illustrate the basic concepts of how the provided classes work.
+
+2. How to Build
+
+2.1 Prerequisites
+
+Libjingle is built with swtoolkit (http://code.google.com/p/swtoolkit/), which
+is a set of extensions to the open-source SCons build tool (www.scons.org).
+
+  * First, install Python 2.4 or later from http://www.python.org/.
+    Please note that since swtoolkit only works with Python 2.x, you will
+    not be able to use Python 3.x.
+
+    python --version to confirm that python is in your path, and 2.4 or greater.
+
+  * Second, install the stand alone scons-local zip package 2.0.0 or later from
+    http://www.scons.org/download.php and set an environment variable,
+    SCONS_DIR, to point to the directory containing SCons.
+    For example, on Windows, download
+    http://sourceforge.net/projects/scons/files/scons-src/2.0.1/scons-local-2.0.1.zip
+    Unzip to C:\src\libjingle\scons-local\
+    set SCONS_DIR=C:\src\libjingle\scons-local\scons-local-2.0.1
+
+  * Third, install swtoolkit from http://code.google.com/p/swtoolkit/.
+    For example, on Windows download
+    http://code.google.com/p/swtoolkit/downloads/detail?name=swtoolkit.0.9.1.zip
+    Unzip to C:\src
+    Optionally add swtoolkit to path.  Otherwise call hammer.bat directly.
+    set PATH_TO_SWTOOLKIT=c:\src\swtoolkit
+    set PATH=%PATH_TO_SWTOOLKIT%;%PATH%
+
+  * Finally, download and install the unit test framework from
+    http://code.google.com/p/googletest/downloads/list
+    To install it, just unzip the package and put the file folder under
+    /talk/third_party/ directory and rename it from "gtest-x.x.x" to "gtest",
+    so that your folder structure looks like:
+    /talk/third_party/gtest/...
+
+2.2 libjingle
+
+Libjingle needs to be downloaded and patched
+
+  * First, install Libjingle.  Since this README lives within Libjingle,
+    this step is normally already done.
+    Libjingle home page is here http://code.google.com/p/libjingle/
+    For example, on Windows, download
+    http://libjingle.googlecode.com/files/libjingle-0.5.2.zip
+    unzip to C:\src\
+
+  * Second, Libjingle depends on two open-source projects, expat and srtp.
+    Download expat from http://sourceforge.net/projects/expat/ to
+    talk/third_party/expat-2.0.1/. Download srtp at
+    http://libjingle.googlecode.com/files/srtp-cvs.zip to
+    talk/third_party/srtp. Note that srtp-1.4.4 does not work since it misses
+    the extensions used by Libjingle.
+    If you put expat or srtp in a different directory, you need to edit
+    talk/libjingle.scons correspondingly.
+    rename srtp-cvs to srtp
+    For example, on Windows, download expat
+    http://sourceforge.net/projects/expat/files/expat/2.0.1/expat-2.0.1.tar.gz
+    Unzip to C:\src\libjingle-0.5.2\talk\third_party
+    Download srtp
+    http://libjingle.googlecode.com/files/srtp-cvs.zip
+    Unzip to C:\src\libjingle-0.5.2\talk\third_party
+    rename C:\src\libjingle-0.5.2\talk\third_party\srtp-cvs srtp
+
+  * Third, on Windows, copy config.h
+    copy talk\third_party\srtp\config.hw talk\third_party\srtp\crypto\include\config.h
+
+2.2 Build Libjingle under Linux or OS X
+  * First, make sure the SCONS_DIR environment variable is set correctly.
+  * Second, run talk/third_party/expat-2.0.1/configure and
+    talk/third_party/srtp/configure.
+  * Third, go to the talk/ directory and run $path_to_swtoolkit/hammer.sh. Run
+    $path_to_swtoolkit/hammer.sh --help for information on how to build for
+    different modes.
+  * On Linux, you need to install libssl-dev, libasound2-dev and gtk+2.0.
+
+2.3 Build Libjingle under Windows
+  * First, make sure the SCONS_DIR environment variable is set correctly and
+    Microsoft Visual Studio is installed.
+    dir %SCONS_DIR%
+    Should show a folder containing Scons\
+  * Second, go to the talk\ directory and run %PATH_TO_SWTOOLKIT%\hammer.bat.
+    To get help run:
+    %PATH_TO_SWTOOLKIT%\hammer.bat --help
+    different modes. You can run the last step under Visual Studio Command
+    Prompt if Visual Studio tools are not under the path environment variable.
+    Example to build call.exe
+    %PATH_TO_SWTOOLKIT%\hammer.bat
+    Example to build opt and dbg all programs
+    %PATH_TO_SWTOOLKIT%\hammer.bat --jobs=6 --verbose --mode=all all_programs
+
+
+The built binaries are under talk/build/dbg/staging or talk/build/opt/staging,
+depending on the build mode. When the build is complete, you can run the
+examples, login or call. For the call sample, you can specify the input and
+output RTP dump for voice and video. This package provides two samples of input
+RTP dump: voice.rtpdump is a single channel, 16Khz voice encoded with G722, and
+video.rtpdump is 320x240 video encoded with H264 AVC at 30 frames per second.
+These provided samples will inter-operate with Google Talk Video. If you use
+other input RTP dump, you may need to change the codecs in call_main.cc, lines
+215 - 222.
+
+Libjingle also builds two server tools, a relay server and a STUN server. The
+relay server may be used to relay traffic when a direct peer-to-peer connection
+could not be established. The STUN Server implements the STUN protocol for
+Simple Traversal of UDP over NAT. See the Libjingle Developer Guide at
+http://code.google.com/apis/talk/index.html for information about configuring a
+client to use this relay server and this STUN server.
+
+To use LinphoneMediaEngine, you need to perform the following additional steps:
+  * Download and install the "MediaStreamer" library on your
+    machine.
+  * Add the following lines into the libjingle.scons file.
+    In the "talk.Library(env, name = "libjingle",..." section, you need to add:
+      "HAVE_LINPHONE",
+      "HAVE_SPEEX",
+      "HAVE_ILBC",
+    to the "cppdefines = [".
+
+    In the "talk.App(env, name = "call",..." section, you need to add:
+      "mediastreamer",
+    to the "libs = [".
+  * In the libjingle.scons file, add the following line into the "srcs = [ ..."
+    section of the "libjingle" Library.
+      "session/phone/linphonemediaengine.cc",
