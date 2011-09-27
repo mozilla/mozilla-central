@@ -1149,3 +1149,9 @@ if [ "$MOZ_SYDNEYAUDIO" ]; then
    $MAKEFILES_libsydneyaudio
  "
 fi
+
+if [ "$MOZ_WEBRTC" ]; then
+ add_makefiles "
+   media/webrtc/trunk/Makefile
+ "
+fi
