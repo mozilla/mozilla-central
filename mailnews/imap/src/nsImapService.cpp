@@ -395,7 +395,8 @@ NS_IMETHODIMP nsImapService::OpenAttachment(const char *aContentType,
         if (mailUrl)
         {
           mailUrl->SetSpec(urlSpec);
-          mailUrl->SetFileName(nsDependentCString(aFileName));
+          if (aFileName)
+            mailUrl->SetFileName(nsDependentCString(aFileName));
         }
         rv =  FetchMimePart(imapUrl, nsIImapUrl::nsImapOpenMimePart, folder, imapMessageSink,
                             nsnull, aDisplayConsumer, msgKey, uriMimePart);
