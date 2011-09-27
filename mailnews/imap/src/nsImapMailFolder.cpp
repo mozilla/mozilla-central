@@ -646,16 +646,13 @@ nsresult nsImapMailFolder::GetDatabase()
 
     NS_ENSURE_SUCCESS(rv, rv);
 
-    if(mDatabase)
-    {
-      UpdateNewMessages();
-      if(mAddListener)
-        mDatabase->AddListener(this);
-      // UpdateSummaryTotals can null mDatabase during initialization, so we save a local copy
-      nsCOMPtr<nsIMsgDatabase> database(mDatabase);
-      UpdateSummaryTotals(PR_TRUE);
-      mDatabase = database;
-    }
+    // UpdateNewMessages/UpdateSummaryTotals can null mDatabase, so we save a local copy
+    nsCOMPtr<nsIMsgDatabase> database(mDatabase);
+    UpdateNewMessages();
+    if(mAddListener)
+      database->AddListener(this);
+    UpdateSummaryTotals(PR_TRUE);
+    mDatabase = database;
   }
   return rv;
 }
