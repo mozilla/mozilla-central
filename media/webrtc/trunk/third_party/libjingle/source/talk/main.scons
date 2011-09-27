@@ -1,0 +1,529 @@
+# -*- Python -*-
+#
+# All the helper functions are defined in:
+#  - site_scons/talk.py
+# Use 'import talk' in any .scons file to get access to it.
+# Add any new helper functions to it; unittest are available
+# in talk_unittest.py.
+#
+# Each 'component' that is built is defined in a .scons file.
+# See talk.Components(...) for further info on file naming convention.
+#
+# To add a new platform clone and modify the root_env object. Remember to add
+# the new environment object to the envs list otherwise it will not be included
+# in the build.
+#
+#
+#
+import talk
+import os
+import platform
+
+#-------------------------------------------------------------------------------
+# The build files/directories to 'build'.
+# If the name is the name of a directory then that directory shall contain a
+# .scons file with the same name as the directory itself:
+#  Ex: The directory session/phone contains a file called phone.scons
+# This list must be in order of library dependencies. e.g., if
+# session/phone/phone.scons defines a target that links to a library target
+# defined in sound/sound.scons, then 'sound' must come first.
+# When no particular order is imposed by library dependencies, try to keep in
+# mostly alphabetical order.
+#
+components = talk.Components("libjingle.scons")
+
+#-------------------------------------------------------------------------------
+# Build environments
+#
+
+# The list of build environments.
+envs = []
+
+# The root of all builds.
+root_env = Environment(
+  tools = [
+    'component_bits',
+    'component_setup',
+    'replace_strings',
+    'talk_noops',
+    #'talk_utils',
+  ],
+  BUILD_SCONSCRIPTS = components,
+  DESTINATION_ROOT = '$MAIN_DIR/build',
+  CPPPATH = [
+    '$OBJ_ROOT',     # generated headers are relative to here
+    '$MAIN_DIR/..',  # TODO: how can we use GOOGLECLIENT instead?
+  ],
+  CPPDEFINES = [
+    # Temp flag while porting to hammer.
+    'HAMMER_TIME=1',
+    'LOGGING=1',
+
+    # Feature selection
+    'FEATURE_ENABLE_SSL',
+    'FEATURE_ENABLE_VOICEMAIL',
+    'FEATURE_ENABLE_PSTN',
+    'HAVE_SRTP',
+  ]
+)
+
+# This is where we set common environments
+#
+# Detect if running on 64 bit or 32 bit host.
+DeclareBit('platform_arch_64bit', 'Host Platform is 64 Bit')
+if platform.architecture()[0] == "64bit":
+  root_env.SetBits('platform_arch_64bit')
+
+DeclareBit('use_static_openssl', 'Build OpenSSL as a static library')
+
+DeclareBit('have_dbus_glib',
+           'Whether the build system has the dbus-glib-1 package')
+DeclareBit('have_libpulse',
+           'Whether the build system has the libpulse package')
+
+
+# List all the locales we localize to.
+root_env.AppendUnique(locales = [
+    'ar', 'bg', 'bn', 'ca', 'cs', 'da', 'de', 'el', 'en', 'en-GB', 'es',
+    'es-419', 'et', 'fa', 'fi', 'fil', 'fr', 'gu', 'hi', 'hr', 'hu', 'id',
+    'is', 'it', 'iw', 'ja', 'kn', 'ko', 'lt', 'lv', 'ml', 'mr', 'ms', 'nl',
+    'no', 'or', 'pl', 'pt-BR', 'pt-PT', 'ro', 'ru', 'sk', 'sl', 'sr', 'sv',
+    'ta', 'te', 'th', 'tl', 'tr', 'uk', 'ur', 'vi', 'zh-CN', 'zh-TW'])
+
+#-------------------------------------------------------------------------------
+# W I N D O W S
+#
+win_env = root_env.Clone(
+  tools = [
+    'atlmfc_vc80',
+    #'code_signing',
+    'component_targets_msvs',
+    'directx_9_0_c',
+    #'grid_builder',
+    'midl',
+    'target_platform_windows'
+  ],
+  # Don't use default vc80 midl.exe.  It doesn't understand vista_sdk idl files.
+  MIDL = '$PLATFORM_SDK_VISTA_6_0_DIR/Bin/midl.exe ',
+  WIX_DIR = '$GOOGLECLIENT/third_party/wix/v3_0_2925/files',
+  # Flags for debug and optimization are added to CCFLAGS instead
+  CCPDBFLAGS = '',
+  CCFLAGS_DEBUG = '',
+  CCFLAGS_OPTIMIZED = '',
+  # We force a x86 target even when building on x64 Windows platforms.
+  TARGET_ARCH = 'x86',
+)
+
+win_env.Append(
+  COMPONENT_LIBRARY_PUBLISH = True,  # Put dlls in output dir too
+  CCFLAGS = [
+    '/Fd${TARGET}.pdb', # pdb per object allows --jobs=
+    '/WX',          # warnings are errors
+    '/Zc:forScope', # handle 'for (int i = 0 ...)' right
+    '/EHs-c-',      # disable C++ EH
+    '/GR-',         # disable RTTI
+    '/Gy',          # enable function level linking
+    '/wd4996',      # ignore POSIX deprecated warnings
+
+    # promote certain level 4 warnings
+    '/w14701',     # potentially uninitialized var
+    '/w14702',     # unreachable code
+    '/w14706',     # assignment within a conditional
+    '/w14709',     # comma operator within array index
+    '/w14063',     # case 'identifier' is not a valid value for switch of enum
+    '/w14064',     # switch of incomplete enum 'enumeration'
+    '/w14057',     # 'identifier1' indirection to slightly different base
+                   #   types from 'identifier2'
+    '/w14263',     # member function does not override any base class virtual
+                   #   member function
+    '/w14266',     # no override available for virtual memberfunction from base
+                   #  'type'; function is hidden
+    '/w14296',     # expression is always false
+    '/w14355',     # 'this' : used in base member initializer list
+  ],
+  CPPDEFINES = [
+    '_ATL_CSTRING_EXPLICIT_CONSTRUCTORS',
+    # TODO: encapsulate all string operations that are not based
+    # on std::string/std::wstring and make sure we use the safest versions
+    # available on all platforms.
+    '_CRT_SECURE_NO_WARNINGS',
+    '_SCL_SECURE_NO_WARNINGS',
+    '_USE_32BIT_TIME_T',
+    '_UNICODE',
+    'UNICODE',
+    '_HAS_EXCEPTIONS=0',
+    'WIN32',
+    # TODO: remove this from logging.cc and enable here instead.
+    #'WIN32_LEAN_AND_MEAN',
+
+    'WINVER=0x0500',
+    '_WIN32_WINNT=0x0501',
+    '_WIN32_IE=0x0501',
+    # The Vista platform SDK 6.0 needs at least
+    # this NTDDI version or else the headers
+    # that LMI includes from it won't compile.
+    'NTDDI_VERSION=NTDDI_WINXP',
+
+    # npapi.h requires the following:
+    '_WINDOWS',
+  ],
+  CPPPATH = [
+    '$THIRD_PARTY/wtl_71/include',
+    '$PLATFORM_SDK_VISTA_6_0_DIR/Include',
+  ],
+  LIBPATH = [
+    '$PLATFORM_SDK_VISTA_6_0_DIR/Lib'
+  ],
+  LINKFLAGS = [
+    '-manifest' # TODO: Why do we need this?
+  ],
+  MIDLFLAGS = [
+    '/win32',
+    '/I$PLATFORM_SDK_VISTA_6_0_DIR/include'
+  ]
+)
+
+# TODO: Figure out what this does; found it in
+# omaha/main.scons. This fixes the problem with redefinition
+# of OS_WINDOWS symbol.
+win_env.FilterOut(CPPDEFINES = ['OS_WINDOWS=OS_WINDOWS'])
+
+# Set up digital signing
+DeclareBit('test_signing', 'Sign binaries with the test certificate')
+win_env.SetBitFromOption('test_signing', False)
+if win_env.Bit('test_signing'):
+   win_env.Replace(
+     CERTIFICATE_PATH = win_env.File(
+         '$GOOGLECLIENT/tools/test_key/testkey.pfx').abspath,
+     CERTIFICATE_PASSWORD = 'test',
+   )
+AddTargetGroup('signed_binaries', 'digitally signed binaries can be built')
+
+win_dbg_env = win_env.Clone(
+  BUILD_TYPE = 'dbg',
+  BUILD_TYPE_DESCRIPTION = 'Windows debug build',
+  BUILD_GROUPS = ['default', 'all'],
+  tools = ['target_debug'],
+)
+
+win_dbg_env.Prepend(
+  CCFLAGS = [
+      '/ZI',     # enable debugging
+      '/Od',     # disable optimizations
+      '/MTd',    # link with LIBCMTD.LIB debug lib
+      '/RTC1',   # enable runtime checks
+  ],
+)
+
+envs.append(win_dbg_env)
+
+win_coverage_env = win_dbg_env.Clone(
+  tools = ['code_coverage'],
+  BUILD_TYPE = 'coverage',
+  BUILD_TYPE_DESCRIPTION = 'Windows code coverage build',
+  BUILD_GROUPS = ['all'],
+)
+
+win_coverage_env.Append(
+  CPPDEFINES = [
+    'COVERAGE_ENABLED',
+  ],
+)
+
+envs.append(win_coverage_env)
+
+win_opt_env = win_env.Clone(
+  BUILD_TYPE = 'opt',
+  BUILD_TYPE_DESCRIPTION = 'Windows opt build',
+  BUILD_GROUPS = ['all'],
+  tools = ['target_optimized'],
+)
+
+win_opt_env.Prepend(
+  CCFLAGS=[
+      '/Zi',     # enable debugging
+      '/O1',     # optimize for size
+      '/MT',     # link with LIBCMT.LIB (multi-threaded, static linked crt)
+      '/GS',     # enable security checks
+  ],
+  LINKFLAGS = [
+    '/safeseh',  # protect against attacks against exception handlers
+    '/opt:ref',  # Remove unused references (functions/data).
+  ],
+)
+
+envs.append(win_opt_env)
+
+#-------------------------------------------------------------------------------
+# P O S I X
+#
+posix_env = root_env.Clone()
+posix_env.Append(
+  CPPDEFINES = [
+    'HASHNAMESPACE=__gnu_cxx',
+    'HASH_NAMESPACE=__gnu_cxx',
+    'POSIX',
+    'DISABLE_DYNAMIC_CAST',
+    'HAVE_OPENSSL_SSL_H=1',
+    # The POSIX standard says we have to define this.
+    '_REENTRANT',
+  ],
+  CCFLAGS = [
+    '-Wall',
+    '-Werror',
+    '-Wno-switch',
+    '-fno-exceptions',
+    # Needed for a clean ABI and for link-time dead-code removal to work
+    # properly.
+    '-fvisibility=hidden',
+  ],
+  CXXFLAGS = [
+    '-Wno-non-virtual-dtor',
+    '-Wno-ctor-dtor-privacy',
+    '-fno-rtti',
+  ],
+)
+
+#-------------------------------------------------------------------------------
+# M A C OSX
+#
+mac_env = posix_env.Clone(
+  tools = [
+    'target_platform_mac',
+    #'talk_mac',
+    #'fill_plist',
+  ],
+)
+mac_env.Append(
+  CPPDEFINES = [
+    'OSX',
+    'MAC_OS_X_VERSION_MIN_REQUIRED=1040',
+  ],
+  CCFLAGS = [
+    '-m32',
+    '-arch', 'i386',
+    '-isysroot', '/Developer/SDKs/MacOSX10.6.sdk',
+    '-fasm-blocks',
+  ],
+  LINKFLAGS = [
+    '-Wl,-search_paths_first',
+    # This flag makes all members of a static library be included in the
+    # final exe - that increases the size of the exe, but without it
+    # Obj-C categories aren't properly included in the exe.
+    # TODO: consider only defining for libs that actually have objc.
+    '-ObjC',
+    '-arch', 'i386',
+    '-mmacosx-version-min=10.5',
+    '-isysroot', '/Developer/SDKs/MacOSX10.6.sdk',
+    '-m32',
+    '-dead-strip'
+  ],
+  FRAMEWORKS = [
+    'CoreServices',
+    'Carbon',
+    'Security',
+    'SystemConfiguration',
+    'OpenGL',
+    'CoreAudio',
+    'Quartz',
+    'QuickTime',
+    'Cocoa',
+    'QTKit',
+  ]
+)
+
+mac_dbg_env = mac_env.Clone(
+  BUILD_TYPE = 'dbg',
+  BUILD_TYPE_DESCRIPTION = 'Mac debug build',
+  BUILD_GROUPS = ['default', 'all'],
+  tools = ['target_debug'],
+)
+mac_dbg_env.Append(
+  CCFLAGS = [
+    '-O0',
+  ]
+)
+envs.append(mac_dbg_env)
+
+mac_opt_env = mac_env.Clone(
+  BUILD_TYPE = 'opt',
+  BUILD_TYPE_DESCRIPTION = 'Mac opt build',
+  BUILD_GROUPS = ['all'],
+  tools = ['target_optimized'],
+)
+mac_opt_env.Append(
+  CCFLAGS = [
+    # TODO: Figure out how mk can compile without
+    # this flag, then remove.  Confirmed asserts are preprocessed
+    # out.  Maybe it's a different version of gcc?
+    '-Wno-unused-variable',
+  ],
+)
+envs.append(mac_opt_env)
+
+#-------------------------------------------------------------------------------
+# L I N U X
+#
+linux_common_env = posix_env.Clone(
+  tools = [
+    'target_platform_linux',
+    'talk_linux',
+  ],
+)
+
+linux_common_env.Append(
+  CPPDEFINES = [
+    'LINUX',
+  ],
+  CCFLAGS = [
+    # Needed for link-time dead-code removal to work properly.
+    '-ffunction-sections',
+    '-fdata-sections',
+    # Generate debugging info in the DWARF2 format.
+    '-gdwarf-2',
+    # Generate maximal debugging information. (It is stripped from what we ship
+    # to users, so we want it for both dbg and opt.)
+    '-g3',
+  ],
+  LINKFLAGS = [
+    # Enable dead-code removal.
+    '-Wl,--gc-sections',
+    # Elide dependencies on shared libraries that we're not actually using.
+    '-Wl,--as-needed',
+    '-Wl,--start-group',
+  ],
+  _LIBFLAGS = ['-Wl,--end-group'],
+)
+
+# Remove default rpath set by Hammer. Hammer sets it to LIB_DIR, which is wrong.
+# The rpath is the _run-time_ library search path for the resulting binary, i.e.
+# the one used by ld.so at load time. Setting it equal to the path to build
+# output on the build machine is nonsense.
+linux_common_env.Replace(
+  RPATH = [],
+)
+
+# Enable the optional DBus-GLib code if the build machine has the required
+# dependency.
+linux_common_env.EnableFeatureWherePackagePresent('have_dbus_glib',
+                                                  'HAVE_DBUS_GLIB',
+                                                  'dbus-glib-1')
+
+#-------------------------------------------------------------------------------
+# L I N U X -- T R A D I T I O N A L
+#
+# Settings that are specific to our desktop Linux targets.
+linux_env = linux_common_env.Clone()
+# OpenSSL has infamously poor ABI stability, so that building against one
+# version and running against a different one often will not work. Since our
+# non-ChromeOS Linux builds are used on many different distros and distro
+# versions, this means we can't safely dynamically link to OpenSSL because the
+# product would end up being broken on any computer with a different version
+# installed. So instead we build it ourself and statically link to it.
+linux_env.SetBits('use_static_openssl')
+# Enable the optional PulseAudio code if the build machine has the required
+# dependency. (Not doing this for linux_common_env because we don't want
+# PulseAudio used on ChromeOS.)
+linux_env.EnableFeatureWherePackagePresent('have_libpulse',
+                                           'HAVE_LIBPULSE',
+                                           'libpulse')
+linux_env.Append(
+  CCFLAGS = [
+    '-m32',
+  ],
+  LINKFLAGS = [
+    '-m32',
+  ],
+)
+
+linux_dbg_env = linux_env.Clone(
+  BUILD_TYPE = 'dbg',
+  BUILD_TYPE_DESCRIPTION = 'Linux debug build',
+  BUILD_GROUPS = ['default', 'all'],
+  tools = ['target_debug'],
+)
+# Remove -g set by hammer, which is not what we want (we have set -g3 above).
+linux_dbg_env.FilterOut(CCFLAGS = ['-g'])
+envs.append(linux_dbg_env)
+
+linux_opt_env = linux_env.Clone(
+  BUILD_TYPE = 'opt',
+  BUILD_TYPE_DESCRIPTION = 'Linux optimized build',
+  BUILD_GROUPS = ['all'],
+  tools = ['target_optimized'],
+)
+# Remove -O2 set by hammer, which is not what we want.
+linux_opt_env.FilterOut(CCFLAGS = ['-O2'])
+linux_opt_env.Append(CCFLAGS = ['-Os'])
+envs.append(linux_opt_env)
+
+
+
+# TODO(): Clone linux envs for 64bit.  See 'variant' documentation.
+
+# Create a group for installers
+AddTargetGroup('all_installers', 'installers that can be built')
+
+# Parse child .scons files
+BuildEnvironments(envs)
+
+# Explicitly set which targets to build when not stated on commandline
+Default(None)
+# Build the following, which excludes unit test output (ie running them)
+# To run unittests, specify the test to run, or run_all_tests.  See -h option.
+Default(['all_libraries', 'all_programs', 'all_test_programs'])
+
+# .sln creation code lifted from googleclient/bar/main.scons.  Must be after
+# the call to BuildEnvironments for all_foo aliases to be defined.
+# Run 'hammer --mode=all --vsproj' to generate
+DeclareBit('vsproj', 'Generate Visual Studio projects and solution files.')
+win_env.SetBitFromOption('vsproj', False)
+
+if win_env.Bit('vsproj'):
+  vs_env = win_env.Clone()
+  vs_env.Append(
+    COMPONENT_VS_SOURCE_SUFFIXES = [
+      '.def',
+      '.grd',
+      '.html',
+      '.idl',
+      '.mk',
+      '.txt',
+      '.py',
+      '.scons',
+      '.wxs.template',
+    ]
+  )
+
+  # Source project
+  p = vs_env.ComponentVSDirProject(
+    'flute_source',
+    ['$MAIN_DIR',
+    ],
+    COMPONENT_VS_SOURCE_FOLDERS = [
+      # Files are assigned to first matching folder. Folder names of None
+      # are filters.
+      (None, '$DESTINATION_ROOT'),
+      ('flute', '$MAIN_DIR'),
+      ('google3', '$GOOGLE3'),
+      ('third_party', '$THIRD_PARTY'),
+    ],
+    # Force source project to main dir, so that Visual Studio can find the
+    # source files corresponding to build errors.
+    COMPONENT_VS_PROJECT_DIR = '$MAIN_DIR',
+  )
+  vs_env.AlwaysBuild(p)
+
+  # Solution and target projects
+  s = vs_env.ComponentVSSolution(
+    # 'libjingle',  # Please uncomment this line if you build VS proj files.
+    ['all_libraries', 'all_programs', 'all_test_programs'],
+    projects = [p],
+  )
+
+  print '***Unfortunately the vsproj creator isn\'t smart enough to '
+  print '***automatically get the correct output locations.  It is very easy'
+  print '***though to change it in the properties pane to the following'
+  print '***$(SolutionDir)/build/<foo>/staging/<bar>.exe'
+  Default(None)
+  Default([s])

@@ -1,0 +1,2340 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR Peter Johnson and other YASM developers
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: bug-yasm@tortall.net\n"
+"POT-Creation-Date: 2009-04-09 23:07-0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: frontends/yasm/yasm-options.c:81
+#, c-format
+msgid "option `--%s' needs an argument!"
+msgstr ""
+
+#: frontends/yasm/yasm-options.c:101 frontends/yasm/yasm-options.c:139
+#, c-format
+msgid "warning: unrecognized option `%s'"
+msgstr ""
+
+#: frontends/yasm/yasm-options.c:120
+#, c-format
+msgid "option `-%c' needs an argument!"
+msgstr ""
+
+#: frontends/yasm/yasm-options.c:174 frontends/yasm/yasm-options.c:182
+msgid "param"
+msgstr ""
+
+#: frontends/yasm/yasm.c:147
+msgid "show version text"
+msgstr ""
+
+#: frontends/yasm/yasm.c:149
+msgid "show license text"
+msgstr ""
+
+#: frontends/yasm/yasm.c:151
+msgid "show help text"
+msgstr ""
+
+#: frontends/yasm/yasm.c:153
+msgid "select architecture (list with -a help)"
+msgstr ""
+
+#: frontends/yasm/yasm.c:153
+msgid "arch"
+msgstr ""
+
+#: frontends/yasm/yasm.c:155
+msgid "select parser (list with -p help)"
+msgstr ""
+
+#: frontends/yasm/yasm.c:155 frontends/yasm/yasm.c:407
+#: frontends/yasm/yasm.c:448 frontends/yasm/yasm.c:676
+#: frontends/yasm/yasm.c:878
+msgid "parser"
+msgstr ""
+
+#: frontends/yasm/yasm.c:157
+msgid "select preprocessor (list with -r help)"
+msgstr ""
+
+#: frontends/yasm/yasm.c:157
+msgid "preproc"
+msgstr ""
+
+#: frontends/yasm/yasm.c:159
+msgid "select object format (list with -f help)"
+msgstr ""
+
+#: frontends/yasm/yasm.c:159
+msgid "format"
+msgstr ""
+
+#: frontends/yasm/yasm.c:161
+msgid "select debugging format (list with -g help)"
+msgstr ""
+
+#: frontends/yasm/yasm.c:161
+msgid "debug"
+msgstr ""
+
+#: frontends/yasm/yasm.c:163
+msgid "select list format (list with -L help)"
+msgstr ""
+
+#: frontends/yasm/yasm.c:163
+msgid "list"
+msgstr ""
+
+#: frontends/yasm/yasm.c:165
+msgid "name of list-file output"
+msgstr ""
+
+#: frontends/yasm/yasm.c:165
+msgid "listfile"
+msgstr ""
+
+#: frontends/yasm/yasm.c:167
+msgid "name of object-file output"
+msgstr ""
+
+#: frontends/yasm/yasm.c:167 frontends/yasm/yasm.c:169
+#: frontends/yasm/yasm.c:191
+msgid "filename"
+msgstr ""
+
+#: frontends/yasm/yasm.c:169
+msgid "name of map-file output"
+msgstr ""
+
+#: frontends/yasm/yasm.c:171
+msgid "select machine (list with -m help)"
+msgstr ""
+
+#: frontends/yasm/yasm.c:171 frontends/yasm/yasm.c:401
+msgid "machine"
+msgstr ""
+
+#: frontends/yasm/yasm.c:173
+msgid "treat all sized operands as if `strict' was used"
+msgstr ""
+
+#: frontends/yasm/yasm.c:175
+msgid "inhibits warning messages"
+msgstr ""
+
+#: frontends/yasm/yasm.c:177
+msgid "enables/disables warning"
+msgstr ""
+
+#: frontends/yasm/yasm.c:179
+msgid "generate Makefile dependencies on stdout"
+msgstr ""
+
+#: frontends/yasm/yasm.c:181
+msgid "redirect error messages to file"
+msgstr ""
+
+#: frontends/yasm/yasm.c:181
+msgid "file"
+msgstr ""
+
+#: frontends/yasm/yasm.c:183
+msgid "redirect error messages to stdout"
+msgstr ""
+
+#: frontends/yasm/yasm.c:185
+msgid "preprocess only (writes output to stdout by default)"
+msgstr ""
+
+#: frontends/yasm/yasm.c:187 frontends/yasm/yasm.c:189
+msgid "add include path"
+msgstr ""
+
+#: frontends/yasm/yasm.c:187 frontends/yasm/yasm.c:189
+msgid "path"
+msgstr ""
+
+#: frontends/yasm/yasm.c:191
+msgid "pre-include file"
+msgstr ""
+
+#: frontends/yasm/yasm.c:193 frontends/yasm/yasm.c:195
+msgid "pre-define a macro, optionally to value"
+msgstr ""
+
+#: frontends/yasm/yasm.c:193 frontends/yasm/yasm.c:195
+msgid "macro[=value]"
+msgstr ""
+
+#: frontends/yasm/yasm.c:197 frontends/yasm/yasm.c:199
+msgid "undefine a macro"
+msgstr ""
+
+#: frontends/yasm/yasm.c:197 frontends/yasm/yasm.c:199
+msgid "macro"
+msgstr ""
+
+#: frontends/yasm/yasm.c:201
+msgid "select error/warning message style (`gnu' or `vc')"
+msgstr ""
+
+#: frontends/yasm/yasm.c:201
+msgid "style"
+msgstr ""
+
+#: frontends/yasm/yasm.c:203
+msgid "prepend argument to name of all external symbols"
+msgstr ""
+
+#: frontends/yasm/yasm.c:203
+msgid "prefix"
+msgstr ""
+
+#: frontends/yasm/yasm.c:205 frontends/yasm/yasm.c:207
+msgid "append argument to name of all external symbols"
+msgstr ""
+
+#: frontends/yasm/yasm.c:205 frontends/yasm/yasm.c:207
+msgid "suffix"
+msgstr ""
+
+#: frontends/yasm/yasm.c:210
+msgid "load plugin module"
+msgstr ""
+
+#: frontends/yasm/yasm.c:210
+msgid "plugin"
+msgstr ""
+
+#: frontends/yasm/yasm.c:224
+msgid ""
+"usage: yasm [option]* file\n"
+"Options:\n"
+msgstr ""
+
+#: frontends/yasm/yasm.c:227
+msgid ""
+"\n"
+"Files are asm sources to be assembled.\n"
+"\n"
+"Sample invocation:\n"
+"   yasm -f elf -o object.o source.asm\n"
+"\n"
+"Report bugs to bug-yasm@tortall.net\n"
+msgstr ""
+
+#: frontends/yasm/yasm.c:400 frontends/yasm/yasm.c:405
+#: frontends/yasm/yasm.c:446
+#, c-format
+msgid "%s: `%s' is not a valid %s for %s `%s'"
+msgstr ""
+
+#: frontends/yasm/yasm.c:401 frontends/yasm/yasm.c:406
+#: frontends/yasm/yasm.c:411 frontends/yasm/yasm.c:426
+#: frontends/yasm/yasm.c:446 frontends/yasm/yasm.c:590
+#: frontends/yasm/yasm.c:601 frontends/yasm/yasm.c:643
+#: frontends/yasm/yasm.c:653 frontends/yasm/yasm.c:675
+#: frontends/yasm/yasm.c:687 frontends/yasm/yasm.c:710
+#: frontends/yasm/yasm.c:721 frontends/yasm/yasm.c:859
+#: frontends/yasm/yasm.c:878 frontends/yasm/yasm.c:897
+#: frontends/yasm/yasm.c:917 frontends/yasm/yasm.c:941
+#: frontends/yasm/yasm.c:961 frontends/yasm/yasm.c:1344 libyasm/errwarn.c:181
+msgid "FATAL"
+msgstr ""
+
+#: frontends/yasm/yasm.c:402 frontends/yasm/yasm.c:407
+#: frontends/yasm/yasm.c:654 frontends/yasm/yasm.c:663
+#: frontends/yasm/yasm.c:860
+msgid "architecture"
+msgstr ""
+
+#: frontends/yasm/yasm.c:411
+#, c-format
+msgid "%s: unknown architecture error"
+msgstr ""
+
+#: frontends/yasm/yasm.c:447 frontends/yasm/yasm.c:688
+#: frontends/yasm/yasm.c:898
+msgid "preprocessor"
+msgstr ""
+
+#: frontends/yasm/yasm.c:495
+#, c-format
+msgid "warning: object format `%s' does not support map files"
+msgstr ""
+
+#: frontends/yasm/yasm.c:590
+#, c-format
+msgid "%s: could not initialize BitVector"
+msgstr ""
+
+#: frontends/yasm/yasm.c:601
+#, c-format
+msgid "%s: could not load standard modules"
+msgstr ""
+
+#: frontends/yasm/yasm.c:643 frontends/yasm/yasm.c:653
+#: frontends/yasm/yasm.c:675 frontends/yasm/yasm.c:687
+#: frontends/yasm/yasm.c:710 frontends/yasm/yasm.c:721
+#, c-format
+msgid "%s: could not load default %s"
+msgstr ""
+
+#: frontends/yasm/yasm.c:644 frontends/yasm/yasm.c:918
+msgid "object format"
+msgstr ""
+
+#: frontends/yasm/yasm.c:662
+#, c-format
+msgid "Available %s for %s `%s':\n"
+msgstr ""
+
+#: frontends/yasm/yasm.c:662
+msgid "machines"
+msgstr ""
+
+#: frontends/yasm/yasm.c:696
+msgid "No input files specified"
+msgstr ""
+
+#: frontends/yasm/yasm.c:711 frontends/yasm/yasm.c:962
+msgid "list format"
+msgstr ""
+
+#: frontends/yasm/yasm.c:722 frontends/yasm/yasm.c:942
+msgid "debug format"
+msgstr ""
+
+#: frontends/yasm/yasm.c:739
+#, c-format
+msgid "could not open file `%s'"
+msgstr ""
+
+#: frontends/yasm/yasm.c:813
+msgid ""
+"warning: can open only one input file, only the last file will be processed"
+msgstr ""
+
+#: frontends/yasm/yasm.c:854 frontends/yasm/yasm.c:873
+#: frontends/yasm/yasm.c:892 frontends/yasm/yasm.c:912
+#: frontends/yasm/yasm.c:936 frontends/yasm/yasm.c:956
+#, c-format
+msgid "Available yasm %s:\n"
+msgstr ""
+
+#: frontends/yasm/yasm.c:854
+msgid "architectures"
+msgstr ""
+
+#: frontends/yasm/yasm.c:859 frontends/yasm/yasm.c:878
+#: frontends/yasm/yasm.c:897 frontends/yasm/yasm.c:917
+#: frontends/yasm/yasm.c:941 frontends/yasm/yasm.c:961
+#, c-format
+msgid "%s: unrecognized %s `%s'"
+msgstr ""
+
+#: frontends/yasm/yasm.c:873
+msgid "parsers"
+msgstr ""
+
+#: frontends/yasm/yasm.c:892
+msgid "preprocessors"
+msgstr ""
+
+#: frontends/yasm/yasm.c:912
+msgid "object formats"
+msgstr ""
+
+#: frontends/yasm/yasm.c:936
+msgid "debug formats"
+msgstr ""
+
+#: frontends/yasm/yasm.c:956
+msgid "list formats"
+msgstr ""
+
+#: frontends/yasm/yasm.c:974
+msgid "warning: can output to only one list file, last specified used"
+msgstr ""
+
+#: frontends/yasm/yasm.c:990
+msgid "warning: can output to only one object file, last specified used"
+msgstr ""
+
+#: frontends/yasm/yasm.c:1006
+msgid "warning: can output to only one map file, last specified used"
+msgstr ""
+
+#: frontends/yasm/yasm.c:1083
+msgid "warning: can output to only one error file, last specified used"
+msgstr ""
+
+#: frontends/yasm/yasm.c:1141
+#, c-format
+msgid "warning: unrecognized message style `%s'"
+msgstr ""
+
+#: frontends/yasm/yasm.c:1187
+#, c-format
+msgid "warning: could not load plugin `%s'"
+msgstr ""
+
+#: frontends/yasm/yasm.c:1281
+#, c-format
+msgid "file name already ends in `.%s': output will be in `%s'"
+msgstr ""
+
+#: frontends/yasm/yasm.c:1290
+#, c-format
+msgid "file name already has no extension: output will be in `%s'"
+msgstr ""
+
+#: frontends/yasm/yasm.c:1332 libyasm/errwarn.c:166
+#, c-format
+msgid "INTERNAL ERROR at %s, line %u: %s\n"
+msgstr ""
+
+#: frontends/yasm/yasm.c:1372 frontends/yasm/yasm.c:1374
+#: frontends/yasm/yasm.c:1378 frontends/yasm/yasm.c:1381
+msgid "error: "
+msgstr ""
+
+#: frontends/yasm/yasm.c:1390 frontends/yasm/yasm.c:1393
+msgid "warning: "
+msgstr ""
+
+#: libyasm/bc-align.c:110
+msgid "align boundary must be a constant"
+msgstr ""
+
+#: libyasm/bc-align.c:113
+msgid "align fill must be a constant"
+msgstr ""
+
+#: libyasm/bc-align.c:116
+msgid "align maximum skip must be a constant"
+msgstr ""
+
+#: libyasm/bc-align.c:204
+msgid "could not find any code alignment size"
+msgstr ""
+
+#: libyasm/bc-align.c:217
+#, c-format
+msgid "invalid alignment size %d"
+msgstr ""
+
+#: libyasm/bc-data.c:119
+msgid "data expression too complex"
+msgstr ""
+
+#: libyasm/bc-data.c:128
+msgid "LEB128 requires constant values"
+msgstr ""
+
+#: libyasm/bc-data.c:137
+msgid "negative value in unsigned LEB128"
+msgstr ""
+
+#: libyasm/bc-data.c:146 libyasm/bytecode.c:182
+msgid "multiple expression too complex"
+msgstr ""
+
+#: libyasm/bc-data.c:149 libyasm/bytecode.c:185
+msgid "multiple expression not absolute"
+msgstr ""
+
+#: libyasm/bc-data.c:188 libyasm/bc-data.c:243
+msgid "non-constant in data_tobytes"
+msgstr ""
+
+#: libyasm/bc-data.c:437
+msgid "LEB128 does not allow string constants"
+msgstr ""
+
+#: libyasm/bc-data.c:503 libyasm/bytecode.c:358
+msgid "could not determine multiple"
+msgstr ""
+
+#: libyasm/bc-data.c:507 libyasm/bytecode.c:258 libyasm/bytecode.c:362
+msgid "multiple is negative"
+msgstr ""
+
+#: libyasm/bc-incbin.c:115
+msgid "start expression too complex"
+msgstr ""
+
+#: libyasm/bc-incbin.c:118
+msgid "start expression not absolute"
+msgstr ""
+
+#: libyasm/bc-incbin.c:123
+msgid "maximum length expression too complex"
+msgstr ""
+
+#: libyasm/bc-incbin.c:126
+msgid "maximum length expression not absolute"
+msgstr ""
+
+#: libyasm/bc-incbin.c:147 libyasm/bc-incbin.c:160
+msgid "incbin does not yet understand non-constant"
+msgstr ""
+
+#: libyasm/bc-incbin.c:169 libyasm/bc-incbin.c:219
+#, c-format
+msgid "`incbin': unable to open file `%s'"
+msgstr ""
+
+#: libyasm/bc-incbin.c:175 libyasm/bc-incbin.c:227
+#, c-format
+msgid "`incbin': unable to seek on file `%s'"
+msgstr ""
+
+#: libyasm/bc-incbin.c:185
+#, c-format
+msgid "`incbin': start past end of file `%s'"
+msgstr ""
+
+#: libyasm/bc-incbin.c:212
+msgid "could not determine start in bc_tobytes_incbin"
+msgstr ""
+
+#: libyasm/bc-incbin.c:236
+#, c-format
+msgid "`incbin': unable to read %lu bytes from file `%s'"
+msgstr ""
+
+#: libyasm/bc-org.c:113 libyasm/bc-org.c:133
+msgid "ORG overlap with already existing data"
+msgstr ""
+
+#: libyasm/bc-reserve.c:121
+msgid "bc_reserve_tobytes called"
+msgstr ""
+
+#: libyasm/bytecode.c:61
+msgid "bytecode length cannot be calculated"
+msgstr ""
+
+#: libyasm/bytecode.c:70
+msgid "bytecode does not have any dependent spans"
+msgstr ""
+
+#: libyasm/bytecode.c:80
+msgid "bytecode cannot be converted to bytes"
+msgstr ""
+
+#: libyasm/bytecode.c:229
+msgid "got empty bytecode in yasm_bc_elem_size"
+msgstr ""
+
+#: libyasm/bytecode.c:246
+msgid "got empty bytecode in yasm_bc_calc_len"
+msgstr ""
+
+#: libyasm/bytecode.c:265
+msgid "expression must not contain floating point value"
+msgstr ""
+
+#: libyasm/bytecode.c:292
+msgid "got empty bytecode in yasm_bc_expand"
+msgstr ""
+
+#: libyasm/bytecode.c:334
+msgid "got empty bytecode in bc_tobytes"
+msgstr ""
+
+#: libyasm/bytecode.c:342
+msgid "written length does not match optimized length"
+msgstr ""
+
+#: libyasm/errwarn.c:239
+msgid "Unexpected errwarn insert action"
+msgstr ""
+
+#: libyasm/errwarn.c:499
+msgid "warnings being treated as errors"
+msgstr ""
+
+#: libyasm/expr.c:80 libyasm/expr.c:103
+msgid "could not find expritem in pool"
+msgstr ""
+
+#: libyasm/expr.c:96
+msgid "Right side of expression must exist"
+msgstr ""
+
+#: libyasm/expr.c:138
+msgid "too many expritems"
+msgstr ""
+
+#: libyasm/expr.c:828 libyasm/section.c:968 libyasm/section.c:1178
+msgid "circular reference detected"
+msgstr ""
+
+#: libyasm/file.c:162
+msgid "octal value out of range"
+msgstr ""
+
+#: libyasm/file.c:240
+msgid "could not determine current working directory"
+msgstr ""
+
+#: libyasm/floatnum.c:520
+msgid "Unsupported floating-point arithmetic operation"
+msgstr ""
+
+#: libyasm/floatnum.c:597
+msgid "Both underflow and overflow set"
+msgstr ""
+
+#: libyasm/floatnum.c:621
+msgid "Byte length of BitVector does not match bit length"
+msgstr ""
+
+#: libyasm/floatnum.c:682
+msgid "unsupported floatnum functionality"
+msgstr ""
+
+#: libyasm/floatnum.c:698
+msgid "Invalid float conversion size"
+msgstr ""
+
+#: libyasm/floatnum.c:705
+msgid "underflow in floating point expression"
+msgstr ""
+
+#: libyasm/floatnum.c:708
+msgid "overflow in floating point expression"
+msgstr ""
+
+#: libyasm/hamt.c:70
+msgid "Subtrie is seen as subtrie before flag is set (misaligned?)"
+msgstr ""
+
+#: libyasm/hamt.c:76
+msgid "Value is seen as subtrie (misaligned?)"
+msgstr ""
+
+#: libyasm/hamt.c:242
+msgid "Data is seen as subtrie (misaligned?)"
+msgstr ""
+
+#: libyasm/insn.c:50 modules/arch/x86/x86id.c:1452
+msgid "multiple segment overrides, using leftmost"
+msgstr ""
+
+#: libyasm/intnum.c:140
+msgid "invalid decimal literal"
+msgstr ""
+
+#: libyasm/intnum.c:144 libyasm/intnum.c:164 libyasm/intnum.c:184
+#: libyasm/intnum.c:204 libyasm/intnum.c:358 libyasm/intnum.c:375
+msgid "Numeric constant too large for internal format"
+msgstr ""
+
+#: libyasm/intnum.c:160
+msgid "invalid binary literal"
+msgstr ""
+
+#: libyasm/intnum.c:180
+msgid "invalid octal literal"
+msgstr ""
+
+#: libyasm/intnum.c:200
+msgid "invalid hex literal"
+msgstr ""
+
+#: libyasm/intnum.c:222 libyasm/intnum.c:268
+msgid "Character constant too large for internal format"
+msgstr ""
+
+#: libyasm/intnum.c:381 libyasm/intnum.c:802 libyasm/intnum.c:833
+msgid "big endian not implemented"
+msgstr ""
+
+#: libyasm/intnum.c:439
+msgid "operation needs an operand"
+msgstr ""
+
+#: libyasm/intnum.c:458 libyasm/intnum.c:466 libyasm/intnum.c:475
+#: libyasm/intnum.c:483
+msgid "divide by zero"
+msgstr ""
+
+#: libyasm/intnum.c:583 libyasm/intnum.c:587 libyasm/intnum.c:591
+#, c-format
+msgid "invalid use of '%s'"
+msgstr ""
+
+#: libyasm/intnum.c:600
+msgid "invalid operation in intnum calculation"
+msgstr ""
+
+#: libyasm/intnum.c:737 libyasm/intnum.c:769
+msgid "unknown intnum type"
+msgstr ""
+
+#: libyasm/intnum.c:788
+msgid "destination too large"
+msgstr ""
+
+#: libyasm/intnum.c:793
+#, c-format
+msgid "value does not fit in signed %d bit field"
+msgstr ""
+
+#: libyasm/intnum.c:797
+#, c-format
+msgid "value does not fit in %d bit field"
+msgstr ""
+
+#: libyasm/intnum.c:815
+msgid "misaligned value, truncating to boundary"
+msgstr ""
+
+#: libyasm/section.c:137
+#, c-format
+msgid "no size specified in %s declaration"
+msgstr ""
+
+#: libyasm/section.c:161
+#, c-format
+msgid "invalid argument to directive `%s'"
+msgstr ""
+
+#: libyasm/section.c:249
+#, c-format
+msgid "object format `%s' does not support architecture `%s' machine `%s'"
+msgstr ""
+
+#: libyasm/section.c:271
+#, c-format
+msgid "`%s' is not a valid debug format for object format `%s'"
+msgstr ""
+
+#: libyasm/section.c:280
+#, c-format
+msgid "debug format `%s' does not work with object format `%s'"
+msgstr ""
+
+#: libyasm/section.c:565
+msgid "NULL destroy function given to add_reloc"
+msgstr ""
+
+#: libyasm/section.c:567
+msgid "different destroy function given to add_reloc"
+msgstr ""
+
+#: libyasm/section.c:939 libyasm/section.c:1387
+msgid "could not calculate bc distance"
+msgstr ""
+
+#: libyasm/section.c:1318
+msgid "cannot combine multiples and setting assembly position"
+msgstr ""
+
+#: libyasm/section.c:1353
+msgid "secondary expansion of an external/complex value"
+msgstr ""
+
+#: libyasm/section.c:1522
+msgid "org/align went to negative offset"
+msgstr ""
+
+#: libyasm/symrec.c:303
+#, c-format
+msgid "`%s' previously defined here"
+msgstr ""
+
+#: libyasm/symrec.c:304
+#, c-format
+msgid "redefinition of `%s'"
+msgstr ""
+
+#: libyasm/symrec.c:309
+#, c-format
+msgid "`%s' both defined and declared extern"
+msgstr ""
+
+#: libyasm/symrec.c:400
+#, c-format
+msgid "duplicate definition of `%s'; first defined on line %lu"
+msgstr ""
+
+#: libyasm/symrec.c:422
+#, c-format
+msgid "undefined symbol `%s' (first use)"
+msgstr ""
+
+#: libyasm/symrec.c:443
+msgid " (Each undefined symbol is reported only once.)"
+msgstr ""
+
+#: libyasm/valparam.c:51 modules/parsers/nasm/nasm-parse.c:1525
+#: modules/parsers/nasm/nasm-parse.c:1561
+#, c-format
+msgid "directive `%s' requires an argument"
+msgstr ""
+
+#: libyasm/valparam.c:60
+#, c-format
+msgid "directive `%s' requires an identifier parameter"
+msgstr ""
+
+#: libyasm/valparam.c:315
+#, c-format
+msgid "argument to `%s' is not an expression"
+msgstr ""
+
+#: libyasm/valparam.c:336 modules/objfmts/rdf/rdf-objfmt.c:620
+#, c-format
+msgid "argument to `%s' is not an integer"
+msgstr ""
+
+#: libyasm/valparam.c:358
+#, c-format
+msgid "argument to `%s' is not a string or identifier"
+msgstr ""
+
+#: libyasm/valparam.c:373 libyasm/valparam.c:379
+#: modules/objfmts/elf/elf-objfmt.c:245 modules/objfmts/rdf/rdf-objfmt.c:637
+#, c-format
+msgid "Unrecognized qualifier `%s'"
+msgstr ""
+
+#: libyasm/valparam.c:381
+msgid "Unrecognized string qualifier"
+msgstr ""
+
+#: libyasm/valparam.c:383
+msgid "Unrecognized numeric qualifier"
+msgstr ""
+
+#: libyasm/value.c:166
+#, c-format
+msgid "expression on line %d has too many add terms; internal limit of 32"
+msgstr ""
+
+#: libyasm/value.c:559
+msgid "unexpected expr term type"
+msgstr ""
+
+#: libyasm/value.c:676
+msgid "floating point expression too complex"
+msgstr ""
+
+#: libyasm/value.c:697
+msgid "expression too complex"
+msgstr ""
+
+#: libyasm/xmalloc.c:72 libyasm/xmalloc.c:87 libyasm/xmalloc.c:104
+msgid "out of memory"
+msgstr ""
+
+#: modules/arch/lc3b/lc3barch.c:147
+msgid "LC-3b does not support floating point"
+msgstr ""
+
+#: modules/arch/lc3b/lc3bbc.c:163
+msgid "jump target out of range"
+msgstr ""
+
+#: modules/arch/lc3b/lc3bbc.c:232
+msgid "Unrecognized immediate type"
+msgstr ""
+
+#: modules/arch/x86/x86arch.c:133
+msgid "ignoring default rel in non-64-bit mode"
+msgstr ""
+
+#: modules/arch/x86/x86arch.c:157 modules/arch/x86/x86arch.c:164
+#: modules/arch/x86/x86arch.c:186
+#, c-format
+msgid "invalid argument to [%s]"
+msgstr ""
+
+#: modules/arch/x86/x86arch.c:445
+msgid "Invalid mode_bits in x86_get_fill"
+msgstr ""
+
+#: modules/arch/x86/x86arch.c:474 modules/arch/x86/x86arch.c:569
+msgid "unknown register size"
+msgstr ""
+
+#: modules/arch/x86/x86arch.c:505
+msgid "bad register group"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:125 modules/arch/x86/x86bc.c:134
+msgid "cannot use A/B/C/DH with instruction needing REX"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:168
+msgid "effective address too complex"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:293
+msgid "multiple LOCK or REP prefixes, using leftmost"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:305 modules/arch/x86/x86bc.c:322
+msgid "ignoring REX prefix on jump"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:308 modules/arch/x86/x86bc.c:325
+msgid "REX prefix not allowed on this instruction, ignoring"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:330
+msgid "overriding generated REX prefix"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:333
+msgid "multiple REX prefixes, using leftmost"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:687 modules/arch/x86/x86bc.c:970
+msgid "near jump does not exist"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:701 modules/arch/x86/x86bc.c:942
+msgid "short jump does not exist"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:748 modules/objfmts/coff/win64-except.c:276
+msgid "unrecognized span id"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:755
+msgid "short jump out of range"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:760
+msgid "trying to expand an already-near jump"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:845
+msgid "x86: REX.WXB set, but 2-byte VEX"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:848
+msgid "x86: got a REX prefix in non-64-bit mode"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:861
+msgid "invalid Mod/RM in x86 tobytes_insn"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:867
+msgid "invalid SIB in x86 tobytes_insn"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:998
+msgid "jump op_sel cannot be JMP_NONE in tobytes"
+msgstr ""
+
+#: modules/arch/x86/x86bc.c:1000
+msgid "unrecognized relative jump op_sel"
+msgstr ""
+
+#: modules/arch/x86/x86expr.c:209
+msgid "Register expression not ADD or EXPN"
+msgstr ""
+
+#: modules/arch/x86/x86expr.c:346
+msgid "Non-integer value in reg expn"
+msgstr ""
+
+#: modules/arch/x86/x86expr.c:403
+msgid "unexpected expr op"
+msgstr ""
+
+#: modules/arch/x86/x86expr.c:444
+msgid "invalid displacement size; fixed"
+msgstr ""
+
+#: modules/arch/x86/x86expr.c:457 modules/arch/x86/x86expr.c:594
+msgid "invalid effective address (displacement size)"
+msgstr ""
+
+#: modules/arch/x86/x86expr.c:466
+msgid "strange EA displacement size"
+msgstr ""
+
+#: modules/arch/x86/x86expr.c:658 modules/arch/x86/x86expr.c:978
+msgid "invalid effective address (64-bit in non-64-bit mode)"
+msgstr ""
+
+#: modules/arch/x86/x86expr.c:664
+msgid "RIP-relative directive ignored in non-64-bit mode"
+msgstr ""
+
+#: modules/arch/x86/x86expr.c:678 modules/arch/x86/x86expr.c:705
+#: modules/arch/x86/x86expr.c:748 modules/arch/x86/x86expr.c:756
+#: modules/arch/x86/x86expr.c:767 modules/arch/x86/x86expr.c:778
+#: modules/arch/x86/x86expr.c:929 modules/arch/x86/x86expr.c:945
+#: modules/arch/x86/x86expr.c:961
+msgid "invalid effective address"
+msgstr ""
+
+#: modules/arch/x86/x86expr.c:913 modules/arch/x86/x86expr.c:990
+#: modules/arch/x86/x86id.c:1330
+msgid "16-bit addresses not supported in 64-bit mode"
+msgstr ""
+
+#: modules/arch/x86/x86expr.c:1007
+msgid "invalid floating point constant size"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:411
+msgid "jump target segment too complex"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:415
+msgid "jump target offset too complex"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:424 modules/arch/x86/x86id.c:464
+msgid "jump target expression too complex"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:426
+msgid "didn't get FAR expression in jmpfar"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:458 modules/arch/x86/x86id.c:1206
+#: modules/arch/x86/x86id.c:1236 modules/arch/x86/x86id.c:1251
+#: modules/arch/x86/x86id.c:1262 modules/arch/x86/x86id.c:1272
+#: modules/arch/x86/x86id.c:1276 modules/arch/x86/x86id.c:1290
+#: modules/arch/x86/x86id.c:1300 modules/arch/x86/x86id.c:1317
+#: modules/arch/x86/x86id.c:1326 modules/arch/x86/x86id.c:1348
+#: modules/arch/x86/x86id.c:1352 modules/arch/x86/x86id.c:1357
+#: modules/arch/x86/x86id.c:1382
+msgid "invalid operand conversion"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:466
+msgid "invalid jump target"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:541
+msgid "no SHORT form of that jump instruction exists"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:544
+msgid "no NEAR form of that jump instruction exists"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:834
+msgid "invalid operand type"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:918
+msgid "invalid target modifier type"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:951
+msgid "invalid number of operands"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:965 modules/arch/x86/x86id.c:970
+#: modules/arch/x86/x86id.c:975
+#, c-format
+msgid "invalid size for operand %d"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:979
+msgid "one of source operand 1 or 3 must match dest operand"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:985
+#, c-format
+msgid "requires CPU%s"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:991
+msgid "invalid combination of opcode and operands"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1023
+msgid "too many operands"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1054
+msgid "indirect call without `*'"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1062
+msgid "skipping prefixes on this instruction"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1210
+msgid "invalid segment in effective address"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1246 modules/arch/x86/x86id.c:1256
+msgid "immediate does not support segment"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1339
+msgid "unsupported address size"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1404
+msgid "unknown operand action"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1438
+msgid "unknown operand postponed action"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1456
+msgid "unhandled segment prefix"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1462
+msgid "immediate expression too complex"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1473
+msgid "address size override ignored"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1542
+msgid "first opcode byte of VEX must be 0x0F"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1570
+msgid "unrecognized special prefix"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1756
+#, c-format
+msgid "`%s' is an instruction in 64-bit mode"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1761
+#, c-format
+msgid "`%s' invalid in 64-bit mode"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1788
+#, c-format
+msgid "`%s' is an instruction in CPU%s"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1815
+msgid "Cannot override data size to 32 bits in 64-bit mode"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1821
+msgid "Cannot override address size to 16 bits in 64-bit mode"
+msgstr ""
+
+#: modules/arch/x86/x86id.c:1827
+#, c-format
+msgid "`%s' is a prefix in 64-bit mode"
+msgstr ""
+
+#: modules/dbgfmts/codeview/cv-symline.c:376
+msgid "codeview: could not open source file"
+msgstr ""
+
+#: modules/dbgfmts/codeview/cv-symline.c:469
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:491
+msgid "could not find filename in table"
+msgstr ""
+
+#: modules/dbgfmts/codeview/cv-symline.c:589
+#, c-format
+msgid "codeview file number %d unassigned"
+msgstr ""
+
+#: modules/dbgfmts/codeview/cv-symline.c:721
+msgid "tried to calc_len a codeview symhead bytecode"
+msgstr ""
+
+#: modules/dbgfmts/codeview/cv-symline.c:794
+msgid "tried to calc_len a codeview fileinfo bytecode"
+msgstr ""
+
+#: modules/dbgfmts/codeview/cv-symline.c:861
+msgid "tried to calc_len a codeview linehead bytecode"
+msgstr ""
+
+#: modules/dbgfmts/codeview/cv-symline.c:969
+#: modules/dbgfmts/codeview/cv-symline.c:998
+msgid "unknown sym format character"
+msgstr ""
+
+#: modules/dbgfmts/codeview/cv-symline.c:1016
+msgid "tried to calc_len a codeview sym bytecode"
+msgstr ""
+
+#: modules/dbgfmts/codeview/cv-symline.c:1088
+#: modules/dbgfmts/codeview/cv-type.c:561
+#: modules/dbgfmts/codeview/cv-type.c:602
+#: modules/dbgfmts/codeview/cv-type.c:659
+msgid "unknown leaf format character"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-dbgfmt.c:245
+msgid "tried to calc_len a dwarf2 head bytecode"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-info.c:391
+msgid "tried to calc_len a dwarf2 aranges head bytecode"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:383
+msgid "could not find label prior to loc"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:391
+msgid "dwarf2 address went backwards?"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:672
+#, c-format
+msgid "dwarf2 file number %d unassigned"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:714
+msgid "tried to calc_len a dwarf2 spp bytecode"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:796
+msgid "tried to calc_len a dwarf2 line_op bytecode"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:843
+msgid "file number required"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:850
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:1038
+msgid "file number is not a constant"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:855
+msgid "file number less than one"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:864
+msgid "line number required"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:871
+msgid "line number is not a constant"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:880
+#: modules/objfmts/coff/coff-objfmt.c:1894
+#, c-format
+msgid "[%s] can only be used inside of a section"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:908
+msgid "column number is not a constant"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:930
+msgid "is_stmt value is not a constant"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:942
+msgid "is_stmt value not 0 or 1"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:953
+msgid "isa value is not a constant"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:961
+msgid "isa value less than zero"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:982
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:994
+#, c-format
+msgid "unrecognized loc option `%s'"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:985
+msgid "unrecognized numeric qualifier"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:999
+#, c-format
+msgid "%s requires value"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:1022
+#, c-format
+msgid "[%s] requires an argument"
+msgstr ""
+
+#: modules/dbgfmts/dwarf2/dwarf2-line.c:1046
+msgid "file number given but no filename"
+msgstr ""
+
+#: modules/dbgfmts/stabs/stabs-dbgfmt.c:341
+msgid "stabs debugging conflicts with user-defined section .stab"
+msgstr ""
+
+#: modules/dbgfmts/stabs/stabs-dbgfmt.c:346
+msgid "stabs debugging overrides empty section .stab"
+msgstr ""
+
+#: modules/dbgfmts/stabs/stabs-dbgfmt.c:357
+msgid "stabs debugging conflicts with user-defined section .stabstr"
+msgstr ""
+
+#: modules/dbgfmts/stabs/stabs-dbgfmt.c:362
+msgid "stabs debugging overrides empty section .stabstr"
+msgstr ""
+
+#: modules/dbgfmts/stabs/stabs-dbgfmt.c:400
+msgid "over 65535 stabs"
+msgstr ""
+
+#: modules/dbgfmts/stabs/stabs-dbgfmt.c:488
+msgid "tried to resolve a stabs stab bytecode"
+msgstr ""
+
+#: modules/dbgfmts/stabs/stabs-dbgfmt.c:497
+msgid "tried to resolve a stabs str bytecode"
+msgstr ""
+
+#: modules/listfmts/nasm/nasm-listfmt.c:128
+msgid "relocation too complex"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:214
+msgid "binary object format does not support extern variables"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:218
+msgid "binary object format does not support global variables"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:222
+msgid "binary object format does not support common variables"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:251 modules/objfmts/bin/bin-objfmt.c:428
+#, c-format
+msgid ""
+"section `%s' internal align of %lu is greater than `%s' of %lu; using `%s'"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:254 modules/objfmts/bin/bin-objfmt.c:256
+msgid "align"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:267
+msgid "start expression is too complex"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:280
+msgid "vstart expression is too complex"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:359
+msgid "start inconsistent with align; using aligned value"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:431 modules/objfmts/bin/bin-objfmt.c:433
+msgid "valign"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:446
+msgid "vstart inconsistent with valign"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:753
+#, c-format
+msgid "unable to open map file `%s'"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:881
+#, c-format
+msgid "sections `%s' and `%s' overlap by %lu bytes"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:968
+msgid "binary object format does not support external references"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:996 modules/objfmts/coff/coff-objfmt.c:730
+#: modules/objfmts/elf/elf-objfmt.c:613
+msgid "uninitialized space declared in code/data section: zeroing"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1042
+msgid "initialized space declared in nobits section: ignoring"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1065
+#, c-format
+msgid "section `%s' starts before origin (ORG)"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1072
+#, c-format
+msgid "section `%s' start value too large"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1079
+#: modules/objfmts/coff/coff-objfmt.c:1192
+#: modules/objfmts/coff/coff-objfmt.c:1237
+#: modules/objfmts/elf/elf-objfmt.c:790 modules/objfmts/elf/elf-objfmt.c:907
+#: modules/objfmts/macho/macho-objfmt.c:1083
+#: modules/objfmts/macho/macho-objfmt.c:1103
+#: modules/objfmts/macho/macho-objfmt.c:1214
+#: modules/objfmts/rdf/rdf-objfmt.c:686 modules/objfmts/rdf/rdf-objfmt.c:775
+#: modules/objfmts/xdf/xdf-objfmt.c:556 modules/objfmts/xdf/xdf-objfmt.c:583
+msgid "could not seek on output file"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1120
+msgid "ORG expression is too complex"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1125
+msgid "ORG expression is negative"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1169
+#, c-format
+msgid "section `%s' follows an invalid or unknown section `%s'"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1182
+#, c-format
+msgid "follows loop between section `%s' and section `%s'"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1293
+#, c-format
+msgid "section `%s' vfollows an invalid or unknown section `%s'"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1307
+#, c-format
+msgid "vfollows loop between section `%s' and section `%s'"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1519
+msgid "cannot combine `start' and `follows' section attributes"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1525
+msgid "cannot combine `vstart' and `vfollows' section attributes"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1535 modules/objfmts/bin/bin-objfmt.c:1548
+#: modules/objfmts/coff/coff-objfmt.c:1547
+#: modules/objfmts/elf/elf-objfmt.c:1120
+#: modules/objfmts/macho/macho-objfmt.c:1447
+#: modules/objfmts/xdf/xdf-objfmt.c:729
+#, c-format
+msgid "argument to `%s' is not a power of two"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1597
+msgid "program origin redefined"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1606
+msgid "argument to ORG must be expression"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1623
+msgid "map file already specified"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1630
+msgid "unexpected expression in [map]"
+msgstr ""
+
+#: modules/objfmts/bin/bin-objfmt.c:1921
+#, c-format
+msgid "%s: could not find symbol `start'"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:479
+#: modules/objfmts/coff/coff-objfmt.c:684
+msgid "coff: relocation too complex"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:501
+msgid "coff: wrt expression too complex"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:507
+msgid "coff: cannot wrt across sections"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:527
+msgid "coff: common size too complex"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:533
+msgid "coff: common size is negative"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:592
+#: modules/objfmts/coff/coff-objfmt.c:598
+#: modules/objfmts/coff/coff-objfmt.c:624
+#: modules/objfmts/coff/coff-objfmt.c:659
+msgid "coff: invalid relocation size"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:628
+#: modules/objfmts/coff/coff-objfmt.c:635
+#: modules/objfmts/coff/coff-objfmt.c:642
+#: modules/objfmts/coff/coff-objfmt.c:663
+msgid "coff objfmt: unrecognized machine"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:785
+#: modules/objfmts/coff/coff-objfmt.c:815
+#: modules/objfmts/coff/coff-objfmt.c:1223
+#: modules/objfmts/elf/elf-objfmt.c:431 modules/objfmts/rdf/rdf-objfmt.c:751
+#: modules/objfmts/rdf/rdf-objfmt.c:768 modules/objfmts/xdf/xdf-objfmt.c:304
+#: modules/objfmts/xdf/xdf-objfmt.c:332
+msgid "could not get file position on output file"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:798
+msgid "coff: section computed size did not match actual size"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:840
+msgid "coff: no symbol data for relocated symbol"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:926
+#, c-format
+msgid "too many relocations in section `%s'"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1002
+#: modules/objfmts/coff/coff-objfmt.c:1124
+msgid "coff: expected sym data to be present"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1023
+#: modules/objfmts/macho/macho-objfmt.c:878
+#: modules/objfmts/rdf/rdf-objfmt.c:259 modules/objfmts/rdf/rdf-objfmt.c:552
+#: modules/objfmts/xdf/xdf-objfmt.c:484
+msgid "didn't understand section"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1033
+#: modules/objfmts/macho/macho-objfmt.c:896
+#: modules/objfmts/xdf/xdf-objfmt.c:494
+msgid "global EQU value not an integer expression"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1049
+#: modules/objfmts/macho/macho-objfmt.c:918
+#: modules/objfmts/rdf/rdf-objfmt.c:600
+msgid "COMMON data size not an integer expression"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1098
+msgid "coff: unrecognized aux symtab type"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1159
+#: modules/objfmts/coff/coff-objfmt.c:2112
+msgid "procedure started here"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1161
+msgid "end of file in procedure frame"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1320
+#: modules/objfmts/elf/elf-objfmt.c:979
+msgid "non-string section attribute"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1360
+#: modules/objfmts/elf/elf-objfmt.c:1014
+#, c-format
+msgid "unrecognized section attribute: `%c'"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1501
+msgid "Standard COFF does not support read-only data sections"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1555
+msgid "Win32 does not support alignments > 8192"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1567
+msgid "COFF section names limited to 8 characters: truncating"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1588
+#: modules/objfmts/elf/elf-objfmt.c:1159
+#: modules/objfmts/macho/macho-objfmt.c:1487
+#: modules/objfmts/rdf/rdf-objfmt.c:964 modules/objfmts/xdf/xdf-objfmt.c:774
+msgid "section flags ignored on section redeclaration"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1668
+msgid "argument to EXPORT must be symbol name"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1713
+msgid "argument to SAFESEH must be symbol name"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1767
+msgid "coff: no symbol data for SAFESEH symbol"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1826
+#: modules/objfmts/elf/elf-objfmt.c:1294
+msgid ".comment requires string parameters"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1848
+msgid "previous procedure started here"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1850
+msgid "nested procedures not supported (didn't use [ENDPROC_FRAME]?)"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1871
+#: modules/objfmts/coff/coff-objfmt.c:2106
+#, c-format
+msgid "[%s] without preceding [PROC_FRAME]"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1876
+#: modules/objfmts/coff/win64-except.c:262
+msgid "prologue ended here"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1877
+#, c-format
+msgid "[%s] after end of prologue"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1882
+#: modules/objfmts/coff/coff-objfmt.c:2122
+msgid "unwind info not present"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1917
+#: modules/objfmts/coff/coff-objfmt.c:1948
+#: modules/objfmts/coff/coff-objfmt.c:2018
+#, c-format
+msgid "[%s] requires a register as the first parameter"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:1985
+#, c-format
+msgid "[%s] requires a size"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:2027
+#, c-format
+msgid "[%s] requires an offset as the second parameter"
+msgstr ""
+
+#: modules/objfmts/coff/coff-objfmt.c:2114
+msgid "ended procedure without ending prologue"
+msgstr ""
+
+#: modules/objfmts/coff/win64-except.c:212
+msgid "prolog size expression too complex"
+msgstr ""
+
+#: modules/objfmts/coff/win64-except.c:215
+msgid "codes count expression too complex"
+msgstr ""
+
+#: modules/objfmts/coff/win64-except.c:219
+#: modules/objfmts/coff/win64-except.c:311
+msgid "frame offset expression too complex"
+msgstr ""
+
+#: modules/objfmts/coff/win64-except.c:241
+#: modules/objfmts/coff/win64-except.c:272
+#: modules/objfmts/coff/win64-except.c:317
+#, c-format
+msgid "frame offset of %ld bytes, must be between 0 and 240"
+msgstr ""
+
+#: modules/objfmts/coff/win64-except.c:245
+#: modules/objfmts/coff/win64-except.c:320
+#, c-format
+msgid "frame offset of %ld is not a multiple of 16"
+msgstr ""
+
+#: modules/objfmts/coff/win64-except.c:264
+#, c-format
+msgid "prologue %ld bytes, must be <256"
+msgstr ""
+
+#: modules/objfmts/coff/win64-except.c:268
+#, c-format
+msgid "%ld unwind codes, maximum of 255"
+msgstr ""
+
+#: modules/objfmts/coff/win64-except.c:348
+#: modules/objfmts/coff/win64-except.c:525
+msgid "offset expression too complex"
+msgstr ""
+
+#: modules/objfmts/coff/win64-except.c:397
+#: modules/objfmts/coff/win64-except.c:517
+msgid "unrecognied unwind opcode"
+msgstr ""
+
+#: modules/objfmts/coff/win64-except.c:412
+#: modules/objfmts/coff/win64-except.c:429
+msgid "negative offset not allowed"
+msgstr ""
+
+#: modules/objfmts/coff/win64-except.c:415
+#: modules/objfmts/coff/win64-except.c:537
+#, c-format
+msgid "offset of %ld is not a multiple of %ld"
+msgstr ""
+
+#: modules/objfmts/coff/win64-except.c:436
+msgid "expansion on already largest alloc"
+msgstr ""
+
+#: modules/objfmts/coff/win64-except.c:531
+#, c-format
+msgid "offset of %ld bytes, must be between %ld and %ld"
+msgstr ""
+
+#: modules/objfmts/dbg/dbg-objfmt.c:51
+msgid "could not open temporary file"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:124 modules/objfmts/elf/elf-objfmt.c:149
+#: modules/objfmts/elf/elf-objfmt.c:1208
+#, c-format
+msgid "unrecognized symbol type `%s'"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:202
+msgid "More than one symbol visibility provided; using last"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:229
+msgid "alignment constraint is not an integer"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:240 modules/objfmts/rdf/rdf-objfmt.c:632
+msgid "alignment constraint is not a power of two"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:439
+msgid "could not set file position on output file"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:459
+msgid "elf: invalid relocation size"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:508 modules/objfmts/elf/elf-objfmt.c:567
+msgid "elf: relocation too complex"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:554
+msgid "elf: invalid relocation (WRT or size)"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:659
+msgid "Unrecognized section without data"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:707 modules/objfmts/elf/elf.c:756
+msgid "couldn't read position on output stream"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:712 modules/objfmts/elf/elf.c:761
+msgid "couldn't seek on output stream"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:869
+msgid "missing .stab or .stabstr section/data"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:1133
+msgid "invalid merge entity size"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:1136
+msgid "entity size for SHF_MERGE not specified"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:1210
+msgid "no type specified"
+msgstr ""
+
+#: modules/objfmts/elf/elf-objfmt.c:1237
+msgid "no size specified"
+msgstr ""
+
+#: modules/objfmts/elf/elf-x86-amd64.c:79 modules/objfmts/elf/elf-x86-x86.c:90
+msgid "symbol references section without data"
+msgstr ""
+
+#: modules/objfmts/elf/elf-x86-amd64.c:166
+#: modules/objfmts/elf/elf-x86-x86.c:162
+msgid "Unsupported WRT"
+msgstr ""
+
+#: modules/objfmts/elf/elf-x86-amd64.c:172
+#: modules/objfmts/elf/elf-x86-amd64.c:180
+#: modules/objfmts/elf/elf-x86-x86.c:168 modules/objfmts/elf/elf-x86-x86.c:175
+msgid "Unsupported relocation size"
+msgstr ""
+
+#: modules/objfmts/elf/elf.c:149 modules/objfmts/elf/elf.c:512
+#: modules/objfmts/elf/elf.c:663 modules/objfmts/elf/elf.c:691
+#: modules/objfmts/elf/elf.c:708 modules/objfmts/elf/elf.c:728
+msgid "Unsupported machine for ELF output"
+msgstr ""
+
+#: modules/objfmts/elf/elf.c:384 modules/objfmts/elf/elf.c:413
+#: modules/objfmts/elf/elf.c:433
+msgid "symtab is missing initial dummy entry"
+msgstr ""
+
+#: modules/objfmts/elf/elf.c:454
+msgid "symtab is null"
+msgstr ""
+
+#: modules/objfmts/elf/elf.c:468
+msgid "size specifier not an integer expression"
+msgstr ""
+
+#: modules/objfmts/elf/elf.c:487
+msgid "EQU value not an integer expression"
+msgstr ""
+
+#: modules/objfmts/elf/elf.c:601
+msgid "unsupported ELF format"
+msgstr ""
+
+#: modules/objfmts/elf/elf.c:613
+msgid "shead is null"
+msgstr ""
+
+#: modules/objfmts/elf/elf.c:667 modules/objfmts/elf/elf.c:732
+msgid "Failed to write an elf section header"
+msgstr ""
+
+#: modules/objfmts/elf/elf.c:780 modules/objfmts/elf/elf.c:785
+msgid "Unsupported arch/machine for elf output"
+msgstr ""
+
+#: modules/objfmts/elf/elf.c:901
+#, c-format
+msgid "alignment %d for section `%s' is not a power of 2"
+msgstr ""
+
+#: modules/objfmts/elf/elf.c:912 modules/objfmts/elf/elf.c:930
+msgid "Unsupported ELF format for output"
+msgstr ""
+
+#: modules/objfmts/elf/elf.c:934
+msgid "ELF program header is not proper length"
+msgstr ""
+
+#: modules/objfmts/elf/elf.c:939
+msgid "Failed to write ELF program header"
+msgstr ""
+
+#: modules/objfmts/macho/macho-objfmt.c:441
+msgid "macho: relocation too complex for current implementation"
+msgstr ""
+
+#: modules/objfmts/macho/macho-objfmt.c:466
+msgid "macho: relocation size unsupported"
+msgstr ""
+
+#: modules/objfmts/macho/macho-objfmt.c:477
+msgid "macho: shifted relocations not supported"
+msgstr ""
+
+#: modules/objfmts/macho/macho-objfmt.c:484
+msgid "macho: SEG not supported"
+msgstr ""
+
+#: modules/objfmts/macho/macho-objfmt.c:495
+msgid "macho: invalid WRT"
+msgstr ""
+
+#: modules/objfmts/macho/macho-objfmt.c:522
+msgid ""
+"macho: sorry, cannot apply 32 bit absolute relocations in 64 bit mode, "
+"consider \"[_symbol wrt rip]\" for mem access, \"qword\" and \"dq _foo\" for "
+"pointers."
+msgstr ""
+
+#: modules/objfmts/macho/macho-objfmt.c:565
+msgid "macho: relocation too complex"
+msgstr ""
+
+#: modules/objfmts/macho/macho-objfmt.c:604
+#: modules/objfmts/rdf/rdf-objfmt.c:321 modules/objfmts/xdf/xdf-objfmt.c:262
+msgid "uninitialized space: zeroing"
+msgstr ""
+
+#: modules/objfmts/macho/macho-objfmt.c:1036
+msgid "no sections defined"
+msgstr ""
+
+#: modules/objfmts/macho/macho-objfmt.c:1408
+msgid "segment name is too long, max 16 chars; truncating"
+msgstr ""
+
+#: modules/objfmts/macho/macho-objfmt.c:1412
+#: modules/objfmts/macho/macho-objfmt.c:1423
+msgid "section name is too long, max 16 chars; truncating"
+msgstr ""
+
+#: modules/objfmts/macho/macho-objfmt.c:1455
+msgid "macho implementation does not support alignments > 16384"
+msgstr ""
+
+#: modules/objfmts/macho/macho-objfmt.c:1462
+msgid "Unknown section name, defaulting to __TEXT segment"
+msgstr ""
+
+#: modules/objfmts/rdf/rdf-objfmt.c:216 modules/objfmts/rdf/rdf-objfmt.c:285
+msgid "rdf: relocation too complex"
+msgstr ""
+
+#: modules/objfmts/rdf/rdf-objfmt.c:222
+msgid "rdf: WRT not supported"
+msgstr ""
+
+#: modules/objfmts/rdf/rdf-objfmt.c:268
+msgid "rdf: no symbol data for relocated symbol"
+msgstr ""
+
+#: modules/objfmts/rdf/rdf-objfmt.c:376
+msgid "rdf: section computed size did not match actual size"
+msgstr ""
+
+#: modules/objfmts/rdf/rdf-objfmt.c:556
+msgid "rdf does not support exporting EQU/absolute values"
+msgstr ""
+
+#: modules/objfmts/rdf/rdf-objfmt.c:566
+#, c-format
+msgid "label name too long, truncating to %d bytes"
+msgstr ""
+
+#: modules/objfmts/rdf/rdf-objfmt.c:941
+msgid "new segment declared without type code"
+msgstr ""
+
+#: modules/objfmts/rdf/rdf-objfmt.c:1027
+#, c-format
+msgid "name too long, truncating to %d bytes"
+msgstr ""
+
+#: modules/objfmts/xdf/xdf-objfmt.c:181 modules/objfmts/xdf/xdf-objfmt.c:223
+msgid "xdf: relocation too complex"
+msgstr ""
+
+#: modules/objfmts/xdf/xdf-objfmt.c:317
+msgid "xdf: section computed size did not match actual size"
+msgstr ""
+
+#: modules/objfmts/xdf/xdf-objfmt.c:346
+msgid "xdf: no symbol data for relocated symbol"
+msgstr ""
+
+#: modules/objfmts/xdf/xdf-objfmt.c:355
+msgid "xdf: no symbol data for relocated base symbol"
+msgstr ""
+
+#: modules/objfmts/xdf/xdf-objfmt.c:360
+msgid "xdf: no base symbol for WRT relocation"
+msgstr ""
+
+#: modules/objfmts/xdf/xdf-objfmt.c:430
+msgid "XDF object format does not support common variables"
+msgstr ""
+
+#: modules/objfmts/xdf/xdf-objfmt.c:741
+msgid "XDF does not support alignments > 4096"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:91
+msgid "can only have one token of lookahead"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:132 modules/parsers/nasm/nasm-parse.c:145
+#, c-format
+msgid "junk at end of line, first unrecognized character is `%c'"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:219 modules/parsers/gas/gas-parse.c:499
+#: modules/parsers/gas/gas-parse.c:697 modules/parsers/gas/gas-parse.c:719
+#: modules/parsers/gas/gas-parse.c:742 modules/parsers/gas/gas-parse.c:855
+#, c-format
+msgid "expression expected after `%s'"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:235
+#, c-format
+msgid "directive `%s' not recognized"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:238
+#, c-format
+msgid "instruction not recognized: `%s'"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:255 modules/parsers/nasm/nasm-parse.c:449
+msgid "label or instruction expected at start of line"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:293 modules/parsers/gas/gas-parse.c:385
+#: modules/parsers/gas/gas-parse.c:465
+msgid "line number is negative"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:355
+msgid "junk at end of cpp line marker"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:412
+msgid "line increment is negative"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:507
+msgid "rept expression not absolute"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:510
+msgid "rept expression is negative"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:532
+msgid "endr without matching rept"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:546
+msgid ".align directive must specify alignment"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:622
+#, c-format
+msgid "size expected for `%s'"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:795
+msgid "flag string expected"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:975
+msgid "expression syntax error"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:1178 modules/parsers/gas/gas-parse.c:1212
+msgid "invalid memory expression"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:1202
+msgid "non-integer scale"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:1224
+#, c-format
+msgid "scale factor of %u without an index register"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:1285
+msgid "integer register index expected"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:1292
+msgid "missing closing parenthesis for register index"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:1298
+#, c-format
+msgid "bad register index `%u'"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:1311 modules/parsers/gas/gas-parse.c:1325
+#, c-format
+msgid "expression missing after `%s'"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:1460 modules/parsers/nasm/nasm-parse.c:1287
+#: modules/parsers/nasm/nasm-parse.c:1375
+msgid "missing parenthesis"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:1492
+msgid "expected identifier after `@'"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:1500
+msgid "unrecognized identifier after `@'"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:1600
+#, c-format
+msgid "invalid section name `%s'"
+msgstr ""
+
+#: modules/parsers/gas/gas-parse.c:1652
+msgid "size must be an absolute expression"
+msgstr ""
+
+#: modules/parsers/gas/gas-parser.c:88
+msgid "rept without matching endr"
+msgstr ""
+
+#: modules/parsers/gas/gas-parser.c:94
+msgid "end of file in comment"
+msgstr ""
+
+#: modules/parsers/gas/gas-token.re:437
+#, c-format
+msgid "Unrecognized register name `%s'"
+msgstr ""
+
+#: modules/parsers/gas/gas-token.re:495 modules/parsers/nasm/nasm-token.re:487
+#: modules/parsers/nasm/nasm-token.re:712
+#, c-format
+msgid "ignoring unrecognized character `%s'"
+msgstr ""
+
+#: modules/parsers/gas/gas-token.re:615 modules/parsers/gas/gas-token.re:635
+msgid "unexpected end of file in string"
+msgstr ""
+
+#: modules/parsers/gas/gas-token.re:680
+msgid "nested rept not supported"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:95
+msgid "only can have one token of lookahead"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:259
+msgid "only RES* allowed within absolute section"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:345 modules/parsers/nasm/nasm-parse.c:354
+#, c-format
+msgid "invalid arguments to [%s]"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:387
+msgid "label alone on a line without a colon might be in error"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:409 modules/parsers/nasm/nasm-parse.c:530
+#: modules/parsers/nasm/nasm-parse.c:664
+#, c-format
+msgid "expression expected after %s"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:441
+msgid "instruction expected after label"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:537
+msgid "instruction expected after TIMES expression"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:584 modules/parsers/nasm/nasm-parse.c:616
+msgid "can not handle more than one '?'"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:594 modules/parsers/nasm/nasm-parse.c:633
+msgid "expression or string expected"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:602
+msgid "expected ( after DUP"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:610 modules/parsers/nasm/nasm-parse.c:625
+msgid "expected ) after DUPlicated expression"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:678
+msgid "filename string expected after INCBIN"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:692
+msgid "expression expected for INCBIN start"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:704
+msgid "expression expected for INCBIN maximum length"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:739
+#, c-format
+msgid "unexpected %s after instruction"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:743
+#, c-format
+msgid "expected operand, got %s"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:800 modules/parsers/nasm/nasm-parse.c:849
+msgid "memory address expected"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:815
+msgid "relative adressing not supported\n"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:824
+msgid "register adressing not supported\n"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:832
+msgid "expected expression after ]"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:856
+msgid "OFFSET applied to non-memory operand"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:861
+msgid "OFFSET applied to non-absolute memory operand"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:894
+msgid "segment applied to non-memory operand"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:923
+msgid "cannot override register size"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:935
+#, c-format
+msgid "overriding operand size from %u-bit to %u-bit"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:939
+msgid "double operand size override"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:970
+msgid "expected expression after ["
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:975
+msgid "missing closing bracket"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:1027
+msgid "`:' required after segment register"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:1124
+#: modules/parsers/nasm/nasm-parse.c:1186
+#: modules/parsers/nasm/nasm-parse.c:1214
+#: modules/parsers/nasm/nasm-parse.c:1243
+#: modules/parsers/nasm/nasm-parse.c:1274
+#: modules/parsers/nasm/nasm-parse.c:1283
+#: modules/parsers/nasm/nasm-parse.c:1312
+#: modules/parsers/nasm/nasm-parse.c:1320
+#: modules/parsers/nasm/nasm-parse.c:1329
+#: modules/parsers/nasm/nasm-parse.c:1338
+#: modules/parsers/nasm/nasm-parse.c:1348
+#: modules/parsers/nasm/nasm-parse.c:1362
+#: modules/parsers/nasm/nasm-parse.c:1371
+#, c-format
+msgid "expected expression after %s"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:1389
+msgid "data values can't have registers"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:1578
+#, c-format
+msgid "unrecognized default `%s'"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:1581
+msgid "unrecognized default value"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-parse.c:1586
+#, c-format
+msgid "unrecognized directive `%s'"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-token.re:99
+#, c-format
+msgid "no non-local label before `%s'"
+msgstr ""
+
+#: modules/parsers/nasm/nasm-token.re:767
+msgid "unterminated string"
+msgstr ""
+
+#: modules/preprocs/cpp/cpp-preproc.c:87
+msgid "command line too long!"
+msgstr ""
+
+#: modules/preprocs/cpp/cpp-preproc.c:143
+#: modules/preprocs/cpp/cpp-preproc.c:175
+msgid "Failed to execute preprocessor"
+msgstr ""
+
+#: modules/preprocs/cpp/cpp-preproc.c:145
+#: modules/preprocs/cpp/cpp-preproc.c:177
+msgid "Cannot execute preprocessor, no popen available"
+msgstr ""
+
+#: modules/preprocs/cpp/cpp-preproc.c:224
+msgid "Preprocessor exited with failure"
+msgstr ""
+
+#: modules/preprocs/cpp/cpp-preproc.c:259
+#: modules/preprocs/raw/raw-preproc.c:88
+msgid "error when reading from file"
+msgstr ""
+
+#: modules/preprocs/nasm/nasm-preproc.c:146
+#: modules/preprocs/raw/raw-preproc.c:55
+msgid "Could not open input file"
+msgstr ""

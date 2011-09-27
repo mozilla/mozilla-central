@@ -1,0 +1,12 @@
+Name: libjingle
+URL: http://code.google.com/p/libjingle/
+Version: 2.7.0
+License: BSD
+License File: source/COPYING
+
+Description:
+  Libjingle provides xmpp support to the sync code, which
+  lives at chrome/browser/sync/notifier.
+
+  Libjingle is distributed under a Berkeley-style license detailed in
+  source/COPYING.
