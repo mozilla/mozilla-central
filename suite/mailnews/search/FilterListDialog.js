@@ -203,6 +203,8 @@ function onLoad()
     gFilterTree.focus();
 
     window.tryToClose = onFilterClose;
+
+    top.controllers.insertControllerAt(0, gFilterController);
 }
 
 /*
@@ -445,6 +447,8 @@ function onFilterUnload()
   var filterList = currentFilterList();
   if (filterList) 
     filterList.saveToDefaultFile();
+
+  top.controllers.removeController(gFilterController);
 }
 
 function onFilterClose()
@@ -702,3 +706,26 @@ function getFirstFolderURI(msgFolder)
   }
   return msgFolder.URI;
 }
+
+var gFilterController =
+{
+  supportsCommand: function(aCommand)
+  {
+    return aCommand == "cmd_selectAll";
+  },
+
+  isCommandEnabled: function(aCommand)
+  {
+    return aCommand == "cmd_selectAll";
+  },
+
+  doCommand: function(aCommand)
+  {
+    if (aCommand == "cmd_selectAll")
+      gFilterTree.view.selection.selectAll();
+  },
+
+  onEvent: function(aEvent)
+  {
+  }
+};

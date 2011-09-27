@@ -64,6 +64,10 @@
   <stringbundle id="bundle_filter"
                 src="chrome://messenger/locale/filter.properties"/>
 
+  <keyset id="filterKeys">
+    <key id="key_selectAll"/>
+  </keyset>
+
   <grid flex="1">
     <columns>
       <column flex="1"/>
