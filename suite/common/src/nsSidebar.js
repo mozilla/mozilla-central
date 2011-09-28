@@ -66,6 +66,7 @@ const nsIRDFContainer  = Components.interfaces.nsIRDFContainer;
 const nsIProperties    = Components.interfaces.nsIProperties;
 const nsIFileURL       = Components.interfaces.nsIFileURL;
 const nsIRDFRemoteDataSource = Components.interfaces.nsIRDFRemoteDataSource;
+const nsIClassInfo     = Components.interfaces.nsIClassInfo;
 
 // File extension for Sherlock search plugin description files
 const SHERLOCK_FILE_EXT_REGEXP = /\.src$/i;
