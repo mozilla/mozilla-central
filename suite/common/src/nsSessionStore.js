@@ -474,7 +474,7 @@ SessionStoreService.prototype = {
       // preserved update our internal states to match that max
       case "sessionstore.max_tabs_undo":
         for (let ix in this._windows) {
-          this._windows[ix]._closedTabs.splice(this._prefBranch.getIntPref("sessionstore.max_tabs_undo"));
+          this._windows[ix]._closedTabs.splice(this._prefBranch.getIntPref("sessionstore.max_tabs_undo"), this._windows[ix]._closedTabs.length);
         }
         break;
       case "sessionstore.max_windows_undo":
@@ -1316,7 +1316,7 @@ SessionStoreService.prototype = {
         if (winState._closedTabs && winState._closedTabs.length) {
           let curWinState = this._windows[windowToUse.__SSi];
           curWinState._closedTabs = curWinState._closedTabs.concat(winState._closedTabs);
-          curWinState._closedTabs.splice(this._prefBranch.getIntPref("sessionstore.max_tabs_undo"));
+          curWinState._closedTabs.splice(this._prefBranch.getIntPref("sessionstore.max_tabs_undo"), curWinState._closedTabs.length);
         }
 
         // Restore into that window - pretend it's a followup since we'll already
@@ -3719,7 +3719,7 @@ SessionStoreService.prototype = {
     if (normalWindowIndex >= maxWindowsUndo)
       spliceTo = normalWindowIndex + 1;
 #endif
-    this._closedWindows.splice(spliceTo);
+    this._closedWindows.splice(spliceTo, this._closedWindows.length);
   },
 
   /**

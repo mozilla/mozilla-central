@@ -76,7 +76,7 @@ var PlacesOrganizer = {
 
     this.selectLeftPaneQuery(leftPaneSelection);
     // clear the back-stack
-    this._backHistory.splice(0);
+    this._backHistory.splice(0, this._backHistory.length);
     document.getElementById("OrganizerCommand:Back").setAttribute("disabled", true);
 
     var view = this._content.treeBoxObject.view;
@@ -137,7 +137,7 @@ var PlacesOrganizer = {
 
     if (this.location) {
       this._backHistory.unshift(this.location);
-      this._forwardHistory.splice(0);
+      this._forwardHistory.splice(0, this._forwardHistory.length);
     }
 
     this._location = aLocation;
