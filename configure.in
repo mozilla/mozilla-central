@@ -4482,18 +4482,6 @@ fi
 AC_SUBST(SYSTEM_HUNSPELL)
 
 dnl ========================================================
-dnl Use ARM userspace kernel helpers; tell NSPR to enable
-dnl their usage and use them in spidermonkey.
-dnl ========================================================
-MOZ_ARG_WITH_BOOL(arm-kuser,
-[  --with-arm-kuser         Use kuser helpers (Linux/ARM only -- requires kernel 2.6.13 or later)],
-    USE_ARM_KUSER=1,
-    USE_ARM_KUSER=)
-if test -n "$USE_ARM_KUSER"; then
-   AC_DEFINE(USE_ARM_KUSER)
-fi
-
-dnl ========================================================
 dnl =
 dnl = Application
 dnl =
@@ -4506,6 +4494,7 @@ MOZ_BRANDING_DIRECTORY=
 MOZ_OFFICIAL_BRANDING=
 MOZ_CALENDAR=
 MOZ_FEEDS=1
+MOZ_INSTALLER=1
 MOZ_IPC=1
 MOZ_JSDEBUGGER=1
 MOZ_LDAP_XPCOM=
@@ -4541,6 +4530,7 @@ MOZ_XTF=1
 MOZ_XUL=1
 MOZ_ZIPWRITER=1
 NS_PRINTING=1
+NSS_DISABLE_DBM=
 BUILD_CTYPES=1
 
 
@@ -5437,12 +5427,6 @@ fi
 dnl ========================================================
 dnl Installer
 dnl ========================================================
-case "$target_os" in
-    aix*|solaris*|linux*|msvc*|mks*|cygwin*|mingw*|os2*|wince*|winmo*)
-        MOZ_INSTALLER=1
-        ;;
-esac
-
 MOZ_ARG_DISABLE_BOOL(installer,
 [  --disable-installer     Disable building of installer],
     MOZ_INSTALLER=,
