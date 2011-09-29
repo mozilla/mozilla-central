@@ -427,8 +427,8 @@ nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClie
 
   if (SUCCEEDED(hr))
   {
-    bool isDefaultMail = true;
-    bool isDefaultNews = true;
+    BOOL isDefaultMail = true;
+    BOOL isDefaultNews = true;
     if (aApps & nsIShellService::MAIL)
       pAAR->QueryAppIsDefaultAll(AL_EFFECTIVE, APP_REG_NAME_MAIL, &isDefaultMail);
     if (aApps & nsIShellService::NEWS)

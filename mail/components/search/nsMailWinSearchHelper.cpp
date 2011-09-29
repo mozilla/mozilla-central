@@ -230,8 +230,10 @@ NS_IMETHODIMP nsMailWinSearchHelper::GetIsFileAssociationSet(bool *aResult)
                                 IID_IApplicationAssociationRegistration,
                                 getter_AddRefs(pAAR));
 
+  BOOL res;
   if (SUCCEEDED(hr))
-    pAAR->QueryAppIsDefault(L".wdseml", AT_FILEEXTENSION, AL_EFFECTIVE, APP_REG_NAME_MAIL, aResult);
+    pAAR->QueryAppIsDefault(L".wdseml", AT_FILEEXTENSION, AL_EFFECTIVE, APP_REG_NAME_MAIL, &res);
+  *aResult = res;
 
   return NS_OK;
 }

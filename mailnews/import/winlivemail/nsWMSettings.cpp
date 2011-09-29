@@ -319,7 +319,7 @@ bool WMSettings::DoImport(nsIMsgAccount **ppAccount)
   nsString expandedStoreRoot;
   expandedStoreRoot.SetLength(size - 1);
   if (expandedStoreRoot.Length() != size - 1)
-    return NS_ERROR_OUT_OF_MEMORY;
+    return PR_FALSE;
   ::ExpandEnvironmentStringsW((LPCWSTR)storeRoot.get(),
                               (LPWSTR)expandedStoreRoot.BeginWriting(),
                               size);
@@ -620,7 +620,7 @@ bool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
                                 const nsString& serverName,
                                 nsIMsgAccount **ppAccount)
 {
-  bool authMethod;
+  PRInt32 authMethod;
   PRInt32 errorCode;
   if (ppAccount)
     *ppAccount = nsnull;
