@@ -70,7 +70,7 @@ private:
 
 private:
     nsImportModuleList * m_pModules;
-  PRBool m_didDiscovery;
+  bool m_didDiscovery;
   nsCString m_sysCharset;
   nsIUnicodeDecoder * m_pDecoder;
   nsIUnicodeEncoder * m_pEncoder;
@@ -92,10 +92,10 @@ public:
   const PRUnichar *GetDescription( void) { return( m_description.get());}
   const char *  GetSupports( void) { return( m_supports.get());}
 
-  nsIImportModule *  GetModule( PRBool keepLoaded = PR_FALSE); // Adds ref
+  nsIImportModule *  GetModule( bool keepLoaded = false); // Adds ref
   void        ReleaseModule( void);
 
-  PRBool      SupportsThings( const char *pThings);
+  bool        SupportsThings( const char *pThings);
 
 private:
     nsCID m_cid;

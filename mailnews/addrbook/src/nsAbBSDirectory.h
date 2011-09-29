@@ -63,17 +63,17 @@ public:
   NS_IMETHOD CreateDirectoryByURI(const nsAString &aDisplayName,
                                   const nsACString &aURI);
   NS_IMETHOD DeleteDirectory(nsIAbDirectory *directory);
-  NS_IMETHOD HasDirectory(nsIAbDirectory *dir, PRBool *hasDir);
-  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, PRBool *aResult);
+  NS_IMETHOD HasDirectory(nsIAbDirectory *dir, bool *hasDir);
+  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, bool *aResult);
   NS_IMETHOD GetURI(nsACString &aURI);
 
 protected:
   nsresult EnsureInitialized();
 	nsresult CreateDirectoriesFromFactory(const nsACString &aURI,
-                                        DIR_Server* aServer, PRBool aNotify);
+                                        DIR_Server* aServer, bool aNotify);
 
 protected:
-	PRBool mInitialized;
+	bool mInitialized;
 	nsCOMArray<nsIAbDirectory> mSubDirectories;
 	nsDataHashtable<nsISupportsHashKey, DIR_Server*> mServers;
 };

@@ -61,22 +61,22 @@ static int MimeUntypedText_open_subpart (MimeObject *obj,
                      const char *desc);
 static int MimeUntypedText_close_subpart (MimeObject *obj);
 
-static PRBool MimeUntypedText_uu_begin_line_p(const char *line, PRInt32 length,
+static bool MimeUntypedText_uu_begin_line_p(const char *line, PRInt32 length,
                          MimeDisplayOptions *opt,
                          char **type_ret,
                          char **name_ret);
-static PRBool MimeUntypedText_uu_end_line_p(const char *line, PRInt32 length);
+static bool MimeUntypedText_uu_end_line_p(const char *line, PRInt32 length);
 
-static PRBool MimeUntypedText_yenc_begin_line_p(const char *line, PRInt32 length,
+static bool MimeUntypedText_yenc_begin_line_p(const char *line, PRInt32 length,
                          MimeDisplayOptions *opt,
                          char **type_ret,
                          char **name_ret);
-static PRBool MimeUntypedText_yenc_end_line_p(const char *line, PRInt32 length);
+static bool MimeUntypedText_yenc_end_line_p(const char *line, PRInt32 length);
 
-static PRBool MimeUntypedText_binhex_begin_line_p(const char *line,
+static bool MimeUntypedText_binhex_begin_line_p(const char *line,
                            PRInt32 length,
                            MimeDisplayOptions *opt);
-static PRBool MimeUntypedText_binhex_end_line_p(const char *line,
+static bool MimeUntypedText_binhex_end_line_p(const char *line,
                          PRInt32 length);
 
 static int
@@ -129,7 +129,7 @@ MimeUntypedText_parse_line (const char *line, PRInt32 length, MimeObject *obj)
   MimeUntypedText *uty = (MimeUntypedText *) obj;
   int status = 0;
   char *name = 0, *type = 0;
-  PRBool begin_line_p = PR_FALSE;
+  bool begin_line_p = false;
 
   NS_ASSERTION(line && *line, "empty line in mime untyped parse_line");
   if (!line || !*line) return -1;
@@ -368,7 +368,7 @@ MimeUntypedText_open_subpart (MimeObject *obj,
 
   /* Create a child... */
   {
-  PRBool horrid_kludge = (obj->options && obj->options->state &&
+  bool horrid_kludge = (obj->options && obj->options->state &&
                obj->options->state->first_part_written_p);
   if (horrid_kludge)
     obj->options->state->first_part_written_p = PR_FALSE;
@@ -418,7 +418,7 @@ MimeUntypedText_open_subpart (MimeObject *obj,
   return status;
 }
 
-static PRBool
+static bool
 MimeUntypedText_uu_begin_line_p(const char *line, PRInt32 length,
                 MimeDisplayOptions *opt,
                 char **type_ret, char **name_ret)
@@ -480,7 +480,7 @@ MimeUntypedText_uu_begin_line_p(const char *line, PRInt32 length,
   return PR_TRUE;
 }
 
-static PRBool
+static bool
 MimeUntypedText_uu_end_line_p(const char *line, PRInt32 length)
 {
 #if 0
@@ -512,7 +512,7 @@ MimeUntypedText_uu_end_line_p(const char *line, PRInt32 length)
 #endif
 }
 
-static PRBool
+static bool
 MimeUntypedText_yenc_begin_line_p(const char *line, PRInt32 length,
                 MimeDisplayOptions *opt,
                 char **type_ret, char **name_ret)
@@ -576,7 +576,7 @@ MimeUntypedText_yenc_begin_line_p(const char *line, PRInt32 length,
   return PR_TRUE;
 }
 
-static PRBool
+static bool
 MimeUntypedText_yenc_end_line_p(const char *line, PRInt32 length)
 {
   if (length < 11 || strncmp (line, "=yend size=", 11)) return PR_FALSE;
@@ -588,7 +588,7 @@ MimeUntypedText_yenc_end_line_p(const char *line, PRInt32 length)
 #define BINHEX_MAGIC "(This file must be converted with BinHex 4.0)"
 #define BINHEX_MAGIC_LEN 45
 
-static PRBool
+static bool
 MimeUntypedText_binhex_begin_line_p(const char *line, PRInt32 length,
                   MimeDisplayOptions *opt)
 {
@@ -607,7 +607,7 @@ MimeUntypedText_binhex_begin_line_p(const char *line, PRInt32 length,
   return PR_FALSE;
 }
 
-static PRBool
+static bool
 MimeUntypedText_binhex_end_line_p(const char *line, PRInt32 length)
 {
   if (length > 0 && line[length-1] == '\n') length--;

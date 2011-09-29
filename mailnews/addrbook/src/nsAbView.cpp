@@ -275,7 +275,7 @@ nsresult nsAbView::EnumerateCards()
   if (NS_SUCCEEDED(rv) && cardsEnumerator)
   {
     nsCOMPtr<nsISupports> item;
-    PRBool more;
+    bool more;
     while (NS_SUCCEEDED(cardsEnumerator->HasMoreElements(&more)) && more)
     {
       rv = cardsEnumerator->GetNext(getter_AddRefs(item));
@@ -343,7 +343,7 @@ NS_IMETHODIMP nsAbView::GetCellProperties(PRInt32 row, nsITreeColumn* col, nsISu
 
   nsIAbCard *card = ((AbCard *)(mCards.ElementAt(row)))->card;
 
-  PRBool isMailList;
+  bool isMailList;
   nsresult rv = card->GetIsMailList(&isMailList);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -360,29 +360,29 @@ NS_IMETHODIMP nsAbView::GetColumnProperties(nsITreeColumn* col, nsISupportsArray
     return NS_OK;
 }
 
-NS_IMETHODIMP nsAbView::IsContainer(PRInt32 index, PRBool *_retval)
+NS_IMETHODIMP nsAbView::IsContainer(PRInt32 index, bool *_retval)
 {
     *_retval = PR_FALSE;
     return NS_OK;
 }
 
-NS_IMETHODIMP nsAbView::IsContainerOpen(PRInt32 index, PRBool *_retval)
+NS_IMETHODIMP nsAbView::IsContainerOpen(PRInt32 index, bool *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsAbView::IsContainerEmpty(PRInt32 index, PRBool *_retval)
+NS_IMETHODIMP nsAbView::IsContainerEmpty(PRInt32 index, bool *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsAbView::IsSeparator(PRInt32 index, PRBool *_retval)
+NS_IMETHODIMP nsAbView::IsSeparator(PRInt32 index, bool *_retval)
 {
   *_retval = PR_FALSE;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbView::IsSorted(PRBool *_retval)
+NS_IMETHODIMP nsAbView::IsSorted(bool *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -390,7 +390,7 @@ NS_IMETHODIMP nsAbView::IsSorted(PRBool *_retval)
 NS_IMETHODIMP nsAbView::CanDrop(PRInt32 index,
                                 PRInt32 orientation,
                                 nsIDOMDataTransfer *dataTransfer,
-                                PRBool *_retval)
+                                bool *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -408,7 +408,7 @@ NS_IMETHODIMP nsAbView::GetParentIndex(PRInt32 rowIndex, PRInt32 *_retval)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbView::HasNextSibling(PRInt32 rowIndex, PRInt32 afterIndex, PRBool *_retval)
+NS_IMETHODIMP nsAbView::HasNextSibling(PRInt32 rowIndex, PRInt32 afterIndex, bool *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -542,12 +542,12 @@ NS_IMETHODIMP nsAbView::CycleCell(PRInt32 row, nsITreeColumn* col)
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsAbView::IsEditable(PRInt32 row, nsITreeColumn* col, PRBool* _retval)
+NS_IMETHODIMP nsAbView::IsEditable(PRInt32 row, nsITreeColumn* col, bool* _retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsAbView::IsSelectable(PRInt32 row, nsITreeColumn* col, PRBool* _retval)
+NS_IMETHODIMP nsAbView::IsSelectable(PRInt32 row, nsITreeColumn* col, bool* _retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -833,7 +833,7 @@ NS_IMETHODIMP nsAbView::Observe(nsISupports *aSubject, const char *aTopic, const
   return NS_OK;
 }
 
-nsresult nsAbView::AddCard(AbCard *abcard, PRBool selectCardAfterAdding, PRInt32 *index)
+nsresult nsAbView::AddCard(AbCard *abcard, bool selectCardAfterAdding, PRInt32 *index)
 {
   nsresult rv = NS_OK;
   NS_ENSURE_ARG_POINTER(abcard);
@@ -921,7 +921,7 @@ nsresult nsAbView::RemoveCardAndSelectNextCard(nsISupports *item)
   if (card) {
     PRInt32 index = FindIndexForCard(card);
     if (index != CARD_NOT_FOUND) {
-      PRBool selectNextCard = PR_FALSE;
+      bool selectNextCard = false;
       if (mTreeSelection) {
         PRInt32 selectedIndex;
         // XXX todo
@@ -960,7 +960,7 @@ PRInt32 nsAbView::FindIndexForCard(nsIAbCard *card)
   // could be the collation key.
   for (i=0; i < count; i++) {
     AbCard *abcard = (AbCard*) (mCards.ElementAt(i));
-    PRBool equals;
+    bool equals;
     nsresult rv = card->Equals(abcard->card, &equals);
     if (NS_SUCCEEDED(rv) && equals) {
       return i;
@@ -994,7 +994,7 @@ NS_IMETHODIMP nsAbView::OnItemPropertyChanged(nsISupports *item, const char *pro
   rv = GenerateCollationKeysForCard(mSortColumn.get(), newCard);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  PRBool cardWasSelected = PR_FALSE;
+  bool cardWasSelected = false;
 
   if (mTreeSelection) {
     rv = mTreeSelection->IsSelected(index, &cardWasSelected);
@@ -1177,8 +1177,8 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
   
   // Prepare for displayname generation
   // No cache for pref and bundle since the swap operation is not executed frequently
-  PRBool displayNameAutoGeneration;
-  PRBool displayNameLastnamefirst = PR_FALSE;
+  bool displayNameAutoGeneration;
+  bool displayNameLastnamefirst = false;
 
   nsCOMPtr<nsIPrefBranch2> pPrefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1316,7 +1316,7 @@ NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsIArray **_retval)
     nsCOMPtr<nsIAbCard> card(do_QueryElementAt(selectedCards, i, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRBool isMailList;
+    bool isMailList;
     card->GetIsMailList(&isMailList);
     nsAutoString primaryEmail;
     if (isMailList) {

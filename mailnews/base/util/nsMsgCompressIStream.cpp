@@ -215,7 +215,7 @@ NS_IMETHODIMP nsMsgCompressIStream::AsyncWait(nsIInputStreamCallback *callback, 
 }
 
 /* boolean isNonBlocking (); */
-NS_IMETHODIMP nsMsgCompressIStream::IsNonBlocking(PRBool *aNonBlocking)
+NS_IMETHODIMP nsMsgCompressIStream::IsNonBlocking(bool *aNonBlocking)
 {
   *aNonBlocking = PR_FALSE;
   return NS_OK;

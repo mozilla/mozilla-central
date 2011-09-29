@@ -55,11 +55,11 @@ public:
   nsMailMacIntegration();
 
 protected:
-  PRBool isDefaultHandlerForProtocol(CFStringRef aScheme);
+  bool isDefaultHandlerForProtocol(CFStringRef aScheme);
   nsresult setAsDefaultHandlerForProtocol(CFStringRef aScheme);
 
 private:
   virtual ~nsMailMacIntegration() {};
-  PRBool mCheckedThisSession;
+  bool mCheckedThisSession;
 };
 #endif

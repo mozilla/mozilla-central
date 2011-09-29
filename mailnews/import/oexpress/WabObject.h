@@ -60,7 +60,7 @@ public:
     CWAB( nsILocalFile *fileName);
     ~CWAB();
 
-  PRBool    Loaded( void) { return( m_bInitialized);}
+  bool      Loaded( void) { return( m_bInitialized);}
 
   HRESULT    IterateWABContents(CWabIterator *pIter, int *pDone);
 
@@ -84,7 +84,7 @@ public:
 private:
   PRUnichar *  m_pUniBuff;
   int      m_uniBuffLen;
-  PRBool      m_bInitialized;
+  bool        m_bInitialized;
     HINSTANCE   m_hinstWAB;
     LPWABOPEN   m_lpfnWABOpen;
     LPADRBOOK   m_lpAdrBook;

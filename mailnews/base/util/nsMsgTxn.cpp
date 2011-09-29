@@ -72,7 +72,7 @@ nsresult nsMsgTxn::Init()
   return mPropertyHash.Init() ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
-NS_IMETHODIMP nsMsgTxn::HasKey(const nsAString& name, PRBool *aResult)
+NS_IMETHODIMP nsMsgTxn::HasKey(const nsAString& name, bool *aResult)
 {
   *aResult = mPropertyHash.Get(name, nsnull);
   return NS_OK;
@@ -184,7 +184,7 @@ IMPL_GETSETPROPERTY_AS(Uint32, PRUint32)
 IMPL_GETSETPROPERTY_AS(Int64, PRInt64)
 IMPL_GETSETPROPERTY_AS(Uint64, PRUint64)
 IMPL_GETSETPROPERTY_AS(Double, double)
-IMPL_GETSETPROPERTY_AS(Bool, PRBool)
+IMPL_GETSETPROPERTY_AS(Bool, bool)
 
 NS_IMETHODIMP nsMsgTxn::GetPropertyAsAString(const nsAString & prop, 
                                              nsAString & _retval)
@@ -278,7 +278,7 @@ NS_IMETHODIMP nsMsgTxn::DoTransaction(void)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgTxn::GetIsTransient(PRBool *aIsTransient)
+NS_IMETHODIMP nsMsgTxn::GetIsTransient(bool *aIsTransient)
 {
   if (nsnull!=aIsTransient)
     *aIsTransient = PR_FALSE;
@@ -287,7 +287,7 @@ NS_IMETHODIMP nsMsgTxn::GetIsTransient(PRBool *aIsTransient)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgTxn::Merge(nsITransaction *aTransaction, PRBool *aDidMerge)
+NS_IMETHODIMP nsMsgTxn::Merge(nsITransaction *aTransaction, bool *aDidMerge)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -318,7 +318,7 @@ nsMsgTxn::SetTransactionType(PRUint32 txnType)
 /*none of the callers pass null aFolder, 
   we always initialize aResult (before we pass in) for the case where the key is not in the db*/
 nsresult 
-nsMsgTxn::CheckForToggleDelete(nsIMsgFolder *aFolder, const nsMsgKey &aMsgKey, PRBool *aResult)
+nsMsgTxn::CheckForToggleDelete(nsIMsgFolder *aFolder, const nsMsgKey &aMsgKey, bool *aResult)
 {
   NS_ENSURE_ARG(aResult);
   nsCOMPtr<nsIMsgDBHdr> message;
@@ -326,7 +326,7 @@ nsMsgTxn::CheckForToggleDelete(nsIMsgFolder *aFolder, const nsMsgKey &aMsgKey, P
   nsresult rv = aFolder->GetMsgDatabase(getter_AddRefs(db));
   if (db)
   {
-    PRBool containsKey;
+    bool containsKey;
     rv = db->ContainsKey(aMsgKey, &containsKey);
     if (NS_FAILED(rv) || !containsKey)   // the message has been deleted from db, so we cannot do toggle here
       return NS_OK;

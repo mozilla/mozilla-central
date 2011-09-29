@@ -57,9 +57,9 @@ public:
 protected:
     icalrecurrencetype mIcalRecur;
 
-    PRBool mImmutable;
-    PRBool mIsNegative;
-    PRBool mIsByCount;
+    bool mImmutable;
+    bool mIsNegative;
+    bool mIsByCount;
 };
 
 #endif // INCLUDED_CAL_RECURRENCERULE_H

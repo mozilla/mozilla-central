@@ -59,8 +59,8 @@ public:
   virtual ~nsNoIncomingServer();
 
   NS_IMETHOD GetLocalStoreType(nsACString& type);
-  NS_IMETHOD GetCanSearchMessages(PRBool *canSearchMessages);
-  NS_IMETHOD GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff);
+  NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
+  NS_IMETHOD GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff);
   NS_IMETHOD GetAccountManagerChrome(nsAString& aResult);
 };
 

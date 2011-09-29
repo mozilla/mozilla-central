@@ -336,7 +336,7 @@ nsLDAPAutoCompleteSession::OnLDAPMessage(nsILDAPMessage *aMessage)
     // If this message is not associated with the current operation,
     // discard it, since it is probably from a previous (aborted)
     // operation.
-    PRBool isCurrent;
+    bool isCurrent;
     rv = IsMessageCurrent(aMessage, &isCurrent);
     if (NS_FAILED(rv)) {
         // IsMessageCurrent will have logged any necessary errors
@@ -425,7 +425,7 @@ nsLDAPAutoCompleteSession::OnLDAPMessage(nsILDAPMessage *aMessage)
 }
 
 void
-nsLDAPAutoCompleteSession::InitFailed(PRBool aCancelled)
+nsLDAPAutoCompleteSession::InitFailed(bool aCancelled)
 {
   FinishAutoCompleteLookup(nsIAutoCompleteStatus::failureItems, 0,
                            UNBOUND);
@@ -1102,7 +1102,7 @@ nsLDAPAutoCompleteSession::SetCjkMinStringLength(PRUint32 aCjkMinStringLength)
 // if there is no current operation, it's not. :-)
 nsresult 
 nsLDAPAutoCompleteSession::IsMessageCurrent(nsILDAPMessage *aMessage, 
-                                            PRBool *aIsCurrent)
+                                            bool *aIsCurrent)
 {
     // If there's no operation, this message must be stale (ie non-current).
     if ( !mOperation ) {

@@ -86,7 +86,7 @@ protected:
   nsMsgKey        m_threadRootKey;
   PRUint32        m_newestMsgDate;
   nsTArray<nsMsgKey> m_keys;
-  PRBool          m_dummy; // top level msg is a dummy, e.g., grouped by age.
+  bool            m_dummy; // top level msg is a dummy, e.g., grouped by age.
   nsCOMPtr <nsIMsgDatabase> m_db; // should we make a weak ref or just a ptr?
 };
 

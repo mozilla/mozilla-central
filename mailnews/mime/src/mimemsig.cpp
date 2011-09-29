@@ -57,8 +57,8 @@ static int MimeMultipartSigned_create_child (MimeObject *);
 static int MimeMultipartSigned_close_child(MimeObject *);
 static int MimeMultipartSigned_parse_line (const char *, PRInt32, MimeObject *);
 static int MimeMultipartSigned_parse_child_line (MimeObject *, const char *, PRInt32,
-                         PRBool);
-static int MimeMultipartSigned_parse_eof (MimeObject *, PRBool);
+                         bool);
+static int MimeMultipartSigned_parse_eof (MimeObject *, bool);
 static void MimeMultipartSigned_finalize (MimeObject *);
 
 static int MimeMultipartSigned_emit_child (MimeObject *obj);
@@ -95,7 +95,7 @@ MimeMultipartSigned_initialize (MimeObject *object)
 }
 
 static void
-MimeMultipartSigned_cleanup (MimeObject *obj, PRBool finalizing_p)
+MimeMultipartSigned_cleanup (MimeObject *obj, bool finalizing_p)
 {
   MimeMultipart *mult = (MimeMultipart *) obj; /* #58075.  Fix suggested by jwz */
   MimeMultipartSigned *sig = (MimeMultipartSigned *) obj;
@@ -134,7 +134,7 @@ MimeMultipartSigned_cleanup (MimeObject *obj, PRBool finalizing_p)
 }
 
 static int
-MimeMultipartSigned_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeMultipartSigned_parse_eof (MimeObject *obj, bool abort_p)
 {
   MimeMultipartSigned *sig = (MimeMultipartSigned *) obj;
   int status = 0;
@@ -181,8 +181,8 @@ MimeMultipartSigned_parse_line (const char *line, PRInt32 length, MimeObject *ob
   MimeMultipart *mult = (MimeMultipart *) obj;
   MimeMultipartSigned *sig = (MimeMultipartSigned *) obj;
   MimeMultipartParseState old_state = mult->state;
-  PRBool hash_line_p = PR_TRUE;
-  PRBool no_headers_p = PR_FALSE;
+  bool hash_line_p = true;
+  bool no_headers_p = false;
   int status = 0;
 
   /* First do the parsing for normal multipart/ objects by handing it off to
@@ -312,7 +312,7 @@ MimeMultipartSigned_parse_line (const char *line, PRInt32 length, MimeObject *ob
        (that is, if it's the first line in the header state after
        a state change.)
        */
-      PRBool first_line_p
+      bool first_line_p
       = (no_headers_p ||
          sig->state == MimeMultipartSignedBodyFirstHeader);
 
@@ -508,7 +508,7 @@ MimeMultipartSigned_close_child (MimeObject *obj)
 static int
 MimeMultipartSigned_parse_child_line (MimeObject *obj,
                     const char *line, PRInt32 length,
-                    PRBool first_line_p)
+                    bool first_line_p)
 {
   MimeMultipartSigned *sig = (MimeMultipartSigned *) obj;
   MimeContainer *cont = (MimeContainer *) obj;

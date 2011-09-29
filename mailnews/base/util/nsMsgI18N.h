@@ -53,7 +53,7 @@ class nsILocalFile;
  * @param usemime      [IN] If false then apply charset conversion only no MIME encoding.
  * @return             Encoded buffer (in C string) or NULL in case of error.
  */
-NS_MSG_BASE char      *nsMsgI18NEncodeMimePartIIStr(const char *header, PRBool structured, const char *charset, PRInt32 fieldnamelen, PRBool usemime);
+NS_MSG_BASE char      *nsMsgI18NEncodeMimePartIIStr(const char *header, bool structured, const char *charset, PRInt32 fieldnamelen, bool usemime);
 
 /**
  * Check if given charset is stateful (e.g. ISO-2022-JP).
@@ -61,7 +61,7 @@ NS_MSG_BASE char      *nsMsgI18NEncodeMimePartIIStr(const char *header, PRBool s
  * @param charset     [IN] Charset name.
  * @return            True if stateful
  */
-NS_MSG_BASE PRBool    nsMsgI18Nstateful_charset(const char *charset);
+NS_MSG_BASE bool      nsMsgI18Nstateful_charset(const char *charset);
 
 /**
  * Check if given charset is multibye (e.g. Shift_JIS, Big5).
@@ -69,7 +69,7 @@ NS_MSG_BASE PRBool    nsMsgI18Nstateful_charset(const char *charset);
  * @param charset     [IN] Charset name.
  * @return            True if multibyte
  */
-NS_MSG_BASE PRBool nsMsgI18Nmultibyte_charset(const char *charset);
+NS_MSG_BASE bool nsMsgI18Nmultibyte_charset(const char *charset);
 
 /**
  * Check the input (unicode) string is in a range of the given charset after the conversion.
@@ -84,7 +84,7 @@ NS_MSG_BASE PRBool nsMsgI18Nmultibyte_charset(const char *charset);
  * @return            True if the string can be converted within the charset range.
  *                    False if one or more characters cannot be converted to the target charset.
  */
-NS_MSG_BASE PRBool    nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar* inString,
+NS_MSG_BASE bool      nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar* inString,
                                                            char **fallbackCharset=nsnull);
 
 /**
@@ -112,7 +112,7 @@ NS_MSG_BASE void nsMsgI18NTextFileCharset(nsACString& aCharset);
 NS_MSG_BASE nsresult nsMsgI18NConvertFromUnicode(const char* aCharset,
                                                  const nsString& inString,
                                                  nsACString& outString,
-                                                 PRBool aIsCharsetCanonical =
+                                                 bool aIsCharsetCanonical =
                                                         PR_FALSE);
 /**
  * Convert from charset to unicode.
@@ -125,7 +125,7 @@ NS_MSG_BASE nsresult nsMsgI18NConvertFromUnicode(const char* aCharset,
 NS_MSG_BASE nsresult nsMsgI18NConvertToUnicode(const char* aCharset,
                                                const nsCString& inString,
                                                nsAString& outString,
-                                               PRBool aIsCharsetCanonical =
+                                               bool aIsCharsetCanonical =
                                                       PR_FALSE);
 /**
  * Parse for META charset.
@@ -153,7 +153,7 @@ NS_MSG_BASE const char *nsMsgI18NParseMetaCharset(nsILocalFile* file);
  */
 NS_MSG_BASE nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char* charset, 
                                             const PRUnichar* inString, char** outString, 
-                                            char **fallbackCharset=nsnull, PRBool *isAsciiOnly=nsnull);
+                                            char **fallbackCharset=nsnull, bool *isAsciiOnly=nsnull);
 
 /**
  * Shrink the aStr to aMaxLength bytes. Note that this doesn't check whether

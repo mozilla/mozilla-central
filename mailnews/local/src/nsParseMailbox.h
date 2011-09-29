@@ -95,7 +95,7 @@ public:
   int                   ParseEnvelope (const char *line, PRUint32 line_size);
   int                   InternSubject (struct message_header *header);
 
-  static PRBool  IsEnvelopeLine(const char *buf, PRInt32 buf_size);
+  static bool    IsEnvelopeLine(const char *buf, PRInt32 buf_size);
   static int  msg_UnHex(char C);
 
   nsCOMPtr<nsIMsgHeaderParser> m_HeaderAddressParser;
@@ -149,7 +149,7 @@ public:
   PRTime m_receivedTime;
   PRUint16              m_body_lines;
 
-  PRBool                m_IgnoreXMozillaStatus;
+  bool                  m_IgnoreXMozillaStatus;
 
   // this enables extensions to add the values of particular headers to
   // the .msf file as properties of nsIMsgHdr. It is initialized from a
@@ -175,7 +175,7 @@ public:
   nsMsgMailboxParser();
   virtual ~nsMsgMailboxParser();
 
-  PRBool  IsRunningUrl() { return m_urlInProgress;} // returns true if we are currently running a url and false otherwise...
+  bool    IsRunningUrl() { return m_urlInProgress;} // returns true if we are currently running a url and false otherwise...
   NS_DECL_ISUPPORTS_INHERITED
 
   ////////////////////////////////////////////////////////////////////////////////////////
@@ -216,12 +216,12 @@ protected:
   char            *m_obuffer;
   PRUint32        m_graph_progress_total;
   PRUint32        m_graph_progress_received;
-  PRBool          m_parsingDone;
+  bool            m_parsingDone;
   PRTime          m_startTime;
 private:
   // the following flag is used to determine when a url is currently being run. It is cleared on calls
   // to ::StopBinding and it is set whenever we call Load on a url
-  PRBool    m_urlInProgress;
+  bool      m_urlInProgress;
   nsWeakPtr m_folder;
   void Init();
   void ReleaseFolderLock();
@@ -252,7 +252,7 @@ public:
   nsresult AppendMsgFromFile(nsIInputStream *fileStream, PRUint32 offset,
                              PRUint32 length, nsILocalFile *destFile);
 
-  virtual void ApplyFilters(PRBool *pMoved, nsIMsgWindow *msgWindow,
+  virtual void ApplyFilters(bool *pMoved, nsIMsgWindow *msgWindow,
                              PRUint32 msgOffset);
   nsresult    ApplyForwardAndReplyFilter(nsIMsgWindow *msgWindow);
 
@@ -278,12 +278,12 @@ protected:
 
   nsRefPtr<nsImapMoveCoalescer> m_moveCoalescer;
 
-  PRBool        m_msgMovedByFilter;
-  PRBool        m_msgCopiedByFilter;
+  bool          m_msgMovedByFilter;
+  bool          m_msgCopiedByFilter;
   nsCOMPtr <nsIInputStream>  m_inboxFileStream;
   nsCOMPtr <nsILocalFile>    m_inboxFile;
-  PRBool        m_disableFilters;
-  PRBool        m_downloadingToTempFile;
+  bool          m_disableFilters;
+  bool          m_downloadingToTempFile;
   PRUint32      m_ibuffer_fp;
   char          *m_ibuffer;
   PRUint32      m_ibuffer_size;

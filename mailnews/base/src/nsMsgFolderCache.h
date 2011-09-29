@@ -63,7 +63,7 @@ protected:
   nsresult InitMDBInfo();
   nsresult InitNewDB();
   nsresult InitExistingDB();
-  nsresult OpenMDB(const nsACString& dbName, PRBool create);
+  nsresult OpenMDB(const nsACString& dbName, bool create);
   nsIMdbEnv *GetEnv() {return m_mdbEnv;}
   nsIMdbStore *GetStore() {return m_mdbStore;}
   nsInterfaceHashtable<nsCStringHashKey, nsIMsgFolderCacheElement> m_cacheElements;

@@ -90,7 +90,7 @@ NS_IMETHODIMP nsMailDatabase::GetFolderStream(nsIOutputStream **aFileStream)
   return NS_OK;
 }
 
-static PRBool gGotGlobalPrefs = PR_FALSE;
+static bool gGotGlobalPrefs = false;
 static PRInt32 gTimeStampLeeway;
 
 void nsMailDatabase::GetGlobalPrefs()
@@ -105,7 +105,7 @@ void nsMailDatabase::GetGlobalPrefs()
 // caller passes in upgrading==PR_TRUE if they want back a db even if the db is out of date.
 // If so, they'll extract out the interesting info from the db, close it, delete it, and
 // then try to open the db again, prior to reparsing.
-NS_IMETHODIMP nsMailDatabase::Open(nsILocalFile *aFolderName, PRBool aCreate, PRBool aUpgrading)
+NS_IMETHODIMP nsMailDatabase::Open(nsILocalFile *aFolderName, bool aCreate, bool aUpgrading)
 {
   m_folderFile = aFolderName;
   nsresult rv = nsMsgDatabase::Open(aFolderName, aCreate, aUpgrading);
@@ -134,7 +134,7 @@ NS_IMETHODIMP nsMailDatabase::StartBatch()
 {
   if (!m_folderStream && m_folder)  //only if we create a stream, set m_ownFolderStream to true.
   {
-    PRBool isLocked;
+    bool isLocked;
     m_folder->GetLocked(&isLocked);
     if (isLocked)
     {
@@ -170,7 +170,7 @@ NS_IMETHODIMP nsMailDatabase::DeleteMessages(PRUint32 aNumKeys, nsMsgKey* nsMsgK
   nsresult rv;
   if (!m_folderStream && m_folder)
   {
-    PRBool isLocked;
+    bool isLocked;
     m_folder->GetLocked(&isLocked);
     if (isLocked)
     {
@@ -199,14 +199,14 @@ NS_IMETHODIMP nsMailDatabase::DeleteMessages(PRUint32 aNumKeys, nsMsgKey* nsMsgK
 }
 
 // Helper routine - lowest level of flag setting
-PRBool nsMailDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, nsMsgMessageFlagType flag)
+bool nsMailDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, bool bSet, nsMsgMessageFlagType flag)
 {
   nsIOutputStream *fileStream = nsnull;
-  PRBool ret = PR_FALSE;
+  bool ret = false;
 
   if (!m_folderStream && m_folder)  //we are going to create a stream, bail out if someone else has lock
   {
-    PRBool isLocked;
+    bool isLocked;
     m_folder->GetLocked(&isLocked);
     if (isLocked)
     {
@@ -243,7 +243,7 @@ int msg_UnHex(char C)
 // and we don't want to open and close the file every time through.
 // As an experiment, try caching the fid in the db as m_folderFile.
 // If this is set, use it but don't return *pFid.
-void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, PRBool bSet, 
+void nsMailDatabase::UpdateFolderFlag(nsIMsgDBHdr *mailHdr, bool bSet, 
                                       nsMsgMessageFlagType flag,
                                       nsIOutputStream **ppFileStream)
 {
@@ -414,7 +414,7 @@ void nsMailDatabase::GetMailboxModProperties(PRInt64 *aSize, PRUint32 *aDate)
   return;
 }
 
-NS_IMETHODIMP nsMailDatabase::GetSummaryValid(PRBool *aResult)
+NS_IMETHODIMP nsMailDatabase::GetSummaryValid(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   PRUint64 folderSize;
@@ -486,10 +486,10 @@ NS_IMETHODIMP nsMailDatabase::GetSummaryValid(PRBool *aResult)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailDatabase::SetSummaryValid(PRBool valid)
+NS_IMETHODIMP nsMailDatabase::SetSummaryValid(bool valid)
 {
   nsresult rv = NS_OK;
-  PRBool exists;
+  bool exists;
   m_folderFile->Exists(&exists);
   if (!exists) 
     return NS_MSG_ERROR_FOLDER_MISSING;
@@ -536,7 +536,7 @@ NS_IMETHODIMP  nsMailDatabase::RemoveOfflineOp(nsIMsgOfflineImapOperation *op)
   return rv;
 }
 
-NS_IMETHODIMP nsMailDatabase::GetOfflineOpForKey(nsMsgKey msgKey, PRBool create, nsIMsgOfflineImapOperation **offlineOp)
+NS_IMETHODIMP nsMailDatabase::GetOfflineOpForKey(nsMsgKey msgKey, bool create, nsIMsgOfflineImapOperation **offlineOp)
 {
   mdb_bool	hasOid;
   mdbOid		rowObjectId;
@@ -703,11 +703,11 @@ NS_IMETHODIMP nsMailDatabase::ListAllOfflineDeletes(nsTArray<nsMsgKey> *offlineD
 nsresult nsMailDatabase::SetFolderInfoValid(nsILocalFile *folderName, int num, int numunread)
 {
   nsresult err = NS_OK;
-  PRBool bOpenedDB = PR_FALSE;
+  bool bOpenedDB = false;
   nsCOMPtr <nsILocalFile> summaryPath;
   GetSummaryFileLocation(folderName, getter_AddRefs(summaryPath));
   
-  PRBool exists;
+  bool exists;
   folderName->Exists(&exists);
   if (!exists)
     return NS_MSG_ERROR_FOLDER_SUMMARY_MISSING;
@@ -770,7 +770,7 @@ nsresult nsMailDatabase::SetFolderInfoValid(nsILocalFile *folderName, int num, i
 
 // This is used to remember that the db is out of sync with the mail folder
 // and needs to be regenerated.
-void nsMailDatabase::SetReparse(PRBool reparse)
+void nsMailDatabase::SetReparse(bool reparse)
 {
   m_reparse = reparse;
 }
@@ -792,8 +792,8 @@ protected:
   nsMailDatabase*              mDB;
   nsIMdbTableRowCursor*       mRowCursor;
   nsCOMPtr <nsIMsgOfflineImapOperation> mResultOp;
-  PRBool            mDone;
-  PRBool						mNextPrefetched;
+  bool              mDone;
+  bool						mNextPrefetched;
 };
 
 nsMsgOfflineOpEnumerator::nsMsgOfflineOpEnumerator(nsMailDatabase* db)
@@ -885,7 +885,7 @@ nsresult nsMsgOfflineOpEnumerator::PrefetchNext()
   return NS_ERROR_FAILURE;
 }
 
-NS_IMETHODIMP nsMsgOfflineOpEnumerator::HasMoreElements(PRBool *aResult)
+NS_IMETHODIMP nsMsgOfflineOpEnumerator::HasMoreElements(bool *aResult)
 {
   if (!aResult)
     return NS_ERROR_NULL_POINTER;

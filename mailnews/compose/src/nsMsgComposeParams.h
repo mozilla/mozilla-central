@@ -54,7 +54,7 @@ public:
   nsCString                     mOriginalMsgUri;
   nsCOMPtr<nsIMsgIdentity>      mIdentity;
   nsCOMPtr<nsIMsgCompFields>    mComposeFields;
-  PRBool                        mBodyIsLink;
+  bool                          mBodyIsLink;
   nsCOMPtr<nsIMsgSendListener>  mSendListener;
   nsCString                     mSMTPPassword;
   nsCOMPtr<nsIMsgDBHdr>         mOrigMsgHdr;

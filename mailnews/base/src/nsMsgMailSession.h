@@ -129,9 +129,9 @@ private:
   nsCOMPtr<nsIMsgProgress>       mMsgProgress;
   PRUint32                       mTaskIndex;
   PRUint32                       mQuitMode;
-  PRPackedBool mProcessedShutdown;
-  PRPackedBool mQuitForced;
-  PRPackedBool mReadyToQuit;
+  bool mProcessedShutdown;
+  bool mQuitForced;
+  bool mReadyToQuit;
 };
 
 #endif /* nsMsgMailSession_h__ */

@@ -182,13 +182,13 @@ NS_IMETHODIMP nsAbCardProperty::SetLocalId(const nsACString &aLocalId)
 
 ////////////////////////////////////////////////////////////////////////////////
 
-NS_IMETHODIMP nsAbCardProperty::GetIsMailList(PRBool *aIsMailList)
+NS_IMETHODIMP nsAbCardProperty::GetIsMailList(bool *aIsMailList)
 {
     *aIsMailList = m_IsMailList;
     return NS_OK;
 }
 
-NS_IMETHODIMP nsAbCardProperty::SetIsMailList(PRBool aIsMailList)
+NS_IMETHODIMP nsAbCardProperty::SetIsMailList(bool aIsMailList)
 {
     m_IsMailList = aIsMailList;
     return NS_OK;
@@ -295,7 +295,7 @@ NS_IMETHODIMP nsAbCardProperty::GetPropertyAsUint32(const char *name, PRUint32 *
     variant->GetAsUint32(value) : NS_ERROR_NOT_AVAILABLE;
 }
 
-NS_IMETHODIMP nsAbCardProperty::GetPropertyAsBool(const char *name, PRBool *value) 
+NS_IMETHODIMP nsAbCardProperty::GetPropertyAsBool(const char *name, bool *value) 
 {
   nsCOMPtr<nsIVariant> variant;
   return m_properties.Get(nsDependentCString(name), getter_AddRefs(variant)) ?
@@ -328,7 +328,7 @@ NS_IMETHODIMP nsAbCardProperty::SetPropertyAsUint32(const char *name, PRUint32 v
   return m_properties.Put(nsDependentCString(name), variant);
 }
 
-NS_IMETHODIMP nsAbCardProperty::SetPropertyAsBool(const char *name, PRBool value) 
+NS_IMETHODIMP nsAbCardProperty::SetPropertyAsBool(const char *name, bool value) 
 {
   nsCOMPtr<nsIWritableVariant> variant = do_CreateInstance(NS_VARIANT_CONTRACTID);
   variant->SetAsBool(value);
@@ -406,7 +406,7 @@ NS_IMETHODIMP nsAbCardProperty::SetPrimaryEmail(const nsAString &aString)
 }
 
 NS_IMETHODIMP nsAbCardProperty::HasEmailAddress(const nsACString &aEmailAddress,
-                                                PRBool *aResult)
+                                                bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -439,7 +439,7 @@ NS_IMETHODIMP nsAbCardProperty::Copy(nsIAbCard* srcCard)
   nsresult rv = srcCard->GetProperties(getter_AddRefs(properties));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool hasMore;
+  bool hasMore;
   nsCOMPtr<nsISupports> result;
   while (NS_SUCCEEDED(rv = properties->HasMoreElements(&hasMore)) && hasMore)
   {
@@ -458,7 +458,7 @@ NS_IMETHODIMP nsAbCardProperty::Copy(nsIAbCard* srcCard)
   }
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool isMailList;
+  bool isMailList;
   srcCard->GetIsMailList(&isMailList);
   SetIsMailList(isMailList);
 
@@ -469,7 +469,7 @@ NS_IMETHODIMP nsAbCardProperty::Copy(nsIAbCard* srcCard)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbCardProperty::Equals(nsIAbCard *card, PRBool *result)
+NS_IMETHODIMP nsAbCardProperty::Equals(nsIAbCard *card, bool *result)
 {
   *result = (card == this);
   return NS_OK;
@@ -498,7 +498,7 @@ NS_IMETHODIMP nsAbCardProperty::TranslateTo(const nsACString &type, nsACString &
   return NS_ERROR_ILLEGAL_VALUE;
 }
 //
-static VObject* myAddPropValue(VObject *o, const char *propName, const PRUnichar *propValue, PRBool *aCardHasData)
+static VObject* myAddPropValue(VObject *o, const char *propName, const PRUnichar *propValue, bool *aCardHasData)
 {
     if (aCardHasData)
         *aCardHasData = PR_TRUE;
@@ -509,7 +509,7 @@ nsresult nsAbCardProperty::ConvertToEscapedVCard(nsACString &aResult)
 {
     nsString str;
     nsresult rv;
-    PRBool vCardHasData = PR_FALSE;
+    bool vCardHasData = false;
     VObject* vObj = newVObject(VCCardProp);
     VObject* t;
 
@@ -894,7 +894,7 @@ nsresult nsAbCardProperty::AppendSection(const AppendItem *aArray, PRInt16 aCoun
   aResult.AppendLiteral("<section>");
 
   nsString attrValue;
-  PRBool sectionIsEmpty = PR_TRUE;
+  bool sectionIsEmpty = true;
 
   PRInt16 i = 0;
   for (i=0;i<aCount;i++) {
@@ -1144,7 +1144,7 @@ NS_IMETHODIMP nsAbCardProperty::GenerateName(PRInt32 aGenerateFormat,
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbCardProperty::GeneratePhoneticName(PRBool aLastNameFirst,
+NS_IMETHODIMP nsAbCardProperty::GeneratePhoneticName(bool aLastNameFirst,
                                                      nsAString &aResult)
 {
   nsAutoString firstName, lastName;

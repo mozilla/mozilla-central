@@ -21,5 +21,5 @@ public:
   nsresult InitWithFile(nsILocalFile *localFile);
 protected:
   PRFileDesc *mFileDesc;
-  PRBool mSeekedToEnd;
+  bool mSeekedToEnd;
 };

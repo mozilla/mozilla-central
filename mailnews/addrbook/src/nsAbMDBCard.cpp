@@ -48,7 +48,7 @@ nsAbMDBCard::~nsAbMDBCard(void)
 
 NS_IMPL_ISUPPORTS_INHERITED0(nsAbMDBCard, nsAbCardProperty)
 
-NS_IMETHODIMP nsAbMDBCard::Equals(nsIAbCard *card, PRBool *result)
+NS_IMETHODIMP nsAbMDBCard::Equals(nsIAbCard *card, bool *result)
 {
   if (this == card) {
     *result = PR_TRUE;

@@ -101,7 +101,7 @@ NS_IMETHODIMP nsMsgFilterList::CreateFilter(const nsAString &name,class nsIMsgFi
   return NS_OK;
 }
 
-NS_IMPL_GETSET(nsMsgFilterList, LoggingEnabled, PRBool, m_loggingEnabled)
+NS_IMPL_GETSET(nsMsgFilterList, LoggingEnabled, bool, m_loggingEnabled)
 
 NS_IMETHODIMP nsMsgFilterList::GetFolder(nsIMsgFolder **aFolder)
 {
@@ -130,7 +130,7 @@ NS_IMETHODIMP nsMsgFilterList::EnsureLogFile()
   nsresult rv = GetLogFile(getter_AddRefs(file));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  PRBool exists;
+  bool exists;
   rv = file->Exists(&exists);
   if (NS_SUCCEEDED(rv) && !exists) {
     rv = file->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
@@ -157,7 +157,7 @@ nsresult nsMsgFilterList::TruncateLog()
 
 NS_IMETHODIMP nsMsgFilterList::ClearLog()
 {
-  PRBool loggingEnabled = m_loggingEnabled;
+  bool loggingEnabled = m_loggingEnabled;
 
   // disable logging while clearing
   m_loggingEnabled = PR_FALSE;
@@ -193,7 +193,7 @@ nsMsgFilterList::GetLogFile(nsILocalFile **aFile)
   rv = server->GetType(type);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  PRBool isServer = PR_FALSE;
+  bool isServer = false;
   rv = folder->GetIsServer(&isServer);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -334,7 +334,7 @@ nsMsgFilterList::ApplyFiltersToHdr(nsMsgFilterTypeType filterType,
   {
     if (NS_SUCCEEDED(GetFilterAt(filterIndex, getter_AddRefs(filter))))
     {
-      PRBool isEnabled;
+      bool isEnabled;
       nsMsgFilterTypeType curFilterType;
 
       filter->GetEnabled(&isEnabled);
@@ -345,14 +345,14 @@ nsMsgFilterList::ApplyFiltersToHdr(nsMsgFilterTypeType filterType,
       if (curFilterType & filterType)
       {
         nsresult matchTermStatus = NS_OK;
-        PRBool result;
+        bool result;
 
         filter->SetScope(scope);
         matchTermStatus = filter->MatchHdr(msgHdr, folder, db, headers, headersSize, &result);
         filter->SetScope(nsnull);
         if (NS_SUCCEEDED(matchTermStatus) && result && listener)
         {
-          PRBool applyMore = PR_TRUE;
+          bool applyMore = true;
 
           rv = listener->ApplyFilterHit(filter, msgWindow, &applyMore);
           if (NS_FAILED(rv) || !applyMore)
@@ -447,7 +447,7 @@ char nsMsgFilterList::SkipWhitespace(nsIInputStream *aStream)
   return ch;
 }
 
-PRBool nsMsgFilterList::StrToBool(nsCString &str)
+bool nsMsgFilterList::StrToBool(nsCString &str)
 {
   return str.Equals("yes") ;
 }
@@ -582,7 +582,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
           nextFilterPart = Substring(m_unparsedFilterBuffer, nextFilterStartPos, m_unparsedFilterBuffer.Length());
           m_unparsedFilterBuffer.SetLength(nextFilterStartPos);
 
-          PRBool unparseableFilter;
+          bool unparseableFilter;
           m_curFilter->GetUnparseable(&unparseableFilter);
           if (unparseableFilter)
           {
@@ -738,7 +738,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
 
   if (m_curFilter)
   {
-    PRBool unparseableFilter;
+    bool unparseableFilter;
     m_curFilter->GetUnparseable(&unparseableFilter);
     if (unparseableFilter)
     {
@@ -758,7 +758,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
 // ALL means match all messages.
 NS_IMETHODIMP nsMsgFilterList::ParseCondition(nsIMsgFilter *aFilter, const char *aCondition)
 {
-  PRBool  done = PR_FALSE;
+  bool    done = false;
   nsresult  err = NS_OK;
   const char *curPtr = aCondition;
   if (!strcmp(aCondition, "ALL"))
@@ -778,15 +778,15 @@ NS_IMETHODIMP nsMsgFilterList::ParseCondition(nsIMsgFilter *aFilter, const char 
     // insert code to save the boolean operator if there is one for this search term....
     const char *openParen = PL_strchr(curPtr, '(');
     const char *orTermPos = PL_strchr(curPtr, 'O');    // determine if an "OR" appears b4 the openParen...
-    PRBool ANDTerm = PR_TRUE;
+    bool ANDTerm = true;
     if (orTermPos && orTermPos < openParen) // make sure OR term falls before the '('
       ANDTerm = PR_FALSE;
 
     char *termDup = nsnull;
     if (openParen)
     {
-      PRBool foundEndTerm = PR_FALSE;
-      PRBool inQuote = PR_FALSE;
+      bool foundEndTerm = false;
+      bool inQuote = false;
       for (curPtr = openParen +1; *curPtr; curPtr++)
       {
         if (*curPtr == '\\' && *(curPtr + 1) == '"')
@@ -886,7 +886,7 @@ nsMsgFilterList::WriteStrAttr(nsMsgFilterFileAttribValue attrib,
   return rv;
 }
 
-nsresult nsMsgFilterList::WriteBoolAttr(nsMsgFilterFileAttribValue attrib, PRBool boolVal, nsIOutputStream *aStream)
+nsresult nsMsgFilterList::WriteBoolAttr(nsMsgFilterFileAttribValue attrib, bool boolVal, nsIOutputStream *aStream)
 {
   return WriteStrAttr(attrib, (boolVal) ? "yes" : "no", aStream);
 }
@@ -917,7 +917,7 @@ nsresult nsMsgFilterList::SaveTextFilters(nsIOutputStream *aStream)
       filter->SetFilterList(this);
 
       // if the filter is temporary, don't write it to disk
-      PRBool isTemporary;
+      bool isTemporary;
       err = filter->GetTemporary(&isTemporary);
       if (NS_SUCCEEDED(err) && !isTemporary) {
         if ((err = filter->SaveToTextFile(aStream)) != NS_OK)
@@ -1097,7 +1097,7 @@ nsMsgFilterList::GetVersion(PRInt16 *aResult)
     return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFolderUri, const nsACString &newFolderUri, PRBool caseInsensitive, PRBool *found)
+NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFolderUri, const nsACString &newFolderUri, bool caseInsensitive, bool *found)
 {
   NS_ENSURE_ARG_POINTER(found);
   nsresult rv = NS_OK;
@@ -1161,7 +1161,7 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFo
 
 // this would only return true if any filter was on "any header", which we
 // don't support in 6.x
-NS_IMETHODIMP nsMsgFilterList::GetShouldDownloadAllHeaders(PRBool *aResult)
+NS_IMETHODIMP nsMsgFilterList::GetShouldDownloadAllHeaders(bool *aResult)
 {
   *aResult = PR_FALSE;
   return NS_OK;
@@ -1219,7 +1219,7 @@ NS_IMETHODIMP nsMsgFilterList::GetArbitraryHeaders(nsACString &aResult)
 NS_IMETHODIMP nsMsgFilterList::FlushLogIfNecessary()
 {
   // only flush the log if we are logging
-  PRBool loggingEnabled = PR_FALSE;
+  bool loggingEnabled = false;
   nsresult rv = GetLoggingEnabled(&loggingEnabled);
   NS_ENSURE_SUCCESS(rv,rv);
 

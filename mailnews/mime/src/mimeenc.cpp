@@ -102,7 +102,7 @@ mime_decode_qp_buffer (MimeDecoderData *data, const char *buffer,
 
   /* Treat null bytes as spaces when format_out is
    nsMimeOutput::nsMimeMessageBodyDisplay (see bug 243199 comment 7) */
-  PRBool treatNullAsSpace = data->objectToDecode &&
+  bool treatNullAsSpace = data->objectToDecode &&
                             data->objectToDecode->options->format_out == nsMimeOutput::nsMimeMessageBodyDisplay;
 
   while (length > 0 || i != 0)
@@ -261,7 +261,7 @@ mime_decode_base64_buffer (MimeDecoderData *data,
   char *out = (char *) buffer;
   char token [4];
   int i;
-  PRBool leftover = (data->token_size > 0);
+  bool leftover = (data->token_size > 0);
 
   NS_ASSERTION(data->encoding == mime_Base64, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
 
@@ -771,7 +771,7 @@ mime_decode_yenc_buffer (MimeDecoderData *data,
 }
 
 int
-MimeDecoderDestroy (MimeDecoderData *data, PRBool abort_p)
+MimeDecoderDestroy (MimeDecoderData *data, bool abort_p)
 {
   int status = 0;
   /* Flush out the last few buffered characters. */
@@ -877,7 +877,7 @@ struct MimeEncoderData {
 
   /* Buffer for uuencoded data. (Need a line because of the length byte.) */
   unsigned char uue_line_buf[128];
-  PRBool uue_wrote_begin;
+  bool uue_wrote_begin;
 
   PRInt32 current_column, line_byte_count;
 
@@ -1003,8 +1003,8 @@ mime_encode_qp_buffer (MimeEncoderData *data, const char *buffer, PRInt32 size)
   const unsigned char *end = in + size;
   char out_buffer[80];
   char *out = out_buffer;
-  PRBool white = PR_FALSE;
-  PRBool mb_p = PR_FALSE;
+  bool white = false;
+  bool mb_p = false;
 
   /*
   #### I don't know how to hook this back up:
@@ -1132,7 +1132,7 @@ HEX:
 
 
 int
-MimeEncoderDestroy (MimeEncoderData *data, PRBool abort_p)
+MimeEncoderDestroy (MimeEncoderData *data, bool abort_p)
 {
   int status = 0;
 

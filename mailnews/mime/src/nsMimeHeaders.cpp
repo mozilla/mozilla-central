@@ -66,7 +66,7 @@ nsresult nsMimeHeaders::Initialize(const char * aAllHeaders, PRInt32 allHeadersS
   return NS_ERROR_OUT_OF_MEMORY;
 }
 
-nsresult nsMimeHeaders::ExtractHeader(const char *headerName, PRBool getAllOfThem, char **_retval)
+nsresult nsMimeHeaders::ExtractHeader(const char *headerName, bool getAllOfThem, char **_retval)
 {
   if (! mHeaders)
     return NS_ERROR_NOT_INITIALIZED;

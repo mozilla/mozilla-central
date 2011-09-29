@@ -72,7 +72,7 @@ public:
 
 protected:
   // Called if an LDAP initialization fails.
-  virtual void InitFailed(PRBool aCancelled = PR_FALSE);
+  virtual void InitFailed(bool aCancelled = false);
 
   // Called to start off the required task after a bind.
   virtual nsresult DoTask();
@@ -113,7 +113,7 @@ protected:
     nsresult OnLDAPSearchResult(nsILDAPMessage *aMessage); 
 
     // check if the LDAP message received is current
-    nsresult IsMessageCurrent(nsILDAPMessage *aMessage, PRBool *aIsCurrent);
+    nsresult IsMessageCurrent(nsILDAPMessage *aMessage, bool *aIsCurrent);
 
     // finish a search by calling mListener->OnAutoComplete, resetting state,
     // and freeing resources.  if aACStatus == 

@@ -105,7 +105,7 @@ icaltimezone * getIcalTimezone(calITimezone * tz) {
         return nsnull;
     }
 
-    PRBool b;
+    bool b;
     tz->GetIsUTC(&b);
     if (b) {
         icaltz = icaltimezone_get_utc_timezone();

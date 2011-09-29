@@ -181,7 +181,7 @@ int nsMsgSendPart::SetEncoderData(MimeEncoderData* data)
   return 0;
 }
 
-int nsMsgSendPart::SetMainPart(PRBool value)
+int nsMsgSendPart::SetMainPart(bool value)
 {
   m_mainpart = value;
   return 0;
@@ -468,7 +468,7 @@ nsMsgSendPart::Write()
 {
   int     status = 0;
   char    *separator = nsnull;
-  PRBool  needToWriteCRLFAfterEncodedBody  = PR_FALSE;
+  bool    needToWriteCRLFAfterEncodedBody  = false;
 
 #define PUSHLEN(str, length)                  \
   do {                            \
@@ -560,7 +560,7 @@ nsMsgSendPart::Write()
     if (!content_type_header) 
     {
       NS_ASSERTION(m_type && *m_type, "null ptr");
-      PRBool needsCharset = mime_type_needs_charset(m_type ? m_type : TEXT_PLAIN);
+      bool needsCharset = mime_type_needs_charset(m_type ? m_type : TEXT_PLAIN);
       if (needsCharset) 
       {
         content_type_header = PR_smprintf("Content-Type: %s; charset=%s" CRLF,
@@ -666,7 +666,7 @@ nsMsgSendPart::Write()
     }
 
     nsCString curLine;
-    PRBool more = PR_TRUE;
+    bool more = true;
 
     /* Kludge to avoid having to allocate memory on the toy computers... */
     if (!mime_mailto_stream_read_buffer) 
@@ -684,7 +684,7 @@ nsMsgSendPart::Write()
     {
       // We are attaching a message, so we should be careful to
       // strip out certain sensitive internal header fields.
-      PRBool skipping = PR_FALSE;
+      bool skipping = false;
       nsLineBuffer<char> *lineBuffer;
       
       rv = NS_InitLineBuffer(&lineBuffer);
@@ -774,7 +774,7 @@ nsMsgSendPart::Write()
   //
   if (m_numchildren > 0) 
   {
-    PRBool  writeSeparator = PR_TRUE;
+    bool    writeSeparator = true;
 
     for (int i = 0 ; i < m_numchildren ; i ++) 
     {

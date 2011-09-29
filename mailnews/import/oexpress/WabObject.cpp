@@ -77,7 +77,7 @@ static const SizedSPropTagArray(iemailMax, ptaEmail)=
 };
 
 typedef struct {
-  PRBool    multiLine;
+  bool      multiLine;
   ULONG    tag;
   char *    pLDIF;
 } AddrImportField;

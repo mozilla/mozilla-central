@@ -58,7 +58,7 @@ public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGSEARCHSCOPETERM
     
-  nsresult TimeSlice (PRBool *aDone);
+  nsresult TimeSlice (bool *aDone);
   nsresult InitializeAdapter (nsISupportsArray *termList);
   
   char *GetStatusBarName ();
@@ -69,7 +69,7 @@ public:
   nsCOMPtr <nsIMsgSearchAdapter> m_adapter;
   nsCOMPtr <nsIInputStream> m_inputStream; // for message bodies
   nsWeakPtr m_searchSession;
-  PRBool m_searchServer;
+  bool m_searchServer;
   
 };
 

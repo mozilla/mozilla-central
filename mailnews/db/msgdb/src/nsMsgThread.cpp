@@ -86,7 +86,7 @@ nsMsgThread::~nsMsgThread()
   MOZ_COUNT_DTOR(nsMsgThread);
   if (m_mdbDB)
   {
-    PRBool found = m_mdbDB->m_threads.RemoveElement(this);
+    bool found = m_mdbDB->m_threads.RemoveElement(this);
     NS_ASSERTION(found, "removing thread not in threads array");
   }
   else
@@ -232,7 +232,7 @@ nsresult nsMsgThread::RerootThread(nsIMsgDBHdr *newParentOfOldRoot, nsIMsgDBHdr 
   return rv;
 }
 
-NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, PRBool threadInThread,
+NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, bool threadInThread,
                                     nsIDBChangeAnnouncer *announcer)
 {
   nsresult rv = NS_OK;
@@ -240,7 +240,7 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
   PRUint32 newHdrFlags = 0;
   PRUint32 msgDate;
   nsMsgKey newHdrKey = 0;
-  PRBool parentKeyNeedsSetting = PR_TRUE;
+  bool parentKeyNeedsSetting = true;
 
   nsIMdbRow *hdrRow = hdr->GetMDBRow();
   hdr->GetRawFlags(&newHdrFlags);
@@ -288,7 +288,7 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
   }
   // check if this header is a parent of one of the messages in this thread
 
-  PRBool hdrMoved = PR_FALSE;
+  bool hdrMoved = false;
   nsCOMPtr <nsIMsgDBHdr> curHdr;
   PRUint32 moveIndex = 0;
 
@@ -413,7 +413,7 @@ NS_IMETHODIMP nsMsgThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, 
   }
 
   // do this after we've put the new hdr in the thread
-  PRBool isKilled;
+  bool isKilled;
   child->GetIsKilled(&isKilled);
   if ((m_flags & nsMsgMessageFlags::Ignored || isKilled) && m_mdbDB)
     m_mdbDB->MarkHdrRead(child, PR_TRUE, nsnull);
@@ -621,7 +621,7 @@ nsresult nsMsgThread::ReparentChildrenOf(nsMsgKey oldParent, nsMsgKey newParent,
   return rv;
 }
 
-NS_IMETHODIMP nsMsgThread::MarkChildRead(PRBool bRead)
+NS_IMETHODIMP nsMsgThread::MarkChildRead(bool bRead)
 {
   ChangeUnreadChildCount(bRead ? -1 : 1);
   return NS_OK;
@@ -652,11 +652,11 @@ protected:
   nsMsgKey                mThreadParentKey;
   nsMsgKey                mFirstMsgKey;
   PRInt32                 mChildIndex;
-  PRBool                  mDone;
-  PRBool                  mNeedToPrefetch;
+  bool                    mDone;
+  bool                    mNeedToPrefetch;
   nsMsgThreadEnumeratorFilter     mFilter;
   void*                   mClosure;
-  PRBool                  mFoundChildren;
+  bool                    mFoundChildren;
 };
 
 nsMsgThreadEnumerator::nsMsgThreadEnumerator(nsMsgThread *thread, nsMsgKey startKey,
@@ -865,7 +865,7 @@ nsresult nsMsgThreadEnumerator::Prefetch()
   return rv;
 }
 
-NS_IMETHODIMP nsMsgThreadEnumerator::HasMoreElements(PRBool *aResult)
+NS_IMETHODIMP nsMsgThreadEnumerator::HasMoreElements(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   if (mNeedToPrefetch)
@@ -1089,7 +1089,7 @@ nsresult nsMsgThread::GetChildHdrForKey(nsMsgKey desiredKey, nsIMsgDBHdr **resul
                 // Remove it from the thread and then rethread it.
                 RemoveChild(msgKey);
                 threadKeyThread->RemoveChildHdr(otherThreadHdr, nsnull);
-                PRBool newThread;
+                bool newThread;
                 nsMsgHdr* msgHdr = static_cast<nsMsgHdr*>(otherThreadHdr.get());
                 m_mdbDB->ThreadNewHdr(msgHdr, newThread);
               }
@@ -1134,7 +1134,7 @@ NS_IMETHODIMP nsMsgThread::GetFirstUnreadChild(nsIMsgDBHdr **result)
       nsMsgKey msgKey;
       child->GetMessageKey(&msgKey);
 
-      PRBool isRead;
+      bool isRead;
       rv = m_mdbDB->IsRead(msgKey, &isRead);
       if (NS_SUCCEEDED(rv) && !isRead)
       {

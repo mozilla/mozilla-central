@@ -186,7 +186,7 @@ public:
   void Reset() { m_done = PR_FALSE; NS_IF_RELEASE( m_location);}
 
 public:
-  PRBool m_done;
+  bool m_done;
   nsIFile * m_location;
 };
 

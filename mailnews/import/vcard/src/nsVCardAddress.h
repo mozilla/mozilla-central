@@ -56,7 +56,7 @@ public:
   virtual ~nsVCardAddress();
 
   nsresult ImportAddresses(
-      PRBool *pAbort,
+      bool *pAbort,
       const PRUnichar *pName,
       nsIFile *pSrc,
       nsIAddrDatabase *pDb,
@@ -65,7 +65,7 @@ public:
 
 private:
   static nsresult ReadRecord(
-      nsILineInputStream *aLineStream, nsCString &aRecord, PRBool *aMore);
+      nsILineInputStream *aLineStream, nsCString &aRecord, bool *aMore);
 };
 
 #endif /* nsVCardAddress_h__ */

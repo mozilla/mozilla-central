@@ -367,7 +367,7 @@ MsgFindCharInSet(const nsString &aString,
 #endif
 }
 
-static PRBool ConvertibleToNative(const nsAutoString& str)
+static bool ConvertibleToNative(const nsAutoString& str)
 {
     nsCAutoString native;
     nsAutoString roundTripped;
@@ -490,7 +490,7 @@ nsresult NS_MsgHashIfNecessary(nsAutoString &name)
   return NS_OK;
 }
 
-nsresult FormatFileSize(PRUint64 size, PRBool useKB, nsAString &formattedSize)
+nsresult FormatFileSize(PRUint64 size, bool useKB, nsAString &formattedSize)
 {
   NS_NAMED_LITERAL_STRING(byteAbbr, "byteAbbreviation2");
   NS_NAMED_LITERAL_STRING(kbAbbr,   "kiloByteAbbreviation2");
@@ -550,7 +550,7 @@ nsresult FormatFileSize(PRUint64 size, PRBool useKB, nsAString &formattedSize)
 nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
                                              nsCString& aPathCString,
                                              const nsCString &aScheme,
-                                             PRBool aIsNewsFolder)
+                                             bool aIsNewsFolder)
 {
   // A file name has to be in native charset. Here we convert
   // to UTF-16 and check for 'unsafe' characters before converting
@@ -566,11 +566,11 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
   if (endSlashPos < 0)
     endSlashPos = oldPath.Length();
 #ifdef XP_MACOSX
-  PRBool isMailboxUri = aScheme.EqualsLiteral("none") ||
+  bool isMailboxUri = aScheme.EqualsLiteral("none") ||
                         aScheme.EqualsLiteral("pop3");
 #endif
   // trick to make sure we only add the path to the first n-1 folders
-  PRBool haveFirst=PR_FALSE;
+  bool haveFirst=false;
   while (startSlashPos != -1) {
     pathPiece.Assign(Substring(oldPath, startSlashPos + 1, endSlashPos - startSlashPos));
     // skip leading '/' (and other // style things)
@@ -617,12 +617,12 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
 #endif
 }
 
-PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubject)
+bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubject)
 {
   const char *s, *s_end;
   const char *last;
   PRUint32 L;
-  PRBool result = PR_FALSE;
+  bool result = false;
   NS_ASSERTION(stringP, "bad null param");
   if (!stringP) return PR_FALSE;
 
@@ -806,10 +806,10 @@ nsresult NS_MsgDecodeUnescapeURLPath(const nsACString& aPath,
   return NS_OK;
 }
 
-PRBool WeAreOffline()
+bool WeAreOffline()
 {
   nsresult rv = NS_OK;
-  PRBool offline = PR_FALSE;
+  bool offline = false;
 
   nsCOMPtr <nsIIOService> ioService = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv) && ioService)
@@ -848,9 +848,9 @@ nsresult GetExistingFolder(const nsCString& aFolderURI, nsIMsgFolder **aFolder)
   return rv;
 }
 
-PRBool IsAFromSpaceLine(char *start, const char *end)
+bool IsAFromSpaceLine(char *start, const char *end)
 {
-  PRBool rv = PR_FALSE;
+  bool rv = false;
   while ((start < end) && (*start == '>'))
     start++;
   // If the leading '>'s are followed by an 'F' then we have a possible case here.
@@ -903,7 +903,7 @@ nsresult EscapeFromSpaceLine(nsIOutputStream *outputStream, char *start, const c
   return NS_OK;
 }
 
-nsresult IsRFC822HeaderFieldName(const char *aHdr, PRBool *aResult)
+nsresult IsRFC822HeaderFieldName(const char *aHdr, bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aHdr);
   NS_ENSURE_ARG_POINTER(aResult);
@@ -964,11 +964,11 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
     rv = server->GetType(type);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    PRBool isImapFolder = type.Equals("imap");
+    bool isImapFolder = type.Equals("imap");
     // if we can't get the path from the folder, then try to create the storage.
     // for imap, it doesn't matter if the .msf file exists - it still might not
     // exist on the server, so we should try to create it
-    PRBool exists = PR_FALSE;
+    bool exists = false;
     if (!isImapFolder && folderPath)
       folderPath->Exists(&exists);
     if (!exists)
@@ -1021,7 +1021,7 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
   return NS_OK;
 }
 
-nsresult IsRSSArticle(nsIURI * aMsgURI, PRBool *aIsRSSArticle)
+nsresult IsRSSArticle(nsIURI * aMsgURI, bool *aIsRSSArticle)
 {
   nsresult rv;
   *aIsRSSArticle = PR_FALSE;
@@ -1175,7 +1175,7 @@ nsresult MSGApopMD5(const char *text, PRInt32 text_len, const char *password, PR
 NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
                                           const char *absPrefName,
                                           const char *dirServiceProp,
-                                          PRBool& gotRelPref,
+                                          bool& gotRelPref,
                                           nsILocalFile **aFile,
                                           nsIPrefBranch *prefBranch)
 {
@@ -1415,11 +1415,11 @@ nsresult MsgNewBufferedFileOutputStream(nsIOutputStream **aResult,
   return rv;
 }
 
-PRBool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aStartOfKeyword, PRInt32 *aLength)
+bool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aStartOfKeyword, PRInt32 *aLength)
 {
 #ifdef MOZILLA_INTERNAL_API
 // nsTString_CharT::Find(const nsCString& aString,
-//                       PRBool aIgnoreCase=PR_FALSE,
+//                       bool aIgnoreCase=false,
 //                       PRInt32 aOffset=0,
 //                       PRInt32 aCount=-1 ) const;
 #define FIND_KEYWORD(keywords,keyword,offset) ((keywords).Find((keyword), PR_FALSE, (offset)))
@@ -1456,11 +1456,11 @@ PRBool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aS
 #undef FIND_KEYWORD
 }
 
-PRBool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
+bool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
 {
   const char *end;
   PRUint32 hostLen, domainLen;
-  PRBool domainIsTrusted = PR_FALSE;
+  bool domainIsTrusted = false;
 
   const char *domain = trustedMailDomains.BeginReading();
   const char *domainEnd = trustedMailDomains.EndReading();
@@ -1519,14 +1519,14 @@ nsresult MsgGetLocalFileFromURI(const nsACString &aUTF8Path, nsILocalFile **aFil
  * Function copied from nsReadableUtils.
  * Migrating to frozen linkage is the only change done
  */
-NS_MSG_BASE PRBool MsgIsUTF8(const nsACString& aString)
+NS_MSG_BASE bool MsgIsUTF8(const nsACString& aString)
 {
   const char *done_reading = aString.EndReading();
 
   PRInt32 state = 0;
-  PRBool overlong = PR_FALSE;
-  PRBool surrogate = PR_FALSE;
-  PRBool nonchar = PR_FALSE;
+  bool overlong = false;
+  bool surrogate = false;
+  bool nonchar = false;
   PRUint16 olupper = 0; // overlong byte upper bound.
   PRUint16 slower = 0;  // surrogate byte lower bound.
 
@@ -1985,7 +1985,7 @@ NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<n
   {
     nsMsgKey key = aMsgKeys.ElementAt(kindex);
     nsCOMPtr<nsIMsgDBHdr> msgHdr;
-    PRBool hasKey;
+    bool hasKey;
     rv = aDB->ContainsKey(key, &hasKey);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -2002,9 +2002,9 @@ NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<n
   return rv;
 }
 
-PRBool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset, PRUint32 maxBufferOffset)
+bool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset, PRUint32 maxBufferOffset)
 {
-  PRBool result = PR_FALSE;
+  bool result = false;
   for (; bufferOffset < maxBufferOffset; bufferOffset++)
   {
     if (buffer[bufferOffset] == '\r' || buffer[bufferOffset] == '\n')
@@ -2105,7 +2105,7 @@ NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
     getter_Copies(button2));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool dummyValue = PR_FALSE;
+  bool dummyValue = false;
   return dialog->ConfirmEx(
     title.get(), message.get(),
     (nsIPrompt::BUTTON_TITLE_IS_STRING * nsIPrompt::BUTTON_POS_0) +
@@ -2144,8 +2144,8 @@ NS_MSG_BASE nsresult MsgTermListToString(nsISupportsArray *aTermList, nsCString 
     if (aOutString.Length() > 1)
       aOutString += ' ';
 
-    PRBool booleanAnd;
-    PRBool matchAll;
+    bool booleanAnd;
+    bool matchAll;
     term->GetBooleanAnd(&booleanAnd);
     term->GetMatchAll(&matchAll);
     if (matchAll)

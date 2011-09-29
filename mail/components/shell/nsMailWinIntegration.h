@@ -68,11 +68,11 @@ public:
   NS_DECL_NSIWINDOWSSHELLSERVICE
 
 protected:
-  PRBool TestForDefault(SETTING aSettings[], PRInt32 aSize);
-  PRBool IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultClient);
+  bool TestForDefault(SETTING aSettings[], PRInt32 aSize);
+  bool IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClient);
 
 private:
-  PRBool mCheckedThisSession;
+  bool mCheckedThisSession;
   nsAutoString mAppLongPath;
  };
 

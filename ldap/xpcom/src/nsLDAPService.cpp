@@ -80,7 +80,7 @@ nsLDAPServiceEntry::~nsLDAPServiceEntry()
 
 // Init function
 //
-PRBool nsLDAPServiceEntry::Init()
+bool nsLDAPServiceEntry::Init()
 {
     return PR_TRUE;
 }
@@ -105,7 +105,7 @@ void nsLDAPServiceEntry::IncrementLeases()
 {
     mLeases++;
 }
-PRBool nsLDAPServiceEntry::DecrementLeases()
+bool nsLDAPServiceEntry::DecrementLeases()
 {
     if (!mLeases) {
         return PR_FALSE;
@@ -128,7 +128,7 @@ already_AddRefed<nsILDAPServer> nsLDAPServiceEntry::GetServer()
     NS_IF_ADDREF(server = mServer);
     return server;
 }
-PRBool nsLDAPServiceEntry::SetServer(nsILDAPServer *aServer)
+bool nsLDAPServiceEntry::SetServer(nsILDAPServer *aServer)
 {
     if (!aServer) {
         return PR_FALSE;
@@ -185,9 +185,9 @@ already_AddRefed<nsILDAPMessageListener> nsLDAPServiceEntry::PopListener()
 
     return listener;
 }
-PRBool nsLDAPServiceEntry::PushListener(nsILDAPMessageListener *listener)
+bool nsLDAPServiceEntry::PushListener(nsILDAPMessageListener *listener)
 {
-    PRBool ret;
+    bool ret;
     ret = mListeners.InsertObjectAt(listener, mListeners.Count());
 
     return ret;
@@ -197,11 +197,11 @@ PRBool nsLDAPServiceEntry::PushListener(nsILDAPMessageListener *listener)
 // race condition where multiple consumers could potentially request
 // to reconnect the connection.
 //
-PRBool nsLDAPServiceEntry::IsRebinding()
+bool nsLDAPServiceEntry::IsRebinding()
 {
     return mRebinding;
 }
-void nsLDAPServiceEntry::SetRebinding(PRBool aState)
+void nsLDAPServiceEntry::SetRebinding(bool aState)
 {
     mRebinding = aState;
 }
@@ -209,7 +209,7 @@ void nsLDAPServiceEntry::SetRebinding(PRBool aState)
 // Mark a service entry for deletion, this is "dead" code right now,
 // see bug #75966.
 //
-PRBool nsLDAPServiceEntry::DeleteEntry()
+bool nsLDAPServiceEntry::DeleteEntry()
 {
     mDelete = PR_TRUE;
 

@@ -91,7 +91,7 @@ private:
   nsCOMPtr<nsILocalFile>          mLocalFile;               // the output file itself
   nsCOMPtr<nsIStreamListener>     mConverter;               // the stream converter, if needed
   nsCString                  mConverterContentType;    // The content type of the converter
-  PRBool                          mStillRunning;  // Are we still running?
+  bool                            mStillRunning;  // Are we still running?
   PRInt32                         mTotalWritten;  // Size counter variable
   char                            *mBuffer;                 // Buffer used for reading the data
   PRUint32                        mBufferSize;              // Buffer size;
@@ -100,8 +100,8 @@ private:
   void                            *mTagData;      // Tag data for callback...
   nsAttachSaveCompletionCallback  mCallback;      // Callback to call once the file is saved...
   nsCOMPtr<nsISupports>           mLoadCookie;    // load cookie used by the uri loader when we fetch the url
-  PRBool                          mOnStopRequestProcessed; // used to prevent calling OnStopRequest multiple times
-  PRBool                          mIsFile;        // This is used to check whether the URI is a local file.
+  bool                            mOnStopRequestProcessed; // used to prevent calling OnStopRequest multiple times
+  bool                            mIsFile;        // This is used to check whether the URI is a local file.
 
   friend class nsURLFetcherStreamConsumer;
 }; 

@@ -137,8 +137,8 @@ nsSubscribableServer::SetAsSubscribed(const nsACString &path)
 }
 
 NS_IMETHODIMP
-nsSubscribableServer::AddTo(const nsACString& aName, PRBool aAddAsSubscribed,
-                            PRBool aSubscribable, PRBool aChangeIfExists)
+nsSubscribableServer::AddTo(const nsACString& aName, bool aAddAsSubscribed,
+                            bool aSubscribable, bool aChangeIfExists)
 {
     nsresult rv = NS_OK;
 
@@ -170,8 +170,8 @@ nsSubscribableServer::AddTo(const nsACString& aName, PRBool aAddAsSubscribed,
 }
 
 NS_IMETHODIMP
-nsSubscribableServer::SetState(const nsACString &aPath, PRBool aState,
-                               PRBool *aStateChanged)
+nsSubscribableServer::SetState(const nsACString &aPath, bool aState,
+                               bool *aStateChanged)
 {
     nsresult rv = NS_OK;
     NS_ASSERTION(!aPath.IsEmpty() && aStateChanged, "no path or stateChanged");
@@ -228,7 +228,7 @@ nsSubscribableServer::NotifyAssert(SubscribeTreeNode *subjectNode, nsIRDFResourc
 {
     nsresult rv;
 
-    PRBool hasObservers = PR_TRUE;
+    bool hasObservers = true;
     rv = EnsureSubscribeDS();
     NS_ENSURE_SUCCESS(rv,rv);
     rv = mSubscribeDS->GetHasObservers(&hasObservers);
@@ -277,12 +277,12 @@ nsSubscribableServer::EnsureRDFService()
 }
 
 nsresult
-nsSubscribableServer::NotifyChange(SubscribeTreeNode *subjectNode, nsIRDFResource *property, PRBool value)
+nsSubscribableServer::NotifyChange(SubscribeTreeNode *subjectNode, nsIRDFResource *property, bool value)
 {
     nsresult rv;
     nsCOMPtr <nsIRDFResource> subject;
 
-    PRBool hasObservers = PR_TRUE;
+    bool hasObservers = true;
     rv = EnsureSubscribeDS();
     NS_ENSURE_SUCCESS(rv,rv);
     rv = mSubscribeDS->GetHasObservers(&hasObservers);
@@ -335,7 +335,7 @@ nsSubscribableServer::EnsureSubscribeDS()
 }
 
 nsresult
-nsSubscribableServer::Notify(nsIRDFResource *subject, nsIRDFResource *property, nsIRDFNode *object, PRBool isAssert, PRBool isChange)
+nsSubscribableServer::Notify(nsIRDFResource *subject, nsIRDFResource *property, nsIRDFNode *object, bool isAssert, bool isChange)
 {
     nsresult rv = NS_OK;
 
@@ -373,14 +373,14 @@ nsSubscribableServer::SubscribeCleanup()
 }
 
 NS_IMETHODIMP
-nsSubscribableServer::StartPopulatingWithUri(nsIMsgWindow *aMsgWindow, PRBool aForceToServer, const char *uri)
+nsSubscribableServer::StartPopulatingWithUri(nsIMsgWindow *aMsgWindow, bool aForceToServer, const char *uri)
 {
     mStopped = PR_FALSE;
     return NS_OK;
 }
 
 NS_IMETHODIMP
-nsSubscribableServer::StartPopulating(nsIMsgWindow *aMsgWindow, PRBool aForceToServer, PRBool aGetOnlyNew /*ignored*/)
+nsSubscribableServer::StartPopulating(nsIMsgWindow *aMsgWindow, bool aForceToServer, bool aGetOnlyNew /*ignored*/)
 {
     nsresult rv = NS_OK;
 
@@ -422,7 +422,7 @@ nsSubscribableServer::Unsubscribe(const PRUnichar *aName)
 }
 
 NS_IMETHODIMP
-nsSubscribableServer::SetShowFullName(PRBool showFullName)
+nsSubscribableServer::SetShowFullName(bool showFullName)
 {
 	mShowFullName = showFullName;
 	return NS_OK;
@@ -656,7 +656,7 @@ nsSubscribableServer::FindAndCreateNode(const nsACString &aPath,
 }
 
 NS_IMETHODIMP
-nsSubscribableServer::HasChildren(const nsACString &aPath, PRBool *aHasChildren)
+nsSubscribableServer::HasChildren(const nsACString &aPath, bool *aHasChildren)
 {
     nsresult rv = NS_OK;
     NS_ASSERTION(aHasChildren, "no hasChildren");
@@ -678,7 +678,7 @@ nsSubscribableServer::HasChildren(const nsACString &aPath, PRBool *aHasChildren)
 
 NS_IMETHODIMP
 nsSubscribableServer::IsSubscribed(const nsACString &aPath,
-                                   PRBool *aIsSubscribed)
+                                   bool *aIsSubscribed)
 {
     NS_ENSURE_ARG_POINTER(aIsSubscribed);
 
@@ -697,7 +697,7 @@ nsSubscribableServer::IsSubscribed(const nsACString &aPath,
 
 NS_IMETHODIMP
 nsSubscribableServer::IsSubscribable(const nsACString &aPath,
-                                     PRBool *aIsSubscribable)
+                                     bool *aIsSubscribable)
 {
     NS_ENSURE_ARG_POINTER(aIsSubscribable);
 
@@ -829,7 +829,7 @@ nsSubscribableServer::SetSearchValue(const nsAString &aSearchValue)
 }
 
 NS_IMETHODIMP
-nsSubscribableServer::GetSupportsSubscribeSearch(PRBool *retVal)
+nsSubscribableServer::GetSupportsSubscribeSearch(bool *retVal)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }

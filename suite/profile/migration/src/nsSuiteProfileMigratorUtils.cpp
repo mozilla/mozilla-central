@@ -121,11 +121,11 @@ void ParseOverrideServers(const nsAString& aServers, nsIPrefBranch* aBranch)
 
 void GetMigrateDataFromArray(MigrationData* aDataArray,
                              PRInt32 aDataArrayLength,
-                             PRBool aReplace, nsIFile* aSourceProfile,
+                             bool aReplace, nsIFile* aSourceProfile,
                              PRUint16* aResult)
 {
   nsCOMPtr<nsIFile> sourceFile;
-  PRBool exists;
+  bool exists;
   MigrationData* cursor;
   MigrationData* end = aDataArray + aDataArrayLength;
   for (cursor = aDataArray; cursor < end; ++cursor) {
@@ -181,7 +181,7 @@ AnnotatePersonalToolbarFolder(nsIFile* aSourceBookmarksFile,
 
   nsCAutoString sourceBuffer;
   nsCAutoString targetBuffer;
-  PRBool moreData = PR_FALSE;
+  bool moreData = false;
   PRUint32 bytesWritten = 0;
   do {
     lineInputStream->ReadLine(sourceBuffer, &moreData);

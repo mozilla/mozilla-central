@@ -79,14 +79,14 @@ protected:
     nsresult ReleaseFolderLock();
     nsresult HandleTempDownloadFailed(nsIMsgWindow *msgWindow);
 
-    PRBool m_authed;
+    bool m_authed;
     PRInt64 m_msgOffset;
     char* m_accountUrl;
     PRUint32 m_biffState;
     PRInt32 m_numNewMessages;
     PRInt32 m_numNewMessagesInFolder;
     PRInt32 m_numMsgsDownloaded;
-    PRBool m_senderAuthed;
+    bool m_senderAuthed;
     char* m_outputBuffer;
     PRInt32 m_outputBufferSize;
     nsIPop3IncomingServer *m_popServer;
@@ -99,8 +99,8 @@ protected:
     nsCOMPtr <nsIOutputStream> m_outFileStream; // the file we write to, which may be temporary
     nsCOMPtr <nsIOutputStream> m_inboxOutputStream; // the actual mailbox
 
-    PRBool m_buildMessageUri;
-    PRBool m_downloadingToTempFile;
+    bool m_buildMessageUri;
+    bool m_downloadingToTempFile;
     nsCOMPtr <nsILocalFile> m_tmpDownloadFile;
     nsCString m_messageUri;
     nsCString m_baseMessageUri;

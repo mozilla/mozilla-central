@@ -41,7 +41,7 @@
 #include "ImportCharSet.h"
 
 
-PRBool nsImportTranslator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
+bool nsImportTranslator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
 {
   if (pProcessed)
     *pProcessed = inLen;
@@ -68,7 +68,7 @@ void CMHTranslator::ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint8 
   *pOut = 0;
 }
 
-PRBool CMHTranslator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
+bool CMHTranslator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
 {
   PRUint8    hex[2];
   while (inLen) {
@@ -96,14 +96,14 @@ PRBool CMHTranslator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, Import
 }
 
 
-PRBool C2047Translator::ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
+bool C2047Translator::ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
 {
   if (!inLen)
     return( PR_TRUE);
 
   int    maxLineLen = 64;
   int    curLineLen = m_startLen;
-  PRBool  startLine = PR_TRUE;
+  bool    startLine = true;
 
   PRUint8  hex[2];
   while (inLen) {
@@ -159,7 +159,7 @@ PRBool C2047Translator::ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, Imp
   return( PR_TRUE);
 }
 
-PRBool C2047Translator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
+bool C2047Translator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
 {
   if (m_useQuotedPrintable)
     return( ConvertToFileQ( pIn, inLen, pOutFile, pProcessed));
@@ -169,7 +169,7 @@ PRBool C2047Translator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, Impo
 
   int      maxLineLen = 64;
   int      curLineLen = m_startLen;
-  PRBool    startLine = PR_TRUE;
+  bool      startLine = true;
   int      encodeMax;
   PRUint8 *  pEncoded = new PRUint8[maxLineLen * 2];
 

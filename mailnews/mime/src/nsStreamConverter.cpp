@@ -136,7 +136,7 @@ bridge_new_new_uri(void *bridgeStream, nsIURI *aURI, PRInt32 aOutputType)
   {
     if (session->data_object)
     {
-      PRBool   *override_charset = nsnull;
+      bool     *override_charset = nsnull;
       char    **default_charset = nsnull;
       char    **url_name = nsnull;
 
@@ -191,7 +191,7 @@ bridge_new_new_uri(void *bridgeStream, nsIURI *aURI, PRInt32 aOutputType)
           // then check if we have a folder level override
           if (!(*override_charset) && *default_charset && **default_charset)
           {
-            PRBool folderCharsetOverride;
+            bool folderCharsetOverride;
             rv = i18nUrl->GetFolderCharsetOverride(&folderCharsetOverride);
             if (NS_SUCCEEDED(rv) && folderCharsetOverride)
               *override_charset = PR_TRUE;
@@ -222,7 +222,7 @@ bridge_new_new_uri(void *bridgeStream, nsIURI *aURI, PRInt32 aOutputType)
               nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
               if (pPrefBranch)
               {
-                PRBool  force_override;
+                bool    force_override;
                 rv = pPrefBranch->GetBoolPref("mailnews.force_charset_override", &force_override);
                 if (NS_SUCCEEDED(rv) && force_override)
                 {
@@ -677,8 +677,8 @@ NS_IMETHODIMP nsStreamConverter::Init(nsIURI *aURI, nsIStreamListener * aOutList
   }
 
   PRUint32 whattodo = mozITXTToHTMLConv::kURLs;
-  PRBool enable_emoticons = PR_TRUE;
-  PRBool enable_structs = PR_TRUE;
+  bool enable_emoticons = true;
+  bool enable_structs = true;
 
   nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if (pPrefBranch)
@@ -780,7 +780,7 @@ nsStreamConverter::SetMimeHeadersListener(nsIMimeStreamConverterListener *listen
 }
 
 NS_IMETHODIMP
-nsStreamConverter::SetForwardInline(PRBool aForwardInline)
+nsStreamConverter::SetForwardInline(bool aForwardInline)
 {
   mForwardInline = aForwardInline;
   return NS_OK;
@@ -801,7 +801,7 @@ nsStreamConverter::SetForwardToAddress(const nsAString &aAddress)
 }
 
 NS_IMETHODIMP
-nsStreamConverter::GetOverrideComposeFormat(PRBool *aResult)
+nsStreamConverter::GetOverrideComposeFormat(bool *aResult)
 {
   if (!aResult)
     return NS_ERROR_NULL_POINTER;
@@ -810,14 +810,14 @@ nsStreamConverter::GetOverrideComposeFormat(PRBool *aResult)
 }
 
 NS_IMETHODIMP
-nsStreamConverter::SetOverrideComposeFormat(PRBool aOverrideComposeFormat)
+nsStreamConverter::SetOverrideComposeFormat(bool aOverrideComposeFormat)
 {
   mOverrideComposeFormat = aOverrideComposeFormat;
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsStreamConverter::GetForwardInline(PRBool *aResult)
+nsStreamConverter::GetForwardInline(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = mForwardInline;
@@ -825,7 +825,7 @@ nsStreamConverter::GetForwardInline(PRBool *aResult)
 }
 
 NS_IMETHODIMP
-nsStreamConverter::GetForwardInlineFilter(PRBool *aResult)
+nsStreamConverter::GetForwardInlineFilter(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = mForwardInlineFilter;
@@ -833,7 +833,7 @@ nsStreamConverter::GetForwardInlineFilter(PRBool *aResult)
 }
 
 NS_IMETHODIMP
-nsStreamConverter::SetForwardInlineFilter(PRBool aForwardInlineFilter)
+nsStreamConverter::SetForwardInlineFilter(bool aForwardInlineFilter)
 {
   mForwardInlineFilter = aForwardInlineFilter;
   return NS_OK;

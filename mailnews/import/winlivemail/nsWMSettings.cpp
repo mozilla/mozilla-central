@@ -80,34 +80,34 @@
 class WMSettings {
 public:
   static nsresult FindWMKey(nsIWindowsRegKey* akey);
-  static PRBool getOEacctFiles(nsILocalFile* file, nsCOMArray<nsILocalFile>& fileArray);
+  static bool getOEacctFiles(nsILocalFile* file, nsCOMArray<nsILocalFile>& fileArray);
   static nsresult GetValueForTag(nsIDOMDocument *xmlDoc,
                                  const nsAString& tagName,
                                  nsAString &value);
   static nsresult MakeXMLdoc(nsIDOMDocument** xmlDoc,
                              nsILocalFile* file);
-  static PRBool DoImport(nsIMsgAccount **ppAccount);
-  static PRBool DoIMAPServer(nsIMsgAccountManager *pMgr,
+  static bool DoImport(nsIMsgAccount **ppAccount);
+  static bool DoIMAPServer(nsIMsgAccountManager *pMgr,
                              nsIDOMDocument *xmlDoc,
                              const nsString& serverName,
                              nsIMsgAccount **ppAccount);
-  static PRBool DoPOP3Server(nsIMsgAccountManager *pMgr,
+  static bool DoPOP3Server(nsIMsgAccountManager *pMgr,
                              nsIDOMDocument *xmlDoc,
                              const nsString& serverName,
                              nsIMsgAccount **ppAccount);
-  static PRBool DoNNTPServer(nsIMsgAccountManager *pMgr,
+  static bool DoNNTPServer(nsIMsgAccountManager *pMgr,
                              nsIDOMDocument *xmlDoc,
                              const nsString& serverName,
                              nsIMsgAccount **ppAccount);
   static void SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
                             nsIDOMDocument *xmlDoc, nsAutoString &userName,
-                            PRInt32 authMethodIncoming, PRBool isNNTP );
+                            PRInt32 authMethodIncoming, bool isNNTP );
   static void SetSmtpServer(nsIDOMDocument *xmlDoc, nsIMsgIdentity *id,
                             nsAutoString& inUserName, PRInt32 authMethodIncoming);
 };
 
 static PRInt32 checkNewMailTime;// WM global setting, let's default to 30
-static PRBool  checkNewMail;    // WM global setting, let's default to PR_FALSE
+static bool    checkNewMail;    // WM global setting, let's default to false
                                 // This won't cause unwanted autodownloads-
                                 // user can set prefs after import
 
@@ -137,7 +137,7 @@ nsWMSettings::~nsWMSettings()
 NS_IMPL_ISUPPORTS1(nsWMSettings, nsIImportSettings)
 
 NS_IMETHODIMP nsWMSettings::AutoLocate(PRUnichar **description,
-                                       nsIFile **location, PRBool *_retval)
+                                       nsIFile **location, bool *_retval)
 {
   NS_PRECONDITION(description != nsnull, "null ptr");
   NS_PRECONDITION(_retval != nsnull, "null ptr");
@@ -163,7 +163,7 @@ NS_IMETHODIMP nsWMSettings::SetLocation(nsIFile *location)
 }
 
 NS_IMETHODIMP nsWMSettings::Import(nsIMsgAccount **localMailAccount,
-                                   PRBool *_retval)
+                                   bool *_retval)
 {
   NS_PRECONDITION(_retval != nsnull, "null ptr");
 
@@ -194,7 +194,7 @@ nsresult WMSettings::FindWMKey(nsIWindowsRegKey* akey)
   return rv;
 }
 
-PRBool WMSettings::getOEacctFiles(nsILocalFile* file,
+bool WMSettings::getOEacctFiles(nsILocalFile* file,
                                   nsCOMArray<nsILocalFile>& fileArray)
 {
   nsresult rv;
@@ -203,7 +203,7 @@ PRBool WMSettings::getOEacctFiles(nsILocalFile* file,
   if (NS_FAILED(rv) || !entries)
     return PR_FALSE;
 
-  PRBool hasMore;
+  bool hasMore;
   while (NS_SUCCEEDED(entries->HasMoreElements(&hasMore)) && hasMore) {
     nsCOMPtr<nsISupports> sup;
     entries->GetNext(getter_AddRefs(sup));
@@ -215,7 +215,7 @@ PRBool WMSettings::getOEacctFiles(nsILocalFile* file,
     nsString name;
     if (NS_FAILED(fileX->GetLeafName(name)))
       return PR_FALSE;
-    PRBool isDir;
+    bool isDir;
     if (NS_FAILED(fileX->IsDirectory(&isDir)))
       return PR_FALSE;
     if (isDir) {
@@ -260,7 +260,7 @@ nsresult WMSettings::MakeXMLdoc(nsIDOMDocument** xmlDoc,
                                  "application/xml", xmlDoc);
 }
 
-PRBool WMSettings::DoImport(nsIMsgAccount **ppAccount)
+bool WMSettings::DoImport(nsIMsgAccount **ppAccount)
 {
   nsresult rv;
 
@@ -374,7 +374,7 @@ PRBool WMSettings::DoImport(nsIMsgAccount **ppAccount)
   return( accounts != 0);
 }
 
-PRBool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
+bool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
                                 nsIDOMDocument *xmlDoc,
                                 const nsString& serverName,
                                 nsIMsgAccount **ppAccount)
@@ -388,7 +388,7 @@ PRBool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
   if (NS_FAILED(GetValueForTag(xmlDoc, NS_LITERAL_STRING("IMAP_User_Name"),
                                userName)))
     return PR_FALSE;
-  PRBool result = PR_FALSE;
+  bool result = false;
   // I now have a user name/server name pair, find out if it already exists?
   nsCOMPtr<nsIMsgIncomingServer> in;
   nsresult rv = pMgr->FindServer(NS_ConvertUTF16toUTF8(userName),
@@ -417,7 +417,7 @@ PRBool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
         in->SetSocketType(nsMsgSocketType::SSL);
 
       GetValueForTag(xmlDoc, NS_LITERAL_STRING("IMAP_Use_Sicily"), value);
-      PRBool secAuth = (PRBool)value.ToInteger(&errorCode, 16);
+      bool secAuth = (bool)value.ToInteger(&errorCode, 16);
       authMethod = secAuth ? nsMsgAuthMethod::secure :
                              nsMsgAuthMethod::passwordCleartext;
       in->SetAuthMethod(authMethod);
@@ -473,7 +473,7 @@ PRBool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
   return result;
 }
 
-PRBool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
+bool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
                                 nsIDOMDocument *xmlDoc,
                                 const nsString& serverName,
                                 nsIMsgAccount **ppAccount)
@@ -487,7 +487,7 @@ PRBool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
   if (NS_FAILED(GetValueForTag(xmlDoc, NS_LITERAL_STRING("POP3_User_Name"),
                                userName)))
     return PR_FALSE;
-  PRBool result = PR_FALSE;
+  bool result = false;
   // I now have a user name/server name pair, find out if it already exists?
   nsCOMPtr<nsIMsgIncomingServer> in;
   nsresult rv = pMgr->FindServer(NS_ConvertUTF16toUTF8(userName),
@@ -513,7 +513,7 @@ PRBool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
         in->SetSocketType(nsMsgSocketType::SSL);
 
       GetValueForTag(xmlDoc, NS_LITERAL_STRING("POP3_Use_Sicily"), value);
-      PRBool secAuth = (PRBool)value.ToInteger(&errorCode, 16);
+      bool secAuth = (bool)value.ToInteger(&errorCode, 16);
       authMethod = secAuth ? nsMsgAuthMethod::secure :
                              nsMsgAuthMethod::passwordCleartext;
       in->SetAuthMethod(authMethod);
@@ -531,13 +531,13 @@ PRBool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
         pop3Server->SetDeferGetNewMail(PR_FALSE);
       GetValueForTag(xmlDoc, NS_LITERAL_STRING("Leave_Mail_On_Server"), value);
       if (!value.IsEmpty())
-        pop3Server->SetLeaveMessagesOnServer((PRBool)value.ToInteger(&errorCode, 16));
+        pop3Server->SetLeaveMessagesOnServer((bool)value.ToInteger(&errorCode, 16));
       GetValueForTag(xmlDoc, NS_LITERAL_STRING("Remove_When_Deleted"), value);
       if (!value.IsEmpty())
-        pop3Server->SetDeleteMailLeftOnServer((PRBool)value.ToInteger(&errorCode, 16));
+        pop3Server->SetDeleteMailLeftOnServer((bool)value.ToInteger(&errorCode, 16));
       GetValueForTag(xmlDoc, NS_LITERAL_STRING("Remove_When_Expired"), value);
       if (!value.IsEmpty())
-        pop3Server->SetDeleteByAgeFromServer((PRBool)value.ToInteger(&errorCode, 16));
+        pop3Server->SetDeleteByAgeFromServer((bool)value.ToInteger(&errorCode, 16));
       GetValueForTag(xmlDoc, NS_LITERAL_STRING("Expire_Days"), value);
       if (!value.IsEmpty())
         pop3Server->SetNumDaysToLeaveOnServer(value.ToInteger(&errorCode, 16));
@@ -615,12 +615,12 @@ PRBool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
   return result;
 }
 
-PRBool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
+bool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
                                 nsIDOMDocument *xmlDoc,
                                 const nsString& serverName,
                                 nsIMsgAccount **ppAccount)
 {
-  PRBool authMethod;
+  bool authMethod;
   PRInt32 errorCode;
   if (ppAccount)
     *ppAccount = nsnull;
@@ -628,7 +628,7 @@ PRBool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
   nsAutoString userName, value;
   // this only exists if NNTP server requires it or not, anonymous login
   GetValueForTag(xmlDoc, NS_LITERAL_STRING("NNTP_User_Name"), userName);
-  PRBool result = PR_FALSE;
+  bool result = false;
 
   // I now have a user name/server name pair, find out if it already exists?
   // NNTP can have empty user name.  This is wild card in findserver
@@ -668,7 +668,7 @@ PRBool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
       }
 
       GetValueForTag(xmlDoc, NS_LITERAL_STRING("NNTP_Use_Sicily"), value);
-      PRBool secAuth = (PRBool)value.ToInteger(&errorCode, 16);
+      bool secAuth = (bool)value.ToInteger(&errorCode, 16);
       authMethod = secAuth ? nsMsgAuthMethod::secure :
                              nsMsgAuthMethod::passwordCleartext;
       in->SetAuthMethod(authMethod);
@@ -715,7 +715,7 @@ PRBool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
 
 void WMSettings::SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
                                nsIDOMDocument *xmlDoc, nsAutoString &inUserName,
-                               PRInt32 authMethodIncoming, PRBool isNNTP )
+                               PRInt32 authMethodIncoming, bool isNNTP )
 {
   // Get the relevant information for an identity
   // BUG 470587. Don't set this: id->SetIdentityName(fullName);

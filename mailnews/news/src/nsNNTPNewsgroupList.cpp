@@ -186,7 +186,7 @@ nsNNTPNewsgroupList::CleanUp()
         if (lastMissingCheck)
           firstKnown = lastMissingCheck + 1;
       }
-      PRBool foundMissingArticle = PR_FALSE;
+      bool foundMissingArticle = false;
       while (firstKnown <= lastKnown)
       {
         PRInt32 firstUnreadStart, firstUnreadEnd;
@@ -197,7 +197,7 @@ nsNNTPNewsgroupList::CleanUp()
         {
           while (firstUnreadStart <= firstUnreadEnd)
           {
-            PRBool containsKey;
+            bool containsKey;
             m_newsDB->ContainsKey(firstUnreadStart, &containsKey);
             if (!containsKey)
             {
@@ -375,7 +375,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
 
   if (m_getOldMessages || !m_knownArts.set->IsMember(last_possible))
   {
-    PRBool notifyMaxExceededOn = PR_TRUE;
+    bool notifyMaxExceededOn = true;
     rv = nntpServer->GetNotifyOn(&notifyMaxExceededOn);
     if (NS_FAILED(rv)) notifyMaxExceededOn = PR_TRUE;
 
@@ -428,7 +428,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
         // TODO, figure out why we aren't opening and using a 3 pane when the autosubscribe url is run.
         // perhaps we can find an available 3 pane, and use it.
 
-        PRBool download = PR_FALSE;
+        bool download = false;
 
         if (aMsgWindow) {
           rv = openWindow(aMsgWindow, DOWNLOAD_HEADERS_URL, args);
@@ -448,7 +448,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
           maxextra = m_maxArticles;
           if (!m_downloadAll)
           {
-            PRBool markOldRead = PR_FALSE;
+            bool markOldRead = false;
 
             rv = nntpServer->GetMarkOldRead(&markOldRead);
             if (NS_FAILED(rv)) markOldRead = PR_FALSE;
@@ -646,7 +646,7 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgWindow *aMsgWindow, PRBool *aApplyMore)
+NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgWindow *aMsgWindow, bool *aApplyMore)
 {
   NS_ENSURE_ARG_POINTER(aFilter);
   NS_ENSURE_ARG_POINTER(aApplyMore);
@@ -666,7 +666,7 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
   rv = filterActionList->Count(&numActions);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool loggingEnabled = PR_FALSE;
+  bool loggingEnabled = false;
   nsCOMPtr<nsIMsgFilterList> currentFilterList;
   rv = aFilter->GetFilterList(getter_AddRefs(currentFilterList));
   if (NS_SUCCEEDED(rv) && currentFilterList && numActions)
@@ -779,7 +779,7 @@ nsNNTPNewsgroupList::ProcessXOVERLINE(const char *line, PRUint32 *status)
 {
   PRUint32 message_number=0;
   //  PRInt32 lines;
-  PRBool read_p = PR_FALSE;
+  bool read_p = false;
   nsresult rv = NS_OK;
 
   NS_ASSERTION(line, "null ptr");
@@ -1274,7 +1274,7 @@ nsNNTPNewsgroupList::SetProgressStatus(const PRUnichar *message)
 }
 
 void
-nsNNTPNewsgroupList::UpdateStatus(PRBool filtering, PRInt32 numDLed, PRInt32 totToDL)
+nsNNTPNewsgroupList::UpdateStatus(bool filtering, PRInt32 numDLed, PRInt32 totToDL)
 {
   PRInt32 numerator = (filtering ? m_currentXHDRIndex + 1 : 1) * numDLed;
   PRInt32 denominator = (m_filterHeaders.Length() + 1) * totToDL;
@@ -1330,13 +1330,13 @@ nsNNTPNewsgroupList::UpdateStatus(PRBool filtering, PRInt32 numDLed, PRInt32 tot
   }
 }
 
-NS_IMETHODIMP nsNNTPNewsgroupList::SetGetOldMessages(PRBool aGetOldMessages)
+NS_IMETHODIMP nsNNTPNewsgroupList::SetGetOldMessages(bool aGetOldMessages)
 {
   m_getOldMessages = aGetOldMessages;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsNNTPNewsgroupList::GetGetOldMessages(PRBool *aGetOldMessages)
+NS_IMETHODIMP nsNNTPNewsgroupList::GetGetOldMessages(bool *aGetOldMessages)
 {
   NS_ENSURE_ARG(aGetOldMessages);
 

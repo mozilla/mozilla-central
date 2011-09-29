@@ -48,7 +48,7 @@ NS_IMPL_ISUPPORTS2(nsSuiteDirectoryProvider,
 
 NS_IMETHODIMP
 nsSuiteDirectoryProvider::GetFile(const char *aKey,
-                                  PRBool *aPersist,
+                                  bool *aPersist,
                                   nsIFile* *aResult)
 {
   // NOTE: This function can be reentrant through the NS_GetSpecialDirectory
@@ -79,7 +79,7 @@ nsSuiteDirectoryProvider::GetFile(const char *aKey,
   nsDependentCString leafStr(leafName);
   file->AppendNative(leafStr);
 
-  PRBool exists;
+  bool exists;
   if (NS_SUCCEEDED(file->Exists(&exists)) && !exists)
     EnsureProfileFile(leafStr, parentDir, file);
 
@@ -136,7 +136,7 @@ NS_IMPL_ISUPPORTS1(nsSuiteDirectoryProvider::AppendingEnumerator,
                    nsISimpleEnumerator)
 
 NS_IMETHODIMP
-nsSuiteDirectoryProvider::AppendingEnumerator::HasMoreElements(PRBool *aResult)
+nsSuiteDirectoryProvider::AppendingEnumerator::HasMoreElements(bool *aResult)
 {
   *aResult = mNext != nsnull;
   return NS_OK;
@@ -147,7 +147,7 @@ nsSuiteDirectoryProvider::AppendingEnumerator::GetNext()
 {
   // Ignore all errors
 
-  PRBool more;
+  bool more;
   while (NS_SUCCEEDED(mBase->HasMoreElements(&more)) && more) {
     nsCOMPtr<nsISupports> nextSupports;
     mBase->GetNext(getter_AddRefs(nextSupports));
@@ -158,7 +158,7 @@ nsSuiteDirectoryProvider::AppendingEnumerator::GetNext()
 
     mNext->AppendNative(mLeafName);
 
-    PRBool exists;
+    bool exists;
     if (NS_SUCCEEDED(mNext->Exists(&exists)) && exists)
       return;
   }

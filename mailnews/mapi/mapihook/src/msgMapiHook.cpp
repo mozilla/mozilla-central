@@ -125,14 +125,14 @@ public:
 
     static nsresult CreateMAPISendListener( nsIMsgSendListener **ppListener);
 
-    PRBool IsDone() { return m_done ; }
+    bool IsDone() { return m_done ; }
 
 protected :
     nsMAPISendListener() {
         m_done = PR_FALSE;
     }
 
-    PRBool          m_done;
+    bool            m_done;
 };
 
 
@@ -150,7 +150,7 @@ nsresult nsMAPISendListener::CreateMAPISendListener( nsIMsgSendListener **ppList
     return NS_OK;
 }
 
-PRBool nsMapiHook::isMapiService = PR_FALSE;
+bool nsMapiHook::isMapiService = false;
 
 void nsMapiHook::CleanUp()
 {
@@ -158,11 +158,11 @@ void nsMapiHook::CleanUp()
     // to cleanup mapi related stuff inside mozilla code.
 }
 
-PRBool nsMapiHook::DisplayLoginDialog(PRBool aLogin, PRUnichar **aUsername,
+bool nsMapiHook::DisplayLoginDialog(bool aLogin, PRUnichar **aUsername,
                       PRUnichar **aPassword)
 {
   nsresult rv;
-  PRBool btnResult = PR_FALSE;
+  bool btnResult = false;
 
   nsCOMPtr<nsIPromptService> dlgService(do_GetService(NS_PROMPTSERVICE_CONTRACTID, &rv));
   if (NS_SUCCEEDED(rv) && dlgService)
@@ -201,7 +201,7 @@ PRBool nsMapiHook::DisplayLoginDialog(PRBool aLogin, PRUnichar **aUsername,
                                      getter_Copies(loginText));
       if (NS_FAILED(rv) || loginText.IsEmpty()) return PR_FALSE;
 
-      PRBool dummyValue = PR_FALSE;
+      bool dummyValue = false;
       rv = dlgService->PromptUsernameAndPassword(nsnull, loginTitle.get(),
                                                  loginText.get(), aUsername, aPassword,
                                                  nsnull, &dummyValue, &btnResult);
@@ -218,7 +218,7 @@ PRBool nsMapiHook::DisplayLoginDialog(PRBool aLogin, PRUnichar **aUsername,
                                         getter_Copies(loginText));
       if (NS_FAILED(rv)) return PR_FALSE;
 
-      PRBool dummyValue = PR_FALSE;
+      bool dummyValue = false;
       rv = dlgService->PromptPassword(nsnull, loginTitle.get(), loginText.get(),
                                       aPassword, nsnull, &dummyValue, &btnResult);
     }
@@ -227,7 +227,7 @@ PRBool nsMapiHook::DisplayLoginDialog(PRBool aLogin, PRUnichar **aUsername,
   return btnResult;
 }
 
-PRBool nsMapiHook::VerifyUserName(const nsString& aUsername, nsCString& aIdKey)
+bool nsMapiHook::VerifyUserName(const nsString& aUsername, nsCString& aIdKey)
 {
   nsresult rv;
 
@@ -268,11 +268,11 @@ PRBool nsMapiHook::VerifyUserName(const nsString& aUsername, nsCString& aIdKey)
   return PR_FALSE;
 }
 
-PRBool
+bool
 nsMapiHook::IsBlindSendAllowed()
 {
-  PRBool enabled = PR_FALSE;
-  PRBool warn = PR_TRUE;
+  bool enabled = false;
+  bool warn = true;
   nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID);
   if (prefBranch) {
       prefBranch->GetBoolPref(PREF_MAPI_WARN_PRIOR_TO_BLIND_SEND, &warn);
@@ -305,8 +305,8 @@ nsMapiHook::IsBlindSendAllowed()
   nsCOMPtr<nsIPromptService> dlgService(do_GetService(NS_PROMPTSERVICE_CONTRACTID, &rv));
   if (NS_FAILED(rv) || !dlgService) return PR_FALSE;
 
-  PRBool continueToWarn = PR_TRUE;
-  PRBool okayToContinue = PR_FALSE;
+  bool continueToWarn = true;
+  bool okayToContinue = false;
   dlgService->ConfirmCheck(nsnull, nsnull, warningMsg.get(), dontShowAgainMessage.get(), &continueToWarn, &okayToContinue);
 
   if (!continueToWarn && okayToContinue && prefBranch)
@@ -362,7 +362,7 @@ nsresult nsMapiHook::BlindSendMail (unsigned long aSession, nsIMsgCompFields * a
   if (NS_FAILED(rv) || (!pMsgComposeParams) ) return rv ;
 
   // populate the compose params
-  PRBool forcePlainText;
+  bool forcePlainText;
   aCompFields->GetForcePlainText(&forcePlainText);
   pMsgComposeParams->SetType(nsIMsgCompType::New);
   pMsgComposeParams->SetFormat(forcePlainText ? nsIMsgCompFormat::PlainText : nsIMsgCompFormat::HTML);
@@ -494,7 +494,7 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
 
     for (int i=0 ; i < aFileCount ; i++)
     {
-        PRBool bTempFile = PR_FALSE ;
+        bool bTempFile = false ;
         if (aFiles[i].lpszPathName)
         {
             // check if attachment exists
@@ -503,7 +503,7 @@ nsresult nsMapiHook::HandleAttachments (nsIMsgCompFields * aCompFields, PRInt32 
             else
                 pFile->InitWithNativePath (nsDependentCString((const char*)aFiles[i].lpszPathName));
 
-            PRBool bExist ;
+            bool bExist ;
             rv = pFile->Exists(&bExist) ;
             PR_LOG(MAPI, PR_LOG_DEBUG, ("nsMapiHook::HandleAttachments: filename: %s path: %s exists = %s \n", (const char*)aFiles[i].lpszFileName, (const char*)aFiles[i].lpszPathName, bExist ? "true" : "false"));
             if (NS_FAILED(rv) || (!bExist) ) return NS_ERROR_FILE_TARGET_DOES_NOT_EXIST ;
@@ -701,7 +701,7 @@ nsresult nsMapiHook::PopulateCompFieldsForSendDocs(nsIMsgCompFields * aCompField
   nsAutoString strDelimChars ;
   nsString strFilePaths;
   nsresult rv = NS_OK ;
-  PRBool bExist ;
+  bool bExist ;
 
   if (aFlags & MAPI_UNICODE)
   {
@@ -847,7 +847,7 @@ nsresult nsMapiHook::ShowComposerWindow (unsigned long aSession, nsIMsgCompField
     nsCOMPtr<nsIMsgComposeParams> pMsgComposeParams (do_CreateInstance(NS_MSGCOMPOSEPARAMS_CONTRACTID, &rv));
     if (NS_FAILED(rv) || (!pMsgComposeParams) ) return rv ;
 
-    PRBool forcePlainText;
+    bool forcePlainText;
     aCompFields->GetForcePlainText(&forcePlainText);
     pMsgComposeParams->SetFormat(forcePlainText ? nsIMsgCompFormat::Default : nsIMsgCompFormat::HTML);
     // populate the compose params

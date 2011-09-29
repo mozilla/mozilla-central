@@ -198,7 +198,7 @@ nsresult nsMsgMdnGenerator::ClearMDNNeededFlag(nsIMsgFolder *folder,
   return msgDB->MarkMDNNeeded(key, PR_FALSE, nsnull);
 }
 
-PRBool nsMsgMdnGenerator::ProcessSendMode()
+bool nsMsgMdnGenerator::ProcessSendMode()
 {
     DEBUG_MDN("nsMsgMdnGenerator::ProcessSendMode");
     PRInt32 miscState = 0;
@@ -312,13 +312,13 @@ PRBool nsMsgMdnGenerator::ProcessSendMode()
     return m_reallySendMdn;
 }
 
-PRBool nsMsgMdnGenerator::MailAddrMatch(const char *addr1, const char *addr2)
+bool nsMsgMdnGenerator::MailAddrMatch(const char *addr1, const char *addr2)
 {
     // Comparing two email addresses returns true if matched; local/account
     // part comparison is case sensitive; domain part comparison is case
     // insensitive
     DEBUG_MDN("nsMsgMdnGenerator::MailAddrMatch");
-    PRBool isMatched = PR_TRUE;
+    bool isMatched = true;
     const char *atSign1 = nsnull, *atSign2 = nsnull;
     const char *lt = nsnull, *local1 = nsnull, *local2 = nsnull;
     const char *end1 = nsnull, *end2 = nsnull;
@@ -351,7 +351,7 @@ PRBool nsMsgMdnGenerator::MailAddrMatch(const char *addr1, const char *addr2)
     return isMatched;
 }
 
-PRBool nsMsgMdnGenerator::NotInToOrCc()
+bool nsMsgMdnGenerator::NotInToOrCc()
 {
     DEBUG_MDN("nsMsgMdnGenerator::NotInToOrCc");
     nsCString reply_to;
@@ -375,7 +375,7 @@ PRBool nsMsgMdnGenerator::NotInToOrCc()
   return PR_TRUE;
 }
 
-PRBool nsMsgMdnGenerator::ValidateReturnPath()
+bool nsMsgMdnGenerator::ValidateReturnPath()
 {
     DEBUG_MDN("nsMsgMdnGenerator::ValidateReturnPath");
     // ValidateReturnPath applies to Automatic Send Mode only. If we were not
@@ -488,7 +488,7 @@ nsresult nsMsgMdnGenerator::CreateFirstPart()
     if (NS_FAILED(rv))
         return rv;
 
-    PRBool conformToStandard = PR_FALSE;
+    bool conformToStandard = false;
     if (compUtils)
       compUtils->GetMsgMimeConformToStandard(&conformToStandard);
 
@@ -688,7 +688,7 @@ nsresult nsMsgMdnGenerator::CreateSecondPart()
     char *convbuf = nsnull;
     nsresult rv = NS_OK;
     nsCOMPtr <nsIMsgCompUtils> compUtils;
-    PRBool conformToStandard = PR_FALSE;
+    bool conformToStandard = false;
 
     tmpBuffer = PR_smprintf("--%s" CRLF, m_mimeSeparator.get());
     PUSH_N_FREE_STRING(tmpBuffer);
@@ -909,7 +909,7 @@ nsresult nsMsgMdnGenerator::WriteString( const char *str )
   return m_outputStream->Write(str, len, &wLen);
 }
 
-nsresult nsMsgMdnGenerator::InitAndProcess(PRBool *needToAskUser)
+nsresult nsMsgMdnGenerator::InitAndProcess(bool *needToAskUser)
 {
     DEBUG_MDN("nsMsgMdnGenerator::InitAndProcess");
     nsresult rv = m_folder->GetServer(getter_AddRefs(m_server));
@@ -987,11 +987,11 @@ nsresult nsMsgMdnGenerator::InitAndProcess(PRBool *needToAskUser)
 
         if (m_identity)
         {
-            PRBool useCustomPrefs = PR_FALSE;
+            bool useCustomPrefs = false;
             m_identity->GetBoolAttribute("use_custom_prefs", &useCustomPrefs);
             if (useCustomPrefs)
             {
-                PRBool bVal = PR_FALSE;
+                bool bVal = false;
                 m_server->GetBoolValue("mdn_report_enabled", &bVal);
                 m_mdnEnabled = bVal;
                 m_server->GetIntValue("mdn_not_in_to_cc", &m_notInToCcOp);
@@ -1001,7 +1001,7 @@ nsresult nsMsgMdnGenerator::InitAndProcess(PRBool *needToAskUser)
             }
             else
             {
-                PRBool bVal = PR_FALSE;
+                bool bVal = false;
 
                 nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
                 if (NS_FAILED(rv))
@@ -1053,8 +1053,8 @@ NS_IMETHODIMP nsMsgMdnGenerator::Process(EDisposeType type,
                                          nsIMsgFolder *folder,
                                          nsMsgKey key,
                                          nsIMimeHeaders *headers,
-                                         PRBool autoAction,
-                                         PRBool *_retval)
+                                         bool autoAction,
+                                         bool *_retval)
 {
     DEBUG_MDN("nsMsgMdnGenerator::Process");
     NS_ENSURE_ARG_POINTER(folder);

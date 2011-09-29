@@ -75,7 +75,7 @@ NS_IMETHODIMP_(VObject *) nsMsgVCardService::IsAPropertyOf(VObject * o, const ch
     return isAPropertyOf(o,id);
 }
 
-NS_IMETHODIMP_(char *) nsMsgVCardService::WriteMemoryVObjects(const char *s, PRInt32 *len, VObject * list, PRBool expandSpaces)
+NS_IMETHODIMP_(char *) nsMsgVCardService::WriteMemoryVObjects(const char *s, PRInt32 *len, VObject * list, bool expandSpaces)
 {
     return writeMemoryVObjects((char *)s, len, list, expandSpaces);
 }

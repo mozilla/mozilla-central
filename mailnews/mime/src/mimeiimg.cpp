@@ -53,7 +53,7 @@ static int MimeInlineImage_initialize (MimeObject *);
 static void MimeInlineImage_finalize (MimeObject *);
 static int MimeInlineImage_parse_begin (MimeObject *);
 static int MimeInlineImage_parse_line (const char *, PRInt32, MimeObject *);
-static int MimeInlineImage_parse_eof (MimeObject *, PRBool);
+static int MimeInlineImage_parse_eof (MimeObject *, bool);
 static int MimeInlineImage_parse_decoded_buffer (const char *, PRInt32, MimeObject *);
 
 static int
@@ -190,7 +190,7 @@ MimeInlineImage_parse_begin (MimeObject *obj)
 
 
 static int
-MimeInlineImage_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeInlineImage_parse_eof (MimeObject *obj, bool abort_p)
 {
   MimeInlineImage *img = (MimeInlineImage *) obj;
   int status;

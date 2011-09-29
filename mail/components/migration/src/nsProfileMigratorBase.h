@@ -67,7 +67,7 @@ protected:
   nsCOMPtr<nsIImportGeneric> mGenericImporter;
   nsCOMPtr<nsIImportModule> mImportModule;
   nsCOMPtr<nsIMsgAccount> mLocalFolderAccount; // needed for nsIImportSettings::Import
-  PRBool mProcessingMailFolders; // we are either asynchronously parsing address books or mail folders
+  bool mProcessingMailFolders; // we are either asynchronously parsing address books or mail folders
 };
 
 #endif

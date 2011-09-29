@@ -643,12 +643,12 @@ NS_IMETHODIMP nsMailtoUrl::GetOriginCharset(nsACString &aOriginCharset)
     return m_baseURL->GetOriginCharset(aOriginCharset);
 }
 
-NS_IMETHODIMP nsMailtoUrl::SchemeIs(const char *aScheme, PRBool *_retval)
+NS_IMETHODIMP nsMailtoUrl::SchemeIs(const char *aScheme, bool *_retval)
 {
 	return m_baseURL->SchemeIs(aScheme, _retval);
 }
 
-NS_IMETHODIMP nsMailtoUrl::Equals(nsIURI *other, PRBool *_retval)
+NS_IMETHODIMP nsMailtoUrl::Equals(nsIURI *other, bool *_retval)
 {
   // The passed-in URI might be an nsMailtoUrl. Pass our inner URL to its
   // Equals method. The other nsMailtoUrl will then pass its inner URL to
@@ -691,7 +691,7 @@ nsMailtoUrl::GetRef(nsACString &result)
   return m_baseURL->GetRef(result);
 }
 
-NS_IMETHODIMP nsMailtoUrl::EqualsExceptRef(nsIURI *other, PRBool *result)
+NS_IMETHODIMP nsMailtoUrl::EqualsExceptRef(nsIURI *other, bool *result)
 {
   // The passed-in URI might be an nsMailtoUrl. Pass our inner URL to its
   // Equals method. The other nsMailtoUrl will then pass its inner URL to
@@ -723,7 +723,7 @@ nsMailtoUrl::GetSpecIgnoringRef(nsACString &result)
 }
 
 NS_IMETHODIMP
-nsMailtoUrl::GetHasRef(PRBool *result)
+nsMailtoUrl::GetHasRef(bool *result)
 {
   return m_baseURL->GetHasRef(result);
 }
@@ -769,9 +769,9 @@ nsSmtpUrl::GetRecipients(char ** aRecipientsList)
   return NS_OK;
 }
 
-NS_IMPL_GETSET(nsSmtpUrl, PostMessage, PRBool, m_isPostMessage)
+NS_IMPL_GETSET(nsSmtpUrl, PostMessage, bool, m_isPostMessage)
 
-NS_IMPL_GETSET(nsSmtpUrl, VerifyLogon, PRBool, m_verifyLogon)
+NS_IMPL_GETSET(nsSmtpUrl, VerifyLogon, bool, m_verifyLogon)
 
 // the message can be stored in a file....allow accessors for getting and setting
 // the file name to post...
@@ -795,7 +795,7 @@ NS_IMETHODIMP nsSmtpUrl::GetPostMessageFile(nsIFile ** aFile)
   return NS_ERROR_NULL_POINTER;
 }
 
-NS_IMPL_GETSET(nsSmtpUrl, RequestDSN, PRBool, m_requestDSN)
+NS_IMPL_GETSET(nsSmtpUrl, RequestDSN, bool, m_requestDSN)
 
 NS_IMETHODIMP 
 nsSmtpUrl::SetDsnEnvid(const nsACString &aDsnEnvid)

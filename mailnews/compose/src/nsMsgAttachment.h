@@ -56,7 +56,7 @@ private:
   nsString    mName;
   nsCString   mUrl;
   nsCString   mUrlCharset;
-  PRBool      mTemporary;
+  bool        mTemporary;
   nsCString   mContentLocation;
   nsCString   mContentType;
   nsCString   mContentTypeParam;

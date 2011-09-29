@@ -56,14 +56,14 @@ extern MimeMessageClass mimeMessageClass;
 struct MimeMessage {
   MimeContainer container;    /* superclass variables */
   MimeHeaders *hdrs;      /* headers of this message */
-  PRBool newline_p;      /* whether the last line ended in a newline */
-  PRBool crypto_stamped_p;    /* whether the header of this message has been
+  bool newline_p;      /* whether the last line ended in a newline */
+  bool crypto_stamped_p;    /* whether the header of this message has been
                    emitted expecting its child to emit HTML
                    which says that it is xlated. */
 
-  PRBool crypto_msg_signed_p;  /* What the emitted xlation-stamp *says*. */
-  PRBool crypto_msg_encrypted_p;
-  PRBool grabSubject;  /* Should we try to grab the subject of this message */
+  bool crypto_msg_signed_p;  /* What the emitted xlation-stamp *says*. */
+  bool crypto_msg_encrypted_p;
+  bool grabSubject;  /* Should we try to grab the subject of this message */
   PRInt32 bodyLength;
 };
 

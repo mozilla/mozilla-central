@@ -79,7 +79,7 @@ protected :
   nsresult OnReplicatingChangeDone();
 
   RootDSEChangeLogEntry mRootDSEEntry;
-  PRBool  mUseChangeLog;
+  bool    mUseChangeLog;
   PRInt32 mChangeLogEntriesCount;
 
   PRInt32 mEntriesAddedQueryCount;

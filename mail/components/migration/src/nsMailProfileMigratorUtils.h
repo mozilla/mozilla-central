@@ -70,13 +70,13 @@ void SetProxyPref(const nsACString& aHostPort, const char* aPref,
 struct MigrationData { 
   PRUnichar* fileName; 
   PRUint32 sourceFlag;
-  PRBool replaceOnly;
+  bool replaceOnly;
 };
 
 class nsILocalFile;
 void GetMigrateDataFromArray(MigrationData* aDataArray, 
                              PRInt32 aDataArrayLength,
-                             PRBool aReplace,
+                             bool aReplace,
                              nsIFile* aSourceProfile, 
                              PRUint16* aResult);
 

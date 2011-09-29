@@ -59,11 +59,11 @@ public:
 
     PRInt32               NumberOfDeletedMessages();
     
-    imapMessageFlagsType  GetMessageFlagsFromUID(PRUint32 uid, PRBool *foundIt, PRInt32 *ndx);
+    imapMessageFlagsType  GetMessageFlagsFromUID(PRUint32 uid, bool *foundIt, PRInt32 *ndx);
 
-    PRBool       IsLastMessageUnseen(void);
-    PRBool       GetPartialUIDFetch() {return fPartialUIDFetch;}
-    void         SetPartialUIDFetch(PRBool isPartial) {fPartialUIDFetch = isPartial;}
+    bool         IsLastMessageUnseen(void);
+    bool         GetPartialUIDFetch() {return fPartialUIDFetch;}
+    void         SetPartialUIDFetch(bool isPartial) {fPartialUIDFetch = isPartial;}
     PRUint32     GetHighestNonDeletedUID();
     PRUint16     GetSupportedUserFlags() { return fSupportedUserFlags; }
 
@@ -76,7 +76,7 @@ private:
     nsDataHashtable<nsUint32HashKey, char *> m_customFlagsHash;
     PRUint16                fSupportedUserFlags;
     PRInt32                 fNumberDeleted;
-    PRBool                  fPartialUIDFetch;
+    bool                    fPartialUIDFetch;
     mozilla::Mutex mLock;
 };
 

@@ -159,7 +159,7 @@ nsresult nsMsgFolderCache::InitExistingDB()
   return err;
 }
 
-nsresult nsMsgFolderCache::OpenMDB(const nsACString& dbName, PRBool exists)
+nsresult nsMsgFolderCache::OpenMDB(const nsACString& dbName, bool exists)
 {
   nsresult ret=NS_OK;
   nsCOMPtr<nsIMdbFactory> mdbFactory;
@@ -267,7 +267,7 @@ NS_IMETHODIMP nsMsgFolderCache::Init(nsIFile *aFile)
 
   m_cacheElements.Init();
 
-  PRBool exists;
+  bool exists;
   aFile->Exists(&exists);
 
   nsCAutoString dbPath;
@@ -285,7 +285,7 @@ NS_IMETHODIMP nsMsgFolderCache::Init(nsIFile *aFile)
   return rv;
 }
 
-NS_IMETHODIMP nsMsgFolderCache::GetCacheElement(const nsACString& pathKey, PRBool createIfMissing,
+NS_IMETHODIMP nsMsgFolderCache::GetCacheElement(const nsACString& pathKey, bool createIfMissing,
                                                 nsIMsgFolderCacheElement **result)
 {
   NS_ENSURE_ARG_POINTER(result);
@@ -344,7 +344,7 @@ NS_IMETHODIMP nsMsgFolderCache::Close()
   return Commit(PR_TRUE);
 }
 
-NS_IMETHODIMP nsMsgFolderCache::Commit(PRBool compress)
+NS_IMETHODIMP nsMsgFolderCache::Commit(bool compress)
 {
   nsresult ret = NS_OK;
   nsIMdbThumb *commitThumb = nsnull;

@@ -93,7 +93,7 @@ class nsLDAPConnection : public nsILDAPConnection,
     nsresult InvokeMessageCallback(LDAPMessage *aMsgHandle,
                                    nsILDAPMessage *aMsg,
                                    PRInt32 aOperation,
-                                   PRBool aRemoveOpFromConnQ);
+                                   bool aRemoveOpFromConnQ);
     /**
      * Add an nsILDAPOperation to the list of operations pending on
      * this connection.  This is mainly intended for use by the
@@ -127,7 +127,7 @@ class nsLDAPConnection : public nsILDAPConnection,
     nsInterfaceHashtableMT<nsUint32HashKey, nsILDAPOperation> mPendingOperations;
 
     PRInt32 mPort;                      // The LDAP port we're binding to
-    PRBool mSSL;                        // the options
+    bool mSSL;                        // the options
     PRUint32 mVersion;                  // LDAP protocol version
 
     nsCString mResolvedIP;              // Preresolved list of host IPs

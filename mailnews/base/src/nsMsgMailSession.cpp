@@ -168,8 +168,8 @@ nsMsgMailSession::OnItemIntPropertyChanged(nsIMsgFolder *aItem,
 NS_IMETHODIMP
 nsMsgMailSession::OnItemBoolPropertyChanged(nsIMsgFolder *aItem,
                                             nsIAtom *aProperty,
-                                            PRBool aOldValue,
-                                            PRBool aNewValue)
+                                            bool aOldValue,
+                                            bool aNewValue)
 {
   NOTIFY_FOLDER_LISTENERS(boolPropertyChanged, OnItemBoolPropertyChanged,
                           (aItem, aProperty, aOldValue, aNewValue));
@@ -238,13 +238,13 @@ nsMsgMailSession::RemoveUserFeedbackListener(nsIMsgUserFeedbackListener *aListen
 NS_IMETHODIMP
 nsMsgMailSession::AlertUser(const nsAString &aMessage, nsIMsgMailNewsUrl *aUrl)
 {
-  PRBool listenersNotified = PR_FALSE;
+  bool listenersNotified = false;
   nsTObserverArray<nsCOMPtr<nsIMsgUserFeedbackListener> >::ForwardIterator iter(mFeedbackListeners);
   nsCOMPtr<nsIMsgUserFeedbackListener> listener;
 
   while (iter.HasMore())
   {
-    PRBool notified = PR_FALSE;
+    bool notified = false;
     listener = iter.GetNext();
     listener->OnAlert(aMessage, aUrl, &notified);
     listenersNotified = listenersNotified || notified;
@@ -325,7 +325,7 @@ nsresult nsMsgMailSession::GetTopmostMsgWindow(nsIMsgWindow* *aMsgWindow)
     nsCOMPtr<nsIDOMDocument> domDocument;
     nsCOMPtr<nsIDOMElement> domElement;
     nsAutoString windowType;
-    PRBool more;
+    bool more;
 
     // loop to get the top most with attibute "mail:3pane" or "mail:messageWindow"
     windowEnum->HasMoreElements(&more);
@@ -415,7 +415,7 @@ NS_IMETHODIMP nsMsgMailSession::RemoveMsgWindow(nsIMsgWindow *msgWindow)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailSession::IsFolderOpenInWindow(nsIMsgFolder *folder, PRBool *aResult)
+NS_IMETHODIMP nsMsgMailSession::IsFolderOpenInWindow(nsIMsgFolder *folder, bool *aResult)
 {
   if (!aResult)
     return NS_ERROR_NULL_POINTER;
@@ -474,7 +474,7 @@ nsMsgMailSession::GetSelectedLocaleDataDir(nsIFile *defaultsDir)
   NS_ENSURE_ARG_POINTER(defaultsDir);                                     
 
   nsresult rv;                                                                
-  PRBool baseDirExists = PR_FALSE;                                            
+  bool baseDirExists = false;                                            
   rv = defaultsDir->Exists(&baseDirExists);                               
   NS_ENSURE_SUCCESS(rv,rv);                                                   
 
@@ -486,7 +486,7 @@ nsMsgMailSession::GetSelectedLocaleDataDir(nsIFile *defaultsDir)
       rv = packageRegistry->GetSelectedLocale(NS_LITERAL_CSTRING("global-region"), localeName);
 
       if (NS_SUCCEEDED(rv) && !localeName.IsEmpty()) {
-        PRBool localeDirExists = PR_FALSE;                              
+        bool localeDirExists = false;                              
         nsCOMPtr<nsIFile> localeDataDir;                                
         
         rv = defaultsDir->Clone(getter_AddRefs(localeDataDir));     
@@ -571,7 +571,7 @@ nsMsgShutdownService::~nsMsgShutdownService()
 
 nsresult nsMsgShutdownService::ProcessNextTask()
 {
-  PRBool shutdownTasksDone = PR_TRUE;
+  bool shutdownTasksDone = true;
   
   PRInt32 count = mShutdownTasks.Count();
   if (mTaskIndex < count)
@@ -589,7 +589,7 @@ nsresult nsMsgShutdownService::ProcessNextTask()
     nsCOMPtr<nsIMsgWindow> topMsgWindow;
     mailSession->GetTopmostMsgWindow(getter_AddRefs(topMsgWindow));
 
-    PRBool taskIsRunning = PR_TRUE;
+    bool taskIsRunning = true;
     nsresult rv = curTask->DoShutdownTask(this, topMsgWindow, &taskIsRunning);
     if (NS_FAILED(rv) || !taskIsRunning)
     {
@@ -666,7 +666,7 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
   nsresult rv = observerService->EnumerateObservers("msg-shutdown", getter_AddRefs(listenerEnum));
   if (NS_SUCCEEDED(rv) && listenerEnum)
   {
-    PRBool hasMore;
+    bool hasMore;
     listenerEnum->HasMoreElements(&hasMore);
     if (!hasMore)
       return NS_OK;
@@ -679,7 +679,7 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
       nsCOMPtr<nsIMsgShutdownTask> curTask = do_QueryInterface(curObject);
       if (curTask)
       {
-        PRBool shouldRunTask;
+        bool shouldRunTask;
         curTask->GetNeedsToRunTask(&shouldRunTask);
         if (shouldRunTask)
           mShutdownTasks.AppendObject(curTask);

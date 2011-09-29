@@ -164,7 +164,7 @@ STDMETHODIMP CMapiImp::Login(unsigned long aUIArg, LOGIN_PW_TYPE aLogin, LOGIN_P
                 unsigned long aFlags, unsigned long *aSessionId)
 {
     HRESULT hr = E_FAIL;
-     PRBool bNewSession = PR_FALSE;
+     bool bNewSession = false;
     nsCString id_key;
 
     PR_LOG(MAPI, PR_LOG_DEBUG, ("CMapiImp::Login using flags %d\n", aFlags));
@@ -347,11 +347,11 @@ public:
   nsresult OpenDatabase (nsIMsgFolder *folder);
   
   nsMsgKey GetNext ();
-  nsresult MarkRead (nsMsgKey key, PRBool read);
+  nsresult MarkRead (nsMsgKey key, bool read);
   
   lpnsMapiMessage GetMessage (nsMsgKey, unsigned long flFlags);
-  PRBool IsIMAPHost(void);
-  PRBool DeleteMessage(nsMsgKey key);
+  bool IsIMAPHost(void);
+  bool DeleteMessage(nsMsgKey key);
   
 protected:
   
@@ -539,7 +539,7 @@ nsresult MsgMapiListContext::OpenDatabase (nsIMsgFolder *folder)
   return dbErr;
 }
 
-PRBool 
+bool 
 MsgMapiListContext::IsIMAPHost(void)
 {
   if (!m_folder) 
@@ -552,7 +552,7 @@ MsgMapiListContext::IsIMAPHost(void)
 nsMsgKey MsgMapiListContext::GetNext ()
 {
   nsMsgKey key = nsMsgKey_None;
-  PRBool    keepTrying = TRUE;
+  bool      keepTrying = TRUE;
   
 //  NS_ASSERTION (m_msgEnumerator && m_db, "need enumerator and db");
   if (m_msgEnumerator && m_db)
@@ -591,7 +591,7 @@ nsMsgKey MsgMapiListContext::GetNext ()
 }
 
 
-nsresult MsgMapiListContext::MarkRead (nsMsgKey key, PRBool read)
+nsresult MsgMapiListContext::MarkRead (nsMsgKey key, bool read)
 {
   nsresult err = NS_ERROR_FAILURE;
   NS_ASSERTION(m_db, "no db");
@@ -773,9 +773,9 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
     hdr->GetLineCount(&lineCount);
     nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(inputStream);
     seekableStream->Seek(PR_SEEK_SET, messageOffset);
-    PRBool hasMore = PR_TRUE;
+    bool hasMore = true;
     nsCAutoString curLine;
-    PRBool inMessageBody = PR_FALSE;
+    bool inMessageBody = false;
     nsresult rv = NS_OK;
     while (hasMore) // advance past message headers
     {
@@ -873,9 +873,9 @@ extern "C" void MSG_FreeMapiMessage (lpMapiMessage msg)
 }
 
 
-extern "C" PRBool MsgMarkMapiMessageRead (nsIMsgFolder *folder, nsMsgKey key, PRBool read)
+extern "C" bool MsgMarkMapiMessageRead (nsIMsgFolder *folder, nsMsgKey key, bool read)
 {
-  PRBool success = FALSE;
+  bool success = FALSE;
   MsgMapiListContext *context = new MsgMapiListContext();
   if (context)
   {
@@ -889,7 +889,7 @@ extern "C" PRBool MsgMarkMapiMessageRead (nsIMsgFolder *folder, nsMsgKey key, PR
   return success;
 }
 
-PRBool 
+bool 
 MsgMapiListContext::DeleteMessage(nsMsgKey key)
 {
   if (!m_db)
@@ -917,9 +917,9 @@ MsgMapiListContext::DeleteMessage(nsMsgKey key)
 }
 
 /* Return TRUE on success, FALSE on failure */
-extern "C" PRBool MSG_DeleteMapiMessage(nsIMsgFolder *folder, nsMsgKey key)
+extern "C" bool MSG_DeleteMapiMessage(nsIMsgFolder *folder, nsMsgKey key)
 {
-  PRBool success = FALSE;
+  bool success = FALSE;
   MsgMapiListContext *context = new MsgMapiListContext();
   if (context) 
   {

@@ -56,7 +56,7 @@ public:
   nsresult Init();
 
 private:
-  PRBool   mInitialized;
+  bool     mInitialized;
   PRInt32  mCurrentBiffState;
   nsCOMPtr<nsISound> mSound;
   nsresult PlayBiffSound();

@@ -53,7 +53,7 @@ class nsMailDatabase : public nsMsgDatabase
 public:
   nsMailDatabase();
   virtual ~nsMailDatabase();
-  NS_IMETHOD  Open(nsILocalFile *aFolderName, PRBool create, PRBool upgrading);
+  NS_IMETHOD  Open(nsILocalFile *aFolderName, bool create, bool upgrading);
   NS_IMETHOD  ForceClosed();
   NS_IMETHOD DeleteMessages(PRUint32 aNumKeys, nsMsgKey* nsMsgKeys, nsIDBChangeListener *instigator);
 
@@ -66,11 +66,11 @@ public:
 
   virtual PRUint32  GetCurVersion() {return kMsgDBVersion;}
   
-  NS_IMETHOD  GetOfflineOpForKey(nsMsgKey opKey, PRBool create, nsIMsgOfflineImapOperation **op);
+  NS_IMETHOD  GetOfflineOpForKey(nsMsgKey opKey, bool create, nsIMsgOfflineImapOperation **op);
   NS_IMETHOD  RemoveOfflineOp(nsIMsgOfflineImapOperation *op);
 
-  NS_IMETHOD  SetSummaryValid(PRBool valid);
-  NS_IMETHOD  GetSummaryValid(PRBool *valid);
+  NS_IMETHOD  SetSummaryValid(bool valid);
+  NS_IMETHOD  GetSummaryValid(bool *valid);
 	
   NS_IMETHOD    EnumerateOfflineOps(nsISimpleEnumerator **enumerator);
   NS_IMETHOD    ListAllOfflineOpIds(nsTArray<nsMsgKey> *offlineOpIds);
@@ -91,18 +91,18 @@ protected:
   mdb_token       m_offlineOpsRowScopeToken;
   mdb_token       m_offlineOpsTableKindToken;
 
-  virtual PRBool  SetHdrFlag(nsIMsgDBHdr *, PRBool bSet, nsMsgMessageFlagType flag);
-  virtual void    UpdateFolderFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, 
+  virtual bool    SetHdrFlag(nsIMsgDBHdr *, bool bSet, nsMsgMessageFlagType flag);
+  virtual void    UpdateFolderFlag(nsIMsgDBHdr *msgHdr, bool bSet, 
                                    nsMsgMessageFlagType flag, nsIOutputStream **ppFileStream);
-  virtual void    SetReparse(PRBool reparse);
+  virtual void    SetReparse(bool reparse);
   
 protected:
   virtual void    GetGlobalPrefs();
   
-  PRBool          m_reparse;
+  bool            m_reparse;
   nsCOMPtr <nsILocalFile> m_folderFile;
   nsCOMPtr <nsIOutputStream> m_folderStream; 	/* this is a cache for loops which want file left open */
-  PRBool          m_ownFolderStream; //if we are the owner of m_folderStream
+  bool            m_ownFolderStream; //if we are the owner of m_folderStream
 };
 
 #endif

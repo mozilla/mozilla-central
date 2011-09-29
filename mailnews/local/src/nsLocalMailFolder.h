@@ -92,15 +92,15 @@ struct nsLocalMailCopyState
   char *m_dataBuffer;
   PRUint32 m_dataBufferSize;
   PRUint32 m_leftOver;
-  PRPackedBool m_isMove;
-  PRPackedBool m_isFolder;   // isFolder move/copy
-  PRPackedBool m_dummyEnvelopeNeeded;
-  PRPackedBool m_copyingMultipleMessages;
-  PRPackedBool m_fromLineSeen;
-  PRPackedBool m_allowUndo;
-  PRPackedBool m_writeFailed;
-  PRPackedBool m_notifyFolderLoaded;
-  PRPackedBool m_wholeMsgInStream;
+  bool m_isMove;
+  bool m_isFolder;   // isFolder move/copy
+  bool m_dummyEnvelopeNeeded;
+  bool m_copyingMultipleMessages;
+  bool m_fromLineSeen;
+  bool m_allowUndo;
+  bool m_writeFailed;
+  bool m_notifyFolderLoaded;
+  bool m_wholeMsgInStream;
   nsCString    m_newMsgKeywords;
   nsCOMPtr <nsIMsgDBHdr> newHdr;
 };
@@ -150,7 +150,7 @@ public:
   NS_IMETHOD AddSubfolder(const nsAString& folderName, nsIMsgFolder** newFolder);
 
   NS_IMETHOD Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow);
-  NS_IMETHOD CompactAll(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow, PRBool aCompactOfflineAlso);
+  NS_IMETHOD CompactAll(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow, bool aCompactOfflineAlso);
   NS_IMETHOD EmptyTrash(nsIMsgWindow *msgWindow, nsIUrlListener *aListener);
   NS_IMETHOD Delete ();
   NS_IMETHOD DeleteSubFolders(nsIArray *folders, nsIMsgWindow *msgWindow);
@@ -163,32 +163,32 @@ public:
 
   NS_IMETHOD GetFolderURL(nsACString& url);
 
-  NS_IMETHOD  GetManyHeadersToDownload(PRBool *retval);
+  NS_IMETHOD  GetManyHeadersToDownload(bool *retval);
 
-  NS_IMETHOD GetDeletable (PRBool *deletable); 
-  NS_IMETHOD GetRequiresCleanup(PRBool *requiresCleanup);
+  NS_IMETHOD GetDeletable (bool *deletable); 
+  NS_IMETHOD GetRequiresCleanup(bool *requiresCleanup);
   NS_IMETHOD GetSizeOnDisk(PRUint32* size);
 
   NS_IMETHOD  GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDatabase **db);
 
   NS_IMETHOD DeleteMessages(nsIArray *messages, 
-                      nsIMsgWindow *msgWindow, PRBool
-                      deleteStorage, PRBool isMove,
-                      nsIMsgCopyServiceListener* listener, PRBool allowUndo);
+                      nsIMsgWindow *msgWindow, bool
+                      deleteStorage, bool isMove,
+                      nsIMsgCopyServiceListener* listener, bool allowUndo);
   NS_IMETHOD CopyMessages(nsIMsgFolder *srcFolder, nsIArray* messages,
-                          PRBool isMove, nsIMsgWindow *msgWindow,
-                          nsIMsgCopyServiceListener* listener, PRBool isFolder, PRBool allowUndo);
-  NS_IMETHOD CopyFolder(nsIMsgFolder *srcFolder, PRBool isMoveFolder, nsIMsgWindow *msgWindow,
+                          bool isMove, nsIMsgWindow *msgWindow,
+                          nsIMsgCopyServiceListener* listener, bool isFolder, bool allowUndo);
+  NS_IMETHOD CopyFolder(nsIMsgFolder *srcFolder, bool isMoveFolder, nsIMsgWindow *msgWindow,
                           nsIMsgCopyServiceListener* listener);
   NS_IMETHOD CopyFileMessage(nsIFile* aFile, nsIMsgDBHdr* msgToReplace,
-                             PRBool isDraftOrTemplate, 
+                             bool isDraftOrTemplate, 
                              PRUint32 newMsgFlags,
                              const nsACString &aNewMsgKeywords,
                              nsIMsgWindow *msgWindow,
                              nsIMsgCopyServiceListener* listener);
   NS_IMETHOD GetNewMessages(nsIMsgWindow *aWindow, nsIUrlListener *aListener);
   NS_IMETHOD NotifyCompactCompleted();
-  NS_IMETHOD Shutdown(PRBool shutdownChildren);
+  NS_IMETHOD Shutdown(bool shutdownChildren);
 
   NS_IMETHOD WriteToFolderCacheElem(nsIMsgFolderCacheElement *element);
   NS_IMETHOD ReadFromFolderCacheElem(nsIMsgFolderCacheElement *element);
@@ -198,8 +198,8 @@ public:
   // Used when headers_only is TRUE
   NS_IMETHOD DownloadMessagesForOffline(nsIArray *aMessages, nsIMsgWindow *aWindow);
   NS_IMETHOD FetchMsgPreviewText(nsMsgKey *aKeysToFetch, PRUint32 aNumKeys,
-                                                 PRBool aLocalOnly, nsIUrlListener *aUrlListener, 
-                                                 PRBool *aAsyncResults);
+                                                 bool aLocalOnly, nsIUrlListener *aUrlListener, 
+                                                 bool *aAsyncResults);
   NS_IMETHOD AddKeywordsToMessages(nsIArray *aMessages, const nsACString& aKeywords);
   NS_IMETHOD RemoveKeywordsFromMessages(nsIArray *aMessages, const nsACString& aKeywords);
 
@@ -215,12 +215,12 @@ protected:
   nsresult CreateSubfolderInternal(const nsAString& folderName, nsIMsgWindow *msgWindow,
                                    nsIMsgFolder **aNewFolder);
 
-  nsresult IsChildOfTrash(PRBool *result);
-  nsresult RecursiveSetDeleteIsMoveTrash(PRBool bVal);
-  nsresult ConfirmFolderDeletion(nsIMsgWindow *aMsgWindow, nsIMsgFolder *aFolder, PRBool *aResult);
+  nsresult IsChildOfTrash(bool *result);
+  nsresult RecursiveSetDeleteIsMoveTrash(bool bVal);
+  nsresult ConfirmFolderDeletion(nsIMsgWindow *aMsgWindow, nsIMsgFolder *aFolder, bool *aResult);
 
   nsresult DeleteMessage(nsISupports *message, nsIMsgWindow *msgWindow,
-                   PRBool deleteStorage, PRBool commit);
+                   bool deleteStorage, bool commit);
   nsresult GetDatabase();
   // this will set mDatabase, if successful. It will also create a .msf file
   // for an empty local mail folder. It will leave invalid DBs in place, and
@@ -232,39 +232,39 @@ protected:
   nsresult SortMessagesBasedOnKey(nsTArray<nsMsgKey> &aKeyArray, nsIMsgFolder *srcFolder, nsIMutableArray* messages);
 
   nsresult CopyMessageTo(nsISupports *message, nsIMsgFolder *dstFolder,
-                         nsIMsgWindow *msgWindow, PRBool isMove);
+                         nsIMsgWindow *msgWindow, bool isMove);
 
   /**
    * Checks if there's room in the target folder to copy message(s) into.
    * If not, handles alerting the user, and sending the copy notifications.
    */
-  PRBool CheckIfSpaceForCopy(nsIMsgWindow *msgWindow,
+  bool CheckIfSpaceForCopy(nsIMsgWindow *msgWindow,
                              nsIMsgFolder *srcFolder,
                              nsISupports *srcSupports,
-                             PRBool isMove,
+                             bool isMove,
                              PRInt64 totalMsgSize);
 
   // copy multiple messages at a time from this folder
   nsresult CopyMessagesTo(nsIArray *messages, nsTArray<nsMsgKey> &keyArray,
                                        nsIMsgWindow *aMsgWindow,
                                        nsIMsgFolder *dstFolder,
-                                       PRBool isMove);
+                                       bool isMove);
   virtual void GetIncomingServerType(nsCString& serverType);
   nsresult InitCopyState(nsISupports* aSupport, nsIArray* messages,
-                         PRBool isMove, nsIMsgCopyServiceListener* listener, nsIMsgWindow *msgWindow, PRBool isMoveFolder, PRBool allowUndo);
+                         bool isMove, nsIMsgCopyServiceListener* listener, nsIMsgWindow *msgWindow, bool isMoveFolder, bool allowUndo);
   // preserve message metadata when moving or copying messages
-  void CopyPropertiesToMsgHdr(nsIMsgDBHdr *destHdr, nsIMsgDBHdr *srcHdr, PRBool isMove);
+  void CopyPropertiesToMsgHdr(nsIMsgDBHdr *destHdr, nsIMsgDBHdr *srcHdr, bool isMove);
   virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
-  nsresult ChangeKeywordForMessages(nsIArray *aMessages, const nsACString& aKeyword, PRBool add);
-  PRBool GetDeleteFromServerOnMove();
+  nsresult ChangeKeywordForMessages(nsIArray *aMessages, const nsACString& aKeyword, bool add);
+  bool GetDeleteFromServerOnMove();
 
 protected:
   nsLocalMailCopyState *mCopyState; //We only allow one of these at a time
   nsCString mType;
-  PRPackedBool mHaveReadNameFromDB;
-  PRPackedBool mInitialized;
-  PRPackedBool mCheckForNewMessagesAfterParsing;
-  PRPackedBool m_parsingFolder;
+  bool mHaveReadNameFromDB;
+  bool mInitialized;
+  bool mCheckForNewMessagesAfterParsing;
+  bool m_parsingFolder;
   nsCOMPtr<nsIUrlListener> mReparseListener;
   nsTArray<nsMsgKey> mSpamKeysToMove;
   nsresult setSubfolderFlag(const nsAString& aFolderName, PRUint32 flags);

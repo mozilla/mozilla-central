@@ -81,7 +81,7 @@ calDuration::calDuration(const struct icaldurationtype * const aDurationPtr)
 }
 
 NS_IMETHODIMP
-calDuration::GetIsMutable(PRBool *aResult)
+calDuration::GetIsMutable(bool *aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
 
@@ -123,12 +123,12 @@ calDuration::Reset()
     return NS_OK;
 }
 
-NS_IMETHODIMP calDuration::GetIsNegative(PRBool *_retval)
+NS_IMETHODIMP calDuration::GetIsNegative(bool *_retval)
 {
     *_retval = mDuration.is_neg;
     return NS_OK;
 }
-NS_IMETHODIMP calDuration::SetIsNegative(PRBool aValue)
+NS_IMETHODIMP calDuration::SetIsNegative(bool aValue)
 {
     if (mImmutable) return NS_ERROR_CALENDAR_IMMUTABLE;
     mDuration.is_neg = aValue;

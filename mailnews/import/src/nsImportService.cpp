@@ -499,7 +499,7 @@ nsresult nsImportService::LoadModuleInfo( const char *pClsId, const char *pSuppo
 }
 
 
-nsIImportModule *ImportModuleDesc::GetModule( PRBool keepLoaded)
+nsIImportModule *ImportModuleDesc::GetModule( bool keepLoaded)
 {
   if (m_pModule)
   {
@@ -537,7 +537,7 @@ void ImportModuleDesc::ReleaseModule( void)
   }
 }
 
-PRBool ImportModuleDesc::SupportsThings( const char *pThings)
+bool ImportModuleDesc::SupportsThings( const char *pThings)
 {
   if (!pThings || !*pThings)
     return PR_TRUE;

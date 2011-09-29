@@ -62,14 +62,14 @@ public:
 
   virtual nsresult DownloadArticles(nsIMsgWindow *window, nsIMsgFolder *folder, nsTArray<nsMsgKey> *pKeyArray);
 
-  PRBool ShouldAbort() const { return m_abort; }
+  bool ShouldAbort() const { return m_abort; }
 
 protected:
   virtual PRInt32 Write(const char * /*block*/, PRInt32 length) {return length;}
   virtual void Abort();
   virtual void Complete();
-  virtual PRBool GetNextHdrToRetrieve();
-  virtual nsresult DownloadNext(PRBool firstTimeP);
+  virtual bool GetNextHdrToRetrieve();
+  virtual nsresult DownloadNext(bool firstTimeP);
   virtual PRInt32 FinishDownload() {return 0;}
   virtual PRInt32  StartDownload() {return 0;}
   virtual nsresult ShowProgress(const PRUnichar *progressString, PRInt32 percent);
@@ -78,11 +78,11 @@ protected:
   nsCOMPtr <nsIMsgFolder>  m_folder;
   nsCOMPtr <nsIMsgDatabase> m_newsDB;
   nsCOMPtr <nsIUrlListener> m_listener;
-  PRPackedBool m_downloadFromKeys;
-  PRPackedBool m_existedP;
-  PRPackedBool m_wroteAnyP;
-  PRPackedBool m_summaryValidP;
-  PRPackedBool m_abort;
+  bool m_downloadFromKeys;
+  bool m_existedP;
+  bool m_wroteAnyP;
+  bool m_summaryValidP;
+  bool m_abort;
   PRInt32     m_numwrote;
   nsMsgKey    m_keyToDownload;
   nsCOMPtr <nsIMsgWindow> m_window;
@@ -106,7 +106,7 @@ public:
 protected:
   virtual PRInt32  StartDownload();
   virtual PRInt32 FinishDownload();
-  virtual PRBool GetNextHdrToRetrieve();
+  virtual bool GetNextHdrToRetrieve();
 
   nsCOMPtr <nsISimpleEnumerator>  m_headerEnumerator;
   nsCOMPtr <nsIMsgDBHdr>  m_newsHeader;
@@ -137,8 +137,8 @@ public:
   nsresult ProcessNextGroup();
 
 protected:
-  nsresult AdvanceToNextServer(PRBool *done);
-  nsresult AdvanceToNextGroup(PRBool *done);
+  nsresult AdvanceToNextServer(bool *done);
+  nsresult AdvanceToNextGroup(bool *done);
   nsresult DownloadMsgsForCurrentGroup();
 
   DownloadMatchingNewsArticlesToNewsDB *m_downloaderForGroup;
@@ -151,7 +151,7 @@ protected:
   nsCOMPtr <nsIEnumerator> m_serverEnumerator;
   nsCOMPtr <nsIUrlListener> m_listener;
 
-  PRBool m_downloadedHdrsForCurGroup;
+  bool m_downloadedHdrsForCurGroup;
 };
 
 #endif

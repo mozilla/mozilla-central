@@ -117,7 +117,7 @@ nsresult nsMsgContentPolicy::Init()
  * returns true if the sender referenced by aMsgHdr is in one one of our local
  * address books and the user has explicitly allowed remote content for the sender
  */
-PRBool
+bool
 nsMsgContentPolicy::ShouldAcceptRemoteContentForSender(nsIMsgDBHdr *aMsgHdr)
 {
   if (!aMsgHdr)
@@ -147,7 +147,7 @@ nsMsgContentPolicy::ShouldAcceptRemoteContentForSender(nsIMsgDBHdr *aMsgHdr)
   nsCOMPtr<nsISupports> supports;
   nsCOMPtr<nsIAbDirectory> directory;
   nsCOMPtr<nsIAbCard> cardForAddress;
-  PRBool hasMore;
+  bool hasMore;
 
   while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore &&
          !cardForAddress)
@@ -168,7 +168,7 @@ nsMsgContentPolicy::ShouldAcceptRemoteContentForSender(nsIMsgDBHdr *aMsgHdr)
   if (!cardForAddress)
     return PR_FALSE;
 
-  PRBool allowForSender;
+  bool allowForSender;
   cardForAddress->GetPropertyAsBool(kAllowRemoteContentProperty,
                                     &allowForSender);
   return allowForSender;
@@ -178,9 +178,9 @@ nsMsgContentPolicy::ShouldAcceptRemoteContentForSender(nsIMsgDBHdr *aMsgHdr)
  * Extract the host name from aContentLocation, and look it up in our list
  * of trusted domains.
  */
-PRBool nsMsgContentPolicy::IsTrustedDomain(nsIURI * aContentLocation)
+bool nsMsgContentPolicy::IsTrustedDomain(nsIURI * aContentLocation)
 {
-  PRBool trustedDomain = PR_FALSE;
+  bool trustedDomain = false;
   // get the host name of the server hosting the remote image
   nsCAutoString host;
   nsresult rv = aContentLocation->GetHost(host);
@@ -329,8 +329,8 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
 #endif
 
   // Allow content when using a remote page.
-  PRBool isHttp;
-  PRBool isHttps;
+  bool isHttp;
+  bool isHttps;
   rv = originatorLocation->SchemeIs("http", &isHttp);
   rv |= originatorLocation->SchemeIs("https", &isHttps);
   if (NS_SUCCEEDED(rv) && (isHttp || isHttps))
@@ -349,7 +349,7 @@ nsMsgContentPolicy::ShouldLoad(PRUint32          aContentType,
  * Determines if the requesting location is a safe one, i.e. its under the
  * app/user's control - so file, about, chrome etc.
  */
-PRBool
+bool
 nsMsgContentPolicy::IsSafeRequestingLocation(nsIURI *aRequestingLocation)
 {
   if (!aRequestingLocation)
@@ -357,10 +357,10 @@ nsMsgContentPolicy::IsSafeRequestingLocation(nsIURI *aRequestingLocation)
 
   // if aRequestingLocation is chrome, resource about or file, allow
   // aContentLocation to load
-  PRBool isChrome;
-  PRBool isRes;
-  PRBool isAbout;
-  PRBool isFile;
+  bool isChrome;
+  bool isRes;
+  bool isAbout;
+  bool isFile;
 
   nsresult rv = aRequestingLocation->SchemeIs("chrome", &isChrome);
   rv |= aRequestingLocation->SchemeIs("resource", &isRes);
@@ -391,7 +391,7 @@ nsMsgContentPolicy::IsSafeRequestingLocation(nsIURI *aRequestingLocation)
  * Determines if the content location is a scheme that we're willing to expose
  * for unlimited loading of content.
  */
-PRBool
+bool
 nsMsgContentPolicy::IsExposedProtocol(nsIURI *aContentLocation)
 {
   nsCAutoString contentScheme;
@@ -411,9 +411,9 @@ nsMsgContentPolicy::IsExposedProtocol(nsIURI *aContentLocation)
       MsgLowerCaseEqualsLiteral(contentScheme, "about"))
     return PR_TRUE;
 
-  PRBool isData;
-  PRBool isChrome;
-  PRBool isRes;
+  bool isData;
+  bool isChrome;
+  bool isRes;
   rv = aContentLocation->SchemeIs("chrome", &isChrome);
   rv |= aContentLocation->SchemeIs("resource", &isRes);
   rv |= aContentLocation->SchemeIs("data", &isData);
@@ -426,12 +426,12 @@ nsMsgContentPolicy::IsExposedProtocol(nsIURI *aContentLocation)
 /**
  * We block most unexposed protocols - apart from http(s) and file.
  */
-PRBool
+bool
 nsMsgContentPolicy::ShouldBlockUnexposedProtocol(nsIURI *aContentLocation)
 {
-  PRBool isHttp;
-  PRBool isHttps;
-  PRBool isFile;
+  bool isHttp;
+  bool isHttps;
+  bool isFile;
   nsresult rv = aContentLocation->SchemeIs("http", &isHttp);
   rv |= aContentLocation->SchemeIs("https", &isHttps);
   rv |= aContentLocation->SchemeIs("file", &isFile);
@@ -466,11 +466,11 @@ nsMsgContentPolicy::ShouldAcceptRemoteContentForMsgHdr(nsIMsgDBHdr *aMsgHdr,
   aMsgHdr->GetUint32Property("remoteContentPolicy", &remoteContentPolicy);
 
   // Case #2, check if the message is in an RSS folder
-  PRBool isRSS = PR_FALSE;
+  bool isRSS = false;
   IsRSSArticle(aRequestingLocation, &isRSS);
 
   // Case #3, the domain for the remote image is in our white list
-  PRBool trustedDomain = IsTrustedDomain(aContentLocation);
+  bool trustedDomain = IsTrustedDomain(aContentLocation);
 
   // Case 4 is expensive as we're looking up items in the address book. So if
   // either of the two previous items means we load the data, just do it.
@@ -478,7 +478,7 @@ nsMsgContentPolicy::ShouldAcceptRemoteContentForMsgHdr(nsIMsgDBHdr *aMsgHdr,
     return nsIContentPolicy::ACCEPT;
 
   // Case #4, author is in our white list..
-  PRBool allowForSender = ShouldAcceptRemoteContentForSender(aMsgHdr);
+  bool allowForSender = ShouldAcceptRemoteContentForSender(aMsgHdr);
 
   PRInt16 result = allowForSender ?
     static_cast<PRInt16>(nsIContentPolicy::ACCEPT) :
@@ -622,12 +622,12 @@ void nsMsgContentPolicy::ComposeShouldLoad(nsIMsgCompose *aMsgCompose,
     // moz-do-not-send attribute. 
     if (*aDecision == nsIContentPolicy::REJECT_REQUEST)
     {
-      PRBool insertingQuotedContent = PR_TRUE;
+      bool insertingQuotedContent = true;
       aMsgCompose->GetInsertingQuotedContent(&insertingQuotedContent);
       nsCOMPtr<nsIDOMHTMLImageElement> imageElement(do_QueryInterface(aRequestingContext));
       if (!insertingQuotedContent && imageElement)
       {
-        PRBool doNotSendAttrib;
+        bool doNotSendAttrib;
         if (NS_SUCCEEDED(imageElement->HasAttribute(NS_LITERAL_STRING("moz-do-not-send"), &doNotSendAttrib)) && 
             !doNotSendAttrib)
           *aDecision = nsIContentPolicy::ACCEPT;

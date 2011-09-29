@@ -84,7 +84,7 @@ nsSeamonkeyProfileMigrator::Migrate(PRUint16 aItems,
                                     const PRUnichar* aProfile)
 {
   nsresult rv = NS_OK;
-  PRBool aReplace = aStartup ? PR_TRUE : PR_FALSE;
+  bool aReplace = aStartup ? true : false;
 
   if (!mTargetProfile) {
     GetProfilePath(aStartup, getter_AddRefs(mTargetProfile));
@@ -146,7 +146,7 @@ nsSeamonkeyProfileMigrator::Migrate(PRUint16 aItems,
 
 NS_IMETHODIMP
 nsSeamonkeyProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
-                                           PRBool aReplace,
+                                           bool aReplace,
                                            PRUint16* aResult)
 {
   *aResult = 0;
@@ -201,7 +201,7 @@ nsSeamonkeyProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
     mSourceProfile->Clone(getter_AddRefs(sourcePasswordsFile));
     sourcePasswordsFile->AppendNative(signonsFileName);
 
-    PRBool exists;
+    bool exists;
     sourcePasswordsFile->Exists(&exists);
     if (exists)
       *aResult |= nsISuiteProfileMigrator::PASSWORDS;
@@ -679,7 +679,7 @@ nsSeamonkeyProfileMigrator::TransformPreferences(const char* aSourcePrefFileName
 }
 
 nsresult
-nsSeamonkeyProfileMigrator::CopyPreferences(PRBool aReplace)
+nsSeamonkeyProfileMigrator::CopyPreferences(bool aReplace)
 {
   nsresult rv = NS_OK;
   if (!aReplace)
@@ -704,7 +704,7 @@ nsSeamonkeyProfileMigrator::CopyPreferences(PRBool aReplace)
 }
 
 nsresult
-nsSeamonkeyProfileMigrator::CopyHistory(PRBool aReplace)
+nsSeamonkeyProfileMigrator::CopyHistory(bool aReplace)
 {
   return aReplace ? CopyFile(FILE_NAME_HISTORY, FILE_NAME_HISTORY) : NS_OK;
 }

@@ -48,9 +48,9 @@ MimeDefClass(MimeContainer, MimeContainerClass,
 static int MimeContainer_initialize (MimeObject *);
 static void MimeContainer_finalize (MimeObject *);
 static int MimeContainer_add_child (MimeObject *, MimeObject *);
-static int MimeContainer_parse_eof (MimeObject *, PRBool);
-static int MimeContainer_parse_end (MimeObject *, PRBool);
-static PRBool MimeContainer_displayable_inline_p (MimeObjectClass *clazz,
+static int MimeContainer_parse_eof (MimeObject *, bool);
+static int MimeContainer_parse_end (MimeObject *, bool);
+static bool MimeContainer_displayable_inline_p (MimeObjectClass *clazz,
                            MimeHeaders *hdrs);
 
 #if defined(DEBUG) && defined(XP_UNIX)
@@ -116,7 +116,7 @@ MimeContainer_finalize (MimeObject *object)
 }
 
 static int
-MimeContainer_parse_eof (MimeObject *object, PRBool abort_p)
+MimeContainer_parse_eof (MimeObject *object, bool abort_p)
 {
   MimeContainer *cont = (MimeContainer *) object;
   int status;
@@ -146,7 +146,7 @@ MimeContainer_parse_eof (MimeObject *object, PRBool abort_p)
 }
 
 static int
-MimeContainer_parse_end (MimeObject *object, PRBool abort_p)
+MimeContainer_parse_end (MimeObject *object, bool abort_p)
 {
   MimeContainer *cont = (MimeContainer *) object;
   int status;
@@ -203,7 +203,7 @@ MimeContainer_add_child (MimeObject *parent, MimeObject *child)
   return 0;
 }
 
-static PRBool
+static bool
 MimeContainer_displayable_inline_p (MimeObjectClass *clazz, MimeHeaders *hdrs)
 {
   return PR_TRUE;

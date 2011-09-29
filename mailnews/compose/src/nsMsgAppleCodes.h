@@ -113,8 +113,8 @@ int write_stream(appledouble_encode_object *p_ap_encode_obj,char *s,int	 len);
 
 int fill_apple_mime_header(appledouble_encode_object *p_ap_encode_obj);
 int ap_encode_file_infor(appledouble_encode_object *p_ap_encode_obj);
-int ap_encode_header(appledouble_encode_object* p_ap_encode_obj, PRBool firstTime);
-int ap_encode_data(  appledouble_encode_object* p_ap_encode_obj, PRBool firstTime);
+int ap_encode_header(appledouble_encode_object* p_ap_encode_obj, bool firstTime);
+int ap_encode_data(  appledouble_encode_object* p_ap_encode_obj, bool firstTime);
 
 /*
 **	the prototypes for the ap_decoder.
@@ -123,11 +123,11 @@ int  fetch_a_line(appledouble_decode_object* p_ap_decode_obj, char *buff);
 int  ParseFileHeader(appledouble_decode_object* p_ap_decode_obj);
 int  ap_seek_part_start(appledouble_decode_object* p_ap_decode_obj);
 void parse_param(char *p, char **param, char**define, char **np);
-int  ap_seek_to_boundary(appledouble_decode_object* p_ap_decode_obj, PRBool firstime);
-int  ap_parse_header(appledouble_decode_object* p_ap_decode_obj,PRBool firstime);
+int  ap_seek_to_boundary(appledouble_decode_object* p_ap_decode_obj, bool firstime);
+int  ap_parse_header(appledouble_decode_object* p_ap_decode_obj,bool firstime);
 int  ap_decode_file_infor(appledouble_decode_object* p_ap_decode_obj);
-int  ap_decode_process_header(appledouble_decode_object* p_ap_decode_obj, PRBool firstime);
-int  ap_decode_process_data(  appledouble_decode_object* p_ap_decode_obj, PRBool firstime);
+int  ap_decode_process_header(appledouble_decode_object* p_ap_decode_obj, bool firstime);
+int  ap_decode_process_data(  appledouble_decode_object* p_ap_decode_obj, bool firstime);
 
 PR_END_EXTERN_C
  

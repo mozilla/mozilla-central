@@ -375,7 +375,7 @@ NS_IMETHODIMP nsLDAPURL::GetOriginCharset(nsACString &result)
 
 // boolean equals (in nsIURI other)
 // (based on nsSimpleURI::Equals)
-NS_IMETHODIMP nsLDAPURL::Equals(nsIURI *other, PRBool *_retval)
+NS_IMETHODIMP nsLDAPURL::Equals(nsIURI *other, bool *_retval)
 {
   *_retval = PR_FALSE;
   if (other)
@@ -405,7 +405,7 @@ NS_IMETHODIMP nsLDAPURL::Equals(nsIURI *other, PRBool *_retval)
 
 // boolean schemeIs(in const char * scheme);
 //
-NS_IMETHODIMP nsLDAPURL::SchemeIs(const char *aScheme, PRBool *aEquals)
+NS_IMETHODIMP nsLDAPURL::SchemeIs(const char *aScheme, bool *aEquals)
 {
   if (!mBaseURL)
     return NS_ERROR_NOT_INITIALIZED;
@@ -602,7 +602,7 @@ NS_IMETHODIMP nsLDAPURL::RemoveAttribute(const nsACString &aAttribute)
 }
 
 NS_IMETHODIMP nsLDAPURL::HasAttribute(const nsACString &aAttribute,
-                                      PRBool *_retval)
+                                      bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
 
@@ -696,7 +696,7 @@ nsLDAPURL::GetRef(nsACString &result)
   return mBaseURL->GetRef(result);
 }
 
-NS_IMETHODIMP nsLDAPURL::EqualsExceptRef(nsIURI *other, PRBool *result)
+NS_IMETHODIMP nsLDAPURL::EqualsExceptRef(nsIURI *other, bool *result)
 {
   return mBaseURL->EqualsExceptRef(other, result);
 }
@@ -714,7 +714,7 @@ nsLDAPURL::GetSpecIgnoringRef(nsACString &result)
 }
 
 NS_IMETHODIMP
-nsLDAPURL::GetHasRef(PRBool *result)
+nsLDAPURL::GetHasRef(bool *result)
 {
   return mBaseURL->GetHasRef(result);
 }

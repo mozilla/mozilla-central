@@ -61,7 +61,7 @@ nsMimePlainEmitter::~nsMimePlainEmitter(void)
 
 // Header handling routines.
 nsresult
-nsMimePlainEmitter::StartHeader(PRBool rootMailHeader, PRBool headerOnly, const char *msgID,
+nsMimePlainEmitter::StartHeader(bool rootMailHeader, bool headerOnly, const char *msgID,
                            const char *outCharset)
 {
   mDocHeader = rootMailHeader;

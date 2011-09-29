@@ -61,14 +61,14 @@ public:
   virtual ~nsPop3IncomingServer();
 
   NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
-  NS_IMETHOD GetDownloadMessagesAtStartup(PRBool *getMessages);
-  NS_IMETHOD GetCanBeDefaultServer(PRBool *canBeDefaultServer);
-  NS_IMETHOD GetCanSearchMessages(PRBool *canSearchMessages);
+  NS_IMETHOD GetDownloadMessagesAtStartup(bool *getMessages);
+  NS_IMETHOD GetCanBeDefaultServer(bool *canBeDefaultServer);
+  NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
   NS_IMETHOD GetOfflineSupportLevel(PRInt32 *aSupportLevel);
   NS_IMETHOD CloseCachedConnections();
   NS_IMETHOD GetRootMsgFolder(nsIMsgFolder **aRootMsgFolder);
-  NS_IMETHOD GetCanFileMessagesOnServer(PRBool *aCanFileMessagesOnServer);
-  NS_IMETHOD GetCanCreateFoldersOnServer(PRBool *aCanCreateFoldersOnServer);
+  NS_IMETHOD GetCanFileMessagesOnServer(bool *aCanFileMessagesOnServer);
+  NS_IMETHOD GetCanCreateFoldersOnServer(bool *aCanCreateFoldersOnServer);
   NS_IMETHOD VerifyLogon(nsIUrlListener *aUrlListener, nsIMsgWindow *aMsgWindow,
                          nsIURI **aURL);
   NS_IMETHOD GetNewMessages(nsIMsgFolder *aFolder, nsIMsgWindow *aMsgWindow,
@@ -79,7 +79,7 @@ protected:
 
 private:
   PRUint32 m_capabilityFlags;
-  PRBool m_authenticated;
+  bool m_authenticated;
   nsCOMPtr <nsIPop3Protocol> m_runningProtocol;
   nsCOMPtr <nsIMsgFolder> m_rootMsgFolder;
   nsVoidArray m_uidlsToMark;

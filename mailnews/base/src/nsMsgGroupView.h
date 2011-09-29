@@ -76,17 +76,17 @@ public:
 
 protected:
   virtual void InternalClose();
-  nsMsgGroupThread *AddHdrToThread(nsIMsgDBHdr *msgHdr, PRBool *pNewThread);
+  nsMsgGroupThread *AddHdrToThread(nsIMsgDBHdr *msgHdr, bool *pNewThread);
   virtual nsresult HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey);
-  nsresult GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAgeBucket, PRBool rcvDate = PR_FALSE); // helper function to get the age bucket for a hdr, useful when grouped by date
-  nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool /*ensureListed*/);
+  nsresult GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAgeBucket, bool rcvDate = false); // helper function to get the age bucket for a hdr, useful when grouped by date
+  nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, bool /*ensureListed*/);
   virtual PRInt32 FindLevelInThread(nsIMsgDBHdr *msgHdr, nsMsgViewIndex startOfThread, nsMsgViewIndex viewIndex);
   nsMsgViewIndex ThreadIndexOfMsg(nsMsgKey msgKey, 
                                             nsMsgViewIndex msgIndex = nsMsgViewIndex_None,
                                             PRInt32 *pThreadCount = NULL,
                                             PRUint32 *pFlags = NULL);
 
-  PRBool GroupViewUsesDummyRow(); // returns true if we are grouped by a sort attribute that uses a dummy row
+  bool GroupViewUsesDummyRow(); // returns true if we are grouped by a sort attribute that uses a dummy row
   virtual nsresult RebuildView(nsMsgViewFlagsTypeValue newFlags);
   virtual nsMsgGroupThread *CreateGroupThread(nsIMsgDatabase *db);
   PR_STATIC_CALLBACK(PLDHashOperator) GroupTableCloner(const nsAString &aKey,
@@ -95,7 +95,7 @@ protected:
 
   nsInterfaceHashtable <nsStringHashKey, nsIMsgThread> m_groupsTable;
   PRExplodedTime m_lastCurExplodedTime;
-  PRBool m_dayChanged;
+  bool m_dayChanged;
 
 private:
   nsString m_kTodayString;

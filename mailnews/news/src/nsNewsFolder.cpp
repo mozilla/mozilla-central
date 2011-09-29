@@ -156,7 +156,7 @@ nsresult
 nsMsgNewsFolder::CreateSubFolders(nsILocalFile *path)
 {
   nsresult rv;
-  PRBool isNewsServer = PR_FALSE;
+  bool isNewsServer = false;
   rv = GetIsServer(&isNewsServer);
   if (NS_FAILED(rv)) return rv;
 
@@ -323,7 +323,7 @@ nsMsgNewsFolder::GetDatabaseWithoutCache(nsIMsgDatabase **db)
 
   // The simplest way to perform this operation is to get the database normally
   // and then clear our information about it if we didn't already hold it open.
-  PRBool wasCached = !!mDatabase;
+  bool wasCached = !!mDatabase;
   nsresult rv = GetDatabase();
   NS_IF_ADDREF(*db = mDatabase);
 
@@ -344,7 +344,7 @@ nsMsgNewsFolder::UpdateFolder(nsIMsgWindow *aWindow)
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  PRBool getMessagesOnSelect = PR_TRUE;
+  bool getMessagesOnSelect = true;
   prefBranch->GetBoolPref("news.get_messages_on_select", &getMessagesOnSelect);
 
   // Only if news.get_messages_on_select is true do we get new messages automatically
@@ -377,12 +377,12 @@ nsMsgNewsFolder::UpdateFolder(nsIMsgWindow *aWindow)
 }
 
 NS_IMETHODIMP
-nsMsgNewsFolder::GetCanSubscribe(PRBool *aResult)
+nsMsgNewsFolder::GetCanSubscribe(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = PR_FALSE;
 
-  PRBool isNewsServer = PR_FALSE;
+  bool isNewsServer = false;
   nsresult rv = GetIsServer(&isNewsServer);
   if (NS_FAILED(rv)) return rv;
 
@@ -392,7 +392,7 @@ nsMsgNewsFolder::GetCanSubscribe(PRBool *aResult)
 }
 
 NS_IMETHODIMP
-nsMsgNewsFolder::GetCanFileMessages(PRBool *aResult)
+nsMsgNewsFolder::GetCanFileMessages(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   // you can't file messages into a news server or news group
@@ -401,7 +401,7 @@ nsMsgNewsFolder::GetCanFileMessages(PRBool *aResult)
 }
 
 NS_IMETHODIMP
-nsMsgNewsFolder::GetCanCreateSubfolders(PRBool *aResult)
+nsMsgNewsFolder::GetCanCreateSubfolders(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = PR_FALSE;
@@ -410,7 +410,7 @@ nsMsgNewsFolder::GetCanCreateSubfolders(PRBool *aResult)
 }
 
 NS_IMETHODIMP
-nsMsgNewsFolder::GetCanRename(PRBool *aResult)
+nsMsgNewsFolder::GetCanRename(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = PR_FALSE;
@@ -419,7 +419,7 @@ nsMsgNewsFolder::GetCanRename(PRBool *aResult)
 }
 
 NS_IMETHODIMP
-nsMsgNewsFolder::GetCanCompact(PRBool *aResult)
+nsMsgNewsFolder::GetCanCompact(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = PR_FALSE;
@@ -428,7 +428,7 @@ nsMsgNewsFolder::GetCanCompact(PRBool *aResult)
 }
 
 NS_IMETHODIMP
-nsMsgNewsFolder::GetCanDeleteMessages(PRBool *aResult)
+nsMsgNewsFolder::GetCanDeleteMessages(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -486,7 +486,7 @@ NS_IMETHODIMP nsMsgNewsFolder::GetFolderURL(nsACString& aUrl)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgNewsFolder::SetNewsrcHasChanged(PRBool newsrcHasChanged)
+NS_IMETHODIMP nsMsgNewsFolder::SetNewsrcHasChanged(bool newsrcHasChanged)
 {
   nsresult rv;
 
@@ -561,7 +561,7 @@ NS_IMETHODIMP nsMsgNewsFolder::Delete()
     rv = GetSummaryFileLocation(folderPath, getter_AddRefs(summaryPath));
     if (NS_SUCCEEDED(rv))
     {
-      PRBool exists = PR_FALSE;
+      bool exists = false;
       rv = folderPath->Exists(&exists);
 
       if (NS_SUCCEEDED(rv) && exists)
@@ -607,7 +607,7 @@ NS_IMETHODIMP nsMsgNewsFolder::GetAbbreviatedName(nsAString& aAbbreviatedName)
   if(NS_FAILED(rv)) return rv;
 
   // only do this for newsgroup names, not for newsgroup hosts.
-  PRBool isNewsServer = PR_FALSE;
+  bool isNewsServer = false;
   rv = GetIsServer(&isNewsServer);
   if (NS_FAILED(rv)) return rv;
 
@@ -616,7 +616,7 @@ NS_IMETHODIMP nsMsgNewsFolder::GetAbbreviatedName(nsAString& aAbbreviatedName)
     rv = GetNntpServer(getter_AddRefs(nntpServer));
     if (NS_FAILED(rv)) return rv;
 
-    PRBool abbreviate = PR_TRUE;
+    bool abbreviate = true;
     rv = nntpServer->GetAbbreviate(&abbreviate);
     if (NS_FAILED(rv)) return rv;
 
@@ -725,7 +725,7 @@ nsMsgNewsFolder::GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo, nsIMsgDataba
 NS_IMETHODIMP
 nsMsgNewsFolder::UpdateSummaryFromNNTPInfo(PRInt32 oldest, PRInt32 youngest, PRInt32 total)
 {
-  PRBool newsrcHasChanged = PR_FALSE;
+  bool newsrcHasChanged = false;
 
   /* First, mark all of the articles now known to be expired as read. */
   if (oldest > 1)
@@ -763,7 +763,7 @@ nsMsgNewsFolder::UpdateSummaryFromNNTPInfo(PRInt32 oldest, PRInt32 youngest, PRI
       unread -= deltaInDB;
   }
 
-  PRBool dbWasOpen = mDatabase != nsnull;
+  bool dbWasOpen = mDatabase != nsnull;
   PRInt32 pendingUnreadDelta = unread - mNumUnreadMessages - mNumPendingUnreadMessages;
   PRInt32 pendingTotalDelta = total - mNumTotalMessages - mNumPendingTotalMessages;
   ChangeNumPendingUnread(pendingUnreadDelta);
@@ -784,12 +784,12 @@ NS_IMETHODIMP nsMsgNewsFolder::GetExpungedBytesCount(PRUint32 *count)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgNewsFolder::GetDeletable(PRBool *deletable)
+NS_IMETHODIMP nsMsgNewsFolder::GetDeletable(bool *deletable)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsMsgNewsFolder::GetRequiresCleanup(PRBool *requiresCleanup)
+NS_IMETHODIMP nsMsgNewsFolder::GetRequiresCleanup(bool *requiresCleanup)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -801,9 +801,9 @@ NS_IMETHODIMP nsMsgNewsFolder::GetSizeOnDisk(PRUint32 *size)
 
 NS_IMETHODIMP
 nsMsgNewsFolder::DeleteMessages(nsIArray *messages, nsIMsgWindow *aMsgWindow,
-                                PRBool deleteStorage, PRBool isMove,
+                                bool deleteStorage, bool isMove,
                                 nsIMsgCopyServiceListener* listener,
-                                PRBool allowUndo)
+                                bool allowUndo)
 {
   nsresult rv = NS_OK;
 
@@ -899,11 +899,11 @@ NS_IMETHODIMP nsMsgNewsFolder::GetNextNMessages(nsIMsgWindow *aMsgWindow)
   return GetNewsMessages(aMsgWindow, PR_TRUE, nsnull);
 }
 
-nsresult nsMsgNewsFolder::GetNewsMessages(nsIMsgWindow *aMsgWindow, PRBool aGetOld, nsIUrlListener *aUrlListener)
+nsresult nsMsgNewsFolder::GetNewsMessages(nsIMsgWindow *aMsgWindow, bool aGetOld, nsIUrlListener *aUrlListener)
 {
   nsresult rv = NS_OK;
 
-  PRBool isNewsServer = PR_FALSE;
+  bool isNewsServer = false;
   rv = GetIsServer(&isNewsServer);
   if (NS_FAILED(rv)) return rv;
 
@@ -936,7 +936,7 @@ nsMsgNewsFolder::LoadNewsrcFileAndCreateNewsgroups()
   nsresult rv = NS_OK;
   if (!mNewsrcFilePath) return NS_ERROR_FAILURE;
 
-  PRBool exists;
+  bool exists;
   rv = mNewsrcFilePath->Exists(&exists);
   if (NS_FAILED(rv)) return rv;
 
@@ -951,7 +951,7 @@ nsMsgNewsFolder::LoadNewsrcFileAndCreateNewsgroups()
   nsCOMPtr<nsILineInputStream> lineInputStream(do_QueryInterface(fileStream, &rv));
   NS_ENSURE_SUCCESS(rv, nsnull);
 
-  PRBool more = PR_TRUE;
+  bool more = true;
   nsCString line;
 
   while (more && NS_SUCCEEDED(rv))
@@ -990,7 +990,7 @@ nsMsgNewsFolder::HandleNewsrcLine(const char * line, PRUint32 line_size)
       /* What is this?? Well, don't just throw it away... */
       return RememberLine(nsDependentCString(line));
 
-    PRBool subscribed = (*s == ':');
+    bool subscribed = (*s == ':');
     setStr = s+1;
 
     if (*line == '\0')
@@ -1110,7 +1110,7 @@ nsresult nsMsgNewsFolder::CreateNewsgroupUrlForSignon(const nsACString& inUriStr
   rv = GetNntpServer(getter_AddRefs(nntpServer));
   if (NS_FAILED(rv)) return rv;
 
-  PRBool singleSignon = PR_TRUE;
+  bool singleSignon = true;
   rv = nntpServer->GetSingleSignon(&singleSignon);
 
   if (singleSignon)
@@ -1351,7 +1351,7 @@ nsMsgNewsFolder::GetGroupPasswordWithUI(const nsAString& aPromptMessage,
     NS_ASSERTION(dialog,"we didn't get a net prompt");
     if (dialog)
     {
-      PRBool okayValue = PR_TRUE;
+      bool okayValue = true;
 
       nsCString signonURL;
       rv = CreateNewsgroupPasswordUrlForSignon(mURI, signonURL);
@@ -1415,7 +1415,7 @@ nsMsgNewsFolder::GetGroupUsernameWithUI(const nsAString& aPromptMessage,
     NS_ENSURE_TRUE(dialog, NS_ERROR_FAILURE);
 
     nsString uniGroupUsername;
-    PRBool okayValue = PR_TRUE;
+    bool okayValue = true;
 
     nsCString signonURL;
     rv = CreateNewsgroupUsernameUrlForSignon(mURI, signonURL);
@@ -1472,7 +1472,7 @@ nsMsgNewsFolder::GetGroupUsernameWithUI(const nsAString& aPromptMessage,
       do_GetService(NS_PROMPTSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRBool saveUsername = PR_FALSE;
+    bool saveUsername = false;
 
     nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -1711,14 +1711,14 @@ NS_IMETHODIMP nsMsgNewsFolder::CancelFailed()
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgNewsFolder::GetSaveArticleOffline(PRBool *aBool)
+NS_IMETHODIMP nsMsgNewsFolder::GetSaveArticleOffline(bool *aBool)
 {
   NS_ENSURE_ARG(aBool);
   *aBool = m_downloadMessageForOfflineUse;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgNewsFolder::SetSaveArticleOffline(PRBool aBool)
+NS_IMETHODIMP nsMsgNewsFolder::SetSaveArticleOffline(bool aBool)
 {
   m_downloadMessageForOfflineUse = aBool;
   return NS_OK;
@@ -1737,7 +1737,7 @@ NS_IMETHODIMP nsMsgNewsFolder::DownloadAllForOffline(nsIUrlListener *listener, n
     rv = mDatabase->EnumerateMessages(getter_AddRefs(enumerator));
     if (NS_SUCCEEDED(rv) && enumerator)
     {
-      PRBool hasMore;
+      bool hasMore;
       while (NS_SUCCEEDED(rv = enumerator->HasMoreElements(&hasMore)) && hasMore)
       {
         nsCOMPtr <nsIMsgDBHdr> pHeader;
@@ -1745,7 +1745,7 @@ NS_IMETHODIMP nsMsgNewsFolder::DownloadAllForOffline(nsIUrlListener *listener, n
         NS_ASSERTION(NS_SUCCEEDED(rv), "nsMsgDBEnumerator broken");
         if (pHeader && NS_SUCCEEDED(rv))
         {
-          PRBool shouldStoreMsgOffline = PR_FALSE;
+          bool shouldStoreMsgOffline = false;
           nsMsgKey msgKey;
           pHeader->GetMessageKey(&msgKey);
           MsgFitsDownloadCriteria(msgKey, &shouldStoreMsgOffline);
@@ -1829,10 +1829,10 @@ NS_IMETHODIMP nsMsgNewsFolder::NotifyDownloadedLine(const char *line, nsMsgKey k
 
 NS_IMETHODIMP nsMsgNewsFolder::NotifyFinishedDownloadinghdrs()
 {
-  PRBool wasCached = !!mDatabase;
+  bool wasCached = !!mDatabase;
   ChangeNumPendingTotalMessages(-GetNumPendingTotalMessages());
   ChangeNumPendingUnread(-GetNumPendingUnread());
-  PRBool filtersRun;
+  bool filtersRun;
   // run the bayesian spam filters, if enabled.
   CallFilterPlugins(nsnull, &filtersRun);
 
@@ -1899,7 +1899,7 @@ NS_IMETHODIMP nsMsgNewsFolder::GetSortOrder(PRInt32 *order)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgNewsFolder::Shutdown(PRBool shutdownChildren)
+NS_IMETHODIMP nsMsgNewsFolder::Shutdown(bool shutdownChildren)
 {
   if (mFilterList)
   {

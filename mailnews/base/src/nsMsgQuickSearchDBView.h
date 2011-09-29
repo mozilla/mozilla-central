@@ -79,7 +79,7 @@ public:
   NS_IMETHOD GetSearchSession(nsIMsgSearchSession* *aSearchSession);
   NS_IMETHOD OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged, PRUint32 aOldFlags, 
                          PRUint32 aNewFlags, nsIDBChangeListener *aInstigator);
-  NS_IMETHOD OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, PRBool aPreChange, PRUint32 *aStatus, 
+  NS_IMETHOD OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, bool aPreChange, PRUint32 *aStatus, 
                                  nsIDBChangeListener * aInstigator);
   NS_IMETHOD OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aParentKey,
                           PRInt32 aFlags, nsIDBChangeListener *aInstigator);
@@ -88,12 +88,12 @@ public:
 protected:
   nsWeakPtr m_searchSession;
   nsTArray<nsMsgKey> m_origKeys;
-  PRBool    m_usingCachedHits;
-  PRBool    m_cacheEmpty;
+  bool      m_usingCachedHits;
+  bool      m_cacheEmpty;
   nsCOMArray <nsIMsgDBHdr> m_hdrHits;
   virtual nsresult AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *resultIndex = nsnull);
-  virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool ensureListed);
-  virtual nsresult DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, PRBool deleteStorage);
+  virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, bool ensureListed);
+  virtual nsresult DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, bool deleteStorage);
   virtual nsresult SortThreads(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder);
   virtual nsresult GetFirstMessageHdrToDisplayInThread(nsIMsgThread *threadHdr, nsIMsgDBHdr **result);
   virtual nsresult ExpansionDelta(nsMsgViewIndex index, PRInt32 *expansionDelta);

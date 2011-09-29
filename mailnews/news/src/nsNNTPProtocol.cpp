@@ -442,7 +442,7 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
           }
         }
 
-        PRBool msgIsInLocalCache = PR_FALSE;
+        bool msgIsInLocalCache = false;
         mailnewsUrl->GetMsgIsInLocalCache(&msgIsInLocalCache);
         if (msgIsInLocalCache || WeAreOffline())
           return NS_OK; // probably don't need to do anything else - definitely don't want
@@ -522,14 +522,14 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
   return NS_OK;
 }
 
-NS_IMETHODIMP nsNNTPProtocol::GetIsBusy(PRBool *aIsBusy)
+NS_IMETHODIMP nsNNTPProtocol::GetIsBusy(bool *aIsBusy)
 {
   NS_ENSURE_ARG_POINTER(aIsBusy);
   *aIsBusy = m_connectionBusy;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsNNTPProtocol::SetIsBusy(PRBool aIsBusy)
+NS_IMETHODIMP nsNNTPProtocol::SetIsBusy(bool aIsBusy)
 {
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) setting busy to %d",this, aIsBusy));
   m_connectionBusy = aIsBusy;
@@ -541,14 +541,14 @@ NS_IMETHODIMP nsNNTPProtocol::SetIsBusy(PRBool aIsBusy)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsNNTPProtocol::GetIsCachedConnection(PRBool *aIsCachedConnection)
+NS_IMETHODIMP nsNNTPProtocol::GetIsCachedConnection(bool *aIsCachedConnection)
 {
   NS_ENSURE_ARG_POINTER(aIsCachedConnection);
   *aIsCachedConnection = m_fromCache;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsNNTPProtocol::SetIsCachedConnection(PRBool aIsCachedConnection)
+NS_IMETHODIMP nsNNTPProtocol::SetIsCachedConnection(bool aIsCachedConnection)
 {
   m_fromCache = aIsCachedConnection;
   return NS_OK;
@@ -692,7 +692,7 @@ NS_IMETHODIMP nsNNTPProtocol::SetOriginalURI(nsIURI* aURI)
 
 nsresult nsNNTPProtocol::SetupPartExtractorListener(nsIStreamListener * aConsumer)
 {
-  PRBool convertData = PR_FALSE;
+  bool convertData = false;
   nsresult rv = NS_OK;
 
   if (m_newsAction == nsINntpUrl::ActionFetchArticle)
@@ -792,9 +792,9 @@ nsresult nsNNTPProtocol::ReadFromNewsConnection()
 // for messages stored in our offline cache, we have special code to handle that...
 // If it's in the local cache, we return true and we can abort the download because
 // this method does the rest of the work.
-PRBool nsNNTPProtocol::ReadFromLocalCache()
+bool nsNNTPProtocol::ReadFromLocalCache()
 {
-  PRBool msgIsInLocalCache = PR_FALSE;
+  bool msgIsInLocalCache = false;
   nsresult rv = NS_OK;
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_runningURL);
   mailnewsUrl->GetMsgIsInLocalCache(&msgIsInLocalCache);
@@ -865,7 +865,7 @@ nsNNTPProtocol::OnCacheEntryAvailable(nsICacheEntryDescriptor *entry, nsCacheAcc
     // If we have an empty cache entry with read access, we probably failed to
     // clear it out from an error ealier. In this case, we'll simply try to
     // write in the cache entry this time and hope we get luckier.
-    PRBool canRead = access & nsICache::ACCESS_READ;
+    bool canRead = access & nsICache::ACCESS_READ;
     if (canRead)
     {
       PRUint32 size;
@@ -1033,7 +1033,7 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
   }
   else if (m_newsAction == nsINntpUrl::ActionGetNewNews)
   {
-    PRBool containsGroup = PR_TRUE;
+    bool containsGroup = true;
     rv = m_nntpServer->ContainsNewsgroup(group, &containsGroup);
     if (NS_FAILED(rv))
       goto FAIL;
@@ -1073,7 +1073,7 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
         getter_Copies(confirmText));
       NS_ENSURE_SUCCESS(rv,rv);
 
-      PRBool confirmResult = PR_FALSE;
+      bool confirmResult = false;
       rv = dialog->Confirm(nsnull, confirmText.get(), &confirmResult);
       NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1186,7 +1186,7 @@ FAIL:
     return rv;
 }
 
-void nsNNTPProtocol::FinishMemCacheEntry(PRBool valid)
+void nsNNTPProtocol::FinishMemCacheEntry(bool valid)
 {
   nsCOMPtr <nsICacheEntryDescriptor> memCacheEntry;
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
@@ -1300,7 +1300,7 @@ nsNNTPProtocol::ParseURL(nsIURI *aURL, nsCString &aGroup, nsCString &aMessageID)
 
     if (NS_SUCCEEDED(rv) && m_newsFolder)
     {
-      PRBool useLocalCache = PR_FALSE;
+      bool useLocalCache = false;
       rv = folder->HasMsgOffline(m_key, &useLocalCache);
       NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1319,7 +1319,7 @@ nsNNTPProtocol::ParseURL(nsIURI *aURL, nsCString &aGroup, nsCString &aMessageID)
  * stream, etc). We need to make another pass through this file to install an error system (mscott)
  */
 
-PRInt32 nsNNTPProtocol::SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging)
+PRInt32 nsNNTPProtocol::SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging)
 {
     if (!aSuppressLogging) {
         NNTP_LOG_WRITE(dataBuffer);
@@ -1342,7 +1342,7 @@ PRInt32 nsNNTPProtocol::NewsResponse(nsIInputStream * inputStream, PRUint32 leng
 
   NS_PRECONDITION(nsnull != inputStream, "invalid input stream");
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   NNTP_LOG_READ(line);
@@ -1406,7 +1406,7 @@ PRInt32 nsNNTPProtocol::NewsResponse(nsIInputStream * inputStream, PRUint32 leng
 
 PRInt32 nsNNTPProtocol::LoginResponse()
 {
-  PRBool postingAllowed = m_responseCode == MK_NNTP_RESPONSE_POSTING_ALLOWED;
+  bool postingAllowed = m_responseCode == MK_NNTP_RESPONSE_POSTING_ALLOWED;
 
   if(MK_NNTP_RESPONSE_TYPE(m_responseCode)!=MK_NNTP_RESPONSE_TYPE_OK)
   {
@@ -1442,7 +1442,7 @@ PRInt32 nsNNTPProtocol::SendModeReaderResponse()
 
   /* ignore the response code and continue
    */
-  PRBool pushAuth = PR_FALSE;
+  bool pushAuth = false;
   nsresult rv = NS_OK;
 
   NS_ASSERTION(m_nntpServer, "no server, see bug #107797");
@@ -1485,7 +1485,7 @@ PRInt32 nsNNTPProtocol::SendListExtensionsResponse(nsIInputStream * inputStream,
 
   if (MK_NNTP_RESPONSE_TYPE(m_responseCode) == MK_NNTP_RESPONSE_TYPE_OK)
   {
-    PRBool pauseForMoreData = PR_FALSE;
+    bool pauseForMoreData = false;
     char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
     if(pauseForMoreData)
@@ -1524,7 +1524,7 @@ PRInt32 nsNNTPProtocol::SendListExtensionsResponse(nsIInputStream * inputStream,
 PRInt32 nsNNTPProtocol::SendListSearches()
 {
     nsresult rv;
-    PRBool searchable=PR_FALSE;
+    bool searchable=false;
   PRInt32 status = 0;
 
     rv = m_nntpServer->QueryExtension("SEARCH",&searchable);
@@ -1554,7 +1554,7 @@ PRInt32 nsNNTPProtocol::SendListSearchesResponse(nsIInputStream * inputStream, P
 
   NS_PRECONDITION(inputStream, "invalid input stream");
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   NNTP_LOG_READ(line);
@@ -1610,7 +1610,7 @@ PRInt32 nsNNTPProtocol::SendListSearchHeadersResponse(nsIInputStream * inputStre
 {
   PRUint32 status = 0;
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   if(pauseForMoreData)
@@ -1636,7 +1636,7 @@ PRInt32 nsNNTPProtocol::SendListSearchHeadersResponse(nsIInputStream * inputStre
 PRInt32 nsNNTPProtocol::GetProperties()
 {
     nsresult rv;
-    PRBool setget=PR_FALSE;
+    bool setget=false;
   PRInt32 status = 0;
 
     rv = m_nntpServer->QueryExtension("SETGET",&setget);
@@ -1662,7 +1662,7 @@ PRInt32 nsNNTPProtocol::GetPropertiesResponse(nsIInputStream * inputStream, PRUi
 {
   PRUint32 status = 0;
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   if(pauseForMoreData)
@@ -1704,7 +1704,7 @@ PRInt32 nsNNTPProtocol::SendListSubscriptions()
    PRInt32 status = 0;
 #if 0
     nsresult rv;
-    PRBool searchable=PR_FALSE;
+    bool searchable=false;
     rv = m_nntpServer->QueryExtension("LISTSUBSCR",&listsubscr);
     if (NS_SUCCEEDED(rv) && listsubscr)
 #else
@@ -1732,7 +1732,7 @@ PRInt32 nsNNTPProtocol::SendListSubscriptionsResponse(nsIInputStream * inputStre
 {
   PRUint32 status = 0;
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   if(pauseForMoreData)
@@ -1841,7 +1841,7 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommand(nsIURI * url)
           return -1;
     }
 
-      PRBool xactive=PR_FALSE;
+      bool xactive=false;
       rv = m_nntpServer->QueryExtension("XACTIVE",&xactive);
       if (NS_SUCCEEDED(rv) && xactive)
       {
@@ -1981,7 +1981,7 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommandResponse()
       m_nextState = NNTP_ERROR;
     // if we have no channel listener, then we're likely downloading
     // the message for offline use (or at least not displaying it)
-    PRBool savingArticleOffline = (m_channelListener == nsnull);
+    bool savingArticleOffline = (m_channelListener == nsnull);
 
     if (m_runningURL)
       FinishMemCacheEntry(PR_FALSE);  // cleanup mem cache entry
@@ -2184,7 +2184,7 @@ PRInt32 nsNNTPProtocol::DisplayArticle(nsIInputStream * inputStream, PRUint32 le
 {
   PRUint32 line_length = 0;
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   if (m_channelListener)
   {
     nsresult rv = NS_OK;
@@ -2239,7 +2239,7 @@ PRInt32 nsNNTPProtocol::ReadArticle(nsIInputStream * inputStream, PRUint32 lengt
   PRUint32 status = 0;
   char *outputBuffer;
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
 
   // if we have a channel listener, spool directly to it....
   // otherwise we must be doing something like save to disk or cancel
@@ -2456,7 +2456,7 @@ PRInt32 nsNNTPProtocol::AuthorizationResponse()
   {
     /* successful login */
 #ifdef HAVE_NNTP_EXTENSIONS
-    PRBool pushAuth;
+    bool pushAuth;
     /* If we're here because the host demanded authentication before we
     * even sent a single command, then jump back to the beginning of everything
     */
@@ -2569,7 +2569,7 @@ PRInt32 nsNNTPProtocol::PasswordResponse()
   {
     /* successful login */
 #ifdef HAVE_NNTP_EXTENSIONS
-    PRBool pushAuth;
+    bool pushAuth;
     /* If we're here because the host demanded authentication before we
     * even sent a single command, then jump back to the beginning of everything
     */
@@ -2631,7 +2631,7 @@ PRInt32 nsNNTPProtocol::ProcessNewsgroups(nsIInputStream * inputStream, PRUint32
   PRUint32 status = 0;
   nsresult rv = NS_OK;
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   line = lineToFree = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   if(pauseForMoreData)
@@ -2648,7 +2648,7 @@ PRInt32 nsNNTPProtocol::ProcessNewsgroups(nsIInputStream * inputStream, PRUint32
   if (line[0]=='.' && line[1]=='\0')
   {
     ClearFlag(NNTP_PAUSE_FOR_READ);
-    PRBool xactive=PR_FALSE;
+    bool xactive=false;
     rv = m_nntpServer->QueryExtension("XACTIVE",&xactive);
     if (NS_SUCCEEDED(rv) && xactive)
     {
@@ -2732,7 +2732,7 @@ PRInt32 nsNNTPProtocol::ProcessNewsgroups(nsIInputStream * inputStream, PRUint32
     NS_ASSERTION(NS_SUCCEEDED(rv),"failed to add to subscribe ds");
   }
 
-  PRBool xactive=PR_FALSE;
+  bool xactive=false;
   rv = m_nntpServer->QueryExtension("XACTIVE",&xactive);
   if (NS_SUCCEEDED(rv) && xactive)
   {
@@ -2805,7 +2805,7 @@ PRInt32 nsNNTPProtocol::ReadNewsList(nsIInputStream * inputStream, PRUint32 leng
   PRInt32 i=0;
   PRUint32 status = 1;
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   char *line, *lineToFree;
   line = lineToFree = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
@@ -2822,7 +2822,7 @@ PRInt32 nsNNTPProtocol::ReadNewsList(nsIInputStream * inputStream, PRUint32 leng
   /* End of list? */
   if (line[0]=='.' && line[1]=='\0')
   {
-    PRBool listpnames=PR_FALSE;
+    bool listpnames=false;
     NS_ASSERTION(m_nntpServer, "no nntp incoming server");
     if (m_nntpServer) {
       rv = m_nntpServer->QueryExtension("LISTPNAMES",&listpnames);
@@ -3003,7 +3003,7 @@ void nsNNTPProtocol::TimerCallback()
 
 void nsNNTPProtocol::HandleAuthenticationFailure()
 {
-  PRBool userHasAuthenticatedInThisSession;
+  bool userHasAuthenticatedInThisSession;
   m_nntpServer->GetUserAuthenticated(&userHasAuthenticatedInThisSession);
 
   /* login failed */
@@ -3102,7 +3102,7 @@ PRInt32 nsNNTPProtocol::FigureNextChunk()
     NS_ASSERTION(m_newsgroupList, "no newsgroupList");
     if (!m_newsgroupList) return -1;
 
-    PRBool getOldMessages = PR_FALSE;
+    bool getOldMessages = false;
     if (m_runningURL) {
       rv = m_runningURL->GetGetOldMessages(&getOldMessages);
       if (NS_FAILED(rv)) return status;
@@ -3219,7 +3219,7 @@ PRInt32 nsNNTPProtocol::ReadXover(nsIInputStream * inputStream, PRUint32 length)
   nsresult rv;
   PRUint32 status = 1;
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   line = lineToFree = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   if(pauseForMoreData)
@@ -3322,7 +3322,7 @@ PRInt32 nsNNTPProtocol::XhdrResponse(nsIInputStream *inputStream)
   nsresult rv;
   PRUint32 status = 1;
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   line = lineToFree = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   if (pauseForMoreData)
@@ -3414,7 +3414,7 @@ PRInt32 nsNNTPProtocol::ReadNewsgroupBody(nsIInputStream * inputStream, PRUint32
   nsresult rv;
   PRUint32 status = 1;
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   line = lineToFree = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   if(pauseForMoreData)
@@ -3617,7 +3617,7 @@ PRInt32 nsNNTPProtocol::StartCancel()
   return (status);
 }
 
-PRBool nsNNTPProtocol::CheckIfAuthor(nsISupports *aElement, void *data)
+bool nsNNTPProtocol::CheckIfAuthor(nsISupports *aElement, void *data)
 {
     nsresult rv;
 
@@ -3669,7 +3669,7 @@ PRBool nsNNTPProtocol::CheckIfAuthor(nsISupports *aElement, void *data)
 PRInt32 nsNNTPProtocol::DoCancel()
 {
     PRInt32 status = 0;
-    PRBool failure = PR_FALSE;
+    bool failure = false;
     nsresult rv = NS_OK;
     char *id = nsnull;
     char *subject = nsnull;
@@ -3677,8 +3677,8 @@ PRInt32 nsNNTPProtocol::DoCancel()
     char *distribution = nsnull;
     char *body = nsnull;
     cancelInfoEntry cancelInfo;
-    PRBool requireConfirmationForCancel = PR_TRUE;
-    PRBool showAlertAfterCancel = PR_TRUE;
+    bool requireConfirmationForCancel = true;
+    bool showAlertAfterCancel = true;
 
     int L;
 
@@ -3755,7 +3755,7 @@ PRInt32 nsNNTPProtocol::DoCancel()
 
      Don't do this if server tells us it will validate user. DMB 3/19/97
    */
-  PRBool cancelchk=PR_FALSE;
+  bool cancelchk=false;
   rv = m_nntpServer->QueryExtension("CANCELCHK",&cancelchk);
   if (NS_SUCCEEDED(rv) && !cancelchk) {
     NNTP_LOG_NOTE("CANCELCHK not supported");
@@ -3799,7 +3799,7 @@ reported here */
   if (NS_FAILED(rv) || requireConfirmationForCancel) {
     /* Last chance to cancel the cancel.*/
     GetNewsStringByName("cancelConfirm", getter_Copies(confirmText));
-    PRBool dummyValue = PR_FALSE;
+    bool dummyValue = false;
     rv = dialog->ConfirmEx(nsnull, confirmText.get(), nsIPrompt::STD_YES_NO_BUTTONS,
                            nsnull, nsnull, nsnull, nsnull, &dummyValue, &confirmCancelResult);
     if (NS_FAILED(rv))
@@ -3955,7 +3955,7 @@ PRInt32 nsNNTPProtocol::XPATResponse(nsIInputStream * inputStream, PRUint32 leng
     return MK_NNTP_SERVER_ERROR;
   }
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   NNTP_LOG_READ(line);
@@ -4041,7 +4041,7 @@ PRInt32 nsNNTPProtocol::ListPrettyNamesResponse(nsIInputStream * inputStream, PR
     return 0;
   }
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   NNTP_LOG_READ(line);
@@ -4137,7 +4137,7 @@ PRInt32 nsNNTPProtocol::ListXActiveResponse(nsIInputStream * inputStream, PRUint
     return MK_DATA_LOADED;
   }
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   NNTP_LOG_READ(line);
@@ -4199,7 +4199,7 @@ PRInt32 nsNNTPProtocol::ListXActiveResponse(nsIInputStream * inputStream, PRUint
     }
     else
     {
-      PRBool xactive=PR_FALSE;
+      bool xactive=false;
       rv = m_nntpServer->QueryExtension("XACTIVE",&xactive);
       if (m_typeWanted == NEW_GROUPS &&
         NS_SUCCEEDED(rv) && xactive)
@@ -4230,7 +4230,7 @@ PRInt32 nsNNTPProtocol::ListXActiveResponse(nsIInputStream * inputStream, PRUint
           m_newsFolder = nsnull;
         }
       }
-      PRBool listpname;
+      bool listpname;
       rv = m_nntpServer->QueryExtension("LISTPNAME",&listpname);
       if (NS_SUCCEEDED(rv) && listpname)
         m_nextState = NNTP_LIST_PRETTY_NAMES;
@@ -4293,7 +4293,7 @@ PRInt32 nsNNTPProtocol::SendListGroupResponse(nsIInputStream * inputStream, PRUi
     return MK_DATA_LOADED;
   }
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   if(pauseForMoreData)
@@ -4348,7 +4348,7 @@ PRInt32 nsNNTPProtocol::SearchResults(nsIInputStream *inputStream, PRUint32 leng
 {
   PRUint32 status = 1;
 
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
   char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
 
   if(pauseForMoreData)

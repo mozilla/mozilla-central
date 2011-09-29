@@ -133,4 +133,4 @@ nsresult createBlobNode(PRUint8 *value, PRUint32 &length,  nsIRDFNode **node, ns
 //datasource derive from our datasource baseclass, this should be moved there and the first
 //parameter will no longer be needed.
 nsresult GetTargetHasAssertion(nsIRDFDataSource *dataSource, nsIRDFResource* folderResource,
-							   nsIRDFResource *property,PRBool tv, nsIRDFNode *target,PRBool* hasAssertion);
+							   nsIRDFResource *property,bool tv, nsIRDFNode *target,bool* hasAssertion);

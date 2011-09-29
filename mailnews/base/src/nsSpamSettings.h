@@ -70,10 +70,10 @@ private:
   PRInt32 mPurgeInterval;
   PRInt32 mMoveTargetMode;
 
-  PRBool mPurge;
-  PRBool mUseWhiteList;
-  PRBool mMoveOnSpam;
-  PRBool mUseServerFilter;
+  bool mPurge;
+  bool mUseWhiteList;
+  bool mMoveOnSpam;
+  bool mUseServerFilter;
   
   nsCString mActionTargetAccount;
   nsCString mActionTargetFolder;
@@ -91,9 +91,9 @@ private:
   // mail domains to use in junk whitelisting
   nsCString mTrustedMailDomains;
   // should we inhibit whitelisting address of identity?
-  PRBool mInhibitWhiteListingIdentityUser;
+  bool mInhibitWhiteListingIdentityUser;
   // should we inhibit whitelisting domain of identity?
-  PRBool mInhibitWhiteListingIdentityDomain;
+  bool mInhibitWhiteListingIdentityDomain;
   // email addresses associated with this server
   nsTArray<nsCString> mEmails;
 

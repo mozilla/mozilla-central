@@ -68,8 +68,8 @@ public:
   NS_IMETHOD  SetDisplayName( const PRUnichar * pName) { m_displayName = pName; return( NS_OK);}
 
   /* attribute boolean import; */
-  NS_IMETHOD  GetImport( PRBool *pImport) { *pImport = m_import; return( NS_OK);}
-  NS_IMETHOD  SetImport( PRBool doImport) { m_import = doImport; return( NS_OK);}
+  NS_IMETHOD  GetImport( bool *pImport) { *pImport = m_import; return( NS_OK);}
+  NS_IMETHOD  SetImport( bool doImport) { m_import = doImport; return( NS_OK);}
 
   /* readonly attribute nsILocalFile file; */
   NS_IMETHOD GetFile(nsILocalFile * *aFile) { if (m_pFile) { NS_ADDREF(*aFile = m_pFile); return( NS_OK);} else return( NS_ERROR_FAILURE); }
@@ -87,7 +87,7 @@ private:
   nsString    m_displayName;// name of this mailbox
   nsCOMPtr <nsILocalFile> m_pFile;  // source file (if applicable)
   PRUint32    m_size;
-  PRBool      m_import;    // import it or not?
+  bool        m_import;    // import it or not?
 };
 
 

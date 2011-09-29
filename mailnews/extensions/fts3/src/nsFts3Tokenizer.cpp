@@ -87,7 +87,7 @@ nsFts3Tokenizer::RegisterTokenizer(mozIStorageConnection *connection)
                                           sizeof(module));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool hasMore;
+  bool hasMore;
   rv = selectStatement->ExecuteStep(&hasMore);
   NS_ENSURE_SUCCESS(rv, rv);
 

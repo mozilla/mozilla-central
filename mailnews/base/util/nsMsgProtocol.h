@@ -102,7 +102,7 @@ public:
   virtual nsresult SetUrl(nsIURI * aURL); // sometimes we want to set the url before we load it
 
   // Flag manipulators
-  virtual PRBool TestFlag  (PRUint32 flag) {return flag & m_flags;}
+  virtual bool TestFlag  (PRUint32 flag) {return flag & m_flags;}
   virtual void   SetFlag   (PRUint32 flag) { m_flags |= flag; }
   virtual void   ClearFlag (PRUint32 flag) { m_flags &= ~flag; }
 
@@ -149,7 +149,7 @@ protected:
   // Returns a positive number for success, 0 for failure (not all the bytes were written to the
   // stream, etc). 
     // aSuppressLogging is a hint that sensitive data is being sent and should not be logged
-  virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging = PR_FALSE);
+  virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging = false);
 
   virtual nsresult PostMessage(nsIURI* url, nsIFile* aPostFile);
 
@@ -168,7 +168,7 @@ protected:
   nsCOMPtr<nsITransport>  m_transport; 
   nsCOMPtr<nsIRequest>    m_request;
 
-  PRBool        m_socketIsOpen; // mscott: we should look into keeping this state in the nsSocketTransport...
+  bool          m_socketIsOpen; // mscott: we should look into keeping this state in the nsSocketTransport...
                                   // I'm using it to make sure I open the socket the first time a URL is loaded into the connection
   PRUint32      m_flags; // used to store flag information
   //PRUint32  m_startPosition;
@@ -200,7 +200,7 @@ protected:
 
   // if a url isn't going to result in any content then we want to suppress calls to
   // OnStartRequest, OnDataAvailable and OnStopRequest
-  PRBool mSuppressListenerNotifications;
+  bool mSuppressListenerNotifications;
 };
 
 
@@ -223,11 +223,11 @@ public:
   
   // over ride the following methods from the base class
   virtual nsresult SetupTransportState();
-  virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging = PR_FALSE);
+  virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging = false);
   nsCString mAsyncBuffer;
 
   // if we suspended the asynch write while waiting for more data to write then this will be TRUE
-  PRBool mSuspendedWrite;
+  bool mSuspendedWrite;
   nsCOMPtr<nsIRequest>     m_WriteRequest;
   nsCOMPtr<nsIAsyncOutputStream>    mAsyncOutStream;
   nsCOMPtr<nsIOutputStreamCallback> mProvider;
@@ -236,12 +236,12 @@ public:
   // because we are reading the post data in asychronously, it's possible that we aren't sending it 
   // out fast enough and the reading gets blocked. The following set of state variables are used to 
   // track this.
-  PRBool  mSuspendedRead;
-  PRBool  mInsertPeriodRequired; // do we need to insert a '.' as part of the unblocking process
+  bool    mSuspendedRead;
+  bool    mInsertPeriodRequired; // do we need to insert a '.' as part of the unblocking process
    
   nsresult ProcessIncomingPostData(nsIInputStream *inStr, PRUint32 count);
   nsresult UnblockPostReader();
-  nsresult UpdateSuspendedReadBytes(PRUint32 aNewBytes, PRBool aAddToPostPeriodByteCount);
+  nsresult UpdateSuspendedReadBytes(PRUint32 aNewBytes, bool aAddToPostPeriodByteCount);
   nsresult PostDataFinished(); // this is so we'll send out a closing '.' and release any state related to the post
 
 
@@ -265,7 +265,7 @@ protected:
                                                            // the input stream becomes unblocked.
   PRInt64  mFilePostSize; // used for determining progress on posting files.
   PRUint32  mNumBytesPosted; // used for deterimining progress on posting files 
-  PRBool    mGenerateProgressNotifications; // set during a post operation after we've started sending the post data...
+  bool      mGenerateProgressNotifications; // set during a post operation after we've started sending the post data...
 
   virtual nsresult CloseSocket(); 
 };

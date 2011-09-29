@@ -75,8 +75,8 @@ public:
   nsNetscapeProfileMigratorBase();
   virtual ~nsNetscapeProfileMigratorBase() { };
 
-  NS_IMETHOD GetSourceHasMultipleProfiles(PRBool* aResult);
-  NS_IMETHOD GetSourceExists(PRBool* aResult);
+  NS_IMETHOD GetSourceHasMultipleProfiles(bool* aResult);
+  NS_IMETHOD GetSourceExists(bool* aResult);
 
   struct PrefTransform;
   typedef nsresult(*prefConverter)(PrefTransform*, nsIPrefBranch*);
@@ -86,10 +86,10 @@ public:
     const char*   targetPrefName;
     prefConverter prefGetterFunc;
     prefConverter prefSetterFunc;
-    PRBool        prefHasValue;
+    bool          prefHasValue;
     union {
       PRInt32     intValue;
-      PRBool      boolValue;
+      bool        boolValue;
       char*       stringValue;
     };
   };
@@ -100,7 +100,7 @@ public:
     union {
       char*       stringValue;
       PRInt32     intValue;
-      PRBool      boolValue;
+      bool        boolValue;
     };
   };
 
@@ -128,7 +128,7 @@ protected:
 
   nsresult CopyFile(const nsAString& aSourceFileName, const nsAString& aTargetFileName);
 
-  nsresult GetSignonFileName(PRBool aReplace, char** aFileName);
+  nsresult GetSignonFileName(bool aReplace, char** aFileName);
   nsresult LocateSignonsFile(char** aResult);
 
   nsCOMPtr<nsILocalFile> mSourceProfile;

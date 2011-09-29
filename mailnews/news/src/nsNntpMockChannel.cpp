@@ -86,7 +86,7 @@ NS_IMETHODIMP nsNntpMockChannel::GetName(nsACString &result)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsNntpMockChannel::IsPending(PRBool *result)
+NS_IMETHODIMP nsNntpMockChannel::IsPending(bool *result)
 {
   FORWARD_CALL(IsPending, result)
   // We haven't been loaded yet, so we're still pending.

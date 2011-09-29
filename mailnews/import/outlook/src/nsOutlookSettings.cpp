@@ -67,13 +67,13 @@ class OutlookSettings {
 public:
   static HKEY FindAccountsKey( void);
 
-  static PRBool DoImport( nsIMsgAccount **ppAccount);
+  static bool DoImport( nsIMsgAccount **ppAccount);
 
-  static PRBool DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
-  static PRBool DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
+  static bool DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
+  static bool DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
 
   static void SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, HKEY hKey);
-  static PRBool IdentityMatches( nsIMsgIdentity *pIdent, const char *pName, const char *pServer, const char *pEmail, const char *pReply, const char *pUserName);
+  static bool IdentityMatches( nsIMsgIdentity *pIdent, const char *pName, const char *pServer, const char *pEmail, const char *pReply, const char *pUserName);
 
   static void SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, char *pServer, const nsCString& pUser);
   static nsresult GetAccountName(HKEY hKey, char *defaultName, nsString &acctName);
@@ -105,7 +105,7 @@ nsOutlookSettings::~nsOutlookSettings()
 
 NS_IMPL_ISUPPORTS1(nsOutlookSettings, nsIImportSettings)
 
-NS_IMETHODIMP nsOutlookSettings::AutoLocate(PRUnichar **description, nsIFile **location, PRBool *_retval)
+NS_IMETHODIMP nsOutlookSettings::AutoLocate(PRUnichar **description, nsIFile **location, bool *_retval)
 {
     NS_PRECONDITION(description != nsnull, "null ptr");
     NS_PRECONDITION(_retval != nsnull, "null ptr");
@@ -133,7 +133,7 @@ NS_IMETHODIMP nsOutlookSettings::SetLocation(nsIFile *location)
   return( NS_OK);
 }
 
-NS_IMETHODIMP nsOutlookSettings::Import(nsIMsgAccount **localMailAccount, PRBool *_retval)
+NS_IMETHODIMP nsOutlookSettings::Import(nsIMsgAccount **localMailAccount, bool *_retval)
 {
   NS_PRECONDITION( _retval != nsnull, "null ptr");
 
@@ -163,7 +163,7 @@ HKEY OutlookSettings::FindAccountsKey( void)
   return( nsnull);
 }
 
-PRBool OutlookSettings::DoImport( nsIMsgAccount **ppAccount)
+bool OutlookSettings::DoImport( nsIMsgAccount **ppAccount)
 {
   HKEY  hKey = FindAccountsKey();
   if (hKey == nsnull) {
@@ -288,7 +288,7 @@ nsresult OutlookSettings::GetAccountName(HKEY hKey, char *defaultName, nsString 
   return rv;
 }
 
-PRBool OutlookSettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
+bool OutlookSettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
 {
   if (ppAccount)
     *ppAccount = nsnull;
@@ -298,7 +298,7 @@ PRBool OutlookSettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, cha
   if (!pBytes)
     return( PR_FALSE);
 
-  PRBool  result = PR_FALSE;
+  bool    result = false;
 
   // I now have a user name/server name pair, find out if it already exists?
   nsCOMPtr<nsIMsgIncomingServer> in;
@@ -339,7 +339,7 @@ PRBool OutlookSettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, cha
   return( result);
 }
 
-PRBool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
+bool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
 {
   if (ppAccount)
     *ppAccount = nsnull;
@@ -349,7 +349,7 @@ PRBool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, cha
   if (!pBytes)
     return( PR_FALSE);
 
-  PRBool result = PR_FALSE;
+  bool result = false;
 
   // I now have a user name/server name pair, find out if it already exists?
   nsCOMPtr<nsIMsgIncomingServer> in;
@@ -431,7 +431,7 @@ PRBool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, cha
   return( result);
 }
 
-PRBool OutlookSettings::IdentityMatches( nsIMsgIdentity *pIdent, const char *pName, const char *pServer, const char *pEmail, const char *pReply, const char *pUserName)
+bool OutlookSettings::IdentityMatches( nsIMsgIdentity *pIdent, const char *pName, const char *pServer, const char *pEmail, const char *pReply, const char *pUserName)
 {
   if (!pIdent)
     return( PR_FALSE);
@@ -440,7 +440,7 @@ PRBool OutlookSettings::IdentityMatches( nsIMsgIdentity *pIdent, const char *pNa
   nsCString pIEmail;
   nsCString pIReply;
 
-  PRBool  result = PR_TRUE;
+  bool    result = true;
 
   // The test here is:
   // If the smtp host is the same

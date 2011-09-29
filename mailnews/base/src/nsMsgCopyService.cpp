@@ -104,10 +104,10 @@ nsCopyRequest::~nsCopyRequest()
 nsresult
 nsCopyRequest::Init(nsCopyRequestType type, nsISupports* aSupport,
                     nsIMsgFolder* dstFolder,
-                    PRBool bVal, PRUint32 newMsgFlags, 
+                    bool bVal, PRUint32 newMsgFlags, 
                     const nsACString &newMsgKeywords,
                     nsIMsgCopyServiceListener* listener,
-                    nsIMsgWindow* msgWindow, PRBool allowUndo)
+                    nsIMsgWindow* msgWindow, bool allowUndo)
 {
   nsresult rv = NS_OK;
   m_requestType = type;
@@ -217,7 +217,7 @@ nsMsgCopyService::ClearRequest(nsCopyRequest* aRequest, nsresult rv)
       nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
       if (notifier)
       {
-        PRBool hasListeners;
+        bool hasListeners;
         notifier->GetHasListeners(&hasListeners);
         if (hasListeners)
         {
@@ -250,7 +250,7 @@ nsMsgCopyService::ClearRequest(nsCopyRequest* aRequest, nsresult rv)
 }
 
 nsresult
-nsMsgCopyService::QueueRequest(nsCopyRequest* aRequest, PRBool *aCopyImmediately)
+nsMsgCopyService::QueueRequest(nsCopyRequest* aRequest, bool *aCopyImmediately)
 {
   NS_ENSURE_ARG_POINTER(aRequest);
   NS_ENSURE_ARG_POINTER(aCopyImmediately);
@@ -285,7 +285,7 @@ nsresult
 nsMsgCopyService::DoCopy(nsCopyRequest* aRequest)
 {
   NS_ENSURE_ARG(aRequest);
-  PRBool copyImmediately;
+  bool copyImmediately;
   QueueRequest(aRequest, &copyImmediately);
   m_copyRequests.AppendElement(aRequest);
   if (PR_LOG_TEST(gCopyServiceLog, PR_LOG_ALWAYS))
@@ -428,7 +428,7 @@ nsMsgCopyService::FindRequest(nsISupports* aSupport,
         // Note if the destination folder is already a server folder then no need to get parent.
         nsCOMPtr <nsIMsgFolder> parentMsgFolder;
         nsresult rv = NS_OK;
-        PRBool isServer=PR_FALSE;
+        bool isServer=false;
         dstFolder->GetIsServer(&isServer);
         if (!isServer)
           rv = dstFolder->GetParent(getter_AddRefs(parentMsgFolder));
@@ -466,10 +466,10 @@ NS_IMETHODIMP
 nsMsgCopyService::CopyMessages(nsIMsgFolder* srcFolder, /* UI src folder */
                                nsIArray* messages,
                                nsIMsgFolder* dstFolder,
-                               PRBool isMove,
+                               bool isMove,
                                nsIMsgCopyServiceListener* listener,
                                nsIMsgWindow* window,
-                               PRBool allowUndo)
+                               bool allowUndo)
 {
   NS_ENSURE_ARG_POINTER(srcFolder);
   NS_ENSURE_ARG_POINTER(messages);
@@ -573,7 +573,7 @@ done:
 NS_IMETHODIMP
 nsMsgCopyService::CopyFolders(nsIArray* folders,
                               nsIMsgFolder* dstFolder,
-                              PRBool isMove,
+                              bool isMove,
                               nsIMsgCopyServiceListener* listener,
                               nsIMsgWindow* window)
 {
@@ -621,7 +621,7 @@ NS_IMETHODIMP
 nsMsgCopyService::CopyFileMessage(nsIFile* file,
                                   nsIMsgFolder* dstFolder,
                                   nsIMsgDBHdr* msgToReplace,
-                                  PRBool isDraft,
+                                  bool isDraft,
                                   PRUint32 aMsgFlags,
                                   const nsACString &aNewMsgKeywords,
                                   nsIMsgCopyServiceListener* listener,

@@ -98,7 +98,7 @@ nsresult nsByteArray::AppendBuffer(const char *buffer, PRUint32 length)
   return ret;
 }
 
-nsMsgLineBuffer::nsMsgLineBuffer(nsMsgLineBufferHandler *handler, PRBool convertNewlinesP)
+nsMsgLineBuffer::nsMsgLineBuffer(nsMsgLineBufferHandler *handler, bool convertNewlinesP)
 {
   MOZ_COUNT_CTOR(nsMsgLineBuffer);
   m_handler = handler;
@@ -112,7 +112,7 @@ nsMsgLineBuffer::~nsMsgLineBuffer()
 }
 
 void
-nsMsgLineBuffer::SetLookingForCRLF(PRBool b)
+nsMsgLineBuffer::SetLookingForCRLF(bool b)
 {
   m_lookingForCRLF = b;
 }
@@ -281,7 +281,7 @@ PRInt32 nsMsgLineBuffer::FlushLastLine()
 // read but unprocessed stream data in a buffer. 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-nsMsgLineStreamBuffer::nsMsgLineStreamBuffer(PRUint32 aBufferSize, PRBool aAllocateNewLines, PRBool aEatCRLFs, char aLineToken) 
+nsMsgLineStreamBuffer::nsMsgLineStreamBuffer(PRUint32 aBufferSize, bool aAllocateNewLines, bool aEatCRLFs, char aLineToken) 
            : m_eatCRLFs(aEatCRLFs), m_allocateNewLines(aAllocateNewLines), m_lineToken(aLineToken)
 {
   NS_PRECONDITION(aBufferSize > 0, "invalid buffer size!!!");
@@ -325,7 +325,7 @@ void nsMsgLineStreamBuffer::ClearBuffer()
 // Note to people wishing to modify this function: Be *VERY CAREFUL* this is a critical function used by all of
 // our mail protocols including imap, nntp, and pop. If you screw it up, you could break a lot of stuff.....
 
-char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint32 &aNumBytesInLine, PRBool &aPauseForMoreData, nsresult *prv, PRBool addLineTerminator)
+char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint32 &aNumBytesInLine, bool &aPauseForMoreData, nsresult *prv, bool addLineTerminator)
 {
   // try to extract a line from m_inputBuffer. If we don't have an entire line, 
   // then read more bytes out from the stream. If the stream is empty then wait
@@ -351,7 +351,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
     nsresult rv;
     PRUint32 numBytesInStream = 0;
     PRUint32 numBytesCopied = 0;
-    PRBool nonBlockingStream;
+    bool nonBlockingStream;
     aInputStream->IsNonBlocking(&nonBlockingStream);
     rv = aInputStream->Available(&numBytesInStream);
     if (NS_FAILED(rv))
@@ -462,7 +462,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
   return nsnull; // if we somehow got here. we don't have another line in the buffer yet...need to wait for more data...
 }
 
-PRBool nsMsgLineStreamBuffer::NextLineAvailable()
+bool nsMsgLineStreamBuffer::NextLineAvailable()
 {
   return (m_numBytesInBuffer > 0 && PL_strchr(m_dataBuffer+m_startPos, m_lineToken));
 }

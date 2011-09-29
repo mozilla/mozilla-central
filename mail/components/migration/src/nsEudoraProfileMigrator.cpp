@@ -128,7 +128,7 @@ nsEudoraProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, c
 
 NS_IMETHODIMP
 nsEudoraProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
-                                           PRBool aReplace,
+                                           bool aReplace,
                                            PRUint16* aResult)
 {
   // There's no harm in assuming everything is available.
@@ -138,7 +138,7 @@ nsEudoraProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
 }
 
 NS_IMETHODIMP
-nsEudoraProfileMigrator::GetSourceExists(PRBool* aResult)
+nsEudoraProfileMigrator::GetSourceExists(bool* aResult)
 {
   *aResult = PR_FALSE;
 
@@ -156,7 +156,7 @@ nsEudoraProfileMigrator::GetSourceExists(PRBool* aResult)
 }
 
 NS_IMETHODIMP
-nsEudoraProfileMigrator::GetSourceHasMultipleProfiles(PRBool* aResult)
+nsEudoraProfileMigrator::GetSourceHasMultipleProfiles(bool* aResult)
 {
   *aResult = PR_FALSE;
   return NS_OK;

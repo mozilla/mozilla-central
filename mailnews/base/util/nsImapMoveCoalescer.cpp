@@ -86,7 +86,7 @@ nsresult nsImapMoveCoalescer::AddMove(nsIMsgFolder *folder, nsMsgKey key)
   return NS_OK;
 }
 
-nsresult nsImapMoveCoalescer::PlaybackMoves(PRBool doNewMailNotification /* = PR_FALSE */)
+nsresult nsImapMoveCoalescer::PlaybackMoves(bool doNewMailNotification /* = false */)
 {
   PRInt32 numFolders = m_destFolders.Count();
   // Nothing to do, so don't change the member variables.
@@ -119,7 +119,7 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(PRBool doNewMailNotification /* = PR
       if (NS_SUCCEEDED(rv) && mailHdr)
       {
         messages->AppendElement(mailHdr, PR_FALSE);
-        PRBool isRead = PR_FALSE;
+        bool isRead = false;
         mailHdr->GetIsRead(&isRead);
         if (!isRead)
           numNewMessages++;
@@ -255,7 +255,7 @@ NS_IMETHODIMP nsMoveCoalescerCopyListener::OnStopCopy(nsresult aStatus)
     }
     else // give junk filters a chance to run on new msgs in destination local folder
     {
-      PRBool filtersRun;
+      bool filtersRun;
       m_destFolder->CallFilterPlugins(nsnull, &filtersRun);
     }
   }

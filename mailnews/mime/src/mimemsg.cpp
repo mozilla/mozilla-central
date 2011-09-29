@@ -65,7 +65,7 @@ static void MimeMessage_finalize (MimeObject *);
 static int MimeMessage_add_child (MimeObject *, MimeObject *);
 static int MimeMessage_parse_begin (MimeObject *);
 static int MimeMessage_parse_line (const char *, PRInt32, MimeObject *);
-static int MimeMessage_parse_eof (MimeObject *, PRBool);
+static int MimeMessage_parse_eof (MimeObject *, bool);
 static int MimeMessage_close_headers (MimeObject *obj);
 static int MimeMessage_write_headers_html (MimeObject *);
 static char *MimeMessage_partial_message_html(const char *data,
@@ -183,7 +183,7 @@ MimeMessage_parse_line (const char *aLine, PRInt32 aLength, MimeObject *obj)
   if (msg->container.nchildren)
   {
     MimeObject *kid = msg->container.children[0];
-    PRBool nl;
+    bool nl;
     PR_ASSERT(kid);
     if (!kid) return -1;
 
@@ -323,7 +323,7 @@ MimeMessage_close_headers (MimeObject *obj)
 
   if (msg->hdrs)
   {
-    PRBool outer_p = !obj->headers; /* is this the outermost message? */
+    bool outer_p = !obj->headers; /* is this the outermost message? */
 
 
 #ifdef MIME_DRAFTS
@@ -384,7 +384,7 @@ MimeMessage_close_headers (MimeObject *obj)
     /* Find the content-type of the body of this message.
      */
     {
-    PRBool ok = PR_TRUE;
+    bool ok = true;
     char *mv = MimeHeaders_get (msg->hdrs, HEADER_MIME_VERSION,
                   PR_TRUE, PR_FALSE);
 
@@ -516,7 +516,7 @@ MimeMessage_close_headers (MimeObject *obj)
   // it is a part that is not the head of the message. If it's a part,
   // we need to figure out the content type/charset of the part
   //
-  PRBool outer_p = !obj->headers;  /* is this the outermost message? */
+  bool outer_p = !obj->headers;  /* is this the outermost message? */
 
   if ( (outer_p || obj->options->notify_nested_bodies) &&
        (!obj->options->part_to_load || obj->options->format_out == nsMimeOutput::nsMimeMessageBodyDisplay))
@@ -563,10 +563,10 @@ MimeMessage_close_headers (MimeObject *obj)
 
 
 static int
-MimeMessage_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeMessage_parse_eof (MimeObject *obj, bool abort_p)
 {
   int status;
-  PRBool outer_p;
+  bool outer_p;
   MimeMessage *msg = (MimeMessage *)obj;
   if (obj->closed_p) return 0;
 
@@ -747,7 +747,7 @@ MimeMessage_write_headers_html (MimeObject *obj)
   // Start the header parsing by the emitter
   char *msgID = MimeHeaders_get (msg->hdrs, HEADER_MESSAGE_ID,
                                     PR_FALSE, PR_FALSE);
-  PRBool outer_p = !obj->headers; /* is this the outermost message? */
+  bool outer_p = !obj->headers; /* is this the outermost message? */
   if (!outer_p && obj->options->format_out == nsMimeOutput::nsMimeMessageBodyDisplay &&
       obj->options->part_to_load)
   {

@@ -72,7 +72,7 @@ typedef struct {
   char      *displayName;
   char      *urlSpec;
   char      *contentType;
-  PRBool    isExternalAttachment;
+  bool      isExternalAttachment;
 } attachmentInfoType;
 
 //
@@ -146,7 +146,7 @@ protected:
   PRUint32            mTotalRead;
 
   // Output control and info...
-  PRBool              mDocHeader;         // For header determination...
+  bool                mDocHeader;         // For header determination...
   nsIURI              *mURL;              // the url for the data being processed...
   PRInt32             mHeaderDisplayType; // The setting for header output...
   nsCString           mHTMLHeaders;       // HTML Header Data...
@@ -162,9 +162,9 @@ protected:
   nsCOMPtr<nsIMsgHeaderParser>  mHeaderParser;
 
   // For body caching...
-  PRBool              mBodyStarted;
+  bool                mBodyStarted;
   nsCString           mBody;
-  PRBool              mFirstHeaders;
+  bool                mFirstHeaders;
 
   // For the format being used...
   PRInt32             mFormat;
@@ -174,7 +174,7 @@ protected:
   nsString            mCharset;
   nsCOMPtr<nsIDateTimeFormat> mDateFormatter;
   nsresult GenerateDateString(const char * dateString, nsACString& formattedDate,
-                              PRBool showDateForToday);
+                              bool showDateForToday);
   // The caller is expected to free the result of GetLocalizedDateString
   char* GetLocalizedDateString(const char * dateString);
 };

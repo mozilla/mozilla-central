@@ -43,7 +43,7 @@
 #include "nsMsgSend.h"
 
 typedef int (*MSG_SendPartWriteFunc)(const char* line, PRInt32 size,
-									                   PRBool isheader, void* closure);
+									                   bool isheader, void* closure);
 
 class nsMsgSendPart {
 public:
@@ -77,12 +77,12 @@ public:
 	int                 SetEncoderData(MimeEncoderData* data);
 	MimeEncoderData     *GetEncoderData() {return m_encoder_data;}
 
-	int                 SetStripSensitiveHeaders(PRBool value) 
+	int                 SetStripSensitiveHeaders(bool value) 
                       {
 		                    m_strip_sensitive_headers = value;
 		                    return 0;
 	                    }
-	PRBool              GetStripSensitiveHeaders() {return m_strip_sensitive_headers;}
+	bool                GetStripSensitiveHeaders() {return m_strip_sensitive_headers;}
 
   virtual int         AddChild(nsMsgSendPart* child);
 
@@ -90,8 +90,8 @@ public:
 	nsMsgSendPart       *GetChild(PRInt32 which);
 	nsMsgSendPart       *DetachChild(PRInt32 which);
 
-	virtual int         SetMainPart(PRBool value);
-	PRBool              IsMainPart() 
+	virtual int         SetMainPart(bool value);
+	bool                IsMainPart() 
                       {
                         return m_mainpart;
                       }
@@ -106,19 +106,19 @@ protected:
   char                *m_type;
   char                *m_other;
   char                m_charset_name[64+1];        // charset name associated with this part
-	PRBool              m_strip_sensitive_headers;
+	bool                m_strip_sensitive_headers;
 	MimeEncoderData     *m_encoder_data;  /* Opaque state for base64/qp encoder. */
 
 	nsMsgSendPart       **m_children;
 	PRInt32             m_numchildren;
 
 	// Data used while actually writing.
-  PRBool              m_firstBlock;
-  PRBool              m_needIntlConversion;
+  bool                m_firstBlock;
+  bool                m_needIntlConversion;
 
-	PRBool              m_mainpart;
+	bool                m_mainpart;
 
-	PRBool              m_just_hit_CR;
+	bool                m_just_hit_CR;
 
 	static PRInt32      M_counter;
 };

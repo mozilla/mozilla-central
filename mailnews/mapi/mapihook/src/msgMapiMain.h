@@ -71,10 +71,10 @@ public :
   static nsMAPIConfiguration *GetMAPIConfiguration();
   void OpenConfiguration();
   PRInt16 RegisterSession(PRUint32 aHwnd, const PRUnichar *aUserName, \
-                          const PRUnichar *aPassword, PRBool aForceDownLoad, \
-                          PRBool aNewSession, PRUint32 *aSession, const char *aIdKey);
-  PRBool IsSessionValid(PRUint32 aSessionID);
-  PRBool UnRegisterSession(PRUint32 aSessionID);
+                          const PRUnichar *aPassword, bool aForceDownLoad, \
+                          bool aNewSession, PRUint32 *aSession, const char *aIdKey);
+  bool IsSessionValid(PRUint32 aSessionID);
+  bool UnRegisterSession(PRUint32 aSessionID);
   PRUnichar *GetPassword(PRUint32 aSessionID);
   void GetIdKey(PRUint32 aSessionID, nsCString& aKey);
   void *GetMapiListContext(PRUint32 aSessionID);
@@ -90,8 +90,8 @@ class nsMAPISession
   friend class nsMAPIConfiguration;
 
   private :
-    PRBool   m_bIsForcedDownLoad;
-    PRBool   m_bApp_or_Service;
+    bool     m_bIsForcedDownLoad;
+    bool     m_bApp_or_Service;
     PRUint32 m_hAppHandle;
     PRUint32 m_nShared;
     nsCString m_pIdKey;
@@ -103,7 +103,7 @@ class nsMAPISession
   public :
     nsMAPISession(PRUint32 aHwnd, const PRUnichar *aUserName, \
                   const PRUnichar *aPassword, \
-                  PRBool aForceDownLoad, const char *aKey);
+                  bool aForceDownLoad, const char *aKey);
     PRUint32 IncrementSession();
     PRUint32 DecrementSession();
     PRUint32 GetSessionCount();

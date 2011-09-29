@@ -68,8 +68,8 @@ public:
 private:
   nsresult ReleaseListeners(void);
   
-  PRBool                             m_closeProgress;
-  PRBool                             m_processCanceled;
+  bool                               m_closeProgress;
+  bool                               m_processCanceled;
   nsString                           m_pendingStatus;
   PRInt32                            m_pendingStateFlags;
   PRInt32                            m_pendingStateValue;

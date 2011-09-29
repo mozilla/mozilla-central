@@ -55,7 +55,7 @@ class nsOutlookEditor : public nsIEditor, public nsIEditorMailSupport
 
     nsresult AddEmbeddedImage(nsIURI *uri, const wchar_t *cid, const wchar_t *name);
 
-    inline PRBool HasEmbeddedContent() const { return (m_EmbeddedObjectList != nsnull); }
+    inline bool HasEmbeddedContent() const { return (m_EmbeddedObjectList != nsnull); }
     PRUint32 EmbeddedObjectsCount() const;
     nsresult GetCids(PRUint32 embedIndex, nsACString& origCid, nsACString& newCid) const;
 

@@ -66,7 +66,7 @@ calRecurrenceDate::calRecurrenceDate()
 }
 
 NS_IMETHODIMP
-calRecurrenceDate::GetIsMutable(PRBool *aResult)
+calRecurrenceDate::GetIsMutable(bool *aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
 
@@ -103,7 +103,7 @@ calRecurrenceDate::Clone(calIRecurrenceItem **_retval)
 
 /* attribute boolean isNegative; */
 NS_IMETHODIMP
-calRecurrenceDate::GetIsNegative(PRBool *_retval)
+calRecurrenceDate::GetIsNegative(bool *_retval)
 {
     NS_ENSURE_ARG_POINTER(_retval);
 
@@ -112,7 +112,7 @@ calRecurrenceDate::GetIsNegative(PRBool *_retval)
 }
 
 NS_IMETHODIMP
-calRecurrenceDate::SetIsNegative(PRBool aIsNegative)
+calRecurrenceDate::SetIsNegative(bool aIsNegative)
 {
     if (mImmutable)
         return NS_ERROR_FAILURE; // XXX CAL_ERROR_ITEM_IS_IMMUTABLE
@@ -123,7 +123,7 @@ calRecurrenceDate::SetIsNegative(PRBool aIsNegative)
 
 /* readonly attribute boolean isFinite; */
 NS_IMETHODIMP
-calRecurrenceDate::GetIsFinite(PRBool *_retval)
+calRecurrenceDate::GetIsFinite(bool *_retval)
 {
     NS_ENSURE_ARG_POINTER(_retval);
     *_retval = PR_TRUE;

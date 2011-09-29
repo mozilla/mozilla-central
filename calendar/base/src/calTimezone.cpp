@@ -44,14 +44,14 @@ CAL_ISUPPORTS_ATTR_GETTER(calTimezone, calIIcalComponent, IcalComponent)
 CAL_STRINGTYPE_ATTR_GETTER(calTimezone, nsACString, Tzid)
 
 NS_IMETHODIMP
-calTimezone::GetIsFloating(PRBool * _retval) {
+calTimezone::GetIsFloating(bool * _retval) {
     NS_ENSURE_ARG_POINTER(_retval);
     *_retval = PR_FALSE;
     return NS_OK;
 }
 
 NS_IMETHODIMP
-calTimezone::GetIsUTC(PRBool * _retval) {
+calTimezone::GetIsUTC(bool * _retval) {
     NS_ENSURE_ARG_POINTER(_retval);
     *_retval = PR_FALSE;
     return NS_OK;

@@ -125,19 +125,19 @@ MimeDefClass(MimeMultipartAlternative, MimeMultipartAlternativeClass,
 
 static int MimeMultipartAlternative_initialize (MimeObject *);
 static void MimeMultipartAlternative_finalize (MimeObject *);
-static int MimeMultipartAlternative_parse_eof (MimeObject *, PRBool);
+static int MimeMultipartAlternative_parse_eof (MimeObject *, bool);
 static int MimeMultipartAlternative_create_child(MimeObject *);
 static int MimeMultipartAlternative_parse_child_line (MimeObject *, const char *,
-                            PRInt32, PRBool);
+                            PRInt32, bool);
 static int MimeMultipartAlternative_close_child(MimeObject *);
 
-static int MimeMultipartAlternative_flush_children(MimeObject *, PRBool, PRBool);
-static PRBool MimeMultipartAlternative_display_part_p(MimeObject *self,
+static int MimeMultipartAlternative_flush_children(MimeObject *, bool, bool);
+static bool MimeMultipartAlternative_display_part_p(MimeObject *self,
                              MimeHeaders *sub_hdrs);
 static int MimeMultipartAlternative_display_cached_part(MimeObject *,
                                                         MimeHeaders *,
                                                         MimePartBufferData *,
-                                                        PRBool);
+                                                        bool);
 
 static int
 MimeMultipartAlternativeClassInitialize(MimeMultipartAlternativeClass *clazz)
@@ -196,8 +196,8 @@ MimeMultipartAlternative_finalize (MimeObject *obj)
 
 static int
 MimeMultipartAlternative_flush_children(MimeObject *obj,
-                                        PRBool finished,
-                                        PRBool next_is_displayable)
+                                        bool finished,
+                                        bool next_is_displayable)
 {
   /*
     Possible states:
@@ -223,7 +223,7 @@ MimeMultipartAlternative_flush_children(MimeObject *obj,
        create it with output off.
   */
   MimeMultipartAlternative *malt = (MimeMultipartAlternative *) obj;
-  PRBool have_displayable, do_flush, do_display, in_attach;
+  bool have_displayable, do_flush, do_display, in_attach;
 
   /* Case 1 */
   if (! malt->pending_parts)
@@ -278,7 +278,7 @@ MimeMultipartAlternative_flush_children(MimeObject *obj,
 }
 
 static int
-MimeMultipartAlternative_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeMultipartAlternative_parse_eof (MimeObject *obj, bool abort_p)
 {
   int status = 0;
 
@@ -304,7 +304,7 @@ MimeMultipartAlternative_create_child(MimeObject *obj)
   MimeMultipart *mult = (MimeMultipart *) obj;
   MimeMultipartAlternative *malt = (MimeMultipartAlternative *) obj;
 
-  PRBool displayable =
+  bool displayable =
     MimeMultipartAlternative_display_part_p (obj, mult->hdrs);
 
   MimeMultipartAlternative_flush_children(obj, PR_FALSE, displayable);
@@ -338,7 +338,7 @@ MimeMultipartAlternative_create_child(MimeObject *obj)
 static int
 MimeMultipartAlternative_parse_child_line (MimeObject *obj,
                        const char *line, PRInt32 length,
-                       PRBool first_line_p)
+                       bool first_line_p)
 {
   MimeMultipartAlternative *malt = (MimeMultipartAlternative *) obj;
 
@@ -375,7 +375,7 @@ MimeMultipartAlternative_close_child(MimeObject *obj)
 }
 
 
-static PRBool
+static bool
 MimeMultipartAlternative_display_part_p(MimeObject *self,
                     MimeHeaders *sub_hdrs)
 {
@@ -397,7 +397,7 @@ MimeMultipartAlternative_display_part_p(MimeObject *self,
 
   // prefer_plaintext pref
   nsIPrefBranch *prefBranch = GetPrefBranch(self->options);
-  PRBool prefer_plaintext = PR_FALSE;
+  bool prefer_plaintext = false;
   if (prefBranch)
     prefBranch->GetBoolPref("mailnews.display.prefer_plaintext",
                             &prefer_plaintext);
@@ -413,7 +413,7 @@ MimeMultipartAlternative_display_part_p(MimeObject *self,
   }
 
   MimeObjectClass *clazz = mime_find_class (ct, sub_hdrs, self->options, PR_TRUE);
-  PRBool result = (clazz
+  bool result = (clazz
           ? clazz->displayable_inline_p(clazz, sub_hdrs)
           : PR_FALSE);
   PR_FREEIF(ct);
@@ -424,7 +424,7 @@ static int
 MimeMultipartAlternative_display_cached_part(MimeObject *obj,
                                              MimeHeaders *hdrs,
                                              MimePartBufferData *buffer,
-                                             PRBool do_display)
+                                             bool do_display)
 {
   int status;
 
@@ -480,8 +480,8 @@ MimeMultipartAlternative_display_cached_part(MimeObject *obj,
      However, we still have to call decompose_file_init_fn and decompose_file_close_fn
      in order to set the correct content-type. But don't call MimePartBufferRead
   */
-  PRBool multipartRelatedChild = mime_typep(obj->parent,(MimeObjectClass*)&mimeMultipartRelatedClass);
-  PRBool decomposeFile = do_display && obj->options &&
+  bool multipartRelatedChild = mime_typep(obj->parent,(MimeObjectClass*)&mimeMultipartRelatedClass);
+  bool decomposeFile = do_display && obj->options &&
                   obj->options->decompose_file_p &&
                   obj->options->decompose_file_init_fn &&
                   !mime_typep(body, (MimeObjectClass *) &mimeMultipartClass);

@@ -68,13 +68,13 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
  * We could have made these private functions of nsMsgHeaderParser if we wanted...
  */
 static int msg_parse_Header_addresses(const char *line, char **names, char **addresses,
-                                      PRBool quote_names_p = PR_TRUE, PRBool quote_addrs_p = PR_TRUE,
-                                      PRBool first_only_p = PR_FALSE);
-static int msg_quote_phrase_or_addr(char *address, PRInt32 length, PRBool addr_p);
-static nsresult msg_unquote_phrase_or_addr(const char *line, PRBool strict, char **lineout);
+                                      bool quote_names_p = true, bool quote_addrs_p = true,
+                                      bool first_only_p = false);
+static int msg_quote_phrase_or_addr(char *address, PRInt32 length, bool addr_p);
+static nsresult msg_unquote_phrase_or_addr(const char *line, bool strict, char **lineout);
 #if 0
 static char *msg_format_Header_addresses(const char *addrs, int count,
-                                         PRBool wrap_lines_p);
+                                         bool wrap_lines_p);
 #endif
 static char *msg_reformat_Header_addresses(const char *line);
 
@@ -239,13 +239,13 @@ nsMsgHeaderParser::MakeFullAddress(const nsAString &aName,
   return NS_OK;
 }
 
-nsresult nsMsgHeaderParser::UnquotePhraseOrAddr (const char *line, PRBool preserveIntegrity, char** result)
+nsresult nsMsgHeaderParser::UnquotePhraseOrAddr (const char *line, bool preserveIntegrity, char** result)
 {
   NS_ENSURE_ARG_POINTER(result);
   return msg_unquote_phrase_or_addr(line, preserveIntegrity, result);
 }
 
-nsresult nsMsgHeaderParser::UnquotePhraseOrAddrWString (const PRUnichar *line, PRBool preserveIntegrity, PRUnichar ** result)
+nsresult nsMsgHeaderParser::UnquotePhraseOrAddrWString (const PRUnichar *line, bool preserveIntegrity, PRUnichar ** result)
 {
   nsCString utf8Str;
   nsresult rv = msg_unquote_phrase_or_addr(NS_ConvertUTF16toUTF8(line).get(), preserveIntegrity, getter_Copies(utf8Str));
@@ -263,7 +263,7 @@ nsresult nsMsgHeaderParser::ReformatUnquotedAddresses (const PRUnichar *line, PR
 {
   NS_ENSURE_ARG_POINTER(result);
   *result = nsnull;
-  PRBool badInput = PR_FALSE;
+  bool badInput = false;
 
   NS_ConvertUTF16toUTF8 convertedLine(line);
 
@@ -280,8 +280,8 @@ nsresult nsMsgHeaderParser::ReformatUnquotedAddresses (const PRUnichar *line, PR
 
   const char *startRecipient = readPtr;
   char* reformated;
-  PRBool openQuoteLevel1 = PR_FALSE;
-  PRBool openQuoteLevel2 = PR_FALSE;
+  bool openQuoteLevel1 = false;
+  bool openQuoteLevel2 = false;
 
   while (readPtr <= endPtr && writePtr < endOutputPtr && !badInput)
   {
@@ -405,7 +405,7 @@ nsresult NS_NewHeaderParser(nsIMsgHeaderParser ** aInstancePtrResult)
  * returned; we don't bother parsing the rest.
  */
 static int msg_parse_Header_addresses (const char *line, char **names, char **addresses,
-                PRBool quote_names_p, PRBool quote_addrs_p, PRBool first_only_p)
+                bool quote_names_p, bool quote_addrs_p, bool first_only_p)
 {
   PRUint32 addr_count = 0;
   size_t line_length;
@@ -454,7 +454,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
     const char *oparen = 0;
     const char *mailbox_start = 0;
     const char *mailbox_end = 0;
-    PRBool in_group = PR_FALSE;
+    bool in_group = false;
 
     while (*line_end &&
            // comma is ok inside () and <>
@@ -820,14 +820,14 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
  * be (N*2)+2.
  */
 static int
-msg_quote_phrase_or_addr(char *address, PRInt32 length, PRBool addr_p)
+msg_quote_phrase_or_addr(char *address, PRInt32 length, bool addr_p)
 {
   int quotable_count = 0, in_quote = 0;
   int unquotable_count = 0;
   PRInt32 new_length, full_length = length;
   char *in, *out, *orig_out, *atsign = NULL, *orig_address = address;
-  PRBool user_quote = PR_FALSE;
-  PRBool quote_all = PR_FALSE;
+  bool user_quote = false;
+  bool quote_all = false;
 
   /* If the entire address is quoted, fall out now. */
   if (address[0] == '\"' && address[length - 1] == '\"')
@@ -1008,7 +1008,7 @@ msg_quote_phrase_or_addr(char *address, PRInt32 length, PRBool addr_p)
  * string.
  */
 static nsresult
-msg_unquote_phrase_or_addr(const char *line, PRBool preserveIntegrity, char **lineout)
+msg_unquote_phrase_or_addr(const char *line, bool preserveIntegrity, char **lineout)
 {
   if (!line || !lineout)
     return NS_OK;
@@ -1073,7 +1073,7 @@ msg_unquote_phrase_or_addr(const char *line, PRBool preserveIntegrity, char **li
 
   const char *lineptr = line + 1;
   char *outptr = *lineout;
-  PRBool escaped = PR_FALSE;
+  bool escaped = false;
 
   while (*lineptr)
   {
@@ -1274,7 +1274,7 @@ nsMsgHeaderParser::ExtractHeaderAddressName(const nsACString &aLine,
  */
 static char *
 msg_format_Header_addresses (const char *names, const char *addrs,
-               int count, PRBool wrap_lines_p)
+               int count, bool wrap_lines_p)
 {
   char *result, *out;
   const char *s1, *s2;
@@ -1470,7 +1470,7 @@ msg_remove_duplicate_addresses(const nsACString &addrs,
    */
   for (i = 0; i < count1; i++)
   {
-    PRBool found = PR_FALSE;
+    bool found = false;
     for (j = 0; j < count2; j++)
       if (!PL_strcasecmp (a_array1[i], a_array2[j]))
       {

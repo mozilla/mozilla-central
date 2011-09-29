@@ -221,9 +221,9 @@ nsMsgFilter::~nsMsgFilter()
 NS_IMPL_ISUPPORTS1(nsMsgFilter, nsIMsgFilter)
 
 NS_IMPL_GETSET(nsMsgFilter, FilterType, nsMsgFilterTypeType, m_type)
-NS_IMPL_GETSET(nsMsgFilter, Enabled, PRBool, m_enabled)
-NS_IMPL_GETSET(nsMsgFilter, Temporary, PRBool, m_temporary)
-NS_IMPL_GETSET(nsMsgFilter, Unparseable, PRBool, m_unparseable)
+NS_IMPL_GETSET(nsMsgFilter, Enabled, bool, m_enabled)
+NS_IMPL_GETSET(nsMsgFilter, Temporary, bool, m_temporary)
+NS_IMPL_GETSET(nsMsgFilter, Unparseable, bool, m_unparseable)
 
 NS_IMETHODIMP nsMsgFilter::GetFilterName(nsAString &name)
 {
@@ -265,7 +265,7 @@ NS_IMETHODIMP nsMsgFilter::AddTerm(
                                    nsMsgSearchAttribValue attrib,    /* attribute for this term          */
                                    nsMsgSearchOpValue op,         /* operator e.g. opContains           */
                                    nsIMsgSearchValue *value,        /* value e.g. "Dogbert"               */
-                                  PRBool BooleanAND,       /* PR_TRUE if AND is the boolean operator.
+                                  bool BooleanAND,       /* true if AND is the boolean operator.
                                                             PR_FALSE if OR is the boolean operators */
                                   const nsACString & arbitraryHeader)  /* arbitrary header specified by user.
                                   ignored unless attrib = attribOtherHeader */
@@ -428,7 +428,7 @@ NS_IMETHODIMP nsMsgFilter::GetTerm(PRInt32 termIndex,
                                    nsMsgSearchAttribValue *attrib,    /* attribute for this term          */
                                    nsMsgSearchOpValue *op,         /* operator e.g. opContains           */
                                    nsIMsgSearchValue **value,         /* value e.g. "Dogbert"               */
-                                   PRBool *booleanAnd, /* PR_TRUE if AND is the boolean operator. PR_FALSE if OR is the boolean operator */
+                                   bool *booleanAnd, /* true if AND is the boolean operator. false if OR is the boolean operator */
                                    nsACString &arbitraryHeader) /* arbitrary header specified by user.ignore unless attrib = attribOtherHeader */
 {
   nsresult rv;
@@ -629,7 +629,7 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
 NS_IMETHODIMP
 nsMsgFilter::MatchHdr(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder,
                       nsIMsgDatabase *db, const char *headers,
-                      PRUint32 headersSize, PRBool *pResult)
+                      PRUint32 headersSize, bool *pResult)
 {
   NS_ENSURE_ARG_POINTER(folder);
   NS_ENSURE_ARG_POINTER(msgHdr);

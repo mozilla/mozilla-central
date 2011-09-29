@@ -64,7 +64,7 @@ static char *SMimeGetStringByID(PRInt32 aMsgId)
 }
 
 static int MimeInlineTextSMIMEStub_parse_line (const char *, PRInt32, MimeObject *);
-static int MimeInlineTextSMIMEStub_parse_eof (MimeObject *, PRBool);
+static int MimeInlineTextSMIMEStub_parse_eof (MimeObject *, bool);
 static int MimeInlineTextSMIMEStub_parse_begin (MimeObject *obj);
 
  /* This is the object definition. Note: we will set the superclass
@@ -152,7 +152,7 @@ MimeInlineTextSMIMEStub_parse_line(const char *line, PRInt32 length, MimeObject 
 }
 
 static int
-MimeInlineTextSMIMEStub_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeInlineTextSMIMEStub_parse_eof (MimeObject *obj, bool abort_p)
 {
   if (obj->closed_p)
     return 0;

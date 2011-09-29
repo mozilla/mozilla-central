@@ -75,7 +75,7 @@
 
 #define AD_WORKING_BUFF_SIZE                  8192
 
-extern void         MacGetFileType(nsILocalFile *fs, PRBool *useDefault, char **type, char **encoding);
+extern void         MacGetFileType(nsILocalFile *fs, bool *useDefault, char **type, char **encoding);
 
 #include "nsILocalFileMac.h"
 
@@ -109,7 +109,7 @@ nsresult nsSimpleZipper::AddToZip(nsIZipWriter *aZipWriter,
   nsCString currentPath(aPath);
   currentPath += leafName;
     
-  PRBool isDirectory;
+  bool isDirectory;
   aFile->IsDirectory(&isDirectory);
   // append slash for a directory entry
   if (isDirectory)
@@ -297,8 +297,8 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
 {
   nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
 
-  PRBool needsB64 = PR_FALSE;
-  PRBool forceB64 = PR_FALSE;
+  bool needsB64 = false;
+  bool forceB64 = false;
 
   if (m_already_encoded_p)
     goto DONE;
@@ -326,8 +326,8 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
   the document.
      */
 
-    PRBool encode_p;
-    PRBool force_p = PR_FALSE;
+    bool encode_p;
+    bool force_p = false;
 
     /*
       force quoted-printable if the sender does not allow
@@ -521,8 +521,8 @@ nsMsgAttachmentHandler::PickCharset()
     nsCOMPtr<nsIInputStream> inputFile;
     nsCOMPtr<nsILineInputStream> lineInputStream;
     nsCAutoString buffer;
-    PRBool isMore = PR_TRUE;
-    PRBool dontFeed = PR_FALSE;
+    bool isMore = true;
+    bool dontFeed = false;
     nsCOMPtr<CharsetDetectionObserver> obs = new CharsetDetectionObserver(this);
     nsresult rv;
 
@@ -701,7 +701,7 @@ done:
 }
 
 #ifdef XP_MACOSX
-PRBool nsMsgAttachmentHandler::HasResourceFork(FSRef *fsRef)
+bool nsMsgAttachmentHandler::HasResourceFork(FSRef *fsRef)
 {
   FSCatalogInfo catalogInfo;
   OSErr err = FSGetCatalogInfo(fsRef, kFSCatInfoDataSizes + kFSCatInfoRsrcSizes, &catalogInfo, nsnull, nsnull, nsnull);
@@ -765,7 +765,7 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
     // check if it is a bundle. if it is, we'll zip it. 
     // if not, we'll apple encode it (applesingle or appledouble)
     nsCOMPtr<nsILocalFileMac> macFile(do_QueryInterface(sourceFile));
-    PRBool isPackage;
+    bool isPackage;
     macFile->IsPackage(&isPackage);
     if (isPackage)
       rv = ConvertToZipFile(macFile);
@@ -851,7 +851,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
 
   FSRef fsRef;
   aSourceFile->GetFSRef(&fsRef);
-  PRBool sendResourceFork = HasResourceFork(&fsRef);
+  bool sendResourceFork = HasResourceFork(&fsRef);
 
   // if we have a resource fork, check the filename extension, maybe we don't need the resource fork!
   if (sendResourceFork)
@@ -1013,7 +1013,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
       printf("...we could ask the user about this conversion, but for now, nahh..\n");
     }
 
-    PRBool    useDefault;
+    bool      useDefault;
     char      *macType, *macEncoding;
     if (m_type.IsEmpty() || m_type.LowerCaseEqualsLiteral(TEXT_PLAIN))
     {
@@ -1034,7 +1034,7 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
 #endif // XP_MACOSX
 
 nsresult
-nsMsgAttachmentHandler::LoadDataFromFile(nsILocalFile *file, nsString &sigData, PRBool charsetConversion)
+nsMsgAttachmentHandler::LoadDataFromFile(nsILocalFile *file, nsString &sigData, bool charsetConversion)
 {
   PRInt32       readSize;
   char          *readBuf;
@@ -1135,7 +1135,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     // At this point, we should probably ask a question to the user
     // if we should continue without this attachment.
     //
-    PRBool            keepOnGoing = PR_TRUE;
+    bool              keepOnGoing = true;
     nsCString    turl;
     nsString     msg;
     PRUnichar         *printfString = nsnull;
@@ -1265,7 +1265,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
 
   m_mime_delivery_state->SetPendingAttachmentCount(pendingAttachmentCount - 1);
 
-  PRBool processAttachmentsSynchronously = PR_FALSE;
+  bool processAttachmentsSynchronously = false;
   m_mime_delivery_state->GetProcessAttachmentsSynchronously(&processAttachmentsSynchronously);
   if (NS_SUCCEEDED(status) && processAttachmentsSynchronously)
   {

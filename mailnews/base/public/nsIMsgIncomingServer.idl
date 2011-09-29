@@ -570,12 +570,12 @@ _class::Set##_postfix(const nsACString& chvalue) \
 
 #define NS_IMPL_SERVERPREF_BOOL(_class, _postfix, _prefname)\
 NS_IMETHODIMP                                               \
-_class::Get##_postfix(PRBool *retval)                       \
+_class::Get##_postfix(bool *retval)                         \
 {                                                           \
   return GetBoolValue(_prefname, retval);                   \
 }                                                           \
 NS_IMETHODIMP                                               \
-_class::Set##_postfix(PRBool bvalue)                        \
+_class::Set##_postfix(bool bvalue)                          \
 {                                                           \
   return SetBoolValue(_prefname, bvalue);                   \
 }

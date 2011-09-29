@@ -68,7 +68,7 @@ public:
   NS_DECL_NSIIMAPURL
 
   // nsIMsgMailNewsUrl overrides
-  NS_IMETHOD IsUrlType(PRUint32 type, PRBool *isType);
+  NS_IMETHOD IsUrlType(PRUint32 type, bool *isType);
   NS_IMETHOD GetFolder(nsIMsgFolder **aFolder);
   NS_IMETHOD SetFolder(nsIMsgFolder *aFolder);
   // nsIMsgMessageUrl
@@ -115,20 +115,20 @@ protected:
   nsCString     m_customAddFlags;       // these two are for setting and clearing custom flags
   nsCString     m_customSubtractFlags;
   PRInt32       m_numBytesToFetch; // when doing a msg body preview, how many bytes to read
-  PRPackedBool m_validUrl;
-  PRPackedBool m_runningUrl;
-  PRPackedBool m_idsAreUids;
-  PRPackedBool m_mimePartSelectorDetected;
-  PRPackedBool m_allowContentChange;  // if PR_FALSE, we can't use Mime parts on demand
-  PRPackedBool m_fetchPartsOnDemand; // if PR_TRUE, we should fetch leave parts on server.
-  PRPackedBool m_msgLoadingFromCache; // if PR_TRUE, we might need to mark read on server
-  PRPackedBool m_externalLinkUrl; // if PR_TRUE, we're running this url because the user
+  bool m_validUrl;
+  bool m_runningUrl;
+  bool m_idsAreUids;
+  bool m_mimePartSelectorDetected;
+  bool m_allowContentChange;  // if false, we can't use Mime parts on demand
+  bool m_fetchPartsOnDemand; // if true, we should fetch leave parts on server.
+  bool m_msgLoadingFromCache; // if true, we might need to mark read on server
+  bool m_externalLinkUrl; // if true, we're running this url because the user
   // True if the fetch results should be put in the offline store.
-  PRPackedBool m_storeResultsOffline;
-  PRPackedBool m_storeOfflineOnFallback;
-  PRPackedBool m_localFetchOnly;
-  PRPackedBool m_rerunningUrl; // first attempt running this failed with connection error; retrying
-  PRPackedBool m_moreHeadersToDownload;
+  bool m_storeResultsOffline;
+  bool m_storeOfflineOnFallback;
+  bool m_localFetchOnly;
+  bool m_rerunningUrl; // first attempt running this failed with connection error; retrying
+  bool m_moreHeadersToDownload;
   nsImapContentModifiedType  m_contentModified;
 
   PRInt32    m_extraStatus;
@@ -152,8 +152,8 @@ protected:
 
   // used by save message to disk
   nsCOMPtr<nsIFile> m_messageFile;
-  PRBool                m_addDummyEnvelope;
-  PRBool                m_canonicalLineEnding; // CRLF
+  bool                  m_addDummyEnvelope;
+  bool                  m_canonicalLineEnding; // CRLF
 
   nsCString mURI; // the RDF URI associated with this url.
   nsCString mCharsetOverride; // used by nsIMsgI18NUrl...

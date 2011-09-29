@@ -80,7 +80,7 @@ static const char * kLocaleColumnName = "locale";
 #define kMAILNEWS_VIEW_DEFAULT_CHARSET        "mailnews.view_default_charset"
 #define kMAILNEWS_DEFAULT_CHARSET_OVERRIDE    "mailnews.force_charset_override"
 static nsCString* gDefaultCharacterSet = nsnull;
-static PRBool     gDefaultCharacterOverride;
+static bool       gDefaultCharacterOverride;
 static nsIObserver *gFolderCharsetObserver = nsnull;
 
 // observer for charset related preference notification
@@ -436,7 +436,7 @@ NS_IMETHODIMP nsDBFolderInfo::GetVersion(PRUint32 *version)
 }
 
 
-nsresult nsDBFolderInfo::AdjustHighWater(nsMsgKey highWater, PRBool force)
+nsresult nsDBFolderInfo::AdjustHighWater(nsMsgKey highWater, bool force)
 {
   if (force || m_highWaterMessageKey < highWater)
   {
@@ -497,7 +497,7 @@ NS_IMETHODIMP nsDBFolderInfo::GetHighWater(nsMsgKey *result)
     nsresult rv = m_mdb->ReverseEnumerateMessages(getter_AddRefs(hdrs));
     if (NS_FAILED(rv))
       return rv;
-    PRBool hasMore = PR_FALSE;
+    bool hasMore = false;
     nsCOMPtr<nsIMsgDBHdr> pHeader;
     nsMsgKey recalculatedHighWater = 1;
     PRInt32 i = 0;
@@ -660,7 +660,7 @@ NS_IMETHODIMP nsDBFolderInfo::SetImapUidValidity(PRInt32 uidValidity)
   return SetUint32PropertyWithToken(m_imapUidValidityColumnToken, m_ImapUidValidity);
 }
 
-PRBool nsDBFolderInfo::TestFlag(PRInt32 flags)
+bool nsDBFolderInfo::TestFlag(PRInt32 flags)
 {
   return (m_flags & flags) != 0;
 }
@@ -695,14 +695,14 @@ NS_IMETHODIMP nsDBFolderInfo::SetCharacterSet(const nsACString &charSet)
   return SetCharProperty(kCharacterSetColumnName, charSet);
 }
 
-NS_IMETHODIMP nsDBFolderInfo::GetCharacterSetOverride(PRBool *characterSetOverride)
+NS_IMETHODIMP nsDBFolderInfo::GetCharacterSetOverride(bool *characterSetOverride)
 {
   NS_ENSURE_ARG_POINTER(characterSetOverride);
   *characterSetOverride = m_charSetOverride;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsDBFolderInfo::SetCharacterSetOverride(PRBool characterSetOverride)
+NS_IMETHODIMP nsDBFolderInfo::SetCharacterSetOverride(bool characterSetOverride)
 {
   m_charSetOverride = characterSetOverride;
   return SetUint32Property(kCharacterSetOverrideColumnName, characterSetOverride);
@@ -917,7 +917,7 @@ nsresult nsDBFolderInfo::GetUint64PropertyWithToken(mdb_token columnToken,
   return m_mdb->RowCellColumnToUInt64(m_mdbRow, columnToken, propertyValue, 0);
 }
 
-NS_IMETHODIMP nsDBFolderInfo::GetBooleanProperty(const char *propertyName, PRBool defaultValue, PRBool *propertyValue)
+NS_IMETHODIMP nsDBFolderInfo::GetBooleanProperty(const char *propertyName, bool defaultValue, bool *propertyValue)
 {
   PRUint32 defaultUint32Value = (defaultValue) ? 1 : 0;
   PRUint32 returnValue;
@@ -925,7 +925,7 @@ NS_IMETHODIMP nsDBFolderInfo::GetBooleanProperty(const char *propertyName, PRBoo
   *propertyValue = (returnValue != 0);
   return rv;
 }
-NS_IMETHODIMP	nsDBFolderInfo::SetBooleanProperty(const char *propertyName, PRBool propertyValue)
+NS_IMETHODIMP	nsDBFolderInfo::SetBooleanProperty(const char *propertyName, bool propertyValue)
 {
   return m_mdb->SetUint32Property(m_mdbRow, propertyName, propertyValue ? 1 : 0);
 }

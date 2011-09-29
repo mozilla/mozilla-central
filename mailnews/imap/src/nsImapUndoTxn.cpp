@@ -60,7 +60,7 @@ nsImapMoveCopyMsgTxn::nsImapMoveCopyMsgTxn() :
 nsresult
 nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray, 
                            const char* srcMsgIdString, nsIMsgFolder* dstFolder,
-                           PRBool idsAreUids, PRBool isMove,
+                           bool idsAreUids, bool isMove,
                            nsIEventTarget* eventTarget)
 {
   nsresult rv;
@@ -134,7 +134,7 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
   nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool finishInOnStopRunningUrl = PR_FALSE;
+  bool finishInOnStopRunningUrl = false;
 
   if (m_isMove || !m_dstFolder)
   {
@@ -159,7 +159,7 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
         srcListener, nsnull, nsnull);
       if (NS_FAILED(rv)) 
         return rv;
-      PRBool deletedMsgs = PR_TRUE; //default is true unless imapDelete model
+      bool deletedMsgs = true; //default is true unless imapDelete model
       nsMsgImapDeleteModel deleteModel;
       rv = GetImapDeleteModel(srcFolder, &deleteModel);
 
@@ -242,7 +242,7 @@ nsImapMoveCopyMsgTxn::RedoTransaction(void)
       nsCOMPtr<nsIUrlListener> srcListener = do_QueryInterface(srcFolder, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      PRBool deletedMsgs = PR_FALSE;  //default will be false unless imapDeleteModel;
+      bool deletedMsgs = false;  //default will be false unless imapDeleteModel;
       nsMsgImapDeleteModel deleteModel;
       rv = GetImapDeleteModel(srcFolder, &deleteModel);
       
@@ -531,7 +531,7 @@ NS_IMETHODIMP nsImapMoveCopyMsgTxn::OnStopRunningUrl(nsIURI *aUrl, nsresult aExi
 
 nsImapOfflineTxn::nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
                                    const char *srcMsgIdString, nsIMsgFolder* dstFolder,
-                                   PRBool isMove, nsOfflineImapOperationType opType,
+                                   bool isMove, nsOfflineImapOperationType opType,
                                    nsIMsgDBHdr *srcHdr,
                                    nsIEventTarget* eventTarget)
 {
@@ -601,7 +601,7 @@ NS_IMETHODIMP nsImapOfflineTxn::UndoTransaction(void)
     case nsIMsgOfflineImapOperation::kFlagsChanged:
     {
       rv = srcDB->GetOfflineOpForKey(hdrKey, PR_FALSE, getter_AddRefs(op));
-      PRBool offlineOpPlayedBack = PR_TRUE;
+      bool offlineOpPlayedBack = true;
       if (NS_SUCCEEDED(rv) && op)
       {
         op->GetPlayingBack(&offlineOpPlayedBack);

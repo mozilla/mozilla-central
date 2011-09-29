@@ -49,7 +49,7 @@ public:
   virtual ~nsMsgSearchOnlineMail ();
 
   NS_IMETHOD ValidateTerms ();
-  NS_IMETHOD Search (PRBool *aDone);
+  NS_IMETHOD Search (bool *aDone);
   NS_IMETHOD GetEncoding (char **result);
   NS_IMETHOD AddResultElement (nsIMsgDBHdr *);
 

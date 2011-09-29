@@ -82,7 +82,7 @@ public:
   virtual ~nsNntpService();
 
 protected:
-  PRBool WeAreOffline();
+  bool WeAreOffline();
 
   nsresult GetNntpServerByAccount(const char *aAccountKey, nsIMsgIncomingServer **aNntpServer);
   nsresult SetUpNntpUrlForPosting(const char *aAccountKey, char **newsUrlSpec);
@@ -93,17 +93,17 @@ protected:
   nsresult GetMessageFromUrl(nsIURI *aUrl, nsIMsgWindow *aMsgWindow, nsISupports *aDisplayConsumer);
   // a convience routine used to put together news urls
   nsresult ConstructNntpUrl(const char * urlString, nsIUrlListener *aUrlListener,  nsIMsgWindow * aMsgWindow, const char *originalMessageUri, PRInt32 action, nsIURI ** aUrl);
-  nsresult CreateNewsAccount(const char *aHostname, PRBool aIsSecure, PRInt32 aPort, nsIMsgIncomingServer **aServer);
+  nsresult CreateNewsAccount(const char *aHostname, bool aIsSecure, PRInt32 aPort, nsIMsgIncomingServer **aServer);
   nsresult GetServerForUri(nsIURI *aUri, nsINntpIncomingServer **aProtocol);
   // a convience routine to run news urls
   nsresult RunNewsUrl (nsIURI * aUrl, nsIMsgWindow *aMsgWindow, nsISupports * aConsumer);
   // a convience routine to go from folder uri to msg folder
   nsresult GetFolderFromUri(const char *uri, nsIMsgFolder **folder);
-  static PRBool findNewsServerWithGroup(nsISupports *aElement, void *data);
+  static bool findNewsServerWithGroup(nsISupports *aElement, void *data);
   nsresult DecomposeNewsMessageURI(const char * aMessageURI, nsIMsgFolder ** aFolder, nsMsgKey *aMsgKey);
 
-  PRBool            mPrintingOperation; // Flag for printing operations
-  PRBool      mOpenAttachmentOperation; // Flag for opening attachments
+  bool              mPrintingOperation; // Flag for printing operations
+  bool        mOpenAttachmentOperation; // Flag for opening attachments
 
   nsCOMPtr<nsICacheSession> mCacheSession; // the cache session used by news
 };

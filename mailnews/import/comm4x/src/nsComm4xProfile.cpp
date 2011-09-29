@@ -196,7 +196,7 @@ nsComm4xProfile::GetMailDir(const PRUnichar *aProfile, PRUnichar **_retval)
         profileLocation = do_QueryInterface(file);
         rv = profileLocation->AppendNative(NS_LITERAL_CSTRING(PREF_FILE_NAME_IN_4x));
         if (NS_FAILED(rv)) return rv;
-        PRBool exists = PR_FALSE;
+        bool exists = false;
         rv = profileLocation->Exists(&exists);
         if (NS_FAILED(rv)) return rv;
         if (exists) {
@@ -244,7 +244,7 @@ cleanup:
 nsresult nsComm4xProfile::GetPrefValue(nsILocalFile *filePath, const char * prefName, const char * prefEnd, PRUnichar ** retval)
 {
    nsString buffer;
-   PRBool more = PR_TRUE;
+   bool more = true;
    nsresult rv;
    nsCOMPtr<nsIFileInputStream> fileStream(do_CreateInstance(NS_LOCALFILEINPUTSTREAM_CONTRACTID, &rv));
    if (NS_FAILED(rv))
@@ -257,7 +257,7 @@ nsresult nsComm4xProfile::GetPrefValue(nsILocalFile *filePath, const char * pref
    if (NS_FAILED(rv)) {
      return rv;
    }
-   PRBool found = PR_FALSE;
+   bool found = false;
    PRInt32 offset;
    PRInt32 endOffset;
    while (!found && more) {

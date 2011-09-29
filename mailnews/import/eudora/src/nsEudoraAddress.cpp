@@ -78,7 +78,7 @@ public:
   CAliasData() {}
   ~CAliasData() {}
 
-  PRBool Process( const char *pLine, PRInt32 len);
+  bool Process( const char *pLine, PRInt32 len);
 
 public:
     nsCString   m_fullEntry;
@@ -117,7 +117,7 @@ nsEudoraAddress::~nsEudoraAddress()
 }
 
 
-nsresult nsEudoraAddress::ImportAddresses( PRUint32 *pBytes, PRBool *pAbort,
+nsresult nsEudoraAddress::ImportAddresses( PRUint32 *pBytes, bool *pAbort,
                                           const PRUnichar *pName, nsIFile *pSrc,
                                           nsIAddrDatabase *pDb, nsString& errors)
 {
@@ -143,7 +143,7 @@ nsresult nsEudoraAddress::ImportAddresses( PRUint32 *pBytes, PRBool *pAbort,
   nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(inputStream, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool more = PR_TRUE;
+  bool more = true;
 
   while ((!(*pAbort) && more && NS_SUCCEEDED( rv)))
   {
@@ -449,7 +449,7 @@ PRInt32 nsEudoraAddress::CountComment( const char *pLine, PRInt32 len)
   nsCString  m_email;
 */
 
-PRBool CAliasData::Process( const char *pLine, PRInt32 len)
+bool CAliasData::Process( const char *pLine, PRInt32 len)
 {
   // Extract any comments first!
   nsCString  str;
@@ -458,7 +458,7 @@ PRBool CAliasData::Process( const char *pLine, PRInt32 len)
   PRInt32    tCnt = 0;
   PRInt32    cnt = 0;
   PRInt32    max = len;
-  PRBool    endCollect = PR_FALSE;
+  bool      endCollect = false;
 
     // Keep track of the full entry without any processing for potential alias
     // nickname resolution. Previously alias resolution was done with m_email,
@@ -612,8 +612,8 @@ CAliasEntry *nsEudoraAddress::ResolveAlias( nsCString& name)
 }
 
 void nsEudoraAddress::ResolveEntries( nsCString& name, nsVoidArray& list,
-                                     nsVoidArray& result, PRBool addResolvedEntries,
-                                     PRBool wasResolved, PRInt32& numResolved)
+                                     nsVoidArray& result, bool addResolvedEntries,
+                                     bool wasResolved, PRInt32& numResolved)
 {
     /* a safe-guard against recursive entries */
     if (result.Count() > m_alias.Count())
@@ -813,8 +813,8 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
   nsCString                   additionalEmail, stillMoreEmail;
   nsCString                   note(pEntry->m_notes);
   nsString                    noteUTF16;
-  PRBool                      isSecondaryMobileWorkNumber = PR_TRUE;
-  PRBool                      isSecondaryFaxWorkNumber = PR_TRUE;
+  bool                        isSecondaryMobileWorkNumber = true;
+  bool                        isSecondaryFaxWorkNumber = true;
 
   if (!note.IsEmpty())
   {

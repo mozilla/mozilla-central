@@ -194,7 +194,7 @@ class nsAutoSyncManager : public nsIObserver,
     nsIAutoSyncState* SearchQForSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
                           nsIAutoSyncState *aAutoSyncStateObj, PRInt32 aStartIdx, PRInt32 *aIndex = nsnull);
     static
-    PRBool DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncState> &aQueue, 
+    bool DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncState> &aQueue, 
                           nsIAutoSyncState *aAutoSyncStateObj, const PRInt32 aState, 
                           PRInt32 *aIndex = nsnull);
     static 
@@ -229,10 +229,10 @@ class nsAutoSyncManager : public nsIObserver,
     UpdateState mUpdateState;
 
     // This is set if auto sync has been completely paused.
-    PRBool mPaused;
+    bool mPaused;
     // This is set if we've finished startup and should start
     // paying attention to idle notifications.
-    PRBool mStartupDone;
+    bool mStartupDone;
 
   private:
     PRUint32 mGroupSize;

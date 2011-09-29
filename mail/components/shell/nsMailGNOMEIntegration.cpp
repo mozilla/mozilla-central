@@ -110,7 +110,7 @@ nsMailGNOMEIntegration::Init()
 
 NS_IMPL_ISUPPORTS1(nsMailGNOMEIntegration, nsIShellService)
 
-PRBool
+bool
 nsMailGNOMEIntegration::GetAppPathFromLauncher()
 {
   gchar *tmp;
@@ -140,7 +140,7 @@ nsMailGNOMEIntegration::GetAppPathFromLauncher()
 }
 
 NS_IMETHODIMP
-nsMailGNOMEIntegration::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRBool * aIsDefaultClient)
+nsMailGNOMEIntegration::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool * aIsDefaultClient)
 {
   *aIsDefaultClient = PR_TRUE;
   if (aApps & nsIShellService::MAIL)
@@ -159,7 +159,7 @@ nsMailGNOMEIntegration::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PR
 }
 
 NS_IMETHODIMP
-nsMailGNOMEIntegration::SetDefaultClient(PRBool aForAllUsers, PRUint16 aApps)
+nsMailGNOMEIntegration::SetDefaultClient(bool aForAllUsers, PRUint16 aApps)
 {
   nsresult rv = NS_OK;
   if (aApps & nsIShellService::MAIL)
@@ -173,7 +173,7 @@ nsMailGNOMEIntegration::SetDefaultClient(PRBool aForAllUsers, PRUint16 aApps)
 }
 
 NS_IMETHODIMP
-nsMailGNOMEIntegration::GetShouldCheckDefaultClient(PRBool* aResult)
+nsMailGNOMEIntegration::GetShouldCheckDefaultClient(bool* aResult)
 {
   if (mCheckedThisSession) 
   {
@@ -186,13 +186,13 @@ nsMailGNOMEIntegration::GetShouldCheckDefaultClient(PRBool* aResult)
 }
 
 NS_IMETHODIMP
-nsMailGNOMEIntegration::SetShouldCheckDefaultClient(PRBool aShouldCheck)
+nsMailGNOMEIntegration::SetShouldCheckDefaultClient(bool aShouldCheck)
 {
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
   return prefs->SetBoolPref("mail.shell.checkDefaultClient", aShouldCheck);
 }
 
-PRBool
+bool
 nsMailGNOMEIntegration::KeyMatchesAppName(const char *aKeyValue) const
 {
   gchar *commandPath;
@@ -212,12 +212,12 @@ nsMailGNOMEIntegration::KeyMatchesAppName(const char *aKeyValue) const
   if (!commandPath)
     return PR_FALSE;
 
-  PRBool matches = mAppPath.Equals(commandPath);
+  bool matches = mAppPath.Equals(commandPath);
   g_free(commandPath);
   return matches;
 }
 
-PRBool
+bool
 nsMailGNOMEIntegration::CheckHandlerMatchesAppName(const nsACString &handler) const
 {
   gint argc;
@@ -234,13 +234,13 @@ nsMailGNOMEIntegration::CheckHandlerMatchesAppName(const nsACString &handler) co
   return KeyMatchesAppName(command.get());
 }
 
-PRBool
+bool
 nsMailGNOMEIntegration::checkDefault(const char* const *aProtocols, unsigned int aLength)
 {
   nsCOMPtr<nsIGConfService> gconf = do_GetService(NS_GCONFSERVICE_CONTRACTID);
   nsCOMPtr<nsIGIOService> giovfs = do_GetService(NS_GIOSERVICE_CONTRACTID);
 
-  PRBool enabled;
+  bool enabled;
   nsCAutoString handler;
   nsresult rv;
 

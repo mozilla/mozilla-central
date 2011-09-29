@@ -52,7 +52,7 @@ nsMsgFileStream::Seek(PRInt32 whence, PRInt64 offset)
   if (mFileDesc == nsnull)
     return NS_BASE_STREAM_CLOSED;
 
-  PRBool seekingToEnd = whence == PR_SEEK_END && offset == 0;
+  bool seekingToEnd = whence == PR_SEEK_END && offset == 0;
   if (seekingToEnd && mSeekedToEnd)
     return NS_OK;
 
@@ -135,7 +135,7 @@ NS_IMETHODIMP nsMsgFileStream::ReadSegments(nsWriteSegmentFun aWriter, void * aC
 }
 
 /* boolean isNonBlocking (); */
-NS_IMETHODIMP nsMsgFileStream::IsNonBlocking(PRBool *aNonBlocking)
+NS_IMETHODIMP nsMsgFileStream::IsNonBlocking(bool *aNonBlocking)
 {
   *aNonBlocking = PR_FALSE;
   return NS_OK;

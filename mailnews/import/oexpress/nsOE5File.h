@@ -48,13 +48,13 @@ class nsOE5File
 {
 public:
     /* pFile must already be open for reading. */
-  static PRBool  VerifyLocalMailFile( nsIFile *pFile);
+  static bool    VerifyLocalMailFile( nsIFile *pFile);
     /* pFile must NOT be open for reading   */
-  static PRBool  IsLocalMailFile( nsIFile *pFile);
+  static bool    IsLocalMailFile( nsIFile *pFile);
 
-  static PRBool  ReadIndex( nsIInputStream *pFile, PRUint32 **ppIndex, PRUint32 *pSize);
+  static bool    ReadIndex( nsIInputStream *pFile, PRUint32 **ppIndex, PRUint32 *pSize);
 
-  static nsresult  ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsString& name, nsIFile *inFile, nsIFile *pDestination, PRUint32 *pCount);
+  static nsresult  ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString& name, nsIFile *inFile, nsIFile *pDestination, PRUint32 *pCount);
 
   static void FileTimeToPRTime(const FILETIME *filetime, PRTime *prtm);
 
@@ -67,11 +67,11 @@ private:
 
   static const char *m_pFromLineSep;
 
-  static PRBool  ReadBytes(nsIInputStream *stream, void *pBuffer, PRUint32 offset, PRUint32 bytes);
+  static bool    ReadBytes(nsIInputStream *stream, void *pBuffer, PRUint32 offset, PRUint32 bytes);
   static PRUint32 ReadMsgIndex(nsIInputStream *file, PRUint32 offset, PRUint32Array *pArray);
   static void  ConvertIndex(nsIInputStream *pFile, char *pBuffer, PRUint32 *pIndex,
                             PRUint32 size, PRUint32 *pFlags, PRUint64 *pTime);
-  static PRBool  IsFromLine(char *pLine, PRUint32 len);
+  static bool    IsFromLine(char *pLine, PRUint32 len);
 
 
 };

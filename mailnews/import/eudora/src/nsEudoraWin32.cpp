@@ -101,15 +101,15 @@ nsEudoraWin32::~nsEudoraWin32()
   delete [] m_pMimeSection;
 }
 
-PRBool nsEudoraWin32::FindMailFolder( nsIFile **pFolder)
+bool nsEudoraWin32::FindMailFolder( nsIFile **pFolder)
 {
   return( FindEudoraLocation( pFolder));
 }
 
-PRBool nsEudoraWin32::FindEudoraLocation( nsIFile **pFolder, PRBool findIni)
+bool nsEudoraWin32::FindEudoraLocation( nsIFile **pFolder, bool findIni)
 {
-  PRBool result = PR_FALSE;
-  PRBool  exists = PR_FALSE;
+  bool result = false;
+  bool    exists = false;
   nsCOMPtr <nsILocalFile> eudoraPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
   // look in the registry to see where eudora is installed?
   HKEY  sKey;
@@ -209,8 +209,8 @@ nsresult nsEudoraWin32::FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArra
 
 nsresult nsEudoraWin32::ScanMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport)
 {
-  PRBool          exists = PR_FALSE;
-  PRBool          isFile = PR_FALSE;
+  bool            exists = false;
+  bool            isFile = false;
   char *          pContents = nsnull;
   PRInt32          len = 0;
   nsCOMPtr<nsIFile>  descMap;
@@ -271,14 +271,14 @@ nsresult nsEudoraWin32::ScanMailDir( nsIFile *pFolder, nsISupportsArray *pArray,
 
 nsresult nsEudoraWin32::IterateMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport)
 {
-  PRBool hasMore;
+  bool hasMore;
   nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
   nsresult rv = pFolder->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
   directoryEnumerator->HasMoreElements(&hasMore);
-  PRBool            isFolder;
-  PRBool            isFile;
+  bool              isFolder;
+  bool              isFile;
   nsCOMPtr<nsIFile> entry;
   nsCString         fName;
   nsCString         ext;
@@ -357,8 +357,8 @@ nsresult nsEudoraWin32::ScanDescmap( nsIFile *pFolder, nsISupportsArray *pArray,
   nsCString    fName;
   nsCString    type;
   nsCString    flag;
-  PRBool       isFile;
-  PRBool       isFolder;
+  bool         isFile;
+  bool         isFolder;
   while (pos < len)
   {
     pStart = pData;
@@ -543,7 +543,7 @@ nsresult nsEudoraWin32::FoundMailFolder( nsIFile *mailFolder, const char *pName,
 }
 
 
-nsresult nsEudoraWin32::FindTOCFile( nsIFile *pMailFile, nsIFile **ppTOCFile, PRBool *pDeleteToc)
+nsresult nsEudoraWin32::FindTOCFile( nsIFile *pMailFile, nsIFile **ppTOCFile, bool *pDeleteToc)
 {
   nsresult    rv;
   nsCAutoString  leaf;
@@ -567,11 +567,11 @@ nsresult nsEudoraWin32::FindTOCFile( nsIFile *pMailFile, nsIFile **ppTOCFile, PR
   if (NS_FAILED( rv))
     return( rv);
 
-  PRBool  exists = PR_FALSE;
+  bool    exists = false;
   rv = (*ppTOCFile)->Exists( &exists);
   if (NS_FAILED( rv))
     return( rv);
-  PRBool  isFile = PR_FALSE;
+  bool    isFile = false;
   rv = (*ppTOCFile)->IsFile( &isFile);
   if (NS_FAILED( rv))
     return( rv);
@@ -582,9 +582,9 @@ nsresult nsEudoraWin32::FindTOCFile( nsIFile *pMailFile, nsIFile **ppTOCFile, PR
 }
 
 
-PRBool nsEudoraWin32::ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMailAccount)
+bool nsEudoraWin32::ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMailAccount)
 {
-  PRBool    result = PR_FALSE;
+  bool      result = false;
   nsresult  rv;
 
   nsCOMPtr<nsIMsgAccountManager> accMgr =
@@ -691,9 +691,9 @@ PRBool nsEudoraWin32::ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMa
   return( accounts != 0);
 }
 
-PRBool nsEudoraWin32::FindFiltersFile( nsIFile **pFiltersFile)
+bool nsEudoraWin32::FindFiltersFile( nsIFile **pFiltersFile)
 {
-  PRBool result = FindEudoraLocation( pFiltersFile, PR_FALSE);
+  bool result = FindEudoraLocation( pFiltersFile, false);
 
   if (result)
   {
@@ -704,7 +704,7 @@ PRBool nsEudoraWin32::FindFiltersFile( nsIFile **pFiltersFile)
   return result;
 }
 
-PRBool nsEudoraWin32::GetMailboxNameHierarchy( const nsACString& pEudoraLocation, const char* pEudoraFilePath, nsCString& nameHierarchy)
+bool nsEudoraWin32::GetMailboxNameHierarchy( const nsACString& pEudoraLocation, const char* pEudoraFilePath, nsCString& nameHierarchy)
 {
   if (pEudoraLocation.IsEmpty() || !pEudoraFilePath || !*pEudoraFilePath)
     return PR_FALSE;
@@ -731,7 +731,7 @@ PRBool nsEudoraWin32::GetMailboxNameHierarchy( const nsACString& pEudoraLocation
   else
     pathLength = strlen(pEudoraFilePath);
 
-  PRBool more = PR_TRUE;
+  bool more = true;
   nsCAutoString buf;
   while (more)
   {
@@ -847,7 +847,7 @@ void nsEudoraWin32::GetAccountName( const char *pSection, nsString& str)
 }
 
 
-PRBool nsEudoraWin32::BuildPOPAccount( nsIMsgAccountManager *accMgr, const char *pSection, const char *pIni, nsIMsgAccount **ppAccount)
+bool nsEudoraWin32::BuildPOPAccount( nsIMsgAccountManager *accMgr, const char *pSection, const char *pIni, nsIMsgAccount **ppAccount)
 {
   if (ppAccount)
     *ppAccount = nsnull;
@@ -861,7 +861,7 @@ PRBool nsEudoraWin32::BuildPOPAccount( nsIMsgAccountManager *accMgr, const char 
   if (serverName.IsEmpty() || userName.IsEmpty())
     return( PR_FALSE);
 
-  PRBool result = PR_FALSE;
+  bool result = false;
 
   // I now have a user name/server name pair, find out if it already exists?
   nsCOMPtr<nsIMsgIncomingServer> in;
@@ -911,7 +911,7 @@ PRBool nsEudoraWin32::BuildPOPAccount( nsIMsgAccountManager *accMgr, const char 
   return( result);
 }
 
-PRBool nsEudoraWin32::BuildIMAPAccount( nsIMsgAccountManager *accMgr, const char *pSection, const char *pIni, nsIMsgAccount **ppAccount)
+bool nsEudoraWin32::BuildIMAPAccount( nsIMsgAccountManager *accMgr, const char *pSection, const char *pIni, nsIMsgAccount **ppAccount)
 {
   char valBuff[kIniValueSize];
   nsCString serverName;
@@ -922,7 +922,7 @@ PRBool nsEudoraWin32::BuildIMAPAccount( nsIMsgAccountManager *accMgr, const char
   if (serverName.IsEmpty() || userName.IsEmpty())
     return( PR_FALSE);
 
-  PRBool result = PR_FALSE;
+  bool result = false;
 
   nsCOMPtr<nsIMsgIncomingServer> in;
   nsresult rv = accMgr->FindServer( userName, serverName, NS_LITERAL_CSTRING("imap"), getter_AddRefs(in));
@@ -1045,8 +1045,8 @@ nsresult nsEudoraWin32::GetAttachmentInfo( const char *pFileName, nsIFile *pFile
   nsCOMPtr <nsILocalFile> pLocalFile = do_QueryInterface(pFile, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   pLocalFile->InitWithNativePath(nsDependentCString(pFileName));
-  PRBool    isFile = PR_FALSE;
-  PRBool    exists = PR_FALSE;
+  bool      isFile = false;
+  bool      exists = false;
   if (NS_FAILED( rv = pFile->Exists( &exists)))
     return( rv);
   if ( exists && NS_FAILED( rv = pFile->IsFile(&isFile) ) )
@@ -1080,7 +1080,7 @@ nsresult nsEudoraWin32::GetAttachmentInfo( const char *pFileName, nsIFile *pFile
 
     // Did we come up with a different path or was the original path already
     // in the current attachment directory?
-    PRBool  isSamePath = PR_TRUE;
+    bool    isSamePath = true;
     rv = altFile->Equals(pFile, &isSamePath);
 
     if (NS_SUCCEEDED(rv) && !isSamePath)
@@ -1134,9 +1134,9 @@ nsresult nsEudoraWin32::GetAttachmentInfo( const char *pFileName, nsIFile *pFile
   return( NS_ERROR_FAILURE);
 }
 
-PRBool nsEudoraWin32::FindMimeIniFile( nsIFile *pFile)
+bool nsEudoraWin32::FindMimeIniFile( nsIFile *pFile)
 {
-  PRBool hasMore;
+  bool hasMore;
   nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
   nsresult rv = pFile->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1145,13 +1145,13 @@ PRBool nsEudoraWin32::FindMimeIniFile( nsIFile *pFile)
   NS_ENSURE_SUCCESS(rv, rv);
 
   directoryEnumerator->HasMoreElements(&hasMore);
-  PRBool            isFile;
+  bool              isFile;
   nsCOMPtr<nsIFile> entry;
   nsCString         fName;
   nsCString         ext;
   nsCString         name;
 
-  PRBool found = PR_FALSE;
+  bool found = false;
 
   while (hasMore && NS_SUCCEEDED(rv))
   {
@@ -1238,8 +1238,8 @@ void nsEudoraWin32::GetMimeTypeFromExtension( nsCString& ext, nsCString& mimeTyp
     pFile->InitWithFile(m_mailImportLocation);
 
     pFile->AppendNative(NS_LITERAL_CSTRING("eudora.ini"));
-    PRBool exists = PR_FALSE;
-    PRBool isFile = PR_FALSE;
+    bool exists = false;
+    bool isFile = false;
     nsresult rv = pFile->Exists( &exists);
     if (NS_SUCCEEDED( rv))
       rv = pFile->IsFile( &isFile);
@@ -1354,7 +1354,7 @@ void nsEudoraWin32::GetMimeTypeFromExtension( nsCString& ext, nsCString& mimeTyp
   }
 }
 
-PRBool nsEudoraWin32::FindAddressFolder( nsIFile **pFolder)
+bool nsEudoraWin32::FindAddressFolder( nsIFile **pFolder)
 {
   IMPORT_LOG0( "*** Looking for Eudora address folder\n");
 
@@ -1386,11 +1386,11 @@ nsresult nsEudoraWin32::FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppA
 
   // First off, get the default nndbase.txt, then scan the default nicknames subdir,
   // then look in the .ini file for additional directories to scan for address books!
-  PRBool exists = PR_FALSE;
-  PRBool isFile = PR_FALSE;
+  bool exists = false;
+  bool isFile = false;
 
   rv = file->AppendNative(NS_LITERAL_CSTRING("nndbase.txt"));
-  PRBool checkedBoth = PR_FALSE;
+  bool checkedBoth = false;
   do
   {
     if (NS_SUCCEEDED(rv))
@@ -1420,7 +1420,7 @@ nsresult nsEudoraWin32::FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppA
   if (NS_FAILED( rv))
     return( rv);
   rv = file->AppendNative(NS_LITERAL_CSTRING("Nickname"));
-  PRBool isDir = PR_FALSE;
+  bool isDir = false;
   exists = PR_FALSE;
   if (NS_SUCCEEDED( rv))
     rv = file->Exists( &exists);
@@ -1516,7 +1516,7 @@ nsresult nsEudoraWin32::FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppA
 
 nsresult nsEudoraWin32::ScanAddressDir( nsIFile *pDir, nsISupportsArray *pArray, nsIImportService *impSvc)
 {
-  PRBool hasMore;
+  bool hasMore;
   nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
   nsresult rv = pDir->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -1525,13 +1525,13 @@ nsresult nsEudoraWin32::ScanAddressDir( nsIFile *pDir, nsISupportsArray *pArray,
   NS_ENSURE_SUCCESS(rv, rv);
 
   directoryEnumerator->HasMoreElements(&hasMore);
-  PRBool            isFile;
+  bool              isFile;
   nsCOMPtr<nsIFile> entry;
   nsCString         fName;
   nsCString         ext;
   nsCString         name;
 
-  PRBool found = PR_FALSE;
+  bool found = false;
 
   while (hasMore && NS_SUCCEEDED(rv))
   {

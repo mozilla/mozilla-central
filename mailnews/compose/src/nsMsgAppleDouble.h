@@ -220,11 +220,11 @@ int ap_encode_next(appledouble_encode_object* p_ap_encode_obj,
 					PRInt32*	real_size);
 
 int ap_encode_end(appledouble_encode_object* p_ap_encode_obj,
-					PRBool	is_aborting);
+					bool	is_aborting);
 
 int ap_decode_init(appledouble_decode_object* p_ap_decode_obj,
-					PRBool	is_apple_single,
-					PRBool	write_as_bin_hex,
+					bool	is_apple_single,
+					bool	write_as_bin_hex,
 					void  	*closure);
 
 int ap_decode_next(appledouble_decode_object* p_ap_decode_obj, 
@@ -232,7 +232,7 @@ int ap_decode_next(appledouble_decode_object* p_ap_decode_obj,
 					PRInt32 	buff_size);
 
 int ap_decode_end(appledouble_decode_object* p_ap_decode_obj, 
-				 	PRBool is_aborting);
+				 	bool is_aborting);
 
 PR_END_EXTERN_C
 

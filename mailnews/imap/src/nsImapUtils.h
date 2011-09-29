@@ -97,9 +97,9 @@ public:
   nsCString mHostName;
   nsString  mUnicharPathName;
   char      mHierarchySeparator;
-  PRBool    mFolderSelected;
-  PRBool    mDiscoveredFromLsub;
-  PRBool    mOnlineVerified;
+  bool      mFolderSelected;
+  bool      mDiscoveredFromLsub;
+  bool      mOnlineVerified;
   
   nsImapProtocol *mConnection;	// do we need this? It seems evil
 };

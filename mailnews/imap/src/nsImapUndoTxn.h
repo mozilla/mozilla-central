@@ -58,7 +58,7 @@ public:
   nsImapMoveCopyMsgTxn();
   nsImapMoveCopyMsgTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
                        const char* srcMsgIdString, nsIMsgFolder* dstFolder,
-                       PRBool isMove, 
+                       bool isMove, 
                        nsIEventTarget *eventTarget);
   virtual ~nsImapMoveCopyMsgTxn();
 
@@ -77,7 +77,7 @@ public:
   nsresult RedoMailboxDelete();
   nsresult Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
                 const char* srcMsgIdString, nsIMsgFolder* dstFolder,
-                PRBool idsAreUids, PRBool isMove, 
+                bool idsAreUids, bool isMove, 
                 nsIEventTarget *eventTarget);
 
 protected:
@@ -91,9 +91,9 @@ protected:
   nsWeakPtr m_dstFolder;
   nsCString m_dstMsgIdString;
   nsCOMPtr<nsIEventTarget> m_eventTarget;
-  PRBool m_idsAreUids;
-  PRBool m_isMove;
-  PRBool m_srcIsPop3;
+  bool m_idsAreUids;
+  bool m_isMove;
+  bool m_srcIsPop3;
   nsTArray<PRUint32> m_srcSizeArray;
   // this is used when we chain urls for imap undo, since "this" needs
   // to be the listener, but the folder may need to also be notified.
@@ -108,7 +108,7 @@ public:
   nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
                    const char* srcMsgIdString, 
                    nsIMsgFolder* dstFolder,
-                   PRBool isMove,
+                   bool isMove,
                    nsOfflineImapOperationType opType,
                    nsIMsgDBHdr *srcHdr,
                    nsIEventTarget *eventTarge);
@@ -116,13 +116,13 @@ public:
 
   NS_IMETHOD UndoTransaction(void);
   NS_IMETHOD RedoTransaction(void);
-  void SetAddFlags(PRBool addFlags) {m_addFlags = addFlags;}
+  void SetAddFlags(bool addFlags) {m_addFlags = addFlags;}
   void SetFlags(PRUint32 flags) {m_flags = flags;}
 protected:
   nsOfflineImapOperationType m_opType;
   nsCOMPtr <nsIMsgDBHdr> m_header;
   // these two are used to undo flag changes, which we don't currently do.
-  PRBool m_addFlags;
+  bool m_addFlags;
   PRUint32 m_flags;
 };
 

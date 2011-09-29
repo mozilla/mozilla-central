@@ -62,7 +62,7 @@ public:
   NS_IMETHOD    MimeObjectWrite(void *mimeObject,
                                 char *data,
                                 PRInt32 length,
-                                PRBool user_visible_p) = 0;
+                                bool user_visible_p) = 0;
 
   // The following group of calls expose the pointers for the object
   // system within libmime.

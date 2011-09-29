@@ -78,7 +78,7 @@ nsNoneService::GetDefaultLocalPath(nsILocalFile ** aResult)
     NS_ENSURE_ARG_POINTER(aResult);
     *aResult = nsnull;
     
-    PRBool havePref;
+    bool havePref;
     nsCOMPtr<nsILocalFile> localFile;    
     nsresult rv = NS_GetPersistentFile(PREF_MAIL_ROOT_NONE_REL,
                               PREF_MAIL_ROOT_NONE,
@@ -87,7 +87,7 @@ nsNoneService::GetDefaultLocalPath(nsILocalFile ** aResult)
                               getter_AddRefs(localFile));
     if (NS_FAILED(rv)) return rv;
     
-    PRBool exists;
+    bool exists;
     rv = localFile->Exists(&exists);
     if (NS_SUCCEEDED(rv) && !exists)
         rv = localFile->Create(nsIFile::DIRECTORY_TYPE, 0775);
@@ -113,7 +113,7 @@ nsNoneService::GetServerIID(nsIID* *aServerIID)
 }
 
 NS_IMETHODIMP
-nsNoneService::GetRequiresUsername(PRBool *aRequiresUsername)
+nsNoneService::GetRequiresUsername(bool *aRequiresUsername)
 {
   NS_ENSURE_ARG_POINTER(aRequiresUsername);
   *aRequiresUsername = PR_TRUE;
@@ -121,7 +121,7 @@ nsNoneService::GetRequiresUsername(PRBool *aRequiresUsername)
 }
 
 NS_IMETHODIMP
-nsNoneService::GetPreflightPrettyNameWithEmailAddress(PRBool *aPreflightPrettyNameWithEmailAddress)
+nsNoneService::GetPreflightPrettyNameWithEmailAddress(bool *aPreflightPrettyNameWithEmailAddress)
 {
   NS_ENSURE_ARG_POINTER(aPreflightPrettyNameWithEmailAddress);
   *aPreflightPrettyNameWithEmailAddress = PR_TRUE;
@@ -129,7 +129,7 @@ nsNoneService::GetPreflightPrettyNameWithEmailAddress(PRBool *aPreflightPrettyNa
 }
 
 NS_IMETHODIMP
-nsNoneService::GetCanLoginAtStartUp(PRBool *aCanLoginAtStartUp)
+nsNoneService::GetCanLoginAtStartUp(bool *aCanLoginAtStartUp)
 {
   NS_ENSURE_ARG_POINTER(aCanLoginAtStartUp);
   *aCanLoginAtStartUp = PR_FALSE;
@@ -137,7 +137,7 @@ nsNoneService::GetCanLoginAtStartUp(PRBool *aCanLoginAtStartUp)
 }
 
 NS_IMETHODIMP
-nsNoneService::GetCanDelete(PRBool *aCanDelete)
+nsNoneService::GetCanDelete(bool *aCanDelete)
 {
   NS_ENSURE_ARG_POINTER(aCanDelete);
   *aCanDelete = PR_FALSE;
@@ -145,7 +145,7 @@ nsNoneService::GetCanDelete(PRBool *aCanDelete)
 }  
 
 NS_IMETHODIMP
-nsNoneService::GetCanDuplicate(PRBool *aCanDuplicate)
+nsNoneService::GetCanDuplicate(bool *aCanDuplicate)
 {
   NS_ENSURE_ARG_POINTER(aCanDuplicate);
   *aCanDuplicate = PR_FALSE;
@@ -153,7 +153,7 @@ nsNoneService::GetCanDuplicate(PRBool *aCanDuplicate)
 }  
 
 NS_IMETHODIMP
-nsNoneService::GetCanGetMessages(PRBool *aCanGetMessages)
+nsNoneService::GetCanGetMessages(bool *aCanGetMessages)
 {
     NS_ENSURE_ARG_POINTER(aCanGetMessages);
     *aCanGetMessages = PR_FALSE;
@@ -161,7 +161,7 @@ nsNoneService::GetCanGetMessages(PRBool *aCanGetMessages)
 }  
 
 NS_IMETHODIMP
-nsNoneService::GetCanGetIncomingMessages(PRBool *aCanGetIncomingMessages)
+nsNoneService::GetCanGetIncomingMessages(bool *aCanGetIncomingMessages)
 {
     NS_ENSURE_ARG_POINTER(aCanGetIncomingMessages);
     *aCanGetIncomingMessages = PR_FALSE;
@@ -169,7 +169,7 @@ nsNoneService::GetCanGetIncomingMessages(PRBool *aCanGetIncomingMessages)
 } 
 
 NS_IMETHODIMP 
-nsNoneService::GetDefaultDoBiff(PRBool *aDoBiff)
+nsNoneService::GetDefaultDoBiff(bool *aDoBiff)
 {
     NS_ENSURE_ARG_POINTER(aDoBiff);
     // by default, don't do biff for "none" servers
@@ -178,7 +178,7 @@ nsNoneService::GetDefaultDoBiff(PRBool *aDoBiff)
 }
 
 NS_IMETHODIMP
-nsNoneService::GetDefaultServerPort(PRBool isSecure, PRInt32 *aDefaultPort)
+nsNoneService::GetDefaultServerPort(bool isSecure, PRInt32 *aDefaultPort)
 {
     NS_ENSURE_ARG_POINTER(aDefaultPort);
     *aDefaultPort = -1;
@@ -186,7 +186,7 @@ nsNoneService::GetDefaultServerPort(PRBool isSecure, PRInt32 *aDefaultPort)
 }
 
 NS_IMETHODIMP 
-nsNoneService::GetShowComposeMsgLink(PRBool *showComposeMsgLink)
+nsNoneService::GetShowComposeMsgLink(bool *showComposeMsgLink)
 {
     NS_ENSURE_ARG_POINTER(showComposeMsgLink);
     *showComposeMsgLink = PR_FALSE;    
@@ -194,7 +194,7 @@ nsNoneService::GetShowComposeMsgLink(PRBool *showComposeMsgLink)
 }
 
 NS_IMETHODIMP
-nsNoneService::GetSpecialFoldersDeletionAllowed(PRBool *specialFoldersDeletionAllowed)
+nsNoneService::GetSpecialFoldersDeletionAllowed(bool *specialFoldersDeletionAllowed)
 {
     NS_ENSURE_ARG_POINTER(specialFoldersDeletionAllowed);
     *specialFoldersDeletionAllowed = PR_TRUE;

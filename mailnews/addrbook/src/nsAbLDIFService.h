@@ -55,13 +55,13 @@ private:
   nsresult        str_parse_line(char *line, char **type, char **value, int *vlen) const;
   char *          str_getline(char **next) const;
   nsresult        GetLdifStringRecord(char* buf, PRInt32 len, PRInt32& stopPos);
-  void AddLdifRowToDatabase(nsIAddrDatabase *aDatabase, PRBool aIsList);
+  void AddLdifRowToDatabase(nsIAddrDatabase *aDatabase, bool aIsList);
   void AddLdifColToDatabase(nsIAddrDatabase *aDatabase, nsIMdbRow* newRow,
-                            char* typeSlot, char* valueSlot, PRBool bIsList);
+                            char* typeSlot, char* valueSlot, bool bIsList);
   void            ClearLdifRecordBuffer();
   void            SplitCRLFAddressField(nsCString &inputAddress, nsCString &outputLine1, nsCString &outputLine2) const;
 
-  PRBool          mStoreLocAsHome;
+  bool            mStoreLocAsHome;
   nsCString       mLdifLine;
   PRInt32         mLFCount;
   PRInt32         mCRCount;

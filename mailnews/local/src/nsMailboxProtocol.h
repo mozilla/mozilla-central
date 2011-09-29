@@ -130,7 +130,7 @@ private:
   PRInt32 SetupMessageExtraction();
   nsresult OpenMultipleMsgTransport(PRUint32 offset, PRInt32 size);
   nsresult OpenFileSocketForReuse(nsIURI * aURL, PRUint32 aStartPosition, PRInt32 aReadCount);
-  PRBool RunningMultipleMsgUrl();
+  bool RunningMultipleMsgUrl();
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // Protocol Methods --> This protocol is state driven so each protocol method is

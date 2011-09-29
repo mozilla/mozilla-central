@@ -207,7 +207,7 @@ nsWindowsShellService::ShortcutMaintenance()
     return NS_OK;
 
   // Avoid if this isn't Win7+
-  PRBool isSupported = PR_FALSE;
+  bool isSupported = false;
   taskbarInfo->GetAvailable(&isSupported);
   if (!isSupported)
     return NS_OK;
@@ -287,7 +287,7 @@ nsWindowsShellService::nsWindowsShellService()
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRBool *aIsDefaultClient)
+nsWindowsShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool *aIsDefaultClient)
 {
   // If this is the first mail window, maintain internal state that we've
   // checked this session (so that subsequent window opens don't show the
@@ -324,7 +324,7 @@ nsWindowsShellService::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRB
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::SetDefaultClient(PRBool aForAllUsers, PRUint16 aApps)
+nsWindowsShellService::SetDefaultClient(bool aForAllUsers, PRUint16 aApps)
 {
   nsAutoString appHelperPath;
   if (NS_FAILED(GetHelperPath(appHelperPath)))
@@ -349,7 +349,7 @@ nsWindowsShellService::SetDefaultClient(PRBool aForAllUsers, PRUint16 aApps)
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::GetShouldCheckDefaultClient(PRBool* aResult)
+nsWindowsShellService::GetShouldCheckDefaultClient(bool* aResult)
 {
   if (mCheckedThisSession)
   {
@@ -362,17 +362,17 @@ nsWindowsShellService::GetShouldCheckDefaultClient(PRBool* aResult)
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::SetShouldCheckDefaultClient(PRBool aShouldCheck)
+nsWindowsShellService::SetShouldCheckDefaultClient(bool aShouldCheck)
 {
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
   return prefs->SetBoolPref("mail.shell.checkDefaultClient", aShouldCheck);
 }
 
 /* helper routine. Iterate over the passed in settings object. */
-PRBool
+bool
 nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
 {
-  PRBool isDefault = PR_TRUE;
+  bool isDefault = true;
   PRUnichar currValue[MAX_BUF];
   SETTING* end = aSettings + aSize;
   for (SETTING * settings = aSettings; settings < end; ++settings)
@@ -413,8 +413,8 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
   return isDefault;
 }
 
-PRBool
-nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultClient)
+bool
+nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClient)
 {
 #if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
   IApplicationAssociationRegistration* pAAR;
@@ -427,8 +427,8 @@ nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultCl
 
   if (SUCCEEDED(hr))
   {
-    PRBool isDefaultMail = PR_TRUE;
-    PRBool isDefaultNews = PR_TRUE;
+    bool isDefaultMail = true;
+    bool isDefaultNews = true;
     if (aApps & nsIShellService::MAIL)
       pAAR->QueryAppIsDefaultAll(AL_EFFECTIVE, APP_REG_NAME_MAIL, &isDefaultMail);
     if (aApps & nsIShellService::NEWS)

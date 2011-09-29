@@ -236,7 +236,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
       return rv;
     }
 
-    PRBool status;
+    bool status;
     rv = authPrompter->PromptPassword(authPromptTitle.get(),
                                       authPromptText.get(),
                                       NS_ConvertUTF8toUTF16(spec).get(),

@@ -80,10 +80,10 @@ private:
 
  // Deal with quoting issues...
 	nsresult                      QuoteOriginalMessage(const char * originalMsgURI, PRInt32 what); // New template
-  nsresult                      SetQuotingToFollow(PRBool aVal);
+  nsresult                      SetQuotingToFollow(bool aVal);
   nsresult                      ConvertHTMLToText(nsILocalFile *aSigFile, nsString &aSigData);
   nsresult                      ConvertTextToHTML(nsILocalFile *aSigFile, nsString &aSigData);
-  PRBool                        IsEmbeddedObjectSafe(const char * originalScheme,
+  bool                          IsEmbeddedObjectSafe(const char * originalScheme,
                                                      const char * originalHost,
                                                      const char * originalPath,
                                                      nsIDOMNode * object);
@@ -97,15 +97,15 @@ private:
 
   nsresult                      LoadDataFromFile(nsILocalFile *file,
                                                  nsString &sigData,
-                                                 PRBool aAllowUTF8 = PR_TRUE,
-                                                 PRBool aAllowUTF16 = PR_TRUE);
+                                                 bool aAllowUTF8 = true,
+                                                 bool aAllowUTF16 = true);
 
-  PRBool                        CheckIncludeSignaturePrefs(nsIMsgIdentity *identity);
+  bool                          CheckIncludeSignaturePrefs(nsIMsgIdentity *identity);
   //m_folderName to store the value of the saved drafts folder.
   nsCString                     m_folderName;
 
  private:
-  nsresult _SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity, const char *accountKey, PRBool entityConversionDone);
+  nsresult _SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity, const char *accountKey, bool entityConversionDone);
   nsresult CreateMessage(const char * originalMsgURI, MSG_ComposeType type, nsIMsgCompFields* compFields);
   void CleanUpRecipients(nsString& recipients);
   nsresult GetABDirectories(const nsACString& aDirUri,
@@ -116,10 +116,10 @@ private:
   nsresult TagConvertible(nsIDOMNode *node,  PRInt32 *_retval);
   nsresult _BodyConvertible(nsIDOMNode *node, PRInt32 *_retval);
 
-  PRBool IsLastWindow();
+  bool IsLastWindow();
  
        // Helper function. Parameters are not checked.
-  PRBool                                    mConvertStructs;    // for TagConvertible
+  bool                                      mConvertStructs;    // for TagConvertible
   
 	nsCOMPtr<nsIEditor>                       m_editor;
 	nsIDOMWindow                              *m_window;
@@ -127,22 +127,22 @@ private:
   nsCOMPtr<nsIBaseWindow>                   m_baseWindow;
 	nsMsgCompFields                           *m_compFields;
 	nsCOMPtr<nsIMsgIdentity>                  m_identity;
-	PRBool						                        m_composeHTML;
+	bool						                        m_composeHTML;
 	QuotingOutputStreamListener               *mQuoteStreamListener;
 	nsCOMPtr<nsIOutputStream>                 mBaseStream;
 
   nsCOMPtr<nsIMsgComposeRecyclingListener>  mRecyclingListener;
-  PRBool                                    mRecycledWindow;
+  bool                                      mRecycledWindow;
 	nsCOMPtr<nsIMsgSend>                      mMsgSend;           // for composition back end
 	nsCOMPtr<nsIMsgProgress>                  mProgress;          // use by the back end to report progress to the front end
 
   // Deal with quoting issues...
   nsString                                  mCiteReference;
 	nsCOMPtr<nsIMsgQuote>                     mQuote;
-	PRBool						                        mQuotingToFollow;   // Quoting indicator
+	bool						                        mQuotingToFollow;   // Quoting indicator
 	MSG_ComposeType                           mType;		          // Message type
-  PRBool                                    mCharsetOverride;
-  PRBool                                    mDeleteDraft;
+  bool                                      mCharsetOverride;
+  bool                                      mDeleteDraft;
   nsMsgDispositionState                     mDraftDisposition;
   nsCOMPtr <nsIMsgDBHdr>                    mOrigMsgHdr;
 
@@ -152,7 +152,7 @@ private:
   nsTObserverArray<nsCOMPtr<nsIMsgComposeStateListener> > mStateListeners;
   nsTObserverArray<nsCOMPtr<nsIMsgSendListener> > mExternalSendListeners;
     
-  PRBool                                    mInsertingQuotedContent;
+  bool                                      mInsertingQuotedContent;
     
   friend class QuotingOutputStreamListener;
 	friend class nsMsgComposeSendListener;
@@ -167,12 +167,12 @@ class QuotingOutputStreamListener : public nsIMsgQuotingOutputStreamListener
 public:
     QuotingOutputStreamListener(const char *originalMsgURI,
                                 nsIMsgDBHdr *origMsgHdr,
-                                PRBool quoteHeaders,
-                                PRBool headersOnly,
+                                bool quoteHeaders,
+                                bool headersOnly,
                                 nsIMsgIdentity *identity,
                                 const char *charset,
-                                PRBool charetOverride, 
-                                PRBool quoteOriginal,
+                                bool charetOverride, 
+                                bool quoteOriginal,
                                 const nsACString& htmlToQuote);
     virtual ~QuotingOutputStreamListener(void);
 
@@ -182,8 +182,8 @@ public:
     NS_DECL_NSIMSGQUOTINGOUTPUTSTREAMLISTENER
 
     NS_IMETHOD  SetComposeObj(nsIMsgCompose *obj);
-	  NS_IMETHOD  ConvertToPlainText(PRBool formatflowed = PR_FALSE);
-    NS_IMETHOD InsertToCompose(nsIEditor *aEditor, PRBool aHTMLEditor);
+	  NS_IMETHOD  ConvertToPlainText(bool formatflowed = false);
+    NS_IMETHOD InsertToCompose(nsIEditor *aEditor, bool aHTMLEditor);
     NS_IMETHOD AppendToMsgBody(const nsCString &inStr);
 
 private:
@@ -191,8 +191,8 @@ private:
     nsString       				    mMsgBody;
     nsString       				    mCitePrefix;
     nsString       				    mSignature;
-    PRBool						        mQuoteHeaders;
-    PRBool						        mHeadersOnly;
+    bool						        mQuoteHeaders;
+    bool						        mHeadersOnly;
     nsCOMPtr<nsIMimeHeaders>	mHeaders;
     nsCOMPtr<nsIMsgIdentity>  mIdentity;
     nsString                  mCiteReference;
@@ -200,7 +200,7 @@ private:
     nsCOMPtr<nsIUnicodeDecoder> mUnicodeDecoder;
     PRInt32                   mUnicodeBufferCharacterLength;
     PRUnichar*                mUnicodeConversionBuffer;
-    PRBool                    mQuoteOriginal;
+    bool                      mQuoteOriginal;
     nsCString                 mHtmlToQuote;
 };
 
@@ -229,7 +229,7 @@ public:
 	// nsIWebProgressListener interface
 	NS_DECL_NSIWEBPROGRESSLISTENER
 
-  nsresult    RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBool calledByCopy);
+  nsresult    RemoveCurrentDraftMessage(nsIMsgCompose *compObj, bool calledByCopy);
   nsresult    GetMsgFolder(nsIMsgCompose *compObj, nsIMsgFolder **msgFolder);
 
 private:

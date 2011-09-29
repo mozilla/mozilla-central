@@ -63,7 +63,7 @@ public:
   NS_IMETHOD GetMessageSize(PRUint32 *aMessageSize);
   NS_IMETHOD SetMessageSize(PRUint32 aMessageSize);
   NS_IMPL_CLASS_GETSET(MailboxAction, nsMailboxAction, m_mailboxAction)
-  NS_IMETHOD IsUrlType(PRUint32 type, PRBool *isType);
+  NS_IMETHOD IsUrlType(PRUint32 type, bool *isType);
   NS_IMETHOD SetMoveCopyMsgKeys(nsMsgKey *keysToFlag, PRInt32 numKeys);
   NS_IMETHOD GetMoveCopyMsgHdrForIndex(PRUint32 msgIndex, nsIMsgDBHdr **msgHdr);
   NS_IMETHOD GetNumMoveCopyMsgs(PRUint32 *numMsgs);
@@ -99,8 +99,8 @@ protected:
 
   // used by save message to disk
   nsCOMPtr<nsIFile> m_messageFile;
-  PRBool                m_addDummyEnvelope;
-  PRBool                m_canonicalLineEnding;
+  bool                  m_addDummyEnvelope;
+  bool                  m_canonicalLineEnding;
   nsresult ParseSearchPart();
 
   // for multiple msg move/copy

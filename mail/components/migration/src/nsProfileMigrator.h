@@ -68,5 +68,5 @@ protected:
    * Import profiles from ~/.thunderbird/ 
    * @return PR_TRUE if any profiles imported.
    */
-  PRBool ImportRegistryProfiles(const nsACString& aAppName);
+  bool ImportRegistryProfiles(const nsACString& aAppName);
 };

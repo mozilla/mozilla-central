@@ -170,7 +170,7 @@ TokenEnumeration::TokenEnumeration(PLDHashTable* table)
     mEntryLimit = mEntryAddr + capacity * mEntrySize;
 }
 
-inline PRBool TokenEnumeration::hasMoreTokens()
+inline bool TokenEnumeration::hasMoreTokens()
 {
     return (mEntryOffset < mEntryCount);
 }
@@ -194,7 +194,7 @@ inline BaseToken* TokenEnumeration::nextToken()
 }
 
 struct VisitClosure {
-    PRBool (*f) (BaseToken*, void*);
+    bool (*f) (BaseToken*, void*);
     void* data;
 };
 
@@ -221,7 +221,7 @@ TokenHash::TokenHash(PRUint32 aEntrySize)
 {
     mEntrySize = aEntrySize;
     PL_INIT_ARENA_POOL(&mWordPool, "Words Arena", 16384);
-    PRBool ok = PL_DHashTableInit(&mTokenTable, &gTokenTableOps, nsnull,
+    bool ok = PL_DHashTableInit(&mTokenTable, &gTokenTableOps, nsnull,
                                   aEntrySize, 256);
     NS_ASSERTION(ok, "mTokenTable failed to initialize");
     if (!ok)
@@ -239,7 +239,7 @@ nsresult TokenHash::clearTokens()
 {
     // we re-use the tokenizer when classifying multiple messages,
     // so this gets called after every message classification.
-    PRBool ok = PR_TRUE;
+    bool ok = true;
     if (mTokenTable.entryStore)
     {
         PL_DHashTableFinish(&mTokenTable);
@@ -301,7 +301,7 @@ BaseToken* TokenHash::add(const char* word)
     return token;
 }
 
-void TokenHash::visit(PRBool (*f) (BaseToken*, void*), void* data)
+void TokenHash::visit(bool (*f) (BaseToken*, void*), void* data)
 {
     VisitClosure closure = { f, data };
     PRUint32 visitCount = PL_DHashTableEnumerate(&mTokenTable, VisitEntry, &closure);
@@ -461,7 +461,7 @@ Token* Tokenizer::add(const char* word, PRUint32 count)
   return token;
 }
 
-static PRBool isDecimalNumber(const char* word)
+static bool isDecimalNumber(const char* word)
 {
     const char* p = word;
     if (*p == '-') ++p;
@@ -473,7 +473,7 @@ static PRBool isDecimalNumber(const char* word)
     return PR_TRUE;
 }
 
-static PRBool isASCII(const char* word)
+static bool isASCII(const char* word)
 {
     const unsigned char* p = (const unsigned char*)word;
     unsigned char c;
@@ -484,7 +484,7 @@ static PRBool isASCII(const char* word)
     return PR_TRUE;
 }
 
-inline PRBool isUpperCase(char c) { return ('A' <= c) && (c <= 'Z'); }
+inline bool isUpperCase(char c) { return ('A' <= c) && (c <= 'Z'); }
 
 static char* toLowerCase(char* str)
 {
@@ -497,7 +497,7 @@ static char* toLowerCase(char* str)
 }
 
 void Tokenizer::addTokenForHeader(const char * aTokenPrefix, nsACString& aValue,
-                                  PRBool aTokenizeValue, const char* aDelimiters)
+                                  bool aTokenizeValue, const char* aDelimiters)
 {
   if (aValue.Length())
   {
@@ -556,7 +556,7 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
 {
   nsCString headerValue;
   nsCAutoString headerName; // we'll be normalizing all header names to lower case
-  PRBool hasMore;
+  bool hasMore;
  
   while (aHeaderNames->HasMore(&hasMore), hasMore)
   {
@@ -564,7 +564,7 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
     ToLowerCase(headerName);
     aHeaderValues->GetNext(headerValue);
 
-    PRBool headerProcessed = PR_FALSE;
+    bool headerProcessed = false;
     if (mCustomHeaderTokenization)
     {
       // Process any exceptions set from preferences
@@ -752,7 +752,7 @@ static char_class getCharClass(PRUnichar c)
   return charClass;
 }
 
-static PRBool isJapanese(const char* word)
+static bool isJapanese(const char* word)
 {
   nsString text = NS_ConvertUTF8toUTF16(word);
   PRUnichar* p = (PRUnichar*)text.get();
@@ -766,7 +766,7 @@ static PRBool isJapanese(const char* word)
   return PR_FALSE;
 }
 
-static PRBool isFWNumeral(const PRUnichar* p1, const PRUnichar* p2)
+static bool isFWNumeral(const PRUnichar* p1, const PRUnichar* p2)
 {
   for(;p1<p2;p1++)
     if(!IS_JA_FWNUMERAL(*p1))
@@ -896,7 +896,7 @@ void Tokenizer::tokenize(const char* aText)
             ToLowerCase(uword);
             const PRUnichar* utext = uword.get();
             PRInt32 len = uword.Length(), pos = 0, begin, end;
-            PRBool gotUnit;
+            bool gotUnit;
             while (pos < len) {
                 rv = mScanner->Next(utext, len, pos, PR_TRUE, &begin, &end, &gotUnit);
                 if (NS_SUCCEEDED(rv) && gotUnit) {
@@ -922,7 +922,7 @@ void Tokenizer::UnescapeCString(nsCString& aCString)
   char* writeStart = result.BeginWriting();
   char* writeIter = writeStart;
 
-  PRBool inEscape = PR_FALSE;
+  bool inEscape = false;
   for (const char* readIter = aCString.BeginReading(); readIter != readEnd; readIter++)
   {
     if (!inEscape)
@@ -1019,7 +1019,7 @@ protected:
     PRUint32 mBufferSize;
     PRUint32 mLeftOverCount;
     Tokenizer mTokenizer;
-    PRBool mSetAttachmentFlag;
+    bool mSetAttachmentFlag;
 };
 
 const PRUint32 kBufferSize = 16384;
@@ -1039,13 +1039,13 @@ TokenStreamListener::~TokenStreamListener()
 
 NS_IMPL_ISUPPORTS3(TokenStreamListener, nsIRequestObserver, nsIStreamListener, nsIMsgHeaderSink)
 
-NS_IMETHODIMP TokenStreamListener::ProcessHeaders(nsIUTF8StringEnumerator *aHeaderNames, nsIUTF8StringEnumerator *aHeaderValues, PRBool dontCollectAddress)
+NS_IMETHODIMP TokenStreamListener::ProcessHeaders(nsIUTF8StringEnumerator *aHeaderNames, nsIUTF8StringEnumerator *aHeaderValues, bool dontCollectAddress)
 {
     mTokenizer.tokenizeHeaders(aHeaderNames, aHeaderValues);
     return NS_OK;
 }
 
-NS_IMETHODIMP TokenStreamListener::HandleAttachment(const char *contentType, const char *url, const PRUnichar *displayName, const char *uri, PRBool aIsExternalAttachment)
+NS_IMETHODIMP TokenStreamListener::HandleAttachment(const char *contentType, const char *url, const PRUnichar *displayName, const char *uri, bool aIsExternalAttachment)
 {
     mTokenizer.tokenizeAttachment(contentType, NS_ConvertUTF16toUTF8(displayName).get());
     return NS_OK;
@@ -1452,11 +1452,11 @@ struct TraitAnalysis
 class compareTraitAnalysis
 {
 public:
-  PRBool Equals(const TraitAnalysis& a, const TraitAnalysis& b) const
+  bool Equals(const TraitAnalysis& a, const TraitAnalysis& b) const
   {
     return a.mDistance == b.mDistance;
   }
-  PRBool LessThan(const TraitAnalysis& a, const TraitAnalysis& b) const
+  bool LessThan(const TraitAnalysis& a, const TraitAnalysis& b) const
   {
     return a.mDistance < b.mDistance;
   }
@@ -1783,7 +1783,7 @@ void nsBayesianFilter::classifyMessage(
       // directly classify junk to maintain backwards compatibility
       if (aProTraits[traitIndex] == kJunkTrait)
       {
-        PRBool isJunk = (prob >= mJunkProbabilityThreshold);
+        bool isJunk = (prob >= mJunkProbabilityThreshold);
         PR_LOG(BayesianFilterLogModule, PR_LOG_ALWAYS,
                ("%s is junk probability = (%f)  HAM SCORE:%f SPAM SCORE:%f",
                 messageURI, prob,H,S));
@@ -1870,7 +1870,7 @@ NS_IMETHODIMP nsBayesianFilter::Shutdown()
 }
 
 /* readonly attribute boolean shouldDownloadAllHeaders; */
-NS_IMETHODIMP nsBayesianFilter::GetShouldDownloadAllHeaders(PRBool *aShouldDownloadAllHeaders)
+NS_IMETHODIMP nsBayesianFilter::GetShouldDownloadAllHeaders(bool *aShouldDownloadAllHeaders)
 {
     // bayesian filters work on the whole msg body currently.
     *aShouldDownloadAllHeaders = PR_FALSE;
@@ -2082,7 +2082,7 @@ void nsBayesianFilter::observeMessage(
     nsIMsgTraitClassificationListener* aTraitListener)
 {
 
-    PRBool trainingDataWasDirty = mTrainingDataDirty;
+    bool trainingDataWasDirty = mTrainingDataDirty;
     TokenEnumeration tokens = tokenizer.getTokens();
 
     // Uhoh...if the user is re-training then the message may already be classified and we are classifying it again with the same classification.
@@ -2166,7 +2166,7 @@ void nsBayesianFilter::observeMessage(
     }
 }
 
-NS_IMETHODIMP nsBayesianFilter::GetUserHasClassified(PRBool *aResult)
+NS_IMETHODIMP nsBayesianFilter::GetUserHasClassified(bool *aResult)
 {
   *aResult = (  (mCorpus.getMessageCount(kGoodTrait) +
                  mCorpus.getMessageCount(kJunkTrait)) &&
@@ -2261,7 +2261,7 @@ NS_IMETHODIMP nsBayesianFilter::ClearTrait(PRUint32 aTrait)
 
 NS_IMETHODIMP
 nsBayesianFilter::UpdateData(nsILocalFile *aFile,
-                             PRBool aIsAdd,
+                             bool aIsAdd,
                              PRUint32 aRemapCount,
                              PRUint32 *aFromTraits,
                              PRUint32 *aToTraits)
@@ -2362,7 +2362,7 @@ void CorpusStore::rememberTokens(TokenEnumeration tokens,
   }
 }
 
-PRBool CorpusStore::writeTokens(FILE* stream, PRBool shrink, PRUint32 aTraitId)
+bool CorpusStore::writeTokens(FILE* stream, bool shrink, PRUint32 aTraitId)
 {
   PRUint32 tokenCount = countTokens();
   PRUint32 newTokenCount = 0;
@@ -2406,8 +2406,8 @@ PRBool CorpusStore::writeTokens(FILE* stream, PRBool shrink, PRUint32 aTraitId)
   return PR_TRUE;
 }
 
-PRBool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize,
-                               PRUint32 aTraitId, PRBool aIsAdd)
+bool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize,
+                               PRUint32 aTraitId, bool aIsAdd)
 {
     PRUint32 tokenCount;
     if (readUInt32(stream, &tokenCount) != 1)
@@ -2508,7 +2508,7 @@ void CorpusStore::writeTrainingData(PRUint32 aMaximumTokenCount)
     return;
 
   // If the number of tokens exceeds our limit, set the shrink flag
-  PRBool shrink = false;
+  bool shrink = false;
   if ((aMaximumTokenCount > 0) && // if 0, do not limit tokens
       (countTokens() > aMaximumTokenCount))
   {
@@ -2552,7 +2552,7 @@ void CorpusStore::writeTrainingData(PRUint32 aMaximumTokenCount)
     return;
 
   PRUint32 numberOfTraits = mMessageCounts.Length();
-  PRBool error;
+  bool error;
   while (1) // break on error or done
   {
     if ((error = (fwrite(kTraitCookie, sizeof(kTraitCookie), 1, stream) != 1)))
@@ -2609,7 +2609,7 @@ void CorpusStore::readTrainingData()
   if (!mTrainingFile)
     return;
 
-  PRBool exists;
+  bool exists;
   nsresult rv = mTrainingFile->Exists(&exists);
   if (NS_FAILED(rv) || !exists)
     return;
@@ -2805,7 +2805,7 @@ void CorpusStore::setMessageCount(PRUint32 aTraitId, PRUint32 aCount)
 
 nsresult
 CorpusStore::UpdateData(nsILocalFile *aFile,
-                        PRBool aIsAdd,
+                        bool aIsAdd,
                         PRUint32 aRemapCount,
                         PRUint32 *aFromTraits,
                         PRUint32 *aToTraits)
@@ -2824,7 +2824,7 @@ CorpusStore::UpdateData(nsILocalFile *aFile,
   PRInt64 fileSize;
   rv = aFile->GetFileSize(&fileSize);
 
-  PRBool error;
+  bool error;
   while(NS_SUCCEEDED(rv)) // break on error or done
   {
     char cookie[4];

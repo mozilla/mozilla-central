@@ -93,7 +93,7 @@ public:
 
     nsMsgDBEnumerator(nsMsgDatabase* db, nsIMdbTable *table,
                       nsMsgDBEnumeratorFilter filter, void* closure,
-                      PRBool iterateForwards = PR_TRUE);
+                      bool iterateForwards = true);
     virtual ~nsMsgDBEnumerator();
 
     void Clear();
@@ -104,9 +104,9 @@ public:
     nsCOMPtr<nsIMdbTableRowCursor>  mRowCursor;
     mdb_pos                         mRowPos;
     nsCOMPtr<nsIMsgDBHdr>           mResultHdr;
-    PRBool                          mDone;
-    PRBool                          mNextPrefetched;
-    PRBool                          mIterateForwards;
+    bool                            mDone;
+    bool                            mNextPrefetched;
+    bool                            mIterateForwards;
     nsMsgDBEnumeratorFilter         mFilter;
     nsCOMPtr <nsIMdbTable>          mTable;
     void*                           mClosure;
@@ -119,7 +119,7 @@ class nsMsgFilteredDBEnumerator : public nsMsgDBEnumerator
 {
 public:
   nsMsgFilteredDBEnumerator(nsMsgDatabase* db, nsIMdbTable *table,
-                            PRBool reverse, nsIArray *searchTerms);
+                            bool reverse, nsIArray *searchTerms);
   virtual ~nsMsgFilteredDBEnumerator();
   nsresult InitSearchSession(nsIArray *searchTerms, nsIMsgFolder *folder);
 
@@ -140,18 +140,18 @@ public:
   NS_DECL_NSIDBCHANGEANNOUNCER
   NS_DECL_NSIMSGDATABASE
 
-  virtual nsresult IsHeaderRead(nsIMsgDBHdr *hdr, PRBool *pRead);
-  virtual nsresult MarkHdrReadInDB(nsIMsgDBHdr *msgHdr, PRBool bRead,
+  virtual nsresult IsHeaderRead(nsIMsgDBHdr *hdr, bool *pRead);
+  virtual nsresult MarkHdrReadInDB(nsIMsgDBHdr *msgHdr, bool bRead,
                                nsIDBChangeListener *instigator);
-  nsresult OpenInternal(nsILocalFile *aFolderName, PRBool aCreate,
-                        PRBool aLeaveInvalidDB, PRBool sync);
+  nsresult OpenInternal(nsILocalFile *aFolderName, bool aCreate,
+                        bool aLeaveInvalidDB, bool sync);
   nsresult CheckForErrors(nsresult err, nsILocalFile *summaryFile);
-  virtual nsresult OpenMDB(const char *dbName, PRBool create, PRBool sync);
-  virtual nsresult CloseMDB(PRBool commit);
+  virtual nsresult OpenMDB(const char *dbName, bool create, bool sync);
+  virtual nsresult CloseMDB(bool commit);
   virtual nsresult CreateMsgHdr(nsIMdbRow* hdrRow, nsMsgKey key, nsIMsgDBHdr **result);
   virtual nsresult GetThreadForMsgKey(nsMsgKey msgKey, nsIMsgThread **result);
   virtual nsresult EnumerateMessagesWithFlag(nsISimpleEnumerator* *result, PRUint32 *pFlag);
-  nsresult         GetSearchResultsTable(const char *searchFolderUri, PRBool createIfMissing, nsIMdbTable **table);
+  nsresult         GetSearchResultsTable(const char *searchFolderUri, bool createIfMissing, nsIMdbTable **table);
 
   // this might just be for debugging - we'll see.
   nsresult ListAllThreads(nsTArray<nsMsgKey> *threadIds);
@@ -194,9 +194,9 @@ public:
   nsresult        SetUint32Property(nsIMdbRow *row, const char *propertyName, PRUint32 propertyVal);
   nsresult        SetUint64Property(nsIMdbRow *row, const char *propertyName, PRUint64 propertyVal);
   nsresult        GetBooleanProperty(nsIMdbRow *row, const char *propertyName, 
-                                     PRBool *result, PRBool defaultValue = PR_FALSE);
+                                     bool *result, bool defaultValue = false);
   nsresult        SetBooleanProperty(nsIMdbRow *row, const char *propertyName, 
-                                    PRBool propertyVal);
+                                    bool propertyVal);
   // helper function for once we have the token.
   nsresult        SetNSStringPropertyWithToken(nsIMdbRow *row, mdb_token aProperty, const nsAString &propertyStr);
   
@@ -229,7 +229,7 @@ public:
   friend class nsMsgDBThreadEnumerator;
 protected:
   // prefs stuff - in future, we might want to cache the prefs interface
-  nsresult        GetBoolPref(const char *prefName, PRBool *result);
+  nsresult        GetBoolPref(const char *prefName, bool *result);
   nsresult        GetIntPref(const char *prefName, PRInt32 *result);
   virtual void    GetGlobalPrefs();
     // retrieval methods
@@ -241,12 +241,12 @@ protected:
   nsIMsgDBHdr  *  GetMsgHdrForSubject(nsCString &subject);
   // threading interfaces
   virtual nsresult CreateNewThread(nsMsgKey key, const char *subject, nsMsgThread **newThread);
-  virtual PRBool  ThreadBySubjectWithoutRe();
-  virtual PRBool  UseStrictThreading();
-  virtual PRBool  UseCorrectThreading();
-  virtual nsresult ThreadNewHdr(nsMsgHdr* hdr, PRBool &newThread);
+  virtual bool    ThreadBySubjectWithoutRe();
+  virtual bool    UseStrictThreading();
+  virtual bool    UseCorrectThreading();
+  virtual nsresult ThreadNewHdr(nsMsgHdr* hdr, bool &newThread);
   virtual nsresult AddNewThread(nsMsgHdr *msgHdr);
-  virtual nsresult AddToThread(nsMsgHdr *newHdr, nsIMsgThread *thread, nsIMsgDBHdr *pMsgHdr, PRBool threadInThread);
+  virtual nsresult AddToThread(nsMsgHdr *newHdr, nsIMsgThread *thread, nsIMsgDBHdr *pMsgHdr, bool threadInThread);
 
   static nsTArray<nsMsgDatabase*>* m_dbCache;
   static nsTArray<nsMsgDatabase*>* GetDBCache();
@@ -259,16 +259,16 @@ protected:
     GetDBCache()->AppendElement(pMessageDB);
   }
   static void    RemoveFromCache(nsMsgDatabase* pMessageDB);
-  PRBool  MatchDbName(nsILocalFile *dbName);  // returns TRUE if they match
+  bool    MatchDbName(nsILocalFile *dbName);  // returns TRUE if they match
 
   // Flag handling routines
-  virtual nsresult SetKeyFlag(nsMsgKey key, PRBool set, PRUint32 flag,
+  virtual nsresult SetKeyFlag(nsMsgKey key, bool set, PRUint32 flag,
                               nsIDBChangeListener *instigator = NULL);
-  virtual nsresult SetMsgHdrFlag(nsIMsgDBHdr *msgHdr, PRBool set, PRUint32 flag, 
+  virtual nsresult SetMsgHdrFlag(nsIMsgDBHdr *msgHdr, bool set, PRUint32 flag, 
                                  nsIDBChangeListener *instigator);
   
-  virtual PRBool  SetHdrFlag(nsIMsgDBHdr *, PRBool bSet, nsMsgMessageFlagType flag);
-  virtual PRBool  SetHdrReadFlag(nsIMsgDBHdr *, PRBool pRead);
+  virtual bool    SetHdrFlag(nsIMsgDBHdr *, bool bSet, nsMsgMessageFlagType flag);
+  virtual bool    SetHdrReadFlag(nsIMsgDBHdr *, bool pRead);
   virtual PRUint32 GetStatusFlags(nsIMsgDBHdr *msgHdr, PRUint32 origFlags);
   // helper function which doesn't involve thread object
   
@@ -282,12 +282,12 @@ protected:
   nsCOMPtr <nsIMsgDownloadSettings> m_downloadSettings;
 
   nsresult PurgeMessagesOlderThan(PRUint32 daysToKeepHdrs,
-                                  PRBool keepUnreadMessagesOnly,
-                                  PRBool applyToFlaggedMessages,
+                                  bool keepUnreadMessagesOnly,
+                                  bool applyToFlaggedMessages,
                                   nsIMutableArray *hdrsToDelete);
   nsresult PurgeExcessMessages(PRUint32 numHeadersToKeep,
-                               PRBool keepUnreadMessagesOnly,
-                               PRBool applyToFlaggedMessages,
+                               bool keepUnreadMessagesOnly,
+                               bool applyToFlaggedMessages,
                                nsIMutableArray *hdrsToDelete);
   
   // mdb bookkeeping stuff
@@ -306,12 +306,12 @@ protected:
   // the underlying mork database. If null, the db has been completely opened.
   nsCOMPtr<nsIMdbThumb> m_thumb;
   // used to remember the args to Open for async open.
-  PRPackedBool m_create;
-  PRPackedBool m_leaveInvalidDB;
+  bool m_create;
+  bool m_leaveInvalidDB;
 
   nsCString     m_dbName;
   nsTArray<nsMsgKey> m_newSet;  // new messages since last open.
-  PRBool        m_mdbTokensInitialized;
+  bool          m_mdbTokensInitialized;
   nsTObserverArray<nsCOMPtr<nsIDBChangeListener> > m_ChangeListeners;
   mdb_token     m_hdrRowScopeToken;
   mdb_token     m_threadRowScopeToken;
@@ -348,7 +348,7 @@ protected:
   
   // header caching stuff - MRU headers, keeps them around in memory
   nsresult      AddHdrToCache(nsIMsgDBHdr *hdr, nsMsgKey key);
-  nsresult      ClearHdrCache(PRBool reInit);
+  nsresult      ClearHdrCache(bool reInit);
   nsresult      RemoveHdrFromCache(nsIMsgDBHdr *hdr, nsMsgKey key);
   // all headers currently instantiated, doesn't hold refs
   // these get added when msg hdrs get constructed, and removed when they get destroyed.
@@ -368,12 +368,12 @@ protected:
 
   mdb_pos       FindInsertIndexInSortedTable(nsIMdbTable *table, mdb_id idToInsert);
 
-  void          ClearCachedObjects(PRBool dbGoingAway);
+  void          ClearCachedObjects(bool dbGoingAway);
   void          ClearEnumerators();
   // all instantiated headers, but doesn't hold refs. 
   PLDHashTable  *m_headersInUse;
   static PLDHashNumber HashKey(PLDHashTable* aTable, const void* aKey);
-  static PRBool MatchEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aEntry, const void* aKey);
+  static bool MatchEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aEntry, const void* aKey);
   static void MoveEntry(PLDHashTable* aTable, const PLDHashEntryHdr* aFrom, PLDHashEntryHdr* aTo);
   static void ClearEntry(PLDHashTable* aTable, PLDHashEntryHdr* aEntry);
   static PLDHashOperator HeaderEnumerator (PLDHashTable *table, PLDHashEntryHdr *hdr,
@@ -387,7 +387,7 @@ protected:
     nsIMsgDBHdr     *mHdr;
   };
   PLDHashTable  *m_cachedHeaders;
-  PRBool        m_bCacheHeaders;
+  bool          m_bCacheHeaders;
   nsMsgKey  m_cachedThreadId;
   nsCOMPtr <nsIMsgThread> m_cachedThread;
   nsCOMPtr<nsIMdbFactory> mMdbFactory;
@@ -426,11 +426,11 @@ protected:
   nsMsgRetainByPreference m_retainByPreference;
   PRUint32                m_daysToKeepHdrs;
   PRUint32                m_numHeadersToKeep;
-  PRBool                  m_keepUnreadMessagesOnly;
-  PRBool                  m_useServerDefaults;
-  PRBool                  m_cleanupBodiesByDays;
+  bool                    m_keepUnreadMessagesOnly;
+  bool                    m_useServerDefaults;
+  bool                    m_cleanupBodiesByDays;
   PRUint32                m_daysToKeepBodies;
-  PRBool                  m_applyToFlaggedMessages;
+  bool                    m_applyToFlaggedMessages;
 };
 
 class nsMsgDownloadSettings : public nsIMsgDownloadSettings
@@ -442,9 +442,9 @@ public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGDOWNLOADSETTINGS
 protected:
-  PRBool m_useServerDefaults;
-  PRBool m_downloadUnreadOnly;
-  PRBool m_downloadByDate;
+  bool m_useServerDefaults;
+  bool m_downloadUnreadOnly;
+  bool m_downloadByDate;
   PRInt32 m_ageLimitOfMsgsToDownload;
 };
 

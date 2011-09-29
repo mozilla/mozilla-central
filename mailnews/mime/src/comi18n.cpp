@@ -160,7 +160,7 @@ intlmime_encode_b(const unsigned char* input, PRInt32 inlen, char* output)
 
 
 /*      some utility function used by this file */
-static PRBool intlmime_only_ascii_str(const char *s)
+static bool intlmime_only_ascii_str(const char *s)
 {
   for(; *s; s++)
     if(*s & 0x80)
@@ -196,7 +196,7 @@ static unsigned char * utf8_nextchar(unsigned char *str)
 /* -------------- */
 
 static
-PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, char *output, PRInt32 outlen, PRInt32 output_carryoverlen, PRInt32 foldlen, PRBool foldingonly)
+PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, char *output, PRInt32 outlen, PRInt32 output_carryoverlen, PRInt32 foldlen, bool foldingonly)
 {
   nsCOMPtr <nsISaveAsCharset> conv;
   PRUnichar *_pUCS2 = nsnull, *pUCS2 = nsnull, *pUCS2Head = nsnull, cUCS2Tmp = 0;
@@ -425,7 +425,7 @@ process_lastline:
 
 typedef struct _RFC822AddressList {
   char        *displayname;
-  PRBool      asciionly;
+  bool        asciionly;
   char        *addrspec;
   struct _RFC822AddressList *next;
 } RFC822AddressList;
@@ -444,7 +444,7 @@ void destroy_addresslist(RFC822AddressList *p)
 static
 RFC822AddressList * construct_addresslist(char *s)
 {
-  PRBool  quoted = PR_FALSE, angle_addr = PR_FALSE;
+  bool    quoted = false, angle_addr = false;
   PRInt32  comment = 0;
   char *displayname = nsnull, *addrspec = nsnull;
   static RFC822AddressList  listinit;
@@ -568,7 +568,7 @@ RFC822AddressList * construct_addresslist(char *s)
 }
 
 static
-char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *charset, PRInt32 cursor, PRInt32 foldlen)
+char * apply_rfc2047_encoding(const char *_src, bool structured, const char *charset, PRInt32 cursor, PRInt32 foldlen)
 {
   RFC822AddressList  *listhead, *list;
   PRInt32   outputlen, usedlen;
@@ -698,7 +698,7 @@ char * apply_rfc2047_encoding(const char *_src, PRBool structured, const char *c
         *src = tmp;
       }
     }
-    PRBool asciionly = intlmime_only_ascii_str(src);
+    bool asciionly = intlmime_only_ascii_str(src);
     if (generate_encodedwords(src, charset, method, output, outputlen, cursor, foldlen, asciionly) < 0) {
       PR_Free(org_output);
       org_output = nsnull;
@@ -719,8 +719,8 @@ extern "C" {
 
 extern "C" char *MIME_DecodeMimeHeader(const char *header,
                                        const char *default_charset,
-                                       PRBool override_charset,
-                                       PRBool eatContinuations)
+                                       bool override_charset,
+                                       bool eatContinuations)
 {
   nsresult rv;
   nsCOMPtr <nsIMIMEHeaderParam> mimehdrpar = do_GetService(NS_MIMEHEADERPARAM_CONTRACTID, &rv);
@@ -734,7 +734,7 @@ extern "C" char *MIME_DecodeMimeHeader(const char *header,
   return nsnull;
 }
 
-char *MIME_EncodeMimePartIIStr(const char* header, PRBool structured, const char* mailCharset, const PRInt32 fieldNameLen, const PRInt32 encodedWordSize)
+char *MIME_EncodeMimePartIIStr(const char* header, bool structured, const char* mailCharset, const PRInt32 fieldNameLen, const PRInt32 encodedWordSize)
 {
   return apply_rfc2047_encoding(header, structured, mailCharset, fieldNameLen, encodedWordSize);
 }

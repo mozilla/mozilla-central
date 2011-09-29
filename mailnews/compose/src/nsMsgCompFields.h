@@ -194,13 +194,13 @@ public:
 
   const char* GetDraftId() {return GetAsciiHeader(MSG_DRAFT_ID_HEADER_ID);}
 
-  PRBool GetReturnReceipt() {return m_returnReceipt;}
-  PRBool GetDSN() {return m_DSN;}
-  PRBool GetAttachVCard() {return m_attachVCard;}
-  PRBool GetForcePlainText() {return m_forcePlainText;}
-  PRBool GetUseMultipartAlternative() {return m_useMultipartAlternative;}
-  PRBool GetBodyIsAsciiOnly() {return m_bodyIsAsciiOnly;}
-  PRBool GetForceMsgEncoding() {return m_forceMsgEncoding;}
+  bool GetReturnReceipt() {return m_returnReceipt;}
+  bool GetDSN() {return m_DSN;}
+  bool GetAttachVCard() {return m_attachVCard;}
+  bool GetForcePlainText() {return m_forcePlainText;}
+  bool GetUseMultipartAlternative() {return m_useMultipartAlternative;}
+  bool GetBodyIsAsciiOnly() {return m_bodyIsAsciiOnly;}
+  bool GetForceMsgEncoding() {return m_forceMsgEncoding;}
 
   nsresult SetBody(const char *value);
   const char* GetBody();
@@ -212,16 +212,16 @@ protected:
   char*       m_headers[MSG_MAX_HEADERS];
   nsCString   m_body;
   nsCOMArray<nsIMsgAttachment> m_attachments;
-  PRBool      m_attachVCard;
-  PRBool      m_forcePlainText;
-  PRBool      m_useMultipartAlternative;
-  PRBool      m_returnReceipt;
-  PRBool      m_DSN;
-  PRBool      m_bodyIsAsciiOnly;
-  PRBool      m_forceMsgEncoding;
+  bool        m_attachVCard;
+  bool        m_forcePlainText;
+  bool        m_useMultipartAlternative;
+  bool        m_returnReceipt;
+  bool        m_DSN;
+  bool        m_bodyIsAsciiOnly;
+  bool        m_forceMsgEncoding;
   PRInt32     m_receiptHeaderType;        /* receipt header type */
   nsCString   m_DefaultCharacterSet;
-  PRBool      m_needToCheckCharset;
+  bool        m_needToCheckCharset;
 
   nsCOMPtr<nsISupports> mSecureCompFields;
 };

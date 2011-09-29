@@ -67,7 +67,7 @@ calPeriod::calPeriod(struct icalperiodtype const* aPeriodPtr)
 }
 
 NS_IMETHODIMP
-calPeriod::GetIsMutable(PRBool *aResult)
+calPeriod::GetIsMutable(bool *aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
 

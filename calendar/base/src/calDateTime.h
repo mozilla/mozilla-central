@@ -60,9 +60,9 @@ public:
     NS_DECL_NSIXPCSCRIPTABLE
 
 protected:
-    PRBool mImmutable;
-    PRBool mIsValid;
-    PRBool mIsDate;
+    bool mImmutable;
+    bool mIsValid;
+    bool mIsDate;
 
     PRInt16 mYear;
     PRInt16 mMonth;
@@ -81,7 +81,7 @@ protected:
     void ensureTimezone();
 
     static PRTime IcaltimeToPRTime(icaltimetype const* icalt, icaltimezone const* tz);
-    static void PRTimeToIcaltime(PRTime time, PRBool isdate,
+    static void PRTimeToIcaltime(PRTime time, bool isdate,
                                  icaltimezone const* tz, icaltimetype *icalt);
 };
 

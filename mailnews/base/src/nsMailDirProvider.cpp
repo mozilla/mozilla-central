@@ -57,7 +57,7 @@
 nsresult
 nsMailDirProvider::EnsureDirectory(nsIFile *aDirectory)
 {
-  PRBool exists;
+  bool exists;
   nsresult rv = aDirectory->Exists(&exists);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -72,14 +72,14 @@ NS_IMPL_ISUPPORTS2(nsMailDirProvider,
                    nsIDirectoryServiceProvider2)
 
 NS_IMETHODIMP
-nsMailDirProvider::GetFile(const char *aKey, PRBool *aPersist,
+nsMailDirProvider::GetFile(const char *aKey, bool *aPersist,
                            nsIFile **aResult)
 {
   // NOTE: This function can be reentrant through the NS_GetSpecialDirectory
   // call, so be careful not to cause infinite recursion.
   // i.e. the check for supported files must come first.
   const char* leafName = nsnull;
-  PRBool isDirectory = PR_TRUE;
+  bool isDirectory = true;
 
   if (!strcmp(aKey, NS_APP_MAIL_50_DIR))
     leafName = MAIL_DIR_50_NAME;
@@ -110,7 +110,7 @@ nsMailDirProvider::GetFile(const char *aKey, PRBool *aPersist,
   if (NS_FAILED(rv))
     return rv;
 
-  PRBool exists;
+  bool exists;
   if (isDirectory && NS_SUCCEEDED(file->Exists(&exists)) && !exists)
     rv = EnsureDirectory(file);
 
@@ -165,7 +165,7 @@ NS_IMPL_ISUPPORTS1(nsMailDirProvider::AppendingEnumerator,
                    nsISimpleEnumerator)
 
 NS_IMETHODIMP
-nsMailDirProvider::AppendingEnumerator::HasMoreElements(PRBool *aResult)
+nsMailDirProvider::AppendingEnumerator::HasMoreElements(bool *aResult)
 {
   *aResult = mNext || mNextWithLocale ? PR_TRUE : PR_FALSE;
   return NS_OK;
@@ -189,7 +189,7 @@ nsMailDirProvider::AppendingEnumerator::GetNext(nsISupports* *aResult)
 
   // Ignore all errors
 
-  PRBool more;
+  bool more;
   while (NS_SUCCEEDED(mBase->HasMoreElements(&more)) && more) {
     nsCOMPtr<nsISupports> nextbasesupp;
     mBase->GetNext(getter_AddRefs(nextbasesupp));
@@ -203,7 +203,7 @@ nsMailDirProvider::AppendingEnumerator::GetNext(nsISupports* *aResult)
       continue;
 
     mNext->AppendNative(NS_LITERAL_CSTRING("isp"));
-    PRBool exists;
+    bool exists;
     nsresult rv = mNext->Exists(&exists);
     if (NS_SUCCEEDED(rv) && exists)
     {

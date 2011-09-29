@@ -84,14 +84,14 @@ private:
   nsresult RestoreDockIcon();
   nsresult BounceDockIcon();
   nsresult GetNewMailAuthors(nsIMsgFolder* aFolder, nsString& aAuthors, PRInt32 aNewCount, PRInt32* aNotDisplayed);
-  nsresult GetTotalUnread(nsIMsgFolder* aFolder, PRBool deep, PRInt32* aTotal);
-  nsresult ConfirmShouldCount(nsIMsgFolder* aFolder, PRBool* aCountFolder);
+  nsresult GetTotalUnread(nsIMsgFolder* aFolder, bool deep, PRInt32* aTotal);
+  nsresult ConfirmShouldCount(nsIMsgFolder* aFolder, bool* aCountFolder);
   void InitUnreadCount();
 
   PRInt32 mUnreadTotal;
   PRInt32 mNewTotal;
-  PRBool mOnlyCountInboxes;
-  PRBool mDoneInitialCount;
+  bool mOnlyCountInboxes;
+  bool mDoneInitialCount;
 };
 
 #endif // __nsMessengerOSXIntegration_h

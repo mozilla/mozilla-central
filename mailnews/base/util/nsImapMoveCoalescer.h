@@ -65,20 +65,20 @@ public:
   virtual ~nsImapMoveCoalescer();
 
   nsresult AddMove(nsIMsgFolder *folder, nsMsgKey key);
-  nsresult PlaybackMoves(PRBool doNewMailNotification = PR_FALSE);
+  nsresult PlaybackMoves(bool doNewMailNotification = false);
   // this lets the caller store keys in an arbitrary number of buckets. If the bucket
   // for the passed in index doesn't exist, it will get created.
   nsTArray<nsMsgKey> *GetKeyBucket(PRUint32 keyArrayIndex);
   nsIMsgWindow *GetMsgWindow() {return m_msgWindow;}
-  PRBool HasPendingMoves() {return m_hasPendingMoves;}
+  bool HasPendingMoves() {return m_hasPendingMoves;}
 protected:
   // m_sourceKeyArrays and m_destFolders are parallel arrays.
   nsTArray<nsTArray<nsMsgKey> > m_sourceKeyArrays;
   nsCOMArray<nsIMsgFolder> m_destFolders;
   nsCOMPtr <nsIMsgWindow> m_msgWindow;
   nsCOMPtr <nsIMsgFolder> m_sourceFolder;
-  PRBool m_doNewMailNotification;
-  PRBool m_hasPendingMoves;
+  bool m_doNewMailNotification;
+  bool m_hasPendingMoves;
   nsTArray<nsTArray<nsMsgKey> > m_keyBuckets;
   PRInt32 m_outstandingMoves;
 };

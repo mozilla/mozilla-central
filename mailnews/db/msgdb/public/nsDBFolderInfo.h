@@ -72,7 +72,7 @@ public:
     nsresult			AddToNewMDB();
   // accessor methods.
   
-  PRBool    TestFlag(PRInt32 flags);
+  bool      TestFlag(PRInt32 flags);
   PRInt16   GetIMAPHierarchySeparator() ;
   void      SetIMAPHierarchySeparator(PRInt16 hierarchyDelimiter) ;
   void      ChangeImapTotalPendingMessages(PRInt32 delta);
@@ -98,7 +98,7 @@ protected:
   nsresult InitMDBInfo();
   nsresult LoadMemberVariables();
 
-  nsresult AdjustHighWater(nsMsgKey highWater, PRBool force);
+  nsresult AdjustHighWater(nsMsgKey highWater, bool force);
 
   void ReleaseExternalReferences(); // let go of any references to other objects.
 
@@ -133,8 +133,8 @@ protected:
   nsIMdbRow     *m_mdbRow;	// singleton row in table;
 
   nsCString     m_charSet;
-  PRBool        m_charSetOverride;
-  PRBool        m_mdbTokensInitialized;
+  bool          m_charSetOverride;
+  bool          m_mdbTokensInitialized;
   
   mdb_token     m_rowScopeToken;
   mdb_token     m_tableKindToken;

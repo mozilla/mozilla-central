@@ -93,10 +93,10 @@ public:
     const char*   targetPrefName;
     prefConverter prefGetterFunc;
     prefConverter prefSetterFunc;
-    PRBool        prefHasValue;
+    bool          prefHasValue;
     union {
       PRInt32     intValue;
-      PRBool      boolValue;
+      bool        boolValue;
       char*       stringValue;
     };
   };
@@ -107,15 +107,15 @@ public:
     union {
       char*       stringValue;
       PRInt32     intValue;
-      PRBool      boolValue;
+      bool        boolValue;
     };
   };
 
   typedef nsTArray<PrefBranchStruct*> PBStructArray;
 
   // nsISuiteProfileMigrator methods
-  NS_IMETHOD GetSourceExists(PRBool* aSourceExists);
-  NS_IMETHOD GetSourceHasMultipleProfiles(PRBool* aSourceHasMultipleProfiles);
+  NS_IMETHOD GetSourceExists(bool* aSourceExists);
+  NS_IMETHOD GetSourceHasMultipleProfiles(bool* aSourceHasMultipleProfiles);
   NS_IMETHOD GetSourceProfiles(nsIArray** aResult);
 
   // Pref Transform Methods
@@ -153,25 +153,25 @@ protected:
                    PBStructArray &aPrefs);
 
   // Generic Import Functions
-  nsresult CopyCookies(PRBool aReplace);
-  nsresult CopyPasswords(PRBool aReplace);
+  nsresult CopyCookies(bool aReplace);
+  nsresult CopyPasswords(bool aReplace);
   nsresult CopyUserSheet(const char* aFileName);
-  nsresult GetSignonFileName(PRBool aReplace, char** aFileName);
+  nsresult GetSignonFileName(bool aReplace, char** aFileName);
 
   // Browser Import Functions
-  nsresult CopyBookmarks(PRBool aReplace);
-  nsresult CopyOtherData(PRBool aReplace);
+  nsresult CopyBookmarks(bool aReplace);
+  nsresult CopyOtherData(bool aReplace);
   nsresult ImportNetscapeBookmarks(const char* aBookmarksFileName,
                                    const char* aImportSourceNameKey);
-  PRBool GetSourceHasHomePageURL();
-  nsresult CopyHomePageData(PRBool aReplace);
+  bool GetSourceHasHomePageURL();
+  nsresult CopyHomePageData(bool aReplace);
 
   // Mail Import Functions
   nsresult CopyAddressBookDirectories(PBStructArray &aLdapServers,
                                       nsIPrefService* aPrefService);
   nsresult CopySignatureFiles(PBStructArray &aIdentities,
                               nsIPrefService* aPrefService);
-  nsresult CopyJunkTraining(PRBool aReplace);
+  nsresult CopyJunkTraining(bool aReplace);
   nsresult CopyMailFolderPrefs(PBStructArray &aMailServers,
                                nsIPrefService* aPrefService);
   void CopyMailFolders();

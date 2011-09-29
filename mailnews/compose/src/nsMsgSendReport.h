@@ -53,7 +53,7 @@ public:
   virtual ~nsMsgProcessReport();
 
 private:
-  PRBool    mProceeded;
+  bool      mProceeded;
   nsresult  mError;
   nsString  mMessage;
 };
@@ -73,7 +73,7 @@ private:
   nsCOMPtr<nsIMsgProcessReport> mProcessReport[SEND_LAST_PROCESS + 1];
   PRInt32 mDeliveryMode;
   PRInt32 mCurrentProcess;
-  PRBool mAlreadyDisplayReport;
+  bool mAlreadyDisplayReport;
 };
 
 #endif

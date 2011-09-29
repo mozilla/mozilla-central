@@ -114,7 +114,7 @@ public:
     virtual ~nsSmtpProtocol();
 
     virtual nsresult LoadUrl(nsIURI * aURL, nsISupports * aConsumer = nsnull);
-    virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging = PR_FALSE);
+    virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging = false);
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // we suppport the nsIStreamListener interface 
@@ -156,13 +156,13 @@ private:
 
     // *** the following should move to the smtp server when we support
     // multiple smtp servers
-    PRBool m_usernamePrompted;
+    bool m_usernamePrompted;
     PRInt32 m_prefSocketType;
-    PRBool m_tlsEnabled;
+    bool m_tlsEnabled;
 
-    PRBool m_tlsInitiated;
+    bool m_tlsInitiated;
 
-    PRBool m_sendDone;
+    bool m_sendDone;
 
     PRInt32 m_totalAmountRead;
 #ifdef UNREADY_CODE 

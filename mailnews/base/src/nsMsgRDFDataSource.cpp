@@ -127,7 +127,7 @@ nsMsgRDFDataSource::GetURI(char * *aURI)
 
 /* nsIRDFResource GetSource (in nsIRDFResource aProperty, in nsIRDFNode aTarget, in boolean aTruthValue); */
 NS_IMETHODIMP
-nsMsgRDFDataSource::GetSource(nsIRDFResource *aProperty, nsIRDFNode *aTarget, PRBool aTruthValue, nsIRDFResource **_retval)
+nsMsgRDFDataSource::GetSource(nsIRDFResource *aProperty, nsIRDFNode *aTarget, bool aTruthValue, nsIRDFResource **_retval)
 {
     return NS_RDF_NO_VALUE;
 }
@@ -135,7 +135,7 @@ nsMsgRDFDataSource::GetSource(nsIRDFResource *aProperty, nsIRDFNode *aTarget, PR
 
 /* nsISimpleEnumerator GetSources (in nsIRDFResource aProperty, in nsIRDFNode aTarget, in boolean aTruthValue); */
 NS_IMETHODIMP
-nsMsgRDFDataSource::GetSources(nsIRDFResource *aProperty, nsIRDFNode *aTarget, PRBool aTruthValue, nsISimpleEnumerator **_retval)
+nsMsgRDFDataSource::GetSources(nsIRDFResource *aProperty, nsIRDFNode *aTarget, bool aTruthValue, nsISimpleEnumerator **_retval)
 {
     return NS_RDF_NO_VALUE;
 }
@@ -143,7 +143,7 @@ nsMsgRDFDataSource::GetSources(nsIRDFResource *aProperty, nsIRDFNode *aTarget, P
 
 /* nsIRDFNode GetTarget (in nsIRDFResource aSource, in nsIRDFResource aProperty, in boolean aTruthValue); */
 NS_IMETHODIMP
-nsMsgRDFDataSource::GetTarget(nsIRDFResource *aSource, nsIRDFResource *aProperty, PRBool aTruthValue, nsIRDFNode **_retval)
+nsMsgRDFDataSource::GetTarget(nsIRDFResource *aSource, nsIRDFResource *aProperty, bool aTruthValue, nsIRDFNode **_retval)
 {
     return NS_RDF_NO_VALUE;
 }
@@ -151,7 +151,7 @@ nsMsgRDFDataSource::GetTarget(nsIRDFResource *aSource, nsIRDFResource *aProperty
 
 /* nsISimpleEnumerator GetTargets (in nsIRDFResource aSource, in nsIRDFResource aProperty, in boolean aTruthValue); */
 NS_IMETHODIMP
-nsMsgRDFDataSource::GetTargets(nsIRDFResource *aSource, nsIRDFResource *aProperty, PRBool aTruthValue, nsISimpleEnumerator **_retval)
+nsMsgRDFDataSource::GetTargets(nsIRDFResource *aSource, nsIRDFResource *aProperty, bool aTruthValue, nsISimpleEnumerator **_retval)
 {
     return NS_RDF_NO_VALUE;
 }
@@ -159,7 +159,7 @@ nsMsgRDFDataSource::GetTargets(nsIRDFResource *aSource, nsIRDFResource *aPropert
 
 /* void Assert (in nsIRDFResource aSource, in nsIRDFResource aProperty, in nsIRDFNode aTarget, in boolean aTruthValue); */
 NS_IMETHODIMP
-nsMsgRDFDataSource::Assert(nsIRDFResource *aSource, nsIRDFResource *aProperty, nsIRDFNode *aTarget, PRBool aTruthValue)
+nsMsgRDFDataSource::Assert(nsIRDFResource *aSource, nsIRDFResource *aProperty, nsIRDFNode *aTarget, bool aTruthValue)
 {
     return NS_RDF_NO_VALUE;
 }
@@ -194,7 +194,7 @@ nsMsgRDFDataSource::Move(nsIRDFResource *aOldSource,
 
 /* boolean HasAssertion (in nsIRDFResource aSource, in nsIRDFResource aProperty, in nsIRDFNode aTarget, in boolean aTruthValue); */
 NS_IMETHODIMP
-nsMsgRDFDataSource::HasAssertion(nsIRDFResource *aSource, nsIRDFResource *aProperty, nsIRDFNode *aTarget, PRBool aTruthValue, PRBool *_retval)
+nsMsgRDFDataSource::HasAssertion(nsIRDFResource *aSource, nsIRDFResource *aProperty, nsIRDFNode *aTarget, bool aTruthValue, bool *_retval)
 {
     *_retval = PR_FALSE;
     return NS_OK;
@@ -222,14 +222,14 @@ nsMsgRDFDataSource::RemoveObserver(nsIRDFObserver *aObserver)
 }
 
 NS_IMETHODIMP
-nsMsgRDFDataSource::HasArcIn(nsIRDFNode *aNode, nsIRDFResource *aArc, PRBool *result)
+nsMsgRDFDataSource::HasArcIn(nsIRDFNode *aNode, nsIRDFResource *aArc, bool *result)
 {
   *result = PR_FALSE;
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgRDFDataSource::HasArcOut(nsIRDFResource *aSource, nsIRDFResource *aArc, PRBool *result)
+nsMsgRDFDataSource::HasArcOut(nsIRDFResource *aSource, nsIRDFResource *aArc, bool *result)
 {
   *result = PR_FALSE;
   return NS_OK;
@@ -269,7 +269,7 @@ nsMsgRDFDataSource::GetAllCmds(nsIRDFResource *aSource, nsISimpleEnumerator **_r
 
 /* boolean IsCommandEnabled (in nsISupportsArray aSources, in nsIRDFResource aCommand, in nsISupportsArray aArguments); */
 NS_IMETHODIMP
-nsMsgRDFDataSource::IsCommandEnabled(nsISupportsArray *aSources, nsIRDFResource *aCommand, nsISupportsArray *aArguments, PRBool *_retval)
+nsMsgRDFDataSource::IsCommandEnabled(nsISupportsArray *aSources, nsIRDFResource *aCommand, nsISupportsArray *aArguments, bool *_retval)
 {
     return NS_RDF_NO_VALUE;
 }
@@ -353,7 +353,7 @@ nsresult nsMsgRDFDataSource::NotifyObservers(nsIRDFResource *subject,
                                                 nsIRDFResource *property,
                                                 nsIRDFNode *newObject,
                                                 nsIRDFNode *oldObject,
-                                                PRBool assert, PRBool change)
+                                                bool assert, bool change)
 {
   NS_ASSERTION(!(change && assert),
                "Can't change and assert at the same time!\n");
@@ -367,7 +367,7 @@ nsresult nsMsgRDFDataSource::NotifyObservers(nsIRDFResource *subject,
   return NS_OK;
 }
 
-PRBool
+bool
 nsMsgRDFDataSource::assertEnumFunc(nsIRDFObserver *aObserver, void *aData)
 {
   nsMsgRDFNotification *note = (nsMsgRDFNotification *)aData;
@@ -378,7 +378,7 @@ nsMsgRDFDataSource::assertEnumFunc(nsIRDFObserver *aObserver, void *aData)
   return PR_TRUE;
 }
 
-PRBool
+bool
 nsMsgRDFDataSource::unassertEnumFunc(nsIRDFObserver *aObserver, void *aData)
 {
   nsMsgRDFNotification* note = (nsMsgRDFNotification *)aData;
@@ -389,7 +389,7 @@ nsMsgRDFDataSource::unassertEnumFunc(nsIRDFObserver *aObserver, void *aData)
   return PR_TRUE;
 }
 
-PRBool
+bool
 nsMsgRDFDataSource::changeEnumFunc(nsIRDFObserver *aObserver, void *aData)
 {
   nsMsgRDFNotification* note = (nsMsgRDFNotification *)aData;

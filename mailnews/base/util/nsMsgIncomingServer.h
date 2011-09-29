@@ -110,15 +110,15 @@ protected:
 static PLDHashOperator evictOldEntries(nsCStringHashKey::KeyType aKey, PRInt32 &aData, void *aClosure);
 private:
   PRUint32 m_biffState;
-  PRPackedBool m_serverBusy;
+  bool m_serverBusy;
   nsCOMPtr <nsISpamSettings> mSpamSettings;
   nsCOMPtr<nsIMsgFilterPlugin> mFilterPlugin;  // XXX should be a list
 
 protected:
   nsCString m_password;
-  PRPackedBool m_canHaveFilters;
-  PRPackedBool m_displayStartupPage;
-  PRPackedBool mPerformingBiff;
+  bool m_canHaveFilters;
+  bool m_displayStartupPage;
+  bool mPerformingBiff;
 };
 
 #undef  IMETHOD_VISIBILITY

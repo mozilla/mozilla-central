@@ -172,7 +172,7 @@ typedef enum {
 } nsIMAPeFetchFields;
 
 typedef struct _utf_name_struct {
-	PRBool toUtf7Imap;
+	bool toUtf7Imap;
 	unsigned char *sourceString;
 	unsigned char *convertedString;
 } utf_name_struct;

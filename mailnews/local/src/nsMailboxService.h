@@ -65,7 +65,7 @@ public:
   NS_DECL_NSIPROTOCOLHANDLER
 
 protected:
-  PRBool        mPrintingOperation;
+  bool          mPrintingOperation;
 
   // helper functions used by the service
   nsresult PrepareMessageUrl(const char * aSrcMsgMailboxURI, nsIUrlListener * aUrlListener,

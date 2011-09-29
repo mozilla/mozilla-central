@@ -102,7 +102,7 @@ GatherLine(const char *line, PRInt32 length, MimeObject *obj)
 }
 
 static int
-EndGather(MimeObject *obj, PRBool abort_p)
+EndGather(MimeObject *obj, bool abort_p)
 {
     MimeSimpleStub *ssobj = (MimeSimpleStub *)obj;
 

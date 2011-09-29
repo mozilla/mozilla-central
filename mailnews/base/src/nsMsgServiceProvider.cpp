@@ -97,7 +97,7 @@ void nsMsgServiceProviderService::LoadISPFiles()
   if (NS_FAILED(rv))
     return;
 
-  PRBool hasMore;
+  bool hasMore;
   nsCOMPtr<nsIFile> ispDirectory;
   while (NS_SUCCEEDED(ispDirectories->HasMoreElements(&hasMore)) && hasMore) 
   {
@@ -114,7 +114,7 @@ void nsMsgServiceProviderService::LoadISPFilesFromDir(nsIFile* aDir)
 {
   nsresult rv;
 
-  PRBool check = PR_FALSE;
+  bool check = false;
   rv = aDir->Exists(&check);
   if (NS_FAILED(rv) || !check)
     return;

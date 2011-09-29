@@ -75,7 +75,7 @@ struct CorpusToken;
 class TokenEnumeration {
 public:
     TokenEnumeration(PLDHashTable* table);
-    PRBool hasMoreTokens();
+    bool hasMoreTokens();
     BaseToken* nextToken();
 
 private:
@@ -140,7 +140,7 @@ protected:
     /**
      * Calls passed-in function for each token in the table.
      */
-    void visit(PRBool (*f) (BaseToken*, void*), void* data);
+    void visit(bool (*f) (BaseToken*, void*), void* data);
     BaseToken* get(const char* word);
 
 };
@@ -178,17 +178,17 @@ public:
     // Delimiters used in tokenizing a particular header.
     // Parallel array to mEnabledHeaders
     nsTArray<nsCString> mEnabledHeadersDelimiters;
-    PRBool mCustomHeaderTokenization; // Are there any preference-set tokenization customizations?
+    bool mCustomHeaderTokenization; // Are there any preference-set tokenization customizations?
     PRUint32 mMaxLengthForToken; // maximum length of a token
     // should we convert iframe to div during tokenization?
-    PRBool mIframeToDiv;
+    bool mIframeToDiv;
 
 private:
 
     void tokenize_ascii_word(char * word);
     void tokenize_japanese_word(char* chunk);
     inline void addTokenForHeader(const char * aTokenPrefix, nsACString& aValue,
-        PRBool aTokenizeValue = false, const char* aDelimiters = nsnull);
+        bool aTokenizeValue = false, const char* aDelimiters = nsnull);
     nsresult stripHTML(const nsAString& inString, nsAString& outString);
     // helper function to escape \n, \t, etc from a CString
     void UnescapeCString(nsCString& aCString);
@@ -311,7 +311,7 @@ public:
      *                    used in storing data from aFile into the local corpus.
      *
      */
-    nsresult UpdateData(nsILocalFile *aFile, PRBool aIsAdd,
+    nsresult UpdateData(nsILocalFile *aFile, bool aIsAdd,
                         PRUint32 aRemapCount, PRUint32 *aFromTraits,
                         PRUint32 *aToTraits);
 
@@ -344,13 +344,13 @@ protected:
      *
      * @return           true if successful, false if error
      */
-    PRBool readTokens(FILE* stream, PRInt64 fileSize, PRUint32 aTraitId,
-                      PRBool aIsAdd);
+    bool readTokens(FILE* stream, PRInt64 fileSize, PRUint32 aTraitId,
+                      bool aIsAdd);
 
     /**
      * write token strings to the data file
      */
-    PRBool writeTokens(FILE* stream, PRBool shrink, PRUint32 aTraitId);
+    bool writeTokens(FILE* stream, bool shrink, PRUint32 aTraitId);
 
     /**
      * remove counts for a token string
@@ -420,7 +420,7 @@ protected:
     CorpusStore mCorpus;
     double   mJunkProbabilityThreshold;
     PRInt32 mMaximumTokenCount;
-    PRPackedBool mTrainingDataDirty;
+    bool mTrainingDataDirty;
     PRInt32 mMinFlushInterval; // in milliseconds, must be positive
                                //and not too close to 0
     nsCOMPtr<nsITimer> mTimer;

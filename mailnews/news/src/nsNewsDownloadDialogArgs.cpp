@@ -94,7 +94,7 @@ NS_IMETHODIMP nsNewsDownloadDialogArgs::SetServerKey(const char * aServerKey)
 
     return NS_OK;
 }
-NS_IMETHODIMP nsNewsDownloadDialogArgs::GetHitOK(PRBool *aHitOK)
+NS_IMETHODIMP nsNewsDownloadDialogArgs::GetHitOK(bool *aHitOK)
 {
     NS_ENSURE_ARG_POINTER(aHitOK);
     
@@ -102,13 +102,13 @@ NS_IMETHODIMP nsNewsDownloadDialogArgs::GetHitOK(PRBool *aHitOK)
 
     return NS_OK;
 }
-NS_IMETHODIMP nsNewsDownloadDialogArgs::SetHitOK(PRBool aHitOK)
+NS_IMETHODIMP nsNewsDownloadDialogArgs::SetHitOK(bool aHitOK)
 {
     mHitOK = aHitOK;
 
     return NS_OK;
 }
-NS_IMETHODIMP nsNewsDownloadDialogArgs::GetDownloadAll(PRBool *aDownloadAll)
+NS_IMETHODIMP nsNewsDownloadDialogArgs::GetDownloadAll(bool *aDownloadAll)
 {
     NS_ENSURE_ARG_POINTER(aDownloadAll);
 
@@ -116,7 +116,7 @@ NS_IMETHODIMP nsNewsDownloadDialogArgs::GetDownloadAll(PRBool *aDownloadAll)
 
     return NS_OK;
 }
-NS_IMETHODIMP nsNewsDownloadDialogArgs::SetDownloadAll(PRBool aDownloadAll)
+NS_IMETHODIMP nsNewsDownloadDialogArgs::SetDownloadAll(bool aDownloadAll)
 {
     mDownloadAll = aDownloadAll;
 

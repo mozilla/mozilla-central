@@ -54,11 +54,11 @@ public:
 class nsImportTranslator {
 public:
   virtual ~nsImportTranslator() {}
-  virtual PRBool    Supports8bitEncoding( void) { return( PR_FALSE);}
+  virtual bool      Supports8bitEncoding( void) { return( false);}
   virtual PRUint32  GetMaxBufferSize( PRUint32 inLen) { return( inLen + 1);}
   virtual void    ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut) { memcpy( pOut, pIn, inLen); pOut[inLen] = 0;}
-  virtual PRBool    ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
-  virtual PRBool    FinishConvertToFile( ImportOutFile * /* pOutFile */) { return( PR_TRUE);}
+  virtual bool      ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
+  virtual bool      FinishConvertToFile( ImportOutFile * /* pOutFile */) { return( true);}
 
   virtual void  GetCharset( nsCString& charSet) { charSet = "us-ascii";}
   virtual void  GetLanguage( nsCString& lang) { lang = "en";}
@@ -71,7 +71,7 @@ class CMHTranslator : public nsImportTranslator {
 public:
   virtual PRUint32  GetMaxBufferSize( PRUint32 inLen) { return( (inLen * 3) + 1);}
   virtual void    ConvertBuffer( const PRUint8 * pIn, PRUint32 inLen, PRUint8 * pOut);
-  virtual PRBool    ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
+  virtual bool      ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
 };
 
 // Specialized encoder, not a vaild language translator, used for mail headers
@@ -84,11 +84,11 @@ public:
 
   void  SetUseQuotedPrintable( void) { m_useQuotedPrintable = PR_TRUE;}
 
-  virtual PRBool  ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
-  PRBool  ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed);
+  virtual bool    ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
+  bool    ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed);
 
 protected:
-  PRBool      m_useQuotedPrintable;
+  bool        m_useQuotedPrintable;
   nsCString    m_charset;
   PRUint32    m_startLen;
 };

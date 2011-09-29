@@ -170,7 +170,7 @@ nsresult nsMsgPurgeService::PerformPurge()
 
   nsCOMPtr <nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
-  PRBool keepApplyingRetentionSettings = PR_TRUE;
+  bool keepApplyingRetentionSettings = true;
 
   nsCOMPtr<nsISupportsArray> allServers;
   rv = accountManager->GetAllServers(getter_AddRefs(allServers));
@@ -287,7 +287,7 @@ nsresult nsMsgPurgeService::PerformPurge()
 
         // check if we are set up to purge for this server
         // if not, skip it.
-        PRBool purgeSpam;
+        bool purgeSpam;
         spamSettings->GetPurge(&purgeSpam);
 
         PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("[%d] purgeSpam=%s (if false, don't purge)", serverIndex, purgeSpam ? "true" : "false"));
@@ -341,10 +341,10 @@ nsresult nsMsgPurgeService::PerformPurge()
           rv = junkFolder->GetServer(getter_AddRefs(junkFolderServer));
           NS_ENSURE_SUCCESS(rv,rv);
 
-          PRBool serverBusy = PR_FALSE;
-          PRBool serverRequiresPassword = PR_TRUE;
-          PRBool passwordPromptRequired;
-          PRBool canSearchMessages = PR_FALSE;
+          bool serverBusy = false;
+          bool serverRequiresPassword = true;
+          bool passwordPromptRequired;
+          bool canSearchMessages = false;
           junkFolderServer->GetPasswordPromptRequired(&passwordPromptRequired);
           junkFolderServer->GetServerBusy(&serverBusy);
           junkFolderServer->GetServerRequiresPasswordForBiff(&serverRequiresPassword);

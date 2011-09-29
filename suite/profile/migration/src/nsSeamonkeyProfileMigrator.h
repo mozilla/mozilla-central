@@ -62,17 +62,17 @@ public:
   // nsISuiteProfileMigrator methods
   NS_IMETHOD Migrate(PRUint16 aItems, nsIProfileStartup *aStartup,
                      const PRUnichar *aProfile);
-  NS_IMETHOD GetMigrateData(const PRUnichar *aProfile, PRBool aDoingStartup,
+  NS_IMETHOD GetMigrateData(const PRUnichar *aProfile, bool aDoingStartup,
                             PRUint16 *_retval);
   NS_IMETHOD GetSupportedItems(PRUint16 *aSupportedItems);
 
 protected:
   nsresult FillProfileDataFromRegistry();
-  nsresult CopyPreferences(PRBool aReplace);
+  nsresult CopyPreferences(bool aReplace);
   nsresult TransformPreferences(const char* aSourcePrefFileName,
                                 const char* aTargetPrefFileName);
 
-  nsresult CopyHistory(PRBool aReplace);
+  nsresult CopyHistory(bool aReplace);
   nsresult LocateSignonsFile(char** aResult);
 };
  

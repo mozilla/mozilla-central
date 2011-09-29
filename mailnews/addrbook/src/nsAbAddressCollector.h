@@ -66,7 +66,7 @@ private:
                                                   const nsACString &aValue,
                                                   nsIAbDirectory **aDirectory);
   void AutoCollectScreenName(nsIAbCard *aCard, const nsACString &aEmail);
-  PRBool SetNamesForCard(nsIAbCard *aSenderCard, const nsACString &aFullName);
+  bool SetNamesForCard(nsIAbCard *aSenderCard, const nsACString &aFullName);
   void SplitFullName(const nsCString &aFullName, nsCString &aFirstName,
                      nsCString &aLastName);
   void SetUpAbFromPrefs(nsIPrefBranch *aPrefBranch);

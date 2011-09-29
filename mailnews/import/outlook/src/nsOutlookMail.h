@@ -57,24 +57,24 @@ public:
   
   nsresult GetMailFolders( nsISupportsArray **pArray);
   nsresult GetAddressBooks( nsISupportsArray **pArray);
-  nsresult ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRInt32 index, const PRUnichar *pName, nsIFile *pDest, PRInt32 *pMsgCount);
+  nsresult ImportMailbox( PRUint32 *pDoneSoFar, bool *pAbort, PRInt32 index, const PRUnichar *pName, nsIFile *pDest, PRInt32 *pMsgCount);
   static nsresult ImportMessage( LPMESSAGE lpMsg, nsIOutputStream *destOutputStream, nsMsgDeliverMode mode);
   nsresult ImportAddresses( PRUint32 *pCount, PRUint32 *pTotal, const PRUnichar *pName, PRUint32 id, nsIAddrDatabase *pDb, nsString& errors);
 private:
   void  OpenMessageStore( CMapiFolder *pNextFolder);
   static BOOL  WriteData( nsIOutputStream *pDest, const char *pData, PRInt32 len);
   
-  PRBool    IsAddressBookNameUnique( nsString& name, nsString& list);
+  bool      IsAddressBookNameUnique( nsString& name, nsString& list);
   void      MakeAddressBookNameUnique( nsString& name, nsString& list);
   void      SanitizeValue( nsString& val);
   void      SplitString( nsString& val1, nsString& val2);
-  PRBool    BuildCard( const PRUnichar *pName, nsIAddrDatabase *pDb, nsIMdbRow *newRow, LPMAPIPROP pUser, nsIImportFieldMap *pFieldMap);
+  bool      BuildCard( const PRUnichar *pName, nsIAddrDatabase *pDb, nsIMdbRow *newRow, LPMAPIPROP pUser, nsIImportFieldMap *pFieldMap);
   nsresult  CreateList( const PRUnichar * pName, nsIAddrDatabase *pDb, LPMAPIPROP pUserList, nsIImportFieldMap *pFieldMap);
   
 private:
-  PRBool            m_gotFolders;
-  PRBool            m_gotAddresses;
-  PRBool            m_haveMapi;
+  bool              m_gotFolders;
+  bool              m_gotAddresses;
+  bool              m_haveMapi;
   CMapiApi          m_mapi;
   CMapiFolderList   m_folderList;
   CMapiFolderList   m_addressList;

@@ -132,7 +132,7 @@ COM_GetmimeMultipartSignedClass(void)
 
 extern "C" int  
 COM_MimeObject_write(void *mimeObject, char *data, PRInt32 length, 
-                     PRBool user_visible_p)
+                     bool user_visible_p)
 {
   PRInt32 rc = -1;
 

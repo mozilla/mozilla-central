@@ -269,8 +269,8 @@ Sync(NSString *aUid)
 @end
 
 static nsresult
-MapConditionString(nsIAbBooleanConditionString *aCondition, PRBool aNegate,
-                   PRBool &aCanHandle, ABSearchElement **aResult)
+MapConditionString(nsIAbBooleanConditionString *aCondition, bool aNegate,
+                   bool &aCanHandle, ABSearchElement **aResult)
 {
   aCanHandle = PR_FALSE;
   
@@ -394,7 +394,7 @@ MapConditionString(nsIAbBooleanConditionString *aCondition, PRBool aNegate,
 
 static nsresult
 BuildSearchElements(nsIAbBooleanExpression *aExpression,
-                    PRBool &aCanHandle,
+                    bool &aCanHandle,
                     ABSearchElement **aResult)
 {
   aCanHandle = PR_TRUE;
@@ -464,10 +464,10 @@ BuildSearchElements(nsIAbBooleanExpression *aExpression,
   return rv;
 }
 
-static PRBool
+static bool
 Search(nsIAbBooleanExpression *aExpression, NSArray **aResult)
 {
-  PRBool canHandle = PR_FALSE;
+  bool canHandle = false;
   ABSearchElement *searchElement;
   nsresult rv = BuildSearchElements(aExpression, canHandle, &searchElement);
   NS_ENSURE_SUCCESS(rv, PR_FALSE);
@@ -518,7 +518,7 @@ nsAbOSXDirectory::Init(const char *aUri)
 
   NSArray *cards;
   nsCOMPtr<nsIMutableArray> cardList;
-  PRBool isRootOSXDirectory = PR_FALSE;
+  bool isRootOSXDirectory = false;
 
   if (!mIsQueryURI && mURINoQuery.Length() <= sizeof(NS_ABOSXDIRECTORY_URI_PREFIX))
     isRootOSXDirectory = PR_TRUE;
@@ -611,7 +611,7 @@ nsAbOSXDirectory::GetURI(nsACString &aURI)
 }
 
 NS_IMETHODIMP
-nsAbOSXDirectory::GetReadOnly(PRBool *aReadOnly)
+nsAbOSXDirectory::GetReadOnly(bool *aReadOnly)
 {
   NS_ENSURE_ARG_POINTER(aReadOnly);
 
@@ -619,7 +619,7 @@ nsAbOSXDirectory::GetReadOnly(PRBool *aReadOnly)
   return NS_OK;
 }
 
-static PRBool
+static bool
 CheckRedundantCards(nsIAbManager *aManager, nsIAbDirectory *aDirectory,
                     nsIAbCard *aCard, NSMutableArray *aCardList)
 {
@@ -946,7 +946,7 @@ nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
                                               getter_AddRefs(expression));
     NS_ENSURE_SUCCESS(rv, rv);
     
-    PRBool canHandle = !m_IsMailList && Search(expression, &cards);
+    bool canHandle = !m_IsMailList && Search(expression, &cards);
     if (!canHandle)
       return FallbackSearch(expression, aCards);
 
@@ -993,7 +993,7 @@ nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
 }
 
 NS_IMETHODIMP
-nsAbOSXDirectory::GetIsQuery(PRBool *aResult)
+nsAbOSXDirectory::GetIsQuery(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = mIsQueryURI;
@@ -1020,7 +1020,7 @@ nsAbOSXDirectory::GetCardByUri(const nsACString &aUri, nsIAbOSXCard **aResult)
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsISupports> item;
-  PRBool hasMore = PR_FALSE;
+  bool hasMore = false;
   while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
   {
     rv = enumerator->GetNext(getter_AddRefs(item));
@@ -1044,7 +1044,7 @@ nsAbOSXDirectory::GetCardByUri(const nsACString &aUri, nsIAbOSXCard **aResult)
 NS_IMETHODIMP
 nsAbOSXDirectory::GetCardFromProperty(const char *aProperty,
                                       const nsACString &aValue,
-                                      PRBool aCaseSensitive,
+                                      bool aCaseSensitive,
                                       nsIAbCard **aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
@@ -1075,10 +1075,10 @@ nsAbOSXDirectory::GetCardFromProperty(const char *aProperty,
       if (NS_SUCCEEDED(rv))
       {
 #ifdef MOZILLA_INTERNAL_API
-        PRBool equal = aCaseSensitive ? cardValue.Equals(aValue) :
+        bool equal = aCaseSensitive ? cardValue.Equals(aValue) :
           cardValue.Equals(aValue, nsCaseInsensitiveCStringComparator());
 #else
-        PRBool equal = aCaseSensitive ? cardValue.Equals(aValue) :
+        bool equal = aCaseSensitive ? cardValue.Equals(aValue) :
           cardValue.Equals(aValue, CaseInsensitiveCompare);
 #endif
         if (equal)
@@ -1092,7 +1092,7 @@ nsAbOSXDirectory::GetCardFromProperty(const char *aProperty,
 NS_IMETHODIMP
 nsAbOSXDirectory::GetCardsFromProperty(const char *aProperty,
                                        const nsACString &aValue,
-                                       PRBool aCaseSensitive,
+                                       bool aCaseSensitive,
                                        nsISimpleEnumerator **aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
@@ -1124,10 +1124,10 @@ nsAbOSXDirectory::GetCardsFromProperty(const char *aProperty,
       if (NS_SUCCEEDED(rv))
       {
 #ifdef MOZILLA_INTERNAL_API
-        PRBool equal = aCaseSensitive ? cardValue.Equals(aValue) :
+        bool equal = aCaseSensitive ? cardValue.Equals(aValue) :
           cardValue.Equals(aValue, nsCaseInsensitiveCStringComparator());
 #else
-        PRBool equal = aCaseSensitive ? cardValue.Equals(aValue) :
+        bool equal = aCaseSensitive ? cardValue.Equals(aValue) :
           cardValue.Equals(aValue, CaseInsensitiveCompare);
 #endif
         if (equal)
@@ -1166,7 +1166,7 @@ nsAbOSXDirectory::CardForEmailAddress(const nsACString &aEmailAddress,
     card = do_QueryElementAt(list, i, &rv);
     if (NS_SUCCEEDED(rv))
     {
-      PRBool hasEmailAddress = PR_FALSE;
+      bool hasEmailAddress = false;
 
       rv = card->HasEmailAddress(aEmailAddress, &hasEmailAddress);
       if (NS_SUCCEEDED(rv) && hasEmailAddress)
@@ -1177,7 +1177,7 @@ nsAbOSXDirectory::CardForEmailAddress(const nsACString &aEmailAddress,
 }
 
 NS_IMETHODIMP
-nsAbOSXDirectory::HasCard(nsIAbCard *aCard, PRBool *aHasCard)
+nsAbOSXDirectory::HasCard(nsIAbCard *aCard, bool *aHasCard)
 {
   NS_ENSURE_ARG_POINTER(aCard);
   NS_ENSURE_ARG_POINTER(aHasCard);
@@ -1199,7 +1199,7 @@ nsAbOSXDirectory::HasCard(nsIAbCard *aCard, PRBool *aHasCard)
 
 NS_IMETHODIMP
 nsAbOSXDirectory::HasDirectory(nsIAbDirectory *aDirectory,
-                               PRBool *aHasDirectory)
+                               bool *aHasDirectory)
 {
   NS_ENSURE_ARG_POINTER(aDirectory);
   NS_ENSURE_ARG_POINTER(aHasDirectory);

@@ -55,18 +55,18 @@ public:
 	
 	void	EncodeFile( nsIFile *pInFile, ImportOutFile *pOut, const char *pFileName, const char *pMimeType);
 
-	PRBool	DoWork( PRBool *pDone);
+	bool	DoWork( bool *pDone);
 	
 	long	NumBytesProcessed( void) { long val = m_bytesProcessed; m_bytesProcessed = 0; return( val);}
 
 protected:
 	void	CleanUp( void);
-	PRBool	SetUpEncode( void);
-	PRBool	WriteFileName( nsCString& fName, PRBool wasTrans, const char *pTag);
-	PRBool	TranslateFileName( nsCString& inFile, nsCString& outFile);
+	bool	SetUpEncode( void);
+	bool	WriteFileName( nsCString& fName, bool wasTrans, const char *pTag);
+	bool	TranslateFileName( nsCString& inFile, nsCString& outFile);
 
 
-	virtual PRBool	ScanBuffer( PRBool *pDone);
+	virtual bool	ScanBuffer( bool *pDone);
 
 
 protected:
@@ -78,7 +78,7 @@ protected:
 	int				m_state;
 	long			m_bytesProcessed;
 	PRUint8 *		m_pInputBuf;
-	PRBool			m_appleSingle;
+	bool			m_appleSingle;
 	
 	// Actual encoding variables
 	int			m_lineLen;

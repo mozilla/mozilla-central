@@ -289,13 +289,13 @@ nsresult nsNntpUrl::DetermineNewsAction()
   return NS_OK;
 }
 
-NS_IMETHODIMP nsNntpUrl::SetGetOldMessages(PRBool aGetOldMessages)
+NS_IMETHODIMP nsNntpUrl::SetGetOldMessages(bool aGetOldMessages)
 {
   m_getOldMessages = aGetOldMessages;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsNntpUrl::GetGetOldMessages(PRBool * aGetOldMessages)
+NS_IMETHODIMP nsNntpUrl::GetGetOldMessages(bool * aGetOldMessages)
 {
   NS_ENSURE_ARG(aGetOldMessages);
   *aGetOldMessages = m_getOldMessages;
@@ -361,8 +361,8 @@ NS_IMETHODIMP nsNntpUrl::GetUri(char ** aURI)
 }
 
 
-NS_IMPL_GETSET(nsNntpUrl, AddDummyEnvelope, PRBool, m_addDummyEnvelope)
-NS_IMPL_GETSET(nsNntpUrl, CanonicalLineEnding, PRBool, m_canonicalLineEnding)
+NS_IMPL_GETSET(nsNntpUrl, AddDummyEnvelope, bool, m_addDummyEnvelope)
+NS_IMPL_GETSET(nsNntpUrl, CanonicalLineEnding, bool, m_canonicalLineEnding)
 
 NS_IMETHODIMP nsNntpUrl::SetMessageFile(nsIFile * aFile)
 {
@@ -416,7 +416,7 @@ NS_IMETHODIMP nsNntpUrl::GetMessageHeader(nsIMsgDBHdr ** aMsgHdr)
   return msgService->MessageURIToMsgHdr(spec.get(), aMsgHdr);
 }
 
-NS_IMETHODIMP nsNntpUrl::IsUrlType(PRUint32 type, PRBool *isType)
+NS_IMETHODIMP nsNntpUrl::IsUrlType(PRUint32 type, bool *isType)
 {
   NS_ENSURE_ARG(isType);
 
@@ -473,10 +473,10 @@ nsNntpUrl::GetServer(nsIMsgIncomingServer **aServer)
   // attribute. nntp is never used internally, so it probably refers to the real
   // one. news is used both internally and externally, so it could refer to
   // either one. We'll assume it's an internal one first, though.
-  PRBool isNews = scheme.EqualsLiteral("news") || scheme.EqualsLiteral("snews");
-  PRBool isNntp = scheme.EqualsLiteral("nntp") || scheme.EqualsLiteral("nntps");
+  bool isNews = scheme.EqualsLiteral("news") || scheme.EqualsLiteral("snews");
+  bool isNntp = scheme.EqualsLiteral("nntp") || scheme.EqualsLiteral("nntps");
   
-  PRBool tryReal = isNntp;
+  bool tryReal = isNntp;
 
   nsCOMPtr<nsIMsgAccountManager> accountManager = 
     do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
@@ -525,7 +525,7 @@ NS_IMETHODIMP nsNntpUrl::GetFolder(nsIMsgFolder **msgFolder)
   nsCOMPtr<nsINntpIncomingServer> nntpServer = do_QueryInterface(server, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool hasGroup = PR_FALSE;
+  bool hasGroup = false;
   rv = nntpServer->ContainsNewsgroup(m_group, &hasGroup);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -557,7 +557,7 @@ nsNntpUrl::GetFolderCharset(char **aCharacterSet)
   return rv;
 }
 
-NS_IMETHODIMP nsNntpUrl::GetFolderCharsetOverride(PRBool * aCharacterSetOverride)
+NS_IMETHODIMP nsNntpUrl::GetFolderCharsetOverride(bool * aCharacterSetOverride)
 {
   nsCOMPtr<nsIMsgFolder> folder;
   nsresult rv = GetFolder(getter_AddRefs(folder));

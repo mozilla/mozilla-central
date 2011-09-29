@@ -78,7 +78,7 @@ NS_IMETHODIMP nsNewsDatabase::QueryInterface(REFNSIID aIID, void** aInstancePtr)
   return nsMsgDatabase::QueryInterface(aIID, aInstancePtr);
 }
 
-nsresult nsNewsDatabase::Close(PRBool forceCommit)
+nsresult nsNewsDatabase::Close(bool forceCommit)
 {
   return nsMsgDatabase::Close(forceCommit);
 }
@@ -107,7 +107,7 @@ PRUint32 nsNewsDatabase::GetCurVersion()
   return kMsgDBVersion;
 }
 
-NS_IMETHODIMP nsNewsDatabase::IsRead(nsMsgKey key, PRBool *pRead)
+NS_IMETHODIMP nsNewsDatabase::IsRead(nsMsgKey key, bool *pRead)
 {
   NS_ASSERTION(pRead, "null out param in IsRead");
   if (!pRead) return NS_ERROR_NULL_POINTER;
@@ -118,7 +118,7 @@ NS_IMETHODIMP nsNewsDatabase::IsRead(nsMsgKey key, PRBool *pRead)
   return NS_OK;
 }
 
-nsresult nsNewsDatabase::IsHeaderRead(nsIMsgDBHdr *msgHdr, PRBool *pRead)
+nsresult nsNewsDatabase::IsHeaderRead(nsIMsgDBHdr *msgHdr, bool *pRead)
 {
     nsresult rv;
     nsMsgKey messageKey;
@@ -204,10 +204,10 @@ NS_IMETHODIMP nsNewsDatabase::SetReadSet(nsMsgKeySet *pSet)
 }
 
 
-PRBool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, PRBool bRead)
+bool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, bool bRead)
 {
     nsresult rv;
-    PRBool isRead;
+    bool isRead;
     rv = IsHeaderRead(msgHdr, &isRead);
 
     if (isRead == bRead)
@@ -290,7 +290,7 @@ nsresult nsNewsDatabase::SyncWithReadSet()
   nsresult rv = EnumerateMessages(getter_AddRefs(hdrs));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool hasMore = PR_FALSE, readInNewsrc, isReadInDB, changed = PR_FALSE;
+  bool hasMore = false, readInNewsrc, isReadInDB, changed = false;
   nsCOMPtr <nsIMsgDBHdr> header;
   PRInt32 numMessages = 0, numUnreadMessages = 0;
   nsMsgKey messageKey;

@@ -122,7 +122,7 @@
 extern int                        MIME_MimeObject_write(MimeObject *,
                                                         const char *data,
                                                         PRInt32 length,
-                                                        PRBool user_visible_p);
+                                                        bool user_visible_p);
 /*
  * The following group of calls expose the pointers for the object
  * system within libmime.

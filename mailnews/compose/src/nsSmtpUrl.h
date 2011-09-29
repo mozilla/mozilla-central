@@ -104,10 +104,10 @@ protected:
   // file or it could be in the url)
   nsCString m_toPart;
 
-  PRBool m_isPostMessage;
-  PRBool m_requestDSN;
+  bool m_isPostMessage;
+  bool m_requestDSN;
   nsCString m_dsnEnvid;
-  PRBool m_verifyLogon;
+  bool m_verifyLogon;
 
   // Smtp specific event sinks
   nsCOMPtr<nsIFile> m_fileName;

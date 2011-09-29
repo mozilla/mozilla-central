@@ -88,7 +88,7 @@ nsEudoraFilters::~nsEudoraFilters()
 
 NS_IMPL_ISUPPORTS1(nsEudoraFilters, nsIImportFilters)
 
-NS_IMETHODIMP nsEudoraFilters::AutoLocate(PRUnichar **aDescription, nsIFile **aLocation, PRBool *_retval)
+NS_IMETHODIMP nsEudoraFilters::AutoLocate(PRUnichar **aDescription, nsIFile **aLocation, bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(aDescription);
   NS_ENSURE_ARG_POINTER(aLocation);
@@ -121,7 +121,7 @@ NS_IMETHODIMP nsEudoraFilters::SetLocation(nsIFile *aLocation)
   return( NS_OK);
 }
 
-NS_IMETHODIMP nsEudoraFilters::Import(PRUnichar **aError, PRBool *_retval)
+NS_IMETHODIMP nsEudoraFilters::Import(PRUnichar **aError, bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(aError);
   NS_ENSURE_ARG_POINTER(_retval);
@@ -163,7 +163,7 @@ NS_IMETHODIMP nsEudoraFilters::Import(PRUnichar **aError, PRBool *_retval)
   return( NS_OK);
 }
 
-PRBool nsEudoraFilters::RealImport()
+bool nsEudoraFilters::RealImport()
 {
   nsresult rv;
 
@@ -194,7 +194,7 @@ PRBool nsEudoraFilters::RealImport()
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCString     line;
-  PRBool        more = PR_TRUE;
+  bool          more = true;
   nsCAutoString header;
   nsCAutoString verb;
   nsAutoString  name;
@@ -258,7 +258,7 @@ PRBool nsEudoraFilters::RealImport()
                !strncmp(pLine, "copy ", 5))
       {
         const char* pMailboxPath = strchr(pLine, ' ') + 1;
-        PRBool isTransfer = (*pLine == 't');
+        bool isTransfer = (*pLine == 't');
         rv = AddMailboxAction(pMailboxPath, isTransfer);
         if (rv == NS_ERROR_INVALID_ARG)
         {
@@ -310,12 +310,12 @@ PRBool nsEudoraFilters::RealImport()
         // Win and Mac Eudora have the two bits swapped in the file
         PRUint32 bits = atoi(pLine + 10);
 #if defined(XP_WIN) || defined(XP_OS2)
-        PRBool bFetch  = (bits & 1);
-        PRBool bDelete = (bits & 2);
+        bool bFetch  = (bits & 1);
+        bool bDelete = (bits & 2);
 #endif
 #ifdef XP_MACOSX
-        PRBool bFetch  = (bits & 2);
-        PRBool bDelete = (bits & 1);
+        bool bFetch  = (bits & 2);
+        bool bDelete = (bits & 1);
 #endif
         rv = AddAction(bDelete? (nsMsgRuleActionType)nsMsgFilterAction::DeleteFromPop3Server : (nsMsgRuleActionType)nsMsgFilterAction::LeaveOnPop3Server);
         if (NS_SUCCEEDED(rv) && bFetch)
@@ -429,7 +429,7 @@ nsresult nsEudoraFilters::LoadServers()
     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryElementAt(allServers, serverIndex, &rv);
     if (server && NS_SUCCEEDED(rv))
     {
-      PRBool canHaveFilters;
+      bool canHaveFilters;
       rv = server->GetCanHaveFilters(&canHaveFilters);
       if (NS_SUCCEEDED(rv) && canHaveFilters)
       {
@@ -550,7 +550,7 @@ nsresult nsEudoraFilters::FinalizeFilter()
   return rv;
 }
 
-nsresult nsEudoraFilters::EnableFilter(PRBool enable)
+nsresult nsEudoraFilters::EnableFilter(bool enable)
 {
   nsresult rv;
 
@@ -676,7 +676,7 @@ static PRInt32 AddCustomHeader(const char* pHeader)
   return index;
 }
 
-nsresult nsEudoraFilters::AddTerm(const char* pHeader, const char* pVerb, const char* pValue, PRBool booleanAnd, PRBool negateVerb)
+nsresult nsEudoraFilters::AddTerm(const char* pHeader, const char* pVerb, const char* pValue, bool booleanAnd, bool negateVerb)
 {
   nsresult rv;
 
@@ -859,7 +859,7 @@ nsresult nsEudoraFilters::AddAction(nsMsgRuleActionType actionType, PRInt32 junk
 }
 
 
-nsresult nsEudoraFilters::AddMailboxAction(const char* pMailboxPath, PRBool isTransfer)
+nsresult nsEudoraFilters::AddMailboxAction(const char* pMailboxPath, bool isTransfer)
 {
   nsresult rv;
   nsCString nameHierarchy;

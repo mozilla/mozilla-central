@@ -67,14 +67,14 @@ class nsAbLDAPAutoCompFormatter : public nsIAbLDAPAutoCompFormatter
     // process a single attribute while parsing format
     nsresult ParseAttrName(const PRUnichar **aIter,  
                            const PRUnichar *aIterEnd, 
-                           PRBool aAttrRequired,
+                           bool aAttrRequired,
                            nsCOMPtr<nsIConsoleService> & aConsoleSvc,
                            nsACString & aAttrName);
 
     // append the first value associated with aAttrName in aMessage to aValue
     nsresult AppendFirstAttrValue(const nsACString &aAttrName, 
                                   nsILDAPMessage *aMessage,
-                                  PRBool aAttrRequired,
+                                  bool aAttrRequired,
                                   nsACString &aValue);
 };
 

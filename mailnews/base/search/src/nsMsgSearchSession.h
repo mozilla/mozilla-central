@@ -67,7 +67,7 @@ protected:
   nsWeakPtr m_msgWindowWeak;
   nsresult Initialize();
   nsresult StartTimer();
-  nsresult TimeSlice (PRBool *aDone);
+  nsresult TimeSlice (bool *aDone);
   nsMsgSearchScopeTerm *GetRunningScope();
   void StopRunning();
   nsresult BeginSearching();
@@ -76,7 +76,7 @@ protected:
   nsresult SearchWOUrls ();
   nsresult GetNextUrl();
   nsresult NotifyListenersDone(nsresult status);
-  void EnableFolderNotifications(PRBool aEnable);
+  void EnableFolderNotifications(bool aEnable);
   void ReleaseFolderDBRef();
 
   nsTArray<nsMsgSearchScopeTerm*> m_scopeList;
@@ -107,17 +107,17 @@ protected:
 
   static void TimerCallback(nsITimer *aTimer, void *aClosure);
   // support for searching multiple scopes in serial
-  nsresult TimeSliceSerial (PRBool *aDone);
+  nsresult TimeSliceSerial (bool *aDone);
   nsresult TimeSliceParallel ();
 
   nsMsgSearchAttribValue m_sortAttribute;
   PRUint32 m_idxRunningScope;
   nsMsgSearchType m_searchType;
-  PRBool m_handlingError;
+  bool m_handlingError;
   PRUint32 m_urlQueueIndex;
   nsTArray<nsCString> m_urlQueue;
   nsCOMPtr <nsITimer> m_backgroundTimer;
-  PRBool m_searchPaused;
+  bool m_searchPaused;
   nsMsgSearchBoolExpression *m_expressionTree;
 };
 

@@ -124,38 +124,38 @@ protected:
   virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
 
   void compressQuotesInMsgSnippet(const nsString& aMessageText, nsAString& aCompressedQuotesStr);
-  void decodeMsgSnippet(const nsACString& aEncodingType, PRBool aIsComplete, nsCString& aMsgSnippet);
+  void decodeMsgSnippet(const nsACString& aEncodingType, bool aIsComplete, nsCString& aMsgSnippet);
 
   // helper routine to parse the URI and update member variables
-  nsresult parseURI(PRBool needServer=PR_FALSE);
+  nsresult parseURI(bool needServer=false);
   nsresult GetBaseStringBundle(nsIStringBundle **aBundle);
   nsresult GetStringFromBundle(const char* msgName, nsString& aResult);
-  nsresult ThrowConfirmationPrompt(nsIMsgWindow *msgWindow, const nsAString& confirmString, PRBool *confirmed);
-  nsresult GetWarnFilterChanged(PRBool *aVal);
-  nsresult SetWarnFilterChanged(PRBool aVal);
+  nsresult ThrowConfirmationPrompt(nsIMsgWindow *msgWindow, const nsAString& confirmString, bool *confirmed);
+  nsresult GetWarnFilterChanged(bool *aVal);
+  nsresult SetWarnFilterChanged(bool aVal);
   nsresult CreateCollationKey(const nsString &aSource,  PRUint8 **aKey, PRUint32 *aLength);
 
 protected:
   // all children will override this to create the right class of object.
   virtual nsresult CreateChildFromURI(const nsCString &uri, nsIMsgFolder **folder) = 0;
-  virtual nsresult ReadDBFolderInfo(PRBool force);
+  virtual nsresult ReadDBFolderInfo(bool force);
   virtual nsresult FlushToFolderCache();
   virtual nsresult GetDatabase() = 0;
   virtual nsresult SendFlagNotifications(nsIMsgDBHdr *item, PRUint32 oldFlags, PRUint32 newFlags);
-  nsresult CheckWithNewMessagesStatus(PRBool messageAdded);
+  nsresult CheckWithNewMessagesStatus(bool messageAdded);
   void     UpdateNewMessages();
-  nsresult OnHdrAddedOrDeleted(nsIMsgDBHdr *hdrChanged, PRBool added);
+  nsresult OnHdrAddedOrDeleted(nsIMsgDBHdr *hdrChanged, bool added);
   nsresult CreateFileForDB(const nsAString& userLeafName, nsILocalFile *baseDir,
                            nsILocalFile **dbFile);
 
-  nsresult GetFolderCacheKey(nsILocalFile **aFile, PRBool createDBIfMissing = PR_FALSE);
+  nsresult GetFolderCacheKey(nsILocalFile **aFile, bool createDBIfMissing = false);
   nsresult GetFolderCacheElemFromFile(nsILocalFile *file, nsIMsgFolderCacheElement **cacheElement);
   nsresult AddDirectorySeparator(nsILocalFile *path);
   nsresult CheckIfFolderExists(const nsAString& newFolderName, nsIMsgFolder *parentFolder, nsIMsgWindow *msgWindow);
 
   // Returns true if: a) there is no need to prompt or b) the user is already
   // logged in or c) the user logged in successfully.
-  static PRBool PromptForMasterPasswordIfNecessary();
+  static bool PromptForMasterPasswordIfNecessary();
 
   // offline support methods.
   nsresult StartNewOfflineMessage();
@@ -164,11 +164,11 @@ protected:
   nsresult CompactOfflineStore(nsIMsgWindow *inWindow, nsIUrlListener *aUrlListener);
   nsresult AutoCompact(nsIMsgWindow *aWindow);
   // this is a helper routine that ignores whether nsMsgMessageFlags::Offline is set for the folder
-  nsresult MsgFitsDownloadCriteria(nsMsgKey msgKey, PRBool *result);
-  nsresult GetPromptPurgeThreshold(PRBool *aPrompt);
+  nsresult MsgFitsDownloadCriteria(nsMsgKey msgKey, bool *result);
+  nsresult GetPromptPurgeThreshold(bool *aPrompt);
   nsresult GetPurgeThreshold(PRInt32 *aThreshold);
-  nsresult ApplyRetentionSettings(PRBool deleteViaFolder);
-  PRBool   VerifyOfflineMessage(nsIMsgDBHdr *msgHdr, nsIInputStream *fileStream);
+  nsresult ApplyRetentionSettings(bool deleteViaFolder);
+  bool     VerifyOfflineMessage(nsIMsgDBHdr *msgHdr, nsIInputStream *fileStream);
   nsresult AddMarkAllReadUndoAction(nsIMsgWindow *msgWindow,
                                     nsMsgKey *thoseMarked, PRUint32 numMarked);
 
@@ -178,7 +178,7 @@ protected:
   virtual nsresult SpamFilterClassifyMessage(const char *aURI, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
   virtual nsresult SpamFilterClassifyMessages(const char **aURIArray, PRUint32 aURICount, nsIMsgWindow *aMsgWindow, nsIJunkMailPlugin *aJunkMailPlugin);
   // Helper function for Move code to call to update the MRU and MRM time.
-  void    UpdateTimestamps(PRBool allowUndo);
+  void    UpdateTimestamps(bool allowUndo);
   void    SetMRUTime();
   void    SetMRMTime();
   /**
@@ -193,10 +193,10 @@ protected:
   nsCOMPtr<nsIMsgDatabase> mDatabase;
   nsCOMPtr<nsIMsgDatabase> mBackupDatabase;
   nsCString mCharset;
-  PRBool mCharsetOverride;
-  PRBool mAddListener;
-  PRBool mNewMessages;
-  PRBool mGettingNewMessages;
+  bool mCharsetOverride;
+  bool mAddListener;
+  bool mNewMessages;
+  bool mGettingNewMessages;
   nsMsgKey mLastMessageLoaded;
 
   nsCOMPtr <nsIMsgDBHdr> m_offlineHeader;
@@ -214,13 +214,13 @@ protected:
   nsWeakPtr mParent;     //This won't be refcounted for ownership reasons.
   PRInt32 mNumUnreadMessages;        /* count of unread messages (-1 means unknown; -2 means unknown but we already tried to find out.) */
   PRInt32 mNumTotalMessages;         /* count of existing messages. */
-  PRBool mNotifyCountChanges;
+  bool mNotifyCountChanges;
   PRUint32 mExpungedBytes;
   nsCOMArray<nsIMsgFolder> mSubFolders;
   // This can't be refcounted due to ownsership issues
   nsTObserverArray<nsIFolderListener*> mListeners;
 
-  PRBool mInitializedFromCache;
+  bool mInitializedFromCache;
   nsISupports *mSemaphoreHolder; // set when the folder is being written to
                                  //Due to ownership issues, this won't be AddRef'd.
 
@@ -234,7 +234,7 @@ protected:
   PRUint32 mFolderSize;
 
   PRInt32 mNumNewBiffMessages;
-  PRBool mIsCachable;
+  bool mIsCachable;
 
   // these are previous set of new msgs, which we might
   // want to run junk controls on. This is in addition to "new" hdrs
@@ -250,14 +250,14 @@ protected:
   //
   // stuff from the uri
   //
-  PRBool mHaveParsedURI;        // is the URI completely parsed?
-  PRBool mIsServerIsValid;
-  PRBool mIsServer;
+  bool mHaveParsedURI;        // is the URI completely parsed?
+  bool mIsServerIsValid;
+  bool mIsServer;
   nsString mName;
   nsCOMPtr<nsILocalFile> mPath;
   nsCString mBaseMessageURI; //The uri with the message scheme
 
-  PRBool mInVFEditSearchScope ; // non persistant state used by the virtual folder UI
+  bool mInVFEditSearchScope ; // non persistant state used by the virtual folder UI
 
   // static stuff for cross-instance objects like atoms
   static NS_MSG_BASE_STATIC_MEMBER_(nsrefcnt) gInstanceCount;
@@ -285,7 +285,7 @@ protected:
 #ifdef MSG_FASTER_URI_PARSING
   // cached parsing URL object
   static NS_MSG_BASE_STATIC_MEMBER_(nsCOMPtr<nsIURL>) mParsingURL;
-  static NS_MSG_BASE_STATIC_MEMBER_(PRBool) mParsingURLInUse;
+  static NS_MSG_BASE_STATIC_MEMBER_(bool) mParsingURLInUse;
 #endif
 
   static const NS_MSG_BASE_STATIC_MEMBER_(nsStaticAtom) folder_atoms[];
@@ -309,9 +309,9 @@ protected:
    */
   nsTArray<nsMsgKey> mClassifiedMsgKeys;
   // Is the current bayes filtering doing junk classification?
-  PRBool mBayesJunkClassifying;
+  bool mBayesJunkClassifying;
   // Is the current bayes filtering doing trait classification?
-  PRBool mBayesTraitClassifying;
+  bool mBayesTraitClassifying;
 };
 
 // This class is a kludge to allow nsMsgKeySet to be used with PRUint32 keys
@@ -322,7 +322,7 @@ public:
   static nsMsgKeySetU* Create();
   ~nsMsgKeySetU();
   // IsMember() returns whether the given key is a member of this set.
-  PRBool IsMember(PRUint32 key);
+  bool IsMember(PRUint32 key);
   // Add() adds the given key to the set.  (Returns 1 if a change was
   // made, 0 if it was already there, and negative on error.)
   int Add(PRUint32 key);

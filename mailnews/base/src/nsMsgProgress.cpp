@@ -78,7 +78,7 @@ nsMsgProgress::~nsMsgProgress()
 NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindow *parent, 
                                                 nsIMsgWindow *aMsgWindow, 
                                                 const char *dialogURL, 
-                                                PRBool inDisplayModal, 
+                                                bool inDisplayModal, 
                                                 nsISupports *parameters)
 {
   nsresult rv;
@@ -121,20 +121,20 @@ NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindow *parent,
 }
 
 /* void closeProgressDialog (in boolean forceClose); */
-NS_IMETHODIMP nsMsgProgress::CloseProgressDialog(PRBool forceClose)
+NS_IMETHODIMP nsMsgProgress::CloseProgressDialog(bool forceClose)
 {
   m_closeProgress = PR_TRUE;
   return OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, forceClose ? NS_ERROR_FAILURE : NS_OK);
 }
 
 /* attribute boolean processCanceledByUser; */
-NS_IMETHODIMP nsMsgProgress::GetProcessCanceledByUser(PRBool *aProcessCanceledByUser)
+NS_IMETHODIMP nsMsgProgress::GetProcessCanceledByUser(bool *aProcessCanceledByUser)
 {
   NS_ENSURE_ARG_POINTER(aProcessCanceledByUser);
   *aProcessCanceledByUser = m_processCanceled;
   return NS_OK;
 }
-NS_IMETHODIMP nsMsgProgress::SetProcessCanceledByUser(PRBool aProcessCanceledByUser)
+NS_IMETHODIMP nsMsgProgress::SetProcessCanceledByUser(bool aProcessCanceledByUser)
 {
   m_processCanceled = aProcessCanceledByUser;
   OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, NS_BINDING_ABORTED);

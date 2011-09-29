@@ -73,7 +73,7 @@ MIME_QPEncoderInit(nsresult (*output_fn) (const char *buf, PRInt32 size, void *c
 }
 
 extern "C" nsresult
-MIME_EncoderDestroy(MimeEncoderData *data, PRBool abort_p) 
+MIME_EncoderDestroy(MimeEncoderData *data, bool abort_p) 
 {
   //MimeEncoderData *returnEncoderData = nsnull;
   nsIMimeConverter *converter;

@@ -59,7 +59,7 @@ nsMsgFolderNotificationService::~nsMsgFolderNotificationService()
   /* destructor code */
 }
 
-NS_IMETHODIMP nsMsgFolderNotificationService::GetHasListeners(PRBool *aHasListeners)
+NS_IMETHODIMP nsMsgFolderNotificationService::GetHasListeners(bool *aHasListeners)
 {
   NS_ENSURE_ARG_POINTER(aHasListeners);
   *aHasListeners = mListeners.Length() > 0;
@@ -109,7 +109,7 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgAdded(nsIMsgDBHdr *aMsg)
 
 /* void notifyMsgsClassified (in  */
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsClassified(
-  nsIArray *aMsgs, PRBool aJunkProcessed, PRBool aTraitProcessed)
+  nsIArray *aMsgs, bool aJunkProcessed, bool aTraitProcessed)
 {
   NOTIFY_MSGFOLDER_LISTENERS(msgsClassified, MsgsClassified,
                              (aMsgs, aJunkProcessed, aTraitProcessed));
@@ -126,14 +126,14 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsDeleted(nsIArray *aMsgs)
 /* void notifyMsgsMoveCopyCompleted (in boolean aMove, in nsIArray aSrcMsgs,
                                      in nsIMsgFolder aDestFolder); */
 NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsMoveCopyCompleted(
-  PRBool aMove, nsIArray *aSrcMsgs, nsIMsgFolder *aDestFolder,
+  bool aMove, nsIArray *aSrcMsgs, nsIMsgFolder *aDestFolder,
   nsIArray *aDestMsgs)
 {
   PRUint32 count = mListeners.Length();
   
   // IMAP delete model means that a "move" isn't really a move, it is a copy,
   // followed by storing the IMAP deleted flag on the message.
-  PRBool isReallyMove = aMove;
+  bool isReallyMove = aMove;
   if (count > 0 && aMove)
   {
     nsresult rv;
@@ -188,7 +188,7 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyFolderDeleted(nsIMsgFolder *
 }
 
 /* void notifyFolderMoveCopyCompleted(in boolean aMove, in nsIMsgFolder aSrcFolder, in nsIMsgFolder aDestFolder); */
-NS_IMETHODIMP nsMsgFolderNotificationService::NotifyFolderMoveCopyCompleted(PRBool aMove, nsIMsgFolder *aSrcFolder, nsIMsgFolder *aDestFolder)
+NS_IMETHODIMP nsMsgFolderNotificationService::NotifyFolderMoveCopyCompleted(bool aMove, nsIMsgFolder *aSrcFolder, nsIMsgFolder *aDestFolder)
 {
   NOTIFY_MSGFOLDER_LISTENERS(folderMoveCopyCompleted, FolderMoveCopyCompleted,
                              (aMove, aSrcFolder, aDestFolder));

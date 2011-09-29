@@ -140,7 +140,7 @@ nsMsgIdentity::ToString(nsAString& aResult)
 NS_IMETHODIMP
 nsMsgIdentity::GetSignature(nsILocalFile **sig)
 {
-  PRBool gotRelPref;
+  bool gotRelPref;
   nsresult rv = NS_GetPersistentFile("sig_file" REL_FILE_PREF_SUFFIX, "sig_file", nsnull, gotRelPref, sig, mPrefBranch);
   if (NS_SUCCEEDED(rv) && !gotRelPref)
   {
@@ -207,7 +207,7 @@ NS_IMPL_IDPREF_BOOL(DoCc, "doCc")
 NS_IMPL_IDPREF_STR (DoCcList, "doCcList")
 
 NS_IMETHODIMP
-nsMsgIdentity::GetDoBcc(PRBool *aValue)
+nsMsgIdentity::GetDoBcc(bool *aValue)
 {
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
@@ -216,10 +216,10 @@ nsMsgIdentity::GetDoBcc(PRBool *aValue)
   if (NS_SUCCEEDED(rv))
     return rv;
 
-  PRBool bccSelf = PR_FALSE;
+  bool bccSelf = false;
   GetBccSelf(&bccSelf);
 
-  PRBool bccOthers = PR_FALSE;
+  bool bccOthers = false;
   GetBccOthers(&bccOthers);
 
   nsCString others;
@@ -231,7 +231,7 @@ nsMsgIdentity::GetDoBcc(PRBool *aValue)
 }
 
 NS_IMETHODIMP
-nsMsgIdentity::SetDoBcc(PRBool aValue)
+nsMsgIdentity::SetDoBcc(bool aValue)
 {
   return SetBoolAttribute("doBcc", aValue);
 }
@@ -248,14 +248,14 @@ nsMsgIdentity::GetDoBccList(nsACString& aValue)
   if (NS_SUCCEEDED(rv))
     return rv;
 
-  PRBool bccSelf = PR_FALSE;
+  bool bccSelf = false;
   rv = GetBccSelf(&bccSelf);
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (bccSelf)
     GetEmail(aValue);
 
-  PRBool bccOthers = PR_FALSE;
+  bool bccOthers = false;
   rv = GetBccOthers(&bccOthers);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -351,7 +351,7 @@ nsMsgIdentity::getFolderPref(const char *prefname, nsCString& retval,
   nsCOMPtr<nsIMsgIncomingServer> server(do_QueryElementAt(servers, 0, &rv));
   if (NS_SUCCEEDED(rv))
   {
-    PRBool defaultToServer;
+    bool defaultToServer;
     server->GetDefaultCopiesAndFoldersPrefsToServer(&defaultToServer);
     // if we should default to special folders on the server,
     // use the local folders server
@@ -506,7 +506,7 @@ NS_IMETHODIMP nsMsgIdentity::GetCharAttribute(const char *aName, nsACString& val
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgIdentity::SetBoolAttribute(const char *aName, PRBool val)
+NS_IMETHODIMP nsMsgIdentity::SetBoolAttribute(const char *aName, bool val)
 {
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
@@ -514,7 +514,7 @@ NS_IMETHODIMP nsMsgIdentity::SetBoolAttribute(const char *aName, PRBool val)
   return mPrefBranch->SetBoolPref(aName, val);
 }
 
-NS_IMETHODIMP nsMsgIdentity::GetBoolAttribute(const char *aName, PRBool *val)
+NS_IMETHODIMP nsMsgIdentity::GetBoolAttribute(const char *aName, bool *val)
 {
   NS_ENSURE_ARG_POINTER(val);
   if (!mPrefBranch)
@@ -572,7 +572,7 @@ NS_IMETHODIMP nsMsgIdentity::GetIntAttribute(const char *aName, PRInt32 *val)
 #define COPY_IDENTITY_BOOL_VALUE(SRC_ID,MACRO_GETTER,MACRO_SETTER)   \
   {  \
         nsresult macro_rv;  \
-          PRBool macro_oldBool;  \
+          bool macro_oldBool;  \
           macro_rv = SRC_ID->MACRO_GETTER(&macro_oldBool);  \
           if (NS_SUCCEEDED(macro_rv)) \
             this->MACRO_SETTER(macro_oldBool);     \
@@ -637,11 +637,11 @@ nsMsgIdentity::Copy(nsIMsgIdentity *identity)
 }
 
 NS_IMETHODIMP
-nsMsgIdentity::GetRequestReturnReceipt(PRBool *aVal)
+nsMsgIdentity::GetRequestReturnReceipt(bool *aVal)
 {
   NS_ENSURE_ARG_POINTER(aVal);
 
-  PRBool useCustomPrefs = PR_FALSE;
+  bool useCustomPrefs = false;
   nsresult rv = GetBoolAttribute("use_custom_prefs", &useCustomPrefs);
   NS_ENSURE_SUCCESS(rv, rv);
   if (useCustomPrefs)
@@ -657,7 +657,7 @@ nsMsgIdentity::GetReceiptHeaderType(PRInt32 *aType)
 {
   NS_ENSURE_ARG_POINTER(aType);
 
-  PRBool useCustomPrefs = PR_FALSE;
+  bool useCustomPrefs = false;
   nsresult rv = GetBoolAttribute("use_custom_prefs", &useCustomPrefs);
   NS_ENSURE_SUCCESS(rv, rv);
   if (useCustomPrefs)
@@ -669,11 +669,11 @@ nsMsgIdentity::GetReceiptHeaderType(PRInt32 *aType)
 }
 
 NS_IMETHODIMP
-nsMsgIdentity::GetRequestDSN(PRBool *aVal)
+nsMsgIdentity::GetRequestDSN(bool *aVal)
 {
   NS_ENSURE_ARG_POINTER(aVal);
 
-  PRBool useCustomPrefs = PR_FALSE;
+  bool useCustomPrefs = false;
   nsresult rv = GetBoolAttribute("dsn_use_custom_prefs", &useCustomPrefs);
   NS_ENSURE_SUCCESS(rv, rv);
   if (useCustomPrefs)

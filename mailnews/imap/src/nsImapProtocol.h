@@ -111,7 +111,7 @@ public:
   virtual ~nsMsgImapLineDownloadCache();
     PRUint32  CurrentUID();
     PRUint32  SpaceAvailable();
-    PRBool CacheEmpty();
+    bool CacheEmpty();
 
     msg_line_info *GetCurrentLineInfo();
 
@@ -190,12 +190,12 @@ public:
 
   // message id string utilities.
   PRUint32    CountMessagesInIdString(const char *idString);
-  static  PRBool  HandlingMultipleMessages(const nsCString &messageIdString);
+  static  bool    HandlingMultipleMessages(const nsCString &messageIdString);
   // escape slashes and double quotes in username/passwords for insecure login.
   static void EscapeUserNamePasswordString(const char *strToEscape, nsCString *resultStr);
 
   // used to start fetching a message.
-  void GetShouldDownloadAllHeaders(PRBool *aResult);
+  void GetShouldDownloadAllHeaders(bool *aResult);
   void GetArbitraryHeadersToDownload(nsCString &aResult);
   virtual void AdjustChunkSize();
   virtual void FetchMessage(const nsCString &messageIds, 
@@ -205,16 +205,16 @@ public:
     char *part = 0);
   void FetchTryChunking(const nsCString &messageIds,
     nsIMAPeFetchFields whatToFetch,
-    PRBool idIsUid,
+    bool idIsUid,
     char *part,
     PRUint32 downloadSize,
-    PRBool tryChunking);
+    bool tryChunking);
   virtual void PipelinedFetchMessageParts(nsCString &uid, nsIMAPMessagePartIDArray *parts);
   void FallbackToFetchWholeMsg(const nsCString &messageId, PRUint32 messageSize);
   // used when streaming a message fetch
   virtual nsresult BeginMessageDownLoad(PRUint32 totalSize, // for user, headers and body
     const char *contentType);     // some downloads are header only
-  virtual void HandleMessageDownLoadLine(const char *line, PRBool isPartialLine, char *lineCopy=nsnull);
+  virtual void HandleMessageDownLoadLine(const char *line, bool isPartialLine, char *lineCopy=nsnull);
   virtual void NormalMessageEndDownload();
   virtual void AbortMessageDownLoad();
   virtual void PostLineDownLoadEvent(const char *line, PRUint32 uid);
@@ -223,30 +223,30 @@ public:
   virtual void SetMailboxDiscoveryStatus(EMailboxDiscoverStatus status);
   virtual EMailboxDiscoverStatus GetMailboxDiscoveryStatus();
 
-  virtual void ProcessMailboxUpdate(PRBool handlePossibleUndo);
+  virtual void ProcessMailboxUpdate(bool handlePossibleUndo);
   // Send log output...
   void  Log(const char *logSubName, const char *extraInfo, const char *logData);
   static void LogImapUrl(const char *logMsg, nsIImapUrl *imapUrl);
   // Comment from 4.5: We really need to break out the thread synchronizer from the
   // connection class...Not sure what this means
-  PRBool  GetPseudoInterrupted();
-  void  PseudoInterrupt(PRBool the_interrupt);
+  bool    GetPseudoInterrupted();
+  void  PseudoInterrupt(bool the_interrupt);
 
-  PRUint32 GetMessageSize(const char * messageId, PRBool idsAreUids);
-  PRBool GetSubscribingNow();
+  PRUint32 GetMessageSize(const char * messageId, bool idsAreUids);
+  bool GetSubscribingNow();
 
-  PRBool  DeathSignalReceived();
+  bool    DeathSignalReceived();
   void    ResetProgressInfo();
-  void    SetActive(PRBool active);
-  PRBool  GetActive();
+  void    SetActive(bool active);
+  bool    GetActive();
 
-  PRBool GetShowAttachmentsInline();
+  bool GetShowAttachmentsInline();
 
   // Sets whether or not the content referenced by the current ActiveEntry has been modified.
   // Used for MIME parts on demand.
   void    SetContentModified(IMAP_ContentModifiedType modified);
-  PRBool  GetShouldFetchAllParts();
-  PRBool  GetIgnoreExpunges() {return m_ignoreExpunges;}
+  bool    GetShouldFetchAllParts();
+  bool    GetIgnoreExpunges() {return m_ignoreExpunges;}
   // Generic accessors required by the imap parser
   char * CreateNewLineFromSocket();
   nsresult GetConnectionStatus();
@@ -280,25 +280,25 @@ public:
   // utility function calls made by the server
 
   void Copy(const char * messageList, const char *destinationMailbox,
-    PRBool idsAreUid);
-  void Search(const char * searchCriteria,  PRBool useUID,
-    PRBool notifyHit = PR_TRUE);
+    bool idsAreUid);
+  void Search(const char * searchCriteria,  bool useUID,
+    bool notifyHit = true);
   // imap commands issued by the parser
-  void Store(const nsCString &aMessageList, const char * aMessageData, PRBool
+  void Store(const nsCString &aMessageList, const char * aMessageData, bool
     aIdsAreUid);
   void ProcessStoreFlags(const nsCString &messageIds,
-    PRBool idsAreUids,
+    bool idsAreUids,
     imapMessageFlagsType flags,
-    PRBool addFlags);
+    bool addFlags);
   void IssueUserDefinedMsgCommand(const char *command, const char * messageList);
   void FetchMsgAttribute(const nsCString &messageIds, const nsCString &attribute);
   void Expunge();
   void UidExpunge(const nsCString &messageSet);
-  void Close(PRBool shuttingDown = PR_FALSE, PRBool waitForResponse = PR_TRUE);
+  void Close(bool shuttingDown = false, bool waitForResponse = true);
   void Check();
   void SelectMailbox(const char *mailboxName);
   // more imap commands
-  void Logout(PRBool shuttingDown = PR_FALSE, PRBool waitForResponse = PR_TRUE);
+  void Logout(bool shuttingDown = false, bool waitForResponse = true);
   void Noop();
   void XServerInfo();
   void Netscape();
@@ -307,7 +307,7 @@ public:
   void MailboxData();
   void GetMyRightsForFolder(const char *mailboxName);
   void AutoSubscribeToMailboxIfNecessary(const char *mailboxName);
-  void Bodystructure(const nsCString &messageId, PRBool idIsUid);
+  void Bodystructure(const nsCString &messageId, bool idIsUid);
   void PipelinedFetchMessageParts(const char *uid, nsIMAPMessagePartIDArray *parts);
 
 
@@ -316,7 +316,7 @@ public:
 
   // Tunnels
   virtual PRInt32 OpenTunnel (PRInt32 maxNumberOfBytesToRead);
-  PRBool GetIOTunnellingEnabled();
+  bool GetIOTunnellingEnabled();
   PRInt32 GetTunnellingThreshold();
 
   // acl and namespace stuff
@@ -343,12 +343,12 @@ public:
   // Quota support
   void UpdateFolderQuotaData(nsCString& aQuotaRoot, PRUint32 aUsed, PRUint32 aMax);
 
-  PRBool GetPreferPlainText() { return m_preferPlainText; }
+  bool GetPreferPlainText() { return m_preferPlainText; }
 
 private:
   // the following flag is used to determine when a url is currently being run. It is cleared when we
   // finish processng a url and it is set whenever we call Load on a url
-  PRBool m_urlInProgress;
+  bool m_urlInProgress;
   nsCOMPtr<nsIImapUrl> m_runningUrl; // the nsIImapURL that is currently running
   nsImapAction m_imapAction;  // current imap action associated with this connnection...
 
@@ -392,12 +392,12 @@ private:
   // Set to the result of nsImapServer::PromptPassword
   nsresult    m_passwordStatus;
 
-  PRBool       m_imapThreadIsRunning;
+  bool         m_imapThreadIsRunning;
   void ImapThreadMainLoop(void);
   nsresult    m_connectionStatus;
   nsCString   m_connectionType;
 
-  PRBool      m_nextUrlReadyToRun;
+  bool        m_nextUrlReadyToRun;
   nsWeakPtr   m_server;
 
   nsCOMPtr<nsIImapMailFolderSink>     m_imapMailFolderSink;
@@ -409,21 +409,21 @@ private:
   void SetupSinkProxy();
   // End thread support stuff
 
-  PRBool GetDeleteIsMoveToTrash();
-  PRBool GetShowDeletedMessages();
+  bool GetDeleteIsMoveToTrash();
+  bool GetShowDeletedMessages();
   nsCString m_currentCommand;
   nsImapServerResponseParser m_parser;
   nsImapServerResponseParser& GetServerStateParser() { return m_parser; }
 
   void HandleIdleResponses();
-  virtual PRBool ProcessCurrentURL();
+  virtual bool ProcessCurrentURL();
   void EstablishServerConnection();
   virtual void ParseIMAPandCheckForNewMail(const char* commandString =
-    nsnull, PRBool ignoreBadNOResponses = PR_FALSE);
+    nsnull, bool ignoreBadNOResponses = false);
   // biff
   void  PeriodicBiff();
   void  SendSetBiffIndicatorEvent(nsMsgBiffState newState);
-  PRBool  CheckNewMail();
+  bool    CheckNewMail();
 
   // folder opening and listing header functions
   void FolderHeaderDump(PRUint32 *msgUids, PRUint32 msgCount);
@@ -441,13 +441,13 @@ private:
     PRUint16 userFlags);
 
   // body fetching listing data
-  PRBool    m_fetchBodyListIsNew;
+  bool      m_fetchBodyListIsNew;
   PRUint32  m_fetchBodyCount;
   PRUint32  *m_fetchBodyIdList;
 
   // initialization function given a new url and transport layer
   nsresult  SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer);
-  void ReleaseUrlState(PRBool rerunningUrl); // release any state that is stored on a per action basis.
+  void ReleaseUrlState(bool rerunningUrl); // release any state that is stored on a per action basis.
   /**
    * Last ditch effort to run the url without using an imap connection.
    * If it turns out that we don't need to run the url at all (e.g., we're
@@ -456,7 +456,7 @@ private:
    *
    * @returns true if the url has been run locally, or doesn't need to be run.
    */
-  PRBool TryToRunUrlLocally(nsIURI *aURL, nsISupports *aConsumer);
+  bool TryToRunUrlLocally(nsIURI *aURL, nsISupports *aConsumer);
 
   ////////////////////////////////////////////////////////////////////////////////////////
   // Communication methods --> Reading and writing protocol
@@ -467,21 +467,21 @@ private:
   // aSuppressLogging --> set to true if you wish to suppress logging for this particular command.
   // this is useful for making sure we don't log authenication information like the user's password (which was
   // encoded anyway), but still we shouldn't add that information to the log.
-  nsresult SendData(const char * dataBuffer, PRBool aSuppressLogging = PR_FALSE);
+  nsresult SendData(const char * dataBuffer, bool aSuppressLogging = false);
 
   // state ported over from 4.5
-  PRBool m_pseudoInterrupted;
-  PRBool m_active;
-  PRBool m_folderNeedsSubscribing;
-  PRBool m_folderNeedsACLRefreshed;
+  bool m_pseudoInterrupted;
+  bool m_active;
+  bool m_folderNeedsSubscribing;
+  bool m_folderNeedsACLRefreshed;
 
-  PRBool m_threadShouldDie;
+  bool m_threadShouldDie;
 
   // use to prevent re-entering TellThreadToDie.
-  PRBool m_inThreadShouldDie;
+  bool m_inThreadShouldDie;
   // if the UI thread has signalled the IMAP thread to die, and the
   // connection has timed out, this will be set to FALSE.
-  PRBool m_safeToCloseConnection;
+  bool m_safeToCloseConnection;
 
   nsImapFlagAndUidState  *m_flagState;
   nsMsgBiffState        m_currentBiffState;
@@ -494,7 +494,7 @@ private:
   void StartTLS();
 
   // login related methods.
-  nsresult GetPassword(nsCString &password, PRBool aNewPasswordRequested);
+  nsresult GetPassword(nsCString &password, bool aNewPasswordRequested);
   void InitPrefAuthMethods(PRInt32 authMethodPrefValue);
   nsresult ChooseAuthMethod();
   void MarkAuthMethodAsFailed(PRInt32 failedAuthMethod);
@@ -513,7 +513,7 @@ private:
   void ProcessAuthenticatedStateURL();
   void ProcessAfterAuthenticated();
   void ProcessSelectedStateURL();
-  PRBool TryToLogon();
+  bool TryToLogon();
 
   // Process Authenticated State Url used to be one giant if statement. I've broken out a set of actions
   // based on the imap action passed into the url. The following functions are imap protocol handlers for
@@ -534,7 +534,7 @@ private:
   void RefreshACLForFolder(const char * aSourceMailbox);
   void GetACLForFolder(const char *aMailboxName);
   void OnRefreshAllACLs();
-  void OnListFolder(const char * aSourceMailbox, PRBool aBool);
+  void OnListFolder(const char * aSourceMailbox, bool aBool);
   void OnStatusForFolder(const char * sourceMailbox);
   void OnDeleteFolder(const char * aSourceMailbox);
   void OnRenameFolder(const char * aSourceMailbox);
@@ -545,11 +545,11 @@ private:
   void CreateMailbox(const char *mailboxName);
   void DeleteMailbox(const char *mailboxName);
   void RenameMailbox(const char *existingName, const char *newName);
-  PRBool CreateMailboxRespectingSubscriptions(const char *mailboxName);
-  PRBool DeleteMailboxRespectingSubscriptions(const char *mailboxName);
-  PRBool  RenameMailboxRespectingSubscriptions(const char *existingName,
+  bool CreateMailboxRespectingSubscriptions(const char *mailboxName);
+  bool DeleteMailboxRespectingSubscriptions(const char *mailboxName);
+  bool    RenameMailboxRespectingSubscriptions(const char *existingName,
     const char *newName,
-    PRBool reallyRename);
+    bool reallyRename);
   // notify the fe that a folder was deleted
   void FolderDeleted(const char *mailboxName);
   // notify the fe that a folder creation failed
@@ -558,34 +558,34 @@ private:
   void FolderRenamed(const char *oldName,
     const char *newName);
 
-  PRBool FolderIsSelected(const char *mailboxName);
+  bool FolderIsSelected(const char *mailboxName);
 
-  PRBool  MailboxIsNoSelectMailbox(const char *mailboxName);
+  bool    MailboxIsNoSelectMailbox(const char *mailboxName);
   nsCString CreatePossibleTrashName(const char *prefix);
-  PRBool FolderNeedsACLInitialized(const char *folderName);
+  bool FolderNeedsACLInitialized(const char *folderName);
   void DiscoverMailboxList();
   void DiscoverAllAndSubscribedBoxes();
   void MailboxDiscoveryFinished();
   void NthLevelChildList(const char *onlineMailboxPrefix, PRInt32 depth);
-  void Lsub(const char *mailboxPattern, PRBool addDirectoryIfNecessary);
-  void List(const char *mailboxPattern, PRBool addDirectoryIfNecessary,
-            PRBool useXLIST = PR_FALSE);
+  void Lsub(const char *mailboxPattern, bool addDirectoryIfNecessary);
+  void List(const char *mailboxPattern, bool addDirectoryIfNecessary,
+            bool useXLIST = false);
   void Subscribe(const char *mailboxName);
   void Unsubscribe(const char *mailboxName);
   void Idle();
-  void EndIdle(PRBool waitForResponse = PR_TRUE);
+  void EndIdle(bool waitForResponse = true);
   // Some imap servers include the mailboxName following the dir-separator in the list of
   // subfolders of the mailboxName. In fact, they are the same. So we should decide if
   // we should delete such subfolder and provide feedback if the delete operation succeed.
-  PRBool DeleteSubFolders(const char* aMailboxName, PRBool & aDeleteSelf);
-  PRBool  RenameHierarchyByHand(const char *oldParentMailboxName,
+  bool DeleteSubFolders(const char* aMailboxName, bool & aDeleteSelf);
+  bool    RenameHierarchyByHand(const char *oldParentMailboxName,
     const char *newParentMailboxName);
-  PRBool RetryUrl();
+  bool RetryUrl();
 
   nsresult GlobalInitialization(nsIPrefBranch *aPrefBranch);
   nsresult Configure(PRInt32 TooFastTime, PRInt32 IdealTime,
     PRInt32 ChunkAddSize, PRInt32 ChunkSize, PRInt32 ChunkThreshold,
-    PRBool FetchByChunks);
+    bool FetchByChunks);
   nsresult GetMsgWindow(nsIMsgWindow ** aMsgWindow);
   // End Process AuthenticatedState Url helper methods
 
@@ -595,13 +595,13 @@ private:
   void GetQuotaDataIfSupported(const char *aBoxName);
 
   // CondStore support - true if server supports it, and the user hasn't disabled it.
-  PRBool UseCondStore();
+  bool UseCondStore();
   // false if pref "mail.server.serverxxx.use_condstore" is false;
-  PRBool m_useCondStore; 
+  bool m_useCondStore; 
   // COMPRESS=DEFLATE support - true if server supports it, and the user hasn't disabled it.
-  PRBool UseCompressDeflate();
+  bool UseCompressDeflate();
   // false if pref "mail.server.serverxxx.use_compress_deflate" is false;
-  PRBool m_useCompressDeflate; 
+  bool m_useCompressDeflate; 
   // these come from the nsIDBFolderInfo in the msgDatabase and
   // are initialized in nsImapProtocol::SetupWithUrl.
   PRUint64 mFolderLastModSeq;
@@ -610,7 +610,7 @@ private:
   PRUint32 mFolderNumDeleted;
 
   nsTArray<nsCString> mCustomDBHeaders;
-  PRBool  m_trackingTime;
+  bool    m_trackingTime;
   PRTime  m_startTime;
   PRTime  m_endTime;
   PRTime  m_lastActiveTime;
@@ -618,10 +618,10 @@ private:
   PRInt32 m_idealTime;
   PRInt32 m_chunkAddSize;
   PRInt32 m_chunkStartSize;
-  PRBool  m_fetchByChunks;
-  PRBool  m_sendID;
+  bool    m_fetchByChunks;
+  bool    m_sendID;
   PRInt32 m_curFetchSize;
-  PRBool  m_ignoreExpunges;
+  bool    m_ignoreExpunges;
   PRInt32 m_prefAuthMethods; // set of capability flags (in nsImapCore.h) for auth methods
   PRInt32 m_failedAuthMethods; // ditto
   eIMAPCapabilityFlag m_currentAuthMethod; // exactly one capability flag, or 0
@@ -636,10 +636,10 @@ private:
 
   nsIImapHostSessionList * m_hostSessionList;
 
-  PRBool m_fromHeaderSeen;
+  bool m_fromHeaderSeen;
 
   // these settings allow clients to override various pieces of the connection info from the url
-  PRBool m_overRideUrlConnectionInfo;
+  bool m_overRideUrlConnectionInfo;
 
   nsCString m_logonHost;
   nsCString m_logonCookie;
@@ -658,16 +658,16 @@ private:
   PRInt32       m_lastPercent;
   PRInt64       m_lastProgressTime;
 
-  PRBool m_notifySearchHit;
-  PRBool m_checkForNewMailDownloadsHeaders;
-  PRBool m_needNoop;
-  PRBool m_idle;
-  PRBool m_useIdle;
+  bool m_notifySearchHit;
+  bool m_checkForNewMailDownloadsHeaders;
+  bool m_needNoop;
+  bool m_idle;
+  bool m_useIdle;
   PRInt32 m_noopCount;
-  PRBool  m_autoSubscribe, m_autoUnsubscribe, m_autoSubscribeOnOpen;
-  PRBool m_closeNeededBeforeSelect;
-  PRBool m_retryUrlOnError;
-  PRBool m_preferPlainText;
+  bool    m_autoSubscribe, m_autoUnsubscribe, m_autoSubscribeOnOpen;
+  bool m_closeNeededBeforeSelect;
+  bool m_retryUrlOnError;
+  bool m_preferPlainText;
 
   enum EMailboxHierarchyNameState {
     kNoOperationInProgress,
@@ -687,7 +687,7 @@ private:
   PRUint32                    m_flagChangeCount;
   PRTime                      m_lastCheckTime;
 
-  PRBool CheckNeeded();
+  bool CheckNeeded();
 };
 
 // This small class is a "mock" channel because it is a mockery of the imap channel's implementation...
@@ -735,17 +735,17 @@ protected:
   nsCString m_ContentType;
   nsWeakPtr   m_protocol;
 
-  PRBool mChannelClosed;
-  PRBool mReadingFromCache;
-  PRBool mTryingToReadPart;
+  bool mChannelClosed;
+  bool mReadingFromCache;
+  bool mTryingToReadPart;
   PRInt64 mContentLength;
 
   // cache related helper methods
   nsresult OpenCacheEntry(); // makes a request to the cache service for a cache entry for a url
-  PRBool ReadFromLocalCache(); // attempts to read the url out of our local (offline) cache....
+  bool ReadFromLocalCache(); // attempts to read the url out of our local (offline) cache....
   nsresult ReadFromImapConnection(); // creates a new imap connection to read the url
   nsresult ReadFromMemCache(nsICacheEntryDescriptor *entry); // attempts to read the url out of our memory cache
-  nsresult NotifyStartEndReadFromCache(PRBool start);
+  nsresult NotifyStartEndReadFromCache(bool start);
 
   // we end up daisy chaining multiple nsIStreamListeners into the load process.
   nsresult SetupPartExtractorListener(nsIImapUrl * aUrl, nsIStreamListener * aConsumer);
@@ -759,14 +759,14 @@ public:
   nsIMAPMailboxInfo(const nsACString &aName, char aDelimiter);
   virtual ~nsIMAPMailboxInfo();
 
-  void   SetChildrenListed(PRBool childrenListed);
-  PRBool GetChildrenListed();
+  void   SetChildrenListed(bool childrenListed);
+  bool GetChildrenListed();
   const  nsACString& GetMailboxName();
   char   GetDelimiter();
 
 protected:
   nsCString mMailboxName;
-  PRBool   mChildrenListed;
+  bool     mChildrenListed;
   char     mDelimiter;
 };
 

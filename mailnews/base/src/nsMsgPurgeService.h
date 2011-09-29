@@ -78,7 +78,7 @@ protected:
   nsCOMPtr<nsIMsgFolder> mSearchFolder;
   nsCOMPtr<nsIMutableArray> mHdrsToDelete;
   nsVoidArray mPurgeArray;
-  PRBool mHaveShutdown;
+  bool mHaveShutdown;
 
 private:
   PRInt32 mMinDelayBetweenPurges;  // in minutes, how long must pass between two consecutive purges on the same junk folder?

@@ -50,7 +50,7 @@ public:
   nsAbMDBCard(void);
   virtual ~nsAbMDBCard(void);
 
-  NS_IMETHOD Equals(nsIAbCard *card, PRBool *result);
+  NS_IMETHOD Equals(nsIAbCard *card, bool *result);
 };
 
 #endif

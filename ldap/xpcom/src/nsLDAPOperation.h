@@ -110,7 +110,7 @@ class nsLDAPOperation : public nsILDAPOperation
     nsresult Rename(const char *base, // base DN to rename
                     const char *newRDn, // new RDN
                     const char *newParent, // DN of the new parent
-                    PRBool deleteOldRDn, // remove old RDN in the entry?
+                    bool deleteOldRDn, // remove old RDN in the entry?
                     LDAPControl **serverctrls,
                     LDAPControl **clientctrls);
 

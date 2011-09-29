@@ -128,7 +128,7 @@ nsLDAPModification::SetValues(nsIArray* aValues)
   rv = aValues->Enumerate(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool hasMoreElements;
+  bool hasMoreElements;
   rv = enumerator->HasMoreElements(&hasMoreElements);
   NS_ENSURE_SUCCESS(rv, rv);
 

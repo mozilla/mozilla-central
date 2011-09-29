@@ -61,7 +61,7 @@ NS_IMETHODIMP nsEncryptedSMIMEURIsService::ForgetEncrypted(const nsACString & ur
   return NS_OK;
 }
 
-NS_IMETHODIMP nsEncryptedSMIMEURIsService::IsEncrypted(const nsACString & uri, PRBool *_retval)
+NS_IMETHODIMP nsEncryptedSMIMEURIsService::IsEncrypted(const nsACString & uri, bool *_retval)
 {
   *_retval = (mEncryptedURIs.IndexOf(uri) != -1);
   return NS_OK;

@@ -50,7 +50,7 @@ typedef struct MimeInlineTextRichtext      MimeInlineTextRichtext;
 
 struct MimeInlineTextRichtextClass {
   MimeInlineTextClass text;
-  PRBool enriched_p;  /* Whether we should act like text/enriched instead. */
+  bool enriched_p;  /* Whether we should act like text/enriched instead. */
 };
 
 extern MimeInlineTextRichtextClass mimeInlineTextRichtextClass;

@@ -81,39 +81,39 @@ public:
   /* nsIRDFNode GetTarget (in nsIRDFResource aSource, in nsIRDFResource property, in boolean aTruthValue); */
   NS_IMETHOD GetTarget(nsIRDFResource *source,
                        nsIRDFResource *property,
-                       PRBool aTruthValue,
+                       bool aTruthValue,
                        nsIRDFNode **_retval);
 
   /* nsISimpleEnumerator GetTargets (in nsIRDFResource aSource, in nsIRDFResource property, in boolean aTruthValue); */
   NS_IMETHOD GetTargets(nsIRDFResource *source,
                         nsIRDFResource *property,
-                        PRBool aTruthValue,
+                        bool aTruthValue,
                         nsISimpleEnumerator **_retval);
   /* nsISimpleEnumerator ArcLabelsOut (in nsIRDFResource aSource); */
   NS_IMETHOD ArcLabelsOut(nsIRDFResource *source, nsISimpleEnumerator **_retval);
 
   NS_IMETHOD HasAssertion(nsIRDFResource *aSource, nsIRDFResource *aProperty,
-                          nsIRDFNode *aTarget, PRBool aTruthValue,
-                          PRBool *_retval);
-  NS_IMETHOD HasArcOut(nsIRDFResource *source, nsIRDFResource *aArc, PRBool *result);
+                          nsIRDFNode *aTarget, bool aTruthValue,
+                          bool *_retval);
+  NS_IMETHOD HasArcOut(nsIRDFResource *source, nsIRDFResource *aArc, bool *result);
     
 protected:
 
   nsresult HasAssertionServer(nsIMsgIncomingServer *aServer,
                               nsIRDFResource *aProperty,
                               nsIRDFNode *aTarget,
-                              PRBool aTruthValue, PRBool *_retval);
+                              bool aTruthValue, bool *_retval);
 
   nsresult HasAssertionAccountRoot(nsIRDFResource *aProperty,
                                    nsIRDFNode *aTarget,
-                                   PRBool aTruthValue, PRBool *_retval);
+                                   bool aTruthValue, bool *_retval);
   
-  PRBool isDefaultServer(nsIMsgIncomingServer *aServer);
-  PRBool supportsFilters(nsIMsgIncomingServer *aServer);
-  PRBool canGetMessages(nsIMsgIncomingServer *aServer);
-  PRBool canGetIncomingMessages(nsIMsgIncomingServer *aServer);
+  bool isDefaultServer(nsIMsgIncomingServer *aServer);
+  bool supportsFilters(nsIMsgIncomingServer *aServer);
+  bool canGetMessages(nsIMsgIncomingServer *aServer);
+  bool canGetIncomingMessages(nsIMsgIncomingServer *aServer);
   
-  static PRBool isContainment(nsIRDFResource *aProperty);
+  static bool isContainment(nsIRDFResource *aProperty);
   nsresult getServerForFolderNode(nsIRDFNode *aResource,
                                   nsIMsgIncomingServer **aResult);
   
@@ -165,12 +165,12 @@ protected:
 private:
   // enumeration function to convert each server (element)
   // to an nsIRDFResource and append it to the array (in data)
-  static PRBool createServerResources(nsISupports *element, void *data);
+  static bool createServerResources(nsISupports *element, void *data);
 
   // search for an account by key
-  static PRBool findServerByKey(nsISupports *aElement, void *aData);
+  static bool findServerByKey(nsISupports *aElement, void *aData);
 
-  nsresult serverHasIdentities(nsIMsgIncomingServer *aServer, PRBool *aResult);
+  nsresult serverHasIdentities(nsIMsgIncomingServer *aServer, bool *aResult);
   nsresult getStringBundle();
 
   static nsCOMPtr<nsIMutableArray> mAccountArcsOut;

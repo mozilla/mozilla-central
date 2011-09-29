@@ -112,7 +112,7 @@ NS_IMETHODIMP nsURLFetcher::GetInterface(const nsIID & aIID, void * *aInstancePt
 
 // nsIURIContentListener support
 NS_IMETHODIMP 
-nsURLFetcher::OnStartURIOpen(nsIURI* aURI, PRBool* aAbortOpen)
+nsURLFetcher::OnStartURIOpen(nsIURI* aURI, bool* aAbortOpen)
 {
    return NS_OK;
 }
@@ -120,7 +120,7 @@ nsURLFetcher::OnStartURIOpen(nsIURI* aURI, PRBool* aAbortOpen)
 NS_IMETHODIMP 
 nsURLFetcher::IsPreferred(const char * aContentType,
                                 char ** aDesiredContentType,
-                                PRBool * aCanHandleContent)
+                                bool * aCanHandleContent)
 
 {
   return CanHandleContent(aContentType, PR_TRUE, aDesiredContentType,
@@ -129,9 +129,9 @@ nsURLFetcher::IsPreferred(const char * aContentType,
 
 NS_IMETHODIMP 
 nsURLFetcher::CanHandleContent(const char * aContentType,
-                                PRBool aIsContentPreferred,
+                                bool aIsContentPreferred,
                                 char ** aDesiredContentType,
-                                PRBool * aCanHandleContent)
+                                bool * aCanHandleContent)
 
 {
     if (!mIsFile && PL_strcasecmp(aContentType, MESSAGE_RFC822) == 0)
@@ -144,10 +144,10 @@ nsURLFetcher::CanHandleContent(const char * aContentType,
 
 NS_IMETHODIMP 
 nsURLFetcher::DoContent(const char * aContentType,
-                      PRBool aIsContentPreferred,
+                      bool aIsContentPreferred,
                       nsIRequest *request,
                       nsIStreamListener ** aContentHandler,
-                      PRBool * aAbortProcess)
+                      bool * aAbortProcess)
 {
   nsresult rv = NS_OK;
 
@@ -219,7 +219,7 @@ nsURLFetcher::SetLoadCookie(nsISupports * aLoadCookie)
 }
 
 nsresult
-nsURLFetcher::StillRunning(PRBool *running)
+nsURLFetcher::StillRunning(bool *running)
 {
   *running = mStillRunning;
   return NS_OK;
@@ -255,7 +255,7 @@ nsURLFetcher::OnStartRequest(nsIRequest *request, nsISupports *ctxt)
       sendPtr->GetProgress(getter_AddRefs(progress));
       if (progress)
       {
-        PRBool cancel = PR_FALSE;
+        bool cancel = false;
         progress->GetProcessCanceledByUser(&cancel);
         if (cancel)
           return request->Cancel(NS_ERROR_ABORT);

@@ -150,12 +150,12 @@ NS_IMETHODIMP nsCopyMessageStreamListener::EndCopy(nsISupports *url, nsresult aS
 	nsCOMPtr<nsIURI> uri = do_QueryInterface(url, &rv);
 
 	if (NS_FAILED(rv)) return rv;
-	PRBool copySucceeded = (aStatus == NS_BINDING_SUCCEEDED);
+	bool copySucceeded = (aStatus == NS_BINDING_SUCCEEDED);
 	rv = mDestination->EndCopy(copySucceeded);
 	//If this is a move and we finished the copy, delete the old message.
 	if(NS_SUCCEEDED(rv))
 	{
-		PRBool moveMessage = PR_FALSE;
+		bool moveMessage = false;
 
 		nsCOMPtr<nsIMsgMailNewsUrl> mailURL(do_QueryInterface(uri));
 		if(mailURL)

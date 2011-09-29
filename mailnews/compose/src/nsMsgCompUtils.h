@@ -108,27 +108,27 @@ char        *mime_generate_attachment_headers (
                            const char *x_mac_creator,
                            const char *real_name,
                            const char *base_url,
-                           PRBool digest_p,
+                           bool digest_p,
                            nsMsgAttachmentHandler *ma,
                            const char *attachmentCharset, // charset of the attachment (can be null)
                            const char *bodyCharset,       // charset of the main body
-                           PRBool bodyIsAsciiOnly,
+                           bool bodyIsAsciiOnly,
                            const char *content_id,
-                           PRBool     aBodyDocument);
+                           bool       aBodyDocument);
 
 char        *msg_generate_message_id (nsIMsgIdentity*);
 
-PRBool      mime_7bit_data_p (const char *string, PRUint32 size);
+bool        mime_7bit_data_p (const char *string, PRUint32 size);
 
-char        *mime_fix_header_1 (const char *string, PRBool addr_p, PRBool news_p);
+char        *mime_fix_header_1 (const char *string, bool addr_p, bool news_p);
 char        *mime_fix_header (const char *string);
 char        *mime_fix_addr_header (const char *string);
 char        *mime_fix_news_header (const char *string);
 
-PRBool      mime_type_requires_b64_p (const char *type);
-PRBool      mime_type_needs_charset (const char *type);
+bool        mime_type_requires_b64_p (const char *type);
+bool        mime_type_needs_charset (const char *type);
 
-char        *msg_make_filename_qtext(const char *srcText, PRBool stripCRLFs);
+char        *msg_make_filename_qtext(const char *srcText, bool stripCRLFs);
 
 // Rip apart the URL and extract a reasonable value for the `real_name' slot.
 void        msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnichar *proposedName, const char *charset);
@@ -136,14 +136,14 @@ void        msg_pick_real_name (nsMsgAttachmentHandler *attachment, const PRUnic
 //
 // Informational calls...
 //
-void        nsMsgMIMESetConformToStandard (PRBool conform_p);
-PRBool      nsMsgMIMEGetConformToStandard (void);
+void        nsMsgMIMESetConformToStandard (bool conform_p);
+bool        nsMsgMIMEGetConformToStandard (void);
 
 //
 // network service type calls...
 //
 nsresult    nsMsgNewURL(nsIURI** aInstancePtrResult, const char * aSpec);
-PRBool      nsMsgIsLocalFile(const char *url);
+bool        nsMsgIsLocalFile(const char *url);
 char        *nsMsgGetLocalFileFromURL(const char *url);
 
 char        *nsMsgParseURLHost(const char *url);
@@ -156,10 +156,10 @@ char        *GenerateFileNameFromURI(nsIURI *aURL);
 void GetFolderURIFromUserPrefs(nsMsgDeliverMode   aMode, nsIMsgIdentity *identity, nsCString& uri);
                                        
 // File calls...
-nsresult ConvertBufToPlainText(nsString &aConBuf, PRBool formatflowed = PR_FALSE);
+nsresult ConvertBufToPlainText(nsString &aConBuf, bool formatflowed = false);
 
 // Check if we should use format=flowed 
-PRBool UseFormatFlowed(const char *charset);
+bool UseFormatFlowed(const char *charset);
 
 
 PR_END_EXTERN_C

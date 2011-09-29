@@ -100,7 +100,7 @@
    first (handing binary data to the filter_fn.)  `crypto_closure' is the
    object that `crypto_init' returned.  This may return negative on error.
 
-   int crypto_eof (void *crypto_closure, PRBool abort_p)
+   int crypto_eof (void *crypto_closure, bool abort_p)
 
      This is called when no more data remains.  It may call `output_fn' again
    to flush out any buffered data.  If `abort_p' is true, then it may choose
@@ -149,7 +149,7 @@ struct MimeEncryptedClass {
              void *output_closure);
   int (*crypto_write) (const char *data, PRInt32 data_size,
              void *crypto_closure);
-  int (*crypto_eof) (void *crypto_closure, PRBool abort_p);
+  int (*crypto_eof) (void *crypto_closure, bool abort_p);
   char * (*crypto_generate_html) (void *crypto_closure);
   void (*crypto_free) (void *crypto_closure);
 };

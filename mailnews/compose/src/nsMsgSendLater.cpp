@@ -126,7 +126,7 @@ nsMsgSendLater::Init()
   nsCOMPtr<nsIPrefBranch> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool sendInBackground;
+  bool sendInBackground;
   rv = prefs->GetBoolPref("mailnews.sendInBackground", &sendInBackground);
   // If we're not sending in the background, don't do anything else
   if (NS_FAILED(rv) || !sendInBackground)
@@ -542,7 +542,7 @@ nsMsgSendLater::CompleteMailFileSend()
   NS_ENSURE_SUCCESS(rv,rv);
 
   // If for some reason the tmp file didn't get created, we've failed here
-  PRBool created;
+  bool created;
   mTempFile->Exists(&created);
   if (!created)
     return NS_ERROR_FAILURE;
@@ -622,8 +622,8 @@ nsMsgSendLater::CompleteMailFileSend()
                                  mAccountKey,
                                  compFields, // nsIMsgCompFields *fields,
                                  mTempFile, // nsIFile *sendFile,
-                                 PR_TRUE, // PRBool deleteSendFileOnCompletion,
-                                 PR_FALSE, // PRBool digest_p,
+                                 true, // bool deleteSendFileOnCompletion,
+                                 false, // bool digest_p,
                                  nsIMsgSend::nsMsgSendUnsent, // nsMsgDeliverMode mode,
                                  nsnull, // nsIMsgDBHdr *msgToReplace, 
                                  sendListener,
@@ -636,7 +636,7 @@ nsMsgSendLater::CompleteMailFileSend()
 nsresult
 nsMsgSendLater::StartNextMailFileSend(nsresult prevStatus)
 {
-  PRBool hasMoreElements = PR_FALSE;
+  bool hasMoreElements = false;
   if ((!mEnumerator) ||
       NS_FAILED(mEnumerator->HasMoreElements(&hasMoreElements)) ||
       !hasMoreElements)
@@ -727,7 +727,7 @@ nsMsgSendLater::GetUnsentMessagesFolder(nsIMsgIdentity *aIdentity, nsIMsgFolder 
 }
 
 NS_IMETHODIMP
-nsMsgSendLater::HasUnsentMessages(nsIMsgIdentity *aIdentity, PRBool *aResult)
+nsMsgSendLater::HasUnsentMessages(nsIMsgIdentity *aIdentity, bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   nsresult rv;
@@ -794,7 +794,7 @@ nsresult nsMsgSendLater::ReparseDBIfNeeded(nsIUrlListener *aListener)
 }
 
 nsresult
-nsMsgSendLater::InternalSendMessages(PRBool aUserInitiated,
+nsMsgSendLater::InternalSendMessages(bool aUserInitiated,
                                      nsIMsgIdentity *aIdentity)
 {
   if (WeAreOffline())
@@ -833,7 +833,7 @@ nsMsgSendLater::InternalSendMessages(PRBool aUserInitiated,
 
   nsCOMPtr<nsISupports> currentItem;
   nsCOMPtr<nsIMsgDBHdr> messageHeader;
-  PRBool hasMoreElements = PR_FALSE;
+  bool hasMoreElements = false;
   while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMoreElements)) && hasMoreElements)
   {
     rv = enumerator->GetNext(getter_AddRefs(currentItem));
@@ -973,8 +973,8 @@ nsMsgSendLater::BuildHeaders()
 
   while (buf < buf_end)
   {
-    PRBool prune_p = PR_FALSE;
-    PRBool  do_flags_p = PR_FALSE;
+    bool prune_p = false;
+    bool    do_flags_p = false;
     char *colon = PL_strchr(buf, ':');
     char *end;
     char *value = 0;
@@ -1300,7 +1300,7 @@ nsMsgSendLater::RemoveListener(nsIMsgSendLaterListener *aListener)
 }
 
 NS_IMETHODIMP
-nsMsgSendLater::GetSendingMessages(PRBool *aResult)
+nsMsgSendLater::GetSendingMessages(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = mSendingMessages;
@@ -1393,7 +1393,7 @@ nsMsgSendLater::EndSendMessages(nsresult aStatus, const PRUnichar *aMsg,
  * @param aStatus  The success or fail result of the send step.
  * @return         True if the copy process will continue, false otherwise.
  */
-PRBool
+bool
 nsMsgSendLater::OnSendStepFinished(nsresult aStatus)
 {
   if (NS_SUCCEEDED(aStatus))
@@ -1536,7 +1536,7 @@ nsMsgSendLater::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty
 
 NS_IMETHODIMP
 nsMsgSendLater::OnItemBoolPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty,
-                                          PRBool aOldValue, PRBool aNewValue)
+                                          bool aOldValue, bool aNewValue)
 {
   return NS_OK;
 }
@@ -1564,7 +1564,7 @@ nsMsgSendLater::OnItemEvent(nsIMsgFolder* aItem, nsIAtom *aEvent)
 }
 
 NS_IMETHODIMP
-nsMsgSendLater::GetNeedsToRunTask(PRBool *aResult)
+nsMsgSendLater::GetNeedsToRunTask(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = mSendingMessages;
@@ -1573,7 +1573,7 @@ nsMsgSendLater::GetNeedsToRunTask(PRBool *aResult)
 
 NS_IMETHODIMP
 nsMsgSendLater::DoShutdownTask(nsIUrlListener *aListener, nsIMsgWindow *aWindow,
-                               PRBool *aResult)
+                               bool *aResult)
 {
   if (mTimer)
     mTimer->Cancel();

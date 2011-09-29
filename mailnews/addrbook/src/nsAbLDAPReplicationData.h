@@ -66,7 +66,7 @@ public:
 
 protected:
   virtual nsresult DoTask();
-  virtual void InitFailed(PRBool aCancelled = PR_FALSE);
+  virtual void InitFailed(bool aCancelled = false);
 
   // pointer to the interfaces used by this object
   nsCOMPtr<nsIWebProgressListener> mListener;
@@ -81,8 +81,8 @@ protected:
   PRInt32         mState;
   PRInt32         mProtocol;
   PRInt32         mCount;
-  PRBool          mDBOpen;
-  PRBool          mInitialized;
+  bool            mDBOpen;
+  bool            mInitialized;
   
   nsCOMPtr<nsIAbLDAPDirectory> mDirectory;
   nsCOMPtr<nsIAbLDAPAttributeMap> mAttrMap; // maps ab properties to ldap attrs
@@ -90,9 +90,9 @@ protected:
   virtual nsresult OnLDAPSearchEntry(nsILDAPMessage *aMessage);
   virtual nsresult OnLDAPSearchResult(nsILDAPMessage *aMessage);
   
-  nsresult OpenABForReplicatedDir(PRBool bCreate);
+  nsresult OpenABForReplicatedDir(bool bCreate);
   nsresult DeleteCard(nsString & aDn);
-  void Done(PRBool aSuccess);
+  void Done(bool aSuccess);
 };
 
 

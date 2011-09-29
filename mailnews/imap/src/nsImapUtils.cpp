@@ -194,9 +194,9 @@ NS_IMPL_GETSET(nsImapMailboxSpec, NumUnseenMessages, PRInt32, mNumOfUnseenMessag
 NS_IMPL_GETSET(nsImapMailboxSpec, NumRecentMessages, PRInt32, mNumOfRecentMessages)
 NS_IMPL_GETSET(nsImapMailboxSpec, NextUID, PRInt32, mNextUID)
 NS_IMPL_GETSET(nsImapMailboxSpec, HierarchyDelimiter, char, mHierarchySeparator)
-NS_IMPL_GETSET(nsImapMailboxSpec, FolderSelected, PRBool, mFolderSelected)
-NS_IMPL_GETSET(nsImapMailboxSpec, DiscoveredFromLsub, PRBool, mDiscoveredFromLsub)
-NS_IMPL_GETSET(nsImapMailboxSpec, OnlineVerified, PRBool, mOnlineVerified)
+NS_IMPL_GETSET(nsImapMailboxSpec, FolderSelected, bool, mFolderSelected)
+NS_IMPL_GETSET(nsImapMailboxSpec, DiscoveredFromLsub, bool, mDiscoveredFromLsub)
+NS_IMPL_GETSET(nsImapMailboxSpec, OnlineVerified, bool, mOnlineVerified)
 NS_IMPL_GETSET(nsImapMailboxSpec, SupportedUserFlags, PRUint32, mSupportedUserFlags)
 NS_IMPL_GETSET(nsImapMailboxSpec, Box_flags, PRUint32, mBoxFlags)
 NS_IMPL_GETSET(nsImapMailboxSpec, NamespaceForFolder, nsIMAPNamespace *, mNamespaceForFolder)
@@ -297,7 +297,7 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount,
   {
     PRUint32 curKey = msgUids[keyIndex];
     PRUint32 nextKey = (keyIndex + 1 < total) ? msgUids[keyIndex + 1] : 0xFFFFFFFF;
-    PRBool lastKey = (nextKey == 0xFFFFFFFF);
+    bool lastKey = (nextKey == 0xFFFFFFFF);
 
     if (lastKey)
       curSequenceEnd = curKey;
@@ -314,7 +314,7 @@ void AllocateImapUidString(PRUint32 *msgUids, PRUint32 &msgCount,
       {
         if (curFlagStateIndex == -1)
         {
-          PRBool foundIt;
+          bool foundIt;
           flagState->GetMessageFlagsFromUID(curSequenceEnd, &foundIt, &curFlagStateIndex);
           if (!foundIt)
           {
@@ -371,7 +371,7 @@ void ParseUidString(const char *uidString, nsTArray<nsMsgKey> &keys)
 {
   // This is in the form <id>,<id>, or <id1>:<id2>
   char curChar = *uidString;
-  PRBool isRange = PR_FALSE;
+  bool isRange = false;
   PRUint32 curToken;
   PRUint32 saveStartToken = 0;
 

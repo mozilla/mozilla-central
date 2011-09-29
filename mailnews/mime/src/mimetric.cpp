@@ -48,7 +48,7 @@ MimeDefClass(MimeInlineTextRichtext, MimeInlineTextRichtextClass,
 
 static int MimeInlineTextRichtext_parse_line (const char *, PRInt32, MimeObject *);
 static int MimeInlineTextRichtext_parse_begin (MimeObject *);
-static int MimeInlineTextRichtext_parse_eof (MimeObject *, PRBool);
+static int MimeInlineTextRichtext_parse_eof (MimeObject *, bool);
 
 static int
 MimeInlineTextRichtextClassInitialize(MimeInlineTextRichtextClass *clazz)
@@ -69,7 +69,7 @@ MimeRichtextConvert (const char *line, PRInt32 length,
            MimeObject *obj,
            char **obufferP,
            PRInt32 *obuffer_sizeP,
-           PRBool enriched_p)
+           bool enriched_p)
 {
   /* RFC 1341 (the original MIME spec) defined text/richtext.
    RFC 1563 superceded text/richtext with text/enriched.
@@ -351,7 +351,7 @@ MimeRichtextConvert (const char *line, PRInt32 length,
 static int
 MimeInlineTextRichtext_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 {
-  PRBool enriched_p = (((MimeInlineTextRichtextClass *) obj->clazz)
+  bool enriched_p = (((MimeInlineTextRichtextClass *) obj->clazz)
             ->enriched_p);
 
   return MimeRichtextConvert (line, length,
@@ -372,7 +372,7 @@ MimeInlineTextRichtext_parse_begin (MimeObject *obj)
 
 
 static int
-MimeInlineTextRichtext_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeInlineTextRichtext_parse_eof (MimeObject *obj, bool abort_p)
 {
   int status;
   if (obj->closed_p) return 0;

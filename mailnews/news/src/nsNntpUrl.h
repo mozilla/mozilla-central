@@ -53,7 +53,7 @@ public:
   // nsIURI over-ride...
   NS_IMETHOD SetSpec(const nsACString &aSpec);
 
-  NS_IMETHOD IsUrlType(PRUint32 type, PRBool *isType);
+  NS_IMETHOD IsUrlType(PRUint32 type, bool *isType);
 
   // nsIMsgMailNewsUrl overrides
   NS_IMETHOD GetServer(nsIMsgIncomingServer **server);
@@ -83,9 +83,9 @@ private:
   // used by save message to disk
   nsCOMPtr<nsIFile> m_messageFile;
 
-  PRPackedBool  m_addDummyEnvelope;
-  PRPackedBool  m_canonicalLineEnding;
-  PRPackedBool  m_getOldMessages;
+  bool          m_addDummyEnvelope;
+  bool          m_canonicalLineEnding;
+  bool          m_getOldMessages;
 
   nsCString m_group;
   nsCString m_messageID;

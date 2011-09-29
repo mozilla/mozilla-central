@@ -65,7 +65,7 @@ nsMailMacIntegration::nsMailMacIntegration(): mCheckedThisSession(PR_FALSE)
 {}
 
 NS_IMETHODIMP
-nsMailMacIntegration::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRBool * aIsDefaultClient)
+nsMailMacIntegration::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool * aIsDefaultClient)
 {
   *aIsDefaultClient = PR_TRUE;
   if (aApps & nsIShellService::MAIL)
@@ -85,7 +85,7 @@ nsMailMacIntegration::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRBo
 }
 
 NS_IMETHODIMP
-nsMailMacIntegration::SetDefaultClient(PRBool aForAllUsers, PRUint16 aApps)
+nsMailMacIntegration::SetDefaultClient(bool aForAllUsers, PRUint16 aApps)
 {
   nsresult rv = NS_OK;
   if (aApps & nsIShellService::MAIL)
@@ -99,7 +99,7 @@ nsMailMacIntegration::SetDefaultClient(PRBool aForAllUsers, PRUint16 aApps)
 }
 
 NS_IMETHODIMP
-nsMailMacIntegration::GetShouldCheckDefaultClient(PRBool* aResult)
+nsMailMacIntegration::GetShouldCheckDefaultClient(bool* aResult)
 {
   if (mCheckedThisSession) 
   {
@@ -112,16 +112,16 @@ nsMailMacIntegration::GetShouldCheckDefaultClient(PRBool* aResult)
 }
 
 NS_IMETHODIMP
-nsMailMacIntegration::SetShouldCheckDefaultClient(PRBool aShouldCheck)
+nsMailMacIntegration::SetShouldCheckDefaultClient(bool aShouldCheck)
 {
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
   return prefs->SetBoolPref("mail.shell.checkDefaultClient", aShouldCheck);
 }
 
-PRBool
+bool
 nsMailMacIntegration::isDefaultHandlerForProtocol(CFStringRef aScheme)
 {
-  PRBool isDefault = PR_FALSE;
+  bool isDefault = false;
   // Since neither Launch Services nor Internet Config actually differ between 
   // bundles which have the same bundle identifier (That is, if we set our
   // URL of our bundle as the default handler for the given protocol,

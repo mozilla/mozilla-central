@@ -59,13 +59,13 @@ nsMsgProcessReport::~nsMsgProcessReport()
 }
 
 /* attribute boolean proceeded; */
-NS_IMETHODIMP nsMsgProcessReport::GetProceeded(PRBool *aProceeded)
+NS_IMETHODIMP nsMsgProcessReport::GetProceeded(bool *aProceeded)
 {
   NS_ENSURE_ARG_POINTER(aProceeded);
   *aProceeded = mProceeded;
   return NS_OK;
 }
-NS_IMETHODIMP nsMsgProcessReport::SetProceeded(PRBool aProceeded)
+NS_IMETHODIMP nsMsgProcessReport::SetProceeded(bool aProceeded)
 {
   mProceeded = aProceeded;
   return NS_OK;
@@ -174,7 +174,7 @@ NS_IMETHODIMP nsMsgSendReport::Reset()
 }
 
 /* void setProceeded (in long process, in boolean proceeded); */
-NS_IMETHODIMP nsMsgSendReport::SetProceeded(PRInt32 process, PRBool proceeded)
+NS_IMETHODIMP nsMsgSendReport::SetProceeded(PRInt32 process, bool proceeded)
 {
   if (process < process_Current || process > SEND_LAST_PROCESS)
     return NS_ERROR_ILLEGAL_VALUE;
@@ -189,7 +189,7 @@ NS_IMETHODIMP nsMsgSendReport::SetProceeded(PRInt32 process, PRBool proceeded)
 }
 
 /* void setError (in long process, in nsresult error, in boolean overwriteError); */
-NS_IMETHODIMP nsMsgSendReport::SetError(PRInt32 process, nsresult newError, PRBool overwriteError)
+NS_IMETHODIMP nsMsgSendReport::SetError(PRInt32 process, nsresult newError, bool overwriteError)
 {
   if (process < process_Current || process > SEND_LAST_PROCESS)
     return NS_ERROR_ILLEGAL_VALUE;
@@ -209,7 +209,7 @@ NS_IMETHODIMP nsMsgSendReport::SetError(PRInt32 process, nsresult newError, PRBo
 }
 
 /* void setMessage (in long process, in wstring message, in boolean overwriteMessage); */
-NS_IMETHODIMP nsMsgSendReport::SetMessage(PRInt32 process, const PRUnichar *message, PRBool overwriteMessage)
+NS_IMETHODIMP nsMsgSendReport::SetMessage(PRInt32 process, const PRUnichar *message, bool overwriteMessage)
 {
   if (process < process_Current || process > SEND_LAST_PROCESS)
     return NS_ERROR_ILLEGAL_VALUE;
@@ -243,7 +243,7 @@ NS_IMETHODIMP nsMsgSendReport::GetProcessReport(PRInt32 process, nsIMsgProcessRe
 }
 
 /* nsresult displayReport (in nsIPrompt prompt, in boolean showErrorOnly, in boolean dontShowReportTwice); */
-NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showErrorOnly, PRBool dontShowReportTwice, nsresult *_retval)
+NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOnly, bool dontShowReportTwice, nsresult *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
 
@@ -314,7 +314,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
     bundle->GetStringFromID(NS_MSG_SEND_ERROR_TITLE, getter_Copies(dialogTitle));
 
     PRInt32 preStrId = NS_ERROR_SEND_FAILED;
-    PRBool askToGoBackToCompose = PR_FALSE;
+    bool askToGoBackToCompose = false;
     switch (mCurrentProcess)
     {
       case process_BuildMessage :
@@ -326,7 +326,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
         askToGoBackToCompose = PR_FALSE;
         break;
       case process_SMTP :
-        PRBool nntpProceeded;
+        bool nntpProceeded;
         mProcessReport[process_NNTP]->GetProceeded(&nntpProceeded);
         if (nntpProceeded)
           preStrId = NS_ERROR_SEND_FAILED_BUT_NNTP_OK;
@@ -365,7 +365,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, PRBool showError
 
     if (askToGoBackToCompose)
     {
-      PRBool oopsGiveMeBackTheComposeWindow = PR_TRUE;
+      bool oopsGiveMeBackTheComposeWindow = true;
       nsString text1;
       bundle->GetStringFromID(NS_MSG_ASK_TO_COMEBACK_TO_COMPOSE, getter_Copies(text1));
       if (!dialogMessage.IsEmpty())

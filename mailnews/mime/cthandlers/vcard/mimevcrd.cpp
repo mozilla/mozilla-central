@@ -47,7 +47,7 @@
 #include "nsServiceManagerUtils.h"
 
 static int MimeInlineTextVCard_parse_line (const char *, PRInt32, MimeObject *);
-static int MimeInlineTextVCard_parse_eof (MimeObject *, PRBool);
+static int MimeInlineTextVCard_parse_eof (MimeObject *, bool);
 static int MimeInlineTextVCard_parse_begin (MimeObject *obj);
 
 static int s_unique = 0;
@@ -163,7 +163,7 @@ MimeInlineTextVCard_parse_line (const char *line, PRInt32 length, MimeObject *ob
 
 ////////////////////////////////////////////////////////////////////////////////
 static int
-MimeInlineTextVCard_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeInlineTextVCard_parse_eof (MimeObject *obj, bool abort_p)
 {
   nsCOMPtr<nsIMsgVCardService> vCardService =
              do_GetService(MSGVCARDSERVICE_CONTRACT_ID);

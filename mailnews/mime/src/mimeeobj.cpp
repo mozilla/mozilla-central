@@ -56,7 +56,7 @@ static int MimeExternalObject_parse_begin (MimeObject *);
 static int MimeExternalObject_parse_buffer (const char *, PRInt32, MimeObject *);
 static int MimeExternalObject_parse_line (const char *, PRInt32, MimeObject *);
 static int MimeExternalObject_parse_decoded_buffer (const char*, PRInt32, MimeObject*);
-static PRBool MimeExternalObject_displayable_inline_p (MimeObjectClass *clazz,
+static bool MimeExternalObject_displayable_inline_p (MimeObjectClass *clazz,
                             MimeHeaders *hdrs);
 
 static int
@@ -126,7 +126,7 @@ MimeExternalObject_parse_begin (MimeObject *obj)
     char *id_url = 0;
     char *id_name = 0;
     nsCString id_imap;
-    PRBool all_headers_p = obj->options->headers == MimeHeadersAll;
+    bool all_headers_p = obj->options->headers == MimeHeadersAll;
 
     id = mime_part_address (obj);
     if (obj->options->missing_parts)
@@ -260,7 +260,7 @@ MimeExternalObject_parse_line (const char *line, PRInt32 length, MimeObject *obj
   return -1;
 }
 
-static PRBool
+static bool
 MimeExternalObject_displayable_inline_p (MimeObjectClass *clazz,
                      MimeHeaders *hdrs)
 {

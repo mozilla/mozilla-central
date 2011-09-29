@@ -54,7 +54,7 @@ public:
         void FindListRow(nsString &eMail, nsIMdbRow **cardRow);
 
 private:
-  PRBool    BuildCard( const PRUnichar * pName, nsIMdbRow *card, LPMAILUSER pUser);
+  bool      BuildCard( const PRUnichar * pName, nsIMdbRow *card, LPMAILUSER pUser);
   void    SanitizeValue( nsString& val);
   void    SplitString( nsString& val1, nsString& val2);
   void    SetBirthDay(nsIMdbRow *card, PRTime& birthDay);

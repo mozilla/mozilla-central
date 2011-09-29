@@ -64,7 +64,7 @@ MimeDefClass(MimeEncryptedCMS, MimeEncryptedCMSClass,
 
 static void *MimeCMS_init(MimeObject *, int (*output_fn) (const char *, PRInt32, void *), void *);
 static int MimeCMS_write (const char *, PRInt32, void *);
-static int MimeCMS_eof (void *, PRBool);
+static int MimeCMS_eof (void *, bool);
 static char * MimeCMS_generate (void *);
 static void MimeCMS_free (void *);
 
@@ -94,13 +94,13 @@ typedef struct MimeCMSdata
   void *output_closure;
   nsCOMPtr<nsICMSDecoder> decoder_context;
   nsCOMPtr<nsICMSMessage> content_info;
-  PRBool ci_is_encrypted;
+  bool ci_is_encrypted;
   char *sender_addr;
-  PRBool decoding_failed;
+  bool decoding_failed;
   PRUint32 decoded_bytes;
   MimeObject *self;
-  PRBool parent_is_encrypted_p;
-  PRBool parent_holds_stamp_p;
+  bool parent_is_encrypted_p;
+  bool parent_holds_stamp_p;
   nsCOMPtr<nsIMsgSMIMEHeaderSink> smimeHeaderSink;
   
   MimeCMSdata()
@@ -152,9 +152,9 @@ static void MimeCMS_content_callback (void *arg, const char *buf, unsigned long 
   data->decoded_bytes += length;
 }
 
-PRBool MimeEncryptedCMS_encrypted_p (MimeObject *obj)
+bool MimeEncryptedCMS_encrypted_p (MimeObject *obj)
 {
-  PRBool encrypted;
+  bool encrypted;
 
   if (!obj) return PR_FALSE;
   if (mime_typep(obj, (MimeObjectClass *) &mimeEncryptedCMSClass))
@@ -183,18 +183,18 @@ static void ParseRFC822Addresses (const char *line, nsCString &names, nsCString 
   }
 }
 
-PRBool MimeCMSHeadersAndCertsMatch(nsICMSMessage *content_info, 
+bool MimeCMSHeadersAndCertsMatch(nsICMSMessage *content_info, 
                                    nsIX509Cert *signerCert,
                                    const char *from_addr,
                                    const char *from_name,
                                    const char *sender_addr,
                                    const char *sender_name,
-                                   PRBool *signing_cert_without_email_address)
+                                   bool *signing_cert_without_email_address)
 {
   nsCString cert_addr;
-  PRBool match = PR_TRUE;
-  PRBool foundFrom = PR_FALSE;
-  PRBool foundSender = PR_FALSE;
+  bool match = true;
+  bool foundFrom = false;
+  bool foundSender = false;
 
   /* Find the name and address in the cert.
    */
@@ -362,9 +362,9 @@ NS_IMETHODIMP nsSMimeVerificationListener::Notify(nsICMSMessage2 *aVerifiedMessa
   }
   else
   {
-    PRBool signing_cert_without_email_address;
+    bool signing_cert_without_email_address;
 
-    PRBool good_p = MimeCMSHeadersAndCertsMatch(msg, signerCert,
+    bool good_p = MimeCMSHeadersAndCertsMatch(msg, signerCert,
                                                 mFromAddr.get(), mFromName.get(),
                                                 mSenderAddr.get(), mSenderName.get(),
                                                 &signing_cert_without_email_address);
@@ -402,7 +402,7 @@ int MIMEGetRelativeCryptoNestLevel(MimeObject *obj)
   int aTopMessageNestLevel = 0;
   MimeObject *aTopShownObject = nsnull;
   if (obj && obj->options->part_to_load) {
-    PRBool aAlreadyFoundTop = PR_FALSE;
+    bool aAlreadyFoundTop = false;
     for (MimeObject *walker = obj; walker; walker = walker->parent) {
       if (aAlreadyFoundTop) {
         if (!mime_typep(walker, (MimeObjectClass *) &mimeEncryptedClass)
@@ -423,7 +423,7 @@ int MIMEGetRelativeCryptoNestLevel(MimeObject *obj)
     }
   }
 
-  PRBool CryptoObjectIsChildOfTopShownObject = PR_FALSE;
+  bool CryptoObjectIsChildOfTopShownObject = false;
   if (!aTopShownObject) {
     // no sub part specified, top message is displayed, and
     // our crypto object is definitively a child of it
@@ -636,7 +636,7 @@ void MimeCMSRequestAsyncSignatureVerification(nsICMSMessage *aCMSMsg,
 }
 
 static int
-MimeCMS_eof (void *crypto_closure, PRBool abort_p)
+MimeCMS_eof (void *crypto_closure, bool abort_p)
 {
   MimeCMSdata *data = (MimeCMSdata *) crypto_closure;
   nsresult rv;
@@ -711,7 +711,7 @@ MimeCMS_eof (void *crypto_closure, PRBool abort_p)
       // Existing logic in mimei assumes, if !ci_is_encrypted, then it is signed.
       // Make sure it indeed is signed.
 
-      PRBool testIsSigned;
+      bool testIsSigned;
       rv = data->content_info->ContentIsSigned(&testIsSigned);
 
       if (NS_FAILED(rv) || !testIsSigned) {

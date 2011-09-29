@@ -59,8 +59,8 @@ private:
   ~nsGNOMEShellService() {}
 
   nsCString mAppPath;
-  PRPackedBool mUseLocaleFilenames;
-  PRPackedBool mCheckedThisSessionClient;
+  bool mUseLocaleFilenames;
+  bool mCheckedThisSessionClient;
 };
 
 #endif // nsgnomeshellservice_h____

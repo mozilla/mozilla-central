@@ -171,7 +171,7 @@ NS_IMETHODIMP nsAbLDAPReplicationQuery::CancelQuery()
     return mDataProcessor->Abort();
 }
 
-NS_IMETHODIMP nsAbLDAPReplicationQuery::Done(PRBool aSuccess)
+NS_IMETHODIMP nsAbLDAPReplicationQuery::Done(bool aSuccess)
 {
    if (!mInitialized) 
        return NS_ERROR_NOT_INITIALIZED;

@@ -60,29 +60,29 @@ public:
   ~nsEudoraMac();
 
     // retrieve the mail folder
-  virtual PRBool    FindMailFolder( nsIFile **pFolder);
+  virtual bool      FindMailFolder( nsIFile **pFolder);
     // get the list of mailboxes
   virtual nsresult  FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArray);
     // get a TOC file from a mailbox file
-  virtual nsresult  FindTOCFile( nsIFile *pMailFile, nsIFile **pTOCFile, PRBool *pDeleteToc);
+  virtual nsresult  FindTOCFile( nsIFile *pMailFile, nsIFile **pTOCFile, bool *pDeleteToc);
 
   virtual nsresult  GetAttachmentInfo( const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment);
 
     // Address book stuff
-  virtual PRBool    FindAddressFolder( nsIFile **pFolder);
+  virtual bool      FindAddressFolder( nsIFile **pFolder);
     // get the list of mailboxes
   virtual nsresult  FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray);
 
     // import settings
-  static PRBool  ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMailAccount);
-  static PRBool  FindSettingsFile( nsIFile **pIniFile) { return( FindEudoraLocation( pIniFile, PR_TRUE));}
+  static bool    ImportSettings( nsIFile *pIniFile, nsIMsgAccount **localMailAccount);
+  static bool    FindSettingsFile( nsIFile **pIniFile) { return( FindEudoraLocation( pIniFile, true));}
 
-  static PRBool  FindFiltersFile( nsIFile **pFiltersFile);
+  static bool    FindFiltersFile( nsIFile **pFiltersFile);
 
 private:
-  static PRBool  FindEudoraLocation( nsIFile **pFolder, PRBool findIni = PR_FALSE, nsIFile *pLookIn = nsnull);
-  static PRBool  FindEudoraLocation( nsIFile **pFolder, PRBool findIni, const char *specialDirName );
-  static PRBool  VerifyEudoraLocation( nsIFile **pFolder, PRBool findIni );
+  static bool    FindEudoraLocation( nsIFile **pFolder, bool findIni = false, nsIFile *pLookIn = nsnull);
+  static bool    FindEudoraLocation( nsIFile **pFolder, bool findIni, const char *specialDirName );
+  static bool    VerifyEudoraLocation( nsIFile **pFolder, bool findIni );
 
 
   nsresult  ScanMailDir( nsIFile *pFolder, nsISupportsArray *pArray, nsIImportService *pImport);
@@ -90,26 +90,26 @@ private:
   nsresult  FoundMailFolder( nsILocalFile *mailFolder, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
   nsresult  FoundMailbox( nsIFile *mailFile, const char *pName, nsISupportsArray *pArray, nsIImportService *pImport);
 
-  PRBool    IsValidMailFolderName( nsCString& name);
-  PRBool    IsValidMailboxName( nsCString& fName);
-  PRBool    IsValidMailboxFile( nsIFile *pFile);
+  bool      IsValidMailFolderName( nsCString& name);
+  bool      IsValidMailboxName( nsCString& fName);
+  bool      IsValidMailboxFile( nsIFile *pFile);
 
-  PRBool    CreateTocFromResource( nsIFile *pMail, nsIFile **pToc);
+  bool      CreateTocFromResource( nsIFile *pMail, nsIFile **pToc);
 
 
 
     // Settings support
-  static PRBool  BuildPOPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName);
-  static PRBool  BuildIMAPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName);
+  static bool    BuildPOPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName);
+  static bool    BuildIMAPAccount( nsIMsgAccountManager *accMgr, nsCString **pStrs, nsIMsgAccount **ppAccount, nsString& accName);
   static void    SetIdentities( nsIMsgAccountManager *accMgr, nsIMsgAccount *acc, const char *userName, const char *serverName, nsCString **pStrs);
   static void    SetSmtpServer( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, const char *pServer, const char *pUser);
-  static PRBool  GetSettingsFromResource( nsIFile *pSettings, short resId, nsCString **pStrs, PRBool *pIMAP);
+  static bool    GetSettingsFromResource( nsIFile *pSettings, short resId, nsCString **pStrs, bool *pIMAP);
 
 
 private:
   PRUint32 m_depth;
   nsCOMPtr <nsILocalFile> m_mailImportLocation;
-  PRBool HasResourceFork(FSRef *fsRef);
+  bool HasResourceFork(FSRef *fsRef);
 };
 
 

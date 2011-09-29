@@ -107,7 +107,7 @@ nsMsgQuickSearchDBView::CopyDBView(nsMsgDBView *aNewMsgDBView,
   return NS_OK;
 }
 
-nsresult nsMsgQuickSearchDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, PRBool deleteStorage)
+nsresult nsMsgQuickSearchDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex *indices, PRInt32 numIndices, bool deleteStorage)
 {
   for (nsMsgViewIndex i = 0; i < (nsMsgViewIndex) numIndices; i++) 
   {
@@ -177,11 +177,11 @@ nsresult nsMsgQuickSearchDBView::AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *res
     return nsMsgDBView::AddHdr(msgHdr, resultIndex);
 }
 
-nsresult nsMsgQuickSearchDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool ensureListed)
+nsresult nsMsgQuickSearchDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, bool ensureListed)
 {
   if (newHdr)
   {
-    PRBool match=PR_FALSE;
+    bool match=false;
     nsCOMPtr <nsIMsgSearchSession> searchSession = do_QueryReferent(m_searchSession);
     if (searchSession)
       searchSession->MatchHdr(newHdr, m_db, &match);
@@ -225,7 +225,7 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged
         nsCOMPtr <nsIMsgSearchSession> searchSession = do_QueryReferent(m_searchSession);
         if (searchSession)
         {
-          PRBool oldMatch, newMatch;
+          bool oldMatch, newMatch;
           rv = searchSession->MatchHdr(aHdrChanged, m_db, &newMatch);
           aHdrChanged->SetFlags(aOldFlags);
           rv = searchSession->MatchHdr(aHdrChanged, m_db, &oldMatch);
@@ -251,7 +251,7 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged
 }
 
 NS_IMETHODIMP
-nsMsgQuickSearchDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBool aPreChange,
+nsMsgQuickSearchDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, bool aPreChange,
                                         PRUint32 *aStatus, nsIDBChangeListener *aInstigator)
 {
   // If the junk mail plugin just activated on a message, then
@@ -271,7 +271,7 @@ nsMsgQuickSearchDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBool aP
   nsCString originStr;
   (void) aHdrChanged->GetStringProperty("junkscoreorigin", getter_Copies(originStr));
   // check for "plugin" with only first character for performance
-  PRBool plugin = (originStr.get()[0] == 'p');
+  bool plugin = (originStr.get()[0] == 'p');
 
   if (aPreChange)
   {
@@ -281,9 +281,9 @@ nsMsgQuickSearchDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBool aP
   }
 
   // second call, done after the change
-  PRBool wasPlugin = *aStatus;
+  bool wasPlugin = *aStatus;
 
-  PRBool match = PR_TRUE;
+  bool match = true;
   nsCOMPtr<nsIMsgSearchSession> searchSession(do_QueryReferent(m_searchSession));
   if (searchSession)
     searchSession->MatchHdr(aHdrChanged, m_db, &match);
@@ -376,7 +376,7 @@ nsMsgQuickSearchDBView::OnSearchDone(nsresult status)
 
     for (i = 0; i < m_origKeys.Length(); i++)
     {
-      PRBool isRead;
+      bool isRead;
       m_db->IsRead(m_origKeys[i], &isRead);
       if (!isRead)
         numUnread++;
@@ -423,7 +423,7 @@ nsMsgQuickSearchDBView::OnNewSearch()
     m_db->GetCachedHits(searchUri.get(), getter_AddRefs(cachedHits));
     if (cachedHits)
     {
-      PRBool hasMore;
+      bool hasMore;
 
       m_usingCachedHits = PR_TRUE;
       cachedHits->HasMoreElements(&hasMore);
@@ -616,7 +616,7 @@ nsMsgQuickSearchDBView::ListCollapsedChildren(nsMsgViewIndex viewIndex,
   GetMsgHdrForViewIndex(viewIndex, getter_AddRefs(rootHdr));
   rootHdr->GetMessageKey(&rootKey);
   // group threads can have the root key twice, one for the dummy row.
-  PRBool rootKeySkipped = PR_FALSE;
+  bool rootKeySkipped = false;
   for (PRUint32 i = 0; i < numChildren; i++)
   {
     nsCOMPtr<nsIMsgDBHdr> msgHdr;
@@ -660,7 +660,7 @@ nsresult nsMsgQuickSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgV
   GetMsgHdrForViewIndex(startOfThreadViewIndex, getter_AddRefs(rootHdr));
   rootHdr->GetMessageKey(&rootKey);
   // group threads can have the root key twice, one for the dummy row.
-  PRBool rootKeySkipped = PR_FALSE;
+  bool rootKeySkipped = false;
   for (i = 0; i < numChildren; i++)
   {
     nsCOMPtr<nsIMsgDBHdr> msgHdr;
@@ -710,7 +710,7 @@ nsMsgQuickSearchDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr,
   // We use the numChildren as a sanity check on the thread structure.
   PRUint32 numChildren;
   (void) threadHdr->GetNumChildren(&numChildren);
-  PRBool hasMore;
+  bool hasMore;
   nsCOMPtr <nsISupports> supports;
   nsCOMPtr <nsIMsgDBHdr> msgHdr;
   while (NS_SUCCEEDED(rv) && NS_SUCCEEDED(rv = msgEnumerator->HasMoreElements(&hasMore)) &&
@@ -806,7 +806,7 @@ nsresult nsMsgQuickSearchDBView::ExpansionDelta(nsMsgViewIndex index, PRInt32 *e
   GetMsgHdrForViewIndex(index, getter_AddRefs(rootHdr));
   rootHdr->GetMessageKey(&rootKey);
   // group threads can have the root key twice, one for the dummy row.
-  PRBool rootKeySkipped = PR_FALSE;
+  bool rootKeySkipped = false;
   for (PRUint32 i = 0; i < numChildren; i++)
   {
     nsCOMPtr<nsIMsgDBHdr> msgHdr;
@@ -847,7 +847,7 @@ nsMsgQuickSearchDBView::OpenWithHdrs(nsISimpleEnumerator *aHeaders,
   m_sortOrder = aSortOrder;
   m_viewFlags = aViewFlags;
 
-  PRBool hasMore;
+  bool hasMore;
   nsCOMPtr<nsISupports> supports;
   nsCOMPtr<nsIMsgDBHdr> msgHdr;
   nsresult rv = NS_OK;

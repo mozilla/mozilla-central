@@ -73,7 +73,7 @@ private:
   nsresult AppendDNForCard(const char *aProperty, nsIAbCard *aCard, nsIAbLDAPAttributeMap *aAttrMap, nsACString &aResult);
   nsresult AppendBasicLDIFForCard(nsIAbCard *aCard, nsIAbLDAPAttributeMap *aAttrMap, nsACString &aResult);
   nsresult AppendProperty(const char *aProperty, const PRUnichar *aValue, nsACString &aResult);
-  PRBool IsSafeLDIFString(const PRUnichar *aStr);
+  bool IsSafeLDIFString(const PRUnichar *aStr);
 
   struct abListener {
     nsCOMPtr<nsIAbListener> mListener;

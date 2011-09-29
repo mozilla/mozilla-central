@@ -54,7 +54,7 @@ public:
     NS_IMETHOD    Complete();
 
     // Header handling routines.
-    NS_IMETHOD    StartHeader(PRBool rootMailHeader, PRBool headerOnly, const char *msgID,
+    NS_IMETHOD    StartHeader(bool rootMailHeader, bool headerOnly, const char *msgID,
                               const char *outCharset);
     NS_IMETHOD    AddHeaderField(const char *field, const char *value);
     NS_IMETHOD    EndHeader();
@@ -62,7 +62,7 @@ public:
     // Attachment handling routines
     NS_IMETHOD    StartAttachment(const nsACString &name,
                                   const char *contentType, const char *url,
-                                  PRBool aIsExternalAttachment);
+                                  bool aIsExternalAttachment);
     NS_IMETHOD    AddAttachmentField(const char *field, const char *value);
     NS_IMETHOD    EndAttachment();
 
@@ -72,7 +72,7 @@ public:
 protected:
 
     // For header determination...
-    PRBool              mXMLHeaderStarted; 
+    bool                mXMLHeaderStarted; 
     PRInt32             mAttachCount;
 };
 

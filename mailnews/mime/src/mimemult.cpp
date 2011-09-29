@@ -60,15 +60,15 @@ MimeDefClass(MimeMultipart, MimeMultipartClass,
 static int MimeMultipart_initialize (MimeObject *);
 static void MimeMultipart_finalize (MimeObject *);
 static int MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *);
-static int MimeMultipart_parse_eof (MimeObject *object, PRBool abort_p);
+static int MimeMultipart_parse_eof (MimeObject *object, bool abort_p);
 
 static MimeMultipartBoundaryType MimeMultipart_check_boundary(MimeObject *,
                                 const char *,
                                 PRInt32);
 static int MimeMultipart_create_child(MimeObject *);
-static PRBool MimeMultipart_output_child_p(MimeObject *, MimeObject *);
+static bool MimeMultipart_output_child_p(MimeObject *, MimeObject *);
 static int MimeMultipart_parse_child_line (MimeObject *, const char *, PRInt32,
-                       PRBool);
+                       bool);
 static int MimeMultipart_close_child(MimeObject *);
 
 extern "C" MimeObjectClass mimeMultipartAlternativeClass;
@@ -181,7 +181,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
   /* Match!  Close the currently-open part, move on to the next
      state, and discard this line.
    */
-    PRBool endOfPart = (mult->state != MimeMultipartPreamble);
+    bool endOfPart = (mult->state != MimeMultipartPreamble);
     if (endOfPart)
       status = ((MimeMultipartClass *)obj->clazz)->close_child(obj);
     if (status < 0) return status;
@@ -251,7 +251,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
     /* Parse this line as a header for the sub-part. */
     {
       status = MimeHeaders_parse_line(line, length, mult->hdrs);
-      PRBool stripping = PR_FALSE;
+      bool stripping = false;
 
       if (status < 0) return status;
       
@@ -264,7 +264,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
             obj->options->state->strippingPart)
         {
           stripping = PR_TRUE;
-          PRBool detachingPart = obj->options->state->detachedFilePath.Length() > 0;
+          bool detachingPart = obj->options->state->detachedFilePath.Length() > 0;
 
           nsCAutoString fileName;
           fileName.Adopt(MimeHeaders_get_name(mult->hdrs, obj->options));
@@ -399,7 +399,7 @@ MimeMultipart_check_boundary(MimeObject *obj, const char *line, PRInt32 length)
 {
   MimeMultipart *mult = (MimeMultipart *) obj;
   PRInt32 blen;
-  PRBool term_p;
+  bool term_p;
 
   if (!mult->boundary ||
     line[0] != '-' ||
@@ -539,7 +539,7 @@ MimeMultipart_create_child(MimeObject *obj)
 }
 
 
-static PRBool
+static bool
 MimeMultipart_output_child_p(MimeObject *obj, MimeObject *child)
 {
   /* We don't output a child if we're stripping it. */
@@ -622,7 +622,7 @@ MimeMultipart_close_child(MimeObject *object)
 
 static int
 MimeMultipart_parse_child_line (MimeObject *obj, const char *line, PRInt32 length,
-                PRBool first_line_p)
+                bool first_line_p)
 {
   MimeContainer *cont = (MimeContainer *) obj;
   int status;
@@ -693,7 +693,7 @@ MimeMultipart_parse_child_line (MimeObject *obj, const char *line, PRInt32 lengt
 
 
 static int
-MimeMultipart_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeMultipart_parse_eof (MimeObject *obj, bool abort_p)
 {
   MimeMultipart *mult = (MimeMultipart *) obj;
   MimeContainer *cont = (MimeContainer *) obj;

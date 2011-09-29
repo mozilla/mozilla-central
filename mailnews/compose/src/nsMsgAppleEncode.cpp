@@ -306,7 +306,7 @@ int ap_encode_file_infor(
 */
 int ap_encode_header(
 	appledouble_encode_object* p_ap_encode_obj, 
-	PRBool  firstime)
+	bool    firstime)
 {
 	char   	rd_buff[256];
     FSIORefNum fileId;
@@ -459,7 +459,7 @@ static char *magic_look(char *inbuff, int numread)
 */
 int ap_encode_data(
 	appledouble_encode_object* p_ap_encode_obj, 
-	PRBool firstime)
+	bool firstime)
 {
 	char   		rd_buff[256];
     FSIORefNum fileId;

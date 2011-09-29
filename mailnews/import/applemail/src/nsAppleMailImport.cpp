@@ -116,7 +116,7 @@ NS_IMETHODIMP nsAppleMailImportModule::GetSupports(char **aSupports)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAppleMailImportModule::GetSupportsUpgrade(PRBool *aUpgrade)
+NS_IMETHODIMP nsAppleMailImportModule::GetSupportsUpgrade(bool *aUpgrade)
 {
   NS_ENSURE_ARG_POINTER(aUpgrade);
   *aUpgrade = PR_FALSE;
@@ -181,7 +181,7 @@ nsAppleMailImportMail::~nsAppleMailImportMail()
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAppleMailImportMail, nsIImportMail)
 
-NS_IMETHODIMP nsAppleMailImportMail::GetDefaultLocation(nsIFile **aLocation, PRBool *aFound, PRBool *aUserVerify)
+NS_IMETHODIMP nsAppleMailImportMail::GetDefaultLocation(nsIFile **aLocation, bool *aFound, bool *aUserVerify)
 {
   NS_ENSURE_ARG_POINTER(aFound);
   NS_ENSURE_ARG_POINTER(aLocation);
@@ -214,7 +214,7 @@ NS_IMETHODIMP nsAppleMailImportMail::FindMailboxes(nsIFile *aMailboxFile, nsISup
 
   IMPORT_LOG0("FindMailboxes for Apple mail invoked");
 
-  PRBool exists = PR_FALSE;
+  bool exists = false;
   nsresult rv = aMailboxFile->Exists(&exists);
   if (NS_FAILED(rv) || !exists)
     return NS_ERROR_FAILURE;
@@ -268,7 +268,7 @@ void nsAppleMailImportMail::FindAccountMailDirs(nsIFile *aRoot, nsISupportsArray
   if (NS_FAILED(rv))
     return;
 
-  PRBool hasMore = PR_FALSE;
+  bool hasMore = false;
   while (NS_SUCCEEDED(directoryEnumerator->HasMoreElements(&hasMore)) && hasMore) {
 
     // get the next file entry
@@ -284,14 +284,14 @@ void nsAppleMailImportMail::FindAccountMailDirs(nsIFile *aRoot, nsISupportsArray
     }
 
     // make sure it's a directory
-    PRBool isDirectory = PR_FALSE;
+    bool isDirectory = false;
     currentEntry->IsDirectory(&isDirectory);
 
     if (isDirectory) {
       // now let's see if it's an account folder. if so, we want to traverse it for .mbox children
       nsAutoString folderName;
       currentEntry->GetLeafName(folderName);
-      PRBool isAccountFolder = PR_FALSE;
+      bool isAccountFolder = false;
 
       if (StringBeginsWith(folderName, NS_LITERAL_STRING("POP-"))) {
         // cut off "POP-" prefix so we get a nice folder name
@@ -367,7 +367,7 @@ nsresult nsAppleMailImportMail::AddMboxDir(nsILocalFile *aFolder, nsISupportsArr
       nsCOMPtr<nsISimpleEnumerator> dirEnumerator;
       messagesFolder->GetDirectoryEntries(getter_AddRefs(dirEnumerator));
       if (dirEnumerator) {
-        PRBool hasMore = PR_FALSE;
+        bool hasMore = false;
         while (NS_SUCCEEDED(dirEnumerator->HasMoreElements(&hasMore)) && hasMore) {
           nsCOMPtr<nsISupports> rawSupports;
           dirEnumerator->GetNext(getter_AddRefs(rawSupports));
@@ -376,7 +376,7 @@ nsresult nsAppleMailImportMail::AddMboxDir(nsILocalFile *aFolder, nsISupportsArr
 
           nsCOMPtr<nsILocalFile> file(do_QueryInterface(rawSupports));
           if (file) {
-            PRBool isFile = PR_FALSE;
+            bool isFile = false;
             file->IsFile(&isFile);
             if (isFile)
               numMessages++;
@@ -423,7 +423,7 @@ nsresult nsAppleMailImportMail::FindMboxDirs(nsILocalFile *aFolder, nsISupportsA
   NS_ENSURE_ARG_POINTER(aImportService);
 
   // make sure this is a directory.
-  PRBool isDir = PR_FALSE;
+  bool isDir = false;
   if (NS_FAILED(aFolder->IsDirectory(&isDir)) || !isDir)
     return NS_ERROR_FAILURE;
 
@@ -433,7 +433,7 @@ nsresult nsAppleMailImportMail::FindMboxDirs(nsILocalFile *aFolder, nsISupportsA
   if (NS_FAILED(rv) || !directoryEnumerator)
     return rv;
 
-  PRBool hasMore = PR_FALSE;
+  bool hasMore = false;
   while (NS_SUCCEEDED(directoryEnumerator->HasMoreElements(&hasMore)) && hasMore) {
 
     // get the next file entry
@@ -482,7 +482,7 @@ nsresult nsAppleMailImportMail::FindMboxDirs(nsILocalFile *aFolder, nsISupportsA
         continue;
 
       rv = siblingMailboxDir->InitWithPath(siblingMailboxDirPath);
-      PRBool reallyExists = PR_FALSE;
+      bool reallyExists = false;
       siblingMailboxDir->Exists(&reallyExists);
 
       if (NS_SUCCEEDED(rv) && reallyExists) {
@@ -500,7 +500,7 @@ nsresult nsAppleMailImportMail::FindMboxDirs(nsILocalFile *aFolder, nsISupportsA
 }
 
 NS_IMETHODIMP nsAppleMailImportMail::ImportMailbox(nsIImportMailboxDescriptor *aMailbox, nsIFile *aDestination, 
-                                                   PRUnichar **aErrorLog, PRUnichar **aSuccessLog, PRBool *aFatalError)
+                                                   PRUnichar **aErrorLog, PRUnichar **aSuccessLog, bool *aFatalError)
 {
   nsAutoString errorLog, successLog;
 
@@ -562,7 +562,7 @@ NS_IMETHODIMP nsAppleMailImportMail::ImportMailbox(nsIImportMailboxDescriptor *a
       return NS_ERROR_FAILURE;
     }
 
-    PRBool hasMore = PR_FALSE;
+    bool hasMore = false;
     while (NS_SUCCEEDED(directoryEnumerator->HasMoreElements(&hasMore)) && hasMore) {
       // get the next file entry
       nsCOMPtr<nsILocalFile> currentEntry;
@@ -577,7 +577,7 @@ NS_IMETHODIMP nsAppleMailImportMail::ImportMailbox(nsIImportMailboxDescriptor *a
       }
 
       // make sure it's an .emlx file
-      PRBool isFile = PR_FALSE;
+      bool isFile = false;
       currentEntry->IsFile(&isFile);
       if (!isFile)
         continue;

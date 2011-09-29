@@ -95,15 +95,15 @@ private:
   nsresult DownloadOfflineNewsgroups();
   nsresult DownloadMail();
 
-  nsresult SetOnlineState(PRBool online);
+  nsresult SetOnlineState(bool online);
   nsresult ShowStatus(const char *statusMsgName);
 
-  PRBool m_inProgress;
-  PRBool m_sendUnsentMessages;
-  PRBool m_downloadNews;
-  PRBool m_downloadMail;
-  PRBool m_playbackOfflineImapOps;
-  PRBool m_goOfflineWhenDone;
+  bool m_inProgress;
+  bool m_sendUnsentMessages;
+  bool m_downloadNews;
+  bool m_downloadMail;
+  bool m_playbackOfflineImapOps;
+  bool m_goOfflineWhenDone;
   offlineManagerState m_curState;
   offlineManagerOperation m_curOperation;
   nsCOMPtr <nsIMsgWindow> m_window;

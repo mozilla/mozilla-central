@@ -51,7 +51,7 @@
 #define nsIMimeContentTypeHandler_h_
 
 typedef struct {
-  PRBool      force_inline_display;
+  bool        force_inline_display;
 } contentTypeHandlerInitStruct;
 
 #include "prtypes.h"

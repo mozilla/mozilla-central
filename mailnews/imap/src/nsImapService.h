@@ -85,7 +85,7 @@ protected:
                              nsIImapMessageSink *aImapMessage,
                              nsIMsgWindow *aMsgWindow,
                              nsISupports *aDisplayConsumer, 
-                             PRBool aConvertDataToText,
+                             bool aConvertDataToText,
                              nsIURI **aURL);
 
   nsresult CreateStartOfImapUrl(const nsACString &aImapURI,  // a RDF URI for the current message/folder, can be empty
@@ -133,13 +133,13 @@ protected:
                        const nsACString &messageIdentifierList,
                        const char *howToDiddle,
                        imapMessageFlagsType flags,
-                       PRBool messageIdsAreUID);
+                       bool messageIdsAreUID);
 
   nsresult OfflineAppendFromFile(nsIFile *aFile,
                                  nsIURI *aUrl,
                                  nsIMsgFolder *aDstFolder,
                                  const nsACString &messageId,  // to be replaced
-                                 PRBool inSelectedState, // needs to be in
+                                 bool inSelectedState, // needs to be in
                                  nsIUrlListener *aListener,
                                  nsIURI **aURL,
                                  nsISupports *aCopyState);
@@ -153,7 +153,7 @@ protected:
 
 
   nsCOMPtr<nsICacheSession> mCacheSession;  // handle to the cache session for imap.....
-  PRBool mPrintingOperation;                // Flag for printing operations
+  bool mPrintingOperation;                // Flag for printing operations
 };
 
 #endif /* nsImapService_h___ */

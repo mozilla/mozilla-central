@@ -76,9 +76,9 @@ public:
 
     NS_IMETHOD RedoTransaction(void) = 0;
     
-    NS_IMETHOD GetIsTransient(PRBool *aIsTransient);
+    NS_IMETHOD GetIsTransient(bool *aIsTransient);
 
-    NS_IMETHOD Merge(nsITransaction *aTransaction, PRBool *aDidMerge);
+    NS_IMETHOD Merge(nsITransaction *aTransaction, bool *aDidMerge);
 
     nsresult GetMsgWindow(nsIMsgWindow **msgWindow);
     nsresult SetMsgWindow(nsIMsgWindow *msgWindow);
@@ -95,7 +95,7 @@ protected:
     nsInterfaceHashtable<nsStringHashKey, nsIVariant> mPropertyHash;
     nsCOMPtr<nsIMsgWindow> m_msgWindow;
     PRUint32 m_txnType;
-    nsresult CheckForToggleDelete(nsIMsgFolder *aFolder, const nsMsgKey &aMsgKey, PRBool *aResult);
+    nsresult CheckForToggleDelete(nsIMsgFolder *aFolder, const nsMsgKey &aMsgKey, bool *aResult);
 };
 
 #undef  IMETHOD_VISIBILITY

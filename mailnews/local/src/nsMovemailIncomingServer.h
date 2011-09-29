@@ -58,12 +58,12 @@ public:
     nsMovemailIncomingServer();
     virtual ~nsMovemailIncomingServer();
 
-    NS_IMETHOD GetIsSecureServer(PRBool *aIsSecureServer);
+    NS_IMETHOD GetIsSecureServer(bool *aIsSecureServer);
     NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
-    NS_IMETHOD GetDownloadMessagesAtStartup(PRBool *getMessages);
-    NS_IMETHOD GetCanBeDefaultServer(PRBool *canBeDefaultServer);
-    NS_IMETHOD GetCanSearchMessages(PRBool *canSearchMessages);
-    NS_IMETHOD GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff);
+    NS_IMETHOD GetDownloadMessagesAtStartup(bool *getMessages);
+    NS_IMETHOD GetCanBeDefaultServer(bool *canBeDefaultServer);
+    NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
+    NS_IMETHOD GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff);
     NS_IMETHOD GetAccountManagerChrome(nsAString& aResult);
 };
 

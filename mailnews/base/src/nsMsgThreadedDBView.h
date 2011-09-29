@@ -57,9 +57,9 @@ public:
 protected:
   virtual const char * GetViewName(void) {return "ThreadedDBView"; }
   nsresult InitThreadedView(PRInt32 *pCount);
-  virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool ensureListed);
-  virtual nsresult AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, PRBool ensureListed);
-  nsresult ListThreadIds(nsMsgKey *startMsg, PRBool unreadOnly, nsMsgKey *pOutput, PRInt32 *pFlags, char *pLevels, 
+  virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, bool ensureListed);
+  virtual nsresult AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, bool ensureListed);
+  nsresult ListThreadIds(nsMsgKey *startMsg, bool unreadOnly, nsMsgKey *pOutput, PRInt32 *pFlags, char *pLevels, 
                         PRInt32 numToList, PRInt32 *pNumListed, PRInt32 *pTotalHeaders);
   nsresult InitSort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder);
   virtual nsresult SortThreads(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder);
@@ -72,7 +72,7 @@ protected:
 
   // these are used to save off the previous view so that bopping back and forth
   // between two views is quick (e.g., threaded and flat sorted by date).
-  PRBool          m_havePrevView;
+  bool            m_havePrevView;
   nsTArray<nsMsgKey> m_prevKeys;   //this is used for caching non-threaded view.
   nsTArray<PRUint32> m_prevFlags;
   nsTArray<PRUint8>  m_prevLevels;

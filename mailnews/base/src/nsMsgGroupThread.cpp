@@ -148,7 +148,7 @@ nsMsgViewIndex nsMsgGroupThread::FindMsgHdr(nsIMsgDBHdr *hdr)
   return (nsMsgViewIndex)m_keys.IndexOf(msgKey);
 }
 
-NS_IMETHODIMP nsMsgGroupThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, PRBool threadInThread, 
+NS_IMETHODIMP nsMsgGroupThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, bool threadInThread, 
                                     nsIDBChangeAnnouncer *announcer)
 {
   NS_ASSERTION(PR_FALSE, "shouldn't call this");
@@ -287,7 +287,7 @@ NS_IMETHODIMP nsMsgGroupThread::RemoveChildHdr(nsIMsgDBHdr *child, nsIDBChangeAn
   if (!(flags & nsMsgMessageFlags::Read))
     ChangeUnreadChildCount(-1);
   nsMsgViewIndex threadIndex = FindMsgHdr(child);
-  PRBool wasFirstChild = threadIndex == 0;
+  bool wasFirstChild = threadIndex == 0;
   nsresult rv = RemoveChildAt(threadIndex);
   // if we're deleting the root of a dummy thread, need to update the threadKey
   // and the dummy header at position 0
@@ -343,7 +343,7 @@ nsresult nsMsgGroupThread::ReparentChildrenOf(nsMsgKey oldParent, nsMsgKey newPa
   return rv;
 }
 
-NS_IMETHODIMP nsMsgGroupThread::MarkChildRead(PRBool bRead)
+NS_IMETHODIMP nsMsgGroupThread::MarkChildRead(bool bRead)
 {
   ChangeUnreadChildCount(bRead ? -1 : 1);
   return NS_OK;
@@ -374,11 +374,11 @@ protected:
   nsMsgKey                mThreadParentKey;
   nsMsgKey                mFirstMsgKey;
   PRInt32                 mChildIndex;
-  PRBool                  mDone;
-  PRBool                  mNeedToPrefetch;
+  bool                    mDone;
+  bool                    mNeedToPrefetch;
   nsMsgGroupThreadEnumeratorFilter     mFilter;
   void*                   mClosure;
-  PRBool                  mFoundChildren;
+  bool                    mFoundChildren;
 };
 
 nsMsgGroupThreadEnumerator::nsMsgGroupThreadEnumerator(nsMsgGroupThread *thread, nsMsgKey startKey,
@@ -587,7 +587,7 @@ nsresult nsMsgGroupThreadEnumerator::Prefetch()
     return rv;
 }
 
-NS_IMETHODIMP nsMsgGroupThreadEnumerator::HasMoreElements(PRBool *aResult)
+NS_IMETHODIMP nsMsgGroupThreadEnumerator::HasMoreElements(bool *aResult)
 {
   if (!aResult)
     return NS_ERROR_NULL_POINTER;
@@ -753,7 +753,7 @@ NS_IMETHODIMP nsMsgGroupThread::GetFirstUnreadChild(nsIMsgDBHdr **result)
       nsMsgKey msgKey;
       child->GetMessageKey(&msgKey);
       
-      PRBool isRead;
+      bool isRead;
       rv = m_db->IsRead(msgKey, &isRead);
       if (NS_SUCCEEDED(rv) && !isRead)
       {

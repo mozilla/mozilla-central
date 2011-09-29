@@ -104,7 +104,7 @@ nsNetscapeProfileMigratorBase::nsNetscapeProfileMigratorBase()
 // nsISuiteProfileMigrator methods
 
 NS_IMETHODIMP
-nsNetscapeProfileMigratorBase::GetSourceExists(PRBool* aResult)
+nsNetscapeProfileMigratorBase::GetSourceExists(bool* aResult)
 {
   nsCOMPtr<nsIArray> profiles;
   GetSourceProfiles(getter_AddRefs(profiles));
@@ -121,7 +121,7 @@ nsNetscapeProfileMigratorBase::GetSourceExists(PRBool* aResult)
 }
 
 NS_IMETHODIMP
-nsNetscapeProfileMigratorBase::GetSourceHasMultipleProfiles(PRBool* aResult)
+nsNetscapeProfileMigratorBase::GetSourceHasMultipleProfiles(bool* aResult)
 {
   nsCOMPtr<nsIArray> profiles;
   GetSourceProfiles(getter_AddRefs(profiles));
@@ -158,7 +158,7 @@ nsNetscapeProfileMigratorBase::GetSourceProfiles(nsIArray** aResult)
   return NS_OK;
 }
 
-PRBool
+bool
 nsNetscapeProfileMigratorBase::GetSourceHasHomePageURL()
 {
   // Load the source pref file
@@ -174,7 +174,7 @@ nsNetscapeProfileMigratorBase::GetSourceHasHomePageURL()
 
   nsCOMPtr<nsIPrefBranch> branch(do_QueryInterface(psvc));
 
-  PRBool hasUserValue;
+  bool hasUserValue;
   nsresult rv = branch->PrefHasUserValue("browser.startup.homepage",
                                          &hasUserValue);
 
@@ -182,7 +182,7 @@ nsNetscapeProfileMigratorBase::GetSourceHasHomePageURL()
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::CopyHomePageData(PRBool aReplace)
+nsNetscapeProfileMigratorBase::CopyHomePageData(bool aReplace)
 {
   // Load the source pref file
   nsCOMPtr<nsIPrefService> psvc(do_GetService(NS_PREFSERVICE_CONTRACTID));
@@ -297,7 +297,7 @@ nsNetscapeProfileMigratorBase::SetFile(PrefTransform* aTransform,
       aFile = localFile;
     }
     // Now test to see if File exists and is an actual file.
-    PRBool exists = PR_FALSE;
+    bool exists = false;
     rv = aFile->Exists(&exists);
     if (NS_SUCCEEDED(rv) && exists)
       rv = aFile->IsFile(&exists);
@@ -378,7 +378,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
   profileIni->Append(NS_LITERAL_STRING("profiles.ini"));
 
   // Does it exist?
-  PRBool profileFileExists = PR_FALSE;
+  bool profileFileExists = false;
   rv = profileIni->Exists(&profileFileExists);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -390,7 +390,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCAutoString buffer, filePath;
-  PRBool isRelative;
+  bool isRelative;
 
   unsigned int c = 0;
   for (c = 0; PR_TRUE; ++c) {
@@ -426,7 +426,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
 
     if (NS_FAILED(rv)) continue;
 
-    PRBool exists;
+    bool exists;
     rootDir->Exists(&exists);
 
     if (exists) {
@@ -450,7 +450,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
   REGERR errCode;
 
   // Ensure aRegistryFile exists before open it
-  PRBool regFileExists = PR_FALSE;
+  bool regFileExists = false;
   nsresult rv = aRegistryFile->Exists(&regFileExists);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -527,7 +527,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
       break;
 #endif
 
-    PRBool exists;
+    bool exists;
     dir->Exists(&exists);
 
     if (exists) {
@@ -555,7 +555,7 @@ nsNetscapeProfileMigratorBase::CopyFile(const char* aSourceFileName,
   mSourceProfile->Clone(getter_AddRefs(sourceFile));
 
   sourceFile->AppendNative(nsDependentCString(aSourceFileName));
-  PRBool exists = PR_FALSE;
+  bool exists = false;
   sourceFile->Exists(&exists);
   if (!exists)
     return NS_OK;
@@ -578,7 +578,7 @@ nsresult
 nsNetscapeProfileMigratorBase::RecursiveCopy(nsIFile* srcDir,
                                              nsIFile* destDir)
 {
-  PRBool exists;
+  bool exists;
   nsresult rv = srcDir->Exists(&exists);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -587,7 +587,7 @@ nsNetscapeProfileMigratorBase::RecursiveCopy(nsIFile* srcDir,
     // parts of the migration process following this would not get executed
     return NS_OK;
 
-  PRBool isDir;
+  bool isDir;
 
   rv = srcDir->IsDirectory(&isDir);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -605,7 +605,7 @@ nsNetscapeProfileMigratorBase::RecursiveCopy(nsIFile* srcDir,
   rv = srcDir->GetDirectoryEntries(getter_AddRefs(dirIterator));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool hasMore = PR_FALSE;
+  bool hasMore = false;
   rv = dirIterator->HasMoreElements(&hasMore);
   NS_ENSURE_SUCCESS(rv, rv); 
 
@@ -774,7 +774,7 @@ nsNetscapeProfileMigratorBase::GetFileValue(nsIPrefBranch* aPrefBranch, const ch
 // Generic Import Functions
 
 nsresult
-nsNetscapeProfileMigratorBase::CopyCookies(PRBool aReplace)
+nsNetscapeProfileMigratorBase::CopyCookies(bool aReplace)
 {
   if (aReplace) {
     // can't start the cookieservice, so just push files around:
@@ -801,7 +801,7 @@ nsNetscapeProfileMigratorBase::CopyCookies(PRBool aReplace)
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::CopyPasswords(PRBool aReplace)
+nsNetscapeProfileMigratorBase::CopyPasswords(bool aReplace)
 {
   nsCString signonsFileName;
   GetSignonFileName(aReplace, getter_Copies(signonsFileName));
@@ -829,7 +829,7 @@ nsNetscapeProfileMigratorBase::CopyUserSheet(const char* aFileName)
   sourceUserContent->Append(DIR_NAME_CHROME);
   sourceUserContent->AppendNative(nsDependentCString(aFileName));
 
-  PRBool exists = PR_FALSE;
+  bool exists = false;
   sourceUserContent->Exists(&exists);
   if (!exists)
     return NS_OK;
@@ -850,7 +850,7 @@ nsNetscapeProfileMigratorBase::CopyUserSheet(const char* aFileName)
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::GetSignonFileName(PRBool aReplace,
+nsNetscapeProfileMigratorBase::GetSignonFileName(bool aReplace,
                                                  char** aFileName)
 {
   if (aReplace) {
@@ -874,7 +874,7 @@ nsNetscapeProfileMigratorBase::GetSignonFileName(PRBool aReplace,
 
   nsCAutoString fileName;
   while (1) {
-    PRBool hasMore = PR_FALSE;
+    bool hasMore = false;
     rv = entries->HasMoreElements(&hasMore);
     if (NS_FAILED(rv) || !hasMore)
       break;
@@ -911,7 +911,7 @@ nsNetscapeProfileMigratorBase::GetSignonFileName(PRBool aReplace,
 // Browser Import Functions
 
 nsresult
-nsNetscapeProfileMigratorBase::CopyBookmarks(PRBool aReplace)
+nsNetscapeProfileMigratorBase::CopyBookmarks(bool aReplace)
 {
   if (aReplace)
     return CopyFile(FILE_NAME_BOOKMARKS, FILE_NAME_BOOKMARKS);
@@ -920,7 +920,7 @@ nsNetscapeProfileMigratorBase::CopyBookmarks(PRBool aReplace)
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::CopyOtherData(PRBool aReplace)
+nsNetscapeProfileMigratorBase::CopyOtherData(bool aReplace)
 {
   if (!aReplace)
     return NS_OK;
@@ -1011,7 +1011,7 @@ nsNetscapeProfileMigratorBase::CopySignatureFiles(PBStructArray &aIdentities,
       NS_ENSURE_SUCCESS(rv, rv);
 
       // now make the copy
-      PRBool exists;
+      bool exists;
       srcSigFile->Exists(&exists);
       if (exists)
       {
@@ -1034,7 +1034,7 @@ nsNetscapeProfileMigratorBase::CopySignatureFiles(PBStructArray &aIdentities,
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::CopyJunkTraining(PRBool aReplace)
+nsNetscapeProfileMigratorBase::CopyJunkTraining(bool aReplace)
 {
   return aReplace ? CopyFile(FILE_NAME_JUNKTRAINING,
                              FILE_NAME_JUNKTRAINING) : NS_OK;
@@ -1132,7 +1132,7 @@ nsNetscapeProfileMigratorBase::CopyMailFolderPrefs(PBStructArray &aMailServers,
         nsDependentCString(pref->stringValue));
 
       // now make the copy
-      PRBool exists;
+      bool exists;
       srcNewsRCFile->Exists(&exists);
       if (exists) {
         nsAutoString leafName;

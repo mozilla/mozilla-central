@@ -84,13 +84,13 @@ protected:
 	nsString m_ListName;
 	nsString m_ListNickName;
 	nsString m_Description;
-	PRBool   m_IsMailList;
+	bool     m_IsMailList;
 
   nsCString mURI;
   nsCString mQueryString;
   nsCString mURINoQuery;
-  PRBool mIsValidURI;
-  PRBool mIsQueryURI;
+  bool mIsValidURI;
+  bool mIsQueryURI;
 
 
   /*

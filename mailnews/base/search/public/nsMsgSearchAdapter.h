@@ -69,17 +69,17 @@ public:
   nsIMsgSearchScopeTerm        *m_scope;
   nsCOMPtr<nsISupportsArray>  m_searchTerms;       /* linked list of criteria terms */
 
-  PRBool m_abortCalled;
+  bool m_abortCalled;
   nsString  m_defaultCharset;
-  PRBool m_forceAsciiSearch;
+  bool m_forceAsciiSearch;
 
   static nsresult EncodeImap (char **ppEncoding,
            nsISupportsArray *searchTerms,
            const PRUnichar *srcCharset,
            const PRUnichar *destCharset,
-           PRBool reallyDredd = PR_FALSE);
+           bool reallyDredd = false);
 
-  static nsresult EncodeImapValue(char *encoding, const char *value, PRBool useQuotes, PRBool reallyDredd);
+  static nsresult EncodeImapValue(char *encoding, const char *value, bool useQuotes, bool reallyDredd);
 
   static char *GetImapCharsetParam(const PRUnichar *destCharset);
   static PRUnichar *EscapeSearchUrl (const PRUnichar *nntpCommand);
@@ -125,7 +125,7 @@ protected:
   char *TransformSpacesToStars (const char *, msg_TransformType transformType);
   nsresult OpenNewsResultInUnknownGroup (nsMsgResultElement*);
 
-  static nsresult EncodeImapTerm (nsIMsgSearchTerm *, PRBool reallyDredd, const PRUnichar *srcCharset, const PRUnichar *destCharset, char **ppOutTerm);
+  static nsresult EncodeImapTerm (nsIMsgSearchTerm *, bool reallyDredd, const PRUnichar *srcCharset, const PRUnichar *destCharset, char **ppOutTerm);
 };
 
 //-----------------------------------------------------------------------------
@@ -166,18 +166,18 @@ private:
                      o < 0 || \
                      o >= nsMsgSearchOp::kNumMsgSearchOperators) \
                    return NS_ERROR_ILLEGAL_VALUE;
-inline nsresult nsMsgSearchValidityTable::SetAvailable (int a, int o, PRBool b)
+inline nsresult nsMsgSearchValidityTable::SetAvailable (int a, int o, bool b)
 { CHECK_AO; m_table [a][o].bitAvailable = b; return NS_OK;}
-inline nsresult nsMsgSearchValidityTable::SetEnabled (int a, int o, PRBool b)
+inline nsresult nsMsgSearchValidityTable::SetEnabled (int a, int o, bool b)
 { CHECK_AO; m_table [a][o].bitEnabled = b; return NS_OK; }
-inline nsresult nsMsgSearchValidityTable::SetValidButNotShown (int a, int o, PRBool b)
+inline nsresult nsMsgSearchValidityTable::SetValidButNotShown (int a, int o, bool b)
 { CHECK_AO; m_table [a][o].bitValidButNotShown = b; return NS_OK;}
 
-inline nsresult nsMsgSearchValidityTable::GetAvailable (int a, int o, PRBool *aResult)
+inline nsresult nsMsgSearchValidityTable::GetAvailable (int a, int o, bool *aResult)
 { CHECK_AO; *aResult = m_table [a][o].bitAvailable; return NS_OK;}
-inline nsresult nsMsgSearchValidityTable::GetEnabled (int a, int o, PRBool *aResult)
+inline nsresult nsMsgSearchValidityTable::GetEnabled (int a, int o, bool *aResult)
 { CHECK_AO; *aResult = m_table [a][o].bitEnabled; return NS_OK;}
-inline nsresult nsMsgSearchValidityTable::GetValidButNotShown (int a, int o, PRBool *aResult)
+inline nsresult nsMsgSearchValidityTable::GetValidButNotShown (int a, int o, bool *aResult)
 { CHECK_AO; *aResult = m_table [a][o].bitValidButNotShown; return NS_OK;}
 #undef CHECK_AO
 
@@ -241,7 +241,7 @@ protected:
   nsresult InitLdapAndTable();
   nsresult InitLocalABTable();
   nsresult InitLocalABAndTable();
-  nsresult SetUpABTable(nsIMsgSearchValidityTable *aTable, PRBool isOrTable);
+  nsresult SetUpABTable(nsIMsgSearchValidityTable *aTable, bool isOrTable);
   nsresult EnableDirectoryAttribute(nsIMsgSearchValidityTable *table, nsMsgSearchAttribValue aSearchAttrib);
 };
 

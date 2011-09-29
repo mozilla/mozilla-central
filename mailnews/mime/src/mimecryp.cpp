@@ -56,8 +56,8 @@ static int MimeEncrypted_parse_begin (MimeObject *);
 static int MimeEncrypted_parse_buffer (const char *, PRInt32, MimeObject *);
 static int MimeEncrypted_parse_line (const char *, PRInt32, MimeObject *);
 static int MimeEncrypted_parse_decoded_buffer (const char *, PRInt32, MimeObject *);
-static int MimeEncrypted_parse_eof (MimeObject *, PRBool);
-static int MimeEncrypted_parse_end (MimeObject *, PRBool);
+static int MimeEncrypted_parse_eof (MimeObject *, bool);
+static int MimeEncrypted_parse_end (MimeObject *, bool);
 static int MimeEncrypted_add_child (MimeObject *, MimeObject *);
 
 static int MimeHandleDecryptedOutput (const char *, PRInt32, void *);
@@ -193,7 +193,7 @@ MimeEncrypted_parse_decoded_buffer (const char *buffer, PRInt32 size, MimeObject
 
 
 static int
-MimeEncrypted_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeEncrypted_parse_eof (MimeObject *obj, bool abort_p)
 {
   int status = 0;
   MimeEncrypted *enc = (MimeEncrypted *) obj;
@@ -264,14 +264,14 @@ MimeEncrypted_parse_eof (MimeObject *obj, PRBool abort_p)
 
 
 static int
-MimeEncrypted_parse_end (MimeObject *obj, PRBool abort_p)
+MimeEncrypted_parse_end (MimeObject *obj, bool abort_p)
 {
   return ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_end (obj, abort_p);
 }
 
 
 static void
-MimeEncrypted_cleanup (MimeObject *obj, PRBool finalizing_p)
+MimeEncrypted_cleanup (MimeObject *obj, bool finalizing_p)
 {
   MimeEncrypted *enc = (MimeEncrypted *) obj;
 

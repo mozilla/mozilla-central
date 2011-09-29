@@ -139,7 +139,7 @@ nsMessengerOS2Integration::OnItemAdded(nsIMsgFolder *, nsISupports *)
 }
 
 NS_IMETHODIMP
-nsMessengerOS2Integration::OnItemBoolPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty, PRBool aOldValue, PRBool aNewValue)
+nsMessengerOS2Integration::OnItemBoolPropertyChanged(nsIMsgFolder *aItem, nsIAtom *aProperty, bool aOldValue, bool aNewValue)
 {
   return NS_OK;
 }

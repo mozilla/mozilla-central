@@ -43,11 +43,11 @@ class nsMapiHook
 {
     public :
 
-        static PRBool DisplayLoginDialog(PRBool aLogin, PRUnichar **aUsername, 
+        static bool DisplayLoginDialog(bool aLogin, PRUnichar **aUsername, 
                         PRUnichar **aPassword);
-        static PRBool VerifyUserName(const nsString& aUsername, nsCString& aIdKey);
+        static bool VerifyUserName(const nsString& aUsername, nsCString& aIdKey);
 
-        static PRBool IsBlindSendAllowed () ;
+        static bool IsBlindSendAllowed () ;
         static nsresult BlindSendMail (unsigned long aSession, nsIMsgCompFields * aCompFields) ;
         static nsresult ShowComposerWindow (unsigned long aSession, nsIMsgCompFields * aCompFields) ;
         static nsresult PopulateCompFields(lpnsMapiMessage aMessage, nsIMsgCompFields * aCompFields) ;
@@ -59,7 +59,7 @@ class nsMapiHook
                                         lpnsMapiFileDesc aFiles, BOOL aIsUnicode) ;
         static void CleanUp();
 
-        static PRBool isMapiService;
+        static bool isMapiService;
 };
 
 #endif  // MSG_MAPI_HOOK_H_

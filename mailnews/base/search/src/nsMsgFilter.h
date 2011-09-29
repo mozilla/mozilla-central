@@ -84,11 +84,11 @@ public:
 
   nsMsgFilterTypeType  GetType() {return m_type;}
   void    SetType(nsMsgFilterTypeType  type) {m_type = type;}
-  PRBool  GetEnabled() {return m_enabled;}
+  bool    GetEnabled() {return m_enabled;}
   void    SetFilterScript(nsCString *filterName) ;
   void    SetFilterList(nsIMsgFilterList* filterList);
 
-  PRBool  IsScript() {return (m_type &
+  bool    IsScript() {return (m_type &
                                   (nsMsgFilterType::InboxJavaScript |
                                    nsMsgFilterType::NewsJavaScript)) != 0;}
 
@@ -113,9 +113,9 @@ protected:
   nsCString   m_description;
   nsCString   m_unparsedBuffer;
 
-  PRPackedBool m_enabled;
-  PRPackedBool m_temporary;
-  PRPackedBool m_unparseable;
+  bool m_enabled;
+  bool m_temporary;
+  bool m_unparseable;
   nsIMsgFilterList *m_filterList;  /* owning filter list */
   nsCOMPtr<nsISupportsArray> m_termList;       /* linked list of criteria terms */
   nsCOMPtr<nsIMsgSearchScopeTerm> m_scope;         /* default for mail rules is inbox, but news rules could

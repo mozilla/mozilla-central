@@ -64,13 +64,13 @@ public:
 
   // Things that must be overridden because they are platform specific.
     // retrieve the mail folder
-  virtual PRBool    FindAddressFolder( nsIFile **pFolder) { return( PR_FALSE);}
+  virtual bool      FindAddressFolder( nsIFile **pFolder) { return( false);}
     // get the list of mailboxes
   virtual nsresult  FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppArray) { return( NS_ERROR_FAILURE);}
 
   // Non-platform specific common stuff
     // import a mailbox
-  nsresult ImportAddresses( PRUint32 *pBytes, PRBool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsString& errors);
+  nsresult ImportAddresses( PRUint32 *pBytes, bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsString& errors);
 
 
 private:
@@ -81,7 +81,7 @@ private:
   void      ProcessNote( const char *pLine, PRInt32 len, nsString& errors);
   PRInt32      GetAliasName( const char *pLine, PRInt32 len, nsCString& name);
   CAliasEntry *  ResolveAlias( nsCString& name);
-  void       ResolveEntries( nsCString& name, nsVoidArray& list, nsVoidArray& result, PRBool addResolvedEntries, PRBool wasResolved, PRInt32& numResolved);
+  void       ResolveEntries( nsCString& name, nsVoidArray& list, nsVoidArray& result, bool addResolvedEntries, bool wasResolved, PRInt32& numResolved);
   void      BuildABCards( PRUint32 *pBytes, nsIAddrDatabase *pDb);
   void      AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList, nsIAddrDatabase *pDb);
   nsresult  AddSingleList( CAliasEntry *pEntry, nsVoidArray &emailList, nsIAddrDatabase *pDb);

@@ -214,7 +214,7 @@ nsresult nsOutlookMail::GetMailFolders( nsISupportsArray **pArray)
   return( NS_OK);
 }
 
-PRBool nsOutlookMail::IsAddressBookNameUnique( nsString& name, nsString& list)
+bool nsOutlookMail::IsAddressBookNameUnique( nsString& name, nsString& list)
 {
   nsString    usedName;
   usedName.AppendLiteral("[");
@@ -367,7 +367,7 @@ void nsOutlookMail::OpenMessageStore( CMapiFolder *pNextFolder)
 //   - Encapsulate the MAPI message interface
 //   - Gather the information required to (re)compose the message
 
-nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, PRBool *pAbort, PRInt32 index, const PRUnichar *pName, nsIFile *pDest, PRInt32 *pMsgCount)
+nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, bool *pAbort, PRInt32 index, const PRUnichar *pName, nsIFile *pDest, PRInt32 *pMsgCount)
 {
   if ((index < 0) || (index >= m_folderList.GetSize())) {
     IMPORT_LOG0( "*** Bad mailbox identifier, unable to import\n");
@@ -691,7 +691,7 @@ nsresult nsOutlookMail::CreateList( const PRUnichar * pName,
         pDb->InitCardFromRow(userCard,newRow);
 
         //add card to db
-        PRBool bl=PR_FALSE;
+        bool bl=false;
         pDb->FindRowByCard(userCard,getter_AddRefs(oldRow));
         if (oldRow)
         {
@@ -748,7 +748,7 @@ void nsOutlookMail::SplitString( nsString& val1, nsString& val2)
   }
 }
 
-PRBool nsOutlookMail::BuildCard( const PRUnichar *pName, nsIAddrDatabase *pDb, nsIMdbRow *newRow, LPMAPIPROP pUser, nsIImportFieldMap *pFieldMap)
+bool nsOutlookMail::BuildCard( const PRUnichar *pName, nsIAddrDatabase *pDb, nsIMdbRow *newRow, LPMAPIPROP pUser, nsIImportFieldMap *pFieldMap)
 {
 
   nsString    lastName;

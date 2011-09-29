@@ -93,7 +93,7 @@ extern "C" int
 XPCOM_MimeObject_write(void *mimeObject,
                        char *data,
                        PRInt32 length,
-                       PRBool user_visible_p)
+                       bool user_visible_p)
 {
   return MIME_MimeObject_write((MimeObject *)mimeObject, data,
                                 length, user_visible_p);

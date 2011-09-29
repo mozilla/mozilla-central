@@ -83,7 +83,7 @@ nsThunderbirdProfileMigrator::Migrate(PRUint16 aItems,
                                       const PRUnichar* aProfile)
 {
   nsresult rv = NS_OK;
-  PRBool aReplace = aStartup ? PR_TRUE : PR_FALSE;
+  bool aReplace = aStartup ? true : false;
 
   if (!mTargetProfile) {
     GetProfilePath(aStartup, getter_AddRefs(mTargetProfile));
@@ -140,7 +140,7 @@ nsThunderbirdProfileMigrator::Migrate(PRUint16 aItems,
 
 NS_IMETHODIMP
 nsThunderbirdProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
-                                             PRBool aReplace,
+                                             bool aReplace,
                                              PRUint16* aResult)
 {
   *aResult = 0;
@@ -194,7 +194,7 @@ nsThunderbirdProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
     mSourceProfile->Clone(getter_AddRefs(sourcePasswordsFile));
     sourcePasswordsFile->Append(fileName);
     
-    PRBool exists;
+    bool exists;
     sourcePasswordsFile->Exists(&exists);
     if (exists)
       *aResult |= nsISuiteProfileMigrator::PASSWORDS;
@@ -629,7 +629,7 @@ nsThunderbirdProfileMigrator::TransformPreferences(
 }
 
 nsresult
-nsThunderbirdProfileMigrator::CopyPreferences(PRBool aReplace)
+nsThunderbirdProfileMigrator::CopyPreferences(bool aReplace)
 {
   nsresult rv = NS_OK;
   if (!aReplace)
@@ -652,7 +652,7 @@ nsThunderbirdProfileMigrator::CopyPreferences(PRBool aReplace)
 }
 
 nsresult
-nsThunderbirdProfileMigrator::CopyHistory(PRBool aReplace)
+nsThunderbirdProfileMigrator::CopyHistory(bool aReplace)
 {
   return aReplace ? CopyFile(FILE_NAME_HISTORY, FILE_NAME_HISTORY) : NS_OK;
 }

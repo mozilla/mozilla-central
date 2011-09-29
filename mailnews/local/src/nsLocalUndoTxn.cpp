@@ -63,7 +63,7 @@ nsLocalMoveCopyMsgTxn::~nsLocalMoveCopyMsgTxn()
 
 nsresult
 nsLocalMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsIMsgFolder* dstFolder,
-                            PRBool isMove)
+                            bool isMove)
 {
     nsresult rv;
     rv = SetSrcFolder(srcFolder);
@@ -80,7 +80,7 @@ nsLocalMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsIMsgFolder* dstFolder,
     return nsMsgTxn::Init();
 }
 nsresult 
-nsLocalMoveCopyMsgTxn::GetSrcIsImap(PRBool *isImap)
+nsLocalMoveCopyMsgTxn::GetSrcIsImap(bool *isImap)
 {
   *isImap = m_srcIsImap4;
   return NS_OK;
@@ -135,7 +135,7 @@ nsLocalMoveCopyMsgTxn::AddDstMsgSize(PRUint32 msgSize)
 nsresult
 nsLocalMoveCopyMsgTxn::UndoImapDeleteFlag(nsIMsgFolder* folder, 
                                           nsTArray<nsMsgKey>& keyArray,
-                                          PRBool deleteFlag)
+                                          bool deleteFlag)
 {
   nsresult rv = NS_ERROR_FAILURE;
   if (m_srcIsImap4)
@@ -264,7 +264,7 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
   {
     if (m_srcIsImap4)
     {
-      PRBool deleteFlag = PR_TRUE;  //message has been deleted -we are trying to undo it
+      bool deleteFlag = true;  //message has been deleted -we are trying to undo it
       CheckForToggleDelete(srcFolder, m_srcKeyArray[0], &deleteFlag); //there could have been a toggle.
       rv = UndoImapDeleteFlag(srcFolder, m_srcKeyArray, deleteFlag);
     }
@@ -384,7 +384,7 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
       if (m_srcKeyArray.IsEmpty())
         return NS_ERROR_UNEXPECTED;
     
-      PRBool deleteFlag = PR_FALSE; //message is un-deleted- we are trying to redo
+      bool deleteFlag = false; //message is un-deleted- we are trying to redo
       CheckForToggleDelete(srcFolder, m_srcKeyArray[0], &deleteFlag); // there could have been a toggle
       rv = UndoImapDeleteFlag(srcFolder, m_srcKeyArray, deleteFlag);
     }
@@ -434,7 +434,7 @@ NS_IMETHODIMP nsLocalUndoFolderListener::OnItemIntPropertyChanged(nsIMsgFolder *
     return NS_OK;
 }
 
-NS_IMETHODIMP nsLocalUndoFolderListener::OnItemBoolPropertyChanged(nsIMsgFolder *item, nsIAtom *property, PRBool oldValue, PRBool newValue)
+NS_IMETHODIMP nsLocalUndoFolderListener::OnItemBoolPropertyChanged(nsIMsgFolder *item, nsIAtom *property, bool oldValue, bool newValue)
 {
     return NS_OK;
 }

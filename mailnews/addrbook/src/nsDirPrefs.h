@@ -90,7 +90,7 @@ typedef struct DIR_Server
   char    *uri;       // URI of the address book
 
   // Set whilst saving the server to avoid updating it again
-  PRBool savingServer;
+  bool savingServer;
 } DIR_Server;
 
 /* We are developing a new model for managing DIR_Servers. In the 4.0x world, the FEs managed each list. 
@@ -108,7 +108,7 @@ nsresult DIR_AddNewAddressBook(const nsAString &dirName,
                                DirectoryType dirType,
                                const nsACString &prefName,
                                DIR_Server** pServer);
-nsresult DIR_ContainsServer(DIR_Server* pServer, PRBool *hasDir);
+nsresult DIR_ContainsServer(DIR_Server* pServer, bool *hasDir);
 
 nsresult DIR_DeleteServerFromList (DIR_Server *);
 

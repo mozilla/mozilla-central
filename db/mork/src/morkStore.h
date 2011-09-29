@@ -673,7 +673,7 @@ public: // typing
   
 public: //  store utilties
   
-  morkAtom* YarnToAtom(morkEnv* ev, const mdbYarn* inYarn, PRBool createIfMissing = PR_TRUE);
+  morkAtom* YarnToAtom(morkEnv* ev, const mdbYarn* inYarn, bool createIfMissing = true);
   morkAtom* AddAlias(morkEnv* ev, const morkMid& inMid,
     mork_cscode inForm);
 

@@ -74,7 +74,7 @@ public:
 
 protected:
   nsresult Cancel();
-  virtual void InitFailed(PRBool aCancelled = PR_FALSE);
+  virtual void InitFailed(bool aCancelled = false);
   virtual nsresult DoTask();
   nsresult DoMainTask();
   nsresult OnLDAPMessageModifyResult(nsILDAPMessage *aMessage);
@@ -86,9 +86,9 @@ protected:
   nsCString mNewRDN;
   nsCString mNewBaseDN;
 
-  PRBool mFinished;
-  PRBool mCanceled;
-  PRBool mFlagRename;
+  bool mFinished;
+  bool mCanceled;
+  bool mFlagRename;
 
   nsCOMPtr<nsILDAPOperation> mModifyOperation;
   nsCOMPtr<nsIMutableArray> mServerSearchControls;
@@ -155,7 +155,7 @@ NS_IMETHODIMP nsAbModifyLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMess
   rv = aMessage->GetType(&messageType);
   NS_ENSURE_SUCCESS(rv, rv);
   
-  PRBool cancelOperation = PR_FALSE;
+  bool cancelOperation = false;
 
   // Enter lock
   {
@@ -220,7 +220,7 @@ NS_IMETHODIMP nsAbModifyLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMess
   return rv;
 }
 
-void nsAbModifyLDAPMessageListener::InitFailed(PRBool aCancelled)
+void nsAbModifyLDAPMessageListener::InitFailed(bool aCancelled)
 {
   // XXX Just cancel the operation for now
   // we'll need to review this when we've got the proper listeners in place.

@@ -238,7 +238,7 @@ nsresult CreateComposeParams(nsCOMPtr<nsIMsgComposeParams> &pMsgComposeParams,
   MSG_ComposeFormat format = composeFormat; // Format to actually use.
   if (identity && composeType == nsIMsgCompType::ForwardInline)
   {
-    PRBool composeHtml = PR_FALSE;
+    bool composeHtml = false;
     identity->GetComposeHtml(&composeHtml);
     if (composeHtml)
       format = (composeFormat == nsIMsgCompFormat::OppositeOfDefault) ?
@@ -505,7 +505,7 @@ mime_draft_process_attachments(mime_draft_data *mdd)
   nsMsgAttachedFile           *tmpFile = NULL;
 
   //It's possible we must treat the message body as attachment!
-  PRBool bodyAsAttachment = PR_FALSE;
+  bool bodyAsAttachment = false;
   if (  mdd->messageBody &&
         mdd->messageBody->m_type.Find("text/html", CaseInsensitiveCompare) == -1 &&
         mdd->messageBody->m_type.Find("text/plain", CaseInsensitiveCompare) == -1 &&
@@ -606,7 +606,7 @@ mime_intl_insert_message_header_1(char        **body,
                                   const char  *hdr_str,
                                   const char  *html_hdr_str,
                                   const char  *mailcharset,
-                                  PRBool      htmlEdit)
+                                  bool        htmlEdit)
 {
   if (!body || !hdr_value || !hdr_str)
     return;
@@ -689,7 +689,7 @@ mime_insert_all_headers(char            **body,
 {
   nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
 
-  PRBool htmlEdit = (composeFormat == nsIMsgCompFormat::HTML);
+  bool htmlEdit = (composeFormat == nsIMsgCompFormat::HTML);
   char *newBody = NULL;
   char *html_tag = nsnull;
   if (*body)
@@ -839,7 +839,7 @@ mime_insert_normal_headers(char             **body,
   const char *html_tag = nsnull;
   if (*body)
     html_tag = PL_strcasestr(*body, "<HTML>");
-  PRBool htmlEdit = composeFormat == nsIMsgCompFormat::HTML;
+  bool htmlEdit = composeFormat == nsIMsgCompFormat::HTML;
 
   if (!from)
     from = MimeHeaders_get(headers, HEADER_SENDER, PR_FALSE, PR_TRUE);
@@ -1024,7 +1024,7 @@ mime_insert_micro_headers(char            **body,
   const char *html_tag = nsnull;
   if (*body)
     html_tag = PL_strcasestr(*body, "<HTML>");
-  PRBool htmlEdit = composeFormat == nsIMsgCompFormat::HTML;
+  bool htmlEdit = composeFormat == nsIMsgCompFormat::HTML;
 
   if (!from)
     from = MimeHeaders_get(headers, HEADER_SENDER, PR_FALSE, PR_TRUE);
@@ -1191,9 +1191,9 @@ mime_parse_stream_complete (nsMIMESession *stream)
   char *draftInfo = 0;
   char *identityKey = 0;
 
-  PRBool forward_inline = PR_FALSE;
-  PRBool bodyAsAttachment = PR_FALSE;
-  PRBool charsetOverride = PR_FALSE;
+  bool forward_inline = false;
+  bool bodyAsAttachment = false;
+  bool charsetOverride = false;
 
   NS_ASSERTION (mdd, "null mime draft data");
 
@@ -1440,12 +1440,12 @@ mime_parse_stream_complete (nsMIMESession *stream)
         }
       }
 
-      PRBool convertToPlainText = PR_FALSE;
+      bool convertToPlainText = false;
       if (forward_inline)
       {
         if (mdd->identity)
         {
-          PRBool identityComposeHTML;
+          bool identityComposeHTML;
           mdd->identity->GetComposeHtml(&identityComposeHTML);
           if ((identityComposeHTML && !mdd->overrideComposeFormat) ||
               (!identityComposeHTML && mdd->overrideComposeFormat))
@@ -1715,9 +1715,9 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
   int nAttachments = 0;
   //char *hdr_value = NULL;
   char *parm_value = NULL;
-  PRBool needURL = PR_FALSE;
-  PRBool creatingMsgBody = PR_TRUE;
-  PRBool bodyPart = PR_FALSE;
+  bool needURL = false;
+  bool creatingMsgBody = true;
+  bool bodyPart = false;
 
   NS_ASSERTION (mdd && headers, "null mime draft data and/or headers");
   if (!mdd || !headers)
@@ -1827,7 +1827,7 @@ mime_decompose_file_init_fn ( void *stream_closure, MimeHeaders *headers )
     // Let's build a temp file with an extension based on the content-type: nsmail.<extension>
 
     nsCAutoString  newAttachName ("nsmail");
-    PRBool extensionAdded = PR_FALSE;
+    bool extensionAdded = false;
     // the content type may contain a charset. i.e. text/html; ISO-2022-JP...we want to strip off the charset
     // before we ask the mime service for a mime info for this content type.
     nsCAutoString contentType (newAttachment->m_type);

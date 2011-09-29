@@ -80,8 +80,8 @@ protected:
   nsWeakPtr mDomWindow; 
 
   nsCString mMailCharacterSet;
-  PRBool    mCharsetOverride;
-  PRBool    m_stopped;
+  bool      mCharsetOverride;
+  bool      m_stopped;
 };
 
 #endif

@@ -64,7 +64,7 @@ nsresult
 nsMimeObjectClassAccess::MimeObjectWrite(void *mimeObject, 
                                 char *data, 
                                 PRInt32 length, 
-                                PRBool user_visible_p)
+                                bool user_visible_p)
 {
   int rc = XPCOM_MimeObject_write(mimeObject, data, length, user_visible_p);
   if (rc < 0)

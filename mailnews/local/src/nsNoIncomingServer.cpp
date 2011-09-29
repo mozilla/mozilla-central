@@ -108,7 +108,7 @@ nsNoIncomingServer::SetFlagsOnDefaultMailboxes()
 NS_IMETHODIMP nsNoIncomingServer::CopyDefaultMessages(const char *folderNameOnDisk, nsILocalFile *parentDir)
 {
   nsresult rv;
-  PRBool exists;
+  bool exists;
   if (!folderNameOnDisk || !parentDir) return NS_ERROR_NULL_POINTER;
 
   nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
@@ -166,7 +166,7 @@ NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
 {
   NS_ENSURE_ARG_POINTER(aPath);
   
-  PRBool isHidden = PR_FALSE;
+  bool isHidden = false;
   GetHidden(&isHidden);
   if (isHidden)
     return NS_OK;
@@ -178,7 +178,7 @@ NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
   // notice, no Inbox, unless we're deferred to...
    // need to have a leaf to start with
   rv = path->AppendNative(NS_LITERAL_CSTRING("Trash"));
-  PRBool isDeferredTo;
+  bool isDeferredTo;
   if (NS_SUCCEEDED(GetIsDeferredTo(&isDeferredTo)) && isDeferredTo)
     CreateLocalFolder(path, NS_LITERAL_CSTRING("Inbox"));
   CreateLocalFolder(path, NS_LITERAL_CSTRING("Trash"));
@@ -222,7 +222,7 @@ nsNoIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlListener *aUrlLis
 
 
 NS_IMETHODIMP
-nsNoIncomingServer::GetCanSearchMessages(PRBool *canSearchMessages)
+nsNoIncomingServer::GetCanSearchMessages(bool *canSearchMessages)
 {
   NS_ENSURE_ARG_POINTER(canSearchMessages);
   *canSearchMessages = PR_TRUE;
@@ -230,7 +230,7 @@ nsNoIncomingServer::GetCanSearchMessages(PRBool *canSearchMessages)
 }
 
 NS_IMETHODIMP
-nsNoIncomingServer::GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff)
+nsNoIncomingServer::GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff)
 {
   NS_ENSURE_ARG_POINTER(aServerRequiresPasswordForBiff);
   *aServerRequiresPasswordForBiff = PR_FALSE;  // for local folders, we don't require a password

@@ -87,7 +87,7 @@ private:
   nsCOMPtr<nsIMimeEmitter>      mEmitter;         // emitter being used...
   nsCOMPtr<nsIURI>              mURI;             // URI being processed
   nsMimeOutputType              mOutputType;      // the output type we should use for the operation
-  PRBool                        mAlreadyKnowOutputType;
+  bool                          mAlreadyKnowOutputType;
 
   void                          *mBridgeStream;   // internal libmime data stream
 
@@ -96,12 +96,12 @@ private:
   nsCString                     mRealContentType; // if we know the content type for real, this will be set (used by attachments)
 
   nsCString                     mOverrideFormat;  // this is a possible override for emitter creation
-  PRBool                        mWrapperOutput;   // Should we output the frame split message display 
+  bool                          mWrapperOutput;   // Should we output the frame split message display 
 
   nsCOMPtr<nsIMimeStreamConverterListener>  mMimeStreamConverterListener;
-  PRBool                        mForwardInline;
-  PRBool                        mForwardInlineFilter;
-  PRBool                        mOverrideComposeFormat;
+  bool                          mForwardInline;
+  bool                          mForwardInlineFilter;
+  bool                          mOverrideComposeFormat;
   nsString                      mForwardToAddress;
   nsCOMPtr<nsIMsgIdentity>      mIdentity;
   nsCString                     mOriginalMsgURI;

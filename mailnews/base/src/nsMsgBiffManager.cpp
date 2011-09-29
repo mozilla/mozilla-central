@@ -218,7 +218,7 @@ NS_IMETHODIMP nsMsgBiffManager::ForceBiffAll()
 
 NS_IMETHODIMP nsMsgBiffManager::OnServerLoaded(nsIMsgIncomingServer *server)
 {
-  PRBool doBiff = PR_FALSE;
+  bool doBiff = false;
   nsresult rv = server->GetDoBiff(&doBiff);
 
   if (NS_SUCCEEDED(rv) && doBiff)
@@ -283,7 +283,7 @@ nsresult nsMsgBiffManager::SetNextBiffTime(nsBiffEntry &biffEntry, PRTime curren
   nsCOMPtr<nsIPrefBranch> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID);
   if (prefs)
   {
-    PRBool shouldUseBiffJitter = PR_FALSE;
+    bool shouldUseBiffJitter = false;
     prefs->GetBoolPref(PREF_BIFF_JITTER, &shouldUseBiffJitter);
     if (shouldUseBiffJitter)
     {
@@ -354,9 +354,9 @@ nsresult nsMsgBiffManager::PerformBiff()
     nsBiffEntry current = mBiffArray[i];
     if (current.nextBiffTime < currentTime)
     {
-      PRBool serverBusy = PR_FALSE;
-      PRBool serverRequiresPassword = PR_TRUE;
-      PRBool passwordPromptRequired; 
+      bool serverBusy = false;
+      bool serverRequiresPassword = true;
+      bool passwordPromptRequired; 
 
       current.server->GetPasswordPromptRequired(&passwordPromptRequired);
       current.server->GetServerBusy(&serverBusy);

@@ -70,7 +70,7 @@ public:
   nsresult Output(char **outputStr);    
 
   // IsMember() returns whether the given article is a member of this set.
-  PRBool IsMember(PRInt32 art);
+  bool IsMember(PRInt32 art);
   
   // Add() adds the given article to the set.  (Returns 1 if a change was
   // made, 0 if it was already there, and negative on error.)
@@ -113,14 +113,14 @@ public:
 protected:
   nsMsgKeySet(/* MSG_NewsHost* host */);
   nsMsgKeySet(const char* /* , MSG_NewsHost* host */);
-  PRBool Grow();
-  PRBool Optimize();
+  bool Grow();
+  bool Optimize();
   
 #ifdef DEBUG
   static void test_decoder(const char*);
   static void test_adder();
   static void test_ranges();
-  static void test_member(PRBool with_cache);
+  static void test_member(bool with_cache);
 #endif
   
   PRInt32 *m_data;          /* the numbers composing the `chunks' */

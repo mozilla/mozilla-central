@@ -68,7 +68,7 @@ protected :
 
   nsCOMPtr<nsIAbLDAPProcessReplicationData> mDataProcessor;
 
-  PRBool mInitialized;
+  bool mInitialized;
   nsCString mLogin;
 };
 

@@ -48,7 +48,7 @@
 
 typedef struct _subscribeTreeNode {
   char *name;
-  PRBool isSubscribed;
+  bool isSubscribed;
   struct _subscribeTreeNode *prevSibling;
   struct _subscribeTreeNode *nextSibling;
   struct _subscribeTreeNode *firstChild;
@@ -61,7 +61,7 @@ typedef struct _subscribeTreeNode {
 #ifdef HAVE_SUBSCRIBE_MESSAGES
   PRUint32 messages;
 #endif
-  PRBool isSubscribable;
+  bool isSubscribable;
 } SubscribeTreeNode;
 
 #if defined(DEBUG_sspitzer) || defined(DEBUG_seth)
@@ -85,8 +85,8 @@ private:
   nsCOMPtr <nsIMsgIncomingServer> mIncomingServer;
   nsCOMPtr <nsISubscribeDataSource> mSubscribeDS;
   char mDelimiter;
-  PRBool mShowFullName;
-  PRBool mStopped;
+  bool mShowFullName;
+  bool mStopped;
 
   nsCOMPtr <nsIRDFResource>      kNC_Child;
   nsCOMPtr <nsIRDFResource>      kNC_Subscribed;
@@ -102,8 +102,8 @@ private:
   nsresult FindAndCreateNode(const nsACString &aPath,
                              SubscribeTreeNode **aResult);
   nsresult NotifyAssert(SubscribeTreeNode *subjectNode, nsIRDFResource *property, SubscribeTreeNode *objectNode);
-  nsresult NotifyChange(SubscribeTreeNode *subjectNode, nsIRDFResource *property, PRBool value);
-  nsresult Notify(nsIRDFResource *subject, nsIRDFResource *property, nsIRDFNode *object, PRBool isAssert, PRBool isChange);
+  nsresult NotifyChange(SubscribeTreeNode *subjectNode, nsIRDFResource *property, bool value);
+  nsresult Notify(nsIRDFResource *subject, nsIRDFResource *property, nsIRDFNode *object, bool isAssert, bool isChange);
   void BuildURIFromNode(SubscribeTreeNode *node, nsACString &uri);
   nsresult EnsureSubscribeDS();
   nsresult EnsureRDFService();

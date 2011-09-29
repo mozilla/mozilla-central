@@ -85,7 +85,7 @@ nsAbAddressCollector::GetCardFromProperty(const char *aName,
   rv = abManager->GetDirectories(getter_AddRefs(enumerator));
   NS_ENSURE_SUCCESS(rv, nsnull);
 
-  PRBool hasMore;
+  bool hasMore;
   nsCOMPtr<nsISupports> supports;
   nsCOMPtr<nsIAbDirectory> directory;
   nsIAbCard *result = nsnull;
@@ -116,7 +116,7 @@ nsAbAddressCollector::GetCardFromProperty(const char *aName,
 
 NS_IMETHODIMP
 nsAbAddressCollector::CollectAddress(const nsACString &aAddresses,
-                                     PRBool aCreateCard,
+                                     bool aCreateCard,
                                      PRUint32 aSendFormat)
 {
   // If we've not got a valid directory, no point in going any further
@@ -173,16 +173,16 @@ nsAbAddressCollector::CollectAddress(const nsACString &aAddresses,
 NS_IMETHODIMP
 nsAbAddressCollector::CollectSingleAddress(const nsACString &aEmail,
                                            const nsACString &aDisplayName,
-                                           PRBool aCreateCard,
+                                           bool aCreateCard,
                                            PRUint32 aSendFormat,
-                                           PRBool aSkipCheckExisting)
+                                           bool aSkipCheckExisting)
 {
   if (!mDirectory)
     return NS_OK;
 
   nsresult rv;
   nsCOMPtr<nsIAbCard> card;
-  PRBool emailAddressIn2ndEmailColumn = PR_FALSE;
+  bool emailAddressIn2ndEmailColumn = false;
 
   nsCOMPtr<nsIAbDirectory> originDirectory;
 
@@ -224,7 +224,7 @@ nsAbAddressCollector::CollectSingleAddress(const nsACString &aEmail,
   {
     // It could be that the origin directory is read-only, so don't try and
     // write to it if it is.
-    PRBool readOnly;
+    bool readOnly;
     rv = originDirectory->GetReadOnly(&readOnly);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -232,7 +232,7 @@ nsAbAddressCollector::CollectSingleAddress(const nsACString &aEmail,
       return NS_OK;
 
     // address is already in the AB, so update the names
-    PRBool modifiedCard = PR_FALSE;
+    bool modifiedCard = false;
 
     nsString displayName;
     card->GetDisplayName(displayName);
@@ -287,13 +287,13 @@ nsAbAddressCollector::AutoCollectScreenName(nsIAbCard *aCard,
 }
 
 // Returns true if the card was modified successfully.
-PRBool
+bool
 nsAbAddressCollector::SetNamesForCard(nsIAbCard *aSenderCard,
                                       const nsACString &aFullName)
 {
   nsCString firstName;
   nsCString lastName;
-  PRBool modifiedCard = PR_FALSE;
+  bool modifiedCard = false;
 
   if (NS_SUCCEEDED(aSenderCard->SetDisplayName(NS_ConvertUTF8toUTF16(aFullName))))
     modifiedCard = PR_TRUE;
@@ -384,7 +384,7 @@ nsAbAddressCollector::SetUpAbFromPrefs(nsIPrefBranch *aPrefBranch)
   rv = abManager->GetDirectory(mABURI, getter_AddRefs(mDirectory));
   NS_ENSURE_SUCCESS(rv, );
 
-  PRBool readOnly;
+  bool readOnly;
   rv = mDirectory->GetReadOnly(&readOnly);
   NS_ENSURE_SUCCESS(rv, );
 

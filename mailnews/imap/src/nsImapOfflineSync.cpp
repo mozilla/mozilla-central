@@ -61,7 +61,7 @@ static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
 NS_IMPL_ISUPPORTS3(nsImapOfflineSync, nsIUrlListener, nsIMsgCopyServiceListener, nsIDBChangeListener)
 
-nsImapOfflineSync::nsImapOfflineSync(nsIMsgWindow *window, nsIUrlListener *listener, nsIMsgFolder *singleFolderOnly, PRBool isPseudoOffline)
+nsImapOfflineSync::nsImapOfflineSync(nsIMsgWindow *window, nsIUrlListener *listener, nsIMsgFolder *singleFolderOnly, bool isPseudoOffline)
 {
   m_singleFolderToUpdate = singleFolderOnly;
   m_window = window;
@@ -99,7 +99,7 @@ nsImapOfflineSync::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
   nsresult rv = exitCode;
 
   // where do we make sure this gets cleared when we start running urls?
-  PRBool stopped = PR_FALSE;
+  bool stopped = false;
   if (m_window)
     m_window->GetStopped(&stopped);
 
@@ -126,7 +126,7 @@ nsImapOfflineSync::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
 
   // If we succeeded, or it was an imap move/copy that timed out, clear the
   // operation.
-  PRBool moveCopy = mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kMsgCopy ||
+  bool moveCopy = mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kMsgCopy ||
     mCurrentPlaybackOpType == nsIMsgOfflineImapOperation::kMsgMoved;
   if (NS_SUCCEEDED(exitCode) || exitCode == NS_MSG_ERROR_IMAP_COMMAND_FAILED ||
       (moveCopy && exitCode == NS_ERROR_NET_TIMEOUT))
@@ -259,7 +259,7 @@ void nsImapOfflineSync::ProcessFlagOperation(nsIMsgOfflineImapOperation *op)
   currentOp->GetNewFlags(&matchingFlags);
   imapMessageFlagsType flagOperation;
   imapMessageFlagsType newFlags;
-  PRBool flagsMatch = PR_TRUE;
+  bool flagsMatch = true;
   do
   { // loop for all messsages with the same flags
     if (flagsMatch)
@@ -322,7 +322,7 @@ void nsImapOfflineSync::ProcessKeywordOperation(nsIMsgOfflineImapOperation *op)
     currentOp->GetKeywordsToAdd(getter_Copies(keywords));
   else
     currentOp->GetKeywordsToRemove(getter_Copies(keywords));
-  PRBool keywordsMatch = PR_TRUE;	
+  bool keywordsMatch = true;	
   do
   { // loop for all messsages with the same keywords
     if (keywordsMatch)
@@ -508,7 +508,7 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
   PRUint32 currentKeyIndex = m_KeyIndex;
   nsCString moveDestination;
   op->GetDestinationFolderURI(getter_Copies(moveDestination));
-  PRBool moveMatches = PR_TRUE;
+  bool moveMatches = true;
   nsCOMPtr <nsIMsgOfflineImapOperation> currentOp = op;
   do 
   {	// loop for all messsages with the same destination
@@ -601,12 +601,12 @@ void nsImapOfflineSync::ProcessMoveOperation(nsIMsgOfflineImapOperation *op)
 // I'm tempted to make this a method on nsIMsgFolder, but that interface
 // is already so huge, and there are only a few places in the code that do this.
 // If there end up to be more places that need this, then we can reconsider.
-PRBool nsImapOfflineSync::DestFolderOnSameServer(nsIMsgFolder *destFolder)
+bool nsImapOfflineSync::DestFolderOnSameServer(nsIMsgFolder *destFolder)
 {
   nsCOMPtr<nsIMsgIncomingServer> srcServer;
   nsCOMPtr<nsIMsgIncomingServer> dstServer;
 
-  PRBool sameServer = PR_FALSE;
+  bool sameServer = false;
   if (NS_SUCCEEDED(m_currentFolder->GetServer(getter_AddRefs(srcServer))) 
     && NS_SUCCEEDED(destFolder->GetServer(getter_AddRefs(dstServer))))
     dstServer->Equals(srcServer, &sameServer);
@@ -621,7 +621,7 @@ void nsImapOfflineSync::ProcessCopyOperation(nsIMsgOfflineImapOperation *aCurren
   PRUint32 currentKeyIndex = m_KeyIndex;
   nsCString copyDestination;
   currentOp->GetCopyDestination(0, getter_Copies(copyDestination));
-  PRBool copyMatches = PR_TRUE;
+  bool copyMatches = true;
   nsresult rv;
 
   do { // loop for all messsages with the same destination
@@ -699,13 +699,13 @@ void nsImapOfflineSync::ProcessEmptyTrash()
 }
 
 // returns PR_TRUE if we found a folder to create, PR_FALSE if we're done creating folders.
-PRBool nsImapOfflineSync::CreateOfflineFolders()
+bool nsImapOfflineSync::CreateOfflineFolders()
 {
   while (m_currentFolder)
   {
     PRUint32 flags;
     m_currentFolder->GetFlags(&flags);
-    PRBool offlineCreate = (flags & nsMsgFolderFlags::CreatedOffline) != 0;
+    bool offlineCreate = (flags & nsMsgFolderFlags::CreatedOffline) != 0;
     if (offlineCreate)
     {
       if (CreateOfflineFolder(m_currentFolder))
@@ -716,7 +716,7 @@ PRBool nsImapOfflineSync::CreateOfflineFolders()
   return PR_FALSE;
 }
 
-PRBool nsImapOfflineSync::CreateOfflineFolder(nsIMsgFolder *folder)
+bool nsImapOfflineSync::CreateOfflineFolder(nsIMsgFolder *folder)
 {
   nsCOMPtr<nsIMsgFolder> parent;
   folder->GetParent(getter_AddRefs(parent));
@@ -812,7 +812,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
       else
       {
         // trash any ghost msgs
-        PRBool deletedGhostMsgs = PR_FALSE;
+        bool deletedGhostMsgs = false;
         for (PRUint32 fakeIndex=0; fakeIndex < m_CurrentKeys.Length(); fakeIndex++)
         {
           nsCOMPtr <nsIMsgOfflineImapOperation> currentOp; 
@@ -840,7 +840,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
               nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_currentFolder);
               if (imapFolder)
               {
-                PRBool hdrIsRead;
+                bool hdrIsRead;
                 m_currentDB->IsRead(curKey, &hdrIsRead);
                 imapFolder->ChangePendingTotal(1);
                 if (!hdrIsRead)
@@ -896,7 +896,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
   // do the current operation
   if (m_currentDB)
   {
-    PRBool currentFolderFinished = PR_FALSE;
+    bool currentFolderFinished = false;
     if (!folderInfo)
       m_currentDB->GetDBFolderInfo(getter_AddRefs(folderInfo));
     // user canceled the lite select! if GetCurrentUIDValidity() == 0
@@ -906,7 +906,7 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
     {
       PRInt32 curFolderUidValidity;
       folderInfo->GetImapUidValidity(&curFolderUidValidity);
-      PRBool uidvalidityChanged = (!m_pseudoOffline && folderFlags & nsMsgFolderFlags::ImapBox) && (GetCurrentUIDValidity() != curFolderUidValidity);
+      bool uidvalidityChanged = (!m_pseudoOffline && folderFlags & nsMsgFolderFlags::ImapBox) && (GetCurrentUIDValidity() != curFolderUidValidity);
       nsCOMPtr <nsIMsgOfflineImapOperation> currentOp;
       if (uidvalidityChanged)
         DeleteAllOfflineOpsForCurrentDB();
@@ -1062,12 +1062,12 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
     //			nsIMsgFolder * folder = m_singleFolderToUpdate ? m_singleFolderToUpdate : m_currentFolder;
     //			while (folder)
     //			{            
-    //				PRBool loadingFolder = m_workerPane->GetLoadingImapFolder() == folder;
+    //				bool loadingFolder = m_workerPane->GetLoadingImapFolder() == folder;
     //				if ((folder->GetType() == FOLDER_IMAPMAIL) && (deletedAllOfflineEventsInFolder == folder || (folder->GetFolderPrefFlags() & nsMsgFolderFlags::Offline)
     //					|| loadingFolder) 
     //					&& !(folder->GetFolderPrefFlags() & MSG_FOLDER_PREF_IMAPNOSELECT) )
     //				{
-    //					PRBool lastChance = ((deletedAllOfflineEventsInFolder == folder) && m_singleFolderToUpdate) || loadingFolder;
+    //					bool lastChance = ((deletedAllOfflineEventsInFolder == folder) && m_singleFolderToUpdate) || loadingFolder;
     // if deletedAllOfflineEventsInFolder == folder and we're only updating one folder, then we need to update newly selected folder
     // I think this also means that we're really opening the folder...so we tell StartUpdate that we're loading a folder.
     //					if (!updateFolderIterator || !(imapMail->GetFlags() & nsMsgFolderFlags::Inbox))		// avoid queueing the inbox twice
@@ -1166,7 +1166,7 @@ nsresult nsImapOfflineDownloader::ProcessNextOperation()
                 nsCOMPtr <nsIImapIncomingServer> imapServer = do_QueryInterface(m_currentServer);
                 if (imapServer)
                 {
-                  PRBool downloadBodiesOnGetNewMail = PR_FALSE;
+                  bool downloadBodiesOnGetNewMail = false;
                   imapServer->GetDownloadBodiesOnGetNewMail(&downloadBodiesOnGetNewMail);
                   if (downloadBodiesOnGetNewMail)
                     offlineImapFolder = inbox;
@@ -1264,7 +1264,7 @@ void nsImapOfflineSync::ClearDB()
 
 NS_IMETHODIMP
 nsImapOfflineSync::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange,
-    PRBool aPreChange, PRUint32 *aStatus, nsIDBChangeListener * aInstigator)
+    bool aPreChange, PRUint32 *aStatus, nsIDBChangeListener * aInstigator)
 {
   return NS_OK;
 }

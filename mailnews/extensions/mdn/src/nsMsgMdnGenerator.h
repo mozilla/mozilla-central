@@ -68,10 +68,10 @@ public:
 
 private:
   // Sanity Check methods
-  PRBool ProcessSendMode(); // must called prior ValidateReturnPath
-  PRBool ValidateReturnPath();
-  PRBool NotInToOrCc();
-  PRBool MailAddrMatch(const char *addr1, const char *addr2);
+  bool ProcessSendMode(); // must called prior ValidateReturnPath
+  bool ValidateReturnPath();
+  bool NotInToOrCc();
+  bool MailAddrMatch(const char *addr1, const char *addr2);
 
   nsresult StoreMDNSentFlag(nsIMsgFolder *folder, nsMsgKey key);
   nsresult ClearMDNNeededFlag(nsIMsgFolder *folder, nsMsgKey key);
@@ -90,7 +90,7 @@ private:
                                 PRUnichar **aResultString);
 
   // other helper methods
-  nsresult InitAndProcess(PRBool *needToAskUser);
+  nsresult InitAndProcess(bool *needToAskUser);
   nsresult OutputAllHeaders();
   nsresult WriteString(const char *str);
 
@@ -112,10 +112,10 @@ private:
   PRInt32 m_notInToCcOp;
   PRInt32 m_outsideDomainOp;
   PRInt32 m_otherOp;
-  PRPackedBool m_reallySendMdn;
-  PRPackedBool m_autoSend;
-  PRPackedBool m_autoAction;
-  PRPackedBool m_mdnEnabled;
+  bool m_reallySendMdn;
+  bool m_autoSend;
+  bool m_autoAction;
+  bool m_mdnEnabled;
 };
 
 #endif // _nsMsgMdnGenerator_H_

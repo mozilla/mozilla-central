@@ -74,7 +74,7 @@ NS_IMPL_ISUPPORTS_INHERITED0(nsAbBSDirectory, nsAbDirProperty)
 
 nsresult nsAbBSDirectory::CreateDirectoriesFromFactory(const nsACString &aURI,
                                                        DIR_Server *aServer,
-                                                       PRBool aNotify)
+                                                       bool aNotify)
 {
   nsresult rv;
 
@@ -98,7 +98,7 @@ nsresult nsAbBSDirectory::CreateDirectoriesFromFactory(const nsACString &aURI,
   
   // Enumerate through the directories adding them
   // to the sub directories array
-  PRBool hasMore;
+  bool hasMore;
   nsCOMPtr<nsIAbManager> abManager = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
 
   while (NS_SUCCEEDED(newDirEnumerator->HasMoreElements(&hasMore)) && hasMore)
@@ -335,7 +335,7 @@ NS_IMETHODIMP nsAbBSDirectory::DeleteDirectory(nsIAbDirectory *directory)
   return rv;
 }
 
-NS_IMETHODIMP nsAbBSDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir)
+NS_IMETHODIMP nsAbBSDirectory::HasDirectory(nsIAbDirectory *dir, bool *hasDir)
 {
   if (!hasDir)
     return NS_ERROR_NULL_POINTER;
@@ -349,7 +349,7 @@ NS_IMETHODIMP nsAbBSDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir)
 }
 
 NS_IMETHODIMP nsAbBSDirectory::UseForAutocomplete(const nsACString &aIdentityKey,
-                                                  PRBool *aResult)
+                                                  bool *aResult)
 {
   // For the "root" directory (kAllDirectoryRoot) always return true so that
   // we can search sub directories that may or may not be local.

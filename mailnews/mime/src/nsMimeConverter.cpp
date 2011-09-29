@@ -70,8 +70,8 @@ nsMimeConverter::~nsMimeConverter()
 nsresult
 nsMimeConverter::DecodeMimeHeaderToCharPtr(const char *header,
                                            const char *default_charset,
-                                           PRBool override_charset,
-                                           PRBool eatContinuations,
+                                           bool override_charset,
+                                           bool eatContinuations,
                                            char **decodedString)
 {
   *decodedString = MIME_DecodeMimeHeader(header, default_charset, 
@@ -84,8 +84,8 @@ nsMimeConverter::DecodeMimeHeaderToCharPtr(const char *header,
 nsresult 
 nsMimeConverter::DecodeMimeHeader(const char *header,
                                   const char *default_charset,
-                                  PRBool override_charset,
-                                  PRBool eatContinuations,
+                                  bool override_charset,
+                                  bool eatContinuations,
                                   nsAString& decodedString)
 {
   NS_ENSURE_ARG_POINTER(header);
@@ -107,7 +107,7 @@ nsMimeConverter::DecodeMimeHeader(const char *header,
 
 nsresult
 nsMimeConverter::EncodeMimePartIIStr(const char    *header, 
-                                           PRBool        structured, 
+                                           bool          structured, 
                                            const char    *mailCharset, 
                                            PRInt32       fieldnamelen,
                                            PRInt32 encodedWordSize, 
@@ -124,7 +124,7 @@ nsMimeConverter::EncodeMimePartIIStr(const char    *header,
 
 nsresult
 nsMimeConverter::EncodeMimePartIIStr_UTF8(const nsACString &header,
-                                          PRBool           structured,
+                                          bool             structured,
                                           const char       *mailCharset,
                                           PRInt32          fieldnamelen,
                                           PRInt32          encodedWordSize,
@@ -176,7 +176,7 @@ MimeEncoderData   *ptr;
 }
 
 nsresult
-nsMimeConverter::EncoderDestroy(MimeEncoderData *data, PRBool abort_p) 
+nsMimeConverter::EncoderDestroy(MimeEncoderData *data, bool abort_p) 
 {
   MimeEncoderDestroy(data, abort_p);
   return NS_OK;

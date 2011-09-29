@@ -55,14 +55,14 @@ public:
   NS_DECL_ISUPPORTS_INHERITED 
   NS_DECL_NSINEWSDATABASE
 
-  NS_IMETHOD Close(PRBool forceCommit);
+  NS_IMETHOD Close(bool forceCommit);
   NS_IMETHOD ForceClosed();
   NS_IMETHOD Commit(nsMsgDBCommit commitType);
   virtual PRUint32 GetCurVersion();
 
   // methods to get and set docsets for ids.
-  NS_IMETHOD  IsRead(nsMsgKey key, PRBool *pRead);
-  virtual nsresult  IsHeaderRead(nsIMsgDBHdr *msgHdr, PRBool *pRead);
+  NS_IMETHOD  IsRead(nsMsgKey key, bool *pRead);
+  virtual nsresult  IsHeaderRead(nsIMsgDBHdr *msgHdr, bool *pRead);
 
   NS_IMETHOD         GetHighWaterArticleNum(nsMsgKey *key);
   NS_IMETHOD         GetLowWaterArticleNum(nsMsgKey *key);
@@ -71,7 +71,7 @@ public:
   virtual nsresult    ExpireUpTo(nsMsgKey expireKey);
   virtual nsresult    ExpireRange(nsMsgKey startRange, nsMsgKey endRange);
  
-  virtual PRBool      SetHdrReadFlag(nsIMsgDBHdr *msgHdr, PRBool bRead);
+  virtual bool        SetHdrReadFlag(nsIMsgDBHdr *msgHdr, bool bRead);
  
   virtual nsresult  AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr);
   nsresult          SyncWithReadSet();

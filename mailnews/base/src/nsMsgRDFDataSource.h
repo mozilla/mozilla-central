@@ -74,12 +74,12 @@ class nsMsgRDFDataSource : public nsIRDFDataSource,
 
  protected:
   nsIRDFService *getRDFService();
-  static PRBool assertEnumFunc(nsIRDFObserver *aObserver, void *aData);
-  static PRBool unassertEnumFunc(nsIRDFObserver *aObserver, void *aData);
-  static PRBool changeEnumFunc(nsIRDFObserver *aObserver, void *aData);
+  static bool assertEnumFunc(nsIRDFObserver *aObserver, void *aData);
+  static bool unassertEnumFunc(nsIRDFObserver *aObserver, void *aData);
+  static bool changeEnumFunc(nsIRDFObserver *aObserver, void *aData);
   nsresult  NotifyObservers(nsIRDFResource *subject, nsIRDFResource *property,
                             nsIRDFNode *newObject, nsIRDFNode *oldObject, 
-                            PRBool assert, PRBool change);
+                            bool assert, bool change);
 
   virtual nsresult NotifyPropertyChanged(nsIRDFResource *resource, 
                     nsIRDFResource *propertyResource, nsIRDFNode *newNode, 
@@ -88,8 +88,8 @@ class nsMsgRDFDataSource : public nsIRDFDataSource,
 
   nsCOMPtr<nsIMsgWindow> mWindow;
 
-  PRBool m_shuttingDown;
-  PRBool mInitialized;
+  bool m_shuttingDown;
+  bool mInitialized;
 
  private:
   nsCOMPtr<nsIRDFService> mRDFService;

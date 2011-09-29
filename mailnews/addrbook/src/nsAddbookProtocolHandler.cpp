@@ -105,7 +105,7 @@ NS_IMETHODIMP nsAddbookProtocolHandler::NewURI(const nsACString &aSpec,
 }
 
 NS_IMETHODIMP 
-nsAddbookProtocolHandler::AllowPort(PRInt32 port, const char *scheme, PRBool *_retval)
+nsAddbookProtocolHandler::AllowPort(PRInt32 port, const char *scheme, bool *_retval)
 {
     // don't override anything.  
     *_retval = PR_FALSE;

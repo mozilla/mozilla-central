@@ -91,7 +91,7 @@ void nsImportScanFile::ShiftBuffer( void)
   m_pos = 0;
 }
 
-PRBool nsImportScanFile::FillBufferFromFile( void)
+bool nsImportScanFile::FillBufferFromFile( void)
 {
   PRUint32 available;
   nsresult rv = m_pInputStream->Available( &available);
@@ -121,7 +121,7 @@ PRBool nsImportScanFile::FillBufferFromFile( void)
   return( PR_TRUE);
 }
 
-PRBool nsImportScanFile::Scan( PRBool *pDone)
+bool nsImportScanFile::Scan( bool *pDone)
 {
   PRUint32 available;
   nsresult rv = m_pInputStream->Available( &available);
@@ -140,13 +140,13 @@ PRBool nsImportScanFile::Scan( PRBool *pDone)
   return( ScanBuffer( pDone));
 }
 
-PRBool nsImportScanFile::ScanBuffer( PRBool *)
+bool nsImportScanFile::ScanBuffer( bool *)
 {
   return( PR_TRUE);
 }
 
 
-PRBool nsImportScanFileLines::ScanBuffer( PRBool *pDone)
+bool nsImportScanFileLines::ScanBuffer( bool *pDone)
 {
   // m_pos, m_bytesInBuf, m_eof, m_pBuf are relevant
 

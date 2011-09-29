@@ -25,7 +25,7 @@ public:
   nsMsgBodyHandler (nsIMsgSearchScopeTerm *,
     PRUint32 length, nsIMsgDBHdr * msg, nsIMsgDatabase * db,
     const char * headers /* NULL terminated list of headers */,
-    PRUint32 headersSize, PRBool ForFilters);
+    PRUint32 headersSize, bool ForFilters);
 
   virtual ~nsMsgBodyHandler();
 
@@ -33,15 +33,15 @@ public:
   PRInt32 GetNextLine(nsCString &buf);
 
   // Transformations
-  void SetStripHtml (PRBool strip) { m_stripHtml = strip; }
-  void SetStripHeaders (PRBool strip) { m_stripHeaders = strip; }
+  void SetStripHtml (bool strip) { m_stripHtml = strip; }
+  void SetStripHeaders (bool strip) { m_stripHeaders = strip; }
 
 protected:
   void Initialize();  // common initialization code
 
   // filter related methods. For filtering we always use the headers
   // list instead of the database...
-  PRBool m_Filtering;
+  bool m_Filtering;
   PRInt32 GetNextFilterLine(nsCString &buf);
   // pointer into the headers list in the original message hdr db...
   const char * m_headers;
@@ -74,7 +74,7 @@ protected:
    * message is a local message, the number of lines will be the number of body
    * lines.
    */
-  PRBool m_lineCountInBodyLines;
+  bool m_lineCountInBodyLines;
 
   // Offline IMAP related methods & state
 
@@ -84,19 +84,19 @@ protected:
 
   // Transformations
   // With the exception of m_isMultipart, these all apply to the various parts
-  PRBool m_stripHeaders;   // PR_TRUE if we're supposed to strip of message headers
-  PRBool m_stripHtml;      // PR_TRUE if we're supposed to strip off HTML tags
-  PRBool m_pastHeaders;  // PR_TRUE if we've already skipped over the headers
-  PRBool m_partIsHtml;     // PR_TRUE if the Content-type header claims text/html
-  PRBool m_base64part;     // PR_TRUE if the current part is in base64
-  PRBool m_isMultipart;    // PR_TRUE if the message is a multipart/* message
-  PRBool m_partIsText;     // PR_TRUE if the current part is text/*
+  bool m_stripHeaders;   // true if we're supposed to strip of message headers
+  bool m_stripHtml;      // true if we're supposed to strip off HTML tags
+  bool m_pastHeaders;  // true if we've already skipped over the headers
+  bool m_partIsHtml;     // true if the Content-type header claims text/html
+  bool m_base64part;     // true if the current part is in base64
+  bool m_isMultipart;    // true if the message is a multipart/* message
+  bool m_partIsText;     // true if the current part is text/*
 
   nsCString boundary;      // The boundary string to look for
 
   // See implementation for comments
   PRInt32 ApplyTransformations (const nsCString &line, PRInt32 length,
-                                PRBool &returnThisLine, nsCString &buf);
+                                bool &returnThisLine, nsCString &buf);
   void SniffPossibleMIMEHeader (nsCString &line);
   static void StripHtml (nsCString &buf);
   static void Base64Decode (nsCString &buf);

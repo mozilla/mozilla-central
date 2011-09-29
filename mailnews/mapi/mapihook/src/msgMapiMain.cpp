@@ -81,7 +81,7 @@ void nsMAPIConfiguration::OpenConfiguration()
 
 PRInt16 nsMAPIConfiguration::RegisterSession(PRUint32 aHwnd,
                 const PRUnichar *aUserName, const PRUnichar *aPassword,
-                PRBool aForceDownLoad, PRBool aNewSession,
+                bool aForceDownLoad, bool aNewSession,
                 PRUint32 *aSession, const char *aIdKey)
 {
   PRInt16 nResult = 0;
@@ -141,9 +141,9 @@ PRInt16 nsMAPIConfiguration::RegisterSession(PRUint32 aHwnd,
   return nResult;
 }
 
-PRBool nsMAPIConfiguration::UnRegisterSession(PRUint32 aSessionID)
+bool nsMAPIConfiguration::UnRegisterSession(PRUint32 aSessionID)
 {
-  PRBool bResult = PR_FALSE;
+  bool bResult = false;
 
   PR_Lock(m_Lock);
 
@@ -169,11 +169,11 @@ PRBool nsMAPIConfiguration::UnRegisterSession(PRUint32 aSessionID)
   return bResult;
 }
 
-PRBool nsMAPIConfiguration::IsSessionValid(PRUint32 aSessionID)
+bool nsMAPIConfiguration::IsSessionValid(PRUint32 aSessionID)
 {
   if (aSessionID == 0)
     return PR_FALSE;
-  PRBool retValue = PR_FALSE;
+  bool retValue = false;
   PR_Lock(m_Lock);
   retValue = m_SessionMap.Get(aSessionID, NULL);
   PR_Unlock(m_Lock);
@@ -298,7 +298,7 @@ HRESULT nsMAPIConfiguration::GetMAPIErrorFromNSError (nsresult res)
 
 nsMAPISession::nsMAPISession(PRUint32 aHwnd, const PRUnichar *aUserName,
                              const PRUnichar *aPassword, 
-                             PRBool aForceDownLoad, const char *aKey)
+                             bool aForceDownLoad, const char *aKey)
 : m_bIsForcedDownLoad(aForceDownLoad),
   m_hAppHandle(aHwnd),
   m_nShared(1),

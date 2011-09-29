@@ -59,16 +59,16 @@ public:
 protected:
   virtual ~nsMailGNOMEIntegration() {};
 
-  PRBool KeyMatchesAppName(const char *aKeyValue) const;
-  PRBool checkDefault(const char* const *aProtocols, unsigned int aLength);
+  bool KeyMatchesAppName(const char *aKeyValue) const;
+  bool checkDefault(const char* const *aProtocols, unsigned int aLength);
   nsresult MakeDefault(const char* const *aProtocols, unsigned int aLength);
 private:
-  PRBool GetAppPathFromLauncher();
-  PRBool CheckHandlerMatchesAppName(const nsACString& handler) const;
-  PRPackedBool mUseLocaleFilenames;
-  PRPackedBool mCheckedThisSession;
+  bool GetAppPathFromLauncher();
+  bool CheckHandlerMatchesAppName(const nsACString& handler) const;
+  bool mUseLocaleFilenames;
+  bool mCheckedThisSession;
   nsCString mAppPath;
-  PRPackedBool mAppIsInPath;
+  bool mAppIsInPath;
 };
 
 #endif

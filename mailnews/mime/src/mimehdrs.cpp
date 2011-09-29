@@ -63,7 +63,7 @@ PRInt32 MimeHeaders_build_heads_list(MimeHeaders *hdrs);
 
 void
 MimeHeaders_convert_header_value(MimeDisplayOptions *opt, nsCString &value,
-                                 PRBool convert_charset_only)
+                                 bool convert_charset_only)
 {
   char        *converted;
 
@@ -329,7 +329,7 @@ MimeHeaders_build_heads_list(MimeHeaders *hdrs)
 
 char *
 MimeHeaders_get (MimeHeaders *hdrs, const char *header_name,
-         PRBool strip_p, PRBool all_p)
+         bool strip_p, bool all_p)
 {
   int i;
   int name_length;
@@ -539,11 +539,11 @@ MimeHeaders_get_parameter (const char *header_value, const char *parm_name,
    : 0)
 
 int
-MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, PRBool attachment)
+MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, bool attachment)
 {
   int status = 0;
   int i;
-  PRBool wrote_any_p = PR_FALSE;
+  bool wrote_any_p = false;
 
   NS_ASSERTION(hdrs, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
   if (!hdrs)
@@ -625,7 +625,7 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, PRBoo
     }
 
     // MW Fixme: more?
-    PRBool convert_charset_only =
+    bool convert_charset_only =
           MsgLowerCaseEqualsLiteral(name, "to") || MsgLowerCaseEqualsLiteral(name, "from") ||
           MsgLowerCaseEqualsLiteral(name, "cc") || MsgLowerCaseEqualsLiteral(name, "bcc") ||
           MsgLowerCaseEqualsLiteral(name, "reply-to") || MsgLowerCaseEqualsLiteral(name, "sender");
@@ -830,7 +830,7 @@ MimeHeaders_compact (MimeHeaders *hdrs)
  */
 int
 MimeHeaders_write_raw_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt,
-                 PRBool dont_write_content_type)
+                 bool dont_write_content_type)
 {
   int status;
 
@@ -906,11 +906,11 @@ MimeHeaders_close_crypto_stamp(void)
 }
 
 char *
-MimeHeaders_make_crypto_stamp(PRBool encrypted_p,
-                              PRBool signed_p,
-                              PRBool good_p,
-                              PRBool unverified_p,
-                              PRBool close_parent_stamp_p,
+MimeHeaders_make_crypto_stamp(bool encrypted_p,
+                              bool signed_p,
+                              bool good_p,
+                              bool unverified_p,
+                              bool close_parent_stamp_p,
                               const char *stamp_url)
 {
   return nsnull;

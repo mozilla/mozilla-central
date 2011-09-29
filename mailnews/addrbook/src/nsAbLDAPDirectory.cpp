@@ -146,7 +146,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetChildCards(nsISimpleEnumerator** result)
     nsresult rv;
     
     // when offline, we need to get the child cards for the local, replicated mdb directory 
-    PRBool offline;
+    bool offline;
     nsCOMPtr <nsIIOService> ioService = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
     rv = ioService->GetOffline(&offline);
@@ -193,14 +193,14 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetChildCards(nsISimpleEnumerator** result)
     return rv;
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::GetIsQuery(PRBool *aResult)
+NS_IMETHODIMP nsAbLDAPDirectory::GetIsQuery(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = mIsQueryURI;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::HasCard(nsIAbCard* card, PRBool* hasCard)
+NS_IMETHODIMP nsAbLDAPDirectory::HasCard(nsIAbCard* card, bool* hasCard)
 {
   nsresult rv = Initiate ();
   NS_ENSURE_SUCCESS(rv, rv);
@@ -280,7 +280,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::SetLDAPURL(nsILDAPURL *aUrl)
   // listeners get updated correctly.
 
   // See if they both start with ldaps: or ldap:
-  PRBool newIsNotSecure = StringHead(tempLDAPURL, 5).Equals("ldap:");
+  bool newIsNotSecure = StringHead(tempLDAPURL, 5).Equals("ldap:");
 
   if (oldUrl.IsEmpty() ||
       StringHead(oldUrl, 5).Equals("ldap:") != newIsNotSecure)
@@ -422,21 +422,21 @@ NS_IMETHODIMP nsAbLDAPDirectory::OnSearchFoundCard(nsIAbCard* card)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::GetSupportsMailingLists(PRBool *aSupportsMailingsLists)
+NS_IMETHODIMP nsAbLDAPDirectory::GetSupportsMailingLists(bool *aSupportsMailingsLists)
 {
   NS_ENSURE_ARG_POINTER(aSupportsMailingsLists);
   *aSupportsMailingsLists = PR_FALSE;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::GetReadOnly(PRBool *aReadOnly)
+NS_IMETHODIMP nsAbLDAPDirectory::GetReadOnly(bool *aReadOnly)
 {
   NS_ENSURE_ARG_POINTER(aReadOnly);
 
   *aReadOnly = PR_TRUE;
 
 #ifdef MOZ_EXPERIMENTAL_WRITEABLE_LDAP
-  PRBool readOnly;
+  bool readOnly;
   nsresult rv = GetBoolValue("readonly", PR_FALSE, &readOnly);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -444,7 +444,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetReadOnly(PRBool *aReadOnly)
     return NS_OK;
 
   // when online, we'll allow writing as well
-  PRBool offline;
+  bool offline;
   nsCOMPtr <nsIIOService> ioService =
     do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -459,14 +459,14 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetReadOnly(PRBool *aReadOnly)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::GetIsRemote(PRBool *aIsRemote)
+NS_IMETHODIMP nsAbLDAPDirectory::GetIsRemote(bool *aIsRemote)
 {
   NS_ENSURE_ARG_POINTER(aIsRemote);
   *aIsRemote = PR_TRUE;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbLDAPDirectory::GetIsSecure(PRBool *aIsSecure)
+NS_IMETHODIMP nsAbLDAPDirectory::GetIsSecure(bool *aIsSecure)
 {
   NS_ENSURE_ARG_POINTER(aIsSecure);
 
@@ -480,7 +480,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetIsSecure(PRBool *aIsSecure)
 }
 
 NS_IMETHODIMP nsAbLDAPDirectory::UseForAutocomplete(const nsACString &aIdentityKey,
-                                                    PRBool *aResult)
+                                                    bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -488,7 +488,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::UseForAutocomplete(const nsACString &aIdentityK
   *aResult = PR_FALSE;
 
   nsresult rv;
-  PRBool offline = PR_FALSE;
+  bool offline = false;
   nsCOMPtr <nsIIOService> ioService =
     do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -506,7 +506,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::UseForAutocomplete(const nsACString &aIdentityK
                                               &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool useDirectory = PR_FALSE;
+  bool useDirectory = false;
   rv = prefs->GetBoolPref("ldap_2.autoComplete.useDirectory", &useDirectory);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -530,7 +530,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::UseForAutocomplete(const nsACString &aIdentityK
       rv = accountManager->GetIdentity(aIdentityKey, getter_AddRefs(identity));
       if (NS_SUCCEEDED(rv))
       {
-        PRBool overrideGlobalPref = PR_FALSE;
+        bool overrideGlobalPref = false;
         identity->GetOverrideGlobalPref(&overrideGlobalPref);
         if (overrideGlobalPref)
           identity->GetDirectoryServer(prefName);
@@ -562,7 +562,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::UseForAutocomplete(const nsACString &aIdentityK
     if (NS_FAILED(GetReplicationFile(getter_AddRefs(databaseFile))))
       return NS_OK;
 
-    PRBool exists;
+    bool exists;
     rv = databaseFile->Exists(&exists);
     NS_ENSURE_SUCCESS(rv, rv);
 

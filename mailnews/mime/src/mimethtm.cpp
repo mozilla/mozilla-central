@@ -49,7 +49,7 @@ MimeDefClass(MimeInlineTextHTML, MimeInlineTextHTMLClass,
        mimeInlineTextHTMLClass, &MIME_SUPERCLASS);
 
 static int MimeInlineTextHTML_parse_line (const char *, PRInt32, MimeObject *);
-static int MimeInlineTextHTML_parse_eof (MimeObject *, PRBool);
+static int MimeInlineTextHTML_parse_eof (MimeObject *, bool);
 static int MimeInlineTextHTML_parse_begin (MimeObject *obj);
 
 static int
@@ -218,7 +218,7 @@ MimeInlineTextHTML_parse_line (const char *line, PRInt32 length, MimeObject *obj
 }
 
 static int
-MimeInlineTextHTML_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeInlineTextHTML_parse_eof (MimeObject *obj, bool abort_p)
 {
   int status;
   MimeInlineTextHTML  *textHTML = (MimeInlineTextHTML *) obj;

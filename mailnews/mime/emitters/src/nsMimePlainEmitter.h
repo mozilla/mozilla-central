@@ -52,7 +52,7 @@ public:
     virtual       ~nsMimePlainEmitter (void);
 
     // Header handling routines.
-    NS_IMETHOD    StartHeader(PRBool rootMailHeader, PRBool headerOnly, const char *msgID,
+    NS_IMETHOD    StartHeader(bool rootMailHeader, bool headerOnly, const char *msgID,
                               const char *outCharset);
     NS_IMETHOD    AddHeaderField(const char *field, const char *value);
     NS_IMETHOD    EndHeader();

@@ -132,7 +132,7 @@ static void openMailWindow(const nsCString& aUri)
       if (NS_FAILED(rv))
         return;
 
-      PRBool isMessageUri = PR_FALSE;
+      bool isMessageUri = false;
       msgUri->GetIsMessageUri(&isMessageUri);
       if (isMessageUri)
       {
@@ -406,7 +406,7 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool showAlert = PR_TRUE;
+  bool showAlert = true;
   prefBranch->GetBoolPref(kBiffShowAlertPref, &showAlert);
 
   if (showAlert)
@@ -432,7 +432,7 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
       }
     }
 
-    PRBool bounceDockIcon = PR_FALSE;
+    bool bounceDockIcon = false;
     prefBranch->GetBoolPref("mail.biff.animate_dock_icon", &bounceDockIcon);
 
     if (bounceDockIcon)
@@ -458,7 +458,7 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
 
     if (aNewValue == nsIMsgFolder::nsMsgBiffState_NewMail)
     {
-      PRBool performingBiff = PR_FALSE;
+      bool performingBiff = false;
       nsCOMPtr<nsIMsgIncomingServer> server;
       aFolder->GetServer(getter_AddRefs(server));
       if (server)
@@ -521,7 +521,7 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
     {
       // Give extensions a chance to suppress counting for this folder,
       // and filter out ones we don't want to count.
-      PRBool countFolder;
+      bool countFolder;
       rv = ConfirmShouldCount(aFolder, &countFolder);
       NS_ENSURE_SUCCESS(rv, rv);
 
@@ -590,7 +590,7 @@ nsMessengerOSXIntegration::BadgeDockIcon()
   nsresult rv;
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  PRBool useNewCount = PR_FALSE;
+  bool useNewCount = false;
   prefBranch->GetBoolPref("mail.biff.use_new_count_in_mac_dock", &useNewCount);
 
   // If count is less than one, we should restore the original dock icon.
@@ -658,8 +658,8 @@ nsMessengerOSXIntegration::OnItemAdded(nsIMsgFolder *, nsISupports *)
 NS_IMETHODIMP
 nsMessengerOSXIntegration::OnItemBoolPropertyChanged(nsIMsgFolder *aItem,
                                                          nsIAtom *aProperty,
-                                                         PRBool aOldValue,
-                                                         PRBool aNewValue)
+                                                         bool aOldValue,
+                                                         bool aNewValue)
 {
   return NS_OK;
 }
@@ -741,7 +741,7 @@ nsMessengerOSXIntegration::GetNewMailAuthors(nsIMsgFolder* aFolder,
           os->NotifyObservers(notify, "newmail-notification-requested",
                               PromiseFlatString(author).get());
 
-          PRBool includeSender;
+          bool includeSender;
           notify->GetData(&includeSender);
 
           // Don't add unwanted or duplicate names
@@ -883,7 +883,7 @@ nsMessengerOSXIntegration::InitUnreadCount()
 }
 
 nsresult
-nsMessengerOSXIntegration::ConfirmShouldCount(nsIMsgFolder* aFolder, PRBool* aCountFolder)
+nsMessengerOSXIntegration::ConfirmShouldCount(nsIMsgFolder* aFolder, bool* aCountFolder)
 {
   // We give extensions a chance to say yes/no to counting for a folder.  By
   // default we count every folder that is mail and isn't 
@@ -892,7 +892,7 @@ nsMessengerOSXIntegration::ConfirmShouldCount(nsIMsgFolder* aFolder, PRBool* aCo
   nsresult rv = aFolder->GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool defaultValue = PR_TRUE;
+  bool defaultValue = true;
   nsCAutoString type;
   rv = server->GetType(type);
   if (NS_FAILED(rv) || (type.EqualsLiteral("rss") || type.EqualsLiteral("nntp")))
@@ -933,13 +933,13 @@ nsMessengerOSXIntegration::ConfirmShouldCount(nsIMsgFolder* aFolder, PRBool* aCo
 }
 
 nsresult
-nsMessengerOSXIntegration::GetTotalUnread(nsIMsgFolder* aFolder, PRBool deep, PRInt32* aTotal)
+nsMessengerOSXIntegration::GetTotalUnread(nsIMsgFolder* aFolder, bool deep, PRInt32* aTotal)
 {
   // This simulates nsIMsgFolder::GetNumUnread, but gives extensions
   // a chance to decide whether folders should be counted as part of
   // the total.
   *aTotal = 0;
-  PRBool countFolder;
+  bool countFolder;
   nsresult rv = ConfirmShouldCount(aFolder, &countFolder);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -955,7 +955,7 @@ nsMessengerOSXIntegration::GetTotalUnread(nsIMsgFolder* aFolder, PRBool deep, PR
 
   if (deep)
   {
-    PRBool hasChildren;
+    bool hasChildren;
     rv = aFolder->GetHasSubFolders(&hasChildren);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -969,7 +969,7 @@ nsMessengerOSXIntegration::GetTotalUnread(nsIMsgFolder* aFolder, PRBool deep, PR
       NS_ENSURE_SUCCESS(rv, rv);
 
       nsCOMPtr<nsIMsgFolder> childFolder;
-      PRBool moreFolders;
+      bool moreFolders;
       while (NS_SUCCEEDED(children->HasMoreElements(&moreFolders)) &&
              moreFolders)
       {

@@ -152,14 +152,14 @@ NS_IMETHODIMP nsAbDirectoryQueryArguments::SetExpression(nsISupports* aExpressio
 }
 
 /* attribute boolean querySubDirectories; */
-NS_IMETHODIMP nsAbDirectoryQueryArguments::GetQuerySubDirectories(PRBool* aQuerySubDirectories)
+NS_IMETHODIMP nsAbDirectoryQueryArguments::GetQuerySubDirectories(bool* aQuerySubDirectories)
 {
     NS_ENSURE_ARG_POINTER(aQuerySubDirectories);
     *aQuerySubDirectories = mQuerySubDirectories;
     return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirectoryQueryArguments::SetQuerySubDirectories(PRBool aQuerySubDirectories)
+NS_IMETHODIMP nsAbDirectoryQueryArguments::SetQuerySubDirectories(bool aQuerySubDirectories)
 {
     mQuerySubDirectories = aQuerySubDirectories;
     return NS_OK;
@@ -258,7 +258,7 @@ NS_IMETHODIMP nsAbDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   nsCOMPtr<nsIAbBooleanExpression> expression(do_QueryInterface(supportsExpression, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool doSubDirectories;
+  bool doSubDirectories;
   rv = arguments->GetQuerySubDirectories(&doSubDirectories);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -280,7 +280,7 @@ NS_IMETHODIMP nsAbDirectoryQuery::StopQuery(PRInt32 contextID)
 nsresult nsAbDirectoryQuery::query(nsIAbDirectory* directory,
                                    nsIAbBooleanExpression* expression,
                                    nsIAbDirSearchListener* listener,
-                                   PRBool doSubDirectories,
+                                   bool doSubDirectories,
                                    PRInt32* resultLimit)
 {
   if (*resultLimit == 0)
@@ -302,7 +302,7 @@ nsresult nsAbDirectoryQuery::query(nsIAbDirectory* directory,
 nsresult nsAbDirectoryQuery::queryChildren(nsIAbDirectory* directory,
                                            nsIAbBooleanExpression* expression,
                                            nsIAbDirSearchListener* listener,
-                                           PRBool doSubDirectories,
+                                           bool doSubDirectories,
                                            PRInt32* resultLimit)
 {
     nsresult rv = NS_OK;
@@ -311,7 +311,7 @@ nsresult nsAbDirectoryQuery::queryChildren(nsIAbDirectory* directory,
     rv = directory->GetChildNodes(getter_AddRefs(subDirectories));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRBool hasMore;
+    bool hasMore;
     while (NS_SUCCEEDED(rv = subDirectories->HasMoreElements(&hasMore)) && hasMore)
     {
         nsCOMPtr<nsISupports> item;
@@ -348,7 +348,7 @@ nsresult nsAbDirectoryQuery::queryCards(nsIAbDirectory* directory,
     if (!cards)
         return NS_OK;
 
-    PRBool more;
+    bool more;
     while (NS_SUCCEEDED(cards->HasMoreElements(&more)) && more)
     {
         nsCOMPtr<nsISupports> item;
@@ -373,7 +373,7 @@ nsresult nsAbDirectoryQuery::matchCard(nsIAbCard* card,
                                        nsIAbDirSearchListener* listener,
                                        PRInt32* resultLimit)
 {
-    PRBool matchFound = PR_FALSE;
+    bool matchFound = false;
     nsresult rv = matchCardExpression(card, expression, &matchFound);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -389,7 +389,7 @@ nsresult nsAbDirectoryQuery::matchCard(nsIAbCard* card,
 
 nsresult nsAbDirectoryQuery::matchCardExpression(nsIAbCard* card,
                                                  nsIAbBooleanExpression* expression,
-                                                 PRBool* result)
+                                                 bool* result)
 {
     nsAbBooleanOperationType operation;
     nsresult rv = expression->GetOperation (&operation);
@@ -407,7 +407,7 @@ nsresult nsAbDirectoryQuery::matchCardExpression(nsIAbCard* card,
         count > 1)
         return NS_ERROR_FAILURE;
 
-    PRBool value = *result = PR_FALSE;
+    bool value = *result = false;
     nsCOMPtr<nsIAbBooleanConditionString> childCondition;
     nsCOMPtr<nsIAbBooleanExpression> childExpression;
 
@@ -444,7 +444,7 @@ nsresult nsAbDirectoryQuery::matchCardExpression(nsIAbCard* card,
 
 nsresult nsAbDirectoryQuery::matchCardCondition(nsIAbCard* card,
                                                 nsIAbBooleanConditionString* condition,
-                                                PRBool* matchFound)
+                                                bool* matchFound)
 {
     nsAbBooleanConditionType conditionType;
     nsresult rv = condition->GetCondition (&conditionType);
@@ -466,7 +466,7 @@ nsresult nsAbDirectoryQuery::matchCardCondition(nsIAbCard* card,
 
     if (name.EqualsLiteral("IsMailList"))
     {
-      PRBool isMailList;
+      bool isMailList;
       rv = card->GetIsMailList(&isMailList);
       NS_ENSURE_SUCCESS(rv, rv);
 

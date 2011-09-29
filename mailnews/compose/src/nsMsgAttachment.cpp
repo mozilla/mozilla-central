@@ -92,14 +92,14 @@ NS_IMETHODIMP nsMsgAttachment::SetUrlCharset(const nsACString & aUrlCharset)
 }
 
 /* attribute boolean temporary; */
-NS_IMETHODIMP nsMsgAttachment::GetTemporary(PRBool *aTemporary)
+NS_IMETHODIMP nsMsgAttachment::GetTemporary(bool *aTemporary)
 {
   NS_ENSURE_ARG_POINTER(aTemporary);
 
   *aTemporary = mTemporary;
   return NS_OK;
 }
-NS_IMETHODIMP nsMsgAttachment::SetTemporary(PRBool aTemporary)
+NS_IMETHODIMP nsMsgAttachment::SetTemporary(bool aTemporary)
 {
   mTemporary = aTemporary;
   return NS_OK;
@@ -215,7 +215,7 @@ NS_IMETHODIMP nsMsgAttachment::SetSize(PRInt64 aSize)
 }
 
 /* boolean equalsUrl (in nsIMsgAttachment attachment); */
-NS_IMETHODIMP nsMsgAttachment::EqualsUrl(nsIMsgAttachment *attachment, PRBool *_retval)
+NS_IMETHODIMP nsMsgAttachment::EqualsUrl(nsIMsgAttachment *attachment, bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(attachment);
   NS_ENSURE_ARG_POINTER(_retval);
@@ -231,14 +231,14 @@ NS_IMETHODIMP nsMsgAttachment::EqualsUrl(nsIMsgAttachment *attachment, PRBool *_
 nsresult nsMsgAttachment::DeleteAttachment()
 {
   nsresult rv;
-  PRBool isAFile = PR_FALSE;
+  bool isAFile = false;
 
   nsCOMPtr<nsIFile> urlFile;
   rv = NS_GetFileFromURLSpec(mUrl, getter_AddRefs(urlFile));
   NS_ASSERTION(NS_SUCCEEDED(rv), "Can't nsIFile from URL string");
   if (NS_SUCCEEDED(rv))
   {
-    PRBool bExists = PR_FALSE;
+    bool bExists = false;
     rv = urlFile->Exists(&bExists);
     NS_ASSERTION(NS_SUCCEEDED(rv), "Exists() call failed!");
     if (NS_SUCCEEDED(rv) && bExists)

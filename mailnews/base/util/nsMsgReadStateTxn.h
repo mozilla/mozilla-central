@@ -69,12 +69,12 @@ public:
   NS_IMETHOD RedoTransaction();
 
 protected:
-  NS_IMETHOD MarkMessages(PRBool aAsRead);
+  NS_IMETHOD MarkMessages(bool aAsRead);
 
 private:
   nsCOMPtr<nsIMsgFolder> mParentFolder;
   nsTArray<nsMsgKey>     mMarkedMessages;
-  PRBool                 mWasMarkedRead;
+  bool                   mWasMarkedRead;
 };
 
 #endif  // nsMsgBaseUndoTxn_h_

@@ -64,7 +64,7 @@ typedef struct MimeHeaders
   PRInt32 all_headers_fp;      /* The length (it is not NULL-terminated.) */
   PRInt32 all_headers_size;    /* The size of the allocated block. */
 
-  PRBool done_p;        /* Whether we've read the end-of-headers marker
+  bool done_p;        /* Whether we've read the end-of-headers marker
                    (the terminating blank line.) */
 
   char **heads;          /* An array of length n_headers which points
@@ -109,8 +109,8 @@ typedef struct MSG_AttachmentData MSG_AttachmentData;
  */
 extern char *MimeHeaders_get(MimeHeaders *hdrs,
                const char *header_name,
-               PRBool strip_p,
-               PRBool all_p);
+               bool strip_p,
+               bool all_p);
 
 /* Given a header of the form of the MIME "Content-" headers, extracts a
    named parameter from it, if it exists.  For example,
@@ -179,25 +179,25 @@ public:
                  MimeDisplayOptions itself.) */
 
   MimeHeadersState headers;  /* How headers should be displayed. */
-  PRBool fancy_headers_p;  /* Whether to do clever formatting of headers
+  bool fancy_headers_p;  /* Whether to do clever formatting of headers
                  using tables, instead of spaces. */
 
-  PRBool output_vcard_buttons_p;  /* Whether to output the buttons */
+  bool output_vcard_buttons_p;  /* Whether to output the buttons */
                   /* on vcards. */
 
-  PRBool variable_width_plaintext_p;  /* Whether text/plain messages should
+  bool variable_width_plaintext_p;  /* Whether text/plain messages should
                        be in variable width, or fixed. */
-  PRBool wrap_long_lines_p;  /* Whether to wrap long lines in text/plain
+  bool wrap_long_lines_p;  /* Whether to wrap long lines in text/plain
                    messages. */
 
-  PRBool rot13_p;      /* Whether text/plain parts should be rotated
+  bool rot13_p;      /* Whether text/plain parts should be rotated
                  Set by "?rot13=true" */
   char *part_to_load;    /* The particular part of the multipart which
                  we are extracting.  Set by "?part=3.2.4" */
 
-  PRBool write_html_p;    /* Whether the output should be HTML, or raw. */
+  bool write_html_p;    /* Whether the output should be HTML, or raw. */
 
-  PRBool decrypt_p;    /* Whether all traces of xlateion should be
+  bool decrypt_p;    /* Whether all traces of xlateion should be
                  eradicated -- this is only meaningful when
                  write_html_p is PR_FALSE; we set this when
                  attaching a message for forwarding, since
@@ -212,14 +212,14 @@ public:
                  assume when no other one is specified via a
                  `charset' parameter.
                */
-  PRBool override_charset;  /* If this is PR_TRUE, then we will assume that
+  bool override_charset;  /* If this is true, then we will assume that
                  all data is in the default_charset, regardless
                                of what the `charset' parameter of that part
                                says. (This is to cope with the fact that, in
                                the real world, many messages are mislabelled
                                with the wrong charset.)
                */
-  PRBool  force_user_charset; /* this is the new strategy to deal with incorrectly
+  bool    force_user_charset; /* this is the new strategy to deal with incorrectly
                                  labeled attachments */
 
   /* =======================================================================
@@ -271,7 +271,7 @@ public:
   /* If PR_TRUE, perform both charset-conversion and decoding of
    MIME-2 header fields (using RFC-1522 encoding.)
    */
-  PRBool rfc1522_conversion_p;
+  bool rfc1522_conversion_p;
 
   /* A hook for the caller to turn a file name into a content-type. */
   char *(*file_type_fn) (const char *filename, void *stream_closure);
@@ -341,22 +341,22 @@ public:
   /* =======================================================================
   Mail Draft hooks -- 09-19-1996
    */
-  PRBool decompose_file_p;            /* are we decomposing a mime msg
+  bool decompose_file_p;            /* are we decomposing a mime msg
                      into separate files */
-  PRBool done_parsing_outer_headers;  /* are we done parsing the outer message
+  bool done_parsing_outer_headers;  /* are we done parsing the outer message
                       headers; this is really useful when
                       we have multiple Message/RFC822
                       headers */
-  PRBool is_multipart_msg;            /* are we decomposing a multipart
+  bool is_multipart_msg;            /* are we decomposing a multipart
                       message */
 
   int decompose_init_count;            /* used for non multipart message only
                     */
 
-  PRBool signed_p;             /* to tell draft this is a signed
+  bool signed_p;             /* to tell draft this is a signed
                       message */
 
-  PRBool caller_need_root_headers;    /* set it to true to receive the message main
+  bool caller_need_root_headers;    /* set it to true to receive the message main
                                          headers through the callback
                                          decompose_headers_info_fn */
 
@@ -384,13 +384,13 @@ public:
                    evil people from writing javascript code
                    to hack it. */
 
-  PRBool missing_parts;  /* Whether or not this message is going to contain
+  bool missing_parts;  /* Whether or not this message is going to contain
                  missing parts (from IMAP Mime Parts On Demand) */
 
-  PRBool show_attachment_inline_p; /* Whether or not we should display attachment inline (whatever say
+  bool show_attachment_inline_p; /* Whether or not we should display attachment inline (whatever say
                          the content-disposition) */
 
-  PRBool quote_attachment_inline_p; /* Whether or not we should include inlined attachments in
+  bool quote_attachment_inline_p; /* Whether or not we should include inlined attachments in
                          quotes of replies) */
 
   PRInt32 html_as_p; /* How we should display HTML, which allows us to know if we should display all body parts */
@@ -400,14 +400,14 @@ public:
    *  false (the default value), the events are only generated for the outermost
    *  MimeMessage.
    */
-  PRBool notify_nested_bodies;
+  bool notify_nested_bodies;
 
   /**
    * When true, compels mime parts to only write the actual body
    *  payload and not display-gunk like links to attachments. This was
    *  primarily introduced for the benefit of the javascript emitter.
    */
-  PRBool write_pure_bodies;
+  bool write_pure_bodies;
 
   /**
    * When true, only processes metadata (i.e. size) for streamed attachments.
@@ -415,7 +415,7 @@ public:
    *  image attachments) should leave this as false (the default value).  At
    *  the moment, only the JS mime emitter uses this.
    */
-  PRBool metadata_only;
+  bool metadata_only;
 };
 
 #endif /* _MODLMIME_H_ */

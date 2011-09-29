@@ -100,14 +100,14 @@ NS_IMETHODIMP nsMsgOfflineManager::SetWindow(nsIMsgWindow * aWindow)
 }
 
 /* attribute boolean inProgress; */
-NS_IMETHODIMP nsMsgOfflineManager::GetInProgress(PRBool *aInProgress)
+NS_IMETHODIMP nsMsgOfflineManager::GetInProgress(bool *aInProgress)
 {
   NS_ENSURE_ARG(aInProgress);
   *aInProgress = m_inProgress;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgOfflineManager::SetInProgress(PRBool aInProgress)
+NS_IMETHODIMP nsMsgOfflineManager::SetInProgress(bool aInProgress)
 {
   m_inProgress = aInProgress;
   return NS_OK;
@@ -322,7 +322,7 @@ nsresult nsMsgOfflineManager::DownloadMail()
 }
 
 /* void goOnline (in boolean sendUnsentMessages, in boolean playbackOfflineImapOperations, in nsIMsgWindow aMsgWindow); */
-NS_IMETHODIMP nsMsgOfflineManager::GoOnline(PRBool sendUnsentMessages, PRBool playbackOfflineImapOperations, nsIMsgWindow *aMsgWindow)
+NS_IMETHODIMP nsMsgOfflineManager::GoOnline(bool sendUnsentMessages, bool playbackOfflineImapOperations, nsIMsgWindow *aMsgWindow)
 {
   m_sendUnsentMessages = sendUnsentMessages;
   m_playbackOfflineImapOps = playbackOfflineImapOperations;
@@ -338,7 +338,7 @@ NS_IMETHODIMP nsMsgOfflineManager::GoOnline(PRBool sendUnsentMessages, PRBool pl
 }
 
 /* void synchronizeForOffline (in boolean downloadNews, in boolean downloadMail, in boolean sendUnsentMessages, in boolean goOfflineWhenDone, in nsIMsgWindow aMsgWindow); */
-NS_IMETHODIMP nsMsgOfflineManager::SynchronizeForOffline(PRBool downloadNews, PRBool downloadMail, PRBool sendUnsentMessages, PRBool goOfflineWhenDone, nsIMsgWindow *aMsgWindow)
+NS_IMETHODIMP nsMsgOfflineManager::SynchronizeForOffline(bool downloadNews, bool downloadMail, bool sendUnsentMessages, bool goOfflineWhenDone, nsIMsgWindow *aMsgWindow)
 {
   m_curOperation = eDownloadingForOffline;
   m_downloadNews = downloadNews;
@@ -357,7 +357,7 @@ NS_IMETHODIMP nsMsgOfflineManager::SynchronizeForOffline(PRBool downloadNews, PR
   return NS_OK;
 }
 
-nsresult nsMsgOfflineManager::SetOnlineState(PRBool online)
+nsresult nsMsgOfflineManager::SetOnlineState(bool online)
 {
   nsresult rv;
   nsCOMPtr<nsIIOService> netService(do_GetService(NS_IOSERVICE_CONTRACTID, &rv));

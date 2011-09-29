@@ -90,10 +90,10 @@ nsOEScanBoxes::~nsOEScanBoxes()
   Identities/{GUID}/Software/Microsoft/Outlook Express/5.0/
 */
 
-PRBool nsOEScanBoxes::Find50Mail( nsIFile *pWhere)
+bool nsOEScanBoxes::Find50Mail( nsIFile *pWhere)
 {
   nsresult   rv;
-  PRBool    success = PR_FALSE;
+  bool      success = false;
   HKEY    sKey;
         nsCOMPtr <nsILocalFile> localWhere = do_QueryInterface(pWhere);
 
@@ -113,7 +113,7 @@ PRBool nsOEScanBoxes::Find50Mail( nsIFile *pWhere)
           IMPORT_LOG1( "Setting native path: %s\n", pBytes);
 
           nsOERegUtil::FreeValueBytes( pBytes);
-          PRBool  isDir = PR_FALSE;
+          bool    isDir = false;
           rv = pWhere->IsDirectory( &isDir);
           if (isDir && NS_SUCCEEDED( rv))
             success = PR_TRUE;
@@ -126,10 +126,10 @@ PRBool nsOEScanBoxes::Find50Mail( nsIFile *pWhere)
   return( success);
 }
 
-PRBool nsOEScanBoxes::FindMail( nsIFile *pWhere)
+bool nsOEScanBoxes::FindMail( nsIFile *pWhere)
 {
   nsresult   rv;
-  PRBool    success = PR_FALSE;
+  bool      success = false;
   HKEY    sKey;
         nsCOMPtr <nsILocalFile> localWhere = do_QueryInterface(pWhere);
 
@@ -141,7 +141,7 @@ PRBool nsOEScanBoxes::FindMail( nsIFile *pWhere)
     if (pBytes) {
       localWhere->InitWithNativePath(nsDependentCString((const char *) pBytes));
       pWhere->AppendNative(NS_LITERAL_CSTRING("Mail"));
-      PRBool  isDir = PR_FALSE;
+      bool    isDir = false;
       rv = pWhere->IsDirectory( &isDir);
       if (isDir && NS_SUCCEEDED( rv))
         success = PR_TRUE;
@@ -153,7 +153,7 @@ PRBool nsOEScanBoxes::FindMail( nsIFile *pWhere)
   return( success);
 }
 
-PRBool nsOEScanBoxes::GetMailboxes( nsIFile *pWhere, nsISupportsArray **pArray)
+bool nsOEScanBoxes::GetMailboxes( nsIFile *pWhere, nsISupportsArray **pArray)
 {
   nsCString path;
   pWhere->GetNativePath(path);
@@ -175,7 +175,7 @@ PRBool nsOEScanBoxes::GetMailboxes( nsIFile *pWhere, nsISupportsArray **pArray)
   // 3. Look for 5.0 *.dbx mailboxes
   // 4. Look for 3.x & 4.x *.mbx mailboxes
 
-  PRBool  result;
+  bool    result;
 
   location->AppendNative(NS_LITERAL_CSTRING("folders.dbx"));
   if (Find50MailBoxes(location)) {
@@ -215,12 +215,12 @@ void nsOEScanBoxes::Reset( void)
 }
 
 
-PRBool nsOEScanBoxes::FindMailBoxes( nsIFile* descFile)
+bool nsOEScanBoxes::FindMailBoxes( nsIFile* descFile)
 {
   Reset();
 
   nsresult  rv;
-  PRBool    isFile = PR_FALSE;
+  bool      isFile = false;
 
   rv = descFile->IsFile( &isFile);
   if (NS_FAILED( rv) || !isFile)
@@ -240,13 +240,13 @@ PRBool nsOEScanBoxes::FindMailBoxes( nsIFile* descFile)
   }
 
   // Now for each record
-  PRBool      done = PR_FALSE;
+  bool        done = false;
   PRUint32    equal;
   PRUint32    size;
   PRUint32    previous;
   PRUint32    next;
   MailboxEntry *  pEntry;
-  PRBool      failed;
+  bool        failed;
   nsCString    ext;
   nsCString    mbxExt( ".mbx");
 
@@ -302,12 +302,12 @@ PRBool nsOEScanBoxes::FindMailBoxes( nsIFile* descFile)
   return( PR_TRUE);
 }
 
-PRBool nsOEScanBoxes::Find50MailBoxes( nsIFile* descFile)
+bool nsOEScanBoxes::Find50MailBoxes( nsIFile* descFile)
 {
   Reset();
 
   nsresult  rv;
-  PRBool    isFile = PR_FALSE;
+  bool      isFile = false;
 
   rv = descFile->IsFile( &isFile);
   if (NS_FAILED( rv) || !isFile)
@@ -561,7 +561,7 @@ void nsOEScanBoxes::AddChildEntry( MailboxEntry *pEntry, PRUint32 rootIndex)
   m_entryArray.AppendElement( pEntry);
 }
 
-PRBool nsOEScanBoxes::Scan50MailboxDir( nsIFile * srcDir)
+bool nsOEScanBoxes::Scan50MailboxDir( nsIFile * srcDir)
 {
   Reset();
 
@@ -569,13 +569,13 @@ PRBool nsOEScanBoxes::Scan50MailboxDir( nsIFile * srcDir)
   PRInt32      index = 1;
   char *      pLeaf;
 
-  PRBool hasMore;
+  bool hasMore;
   nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
   nsresult rv = srcDir->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
   directoryEnumerator->HasMoreElements(&hasMore);
-  PRBool            isFile;
+  bool              isFile;
   nsCOMPtr<nsIFile> entry;
   nsCString         fName;
 
@@ -633,14 +633,14 @@ void nsOEScanBoxes::ScanMailboxDir( nsIFile * srcDir)
   nsCAutoString pLeaf;
   PRUint32    sLen;
 
-  PRBool hasMore;
+  bool hasMore;
   nsCOMPtr<nsISimpleEnumerator> directoryEnumerator;
   nsresult rv = srcDir->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
   if (NS_FAILED(rv))
     return;
 
   directoryEnumerator->HasMoreElements(&hasMore);
-  PRBool            isFile;
+  bool              isFile;
   nsCOMPtr<nsIFile> entry;
   nsCString         fName;
   nsCString         ext;
@@ -715,7 +715,7 @@ PRUint32 nsOEScanBoxes::CountMailboxes( MailboxEntry *pBox)
   return( count);
 }
 
-PRBool nsOEScanBoxes::GetMailboxList( nsIFile * root, nsISupportsArray **pArray)
+bool nsOEScanBoxes::GetMailboxList( nsIFile * root, nsISupportsArray **pArray)
 {
   nsresult rv = NS_NewISupportsArray( pArray);
   if (NS_FAILED( rv)) {
@@ -815,7 +815,7 @@ nsOEScanBoxes::MailboxEntry * nsOEScanBoxes::GetIndexEntry( PRUint32 index)
 // File utility routines
 // -------------------------------------------------------
 
-PRBool nsOEScanBoxes::ReadLong( nsIInputStream * stream, PRInt32& val, PRUint32 offset)
+bool nsOEScanBoxes::ReadLong( nsIInputStream * stream, PRInt32& val, PRUint32 offset)
 {
   nsresult  rv;
         nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(stream, &rv);
@@ -833,7 +833,7 @@ PRBool nsOEScanBoxes::ReadLong( nsIInputStream * stream, PRInt32& val, PRUint32 
   return( PR_TRUE);
 }
 
-PRBool nsOEScanBoxes::ReadLong( nsIInputStream * stream, PRUint32& val, PRUint32 offset)
+bool nsOEScanBoxes::ReadLong( nsIInputStream * stream, PRUint32& val, PRUint32 offset)
 {
   nsresult  rv;
         nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(stream, &rv);
@@ -856,7 +856,7 @@ PRBool nsOEScanBoxes::ReadLong( nsIInputStream * stream, PRUint32& val, PRUint32
 // but why bother going that far!  If a file name is that long then
 // the heck with it.
 #define  kOutlookExpressStringLength  252
-PRBool nsOEScanBoxes::ReadString( nsIInputStream * stream, nsString& str, PRUint32 offset)
+bool nsOEScanBoxes::ReadString( nsIInputStream * stream, nsString& str, PRUint32 offset)
 {
   nsresult rv;
   nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(stream, &rv);
@@ -878,7 +878,7 @@ PRBool nsOEScanBoxes::ReadString( nsIInputStream * stream, nsString& str, PRUint
   return( PR_TRUE);
 }
 
-PRBool nsOEScanBoxes::ReadString( nsIInputStream * stream, nsCString& str, PRUint32 offset)
+bool nsOEScanBoxes::ReadString( nsIInputStream * stream, nsCString& str, PRUint32 offset)
 {
   nsresult  rv;
         nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(stream, &rv);

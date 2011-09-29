@@ -306,7 +306,7 @@ NS_IMETHODIMP nsAbManager::GetDirectory(const nsACString &aURI,
 
     // Check if this directory was initiated with a search query.  If so,
     // we don't cache it.
-    PRBool isQuery = PR_FALSE;
+    bool isQuery = false;
     rv = directory->GetIsQuery(&isQuery);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -354,7 +354,7 @@ NS_IMETHODIMP nsAbManager::DeleteAddressBook(const nsACString &aURI)
 
   nsCOMPtr<nsISupports> item;
   nsCOMPtr<nsIAbDirectory> childDirectory;
-  PRBool hasMore = PR_FALSE;
+  bool hasMore = false;
   while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
   {
     rv = enumerator->GetNext(getter_AddRefs(item));
@@ -373,7 +373,7 @@ NS_IMETHODIMP nsAbManager::DeleteAddressBook(const nsACString &aURI)
 
   mAbStore.Remove(aURI);
 
-  PRBool isMailList;
+  bool isMailList;
   rv = directory->GetIsMailList(&isMailList);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -474,7 +474,7 @@ NS_IMETHODIMP nsAbManager::GetUserProfileDirectory(nsILocalFile **userDir)
   return CallQueryInterface(profileDir, userDir);
 }
 
-NS_IMETHODIMP nsAbManager::MailListNameExists(const PRUnichar *name, PRBool *exist)
+NS_IMETHODIMP nsAbManager::MailListNameExists(const PRUnichar *name, bool *exist)
 {
   nsresult rv;
   NS_ENSURE_ARG_POINTER(exist);
@@ -493,7 +493,7 @@ NS_IMETHODIMP nsAbManager::MailListNameExists(const PRUnichar *name, PRBool *exi
   nsCOMPtr<nsISupports> item;
   nsCOMPtr<nsIAbMDBDirectory> directory;
 
-  PRBool hasMore;
+  bool hasMore;
   // XXX Make this not MDB specific.
   while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
   {
@@ -586,7 +586,7 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
 
   if (dialogResult == nsIFilePicker::returnReplace) {
     // be extra safe and only delete when the file is really a file
-    PRBool isFile;
+    bool isFile;
     rv = localFile->IsFile(&isFile);
     if (NS_SUCCEEDED(rv) && isFile) {
       rv = localFile->Remove(PR_FALSE /* recursive delete */);
@@ -715,14 +715,14 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
   rv = aDirectory->GetChildCards(getter_AddRefs(cardsEnumerator));
   if (NS_SUCCEEDED(rv) && cardsEnumerator) {
     nsCOMPtr<nsISupports> item;
-    PRBool more;
+    bool more;
     while (NS_SUCCEEDED(cardsEnumerator->HasMoreElements(&more)) && more) {
       rv = cardsEnumerator->GetNext(getter_AddRefs(item));
       if (NS_SUCCEEDED(rv)) {
         nsCOMPtr <nsIAbCard> card = do_QueryInterface(item, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
 
-        PRBool isMailList;
+        bool isMailList;
         rv = card->GetIsMailList(&isMailList);
         NS_ENSURE_SUCCESS(rv,rv);
 
@@ -745,7 +745,7 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
               // we need to quote the entire string. Also if double quote is part
               // of the string we need to quote the double quote(s) as well.
               nsAutoString newValue(value);
-              PRBool needsQuotes = PR_FALSE;
+              bool needsQuotes = false;
               if(newValue.FindChar('"') != -1)
               {
                 needsQuotes = PR_TRUE;
@@ -864,14 +864,14 @@ nsAbManager::ExportDirectoryToLDIF(nsIAbDirectory *aDirectory, nsILocalFile *aLo
   rv = aDirectory->GetChildCards(getter_AddRefs(cardsEnumerator));
   if (NS_SUCCEEDED(rv) && cardsEnumerator) {
     nsCOMPtr<nsISupports> item;
-    PRBool more;
+    bool more;
     while (NS_SUCCEEDED(cardsEnumerator->HasMoreElements(&more)) && more) {
       rv = cardsEnumerator->GetNext(getter_AddRefs(item));
       if (NS_SUCCEEDED(rv)) {
         nsCOMPtr <nsIAbCard> card = do_QueryInterface(item, &rv);
         NS_ENSURE_SUCCESS(rv,rv);
 
-        PRBool isMailList;
+        bool isMailList;
         rv = card->GetIsMailList(&isMailList);
         NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1097,7 +1097,7 @@ nsresult nsAbManager::AppendBasicLDIFForCard(nsIAbCard *aCard, nsIAbLDAPAttribut
   return rv;
 }
 
-PRBool nsAbManager::IsSafeLDIFString(const PRUnichar *aStr)
+bool nsAbManager::IsSafeLDIFString(const PRUnichar *aStr)
 {
   // follow RFC 2849 to determine if something is safe "as is" for LDIF
   if (aStr[0] == PRUnichar(' ') ||
@@ -1268,7 +1268,7 @@ NS_IMETHODIMP
 nsAbManager::Handle(nsICommandLine* aCmdLine)
 {
   nsresult rv;
-  PRBool found;
+  bool found;
 
   rv = aCmdLine->HandleFlag(NS_LITERAL_STRING("addressbook"), PR_FALSE, &found);
   NS_ENSURE_SUCCESS(rv, rv);

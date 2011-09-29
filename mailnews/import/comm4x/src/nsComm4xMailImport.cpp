@@ -133,7 +133,7 @@ NS_IMETHODIMP nsComm4xMailImport::GetSupports(char **supports)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsComm4xMailImport::GetSupportsUpgrade(PRBool *pUpgrade)
+NS_IMETHODIMP nsComm4xMailImport::GetSupportsUpgrade(bool *pUpgrade)
 {
     NS_ENSURE_ARG_POINTER (pUpgrade);
     *pUpgrade = PR_FALSE;
@@ -200,7 +200,7 @@ ImportComm4xMailImpl::~ImportComm4xMailImpl()
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(ImportComm4xMailImpl, nsIImportMail)
 
-NS_IMETHODIMP ImportComm4xMailImpl::GetDefaultLocation(nsIFile **ppLoc, PRBool *found, PRBool *userVerify)
+NS_IMETHODIMP ImportComm4xMailImpl::GetDefaultLocation(nsIFile **ppLoc, bool *found, bool *userVerify)
 {
     NS_ENSURE_ARG_POINTER(found);
     NS_ENSURE_ARG_POINTER(ppLoc);
@@ -218,7 +218,7 @@ NS_IMETHODIMP ImportComm4xMailImpl::FindMailboxes(nsIFile *pLoc, nsISupportsArra
     NS_ENSURE_ARG_POINTER(pLoc);
     NS_ENSURE_ARG_POINTER(ppArray);
 
-    PRBool exists = PR_FALSE;
+    bool exists = false;
     nsresult rv = pLoc->Exists(&exists);
     if (NS_FAILED(rv) || !exists)
         return NS_ERROR_FAILURE;
@@ -259,7 +259,7 @@ NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
                                                 nsIFile *pDestination,
                                                 PRUnichar **pErrorLog,
                                                 PRUnichar **pSuccessLog,
-                                                PRBool *fatalError)
+                                                bool *fatalError)
 {
     NS_PRECONDITION(pSource != nsnull, "null ptr");
     NS_PRECONDITION(pDestination != nsnull, "null ptr");
@@ -317,7 +317,7 @@ NS_IMETHODIMP ImportComm4xMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
         SetLogs( success, error, pErrorLog, pSuccessLog);
         return( NS_ERROR_FAILURE);
     }
-    PRBool exists = PR_FALSE;
+    bool exists = false;
     pDestination->Exists(&exists);
     if (exists)
         rv = pDestination->Remove(PR_FALSE);

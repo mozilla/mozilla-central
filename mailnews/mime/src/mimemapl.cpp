@@ -48,7 +48,7 @@ MimeDefClass(MimeMultipartAppleDouble, MimeMultipartAppleDoubleClass,
        mimeMultipartAppleDoubleClass, &MIME_SUPERCLASS);
 
 static int MimeMultipartAppleDouble_parse_begin (MimeObject *);
-static PRBool MimeMultipartAppleDouble_output_child_p(MimeObject *,
+static bool MimeMultipartAppleDouble_output_child_p(MimeObject *,
                              MimeObject *);
 
 static int
@@ -195,7 +195,7 @@ done:
   return 0;
 }
 
-static PRBool
+static bool
 MimeMultipartAppleDouble_output_child_p(MimeObject *obj, MimeObject *child)
 {
   MimeContainer *cont = (MimeContainer *) obj;

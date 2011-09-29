@@ -46,7 +46,7 @@
 #include "prprf.h"
 
 
-extern "C" PRBool
+extern "C" bool
 EmitThisHeaderForPrefSetting(PRInt32 dispType, const char *header)
 {
   if (nsMimeHeaderDisplayTypes::AllHeaders == dispType)

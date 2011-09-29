@@ -62,7 +62,7 @@ MimeDefClass(MimeInlineTextHTMLAsPlaintext, MimeInlineTextHTMLAsPlaintextClass,
 static int MimeInlineTextHTMLAsPlaintext_parse_line (const char *, PRInt32,
                                                      MimeObject *);
 static int MimeInlineTextHTMLAsPlaintext_parse_begin (MimeObject *obj);
-static int MimeInlineTextHTMLAsPlaintext_parse_eof (MimeObject *, PRBool);
+static int MimeInlineTextHTMLAsPlaintext_parse_eof (MimeObject *, bool);
 static void MimeInlineTextHTMLAsPlaintext_finalize (MimeObject *obj);
 
 static int
@@ -89,7 +89,7 @@ MimeInlineTextHTMLAsPlaintext_parse_begin (MimeObject *obj)
 }
 
 static int
-MimeInlineTextHTMLAsPlaintext_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeInlineTextHTMLAsPlaintext_parse_eof (MimeObject *obj, bool abort_p)
 {
   if (obj->closed_p)
     return 0;
@@ -136,7 +136,7 @@ MimeInlineTextHTMLAsPlaintext_parse_eof (MimeObject *obj, PRBool abort_p)
 
   // Second part of the flush hack. Pretend obj wasn't closed yet, so that our super class
   // gets a chance to write the closing.
-  PRBool save_closed_p = obj->closed_p;
+  bool save_closed_p = obj->closed_p;
   obj->closed_p = PR_FALSE;
   status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_eof(obj, abort_p);
   // Restore closed_p.

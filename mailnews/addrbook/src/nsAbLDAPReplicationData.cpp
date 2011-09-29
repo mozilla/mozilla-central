@@ -246,7 +246,7 @@ nsresult nsAbLDAPProcessReplicationData::DoTask()
   return mOperation->SearchExt(dn, scope, urlFilter, attributes, 0, 0);
 }
 
-void nsAbLDAPProcessReplicationData::InitFailed(PRBool aCancelled)
+void nsAbLDAPProcessReplicationData::InitFailed(bool aCancelled)
 {
   // Just call Done() which will ensure everything is tidied up nicely.
   Done(PR_FALSE);
@@ -381,7 +381,7 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchResult(nsILDAPMessage *aMes
     return NS_OK;
 }
 
-nsresult nsAbLDAPProcessReplicationData::OpenABForReplicatedDir(PRBool aCreate)
+nsresult nsAbLDAPProcessReplicationData::OpenABForReplicatedDir(bool aCreate)
 {
   if (!mInitialized)
     return NS_ERROR_NOT_INITIALIZED;
@@ -402,7 +402,7 @@ nsresult nsAbLDAPProcessReplicationData::OpenABForReplicatedDir(PRBool aCreate)
 
     // if the AB DB already exists backup existing one, 
     // in case if the user cancels or Abort put back the backed up file
-    PRBool fileExists;
+    bool fileExists;
     rv = mReplicationFile->Exists(&fileExists);
     if(NS_SUCCEEDED(rv) && fileExists) {
         // create the backup file object same as the Replication file object.
@@ -491,7 +491,7 @@ nsresult nsAbLDAPProcessReplicationData::OpenABForReplicatedDir(PRBool aCreate)
     return rv;
 }
 
-void nsAbLDAPProcessReplicationData::Done(PRBool aSuccess)
+void nsAbLDAPProcessReplicationData::Done(bool aSuccess)
 {
    if (!mInitialized) 
        return;

@@ -70,7 +70,7 @@ MailNewsDLF::CreateInstance(const char* aCommand,
 {
   nsresult rv;
 
-  PRBool viewSource = (PL_strstr(aContentType,"view-source") != 0);
+  bool viewSource = (PL_strstr(aContentType,"view-source") != 0);
 
   aChannel->SetContentType(NS_LITERAL_CSTRING(TEXT_HTML));
 

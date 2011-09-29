@@ -103,7 +103,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
   profileIni->Append(NS_LITERAL_STRING("profiles.ini"));
 
   // Does it exist?
-  PRBool profileFileExists = PR_FALSE;
+  bool profileFileExists = false;
   rv = profileIni->Exists(&profileFileExists);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -115,7 +115,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCAutoString buffer, filePath;
-  PRBool isRelative;
+  bool isRelative;
 
   // This is an infinite loop that is broken when we no longer find profiles
   // for profileID with IsRelative option.
@@ -149,7 +149,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
     if (NS_FAILED(rv))
       continue;
 
-    PRBool exists = PR_FALSE;
+    bool exists = false;
     rootDir->Exists(&exists);
 
     if (exists) {
@@ -173,7 +173,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
   REGERR errCode;
 
   // Ensure aRegistryFile exists before opening it
-  PRBool regFileExists = PR_FALSE;
+  bool regFileExists = false;
   nsresult rv = aRegistryFile->Exists(&regFileExists);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -248,7 +248,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromRegistry(nsILocalFile* aRegistr
     if (NS_FAILED(rv)) break;
 #endif
 
-    PRBool exists;
+    bool exists;
     dir->Exists(&exists);
 
     if (exists) {
@@ -335,7 +335,7 @@ nsNetscapeProfileMigratorBase::CopyFile(const nsAString& aSourceFileName, const 
   mSourceProfile->Clone(getter_AddRefs(sourceFile));
 
   sourceFile->Append(aSourceFileName);
-  PRBool exists = PR_FALSE;
+  bool exists = false;
   sourceFile->Exists(&exists);
   if (!exists)
     return NS_OK;
@@ -352,7 +352,7 @@ nsNetscapeProfileMigratorBase::CopyFile(const nsAString& aSourceFileName, const 
 }
 
 nsresult
-nsNetscapeProfileMigratorBase::GetSignonFileName(PRBool aReplace, char** aFileName)
+nsNetscapeProfileMigratorBase::GetSignonFileName(bool aReplace, char** aFileName)
 {
   nsresult rv;
   if (aReplace) {
@@ -383,7 +383,7 @@ nsNetscapeProfileMigratorBase::LocateSignonsFile(char** aResult)
 
   nsCAutoString fileName;
   do {
-    PRBool hasMore = PR_FALSE;
+    bool hasMore = false;
     rv = entries->HasMoreElements(&hasMore);
     if (NS_FAILED(rv) || !hasMore) break;
 
@@ -426,19 +426,19 @@ nsNetscapeProfileMigratorBase::LocateSignonsFile(char** aResult)
 nsresult nsNetscapeProfileMigratorBase::RecursiveCopy(nsIFile* srcDir, nsIFile* destDir)
 {
   nsresult rv;
-  PRBool isDir;
+  bool isDir;
 
   rv = srcDir->IsDirectory(&isDir);
   if (NS_FAILED(rv)) return rv;
   if (!isDir) return NS_ERROR_INVALID_ARG;
 
-  PRBool exists;
+  bool exists;
   rv = destDir->Exists(&exists);
   if (NS_SUCCEEDED(rv) && !exists)
     rv = destDir->Create(nsIFile::DIRECTORY_TYPE, 0775);
   if (NS_FAILED(rv)) return rv;
 
-  PRBool hasMore = PR_FALSE;
+  bool hasMore = false;
   nsCOMPtr<nsISimpleEnumerator> dirIterator;
   rv = srcDir->GetDirectoryEntries(getter_AddRefs(dirIterator));
   if (NS_FAILED(rv)) return rv;
@@ -555,7 +555,7 @@ void nsNetscapeProfileMigratorBase::EndCopyFolders()
 }
 
 NS_IMETHODIMP
-nsNetscapeProfileMigratorBase::GetSourceHasMultipleProfiles(PRBool* aResult)
+nsNetscapeProfileMigratorBase::GetSourceHasMultipleProfiles(bool* aResult)
 {
   nsCOMPtr<nsIArray> profiles;
   GetSourceProfiles(getter_AddRefs(profiles));
@@ -572,7 +572,7 @@ nsNetscapeProfileMigratorBase::GetSourceHasMultipleProfiles(PRBool* aResult)
 }
 
 NS_IMETHODIMP
-nsNetscapeProfileMigratorBase::GetSourceExists(PRBool* aResult)
+nsNetscapeProfileMigratorBase::GetSourceExists(bool* aResult)
 {
   nsCOMPtr<nsIArray> profiles;
   GetSourceProfiles(getter_AddRefs(profiles));

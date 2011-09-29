@@ -68,7 +68,7 @@ nsTextAddress::~nsTextAddress()
     NS_IF_RELEASE(m_fieldMap);
 }
 
-nsresult nsTextAddress::ImportAddresses(PRBool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsIImportFieldMap *fieldMap, nsString& errors, PRUint32 *pProgress)
+nsresult nsTextAddress::ImportAddresses(bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsIImportFieldMap *fieldMap, nsString& errors, PRUint32 *pProgress)
 {
   // Open the source file for reading, read each line and process it!
   NS_IF_RELEASE(m_database);
@@ -97,7 +97,7 @@ nsresult nsTextAddress::ImportAddresses(PRBool *pAbort, const PRUnichar *pName, 
   }
 
   PRUint32 totalBytes = bytesLeft;
-  PRBool skipRecord = PR_FALSE;
+  bool skipRecord = false;
 
   rv = m_fieldMap->GetSkipFirstRecord(&skipRecord);
   if (NS_FAILED(rv)) {
@@ -108,7 +108,7 @@ nsresult nsTextAddress::ImportAddresses(PRBool *pAbort, const PRUnichar *pName, 
   nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(inputStream, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool more = PR_TRUE;
+  bool more = true;
   nsCString line;
 
   // Skip the first record if the user has requested it.
@@ -145,9 +145,9 @@ nsresult nsTextAddress::ImportAddresses(PRBool *pAbort, const PRUnichar *pName, 
   return pDb->Commit(nsAddrDBCommitType::kLargeCommit);
 }
 
-nsresult nsTextAddress::ReadRecord(nsILineInputStream *aLineStream, nsCString &aLine, char delim, PRBool *aMore)
+nsresult nsTextAddress::ReadRecord(nsILineInputStream *aLineStream, nsCString &aLine, char delim, bool *aMore)
 {
-  PRBool more = PR_TRUE;
+  bool more = true;
   PRUint32 numQuotes = 0;
   nsresult rv;
   nsCString line;
@@ -209,7 +209,7 @@ nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsCString &aLine, char d
   nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(inputStream, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool more = PR_TRUE;
+  bool more = true;
 
   while (more && (rIndex <= rNum)) {
     rv = ReadRecord(lineStream, aLine, delim, &more);
@@ -272,9 +272,9 @@ PRInt32 nsTextAddress::CountFields( const char *pLine, PRInt32 maxLen, char deli
     return( count);
 }
 
-PRBool nsTextAddress::GetField( const char *pLine, PRInt32 maxLen, PRInt32 index, nsCString& field, char delim)
+bool nsTextAddress::GetField( const char *pLine, PRInt32 maxLen, PRInt32 index, nsCString& field, char delim)
 {
-    PRBool result = PR_FALSE;
+    bool result = false;
     const char *pChar = pLine;
     PRInt32        len = 0;
     char        tab = 9;
@@ -335,7 +335,7 @@ PRBool nsTextAddress::GetField( const char *pLine, PRInt32 maxLen, PRInt32 index
 
     const char *pStart = pChar;
     PRInt32        fLen = 0;
-    PRBool        quoted = PR_FALSE;
+    bool          quoted = false;
     if (*pChar == '"') {
         pStart++;
         fLen = -1;
@@ -460,7 +460,7 @@ nsresult nsTextAddress::ProcessLine( const char *pLine, PRInt32 len, nsString& e
     nsCString    fieldVal;
     PRInt32        fieldNum;
     PRInt32        numFields = 0;
-    PRBool        active;
+    bool          active;
     rv = m_fieldMap->GetMapSize( &numFields);
     for (PRInt32 i = 0; (i < numFields) && NS_SUCCEEDED( rv); i++) {
         active = PR_FALSE;

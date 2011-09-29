@@ -49,7 +49,7 @@
 
 static NS_DEFINE_CID(kCImapHostSessionListCID, NS_IIMAPHOSTSESSIONLIST_CID);
 
-nsIMAPNamespace::nsIMAPNamespace(EIMAPNamespaceType type, const char *prefix, char delimiter, PRBool from_prefs)
+nsIMAPNamespace::nsIMAPNamespace(EIMAPNamespaceType type, const char *prefix, char delimiter, bool from_prefs)
 {
 	m_namespaceType = type;
 	m_prefix = PL_strdup(prefix);
@@ -64,7 +64,7 @@ nsIMAPNamespace::~nsIMAPNamespace()
 	PR_FREEIF(m_prefix);
 }
 
-void nsIMAPNamespace::SetDelimiter(char delimiter, PRBool delimiterFilledIn)
+void nsIMAPNamespace::SetDelimiter(char delimiter, bool delimiterFilledIn)
 {
   m_delimiter = delimiter;
   m_delimiterFilledIn = delimiterFilledIn;
@@ -225,7 +225,7 @@ nsIMAPNamespaceList::~nsIMAPNamespaceList()
 }
 
 // ClearNamespaces removes and deletes the namespaces specified, and if there are no namespaces left,
-void nsIMAPNamespaceList::ClearNamespaces(PRBool deleteFromPrefsNamespaces, PRBool deleteServerAdvertisedNamespaces, PRBool reallyDelete)
+void nsIMAPNamespaceList::ClearNamespaces(bool deleteFromPrefsNamespaces, bool deleteServerAdvertisedNamespaces, bool reallyDelete)
 {
 	int nodeIndex;
 	
@@ -570,13 +570,13 @@ GetFolderIsNamespace returns TRUE if the given folder is the folder representing
 a namespace.
 */
 
-PRBool nsIMAPNamespaceList::GetFolderIsNamespace(const char *hostName,
+bool nsIMAPNamespaceList::GetFolderIsNamespace(const char *hostName,
                                                  const char *canonicalFolderName,
                                                  char delimiter,nsIMAPNamespace *namespaceForFolder)
 {
   NS_ASSERTION(namespaceForFolder, "null namespace");
   
-  PRBool rv = PR_FALSE;
+  bool rv = false;
   
   const char *prefix = namespaceForFolder->GetPrefix();
   NS_ASSERTION(prefix, "namespace has no prefix");
@@ -586,7 +586,7 @@ PRBool nsIMAPNamespaceList::GetFolderIsNamespace(const char *hostName,
   char *convertedFolderName = AllocateServerFolderName(canonicalFolderName, delimiter);
   if (convertedFolderName)
   {
-    PRBool lastCharIsDelimiter = (prefix[strlen(prefix) - 1] == delimiter);
+    bool lastCharIsDelimiter = (prefix[strlen(prefix) - 1] == delimiter);
     
     if (lastCharIsDelimiter)
     {

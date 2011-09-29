@@ -259,7 +259,7 @@ nsresult nsMsgMailViewList::LoadMailViews()
     rv = file->AppendNative(nsDependentCString("mailViews.dat"));
 
     // if the file doesn't exist, we should try to get it from the defaults directory and copy it over
-    PRBool exists = PR_FALSE;
+    bool exists = false;
     file->Exists(&exists);
     if (!exists)
     {

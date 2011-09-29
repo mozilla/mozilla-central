@@ -68,15 +68,15 @@ public:
   NS_IMETHOD GetURI(nsACString &aURI);
   NS_IMETHOD GetChildCards(nsISimpleEnumerator **aCards);
   NS_IMETHOD GetChildNodes(nsISimpleEnumerator **aNodes);
-  NS_IMETHOD GetIsQuery(PRBool *aResult);
-  NS_IMETHOD HasCard(nsIAbCard *aCard, PRBool *aHasCard);
-  NS_IMETHOD HasDirectory(nsIAbDirectory *aDirectory, PRBool *aHasDirectory);
+  NS_IMETHOD GetIsQuery(bool *aResult);
+  NS_IMETHOD HasCard(nsIAbCard *aCard, bool *aHasCard);
+  NS_IMETHOD HasDirectory(nsIAbDirectory *aDirectory, bool *aHasDirectory);
   NS_IMETHOD DeleteCards(nsIArray *aCardList);
   NS_IMETHOD DeleteDirectory(nsIAbDirectory *aDirectory);
-  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, PRBool *aResult);
+  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, bool *aResult);
   NS_IMETHOD AddCard(nsIAbCard *aData, nsIAbCard **addedCard);
   NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
-  NS_IMETHOD DropCard(nsIAbCard *aData, PRBool needToCopyCard);
+  NS_IMETHOD DropCard(nsIAbCard *aData, bool needToCopyCard);
   NS_IMETHOD AddMailList(nsIAbDirectory *aMailList, nsIAbDirectory **addedList);
   NS_IMETHOD EditMailListToDatabase(nsIAbCard *listCard);
   

@@ -395,7 +395,7 @@ nsresult
 nsMimeBaseEmitter::StartAttachment(const nsACString &name,
                                    const char *contentType,
                                    const char *url,
-                                   PRBool aIsExternalAttachment)
+                                   bool aIsExternalAttachment)
 {
   // Ok, now we will setup the attachment info
   mCurrentAttachment = (attachmentInfoType *) PR_NEWZAP(attachmentInfoType);
@@ -574,7 +574,7 @@ nsMimeBaseEmitter::GetHeaderValue(const char  *aHeaderName)
 // important for forward and reply operations
 //
 NS_IMETHODIMP
-nsMimeBaseEmitter::StartHeader(PRBool rootMailHeader, PRBool headerOnly, const char *msgID,
+nsMimeBaseEmitter::StartHeader(bool rootMailHeader, bool headerOnly, const char *msgID,
                                const char *outCharset)
 {
   mDocHeader = rootMailHeader;
@@ -701,7 +701,7 @@ nsMimeBaseEmitter::AddAllHeaders(const nsACString &allheaders)
 nsresult
 nsMimeBaseEmitter::GenerateDateString(const char * dateString,
                                       nsACString &formattedDate,
-                                      PRBool showDateForToday)
+                                      bool showDateForToday)
 {
   nsresult rv = NS_OK;
 
@@ -716,8 +716,8 @@ nsMimeBaseEmitter::GenerateDateString(const char * dateString,
    * We also evaluate the pref original_date which was introduced
    * as makeshift in bug 118899.
    */
-  PRBool displaySenderTimezone = PR_FALSE;
-  PRBool displayOriginalDate = PR_FALSE;
+  bool displaySenderTimezone = false;
+  bool displayOriginalDate = false;
 
   nsCOMPtr<nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -801,7 +801,7 @@ nsMimeBaseEmitter::GetLocalizedDateString(const char * dateString)
 {
   char *i18nValue = nsnull;
 
-  PRBool displayOriginalDate = PR_FALSE;
+  bool displayOriginalDate = false;
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
 
   if (prefBranch)
@@ -1111,7 +1111,7 @@ nsMimeBaseEmitter::EndHeader(const nsACString &name)
 
 // body handling routines
 NS_IMETHODIMP
-nsMimeBaseEmitter::StartBody(PRBool bodyOnly, const char *msgID, const char *outCharset)
+nsMimeBaseEmitter::StartBody(bool bodyOnly, const char *msgID, const char *outCharset)
 {
   return NS_OK;
 }

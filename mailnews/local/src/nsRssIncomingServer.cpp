@@ -128,7 +128,7 @@ NS_IMETHODIMP nsRssIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
   rv = path->AppendNative(NS_LITERAL_CSTRING("Trash"));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool exists;
+  bool exists;
   rv = path->Exists(&exists);
   if (!exists)
     rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
@@ -190,12 +190,12 @@ NS_IMETHODIMP nsRssIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlLi
 
   // before we even try to get New Mail, check to see if the passed in folder was the root folder.
   // If it was, then call PerformBiff which will properly walk through each RSS folder, asking it to check for new Mail.
-  PRBool rootFolder = PR_FALSE;
+  bool rootFolder = false;
   aFolder->GetIsServer(&rootFolder);
   if (rootFolder)
     return PerformBiff(aMsgWindow);
 
-  PRBool valid = PR_FALSE;
+  bool valid = false;
   nsCOMPtr <nsIMsgDatabase> db;
   nsresult rv;
   nsCOMPtr <nsINewsBlogFeedDownloader> rssDownloader = do_GetService("@mozilla.org/newsblog-feed-downloader;1", &rv);
@@ -237,21 +237,21 @@ NS_IMETHODIMP nsRssIncomingServer::GetOfflineSupportLevel(PRInt32 *aSupportLevel
   return NS_OK;
 }
 
-NS_IMETHODIMP nsRssIncomingServer::GetSupportsDiskSpace(PRBool *aSupportsDiskSpace)
+NS_IMETHODIMP nsRssIncomingServer::GetSupportsDiskSpace(bool *aSupportsDiskSpace)
 {
   NS_ENSURE_ARG_POINTER(aSupportsDiskSpace);
   *aSupportsDiskSpace = PR_TRUE;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsRssIncomingServer::GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff)
+NS_IMETHODIMP nsRssIncomingServer::GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff)
 {
   NS_ENSURE_ARG_POINTER(aServerRequiresPasswordForBiff);
   *aServerRequiresPasswordForBiff = PR_FALSE;  // for rss folders, we don't require a password
   return NS_OK;
 }
 
-NS_IMETHODIMP nsRssIncomingServer::GetCanSearchMessages(PRBool *canSearchMessages)
+NS_IMETHODIMP nsRssIncomingServer::GetCanSearchMessages(bool *canSearchMessages)
 {
   NS_ENSURE_ARG_POINTER(canSearchMessages);
   *canSearchMessages = PR_TRUE;
@@ -264,8 +264,8 @@ NS_IMETHODIMP nsRssIncomingServer::MsgAdded(nsIMsgDBHdr *aMsg)
 }
 
 NS_IMETHODIMP nsRssIncomingServer::MsgsClassified(nsIArray *aMsgs,
-                                                  PRBool aJunkProcessed,
-                                                  PRBool aTraitProcessed)
+                                                  bool aJunkProcessed,
+                                                  bool aTraitProcessed)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -276,7 +276,7 @@ NS_IMETHODIMP nsRssIncomingServer::MsgsDeleted(nsIArray *aMsgs)
 }
 
 NS_IMETHODIMP nsRssIncomingServer::MsgsMoveCopyCompleted(
-  PRBool aMove, nsIArray *aSrcMsgs, nsIMsgFolder *aDestFolder,
+  bool aMove, nsIArray *aSrcMsgs, nsIMsgFolder *aDestFolder,
   nsIArray *aDestMsgs)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
@@ -298,7 +298,7 @@ NS_IMETHODIMP nsRssIncomingServer::FolderDeleted(nsIMsgFolder *aFolder)
   return FolderChanged(aFolder, PR_TRUE);
 }
 
-NS_IMETHODIMP nsRssIncomingServer::FolderMoveCopyCompleted(PRBool aMove, nsIMsgFolder *aSrcFolder, nsIMsgFolder *aDestFolder)
+NS_IMETHODIMP nsRssIncomingServer::FolderMoveCopyCompleted(bool aMove, nsIMsgFolder *aSrcFolder, nsIMsgFolder *aDestFolder)
 {
   return FolderChanged(aSrcFolder, PR_FALSE);
 }
@@ -313,7 +313,7 @@ NS_IMETHODIMP nsRssIncomingServer::ItemEvent(nsISupports *aItem, const nsACStrin
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-nsresult nsRssIncomingServer::FolderChanged(nsIMsgFolder *aFolder, PRBool aUnsubscribe)
+nsresult nsRssIncomingServer::FolderChanged(nsIMsgFolder *aFolder, bool aUnsubscribe)
 {
   if (!aFolder)
     return NS_OK;

@@ -83,7 +83,7 @@ public:
   NS_DECL_NSIOBSERVER
 
 #ifdef MOZ_THUNDERBIRD
-  nsresult ShowNewAlertNotification(PRBool aUserInitiated, const nsString& aAlertTitle, const nsString& aAlertText);
+  nsresult ShowNewAlertNotification(bool aUserInitiated, const nsString& aAlertTitle, const nsString& aAlertText);
 #else
   nsresult ShowAlertMessage(const nsString& aAlertTitle, const nsString& aAlertText, const nsACString& aFolderURI);
 #endif
@@ -104,19 +104,19 @@ private:
   nsCOMPtr<nsIAtom> mBiffStateAtom;
   PRUint32 mCurrentBiffState;
 
-  PRPackedBool mStoreUnreadCounts;   // for windows XP, we do a lot of work to store the last unread count for the inbox
+  bool mStoreUnreadCounts;   // for windows XP, we do a lot of work to store the last unread count for the inbox
                                      // this flag is set to true when we are doing that
-  PRPackedBool mBiffIconVisible;
-  PRPackedBool mBiffIconInitialized;
-  PRPackedBool mSuppressBiffIcon;
-  PRPackedBool mAlertInProgress;
+  bool mBiffIconVisible;
+  bool mBiffIconInitialized;
+  bool mSuppressBiffIcon;
+  bool mAlertInProgress;
   
   // "might" because we don't know until we check 
   // what type of server is associated with the default account
-  PRPackedBool    mDefaultAccountMightHaveAnInbox;
+  bool            mDefaultAccountMightHaveAnInbox;
 
   // True if the timer is running
-  PRPackedBool mUnreadTimerActive;
+  bool mUnreadTimerActive;
 
   nsresult ResetCurrent();
   nsresult RemoveCurrentFromRegistry();

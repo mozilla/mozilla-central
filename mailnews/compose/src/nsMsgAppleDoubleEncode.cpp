@@ -61,14 +61,14 @@
 
 void	
 MacGetFileType(nsILocalFile   *fs, 
-               PRBool       *useDefault, 
+               bool         *useDefault, 
                char         **fileType, 
                char         **encoding)
 {
 	if ((fs == NULL) || (fileType == NULL) || (encoding == NULL))
 		return;
 
-  PRBool exists = PR_FALSE;
+  bool exists = false;
   fs->Exists(&exists);
   if (!exists)
     return;
@@ -127,7 +127,7 @@ int ap_encode_init( appledouble_encode_object *p_ap_encode_obj,
 {
   nsCOMPtr <nsILocalFile> myFile;
   NS_NewNativeLocalFile(nsDependentCString(fname), PR_TRUE, getter_AddRefs(myFile));
-  PRBool exists;
+  bool exists;
   if (myFile && NS_SUCCEEDED(myFile->Exists(&exists)) && !exists)
     return -1;
 
@@ -281,7 +281,7 @@ int ap_encode_next(
 
 int ap_encode_end(
 	appledouble_encode_object *p_ap_encode_obj, 
-	PRBool is_aborting)
+	bool is_aborting)
 {
 	/*
 	** clear up the apple doubler.

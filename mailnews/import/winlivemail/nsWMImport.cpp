@@ -90,14 +90,14 @@ public:
   // nsIImportmail interface
 
   /* void GetDefaultLocation (out nsIFile location, out boolean found, out boolean userVerify); */
-  NS_IMETHOD GetDefaultLocation(nsIFile **location, PRBool *found, PRBool *userVerify);
+  NS_IMETHOD GetDefaultLocation(nsIFile **location, bool *found, bool *userVerify);
 
   /* nsISupportsArray FindMailboxes (in nsIFile location); */
   NS_IMETHOD FindMailboxes(nsIFile *location, nsISupportsArray **_retval);
 
   /* void ImportMailbox (in nsIImportMailboxDescriptor source, in nsIFile destination, out boolean fatalError); */
   NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source, nsIFile *destination,
-                PRUnichar **pErrorLog, PRUnichar **pSuccessLog, PRBool *fatalError);
+                PRUnichar **pErrorLog, PRUnichar **pSuccessLog, bool *fatalError);
 
   /* unsigned long GetImportProgress (); */
   NS_IMETHOD GetImportProgress(PRUint32 *_retval);
@@ -160,7 +160,7 @@ NS_IMETHODIMP nsWMImport::GetSupports( char **supports)
   return( NS_OK);
 }
 
-NS_IMETHODIMP nsWMImport::GetSupportsUpgrade( PRBool *pUpgrade)
+NS_IMETHODIMP nsWMImport::GetSupportsUpgrade( bool *pUpgrade)
 {
   NS_PRECONDITION(pUpgrade != nsnull, "null ptr");
   if (! pUpgrade)
@@ -217,8 +217,8 @@ NS_IMETHODIMP ImportWMMailImpl::TranslateFolderName(const nsAString & aFolderNam
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP ImportWMMailImpl::GetDefaultLocation(nsIFile **ppLoc, PRBool *found,
-                                                   PRBool *userVerify)
+NS_IMETHODIMP ImportWMMailImpl::GetDefaultLocation(nsIFile **ppLoc, bool *found,
+                                                   bool *userVerify)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -274,7 +274,7 @@ NS_IMETHODIMP ImportWMMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSourc
                                               nsIFile *pDestination,
                                               PRUnichar **pErrorLog,
                                               PRUnichar **pSuccessLog,
-                                              PRBool *fatalError)
+                                              bool *fatalError)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

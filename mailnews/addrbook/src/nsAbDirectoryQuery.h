@@ -74,7 +74,7 @@ public:
 protected:
     nsCOMPtr<nsISupports> mExpression;
     nsCOMPtr<nsISupports> mTypeSpecificArg;
-    PRBool mQuerySubDirectories;
+    bool mQuerySubDirectories;
 };
 
 
@@ -111,12 +111,12 @@ protected:
     nsresult query(nsIAbDirectory* directory,
                    nsIAbBooleanExpression* expression,
                    nsIAbDirSearchListener* listener,
-                   PRBool doSubDirectories,
+                   bool doSubDirectories,
                    PRInt32* resultLimit);
     nsresult queryChildren(nsIAbDirectory* directory,
                            nsIAbBooleanExpression* expression,
                            nsIAbDirSearchListener* listener,
-                           PRBool doSubDirectories,
+                           bool doSubDirectories,
                            PRInt32* resultLimit);
     nsresult queryCards(nsIAbDirectory* directory,
                         nsIAbBooleanExpression* expression,
@@ -128,10 +128,10 @@ protected:
                        PRInt32* resultLimit);
     nsresult matchCardExpression(nsIAbCard* card,
                                  nsIAbBooleanExpression* expression,
-                                 PRBool* result);
+                                 bool* result);
     nsresult matchCardCondition(nsIAbCard* card,
                                 nsIAbBooleanConditionString* condition,
-                                PRBool* matchFound);
+                                bool* matchFound);
 
     nsresult queryMatch (nsIAbCard* card,
         nsIAbDirSearchListener* listener);

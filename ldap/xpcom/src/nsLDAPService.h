@@ -66,17 +66,17 @@ class nsLDAPServiceEntry
   public:
     nsLDAPServiceEntry();
     virtual ~nsLDAPServiceEntry();
-    PRBool Init();
+    bool Init();
 
     inline PRUint32 GetLeases();
     inline void IncrementLeases();
-    inline PRBool DecrementLeases();
+    inline bool DecrementLeases();
 
     inline PRTime GetTimestamp();
     inline void SetTimestamp();
 
     inline already_AddRefed<nsILDAPServer> GetServer();
-    inline PRBool SetServer(nsILDAPServer *aServer);
+    inline bool SetServer(nsILDAPServer *aServer);
 
     inline already_AddRefed<nsILDAPConnection> GetConnection();
     inline void SetConnection(nsILDAPConnection *aConnection);
@@ -85,18 +85,18 @@ class nsLDAPServiceEntry
     inline void SetMessage(nsILDAPMessage *aMessage);
 
     inline already_AddRefed<nsILDAPMessageListener> PopListener();
-    inline PRBool PushListener(nsILDAPMessageListener *);
+    inline bool PushListener(nsILDAPMessageListener *);
 
-    inline PRBool IsRebinding();
-    inline void SetRebinding(PRBool);
+    inline bool IsRebinding();
+    inline void SetRebinding(bool);
 
-    inline PRBool DeleteEntry();
+    inline bool DeleteEntry();
 
   protected:
     PRUint32 mLeases;         // The number of leases currently granted
     PRTime mTimestamp;        // Last time this server was "used"
-    PRBool mDelete;           // This entry is due for deletion
-    PRBool mRebinding;        // Keep state if we are rebinding or not
+    bool mDelete;           // This entry is due for deletion
+    bool mRebinding;        // Keep state if we are rebinding or not
 
     nsCOMPtr<nsILDAPServer> mServer;
     nsCOMPtr<nsILDAPConnection> mConnection;

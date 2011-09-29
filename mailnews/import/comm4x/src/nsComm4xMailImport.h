@@ -87,14 +87,14 @@ public:
     // nsIImportMail interface
     
     /* void GetDefaultLocation (out nsIFile location, out boolean found, out boolean userVerify); */
-    NS_IMETHOD GetDefaultLocation(nsIFile **location, PRBool *found, PRBool *userVerify);
+    NS_IMETHOD GetDefaultLocation(nsIFile **location, bool *found, bool *userVerify);
 
     /* nsISupportsArray FindMailboxes (in nsIFile location); */
     NS_IMETHOD FindMailboxes(nsIFile *location, nsISupportsArray **_retval);
 
     /* void ImportMailbox (in nsIImportMailboxDescriptor source, in nsIFile destination, out boolean fatalError); */
     NS_IMETHOD ImportMailbox(nsIImportMailboxDescriptor *source, nsIFile *destination, 
-                             PRUnichar **pErrorLog, PRUnichar **pSuccessLog, PRBool *fatalError);
+                             PRUnichar **pErrorLog, PRUnichar **pSuccessLog, bool *fatalError);
 
     /* unsigned long GetImportProgress (); */
     NS_IMETHOD GetImportProgress(PRUint32 *_retval);

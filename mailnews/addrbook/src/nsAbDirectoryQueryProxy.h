@@ -53,7 +53,7 @@ public:
     virtual ~nsAbDirectoryQueryProxy();
 
 protected:
-    PRBool mInitiated;
+    bool mInitiated;
     nsCOMPtr<nsIAbDirectoryQuery> mDirectoryQuery;
 };
 

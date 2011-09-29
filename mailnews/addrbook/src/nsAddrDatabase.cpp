@@ -319,9 +319,9 @@ nsAddrDatabase* nsAddrDatabase::FindInCache(nsIFile *dbName)
   return nsnull;
 }
 
-PRBool nsAddrDatabase::MatchDbName(nsIFile* dbName)    // returns PR_TRUE if they match
+bool nsAddrDatabase::MatchDbName(nsIFile* dbName)    // returns true if they match
 {
-    PRBool dbMatches = PR_FALSE;
+    bool dbMatches = false;
 
     nsresult rv = m_dbName->Equals(dbName, &dbMatches);
     if (NS_FAILED(rv))
@@ -366,7 +366,7 @@ NS_IMETHODIMP nsAddrDatabase::SetDbPath(nsIFile* aDbPath)
 }
 
 NS_IMETHODIMP nsAddrDatabase::Open
-(nsIFile *aMabFile, PRBool aCreate, PRBool upgrading /* unused */, nsIAddrDatabase** pAddrDB)
+(nsIFile *aMabFile, bool aCreate, bool upgrading /* unused */, nsIAddrDatabase** pAddrDB)
 {
   *pAddrDB = nsnull;
 
@@ -383,7 +383,7 @@ NS_IMETHODIMP nsAddrDatabase::Open
 
   if (rv == NS_ERROR_FILE_ACCESS_DENIED)
   {
-    static PRBool gAlreadyAlerted;
+    static bool gAlreadyAlerted;
      // only do this once per session to avoid annoying the user
     if (!gAlreadyAlerted)
     {
@@ -508,7 +508,7 @@ nsresult nsAddrDatabase::AlertAboutLockedMabFile(const PRUnichar *aFileName)
 }
 
 nsresult
-nsAddrDatabase::OpenInternal(nsIFile *aMabFile, PRBool aCreate, nsIAddrDatabase** pAddrDB)
+nsAddrDatabase::OpenInternal(nsIFile *aMabFile, bool aCreate, nsIAddrDatabase** pAddrDB)
 {
   nsAddrDatabase *pAddressBookDB = new nsAddrDatabase();
   if (!pAddressBookDB) {
@@ -537,7 +537,7 @@ nsAddrDatabase::OpenInternal(nsIFile *aMabFile, PRBool aCreate, nsIAddrDatabase*
 // Open the MDB database synchronously. If successful, this routine
 // will set up the m_mdbStore and m_mdbEnv of the database object
 // so other database calls can work.
-NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, PRBool create)
+NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, bool create)
 {
   nsresult ret = NS_OK;
   nsCOMPtr<nsIMdbFactory> mdbFactory;
@@ -559,7 +559,7 @@ NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, PRBool create)
       if (m_mdbEnv)
         m_mdbEnv->SetAutoClear(PR_TRUE);
 
-      PRBool dbNameExists = PR_FALSE;
+      bool dbNameExists = false;
       ret = dbName->Exists(&dbNameExists);
       NS_ENSURE_SUCCESS(ret, ret);
 
@@ -659,7 +659,7 @@ NS_IMETHODIMP nsAddrDatabase::OpenMDB(nsIFile *dbName, PRBool create)
   return ret;
 }
 
-NS_IMETHODIMP nsAddrDatabase::CloseMDB(PRBool commit)
+NS_IMETHODIMP nsAddrDatabase::CloseMDB(bool commit)
 {
     if (commit)
         Commit(nsAddrDBCommitType::kSessionCommit);
@@ -747,7 +747,7 @@ NS_IMETHODIMP nsAddrDatabase::Commit(PRUint32 commitType)
   return err;
 }
 
-NS_IMETHODIMP nsAddrDatabase::Close(PRBool forceCommit /* = TRUE */)
+NS_IMETHODIMP nsAddrDatabase::Close(bool forceCommit /* = TRUE */)
 {
     return CloseMDB(forceCommit);
 }
@@ -831,7 +831,7 @@ nsresult nsAddrDatabase::DeleteRowFromDeletedCardsTable(nsIMdbRow *pCardRow)
 }
 
 
-nsresult nsAddrDatabase::InitDeletedCardsTable(PRBool aCreate)
+nsresult nsAddrDatabase::InitDeletedCardsTable(bool aCreate)
 {
   nsresult mdberr = NS_OK;
   if (!m_mdbDeletedCardsTable)
@@ -1016,7 +1016,7 @@ nsresult nsAddrDatabase::UpdateLowercaseEmailListName()
   nsIMdbTableRowCursor* rowCursor = nsnull;
   nsIMdbRow* findRow = nsnull;
   mdb_pos    rowPos = 0;
-  PRBool commitRequired = PR_FALSE;
+  bool commitRequired = false;
 
   mdb_err merror = m_mdbPabTable->GetTableRowCursor(m_mdbEnv, -1, &rowCursor);
 
@@ -1218,7 +1218,7 @@ nsresult nsAddrDatabase::AddAttributeColumnsToRow(nsIAbCard *card, nsIMdbRow *ca
     rv = card->GetProperties(getter_AddRefs(properties));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRBool hasMore;
+    bool hasMore;
     while (NS_SUCCEEDED(properties->HasMoreElements(&hasMore)) && hasMore)
     {
       nsCOMPtr<nsISupports> next;
@@ -1254,7 +1254,7 @@ nsresult nsAddrDatabase::AddAttributeColumnsToRow(nsIAbCard *card, nsIMdbRow *ca
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAddrDatabase::CreateNewCardAndAddToDB(nsIAbCard *aNewCard, PRBool aNotify /* = FALSE */, nsIAbDirectory *aParent)
+NS_IMETHODIMP nsAddrDatabase::CreateNewCardAndAddToDB(nsIAbCard *aNewCard, bool aNotify /* = FALSE */, nsIAbDirectory *aParent)
 {
   nsCOMPtr <nsIMdbRow> cardRow;
 
@@ -1333,7 +1333,7 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewCardAndAddToDB(nsIAbCard *aNewCard, PRBoo
   return rv;
 }
 
-NS_IMETHODIMP nsAddrDatabase::CreateNewListCardAndAddToDB(nsIAbDirectory *aList, PRUint32 listRowID, nsIAbCard *newCard, PRBool notify /* = FALSE */)
+NS_IMETHODIMP nsAddrDatabase::CreateNewListCardAndAddToDB(nsIAbDirectory *aList, PRUint32 listRowID, nsIAbCard *newCard, bool notify /* = FALSE */)
 {
   if (!newCard || !m_mdbPabTable || !m_mdbStore || !m_mdbEnv)
         return NS_ERROR_NULL_POINTER;
@@ -1364,7 +1364,7 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewListCardAndAddToDB(nsIAbDirectory *aList,
     nsCOMPtr<nsIAbCard> currentCard = do_QueryElementAt(addressList, i, &rv);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    PRBool equals;
+    bool equals;
     rv = newCard->Equals(currentCard, &equals);
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -1402,7 +1402,7 @@ NS_IMETHODIMP nsAddrDatabase::CreateNewListCardAndAddToDB(nsIAbDirectory *aList,
 }
 
 NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
-(nsIAbCard *aPCard, nsIMdbRow *aPListRow, PRUint32 aPos, nsIAbCard** aPNewCard, PRBool aInMailingList, nsIAbDirectory *aParent, nsIAbDirectory *aRoot)
+(nsIAbCard *aPCard, nsIMdbRow *aPListRow, PRUint32 aPos, nsIAbCard** aPNewCard, bool aInMailingList, nsIAbDirectory *aParent, nsIAbDirectory *aRoot)
 {
   if (!aPCard || !aPListRow || !m_mdbStore || !m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
@@ -1417,7 +1417,7 @@ NS_IMETHODIMP nsAddrDatabase::AddListCardColumnsToRow
     // PR_TRUE (ie, case insensitive) without reading bugs #128535 and #121478.
     err = GetRowFromAttribute(kPriEmailProperty, NS_ConvertUTF16toUTF8(email),
                               PR_FALSE /* retain case */, &pCardRow, nsnull);
-    PRBool cardWasAdded = PR_FALSE;
+    bool cardWasAdded = false;
     if (NS_FAILED(err) || !pCardRow)
     {
       //New Email, then add a new row with this email
@@ -1547,7 +1547,7 @@ nsresult nsAddrDatabase::AddListAttributeColumnsToRow(nsIAbDirectory *list, nsIM
             if (NS_FAILED(err))
                 continue;
 
-            PRBool listHasCard = PR_FALSE;
+            bool listHasCard = false;
             err = list->HasCard(pCard, &listHasCard);
 
             // start from 1
@@ -1604,7 +1604,7 @@ nsresult nsAddrDatabase::GetAddressRowByPos(nsIMdbRow* listRow, PRUint16 pos, ns
   return GetCardRowByRowID(rowID, cardRow);
 }
 
-NS_IMETHODIMP nsAddrDatabase::CreateMailListAndAddToDB(nsIAbDirectory *aNewList, PRBool aNotify /* = FALSE */, nsIAbDirectory *aParent)
+NS_IMETHODIMP nsAddrDatabase::CreateMailListAndAddToDB(nsIAbDirectory *aNewList, bool aNotify /* = FALSE */, nsIAbDirectory *aParent)
 {
     if (!aNewList || !m_mdbPabTable || !m_mdbEnv)
         return NS_ERROR_NULL_POINTER;
@@ -1661,13 +1661,13 @@ void nsAddrDatabase::DeleteCardFromAllMailLists(mdb_id cardRowID)
     }
 }
 
-NS_IMETHODIMP nsAddrDatabase::DeleteCard(nsIAbCard *aCard, PRBool aNotify, nsIAbDirectory *aParent)
+NS_IMETHODIMP nsAddrDatabase::DeleteCard(nsIAbCard *aCard, bool aNotify, nsIAbDirectory *aParent)
 {
   if (!aCard || !m_mdbPabTable || !m_mdbStore || !m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
 
   nsresult err = NS_OK;
-  PRBool bIsMailList = PR_FALSE;
+  bool bIsMailList = false;
   aCard->GetIsMailList(&bIsMailList);
 
   // get the right row
@@ -1760,7 +1760,7 @@ nsresult nsAddrDatabase::DeleteCardFromListRow(nsIMdbRow* pListRow, mdb_id cardR
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAddrDatabase::DeleteCardFromMailList(nsIAbDirectory *mailList, nsIAbCard *card, PRBool aNotify)
+NS_IMETHODIMP nsAddrDatabase::DeleteCardFromMailList(nsIAbDirectory *mailList, nsIAbCard *card, bool aNotify)
 {
   if (!card || !m_mdbPabTable || !m_mdbStore || !m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
@@ -1796,7 +1796,7 @@ NS_IMETHODIMP nsAddrDatabase::DeleteCardFromMailList(nsIAbDirectory *mailList, n
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAddrDatabase::SetCardValue(nsIAbCard *card, const char *name, const PRUnichar *value, PRBool notify)
+NS_IMETHODIMP nsAddrDatabase::SetCardValue(nsIAbCard *card, const char *name, const PRUnichar *value, bool notify)
 {
   NS_ENSURE_ARG_POINTER(card);
   NS_ENSURE_ARG_POINTER(name);
@@ -1888,7 +1888,7 @@ NS_IMETHODIMP nsAddrDatabase::GetDeletedCardList(nsIArray **aResult)
   {
     nsCOMPtr<nsIMdbTableRowCursor>      rowCursor;
     mdb_pos                             rowPos;
-    PRBool                              done = PR_FALSE;
+    bool                                done = false;
     nsCOMPtr<nsIMdbRow>                 currentRow;
 
     m_mdbDeletedCardsTable->GetTableRowCursor(m_mdbEnv, -1, getter_AddRefs(rowCursor));
@@ -1970,7 +1970,7 @@ NS_IMETHODIMP nsAddrDatabase::PurgeDeletedCardTable()
     return NS_OK;
 }
 
-NS_IMETHODIMP nsAddrDatabase::EditCard(nsIAbCard *aCard, PRBool aNotify, nsIAbDirectory *aParent)
+NS_IMETHODIMP nsAddrDatabase::EditCard(nsIAbCard *aCard, bool aNotify, nsIAbDirectory *aParent)
 {
   // XXX make sure this isn't getting called when we're just editing one or two well known fields
   if (!aCard || !m_mdbPabTable || !m_mdbStore || !m_mdbEnv)
@@ -2004,7 +2004,7 @@ NS_IMETHODIMP nsAddrDatabase::EditCard(nsIAbCard *aCard, PRBool aNotify, nsIAbDi
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAddrDatabase::ContainsCard(nsIAbCard *card, PRBool *hasCard)
+NS_IMETHODIMP nsAddrDatabase::ContainsCard(nsIAbCard *card, bool *hasCard)
 {
     if (!card || !m_mdbPabTable || !m_mdbEnv)
         return NS_ERROR_NULL_POINTER;
@@ -2012,7 +2012,7 @@ NS_IMETHODIMP nsAddrDatabase::ContainsCard(nsIAbCard *card, PRBool *hasCard)
     nsresult err = NS_OK;
     mdb_bool hasOid;
     mdbOid rowOid;
-    PRBool bIsMailList;
+    bool bIsMailList;
 
     card->GetIsMailList(&bIsMailList);
 
@@ -2068,7 +2068,7 @@ NS_IMETHODIMP nsAddrDatabase::DeleteMailList(nsIAbDirectory *aMailList,
   return err;
 }
 
-NS_IMETHODIMP nsAddrDatabase::EditMailList(nsIAbDirectory *mailList, nsIAbCard *listCard, PRBool notify)
+NS_IMETHODIMP nsAddrDatabase::EditMailList(nsIAbDirectory *mailList, nsIAbCard *listCard, bool notify)
 {
   if (!mailList || !m_mdbPabTable || !m_mdbStore || !m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
@@ -2106,7 +2106,7 @@ NS_IMETHODIMP nsAddrDatabase::EditMailList(nsIAbDirectory *mailList, nsIAbCard *
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAddrDatabase::ContainsMailList(nsIAbDirectory *mailList, PRBool *hasList)
+NS_IMETHODIMP nsAddrDatabase::ContainsMailList(nsIAbDirectory *mailList, bool *hasList)
 {
     if (!mailList || !m_mdbPabTable || !m_mdbEnv)
         return NS_ERROR_NULL_POINTER;
@@ -2267,7 +2267,7 @@ nsresult nsAddrDatabase::AddIntColumn(nsIMdbRow* cardRow, mdb_column inColumn, P
   return (err == NS_OK) ? NS_OK : NS_ERROR_FAILURE;
 }
 
-nsresult nsAddrDatabase::AddBoolColumn(nsIMdbRow* cardRow, mdb_column inColumn, PRBool bValue)
+nsresult nsAddrDatabase::AddBoolColumn(nsIMdbRow* cardRow, mdb_column inColumn, bool bValue)
 {
   if (!m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
@@ -2357,7 +2357,7 @@ nsresult nsAddrDatabase::GetIntColumn
     return err;
 }
 
-nsresult nsAddrDatabase::GetBoolColumn(nsIMdbRow *cardRow, mdb_token outToken, PRBool* pValue)
+nsresult nsAddrDatabase::GetBoolColumn(nsIMdbRow *cardRow, mdb_token outToken, bool* pValue)
 {
   NS_ENSURE_ARG_POINTER(pValue);
 
@@ -2614,7 +2614,7 @@ void nsAddrDBEnumerator::Clear()
 NS_IMPL_ISUPPORTS2(nsAddrDBEnumerator, nsISimpleEnumerator, nsIAddrDBListener)
 
 NS_IMETHODIMP
-nsAddrDBEnumerator::HasMoreElements(PRBool *aResult)
+nsAddrDBEnumerator::HasMoreElements(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
     *aResult = PR_FALSE;
@@ -2768,7 +2768,7 @@ nsListAddressEnumerator::nsListAddressEnumerator(nsAddrDatabase* aDb,
 NS_IMPL_ISUPPORTS1(nsListAddressEnumerator, nsISimpleEnumerator)
 
 NS_IMETHODIMP
-nsListAddressEnumerator::HasMoreElements(PRBool *aResult)
+nsListAddressEnumerator::HasMoreElements(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -2854,7 +2854,7 @@ NS_IMETHODIMP nsAddrDatabase::GetMailingListsFromDB(nsIAbDirectory *parentDir)
     nsIMdbTableRowCursor*       rowCursor = nsnull;
     nsCOMPtr<nsIMdbRow> currentRow;
      mdb_pos                        rowPos;
-    PRBool                      done = PR_FALSE;
+    bool                        done = false;
 
   if (!m_mdbEnv)
     return NS_ERROR_NULL_POINTER;
@@ -3124,7 +3124,7 @@ nsresult nsAddrDatabase::GetListRowByRowID(mdb_id rowID, nsIMdbRow **dbRow)
 
 nsresult nsAddrDatabase::GetRowFromAttribute(const char *aName,
                                              const nsACString &aUTF8Value,
-                                             PRBool aCaseInsensitive,
+                                             bool aCaseInsensitive,
                                              nsIMdbRow **aCardRow,
                                              mdb_pos *aRowPos)
 {
@@ -3144,7 +3144,7 @@ nsresult nsAddrDatabase::GetRowFromAttribute(const char *aName,
 NS_IMETHODIMP nsAddrDatabase::GetCardFromAttribute(nsIAbDirectory *aDirectory,
                                                    const char *aName,
                                                    const nsACString &aUTF8Value,
-                                                   PRBool aCaseInsensitive,
+                                                   bool aCaseInsensitive,
                                                    nsIAbCard **aCardResult)
 {
   NS_ENSURE_ARG_POINTER(aCardResult);
@@ -3162,14 +3162,14 @@ NS_IMETHODIMP nsAddrDatabase::GetCardFromAttribute(nsIAbDirectory *aDirectory,
 NS_IMETHODIMP nsAddrDatabase::GetCardsFromAttribute(nsIAbDirectory *aDirectory,
                                                     const char *aName,
                                                     const nsACString & aUTF8Value,
-                                                    PRBool aCaseInsensitive,
+                                                    bool aCaseInsensitive,
                                                     nsISimpleEnumerator **cards)
 {
   NS_ENSURE_ARG_POINTER(cards);
 
   m_dbDirectory = do_GetWeakReference(aDirectory);
   nsCOMPtr<nsIMdbRow> row;
-  PRBool done = PR_FALSE;
+  bool done = false;
   nsCOMArray<nsIAbCard> list;
   nsCOMPtr<nsIAbCard> card;
   mdb_pos rowPos = -1;
@@ -3225,7 +3225,7 @@ NS_IMETHODIMP nsAddrDatabase::AddListDirNode(nsIMdbRow * listRow)
   return rv;
 }
 
-NS_IMETHODIMP nsAddrDatabase::FindMailListbyUnicodeName(const PRUnichar *listName, PRBool *exist)
+NS_IMETHODIMP nsAddrDatabase::FindMailListbyUnicodeName(const PRUnichar *listName, bool *exist)
 {
   nsAutoString unicodeString(listName);
   ToLowerCase(unicodeString);
@@ -3249,8 +3249,8 @@ NS_IMETHODIMP nsAddrDatabase::GetCardCount(PRUint32 *count)
     return rv;
 }
 
-PRBool
-nsAddrDatabase::HasRowButDeletedForCharColumn(const PRUnichar *unicodeStr, mdb_column findColumn, PRBool aIsCard, nsIMdbRow **aFindRow)
+bool
+nsAddrDatabase::HasRowButDeletedForCharColumn(const PRUnichar *unicodeStr, mdb_column findColumn, bool aIsCard, nsIMdbRow **aFindRow)
 {
   if (!m_mdbStore || !aFindRow || !m_mdbEnv)
     return PR_FALSE;
@@ -3301,8 +3301,8 @@ nsAddrDatabase::HasRowButDeletedForCharColumn(const PRUnichar *unicodeStr, mdb_c
  */
 nsresult
 nsAddrDatabase::GetRowForCharColumn(const PRUnichar *unicodeStr,
-                                    mdb_column findColumn, PRBool aIsCard,
-                                    PRBool aCaseInsensitive,
+                                    mdb_column findColumn, bool aIsCard,
+                                    bool aCaseInsensitive,
                                     nsIMdbRow **aFindRow,
                                     mdb_pos *aRowPos)
 {
@@ -3351,7 +3351,7 @@ nsAddrDatabase::GetRowForCharColumn(const PRUnichar *unicodeStr,
   // check if there is a non-deleted card
   nsCOMPtr<nsIMdbTableRowCursor> rowCursor;
   mdb_pos rowPos = -1;
-  PRBool done = PR_FALSE;
+  bool done = false;
   nsCOMPtr<nsIMdbRow> currentRow;
   nsAutoString columnValue;
 
@@ -3374,7 +3374,7 @@ nsAddrDatabase::GetRowForCharColumn(const PRUnichar *unicodeStr,
       {
         rv = GetStringColumn(currentRow, findColumn, columnValue);
 
-        PRBool equals = aCaseInsensitive ?
+        bool equals = aCaseInsensitive ?
           columnValue.Equals(unicodeStr, nsCaseInsensitiveStringComparator()) :
           columnValue.Equals(unicodeStr);
 

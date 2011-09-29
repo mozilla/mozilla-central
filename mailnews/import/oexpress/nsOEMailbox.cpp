@@ -50,21 +50,21 @@ public:
   CMbxScanner( nsString& name, nsIFile * mbxFile, nsIFile * dstFile);
   ~CMbxScanner();
 
-  virtual PRBool  Initialize( void);
-  virtual PRBool  DoWork( PRBool *pAbort, PRUint32 *pDone, PRUint32 *pCount);
+  virtual bool    Initialize( void);
+  virtual bool    DoWork( bool *pAbort, PRUint32 *pDone, PRUint32 *pCount);
 
-  PRBool    WasErrorFatal( void) { return( m_fatalError);}
+  bool      WasErrorFatal( void) { return( m_fatalError);}
   PRUint32  BytesProcessed( void) { return( m_didBytes);}
 
 protected:
-  PRBool  WriteMailItem( PRUint32 flags, PRUint32 offset, PRUint32 size, PRUint32 *pTotalMsgSize = nsnull);
+  bool    WriteMailItem( PRUint32 flags, PRUint32 offset, PRUint32 size, PRUint32 *pTotalMsgSize = nsnull);
   virtual void  CleanUp( void);
 
 private:
-  void  ReportWriteError( nsIFile * file, PRBool fatal = PR_TRUE);
-  void  ReportReadError( nsIFile * file, PRBool fatal = PR_TRUE);
-  PRBool CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes);
-  PRBool IsFromLineKey( PRUint8 *pBuf, PRUint32 max);
+  void  ReportWriteError( nsIFile * file, bool fatal = true);
+  void  ReportReadError( nsIFile * file, bool fatal = true);
+  bool CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes);
+  bool IsFromLineKey( PRUint8 *pBuf, PRUint32 max);
 
 public:
   PRUint32      m_msgCount;
@@ -80,7 +80,7 @@ protected:
   PRUint8 *     m_pOutBuffer;
   PRUint32      m_bufSz;
   PRUint32      m_didBytes;
-  PRBool        m_fatalError;
+  bool          m_fatalError;
   PRInt64      m_mbxFileSize;
   PRUint32      m_mbxOffset;
 
@@ -94,15 +94,15 @@ public:
   CIndexScanner( nsString& name, nsIFile * idxFile, nsIFile * mbxFile, nsIFile *dstFile);
   ~CIndexScanner();
 
-  virtual PRBool  Initialize( void);
-  virtual PRBool  DoWork( PRBool *pAbort, PRUint32 *pDone, PRUint32 *pCount);
+  virtual bool    Initialize( void);
+  virtual bool    DoWork( bool *pAbort, PRUint32 *pDone, PRUint32 *pCount);
 
 protected:
   virtual void    CleanUp( void);
 
 private:
-  PRBool          ValidateIdxFile( void);
-  PRBool          GetMailItem( PRUint32 *pFlags, PRUint32 *pOffset, PRUint32 *pSize);
+  bool            ValidateIdxFile( void);
+  bool            GetMailItem( PRUint32 *pFlags, PRUint32 *pOffset, PRUint32 *pSize);
 
 
 private:
@@ -114,9 +114,9 @@ private:
 };
 
 
-PRBool CImportMailbox::ImportMailbox( PRUint32 *pDone, PRBool *pAbort, nsString& name, nsIFile * inFile, nsIFile * outFile, PRUint32 *pCount)
+bool CImportMailbox::ImportMailbox( PRUint32 *pDone, bool *pAbort, nsString& name, nsIFile * inFile, nsIFile * outFile, PRUint32 *pCount)
 {
-  PRBool  done = PR_FALSE;
+  bool    done = false;
   nsresult rv;
   nsCOMPtr <nsILocalFile> localInFile = do_QueryInterface(inFile, &rv);
   nsCOMPtr <nsILocalFile> idxFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
@@ -172,7 +172,7 @@ PRBool CImportMailbox::ImportMailbox( PRUint32 *pDone, PRBool *pAbort, nsString&
 }
 
 
-PRBool CImportMailbox::GetIndexFile( nsIFile* file)
+bool CImportMailbox::GetIndexFile( nsIFile* file)
 {
   nsCString pLeaf;
   if (NS_FAILED( file->GetNativeLeafName(pLeaf)))
@@ -188,8 +188,8 @@ PRBool CImportMailbox::GetIndexFile( nsIFile* file)
   nsresult  rv;
   rv = file->SetNativeLeafName( pLeaf);
 
-  PRBool  isFile = PR_FALSE;
-  PRBool  exists = PR_FALSE;
+  bool    isFile = false;
+  bool    exists = false;
   if (NS_SUCCEEDED( rv)) rv = file->IsFile( &isFile);
   if (NS_SUCCEEDED( rv)) rv = file->Exists( &exists);
 
@@ -222,17 +222,17 @@ CMbxScanner::~CMbxScanner()
   CleanUp();
 }
 
-void CMbxScanner::ReportWriteError( nsIFile * file, PRBool fatal)
+void CMbxScanner::ReportWriteError( nsIFile * file, bool fatal)
 {
   m_fatalError = fatal;
 }
 
-void CMbxScanner::ReportReadError( nsIFile * file, PRBool fatal)
+void CMbxScanner::ReportReadError( nsIFile * file, bool fatal)
 {
   m_fatalError = fatal;
 }
 
-PRBool CMbxScanner::Initialize( void)
+bool CMbxScanner::Initialize( void)
 {
   m_bufSz = (kBufferKB * 1024);
   m_pInBuffer = new PRUint8[m_bufSz];
@@ -260,7 +260,7 @@ PRBool CMbxScanner::Initialize( void)
 #define  kMbxHeaderSize    0x0054
 #define kMbxMessageHeaderSz  16
 
-PRBool CMbxScanner::DoWork( PRBool *pAbort, PRUint32 *pDone, PRUint32 *pCount)
+bool CMbxScanner::DoWork( bool *pAbort, PRUint32 *pDone, PRUint32 *pCount)
 {
   m_mbxOffset = kMbxHeaderSize;
   m_didBytes = kMbxHeaderSize;
@@ -302,7 +302,7 @@ void CMbxScanner::CleanUp( void)
 
 #define  kNumMbxLongsToRead  4
 
-PRBool CMbxScanner::WriteMailItem( PRUint32 flags, PRUint32 offset, PRUint32 size, PRUint32 *pTotalMsgSize)
+bool CMbxScanner::WriteMailItem( PRUint32 flags, PRUint32 offset, PRUint32 size, PRUint32 *pTotalMsgSize)
 {
   PRUint32  values[kNumMbxLongsToRead];
   PRInt32    cnt = kNumMbxLongsToRead * sizeof( PRUint32);
@@ -339,7 +339,7 @@ PRBool CMbxScanner::WriteMailItem( PRUint32 flags, PRUint32 offset, PRUint32 siz
   return( CopyMbxFileBytes(flags,  values[3]));
 }
 
-PRBool CMbxScanner::IsFromLineKey( PRUint8 * pBuf, PRUint32 max)
+bool CMbxScanner::IsFromLineKey( PRUint8 * pBuf, PRUint32 max)
 {
   return (max > 5 && (pBuf[0] == 'F') && (pBuf[1] == 'r') && (pBuf[2] == 'o') && (pBuf[3] == 'm') && (pBuf[4] == ' '));
 }
@@ -348,7 +348,7 @@ PRBool CMbxScanner::IsFromLineKey( PRUint8 * pBuf, PRUint32 max)
 #define IS_ANY_SPACE( _ch) ((_ch == ' ') || (_ch == '\t') || (_ch == 10) || (_ch == 13))
 
 
-PRBool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
+bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
 {
   if (!numBytes)
     return( PR_TRUE);
@@ -356,7 +356,7 @@ PRBool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
   PRUint32  cnt;
   PRUint8   last[2] = {0, 0};
   PRUint32  inIdx = 0;
-  PRBool    first = PR_TRUE;
+  bool      first = true;
   PRUint8 * pIn;
   PRUint8 * pStart;
   PRInt32   fromLen = strlen( m_pFromLine);
@@ -506,7 +506,7 @@ CIndexScanner::~CIndexScanner()
   CleanUp();
 }
 
-PRBool CIndexScanner::Initialize( void)
+bool CIndexScanner::Initialize( void)
 {
   if (!CMbxScanner::Initialize())
     return( PR_FALSE);
@@ -521,7 +521,7 @@ PRBool CIndexScanner::Initialize( void)
   return( PR_TRUE);
 }
 
-PRBool CIndexScanner::ValidateIdxFile( void)
+bool CIndexScanner::ValidateIdxFile( void)
 {
   PRInt8      id[4];
   PRInt32      cnt = 4;
@@ -576,7 +576,7 @@ msg length in mbx
 // #define DEBUG_SUBJECT_AND_FLAGS  1
 #define  kNumIdxLongsToRead    7
 
-PRBool CIndexScanner::GetMailItem( PRUint32 *pFlags, PRUint32 *pOffset, PRUint32 *pSize)
+bool CIndexScanner::GetMailItem( PRUint32 *pFlags, PRUint32 *pOffset, PRUint32 *pSize)
 {
   PRUint32  values[kNumIdxLongsToRead];
   PRInt32    cnt = kNumIdxLongsToRead * sizeof( PRUint32);
@@ -627,13 +627,13 @@ PRBool CIndexScanner::GetMailItem( PRUint32 *pFlags, PRUint32 *pOffset, PRUint32
 
 #define  kOEDeletedFlag    0x0001
 
-PRBool CIndexScanner::DoWork( PRBool *pAbort, PRUint32 *pDone, PRUint32 *pCount)
+bool CIndexScanner::DoWork( bool *pAbort, PRUint32 *pDone, PRUint32 *pCount)
 {
   m_didBytes = 0;
   if (!ValidateIdxFile())
     return( PR_FALSE);
 
-  PRBool  failed = PR_FALSE;
+  bool    failed = false;
   while ((m_curItemIndex < m_numMessages) && !failed && !(*pAbort)) {
     PRUint32  flags, offset, size;
     if (!GetMailItem( &flags, &offset, &size)) {

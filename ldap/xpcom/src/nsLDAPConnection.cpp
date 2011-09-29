@@ -469,7 +469,7 @@ nsresult
 nsLDAPConnection::InvokeMessageCallback(LDAPMessage *aMsgHandle,
                                         nsILDAPMessage *aMsg,
                                         PRInt32 aOperation,
-                                        PRBool aRemoveOpFromConnQ)
+                                        bool aRemoveOpFromConnQ)
 {
 #if defined(DEBUG)
   // We only want this being logged for debug builds so as not to affect performance too much.
@@ -540,7 +540,7 @@ nsLDAPConnection::OnLookupComplete(nsICancelable *aRequest,
         while (NS_SUCCEEDED(aRecord->GetNextAddr(0, &addr))) {
             // We can only use v4 addresses
             //
-            PRBool v4mapped = PR_FALSE;
+            bool v4mapped = false;
             if (addr.raw.family == PR_AF_INET6)
                 v4mapped = PR_IsNetAddrType(&addr, PR_IpAddrV4Mapped);
             if (addr.raw.family == PR_AF_INET || v4mapped) {
@@ -686,7 +686,7 @@ NS_IMETHODIMP nsLDAPConnectionRunnable::Run()
   }
 
   LDAPMessage *msgHandle;
-  PRBool operationFinished = PR_TRUE;
+  bool operationFinished = true;
   nsRefPtr<nsLDAPMessage> msg;
 
   struct timeval timeout = { 0, 0 };

@@ -56,16 +56,16 @@ public:
     NS_DECL_NSIMSGFOLDERLISTENER
 
     NS_IMETHOD GetOfflineSupportLevel(PRInt32 *aSupportLevel);
-    NS_IMETHOD GetSupportsDiskSpace(PRBool *aSupportsDiskSpace);
+    NS_IMETHOD GetSupportsDiskSpace(bool *aSupportsDiskSpace);
     NS_IMETHOD GetAccountManagerChrome(nsAString& aResult);
     NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
-    NS_IMETHOD GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff);
-    NS_IMETHOD GetCanSearchMessages(PRBool *canSearchMessages);
+    NS_IMETHOD GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff);
+    NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
 
     nsRssIncomingServer();
     virtual ~nsRssIncomingServer();
 protected:
-    nsresult FolderChanged(nsIMsgFolder *aFolder, PRBool aUnsubscribe);
+    nsresult FolderChanged(nsIMsgFolder *aFolder, bool aUnsubscribe);
     nsresult FillInDataSourcePath(const nsAString& aDataSourceName, nsILocalFile ** aLocation);
     static nsrefcnt gInstanceCount;
 };

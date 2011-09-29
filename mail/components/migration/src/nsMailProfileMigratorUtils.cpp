@@ -90,11 +90,11 @@ void ParseOverrideServers(const char* aServers, nsIPrefBranch* aBranch)
 }
 
 void GetMigrateDataFromArray(MigrationData* aDataArray, PRInt32 aDataArrayLength,
-                             PRBool aReplace, nsIFile* aSourceProfile,
+                             bool aReplace, nsIFile* aSourceProfile,
                              PRUint16* aResult)
 {
   nsCOMPtr<nsIFile> sourceFile;
-  PRBool exists;
+  bool exists;
   MigrationData* cursor;
   MigrationData* end = aDataArray + aDataArrayLength;
   for (cursor = aDataArray; cursor < end && cursor->fileName; ++cursor) {

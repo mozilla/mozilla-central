@@ -108,11 +108,11 @@ public:
   }
 
   /* attribute boolean import; */
-  NS_IMETHOD GetImport(PRBool *pImport) {
+  NS_IMETHOD GetImport(bool *pImport) {
     *pImport = mImport;
     return NS_OK;
   }
-  NS_IMETHOD SetImport(PRBool doImport) {
+  NS_IMETHOD SetImport(bool doImport) {
     mImport = doImport;
     return NS_OK;
   }
@@ -128,7 +128,7 @@ private:
   nsString mDisplayName; // name of this mailbox
   nsCOMPtr<nsIFile> mFile; // source file (if applicable)
   PRUint32 mSize; // size
-  PRBool mImport; // import it or not?
+  bool mImport; // import it or not?
 };
 
 

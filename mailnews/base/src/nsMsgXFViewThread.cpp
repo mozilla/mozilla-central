@@ -111,7 +111,7 @@ NS_IMETHODIMP nsMsgXFViewThread::GetNumUnreadChildren (PRUint32 *aNumUnreadChild
 
 NS_IMETHODIMP 
 nsMsgXFViewThread::AddChild(nsIMsgDBHdr *aNewHdr, nsIMsgDBHdr *aInReplyTo, 
-                            PRBool aThreadInThread, nsIDBChangeAnnouncer *aAnnouncer)
+                            bool aThreadInThread, nsIDBChangeAnnouncer *aAnnouncer)
 {
   PRUint32 whereInserted;
   return AddHdr(aNewHdr, PR_FALSE, whereInserted, nsnull);
@@ -121,7 +121,7 @@ nsMsgXFViewThread::AddChild(nsIMsgDBHdr *aNewHdr, nsIMsgDBHdr *aInReplyTo,
 // is true, we believe that the new header is a parent of an existing
 // header, and we should find it, and reparent it.
 nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
-                                   PRBool reparentChildren,
+                                   bool reparentChildren,
                                    PRUint32 &whereInserted,
                                    nsIMsgDBHdr **outParent)
 {
@@ -398,7 +398,7 @@ void nsMsgXFViewThread::ChangeChildCount(PRInt32 delta)
   m_numChildren += delta;
 }
 
-PRBool nsMsgXFViewThread::IsHdrParentOf(nsIMsgDBHdr *possibleParent, 
+bool nsMsgXFViewThread::IsHdrParentOf(nsIMsgDBHdr *possibleParent, 
                                         nsIMsgDBHdr *possibleChild)
 {
   PRUint16 referenceToCheck = 0;
@@ -461,7 +461,7 @@ NS_IMETHODIMP nsMsgXFViewThread::SetNewestMsgDate(PRUint32 aNewestMsgDate)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgXFViewThread::MarkChildRead(PRBool aRead)
+NS_IMETHODIMP nsMsgXFViewThread::MarkChildRead(bool aRead)
 {
   ChangeUnreadChildCount(aRead ? -1 : 1);
   return NS_OK;
@@ -487,7 +487,7 @@ NS_IMETHODIMP nsMsgXFViewThread::GetFirstUnreadChild(nsIMsgDBHdr **aResult)
       nsMsgKey msgKey;
       child->GetMessageKey(&msgKey);
       
-      PRBool isRead;
+      bool isRead;
       nsCOMPtr<nsIMsgDatabase> db;
       nsresult rv = m_folders[childIndex]->GetMsgDatabase(getter_AddRefs(db));
       if (NS_SUCCEEDED(rv))

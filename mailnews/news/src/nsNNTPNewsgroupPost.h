@@ -104,7 +104,7 @@ public:
     NS_IMPL_CLASS_GETSET_STR(Body, m_body)
     NS_IMPL_CLASS_GETTER_STR(GetReferences, m_header[IDX_HEADER_REFERENCES])
 
-    NS_IMPL_CLASS_GETTER(GetIsControl, PRBool, m_isControl)
+    NS_IMPL_CLASS_GETTER(GetIsControl, bool, m_isControl)
 
     // the message can be stored in a file....allow accessors for getting and setting
     // the file name to post...
@@ -118,7 +118,7 @@ private:
     char *m_header[HEADER_LAST+1];
     char *m_body;
     char *m_messageBuffer;
-    PRBool m_isControl;
+    bool m_isControl;
 };
 
 #endif /* __nsNNTPNewsgroupPost_h */

@@ -65,7 +65,7 @@ public:
 
     nsCOMPtr<nsIMsgFolder> m_msgFolder;
     nsCOMPtr<nsIMutableArray> m_messageArray;
-    PRBool m_processed;
+    bool m_processed;
 };
 
 class nsCopyRequest 
@@ -76,10 +76,10 @@ public:
 
     nsresult Init(nsCopyRequestType type, nsISupports* aSupport,
                   nsIMsgFolder* dstFolder,
-                  PRBool bVal, PRUint32 newMsgFlags, 
+                  bool bVal, PRUint32 newMsgFlags, 
                   const nsACString &newMsgKeywords,
                   nsIMsgCopyServiceListener* listener,
-                  nsIMsgWindow *msgWindow, PRBool allowUndo);
+                  nsIMsgWindow *msgWindow, bool allowUndo);
     nsCopySource* AddNewCopySource(nsIMsgFolder* srcFolder);
 
     nsCOMPtr<nsISupports> m_srcSupport; // ui source folder or file spec
@@ -88,9 +88,9 @@ public:
     nsCOMPtr<nsIMsgCopyServiceListener> m_listener;
 	nsCOMPtr<nsITransactionManager> m_txnMgr;
     nsCopyRequestType m_requestType;
-    PRBool m_isMoveOrDraftOrTemplate;
-    PRBool m_allowUndo;
-    PRBool m_processed;
+    bool m_isMoveOrDraftOrTemplate;
+    bool m_allowUndo;
+    bool m_processed;
     PRUint32 m_newMsgFlags;
     nsCString m_newMsgKeywords;
     nsString m_dstFolderName;      // used for copy folder.
@@ -113,7 +113,7 @@ private:
   nsresult DoCopy(nsCopyRequest* aRequest);
   nsresult DoNextCopy();
   nsCopyRequest* FindRequest(nsISupports* aSupport, nsIMsgFolder* dstFolder);
-  nsresult QueueRequest(nsCopyRequest* aRequest, PRBool *aCopyImmediately);
+  nsresult QueueRequest(nsCopyRequest* aRequest, bool *aCopyImmediately);
   void LogCopyCompletion(nsISupports *aSrc, nsIMsgFolder *aDest);
   void LogCopyRequest(const char *logMsg, nsCopyRequest* aRequest);
 

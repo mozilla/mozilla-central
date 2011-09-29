@@ -87,7 +87,7 @@ private:
   nsresult GenerateCollationKeysForCard(const PRUnichar *colID, AbCard *abcard);
   nsresult InvalidateTree(PRInt32 row);
   nsresult RemoveCardAt(PRInt32 row);
-  nsresult AddCard(AbCard *abcard, PRBool selectCardAfterAdding, PRInt32 *index);
+  nsresult AddCard(AbCard *abcard, bool selectCardAfterAdding, PRInt32 *index);
   nsresult RemoveCardAndSelectNextCard(nsISupports *item);
   nsresult EnumerateCards();
   nsresult SetGeneratedNameFormatFromPrefs();
@@ -107,9 +107,9 @@ private:
   nsCOMPtr<nsIAbViewListener> mAbViewListener;
   nsCOMPtr<nsIStringBundle> mABBundle;
 
-  PRPackedBool mInitialized;
-  PRPackedBool mSuppressSelectionChange;
-  PRPackedBool mSuppressCountChange;
+  bool mInitialized;
+  bool mSuppressSelectionChange;
+  bool mSuppressCountChange;
   PRInt32 mGeneratedNameFormat;
 };
 

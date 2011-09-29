@@ -66,8 +66,8 @@ MimeDefClass(MimeInlineText, MimeInlineTextClass, mimeInlineTextClass,
 static int MimeInlineText_initialize (MimeObject *);
 static void MimeInlineText_finalize (MimeObject *);
 static int MimeInlineText_rot13_line (MimeObject *, char *line, PRInt32 length);
-static int MimeInlineText_parse_eof (MimeObject *obj, PRBool abort_p);
-static int MimeInlineText_parse_end  (MimeObject *, PRBool);
+static int MimeInlineText_parse_eof (MimeObject *obj, bool abort_p);
+static int MimeInlineText_parse_end  (MimeObject *, bool);
 static int MimeInlineText_parse_decoded_buffer (const char *, PRInt32, MimeObject *);
 static int MimeInlineText_rotate_convert_and_parse_line(char *, PRInt32,
                  MimeObject *);
@@ -228,7 +228,7 @@ MimeInlineText_finalize (MimeObject *obj)
 
 
 static int
-MimeInlineText_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeInlineText_parse_eof (MimeObject *obj, bool abort_p)
 {
   int status;
 
@@ -274,7 +274,7 @@ MimeInlineText_parse_eof (MimeObject *obj, PRBool abort_p)
 }
 
 static int
-MimeInlineText_parse_end (MimeObject *obj, PRBool abort_p)
+MimeInlineText_parse_end (MimeObject *obj, bool abort_p)
 {
   MimeInlineText *text = (MimeInlineText *) obj;
 
@@ -406,7 +406,7 @@ MimeInlineText_convert_and_parse_line(char *line, PRInt32 length, MimeObject *ob
   if (text->utf8Encoder == nsnull)
     MIME_get_unicode_encoder("UTF-8", getter_AddRefs(text->utf8Encoder));
 
-  PRBool useInputCharsetConverter = obj->options->m_inputCharsetToUnicodeDecoder && !PL_strcasecmp(text->charset, obj->options->charsetForCachedInputDecoder.get());
+  bool useInputCharsetConverter = obj->options->m_inputCharsetToUnicodeDecoder && !PL_strcasecmp(text->charset, obj->options->charsetForCachedInputDecoder.get());
 
   if (useInputCharsetConverter)
     status = obj->options->charset_conversion_fn(line, length,
@@ -524,7 +524,7 @@ MimeInlineText_rotate_convert_and_parse_line(char *line, PRInt32 length,
 
   // Now convert to the canonical charset, if desired.
   //
-  PRBool  doConvert = PR_TRUE;
+  bool    doConvert = true;
   // Don't convert vCard data
   if ( ( (obj->content_type) && (!PL_strcasecmp(obj->content_type, TEXT_VCARD)) ) ||
        (obj->options->format_out == nsMimeOutput::nsMimeMessageSaveAs)

@@ -90,7 +90,7 @@ nsresult createBlobNode(PRUint8 *value, PRUint32 &length, nsIRDFNode **node, nsI
 }
 
 nsresult GetTargetHasAssertion(nsIRDFDataSource *dataSource, nsIRDFResource* folderResource,
-                               nsIRDFResource *property,PRBool tv, nsIRDFNode *target,PRBool* hasAssertion)
+                               nsIRDFResource *property,bool tv, nsIRDFNode *target,bool* hasAssertion)
 {
   NS_ENSURE_ARG_POINTER(hasAssertion);
   

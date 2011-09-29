@@ -82,13 +82,13 @@ nsLDAPControl::SetValue(nsILDAPBERValue * aValue)
 
 /* attribute boolean isCritical; */
 NS_IMETHODIMP 
-nsLDAPControl::GetIsCritical(PRBool *aIsCritical)
+nsLDAPControl::GetIsCritical(bool *aIsCritical)
 {
   *aIsCritical = mIsCritical;
   return NS_OK;
 }
 NS_IMETHODIMP
-nsLDAPControl::SetIsCritical(PRBool aIsCritical)
+nsLDAPControl::SetIsCritical(bool aIsCritical)
 {
   mIsCritical = aIsCritical;
   return NS_OK;

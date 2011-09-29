@@ -209,7 +209,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnLDAPSearchResult(nsILDAPMessage *aMessa
                 if (NS_FAILED(rv)) 
                     break;
 
-                PRBool fileExists;
+                bool fileExists;
                 rv = dbPath->Exists(&fileExists);
                 if (NS_FAILED(rv)) 
                     break;
@@ -307,7 +307,7 @@ nsresult nsAbLDAPProcessChangeLogData::GetAuthData()
 
     nsString username;
     nsString password;
-    PRBool btnResult = PR_FALSE;
+    bool btnResult = false;
 	rv = dialog->PromptUsernameAndPassword(title, desc, 
                                             NS_ConvertUTF8toUTF16(serverUri).get(), 
                                             nsIAuthPrompt::SAVE_PASSWORD_PERMANENTLY,

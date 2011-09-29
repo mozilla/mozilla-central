@@ -48,16 +48,16 @@
 struct testInfo {
   char encodedInput[STRING_SIZE];
   char expectedOutput[STRING_SIZE];
-  PRBool expectedDidModify;
+  bool expectedDidModify;
 };
 
 int
 testStripRe(const char *encodedInput, char *expectedOutput,
-            PRBool expectedDidModify)
+            bool expectedDidModify)
 {
   // call NS_StripRE with the appropriate args
   char *modifiedSubject;
-  PRBool didModify;
+  bool didModify;
   const char *encodedInout = encodedInput;
   PRUint32 length = strlen(encodedInout);
   didModify = NS_MsgStripRE(&encodedInout, &length, &modifiedSubject);

@@ -88,12 +88,12 @@ nsMsgIdentity::Set##_postfix(const nsAString& value) \
 
 #define NS_IMPL_IDPREF_BOOL(_postfix, _prefname)     \
 NS_IMETHODIMP                                        \
-nsMsgIdentity::Get##_postfix(PRBool *retval)         \
+nsMsgIdentity::Get##_postfix(bool *retval)         \
 {                                                    \
   return GetBoolAttribute(_prefname, retval);        \
 }                                                    \
 NS_IMETHODIMP                                        \
-nsMsgIdentity::Set##_postfix(PRBool value)           \
+nsMsgIdentity::Set##_postfix(bool value)           \
 {                                                    \
   return mPrefBranch->SetBoolPref(_prefname, value); \
 }

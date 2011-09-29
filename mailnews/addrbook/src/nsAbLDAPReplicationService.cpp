@@ -139,7 +139,7 @@ NS_IMETHODIMP nsAbLDAPReplicationService::CancelReplication(nsIAbLDAPDirectory *
   return rv;
 }
 
-NS_IMETHODIMP nsAbLDAPReplicationService::Done(PRBool aSuccess)
+NS_IMETHODIMP nsAbLDAPReplicationService::Done(bool aSuccess)
 {
   mReplicating = PR_FALSE;
   if (mQuery)

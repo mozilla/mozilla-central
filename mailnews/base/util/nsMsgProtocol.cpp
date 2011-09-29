@@ -116,7 +116,7 @@ nsMsgProtocol::~nsMsgProtocol()
 {}
 
 
-static PRBool gGotTimeoutPref;
+static bool gGotTimeoutPref;
 static PRInt32 gSocketTimeout = 60;
 
 nsresult
@@ -228,7 +228,7 @@ nsMsgProtocol::OpenNetworkSocket(nsIURI * aURL, const char *connectionType,
       // So we cheat. Whilst creating a uri manually is valid here,
       // do _NOT_ copy this to use in your own code - bbaetz
       nsCOMPtr<nsIURI> proxyUri = aURL;
-      PRBool isSMTP = PR_FALSE;
+      bool isSMTP = false;
       if (NS_SUCCEEDED(aURL->SchemeIs("smtp", &isSMTP)) && isSMTP)
       {
           nsCAutoString spec;
@@ -366,7 +366,7 @@ nsresult nsMsgProtocol::CloseSocket()
 * No logging is done in the base implementation, so aSuppressLogging is ignored.
 */
 
-PRInt32 nsMsgProtocol::SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging)
+PRInt32 nsMsgProtocol::SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging)
 {
   PRUint32 writeCount = 0;
   PRInt32 status = 0;
@@ -520,7 +520,7 @@ nsresult nsMsgProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
 
   if (NS_SUCCEEDED(rv) && aMsgUrl)
   {
-    PRBool msgIsInLocalCache;
+    bool msgIsInLocalCache;
     aMsgUrl->GetMsgIsInLocalCache(&msgIsInLocalCache);
 
     rv = aMsgUrl->SetUrlState(PR_TRUE, NS_OK); // set the url as a url currently being run...
@@ -793,7 +793,7 @@ nsMsgProtocol::OnTransportStatus(nsITransport *transport, nsresult status,
 // From nsIRequest
 ////////////////////////////////////////////////////////////////////////////////
 
-NS_IMETHODIMP nsMsgProtocol::IsPending(PRBool *result)
+NS_IMETHODIMP nsMsgProtocol::IsPending(bool *result)
 {
     *result = m_channelListener != nsnull;
     return NS_OK;
@@ -849,7 +849,7 @@ nsresult nsMsgProtocol::PostMessage(nsIURI* url, nsIFile *postFile)
   nsCOMPtr<nsILineInputStream> lineInputStream(do_QueryInterface(inputStream, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool more = PR_TRUE;
+  bool more = true;
   nsCString line;
   nsCString outputBuffer;
 
@@ -1138,7 +1138,7 @@ public:
   nsresult Init(nsIOutputStream * aOutStream, nsMsgAsyncWriteProtocol * aProtInstance, nsIFile *aFileToPost);
   virtual ~nsMsgFilePostHelper() {}
   nsCOMPtr<nsIRequest> mPostFileRequest;
-  PRBool mSuspendedPostFileRead;
+  bool mSuspendedPostFileRead;
   void CloseSocket() { mProtInstance = nsnull; }
 protected:
   nsCOMPtr<nsIOutputStream> mOutStream;
@@ -1311,7 +1311,7 @@ nsresult nsMsgAsyncWriteProtocol::ResumePostFileRead()
   return NS_OK;
 }
 
-nsresult nsMsgAsyncWriteProtocol::UpdateSuspendedReadBytes(PRUint32 aNewBytes, PRBool aAddToPostPeriodByteCount)
+nsresult nsMsgAsyncWriteProtocol::UpdateSuspendedReadBytes(PRUint32 aNewBytes, bool aAddToPostPeriodByteCount)
 {
   // depending on our current state, we'll either add aNewBytes to mSuspendedReadBytes
   // or mSuspendedReadBytesAfterPeriod.
@@ -1354,7 +1354,7 @@ nsresult nsMsgAsyncWriteProtocol::ProcessIncomingPostData(nsIInputStream *inStr,
 
     while (count > 0)
     {
-      PRBool found = PR_FALSE;
+      bool found = false;
       PRUint32 offset = 0;
       bufferInputStr->Search("\012.", PR_TRUE,  &found, &offset); // LF.
 
@@ -1547,7 +1547,7 @@ void nsMsgAsyncWriteProtocol::UpdateProgress(PRUint32 aNewBytes)
   return;
 }
 
-PRInt32 nsMsgAsyncWriteProtocol::SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging)
+PRInt32 nsMsgAsyncWriteProtocol::SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging)
 {
   this->mAsyncBuffer.Append(dataBuffer);
   mAsyncOutStream->AsyncWait(mProvider, 0, 0, mProviderThread);

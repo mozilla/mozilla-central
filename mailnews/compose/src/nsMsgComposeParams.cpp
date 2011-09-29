@@ -154,14 +154,14 @@ NS_IMETHODIMP nsMsgComposeParams::SetComposeFields(nsIMsgCompFields * aComposeFi
 }
 
 /* attribute boolean bodyIsLink; */
-NS_IMETHODIMP nsMsgComposeParams::GetBodyIsLink(PRBool *aBodyIsLink)
+NS_IMETHODIMP nsMsgComposeParams::GetBodyIsLink(bool *aBodyIsLink)
 {
   NS_ENSURE_ARG_POINTER(aBodyIsLink);
   
   *aBodyIsLink = mBodyIsLink;
   return NS_OK;
 }
-NS_IMETHODIMP nsMsgComposeParams::SetBodyIsLink(PRBool aBodyIsLink)
+NS_IMETHODIMP nsMsgComposeParams::SetBodyIsLink(bool aBodyIsLink)
 {
   mBodyIsLink = aBodyIsLink;
   return NS_OK;

@@ -204,9 +204,9 @@ public:
   nsCString m_xMacCreator;
 
   PRInt32 m_size;                  // The size of the attachment. May be 0.
-  PRBool  m_isExternalAttachment;  // Flag for determining if the attachment is external
-  PRBool  m_isDownloaded;          // Flag for determining if the attachment has already been downloaded
-  PRBool  m_hasFilename;           // Tells whether the name is provided by us or if it's a Part 1.2-like attachment
+  bool    m_isExternalAttachment;  // Flag for determining if the attachment is external
+  bool    m_isDownloaded;          // Flag for determining if the attachment has already been downloaded
+  bool    m_hasFilename;           // Tells whether the name is provided by us or if it's a Part 1.2-like attachment
 };
 
 class nsMsgAttachedFile : public nsIMsgAttachedFile

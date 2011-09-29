@@ -55,8 +55,8 @@ public:
 
     NS_DECL_CALIRECURRENCEDATE
 protected:
-    PRBool mImmutable;
-    PRBool mIsNegative;
+    bool mImmutable;
+    bool mIsNegative;
 
     nsCOMPtr<calIDateTime> mDate;
 };

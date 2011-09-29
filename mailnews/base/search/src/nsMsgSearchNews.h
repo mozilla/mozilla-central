@@ -51,7 +51,7 @@ public:
   virtual ~nsMsgSearchNews ();
 
   NS_IMETHOD ValidateTerms ();
-  NS_IMETHOD Search (PRBool *aDone);
+  NS_IMETHOD Search (bool *aDone);
   NS_IMETHOD GetEncoding (char **result);
   NS_IMETHOD AddHit(nsMsgKey key);
   NS_IMETHOD CurrentUrlDone(PRInt32 exitCode);
@@ -66,7 +66,7 @@ public:
 
 protected:
   nsCString m_encoding;
-  PRBool m_ORSearch; // set to true if any of the search terms contains an OR for a boolean operator.
+  bool m_ORSearch; // set to true if any of the search terms contains an OR for a boolean operator.
 
   nsTArray<nsMsgKey> m_candidateHits;
   nsTArray<nsMsgKey> m_hits;

@@ -87,7 +87,7 @@ protected:
 NS_IMPL_ISUPPORTS1(nsMimeStringEnumerator, nsIUTF8StringEnumerator)
 
 NS_IMETHODIMP
-nsMimeStringEnumerator::HasMore(PRBool *result)
+nsMimeStringEnumerator::HasMore(bool *result)
 {
   NS_ENSURE_ARG_POINTER(result);
   *result = mCurrentIndex < mValues.Length();
@@ -122,7 +122,7 @@ nsresult nsMimeHtmlDisplayEmitter::Init()
   return NS_OK;
 }
 
-PRBool nsMimeHtmlDisplayEmitter::BroadCastHeadersAndAttachments()
+bool nsMimeHtmlDisplayEmitter::BroadCastHeadersAndAttachments()
 {
   // try to get a header sink if there is one....
   nsCOMPtr<nsIMsgHeaderSink> headerSink;
@@ -190,7 +190,7 @@ nsMimeHtmlDisplayEmitter::GetHeaderSink(nsIMsgHeaderSink ** aHeaderSink)
   return rv;
 }
 
-nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSink, PRInt32 aHeaderMode, PRBool aFromNewsgroup)
+nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSink, PRInt32 aHeaderMode, bool aFromNewsgroup)
 {
   // two string enumerators to pass out to the header sink
   nsRefPtr<nsMimeStringEnumerator> headerNameEnumerator = new nsMimeStringEnumerator();
@@ -281,7 +281,7 @@ NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders(const nsACString &name)
   else
     mFirstHeaders = PR_FALSE;
 
-  PRBool bFromNewsgroups = PR_FALSE;
+  bool bFromNewsgroups = false;
   for (PRInt32 j=0; j < mHeaderArray->Count(); j++)
   {
     headerInfoType *headerInfo = (headerInfoType *)mHeaderArray->ElementAt(j);
@@ -353,7 +353,7 @@ nsresult
 nsMimeHtmlDisplayEmitter::StartAttachment(const nsACString &name,
                                           const char *contentType,
                                           const char *url,
-                                          PRBool aIsExternalAttachment)
+                                          bool aIsExternalAttachment)
 {
   nsresult rv = NS_OK;
   nsCOMPtr<nsIMsgHeaderSink> headerSink;

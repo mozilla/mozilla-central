@@ -91,15 +91,15 @@ public:
 
     // Offline
   static nsMsgSearchBoolExpression * AddSearchTerm (nsMsgSearchBoolExpression * aOrigExpr, nsIMsgSearchTerm * aNewTerm, char * aEncodingStr); // IMAP/NNTP
-    static nsMsgSearchBoolExpression * AddExpressionTree(nsMsgSearchBoolExpression * aOrigExpr, nsMsgSearchBoolExpression * aExpression, PRBool aBoolOp);
+    static nsMsgSearchBoolExpression * AddExpressionTree(nsMsgSearchBoolExpression * aOrigExpr, nsMsgSearchBoolExpression * aExpression, bool aBoolOp);
 
     // parses the expression tree and all
     // expressions underneath this node to
     // determine if the end result is PR_TRUE or PR_FALSE.
-  PRBool OfflineEvaluate(nsIMsgDBHdr *msgToMatch,
+  bool OfflineEvaluate(nsIMsgDBHdr *msgToMatch,
           const char *defaultCharset, nsIMsgSearchScopeTerm *scope,
           nsIMsgDatabase *db, const char *headers, PRUint32 headerSize,
-          PRBool Filtering);
+          bool Filtering);
 
     // assuming the expression is for online
     // searches, determine the length of the

@@ -72,7 +72,7 @@ private:
   nsCString mCurrentMechanism;
   PRUint32 mCurrentProtocolVersion;
 
-  PRBool mInitialized;
+  bool mInitialized;
 };
 
 #endif // nsAbLDAPDirectoryQuery_h__

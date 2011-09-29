@@ -71,21 +71,21 @@ public:
   static HKEY Find40Key( void);
   static HKEY FindAccountsKey( void);
 
-  static PRBool DoImport( nsIMsgAccount **ppAccount);
+  static bool DoImport( nsIMsgAccount **ppAccount);
 
-  static PRBool DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
-  static PRBool DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
-  static PRBool DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
+  static bool DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
+  static bool DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
+  static bool DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount);
 
   static void SetIdentities( nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc, HKEY hKey,
-                             char *pIncomgUserName, PRInt32 authMethodIncoming, PRBool isNNTP);
+                             char *pIncomgUserName, PRInt32 authMethodIncoming, bool isNNTP);
   static void SetSmtpServer( char *pSmtpServer, HKEY hKey, nsIMsgIdentity *id,
                              char *pIncomgUserName, PRInt32 authMethodIncoming);
   static nsresult GetAccountName(HKEY hKey, char *defaultName, nsString &acctName);
 };
 
 static PRInt32 checkNewMailTime;// OE global setting, let's default to 30
-static PRBool  checkNewMail;    // OE global setting, let's default to PR_FALSE
+static bool    checkNewMail;    // OE global setting, let's default to false
                                 // This won't cause unwanted autodownloads-
                                 // user can set prefs after import
 
@@ -114,7 +114,7 @@ nsOESettings::~nsOESettings()
 
 NS_IMPL_ISUPPORTS1(nsOESettings, nsIImportSettings)
 
-NS_IMETHODIMP nsOESettings::AutoLocate(PRUnichar **description, nsIFile **location, PRBool *_retval)
+NS_IMETHODIMP nsOESettings::AutoLocate(PRUnichar **description, nsIFile **location, bool *_retval)
 {
   NS_PRECONDITION(description != nsnull, "null ptr");
   NS_PRECONDITION(_retval != nsnull, "null ptr");
@@ -157,7 +157,7 @@ NS_IMETHODIMP nsOESettings::SetLocation(nsIFile *location)
   return( NS_OK);
 }
 
-NS_IMETHODIMP nsOESettings::Import(nsIMsgAccount **localMailAccount, PRBool *_retval)
+NS_IMETHODIMP nsOESettings::Import(nsIMsgAccount **localMailAccount, bool *_retval)
 {
   NS_PRECONDITION( _retval != nsnull, "null ptr");
 
@@ -200,7 +200,7 @@ HKEY OESettings::FindAccountsKey( void)
 
 HKEY OESettings::Find50Key( void)
 {
-  PRBool    success = PR_FALSE;
+  bool      success = false;
   HKEY    sKey;
 
   if (::RegOpenKeyEx( HKEY_CURRENT_USER, "Identities", 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
@@ -230,7 +230,7 @@ HKEY OESettings::Find40Key( void)
   return( nsnull);
 }
 
-PRBool OESettings::DoImport( nsIMsgAccount **ppAccount)
+bool OESettings::DoImport( nsIMsgAccount **ppAccount)
 {
   HKEY  hKey = FindAccountsKey();
   if (hKey == nsnull) {
@@ -399,7 +399,7 @@ nsresult OESettings::GetAccountName(HKEY hKey, char *defaultName, nsString &acct
   return rv;
 }
 
-PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
+bool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
 {
   PRInt32 authMethod;
   if (ppAccount)
@@ -410,7 +410,7 @@ PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
   if (!pUserName)
     return( PR_FALSE);
 
-  PRBool result = PR_FALSE;
+  bool result = false;
 
   // I now have a user name/server name pair, find out if it already exists?
   nsCOMPtr<nsIMsgIncomingServer> in;
@@ -451,7 +451,7 @@ PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
       BYTE * pBytesTemp = nsOERegUtil::GetValueBytes(hKey, "IMAP Use Sicily");
       if (pBytesTemp)
       {
-        PRBool secAuth = *(PRBool *)pBytesTemp;
+        bool secAuth = *(bool *)pBytesTemp;
         nsOERegUtil::FreeValueBytes(pBytesTemp);
         authMethod = secAuth ? nsMsgAuthMethod::secure
             : nsMsgAuthMethod::passwordCleartext;
@@ -509,7 +509,7 @@ PRBool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
   return( result);
 }
 
-PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
+bool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pServerName, nsIMsgAccount **ppAccount)
 {
   PRInt32 authMethod;    // Secure Password Authentication
   if (ppAccount)
@@ -520,7 +520,7 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
   if (!pUserName)
     return( PR_FALSE);
 
-  PRBool result = PR_FALSE;
+  bool result = false;
 
   // I now have a user name/server name pair, find out if it already exists?
   nsCOMPtr<nsIMsgIncomingServer> in;
@@ -553,7 +553,7 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
       BYTE * pBytesTemp = nsOERegUtil::GetValueBytes( hKey, "POP3 Use Sicily");
       if (pBytesTemp)
       {
-        PRBool secAuth = *(PRBool *)pBytesTemp;
+        bool secAuth = *(bool *)pBytesTemp;
         nsOERegUtil::FreeValueBytes(pBytesTemp);
         authMethod = secAuth ? nsMsgAuthMethod::secure
             : nsMsgAuthMethod::passwordCleartext;
@@ -673,7 +673,7 @@ PRBool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pS
   return result;
 }
 
-PRBool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
+bool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
                                 char *pServerName, nsIMsgAccount **ppAccount)
 {
   if (ppAccount)
@@ -683,7 +683,7 @@ PRBool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
   // this only exists if NNTP server requires it or not anon login
   pUserName = (char *)nsOERegUtil::GetValueBytes(hKey, "NNTP User Name");
 
-  PRBool result = PR_FALSE;
+  bool result = false;
 
   // I now have a user name/server name pair, find out if it already exists?
   // NNTP can have empty user name.  This is wild card in findserver
@@ -756,7 +756,7 @@ PRBool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
 
 void OESettings::SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
                                HKEY hKey, char *pIncomgUserName,
-                               PRInt32 authMethodIncoming, PRBool isNNTP )
+                               PRInt32 authMethodIncoming, bool isNNTP )
 {
   // Get the relevant information for an identity
   char *pSmtpServer = (char *)nsOERegUtil::GetValueBytes(hKey, "SMTP Server");

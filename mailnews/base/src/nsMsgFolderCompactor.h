@@ -105,13 +105,13 @@ protected:
   nsCOMPtr <nsIMsgWindow> m_window;
   nsCOMPtr <nsIMsgDBHdr> m_curSrcHdr;
   PRUint32 m_folderIndex; // tells which folder to compact in case of compact all
-  PRBool m_compactAll;  //flag for compact all
-  PRBool m_compactOfflineAlso; //whether to compact offline also
-  PRBool m_compactingOfflineFolders; // are we in the offline folder compact phase
-  PRBool m_parsingFolder; //flag for parsing local folders;
+  bool m_compactAll;  //flag for compact all
+  bool m_compactOfflineAlso; //whether to compact offline also
+  bool m_compactingOfflineFolders; // are we in the offline folder compact phase
+  bool m_parsingFolder; //flag for parsing local folders;
   // these members are used to add missing status lines to compacted messages.
-  PRBool m_needStatusLine;
-  PRBool m_startOfMsg;
+  bool m_needStatusLine;
+  bool m_startOfMsg;
   PRInt32 m_statusOffset;
   PRUint32 m_addedHeaderSize;
   nsCOMPtr<nsIArray> m_offlineFolderArray;
@@ -131,7 +131,7 @@ public:
                                 PRUint32 sourceOffset, PRUint32 count);
 
 protected:
-    nsresult         CopyNextMessage(PRBool &done);
+    nsresult         CopyNextMessage(bool &done);
     virtual nsresult InitDB(nsIMsgDatabase *db);
     virtual nsresult StartCompacting();
     virtual nsresult FinishCompact();

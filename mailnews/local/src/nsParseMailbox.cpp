@@ -215,7 +215,7 @@ NS_IMETHODIMP nsMsgMailboxParser::OnStopRequest(nsIRequest *request, nsISupports
 
 NS_IMETHODIMP
 nsParseMailMessageState::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange,
-    PRBool aPreChange, PRUint32 *aStatus, nsIDBChangeListener * aInstigator)
+    bool aPreChange, PRUint32 *aStatus, nsIDBChangeListener * aInstigator)
 {
   return NS_OK;
 }
@@ -524,7 +524,7 @@ nsMsgMailboxParser::ReleaseFolderLock()
   nsCOMPtr<nsIMsgFolder> folder = do_QueryReferent(m_folder);
   if (!folder)
     return;
-  PRBool haveSemaphore;
+  bool haveSemaphore;
   nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIMsgParseMailMsgState*>(this));
   result = folder->TestSemaphore(supports, &haveSemaphore);
   if(NS_SUCCEEDED(result) && haveSemaphore)
@@ -727,7 +727,7 @@ NS_IMETHODIMP nsParseMailMessageState::SetDBFolderStream(nsIOutputStream *fileSt
 
 /* #define STRICT_ENVELOPE */
 
-PRBool
+bool
 nsParseMailMessageState::IsEnvelopeLine(const char *buf, PRInt32 buf_size)
 {
 #ifdef STRICT_ENVELOPE
@@ -1801,7 +1801,7 @@ void nsParseNewMailState::DoneParsingFolder(nsresult status)
 
 PRInt32 nsParseNewMailState::PublishMsgHeader(nsIMsgWindow *msgWindow)
 {
-  PRBool moved = PR_FALSE;
+  bool moved = false;
   FinishHeader();
 
   if (m_newMsgHdr)
@@ -1828,7 +1828,7 @@ PRInt32 nsParseNewMailState::PublishMsgHeader(nsIMsgWindow *msgWindow)
       server->GetIncomingDuplicateAction(&duplicateAction);
       if (duplicateAction != nsIMsgIncomingServer::keepDups)
       {
-        PRBool isDup;
+        bool isDup;
         server->IsNewHdrDuplicate(m_newMsgHdr, &isDup);
         if (isDup)
         {
@@ -1932,7 +1932,7 @@ nsresult nsParseNewMailState::GetTrashFolder(nsIMsgFolder **pTrashFolder)
   return rv;
 }
 
-void nsParseNewMailState::ApplyFilters(PRBool *pMoved, nsIMsgWindow *msgWindow, PRUint32 msgOffset)
+void nsParseNewMailState::ApplyFilters(bool *pMoved, nsIMsgWindow *msgWindow, PRUint32 msgOffset)
 {
   m_msgMovedByFilter = m_msgCopiedByFilter = PR_FALSE;
   m_curHdrOffset = msgOffset;
@@ -1966,7 +1966,7 @@ void nsParseNewMailState::ApplyFilters(PRBool *pMoved, nsIMsgWindow *msgWindow, 
     *pMoved = m_msgMovedByFilter;
 }
 
-NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindow *msgWindow, PRBool *applyMore)
+NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindow *msgWindow, bool *applyMore)
 {
   NS_ENSURE_ARG_POINTER(applyMore);
 
@@ -1989,11 +1989,11 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
   rv = filterActionList->Count(&numActions);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool loggingEnabled = PR_FALSE;
+  bool loggingEnabled = false;
   if (m_filterList && numActions)
     m_filterList->GetLoggingEnabled(&loggingEnabled);
 
-  PRBool msgIsNew = PR_TRUE;
+  bool msgIsNew = true;
   for (PRUint32 actionIndex =0; actionIndex < numActions && *applyMore; actionIndex++)
   {
     nsCOMPtr<nsIMsgRuleAction> filterAction;
@@ -2340,7 +2340,7 @@ nsresult nsParseNewMailState::EndMsgDownload()
   {
     for (PRUint32 index = 0; index < serverCount; index++)
     {
-      PRBool folderOpen;
+      bool folderOpen;
       session->IsFolderOpenInWindow(m_filterTargetFolders[index], &folderOpen);
       if (!folderOpen)
       {
@@ -2348,7 +2348,7 @@ nsresult nsParseNewMailState::EndMsgDownload()
         m_filterTargetFolders[index]->GetFlags(&folderFlags);
         if (! (folderFlags & (nsMsgFolderFlags::Trash | nsMsgFolderFlags::Inbox)))
         {
-          PRBool filtersRun;
+          bool filtersRun;
           m_filterTargetFolders[index]->CallFilterPlugins(nsnull, &filtersRun);
           if (!filtersRun)
             m_filterTargetFolders[index]->SetMsgDatabase(nsnull);
@@ -2433,7 +2433,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
   // check if the destination is a real folder (by checking for null parent)
   // and if it can file messages (e.g., servers or news folders can't file messages).
   // Or read only imap folders...
-  PRBool canFileMessages = PR_TRUE;
+  bool canFileMessages = true;
   nsCOMPtr<nsIMsgFolder> parentFolder;
   destIFolder->GetParent(getter_AddRefs(parentFolder));
   if (parentFolder)
@@ -2454,7 +2454,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
   nsCOMPtr <nsIMsgLocalMailFolder> destLocalFolder = do_QueryInterface(destIFolder);
   if (destLocalFolder)
   {
-    PRBool destFolderTooBig;
+    bool destFolderTooBig;
     destLocalFolder->WarnIfLocalFileTooBig(msgWindow, &destFolderTooBig);
     if (destFolderTooBig)
       return NS_MSG_ERROR_WRITING_MAIL_FOLDER;
@@ -2520,7 +2520,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
     return NS_MSG_ERROR_WRITING_MAIL_FOLDER;
   }
 
-  PRBool movedMsgIsNew = PR_FALSE;
+  bool movedMsgIsNew = false;
   // if we have made it this far then the message has successfully been written to the new folder
   // now add the header to the destMailDB.
   if (NS_SUCCEEDED(rv) && destMailDB)

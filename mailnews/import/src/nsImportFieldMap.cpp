@@ -65,7 +65,7 @@ NS_METHOD nsImportFieldMap::Create(nsIStringBundle *aBundle, nsISupports *aOuter
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsImportFieldMap, nsIImportFieldMap)
 
-NS_IMPL_GETSET(nsImportFieldMap, SkipFirstRecord, PRBool, m_skipFirstRecord)
+NS_IMPL_GETSET(nsImportFieldMap, SkipFirstRecord, bool, m_skipFirstRecord)
 
 nsImportFieldMap::nsImportFieldMap(nsIStringBundle *aBundle)
 {
@@ -214,7 +214,7 @@ NS_IMETHODIMP nsImportFieldMap::SetFieldMapByDescription(PRInt32 index, const PR
 }
 
 
-NS_IMETHODIMP nsImportFieldMap::GetFieldActive(PRInt32 index, PRBool *active)
+NS_IMETHODIMP nsImportFieldMap::GetFieldActive(PRInt32 index, bool *active)
 {
     NS_PRECONDITION(active != nsnull, "null ptr");
   if (!active)
@@ -226,7 +226,7 @@ NS_IMETHODIMP nsImportFieldMap::GetFieldActive(PRInt32 index, PRBool *active)
   return( NS_OK);
 }
 
-NS_IMETHODIMP nsImportFieldMap::SetFieldActive(PRInt32 index, PRBool active)
+NS_IMETHODIMP nsImportFieldMap::SetFieldActive(PRInt32 index, bool active)
 {
   if ((index < 0) || (index >= m_numFields))
     return( NS_ERROR_FAILURE);
@@ -565,7 +565,7 @@ nsresult nsImportFieldMap::Allocate( PRInt32 newSize)
   PRInt32  *pData = new PRInt32[ sz];
   if (!pData)
     return NS_ERROR_OUT_OF_MEMORY;
-  PRBool *pActive = new PRBool[sz];
+  bool *pActive = new bool[sz];
   if (!pActive) {
     delete [] pData;
     return NS_ERROR_OUT_OF_MEMORY;

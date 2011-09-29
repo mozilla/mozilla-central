@@ -101,7 +101,7 @@ nsresult nsStatusBarBiffManager::PlayBiffSound()
   nsCOMPtr<nsIPrefBranch> pref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv,rv);
   
-  PRBool playSoundOnBiff = PR_FALSE;
+  bool playSoundOnBiff = false;
   rv = pref->GetBoolPref(PREF_PLAY_SOUND_ON_NEW_MAIL, &playSoundOnBiff);
   NS_ENSURE_SUCCESS(rv,rv);
   
@@ -116,7 +116,7 @@ nsresult nsStatusBarBiffManager::PlayBiffSound()
   rv = pref->GetIntPref(PREF_NEW_MAIL_SOUND_TYPE, &newMailSoundType);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  PRBool customSoundPlayed = PR_FALSE;
+  bool customSoundPlayed = false;
 
   if (newMailSoundType == CUSTOM_SOUND_TYPE) {
     nsCString soundURLSpec;
@@ -131,7 +131,7 @@ nsresult nsStatusBarBiffManager::PlayBiffSound()
           nsCOMPtr<nsIFile> soundFile;
           rv = soundURL->GetFile(getter_AddRefs(soundFile));
           if (NS_SUCCEEDED(rv)) {
-            PRBool soundFileExists = PR_FALSE;
+            bool soundFileExists = false;
             rv = soundFile->Exists(&soundFileExists);
             if (NS_SUCCEEDED(rv) && soundFileExists) {
               rv = mSound->Play(soundURL);
@@ -208,7 +208,7 @@ nsStatusBarBiffManager::OnItemIntPropertyChanged(nsIMsgFolder *item, nsIAtom *pr
 }
 
 NS_IMETHODIMP 
-nsStatusBarBiffManager::OnItemBoolPropertyChanged(nsIMsgFolder *item, nsIAtom *property, PRBool oldValue, PRBool newValue)
+nsStatusBarBiffManager::OnItemBoolPropertyChanged(nsIMsgFolder *item, nsIAtom *property, bool oldValue, bool newValue)
 {
   return NS_OK;
 }

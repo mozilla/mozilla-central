@@ -79,8 +79,8 @@ protected:
 protected:
   nsCOMPtr<nsITimer> mBiffTimer;
   nsTArray<nsBiffEntry> mBiffArray;
-  PRBool mHaveShutdown;
-  PRBool mInited;
+  bool mHaveShutdown;
+  bool mInited;
 };
 
 #endif // NSMSGBIFFMANAGER_H

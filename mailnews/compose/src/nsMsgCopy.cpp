@@ -194,8 +194,8 @@ nsMsgCopy::StartCopyOperation(nsIMsgIdentity       *aUserIdentity,
                               nsIMsgDBHdr            *aMsgToReplace)
 {
   nsCOMPtr<nsIMsgFolder>  dstFolder;
-  PRBool                  isDraft = PR_FALSE;
-  PRBool                  waitForUrl = PR_FALSE;
+  bool                    isDraft = false;
+  bool                    waitForUrl = false;
   nsresult                rv;
 
   if (!aMsgSendObj)
@@ -268,7 +268,7 @@ nsMsgCopy::StartCopyOperation(nsIMsgIdentity       *aUserIdentity,
 
 nsresult
 nsMsgCopy::DoCopy(nsIFile *aDiskFile, nsIMsgFolder *dstFolder,
-                  nsIMsgDBHdr *aMsgToReplace, PRBool aIsDraft,
+                  nsIMsgDBHdr *aMsgToReplace, bool aIsDraft,
                   nsIMsgWindow *msgWindow,
                   nsIMsgSend   *aMsgSendObj)
 {
@@ -295,7 +295,7 @@ nsMsgCopy::DoCopy(nsIFile *aDiskFile, nsIMsgFolder *dstFolder,
         nsCOMPtr<nsIMsgAccountManager> accountManager =
                  do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
         if (NS_FAILED(rv)) return rv;
-        PRBool shutdownInProgress = PR_FALSE;
+        bool shutdownInProgress = false;
         rv = accountManager->GetShutdownInProgress(&shutdownInProgress);
 
         if (NS_SUCCEEDED(rv) && shutdownInProgress && imapFolder)
@@ -347,7 +347,7 @@ nsMsgCopy::OnStopRunningUrl(nsIURI * aUrl, nsresult aExitCode)
 }
 
 nsresult
-nsMsgCopy::GetUnsentMessagesFolder(nsIMsgIdentity   *userIdentity, nsIMsgFolder **folder, PRBool *waitForUrl)
+nsMsgCopy::GetUnsentMessagesFolder(nsIMsgIdentity   *userIdentity, nsIMsgFolder **folder, bool *waitForUrl)
 {
   nsresult ret = LocateMessageFolder(userIdentity, nsIMsgSend::nsMsgQueueForLater, mSavePref, folder);
   if (*folder)
@@ -357,7 +357,7 @@ nsMsgCopy::GetUnsentMessagesFolder(nsIMsgIdentity   *userIdentity, nsIMsgFolder 
 }
 
 nsresult
-nsMsgCopy::GetDraftsFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **folder, PRBool *waitForUrl)
+nsMsgCopy::GetDraftsFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **folder, bool *waitForUrl)
 {
   nsresult ret = LocateMessageFolder(userIdentity, nsIMsgSend::nsMsgSaveAsDraft, mSavePref, folder);
   if (*folder)
@@ -367,7 +367,7 @@ nsMsgCopy::GetDraftsFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **folder, 
 }
 
 nsresult
-nsMsgCopy::GetTemplatesFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **folder, PRBool *waitForUrl)
+nsMsgCopy::GetTemplatesFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **folder, bool *waitForUrl)
 {
   nsresult ret = LocateMessageFolder(userIdentity, nsIMsgSend::nsMsgSaveAsTemplate, mSavePref, folder);
   if (*folder)
@@ -377,7 +377,7 @@ nsMsgCopy::GetTemplatesFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **folde
 }
 
 nsresult
-nsMsgCopy::GetSentFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **folder, PRBool *waitForUrl)
+nsMsgCopy::GetSentFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **folder, bool *waitForUrl)
 {
   nsresult ret = LocateMessageFolder(userIdentity, nsIMsgSend::nsMsgDeliverNow, mSavePref, folder);
   if (*folder)
@@ -393,7 +393,7 @@ nsMsgCopy::GetSentFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **folder, PR
 }
 
 nsresult
-nsMsgCopy::CreateIfMissing(nsIMsgFolder **folder, PRBool *waitForUrl)
+nsMsgCopy::CreateIfMissing(nsIMsgFolder **folder, bool *waitForUrl)
 {
   nsresult ret = NS_OK;
   if (folder && *folder)
@@ -406,11 +406,11 @@ nsMsgCopy::CreateIfMissing(nsIMsgFolder **folder, PRBool *waitForUrl)
       // for local folders, path is to the berkeley mailbox.
       // for imap folders, path needs to have .msf appended to the name
       (*folder)->GetFilePath(getter_AddRefs(folderPath));
-        PRBool isImapFolder = !PL_strncasecmp(mSavePref, "imap:", 5);
+        bool isImapFolder = !PL_strncasecmp(mSavePref, "imap:", 5);
       // if we can't get the path from the folder, then try to create the storage.
       // for imap, it doesn't matter if the .msf file exists - it still might not
       // exist on the server, so we should try to create it
-      PRBool exists = PR_FALSE;
+      bool exists = false;
       if (!isImapFolder && folderPath)
         folderPath->Exists(&exists);
         if (!exists)
@@ -559,7 +559,7 @@ nsresult
 MessageFolderIsLocal(nsIMsgIdentity   *userIdentity,
                      nsMsgDeliverMode aFolderType,
                      const char       *aFolderURI,
-		     PRBool 	      *aResult)
+		     bool 	      *aResult)
 {
   nsresult rv;
 

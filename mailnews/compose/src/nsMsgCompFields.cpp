@@ -385,13 +385,13 @@ NS_IMETHODIMP nsMsgCompFields::GetDraftId(char **_retval)
   return *_retval ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
-NS_IMETHODIMP nsMsgCompFields::SetReturnReceipt(PRBool value)
+NS_IMETHODIMP nsMsgCompFields::SetReturnReceipt(bool value)
 {
   m_returnReceipt = value;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::GetReturnReceipt(PRBool *_retval)
+NS_IMETHODIMP nsMsgCompFields::GetReturnReceipt(bool *_retval)
 {
   *_retval = m_returnReceipt;
   return NS_OK;
@@ -409,75 +409,75 @@ NS_IMETHODIMP nsMsgCompFields::GetReceiptHeaderType(PRInt32 *_retval)
     return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::SetDSN(PRBool value)
+NS_IMETHODIMP nsMsgCompFields::SetDSN(bool value)
 {
   m_DSN = value;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::GetDSN(PRBool *_retval)
+NS_IMETHODIMP nsMsgCompFields::GetDSN(bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   *_retval = m_DSN;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::SetAttachVCard(PRBool value)
+NS_IMETHODIMP nsMsgCompFields::SetAttachVCard(bool value)
 {
   m_attachVCard = value;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::GetAttachVCard(PRBool *_retval)
+NS_IMETHODIMP nsMsgCompFields::GetAttachVCard(bool *_retval)
 {
   *_retval = m_attachVCard;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::SetForcePlainText(PRBool value)
+NS_IMETHODIMP nsMsgCompFields::SetForcePlainText(bool value)
 {
   m_forcePlainText = value;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::GetForcePlainText(PRBool *_retval)
+NS_IMETHODIMP nsMsgCompFields::GetForcePlainText(bool *_retval)
 {
   *_retval = m_forcePlainText;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::SetForceMsgEncoding(PRBool value)
+NS_IMETHODIMP nsMsgCompFields::SetForceMsgEncoding(bool value)
 {
   m_forceMsgEncoding = value;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::GetForceMsgEncoding(PRBool *_retval)
+NS_IMETHODIMP nsMsgCompFields::GetForceMsgEncoding(bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   *_retval = m_forceMsgEncoding;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::SetUseMultipartAlternative(PRBool value)
+NS_IMETHODIMP nsMsgCompFields::SetUseMultipartAlternative(bool value)
 {
   m_useMultipartAlternative = value;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::GetUseMultipartAlternative(PRBool *_retval)
+NS_IMETHODIMP nsMsgCompFields::GetUseMultipartAlternative(bool *_retval)
 {
   *_retval = m_useMultipartAlternative;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::SetBodyIsAsciiOnly(PRBool value)
+NS_IMETHODIMP nsMsgCompFields::SetBodyIsAsciiOnly(bool value)
 {
   m_bodyIsAsciiOnly = value;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::GetBodyIsAsciiOnly(PRBool *_retval)
+NS_IMETHODIMP nsMsgCompFields::GetBodyIsAsciiOnly(bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
 
@@ -524,7 +524,7 @@ NS_IMETHODIMP nsMsgCompFields::AddAttachment(nsIMsgAttachment *attachment)
 
   //Don't add twice the same attachment.
   nsCOMPtr<nsIMsgAttachment> element;
-  PRBool sameUrl;
+  bool sameUrl;
   for (PRInt32 i = 0; i < attachmentCount; i ++)
   {
     m_attachments[i]->EqualsUrl(attachment, &sameUrl);
@@ -542,7 +542,7 @@ NS_IMETHODIMP nsMsgCompFields::RemoveAttachment(nsIMsgAttachment *attachment)
   PRInt32 attachmentCount = m_attachments.Count();
 
   nsCOMPtr<nsIMsgAttachment> element;
-  PRBool sameUrl;
+  bool sameUrl;
   for (PRInt32 i = 0; i < attachmentCount; i ++)
   {
     m_attachments[i]->EqualsUrl(attachment, &sameUrl);
@@ -568,7 +568,7 @@ NS_IMETHODIMP nsMsgCompFields::RemoveAttachments()
 // This method is called during the creation of a new window.
 NS_IMETHODIMP
 nsMsgCompFields::SplitRecipients(const nsAString &aRecipients,
-                                 PRBool aEmailAddressOnly,
+                                 bool aEmailAddressOnly,
                                  PRUint32 *aLength,
                                  PRUnichar*** aResult)
 {
@@ -753,7 +753,7 @@ NS_IMETHODIMP nsMsgCompFields::GetDefaultCharacterSet(char * *aDefaultCharacterS
   return *aDefaultCharacterSet ? NS_OK : NS_ERROR_OUT_OF_MEMORY; 
 }
 
-NS_IMETHODIMP nsMsgCompFields::CheckCharsetConversion(char **fallbackCharset, PRBool *_retval)
+NS_IMETHODIMP nsMsgCompFields::CheckCharsetConversion(char **fallbackCharset, bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
 
@@ -768,14 +768,14 @@ NS_IMETHODIMP nsMsgCompFields::CheckCharsetConversion(char **fallbackCharset, PR
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::GetNeedToCheckCharset(PRBool *_retval)
+NS_IMETHODIMP nsMsgCompFields::GetNeedToCheckCharset(bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
   *_retval = m_needToCheckCharset;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompFields::SetNeedToCheckCharset(PRBool aCheck)
+NS_IMETHODIMP nsMsgCompFields::SetNeedToCheckCharset(bool aCheck)
 {
   m_needToCheckCharset = aCheck;
   return NS_OK;

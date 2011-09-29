@@ -118,7 +118,7 @@ public:
   void EndSendMessages(nsresult aStatus, const PRUnichar *aMsg, 
                        PRUint32 aTotalTried, PRUint32 aSuccessful);
 
-  PRBool OnSendStepFinished(nsresult aStatus);
+  bool OnSendStepFinished(nsresult aStatus);
   void OnCopyStepFinished(nsresult aStatus);
 
   // counters and things for enumeration 
@@ -133,13 +133,13 @@ public:
 private:
   nsresult GetIdentityFromKey(const char *aKey, nsIMsgIdentity **aIdentity);
   nsresult ReparseDBIfNeeded(nsIUrlListener *aListener);
-  nsresult InternalSendMessages(PRBool aUserInitiated,
+  nsresult InternalSendMessages(bool aUserInitiated,
                                 nsIMsgIdentity *aIdentity);
 
   nsTObserverArray<nsCOMPtr<nsIMsgSendLaterListener> > mListenerArray;
   nsCOMPtr<nsIMsgDBHdr> mMessage;
   nsCOMPtr<nsITimer> mTimer;
-  PRBool mTimerSet;
+  bool mTimerSet;
   nsCOMPtr<nsIUrlListener> mShutdownListener;
 
   //
@@ -159,7 +159,7 @@ private:
   char                      *m_headers;
   PRInt32                   m_flags;
   PRInt32                   m_headersFP;
-  PRBool                    m_inhead;
+  bool                      m_inhead;
   PRInt32                   m_headersPosition;
   PRInt32                   m_bytesRead;
   PRInt32                   m_position;
@@ -169,8 +169,8 @@ private:
   char                      *mIdentityKey;
   char                      *mAccountKey;
 
-  PRBool mSendingMessages;
-  PRBool mUserInitiated;
+  bool mSendingMessages;
+  bool mUserInitiated;
   nsCOMPtr<nsIMsgIdentity> mIdentity;
 };
 

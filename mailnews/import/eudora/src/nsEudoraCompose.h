@@ -79,15 +79,15 @@ public:
           m_bytesInBuf = 0; m_convertCRs = PR_FALSE;}
   ~SimpleBufferTonyRCopiedOnce() { if (m_pBuffer) delete [] m_pBuffer;}
 
-  PRBool Allocate( PRInt32 sz) {
+  bool Allocate( PRInt32 sz) {
     if (m_pBuffer) delete [] m_pBuffer;
     m_pBuffer = new char[sz];
     if (m_pBuffer) { m_size = sz; return( PR_TRUE); }
     else { m_size = 0; return( PR_FALSE);}
   }
 
-  PRBool Grow( PRInt32 newSize) { if (newSize > m_size) return( ReAllocate( newSize)); else return( PR_TRUE);}
-  PRBool ReAllocate( PRInt32 newSize) {
+  bool Grow( PRInt32 newSize) { if (newSize > m_size) return( ReAllocate( newSize)); else return( true);}
+  bool ReAllocate( PRInt32 newSize) {
     if (newSize <= m_size) return( PR_TRUE);
     char *pOldBuffer = m_pBuffer;
     PRInt32  oldSize = m_size;
@@ -100,7 +100,7 @@ public:
     else { m_pBuffer = pOldBuffer; m_size = oldSize; return( PR_FALSE);}
   }
 
-  PRBool Write( PRInt32 offset, const char *pData, PRInt32 len, PRInt32 *pWritten) {
+  bool Write( PRInt32 offset, const char *pData, PRInt32 len, PRInt32 *pWritten) {
     *pWritten = len;
     if (!len) return( PR_TRUE);
     if (!Grow( offset + len)) return( PR_FALSE);
@@ -110,15 +110,15 @@ public:
     return( PR_TRUE);
   }
 
-  PRBool Write( const char *pData, PRInt32 len) {
+  bool Write( const char *pData, PRInt32 len) {
     PRInt32 written;
     if (Write( m_writeOffset, pData, len, &written)) { m_writeOffset += written; return( PR_TRUE);}
     else return( PR_FALSE);
   }
 
-  PRBool  SpecialMemCpy( PRInt32 offset, const char *pData, PRInt32 len, PRInt32 *pWritten);
+  bool    SpecialMemCpy( PRInt32 offset, const char *pData, PRInt32 len, PRInt32 *pWritten);
 
-  PRBool  m_convertCRs;
+  bool    m_convertCRs;
   char *  m_pBuffer;
   PRUint32  m_bytesInBuf;  // used when reading into this buffer
   PRInt32  m_size;      // allocated size of buffer
@@ -149,8 +149,8 @@ private:
   nsresult  CreateComponents( void);
   static nsresult    CreateIdentity( void);
 
-  void    GetNthHeader( const char *pData, PRInt32 dataLen, PRInt32 n, nsCString& header, nsCString& val, PRBool unwrap);
-  void    GetHeaderValue( const char *pData, PRInt32 dataLen, const char *pHeader, nsCString& val, PRBool unwrap = PR_TRUE);
+  void    GetNthHeader( const char *pData, PRInt32 dataLen, PRInt32 n, nsCString& header, nsCString& val, bool unwrap);
+  void    GetHeaderValue( const char *pData, PRInt32 dataLen, const char *pHeader, nsCString& val, bool unwrap = true);
   void    GetHeaderValue( const char *pData, PRInt32 dataLen, const char *pHeader, nsString& val) {
     val.Truncate();
     nsCString  hVal;
@@ -167,7 +167,7 @@ private:
   PRInt32    IsEndHeaders( SimpleBufferTonyRCopiedOnce& data);
   PRInt32    IsSpecialHeader( const char *pHeader);
   nsresult  WriteHeaders( nsIOutputStream *pDst, SimpleBufferTonyRCopiedOnce& newHeaders);
-  PRBool    IsReplaceHeader( const char *pHeader);
+  bool      IsReplaceHeader( const char *pHeader);
 
 private:
   static nsIMsgIdentity *    s_pIdentity;

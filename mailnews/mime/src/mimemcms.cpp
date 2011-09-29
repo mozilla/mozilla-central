@@ -66,8 +66,8 @@ static int MimeMultipartSignedCMS_initialize (MimeObject *);
 static void *MimeMultCMS_init (MimeObject *);
 static int MimeMultCMS_data_hash (const char *, PRInt32, void *);
 static int MimeMultCMS_sig_hash  (const char *, PRInt32, void *);
-static int MimeMultCMS_data_eof (void *, PRBool);
-static int MimeMultCMS_sig_eof  (void *, PRBool);
+static int MimeMultCMS_data_eof (void *, bool);
+static int MimeMultCMS_sig_eof  (void *, bool);
 static int MimeMultCMS_sig_init (void *, MimeObject *, MimeHeaders *);
 static char * MimeMultCMS_generate (void *);
 static void MimeMultCMS_free (void *);
@@ -109,12 +109,12 @@ typedef struct MimeMultCMSdata
   nsCOMPtr<nsICMSDecoder> sig_decoder_context;
   nsCOMPtr<nsICMSMessage> content_info;
   char *sender_addr;
-  PRBool decoding_failed;
+  bool decoding_failed;
   unsigned char* item_data;
   PRUint32 item_len;
   MimeObject *self;
-  PRBool parent_is_encrypted_p;
-  PRBool parent_holds_stamp_p;
+  bool parent_is_encrypted_p;
+  bool parent_holds_stamp_p;
   nsCOMPtr<nsIMsgSMIMEHeaderSink> smimeHeaderSink;
 
   MimeMultCMSdata()
@@ -145,15 +145,15 @@ typedef struct MimeMultCMSdata
 
 /* #### MimeEncryptedCMS and MimeMultipartSignedCMS have a sleazy,
         incestuous, dysfunctional relationship. */
-extern PRBool MimeEncryptedCMS_encrypted_p (MimeObject *obj);
+extern bool MimeEncryptedCMS_encrypted_p (MimeObject *obj);
 extern void MimeCMSGetFromSender(MimeObject *obj,
                                  nsCString &from_addr,
                                  nsCString &from_name,
                                  nsCString &sender_addr,
                                  nsCString &sender_name);
-extern PRBool MimeCMSHeadersAndCertsMatch(MimeObject *obj,
+extern bool MimeCMSHeadersAndCertsMatch(MimeObject *obj,
                                           nsICMSMessage *,
-                                          PRBool *signing_cert_without_email_address);
+                                          bool *signing_cert_without_email_address);
 extern void MimeCMSRequestAsyncSignatureVerification(nsICMSMessage *aCMSMsg,
                                                      const char *aFromAddr, const char *aFromName,
                                                      const char *aSenderAddr, const char *aSenderName,
@@ -316,7 +316,7 @@ MimeMultCMS_data_hash (const char *buf, PRInt32 size, void *crypto_closure)
 }
 
 static int
-MimeMultCMS_data_eof (void *crypto_closure, PRBool abort_p)
+MimeMultCMS_data_eof (void *crypto_closure, bool abort_p)
 {
   MimeMultCMSdata *data = (MimeMultCMSdata *) crypto_closure;
   if (!data || !data->data_hash_context) {
@@ -398,7 +398,7 @@ MimeMultCMS_sig_hash (const char *buf, PRInt32 size, void *crypto_closure)
 }
 
 static int
-MimeMultCMS_sig_eof (void *crypto_closure, PRBool abort_p)
+MimeMultCMS_sig_eof (void *crypto_closure, bool abort_p)
 {
   MimeMultCMSdata *data = (MimeMultCMSdata *) crypto_closure;
 
@@ -435,7 +435,7 @@ static char *
 MimeMultCMS_generate (void *crypto_closure)
 {
   MimeMultCMSdata *data = (MimeMultCMSdata *) crypto_closure;
-  PRBool encrypted_p;
+  bool encrypted_p;
   if (!data) return 0;
   encrypted_p = data->parent_is_encrypted_p;
   nsCOMPtr<nsIX509Cert> signerCert;

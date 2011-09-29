@@ -93,7 +93,7 @@ static unsigned char b642nib[0x80] = {
     0x31, 0x32, 0x33, 0xff, 0xff, 0xff, 0xff, 0xff
 };
 
-NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSrc, PRBool aStoreLocAsHome, PRUint32 *aProgress)
+NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSrc, bool aStoreLocAsHome, PRUint32 *aProgress)
 {
   NS_ENSURE_ARG_POINTER(aSrc);
   NS_ENSURE_ARG_POINTER(aDb);
@@ -371,7 +371,7 @@ nsresult nsAbLDIFService::GetLdifStringRecord(char* buf, PRInt32 len, PRInt32& s
 }
 
 void nsAbLDIFService::AddLdifRowToDatabase(nsIAddrDatabase *aDatabase,
-                                           PRBool bIsList)
+                                           bool bIsList)
 {
   // If no data to process then reset CR/LF counters and return.
   if (mLdifLine.IsEmpty())
@@ -421,7 +421,7 @@ void nsAbLDIFService::AddLdifRowToDatabase(nsIAddrDatabase *aDatabase,
 
 void nsAbLDIFService::AddLdifColToDatabase(nsIAddrDatabase *aDatabase,
                                            nsIMdbRow* newRow, char* typeSlot,
-                                           char* valueSlot, PRBool bIsList)
+                                           char* valueSlot, bool bIsList)
 {
   nsCAutoString colType(typeSlot);
   nsCAutoString column(valueSlot);
@@ -795,7 +795,7 @@ static const char *const sLDIFFields[] = {
 
 // Count total number of legal ldif fields and records in the first 100 lines of the 
 // file and if the average legal ldif field is 3 or higher than it's a valid ldif file.
-NS_IMETHODIMP nsAbLDIFService::IsLDIFFile(nsIFile *pSrc, PRBool *_retval)
+NS_IMETHODIMP nsAbLDIFService::IsLDIFFile(nsIFile *pSrc, bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(pSrc);
   NS_ENSURE_ARG_POINTER(_retval);
@@ -819,8 +819,8 @@ NS_IMETHODIMP nsAbLDIFService::IsLDIFFile(nsIFile *pSrc, PRBool *_retval)
   const char *pChar;
   PRInt32 recCount = 0;  // total number of records.
   PRInt32 i;
-  PRBool gotLDIF = PR_FALSE;
-  PRBool more = PR_TRUE;
+  bool gotLDIF = false;
+  bool more = true;
   nsCString line;
 
   while (more && NS_SUCCEEDED(rv) && (lineCount < 100))

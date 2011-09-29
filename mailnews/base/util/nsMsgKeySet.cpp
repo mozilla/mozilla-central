@@ -117,7 +117,7 @@ nsMsgKeySet::~nsMsgKeySet()
 }
 
 
-PRBool nsMsgKeySet::Grow()
+bool nsMsgKeySet::Grow()
 {
   PRInt32 new_size;
   PRInt32 *new_data;
@@ -498,7 +498,7 @@ nsMsgKeySet::GetFirstMember()
    something, so it's a great place to tell the MSG_NewsHost* that something
    changed.
    */
-PRBool
+bool
 nsMsgKeySet::Optimize()
 {
   PRInt32 input_size;
@@ -524,7 +524,7 @@ nsMsgKeySet::Optimize()
 
   while (input_tail < input_end) {
     PRInt32 from, to;
-    PRBool range_p = (*input_tail < 0);
+    bool range_p = (*input_tail < 0);
 
     if (range_p) {
       /* it's a range */
@@ -607,10 +607,10 @@ nsMsgKeySet::Optimize()
 
 
 
-PRBool
+bool
 nsMsgKeySet::IsMember(PRInt32 number)
 {
-  PRBool value = PR_FALSE;
+  bool value = false;
   PRInt32 size;
   PRInt32 *head;
   PRInt32 *tail;
@@ -943,7 +943,7 @@ nsMsgKeySet::AddRange(PRInt32 start, PRInt32 end)
   PRInt32* tail;
   PRInt32 a;
   PRInt32 b;
-  PRBool didit = PR_FALSE;
+  bool didit = false;
 
   /* We're going to modify the set, so invalidate the cache. */
   m_cached_value = -1;
@@ -1421,7 +1421,7 @@ nsMsgKeySet::test_ranges(void)
   nsMemory::Free(s);
 
 void
-nsMsgKeySet::test_member(PRBool with_cache)
+nsMsgKeySet::test_member(bool with_cache)
 {
   nsMsgKeySet *set;
   char *s;

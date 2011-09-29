@@ -77,7 +77,7 @@ nsMsgBodyHandler::nsMsgBodyHandler(nsIMsgSearchScopeTerm * scope,
                                    PRUint32 numLines,
                                    nsIMsgDBHdr* msg, nsIMsgDatabase* db,
                                    const char * headers, PRUint32 headersSize,
-                                   PRBool Filtering)
+                                   bool Filtering)
 {
   m_scope = scope;
   m_numLocalLines = numLines;
@@ -122,7 +122,7 @@ PRInt32 nsMsgBodyHandler::GetNextLine (nsCString &buf)
 {
   PRInt32 length = -1;          // length of incoming line or -1 eof
   PRInt32 outLength = -1;       // length of outgoing line or -1 eof
-  PRBool eatThisLine = PR_TRUE;
+  bool eatThisLine = true;
   nsCAutoString nextLine;
 
   while (eatThisLine) {
@@ -220,7 +220,7 @@ PRInt32 nsMsgBodyHandler::GetNextLocalLine(nsCString &buf)
     // do we need to check the return value here?
     if (m_fileLineStream)
     {
-      PRBool more = PR_FALSE;
+      bool more = false;
       nsresult rv = m_fileLineStream->ReadLine(buf, &more);
       if (NS_SUCCEEDED(rv))
         return buf.Length();
@@ -253,7 +253,7 @@ PRInt32 nsMsgBodyHandler::GetNextLocalLine(nsCString &buf)
  * @return            the length of the line after applying transformations
  */
 PRInt32 nsMsgBodyHandler::ApplyTransformations (const nsCString &line, PRInt32 length,
-                                                PRBool &eatThisLine, nsCString &buf)
+                                                bool &eatThisLine, nsCString &buf)
 {
   PRInt32 newLength = length;
   eatThisLine = PR_FALSE;
@@ -344,7 +344,7 @@ void nsMsgBodyHandler::StripHtml (nsCString &pBufInOut)
     char *pWalk = pBuf;
     
     char *pWalkInOut = (char *) pBufInOut.get();
-    PRBool inTag = PR_FALSE;
+    bool inTag = false;
     while (*pWalkInOut) // throw away everything inside < >
     {
       if (!inTag)

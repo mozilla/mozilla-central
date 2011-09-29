@@ -81,11 +81,11 @@ public:
 
   NS_IMETHOD GetStatus( const char *statusKind, PRInt32 *_retval);
 
-  NS_IMETHOD WantsProgress(PRBool *_retval);
+  NS_IMETHOD WantsProgress(bool *_retval);
 
-  NS_IMETHOD BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, PRBool *_retval) ;
+  NS_IMETHOD BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, bool *_retval) ;
 
-  NS_IMETHOD ContinueImport(PRBool *_retval);
+  NS_IMETHOD ContinueImport(bool *_retval);
 
   NS_IMETHOD GetProgress(PRInt32 *_retval);
 
@@ -107,15 +107,15 @@ private:
   nsCOMArray<nsIAddrDatabase> m_DBs;
   nsCOMPtr <nsIFile>              m_pLocation;
   nsIImportFieldMap *      m_pFieldMap;
-  PRBool            m_autoFind;
+  bool              m_autoFind;
   PRUnichar *          m_description;
-  PRBool            m_gotLocation;
-  PRBool            m_found;
-  PRBool            m_userVerify;
+  bool              m_gotLocation;
+  bool              m_found;
+  bool              m_userVerify;
   nsISupportsString *    m_pSuccessLog;
   nsISupportsString *    m_pErrorLog;
   PRUint32          m_totalSize;
-  PRBool            m_doImport;
+  bool              m_doImport;
   AddressThreadData *      m_pThreadData;
   char *            m_pDestinationUri;
   nsCOMPtr<nsIStringBundle>   m_stringBundle;
@@ -123,10 +123,10 @@ private:
 
 class AddressThreadData {
 public:
-  PRBool            driverAlive;
-  PRBool            threadAlive;
-  PRBool            abort;
-  PRBool            fatalError;
+  bool              driverAlive;
+  bool              threadAlive;
+  bool              abort;
+  bool              fatalError;
   PRUint32          currentTotal;
   PRUint32          currentSize;
   nsISupportsArray *      books;
@@ -248,7 +248,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::GetData(const char *dataId, nsISuppor
     }
     else {
       if (m_pInterface && m_pLocation) {
-        PRBool needsIt = PR_FALSE;
+        bool needsIt = false;
         m_pInterface->GetNeedsFieldMap( m_pLocation, &needsIt);
         if (needsIt) {
           GetDefaultFieldMap();
@@ -276,7 +276,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::GetData(const char *dataId, nsISuppor
       if (NS_FAILED( rv))
         return( rv);
       PRUnichar *  pData = nsnull;
-      PRBool    found = PR_FALSE;
+      bool      found = false;
       rv = m_pInterface->GetSampleData( rNum, &found, &pData);
       if (NS_FAILED( rv))
         return( rv);
@@ -372,14 +372,14 @@ NS_IMETHODIMP nsImportGenericAddressBooks::GetStatus( const char *statusKind, PR
   }
 
   if (!PL_strcasecmp( statusKind, "supportsMultiple")) {
-    PRBool    multi = PR_FALSE;
+    bool      multi = false;
     if (m_pInterface)
       m_pInterface->GetSupportsMultiple( &multi);
     *_retval = (PRInt32) multi;
   }
 
   if (!PL_strcasecmp( statusKind, "needsFieldMap")) {
-    PRBool    needs = PR_FALSE;
+    bool      needs = false;
     if (m_pInterface && m_pLocation)
       m_pInterface->GetNeedsFieldMap( m_pLocation, &needs);
     *_retval = (PRInt32) needs;
@@ -458,7 +458,7 @@ void nsImportGenericAddressBooks::GetDefaultFieldMap( void)
 }
 
 
-NS_IMETHODIMP nsImportGenericAddressBooks::WantsProgress(PRBool *_retval)
+NS_IMETHODIMP nsImportGenericAddressBooks::WantsProgress(bool *_retval)
 {
   NS_PRECONDITION(_retval != nsnull, "null ptr");
     if (!_retval)
@@ -468,13 +468,13 @@ NS_IMETHODIMP nsImportGenericAddressBooks::WantsProgress(PRBool *_retval)
   GetDefaultBooks();
 
   PRUint32    totalSize = 0;
-  PRBool      result = PR_FALSE;
+  bool        result = false;
 
   if (m_pBooks) {
     PRUint32    count = 0;
     nsresult     rv = m_pBooks->Count( &count);
     PRUint32    i;
-    PRBool      import;
+    bool        import;
     PRUint32    size;
 
     for (i = 0; i < count; i++) {
@@ -542,7 +542,7 @@ already_AddRefed<nsIAddrDatabase> GetAddressBookFromUri(const char *pUri)
 }
 
 already_AddRefed<nsIAddrDatabase> GetAddressBook(const PRUnichar *name,
-                                                 PRBool makeNew)
+                                                 bool makeNew)
 {
   if (!makeNew) {
     // FIXME: How do I get the list of address books and look for a
@@ -624,7 +624,7 @@ already_AddRefed<nsIAddrDatabase> GetAddressBook(const PRUnichar *name,
   return pDatabase;
 }
 
-NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, PRBool *_retval)
+NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *successLog, nsISupportsString *errorLog, bool *_retval)
 {
   NS_PRECONDITION(_retval != nsnull, "null ptr");
     if (!_retval)
@@ -649,7 +649,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
     return( NS_OK);
   }
 
-  PRBool needsFieldMap = PR_FALSE;
+  bool needsFieldMap = false;
 
   if (NS_FAILED(m_pInterface->GetNeedsFieldMap(m_pLocation, &needsFieldMap)) ||
       (needsFieldMap && !m_pFieldMap)) {
@@ -720,7 +720,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
   return( NS_OK);
 }
 
-NS_IMETHODIMP nsImportGenericAddressBooks::ContinueImport(PRBool *_retval)
+NS_IMETHODIMP nsImportGenericAddressBooks::ContinueImport(bool *_retval)
 {
     NS_PRECONDITION(_retval != nsnull, "null ptr");
     if (!_retval)
@@ -838,7 +838,7 @@ static void ImportAddressThread( void *stuff)
   PRUint32  count = 0;
   nsresult   rv = pData->books->Count( &count);
   PRUint32          i;
-  PRBool            import;
+  bool              import;
   PRUint32          size;
 
   nsString          success;
@@ -860,7 +860,7 @@ static void ImportAddressThread( void *stuff)
 
         nsCOMPtr<nsIAddrDatabase> db = pData->dBs->ObjectAt(i);
 
-        PRBool fatalError = PR_FALSE;
+        bool fatalError = false;
         pData->currentSize = size;
         if (db) {
           PRUnichar *pSuccess = nsnull;
@@ -870,7 +870,7 @@ static void ImportAddressThread( void *stuff)
           if (pData->fieldMap) {
             PRInt32    sz = 0;
             PRInt32    mapIndex;
-            PRBool    active;
+            bool      active;
             pData->fieldMap->GetMapSize( &sz);
             IMPORT_LOG1( "**** Field Map Size: %d\n", (int) sz);
             for (PRInt32 i = 0; i < sz; i++) {

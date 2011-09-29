@@ -67,9 +67,9 @@ public:
     NS_DECL_ISUPPORTS
 
     nsIMdbRow   *GetMDBRow() {return m_mdbRow;}
-    PRBool      IsParentOf(nsIMsgDBHdr *possibleChild);
-    PRBool      IsAncestorOf(nsIMsgDBHdr *possibleChild);
-    PRBool      IsAncestorKilled(PRUint32 ancestorsToCheck);
+    bool        IsParentOf(nsIMsgDBHdr *possibleChild);
+    bool        IsAncestorOf(nsIMsgDBHdr *possibleChild);
+    bool        IsAncestorKilled(PRUint32 ancestorsToCheck);
     void        ReparentInThread(nsIMsgThread *thread);
 protected:
     nsresult SetStringColumn(const char *str, mdb_token token);
@@ -82,7 +82,7 @@ protected:
     // reference and threading stuff.
     nsresult	ParseReferences(const char *references);
     const char* GetNextReference(const char *startNextRef, nsCString &reference,
-                                 PRBool acceptNonDelimitedReferences);
+                                 bool acceptNonDelimitedReferences);
 
     nsMsgKey	m_threadId; 
     nsMsgKey	m_messageKey; 	//news: article number, mail mbox offset, imap uid...

@@ -89,7 +89,7 @@ ImportOutFile::~ImportOutFile()
   delete m_pTransBuf;
 }
 
-PRBool ImportOutFile::Set8bitTranslator( nsImportTranslator *pTrans)
+bool ImportOutFile::Set8bitTranslator( nsImportTranslator *pTrans)
 {
   if (!Flush())
     return( PR_FALSE);
@@ -102,13 +102,13 @@ PRBool ImportOutFile::Set8bitTranslator( nsImportTranslator *pTrans)
   return( PR_TRUE);
 }
 
-PRBool ImportOutFile::End8bitTranslation( PRBool *pEngaged, nsCString& useCharset, nsCString& encoding)
+bool ImportOutFile::End8bitTranslation( bool *pEngaged, nsCString& useCharset, nsCString& encoding)
 {
   if (!m_pTrans)
     return( PR_FALSE);
 
 
-  PRBool bResult = Flush();
+  bool bResult = Flush();
   if (m_supports8to7 && m_pTransOut) {
     if (bResult)
       bResult = m_pTrans->FinishConvertToFile( m_pTransOut);
@@ -133,7 +133,7 @@ PRBool ImportOutFile::End8bitTranslation( PRBool *pEngaged, nsCString& useCharse
   return( bResult);
 }
 
-PRBool ImportOutFile::InitOutFile( nsIFile *pFile, PRUint32 bufSz)
+bool ImportOutFile::InitOutFile( nsIFile *pFile, PRUint32 bufSz)
 {
   if (!bufSz)
     bufSz = 32 * 1024;
@@ -175,13 +175,13 @@ void ImportOutFile::InitOutFile( nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz)
 
 
 
-PRBool ImportOutFile::Flush( void)
+bool ImportOutFile::Flush( void)
 {
   if (!m_pos)
     return( PR_TRUE);
 
   PRUint32  transLen;
-  PRBool    duddleyDoWrite = PR_FALSE;
+  bool      duddleyDoWrite = false;
 
   // handle translations if appropriate
   if (m_pTrans) {
@@ -244,7 +244,7 @@ PRBool ImportOutFile::Flush( void)
   return( PR_TRUE);
 }
 
-PRBool ImportOutFile::WriteU8NullTerm( const PRUint8 * pSrc, PRBool includeNull)
+bool ImportOutFile::WriteU8NullTerm( const PRUint8 * pSrc, bool includeNull)
 {
   while (*pSrc) {
     if (m_pos >= m_bufSz) {
@@ -267,7 +267,7 @@ PRBool ImportOutFile::WriteU8NullTerm( const PRUint8 * pSrc, PRBool includeNull)
   return( PR_TRUE);
 }
 
-PRBool ImportOutFile::SetMarker( int markerID)
+bool ImportOutFile::SetMarker( int markerID)
 {
   if (!Flush()) {
     return( PR_FALSE);
@@ -300,7 +300,7 @@ void ImportOutFile::ClearMarker( int markerID)
     m_markers[markerID] = 0;
 }
 
-PRBool ImportOutFile::WriteStrAtMarker( int markerID, const char *pStr)
+bool ImportOutFile::WriteStrAtMarker( int markerID, const char *pStr)
 {
   if (markerID >= kMaxMarkers)
     return( PR_FALSE);

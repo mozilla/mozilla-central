@@ -56,7 +56,7 @@ public:
   // nsIMailProfileMigrator methods
   NS_IMETHOD Migrate(PRUint16 aItems, nsIProfileStartup* aStartup,
                         const PRUnichar* aProfile);
-  NS_IMETHOD GetMigrateData(const PRUnichar* aProfile, PRBool aReplace,
+  NS_IMETHOD GetMigrateData(const PRUnichar* aProfile, bool aReplace,
                             PRUint16* aResult);
   NS_IMETHOD GetSourceProfiles(nsIArray** aResult);
 
@@ -64,13 +64,13 @@ protected:
   nsresult FillProfileDataFromSeamonkeyRegistry();
   nsresult GetSourceProfile(const PRUnichar* aProfile);
 
-  nsresult CopyPreferences(PRBool aReplace);
+  nsresult CopyPreferences(bool aReplace);
   nsresult TransformPreferences(const nsAString& aSourcePrefFileName,
                                 const nsAString& aTargetPrefFileName);
 
-  nsresult DummyCopyRoutine(PRBool aReplace);
-  nsresult CopyJunkTraining(PRBool aReplace);  
-  nsresult CopyPasswords(PRBool aReplace);
+  nsresult DummyCopyRoutine(bool aReplace);
+  nsresult CopyJunkTraining(bool aReplace);  
+  nsresult CopyPasswords(bool aReplace);
   nsresult CopyMailFolders(PBStructArray &aMailServers,
                            nsIPrefService* aPrefBranch);
   nsresult CopyAddressBookDirectories(PBStructArray &aLdapServers,

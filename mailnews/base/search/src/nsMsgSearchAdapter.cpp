@@ -144,7 +144,7 @@ NS_IMETHODIMP nsMsgSearchAdapter::Abort ()
   return NS_ERROR_NOT_IMPLEMENTED;
 
 }
-NS_IMETHODIMP nsMsgSearchAdapter::Search (PRBool *aDone)
+NS_IMETHODIMP nsMsgSearchAdapter::Search (bool *aDone)
 {
   return NS_OK;
 }
@@ -323,12 +323,12 @@ nsMsgSearchAdapter::GetSearchCharsets(nsAString &srcCharset, nsAString &dstChars
   return NS_OK;
 }
 
-nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool reallyDredd, const PRUnichar *srcCharset, const PRUnichar *destCharset, char **ppOutTerm)
+nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool reallyDredd, const PRUnichar *srcCharset, const PRUnichar *destCharset, char **ppOutTerm)
 {
   nsresult err = NS_OK;
-  PRBool useNot = PR_FALSE;
-  PRBool useQuotes = PR_FALSE;
-  PRBool ignoreValue = PR_FALSE;
+  bool useNot = false;
+  bool useQuotes = false;
+  bool ignoreValue = false;
   nsCAutoString arbitraryHeader;
   const char *whichMnemonic = nsnull;
   const char *orHeaderMnemonic = nsnull;
@@ -379,7 +379,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
       //      ageInDays > -2 should be more than 2 days in the future ("date after X")
       PRInt32 ageInDays;
       searchValue->GetAge(&ageInDays);
-      PRBool dateInFuture = (ageInDays < 0);
+      bool dateInFuture = (ageInDays < 0);
       switch (op)
       {
       case nsMsgSearchOp::IsGreaterThan:
@@ -486,7 +486,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
     char dateBuf[100];
     dateBuf[0] = '\0';
 
-    PRBool valueWasAllocated = PR_FALSE;
+    bool valueWasAllocated = false;
     if (attrib == nsMsgSearchAttrib::Date)
     {
       // note that there used to be code here that encoded an RFC822 date for imap searches.
@@ -670,7 +670,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, PRBool real
     return err;
 }
 
-nsresult nsMsgSearchAdapter::EncodeImapValue(char *encoding, const char *value, PRBool useQuotes, PRBool reallyDredd)
+nsresult nsMsgSearchAdapter::EncodeImapValue(char *encoding, const char *value, bool useQuotes, bool reallyDredd)
 {
   // By NNTP RFC, SEARCH HEADER SUBJECT "" is legal and means 'find messages without a subject header'
   if (!reallyDredd)
@@ -700,7 +700,7 @@ nsresult nsMsgSearchAdapter::EncodeImapValue(char *encoding, const char *value, 
 }
 
 
-nsresult nsMsgSearchAdapter::EncodeImap (char **ppOutEncoding, nsISupportsArray *searchTerms, const PRUnichar *srcCharset, const PRUnichar *destCharset, PRBool reallyDredd)
+nsresult nsMsgSearchAdapter::EncodeImap (char **ppOutEncoding, nsISupportsArray *searchTerms, const PRUnichar *srcCharset, const PRUnichar *destCharset, bool reallyDredd)
 {
   // i've left the old code (before using CBoolExpression for debugging purposes to make sure that
   // the new code generates the same encoding string as the old code.....
@@ -720,7 +720,7 @@ nsresult nsMsgSearchAdapter::EncodeImap (char **ppOutEncoding, nsISupportsArray 
   for (i = 0; i < termCount && NS_SUCCEEDED(err); i++)
   {
     char *termEncoding;
-    PRBool matchAll;
+    bool matchAll;
     nsCOMPtr<nsIMsgSearchTerm> pTerm;
     searchTerms->QueryElementAt(i, NS_GET_IID(nsIMsgSearchTerm),
       (void **)getter_AddRefs(pTerm));
@@ -843,7 +843,7 @@ nsMsgSearchValidityTable::GetNumAvailAttribs(PRInt32 *aResult)
   m_numAvailAttribs = 0;
   for (int i = 0; i < nsMsgSearchAttrib::kNumMsgSearchAttributes; i++)
     for (int j = 0; j < nsMsgSearchOp::kNumMsgSearchOperators; j++) {
-            PRBool available;
+            bool available;
             GetAvailable(i, j, &available);
       if (available)
       {
@@ -873,13 +873,13 @@ nsMsgSearchValidityTable::ValidateTerms (nsISupportsArray *searchTerms)
     nsIMsgSearchTerm *iTerm = pTerm;
     nsMsgSearchTerm *term = static_cast<nsMsgSearchTerm *>(iTerm);
 //    XP_ASSERT(term->IsValid());
-        PRBool enabled;
-        PRBool available;
+        bool enabled;
+        bool available;
         GetEnabled(term->m_attribute, term->m_operator, &enabled);
         GetAvailable(term->m_attribute, term->m_operator, &available);
     if (!enabled || !available)
     {
-            PRBool validNotShown;
+            bool validNotShown;
             GetValidButNotShown(term->m_attribute, term->m_operator,
                                 &validNotShown);
             if (!validNotShown)
@@ -1297,7 +1297,7 @@ nsresult nsMsgSearchValidityManager::InitLocalABAndTable()
 }
 
 nsresult
-nsMsgSearchValidityManager::SetUpABTable(nsIMsgSearchValidityTable *aTable, PRBool isOrTable)
+nsMsgSearchValidityManager::SetUpABTable(nsIMsgSearchValidityTable *aTable, bool isOrTable)
 {
   nsresult rv = aTable->SetDefaultAttrib(isOrTable ? nsMsgSearchAttrib::Name : nsMsgSearchAttrib::DisplayName);
   NS_ENSURE_SUCCESS(rv,rv);

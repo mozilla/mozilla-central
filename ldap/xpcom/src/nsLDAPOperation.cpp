@@ -383,7 +383,7 @@ convertControlArray(nsIArray *aXpcomArray, LDAPControl ***aArray)
     rv = aXpcomArray->Enumerate(getter_AddRefs(enumerator));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRBool moreElements;
+    bool moreElements;
     rv = enumerator->HasMoreElements(&moreElements);
     NS_ENSURE_SUCCESS(rv, rv);
 
@@ -897,7 +897,7 @@ nsresult
 nsLDAPOperation::Rename(const char *base,
                         const char *newRDn,
                         const char *newParent,
-                        PRBool deleteOldRDn,
+                        bool deleteOldRDn,
                         LDAPControl **serverctrls,
                         LDAPControl **clientctrls)
 {
@@ -928,7 +928,7 @@ NS_IMETHODIMP
 nsLDAPOperation::Rename(const nsACString& aBaseDn,
                         const nsACString& aNewRDn,
                         const nsACString& aNewParent,
-                        PRBool aDeleteOldRDn)
+                        bool aDeleteOldRDn)
 {
   PR_LOG(gLDAPLogModule, PR_LOG_DEBUG,
          ("nsLDAPOperation::Rename(): called with aBaseDn = '%s'",

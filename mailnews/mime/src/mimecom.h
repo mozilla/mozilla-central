@@ -52,7 +52,7 @@
  */ 
 extern "C" int  XPCOM_MimeObject_write(void *mimeObject, const char *data, 
                                   PRInt32 length, 
-                                  PRBool user_visible_p);
+                                  bool user_visible_p);
 /*
  * The following group of calls expose the pointers for the object
  * system within libmime. 

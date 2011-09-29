@@ -272,7 +272,7 @@ extern "C" void mime_free (MimeObject *object);
 extern MimeObjectClass *mime_find_class (const char *content_type,
                      MimeHeaders *hdrs,
                      MimeDisplayOptions *opts,
-                     PRBool exact_match_p);
+                     bool exact_match_p);
 
 /** Given a content-type string, creates and returns an appropriate subclass
  * of MimeObject.  The headers (from which the content-type was presumably
@@ -281,13 +281,13 @@ extern MimeObjectClass *mime_find_class (const char *content_type,
  * display, e.g., mimemalt wants the body part to be shown inline.
  */
 extern MimeObject *mime_create (const char *content_type, MimeHeaders *hdrs,
-                MimeDisplayOptions *opts, PRBool forceInline = PR_FALSE);
+                MimeDisplayOptions *opts, bool forceInline = false);
 
 
 /* Querying the type hierarchy */
-extern PRBool mime_subclass_p(MimeObjectClass *child,
+extern bool mime_subclass_p(MimeObjectClass *child,
                  MimeObjectClass *parent);
-extern PRBool mime_typep(MimeObject *obj, MimeObjectClass *clazz);
+extern bool mime_typep(MimeObject *obj, MimeObjectClass *clazz);
 
 /* Returns a string describing the location of the part (like "2.5.3").
    This is not a full URL, just a part-number.
@@ -307,7 +307,7 @@ extern char *mime_external_attachment_url(MimeObject *obj);
    is appended to any existing part-number already in that URL; otherwise,
    it replaces it.
  */
-extern char *mime_set_url_part(const char *url, const char *part, PRBool append_p);
+extern char *mime_set_url_part(const char *url, const char *part, bool append_p);
 
 /*
   cut the part of url for display a attachment as a email.
@@ -349,14 +349,14 @@ extern int mime_parse_url_options(const char *url, MimeDisplayOptions *);
    or encrypted objects that we know about.  (MimeMessageClass uses this
    to decide if the headers need to be presented differently.)
  */
-extern PRBool mime_crypto_object_p(MimeHeaders *, PRBool clearsigned_counts);
+extern bool mime_crypto_object_p(MimeHeaders *, bool clearsigned_counts);
 
 /* Tells whether the given MimeObject is a message which has been encrypted
    or signed.  (Helper for MIME_GetMessageCryptoState()).
  */
 extern void mime_get_crypto_state (MimeObject *obj,
-                   PRBool *signed_p, PRBool *encrypted_p,
-                   PRBool *signed_ok, PRBool *encrypted_ok);
+                   bool *signed_p, bool *encrypted_p,
+                   bool *signed_ok, bool *encrypted_ok);
 
 
 /* Whether the given object has written out the HTML version of its headers
@@ -364,12 +364,12 @@ extern void mime_get_crypto_state (MimeObject *obj,
    this is true, then the child must write out its HTML slightly differently
    to take this into account...
  */
-extern PRBool mime_crypto_stamped_p(MimeObject *obj);
+extern bool mime_crypto_stamped_p(MimeObject *obj);
 
 /* How the crypto code tells the MimeMessage object what the crypto stamp
    on it says. */
 extern void mime_set_crypto_stamp(MimeObject *obj,
-                  PRBool signed_p, PRBool encrypted_p);
+                  bool signed_p, bool encrypted_p);
 #endif // ENABLE_SMIME
 
 class MimeParseStateObject {
@@ -382,33 +382,33 @@ public:
       }
   MimeObject *root;        /* The outermost parser object. */
 
-  PRBool separator_queued_p;  /* Whether a separator should be written out
+  bool separator_queued_p;  /* Whether a separator should be written out
                    before the next text is written (this lets
                    us write separators lazily, so that one
                    doesn't appear at the end, and so that more
                    than one don't appear in a row.) */
 
-  PRBool separator_suppressed_p; /* Whether the currently-queued separator
+  bool separator_suppressed_p; /* Whether the currently-queued separator
                    should not be printed; this is a kludge to
                    prevent seps from being printed just after
                    a header block... */
 
-  PRBool first_part_written_p;  /* State used for the `Show Attachments As
+  bool first_part_written_p;  /* State used for the `Show Attachments As
                    Links' kludge. */
 
-  PRBool post_header_html_run_p; /* Whether we've run the
+  bool post_header_html_run_p; /* Whether we've run the
                    options->generate_post_header_html_fn */
 
-  PRBool first_data_written_p;  /* State used for Mozilla lazy-stream-
+  bool first_data_written_p;  /* State used for Mozilla lazy-stream-
                    creation evilness. */
 
-  PRBool decrypted_p; /* If options->dexlate_p is true, then this
+  bool decrypted_p; /* If options->dexlate_p is true, then this
                         will be set to indicate whether any
                         dexlateion did in fact occur.
                       */
   nsTArray<nsCString> partsToStrip; /* if we're stripping parts, what parts to strip */
   nsTArray<nsCString> detachToFiles; /* if we're detaching parts, where each part was detached to */
-  PRBool strippingPart;
+  bool strippingPart;
   nsCString detachedFilePath;       /* if we've detached this part, filepath of detached part */
 };
 
@@ -424,15 +424,15 @@ extern int MimeObject_output_init(MimeObject *obj, const char *content_type);
    when making the decision of whether a separating <HR> is needed.
  */
 extern int MimeObject_write(MimeObject *, const char *data, PRInt32 length,
-                            PRBool user_visible_p);
+                            bool user_visible_p);
 extern int MimeOptions_write(MimeDisplayOptions *, nsCString &name,
                              const char *data, PRInt32 length,
-                             PRBool user_visible_p);
+                             bool user_visible_p);
 
 /* Writes out the right kind of HR (or rather, queues it for writing.) */
 extern int MimeObject_write_separator(MimeObject *);
 
-extern PRBool MimeObjectIsMessageBody(MimeObject *obj);
+extern bool MimeObjectIsMessageBody(MimeObject *obj);
 
 /* This is the data tagged to contexts and the declaration needs to be
    in a header file since more than mimemoz.c needs to see it now...

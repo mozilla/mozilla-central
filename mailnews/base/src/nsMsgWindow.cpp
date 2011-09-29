@@ -306,14 +306,14 @@ NS_IMETHODIMP nsMsgWindow::SetMailCharacterSet(const nsACString& aMailCharacterS
   return calias->GetPreferred(aMailCharacterSet,  mMailCharacterSet);
 }
 
-NS_IMETHODIMP nsMsgWindow::GetCharsetOverride(PRBool *aCharsetOverride)
+NS_IMETHODIMP nsMsgWindow::GetCharsetOverride(bool *aCharsetOverride)
 {
   NS_ENSURE_ARG_POINTER(aCharsetOverride);
   *aCharsetOverride = mCharsetOverride;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgWindow::SetCharsetOverride(PRBool aCharsetOverride)
+NS_IMETHODIMP nsMsgWindow::SetCharsetOverride(bool aCharsetOverride)
 {
   mCharsetOverride = aCharsetOverride;
   return NS_OK;
@@ -378,13 +378,13 @@ NS_IMETHODIMP nsMsgWindow::StopUrls()
 }
 
 // nsIURIContentListener support
-NS_IMETHODIMP nsMsgWindow::OnStartURIOpen(nsIURI* aURI, PRBool* aAbortOpen)
+NS_IMETHODIMP nsMsgWindow::OnStartURIOpen(nsIURI* aURI, bool* aAbortOpen)
 {
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgWindow::DoContent(const char *aContentType, PRBool aIsContentPreferred,
-                                     nsIRequest *request, nsIStreamListener **aContentHandler, PRBool *aAbortProcess)
+NS_IMETHODIMP nsMsgWindow::DoContent(const char *aContentType, bool aIsContentPreferred,
+                                     nsIRequest *request, nsIStreamListener **aContentHandler, bool *aAbortProcess)
 {
   if (aContentType)
   {
@@ -417,16 +417,16 @@ NS_IMETHODIMP nsMsgWindow::DoContent(const char *aContentType, PRBool aIsContent
 NS_IMETHODIMP
 nsMsgWindow::IsPreferred(const char * aContentType,
                          char ** aDesiredContentType,
-                         PRBool * aCanHandleContent)
+                         bool * aCanHandleContent)
 {
   *aCanHandleContent = PR_FALSE;
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgWindow::CanHandleContent(const char * aContentType,
-                                            PRBool aIsContentPreferred,
+                                            bool aIsContentPreferred,
                                             char ** aDesiredContentType,
-                                            PRBool * aCanHandleContent)
+                                            bool * aCanHandleContent)
 
 {
   // the mail window knows nothing about the default content types
@@ -483,7 +483,7 @@ NS_IMETHODIMP nsMsgWindow::GetPromptDialog(nsIPrompt **aPrompt)
 }
 
 NS_IMETHODIMP
-nsMsgWindow::DisplayHTMLInMessagePane(const nsAString& title, const nsAString& body, PRBool clearMsgHdr)
+nsMsgWindow::DisplayHTMLInMessagePane(const nsAString& title, const nsAString& body, bool clearMsgHdr)
 {
   if (clearMsgHdr && mMsgWindowCommands)
     mMsgWindowCommands->ClearMsgPane();
@@ -515,4 +515,4 @@ nsMsgWindow::DisplayHTMLInMessagePane(const nsAString& title, const nsAString& b
                          nsnull, nsnull, nsnull);
 }
 
-NS_IMPL_GETSET(nsMsgWindow, Stopped, PRBool, m_stopped)
+NS_IMPL_GETSET(nsMsgWindow, Stopped, bool, m_stopped)

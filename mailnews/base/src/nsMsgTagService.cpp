@@ -61,7 +61,7 @@
 #define TAG_CMP_EQUAL           0
 #define TAG_CMP_GREATER         1
 
-static PRBool gMigratingKeys = PR_FALSE;
+static bool gMigratingKeys = false;
 
 // comparison functions for nsQuickSort
 static int
@@ -559,7 +559,7 @@ nsresult nsMsgTagService::MigrateLabelsToTags()
   return rv;
 }
 
-NS_IMETHODIMP nsMsgTagService::IsValidKey(const nsACString &aKey, PRBool *aResult)
+NS_IMETHODIMP nsMsgTagService::IsValidKey(const nsACString &aKey, bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = m_keys.Contains(aKey);

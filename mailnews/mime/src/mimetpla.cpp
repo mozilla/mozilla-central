@@ -57,7 +57,7 @@ MimeDefClass(MimeInlineTextPlain, MimeInlineTextPlainClass,
 
 static int MimeInlineTextPlain_parse_begin (MimeObject *);
 static int MimeInlineTextPlain_parse_line (const char *, PRInt32, MimeObject *);
-static int MimeInlineTextPlain_parse_eof (MimeObject *, PRBool);
+static int MimeInlineTextPlain_parse_eof (MimeObject *, bool);
 
 static int
 MimeInlineTextPlainClassInitialize(MimeInlineTextPlainClass *clazz)
@@ -116,14 +116,14 @@ static int
 MimeInlineTextPlain_parse_begin (MimeObject *obj)
 {
   int status = 0;
-  PRBool quoting = ( obj->options
+  bool quoting = ( obj->options
     && ( obj->options->format_out == nsMimeOutput::nsMimeMessageQuoting ||
          obj->options->format_out == nsMimeOutput::nsMimeMessageBodyQuoting
        )       );  // The output will be inserted in the composer as quotation
-  PRBool plainHTML = quoting || (obj->options &&
+  bool plainHTML = quoting || (obj->options &&
        (obj->options->format_out == nsMimeOutput::nsMimeMessageSaveAs));
        // Just good(tm) HTML. No reliance on CSS.
-  PRBool rawPlainText = obj->options &&
+  bool rawPlainText = obj->options &&
        (obj->options->format_out == nsMimeOutput::nsMimeMessageFilterSniffer
          || obj->options->format_out == nsMimeOutput::nsMimeMessageAttach);
 
@@ -148,7 +148,7 @@ MimeInlineTextPlain_parse_begin (MimeObject *obj)
       text->mQuotedSizeSetting = 0;   // mail.quoted_size
       text->mQuotedStyleSetting = 0;  // mail.quoted_style
       text->mCitationColor = nsnull;  // mail.citation_color
-      PRBool graphicalQuote = PR_TRUE; // mail.quoted_graphical
+      bool graphicalQuote = true; // mail.quoted_graphical
 
       nsIPrefBranch *prefBranch = GetPrefBranch(obj->options);
       if (prefBranch)
@@ -243,7 +243,7 @@ MimeInlineTextPlain_parse_begin (MimeObject *obj)
 }
 
 static int
-MimeInlineTextPlain_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeInlineTextPlain_parse_eof (MimeObject *obj, bool abort_p)
 {
   int status;
 
@@ -256,12 +256,12 @@ MimeInlineTextPlain_parse_eof (MimeObject *obj, PRBool abort_p)
   if (text && text->mCitationColor)
     citationColor.Adopt(text->mCitationColor);
 
-  PRBool quoting = ( obj->options
+  bool quoting = ( obj->options
     && ( obj->options->format_out == nsMimeOutput::nsMimeMessageQuoting ||
          obj->options->format_out == nsMimeOutput::nsMimeMessageBodyQuoting
        )           );  // see above
 
-  PRBool rawPlainText = obj->options &&
+  bool rawPlainText = obj->options &&
        (obj->options->format_out == nsMimeOutput::nsMimeMessageFilterSniffer
         || obj->options->format_out == nsMimeOutput::nsMimeMessageAttach);
 
@@ -306,15 +306,15 @@ static int
 MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 {
   int status;
-  PRBool quoting = ( obj->options
+  bool quoting = ( obj->options
     && ( obj->options->format_out == nsMimeOutput::nsMimeMessageQuoting ||
          obj->options->format_out == nsMimeOutput::nsMimeMessageBodyQuoting
        )           );  // see above
-  PRBool plainHTML = quoting || (obj->options &&
+  bool plainHTML = quoting || (obj->options &&
        obj->options->format_out == nsMimeOutput::nsMimeMessageSaveAs);
        // see above
 
-  PRBool rawPlainText = obj->options &&
+  bool rawPlainText = obj->options &&
        (obj->options->format_out == nsMimeOutput::nsMimeMessageFilterSniffer
        || obj->options->format_out == nsMimeOutput::nsMimeMessageAttach);
 
@@ -329,7 +329,7 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
   mozITXTToHTMLConv *conv = GetTextConverter(obj->options);
   MimeInlineTextPlain *text = (MimeInlineTextPlain *) obj;
 
-  PRBool skipConversion = !conv || rawPlainText ||
+  bool skipConversion = !conv || rawPlainText ||
                           (obj->options && obj->options->force_user_charset);
 
   char *mailCharset = NULL;

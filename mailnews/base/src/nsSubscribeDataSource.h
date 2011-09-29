@@ -78,9 +78,9 @@ private:
   nsresult GetServerAndRelativePathFromResource(nsIRDFResource *source, nsISubscribableServer **server, char **relativePath);
   nsresult GetServerType(nsISubscribableServer *server, nsACString& serverType);
 
-  static PRBool assertEnumFunc(nsISupports *aElement, void *aData);
-  static PRBool unassertEnumFunc(nsISupports *aElement, void *aData);
-  static PRBool changeEnumFunc(nsISupports *aElement, void *aData);
+  static bool assertEnumFunc(nsISupports *aElement, void *aData);
+  static bool unassertEnumFunc(nsISupports *aElement, void *aData);
+  static bool changeEnumFunc(nsISupports *aElement, void *aData);
 };
 
 #endif /* nsSubscribedDataSource_h__ */

@@ -70,6 +70,6 @@ private:
 
 protected:
   nsCOMPtr<nsILDAPBERValue> mValue;	// the value portion of this control
-  PRBool mIsCritical;      // should server abort if control not understood?
+  bool mIsCritical;      // should server abort if control not understood?
   nsCString mOid;          // Object ID for this control
 };

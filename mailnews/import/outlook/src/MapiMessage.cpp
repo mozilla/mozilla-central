@@ -1048,8 +1048,8 @@ bool CMapiMessage::AddAttachment(DWORD aNum)
       bResult = data->tmp_file;
 
     if (bResult) {
-      PRBool isFile = PR_FALSE;
-      PRBool exists = PR_FALSE;
+      bool isFile = false;
+      bool exists = false;
       data->tmp_file->Exists(&exists);
       data->tmp_file->IsFile(&isFile);
 

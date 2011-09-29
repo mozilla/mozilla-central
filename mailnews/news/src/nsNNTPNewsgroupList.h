@@ -73,7 +73,7 @@ typedef struct MSG_NewsKnown {
   PRInt32 first_possible; /* The oldest article in this group. */
   PRInt32 last_possible; /* The newest article in this group. */
 
-  PRBool shouldGetOldest;
+  bool shouldGetOldest;
 } MSG_NewsKnown;
 
 // This class should ultimately be part of a news group listing
@@ -95,7 +95,7 @@ public:
 private:
   NS_METHOD CleanUp();
      
-  PRBool  m_finishingXover;
+  bool    m_finishingXover;
 
 #ifdef HAVE_CHANGELISTENER
   virtual void OnAnnouncerGoingAway (ChangeAnnouncer *instigator);
@@ -105,13 +105,13 @@ private:
   void SetProgressBarPercent(PRInt32 percent);
   void SetProgressStatus(const PRUnichar *message);
 
-  void UpdateStatus(PRBool filtering, PRInt32 numDled, PRInt32 totToDL);
+  void UpdateStatus(bool filtering, PRInt32 numDled, PRInt32 totToDL);
 
   nsresult AddHeader(const char * header, const char * value);
 protected:
-  PRBool m_getOldMessages;
-  PRBool m_promptedAlready;
-  PRBool m_downloadAll;
+  bool m_getOldMessages;
+  bool m_promptedAlready;
+  bool m_downloadAll;
   PRInt32 m_maxArticles;
   PRInt32 m_lastPercent;
   PRTime m_lastStatusUpdate;
@@ -148,7 +148,7 @@ private:
   nsCOMPtr <nsIMsgDBHdr> m_newMsgHdr; // current message header we're building
   nsCOMArray<nsIMsgDBHdr> m_newHeaders;
 
-  PRBool m_addHdrToDB;
+  bool m_addHdrToDB;
 
 };
     

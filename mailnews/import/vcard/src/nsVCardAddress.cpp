@@ -58,7 +58,7 @@ nsVCardAddress::~nsVCardAddress()
 }
 
 nsresult nsVCardAddress::ImportAddresses(
-    PRBool *pAbort,
+    bool *pAbort,
     const PRUnichar *pName,
     nsIFile *pSrc,
     nsIAddrDatabase *pDb,
@@ -92,7 +92,7 @@ nsresult nsVCardAddress::ImportAddresses(
   nsCOMPtr<nsIAbManager> ab = do_GetService(NS_ABMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool more = PR_TRUE;
+  bool more = true;
   nsCString record;
   while (!(*pAbort) && more && NS_SUCCEEDED(rv)) {
     rv = ReadRecord(lineStream, record, &more);
@@ -128,9 +128,9 @@ nsresult nsVCardAddress::ImportAddresses(
 }
 
 nsresult nsVCardAddress::ReadRecord(
-    nsILineInputStream *aLineStream, nsCString &aRecord, PRBool *aMore)
+    nsILineInputStream *aLineStream, nsCString &aRecord, bool *aMore)
 {
-  PRBool more = PR_TRUE;
+  bool more = true;
   nsresult rv;
   nsCString line;
 

@@ -52,12 +52,12 @@
      to-be-created may be found in the `hdrs' slot of the `MimeMultipart'
      object.
 
-   PRBool output_child_p (MimeObject *parent, MimeObject *child)
+   bool output_child_p (MimeObject *parent, MimeObject *child)
 
      Whether this child should be output.  Default method always says `yes'.
 
    int parse_child_line (MimeObject *obj, const char *line, PRInt32 length,
-             PRBool first_line_p)
+             bool first_line_p)
 
      When we have a line which should be handed off to the currently-active
      child object, this method is called to do that.  The `first_line_p'
@@ -108,10 +108,10 @@ struct MimeMultipartClass {
   const char *default_part_type;
 
   int (*create_child) (MimeObject *);
-  PRBool (*output_child_p) (MimeObject *self, MimeObject *child);
+  bool (*output_child_p) (MimeObject *self, MimeObject *child);
   int (*close_child) (MimeObject *);
   int (*parse_child_line) (MimeObject *, const char *line, PRInt32 length,
-               PRBool first_line_p);
+               bool first_line_p);
   MimeMultipartBoundaryType (*check_boundary) (MimeObject *, const char *line,
                          PRInt32 length);
 };

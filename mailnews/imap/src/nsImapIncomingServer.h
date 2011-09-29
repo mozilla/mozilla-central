@@ -79,20 +79,20 @@ public:
   NS_IMETHOD PerformExpand(nsIMsgWindow *aMsgWindow);
   NS_IMETHOD CloseCachedConnections();
   NS_IMETHOD GetConstructedPrettyName(nsAString& retval);
-  NS_IMETHOD GetCanBeDefaultServer(PRBool *canBeDefaultServer);
-  NS_IMETHOD GetCanCompactFoldersOnServer(PRBool *canCompactFoldersOnServer);
-  NS_IMETHOD GetCanUndoDeleteOnServer(PRBool *canUndoDeleteOnServer);
-  NS_IMETHOD GetCanSearchMessages(PRBool *canSearchMessages);
-  NS_IMETHOD GetCanEmptyTrashOnExit(PRBool *canEmptyTrashOnExit);
-  NS_IMETHOD GetIsSecureServer(PRBool *isSecureServer);
+  NS_IMETHOD GetCanBeDefaultServer(bool *canBeDefaultServer);
+  NS_IMETHOD GetCanCompactFoldersOnServer(bool *canCompactFoldersOnServer);
+  NS_IMETHOD GetCanUndoDeleteOnServer(bool *canUndoDeleteOnServer);
+  NS_IMETHOD GetCanSearchMessages(bool *canSearchMessages);
+  NS_IMETHOD GetCanEmptyTrashOnExit(bool *canEmptyTrashOnExit);
+  NS_IMETHOD GetIsSecureServer(bool *isSecureServer);
   NS_IMETHOD GetOfflineSupportLevel(PRInt32 *aSupportLevel);
   NS_IMETHOD GeneratePrettyNameForMigration(nsAString& aPrettyName);
-  NS_IMETHOD GetSupportsDiskSpace(PRBool *aSupportsDiskSpace);
-  NS_IMETHOD GetCanCreateFoldersOnServer(PRBool *aCanCreateFoldersOnServer);
-  NS_IMETHOD GetCanFileMessagesOnServer(PRBool *aCanFileMessagesOnServer);
+  NS_IMETHOD GetSupportsDiskSpace(bool *aSupportsDiskSpace);
+  NS_IMETHOD GetCanCreateFoldersOnServer(bool *aCanCreateFoldersOnServer);
+  NS_IMETHOD GetCanFileMessagesOnServer(bool *aCanFileMessagesOnServer);
   NS_IMETHOD GetFilterScope(nsMsgSearchScopeValue *filterScope);
   NS_IMETHOD GetSearchScope(nsMsgSearchScopeValue *searchScope);
-  NS_IMETHOD GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff);
+  NS_IMETHOD GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff);
   NS_IMETHOD OnUserOrHostNameChanged(const nsACString& oldName, const nsACString& newName);
   NS_IMETHOD GetNumIdleConnections(PRInt32 *aNumIdleConnections);
   NS_IMETHOD ForgetSessionPassword();
@@ -110,15 +110,15 @@ protected:
                                nsCOMArray<nsIMsgImapMailFolder> &aFoldersArray);
   void GetUnverifiedFolders(nsCOMArray<nsIMsgImapMailFolder> &aFolderArray);
   nsresult DeleteNonVerifiedFolders(nsIMsgFolder *parentFolder);
-  PRBool NoDescendentsAreVerified(nsIMsgFolder *parentFolder);
-  PRBool AllDescendentsAreNoSelect(nsIMsgFolder *parentFolder);
+  bool NoDescendentsAreVerified(nsIMsgFolder *parentFolder);
+  bool AllDescendentsAreNoSelect(nsIMsgFolder *parentFolder);
 
   nsresult GetStringBundle();
   nsString GetImapStringByName(const nsString &aName);
   static nsresult AlertUser(const nsAString& aString, nsIMsgMailNewsUrl *aUrl);
 
 private:
-  nsresult SubscribeToFolder(const PRUnichar *aName, PRBool subscribe);
+  nsresult SubscribeToFolder(const PRUnichar *aName, bool subscribe);
   nsresult GetImapConnection (nsIEventTarget* aEventTarget,
                                    nsIImapUrl* aImapUrl,
                                    nsIImapProtocol** aImapConnection);
@@ -126,11 +126,11 @@ private:
                                            nsIImapProtocol ** aImapConnection);
   nsresult CreateHostSpecificPrefName(const char *prefPrefix, nsCAutoString &prefName);
 
-  nsresult DoomUrlIfChannelHasError(nsIImapUrl *aImapUrl, PRBool *urlDoomed);
-  PRBool ConnectionTimeOut(nsIImapProtocol* aImapConnection);
+  nsresult DoomUrlIfChannelHasError(nsIImapUrl *aImapUrl, bool *urlDoomed);
+  bool ConnectionTimeOut(nsIImapProtocol* aImapConnection);
   nsresult GetFormattedStringFromID(const nsAString& aValue, PRInt32 aID, nsAString& aResult);
-  nsresult GetPrefForServerAttribute(const char *prefSuffix, PRBool *prefValue);
-  PRBool CheckSpecialFolder(nsIRDFService *rdf, nsCString &folderUri,
+  nsresult GetPrefForServerAttribute(const char *prefSuffix, bool *prefValue);
+  bool CheckSpecialFolder(nsIRDFService *rdf, nsCString &folderUri,
                             PRUint32 folderFlag, nsCString &existingUri);
 
   nsCOMArray<nsIImapProtocol> m_connectionCache;
@@ -141,10 +141,10 @@ private:
   nsVoidArray       m_urlConsumers;
   PRUint32          m_capability;
   nsCString         m_manageMailAccountUrl;
-  PRPackedBool      m_userAuthenticated;
-  PRPackedBool      mDoingSubscribeDialog;
-  PRPackedBool      mDoingLsub;
-  PRPackedBool      m_shuttingDown;
+  bool              m_userAuthenticated;
+  bool              mDoingSubscribeDialog;
+  bool              mDoingLsub;
+  bool              m_shuttingDown;
 
   mozilla::Mutex mLock;
   // subscribe dialog stuff

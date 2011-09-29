@@ -62,7 +62,7 @@ static void mime_crypto_write_base64 (void *closure, const char *buf,
               unsigned long size);
 static nsresult mime_encoder_output_fn(const char *buf, PRInt32 size, void *closure);
 static nsresult mime_nested_encoder_output_fn (const char *buf, PRInt32 size, void *closure);
-static int make_multipart_signed_header_string(PRBool outer_p,
+static int make_multipart_signed_header_string(bool outer_p,
                   char **header_return,
                   char **boundary_return);
 static char *mime_make_separator(const char *prefix);
@@ -98,7 +98,7 @@ MIME_QPEncoderInit(nsresult (* output_fn) (const char *buf, PRInt32 size, void *
 }
 
 nsresult
-MIME_EncoderDestroy(MimeEncoderData *data, PRBool abort_p) 
+MIME_EncoderDestroy(MimeEncoderData *data, bool abort_p) 
 {
   //MimeEncoderData *returnEncoderData = nsnull;
   nsIMimeConverter *converter;
@@ -129,7 +129,7 @@ MIME_EncoderWrite(MimeEncoderData *data, const char *buffer, PRInt32 size)
 static void
 GenerateGlobalRandomBytes(unsigned char *buf, PRInt32 len)
 {
-  static PRBool    firstTime = PR_TRUE;
+  static bool      firstTime = true;
   
   if (firstTime)
   {
@@ -178,25 +178,25 @@ nsMsgSMIMEComposeFields::~nsMsgSMIMEComposeFields()
 {
 }
 
-NS_IMETHODIMP nsMsgSMIMEComposeFields::SetSignMessage(PRBool value)
+NS_IMETHODIMP nsMsgSMIMEComposeFields::SetSignMessage(bool value)
 {
   mSignMessage = value;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgSMIMEComposeFields::GetSignMessage(PRBool *_retval)
+NS_IMETHODIMP nsMsgSMIMEComposeFields::GetSignMessage(bool *_retval)
 {
   *_retval = mSignMessage;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgSMIMEComposeFields::SetRequireEncryptMessage(PRBool value)
+NS_IMETHODIMP nsMsgSMIMEComposeFields::SetRequireEncryptMessage(bool value)
 {
   mAlwaysEncryptMessage = value;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgSMIMEComposeFields::GetRequireEncryptMessage(PRBool *_retval)
+NS_IMETHODIMP nsMsgSMIMEComposeFields::GetRequireEncryptMessage(bool *_retval)
 {
   *_retval = mAlwaysEncryptMessage;
   return NS_OK;
@@ -241,15 +241,15 @@ nsMsgComposeSecure::~nsMsgComposeSecure()
   PR_FREEIF(mMultipartSignedBoundary);
 }
 
-NS_IMETHODIMP nsMsgComposeSecure::RequiresCryptoEncapsulation(nsIMsgIdentity * aIdentity, nsIMsgCompFields * aCompFields, PRBool * aRequiresEncryptionWork)
+NS_IMETHODIMP nsMsgComposeSecure::RequiresCryptoEncapsulation(nsIMsgIdentity * aIdentity, nsIMsgCompFields * aCompFields, bool * aRequiresEncryptionWork)
 {
   NS_ENSURE_ARG_POINTER(aRequiresEncryptionWork);
 
   nsresult rv = NS_OK;
   *aRequiresEncryptionWork = PR_FALSE;
 
-  PRBool alwaysEncryptMessages = PR_FALSE;
-  PRBool signMessage = PR_FALSE;
+  bool alwaysEncryptMessages = false;
+  bool signMessage = false;
   rv = ExtractEncryptionState(aIdentity, aCompFields, &signMessage, &alwaysEncryptMessages);
 
   if (alwaysEncryptMessages || signMessage)
@@ -288,7 +288,7 @@ SMIMEBundleFormatStringFromName(const PRUnichar *name,
                                             numParams, outString);
 }
 
-PRBool nsMsgComposeSecure::InitializeSMIMEBundle()
+bool nsMsgComposeSecure::InitializeSMIMEBundle()
 {
   if (mSMIMEBundle)
     return PR_TRUE;
@@ -356,7 +356,7 @@ void nsMsgComposeSecure::SetErrorWithParam(nsIMsgSendReport *sendReport, const P
   }
 }
 
-nsresult nsMsgComposeSecure::ExtractEncryptionState(nsIMsgIdentity * aIdentity, nsIMsgCompFields * aComposeFields, PRBool * aSignMessage, PRBool * aEncrypt)
+nsresult nsMsgComposeSecure::ExtractEncryptionState(nsIMsgIdentity * aIdentity, nsIMsgCompFields * aComposeFields, bool * aSignMessage, bool * aEncrypt)
 {
   if (!aComposeFields && !aIdentity)
     return NS_ERROR_FAILURE; // kick out...invalid args....
@@ -403,13 +403,13 @@ NS_IMETHODIMP nsMsgComposeSecure::BeginCryptoEncapsulation(nsIOutputStream * aSt
                                                            nsIMsgCompFields * aCompFields,
                                                            nsIMsgIdentity * aIdentity,
                                                            nsIMsgSendReport *sendReport,
-                                                           PRBool aIsDraft)
+                                                           bool aIsDraft)
 {
   mErrorAlreadyReported = PR_FALSE;
   nsresult rv = NS_OK;
 
-  PRBool encryptMessages = PR_FALSE;
-  PRBool signMessage = PR_FALSE;
+  bool encryptMessages = false;
+  bool signMessage = false;
   ExtractEncryptionState(aIdentity, aCompFields, &signMessage, &encryptMessages);
 
   if (!signMessage && !encryptMessages) return NS_ERROR_FAILURE;
@@ -464,7 +464,7 @@ FAIL:
 }
 
 /* void finishCryptoEncapsulation (in boolean aAbort); */
-NS_IMETHODIMP nsMsgComposeSecure::FinishCryptoEncapsulation(PRBool aAbort, nsIMsgSendReport *sendReport)
+NS_IMETHODIMP nsMsgComposeSecure::FinishCryptoEncapsulation(bool aAbort, nsIMsgSendReport *sendReport)
 {
   nsresult rv = NS_OK;
 
@@ -492,7 +492,7 @@ NS_IMETHODIMP nsMsgComposeSecure::FinishCryptoEncapsulation(PRBool aAbort, nsIMs
   return rv;
 }
 
-nsresult nsMsgComposeSecure::MimeInitMultipartSigned(PRBool aOuter, nsIMsgSendReport *sendReport)
+nsresult nsMsgComposeSecure::MimeInitMultipartSigned(bool aOuter, nsIMsgSendReport *sendReport)
 {
   /* First, construct and write out the multipart/signed MIME header data.
    */
@@ -541,7 +541,7 @@ nsresult nsMsgComposeSecure::MimeInitMultipartSigned(PRBool aOuter, nsIMsgSendRe
   return rv;
 }
 
-nsresult nsMsgComposeSecure::MimeInitEncryption(PRBool aSign, nsIMsgSendReport *sendReport)
+nsresult nsMsgComposeSecure::MimeInitEncryption(bool aSign, nsIMsgSendReport *sendReport)
 {
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleSvc =
@@ -643,7 +643,7 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(PRBool aSign, nsIMsgSendReport *
   return rv;
 }
 
-nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (PRBool aOuter, nsIMsgSendReport *sendReport)
+nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendReport *sendReport)
 {
   int status;
   nsresult rv;
@@ -803,7 +803,7 @@ FAIL:
 /* Helper function for mime_finish_crypto_encapsulation() to close off
    an opaque crypto object (for encrypted or signed-and-encrypted messages.)
  */
-nsresult nsMsgComposeSecure::MimeFinishEncryption (PRBool aSign, nsIMsgSendReport *sendReport)
+nsresult nsMsgComposeSecure::MimeFinishEncryption (bool aSign, nsIMsgSendReport *sendReport)
 {
   nsresult rv;
 
@@ -862,8 +862,8 @@ nsresult nsMsgComposeSecure::MimeFinishEncryption (PRBool aSign, nsIMsgSendRepor
  */
 nsresult nsMsgComposeSecure::MimeCryptoHackCerts(const char *aRecipients,
                                                  nsIMsgSendReport *sendReport,
-                                                 PRBool aEncrypt,
-                                                 PRBool aSign)
+                                                 bool aEncrypt,
+                                                 bool aSign)
 {
   char *mailbox_list = 0;
   nsCString all_mailboxes, mailboxes;
@@ -918,14 +918,14 @@ nsresult nsMsgComposeSecure::MimeCryptoHackCerts(const char *aRecipients,
   if (aEncrypt) {
     mailbox = mailbox_list;
 
-    PRBool already_added_self_cert = PR_FALSE;
+    bool already_added_self_cert = false;
 
     for (; count > 0; count--) {
       nsCString mailbox_lowercase;
       ToLowerCase(nsDependentCString(mailbox), mailbox_lowercase);
       nsCOMPtr<nsIX509Cert> cert;
       certdb->FindCertByEmailAddress(nsnull, mailbox_lowercase.get(), getter_AddRefs(cert));
-      PRBool foundValidCert = PR_FALSE;
+      bool foundValidCert = false;
 
       if (cert) {
         PRUint32 verification_result;
@@ -954,7 +954,7 @@ nsresult nsMsgComposeSecure::MimeCryptoHackCerts(const char *aRecipients,
      message.)
      */
 
-      PRBool isSame;
+      bool isSame;
       if (NS_SUCCEEDED(cert->Equals(mSelfEncryptionCert, &isSame))
           && isSame) {
         already_added_self_cert = PR_TRUE;
@@ -1056,7 +1056,7 @@ NS_IMETHODIMP nsMsgComposeSecure::MimeCryptoWriteBlock (const char *buf, PRInt32
    the caller knows what to write to close it off.)
  */
 static int
-make_multipart_signed_header_string(PRBool outer_p,
+make_multipart_signed_header_string(bool outer_p,
 									char **header_return,
 									char **boundary_return)
 {

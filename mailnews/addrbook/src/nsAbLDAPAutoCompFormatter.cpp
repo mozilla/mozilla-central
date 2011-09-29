@@ -430,7 +430,7 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
                    "couldn't get console service");
     }
 
-    PRBool attrRequired = PR_FALSE;     // is this attr required or optional?
+    bool attrRequired = false;     // is this attr required or optional?
     nsCAutoString attrName;             // current attr to get
 
     // parse until we hit the end of the string
@@ -555,7 +555,7 @@ nsresult
 nsAbLDAPAutoCompFormatter::ParseAttrName(
     const PRUnichar **aIter,                     // iterators for mOutputString
     const PRUnichar *aIterEnd, 
-    PRBool aAttrRequired,                       // required?  or just optional?
+    bool aAttrRequired,                       // required?  or just optional?
     nsCOMPtr<nsIConsoleService> &aConsoleSvc,   // no need to reacquire this
     nsACString &aAttrName)                      // attribute token
 {
@@ -609,7 +609,7 @@ nsresult
 nsAbLDAPAutoCompFormatter::AppendFirstAttrValue(
     const nsACString &aAttrName, // attr to get
     nsILDAPMessage *aMessage, // msg to get values from
-    PRBool aAttrRequired, // is this a required value?
+    bool aAttrRequired, // is this a required value?
     nsACString &aValue)
 {
     // get the attribute values for the field which will be used 

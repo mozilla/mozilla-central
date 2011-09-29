@@ -60,7 +60,7 @@
      This is called with the raw data, for which a signature has been computed.
    The crypto module should examine this, and compute a signature for it.
 
-   int crypto_data_eof (void *crypto_closure, PRBool abort_p)
+   int crypto_data_eof (void *crypto_closure, bool abort_p)
 
      This is called when no more data remains.  If `abort_p' is true, then the
    crypto module may choose to discard any data rather than processing it,
@@ -82,7 +82,7 @@
    be called after crypto_data_eof() has been called to signify the end of
    the data which is signed.  This data is the data of the signature itself.
 
-   int crypto_signature_eof (void *crypto_closure, PRBool abort_p)
+   int crypto_signature_eof (void *crypto_closure, bool abort_p)
 
      This is called when no more signature data remains.  If `abort_p' is true,
    then the crypto module may choose to discard any data rather than
@@ -128,8 +128,8 @@ struct MimeMultipartSignedClass {
   int (*crypto_signature_hash) (const char *data, PRInt32 data_size,
                 void *crypto_closure);
 
-  int (*crypto_data_eof)      (void *crypto_closure, PRBool abort_p);
-  int (*crypto_signature_eof) (void *crypto_closure, PRBool abort_p);
+  int (*crypto_data_eof)      (void *crypto_closure, bool abort_p);
+  int (*crypto_signature_eof) (void *crypto_closure, bool abort_p);
 
   int (*crypto_signature_init) (void *crypto_closure,
                 MimeObject *multipart_object,

@@ -369,12 +369,12 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::SetMsgSize(PRUint32 aMsgSize)
   return m_mdb->SetUint32Property(m_mdbRow, PROP_MSG_SIZE, aMsgSize);
 }
 
-NS_IMETHODIMP nsMsgOfflineImapOperation::SetPlayingBack(PRBool aPlayingBack)
+NS_IMETHODIMP nsMsgOfflineImapOperation::SetPlayingBack(bool aPlayingBack)
 {
   return m_mdb->SetBooleanProperty(m_mdbRow, PROP_PLAYINGBACK, aPlayingBack);
 }
 
-NS_IMETHODIMP nsMsgOfflineImapOperation::GetPlayingBack(PRBool *aPlayingBack)
+NS_IMETHODIMP nsMsgOfflineImapOperation::GetPlayingBack(bool *aPlayingBack)
 {
   NS_ENSURE_ARG(aPlayingBack);
   return m_mdb->GetBooleanProperty(m_mdbRow, PROP_PLAYINGBACK, aPlayingBack);

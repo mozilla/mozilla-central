@@ -66,7 +66,7 @@ nsMovemailIncomingServer::~nsMovemailIncomingServer()
 }
 
 NS_IMETHODIMP
-nsMovemailIncomingServer::GetIsSecureServer(PRBool *aIsSecureServer)
+nsMovemailIncomingServer::GetIsSecureServer(bool *aIsSecureServer)
 {
     NS_ENSURE_ARG_POINTER(aIsSecureServer);
     *aIsSecureServer = PR_FALSE;
@@ -94,7 +94,7 @@ nsMovemailIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
     SetPerformingBiff(PR_TRUE);
     urlListener = do_QueryInterface(inbox);
 
-    PRBool downloadOnBiff = PR_FALSE;
+    bool downloadOnBiff = false;
     rv = GetDownloadOnBiff(&downloadOnBiff);
     if (downloadOnBiff)
     {
@@ -102,7 +102,7 @@ nsMovemailIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
                                                                        &rv);
        if (localInbox && NS_SUCCEEDED(rv))
        {
-           PRBool valid = PR_FALSE;
+           bool valid = false;
            nsCOMPtr <nsIMsgDatabase> db;
            rv = inbox->GetMsgDatabase(getter_AddRefs(db));
            if (NS_SUCCEEDED(rv) && db)
@@ -116,7 +116,7 @@ nsMovemailIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
            }
            else
            {
-              PRBool isLocked;
+              bool isLocked;
               inbox->GetLocked(&isLocked);
               if (!isLocked)
               {
@@ -169,7 +169,7 @@ NS_IMETHODIMP nsMovemailIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
 
     rv = path->AppendNative(NS_LITERAL_CSTRING("Inbox"));
     if (NS_FAILED(rv)) return rv;
-    PRBool exists;
+    bool exists;
     rv = path->Exists(&exists);
     if (NS_FAILED(rv)) return rv;
     if (!exists) 
@@ -246,7 +246,7 @@ nsMovemailIncomingServer::GetNewMail(nsIMsgWindow *aMsgWindow,
 }        
 
 NS_IMETHODIMP
-nsMovemailIncomingServer::GetDownloadMessagesAtStartup(PRBool *getMessagesAtStartup)
+nsMovemailIncomingServer::GetDownloadMessagesAtStartup(bool *getMessagesAtStartup)
 {
     NS_ENSURE_ARG_POINTER(getMessagesAtStartup);
     *getMessagesAtStartup = PR_TRUE;
@@ -254,7 +254,7 @@ nsMovemailIncomingServer::GetDownloadMessagesAtStartup(PRBool *getMessagesAtStar
 }
 
 NS_IMETHODIMP
-nsMovemailIncomingServer::GetCanBeDefaultServer(PRBool *aCanBeDefaultServer)
+nsMovemailIncomingServer::GetCanBeDefaultServer(bool *aCanBeDefaultServer)
 {
   NS_ENSURE_ARG_POINTER(aCanBeDefaultServer);
   *aCanBeDefaultServer = PR_TRUE;
@@ -262,7 +262,7 @@ nsMovemailIncomingServer::GetCanBeDefaultServer(PRBool *aCanBeDefaultServer)
 }
 
 NS_IMETHODIMP
-nsMovemailIncomingServer::GetCanSearchMessages(PRBool *canSearchMessages)
+nsMovemailIncomingServer::GetCanSearchMessages(bool *canSearchMessages)
 {
     NS_ENSURE_ARG_POINTER(canSearchMessages);
     *canSearchMessages = PR_TRUE;
@@ -270,7 +270,7 @@ nsMovemailIncomingServer::GetCanSearchMessages(PRBool *canSearchMessages)
 }
 
 NS_IMETHODIMP 
-nsMovemailIncomingServer::GetServerRequiresPasswordForBiff(PRBool *aServerRequiresPasswordForBiff)
+nsMovemailIncomingServer::GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff)
 {
     NS_ENSURE_ARG_POINTER(aServerRequiresPasswordForBiff);
     *aServerRequiresPasswordForBiff = PR_FALSE;

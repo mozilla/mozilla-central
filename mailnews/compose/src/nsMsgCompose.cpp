@@ -169,7 +169,7 @@ static void TranslateLineEnding(nsString& data)
   data.SetLength(wPtr - sPtr);
 }
 
-static void GetTopmostMsgWindowCharacterSet(nsCString& charset, PRBool* charsetOverride)
+static void GetTopmostMsgWindowCharacterSet(nsCString& charset, bool* charsetOverride)
 {
   // HACK: if we are replying to a message and that message used a charset over ride
   // (as specified in the top most window (assuming the reply originated from that window)
@@ -285,7 +285,7 @@ GetNodeLocation(nsIDOMNode *inChild, nsCOMPtr<nsIDOMNode> *outParent, PRInt32 *o
   return result;
 }
 
-PRBool nsMsgCompose::IsEmbeddedObjectSafe(const char * originalScheme,
+bool nsMsgCompose::IsEmbeddedObjectSafe(const char * originalScheme,
                                           const char * originalHost,
                                           const char * originalPath,
                                           nsIDOMNode * object)
@@ -504,7 +504,7 @@ nsresult nsMsgCompose::TagEmbeddedObjects(nsIEditorMailSupport *aEditor)
 }
 
 NS_IMETHODIMP
-nsMsgCompose::GetInsertingQuotedContent(PRBool * aInsertingQuotedText)
+nsMsgCompose::GetInsertingQuotedContent(bool * aInsertingQuotedText)
 {
   NS_ENSURE_ARG_POINTER(aInsertingQuotedText);
   *aInsertingQuotedText = mInsertingQuotedContent;
@@ -512,7 +512,7 @@ nsMsgCompose::GetInsertingQuotedContent(PRBool * aInsertingQuotedText)
 }
 
 NS_IMETHODIMP
-nsMsgCompose::SetInsertingQuotedContent(PRBool aInsertingQuotedText)
+nsMsgCompose::SetInsertingQuotedContent(bool aInsertingQuotedText)
 {
   mInsertingQuotedContent = aInsertingQuotedText;
   return NS_OK;
@@ -522,8 +522,8 @@ NS_IMETHODIMP
 nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
                                           nsString& aBuf,
                                           nsString& aSignature,
-                                          PRBool aQuoted,
-                                          PRBool aHTMLEditor)
+                                          bool aQuoted,
+                                          bool aHTMLEditor)
 {
   NS_ASSERTION(m_editor, "ConvertAndLoadComposeWindow but no editor\n");
   if (!m_editor)
@@ -559,11 +559,11 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
   nsCOMPtr<nsIPlaintextEditor> textEditor (do_QueryInterface(m_editor));
   nsCOMPtr<nsIEditorMailSupport> mailEditor (do_QueryInterface(m_editor));
   PRInt32 reply_on_top = 0;
-  PRBool sig_bottom = PR_TRUE;
+  bool sig_bottom = true;
   m_identity->GetReplyOnTop(&reply_on_top);
   m_identity->GetSigBottom(&sig_bottom);
 
-  PRBool sigOnTop = (reply_on_top == 1 && !sig_bottom);
+  bool sigOnTop = (reply_on_top == 1 && !sig_bottom);
   if (aQuoted)
   {
     mInsertingQuotedContent = PR_TRUE;
@@ -740,9 +740,9 @@ nsMsgCompose::ConvertAndLoadComposeWindow(nsString& aPrefix,
 /**
  * Check the identity pref to include signature on replies and forwards.
  */
-PRBool nsMsgCompose::CheckIncludeSignaturePrefs(nsIMsgIdentity *identity)
+bool nsMsgCompose::CheckIncludeSignaturePrefs(nsIMsgIdentity *identity)
 {
-  PRBool includeSignature = PR_TRUE;
+  bool includeSignature = true;
   switch (mType)
   {
     case nsIMsgCompType::ForwardInline:
@@ -762,14 +762,14 @@ PRBool nsMsgCompose::CheckIncludeSignaturePrefs(nsIMsgIdentity *identity)
 }
 
 nsresult
-nsMsgCompose::SetQuotingToFollow(PRBool aVal)
+nsMsgCompose::SetQuotingToFollow(bool aVal)
 {
   mQuotingToFollow = aVal;
   return NS_OK;
 }
 
 NS_IMETHODIMP
-nsMsgCompose::GetQuotingToFollow(PRBool* quotingToFollow)
+nsMsgCompose::GetQuotingToFollow(bool* quotingToFollow)
 {
   NS_ENSURE_ARG(quotingToFollow);
   *quotingToFollow = mQuotingToFollow;
@@ -835,7 +835,7 @@ nsMsgCompose::Initialize(nsIMsgComposeParams *aParams,
     // initializing the message.
     if (m_identity && draftId.IsEmpty())
     {
-      PRBool requestReturnReceipt = PR_FALSE;
+      bool requestReturnReceipt = false;
       rv = m_identity->GetRequestReturnReceipt(&requestReturnReceipt);
       NS_ENSURE_SUCCESS(rv, rv);
       rv = composeFields->SetReturnReceipt(requestReturnReceipt);
@@ -847,13 +847,13 @@ nsMsgCompose::Initialize(nsIMsgComposeParams *aParams,
       rv = composeFields->SetReceiptHeaderType(receiptType);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      PRBool requestDSN = PR_FALSE;
+      bool requestDSN = false;
       rv = m_identity->GetRequestDSN(&requestDSN);
       NS_ENSURE_SUCCESS(rv, rv);
       rv = composeFields->SetDSN(requestDSN);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      PRBool attachVCard;
+      bool attachVCard;
       rv = m_identity->GetAttachVCard(&attachVCard);
       NS_ENSURE_SUCCESS(rv, rv);
       rv = composeFields->SetAttachVCard(attachVCard);
@@ -931,7 +931,7 @@ NS_IMETHODIMP nsMsgCompose::RemoveMsgSendListener( nsIMsgSendListener *aMsgSendL
 }
 
 nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity, 
-                                const char *accountKey, PRBool entityConversionDone)
+                                const char *accountKey, bool entityConversionDone)
 {
   nsresult rv = NS_OK;
 
@@ -965,7 +965,7 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
     mMsgSend = do_CreateInstance(NS_MSGSEND_CONTRACTID);
     if (mMsgSend)
     {
-      PRBool      newBody = PR_FALSE;
+      bool        newBody = false;
       char        *bodyString = (char *)m_compFields->GetBody();
       PRInt32     bodyLength;
       const char  attachment1_type[] = TEXT_HTML;  // we better be "text/html" at this point
@@ -978,7 +978,7 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
         if (  bodyString && *bodyString )
         {
           // Apply entity conversion then convert to a mail charset.
-          PRBool isAsciiOnly;
+          bool isAsciiOnly;
           rv = nsMsgI18NSaveAsCharset(attachment1_type, m_compFields->GetCharacterSet(),
                                       NS_ConvertUTF8toUTF16(bodyString).get(), &outCString,
                                       nsnull, &isAsciiOnly);
@@ -1028,8 +1028,8 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
                     identity,
                     accountKey,
                     m_compFields,
-                    PR_FALSE,                           // PRBool                            digest_p,
-                    PR_FALSE,                           // PRBool                            dont_deliver_p,
+                    false,                           // bool                              digest_p,
+                    false,                           // bool                              dont_deliver_p,
                     (nsMsgDeliverMode)deliverMode,      // nsMsgDeliverMode                  mode,
                     nsnull,                             // nsIMsgDBHdr                       *msgToReplace,
                     m_composeHTML?TEXT_HTML:TEXT_PLAIN, // const char                        *attachment1_type,
@@ -1063,7 +1063,7 @@ nsresult nsMsgCompose::_SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *ide
 NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity *identity, const char *accountKey, nsIMsgWindow *aMsgWindow, nsIMsgProgress *progress)
 {
   nsresult rv = NS_OK;
-  PRBool entityConversionDone = PR_FALSE;
+  bool entityConversionDone = false;
   nsCOMPtr<nsIPrompt> prompt;
 
   // i'm assuming the compose window is still up at this point...
@@ -1099,7 +1099,7 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
       // Convert body to mail charset
       nsCString outCString;
       nsCString fallbackCharset;
-      PRBool isAsciiOnly;
+      bool isAsciiOnly;
       // check if the body text is covered by the current charset.
       rv = nsMsgI18NSaveAsCharset(contentType, m_compFields->GetCharacterSet(),
                                   msgBody.get(), getter_Copies(outCString),
@@ -1113,11 +1113,11 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
         // unless disable_fallback_to_utf8 is set for this charset.
         if (NS_ERROR_UENC_NOMAPPING == rv && m_editor)
         {
-          PRBool needToCheckCharset;
+          bool needToCheckCharset;
           m_compFields->GetNeedToCheckCharset(&needToCheckCharset);
           if (needToCheckCharset)
           {
-            PRBool disableFallback = PR_FALSE;
+            bool disableFallback = false;
             nsCOMPtr<nsIPrefBranch> prefBranch (do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
             if (prefBranch)
             {
@@ -1156,7 +1156,7 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
       nsAutoString msgSubject;
       m_compFields->GetSubject(msgSubject);
 
-      PRBool showProgress = PR_FALSE;
+      bool showProgress = false;
       nsCOMPtr<nsIPrefBranch> prefBranch (do_GetService(NS_PREFSERVICE_CONTRACTID));
       if (prefBranch)
       {
@@ -1180,7 +1180,7 @@ NS_IMETHODIMP nsMsgCompose::SendMsg(MSG_DeliverMode deliverMode, nsIMsgIdentity 
     mProgress->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_START, NS_OK);
   }
 
-  PRBool attachVCard = PR_FALSE;
+  bool attachVCard = false;
   if (m_compFields)
       m_compFields->GetAttachVCard(&attachVCard);
 
@@ -1294,36 +1294,36 @@ NS_IMETHODIMP nsMsgCompose::GetRecyclingListener(nsIMsgComposeRecyclingListener 
 }
 
 /* attribute boolean recycledWindow; */
-NS_IMETHODIMP nsMsgCompose::GetRecycledWindow(PRBool *aRecycledWindow)
+NS_IMETHODIMP nsMsgCompose::GetRecycledWindow(bool *aRecycledWindow)
 {
   NS_ENSURE_ARG_POINTER(aRecycledWindow);
   *aRecycledWindow = mRecycledWindow;
   return NS_OK;
 }
-NS_IMETHODIMP nsMsgCompose::SetRecycledWindow(PRBool aRecycledWindow)
+NS_IMETHODIMP nsMsgCompose::SetRecycledWindow(bool aRecycledWindow)
 {
   mRecycledWindow = aRecycledWindow;
   return NS_OK;
 }
 
 /* attribute boolean deleteDraft */
-NS_IMETHODIMP nsMsgCompose::GetDeleteDraft(PRBool *aDeleteDraft)
+NS_IMETHODIMP nsMsgCompose::GetDeleteDraft(bool *aDeleteDraft)
 {
   NS_ENSURE_ARG_POINTER(aDeleteDraft);
   *aDeleteDraft = mDeleteDraft;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompose::SetDeleteDraft(PRBool aDeleteDraft)
+NS_IMETHODIMP nsMsgCompose::SetDeleteDraft(bool aDeleteDraft)
 {
   mDeleteDraft = aDeleteDraft;
   return NS_OK;
 }
 
-PRBool nsMsgCompose::IsLastWindow()
+bool nsMsgCompose::IsLastWindow()
 {
   nsresult rv;
-  PRBool more;
+  bool more;
   nsCOMPtr<nsIWindowMediator> windowMediator =
               do_GetService(NS_WINDOWMEDIATOR_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv))
@@ -1343,7 +1343,7 @@ PRBool nsMsgCompose::IsLastWindow()
   return PR_TRUE;
 }
 
-NS_IMETHODIMP nsMsgCompose::CloseWindow(PRBool recycleIt)
+NS_IMETHODIMP nsMsgCompose::CloseWindow(bool recycleIt)
 {
   nsresult rv;
 
@@ -1476,7 +1476,7 @@ NS_IMETHODIMP nsMsgCompose::InitEditor(nsIEditor* aEditor, nsIDOMWindow* aConten
 
   // This is what used to be done in mDocumentListener,
   //   nsMsgDocumentStateListener::NotifyDocumentCreated()
-  PRBool quotingToFollow = PR_FALSE;
+  bool quotingToFollow = false;
   GetQuotingToFollow(&quotingToFollow);
   if (quotingToFollow)
     return BuildQuotedMessageAndSignature();
@@ -1489,7 +1489,7 @@ NS_IMETHODIMP nsMsgCompose::InitEditor(nsIEditor* aEditor, nsIDOMWindow* aConten
   }
 }
 
-nsresult nsMsgCompose::GetBodyModified(PRBool * modified)
+nsresult nsMsgCompose::GetBodyModified(bool * modified)
 {
   nsresult rv;
 
@@ -1508,7 +1508,7 @@ nsresult nsMsgCompose::GetBodyModified(PRBool * modified)
   return NS_OK;
 }
 
-nsresult nsMsgCompose::SetBodyModified(PRBool modified)
+nsresult nsMsgCompose::SetBodyModified(bool modified)
 {
   nsresult  rv = NS_OK;
 
@@ -1542,7 +1542,7 @@ nsresult nsMsgCompose::GetCompFields(nsIMsgCompFields * *aCompFields)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgCompose::GetComposeHTML(PRBool *aComposeHTML)
+NS_IMETHODIMP nsMsgCompose::GetComposeHTML(bool *aComposeHTML)
 {
   *aComposeHTML = m_composeHTML;
   return NS_OK;
@@ -1569,7 +1569,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
   mDeleteDraft = (type == nsIMsgCompType::Draft);
   nsCAutoString msgUri(originalMsgURI);
   // check if we're dealing with an opened .eml file msg
-  PRBool fileUrl = StringBeginsWith(msgUri, NS_LITERAL_CSTRING("file:"));
+  bool fileUrl = StringBeginsWith(msgUri, NS_LITERAL_CSTRING("file:"));
   if (fileUrl)
   {
     // strip out ?type=application/x-message-display because it confuses libmime
@@ -1633,7 +1633,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
     }
 
     /* Setup cc field */
-    PRBool doCc;
+    bool doCc;
     m_identity->GetDoCc(&doCc);
     if (doCc)
     {
@@ -1652,7 +1652,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
     }
 
     /* Setup bcc field */
-    PRBool doBcc;
+    bool doBcc;
     m_identity->GetDoBcc(&doBcc);
     if (doBcc) 
     {
@@ -1717,7 +1717,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
   // If we are forwarding inline, mime did already setup the compose fields therefore we should stop now
   if (type == nsIMsgCompType::ForwardInline )
   {
-    PRBool replyInDefault = PR_FALSE;
+    bool replyInDefault = false;
     prefs->GetBoolPref("mailnews.reply_in_default_charset",
                         &replyInDefault);
     // Use send_default_charset if reply_in_default_charset is on.
@@ -1763,7 +1763,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
   nsCString charset;
   // use a charset of the original message
   nsCString mailCharset;
-  PRBool charsetOverride = PR_FALSE;
+  bool charsetOverride = false;
   GetTopmostMsgWindowCharacterSet(mailCharset, &mCharsetOverride);
   if (!mailCharset.IsEmpty())
   {
@@ -1776,7 +1776,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
   // now displayed with
   mQuoteCharset = charset;
 
-  PRBool isFirstPass = PR_TRUE;
+  bool isFirstPass = true;
   char *uri = uriList;
   char *nextUri;
   do
@@ -1821,7 +1821,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
       // with |charsetOverride|.
       nsCAutoString originCharset(charset);
 
-      PRBool replyInDefault = PR_FALSE;
+      bool replyInDefault = false;
       prefs->GetBoolPref("mailnews.reply_in_default_charset",
                           &replyInDefault);
       // Use send_default_charset if reply_in_default_charset is on.
@@ -1852,7 +1852,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
       // Check if (was: is present in the subject
       PRInt32 wasOffset = subject.RFind(NS_LITERAL_STRING(" (was:"));
-      PRBool strip = PR_TRUE;
+      bool strip = true;
 
       if (wasOffset >= 0) {
         // Check the number of references, to check if was: should be stripped
@@ -1941,7 +1941,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
               NS_ENSURE_SUCCESS(rv,rv);
             }
 
-            PRBool replyToSelfCheckAll = PR_FALSE;
+            bool replyToSelfCheckAll = false;
             prefs->GetBoolPref("mailnews.reply_to_self_check_all_ident",
                                &replyToSelfCheckAll);
 
@@ -1980,7 +1980,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
               }
             }
 
-            PRBool isReplyToOwnMsg = PR_FALSE;
+            bool isReplyToOwnMsg = false;
             if(identities)
             {
               // go through the identities to see if any of them is the author of the email
@@ -2075,7 +2075,7 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
             nsCOMPtr<nsIMsgAttachment> attachment = do_CreateInstance(NS_MSGATTACHMENT_CONTRACTID, &rv);
             if (NS_SUCCEEDED(rv) && attachment)
             {
-              PRBool addExtension = PR_TRUE;
+              bool addExtension = true;
               nsString sanitizedSubj;
               prefs->GetBoolPref("mail.forward_add_extension", &addExtension);
 
@@ -2208,12 +2208,12 @@ QuotingOutputStreamListener::~QuotingOutputStreamListener()
 
 QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMsgURI,
                                                          nsIMsgDBHdr *originalMsgHdr,
-                                                         PRBool quoteHeaders,
-                                                         PRBool headersOnly,
+                                                         bool quoteHeaders,
+                                                         bool headersOnly,
                                                          nsIMsgIdentity *identity,
                                                          const char *charset,
-                                                         PRBool charetOverride,
-                                                         PRBool quoteOriginal,
+                                                         bool charetOverride,
+                                                         bool quoteOriginal,
                                                          const nsACString& htmlToQuote)
 {
   nsresult rv;
@@ -2251,9 +2251,9 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
       if (reply_on_top == 1)
       {
         // add one newline if a signature comes before the quote, two otherwise
-        PRBool includeSignature = PR_TRUE;
-        PRBool sig_bottom = PR_TRUE;
-        PRBool attachFile = PR_FALSE;
+        bool includeSignature = true;
+        bool sig_bottom = true;
+        bool attachFile = false;
         nsString prefSigText;
 
         mIdentity->GetSigOnReply(&includeSignature);
@@ -2268,7 +2268,7 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
       }
 
 
-      PRBool header, headerDate;
+      bool header, headerDate;
       PRInt32 replyHeaderType;
       nsAutoString replyHeaderLocale;
       nsString replyHeaderAuthorwrote;
@@ -2449,7 +2449,7 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
  * disturbing the plain text.
  */
 nsresult
-QuotingOutputStreamListener::ConvertToPlainText(PRBool formatflowed /* = PR_FALSE */)
+QuotingOutputStreamListener::ConvertToPlainText(bool formatflowed /* = false */)
 {
   nsresult rv = ConvertBufToPlainText(mMsgBody, formatflowed);
   if (NS_FAILED(rv))
@@ -2511,7 +2511,7 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
         nsAutoString listPost;
         nsAutoString replyCompValue;
         nsCString outCString;
-        PRBool needToRemoveDup = PR_FALSE;
+        bool needToRemoveDup = false;
         if (!mMimeConverter)
         {
           mMimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
@@ -2793,13 +2793,13 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
     // just get lots of HTML text in the message...not good.
     //
     // XXX not m_composeHTML? /BenB
-    PRBool composeHTML = PR_TRUE;
+    bool composeHTML = true;
     compose->GetComposeHTML(&composeHTML);
     if (!composeHTML)
     {
       // Downsampling. The charset should only consist of ascii.
 
-      PRBool formatflowed =
+      bool formatflowed =
         UseFormatFlowed(NS_LossyConvertUTF16toASCII(aCharset).get());
       ConvertToPlainText(formatflowed);
     }
@@ -2959,7 +2959,7 @@ QuotingOutputStreamListener::SetMimeHeaders(nsIMimeHeaders * headers)
 
 NS_IMETHODIMP
 QuotingOutputStreamListener::InsertToCompose(nsIEditor *aEditor,
-                                             PRBool aHTMLEditor)
+                                             bool aHTMLEditor)
 {
   // First, get the nsIEditor interface for future use
   nsCOMPtr<nsIDOMNode> nodeInserted;
@@ -3103,7 +3103,7 @@ nsMsgCompose::QuoteOriginalMessage(const char *originalMsgURI, PRInt32 what) // 
   if (NS_FAILED(rv) || !mQuote)
     return NS_ERROR_FAILURE;
 
-  PRBool bAutoQuote = PR_TRUE;
+  bool bAutoQuote = true;
   m_identity->GetAutoQuote(&bAutoQuote);
 
   nsCOMPtr <nsIMsgDBHdr> originalMsgHdr = mOrigMsgHdr;
@@ -3134,8 +3134,8 @@ nsMsgCompose::QuoteOriginalMessage(const char *originalMsgURI, PRInt32 what) // 
 void nsMsgCompose::CleanUpRecipients(nsString& recipients)
 {
   PRUint16 i;
-  PRBool startANewRecipient = PR_TRUE;
-  PRBool removeBracket = PR_FALSE;
+  bool startANewRecipient = true;
+  bool removeBracket = false;
   nsAutoString newRecipient;
   PRUnichar aChar;
 
@@ -3511,7 +3511,7 @@ nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aS
       msgCompose->ProcessReplyFlags();
       
       // See if there is a composer window
-      PRBool hasDomWindow = PR_TRUE;
+      bool hasDomWindow = true;
       nsCOMPtr<nsIDOMWindow> domWindow;
       rv = msgCompose->GetDomWindow(getter_AddRefs(domWindow));
       if (NS_FAILED(rv) || !domWindow)
@@ -3550,7 +3550,7 @@ nsresult nsMsgComposeSendListener::OnStopSending(const char *aMsgID, nsresult aS
       }
 
       // Remove the current draft msg when sending draft is done.
-      PRBool deleteDraft;
+      bool deleteDraft;
       msgCompose->GetDeleteDraft(&deleteDraft);
       if (deleteDraft)
         RemoveCurrentDraftMessage(msgCompose, PR_FALSE);
@@ -3680,7 +3680,7 @@ nsMsgComposeSendListener::GetMsgFolder(nsIMsgCompose *compObj, nsIMsgFolder **ms
 }
 
 nsresult
-nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, PRBool calledByCopy)
+nsMsgComposeSendListener::RemoveCurrentDraftMessage(nsIMsgCompose *compObj, bool calledByCopy)
 {
   nsresult rv;
   nsCOMPtr <nsIMsgCompFields> compFields = nsnull;
@@ -3841,7 +3841,7 @@ NS_IMETHODIMP nsMsgComposeSendListener::OnStateChange(nsIWebProgress *aWebProgre
         // Unregister ourself from msg compose progress
         progress->UnregisterListener(this);
 
-        PRBool bCanceled = PR_FALSE;
+        bool bCanceled = false;
         progress->GetProcessCanceledByUser(&bCanceled);
         if (bCanceled)
         {
@@ -3935,14 +3935,14 @@ nsMsgCompose::ConvertTextToHTML(nsILocalFile *aSigFile, nsString &aSigData)
 
 nsresult
 nsMsgCompose::LoadDataFromFile(nsILocalFile *file, nsString &sigData,
-                               PRBool aAllowUTF8, PRBool aAllowUTF16)
+                               bool aAllowUTF8, bool aAllowUTF16)
 {
   PRInt32       readSize;
   PRUint32       nGot;
   char          *readBuf;
   char          *ptr;
 
-  PRBool isDirectory = PR_FALSE;
+  bool isDirectory = false;
   file->IsDirectory(&isDirectory);
   if (isDirectory) {
     NS_ERROR("file is a directory");
@@ -3979,7 +3979,7 @@ nsMsgCompose::LoadDataFromFile(nsILocalFile *file, nsString &sigData,
   readSize = (PRUint32) fileSize;
 
   nsCAutoString sigEncoding(nsMsgI18NParseMetaCharset(file));
-  PRBool removeSigCharset = !sigEncoding.IsEmpty() && m_composeHTML;
+  bool removeSigCharset = !sigEncoding.IsEmpty() && m_composeHTML;
 
   if (sigEncoding.IsEmpty()) {
     if (aAllowUTF8 && MsgIsUTF8(nsDependentCString(readBuf))) {
@@ -4038,7 +4038,7 @@ nsMsgCompose::BuildQuotedMessageAndSignature(void)
 // will always append the results to the mMsgBody member variable.
 //
 nsresult
-nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsString *aMsgBody)
+nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, bool aQuoted, nsString *aMsgBody)
 {
   nsresult    rv = NS_OK;
 
@@ -4065,15 +4065,15 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
   // Plain-text signatures may or may not have a trailing line break (bug 428040).
 
   nsCAutoString sigNativePath;
-  PRBool        attachFile = PR_FALSE;
-  PRBool        useSigFile = PR_FALSE;
-  PRBool        htmlSig = PR_FALSE;
-  PRBool        imageSig = PR_FALSE;
+  bool          attachFile = false;
+  bool          useSigFile = false;
+  bool          htmlSig = false;
+  bool          imageSig = false;
   nsAutoString  sigData;
   nsAutoString sigOutput;
   PRInt32      reply_on_top = 0;
-  PRBool       sig_bottom = PR_TRUE;
-  PRBool        suppressSigSep = PR_FALSE;
+  bool         sig_bottom = true;
+  bool          suppressSigSep = false;
 
   nsCOMPtr<nsILocalFile> sigFile;
   if (identity)
@@ -4092,7 +4092,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, PRBool aQuoted, nsStrin
       if (NS_SUCCEEDED(rv) && sigFile) {
         rv = sigFile->GetNativePath(sigNativePath);
         if (NS_SUCCEEDED(rv) && !sigNativePath.IsEmpty()) {
-          PRBool exists = PR_FALSE;
+          bool exists = false;
           sigFile->Exists(&exists);
           if (exists) {
             useSigFile = PR_TRUE; // ok, there's a signature file
@@ -4296,8 +4296,8 @@ nsMsgCompose::BuildBodyMessageAndSignature()
   m_compFields->GetBody(body);
 
   /* Some time we want to add a signature and sometime we wont. Let's figure that now...*/
-  PRBool addSignature;
-  PRBool addDashes = PR_FALSE;
+  bool addSignature;
+  bool addDashes = false;
   switch (mType)
   {
     case nsIMsgCompType::ForwardInline :
@@ -4346,7 +4346,7 @@ nsMsgCompose::BuildBodyMessageAndSignature()
   GetWrapLength(&wrapping_enabled);
   if (!m_composeHTML && !addSignature && wrapping_enabled)
   {
-    PRBool quote = PR_FALSE;
+    bool quote = false;
     for (PRUint32 i = 0; i < body.Length(); i ++)
     {
       if (i == 0 || body[i - 1] == '\n')  // newline
@@ -4473,7 +4473,7 @@ nsresult nsMsgCompose::AttachmentPrettyName(const nsACString & scheme, const cha
 nsresult nsMsgCompose::GetABDirectories(const nsACString& aDirUri,
                                         nsCOMArray<nsIAbDirectory> &aDirArray)
 {
-  static PRBool collectedAddressbookFound;
+  static bool collectedAddressbookFound;
   if (aDirUri.EqualsLiteral(kMDBDirectoryRoot))
     collectedAddressbookFound = PR_FALSE;
 
@@ -4489,7 +4489,7 @@ nsresult nsMsgCompose::GetABDirectories(const nsACString& aDirUri,
   if (NS_SUCCEEDED(directory->GetChildNodes(getter_AddRefs(subDirectories))) && subDirectories)
   {
     nsCOMPtr<nsISupports> item;
-    PRBool hasMore;
+    bool hasMore;
     while (NS_SUCCEEDED(rv = subDirectories->HasMoreElements(&hasMore)) && hasMore)
     {
       if (NS_SUCCEEDED(subDirectories->GetNext(getter_AddRefs(item))))
@@ -4497,7 +4497,7 @@ nsresult nsMsgCompose::GetABDirectories(const nsACString& aDirUri,
         directory = do_QueryInterface(item, &rv);
         if (NS_SUCCEEDED(rv))
         {
-          PRBool bIsMailList;
+          bool bIsMailList;
 
           if (NS_SUCCEEDED(directory->GetIsMailList(&bIsMailList)) && bIsMailList)
             continue;
@@ -4547,7 +4547,7 @@ nsresult nsMsgCompose::BuildMailListArray(nsIAbDirectory* parentDir,
   if (NS_SUCCEEDED(parentDir->GetChildNodes(getter_AddRefs(subDirectories))) && subDirectories)
   {
     nsCOMPtr<nsISupports> item;
-    PRBool hasMore;
+    bool hasMore;
     while (NS_SUCCEEDED(rv = subDirectories->HasMoreElements(&hasMore)) && hasMore)
     {
       if (NS_SUCCEEDED(subDirectories->GetNext(getter_AddRefs(item))))
@@ -4555,7 +4555,7 @@ nsresult nsMsgCompose::BuildMailListArray(nsIAbDirectory* parentDir,
         directory = do_QueryInterface(item, &rv);
         if (NS_SUCCEEDED(rv))
         {
-          PRBool bIsMailList;
+          bool bIsMailList;
 
           if (NS_SUCCEEDED(directory->GetIsMailList(&bIsMailList)) && bIsMailList)
           {
@@ -4621,8 +4621,8 @@ nsresult nsMsgCompose::GetMailListAddresses(nsString& name, nsISupportsArray* ma
 #define MAX_OF_RECIPIENT_ARRAY    3
 
 NS_IMETHODIMP
-nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
-                                         PRBool aReturnNonHTMLRecipients,
+nsMsgCompose::CheckAndPopulateRecipients(bool aPopulateMailList,
+                                         bool aReturnNonHTMLRecipients,
                                          nsAString &aNonHTMLRecipients,
                                          PRUint32 *aResult)
 {
@@ -4656,7 +4656,7 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
   }
 
   // Then look them up in the Addressbooks
-  PRBool stillNeedToSearch = PR_TRUE;
+  bool stillNeedToSearch = true;
   nsCOMPtr<nsIAbDirectory> abDirectory;
   nsCOMPtr<nsIAbCard> existingCard;
   nsCOMPtr<nsIMutableArray> mailListAddresses;
@@ -4683,7 +4683,7 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
 
       abDirectory = addrbookDirArray[k];
 
-      PRBool supportsMailingLists;
+      bool supportsMailingLists;
       rv = abDirectory->GetSupportsMailingLists(&supportsMailingLists);
       if (NS_FAILED(rv) || !supportsMailingLists)
         continue;
@@ -4724,7 +4724,7 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
                     nsMsgRecipient newRecipient;
                     nsAutoString pDisplayName;
 
-                    PRBool bIsMailList;
+                    bool bIsMailList;
                     rv = existingCard->GetIsMailList(&bIsMailList);
                     if (NS_FAILED(rv))
                       return rv;
@@ -4810,7 +4810,7 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
               if (NS_SUCCEEDED(rv))
                 recipient.mProcessed = PR_TRUE;
 
-              PRBool readOnly;
+              bool readOnly;
               rv = abDirectory->GetReadOnly(&readOnly);
               NS_ENSURE_SUCCESS(rv,rv);
 
@@ -4871,9 +4871,9 @@ nsMsgCompose::CheckAndPopulateRecipients(PRBool aPopulateMailList,
                                                 htmlDomains);
   }
 
-  PRBool atLeastOneRecipientPrefersUnknown = PR_FALSE;
-  PRBool atLeastOneRecipientPrefersPlainText = PR_FALSE;
-  PRBool atLeastOneRecipientPrefersHTML = PR_FALSE;
+  bool atLeastOneRecipientPrefersUnknown = false;
+  bool atLeastOneRecipientPrefersPlainText = false;
+  bool atLeastOneRecipientPrefersHTML = false;
 
   for (i = 0; i < MAX_OF_RECIPIENT_ARRAY; ++i)
   {
@@ -5046,7 +5046,7 @@ nsresult nsMsgCompose::TagConvertible(nsIDOMNode *node,  PRInt32 *_retval)
       nsCOMPtr<nsIDOMElement> domElement = do_QueryInterface(node);
       if (domElement)
       {
-        PRBool hasAttribute;
+        bool hasAttribute;
         nsAutoString color;
         if (NS_SUCCEEDED(domElement->HasAttribute(NS_LITERAL_STRING("background"), &hasAttribute))
             && hasAttribute)  // There is a background image
@@ -5147,7 +5147,7 @@ nsresult nsMsgCompose::TagConvertible(nsIDOMNode *node,  PRInt32 *_retval)
               && pItem)
           {
             nsAutoString hrefValue;
-            PRBool hasChild;
+            bool hasChild;
             if (NS_SUCCEEDED(pItem->GetNodeValue(hrefValue))
                 && NS_SUCCEEDED(node->HasChildNodes(&hasChild)) && hasChild)
             {
@@ -5210,7 +5210,7 @@ nsresult nsMsgCompose::_BodyConvertible(nsIDOMNode *node, PRInt32 *_retval)
         return rv;
 
     // Walk tree recursively to check the children
-    PRBool hasChild;
+    bool hasChild;
     if (NS_SUCCEEDED(node->HasChildNodes(&hasChild)) && hasChild)
     {
       nsCOMPtr<nsIDOMNodeList> children;
@@ -5408,7 +5408,7 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
   nsAutoString aSignature;
 
   // No delimiter needed if not a compose window
-  PRBool noDelimiter;
+  bool noDelimiter;
   switch (mType)
   {
     case nsIMsgCompType::New :
@@ -5430,10 +5430,10 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
 
     m_editor->BeginTransaction();
     PRInt32 reply_on_top = 0;
-    PRBool sig_bottom = PR_TRUE;
+    bool sig_bottom = true;
     aIdentity->GetReplyOnTop(&reply_on_top);
     aIdentity->GetSigBottom(&sig_bottom);
-    PRBool sigOnTop = (reply_on_top == 1 && !sig_bottom);
+    bool sigOnTop = (reply_on_top == 1 && !sig_bottom);
     if (sigOnTop && noDelimiter)
       m_editor->BeginningOfDocument();
     else
@@ -5456,7 +5456,7 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
   return rv;
 }
 
-NS_IMETHODIMP nsMsgCompose::CheckCharsetConversion(nsIMsgIdentity *identity, char **fallbackCharset, PRBool *_retval)
+NS_IMETHODIMP nsMsgCompose::CheckCharsetConversion(nsIMsgIdentity *identity, char **fallbackCharset, bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(identity);
   NS_ENSURE_ARG_POINTER(_retval);

@@ -59,19 +59,19 @@ public:
   nsTextAddress();
   virtual ~nsTextAddress();
 
-  nsresult ImportAddresses(PRBool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsIImportFieldMap *fieldMap, nsString& errors, PRUint32 *pProgress);
+  nsresult ImportAddresses(bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIAddrDatabase *pDb, nsIImportFieldMap *fieldMap, nsString& errors, PRUint32 *pProgress);
 
   nsresult DetermineDelim(nsIFile *pSrc);
   char GetDelim( void) { return( m_delim);}
 
   static nsresult ReadRecordNumber(nsIFile *pSrc, nsCString &aLine, char delim, PRInt32 rNum);
-  static PRBool GetField(const char *pLine, PRInt32 maxLen, PRInt32 index, nsCString& field, char delim);
+  static bool GetField(const char *pLine, PRInt32 maxLen, PRInt32 index, nsCString& field, char delim);
 
 private:
   nsresult ProcessLine(const char *pLine, PRInt32 len, nsString& errors);
 
   static PRInt32 CountFields(const char *pLine, PRInt32 maxLen, char delim);
-  static nsresult ReadRecord(nsILineInputStream *pSrc, nsCString &aLine, char delim, PRBool *aMore);
+  static nsresult ReadRecord(nsILineInputStream *pSrc, nsCString &aLine, char delim, bool *aMore);
 
   char m_delim;
   PRInt32 m_LFCount;

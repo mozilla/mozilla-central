@@ -305,8 +305,8 @@ nsSmtpServer::GetPassword(nsACString& aPassword)
       // user_pref("mail.smtp.useMatchingDomainServer", true);
 
       nsCString accountKey;
-      PRBool useMatchingHostNameServer = PR_FALSE;
-      PRBool useMatchingDomainServer = PR_FALSE;
+      bool useMatchingHostNameServer = false;
+      bool useMatchingDomainServer = false;
       mPrefBranch->GetCharPref("incomingAccount", getter_Copies(accountKey));
 
       nsCOMPtr<nsIMsgAccountManager> accountManager = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID);
@@ -412,7 +412,7 @@ nsSmtpServer::GetPasswordWithUI(const PRUnichar *aPromptMessage,
   nsresult rv = GetServerURI(serverUri);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool okayValue = PR_TRUE;
+  bool okayValue = true;
   nsString uniPassword;
 
   rv = aDialog->PromptPassword(aPromptTitle, aPromptMessage,
@@ -461,7 +461,7 @@ nsSmtpServer::GetUsernamePasswordWithUI(const PRUnichar * aPromptMessage, const
 
   nsString uniUsername;
   nsString uniPassword;
-  PRBool okayValue = PR_TRUE;
+  bool okayValue = true;
 
   rv = aDialog->PromptUsernameAndPassword(aPromptTitle, aPromptMessage,
                                           NS_ConvertASCIItoUTF16(serverUri).get(),

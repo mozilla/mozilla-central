@@ -137,7 +137,7 @@ nsProfileMigrator::GetDefaultMailMigratorKey(nsACString& aKey, nsCOMPtr<nsIMailP
   nsCAutoString migratorID;
   if (!forceMigrationType.IsEmpty())
   {
-    PRBool exists = PR_FALSE;
+    bool exists = false;
     migratorID = migratorPrefix;
     migratorID.Append(forceMigrationType);
     mailMigrator = do_CreateInstance(migratorID.get());
@@ -170,7 +170,7 @@ nsProfileMigrator::GetDefaultMailMigratorKey(nsACString& aKey, nsCOMPtr<nsIMailP
     if (!mailMigrator)
       continue;
 
-    PRBool exists = PR_FALSE;
+    bool exists = false;
     mailMigrator->GetSourceExists(&exists);
     if (exists)
     {
@@ -191,7 +191,7 @@ nsProfileMigrator::Import()
   return NS_ERROR_FAILURE;
 }
 
-PRBool
+bool
 nsProfileMigrator::ImportRegistryProfiles(const nsACString& aAppName)
 {
   nsresult rv;
@@ -248,7 +248,7 @@ nsProfileMigrator::ImportRegistryProfiles(const nsACString& aAppName)
   if (NR_StartupRegistry())
     return PR_FALSE;
 
-  PRBool migrated = PR_FALSE;
+  bool migrated = false;
   HREG reg = nsnull;
   RKEY profiles = 0;
   REGENUM enumstate = 0;

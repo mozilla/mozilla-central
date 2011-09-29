@@ -98,20 +98,20 @@ public:
 
     nsCOMPtr<nsIMsgMessageService> m_msgService; // source folder message service; can
                                         // be Nntp, Mailbox, or Imap
-    PRBool m_isMove;             // is a move
-    PRBool m_selectedState;      // needs to be in selected state; append msg
-    PRBool m_isCrossServerOp; // are we copying between imap servers?
+    bool m_isMove;             // is a move
+    bool m_selectedState;      // needs to be in selected state; append msg
+    bool m_isCrossServerOp; // are we copying between imap servers?
     PRUint32 m_curIndex; // message index to the message array which we are
                          // copying
     PRUint32 m_totalCount;// total count of messages we have to do
     PRUint32 m_unreadCount; // num unread messages we're moving
-    PRBool m_streamCopy;
+    bool m_streamCopy;
     char *m_dataBuffer; // temporary buffer for this copy operation
     nsCOMPtr<nsIOutputStream> m_msgFileStream;         // temporary file (processed mail)
     PRUint32 m_dataBufferSize;
     PRUint32 m_leftOver;
-    PRBool m_allowUndo;
-    PRBool m_eatLF;
+    bool m_allowUndo;
+    bool m_eatLF;
     PRUint32 m_newMsgFlags; // only used if there's no m_message
     nsCString m_newMsgKeywords; // ditto 
     // If the server supports UIDPLUS, this is the UID for the append,
@@ -147,7 +147,7 @@ public:
   nsMsgIMAPFolderACL(nsImapMailFolder *folder);
   ~nsMsgIMAPFolderACL();
 
-  PRBool SetFolderRightsForUser(const nsACString& userName, const nsACString& rights);
+  bool SetFolderRightsForUser(const nsACString& userName, const nsACString& rights);
 
 public:
 
@@ -155,32 +155,32 @@ public:
   // DO NOT use these for looking up information about the currently authenticated user.
   // (There are some different checks and defaults we do).
   // Instead, use the functions below, GetICan....()
-  PRBool GetCanUserLookupFolder(const nsACString& userName);      // Is folder visible to LIST/LSUB?
-  PRBool GetCanUserReadFolder(const nsACString& userName);        // SELECT, CHECK, FETCH, PARTIAL, SEARCH, COPY from folder?
-  PRBool GetCanUserStoreSeenInFolder(const nsACString& userName); // STORE SEEN flag?
-  PRBool GetCanUserWriteFolder(const nsACString& userName);       // STORE flags other than SEEN and DELETED?
-  PRBool GetCanUserInsertInFolder(const nsACString& userName);    // APPEND, COPY into folder?
-  PRBool GetCanUserPostToFolder(const nsACString& userName);      // Can I send mail to the submission address for folder?
-  PRBool GetCanUserCreateSubfolder(const nsACString& userName);   // Can I CREATE a subfolder of this folder?
-  PRBool GetCanUserDeleteInFolder(const nsACString& userName);    // STORE DELETED flag, perform EXPUNGE?
-  PRBool GetCanUserAdministerFolder(const nsACString& userName);  // perform SETACL?
+  bool GetCanUserLookupFolder(const nsACString& userName);      // Is folder visible to LIST/LSUB?
+  bool GetCanUserReadFolder(const nsACString& userName);        // SELECT, CHECK, FETCH, PARTIAL, SEARCH, COPY from folder?
+  bool GetCanUserStoreSeenInFolder(const nsACString& userName); // STORE SEEN flag?
+  bool GetCanUserWriteFolder(const nsACString& userName);       // STORE flags other than SEEN and DELETED?
+  bool GetCanUserInsertInFolder(const nsACString& userName);    // APPEND, COPY into folder?
+  bool GetCanUserPostToFolder(const nsACString& userName);      // Can I send mail to the submission address for folder?
+  bool GetCanUserCreateSubfolder(const nsACString& userName);   // Can I CREATE a subfolder of this folder?
+  bool GetCanUserDeleteInFolder(const nsACString& userName);    // STORE DELETED flag, perform EXPUNGE?
+  bool GetCanUserAdministerFolder(const nsACString& userName);  // perform SETACL?
 
   // Functions to find out rights for the currently authenticated user.
 
-  PRBool GetCanILookupFolder();      // Is folder visible to LIST/LSUB?
-  PRBool GetCanIReadFolder();        // SELECT, CHECK, FETCH, PARTIAL, SEARCH, COPY from folder?
-  PRBool GetCanIStoreSeenInFolder(); // STORE SEEN flag?
-  PRBool GetCanIWriteFolder();       // STORE flags other than SEEN and DELETED?
-  PRBool GetCanIInsertInFolder();    // APPEND, COPY into folder?
-  PRBool GetCanIPostToFolder();      // Can I send mail to the submission address for folder?
-  PRBool GetCanICreateSubfolder();   // Can I CREATE a subfolder of this folder?
-  PRBool GetCanIDeleteInFolder();    // STORE DELETED flag?
-  PRBool GetCanIAdministerFolder();  // perform SETACL?
-  PRBool GetCanIExpungeFolder();     // perform EXPUNGE?
+  bool GetCanILookupFolder();      // Is folder visible to LIST/LSUB?
+  bool GetCanIReadFolder();        // SELECT, CHECK, FETCH, PARTIAL, SEARCH, COPY from folder?
+  bool GetCanIStoreSeenInFolder(); // STORE SEEN flag?
+  bool GetCanIWriteFolder();       // STORE flags other than SEEN and DELETED?
+  bool GetCanIInsertInFolder();    // APPEND, COPY into folder?
+  bool GetCanIPostToFolder();      // Can I send mail to the submission address for folder?
+  bool GetCanICreateSubfolder();   // Can I CREATE a subfolder of this folder?
+  bool GetCanIDeleteInFolder();    // STORE DELETED flag?
+  bool GetCanIAdministerFolder();  // perform SETACL?
+  bool GetCanIExpungeFolder();     // perform EXPUNGE?
 
-  PRBool GetDoIHaveFullRightsForFolder(); // Returns TRUE if I have full rights on this folder (all of the above return TRUE)
+  bool GetDoIHaveFullRightsForFolder(); // Returns TRUE if I have full rights on this folder (all of the above return TRUE)
 
-  PRBool GetIsFolderShared(); // We use this to see if the ACLs think a folder is shared or not.
+  bool GetIsFolderShared(); // We use this to see if the ACLs think a folder is shared or not.
   // We will define "Shared" in 5.0 to mean:
   // At least one user other than the currently authenticated user has at least one
   // explicitly-listed ACL right on that folder.
@@ -193,7 +193,7 @@ public:
   nsresult GetOtherUsers(nsIUTF8StringEnumerator** aResult);
 
 protected:
-  PRBool GetFlagSetInRightsForUser(const nsACString& userName, char flag, PRBool defaultIfNotFound);
+  bool GetFlagSetInRightsForUser(const nsACString& userName, char flag, bool defaultIfNotFound);
   void BuildInitialACLFromCache();
   void UpdateACLCache();
 
@@ -244,7 +244,7 @@ public:
 
   NS_IMETHOD Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow);
   NS_IMETHOD CompactAll(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow,
-                        PRBool aCompactOfflineAlso);
+                        bool aCompactOfflineAlso);
   NS_IMETHOD EmptyTrash(nsIMsgWindow *msgWindow, nsIUrlListener *aListener);
   NS_IMETHOD CopyDataToOutputStreamForAppend(nsIInputStream *aIStream,
                      PRInt32 aLength, nsIOutputStream *outputStream);
@@ -252,28 +252,28 @@ public:
   NS_IMETHOD Delete ();
   NS_IMETHOD Rename (const nsAString& newName, nsIMsgWindow *msgWindow);
   NS_IMETHOD RenameSubFolders(nsIMsgWindow *msgWindow, nsIMsgFolder *oldFolder);
-  NS_IMETHOD GetNoSelect(PRBool *aResult);
+  NS_IMETHOD GetNoSelect(bool *aResult);
 
   NS_IMETHOD GetPrettyName(nsAString& prettyName); // Override of the base, for top-level mail folder
 
   NS_IMETHOD GetFolderURL(nsACString& url);
 
-  NS_IMETHOD UpdateSummaryTotals(PRBool force) ;
+  NS_IMETHOD UpdateSummaryTotals(bool force) ;
 
-  NS_IMETHOD GetDeletable (PRBool *deletable);
-  NS_IMETHOD GetRequiresCleanup(PRBool *requiresCleanup);
+  NS_IMETHOD GetDeletable (bool *deletable);
+  NS_IMETHOD GetRequiresCleanup(bool *requiresCleanup);
 
   NS_IMETHOD GetSizeOnDisk(PRUint32 * size);
 
-  NS_IMETHOD GetCanCreateSubfolders(PRBool *aResult);
-  NS_IMETHOD GetCanSubscribe(PRBool *aResult);
+  NS_IMETHOD GetCanCreateSubfolders(bool *aResult);
+  NS_IMETHOD GetCanSubscribe(bool *aResult);
 
   NS_IMETHOD ApplyRetentionSettings();
 
   NS_IMETHOD AddMessageDispositionState(nsIMsgDBHdr *aMessage, nsMsgDispositionState aDispositionFlag);
-  NS_IMETHOD MarkMessagesRead(nsIArray *messages, PRBool markRead);
+  NS_IMETHOD MarkMessagesRead(nsIArray *messages, bool markRead);
   NS_IMETHOD MarkAllMessagesRead(nsIMsgWindow *aMsgWindow);
-  NS_IMETHOD MarkMessagesFlagged(nsIArray *messages, PRBool markFlagged);
+  NS_IMETHOD MarkMessagesFlagged(nsIArray *messages, bool markFlagged);
   NS_IMETHOD MarkThreadRead(nsIMsgThread *thread);
   NS_IMETHOD SetLabelForMessages(nsIArray *aMessages, nsMsgLabelValue aLabel);
   NS_IMETHOD SetJunkScoreForMessages(nsIArray *aMessages, const nsACString& aJunkScore);
@@ -284,19 +284,19 @@ public:
   NS_IMETHOD GetDBFolderInfoAndDB(nsIDBFolderInfo **folderInfo,
                                   nsIMsgDatabase **db);
   NS_IMETHOD DeleteMessages(nsIArray *messages,
-                            nsIMsgWindow *msgWindow, PRBool
-                            deleteStorage, PRBool isMove,
-                            nsIMsgCopyServiceListener* listener, PRBool allowUndo);
+                            nsIMsgWindow *msgWindow, bool
+                            deleteStorage, bool isMove,
+                            nsIMsgCopyServiceListener* listener, bool allowUndo);
   NS_IMETHOD CopyMessages(nsIMsgFolder *srcFolder,
                           nsIArray* messages,
-                          PRBool isMove, nsIMsgWindow *msgWindow,
-                          nsIMsgCopyServiceListener* listener, PRBool isFolder,
-                          PRBool allowUndo);
-  NS_IMETHOD CopyFolder(nsIMsgFolder *srcFolder, PRBool isMove, nsIMsgWindow *msgWindow,
+                          bool isMove, nsIMsgWindow *msgWindow,
+                          nsIMsgCopyServiceListener* listener, bool isFolder,
+                          bool allowUndo);
+  NS_IMETHOD CopyFolder(nsIMsgFolder *srcFolder, bool isMove, nsIMsgWindow *msgWindow,
                         nsIMsgCopyServiceListener* listener);
   NS_IMETHOD CopyFileMessage(nsIFile* file,
                               nsIMsgDBHdr* msgToReplace,
-                              PRBool isDraftOrTemplate,
+                              bool isDraftOrTemplate,
                               PRUint32 aNewMsgFlags,
                               const nsACString &aNewMsgKeywords,
                               nsIMsgWindow *msgWindow,
@@ -306,16 +306,16 @@ public:
   NS_IMETHOD GetFilePath(nsILocalFile** aPathName);
   NS_IMETHOD SetFilePath(nsILocalFile * aPath);
 
-  NS_IMETHOD Shutdown(PRBool shutdownChildren);
+  NS_IMETHOD Shutdown(bool shutdownChildren);
 
   NS_IMETHOD DownloadMessagesForOffline(nsIArray *messages, nsIMsgWindow *msgWindow);
 
   NS_IMETHOD DownloadAllForOffline(nsIUrlListener *listener, nsIMsgWindow *msgWindow);
-  NS_IMETHOD GetCanFileMessages(PRBool *aCanFileMessages);
-  NS_IMETHOD GetCanDeleteMessages(PRBool *aCanDeleteMessages);
+  NS_IMETHOD GetCanFileMessages(bool *aCanFileMessages);
+  NS_IMETHOD GetCanDeleteMessages(bool *aCanDeleteMessages);
   NS_IMETHOD FetchMsgPreviewText(nsMsgKey *aKeysToFetch, PRUint32 aNumKeys,
-                                                 PRBool aLocalOnly, nsIUrlListener *aUrlListener,
-                                                 PRBool *aAsyncResults);
+                                                 bool aLocalOnly, nsIUrlListener *aUrlListener,
+                                                 bool *aAsyncResults);
 
   NS_IMETHOD AddKeywordsToMessages(nsIArray *aMessages, const nsACString& aKeywords);
   NS_IMETHOD RemoveKeywordsFromMessages(nsIArray *aMessages, const nsACString& aKeywords);
@@ -335,11 +335,11 @@ public:
   NS_DECL_NSIMSGFILTERHITNOTIFY
   NS_DECL_NSIJUNKMAILCLASSIFICATIONLISTENER
 
-  NS_IMETHOD IsCommandEnabled(const nsACString& command, PRBool *result);
+  NS_IMETHOD IsCommandEnabled(const nsACString& command, bool *result);
   NS_IMETHOD SetFilterList(nsIMsgFilterList *aMsgFilterList);
   NS_IMETHOD GetCustomIdentity(nsIMsgIdentity **aIdentity);
 
-  nsresult AddSubfolderWithPath(nsAString& name, nsILocalFile *dbPath, nsIMsgFolder **child, PRBool brandNew = PR_FALSE);
+  nsresult AddSubfolderWithPath(nsAString& name, nsILocalFile *dbPath, nsIMsgFolder **child, bool brandNew = false);
   nsresult MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
                                   nsIMsgDatabase *sourceDB,
                                   const nsACString& destFolder,
@@ -382,19 +382,19 @@ protected:
   void EndOfflineDownload();
   nsresult CopyFileToOfflineStore(nsILocalFile *srcFile, nsMsgKey msgKey);
 
-  nsresult MarkMessagesImapDeleted(nsTArray<nsMsgKey> *keyArray, PRBool deleted, nsIMsgDatabase *db);
+  nsresult MarkMessagesImapDeleted(nsTArray<nsMsgKey> *keyArray, bool deleted, nsIMsgDatabase *db);
 
   // Notifies imap autosync that it should update this folder when it
   // gets a chance.
   void NotifyHasPendingMsgs();
   void UpdatePendingCounts();
-  void SetIMAPDeletedFlag(nsIMsgDatabase *mailDB, const nsTArray<nsMsgKey> &msgids, PRBool markDeleted);
-  virtual PRBool ShowDeletedMessages();
-  virtual PRBool DeleteIsMoveToTrash();
+  void SetIMAPDeletedFlag(nsIMsgDatabase *mailDB, const nsTArray<nsMsgKey> &msgids, bool markDeleted);
+  virtual bool ShowDeletedMessages();
+  virtual bool DeleteIsMoveToTrash();
   nsresult GetFolder(const nsACString& name, nsIMsgFolder **pFolder);
   nsresult GetTrashFolder(nsIMsgFolder **pTrashFolder);
-  PRBool TrashOrDescendentOfTrash(nsIMsgFolder* folder);
-  static PRBool ShouldCheckAllFolders(nsIImapIncomingServer *imapServer);
+  bool TrashOrDescendentOfTrash(nsIMsgFolder* folder);
+  static bool ShouldCheckAllFolders(nsIImapIncomingServer *imapServer);
   nsresult GetServerKey(nsACString& serverKey);
   nsresult DisplayStatusMsg(nsIImapUrl *aImapUrl, const nsAString& msg);
 
@@ -414,22 +414,22 @@ protected:
   // Uber message copy service
   nsresult CopyMessagesWithStream(nsIMsgFolder* srcFolder,
                                     nsIArray* messages,
-                                    PRBool isMove,
-                                    PRBool isCrossServerOp,
+                                    bool isMove,
+                                    bool isCrossServerOp,
                                     nsIMsgWindow *msgWindow,
-                                    nsIMsgCopyServiceListener* listener, PRBool allowUndo);
+                                    nsIMsgCopyServiceListener* listener, bool allowUndo);
   nsresult CopyStreamMessage(nsIMsgDBHdr* message, nsIMsgFolder* dstFolder,
-                            nsIMsgWindow *msgWindow, PRBool isMove);
+                            nsIMsgWindow *msgWindow, bool isMove);
   nsresult InitCopyState(nsISupports* srcSupport,
                           nsIArray* messages,
-                          PRBool isMove,
-                          PRBool selectedState,
-                          PRBool acrossServers,
+                          bool isMove,
+                          bool selectedState,
+                          bool acrossServers,
                           PRUint32 newMsgFlags,
                           const nsACString &newMsgKeywords,
                           nsIMsgCopyServiceListener* listener,
                           nsIMsgWindow *msgWindow,
-                          PRBool allowUndo);
+                          bool allowUndo);
   nsresult GetMoveCoalescer();
   nsresult PlaybackCoalescedOperations();
   virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
@@ -438,17 +438,17 @@ protected:
   nsresult GetOriginalOp(nsIMsgOfflineImapOperation *op, nsIMsgOfflineImapOperation **originalOp, nsIMsgDatabase **originalDB);
   nsresult CopyMessagesOffline(nsIMsgFolder* srcFolder,
                                 nsIArray* messages,
-                                PRBool isMove,
+                                bool isMove,
                                 nsIMsgWindow *msgWindow,
                                 nsIMsgCopyServiceListener* listener);
-  void SetPendingAttributes(nsIArray* messages, PRBool aIsMove);
+  void SetPendingAttributes(nsIArray* messages, bool aIsMove);
 
   nsresult CopyOfflineMsgBody(nsIMsgFolder *srcFolder, nsIMsgDBHdr *destHdr,
                               nsIMsgDBHdr *origHdr, nsIInputStream *inputStream,
                               nsIOutputStream *outputStream);
 
   void GetTrashFolderName(nsAString &aFolderName);
-  PRBool ShowPreviewText();
+  bool ShowPreviewText();
 
   // Pseudo-Offline operation playback timer
   static void PlaybackTimerCallback(nsITimer *aTimer, void *aClosure);
@@ -458,13 +458,13 @@ protected:
   // Allocate and initialize associated auto-sync state object.
   void InitAutoSyncState();
 
-  PRBool m_initialized;
-  PRBool m_haveDiscoveredAllFolders;
+  bool m_initialized;
+  bool m_haveDiscoveredAllFolders;
   nsCOMPtr<nsIMsgParseMailMsgState> m_msgParser;
   nsCOMPtr<nsIMsgFilterList> m_filterList;
   nsCOMPtr<nsIMsgFilterPlugin> m_filterPlugin;  // XXX should be a list
   // used with filter plugins to know when we've finished classifying and can playback moves
-  PRBool m_msgMovedByFilter;
+  bool m_msgMovedByFilter;
   nsImapMoveCoalescer *m_moveCoalescer; // strictly owned by the nsImapMailFolder
   nsCOMPtr<nsIMutableArray> m_junkMessagesToMarkAsRead;
   /// list of keys to be moved to the junk folder
@@ -486,7 +486,7 @@ protected:
   PRInt32  m_nextMessageByteLength;
   nsCOMPtr<nsIThread> m_thread;
   nsCOMPtr<nsIUrlListener> m_urlListener;
-  PRBool m_urlRunning;
+  bool m_urlRunning;
 
   // undo move/copy transaction support
   nsRefPtr<nsMsgTxn> m_pendingUndoTxn;
@@ -499,28 +499,28 @@ protected:
 
   nsCString m_adminUrl;   // url to run to set admin privileges for this folder
   nsIMAPNamespace  *m_namespace;
-  PRPackedBool m_verifiedAsOnlineFolder;
-  PRPackedBool m_explicitlyVerify; // whether or not we need to explicitly verify this through LIST
-  PRPackedBool m_folderIsNamespace;
-  PRPackedBool m_folderNeedsSubscribing;
-  PRPackedBool m_folderNeedsAdded;
-  PRPackedBool m_folderNeedsACLListed;
-  PRPackedBool m_performingBiff;
-  PRPackedBool m_folderQuotaCommandIssued;
-  PRPackedBool m_folderQuotaDataIsValid;
-  PRPackedBool m_updatingFolder;
+  bool m_verifiedAsOnlineFolder;
+  bool m_explicitlyVerify; // whether or not we need to explicitly verify this through LIST
+  bool m_folderIsNamespace;
+  bool m_folderNeedsSubscribing;
+  bool m_folderNeedsAdded;
+  bool m_folderNeedsACLListed;
+  bool m_performingBiff;
+  bool m_folderQuotaCommandIssued;
+  bool m_folderQuotaDataIsValid;
+  bool m_updatingFolder;
   // These two vars are used to keep track of compaction state so we can know
   // when to send a done notification.
-  PRPackedBool m_compactingOfflineStore;
-  PRPackedBool m_expunging;
-  PRPackedBool m_applyIncomingFilters; // apply filters to this folder, even if not the inbox
+  bool m_compactingOfflineStore;
+  bool m_expunging;
+  bool m_applyIncomingFilters; // apply filters to this folder, even if not the inbox
   nsMsgIMAPFolderACL *m_folderACL;
   PRUint32     m_aclFlags;
   PRUint32     m_supportedUserFlags;
 
   // offline imap support
-  PRBool m_downloadingFolderForOfflineUse;
-  PRBool m_filterListRequiresBody;
+  bool m_downloadingFolderForOfflineUse;
+  bool m_filterListRequiresBody;
 
   // auto-sync (automatic message download) support
   nsRefPtr<nsAutoSyncState> m_autoSyncStateObj;

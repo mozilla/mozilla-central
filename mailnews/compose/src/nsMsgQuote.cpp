@@ -145,9 +145,9 @@ NS_IMETHODIMP nsMsgQuote::GetStreamListener(nsIMsgQuotingOutputStreamListener **
 }
 
 nsresult
-nsMsgQuote::QuoteMessage(const char *msgURI, PRBool quoteHeaders,
+nsMsgQuote::QuoteMessage(const char *msgURI, bool quoteHeaders,
                          nsIMsgQuotingOutputStreamListener * aQuoteMsgStreamListener,
-                         const char * aMsgCharSet, PRBool headersOnly)
+                         const char * aMsgCharSet, bool headersOnly)
 {
   nsresult  rv;
   if (!msgURI)
@@ -157,8 +157,8 @@ nsMsgQuote::QuoteMessage(const char *msgURI, PRBool quoteHeaders,
   mStreamListener = aQuoteMsgStreamListener;
 
   nsCAutoString msgUri(msgURI);
-  PRBool fileUrl = !strncmp(msgURI, "file:", 5);
-  PRBool forwardedMessage = PL_strstr(msgURI, "&realtype=message/rfc822") != nsnull;
+  bool fileUrl = !strncmp(msgURI, "file:", 5);
+  bool forwardedMessage = PL_strstr(msgURI, "&realtype=message/rfc822") != nsnull;
   nsCOMPtr<nsIURI> aURL;
   if (fileUrl || forwardedMessage)
     rv = NS_NewURI(getter_AddRefs(aURL), msgURI);

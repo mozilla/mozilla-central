@@ -77,16 +77,16 @@ public:
 
   // TODO: support multiple vCard files in future - shouldn't be too hard,
   // since you just import each file in turn.
-  NS_IMETHOD GetSupportsMultiple(PRBool *_retval)
+  NS_IMETHOD GetSupportsMultiple(bool *_retval)
   { *_retval = PR_FALSE; return NS_OK;}
 
-  NS_IMETHOD GetAutoFind(PRUnichar **description, PRBool *_retval);
+  NS_IMETHOD GetAutoFind(PRUnichar **description, bool *_retval);
 
-  NS_IMETHOD GetNeedsFieldMap(nsIFile *location, PRBool *_retval)
+  NS_IMETHOD GetNeedsFieldMap(nsIFile *location, bool *_retval)
   { *_retval = PR_FALSE; return NS_OK;}
 
   NS_IMETHOD GetDefaultLocation(
-      nsIFile **location, PRBool *found, PRBool *userVerify);
+      nsIFile **location, bool *found, bool *userVerify);
 
   NS_IMETHOD FindAddressBooks(nsIFile *location, nsISupportsArray **_retval);
 
@@ -99,11 +99,11 @@ public:
                                nsISupports *aSupportService,
                                PRUnichar **errorLog,
                                PRUnichar **successLog,
-                               PRBool *fatalError);
+                               bool *fatalError);
 
   NS_IMETHOD GetImportProgress(PRUint32 *_retval);
 
-  NS_IMETHOD GetSampleData(PRInt32 index, PRBool *pFound, PRUnichar **pStr)
+  NS_IMETHOD GetSampleData(PRInt32 index, bool *pFound, PRUnichar **pStr)
   { return NS_ERROR_FAILURE;}
 
   NS_IMETHOD SetSampleLocation(nsIFile *)
@@ -167,7 +167,7 @@ NS_IMETHODIMP nsVCardImport::GetSupports(char **supports)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsVCardImport::GetSupportsUpgrade(PRBool *pUpgrade)
+NS_IMETHODIMP nsVCardImport::GetSupportsUpgrade(bool *pUpgrade)
 {
   NS_ENSURE_ARG_POINTER(pUpgrade);
   *pUpgrade = PR_TRUE;
@@ -227,7 +227,7 @@ ImportVCardAddressImpl::~ImportVCardAddressImpl()
 NS_IMPL_THREADSAFE_ISUPPORTS1(ImportVCardAddressImpl, nsIImportAddressBooks)
 
 NS_IMETHODIMP ImportVCardAddressImpl::GetAutoFind(
-    PRUnichar **addrDescription, PRBool *_retval)
+    PRUnichar **addrDescription, bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(addrDescription);
   NS_ENSURE_ARG_POINTER(_retval);
@@ -244,7 +244,7 @@ NS_IMETHODIMP ImportVCardAddressImpl::GetAutoFind(
 }
 
 NS_IMETHODIMP ImportVCardAddressImpl::GetDefaultLocation(
-    nsIFile **ppLoc, PRBool *found, PRBool *userVerify)
+    nsIFile **ppLoc, bool *found, bool *userVerify)
 {
   NS_ENSURE_ARG_POINTER(found);
   NS_ENSURE_ARG_POINTER(ppLoc);
@@ -263,12 +263,12 @@ NS_IMETHODIMP ImportVCardAddressImpl::FindAddressBooks(
   NS_ENSURE_ARG_POINTER(ppArray);
 
   *ppArray = nsnull;
-  PRBool exists = PR_FALSE;
+  bool exists = false;
   nsresult rv = pLoc->Exists(&exists);
   if (NS_FAILED(rv) || !exists)
     return NS_ERROR_FAILURE;
 
-  PRBool isFile = PR_FALSE;
+  bool isFile = false;
   rv = pLoc->IsFile(&isFile);
   if (NS_FAILED(rv) || !isFile)
     return NS_ERROR_FAILURE;
@@ -373,7 +373,7 @@ NS_IMETHODIMP ImportVCardAddressImpl::ImportAddressBook(
     nsISupports *aSupportService,
     PRUnichar ** pErrorLog,
     PRUnichar ** pSuccessLog,
-    PRBool * fatalError)
+    bool * fatalError)
 {
   NS_ENSURE_ARG_POINTER(pSource);
   NS_ENSURE_ARG_POINTER(pDestination);
@@ -384,7 +384,7 @@ NS_IMETHODIMP ImportVCardAddressImpl::ImportAddressBook(
 
   m_bytesImported = 0;
   nsString success, error;
-  PRBool addrAbort = PR_FALSE;
+  bool addrAbort = false;
   nsString name;
   pSource->GetPreferredName(name);
 

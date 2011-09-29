@@ -71,7 +71,7 @@ nsNNTPNewsgroupPost::~nsNNTPNewsgroupPost()
 }
 
 static char *
-AppendAndAlloc(char *string, const char *newSubstring, PRBool withComma)
+AppendAndAlloc(char *string, const char *newSubstring, bool withComma)
 {
     if (!newSubstring) return NULL;
     

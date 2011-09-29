@@ -66,11 +66,11 @@ public:
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
   NS_IMETHOD DoCommand(nsMsgViewCommandTypeValue command);
   NS_IMETHOD SetViewFlags(nsMsgViewFlagsTypeValue aViewFlags);
-  NS_IMETHOD OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, PRBool aPreChange, PRUint32 *aStatus, 
+  NS_IMETHOD OnHdrPropertyChanged(nsIMsgDBHdr *aHdrToChange, bool aPreChange, PRUint32 *aStatus, 
                                  nsIDBChangeListener * aInstigator);
   NS_IMETHOD GetMsgFolder(nsIMsgFolder **aMsgFolder);
 
-  virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey parentKey, PRBool ensureListed);
+  virtual nsresult OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey parentKey, bool ensureListed);
   void UpdateCacheAndViewForPrevSearchedFolders(nsIMsgFolder *curSearchFolder);
   void UpdateCacheAndViewForFolder(nsIMsgFolder *folder, nsMsgKey *newHits, PRUint32 numNewHits);
   void RemovePendingDBListeners();
@@ -84,10 +84,10 @@ protected:
   nsCOMArray<nsIMsgDBHdr> m_hdrHits;
   nsCOMPtr <nsIMsgFolder> m_curFolderGettingHits;
   PRUint32 m_curFolderStartKeyIndex; // keeps track of the index of the first hit from the cur folder
-  PRBool m_curFolderHasCachedHits;
-  PRBool m_doingSearch;
+  bool m_curFolderHasCachedHits;
+  bool m_doingSearch;
   // Are we doing a quick search on top of the virtual folder search?
-  PRBool m_doingQuickSearch;
+  bool m_doingQuickSearch;
 };
 
 #endif

@@ -282,7 +282,7 @@ nsMsgComposeService::OpenComposeWindowWithParams(const char *chrome,
     MSG_ComposeFormat format;
     params->GetFormat(&format);
 
-    PRBool composeHTML = PR_TRUE;
+    bool composeHTML = true;
     rv = DetermineComposeHTML(identity, format, &composeHTML);
     if (NS_SUCCEEDED(rv))
     {
@@ -384,7 +384,7 @@ nsMsgComposeService::Observe(nsISupports *aSubject, const char *aTopic, const PR
 }
 
 NS_IMETHODIMP
-nsMsgComposeService::DetermineComposeHTML(nsIMsgIdentity *aIdentity, MSG_ComposeFormat aFormat, PRBool *aComposeHTML)
+nsMsgComposeService::DetermineComposeHTML(nsIMsgIdentity *aIdentity, MSG_ComposeFormat aFormat, bool *aComposeHTML)
 {
   NS_ENSURE_ARG_POINTER(aComposeHTML);
 
@@ -417,7 +417,7 @@ nsMsgComposeService::DetermineComposeHTML(nsIMsgIdentity *aIdentity, MSG_Compose
         if (prefs)
         {
           nsresult rv;
-          PRBool useHTMLCompose;
+          bool useHTMLCompose;
           rv = prefs->GetBoolPref(MAIL_ROOT_PREF "html_compose", &useHTMLCompose);
           if (NS_SUCCEEDED(rv))
             *aComposeHTML = useHTMLCompose;
@@ -441,7 +441,7 @@ nsMsgComposeService::GetOrigWindowSelection(MSG_ComposeType type, nsIMsgWindow *
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool replyQuotingSelection;
+  bool replyQuotingSelection;
   rv = prefs->GetBoolPref(PREF_MAILNEWS_REPLY_QUOTING_SELECTION, &replyQuotingSelection);
   NS_ENSURE_SUCCESS(rv, rv);
   if (!replyQuotingSelection)
@@ -469,7 +469,7 @@ nsMsgComposeService::GetOrigWindowSelection(MSG_ComposeType type, nsIMsgWindow *
   rv = domWindow->GetSelection(getter_AddRefs(sel));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool requireMultipleWords = PR_TRUE;
+  bool requireMultipleWords = true;
   nsCAutoString charsOnlyIf;
   prefs->GetBoolPref(PREF_MAILNEWS_REPLY_QUOTING_SELECTION_MULTI_WORD, &requireMultipleWords);
   prefs->GetCharPref(PREF_MAILNEWS_REPLY_QUOTING_SELECTION_ONLY_IF, getter_Copies(charsOnlyIf));
@@ -666,7 +666,7 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
 
       nsAutoString sanitizedBody;
 
-      PRBool composeHTMLFormat;
+      bool composeHTMLFormat;
       DetermineComposeHTML(NULL, requestedComposeFormat, &composeHTMLFormat);
 
       // If there was an 'html-body' param, finding it will have requested
@@ -815,13 +815,13 @@ nsMsgComposeService::GetDefaultIdentity(nsIMsgIdentity **_retval)
 }
 
 /* readonly attribute boolean logComposePerformance; */
-NS_IMETHODIMP nsMsgComposeService::GetLogComposePerformance(PRBool *aLogComposePerformance)
+NS_IMETHODIMP nsMsgComposeService::GetLogComposePerformance(bool *aLogComposePerformance)
 {
   *aLogComposePerformance = mLogComposePerformance;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgComposeService::TimeStamp(const char * label, PRBool resetTime)
+NS_IMETHODIMP nsMsgComposeService::TimeStamp(const char * label, bool resetTime)
 {
   if (!mLogComposePerformance)
     return NS_OK;
@@ -853,7 +853,7 @@ NS_IMETHODIMP nsMsgComposeService::TimeStamp(const char * label, PRBool resetTim
 }
 
 NS_IMETHODIMP
-nsMsgComposeService::IsCachedWindow(nsIDOMWindow *aCachedWindow, PRBool *aIsCachedWindow)
+nsMsgComposeService::IsCachedWindow(nsIDOMWindow *aCachedWindow, bool *aIsCachedWindow)
 {
   NS_ENSURE_ARG_POINTER(aCachedWindow);
   NS_ENSURE_ARG_POINTER(aIsCachedWindow);
@@ -871,7 +871,7 @@ nsMsgComposeService::IsCachedWindow(nsIDOMWindow *aCachedWindow, PRBool *aIsCach
 }
 
 NS_IMETHODIMP
-nsMsgComposeService::CacheWindow(nsIDOMWindow *aWindow, PRBool aComposeHTML, nsIMsgComposeRecyclingListener * aListener)
+nsMsgComposeService::CacheWindow(nsIDOMWindow *aWindow, bool aComposeHTML, nsIMsgComposeRecyclingListener * aListener)
 {
   NS_ENSURE_ARG_POINTER(aWindow);
   NS_ENSURE_ARG_POINTER(aListener);
@@ -940,7 +940,7 @@ public:
   nsCOMPtr <nsIMsgWindow> mMsgWindow;
   nsCOMPtr <nsIMsgIncomingServer> mServer;
   nsCString mTemplateBody;
-  PRBool mInMsgBody;
+  bool mInMsgBody;
   char mLastBlockChars[3];
 };
 
@@ -1296,7 +1296,7 @@ nsMsgComposeService::ForwardMessage(const nsAString &forwardTo,
   return folder->AddMessageDispositionState(aMsgHdr, nsIMsgFolder::nsMsgDispositionState_Forwarded);
 }
 
-nsresult nsMsgComposeService::ShowCachedComposeWindow(nsIDOMWindow *aComposeWindow, PRBool aShow)
+nsresult nsMsgComposeService::ShowCachedComposeWindow(nsIDOMWindow *aComposeWindow, bool aShow)
 {
   nsresult rv = NS_OK;
 
@@ -1535,8 +1535,8 @@ nsresult
 nsMsgComposeService::LoadDraftOrTemplate(const nsACString& aMsgURI, nsMimeOutputType aOutType,
                                          nsIMsgIdentity * aIdentity, const char * aOriginalMsgURI,
                                          nsIMsgDBHdr * aOrigMsgHdr,
-                                         PRBool aForwardInline,
-                                         PRBool overrideComposeFormat,
+                                         bool aForwardInline,
+                                         bool overrideComposeFormat,
                                          nsIMsgWindow *aMsgWindow)
 {
   return RunMessageThroughMimeDraft(aMsgURI, aOutType, aIdentity,
@@ -1573,9 +1573,9 @@ nsMsgComposeService::RunMessageThroughMimeDraft(
             const nsACString& aMsgURI, nsMimeOutputType aOutType,
             nsIMsgIdentity * aIdentity, const char * aOriginalMsgURI,
             nsIMsgDBHdr * aOrigMsgHdr,
-            PRBool aForwardInline,
+            bool aForwardInline,
             const nsAString &aForwardTo,
-            PRBool aOverrideComposeFormat,
+            bool aOverrideComposeFormat,
             nsIMsgWindow *aMsgWindow)
 {
   nsCOMPtr <nsIMsgMessageService> messageService;
@@ -1600,7 +1600,7 @@ nsMsgComposeService::RunMessageThroughMimeDraft(
   mimeConverter->SetOrigMsgHdr(aOrigMsgHdr);
 
   nsCOMPtr<nsIURI> url;
-  PRBool fileUrl = StringBeginsWith(aMsgURI, NS_LITERAL_CSTRING("file:"));
+  bool fileUrl = StringBeginsWith(aMsgURI, NS_LITERAL_CSTRING("file:"));
   if (fileUrl || PromiseFlatCString(aMsgURI).Find("&type=application/x-message-display") >= 0)
     rv = NS_NewURI(getter_AddRefs(url), aMsgURI);
   else
@@ -1616,7 +1616,7 @@ nsMsgComposeService::RunMessageThroughMimeDraft(
   nsCString mailCharset;
   if (aMsgWindow)
   {
-    PRBool charsetOverride;
+    bool charsetOverride;
     if (NS_SUCCEEDED(aMsgWindow->GetCharsetOverride(&charsetOverride)) && charsetOverride)
     {
       if (NS_SUCCEEDED(aMsgWindow->GetMailCharacterSet(mailCharset)))
@@ -1650,7 +1650,7 @@ nsMsgComposeService::Handle(nsICommandLine* aCmdLine)
   nsresult rv;
   PRInt32 found, end, count;
   nsAutoString uristr;
-  PRBool composeShouldHandle = PR_TRUE;
+  bool composeShouldHandle = true;
 
   rv = aCmdLine->FindFlag(NS_LITERAL_STRING("compose"), PR_FALSE, &found);
   NS_ENSURE_SUCCESS(rv, rv);

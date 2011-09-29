@@ -78,7 +78,7 @@ void nsImportMimeEncode::CleanUp( void)
   CleanUpEncodeScan();
 }
 
-PRBool nsImportMimeEncode::SetUpEncode( void)
+bool nsImportMimeEncode::SetUpEncode( void)
 {
   nsCString    errStr;
   if (!m_pInputBuf) {
@@ -107,7 +107,7 @@ PRBool nsImportMimeEncode::SetUpEncode( void)
   m_lineLen = 0;
 
   // Write out the boundary header
-  PRBool bResult = PR_TRUE;
+  bool bResult = true;
   bResult = m_pOut->WriteStr( "Content-type: ");
   if (bResult)
     bResult = m_pOut->WriteStr( m_mimeType.get());
@@ -137,7 +137,7 @@ PRBool nsImportMimeEncode::SetUpEncode( void)
     bResult = m_pOut->WriteStr( ";\x0D\x0A");
 
   nsCString    fName;
-  PRBool      trans = TranslateFileName( m_fileName, fName);
+  bool        trans = TranslateFileName( m_fileName, fName);
   if (bResult)
     bResult = WriteFileName( fName, trans, "name");
   if (bResult)
@@ -158,7 +158,7 @@ PRBool nsImportMimeEncode::SetUpEncode( void)
   return( bResult);
 }
 
-PRBool nsImportMimeEncode::DoWork( PRBool *pDone)
+bool nsImportMimeEncode::DoWork( bool *pDone)
 {
   *pDone = PR_FALSE;
   switch( m_state) {
@@ -190,7 +190,7 @@ PRBool nsImportMimeEncode::DoWork( PRBool *pDone)
 
 static PRUint8 gBase64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
-PRBool nsImportMimeEncode::ScanBuffer( PRBool *pDone)
+bool nsImportMimeEncode::ScanBuffer( bool *pDone)
 {
 
   PRUint32  pos = m_pos;
@@ -267,7 +267,7 @@ PRBool nsImportMimeEncode::ScanBuffer( PRBool *pDone)
   return( PR_TRUE);
 }
 
-PRBool nsImportMimeEncode::TranslateFileName( nsCString& inFile, nsCString& outFile)
+bool nsImportMimeEncode::TranslateFileName( nsCString& inFile, nsCString& outFile)
 {
   const PRUint8 * pIn = (const PRUint8 *) inFile.get();
   int    len = inFile.Length();
@@ -295,11 +295,11 @@ PRBool nsImportMimeEncode::TranslateFileName( nsCString& inFile, nsCString& outF
   }
 }
 
-PRBool nsImportMimeEncode::WriteFileName( nsCString& fName, PRBool wasTrans, const char *pTag)
+bool nsImportMimeEncode::WriteFileName( nsCString& fName, bool wasTrans, const char *pTag)
 {
   int      tagNum = 0;
   int      idx = 0;
-  PRBool    result = PR_TRUE;
+  bool      result = true;
   int      len;
   nsCString  numStr;
 
@@ -401,7 +401,7 @@ NS_METHOD nsIImportMimeEncodeImpl::EncodeFile(nsIFile *inFile, nsIFile *outFile,
   return( Initialize( inFile, outFile, fileName, mimeType));
 }
 
-NS_METHOD nsIImportMimeEncodeImpl::DoWork(PRBool *done, PRBool *_retval)
+NS_METHOD nsIImportMimeEncodeImpl::DoWork(bool *done, bool *_retval)
 {
   if (done && _retval && m_pEncode) {
     *_retval = m_pEncode->DoWork( done);
@@ -418,10 +418,10 @@ NS_METHOD nsIImportMimeEncodeImpl::NumBytesProcessed(PRInt32 *_retval)
   return( NS_OK);
 }
 
-NS_METHOD nsIImportMimeEncodeImpl::DoEncoding(PRBool *_retval)
+NS_METHOD nsIImportMimeEncodeImpl::DoEncoding(bool *_retval)
 {
   if (_retval && m_pEncode) {
-    PRBool  done = PR_FALSE;
+    bool    done = false;
     while (m_pEncode->DoWork( &done) && !done);
     *_retval = done;
     return( NS_OK);

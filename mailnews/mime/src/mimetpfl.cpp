@@ -58,7 +58,7 @@ MimeDefClass(MimeInlineTextPlainFlowed, MimeInlineTextPlainFlowedClass,
 
 static int MimeInlineTextPlainFlowed_parse_begin (MimeObject *);
 static int MimeInlineTextPlainFlowed_parse_line (const char *, PRInt32, MimeObject *);
-static int MimeInlineTextPlainFlowed_parse_eof (MimeObject *, PRBool);
+static int MimeInlineTextPlainFlowed_parse_eof (MimeObject *, bool);
 
 static MimeInlineTextPlainFlowedExData *MimeInlineTextPlainFlowedExDataList = nsnull;
 
@@ -71,7 +71,7 @@ extern "C" void MimeTextBuildPrefixCSS(
 // Definition below
 static
 nsresult Line_convert_whitespace(const nsString& a_line,
-                                 const PRBool a_convert_all_whitespace,
+                                 const bool a_convert_all_whitespace,
                                  nsString& a_out_line);
 
 static int
@@ -95,11 +95,11 @@ MimeInlineTextPlainFlowed_parse_begin (MimeObject *obj)
   status =  MimeObject_write(obj, "", 0, PR_TRUE); /* force out any separators... */
   if(status<0) return status;
 
-  PRBool quoting = ( obj->options
+  bool quoting = ( obj->options
     && ( obj->options->format_out == nsMimeOutput::nsMimeMessageQuoting ||
          obj->options->format_out == nsMimeOutput::nsMimeMessageBodyQuoting
        )       );  // The output will be inserted in the composer as quotation
-  PRBool plainHTML = quoting || (obj->options &&
+  bool plainHTML = quoting || (obj->options &&
        obj->options->format_out == nsMimeOutput::nsMimeMessageSaveAs);
        // Just good(tm) HTML. No reliance on CSS.
 
@@ -216,12 +216,12 @@ MimeInlineTextPlainFlowed_parse_begin (MimeObject *obj)
 }
 
 static int
-MimeInlineTextPlainFlowed_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeInlineTextPlainFlowed_parse_eof (MimeObject *obj, bool abort_p)
 {
   int status = 0;
   struct MimeInlineTextPlainFlowedExData *exdata = nsnull;
 
-  PRBool quoting = ( obj->options
+  bool quoting = ( obj->options
     && ( obj->options->format_out == nsMimeOutput::nsMimeMessageQuoting ||
          obj->options->format_out == nsMimeOutput::nsMimeMessageBodyQuoting
        )           );  // see above
@@ -288,11 +288,11 @@ static int
 MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObject *obj)
 {
   int status;
-  PRBool quoting = ( obj->options
+  bool quoting = ( obj->options
     && ( obj->options->format_out == nsMimeOutput::nsMimeMessageQuoting ||
          obj->options->format_out == nsMimeOutput::nsMimeMessageBodyQuoting
        )           );  // see above
-  PRBool plainHTML = quoting || (obj->options &&
+  bool plainHTML = quoting || (obj->options &&
        obj->options->format_out == nsMimeOutput::nsMimeMessageSaveAs);
        // see above
 
@@ -331,8 +331,8 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
   // flowed line. Normally we assume that the last two chars
   // are CR and LF as said in RFC822, but that doesn't seem to
   // be the case always.
-  PRBool flowed = PR_FALSE;
-  PRBool sigSeparator = PR_FALSE;
+  bool flowed = false;
+  bool sigSeparator = false;
   PRInt32 index = length-1;
   while(index >= 0 && ('\r' == line[index] || '\n' == line[index])) {
     index--;
@@ -357,7 +357,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
 
   mozITXTToHTMLConv *conv = GetTextConverter(obj->options);
 
-  PRBool skipConversion = !conv ||
+  bool skipConversion = !conv ||
                           (obj->options && obj->options->force_user_charset);
 
   nsAutoString lineSource;
@@ -517,8 +517,8 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
  * @param in a_current_char, the next char. It decides which state
  *                           will be next.
  */
-static void Update_in_tag_info(PRBool *a_in_tag, /* IN/OUT */
-                   PRBool *a_in_quote_in_tag, /* IN/OUT */
+static void Update_in_tag_info(bool *a_in_tag, /* IN/OUT */
+                   bool *a_in_quote_in_tag, /* IN/OUT */
                    PRUnichar *a_quote_char, /* IN/OUT (pointer to single char) */
                    PRUnichar a_current_char) /* IN */
 {
@@ -576,7 +576,7 @@ static void Update_in_tag_info(PRBool *a_in_tag, /* IN/OUT */
 */
 static void Convert_whitespace(const PRUnichar a_current_char,
                                const PRUnichar a_next_char,
-                               const PRBool a_convert_all_whitespace,
+                               const bool a_convert_all_whitespace,
                                nsString& a_out_string)
 {
   NS_ASSERTION('\t' == a_current_char || ' ' == a_current_char,
@@ -619,11 +619,11 @@ static void Convert_whitespace(const PRUnichar a_current_char,
 */
 static
 nsresult Line_convert_whitespace(const nsString& a_line,
-                                 const PRBool a_convert_all_whitespace,
+                                 const bool a_convert_all_whitespace,
                                  nsString& a_out_line)
 {
-  PRBool in_tag = PR_FALSE;
-  PRBool in_quote_in_tag = PR_FALSE;
+  bool in_tag = false;
+  bool in_quote_in_tag = false;
   PRUnichar quote_char;
 
   for (PRUint32 i = 0; a_line.Length() > i; i++)

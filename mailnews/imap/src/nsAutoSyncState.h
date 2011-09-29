@@ -61,10 +61,10 @@ class MsgStrategyComparatorAdaptor
     nsIMsgFolder *aFolder, nsIMsgDatabase *aDatabase);
 
   /** @return True if the elements are equals; false otherwise. */
-  PRBool Equals(const nsMsgKey& a, const nsMsgKey& b) const;
+  bool Equals(const nsMsgKey& a, const nsMsgKey& b) const;
   
   /** @return True if (a < b); false otherwise. */
-  PRBool LessThan(const nsMsgKey& a, const nsMsgKey& b) const;
+  bool LessThan(const nsMsgKey& a, const nsMsgKey& b) const;
   
  private:
   MsgStrategyComparatorAdaptor();
@@ -127,7 +127,7 @@ public:
   PRTime mLastSyncTime;
   PRTime mLastUpdateTime;
   PRUint32 mProcessPointer;
-  PRBool mIsDownloadQChanged;
+  bool mIsDownloadQChanged;
   PRUint32 mRetryCounter;
   nsTArray<nsMsgKey> mDownloadQ;
   nsTArray<nsMsgKey> mExistingHeadersQ;

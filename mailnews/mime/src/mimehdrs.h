@@ -66,13 +66,13 @@ extern int MimeHeaders_parse_line (const char *buffer, PRInt32 size,
  */
 extern int MimeHeaders_write_headers_html (MimeHeaders *hdrs,
                        MimeDisplayOptions *opt,
-                       PRBool             attachment);
+                       bool               attachment);
 
 /*
  * Writes all headers to the mime emitter.
  */
 extern int
-MimeHeaders_write_all_headers (MimeHeaders *, MimeDisplayOptions *, PRBool);
+MimeHeaders_write_all_headers (MimeHeaders *, MimeDisplayOptions *, bool);
 
 /* Writes the headers as text/plain.
    This writes out a blank line after the headers, unless
@@ -81,7 +81,7 @@ MimeHeaders_write_all_headers (MimeHeaders *, MimeDisplayOptions *, PRBool);
  */
 extern int MimeHeaders_write_raw_headers (MimeHeaders *hdrs,
                       MimeDisplayOptions *opt,
-                      PRBool dont_write_content_type);
+                      bool dont_write_content_type);
 
 
 /* Some crypto-related HTML-generated utility routines.
@@ -90,15 +90,15 @@ extern int MimeHeaders_write_raw_headers (MimeHeaders *hdrs,
 extern char *MimeHeaders_open_crypto_stamp(void);
 extern char *MimeHeaders_finish_open_crypto_stamp(void);
 extern char *MimeHeaders_close_crypto_stamp(void);
-extern char *MimeHeaders_make_crypto_stamp(PRBool encrypted_p,
+extern char *MimeHeaders_make_crypto_stamp(bool encrypted_p,
 
-   PRBool signed_p,
+   bool signed_p,
 
-   PRBool good_p,
+   bool good_p,
 
-   PRBool unverified_p,
+   bool unverified_p,
 
-   PRBool close_parent_stamp_p,
+   bool close_parent_stamp_p,
 
    const char *stamp_url);
 
@@ -116,5 +116,5 @@ extern "C"  char * MIME_StripContinuations(char *original);
  */
 extern void MimeHeaders_convert_header_value(MimeDisplayOptions *opt,
                                              nsCString &value,
-                                             PRBool convert_charset_only);
+                                             bool convert_charset_only);
 #endif /* _MIMEHDRS_H_ */

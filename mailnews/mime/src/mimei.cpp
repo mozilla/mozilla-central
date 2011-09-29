@@ -123,14 +123,14 @@ static int mime_classinit(MimeObjectClass *clazz);
  */
 typedef struct {
   char        content_type[128];
-  PRBool      force_inline_display;
+  bool        force_inline_display;
 } cthandler_struct;
 
 nsVoidArray         *ctHandlerList = NULL;
-PRBool              foundIt = PR_FALSE;
-PRBool              force_display = PR_FALSE;
+bool                foundIt = false;
+bool                force_display = false;
 
-PRBool
+bool
 EnumFunction(void* aElement, void *aData)
 {
   cthandler_struct    *ptr = (cthandler_struct *) aElement;
@@ -153,9 +153,9 @@ EnumFunction(void* aElement, void *aData)
  * This will return TRUE if the content_type is found in the
  * list, FALSE if it is not found.
  */
-PRBool
+bool
 find_content_type_attribs(const char *content_type,
-                          PRBool     *force_inline_display)
+                          bool       *force_inline_display)
 {
   *force_inline_display = PR_FALSE;
   if (!ctHandlerList)
@@ -175,7 +175,7 @@ add_content_type_attribs(const char *content_type,
                          contentTypeHandlerInitStruct  *ctHandlerInfo)
 {
   cthandler_struct    *ptr = NULL;
-  PRBool              force_inline_display;
+  bool                force_inline_display;
 
   if (find_content_type_attribs(content_type, &force_inline_display))
     return;
@@ -202,10 +202,10 @@ add_content_type_attribs(const char *content_type,
  * This routine will find all content type handler for a specifc content
  * type (if it exists)
  */
-PRBool
+bool
 force_inline_display(const char *content_type)
 {
-  PRBool     force_inline_disp;
+  bool       force_inline_disp;
 
   find_content_type_attribs(content_type, &force_inline_disp);
   return (force_inline_disp);
@@ -258,7 +258,7 @@ mime_locate_external_content_handler(const char *content_type,
 
 /* This is necessary to expose the MimeObject method outside of this DLL */
 int
-MIME_MimeObject_write(MimeObject *obj, const char *output, PRInt32 length, PRBool user_visible_p)
+MIME_MimeObject_write(MimeObject *obj, const char *output, PRInt32 length, bool user_visible_p)
 {
   return MimeObject_write(obj, output, length, user_visible_p);
 }
@@ -330,15 +330,15 @@ mime_free (MimeObject *object)
 }
 
 
-PRBool mime_is_allowed_class(const MimeObjectClass *clazz,
+bool mime_is_allowed_class(const MimeObjectClass *clazz,
                              PRInt32 types_of_classes_to_disallow)
 {
   if (types_of_classes_to_disallow == 0)
     return PR_TRUE;
-  PRBool avoid_html = (types_of_classes_to_disallow >= 1);
-  PRBool avoid_images = (types_of_classes_to_disallow >= 2);
-  PRBool avoid_strange_content = (types_of_classes_to_disallow >= 3);
-  PRBool allow_only_vanilla_classes = (types_of_classes_to_disallow == 100);
+  bool avoid_html = (types_of_classes_to_disallow >= 1);
+  bool avoid_images = (types_of_classes_to_disallow >= 2);
+  bool avoid_strange_content = (types_of_classes_to_disallow >= 3);
+  bool allow_only_vanilla_classes = (types_of_classes_to_disallow == 100);
 
   if (allow_only_vanilla_classes)
     /* A "safe" class is one that is unlikely to have security bugs or to
@@ -439,7 +439,7 @@ void getMsgHdrForCurrentURL(MimeDisplayOptions *opts, nsIMsgDBHdr ** aMsgHdr)
 
 MimeObjectClass *
 mime_find_class (const char *content_type, MimeHeaders *hdrs,
-         MimeDisplayOptions *opts, PRBool exact_match_p)
+         MimeDisplayOptions *opts, bool exact_match_p)
 {
   MimeObjectClass *clazz = 0;
   MimeObjectClass *tempClass = 0;
@@ -478,7 +478,7 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
   // First, check to see if the message has been marked as JUNK. If it has,
   // then force the message to be rendered as simple, unless this has been
   // called by a filtering routine.
-  PRBool sanitizeJunkMail = PR_FALSE;
+  bool sanitizeJunkMail = false;
 
   // it is faster to read the pref first then figure out the msg hdr for the current url only if we have to
   // XXX instead of reading this pref every time, part of mime should be an observer listening to this pref change
@@ -597,7 +597,7 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
           && opts->format_out != nsMimeOutput::nsMimeMessageAttach
           && opts->format_out != nsMimeOutput::nsMimeMessageRaw)
         {
-          PRBool disable_format_flowed = PR_FALSE;
+          bool disable_format_flowed = false;
           if (prefBranch)
             prefBranch->GetBoolPref("mailnews.display.disable_format_flowed_support",
                                     &disable_format_flowed);
@@ -657,7 +657,7 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
       // mimeMultipartRelatedClass. Therefore, to ensure that
       // everything is handled properly, in this context too we parse
       // those MIME types as multipart/mixed.
-      PRBool basic_formatting = (html_as == 4) ||
+      bool basic_formatting = (html_as == 4) ||
         (opts && opts->format_out == nsMimeOutput::nsMimeMessageAttach);
       if      (!PL_strcasecmp(content_type+10,  "alternative"))
         clazz = basic_formatting ? (MimeObjectClass *)&mimeMultipartMixedClass :
@@ -754,7 +754,7 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
     */
     else if (!PL_strncasecmp(content_type,    "image/", 6)) {
         nsCOMPtr<imgILoader> loader(do_GetService("@mozilla.org/image/loader;1"));
-        PRBool isReg = PR_FALSE;
+        bool isReg = false;
         loader->SupportImageWithMimeType(content_type, &isReg);
         if (isReg)
           clazz = (MimeObjectClass *)&mimeInlineImageClass;
@@ -849,7 +849,7 @@ mime_find_class (const char *content_type, MimeHeaders *hdrs,
 
 MimeObject *
 mime_create (const char *content_type, MimeHeaders *hdrs,
-       MimeDisplayOptions *opts, PRBool forceInline /* = PR_FALSE */)
+       MimeDisplayOptions *opts, bool forceInline /* = false */)
 {
   /* If there is no Content-Disposition header, or if the Content-Disposition
    is ``inline'', then we display the part inline (and let mime_find_class()
@@ -1080,7 +1080,7 @@ mime_classinit_1(MimeObjectClass *clazz, MimeObjectClass *target)
 }
 
 
-PRBool
+bool
 mime_subclass_p(MimeObjectClass *child, MimeObjectClass *parent)
 {
   if (child == parent)
@@ -1091,7 +1091,7 @@ mime_subclass_p(MimeObjectClass *child, MimeObjectClass *parent)
   return mime_subclass_p(child->superclass, parent);
 }
 
-PRBool
+bool
 mime_typep(MimeObject *obj, MimeObjectClass *clazz)
 {
   return mime_subclass_p(obj->clazz, clazz);
@@ -1192,8 +1192,8 @@ mime_external_attachment_url(MimeObject *obj)
    or encrypted objects that we know about.  (MimeMessageClass uses this
    to decide if the headers need to be presented differently.)
  */
-PRBool
-mime_crypto_object_p(MimeHeaders *hdrs, PRBool clearsigned_counts)
+bool
+mime_crypto_object_p(MimeHeaders *hdrs, bool clearsigned_counts)
 {
   char *ct;
   MimeObjectClass *clazz;
@@ -1229,7 +1229,7 @@ mime_crypto_object_p(MimeHeaders *hdrs, PRBool clearsigned_counts)
    this is true, then the child must write out its HTML slightly differently
    to take this into account...
  */
-PRBool
+bool
 mime_crypto_stamped_p(MimeObject *obj)
 {
   if (!obj) return PR_FALSE;
@@ -1246,11 +1246,11 @@ mime_crypto_stamped_p(MimeObject *obj)
    it replaces it.
  */
 char *
-mime_set_url_part(const char *url, const char *part, PRBool append_p)
+mime_set_url_part(const char *url, const char *part, bool append_p)
 {
   const char *part_begin = 0;
   const char *part_end = 0;
-  PRBool got_q = PR_FALSE;
+  bool got_q = false;
   const char *s;
   char *result;
 
@@ -1372,7 +1372,7 @@ mime_address_to_part(const char *part, MimeObject *obj)
   /* Note: this is an N^2 operation, but the number of parts in a message
    shouldn't ever be large enough that this really matters... */
 
-  PRBool match;
+  bool match;
 
   if (!part || !*part)
   {
@@ -1705,7 +1705,7 @@ mime_parse_url_options(const char *url, MimeDisplayOptions *options)
 
 int
 MimeOptions_write(MimeDisplayOptions *opt, nsCString &name, const char *data,
-                  PRInt32 length, PRBool user_visible_p)
+                  PRInt32 length, bool user_visible_p)
 {
   int status = 0;
   void* closure = 0;
@@ -1764,7 +1764,7 @@ MimeOptions_write(MimeDisplayOptions *opt, nsCString &name, const char *data,
 
 int
 MimeObject_write(MimeObject *obj, const char *output, PRInt32 length,
-         PRBool user_visible_p)
+         bool user_visible_p)
 {
   if (!obj->output_p) return 0;
 

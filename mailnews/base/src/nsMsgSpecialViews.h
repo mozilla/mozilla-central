@@ -50,9 +50,9 @@ public:
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
   NS_IMETHOD GetNumMsgsInView(PRInt32 *aNumMsgs);
 
-virtual PRBool WantsThisThread(nsIMsgThread *threadHdr);
+virtual bool WantsThisThread(nsIMsgThread *threadHdr);
 protected:
-  virtual nsresult AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, PRBool ensureListed);
+  virtual nsresult AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, bool ensureListed);
 
 };
 
@@ -63,9 +63,9 @@ public:
   NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCommandUpdater, nsIMsgDBView **_retval);
   NS_IMETHOD GetNumMsgsInView(PRInt32 *aNumMsgs);
   virtual const char * GetViewName(void) {return "WatchedThreadsWithUnreadView"; }
-  virtual PRBool WantsThisThread(nsIMsgThread *threadHdr);
+  virtual bool WantsThisThread(nsIMsgThread *threadHdr);
 protected:
-  virtual nsresult AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, PRBool ensureListed);
+  virtual nsresult AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, bool ensureListed);
 
 };
 #ifdef DOING_CACHELESS_VIEW
@@ -91,7 +91,7 @@ protected:
 	nsIMsgFolder		*m_folder;
 	nsMsgViewIndex		m_curStartSeq;
 	nsMsgViewIndex		m_curEndSeq;
-	PRBool				m_sizeInitialized;
+	bool				m_sizeInitialized;
 };
 
 #endif /* DOING_CACHELESS_VIEW */

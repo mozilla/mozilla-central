@@ -117,7 +117,7 @@ static void initVObjectIterator(VObjectIterator *i, VObject *o);
   deleteStrItem
    ----------------------------------------------------------------------*/
 
-static PRBool needsQuotedPrintable (const char *s)
+static bool needsQuotedPrintable (const char *s)
 {
   const unsigned char *p = (const unsigned char *)s;
 
@@ -984,9 +984,9 @@ static void writeQPString(OFile *fp, const char *s)
     const unsigned char *p = (const unsigned char *)s;
   int current_column = 0;
   static const char hexdigits[] = "0123456789ABCDEF";
-  PRBool white = PR_FALSE;
-  PRBool contWhite = PR_FALSE;
-  PRBool mb_p = PR_FALSE;
+  bool white = false;
+  bool contWhite = false;
+  bool mb_p = false;
 
   if (needsQuotedPrintable (s)) 
   {
@@ -1272,7 +1272,7 @@ char* writeMemVObject(char *s, int *len, VObject *o)
 }
 
 extern "C" 
-char * writeMemoryVObjects(char *s, int *len, VObject *list, PRBool expandSpaces)
+char * writeMemoryVObjects(char *s, int *len, VObject *list, bool expandSpaces)
 {
     OFile ofp;
     initMemOFile(&ofp,s,len?*len:0);

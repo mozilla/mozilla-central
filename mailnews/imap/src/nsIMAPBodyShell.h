@@ -63,34 +63,34 @@ class nsIMAPBodypart
 {
 public:
 	// Construction
-	virtual PRBool GetIsValid() { return m_isValid; }
-	virtual void	SetIsValid(PRBool valid);
+	virtual bool GetIsValid() { return m_isValid; }
+	virtual void	SetIsValid(bool valid);
 	virtual nsIMAPBodypartType	GetType() = 0;
 
 	// Generation
     // Generates an HTML representation of this part.  Returns content length generated, -1 if failed.
-    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, PRBool /*stream*/, PRBool /* prefetch */) { return -1; }
+    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, bool /*stream*/, bool /* prefetch */) { return -1; }
     virtual void AdoptPartDataBuffer(char *buf);    // Adopts storage for part data buffer.  If NULL, sets isValid to PR_FALSE.
     virtual void AdoptHeaderDataBuffer(char *buf);  // Adopts storage for header data buffer.  If NULL, sets isValid to PR_FALSE.
-    virtual PRBool ShouldFetchInline(nsIMAPBodyShell *aShell) { return PR_TRUE; }  // returns PR_TRUE if this part should be fetched inline for generation.
-    virtual PRBool PreflightCheckAllInline(nsIMAPBodyShell *aShell) { return PR_TRUE; }
+    virtual bool ShouldFetchInline(nsIMAPBodyShell *aShell) { return true; }  // returns true if this part should be fetched inline for generation.
+    virtual bool PreflightCheckAllInline(nsIMAPBodyShell *aShell) { return true; }
 
-	virtual PRBool ShouldExplicitlyFetchInline();
-	virtual PRBool ShouldExplicitlyNotFetchInline();
-        virtual PRBool IsLastTextPart(const char *partNumberString) {return PR_TRUE;}
+	virtual bool ShouldExplicitlyFetchInline();
+	virtual bool ShouldExplicitlyNotFetchInline();
+        virtual bool IsLastTextPart(const char *partNumberString) {return true;}
 
 protected:
     // If stream is PR_FALSE, simply returns the content length that will be generated
     // the body of the part itself
-    virtual PRInt32 GeneratePart(nsIMAPBodyShell *aShell, PRBool stream, PRBool prefetch);
+    virtual PRInt32 GeneratePart(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
     // the MIME headers of the part
-    virtual PRInt32 GenerateMIMEHeader(nsIMAPBodyShell *aShell, PRBool stream, PRBool prefetch); 
+    virtual PRInt32 GenerateMIMEHeader(nsIMAPBodyShell *aShell, bool stream, bool prefetch); 
     // Generates the MIME boundary wrapper for this part.
-    virtual PRInt32 GenerateBoundary(nsIMAPBodyShell *aShell, PRBool stream, PRBool prefetch, PRBool lastBoundary);
+    virtual PRInt32 GenerateBoundary(nsIMAPBodyShell *aShell, bool stream, bool prefetch, bool lastBoundary);
     // lastBoundary indicates whether or not this should be the boundary for the
     // final MIME part of the multipart message.
     // Generates (possibly empty) filling for a part that won't be filled in inline.
-    virtual PRInt32 GenerateEmptyFilling(nsIMAPBodyShell *aShell, PRBool stream, PRBool prefetch);
+    virtual PRInt32 GenerateEmptyFilling(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
 
 	// Part Numbers / Hierarchy
 public:
@@ -117,7 +117,7 @@ protected:
     nsIMAPBodypart(char *partNumber, nsIMAPBodypart *parentPart);
 
 protected:
-	PRBool	m_isValid;				// If this part is valid.
+	bool	m_isValid;				// If this part is valid.
 	char	*m_partNumberString;	// string representation of this part's full-hierarchy number.  Define 0 to be the top-level message
 	char	*m_partData;			// data for this part.  NULL if not filled in yet.
 	char	*m_headerData;			// data for this part's MIME header.  NULL if not filled in yet.
@@ -148,8 +148,8 @@ public:
     nsIMAPMessageHeaders(char *partNum, nsIMAPBodypart *parentPart);
 	virtual nsIMAPBodypartType	GetType();
     // Generates an HTML representation of this part.  Returns content length generated, -1 if failed.
-    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, PRBool stream, PRBool prefetch);
-    virtual PRBool ShouldFetchInline(nsIMAPBodyShell *aShell);
+    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
+    virtual bool ShouldFetchInline(nsIMAPBodyShell *aShell);
     virtual void QueuePrefetchMessageHeaders(nsIMAPBodyShell *aShell);
 };
 
@@ -160,12 +160,12 @@ public:
     nsIMAPBodypartMultipart(char *partNum, nsIMAPBodypart *parentPart);
 	virtual nsIMAPBodypartType	GetType();
 	virtual ~nsIMAPBodypartMultipart();
-    virtual PRBool ShouldFetchInline(nsIMAPBodyShell *aShell);
-    virtual PRBool PreflightCheckAllInline(nsIMAPBodyShell *aShell);
+    virtual bool ShouldFetchInline(nsIMAPBodyShell *aShell);
+    virtual bool PreflightCheckAllInline(nsIMAPBodyShell *aShell);
     // Generates an HTML representation of this part.  Returns content length generated, -1 if failed.
-    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, PRBool stream, PRBool prefetch);
+    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
 	virtual nsIMAPBodypart	*FindPartWithNumber(const char *partNum);	// Returns the part object with the given number
-        virtual PRBool IsLastTextPart(const char *partNumberString);
+        virtual bool IsLastTextPart(const char *partNumberString);
     void AppendPart(nsIMAPBodypart *part)  { m_partList->AppendElement(part); }
     void SetBodySubType(char *bodySubType);
 
@@ -182,15 +182,15 @@ public:
   nsIMAPBodypartLeaf(char *partNum, nsIMAPBodypart *parentPart, char *bodyType,
                      char *bodySubType, char *bodyID, char *bodyDescription,
                      char *bodyEncoding, PRInt32 partLength,
-                     PRBool preferPlainText);
+                     bool preferPlainText);
 	virtual nsIMAPBodypartType	GetType();
     // Generates an HTML representation of this part.  Returns content length generated, -1 if failed.
-    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, PRBool stream, PRBool prefetch);
+    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
     // returns PR_TRUE if this part should be fetched inline for generation.
-    virtual PRBool ShouldFetchInline(nsIMAPBodyShell *aShell);
-    virtual PRBool PreflightCheckAllInline(nsIMAPBodyShell *aShell);
+    virtual bool ShouldFetchInline(nsIMAPBodyShell *aShell);
+    virtual bool PreflightCheckAllInline(nsIMAPBodyShell *aShell);
 private:
-  PRBool mPreferPlainText;
+  bool mPreferPlainText;
 };
 
 
@@ -198,27 +198,27 @@ class nsIMAPBodypartMessage : public nsIMAPBodypartLeaf
 {
 public:
   nsIMAPBodypartMessage(char *partNum, nsIMAPBodypart *parentPart,
-                        PRBool topLevelMessage, char *bodyType,
+                        bool topLevelMessage, char *bodyType,
                         char *bodySubType, char *bodyID,
                         char *bodyDescription, char *bodyEncoding,
-                        PRInt32 partLength, PRBool preferPlainText);
+                        PRInt32 partLength, bool preferPlainText);
     void SetBody(nsIMAPBodypart *body);
 	virtual nsIMAPBodypartType	GetType();
 	virtual ~nsIMAPBodypartMessage();
-    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, PRBool stream, PRBool prefetch);
-    virtual PRBool ShouldFetchInline(nsIMAPBodyShell *aShell);
-    virtual PRBool PreflightCheckAllInline(nsIMAPBodyShell *aShell);
+    virtual PRInt32 Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
+    virtual bool ShouldFetchInline(nsIMAPBodyShell *aShell);
+    virtual bool PreflightCheckAllInline(nsIMAPBodyShell *aShell);
 	virtual nsIMAPBodypart	*FindPartWithNumber(const char *partNum);	// Returns the part object with the given number
 	void	AdoptMessageHeaders(char *headers);			// Fills in buffer (and adopts storage) for header object
 														// partNum specifies the message part number to which the
 														// headers correspond.  NULL indicates the top-level message
 	virtual nsIMAPBodypartMessage	*GetnsIMAPBodypartMessage() { return this; }
-	virtual	PRBool		GetIsTopLevelMessage() { return m_topLevelMessage; }
+	virtual	bool		GetIsTopLevelMessage() { return m_topLevelMessage; }
 
 protected:
 	nsIMAPMessageHeaders		*m_headers;				// Every body shell should have headers
 	nsIMAPBodypart			*m_body;	
-	PRBool					m_topLevelMessage;		// Whether or not this is the top-level message
+	bool					m_topLevelMessage;		// Whether or not this is the top-level message
 
 };
 
@@ -243,8 +243,8 @@ public:
   virtual ~nsIMAPBodyShell();
   // To be used after a shell is uncached
   void SetConnection(nsImapProtocol *con) { m_protocolConnection = con; }
-  virtual PRBool GetIsValid() { return m_isValid; }
-  virtual void SetIsValid(PRBool valid);
+  virtual bool GetIsValid() { return m_isValid; }
+  virtual void SetIsValid(bool valid);
 
   // Prefetch
   // Adds a message body part to the queue to be prefetched
@@ -272,23 +272,23 @@ public:
 
   // Returns TRUE if the user has the pref "Show Attachments Inline" set.
   // Returns FALSE if the setting is "Show Attachments as Links"
-  virtual PRBool GetShowAttachmentsInline();
+  virtual bool GetShowAttachmentsInline();
   // Returns PR_TRUE if all parts are inline, PR_FALSE otherwise. Does not generate anything.
-  PRBool PreflightCheckAllInline();
+  bool PreflightCheckAllInline();
 
   // Helpers
   nsImapProtocol *GetConnection() { return m_protocolConnection; }
-  PRBool GetPseudoInterrupted();
-  PRBool DeathSignalReceived();
+  bool GetPseudoInterrupted();
+  bool DeathSignalReceived();
   nsCString &GetUID() { return m_UID; }
   const char *GetFolderName() { return m_folderName; }
   char *GetGeneratingPart() { return m_generatingPart; }
   // Returns PR_TRUE if this is in the process of being generated,
   // so we don't re-enter
-  PRBool IsBeingGenerated() { return m_isBeingGenerated; }
-  PRBool IsShellCached() { return m_cached; }
-  void SetIsCached(PRBool isCached) { m_cached = isCached; }
-  PRBool GetGeneratingWholeMessage() { return m_generatingWholeMessage; }
+  bool IsBeingGenerated() { return m_isBeingGenerated; }
+  bool IsShellCached() { return m_cached; }
+  void SetIsCached(bool isCached) { m_cached = isCached; }
+  bool GetGeneratingWholeMessage() { return m_generatingWholeMessage; }
   IMAP_ContentModifiedType	GetContentModified() { return m_contentModified; }
   void SetContentModified(IMAP_ContentModifiedType modType) { m_contentModified = modType; }
 protected:
@@ -297,16 +297,16 @@ protected:
 
   nsIMAPMessagePartIDArray        *m_prefetchQueue; // array of pipelined part prefetches.  Ok, so it's not really a queue.
 
-  PRBool                          m_isValid;
+  bool                            m_isValid;
   nsImapProtocol                  *m_protocolConnection;  // Connection, for filling in parts
   nsCString                       m_UID;                  // UID of this message
   char                            *m_folderName;          // folder that contains this message
   char                            *m_generatingPart;      // If a specific part is being generated, this is it.  Otherwise, NULL.
-  PRBool                          m_isBeingGenerated;     // PR_TRUE if this body shell is in the process of being generated
-  PRBool                          m_gotAttachmentPref;    // Whether or not m_showAttachmentsInline has been initialized 
-  PRBool                          m_showAttachmentsInline; // Whether or not we should display attachment inline
-  PRBool                          m_cached;                 // Whether or not this shell is cached
-  PRBool                          m_generatingWholeMessage; // whether or not we are generating the whole (non-MPOD) message
+  bool                            m_isBeingGenerated;     // true if this body shell is in the process of being generated
+  bool                            m_gotAttachmentPref;    // Whether or not m_showAttachmentsInline has been initialized 
+  bool                            m_showAttachmentsInline; // Whether or not we should display attachment inline
+  bool                            m_cached;                 // Whether or not this shell is cached
+  bool                            m_generatingWholeMessage; // whether or not we are generating the whole (non-MPOD) message
                                                           // Set to PR_FALSE if we are generating by parts
   // under what conditions the content has been modified.
   // Either IMAP_CONTENT_MODIFIED_VIEW_INLINE or IMAP_CONTENT_MODIFIED_VIEW_AS_LINKS
@@ -333,7 +333,7 @@ public:
 
   // Adds shell to cache, possibly ejecting
   // another entry based on scheme in EjectEntry().
-  PRBool AddShellToCache(nsIMAPBodyShell *shell);
+  bool AddShellToCache(nsIMAPBodyShell *shell);
   // Looks up a shell in the cache given the message's UID.
   nsIMAPBodyShell *FindShellForUID(nsCString &UID, const char *mailboxName,
                                    IMAP_ContentModifiedType modType);
@@ -344,7 +344,7 @@ protected:
   // Chooses an entry to eject;  deletes that entry;  and ejects it from the
   // cache, clearing up a new space.  Returns PR_TRUE if it found an entry
   // to eject, PR_FALSE otherwise.
-  PRBool EjectEntry();
+  bool EjectEntry();
   PRUint32 GetSize() { return m_shellList->Count(); }
   PRUint32 GetMaxSize() { return 20; }
   nsVoidArray *m_shellList; // For maintenance

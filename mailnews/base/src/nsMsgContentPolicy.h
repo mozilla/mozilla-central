@@ -82,17 +82,17 @@ public:
   NS_DECL_NSIWEBPROGRESSLISTENER
   
 protected:
-  PRBool   mBlockRemoteImages;
-  PRBool   mAllowPlugins;
+  bool     mBlockRemoteImages;
+  bool     mAllowPlugins;
   nsCString mTrustedMailDomains;
 
-  PRBool IsTrustedDomain(nsIURI * aContentLocation);
-  PRBool IsSafeRequestingLocation(nsIURI *aRequestingLocation);
-  PRBool IsExposedProtocol(nsIURI *aContentLocation);
-  PRBool IsExposedChromeProtocol(nsIURI *aContentLocation);
-  PRBool ShouldBlockUnexposedProtocol(nsIURI *aContentLocation);
+  bool IsTrustedDomain(nsIURI * aContentLocation);
+  bool IsSafeRequestingLocation(nsIURI *aRequestingLocation);
+  bool IsExposedProtocol(nsIURI *aContentLocation);
+  bool IsExposedChromeProtocol(nsIURI *aContentLocation);
+  bool ShouldBlockUnexposedProtocol(nsIURI *aContentLocation);
 
-  PRBool ShouldAcceptRemoteContentForSender(nsIMsgDBHdr *aMsgHdr);
+  bool ShouldAcceptRemoteContentForSender(nsIMsgDBHdr *aMsgHdr);
   PRInt16 ShouldAcceptRemoteContentForMsgHdr(nsIMsgDBHdr *aMsgHdr,
                                              nsIURI *aRequestingLocation,
                                              nsIURI *aContentLocation);

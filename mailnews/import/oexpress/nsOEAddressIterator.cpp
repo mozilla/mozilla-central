@@ -298,7 +298,7 @@ void nsOEAddressIterator::SetBirthDay(nsIMdbRow *newRow, PRTime& birthDay)
   m_database->AddBirthDay(newRow, stringValue);
 }
 
-PRBool nsOEAddressIterator::BuildCard( const PRUnichar * pName, nsIMdbRow *newRow, LPMAILUSER pUser)
+bool nsOEAddressIterator::BuildCard( const PRUnichar * pName, nsIMdbRow *newRow, LPMAILUSER pUser)
 {
   
   nsString    lastName;

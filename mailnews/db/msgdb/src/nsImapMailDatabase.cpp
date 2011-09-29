@@ -54,7 +54,7 @@ nsImapMailDatabase::~nsImapMailDatabase()
 {
 }
 
-NS_IMETHODIMP	nsImapMailDatabase::GetSummaryValid(PRBool *aResult)
+NS_IMETHODIMP	nsImapMailDatabase::GetSummaryValid(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   if (m_dbFolderInfo)
@@ -69,7 +69,7 @@ NS_IMETHODIMP	nsImapMailDatabase::GetSummaryValid(PRBool *aResult)
   return NS_OK;
 }
 
-NS_IMETHODIMP	nsImapMailDatabase::SetSummaryValid(PRBool valid)
+NS_IMETHODIMP	nsImapMailDatabase::SetSummaryValid(bool valid)
 {
   if (m_dbFolderInfo)
   {
@@ -80,7 +80,7 @@ NS_IMETHODIMP	nsImapMailDatabase::SetSummaryValid(PRBool valid)
 }
 
 // IMAP does not set local file flags, override does nothing
-void nsImapMailDatabase::UpdateFolderFlag(nsIMsgDBHdr * /* msgHdr */, PRBool /* bSet */,
+void nsImapMailDatabase::UpdateFolderFlag(nsIMsgDBHdr * /* msgHdr */, bool /* bSet */,
                                           nsMsgMessageFlagType /* flag */, nsIOutputStream ** /* ppFileStream */)
 {
 }
@@ -94,7 +94,7 @@ NS_IMETHODIMP nsImapMailDatabase::DeleteMessages(PRUint32 aNumKeys, nsMsgKey* ns
 
 // We override this so we won't try to change the x-mozilla-status flags
 // in the offline store.
-PRBool nsImapMailDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, PRBool bSet, nsMsgMessageFlagType flag)
+bool nsImapMailDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, bool bSet, nsMsgMessageFlagType flag)
 {
   return nsMsgDatabase::SetHdrFlag(msgHdr, bSet, flag);
 }
@@ -149,7 +149,7 @@ nsresult nsImapMailDatabase::GetAllPendingHdrsTable()
   return rv;
 }
 
-NS_IMETHODIMP nsImapMailDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, PRBool notify)
+NS_IMETHODIMP nsImapMailDatabase::AddNewHdrToDB(nsIMsgDBHdr *newHdr, bool notify)
 {
   nsresult rv = nsMsgDatabase::AddNewHdrToDB(newHdr, notify);
   if (NS_SUCCEEDED(rv))

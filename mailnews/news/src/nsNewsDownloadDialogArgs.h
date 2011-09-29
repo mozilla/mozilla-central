@@ -55,8 +55,8 @@ private:
   nsString mGroupName;
   PRInt32 mArticleCount;
   nsCString mServerKey;
-  PRBool mHitOK;
-  PRBool mDownloadAll;
+  bool mHitOK;
+  bool mDownloadAll;
 };
 
 #endif // nsNewsDownloadDialogArgs_h__

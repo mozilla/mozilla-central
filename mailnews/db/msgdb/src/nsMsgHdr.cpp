@@ -235,7 +235,7 @@ NS_IMETHODIMP nsMsgHdr::AndFlags(PRUint32 flags, PRUint32 *result)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgHdr::MarkHasAttachments(PRBool bHasAttachments)
+NS_IMETHODIMP nsMsgHdr::MarkHasAttachments(bool bHasAttachments)
 {
   nsresult rv = NS_OK;
 
@@ -249,7 +249,7 @@ NS_IMETHODIMP nsMsgHdr::MarkHasAttachments(PRBool bHasAttachments)
   return rv;
 }
 
-NS_IMETHODIMP nsMsgHdr::MarkRead(PRBool bRead)
+NS_IMETHODIMP nsMsgHdr::MarkRead(bool bRead)
 {
   nsresult rv = NS_OK;
 
@@ -263,7 +263,7 @@ NS_IMETHODIMP nsMsgHdr::MarkRead(PRBool bRead)
   return rv;
 }
 
-NS_IMETHODIMP nsMsgHdr::MarkFlagged(PRBool bFlagged)
+NS_IMETHODIMP nsMsgHdr::MarkFlagged(bool bFlagged)
 {
   nsresult rv = NS_OK;
 
@@ -852,7 +852,7 @@ nsresult nsMsgHdr::GetUInt64Column(mdb_token token, PRUint64 *pvalue, PRUint64 d
  */ 
 const char *nsMsgHdr::GetNextReference(const char *startNextRef,
                                        nsCString &reference,
-                                       PRBool acceptNonDelimitedReferences)
+                                       bool acceptNonDelimitedReferences)
 {
   const char *ptr = startNextRef;
   const char *whitespaceEndedAt = nsnull;
@@ -864,7 +864,7 @@ const char *nsMsgHdr::GetNextReference(const char *startNextRef,
 
   // walk until we find a '<', but keep track of the first point we found that
   //  was not whitespace (as defined by previous versions of this code.)
-  for (PRBool foundLessThan = PR_FALSE; !foundLessThan; ptr++)
+  for (bool foundLessThan = false; !foundLessThan; ptr++)
   {
     switch (*ptr)
     {
@@ -912,7 +912,7 @@ const char *nsMsgHdr::GetNextReference(const char *startNextRef,
   return ptr;
 }
 
-PRBool nsMsgHdr::IsParentOf(nsIMsgDBHdr *possibleChild)
+bool nsMsgHdr::IsParentOf(nsIMsgDBHdr *possibleChild)
 {
   PRUint16 referenceToCheck = 0;
   possibleChild->GetNumReferences(&referenceToCheck);
@@ -940,7 +940,7 @@ PRBool nsMsgHdr::IsParentOf(nsIMsgDBHdr *possibleChild)
   return PR_FALSE;
 }
 
-PRBool nsMsgHdr::IsAncestorOf(nsIMsgDBHdr *possibleChild)
+bool nsMsgHdr::IsAncestorOf(nsIMsgDBHdr *possibleChild)
 {
   const char *references;
   nsMsgHdr* curHdr = static_cast<nsMsgHdr*>(possibleChild);      // closed system, cast ok
@@ -954,7 +954,7 @@ PRBool nsMsgHdr::IsAncestorOf(nsIMsgDBHdr *possibleChild)
   return (strstr(references, messageId.get()) != nsnull);
 }
 
-NS_IMETHODIMP nsMsgHdr::GetIsRead(PRBool *isRead)
+NS_IMETHODIMP nsMsgHdr::GetIsRead(bool *isRead)
 {
   NS_ENSURE_ARG_POINTER(isRead);
   if (!(m_initedValues & FLAGS_INITED))
@@ -963,7 +963,7 @@ NS_IMETHODIMP nsMsgHdr::GetIsRead(PRBool *isRead)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgHdr::GetIsFlagged(PRBool *isFlagged)
+NS_IMETHODIMP nsMsgHdr::GetIsFlagged(bool *isFlagged)
 {
   NS_ENSURE_ARG_POINTER(isFlagged);
   if (!(m_initedValues & FLAGS_INITED))
@@ -1016,11 +1016,11 @@ void nsMsgHdr::ReparentInThread(nsIMsgThread *thread)
   }
 }
 
-PRBool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
+bool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
 {
   if (!(m_initedValues & FLAGS_INITED))
     InitFlags();
-  PRBool isKilled = m_flags & nsMsgMessageFlags::Ignored;
+  bool isKilled = m_flags & nsMsgMessageFlags::Ignored;
 
   if (!isKilled)
   {
@@ -1084,7 +1084,7 @@ PRBool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
   return isKilled;
 }
 
-NS_IMETHODIMP nsMsgHdr::GetIsKilled(PRBool *isKilled)
+NS_IMETHODIMP nsMsgHdr::GetIsKilled(bool *isKilled)
 {
   NS_ENSURE_ARG_POINTER(isKilled);
   *isKilled = PR_FALSE;
@@ -1126,7 +1126,7 @@ protected:
   // underlying mdb row. The row cell cursor will crash if the underlying
   // row goes away.
   nsRefPtr<nsMsgHdr> m_hdr;
-  PRBool mNextPrefetched;
+  bool mNextPrefetched;
   mdb_column mNextColumn;
 };
 
@@ -1175,7 +1175,7 @@ NS_IMETHODIMP nsMsgPropertyEnumerator::GetNext(nsACString& aItem)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgPropertyEnumerator::HasMore(PRBool *aResult)
+NS_IMETHODIMP nsMsgPropertyEnumerator::HasMore(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 

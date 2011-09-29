@@ -56,9 +56,9 @@ public:
 
     NS_DECL_CALIRECURRENCEDATESET
 protected:
-    PRBool mImmutable;
-    PRBool mIsNegative;
-    PRBool mSorted;
+    bool mImmutable;
+    bool mIsNegative;
+    bool mSorted;
 
     void EnsureSorted();
 

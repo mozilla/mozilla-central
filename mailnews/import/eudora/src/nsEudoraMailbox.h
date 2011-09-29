@@ -61,12 +61,12 @@ public:
   PRInt32      m_Length;
 #ifdef XP_MACOSX
   // Mac specific flags and fields for reading message summaries
-  PRBool      HasEudoraLabel() { return PR_FALSE; }
+  bool        HasEudoraLabel() { return false; }
   PRInt16      GetLabelNumber() { return 0; }
 
 #else
   // Windows specific flags and fields for reading message summaries
-  PRBool      HasEudoraLabel() { return (m_Label > 0) && (m_Label <= 7); }
+  bool        HasEudoraLabel() { return (m_Label > 0) && (m_Label <= 7); }
   PRInt16      GetLabelNumber() { return HasEudoraLabel() ? m_Label : 0; }
 
   // MesSummary flags (used with m_Flags)
@@ -146,7 +146,7 @@ public:
   PRUint32    m_PersonaHash;
   PRInt16      m_State;
   PRUint8      m_ucJunkScore;
-  PRBool      m_bManuallyJunked;
+  bool        m_bManuallyJunked;
   PRInt8      m_Priority;
   PRInt8      m_nMood;
   PRInt16      m_Label;
@@ -171,20 +171,20 @@ public:
 
   // Things that must be overridden because they are platform specific.
     // retrieve the mail folder
-  virtual PRBool    FindMailFolder( nsIFile **pFolder) { return( PR_FALSE);}
+  virtual bool      FindMailFolder( nsIFile **pFolder) { return( false);}
     // get the list of mailboxes
   virtual nsresult  FindMailboxes( nsIFile *pRoot, nsISupportsArray **ppArray) { return( NS_ERROR_FAILURE);}
     // get the toc file corresponding to this mailbox
-  virtual nsresult  FindTOCFile( nsIFile *pMailFile, nsIFile **pTOCFile, PRBool *pDeleteToc) { return( NS_ERROR_FAILURE);}
+  virtual nsresult  FindTOCFile( nsIFile *pMailFile, nsIFile **pTOCFile, bool *pDeleteToc) { return( NS_ERROR_FAILURE);}
     // interpret the attachment line and return the attached file
   virtual nsresult  GetAttachmentInfo( const char *pFileName, nsIFile *pFile, nsCString& mimeType, nsCString& aAttachment) { return( NS_ERROR_FAILURE);}
 
   // Non-platform specific common stuff
     // import a mailbox
-  nsresult ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIFile *pDst, PRInt32 *pMsgCount);
+  nsresult ImportMailbox( PRUint32 *pBytes, bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIFile *pDst, PRInt32 *pMsgCount);
 
   static PRInt32    IsEudoraFromSeparator( const char *pData, PRInt32 maxLen, nsCString& defaultDate);
-  static PRBool    IsEudoraTag( const char *pChar, PRInt32 maxLen, PRBool &insideEudoraTags, nsCString &bodyType, PRInt32& tagLength);
+  static bool      IsEudoraTag( const char *pChar, PRInt32 maxLen, bool &insideEudoraTags, nsCString &bodyType, PRInt32& tagLength);
 
 protected:
   nsresult  CreateTempFile( nsIFile **ppFile);
@@ -192,7 +192,7 @@ protected:
 
 
 private:
-   nsresult  ImportMailboxUsingTOC( PRUint32 *pBytes, PRBool *pAbort, nsIInputStream *pInputStream, nsIFile *tocFile, nsIOutputStream *pDst, PRInt32 *pMsgCount);
+   nsresult  ImportMailboxUsingTOC( PRUint32 *pBytes, bool *pAbort, nsIInputStream *pInputStream, nsIFile *tocFile, nsIOutputStream *pDst, PRInt32 *pMsgCount);
    nsresult  ReadTOCEntry(nsIInputStream *pToc, EudoraTOCEntry& tocEntry);
    nsresult  ImportMessage(SimpleBufferTonyRCopiedOnce& headers, SimpleBufferTonyRCopiedOnce& body, nsCString& defaultDate, nsCAutoString& bodyType, nsIOutputStream *pDst, PRInt32 *pMsgCount);
    nsresult  ReadNextMessage( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& copy, SimpleBufferTonyRCopiedOnce& header,
@@ -206,7 +206,7 @@ private:
 
   void    EmptyAttachments( void);
   nsresult  ExamineAttachment( SimpleBufferTonyRCopiedOnce& data);
-  PRBool    AddAttachment( nsCString& fileName);
+  bool      AddAttachment( nsCString& fileName);
 
   static PRInt32    AsciiToLong( const char *pChar, PRInt32 len);
   static int      IsWeekDayStr( const char *pStr);

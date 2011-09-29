@@ -49,12 +49,12 @@ public:
 
   void  CleanUpScan( void);
 
-  virtual  PRBool  Scan( PRBool *pDone);
+  virtual  bool    Scan( bool *pDone);
 
 protected:
   void      ShiftBuffer( void);
-  PRBool      FillBufferFromFile( void);
-  virtual PRBool  ScanBuffer( PRBool *pDone);
+  bool        FillBufferFromFile( void);
+  virtual bool    ScanBuffer( bool *pDone);
 
 protected:
   nsCOMPtr <nsIInputStream> m_pInputStream;
@@ -62,8 +62,8 @@ protected:
   PRUint32    m_bufSz;
   PRUint32    m_bytesInBuf;
   PRUint32    m_pos;
-  PRBool      m_eof;
-  PRBool      m_allocated;
+  bool        m_eof;
+  bool        m_allocated;
 };
 
 class nsImportScanFileLines : public nsImportScanFile {
@@ -72,12 +72,12 @@ public:
 
   void  ResetLineScan( void) { m_needEol = PR_FALSE;}
 
-  virtual PRBool ProcessLine( PRUint8 * /* pLine */, PRUint32 /* len */, PRBool * /* pDone */ ) {return( PR_TRUE);}
+  virtual bool ProcessLine( PRUint8 * /* pLine */, PRUint32 /* len */, bool * /* pDone */ ) {return( true);}
 
 protected:
-  virtual PRBool  ScanBuffer( PRBool *pDone);
+  virtual bool    ScanBuffer( bool *pDone);
 
-  PRBool  m_needEol;
+  bool    m_needEol;
 
 };
 

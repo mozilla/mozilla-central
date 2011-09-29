@@ -156,7 +156,7 @@ nsMsgAccount::SetIncomingServer(nsIMsgIncomingServer * aIncomingServer)
 
   m_incomingServer = aIncomingServer;
 
-  PRBool serverValid;
+  bool serverValid;
   (void) aIncomingServer->GetValid(&serverValid);
   // only notify server loaded if server is valid so
   // account manager only gets told about finished accounts.
@@ -185,7 +185,7 @@ nsMsgAccount::SetIncomingServer(nsIMsgIncomingServer * aIncomingServer)
     rv = rootFolder->GetSubFolders(getter_AddRefs(enumerator));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRBool hasMore;
+    bool hasMore;
     while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) && hasMore)
     {
       nsCOMPtr<nsISupports> item;
@@ -346,7 +346,7 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
     nsCAutoString newIdentityList(identityList);
 
     nsCAutoString testKey;      // temporary to strip whitespace
-    PRBool foundIdentity = PR_FALSE; // if the input identity is found
+    bool foundIdentity = false; // if the input identity is found
 
     if (!identityList.IsEmpty()) {
       char *newStr = identityList.BeginWriting();

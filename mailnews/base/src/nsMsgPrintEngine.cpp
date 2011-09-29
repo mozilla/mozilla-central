@@ -143,7 +143,7 @@ nsMsgPrintEngine::OnStateChange(nsIWebProgress* aWebProgress,
         mPrintProgressParams   = nsnull;
       }
 
-      PRBool isPrintingCancelled = PR_FALSE;
+      bool isPrintingCancelled = false;
       if (mPrintSettings)
       {
         mPrintSettings->GetIsCancelled(&isPrintingCancelled);
@@ -295,7 +295,7 @@ NS_IMETHODIMP nsMsgPrintEngine::SetParentWindow(nsIDOMWindow *ptr)
 
 
 NS_IMETHODIMP
-nsMsgPrintEngine::ShowWindow(PRBool aShow)
+nsMsgPrintEngine::ShowWindow(bool aShow)
 {
   nsresult rv;
 
@@ -357,7 +357,7 @@ nsMsgPrintEngine::StartPrintOperation(nsIPrintSettings* aPS)
 //----------------------------------------------------------------------
 // Set up to use the "pluggable" Print Progress Dialog
 nsresult
-nsMsgPrintEngine::ShowProgressDialog(PRBool aIsForPrinting, PRBool& aDoNotify)
+nsMsgPrintEngine::ShowProgressDialog(bool aIsForPrinting, bool& aDoNotify)
 {
   nsresult rv;
 
@@ -367,7 +367,7 @@ nsMsgPrintEngine::ShowProgressDialog(PRBool aIsForPrinting, PRBool& aDoNotify)
   aDoNotify = PR_FALSE;
 
   // Assume we can't do progress and then see if we can
-  PRBool showProgressDialog = PR_FALSE;
+  bool showProgressDialog = false;
 
   // if it is already being shown then don't bother to find out if it should be
   // so skip this and leave mShowProgressDialog set to FALSE
@@ -482,7 +482,7 @@ nsMsgPrintEngine::FireThatLoadOperationStartup(const nsString& uri)
   else
     mLoadURI.Truncate();
 
-  PRBool   notify = PR_FALSE;
+  bool     notify = false;
   nsresult rv     = NS_ERROR_FAILURE;
   // Don't show dialog if we are out of URLs
   //if ( mCurrentlyPrintingURI < mURIArray.Length() && !mIsDoingPrintPreview)
@@ -665,7 +665,7 @@ nsMsgPrintEngine::PrintMsgWindow()
       {
         mWebBrowserPrint = nsnull;
         mContentViewer = nsnull;
-        PRBool isPrintingCancelled = PR_FALSE;
+        bool isPrintingCancelled = false;
         if (mPrintSettings)
         {
           mPrintSettings->GetIsCancelled(&isPrintingCancelled);
@@ -733,7 +733,7 @@ private:
 };
 
 //-----------------------------------------------------------
-PRBool
+bool
 nsMsgPrintEngine::FirePrintEvent()
 {
   nsCOMPtr<nsIRunnable> event = new nsPrintMsgWindowEvent(this);
@@ -756,13 +756,13 @@ NS_IMETHODIMP nsMsgPrintEngine::SetStartupPPObserver(nsIObserver *startupPPObs)
 }
 
 /* attribute boolean doPrintPreview; */
-NS_IMETHODIMP nsMsgPrintEngine::GetDoPrintPreview(PRBool *aDoPrintPreview)
+NS_IMETHODIMP nsMsgPrintEngine::GetDoPrintPreview(bool *aDoPrintPreview)
 {
   NS_ENSURE_ARG_POINTER(aDoPrintPreview);
   *aDoPrintPreview = mIsDoingPrintPreview;
   return NS_OK;
 }
-NS_IMETHODIMP nsMsgPrintEngine::SetDoPrintPreview(PRBool aDoPrintPreview)
+NS_IMETHODIMP nsMsgPrintEngine::SetDoPrintPreview(bool aDoPrintPreview)
 {
   mIsDoingPrintPreview = aDoPrintPreview;
   return NS_OK;

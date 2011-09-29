@@ -79,7 +79,7 @@ public:
 
   NS_IMETHOD SetMsgComposeAndSendObject(nsIMsgSend *obj);
   
-  PRBool                          mCopyInProgress;
+  bool                            mCopyInProgress;
 
 private:
   nsCOMPtr<nsIMsgSend>       mComposeAndSend;
@@ -112,15 +112,15 @@ public:
                                            nsIMsgDBHdr          *aMsgToReplace);
 
   nsresult              DoCopy(nsIFile *aDiskFile, nsIMsgFolder *dstFolder,
-                               nsIMsgDBHdr *aMsgToReplace, PRBool aIsDraft,
+                               nsIMsgDBHdr *aMsgToReplace, bool aIsDraft,
                                nsIMsgWindow *msgWindow,
                                nsIMsgSend   *aMsgSendObj);
 
-  nsresult	GetUnsentMessagesFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **msgFolder, PRBool *waitForUrl);
-  nsresult	GetDraftsFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **msgFolder, PRBool *waitForUrl);
-  nsresult	GetTemplatesFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **msgFolder, PRBool *waitForUrl);
-  nsresult	GetSentFolder(nsIMsgIdentity *userIdentity,  nsIMsgFolder **msgFolder, PRBool *waitForUrl);
-  nsresult   CreateIfMissing(nsIMsgFolder **folder, PRBool *waitForUrl);
+  nsresult	GetUnsentMessagesFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **msgFolder, bool *waitForUrl);
+  nsresult	GetDraftsFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **msgFolder, bool *waitForUrl);
+  nsresult	GetTemplatesFolder(nsIMsgIdentity *userIdentity, nsIMsgFolder **msgFolder, bool *waitForUrl);
+  nsresult	GetSentFolder(nsIMsgIdentity *userIdentity,  nsIMsgFolder **msgFolder, bool *waitForUrl);
+  nsresult   CreateIfMissing(nsIMsgFolder **folder, bool *waitForUrl);
 
   
   //
@@ -130,7 +130,7 @@ public:
   nsMsgDeliverMode                mMode;
   nsCOMPtr<nsIMsgFolder>          mDstFolder;
   nsCOMPtr<nsIMsgDBHdr>           mMsgToReplace;
-  PRBool                          mIsDraft;
+  bool                            mIsDraft;
   nsCOMPtr<nsIMsgSend>            mMsgSendObj;
   char                            *mSavePref;
 };
@@ -144,6 +144,6 @@ nsresult	LocateMessageFolder(nsIMsgIdentity   *userIdentity,
 nsresult	MessageFolderIsLocal(nsIMsgIdentity   *userIdentity, 
                                        nsMsgDeliverMode aFolderType,
                                        const char       *aSaveURI,
-				       PRBool		*aResult);
+				       bool		*aResult);
 
 #endif /* _nsMsgCopy_H_ */

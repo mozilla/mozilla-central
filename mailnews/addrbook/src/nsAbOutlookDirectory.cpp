@@ -220,7 +220,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::GetChildCards(nsISimpleEnumerator **aCards)
       // added from Outlook), we may need to sync m_AddressList
       mCardList.Put(card, card);
 
-      PRBool isMailList = PR_FALSE;
+      bool isMailList = false;
 
       rv = card->GetIsMailList(&isMailList);
       NS_ENSURE_SUCCESS(rv, rv);
@@ -248,14 +248,14 @@ NS_IMETHODIMP nsAbOutlookDirectory::GetChildCards(nsISimpleEnumerator **aCards)
   return rv;
 }
 
-NS_IMETHODIMP nsAbOutlookDirectory::GetIsQuery(PRBool *aResult)
+NS_IMETHODIMP nsAbOutlookDirectory::GetIsQuery(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = mIsQueryURI;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbOutlookDirectory::HasCard(nsIAbCard *aCard, PRBool *aHasCard)
+NS_IMETHODIMP nsAbOutlookDirectory::HasCard(nsIAbCard *aCard, bool *aHasCard)
 {
   if (!aCard || !aHasCard)
     return NS_ERROR_NULL_POINTER;
@@ -264,7 +264,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::HasCard(nsIAbCard *aCard, PRBool *aHasCard)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbOutlookDirectory::HasDirectory(nsIAbDirectory *aDirectory, PRBool *aHasDirectory)
+NS_IMETHODIMP nsAbOutlookDirectory::HasDirectory(nsIAbDirectory *aDirectory, bool *aHasDirectory)
 {
   NS_ENSURE_ARG_POINTER(aDirectory);
   NS_ENSURE_ARG_POINTER(aHasDirectory);
@@ -394,7 +394,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::AddCard(nsIAbCard *aData, nsIAbCard **addedC
     NS_ENSURE_ARG_POINTER(aData);
 
     nsresult retCode = NS_OK ;
-    PRBool hasCard = PR_FALSE ;
+    bool hasCard = false ;
     
     retCode = HasCard(aData, &hasCard) ;
     NS_ENSURE_SUCCESS(retCode, retCode) ;
@@ -420,7 +420,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::AddCard(nsIAbCard *aData, nsIAbCard **addedC
     return retCode ;
 }
 
-NS_IMETHODIMP nsAbOutlookDirectory::DropCard(nsIAbCard *aData, PRBool needToCopyCard)
+NS_IMETHODIMP nsAbOutlookDirectory::DropCard(nsIAbCard *aData, bool needToCopyCard)
 {
     nsCOMPtr <nsIAbCard> addedCard;
     return AddCard(aData, getter_AddRefs(addedCard));
@@ -437,7 +437,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::AddMailList(nsIAbDirectory *aMailList, nsIAb
   nsAbWinHelperGuard mapiAddBook (mAbWinType);
   nsCAutoString entryString;
   nsMapiEntry newEntry;
-  PRBool didCopy = PR_FALSE;
+  bool didCopy = false;
 
   if (!mapiAddBook->IsOK())
     return NS_ERROR_FAILURE;
@@ -575,7 +575,7 @@ static ULONG findPropertyTag(const char *aName) {
 
 static nsresult BuildRestriction(nsIAbBooleanConditionString *aCondition, 
                                  SRestriction& aRestriction,
-                                 PRBool& aSkipItem)
+                                 bool& aSkipItem)
 {
     if (!aCondition) { return NS_ERROR_NULL_POINTER ; }
     aSkipItem = PR_FALSE ;
@@ -734,7 +734,7 @@ static nsresult BuildRestriction(nsIAbBooleanExpression *aLevel,
     }
     LPSRestriction restrictionArray = new SRestriction [nbExpressions] ;
     PRUint32 realNbExpressions = 0 ;
-    PRBool skipItem = PR_FALSE ;
+    bool skipItem = false ;
     PRUint32 i = 0 ;
 
     nsCOMPtr<nsIAbBooleanConditionString> condition;
@@ -1212,7 +1212,7 @@ nsresult nsAbOutlookDirectory::CreateCard(nsIAbCard *aData, nsIAbCard **aNewCard
     nsAbWinHelperGuard mapiAddBook (mAbWinType) ;
     nsMapiEntry newEntry ;
     nsCAutoString entryString ;
-    PRBool didCopy = PR_FALSE ;
+    bool didCopy = false ;
 
     if (!mapiAddBook->IsOK()) { return NS_ERROR_FAILURE ; }
     // If we get an nsIAbCard that maps onto an Outlook card uri
@@ -1444,7 +1444,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::OnQueryResult(PRInt32 aResult,
   return OnSearchFinished(aResult, EmptyString());
 }
 
-NS_IMETHODIMP nsAbOutlookDirectory::UseForAutocomplete(const nsACString &aIdentityKey, PRBool *aResult)
+NS_IMETHODIMP nsAbOutlookDirectory::UseForAutocomplete(const nsACString &aIdentityKey, bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = PR_FALSE;

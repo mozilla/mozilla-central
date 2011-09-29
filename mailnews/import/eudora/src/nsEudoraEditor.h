@@ -54,9 +54,9 @@ class nsEudoraEditor : public nsIEditor, public nsIEditorMailSupport
 
                                 nsEudoraEditor(const char * pBody, nsIFile * pMailImportLocation);
 
-    PRBool                      UpdateEmbeddedImageReference(PRUint32 aCIDHash, const nsAString & aOldRef, const nsAString & aUpdatedRef);
+    bool                        UpdateEmbeddedImageReference(PRUint32 aCIDHash, const nsAString & aOldRef, const nsAString & aUpdatedRef);
 
-    PRBool                      HasEmbeddedContent();
+    bool                        HasEmbeddedContent();
 
     ~nsEudoraEditor();
 

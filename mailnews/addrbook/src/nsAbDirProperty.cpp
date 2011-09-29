@@ -231,13 +231,13 @@ NS_IMETHODIMP nsAbDirProperty::SetDescription(const nsAString &aDescription)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetIsMailList(PRBool *aIsMailList)
+NS_IMETHODIMP nsAbDirProperty::GetIsMailList(bool *aIsMailList)
 {
 	*aIsMailList = m_IsMailList;
 	return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::SetIsMailList(PRBool aIsMailList)
+NS_IMETHODIMP nsAbDirProperty::SetIsMailList(bool aIsMailList)
 {
 	m_IsMailList = aIsMailList;
 	return NS_OK;
@@ -281,7 +281,7 @@ NS_IMETHODIMP nsAbDirProperty::CopyMailList(nsIAbDirectory* srcList)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetIsQuery(PRBool *aResult)
+NS_IMETHODIMP nsAbDirProperty::GetIsQuery(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   // Mailing lists are not queries by default, individual directory types
@@ -322,11 +322,11 @@ nsAbDirProperty::DeleteDirectory(nsIAbDirectory *directory)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
 NS_IMETHODIMP
-nsAbDirProperty::HasCard(nsIAbCard *cards, PRBool *hasCard)
+nsAbDirProperty::HasCard(nsIAbCard *cards, bool *hasCard)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
 NS_IMETHODIMP
-nsAbDirProperty::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir)
+nsAbDirProperty::HasDirectory(nsIAbDirectory *dir, bool *hasDir)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
 NS_IMETHODIMP
@@ -357,7 +357,7 @@ NS_IMETHODIMP nsAbDirProperty::ModifyCard(nsIAbCard *aModifiedCard)
 NS_IMETHODIMP nsAbDirProperty::DeleteCards(nsIArray *cards)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
-NS_IMETHODIMP nsAbDirProperty::DropCard(nsIAbCard *childCard, PRBool needToCopyCard)
+NS_IMETHODIMP nsAbDirProperty::DropCard(nsIAbCard *childCard, bool needToCopyCard)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
 NS_IMETHODIMP nsAbDirProperty::CardForEmailAddress(const nsACString &aEmailAddress,
@@ -366,18 +366,18 @@ NS_IMETHODIMP nsAbDirProperty::CardForEmailAddress(const nsACString &aEmailAddre
 
 NS_IMETHODIMP nsAbDirProperty::GetCardFromProperty(const char *aProperty,
                                                    const nsACString &aValue,
-                                                   PRBool caseSensitive,
+                                                   bool caseSensitive,
                                                    nsIAbCard **result)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
 NS_IMETHODIMP nsAbDirProperty::GetCardsFromProperty(const char *aProperty,
                                                     const nsACString &aValue,
-                                                    PRBool caseSensitive,
+                                                    bool caseSensitive,
                                                     nsISimpleEnumerator **result)
 { return NS_ERROR_NOT_IMPLEMENTED; }
 
 
-NS_IMETHODIMP nsAbDirProperty::GetSupportsMailingLists(PRBool *aSupportsMailingsLists)
+NS_IMETHODIMP nsAbDirProperty::GetSupportsMailingLists(bool *aSupportsMailingsLists)
 {
   NS_ENSURE_ARG_POINTER(aSupportsMailingsLists);
   // We don't currently support nested mailing lists, so only return true if
@@ -386,7 +386,7 @@ NS_IMETHODIMP nsAbDirProperty::GetSupportsMailingLists(PRBool *aSupportsMailings
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetReadOnly(PRBool *aReadOnly)
+NS_IMETHODIMP nsAbDirProperty::GetReadOnly(bool *aReadOnly)
 {
   NS_ENSURE_ARG_POINTER(aReadOnly);
   // Default is that we are writable. Any implementation that is read-only must
@@ -395,14 +395,14 @@ NS_IMETHODIMP nsAbDirProperty::GetReadOnly(PRBool *aReadOnly)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetIsRemote(PRBool *aIsRemote)
+NS_IMETHODIMP nsAbDirProperty::GetIsRemote(bool *aIsRemote)
 {
   NS_ENSURE_ARG_POINTER(aIsRemote);
   *aIsRemote = PR_FALSE;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsAbDirProperty::GetIsSecure(PRBool *aIsSecure)
+NS_IMETHODIMP nsAbDirProperty::GetIsSecure(bool *aIsSecure)
 {
   NS_ENSURE_ARG_POINTER(aIsSecure);
   *aIsSecure = PR_FALSE;
@@ -410,7 +410,7 @@ NS_IMETHODIMP nsAbDirProperty::GetIsSecure(PRBool *aIsSecure)
 }
 
 NS_IMETHODIMP nsAbDirProperty::UseForAutocomplete(const nsACString &aIdentityKey,
-                                                  PRBool *aResult)
+                                                  bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -472,8 +472,8 @@ NS_IMETHODIMP nsAbDirProperty::GetIntValue(const char *aName,
 }
 
 NS_IMETHODIMP nsAbDirProperty::GetBoolValue(const char *aName,
-                                           PRBool aDefaultValue,
-                                           PRBool *aResult)
+                                           bool aDefaultValue,
+                                           bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -548,7 +548,7 @@ NS_IMETHODIMP nsAbDirProperty::SetIntValue(const char *aName,
 }
 
 NS_IMETHODIMP nsAbDirProperty::SetBoolValue(const char *aName,
-                                           PRBool aValue)
+                                           bool aValue)
 {
   if (!m_DirectoryPrefs && NS_FAILED(InitDirectoryPrefs()))
     return NS_ERROR_NOT_INITIALIZED;

@@ -65,7 +65,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
     PRUnichar ***certIssuedInfos,
     PRUnichar ***certExpiresInfos,
     nsIX509Cert ***certs,
-    PRBool *canEncrypt)
+    bool *canEncrypt)
 {
   NS_ENSURE_ARG_POINTER(count);
   *count = 0;
@@ -120,8 +120,8 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
       PRUnichar **iCEI = outCEI;
       nsIX509Cert **iCert = outCerts;
 
-      PRBool found_blocker = PR_FALSE;
-      PRBool memory_failure = PR_FALSE;
+      bool found_blocker = false;
+      bool memory_failure = false;
 
       const char *walk = mailbox_list;
 
@@ -271,7 +271,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
   nsCOMPtr<nsIX509CertDB> certdb = do_GetService(NS_X509CERTDB_CONTRACTID);
 
   PRUint32 missing_count = 0;
-  PRBool *haveCert = new PRBool[mailbox_count];
+  bool *haveCert = new bool[mailbox_count];
   if (!haveCert)
   {
     if (mailbox_list) {
@@ -332,7 +332,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
       PRUnichar **iEA = outEA;
       const char *walk = mailbox_list;
 
-      PRBool memory_failure = PR_FALSE;
+      bool memory_failure = false;
 
       // To understand this loop, especially the "+= strlen +1", look at the documentation
       // of ParseHeaderAddresses. Basically, it returns a list of zero terminated strings.

@@ -70,27 +70,27 @@ nsGNOMEShellService::Init()
 }
 
 NS_IMETHODIMP
-nsGNOMEShellService::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps,
-                                     PRBool* aIsDefaultClient)
+nsGNOMEShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps,
+                                     bool* aIsDefaultClient)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsGNOMEShellService::SetDefaultClient(PRBool aForAllUsers,
-                                      PRBool aClaimAllTypes, PRUint16 aApps)
+nsGNOMEShellService::SetDefaultClient(bool aForAllUsers,
+                                      bool aClaimAllTypes, PRUint16 aApps)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsGNOMEShellService::GetShouldCheckDefaultClient(PRBool* aResult)
+nsGNOMEShellService::GetShouldCheckDefaultClient(bool* aResult)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsGNOMEShellService::SetShouldCheckDefaultClient(PRBool aShouldCheck)
+nsGNOMEShellService::SetShouldCheckDefaultClient(bool aShouldCheck)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

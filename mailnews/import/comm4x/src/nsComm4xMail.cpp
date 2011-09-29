@@ -54,7 +54,7 @@
 #define  kMailReadBufferSize  16384
 
 
-static PRBool
+static bool
 nsShouldIgnoreFile(nsString& name)
 {
     PRUnichar firstChar=name.CharAt(0);
@@ -121,7 +121,7 @@ nsresult nsComm4xMail::IterateMailDir(nsIFile *pFolder, nsISupportsArray *pArray
   nsresult rv = pFolder->GetDirectoryEntries(getter_AddRefs(directoryEnumerator));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool hasMore;
+  bool hasMore;
   directoryEnumerator->HasMoreElements(&hasMore);
   while (hasMore && NS_SUCCEEDED(rv))
   {
@@ -130,11 +130,11 @@ nsresult nsComm4xMail::IterateMailDir(nsIFile *pFolder, nsISupportsArray *pArray
     nsCOMPtr<nsILocalFile> currentFolderPath(do_QueryInterface(aSupport, &rv));
     directoryEnumerator->HasMoreElements(&hasMore);
 
-    PRBool                    isFile;
+    bool                      isFile;
     nsCString            pName;
     nsCString            dirName;
     nsAutoString              currentFolderNameStr;
-    PRBool                    isDirectory, exists;
+    bool                      isDirectory, exists;
     nsAutoString              ext;
 
 

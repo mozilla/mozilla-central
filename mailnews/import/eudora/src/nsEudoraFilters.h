@@ -67,23 +67,23 @@ private:
 
   nsString m_errorLog;
 
-  PRBool m_isAnd;
-  PRBool m_isUnless;
-  PRBool m_ignoreTerm;
-  PRBool m_isIncoming;
-  PRBool m_addedAction;
-  PRBool m_hasTransfer;
-  PRBool m_hasStop;
-  PRBool m_termNotGroked;
+  bool m_isAnd;
+  bool m_isUnless;
+  bool m_ignoreTerm;
+  bool m_isIncoming;
+  bool m_addedAction;
+  bool m_hasTransfer;
+  bool m_hasStop;
+  bool m_termNotGroked;
 
-  PRBool RealImport();
+  bool RealImport();
   nsresult Init();
   nsresult LoadServers();
   nsresult SaveFilters();
   nsresult CreateNewFilter(const char* pName);
   nsresult FinalizeFilter();
-  nsresult EnableFilter(PRBool enable);
-  nsresult AddTerm(const char* pHeader, const char* pVerb, const char* pValue, PRBool addAnd, PRBool negateVerb);
+  nsresult EnableFilter(bool enable);
+  nsresult AddTerm(const char* pHeader, const char* pVerb, const char* pValue, bool addAnd, bool negateVerb);
 
   nsresult AddAction(nsMsgRuleActionType actionType, PRInt32 junkScore = 0, nsMsgLabelValue label = 0,
                      nsMsgPriorityValue priority = 0, const char* strValue = nsnull, const char* targetFolderUri = nsnull);
@@ -95,7 +95,7 @@ private:
            { return AddAction(nsMsgFilterAction::ChangePriority, 0, 0, priority); }
   nsresult AddStringAction(nsMsgRuleActionType actionType, const char* strValue)
            { return AddAction(actionType, 0, 0, 0, strValue); }
-  nsresult AddMailboxAction(const char* pMailboxPath, PRBool isTransfer);
+  nsresult AddMailboxAction(const char* pMailboxPath, bool isTransfer);
 
   nsresult GetMailboxFolder(const char* pNameHierarchy, nsIMsgFolder** ppFolder);
 };

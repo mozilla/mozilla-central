@@ -70,7 +70,7 @@ nsresult nsProfileMigratorBase::ImportSettings(nsIImportModule * aImportModule)
   rv = aImportModule->GetImportInterface(NS_IMPORT_SETTINGS_STR, getter_AddRefs(importSettings));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool importedSettings = PR_FALSE;
+  bool importedSettings = false;
 
   rv = importSettings->Import(getter_AddRefs(mLocalFolderAccount), &importedSettings);
 
@@ -97,8 +97,8 @@ nsresult nsProfileMigratorBase::ImportAddressBook(nsIImportModule * aImportModul
   pabString->SetData(nsDependentCString(kPersonalAddressbookUri));
   mGenericImporter->SetData("addressDestination", pabString);
 
-  PRBool importResult;
-  PRBool wantsProgress;
+  bool importResult;
+  bool wantsProgress;
   mGenericImporter->WantsProgress(&wantsProgress);
   rv = mGenericImporter->BeginImport(nsnull, nsnull, &importResult);
 
@@ -141,8 +141,8 @@ nsresult nsProfileMigratorBase::ImportMailData(nsIImportModule * aImportModule)
   migrating->SetData(PR_TRUE);
   mGenericImporter->SetData("migration", migrating);
 
-  PRBool importResult;
-  PRBool wantsProgress;
+  bool importResult;
+  bool wantsProgress;
   mGenericImporter->WantsProgress(&wantsProgress);
   rv = mGenericImporter->BeginImport(nsnull, nsnull, &importResult);
 
@@ -179,7 +179,7 @@ nsresult nsProfileMigratorBase::ImportFilters(nsIImportModule * aImportModule)
     index.AppendInt(nsIMailProfileMigrator::FILTERS);
     NOTIFY_OBSERVERS(MIGRATION_ITEMBEFOREMIGRATE, index.get());
 
-    PRBool importedFilters = PR_FALSE;
+    bool importedFilters = false;
     PRUnichar* error;
 
     rv = importFilters->Import(&error, &importedFilters);

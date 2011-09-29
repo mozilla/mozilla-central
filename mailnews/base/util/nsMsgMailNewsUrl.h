@@ -93,11 +93,11 @@ protected:
   nsCOMPtr<nsIMsgHeaderSink> mMsgHeaderSink;
   char *m_errorMessage;
   PRInt64 mMaxProgress;
-  PRBool m_runningUrl;
-  PRBool m_updatingFolder;
-  PRBool m_addContentToCache;
-  PRBool m_msgIsInLocalCache;
-  PRBool m_suppressErrorMsgs;
+  bool m_runningUrl;
+  bool m_updatingFolder;
+  bool m_addContentToCache;
+  bool m_msgIsInLocalCache;
+  bool m_suppressErrorMsgs;
 
   // the following field is really a bit of a hack to make 
   // open attachments work. The external applications code sometimes tries to figure out the right

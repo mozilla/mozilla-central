@@ -87,8 +87,8 @@ public:
   nsCOMPtr <nsIMsgFolder> m_folderWatching; // folder whose db we're listening to.
   nsCOMPtr <nsISupportsArray> m_searchTerms;
   nsCOMPtr <nsIMsgSearchSession> m_searchSession;
-  PRBool m_searchOnMsgStatus;
-  PRBool m_batchingEvents;
+  bool m_searchOnMsgStatus;
+  bool m_batchingEvents;
 };
 
 
@@ -118,7 +118,7 @@ public:
 
 private:
 
-  PRBool m_accountsLoaded;
+  bool m_accountsLoaded;
   nsCOMPtr <nsIMsgFolderCache> m_msgFolderCache;
   nsCOMPtr<nsIAtom> kDefaultServerAtom;
   nsCOMPtr<nsIAtom> mFolderFlagAtom;
@@ -130,19 +130,19 @@ private:
   nsTObserverArray<nsRefPtr<VirtualFolderChangeListener> > m_virtualFolderListeners;
   nsCOMPtr<nsIMsgFolder> m_folderDoingEmptyTrash;
   nsCOMPtr<nsIMsgFolder> m_folderDoingCleanupInbox;
-  PRBool m_emptyTrashInProgress;
-  PRBool m_cleanupInboxInProgress;
+  bool m_emptyTrashInProgress;
+  bool m_cleanupInboxInProgress;
 
   nsCString mAccountKeyList;
 
   // These are static because the account manager may go away during
   // shutdown, and get recreated.
-  static PRBool m_haveShutdown;
-  static PRBool m_shutdownInProgress;
+  static bool m_haveShutdown;
+  static bool m_shutdownInProgress;
 
-  PRBool m_userAuthenticated;
-  PRBool m_loadingVirtualFolders;
-  PRBool m_virtualFoldersLoaded;
+  bool m_userAuthenticated;
+  bool m_loadingVirtualFolders;
+  bool m_virtualFoldersLoaded;
 
   /* we call FindServer() a lot.  so cache the last server found */
   nsCOMPtr <nsIMsgIncomingServer> m_lastFindServerResult;
@@ -190,22 +190,22 @@ private:
   //
 
   // find the identities that correspond to the given server
-  static PRBool findIdentitiesForServer(nsISupports *element, void *aData);
+  static bool findIdentitiesForServer(nsISupports *element, void *aData);
 
   // find the servers that correspond to the given identity
-  static PRBool findServersForIdentity (nsISupports *element, void *aData);
+  static bool findServersForIdentity (nsISupports *element, void *aData);
 
-  static PRBool findServerIndexByServer(nsISupports *element, void *aData);
+  static bool findServerIndexByServer(nsISupports *element, void *aData);
   // find the account with the given key
-  static PRBool findAccountByKey (nsISupports *element, void *aData);
+  static bool findAccountByKey (nsISupports *element, void *aData);
 
-  static PRBool findAccountByServerKey (nsISupports *element, void *aData);
+  static bool findAccountByServerKey (nsISupports *element, void *aData);
 
   // load up the identities into the given nsISupportsArray
-  static PRBool getIdentitiesToArray(nsISupports *element, void *aData);
+  static bool getIdentitiesToArray(nsISupports *element, void *aData);
 
   // add identities if they don't alreadby exist in the given nsISupportsArray
-  static PRBool addIdentityIfUnique(nsISupports *element, void *aData);
+  static bool addIdentityIfUnique(nsISupports *element, void *aData);
 
   //
   // server enumerators
@@ -226,7 +226,7 @@ private:
                               const nsACString& hostname,
                               const nsACString& type,
                               PRInt32 port,
-                              PRBool aRealFlag,
+                              bool aRealFlag,
                               nsIMsgIncomingServer** aResult);
 
   // handle virtual folders
@@ -268,7 +268,7 @@ private:
   nsCOMPtr<nsISupportsArray> mFolderListeners;
   
   // folder listener enumerators
-  static PRBool addListenerToFolder(nsISupports *element, void *data);
-  static PRBool removeListenerFromFolder(nsISupports *element, void *data);
+  static bool addListenerToFolder(nsISupports *element, void *data);
+  static bool removeListenerFromFolder(nsISupports *element, void *data);
 };
 

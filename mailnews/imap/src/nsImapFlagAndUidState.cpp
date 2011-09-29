@@ -100,7 +100,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::GetNumberOfRecentMessages(PRInt32 *result)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapFlagAndUidState::GetPartialUIDFetch(PRBool *aPartialUIDFetch)
+NS_IMETHODIMP nsImapFlagAndUidState::GetPartialUIDFetch(bool *aPartialUIDFetch)
 {
   NS_ENSURE_ARG_POINTER(aPartialUIDFetch);
   *aPartialUIDFetch = fPartialUIDFetch;
@@ -247,7 +247,7 @@ PRUint32  nsImapFlagAndUidState::GetHighestNonDeletedUID()
 // Has the user read the last message here ? Used when we first open the inbox to see if there
 // really is new mail there.
 
-PRBool nsImapFlagAndUidState::IsLastMessageUnseen()
+bool nsImapFlagAndUidState::IsLastMessageUnseen()
 {
   PRUint32 msgIndex = fUids.Length();
   
@@ -264,7 +264,7 @@ PRBool nsImapFlagAndUidState::IsLastMessageUnseen()
 // may have thousand of messages, once we find the key set its index, or the index of
 // where the key should be inserted
 
-imapMessageFlagsType nsImapFlagAndUidState::GetMessageFlagsFromUID(PRUint32 uid, PRBool *foundIt, PRInt32 *ndx)
+imapMessageFlagsType nsImapFlagAndUidState::GetMessageFlagsFromUID(PRUint32 uid, bool *foundIt, PRInt32 *ndx)
 {
   PR_CEnterMonitor(this);
   *foundIt = fUids.GreatestIndexLtEq(uid,

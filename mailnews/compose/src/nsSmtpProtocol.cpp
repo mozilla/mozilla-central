@@ -409,7 +409,7 @@ void nsSmtpProtocol::AppendHelloArgument(nsACString& aResult)
 NS_IMETHODIMP nsSmtpProtocol::OnStopRequest(nsIRequest *request, nsISupports *ctxt,
                                             nsresult aStatus)
 {
-  PRBool connDroppedDuringAuth = aStatus == NS_OK && !m_sendDone &&
+  bool connDroppedDuringAuth = aStatus == NS_OK && !m_sendDone &&
       (m_nextStateAfterResponse == SMTP_AUTH_LOGIN_STEP0_RESPONSE ||
        m_nextStateAfterResponse == SMTP_AUTH_LOGIN_RESPONSE);
   if (aStatus == NS_OK && !m_sendDone) {
@@ -484,7 +484,7 @@ PRInt32 nsSmtpProtocol::SmtpResponse(nsIInputStream * inputStream, PRUint32 leng
   char * line = nsnull;
   char cont_char;
   PRUint32 ln = 0;
-  PRBool pauseForMoreData = PR_FALSE;
+  bool pauseForMoreData = false;
 
   if (!m_lineStreamBuffer)
     return -1; // this will force an error and at least we won't crash
@@ -597,7 +597,7 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
   // check if we're just verifying the ability to logon
   nsCOMPtr<nsISmtpUrl> smtpUrl = do_QueryInterface(m_runningURL, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  PRBool verifyingLogon = PR_FALSE;
+  bool verifyingLogon = false;
   smtpUrl->GetVerifyLogon(&verifyingLogon);
   if (verifyingLogon)
     return SendQuit();
@@ -637,7 +637,7 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
 
   if (TestFlag(SMTP_EHLO_DSN_ENABLED))
   {
-    PRBool requestDSN = PR_FALSE;
+    bool requestDSN = false;
     rv = m_runningURL->GetRequestDSN(&requestDSN);
 
     if (requestDSN)
@@ -649,7 +649,7 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
       rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
       NS_ENSURE_SUCCESS(rv,rv);
 
-      PRBool requestRetFull = PR_FALSE;
+      bool requestRetFull = false;
       rv = prefBranch->GetBoolPref("mail.dsn.ret_full_on", &requestRetFull);
 
       buffer += requestRetFull ? " RET=FULL" : " RET=HDRS";
@@ -1115,7 +1115,7 @@ PRInt32 nsSmtpProtocol::AuthLoginResponse(nsIInputStream * stream, PRUint32 leng
         // fall back on a less secure login method.
         MarkAuthMethodAsFailed(m_currentAuthMethod);
 
-        PRBool allFailed = NS_FAILED(ChooseAuthMethod());
+        bool allFailed = NS_FAILED(ChooseAuthMethod());
         if (allFailed && m_failedAuthMethods > 0 &&
             m_failedAuthMethods != SMTP_AUTH_GSSAPI_ENABLED &&
             m_failedAuthMethods != SMTP_AUTH_EXTERNAL_ENABLED)
@@ -1483,7 +1483,7 @@ PRInt32 nsSmtpProtocol::SendMailResponse()
   }
 
   /* Send the RCPT TO: command */
-  PRBool requestDSN = PR_FALSE;
+  bool requestDSN = false;
   rv = m_runningURL->GetRequestDSN(&requestDSN);
 
   nsCOMPtr <nsIPrefService> prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
@@ -1493,16 +1493,16 @@ PRInt32 nsSmtpProtocol::SendMailResponse()
   rv = prefs->GetBranch(nsnull, getter_AddRefs(prefBranch));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  PRBool requestOnSuccess = PR_FALSE;
+  bool requestOnSuccess = false;
   rv = prefBranch->GetBoolPref("mail.dsn.request_on_success_on", &requestOnSuccess);
 
-  PRBool requestOnFailure = PR_FALSE;
+  bool requestOnFailure = false;
   rv = prefBranch->GetBoolPref("mail.dsn.request_on_failure_on", &requestOnFailure);
 
-  PRBool requestOnDelay = PR_FALSE;
+  bool requestOnDelay = false;
   rv = prefBranch->GetBoolPref("mail.dsn.request_on_delay_on", &requestOnDelay);
 
-  PRBool requestOnNever = PR_FALSE;
+  bool requestOnNever = false;
   rv = prefBranch->GetBoolPref("mail.dsn.request_never_on", &requestOnNever);
 
   if (TestFlag(SMTP_EHLO_DSN_ENABLED) && requestDSN && (requestOnSuccess || requestOnFailure || requestOnDelay || requestOnNever))
@@ -1609,7 +1609,7 @@ PRInt32 nsSmtpProtocol::SendRecipientResponse()
 }
 
 
-PRInt32 nsSmtpProtocol::SendData(nsIURI *url, const char *dataBuffer, PRBool aSuppressLogging)
+PRInt32 nsSmtpProtocol::SendData(nsIURI *url, const char *dataBuffer, bool aSuppressLogging)
 {
   if (!dataBuffer) return -1;
 
@@ -1682,7 +1682,7 @@ PRInt32 nsSmtpProtocol::SendPostData()
 	 */
 
 	// check to see if url is a file..if it is...call our file handler...
-	PRBool postMessageInFile = PR_TRUE;
+	bool postMessageInFile = true;
 	m_runningURL->GetPostMessage(&postMessageInFile);
 	if (postMessageInFile)
 	{
@@ -1759,7 +1759,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
     return NS_ERROR_BUT_DONT_SHOW_ALERT;
   }
 
-  PRBool postMessage = PR_FALSE;
+  bool postMessage = false;
   m_runningURL->GetPostMessage(&postMessage);
 
   if (postMessage)

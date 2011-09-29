@@ -74,7 +74,7 @@ nsresult nsNewsDownloader::DownloadArticles(nsIMsgWindow *window, nsIMsgFolder *
   m_window = window;
   m_numwrote = 0;
 
-  PRBool headersToDownload = GetNextHdrToRetrieve();
+  bool headersToDownload = GetNextHdrToRetrieve();
   // should we have a special error code for failure here?
   return (headersToDownload) ? DownloadNext(PR_TRUE) : NS_ERROR_FAILURE;
 }
@@ -117,7 +117,7 @@ NS_IMETHODIMP nsNewsDownloader::OnStartRunningUrl(nsIURI* url)
 
 NS_IMETHODIMP nsNewsDownloader::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
 {
-  PRBool stopped = PR_FALSE;
+  bool stopped = false;
   if (m_window)
     m_window->GetStopped(&stopped);
   if (stopped)
@@ -130,12 +130,12 @@ NS_IMETHODIMP nsNewsDownloader::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
   return rv;
 }
 
-nsresult nsNewsDownloader::DownloadNext(PRBool firstTimeP)
+nsresult nsNewsDownloader::DownloadNext(bool firstTimeP)
 {
   nsresult rv;
   if (!firstTimeP)
   {
-    PRBool moreHeaders = GetNextHdrToRetrieve();
+    bool moreHeaders = GetNextHdrToRetrieve();
     if (!moreHeaders)
     {
       if (m_listener)
@@ -151,7 +151,7 @@ nsresult nsNewsDownloader::DownloadNext(PRBool firstTimeP)
   return nntpService->FetchMessage(m_folder, m_keyToDownload, m_window, nsnull, this, nsnull);
 }
 
-PRBool DownloadNewsArticlesToOfflineStore::GetNextHdrToRetrieve()
+bool DownloadNewsArticlesToOfflineStore::GetNextHdrToRetrieve()
 {
   nsresult rv;
 
@@ -161,7 +161,7 @@ PRBool DownloadNewsArticlesToOfflineStore::GetNextHdrToRetrieve()
   if (m_headerEnumerator == nsnull)
     rv = m_newsDB->EnumerateMessages(getter_AddRefs(m_headerEnumerator));
 
-  PRBool hasMore = PR_FALSE;
+  bool hasMore = false;
 
   while (NS_SUCCEEDED(rv = m_headerEnumerator->HasMoreElements(&hasMore)) && hasMore)
   {
@@ -187,7 +187,7 @@ PRBool DownloadNewsArticlesToOfflineStore::GetNextHdrToRetrieve()
 void nsNewsDownloader::Abort() {}
 void nsNewsDownloader::Complete() {}
 
-PRBool nsNewsDownloader::GetNextHdrToRetrieve()
+bool nsNewsDownloader::GetNextHdrToRetrieve()
 {
   nsresult rv;
   if (m_downloadFromKeys)
@@ -390,7 +390,7 @@ nsMsgDownloadAllNewsgroups::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
   {
     if (m_downloadedHdrsForCurGroup)
     {
-      PRBool savingArticlesOffline = PR_FALSE;
+      bool savingArticlesOffline = false;
       nsCOMPtr <nsIMsgNewsFolder> newsFolder = do_QueryInterface(m_currentFolder);
       if (newsFolder)
         newsFolder->GetSaveArticleOffline(&savingArticlesOffline);
@@ -417,7 +417,7 @@ nsMsgDownloadAllNewsgroups::OnStopRunningUrl(nsIURI* url, nsresult exitCode)
 // m_currentServer will be left at nsnull.
 // Also, sets up m_serverEnumerator to enumerate over the server
 // If no servers found, m_serverEnumerator will be left at null,
-nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextServer(PRBool *done)
+nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextServer(bool *done)
 {
   nsresult rv;
 
@@ -473,7 +473,7 @@ nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextServer(PRBool *done)
   return rv;
 }
 
-nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextGroup(PRBool *done)
+nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextGroup(bool *done)
 {
   nsresult rv;
   NS_ENSURE_ARG(done);
@@ -489,7 +489,7 @@ nsresult nsMsgDownloadAllNewsgroups::AdvanceToNextGroup(PRBool *done)
              do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv) && session)
     {
-      PRBool folderOpen;
+      bool folderOpen;
       PRUint32 folderFlags;
       m_currentFolder->GetFlags(&folderFlags);
       session->IsFolderOpenInWindow(m_currentFolder, &folderOpen);
@@ -538,7 +538,7 @@ nsresult DownloadMatchingNewsArticlesToNewsDB::RunSearch(nsIMsgFolder *folder, n
 nsresult nsMsgDownloadAllNewsgroups::ProcessNextGroup()
 {
   nsresult rv = NS_OK;
-  PRBool done = PR_FALSE;
+  bool done = false;
 
   while (NS_SUCCEEDED(rv) && !done)
   {
@@ -576,7 +576,7 @@ nsresult nsMsgDownloadAllNewsgroups::DownloadMsgsForCurrentGroup()
   nsCOMPtr <nsIMsgSearchSession> searchSession = do_CreateInstance(NS_MSGSEARCHSESSION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool downloadByDate, downloadUnreadOnly;
+  bool downloadByDate, downloadUnreadOnly;
   PRUint32 ageLimitOfMsgsToDownload;
 
   downloadSettings->GetDownloadByDate(&downloadByDate);

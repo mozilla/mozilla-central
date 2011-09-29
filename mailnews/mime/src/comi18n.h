@@ -61,8 +61,8 @@ extern "C" {
  */
 extern "C" char *MIME_DecodeMimeHeader(const char *header, 
                                        const char *default_charset,
-                                       PRBool override_charset,
-                                       PRBool eatContinuations);
+                                       bool override_charset,
+                                       bool eatContinuations);
 
 /**
  * Encode an input string into RFC 2047 form.
@@ -78,7 +78,7 @@ extern "C" char *MIME_DecodeMimeHeader(const char *header,
  * @param encodedWordSize [IN] Byte length limit of the output, ususally 72 (use kMIME_ENCODED_WORD_SIZE).
  * @return            Encoded buffer (in C string) or NULL in case of error.
  */
-char *MIME_EncodeMimePartIIStr(const char *header, PRBool structured, const char* mailCharset, const PRInt32 fieldNameLen, const PRInt32 encodedWordSize);
+char *MIME_EncodeMimePartIIStr(const char *header, bool structured, const char* mailCharset, const PRInt32 fieldNameLen, const PRInt32 encodedWordSize);
 
 /**
  * Get a next character position in an UTF-8 string.

@@ -147,7 +147,7 @@ nsMsgStatusFeedback::OnStateChange(nsIWebProgress* aWebProgress,
         if (mailnewsUrl)
         {
           // get the url type
-          PRBool messageDisplayUrl;
+          bool messageDisplayUrl;
           mailnewsUrl->IsUrlType(nsIMsgMailNewsUrl::eDisplay, &messageDisplayUrl);
 
           if (messageDisplayUrl)

@@ -478,7 +478,7 @@ nsresult nsMessengerWinIntegration::ShowAlertMessage(const nsString& aAlertTitle
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool showBalloon = PR_FALSE;
+  bool showBalloon = false;
   prefBranch->GetBoolPref(SHOW_BALLOON_PREF, &showBalloon);
   sBiffIconData.szInfo[0] = '\0';
   if (showBalloon) {
@@ -486,7 +486,7 @@ nsresult nsMessengerWinIntegration::ShowAlertMessage(const nsString& aAlertTitle
     ::wcsncpy( sBiffIconData.szInfo, aAlertText.get(), kMaxBalloonSize);
   }
 
-  PRBool showAlert = PR_TRUE;
+  bool showAlert = true;
   prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
 
   if (showAlert)
@@ -511,7 +511,7 @@ nsresult nsMessengerWinIntegration::ShowAlertMessage(const nsString& aAlertTitle
 // Opening Thunderbird's new mail alert notification window
 // aUserInitiated --> true if we are opening the alert notification in response to a user action
 //                    like clicking on the biff icon
-nsresult nsMessengerWinIntegration::ShowNewAlertNotification(PRBool aUserInitiated, const nsString& aAlertTitle, const nsString& aAlertText)
+nsresult nsMessengerWinIntegration::ShowNewAlertNotification(bool aUserInitiated, const nsString& aAlertTitle, const nsString& aAlertText)
 {
   nsresult rv;
 
@@ -522,7 +522,7 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(PRBool aUserInitiat
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool showBalloon = PR_FALSE;
+  bool showBalloon = false;
   prefBranch->GetBoolPref(SHOW_BALLOON_PREF, &showBalloon);
   sBiffIconData.szInfo[0] = '\0';
   if (showBalloon) {
@@ -530,7 +530,7 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(PRBool aUserInitiat
     ::wcsncpy( sBiffIconData.szInfo, aAlertText.get(), kMaxBalloonSize);
   }
 
-  PRBool showAlert = PR_TRUE;
+  bool showAlert = true;
 
   if (prefBranch)
     prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
@@ -598,7 +598,7 @@ nsresult nsMessengerWinIntegration::AlertFinished()
 {
   // okay, we are done showing the alert
   // now put an icon in the system tray, if allowed
-  PRBool showTrayIcon = !mSuppressBiffIcon;
+  bool showTrayIcon = !mSuppressBiffIcon;
   if (showTrayIcon)
   {
     nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
@@ -814,8 +814,8 @@ nsMessengerWinIntegration::OnItemAdded(nsIMsgFolder *, nsISupports *)
 NS_IMETHODIMP
 nsMessengerWinIntegration::OnItemBoolPropertyChanged(nsIMsgFolder *aItem,
                                                          nsIAtom *aProperty,
-                                                         PRBool aOldValue,
-                                                         PRBool aNewValue)
+                                                         bool aOldValue,
+                                                         bool aNewValue)
 {
   if (aProperty == mDefaultServerAtom) {
     nsresult rv;
@@ -865,7 +865,7 @@ nsMessengerWinIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom
       // we are performing biff (as opposed to the user getting new mail)
       if (!mBiffIconVisible)
       {
-        PRBool performingBiff = PR_FALSE;
+        bool performingBiff = false;
         nsCOMPtr<nsIMsgIncomingServer> server;
         aItem->GetServer(getter_AddRefs(server));
         if (server)

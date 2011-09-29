@@ -98,7 +98,7 @@ NS_IMETHODIMP nsMsgSearchOnlineMail::AddResultElement (nsIMsgDBHdr *pHeaders)
     return err;
 }
 
-nsresult nsMsgSearchOnlineMail::Search (PRBool *aDone)
+nsresult nsMsgSearchOnlineMail::Search (bool *aDone)
 {
     // we should never end up here for a purely online
     // folder.  We might for an offline IMAP folder.
@@ -114,7 +114,7 @@ nsresult nsMsgSearchOnlineMail::Encode (nsCString& pEncoding,
   nsCString imapTerms;
   
   //check if searchTerms are ascii only
-  PRBool asciiOnly = PR_TRUE;
+  bool asciiOnly = true;
   // ### what's this mean in the NWO?????
   
   if (PR_TRUE) // !(srcCharset & CODESET_MASK == STATEFUL || srcCharset & CODESET_MASK == WIDECHAR) )   //assume all single/multiple bytes charset has ascii as subset

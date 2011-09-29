@@ -61,7 +61,7 @@ public:
   NS_DECL_NSIURLLISTENER
 
   NS_IMETHOD ValidateTerms ();
-  NS_IMETHOD Search (PRBool *aDone);
+  NS_IMETHOD Search (bool *aDone);
   NS_IMETHOD Abort ();
   NS_IMETHOD AddResultElement (nsIMsgDBHdr *);
 
@@ -73,7 +73,7 @@ public:
                                          const char * headers,
                                          PRUint32 headerSize,
                                          nsMsgSearchBoolExpression ** aExpressionTree,
-                     PRBool *pResult);
+                     bool *pResult);
 
   static nsresult MatchTermsForSearch(nsIMsgDBHdr * msgTomatch,
                                       nsISupportsArray * termList,
@@ -81,7 +81,7 @@ public:
                                       nsIMsgSearchScopeTerm *scope,
                                       nsIMsgDatabase *db,
                                       nsMsgSearchBoolExpression ** aExpressionTree,
- PRBool *pResult);
+ bool *pResult);
 
   virtual nsresult OpenSummaryFile ();
 
@@ -92,8 +92,8 @@ public:
                                nsIMsgDatabase * db,
                                const char * headers,
                                PRUint32 headerSize,
-                               PRBool Filtering,
-                 PRBool *pResult);
+                               bool Filtering,
+                 bool *pResult);
 protected:
   static nsresult MatchTerms(nsIMsgDBHdr *msgToMatch,
                                 nsISupportsArray *termList,
@@ -102,9 +102,9 @@ protected:
                                 nsIMsgDatabase * db,
                                 const char * headers,
                                 PRUint32 headerSize,
-                                PRBool ForFilters,
+                                bool ForFilters,
                                 nsMsgSearchBoolExpression ** aExpressionTree,
-                PRBool *pResult);
+                bool *pResult);
 
     static nsresult ConstructExpressionTree(nsISupportsArray * termList,
                                       PRUint32 termCount,

@@ -165,7 +165,7 @@ public:
   void Reset() { m_done = PR_FALSE;  m_location = nsnull;}
 
 public:
-  PRBool m_done;
+  bool m_done;
   nsCOMPtr <nsIFile> m_location;
 };
 
@@ -285,7 +285,7 @@ nsresult nsEudoraCompose::CreateComponents( void)
   return NS_ERROR_FAILURE;
 }
 
-void nsEudoraCompose::GetNthHeader( const char *pData, PRInt32 dataLen, PRInt32 n, nsCString& header, nsCString& val, PRBool unwrap)
+void nsEudoraCompose::GetNthHeader( const char *pData, PRInt32 dataLen, PRInt32 n, nsCString& header, nsCString& val, bool unwrap)
 {
   header.Truncate();
   val.Truncate();
@@ -386,7 +386,7 @@ void nsEudoraCompose::GetNthHeader( const char *pData, PRInt32 dataLen, PRInt32 
 }
 
 
-void nsEudoraCompose::GetHeaderValue( const char *pData, PRInt32 dataLen, const char *pHeader, nsCString& val, PRBool unwrap)
+void nsEudoraCompose::GetHeaderValue( const char *pData, PRInt32 dataLen, const char *pHeader, nsCString& val, bool unwrap)
 {
   val.Truncate();
   if (!pData)
@@ -743,7 +743,7 @@ nsresult nsEudoraCompose::SendTheMessage(nsIFile *pMailImportLocation, nsIFile *
 }
 
 
-PRBool SimpleBufferTonyRCopiedOnce::SpecialMemCpy( PRInt32 offset, const char *pData, PRInt32 len, PRInt32 *pWritten)
+bool SimpleBufferTonyRCopiedOnce::SpecialMemCpy( PRInt32 offset, const char *pData, PRInt32 len, PRInt32 *pWritten)
 {
   // Arg!!!!!  Mozilla can't handle plain CRs in any mail messages.  Particularly a
   // problem with Eudora since it doesn't give a rats a**
@@ -988,7 +988,7 @@ static const char *gReplaceHeaders[kMaxReplaceHeaders] = {
   "cc"
 };
 
-PRBool nsEudoraCompose::IsReplaceHeader( const char *pHeader)
+bool nsEudoraCompose::IsReplaceHeader( const char *pHeader)
 {
   for (int i = 0; i < kMaxReplaceHeaders; i++) {
     if (!PL_strcasecmp( pHeader, gReplaceHeaders[i]))
@@ -1026,8 +1026,8 @@ nsresult nsEudoraCompose::WriteHeaders(nsIOutputStream *pDst, SimpleBufferTonyRC
   PRUint32 written;
   nsresult rv = NS_OK; // it's ok if we don't have the first header on the predefined lists.
   PRInt32 specialHeader;
-  PRBool specials[kMaxSpecialHeaders];
-  PRBool    hasDateHeader = PR_FALSE;
+  bool specials[kMaxSpecialHeaders];
+  bool      hasDateHeader = false;
   int i;
 
   for (i = 0; i < kMaxSpecialHeaders; i++)

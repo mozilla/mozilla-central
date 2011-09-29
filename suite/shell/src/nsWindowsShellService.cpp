@@ -396,7 +396,7 @@ nsWindowsShellService::ShortcutMaintenance()
     return NS_OK;
 
   // Avoid if this isn't Win7+
-  PRBool isSupported = PR_FALSE;
+  bool isSupported = false;
   taskbarInfo->GetAvailable(&isSupported);
   if (!isSupported)
     return NS_OK;
@@ -454,7 +454,7 @@ nsWindowsShellService::ShortcutMaintenance()
 /* helper routine. Iterate over the passed in settings object,
    testing each key to see if we are handling it.
 */
-PRBool
+bool
 nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
 {
   PRUnichar currValue[MAX_BUF];
@@ -516,8 +516,8 @@ nsresult nsWindowsShellService::Init()
   return NS_OK;
 }
 
-PRBool
-nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultClient)
+bool
+nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClient)
 {
 #if MOZ_WINSDK_TARGETVER >= MOZ_NTDDI_LONGHORN
   IApplicationAssociationRegistration* pAAR;
@@ -551,7 +551,7 @@ nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, PRBool* aIsDefaultCl
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRBool *aIsDefaultClient)
+nsWindowsShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool *aIsDefaultClient)
 {
   // If this is the first application window, maintain internal state that we've
   // checked this session (so that subsequent window opens don't show the
@@ -592,8 +592,8 @@ nsWindowsShellService::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRB
 
 
 NS_IMETHODIMP
-nsWindowsShellService::SetDefaultClient(PRBool aForAllUsers,
-                                        PRBool aClaimAllTypes, PRUint16 aApps)
+nsWindowsShellService::SetDefaultClient(bool aForAllUsers,
+                                        bool aClaimAllTypes, PRUint16 aApps)
 {
   nsresult rv;
   nsCOMPtr<nsIProperties> directoryService = 
@@ -644,7 +644,7 @@ nsWindowsShellService::SetDefaultClient(PRBool aForAllUsers,
 }
 
 NS_IMETHODIMP
-nsWindowsShellService::GetShouldCheckDefaultClient(PRBool* aResult)
+nsWindowsShellService::GetShouldCheckDefaultClient(bool* aResult)
 {
   if (mCheckedThisSessionClient) {
     *aResult = PR_FALSE;
@@ -660,7 +660,7 @@ nsWindowsShellService::GetShouldCheckDefaultClient(PRBool* aResult)
 
 
 NS_IMETHODIMP
-nsWindowsShellService::SetShouldCheckDefaultClient(PRBool aShouldCheck)
+nsWindowsShellService::SetShouldCheckDefaultClient(bool aShouldCheck)
 {
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID));
   NS_ENSURE_TRUE(prefs, NS_ERROR_FAILURE);
@@ -829,7 +829,7 @@ nsWindowsShellService::SetDesktopBackground(nsIDOMElement* aElement,
 
   // if the file was written successfully, set it as the system wallpaper
   if (NS_SUCCEEDED(rv)) {
-     PRBool result = PR_FALSE;
+     bool result = false;
      DWORD  dwDisp = 0;
      HKEY   key;
      // Try to create/open a subkey under HKCU.
@@ -890,7 +890,7 @@ nsWindowsShellService::SetDesktopBackgroundColor(PRUint32 aColor)
 
   ::SetSysColors(1, &parameter, &color);
 
-  PRBool result = PR_FALSE;
+  bool result = false;
   DWORD  dwDisp = 0;
   HKEY   key;
   // Try to create/open a subkey under HKCU.
@@ -975,7 +975,7 @@ nsWindowsShellService::GetDefaultFeedReader(nsILocalFile** _retval)
   rv = defaultReader->InitWithPath(path);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool exists;
+  bool exists;
   rv = defaultReader->Exists(&exists);
   NS_ENSURE_SUCCESS(rv, rv);
   if (!exists)

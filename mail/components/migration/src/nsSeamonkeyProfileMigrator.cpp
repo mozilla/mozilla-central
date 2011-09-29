@@ -72,7 +72,7 @@ struct PrefBranchStruct {
   union {
     char*       stringValue;
     PRInt32     intValue;
-    PRBool      boolValue;
+    bool        boolValue;
     PRUnichar*  wstringValue;
   };
 };
@@ -95,7 +95,7 @@ NS_IMETHODIMP
 nsSeamonkeyProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, const PRUnichar* aProfile)
 {
   nsresult rv = NS_OK;
-  PRBool aReplace = aStartup ? PR_TRUE : PR_FALSE;
+  bool aReplace = aStartup ? true : false;
 
   if (!mTargetProfile) {
     GetProfilePath(aStartup, mTargetProfile);
@@ -144,7 +144,7 @@ nsSeamonkeyProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup
 
 NS_IMETHODIMP
 nsSeamonkeyProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
-                                           PRBool aReplace,
+                                           bool aReplace,
                                            PRUint16* aResult)
 {
   *aResult = 0;
@@ -178,7 +178,7 @@ nsSeamonkeyProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
     mSourceProfile->Clone(getter_AddRefs(sourcePasswordsFile));
     sourcePasswordsFile->Append(fileName);
 
-    PRBool exists;
+    bool exists;
     sourcePasswordsFile->Exists(&exists);
     if (exists)
       *aResult |= nsIMailProfileMigrator::PASSWORDS;
@@ -493,7 +493,7 @@ nsSeamonkeyProfileMigrator::CopySignatureFiles(PBStructArray &aIdentities,
       NS_ENSURE_SUCCESS(rv, rv);
 
       // now make the copy
-      PRBool exists;
+      bool exists;
       srcSigFile->Exists(&exists);
       if (exists)
       {
@@ -619,7 +619,7 @@ nsSeamonkeyProfileMigrator::CopyMailFolders(PBStructArray &aMailServers,
       srcNewsRCFile->SetPersistentDescriptor(nsDependentCString(pref->stringValue));
 
       // now make the copy
-      PRBool exists;
+      bool exists;
       srcNewsRCFile->Exists(&exists);
       if (exists)
       {
@@ -642,7 +642,7 @@ nsSeamonkeyProfileMigrator::CopyMailFolders(PBStructArray &aMailServers,
 }
 
 nsresult
-nsSeamonkeyProfileMigrator::CopyPreferences(PRBool aReplace)
+nsSeamonkeyProfileMigrator::CopyPreferences(bool aReplace)
 {
   nsresult rv = NS_OK;
   if (!aReplace)
@@ -746,20 +746,20 @@ nsSeamonkeyProfileMigrator::WriteBranch(const char *branchName,
   aPrefs.Clear();
 }
 
-nsresult nsSeamonkeyProfileMigrator::DummyCopyRoutine(PRBool aReplace)
+nsresult nsSeamonkeyProfileMigrator::DummyCopyRoutine(bool aReplace)
 {
   // place holder function only to fake the UI out into showing some migration process.
   return NS_OK;
 }
 
 nsresult
-nsSeamonkeyProfileMigrator::CopyJunkTraining(PRBool aReplace)
+nsSeamonkeyProfileMigrator::CopyJunkTraining(bool aReplace)
 {
   return aReplace ? CopyFile(FILE_NAME_JUNKTRAINING, FILE_NAME_JUNKTRAINING) : NS_OK;
 }
 
 nsresult
-nsSeamonkeyProfileMigrator::CopyPasswords(PRBool aReplace)
+nsSeamonkeyProfileMigrator::CopyPasswords(bool aReplace)
 {
   nsresult rv;
 

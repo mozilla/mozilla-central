@@ -49,7 +49,7 @@
 class CharPtrArrayGuard
 {
 public:
-    CharPtrArrayGuard (PRBool freeElements = PR_TRUE) :
+    CharPtrArrayGuard (bool freeElements = true) :
         mFreeElements (freeElements),
         mArray (0),
         mSize (0)
@@ -89,7 +89,7 @@ public:
 public:
 
 private:
-    PRBool mFreeElements;
+    bool mFreeElements;
     char **mArray;
     PRUint32 mSize;
 
@@ -114,7 +114,7 @@ private:
 class PRUnicharPtrArrayGuard
 {
 public:
-    PRUnicharPtrArrayGuard (PRBool freeElements = PR_TRUE) :
+    PRUnicharPtrArrayGuard (bool freeElements = true) :
         mFreeElements (freeElements),
         mArray (0),
         mSize (0)
@@ -154,7 +154,7 @@ public:
 public:
 
 private:
-    PRBool mFreeElements;
+    bool mFreeElements;
     PRUnichar **mArray;
     PRUint32 mSize;
     void Free ()

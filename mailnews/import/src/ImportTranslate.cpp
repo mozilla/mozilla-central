@@ -40,7 +40,7 @@
 int ImportTranslate::m_useTranslator = -1;
 
 
-PRBool ImportTranslate::ConvertString( const nsCString& inStr, nsCString& outStr, PRBool mimeHeader)
+bool ImportTranslate::ConvertString( const nsCString& inStr, nsCString& outStr, bool mimeHeader)
 {
   if (inStr.IsEmpty()) {
     outStr = inStr;

@@ -89,7 +89,7 @@ nsMsgFilterService::~nsMsgFilterService()
 NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsILocalFile *aFilterFile, nsIMsgFolder *rootFolder, nsIMsgWindow *aMsgWindow, nsIMsgFilterList **resultFilterList)
 {
   nsresult rv = NS_OK;
-        PRBool exists;
+        bool exists;
         aFilterFile->Exists(&exists);
         if (!exists)
         {
@@ -200,7 +200,7 @@ nsresult nsMsgFilterService::BackUpFilterFile(nsILocalFile *aFilterFile, nsIMsgW
   rv = localParentDir->Clone(getter_AddRefs(backupFile));
   NS_ENSURE_SUCCESS(rv,rv);
   backupFile->AppendNative(NS_LITERAL_CSTRING("rulesbackup.dat"));
-  PRBool exists;
+  bool exists;
   backupFile->Exists(&exists);
   if (exists)
     backupFile->Remove(PR_FALSE);
@@ -291,10 +291,10 @@ public:
   nsresult  AdvanceToNextFolder();  // kicks off the process
 protected:
   virtual   nsresult  RunNextFilter();
-  nsresult  ApplyFilter(PRBool *aApplyMore = nsnull);
+  nsresult  ApplyFilter(bool *aApplyMore = nsnull);
   nsresult  OnEndExecution(nsresult executionStatus); // do what we have to do to cleanup.
-  PRBool    ContinueExecutionPrompt();
-  nsresult  DisplayConfirmationPrompt(nsIMsgWindow *msgWindow, const PRUnichar *confirmString, PRBool *confirmed);
+  bool      ContinueExecutionPrompt();
+  nsresult  DisplayConfirmationPrompt(nsIMsgWindow *msgWindow, const PRUnichar *confirmString, bool *confirmed);
   nsCOMPtr <nsIMsgWindow>     m_msgWindow;
   nsCOMPtr <nsIMsgFilterList> m_filters;
   nsCOMPtr <nsISupportsArray> m_folders;
@@ -411,7 +411,7 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::OnStartRunningUrl(nsIURI *aUrl)
 
 NS_IMETHODIMP nsMsgFilterAfterTheFact::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
 {
-  PRBool continueExecution = NS_SUCCEEDED(aExitCode);
+  bool continueExecution = NS_SUCCEEDED(aExitCode);
   if (!continueExecution)
     continueExecution = ContinueExecutionPrompt();
 
@@ -431,7 +431,7 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::OnSearchHit(nsIMsgDBHdr *header, nsIMsgFo
 NS_IMETHODIMP nsMsgFilterAfterTheFact::OnSearchDone(nsresult status)
 {
   nsresult rv = status;
-  PRBool continueExecution = NS_SUCCEEDED(status);
+  bool continueExecution = NS_SUCCEEDED(status);
   if (!continueExecution)
     continueExecution = ContinueExecutionPrompt();
 
@@ -448,17 +448,17 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::OnNewSearch()
   return NS_OK;
 }
 
-nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
+nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
 {
   nsresult rv = NS_OK;
-  PRBool applyMoreActions;
+  bool applyMoreActions;
   if (!aApplyMore)
     aApplyMore = &applyMoreActions;
   *aApplyMore = PR_TRUE;
   if (m_curFilter && m_curFolder)
   {
     // we're going to log the filter actions before firing them because some actions are async
-    PRBool loggingEnabled = PR_FALSE;
+    bool loggingEnabled = false;
     if (m_filters)
       (void)m_filters->GetLoggingEnabled(&loggingEnabled);
 
@@ -540,7 +540,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
           nsCOMPtr<nsIMsgFolder> destIFolder(do_QueryInterface(res, &rv));
           NS_ENSURE_SUCCESS(rv, rv);
 
-          PRBool canFileMessages = PR_TRUE;
+          bool canFileMessages = true;
           nsCOMPtr<nsIMsgFolder> parentFolder;
           destIFolder->GetParent(getter_AddRefs(parentFolder));
           if (parentFolder)
@@ -793,7 +793,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(PRBool *aApplyMore)
         customAction->Apply(m_searchHitHdrs, value, this,
                             filterType, m_msgWindow);
 
-        PRBool isAsync = PR_FALSE;
+        bool isAsync = false;
         customAction->GetIsAsync(&isAsync);
         if (isAsync)
           return NS_OK;
@@ -919,7 +919,7 @@ nsMsgApplyFiltersToMessages::nsMsgApplyFiltersToMessages(nsIMsgWindow *aMsgWindo
     if (NS_SUCCEEDED(aMsgHdrList->GetLength(&length)))
       m_msgHdrList.SetCapacity(length);
 
-    PRBool hasMore;
+    bool hasMore;
     while (NS_SUCCEEDED(msgEnumerator->HasMoreElements(&hasMore)) && hasMore)
     {
       nsCOMPtr<nsIMsgDBHdr> msgHdr;
@@ -934,7 +934,7 @@ nsresult nsMsgApplyFiltersToMessages::RunNextFilter()
   while (m_curFilterIndex < m_numFilters)
   {
     nsMsgFilterTypeType filterType;
-    PRBool isEnabled;
+    bool isEnabled;
     nsresult rv;
 
     rv = m_filters->GetFilterAt(m_curFilterIndex++, getter_AddRefs(m_curFilter));
@@ -957,7 +957,7 @@ nsresult nsMsgApplyFiltersToMessages::RunNextFilter()
     for (PRInt32 i = 0; i < m_msgHdrList.Count(); i++)
     {
       nsIMsgDBHdr* msgHdr = m_msgHdrList[i];
-      PRBool matched;
+      bool matched;
 
       rv = m_curFilter->MatchHdr(msgHdr, m_curFolder, m_curFolderDB, nsnull, 0, &matched);
 
@@ -973,7 +973,7 @@ nsresult nsMsgApplyFiltersToMessages::RunNextFilter()
 
     if (m_searchHits.Length() > 0)
     {
-      PRBool applyMore = PR_TRUE;
+      bool applyMore = true;
 
       m_nextAction = 0;
       rv = ApplyFilter(&applyMore);
@@ -1054,7 +1054,7 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::GetMessageId(nsACString& messageId)
 /* void OnStopCopy (in nsresult aStatus); */
 NS_IMETHODIMP nsMsgFilterAfterTheFact::OnStopCopy(nsresult aStatus)
 {
-  PRBool continueExecution = NS_SUCCEEDED(aStatus);
+  bool continueExecution = NS_SUCCEEDED(aStatus);
   if (!continueExecution)
     continueExecution = ContinueExecutionPrompt();
   if (!continueExecution)
@@ -1064,7 +1064,7 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::OnStopCopy(nsresult aStatus)
   return RunNextFilter();
 }
 
-PRBool nsMsgFilterAfterTheFact::ContinueExecutionPrompt()
+bool nsMsgFilterAfterTheFact::ContinueExecutionPrompt()
 {
   if (!m_curFilter)
     return PR_FALSE;
@@ -1088,13 +1088,13 @@ PRBool nsMsgFilterAfterTheFact::ContinueExecutionPrompt()
                                              formatStrings, 1, getter_Copies(confirmText));
   if (NS_FAILED(rv))
     return PR_FALSE;
-  PRBool returnVal = PR_FALSE;
+  bool returnVal = false;
   (void) DisplayConfirmationPrompt(m_msgWindow, confirmText.get(), &returnVal);
   return returnVal;
 }
 
 nsresult
-nsMsgFilterAfterTheFact::DisplayConfirmationPrompt(nsIMsgWindow *msgWindow, const PRUnichar *confirmString, PRBool *confirmed)
+nsMsgFilterAfterTheFact::DisplayConfirmationPrompt(nsIMsgWindow *msgWindow, const PRUnichar *confirmString, bool *confirmed)
 {
   nsresult rv=NS_OK;
   if (msgWindow)

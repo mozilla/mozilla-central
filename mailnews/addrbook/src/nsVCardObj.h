@@ -403,7 +403,7 @@ VObject* nextVObject(VObjectIterator *i);
 
 void writeVObject_(OFile *fp, VObject *o);
 char* writeMemVObject(char *s, int *len, VObject *o);
-extern "C" char* writeMemoryVObjects(char *s, int *len, VObject *list, PRBool expandSpaces);
+extern "C" char* writeMemoryVObjects(char *s, int *len, VObject *list, bool expandSpaces);
 
 const char* lookupStr(const char *s);
 

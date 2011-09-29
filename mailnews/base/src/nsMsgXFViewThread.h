@@ -59,13 +59,13 @@ public:
   NS_DECL_NSIMSGTHREAD
   NS_DECL_ISUPPORTS
 
-  PRBool    IsHdrParentOf(nsIMsgDBHdr *possibleParent,
+  bool      IsHdrParentOf(nsIMsgDBHdr *possibleParent,
                           nsIMsgDBHdr *possibleChild);
 
   void      ChangeUnreadChildCount(PRInt32 delta);
   void      ChangeChildCount(PRInt32 delta);
 
-  nsresult  AddHdr(nsIMsgDBHdr *newHdr, PRBool reparentChildren, 
+  nsresult  AddHdr(nsIMsgDBHdr *newHdr, bool reparentChildren, 
                    PRUint32 &whereInserted, nsIMsgDBHdr **outParent);
   PRUint32  HdrIndex(nsIMsgDBHdr *hdr);
   PRUint32  ChildLevelAt(PRUint32 msgIndex) {return m_levels[msgIndex];}

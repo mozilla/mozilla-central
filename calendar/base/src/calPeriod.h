@@ -64,7 +64,7 @@ public:
 protected:
     calPeriod const& operator=(calPeriod const&);
 
-    PRBool mImmutable;
+    bool mImmutable;
 
     //struct icaldurationtype mPeriod;
     nsCOMPtr<calIDateTime> mStart;

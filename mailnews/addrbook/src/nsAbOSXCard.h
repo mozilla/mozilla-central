@@ -54,7 +54,7 @@ public:
   NS_DECLARE_STATIC_IID_ACCESSOR(NS_IABOSXCARD_IID)
 
   virtual nsresult Init(const char *aUri) = 0;
-  virtual nsresult Update(PRBool aNotify) = 0;
+  virtual nsresult Update(bool aNotify) = 0;
   virtual nsresult GetURI(nsACString &aURI) = 0;
 };
 
@@ -66,7 +66,7 @@ class nsAbOSXCard : public nsAbCardProperty,
 public:
   NS_DECL_ISUPPORTS_INHERITED
     
-  nsresult Update(PRBool aNotify);
+  nsresult Update(bool aNotify);
   nsresult GetURI(nsACString &aURI);
   nsresult Init(const char *aUri);
   // this is needed so nsAbOSXUtils.mm can get at nsAbCardProperty

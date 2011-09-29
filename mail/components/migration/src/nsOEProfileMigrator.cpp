@@ -124,7 +124,7 @@ nsOEProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, const
 
 NS_IMETHODIMP
 nsOEProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
-                                           PRBool aReplace,
+                                           bool aReplace,
                                            PRUint16* aResult)
 {
   // There's no harm in assuming everything is available.
@@ -134,7 +134,7 @@ nsOEProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
 }
 
 NS_IMETHODIMP
-nsOEProfileMigrator::GetSourceExists(PRBool* aResult)
+nsOEProfileMigrator::GetSourceExists(bool* aResult)
 {
   *aResult = PR_FALSE;
 
@@ -152,7 +152,7 @@ nsOEProfileMigrator::GetSourceExists(PRBool* aResult)
 }
 
 NS_IMETHODIMP
-nsOEProfileMigrator::GetSourceHasMultipleProfiles(PRBool* aResult)
+nsOEProfileMigrator::GetSourceHasMultipleProfiles(bool* aResult)
 {
   *aResult = PR_FALSE;
   return NS_OK;

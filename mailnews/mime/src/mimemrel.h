@@ -74,7 +74,7 @@ struct MimeMultipartRelated {
 
   MimeHeaders* buffered_hdrs;  /* The headers of the 'head' part. */
 
-  PRBool head_loaded;    /* Whether we've already passed the 'head'
+  bool head_loaded;    /* Whether we've already passed the 'head'
                    part. */
   MimeObject* headobj;    /* The actual text/html head object. */
 

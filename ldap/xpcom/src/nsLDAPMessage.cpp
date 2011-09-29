@@ -333,7 +333,7 @@ nsLDAPMessage::GetAttributes(PRUint32 *aAttrCount, char** *aAttributes)
 // 
 nsresult
 nsLDAPMessage::IterateAttributes(PRUint32 *aAttrCount, char** *aAttributes, 
-                 PRBool getP)
+                 bool getP)
 {
     BerElement *position;
     nsresult rv;

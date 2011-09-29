@@ -75,7 +75,7 @@ public:
   // Implementation data...
   //
   nsCOMPtr<nsIMsgQuotingOutputStreamListener> mStreamListener;
-  PRBool			mQuoteHeaders;
+  bool			mQuoteHeaders;
   nsCOMPtr<nsIMsgQuoteListener> mQuoteListener;
   nsCOMPtr<nsIChannel> mQuoteChannel;
 };

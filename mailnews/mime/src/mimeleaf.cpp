@@ -52,8 +52,8 @@ static int MimeLeaf_parse_begin (MimeObject *);
 static int MimeLeaf_parse_buffer (const char *, PRInt32, MimeObject *);
 static int MimeLeaf_parse_line (const char *, PRInt32, MimeObject *);
 static int MimeLeaf_close_decoder (MimeObject *);
-static int MimeLeaf_parse_eof (MimeObject *, PRBool);
-static PRBool MimeLeaf_displayable_inline_p (MimeObjectClass *clazz,
+static int MimeLeaf_parse_eof (MimeObject *, bool);
+static bool MimeLeaf_displayable_inline_p (MimeObjectClass *clazz,
                         MimeHeaders *hdrs);
 
 static int
@@ -212,7 +212,7 @@ MimeLeaf_close_decoder (MimeObject *obj)
 
 
 static int
-MimeLeaf_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeLeaf_parse_eof (MimeObject *obj, bool abort_p)
 {
   MimeLeaf *leaf = (MimeLeaf *) obj;
   if (obj->closed_p) return 0;
@@ -233,7 +233,7 @@ MimeLeaf_parse_eof (MimeObject *obj, PRBool abort_p)
 }
 
 
-static PRBool
+static bool
 MimeLeaf_displayable_inline_p (MimeObjectClass *clazz, MimeHeaders *hdrs)
 {
   return PR_TRUE;

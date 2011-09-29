@@ -71,7 +71,7 @@ public:
   virtual ~nsAbCardProperty(void);
 
 protected:
-	PRBool   m_IsMailList;
+	bool     m_IsMailList;
 	nsCString m_MailListURI;
 
   // Store most of the properties here

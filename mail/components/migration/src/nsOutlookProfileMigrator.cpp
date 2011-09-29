@@ -119,7 +119,7 @@ nsOutlookProfileMigrator::Migrate(PRUint16 aItems, nsIProfileStartup* aStartup, 
 }
 
 NS_IMETHODIMP
-nsOutlookProfileMigrator::GetMigrateData(const PRUnichar* aProfile, PRBool aReplace, PRUint16* aResult)
+nsOutlookProfileMigrator::GetMigrateData(const PRUnichar* aProfile, bool aReplace, PRUint16* aResult)
 {
   // There's no harm in assuming everything is available.
   *aResult = nsIMailProfileMigrator::ACCOUNT_SETTINGS | nsIMailProfileMigrator::ADDRESSBOOK_DATA |
@@ -128,7 +128,7 @@ nsOutlookProfileMigrator::GetMigrateData(const PRUnichar* aProfile, PRBool aRepl
 }
 
 NS_IMETHODIMP
-nsOutlookProfileMigrator::GetSourceExists(PRBool* aResult)
+nsOutlookProfileMigrator::GetSourceExists(bool* aResult)
 {
   *aResult = PR_FALSE;
 
@@ -146,7 +146,7 @@ nsOutlookProfileMigrator::GetSourceExists(PRBool* aResult)
 }
 
 NS_IMETHODIMP
-nsOutlookProfileMigrator::GetSourceHasMultipleProfiles(PRBool* aResult)
+nsOutlookProfileMigrator::GetSourceHasMultipleProfiles(bool* aResult)
 {
   *aResult = PR_FALSE;
   return NS_OK;

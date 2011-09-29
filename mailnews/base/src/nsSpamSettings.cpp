@@ -123,7 +123,7 @@ NS_IMETHODIMP nsSpamSettings::SetMoveTargetMode(PRInt32 aMoveTargetMode)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsSpamSettings::GetManualMark(PRBool *aManualMark)
+NS_IMETHODIMP nsSpamSettings::GetManualMark(bool *aManualMark)
 {
   NS_ENSURE_ARG_POINTER(aManualMark);
   nsresult rv;
@@ -141,7 +141,7 @@ NS_IMETHODIMP nsSpamSettings::GetManualMarkMode(PRInt32 *aManualMarkMode)
   return prefBranch->GetIntPref("mail.spam.manualMarkMode", aManualMarkMode);
 }
 
-NS_IMETHODIMP nsSpamSettings::GetLoggingEnabled(PRBool *aLoggingEnabled)
+NS_IMETHODIMP nsSpamSettings::GetLoggingEnabled(bool *aLoggingEnabled)
 {
   NS_ENSURE_ARG_POINTER(aLoggingEnabled);
   nsresult rv;
@@ -150,7 +150,7 @@ NS_IMETHODIMP nsSpamSettings::GetLoggingEnabled(PRBool *aLoggingEnabled)
   return prefBranch->GetBoolPref("mail.spam.logging.enabled", aLoggingEnabled);
 }
 
-NS_IMETHODIMP nsSpamSettings::GetMarkAsReadOnSpam(PRBool *aMarkAsReadOnSpam)
+NS_IMETHODIMP nsSpamSettings::GetMarkAsReadOnSpam(bool *aMarkAsReadOnSpam)
 {
   NS_ENSURE_ARG_POINTER(aMarkAsReadOnSpam);
   nsresult rv;
@@ -159,10 +159,10 @@ NS_IMETHODIMP nsSpamSettings::GetMarkAsReadOnSpam(PRBool *aMarkAsReadOnSpam)
   return prefBranch->GetBoolPref("mail.spam.markAsReadOnSpam", aMarkAsReadOnSpam);
 }
 
-NS_IMPL_GETSET(nsSpamSettings, MoveOnSpam, PRBool, mMoveOnSpam)
-NS_IMPL_GETSET(nsSpamSettings, Purge, PRBool, mPurge)
-NS_IMPL_GETSET(nsSpamSettings, UseWhiteList, PRBool, mUseWhiteList)
-NS_IMPL_GETSET(nsSpamSettings, UseServerFilter, PRBool, mUseServerFilter)
+NS_IMPL_GETSET(nsSpamSettings, MoveOnSpam, bool, mMoveOnSpam)
+NS_IMPL_GETSET(nsSpamSettings, Purge, bool, mPurge)
+NS_IMPL_GETSET(nsSpamSettings, UseWhiteList, bool, mUseWhiteList)
+NS_IMPL_GETSET(nsSpamSettings, UseServerFilter, bool, mUseServerFilter)
 
 NS_IMETHODIMP nsSpamSettings::GetWhiteListAbURI(char * *aWhiteListAbURI)
 {
@@ -282,7 +282,7 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
   rv = SetLevel(spamLevel);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool moveOnSpam;
+  bool moveOnSpam;
   rv = aServer->GetBoolValue("moveOnSpam", &moveOnSpam);
   NS_ENSURE_SUCCESS(rv, rv);
   rv = SetMoveOnSpam(moveOnSpam);
@@ -306,7 +306,7 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
   rv = SetActionTargetFolder(spamActionTargetFolder.get());
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool useWhiteList;
+  bool useWhiteList;
   rv = aServer->GetBoolValue("useWhiteList", &useWhiteList);
   NS_ENSURE_SUCCESS(rv, rv);
   rv = SetUseWhiteList(useWhiteList);
@@ -318,7 +318,7 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
   rv = SetWhiteListAbURI(whiteListAbURI.get());
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool purgeSpam;
+  bool purgeSpam;
   rv = aServer->GetBoolValue("purgeSpam", &purgeSpam);
   NS_ENSURE_SUCCESS(rv, rv);
   rv = SetPurge(purgeSpam);
@@ -330,7 +330,7 @@ NS_IMETHODIMP nsSpamSettings::Initialize(nsIMsgIncomingServer *aServer)
   rv = SetPurgeInterval(purgeSpamInterval);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool useServerFilter;
+  bool useServerFilter;
   rv = aServer->GetBoolValue("useServerFilter", &useServerFilter);
   NS_ENSURE_SUCCESS(rv, rv);
   rv = SetUseServerFilter(useServerFilter);
@@ -631,7 +631,7 @@ NS_IMETHODIMP nsSpamSettings::GetServerFilterFile(nsIFile ** aFile)
     rv = dirSvc->Get(ISP_DIRECTORY_LIST, NS_GET_IID(nsISimpleEnumerator), getter_AddRefs(ispDirectories));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    PRBool hasMore;
+    bool hasMore;
     nsCOMPtr<nsIFile> file;
     while (NS_SUCCEEDED(ispDirectories->HasMoreElements(&hasMore)) && hasMore)
     {
@@ -644,7 +644,7 @@ NS_IMETHODIMP nsSpamSettings::GetServerFilterFile(nsIFile ** aFile)
         // append our desired leaf name then test to see if the file exists. If it does, we've found
         // mServerFilterFile.
         file->AppendNative(serverFilterFileName);
-        PRBool exists;
+        bool exists;
         if (NS_SUCCEEDED(file->Exists(&exists)) && exists)
         {
           file.swap(mServerFilterFile);
@@ -666,9 +666,9 @@ NS_IMPL_GETSET(nsSpamSettings, ServerFilterTrustFlags, PRInt32, mServerFilterTru
 #define LOG_ENTRY_END_TAG "</p>\n"
 #define LOG_ENTRY_END_TAG_LEN (strlen(LOG_ENTRY_END_TAG))
 
-NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, PRBool aMoveMessage)
+NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, bool aMoveMessage)
 {
-  PRBool loggingEnabled;
+  bool loggingEnabled;
   nsresult rv = GetLoggingEnabled(&loggingEnabled);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -756,7 +756,7 @@ NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, PRBool aMoveMessa
 
 NS_IMETHODIMP nsSpamSettings::LogJunkString(const char *string)
 {
-  PRBool loggingEnabled;
+  bool loggingEnabled;
   nsresult rv = GetLoggingEnabled(&loggingEnabled);
   NS_ENSURE_SUCCESS(rv,rv);
 
@@ -820,7 +820,7 @@ NS_IMETHODIMP nsSpamSettings::OnStopRunningUrl(nsIURI* aURL, nsresult exitCode)
   return rv;
 }
 
-NS_IMETHODIMP nsSpamSettings::CheckWhiteList(nsIMsgDBHdr *aMsgHdr, PRBool *aResult)
+NS_IMETHODIMP nsSpamSettings::CheckWhiteList(nsIMsgDBHdr *aMsgHdr, bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aMsgHdr);
   NS_ENSURE_ARG_POINTER(aResult);

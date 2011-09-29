@@ -63,7 +63,7 @@ calRecurrenceRule::calRecurrenceRule()
 }
 
 NS_IMETHODIMP
-calRecurrenceRule::GetIsMutable(PRBool *aResult)
+calRecurrenceRule::GetIsMutable(bool *aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
     *aResult = !mImmutable;
@@ -93,7 +93,7 @@ calRecurrenceRule::Clone(calIRecurrenceItem **aResult)
 
 /* attribute boolean isNegative; */
 NS_IMETHODIMP
-calRecurrenceRule::GetIsNegative(PRBool *_retval)
+calRecurrenceRule::GetIsNegative(bool *_retval)
 {
     NS_ENSURE_ARG_POINTER(_retval);
     *_retval = mIsNegative;
@@ -101,7 +101,7 @@ calRecurrenceRule::GetIsNegative(PRBool *_retval)
 }
 
 NS_IMETHODIMP
-calRecurrenceRule::SetIsNegative(PRBool aIsNegative)
+calRecurrenceRule::SetIsNegative(bool aIsNegative)
 {
     if (mImmutable)
         return NS_ERROR_OBJECT_IS_IMMUTABLE;
@@ -111,7 +111,7 @@ calRecurrenceRule::SetIsNegative(PRBool aIsNegative)
 
 /* readonly attribute boolean isFinite; */
 NS_IMETHODIMP
-calRecurrenceRule::GetIsFinite(PRBool *_retval)
+calRecurrenceRule::GetIsFinite(bool *_retval)
 {
     NS_ENSURE_ARG_POINTER(_retval);
 
@@ -234,7 +234,7 @@ calRecurrenceRule::SetUntilDate(calIDateTime * aRecurEnd)
         nsCOMPtr<calIDateTime> dt(aRecurEnd);
         nsCOMPtr<calITimezone> tz;
         aRecurEnd->GetTimezone(getter_AddRefs(tz));
-        PRBool b;
+        bool b;
         if (NS_SUCCEEDED(tz->GetIsUTC(&b)) && !b &&
             NS_SUCCEEDED(tz->GetIsFloating(&b)) && !b) {
             // convert to UTC:
@@ -257,7 +257,7 @@ calRecurrenceRule::SetUntilDate(calIDateTime * aRecurEnd)
 
 /* readonly attribute boolean isByCount; */
 NS_IMETHODIMP
-calRecurrenceRule::GetIsByCount (PRBool *aIsByCount)
+calRecurrenceRule::GetIsByCount (bool *aIsByCount)
 {
     *aIsByCount = mIsByCount;
     return NS_OK;

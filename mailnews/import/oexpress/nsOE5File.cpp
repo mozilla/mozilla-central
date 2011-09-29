@@ -88,7 +88,7 @@ void nsOE5File::FileTimeToPRTime(const FILETIME *filetime, PRTime *prtm)
 #endif
 }
 
-PRBool nsOE5File::VerifyLocalMailFile( nsIFile *pFile)
+bool nsOE5File::VerifyLocalMailFile( nsIFile *pFile)
 {
   char    sig[kSignatureSize];
 
@@ -100,7 +100,7 @@ PRBool nsOE5File::VerifyLocalMailFile( nsIFile *pFile)
   if (!ReadBytes( inputStream, sig, 0, kSignatureSize))
     return PR_FALSE;
 
-  PRBool  result = PR_TRUE;
+  bool    result = true;
 
   for (int i = 0; (i < kSignatureSize) && result; i++) {
     if (sig[i] != gSig[i])
@@ -119,21 +119,21 @@ PRBool nsOE5File::VerifyLocalMailFile( nsIFile *pFile)
   return result;
 }
 
-PRBool nsOE5File::IsLocalMailFile( nsIFile *pFile)
+bool nsOE5File::IsLocalMailFile( nsIFile *pFile)
 {
   nsresult  rv;
-  PRBool    isFile = PR_FALSE;
+  bool      isFile = false;
 
   rv = pFile->IsFile( &isFile);
   if (NS_FAILED( rv) || !isFile)
     return( PR_FALSE);
 
-  PRBool result = VerifyLocalMailFile( pFile);
+  bool result = VerifyLocalMailFile( pFile);
 
   return( result);
 }
 
-PRBool nsOE5File::ReadIndex( nsIInputStream *pInputStream, PRUint32 **ppIndex, PRUint32 *pSize)
+bool nsOE5File::ReadIndex( nsIInputStream *pInputStream, PRUint32 **ppIndex, PRUint32 *pSize)
 {
   *ppIndex = nsnull;
   *pSize = 0;
@@ -260,7 +260,7 @@ PRUint32 nsOE5File::ReadMsgIndex( nsIInputStream *pInputStream, PRUint32 offset,
   return( vals[1]);
 }
 
-PRBool nsOE5File::IsFromLine( char *pLine, PRUint32 len)
+bool nsOE5File::IsFromLine( char *pLine, PRUint32 len)
 {
    return (len > 5 && (pLine[0] == 'F') && (pLine[1] == 'r') && (pLine[2] == 'o') && (pLine[3] == 'm') && (pLine[4] == ' '));
 }
@@ -270,7 +270,7 @@ PRBool nsOE5File::IsFromLine( char *pLine, PRUint32 len)
 #define  kMaxAttrCount       0x0030
 const char *nsOE5File::m_pFromLineSep = "From - Mon Jan 1 00:00:00 1965\x0D\x0A";
 
-nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, PRBool *pAbort, nsString& name, nsIFile *inFile, nsIFile *pDestination, PRUint32 *pCount)
+nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString& name, nsIFile *inFile, nsIFile *pDestination, PRUint32 *pCount)
 {
   nsresult  rv;
   PRInt32    msgCount = 0;
@@ -617,7 +617,7 @@ void nsOE5File::ConvertIndex( nsIInputStream *pFile, char *pBuffer,
 }
 
 
-PRBool nsOE5File::ReadBytes( nsIInputStream *stream, void *pBuffer, PRUint32 offset, PRUint32 bytes)
+bool nsOE5File::ReadBytes( nsIInputStream *stream, void *pBuffer, PRUint32 offset, PRUint32 bytes)
 {
   nsresult  rv;
 

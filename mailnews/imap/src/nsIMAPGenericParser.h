@@ -55,12 +55,12 @@ public:
 	virtual ~nsIMAPGenericParser();
 
   // Add any specific stuff in the derived class
-  virtual PRBool     LastCommandSuccessful();
+  virtual bool       LastCommandSuccessful();
 
-  PRBool SyntaxError() { return (fParserState & stateSyntaxErrorFlag) != 0; }
-  PRBool ContinueParse() { return fParserState == stateOK; }
-  PRBool Connected() { return !(fParserState & stateDisconnectedFlag); }
-  void SetConnected(PRBool error);
+  bool SyntaxError() { return (fParserState & stateSyntaxErrorFlag) != 0; }
+  bool ContinueParse() { return fParserState == stateOK; }
+  bool Connected() { return !(fParserState & stateDisconnectedFlag); }
+  void SetConnected(bool error);
     
 protected:
 
@@ -70,7 +70,7 @@ protected:
 	// from an open socket, whereas another implementation might just get it from a buffer somewhere.
 	// This fills in nextLine with the buffer, and returns PR_TRUE if everything is OK.
 	// Returns PR_FALSE if there was some error encountered.  In that case, we reset the parser.
-	virtual PRBool	GetNextLineForParser(char **nextLine) = 0;	
+	virtual bool	GetNextLineForParser(char **nextLine) = 0;	
 
   virtual void	HandleMemoryFailure();
   void skip_to_CRLF();
@@ -79,10 +79,10 @@ protected:
   char *CreateAstring();
   char *CreateNilString();
   char *CreateLiteral();
-  char *CreateAtom(PRBool isAstring = PR_FALSE);
-  char *CreateQuoted(PRBool skipToEnd = PR_TRUE);
+  char *CreateAtom(bool isAstring = false);
+  char *CreateQuoted(bool skipToEnd = true);
   char *CreateParenGroup();
-  virtual void SetSyntaxError(PRBool error, const char *msg);
+  virtual void SetSyntaxError(bool error, const char *msg);
 
   void AdvanceToNextToken();
   void AdvanceToNextLine();
@@ -96,7 +96,7 @@ protected:
 	char					 *fLineOfTokens;
   char           *fStartOfLineOfTokens;
   char           *fCurrentTokenPlaceHolder;
-  PRBool          fAtEndOfLine;
+  bool            fAtEndOfLine;
 
 private:
   enum nsIMAPGenericParserState { stateOK = 0,

@@ -62,7 +62,7 @@ public:
     // Attachment handling routines
     NS_IMETHOD    StartAttachment(const nsACString &name,
                                   const char *contentType, const char *url,
-                                  PRBool aIsExternalAttachment);
+                                  bool aIsExternalAttachment);
     NS_IMETHOD    AddAttachmentField(const char *field, const char *value);
     NS_IMETHOD    EndAttachment();
     NS_IMETHOD    EndAllAttachments();
@@ -77,17 +77,17 @@ public:
     virtual nsresult            WriteHeaderFieldHTMLPostfix();
 
 protected:
-    PRBool        mFirst;  // Attachment flag...
-    PRBool        mSkipAttachment;  // attachments we shouldn't show...
+    bool          mFirst;  // Attachment flag...
+    bool          mSkipAttachment;  // attachments we shouldn't show...
 
     nsCOMPtr<nsIMsgHeaderSink> mHeaderSink;
 
     nsresult GetHeaderSink(nsIMsgHeaderSink ** aHeaderSink);
-    PRBool BroadCastHeadersAndAttachments();
+    bool BroadCastHeadersAndAttachments();
     nsresult StartAttachmentInBody(const nsACString &name,
                                    const char *contentType, const char *url);
 
-    nsresult BroadcastHeaders(nsIMsgHeaderSink * aHeaderSink, PRInt32 aHeaderMode, PRBool aFromNewsgroup);
+    nsresult BroadcastHeaders(nsIMsgHeaderSink * aHeaderSink, PRInt32 aHeaderMode, bool aFromNewsgroup);
 };
 
 

@@ -65,7 +65,7 @@ public:
   NS_DECL_NSIMSGPROTOCOLINFO
 
 protected:
-  nsresult GetMail(PRBool downloadNewMail,
+  nsresult GetMail(bool downloadNewMail,
                    nsIMsgWindow* aMsgWindow, 
                    nsIUrlListener * aUrlListener,
                    nsIMsgFolder *inbox, 

@@ -73,23 +73,23 @@ public:
                              const char ** aDisplayNameArray,
                              const char ** aMessageUriArray,
                              nsCStringArray *saveFileUris,
-                             PRBool withoutWarning = PR_FALSE);
+                             bool withoutWarning = false);
   nsresult SaveAllAttachments(PRUint32 count,
                               const char **contentTypeArray,
                               const char **urlArray,
                               const char **displayNameArray,
                               const char **messageUriArray,
-                              PRBool detaching);
+                              bool detaching);
   nsresult SaveOneAttachment(const char* aContentType,
                              const char* aURL,
                              const char* aDisplayName,
                              const char* aMessageUri,
-                             PRBool detaching);
+                             bool detaching);
 
 protected:
   void GetString(const nsString& aStringName, nsString& stringValue);
   nsresult InitStringBundle();
-  nsresult PromptIfDeleteAttachments(PRBool saveFirst, PRUint32 count, const char **displayNameArray);
+  nsresult PromptIfDeleteAttachments(bool saveFirst, PRUint32 count, const char **displayNameArray);
 
   void AddMsgUrlToNavigateHistory(const nsACString& aURL);
 

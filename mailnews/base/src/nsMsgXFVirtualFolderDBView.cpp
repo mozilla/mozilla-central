@@ -146,11 +146,11 @@ NS_IMETHODIMP nsMsgXFVirtualFolderDBView::GetViewType(nsMsgViewTypeValue *aViewT
     return NS_OK;
 }
 
-nsresult nsMsgXFVirtualFolderDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, PRBool /*ensureListed*/)
+nsresult nsMsgXFVirtualFolderDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey aParentKey, bool /*ensureListed*/)
 {
   if (newHdr)
   {
-    PRBool match = PR_FALSE;
+    bool match = false;
     nsCOMPtr <nsIMsgSearchSession> searchSession = do_QueryReferent(m_searchSession);
     if (searchSession)
       searchSession->MatchHdr(newHdr, m_db, &match);
@@ -160,7 +160,7 @@ nsresult nsMsgXFVirtualFolderDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey a
     {
       nsCOMPtr <nsIMsgFolder> folder;
       newHdr->GetFolder(getter_AddRefs(folder));
-      PRBool saveDoingSearch = m_doingSearch;
+      bool saveDoingSearch = m_doingSearch;
       m_doingSearch = PR_FALSE;
       OnSearchHit(newHdr, folder);
       m_doingSearch = saveDoingSearch;
@@ -170,7 +170,7 @@ nsresult nsMsgXFVirtualFolderDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey a
 }
 
 NS_IMETHODIMP nsMsgXFVirtualFolderDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged,
-                PRBool aPreChange, PRUint32 *aStatus, nsIDBChangeListener *aInstigator)
+                bool aPreChange, PRUint32 *aStatus, nsIDBChangeListener *aInstigator)
 {
   // If the junk mail plugin just activated on a message, then
   // we'll allow filters to remove from view.
@@ -189,7 +189,7 @@ NS_IMETHODIMP nsMsgXFVirtualFolderDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdr
   nsCString originStr;
   (void) aHdrChanged->GetStringProperty("junkscoreorigin", getter_Copies(originStr));
   // check for "plugin" with only first character for performance
-  PRBool plugin = (originStr.get()[0] == 'p');
+  bool plugin = (originStr.get()[0] == 'p');
 
   if (aPreChange)
   {
@@ -199,9 +199,9 @@ NS_IMETHODIMP nsMsgXFVirtualFolderDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdr
   }
 
   // second call, done after the change
-  PRBool wasPlugin = *aStatus;
+  bool wasPlugin = *aStatus;
 
-  PRBool match = PR_TRUE;
+  bool match = true;
   nsCOMPtr<nsIMsgSearchSession> searchSession(do_QueryReferent(m_searchSession));
   if (searchSession)
     searchSession->MatchHdr(aHdrChanged, m_db, &match);
@@ -299,7 +299,7 @@ nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *aFol
     m_hdrHits.Clear();
     m_curFolderStartKeyIndex = m_keys.Length();
   }
-  PRBool hdrInCache = PR_FALSE;
+  bool hdrInCache = false;
   nsCString searchUri;
   if (!m_doingQuickSearch)
   {
@@ -456,7 +456,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
         if (m_doingQuickSearch) // ignore cached hits in quick search case.
           continue;
         searchDB->GetCachedHits(searchUri.get(), getter_AddRefs(cachedHits));
-        PRBool hasMore;
+        bool hasMore;
         if (cachedHits)
         {
           cachedHits->HasMoreElements(&hasMore);

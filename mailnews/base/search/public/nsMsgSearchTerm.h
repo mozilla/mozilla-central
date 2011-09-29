@@ -67,7 +67,7 @@ public:
 
   nsresult GetLocalTimes (PRTime, PRTime, PRExplodedTime &, PRExplodedTime &);
 
-  PRBool IsBooleanOpAND() { return m_booleanOp == nsMsgSearchBooleanOp::BooleanAND ? PR_TRUE : PR_FALSE;}
+  bool IsBooleanOpAND() { return m_booleanOp == nsMsgSearchBooleanOp::BooleanAND ? true : false;}
   nsMsgSearchBooleanOperator GetBooleanOp() {return m_booleanOp;}
   // maybe should return nsString &   ??
   const char * GetArbitraryHeader() {return m_arbitraryHeader.get();}
@@ -89,12 +89,12 @@ public:
 
   // db hdr property name to use - used when m_attribute = HdrProperty.
   nsCString m_hdrProperty;
-  PRBool m_matchAll; // does this term match all headers?
+  bool m_matchAll; // does this term match all headers?
   nsCString m_customId; // id of custom search term
 
 protected:
   nsresult MatchString (const char *stringToMatch, const char *charset,
-                          PRBool *pResult);
+                          bool *pResult);
   nsresult OutputValue(nsCString &outputStr);
   nsresult ParseAttribute(char *inStream, nsMsgSearchAttribValue *attrib);
   nsresult ParseOperator(char *inStream, nsMsgSearchOpValue *value);
@@ -108,12 +108,12 @@ protected:
    */
   void ToLowerCaseExceptSpecials(nsACString &aValue);
     nsresult InitializeAddressBook();
-    nsresult MatchInAddressBook(const char * aAddress, PRBool *pResult);
+    nsresult MatchInAddressBook(const char * aAddress, bool *pResult);
     // fields used by search in address book
     nsCOMPtr <nsIAbDirectory> mDirectory;
 
-    PRPackedBool mBeginsGrouping;
-    PRPackedBool mEndsGrouping;
+    bool mBeginsGrouping;
+    bool mEndsGrouping;
 };
 
 #endif

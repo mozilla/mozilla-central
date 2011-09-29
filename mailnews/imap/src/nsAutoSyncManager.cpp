@@ -122,7 +122,7 @@ NS_IMETHODIMP nsDefaultAutoSyncMsgStrategy::Sort(nsIMsgFolder *aFolder,
 }
 
 NS_IMETHODIMP nsDefaultAutoSyncMsgStrategy::IsExcluded(nsIMsgFolder *aFolder, 
-  nsIMsgDBHdr *aMsgHdr, PRBool *aDecision)
+  nsIMsgDBHdr *aMsgHdr, bool *aDecision)
 {
   NS_ENSURE_ARG_POINTER(aDecision);
   NS_ENSURE_ARG_POINTER(aMsgHdr);
@@ -163,7 +163,7 @@ NS_IMETHODIMP nsDefaultAutoSyncFolderStrategy::Sort(nsIMsgFolder *aFolderA,
     return NS_OK;
   }
   
-  PRBool isInbox1, isInbox2, isDrafts1, isDrafts2, isTrash1, isTrash2;
+  bool isInbox1, isInbox2, isDrafts1, isDrafts2, isTrash1, isTrash2;
   aFolderA->GetFlag(nsMsgFolderFlags::Inbox, &isInbox1);
   aFolderB->GetFlag(nsMsgFolderFlags::Inbox, &isInbox2);
   //
@@ -180,8 +180,8 @@ NS_IMETHODIMP nsDefaultAutoSyncFolderStrategy::Sort(nsIMsgFolder *aFolderA,
   // we give high priority to the folders explicitly opened by 
   // the user.
   nsresult rv;
-  PRBool folderAOpen = PR_FALSE;
-  PRBool folderBOpen = PR_FALSE;
+  bool folderAOpen = false;
+  bool folderBOpen = false;
   nsCOMPtr<nsIMsgMailSession> session =
            do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv) && session) 
@@ -212,7 +212,7 @@ NS_IMETHODIMP nsDefaultAutoSyncFolderStrategy::Sort(nsIMsgFolder *aFolderA,
 }
 
 NS_IMETHODIMP 
-nsDefaultAutoSyncFolderStrategy::IsExcluded(nsIMsgFolder *aFolder, PRBool *aDecision)
+nsDefaultAutoSyncFolderStrategy::IsExcluded(nsIMsgFolder *aFolder, bool *aDecision)
 {
   NS_ENSURE_ARG_POINTER(aDecision);
   NS_ENSURE_ARG_POINTER(aFolder);
@@ -401,12 +401,12 @@ void nsAutoSyncManager::ChainFoldersInQ(const nsCOMArray<nsIAutoSyncState> &aQue
   PRInt32 pqElemCount = aQueue.Count();
   for (PRInt32 pqidx = 1; pqidx < pqElemCount; pqidx++)
   {
-    PRBool chained = PR_FALSE;
+    bool chained = false;
     PRInt32 needToBeReplacedWith = -1;
     PRInt32 elemCount = aChainedQ.Count();
     for (PRInt32 idx = 0; idx < elemCount; idx++)
     {
-      PRBool isSibling;
+      bool isSibling;
       nsresult rv = aChainedQ[idx]->IsSibling(aQueue[pqidx], &isSibling);
       
       if (NS_SUCCEEDED(rv) && isSibling)
@@ -447,7 +447,7 @@ nsAutoSyncManager::SearchQForSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
   
   if (aAutoSyncStateObj)
   {
-    PRBool isSibling;
+    bool isSibling;
     PRInt32 elemCount = aQueue.Count();
     for (PRInt32 idx = aStartIdx; idx < elemCount; idx++)
     {
@@ -479,8 +479,8 @@ nsAutoSyncManager::GetNextSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
   
   if (aAutoSyncStateObj)
   {
-    PRBool located = PR_FALSE;
-    PRBool isSibling;
+    bool located = false;
+    bool isSibling;
     PRInt32 elemCount = aQueue.Count();
     for (PRInt32 idx = 0; idx < elemCount; idx++)
     {
@@ -515,7 +515,7 @@ nsAutoSyncManager::GetNextSibling(const nsCOMArray<nsIAutoSyncState> &aQueue,
  *               caller (not null)
  * @return true if found, false otherwise
  */
-PRBool nsAutoSyncManager::DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncState> &aQueue, 
+bool nsAutoSyncManager::DoesQContainAnySiblingOf(const nsCOMArray<nsIAutoSyncState> &aQueue, 
                                                    nsIAutoSyncState *aAutoSyncStateObj,
                                                    const PRInt32 aState, PRInt32 *aIndex)
 {
@@ -797,7 +797,7 @@ nsresult nsAutoSyncManager::AutoUpdateFolders()
       continue;
 
     // if we haven't logged onto this server yet, then skip this server.
-    PRBool passwordRequired;
+    bool passwordRequired;
     incomingServer->GetServerRequiresPasswordForBiff(&passwordRequired);
     if (passwordRequired)
       continue;
@@ -843,7 +843,7 @@ nsresult nsAutoSyncManager::AutoUpdateFolders()
         rv = imapFolder->GetImapIncomingServer(getter_AddRefs(imapServer));
         if (imapServer)
         {
-          PRBool autoSyncOfflineStores = PR_FALSE;
+          bool autoSyncOfflineStores = false;
           rv = imapServer->GetAutoSyncOfflineStores(&autoSyncOfflineStores);
 
           // skip if AutoSyncOfflineStores pref is not set for this folder
@@ -923,7 +923,7 @@ void nsAutoSyncManager::ScheduleFolderForOfflineDownload(nsIAutoSyncState *aAuto
       aAutoSyncStateObj->GetOwnerFolder(getter_AddRefs(folder));
       if (folder)
       {
-        PRBool excluded = PR_FALSE;
+        bool excluded = false;
         if (folStrategy)
           folStrategy->IsExcluded(folder, &excluded);
 
@@ -946,7 +946,7 @@ void nsAutoSyncManager::ScheduleFolderForOfflineDownload(nsIAutoSyncState *aAuto
         mPriorityQ[qidx]->GetOwnerFolder(getter_AddRefs(folderA));
         aAutoSyncStateObj->GetOwnerFolder(getter_AddRefs(folderB));
         
-        PRBool excluded = PR_FALSE;
+        bool excluded = false;
         if (folderB && folStrategy)
           folStrategy->IsExcluded(folderB, &excluded);
 
@@ -1169,7 +1169,7 @@ NS_IMETHODIMP nsAutoSyncManager::SetFolderStrategy(nsIAutoSyncFolderStrategy * a
 }
 
 NS_IMETHODIMP 
-nsAutoSyncManager::DoesMsgFitDownloadCriteria(nsIMsgDBHdr *aMsgHdr, PRBool *aResult)
+nsAutoSyncManager::DoesMsgFitDownloadCriteria(nsIMsgDBHdr *aMsgHdr, bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
@@ -1181,7 +1181,7 @@ nsAutoSyncManager::DoesMsgFitDownloadCriteria(nsIMsgDBHdr *aMsgHdr, PRBool *aRes
   if (!(*aResult))
     return NS_OK;
 
-  PRBool shouldStoreMsgOffline = PR_TRUE;
+  bool shouldStoreMsgOffline = true;
   nsCOMPtr<nsIMsgFolder> folder;
   aMsgHdr->GetFolder(getter_AddRefs(folder));
   if (folder)
@@ -1208,7 +1208,7 @@ NS_IMETHODIMP nsAutoSyncManager::OnDownloadQChanged(nsIAutoSyncState *aAutoSyncS
   if (mPaused)
     return NS_OK;
   // We want to start downloading immediately unless the folder is excluded.
-  PRBool excluded = PR_FALSE;
+  bool excluded = false;
   nsCOMPtr<nsIAutoSyncFolderStrategy> folStrategy;
   nsCOMPtr<nsIMsgFolder> folder;
 
@@ -1409,11 +1409,11 @@ nsAutoSyncManager::OnFolderHasPendingMsgs(nsIAutoSyncState *aAutoSyncStateObj)
     // If this folder isn't the trash, add it to the update q.
     if (folder)
     {
-      PRBool isTrash;
+      bool isTrash;
       folder->GetFlag(nsMsgFolderFlags::Trash, &isTrash);
       if (!isTrash)
       {
-        PRBool isSentOrArchive;
+        bool isSentOrArchive;
         folder->IsSpecialFolder(nsMsgFolderFlags::SentMail|
                                 nsMsgFolderFlags::Archive,
                                 PR_TRUE, &isSentOrArchive);

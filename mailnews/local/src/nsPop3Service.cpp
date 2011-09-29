@@ -103,7 +103,7 @@ nsresult nsPop3Service::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlListener * aU
   return GetMail(PR_TRUE /* download */, aMsgWindow, aUrlListener, aInbox, aPopServer, aURL);
 }
 
-nsresult nsPop3Service::GetMail(PRBool downloadNewMail,
+nsresult nsPop3Service::GetMail(bool downloadNewMail,
                                 nsIMsgWindow* aMsgWindow,
                                 nsIUrlListener * aUrlListener,
                                 nsIMsgFolder *aInbox,
@@ -123,7 +123,7 @@ nsresult nsPop3Service::GetMail(PRBool downloadNewMail,
   nsCOMPtr <nsIMsgLocalMailFolder> destLocalFolder = do_QueryInterface(aInbox);
   if (destLocalFolder)
   {
-    PRBool destFolderTooBig;
+    bool destFolderTooBig;
     destLocalFolder->WarnIfLocalFileTooBig(aMsgWindow, &destFolderTooBig);
     if (destFolderTooBig)
       return NS_MSG_ERROR_WRITING_MAIL_FOLDER;
@@ -274,7 +274,7 @@ nsresult nsPop3Service::RunPopUrl(nsIMsgIncomingServer * aServer, nsIURI * aUrlT
 
     // find out if the server is busy or not...if the server is busy, we are
     // *NOT* going to run the url
-    PRBool serverBusy = PR_FALSE;
+    bool serverBusy = false;
     rv = aServer->GetServerBusy(&serverBusy);
 
     if (!serverBusy)
@@ -317,13 +317,13 @@ NS_IMETHODIMP nsPop3Service::GetDefaultPort(PRInt32 *aDefaultPort)
     return NS_OK;
 }
 
-NS_IMETHODIMP nsPop3Service::AllowPort(PRInt32 port, const char *scheme, PRBool *_retval)
+NS_IMETHODIMP nsPop3Service::AllowPort(PRInt32 port, const char *scheme, bool *_retval)
 {
     *_retval = PR_TRUE; // allow pop on any port
     return NS_OK;
 }
 
-NS_IMETHODIMP nsPop3Service::GetDefaultDoBiff(PRBool *aDoBiff)
+NS_IMETHODIMP nsPop3Service::GetDefaultDoBiff(bool *aDoBiff)
 {
     NS_ENSURE_ARG_POINTER(aDoBiff);
     // by default, do biff for POP3 servers
@@ -500,7 +500,7 @@ NS_IMETHODIMP nsPop3Service::NewChannel(nsIURI *aURI, nsIChannel **_retval)
       // find out if the server is busy or not...if the server is busy, we are
       // *NOT* going to run the url. The error code isn't quite right...
       // We might want to put up an error right here.
-      PRBool serverBusy = PR_FALSE;
+      bool serverBusy = false;
       rv = server->GetServerBusy(&serverBusy);
       if (serverBusy)
       {
@@ -544,7 +544,7 @@ nsPop3Service::GetDefaultLocalPath(nsILocalFile ** aResult)
     *aResult = nsnull;
 
     nsresult rv;
-    PRBool havePref;
+    bool havePref;
     nsCOMPtr<nsILocalFile> localFile;
     rv = NS_GetPersistentFile(PREF_MAIL_ROOT_POP3_REL,
                               PREF_MAIL_ROOT_POP3,
@@ -553,7 +553,7 @@ nsPop3Service::GetDefaultLocalPath(nsILocalFile ** aResult)
                               getter_AddRefs(localFile));
         if (NS_FAILED(rv)) return rv;
 
-    PRBool exists;
+    bool exists;
     rv = localFile->Exists(&exists);
     if (NS_SUCCEEDED(rv) && !exists)
         rv = localFile->Create(nsIFile::DIRECTORY_TYPE, 0775);
@@ -577,7 +577,7 @@ nsPop3Service::GetServerIID(nsIID* *aServerIID)
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetRequiresUsername(PRBool *aRequiresUsername)
+nsPop3Service::GetRequiresUsername(bool *aRequiresUsername)
 {
         NS_ENSURE_ARG_POINTER(aRequiresUsername);
         *aRequiresUsername = PR_TRUE;
@@ -585,7 +585,7 @@ nsPop3Service::GetRequiresUsername(PRBool *aRequiresUsername)
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetPreflightPrettyNameWithEmailAddress(PRBool *aPreflightPrettyNameWithEmailAddress)
+nsPop3Service::GetPreflightPrettyNameWithEmailAddress(bool *aPreflightPrettyNameWithEmailAddress)
 {
         NS_ENSURE_ARG_POINTER(aPreflightPrettyNameWithEmailAddress);
         *aPreflightPrettyNameWithEmailAddress = PR_TRUE;
@@ -593,7 +593,7 @@ nsPop3Service::GetPreflightPrettyNameWithEmailAddress(PRBool *aPreflightPrettyNa
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetCanLoginAtStartUp(PRBool *aCanLoginAtStartUp)
+nsPop3Service::GetCanLoginAtStartUp(bool *aCanLoginAtStartUp)
 {
         NS_ENSURE_ARG_POINTER(aCanLoginAtStartUp);
         *aCanLoginAtStartUp = PR_TRUE;
@@ -601,7 +601,7 @@ nsPop3Service::GetCanLoginAtStartUp(PRBool *aCanLoginAtStartUp)
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetCanDelete(PRBool *aCanDelete)
+nsPop3Service::GetCanDelete(bool *aCanDelete)
 {
         NS_ENSURE_ARG_POINTER(aCanDelete);
         *aCanDelete = PR_TRUE;
@@ -609,7 +609,7 @@ nsPop3Service::GetCanDelete(PRBool *aCanDelete)
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetCanDuplicate(PRBool *aCanDuplicate)
+nsPop3Service::GetCanDuplicate(bool *aCanDuplicate)
 {
         NS_ENSURE_ARG_POINTER(aCanDuplicate);
         *aCanDuplicate = PR_TRUE;
@@ -617,7 +617,7 @@ nsPop3Service::GetCanDuplicate(PRBool *aCanDuplicate)
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetCanGetMessages(PRBool *aCanGetMessages)
+nsPop3Service::GetCanGetMessages(bool *aCanGetMessages)
 {
     NS_ENSURE_ARG_POINTER(aCanGetMessages);
     *aCanGetMessages = PR_TRUE;
@@ -625,7 +625,7 @@ nsPop3Service::GetCanGetMessages(PRBool *aCanGetMessages)
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetCanGetIncomingMessages(PRBool *aCanGetIncomingMessages)
+nsPop3Service::GetCanGetIncomingMessages(bool *aCanGetIncomingMessages)
 {
     NS_ENSURE_ARG_POINTER(aCanGetIncomingMessages);
     *aCanGetIncomingMessages = PR_TRUE;
@@ -633,7 +633,7 @@ nsPop3Service::GetCanGetIncomingMessages(PRBool *aCanGetIncomingMessages)
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetShowComposeMsgLink(PRBool *showComposeMsgLink)
+nsPop3Service::GetShowComposeMsgLink(bool *showComposeMsgLink)
 {
     NS_ENSURE_ARG_POINTER(showComposeMsgLink);
     *showComposeMsgLink = PR_TRUE;
@@ -641,7 +641,7 @@ nsPop3Service::GetShowComposeMsgLink(PRBool *showComposeMsgLink)
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetDefaultServerPort(PRBool isSecure, PRInt32 *aPort)
+nsPop3Service::GetDefaultServerPort(bool isSecure, PRInt32 *aPort)
 {
     NS_ENSURE_ARG_POINTER(aPort);
     nsresult rv = NS_OK;
@@ -655,7 +655,7 @@ nsPop3Service::GetDefaultServerPort(PRBool isSecure, PRInt32 *aPort)
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetSpecialFoldersDeletionAllowed(PRBool *specialFoldersDeletionAllowed)
+nsPop3Service::GetSpecialFoldersDeletionAllowed(bool *specialFoldersDeletionAllowed)
 {
     NS_ENSURE_ARG_POINTER(specialFoldersDeletionAllowed);
     *specialFoldersDeletionAllowed = PR_TRUE;

@@ -100,7 +100,7 @@ nsImportEncodeScan::~nsImportEncodeScan()
 {
 }
 
-PRBool nsImportEncodeScan::InitEncodeScan( PRBool appleSingleEncode, nsIFile *fileLoc, const char *pName, PRUint8 * pBuf, PRUint32 sz)
+bool nsImportEncodeScan::InitEncodeScan( bool appleSingleEncode, nsIFile *fileLoc, const char *pName, PRUint8 * pBuf, PRUint32 sz)
 {
   CleanUpEncodeScan();
   m_isAppleSingle = appleSingleEncode;
@@ -212,7 +212,7 @@ void nsImportEncodeScan::FillInEntries( int numEntries)
 #endif
 }
 
-PRBool nsImportEncodeScan::AddEntries( void)
+bool nsImportEncodeScan::AddEntries( void)
 {
 #ifdef _MAC_IMPORT_CODE
   if (!g2000Secs) {
@@ -274,7 +274,7 @@ PRBool nsImportEncodeScan::AddEntries( void)
   return( PR_TRUE);
 }
 
-PRBool nsImportEncodeScan::Scan( PRBool *pDone)
+bool nsImportEncodeScan::Scan( bool *pDone)
 {
   nsresult  rv;
 
@@ -324,7 +324,7 @@ PRBool nsImportEncodeScan::Scan( PRBool *pDone)
       break;
 
       case kScanningDataFork: {
-        PRBool result = FillBufferFromFile();
+        bool result = FillBufferFromFile();
         if (!result)
           return( PR_FALSE);
         if (m_eof) {
@@ -343,7 +343,7 @@ PRBool nsImportEncodeScan::Scan( PRBool *pDone)
       break;
 
       case kScanningRsrcFork: {
-        PRBool result = FillBufferFromFile();
+        bool result = FillBufferFromFile();
         if (!result)
           return( PR_FALSE);
         if (m_eof) {

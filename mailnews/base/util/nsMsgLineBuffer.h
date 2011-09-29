@@ -71,7 +71,7 @@ public:
 class NS_MSG_BASE nsMsgLineBuffer : public nsMsgLineBufferHandler
 {
 public:
-  nsMsgLineBuffer(nsMsgLineBufferHandler *handler, PRBool convertNewlinesP);
+  nsMsgLineBuffer(nsMsgLineBufferHandler *handler, bool convertNewlinesP);
   
   virtual    ~nsMsgLineBuffer();
   PRInt32     BufferInput(const char *net_buffer, PRInt32 net_buffer_size);
@@ -82,14 +82,14 @@ public:
   // flush last line, though it won't be CRLF terminated.
   virtual PRInt32 FlushLastLine();
 protected:
-  nsMsgLineBuffer(PRBool convertNewlinesP);
+  nsMsgLineBuffer(bool convertNewlinesP);
   
   PRInt32 ConvertAndSendBuffer();
-  void SetLookingForCRLF(PRBool b);
+  void SetLookingForCRLF(bool b);
   
   nsMsgLineBufferHandler *m_handler;
-  PRBool      m_convertNewlinesP;
-  PRBool      m_lookingForCRLF; 
+  bool        m_convertNewlinesP;
+  bool        m_lookingForCRLF; 
 };
 
 // I'm adding this utility class here for lack of a better place. This utility class is similar to nsMsgLineBuffer
@@ -113,21 +113,21 @@ public:
   //         PR_FALSE if you do want to see them.
   // aLineToken -- Specify the line token to look for, by default is LF ('\n') which cover as well CRLF. If
   //            lines are terminated with a CR only, you need to set aLineToken to CR ('\r')
-  nsMsgLineStreamBuffer(PRUint32 aBufferSize, PRBool aAllocateNewLines, 
-                        PRBool aEatCRLFs = PR_TRUE, char aLineToken = '\n'); // specify the size of the buffer you want the class to use....
+  nsMsgLineStreamBuffer(PRUint32 aBufferSize, bool aAllocateNewLines, 
+                        bool aEatCRLFs = true, char aLineToken = '\n'); // specify the size of the buffer you want the class to use....
   virtual ~nsMsgLineStreamBuffer();
   
   // Caller must free the line returned using PR_Free
   // aEndOfLinetoken -- delimiter used to denote the end of a line.
   // aNumBytesInLine -- The number of bytes in the line returned
   // aPauseForMoreData -- There is not enough data in the stream to make a line at this time...
-  char * ReadNextLine(nsIInputStream * aInputStream, PRUint32 &anumBytesInLine, PRBool &aPauseForMoreData, nsresult *rv = nsnull, PRBool addLineTerminator = PR_FALSE);
+  char * ReadNextLine(nsIInputStream * aInputStream, PRUint32 &anumBytesInLine, bool &aPauseForMoreData, nsresult *rv = nsnull, bool addLineTerminator = false);
   nsresult GrowBuffer(PRInt32 desiredSize);
   void ClearBuffer();
-  PRBool NextLineAvailable();
+  bool NextLineAvailable();
 protected:
-  PRBool m_eatCRLFs;
-  PRBool m_allocateNewLines;
+  bool m_eatCRLFs;
+  bool m_allocateNewLines;
   char * m_dataBuffer;
   PRUint32 m_dataBufferSize;
   PRUint32 m_startPos;

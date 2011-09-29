@@ -739,7 +739,7 @@ nsresult calIcalComponent::SetDateTimeAttribute(icalproperty_kind kind,
                                                 calIDateTime * dt)
 {
     ClearAllProperties(kind);
-    PRBool isValid;
+    bool isValid;
     if (!dt || NS_FAILED(dt->GetIsValid(&isValid)) || !isValid) {
         return NS_OK;
     }
@@ -782,7 +782,7 @@ nsresult calIcalProperty::setDatetime_(calIcalComponent * parent,
                     ICAL_TZID_PARAMETER, icaltimezone_get_tzid(const_cast<icaltimezone *>(itt.zone)));
                 icalproperty_set_parameter(prop, param);
             } else { // either floating or phantom:
-                PRBool b = PR_FALSE;
+                bool b = false;
                 if (NS_FAILED(tz->GetIsFloating(&b)) || !b) {
                     // restore the same phantom TZID:
                     nsCAutoString tzid;
@@ -1083,7 +1083,7 @@ calIcalComponent::AddSubcomponent(calIIcalComponent *comp)
     NS_ENSURE_SUCCESS(rv, rv);
 
     calIcalComponent * const vcal = getParentVCalendarOrThis();
-    PRBool failed = PR_FALSE;
+    bool failed = false;
     for (PRUint32 i = 0; i < tzCount; i++) {
         if (!failed) {
             rv = vcal->AddTimezoneReference(timezones[i]);

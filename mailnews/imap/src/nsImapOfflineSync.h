@@ -54,7 +54,7 @@ class nsImapOfflineSync : public nsIUrlListener,
 public: // set to one folder to playback one folder only
   nsImapOfflineSync(nsIMsgWindow *window, nsIUrlListener *listener,
                     nsIMsgFolder *singleFolderOnly = nsnull,
-                    PRBool isPseudoOffline = PR_FALSE);
+                    bool isPseudoOffline = false);
 
   virtual ~nsImapOfflineSync();
 
@@ -67,14 +67,14 @@ public: // set to one folder to playback one folder only
   PRInt32   GetCurrentUIDValidity();
   void      SetCurrentUIDValidity(PRInt32 uidvalidity) { mCurrentUIDValidity = uidvalidity; }
 
-  void      SetPseudoOffline(PRBool pseudoOffline) {m_pseudoOffline = pseudoOffline;}
-  PRBool    ProcessingStaleFolderUpdate() { return m_singleFolderToUpdate != nsnull; }
+  void      SetPseudoOffline(bool pseudoOffline) {m_pseudoOffline = pseudoOffline;}
+  bool      ProcessingStaleFolderUpdate() { return m_singleFolderToUpdate != nsnull; }
 
-  PRBool    CreateOfflineFolder(nsIMsgFolder *folder);
+  bool      CreateOfflineFolder(nsIMsgFolder *folder);
   void      SetWindow(nsIMsgWindow *window);
 protected:
-  PRBool    CreateOfflineFolders();
-  PRBool    DestFolderOnSameServer(nsIMsgFolder *destFolder);
+  bool      CreateOfflineFolders();
+  bool      DestFolderOnSameServer(nsIMsgFolder *destFolder);
   nsresult  AdvanceToNextServer();
   nsresult  AdvanceToNextFolder();
   void      AdvanceToFirstIMAPFolder();
@@ -106,10 +106,10 @@ protected:
   nsCOMPtr <nsIUrlListener> m_listener;
   PRInt32	mCurrentUIDValidity;
   PRInt32	mCurrentPlaybackOpType;	// kFlagsChanged -> kMsgCopy -> kMsgMoved
-  PRBool	m_mailboxupdatesStarted;
-  PRBool        m_mailboxupdatesFinished;
-  PRBool	m_pseudoOffline;		// for queueing online events in offline db
-  PRBool	m_createdOfflineFolders;
+  bool	m_mailboxupdatesStarted;
+  bool          m_mailboxupdatesFinished;
+  bool	m_pseudoOffline;		// for queueing online events in offline db
+  bool	m_createdOfflineFolders;
   
 };
 

@@ -61,8 +61,8 @@ extern MimeObjectClass mimeMultipartAppleDoubleClass;
 static int MimeExternalBody_initialize (MimeObject *);
 static void MimeExternalBody_finalize (MimeObject *);
 static int MimeExternalBody_parse_line (const char *, PRInt32, MimeObject *);
-static int MimeExternalBody_parse_eof (MimeObject *, PRBool);
-static PRBool MimeExternalBody_displayable_inline_p (MimeObjectClass *clazz,
+static int MimeExternalBody_parse_eof (MimeObject *, bool);
+static bool MimeExternalBody_displayable_inline_p (MimeObjectClass *clazz,
                             MimeHeaders *hdrs);
 
 #if 0
@@ -210,7 +210,7 @@ MimeExternalBody_make_url(const char *ct,
     if (!PL_strcasecmp(at, "afs"))   /* only if there is a /afs/ directory */
     {
       nsCOMPtr <nsILocalFile> fs = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
-      PRBool exists = PR_FALSE;
+      bool exists = false;
       if (fs)
       {
         fs->InitWithNativePath(NS_LITERAL_CSTRING("/afs/."));
@@ -274,7 +274,7 @@ else if (!PL_strcasecmp(at, "url"))      /* RFC 2017 */
 }
 
 static int
-MimeExternalBody_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeExternalBody_parse_eof (MimeObject *obj, bool abort_p)
 {
   int status = 0;
   MimeExternalBody *bod = (MimeExternalBody *) obj;
@@ -296,7 +296,7 @@ MimeExternalBody_parse_eof (MimeObject *obj, PRBool abort_p)
       obj->options &&
       obj->options->write_html_p)
   {
-    PRBool all_headers_p = obj->options->headers == MimeHeadersAll;
+    bool all_headers_p = obj->options->headers == MimeHeadersAll;
     MimeDisplayOptions *newopt = obj->options;  /* copy it */
 
     char *ct = MimeHeaders_get(obj->headers, HEADER_CONTENT_TYPE,
@@ -503,13 +503,13 @@ MimeExternalBody_debug_print (MimeObject *obj, PRFileDesc *stream, PRInt32 depth
 #endif
 #endif /* 0 */
 
-static PRBool
+static bool
 MimeExternalBody_displayable_inline_p (MimeObjectClass *clazz,
                      MimeHeaders *hdrs)
 {
   char *ct = MimeHeaders_get (hdrs, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
   char *at = MimeHeaders_get_parameter(ct, "access-type", NULL, NULL);
-  PRBool inline_p = PR_FALSE;
+  bool inline_p = false;
 
   if (!at)
   ;
@@ -523,7 +523,7 @@ MimeExternalBody_displayable_inline_p (MimeObjectClass *clazz,
   else if (!PL_strcasecmp(at, "afs"))   /* only if there is a /afs/ directory */
   {
     nsCOMPtr <nsILocalFile> fs = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID);
-    PRBool exists = PR_FALSE;
+    bool exists = false;
     if (fs)
     {
       fs->InitWithNativePath(NS_LITERAL_CSTRING("/afs/."));

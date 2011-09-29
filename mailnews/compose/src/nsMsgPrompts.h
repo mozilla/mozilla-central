@@ -49,6 +49,6 @@ nsresult      nsMsgBuildMessageWithFile(nsIFile * aFile, nsString& aResult);
 nsresult      nsMsgBuildMessageWithTmpFile(nsIFile * aFile, nsString& aResult);
 nsresult      nsMsgDisplayMessageByID(nsIPrompt * aPrompt, PRInt32 msgID, const PRUnichar * windowTitle = nsnull);
 nsresult      nsMsgDisplayMessageByString(nsIPrompt * aPrompt, const PRUnichar * msg, const PRUnichar * windowTitle = nsnull);
-nsresult      nsMsgAskBooleanQuestionByString(nsIPrompt * aPrompt, const PRUnichar * msg, PRBool *answer, const PRUnichar * windowTitle = nsnull);
+nsresult      nsMsgAskBooleanQuestionByString(nsIPrompt * aPrompt, const PRUnichar * msg, bool *answer, const PRUnichar * windowTitle = nsnull);
 
 #endif /* _nsMsgPrompts_H_ */

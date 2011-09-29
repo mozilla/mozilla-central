@@ -129,7 +129,7 @@ nsSubscribeDataSource::GetURI(char * *aURI)
 }
 
 NS_IMETHODIMP 
-nsSubscribeDataSource::GetSource(nsIRDFResource *property, nsIRDFNode *target, PRBool tv, nsIRDFResource **source)
+nsSubscribeDataSource::GetSource(nsIRDFResource *property, nsIRDFNode *target, bool tv, nsIRDFResource **source)
 {
     NS_PRECONDITION(property != nsnull, "null ptr");
     if (! property)
@@ -150,7 +150,7 @@ nsSubscribeDataSource::GetSource(nsIRDFResource *property, nsIRDFNode *target, P
 NS_IMETHODIMP
 nsSubscribeDataSource::GetTarget(nsIRDFResource *source,
                                 nsIRDFResource *property,
-                                PRBool tv,
+                                bool tv,
                                 nsIRDFNode **target /* out */)
 {
 	nsresult rv = NS_RDF_NO_VALUE;
@@ -201,7 +201,7 @@ nsSubscribeDataSource::GetTarget(nsIRDFResource *source,
         return childResource->QueryInterface(NS_GET_IID(nsIRDFNode), (void**) target);
     }
     else if (property == kNC_Subscribed.get()) {
-        PRBool isSubscribed;
+        bool isSubscribed;
         rv = server->IsSubscribed(relativePath, &isSubscribed);
         NS_ENSURE_SUCCESS(rv,rv);
     
@@ -209,7 +209,7 @@ nsSubscribeDataSource::GetTarget(nsIRDFResource *source,
         return NS_OK;
     }
     else if (property == kNC_Subscribable.get()) {
-        PRBool isSubscribable;
+        bool isSubscribable;
         rv = server->IsSubscribable(relativePath, &isSubscribable);
         NS_ENSURE_SUCCESS(rv,rv);
         
@@ -257,7 +257,7 @@ nsSubscribeDataSource::GetTarget(nsIRDFResource *source,
 NS_IMETHODIMP
 nsSubscribeDataSource::GetTargets(nsIRDFResource *source,
 				nsIRDFResource *property,
-				PRBool tv,
+				bool tv,
 				nsISimpleEnumerator **targets /* out */)
 {
 	nsresult rv = NS_OK;
@@ -306,7 +306,7 @@ nsSubscribeDataSource::GetTargets(nsIRDFResource *source,
         return NS_NewSingletonEnumerator(targets, leafName);
     }
     else if (property == kNC_Subscribed.get()) {
-        PRBool isSubscribed;
+        bool isSubscribed;
         rv = server->IsSubscribed(relativePath, &isSubscribed);
         NS_ENSURE_SUCCESS(rv,rv);
 
@@ -314,7 +314,7 @@ nsSubscribeDataSource::GetTargets(nsIRDFResource *source,
                  isSubscribed ? kTrueLiteral : kFalseLiteral);
     }
     else if (property == kNC_Subscribable.get()) {
-        PRBool isSubscribable;
+        bool isSubscribable;
         rv = server->IsSubscribable(relativePath, &isSubscribable);
         NS_ENSURE_SUCCESS(rv,rv);
 
@@ -352,7 +352,7 @@ NS_IMETHODIMP
 nsSubscribeDataSource::Assert(nsIRDFResource *source,
                        nsIRDFResource *property,
                        nsIRDFNode *target,
-                       PRBool tv)
+                       bool tv)
 {
 	return NS_RDF_ASSERTION_REJECTED;
 }
@@ -441,8 +441,8 @@ NS_IMETHODIMP
 nsSubscribeDataSource::HasAssertion(nsIRDFResource *source,
                              nsIRDFResource *property,
                              nsIRDFNode *target,
-                             PRBool tv,
-                             PRBool *hasAssertion /* out */)
+                             bool tv,
+                             bool *hasAssertion /* out */)
 {
     nsresult rv = NS_OK;
 
@@ -510,13 +510,13 @@ nsSubscribeDataSource::HasAssertion(nsIRDFResource *source,
 
 
 NS_IMETHODIMP 
-nsSubscribeDataSource::HasArcIn(nsIRDFNode *aNode, nsIRDFResource *aArc, PRBool *result)
+nsSubscribeDataSource::HasArcIn(nsIRDFNode *aNode, nsIRDFResource *aArc, bool *result)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP 
-nsSubscribeDataSource::HasArcOut(nsIRDFResource *source, nsIRDFResource *aArc, PRBool *result)
+nsSubscribeDataSource::HasArcOut(nsIRDFResource *source, nsIRDFResource *aArc, bool *result)
 {
     nsresult rv = NS_OK;
 
@@ -530,7 +530,7 @@ nsSubscribeDataSource::HasArcOut(nsIRDFResource *source, nsIRDFResource *aArc, P
         return NS_OK;
     }
 
-        PRBool hasChildren = PR_FALSE;
+        bool hasChildren = false;
         rv = server->HasChildren(relativePath, &hasChildren);
         NS_ENSURE_SUCCESS(rv,rv);
         *result = hasChildren;
@@ -581,7 +581,7 @@ nsSubscribeDataSource::ArcLabelsOut(nsIRDFResource *source,
         return NS_NewEmptyEnumerator(labels);
     }
 
-    PRBool hasChildren = PR_FALSE;
+    bool hasChildren = false;
     rv = server->HasChildren(relativePath, &hasChildren);
     NS_ENSURE_SUCCESS(rv,rv);
 
@@ -644,7 +644,7 @@ nsSubscribeDataSource::RemoveObserver(nsIRDFObserver *n)
 }
 
 NS_IMETHODIMP
-nsSubscribeDataSource::GetHasObservers(PRBool *hasObservers)
+nsSubscribeDataSource::GetHasObservers(bool *hasObservers)
 {
     nsresult rv = NS_OK;
     NS_ASSERTION(hasObservers, "null ptr");
@@ -674,7 +674,7 @@ NS_IMETHODIMP
 nsSubscribeDataSource::IsCommandEnabled(nsISupportsArray/*<nsIRDFResource>*/* aSources,
                                        nsIRDFResource*   aCommand,
                                        nsISupportsArray/*<nsIRDFResource>*/* aArguments,
-                                       PRBool* aResult)
+                                       bool* aResult)
 {
 	return(NS_ERROR_NOT_IMPLEMENTED);
 }
@@ -708,7 +708,7 @@ nsSubscribeDataSource::EndUpdateBatch()
 
 
 NS_IMETHODIMP 
-nsSubscribeDataSource::GetSources(nsIRDFResource *aProperty, nsIRDFNode *aTarget, PRBool aTruthValue, nsISimpleEnumerator **_retval)
+nsSubscribeDataSource::GetSources(nsIRDFResource *aProperty, nsIRDFNode *aTarget, bool aTruthValue, nsISimpleEnumerator **_retval)
 {
   NS_ASSERTION(PR_FALSE, "Not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
@@ -718,7 +718,7 @@ NS_IMETHODIMP
 nsSubscribeDataSource::NotifyObservers(nsIRDFResource *subject,
                                                 nsIRDFResource *property,
                                                 nsIRDFNode *object,
-                                                PRBool assert, PRBool change)
+                                                bool assert, bool change)
 {
     NS_ASSERTION(!(change && assert),
                  "Can't change and assert at the same time!\n");
@@ -736,7 +736,7 @@ nsSubscribeDataSource::NotifyObservers(nsIRDFResource *subject,
     return NS_OK;
 }
 
-PRBool
+bool
 nsSubscribeDataSource::changeEnumFunc(nsISupports *aElement, void *aData)
 {
   nsSubscribeNotification* note = (nsSubscribeNotification*)aData;
@@ -749,7 +749,7 @@ nsSubscribeDataSource::changeEnumFunc(nsISupports *aElement, void *aData)
   return PR_TRUE;
 }
 
-PRBool
+bool
 nsSubscribeDataSource::assertEnumFunc(nsISupports *aElement, void *aData)
 {
   nsSubscribeNotification* note = (nsSubscribeNotification*)aData;
@@ -762,7 +762,7 @@ nsSubscribeDataSource::assertEnumFunc(nsISupports *aElement, void *aData)
   return PR_TRUE;
 }
 
-PRBool
+bool
 nsSubscribeDataSource::unassertEnumFunc(nsISupports *aElement, void *aData)
 {
   nsSubscribeNotification* note = (nsSubscribeNotification*)aData;

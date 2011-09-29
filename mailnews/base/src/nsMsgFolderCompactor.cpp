@@ -190,7 +190,7 @@ NS_IMETHODIMP nsFolderCompactState::CompactFolders(nsIArray *aArrayOfFoldersToCo
 }
 
 NS_IMETHODIMP
-nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore,
+nsFolderCompactState::Compact(nsIMsgFolder *folder, bool aOfflineStore,
                               nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow)
 {
   NS_ENSURE_ARG_POINTER(folder);
@@ -226,7 +226,7 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore,
      }
      else
      {
-       PRBool valid;  
+       bool valid;  
        rv = db->GetSummaryValid(&valid); 
        if (!valid) //we are probably parsing the folder because we selected it.
        {
@@ -252,7 +252,7 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, PRBool aOfflineStore,
    rv = Init(folder, baseMessageURI.get(), db, path, m_window);
    NS_ENSURE_SUCCESS(rv, rv);
 
-   PRBool isLocked;
+   bool isLocked;
    m_folder->GetLocked(&isLocked);
    if(!isLocked)
    {
@@ -450,20 +450,20 @@ nsFolderCompactState::FinishCompact()
   PRInt64 fileSize;
   m_file->Clone(getter_AddRefs(cloneFile));
   cloneFile->GetFileSize(&fileSize);
-  PRBool tempFileRightSize = (fileSize == m_totalMsgSize);
+  bool tempFileRightSize = (fileSize == m_totalMsgSize);
   NS_ASSERTION(tempFileRightSize, "temp file not of expected size in compact");
   
-  PRBool folderRenameSucceeded = PR_FALSE;
-  PRBool msfRenameSucceeded = PR_FALSE;
+  bool folderRenameSucceeded = false;
+  bool msfRenameSucceeded = false;
   if (tempFileRightSize)
   {
-    PRBool summaryFileExists;
+    bool summaryFileExists;
     // remove the old folder and database
     rv = summaryFile->Remove(PR_FALSE);
     summaryFile->Exists(&summaryFileExists);
     if (NS_SUCCEEDED(rv) && !summaryFileExists)
     {
-      PRBool folderPathExists;
+      bool folderPathExists;
       rv = folderPath->Remove(PR_FALSE);
       folderPath->Exists(&folderPathExists);
       if (NS_SUCCEEDED(rv) && !folderPathExists)
@@ -537,7 +537,7 @@ nsFolderCompactState::ReleaseFolderLock()
 {
   nsresult result = NS_OK;
   if (!m_folder) return result;
-  PRBool haveSemaphore;
+  bool haveSemaphore;
   nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIMsgFolderCompactor*>(this));
   result = m_folder->TestSemaphore(supports, &haveSemaphore);
   if(NS_SUCCEEDED(result) && haveSemaphore)
@@ -657,8 +657,8 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
 
   nsresult rv = NS_OK;
   PRUint32 msgFlags;
-  PRBool checkForKeyword = m_startOfMsg;
-  PRBool addKeywordHdr = PR_FALSE;
+  bool checkForKeyword = m_startOfMsg;
+  bool addKeywordHdr = false;
   PRUint32 needToGrowKeywords = 0;
   PRUint32 statusOffset;
   nsCString msgHdrKeywords;
@@ -824,7 +824,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
         m_fileStream->Write(m_dataBuffer, preKeywordBlockOffset, &writeCount);
         // let's just rewrite all the keywords on several lines and add a blank line,
         // instead of worrying about which are missing.
-        PRBool done = PR_FALSE;
+        bool done = false;
         nsCAutoString keywordHdr(HEADER_X_MOZILLA_KEYWORDS ": ");
         PRInt32 nextBlankOffset = 0;
         PRInt32 curHdrLineStart = 0;
@@ -900,7 +900,7 @@ nsOfflineStoreCompactState::InitDB(nsIMsgDatabase *db)
  * copy the next message, it will keep trying messages until it finds one
  * it can copy, or it runs out of messages.
  */
-nsresult nsOfflineStoreCompactState::CopyNextMessage(PRBool &done)
+nsresult nsOfflineStoreCompactState::CopyNextMessage(bool &done)
 {
   while (m_curIndex < m_size)
   {
@@ -962,7 +962,7 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
   nsCOMPtr<nsIMsgDBHdr> msgHdr;
   nsCOMPtr<nsIMsgDBHdr> newMsgHdr;
   nsCOMPtr <nsIMsgStatusFeedback> statusFeedback;
-  PRBool done = PR_FALSE;
+  bool done = false;
 
   // The NS_MSG_ERROR_MSG_NOT_OFFLINE error should allow us to continue, so we
   // check for it specifically and don't terminate the compaction.
@@ -1159,7 +1159,7 @@ nsresult nsOfflineStoreCompactState::StartCompacting()
   {
     AddRef(); // we own ourselves, until we're done, anyway.
     ShowCompactingStatusMsg();
-    PRBool done = PR_FALSE;
+    bool done = false;
     rv = CopyNextMessage(done);
     if (!done)
       return rv;

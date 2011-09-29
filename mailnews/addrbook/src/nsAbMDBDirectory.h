@@ -87,24 +87,24 @@ public:
   // nsIAbDirectory methods:
   NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result);
   NS_IMETHOD GetChildCards(nsISimpleEnumerator* *result);
-  NS_IMETHOD GetIsQuery(PRBool *aResult);
+  NS_IMETHOD GetIsQuery(bool *aResult);
   NS_IMETHOD DeleteDirectory(nsIAbDirectory *directory);
   NS_IMETHOD DeleteCards(nsIArray *cards);
-  NS_IMETHOD HasCard(nsIAbCard *cards, PRBool *hasCard);
-  NS_IMETHOD HasDirectory(nsIAbDirectory *dir, PRBool *hasDir);
+  NS_IMETHOD HasCard(nsIAbCard *cards, bool *hasCard);
+  NS_IMETHOD HasDirectory(nsIAbDirectory *dir, bool *hasDir);
   NS_IMETHOD AddMailList(nsIAbDirectory *list, nsIAbDirectory **addedList);
   NS_IMETHOD AddCard(nsIAbCard *card, nsIAbCard **addedCard);
   NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
-  NS_IMETHOD DropCard(nsIAbCard *card, PRBool needToCopyCard);
+  NS_IMETHOD DropCard(nsIAbCard *card, bool needToCopyCard);
   NS_IMETHOD EditMailListToDatabase(nsIAbCard *listCard);
   NS_IMETHOD CardForEmailAddress(const nsACString &aEmailAddress,
                                  nsIAbCard ** aAbCard);
   NS_IMETHOD GetCardFromProperty(const char *aProperty,
                                  const nsACString &aValue,
-                                 PRBool caseSensitive, nsIAbCard **result);
+                                 bool caseSensitive, nsIAbCard **result);
   NS_IMETHOD GetCardsFromProperty(const char *aProperty,
                                   const nsACString &aValue,
-                                  PRBool caseSensitive,
+                                  bool caseSensitive,
                                   nsISimpleEnumerator **result);
 
   // nsIAbDirectorySearch methods
@@ -126,7 +126,7 @@ protected:
   nsCOMArray<nsIAbDirectory> mSubDirectories;
 
   PRInt32 mContext;
-  PRBool mPerformingQuery;
+  bool mPerformingQuery;
 
   nsInterfaceHashtable<nsISupportsHashKey, nsIAbCard> mSearchCache;
 };

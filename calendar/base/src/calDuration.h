@@ -58,7 +58,7 @@ public:
     NS_DECL_CALIDURATION
 
 protected:
-    PRBool mImmutable;
+    bool mImmutable;
 
     struct icaldurationtype mDuration;
 

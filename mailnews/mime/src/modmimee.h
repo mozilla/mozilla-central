@@ -100,7 +100,7 @@ int MimeEncoderWrite (MimeEncoderData *data, const char *buffer, PRInt32 size);
    abort_p is PR_FALSE, then calling this may cause the write_fn to be called
    one last time (as the last buffered data is flushed out.)
  */
-int MimeDecoderDestroy(MimeDecoderData *data, PRBool abort_p);
-int MimeEncoderDestroy(MimeEncoderData *data, PRBool abort_p);
+int MimeDecoderDestroy(MimeDecoderData *data, bool abort_p);
+int MimeEncoderDestroy(MimeEncoderData *data, bool abort_p);
 
 #endif /* _MODMIMEE_H_ */

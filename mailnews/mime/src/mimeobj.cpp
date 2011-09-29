@@ -67,9 +67,9 @@ static void MimeObject_finalize (MimeObject *);
 static int MimeObject_parse_begin (MimeObject *);
 static int MimeObject_parse_buffer (const char *, PRInt32, MimeObject *);
 static int MimeObject_parse_line (const char *, PRInt32, MimeObject *);
-static int MimeObject_parse_eof (MimeObject *, PRBool);
-static int MimeObject_parse_end (MimeObject *, PRBool);
-static PRBool MimeObject_displayable_inline_p (MimeObjectClass *clazz,
+static int MimeObject_parse_eof (MimeObject *, bool);
+static int MimeObject_parse_end (MimeObject *, bool);
+static bool MimeObject_displayable_inline_p (MimeObjectClass *clazz,
                         MimeHeaders *hdrs);
 
 #if defined(DEBUG) && defined(XP_UNIX)
@@ -283,7 +283,7 @@ MimeObject_parse_line (const char *line, PRInt32 length, MimeObject *obj)
 }
 
 static int
-MimeObject_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeObject_parse_eof (MimeObject *obj, bool abort_p)
 {
   if (obj->closed_p) return 0;
   NS_ASSERTION(!obj->parsed_p, "obj already parsed");
@@ -310,7 +310,7 @@ MimeObject_parse_eof (MimeObject *obj, PRBool abort_p)
 }
 
 static int
-MimeObject_parse_end (MimeObject *obj, PRBool abort_p)
+MimeObject_parse_end (MimeObject *obj, bool abort_p)
 {
   if (obj->parsed_p)
   {
@@ -330,7 +330,7 @@ MimeObject_parse_end (MimeObject *obj, PRBool abort_p)
   return 0;
 }
 
-static PRBool
+static bool
 MimeObject_displayable_inline_p (MimeObjectClass *clazz, MimeHeaders *hdrs)
 {
   NS_ERROR("shouldn't call this method");

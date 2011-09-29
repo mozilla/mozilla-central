@@ -81,7 +81,7 @@ nsEudoraSettings::~nsEudoraSettings()
 
 NS_IMPL_ISUPPORTS1(nsEudoraSettings, nsIImportSettings)
 
-NS_IMETHODIMP nsEudoraSettings::AutoLocate(PRUnichar **description, nsIFile **location, PRBool *_retval)
+NS_IMETHODIMP nsEudoraSettings::AutoLocate(PRUnichar **description, nsIFile **location, bool *_retval)
 {
     NS_PRECONDITION(description != nsnull, "null ptr");
     NS_PRECONDITION(_retval != nsnull, "null ptr");
@@ -111,7 +111,7 @@ NS_IMETHODIMP nsEudoraSettings::SetLocation(nsIFile *location)
   return( NS_OK);
 }
 
-NS_IMETHODIMP nsEudoraSettings::Import(nsIMsgAccount **localMailAccount, PRBool *_retval)
+NS_IMETHODIMP nsEudoraSettings::Import(nsIMsgAccount **localMailAccount, bool *_retval)
 {
   NS_PRECONDITION( _retval != nsnull, "null ptr");
 

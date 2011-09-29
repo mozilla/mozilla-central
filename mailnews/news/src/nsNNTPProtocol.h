@@ -188,7 +188,7 @@ private:
 
   // we have our own implementation of SendData which writes to the nntp log
   // and then calls the base class to transmit the data
-  PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, PRBool aSuppressLogging = PR_FALSE);
+  PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging = false);
 
   nsresult CleanupAfterRunningUrl();
   void Cleanup(); //free char* member variables
@@ -197,7 +197,7 @@ private:
 
   virtual const char* GetType() {return "nntp";}
 
-  static PRBool CheckIfAuthor(nsISupports *aElement, void *data);
+  static bool CheckIfAuthor(nsISupports *aElement, void *data);
 
   nsCOMPtr <nsINNTPNewsgroupList> m_newsgroupList;
   nsCOMPtr <nsINNTPArticleList> m_articleList;
@@ -210,8 +210,8 @@ private:
   nsMsgLineStreamBuffer   * m_lineStreamBuffer; // used to efficiently extract lines from the incoming data stream
   // the nsINntpURL that is currently running
   nsCOMPtr<nsINntpUrl> m_runningURL;
-  PRBool      m_connectionBusy;
-  PRBool      m_fromCache;  // is this connection from the cache?
+  bool        m_connectionBusy;
+  bool        m_fromCache;  // is this connection from the cache?
   PRTime      m_lastActiveTimeStamp;
   nsNewsAction m_newsAction;
 
@@ -483,9 +483,9 @@ private:
   nsresult CleanupNewsgroupList(); /* cleans up m_newsgroupList, and set it to null */
 
   // cache related helper methods
-  void FinishMemCacheEntry(PRBool valid); // either mark it valid, or doom it
+  void FinishMemCacheEntry(bool valid); // either mark it valid, or doom it
   nsresult OpenCacheEntry(); // makes a request to the cache service for a cache entry for a url
-  PRBool ReadFromLocalCache(); // attempts to read the url out of our local (offline) cache....
+  bool ReadFromLocalCache(); // attempts to read the url out of our local (offline) cache....
   nsresult ReadFromNewsConnection(); // creates a new news connection to read the url
   nsresult ReadFromMemCache(nsICacheEntryDescriptor *entry); // attempts to read the url out of our memory cache
   nsresult SetupPartExtractorListener(nsIStreamListener * aConsumer);

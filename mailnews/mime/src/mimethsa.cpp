@@ -56,7 +56,7 @@ MimeDefClass(MimeInlineTextHTMLSanitized, MimeInlineTextHTMLSanitizedClass,
 static int MimeInlineTextHTMLSanitized_parse_line (const char *, PRInt32,
                                                    MimeObject *);
 static int MimeInlineTextHTMLSanitized_parse_begin (MimeObject *obj);
-static int MimeInlineTextHTMLSanitized_parse_eof (MimeObject *, PRBool);
+static int MimeInlineTextHTMLSanitized_parse_eof (MimeObject *, bool);
 static void MimeInlineTextHTMLSanitized_finalize (MimeObject *obj);
 
 static int
@@ -130,7 +130,7 @@ printf("/parse_begin\n");
 }
 
 static int
-MimeInlineTextHTMLSanitized_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeInlineTextHTMLSanitized_parse_eof (MimeObject *obj, bool abort_p)
 {
 #ifdef DEBUG_BenB
 printf("parse_eof\n");

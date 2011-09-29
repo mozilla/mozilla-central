@@ -53,9 +53,9 @@ static MimeMultipartBoundaryType MimeSunAttachment_check_boundary(MimeObject *,
                                   PRInt32);
 static int MimeSunAttachment_create_child(MimeObject *);
 static int MimeSunAttachment_parse_child_line (MimeObject *, const char *, PRInt32,
-                         PRBool);
+                         bool);
 static int MimeSunAttachment_parse_begin (MimeObject *);
-static int MimeSunAttachment_parse_eof (MimeObject *, PRBool);
+static int MimeSunAttachment_parse_eof (MimeObject *, bool);
 
 static int
 MimeSunAttachmentClassInitialize(MimeSunAttachmentClass *clazz)
@@ -84,7 +84,7 @@ MimeSunAttachment_parse_begin (MimeObject *obj)
 }
 
 static int
-MimeSunAttachment_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeSunAttachment_parse_eof (MimeObject *obj, bool abort_p)
 {
   int status = 0;
 
@@ -353,7 +353,7 @@ MimeSunAttachment_create_child(MimeObject *obj)
 
 static int
 MimeSunAttachment_parse_child_line (MimeObject *obj, const char *line, PRInt32 length,
-                  PRBool first_line_p)
+                  bool first_line_p)
 {
   MimeContainer *cont = (MimeContainer *) obj;
   MimeObject *kid;

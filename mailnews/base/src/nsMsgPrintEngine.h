@@ -86,7 +86,7 @@ public:
 
 protected:
 
-  PRBool      FirePrintEvent();
+  bool        FirePrintEvent();
   nsresult    FireStartNextEvent();
   nsresult    FireThatLoadOperationStartup(const nsString& uri);
   nsresult    FireThatLoadOperation(const nsString& uri);
@@ -94,7 +94,7 @@ protected:
   void        SetupObserver();
   nsresult    SetStatusMessage(const nsString& aMsgString);
   void GetString(const PRUnichar *aStringName, nsString& aOutString);
-  nsresult    ShowProgressDialog(PRBool aIsForPrinting, PRBool& aDoNotify);
+  nsresult    ShowProgressDialog(bool aIsForPrinting, bool& aDoNotify);
 
   nsCOMPtr<nsIDocShell>       mDocShell;
   nsCOMPtr<nsIDOMWindow>      mWindow;
@@ -109,7 +109,7 @@ protected:
   nsCOMPtr<nsIWebBrowserPrint> mWebBrowserPrint;
   nsCOMPtr<nsIPrintSettings>   mPrintSettings;
   nsCOMPtr<nsIDOMWindow>       mMsgDOMWin;
-  PRBool                       mIsDoingPrintPreview;
+  bool                         mIsDoingPrintPreview;
   nsCOMPtr<nsIObserver>        mStartupPPObs;
   PRInt32                      mMsgInx;
 

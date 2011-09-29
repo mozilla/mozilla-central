@@ -67,14 +67,14 @@ public:
     nsresult AddDstKey(nsMsgKey aKey);
     nsresult AddDstMsgSize(PRUint32 msgSize);
     nsresult SetSrcFolder(nsIMsgFolder* srcFolder);
-    nsresult GetSrcIsImap(PRBool *isImap);
+    nsresult GetSrcIsImap(bool *isImap);
     nsresult SetDstFolder(nsIMsgFolder* dstFolder);
     nsresult Init(nsIMsgFolder* srcFolder,
           nsIMsgFolder* dstFolder,
-          PRBool isMove);
+          bool isMove);
     nsresult UndoImapDeleteFlag(nsIMsgFolder* aFolder,
                                 nsTArray<nsMsgKey>& aKeyArray,
-                                PRBool deleteFlag);
+                                bool deleteFlag);
     nsresult UndoTransactionInternal();
 
 private:
@@ -83,8 +83,8 @@ private:
     nsTArray<PRUint32> m_srcStatusOffsetArray; // used when src is local
     nsWeakPtr m_dstFolder;
     nsTArray<nsMsgKey> m_dstKeyArray;
-    PRBool m_isMove;
-    PRBool m_srcIsImap4;
+    bool m_isMove;
+    bool m_srcIsImap4;
     nsTArray<PRUint32> m_dstSizeArray;
     nsLocalUndoFolderListener *mUndoFolderListener;
 };

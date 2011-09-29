@@ -63,8 +63,8 @@ public:
   virtual ~nsMsgSMIMEComposeFields();
 
 private:
-  PRBool mSignMessage;
-  PRBool mAlwaysEncryptMessage;
+  bool mSignMessage;
+  bool mAlwaysEncryptMessage;
 };
 
 typedef enum {
@@ -86,19 +86,19 @@ public:
   /* additional members */
   void GetOutputStream(nsIOutputStream **stream) { NS_IF_ADDREF(*stream = mStream);}
 private:
-  nsresult MimeInitMultipartSigned(PRBool aOuter, nsIMsgSendReport *sendReport);
-  nsresult MimeInitEncryption(PRBool aSign, nsIMsgSendReport *sendReport);
-  nsresult MimeFinishMultipartSigned (PRBool aOuter, nsIMsgSendReport *sendReport);
-  nsresult MimeFinishEncryption (PRBool aSign, nsIMsgSendReport *sendReport);
-  nsresult MimeCryptoHackCerts(const char *aRecipients, nsIMsgSendReport *sendReport, PRBool aEncrypt, PRBool aSign);
-  PRBool InitializeSMIMEBundle();
+  nsresult MimeInitMultipartSigned(bool aOuter, nsIMsgSendReport *sendReport);
+  nsresult MimeInitEncryption(bool aSign, nsIMsgSendReport *sendReport);
+  nsresult MimeFinishMultipartSigned (bool aOuter, nsIMsgSendReport *sendReport);
+  nsresult MimeFinishEncryption (bool aSign, nsIMsgSendReport *sendReport);
+  nsresult MimeCryptoHackCerts(const char *aRecipients, nsIMsgSendReport *sendReport, bool aEncrypt, bool aSign);
+  bool InitializeSMIMEBundle();
   nsresult GetSMIMEBundleString(const PRUnichar *name,
 				PRUnichar **outString);
   nsresult SMIMEBundleFormatStringFromName(const PRUnichar *name,
 					   const PRUnichar **params,
 					   PRUint32 numParams,
 					   PRUnichar **outString);
-  nsresult ExtractEncryptionState(nsIMsgIdentity * aIdentity, nsIMsgCompFields * aComposeFields, PRBool * aSignMessage, PRBool * aEncrypt);
+  nsresult ExtractEncryptionState(nsIMsgIdentity * aIdentity, nsIMsgCompFields * aComposeFields, bool * aSignMessage, bool * aEncrypt);
 
   mimeDeliveryCryptoState mCryptoState;
   nsCOMPtr<nsIOutputStream> mStream;
@@ -116,13 +116,13 @@ private:
   nsCOMPtr<nsIStringBundle> mSMIMEBundle;
 
   MimeEncoderData *mCryptoEncoderData;
-  PRBool mIsDraft;
+  bool mIsDraft;
 
   enum {eBufferSize = 8192};
   char *mBuffer;
   PRUint32 mBufferedBytes;
 
-  PRBool mErrorAlreadyReported;
+  bool mErrorAlreadyReported;
   void SetError(nsIMsgSendReport *sendReport, const PRUnichar *bundle_string);
   void SetErrorWithParam(nsIMsgSendReport *sendReport, const PRUnichar *bundle_string, const char *param);
 };

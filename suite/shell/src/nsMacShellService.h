@@ -53,7 +53,7 @@ public:
   NS_DECL_NSISHELLSERVICE
 
 private:
-  PRPackedBool mCheckedThisSessionClient;
+  bool mCheckedThisSessionClient;
 };
 
 #endif

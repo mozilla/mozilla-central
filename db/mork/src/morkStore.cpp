@@ -705,7 +705,7 @@ morkStore::CopyAtom(morkEnv* ev, const morkAtom* inAtom)
 }
  
 morkAtom*
-morkStore::YarnToAtom(morkEnv* ev, const mdbYarn* inYarn, PRBool createIfMissing /* = PR_TRUE */)
+morkStore::YarnToAtom(morkEnv* ev, const mdbYarn* inYarn, bool createIfMissing /* = true */)
 {
   morkAtom* outAtom = 0;
   if ( ev->Good() )

@@ -230,7 +230,7 @@ NS_IMETHODIMP nsMailboxProtocol::OnStartRequest(nsIRequest *request, nsISupports
   return nsMsgProtocol::OnStartRequest(request, ctxt);
 }
 
-PRBool nsMailboxProtocol::RunningMultipleMsgUrl()
+bool nsMailboxProtocol::RunningMultipleMsgUrl()
 {
   if (m_mailboxAction == nsIMailboxUrl::ActionCopyMessage || m_mailboxAction == nsIMailboxUrl::ActionMoveMessage)
   {
@@ -256,7 +256,7 @@ NS_IMETHODIMP nsMailboxProtocol::OnStopRequest(nsIRequest *request, nsISupports 
     DoneReadingMessage();
   }
   // I'm not getting cancel status - maybe the load group still has the status.
-  PRBool stopped = PR_FALSE;
+  bool stopped = false;
   if (m_runningUrl)
   {
     nsCOMPtr <nsIMsgMailNewsUrl> mailnewsUrl = do_QueryInterface(m_runningUrl);
@@ -446,7 +446,7 @@ nsresult nsMailboxProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
       // find out from the url what action we are supposed to perform...
       rv = m_runningUrl->GetMailboxAction(&m_mailboxAction);
       
-      PRBool convertData = PR_FALSE;
+      bool convertData = false;
 
       // need to check if we're fetching an rfc822 part in order to
       // quote a message.
@@ -507,7 +507,7 @@ nsresult nsMailboxProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
               messageUrl->GetMessageFile(getter_AddRefs(m_tempMessageFile));
               MsgNewBufferedFileOutputStream(getter_AddRefs(m_msgFileOutputStream), m_tempMessageFile, -1, 00600);
 
-              PRBool addDummyEnvelope = PR_FALSE;
+              bool addDummyEnvelope = false;
               messageUrl->GetAddDummyEnvelope(&addDummyEnvelope);
               if (addDummyEnvelope)
                 SetFlag(MAILBOX_MSG_PARSE_FIRST_LINE);
@@ -587,8 +587,8 @@ PRInt32 nsMailboxProtocol::ReadMessageResponse(nsIInputStream * inputStream, PRU
   }
   else
   {
-    PRBool pauseForMoreData = PR_FALSE;
-    PRBool canonicalLineEnding = PR_FALSE;
+    bool pauseForMoreData = false;
+    bool canonicalLineEnding = false;
     nsCOMPtr<nsIMsgMessageUrl> msgurl = do_QueryInterface(m_runningUrl);
     
     if (msgurl)

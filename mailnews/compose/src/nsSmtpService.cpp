@@ -91,7 +91,7 @@ NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
                    nsIMsgStatusFeedback *aStatusFeedback,
                    nsIInterfaceRequestor* aNotificationCallbacks,
                    nsIURI ** aUrl,
-                   PRBool aRequestDSN);
+                   bool aRequestDSN);
 
 nsresult NS_MsgLoadSmtpUrl(nsIURI * aUrl, nsISupports * aConsumer, nsIRequest ** aRequest);
 
@@ -116,7 +116,7 @@ NS_IMETHODIMP nsSmtpService::SendMailMessage(nsIFile * aFilePath,
                                         nsIUrlListener * aUrlListener, 
                                         nsIMsgStatusFeedback *aStatusFeedback,
                                         nsIInterfaceRequestor* aNotificationCallbacks,
-                                        PRBool aRequestDSN,
+                                        bool aRequestDSN,
                                         nsIURI ** aURL,
                                         nsIRequest ** aRequest)
 {
@@ -159,7 +159,7 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
                             nsIMsgStatusFeedback *aStatusFeedback,
                             nsIInterfaceRequestor* aNotificationCallbacks,
                             nsIURI ** aUrl,
-                            PRBool aRequestDSN)
+                            bool aRequestDSN)
 {
   // mscott: this function is a convience hack until netlib actually dispatches
   // smtp urls. in addition until we have a session to get a password, host and
@@ -299,7 +299,7 @@ NS_IMETHODIMP nsSmtpService::GetDefaultPort(PRInt32 *aDefaultPort)
 }
 
 NS_IMETHODIMP 
-nsSmtpService::AllowPort(PRInt32 port, const char *scheme, PRBool *_retval)
+nsSmtpService::AllowPort(PRInt32 port, const char *scheme, bool *_retval)
 {
     // allow smtp to run on any port
     *_retval = PR_TRUE;
@@ -586,7 +586,7 @@ nsSmtpService::SetDefaultServer(nsISmtpServer *aServer)
     return NS_OK;
 }
 
-PRBool
+bool
 nsSmtpService::findServerByKey(nsISmtpServer *aServer, void *aData)
 {
   findServerByKeyEntry *entry = (findServerByKeyEntry*) aData;
@@ -613,7 +613,7 @@ nsSmtpService::CreateSmtpServer(nsISmtpServer **aResult)
     loadSmtpServers();
     nsresult rv;
     PRInt32 i = 0;
-    PRBool unique = PR_FALSE;
+    bool unique = false;
 
     findServerByKeyEntry entry;
     nsCAutoString key;
@@ -703,7 +703,7 @@ nsSmtpService::DeleteSmtpServer(nsISmtpServer *aServer)
     return rv;
 }
 
-PRBool
+bool
 nsSmtpService::findServerByHostname(nsISmtpServer *aServer, void *aData)
 {
   findServerByHostnameEntry *entry = (findServerByHostnameEntry*)aData;
@@ -718,8 +718,8 @@ nsSmtpService::findServerByHostname(nsISmtpServer *aServer, void *aData)
   if (NS_FAILED(rv))
     return PR_TRUE;
 
-  PRBool checkHostname = !entry->hostname.IsEmpty();
-  PRBool checkUsername = !entry->username.IsEmpty();
+  bool checkHostname = !entry->hostname.IsEmpty();
+  bool checkUsername = !entry->username.IsEmpty();
     
   if ((!checkHostname ||
        (entry->hostname.Equals(hostname, nsCaseInsensitiveCStringComparator())) &&

@@ -164,7 +164,7 @@ nsProfileMigrator::GetSuiteMigratorKey(nsACString& aKey,
   *spm = nsnull;
 
   // Declare these here because of the #if - we need them in both bits
-  PRBool exists = PR_FALSE;
+  bool exists = false;
   nsCString migratorID;
   nsCOMPtr<nsISuiteProfileMigrator> result;
 #if XP_WIN

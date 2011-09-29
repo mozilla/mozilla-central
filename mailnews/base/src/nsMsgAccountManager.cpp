@@ -120,8 +120,8 @@ static NS_DEFINE_CID(kMsgFolderCacheCID, NS_MSGFOLDERCACHE_CID);
 
 const char *kSearchFolderUriProp = "searchFolderUri";
 
-PRBool nsMsgAccountManager::m_haveShutdown = PR_FALSE;
-PRBool nsMsgAccountManager::m_shutdownInProgress = PR_FALSE;
+bool nsMsgAccountManager::m_haveShutdown = false;
+bool nsMsgAccountManager::m_shutdownInProgress = false;
 
 // use this to search for all servers with the given hostname/iid and
 // put them in "servers"
@@ -130,10 +130,10 @@ struct findServerEntry {
   const nsACString& username;
   const nsACString& type;
   const PRInt32 port;
-  const PRBool useRealSetting;
+  const bool useRealSetting;
   nsIMsgIncomingServer *server;
   findServerEntry(const nsACString& aHostName, const nsACString& aUserName,
-                  const nsACString& aType, PRInt32 aPort, PRBool aUseRealSetting)
+                  const nsACString& aType, PRInt32 aPort, bool aUseRealSetting)
     : hostname(aHostName),
       username(aUserName),
       type(aType),
@@ -275,7 +275,7 @@ nsresult nsMsgAccountManager::Shutdown()
 }
 
 NS_IMETHODIMP
-nsMsgAccountManager::GetShutdownInProgress(PRBool *_retval)
+nsMsgAccountManager::GetShutdownInProgress(bool *_retval)
 {
     NS_ENSURE_ARG_POINTER(_retval);
     *_retval = m_shutdownInProgress;
@@ -283,7 +283,7 @@ nsMsgAccountManager::GetShutdownInProgress(PRBool *_retval)
 }
 
 NS_IMETHODIMP
-nsMsgAccountManager::GetUserNeedsToAuthenticate(PRBool *aRetval)
+nsMsgAccountManager::GetUserNeedsToAuthenticate(bool *aRetval)
 {
   NS_ENSURE_ARG_POINTER(aRetval);
   if (!m_userAuthenticated)
@@ -293,7 +293,7 @@ nsMsgAccountManager::GetUserNeedsToAuthenticate(PRBool *aRetval)
 }
 
 NS_IMETHODIMP
-nsMsgAccountManager::SetUserNeedsToAuthenticate(PRBool aUserNeedsToAuthenticate)
+nsMsgAccountManager::SetUserNeedsToAuthenticate(bool aUserNeedsToAuthenticate)
 {
   m_userAuthenticated = !aUserNeedsToAuthenticate;
   return NS_OK;
@@ -489,7 +489,7 @@ nsMsgAccountManager::GetIncomingServer(const nsACString& key,
 
 NS_IMETHODIMP
 nsMsgAccountManager::RemoveIncomingServer(nsIMsgIncomingServer *aServer,
-                                          PRBool aCleanupFiles)
+                                          bool aCleanupFiles)
 {
   NS_ENSURE_ARG_POINTER(aServer);
 
@@ -608,7 +608,7 @@ nsMsgAccountManager::createKeyedServer(const nsACString& key,
   return NS_OK;
 }
 
-PRBool
+bool
 nsMsgAccountManager::addListenerToFolder(nsISupports *element, void *data)
 {
   nsresult rv;
@@ -620,7 +620,7 @@ nsMsgAccountManager::addListenerToFolder(nsISupports *element, void *data)
   return PR_TRUE;
 }
 
-PRBool
+bool
 nsMsgAccountManager::removeListenerFromFolder(nsISupports *element, void *data)
 {
   nsresult rv;
@@ -639,7 +639,7 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
   nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool accountRemoved = m_accounts->RemoveElement(aAccount);
+  bool accountRemoved = m_accounts->RemoveElement(aAccount);
 
   rv  = OutputAccountsPref();
   // If we couldn't write out the pref, restore the account.
@@ -670,7 +670,7 @@ nsMsgAccountManager::RemoveAccount(nsIMsgAccount *aAccount)
     for (i = 0; i < count; i++)
     {
       nsCOMPtr<nsIMsgIdentity> identity( do_QueryElementAt(identityArray, i, &rv));
-      PRBool identityStillUsed = PR_FALSE;
+      bool identityStillUsed = false;
       // for each identity, see if any existing account still uses it,
       // and if not, clear it.
       if (NS_SUCCEEDED(rv))
@@ -754,7 +754,7 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount **aDefaultAccount)
 
     if (!m_defaultAccount) {
       PRUint32 index;
-      PRBool foundValidDefaultAccount = PR_FALSE;
+      bool foundValidDefaultAccount = false;
       for (index = 0; index < count; index++) {
         nsCOMPtr<nsIMsgAccount> account( do_QueryElementAt(m_accounts, index, &rv));
         if (NS_SUCCEEDED(rv)) {
@@ -763,7 +763,7 @@ nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount **aDefaultAccount)
           rv = account->GetIncomingServer(getter_AddRefs(server));
           NS_ENSURE_SUCCESS(rv,rv);
 
-          PRBool canBeDefaultServer = PR_FALSE;
+          bool canBeDefaultServer = false;
           if (server)
             server->GetCanBeDefaultServer(&canBeDefaultServer);
 
@@ -930,8 +930,8 @@ hashWriteFolderCache(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServ
 static PLDHashOperator
 hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>& aServer, void* aClosure)
 {
-  PRBool emptyTrashOnExit = PR_FALSE;
-  PRBool cleanupInboxOnExit = PR_FALSE;
+  bool emptyTrashOnExit = false;
+  bool cleanupInboxOnExit = false;
   nsresult rv;
 
   if (WeAreOffline())
@@ -957,8 +957,8 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
       if (folder)
       {
          nsCString passwd;
-         PRBool serverRequiresPasswordForAuthentication = PR_TRUE;
-         PRBool isImap = type.EqualsLiteral("imap");
+         bool serverRequiresPasswordForAuthentication = true;
+         bool isImap = type.EqualsLiteral("imap");
          if (isImap)
          {
            aServer->GetServerRequiresPasswordForBiff(&serverRequiresPasswordForAuthentication);
@@ -980,7 +980,7 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
              rv = folder->GetSubFolders(getter_AddRefs(enumerator));
              if (NS_SUCCEEDED(rv))
              {
-               PRBool hasMore;
+               bool hasMore;
                while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) &&
                       hasMore)
                {
@@ -1015,7 +1015,7 @@ hashCleanupOnExit(nsCStringHashKey::KeyType aKey, nsCOMPtr<nsIMsgIncomingServer>
            {
              nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
 
-             PRBool inProgress = PR_FALSE;
+             bool inProgress = false;
              if (cleanupInboxOnExit)
              {
                PRInt32 loopCount = 0; // used to break out after 5 seconds
@@ -1084,7 +1084,7 @@ nsMsgAccountManager::GetAccounts(nsISupportsArray **_retval)
     existingAccount->GetIncomingServer(getter_AddRefs(server));
     if (server)
     {
-      PRBool hidden = PR_FALSE;
+      bool hidden = false;
       server->GetHidden(&hidden);
       if (hidden)
         continue;
@@ -1117,7 +1117,7 @@ nsMsgAccountManager::GetAllIdentities(nsISupportsArray **_retval)
   return rv;
 }
 
-PRBool
+bool
 nsMsgAccountManager::addIdentityIfUnique(nsISupports *element, void *aData)
 {
   nsresult rv;
@@ -1137,7 +1137,7 @@ nsMsgAccountManager::addIdentityIfUnique(nsISupports *element, void *aData)
   if (NS_FAILED(rv))
     return PR_TRUE;
 
-  PRBool found=PR_FALSE;
+  bool found=false;
   PRUint32 i;
   for (i = 0; i < count; i++) {
     nsCOMPtr<nsIMsgIdentity> thisIdentity( do_QueryElementAt(array, i, &rv));
@@ -1158,7 +1158,7 @@ nsMsgAccountManager::addIdentityIfUnique(nsISupports *element, void *aData)
   return PR_TRUE;
 }
 
-PRBool
+bool
 nsMsgAccountManager::getIdentitiesToArray(nsISupports *element, void *aData)
 {
   nsresult rv;
@@ -1181,7 +1181,7 @@ hashGetNonHiddenServersToArray(nsCStringHashKey::KeyType aKey,
                                nsCOMPtr<nsIMsgIncomingServer>& aServer,
                                void* aClosure)
 {
-  PRBool hidden = PR_FALSE;
+  bool hidden = false;
   aServer->GetHidden(&hidden);
   if (!hidden)
   {
@@ -1540,7 +1540,7 @@ nsMsgAccountManager::SetSpecialFolders()
           rv = folder->GetParent(getter_AddRefs(parent));
           if (NS_SUCCEEDED(rv) && parent)
           {
-            PRBool archiveEnabled;
+            bool archiveEnabled;
             thisIdentity->GetArchiveEnabled(&archiveEnabled);
             if (archiveEnabled)
               rv = folder->SetFlag(nsMsgFolderFlags::Archive);
@@ -1709,7 +1709,7 @@ nsMsgAccountManager::FindServerIndex(nsIMsgIncomingServer* server, PRInt32* resu
   return NS_OK;
 }
 
-PRBool
+bool
 nsMsgAccountManager::findServerIndexByServer(nsISupports *element, void *aData)
 {
   nsresult rv;
@@ -1735,7 +1735,7 @@ nsMsgAccountManager::findServerIndexByServer(nsISupports *element, void *aData)
   return !key.Equals(entry->key);
 }
 
-PRBool
+bool
 nsMsgAccountManager::findAccountByKey(nsISupports* element, void *aData)
 {
   nsresult rv;
@@ -1808,7 +1808,7 @@ NS_IMETHODIMP nsMsgAccountManager::NotifyServerChanged(nsIMsgIncomingServer *ser
 }
 
 NS_IMETHODIMP
-nsMsgAccountManager::FindServerByURI(nsIURI *aURI, PRBool aRealFlag,
+nsMsgAccountManager::FindServerByURI(nsIURI *aURI, bool aRealFlag,
                                 nsIMsgIncomingServer** aResult)
 {
   NS_ENSURE_ARG_POINTER(aURI);
@@ -1862,7 +1862,7 @@ nsMsgAccountManager::findServerInternal(const nsACString& username,
                                         const nsACString& hostname,
                                         const nsACString& type,
                                         PRInt32 port,
-                                        PRBool aRealFlag,
+                                        bool aRealFlag,
                                         nsIMsgIncomingServer** aResult)
 {
   // If 'aRealFlag' is set then we want to scan all existing accounts
@@ -1915,7 +1915,7 @@ nsMsgAccountManager::FindRealServer(const nsACString& username,
   return NS_OK;
 }
 
-PRBool
+bool
 nsMsgAccountManager::findAccountByServerKey(nsISupports *element,
                                           void *aData)
 {
@@ -2082,7 +2082,7 @@ nsMsgAccountManager::GetIdentitiesForServer(nsIMsgIncomingServer *server,
   return NS_OK;
 }
 
-PRBool
+bool
 nsMsgAccountManager::findIdentitiesForServer(nsISupports* element, void *aData)
 {
   nsresult rv;
@@ -2144,7 +2144,7 @@ nsMsgAccountManager::GetServersForIdentity(nsIMsgIdentity *identity,
   return NS_OK;
 }
 
-PRBool
+bool
 nsMsgAccountManager::findServersForIdentity(nsISupports *element, void *aData)
 {
   nsresult rv;
@@ -2370,7 +2370,7 @@ NS_IMETHODIMP nsMsgAccountManager::GetLocalFoldersServer(nsIMsgIncomingServer **
     return NS_ERROR_FAILURE;
 
   // we don't want the Smart Mailboxes server to be the local server.
-  PRBool hidden;
+  bool hidden;
   (*aServer)->GetHidden(&hidden);
   if (hidden)
     return NS_ERROR_FAILURE;
@@ -2421,7 +2421,7 @@ nsMsgAccountManager::CreateLocalMailAccount()
   // <"mail.directory" pref>/Local Folders
   nsCOMPtr <nsIFile> mailDir;
   nsCOMPtr <nsILocalFile> localFile;
-  PRBool dirExists;
+  bool dirExists;
 
   // we want <profile>/Mail
   rv = NS_GetSpecialDirectory(NS_APP_MAIL_50_DIR, getter_AddRefs(mailDir));
@@ -2510,7 +2510,7 @@ nsMsgAccountManager::SetFolderDoingEmptyTrash(nsIMsgFolder *folder)
 }
 
 NS_IMETHODIMP
-nsMsgAccountManager::GetEmptyTrashInProgress(PRBool *bVal)
+nsMsgAccountManager::GetEmptyTrashInProgress(bool *bVal)
 {
   NS_ENSURE_ARG_POINTER(bVal);
   *bVal = m_emptyTrashInProgress;
@@ -2526,7 +2526,7 @@ nsMsgAccountManager::SetFolderDoingCleanupInbox(nsIMsgFolder *folder)
 }
 
 NS_IMETHODIMP
-nsMsgAccountManager::GetCleanupInboxInProgress(PRBool *bVal)
+nsMsgAccountManager::GetCleanupInboxInProgress(bool *bVal)
 {
   NS_ENSURE_ARG_POINTER(bVal);
   *bVal = m_cleanupInboxInProgress;
@@ -2675,7 +2675,7 @@ nsresult VirtualFolderChangeListener::Init()
    */
 
 NS_IMETHODIMP
-VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBool aPreChange, PRUint32 *aStatus,
+VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, bool aPreChange, PRUint32 *aStatus,
                                                  nsIDBChangeListener *aInstigator)
 {
   const PRUint32 kMatch = 0x1;
@@ -2685,7 +2685,7 @@ VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBo
   NS_ENSURE_ARG_POINTER(aStatus);
 
   PRUint32 flags;
-  PRBool match;
+  bool match;
   nsCOMPtr<nsIMsgDatabase> msgDB;
   nsresult rv = m_folderWatching->GetMsgDatabase(getter_AddRefs(msgDB));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -2711,7 +2711,7 @@ VirtualFolderChangeListener::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, PRBo
 
   // This is the post change section where changes are detected
 
-  PRBool wasMatch = *aStatus & kMatch;
+  bool wasMatch = *aStatus & kMatch;
   if (!match && !wasMatch) // header not in virtual folder
     return NS_OK;
 
@@ -2780,7 +2780,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrCh
   nsCOMPtr <nsIMsgDatabase> msgDB;
 
   nsresult rv = m_folderWatching->GetMsgDatabase(getter_AddRefs(msgDB));
-  PRBool oldMatch = PR_FALSE, newMatch = PR_FALSE;
+  bool oldMatch = false, newMatch = false;
   // we don't want any early returns from this function, until we've
   // called ClearScopes 0n the search session.
   m_searchSession->AddScopeTerm(nsMsgSearchScope::offlineMail, m_folderWatching);
@@ -2814,7 +2814,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrCh
     PRInt32 totalDelta = 0,  unreadDelta = 0;
     if (oldMatch != newMatch)
     {
- //     PRBool isOpen = PR_FALSE;
+ //     bool isOpen = false;
 //      nsCOMPtr <nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID);
 //      if (mailSession && aFolder)
 //        mailSession->IsFolderOpenInWindow(m_virtualFolder, &isOpen);
@@ -2822,7 +2822,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrCh
 //      if (!isOpen)
         totalDelta = (oldMatch) ? -1 : 1;
     }
-    PRBool msgHdrIsRead;
+    bool msgHdrIsRead;
     aHdrChanged->GetIsRead(&msgHdrIsRead);
     if (oldMatch == newMatch) // read flag changed state
       unreadDelta = (msgHdrIsRead) ? -1 : 1;
@@ -2859,7 +2859,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted
 
   nsresult rv = m_folderWatching->GetMsgDatabase(getter_AddRefs(msgDB));
   NS_ENSURE_SUCCESS(rv, rv);
-  PRBool match = PR_FALSE;
+  bool match = false;
   m_searchSession->AddScopeTerm(nsMsgSearchScope::offlineMail, m_folderWatching);
   // Since the notifier went to the trouble of passing in the msg flags,
   // we should use them when doing the match.
@@ -2876,7 +2876,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted
 
     rv = m_virtualFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(virtDatabase));
     NS_ENSURE_SUCCESS(rv, rv);
-    PRBool msgHdrIsRead;
+    bool msgHdrIsRead;
     aHdrDeleted->GetIsRead(&msgHdrIsRead);
     if (!msgHdrIsRead)
       dbFolderInfo->ChangeNumUnreadMessages(-1);
@@ -2905,7 +2905,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrAdded(nsIMsgDBHdr *aNewHdr, nsMs
 
   nsresult rv = m_folderWatching->GetMsgDatabase(getter_AddRefs(msgDB));
   NS_ENSURE_SUCCESS(rv, rv);
-  PRBool match = PR_FALSE;
+  bool match = false;
   if (!m_searchSession)
     return NS_ERROR_NULL_POINTER;
 
@@ -2919,7 +2919,7 @@ NS_IMETHODIMP VirtualFolderChangeListener::OnHdrAdded(nsIMsgDBHdr *aNewHdr, nsMs
 
     rv = m_virtualFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(virtDatabase));
     NS_ENSURE_SUCCESS(rv, rv);
-    PRBool msgHdrIsRead;
+    bool msgHdrIsRead;
     PRUint32 msgFlags;
     aNewHdr->GetIsRead(&msgHdrIsRead);
     aNewHdr->GetFlags(&msgFlags);
@@ -3025,7 +3025,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
      rv = fileStream->Init(file,  PR_RDONLY, 0664, PR_FALSE);
      nsCOMPtr <nsILineInputStream> lineInputStream(do_QueryInterface(fileStream));
 
-    PRBool isMore = PR_TRUE;
+    bool isMore = true;
     nsCAutoString buffer;
     PRInt32 version = -1;
     nsCOMPtr <nsIMsgFolder> virtualFolder;
@@ -3063,7 +3063,7 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
             nsCOMPtr <nsIMsgFolder> grandParent;
             nsCOMPtr <nsIMsgFolder> oldParent;
             nsCOMPtr <nsIMsgFolder> parentFolder;
-            PRBool isServer;
+            bool isServer;
             do
             {
               // need to add the folder as a sub-folder of its parent.
@@ -3206,7 +3206,7 @@ nsMsgAccountManager::saveVirtualFolders(nsCStringHashKey::KeyType key,
           nsCString searchTerms;
           nsCString regexScope;
           nsCString vfFolderFlag;
-          PRBool searchOnline = PR_FALSE;
+          bool searchOnline = false;
           dbFolderInfo->GetBooleanProperty("searchOnline", PR_FALSE, &searchOnline);
           dbFolderInfo->GetCharProperty(kSearchFolderUriProp, srchFolderUri);
           dbFolderInfo->GetCharProperty("searchStr", searchTerms);
@@ -3384,7 +3384,7 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemAdded(nsIMsgFolder *parentItem, nsISupp
 
   PRUint32 folderFlags;
   folder->GetFlags(&folderFlags);
-  PRBool addToSmartFolders = PR_FALSE;
+  bool addToSmartFolders = false;
   folder->IsSpecialFolder(nsMsgFolderFlags::Inbox |
                           nsMsgFolderFlags::Templates |
                           nsMsgFolderFlags::Trash |
@@ -3396,7 +3396,7 @@ NS_IMETHODIMP nsMsgAccountManager::OnItemAdded(nsIMsgFolder *parentItem, nsISupp
   // and set the corresponding folderFlag if so.
   if (!addToSmartFolders)
   {
-    PRBool isSpecial = PR_FALSE;
+    bool isSpecial = false;
     folder->IsSpecialFolder(nsMsgFolderFlags::SentMail, PR_TRUE, &isSpecial);
     if (isSpecial)
     {
@@ -3701,7 +3701,7 @@ nsMsgAccountManager::RemoveFolderFromSmartFolder(nsIMsgFolder *aFolder,
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgAccountManager::OnItemBoolPropertyChanged(nsIMsgFolder *item, nsIAtom *property, PRBool oldValue, PRBool newValue)
+NS_IMETHODIMP nsMsgAccountManager::OnItemBoolPropertyChanged(nsIMsgFolder *item, nsIAtom *property, bool oldValue, bool newValue)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -3727,7 +3727,7 @@ nsMsgAccountManager::FolderUriForPath(nsILocalFile *aLocalPath,
                                                nsACString &aMailboxUri)
 {
   NS_ENSURE_ARG_POINTER(aLocalPath);
-  PRBool equals;
+  bool equals;
   if (m_lastPathLookedUp &&
       NS_SUCCEEDED(aLocalPath->Equals(m_lastPathLookedUp, &equals)) && equals)
   {

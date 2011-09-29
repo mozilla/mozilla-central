@@ -92,7 +92,7 @@ NS_MSG_BASE nsresult NS_MsgGetUntranslatedPriorityName(
 NS_MSG_BASE nsresult NS_MsgHashIfNecessary(nsAutoString &name);
 NS_MSG_BASE nsresult NS_MsgHashIfNecessary(nsCAutoString &name);
 
-NS_MSG_BASE nsresult FormatFileSize(PRUint64 size, PRBool useKB, nsAString &formattedSize);
+NS_MSG_BASE nsresult FormatFileSize(PRUint64 size, bool useKB, nsAString &formattedSize);
 
 
 /**
@@ -107,7 +107,7 @@ NS_MSG_BASE nsresult
 NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
                                     nsCString& aPathString,
                                     const nsCString &aScheme,
-                                    PRBool aIsNewsFolder=PR_FALSE);
+                                    bool aIsNewsFolder=false);
 
 /**
  * Given a string and a length, removes any "Re:" strings from the front.
@@ -125,7 +125,7 @@ NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
  * 
  * @note This API is insane and should be fixed.
  */
-NS_MSG_BASE PRBool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubject=nsnull);
+NS_MSG_BASE bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubject=nsnull);
 
 NS_MSG_BASE char * NS_MsgSACopy(char **destination, const char *source);
 
@@ -137,19 +137,19 @@ NS_MSG_BASE nsresult NS_MsgEscapeEncodeURLPath(const nsAString& aStr,
 NS_MSG_BASE nsresult NS_MsgDecodeUnescapeURLPath(const nsACString& aPath,
                                                  nsAString& aResult);
 
-NS_MSG_BASE PRBool WeAreOffline();
+NS_MSG_BASE bool WeAreOffline();
 
 // Check if a folder with aFolderUri exists
 NS_MSG_BASE nsresult GetExistingFolder(const nsCString& aFolderURI, nsIMsgFolder **aFolder);
 
 // Escape lines starting with "From ", ">From ", etc. in a buffer.
 NS_MSG_BASE nsresult EscapeFromSpaceLine(nsIOutputStream *ouputStream, char *start, const char *end);
-NS_MSG_BASE PRBool IsAFromSpaceLine(char *start, const char *end);
+NS_MSG_BASE bool IsAFromSpaceLine(char *start, const char *end);
 
 NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
                                           const char *absPrefName,
                                           const char *dirServiceProp, // Can be NULL
-                                          PRBool& gotRelPref,
+                                          bool& gotRelPref,
                                           nsILocalFile **aFile,
                                           nsIPrefBranch *prefBranch = nsnull);
 
@@ -158,7 +158,7 @@ NS_MSG_BASE nsresult NS_SetPersistentFile(const char *relPrefName,
                                           nsILocalFile *aFile,
                                           nsIPrefBranch *prefBranch = nsnull);
 
-NS_MSG_BASE nsresult IsRFC822HeaderFieldName(const char *aHdr, PRBool *aResult);
+NS_MSG_BASE nsresult IsRFC822HeaderFieldName(const char *aHdr, bool *aResult);
 
 NS_MSG_BASE nsresult NS_GetUnicharPreferenceWithDefault(nsIPrefBranch *prefBranch,   //can be null, if so uses the root branch
                                                         const char *prefName,
@@ -177,7 +177,7 @@ NS_MSG_BASE nsresult NS_GetLocalizedUnicharPreferenceWithDefault(nsIPrefBranch *
 NS_MSG_BASE nsresult GetOrCreateFolder(const nsACString & aURI, nsIUrlListener *aListener);
 
 // Returns true if the nsIURI is a message under an RSS account
-NS_MSG_BASE nsresult IsRSSArticle(nsIURI * aMsgURI, PRBool *aIsRSSArticle);
+NS_MSG_BASE nsresult IsRSSArticle(nsIURI * aMsgURI, bool *aIsRSSArticle);
 
 // digest needs to be a pointer to a 16 byte buffer
 #define DIGEST_LENGTH 16
@@ -211,9 +211,9 @@ NS_MSG_BASE nsresult MsgNewBufferedFileOutputStream(nsIOutputStream **aResult, n
 
 // fills in the position of the passed in keyword in the passed in keyword list
 // and returns false if the keyword isn't present
-NS_MSG_BASE PRBool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aStartOfKeyword, PRInt32 *aLength);
+NS_MSG_BASE bool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aStartOfKeyword, PRInt32 *aLength);
 
-NS_MSG_BASE PRBool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains);
+NS_MSG_BASE bool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains);
 
 // gets an nsILocalFile from a UTF-8 file:// path
 NS_MSG_BASE nsresult MsgGetLocalFileFromURI(const nsACString &aUTF8Path, nsILocalFile **aFile);
@@ -223,7 +223,7 @@ NS_MSG_BASE void MsgStripQuotedPrintable (unsigned char *src);
 /*
  * Utility function copied from nsReadableUtils
  */
-NS_MSG_BASE PRBool MsgIsUTF8(const nsACString& aString);
+NS_MSG_BASE bool MsgIsUTF8(const nsACString& aString);
 
 /*
  * Utility functions that call functions from nsINetUtil
@@ -255,7 +255,7 @@ NS_MSG_BASE PRInt32 MsgFindCharInSet(const nsString &aString,
 // advances bufferOffset to the beginning of the next line, if we don't
 // get to maxBufferOffset first. Returns PR_FALSE if we didn't get to the
 // next line.
-NS_MSG_BASE PRBool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset,
+NS_MSG_BASE bool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset,
                                    PRUint32 maxBufferOffset);
 
 /**
@@ -384,19 +384,19 @@ NS_MSG_BASE PRUint64 ParseUint64Str(const char *str);
  * The internal and external methods expect the parameters in a different order.
  * The internal API also always expects a flag rather than a comparator.
  */
-inline PRInt32 MsgFind(nsAString &str, const char *what, PRBool ignore_case, PRUint32 offset)
+inline PRInt32 MsgFind(nsAString &str, const char *what, bool ignore_case, PRUint32 offset)
 {
   return str.Find(what, offset, ignore_case);
 }
 
-inline PRInt32 MsgFind(nsACString &str, const char *what, PRBool ignore_case, PRUint32 offset)
+inline PRInt32 MsgFind(nsACString &str, const char *what, bool ignore_case, PRUint32 offset)
 {
   if (ignore_case)
     return str.Find(what, offset, CaseInsensitiveCompare);
   return str.Find(what, offset);
 }
 
-inline PRInt32 MsgFind(nsACString &str, const nsACString &what, PRBool ignore_case, PRUint32 offset)
+inline PRInt32 MsgFind(nsACString &str, const nsACString &what, bool ignore_case, PRUint32 offset)
 {
   if (ignore_case)
     return str.Find(what, offset, CaseInsensitiveCompare);
@@ -420,7 +420,7 @@ NS_MSG_BASE char *MsgEscapeHTML(const char *aString);
 /// Equivalent of nsEscapeHTML2(aBuffer, aLen)
 NS_MSG_BASE PRUnichar *MsgEscapeHTML2(const PRUnichar *aBuffer, PRInt32 aLen);
 // Existing replacement for IsUTF8
-NS_MSG_BASE PRBool MsgIsUTF8(const nsACString& aString);
+NS_MSG_BASE bool MsgIsUTF8(const nsACString& aString);
 /// Equivalent of NS_NewAtom(aUTF8String)
 NS_MSG_BASE nsIAtom* MsgNewAtom(const char* aString);
 /// Equivalent of do_GetAtom(aUTF8String)

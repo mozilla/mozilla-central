@@ -48,7 +48,7 @@ extern "C" MimeEncoderData *
 MIME_UUEncoderInit(char *filename, nsresult (*output_fn) (const char *buf, PRInt32 size, void *closure), void *closure);
 
 extern "C" nsresult
-MIME_EncoderDestroy(MimeEncoderData *data, PRBool abort_p);
+MIME_EncoderDestroy(MimeEncoderData *data, bool abort_p);
 
 extern "C" nsresult
 MIME_EncoderWrite(MimeEncoderData *data, const char *buffer, PRInt32 size);

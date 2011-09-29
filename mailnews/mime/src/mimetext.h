@@ -92,16 +92,16 @@ struct MimeInlineText {
   char *charset;      /* The charset from the content-type of this
                          object, or the caller-specified overrides
                          or defaults. */
-  PRBool charsetOverridable;
-  PRBool needUpdateMsgWinCharset;
+  bool charsetOverridable;
+  bool needUpdateMsgWinCharset;
   char *cbuffer;      /* Buffer used for charset conversion. */
   PRInt32 cbuffer_size;
 
   nsCOMPtr<nsIUnicodeDecoder> inputDecoder;
   nsCOMPtr<nsIUnicodeEncoder> utf8Encoder;
 
-  PRBool  inputAutodetect;
-  PRBool  initializeCharset;
+  bool    inputAutodetect;
+  bool    initializeCharset;
   PRInt32 lastLineInDam;
   PRInt32 curDamOffset;
   char *lineDamBuffer;

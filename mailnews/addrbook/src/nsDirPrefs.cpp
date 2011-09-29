@@ -72,7 +72,7 @@
 
 /* Default settings for site-configurable prefs */
 #define kDefaultPosition 1
-static PRBool dir_IsServerDeleted(DIR_Server * server);
+static bool dir_IsServerDeleted(DIR_Server * server);
 
 static char *DIR_GetStringPref(const char *prefRoot, const char *prefLeaf, const char *defaultValue);
 static PRInt32 DIR_GetIntPref(const char *prefRoot, const char *prefLeaf, PRInt32 defaultValue);
@@ -82,7 +82,7 @@ static char * dir_ConvertDescriptionToPrefName(DIR_Server * server);
 void DIR_SetFileName(char** filename, const char* leafName);
 static void DIR_SetIntPref(const char *prefRoot, const char *prefLeaf, PRInt32 value, PRInt32 defaultValue);
 static DIR_Server *dir_MatchServerPrefToServer(nsVoidArray *wholeList, const char *pref);
-static PRBool dir_ValidateAndAddNewServer(nsVoidArray *wholeList, const char *fullprefname);
+static bool dir_ValidateAndAddNewServer(nsVoidArray *wholeList, const char *fullprefname);
 static void DIR_DeleteServerList(nsVoidArray *wholeList);
 
 static char *dir_CreateServerPrefName(DIR_Server *server);
@@ -93,7 +93,7 @@ static DIR_PrefId  DIR_AtomizePrefName(const char *prefname);
 
 #define DIR_POS_APPEND                     0x80000000
 #define DIR_POS_DELETE                     0x80000001
-static PRBool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, PRInt32 position);
+static bool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, PRInt32 position);
 
 /* These two routines should be called to initialize and save 
  * directory preferences from the XP Java Script preferences
@@ -268,7 +268,7 @@ nsresult DIR_ShutDown()  /* FEs should call this when the app is shutting down. 
   return NS_OK;
 }
 
-nsresult DIR_ContainsServer(DIR_Server* pServer, PRBool *hasDir)
+nsresult DIR_ContainsServer(DIR_Server* pServer, bool *hasDir)
 {
   if (dir_ServerList)
   {
@@ -365,12 +365,12 @@ static void DIR_InitServer(DIR_Server *server, DirectoryType dirType)
  *
  * Returns PR_TRUE if the server list was re-sorted.
  */
-static PRBool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, PRInt32 position)
+static bool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, PRInt32 position)
  {
    NS_ENSURE_TRUE(wholeList, PR_FALSE);
 
    PRInt32    i, count, num;
-   PRBool     resort = PR_FALSE;
+   bool       resort = false;
    DIR_Server *s=nsnull;
    
    switch (position) {
@@ -514,9 +514,9 @@ static DIR_Server *dir_MatchServerPrefToServer(nsVoidArray *wholeList, const cha
  * are set for the given prefName.  If they are then it adds the server to the
  * unified server list.
  */
-static PRBool dir_ValidateAndAddNewServer(nsVoidArray *wholeList, const char *fullprefname)
+static bool dir_ValidateAndAddNewServer(nsVoidArray *wholeList, const char *fullprefname)
 {
-  PRBool rc = PR_FALSE;
+  bool rc = false;
 
   const char *endname = PL_strchr(&fullprefname[PL_strlen(PREF_LDAP_SERVER_TREE_NAME) + 1], '.');
   if (endname)
@@ -618,7 +618,7 @@ static DIR_PrefId DIR_AtomizePrefName(const char *prefname)
 
 /* this function determines if the passed in server is no longer part of the of
    the global server list. */
-static PRBool dir_IsServerDeleted(DIR_Server * server)
+static bool dir_IsServerDeleted(DIR_Server * server)
 {
   return (server && server->position == 0);
 }
@@ -1050,7 +1050,7 @@ static char *dir_CreateServerPrefName (DIR_Server *server)
      and then verify that it is unique. If it is unique then use it... */
   char * leafName = dir_ConvertDescriptionToPrefName(server);
   char * prefName = nsnull;
-  PRBool isUnique = PR_FALSE;
+  bool isUnique = false;
 
   if (!leafName || !*leafName)
   {

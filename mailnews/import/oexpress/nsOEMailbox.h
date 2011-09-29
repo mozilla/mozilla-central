@@ -45,10 +45,10 @@
 
 class CImportMailbox {
 public:
-  static PRBool  ImportMailbox( PRUint32 *pDone, PRBool *pAbort, nsString& name, nsIFile * inFile, nsIFile * outFile, PRUint32 *pCount);
+  static bool    ImportMailbox( PRUint32 *pDone, bool *pAbort, nsString& name, nsIFile * inFile, nsIFile * outFile, PRUint32 *pCount);
 
 private:
-  static PRBool  GetIndexFile( nsIFile* mbxFile);
+  static bool    GetIndexFile( nsIFile* mbxFile);
 };
 
 

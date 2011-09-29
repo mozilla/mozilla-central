@@ -85,7 +85,7 @@ protected:
   PRUint32              m_flags;
   nsCOMPtr<nsIMdbTable> m_mdbTable;
   nsCOMPtr<nsIMdbRow>   m_metaRow;
-  PRBool                m_cachedValuesInitialized;
+  bool                  m_cachedValuesInitialized;
   nsMsgKey              m_threadRootKey;
   PRUint32              m_newestMsgDate;
 };

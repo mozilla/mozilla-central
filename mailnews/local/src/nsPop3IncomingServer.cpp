@@ -142,7 +142,7 @@ NS_IMETHODIMP nsPop3IncomingServer::GetDeferredToAccount(nsACString& aRetVal)
   // if not, defer to the local folders inbox.
   nsCOMPtr<nsIMsgAccountManager> acctMgr =
                       do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID);
-  PRBool invalidAccount = PR_TRUE;
+  bool invalidAccount = true;
   if (acctMgr)
   {
     nsCOMPtr<nsIMsgAccount> account;
@@ -180,7 +180,7 @@ NS_IMETHODIMP nsPop3IncomingServer::GetDeferredToAccount(nsACString& aRetVal)
           rv = hiddenRootFolder->GetSubFolders(getter_AddRefs(enumerator));
           if (NS_SUCCEEDED(rv))
           {
-            PRBool hasMore;
+            bool hasMore;
             while (NS_SUCCEEDED(enumerator->HasMoreElements(&hasMore)) &&
                    hasMore)
             {
@@ -304,16 +304,16 @@ NS_IMETHODIMP nsPop3IncomingServer::SetDeferredToAccount(const nsACString& aAcco
   return rv;
 }
 
-//NS_IMPL_GETSET(nsPop3IncomingServer, Authenticated, PRBool, m_authenticated);
+//NS_IMPL_GETSET(nsPop3IncomingServer, Authenticated, bool, m_authenticated);
 
-NS_IMETHODIMP nsPop3IncomingServer::GetAuthenticated(PRBool *aAuthenticated)
+NS_IMETHODIMP nsPop3IncomingServer::GetAuthenticated(bool *aAuthenticated)
 {
   NS_ENSURE_ARG_POINTER(aAuthenticated);
   *aAuthenticated = m_authenticated;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsPop3IncomingServer::SetAuthenticated(PRBool aAuthenticated)
+NS_IMETHODIMP nsPop3IncomingServer::SetAuthenticated(bool aAuthenticated)
 {
   m_authenticated = aAuthenticated;
   return NS_OK;
@@ -423,14 +423,14 @@ NS_IMETHODIMP nsPop3IncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
 
   urlListener = do_QueryInterface(inbox);
 
-  PRBool downloadOnBiff = PR_FALSE;
+  bool downloadOnBiff = false;
   rv = GetDownloadOnBiff(&downloadOnBiff);
   if (downloadOnBiff)
   {
     nsCOMPtr <nsIMsgLocalMailFolder> localInbox = do_QueryInterface(inbox, &rv);
     if (localInbox && NS_SUCCEEDED(rv))
     {
-      PRBool valid = PR_FALSE;
+      bool valid = false;
       nsCOMPtr <nsIMsgDatabase> db;
       rv = inbox->GetMsgDatabase(getter_AddRefs(db));
       if (NS_SUCCEEDED(rv) && db)
@@ -439,7 +439,7 @@ NS_IMETHODIMP nsPop3IncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
         rv = pop3Service->GetNewMail(aMsgWindow, urlListener, inbox, this, nsnull);
       else
       {
-        PRBool isLocked;
+        bool isLocked;
         inbox->GetLocked(&isLocked);
         if (!isLocked)
           rv = localInbox->GetDatabaseWithReparse(urlListener, aMsgWindow, getter_AddRefs(db));
@@ -492,7 +492,7 @@ NS_IMETHODIMP nsPop3IncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
 // filed to them, which will remove them as targets of all the move/copy
 // menu items.
 NS_IMETHODIMP
-nsPop3IncomingServer::GetCanFileMessagesOnServer(PRBool *aCanFileMessagesOnServer)
+nsPop3IncomingServer::GetCanFileMessagesOnServer(bool *aCanFileMessagesOnServer)
 {
   NS_ENSURE_ARG_POINTER(aCanFileMessagesOnServer);
 
@@ -504,7 +504,7 @@ nsPop3IncomingServer::GetCanFileMessagesOnServer(PRBool *aCanFileMessagesOnServe
 
 
 NS_IMETHODIMP
-nsPop3IncomingServer::GetCanCreateFoldersOnServer(PRBool *aCanCreateFoldersOnServer)
+nsPop3IncomingServer::GetCanCreateFoldersOnServer(bool *aCanCreateFoldersOnServer)
 {
   NS_ENSURE_ARG_POINTER(aCanCreateFoldersOnServer);
 
@@ -591,7 +591,7 @@ nsPop3IncomingServer::GetNewMessages(nsIMsgFolder *aFolder, nsIMsgWindow *aMsgWi
 }
 
 NS_IMETHODIMP
-nsPop3IncomingServer::GetDownloadMessagesAtStartup(PRBool *getMessagesAtStartup)
+nsPop3IncomingServer::GetDownloadMessagesAtStartup(bool *getMessagesAtStartup)
 {
   NS_ENSURE_ARG_POINTER(getMessagesAtStartup);
   // GetMessages is not automatically done for pop servers at startup.
@@ -601,7 +601,7 @@ nsPop3IncomingServer::GetDownloadMessagesAtStartup(PRBool *getMessagesAtStartup)
 }
 
 NS_IMETHODIMP
-nsPop3IncomingServer::GetCanBeDefaultServer(PRBool *canBeDefaultServer)
+nsPop3IncomingServer::GetCanBeDefaultServer(bool *canBeDefaultServer)
 {
   NS_ENSURE_ARG_POINTER(canBeDefaultServer);
   *canBeDefaultServer = PR_TRUE;
@@ -609,7 +609,7 @@ nsPop3IncomingServer::GetCanBeDefaultServer(PRBool *canBeDefaultServer)
 }
 
 NS_IMETHODIMP
-nsPop3IncomingServer::GetCanSearchMessages(PRBool *canSearchMessages)
+nsPop3IncomingServer::GetCanSearchMessages(bool *canSearchMessages)
 {
   // this will return false if this server is deferred, which is what we want.
   return GetCanFileMessagesOnServer(canSearchMessages);
@@ -761,7 +761,7 @@ nsresult nsPop3GetMailChainer::RunNextGetNewMail()
     numServersLeft--;
     if (popServer)
     {
-      PRBool deferGetNewMail = PR_FALSE;
+      bool deferGetNewMail = false;
       nsCOMPtr <nsIMsgIncomingServer> downloadingToServer;
       m_folderToDownloadTo->GetServer(getter_AddRefs(downloadingToServer));
       popServer->GetDeferGetNewMail(&deferGetNewMail);

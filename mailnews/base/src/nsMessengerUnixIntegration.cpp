@@ -183,7 +183,7 @@ nsresult nsMessengerUnixIntegration::GetStringBundle(nsIStringBundle **aBundle)
 }
 
 #ifdef MOZ_THUNDERBIRD
-PRBool
+bool
 nsMessengerUnixIntegration::BuildNotificationTitle(nsIMsgFolder *aFolder, nsIStringBundle *aBundle, nsString &aTitle)
 {
   nsString accountName;
@@ -232,16 +232,16 @@ nsMsgDbHdrTimestampComparator(nsIMsgDBHdr *aElement1,
 }
 
 
-PRBool
+bool
 nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
                                                   nsIStringBundle *aBundle,
                                                   nsString &aBody)
 {
   nsAutoString alertBody;
 
-  PRBool showPreview = PR_TRUE;
-  PRBool showSubject = PR_TRUE;
-  PRBool showSender = PR_TRUE;
+  bool showPreview = true;
+  bool showSubject = true;
+  bool showSender = true;
   PRInt32 previewLength = SHOW_ALERT_PREVIEW_LENGTH_DEFAULT;
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
@@ -266,7 +266,7 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
   nsCString msgURI;
   folder->GetUriForMsg(aHdr, msgURI);
 
-  PRBool localOnly;
+  bool localOnly;
 
   PRUint32 msgURIIndex = mFetchingURIs.IndexOf(msgURI);
   if (msgURIIndex == -1)
@@ -281,7 +281,7 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
   if (NS_FAILED(aHdr->GetMessageKey(&messageKey)))
     return PR_FALSE;
 
-  PRBool asyncResult = PR_FALSE;
+  bool asyncResult = false;
   nsresult rv = folder->FetchMsgPreviewText(&messageKey, 1,
                                             localOnly, this,
                                             &asyncResult);
@@ -377,7 +377,7 @@ nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTit
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  PRBool showAlert = PR_TRUE;
+  bool showAlert = true;
   prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
 
   if (showAlert)
@@ -422,7 +422,7 @@ nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTit
 // Opening Thunderbird's new mail alert notification window for not supporting libnotify
 // aUserInitiated --> true if we are opening the alert notification in response to a user action
 //                    like clicking on the biff icon
-nsresult nsMessengerUnixIntegration::ShowNewAlertNotification(PRBool aUserInitiated)
+nsresult nsMessengerUnixIntegration::ShowNewAlertNotification(bool aUserInitiated)
 {
 
   nsresult rv;
@@ -434,7 +434,7 @@ nsresult nsMessengerUnixIntegration::ShowNewAlertNotification(PRBool aUserInitia
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool showAlert = PR_TRUE;
+  bool showAlert = true;
   prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
 
   if (showAlert)
@@ -713,7 +713,7 @@ nsresult nsMessengerUnixIntegration::GetFirstFolderWithNewMail(nsACString& aFold
 
       nsCString folderURI;
       msgFolder->GetURI(folderURI);
-      PRBool hasNew = PR_FALSE;
+      bool hasNew = false;
       rv = msgFolder->GetHasNewMessages(&hasNew);
 
       if (NS_FAILED(rv))
@@ -754,8 +754,8 @@ nsMessengerUnixIntegration::OnItemAdded(nsIMsgFolder *, nsISupports *)
 NS_IMETHODIMP
 nsMessengerUnixIntegration::OnItemBoolPropertyChanged(nsIMsgFolder *aItem,
                                                          nsIAtom *aProperty,
-                                                         PRBool aOldValue,
-                                                         PRBool aNewValue)
+                                                         bool aOldValue,
+                                                         bool aNewValue)
 {
   return NS_OK;
 }
@@ -780,7 +780,7 @@ nsMessengerUnixIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAto
     {
       // only show a system tray icon iff we are performing biff
       // (as opposed to the user getting new mail)
-      PRBool performingBiff = PR_FALSE;
+      bool performingBiff = false;
       nsCOMPtr<nsIMsgIncomingServer> server;
       aItem->GetServer(getter_AddRefs(server));
       if (server)

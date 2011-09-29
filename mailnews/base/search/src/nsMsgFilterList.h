@@ -75,7 +75,7 @@ public:
   nsresult Close();
   nsresult LoadTextFilters(nsIInputStream *aStream);
 
-  PRBool m_temporaryList;
+  bool m_temporaryList;
 
 protected:
   // type-safe accessor when you really have to have an nsMsgFilter
@@ -89,13 +89,13 @@ protected:
   // file streaming methods
   char ReadChar(nsIInputStream *aStream);
   char SkipWhitespace(nsIInputStream *aStream);
-  PRBool StrToBool(nsCString &str);
+  bool StrToBool(nsCString &str);
   char LoadAttrib(nsMsgFilterFileAttribValue &attrib, nsIInputStream *aStream);
   const char *GetStringForAttrib(nsMsgFilterFileAttribValue attrib);
   nsresult LoadValue(nsCString &value, nsIInputStream *aStream);
   PRInt16 m_fileVersion;
-  PRPackedBool m_loggingEnabled;
-  PRPackedBool m_startWritingToBuffer; //tells us when to start writing one whole filter to m_unparsedBuffer
+  bool m_loggingEnabled;
+  bool m_startWritingToBuffer; //tells us when to start writing one whole filter to m_unparsedBuffer
   nsCOMPtr <nsIMsgFolder> m_folder;
   nsMsgFilter *m_curFilter; // filter we're filing in or out(?)
   nsCString m_filterFileName;

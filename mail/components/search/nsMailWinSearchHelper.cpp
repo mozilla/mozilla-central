@@ -80,13 +80,13 @@ nsMailWinSearchHelper::~nsMailWinSearchHelper()
 NS_IMPL_ISUPPORTS1(nsMailWinSearchHelper, nsIMailWinSearchHelper)
 
 
-NS_IMETHODIMP nsMailWinSearchHelper::GetFoldersInCrawlScope(PRBool* aResult)
+NS_IMETHODIMP nsMailWinSearchHelper::GetFoldersInCrawlScope(bool* aResult)
 {
   *aResult = PR_FALSE;
   NS_ENSURE_ARG_POINTER(mProfD);
 
   // If the service isn't present or running, we shouldn't proceed.
-  PRBool serviceRunning;
+  bool serviceRunning;
   nsresult rv = GetServiceRunning(&serviceRunning);
   if (!serviceRunning || NS_FAILED(rv))
     return rv;
@@ -139,7 +139,7 @@ NS_IMETHODIMP nsMailWinSearchHelper::GetFoldersInCrawlScope(PRBool* aResult)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailWinSearchHelper::GetServiceRunning(PRBool* aResult)
+NS_IMETHODIMP nsMailWinSearchHelper::GetServiceRunning(bool* aResult)
 {
   *aResult = PR_FALSE;
   SC_HANDLE hSCManager = OpenSCManager(nsnull, SERVICES_ACTIVE_DATABASE, SERVICE_QUERY_STATUS);
@@ -164,11 +164,11 @@ NS_IMETHODIMP nsMailWinSearchHelper::GetServiceRunning(PRBool* aResult)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailWinSearchHelper::SetFANCIBit(nsIFile* aFile, PRBool aBit, PRBool aRecurse)
+NS_IMETHODIMP nsMailWinSearchHelper::SetFANCIBit(nsIFile* aFile, bool aBit, bool aRecurse)
 {
   NS_ENSURE_ARG_POINTER(aFile);
 
-  PRBool exists;
+  bool exists;
   nsresult rv = aFile->Exists(&exists);
   NS_ENSURE_SUCCESS(rv, rv);
   if (!exists)
@@ -196,7 +196,7 @@ NS_IMETHODIMP nsMailWinSearchHelper::SetFANCIBit(nsIFile* aFile, PRBool aBit, PR
   }
 
   // We should only try to recurse if it's a directory
-  PRBool isDirectory;
+  bool isDirectory;
   rv = aFile->IsDirectory(&isDirectory);
   NS_ENSURE_SUCCESS(rv, rv);
   if (aRecurse && isDirectory)
@@ -205,7 +205,7 @@ NS_IMETHODIMP nsMailWinSearchHelper::SetFANCIBit(nsIFile* aFile, PRBool aBit, PR
     rv = aFile->GetDirectoryEntries(getter_AddRefs(children));
     NS_ENSURE_SUCCESS(rv, rv);
     
-    PRBool hasMore;
+    bool hasMore;
     while (NS_SUCCEEDED(rv) && NS_SUCCEEDED(children->HasMoreElements(&hasMore)) && hasMore)
     {
       nsCOMPtr<nsIFile> childFile;
@@ -217,7 +217,7 @@ NS_IMETHODIMP nsMailWinSearchHelper::SetFANCIBit(nsIFile* aFile, PRBool aBit, PR
   return rv;
 }
 
-NS_IMETHODIMP nsMailWinSearchHelper::GetIsFileAssociationSet(PRBool *aResult)
+NS_IMETHODIMP nsMailWinSearchHelper::GetIsFileAssociationSet(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = PR_FALSE;
@@ -250,7 +250,7 @@ NS_IMETHODIMP nsMailWinSearchHelper::SetFileAssociation()
   return SUCCEEDED(hr) ? NS_OK : NS_ERROR_FAILURE;
 }
 
-NS_IMETHODIMP nsMailWinSearchHelper::RunSetup(PRBool aEnable)
+NS_IMETHODIMP nsMailWinSearchHelper::RunSetup(bool aEnable)
 {
   nsresult rv;
   if (!mCurProcD)

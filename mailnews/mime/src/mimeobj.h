@@ -86,7 +86,7 @@
    One should generally not call parse_line() directly, since that could
    bypass decoding.  One should call parse_buffer() instead.
 
-   int parse_eof (MimeObject *obj, PRBool abort_p)
+   int parse_eof (MimeObject *obj, bool abort_p)
 
      This is called when there is no more data to be handed to the object:
    when the parent object is done feeding data to an object being parsed.
@@ -114,7 +114,7 @@
      `parse_end'.
 
 
-   PRBool displayable_inline_p (MimeObjectClass *class, MimeHeaders *hdrs)
+   bool displayable_inline_p (MimeObjectClass *class, MimeHeaders *hdrs)
 
      This method should return true if this class of object will be displayed
      directly, as opposed to being displayed as a link.  This information is
@@ -137,7 +137,7 @@ struct MimeObjectClass {
   int instance_size;
   struct MimeObjectClass *superclass;
   int (*class_initialize) (MimeObjectClass *clazz);
-  PRBool class_initialized;
+  bool class_initialized;
 
   /* These are the methods shared by all MIME objects.  See comment above.
    */
@@ -146,10 +146,10 @@ struct MimeObjectClass {
   int (*parse_begin) (MimeObject *obj);
   int (*parse_buffer) (const char *buf, PRInt32 size, MimeObject *obj);
   int (*parse_line) (const char *line, PRInt32 length, MimeObject *obj);
-  int (*parse_eof) (MimeObject *obj, PRBool abort_p);
-  int (*parse_end) (MimeObject *obj, PRBool abort_p);
+  int (*parse_eof) (MimeObject *obj, bool abort_p);
+  int (*parse_end) (MimeObject *obj, bool abort_p);
 
-  PRBool (*displayable_inline_p) (MimeObjectClass *clazz, MimeHeaders *hdrs);
+  bool (*displayable_inline_p) (MimeObjectClass *clazz, MimeHeaders *hdrs);
 
 #if defined(DEBUG) && defined(XP_UNIX)
   int (*debug_print) (MimeObject *obj, PRFileDesc *stream, PRInt32 depth);
@@ -188,10 +188,10 @@ struct MimeObject {
 
   MimeDisplayOptions *options;  /* Display preferences set by caller. */
 
-  PRBool closed_p;      /* Whether it's done being written to. */
-  PRBool parsed_p;      /* Whether the parser has been shut down. */
-  PRBool output_p;      /* Whether it should be written. */
-  PRBool dontShowAsAttachment; /* Force an object to not be shown as attachment,
+  bool closed_p;      /* Whether it's done being written to. */
+  bool parsed_p;      /* Whether the parser has been shut down. */
+  bool output_p;      /* Whether it should be written. */
+  bool dontShowAsAttachment; /* Force an object to not be shown as attachment,
                                   but when is false, it doesn't mean it will be
                                   shown as attachment */
 

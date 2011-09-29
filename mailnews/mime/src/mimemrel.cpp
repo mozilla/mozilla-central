@@ -350,7 +350,7 @@ escape_for_mrel_subst(char *inURL)
   return output;
 }
 
-static PRBool
+static bool
 MimeStartParamExists(MimeObject *obj, MimeObject* child)
 {
   char *ct = MimeHeaders_get (obj->headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
@@ -366,10 +366,10 @@ MimeStartParamExists(MimeObject *obj, MimeObject* child)
   return PR_TRUE;
 }
 
-static PRBool
+static bool
 MimeThisIsStartPart(MimeObject *obj, MimeObject* child)
 {
-  PRBool rval = PR_FALSE;
+  bool rval = false;
   char *ct, *st, *cst;
 
   ct = MimeHeaders_get (obj->headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
@@ -448,7 +448,7 @@ done:
   return retString;
 }
 
-static PRBool
+static bool
 MimeMultipartRelated_output_child_p(MimeObject *obj, MimeObject* child)
 {
   MimeMultipartRelated *relobj = (MimeMultipartRelated *) obj;
@@ -634,7 +634,7 @@ MimeMultipartRelated_output_child_p(MimeObject *obj, MimeObject* child)
 static int
 MimeMultipartRelated_parse_child_line (MimeObject *obj,
                      const char *line, PRInt32 length,
-                     PRBool first_line_p)
+                     bool first_line_p)
 {
   MimeContainer *cont = (MimeContainer *) obj;
   MimeMultipartRelated *relobj = (MimeMultipartRelated *) obj;
@@ -808,7 +808,7 @@ push_tag(MimeMultipartRelated* relobj, const char* buf, PRInt32 size)
   return 0;
 }
 
-static PRBool accept_related_part(MimeMultipartRelated* relobj, MimeObject* part_obj)
+static bool accept_related_part(MimeMultipartRelated* relobj, MimeObject* part_obj)
 {
   if (!relobj || !part_obj)
     return PR_FALSE;
@@ -1025,7 +1025,7 @@ mime_multipart_related_output_fn(const char* buf, PRInt32 size, void *stream_clo
 
 
 static int
-MimeMultipartRelated_parse_eof (MimeObject *obj, PRBool abort_p)
+MimeMultipartRelated_parse_eof (MimeObject *obj, bool abort_p)
 {
   /* OK, all the necessary data has been collected.  We now have to spew out
      the HTML.  We let it go through all the normal mechanisms (which

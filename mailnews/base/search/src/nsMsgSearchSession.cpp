@@ -81,7 +81,7 @@ NS_IMETHODIMP
 nsMsgSearchSession::AddSearchTerm(nsMsgSearchAttribValue attrib,
                                   nsMsgSearchOpValue op,
                                   nsIMsgSearchValue * value,
-                                  PRBool BooleanANDp,
+                                  bool BooleanANDp,
                                   const char *customString)
 {
     // stupid gcc
@@ -244,8 +244,8 @@ NS_IMETHODIMP nsMsgSearchSession::ClearScopes()
 NS_IMETHODIMP
 nsMsgSearchSession::ScopeUsesCustomHeaders(nsMsgSearchScopeValue scope,
                                            void * selection,
-                                           PRBool forFilters,
-                                           PRBool *_retval)
+                                           bool forFilters,
+                                           bool *_retval)
 {
     return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -253,7 +253,7 @@ nsMsgSearchSession::ScopeUsesCustomHeaders(nsMsgSearchScopeValue scope,
 /* boolean IsStringAttribute (in nsMsgSearchAttribute attrib); */
 NS_IMETHODIMP
 nsMsgSearchSession::IsStringAttribute(nsMsgSearchAttribValue attrib,
-                                      PRBool *_retval)
+                                      bool *_retval)
 {
   NS_ENSURE_ARG(_retval);
     return NS_ERROR_NOT_IMPLEMENTED;
@@ -502,7 +502,7 @@ nsresult nsMsgSearchSession::GetNextUrl()
   nsCString nextUrl;
   nsCOMPtr <nsIMsgMessageService> msgService;
 
-  PRBool stopped = PR_FALSE;
+  bool stopped = false;
   nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(m_msgWindowWeak));
   if (msgWindow)
     msgWindow->GetStopped(&stopped);
@@ -531,8 +531,8 @@ nsresult nsMsgSearchSession::GetNextUrl()
 /* static */ void nsMsgSearchSession::TimerCallback(nsITimer *aTimer, void *aClosure)
 {
   nsMsgSearchSession *searchSession = (nsMsgSearchSession *) aClosure;
-  PRBool done;
-  PRBool stopped = PR_FALSE;
+  bool done;
+  bool stopped = false;
 
   searchSession->TimeSlice(&done);
   nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(searchSession->m_msgWindowWeak));
@@ -642,7 +642,7 @@ nsMsgSearchScopeTerm *nsMsgSearchSession::GetRunningScope()
   return m_scopeList.SafeElementAt(m_idxRunningScope, nsnull);
 }
 
-nsresult nsMsgSearchSession::TimeSlice (PRBool *aDone)
+nsresult nsMsgSearchSession::TimeSlice (bool *aDone)
 {
   // we only do serial for now.
   return TimeSliceSerial(aDone);
@@ -653,7 +653,7 @@ void nsMsgSearchSession::ReleaseFolderDBRef()
   nsMsgSearchScopeTerm *scope = GetRunningScope();
   if (scope)
   {
-    PRBool isOpen =PR_FALSE;
+    bool isOpen =false;
     PRUint32 flags;
     nsCOMPtr <nsIMsgFolder> folder;
     scope->GetFolder(getter_AddRefs(folder));
@@ -670,7 +670,7 @@ void nsMsgSearchSession::ReleaseFolderDBRef()
     }
   }
 }
-nsresult nsMsgSearchSession::TimeSliceSerial (PRBool *aDone)
+nsresult nsMsgSearchSession::TimeSliceSerial (bool *aDone)
 {
   // This version of TimeSlice runs each scope term one at a time, and waits until one
   // scope term is finished before starting another one. When we're searching the local
@@ -713,7 +713,7 @@ nsresult nsMsgSearchSession::TimeSliceSerial (PRBool *aDone)
 }
 
 void
-nsMsgSearchSession::EnableFolderNotifications(PRBool aEnable)
+nsMsgSearchSession::EnableFolderNotifications(bool aEnable)
 {
   nsMsgSearchScopeTerm *scope = GetRunningScope();
   if (scope)
@@ -727,7 +727,7 @@ nsMsgSearchSession::EnableFolderNotifications(PRBool aEnable)
 
 //this method is used for adding new hdrs to quick search view
 NS_IMETHODIMP
-nsMsgSearchSession::MatchHdr(nsIMsgDBHdr *aMsgHdr, nsIMsgDatabase *aDatabase, PRBool *aResult)
+nsMsgSearchSession::MatchHdr(nsIMsgDBHdr *aMsgHdr, nsIMsgDatabase *aDatabase, bool *aResult)
 {
   nsMsgSearchScopeTerm *scope = m_scopeList.SafeElementAt(0, nsnull);
   if (scope)

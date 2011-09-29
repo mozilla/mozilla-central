@@ -115,7 +115,7 @@ nsPop3Sink::~nsPop3Sink()
 }
 
 nsresult
-nsPop3Sink::SetUserAuthenticated(PRBool authed)
+nsPop3Sink::SetUserAuthenticated(bool authed)
 {
   m_authed = authed;
   m_popServer->SetAuthenticated(authed);
@@ -123,13 +123,13 @@ nsPop3Sink::SetUserAuthenticated(PRBool authed)
 }
 
 nsresult
-nsPop3Sink::GetUserAuthenticated(PRBool* authed)
+nsPop3Sink::GetUserAuthenticated(bool* authed)
 {
   return m_popServer->GetAuthenticated(authed);
 }
 
 nsresult
-nsPop3Sink::SetSenderAuthedFlag(void* closure, PRBool authed)
+nsPop3Sink::SetSenderAuthedFlag(void* closure, bool authed)
 {
   m_authed = authed;
   return NS_OK;
@@ -177,8 +177,8 @@ nsPop3Sink::FindPartialMessages(nsILocalFile *folderFile)
   nsresult rv;
 
   nsCOMPtr<nsISimpleEnumerator> messages;
-  PRBool hasMore = PR_FALSE;
-  PRBool isOpen = PR_FALSE;
+  bool hasMore = false;
+  bool isOpen = false;
   nsLocalFolderScanState folderScanState;
   nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(m_folder);
 
@@ -240,12 +240,12 @@ void
 nsPop3Sink::CheckPartialMessages(nsIPop3Protocol *protocol)
 {
   PRUint32 count = m_partialMsgsArray.Length();
-  PRBool deleted = PR_FALSE;
+  bool deleted = false;
 
   for (PRUint32 i = 0; i < count; i++)
   {
     partialRecord *partialMsg;
-    PRBool found = PR_TRUE;
+    bool found = true;
     partialMsg = m_partialMsgsArray.ElementAt(i);
     protocol->CheckMessage(partialMsg->m_uidl.get(), &found);
     if (!found && partialMsg->m_msgDBHdr)
@@ -265,7 +265,7 @@ nsPop3Sink::CheckPartialMessages(nsIPop3Protocol *protocol)
 }
 
 nsresult
-nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRBool* aBool)
+nsPop3Sink::BeginMailDelivery(bool uidlDownload, nsIMsgWindow *aMsgWindow, bool* aBool)
 {
 #ifdef DEBUG
   m_fileCounter++;
@@ -284,7 +284,7 @@ nsPop3Sink::BeginMailDelivery(PRBool uidlDownload, nsIMsgWindow *aMsgWindow, PRB
   if (account)
     account->GetKey(m_accountKey);
 
-  PRBool isLocked;
+  bool isLocked;
   nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIPop3Sink*>(this));
   m_folder->GetLocked(&isLocked);
   if(!isLocked)
@@ -437,7 +437,7 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
   nsresult rv = ReleaseFolderLock();
   NS_ASSERTION(NS_SUCCEEDED(rv),"folder lock not released successfully");
 
-  PRBool filtersRun;
+  bool filtersRun;
   m_folder->CallFilterPlugins(nsnull, &filtersRun); // ??? do we need msgWindow?
   PRInt32 numNewMessagesInFolder;
   // if filters have marked msgs read or deleted, the num new messages count
@@ -497,7 +497,7 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
         nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(openFolder);
         if (localFolder)
         {
-          PRBool hasNew, isLocked;
+          bool hasNew, isLocked;
           (void) openFolder->GetHasNewMessages(&hasNew);
           if (hasNew)
           {
@@ -529,7 +529,7 @@ nsPop3Sink::ReleaseFolderLock()
   nsresult result = NS_OK;
   if (!m_folder)
     return result;
-  PRBool haveSemaphore;
+  bool haveSemaphore;
   nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIPop3Sink*>(this));
   result = m_folder->TestSemaphore(supports, &haveSemaphore);
   PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("ReleaseFolderLock haveSemaphore = %s", haveSemaphore ? "TRUE" : "FALSE"));
@@ -786,7 +786,7 @@ nsresult nsPop3Sink::HandleTempDownloadFailed(nsIMsgWindow *msgWindow)
   if (promptService && !confirmString.IsEmpty())
   {
     PRInt32 dlgResult  = -1;
-    PRBool dummyValue = PR_FALSE;
+    bool dummyValue = false;
     rv = promptService->ConfirmEx(parentWindow, nsnull, confirmString.get(),
                       nsIPromptService::STD_YES_NO_BUTTONS,
                       nsnull,
@@ -816,7 +816,7 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
 
   nsresult rv = WriteLineToMailbox(MSG_LINEBREAK);
   if (NS_FAILED(rv)) return rv;
-  PRBool leaveOnServer = PR_FALSE;
+  bool leaveOnServer = false;
   m_popServer->GetLeaveMessagesOnServer(&leaveOnServer);
   // aSize is only set for partial messages. Skip the flush for partials.
   // Only flush if this is a full message and we didn't leave a copy on the server.
@@ -834,7 +834,7 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
       return NS_ERROR_FAILURE;
 
     nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(m_folder);
-    PRBool doSelect = PR_FALSE;
+    bool doSelect = false;
 
     // aSize is only set for partial messages. For full messages,
     // check to see if we're replacing an old partial message.
@@ -859,7 +859,7 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
       m_outFileStream->Close();
       m_newMailParser->FinishHeader();
       // need to re-open the inbox file stream.
-      PRBool exists;
+      bool exists;
       m_tmpDownloadFile->Exists(&exists);
       if (!exists)
         return HandleTempDownloadFailed(aMsgWindow);
@@ -926,7 +926,7 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
 }
 
 NS_IMETHODIMP
-nsPop3Sink::IncorporateAbort(PRBool uidlDownload)
+nsPop3Sink::IncorporateAbort(bool uidlDownload)
 {
   nsresult rv;
   rv = m_outFileStream->Close();   //need to close so that the file can be truncated.
@@ -964,7 +964,7 @@ nsPop3Sink::BiffGetNewMail()
 }
 
 nsresult
-nsPop3Sink::SetBiffStateAndUpdateFE(PRUint32 aBiffState, PRInt32 numNewMessages, PRBool notify)
+nsPop3Sink::SetBiffStateAndUpdateFE(PRUint32 aBiffState, PRInt32 numNewMessages, bool notify)
 {
   m_biffState = aBiffState;
   if (m_newMailParser)
@@ -982,7 +982,7 @@ nsPop3Sink::SetBiffStateAndUpdateFE(PRUint32 aBiffState, PRInt32 numNewMessages,
 }
 
 NS_IMETHODIMP
-nsPop3Sink::GetBuildMessageUri(PRBool *bVal)
+nsPop3Sink::GetBuildMessageUri(bool *bVal)
 {
   NS_ENSURE_ARG_POINTER(bVal);
   *bVal = m_buildMessageUri;
@@ -990,7 +990,7 @@ nsPop3Sink::GetBuildMessageUri(PRBool *bVal)
 }
 
 NS_IMETHODIMP
-nsPop3Sink::SetBuildMessageUri(PRBool bVal)
+nsPop3Sink::SetBuildMessageUri(bool bVal)
 {
   m_buildMessageUri = bVal;
   return NS_OK;

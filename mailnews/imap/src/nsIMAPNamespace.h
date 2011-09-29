@@ -44,16 +44,16 @@ class nsIMAPNamespace
 {
   
 public:
-  nsIMAPNamespace(EIMAPNamespaceType type, const char *prefix, char delimiter, PRBool from_prefs);
+  nsIMAPNamespace(EIMAPNamespaceType type, const char *prefix, char delimiter, bool from_prefs);
   
   ~nsIMAPNamespace();
   
   EIMAPNamespaceType    GetType() { return m_namespaceType; }
   const char *          GetPrefix() { return m_prefix; }
   char                  GetDelimiter() { return m_delimiter; }
-  void                  SetDelimiter(char delimiter, PRBool delimiterFilledIn);
-  PRBool                GetIsDelimiterFilledIn() { return m_delimiterFilledIn; }
-  PRBool                GetIsNamespaceFromPrefs() { return m_fromPrefs; }
+  void                  SetDelimiter(char delimiter, bool delimiterFilledIn);
+  bool                  GetIsDelimiterFilledIn() { return m_delimiterFilledIn; }
+  bool                  GetIsNamespaceFromPrefs() { return m_fromPrefs; }
   
   // returns -1 if this box is not part of this namespace,
   // or the length of the prefix if it is part of this namespace
@@ -63,8 +63,8 @@ protected:
   EIMAPNamespaceType m_namespaceType;
   char    *m_prefix;
   char    m_delimiter;
-  PRBool  m_fromPrefs;
-  PRBool  m_delimiterFilledIn;
+  bool    m_fromPrefs;
+  bool    m_delimiterFilledIn;
   
 };
 
@@ -82,7 +82,7 @@ public:
   int UnserializeNamespaces(const char *str, char **prefixes, int len);
   nsresult SerializeNamespaces(char **prefixes, int len, nsCString &serializedNamespace);
   
-  void ClearNamespaces(PRBool deleteFromPrefsNamespaces, PRBool deleteServerAdvertisedNamespaces, PRBool reallyDelete);
+  void ClearNamespaces(bool deleteFromPrefsNamespaces, bool deleteServerAdvertisedNamespaces, bool reallyDelete);
   int	GetNumberOfNamespaces();
   int	GetNumberOfNamespaces(EIMAPNamespaceType);
   nsIMAPNamespace *GetNamespaceNumber(int nodeIndex);
@@ -94,7 +94,7 @@ public:
   static nsIMAPNamespace* GetNamespaceForFolder(const char *hostName,
                                            const char *canonicalFolderName,
                                            char delimiter);
-  static PRBool GetFolderIsNamespace(const char *hostName,
+  static bool GetFolderIsNamespace(const char *hostName,
                               const char *canonicalFolderName,
                               char delimiter,nsIMAPNamespace *namespaceForFolder);
   static char* GetFolderNameWithoutNamespace(nsIMAPNamespace *namespaceForFolder, const char *canonicalFolderName);

@@ -55,7 +55,7 @@ NS_IMETHODIMP nsMsgThreadsWithUnreadDBView::GetViewType(nsMsgViewTypeValue *aVie
     return NS_OK;
 }
 
-PRBool nsMsgThreadsWithUnreadDBView::WantsThisThread(nsIMsgThread *threadHdr)
+bool nsMsgThreadsWithUnreadDBView::WantsThisThread(nsIMsgThread *threadHdr)
 {
   if (threadHdr)
   {
@@ -68,7 +68,7 @@ PRBool nsMsgThreadsWithUnreadDBView::WantsThisThread(nsIMsgThread *threadHdr)
   return PR_FALSE;
 }
 
-nsresult nsMsgThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, PRBool ensureListed)
+nsresult nsMsgThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, bool ensureListed)
 {
   nsresult rv = NS_OK;
 
@@ -120,7 +120,7 @@ NS_IMETHODIMP nsMsgWatchedThreadsWithUnreadDBView::GetViewType(nsMsgViewTypeValu
     return NS_OK;
 }
 
-PRBool nsMsgWatchedThreadsWithUnreadDBView::WantsThisThread(nsIMsgThread *threadHdr)
+bool nsMsgWatchedThreadsWithUnreadDBView::WantsThisThread(nsIMsgThread *threadHdr)
 {
 	if (threadHdr)
   {
@@ -135,7 +135,7 @@ PRBool nsMsgWatchedThreadsWithUnreadDBView::WantsThisThread(nsIMsgThread *thread
   return PR_FALSE;
 }
 
-nsresult nsMsgWatchedThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, PRBool ensureListed)
+nsresult nsMsgWatchedThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, bool ensureListed)
 {
   nsresult rv = NS_OK;
   PRUint32 threadFlags;

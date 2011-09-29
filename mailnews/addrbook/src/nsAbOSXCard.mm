@@ -74,7 +74,7 @@ GetPropertType(ABRecord *aCard, NSString *aProperty)
 
 static void
 SetStringProperty(nsAbOSXCard *aCard, const nsString &aValue,
-                  const char *aMemberName, PRBool aNotify,
+                  const char *aMemberName, bool aNotify,
                   nsIAbManager *aAbManager)
 {
   nsString oldValue;
@@ -97,7 +97,7 @@ SetStringProperty(nsAbOSXCard *aCard, const nsString &aValue,
 
 static void
 SetStringProperty(nsAbOSXCard *aCard, NSString *aValue, const char *aMemberName,
-                  PRBool aNotify, nsIAbManager *aAbManager)
+                  bool aNotify, nsIAbManager *aAbManager)
 {
   nsAutoString value;
   if (aValue)
@@ -108,7 +108,7 @@ SetStringProperty(nsAbOSXCard *aCard, NSString *aValue, const char *aMemberName,
 
 static void
 MapStringProperty(nsAbOSXCard *aCard, ABRecord *aOSXCard, NSString *aProperty,
-                  const char *aMemberName, PRBool aNotify,
+                  const char *aMemberName, bool aNotify,
                   nsIAbManager *aAbManager)
 {
   NS_ASSERTION(aProperty, "This is bad! You asked for an unresolved symbol.");
@@ -131,7 +131,7 @@ GetMultiValue(ABRecord *aCard, NSString *aProperty)
 
 static void
 MapDate(nsAbOSXCard *aCard, NSDate *aDate, const char *aYearPropName,
-        const char *aMonthPropName, const char *aDayPropName, PRBool aNotify,
+        const char *aMonthPropName, const char *aDayPropName, bool aNotify,
         nsIAbManager *aAbManager)
 {
   // XXX Should we pass a format and timezone?
@@ -148,9 +148,9 @@ MapDate(nsAbOSXCard *aCard, NSDate *aDate, const char *aYearPropName,
   SetStringProperty(aCard, value, aDayPropName, aNotify, aAbManager);
 }
 
-static PRBool
+static bool
 MapMultiValue(nsAbOSXCard *aCard, ABRecord *aOSXCard,
-              const nsAbOSXPropertyMap &aMap, PRBool aNotify,
+              const nsAbOSXPropertyMap &aMap, bool aNotify,
               nsIAbManager *aAbManager)
 {
   ABMultiValue *value = GetMultiValue(aOSXCard, aMap.mOSXProperty);
@@ -202,7 +202,7 @@ nsAbOSXCard::GetURI(nsACString &aURI)
 }
 
 nsresult
-nsAbOSXCard::Update(PRBool aNotify)
+nsAbOSXCard::Update(bool aNotify)
 {
   ABAddressBook *addressBook = [ABAddressBook sharedAddressBook];
 
@@ -229,7 +229,7 @@ nsAbOSXCard::Update(PRBool aNotify)
     return NS_OK;
   }
   
-  PRBool foundHome = PR_FALSE, foundWork = PR_FALSE;
+  bool foundHome = false, foundWork = false;
   
   PRUint32 i;
   for (i = 0; i < nsAbOSXUtils::kPropertyMapSize; ++i) {

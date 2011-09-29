@@ -74,13 +74,13 @@ NS_IMETHODIMP nsOutlookEditor::Init(nsIDOMDocument *doc, nsIContent * aRoot, nsI
 }
 
 // void setAttributeOrEquivalent (in nsIDOMElement element, in AString sourceAttrName, in AString sourceAttrValue, in boolean aSuppressTransaction)
-NS_IMETHODIMP nsOutlookEditor::SetAttributeOrEquivalent(nsIDOMElement *element, const nsAString & sourceAttrName, const nsAString & sourceAttrValue, PRBool aSuppressTransaction)
+NS_IMETHODIMP nsOutlookEditor::SetAttributeOrEquivalent(nsIDOMElement *element, const nsAString & sourceAttrName, const nsAString & sourceAttrValue, bool aSuppressTransaction)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 // void removeAttributeOrEquivalent (in nsIDOMElement element, in DOMString sourceAttrName, in boolean aSuppressTransaction)
-NS_IMETHODIMP nsOutlookEditor::RemoveAttributeOrEquivalent(nsIDOMElement *element, const nsAString & sourceAttrName, PRBool aSuppressTransaction)
+NS_IMETHODIMP nsOutlookEditor::RemoveAttributeOrEquivalent(nsIDOMElement *element, const nsAString & sourceAttrName, bool aSuppressTransaction)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -92,7 +92,7 @@ NS_IMETHODIMP nsOutlookEditor::PostCreate()
 }
 
 // void preDestroy (in boolean aDestroyingFrames)
-NS_IMETHODIMP nsOutlookEditor::PreDestroy(PRBool aDestroyingFrames)
+NS_IMETHODIMP nsOutlookEditor::PreDestroy(bool aDestroyingFrames)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -120,12 +120,12 @@ NS_IMETHODIMP nsOutlookEditor::SetContentsMIMEType(const char * aContentsMIMETyp
 }
 
 // readonly attribute boolean isDocumentEditable
-NS_IMETHODIMP nsOutlookEditor::GetIsDocumentEditable(PRBool *aIsDocumentEditable)
+NS_IMETHODIMP nsOutlookEditor::GetIsDocumentEditable(bool *aIsDocumentEditable)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookEditor::GetIsSelectionEditable(PRBool *aIsSelectionEditable)
+NS_IMETHODIMP nsOutlookEditor::GetIsSelectionEditable(bool *aIsSelectionEditable)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -155,13 +155,13 @@ NS_IMETHODIMP nsOutlookEditor::DeleteSelection(PRInt16 action)
 }
 
 // readonly attribute boolean documentIsEmpty
-NS_IMETHODIMP nsOutlookEditor::GetDocumentIsEmpty(PRBool *aDocumentIsEmpty)
+NS_IMETHODIMP nsOutlookEditor::GetDocumentIsEmpty(bool *aDocumentIsEmpty)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 // readonly attribute boolean documentModified
-NS_IMETHODIMP nsOutlookEditor::GetDocumentModified(PRBool *aDocumentModified)
+NS_IMETHODIMP nsOutlookEditor::GetDocumentModified(bool *aDocumentModified)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -213,7 +213,7 @@ NS_IMETHODIMP nsOutlookEditor::DoTransaction(nsITransaction *txn)
 }
 
 // void enableUndo (in boolean enable)
-NS_IMETHODIMP nsOutlookEditor::EnableUndo(PRBool enable)
+NS_IMETHODIMP nsOutlookEditor::EnableUndo(bool enable)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -225,7 +225,7 @@ NS_IMETHODIMP nsOutlookEditor::Undo(PRUint32 count)
 }
 
 // void canUndo (out boolean isEnabled, out boolean canUndo)
-NS_IMETHODIMP nsOutlookEditor::CanUndo(PRBool *isEnabled, PRBool *canUndo)
+NS_IMETHODIMP nsOutlookEditor::CanUndo(bool *isEnabled, bool *canUndo)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -237,7 +237,7 @@ NS_IMETHODIMP nsOutlookEditor::Redo(PRUint32 count)
 }
 
 // void canRedo (out boolean isEnabled, out boolean canRedo)
-NS_IMETHODIMP nsOutlookEditor::CanRedo(PRBool *isEnabled, PRBool *canRedo)
+NS_IMETHODIMP nsOutlookEditor::CanRedo(bool *isEnabled, bool *canRedo)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -267,19 +267,19 @@ NS_IMETHODIMP nsOutlookEditor::EndPlaceHolderTransaction()
 }
 
 // boolean shouldTxnSetSelection ()
-NS_IMETHODIMP nsOutlookEditor::ShouldTxnSetSelection(PRBool *_retval)
+NS_IMETHODIMP nsOutlookEditor::ShouldTxnSetSelection(bool *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 // void setShouldTxnSetSelection (in boolean should)
-NS_IMETHODIMP nsOutlookEditor::SetShouldTxnSetSelection(PRBool should)
+NS_IMETHODIMP nsOutlookEditor::SetShouldTxnSetSelection(bool should)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 // readonly attribute nsIInlineSpellChecker inlineSpellChecker
-NS_IMETHODIMP nsOutlookEditor::GetInlineSpellChecker(PRBool autoCreate, nsIInlineSpellChecker * *aInlineSpellChecker)
+NS_IMETHODIMP nsOutlookEditor::GetInlineSpellChecker(bool autoCreate, nsIInlineSpellChecker * *aInlineSpellChecker)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -289,12 +289,12 @@ NS_IMETHODIMP nsOutlookEditor::SyncRealTimeSpell()
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookEditor::SetSpellcheckUserOverride(PRBool enable)
+NS_IMETHODIMP nsOutlookEditor::SetSpellcheckUserOverride(bool enable)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-PRBool
+bool
 nsOutlookEditor::IsModifiableNode(nsIDOMNode *aNode)
 {
   return PR_TRUE;
@@ -306,7 +306,7 @@ NS_IMETHODIMP nsOutlookEditor::Cut()
 }
 
 // boolean canCut ()
-NS_IMETHODIMP nsOutlookEditor::CanCut(PRBool *_retval)
+NS_IMETHODIMP nsOutlookEditor::CanCut(bool *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -318,7 +318,7 @@ NS_IMETHODIMP nsOutlookEditor::Copy()
 }
 
 // boolean canCopy ()
-NS_IMETHODIMP nsOutlookEditor::CanCopy(PRBool *_retval)
+NS_IMETHODIMP nsOutlookEditor::CanCopy(bool *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -330,7 +330,7 @@ NS_IMETHODIMP nsOutlookEditor::Paste(PRInt32 aSelectionType)
 }
 
 // boolean canPaste (in long aSelectionType)
-NS_IMETHODIMP nsOutlookEditor::CanPaste(PRInt32 aSelectionType, PRBool *_retval)
+NS_IMETHODIMP nsOutlookEditor::CanPaste(PRInt32 aSelectionType, bool *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -344,7 +344,7 @@ NS_IMETHODIMP nsOutlookEditor::PasteTransferable(nsITransferable *aTransferable)
 }
 
 // boolean canPasteTransferable([optional] in nsITransferable aTransferable)
-NS_IMETHODIMP nsOutlookEditor::CanPasteTransferable(nsITransferable *aTransferable, PRBool *aCanPaste)
+NS_IMETHODIMP nsOutlookEditor::CanPasteTransferable(nsITransferable *aTransferable, bool *aCanPaste)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -368,7 +368,7 @@ NS_IMETHODIMP nsOutlookEditor::EndOfDocument()
 }
 
 // boolean canDrag (in nsIDOMEvent aEvent)
-NS_IMETHODIMP nsOutlookEditor::CanDrag(nsIDOMEvent *aEvent, PRBool *_retval)
+NS_IMETHODIMP nsOutlookEditor::CanDrag(nsIDOMEvent *aEvent, bool *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -392,7 +392,7 @@ NS_IMETHODIMP nsOutlookEditor::SetAttribute(nsIDOMElement *aElement, const nsASt
 }
 
 /* boolean getAttributeValue (in nsIDOMElement aElement, in AString attributestr, out AString resultValue); */
-NS_IMETHODIMP nsOutlookEditor::GetAttributeValue(nsIDOMElement *aElement, const nsAString & attributestr, nsAString & resultValue, PRBool *_retval)
+NS_IMETHODIMP nsOutlookEditor::GetAttributeValue(nsIDOMElement *aElement, const nsAString & attributestr, nsAString & resultValue, bool *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -533,7 +533,7 @@ NS_IMETHODIMP nsOutlookEditor::DebugUnitTests(PRInt32 *outNumTests,
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookEditor::GetLastKeypressEventTrusted(PRBool *aResult)
+NS_IMETHODIMP nsOutlookEditor::GetLastKeypressEventTrusted(bool *aResult)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -570,14 +570,14 @@ nsOutlookEditor::PasteAsCitedQuotation(const nsAString & aCitation,
 NS_IMETHODIMP
 nsOutlookEditor::InsertAsCitedQuotation(const nsAString &aQuotedText,
                                         const nsAString & aCitation,
-                                        PRBool aInsertHTML,
+                                        bool aInsertHTML,
                                         nsIDOMNode **_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 // void rewrap (in boolean aRespectNewlines)
-NS_IMETHODIMP nsOutlookEditor::Rewrap(PRBool aRespectNewlines)
+NS_IMETHODIMP nsOutlookEditor::Rewrap(bool aRespectNewlines)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -764,13 +764,13 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::AppendChild(nsIDOMNode *newChild, nsIDO
 }
 
 // boolean hasChildNodes ()
-NS_IMETHODIMP nsOutlookHTMLImageElement::HasChildNodes(PRBool *_retval)
+NS_IMETHODIMP nsOutlookHTMLImageElement::HasChildNodes(bool *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 // nsIDOMNode cloneNode (in boolean deep)
-NS_IMETHODIMP nsOutlookHTMLImageElement::CloneNode(PRBool deep, nsIDOMNode **_retval)
+NS_IMETHODIMP nsOutlookHTMLImageElement::CloneNode(bool deep, nsIDOMNode **_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -782,7 +782,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::Normalize()
 }
 
 // boolean isSupported (in DOMString feature, in DOMString version)
-NS_IMETHODIMP nsOutlookHTMLImageElement::IsSupported(const nsAString & feature, const nsAString & version, PRBool *_retval)
+NS_IMETHODIMP nsOutlookHTMLImageElement::IsSupported(const nsAString & feature, const nsAString & version, bool *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -806,7 +806,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::GetLocalName(nsAString & aLocalName)
 }
 
 // boolean hasAttributes ()
-NS_IMETHODIMP nsOutlookHTMLImageElement::HasAttributes(PRBool *_retval)
+NS_IMETHODIMP nsOutlookHTMLImageElement::HasAttributes(bool *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -896,13 +896,13 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::GetElementsByTagNameNS(const nsAString 
 }
 
 // boolean hasAttribute (in DOMString name)
-NS_IMETHODIMP nsOutlookHTMLImageElement::HasAttribute(const nsAString & name, PRBool *_retval)
+NS_IMETHODIMP nsOutlookHTMLImageElement::HasAttribute(const nsAString & name, bool *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 // boolean hasAttributeNS (in DOMString namespaceURI, in DOMString localName)
-NS_IMETHODIMP nsOutlookHTMLImageElement::HasAttributeNS(const nsAString & namespaceURI, const nsAString & localName, PRBool *_retval)
+NS_IMETHODIMP nsOutlookHTMLImageElement::HasAttributeNS(const nsAString & namespaceURI, const nsAString & localName, bool *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1019,7 +1019,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetLowsrc(const nsAString &aResult)
 }
 
 // readonly attribute DOMString complete
-NS_IMETHODIMP nsOutlookHTMLImageElement::GetComplete(PRBool *aResult)
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetComplete(bool *aResult)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1070,12 +1070,12 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetHspace(PRInt32 aHspace)
 }
 
 // attribute boolean isMap
-NS_IMETHODIMP nsOutlookHTMLImageElement::GetIsMap(PRBool *aIsMap)
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetIsMap(bool *aIsMap)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookHTMLImageElement::SetIsMap(PRBool aIsMap)
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetIsMap(bool aIsMap)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1195,12 +1195,12 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetTextContent(const nsAString & aTextC
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookHTMLImageElement::IsSameNode(nsIDOMNode *other, PRBool *_retval NS_OUTPARAM)
+NS_IMETHODIMP nsOutlookHTMLImageElement::IsSameNode(nsIDOMNode *other, bool *_retval NS_OUTPARAM)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookHTMLImageElement::Contains(nsIDOMNode* aOther, PRBool* aReturn)
+NS_IMETHODIMP nsOutlookHTMLImageElement::Contains(nsIDOMNode* aOther, bool* aReturn)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1210,7 +1210,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::LookupPrefix(const nsAString & namespac
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookHTMLImageElement::IsDefaultNamespace(const nsAString & namespaceURI, PRBool *_retval NS_OUTPARAM)
+NS_IMETHODIMP nsOutlookHTMLImageElement::IsDefaultNamespace(const nsAString & namespaceURI, bool *_retval NS_OUTPARAM)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -1220,7 +1220,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::LookupNamespaceURI(const nsAString & pr
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookHTMLImageElement::IsEqualNode(nsIDOMNode *arg, PRBool *_retval NS_OUTPARAM)
+NS_IMETHODIMP nsOutlookHTMLImageElement::IsEqualNode(nsIDOMNode *arg, bool *_retval NS_OUTPARAM)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

@@ -70,13 +70,13 @@ public:
   NS_IMETHOD GetURI(nsACString &aURI);
   NS_IMETHOD GetChildNodes(nsISimpleEnumerator* *result);
   NS_IMETHOD GetChildCards(nsISimpleEnumerator* *result);
-  NS_IMETHOD GetIsQuery(PRBool *aResult);
-  NS_IMETHOD HasCard(nsIAbCard *cards, PRBool *hasCard);
-  NS_IMETHOD GetSupportsMailingLists(PRBool *aSupportsMailingsLists);
-  NS_IMETHOD GetReadOnly(PRBool *aReadOnly);
-  NS_IMETHOD GetIsRemote(PRBool *aIsRemote);
-  NS_IMETHOD GetIsSecure(PRBool *aIsRemote);
-  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, PRBool *aResult);
+  NS_IMETHOD GetIsQuery(bool *aResult);
+  NS_IMETHOD HasCard(nsIAbCard *cards, bool *hasCard);
+  NS_IMETHOD GetSupportsMailingLists(bool *aSupportsMailingsLists);
+  NS_IMETHOD GetReadOnly(bool *aReadOnly);
+  NS_IMETHOD GetIsRemote(bool *aIsRemote);
+  NS_IMETHOD GetIsSecure(bool *aIsRemote);
+  NS_IMETHOD UseForAutocomplete(const nsACString &aIdentityKey, bool *aResult);
   NS_IMETHOD AddCard(nsIAbCard *aChildCard, nsIAbCard **aAddedCard);
   NS_IMETHOD ModifyCard(nsIAbCard *aModifiedCard);
   NS_IMETHOD DeleteCards(nsIArray *aCards);
@@ -93,7 +93,7 @@ protected:
                            PRUint32 *aCount,
                            char ***aValues);
 
-  PRPackedBool mPerformingQuery;
+  bool mPerformingQuery;
   PRInt32 mContext;
   PRInt32 mMaxHits;
 

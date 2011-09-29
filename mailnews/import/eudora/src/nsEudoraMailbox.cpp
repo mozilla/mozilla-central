@@ -62,9 +62,9 @@
 const char *eudoraFromLine = "From - Mon Jan 1 00:00:00 1965\x0D\x0A";
 
 #ifdef IMPORT_DEBUG
-void DUMP_FILENAME( nsIFile *pFile, PRBool endLine);
+void DUMP_FILENAME( nsIFile *pFile, bool endLine);
 
-void DUMP_FILENAME( nsIFile *pFile, PRBool endLine)
+void DUMP_FILENAME( nsIFile *pFile, bool endLine)
 {
   nsCString pPath;
   if (pFile)
@@ -215,7 +215,7 @@ nsresult nsEudoraMailbox::CreateTempFile( nsIFile **ppFile)
 
 nsresult nsEudoraMailbox::DeleteFile( nsIFile *pFile)
 {
-  PRBool    result;
+  bool      result;
   nsresult  rv = NS_OK;
 
   result = PR_FALSE;
@@ -236,14 +236,14 @@ nsresult nsEudoraMailbox::DeleteFile( nsIFile *pFile)
 #define kComposeErrorStr  "X-Eudora-Compose-Error: *****" "\x0D\x0A"
 #define kHTMLTag "<html>"
 
-nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIFile *pDst, PRInt32 *pMsgCount)
+nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, bool *pAbort, const PRUnichar *pName, nsIFile *pSrc, nsIFile *pDst, PRInt32 *pMsgCount)
 {
   nsCOMPtr<nsIFile>   tocFile;
         nsCOMPtr <nsIInputStream> srcInputStream;
         nsCOMPtr <nsIInputStream> tocInputStream;
         nsCOMPtr <nsIOutputStream> mailOutputStream;
-   PRBool              importWithoutToc = PR_TRUE;
-  PRBool              deleteToc = PR_FALSE;
+   bool                importWithoutToc = true;
+  bool                deleteToc = false;
   nsresult            rv;
   nsCOMPtr<nsIFile>   mailFile;
 
@@ -355,7 +355,7 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, PRBool *pAbort, const
 
 nsresult nsEudoraMailbox::ImportMailboxUsingTOC(
   PRUint32 *pBytes,
-  PRBool *pAbort,
+  bool *pAbort,
   nsIInputStream *pInputStream,
   nsIFile *tocFile,
   nsIOutputStream *pDst,
@@ -736,7 +736,7 @@ nsresult nsEudoraMailbox::ReadNextMessage( ReadFileState *pState, SimpleBufferTo
   // Get the body!
   // Read one line at a time here and look for the next separator
   nsCString tmp;
-  PRBool insideEudoraTags = PR_FALSE;
+  bool insideEudoraTags = false;
   // by default we consider the body text to be plain text
   bodyType = "text/plain";
 
@@ -928,7 +928,7 @@ static const char *TagContentType[] = {
 
 
   // Determine if this line contains an eudora special tag
-PRBool  nsEudoraMailbox::IsEudoraTag( const char *pChar, PRInt32 maxLen, PRBool &insideEudoraTags, nsCString &bodyType, PRInt32 &tagLength)
+bool    nsEudoraMailbox::IsEudoraTag( const char *pChar, PRInt32 maxLen, bool &insideEudoraTags, nsCString &bodyType, PRInt32 &tagLength)
 {
   PRInt32  idx = 0;
   while ((tagLength = eudoraTagLen[idx]) != 0) {
@@ -1029,9 +1029,9 @@ PRInt32  nsEudoraMailbox::IsEudoraFromSeparator( const char *pChar, PRInt32 maxL
   int    other = 0;
   int    result;
   char  tymStr[9];  // Make it a null terminated string (used in PR_snprintf() call()).
-  PRBool  tym = PR_FALSE;
-  PRBool  remote = PR_FALSE;
-  PRBool  from = PR_FALSE;
+  bool    tym = false;
+  bool    remote = false;
+  bool    from = false;
   PRInt32  tokLen;
   PRInt32  tokStart;
   PRInt32  num;
@@ -1307,7 +1307,7 @@ nsresult nsEudoraMailbox::ExamineAttachment( SimpleBufferTonyRCopiedOnce& data)
   return( NS_OK);
 }
 
-PRBool nsEudoraMailbox::AddAttachment( nsCString& fileName)
+bool nsEudoraMailbox::AddAttachment( nsCString& fileName)
 {
   IMPORT_LOG1( "Found attachment: %s\n", fileName.get());
 

@@ -264,8 +264,8 @@ NS_IMETHODIMP nsMailboxUrl::GetMessageHeader(nsIMsgDBHdr ** aMsgHdr)
   return GetMsgHdrForKey(m_messageKey, aMsgHdr);
 }
 
-NS_IMPL_GETSET(nsMailboxUrl, AddDummyEnvelope, PRBool, m_addDummyEnvelope)
-NS_IMPL_GETSET(nsMailboxUrl, CanonicalLineEnding, PRBool, m_canonicalLineEnding)
+NS_IMPL_GETSET(nsMailboxUrl, AddDummyEnvelope, bool, m_addDummyEnvelope)
+NS_IMPL_GETSET(nsMailboxUrl, CanonicalLineEnding, bool, m_canonicalLineEnding)
 
 NS_IMETHODIMP
 nsMailboxUrl::GetOriginalSpec(char **aSpec)
@@ -297,7 +297,7 @@ NS_IMETHODIMP nsMailboxUrl::GetMessageFile(nsIFile ** aFile)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailboxUrl::IsUrlType(PRUint32 type, PRBool *isType)
+NS_IMETHODIMP nsMailboxUrl::IsUrlType(PRUint32 type, bool *isType)
 {
   NS_ENSURE_ARG(isType);
 
@@ -475,7 +475,7 @@ NS_IMETHODIMP nsMailboxUrl::GetFolderCharset(char ** aCharacterSet)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMailboxUrl::GetFolderCharsetOverride(PRBool * aCharacterSetOverride)
+NS_IMETHODIMP nsMailboxUrl::GetFolderCharsetOverride(bool * aCharacterSetOverride)
 {
   nsCOMPtr<nsIMsgFolder> folder;
   nsresult rv = GetFolder(getter_AddRefs(folder));

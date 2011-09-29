@@ -63,7 +63,7 @@ public:
   NS_DECL_NSIPROGRESSEVENTSINK
 
 protected:
-  PRBool           m_meteorsSpinning;
+  bool             m_meteorsSpinning;
   PRInt32          m_lastPercent;
   PRInt64          m_lastProgressTime;
 

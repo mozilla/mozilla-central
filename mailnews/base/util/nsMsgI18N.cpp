@@ -67,7 +67,7 @@
 nsresult nsMsgI18NConvertFromUnicode(const char* aCharset,
                                      const nsString& inString,
                                      nsACString& outString,
-                                     PRBool aIsCharsetCanonical)
+                                     bool aIsCharsetCanonical)
 {
   if (inString.IsEmpty()) {
     outString.Truncate();
@@ -129,7 +129,7 @@ nsresult nsMsgI18NConvertFromUnicode(const char* aCharset,
 nsresult nsMsgI18NConvertToUnicode(const char* aCharset,
                                    const nsCString& inString, 
                                    nsAString& outString,
-                                   PRBool aIsCharsetCanonical)
+                                   bool aIsCharsetCanonical)
 {
   if (inString.IsEmpty()) {
     outString.Truncate();
@@ -230,7 +230,7 @@ void nsMsgI18NTextFileCharset(nsACString& aCharset)
 
 // MIME encoder, output string should be freed by PR_FREE
 // XXX : fix callers later to avoid allocation and copy
-char * nsMsgI18NEncodeMimePartIIStr(const char *header, PRBool structured, const char *charset, PRInt32 fieldnamelen, PRBool usemime) 
+char * nsMsgI18NEncodeMimePartIIStr(const char *header, bool structured, const char *charset, PRInt32 fieldnamelen, bool usemime) 
 {
   // No MIME, convert to the outgoing mail charset.
   if (PR_FALSE == usemime) {
@@ -253,17 +253,17 @@ char * nsMsgI18NEncodeMimePartIIStr(const char *header, PRBool structured, const
 }
 
 // Return True if a charset is stateful (e.g. JIS).
-PRBool nsMsgI18Nstateful_charset(const char *charset)
+bool nsMsgI18Nstateful_charset(const char *charset)
 {
   //TODO: use charset manager's service
   return (PL_strcasecmp(charset, "ISO-2022-JP") == 0);
 }
 
-PRBool nsMsgI18Nmultibyte_charset(const char *charset)
+bool nsMsgI18Nmultibyte_charset(const char *charset)
 {
   nsresult res;
   nsCOMPtr <nsICharsetConverterManager> ccm = do_GetService(NS_CHARSETCONVERTERMANAGER_CONTRACTID, &res);
-  PRBool result = PR_FALSE;
+  bool result = false;
 
   if (NS_SUCCEEDED(res)) {
     nsAutoString charsetData;
@@ -276,13 +276,13 @@ PRBool nsMsgI18Nmultibyte_charset(const char *charset)
   return result;
 }
 
-PRBool nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar* inString, char **fallbackCharset)
+bool nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar* inString, char **fallbackCharset)
 {
   if (!charset || !*charset || !inString || !*inString)
     return PR_TRUE;
 
   nsresult res;
-  PRBool result = PR_TRUE;
+  bool result = true;
   
   nsCOMPtr <nsICharsetConverterManager> ccm = do_GetService(NS_CHARSETCONVERTERMANAGER_CONTRACTID, &res);
 
@@ -338,7 +338,7 @@ nsMsgI18NParseMetaCharset(nsILocalFile* file)
 
   *charset = '\0'; 
 
-  PRBool isDirectory = PR_FALSE;
+  bool isDirectory = false;
   file->IsDirectory(&isDirectory);
   if (isDirectory) {
     NS_ERROR("file is a directory");
@@ -353,7 +353,7 @@ nsMsgI18NParseMetaCharset(nsILocalFile* file)
   nsCOMPtr <nsILineInputStream> lineStream = do_QueryInterface(fileStream, &rv);
 
   nsCString curLine;
-  PRBool more = PR_TRUE;
+  bool more = true;
   while (NS_SUCCEEDED(rv) && more) { 
     rv = lineStream->ReadLine(curLine, &more); 
     if (curLine.IsEmpty()) 
@@ -398,7 +398,7 @@ nsMsgI18NParseMetaCharset(nsILocalFile* file)
 
 nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset, 
                                 const PRUnichar* inString, char** outString, 
-                                char **fallbackCharset, PRBool *isAsciiOnly)
+                                char **fallbackCharset, bool *isAsciiOnly)
 {
   NS_ENSURE_ARG_POINTER(contentType);
   NS_ENSURE_ARG_POINTER(charset);
@@ -416,7 +416,7 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
   if (isAsciiOnly)
     *isAsciiOnly = PR_FALSE;
 
-  PRBool bTEXT_HTML = PR_FALSE;
+  bool bTEXT_HTML = false;
   nsresult res;
 
   if (!PL_strcasecmp(contentType, TEXT_HTML)) {
@@ -519,7 +519,7 @@ nsresult nsMsgI18NShrinkUTF8Str(const nsCString &inString,
   const char* last = start + aMaxLength;
   const char* cur = start;
   const char* prev = nsnull;
-  PRBool err = PR_FALSE;
+  bool err = false;
   while (cur < last) {
     prev = cur;
     if (!UTF8CharEnumerator::NextChar(&cur, end, &err) || err)

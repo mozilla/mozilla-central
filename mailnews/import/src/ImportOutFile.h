@@ -51,26 +51,26 @@ public:
   ImportOutFile( nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz);
   ~ImportOutFile();
 
-  PRBool  InitOutFile( nsIFile *pFile, PRUint32 bufSz = 4096);
+  bool    InitOutFile( nsIFile *pFile, PRUint32 bufSz = 4096);
   void  InitOutFile( nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz);
-  inline PRBool  WriteData( const PRUint8 * pSrc, PRUint32 len);
-  inline PRBool  WriteByte( PRUint8 byte);
-  PRBool  WriteStr( const char *pStr) {return( WriteU8NullTerm( (const PRUint8 *) pStr, PR_FALSE)); }
-  PRBool  WriteU8NullTerm( const PRUint8 * pSrc, PRBool includeNull);
-  PRBool  WriteEol( void) { return( WriteStr( "\x0D\x0A")); }
-  PRBool  Done( void) {return( Flush());}
+  inline bool    WriteData( const PRUint8 * pSrc, PRUint32 len);
+  inline bool    WriteByte( PRUint8 byte);
+  bool    WriteStr( const char *pStr) {return( WriteU8NullTerm( (const PRUint8 *) pStr, false)); }
+  bool    WriteU8NullTerm( const PRUint8 * pSrc, bool includeNull);
+  bool    WriteEol( void) { return( WriteStr( "\x0D\x0A")); }
+  bool    Done( void) {return( Flush());}
 
   // Marker support
-  PRBool  SetMarker( int markerID);
+  bool    SetMarker( int markerID);
   void  ClearMarker( int markerID);
-  PRBool  WriteStrAtMarker( int markerID, const char *pStr);
+  bool    WriteStrAtMarker( int markerID, const char *pStr);
 
   // 8-bit to 7-bit translation
-  PRBool  Set8bitTranslator( nsImportTranslator *pTrans);
-  PRBool  End8bitTranslation( PRBool *pEngaged, nsCString& useCharset, nsCString& encoding);
+  bool    Set8bitTranslator( nsImportTranslator *pTrans);
+  bool    End8bitTranslation( bool *pEngaged, nsCString& useCharset, nsCString& encoding);
 
 protected:
-  PRBool  Flush( void);
+  bool    Flush( void);
 
 protected:
   nsCOMPtr <nsIFile>      m_pFile;
@@ -78,20 +78,20 @@ protected:
   PRUint8 *    m_pBuf;
   PRUint32    m_bufSz;
   PRUint32    m_pos;
-  PRBool      m_ownsFileAndBuffer;
+  bool        m_ownsFileAndBuffer;
 
   // markers
   PRUint32    m_markers[kMaxMarkers];
 
   // 8 bit to 7 bit translations
   nsImportTranslator  *  m_pTrans;
-  PRBool          m_engaged;
-  PRBool          m_supports8to7;
+  bool            m_engaged;
+  bool            m_supports8to7;
   ImportOutFile *      m_pTransOut;
   PRUint8 *        m_pTransBuf;
 };
 
-inline PRBool  ImportOutFile::WriteData( const PRUint8 * pSrc, PRUint32 len) {
+inline bool    ImportOutFile::WriteData( const PRUint8 * pSrc, PRUint32 len) {
   while ((len + m_pos) > m_bufSz) {
     if ((m_bufSz - m_pos)) {
       memcpy( m_pBuf + m_pos, pSrc, m_bufSz - m_pos);
@@ -111,7 +111,7 @@ inline PRBool  ImportOutFile::WriteData( const PRUint8 * pSrc, PRUint32 len) {
   return( PR_TRUE);
 }
 
-inline PRBool  ImportOutFile::WriteByte( PRUint8 byte) {
+inline bool    ImportOutFile::WriteByte( PRUint8 byte) {
   if (m_pos == m_bufSz) {
     if (!Flush())
       return( PR_FALSE);

@@ -83,12 +83,12 @@ public:
   static char      m_upperCaseMap[256];
   static char      m_Ascii[256];
 
-  inline static PRBool IsUSAscii( PRUint8 ch) { return( ((ch & (PRUint8)0x80) == 0));}
-  inline static PRBool Is822CtlChar( PRUint8 ch) { return( (ch < 32));}
-  inline static PRBool Is822SpecialChar( PRUint8 ch) { return( (m_Ascii[ch] & c822SpecialChar) == c822SpecialChar);}
-  inline static PRBool IsWhiteSpace( PRUint8 ch) { return( (m_Ascii[ch] & cWhiteSpaceChar) == cWhiteSpaceChar); }
-  inline static PRBool IsAlphaNum( PRUint8 ch) { return( (m_Ascii[ch] & cAlphaNumChar) == cAlphaNumChar); }
-  inline static PRBool IsDigit( PRUint8 ch) { return( (m_Ascii[ch] & cDigitChar) == cDigitChar); }
+  inline static bool IsUSAscii( PRUint8 ch) { return( ((ch & (PRUint8)0x80) == 0));}
+  inline static bool Is822CtlChar( PRUint8 ch) { return( (ch < 32));}
+  inline static bool Is822SpecialChar( PRUint8 ch) { return( (m_Ascii[ch] & c822SpecialChar) == c822SpecialChar);}
+  inline static bool IsWhiteSpace( PRUint8 ch) { return( (m_Ascii[ch] & cWhiteSpaceChar) == cWhiteSpaceChar); }
+  inline static bool IsAlphaNum( PRUint8 ch) { return( (m_Ascii[ch] & cAlphaNumChar) == cAlphaNumChar); }
+  inline static bool IsDigit( PRUint8 ch) { return( (m_Ascii[ch] & cDigitChar) == cDigitChar); }
 
   inline static PRUint8 ToLower( PRUint8 ch) { if ((m_Ascii[ch] & cAlphaChar) == cAlphaChar) { return( cLowerAChar + (m_upperCaseMap[ch] - cUpperAChar)); } else return( ch); }
 
@@ -150,14 +150,14 @@ public:
     }
   }
 
-  inline static PRBool StrNICmp( const PRUint8 * pChar, const PRUint8 * pSrc, PRUint32 len) {
+  inline static bool StrNICmp( const PRUint8 * pChar, const PRUint8 * pSrc, PRUint32 len) {
     while (len && (m_upperCaseMap[*pChar] == m_upperCaseMap[*pSrc])) {
       pChar++; pSrc++; len--;
     }
     return( len == 0);
   }
 
-  inline static PRBool StrNCmp( const PRUint8 * pChar, const PRUint8 *pSrc, PRUint32 len) {
+  inline static bool StrNCmp( const PRUint8 * pChar, const PRUint8 *pSrc, PRUint32 len) {
     while (len && (*pChar == *pSrc)) {
       pChar++; pSrc++; len--;
     }
@@ -175,7 +175,7 @@ public:
       return( -1);
   }
 
-  inline static PRBool NextChar( const PRUint8 * & pChar, PRUint8 ch, PRUint32& pos, PRUint32 max) {
+  inline static bool NextChar( const PRUint8 * & pChar, PRUint8 ch, PRUint32& pos, PRUint32 max) {
     if ((pos < max) && (*pChar == ch)) {
       pos++;
       pChar++;

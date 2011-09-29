@@ -77,12 +77,12 @@ void nsIMAPGenericParser::ResetLexAnalyzer()
   fAtEndOfLine = PR_FALSE;
 }
 
-PRBool nsIMAPGenericParser::LastCommandSuccessful()
+bool nsIMAPGenericParser::LastCommandSuccessful()
 {
   return fParserState == stateOK;
 }
 
-void nsIMAPGenericParser::SetSyntaxError(PRBool error, const char *msg)
+void nsIMAPGenericParser::SetSyntaxError(bool error, const char *msg)
 {
   if (error)
       fParserState |= stateSyntaxErrorFlag;
@@ -91,7 +91,7 @@ void nsIMAPGenericParser::SetSyntaxError(PRBool error, const char *msg)
   NS_ASSERTION(!error, "syntax error in generic parser");	
 }
 
-void nsIMAPGenericParser::SetConnected(PRBool connected)
+void nsIMAPGenericParser::SetConnected(bool connected)
 {
   if (connected)
       fParserState &= ~stateDisconnectedFlag;
@@ -178,7 +178,7 @@ void nsIMAPGenericParser::AdvanceToNextLine()
   PR_FREEIF( fCurrentLine );
   PR_FREEIF( fStartOfLineOfTokens);
   
-  PRBool ok = GetNextLineForParser(&fCurrentLine);
+  bool ok = GetNextLineForParser(&fCurrentLine);
   if (!ok)
   {
     SetConnected(PR_FALSE);
@@ -261,7 +261,7 @@ char *nsIMAPGenericParser::CreateAstring()
 //           quoted-specials = DQUOTE / "\"
 //           resp-specials   = "]"
 // "Characters are 7-bit US-ASCII unless otherwise specified." [RFC3501, 1.2.]
-char *nsIMAPGenericParser::CreateAtom(PRBool isAstring)
+char *nsIMAPGenericParser::CreateAtom(bool isAstring)
 {
   char *rv = PL_strdup(fNextToken);
   if (!rv)
@@ -344,7 +344,7 @@ char *nsIMAPGenericParser::CreateString()
 // quoted_specials ::= <"> / "\"
 // Note that according to RFC 1064 and RFC 2060, CRs and LFs are not allowed 
 // inside a quoted string.  It is sufficient to read from the current line only.
-char *nsIMAPGenericParser::CreateQuoted(PRBool /*skipToEnd*/)
+char *nsIMAPGenericParser::CreateQuoted(bool /*skipToEnd*/)
 {
   // one char past opening '"'
   char *currentChar = fCurrentLine + (fNextToken - fStartOfLineOfTokens) + 1;

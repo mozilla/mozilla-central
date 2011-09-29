@@ -92,7 +92,7 @@ NS_IMETHODIMP nsCidProtocolHandler::NewChannel(nsIURI *aURI, nsIChannel **_retva
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsCidProtocolHandler::AllowPort(PRInt32 port, const char *scheme, PRBool *_retval)
+NS_IMETHODIMP nsCidProtocolHandler::AllowPort(PRInt32 port, const char *scheme, bool *_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

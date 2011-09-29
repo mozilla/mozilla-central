@@ -77,7 +77,7 @@ nsMsgSearchBoolExpression * nsMsgSearchBoolExpression::AddSearchTerm(nsMsgSearch
     return aOrigExpr->leftToRightAddTerm(aNewTerm, aEncodingStr);
 }
 
-nsMsgSearchBoolExpression * nsMsgSearchBoolExpression::AddExpressionTree(nsMsgSearchBoolExpression * aOrigExpr, nsMsgSearchBoolExpression * aExpression, PRBool aBoolOp)
+nsMsgSearchBoolExpression * nsMsgSearchBoolExpression::AddExpressionTree(nsMsgSearchBoolExpression * aOrigExpr, nsMsgSearchBoolExpression * aExpression, bool aBoolOp)
 {
   if (!aOrigExpr->m_term && !aOrigExpr->m_leftChild && !aOrigExpr->m_rightChild)
   {
@@ -146,7 +146,7 @@ nsMsgSearchBoolExpression::leftToRightAddTerm(nsIMsgSearchTerm * newTerm, char *
     nsMsgSearchBoolExpression * tempExpr = new nsMsgSearchBoolExpression (newTerm,encodingStr);
     if (tempExpr)  // make sure creation succeeded
     {
-      PRBool booleanAnd;
+      bool booleanAnd;
       newTerm->GetBooleanAnd(&booleanAnd);
       nsMsgSearchBoolExpression * newExpr = new nsMsgSearchBoolExpression (this, tempExpr, booleanAnd);
       if (newExpr)
@@ -159,12 +159,12 @@ nsMsgSearchBoolExpression::leftToRightAddTerm(nsIMsgSearchTerm * newTerm, char *
 
 
 // returns PR_TRUE or PR_FALSE depending on what the current expression evaluates to.
-PRBool nsMsgSearchBoolExpression::OfflineEvaluate(nsIMsgDBHdr *msgToMatch, const char *defaultCharset,
+bool nsMsgSearchBoolExpression::OfflineEvaluate(nsIMsgDBHdr *msgToMatch, const char *defaultCharset,
   nsIMsgSearchScopeTerm *scope, nsIMsgDatabase *db, const char *headers,
-  PRUint32 headerSize, PRBool Filtering)
+  PRUint32 headerSize, bool Filtering)
 {
-    PRBool result = PR_TRUE;    // always default to false positives
-    PRBool isAnd;
+    bool result = true;    // always default to false positives
+    bool isAnd;
 
     if (m_term) // do we contain just a search term?
     {
@@ -345,7 +345,7 @@ nsMsgSearchOfflineMail::MatchTermsForFilter(nsIMsgDBHdr *msgToMatch,
                                             const char * headers,
                                             PRUint32 headerSize,
                                             nsMsgSearchBoolExpression ** aExpressionTree,
-                                            PRBool *pResult)
+                                            bool *pResult)
 {
     return MatchTerms(msgToMatch, termList, defaultCharset, scope, db, headers, headerSize, PR_TRUE, aExpressionTree, pResult);
 }
@@ -358,7 +358,7 @@ nsMsgSearchOfflineMail::MatchTermsForSearch(nsIMsgDBHdr *msgToMatch,
                                             nsIMsgSearchScopeTerm *scope,
                                             nsIMsgDatabase *db,
                                             nsMsgSearchBoolExpression ** aExpressionTree,
-                                            PRBool *pResult)
+                                            bool *pResult)
 {
 
     return MatchTerms(msgToMatch, termList, defaultCharset, scope, db, nsnull, 0, PR_FALSE, aExpressionTree, pResult);
@@ -380,8 +380,8 @@ nsresult nsMsgSearchOfflineMail::ConstructExpressionTree(nsISupportsArray * term
       termList->QueryElementAt(aStartPosInList, NS_GET_IID(nsIMsgSearchTerm), (void **)getter_AddRefs(pTerm));
       NS_ASSERTION (pTerm, "couldn't get term to match");
 
-      PRBool beginsGrouping;
-      PRBool endsGrouping;
+      bool beginsGrouping;
+      bool endsGrouping;
       pTerm->GetBeginsGrouping(&beginsGrouping);
       pTerm->GetEndsGrouping(&endsGrouping);
 
@@ -393,7 +393,7 @@ nsresult nsMsgSearchOfflineMail::ConstructExpressionTree(nsISupportsArray * term
 
           // the first search term in the grouping is the one that holds the operator for how this search term
           // should be joined with the expressions to it's left.
-          PRBool booleanAnd;
+          bool booleanAnd;
           pTerm->GetBooleanAnd(&booleanAnd);
 
           // now add this expression tree to our overall expression tree...
@@ -430,8 +430,8 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
                                             nsIMsgDatabase * db,
                                             const char * headers,
                                             PRUint32 headerSize,
-                                            PRBool Filtering,
-                      PRBool *pResult)
+                                            bool Filtering,
+                      bool *pResult)
 {
     nsresult err = NS_OK;
     nsCString  recipients;
@@ -439,10 +439,10 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
     nsCString  matchString;
     nsCString  msgCharset;
     const char *charset;
-    PRBool charsetOverride = PR_FALSE; /* XXX BUG 68706 */
+    bool charsetOverride = false; /* XXX BUG 68706 */
     PRUint32 msgFlags;
-    PRBool result;
-    PRBool matchAll;
+    bool result;
+    bool matchAll;
 
     NS_ENSURE_ARG_POINTER(pResult);
 
@@ -485,7 +485,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
       }
       case nsMsgSearchAttrib::ToOrCC:
       {
-        PRBool boolKeepGoing;
+        bool boolKeepGoing;
         aTerm->GetMatchAllBeforeDeciding(&boolKeepGoing);
         msgToMatch->GetRecipients(getter_Copies(recipients));
         err = aTerm->MatchRfc822String (recipients.get(), charset, charsetOverride, &result);
@@ -498,7 +498,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
       }
       case nsMsgSearchAttrib::AllAddresses:
       {
-        PRBool boolKeepGoing;
+        bool boolKeepGoing;
         aTerm->GetMatchAllBeforeDeciding(&boolKeepGoing);
         msgToMatch->GetRecipients(getter_Copies(recipients));
         err = aTerm->MatchRfc822String(recipients.get(), charset, charsetOverride, &result);
@@ -696,9 +696,9 @@ nsresult nsMsgSearchOfflineMail::MatchTerms(nsIMsgDBHdr *msgToMatch,
                                             nsIMsgDatabase * db,
                                             const char * headers,
                                             PRUint32 headerSize,
-                                            PRBool Filtering,
+                                            bool Filtering,
                                             nsMsgSearchBoolExpression ** aExpressionTree,
-                                            PRBool *pResult)
+                                            bool *pResult)
 {
   NS_ENSURE_ARG(aExpressionTree);
   nsresult err;
@@ -723,7 +723,7 @@ nsresult nsMsgSearchOfflineMail::MatchTerms(nsIMsgDBHdr *msgToMatch,
 }
 
 
-nsresult nsMsgSearchOfflineMail::Search (PRBool *aDone)
+nsresult nsMsgSearchOfflineMail::Search (bool *aDone)
 {
   nsresult err = NS_OK;
 
@@ -762,7 +762,7 @@ nsresult nsMsgSearchOfflineMail::Search (PRBool *aDone)
           *aDone = PR_TRUE; //###phil dbErr is dropped on the floor. just note that we did have an error so we'll clean up later
         else
         {
-          PRBool match = PR_FALSE;
+          bool match = false;
           nsAutoString nullCharset, folderCharset;
           GetSearchCharsets(nullCharset, folderCharset);
           NS_ConvertUTF16toUTF8 charset(folderCharset);

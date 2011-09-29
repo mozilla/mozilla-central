@@ -76,8 +76,8 @@ protected:
 
     
 private:
-    static PRBool findServerByKey(nsISmtpServer *aServer, void *aData);
-    static PRBool findServerByHostname(nsISmtpServer *aServer, void *aData);
+    static bool findServerByKey(nsISmtpServer *aServer, void *aData);
+    static bool findServerByHostname(nsISmtpServer *aServer, void *aData);
     
     nsresult createKeyedServer(const char* key,
                                nsISmtpServer **aResult = nsnull);
@@ -89,7 +89,7 @@ private:
 
     nsCString mServerKeyList;
 
-    PRBool mSmtpServersLoaded;
+    bool mSmtpServersLoaded;
 };
 
 #endif /* nsSmtpService_h___ */

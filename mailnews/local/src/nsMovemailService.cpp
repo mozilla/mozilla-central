@@ -158,9 +158,9 @@ nsMovemailService::Error(PRInt32 errorCode,
 }
 
 
-PRBool ObtainSpoolLock(const char *aSpoolName,
+bool ObtainSpoolLock(const char *aSpoolName,
                        int aSeconds /* number of seconds to retry */,
-                       PRBool *aUsingLockFile)
+                       bool *aUsingLockFile)
 {
   NS_ENSURE_TRUE(aUsingLockFile, PR_FALSE);
 
@@ -279,7 +279,7 @@ PRBool ObtainSpoolLock(const char *aSpoolName,
 
 // Remove our mail-spool-file lock (n.b. we should only try this if
 // we're the ones who made the lock in the first place!)
-PRBool YieldSpoolLock(const char *aSpoolName, PRBool aUsingLockFile)
+bool YieldSpoolLock(const char *aSpoolName, bool aUsingLockFile)
 {
   LOG(("YieldSpoolLock(%s)", aSpoolName));
 
@@ -294,7 +294,7 @@ PRBool YieldSpoolLock(const char *aSpoolName, PRBool aUsingLockFile)
     rv = spoolFile->OpenNSPRFileDesc(PR_RDWR, 0, &fd);
     NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
-    PRBool unlockSucceeded = PR_UnlockFile(fd) == PR_SUCCESS;
+    bool unlockSucceeded = PR_UnlockFile(fd) == PR_SUCCESS;
     PR_Close(fd);
     if (unlockSucceeded)
       LOG(("YieldSpoolLock was successful."));
@@ -313,7 +313,7 @@ PRBool YieldSpoolLock(const char *aSpoolName, PRBool aUsingLockFile)
     return PR_FALSE;
 
   // Check if the lock file exists
-  PRBool exists;
+  bool exists;
   rv = locklocfile->Exists(&exists);
   if (NS_FAILED(rv))
     return PR_FALSE;
@@ -334,7 +334,7 @@ PRBool YieldSpoolLock(const char *aSpoolName, PRBool aUsingLockFile)
 static nsresult
 LocateSpoolFile(nsACString & spoolPath)
 {
-  PRBool isFile;
+  bool isFile;
   nsresult rv;
 
   nsCOMPtr<nsILocalFile> spoolFile;
@@ -454,7 +454,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
   in_server->SetServerBusy(PR_TRUE);
 
   // Try and obtain the lock for the spool file
-  PRBool usingLockFile;
+  bool usingLockFile;
   if (!ObtainSpoolLock(spoolPath.get(), 5, &usingLockFile)) {
     nsAutoString lockFile = NS_ConvertUTF8toUTF16(spoolPath);
     lockFile.AppendLiteral(".lock");
@@ -466,7 +466,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
   }
 
   // MIDDLE of the FUN : consume the mailbox data.
-  PRBool isMore = PR_TRUE;
+  bool isMore = true;
   nsCAutoString buffer;
   PRUint32 bytesWritten;
 
@@ -540,7 +540,7 @@ nsMovemailService::GetDefaultLocalPath(nsILocalFile ** aResult)
   *aResult = nsnull;
 
   nsresult rv;
-  PRBool havePref;
+  bool havePref;
   nsCOMPtr<nsILocalFile> localFile;
   rv = NS_GetPersistentFile(PREF_MAIL_ROOT_MOVEMAIL_REL,
                             PREF_MAIL_ROOT_MOVEMAIL,
@@ -549,7 +549,7 @@ nsMovemailService::GetDefaultLocalPath(nsILocalFile ** aResult)
                             getter_AddRefs(localFile));
   if (NS_FAILED(rv)) return rv;
 
-  PRBool exists;
+  bool exists;
   rv = localFile->Exists(&exists);
   if (NS_SUCCEEDED(rv) && !exists)
     rv = localFile->Create(nsIFile::DIRECTORY_TYPE, 0775);
@@ -573,7 +573,7 @@ nsMovemailService::GetServerIID(nsIID* *aServerIID)
 }
 
 NS_IMETHODIMP
-nsMovemailService::GetRequiresUsername(PRBool *aRequiresUsername)
+nsMovemailService::GetRequiresUsername(bool *aRequiresUsername)
 {
   NS_ENSURE_ARG_POINTER(aRequiresUsername);
   *aRequiresUsername = PR_FALSE;
@@ -581,7 +581,7 @@ nsMovemailService::GetRequiresUsername(PRBool *aRequiresUsername)
 }
 
 NS_IMETHODIMP
-nsMovemailService::GetPreflightPrettyNameWithEmailAddress(PRBool *aPreflightPrettyNameWithEmailAddress)
+nsMovemailService::GetPreflightPrettyNameWithEmailAddress(bool *aPreflightPrettyNameWithEmailAddress)
 {
   NS_ENSURE_ARG_POINTER(aPreflightPrettyNameWithEmailAddress);
   *aPreflightPrettyNameWithEmailAddress = PR_TRUE;
@@ -589,7 +589,7 @@ nsMovemailService::GetPreflightPrettyNameWithEmailAddress(PRBool *aPreflightPret
 }
 
 NS_IMETHODIMP
-nsMovemailService::GetCanLoginAtStartUp(PRBool *aCanLoginAtStartUp)
+nsMovemailService::GetCanLoginAtStartUp(bool *aCanLoginAtStartUp)
 {
   NS_ENSURE_ARG_POINTER(aCanLoginAtStartUp);
   *aCanLoginAtStartUp = PR_TRUE;
@@ -597,7 +597,7 @@ nsMovemailService::GetCanLoginAtStartUp(PRBool *aCanLoginAtStartUp)
 }
 
 NS_IMETHODIMP
-nsMovemailService::GetCanDelete(PRBool *aCanDelete)
+nsMovemailService::GetCanDelete(bool *aCanDelete)
 {
   NS_ENSURE_ARG_POINTER(aCanDelete);
   *aCanDelete = PR_TRUE;
@@ -605,7 +605,7 @@ nsMovemailService::GetCanDelete(PRBool *aCanDelete)
 }
 
 NS_IMETHODIMP
-nsMovemailService::GetCanGetMessages(PRBool *aCanGetMessages)
+nsMovemailService::GetCanGetMessages(bool *aCanGetMessages)
 {
   NS_ENSURE_ARG_POINTER(aCanGetMessages);
   *aCanGetMessages = PR_TRUE;
@@ -613,7 +613,7 @@ nsMovemailService::GetCanGetMessages(PRBool *aCanGetMessages)
 }
 
 NS_IMETHODIMP
-nsMovemailService::GetCanGetIncomingMessages(PRBool *aCanGetIncomingMessages)
+nsMovemailService::GetCanGetIncomingMessages(bool *aCanGetIncomingMessages)
 {
   NS_ENSURE_ARG_POINTER(aCanGetIncomingMessages);
   *aCanGetIncomingMessages = PR_TRUE;
@@ -621,7 +621,7 @@ nsMovemailService::GetCanGetIncomingMessages(PRBool *aCanGetIncomingMessages)
 }
 
 NS_IMETHODIMP
-nsMovemailService::GetCanDuplicate(PRBool *aCanDuplicate)
+nsMovemailService::GetCanDuplicate(bool *aCanDuplicate)
 {
   NS_ENSURE_ARG_POINTER(aCanDuplicate);
   *aCanDuplicate = PR_FALSE;
@@ -629,7 +629,7 @@ nsMovemailService::GetCanDuplicate(PRBool *aCanDuplicate)
 }
 
 NS_IMETHODIMP
-nsMovemailService::GetDefaultDoBiff(PRBool *aDoBiff)
+nsMovemailService::GetDefaultDoBiff(bool *aDoBiff)
 {
   NS_ENSURE_ARG_POINTER(aDoBiff);
   // by default, do biff for movemail
@@ -638,7 +638,7 @@ nsMovemailService::GetDefaultDoBiff(PRBool *aDoBiff)
 }
 
 NS_IMETHODIMP
-nsMovemailService::GetDefaultServerPort(PRBool isSecure, PRInt32 *aDefaultPort)
+nsMovemailService::GetDefaultServerPort(bool isSecure, PRInt32 *aDefaultPort)
 {
   NS_ENSURE_ARG_POINTER(aDefaultPort);
   *aDefaultPort = -1;
@@ -646,7 +646,7 @@ nsMovemailService::GetDefaultServerPort(PRBool isSecure, PRInt32 *aDefaultPort)
 }
 
 NS_IMETHODIMP
-nsMovemailService::GetShowComposeMsgLink(PRBool *showComposeMsgLink)
+nsMovemailService::GetShowComposeMsgLink(bool *showComposeMsgLink)
 {
   NS_ENSURE_ARG_POINTER(showComposeMsgLink);
   *showComposeMsgLink = PR_TRUE;
@@ -654,7 +654,7 @@ nsMovemailService::GetShowComposeMsgLink(PRBool *showComposeMsgLink)
 }
 
 NS_IMETHODIMP
-nsMovemailService::GetSpecialFoldersDeletionAllowed(PRBool *specialFoldersDeletionAllowed)
+nsMovemailService::GetSpecialFoldersDeletionAllowed(bool *specialFoldersDeletionAllowed)
 {
   NS_ENSURE_ARG_POINTER(specialFoldersDeletionAllowed);
   *specialFoldersDeletionAllowed = PR_TRUE;

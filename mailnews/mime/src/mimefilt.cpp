@@ -217,11 +217,11 @@ test_passwd_prompt (PK11SlotInfo *slot, void *wincx)
 int
 test(FILE *in, FILE *out,
    const char *url,
-   PRBool fancy_headers_p,
-   PRBool html_p,
-   PRBool outline_p,
-   PRBool dexlate_p,
-   PRBool variable_width_plaintext_p)
+   bool fancy_headers_p,
+   bool html_p,
+   bool outline_p,
+   bool dexlate_p,
+   bool variable_width_plaintext_p)
 {
   int status = 0;
   MimeObject *obj = 0;
@@ -346,10 +346,10 @@ main (int argc, char **argv)
 {
   PRInt32 i = 1;
   char *url = "";
-  PRBool fancy_p = PR_TRUE;
-  PRBool html_p = PR_TRUE;
-  PRBool outline_p = PR_FALSE;
-  PRBool dexlate_p = PR_FALSE;
+  bool fancy_p = true;
+  bool html_p = true;
+  bool outline_p = false;
+  bool dexlate_p = false;
   char filename[1000];
   CERTCertDBHandle *cdb_handle;
   SECKEYKeyDBHandle *kdb_handle;

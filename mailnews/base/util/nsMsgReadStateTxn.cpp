@@ -77,7 +77,7 @@ nsMsgReadStateTxn::RedoTransaction()
 }
 
 NS_IMETHODIMP
-nsMsgReadStateTxn::MarkMessages(PRBool aAsRead)
+nsMsgReadStateTxn::MarkMessages(bool aAsRead)
 {
   nsresult rv;
   nsCOMPtr<nsIMutableArray> messageArray = 

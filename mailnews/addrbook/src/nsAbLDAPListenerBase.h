@@ -68,7 +68,7 @@ protected:
   nsresult Initiate();
 
   // Called if an LDAP initialization fails.
-  virtual void InitFailed(PRBool aCancelled = PR_FALSE) = 0;
+  virtual void InitFailed(bool aCancelled = false) = 0;
 
   // Called to start off the required task after a bind.
   virtual nsresult DoTask() = 0;
@@ -79,8 +79,8 @@ protected:
   nsCString mLogin;
   nsCString mSaslMechanism;
   PRInt32 mTimeOut;
-  PRBool mBound;
-  PRBool mInitialized;
+  bool mBound;
+  bool mInitialized;
 
   mozilla::Mutex mLock;
 };

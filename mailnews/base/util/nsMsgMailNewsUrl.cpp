@@ -98,7 +98,7 @@ NS_INTERFACE_MAP_END_THREADSAFE
 // Begin nsIMsgMailNewsUrl specific support
 ////////////////////////////////////////////////////////////////////////////////////
 
-nsresult nsMsgMailNewsUrl::GetUrlState(PRBool * aRunningUrl)
+nsresult nsMsgMailNewsUrl::GetUrlState(bool * aRunningUrl)
 {
   if (aRunningUrl)
     *aRunningUrl = m_runningUrl;
@@ -106,7 +106,7 @@ nsresult nsMsgMailNewsUrl::GetUrlState(PRBool * aRunningUrl)
   return NS_OK;
 }
 
-nsresult nsMsgMailNewsUrl::SetUrlState(PRBool aRunningUrl, nsresult aExitCode)
+nsresult nsMsgMailNewsUrl::SetUrlState(bool aRunningUrl, nsresult aExitCode)
 {
   // if we already knew this running state, return, unless the url was aborted
   if (m_runningUrl == aRunningUrl && aExitCode != NS_MSG_ERROR_URL_ABORTED)
@@ -289,59 +289,59 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetLoadGroup(nsILoadGroup **aLoadGroup)
   return *aLoadGroup ? NS_OK : NS_ERROR_NULL_POINTER;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::GetUpdatingFolder(PRBool *aResult)
+NS_IMETHODIMP nsMsgMailNewsUrl::GetUpdatingFolder(bool *aResult)
 {
   NS_ENSURE_ARG(aResult);
   *aResult = m_updatingFolder;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::SetUpdatingFolder(PRBool updatingFolder)
+NS_IMETHODIMP nsMsgMailNewsUrl::SetUpdatingFolder(bool updatingFolder)
 {
   m_updatingFolder = updatingFolder;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::GetAddToMemoryCache(PRBool *aAddToCache)
+NS_IMETHODIMP nsMsgMailNewsUrl::GetAddToMemoryCache(bool *aAddToCache)
 {
   NS_ENSURE_ARG(aAddToCache); 
   *aAddToCache = m_addContentToCache;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::SetAddToMemoryCache(PRBool aAddToCache)
+NS_IMETHODIMP nsMsgMailNewsUrl::SetAddToMemoryCache(bool aAddToCache)
 {
   m_addContentToCache = aAddToCache;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::GetMsgIsInLocalCache(PRBool *aMsgIsInLocalCache)
+NS_IMETHODIMP nsMsgMailNewsUrl::GetMsgIsInLocalCache(bool *aMsgIsInLocalCache)
 {
   NS_ENSURE_ARG(aMsgIsInLocalCache); 
   *aMsgIsInLocalCache = m_msgIsInLocalCache;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::SetMsgIsInLocalCache(PRBool aMsgIsInLocalCache)
+NS_IMETHODIMP nsMsgMailNewsUrl::SetMsgIsInLocalCache(bool aMsgIsInLocalCache)
 {
   m_msgIsInLocalCache = aMsgIsInLocalCache;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::GetSuppressErrorMsgs(PRBool *aSuppressErrorMsgs)
+NS_IMETHODIMP nsMsgMailNewsUrl::GetSuppressErrorMsgs(bool *aSuppressErrorMsgs)
 {
   NS_ENSURE_ARG(aSuppressErrorMsgs); 
   *aSuppressErrorMsgs = m_suppressErrorMsgs;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::SetSuppressErrorMsgs(PRBool aSuppressErrorMsgs)
+NS_IMETHODIMP nsMsgMailNewsUrl::SetSuppressErrorMsgs(bool aSuppressErrorMsgs)
 {
   m_suppressErrorMsgs = aSuppressErrorMsgs;
   return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::IsUrlType(PRUint32 type, PRBool *isType)
+NS_IMETHODIMP nsMsgMailNewsUrl::IsUrlType(PRUint32 type, bool *isType)
 {
   //base class doesn't know about any specific types
   NS_ENSURE_ARG(isType);
@@ -513,7 +513,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetBaseURI(nsIURI **aBaseURI)
   return m_baseURL->QueryInterface(NS_GET_IID(nsIURI), (void**) aBaseURI);
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::Equals(nsIURI *other, PRBool *_retval)
+NS_IMETHODIMP nsMsgMailNewsUrl::Equals(nsIURI *other, bool *_retval)
 {
   // The passed-in URI might be a mail news url. Pass our inner URL to its
   // Equals method. The other mail news url will then pass its inner URL to
@@ -524,7 +524,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::Equals(nsIURI *other, PRBool *_retval)
   return m_baseURL->Equals(other, _retval);
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::EqualsExceptRef(nsIURI *other, PRBool *result)
+NS_IMETHODIMP nsMsgMailNewsUrl::EqualsExceptRef(nsIURI *other, bool *result)
 {
   // The passed-in URI might be a mail news url. Pass our inner URL to its
   // Equals method. The other mail news url will then pass its inner URL to
@@ -556,12 +556,12 @@ nsMsgMailNewsUrl::GetSpecIgnoringRef(nsACString &result)
 }
 
 NS_IMETHODIMP
-nsMsgMailNewsUrl::GetHasRef(PRBool *result)
+nsMsgMailNewsUrl::GetHasRef(bool *result)
 {
   return m_baseURL->GetHasRef(result);
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::SchemeIs(const char *aScheme, PRBool *_retval)
+NS_IMETHODIMP nsMsgMailNewsUrl::SchemeIs(const char *aScheme, bool *_retval)
 {
   return m_baseURL->SchemeIs(aScheme, _retval);
 }
@@ -801,14 +801,14 @@ public:
   NS_DECL_NSIREQUESTOBSERVER
   NS_DECL_NSISTREAMLISTENER
 
-  nsMsgSaveAsListener(nsIFile *aFile, PRBool addDummyEnvelope);
+  nsMsgSaveAsListener(nsIFile *aFile, bool addDummyEnvelope);
   virtual ~nsMsgSaveAsListener();
-  nsresult SetupMsgWriteStream(nsIFile *aFile, PRBool addDummyEnvelope);
+  nsresult SetupMsgWriteStream(nsIFile *aFile, bool addDummyEnvelope);
 protected:
   nsCOMPtr<nsIOutputStream> m_outputStream;
   nsCOMPtr<nsIFile> m_outputFile;
-  PRBool m_addDummyEnvelope;
-  PRBool m_writtenData;
+  bool m_addDummyEnvelope;
+  bool m_writtenData;
   PRUint32 m_leftOver;
   char m_dataBuffer[SAVE_BUF_SIZE+1]; // temporary buffer for this save operation
 
@@ -818,7 +818,7 @@ NS_IMPL_ISUPPORTS2(nsMsgSaveAsListener,
                    nsIStreamListener,
                    nsIRequestObserver)
 
-nsMsgSaveAsListener::nsMsgSaveAsListener(nsIFile *aFile, PRBool addDummyEnvelope)
+nsMsgSaveAsListener::nsMsgSaveAsListener(nsIFile *aFile, bool addDummyEnvelope)
 {
   m_outputFile = aFile;
   m_writtenData = PR_FALSE;
@@ -862,7 +862,7 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  PRBool useCanonicalEnding = PR_FALSE;
+  bool useCanonicalEnding = false;
   nsCOMPtr <nsIMsgMessageUrl> msgUrl = do_QueryInterface(aSupport);
   if (msgUrl)
     msgUrl->GetCanonicalLineEnding(&useCanonicalEnding);
@@ -946,7 +946,7 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
   //  rv = m_outputStream->WriteFrom(inStream, NS_MIN(available, count), &bytesWritten);
 }
 
-nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFile *aFile, PRBool addDummyEnvelope)
+nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFile *aFile, bool addDummyEnvelope)
 {
   // If the file already exists, delete it, but do this before
   // getting the outputstream.
@@ -989,7 +989,7 @@ nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFile *aFile, PRBool addDumm
 }
 
 
-NS_IMETHODIMP nsMsgMailNewsUrl::GetSaveAsListener(PRBool addDummyEnvelope, 
+NS_IMETHODIMP nsMsgMailNewsUrl::GetSaveAsListener(bool addDummyEnvelope, 
                                                   nsIFile *aFile, nsIStreamListener **aSaveListener)
 {
   NS_ENSURE_ARG_POINTER(aSaveListener);
@@ -1021,7 +1021,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::SetMsgHeaderSink(nsIMsgHeaderSink * aMsgHdrSink)
     return NS_OK;
 }
 
-NS_IMETHODIMP nsMsgMailNewsUrl::GetIsMessageUri(PRBool *aIsMessageUri)
+NS_IMETHODIMP nsMsgMailNewsUrl::GetIsMessageUri(bool *aIsMessageUri)
 {
   NS_ENSURE_ARG(aIsMessageUri);
   nsCAutoString scheme;

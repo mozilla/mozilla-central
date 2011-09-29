@@ -72,7 +72,7 @@ class nsLDAPMessage : public nsILDAPMessage
     nsresult IterateAttrErrHandler(PRInt32 aLderrno, PRUint32 *aAttrCount,
                             char** *aAttributes, BerElement *position);
     nsresult IterateAttributes(PRUint32 *aAttrCount, char** *aAttributes,
-                              PRBool getP);
+                              bool getP);
     nsresult Init(nsILDAPConnection *aConnection,
                   LDAPMessage *aMsgHandle);
     LDAPMessage *mMsgHandle; // the message we're wrapping

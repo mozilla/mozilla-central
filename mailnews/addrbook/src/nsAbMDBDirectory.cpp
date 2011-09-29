@@ -205,7 +205,7 @@ nsresult nsAbMDBDirectory::RemoveCardFromAddressList(nsIAbCard* card)
         for (j = total - 1; j >= 0; j--)
         {
           nsCOMPtr<nsIAbCard> cardInList(do_QueryElementAt(pAddressLists, j, &rv));
-          PRBool equals;
+          bool equals;
           rv = cardInList->Equals(card, &equals);  // should we checking email?
           if (NS_SUCCEEDED(rv) && equals)
             pAddressLists->RemoveElementAt(j);
@@ -452,7 +452,7 @@ NS_IMETHODIMP nsAbMDBDirectory::GetChildCards(nsISimpleEnumerator* *result)
                         mDatabase->EnumerateCards(this, result);
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::GetIsQuery(PRBool *aResult)
+NS_IMETHODIMP nsAbMDBDirectory::GetIsQuery(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = mIsQueryURI;
@@ -536,7 +536,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
         else
         {
           mDatabase->DeleteCard(card, PR_TRUE, this);
-          PRBool bIsMailList = PR_FALSE;
+          bool bIsMailList = false;
           card->GetIsMailList(&bIsMailList);
           if (bIsMailList)
           {
@@ -579,7 +579,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
   return rv;
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::HasCard(nsIAbCard *cards, PRBool *hasCard)
+NS_IMETHODIMP nsAbMDBDirectory::HasCard(nsIAbCard *cards, bool *hasCard)
 {
   if(!hasCard)
     return NS_ERROR_NULL_POINTER;
@@ -602,7 +602,7 @@ NS_IMETHODIMP nsAbMDBDirectory::HasCard(nsIAbCard *cards, PRBool *hasCard)
   return rv;
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir)
+NS_IMETHODIMP nsAbMDBDirectory::HasDirectory(nsIAbDirectory *dir, bool *hasDir)
 {
   if (!hasDir)
     return NS_ERROR_NULL_POINTER;
@@ -612,7 +612,7 @@ NS_IMETHODIMP nsAbMDBDirectory::HasDirectory(nsIAbDirectory *dir, PRBool *hasDir
   nsCOMPtr<nsIAbMDBDirectory> dbdir(do_QueryInterface(dir, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
   
-  PRBool bIsMailingList  = PR_FALSE;
+  bool bIsMailingList  = false;
   dir->GetIsMailList(&bIsMailingList);
   if (bIsMailingList)
   {
@@ -723,7 +723,7 @@ NS_IMETHODIMP nsAbMDBDirectory::ModifyCard(nsIAbCard *aModifiedCard)
   return mDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
 }
 
-NS_IMETHODIMP nsAbMDBDirectory::DropCard(nsIAbCard* aCard, PRBool needToCopyCard)
+NS_IMETHODIMP nsAbMDBDirectory::DropCard(nsIAbCard* aCard, bool needToCopyCard)
 {
   NS_ENSURE_ARG_POINTER(aCard);
 
@@ -789,10 +789,10 @@ NS_IMETHODIMP nsAbMDBDirectory::EditMailListToDatabase(nsIAbCard *listCard)
   return NS_OK;
 }
 
-static PRBool ContainsDirectory(nsIAbDirectory *parent, nsIAbDirectory *directory)
+static bool ContainsDirectory(nsIAbDirectory *parent, nsIAbDirectory *directory)
 {
   // If parent is a maillist, 'addressLists' contains AbCards.
-  PRBool bIsMailList = PR_FALSE;
+  bool bIsMailList = false;
   nsresult rv = parent->GetIsMailList(&bIsMailList);
   NS_ENSURE_SUCCESS(rv, PR_FALSE);
 
@@ -845,7 +845,7 @@ NS_IMETHODIMP nsAbMDBDirectory::OnCardEntryChange
 
   if (aParent != this)
   {
-    PRBool isChild = PR_FALSE;
+    bool isChild = false;
     if (aAbCode != AB_NotifyDeleted)
       isChild = ContainsDirectory(this, aParent);
     else
@@ -881,7 +881,7 @@ NS_IMETHODIMP nsAbMDBDirectory::OnListEntryChange
   
   if (abCode == AB_NotifyPropertyChanged && list)
   {
-    PRBool bIsMailList = PR_FALSE;
+    bool bIsMailList = false;
     rv = list->GetIsMailList(&bIsMailList);
     NS_ENSURE_SUCCESS(rv,rv);
     
@@ -951,7 +951,7 @@ NS_IMETHODIMP nsAbMDBDirectory::StartSearch()
   // check here for the directory to search not being a query uri as well in
   // the hopes that will at least break us out of the continuous loop even if
   // we don't know how we got into it.
-  PRBool isQuery;
+  bool isQuery;
   rv = directory->GetIsQuery(&isQuery);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -1089,7 +1089,7 @@ NS_IMETHODIMP nsAbMDBDirectory::CardForEmailAddress(const nsACString &aEmailAddr
 
 NS_IMETHODIMP nsAbMDBDirectory::GetCardFromProperty(const char *aProperty,
                                                     const nsACString &aValue,
-                                                    PRBool caseSensitive,
+                                                    bool caseSensitive,
                                                     nsIAbCard **result)
 {
   NS_ENSURE_ARG(aProperty);
@@ -1118,7 +1118,7 @@ NS_IMETHODIMP nsAbMDBDirectory::GetCardFromProperty(const char *aProperty,
 
 NS_IMETHODIMP nsAbMDBDirectory::GetCardsFromProperty(const char *aProperty,
                                                      const nsACString &aValue,
-                                                     PRBool caseSensitive,
+                                                     bool caseSensitive,
                                                      nsISimpleEnumerator **result)
 {
   NS_ENSURE_ARG(aProperty);

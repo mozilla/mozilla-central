@@ -95,7 +95,7 @@ protected:
 
   nsresult Cancel();
   virtual nsresult DoTask();
-  virtual void InitFailed(PRBool aCancelled = PR_FALSE);
+  virtual void InitFailed(bool aCancelled = false);
 
   nsCOMPtr<nsILDAPURL> mSearchUrl;
   nsIAbDirectoryQueryResultListener *mResultListener;
@@ -103,9 +103,9 @@ protected:
   nsCOMPtr<nsIAbDirectoryQueryArguments> mQueryArguments;
   PRInt32 mResultLimit;
 
-  PRBool mFinished;
-  PRBool mCanceled;
-  PRBool mWaitingForPrevQueryToFinish;
+  bool mFinished;
+  bool mCanceled;
+  bool mWaitingForPrevQueryToFinish;
 
   nsCOMPtr<nsIMutableArray> mServerSearchControls;
   nsCOMPtr<nsIMutableArray> mClientSearchControls;
@@ -170,7 +170,7 @@ NS_IMETHODIMP nsAbQueryLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMessa
   rv = aMessage->GetType(&messageType);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  PRBool cancelOperation = PR_FALSE;
+  bool cancelOperation = false;
 
   // Enter lock
   {
@@ -271,7 +271,7 @@ nsresult nsAbQueryLDAPMessageListener::DoTask()
                                mResultLimit);
 }
 
-void nsAbQueryLDAPMessageListener::InitFailed(PRBool aCancelled)
+void nsAbQueryLDAPMessageListener::InitFailed(bool aCancelled)
 {
   if (!mResultListener)
     return;
@@ -385,7 +385,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   // If connection params have changed re-create connection
   // else reuse existing connection
   
-  PRBool redoConnection = PR_FALSE;
+  bool redoConnection = false;
   
   if (!mConnection || !mDirectoryUrl)
   {
@@ -398,7 +398,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   }
   else
   {
-    PRBool equal;
+    bool equal;
     rv = mDirectoryUrl->Equals(currentUrl, &equal);
       NS_ENSURE_SUCCESS(rv, rv);
   
@@ -528,7 +528,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   
   // Get the scope
   PRInt32 scope;
-  PRBool doSubDirectories;
+  bool doSubDirectories;
   rv = aArguments->GetQuerySubDirectories (&doSubDirectories);
   NS_ENSURE_SUCCESS(rv, rv);
   scope = doSubDirectories ? nsILDAPURL::SCOPE_SUBTREE :

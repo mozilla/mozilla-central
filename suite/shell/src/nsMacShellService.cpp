@@ -54,26 +54,26 @@
 NS_IMPL_ISUPPORTS1(nsMacShellService, nsIShellService)
 
 NS_IMETHODIMP
-nsMacShellService::IsDefaultClient(PRBool aStartupCheck, PRUint16 aApps, PRBool *aIsDefaultClient)
+nsMacShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool *aIsDefaultClient)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsMacShellService::SetDefaultClient(PRBool aForAllUsers,
-                                    PRBool aClaimAllTypes, PRUint16 aApps)
+nsMacShellService::SetDefaultClient(bool aForAllUsers,
+                                    bool aClaimAllTypes, PRUint16 aApps)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsMacShellService::GetShouldCheckDefaultClient(PRBool* aResult)
+nsMacShellService::GetShouldCheckDefaultClient(bool* aResult)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
-nsMacShellService::SetShouldCheckDefaultClient(PRBool aShouldCheck)
+nsMacShellService::SetShouldCheckDefaultClient(bool aShouldCheck)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

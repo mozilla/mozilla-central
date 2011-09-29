@@ -81,16 +81,16 @@ private:
   nsresult GetMRUTimestampForFolder(nsIMsgFolder *aFolder, PRUint32 *aLastMRUTime);
 
 #ifdef MOZ_THUNDERBIRD
-  PRBool BuildNotificationBody(nsIMsgDBHdr *aHdr, nsIStringBundle *Bundle, nsString &aBody);
-  PRBool BuildNotificationTitle(nsIMsgFolder *aFolder, nsIStringBundle *aBundle, nsString &aTitle);
-  nsresult ShowNewAlertNotification(PRBool aUserInitiated);
+  bool BuildNotificationBody(nsIMsgDBHdr *aHdr, nsIStringBundle *Bundle, nsString &aBody);
+  bool BuildNotificationTitle(nsIMsgFolder *aFolder, nsIStringBundle *aBundle, nsString &aTitle);
+  nsresult ShowNewAlertNotification(bool aUserInitiated);
   nsresult PutMRUTimestampForFolder(nsIMsgFolder *aFolder, PRUint32 aLastMRUTime);
 #endif
 
   nsCOMPtr<nsISupportsArray> mFoldersWithNewMail;  // keep track of all the root folders with pending new mail
   nsCOMPtr<nsIAtom> mBiffStateAtom;
   nsCOMPtr<nsIAtom> mNewMailReceivedAtom;
-  PRBool mAlertInProgress;
+  bool mAlertInProgress;
   nsDataHashtable<nsCStringHashKey, PRUint32> mLastMRUTimes; // We keep track of the last time we did a new mail notification for each account
   nsTArray<nsCString> mFetchingURIs;
 };

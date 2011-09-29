@@ -56,7 +56,7 @@ MsgStrategyComparatorAdaptor::MsgStrategyComparatorAdaptor(nsIAutoSyncMsgStrateg
 }
 
 /** @return True if the elements are equals; false otherwise. */
-PRBool MsgStrategyComparatorAdaptor::Equals(const nsMsgKey& a, const nsMsgKey& b) const
+bool MsgStrategyComparatorAdaptor::Equals(const nsMsgKey& a, const nsMsgKey& b) const
 {
   nsCOMPtr<nsIMsgDBHdr> hdrA;
   nsCOMPtr<nsIMsgDBHdr> hdrB;
@@ -81,7 +81,7 @@ PRBool MsgStrategyComparatorAdaptor::Equals(const nsMsgKey& a, const nsMsgKey& b
 }
 
 /** @return True if (a < b); false otherwise. */
-PRBool MsgStrategyComparatorAdaptor::LessThan(const nsMsgKey& a, const nsMsgKey& b) const
+bool MsgStrategyComparatorAdaptor::LessThan(const nsMsgKey& a, const nsMsgKey& b) const
 {
   nsCOMPtr<nsIMsgDBHdr> hdrA;
   nsCOMPtr<nsIMsgDBHdr> hdrB;
@@ -152,7 +152,7 @@ nsresult nsAutoSyncState::PlaceIntoDownloadQ(const nsTArray<nsMsgKey> &aMsgKeyLi
     for (PRInt32 idx = 0; idx < elemCount; idx++)
     {
       nsCOMPtr<nsIMsgDBHdr> hdr;
-      PRBool containsKey;
+      bool containsKey;
       database->ContainsKey(aMsgKeyList[idx], &containsKey);
       if (!containsKey)
         continue;
@@ -160,11 +160,11 @@ nsresult nsAutoSyncState::PlaceIntoDownloadQ(const nsTArray<nsMsgKey> &aMsgKeyLi
       if(!hdr)
         continue; // can't get message header, continue with the next one
       
-      PRBool doesFit = PR_TRUE;
+      bool doesFit = true;
       rv = autoSyncMgr->DoesMsgFitDownloadCriteria(hdr, &doesFit);
       if (NS_SUCCEEDED(rv) && !mDownloadQ.Contains(aMsgKeyList[idx]) && doesFit)
       {
-        PRBool excluded = PR_FALSE;
+        bool excluded = false;
         if (msgStrategy)
         {
           rv = msgStrategy->IsExcluded(folder, hdr, &excluded);
@@ -282,7 +282,7 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
 
       for (; idx < msgCount; idx++)
       {
-        PRBool containsKey = PR_FALSE;
+        bool containsKey = false;
         database->ContainsKey(mDownloadQ[idx], &containsKey);
         if (!containsKey)
         {
@@ -308,7 +308,7 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
         // state of TB such as the size of the message store etc.
         if (msgStrategy)
         {
-          PRBool excluded = PR_FALSE;
+          bool excluded = false;
           if (NS_SUCCEEDED(msgStrategy->IsExcluded(folder, qhdr, &excluded)) && excluded)
             continue;
         }
@@ -537,7 +537,7 @@ NS_IMETHODIMP nsAutoSyncState::SetState(PRInt32 aState)
       nsCOMPtr <nsIMsgFolder> ownerFolder = do_QueryReferent(mOwnerFolder, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
 
-      PRBool folderOpen;
+      bool folderOpen;
       PRUint32 folderFlags;
       ownerFolder->GetFlags(&folderFlags);
       session->IsFolderOpenInWindow(ownerFolder, &folderOpen);
@@ -619,7 +619,7 @@ NS_IMETHODIMP nsAutoSyncState::ResetDownloadQ()
  * Tests whether the given folder is owned by the same imap server
  * or not.
  */
-NS_IMETHODIMP nsAutoSyncState::IsSibling(nsIAutoSyncState *aAnotherStateObj, PRBool *aResult)
+NS_IMETHODIMP nsAutoSyncState::IsSibling(nsIAutoSyncState *aAnotherStateObj, bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   *aResult = PR_FALSE;
@@ -639,7 +639,7 @@ NS_IMETHODIMP nsAutoSyncState::IsSibling(nsIAutoSyncState *aAnotherStateObj, PRB
   rv = folderB->GetServer(getter_AddRefs(serverB));
   NS_ENSURE_SUCCESS(rv,rv);
   
-  PRBool isSibling;
+  bool isSibling;
   rv = serverA->Equals(serverB, &isSibling);
   
   if (NS_SUCCEEDED(rv))

@@ -153,7 +153,7 @@ nsMimeXmlEmitter::WriteXMLTag(const char *tagName, const char *value)
 
 // Header handling routines.
 nsresult
-nsMimeXmlEmitter::StartHeader(PRBool rootMailHeader, PRBool headerOnly, const char *msgID,
+nsMimeXmlEmitter::StartHeader(bool rootMailHeader, bool headerOnly, const char *msgID,
                            const char *outCharset)
 {
   mDocHeader = rootMailHeader;
@@ -186,7 +186,7 @@ nsresult
 nsMimeXmlEmitter::StartAttachment(const nsACString &name,
                                   const char *contentType,
                                   const char *url,
-                                  PRBool aIsExternalAttachment)
+                                  bool aIsExternalAttachment)
 {
   char    buf[128];
 
