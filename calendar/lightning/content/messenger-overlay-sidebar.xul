@@ -578,7 +578,7 @@
 
   <hbox id="tabmail-container">
     <splitter id="today-splitter"
-              collapse="none"
+              collapse="after"
               resizebefore="closest"
               state="collapsed"
               class="calendar-sidebar-splitter"

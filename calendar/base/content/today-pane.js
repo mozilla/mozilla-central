@@ -309,9 +309,11 @@ var TodayPane = {
      */
     updateSplitterState: function updateSplitterState() {
         let splitter = document.getElementById("today-splitter");
-        let todaypane = document.getElementById("today-pane-panel");
-        splitter.setAttribute("state", todaypane.isVisible() ? "open" : "collapsed");
-        setElementValue(splitter, !todaypane.isVisible() && "true", "hidden");
+        let todaypaneVisible = document.getElementById("today-pane-panel").isVisible();
+        setElementValue(splitter, !todaypaneVisible && "true", "hidden");
+        if (todaypaneVisible) {
+            splitter.setAttribute("state", "open");
+        }
     },
 
     /**
