@@ -274,7 +274,5 @@ void nsEscapeNativePath(nsCString& nativePath)
 #if defined(XP_WIN) || defined(XP_OS2)
   nativePath.Insert('/', 0);
   MsgReplaceChar(nativePath, '\\', '/');
-  if (nativePath.CharAt(2) == ':')
-    nativePath.SetCharAt('|', 2);
 #endif
 }
