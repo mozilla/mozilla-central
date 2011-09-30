@@ -47,6 +47,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
@@ -79,6 +81,7 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/video_engine/main/test/AutoTest/interface \
+	-Isrc/video_engine/main/test/AutoTest/helpers \
 	-Isrc/video_engine/main/interface \
 	-Isrc/video_engine/main/source \
 	-Isrc/modules/video_capture/main/source \
@@ -89,7 +92,8 @@ INCS_Debug := -Isrc \
 	-Isrc/modules/interface \
 	-Isrc/modules/video_capture/main/interface \
 	-Isrc/common_video/vplib/main/interface \
-	-Isrc/voice_engine/main/interface
+	-Isrc/voice_engine/main/interface \
+	-Itesting/gtest/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -103,6 +107,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
@@ -137,6 +143,7 @@ CFLAGS_CC_Release := -fno-rtti \
 INCS_Release := -Isrc \
 	-I. \
 	-Isrc/video_engine/main/test/AutoTest/interface \
+	-Isrc/video_engine/main/test/AutoTest/helpers \
 	-Isrc/video_engine/main/interface \
 	-Isrc/video_engine/main/source \
 	-Isrc/modules/video_capture/main/source \
@@ -147,9 +154,12 @@ INCS_Release := -Isrc \
 	-Isrc/modules/interface \
 	-Isrc/modules/video_capture/main/interface \
 	-Isrc/common_video/vplib/main/interface \
-	-Isrc/voice_engine/main/interface
+	-Isrc/voice_engine/main/interface \
+	-Itesting/gtest/include
 
-OBJS := $(obj).target/$(TARGET)/src/video_engine/main/test/AutoTest/source/tb_capture_device.o \
+OBJS := $(obj).target/$(TARGET)/src/video_engine/main/test/AutoTest/helpers/vie_window_creator.o \
+	$(obj).target/$(TARGET)/src/video_engine/main/test/AutoTest/automated/vie_standard_integration_test.o \
+	$(obj).target/$(TARGET)/src/video_engine/main/test/AutoTest/source/tb_capture_device.o \
 	$(obj).target/$(TARGET)/src/video_engine/main/test/AutoTest/source/tb_external_transport.o \
 	$(obj).target/$(TARGET)/src/video_engine/main/test/AutoTest/source/tb_I420_codec.o \
 	$(obj).target/$(TARGET)/src/video_engine/main/test/AutoTest/source/tb_interfaces.o \
@@ -173,7 +183,7 @@ OBJS := $(obj).target/$(TARGET)/src/video_engine/main/test/AutoTest/source/tb_ca
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libvideo_render_module.a $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/src/video_engine/libvideo_engine_core.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a $(obj).target/src/modules/libvideo_processing.a
+$(OBJS): | $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libvideo_render_module.a $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/testing/libgtest.a $(obj).target/src/video_engine/libvideo_engine_core.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a $(obj).target/src/modules/libvideo_processing.a
 
 # Make sure our actions/rules run before any of us.
 $(OBJS): | $(vie_auto_test_copies)
@@ -203,7 +213,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cc FORCE_DO_CMD
 $(builddir)/vie_auto_test: | $(vie_auto_test_copies)
 
 # Preserve order dependency of special output on deps.
-$(vie_auto_test_copies): | $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libvideo_render_module.a $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/src/video_engine/libvideo_engine_core.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a $(obj).target/src/modules/libvideo_processing.a
+$(vie_auto_test_copies): | $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libvideo_render_module.a $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/testing/libgtest.a $(obj).target/src/video_engine/libvideo_engine_core.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a $(obj).target/src/modules/libvideo_processing.a
 
 LDFLAGS_Debug := -pthread \
 	-Wl,-z,noexecstack
@@ -223,9 +233,9 @@ LIBS := -lXext \
 
 $(builddir)/vie_auto_test: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/vie_auto_test: LIBS := $(LIBS)
-$(builddir)/vie_auto_test: LD_INPUTS := $(OBJS) $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libvideo_render_module.a $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/src/video_engine/libvideo_engine_core.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a $(obj).target/src/modules/libvideo_processing.a
+$(builddir)/vie_auto_test: LD_INPUTS := $(OBJS) $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libvideo_render_module.a $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/testing/libgtest.a $(obj).target/src/video_engine/libvideo_engine_core.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a $(obj).target/src/modules/libvideo_processing.a
 $(builddir)/vie_auto_test: TOOLSET := $(TOOLSET)
-$(builddir)/vie_auto_test: $(OBJS) $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libvideo_render_module.a $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/src/video_engine/libvideo_engine_core.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a $(obj).target/src/modules/libvideo_processing.a FORCE_DO_CMD
+$(builddir)/vie_auto_test: $(OBJS) $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libvideo_render_module.a $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/testing/libgtest.a $(obj).target/src/video_engine/libvideo_engine_core.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a $(obj).target/src/modules/libvideo_processing.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/vie_auto_test

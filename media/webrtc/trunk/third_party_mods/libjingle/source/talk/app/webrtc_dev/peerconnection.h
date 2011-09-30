@@ -44,6 +44,7 @@ class StreamCollection : public RefCount {
  public:
   virtual size_t count() = 0;
   virtual MediaStream* at(size_t index) = 0;
+  virtual MediaStream* find(const std::string& label) = 0;
  protected:
   // Dtor protected as objects shouldn't be deleted via this interface.
   ~StreamCollection() {}
@@ -80,12 +81,8 @@ class PeerConnectionObserver {
 
 class PeerConnection : public RefCount {
  public:
-  // Start Negotiation. Negotiation is based on if
-  // SignalingMessage and AddStream have been called prior to this function.
-  virtual bool StartNegotiation() = 0;
-
   // SignalingMessage in json format
-  virtual bool SignalingMessage(const std::string& msg) = 0;
+  virtual bool ProcessSignalingMessage(const std::string& msg) = 0;
 
   // Sends the msg over a data stream.
   virtual bool Send(const std::string& msg) = 0;
@@ -154,12 +151,14 @@ class PeerConnectionManager : public RefCount {
   // remain in scope for the lifetime of the PeerConnectionManager.
   static scoped_refptr<PeerConnectionManager> Create(
       talk_base::Thread* worker_thread,
+      talk_base::Thread* signaling_thread,
       PcNetworkManager* network_manager,
       PcPacketSocketFactory* packet_socket_factory,
       AudioDeviceModule* default_adm);
 
   virtual scoped_refptr<PeerConnection> CreatePeerConnection(
-      const std::string& config) = 0;
+      const std::string& config,
+      PeerConnectionObserver* observer) = 0;
 
  protected:
   // Dtor protected as objects shouldn't be deleted via this interface.

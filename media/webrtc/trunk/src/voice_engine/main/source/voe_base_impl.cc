@@ -199,7 +199,15 @@ WebRtc_Word32 VoEBaseImpl::RecordedDataIsAvailable(
                         / (maxVolume));
             }
         }
-        assert(currentVoEMicLevel <= kMaxVolumeLevel);
+        // We learned that on certain systems (e.g Linux) the currentVoEMicLevel
+        // can be greater than the maxVolumeLevel therefore
+        // we are going to cap the currentVoEMicLevel to the maxVolumeLevel
+        // if it turns out that the currentVoEMicLevel is indeed greater
+        // than the maxVolumeLevel
+        if (currentVoEMicLevel > kMaxVolumeLevel)
+        {
+            currentVoEMicLevel = kMaxVolumeLevel;
+        }
     }
 
     // Keep track if the MicLevel has been changed by the AGC, if not,
@@ -496,16 +504,6 @@ int VoEBaseImpl::Init(AudioDeviceModule* external_adm)
             _engineStatistics.SetLastError(VE_APM_ERROR, kTraceWarning,
                                            "Init() failed to set AGC state for "
                                            "AP module");
-        }
-        // Level Metrics
-        if (_audioProcessingModulePtr->level_estimator()->Enable(
-                WEBRTC_VOICE_ENGINE_LEVEL_ESTIMATOR_DEFAULT_STATE)
-                != 0)
-        {
-            _engineStatistics.SetLastError(VE_APM_ERROR, kTraceWarning,
-                                           "Init() failed to set Level "
-                                           "Estimator state for AP"
-                                           "module");
         }
         // VAD
         if (_audioProcessingModulePtr->voice_detection()->Enable(
