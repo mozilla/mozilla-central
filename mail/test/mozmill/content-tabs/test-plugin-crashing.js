@@ -77,7 +77,16 @@ function setupModule(module) {
   Services.prefs.setCharPref(kStartPagePref, kPluginUrl);
   Services.prefs.setCharPref(kPluginCrashDocPref, kPluginCrashDocUrl);
 
-  if (!plugins_run_in_separate_processes(mc)) {
+  let Cc = Components.classes;
+  let Ci = Components.interfaces;
+
+  let crashReporter = Cc["@mozilla.org/toolkit/crash-reporter;1"]
+                        .getService(Ci.nsICrashReporter);
+
+  // These tests are no good if the crash reporter is disabled, or if
+  // we don't have out-of-process plugins enabled.
+  if (!plugins_run_in_separate_processes(mc) ||
+      !crashReporter.enabled) {
     let funcsToSkip = [test_can_crash_plugin,
                        test_crashed_plugin_notification_bar,
                        test_crashed_plugin_notification_inline];
