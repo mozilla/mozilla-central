@@ -521,6 +521,8 @@ var messageHeaderSink = {
             this.mDummyMsgHeader.listPost = header.headerValue;
           else if (lowerCaseHeaderName == "delivered-to")
             this.mDummyMsgHeader.deliveredTo = header.headerValue;
+          else if (lowerCaseHeaderName == "date")
+            this.mDummyMsgHeader.date = Date.parse(header.headerValue) * 1000;
         }
         // according to RFC 2822, certain headers
         // can occur "unlimited" times
@@ -2526,6 +2528,7 @@ nsDummyMsgHeader.prototype =
   ccList : null,
   listPost : null,
   messageId : null,
+  date : 0,
   accountKey : "",
   // if you change us to return a fake folder, please update
   // folderDisplay.js's FolderDisplayWidget's selectedMessageIsExternal getter.
