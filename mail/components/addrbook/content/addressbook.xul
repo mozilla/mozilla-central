@@ -446,8 +446,8 @@
                     <menupopup id="menu_ShowNameAsPopup">
                         <menuitem type="radio" name="shownameas"
                                   id="firstLastCmd"
-                                  label="&firstLastCmd.label;"
-                                  accesskey="&firstLastCmd.accesskey;"
+                                  label="&firstLastCmd2.label;"
+                                  accesskey="&firstLastCmd2.accesskey;"
                                   oncommand="SetNameColumn('firstLastCmd')"/>
                         <menuitem type="radio" name="shownameas"
                                   id="lastFirstCmd"
