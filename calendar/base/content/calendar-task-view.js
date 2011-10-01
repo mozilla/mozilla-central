@@ -297,7 +297,7 @@ function taskViewObserveDisplayDeckChange(event) {
 }
 
 // Install event listeners for the display deck change.
-document.addEventListener("load", function () {
+window.addEventListener("load", function () {
   document.getElementById("calendarDisplayDeck").
     addEventListener("select", taskViewObserveDisplayDeckChange, true);
-  }, true);
+  }, false);

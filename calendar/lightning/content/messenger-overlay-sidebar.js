@@ -187,7 +187,7 @@ function ltnOnLoad(event) {
 
     // nuke the onload, or we get called every time there's
     // any load that occurs
-    document.removeEventListener("load", ltnOnLoad, true);
+    window.removeEventListener("load", ltnOnLoad, false);
 
     document.getElementById("calendarDisplayDeck").
       addEventListener("select", LtnObserveDisplayDeckChange, true);
@@ -469,4 +469,4 @@ function calInitMessageMenu() {
 calInitMessageMenu.origFunc = InitMessageMenu;
 InitMessageMenu = calInitMessageMenu;
 
-document.addEventListener("load", ltnOnLoad, true);
+window.addEventListener("load", ltnOnLoad, false);
