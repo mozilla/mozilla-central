@@ -1044,6 +1044,8 @@ function select_shift_click_row(aViewIndex, aController, aDoNotRequireLoad) {
  * Helper function to click on a row with a given button.
  */
 function _row_click_helper(aController, aTree, aViewIndex, aButton, aExtra) {
+  // Force-focus the tree
+  aTree.focus();
   let treeBox = aTree.treeBoxObject;
   // very important, gotta be able to see the row
   treeBox.ensureRowIsVisible(aViewIndex);
