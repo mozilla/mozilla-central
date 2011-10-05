@@ -28,9 +28,16 @@
 #ifndef TALK_APP_WEBRTC_WEBRTCSESSION_H_
 #define TALK_APP_WEBRTC_WEBRTCSESSION_H_
 
+#include <string>
+#include <vector>
+
+#include "talk/app/webrtc_dev/mediastreamprovider.h"
+#include "talk/app/webrtc_dev/sessiondescriptionprovider.h"
+#include "talk/app/webrtc_dev/webrtcsessionobserver.h"
 #include "talk/base/sigslot.h"
 #include "talk/base/thread.h"
 #include "talk/p2p/base/session.h"
+#include "talk/session/phone/mediasession.h"
 
 namespace cricket {
 class ChannelManager;
@@ -40,20 +47,22 @@ class VoiceChannel;
 }
 
 namespace webrtc {
-class MediaStream;
-class PeerConnectionMessage;
-class PeerConnectionSignaling;
-class StreamCollection;
 
-class WebRtcSession : public cricket::BaseSession {
+class WebRtcSession : public cricket::BaseSession,
+                      public MediaProviderInterface,
+                      public SessionDescriptionProvider {
  public:
   WebRtcSession(cricket::ChannelManager* channel_manager,
+                talk_base::Thread* signaling_thread,
                 talk_base::Thread* worker_thread,
-                cricket::PortAllocator* port_allocator,
-                PeerConnectionSignaling* pc_signaling);
+                cricket::PortAllocator* port_allocator);
   ~WebRtcSession();
 
   bool Initialize();
+
+  void RegisterObserver(WebRtcSessionObserver* observer) {
+    observer_ = observer;
+  }
 
   const cricket::VoiceChannel* voice_channel() const {
     return voice_channel_.get();
@@ -62,32 +71,53 @@ class WebRtcSession : public cricket::BaseSession {
     return video_channel_.get();
   }
 
+  // Generic error message callback from WebRtcSession.
+  // TODO(mallinath) - It may be necessary to supply error code as well.
+  sigslot::signal0<> SignalError;
+
  private:
-  // Callback handling from PeerConnectionSignaling
-  void OnSignalUpdateSessionDescription(
-      const cricket::SessionDescription* local_desc,
-      const cricket::SessionDescription* remote_desc,
-      StreamCollection* streams);
+  // Implements SessionDescriptionProvider
+  virtual const cricket::SessionDescription* ProvideOffer(
+      const cricket::MediaSessionOptions& options);
+  virtual const cricket::SessionDescription* SetRemoteSessionDescription(
+      const cricket::SessionDescription* remote_offer,
+      const std::vector<cricket::Candidate>& remote_candidates);
+  virtual const cricket::SessionDescription* ProvideAnswer(
+      const cricket::MediaSessionOptions& options);
+  virtual void NegotiationDone();
+
+  // Implements MediaProviderInterface.
+  virtual void SetCaptureDevice(uint32 ssrc, VideoCaptureModule* camera);
+  virtual void SetLocalRenderer(uint32 ssrc,
+                                cricket::VideoRenderer* renderer);
+  virtual void SetRemoteRenderer(uint32 ssrc,
+                                 cricket::VideoRenderer* renderer);
 
   // Transport related callbacks, override from cricket::BaseSession.
   virtual void OnTransportRequestSignaling(cricket::Transport* transport);
   virtual void OnTransportConnecting(cricket::Transport* transport);
   virtual void OnTransportWritable(cricket::Transport* transport);
-  virtual void OnTransportCandidatesReady(cricket::Transport* transport,
-                                  const cricket::Candidates& candidates);
+  virtual void OnTransportCandidatesReady(
+      cricket::Transport* transport,
+      const cricket::Candidates& candidates);
   virtual void OnTransportChannelGone(cricket::Transport* transport);
 
   // Creates channels for voice and video.
   bool CreateChannels();
   virtual void OnMessage(talk_base::Message* msg);
-
+  void InsertTransportCandidates(const cricket::Candidates& candidates);
   void Terminate();
+  // Get candidate from the local candidates list by the name.
+  bool CheckCandidate(const std::string& name);
+  void SetRemoteCandidates(const cricket::Candidates& candidates);
 
  private:
-  PeerConnectionSignaling* pc_signaling_;
   talk_base::scoped_ptr<cricket::VoiceChannel> voice_channel_;
   talk_base::scoped_ptr<cricket::VideoChannel> video_channel_;
   cricket::ChannelManager* channel_manager_;
+  cricket::Candidates local_candidates_;
+  WebRtcSessionObserver* observer_;
+  cricket::MediaSessionDescriptionFactory session_desc_factory_;
 };
 
 }  // namespace webrtc

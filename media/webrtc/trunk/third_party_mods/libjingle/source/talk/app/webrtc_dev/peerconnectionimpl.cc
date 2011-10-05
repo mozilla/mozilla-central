@@ -29,6 +29,7 @@
 
 #include <vector>
 
+#include "talk/app/webrtc_dev/mediastreamhandler.h"
 #include "talk/app/webrtc_dev/scoped_refptr_msg.h"
 #include "talk/app/webrtc_dev/streamcollectionimpl.h"
 #include "talk/base/logging.h"
@@ -59,7 +60,8 @@ enum ServiceType {
 enum {
     MSG_COMMITSTREAMCHANGES = 1,
     MSG_PROCESSSIGNALINGMESSAGE = 2,
-    MSG_RETURNREMOTEMEDIASTREAMS = 3
+    MSG_RETURNREMOTEMEDIASTREAMS = 3,
+    MSG_TERMINATE = 4
 };
 
 bool static ParseConfigString(const std::string& config,
@@ -122,10 +124,12 @@ namespace webrtc {
 PeerConnectionImpl::PeerConnectionImpl(
     cricket::ChannelManager* channel_manager,
     talk_base::Thread* signaling_thread,
+    talk_base::Thread* worker_thread,
     PcNetworkManager* network_manager,
     PcPacketSocketFactory* socket_factory)
     : observer_(NULL),
       local_media_streams_(StreamCollectionImpl::Create()),
+      remote_media_streams_(StreamCollectionImpl::Create()),
       signaling_thread_(signaling_thread),
       channel_manager_(channel_manager),
       network_manager_(network_manager),
@@ -134,8 +138,11 @@ PeerConnectionImpl::PeerConnectionImpl(
           network_manager->network_manager(),
           socket_factory->socket_factory(),
           std::string(kUserAgent))),
-      signaling_(new PeerConnectionSignaling(channel_manager,
-                                             signaling_thread)) {
+      session_(new WebRtcSession(channel_manager, signaling_thread,
+          worker_thread, port_allocator_.get())),
+      signaling_(new PeerConnectionSignaling(signaling_thread,
+                                             session_.get())),
+      stream_handler_(new MediaStreamHandlers(session_.get())) {
   signaling_->SignalNewPeerConnectionMessage.connect(
       this, &PeerConnectionImpl::OnNewPeerConnectionMessage);
   signaling_->SignalRemoteStreamAdded.connect(
@@ -146,6 +153,15 @@ PeerConnectionImpl::PeerConnectionImpl(
 
 PeerConnectionImpl::~PeerConnectionImpl() {
   signaling_thread_->Clear(this);
+  signaling_thread_->Send(this, MSG_TERMINATE);
+}
+
+// Clean up what needs to be cleaned up on the signaling thread.
+void PeerConnectionImpl::Terminate_s() {
+  stream_handler_.reset();
+  signaling_.reset();
+  session_.reset();
+  port_allocator_.reset();
 }
 
 bool PeerConnectionImpl::Initialize(const std::string& configuration,
@@ -177,7 +193,8 @@ bool PeerConnectionImpl::Initialize(const std::string& configuration,
       return false;
   }
 
-  return true;
+  // Initialize the WebRtcSession. It creates transport channels etc.
+  return session_->Initialize();
 }
 
 scoped_refptr<StreamCollection> PeerConnectionImpl::local_streams() {
@@ -219,13 +236,13 @@ void PeerConnectionImpl::OnMessage(talk_base::Message* msg) {
       ScopedRefMessageData<StreamCollection>* param(
           static_cast<ScopedRefMessageData<StreamCollection>*> (data));
       signaling_->CreateOffer(param->data());
+      stream_handler_->CommitLocalStreams(param->data());
       delete data;  // Because it is Posted.
       break;
     }
     case MSG_PROCESSSIGNALINGMESSAGE: {
       SignalingParams* params(static_cast<SignalingParams*> (data));
-      // TODO(perkj) Deserialize params->msg into a PeerConnection Message.
-      signaling_->ProcessSignalingMessage(NULL, params->local_streams);
+      signaling_->ProcessSignalingMessage(params->msg, params->local_streams);
       delete data;  // Because it is Posted.
       break;
     }
@@ -235,14 +252,16 @@ void PeerConnectionImpl::OnMessage(talk_base::Message* msg) {
       param->data() = StreamCollectionImpl::Create(remote_media_streams_);
       break;
     }
+    case MSG_TERMINATE: {
+      Terminate_s();
+      break;
+    }
   }
 }
 
 void PeerConnectionImpl::OnNewPeerConnectionMessage(
-    PeerConnectionMessage* message) {
-  // TODO(perkj): serialize the message.
-  std::string msg;
-  observer_->OnSignalingMessage(msg);
+    const std::string& message) {
+  observer_->OnSignalingMessage(message);
 }
 
 void PeerConnectionImpl::OnRemoteStreamAdded(MediaStream* remote_stream) {
@@ -250,6 +269,7 @@ void PeerConnectionImpl::OnRemoteStreamAdded(MediaStream* remote_stream) {
   // remote streams.
   // This way we can avoid keeping a separate list of remote_media_streams_.
   remote_media_streams_->AddStream(remote_stream);
+  stream_handler_->AddRemoteStream(remote_stream);
   observer_->OnAddStream(remote_stream);
 }
 
@@ -258,6 +278,7 @@ void PeerConnectionImpl::OnRemoteStreamRemoved(MediaStream* remote_stream) {
   // remote streams.
   // This way we can avoid keeping a separate list of remote_media_streams_.
   remote_media_streams_->RemoveStream(remote_stream);
+  stream_handler_->RemoveRemoteStream(remote_stream);
   observer_->OnRemoveStream(remote_stream);
 }
 

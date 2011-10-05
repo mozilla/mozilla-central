@@ -102,7 +102,7 @@ void Conductor::DeletePeerConnection() {
   peer_id_ = -1;
 }
 
-void Conductor::StartCaptureDevice() {
+void Conductor::SwitchToStreamingUi() {
   ASSERT(peer_connection_.get() != NULL);
   if (main_wnd_->IsWindow()) {
     if (main_wnd_->current_ui() != MainWindow::STREAMING)
@@ -249,7 +249,7 @@ void Conductor::ConnectToPeer(int peer_id) {
   if (InitializePeerConnection()) {
     peer_id_ = peer_id;
     main_wnd_->SwitchToStreamingUI();
-    StartCaptureDevice();
+    SwitchToStreamingUi();
     AddStreams();
   } else {
     main_wnd_->MessageBox("Error", "Failed to initialize PeerConnection", true);
@@ -371,7 +371,7 @@ void Conductor::UIThreadCallback(int msg_id, void* data) {
         // TODO(tommi): For the initiator, we shouldn't have to make this call
         // here (which is actually the second time this is called for the
         // initiator).  Look into why this is needed.
-        StartCaptureDevice();
+        SwitchToStreamingUi();
       }
 
       // If we haven't shared any streams with this peer (we're the receiver)
