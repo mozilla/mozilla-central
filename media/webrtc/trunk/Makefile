@@ -876,11 +876,6 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party_mods/libjingle/peerconnection_client_dev.target.mk)))),)
-  include third_party_mods/libjingle/peerconnection_client_dev.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
                  $(join ^,third_party_mods/libjingle/peerconnection_unittests.target.mk)))),)
   include third_party_mods/libjingle/peerconnection_unittests.target.mk
 endif

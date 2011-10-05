@@ -182,7 +182,7 @@ OBJS := $(obj).target/$(TARGET)/third_party/libjingle/source/talk/p2p/base/const
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/p2p/client/socketmonitor.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/audiomonitor.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/call.o \
-	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/channel.o \
+	$(obj).target/$(TARGET)/third_party_mods/libjingle/source/talk/session/phone/channel.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/channelmanager.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/codec.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/currentspeakermonitor.o \

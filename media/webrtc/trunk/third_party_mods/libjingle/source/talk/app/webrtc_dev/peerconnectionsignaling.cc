@@ -32,6 +32,7 @@
 #include "talk/app/webrtc_dev/audiotrackimpl.h"
 #include "talk/app/webrtc_dev/mediastreamimpl.h"
 #include "talk/app/webrtc_dev/videotrackimpl.h"
+#include "talk/app/webrtc_dev/sessiondescriptionprovider.h"
 #include "talk/base/helpers.h"
 #include "talk/base/messagequeue.h"
 #include "talk/session/phone/channelmanager.h"
@@ -74,18 +75,30 @@ static bool VerifyAnswer(const cricket::SessionDescription* answer_desc) {
 }
 
 PeerConnectionSignaling::PeerConnectionSignaling(
-    cricket::ChannelManager* channel_manager,
-    talk_base::Thread* signaling_thread)
+    talk_base::Thread* signaling_thread,
+    SessionDescriptionProvider* provider)
     : signaling_thread_(signaling_thread),
+      provider_(provider),
       state_(kInitializing),
-      ssrc_counter_(0),
-      session_description_factory_(channel_manager) {
+      ssrc_counter_(0) {
 }
 
 PeerConnectionSignaling::~PeerConnectionSignaling() {
+  // Cleanup the queued_received_offer_ if this object is
+  // deleted before the offer can be processed.
+  // That means we have parsed an offer and created the remote
+  // session description but we have not transfered the ownership
+  // to the provider yet.
+  if (queued_received_offer_.first) {
+    const cricket::SessionDescription* remote_desc =
+        queued_received_offer_.first->desc();
+    delete remote_desc;
+    delete queued_received_offer_.first;
+  }
+
 }
 
-void PeerConnectionSignaling::Initialize(
+void PeerConnectionSignaling::OnCandidatesReady(
     const cricket::Candidates& candidates) {
   ASSERT(state_ == kInitializing);
   if (state_ != kInitializing)
@@ -106,13 +119,22 @@ void PeerConnectionSignaling::Initialize(
 }
 
 void PeerConnectionSignaling::ProcessSignalingMessage(
-    PeerConnectionMessage* message,
+    const std::string& message,
     StreamCollection* local_streams) {
   ASSERT(talk_base::Thread::Current() == signaling_thread_);
 
-  switch (message->type()) {
+  talk_base::scoped_ptr<PeerConnectionMessage> signaling_message(
+      PeerConnectionMessage::Create(message));
+  if (!signaling_message.get()) {
+    signaling_message.reset(PeerConnectionMessage::CreateErrorMessage(
+        PeerConnectionMessage::kParseError));
+    SignalNewPeerConnectionMessage(signaling_message->Serialize());
+  }
+
+  switch (signaling_message->type()) {
     case PeerConnectionMessage::kOffer: {
-      queued_received_offer_ = RemoteOfferPair(message, local_streams);
+      queued_received_offer_ =
+          RemoteOfferPair(signaling_message.release(), local_streams);
       // If we are still Initializing we need to wait before we can handle
        // the offer. Queue it and handle it when the state change.
       if (state_ == kInitializing) {
@@ -126,15 +148,17 @@ void PeerConnectionSignaling::ProcessSignalingMessage(
             talk_base::CreateRandomId() % kGlareWaitIntervall;
         signaling_thread_->PostDelayed(
             timeout, this, MSG_SEND_QUEUED_OFFER, NULL);
-        scoped_refptr<PeerConnectionMessage> msg =
+        talk_base::scoped_ptr<PeerConnectionMessage> msg(
             PeerConnectionMessage::CreateErrorMessage(
-                PeerConnectionMessage::kWrongState);
-        SignalNewPeerConnectionMessage(msg);
+                PeerConnectionMessage::kWrongState));
+        SignalNewPeerConnectionMessage(msg->Serialize());
         break;
       }
       if (state_ == kGlare) {
         state_ = kIdle;
       }
+      // Clear the MSG_SEND_QUEUED_OFFER we posted delayed.
+      signaling_thread_->Clear(this, MSG_SEND_QUEUED_OFFER);
       signaling_thread_->Post(this, MSG_GENERATE_ANSWER);
       break;
     }
@@ -142,10 +166,15 @@ void PeerConnectionSignaling::ProcessSignalingMessage(
       ASSERT(state_ != PeerConnectionSignaling::kIdle);
       if (state_ == PeerConnectionSignaling::kIdle)
         return;
-      UpdateRemoteStreams(message->desc());
+      const cricket::SessionDescription* remote_desc =
+          provider_->SetRemoteSessionDescription(
+              signaling_message->desc(),
+              signaling_message->candidates());
+      provider_->NegotiationDone();
+      UpdateRemoteStreams(remote_desc);
       scoped_refptr<StreamCollection> streams(queued_offers_.front());
       queued_offers_.pop_front();
-      UpdateSendingLocalStreams(message->desc(), streams);
+      UpdateSendingLocalStreams(remote_desc, streams);
       // Check if we have more offers waiting in the queue.
       if (queued_offers_.size() > 0) {
         // Send the next offer.
@@ -153,20 +182,16 @@ void PeerConnectionSignaling::ProcessSignalingMessage(
       } else {
         state_ = PeerConnectionSignaling::kIdle;
       }
-      // Signal the resulting local and remote session description.
-      SignalUpdateSessionDescription(last_send_offer_->desc(),
-                                     message->desc(),
-                                     streams.get());
       break;
     }
     case PeerConnectionMessage::kError: {
-      if (message->error() != PeerConnectionMessage::kWrongState)
-        SignalErrorMessageReceived(message->error());
-
-      // An error have occurred that we can't do anything about.
-      // Reset the state and wait for user action.
-      queued_offers_.clear();
-      state_ = kIdle;
+      if (signaling_message->error() != PeerConnectionMessage::kWrongState) {
+        SignalErrorMessageReceived(signaling_message->error());
+         // An error have occurred that we can't do anything about.
+        // Reset the state and wait for user action.
+        queued_offers_.clear();
+        state_ = kIdle;
+      }
       break;
     }
   }
@@ -199,22 +224,16 @@ void PeerConnectionSignaling::CreateOffer_s() {
   ASSERT(queued_offers_.size() > 0);
   scoped_refptr<StreamCollection> local_streams(queued_offers_.front());
   cricket::MediaSessionOptions options;
-  options.is_video = true;
   InitMediaSessionOptions(&options, local_streams);
 
-  talk_base::scoped_ptr<cricket::SessionDescription> offer(
-      session_description_factory_.CreateOffer(options));
+  const cricket::SessionDescription* local_desc =
+      provider_->ProvideOffer(options);
 
-  scoped_refptr<PeerConnectionMessage> offer_message =
+  talk_base::scoped_ptr<PeerConnectionMessage> offer_message(
       PeerConnectionMessage::Create(PeerConnectionMessage::kOffer,
-                                    offer.release(),
-                                    candidates_);
-
-  // If we are updating with new streams we need to get an answer
-  // before we can handle a remote offer.
-  // We also need the response before we are allowed to start send media.
-  last_send_offer_ = offer_message;
-  SignalNewPeerConnectionMessage(offer_message);
+                                    local_desc,
+                                    candidates_));
+  SignalNewPeerConnectionMessage(offer_message->Serialize());
 }
 
 PeerConnectionSignaling::State PeerConnectionSignaling::GetState() {
@@ -222,8 +241,9 @@ PeerConnectionSignaling::State PeerConnectionSignaling::GetState() {
 }
 
 void PeerConnectionSignaling::CreateAnswer_s() {
-  scoped_refptr<PeerConnectionMessage> message(
-      queued_received_offer_.first.release());
+  talk_base::scoped_ptr<PeerConnectionMessage> message(
+      queued_received_offer_.first);
+  queued_received_offer_.first = NULL;
   scoped_refptr<StreamCollection> local_streams(
       queued_received_offer_.second.release());
 
@@ -231,40 +251,41 @@ void PeerConnectionSignaling::CreateAnswer_s() {
   signaling_thread_->Clear(this, MSG_SEND_QUEUED_OFFER, NULL);
   queued_offers_.clear();
 
+  // Let the provider know about the remote offer.
+  // The provider takes ownership and return a pointer for us to use.
+  const cricket::SessionDescription* remote_desc =
+      provider_->SetRemoteSessionDescription(message->desc(),
+                                             message->candidates());
+
   // Create a MediaSessionOptions object with the sources we want to send.
   cricket::MediaSessionOptions options;
-  options.is_video = true;
   InitMediaSessionOptions(&options, local_streams);
+  // Create an local session description based on this.
+  const cricket::SessionDescription* local_desc =
+      provider_->ProvideAnswer(options);
 
-  // Use the MediaSessionFactory to create an SDP answer.
-  talk_base::scoped_ptr<cricket::SessionDescription> answer(
-      session_description_factory_.CreateAnswer(message->desc(), options));
+  talk_base::scoped_ptr<PeerConnectionMessage> answer_message;
+  if (!VerifyAnswer(local_desc)) {
+    answer_message.reset(PeerConnectionMessage::CreateErrorMessage(
+        PeerConnectionMessage::kOfferNotAcceptable));
 
-  scoped_refptr<PeerConnectionMessage> answer_message;
-  if (VerifyAnswer(answer.get())) {
-    answer_message = PeerConnectionMessage::Create(
-        PeerConnectionMessage::kAnswer, answer.release(), candidates_);
-
-  } else {
-    answer_message = PeerConnectionMessage::CreateErrorMessage(
-        PeerConnectionMessage::kOfferNotAcceptable);
+    // Signal that the new answer is ready to be sent.
+    SignalNewPeerConnectionMessage(answer_message->Serialize());
+    return;
   }
+
+  answer_message.reset(PeerConnectionMessage::Create(
+      PeerConnectionMessage::kAnswer, local_desc, candidates_));
+
+  // Let the provider know the negotiation is done.
+  provider_->NegotiationDone();
+
+  SignalNewPeerConnectionMessage(answer_message->Serialize());
 
   UpdateRemoteStreams(message->desc());
 
-  // Signal that the new answer is ready to be sent.
-  SignalNewPeerConnectionMessage(answer_message);
-
-  // Start send the local streams.
-  // TODO(perkj): Defer the start of sending local media so the remote peer
-  // have time to receive the signaling message before media arrives?
-  // This is under debate.
+  // Update the state of the local streams.
   UpdateSendingLocalStreams(answer_message->desc(), local_streams);
-
-  // Signal the resulting local and remote session description.
-  SignalUpdateSessionDescription(answer.get(),
-                                 message->desc(),
-                                 local_streams);
 }
 
 // Fills a MediaSessionOptions struct with the MediaTracks we want to sent given
@@ -274,6 +295,9 @@ void PeerConnectionSignaling::CreateAnswer_s() {
 void PeerConnectionSignaling::InitMediaSessionOptions(
     cricket::MediaSessionOptions* options,
     StreamCollection* local_streams) {
+  // In order to be able to receive video,
+  // the is_video should always be true even if there are not video tracks.
+  options->is_video = true;
   for (size_t i = 0; i < local_streams->count(); ++i) {
     MediaStream* stream = local_streams->at(i);
     scoped_refptr<MediaStreamTrackList> tracks = stream->tracks();

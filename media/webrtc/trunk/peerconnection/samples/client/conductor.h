@@ -51,7 +51,7 @@ class Conductor
  protected:
   bool InitializePeerConnection();
   void DeletePeerConnection();
-  void StartCaptureDevice();
+  void SwitchToStreamingUi();
   bool AddStream(const std::string& id, bool video);
   void AddStreams();
 

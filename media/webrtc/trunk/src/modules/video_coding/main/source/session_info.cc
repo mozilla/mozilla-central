@@ -41,8 +41,9 @@ void
 VCMSessionInfo::UpdateDataPointers(const WebRtc_UWord8* frame_buffer,
                                    const WebRtc_UWord8* prev_buffer_address) {
   for (int i = 0; i <= _highestPacketIndex; ++i)
-    _packets[i].dataPtr = frame_buffer + (_packets[i].dataPtr -
-                                          prev_buffer_address);
+    if (_packets[i].dataPtr != NULL)
+      _packets[i].dataPtr = frame_buffer + (_packets[i].dataPtr -
+                                            prev_buffer_address);
 }
 
 WebRtc_Word32
@@ -389,7 +390,8 @@ int VCMSessionInfo::FindPartitionEnd(int packet_index) const {
                      _packets[packet_index - 1].seqNum)));
     const int current_partition_id = _packets[packet_index].codecSpecificHeader.
           codecHeader.VP8.partitionId;
-    if (packet_loss_found || current_partition_id != partition_id) {
+    if (packet_loss_found || (beginning &&
+                              current_partition_id != partition_id)) {
       // Missing packet, the previous packet was the last in sequence.
       return packet_index - 1;
     }

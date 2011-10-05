@@ -33,6 +33,7 @@
 
 #include "talk/app/webrtc_dev/peerconnection.h"
 #include "talk/app/webrtc_dev/peerconnectionsignaling.h"
+#include "talk/app/webrtc_dev/webrtcsession.h"
 #include "talk/base/scoped_ptr.h"
 #include "talk/p2p/client/httpportallocator.h"
 
@@ -41,7 +42,9 @@ class ChannelManager;
 }
 
 namespace webrtc {
+class MediaStreamHandlers;
 class StreamCollectionImpl;
+
 
 // PeerConnectionImpl implements the PeerConnection interface.
 // It uses PeerConnectionSignaling and WebRtcSession to implement
@@ -52,6 +55,7 @@ class PeerConnectionImpl : public PeerConnection,
  public:
   PeerConnectionImpl(cricket::ChannelManager* channel_manager,
                      talk_base::Thread* signaling_thread,
+                     talk_base::Thread* worker_thread,
                      PcNetworkManager* network_manager,
                      PcPacketSocketFactory* socket_factory);
 
@@ -76,9 +80,11 @@ class PeerConnectionImpl : public PeerConnection,
   void OnMessage(talk_base::Message* msg);
 
   // Signals from PeerConnectionSignaling.
-  void OnNewPeerConnectionMessage(PeerConnectionMessage* message);
+  void OnNewPeerConnectionMessage(const std::string& message);
   void OnRemoteStreamAdded(MediaStream* remote_stream);
   void OnRemoteStreamRemoved(MediaStream* remote_stream);
+
+  void Terminate_s();
 
   PeerConnectionObserver* observer_;
   scoped_refptr<StreamCollectionImpl> local_media_streams_;
@@ -89,7 +95,9 @@ class PeerConnectionImpl : public PeerConnection,
   scoped_refptr<PcNetworkManager> network_manager_;
   scoped_refptr<PcPacketSocketFactory> socket_factory_;
   talk_base::scoped_ptr<cricket::HttpPortAllocator> port_allocator_;
+  talk_base::scoped_ptr<WebRtcSession> session_;
   talk_base::scoped_ptr<PeerConnectionSignaling> signaling_;
+  talk_base::scoped_ptr<MediaStreamHandlers> stream_handler_;
 };
 
 }  // namespace webrtc
