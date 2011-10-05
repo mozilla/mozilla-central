@@ -316,6 +316,10 @@ ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
 OS_LIBS += -framework OpenGL -lcups
 endif
 
+ifdef MOZ_WEBRTC
+include $(topsrcdir)/media/webrtc/shared_libs.mk
+endif
+
 EXTRA_DSO_LDOPTS += \
 	$(LIBS_DIR) \
 	$(JPEG_LIBS) \

@@ -768,9 +768,9 @@ endif # IS_COMPONENT
 endif # EXPORT_LIBRARY
 endif # LIBRARY_NAME
 
-ifneq (,$(filter-out %.$(LIB_SUFFIX),$(SHARED_LIBRARY_LIBS)))
-$(error SHARED_LIBRARY_LIBS must contain .$(LIB_SUFFIX) files only)
-endif
+#ifneq (,$(filter-out %.$(LIB_SUFFIX),$(SHARED_LIBRARY_LIBS)))
+#$(error SHARED_LIBRARY_LIBS must contain .$(LIB_SUFFIX) files only)
+#endif
 
 # Create dependencies on static (and shared EXTRA_DSO_LIBS) libraries
 DO_EXPAND_LIBS = $(foreach f,$(1),$(if $(filter %.$(LIB_SUFFIX),$(f)),$(if $(wildcard $(f).$(LIBS_DESC_SUFFIX)),$(f).$(LIBS_DESC_SUFFIX),$(if $(wildcard $(f)),$(f)))))

@@ -252,7 +252,7 @@ LOCAL_INCLUDES	+= -I$(srcdir)/../base \
 		   -I$(srcdir)/../xul/base/src \
 		   -I$(srcdir)/../mathml \
 		   -I$(topsrcdir)/content/base/src \
- 		   -I$(topsrcdir)/content/canvas/src \
+		   -I$(topsrcdir)/content/canvas/src \
 		   -I$(topsrcdir)/content/html/content/src \
 		   -I$(topsrcdir)/content/html/document/src \
 		   -I$(topsrcdir)/content/html/style/src \
@@ -286,3 +286,4 @@ LOCAL_INCLUDES	+= -I$(srcdir)/../base \
 		   $(NULL)
 
 DEFINES += -D_IMPL_NS_LAYOUT
+

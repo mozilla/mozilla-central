@@ -36,7 +36,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../../..
+DEPTH		= ../..
 topsrcdir	= @top_srcdir@
 srcdir          = @srcdir@
 VPATH           = @srcdir@
@@ -47,10 +47,24 @@ LIBRARY_NAME    = webrtc
 FORCE_STATIC_LIB= 1
 LIBXUL_LIBRARY = 1
 
-libs:: webrtc.status export
+DIRS += \
+	trunk\
+	$(NULL)
+
+EXPORTS = \
+	./trunk/src/engine_configurations.h \
+	./trunk/src/common_types.h \
+	./trunk/src/typedefs.h \
+	./trunk/src/modules/rtp_rtcp/test/BWEStandAlone/MatlabPlot.h \
+	./trunk/src/modules/rtp_rtcp/test/BWEStandAlone/BWEStabilityTest.h \
+	./trunk/src/modules/rtp_rtcp/test/BWEStandAlone/BWETestBase.h \
+	./trunk/src/modules/rtp_rtcp/test/BWEStandAlone/BWEConvergenceTest.h \
+	./trunk/src/modules/rtp_rtcp/test/BWEStandAlone/BWETwoWayLimitFinding.h \
+	./trunk/src/modules/rtp_rtcp/test/BWEStandAlone/TestLoadGenerator.h \
+	./trunk/src/modules/rtp_rtcp/test/BWEStandAlone/TestSenderReceiver.h \
+	$(NULL)
+
+
+DEFINES += -D_IMPL_NS_LAYOUT
 
 include $(topsrcdir)/config/rules.mk
-
-webrtc.status::
-	cd $(srcdir); python build/gyp_chromium --depth=. --generator-output=$(OBJDIR)/media/webrtc/out  webrtc.gyp
-	$(MAKE) -C ../out USE_SYSTEM_LIBJPEG=1 OBJDIR=$(OBJDIR)

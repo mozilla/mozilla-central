@@ -7,10 +7,10 @@
 MAKEFLAGS=-r
 
 # The source directory tree.
-srcdir := .
+srcdir := ../../../../media/webrtc/trunk
 
 # The name of the builddir.
-builddir_name ?= $(OBJDIR)/media/webrtc/out
+builddir_name ?= out
 
 # The V=1 flag on command line makes us verbosely print command lines.
 ifdef V
@@ -331,563 +331,563 @@ $(obj).$(TOOLSET)/%.o: $(obj)/%.s FORCE_DO_CMD
 
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,All.target.mk)))),)
-  include All.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/All.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/All.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,peerconnection_client.target.mk)))),)
-  include peerconnection_client.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/peerconnection_client.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/peerconnection_client.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,peerconnection_server.target.mk)))),)
-  include peerconnection_server.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/peerconnection_server.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/peerconnection_server.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/common_audio/common_audio_unittests.target.mk)))),)
-  include src/common_audio/common_audio_unittests.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_audio/common_audio_unittests.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_audio/common_audio_unittests.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/common_audio/resampler.target.mk)))),)
-  include src/common_audio/resampler.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_audio/resampler.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_audio/resampler.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/common_audio/spl.target.mk)))),)
-  include src/common_audio/spl.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_audio/spl.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_audio/spl.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/common_audio/vad.target.mk)))),)
-  include src/common_audio/vad.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_audio/vad.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_audio/vad.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/common_video/jpeg_test.target.mk)))),)
-  include src/common_video/jpeg_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_video/jpeg_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_video/jpeg_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/common_video/vplib_test.target.mk)))),)
-  include src/common_video/vplib_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_video/vplib_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_video/vplib_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/common_video/webrtc_jpeg.target.mk)))),)
-  include src/common_video/webrtc_jpeg.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_video/webrtc_jpeg.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_video/webrtc_jpeg.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/common_video/webrtc_vplib.target.mk)))),)
-  include src/common_video/webrtc_vplib.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_video/webrtc_vplib.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/common_video/webrtc_vplib.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/CNG.target.mk)))),)
-  include src/modules/CNG.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/CNG.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/CNG.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/G711.target.mk)))),)
-  include src/modules/G711.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/G711.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/G711.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/G722.target.mk)))),)
-  include src/modules/G722.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/G722.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/G722.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/G722Test.target.mk)))),)
-  include src/modules/G722Test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/G722Test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/G722Test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/NetEq.target.mk)))),)
-  include src/modules/NetEq.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/NetEq.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/NetEq.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/NetEqRTPplay.target.mk)))),)
-  include src/modules/NetEqRTPplay.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/NetEqRTPplay.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/NetEqRTPplay.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/NetEqTestTools.target.mk)))),)
-  include src/modules/NetEqTestTools.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/NetEqTestTools.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/NetEqTestTools.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/PCM16B.target.mk)))),)
-  include src/modules/PCM16B.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/PCM16B.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/PCM16B.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/RTPanalyze.target.mk)))),)
-  include src/modules/RTPanalyze.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/RTPanalyze.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/RTPanalyze.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/RTPcat.target.mk)))),)
-  include src/modules/RTPcat.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/RTPcat.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/RTPcat.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/RTPchange.target.mk)))),)
-  include src/modules/RTPchange.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/RTPchange.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/RTPchange.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/RTPencode.target.mk)))),)
-  include src/modules/RTPencode.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/RTPencode.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/RTPencode.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/RTPjitter.target.mk)))),)
-  include src/modules/RTPjitter.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/RTPjitter.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/RTPjitter.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/RTPtimeshift.target.mk)))),)
-  include src/modules/RTPtimeshift.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/RTPtimeshift.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/RTPtimeshift.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/VPMUnitTest.target.mk)))),)
-  include src/modules/VPMUnitTest.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/VPMUnitTest.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/VPMUnitTest.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/aec.target.mk)))),)
-  include src/modules/aec.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/aec.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/aec.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/aecm.target.mk)))),)
-  include src/modules/aecm.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/aecm.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/aecm.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/agc.target.mk)))),)
-  include src/modules/agc.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/agc.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/agc.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/apm_util.target.mk)))),)
-  include src/modules/apm_util.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/apm_util.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/apm_util.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/audio_coding_module.target.mk)))),)
-  include src/modules/audio_coding_module.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_coding_module.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_coding_module.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/audio_coding_module_test.target.mk)))),)
-  include src/modules/audio_coding_module_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_coding_module_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_coding_module_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/audio_conference_mixer.target.mk)))),)
-  include src/modules/audio_conference_mixer.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_conference_mixer.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_conference_mixer.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/audio_device.target.mk)))),)
-  include src/modules/audio_device.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_device.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_device.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/audio_device_test_api.target.mk)))),)
-  include src/modules/audio_device_test_api.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_device_test_api.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_device_test_api.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/audio_device_test_func.target.mk)))),)
-  include src/modules/audio_device_test_func.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_device_test_func.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_device_test_func.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/audio_processing.target.mk)))),)
-  include src/modules/audio_processing.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_processing.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audio_processing.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/audioproc_process_test.target.mk)))),)
-  include src/modules/audioproc_process_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audioproc_process_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audioproc_process_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/audioproc_unittest.target.mk)))),)
-  include src/modules/audioproc_unittest.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audioproc_unittest.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audioproc_unittest.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/audioproc_unittest_proto.target.mk)))),)
-  include src/modules/audioproc_unittest_proto.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audioproc_unittest_proto.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/audioproc_unittest_proto.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/debug_proto.target.mk)))),)
-  include src/modules/debug_proto.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/debug_proto.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/debug_proto.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/g711_test.target.mk)))),)
-  include src/modules/g711_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/g711_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/g711_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/iLBC.target.mk)))),)
-  include src/modules/iLBC.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iLBC.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iLBC.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/iLBCtest.target.mk)))),)
-  include src/modules/iLBCtest.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iLBCtest.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iLBCtest.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/iSAC.target.mk)))),)
-  include src/modules/iSAC.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iSAC.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iSAC.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/iSACAPITest.target.mk)))),)
-  include src/modules/iSACAPITest.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iSACAPITest.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iSACAPITest.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/iSACFix.target.mk)))),)
-  include src/modules/iSACFix.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iSACFix.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iSACFix.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/iSACFixtest.target.mk)))),)
-  include src/modules/iSACFixtest.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iSACFixtest.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iSACFixtest.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/iSACSwitchSampRateTest.target.mk)))),)
-  include src/modules/iSACSwitchSampRateTest.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iSACSwitchSampRateTest.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iSACSwitchSampRateTest.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/iSACtest.target.mk)))),)
-  include src/modules/iSACtest.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iSACtest.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/iSACtest.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/media_file.target.mk)))),)
-  include src/modules/media_file.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/media_file.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/media_file.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/ns.target.mk)))),)
-  include src/modules/ns.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/ns.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/ns.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/ns_fix.target.mk)))),)
-  include src/modules/ns_fix.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/ns_fix.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/ns_fix.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/rtcp_format_remb_unittest.target.mk)))),)
-  include src/modules/rtcp_format_remb_unittest.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/rtcp_format_remb_unittest.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/rtcp_format_remb_unittest.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/rtp_format_vp8_unittest.target.mk)))),)
-  include src/modules/rtp_format_vp8_unittest.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/rtp_format_vp8_unittest.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/rtp_format_vp8_unittest.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/rtp_rtcp.target.mk)))),)
-  include src/modules/rtp_rtcp.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/rtp_rtcp.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/rtp_rtcp.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/rtp_utility_test.target.mk)))),)
-  include src/modules/rtp_utility_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/rtp_utility_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/rtp_utility_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/test_bwe.target.mk)))),)
-  include src/modules/test_bwe.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/test_bwe.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/test_bwe.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/test_fec.target.mk)))),)
-  include src/modules/test_fec.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/test_fec.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/test_fec.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/test_framework.target.mk)))),)
-  include src/modules/test_framework.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/test_framework.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/test_framework.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/udp_transport.target.mk)))),)
-  include src/modules/udp_transport.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/udp_transport.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/udp_transport.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/video_capture_module.target.mk)))),)
-  include src/modules/video_capture_module.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_capture_module.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_capture_module.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/video_capture_module_test.target.mk)))),)
-  include src/modules/video_capture_module_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_capture_module_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_capture_module_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/video_coding_test.target.mk)))),)
-  include src/modules/video_coding_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_coding_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_coding_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/video_coding_test_lib.target.mk)))),)
-  include src/modules/video_coding_test_lib.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_coding_test_lib.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_coding_test_lib.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/video_coding_unit_test.target.mk)))),)
-  include src/modules/video_coding_unit_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_coding_unit_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_coding_unit_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/video_processing.target.mk)))),)
-  include src/modules/video_processing.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_processing.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_processing.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/video_render_module.target.mk)))),)
-  include src/modules/video_render_module.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_render_module.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_render_module.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/video_render_module_test.target.mk)))),)
-  include src/modules/video_render_module_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_render_module_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/video_render_module_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/vp8_test.target.mk)))),)
-  include src/modules/vp8_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/vp8_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/vp8_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/webrtc_i420.target.mk)))),)
-  include src/modules/webrtc_i420.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/webrtc_i420.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/webrtc_i420.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/webrtc_utility.target.mk)))),)
-  include src/modules/webrtc_utility.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/webrtc_utility.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/webrtc_utility.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/webrtc_video_coding.target.mk)))),)
-  include src/modules/webrtc_video_coding.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/webrtc_video_coding.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/webrtc_video_coding.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/webrtc_vp8.target.mk)))),)
-  include src/modules/webrtc_vp8.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/webrtc_vp8.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/modules/webrtc_vp8.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/system_wrappers/source/system_wrappers.target.mk)))),)
-  include src/system_wrappers/source/system_wrappers.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/system_wrappers/source/system_wrappers.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/system_wrappers/source/system_wrappers.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/system_wrappers/source/system_wrappersTest.target.mk)))),)
-  include src/system_wrappers/source/system_wrappersTest.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/system_wrappers/source/system_wrappersTest.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/system_wrappers/source/system_wrappersTest.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/video_engine/merged_lib.target.mk)))),)
-  include src/video_engine/merged_lib.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/video_engine/merged_lib.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/video_engine/merged_lib.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/video_engine/video_engine_core.target.mk)))),)
-  include src/video_engine/video_engine_core.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/video_engine/video_engine_core.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/video_engine/video_engine_core.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/video_engine/vie_auto_test.target.mk)))),)
-  include src/video_engine/vie_auto_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/video_engine/vie_auto_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/video_engine/vie_auto_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/voice_engine/merged_lib_voice.target.mk)))),)
-  include src/voice_engine/merged_lib_voice.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/voice_engine/merged_lib_voice.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/voice_engine/merged_lib_voice.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/voice_engine/voe_auto_test.target.mk)))),)
-  include src/voice_engine/voe_auto_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/voice_engine/voe_auto_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/voice_engine/voe_auto_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/voice_engine/voe_cmd_test.target.mk)))),)
-  include src/voice_engine/voe_cmd_test.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/voice_engine/voe_cmd_test.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/voice_engine/voe_cmd_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/voice_engine/voice_engine_core.target.mk)))),)
-  include src/voice_engine/voice_engine_core.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/voice_engine/voice_engine_core.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/src/voice_engine/voice_engine_core.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,test/test_support.target.mk)))),)
-  include test/test_support.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/test/test_support.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/test/test_support.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,testing/gtest.target.mk)))),)
-  include testing/gtest.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/testing/gtest.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/testing/gtest.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,testing/gtest_main.target.mk)))),)
-  include testing/gtest_main.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/testing/gtest_main.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/testing/gtest_main.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/expat/expat.target.mk)))),)
-  include third_party/expat/expat.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/expat/expat.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/expat/expat.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/libjpeg_turbo/libjpeg.target.mk)))),)
-  include third_party/libjpeg_turbo/libjpeg.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/libjpeg_turbo/libjpeg.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/libjpeg_turbo/libjpeg.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/libvpx/libvpx.target.mk)))),)
-  include third_party/libvpx/libvpx.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/libvpx/libvpx.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/libvpx/libvpx.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/protobuf/protobuf_full_do_not_use.host.mk)))),)
-  include third_party/protobuf/protobuf_full_do_not_use.host.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/protobuf/protobuf_full_do_not_use.host.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/protobuf/protobuf_full_do_not_use.host.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/protobuf/protobuf_full_do_not_use.target.mk)))),)
-  include third_party/protobuf/protobuf_full_do_not_use.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/protobuf/protobuf_full_do_not_use.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/protobuf/protobuf_full_do_not_use.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/protobuf/protobuf_lite.host.mk)))),)
-  include third_party/protobuf/protobuf_lite.host.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/protobuf/protobuf_lite.host.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/protobuf/protobuf_lite.host.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/protobuf/protobuf_lite.target.mk)))),)
-  include third_party/protobuf/protobuf_lite.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/protobuf/protobuf_lite.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/protobuf/protobuf_lite.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/protobuf/protoc.host.mk)))),)
-  include third_party/protobuf/protoc.host.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/protobuf/protoc.host.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/protobuf/protoc.host.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/protobuf/py_proto.target.mk)))),)
-  include third_party/protobuf/py_proto.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/protobuf/py_proto.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/protobuf/py_proto.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/yasm/config_sources.host.mk)))),)
-  include third_party/yasm/config_sources.host.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/config_sources.host.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/config_sources.host.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/yasm/generate_files.host.mk)))),)
-  include third_party/yasm/generate_files.host.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/generate_files.host.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/generate_files.host.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/yasm/genmacro.host.mk)))),)
-  include third_party/yasm/genmacro.host.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/genmacro.host.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/genmacro.host.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/yasm/genmodule.host.mk)))),)
-  include third_party/yasm/genmodule.host.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/genmodule.host.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/genmodule.host.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/yasm/genperf.host.mk)))),)
-  include third_party/yasm/genperf.host.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/genperf.host.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/genperf.host.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/yasm/genperf_libs.host.mk)))),)
-  include third_party/yasm/genperf_libs.host.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/genperf_libs.host.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/genperf_libs.host.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/yasm/genstring.host.mk)))),)
-  include third_party/yasm/genstring.host.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/genstring.host.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/genstring.host.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/yasm/genversion.host.mk)))),)
-  include third_party/yasm/genversion.host.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/genversion.host.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/genversion.host.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/yasm/re2c.host.mk)))),)
-  include third_party/yasm/re2c.host.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/re2c.host.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/re2c.host.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/yasm/yasm.host.mk)))),)
-  include third_party/yasm/yasm.host.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/yasm.host.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party/yasm/yasm.host.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party_mods/libjingle/jsoncpp.target.mk)))),)
-  include third_party_mods/libjingle/jsoncpp.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party_mods/libjingle/jsoncpp.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party_mods/libjingle/jsoncpp.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party_mods/libjingle/libjingle.target.mk)))),)
-  include third_party_mods/libjingle/libjingle.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party_mods/libjingle/libjingle.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party_mods/libjingle/libjingle.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party_mods/libjingle/libjingle_app.target.mk)))),)
-  include third_party_mods/libjingle/libjingle_app.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party_mods/libjingle/libjingle_app.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party_mods/libjingle/libjingle_app.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party_mods/libjingle/libjingle_p2p.target.mk)))),)
-  include third_party_mods/libjingle/libjingle_p2p.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party_mods/libjingle/libjingle_p2p.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party_mods/libjingle/libjingle_p2p.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party_mods/libjingle/peerconnection_client_dev.target.mk)))),)
-  include third_party_mods/libjingle/peerconnection_client_dev.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party_mods/libjingle/peerconnection_client_dev.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party_mods/libjingle/peerconnection_client_dev.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party_mods/libjingle/peerconnection_unittests.target.mk)))),)
-  include third_party_mods/libjingle/peerconnection_unittests.target.mk
+                 $(join ^,../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party_mods/libjingle/peerconnection_unittests.target.mk)))),)
+  include ../../../obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out/third_party_mods/libjingle/peerconnection_unittests.target.mk
 endif
 
 quiet_cmd_regen_makefile = ACTION Regenerating $@
-cmd_regen_makefile = ./build/gyp_chromium -fmake --ignore-environment "--toplevel-dir=." -Ibuild/common.gypi -I/home/jesup/src/mozilla/webrtc_import/media/webrtc/webrtc_update/trunk/src/supplement.gypi "--depth=." "-Goutput_dir=$(OBJDIR)/media/webrtc/out" webrtc.gyp
-Makefile: src/modules/udp_transport/source/udp_transport.gypi src/modules/video_processing/main/test/vpm_tests.gypi third_party/libvpx/input_files_win.gypi src/modules/modules.gyp src/common_audio/resampler/main/source/resampler.gypi third_party_mods/libjingle/libjingle.gyp src/modules/rtp_rtcp/source/rtp_rtcp.gypi src/modules/audio_coding/codecs/iSAC/isacfix_test.gypi src/build/common.gypi src/common_audio/signal_processing_library/main/source/spl.gypi src/modules/audio_processing/ns/main/source/ns.gypi third_party/expat/expat.gyp src/modules/audio_conference_mixer/source/audio_conference_mixer.gypi src/modules/video_coding/codecs/i420/main/source/i420.gypi src/modules/video_capture/main/source/video_capture.gypi build/internal/release_impl.gypi src/supplement.gypi src/voice_engine/voice_engine.gyp src/modules/audio_processing/aec/main/source/aec.gypi src/common_video/jpeg/main/source/jpeg.gypi src/common_settings.gypi src/modules/rtp_rtcp/test/testFec/test_fec.gypi third_party/libvpx/input_files_linux.gypi src/modules/video_processing/main/source/video_processing.gypi src/modules/audio_processing/utility/util.gypi src/common_video/common_video.gyp src/modules/media_file/source/media_file.gypi src/modules/audio_coding/codecs/PCM16B/main/source/pcm16b.gypi src/modules/video_coding/codecs/test_framework/test_framework.gypi build/internal/release_impl_official.gypi build/internal/release_defaults.gypi src/modules/audio_coding/codecs/iLBC/ilbc_test.gypi src/common_audio/common_audio.gyp src/common_video/vplib/main/source/vplib.gypi webrtc.gyp test/test.gyp src/modules/audio_coding/codecs/G711/main/source/g711.gypi src/voice_engine/main/test/voice_engine_tests.gypi third_party/yasm/yasm.gyp src/system_wrappers/source/system_wrappers.gyp src/modules/audio_coding/codecs/iLBC/main/source/ilbc.gypi src/modules/video_coding/main/source/video_coding_test.gypi src/voice_engine/main/source/voice_engine_core.gypi src/video_engine/main/source/video_engine_core.gypi src/video_engine/video_engine.gyp src/modules/audio_processing/main/apm_tests.gypi build/release.gypi third_party/libvpx/input_files_mac.gypi testing/gtest.gyp build/common.gypi src/modules/audio_processing/main/source/apm.gypi src/modules/audio_coding/codecs/iSAC/isac_test.gypi src/modules/video_coding/codecs/vp8/main/source/vp8.gypi src/modules/audio_processing/agc/main/source/agc.gypi src/modules/audio_coding/codecs/iSAC/main/source/isac.gypi src/modules/audio_coding/NetEQ/main/source/neteq.gypi src/modules/rtp_rtcp/test/test_bwe/test_bwe.gypi src/modules/audio_coding/codecs/CNG/main/source/cng.gypi src/modules/video_coding/main/source/video_coding.gypi third_party/libvpx/libvpx.gyp src/modules/audio_processing/aecm/main/source/aecm.gypi third_party/libjpeg_turbo/libjpeg.gyp src/modules/audio_coding/codecs/iSAC/fix/source/isacfix.gypi src/video_engine/main/test/WindowsTest/windowstest.gypi src/modules/audio_device/main/source/audio_device.gypi src/modules/audio_coding/main/source/audio_coding_module.gypi src/common_audio/vad/main/source/vad.gypi src/modules/video_render/main/source/video_render.gypi src/modules/rtp_rtcp/source/rtp_rtcp_tests.gypi src/modules/audio_coding/codecs/G722/main/source/g722.gypi src/video_engine/main/test/AutoTest/vie_auto_test.gypi src/modules/utility/source/utility.gypi third_party/protobuf/protobuf.gyp
+cmd_regen_makefile = ./build/gyp_chromium -fmake --ignore-environment "--toplevel-dir=/home/jesup/src/mozilla/webrtc/media/webrtc/trunk" -Ibuild/common.gypi -I/home/jesup/src/mozilla/webrtc/media/webrtc/trunk/src/supplement.gypi "--depth=." "-Gbuilddir=/home/jesup/src/mozilla/webrtc/obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out" "--generator-output=/home/jesup/src/mozilla/webrtc/obj-x86_64-unknown-linux-gnu-debug/media/webrtc/out" webrtc.gyp
+Makefile: $(srcdir)/src/modules/udp_transport/source/udp_transport.gypi $(srcdir)/src/modules/video_processing/main/test/vpm_tests.gypi $(srcdir)/third_party/libvpx/input_files_win.gypi $(srcdir)/src/modules/modules.gyp $(srcdir)/src/common_audio/resampler/main/source/resampler.gypi $(srcdir)/third_party_mods/libjingle/libjingle.gyp $(srcdir)/src/modules/rtp_rtcp/source/rtp_rtcp.gypi $(srcdir)/src/modules/audio_coding/codecs/iSAC/isacfix_test.gypi $(srcdir)/src/build/common.gypi $(srcdir)/src/common_audio/signal_processing_library/main/source/spl.gypi $(srcdir)/src/modules/audio_processing/ns/main/source/ns.gypi $(srcdir)/third_party/expat/expat.gyp $(srcdir)/third_party/protobuf/protobuf.gyp $(srcdir)/src/modules/video_coding/codecs/i420/main/source/i420.gypi $(srcdir)/src/modules/video_capture/main/source/video_capture.gypi $(srcdir)/build/internal/release_impl.gypi $(srcdir)/src/supplement.gypi $(srcdir)/src/voice_engine/voice_engine.gyp $(srcdir)/src/modules/audio_processing/aec/main/source/aec.gypi $(srcdir)/src/common_video/jpeg/main/source/jpeg.gypi $(srcdir)/src/common_settings.gypi $(srcdir)/src/modules/rtp_rtcp/test/testFec/test_fec.gypi $(srcdir)/third_party/libvpx/input_files_linux.gypi $(srcdir)/src/modules/video_processing/main/source/video_processing.gypi $(srcdir)/src/modules/audio_processing/utility/util.gypi $(srcdir)/src/common_video/common_video.gyp $(srcdir)/src/modules/media_file/source/media_file.gypi $(srcdir)/src/modules/audio_coding/codecs/PCM16B/main/source/pcm16b.gypi $(srcdir)/src/modules/video_coding/codecs/test_framework/test_framework.gypi $(srcdir)/build/internal/release_impl_official.gypi $(srcdir)/build/internal/release_defaults.gypi $(srcdir)/src/modules/audio_coding/codecs/iLBC/ilbc_test.gypi $(srcdir)/src/video_engine/main/test/AutoTest/vie_auto_test.gypi $(srcdir)/src/common_audio/common_audio.gyp $(srcdir)/src/common_video/vplib/main/source/vplib.gypi $(srcdir)/src/modules/audio_conference_mixer/source/audio_conference_mixer.gypi $(srcdir)/test/test.gyp $(srcdir)/src/modules/audio_coding/codecs/G711/main/source/g711.gypi $(srcdir)/src/voice_engine/main/test/voice_engine_tests.gypi $(srcdir)/third_party/yasm/yasm.gyp $(srcdir)/src/system_wrappers/source/system_wrappers.gyp $(srcdir)/src/modules/audio_coding/codecs/iLBC/main/source/ilbc.gypi $(srcdir)/src/modules/video_coding/main/source/video_coding_test.gypi $(srcdir)/src/voice_engine/main/source/voice_engine_core.gypi $(srcdir)/src/video_engine/main/source/video_engine_core.gypi $(srcdir)/src/video_engine/video_engine.gyp $(srcdir)/src/modules/audio_processing/main/apm_tests.gypi $(srcdir)/build/release.gypi $(srcdir)/third_party/libvpx/input_files_mac.gypi $(srcdir)/testing/gtest.gyp $(srcdir)/build/common.gypi $(srcdir)/src/modules/audio_processing/main/source/apm.gypi $(srcdir)/src/modules/audio_coding/codecs/iSAC/isac_test.gypi $(srcdir)/src/modules/video_coding/codecs/vp8/main/source/vp8.gypi $(srcdir)/src/modules/audio_processing/agc/main/source/agc.gypi $(srcdir)/src/modules/audio_coding/codecs/iSAC/main/source/isac.gypi $(srcdir)/src/modules/audio_coding/NetEQ/main/source/neteq.gypi $(srcdir)/src/modules/rtp_rtcp/test/test_bwe/test_bwe.gypi $(srcdir)/src/modules/audio_coding/codecs/CNG/main/source/cng.gypi $(srcdir)/src/modules/video_coding/main/source/video_coding.gypi $(srcdir)/src/modules/audio_processing/aecm/main/source/aecm.gypi $(srcdir)/third_party/libjpeg_turbo/libjpeg.gyp $(srcdir)/src/modules/audio_coding/codecs/iSAC/fix/source/isacfix.gypi $(srcdir)/src/video_engine/main/test/WindowsTest/windowstest.gypi $(srcdir)/src/modules/audio_device/main/source/audio_device.gypi $(srcdir)/src/modules/audio_coding/main/source/audio_coding_module.gypi $(srcdir)/src/common_audio/vad/main/source/vad.gypi $(srcdir)/src/modules/video_render/main/source/video_render.gypi $(srcdir)/src/modules/rtp_rtcp/source/rtp_rtcp_tests.gypi $(srcdir)/src/modules/audio_coding/codecs/G722/main/source/g722.gypi $(srcdir)/webrtc.gyp $(srcdir)/src/modules/utility/source/utility.gypi $(srcdir)/third_party/libvpx/libvpx.gyp
 	$(call do_cmd,regen_makefile)
 
 # "all" is a concatenation of the "all" targets from all the included

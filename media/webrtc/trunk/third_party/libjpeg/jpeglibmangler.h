@@ -5,6 +5,7 @@
 #ifndef THIRD_PARTY_LIBJPEG_JPEGLIBMANGLER_H_
 #define THIRD_PARTY_LIBJPEG_JPEGLIBMANGLER_H_
 
+#if 0
 // Mangle all externally visible function names so we can build our own libjpeg
 // without system libraries trying to use it.
 
@@ -109,5 +110,6 @@
 #define jpeg_open_backing_store chromium_jpeg_open_backing_store
 #define jpeg_mem_init chromium_jpeg_mem_init
 #define jpeg_mem_term chromium_jpeg_mem_term
+#endif
 
 #endif  // THIRD_PARTY_LIBJPEG_JPEGLIBMANGLER_H_

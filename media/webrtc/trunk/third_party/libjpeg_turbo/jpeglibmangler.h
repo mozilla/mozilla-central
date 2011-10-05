@@ -8,6 +8,7 @@
 // Mangle all externally visible function names so we can build our own libjpeg
 // without system libraries trying to use it.
 
+#if 0
 #define jpeg_make_c_derived_tbl chromium_jpeg_make_c_derived_tbl
 #define jpeg_gen_optimal_table chromium_jpeg_gen_optimal_table
 #define jpeg_make_d_derived_tbl chromium_jpeg_make_d_derived_tbl
@@ -109,5 +110,6 @@
 #define jpeg_open_backing_store chromium_jpeg_open_backing_store
 #define jpeg_mem_init chromium_jpeg_mem_init
 #define jpeg_mem_term chromium_jpeg_mem_term
+#endif
 
 #endif  // THIRD_PARTY_LIBJPEG_TURBO_JPEGLIBMANGLER_H_

@@ -156,6 +156,12 @@ tier_platform_dirs += \
 		$(NULL)
 endif
 
+ifdef MOZ_WEBRTC
+tier_platform_dirs += \
+	        media/webrtc \
+	        $(NULL)
+endif
+
 ifndef MOZ_NATIVE_PNG
 tier_platform_dirs += modules/libimg/png
 endif
@@ -267,8 +273,4 @@ tier_platform_dirs += testing/mochitest
 tier_platform_dirs += testing/xpcshell 
 tier_platform_dirs += testing/mozmill
 tier_platform_dirs += testing/tools/screenshot
-endif
-
-ifdef MOZ_WEBRTC
-tier_platform_dirs += media/webrtc/trunk
 endif
