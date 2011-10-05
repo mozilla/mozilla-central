@@ -81,8 +81,9 @@ VCMNackFecMethod::ProtectionFactor(const
     // RTT (NACK effectiveness) - adjustment factor is in the range [0,1].
     if (parameters->rtt < kHighRttNackMs)
     {
-        WebRtc_UWord16 rttIndex = (WebRtc_UWord16) parameters->rtt;
-        float adjustRtt = (float)VCMNackFecTable[rttIndex] / 100.0f;
+        // TODO(mikhal): Disabling adjustment temporarily.
+        // WebRtc_UWord16 rttIndex = (WebRtc_UWord16) parameters->rtt;
+        float adjustRtt = 1.0f;// (float)VCMNackFecTable[rttIndex] / 100.0f;
 
         // Adjust FEC with NACK on (for delta frame only)
         // table depends on RTT relative to rttMax (NACK Threshold)
@@ -442,12 +443,18 @@ VCMFecMethod::ProtectionFactor(const VCMProtectionParameters* parameters)
     // is based on rounding off protectionFactor on actual source packet number).
     // The correction factor (_corrFecCost) attempts to corrects this, at least
     // for cases of low rates (small #packets) and low protection levels.
+
+    float numPacketsFl = 1.0f + ((float) bitRatePerFrame * 1000.0
+                                / (float) (8.0 * _maxPayloadSize) + 0.5);
+
     const float estNumFecGen = 0.5f + static_cast<float> (_protectionFactorD *
-                                                        avgTotPackets / 255.0f);
+                                                         numPacketsFl / 255.0f);
+
+
     // We reduce cost factor (which will reduce overhead for FEC and
     // hybrid method) and not the protectionFactor.
     _corrFecCost = 1.0f;
-    if (estNumFecGen < 1.5f && _protectionFactorD < minProtLevelFec)
+    if (estNumFecGen < 1.1f && _protectionFactorD < minProtLevelFec)
     {
         _corrFecCost = 0.5f;
     }
@@ -718,17 +725,16 @@ VCMLossProtectionLogic::MaxFilteredLossPr(WebRtc_Word64 nowMs) const
 WebRtc_UWord8
 VCMLossProtectionLogic::FilteredLoss() const
 {
-    //take the average received loss
-    //return static_cast<WebRtc_UWord8>(_lossPr255.Value() + 0.5f);
-
-    //TODO: Update for hybrid
-    //take the windowed max of the received loss
-    if (_selectedMethod != NULL && _selectedMethod->Type() == kFec)
+    if (_selectedMethod != NULL &&
+        (_selectedMethod->Type() == kFec ||
+         _selectedMethod->Type() == kNackFec))
     {
+        // Take the windowed max of the received loss.
         return MaxFilteredLossPr(VCMTickTime::MillisecondTimestamp());
     }
     else
     {
+        // Take the average received loss.
         return static_cast<WebRtc_UWord8> (_lossPr255.Value() + 0.5);
     }
 }

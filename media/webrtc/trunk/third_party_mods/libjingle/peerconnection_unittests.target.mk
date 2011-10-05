@@ -4,7 +4,7 @@ TOOLSET := target
 TARGET := peerconnection_unittests
 ### Rules for final target.
 $(obj).target/third_party_mods/libjingle/peerconnection_unittests.stamp: TOOLSET := $(TOOLSET)
-$(obj).target/third_party_mods/libjingle/peerconnection_unittests.stamp: $(obj).target/third_party_mods/libjingle/libjingle_app.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgtest_main.a FORCE_DO_CMD
+$(obj).target/third_party_mods/libjingle/peerconnection_unittests.stamp:  FORCE_DO_CMD
 	$(call do_cmd,touch)
 
 all_deps += $(obj).target/third_party_mods/libjingle/peerconnection_unittests.stamp
