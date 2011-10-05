@@ -60,7 +60,7 @@ cd ..
 
 
 # safety - make it easy to find our way out of the forest
-hg tag -l old-tip
+hg tag -f -l old-tip
 
 # Ok, now we have a copy of the source.  See what changed
 # (webrtc-import-last is a bookmark)
@@ -71,14 +71,14 @@ rm -rf trunk
 mv webrtc_update/trunk trunk
 mv webrtc_update/.g* .
 rmdir webrtc_update
-hg addremove --exclude "**.svn" --similarity 90 --dry-run trunk | less
+hg addremove --exclude "**.svn" --exclude "**.git" --exclude "**.pyc" --similarity 90 --dry-run trunk | less
 
 # FIX! Query user about add-removes better!!
 echo "Waiting 30 seconds - Hit ^C now to stop addremove!"
 sleep 30  # let them ^C
 
 # Add/remove files, detect renames
-hg addremove --exclude "**.svn" --similarity 90 trunk
+hg addremove --exclude "**.svn" --exclude "**.git" --exclude "**.pyc" --similarity 90 trunk
 
 # leave this for the user for now until we're comfortable it works safely
 
