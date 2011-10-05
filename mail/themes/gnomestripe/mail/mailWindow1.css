@@ -56,12 +56,11 @@
 
 #folderTree {
   border-bottom: 1px solid ThreeDShadow;
-  -moz-border-start: 1px solid ThreeDShadow;
   background-color: -moz-OddTreeRow;
 }
 
 #threadTree {
-  -moz-border-end: 1px solid ThreeDShadow;
+  border-bottom: 1px solid ThreeDShadow;
 }
 
 #mailContent {
@@ -375,17 +374,22 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   border-bottom: 4px solid highlight;
 }
 
+#messagesBox {
+  /* For some reason, the thread/message panes overlap the folder pane splitter
+     by 1px because of the CSS above. Fix this. */
+  -moz-margin-start: 1px;
+}
+
 /* ..... tree adjustments ..... */
 
 #accountCentralBox { 
-  border: 1px solid ThreeDShadow; 
+  border-bottom: 1px solid ThreeDShadow;
 }
 
 /* ..... message pane adjustments ..... */
 
 #messagepanebox {
   border-bottom: 1px solid ThreeDShadow;
-  -moz-border-end: 1px solid ThreeDShadow;
 }
 
 /* ..... status bar adjustments ..... */

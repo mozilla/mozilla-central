@@ -46,7 +46,7 @@
 .main-header-area {
   color: WindowText;
   background-color: AppWorkspace;
-  border-bottom: 2px groove ThreeDLightShadow;
+  border-bottom: 1px solid ThreeDShadow;
   padding: 0.4ex;
 }
 
@@ -78,7 +78,7 @@
 
 #expandedBoxSpacer {
   display: block;
-  height: 10px;
+  height: 8px;
 }
 
 #otherActionsButton {
@@ -90,7 +90,7 @@
 
 .inline-toolbox {
   -moz-appearance: none;
-  -moz-padding-end: 6px;
+  -moz-padding-end: 2px;
 }
 
 .inline-toolbar {
@@ -683,7 +683,7 @@ mail-headerfield > .headerValue {
 
 #header-view-toolbox {
   float: right;
-  padding-top: 3px;
+  padding-top: 2px;
 }
 
 #header-view-toolbox:-moz-locale-dir(rtl) {

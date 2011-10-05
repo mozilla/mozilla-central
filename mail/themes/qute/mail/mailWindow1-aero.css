@@ -68,6 +68,12 @@ treechildren::-moz-tree-image(news, threadCol, watch) {
   border-bottom: 4px solid highlight;
 }
 
+#messagesBox {
+  /* For some reason, the thread/message panes overlap the folder pane splitter
+     by 1px because of the CSS above. Fix this. */
+  -moz-margin-start: 1px;
+}
+
 #accountCentralBox,
 #threadTree {
   -moz-border-end: none;

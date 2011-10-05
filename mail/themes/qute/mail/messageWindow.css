@@ -53,6 +53,6 @@
 
 /* ::::: message header borders ::::: */
 
-#msgHeaderView {
-  border: 1px outset ThreeDFace !important;
+.main-header-area {
+  border-top: 2px groove ThreeDFace;
 }

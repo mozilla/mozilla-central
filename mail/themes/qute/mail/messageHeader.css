@@ -46,7 +46,7 @@
 .main-header-area {
   color: WindowText;
   background-color: ButtonFace;
-  border-bottom: 2px groove ThreeDLightShadow;
+  border-bottom: 1px solid ThreeDDarkShadow;
   padding: 0.4ex;
 }
 

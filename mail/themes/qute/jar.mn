@@ -299,7 +299,7 @@ classic.jar:
   skin/classic/aero/messenger/imageFilters.svg                     (mail/imageFilters.svg)
 * skin/classic/aero/messenger/mailWindow1.css                      (mail/mailWindow1-aero.css)
   skin/classic/aero/messenger/tagColors.css                        (mail/tagColors.css)
-  skin/classic/aero/messenger/messageWindow.css                    (mail/messageWindow.css)
+  skin/classic/aero/messenger/messageWindow.css                    (mail/messageWindow-aero.css)
   skin/classic/aero/messenger/searchBox.css                        (mail/searchBox.css)
   skin/classic/aero/messenger/junkMail.css                         (mail/junkMail.css)
   skin/classic/aero/messenger/folderMenus.css                      (mail/folderMenus.css)

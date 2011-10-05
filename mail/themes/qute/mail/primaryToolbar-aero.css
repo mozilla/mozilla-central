@@ -117,6 +117,12 @@ toolbarbutton[type="menu-button"] {
   margin: 1px 3px;
 }
 
+.chromeclass-toolbar {
+  /* Toolbar buttons have a margin of 3px; adjust the toolbar so the leftmost
+     button lines up with the rest of the window. */
+  -moz-margin-start: -3px;
+}
+
 toolbox[labelalign="end"] .toolbarbutton-1,
 toolbox[labelalign="end"] .toolbarbutton-menubutton-button {
   -moz-box-orient: horizontal;
