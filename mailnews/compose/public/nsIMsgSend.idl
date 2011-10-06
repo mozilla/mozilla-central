@@ -251,7 +251,7 @@ public:
 [ptr] native nsMsgAttachmentHandler(nsMsgAttachmentHandler);
 [ptr] native nsMsgAttachedFile(nsMsgAttachedFile);
 
-[scriptable, uuid(95b2fafb-1b2a-4cea-8774-72b15f31f428)]
+[scriptable, uuid(fd21915b-0b12-4ab1-b3c9-feec98fcb6d1)]
 interface nsIMsgSend : nsISupports
 {
   //
@@ -398,6 +398,8 @@ interface nsIMsgSend : nsISupports
     void notifyListenerOnProgressCopy(in unsigned long aProgress, in unsigned long aProgressMax);
     void notifyListenerOnStopCopy(in nsresult aStatus);
     void getMessageId(out ACString messageID);
+    /// When saving as draft, the folder uri we saved to.
+    readonly attribute ACString folderUri;
     attribute nsMsgKey messageKey;
 
     nsIPrompt getDefaultPrompt();

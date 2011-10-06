@@ -378,33 +378,24 @@ nsresult nsMsgCompose::ResetUrisForEmbeddedObjects()
   // Skip if no draft id (probably a new draft msg).
   if (NS_SUCCEEDED(rv) && mMsgSend && !curDraftIdURL.IsEmpty())
   {
-    // we don't currently handle imap urls
-    if (StringBeginsWith(curDraftIdURL, NS_LITERAL_CSTRING("imap-message")))
-      return NS_OK;
-
     nsCOMPtr <nsIMsgDBHdr> msgDBHdr;
     rv = GetMsgDBHdrFromURI(curDraftIdURL.get(), getter_AddRefs(msgDBHdr));
     NS_ASSERTION(NS_SUCCEEDED(rv), "RemoveCurrentDraftMessage can't get msg header DB interface pointer.");
     if (NS_SUCCEEDED(rv) && msgDBHdr)
     {
-      nsMsgKey oldDraftKey;
-
       // build up the old and new ?number= parts. This code assumes it is
       // called *before* RemoveCurrentDraftMessage, so that curDraftIdURL
       // is the previous draft.
-      // This code currently only works for local mail folders.
-      // For imap folders, the url looks like <folder>%3E<UID>?part=...
-      // We could handle the imap case as well, but it turns out
-      // not to be so important because the old message is still on
-      // the imap server. If it turns out to be a problem, we can
-      // deal with imap urls as well.
-      msgDBHdr->GetMessageKey(&oldDraftKey);
-      nsAutoString oldNumberPart(NS_LITERAL_STRING("?number="));
-      oldNumberPart.AppendInt(oldDraftKey);
-      nsAutoString newNumberPart;
+      // This code works for both imap and local messages.
       nsMsgKey newMsgKey;
+      nsCString folderUri;
+      nsCString baseMsgUri;
       mMsgSend->GetMessageKey(&newMsgKey);
-      newNumberPart.AppendInt(newMsgKey);
+      mMsgSend->GetFolderUri(folderUri);
+      nsCOMPtr<nsIMsgFolder> folder;
+      rv = GetExistingFolder(folderUri, getter_AddRefs(folder));
+      folder->GetBaseMessageURI(baseMsgUri);
+      NS_ENSURE_SUCCESS(rv, rv);
 
       nsCOMPtr<nsIDOMElement> domElement;
       for (i = 0; i < numNodes; i ++)
@@ -419,17 +410,45 @@ nsresult nsMsgCompose::ResetUrisForEmbeddedObjects()
         // do we care about anything besides images?
         nsAutoString objURL;
         image->GetSrc(objURL);
-        // the objURL is the full path to the mailbox,
-        // e.g., mailbox:///C/Documents%20Settings.../Local%20Folders/Drafts?number=
-        // Find the ?number= part of the uri, and replace the
-        // old number with the new msg key.
+        // the objURL is the full path to the embedded content. We need
+        // to update it with uri for the folder we just saved to, and the new
+        // msg key.
+        PRInt32 restOfUrlIndex = objURL.Find("?number=");
+        if (restOfUrlIndex == kNotFound)
+          restOfUrlIndex = objURL.FindChar('?');
+        else
+          restOfUrlIndex = objURL.FindChar('&', restOfUrlIndex);
 
-        PRInt32 numberIndex = objURL.Find(oldNumberPart);
-        if (numberIndex != kNotFound)
-        {
-          objURL.Replace(numberIndex + 8, oldNumberPart.Length() - 8, newNumberPart);
-          image->SetSrc(objURL);
-        }
+        if (restOfUrlIndex == kNotFound)
+          continue;
+
+        nsCString newURI(baseMsgUri);
+        newURI.Append('#');
+        newURI.AppendInt(newMsgKey);
+        nsString restOfUrl(Substring(objURL, restOfUrlIndex, objURL.Length() - restOfUrlIndex));
+        nsCOMPtr<nsIMsgMessageService> msgService;
+        rv = GetMessageServiceFromURI(newURI, getter_AddRefs(msgService));
+        if (NS_FAILED(rv))
+          continue;
+        nsCOMPtr<nsIURI> newUrl;
+        rv = msgService->GetUrlForUri(newURI.get(), getter_AddRefs(newUrl), nsnull);
+        if (!newUrl)
+          continue;
+        nsCString spec;
+        newUrl->GetSpec(spec);
+        nsString newSrc;
+        // mailbox urls will have ?number=xxx; imap urls won't. We need to
+        // handle both cases because we may be going from a mailbox url to
+        // and imap url, or vice versa, depending on the original folder,
+        // and the destination drafts folder.
+        PRBool specHasQ = (spec.FindChar('?') != kNotFound);
+        if (specHasQ && restOfUrl.CharAt(0) == '?')
+          restOfUrl.SetCharAt('&', 0);
+        else if (!specHasQ && restOfUrl.CharAt(0) == '&')
+          restOfUrl.SetCharAt('?', 0);
+        AppendUTF8toUTF16(spec, newSrc);
+        newSrc.Append(restOfUrl);
+        image->SetSrc(newSrc);
       }
     }
   }

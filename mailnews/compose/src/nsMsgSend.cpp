@@ -4009,6 +4009,13 @@ nsMsgComposeAndSend::GetMessageKey(PRUint32 *aMessageKey)
 }
 
 NS_IMETHODIMP
+nsMsgComposeAndSend::GetFolderUri(nsACString &aFolderUri)
+{
+  aFolderUri = m_folderName;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
 nsMsgComposeAndSend::GetMessageId(nsACString& aMessageId)
 {
   nsresult rv = NS_OK;
