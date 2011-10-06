@@ -743,7 +743,10 @@ var MessageWindowController =
 			case "cmd_printpreview":
       case "button_print":
 			case "cmd_saveAsFile":
+        return true;
 			case "cmd_saveAsTemplate":
+        var target = gMessageBrowser.contentPrincipal.URI.scheme;
+        return target != "news";
 			case "cmd_viewPageSource":
 			case "cmd_reload":
 			case "cmd_find":

@@ -296,7 +296,8 @@ var DefaultController =
       case "cmd_saveAsFile":
         return GetNumSelectedMessages() > 0;
       case "cmd_saveAsTemplate":
-	      if ( GetNumSelectedMessages() > 1)
+        var target = gMessageBrowser.contentPrincipal.URI.scheme;
+        if (GetNumSelectedMessages() > 1 || target == "news")
           return false;   // else fall thru
       case "cmd_reply":
       case "button_reply":
