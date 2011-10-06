@@ -92,16 +92,24 @@
 // operating system.
 #define HOSTINFO_FILE_BUFFER_SIZE 1024
 
-#ifndef MOZILLA_INTERNAL_API
-/// SortIgnoreCase() is not supported. Define our own private version.
-static int
-CompareCStringIgnoreCase(const nsCString* aString1, const nsCString* aString2, void*)
+#include "nsMsgUtils.h"
+
+/**
+ * A comparator class to do cases insensitive comparisons for nsTArray.Sort()
+ */
+class nsCStringLowerCaseComparator
 {
-  return Compare(*aString1, *aString2, CaseInsensitiveCompare);
-}
-#define SortIgnoreCase() \
-        Sort(CompareCStringIgnoreCase, nsnull)
-#endif
+public:
+  PRBool Equals(const nsCString &a, const nsCString &b) const
+  {
+    return a.Equals(b, nsCaseInsensitiveCStringComparator());
+  }
+
+  PRBool LessThan(const nsCString &a, const nsCString &b) const
+  {
+    return Compare(a, b, nsCaseInsensitiveCStringComparator());
+  }
+};
 
 static NS_DEFINE_CID(kSubscribableServerCID, NS_SUBSCRIBABLESERVER_CID);
 
@@ -756,19 +764,6 @@ nsNntpIncomingServer::OnStopRunningUrl(nsIURI *url, nsresult exitCode)
   return NS_OK;
 }
 
-
-bool
-checkIfSubscribedFunction(nsCString &aElement, void *aData)
-{
-    if (aElement.Equals(*static_cast<nsACString *>(aData))) {
-        return PR_FALSE;
-    }
-    else {
-        return PR_TRUE;
-    }
-}
-
-
 NS_IMETHODIMP
 nsNntpIncomingServer::ContainsNewsgroup(const nsACString &name,
                                         bool *containsGroup)
@@ -776,9 +771,7 @@ nsNntpIncomingServer::ContainsNewsgroup(const nsACString &name,
     if (name.IsEmpty()) return NS_ERROR_FAILURE;
     nsCAutoString unescapedName;
     MsgUnescapeString(name, 0, unescapedName);
-    *containsGroup = !(mSubscribedNewsgroups.EnumerateForwards(
-                       nsCStringArrayEnumFunc(checkIfSubscribedFunction),
-                       (void *) &unescapedName));
+    *containsGroup = mSubscribedNewsgroups.Contains(name);
     return NS_OK;
 }
 
@@ -809,9 +802,6 @@ writeGroupToHostInfoFile(nsCString &aElement, void *aData)
         // stop, something is bad.
         return PR_FALSE;
     }
-    PRUint32 bytesWritten;
-    stream->Write(aElement.get(), aElement.Length(), &bytesWritten);
-    stream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &bytesWritten);
     return PR_TRUE;
 }
 
@@ -868,8 +858,14 @@ nsNntpIncomingServer::WriteHostInfoFile()
   WriteLine(hostInfoStream, header);
 
   // XXX todo, sort groups first?
-
-  mGroupsOnServer.EnumerateForwards((nsCStringArrayEnumFunc)writeGroupToHostInfoFile, (void *)hostInfoStream);
+  PRUint32 length = mGroupsOnServer.Length();
+  for (PRUint32 i = 0; i < length; ++i)
+  {
+    PRUint32 bytesWritten;
+    hostInfoStream->Write(mGroupsOnServer[i].get(), mGroupsOnServer[i].Length(),
+                          &bytesWritten);
+    hostInfoStream->Write(MSG_LINEBREAK, MSG_LINEBREAK_LEN, &bytesWritten);
+  }
 
   hostInfoStream->Close();
   mHostInfoHasChanged = PR_FALSE;
@@ -1101,8 +1097,8 @@ nsNntpIncomingServer::SetDelimiter(char aDelimiter)
 NS_IMETHODIMP
 nsNntpIncomingServer::SetAsSubscribed(const nsACString &path)
 {
-    mTempSubscribed.AppendCString(path);
-    if (mGetOnlyNew && (mGroupsOnServer.IndexOf(path) == -1))
+    mTempSubscribed.AppendElement(path);
+    if (mGetOnlyNew && (mGroupsOnServer.IndexOf(path) == mGroupsOnServer.NoIndex))
       return NS_OK;
 
     nsresult rv = EnsureInner();
@@ -1110,29 +1106,15 @@ nsNntpIncomingServer::SetAsSubscribed(const nsACString &path)
     return mInner->SetAsSubscribed(path);
 }
 
-bool
-setAsSubscribedFunction(nsCString &aElement, void *aData)
-{
-    nsresult rv = NS_OK;
-    nsNntpIncomingServer *server;
-    server = (nsNntpIncomingServer *)aData;
-    NS_ASSERTION(server, "no server");
-    if (!server) {
-        return PR_FALSE;
-    }
-
-    rv = server->SetAsSubscribed(aElement);
-    NS_ASSERTION(NS_SUCCEEDED(rv),"SetAsSubscribed failed");
-    return PR_TRUE;
-}
-
 NS_IMETHODIMP
 nsNntpIncomingServer::UpdateSubscribed()
 {
-    nsresult rv = EnsureInner();
-    NS_ENSURE_SUCCESS(rv,rv);
+  nsresult rv = EnsureInner();
+  NS_ENSURE_SUCCESS(rv,rv);
   mTempSubscribed.Clear();
-  mSubscribedNewsgroups.EnumerateForwards((nsCStringArrayEnumFunc)setAsSubscribedFunction, (void *)this);
+  PRUint32 length = mSubscribedNewsgroups.Length();
+  for (PRUint32 i = 0; i < length; ++i)
+    SetAsSubscribed(mSubscribedNewsgroups[i]);
   return NS_OK;
 }
 
@@ -1303,7 +1285,7 @@ nsNntpIncomingServer::HandleLine(const char* line, PRUint32 line_size)
 nsresult
 nsNntpIncomingServer::AddGroupOnServer(const nsACString &aName)
 {
-  mGroupsOnServer.AppendCString(aName);
+  mGroupsOnServer.AppendElement(aName);
   return NS_OK;
 }
 
@@ -1311,7 +1293,7 @@ NS_IMETHODIMP
 nsNntpIncomingServer::AddNewsgroup(const nsAString &aName)
 {
     // handle duplicates?
-    mSubscribedNewsgroups.AppendCString(NS_ConvertUTF16toUTF8(aName));
+    mSubscribedNewsgroups.AppendElement(NS_ConvertUTF16toUTF8(aName));
     return NS_OK;
 }
 
@@ -1319,7 +1301,7 @@ NS_IMETHODIMP
 nsNntpIncomingServer::RemoveNewsgroup(const nsAString &aName)
 {
     // handle duplicates?
-    mSubscribedNewsgroups.RemoveCString(NS_ConvertUTF16toUTF8(aName));
+    mSubscribedNewsgroups.RemoveElement(NS_ConvertUTF16toUTF8(aName));
     return NS_OK;
 }
 
@@ -1333,9 +1315,9 @@ nsNntpIncomingServer::SetState(const nsACString &path, bool state,
     rv = mInner->SetState(path, state, stateChanged);
     if (*stateChanged) {
       if (state)
-        mTempSubscribed.AppendCString(path);
+        mTempSubscribed.AppendElement(path);
       else
-        mTempSubscribed.RemoveCString(path);
+        mTempSubscribed.RemoveElement(path);
     }
     return rv;
 }
@@ -1689,52 +1671,34 @@ nsNntpIncomingServer::GetCanCreateFoldersOnServer(bool *aCanCreateFoldersOnServe
     return NS_OK;
 }
 
-bool
-buildSubscribeSearchResult(nsCString &aElement, void *aData)
-{
-    nsresult rv = NS_OK;
-    nsNntpIncomingServer *server;
-    server = (nsNntpIncomingServer *)aData;
-    NS_ASSERTION(server, "no server");
-    if (!server) {
-        return PR_FALSE;
-    }
-
-    rv = server->AppendIfSearchMatch(aElement);
-    NS_ASSERTION(NS_SUCCEEDED(rv),"AddSubscribeSearchResult failed");
-    return PR_TRUE;
-}
-
-nsresult
-nsNntpIncomingServer::AppendIfSearchMatch(nsCString& newsgroupName)
-{
-  NS_ConvertUTF8toUTF16 groupName(newsgroupName);
-  if (CaseInsensitiveFindInReadable(mSearchValue, groupName))
-      mSubscribeSearchResult.AppendCString(newsgroupName);
-  return NS_OK;
-}
-
 NS_IMETHODIMP
 nsNntpIncomingServer::SetSearchValue(const nsAString &searchValue)
 {
-    mSearchValue = searchValue;
+  mSearchValue = searchValue;
 
-    if (mTree) {
-        mTree->BeginUpdateBatch();
-        mTree->RowCountChanged(0, -mSubscribeSearchResult.Count());
-    }
+  if (mTree) {
+    mTree->BeginUpdateBatch();
+    mTree->RowCountChanged(0, -mSubscribeSearchResult.Length());
+  }
 
-    mSubscribeSearchResult.Clear();
-    mGroupsOnServer.
-        EnumerateForwards(nsCStringArrayEnumFunc(buildSubscribeSearchResult),
-                          (void *)this);
-    mSubscribeSearchResult.SortIgnoreCase();
+  mSubscribeSearchResult.Clear();
+  PRUint32 length = mGroupsOnServer.Length();
+  for (PRUint32 i = 0; i < length; i++)
+  {
+    if (CaseInsensitiveFindInReadable(mSearchValue, NS_ConvertUTF8toUTF16(mGroupsOnServer[i])))
+      mSubscribeSearchResult.AppendElement(mGroupsOnServer[i]);
+  }
 
-    if (mTree) {
-        mTree->RowCountChanged(0, mSubscribeSearchResult.Count());
-        mTree->EndUpdateBatch();
-    }
-    return NS_OK;
+  nsCStringLowerCaseComparator comparator;
+  mSubscribeSearchResult.Sort(comparator);
+
+  if (mTree)
+  {
+    mTree->RowCountChanged(0, mSubscribeSearchResult.Length());
+    mTree->EndUpdateBatch();
+  }
+
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -1747,7 +1711,7 @@ nsNntpIncomingServer::GetSupportsSubscribeSearch(bool *retVal)
 NS_IMETHODIMP
 nsNntpIncomingServer::GetRowCount(PRInt32 *aRowCount)
 {
-    *aRowCount = mSubscribeSearchResult.Count();
+    *aRowCount = mSubscribeSearchResult.Length();
     return NS_OK;
 }
 
@@ -1789,9 +1753,9 @@ nsNntpIncomingServer::GetCellProperties(PRInt32 row, nsITreeColumn* col, nsISupp
         // in the "subscribedCol"
         nsCString name;
         if (mSearchResultSortDescending)
-          row = mSubscribeSearchResult.Count() + ~row;
-        mSubscribeSearchResult.CStringAt(row, name);
-        if (mTempSubscribed.IndexOf(name) != -1) {
+          row = mSubscribeSearchResult.Length() + ~row;
+        mSubscribeSearchResult.SafeElementAt(row, name);
+        if (mTempSubscribed.IndexOf(name) != mTempSubscribed.NoIndex) {
           properties->AppendElement(mSubscribedAtom);
         }
     }
@@ -1880,7 +1844,7 @@ nsNntpIncomingServer::GetLevel(PRInt32 index, PRInt32 *_retval)
 nsresult
 nsNntpIncomingServer::IsValidRow(PRInt32 row)
 {
-    return ((row >= 0) && (row < mSubscribeSearchResult.Count()));
+  return ((row >= 0) && (row < (PRInt32)mSubscribeSearchResult.Length()));
 }
 
 NS_IMETHODIMP
@@ -1916,8 +1880,8 @@ nsNntpIncomingServer::GetCellText(PRInt32 row, nsITreeColumn* col, nsAString& _r
     if (colID[0] == 'n') {
       nsCAutoString str;
       if (mSearchResultSortDescending)
-        row = mSubscribeSearchResult.Count() + ~row;
-      mSubscribeSearchResult.CStringAt(row, str);
+        row = mSubscribeSearchResult.Length() + ~row;
+      mSubscribeSearchResult.SafeElementAt(row, str);
       // some servers have newsgroup names that are non ASCII.  we store
       // those as escaped. unescape here so the UI is consistent
       rv = NS_MsgDecodeUnescapeURLPath(str, _retval);

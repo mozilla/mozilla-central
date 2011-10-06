@@ -103,8 +103,6 @@ public:
     NS_IMETHOD GetSocketType(PRInt32 *aSocketType); // override nsMsgIncomingServer impl
     NS_IMETHOD SetSocketType(PRInt32 aSocketType); // override nsMsgIncomingServer impl
 
-    nsresult AppendIfSearchMatch(nsCString& newsgroupName);
-
 protected:
    virtual nsresult CreateRootFolderFromUri(const nsCString &serverUri,
                                             nsIMsgFolder **rootFolder);
@@ -127,15 +125,15 @@ protected:
     void WriteLine(nsIOutputStream *stream, nsCString &str);
 
 private:
-    nsCStringArray mSubscribedNewsgroups;
-    nsCStringArray mGroupsOnServer;
-    nsCStringArray mSubscribeSearchResult;
+    nsTArray<nsCString> mSubscribedNewsgroups;
+    nsTArray<nsCString> mGroupsOnServer;
+    nsTArray<nsCString> mSubscribeSearchResult;
     bool mSearchResultSortDescending;
     // the list of of subscribed newsgroups within a given
     // subscribed dialog session.  
     // we need to keep track of them so we know what to show as "checked"
     // in the search view
-    nsCStringArray mTempSubscribed;
+    nsTArray<nsCString> mTempSubscribed;
     nsCOMPtr<nsIAtom> mSubscribedAtom;
     nsCOMPtr<nsIAtom> mNntpAtom;
 
