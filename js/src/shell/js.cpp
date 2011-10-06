@@ -50,7 +50,6 @@
 #include <locale.h>
 #include "jstypes.h"
 #include "jsstdint.h"
-#include "jsarena.h"
 #include "jsutil.h"
 #include "jsprf.h"
 #include "jswrapper.h"
@@ -1200,7 +1199,7 @@ GC(JSContext *cx, uintN argc, jsval *vp)
     if (argc == 1) {
         Value arg = vp[2];
         if (arg.isObject())
-            comp = arg.toObject().unwrap()->compartment();
+            comp = UnwrapObject(&arg.toObject())->compartment();
     }
 
     size_t preBytes = cx->runtime->gcBytes;
@@ -1952,16 +1951,13 @@ SrcNotes(JSContext *cx, JSScript *script, Sprinter *sp)
 static JSBool
 Notes(JSContext *cx, uintN argc, jsval *vp)
 {
-    uintN i;
-    JSScript *script;
-
-    void *mark = JS_ARENA_MARK(&cx->tempPool);
+    LifoAllocScope las(&cx->tempLifoAlloc());
     Sprinter sprinter;
-    INIT_SPRINTER(cx, &sprinter, &cx->tempPool, 0);
+    INIT_SPRINTER(cx, &sprinter, &cx->tempLifoAlloc(), 0);
 
     jsval *argv = JS_ARGV(cx, vp);
-    for (i = 0; i < argc; i++) {
-        script = ValueToScript(cx, argv[i]);
+    for (uintN i = 0; i < argc; i++) {
+        JSScript *script = ValueToScript(cx, argv[i]);
         if (!script)
             continue;
 
@@ -1969,7 +1965,6 @@ Notes(JSContext *cx, uintN argc, jsval *vp)
     }
 
     JSString *str = JS_NewStringCopyZ(cx, sprinter.base);
-    JS_ARENA_RELEASE(&cx->tempPool, mark);
     if (!str)
         return JS_FALSE;
     JS_SET_RVAL(cx, vp, STRING_TO_JSVAL(str));
@@ -2110,9 +2105,9 @@ DisassembleToString(JSContext *cx, uintN argc, jsval *vp)
     if (!p.parse(cx))
         return false;
 
-    void *mark = JS_ARENA_MARK(&cx->tempPool);
+    LifoAllocScope las(&cx->tempLifoAlloc());
     Sprinter sprinter;
-    INIT_SPRINTER(cx, &sprinter, &cx->tempPool, 0);
+    INIT_SPRINTER(cx, &sprinter, &cx->tempLifoAlloc(), 0);
     Sprinter *sp = &sprinter;
 
     bool ok = true;
@@ -2136,7 +2131,6 @@ DisassembleToString(JSContext *cx, uintN argc, jsval *vp)
     }
 
     JSString *str = ok ? JS_NewStringCopyZ(cx, sprinter.base) : NULL;
-    JS_ARENA_RELEASE(&cx->tempPool, mark);
     if (!str)
         return false;
     JS_SET_RVAL(cx, vp, STRING_TO_JSVAL(str));
@@ -2150,9 +2144,9 @@ Disassemble(JSContext *cx, uintN argc, jsval *vp)
     if (!p.parse(cx))
         return false;
 
-    void *mark = JS_ARENA_MARK(&cx->tempPool);
+    LifoAllocScope las(&cx->tempLifoAlloc());
     Sprinter sprinter;
-    INIT_SPRINTER(cx, &sprinter, &cx->tempPool, 0);
+    INIT_SPRINTER(cx, &sprinter, &cx->tempLifoAlloc(), 0);
     Sprinter *sp = &sprinter;
 
     bool ok = true;
@@ -2177,7 +2171,6 @@ Disassemble(JSContext *cx, uintN argc, jsval *vp)
 
     if (ok)
         fprintf(stdout, "%s\n", sprinter.base);
-    JS_ARENA_RELEASE(&cx->tempPool, mark);
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return ok;
 }
@@ -2213,13 +2206,12 @@ DisassFile(JSContext *cx, uintN argc, jsval *vp)
     if (!script)
         return false;
 
-    void *mark = JS_ARENA_MARK(&cx->tempPool);
+    LifoAllocScope las(&cx->tempLifoAlloc());
     Sprinter sprinter;
-    INIT_SPRINTER(cx, &sprinter, &cx->tempPool, 0);
+    INIT_SPRINTER(cx, &sprinter, &cx->tempLifoAlloc(), 0);
     bool ok = DisassembleScript(cx, script, NULL, p.lines, p.recursive, &sprinter);
     if (ok)
         fprintf(stdout, "%s\n", sprinter.base);
-    JS_ARENA_RELEASE(&cx->tempPool, mark);
     if (!ok)
         return false;
     
@@ -2263,18 +2255,17 @@ DisassWithSrc(JSContext *cx, uintN argc, jsval *vp)
         pc = script->code;
         end = pc + script->length;
 
-        void *mark = JS_ARENA_MARK(&cx->tempPool);
+        LifoAllocScope las(&cx->tempLifoAlloc());
         Sprinter sprinter;
         Sprinter *sp = &sprinter;
-        INIT_SPRINTER(cx, sp, &cx->tempPool, 0);
+        INIT_SPRINTER(cx, sp, &cx->tempLifoAlloc(), 0);
 
         /* burn the leading lines */
         line2 = JS_PCToLineNumber(cx, script, pc);
         for (line1 = 0; line1 < line2 - 1; line1++) {
             char *tmp = fgets(linebuf, LINE_BUF_LEN, file);
             if (!tmp) {
-                JS_ReportError(cx, "failed to read %s fully",
-                               script->filename);
+                JS_ReportError(cx, "failed to read %s fully", script->filename);
                 ok = JS_FALSE;
                 goto bail;
             }
@@ -2315,7 +2306,6 @@ DisassWithSrc(JSContext *cx, uintN argc, jsval *vp)
         }
 
       bail:
-        JS_ARENA_RELEASE(&cx->tempPool, mark);
         fclose(file);
     }
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
@@ -2728,9 +2718,9 @@ Clone(JSContext *cx, uintN argc, jsval *vp)
     {
         JSAutoEnterCompartment ac;
         if (!JSVAL_IS_PRIMITIVE(argv[0]) &&
-            JSVAL_TO_OBJECT(argv[0])->isCrossCompartmentWrapper())
+            IsCrossCompartmentWrapper(JSVAL_TO_OBJECT(argv[0])))
         {
-            JSObject *obj = JSVAL_TO_OBJECT(argv[0])->unwrap();
+            JSObject *obj = UnwrapObject(JSVAL_TO_OBJECT(argv[0]));
             if (!ac.enter(cx, obj))
                 return JS_FALSE;
             argv[0] = OBJECT_TO_JSVAL(obj);
@@ -2746,7 +2736,7 @@ Clone(JSContext *cx, uintN argc, jsval *vp)
     }
     if (funobj->compartment() != cx->compartment) {
         JSFunction *fun = funobj->getFunctionPrivate();
-        if (fun->isInterpreted() && fun->u.i.script->compileAndGo) {
+        if (fun->isInterpreted() && fun->script()->compileAndGo) {
             JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL, JSMSG_UNEXPECTED_TYPE,
                                  "function", "compile-and-go");
             return JS_FALSE;
@@ -3017,8 +3007,8 @@ EvalInContext(JSContext *cx, uintN argc, jsval *vp)
     {
         JSAutoEnterCompartment ac;
         uintN flags;
-        JSObject *unwrapped = sobj->unwrap(&flags);
-        if (flags & JSWrapper::CROSS_COMPARTMENT) {
+        JSObject *unwrapped = UnwrapObject(sobj, &flags);
+        if (flags & Wrapper::CROSS_COMPARTMENT) {
             sobj = unwrapped;
             if (!ac.enter(cx, sobj))
                 return false;
@@ -3160,9 +3150,9 @@ CopyProperty(JSContext *cx, JSObject *obj, JSObject *referent, jsid id,
             desc.setter = JS_StrictPropertyStub;
         desc.shortid = shape->shortid;
         propFlags = shape->getFlags();
-   } else if (referent->isProxy()) {
+   } else if (IsProxy(referent)) {
         PropertyDescriptor desc;
-        if (!JSProxy::getOwnPropertyDescriptor(cx, referent, id, false, &desc))
+        if (!Proxy::getOwnPropertyDescriptor(cx, referent, id, false, &desc))
             return false;
         if (!desc.obj)
             return true;
@@ -4006,8 +3996,8 @@ Wrap(JSContext *cx, uintN argc, jsval *vp)
     }
 
     JSObject *obj = JSVAL_TO_OBJECT(v);
-    JSObject *wrapped = JSWrapper::New(cx, obj, obj->getProto(), obj->getGlobal(),
-                                       &JSWrapper::singleton);
+    JSObject *wrapped = Wrapper::New(cx, obj, obj->getProto(), obj->getGlobal(),
+                                     &Wrapper::singleton);
     if (!wrapped)
         return false;
 

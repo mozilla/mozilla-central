@@ -1,5 +1,5 @@
 /* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* vim: set ts=2 et sw=2 tw=80: */
+/* vim: set ft=javascript ts=2 et sw=2 tw=80: */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -125,6 +125,10 @@ Highlighter.prototype = {
 
     let controlsBox = this.chromeDoc.createElement("box");
     controlsBox.id = "highlighter-controls";
+    this.highlighterContainer.appendChild(this.veilContainer);
+    this.highlighterContainer.appendChild(controlsBox);
+
+    stack.appendChild(this.highlighterContainer);
 
     // The veil will make the whole page darker except
     // for the region of the selected box.
@@ -133,11 +137,6 @@ Highlighter.prototype = {
     // The controlsBox will host the different interactive
     // elements of the highlighter (buttons, toolbars, ...).
     this.buildControls(controlsBox);
-
-    this.highlighterContainer.appendChild(this.veilContainer);
-    this.highlighterContainer.appendChild(controlsBox);
-
-    stack.appendChild(this.highlighterContainer);
 
     this.browser.addEventListener("resize", this, true);
     this.browser.addEventListener("scroll", this, true);
@@ -158,7 +157,8 @@ Highlighter.prototype = {
    *   <box id="highlighter-veil-bottombox" class="highlighter-veil"/>
    * </vbox>
    *
-   * @param nsIDOMNode aParent
+   * @param nsIDOMElement aParent
+   *        The container of the veil boxes.
    */
   buildVeil: function Highlighter_buildVeil(aParent)
   {
@@ -204,18 +204,100 @@ Highlighter.prototype = {
    *
    * <box id="highlighter-close-button"/>
    *
-   * @param nsIDOMNode aParent
+   * @param nsIDOMElement aParent
+   *        The container of the controls elements.
    */
   buildControls: function Highlighter_buildControls(aParent)
+  {
+    this.buildCloseButton(aParent);
+    this.buildInfobar(aParent);
+  },
+
+  /**
+   * Build the node Infobar.
+   *
+   * <box id="highlighter-nodeinfobar-container">
+   *   <box id="Highlighter-nodeinfobar-arrow-top"/>
+   *   <vbox id="highlighter-nodeinfobar">
+   *     <label id="highlighter-nodeinfobar-tagname"/>
+   *     <label id="highlighter-nodeinfobar-id"/>
+   *     <vbox id="highlighter-nodeinfobar-classes"/>
+   *   </vbox>
+   *   <box id="Highlighter-nodeinfobar-arrow-bottom"/>
+   * </box>
+   *
+   * @param nsIDOMElement aParent
+   *        The container of the infobar.
+   */
+  buildInfobar: function Highlighter_buildInfobar(aParent)
+  {
+    let container = this.chromeDoc.createElement("box");
+    container.id = "highlighter-nodeinfobar-container";
+    container.setAttribute("position", "top");
+    container.setAttribute("disabled", "true");
+
+    let nodeInfobar = this.chromeDoc.createElement("hbox");
+    nodeInfobar.id = "highlighter-nodeinfobar";
+
+    let arrowBoxTop = this.chromeDoc.createElement("box");
+    arrowBoxTop.className = "highlighter-nodeinfobar-arrow";
+    arrowBoxTop.id = "highlighter-nodeinfobar-arrow-top";
+
+    let arrowBoxBottom = this.chromeDoc.createElement("box");
+    arrowBoxBottom.className = "highlighter-nodeinfobar-arrow";
+    arrowBoxBottom.id = "highlighter-nodeinfobar-arrow-bottom";
+
+    let tagNameLabel = this.chromeDoc.createElement("label");
+    tagNameLabel.id = "highlighter-nodeinfobar-tagname";
+    tagNameLabel.className = "plain";
+
+    let idLabel = this.chromeDoc.createElement("label");
+    idLabel.id = "highlighter-nodeinfobar-id";
+    idLabel.className = "plain";
+
+    let classesBox = this.chromeDoc.createElement("hbox");
+    classesBox.id = "highlighter-nodeinfobar-classes";
+
+    nodeInfobar.appendChild(tagNameLabel);
+    nodeInfobar.appendChild(idLabel);
+    nodeInfobar.appendChild(classesBox);
+    container.appendChild(arrowBoxTop);
+    container.appendChild(nodeInfobar);
+    container.appendChild(arrowBoxBottom);
+
+    aParent.appendChild(container);
+
+    let barHeight = container.getBoundingClientRect().height;
+
+    this.nodeInfo = {
+      tagNameLabel: tagNameLabel,
+      idLabel: idLabel,
+      classesBox: classesBox,
+      container: container,
+      barHeight: barHeight,
+    };
+  },
+
+  /**
+   * Build the close button.
+   *
+   * @param nsIDOMElement aParent
+   *        The container of the close-button.
+   */
+  buildCloseButton: function Highlighter_buildCloseButton(aParent)
   {
     let closeButton = this.chromeDoc.createElement("box");
     closeButton.id = "highlighter-close-button";
     closeButton.appendChild(this.chromeDoc.createElement("image"));
 
-    closeButton.addEventListener("click",
-      this.IUI.closeInspectorUI.bind(this.IUI), false);
+    let boundCloseEventHandler = this.IUI.closeInspectorUI.bind(this.IUI, false);
+
+    closeButton.addEventListener("click", boundCloseEventHandler, false);
 
     aParent.appendChild(closeButton);
+
+    this.boundCloseEventHandler = boundCloseEventHandler;
+    this.closeButton = closeButton;
   },
 
   /**
@@ -225,6 +307,11 @@ Highlighter.prototype = {
   {
     this.browser.removeEventListener("scroll", this, true);
     this.browser.removeEventListener("resize", this, true);
+    this.closeButton.removeEventListener("click", this.boundCloseEventHandler, false);
+    this.boundCloseEventHandler = null;
+    this.closeButton.parentNode.removeChild(this.closeButton);
+    this.closeButton = null;
+    this._contentRect = null;
     this._highlightRect = null;
     this._highlighting = false;
     this.veilTopBox = null;
@@ -233,6 +320,7 @@ Highlighter.prototype = {
     this.veilTransparentBox = null;
     this.veilContainer = null;
     this.node = null;
+    this.nodeInfo = null;
     this.highlighterContainer.parentNode.removeChild(this.highlighterContainer);
     this.highlighterContainer = null;
     this.win = null
@@ -258,7 +346,7 @@ Highlighter.prototype = {
   highlight: function Highlighter_highlight(aScroll)
   {
     // node is not set or node is not highlightable, bail
-    if (!this.node || !this.isNodeHighlightable()) {
+    if (!this.node || !this.isNodeHighlightable(this.node)) {
       return;
     }
 
@@ -327,6 +415,8 @@ Highlighter.prototype = {
 
     this.highlightRectangle(rect);
 
+    this.moveInfobar();
+
     if (this._highlighting) {
       Services.obs.notifyObservers(null,
         INSPECTOR_NOTIFICATIONS.HIGHLIGHTING, null);
@@ -344,6 +434,7 @@ Highlighter.prototype = {
   highlightNode: function Highlighter_highlightNode(aNode, aParams)
   {
     this.node = aNode;
+    this.updateInfobar();
     this.highlight(aParams && aParams.scroll);
   },
 
@@ -357,28 +448,41 @@ Highlighter.prototype = {
    */
   highlightRectangle: function Highlighter_highlightRectangle(aRect)
   {
-    let oldRect = this._highlightRect;
+    let oldRect = this._contentRect;
 
     if (oldRect && aRect.top == oldRect.top && aRect.left == oldRect.left &&
         aRect.width == oldRect.width && aRect.height == oldRect.height) {
       return this._highlighting; // same rectangle
     }
 
-    if (aRect.left >= 0 && aRect.top >= 0 &&
-        aRect.width > 0 && aRect.height > 0) {
+    // get page zoom factor, if any
+    let zoom =
+      this.win.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+      .getInterface(Components.interfaces.nsIDOMWindowUtils)
+      .screenPixelsPerCSSPixel;
+
+    // adjust rect for zoom scaling
+    let aRectScaled = {};
+    for (let prop in aRect) {
+      aRectScaled[prop] = aRect[prop] * zoom;
+    }
+
+    if (aRectScaled.left >= 0 && aRectScaled.top >= 0 &&
+        aRectScaled.width > 0 && aRectScaled.height > 0) {
       // The bottom div and the right div are flexibles (flex=1).
       // We don't need to resize them.
-      this.veilTopBox.style.height = aRect.top + "px";
-      this.veilLeftBox.style.width = aRect.left + "px";
-      this.veilMiddleBox.style.height = aRect.height + "px";
-      this.veilTransparentBox.style.width = aRect.width + "px";
+      this.veilTopBox.style.height = aRectScaled.top + "px";
+      this.veilLeftBox.style.width = aRectScaled.left + "px";
+      this.veilMiddleBox.style.height = aRectScaled.height + "px";
+      this.veilTransparentBox.style.width = aRectScaled.width + "px";
 
       this._highlighting = true;
     } else {
       this.unhighlight();
     }
 
-    this._highlightRect = aRect;
+    this._contentRect = aRect; // save orig (non-scaled) rect
+    this._highlightRect = aRectScaled; // and save the scaled rect.
 
     return this._highlighting;
   },
@@ -393,6 +497,87 @@ Highlighter.prototype = {
     this.veilTransparentBox.style.width = 0;
     Services.obs.notifyObservers(null,
       INSPECTOR_NOTIFICATIONS.UNHIGHLIGHTING, null);
+  },
+
+  /**
+   * Update node information (tagName#id.class) 
+   */
+  updateInfobar: function Highlighter_updateInfobar()
+  {
+    // Tag name
+    this.nodeInfo.tagNameLabel.textContent = this.node.tagName;
+
+    // ID
+    this.nodeInfo.idLabel.textContent = this.node.id;
+
+    // Classes
+    let classes = this.nodeInfo.classesBox;
+    while (classes.hasChildNodes()) {
+      classes.removeChild(classes.firstChild);
+    }
+
+    if (this.node.className) {
+      let fragment = this.chromeDoc.createDocumentFragment();
+      for (let i = 0; i < this.node.classList.length; i++) {
+        let classLabel = this.chromeDoc.createElement("label");
+        classLabel.className = "highlighter-nodeinfobar-class plain";
+        classLabel.textContent = this.node.classList[i];
+        fragment.appendChild(classLabel);
+      }
+      classes.appendChild(fragment);
+    }
+  },
+
+  /**
+   * Move the Infobar to the right place in the highlighter.
+   */
+  moveInfobar: function Highlighter_moveInfobar()
+  {
+    let rect = this._highlightRect;
+    if (rect && this._highlighting) {
+      this.nodeInfo.container.removeAttribute("disabled");
+      // Can the bar be above the node?
+      if (rect.top < this.nodeInfo.barHeight) {
+        // No. Can we move the toolbar under the node?
+        if (rect.top + rect.height +
+            this.nodeInfo.barHeight > this.win.innerHeight) {
+          // No. Let's move it inside.
+          this.nodeInfo.container.style.top = rect.top + "px";
+          this.nodeInfo.container.setAttribute("position", "overlap");
+        } else {
+          // Yes. Let's move it under the node.
+          this.nodeInfo.container.style.top = rect.top + rect.height + "px";
+          this.nodeInfo.container.setAttribute("position", "bottom");
+        }
+      } else {
+        // Yes. Let's move it on top of the node.
+        this.nodeInfo.container.style.top =
+          rect.top - this.nodeInfo.barHeight + "px";
+        this.nodeInfo.container.setAttribute("position", "top");
+      }
+
+      let barWidth = this.nodeInfo.container.getBoundingClientRect().width;
+      let left = rect.left + rect.width / 2 - barWidth / 2;
+
+      // Make sure the whole infobar is visible
+      if (left < 0) {
+        left = 0;
+        this.nodeInfo.container.setAttribute("hide-arrow", "true");
+      } else {
+        if (left + barWidth > this.win.innerWidth) {
+          left = this.win.innerWidth - barWidth;
+          this.nodeInfo.container.setAttribute("hide-arrow", "true");
+        } else {
+          this.nodeInfo.container.removeAttribute("hide-arrow");
+        }
+      }
+      this.nodeInfo.container.style.left = left + "px";
+    } else {
+      this.nodeInfo.container.style.left = "0";
+      this.nodeInfo.container.style.top = "0";
+      this.nodeInfo.container.setAttribute("position", "top");
+      this.nodeInfo.container.setAttribute("hide-arrow", "true");
+    }
   },
 
   /**
@@ -425,18 +610,18 @@ Highlighter.prototype = {
   get highlitNode()
   {
     // Not highlighting? Bail.
-    if (!this._highlighting || !this._highlightRect) {
+    if (!this._highlighting || !this._contentRect) {
       return null;
     }
 
     let a = {
-      x: this._highlightRect.left,
-      y: this._highlightRect.top
+      x: this._contentRect.left,
+      y: this._contentRect.top
     };
 
     let b = {
-      x: a.x + this._highlightRect.width,
-      y: a.y + this._highlightRect.height
+      x: a.x + this._contentRect.width,
+      y: a.y + this._contentRect.height
     };
 
     // Get midpoint of diagonal line.
@@ -447,17 +632,19 @@ Highlighter.prototype = {
   },
 
   /**
-   * Is this.node highlightable?
+   * Is the specified node highlightable?
    *
+   * @param nsIDOMNode aNode
+   *        the DOM element in question
    * @returns boolean
    *          True if the node is highlightable or false otherwise.
    */
-  isNodeHighlightable: function Highlighter_isNodeHighlightable()
+  isNodeHighlightable: function Highlighter_isNodeHighlightable(aNode)
   {
-    if (!this.node || this.node.nodeType != this.node.ELEMENT_NODE) {
+    if (aNode.nodeType != aNode.ELEMENT_NODE) {
       return false;
     }
-    let nodeName = this.node.nodeName.toLowerCase();
+    let nodeName = aNode.nodeName.toLowerCase();
     return !INSPECTOR_INVISIBLE_ELEMENTS[nodeName];
   },
 
@@ -984,6 +1171,69 @@ InspectorUI.prototype = {
               event.stopPropagation();
             }
             break;
+          case this.chromeWin.KeyEvent.DOM_VK_LEFT:
+            let node;
+            if (this.selection) {
+              node = this.selection.parentNode;
+            } else {
+              node = this.defaultSelection;
+            }
+            if (node && this.highlighter.isNodeHighlightable(node)) {
+              this.inspectNode(node, true);
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            break;
+          case this.chromeWin.KeyEvent.DOM_VK_RIGHT:
+            if (this.selection) {
+              // Find the first child that is highlightable.
+              for (let i = 0; i < this.selection.childNodes.length; i++) {
+                node = this.selection.childNodes[i];
+                if (node && this.highlighter.isNodeHighlightable(node)) {
+                  break;
+                }
+              }
+            } else {
+              node = this.defaultSelection;
+            }
+            if (node && this.highlighter.isNodeHighlightable(node)) {
+              this.inspectNode(node, true);
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            break;
+          case this.chromeWin.KeyEvent.DOM_VK_UP:
+            if (this.selection) {
+              // Find a previous sibling that is highlightable.
+              node = this.selection.previousSibling;
+              while (node && !this.highlighter.isNodeHighlightable(node)) {
+                node = node.previousSibling;
+              }
+            } else {
+              node = this.defaultSelection;
+            }
+            if (node && this.highlighter.isNodeHighlightable(node)) {
+              this.inspectNode(node, true);
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            break;
+          case this.chromeWin.KeyEvent.DOM_VK_DOWN:
+            if (this.selection) {
+              // Find a next sibling that is highlightable.
+              node = this.selection.nextSibling;
+              while (node && !this.highlighter.isNodeHighlightable(node)) {
+                node = node.nextSibling;
+              }
+            } else {
+              node = this.defaultSelection;
+            }
+            if (node && this.highlighter.isNodeHighlightable(node)) {
+              this.inspectNode(node, true);
+            }
+            event.preventDefault();
+            event.stopPropagation();
+            break;
         }
         break;
     }
@@ -1018,11 +1268,13 @@ InspectorUI.prototype = {
    *
    * @param aNode
    *        the element in the document to inspect
+   * @param aScroll
+   *        force scroll?
    */
-  inspectNode: function IUI_inspectNode(aNode)
+  inspectNode: function IUI_inspectNode(aNode, aScroll)
   {
     this.select(aNode, true, true);
-    this.highlighter.highlightNode(aNode);
+    this.highlighter.highlightNode(aNode, { scroll: aScroll });
   },
 
   /**

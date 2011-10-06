@@ -46,7 +46,6 @@
 #include <math.h>
 #include "jstypes.h"
 #include "jsstdint.h"
-#include "jsarena.h"
 #include "jsutil.h"
 #include "jsprf.h"
 #include "jsapi.h"
@@ -402,34 +401,6 @@ CallThisObjectHook(JSContext *cx, JSObject *obj, Value *argv)
     return thisp;
 }
 
-void
-js::ReportIncompatibleMethod(JSContext *cx, Value *vp, Class *clasp)
-{
-    Value &thisv = vp[1];
-
-#ifdef DEBUG
-    if (thisv.isObject()) {
-        JS_ASSERT(thisv.toObject().getClass() != clasp);
-    } else if (thisv.isString()) {
-        JS_ASSERT(clasp != &StringClass);
-    } else if (thisv.isNumber()) {
-        JS_ASSERT(clasp != &NumberClass);
-    } else if (thisv.isBoolean()) {
-        JS_ASSERT(clasp != &BooleanClass);
-    } else {
-        JS_ASSERT(thisv.isUndefined() || thisv.isNull());
-    }
-#endif
-
-    if (JSFunction *fun = js_ValueToFunction(cx, &vp[0], 0)) {
-        JSAutoByteString funNameBytes;
-        if (const char *funName = GetFunctionNameBytes(cx, fun, &funNameBytes)) {
-            JS_ReportErrorNumber(cx, js_GetErrorMessage, NULL, JSMSG_INCOMPATIBLE_PROTO,
-                                 clasp->name, funName, InformalValueTypeName(thisv));
-        }
-    }
-}
-
 /*
  * ECMA requires "the global object", but in embeddings such as the browser,
  * which have multiple top-level objects (windows, frames, etc. in the DOM),
@@ -621,10 +592,9 @@ js::RunScript(JSContext *cx, JSScript *script, StackFrame *fp)
  * when done.  Then push the return value.
  */
 bool
-js::InvokeKernel(JSContext *cx, const CallArgs &argsRef, MaybeConstruct construct)
+js::InvokeKernel(JSContext *cx, CallArgs args, MaybeConstruct construct)
 {
-    CallArgs args = argsRef;
-    JS_ASSERT(args.argc() <= StackSpace::ARGS_LENGTH_MAX);
+    JS_ASSERT(args.length() <= StackSpace::ARGS_LENGTH_MAX);
 
     JS_ASSERT(!cx->compartment->activeAnalysis);
 
@@ -643,7 +613,7 @@ js::InvokeKernel(JSContext *cx, const CallArgs &argsRef, MaybeConstruct construc
     if (JS_UNLIKELY(clasp != &FunctionClass)) {
 #if JS_HAS_NO_SUCH_METHOD
         if (JS_UNLIKELY(clasp == &js_NoSuchMethodClass))
-            return NoSuchMethod(cx, args.argc(), args.base());
+            return NoSuchMethod(cx, args.length(), args.base());
 #endif
         JS_ASSERT_IF(construct, !clasp->construct);
         if (!clasp->call) {
@@ -693,7 +663,7 @@ js::Invoke(JSContext *cx, const Value &thisv, const Value &fval, uintN argc, Val
 
     args.calleev() = fval;
     args.thisv() = thisv;
-    memcpy(args.argv(), argv, argc * sizeof(Value));
+    memcpy(args.array(), argv, argc * sizeof(Value));
 
     if (args.thisv().isObject()) {
         /*
@@ -723,7 +693,7 @@ js::InvokeConstructor(JSContext *cx, const Value &fval, uintN argc, Value *argv,
 
     args.calleev() = fval;
     args.thisv().setMagic(JS_THIS_POISON);
-    memcpy(args.argv(), argv, argc * sizeof(Value));
+    memcpy(args.array(), argv, argc * sizeof(Value));
 
     if (!InvokeConstructor(cx, args))
         return false;
@@ -1144,7 +1114,7 @@ js::InvokeConstructorWithGivenThis(JSContext *cx, JSObject *thisobj, const Value
 
     args.calleev() = fval;
     /* Initialize args.thisv on all paths below. */
-    memcpy(args.argv(), argv, argc * sizeof(Value));
+    memcpy(args.array(), argv, argc * sizeof(Value));
 
     /* Handle the fast-constructor cases before calling the general case. */
     JSObject &callee = fval.toObject();
@@ -3833,6 +3803,7 @@ BEGIN_CASE(JSOP_GETELEM)
 {
     Value &lref = regs.sp[-2];
     Value &rref = regs.sp[-1];
+    Value &rval = regs.sp[-2];
     if (lref.isString() && rref.isInt32()) {
         JSString *str = lref.toString();
         int32_t i = rref.toInt32();
@@ -3840,9 +3811,9 @@ BEGIN_CASE(JSOP_GETELEM)
             str = cx->runtime->staticStrings.getUnitStringForElement(cx, str, size_t(i));
             if (!str)
                 goto error;
+            rval.setString(str);
+            TypeScript::Monitor(cx, script, regs.pc, rval);
             regs.sp--;
-            regs.sp[-1].setString(str);
-            TypeScript::Monitor(cx, script, regs.pc, regs.sp[-1]);
             len = JSOP_GETELEM_LENGTH;
             DO_NEXT_OP(len);
         }
@@ -3850,9 +3821,9 @@ BEGIN_CASE(JSOP_GETELEM)
 
     if (lref.isMagic(JS_LAZY_ARGUMENTS)) {
         if (rref.isInt32() && size_t(rref.toInt32()) < regs.fp()->numActualArgs()) {
+            rval = regs.fp()->canonicalActualArg(rref.toInt32());
+            TypeScript::Monitor(cx, script, regs.pc, rval);
             regs.sp--;
-            regs.sp[-1] = regs.fp()->canonicalActualArg(rref.toInt32());
-            TypeScript::Monitor(cx, script, regs.pc, regs.sp[-1]);
             len = JSOP_GETELEM_LENGTH;
             DO_NEXT_OP(len);
         }
@@ -3863,58 +3834,48 @@ BEGIN_CASE(JSOP_GETELEM)
     JSObject *obj;
     VALUE_TO_OBJECT(cx, &lref, obj);
 
-    const Value *copyFrom;
-    Value rval;
-    jsid id;
-    if (rref.isInt32()) {
-        int32_t i = rref.toInt32();
+    uint32 index;
+    if (IsDefinitelyIndex(rref, &index)) {
         if (obj->isDenseArray()) {
-            jsuint idx = jsuint(i);
-            if (idx < obj->getDenseArrayInitializedLength()) {
-                copyFrom = &obj->getDenseArrayElement(idx);
-                if (!copyFrom->isMagic())
+            if (index < obj->getDenseArrayInitializedLength()) {
+                rval = obj->getDenseArrayElement(index);
+                if (!rval.isMagic())
                     goto end_getelem;
             }
         } else if (obj->isArguments()) {
-            uint32 arg = uint32(i);
-            ArgumentsObject *argsobj = obj->asArguments();
-
-            if (arg < argsobj->initialLength()) {
-                copyFrom = &argsobj->element(arg);
-                if (!copyFrom->isMagic(JS_ARGS_HOLE)) {
-                    if (StackFrame *afp = argsobj->maybeStackFrame())
-                        copyFrom = &afp->canonicalActualArg(arg);
-                    goto end_getelem;
-                }
-            }
+            if (obj->asArguments()->getElement(index, &rval))
+                goto end_getelem;
         }
-        if (JS_LIKELY(INT_FITS_IN_JSID(i)))
-            id = INT_TO_JSID(i);
-        else
-            goto intern_big_int;
+
+        if (!obj->getElement(cx, index, &rval))
+            goto error;
     } else {
-        int32_t i;
-        if (ValueFitsInInt32(rref, &i) && INT_FITS_IN_JSID(i)) {
-            id = INT_TO_JSID(i);
-        } else {
-          intern_big_int:
-            if (!js_InternNonIntElementId(cx, obj, rref, &id))
+        if (script->hasAnalysis() && !regs.fp()->hasImacropc())
+            script->analysis()->getCode(regs.pc).getStringElement = true;
+
+        SpecialId special;
+        if (ValueIsSpecial(obj, &rref, &special, cx)) {
+            if (!obj->getSpecial(cx, special, &rval))
                 goto error;
+        } else {
+            JSAtom *name;
+            if (!js_ValueToAtom(cx, rref, &name))
+                goto error;
+
+            if (name->isIndex(&index)) {
+                if (!obj->getElement(cx, index, &rval))
+                    goto error;
+            } else {
+                if (!obj->getProperty(cx, name->asPropertyName(), &rval))
+                    goto error;
+            }
         }
     }
 
-    if (JSID_IS_STRING(id) && script->hasAnalysis() && !regs.fp()->hasImacropc())
-        script->analysis()->getCode(regs.pc).getStringElement = true;
-
-    if (!obj->getGeneric(cx, id, &rval))
-        goto error;
-    copyFrom = &rval;
-
   end_getelem:
+    assertSameCompartment(cx, rval);
+    TypeScript::Monitor(cx, script, regs.pc, rval);
     regs.sp--;
-    regs.sp[-1] = *copyFrom;
-    assertSameCompartment(cx, regs.sp[-1]);
-    TypeScript::Monitor(cx, script, regs.pc, regs.sp[-1]);
 }
 END_CASE(JSOP_GETELEM)
 

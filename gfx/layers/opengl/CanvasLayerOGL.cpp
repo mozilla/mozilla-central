@@ -261,7 +261,7 @@ CanvasLayerOGL::RenderLayer(int aPreviousDestination,
   }
 #endif
 
-  ApplyFilter(mFilter);
+  gl()->ApplyFilterToBoundTexture(mFilter);
 
   program->Activate();
   program->SetLayerQuadRect(drawRect);
@@ -302,24 +302,27 @@ ShadowCanvasLayerOGL::Initialize(const Data& aData)
 }
 
 void
-ShadowCanvasLayerOGL::Init(const SurfaceDescriptor& aNewFront, const nsIntSize& aSize, bool needYFlip)
+ShadowCanvasLayerOGL::Init(const CanvasSurface& aNewFront, bool needYFlip)
 {
-  mDeadweight = aNewFront;
-  nsRefPtr<gfxASurface> surf = ShadowLayerForwarder::OpenDescriptor(mDeadweight);
+  nsRefPtr<gfxASurface> surf = ShadowLayerForwarder::OpenDescriptor(aNewFront);
 
-  mTexImage = gl()->CreateTextureImage(nsIntSize(aSize.width, aSize.height),
+  mTexImage = gl()->CreateTextureImage(surf->GetSize(),
                                        surf->GetContentType(),
                                        LOCAL_GL_CLAMP_TO_EDGE);
   mNeedsYFlip = needYFlip;
 }
 
 void
-ShadowCanvasLayerOGL::Swap(const SurfaceDescriptor& aNewFront,
-                           SurfaceDescriptor* aNewBack)
+ShadowCanvasLayerOGL::Swap(const CanvasSurface& aNewFront,
+                           bool needYFlip,
+                           CanvasSurface* aNewBack)
 {
-  if (!mDestroyed && mTexImage) {
+  if (!mDestroyed) {
     nsRefPtr<gfxASurface> surf = ShadowLayerForwarder::OpenDescriptor(aNewFront);
-    gfxSize sz = surf->GetSize();
+    gfxIntSize sz = surf->GetSize();
+    if (!mTexImage || mTexImage->GetSize() != sz) {
+      Init(aNewFront, needYFlip);
+    }
     nsIntRegion updateRegion(nsIntRect(0, 0, sz.width, sz.height));
     mTexImage->DirectUpdate(surf, updateRegion);
   }
@@ -331,9 +334,6 @@ void
 ShadowCanvasLayerOGL::DestroyFrontBuffer()
 {
   mTexImage = nsnull;
-  if (IsSurfaceDescriptorValid(mDeadweight)) {
-    mOGLManager->DestroySharedSurface(&mDeadweight, mAllocator);
-  }
 }
 
 void
@@ -366,7 +366,7 @@ ShadowCanvasLayerOGL::RenderLayer(int aPreviousFrameBuffer,
   ColorTextureLayerProgram *program =
     mOGLManager->GetColorTextureLayerProgram(mTexImage->GetShaderProgramType());
 
-  ApplyFilter(mFilter);
+  mTexImage->SetFilter(mFilter);
 
   program->Activate();
   program->SetLayerTransform(GetEffectiveTransform());
@@ -376,7 +376,7 @@ ShadowCanvasLayerOGL::RenderLayer(int aPreviousFrameBuffer,
 
   mTexImage->BeginTileIteration();
   do {
-    TextureImage::ScopedBindTexture texBind(mTexImage, LOCAL_GL_TEXTURE0);
+    TextureImage::ScopedBindTextureAndApplyFilter texBind(mTexImage, LOCAL_GL_TEXTURE0);
     program->SetLayerQuadRect(mTexImage->GetTileRect());
     mOGLManager->BindAndDrawQuad(program, mNeedsYFlip); // FIXME flip order of tiles?
   } while (mTexImage->NextTile());

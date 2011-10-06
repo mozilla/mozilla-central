@@ -253,7 +253,7 @@ namespace_toString(JSContext *cx, uintN argc, Value *vp)
     if (!obj)
         return JS_FALSE;
     if (!obj->isNamespace()) {
-        ReportIncompatibleMethod(cx, vp, &NamespaceClass);
+        ReportIncompatibleMethod(cx, CallReceiverFromVp(vp), &NamespaceClass);
         return JS_FALSE;
     }
     *vp = obj->getNameURIVal();
@@ -448,7 +448,7 @@ qname_toString(JSContext *cx, uintN argc, Value *vp)
         return false;
 
     if (!obj->isQName()) {
-        ReportIncompatibleMethod(cx, vp, &QNameClass);
+        ReportIncompatibleMethod(cx, CallReceiverFromVp(vp), &QNameClass);
         return false;
     }
 
@@ -2808,24 +2808,33 @@ ReportBadXMLName(JSContext *cx, const Value &idval)
     js_ReportValueError(cx, JSMSG_BAD_XML_NAME, JSDVG_IGNORE_STACK, idval, NULL);
 }
 
-static bool
-GetLocalNameFromFunctionQName(JSObject *qn, jsid *funidp, JSContext *cx)
+namespace js {
+
+bool
+GetLocalNameFromFunctionQName(JSObject *qn, JSAtom **namep, JSContext *cx)
 {
     JSAtom *atom = cx->runtime->atomState.functionNamespaceURIAtom;
     JSLinearString *uri = qn->getNameURI();
     if (uri && (uri == atom || EqualStrings(uri, atom))) {
-        *funidp = ATOM_TO_JSID(qn->getQNameLocalName());
+        *namep = qn->getQNameLocalName();
         return true;
     }
     return false;
 }
+
+} /* namespace js */
 
 bool
 js_GetLocalNameFromFunctionQName(JSObject *obj, jsid *funidp, JSContext *cx)
 {
     if (!obj->isQName())
         return false;
-    return GetLocalNameFromFunctionQName(obj, funidp, cx);
+    JSAtom *name;
+    if (GetLocalNameFromFunctionQName(obj, &name, cx)) {
+        *funidp = ATOM_TO_JSID(name);
+        return true;
+    }
+    return false;
 }
 
 static JSObject *
@@ -2893,8 +2902,10 @@ construct:
         return NULL;
 
 out:
-    if (!GetLocalNameFromFunctionQName(obj, funidp, cx))
-        *funidp = JSID_VOID;
+    JSAtom *localName;
+    *funidp = GetLocalNameFromFunctionQName(obj, &localName, cx)
+              ? ATOM_TO_JSID(localName)
+              : JSID_VOID;
     return obj;
 
 bad:
@@ -5331,7 +5342,7 @@ StartNonListXMLMethod(JSContext *cx, jsval *vp, JSObject **objp)
     if (!*objp)
         return NULL;
     if (!(*objp)->isXML()) {
-        ReportIncompatibleMethod(cx, vp, &XMLClass);
+        ReportIncompatibleMethod(cx, CallReceiverFromVp(vp), &XMLClass);
         return NULL;
     }
     xml = (JSXML *) (*objp)->getPrivate();
@@ -5365,7 +5376,7 @@ StartNonListXMLMethod(JSContext *cx, jsval *vp, JSObject **objp)
     if (!obj)                                                                 \
         return JS_FALSE;                                                      \
     if (!obj->isXML()) {                                                      \
-        ReportIncompatibleMethod(cx, vp, &XMLClass);                          \
+        ReportIncompatibleMethod(cx, CallReceiverFromVp(vp), &XMLClass);      \
         return JS_FALSE;                                                      \
     }                                                                         \
     JSXML *xml = (JSXML *)obj->getPrivate();                                  \
@@ -5852,7 +5863,7 @@ xml_hasOwnProperty(JSContext *cx, uintN argc, jsval *vp)
     if (!obj)
         return JS_FALSE;
     if (!obj->isXML()) {
-        ReportIncompatibleMethod(cx, vp, &XMLClass);
+        ReportIncompatibleMethod(cx, CallReceiverFromVp(vp), &XMLClass);
         return JS_FALSE;
     }
 
@@ -7618,8 +7629,11 @@ js_FindXMLProperty(JSContext *cx, const Value &nameval, JSObject **objp, jsid *i
     }
 
     qn = nameobj;
-    if (!GetLocalNameFromFunctionQName(qn, &funid, cx))
-        funid = JSID_VOID;
+
+    JSAtom *name;
+    funid = GetLocalNameFromFunctionQName(qn, &name, cx)
+            ? ATOM_TO_JSID(name)
+            : JSID_VOID;
 
     obj = cx->stack.currentScriptedScopeChain();
     do {

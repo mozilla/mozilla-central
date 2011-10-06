@@ -64,8 +64,8 @@ static PRUintn gToolkitTLSIndex = 0;
 
 
 HINSTANCE nsToolkit::mDllInstance = 0;
-PRBool    nsToolkit::mIsWinXP     = PR_FALSE;
-static PRBool dummy = nsToolkit::InitVersionInfo();
+bool      nsToolkit::mIsWinXP     = false;
+static bool dummy = nsToolkit::InitVersionInfo();
 
 static const unsigned long kD3DUsageDelay = 5000;
 
@@ -78,7 +78,7 @@ StartAllowingD3D9(nsITimer *aTimer, void *aClosure)
 //
 // main for the message pump thread
 //
-PRBool gThreadState = PR_FALSE;
+bool gThreadState = false;
 
 struct ThreadInitInfo {
     PRMonitor *monitor;
@@ -95,7 +95,7 @@ void RunPump(void* arg)
     // do registration and creation in this thread
     info->toolkit->CreateInternalWindow(PR_GetCurrentThread());
 
-    gThreadState = PR_TRUE;
+    gThreadState = true;
 
     ::PR_Notify(info->monitor);
     ::PR_ExitMonitor(info->monitor);
@@ -117,6 +117,7 @@ void RunPump(void* arg)
 //-------------------------------------------------------------------------
 nsToolkit::nsToolkit()  
 {
+    MOZ_COUNT_CTOR(nsToolkit);
     mGuiThread  = NULL;
     mDispatchWnd = 0;
 
@@ -135,6 +136,7 @@ nsToolkit::nsToolkit()
 //-------------------------------------------------------------------------
 nsToolkit::~nsToolkit()
 {
+    MOZ_COUNT_DTOR(nsToolkit);
     NS_PRECONDITION(::IsWindow(mDispatchWnd), "Invalid window handle");
 
     // Destroy the Dispatch Window
@@ -193,9 +195,9 @@ nsToolkit::Shutdown()
 void
 nsToolkit::StartAllowingD3D9()
 {
-  nsIToolkit *toolkit;
-  NS_GetCurrentToolkit(&toolkit);
-  static_cast<nsToolkit*>(toolkit)->mD3D9Timer->Cancel();
+  nsRefPtr<nsIToolkit> toolkit;
+  NS_GetCurrentToolkit(getter_AddRefs(toolkit));
+  static_cast<nsToolkit*>(toolkit.get())->mD3D9Timer->Cancel();
   nsWindow::StartAllowingD3D9(false);
 }
 
@@ -368,13 +370,13 @@ NS_METHOD NS_GetCurrentToolkit(nsIToolkit* *aResult)
 }
 
 
-PRBool nsToolkit::InitVersionInfo()
+bool nsToolkit::InitVersionInfo()
 {
-  static PRBool isInitialized = PR_FALSE;
+  static bool isInitialized = false;
 
   if (!isInitialized)
   {
-    isInitialized = PR_TRUE;
+    isInitialized = true;
 
     OSVERSIONINFO osversion;
     osversion.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
@@ -386,7 +388,7 @@ PRBool nsToolkit::InitVersionInfo()
     }
   }
 
-  return PR_TRUE;
+  return true;
 }
 
 //-------------------------------------------------------------------------
@@ -394,7 +396,7 @@ PRBool nsToolkit::InitVersionInfo()
 //
 //-------------------------------------------------------------------------
 MouseTrailer::MouseTrailer() : mMouseTrailerWindow(nsnull), mCaptureWindow(nsnull),
-  mIsInCaptureMode(PR_FALSE), mEnabled(PR_TRUE)
+  mIsInCaptureMode(false), mEnabled(true)
 {
 }
 //-------------------------------------------------------------------------
@@ -427,7 +429,7 @@ void MouseTrailer::SetCaptureWindow(HWND aWnd)
 { 
   mCaptureWindow = aWnd;
   if (mCaptureWindow) {
-    mIsInCaptureMode = PR_TRUE;
+    mIsInCaptureMode = true;
   }
 }
 
@@ -485,7 +487,7 @@ void MouseTrailer::TimerProc(nsITimer* aTimer, void* aClosure)
       // it if we were capturing and now this is the first timer callback 
       // since we canceled the capture
       mtrailer->mMouseTrailerWindow = nsnull;
-      mtrailer->mIsInCaptureMode = PR_FALSE;
+      mtrailer->mIsInCaptureMode = false;
       return;
     }
   }

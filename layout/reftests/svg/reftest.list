@@ -145,6 +145,7 @@ fails == inline-in-xul-basic-01.xul pass.svg
 == marker-attribute-01.svg pass.svg
 == marker-viewBox-01.svg marker-viewBox-01-ref.svg
 == mask-basic-01.svg pass.svg
+== mask-basic-02.svg mask-basic-02-ref.svg
 == mask-containing-masked-content-01.svg pass.svg
 == mask-transformed-01.svg mask-transformed-01-ref.svg
 == nested-viewBox-01.svg pass.svg
@@ -175,6 +176,7 @@ fails-if(Android&&layersOpenGL) == path-04.svg pass.svg
 == pattern-live-01a.svg pattern-live-01-ref.svg
 == pattern-live-01b.svg pattern-live-01-ref.svg
 == pattern-live-01c.svg pattern-live-01-ref.svg
+== pattern-scale-01.svg pattern-scale-01-ref.svg
 == pattern-transform-presence-01.svg pattern-transform-presence-01-ref.svg
 == polygon-marker-01.svg pass.svg
 == polygon-points-negative-01.svg pass.svg

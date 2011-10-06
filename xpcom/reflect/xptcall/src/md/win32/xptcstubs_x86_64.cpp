@@ -159,7 +159,10 @@ PrepareAndDispatch(nsXPTCStubBase* self, PRUint32 methodIndex, PRUint64* args,
 
         case nsXPTType::T_FLOAT:
              if (iCount < PARAM_FPR_COUNT)
-                dp->val.f  = (float)fprData[iCount++];
+                // The value in xmm register is already prepared to
+                // be retrieved as a float. Therefore, we pass the
+                // value verbatim, as a double without conversion.
+                dp->val.d  = (double)fprData[iCount++];
              else
                 dp->val.f  = *((float*)ap++);
              break;
@@ -173,9 +176,11 @@ PrepareAndDispatch(nsXPTCStubBase* self, PRUint32 methodIndex, PRUint64* args,
 
         case nsXPTType::T_BOOL:
            if (iCount < PARAM_GPR_COUNT)
-              dp->val.b  = (PRBool)gprData[iCount++];
+              // We need cast to PRUint8 to remove garbage on upper 56-bit
+              // at first.
+              dp->val.b  = (bool)(PRUint8)gprData[iCount++];
            else
-              dp->val.b  = *((PRBool*)ap++);
+              dp->val.b  = *((bool*)ap++);
            break;
 
         case nsXPTType::T_CHAR:

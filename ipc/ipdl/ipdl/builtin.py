@@ -61,8 +61,6 @@ Types = (
     'ssize_t',
 
     # NSPR types
-    'PRBool',
-    'PRPackedBool',
     'PRInt8',
     'PRUint8',
     'PRInt16',
@@ -77,7 +75,19 @@ Types = (
     'nsresult',
     'nsString',
     'nsCString',
-    'mozilla::ipc::Shmem'
+    'mozilla::ipc::Shmem',
+
+    # quasi-stdint types used by "public" Gecko headers
+    'int8',
+    'uint8',
+    'int16',
+    'uint16',
+    'int32',
+    'uint32',
+    'int64',
+    'uint64',
+    'intptr',
+    'uintptr',
 )
 
 

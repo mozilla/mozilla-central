@@ -41,11 +41,13 @@
 #ifndef jsanalyze_h___
 #define jsanalyze_h___
 
-#include "jsarena.h"
 #include "jscompartment.h"
 #include "jscntxt.h"
 #include "jsinfer.h"
 #include "jsscript.h"
+#include "jstl.h"
+
+#include "ds/LifoAlloc.h"
 
 struct JSScript;
 
@@ -82,11 +84,6 @@ namespace analyze {
  * Intermediate type inference results are additionally stored here. The above
  * analyses are independent from type inference.
  */
-
-class SSAValue;
-struct SSAUseChain;
-struct LoopAnalysis;
-struct SlotValue;
 
 /* Information about a bytecode instruction. */
 class Bytecode
@@ -527,8 +524,9 @@ struct Lifetime
 };
 
 /* Basic information for a loop. */
-struct LoopAnalysis
+class LoopAnalysis
 {
+  public:
     /* Any loop this one is nested in. */
     LoopAnalysis *parent;
 
@@ -850,10 +848,12 @@ SSAValue::phiTypes() const
     return &u.phi.node->types;
 }
 
-struct SSAUseChain
+class SSAUseChain
 {
+  public:
     bool popped : 1;
     uint32 offset : 31;
+    /* FIXME: Assert that only the proper arm of this union is accessed. */
     union {
         uint32 which;
         SSAPhiNode *phi;
@@ -863,8 +863,9 @@ struct SSAUseChain
     SSAUseChain() { PodZero(this); }
 };
 
-struct SlotValue
+class SlotValue
 {
+  public:
     uint32 slot;
     SSAValue value;
     SlotValue(uint32 slot, const SSAValue &value) : slot(slot), value(value) {}
@@ -1097,6 +1098,9 @@ class ScriptAnalysis
     types::TypeSet *poppedTypes(const jsbytecode *pc, uint32 which) {
         return getValueTypes(poppedValue(pc, which));
     }
+
+    /* Whether an arithmetic operation is operating on integers, with an integer result. */
+    bool integerOperation(JSContext *cx, jsbytecode *pc);
 
     bool trackUseChain(const SSAValue &v) {
         JS_ASSERT_IF(v.kind() == SSAValue::VAR, trackSlot(v.varSlot()));
@@ -1370,6 +1374,18 @@ void PrintBytecode(JSContext *cx, JSScript *script, jsbytecode *pc);
 #endif
 
 } /* namespace analyze */
+} /* namespace js */
+
+namespace js {
+namespace tl {
+
+template <> struct IsPodType<js::analyze::LifetimeVariable> { static const bool result = true; };
+template <> struct IsPodType<js::analyze::LoopAnalysis>     { static const bool result = true; };
+template <> struct IsPodType<js::analyze::SlotValue>        { static const bool result = true; };
+template <> struct IsPodType<js::analyze::SSAValue>         { static const bool result = true; };
+template <> struct IsPodType<js::analyze::SSAUseChain>      { static const bool result = true; };
+
+} /* namespace tl */
 } /* namespace js */
 
 #endif // jsanalyze_h___

@@ -205,8 +205,12 @@ pref("gfx.downloadable_fonts.sanitize", true);
 // use harfbuzz for default (0x01) + arabic (0x02) + hebrew (0x04) + thai (0x40)
 pref("gfx.font_rendering.harfbuzz.scripts", 71);
 #else
+#ifdef ANDROID
+pref("gfx.font_rendering.harfbuzz.scripts", 71);
+#else
 // use harfbuzz for default (0x01) + arabic (0x02)
 pref("gfx.font_rendering.harfbuzz.scripts", 3);
+#endif
 #endif
 
 #ifdef XP_WIN
@@ -3362,4 +3366,4 @@ pref("full-screen-api.key-input-restricted", true);
 pref("dom.event.handling-user-input-time-limit", 1000);
  
 //3D Transforms
-pref("layout.3d-transforms.enabled", false);
+pref("layout.3d-transforms.enabled", true);

@@ -51,19 +51,19 @@ public:
 
   virtual nsresult Init(nsBuiltinDecoderReader* aCloneDonor);
   virtual nsresult ResetDecode();
-  virtual PRBool DecodeAudioData();
+  virtual bool DecodeAudioData();
 
-  virtual PRBool DecodeVideoFrame(PRBool &aKeyframeSkip,
+  virtual bool DecodeVideoFrame(bool &aKeyframeSkip,
                                   PRInt64 aTimeThreshold);
 
-  virtual PRBool HasAudio()
+  virtual bool HasAudio()
   {
-    return PR_FALSE;
+    return false;
   }
 
-  virtual PRBool HasVideo()
+  virtual bool HasVideo()
   {
-    return PR_TRUE;
+    return true;
   }
 
   virtual nsresult ReadMetadata(nsVideoInfo* aInfo);
@@ -71,7 +71,7 @@ public:
   virtual nsresult GetBuffered(nsTimeRanges* aBuffered, PRInt64 aStartTime);
 
 private:
-  PRBool ReadFromStream(nsMediaStream *aStream, PRUint8 *aBuf,
+  bool ReadFromStream(nsMediaStream *aStream, PRUint8 *aBuf,
                         PRUint32 aLength);
 
   nsRawVideoHeader mMetadata;

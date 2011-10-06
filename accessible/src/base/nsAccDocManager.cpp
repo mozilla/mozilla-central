@@ -94,11 +94,23 @@ nsAccDocManager::FindAccessibleInCache(nsINode* aNode) const
   return arg.mAccessible;
 }
 
+#ifdef DEBUG
+bool
+nsAccDocManager::IsProcessingRefreshDriverNotification() const
+{
+  bool isDocRefreshing = false;
+  mDocAccessibleCache.EnumerateRead(SearchIfDocIsRefreshing,
+                                    static_cast<void*>(&isDocRefreshing));
+
+  return isDocRefreshing;
+}
+#endif
+
 
 ////////////////////////////////////////////////////////////////////////////////
 // nsAccDocManager protected
 
-PRBool
+bool
 nsAccDocManager::Init()
 {
   mDocAccessibleCache.Init(4);
@@ -325,7 +337,7 @@ nsAccDocManager::HandleDOMDocumentLoad(nsIDocument *aDocument,
 
 void
 nsAccDocManager::AddListeners(nsIDocument *aDocument,
-                              PRBool aAddDOMContentLoadedListener)
+                              bool aAddDOMContentLoadedListener)
 {
   nsPIDOMWindow *window = aDocument->GetWindow();
   nsIDOMEventTarget *target = window->GetChromeEventHandler();
@@ -362,7 +374,7 @@ nsAccDocManager::CreateDocOrRootAccessible(nsIDocument *aDocument)
   if (!rootElm)
     return nsnull;
 
-  PRBool isRootDoc = nsCoreUtils::IsRootDocument(aDocument);
+  bool isRootDoc = nsCoreUtils::IsRootDocument(aDocument);
 
   nsDocAccessible* parentDocAcc = nsnull;
   if (!isRootDoc) {
@@ -418,6 +430,7 @@ nsAccDocManager::CreateDocOrRootAccessible(nsIDocument *aDocument)
   }
 
   NS_LOG_ACCDOCCREATE("document creation finished", aDocument)
+  NS_LOG_ACCDOCCREATE_STACK
 
   AddListeners(aDocument, isRootDoc);
   return docAcc;
@@ -466,3 +479,22 @@ nsAccDocManager::SearchAccessibleInDocCache(const nsIDocument* aKey,
 
   return PL_DHASH_NEXT;
 }
+
+#ifdef DEBUG
+PLDHashOperator
+nsAccDocManager::SearchIfDocIsRefreshing(const nsIDocument* aKey,
+                                         nsDocAccessible* aDocAccessible,
+                                         void* aUserArg)
+{
+  NS_ASSERTION(aDocAccessible,
+               "No doc accessible for the object in doc accessible cache!");
+
+  if (aDocAccessible && aDocAccessible->mNotificationController &&
+      aDocAccessible->mNotificationController->IsUpdating()) {
+    *(static_cast<bool*>(aUserArg)) = true;
+    return PL_DHASH_STOP;
+  }
+
+  return PL_DHASH_NEXT;
+}
+#endif
