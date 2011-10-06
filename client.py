@@ -302,7 +302,7 @@ def backup_cvs_extension(extensionName, extensionDir, extensionPath):
         sys.excepthook(sys.exc_info()[0], sys.exc_info()[1], None)
         sys.exit("Error: %s directory renaming failed!" % extensionName)
 
-def do_hg_pull(dir, repository, hg, rev):
+def do_hg_pull(dir, repository, hg, rev, hgtool=None):
     """Clone if the dir doesn't exist, pull if it does.
     """
 
@@ -316,7 +316,10 @@ def do_hg_pull(dir, repository, hg, rev):
     if options.hgopts:
         hgopts = options.hgopts.split()
 
-    if not os.path.exists(fulldir):
+    if hgtool:
+        hgtoolcmd = hgtool.split()
+        check_call_noisy(['python'] + hgtoolcmd + [repository, fulldir], retryMax=options.retries)
+    elif not os.path.exists(fulldir):
         fulldir = os.path.join(topsrcdir, dir)
         check_call_noisy([hg, 'clone'] + hgcloneopts + hgopts + [repository, fulldir],
                          retryMax=options.retries)
@@ -395,7 +398,7 @@ o.add_option("--comm-rev", dest="comm_rev",
              help="Revision of comm (Calendar/Mail/Suite) repository to update to. Default: \"" + get_DEFAULT_tag('COMM_REV') + "\"")
 
 o.add_option("-z", "--mozilla-repo", dest="mozilla_repo",
-             default=None,
+             default=DEFAULTS['MOZILLA_REPO'],
              help="URL of Mozilla repository to pull from (default: use hg default in mozilla/.hg/hgrc; or if that file doesn't exist, use \"" + DEFAULTS['MOZILLA_REPO'] + "\".)")
 o.add_option("--skip-mozilla", dest="skip_mozilla",
              action="store_true", default=False,
@@ -452,6 +455,9 @@ o.add_option("--hg", dest="hg", default=os.environ.get('HG', 'hg'),
 o.add_option("-v", "--verbose", dest="verbose",
              action="store_true", default=False,
              help="Enable verbose output on hg updates")
+o.add_option("--hgtool", dest="hgtool",
+             default=None,
+             help="Path to hgtool, if wanted")
 o.add_option("--hg-options", dest="hgopts",
              help="Pass arbitrary options to hg commands (i.e. --debug, --time)")
 o.add_option("--hg-clone-options", dest="hgcloneopts",
@@ -609,7 +615,7 @@ if action in ('checkout', 'co'):
             print "Setting mozilla_rev to '%s'" % options.mozilla_rev
             
         fixup_mozilla_repo_options(options)
-        do_hg_pull('mozilla', options.mozilla_repo, options.hg, options.mozilla_rev)
+        do_hg_pull('mozilla', options.mozilla_repo, options.hg, options.mozilla_rev, options.hgtool)
 
     # Check whether destination directory exists for these extensions.
     if (not options.skip_chatzilla or not options.skip_inspector or \
