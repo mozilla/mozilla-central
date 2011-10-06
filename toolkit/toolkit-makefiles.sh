@@ -1153,5 +1153,6 @@ fi
 if [ "$MOZ_WEBRTC" ]; then
  add_makefiles "
    media/webrtc/Makefile
+   media/webrtc/trunk/Makefile
  "
 fi
