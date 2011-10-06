@@ -1752,7 +1752,10 @@ nsMsgComposeAndSend::GetBodyFromEditor()
 // for our internal protocol buffers, 4k
 // for news < 1000
 // so we choose the minimum, because we could be sending and posting this message.
-#define LINE_BREAK_MAX 990
+// Use the exact value, because preceding steps might have trimmed the length
+// close to it, and here e.g. we run the risk of breaking UTF-8 pairs in half.
+// See #684508
+#define LINE_BREAK_MAX (1000 - MSG_LINEBREAK_LEN)
 
 // EnsureLineBreaks() will set m_attachment1_body and m_attachment1_body_length
 nsresult
