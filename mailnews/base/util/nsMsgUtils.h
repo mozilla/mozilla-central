@@ -66,6 +66,7 @@ class nsIMutableArray;
 class nsIProxyInfo;
 class nsIMsgWindow;
 class nsISupportsArray;
+class nsIStreamListener;
 
 //These are utility functions that can used throughout the mailnews code
 
@@ -288,6 +289,9 @@ NS_MSG_BASE PRTime MsgConvertAgeInDaysToCutoffDate(PRInt32 ageInDays);
  *
  */
 NS_MSG_BASE nsresult MsgTermListToString(nsISupportsArray *aTermList, nsCString &aOutString);
+
+NS_MSG_BASE nsresult
+MsgStreamMsgHeaders(nsIInputStream *aInputStream, nsIStreamListener *aConsumer);
 
 /**
  * convert string to PRUint64

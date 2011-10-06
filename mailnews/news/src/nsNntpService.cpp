@@ -1560,6 +1560,60 @@ nsNntpService::StreamMessage(const char *aMessageURI, nsISupports *aConsumer,
     return GetMessageFromUrl(url, aMsgWindow, aConsumer);
 }
 
+NS_IMETHODIMP nsNntpService::StreamHeaders(const char *aMessageURI,
+                                           nsIStreamListener *aConsumer,
+                                           nsIUrlListener *aUrlListener,
+                                           bool aLocalOnly,
+                                           nsIURI **aURL)
+{
+  NS_ENSURE_ARG_POINTER(aMessageURI);
+  NS_ENSURE_ARG_POINTER(aConsumer);
+  nsCOMPtr<nsIMsgFolder> folder;
+  nsMsgKey key;
+
+  nsresult rv = DecomposeNewsMessageURI(aMessageURI, getter_AddRefs(folder), &key);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (key == nsMsgKey_None)
+    return NS_MSG_MESSAGE_NOT_FOUND;
+
+  nsCOMPtr<nsIInputStream> inputStream;
+  bool hasMsgOffline = false;
+  folder->HasMsgOffline(key, &hasMsgOffline);
+  if (hasMsgOffline)
+  {
+    PRUint64 messageOffset;
+    PRUint32 messageSize;
+    folder->GetOfflineFileStream(key, &messageOffset, &messageSize, getter_AddRefs(inputStream));
+    if (inputStream)
+      return MsgStreamMsgHeaders(inputStream, aConsumer);
+  }
+  nsCAutoString urlStr;
+  rv = CreateMessageIDURL(folder, key, getter_Copies(urlStr));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsNewsAction action = nsINntpUrl::ActionFetchArticle;
+
+  nsCOMPtr<nsIURI> url;
+  rv = ConstructNntpUrl(urlStr.get(), aUrlListener, nsnull, aMessageURI,
+                        action, getter_AddRefs(url));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsICacheEntryDescriptor> cacheEntry;
+  bool msgInMemCache = false;
+  rv = IsMsgInMemCache(url, folder, getter_AddRefs(cacheEntry), &msgInMemCache);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (msgInMemCache)
+  {
+    rv = cacheEntry->OpenInputStream(0, getter_AddRefs(inputStream));
+    if (NS_SUCCEEDED(rv))
+      return MsgStreamMsgHeaders(inputStream, aConsumer);
+  }
+  if (aLocalOnly)
+    return NS_ERROR_FAILURE;
+  return rv;
+}
+
 NS_IMETHODIMP nsNntpService::IsMsgInMemCache(nsIURI *aUrl,
                                              nsIMsgFolder *aFolder,
                                              nsICacheEntryDescriptor **aCacheEntry,

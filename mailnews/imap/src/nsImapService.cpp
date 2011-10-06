@@ -1240,6 +1240,64 @@ NS_IMETHODIMP nsImapService::StreamMessage(const char *aMessageURI,
   return rv;
 }
 
+// this method streams a message's headers to the passed in consumer.
+NS_IMETHODIMP nsImapService::StreamHeaders(const char *aMessageURI,
+                                           nsIStreamListener *aConsumer,
+                                           nsIUrlListener *aUrlListener,
+                                           bool aLocalOnly,
+                                           nsIURI **aURL)
+{
+  NS_ENSURE_ARG_POINTER(aMessageURI);
+  NS_ENSURE_ARG_POINTER(aConsumer);
+  nsCOMPtr<nsIMsgFolder> folder;
+  nsCAutoString msgKey;
+  nsCAutoString folderURI;
+  nsCString mimePart;
+  nsMsgKey key;
+
+  nsresult rv = DecomposeImapURI(nsDependentCString(aMessageURI), getter_AddRefs(folder), msgKey);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (msgKey.IsEmpty())
+    return NS_MSG_MESSAGE_NOT_FOUND;
+  rv = nsParseImapMessageURI(aMessageURI, folderURI, &key, getter_Copies(mimePart));
+  if (NS_SUCCEEDED(rv))
+  {
+    nsCOMPtr<nsIInputStream> inputStream;
+    bool hasMsgOffline = false;
+    folder->HasMsgOffline(key, &hasMsgOffline);
+    if (hasMsgOffline)
+    {
+      PRUint64 messageOffset;
+      PRUint32 messageSize;
+      folder->GetOfflineFileStream(key, &messageOffset, &messageSize, getter_AddRefs(inputStream));
+      if (inputStream)
+        return MsgStreamMsgHeaders(inputStream, aConsumer);
+    }
+    nsCOMPtr<nsIImapUrl> imapUrl;
+    nsCAutoString urlSpec;
+    char hierarchyDelimiter = GetHierarchyDelimiter(folder);
+    rv = CreateStartOfImapUrl(nsDependentCString(aMessageURI), getter_AddRefs(imapUrl), 
+                              folder, aUrlListener, urlSpec, hierarchyDelimiter);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIURI> url(do_QueryInterface(imapUrl));
+    nsCOMPtr<nsICacheEntryDescriptor> cacheEntry;
+    bool msgInMemCache = false;
+    rv = IsMsgInMemCache(url, folder, getter_AddRefs(cacheEntry), &msgInMemCache);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    if (msgInMemCache)
+    {
+      rv = cacheEntry->OpenInputStream(0, getter_AddRefs(inputStream));
+      if (NS_SUCCEEDED(rv))
+        return MsgStreamMsgHeaders(inputStream, aConsumer);
+    }
+  }
+  if (aLocalOnly)
+    return NS_ERROR_FAILURE;
+  return rv;
+}
+
 NS_IMETHODIMP nsImapService::IsMsgInMemCache(nsIURI *aUrl,
                                              nsIMsgFolder *aImapMailFolder,
                                              nsICacheEntryDescriptor **aCacheEntry,

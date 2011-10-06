@@ -92,6 +92,8 @@
 #include "nsIMsgSearchTerm.h"
 #include "nsTextFormatter.h"
 #include "nsIAtomService.h"
+#include "nsIStreamListener.h"
+#include "nsReadLine.h"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
@@ -2178,3 +2180,39 @@ NS_MSG_BASE PRUint64 ParseUint64Str(const char *str)
   return strtoull(str, nsnull, 10);
 #endif
 }
+
+NS_MSG_BASE nsresult
+MsgStreamMsgHeaders(nsIInputStream *aInputStream, nsIStreamListener *aConsumer)
+{
+  nsLineBuffer<char> *lineBuffer;
+  nsresult rv = NS_InitLineBuffer(&lineBuffer);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCAutoString msgHeaders;
+  nsCAutoString curLine;
+
+  bool more = PR_TRUE;
+
+  // We want to NS_ReadLine until we get to a blank line (the end of the headers)
+  while (more)
+  {
+    rv = NS_ReadLine(aInputStream, lineBuffer, curLine, &more);
+    NS_ENSURE_SUCCESS(rv, rv);
+    if (curLine.IsEmpty())
+      break;
+    msgHeaders.Append(curLine);
+    msgHeaders.Append(NS_LITERAL_CSTRING("\r\n"));
+  }
+  PR_Free(lineBuffer);
+  nsCOMPtr<nsIStringInputStream> hdrsStream =
+        do_CreateInstance("@mozilla.org/io/string-input-stream;1", &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  hdrsStream->SetData(msgHeaders.get(), msgHeaders.Length());
+  nsCOMPtr<nsIInputStreamPump> pump;
+  rv = NS_NewInputStreamPump(getter_AddRefs(pump), hdrsStream);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return pump->AsyncRead(aConsumer, nsnull);
+
+}
+

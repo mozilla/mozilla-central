@@ -52,7 +52,7 @@ interface nsICacheEntryDescriptor;
 #include "MailNewsTypes.h"
 %}
 
-[scriptable, uuid(ac7b56c2-cf42-4ee3-a3b1-9ae64a90861c)]
+[scriptable, uuid(3aa7080a-73ac-4394-9636-fc00e182319b)]
 interface nsIMsgMessageService : nsISupports {
      
   /**
@@ -219,7 +219,28 @@ interface nsIMsgMessageService : nsISupports {
                     in ACString aAdditionalHeader,
                     [optional] in boolean aLocalOnly);
 
-  
+  /** 
+   * This method streams a message's headers to the passed in consumer.
+   * This is for consumers who want a particular header but don't
+   * want to stream the whole message.
+   *
+   * @param aMessageURI  uri of message whose headers we are to stream
+   * @param aConsumer    a stream listener listening to the message
+                         headers.
+   * @param aUrlListener gets notified when url starts and stops, if we run a url.
+   * @param aLocalOnly whether data should be retrieved only from local caches
+   *        If streaming over the network is required and this is true, then
+   *        an exception is thrown. This defaults to false.
+   *
+   * @note If we're offline, then even if aLocalOnly is false, we won't stream over the
+   *       network
+   *
+   * @return the URL that gets run, if any.
+   */
+  nsIURI streamHeaders(in string aMessageURI, in nsIStreamListener aConsumer,
+                       in nsIUrlListener aUrlListener, 
+                       [optional] in boolean aLocalOnly);
+
   /**
    * Determines whether a message is in the memory cache. Local folders
    * don't implement this.

@@ -332,6 +332,30 @@ nsMailboxService::StreamMessage(const char *aMessageURI,
                                         nsIMailboxUrl::ActionFetchMessage, nsnull, aURL);
 }
 
+NS_IMETHODIMP nsMailboxService::StreamHeaders(const char *aMessageURI,
+                                              nsIStreamListener *aConsumer,
+                                              nsIUrlListener *aUrlListener,
+                                              bool aLocalOnly,
+                                              nsIURI **aURL)
+{
+  NS_ENSURE_ARG_POINTER(aMessageURI);
+  NS_ENSURE_ARG_POINTER(aConsumer);
+  nsCAutoString folderURI;
+  nsMsgKey msgKey;
+  nsCOMPtr<nsIMsgFolder> folder;
+  nsresult rv = DecomposeMailboxURI(aMessageURI, getter_AddRefs(folder), &msgKey);
+  if (msgKey == nsMsgKey_None)
+    return NS_MSG_MESSAGE_NOT_FOUND;
+
+  nsCOMPtr<nsIInputStream> inputStream;
+  PRUint64 messageOffset;
+  PRUint32 messageSize;
+  rv = folder->GetOfflineFileStream(msgKey, &messageOffset, &messageSize, getter_AddRefs(inputStream));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return MsgStreamMsgHeaders(inputStream, aConsumer);
+}
+
+
 NS_IMETHODIMP nsMailboxService::IsMsgInMemCache(nsIURI *aUrl,
                                                 nsIMsgFolder *aFolder,
                                                 nsICacheEntryDescriptor **aCacheEntry,
