@@ -1523,7 +1523,9 @@ function switchToTabHavingURI(aURI, aOpenNew, aCallback) {
 
   // No opened tab has that url.
   if (aOpenNew) {
-    let browserWin = openUILinkIn(aURI.spec, "tabfocused");
+    let newWindowPref = Services.prefs.getIntPref("browser.link.open_external");
+    let where = newWindowPref == kNewTab ? "tabfocused" : "window";
+    let browserWin = openUILinkIn(aURI.spec, where);
     if (aCallback) {
       browserWin.addEventListener("pageshow", function(event) {
         if (event.target.location.href != aURI.spec)
