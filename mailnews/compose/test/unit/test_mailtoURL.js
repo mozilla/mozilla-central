@@ -1,6 +1,7 @@
 /*
  * Test suite for mailto: URLs
  */
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 const nsIMailtoUrl = Components.interfaces.nsIMailtoUrl;
 const COMPOSE_HTML = Components.interfaces.nsIMsgCompFormat.HTML;
@@ -9,9 +10,7 @@ const COMPOSE_DEFAULT = Components.interfaces.nsIMsgCompFormat.Default;
 function run_test() {
 
   function test(aTest) {
-    var ios = Components.classes["@mozilla.org/network/io-service;1"]
-                        .getService(Components.interfaces.nsIIOService);
-    var uri = ios.newURI(aTest.url, null, null);
+    var uri = Services.io.newURI(aTest.url, null, null);
     uri = uri.QueryInterface(Components.interfaces.nsIMailtoUrl);
 
     var to = {}, cc = {}, bcc = {}, subject = {}, body = {}, html = {},
@@ -39,6 +38,14 @@ function run_test() {
   for (var i = 0; i < tests.length; i++)
     test(tests[i]);
 
+  // Test cloning reparses the url by checking the to field.
+  let uriToClone = Services.io.newURI(tests[0].url, null, null);
+  let clonedUrl = uriToClone.clone().QueryInterface(Components.interfaces.nsIMailtoUrl);
+  var to = {}, cc = {}, bcc = {}, subject = {}, body = {}, html = {},
+      reference = {}, newsgroup = {}, composeformat = {};
+  clonedUrl.GetMessageContents(to, cc, bcc, subject, body, html, reference,
+                         newsgroup, composeformat);
+  do_check_eq(to.value, tests[0].to);
 };
 
 const tests = [
