@@ -83,9 +83,17 @@ function setupModule(module) {
   let crashReporter = Cc["@mozilla.org/toolkit/crash-reporter;1"]
                         .getService(Ci.nsICrashReporter);
 
+  /* Bug 689580 - these crash tests fail randomly on 64-bit OSX.  We'll
+   * disable them for now, until we can figure out what's going on.
+   */
+  Components.utils.import("resource://gre/modules/Services.jsm");
+  let is64BitOSX = (mc.mozmillModule.isMac &&
+                    Services.appinfo.XPCOMABI.match(/x86_64-/));
+
   // These tests are no good if the crash reporter is disabled, or if
   // we don't have out-of-process plugins enabled.
-  if (!plugins_run_in_separate_processes(mc) ||
+  if (is64BitOSX ||  // XXX Remove once Bug 689580 is resolved
+      !plugins_run_in_separate_processes(mc) ||
       !crashReporter.enabled) {
     let funcsToSkip = [test_can_crash_plugin,
                        test_crashed_plugin_notification_bar,
