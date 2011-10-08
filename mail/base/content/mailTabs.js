@@ -734,6 +734,7 @@ let mailTabType = {
       case "cmd_viewClassicMailLayout":
       case "cmd_viewWideMailLayout":
       case "cmd_viewVerticalMailLayout":
+      case "cmd_toggleFolderPane":
       case "cmd_toggleMessagePane":
         return true;
 
@@ -748,6 +749,7 @@ let mailTabType = {
       case "cmd_viewClassicMailLayout":
       case "cmd_viewWideMailLayout":
       case "cmd_viewVerticalMailLayout":
+      case "cmd_toggleFolderPane":
       case "cmd_toggleMessagePane":
         // If the thread pane is illegal, these are all disabled
         if (!aTab.mode.legalPanes.thread)

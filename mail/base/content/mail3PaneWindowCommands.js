@@ -176,6 +176,7 @@ var DefaultController =
       case "cmd_viewClassicMailLayout":
       case "cmd_viewWideMailLayout":
       case "cmd_viewVerticalMailLayout":
+      case "cmd_toggleFolderPane":
       case "cmd_toggleMessagePane":
       case "cmd_viewAllMsgs":
       case "cmd_viewUnreadMsgs":
@@ -481,6 +482,7 @@ var DefaultController =
       case "cmd_viewClassicMailLayout":
       case "cmd_viewWideMailLayout":
       case "cmd_viewVerticalMailLayout":
+      case "cmd_toggleFolderPane":
       case "cmd_toggleMessagePane":
         // this is overridden per-mail tab
         return true;
@@ -713,6 +715,9 @@ var DefaultController =
       case "cmd_viewWideMailLayout":
       case "cmd_viewVerticalMailLayout":
         ChangeMailLayoutForCommand(command);
+        break;
+      case "cmd_toggleFolderPane":
+        MsgToggleFolderPane();
         break;
       case "cmd_toggleMessagePane":
         MsgToggleMessagePane();

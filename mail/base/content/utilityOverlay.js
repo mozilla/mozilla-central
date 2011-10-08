@@ -198,6 +198,22 @@ function goToggleToolbar( id, elementID )
   }
 }
 
+/**
+ * Toggle a splitter to show or hide some piece of UI (e.g. the message preview
+ * pane).
+ *
+ * @param splitterId the splliter that should be toggled
+ */
+function togglePaneSplitter(splitterId)
+{
+  var splitter = document.getElementById(splitterId);
+  var state = splitter.getAttribute("state");
+  if (state == "collapsed")
+    splitter.setAttribute("state", "open");
+  else
+    splitter.setAttribute("state", "collapsed")
+}
+
 // openUILink handles clicks on UI elements that cause URLs to load.
 // Firefox and SeaMonkey have a function with the same name,
 // so extensions can use this everywhere to open links.
