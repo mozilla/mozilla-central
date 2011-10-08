@@ -130,23 +130,6 @@
   font-weight: normal;
 }
 
-#buttonbox {
-  float: right;
-  padding-top: 1ex;
-  padding-bottom: 1ex;
-  font-size: 11px;
-  font-family: Lucida Grande;
-  border: 1px solid transparent; 
-}
-
-.button {
-  display: inline;
-}
-
-#trash {
-  -moz-box-orient: horizontal;
-}
-
 #column {
   float: right;
   right: 1em;
@@ -157,7 +140,7 @@
   border: 1px solid transparent;
 }
 
- .section_heading {
+.section_heading {
   font-weight: bold;
   padding-bottom: .5em;
   color: #555;

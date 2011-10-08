@@ -263,7 +263,7 @@ MultiMessageSummary.prototype = {
     heading.textContent = messagesTitle;
 
     // enable/disable the archive button as appropriate
-    let archiveBtn = htmlpane.contentDocument.getElementById('archive');
+    let archiveBtn = htmlpane.contentDocument.getElementById('hdrArchiveButton');
     archiveBtn.collapsed = !gFolderDisplay.canArchiveSelectedMessages;
 
     // clear the messages list
@@ -557,7 +557,7 @@ ThreadSummary.prototype = {
     heading.textContent = subject;
 
     // enable/disable the archive button as appropriate
-    let archiveBtn = htmlpane.contentDocument.getElementById('archive');
+    let archiveBtn = htmlpane.contentDocument.getElementById('hdrArchiveButton');
     archiveBtn.collapsed = !gFolderDisplay.canArchiveSelectedMessages;
 
     let messagesElt = htmlpane.contentDocument.getElementById('messagelist');
