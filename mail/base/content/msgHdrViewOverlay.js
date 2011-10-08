@@ -1785,6 +1785,7 @@ function ContentTypeIsSMIME(contentType)
 function onShowAttachmentItemContextMenu()
 {
   let attachmentList = document.getElementById("attachmentList");
+  let attachmentInfo = document.getElementById("attachmentInfo");
   let attachmentName = document.getElementById("attachmentName");
   let contextMenu    = document.getElementById("attachmentItemContext");
   let openMenu       = document.getElementById("context-openAttachment");
@@ -1792,12 +1793,15 @@ function onShowAttachmentItemContextMenu()
   let detachMenu     = document.getElementById("context-detachAttachment");
   let deleteMenu     = document.getElementById("context-deleteAttachment");
 
-  // If we opened the context menu from the attachmentName label, just grab
-  // the first (and only) attachment as our "selected" attachments.
+  // If we opened the context menu from the attachment info area (the paperclip,
+  // "1 attachment" label, filename, or file size, just grab the first (and
+  // only) attachment as our "selected" attachments.
   var selectedAttachments;
-  if (contextMenu.triggerNode == attachmentName) {
+  if (contextMenu.triggerNode == attachmentInfo ||
+      contextMenu.triggerNode.parentNode == attachmentInfo) {
     selectedAttachments = [attachmentList.getItemAtIndex(0).attachment];
-    attachmentName.setAttribute("selected", true);
+    if (contextMenu.triggerNode == attachmentName)
+      attachmentName.setAttribute("selected", true);
   }
   else
     selectedAttachments = [item.attachment for each([, item] in
@@ -2029,14 +2033,16 @@ function displayAttachmentsForExpandedView()
     // attachments.
     updateSaveAllAttachmentsButton();
 
+    let attachmentInfo = document.getElementById("attachmentInfo");
     let attachmentCount = document.getElementById("attachmentCount");
-    let attachmentName  = document.getElementById("attachmentName");
-    let attachmentSize  = document.getElementById("attachmentSize");
+    let attachmentName = document.getElementById("attachmentName");
+    let attachmentSize = document.getElementById("attachmentSize");
 
     if (numAttachments == 1) {
       let count = bundle.getString("attachmentCountSingle");
       let name = SanitizeAttachmentDisplayName(currentAttachments[0]);
 
+      attachmentInfo.setAttribute("contextmenu", "attachmentItemContext");
       attachmentCount.setAttribute("value", count);
       attachmentName.hidden = false;
       attachmentName.setAttribute("value", name);
@@ -2046,6 +2052,7 @@ function displayAttachmentsForExpandedView()
       let count = PluralForm.get(currentAttachments.length, words)
                             .replace("#1", currentAttachments.length);
 
+      attachmentInfo.setAttribute("contextmenu", "attachmentListContext");
       attachmentCount.setAttribute("value", count);
       attachmentName.hidden = true;
     }
@@ -2099,10 +2106,12 @@ function updateSaveAllAttachmentsButton()
  */
 function toggleAttachmentList(expanded, updateFocus)
 {
-  var attachmentToggle    = document.getElementById("attachmentToggle");
-  var attachmentView      = document.getElementById("attachmentView");
-  var attachmentList      = document.getElementById("attachmentList");
-  var attachmentSplitter  = document.getElementById("attachment-splitter");
+  var attachmentView = document.getElementById("attachmentView");
+  var attachmentBar = document.getElementById("attachmentBar");
+  var attachmentToggle = document.getElementById("attachmentToggle");
+  var attachmentList = document.getElementById("attachmentList");
+  var attachmentSplitter = document.getElementById("attachment-splitter");
+  var bundle = document.getElementById("bundle_messenger");
 
   if (expanded === undefined)
     expanded = !attachmentToggle.checked;
@@ -2111,6 +2120,8 @@ function toggleAttachmentList(expanded, updateFocus)
   if (expanded) {
     attachmentList.collapsed = false;
     attachmentSplitter.collapsed = false;
+    attachmentBar.setAttribute("tooltiptext", bundle.getString(
+      "collapseAttachmentPaneTooltip"));
 
     var attachmentHeight = attachmentView.boxObject.height -
       attachmentList.boxObject.height + attachmentList.preferredHeight;
@@ -2129,6 +2140,8 @@ function toggleAttachmentList(expanded, updateFocus)
   else {
     attachmentList.collapsed = true;
     attachmentSplitter.collapsed = true;
+    attachmentBar.setAttribute("tooltiptext", bundle.getString(
+      "expandAttachmentPaneTooltip"));
     attachmentView.removeAttribute("height");
     attachmentView.removeAttribute("maxheight");
 

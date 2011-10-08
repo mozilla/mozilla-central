@@ -511,17 +511,20 @@
 <vbox id="attachmentView" collapsed="true">
   <hbox align="center" id="attachmentBar"
         context="attachment-toolbar-context-menu"
-        onclick="if (event.button == 0 &amp;&amp; event.originalTarget.id == 'attachmentBar') toggleAttachmentList(undefined, true);">
+        onclick="if (event.button == 0) toggleAttachmentList(undefined, true);">
     <button type="checkbox" id="attachmentToggle"
             onmousedown="event.preventDefault();"
+            onclick="event.stopPropagation();"
             oncommand="toggleAttachmentList(this.checked, true);"/>
-    <image id="attachmentIcon"/>
-    <label id="attachmentCount"/>
-    <label id="attachmentName" crop="center" flex="1"
-           context="attachmentItemContext"
-           onclick="if (event.button == 0) { TryHandleAllAttachments('open'); RestoreFocusAfterHdrButton(); }"
-           ondraggesture="nsDragAndDrop.startDrag(event,attachmentNameDNDObserver);"/>
-    <label id="attachmentSize"/>
+    <hbox align="center" id="attachmentInfo">
+      <image id="attachmentIcon"/>
+      <label id="attachmentCount"/>
+      <label id="attachmentName" crop="center" flex="1"
+             tooltiptext="&openAttachment.tooltip;"
+             onclick="if (event.button == 0) { TryHandleAllAttachments('open'); RestoreFocusAfterHdrButton(); event.stopPropagation(); }"
+             ondraggesture="nsDragAndDrop.startDrag(event,attachmentNameDNDObserver);"/>
+      <label id="attachmentSize"/>
+    </hbox>
     <!-- Use a very large flex value here so that attachmentCount doesn't take
          up more space than necessary, but still crops itself if there's not
          enough space. -->
@@ -541,6 +544,7 @@
                          class="toolbarbutton-1 msgHeaderView-button"
                          label="&saveAttachmentButton1.label;"
                          tooltiptext="&saveAttachmentButton1.tooltip;"
+                         onclick="event.stopPropagation();"
                          oncommand="TryHandleAllAttachments('saveAs'); RestoreFocusAfterHdrButton();"
                          hidden="true">
             <menupopup id="attachmentSaveAllSingleMenu"
@@ -568,6 +572,7 @@
                          class="toolbarbutton-1 msgHeaderView-button"
                          label="&saveAllAttachmentsButton1.label;"
                          tooltiptext="&saveAllAttachmentsButton1.tooltip;"
+                         onclick="event.stopPropagation();"
                          oncommand="TryHandleAllAttachments('save'); RestoreFocusAfterHdrButton();">
             <menupopup id="attachmentSaveAllMultipleMenu"
                        onpopupshowing="onShowSaveAttachmentMenuMultiple();">
