@@ -129,7 +129,7 @@ pref("browser.search.openintab", false);
 pref("browser.search.opensidebarsearchpanel", false);
 
 // Open context search results in either a new window or tab.
-pref("browser.search.opentabforcontextsearch", false);
+pref("browser.search.opentabforcontextsearch", true);
 
 // Send ping to the server to update.
 pref("browser.search.update", true);
