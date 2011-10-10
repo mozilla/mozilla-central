@@ -22,8 +22,17 @@ body {
   color: GrayText;
 }
 
-#header-view-toolbox {
+
+/* buttons are always tricky */
+
+
+.button {
   font: message-box;
+}
+
+.button > .button-box {
+  /* Needed to make the buttons w/o icons the same height as those with icons */
+  min-height: 16px;
 }
 
 .star {

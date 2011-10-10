@@ -91,7 +91,6 @@
 .inline-toolbox {
   border-top-width: 0;
   -moz-appearance: none;
-  background-color: transparent;
 }
 
 /* toolbars are optimized to look like OS-provided widgets; override this */

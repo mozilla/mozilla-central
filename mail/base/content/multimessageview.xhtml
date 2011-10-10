@@ -51,65 +51,59 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml"
       xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-  <head>
-    <link rel="stylesheet" media="screen" type="text/css"
-          href="chrome://messenger/skin/messenger.css"/>
-    <link rel="stylesheet" media="screen" type="text/css"
-          href="chrome://messenger/skin/primaryToolbar.css"/>
-    <link rel="stylesheet" media="screen" type="text/css"
-          href="chrome://messenger/skin/messageHeader.css"/>
-    <link rel="stylesheet" media="screen, print" type="text/css"
-          href="chrome://messenger/skin/multimessageview.css"/>
-    <link rel="stylesheet" media="print" type="text/css"
-          href="chrome://messenger/content/multimessageview_print.css"/>
-    <link rel="stylesheet" media="screen, print" type="text/css"
-          href="chrome://messenger/skin/tagColors.css"/>
-    <title>&window.title;</title>
-    <script type="application/javascript;version=1.8"><![CDATA[
-      Components.utils.import("resource:///modules/errUtils.js");
-      function adjustHeadingSize() {
-        let content = document.getElementById('content');
-        let heading = document.getElementById('heading');
-        let buttonbox = document.getElementById('header-view-toolbox');
-        content.style.top = Math.max(
-          buttonbox.getBoundingClientRect().height,
-          heading.getBoundingClientRect().height) + 'px';
-      }
-      function hookResize() {
-        // we need to hook into the resize event on the header to make the
-        // #content node shift down as it reflows.
-        window.addEventListener('resize', adjustHeadingSize, false);
-      }
-    ]]>
-    </script>
-  </head>
+    <head>
+        <link rel="stylesheet" media="screen" type="text/css"
+              href="chrome://messenger/skin/messageHeader.css"/>
+        <link rel="stylesheet" media="screen, print" type="text/css"
+              href="chrome://messenger/skin/multimessageview.css"/>
+        <link rel="stylesheet" media="print" type="text/css"
+              href="chrome://messenger/content/multimessageview_print.css"/>
+        <link rel="stylesheet" media="screen, print" type="text/css"
+              href="chrome://messenger/skin/tagColors.css"/>
+        <title>&window.title;</title>
+        <script type="application/javascript;version=1.8"><![CDATA[
+            Components.utils.import("resource:///modules/errUtils.js");
+            function adjustHeadingSize() {
+              let content = document.getElementById('content');
+              let heading = document.getElementById('heading');
+              let buttonbox = document.getElementById('buttonbox');
+              content.style.top = Math.max(
+                buttonbox.getBoundingClientRect().height,
+                heading.getBoundingClientRect().height) + 'px';
+            }
+            function hookResize() {
+              // we need to hook into the resize event on the header to make the #content
+              // node shift down as it reflows.
+              window.addEventListener('resize', adjustHeadingSize, false);
+            }
+        ]]>
+        </script>
+    </head>
 <body onload="hookResize()">
-  <div id="headingwrappertable">
-    <div id="headingwrapper">
-      <xul:toolbox id="header-view-toolbox" class="inline-toolbox"
-                   labelalign="end"
-                   xmlns:html="http://www.w3.org/1999/xhtml"
-                   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
-        <toolbar id="header-view-toolbar" class="inline-toolbar"
-                 align="start" iconsize="small" mode="full">
-          <toolbarbutton id="hdrArchiveButton"
-                         class="toolbarbutton-1 msgHeaderView-button hdrArchiveButton"
-                         label="&archiveButton.label;"
-                         onclick="if (event.button == 0) window.top.MsgArchiveSelectedMessages(null);" />
-          <toolbarbutton id="hdrTrashButton"
-                         class="toolbarbutton-1 msgHeaderView-button hdrTrashButton"
-                         label="&deleteButton.label;"
-                         onclick="if (event.button == 0) window.top.DefaultController.doCommand('cmd_delete');"/>
-        </toolbar>
-      </xul:toolbox>
-      <div class="heading" id="heading">&selectedmessages.label;</div>
+    <div id="headingwrappertable">
+        <div id="headingwrapper">
+            <div id="buttonbox"
+                 xmlns:html="http://www.w3.org/1999/xhtml"
+                 xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+                <hbox id="buttonhbox" align="start">
+                    <button id="archive"
+                            class="button msgHeaderView-button hdrArchiveButton"
+                            label="&archiveButton.label;"
+                            onclick="if (event.button == 0) window.top.MsgArchiveSelectedMessages(null);" />
+                    <button id="trash"
+                            class="button msgHeaderView-button hdrTrashButton"
+                            label="&deleteButton.label;"
+                            onclick="if (event.button == 0) window.top.DefaultController.doCommand('cmd_delete');"/>
+                </hbox>
+            </div>
+            <div class="heading" id="heading">&selectedmessages.label;</div>
+        </div>
     </div>
-  </div>
-  <div id="content">
-    <div id="messagelist"/>
-    <div class="notice">
-      <span class="info" id="size"/> <span class="info" id="notice"/>
+    <div id="content">
+        <div id="messagelist"/>
+        <div class="notice">
+            <span class="info" id="size"></span> <span class="info" id="notice"></span>
+        </div>
     </div>
-  </div>
 </body>
 </html>
