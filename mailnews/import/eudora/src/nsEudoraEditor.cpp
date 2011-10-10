@@ -1202,6 +1202,25 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::HasAttributeNS(const nsAString & namespa
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetOnmouseenter(JSContext *cx, jsval *ret)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetOnmouseenter(JSContext *cx, jsval *ret)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetOnmouseleave(JSContext *cx, jsval *ret)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetOnmouseleave(JSContext *cx, jsval *ret)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
 
 // attribute DOMString id
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetId(nsAString & aId)
