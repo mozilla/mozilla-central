@@ -69,7 +69,7 @@ protected:
   // because the real spaces should be escaped.
   nsCString  m_sourceFolder;
   nsCString  m_moveDestination;
-  nsCStringArray  m_copyDestinations;
+  nsTArray<nsCString>  m_copyDestinations;
 
   nsCString      m_keywordsToAdd;
   nsCString      m_keywordsToRemove;

@@ -359,50 +359,32 @@ nsAbLDAPAutoCompFormatter::FormatException(PRInt32 aState,
 NS_IMETHODIMP
 nsAbLDAPAutoCompFormatter::GetAttributes(nsACString &aResult)
 {
-    nsCStringArray mSearchAttrs;
-    nsresult rv = ProcessFormat(mNameFormat, 0, 0, &mSearchAttrs);
+    nsCAutoString searchAttrs;
+    nsresult rv = ProcessFormat(mNameFormat, 0, 0, &searchAttrs);
     if (NS_FAILED(rv)) {
         NS_WARNING("nsAbLDAPAutoCompFormatter::SetNameFormat(): "
                    "ProcessFormat() failed");
         return rv;
     }
-    rv = ProcessFormat(mAddressFormat, 0, 0, &mSearchAttrs);
+    rv = ProcessFormat(mAddressFormat, 0, 0, &searchAttrs);
     if (NS_FAILED(rv)) {
         NS_WARNING("nsAbLDAPAutoCompFormatter::SetNameFormat(): "
                    "ProcessFormat() failed");
         return rv;
     }
-    rv = ProcessFormat(mCommentFormat, 0, 0, &mSearchAttrs);
+    rv = ProcessFormat(mCommentFormat, 0, 0, &searchAttrs);
     if (NS_FAILED(rv)) {
         NS_WARNING("nsAbLDAPAutoCompFormatter::SetNameFormat(): "
                    "ProcessFormat() failed");
         return rv;
     }
 
-    // none of the formatting templates require any LDAP attributes
-    //
-    PRUint32 count = mSearchAttrs.Count();   // size of XPCOM array we'll need
-    if (!count) {
-        NS_ERROR("nsAbLDAPAutoCompFormatter::GetAttributes(): "
-                 "current output format (if set) requires no search "
-                 "attributes");
-        return NS_ERROR_NOT_INITIALIZED;
-    }
-
-    aResult = *mSearchAttrs.CStringAt(0);
-
-    for (PRUint32 i = 1; i < count; i++)
-    {
-      aResult.Append(',');
-      aResult.Append(*mSearchAttrs.CStringAt(i));
-    }
-
+    aResult = searchAttrs;
     return NS_OK;
 }
 
-// parse and process a formatting attribute.  If aStringArray is
-// non-NULL, return a list of the attributes from mNameFormat in
-// aStringArray.  Otherwise, generate an autocomplete value from the
+// parse and process a formatting attribute.
+// Generate an autocomplete value from the
 // information in aMessage and append it to aValue.  Any errors
 // (including failure to find a required attribute while building up aValue) 
 // return an NS_ERROR_* up the stack so that the caller doesn't try and
@@ -412,7 +394,7 @@ nsresult
 nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
                                          nsILDAPMessage *aMessage, 
                                          nsACString *aValue,
-                                         nsCStringArray *aAttrs)
+                                         nsCString *aAttrs)
 {
     nsresult rv;    // temp for return values
 
@@ -458,34 +440,15 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
                 return rv;
             }
 
-            // if we're building an array
-            if ( aAttrs ) { 
-
-                // see if the string is already present in the array
-                int i = 0, found = -1;
-                while ( i < aAttrs->Count() ) {
-                    if (aAttrs->CStringAt(i)->Equals(attrName, nsCaseInsensitiveCStringComparator())) {
-                        found = i;
-                        break;
-                    }
-                    ++i;
-                }
-
-                // and it doesn't already contain this string
-                if (found == -1) { 
-
+            // If we're building a string of attributes...
+            if (aAttrs) { 
+                // ...and it doesn't already contain this string
+                if (aAttrs->Find(attrName, CaseInsensitiveCompare) == kNotFound)
+                {
                     // add it
-                    if (!aAttrs->AppendCString(attrName)) {
-                        
-                        // current AppendCString always returns PR_TRUE;
-                        // if we hit this error, something has changed in
-                        // that code
-                        //
-                        NS_ERROR(
-                            "nsAbLDAPAutoCompFormatter::ProcessFormat():"
-                            " aAttrs->AppendCString(attrName) failed");
-                        return NS_ERROR_UNEXPECTED;
-                    }
+                    if (!aAttrs->IsEmpty())
+                        aAttrs->Append(',');
+                    aAttrs->Append(attrName);
                 }
             } else {
 

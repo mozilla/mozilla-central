@@ -122,7 +122,7 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::ClearOperation(nsOfflineImapOperationTy
     m_moveDestination.Truncate();
     break;
   case kMsgCopy:
-    m_copyDestinations.RemoveCStringAt(0);
+    m_copyDestinations.RemoveElementAt(0);
     break;
   }
   return m_mdb->SetUint32Property(m_mdbRow, PROP_OPERATION, m_operation);
@@ -283,7 +283,7 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::AddMessageCopyOperation(const char *des
   nsCAutoString newDest(destinationBox);
   nsresult rv = GetCopiesFromDB();
   NS_ENSURE_SUCCESS(rv, rv);
-  m_copyDestinations.AppendCString(newDest);
+  m_copyDestinations.AppendElement(newDest);
   return SetCopiesToDB();
 }
 
@@ -310,7 +310,7 @@ nsresult nsMsgOfflineImapOperation::GetCopiesFromDB()
       else
         curDest = Substring(copyDests, curCopyDestStart, copyDests.Length() - curCopyDestStart);
       curCopyDestStart = nextCopyDestPos + 1;
-      m_copyDestinations.AppendCString(curDest);
+      m_copyDestinations.AppendElement(curDest);
     }
   }
   return rv;
@@ -321,12 +321,11 @@ nsresult nsMsgOfflineImapOperation::SetCopiesToDB()
   nsCAutoString copyDests;
 
   // use 0x1 as the delimiter between folders
-  for (PRInt32 i = 0; i < m_copyDestinations.Count(); i++)
+  for (PRUint32 i = 0; i < m_copyDestinations.Length(); i++)
   {
     if (i > 0)
       copyDests.Append(FOLDER_SEP_CHAR);
-    nsCString *curDest = m_copyDestinations.CStringAt(i);
-    copyDests.Append(curDest->get());
+    copyDests.Append(m_copyDestinations.ElementAt(i));
   }
   return m_mdb->SetProperty(m_mdbRow, PROP_COPY_DESTS, copyDests.get());
 }
@@ -337,7 +336,7 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::GetNumberOfCopies(PRInt32 *aNumberOfCop
   NS_ENSURE_ARG(aNumberOfCopies);
   nsresult rv = GetCopiesFromDB();
   NS_ENSURE_SUCCESS(rv, rv);
-  *aNumberOfCopies = m_copyDestinations.Count();
+  *aNumberOfCopies = m_copyDestinations.Length();
   return NS_OK;
 }
 
@@ -347,14 +346,10 @@ NS_IMETHODIMP nsMsgOfflineImapOperation::GetCopyDestination(PRInt32 copyIndex, c
   NS_ENSURE_ARG(retval);
   nsresult rv = GetCopiesFromDB();
   NS_ENSURE_SUCCESS(rv, rv);
-  nsCString *copyDest = m_copyDestinations.CStringAt(copyIndex);
-  if (copyDest)
-  {
-    *retval = ToNewCString(*copyDest);
-    return (*retval) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
-  }
-  else
-    return NS_ERROR_NULL_POINTER;
+  if (copyIndex >= (PRInt32)m_copyDestinations.Length())
+    return NS_ERROR_ILLEGAL_VALUE;
+  *retval = ToNewCString(m_copyDestinations.ElementAt(copyIndex));
+  return (*retval) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
 }
 
 /* attribute unsigned log msgSize; */

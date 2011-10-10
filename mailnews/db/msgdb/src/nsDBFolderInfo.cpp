@@ -946,8 +946,8 @@ public:
   nsTransferDBFolderInfo();
   virtual ~nsTransferDBFolderInfo();
   // parallel arrays of properties and values
-  nsCStringArray m_properties;
-  nsCStringArray m_values;
+  nsTArray<nsCString> m_properties;
+  nsTArray<nsCString> m_values;
 };
 
 nsTransferDBFolderInfo::nsTransferDBFolderInfo() : nsDBFolderInfo(nsnull)
@@ -985,10 +985,10 @@ NS_IMETHODIMP nsDBFolderInfo::GetTransferInfo(nsIDBFolderInfo **transferInfo)
       if (!err)
       {
         m_mdb->GetStore()->TokenToString(m_mdb->GetEnv(), cellColumn, &cellName);
-        newInfo->m_values.AppendCString(Substring((const char *)cellYarn.mYarn_Buf,
-                                          (const char *) cellYarn.mYarn_Buf + cellYarn.mYarn_Fill));
-        newInfo->m_properties.AppendCString(Substring((const char *) cellName.mYarn_Buf,
-                                          (const char *) cellName.mYarn_Buf + cellName.mYarn_Fill));
+        newInfo->m_values.AppendElement(Substring((const char *)cellYarn.mYarn_Buf,
+                                        (const char *) cellYarn.mYarn_Buf + cellYarn.mYarn_Fill));
+        newInfo->m_properties.AppendElement(Substring((const char *) cellName.mYarn_Buf,
+                                            (const char *) cellName.mYarn_Buf + cellName.mYarn_Fill));
       }
     }
   }
@@ -1004,8 +1004,8 @@ NS_IMETHODIMP nsDBFolderInfo::InitFromTransferInfo(nsIDBFolderInfo *aTransferInf
 
   nsTransferDBFolderInfo *transferInfo = static_cast<nsTransferDBFolderInfo *>(aTransferInfo);
 
-  for (PRInt32 i = 0; i < transferInfo->m_values.Count(); i++)
-    SetCharProperty(transferInfo->m_properties[i]->get(), *transferInfo->m_values[i]);
+  for (PRUint32 i = 0; i < transferInfo->m_values.Length(); i++)
+    SetCharProperty(transferInfo->m_properties[i].get(), transferInfo->m_values[i]);
 
   LoadMemberVariables();
   return NS_OK;
