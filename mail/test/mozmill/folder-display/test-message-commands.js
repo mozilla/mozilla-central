@@ -435,7 +435,7 @@ function test_disabled_archive() {
   assert_selected_and_displayed(current);
 
   let htmlframe = mc.e("multimessage");
-  let archiveBtn = htmlframe.contentDocument.getElementById("archive");
+  let archiveBtn = htmlframe.contentDocument.getElementById("hdrArchiveButton");
   assert_true(archiveBtn.collapsed,
               "Multi-message archive button should be disabled when " +
               "archiving is disabled!");
