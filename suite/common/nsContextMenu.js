@@ -879,13 +879,16 @@ nsContextMenu.prototype = {
 
   // Save URL of clicked-on link.
   saveLink: function() {
-    // canonical def in nsURILoader.h
-    const NS_ERROR_SAVE_LINK_AS_TIMEOUT = 0x805d0020;
-
     var doc = this.target.ownerDocument;
     urlSecurityCheck(this.linkURL, this.target.nodePrincipal);
-    var linkText = this.linkText();
-    var linkURL = this.linkURL;
+    this.saveHelper(this.linkURL, this.linkText(), null, true, doc);
+  },
+
+  // Helper function to wait for appropriate MIME-type headers and
+  // then prompt the user with a file picker
+  saveHelper: function(linkURL, linkText, dialogTitle, bypassCache, doc) {
+    // canonical def in nsURILoader.h
+    const NS_ERROR_SAVE_LINK_AS_TIMEOUT = 0x805d0020;
 
     // an object to proxy the data through to
     // nsIExternalHelperAppService.doContent, which will wait for the
@@ -931,7 +934,7 @@ nsContextMenu.prototype = {
         if (aStatusCode == NS_ERROR_SAVE_LINK_AS_TIMEOUT) {
           // Do it the old fashioned way, which will pick the best filename
           // it can without waiting.
-          saveURL(linkURL, linkText, null, true, true, doc.documentURIObject);
+          saveURL(linkURL, linkText, dialogTitle, bypassCache, true, doc.documentURIObject);
         }
         if (this.extListener)
           this.extListener.onStopRequest(aRequest, aContext, aStatusCode);
@@ -971,8 +974,17 @@ nsContextMenu.prototype = {
     // set up a channel to do the saving
     var channel = Services.io.newChannel(linkURL, null, null);
     channel.notificationCallbacks = new Callbacks();
-    channel.loadFlags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE |
-                         Components.interfaces.nsIChannel.LOAD_CALL_CONTENT_SNIFFERS;
+
+    var flags = Components.interfaces.nsIChannel.LOAD_CALL_CONTENT_SNIFFERS;
+
+    if (bypassCache)
+      flags |= Components.interfaces.nsIRequest.LOAD_BYPASS_CACHE;
+
+    if (channel instanceof Components.interfaces.nsICachingChannel)
+      flags |= Components.interfaces.nsICachingChannel.LOAD_BYPASS_LOCAL_CACHE_IF_BUSY;
+
+    channel.loadFlags |= flags;
+
     if (channel instanceof Components.interfaces.nsIHttpChannel) {
       channel.referrer = doc.documentURIObject;
       if (channel instanceof Components.interfaces.nsIHttpChannelInternal)
@@ -1000,8 +1012,8 @@ nsContextMenu.prototype = {
                    this.target.ownerDocument.documentURIObject);
     else if (this.onVideo || this.onAudio) {
       var dialogTitle = this.onVideo ? "SaveVideoTitle" : "SaveAudioTitle";
-      saveURL(this.mediaURL, null, dialogTitle, false, true,
-              this.target.ownerDocument.documentURIObject);
+      this.saveHelper(this.mediaURL, null, dialogTitle, false,
+                      this.target.ownerDocument);
     }
   },
 
