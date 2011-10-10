@@ -530,8 +530,6 @@
         <parameter name="browserDumpID"/>
         <body>
           <![CDATA[
-            // The crash reporter wants a DOM element it can append an IFRAME to,
-            // which it uses to submit a form. Let's just give it this.activeBrowser.
             this.CrashSubmit.submit(pluginDumpID);
             if (browserDumpID)
               this.CrashSubmit.submit(browserDumpID);
