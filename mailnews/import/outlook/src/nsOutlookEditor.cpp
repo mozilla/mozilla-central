@@ -907,22 +907,22 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::HasAttributeNS(const nsAString & namesp
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookHTMLImageElement::GetOnmouseenter(JSContext *cx, jsval *ret)
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetOnmouseenter(JSContext *cx, JS::Value *ret)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookHTMLImageElement::SetOnmouseenter(JSContext *cx, jsval *ret)
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetOnmouseenter(JSContext *cx, const JS::Value &aMouseEnter)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookHTMLImageElement::GetOnmouseleave(JSContext *cx, jsval *ret)
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetOnmouseleave(JSContext *cx, JS::Value *ret)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookHTMLImageElement::GetOnmouseleave(JSContext *cx, jsval *ret)
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetOnmouseleave(JSContext *cx, const JS::Value &aMouseLeave)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
