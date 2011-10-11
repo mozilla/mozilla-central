@@ -246,15 +246,16 @@ nsresult nsMimeHtmlDisplayEmitter::BroadcastHeaders(nsIMsgHeaderSink * aHeaderSi
             continue;
     }
 
+    headerNameEnumerator->Append(headerInfo->name);
+    headerValueEnumerator->Append(headerValue);
+
+    // Add a localized version of the date header if we encounter it.
     if (!PL_strcasecmp("Date", headerInfo->name))
     {
+      headerNameEnumerator->Append("X-Mozilla-LocalizedDate");
       GenerateDateString(headerValue, convertedDateString, false);
       headerValueEnumerator->Append(convertedDateString);
     }
-    else // append the header value as is
-      headerValueEnumerator->Append(headerValue);
-
-    headerNameEnumerator->Append(headerInfo->name);
   }
 
   aHeaderSink->ProcessHeaders(headerNameEnumerator, headerValueEnumerator, aFromNewsgroup);

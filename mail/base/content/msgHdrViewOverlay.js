@@ -1028,7 +1028,9 @@ function UpdateExpandedMessageHeaders() {
         gExpandedHeaderView[headerName] = new createHeaderEntry('expanded',
                                                                 messageIdEntry);
       }
-      else {
+      // Don't bother showing X-Mozilla-LocalizedDate, since that value is
+      // displayed below the message header toolbar.
+      else if (headerName != "x-mozilla-localizeddate") {
         gExpandedHeaderView[headerName] =
           new createNewHeaderView(headerName,
                                   currentHeaderData[headerName].headerName);
@@ -1055,9 +1057,9 @@ function UpdateExpandedMessageHeaders() {
   }
 
   let dateLabel = document.getElementById("dateLabel");
-  if ("date" in currentHeaderData) {
-    document.getElementById('dateLabel').textContent =
-      currentHeaderData.date.headerValue;
+  if ("x-mozilla-localizeddate" in currentHeaderData) {
+    document.getElementById("dateLabel").textContent =
+      currentHeaderData["x-mozilla-localizeddate"].headerValue;
     dateLabel.collapsed = false;
   } else {
     dateLabel.collapsed = true;

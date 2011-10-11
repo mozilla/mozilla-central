@@ -396,8 +396,20 @@ var messageHeaderSink = {
             this.mDummyMsgHeader.replyTo = header.headerValue;
           else if (lowerCaseHeaderName == "message-id")
             this.mDummyMsgHeader.messageId = header.headerValue;
-
+          else if (lowerCaseHeaderName == "date")
+            this.mDummyMsgHeader.date = Date.parse(header.headerValue) * 1000;
         }
+
+        // We emit both the original, raw date header and a localized version.
+        // Pretend that the localized version is the real version.
+        if (lowerCaseHeaderName == "date")
+          continue;
+        if (lowerCaseHeaderName == "x-mozilla-localizeddate")
+        {
+          lowerCaseHeaderName = "date";
+          header.headerName = "Date";
+        }
+
         // according to RFC 2822, certain headers
         // can occur "unlimited" times
         if (lowerCaseHeaderName in currentHeaderData)
@@ -1790,6 +1802,7 @@ nsDummyMsgHeader.prototype =
   subject : null,
   ccList : null,
   messageId : null,
+  date : 0,
   accountKey : "",
   folder : null
 };
