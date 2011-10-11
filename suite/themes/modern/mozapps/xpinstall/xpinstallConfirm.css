@@ -109,3 +109,19 @@ installitem {
   max-height: 32px;
   list-style-image: url("chrome://mozapps/skin/xpinstall/xpinstallItemGeneric.png");
 }
+
+installitem[type="theme"] .xpinstallItemIcon {
+  list-style-image: url("chrome://mozapps/skin/extensions/themeGeneric.png");
+}
+
+installitem[type="locale"] .xpinstallItemIcon {
+  list-style-image: url("chrome://mozapps/skin/extensions/localeGeneric.png");
+}
+
+installitem[type="plugin"] .xpinstallItemIcon {
+  list-style-image: url("chrome://mozapps/skin/plugins/pluginGeneric.png");
+}
+
+installitem[type="dictionary"] .xpinstallItemIcon {
+  list-style-image: url("chrome://mozapps/skin/extensions/dictionaryGeneric.png");
+}
