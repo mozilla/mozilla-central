@@ -53,4 +53,4 @@ include $(topsrcdir)/config/rules.mk
 
 webrtc.status::
 	cd $(srcdir); python build/gyp_chromium --depth=. --format=make --generator-output=$(CURDIR)/out  webrtc.gyp
-	$(MAKE) -C out USE_SYSTEM_LIBJPEG=1 OBJDIR=$(CURDIR)
+	$(MAKE) -C out USE_SYSTEM_LIBJPEG=1 OBJDIR=$(CURDIR) CXX.host="$(CXX)" LINK.host="$(CXX)"
