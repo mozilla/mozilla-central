@@ -34,6 +34,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 var searchSessionContractID = "@mozilla.org/messenger/searchSession;1";
 var gSearchSession;
 
@@ -51,8 +53,6 @@ var gSearchStopButton;
 var gPropertiesButton;
 var gComposeButton;
 var gSearchPhoneticName = "false";
-
-var gRDF = Components.classes["@mozilla.org/rdf/rdf-service;1"].getService(Components.interfaces.nsIRDFService);
 
 var gSearchAbViewListener = {
   onSelectionChanged: function() {
@@ -152,7 +152,7 @@ function SelectDirectory(aURI)
 
 function GetScopeForDirectoryURI(aURI)
 {
-  var directory = gRDF.GetResource(aURI).QueryInterface(nsIAbDirectory);
+  var directory = MailServices.ab.getDirectory(aURI);
   var booleanAnd = gSearchBooleanRadiogroup.selectedItem.value == "and";
 
   if (directory.isRemote) {
