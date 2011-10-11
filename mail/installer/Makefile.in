@@ -89,6 +89,10 @@ endif
 include $(MOZILLA_SRCDIR)/ipc/app/defs.mk
 DEFINES += -DMOZ_CHILD_PROCESS_NAME=$(MOZ_CHILD_PROCESS_NAME)
 
+ifneq (,$(filter nightly aurora beta,$(MOZ_UPDATE_CHANNEL)))
+DEFINES += -DSHIP_FEEDBACK=1
+endif
+
 ifdef MOZ_PKG_MANIFEST_P
 MOZ_PKG_MANIFEST = package-manifest
 
