@@ -2173,7 +2173,7 @@ $(obj).$(TOOLSET)/$(TARGET)/%%.o: $(obj)/%%%s FORCE_DO_CMD
     built_products_dir = generator_default_variables['PRODUCT_DIR']
     srcroot = self.path
     if target_relative_path:
-      built_products_dir = os.path.relpath(built_products_dir, srcroot)
+      built_products_dir = gyp.common.RelativePath(built_products_dir, srcroot)
       srcroot = '.'
     # These are filled in on a as-needed basis.
     env = {
