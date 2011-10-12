@@ -1713,7 +1713,13 @@ AttachmentInfo.prototype = {
    */
   get hasFile()
   {
-    return !this.isDeleted && (!this.isExternalAttachment || this.size != null);
+    if (this.isDeleted)
+      return false;
+    if (this.isExternalAttachment && /^file:/.test(this.url) &&
+        this.size === null)
+      return false;
+
+    return true;
   },
 
   /**
