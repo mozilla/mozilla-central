@@ -34,8 +34,14 @@
 #
 # ***** END LICENSE BLOCK *****
 
+ifdef UNIVERSAL_BINARY
+UNIVERSAL_PATH=universal/
+else
+UNIVERSAL_PATH=
+endif
+
 _ABS_DIST := $(call core_abspath,$(DIST))
-ZIP_IN ?= $(_ABS_DIST)/xpi-stage/$(XPI_NAME).xpi
+ZIP_IN ?= $(_ABS_DIST)/$(UNIVERSAL_PATH)xpi-stage/$(XPI_NAME).xpi
 
 # This variable is to allow the wget-en-US target to know which ftp server to download from
 ifndef EN_US_BINARY_URL
@@ -43,12 +49,12 @@ EN_US_BINARY_URL = $(error You must set EN_US_BINARY_URL)
 endif
 
 # Target Directory used for the l10n files
-L10N_TARGET = $(DIST)/xpi-stage/$(XPI_NAME)-$(AB_CD)
+L10N_TARGET = $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(XPI_NAME)-$(AB_CD)
 
-$(DIST)/xpi-stage:
+$(DIST)/$(UNIVERSAL_PATH)xpi-stage:
 	mkdir -p $@
 
-wget-en-US: $(DIST)/xpi-stage
+wget-en-US: $(DIST)/$(UNIVERSAL_PATH)xpi-stage
 ifndef WGET
 	$(error wget not installed)
 endif
@@ -58,17 +64,17 @@ endif
 unpack: $(ZIP_IN)
 # We're unpacking directly into FINAL_TARGET, this keeps code to do manual
 # repacks cleaner.
-	if test -d $(FINAL_TARGET); then \
-	  $(RM) -r -v $(FINAL_TARGET); \
+	if test -d $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME); then \
+	  $(RM) -r -v $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME); \
 	fi
-	$(NSINSTALL) -D $(FINAL_TARGET)
-	cd $(FINAL_TARGET) && $(UNZIP) $(ZIP_IN)
+	$(NSINSTALL) -D $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME)
+	cd $(DIST)/$(UNIVERSAL_PATH)/xpi-stage/$(FINAL_XPI_NAME) && $(UNZIP) $(ZIP_IN)
 	@echo done unpacking
 
 # Call this target to upload the localized lightning package.
 l10n-upload-%: AB_CD=$*
 l10n-upload-%:
-	$(PYTHON) $(MOZILLA_SRCDIR)/build/upload.py --base-path $(DIST)/xpi-stage/  "$(L10N_TARGET).xpi"
+	$(PYTHON) $(MOZILLA_SRCDIR)/build/upload.py --base-path $(DIST)/$(UNIVERSAL_PATH)xpi-stage/  "$(L10N_TARGET).xpi"
 
 # Call this target to trigger repackaging lightning for a specific language
 # Usage: make AB_CD=<language> repack-l10n
@@ -80,7 +86,7 @@ repack-l10n: recreate-platformini repack-clobber libs-$(AB_CD) repack-process-ex
 repack-clobber-all:
 	@echo "Repackaging $(XPI_NAME) locale for Language $(AB_CD)"
 	$(RM) -rf $(L10N_TARGET)
-	cp -R $(DIST)/xpi-stage/$(XPI_NAME) $(L10N_TARGET)
+	cp -R $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(XPI_NAME) $(L10N_TARGET)
 
 # This target should not be called directly
 repack-clobber: repack-clobber-all
@@ -118,17 +124,19 @@ repack-l10n-%:
 
 # Actual locale packaging targets. If L10N_XPI_NAME is set, then use it.
 # Otherwise keep the original XPI_NAME
+# Overriding the final target is a bit of a hack for universal builds
+# so that we can ensure we get the right xpi that gets repacked
 libs-%: FINAL_XPI_NAME=$(if $(L10N_XPI_NAME),$(L10N_XPI_NAME),$(XPI_NAME))
 libs-%:
-	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
-	$(MAKE) -C ../locales libs AB_CD=$* XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
+	$(MAKE) -C locales libs AB_CD=$* FINAL_TARGET=$(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME) XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
+	$(MAKE) -C ../locales libs AB_CD=$* FINAL_TARGET=$(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME) XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
 
 # For localized xpis, the install.rdf and lightning-l10n.js need to be
 # reprocessed with some defines from the locale.
 repack-process-extrafiles: LOCALE_BASEDIR=$(call EXPAND_LOCALE_SRCDIR,calendar/locales)
 repack-process-extrafiles:
-	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(XULAPP_DEFINES) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) -I $(LOCALE_BASEDIR)/defines.inc $(srcdir)/install.rdf > $(DIST)/xpi-stage/$(L10N_XPI_NAME)/install.rdf
-	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(PREF_PPFLAGS) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $(LOCALE_BASEDIR)/lightning-l10n.js  > $(DIST)/xpi-stage/$(L10N_XPI_NAME)/$(PREF_DIR)/lightning-l10n.js
+	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(XULAPP_DEFINES) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) -I $(LOCALE_BASEDIR)/defines.inc $(srcdir)/install.rdf > $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(L10N_XPI_NAME)/install.rdf
+	$(PYTHON) $(MOZILLA_SRCDIR)/config/Preprocessor.py $(PREF_PPFLAGS) $(DEFINES) $(ACDEFINES) $(XULPPFLAGS) $(LOCALE_BASEDIR)/lightning-l10n.js  > $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(L10N_XPI_NAME)/$(PREF_DIR)/lightning-l10n.js
 
 # When repackaging lightning from the builder, platform.ini is not yet created.i
 # Recreate it from the application.ini bundled with the downloaded xpi.
@@ -136,16 +144,16 @@ $(LIBXUL_DIST)/bin/platform.ini:
 	 echo "[Build]" >> $(LIBXUL_DIST)/bin/platform.ini
 	 
 	 echo -n "Milestone=" >> $(LIBXUL_DIST)/bin/platform.ini
-	 $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(DIST)/xpi-stage/$(XPI_NAME)/application.ini Gecko MaxVersion >> $(LIBXUL_DIST)/bin/platform.ini
+	 $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(XPI_NAME)/application.ini Gecko MaxVersion >> $(LIBXUL_DIST)/bin/platform.ini
 	 
 	 echo -n "SourceStamp=" >> $(LIBXUL_DIST)/bin/platform.ini
-	 $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(DIST)/xpi-stage/$(XPI_NAME)/application.ini Build SourceStamp >> $(LIBXUL_DIST)/bin/platform.ini
+	 $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(XPI_NAME)/application.ini Build SourceStamp >> $(LIBXUL_DIST)/bin/platform.ini
 	 
 	 echo -n "SourceRepository=" >> $(LIBXUL_DIST)/bin/platform.ini
-	 $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(DIST)/xpi-stage/$(XPI_NAME)/application.ini Build SourceRepository >> $(LIBXUL_DIST)/bin/platform.ini
+	 $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(XPI_NAME)/application.ini Build SourceRepository >> $(LIBXUL_DIST)/bin/platform.ini
 	 
 	 echo -n "BuildID=" >> $(LIBXUL_DIST)/bin/platform.ini
-	 $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(DIST)/xpi-stage/$(XPI_NAME)/application.ini App BuildID >> $(LIBXUL_DIST)/bin/platform.ini
+	 $(PYTHON) $(MOZILLA_SRCDIR)/config/printconfigsetting.py $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(XPI_NAME)/application.ini App BuildID >> $(LIBXUL_DIST)/bin/platform.ini
 
 recreate-platformini: $(LIBXUL_DIST)/bin/platform.ini
 
@@ -156,12 +164,7 @@ UPLOAD_FILES = \
 
 upload:
 	$(NSINSTALL) -D $(DIST)/$(MOZ_PKG_PLATFORM)
-ifdef UNIVERSAL_BINARY
-	cp -RL $(DIST)/universal/xpi-stage/lightning-all.xpi $(DIST)/$(MOZ_PKG_PLATFORM)/lightning.xpi
-	$(INSTALL) $(IFLAGS1) $(DIST)/universal/xpi-stage/gdata-provider.xpi $(DIST)/$(MOZ_PKG_PLATFORM)
-else
-	cp -RL $(DIST)/xpi-stage/lightning-all.xpi $(DIST)/$(MOZ_PKG_PLATFORM)/lightning.xpi
+	cp -RL $(DIST)/$(UNIVERSAL_PATH)xpi-stage/lightning-all.xpi $(DIST)/$(MOZ_PKG_PLATFORM)/lightning.xpi
 	$(INSTALL) $(IFLAGS1) $(DIST)/xpi-stage/gdata-provider.xpi $(DIST)/$(MOZ_PKG_PLATFORM)
-endif
 	$(PYTHON) $(MOZILLA_DIR)/build/upload.py --base-path $(DIST) \
 	  $(addprefix $(DIST)/$(MOZ_PKG_PLATFORM)/,$(UPLOAD_FILES))
