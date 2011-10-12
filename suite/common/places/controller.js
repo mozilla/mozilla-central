@@ -282,7 +282,11 @@ PlacesController.prototype = {
       this.newSeparator();
       break;
     case "placesCmd_show:info":
-      this.showBookmarkPropertiesForSelection();
+      var dd = document.getElementById("detailsDeck");
+      if (dd)
+        dd.collapsed = false;
+      else
+        this.showBookmarkPropertiesForSelection();
       break;
     case "placesCmd_moveBookmarks":
       this.moveSelectedBookmarks();

@@ -89,10 +89,6 @@ var PlacesOrganizer = {
     PlacesSearchBox.init();
 
     window.addEventListener("AppCommand", this, true);
-
-    // remove the "Properties" context-menu item, we've our own details pane
-    document.getElementById("placesContext")
-            .removeChild(document.getElementById("placesContext_show:info"));
   },
 
   QueryInterface: function PO_QueryInterface(aIID) {
