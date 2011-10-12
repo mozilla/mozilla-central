@@ -128,7 +128,7 @@
       <hbox pack="center">
         <label class="text-link bottom-link" onclick="openAboutTab('about:license');">&bottomLinks.license;</label>
         <label class="text-link bottom-link" onclick="openAboutTab('about:rights');">&bottomLinks.rights;</label>
-        <label hidden="true" class="text-link bottom-link" onclick="openURL('http://www.mozilla.com/legal/privacy/');">&bottomLinks.privacy;</label>
+        <label class="text-link bottom-link" onclick="openURL('https://www.mozilla.org/en-US/thunderbird/legal/privacy/');">&bottomLinks.privacy;</label>
       </hbox>
       <description id="trademark">
         <label class="trademark-label">&trademarkInfo.part1;</label>
