@@ -309,7 +309,7 @@ var specialTabs = {
 
     // Only show what's new tab if this is actually an upgraded version,
     // not just a new installation/profile.
-    if (fromVer && fromVer != toVer)
+    if (fromVer && ((fromVer[0] != toVer[0]) || (fromVer[1] != toVer[1])))
       this.showWhatsNewPage();
 
     // Show the about rights notification if we need to.
@@ -613,6 +613,23 @@ var specialTabs = {
   },
 
   /**
+   * Split a version number into a triple (major, minor, extension)
+   * For example, 7.0.1 => [7, 0, 1]
+   *             10.1a3 => [10, 1, a3]
+   *             10.0 => [10, 0, ""]
+   * This could be a static function, but no current reason for it to
+   * be available outside this object's scope; as a method, it doesn't
+   * pollute anyone else's namespace
+   */
+  splitVersion: function(version) {
+    let re = /^(\d+)\.(\d+)\.?(.*)$/;
+    let fields = re.exec(version);
+    /* First element of the array from regex match is the entire string; drop that */
+    fields.shift();
+    return fields;
+  },
+
+  /**
    * In the case of an upgrade, returns the version we're upgrading
    * from, as well as the current version.  In the case of a fresh profile,
    * or the pref being set to ignore - return null and the current version.
@@ -629,12 +646,12 @@ var specialTabs = {
     let currentApplicationVersion = Application.version;
 
     if (savedAppVersion == "ignore")
-      return [null, currentApplicationVersion];
+      return [null, this.splitVersion(currentApplicationVersion)];
 
     if (savedAppVersion != currentApplicationVersion)
       prefs.setCharPref(prefstring, currentApplicationVersion);
 
-    return [savedAppVersion, currentApplicationVersion];
+    return [this.splitVersion(savedAppVersion), this.splitVersion(currentApplicationVersion)];
   },
 
   /**
