@@ -1,4 +1,4 @@
-/* -*- Mode: C++ tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
  * vim: set ts=4 sw=4 et tw=99:
  *
  * ***** BEGIN LICENSE BLOCK *****
@@ -69,6 +69,7 @@
 #include "jsfuninlines.h"
 #include "jstypedarray.h"
 
+#include "vm/RegExpObject-inl.h"
 #include "vm/String-inl.h"
 
 #ifdef XP_WIN

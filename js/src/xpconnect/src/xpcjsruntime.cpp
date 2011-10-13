@@ -52,6 +52,8 @@
 #include "nsPrintfCString.h"
 #include "mozilla/FunctionTimer.h"
 #include "prsystem.h"
+#include "mozilla/Preferences.h"
+#include "mozilla/Telemetry.h"
 
 #ifdef MOZ_CRASHREPORTER
 #include "nsExceptionHandler.h"
@@ -260,6 +262,7 @@ xpc::CompartmentPrivate::~CompartmentPrivate()
 {
     delete waiverWrapperMap;
     delete expandoMap;
+    delete domExpandoMap;
     MOZ_COUNT_DTOR(xpc::CompartmentPrivate);
 }
 
@@ -343,7 +346,7 @@ XPCJSRuntime::RemoveJSHolder(void* aHolder)
 }
 
 // static
-void XPCJSRuntime::TraceJS(JSTracer* trc, void* data)
+void XPCJSRuntime::TraceBlackJS(JSTracer* trc, void* data)
 {
     XPCJSRuntime* self = (XPCJSRuntime*)data;
 
@@ -377,17 +380,15 @@ void XPCJSRuntime::TraceJS(JSTracer* trc, void* data)
         for(e = self->mObjectHolderRoots; e; e = e->GetNextRoot())
             static_cast<XPCJSObjectHolder*>(e)->TraceJS(trc);
     }
+}
+
+// static
+void XPCJSRuntime::TraceGrayJS(JSTracer* trc, void* data)
+{
+    XPCJSRuntime* self = (XPCJSRuntime*)data;
 
     // Mark these roots as gray so the CC can walk them later.
-    js::GCMarker *gcmarker = NULL;
-    if (IS_GC_MARKING_TRACER(trc)) {
-        gcmarker = static_cast<js::GCMarker *>(trc);
-        JS_ASSERT(gcmarker->getMarkColor() == XPC_GC_COLOR_BLACK);
-        gcmarker->setMarkColor(XPC_GC_COLOR_GRAY);
-    }
     self->TraceXPConnectRoots(trc);
-    if (gcmarker)
-        gcmarker->setMarkColor(XPC_GC_COLOR_BLACK);
 }
 
 static void
@@ -428,12 +429,22 @@ TraceExpandos(XPCWrappedNative *wn, JSObject *&expando, void *aClosure)
 }
 
 static PLDHashOperator
+TraceDOMExpandos(nsPtrHashKey<JSObject> *expando, void *aClosure)
+{
+    JS_CALL_OBJECT_TRACER(static_cast<JSTracer *>(aClosure), expando->GetKey(),
+                          "DOM expando object");
+    return PL_DHASH_NEXT;
+}
+
+static PLDHashOperator
 TraceCompartment(xpc::PtrAndPrincipalHashKey *aKey, JSCompartment *compartment, void *aClosure)
 {
     xpc::CompartmentPrivate *priv = (xpc::CompartmentPrivate *)
         JS_GetCompartmentPrivate(static_cast<JSTracer *>(aClosure)->context, compartment);
     if (priv->expandoMap)
         priv->expandoMap->Enumerate(TraceExpandos, aClosure);
+    if (priv->domExpandoMap)
+        priv->domExpandoMap->EnumerateEntries(TraceDOMExpandos, aClosure);
     return PL_DHASH_NEXT;
 }
 
@@ -530,11 +541,19 @@ XPCJSRuntime::SuspectWrappedNative(JSContext *cx, XPCWrappedNative *wrapper,
 }
 
 static PLDHashOperator
-SuspectExpandos(XPCWrappedNative *wrapper, JSObject *&expando, void *arg)
+SuspectExpandos(XPCWrappedNative *wrapper, JSObject *expando, void *arg)
 {
     Closure* closure = static_cast<Closure*>(arg);
     XPCJSRuntime::SuspectWrappedNative(closure->cx, wrapper, *closure->cb);
 
+    return PL_DHASH_NEXT;
+}
+
+static PLDHashOperator
+SuspectDOMExpandos(nsPtrHashKey<JSObject> *expando, void *arg)
+{
+    Closure *closure = static_cast<Closure*>(arg);
+    closure->cb->NoteXPCOMRoot(static_cast<nsISupports*>(expando->GetKey()->getPrivate()));
     return PL_DHASH_NEXT;
 }
 
@@ -545,7 +564,9 @@ SuspectCompartment(xpc::PtrAndPrincipalHashKey *key, JSCompartment *compartment,
     xpc::CompartmentPrivate *priv = (xpc::CompartmentPrivate *)
         JS_GetCompartmentPrivate(closure->cx, compartment);
     if (priv->expandoMap)
-        priv->expandoMap->Enumerate(SuspectExpandos, arg);
+        priv->expandoMap->EnumerateRead(SuspectExpandos, arg);
+    if (priv->domExpandoMap)
+        priv->domExpandoMap->EnumerateEntries(SuspectDOMExpandos, arg);
     return PL_DHASH_NEXT;
 }
 
@@ -1997,6 +2018,33 @@ DiagnosticMemoryCallback(void *ptr, size_t size)
 }
 #endif
 
+static void
+AccumulateTelemetryCallback(int id, JSUint32 sample)
+{
+    switch (id) {
+      case JS_TELEMETRY_GC_REASON:
+        Telemetry::Accumulate(Telemetry::GC_REASON, sample);
+        break;
+      case JS_TELEMETRY_GC_IS_COMPARTMENTAL:
+        Telemetry::Accumulate(Telemetry::GC_IS_COMPARTMENTAL, sample);
+        break;
+      case JS_TELEMETRY_GC_IS_SHAPE_REGEN:
+        Telemetry::Accumulate(Telemetry::GC_IS_SHAPE_REGEN, sample);
+        break;
+      case JS_TELEMETRY_GC_MS:
+        Telemetry::Accumulate(Telemetry::GC_MS, sample);
+        break;
+      case JS_TELEMETRY_GC_MARK_MS:
+        Telemetry::Accumulate(Telemetry::GC_MARK_MS, sample);
+        break;
+      case JS_TELEMETRY_GC_SWEEP_MS:
+        Telemetry::Accumulate(Telemetry::GC_SWEEP_MS, sample);
+        break;
+    }
+}
+
+bool XPCJSRuntime::gNewDOMBindingsEnabled;
+
 XPCJSRuntime::XPCJSRuntime(nsXPConnect* aXPConnect)
  : mXPConnect(aXPConnect),
    mJSRuntime(nsnull),
@@ -2032,6 +2080,9 @@ XPCJSRuntime::XPCJSRuntime(nsXPConnect* aXPConnect)
     NS_TIME_FUNCTION;
 
     DOM_InitInterfaces();
+    Preferences::AddBoolVarCache(&gNewDOMBindingsEnabled, "dom.new_bindings",
+                                 JS_FALSE);
+
 
     // these jsids filled in later when we have a JSContext to work with.
     mStrIDs[0] = JSID_VOID;
@@ -2051,13 +2102,15 @@ XPCJSRuntime::XPCJSRuntime(nsXPConnect* aXPConnect)
         JS_SetContextCallback(mJSRuntime, ContextCallback);
         JS_SetCompartmentCallback(mJSRuntime, CompartmentCallback);
         JS_SetGCCallbackRT(mJSRuntime, GCCallback);
-        JS_SetExtraGCRoots(mJSRuntime, TraceJS, this);
+        JS_SetExtraGCRootsTracer(mJSRuntime, TraceBlackJS, this);
+        JS_SetGrayGCRootsTracer(mJSRuntime, TraceGrayJS, this);
         JS_SetWrapObjectCallbacks(mJSRuntime,
                                   xpc::WrapperFactory::Rewrap,
                                   xpc::WrapperFactory::PrepareForWrapping);
 #ifdef MOZ_CRASHREPORTER
         JS_EnumerateDiagnosticMemoryRegions(DiagnosticMemoryCallback);
 #endif
+        JS_SetAccumulateTelemetryCallback(mJSRuntime, AccumulateTelemetryCallback);
         mWatchdogWakeup = JS_NEW_CONDVAR(mJSRuntime->gcLock);
         if (!mWatchdogWakeup)
             NS_RUNTIMEABORT("JS_NEW_CONDVAR failed.");
@@ -2135,18 +2188,24 @@ XPCJSRuntime::OnJSContextNew(JSContext *cx)
     if(JSID_IS_VOID(mStrIDs[0]))
     {
         JS_SetGCParameterForThread(cx, JSGC_MAX_CODE_CACHE_BYTES, 16 * 1024 * 1024);
-        JSAutoRequest ar(cx);
-        for(uintN i = 0; i < IDX_TOTAL_COUNT; i++)
         {
-            JSString* str = JS_InternString(cx, mStrings[i]);
-            if(!str || !JS_ValueToId(cx, STRING_TO_JSVAL(str), &mStrIDs[i]))
+            // Scope the JSAutoRequest so it goes out of scope before calling
+            // mozilla::dom::binding::DefineStaticJSVals.
+            JSAutoRequest ar(cx);
+            for(uintN i = 0; i < IDX_TOTAL_COUNT; i++)
             {
-                mStrIDs[0] = JSID_VOID;
-                ok = JS_FALSE;
-                break;
+                JSString* str = JS_InternString(cx, mStrings[i]);
+                if(!str || !JS_ValueToId(cx, STRING_TO_JSVAL(str), &mStrIDs[i]))
+                {
+                    mStrIDs[0] = JSID_VOID;
+                    ok = JS_FALSE;
+                    break;
+                }
+                mStrJSVals[i] = STRING_TO_JSVAL(str);
             }
-            mStrJSVals[i] = STRING_TO_JSVAL(str);
         }
+
+        ok = mozilla::dom::binding::DefineStaticJSVals(cx);
     }
     if (!ok)
         return JS_FALSE;

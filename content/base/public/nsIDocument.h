@@ -126,8 +126,8 @@ class Element;
 } // namespace mozilla
 
 #define NS_IDOCUMENT_IID      \
-{ 0x170d5a75, 0xff0b, 0x4599,  \
- { 0x9b, 0x68, 0x18, 0xb7, 0x42, 0xe0, 0xf9, 0xf7 } }
+{ 0x448c396a, 0x013c, 0x47b8, \
+ { 0x95, 0xf4, 0x56, 0x68, 0x0f, 0x5f, 0x12, 0xf8 } }
 
 // Flag for AddStyleSheet().
 #define NS_STYLESHEET_FROM_CATALOG                (1 << 0)
@@ -1321,17 +1321,17 @@ public:
    * OnPageShow() having been called already and OnPageHide() not having been
    * called yet.
    */
-  bool IsShowing() { return mIsShowing; }
+  bool IsShowing() const { return mIsShowing; }
   /**
    * Return whether the document is currently visible (in the sense of
    * OnPageHide having been called and OnPageShow not yet having been called)
    */
-  bool IsVisible() { return mVisible; }
+  bool IsVisible() const { return mVisible; }
   /**
    * Return true when this document is active, i.e., the active document
    * in a content viewer.
    */
-  bool IsActive() { return mDocumentContainer && !mRemovedFromDocShell; }
+  bool IsActive() const { return mDocumentContainer && !mRemovedFromDocShell; }
 
   void RegisterFreezableElement(nsIContent* aContent);
   bool UnregisterFreezableElement(nsIContent* aContent);
@@ -1572,6 +1572,8 @@ public:
   };
 #undef DEPRECATED_OPERATION
   void WarnOnceAbout(DeprecatedOperations aOperation);
+
+  virtual void PostVisibilityUpdateEvent() = 0;
 
 private:
   PRUint64 mWarnedAbout;

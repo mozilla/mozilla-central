@@ -46,11 +46,13 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include "jscntxt.h"
 #include "jsversion.h"
 #include "jsopcode.h"
 #include "jsprvtd.h"
 #include "jspubtd.h"
-#include "jsvector.h"
+
+#include "js/Vector.h"
 
 #define JS_KEYWORD(keyword, type, op, version) \
     extern const char js_##keyword##_str[];

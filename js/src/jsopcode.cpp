@@ -63,13 +63,11 @@
 #include "jsnum.h"
 #include "jsobj.h"
 #include "jsopcode.h"
-#include "jsregexp.h"
 #include "jsscan.h"
 #include "jsscope.h"
 #include "jsscript.h"
 #include "jsstr.h"
 #include "jsstaticcheck.h"
-#include "jsvector.h"
 
 #include "vm/Debugger.h"
 
@@ -79,6 +77,8 @@
 #include "jsscriptinlines.h"
 
 #include "jsautooplen.h"
+
+#include "vm/RegExpObject-inl.h"
 
 using namespace js;
 using namespace js::gc;
@@ -434,10 +434,11 @@ ToDisassemblySource(JSContext *cx, jsval v, JSAutoByteString *bytes)
         }
 
         if (clasp == &RegExpClass) {
-            AutoValueRooter tvr(cx);
-            if (!js_regexp_toString(cx, obj, tvr.addr()))
+            JSString *source = obj->asRegExp()->toString(cx);
+            if (!source)
                 return false;
-            return bytes->encode(cx, tvr.value().toString());
+            JS::Anchor<JSString *> anchor(source);
+            return bytes->encode(cx, source);
         }
     }
 
@@ -4098,7 +4099,7 @@ Decompile(SprintStack *ss, jsbytecode *pc, intN nb, JSOp nextop)
                     outer = jp->script;
                     outerfun = jp->fun;
                     outerLocalNames = jp->localNames;
-                    LOCAL_ASSERT(JS_UPTRDIFF(pc, outer->code) <= outer->length);
+                    LOCAL_ASSERT(UnsignedPtrDiff(pc, outer->code) <= outer->length);
                     jp->script = inner;
                     jp->fun = fun;
                     jp->localNames = innerLocalNames;
@@ -4228,9 +4229,9 @@ Decompile(SprintStack *ss, jsbytecode *pc, intN nb, JSOp nextop)
 
               case JSOP_REGEXP:
                 GET_REGEXP_FROM_BYTECODE(jp->script, pc, 0, obj);
-                if (!js_regexp_toString(cx, obj, &val))
+                str = obj->asRegExp()->toString(cx);
+                if (!str)
                     return NULL;
-                str = JSVAL_TO_STRING(val);
                 goto sprint_string;
 
               case JSOP_TABLESWITCH:

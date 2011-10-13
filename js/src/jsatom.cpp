@@ -52,7 +52,6 @@
 #include "jsprf.h"
 #include "jsapi.h"
 #include "jsatom.h"
-#include "jsbit.h"
 #include "jscntxt.h"
 #include "jsgc.h"
 #include "jsgcmark.h"
@@ -555,7 +554,7 @@ js_Atomize(JSContext *cx, const char *bytes, size_t length, InternBehavior ib, F
 {
     CHECK_REQUEST(cx);
 
-    if (!CheckStringLength(cx, length))
+    if (!JSString::validateLength(cx, length))
         return NULL;
 
     /*
@@ -597,7 +596,7 @@ js_AtomizeChars(JSContext *cx, const jschar *chars, size_t length, InternBehavio
 {
     CHECK_REQUEST(cx);
 
-    if (!CheckStringLength(cx, length))
+    if (!JSString::validateLength(cx, length))
         return NULL;
 
     return AtomizeInline(cx, &chars, length, ib);

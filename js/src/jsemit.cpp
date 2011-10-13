@@ -49,7 +49,6 @@
 #include "jstypes.h"
 #include "jsstdint.h"
 #include "jsutil.h"
-#include "jsbit.h"
 #include "jsprf.h"
 #include "jsapi.h"
 #include "jsatom.h"
@@ -61,7 +60,6 @@
 #include "jsnum.h"
 #include "jsopcode.h"
 #include "jsparse.h"
-#include "jsregexp.h"
 #include "jsscan.h"
 #include "jsscope.h"
 #include "jsscript.h"
@@ -75,6 +73,7 @@
 
 #include "frontend/ParseMaps-inl.h"
 #include "ds/LifoAlloc.h"
+#include "vm/RegExpObject.h"
 
 /* Allocation chunk counts, must be powers of two in general. */
 #define BYTECODE_CHUNK_LENGTH  1024    /* initial bytecode chunk length */
@@ -7775,13 +7774,6 @@ js_FinishTakingSrcNotes(JSContext *cx, JSCodeGenerator *cg, jssrcnote *notes)
     memcpy(notes + prologCount, cg->main.notes, SRCNOTE_SIZE(mainCount));
     SN_MAKE_TERMINATOR(&notes[totalCount]);
 
-#ifdef DEBUG_notme
-  { int bin = JS_CeilingLog2(totalCount);
-    if (bin >= NBINS)
-        bin = NBINS - 1;
-    ++hist[bin];
-  }
-#endif
     return JS_TRUE;
 }
 
