@@ -165,7 +165,7 @@ class FileVoiceChannel : public VoiceMediaChannel {
   // Implement pure virtual methods of MediaChannel.
   virtual void OnPacketReceived(talk_base::Buffer* packet);
   virtual void OnRtcpReceived(talk_base::Buffer* packet) {}
-  virtual void SetSendSsrc(uint32 id) {}  // TODO: change RTP packet?
+  virtual void SetSendSsrc(uint32 ssrc);
   virtual bool SetRtcpCName(const std::string& cname) { return true; }
   virtual bool Mute(bool on) { return false; }
   virtual bool SetSendBandwidth(bool autobw, int bps) { return true; }
@@ -209,7 +209,7 @@ class FileVideoChannel : public VideoMediaChannel {
   // Implement pure virtual methods of MediaChannel.
   virtual void OnPacketReceived(talk_base::Buffer* packet);
   virtual void OnRtcpReceived(talk_base::Buffer* packet) {}
-  virtual void SetSendSsrc(uint32 id) {}  // TODO: change RTP packet?
+  virtual void SetSendSsrc(uint32 ssrc);
   virtual bool SetRtcpCName(const std::string& cname) { return true; }
   virtual bool Mute(bool on) { return false; }
   virtual bool SetSendBandwidth(bool autobw, int bps) { return true; }

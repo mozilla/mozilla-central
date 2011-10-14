@@ -12,6 +12,7 @@
 
 #include <utility>
 
+#include "modules/video_capture/main/interface/video_capture_factory.h"
 #include "talk/examples/peerconnection_client/defaults.h"
 #include "talk/base/common.h"
 #include "talk/base/logging.h"
@@ -95,7 +96,7 @@ void Conductor::OnSignalingMessage(const std::string& msg) {
 }
 
 // Called when a remote stream is added
-void Conductor::OnAddStream(webrtc::MediaStream* stream) {
+void Conductor::OnAddStream(webrtc::MediaStreamInterface* stream) {
   LOG(INFO) << __FUNCTION__ << " " << stream->label();
 
   stream->AddRef();
@@ -103,7 +104,7 @@ void Conductor::OnAddStream(webrtc::MediaStream* stream) {
                                    stream);
 }
 
-void Conductor::OnRemoveStream(webrtc::MediaStream* stream) {
+void Conductor::OnRemoveStream(webrtc::MediaStreamInterface* stream) {
   LOG(INFO) << __FUNCTION__ << " " << stream->label();
   stream->AddRef();
   main_wnd_->QueueUIThreadCallback(STREAM_REMOVED,
@@ -213,38 +214,63 @@ void Conductor::ConnectToPeer(int peer_id) {
 
   if (InitializePeerConnection()) {
     peer_id_ = peer_id;
-    main_wnd_->SwitchToStreamingUI();
-    EnsureStreamingUI();
     AddStreams();
   } else {
     main_wnd_->MessageBox("Error", "Failed to initialize PeerConnection", true);
   }
 }
 
+scoped_refptr<webrtc::VideoCaptureModule> Conductor::OpenVideoCaptureDevice() {
+  webrtc::VideoCaptureModule::DeviceInfo* device_info(
+      webrtc::VideoCaptureFactory::CreateDeviceInfo(0));
+  scoped_refptr<webrtc::VideoCaptureModule> video_device;
+
+  const size_t kMaxDeviceNameLength = 128;
+  const size_t kMaxUniqueIdLength = 256;
+  uint8 device_name[kMaxDeviceNameLength];
+  uint8 unique_id[kMaxUniqueIdLength];
+
+  const size_t device_count = device_info->NumberOfDevices();
+  for (size_t i = 0; i < device_count; ++i) {
+    // Get the name of the video capture device.
+    device_info->GetDeviceName(i, device_name, kMaxDeviceNameLength, unique_id,
+        kMaxUniqueIdLength);
+    // Try to open this device.
+    video_device =
+        webrtc::VideoCaptureFactory::Create(0, unique_id);
+    if (video_device.get())
+      break;
+  }
+  delete device_info;
+  return video_device;
+}
+
 void Conductor::AddStreams() {
   if (active_streams_.find(kStreamLabel) != active_streams_.end())
     return;  // Already added.
 
-  scoped_refptr<webrtc::LocalAudioTrack> audio_track(
+  scoped_refptr<webrtc::LocalAudioTrackInterface> audio_track(
       webrtc::CreateLocalAudioTrack(kAudioLabel, NULL));
 
-  scoped_refptr<webrtc::LocalVideoTrack> video_track(
-      webrtc::CreateLocalVideoTrack(kVideoLabel, NULL));
+  scoped_refptr<webrtc::LocalVideoTrackInterface> video_track(
+      webrtc::CreateLocalVideoTrack(kVideoLabel, OpenVideoCaptureDevice()));
 
-  scoped_refptr<webrtc::VideoRenderer> renderer(webrtc::CreateVideoRenderer(
+  scoped_refptr<webrtc::VideoRendererInterface> renderer(
+      webrtc::CreateVideoRenderer(
       main_wnd_->local_renderer()));
   video_track->SetRenderer(renderer);
 
-  scoped_refptr<webrtc::LocalMediaStream> stream =
-      webrtc::CreateLocalMediaStream(kStreamLabel);
+  scoped_refptr<webrtc::LocalMediaStreamInterface> stream =
+      peer_connection_factory_->CreateLocalMediaStream(kStreamLabel);
 
   stream->AddTrack(audio_track);
   stream->AddTrack(video_track);
   peer_connection_->AddStream(stream);
   peer_connection_->CommitStreamChanges();
-  typedef std::pair<std::string, scoped_refptr<webrtc::MediaStream> >
+  typedef std::pair<std::string, scoped_refptr<webrtc::MediaStreamInterface> >
       MediaStreamPair;
   active_streams_.insert(MediaStreamPair(stream->label(), stream));
+  main_wnd_->SwitchToStreamingUI();
 }
 
 void Conductor::DisconnectFromCurrentPeer() {
@@ -280,26 +306,27 @@ void Conductor::UIThreadCallback(int msg_id, void* data) {
     case SEND_MESSAGE_TO_PEER: {
       LOG(INFO) << "SEND_MESSAGE_TO_PEER";
       std::string* msg = reinterpret_cast<std::string*>(data);
-      if (client_->IsSendingMessage()) {
-        ASSERT(msg != NULL);
+      if (msg) {
+        // For convenience, we always run the message through the queue.
+        // This way we can be sure that messages are sent to the server
+        // in the same order they were signaled without much hassle.
         pending_messages_.push_back(msg);
-      } else {
-        if (!msg && !pending_messages_.empty()) {
-          msg = pending_messages_.front();
-          pending_messages_.pop_front();
-        }
-        if (msg) {
-          bool ok = client_->SendToPeer(peer_id_, *msg);
-          if (!ok && peer_id_ != -1) {
-            LOG(LS_ERROR) << "SendToPeer failed";
-            DisconnectFromServer();
-          }
-          delete msg;
-        }
-
-        if (!peer_connection_.get())
-          peer_id_ = -1;
       }
+
+      if (!pending_messages_.empty() && !client_->IsSendingMessage()) {
+        msg = pending_messages_.front();
+        pending_messages_.pop_front();
+
+        if (!client_->SendToPeer(peer_id_, *msg) && peer_id_ != -1) {
+          LOG(LS_ERROR) << "SendToPeer failed";
+          DisconnectFromServer();
+        }
+        delete msg;
+      }
+
+      if (!peer_connection_.get())
+        peer_id_ = -1;
+
       break;
     }
 
@@ -312,16 +339,18 @@ void Conductor::UIThreadCallback(int msg_id, void* data) {
       break;
 
     case NEW_STREAM_ADDED: {
-      webrtc::MediaStream* stream = reinterpret_cast<webrtc::MediaStream*>(
+      webrtc::MediaStreamInterface* stream =
+          reinterpret_cast<webrtc::MediaStreamInterface*>(
           data);
-      scoped_refptr<webrtc::MediaStreamTrackList> tracks =
+      scoped_refptr<webrtc::MediaStreamTrackListInterface> tracks =
           stream->tracks();
       for (size_t i = 0; i < tracks->count(); ++i) {
-        if (tracks->at(i)->kind().compare(webrtc::kVideoTrackKind) == 0) {
-          webrtc::VideoTrack* track =
-              reinterpret_cast<webrtc::VideoTrack*>(tracks->at(i).get());
+        if (tracks->at(i)->type() ==
+            webrtc::MediaStreamTrackInterface::kVideo) {
+          webrtc::VideoTrackInterface* track =
+              reinterpret_cast<webrtc::VideoTrackInterface*>(tracks->at(i));
           LOG(INFO) << "Setting video renderer for track: " << track->label();
-          scoped_refptr<webrtc::VideoRenderer> renderer(
+          scoped_refptr<webrtc::VideoRendererInterface> renderer(
               webrtc::CreateVideoRenderer(main_wnd_->remote_renderer()));
           track->SetRenderer(renderer);
         }
@@ -335,7 +364,8 @@ void Conductor::UIThreadCallback(int msg_id, void* data) {
     }
 
     case STREAM_REMOVED: {
-      webrtc::MediaStream* stream = reinterpret_cast<webrtc::MediaStream*>(
+      webrtc::MediaStreamInterface* stream =
+          reinterpret_cast<webrtc::MediaStreamInterface*>(
           data);
       active_streams_.erase(stream->label());
       stream->Release();

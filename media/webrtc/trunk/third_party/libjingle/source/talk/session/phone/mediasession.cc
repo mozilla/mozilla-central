@@ -117,7 +117,7 @@ SessionDescription* MediaSessionDescriptionFactory::CreateOffer(
     const MediaSessionOptions& options) {
   SessionDescription* offer = new SessionDescription();
 
-  if (true) {  // TODO: Allow audio to be optional
+  if (options.has_audio) {
     AudioContentDescription* audio = new AudioContentDescription();
     for (AudioCodecs::const_iterator codec = audio_codecs_.begin();
          codec != audio_codecs_.end(); ++codec) {
@@ -148,7 +148,7 @@ SessionDescription* MediaSessionDescriptionFactory::CreateOffer(
   }
 
   // add video codecs, if this is a video call
-  if (options.is_video) {
+  if (options.has_video) {
     VideoContentDescription* video = new VideoContentDescription();
     for (VideoCodecs::const_iterator codec = video_codecs_.begin();
          codec != video_codecs_.end(); ++codec) {
@@ -190,7 +190,7 @@ SessionDescription* MediaSessionDescriptionFactory::CreateAnswer(
   SessionDescription* accept = new SessionDescription();
 
   const ContentInfo* audio_content = GetFirstAudioContent(offer);
-  if (audio_content) {
+  if (audio_content && options.has_audio) {
     const AudioContentDescription* audio_offer =
         static_cast<const AudioContentDescription*>(audio_content->description);
     AudioContentDescription* audio_accept = new AudioContentDescription();
@@ -223,10 +223,12 @@ SessionDescription* MediaSessionDescriptionFactory::CreateAnswer(
       return NULL;  // Fails the session setup.
     }
     accept->AddContent(audio_content->name, audio_content->type, audio_accept);
+  } else {
+    LOG(LS_INFO) << "Audio is not supported in answer";
   }
 
   const ContentInfo* video_content = GetFirstVideoContent(offer);
-  if (video_content && options.is_video) {
+  if (video_content && options.has_video) {
     const VideoContentDescription* video_offer =
         static_cast<const VideoContentDescription*>(video_content->description);
     VideoContentDescription* video_accept = new VideoContentDescription();
@@ -260,6 +262,8 @@ SessionDescription* MediaSessionDescriptionFactory::CreateAnswer(
       return NULL;  // Fails the session setup.
     }
     accept->AddContent(video_content->name, video_content->type, video_accept);
+  } else {
+    LOG(LS_INFO) << "Video is not supported in answer";
   }
 
   return accept;

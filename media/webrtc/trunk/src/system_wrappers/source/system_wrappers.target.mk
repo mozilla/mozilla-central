@@ -102,6 +102,7 @@ OBJS := $(obj).target/$(TARGET)/src/system_wrappers/source/aligned_malloc.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/cpu.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/cpu_features.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/critical_section.o \
+	$(obj).target/$(TARGET)/src/system_wrappers/source/data_log_c.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/event.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/file_impl.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/list_no_stl.o \

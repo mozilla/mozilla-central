@@ -40,11 +40,11 @@ namespace talk_base {
 
 namespace webrtc {
 
-class StreamCollection : public RefCount {
+class StreamCollection : public talk_base::RefCount {
  public:
   virtual size_t count() = 0;
-  virtual MediaStream* at(size_t index) = 0;
-  virtual MediaStream* find(const std::string& label) = 0;
+  virtual MediaStreamInterface* at(size_t index) = 0;
+  virtual MediaStreamInterface* find(const std::string& label) = 0;
  protected:
   // Dtor protected as objects shouldn't be deleted via this interface.
   ~StreamCollection() {}
@@ -68,10 +68,10 @@ class PeerConnectionObserver {
   virtual void OnStateChange(Readiness state) = 0;
 
   // Triggered when media is received on a new stream from remote peer.
-  virtual void OnAddStream(MediaStream* stream) = 0;
+  virtual void OnAddStream(MediaStreamInterface* stream) = 0;
 
   // Triggered when a remote peer close a stream.
-  virtual void OnRemoveStream(MediaStream* stream) = 0;
+  virtual void OnRemoveStream(MediaStreamInterface* stream) = 0;
 
  protected:
   // Dtor protected as objects shouldn't be deleted via this interface.
@@ -79,7 +79,7 @@ class PeerConnectionObserver {
 };
 
 
-class PeerConnection : public RefCount {
+class PeerConnection : public talk_base::RefCount {
  public:
   // SignalingMessage in json format
   virtual bool ProcessSignalingMessage(const std::string& msg) = 0;
@@ -96,12 +96,12 @@ class PeerConnection : public RefCount {
   // Add a new local stream.
   // This function does not trigger any changes to the stream until
   // CommitStreamChanges is called.
-  virtual void AddStream(LocalMediaStream* stream) = 0;
+  virtual void AddStream(LocalMediaStreamInterface* stream) = 0;
 
   // Remove a local stream and stop sending it.
   // This function does not trigger any changes to the stream until
   // CommitStreamChanges is called.
-  virtual void RemoveStream(LocalMediaStream* stream) = 0;
+  virtual void RemoveStream(LocalMediaStreamInterface* stream) = 0;
 
   // Commit Stream changes. This will start sending media on new streams
   // and stop sending media on removed stream.
@@ -113,7 +113,7 @@ class PeerConnection : public RefCount {
 };
 
 // Reference counted wrapper for talk_base::NetworkManager.
-class PcNetworkManager : public RefCount {
+class PcNetworkManager : public talk_base::RefCount {
  public:
   static scoped_refptr<PcNetworkManager> Create(
       talk_base::NetworkManager* network_manager);
@@ -127,7 +127,7 @@ class PcNetworkManager : public RefCount {
 };
 
 // Reference counted wrapper for talk_base::PacketSocketFactory.
-class PcPacketSocketFactory : public RefCount {
+class PcPacketSocketFactory : public talk_base::RefCount {
  public:
   static scoped_refptr<PcPacketSocketFactory> Create(
       talk_base::PacketSocketFactory* socket_factory);
@@ -141,7 +141,7 @@ class PcPacketSocketFactory : public RefCount {
   talk_base::PacketSocketFactory* socket_factory_;
 };
 
-class PeerConnectionManager : public RefCount {
+class PeerConnectionManager : public talk_base::RefCount {
  public:
   // Create a new instance of PeerConnectionManager.
   static scoped_refptr<PeerConnectionManager> Create();
@@ -159,6 +159,10 @@ class PeerConnectionManager : public RefCount {
   virtual scoped_refptr<PeerConnection> CreatePeerConnection(
       const std::string& config,
       PeerConnectionObserver* observer) = 0;
+
+  virtual scoped_refptr<LocalMediaStreamInterface> CreateLocalMediaStream(
+      const std::string& label) = 0;
+
 
  protected:
   // Dtor protected as objects shouldn't be deleted via this interface.

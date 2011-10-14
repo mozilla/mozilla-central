@@ -41,40 +41,38 @@
 
 namespace webrtc {
 
-class AudioTrackImpl : public NotifierImpl<LocalAudioTrack> {
+class AudioTrack : public NotifierImpl<LocalAudioTrackInterface> {
  public:
   // Creates an audio track. This can be used in remote media streams.
   // For local audio tracks use CreateLocalAudioTrack.
-  static scoped_refptr<AudioTrack> Create(const std::string& label,
+  static scoped_refptr<AudioTrackInterface> Create(const std::string& label,
                                           uint32 ssrc);
 
   // Get the AudioDeviceModule associated with this track.
-  virtual scoped_refptr<AudioDeviceModule> GetAudioDevice();
+  virtual AudioDeviceModule* GetAudioDevice();
 
   // Implement MediaStreamTrack
-  virtual const std::string& kind();
-  virtual const std::string& label();
-  virtual uint32 ssrc();
-  virtual TrackState state();
-  virtual bool enabled();
+  virtual const char* kind() const; 
+  virtual const std::string& label() const { return label_; }
+  virtual TrackType type() const { return kAudio; }
+  virtual uint32 ssrc() const { return ssrc_; }
+  virtual TrackState state() const { return state_; }
+  virtual bool enabled() const { return enabled_; }
   virtual bool set_enabled(bool enable);
   virtual bool set_ssrc(uint32 ssrc);
   virtual bool set_state(TrackState new_state);
 
  protected:
-  AudioTrackImpl(const std::string& label, uint32 ssrc);
-  AudioTrackImpl(const std::string& label, AudioDeviceModule* audio_device);
+  AudioTrack(const std::string& label, uint32 ssrc);
+  AudioTrack(const std::string& label, AudioDeviceModule* audio_device);
 
  private:
   bool enabled_;
-  std::string kind_;
   std::string label_;
   uint32 ssrc_;
   TrackState state_;
   scoped_refptr<AudioDeviceModule> audio_device_;
 };
-
-
 
 }  // namespace webrtc
 

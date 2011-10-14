@@ -106,7 +106,8 @@ INCS_Release := -Isrc \
 	-Isrc/modules/audio_coding/main/interface \
 	-Isrc/system_wrappers/interface
 
-OBJS := $(obj).target/$(TARGET)/src/modules/video_capture/main/source/video_capture_impl.o \
+OBJS := $(obj).target/$(TARGET)/src/modules/video_capture/main/source/video_capture_factory.o \
+	$(obj).target/$(TARGET)/src/modules/video_capture/main/source/video_capture_impl.o \
 	$(obj).target/$(TARGET)/src/modules/video_capture/main/source/vplib_conversions.o \
 	$(obj).target/$(TARGET)/src/modules/video_capture/main/source/device_info_impl.o \
 	$(obj).target/$(TARGET)/src/modules/video_capture/main/source/Linux/device_info_linux.o \

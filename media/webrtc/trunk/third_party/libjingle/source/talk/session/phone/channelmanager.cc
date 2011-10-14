@@ -313,6 +313,10 @@ VoiceChannel* ChannelManager::CreateVoiceChannel_w(
   VoiceChannel* voice_channel = new VoiceChannel(
       worker_thread_, media_engine_.get(), media_channel,
       session, content_name, rtcp);
+  if (!voice_channel->Init()) {
+    delete voice_channel;
+    return NULL;
+  }
   voice_channels_.push_back(voice_channel);
   return voice_channel;
 }
@@ -362,6 +366,10 @@ VideoChannel* ChannelManager::CreateVideoChannel_w(
   VideoChannel* video_channel = new VideoChannel(
       worker_thread_, media_engine_.get(), media_channel,
       session, content_name, rtcp, voice_channel);
+  if (!video_channel->Init()) {
+    delete video_channel;
+    return NULL;
+  }
   video_channels_.push_back(video_channel);
   return video_channel;
 }

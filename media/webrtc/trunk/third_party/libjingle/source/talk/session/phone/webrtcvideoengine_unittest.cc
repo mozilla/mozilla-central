@@ -29,6 +29,33 @@ class FakeViEWrapper : public cricket::ViEWrapper {
   }
 };
 
+class FakeNetworkInterface : public cricket::MediaChannel::NetworkInterface {
+ public:
+  FakeNetworkInterface()
+     : recv_buffer_size_(0),
+       send_buffer_size_(0) {
+  }
+  virtual bool SendPacket(talk_base::Buffer* packet) {
+    return true;
+  }
+  virtual bool SendRtcp(talk_base::Buffer* packet) {
+    return true;
+  }
+  virtual int SetOption(SocketType type, talk_base::Socket::Option opt,
+                        int option) {
+    if (type == ST_RTP) {
+     if (opt == talk_base::Socket::OPT_RCVBUF)
+       recv_buffer_size_ = option;
+     else if (opt == talk_base::Socket::OPT_SNDBUF)
+       send_buffer_size_ = option;
+    }
+    return 0;
+  }
+  virtual ~FakeNetworkInterface() {}
+  int recv_buffer_size_;
+  int send_buffer_size_;
+};
+
 class WebRtcVideoEngineTest : public testing::Test {
  public:
   class ChannelErrorListener : public sigslot::has_slots<> {
@@ -135,6 +162,11 @@ TEST_F(WebRtcVideoEngineTest, FindCodec) {
 
   cricket::VideoCodec vp8_diff_res(104, "VP8", 320, 111, 30, 0);
   EXPECT_FALSE(engine_.FindCodec(vp8_diff_res));
+
+  // PeerConnection doesn't negotiate the resolution at this point.
+  // Test that FindCodec can handle the case when width/height is 0.
+  cricket::VideoCodec vp8_zero_res(104, "VP8", 0, 0, 30, 0);
+  EXPECT_TRUE(engine_.FindCodec(vp8_zero_res));
 }
 
 // Test that we set our inbound codecs properly
@@ -158,6 +190,16 @@ TEST_F(WebRtcVideoEngineTest, SetSendCodecs) {
   EXPECT_EQ(kVP8Codec.width, gcodec.width);
   EXPECT_EQ(kVP8Codec.height, gcodec.height);
   EXPECT_STREQ(kVP8Codec.name.c_str(), gcodec.plName);
+}
+
+// Tests that the rtp buffer is set properly after the SetInterface call.
+TEST_F(WebRtcVideoEngineTest, SetRtpBufferSize) {
+  EXPECT_TRUE(SetupEngine());
+  const int kExpectedVideoRtpBufferSize = 65536;
+  FakeNetworkInterface network_interface;
+  channel_->SetInterface(&network_interface);
+  EXPECT_EQ(kExpectedVideoRtpBufferSize, network_interface.recv_buffer_size_);
+  EXPECT_EQ(kExpectedVideoRtpBufferSize, network_interface.send_buffer_size_);
 }
 
 // TODO: add tests for below interfaces

@@ -30,7 +30,6 @@
 #include <utility>
 
 #include "talk/app/webrtc_dev/audiotrackimpl.h"
-#include "talk/app/webrtc_dev/mediastreamimpl.h"
 #include "talk/app/webrtc_dev/videotrackimpl.h"
 #include "talk/app/webrtc_dev/sessiondescriptionprovider.h"
 #include "talk/base/helpers.h"
@@ -95,7 +94,6 @@ PeerConnectionSignaling::~PeerConnectionSignaling() {
     delete remote_desc;
     delete queued_received_offer_.first;
   }
-
 }
 
 void PeerConnectionSignaling::OnCandidatesReady(
@@ -299,13 +297,13 @@ void PeerConnectionSignaling::InitMediaSessionOptions(
   // the is_video should always be true even if there are not video tracks.
   options->is_video = true;
   for (size_t i = 0; i < local_streams->count(); ++i) {
-    MediaStream* stream = local_streams->at(i);
-    scoped_refptr<MediaStreamTrackList> tracks = stream->tracks();
+    MediaStreamInterface* stream = local_streams->at(i);
+    scoped_refptr<MediaStreamTrackListInterface> tracks = stream->tracks();
 
     // For each track in the stream, add it to the MediaSessionOptions.
     for (size_t j = 0; j < tracks->count(); ++j) {
-      scoped_refptr<MediaStreamTrack> track = tracks->at(j);
-      if (track->kind().compare(kAudioTrackKind) == 0) {
+      scoped_refptr<MediaStreamTrackInterface> track = tracks->at(j);
+      if (MediaStreamTrackInterface::kAudio == track->type()) {
         // TODO(perkj): Better ssrc?
         // Does talk_base::CreateRandomNonZeroId() generate unique id?
         if (track->ssrc() == 0)
@@ -314,7 +312,7 @@ void PeerConnectionSignaling::InitMediaSessionOptions(
                                                               track->label(),
                                                               stream->label()));
       }
-      if (track->kind().compare(kVideoTrackKind) == 0) {
+      if (MediaStreamTrackInterface::kVideo == track->type()) {
         if (track->ssrc() == 0)
           track->set_ssrc(++ssrc_counter_);  // TODO(perkj): Better ssrc?
         options->video_sources.push_back(cricket::SourceParam(track->ssrc(),
@@ -333,7 +331,7 @@ void PeerConnectionSignaling::InitMediaSessionOptions(
 void PeerConnectionSignaling::UpdateRemoteStreams(
     const cricket::SessionDescription* remote_desc) {
   RemoteStreamMap current_streams;
-  typedef std::pair<std::string, scoped_refptr<MediaStreamImpl> >
+  typedef std::pair<std::string, scoped_refptr<MediaStreamProxy> >
       MediaStreamPair;
 
   const cricket::ContentInfo* audio_content = GetFirstAudioContent(remote_desc);
@@ -353,18 +351,18 @@ void PeerConnectionSignaling::UpdateRemoteStreams(
       if (old_streams_it == remote_streams_.end()) {
         if (new_streams_it == current_streams.end()) {
           // New stream
-          scoped_refptr<MediaStreamImpl> stream(
-              MediaStreamImpl::Create(it->cname));
+          scoped_refptr<MediaStreamProxy> stream(
+              MediaStreamProxy::Create(it->cname, signaling_thread_));
           current_streams.insert(MediaStreamPair(stream->label(), stream));
           new_streams_it = current_streams.find(it->cname);
         }
-        scoped_refptr<AudioTrack> track(AudioTrackImpl::Create(it->description,
-                                                               it->ssrc));
-        track->set_state(MediaStreamTrack::kLive);
+        scoped_refptr<AudioTrackInterface> track(
+            AudioTrack::Create(it->description, it->ssrc));
+        track->set_state(MediaStreamTrackInterface::kLive);
         new_streams_it->second->AddTrack(track);
 
       } else {
-        scoped_refptr<MediaStreamImpl> stream(old_streams_it->second);
+        scoped_refptr<MediaStreamProxy> stream(old_streams_it->second);
         current_streams.insert(MediaStreamPair(stream->label(), stream));
       }
     }
@@ -387,18 +385,18 @@ void PeerConnectionSignaling::UpdateRemoteStreams(
       if (old_streams_it == remote_streams_.end()) {
         if (new_streams_it == current_streams.end()) {
           // New stream
-          scoped_refptr<MediaStreamImpl> stream(
-              MediaStreamImpl::Create(it->cname));
+          scoped_refptr<MediaStreamProxy> stream(
+              MediaStreamProxy::Create(it->cname, signaling_thread_));
           current_streams.insert(MediaStreamPair(stream->label(), stream));
           new_streams_it = current_streams.find(it->cname);
         }
-        scoped_refptr<VideoTrack> track(VideoTrackImpl::Create(it->description,
-                                                               it->ssrc));
+        scoped_refptr<VideoTrackInterface> track(
+            VideoTrack::Create(it->description, it->ssrc));
         new_streams_it->second->AddTrack(track);
-        track->set_state(MediaStreamTrack::kLive);
+        track->set_state(MediaStreamTrackInterface::kLive);
 
       } else {
-        scoped_refptr<MediaStreamImpl> stream(old_streams_it->second);
+        scoped_refptr<MediaStreamProxy> stream(old_streams_it->second);
         current_streams.insert(MediaStreamPair(stream->label(), stream));
       }
     }
@@ -409,11 +407,11 @@ void PeerConnectionSignaling::UpdateRemoteStreams(
   for (RemoteStreamMap::iterator it = current_streams.begin();
        it != current_streams.end();
        ++it) {
-    scoped_refptr<MediaStreamImpl> new_stream(it->second);
+    scoped_refptr<MediaStreamProxy> new_stream(it->second);
     RemoteStreamMap::iterator old_streams_it =
         remote_streams_.find(new_stream->label());
     if (old_streams_it == remote_streams_.end()) {
-      new_stream->set_ready_state(MediaStream::kLive);
+      new_stream->set_ready_state(MediaStreamInterface::kLive);
       SignalRemoteStreamAdded(new_stream);
     }
   }
@@ -424,14 +422,15 @@ void PeerConnectionSignaling::UpdateRemoteStreams(
   for (RemoteStreamMap::iterator it = remote_streams_.begin();
        it != remote_streams_.end();
        ++it) {
-    scoped_refptr<MediaStreamImpl> old_stream(it->second);
+    scoped_refptr<MediaStreamProxy> old_stream(it->second);
     RemoteStreamMap::iterator new_streams_it =
         current_streams.find(old_stream->label());
     if (new_streams_it == current_streams.end()) {
-      old_stream->set_ready_state(MediaStream::kEnded);
-      scoped_refptr<MediaStreamTrackList> tracklist(old_stream->tracks());
+      old_stream->set_ready_state(MediaStreamInterface::kEnded);
+      scoped_refptr<MediaStreamTrackListInterface> tracklist(
+          old_stream->tracks());
       for (size_t j = 0; j < tracklist->count(); ++j) {
-        tracklist->at(j)->set_state(MediaStreamTrack::kEnded);
+        tracklist->at(j)->set_state(MediaStreamTrackInterface::kEnded);
       }
       SignalRemoteStreamRemoved(old_stream);
     }
@@ -447,23 +446,24 @@ void PeerConnectionSignaling::UpdateRemoteStreams(
 void PeerConnectionSignaling::UpdateSendingLocalStreams(
     const cricket::SessionDescription* answer_desc,
     StreamCollection* negotiated_streams) {
-  typedef std::pair<std::string, scoped_refptr<MediaStream> > MediaStreamPair;
+  typedef std::pair<std::string, scoped_refptr<MediaStreamInterface> >
+  MediaStreamPair;
   LocalStreamMap current_local_streams;
 
   for (size_t i = 0; i < negotiated_streams->count(); ++i) {
-    scoped_refptr<MediaStream> stream = negotiated_streams->at(i);
-    scoped_refptr<MediaStreamTrackList> tracklist(stream->tracks());
+    scoped_refptr<MediaStreamInterface> stream = negotiated_streams->at(i);
+    scoped_refptr<MediaStreamTrackListInterface> tracklist(stream->tracks());
 
     bool stream_ok = false;  // A stream is ok if at least one track succeed.
 
     for (size_t j = 0; j < tracklist->count(); ++j) {
-      scoped_refptr<MediaStreamTrack> track = tracklist->at(j);
-      if (track->kind().compare(kAudioTrackKind) == 0) {
+      scoped_refptr<MediaStreamTrackInterface> track = tracklist->at(j);
+      if (MediaStreamTrackInterface::kAudio == track->type()) {
         const cricket::ContentInfo* audio_content =
             GetFirstAudioContent(answer_desc);
 
         if (!audio_content) {  // The remote does not accept audio.
-          track->set_state(MediaStreamTrack::kFailed);
+          track->set_state(MediaStreamTrackInterface::kFailed);
           continue;
         }
         const cricket::AudioContentDescription* audio_desc =
@@ -472,17 +472,17 @@ void PeerConnectionSignaling::UpdateSendingLocalStreams(
         // TODO(perkj): Do we need to store the codec in the track?
         if (audio_desc->codecs().size() <= 0) {
           // No common codec.
-          track->set_state(MediaStreamTrack::kFailed);
+          track->set_state(MediaStreamTrackInterface::kFailed);
         }
-        track->set_state(MediaStreamTrack::kLive);
+        track->set_state(MediaStreamTrackInterface::kLive);
         stream_ok = true;
       }
-      if (track->kind().compare(kVideoTrackKind) == 0) {
+      if (MediaStreamTrackInterface::kVideo == track->type()) {
         const cricket::ContentInfo* video_content =
             GetFirstVideoContent(answer_desc);
 
         if (!video_content) {  // The remote does not accept video.
-          track->set_state(MediaStreamTrack::kFailed);
+          track->set_state(MediaStreamTrackInterface::kFailed);
           continue;
         }
         const cricket::VideoContentDescription* video_desc =
@@ -491,19 +491,19 @@ void PeerConnectionSignaling::UpdateSendingLocalStreams(
         // TODO(perkj): Do we need to store the codec in the track?
         if (video_desc->codecs().size() <= 0) {
           // No common codec.
-          track->set_state(MediaStreamTrack::kFailed);
+          track->set_state(MediaStreamTrackInterface::kFailed);
         }
-        track->set_state(MediaStreamTrack::kLive);
+        track->set_state(MediaStreamTrackInterface::kLive);
         stream_ok = true;
       }
     }
     if (stream_ok) {
       // We have successfully negotiated to send this stream.
       // Change the stream and store it as successfully negotiated.
-      stream->set_ready_state(MediaStream::kLive);
+      stream->set_ready_state(MediaStreamInterface::kLive);
       current_local_streams.insert(MediaStreamPair(stream->label(), stream));
     } else {
-      stream->set_ready_state(MediaStream::kEnded);
+      stream->set_ready_state(MediaStreamInterface::kEnded);
     }
   }
 
@@ -513,13 +513,15 @@ void PeerConnectionSignaling::UpdateSendingLocalStreams(
   for (LocalStreamMap::iterator it = local_streams_.begin();
        it != local_streams_.end();
        ++it) {
-    scoped_refptr<MediaStream> old_stream(it->second);
-    MediaStream* new_streams = negotiated_streams->find(old_stream->label());
+    scoped_refptr<MediaStreamInterface> old_stream(it->second);
+    MediaStreamInterface* new_streams =
+        negotiated_streams->find(old_stream->label());
     if (new_streams == NULL) {
-      old_stream->set_ready_state(MediaStream::kEnded);
-      scoped_refptr<MediaStreamTrackList> tracklist(old_stream->tracks());
+      old_stream->set_ready_state(MediaStreamInterface::kEnded);
+      scoped_refptr<MediaStreamTrackListInterface> tracklist(
+          old_stream->tracks());
       for (size_t j = 0; j < tracklist->count(); ++j) {
-        tracklist->at(j)->set_state(MediaStreamTrack::kEnded);
+        tracklist->at(j)->set_state(MediaStreamTrackInterface::kEnded);
       }
     }
   }

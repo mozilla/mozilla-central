@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004, Google Inc.
+ * Copyright 2004--2011, Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -36,6 +36,14 @@ class MagicCamVideoRenderer;
 
 namespace cricket {
 
+// Simple rotation constants.
+enum {
+  ROTATION_0 = 0,
+  ROTATION_90 = 90,
+  ROTATION_180 = 180,
+  ROTATION_270 = 270
+};
+
 // Represents a YUV420 (a.k.a. I420) video frame.
 class VideoFrame {
   friend class flute::MagicCamVideoRenderer;
@@ -70,6 +78,9 @@ class VideoFrame {
   virtual int64 GetTimeStamp() const = 0;
   virtual void SetElapsedTime(int64 elapsed_time) = 0;
   virtual void SetTimeStamp(int64 time_stamp) = 0;
+
+  // Indicates the rotation angle in degrees.
+  virtual int GetRotation() const = 0;
 
   // Make a shallow copy of the frame. The frame buffer itself is not copied.
   // Both the current and new VideoFrame will share a single reference-counted

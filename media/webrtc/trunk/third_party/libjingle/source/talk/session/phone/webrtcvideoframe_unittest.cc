@@ -30,13 +30,11 @@ static const int kHeight = 720;
 static const int kAlignment = 16;
 static const std::string kImageFilename = "faces.1280x720_P420.yuv";
 
-DEFINE_int(yuvconverter_repeat, 1,
-    "how many times to perform each conversion operation (for perf testing)");
-
 class WebRtcVideoFrameTest : public testing::Test {
  protected:
   virtual void SetUp() {
-    repeat_ = FLAG_yuvconverter_repeat;
+    // TODO: Fix (add a new flag) or remove repeat_.
+    repeat_ = 1;
   }
 
  public:
@@ -67,13 +65,11 @@ class WebRtcVideoFrameTest : public testing::Test {
   bool LoadFrame(uint8* sample, size_t sample_size, uint32 format,
                  int32 width, int32 height, WebRtcVideoFrame* frame,
                  int rotation) {
-    // WebRtcVideoFrame only supporst I420 for now
-    if (format != FOURCC_I420)
-      return false;
     for (int i = 0; i < repeat_; ++i) {
-      uint8* new_buffer = new uint8[sample_size];
-      memcpy(new_buffer, sample, sample_size);
-      frame->Attach(new_buffer, sample_size, width, height, 0, 0);
+      if (!frame->Init(format, width, height, width, height,
+                       sample, sample_size, 1, 1, 0, 0, 0)) {
+        return false;
+      }
     }
     return true;
   }
@@ -177,7 +173,7 @@ class WebRtcVideoFrameTest : public testing::Test {
       start = start + stride * (height - 1);
       stride = -stride;
     }
-    frame->InitToBlack(width, height, 0, 0);
+    frame->InitToBlack(width, height, 1, 1, 0, 0);
     for (int32 y = 0; y < height; y += 2) {
       for (int32 x = 0; x < width; x += 2) {
         const uint8* rgb[4];
@@ -388,7 +384,7 @@ TEST_F(WebRtcVideoFrameTest, ConstructI420) {
 TEST_F(WebRtcVideoFrameTest, ConstructBlack) {
   WebRtcVideoFrame frame;
   for (int i = 0; i < repeat_; ++i) {
-    EXPECT_TRUE(frame.InitToBlack(kWidth, kHeight, 0, 0));
+    EXPECT_TRUE(frame.InitToBlack(kWidth, kHeight, 1, 1, 0, 0));
   }
   EXPECT_TRUE(IsSize(frame, kWidth, kHeight));
   EXPECT_EQ(16, *frame.GetYPlane());

@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2008, Google Inc.
+ * Copyright 2004 Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -35,6 +35,7 @@
 #include <ksmedia.h>
 #define INITGUID  // For PKEY_AudioEndpoint_GUID
 #include <mmdeviceapi.h>
+#include <mmsystem.h>
 #include <functiondiscoverykeys_devpkey.h>
 #include <uuids.h>
 #include "talk/base/win32.h"  // ToUtf8
@@ -52,10 +53,12 @@
 #include "talk/base/stream.h"
 #include "talk/session/phone/libudevsymboltable.h"
 #include "talk/session/phone/v4llookup.h"
+#if !defined(NO_SOUND_SYSTEM)
 #include "talk/sound/platformsoundsystem.h"
 #include "talk/sound/platformsoundsystemfactory.h"
 #include "talk/sound/sounddevicelocator.h"
 #include "talk/sound/soundsysteminterface.h"
+#endif  // !defined(NO_SOUND_SYSTEM)
 #endif
 
 #include "talk/base/logging.h"
@@ -153,7 +156,7 @@ DeviceManager::DeviceManager()
       need_couninitialize_(false),
 #endif
       watcher_(new DeviceWatcher(this))
-#ifdef LINUX
+#if defined(LINUX) && !defined(NO_SOUND_SYSTEM)
       , sound_system_(new PlatformSoundSystemFactory())
 #endif
     {
@@ -330,7 +333,7 @@ bool DeviceManager::GetAudioDevicesByPlatform(bool input,
                                               std::vector<Device>* devs) {
   devs->clear();
 
-#if defined(LINUX)
+#if defined(LINUX) && !defined(NO_SOUND_SYSTEM)
   if (!sound_system_.get()) {
     return false;
   }
@@ -519,7 +522,7 @@ bool GetCoreAudioDevices(bool input, std::vector<Device>* devs) {
     }
   }
 
-  if (!SUCCEEDED(hr)) {
+  if (FAILED(hr)) {
     LOG(LS_WARNING) << "GetCoreAudioDevices failed with hr " << hr;
     return false;
   }

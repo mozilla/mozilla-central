@@ -97,7 +97,6 @@ INCS_Release := -Isrc \
 	-Isrc/common_audio/signal_processing_library/main/interface
 
 OBJS := $(obj).target/$(TARGET)/src/common_audio/vad/main/source/webrtc_vad.o \
-	$(obj).target/$(TARGET)/src/common_audio/vad/main/source/vad_const.o \
 	$(obj).target/$(TARGET)/src/common_audio/vad/main/source/vad_core.o \
 	$(obj).target/$(TARGET)/src/common_audio/vad/main/source/vad_filterbank.o \
 	$(obj).target/$(TARGET)/src/common_audio/vad/main/source/vad_gmm.o \

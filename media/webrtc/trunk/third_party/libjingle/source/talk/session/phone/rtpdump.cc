@@ -27,16 +27,18 @@
 
 #include "talk/session/phone/rtpdump.h"
 
-#include <string>
 #include <ctype.h>
 
-#include "talk/base/bytebuffer.h"
+#include <string>
+
 #include "talk/base/byteorder.h"
 #include "talk/base/logging.h"
 #include "talk/base/time.h"
 #include "talk/session/phone/rtputils.h"
 
 namespace cricket {
+
+static const int kRtpSsrcOffset = 8;
 
 const char RtpDumpFileHeader::kFirstLine[] = "#!rtpplay1.0 0.0.0.0/0\n";
 
@@ -99,6 +101,12 @@ bool RtpDumpPacket::GetRtcpType(int* type) const {
 ///////////////////////////////////////////////////////////////////////////
 // Implementation of RtpDumpReader.
 ///////////////////////////////////////////////////////////////////////////
+void RtpDumpReader::SetSsrc(uint32 ssrc) {
+  // Convert ssrc to network endian for RTP packet.
+  ssrc_buffer_.Consume(ssrc_buffer_.Length());
+  ssrc_buffer_.WriteUInt32(ssrc);
+}
+
 talk_base::StreamResult RtpDumpReader::ReadPacket(RtpDumpPacket* packet) {
   if (!packet) return talk_base::SR_ERROR;
 
@@ -128,7 +136,17 @@ talk_base::StreamResult RtpDumpReader::ReadPacket(RtpDumpPacket* packet) {
   packet->data.resize(dump_packet_len - sizeof(header));
 
   // Read the actual RTP or RTCP packet.
-  return stream_->ReadAll(&packet->data[0], packet->data.size(), NULL, NULL);
+  res = stream_->ReadAll(&packet->data[0], packet->data.size(), NULL, NULL);
+  // If the packet is RTP and we have specified a ssrc, replace the RTP ssrc
+  // with the specified ssrc.
+  if (res == talk_base::SR_SUCCESS &&
+      packet->IsValidRtpPacket() &&
+      ssrc_buffer_.Length() == sizeof(uint32)) {
+    memcpy(&packet->data[kRtpSsrcOffset], ssrc_buffer_.Data(),
+           ssrc_buffer_.Length());
+  }
+
+  return res;
 }
 
 talk_base::StreamResult RtpDumpReader::ReadFileHeader() {

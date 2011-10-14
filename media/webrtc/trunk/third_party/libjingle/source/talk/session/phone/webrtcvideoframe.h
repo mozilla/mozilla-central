@@ -38,16 +38,29 @@
 #include "talk/session/phone/videoframe.h"
 
 namespace cricket {
-// WebRtcVideoFrame only supports I420
+
+struct CapturedFrame;
+
 class WebRtcVideoFrame : public VideoFrame {
  public:
   WebRtcVideoFrame();
   ~WebRtcVideoFrame();
 
-  void Attach(uint8* buffer, size_t buffer_size,
-              size_t w, size_t h, int64 elapsed_time, int64 time_stamp);
+  bool Init(uint32 format, int w, int h, int dw, int dh,
+            uint8* sample, size_t sample_size,
+            size_t pixel_width, size_t pixel_height,
+            int64 elapsed_time, int64 time_stamp, int rotation);
+
+  bool Init(const CapturedFrame* frame, int dw, int dh);
+
+  bool InitToBlack(int w, int h, size_t pixel_width, size_t pixel_height,
+                   int64 elapsed_time, int64 time_stamp);
+
+  void Attach(uint8* buffer, size_t buffer_size, int w, int h,
+              size_t pixel_width, size_t pixel_height,
+              int64 elapsed_time, int64 time_stamp, int rotation);
   void Detach(uint8** buffer, size_t* buffer_size);
-  bool InitToBlack(size_t w, size_t h, int64 elapsed_time, int64 time_stamp);
+
   bool HasImage() const { return video_frame_.Buffer() != NULL; }
 
   virtual size_t GetWidth() const;
@@ -62,8 +75,8 @@ class WebRtcVideoFrame : public VideoFrame {
   virtual int32 GetUPitch() const { return video_frame_.Width() / 2; }
   virtual int32 GetVPitch() const { return video_frame_.Width() / 2; }
 
-  virtual size_t GetPixelWidth() const { return 1; }
-  virtual size_t GetPixelHeight() const { return 1; }
+  virtual size_t GetPixelWidth() const { return pixel_width_; }
+  virtual size_t GetPixelHeight() const { return pixel_height_; }
   virtual int64 GetElapsedTime() const { return elapsed_time_; }
   virtual int64 GetTimeStamp() const { return video_frame_.TimeStamp(); }
   virtual void SetElapsedTime(int64 elapsed_time) {
@@ -72,6 +85,8 @@ class WebRtcVideoFrame : public VideoFrame {
   virtual void SetTimeStamp(int64 time_stamp) {
     video_frame_.SetTimeStamp(static_cast<WebRtc_UWord32>(time_stamp));
   }
+
+  virtual int GetRotation() const { return rotation_; }
 
   virtual VideoFrame* Copy() const;
   virtual bool MakeExclusive();
@@ -91,7 +106,10 @@ class WebRtcVideoFrame : public VideoFrame {
 
  private:
   webrtc::VideoFrame video_frame_;
+  size_t pixel_width_;
+  size_t pixel_height_;
   int64 elapsed_time_;
+  int rotation_;
 };
 }  // namespace cricket
 

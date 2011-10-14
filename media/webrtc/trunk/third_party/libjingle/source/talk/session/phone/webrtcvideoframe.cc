@@ -28,6 +28,7 @@
 #include "talk/session/phone/webrtcvideoframe.h"
 
 #include "talk/base/logging.h"
+#include "talk/session/phone/videocapturer.h"
 #include "talk/session/phone/videocommon.h"
 #ifdef WEBRTC_RELATIVE_PATH
 #include "common_video/vplib/main/interface/vplib.h"
@@ -36,14 +37,54 @@
 #endif
 
 namespace cricket {
+
 WebRtcVideoFrame::WebRtcVideoFrame() {
 }
 
 WebRtcVideoFrame::~WebRtcVideoFrame() {
 }
 
-void WebRtcVideoFrame::Attach(uint8* buffer, size_t buffer_size, size_t w,
-                              size_t h, int64 elapsed_time, int64 time_stamp) {
+bool WebRtcVideoFrame::Init(uint32 format, int w, int h, int dw, int dh,
+                            uint8* sample, size_t sample_size,
+                            size_t pixel_width, size_t pixel_height,
+                            int64 elapsed_time, int64 time_stamp,
+                            int rotation) {
+  // WebRtcVideoFrame currently doesn't support color conversion or rotation.
+  if (format != FOURCC_I420 || dw != w || dh != h || rotation != 0) {
+    return false;
+  }
+
+  uint8* buffer = new uint8[sample_size];
+  memcpy(buffer, sample, sample_size);
+  Attach(buffer, sample_size, w, h, pixel_width, pixel_height,
+         elapsed_time, time_stamp, rotation);
+  return true;
+}
+
+bool WebRtcVideoFrame::Init(const CapturedFrame* frame, int dw, int dh) {
+  return Init(frame->fourcc, frame->width, frame->height, dw, dh,
+              static_cast<uint8*>(frame->data), frame->data_size,
+              frame->pixel_width, frame->pixel_height,
+              frame->elapsed_time, frame->time_stamp, frame->rotation);
+}
+
+bool WebRtcVideoFrame::InitToBlack(int w, int h,
+                                   size_t pixel_width, size_t pixel_height,
+                                   int64 elapsed_time, int64 time_stamp) {
+  size_t buffer_size = VideoFrame::SizeOf(w, h);
+  uint8* buffer = new uint8[buffer_size];
+  Attach(buffer, buffer_size, w, h, pixel_width, pixel_height,
+         elapsed_time, time_stamp, 0);
+  memset(GetYPlane(), 16, w * h);
+  memset(GetUPlane(), 128, w * h / 4);
+  memset(GetVPlane(), 128, w * h / 4);
+  return true;
+}
+
+void WebRtcVideoFrame::Attach(uint8* buffer, size_t buffer_size, int w, int h,
+                              size_t pixel_width, size_t pixel_height,
+                              int64 elapsed_time, int64 time_stamp,
+                              int rotation) {
   video_frame_.Free();
   WebRtc_UWord8* new_memory = buffer;
   WebRtc_UWord32 new_length = buffer_size;
@@ -51,8 +92,11 @@ void WebRtcVideoFrame::Attach(uint8* buffer, size_t buffer_size, size_t w,
   video_frame_.Swap(new_memory, new_length, new_size);
   video_frame_.SetWidth(w);
   video_frame_.SetHeight(h);
+  pixel_width_ = pixel_width;
+  pixel_height_ = pixel_height;
   elapsed_time_ = elapsed_time;
   video_frame_.SetTimeStamp(static_cast<WebRtc_UWord32>(time_stamp));
+  rotation_ = rotation;
 }
 
 void WebRtcVideoFrame::Detach(uint8** buffer, size_t* buffer_size) {
@@ -62,17 +106,6 @@ void WebRtcVideoFrame::Detach(uint8** buffer, size_t* buffer_size) {
   video_frame_.Swap(new_memory, new_length, new_size);
   *buffer = new_memory;
   *buffer_size = new_size;
-}
-
-bool WebRtcVideoFrame::InitToBlack(size_t w, size_t h,
-                                   int64 elapsed_time, int64 time_stamp) {
-  size_t buffer_size = w * h * 3 / 2;
-  uint8* buffer = new uint8[buffer_size];
-  Attach(buffer, buffer_size, w, h, elapsed_time, time_stamp);
-  memset(GetYPlane(), 16, w * h);
-  memset(GetUPlane(), 128, w * h / 4);
-  memset(GetVPlane(), 128, w * h / 4);
-  return true;
 }
 
 size_t WebRtcVideoFrame::GetWidth() const {
@@ -132,7 +165,8 @@ VideoFrame* WebRtcVideoFrame::Copy() const {
   WebRtcVideoFrame* copy = new WebRtcVideoFrame();
   copy->Attach(new_buffer, new_buffer_size,
                video_frame_.Width(), video_frame_.Height(),
-               elapsed_time_, video_frame_.TimeStamp());
+               pixel_width_, pixel_height_,
+               elapsed_time_, video_frame_.TimeStamp(), rotation_);
   return copy;
 }
 
@@ -142,8 +176,7 @@ bool WebRtcVideoFrame::MakeExclusive() {
   return true;
 }
 
-size_t WebRtcVideoFrame::CopyToBuffer(
-    uint8* buffer, size_t size) const {
+size_t WebRtcVideoFrame::CopyToBuffer(uint8* buffer, size_t size) const {
   if (!video_frame_.Buffer()) {
     return 0;
   }
@@ -174,20 +207,20 @@ size_t WebRtcVideoFrame::ConvertToRgbBuffer(uint32 to_fourcc,
     return 0;
   }
 
-  webrtc::VideoType outgoingVideoType = webrtc::kUnknown;
+  webrtc::VideoType to_type = webrtc::kUnknown;
   switch (to_fourcc) {
     case FOURCC_ARGB:
-      outgoingVideoType = webrtc::kARGB;
+      to_type = webrtc::kARGB;
       break;
     default:
       LOG(LS_WARNING) << "RGB type not supported: " << to_fourcc;
       return 0;
-      break;
   }
 
-  if (outgoingVideoType != webrtc::kUnknown)
-    webrtc::ConvertFromI420(outgoingVideoType, video_frame_.Buffer(),
-                    width, height, buffer);
+  if (to_type != webrtc::kUnknown) {
+    webrtc::ConvertFromI420(to_type, video_frame_.Buffer(),
+                            width, height, buffer);
+  }
 
   return needed;
 }
@@ -241,4 +274,5 @@ VideoFrame* WebRtcVideoFrame::Stretch(size_t w, size_t h,
   // TODO: implement
   return NULL;
 }
+
 }  // namespace cricket

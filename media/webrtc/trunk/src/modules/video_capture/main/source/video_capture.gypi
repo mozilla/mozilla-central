@@ -32,6 +32,7 @@
         # interfaces
         '../interface/video_capture.h',
         '../interface/video_capture_defines.h',
+        '../interface/video_capture_factory.h',
         # headers
         'video_capture_config.h',
         'video_capture_delay.h',
@@ -40,6 +41,7 @@
         'device_info_impl.h',
 
         # DEFINE PLATFORM INDEPENDENT SOURCE FILES
+        'video_capture_factory.cc',
         'video_capture_impl.cc',
         'vplib_conversions.cc',
         'device_info_impl.cc',
@@ -65,19 +67,16 @@
             'Mac/QTKit/video_capture_qtkit_info_objc.h',
             'Mac/QTKit/video_capture_qtkit_objc.h',
             'Mac/QTKit/video_capture_qtkit_utility.h',
-            'Mac/video_capture_mac.cc',
-            'Mac/QTKit/video_capture_qtkit.cc',
+            'Mac/video_capture_mac.mm',
+            'Mac/QTKit/video_capture_qtkit.mm',
             'Mac/QTKit/video_capture_qtkit_objc.mm',
             'Mac/QTKit/video_capture_recursive_lock.mm',
-            'Mac/QTKit/video_capture_qtkit_info.cc',
+            'Mac/QTKit/video_capture_qtkit_info.mm',
             'Mac/QTKit/video_capture_qtkit_info_objc.mm',
           ],
           'include_dirs': [
             'Mac',
           ],
-          'xcode_settings': {
-            'OTHER_CPLUSPLUSFLAGS': '-x objective-c++',
-          },
           'link_settings': {
             'xcode_settings': {
               'OTHER_LDFLAGS': [
@@ -185,7 +184,7 @@
     },
   ],
    # Exclude the test targets when building with chromium.
-  'conditions': [   
+  'conditions': [
     ['build_with_chromium==0', {
       'targets': [
         {
@@ -244,6 +243,8 @@
             }],
             ['OS=="mac"', {
               'xcode_settings': {
+                # TODO(andrew): remove this. Shouldn't be needed when required
+                # files have proper .mm extensions.
                 'OTHER_CPLUSPLUSFLAGS': '-x objective-c++',
                 'OTHER_LDFLAGS': [
                   '-framework Foundation -framework AppKit -framework Cocoa -framework OpenGL -framework CoreVideo -framework CoreAudio -framework AudioToolbox',

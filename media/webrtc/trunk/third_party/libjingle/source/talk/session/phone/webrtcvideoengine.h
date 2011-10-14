@@ -182,6 +182,7 @@ class WebRtcVideoMediaChannel : public VideoMediaChannel,
   }
   virtual bool SetSendBandwidth(bool autobw, int bps);
   virtual bool SetOptions(int options);
+  virtual void SetInterface(NetworkInterface* iface);
 
   WebRtcVideoEngine* engine() const { return engine_; }
   VoiceMediaChannel* voice_channel() const { return voice_channel_; }

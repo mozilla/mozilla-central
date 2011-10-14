@@ -68,12 +68,14 @@ enum SecureMediaPolicy {
 const int kAutoBandwidth = -1;
 struct MediaSessionOptions {
   MediaSessionOptions() :
-      is_video(false),
+      has_audio(true),  // Audio enabled by default.
+      has_video(false),
       is_muc(false),
       video_bandwidth(kAutoBandwidth) {
   }
 
-  bool is_video;
+  bool has_audio;
+  bool has_video;
   bool is_muc;
   // bps. -1 == auto.
   int video_bandwidth;

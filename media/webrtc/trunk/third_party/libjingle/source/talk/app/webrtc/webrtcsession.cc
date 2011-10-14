@@ -76,7 +76,8 @@ WebRtcSession::WebRtcSession(const std::string& id,
       setup_timeout_(kCallSetupTimeout),
       signaling_thread_(signaling_thread),
       incoming_(incoming),
-      port_allocator_(allocator) {
+      port_allocator_(allocator),
+      desc_factory_(channel_manager_) {
 }
 
 WebRtcSession::~WebRtcSession() {
@@ -122,30 +123,32 @@ cricket::Transport* WebRtcSession::CreateTransport() {
 }
 
 bool WebRtcSession::CreateVoiceChannel(const std::string& stream_id) {
-  StreamInfo* stream_info = new StreamInfo(stream_id);
-  stream_info->video = false;
-  streams_.push_back(stream_info);
-
   // RTCP disabled
   cricket::VoiceChannel* voice_channel =
       channel_manager_->CreateVoiceChannel(this, stream_id, true);
-  ASSERT(voice_channel != NULL);
+  if (voice_channel == NULL) {
+    LOG(LERROR) << "Unable to create voice channel.";
+    return false;
+  }
+  StreamInfo* stream_info = new StreamInfo(stream_id);
   stream_info->channel = voice_channel;
-
+  stream_info->video = false;
+  streams_.push_back(stream_info);
   return true;
 }
 
 bool WebRtcSession::CreateVideoChannel(const std::string& stream_id) {
-  StreamInfo* stream_info = new StreamInfo(stream_id);
-  stream_info->video = true;
-  streams_.push_back(stream_info);
-
   // RTCP disabled
   cricket::VideoChannel* video_channel =
       channel_manager_->CreateVideoChannel(this, stream_id, true, NULL);
-  ASSERT(video_channel != NULL);
+  if (video_channel == NULL) {
+    LOG(LERROR) << "Unable to create video channel.";
+    return false;
+  }
+  StreamInfo* stream_info = new StreamInfo(stream_id);
   stream_info->channel = video_channel;
-
+  stream_info->video = true;
+  streams_.push_back(stream_info);
   return true;
 }
 
@@ -376,8 +379,15 @@ bool WebRtcSession::OnInitiateMessage(
     return false;
   }
 
+  // Get capabilities from offer before generating an answer to it.
+  cricket::MediaSessionOptions options;
+  if (GetFirstAudioContent(offer))
+    options.has_audio = true;
+  if (GetFirstVideoContent(offer))
+    options.has_video = true;
+
   talk_base::scoped_ptr<cricket::SessionDescription> answer;
-  answer.reset(CreateAnswer(offer));
+  answer.reset(CreateAnswer(offer, options));
 
   if (!answer.get()) {
     return false;
@@ -479,106 +489,23 @@ bool WebRtcSession::SendSignalAddStream(bool video) {
 }
 
 cricket::SessionDescription* WebRtcSession::CreateOffer() {
-  cricket::SessionDescription* offer = new cricket::SessionDescription();
-  StreamMap::iterator iter;
+  cricket::MediaSessionOptions options;
+  options.has_audio = false;  // disable default option
+  StreamMap::const_iterator iter;
   for (iter = streams_.begin(); iter != streams_.end(); ++iter) {
     if ((*iter)->video) {
-      // add video codecs, if there is video stream added
-      cricket::VideoContentDescription* video =
-          new cricket::VideoContentDescription();
-      std::vector<cricket::VideoCodec> video_codecs;
-      channel_manager_->GetSupportedVideoCodecs(&video_codecs);
-      for (VideoCodecs::const_iterator codec = video_codecs.begin();
-           codec != video_codecs.end(); ++codec) {
-        video->AddCodec(*codec);
-      }
-
-      // enabling RTCP mux by default
-      video->set_rtcp_mux(true);
-      video->SortCodecs();
-      offer->AddContent(cricket::CN_VIDEO, cricket::NS_JINGLE_RTP, video);
+      options.has_video = true;
     } else {
-      cricket::AudioContentDescription* audio =
-          new cricket::AudioContentDescription();
-
-      std::vector<cricket::AudioCodec> audio_codecs;
-      channel_manager_->GetSupportedAudioCodecs(&audio_codecs);
-      for (AudioCodecs::const_iterator codec = audio_codecs.begin();
-           codec != audio_codecs.end(); ++codec) {
-        audio->AddCodec(*codec);
-      }
-
-      // enabling RTCP mux by default.
-      audio->set_rtcp_mux(true);
-      audio->SortCodecs();
-      offer->AddContent(cricket::CN_AUDIO, cricket::NS_JINGLE_RTP, audio);
+      options.has_audio = true;
     }
   }
-  return offer;
+  return desc_factory_.CreateOffer(options);
 }
 
 cricket::SessionDescription* WebRtcSession::CreateAnswer(
-    const cricket::SessionDescription* offer) {
-  cricket::SessionDescription* answer = new cricket::SessionDescription();
-
-  const cricket::ContentInfo* audio_content = GetFirstAudioContent(offer);
-  if (audio_content) {
-    const cricket::AudioContentDescription* audio_offer =
-        static_cast<const cricket::AudioContentDescription*>(
-            audio_content->description);
-
-    cricket::AudioContentDescription* audio_accept =
-        new cricket::AudioContentDescription();
-    AudioCodecs audio_codecs;
-    channel_manager_->GetSupportedAudioCodecs(&audio_codecs);
-
-    for (AudioCodecs::const_iterator ours = audio_codecs.begin();
-         ours != audio_codecs.end(); ++ours) {
-      for (AudioCodecs::const_iterator theirs = audio_offer->codecs().begin();
-           theirs != audio_offer->codecs().end(); ++theirs) {
-        if (ours->Matches(*theirs)) {
-          cricket::AudioCodec negotiated(*ours);
-          negotiated.id = theirs->id;
-          audio_accept->AddCodec(negotiated);
-        }
-      }
-    }
-
-    // RTCP mux is set based on what present in incoming offer
-    audio_accept->set_rtcp_mux(audio_offer->rtcp_mux());
-    audio_accept->SortCodecs();
-    answer->AddContent(audio_content->name, audio_content->type, audio_accept);
-  }
-
-  const cricket::ContentInfo* video_content = GetFirstVideoContent(offer);
-  if (video_content) {
-    const cricket::VideoContentDescription* video_offer =
-        static_cast<const cricket::VideoContentDescription*>(
-            video_content->description);
-
-    cricket::VideoContentDescription* video_accept =
-        new cricket::VideoContentDescription();
-    VideoCodecs video_codecs;
-    channel_manager_->GetSupportedVideoCodecs(&video_codecs);
-
-    for (VideoCodecs::const_iterator ours = video_codecs.begin();
-         ours != video_codecs.end(); ++ours) {
-      for (VideoCodecs::const_iterator theirs = video_offer->codecs().begin();
-           theirs != video_offer->codecs().end(); ++theirs) {
-        if (ours->Matches(*theirs)) {
-          cricket::VideoCodec negotiated(*ours);
-          negotiated.id = theirs->id;
-          video_accept->AddCodec(negotiated);
-        }
-      }
-    }
-
-    // RTCP mux is set based on what present in incoming offer
-    video_accept->set_rtcp_mux(video_offer->rtcp_mux());
-    video_accept->SortCodecs();
-    answer->AddContent(video_content->name, video_content->type, video_accept);
-  }
-  return answer;
+    const cricket::SessionDescription* offer,
+    const cricket::MediaSessionOptions& options) {
+  return desc_factory_.CreateAnswer(offer, options);
 }
 
 void WebRtcSession::SetError(Error error) {

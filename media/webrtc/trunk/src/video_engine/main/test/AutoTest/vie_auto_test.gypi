@@ -7,47 +7,23 @@
 # be found in the AUTHORS file in the root of the source tree.
 
 {
-  'variables': {
-    'autotest_name': 'vie_auto_test',
-  },
   'targets': [
     {
-      'target_name': 'merged_lib',
-      'type': 'none',
-      'dependencies': [
-        '<(autotest_name)',
-      ],
-      'actions': [
-        {
-          'variables': {
-            'output_lib_name': 'webrtc',
-            'output_lib': '<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)<(output_lib_name)_<(OS)<(STATIC_LIB_SUFFIX)',
-          },
-          'action_name': 'merge_libs',
-          'inputs': ['<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)<(autotest_name)<(EXECUTABLE_SUFFIX)'],
-          'outputs': ['<(output_lib)'],
-          'action': ['python',
-                     '../build/merge_libs.py',
-                     '<(PRODUCT_DIR)',
-                     '<(output_lib)'],
-        },
-      ],
-    },
-    {
-      'target_name': '<(autotest_name)',
+      'target_name': 'vie_auto_test',
       'type': 'executable',
       'dependencies': [
         '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
         '<(webrtc_root)/modules/modules.gyp:video_render_module',
         '<(webrtc_root)/modules/modules.gyp:video_capture_module',
         '<(webrtc_root)/voice_engine/voice_engine.gyp:voice_engine_core',
+        '<(webrtc_root)/../testing/gtest.gyp:gtest',
         'video_engine_core',
       ],
       'include_dirs': [
         'interface/',
+        'helpers/',
         '../../interface',
         '../../source',
-        '../../../../modules/video_capture/main/source/',
         '../../../../modules/video_coding/codecs/interface/',
         '../../../../common_video/interface/',
       ],
@@ -65,6 +41,15 @@
         'interface/vie_autotest_main.h',
         'interface/vie_autotest_window_manager_interface.h',
         'interface/vie_autotest_windows.h',
+        
+        # Helper classes
+        'helpers/vie_window_creator.cc',
+        
+        # New, fully automated tests
+        'automated/vie_api_integration_test.cc',
+        'automated/vie_extended_integration_test.cc',
+        'automated/vie_integration_test_base.cc',
+        'automated/vie_standard_integration_test.cc',
 
         # Platform independent
         'source/tb_capture_device.cc',
@@ -85,12 +70,13 @@
         'source/vie_autotest_render.cc',
         'source/vie_autotest_rtp_rtcp.cc',
         'source/vie_autotest_custom_call.cc',
+        'source/vie_autotest_simulcast.cc',
 
         # Platform dependent
         # Linux
         'source/vie_autotest_linux.cc',
         # Mac
-        'source/vie_autotest_mac_cocoa.cc',
+        'source/vie_autotest_mac_cocoa.mm',
         'source/vie_autotest_mac_carbon.cc',
         # Windows
         'source/vie_autotest_windows.cc',
@@ -138,6 +124,8 @@
         }],
         ['OS=="mac"', {
           'xcode_settings': {
+            # TODO(andrew): remove this when the issue with Objective-C in
+            # vie_autotest_main.cc is worked out.
             'OTHER_CPLUSPLUSFLAGS': '-x objective-c++',
             'OTHER_LDFLAGS': [
               '-framework Foundation -framework AppKit -framework Cocoa -framework OpenGL -framework CoreVideo -framework CoreAudio -framework AudioToolbox',

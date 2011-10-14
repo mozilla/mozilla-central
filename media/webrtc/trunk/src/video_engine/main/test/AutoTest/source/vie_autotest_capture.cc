@@ -28,7 +28,7 @@
 
 #include "tb_interfaces.h"
 #include "tb_video_channel.h"
-#include "video_capture_impl.h"
+#include "video_capture_factory.h"
 
 class CaptureObserver: public webrtc::ViECaptureObserver
 {
@@ -135,10 +135,10 @@ int ViEAutoTest::ViECaptureStandardTest()
 
 
     int error = 0;
-    tbInterfaces ViE("WebRTCViECapture_Standard", numberOfErrors);
+    tbInterfaces ViE("ViECaptureStandardTest", numberOfErrors);
 
     webrtc::VideoCaptureModule::DeviceInfo* devInfo =
-        webrtc::videocapturemodule::VideoCaptureImpl::CreateDeviceInfo(0);
+        webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
 
     int numberOfCaptureDevices = devInfo->NumberOfDevices();
     ViETest::Log("Number of capture devices %d", numberOfCaptureDevices);
@@ -229,7 +229,7 @@ int ViEAutoTest::ViECaptureStandardTest()
                                              __FUNCTION__, __LINE__);
 
         webrtc::VideoCaptureModule* vcpm =
-            webrtc::videocapturemodule::VideoCaptureImpl::Create(
+            webrtc::VideoCaptureFactory::Create(
                 deviceIndex, deviceUniqueName);
         vcpm->AddRef();
         numberOfErrors += ViETest::TestError(vcpm != NULL,
@@ -338,7 +338,7 @@ int ViEAutoTest::ViECaptureStandardTest()
         ViETest::Log(" ");
         return numberOfErrors;
     }
-    webrtc::videocapturemodule::VideoCaptureImpl::DestroyDeviceInfo(devInfo);
+    delete devInfo;
 
     ViETest::Log(" ");
     ViETest::Log(" ViECapture Standard Test PASSED!");
@@ -377,7 +377,7 @@ int ViEAutoTest::ViECaptureAPITest()
     //***************************************************************
 
     int error = 0;
-    tbInterfaces ViE("WebRTCViECapture_API", numberOfErrors);
+    tbInterfaces ViE("ViECapture_API", numberOfErrors);
 
     ViE.ptrViECapture->NumberOfCaptureDevices();
 
@@ -386,7 +386,7 @@ int ViEAutoTest::ViECaptureAPITest()
     int captureId = 0;
 
     webrtc::VideoCaptureModule::DeviceInfo* devInfo =
-        webrtc::videocapturemodule::VideoCaptureImpl::CreateDeviceInfo(0);
+        webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
     numberOfErrors += ViETest::TestError(devInfo != NULL,
                                          "ERROR: %s at line %d", __FUNCTION__,
                                          __LINE__);
@@ -398,7 +398,7 @@ int ViEAutoTest::ViECaptureAPITest()
                                          __FUNCTION__, __LINE__);
 
     webrtc::VideoCaptureModule* vcpm =
-        webrtc::videocapturemodule::VideoCaptureImpl::Create(
+        webrtc::VideoCaptureFactory::Create(
             0, deviceUniqueName);
     vcpm->AddRef();
     numberOfErrors += ViETest::TestError(vcpm != NULL, "ERROR: %s at line %d",
@@ -558,7 +558,7 @@ int ViEAutoTest::ViECaptureAPITest()
     numberOfErrors += ViETest::TestError(error == 0, "ERROR: %s at line %d",
                                          __FUNCTION__, __LINE__);
 
-    webrtc::videocapturemodule::VideoCaptureImpl::DestroyDeviceInfo(devInfo);
+    delete devInfo;
     vcpm->Release();
 
     //***************************************************************
@@ -598,7 +598,7 @@ int ViEAutoTest::ViECaptureExternalCaptureTest()
 
 
     int error = 0;
-    tbInterfaces ViE("WebRTCViECapture_ExternalCapture", numberOfErrors);
+    tbInterfaces ViE("ViECapture_ExternalCapture", numberOfErrors);
     tbVideoChannel channel(ViE, numberOfErrors);
     channel.StartReceive();
     channel.StartSend();
@@ -608,7 +608,7 @@ int ViEAutoTest::ViECaptureExternalCaptureTest()
 
     // Allocate the external capture device
     webrtc::VideoCaptureModule* vcpm =
-        webrtc::videocapturemodule::VideoCaptureImpl::Create(
+        webrtc::VideoCaptureFactory::Create(
             0, externalCapture);
     vcpm->AddRef();
     numberOfErrors += ViETest::TestError(vcpm != NULL, "ERROR: %s at line %d",
