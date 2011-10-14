@@ -508,9 +508,12 @@
                 if (this.mBlank)
                   this.mBlank = false;
 
-                this.mTab.removeAttribute("busy");
-                if (!this.mTab.selected)
-                  this.mTab.setAttribute("unread", "true");
+                if (this.mTab.hasAttribute("busy")) {
+                  this.mTab.removeAttribute("busy");
+                  this.mTabBrowser._tabAttrModified(this.mTab);
+                  if (!this.mTab.selected)
+                    this.mTab.setAttribute("unread", "true");
+                }
 
                 var location = this.mBrowser.currentURI;
                 if (this.mBrowser.mIconURL) {
