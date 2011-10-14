@@ -359,8 +359,18 @@ function AbNewMessage()
       if (DirPaneHasFocus())
       {
         var directory = gDirectoryTreeView.getDirectoryAtIndex(gDirTree.currentIndex);
-        if (directory && directory.isMailList &&
-            directory.getBoolValue("HidesRecipients", false))
+        var hidesRecipients = false;
+
+        try {
+          // This is a bit of hackery so that extensions can have mailing lists
+          // where recipients are sent messages via BCC.
+          hidesRecipients = directory.getBoolValue("HidesRecipients", false);
+        } catch(e) {
+          // Standard Thunderbird mailing lists do not have preferences
+          // associated with them, so we'll silently eat the error.
+        }
+
+        if (directory && directory.isMailList && hidesRecipients)
           // Bug 669301 (https://bugzilla.mozilla.org/show_bug.cgi?id=669301)
           // We're using BCC right now to hide recipients from one another.
           // We should probably use group syntax, but that's broken

@@ -265,14 +265,11 @@ function get_mailing_list_from_address_book(aAddressBook, aDirName)
  */
 function load_contacts_into_address_book(aAddressBook, aContacts)
 {
-  for each (contact_info in aContacts) {
-    let contact;
+  for each (contact in aContacts) {
 
-    if (contact_info instanceof Ci.nsIAbCard)
-      contact = contact_info.QueryInterface(Ci.nsIAbCard);
-    else
-      contact = create_contact(contact_info.email,
-                                 contact_info.displayName, true);
+    if (!(contact instanceof Ci.nsIAbCard))
+      contact = create_contact(contact.email,
+                                 contact.displayName, true);
 
     aAddressBook.addCard(contact);
   }
@@ -281,19 +278,18 @@ function load_contacts_into_address_book(aAddressBook, aContacts)
 /* Given some mailing list, adds a collection of contacts to that
  * mailing list.
  * @param aMailingList a mailing list to add the contacts to
- * @param aContacts a collection of contacts, where each contact has
- *                  members "email" and "displayName"
+ * @param aContacts a collection of contacts, where each contact is either
+ *                  an nsIAbCard, or an object with members "email" and
+ *                  "displayName"
  *
  *                  Example:
  *                  [{email: 'test@test.com', displayName: 'Sammy Jenkis'}]
  */
 function load_contacts_into_mailing_list(aMailingList, aContacts)
 {
-  for each (contact_info in aContacts) {
-    let contact = create_contact(contact_info.email,
-                                 contact_info.displayName, true);
-    aMailingList.addressLists.appendElement(contact, false);
-  }
+  // Surprise! A mailing list is just a super special type of address
+  // book.
+  load_contacts_into_address_book(aMailingList, aContacts);
 }
 
 /* Given some address book, return the row index for that address book

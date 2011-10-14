@@ -42,9 +42,8 @@
 var MODULE_NAME = 'test-address-book';
 
 var RELATIVE_ROOT = '../shared-modules';
-var MODULE_REQUIRES = ['address-book-helpers', 'folder-display-helpers'];
-
-const kPromptServiceUUID = "{6cc9c9fe-bc0b-432b-a410-253ef8bcc699}";
+var MODULE_REQUIRES = ['address-book-helpers', 'folder-display-helpers',
+                       'compose-helpers', 'window-helpers'];
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource:///modules/Services.jsm");
@@ -53,12 +52,16 @@ Cu.import("resource:///modules/mailServices.js");
 let abController = null;
 var addrBook1, addrBook2, addrBook3, addrBook4;
 var mListA, mListB, mListC, mListD, mListE;
+var windowHelper;
 
 var gMockPromptService = {
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIPromptService]),
   _will_return: null,
   _did_confirm: false,
   _confirm_msg: null,
+  _originalFactory: null,
+  _cid: null,
+  _contractID: "@mozilla.org/embedcomp/prompt-service;1",
 
   confirm: function(aParent, aDialogTitle, aText) {
     this._did_confirm = true;
@@ -75,6 +78,41 @@ var gMockPromptService = {
     this._did_confirm = false;
     this._confirm_msg = null;
   },
+
+  register: function() {
+    let Cm = Components.manager;
+    let Cc = Components.classes;
+    let Ci = Components.interfaces;
+
+    this._originalFactory = Cm.getClassObject(Cc[this._contractID], Ci.nsIFactory);
+
+    let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
+    this._cid = registrar.contractIDToCID(this._contractID);
+
+    registrar.unregisterFactory(this._cid,
+                                this._originalFactory);
+
+    registrar.registerFactory(this._cid,
+                              "Mock Prompt Service",
+                              this._contractID,
+                              gMockPromptServiceFactory);
+  },
+
+  unregister: function() {
+    let Cm = Components.manager;
+    let Ci = Components.interfaces;
+
+    let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
+
+    registrar.unregisterFactory(this._cid,
+                                gMockPromptServiceFactory);
+
+    registrar.registerFactory(this._cid,
+                              "Prompt Service",
+                              this._contractID,
+                              this._originalFactory);
+  },
+
 };
 
 var gMockPromptServiceFactory = {
@@ -96,6 +134,11 @@ function setupModule(module)
 
   let abh = collector.getModule('address-book-helpers');
   abh.installInto(module);
+
+  let ch = collector.getModule('compose-helpers');
+  ch.installInto(module);
+
+  windowHelper = collector.getModule('window-helpers');
 
   // Open the address book main window
   abController = open_address_book_window();
@@ -208,12 +251,7 @@ function test_persist_collapsed_and_expanded_states()
 function test_deleting_contact_causes_confirm_prompt()
 {
   // Register the Mock Prompt Service
-
-  Components.manager.QueryInterface(Ci.nsIComponentRegistrar)
-            .registerFactory(Components.ID(kPromptServiceUUID),
-                             "Mock Prompt Service",
-                             "@mozilla.org/embedcomp/prompt-service;1",
-                             gMockPromptServiceFactory);
+  gMockPromptService.register();
 
   // Create a contact that we'll try to delete
   let contact1 = create_contact("test@nobody.com", "Sammy Jenkis", true);
@@ -259,9 +297,7 @@ function test_deleting_contact_causes_confirm_prompt()
   assert_equals(abController.window.gAbView.rowCount,
                 totalEntries - toDelete.length);
 
-  Components.manager.QueryInterface(Ci.nsIComponentRegistrar)
-            .unregisterFactory(Components.ID(kPromptServiceUUID),
-                               gMockPromptServiceFactory);
+  gMockPromptService.unregister();
 }
 
 /* Test that if we try to delete multiple contacts, that we are give
@@ -270,12 +306,7 @@ function test_deleting_contact_causes_confirm_prompt()
 function test_deleting_contacts_causes_confirm_prompt()
 {
   // Register the Mock Prompt Service
-
-  Components.manager.QueryInterface(Ci.nsIComponentRegistrar)
-            .registerFactory(Components.ID(kPromptServiceUUID),
-                             "Mock Prompt Service",
-                             "@mozilla.org/embedcomp/prompt-service;1",
-                             gMockPromptServiceFactory);
+  gMockPromptService.register();
 
   // Create some contacts that we'll try to delete.
   let contact2 = create_contact("test2@nobody.com", "Leonard Shelby", true);
@@ -325,9 +356,7 @@ function test_deleting_contacts_causes_confirm_prompt()
   assert_equals(abController.window.gAbView.rowCount,
                 totalEntries - toDelete.length);
 
-  Components.manager.QueryInterface(Ci.nsIComponentRegistrar)
-            .unregisterFactory(Components.ID(kPromptServiceUUID),
-                               gMockPromptServiceFactory);
+  gMockPromptService.unregister();
 }
 
 /* Tests that attempting to delete a mailing list causes a
@@ -335,12 +364,8 @@ function test_deleting_contacts_causes_confirm_prompt()
  * actually works if the user clicks "OK".
  */
 function test_deleting_mailing_lists() {
-
-  Components.manager.QueryInterface(Ci.nsIComponentRegistrar)
-            .registerFactory(Components.ID(kPromptServiceUUID),
-                             "Mock Prompt Service",
-                             "@mozilla.org/embedcomp/prompt-service;1",
-                             gMockPromptServiceFactory);
+  // Register our Mock Prompt Service
+  gMockPromptService.register();
 
   // Create a new mailing list, and add it to one of our
   // address books
@@ -374,7 +399,49 @@ function test_deleting_mailing_lists() {
   // Ensure that the mailing list was removed.
   assert_false(addrBook1.hasDirectory(addedList));
 
-  Components.manager.QueryInterface(Ci.nsIComponentRegistrar)
-            .unregisterFactory(Components.ID(kPromptServiceUUID),
-                               gMockPromptServiceFactory);
+  gMockPromptService.unregister();
+}
+
+
+/* Tests that we can send mail to a mailing list by selecting the
+ * mailing list in the tree, and clicking "Write"
+ */
+function test_writing_to_mailing_list() {
+
+  // Create a new mailing list, and add it to one of our
+  // address books
+  let newList = create_mailing_list("Some Mailing List");
+  let addedList = addrBook1.addMailList(newList);
+  let mlURI = addedList.URI;
+
+  // Create some contacts that we'll try to contact
+  let contacts = [create_contact("test2@nobody.com", "Leonard Shelby", true),
+                  create_contact("test3@nobody.com", "John Edward Gammell",
+                                 true),
+                  create_contact("test4@nobody.com", "Natalie", true),];
+
+  load_contacts_into_mailing_list(addedList, contacts);
+
+  // Ensure that addrBook1 is expanded
+  set_address_book_expanded(addrBook1);
+
+  // Now select the mailing list in the tree...
+  select_address_book(addedList);
+
+  // Focus it...
+  abController.window.gDirTree.focus();
+
+  // Assuming we've made it this far, now we just plan for the compose
+  // window...
+  windowHelper.plan_for_new_window("msgcompose");
+  // ... and click the "Write" button
+  abController.click(abController.eid("button-newmessage"));
+  let composeWin = wait_for_compose_window(abController);
+  let to = composeWin.window.gMsgCompose.compFields.to;
+
+  // Make sure we're writing to all contacts in the mailing list.
+  for each (contact in contacts) {
+    assert_not_equals(-1, to.indexOf(contact.primaryEmail));
+    assert_not_equals(-1, to.indexOf(contact.displayName));
+  }
 }
