@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2010, Google Inc.
+ * Copyright 2010, Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -1467,7 +1467,8 @@ SoundOutputStreamInterface *PulseAudioSoundSystem::ConnectOutputStream(
     ssize_t bytes_per_sec = LATE(pa_bytes_per_second)(&spec);
     latency = talk_base::_max(
         latency,
-        bytes_per_sec * kPlaybackLatencyMinimumMsecs / kMsecsPerSec);
+        static_cast<int>(
+            bytes_per_sec * kPlaybackLatencyMinimumMsecs / kMsecsPerSec));
     FillPlaybackBufferAttr(latency, &attr);
     pattr = &attr;
   }

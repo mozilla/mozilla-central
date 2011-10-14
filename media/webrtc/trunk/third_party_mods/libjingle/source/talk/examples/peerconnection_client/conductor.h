@@ -23,6 +23,10 @@
 #include "talk/app/webrtc_dev/peerconnection.h"
 #include "talk/base/scoped_ptr.h"
 
+namespace webrtc {
+class VideoCaptureModule;
+}  // namespace webrtc
+
 namespace cricket {
 class VideoRenderer;
 }  // namespace cricket
@@ -54,6 +58,7 @@ class Conductor
   void DeletePeerConnection();
   void EnsureStreamingUI();
   void AddStreams();
+  scoped_refptr<webrtc::VideoCaptureModule> OpenVideoCaptureDevice();
 
   //
   // PeerConnectionObserver implementation.
@@ -62,8 +67,8 @@ class Conductor
   virtual void OnMessage(const std::string& msg) {}
   virtual void OnSignalingMessage(const std::string& msg);
   virtual void OnStateChange(Readiness state) {}
-  virtual void OnAddStream(webrtc::MediaStream* stream);
-  virtual void OnRemoveStream(webrtc::MediaStream* stream);
+  virtual void OnAddStream(webrtc::MediaStreamInterface* stream);
+  virtual void OnRemoveStream(webrtc::MediaStreamInterface* stream);
 
 
   //
@@ -103,7 +108,8 @@ class Conductor
   PeerConnectionClient* client_;
   MainWindow* main_wnd_;
   std::deque<std::string*> pending_messages_;
-  std::map<std::string, scoped_refptr<webrtc::MediaStream> > active_streams_;
+  std::map<std::string,
+           scoped_refptr<webrtc::MediaStreamInterface> > active_streams_;
 };
 
 #endif  // PEERCONNECTION_SAMPLES_CLIENT_CONDUCTOR_H_

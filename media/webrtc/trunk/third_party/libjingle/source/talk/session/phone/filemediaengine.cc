@@ -127,6 +127,7 @@ class RtpSenderReceiver
 
   // Called by media channel. Context: media channel thread.
   bool SetSend(bool send);
+  void SetSendSsrc(uint32 ssrc);
   void OnPacketReceived(talk_base::Buffer* packet);
 
   // Override virtual method of parent MessageHandler. Context: Worker Thread.
@@ -189,6 +190,12 @@ bool RtpSenderReceiver::SetSend(bool send) {
     start_send_time_ = talk_base::Time();
   }
   return true;
+}
+
+void RtpSenderReceiver::SetSendSsrc(uint32 ssrc) {
+  if (rtp_dump_reader_.get()) {
+    rtp_dump_reader_->SetSsrc(ssrc);
+  }
 }
 
 void RtpSenderReceiver::OnPacketReceived(talk_base::Buffer* packet) {
@@ -265,6 +272,10 @@ bool FileVoiceChannel::SetSend(SendFlags flag) {
   return rtp_sender_receiver_->SetSend(flag != SEND_NOTHING);
 }
 
+void FileVoiceChannel::SetSendSsrc(uint32 ssrc) {
+  rtp_sender_receiver_->SetSendSsrc(ssrc);
+}
+
 void FileVoiceChannel::OnPacketReceived(talk_base::Buffer* packet) {
   rtp_sender_receiver_->OnPacketReceived(packet);
 }
@@ -287,6 +298,10 @@ bool FileVideoChannel::SetSendCodecs(const std::vector<VideoCodec>& codecs) {
 
 bool FileVideoChannel::SetSend(bool send) {
   return rtp_sender_receiver_->SetSend(send);
+}
+
+void FileVideoChannel::SetSendSsrc(uint32 ssrc) {
+  rtp_sender_receiver_->SetSendSsrc(ssrc);
 }
 
 void FileVideoChannel::OnPacketReceived(talk_base::Buffer* packet) {

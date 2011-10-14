@@ -47,6 +47,7 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
+	-Itest \
 	-Itesting/gtest/include \
 	-Isrc/common_audio/resampler/main/interface
 
@@ -97,6 +98,7 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
+	-Itest \
 	-Itesting/gtest/include \
 	-Isrc/common_audio/resampler/main/interface
 

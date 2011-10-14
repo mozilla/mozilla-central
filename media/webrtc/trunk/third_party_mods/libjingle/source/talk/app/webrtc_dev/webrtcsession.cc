@@ -131,7 +131,8 @@ void WebRtcSession::SetRemoteCandidates(
     cricket::TransportProxy* audio_proxy = GetTransportProxy(cricket::CN_AUDIO);
     if (audio_proxy) {
       // CompleteNegotiation will set actual impl's in Proxy.
-      audio_proxy->CompleteNegotiation();
+      if (!audio_proxy->negotiated())
+        audio_proxy->CompleteNegotiation();
       // TODO(mallinath) - Add a interface to TransportProxy to accept
       // remote candidate list.
       audio_proxy->impl()->OnRemoteCandidates(audio_candidates);
@@ -144,7 +145,8 @@ void WebRtcSession::SetRemoteCandidates(
     cricket::TransportProxy* video_proxy = GetTransportProxy(cricket::CN_VIDEO);
     if (video_proxy) {
       // CompleteNegotiation will set actual impl's in Proxy.
-      video_proxy->CompleteNegotiation();
+      if (!video_proxy->negotiated())
+        video_proxy->CompleteNegotiation();
       // TODO(mallinath) - Add a interface to TransportProxy to accept
       // remote candidate list.
       video_proxy->impl()->OnRemoteCandidates(video_candidates);
@@ -236,7 +238,14 @@ void WebRtcSession::SetCaptureDevice(uint32 ssrc,
                                      VideoCaptureModule* camera) {
   // should be called from a signaling thread
   ASSERT(signaling_thread()->IsCurrent());
+
+  // TODO(mallinath): Refactor this when there is support for multiple cameras.
+
+  // Register the the VideoCapture Module.
   video_channel_->SetCaptureDevice(ssrc, camera);
+
+  // Actually associate the video capture module with the ViE channel.
+  channel_manager_->SetVideoOptions("");
 }
 
 void WebRtcSession::SetLocalRenderer(uint32 ssrc,
@@ -248,7 +257,10 @@ void WebRtcSession::SetLocalRenderer(uint32 ssrc,
 void WebRtcSession::SetRemoteRenderer(uint32 ssrc,
                                       cricket::VideoRenderer* renderer) {
   ASSERT(signaling_thread()->IsCurrent());
-  video_channel_->SetRenderer(ssrc, renderer);
+
+  //TODO(mallinath): Only the ssrc = 0 is supported at the moment.
+  // Only one channel.
+  video_channel_->SetRenderer(0, renderer);
 }
 
 const cricket::SessionDescription* WebRtcSession::ProvideOffer(
@@ -278,15 +290,17 @@ const cricket::SessionDescription* WebRtcSession::ProvideAnswer(
 }
 
 void WebRtcSession::NegotiationDone() {
-  // No state change after state moved to progress state.
+  // SetState of session is called after session receives both local and
+  // remote descriptions. State transition will happen only when session
+  // is in INIT state.
   if (state() == STATE_INIT) {
     SetState(STATE_SENTINITIATE);
     SetState(STATE_RECEIVEDACCEPT);
-  }
 
-  // Enabling channels
-  voice_channel_->Enable(true);
-  video_channel_->Enable(true);
+    // Enabling voice and video channel.
+    voice_channel_->Enable(true);
+    video_channel_->Enable(true);
+  }
 
   const cricket::ContentInfo* audio_info =
       cricket::GetFirstAudioContent(local_description());
@@ -298,9 +312,7 @@ void WebRtcSession::NegotiationDone() {
     // we can remove stream from a session by muting it.
     // TODO(mallinath) - Change needed when multiple send streams support
     // is available.
-    if (audio_content->sources().size() == 0) {
-      voice_channel_->Mute(true);
-    }
+    voice_channel_->Mute(audio_content->sources().size() == 0);
   }
 
   const cricket::ContentInfo* video_info =
@@ -313,9 +325,7 @@ void WebRtcSession::NegotiationDone() {
     // we can remove stream from a session by muting it.
     // TODO(mallinath) - Change needed when multiple send streams support
     // is available.
-    if (video_content->sources().size() == 0) {
-      video_channel_->Mute(true);
-    }
+    video_channel_->Mute(video_content->sources().size() == 0);
   }
 }
 

@@ -64,7 +64,6 @@ CFLAGS_CC_Debug := -fno-rtti \
 	-fvisibility-inlines-hidden
 
 INCS_Debug := -Isrc \
-	-Ithird_party_mods/libjingle/source \
 	-Ithird_party/libjingle/source \
 	-Ithird_party/expat/files \
 	-Ithird_party/libjingle/source/talk/third_party/libudev \
@@ -142,7 +141,6 @@ CFLAGS_CC_Release := -fno-rtti \
 	-fvisibility-inlines-hidden
 
 INCS_Release := -Isrc \
-	-Ithird_party_mods/libjingle/source \
 	-Ithird_party/libjingle/source \
 	-Ithird_party/expat/files \
 	-Ithird_party/libjingle/source/talk/third_party/libudev \
@@ -182,16 +180,14 @@ OBJS := $(obj).target/$(TARGET)/third_party/libjingle/source/talk/p2p/base/const
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/p2p/client/socketmonitor.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/audiomonitor.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/call.o \
-	$(obj).target/$(TARGET)/third_party_mods/libjingle/source/talk/session/phone/channel.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/channelmanager.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/codec.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/currentspeakermonitor.o \
-	$(obj).target/$(TARGET)/third_party_mods/libjingle/source/talk/session/phone/devicemanager.o \
+	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/devicemanager.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/filemediaengine.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/mediaengine.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/mediamessages.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/mediamonitor.o \
-	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/mediasession.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/mediasessionclient.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/rtcpmuxfilter.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/rtpdump.o \
@@ -199,14 +195,16 @@ OBJS := $(obj).target/$(TARGET)/third_party/libjingle/source/talk/p2p/base/const
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/soundclip.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/srtpfilter.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/webrtcpassthroughrender.o \
-	$(obj).target/$(TARGET)/third_party_mods/libjingle/source/talk/session/phone/webrtcvideoengine.o \
+	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/webrtcvideoengine.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/webrtcvideoframe.o \
-	$(obj).target/$(TARGET)/third_party_mods/libjingle/source/talk/session/phone/webrtcvoiceengine.o \
+	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/webrtcvoiceengine.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/tunnel/pseudotcpchannel.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/tunnel/tunnelsessionclient.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/gtkvideorenderer.o \
 	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/libudevsymboltable.o \
-	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/v4llookup.o
+	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/v4llookup.o \
+	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/channel.o \
+	$(obj).target/$(TARGET)/third_party/libjingle/source/talk/session/phone/mediasession.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

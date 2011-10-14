@@ -48,6 +48,7 @@ INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/video_coding/codecs/vp8/main/interface \
 	-Isrc/common_video/interface \
+	-Isrc/common_video/vplib/main/interface \
 	-Isrc/modules/video_coding/codecs/interface \
 	-Isrc/modules/interface \
 	-Ithird_party/libvpx/source/libvpx \
@@ -101,12 +102,14 @@ INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/video_coding/codecs/vp8/main/interface \
 	-Isrc/common_video/interface \
+	-Isrc/common_video/vplib/main/interface \
 	-Isrc/modules/video_coding/codecs/interface \
 	-Isrc/modules/interface \
 	-Ithird_party/libvpx/source/libvpx \
 	-Isrc/system_wrappers/interface
 
-OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/codecs/vp8/main/source/vp8.o
+OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/codecs/vp8/main/source/vp8.o \
+	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/vp8/main/source/vp8_simulcast.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

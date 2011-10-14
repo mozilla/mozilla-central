@@ -46,12 +46,11 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/video_engine/main/interface \
+	-Isrc/common_video/interface \
 	-Isrc/modules/video_capture/main/interface \
-	-Isrc/modules/video_capture/main/source \
 	-Isrc/modules/video_render/main/interface \
 	-Isrc/common_video/vplib/main/interface \
 	-Isrc/common_video/jpeg/main/interface \
-	-Isrc/common_video/interface \
 	-Isrc/modules/media_file/interface \
 	-Isrc/modules/interface \
 	-Isrc/modules/rtp_rtcp/interface \
@@ -110,12 +109,11 @@ CFLAGS_CC_Release := -fno-rtti \
 INCS_Release := -Isrc \
 	-I. \
 	-Isrc/video_engine/main/interface \
+	-Isrc/common_video/interface \
 	-Isrc/modules/video_capture/main/interface \
-	-Isrc/modules/video_capture/main/source \
 	-Isrc/modules/video_render/main/interface \
 	-Isrc/common_video/vplib/main/interface \
 	-Isrc/common_video/jpeg/main/interface \
-	-Isrc/common_video/interface \
 	-Isrc/modules/media_file/interface \
 	-Isrc/modules/interface \
 	-Isrc/modules/rtp_rtcp/interface \

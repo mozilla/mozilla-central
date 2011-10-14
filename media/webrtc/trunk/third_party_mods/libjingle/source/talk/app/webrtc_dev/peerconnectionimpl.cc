@@ -149,6 +149,8 @@ PeerConnectionImpl::PeerConnectionImpl(
       this, &PeerConnectionImpl::OnRemoteStreamAdded);
   signaling_->SignalRemoteStreamRemoved.connect(
       this, &PeerConnectionImpl::OnRemoteStreamRemoved);
+  // Register with WebRtcSession
+  session_->RegisterObserver(signaling_.get());
 }
 
 PeerConnectionImpl::~PeerConnectionImpl() {
@@ -214,11 +216,12 @@ bool PeerConnectionImpl::ProcessSignalingMessage(const std::string& msg) {
   signaling_thread_->Post(this, MSG_PROCESSSIGNALINGMESSAGE, parameter);
 }
 
-void PeerConnectionImpl::AddStream(LocalMediaStream* local_stream) {
+void PeerConnectionImpl::AddStream(LocalMediaStreamInterface* local_stream) {
   local_media_streams_->AddStream(local_stream);
 }
 
-void PeerConnectionImpl::RemoveStream(LocalMediaStream* remove_stream) {
+void PeerConnectionImpl::RemoveStream(
+    LocalMediaStreamInterface* remove_stream) {
   local_media_streams_->RemoveStream(remove_stream);
 }
 
@@ -264,7 +267,8 @@ void PeerConnectionImpl::OnNewPeerConnectionMessage(
   observer_->OnSignalingMessage(message);
 }
 
-void PeerConnectionImpl::OnRemoteStreamAdded(MediaStream* remote_stream) {
+void PeerConnectionImpl::OnRemoteStreamAdded(
+    MediaStreamInterface* remote_stream) {
   // TODO(perkj): add function in pc signaling to return a collection of
   // remote streams.
   // This way we can avoid keeping a separate list of remote_media_streams_.
@@ -273,7 +277,8 @@ void PeerConnectionImpl::OnRemoteStreamAdded(MediaStream* remote_stream) {
   observer_->OnAddStream(remote_stream);
 }
 
-void PeerConnectionImpl::OnRemoteStreamRemoved(MediaStream* remote_stream) {
+void PeerConnectionImpl::OnRemoteStreamRemoved(
+    MediaStreamInterface* remote_stream) {
   // TODO(perkj): add function in pc signaling to return a collection of
   // remote streams.
   // This way we can avoid keeping a separate list of remote_media_streams_.

@@ -33,11 +33,8 @@
 #include <vector>
 
 #include "talk/base/basictypes.h"
+#include "talk/base/bytebuffer.h"
 #include "talk/base/stream.h"
-
-namespace talk_base {
-class ByteBuffer;
-}
 
 namespace cricket {
 
@@ -109,6 +106,8 @@ class RtpDumpReader {
   }
   virtual ~RtpDumpReader() {}
 
+  // Use the specified ssrc, rather than the ssrc from dump, for RTP packets.
+  void SetSsrc(uint32 ssrc);
   virtual talk_base::StreamResult ReadPacket(RtpDumpPacket* packet);
 
  protected:
@@ -125,6 +124,8 @@ class RtpDumpReader {
   bool file_header_read_;
   size_t first_line_and_file_header_len_;
   uint32 start_time_ms_;
+  talk_base::ByteBuffer ssrc_buffer_;
+
   DISALLOW_COPY_AND_ASSIGN(RtpDumpReader);
 };
 

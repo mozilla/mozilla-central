@@ -42,35 +42,35 @@
 
 namespace webrtc {
 
-class VideoTrackImpl : public NotifierImpl<LocalVideoTrack> {
+class VideoTrack : public NotifierImpl<LocalVideoTrackInterface> {
  public:
-  static scoped_refptr<VideoTrack> Create(const std::string& label,
+  static scoped_refptr<VideoTrackInterface> Create(const std::string& label,
                                           uint32 ssrc);
-  virtual scoped_refptr<VideoCaptureModule> GetVideoCapture();
-  virtual void SetRenderer(VideoRenderer* renderer);
-  scoped_refptr<VideoRenderer> GetRenderer();
+  virtual VideoCaptureModule* GetVideoCapture();
+  virtual void SetRenderer(VideoRendererInterface* renderer);
+  VideoRendererInterface* GetRenderer();
 
-  virtual const std::string& kind();
-  virtual const std::string& label();
-  virtual uint32 ssrc();
-  virtual bool enabled();
-  virtual TrackState state();
+  virtual const char* kind() const;
+  virtual const std::string& label() const { return label_; }
+  virtual TrackType type() const { return kVideo; }
+  virtual uint32 ssrc() const { return ssrc_; }
+  virtual bool enabled() const { return enabled_; }
+  virtual TrackState state() const { return state_; }
   virtual bool set_enabled(bool enable);
   virtual bool set_ssrc(uint32 ssrc);
   virtual bool set_state(TrackState new_state);
 
  protected:
-  VideoTrackImpl(const std::string& label, uint32 ssrc);
-  VideoTrackImpl(const std::string& label, VideoCaptureModule* video_device);
+  VideoTrack(const std::string& label, uint32 ssrc);
+  VideoTrack(const std::string& label, VideoCaptureModule* video_device);
 
  private:
   bool enabled_;
-  std::string kind_;
   std::string label_;
   uint32 ssrc_;
   TrackState state_;
   scoped_refptr<VideoCaptureModule> video_device_;
-  scoped_refptr<VideoRenderer> video_renderer_;
+  scoped_refptr<VideoRendererInterface> video_renderer_;
 };
 
 }  // namespace webrtc

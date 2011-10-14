@@ -38,6 +38,7 @@
 #include "talk/p2p/base/session.h"
 #include "talk/session/phone/channel.h"
 #include "talk/session/phone/mediachannel.h"
+#include "talk/session/phone/mediasession.h"
 
 namespace cricket {
 class ChannelManager;
@@ -170,7 +171,8 @@ class WebRtcSession : public cricket::BaseSession {
 
   cricket::SessionDescription* CreateOffer();
   cricket::SessionDescription* CreateAnswer(
-      const cricket::SessionDescription* answer);
+      const cricket::SessionDescription* answer,
+      const cricket::MediaSessionOptions& options);
 
   // from MessageHandler
   virtual void OnMessage(talk_base::Message* message);
@@ -197,6 +199,7 @@ class WebRtcSession : public cricket::BaseSession {
   talk_base::Thread* signaling_thread_;
   bool incoming_;
   cricket::PortAllocator* port_allocator_;
+  cricket::MediaSessionDescriptionFactory desc_factory_;
 };
 
 }  // namespace webrtc

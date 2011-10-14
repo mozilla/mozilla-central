@@ -800,11 +800,6 @@ int JitterBufferTest(CmdArgs& args)
     packet.insertStartCode = false;
     //printf("DONE H.264 insert start code test 2 packets\n");
 
-
-    // Temporarily do this to make the rest of the test work:
-    timeStamp += 33*90;
-    seqNum += 4;
-
     //
     // TEST statistics
     //
@@ -823,7 +818,122 @@ int JitterBufferTest(CmdArgs& args)
     TEST(frameRate > 30);
     TEST(bitRate > 10000000);
 
+
+    jb.Flush();
+
+    //
+    // TEST packet loss. Verify missing packets statistics and not decodable
+    // packets statistics.
+    // Insert 10 frames consisting of 4 packets and remove one from all of them.
+    // The last packet is a empty (non-media) packet
+    //
+
+    // Select a start seqNum which triggers a difficult wrap situation
+    seqNum = 0xffff - 4;
+    for (int i=0; i < 10; ++i) {
+      webrtc::FrameType frametype = kVideoFrameDelta;
+      if (i == 0)
+        frametype = kVideoFrameKey;
+      seqNum++;
+      timeStamp += 33*90;
+      packet.frameType = frametype;
+      if (i == 0)
+        packet.frameType = frametype;
+      packet.isFirstPacket = true;
+      packet.markerBit = false;
+      packet.seqNum = seqNum;
+      packet.timestamp = timeStamp;
+      packet.completeNALU = kNaluStart;
+
+      frameIn = jb.GetFrame(packet);
+      TEST(frameIn != 0);
+
+      // Insert a packet into a frame
+      TEST(kFirstPacket == jb.InsertPacket(frameIn, packet));
+
+      // get packet notification
+      TEST(timeStamp == jb.GetNextTimeStamp(10, incomingFrameType, renderTimeMs));
+
+      // check incoming frame type
+      TEST(incomingFrameType == frametype);
+
+      // get the frame
+      frameOut = jb.GetCompleteFrameForDecoding(10);
+
+      // it should not be complete
+      TEST(frameOut == 0);
+
+      seqNum += 2;
+      packet.isFirstPacket = false;
+      packet.markerBit = true;
+      packet.seqNum = seqNum;
+      packet.completeNALU = kNaluEnd;
+
+      frameIn = jb.GetFrame(packet);
+      TEST(frameIn != 0);
+
+      // Insert a packet into a frame
+      TEST(kIncomplete == jb.InsertPacket(frameIn, packet));
+
+
+      // Insert an empty (non-media) packet
+      seqNum++;
+      packet.isFirstPacket = false;
+      packet.markerBit = false;
+      packet.seqNum = seqNum;
+      packet.completeNALU = kNaluEnd;
+      packet.frameType = kFrameEmpty;
+
+      frameIn = jb.GetFrame(packet);
+      TEST(frameIn != 0);
+
+      // Insert a packet into a frame
+      TEST(kIncomplete == jb.InsertPacket(frameIn, packet));
+
+      // get the frame
+      frameOut = jb.GetFrameForDecoding();
+
+      // One of the packets has been discarded by the jitter buffer
+      CheckOutFrame(frameOut, size, false);
+
+      // check the frame type
+      TEST(frameOut->FrameType() == frametype);
+      TEST(frameOut->Complete() == false);
+      TEST(frameOut->MissingFrame() == false);
+
+      // Release frame (when done with decoding)
+      jb.ReleaseFrame(frameOut);
+    }
+
+    TEST(jb.NumNotDecodablePackets() == 10);
+
+    // Insert 3 old packets and verify that we have 3 discarded packets
+    packet.timestamp = timeStamp - 1000;
+    frameIn = jb.GetFrame(packet);
+    TEST(frameIn == NULL);
+
+    packet.timestamp = timeStamp - 500;
+    frameIn = jb.GetFrame(packet);
+    TEST(frameIn == NULL);
+
+    packet.timestamp = timeStamp - 100;
+    frameIn = jb.GetFrame(packet);
+    TEST(frameIn == NULL);
+
+    TEST(jb.DiscardedPackets() == 3);
+
+    jb.Flush();
+
+    // This statistic shouldn't be reset by a flush.
+    TEST(jb.DiscardedPackets() == 3);
+
     //printf("DONE Statistics\n");
+
+
+    // Temporarily do this to make the rest of the test work:
+    timeStamp += 33*90;
+    seqNum += 4;
+
 
     //
     // TEST delta frame 100 packets with seqNum wrap
@@ -833,7 +943,6 @@ int JitterBufferTest(CmdArgs& args)
     //  ---------------------------------------
     //
 
-    // test flush
     jb.Flush();
 
     // insert first packet

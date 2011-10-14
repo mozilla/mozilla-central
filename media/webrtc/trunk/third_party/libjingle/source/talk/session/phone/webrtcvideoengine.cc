@@ -46,6 +46,7 @@ namespace cricket {
 static const int kDefaultLogSeverity = talk_base::LS_WARNING;
 static const int kStartVideoBitrate = 300;
 static const int kMaxVideoBitrate = 1000;
+static const int kVideoRtpBufferSize = 65536;
 
 class WebRtcRenderAdapter : public webrtc::ExternalRenderer {
  public:
@@ -67,7 +68,8 @@ class WebRtcRenderAdapter : public webrtc::ExternalRenderer {
     if (renderer_ == NULL)
       return 0;
     WebRtcVideoFrame video_frame;
-    video_frame.Attach(buffer, buffer_size, width_, height_, 0, time_stamp);
+    video_frame.Attach(buffer, buffer_size, width_, height_,
+                       1, 1, 0, time_stamp, 0);
     int ret = renderer_->RenderFrame(&video_frame) ? 0 : -1;
     uint8* buffer_temp;
     size_t buffer_size_temp;
@@ -129,6 +131,7 @@ void  WebRtcVideoEngine::Construct() {
   initialized_ = false;
   capture_id_ = -1;
   capture_module_ = NULL;
+  external_capture_ = false;
   log_level_ = kDefaultLogSeverity;
   capture_started_ = false;
   render_module_.reset(new WebRtcPassthroughRender());
@@ -158,7 +161,7 @@ WebRtcVideoEngine::~WebRtcVideoEngine() {
   Terminate();
   vie_wrapper_.reset();
   if (capture_module_) {
-    webrtc::VideoCaptureModule::Destroy(capture_module_);
+    capture_module_->Release();
   }
 }
 
@@ -196,7 +199,7 @@ bool WebRtcVideoEngine::InitVideoEngine() {
   }
 
   if (vie_wrapper_->render()->RegisterVideoRenderModule(
-      *render_module_.get()) != 0) {
+          *render_module_.get()) != 0) {
     LOG_RTCERR0(RegisterVideoRenderModule);
     return false;
   }
@@ -298,7 +301,7 @@ void WebRtcVideoEngine::Terminate() {
   }
 
   if (vie_wrapper_->render()->DeRegisterVideoRenderModule(
-      *render_module_.get()) != 0)
+          *render_module_.get()) != 0)
     LOG_RTCERR0(DeRegisterVideoRenderModule);
 
   if ((vie_wrapper_->base()->DeregisterObserver()) != 0)
@@ -358,8 +361,9 @@ bool WebRtcVideoEngine::SetCaptureDevice(const Device* cam) {
     char device_name[256], device_id[256];
     bool found = false;
     for (int i = 0; i < vie_capture->NumberOfCaptureDevices(); ++i) {
-      if (vie_capture->GetCaptureDevice(i, device_name, sizeof(device_name),
-                                        device_id, sizeof(device_id)) == 0) {
+      if (vie_capture->GetCaptureDevice(i, device_name, ARRAY_SIZE(device_name),
+                                        device_id,
+                                        ARRAY_SIZE(device_id)) == 0) {
         // TODO: We should only compare the device_id here,
         // however the devicemanager and webrtc use different format for th v4l2
         // device id. So here we also compare the device_name for now.
@@ -397,6 +401,8 @@ bool WebRtcVideoEngine::SetCaptureDevice(const Device* cam) {
       if (vie_capture->ConnectCaptureDevice(capture_id_,
                                             channel->video_channel()) == 0) {
         channel->set_connected(true);
+      } else {
+        LOG(LS_WARNING) << "SetCaptureDevice failed to ConnectCaptureDevice.";
       }
     }
     SetCapture(true);
@@ -408,10 +414,18 @@ bool WebRtcVideoEngine::SetCaptureDevice(const Device* cam) {
 bool WebRtcVideoEngine::SetCaptureModule(webrtc::VideoCaptureModule* vcm) {
   ReleaseCaptureDevice();
   if (capture_module_) {
-    webrtc::VideoCaptureModule::Destroy(capture_module_);
+    capture_module_->Release();
+    capture_module_ = NULL;
   }
-  capture_module_ = vcm;
-  external_capture_ = true;
+
+  if (vcm) {
+    capture_module_ = vcm;
+    capture_module_->AddRef();
+    external_capture_ = true;
+  } else {
+    external_capture_ = false;
+  }
+
   return true;
 }
 
@@ -487,7 +501,8 @@ WebRtcVideoMediaChannel* WebRtcVideoEngine::CreateChannel(
 bool WebRtcVideoEngine::FindCodec(const VideoCodec& in) {
   for (int i = 0; i < ARRAY_SIZE(kVideoFormats); ++i) {
     const VideoFormat& fmt = kVideoFormats[i];
-    if (fmt.width == in.width && fmt.height == in.height) {
+    if ((in.width == 0 && in.height == 0) ||
+        (fmt.width == in.width && fmt.height == in.height)) {
       for (int j = 0; j < ARRAY_SIZE(kVideoCodecPrefs); ++j) {
         VideoCodec codec(kVideoCodecPrefs[j].payload_type,
                          kVideoCodecPrefs[j].name, 0, 0, 0, 0);
@@ -762,7 +777,7 @@ bool WebRtcVideoMediaChannel::SetSend(bool send) {
     // connect it now.
     if (!connected()) {
       if (engine()->video_engine()->capture()->ConnectCaptureDevice(
-          engine()->capture_id(), vie_channel_) != 0) {
+              engine()->capture_id(), vie_channel_) != 0) {
         LOG_RTCERR2(ConnectCaptureDevice, engine()->capture_id(), vie_channel_);
         ret = false;
       } else {
@@ -967,6 +982,19 @@ bool WebRtcVideoMediaChannel::SetSendBandwidth(bool autobw, int bps) {
 
 bool WebRtcVideoMediaChannel::SetOptions(int options) {
   return true;
+}
+
+void WebRtcVideoMediaChannel::SetInterface(NetworkInterface* iface) {
+  MediaChannel::SetInterface(iface);
+  // Set the RTP recv/send buffer to a bigger size
+  if (network_interface_) {
+    network_interface_->SetOption(NetworkInterface::ST_RTP,
+                                  talk_base::Socket::OPT_RCVBUF,
+                                  kVideoRtpBufferSize);
+    network_interface_->SetOption(NetworkInterface::ST_RTP,
+                                  talk_base::Socket::OPT_SNDBUF,
+                                  kVideoRtpBufferSize);
+  }
 }
 
 void WebRtcVideoMediaChannel::EnableRtcp() {
