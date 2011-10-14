@@ -154,7 +154,7 @@ tabpanels {
   border-bottom: 1px solid threedshadow;
 }
 
-.tabmail-tab > .tab-text {
+.tabmail-tab > .tab-image-middle > .tab-text {
   /* tabmail-tab focus ring */
   border: 1px dotted transparent;
   margin: -1px !important; /* let the border not consume any space, like outline */
