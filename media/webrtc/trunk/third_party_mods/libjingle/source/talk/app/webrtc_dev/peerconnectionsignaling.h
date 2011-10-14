@@ -37,7 +37,7 @@
 #include <utility>
 #include <vector>
 
-#include "talk/app/webrtc_dev/mediastreamimpl.h"
+#include "talk/app/webrtc_dev/mediastreamproxy.h"
 #include "talk/app/webrtc_dev/peerconnection.h"
 #include "talk/app/webrtc_dev/peerconnectionmessage.h"
 #include "talk/app/webrtc_dev/ref_count.h"
@@ -111,10 +111,10 @@ class PeerConnectionSignaling : public WebRtcSessionObserver,
   sigslot::signal1<const std::string&> SignalNewPeerConnectionMessage;
 
   // A new remote stream have been discovered.
-  sigslot::signal1<MediaStream*> SignalRemoteStreamAdded;
+  sigslot::signal1<MediaStreamInterface*> SignalRemoteStreamAdded;
 
   // Remote stream is no longer available.
-  sigslot::signal1<MediaStream*> SignalRemoteStreamRemoved;
+  sigslot::signal1<MediaStreamInterface*> SignalRemoteStreamRemoved;
 
   // Remote PeerConnection sent an error message.
   sigslot::signal1<PeerConnectionMessage::ErrorCode> SignalErrorMessageReceived;
@@ -125,7 +125,6 @@ class PeerConnectionSignaling : public WebRtcSessionObserver,
   virtual void OnMessage(talk_base::Message* msg);
 
  private:
-
   void CreateOffer_s();
   void CreateAnswer_s();
 
@@ -149,10 +148,10 @@ class PeerConnectionSignaling : public WebRtcSessionObserver,
   State state_;
   uint32 ssrc_counter_;
 
-  typedef std::map<std::string, scoped_refptr<MediaStreamImpl> >
+  typedef std::map<std::string, scoped_refptr<MediaStreamProxy> >
       RemoteStreamMap;
   RemoteStreamMap remote_streams_;
-  typedef std::map<std::string, scoped_refptr<MediaStream> >
+  typedef std::map<std::string, scoped_refptr<MediaStreamInterface> >
       LocalStreamMap;
   LocalStreamMap local_streams_;
   cricket::Candidates candidates_;

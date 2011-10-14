@@ -98,7 +98,8 @@ INCS_Release := -Isrc \
 	-I. \
 	-Itesting/gtest/include
 
-OBJS := $(obj).target/$(TARGET)/test/test_suite.o
+OBJS := $(obj).target/$(TARGET)/test/test_suite.o \
+	$(obj).target/$(TARGET)/test/testsupport/fileutils.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

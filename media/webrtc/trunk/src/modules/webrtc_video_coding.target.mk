@@ -120,6 +120,7 @@ OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/main/source/codec_datab
 	$(obj).target/$(TARGET)/src/modules/video_coding/main/source/generic_encoder.o \
 	$(obj).target/$(TARGET)/src/modules/video_coding/main/source/inter_frame_delay.o \
 	$(obj).target/$(TARGET)/src/modules/video_coding/main/source/jitter_buffer.o \
+	$(obj).target/$(TARGET)/src/modules/video_coding/main/source/jitter_buffer_common.o \
 	$(obj).target/$(TARGET)/src/modules/video_coding/main/source/jitter_estimator.o \
 	$(obj).target/$(TARGET)/src/modules/video_coding/main/source/media_opt_util.o \
 	$(obj).target/$(TARGET)/src/modules/video_coding/main/source/media_optimization.o \

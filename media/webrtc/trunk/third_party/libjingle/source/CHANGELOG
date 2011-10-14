@@ -1,5 +1,13 @@
 Libjingle
 
+0.6.2 - Oct 7, 2011
+  - Increase the video rtp buffer.
+  - Disable sound system for chromium build.
+  - Add basictype.h for NULL.
+  - Use the ref counted webrtc ADM/VCM.
+  - Add codereview.settings to use the webrtc codereview system.
+  - Add MediaSessionDescriptionFactory.
+
 0.6.1 - Sep 15, 2011
   - Add dummydevicemanager.
   - Remove underscores from the files names for app/webrtc folder.

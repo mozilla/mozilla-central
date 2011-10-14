@@ -1001,10 +1001,9 @@ bool Session::SendAcceptMessage(const SessionDescription* sdesc,
 
 bool Session::SendRejectMessage(const std::string& reason,
                                 SessionError* error) {
-  XmlElements elems;
-  return SendMessage(ACTION_SESSION_REJECT, elems, error);
+  SessionTerminate term(reason);
+  return SendMessage(ACTION_SESSION_REJECT, term, error);
 }
-
 
 bool Session::SendTerminateMessage(const std::string& reason,
                                    SessionError* error) {

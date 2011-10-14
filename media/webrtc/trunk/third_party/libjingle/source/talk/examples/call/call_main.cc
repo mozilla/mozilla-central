@@ -212,6 +212,8 @@ cricket::MediaEngineInterface* CreateFileMediaEngine(const char* voice_in,
   std::vector<cricket::VideoCodec> video_codecs;
   video_codecs.push_back(
       cricket::VideoCodec(97, "H264", 320, 240, 30, 0));
+  video_codecs.push_back(
+      cricket::VideoCodec(99, "H264-SVC", 640, 360, 30, 0));
   file_media_engine->set_video_codecs(video_codecs);
 
   return file_media_engine;

@@ -243,7 +243,7 @@ void CallClient::ParseLine(const std::string& line) {
       std::string to = GetWord(words, 1, "");
       int bandwidth = GetInt(words, 2, cricket::kAutoBandwidth);
       cricket::CallOptions options;
-      options.is_video = true;
+      options.has_video = true;
       options.video_bandwidth = bandwidth;
       MakeCallTo(to, options);
     } else if (command == "join") {
@@ -683,6 +683,7 @@ void CallClient::PlaceCall(const buzz::Jid& jid,
         this, &CallClient::OnHangoutPublishRecordingError);
     hangout_pubsub_client_->SignalRemoteMuteError.connect(
         this, &CallClient::OnHangoutRemoteMuteError);
+    hangout_pubsub_client_->RequestAll();
   }
 }
 

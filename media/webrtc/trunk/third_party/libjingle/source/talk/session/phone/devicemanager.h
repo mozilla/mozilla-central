@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2008, Google Inc.
+ * Copyright 2004 Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -33,7 +33,17 @@
 
 #include "talk/base/sigslot.h"
 #include "talk/base/stringencode.h"
-#ifdef LINUX
+
+#ifdef BUILD_WITH_CHROMIUM
+// The SoundSystem related code refers to some definitions that are not
+// available in chromium. (LS_VERBOSE, DISALLOW_ASSIGN etc.)
+// For now, disable the sound system code from devicemanager.h/cc.
+// TODO: Split the DeviceManager implemenations out of
+// devicemanager.h/cc so that we can exclude the DeviceManager impls from
+// libjingle build when they are not needed.
+#define NO_SOUND_SYSTEM
+#endif
+#if defined(LINUX) && !defined(NO_SOUND_SYSTEM)
 #include "talk/sound/soundsystemfactory.h"
 #endif
 
@@ -128,7 +138,7 @@ class DeviceManager : public DeviceManagerInterface {
   bool need_couninitialize_;
 #endif
   DeviceWatcher* watcher_;
-#ifdef LINUX
+#if defined(LINUX) && !defined(NO_SOUND_SYSTEM)
   SoundSystemHandle sound_system_;
 #endif
 };

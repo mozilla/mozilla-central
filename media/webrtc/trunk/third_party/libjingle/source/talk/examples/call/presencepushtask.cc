@@ -100,12 +100,13 @@ void PresencePushTask::HandleMucPresence(buzz::Muc* muc,
     if (!stanza->HasAttr(QN_TYPE)) {
       // We joined the MUC.
       const XmlElement* elem = stanza->FirstNamed(QN_MUC_USER_X);
+      // Status code=110 or 100 is not guaranteed to be present, so we
+      // only check the item element and Muc join status.
       if (elem) {
-        elem = elem->FirstNamed(QN_MUC_USER_STATUS);
-      }
-      if (elem && (elem->Attr(QN_CODE) == "110" ||
-          elem->Attr(QN_CODE) == "100")) {
-        SignalMucJoined(muc->jid());
+        if (elem->FirstNamed(QN_MUC_USER_ITEM) &&
+            muc->state() == buzz::Muc::MUC_JOINING) {
+          SignalMucJoined(muc->jid());
+        }
       }
     } else {
       // We've been kicked. Bye.

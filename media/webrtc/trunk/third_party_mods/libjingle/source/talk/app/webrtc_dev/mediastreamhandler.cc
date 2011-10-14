@@ -43,11 +43,11 @@ enum {
   MSG_TRACK_ENABLEDCHANGED = 3,
 };
 
-typedef talk_base::TypedMessageData<MediaStreamTrack::TrackState>
+typedef talk_base::TypedMessageData<MediaStreamTrackInterface::TrackState>
     TrackStateMessageData;
 typedef talk_base::TypedMessageData<bool> TrackEnabledMessageData;
 
-VideoTrackHandler::VideoTrackHandler(VideoTrack* track,
+VideoTrackHandler::VideoTrackHandler(VideoTrackInterface* track,
                                      MediaProviderInterface* provider)
     : provider_(provider),
       video_track_(track),
@@ -68,7 +68,7 @@ void VideoTrackHandler::OnChanged() {
     TrackStateMessageData* state_param(new TrackStateMessageData(state_));
     signaling_thread_->Post(this, MSG_TRACK_STATECHANGED, state_param);
   }
-  if (renderer_.get() != video_track_->GetRenderer().get()) {
+  if (renderer_.get() != video_track_->GetRenderer()) {
     renderer_ = video_track_->GetRenderer();
     signaling_thread_->Post(this, MSG_TRACK_RENDERERCHANGED);
   }
@@ -103,27 +103,30 @@ void VideoTrackHandler::OnMessage(talk_base::Message* msg) {
 }
 
 LocalVideoTrackHandler::LocalVideoTrackHandler(
-    VideoTrack* track,
+    LocalVideoTrackInterface* track,
     MediaProviderInterface* provider)
-    : VideoTrackHandler(track, provider) {
-  // If the Renderer is already set we want to start it.
-  if (video_track_->GetRenderer().get())
-    OnRendererChanged();
+    : VideoTrackHandler(track, provider),
+      local_video_track_(track) {
 }
 
 void LocalVideoTrackHandler::OnRendererChanged() {
-  scoped_refptr<VideoRenderer> renderer(video_track_->GetRenderer());
-  if (renderer.get())
+  VideoRendererInterface* renderer(video_track_->GetRenderer());
+  if (renderer)
     provider_->SetLocalRenderer(video_track_->ssrc(), renderer->renderer());
   else
     provider_->SetLocalRenderer(video_track_->ssrc(), NULL);
 }
 
 void LocalVideoTrackHandler::OnStateChanged(
-    MediaStreamTrack::TrackState state) {
-  LocalVideoTrack* track = static_cast<LocalVideoTrack*>(video_track_.get());
-  if (state == VideoTrack::kLive) {
-    provider_->SetCaptureDevice(track->ssrc(), track->GetVideoCapture());
+    MediaStreamTrackInterface::TrackState state) {
+  if (state == VideoTrackInterface::kLive) {
+    provider_->SetCaptureDevice(local_video_track_->ssrc(),
+                                local_video_track_->GetVideoCapture());
+    VideoRendererInterface* renderer(video_track_->GetRenderer());
+    if (renderer)
+      provider_->SetLocalRenderer(video_track_->ssrc(), renderer->renderer());
+    else
+      provider_->SetLocalRenderer(video_track_->ssrc(), NULL);
   }
 }
 
@@ -132,28 +135,29 @@ void LocalVideoTrackHandler::OnEnabledChanged(bool enabled) {
 }
 
 RemoteVideoTrackHandler::RemoteVideoTrackHandler(
-    VideoTrack* track,
+    VideoTrackInterface* track,
     MediaProviderInterface* provider)
-    : VideoTrackHandler(track, provider) {
+    : VideoTrackHandler(track, provider),
+      remote_video_track_(track) {
 }
 
 void RemoteVideoTrackHandler::OnRendererChanged() {
-  scoped_refptr<VideoRenderer> renderer(video_track_->GetRenderer());
-  if (renderer.get())
+  VideoRendererInterface* renderer(video_track_->GetRenderer());
+  if (renderer)
     provider_->SetRemoteRenderer(video_track_->ssrc(), renderer->renderer());
   else
     provider_->SetRemoteRenderer(video_track_->ssrc(), NULL);
 }
 
 void RemoteVideoTrackHandler::OnStateChanged(
-    MediaStreamTrack::TrackState state) {
+    MediaStreamTrackInterface::TrackState state) {
 }
 
 void RemoteVideoTrackHandler::OnEnabledChanged(bool enabled) {
   // TODO(perkj): What should happen when enabled is changed?
 }
 
-MediaStreamHandler::MediaStreamHandler(MediaStream* stream,
+MediaStreamHandler::MediaStreamHandler(MediaStreamInterface* stream,
                                        MediaProviderInterface* provider)
     : stream_(stream),
       provider_(provider) {
@@ -166,7 +170,7 @@ MediaStreamHandler::~MediaStreamHandler() {
   }
 }
 
-MediaStream* MediaStreamHandler::stream() {
+MediaStreamInterface* MediaStreamHandler::stream() {
   return stream_.get();
 }
 
@@ -176,16 +180,16 @@ void MediaStreamHandler::OnChanged() {
 
 
 LocalMediaStreamHandler::LocalMediaStreamHandler(
-    MediaStream* stream,
+    MediaStreamInterface* stream,
     MediaProviderInterface* provider)
     : MediaStreamHandler(stream, provider) {
-  scoped_refptr<MediaStreamTrackList> tracklist(stream->tracks());
+  MediaStreamTrackListInterface* tracklist(stream->tracks());
 
   for (size_t j = 0; j < tracklist->count(); ++j) {
-    scoped_refptr<MediaStreamTrack> track = tracklist->at(j);
-    if (track->kind().compare(kVideoTrackKind) == 0) {
-      LocalVideoTrack* video_track =
-          static_cast<LocalVideoTrack*> (track.get());
+    MediaStreamTrackInterface* track = tracklist->at(j);
+    if (track->type() == MediaStreamTrackInterface::kVideo) {
+      LocalVideoTrackInterface* video_track =
+          static_cast<LocalVideoTrackInterface*>(track);
       VideoTrackHandler* handler(new LocalVideoTrackHandler(video_track,
                                                             provider));
       video_handlers_.push_back(handler);
@@ -194,15 +198,16 @@ LocalMediaStreamHandler::LocalMediaStreamHandler(
 }
 
 RemoteMediaStreamHandler::RemoteMediaStreamHandler(
-    MediaStream* stream,
+    MediaStreamInterface* stream,
     MediaProviderInterface* provider)
     : MediaStreamHandler(stream, provider) {
-  scoped_refptr<MediaStreamTrackList> tracklist(stream->tracks());
+  MediaStreamTrackListInterface* tracklist(stream->tracks());
 
   for (size_t j = 0; j < tracklist->count(); ++j) {
-    scoped_refptr<MediaStreamTrack> track = tracklist->at(j);
-    if (track->kind().compare(kVideoTrackKind) == 0) {
-      VideoTrack* video_track = static_cast<VideoTrack*> (track.get());
+    MediaStreamTrackInterface* track = tracklist->at(j);
+    if (track->type() == MediaStreamTrackInterface::kVideo) {
+      VideoTrackInterface* video_track =
+          static_cast<VideoTrackInterface*>(track);
       VideoTrackHandler* handler(new RemoteVideoTrackHandler(video_track,
                                                              provider));
       video_handlers_.push_back(handler);
@@ -225,13 +230,13 @@ MediaStreamHandlers::~MediaStreamHandlers() {
   }
 }
 
-void MediaStreamHandlers::AddRemoteStream(MediaStream* stream) {
+void MediaStreamHandlers::AddRemoteStream(MediaStreamInterface* stream) {
   RemoteMediaStreamHandler* handler = new RemoteMediaStreamHandler(stream,
                                                                    provider_);
   remote_streams_handlers_.push_back(handler);
 }
 
-void MediaStreamHandlers::RemoveRemoteStream(MediaStream* stream) {
+void MediaStreamHandlers::RemoveRemoteStream(MediaStreamInterface* stream) {
   StreamHandlerList::iterator it = remote_streams_handlers_.begin();
   for (; it != remote_streams_handlers_.end(); ++it) {
     if ((*it)->stream() == stream) {
@@ -266,10 +271,10 @@ void MediaStreamHandlers::CommitLocalStreams(StreamCollection* streams) {
   // Iterate the new collection of local streams.
   // If its not found in the old collection it have been added.
   for (size_t j = 0; j < streams->count(); ++j) {
-    scoped_refptr<MediaStream> stream = streams->at(j);
+    MediaStreamInterface* stream = streams->at(j);
     StreamHandlerList::iterator it = local_streams_handlers_.begin();
     for (; it != local_streams_handlers_.end(); ++it) {
-      if (stream.get() == (*it)->stream())
+      if (stream == (*it)->stream())
         break;
     }
     if (it == local_streams_handlers_.end()) {

@@ -417,12 +417,11 @@ def MergeAndFilterByPlatform(env, params):
   return merged
 
 
-# Linux can build both 32 and 64 bit on 64 bit host, but 32 bit host can
-# only build 32 bit.  For 32 bit debian installer a 32 bit host is required.
-# ChromeOS (linux) ebuild don't support 64 bit and requires 32 bit build only
-# for now.
-def Allow64BitCompile(env):
-  return (env.Bit('linux') and env.Bit('platform_arch_64bit')
+# Whether to enable extra 64-bit targets marked with the also64bit setting. Used
+# only for the legacy mixed 32/64 desktop Linux build.
+def EnableExtra64BitTargets(env):
+  return (env.Bit('linux') and env.Bit('build_platform_64bit') and
+          not env.Bit('host_platform_64bit')
           )
 
 
@@ -524,7 +523,7 @@ def ExtendComponent(env, component, **kwargs):
       env.Prepend(**{var : values})
 
   # workaround for pulse stripping link flag for unknown reason
-  if Allow64BitCompile(env):
+  if EnableExtra64BitTargets(env):
     env['SHLINKCOM'] = ('$SHLINK -o $TARGET -m32 $SHLINKFLAGS $SOURCES '
                         '$_LIBDIRFLAGS $_LIBFLAGS')
     env['LINKCOM'] = ('$LINK -o $TARGET -m32 $LINKFLAGS $SOURCES '
@@ -557,7 +556,7 @@ def ExtendComponent(env, component, **kwargs):
   node = builder(name, srcs)
 
   # make a parallel 64bit version if requested
-  if Allow64BitCompile(env) and PopEntry(params, 'also64bit'):
+  if EnableExtra64BitTargets(env) and PopEntry(params, 'also64bit'):
     env_64bit = env.Clone()
     env_64bit.FilterOut(CCFLAGS = ['-m32'], LINKFLAGS = ['-m32'])
     env_64bit.Prepend(CCFLAGS = ['-m64', '-fPIC'], LINKFLAGS = ['-m64'])

@@ -53,7 +53,6 @@ CFLAGS_CC_Debug := -fno-rtti \
 	-fvisibility-inlines-hidden
 
 INCS_Debug := -Isrc \
-	-Ithird_party_mods/libjingle/source \
 	-Ithird_party/libjingle/source \
 	-Ithird_party/expat/files \
 	-Ithird_party/jsoncpp/include
@@ -111,7 +110,6 @@ CFLAGS_CC_Release := -fno-rtti \
 	-fvisibility-inlines-hidden
 
 INCS_Release := -Isrc \
-	-Ithird_party_mods/libjingle/source \
 	-Ithird_party/libjingle/source \
 	-Ithird_party/expat/files \
 	-Ithird_party/jsoncpp/include

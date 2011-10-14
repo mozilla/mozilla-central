@@ -36,8 +36,8 @@
       ],
       'include_dirs': [
         '../interface',
+        '../../../common_video/interface',
         '../../../modules/video_capture/main/interface',
-        '../../../modules/video_capture/main/source',
         '../../../modules/video_render/main/interface',
       ],
       'direct_dependent_settings': {

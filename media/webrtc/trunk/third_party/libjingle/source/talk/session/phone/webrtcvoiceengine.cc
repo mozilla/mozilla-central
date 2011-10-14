@@ -128,6 +128,12 @@ class WebRtcSoundclipMedia : public SoundclipMedia {
   virtual ~WebRtcSoundclipMedia() {
     engine_->UnregisterSoundclip(this);
     if (webrtc_channel_ != -1) {
+      // We shouldn't have to call Disable() here. DeleteChannel() should call
+      // StopPlayout() while deleting the channel.  We should fix the bug
+      // inside WebRTC and remove the Disable() call bellow.  This work is
+      // tracked by bug http://b/issue?id=5382855.
+      PlaySound(NULL, 0, 0);
+      Disable();
       if (engine_->voe_sc()->base()->DeleteChannel(webrtc_channel_)
           == -1) {
         LOG_RTCERR1(DeleteChannel, webrtc_channel_);
@@ -286,12 +292,12 @@ WebRtcVoiceEngine::~WebRtcVoiceEngine() {
   }
   if (adm_) {
     voe_wrapper_.reset();
-    webrtc::AudioDeviceModule::Destroy(adm_);
+    adm_->Release();
     adm_ = NULL;
   }
   if (adm_sc_) {
     voe_wrapper_sc_.reset();
-    webrtc::AudioDeviceModule::Destroy(adm_sc_);
+    adm_sc_->Release();
     adm_sc_ = NULL;
   }
 
@@ -317,21 +323,8 @@ bool WebRtcVoiceEngine::InitInternal() {
                                static_cast<int>(talk_base::LS_INFO));
   ApplyLogging("");
 
-  if (adm_) {
-    if (voe_wrapper_->base()->RegisterAudioDeviceModule(*adm_) == -1) {
-      LOG_RTCERR0_EX(Init, voe_wrapper_->error());
-      return false;
-    }
-  }
-  if (adm_sc_) {
-    if (voe_wrapper_sc_->base()->RegisterAudioDeviceModule(*adm_sc_) == -1) {
-      LOG_RTCERR0_EX(Init, voe_wrapper_sc_->error());
-      return false;
-    }
-  }
-
   // Init WebRtc VoiceEngine, enabling AEC logging if specified in SetLogging.
-  if (voe_wrapper_->base()->Init() == -1) {
+  if (voe_wrapper_->base()->Init(adm_) == -1) {
     LOG_RTCERR0_EX(Init, voe_wrapper_->error());
     return false;
   }
@@ -371,7 +364,7 @@ bool WebRtcVoiceEngine::InitInternal() {
 #endif
 
   // Initialize the VoiceEngine instance that we'll use to play out sound clips.
-  if (voe_wrapper_sc_->base()->Init() == -1) {
+  if (voe_wrapper_sc_->base()->Init(adm_sc_) == -1) {
     LOG_RTCERR0_EX(Init, voe_wrapper_sc_->error());
     return false;
   }
@@ -1000,8 +993,23 @@ bool WebRtcVoiceEngine::SetAudioDeviceModule(webrtc::AudioDeviceModule* adm,
     LOG(LS_WARNING) << "SetAudioDeviceModule can not be called after Init.";
     return false;
   }
-  adm_ = adm;
-  adm_sc_ = adm_sc;
+  if (adm_) {
+    adm_->Release();
+    adm_ = NULL;
+  }
+  if (adm) {
+    adm_ = adm;
+    adm_->AddRef();
+  }
+
+  if (adm_sc_) {
+    adm_sc_->Release();
+    adm_sc_ = NULL;
+  }
+  if (adm_sc) {
+    adm_sc_ = adm_sc;
+    adm_sc_->AddRef();
+  }
   return true;
 }
 
@@ -1317,13 +1325,6 @@ bool WebRtcVoiceMediaChannel::ChangeSend(SendFlags send) {
     }
 #endif  // CHROMEOS
 
-    // Tandberg-bridged conferences have an AGC target that is lower than
-    // GTV-only levels.
-    if ((channel_options_ & OPT_AGC_TANDBERG_LEVELS) && !agc_adjusted_) {
-      if (engine()->AdjustAgcLevel(kTandbergDbAdjustment)) {
-        agc_adjusted_ = true;
-      }
-    }
 
     // VoiceEngine resets sequence number when StopSend is called. This
     // sometimes causes libSRTP to complain about packets being
