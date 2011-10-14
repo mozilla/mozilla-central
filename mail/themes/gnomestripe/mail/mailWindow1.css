@@ -237,7 +237,16 @@ treechildren::-moz-tree-image(junkStatusCol, notjunk) {
   -moz-image-region: rect(0px 16px 16px 0px); /* message-read.png */
   -moz-padding-start: 0px;
 }
+
 /* ..... subject column ..... */
+
+#subjectCol {
+  -moz-padding-start: 16px;
+}
+
+#subjectCol[primary="true"] {
+  -moz-padding-start: 26px;
+}
 
 treechildren::-moz-tree-image(subjectCol) {
   -moz-margin-end: 2px;
@@ -274,6 +283,9 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   -moz-image-region: rect(0 80px 16px 64px);
 }
 
+treechildren::-moz-tree-cell-text(subjectCol) {
+  -moz-padding-start: 0;
+}
 
 #sizeCol,
 #unreadCol,

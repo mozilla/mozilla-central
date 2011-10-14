@@ -246,6 +246,14 @@ treechildren::-moz-tree-image(junkStatusCol, notjunk) {
 
 /* ..... subject column ..... */
 
+#subjectCol {
+  -moz-padding-start: 20px;
+}
+
+#subjectCol[primary="true"] {
+  -moz-padding-start: 41px;
+}
+
 treechildren::-moz-tree-image(subjectCol) {
   -moz-margin-end: 2px;
   list-style-image: url("chrome://messenger/skin/icons/message-mail.png");
@@ -281,6 +289,10 @@ treechildren::-moz-tree-image(subjectCol, news, new) {
 
 treechildren::-moz-tree-image(subjectCol, news, new, attach) {
   list-style-image: url("chrome://messenger/skin/icons/message-news-new-attach.png");
+}
+
+treechildren::-moz-tree-cell-text(subjectCol) {
+  -moz-padding-start: 0;
 }
 
 /* ..... new thread icons for watch and ignore ..... */

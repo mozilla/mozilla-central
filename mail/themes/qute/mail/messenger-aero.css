@@ -1,5 +1,9 @@
 %include messenger.css
 
+treechildren::-moz-tree-cell-text {
+  -moz-padding-start: 2px;
+}
+
 .toolbar-primary {
   -moz-appearance: none;
 }

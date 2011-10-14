@@ -127,3 +127,13 @@ sidebarheader .toolbarbutton-text:not([value]) {
 #status-bar:-moz-lwtheme {
   padding-bottom: 1px;
 }
+
+treechildren::-moz-tree-cell-text {
+  -moz-padding-start: 5px;
+}
+
+@media not all and (-moz-windows-default-theme) {
+  treechildren::-moz-tree-cell-text {
+    -moz-padding-start: 4px !important;
+  }
+}

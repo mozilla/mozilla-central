@@ -249,6 +249,10 @@ treechildren::-moz-tree-image(DirCol, IsRemote-true, IsSecure-true) {
 
 /* ::::: results pane ::::: */
 
+#GeneratedName {
+  -moz-padding-start: 22px;
+}
+
 treechildren::-moz-tree-image(GeneratedName) {
   -moz-margin-end: 2px;
   list-style-image: url("chrome://messenger/skin/addressbook/icons/abcard.png");
@@ -257,6 +261,10 @@ treechildren::-moz-tree-image(GeneratedName) {
 treechildren::-moz-tree-image(GeneratedName, MailList) {
   -moz-margin-end: 2px;
   list-style-image: url("chrome://messenger/skin/addressbook/icons/ablist.png");
+}
+
+treechildren::-moz-tree-cell-text(GeneratedName) {
+  -moz-padding-start: 0;
 }
 
 /* ::::: card view pane ::::: */

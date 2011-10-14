@@ -347,3 +347,7 @@ statusbarpanel {
   border: none;
   padding: 0 4px;
 }
+
+treechildren::-moz-tree-cell-text {
+  -moz-padding-start: 5px;
+}

@@ -112,3 +112,7 @@ tabmail > tabbox {
 #status-bar:-moz-lwtheme  {
   padding-top: 1px;
 }
+
+treechildren::-moz-tree-cell-text {
+  -moz-padding-start: 2px;
+}

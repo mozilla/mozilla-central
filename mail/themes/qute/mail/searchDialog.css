@@ -201,6 +201,14 @@ treechildren::-moz-tree-image(junkStatusCol, notjunk) {
 
 /* ..... subject column ..... */
 
+#subjectCol {
+  -moz-padding-start: 17px;
+}
+
+#subjectCol[primary="true"] {
+  -moz-padding-start: 30px;
+}
+
 treechildren::-moz-tree-image(subjectCol) {
   -moz-margin-end: 2px;
   list-style-image: url("chrome://messenger/skin/icons/message.png");
@@ -225,6 +233,10 @@ treechildren::-moz-tree-image(subjectCol, new) {
 
 treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   -moz-image-region: rect(0 80px 16px 64px);
+}
+
+treechildren::-moz-tree-cell-text(subjectCol) {
+  -moz-padding-start: 0 !important;
 }
 
 #sizeCol,

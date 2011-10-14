@@ -193,6 +193,7 @@ treecol.flagColumnHeader {
 
 treechildren::-moz-tree-image(flaggedCol) {
   list-style-image: url("chrome://messenger/skin/icons/flag-empty.png");
+  -moz-padding-end: 2px;
 }
 
 treechildren::-moz-tree-image(flaggedCol, dummy) {
@@ -229,7 +230,16 @@ treechildren::-moz-tree-image(junkStatusCol, notjunk) {
   list-style-image: url("chrome://messenger/skin/icons/readmail.png");
   -moz-padding-start: 0px;
 }
+
 /* ..... subject column ..... */
+
+#subjectCol {
+  -moz-padding-start: 17px;
+}
+
+#subjectCol[primary="true"] {
+  -moz-padding-start: 30px;
+}
 
 treechildren::-moz-tree-image(subjectCol) {
   -moz-margin-end: 2px;
@@ -265,6 +275,9 @@ treechildren::-moz-tree-image(subjectCol, imapdeleted) {
   -moz-image-region: rect(0 80px 16px 64px);
 }
 
+treechildren::-moz-tree-cell-text(subjectCol) {
+  -moz-padding-start: 0 !important;
+}
 
 #sizeCol,
 #unreadCol,
