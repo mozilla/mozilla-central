@@ -13,3 +13,7 @@
     color: -moz-hyperlinktext;
   }
 }
+
+#folderTree treechildren::-moz-tree-indentation {
+  width: 8px;
+}
