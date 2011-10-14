@@ -108,11 +108,16 @@ treechildren::-moz-tree-cell-text(container, closed, hasUnread, read) {
 
 /* ::::: message column icons ::::: */
 
+/* ..... column picker ..... */
+
+.tree-columnpicker-icon  {
+  list-style-image: url("chrome://messenger/skin/icons/columnpicker.svg");
+}
+
 /* ..... thread column ..... */
 
 treecol.threadColumnHeader {
-  list-style-image: url("chrome://messenger/skin/icons/thread-col.png");
-  -moz-padding-end: 3px; 
+  list-style-image: url("chrome://messenger/skin/icons/thread-col.svg");
 }
 
 treechildren::-moz-tree-image(threadCol, container) {
@@ -122,9 +127,8 @@ treechildren::-moz-tree-image(threadCol, container) {
 /* ..... read column ..... */
 
 treecol.readColumnHeader {
-  list-style-image: url("chrome://messenger/skin/icons/readcol.png");
-  -moz-padding-end: 5px;
-  padding-bottom: 5px;
+  list-style-image: url("chrome://messenger/skin/icons/readcol.svg");
+  -moz-padding-end: 3px;
 }
 
 treechildren::-moz-tree-image(unreadButtonColHeader) {
@@ -139,8 +143,8 @@ treechildren::-moz-tree-image(unreadButtonColHeader, unread) {
 /* ..... attachment column ..... */
 
 treecol.attachmentColumnHeader {
-  list-style-image: url("chrome://messenger/skin/icons/attachment-col.png");
-  -moz-padding-end: 5px; 
+  list-style-image: url("chrome://messenger/skin/icons/attachment-col.svg");
+  -moz-padding-end: 3px;
 }
 
 treechildren::-moz-tree-image(attachmentCol, attach) {
@@ -151,25 +155,27 @@ treechildren::-moz-tree-image(attachmentCol, attach) {
 /* ..... flag column ..... */
 
 treecol.flagColumnHeader {
-  list-style-image: url("chrome://messenger/skin/icons/flag-col.png");
-  -moz-padding-end: 5px; 
+  list-style-image: url("chrome://messenger/skin/icons/flag-col.svg");
+  -moz-padding-end: 3px;
 }
 
 treechildren::-moz-tree-image(flaggedCol) {
   list-style-image: url("chrome://messenger/skin/icons/message-list.png");
   -moz-image-region: rect(96px 16px 112px 0px); /* message-unstarred.png */
+  -moz-padding-end: 2px;
 }
 
 treechildren::-moz-tree-image(flaggedCol, flagged) {
   -moz-image-region: rect(80px 16px 96px 0px); /* message-starred.png */
+  -moz-padding-end: 2px;
 }
 
 
 /* ..... junkStatus column ..... */
 
 treecol.junkStatusHeader {
-  list-style-image: url("chrome://messenger/skin/icons/junk-col.png");
-  -moz-padding-end: 5px; 
+  list-style-image: url("chrome://messenger/skin/icons/junk-col.svg");
+  -moz-padding-end: 3px; 
 }
 
 /* "unknown" now looks like "not junk".  see bug #182386 */
