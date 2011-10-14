@@ -63,7 +63,6 @@ let Change = {
   onLoad: function Change_onLoad() {
     /* Load labels */
     let introText = document.getElementById("introText");
-    let introText2 = document.getElementById("introText2");
     let warningText = document.getElementById("warningText");
 
     // load some other elements & info from the window
@@ -77,6 +76,9 @@ let Change = {
     this._secondBox = document.getElementById("textBox2");
     this._passphraseBox = document.getElementById("passphraseBox");
 
+    this._dialog.getButton("finish").disabled = true;
+    this._dialog.getButton("back").hidden = true;
+
     this._stringBundle =
       Services.strings.createBundle("chrome://communicator/locale/sync/syncGenericChange.properties");
 
@@ -85,36 +87,37 @@ let Change = {
       case "ResetPassphrase":
         document.getElementById("textBox1Row").hidden = true;
         document.getElementById("textBox2Row").hidden = true;
-        let passphraseLabel = document.getElementById("passphraseLabel");
-        passphraseLabel.value = this._str("new.recoverykey.label");
+        document.getElementById("passphraseLabel").value
+          = this._str("new.recoverykey.label");
+        document.getElementById("passphraseSpacer").hidden = false;
 
         if (this._updatingPassphrase) {
-          document.getElementById("passphraseBackupButtons").hidden = true;
-          document.getElementById("generatePassphraseButton").hidden = true;
+          document.getElementById("passphraseHelpBox").hidden = false;
           document.title = this._str("new.recoverykey.title");
           introText.textContent = this._str("new.recoverykey.introText");
-          this._dialog.getButton("accept").label
+          this._dialog.getButton("finish").label
             = this._str("new.recoverykey.acceptButton");
         }
         else {
+          document.getElementById("generatePassphraseButton").hidden = false;
+          document.getElementById("passphraseBackupButtons").hidden = false;
           this._passphraseBox.readOnly = true;
           let pp = Weave.Service.passphrase;
           if (Weave.Utils.isPassphrase(pp))
             pp = Weave.Utils.hyphenatePassphrase(pp);
           this._passphraseBox.value = pp;
+          this._passphraseBox.focus();
           document.title = this._str("change.recoverykey.title");
-          introText.textContent = this._str("change.recoverykey.introText");
-          introText2.textContent = this._str("change.recoverykey.introText2");
+          introText.textContent = this._str("change.recoverykey.introText2");
           warningText.textContent = this._str("change.recoverykey.warningText");
-          this._dialog.getButton("accept").label
+          this._dialog.getButton("finish").label
             = this._str("change.recoverykey.acceptButton");
           if (this._duringSetup)
-            this._dialog.getButton("accept").disabled = false;
+            this._dialog.getButton("finish").disabled = false;
         }
         break;
       case "ChangePassword":
         document.getElementById("passphraseRow").hidden = true;
-        document.getElementById("passphraseBackupButtons").hidden = true;
         let box1label = document.getElementById("textBox1Label");
         let box2label = document.getElementById("textBox2Label");
         box1label.value = this._str("new.password.label");
@@ -122,7 +125,8 @@ let Change = {
         if (this._currentPasswordInvalid) {
           document.title = this._str("new.password.title");
           introText.textContent = this._str("new.password.introText");
-          this._dialog.getButton("accept").label = this._str("new.password.acceptButton");
+          this._dialog.getButton("finish").label
+            = this._str("new.password.acceptButton");
           document.getElementById("textBox2Row").hidden = true;
         }
         else {
@@ -130,10 +134,13 @@ let Change = {
           box2label.value = this._str("new.password.confirm");
           introText.textContent = this._str("change.password3.introText");
           warningText.textContent = this._str("change.password.warningText");
-          this._dialog.getButton("accept").label = this._str("change.password.acceptButton");
+          this._dialog.getButton("finish").label
+            = this._str("change.password.acceptButton");
         }
         break;
     }
+    document.getElementById("change-page")
+            .setAttribute("label", document.title);
   },
 
   _clearStatus: function _clearStatus() {
@@ -152,7 +159,7 @@ let Change = {
 
     let error = state == "error";
     this._dialog.getButton("cancel").disabled = !error;
-    this._dialog.getButton("accept").disabled = !error;
+    this._dialog.getButton("finish").disabled = !error;
     document.getElementById("printSyncKeyButton").disabled = !error;
     document.getElementById("saveSyncKeyButton").disabled = !error;
 
@@ -176,7 +183,7 @@ let Change = {
     let passphrase = Weave.Utils.generatePassphrase();
     this._passphraseBox.value = Weave.Utils.hyphenatePassphrase(passphrase);
     this._clearStatus();
-    this._dialog.getButton("accept").disabled = false;
+    this._dialog.getButton("finish").disabled = false;
   },
 
   doChangePassphrase: function Change_doChangePassphrase() {
@@ -249,7 +256,7 @@ let Change = {
       this._updateStatusWithString(errorString, "error");
 
     this._statusRow.hidden = valid;
-    this._dialog.getButton("accept").disabled = !valid;
+    this._dialog.getButton("finish").disabled = !valid;
   },
 
   _str: function Change__string(str) {

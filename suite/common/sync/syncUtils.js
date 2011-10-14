@@ -64,7 +64,7 @@ let gSyncUtils = {
 
     // Open up the change dialog
     let changeXUL = "chrome://communicator/content/sync/syncGenericChange.xul";
-    let changeOpt = "centerscreen,chrome,dialog,modal,resizable=no";
+    let changeOpt = "centerscreen,chrome,resizable=no";
     Services.ww.activeWindow.openDialog(changeXUL, "", changeOpt,
                                         type, duringSetup);
   },

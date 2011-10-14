@@ -44,8 +44,7 @@
 <!ENTITY setup.newRecoveryKeyPage.description.label "To ensure your total privacy, all of your data is encrypted prior to being uploaded. The Recovery Key which is necessary to decrypt your data is not uploaded.">
 <!ENTITY recoveryKeyEntry.label        "Your Recovery Key">
 <!ENTITY recoveryKeyEntry.accesskey    "K">
-<!ENTITY recoveryKeyGenerate.label     "Generate">
-<!ENTITY recoveryKeyGenerate.accesskey "G">
+<!ENTITY recoveryGenerateNewKey.label  "Generate a new key">
 <!ENTITY recoveryKeyBackup.description "Your Recovery Key is required to access &syncBrand.fullName.label; on other machines. Please create a backup copy. We cannot help you recover your Recovery Key.">
 
 <!ENTITY button.syncKeyBackup.print.label     "Print…">
