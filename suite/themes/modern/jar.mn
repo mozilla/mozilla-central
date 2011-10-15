@@ -602,7 +602,7 @@ modern.jar:
   skin/modern/mozapps/update/updates.css                           (mozapps/update/updates.css)
   skin/modern/mozapps/viewsource/viewsource.css                    (mozapps/viewsource/viewsource.css)
   skin/modern/mozapps/xpinstall/xpinstallConfirm.css               (mozapps/xpinstall/xpinstallConfirm.css)
-  skin/modern/mozapps/xpinstall/xpinstallItemGeneric.png           (mozapps/xpinstall/xpinstallItemGeneric.png)
+  skin/modern/mozapps/xpinstall/xpinstallItemGeneric.png           (mozapps/extensions/extensionGeneric.png)
   skin/modern/navigator/linkToolbar.css                            (navigator/linkToolbar.css)
   skin/modern/navigator/navigator.css                              (navigator/navigator.css)
   skin/modern/navigator/pageInfo.css                               (navigator/pageInfo.css)
