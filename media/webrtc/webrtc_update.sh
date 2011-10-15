@@ -46,12 +46,16 @@ cd webrtc_update
 # Note: must be in trunk; won't work with --name (error during sync)
 gclient config http://webrtc.googlecode.com/svn/trunk
 gclient sync --force
+export date=`date`
 
 cd trunk
 
 # build makefiles from .gyp - probably cruft since we do it by hand, but it
 # may do more than just that
 gclient runhooks --force
+export revision=`svn info | grep Revision:`
+
+echo "WebRTC revision = $revision"
 
 # put the output in the Mozilla object dir
 cd ..
@@ -71,10 +75,10 @@ rm -rf trunk
 mv webrtc_update/trunk trunk
 mv webrtc_update/.g* .
 rmdir webrtc_update
-hg addremove --exclude "**.svn" --exclude "**.git" --exclude "**.pyc" --similarity 90 --dry-run trunk | less
+(hg addremove --exclude "**.svn" --exclude "**.git" --exclude "**.pyc" --similarity 90 --dry-run trunk; hg status -m) | less
 
 # FIX! Query user about add-removes better!!
-echo "Waiting 30 seconds - Hit ^C now to stop addremove!"
+echo "Waiting 30 seconds - Hit ^C now to stop addremove and commit!"
 sleep 30  # let them ^C
 
 # Add/remove files, detect renames
@@ -85,7 +89,7 @@ hg addremove --exclude "**.svn" --exclude "**.git" --exclude "**.pyc" --similari
 # Commit the vendor branch
 echo "Commit, merge and push to server - cut and paste"
 echo "You probably want to do these from another shell so you can look at these"
-echo "hg commit -m 'Webrtc import rev blah'"
+hg commit -m "Webrtc import $revision"
 # webrtc-import-last is auto-updated (bookmark)
 
 #echo ""
@@ -95,9 +99,9 @@ echo "hg commit -m 'Webrtc import rev blah'"
 # webrtc-pending is auto-updated (bookmark)
 
 echo ""
-echo "hg update --clean webrtc-trim"
-echo "hg merge -r webrtc-import-last"
-echo "hg commit -m 'merge latest import to trim, rev blah'"
+hg update --clean webrtc-trim
+hg merge -r webrtc-import-last
+hg commit -m "merge latest import to trim, $revision"
 # webrtc-trim is auto-updated (bookmark)
 
 # commands to pull - never do more than echo them for the user
@@ -107,7 +111,7 @@ echo "cd your_tree"
 echo "hg qpop -a"
 echo "hg pull --bookmark webrtc-trim path-to-webrtc-import-repo"
 echo "hg merge"
-echo "hg commit -m 'Webrtc updated to rev blah; pull made on 201x-xx-xx xx:xx'"
+echo "hg commit -m 'Webrtc updated to rev blah; pull made on $date'"
 echo ""
 echo "Once you feel safe:"
 echo "hg push"
