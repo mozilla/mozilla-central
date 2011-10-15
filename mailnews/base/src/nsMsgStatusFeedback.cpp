@@ -40,7 +40,6 @@
 #include "nsIWebProgress.h"
 #include "nsIXULBrowserWindow.h"
 #include "nsMsgStatusFeedback.h"
-#include "nsIDocumentViewer.h"
 #include "nsIDocument.h"
 #include "nsIDOMElement.h"
 #include "nsIDocShell.h"

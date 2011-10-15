@@ -47,7 +47,7 @@
 #include "nsIURI.h"
 #include "nsIDocShell.h"
 #include "nsPIDOMWindow.h"
-#include "nsIDocumentViewer.h"
+#include "nsIContentViewer.h"
 #include "nsIPresShell.h"
 #include "nsIDocument.h"
 #include "nsIMsgMessageService.h"
