@@ -151,6 +151,116 @@
   -moz-image-region: rect(0 119px 29px 90px) !important;
 }
 
+/* ::::: small primary toolbar buttons ::::: */
+
+toolbar[iconsize="small"] > #button-newcard,
+toolbar[iconsize="small"] > toolbarpaletteitem > #button-newcard {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbookicons-small.png");
+  -moz-image-region: rect(40px 19px 59px 0);
+}
+
+toolbar[iconsize="small"] > #button-newcard:hover {
+  -moz-image-region: rect(40px 39px 59px 20px);
+}
+
+toolbar[iconsize="small"] > #button-newcard:hover:active {
+  -moz-image-region: rect(40px 59px 59px 40px);
+}
+
+toolbar[iconsize="small"] > #button-newcard[disabled] {
+  -moz-image-region: rect(40px 79px 59px 60px) !important;
+}
+
+toolbar[iconsize="small"] > #button-newlist,
+toolbar[iconsize="small"] > toolbarpaletteitem > #button-newlist {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbookicons-small.png");
+  -moz-image-region: rect(60px 19px 79px 0);
+}
+
+toolbar[iconsize="small"] > #button-newlist:hover {
+  -moz-image-region: rect(60px 39px 79px 20px);
+}
+
+toolbar[iconsize="small"] > #button-newlist:hover:active {
+  -moz-image-region: rect(60px 59px 79px 40px);
+}
+
+toolbar[iconsize="small"] > #button-newlist[disabled] {
+  -moz-image-region: rect(60px 79px 79px 60px) !important;
+}
+
+toolbar[iconsize="small"] > #button-editcard,
+toolbar[iconsize="small"] > toolbarpaletteitem > #button-editcard {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbookicons-small.png");
+  -moz-image-region: rect(20px 19px 39px 0);
+}
+
+toolbar[iconsize="small"] > #button-editcard:hover {
+  -moz-image-region: rect(20px 39px 39px 20px);
+}
+
+toolbar[iconsize="small"] > #button-editcard:hover:active {
+  -moz-image-region: rect(20px 59px 39px 40px);
+}
+
+toolbar[iconsize="small"] > #button-editcard[disabled] {
+  -moz-image-region: rect(20px 79px 39px 60px) !important;
+}
+
+toolbar[iconsize="small"] > #button-newmessage,
+toolbar[iconsize="small"] > toolbarpaletteitem > #button-newmessage {
+  list-style-image: url("chrome://messenger/skin/icons/messengericons-small.png");
+  -moz-image-region: rect(100px 19px 119px 0);
+}
+
+toolbar[iconsize="small"] > #button-newmessage:hover {
+  -moz-image-region: rect(100px 39px 119px 20px);
+}
+
+toolbar[iconsize="small"] > #button-newmessage:hover:active {
+  -moz-image-region: rect(100px 59px 119px 40px);
+}
+
+toolbar[iconsize="small"] > #button-newmessage[disabled] {
+  -moz-image-region: rect(100px 79px 119px 60px) !important;
+}
+
+toolbar[iconsize="small"] > #button-newim,
+toolbar[iconsize="small"] > toolbarpaletteitem > #button-newim {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbookicons-small.png");
+  -moz-image-region: rect(80px 19px 99px 0);
+}
+
+toolbar[iconsize="small"] > #button-newim:hover {
+  -moz-image-region: rect(80px 39px 99px 20px);
+}
+
+toolbar[iconsize="small"] > #button-newim:hover:active {
+  -moz-image-region: rect(80px 59px 99px 40px);
+}
+
+toolbar[iconsize="small"] > #button-newim[disabled] {
+  -moz-image-region: rect(80px 79px 99px 60px) !important;
+}
+
+toolbar[iconsize="small"] > #button-abdelete,
+toolbar[iconsize="small"] > toolbarpaletteitem > #button-abdelete {
+  list-style-image: url("chrome://messenger/skin/addressbook/icons/addressbookicons-small.png");
+  -moz-image-region: rect(0 19px 19px 0);
+}
+
+toolbar[iconsize="small"] > #button-abdelete:hover {
+  -moz-image-region: rect(0 39px 19px 20px);
+}
+
+toolbar[iconsize="small"] > #button-abdelete:hover:active {
+  -moz-image-region: rect(0 59px 19px 40px);
+}
+
+toolbar[iconsize="small"] > #button-abdelete[disabled] {
+  -moz-image-region: rect(0 79px 19px 60px) !important;
+}
+
 /* CardView styles - used in the Card View Pane */
 
 #CardViewOuterBox {
