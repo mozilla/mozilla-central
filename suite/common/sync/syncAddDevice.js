@@ -98,8 +98,18 @@ let gSyncAddDevice = {
 
   startTransfer: function startTransfer() {
     this.errorRow.hidden = true;
+    // When onAbort is called, Weave may already be gone.
+    const JPAKE_ERROR_USERABORT = Weave.JPAKE_ERROR_USERABORT;
+
     let self = this;
-    this._jpakeclient = new Weave.JPAKEClient({
+    let jpakeclient = this._jpakeclient = new Weave.JPAKEClient({
+      onPaired: function onPaired() {
+        let credentials = {account:   Weave.Service.account,
+                           password:  Weave.Service.password,
+                           synckey:   Weave.Service.passphrase,
+                           serverURL: Weave.Service.serverURL};
+        jpakeclient.sendAndComplete(credentials);
+      },
       onComplete: function onComplete() {
         delete self._jpakeclient;
         self.wizard.pageIndex = DEVICE_CONNECTED_PAGE;
@@ -108,7 +118,7 @@ let gSyncAddDevice = {
         delete self._jpakeclient;
 
         // Aborted by user, ignore.
-        if (!error)
+        if (error == JPAKE_ERROR_USERABORT)
           return;
 
         self.errorRow.hidden = false;
@@ -123,11 +133,8 @@ let gSyncAddDevice = {
     this.wizard.canAdvance = false;
 
     let pin = this.pin1.value + this.pin2.value + this.pin3.value;
-    let credentials = {account: Weave.Service.account,
-                       password: Weave.Service.password,
-                       synckey: Weave.Service.passphrase,
-                       serverURL: Weave.Service.serverURL};
-    this._jpakeclient.sendWithPIN(pin, credentials);
+    let expectDelay = false;
+    jpakeclient.pairWithPIN(pin, expectDelay);
   },
 
   onWizardBack: function onWizardBack() {
