@@ -195,6 +195,8 @@
   <key id="key_newMessage" key="&newMessage.key;" oncommand="goOpenNewMessage();" modifiers="accel"/>
   <key id="key_newMessage2" key="&newMessageCmd2.key;" oncommand="goOpenNewMessage();" modifiers="accel"/>
 #endif
+  <key id="key_attachFile" key="&attachFileCmd.key;" command="cmd_attachFile"
+       modifiers="accel,shift"/>
   <key id="key_close" key="&closeCmd.key;" command="cmd_close"  modifiers="accel"/>
   <key id="key_save" key="&saveCmd.key;" command="cmd_saveDefault" modifiers="accel"/>
   <key id="key_send" keycode="&sendCmd.keycode;" observes="cmd_sendWithCheck" modifiers="accel"/>
@@ -397,7 +399,8 @@
           </menu>
           <menu id="menu_Attach" label="&attachMenu.label;" accesskey="&attachMenu.accesskey;">
             <menupopup id="menu_AttachPopup">
-              <menuitem label="&attachFileCmd.label;" accesskey="&attachFileCmd.accesskey;" command="cmd_attachFile"/>
+              <menuitem label="&attachFileCmd.label;" accesskey="&attachFileCmd.accesskey;"
+                        key="key_attachFile" command="cmd_attachFile"/>
               <menuitem label="&attachPageCmd.label;" accesskey="&attachPageCmd.accesskey;" command="cmd_attachPage"/>
               <menuseparator/>
               <menuitem type="checkbox" label="&attachVCardCmd.label;" accesskey="&attachVCardCmd.accesskey;" command="cmd_attachVCard"/>

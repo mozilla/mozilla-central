@@ -67,7 +67,7 @@
     <key id="removestyleskb"       key="&formatRemoveStyles.key;"   observes="cmd_removeStyles"  modifiers="accel, shift"/>
     <key id="removestyleskb2"       key=" "   observes="cmd_removeStyles"  modifiers="accel"/>
     <key id="removelinkskb"        key="&formatRemoveLinks.key;"    observes="cmd_removeLinks"  modifiers="accel, shift"/>
-    <key id="removenamedanchorskb" key="&formatRemoveNamedAnchors.key;"    observes="cmd_removeNamedAnchors"  modifiers="accel, shift"/>
+    <key id="removenamedanchorskb" key="&formatRemoveNamedAnchors2.key;"    observes="cmd_removeNamedAnchors"  modifiers="accel, shift"/>
     <key id="decreasefontsizekb"   key="&decreaseFontSize.key;"     observes="cmd_decreaseFont"  modifiers="accel"/>
     <key id="increasefontsizekb"   key="&increaseFontSize.key;"     observes="cmd_increaseFont"  modifiers="accel"/>
     <key                           key="&increaseFontSize.key;"     observes="cmd_increaseFont"  modifiers="accel,shift"/>

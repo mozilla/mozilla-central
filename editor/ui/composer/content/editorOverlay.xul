@@ -136,7 +136,7 @@
          command="cmd_removeLinks"
          modifiers="accel, shift"/>
     <key id="removenamedanchorskb"
-         key="&formatRemoveNamedAnchors.key;"
+         key="&formatRemoveNamedAnchors2.key;"
          command="cmd_removeNamedAnchors"
          modifiers="accel, shift"/>
     <key id="decreasefontsizekb"
