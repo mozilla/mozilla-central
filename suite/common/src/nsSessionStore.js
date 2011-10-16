@@ -445,6 +445,10 @@ SessionStoreService.prototype = {
       this._lastSessionState = null;
       let openWindows = {};
       this._forEachBrowserWindow(function(aWindow) {
+        //Hide "Restore Last Session" menu item
+        let restoreItem = aWindow.document.getElementById("historyRestoreLastSession");
+        restoreItem.setAttribute("disabled", "true");
+
         Array.forEach(aWindow.getBrowser().tabs, function(aTab) {
           delete aTab.linkedBrowser.__SS_data;
           if (aTab.linkedBrowser.__SS_restoreState)
