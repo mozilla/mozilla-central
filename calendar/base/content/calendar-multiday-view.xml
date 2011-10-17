@@ -1997,7 +1997,7 @@
             this.fgboxes.dragspacer.setAttribute("height", this.mDragState.origMin * this.mPixPerMin);
         } else {
             this.mDragState.origLoc = event.screenX;
-            this.mDragState.origMin = Math.floor((event.screenY - this.parentNode.boxObject.screenY)/interval) * snapIntMin;
+            this.mDragState.origMin = Math.floor((event.screenX - this.parentNode.boxObject.screenX)/interval) * snapIntMin;
             this.fgboxes.dragspacer.setAttribute("width", this.mDragState.origMin * this.mPixPerMin);
         }
 
