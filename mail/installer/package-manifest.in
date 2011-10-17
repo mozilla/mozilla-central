@@ -612,6 +612,7 @@
 @BINPATH@/components/nsBadCertHandler.manifest
 @BINPATH@/components/cookie.xpt
 @BINPATH@/components/places.xpt
+@BINPATH@/components/plugin.xpt
 @BINPATH@/components/prefetch.xpt
 @BINPATH@/res/langGroups.properties
 @BINPATH@/res/language.properties
