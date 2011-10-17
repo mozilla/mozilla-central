@@ -72,6 +72,8 @@ CPPSRCS = calDateTime.cpp \
 EXTRA_COMPONENTS = \
     calItemModule.manifest \
     calItemModule.js \
+    calTimezoneService.manifest \
+    calTimezoneService.js \
     $(NULL)
 
 EXTRA_SCRIPTS = \
@@ -99,7 +101,6 @@ EXTRA_SCRIPTS = \
     calTransactionManager.js \
     calFreeBusyService.js \
     calCalendarSearchService.js \
-    calTimezoneService.js \
     $(NULL)
 
 # Use NSINSTALL to make the directory, as there's no mtime to preserve.

@@ -61,7 +61,6 @@ const scriptLoadOrder = [
     "calRelation.js",
     "calStartupService.js",
     "calTransactionManager.js",
-    "calTimezoneService.js",
     "calTodo.js",
     "calWeekInfoService.js"
 ];
@@ -75,6 +74,7 @@ function NSGetFactory(cid) {
         cal.loadScripts(scriptLoadOrder, Components.utils.getGlobalForObject(this));
         this.scriptsLoaded = true;
     }
+
     let components = [
         calAlarm,
         calAlarmService,
@@ -96,7 +96,6 @@ function NSGetFactory(cid) {
         calStartupService,
         calTransaction,
         calTransactionManager,
-        calTimezoneService,
         calTodo,
         calWeekInfoService,
     ];

@@ -61,9 +61,6 @@ contract @mozilla.org/calendar/transaction;1 {fcb54c82-2fb9-42cb-bf44-1e197a55e5
 component {40a1ccf4-5f54-4815-b842-abf06f84dbfd} calItemModule.js
 contract @mozilla.org/calendar/transactionmanager;1 {40a1ccf4-5f54-4815-b842-abf06f84dbfd}
 
-component {1a23ace4-a0dd-43b4-96a8-b3cd419a14a5} calItemModule.js
-contract @mozilla.org/calendar/timezone-service;1 {1a23ace4-a0dd-43b4-96a8-b3cd419a14a5}
-
 component {7af51168-6abe-4a31-984d-6f8a3989212d} calItemModule.js
 contract @mozilla.org/calendar/todo;1 {7af51168-6abe-4a31-984d-6f8a3989212d}
 
