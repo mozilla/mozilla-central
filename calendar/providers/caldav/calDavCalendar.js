@@ -2296,10 +2296,10 @@ calDavCalendar.prototype = {
         // a[2] = everything between the scheme and the start of the path
         // a[3] = extracted path
         let a = aSpec.match("(https?)(://[^/]*)([^#?]*)");
-        if (a[3]) {
+        if (a && a[3]) {
           return a[3];
         }
-        cal.WARN("CalDAV: Spec could not be parsed, returning as-is: "+ aSpec);
+        cal.WARN("CalDAV: Spec could not be parsed, returning as-is: " + aSpec);
         return aSpec;
     },
     /**
