@@ -156,7 +156,9 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         # are still serviced; they just should not result in any matches.)
         'mailnews.database.global.logging.upstream': True,
         # Do not allow fonts to be upgraded
-        'mail.font.windows.version': 2
+        'mail.font.windows.version': 2,
+        # No, we don't want to be prompted about Telemetry
+        'toolkit.telemetry.prompted': True,
         }
 
     # Dummied up local accounts to stop the account wizard

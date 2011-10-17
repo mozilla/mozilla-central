@@ -103,4 +103,5 @@ user_pref("mailnews.tags.$label5.tag", "Later");
 user_pref("mailnews.tags.version", 2);
 user_pref("mailnews.ui.threadpane.version", 5);
 user_pref("pref.downloads.disable_button.edit_actions", false);
+user_pref("toolkit.telemetry.prompted", true);
 user_pref("wallet.caveat", true);
