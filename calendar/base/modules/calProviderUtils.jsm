@@ -481,6 +481,20 @@ cal.toRFC3339 = function toRFC3339(aDateTime) {
     return str;
 };
 
+cal.promptOverwrite = function cal_promptOverwrite(aMode, aItem) {
+    let window = cal.getCalendarWindow();
+    let args = { item: aItem,
+                 mode: aMode,
+                 overwrite: false };
+
+    window.openDialog("chrome://calendar/content/calendar-conflicts-dialog.xul",
+                      "calendarConflictsDialog",
+                      "chrome,titlebar,modal",
+                      args);
+
+    return args.overwrite;
+};
+
 /**
  * Observer bag implementation taking care to replay open batch notifications.
  */

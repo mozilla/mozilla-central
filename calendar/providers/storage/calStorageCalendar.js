@@ -54,6 +54,7 @@ Components.utils.import("resource://calendar/modules/calStorageHelpers.jsm");
 
 const USECS_PER_SECOND = 1000000;
 const kCalICalendar = Components.interfaces.calICalendar;
+const cICL = Components.interfaces.calIChangeLog;
 
 //
 // calStorageCalendar
@@ -90,6 +91,7 @@ calStorageCalendar.prototype = {
 
     implementationLanguage: Components.interfaces.nsIProgrammingLanguage.JAVASCRIPT,
     flags: 0,
+
     //
     // private members
     //
@@ -104,9 +106,10 @@ calStorageCalendar.prototype = {
     // nsISupports interface
     //
     QueryInterface: function (aIID) {
-        return doQueryInterface(this, calStorageCalendar.prototype, aIID,
-                                [Components.interfaces.calICalendarProvider,
-                                 Components.interfaces.calISyncWriteCalendar]);
+        return cal.doQueryInterface(this, calStorageCalendar.prototype, aIID,
+                                   [Components.interfaces.calICalendarProvider,
+                                    Components.interfaces.calIOfflineStorage,
+                                    Components.interfaces.calISyncWriteCalendar]);
     },
 
     //
@@ -117,7 +120,7 @@ calStorageCalendar.prototype = {
     },
 
     get displayName() {
-        return calGetString("calendar", "storageName");
+        return cal.calGetString("calendar", "storageName");
     },
 
     createCalendar: function cSC_createCalendar() {
@@ -262,7 +265,7 @@ calStorageCalendar.prototype = {
             storageSdb.append("storage.sdb");
             this.mDB = Services.storage.openDatabase(storageSdb);
             if (this.mDB.tableExists("cal_events")) {
-                cal.LOG("Storage: Migrating storage.sdb -> local.sqlite");
+                cal.LOG("[calStorageCalendar] Migrating storage.sdb -> local.sqlite");
                 upgradeDB(this.mDB); // upgrade schema before migating data
                 let attachStatement = createStatement(this.mDB, "ATTACH DATABASE :file_path AS local_sqlite");
                 try {
@@ -360,7 +363,7 @@ calStorageCalendar.prototype = {
                     // has not been migrated to using the uuid as its cal_id.
                     pos = this.uri.path.indexOf("?id=");
                     if (pos != -1) {
-                        cal.LOG("Storage: Migrating numeric cal_id to uuid");
+                        cal.LOG("[calStorageCalendar] Migrating numeric cal_id to uuid");
                         id = parseInt(path.substr(pos + 4), 10);
                         migrateTables(this.mDB, this.id, id);
 
@@ -379,7 +382,7 @@ calStorageCalendar.prototype = {
                     // v19 upgrade has cal_id=0. If we still have a
                     // moz-profile-calendar here, then this is the one and we
                     // need to move all events with cal_id=0 to this id.
-                    cal.LOG("Storage: Migrating stray cal_id=0 calendar to uuid");
+                    cal.LOG("[calStorageCalendar] Migrating stray cal_id=0 calendar to uuid");
                     migrateTables(this.mDB, this.id, 0);
                     this.setProperty("uri", "moz-storage-calendar://");
                     this.setProperty("old_calendar_id", 0);
@@ -443,7 +446,7 @@ calStorageCalendar.prototype = {
 
         if (aItem.id == null) {
             // is this an error?  Or should we generate an IID?
-            aItem.id = getUUID();
+            aItem.id = cal.getUUID();
         } else {
             var olditem = this.getItemById(aItem.id);
             if (olditem) {
@@ -483,8 +486,24 @@ calStorageCalendar.prototype = {
     },
 
     // void modifyItem( in calIItemBase aNewItem, in calIItemBase aOldItem, in calIOperationListener aListener );
+    // Actually uses doModifyItem
     modifyItem: function cSC_modifyItem(aNewItem, aOldItem, aListener) {
+        let this_ = this;
 
+        // HACK Just modifying the item would clear the offline flag, we need to
+        // retrieve the flag and pass it to the real modify function.
+        let offlineJournalFlagListener = {
+            onGetResult: function (calendar, status, opType, id, detail) {
+            },
+            onOperationComplete: function (this_, status, opType, id, offlineFlag) {
+                this_.doModifyItem(aNewItem, aOldItem, aListener, offlineFlag);
+            }
+        };
+        this.getItemOfflineFlag(aOldItem, offlineJournalFlagListener);
+    },
+
+    doModifyItem: function cSC_doModifyItem(aNewItem, aOldItem, aListener, offlineFlag) {
+        let oldOfflineFlag = offlineFlag;
         if (this.readOnly) {
             this.notifyOperationComplete(aListener,
                                          Components.interfaces.calIErrors.CAL_IS_READONLY,
@@ -497,7 +516,7 @@ calStorageCalendar.prototype = {
             throw Components.results.NS_ERROR_INVALID_ARG;
         }
 
-        var this_ = this;
+        let this_ = this;
         function reportError(errStr, errId) {
             this_.notifyOperationComplete(aListener,
                                           errId ? errId : Components.results.NS_ERROR_FAILURE,
@@ -514,14 +533,23 @@ calStorageCalendar.prototype = {
 
         // Ensure that we're looking at the base item if we were given an
         // occurrence.  Later we can optimize this.
-        var modifiedItem = aNewItem.parentItem.clone();
+        let modifiedItem = aNewItem.parentItem.clone();
         if (aNewItem.parentItem != aNewItem) {
             modifiedItem.recurrenceInfo.modifyException(aNewItem, false);
         }
 
+        // If no old item was passed, then we should overwrite in any case.
+        // Pick up the old item from the database and use this as an old item
+        // later on.
+        if (!aOldItem) {
+            aOldItem = this.getItemById(aNewItem.id);
+        }
+
         if (this.relaxedMode) {
+            // We've already filled in the old item above, if this doesn't exist
+            // then just take the current item as its old version
             if (!aOldItem) {
-                aOldItem = this.getItemById(aNewItem.id) || aNewItem;
+                aOldItem = aNewItem;
             }
             aOldItem = aOldItem.parentItem;
         } else {
@@ -548,6 +576,7 @@ calStorageCalendar.prototype = {
 
         modifiedItem.makeImmutable();
         this.flushItem (modifiedItem, aOldItem);
+        this.setOfflineJournalFlag(aNewItem, oldOfflineFlag);
 
         this.notifyOperationComplete(aListener,
                                      Components.results.NS_OK,
@@ -615,11 +644,11 @@ calStorageCalendar.prototype = {
         }
 
         var item_iid = null;
-        if (isEvent(item))
+        if (cal.isEvent(item)) {
             item_iid = Components.interfaces.calIEvent;
-        else if (isToDo(item))
+        } else if (cal.isToDo(item)) {
             item_iid = Components.interfaces.calITodo;
-        else {
+        } else {
             this.notifyOperationComplete(aListener,
                                          Components.results.NS_ERROR_FAILURE,
                                          Components.interfaces.calIOperationListener.GET,
@@ -684,6 +713,10 @@ calStorageCalendar.prototype = {
         var wantEvents = ((aItemFilter & kCalICalendar.ITEM_FILTER_TYPE_EVENT) != 0);
         var wantTodos = ((aItemFilter & kCalICalendar.ITEM_FILTER_TYPE_TODO) != 0);
         var asOccurrences = ((aItemFilter & kCalICalendar.ITEM_FILTER_CLASS_OCCURRENCES) != 0);
+        var wantOfflineDeletedItems = ((aItemFilter & kCalICalendar.ITEM_FILTER_OFFLINE_DELETED) != 0);
+        var wantOfflineCreatedItems = ((aItemFilter & kCalICalendar.ITEM_FILTER_OFFLINE_CREATED) != 0);
+        var wantOfflineModifiedItems = ((aItemFilter & kCalICalendar.ITEM_FILTER_OFFLINE_MODIFIED) != 0);
+
         if (!wantEvents && !wantTodos) {
             // nothing to do
             this.notifyOperationComplete(aListener,
@@ -692,6 +725,13 @@ calStorageCalendar.prototype = {
                                          null,
                                          null);
             return;
+        }
+
+        // HACK because recurring offline events/todos objects dont have offline_journal information
+        // Hence we need to update the mRecEventCacheOfflineFlags and  mRecTodoCacheOfflineFlags hash-tables
+        // It can be an expensive operation but is only used in Online Reconciliation mode
+        if (wantOfflineCreatedItems | wantOfflineDeletedItems | wantOfflineModifiedItems) {
+            this.mRecItemCacheInited = false;
         }
 
         this.assureRecurringItemCaches();
@@ -797,6 +837,11 @@ calStorageCalendar.prototype = {
                 sp.range_end = endTime;
                 sp.start_offset = aRangeStart ? aRangeStart.timezoneOffset * USECS_PER_SECOND : 0;
                 sp.end_offset = aRangeEnd ? aRangeEnd.timezoneOffset * USECS_PER_SECOND : 0;
+                sp.offline_journal = null;
+
+                if (wantOfflineDeletedItems) sp.offline_journal = cICL.OFFLINE_FLAG_DELETED_RECORD;
+                else if (wantOfflineCreatedItems) sp.offline_journal = cICL.OFFLINE_FLAG_CREATED_RECORD;
+                else if (wantOfflineModifiedItems) sp.offline_journal = cICL.OFFLINE_FLAG_MODIFIED_RECORD;
 
                 while (this.mSelectNonRecurringEventsByRange.step()) {
                     let row = this.mSelectNonRecurringEventsByRange.row;
@@ -808,7 +853,7 @@ calStorageCalendar.prototype = {
                 this.mSelectNonRecurringEventsByRange.reset();
             }
 
-            // process the non-recurring events:
+            // Process the non-recurring events:
             for each (var evitem in resultItems) {
                 count += handleResultItem(evitem, Components.interfaces.calIEvent);
                 if (checkCount()) {
@@ -816,11 +861,17 @@ calStorageCalendar.prototype = {
                 }
             }
 
-            // process the recurring events from the cache
-            for each (var evitem in this.mRecEventCache) {
-                count += handleResultItem(evitem, Components.interfaces.calIEvent);
-                if (checkCount()) {
-                    return;
+            // Process the recurring events from the cache
+            for each (let evitem in this.mRecEventCache) {
+                let offline_journal_flag = this.mRecEventCacheOfflineFlags[evitem.id] || null;
+                // No need to return flagged unless asked i.e. sp.offline_journal == offline_journal_flag
+                // Return created and modified offline records if sp.offline_journal is null alongwith events that have no flag
+                if ((sp.offline_journal == null && offline_journal_flag != cICL.OFFLINE_FLAG_DELETED_RECORD)
+                    || (sp.offline_journal != null && offline_journal_flag == sp.offline_journal)) {
+                    count += handleResultItem(evitem, Components.interfaces.calIEvent);
+                    if (checkCount()) {
+                        return;
+                    }
                 }
             }
         }
@@ -838,6 +889,10 @@ calStorageCalendar.prototype = {
                 sp.range_end = endTime;
                 sp.start_offset = aRangeStart ? aRangeStart.timezoneOffset * USECS_PER_SECOND : 0;
                 sp.end_offset = aRangeEnd ? aRangeEnd.timezoneOffset * USECS_PER_SECOND : 0;
+                sp.offline_journal = null;
+                if (wantOfflineCreatedItems) sp.offline_journal = cICL.OFFLINE_FLAG_CREATED_RECORD;
+                if (wantOfflineDeletedItems) sp.offline_journal = cICL.OFFLINE_FLAG_DELETED_RECORD;
+                if (wantOfflineModifiedItems) sp.offline_journal = cICL.OFFLINE_FLAG_MODIFIED_RECORD;
 
                 while (this.mSelectNonRecurringTodosByRange.step()) {
                     let row = this.mSelectNonRecurringTodosByRange.row;
@@ -862,10 +917,21 @@ calStorageCalendar.prototype = {
             //       Moreover item.todo_complete etc seems to be a leftover...
 
             // process the recurring todos from the cache
-            for each (var todoitem in this.mRecTodoCache) {
-                count += handleResultItem(todoitem, Components.interfaces.calITodo, checkCompleted);
-                if (checkCount()) {
-                    return;
+            for each (let todoitem in this.mRecTodoCache) {
+                let offline_journal_flag = this.mRecTodoCacheOfflineFlags[todoitem.id] || null;
+                if ((sp.offline_journal == null &&
+                     (offline_journal_flag == cICL.OFFLINE_FLAG_MODIFIED_RECORD ||
+                      offline_journal_flag == cICL.OFFLINE_FLAG_CREATED_RECORD ||
+                      offline_journal_flag == null)) ||
+                    (sp.offline_journal != null &&
+                     (offline_journal_flag == sp.offline_journal))) {
+
+                    count += handleResultItem(todoitem,
+                                              Components.interfaces.calITodo,
+                                              checkCompleted);
+                    if (checkCount()) {
+                        return;
+                    }
                 }
             }
         }
@@ -884,6 +950,147 @@ calStorageCalendar.prototype = {
         //dump ("++++ getItems took: " + (profEndTime - profStartTime) + " ms\n");
     },
 
+    getItemOfflineFlag: function cSC_getOfflineJournalFlag(aItem, aListener) {
+        let flag = null;
+        if (!aItem) {
+            // It is possible that aItem can be null, flag provided should be null in this case
+            aListener.onOperationComplete(this, Components.results.NS_OK,
+                                               Components.interfaces.calIOperationListener.GET, null, flag);
+        } else {
+            let aID = aItem.id;
+            let this_ = this;
+            let listener = {
+                handleResult: function(aResultSet) {
+                        let row = aResultSet.getNextRow();
+                        flag = row.getResultByName("offline_journal") || null;
+                },
+                handleError: function(aError) {
+                    this_.logError("Error getting offline flag", aError);
+                    aListener.onOperationComplete(this_, Components.results.NS_ERROR_FAILURE,
+                                                   Components.interfaces.calIOperationListener.GET, aItem.id, aItem);
+                },
+                handleCompletion: function(aReason) {
+                    aListener.onOperationComplete(this_, Components.results.NS_OK,
+                                                   Components.interfaces.calIOperationListener.GET, aItem.id, flag);
+                }
+            };
+            if (cal.isEvent(aItem)) {
+                this.prepareStatement(this.mSelectEvent);
+                this.mSelectEvent.params.id = aID;
+                this.mSelectEvent.statement.executeAsync(listener);
+            } else if (cal.isToDo(aItem)) {
+                this.prepareStatement(this.mSelectTodo);
+                this.mSelectTodo.params.id = aID;
+                this.mSelectTodo.statement.executeAsync(listener);
+            }
+        }
+    },
+
+    setOfflineJournalFlag: function cSC_setOfflineJournalFlag(aItem, flag) {
+        let aID = aItem.id;
+        if (cal.isEvent(aItem)) {
+            this.prepareStatement(this.mEditEventOfflineFlag);
+            this.mEditEventOfflineFlag.params.id = aID;
+            this.mEditEventOfflineFlag.params.offline_journal = flag || null;
+            try {
+                this.mEditEventOfflineFlag.execute();
+            } catch (e) {
+                this.logError("Error setting offline journal flag for "  + aItem.title, e);
+            } finally {
+                this.mEditEventOfflineFlag.reset();
+            }
+
+        } else if (cal.isToDo(aItem)) {
+            this.prepareStatement(this.mEditTodoOfflineFlag);
+            this.mEditTodoOfflineFlag.params.id = aID;
+            this.mEditTodoOfflineFlag.params.offline_journal = flag || null;
+            try {
+                this.mEditTodoOfflineFlag.execute();
+            } catch (e) {
+                this.logError("Error setting offline journal flag for "  + aItem.title, e);
+            } finally {
+                this.mEditEventOfflineFlag.reset();
+            }
+        }
+    },
+
+    //
+    // calIOfflineStorage interface
+    //
+    addOfflineItem: function(aItem, aListener) {
+        let newOfflineJournalFlag = cICL.OFFLINE_FLAG_CREATED_RECORD;
+        this.setOfflineJournalFlag(aItem, newOfflineJournalFlag);
+        this.notifyOperationComplete(aListener,
+                                     Components.results.NS_OK,
+                                     Components.interfaces.calIOperationListener.ADD,
+                                     aItem.id,
+                                     aItem);
+    },
+
+    modifyOfflineItem: function(aItem, aListener) {
+        let this_ = this;
+        let opListener = {
+            onGetResult: function (calendar, status, itemType, detail, count, items) {
+            },
+            onOperationComplete: function(calendar, status, opType, id, oldOfflineJournalFlag ) {
+                let newOfflineJournalFlag = cICL.OFFLINE_FLAG_MODIFIED_RECORD;
+                if (oldOfflineJournalFlag == cICL.OFFLINE_FLAG_CREATED_RECORD || oldOfflineJournalFlag == cICL.OFFLINE_FLAG_DELETED_RECORD) {
+                    // Do nothing since a flag of "created" or "deleted" exists
+                }
+                else {
+                    this_.setOfflineJournalFlag(aItem, newOfflineJournalFlag);
+                }
+                this_.notifyOperationComplete(aListener,
+                                              Components.results.NS_OK,
+                                              Components.interfaces.calIOperationListener.MODIFY,
+                                              aItem.id,
+                                              aItem);
+            }
+        };
+        this.getItemOfflineFlag(aItem, opListener);
+    },
+
+    deleteOfflineItem: function(aItem, aListener) {
+        let this_ = this;
+        let opListener = {
+            onGetResult: function (calendar, status, itemType, detail, count, items) {
+
+            },
+            onOperationComplete: function(calendar, status, opType, id, oldOfflineJournalFlag) {
+                var newOfflineJournalFlag = cICL.OFFLINE_FLAG_DELETED_RECORD;
+                if (oldOfflineJournalFlag) {
+                    // Delete item if flag is c
+                    if (oldOfflineJournalFlag == cICL.OFFLINE_FLAG_CREATED_RECORD) {
+                        this_.deleteItemById(aItem.id);
+                    }
+                    else if (oldOfflineJournalFlag == cICL.OFFLINE_FLAG_MODIFIED_RECORD) {
+                        this_.setOfflineJournalFlag(aItem, cICL.OFFLINE_FLAG_DELETED_RECORD);
+                    }
+                } else {
+                    this_.setOfflineJournalFlag(aItem, cICL.OFFLINE_FLAG_DELETED_RECORD);
+                }
+
+                this_.notifyOperationComplete(aListener,
+                                             Components.results.NS_OK,
+                                             Components.interfaces.calIOperationListener.DELETE,
+                                             aItem.id,
+                                             aItem);
+                // notify observers
+                this_.observers.notify("onDeleteItem", [aItem]);
+            }
+        };
+        this.getItemOfflineFlag(aItem, opListener);
+    },
+
+    resetItemOfflineFlag: function(aItem, aListener) {
+        this.setOfflineJournalFlag(aItem,null);
+        this.notifyOperationComplete(aListener,
+                                     Components.results.NS_OK,
+                                     Components.interfaces.calIOperationListener.MODIFY,
+                                     aItem.id,
+                                     aItem);
+    },
+
     //
     // database handling
     //
@@ -892,7 +1099,7 @@ calStorageCalendar.prototype = {
     // assumes mDB is valid
 
     initDB: function cSC_initDB() {
-        ASSERT(this.mDB, "Database has not been opened!", true);
+        cal.ASSERT(this.mDB, "Database has not been opened!", true);
 
         this.mSelectEvent = createStatement (
             this.mDB,
@@ -937,7 +1144,11 @@ calStorageCalendar.prototype = {
             " AND " +
             "  (("+floatingEventStart+" < :range_end + :end_offset) OR " +
             "   ("+nonFloatingEventStart+" < :range_end)) " +
-            " AND cal_id = :cal_id AND flags & 16 == 0 AND recurrence_id IS NULL"
+            " AND cal_id = :cal_id AND flags & 16 == 0 AND recurrence_id IS NULL" +
+            " AND ((:offline_journal IS NULL " +
+            " AND  (offline_journal IS NULL " +
+            "  OR   offline_journal != " + cICL.OFFLINE_FLAG_DELETED_RECORD + ")) " +
+            "  OR (offline_journal == :offline_journal))"
             );
        /**
         * WHERE (due > rangeStart AND start < rangeEnd) OR
@@ -976,7 +1187,11 @@ calStorageCalendar.prototype = {
             "  ((("+floatingCompleted+" > :range_start + :start_offset) OR " +
             "    ("+nonFloatingCompleted+" > :range_start)) OR " +
             "   (todo_completed IS NULL)))) " +
-            " AND cal_id = :cal_id AND flags & 16 == 0 AND recurrence_id IS NULL"
+            " AND cal_id = :cal_id AND flags & 16 == 0 AND recurrence_id IS NULL " +
+            " AND ((:offline_journal IS NULL" +
+            " AND  (offline_journal IS NULL" +
+            "  OR   offline_journal != " + cICL.OFFLINE_FLAG_DELETED_RECORD + ")) " +
+            "  OR (offline_journal == :offline_journal))"
             );
 
         this.mSelectEventsWithRecurrence = createStatement(
@@ -1174,6 +1389,18 @@ calStorageCalendar.prototype = {
             "  (cal_id, item_id, icalString, recurrence_id, recurrence_id_tz) " +
             "VALUES  (:cal_id, :item_id, :icalString, :recurrence_id, :recurrence_id_tz)  "
             );
+        //Offline Operations
+        this.mEditEventOfflineFlag = createStatement(
+            this.mDB,
+            "UPDATE cal_events SET offline_journal = :offline_journal" +
+            " WHERE id = :id AND cal_id = :cal_id"
+        );
+
+        this.mEditTodoOfflineFlag = createStatement(
+            this.mDB,
+            "UPDATE cal_todos SET offline_journal = :offline_journal" +
+            " WHERE id = :id AND cal_id = :cal_id"
+        );
 
         // delete statements
         this.mDeleteEvent = createStatement (
@@ -1302,7 +1529,7 @@ calStorageCalendar.prototype = {
     cacheItem: function cSC_cacheItem(item) {
         this.mItemCache[item.id] = item;
         if (item.recurrenceInfo) {
-            if (isEvent(item)) {
+            if (cal.isEvent(item)) {
                 this.mRecEventCache[item.id] = item;
             } else {
                 this.mRecTodoCache[item.id] = item;
@@ -1310,20 +1537,24 @@ calStorageCalendar.prototype = {
         }
     },
 
+    mRecEventCacheOfflineFlags: {},
+    mRecTodoCacheOfflineFlags : {},
     assureRecurringItemCaches: function cSC_assureRecurringItemCaches() {
         if (this.mRecItemCacheInited) {
             return;
         }
-        // build up recurring event and todo cache, because we need that on every query:
-        // for recurring items, we need to query database-wide.. yuck
+        // build up recurring event and todo cache with its offline flags,
+        // because we need that on every query: for recurring items, we need to
+        // query database-wide.. yuck
 
         try {
             this.prepareStatement(this.mSelectEventsWithRecurrence);
             let sp = this.mSelectEventsWithRecurrence.params;
             while (this.mSelectEventsWithRecurrence.step()) {
-                var row = this.mSelectEventsWithRecurrence.row;
-                var item = this.getEventFromRow(row, {});
+                let row = this.mSelectEventsWithRecurrence.row;
+                let item = this.getEventFromRow(row, {});
                 this.mRecEventCache[item.id] = item;
+                this.mRecEventCacheOfflineFlags[item.id] = row.offline_journal || null;
             }
         } catch (e) {
             this.logError("Error selecting events with recurrence!", e);
@@ -1338,6 +1569,7 @@ calStorageCalendar.prototype = {
                 var row = this.mSelectTodosWithRecurrence.row;
                 var item = this.getTodoFromRow(row, {});
                 this.mRecTodoCache[item.id] = item;
+                this.mRecTodoCacheOfflineFlags[item.id] = row.offline_journal || null;
             }
         } catch (e) {
             this.logError("Error selecting todos with recurrence!", e);
@@ -1529,7 +1761,7 @@ calStorageCalendar.prototype = {
                         if (row.count) {
                             try {
                                 ritem.count = row.count;
-                            } catch(exc) {
+                            } catch (exc) {
                             }
                         } else {
                             if (row.end_date)
@@ -1539,7 +1771,7 @@ calStorageCalendar.prototype = {
                         }
                         try {
                             ritem.interval = row.interval;
-                        } catch(exc) {
+                        } catch (exc) {
                         }
 
                         var rtypes = ["second",
@@ -1850,12 +2082,13 @@ calStorageCalendar.prototype = {
         flags |= this.writeRelations(item, olditem);
         flags |= this.writeAlarms(item, olditem);
 
-        if (isEvent(item))
+        if (cal.isEvent(item)) {
             this.writeEvent(item, olditem, flags);
-        else if (isToDo(item))
+        } else if (cal.isToDo(item)) {
             this.writeTodo(item, olditem, flags);
-        else
+        } else {
             throw Components.results.NS_ERROR_UNEXPECTED;
+        }
     },
 
     writeEvent: function cSC_writeEvent(item, olditem, flags) {
@@ -2192,7 +2425,7 @@ calStorageCalendar.prototype = {
                 pp.item_id = item.id;
                 pp.icalString = alarm.icalString;
                 this.mInsertAlarm.execute();
-            } catch(e) {
+            } catch (e) {
                 this.logError("Error writing alarm for item " + item.title + " (" + item.id + ")", e);
             } finally {
                 this.mInsertAlarm.reset();
@@ -2218,6 +2451,7 @@ calStorageCalendar.prototype = {
             this.mDeleteAttachments(aID, this.id);
             this.mDeleteRelations(aID, this.id);
             this.mDeleteMetaData(aID, this.id);
+            //this.mDeleteAllMetaData(aID, this.id);
             this.mDeleteAlarms(aID, this.id);
         } catch (e) {
             this.releaseTransaction(e);
@@ -2245,7 +2479,7 @@ calStorageCalendar.prototype = {
      */
     releaseTransaction: function cSC_releaseTransaction(err) {
         if (err) {
-            cal.ERROR("DB error: " + this.mDB.lastErrorString + "\nexc: " + err);
+            cal.ERROR("[calStorageCalendar] DB error: " + this.mDB.lastErrorString + "\nexc: " + err);
             this.mDB.rollbackTransaction();
         } else {
             this.mDB.commitTransaction();
@@ -2365,7 +2599,7 @@ calStorageCalendar.prototype = {
         if (exception) {
             logMessage += "\nException: " + exception;
         }
-        cal.ERROR(logMessage + "\n" + STACK(10));
+        cal.ERROR("[calStorageCalendar] " + logMessage + "\n" + cal.STACK(10));
     }
 };
 

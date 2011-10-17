@@ -135,7 +135,7 @@ etagsHandler.prototype = {
 
         let needsRefresh = false;
         try {
-            for (let path in this.calendar.mPathIndex) {
+            for (let path in this.calendar.mHrefIndex) {
                 if (path in this.itemsReported ||
                     path.substr(0, this.baseUri.length) == this.baseUri) {
                     // If the item is also on the server, check the next.
@@ -157,15 +157,15 @@ etagsHandler.prototype = {
                     onOperationComplete: function etags_getItem_onOperationComplete() {}
                 };
 
-                this.calendar.mTargetCalendar.getItem(this.calendar.mPathIndex[path],
+                this.calendar.mOfflineStorage.getItem(this.calendar.mHrefIndex[path],
                                                       getItemListener);
                 if (foundItem) {
                     let wasInboxItem = this.calendar.mItemInfoCache[foundItem.id].isInboxItem;
                     if ((wasInboxItem && this.calendar.isInbox(this.baseUri.spec)) ||
                         (wasInboxItem === false && !this.calendar.isInbox(this.baseUri.spec))) {
                         cal.LOG("Deleting local href: " + path)
-                        delete this.calendar.mPathIndex[path];
-                        this.calendar.mTargetCalendar.deleteItem(foundItem, null);
+                        delete this.calendar.mHrefIndex[path];
+                        this.calendar.mOfflineStorage.deleteItem(foundItem, null);
                         needsRefresh = true;
                     }
                 }
@@ -287,7 +287,7 @@ etagsHandler.prototype = {
                         if (r.href && r.href.length) {
                             this.itemsReported[r.href] = r.getetag;
 
-                            let itemUid = this.calendar.mPathIndex[r.href];
+                            let itemUid = this.calendar.mHrefIndex[r.href];
                             if (!itemUid ||
                                 r.getetag != this.calendar.mItemInfoCache[itemUid].etag) {
                                 this.itemsNeedFetching.push(r.href);
@@ -427,8 +427,8 @@ webDavSyncHandler.prototype = {
                  responseStatus <= 499) {
             cal.LOG("CalDAV: Reseting sync token because server returned status code: " + responseStatus);
             this._reader = null;
-            this.calendar.mWebdavSyncToken=null;
-            this.calendar.mTargetCalendar.deleteMetaData("webdav-sync-token");
+            this.calendar.mWebdavSyncToken = null;
+            this.calendar.saveCalendarProperties();
             this.calendar.safeRefresh(this.changeLogListener);
         } else {
             cal.WARN("CalDAV: Error doing webdav sync: " + responseStatus);
@@ -505,7 +505,7 @@ webDavSyncHandler.prototype = {
             // null token means reset or first refresh indicating we did
             // a full sync; remove local items that were not returned in this full
             // sync
-            for (let path in this.calendar.mPathIndex) {
+            for (let path in this.calendar.mHrefIndex) {
                 if (!this.itemsReported[path]) {
                     this.calendar.deleteTargetCalendarItem(path);
                 }
@@ -518,8 +518,7 @@ webDavSyncHandler.prototype = {
         if (!this.itemsNeedFetching.length) {
             if (this.newSyncToken) {
                 this.calendar.mWebdavSyncToken = this.newSyncToken;
-                this.calendar.mTargetCalendar.setMetaData("webdav-sync-token",
-                                                          this.newSyncToken);
+                this.calendar.saveCalendarProperties();
                 cal.LOG("CalDAV: New webdav-sync Token: " + this.calendar.mWebdavSyncToken);
             }
             this.calendar.finalizeUpdatedItems(this.changeLogListener,
@@ -583,7 +582,7 @@ webDavSyncHandler.prototype = {
                     r.status &&
                     r.status.length &&
                     r.status.indexOf(" 404") > 0) {
-                    if (this.calendar.mPathIndex[r.href]) {
+                    if (this.calendar.mHrefIndex[r.href]) {
                         this.changeCount++;
                         this.calendar.deleteTargetCalendarItem(r.href);
                     }
@@ -600,7 +599,7 @@ webDavSyncHandler.prototype = {
                             r.status.indexOf(" 204") ||  // draft 0, 1 and 2 needed it so treat no status
                             r.status.indexOf(" 201"))) { // and status 201 and 204 the same
                     this.itemsReported[r.href] = r.getetag;
-                    let itemId = this.calendar.mPathIndex[r.href];
+                    let itemId = this.calendar.mHrefIndex[r.href];
                     let oldEtag = (itemId && this.calendar.mItemInfoCache[itemId].etag);
 
                     if (!oldEtag || oldEtag != r.getetag) {
@@ -770,7 +769,7 @@ multigetSyncHandler.prototype = {
         if (this.itemsNeedFetching.length == 0) {
             if (this.newSyncToken) {
                 this.calendar.mWebdavSyncToken = this.newSyncToken;
-                this.calendar.mTargetCalendar.setMetaData("webdav-sync-token", this.newSyncToken);
+                this.calendar.saveCalendarProperties();
               cal.LOG("CalDAV: New webdav-sync Token: " + this.calendar.mWebdavSyncToken);
             }
 
@@ -894,7 +893,7 @@ multigetSyncHandler.prototype = {
                     r.status &&
                     r.status.length &&
                     r.status.indexOf(" 404") > 0) {
-                    if (this.calendar.mPathIndex[r.href]) {
+                    if (this.calendar.mHrefIndex[r.href]) {
                         this.changeCount++;
                         this.calendar.deleteTargetCalendarItem(r.href);
                     } else {
@@ -905,7 +904,7 @@ multigetSyncHandler.prototype = {
                            r.href && r.href.length &&
                            r.calendardata && r.calendardata.length) {
                     let oldEtag;
-                    let itemId = this.calendar.mPathIndex[r.href];
+                    let itemId = this.calendar.mHrefIndex[r.href];
                     if (itemId) {
                         oldEtag = this.calendar.mItemInfoCache[itemId].etag;
                     } else {

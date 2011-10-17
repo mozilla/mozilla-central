@@ -49,6 +49,7 @@ Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 const calCalendarManagerContractID = "@mozilla.org/calendar/manager;1";
 const calICalendarManager = Components.interfaces.calICalendarManager;
+const cICL = Components.interfaces.calIChangeLog;
 
 function calMemoryCalendar() {
     this.initProviderBase();
@@ -65,6 +66,7 @@ calMemoryCalendar.prototype = {
     getInterfaces: function getInterfaces(count) {
         const ifaces = [Components.interfaces.calICalendar,
                         Components.interfaces.calISchedulingSupport,
+                        Components.interfaces.calIOfflineStorage,
                         Components.interfaces.calISyncWriteCalendar,
                         Components.interfaces.calICalendarProvider,
                         Components.interfaces.nsIClassInfo,
@@ -85,9 +87,15 @@ calMemoryCalendar.prototype = {
         return cal.doQueryInterface(this, calMemoryCalendar.prototype, aIID, null, this);
     },
 
+    mItems: null,
+    mOfflineFlags: null,
+    mObservers: null,
+    mMetaData: null,
+
     initMemoryCalendar: function() {
         this.mObservers = new cal.ObserverBag(Components.interfaces.calIObserver);
         this.mItems = {};
+        this.mOfflineFlags = {};
         this.mMetaData = new cal.calPropertyBag();
     },
 
@@ -162,7 +170,11 @@ calMemoryCalendar.prototype = {
             return;
         }
 
-        if (this.mItems[aItem.id] != null) {
+        //Lines below are commented because of the offline bug 380060
+        //Memory Calendar cannot assume that a new item should not have an ID.
+        //calCachedCalendar could send over an item with an id.
+
+        /*if (this.mItems[aItem.id] != null) {
             if (this.relaxedMode) {
                 // we possibly want to interact with the user before deleting
                 delete this.mItems[aItem.id];
@@ -174,7 +186,7 @@ calMemoryCalendar.prototype = {
                                              "ID already exists for addItem");
                 return;
             }
-        }
+        }*/
 
         let parentItem = aItem.parentItem;
         if (parentItem != aItem) {
@@ -224,12 +236,21 @@ calMemoryCalendar.prototype = {
             modifiedItem.recurrenceInfo.modifyException(aNewItem, false);
         }
 
+        // If no old item was passed, then we should overwrite in any case.
+        // Pick up the old item from our items array and use this as an old item
+        // later on.
+        if (!aOldItem) {
+            aOldItem = this.mItems[aNewItem.id];
+        }
+
         if (this.relaxedMode) {
+            // We've already filled in the old item above, if this doesn't exist
+            // then just take the current item as its old version
             if (!aOldItem) {
-                aOldItem = (this.mItems[aNewItem.id] || modifiedItem);
+                aOldItem = modifiedItem;
             }
             aOldItem = aOldItem.parentItem;
-        } else {
+        } else if (!this.relaxedMode) {
             if (!aOldItem || !this.mItems[aNewItem.id]) {
                 // no old item found?  should be using addItem, then.
                 return reportError("ID for modifyItem doesn't exist, is null, or is from different calendar");
@@ -244,9 +265,11 @@ calMemoryCalendar.prototype = {
             var storedOldItem = this.mItems[aOldItem.id];
 
             // compareItems is not suitable here. See bug 418805.
+            // Cannot compare here due to bug 380060
             if (!cal.compareItemContent(storedOldItem, aOldItem)) {
-                return reportError("old item mismatch in modifyItem");
+                return reportError("old item mismatch in modifyItem" + " storedId:" + storedOldItem.icalComponent + " old item:" + aOldItem.icalComponent);
             }
+           // offline bug
 
             if (aOldItem.generation != storedOldItem.generation) {
                 return reportError("generation mismatch in modifyItem");
@@ -440,6 +463,12 @@ calMemoryCalendar.prototype = {
         aRangeStart = cal.ensureDateTime(aRangeStart);
         aRangeEnd = cal.ensureDateTime(aRangeEnd);
 
+
+        let offline_filter = aItemFilter &
+            (calICalendar.ITEM_FILTER_OFFLINE_DELETED |
+             calICalendar.ITEM_FILTER_OFFLINE_CREATED |
+             calICalendar.ITEM_FILTER_OFFLINE_MODIFIED);
+
         for (let itemIndex in this.mItems) {
             let item = this.mItems[itemIndex];
             let isEvent_ = cal.isEvent(item);
@@ -448,6 +477,16 @@ calMemoryCalendar.prototype = {
                     continue;
                 }
             } else if (!wantTodos) {
+                continue;
+            }
+
+            let hasItemFlag = (item.id in this.mOfflineFlags);
+            let offlineFlag = (hasItemFlag ? this.mOfflineFlags[item.id] : null);
+
+            // If the offline flag doesn't match, skip the item
+            if ((hasItemFlag ||
+                    (offline_filter != 0 && offlineFlag == cICL.OFFLINE_FLAG_DELETED_RECORD)) &&
+                (offlineFlag != offline_filter)) {
                 continue;
             }
 
@@ -489,6 +528,64 @@ calMemoryCalendar.prototype = {
                                      Components.interfaces.calIOperationListener.GET,
                                      null,
                                      null);
+    },
+
+    //
+    // calIOfflineStorage interface
+    //
+    addOfflineItem: function addOfflineItem(aItem, aListener) {
+        this.mOfflineFlags[aItem.id] = cICL.OFFLINE_FLAG_CREATED_RECORD;
+        this.notifyOperationComplete(aListener,
+                                     Components.results.NS_OK,
+                                     Components.interfaces.calIOperationListener.ADD,
+                                     aItem.id,
+                                     aItem);
+    },
+
+    modifyOfflineItem: function modifyOfflineItem(aItem, aListener) {
+        let oldFlag = this.mOfflineFlags[aItem.id];
+        if (oldFlag != cICL.OFFLINE_FLAG_CREATED_RECORD &&
+            oldFlag != cICL.OFFLINE_FLAG_DELETED_RECORD) {
+            this.mOfflineFlags[aItem.id] = cICL.OFFLINE_FLAG_MODIFIED_RECORD;
+        }
+
+        this_.notifyOperationComplete(aListener,
+                                      Components.results.NS_OK,
+                                      Components.interfaces.calIOperationListener.MODIFY,
+                                      aItem.id,
+                                      aItem);
+    },
+
+    deleteOfflineItem: function deleteOfflineItem(aItem, aListener) {
+        let oldFlag = this.mOfflineFlags[aItem.id];
+        if (oldFlag == cICL.OFFLINE_FLAG_CREATED_RECORD) {
+            delete this.mItems[aItem.id];
+            delete this.mOfflineFlags[aItem.id];
+        } else {
+            this.mOfflineFlags[aItem.id] = cICL.OFFLINE_FLAG_DELETED_RECORD;
+        }
+
+        this.notifyOperationComplete(aListener,
+                                     Components.results.NS_OK,
+                                     Components.interfaces.calIOperationListener.DELETE,
+                                     aItem.id,
+                                     aItem);
+        // notify observers
+        this_.observers.notify("onDeleteItem", [aItem]);
+    },
+
+    getItemOfflineFlag: function getItemOfflineFlag(aItem, aListener) {
+        let flag = (aItem && aItem.id in this.mOfflineFlags ? this.mOfflineFlags[aItem.id] : null);
+        this.notifyOperationComplete(aListener, Components.results.NS_OK,
+                                     Components.interfaces.calIOperationListener.GET,
+                                     null, flag);
+    },
+
+    resetItemOfflineFlag: function resetItemOfflineFlag(aItem, aListener) {
+        delete this.mOfflineFlags[aItem.id];
+        this.notifyOperationComplete(aListener, Components.results.NS_OK,
+                                     Components.interfaces.calIOperationListener.MODIFY,
+                                     aItem.id, aItem);
     },
 
     //

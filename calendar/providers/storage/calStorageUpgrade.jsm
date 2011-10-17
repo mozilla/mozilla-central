@@ -104,7 +104,7 @@ Components.utils.import("resource://calendar/modules/calStorageHelpers.jsm");
 
 // The current database version. Be sure to increment this when you create a new
 // updater.
-var DB_SCHEMA_VERSION = 19;
+var DB_SCHEMA_VERSION = 20;
 
 var EXPORTED_SYMBOLS = ["DB_SCHEMA_VERSION", "getSql", "getAllSql", "getSqlTable", "upgradeDB", "backupDB"];
 
@@ -1331,3 +1331,24 @@ upgrade.v19 = function upgrade_v19(db, version) {
 
     return tbl;
 };
+
+/**
+ * Bug 380060 - Offline Sync feature for calendar
+ * Setting a offline_journal column in cal_events tables
+ * r=philipp, p=redDragon
+ */
+upgrade.v20 = function upgrade_v20(db,version){
+    let tbl = upgrade.v19(version<19 && db, version);
+    LOGdb(db, "Storage: Upgrading to v20");
+    beginTransaction(db);
+    try{
+        //Adding a offline_journal column
+        for each (let tblName in ["cal_events", "cal_todos"]) {
+            addColumn(tbl, tblName, ["offline_journal"], "INTEGER", db);
+        }
+        setDbVersionAndCommit(db, 20);
+    } catch (e) {
+        throw reportErrorAndRollback(db,e);
+    }
+    return tbl;
+}

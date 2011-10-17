@@ -478,7 +478,8 @@ var calendarController = {
                 if (item.calendar.readOnly) {
                     selected_events_readonly++;
                 }
-                if (item.calendar.getProperty("requiresNetwork")) {
+                if (item.calendar.getProperty("requiresNetwork") &&
+                    !item.calendar.getProperty("cache.enabled")) {
                     selected_events_requires_network++;
                 }
 
@@ -526,8 +527,10 @@ var calendarController = {
      */
     get writable() {
         return !this.all_readonly &&
-               (!this.offline || (this.has_local_calendars &&
-               !this.all_local_calendars_readonly));
+               (!this.offline ||
+                this.has_cached_calendars ||
+                (this.has_local_calendars &&
+                 !this.all_local_calendars_readonly));
     },
 
     /**
@@ -560,6 +563,21 @@ var calendarController = {
     get has_local_calendars() {
         var calMgr = getCalendarManager();
         return (calMgr.networkCalendarCount < calMgr.calendarCount);
+    },
+
+    /**
+     * Returns a boolean indicating if there are cached calendars and thus that don't require
+     * network access.
+     */
+    get has_cached_calendars() {
+        let calMgr = getCalendarManager();
+        let calendars = calMgr.getCalendars({});
+        for each (let calendar in calendars) {
+            if (calendar.getProperty("cache.enabled")) {
+                return true;
+            }
+        }
+        return false;
     },
 
     /**

@@ -247,6 +247,9 @@ calICSCalendar.prototype = {
 
         if (!cont) {
             // no need to process further, we can use the previous data
+            // HACK Sorry, but offline support requires the items to be signaled
+            // even if nothing has changed (especially at startup)
+            this.mObserver.onLoad(this);
             this.unlock();
             return;
         }

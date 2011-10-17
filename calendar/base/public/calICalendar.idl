@@ -280,6 +280,16 @@ interface calICalendar : nsISupports
    */
   const unsigned long ITEM_FILTER_REQUEST_NEEDS_ACTION = 1 << 17;
 
+  /**
+   * Flags for items that have been created, modified or deleted while
+   * offline.
+   * ITEM_FILTER_OFFLINE_DELETED is a particular case in that elements *must*
+   * be excluded from searches when not specified in the filter mask.
+   */
+  const unsigned long ITEM_FILTER_OFFLINE_CREATED = 1 << 29;
+  const unsigned long ITEM_FILTER_OFFLINE_MODIFIED = 1 << 30;
+  const unsigned long ITEM_FILTER_OFFLINE_DELETED = 1 << 31;
+
   void addObserver( in calIObserver observer );
   void removeObserver( in calIObserver observer );
 
@@ -341,6 +351,9 @@ interface calICalendar : nsISupports
    * of the internal item (indicating that someone else modified the
    * item), onOperationComplete is called with a status of NS_ERROR_XXXXX
    * and aDetail is set to the latest-version internal immutable item.
+   *
+   * If you would like to disable revision checks, pass null as aOldItem. This
+   * will overwrite the item on the server.
    *
    * @param aNewItem    new version to replace the old one
    * @param aOldItem    caller's view of the item to be changed, as it is now

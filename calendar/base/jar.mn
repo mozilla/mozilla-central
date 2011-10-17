@@ -41,6 +41,7 @@ calendar.jar:
     content/calendar/today-pane.js                         (content/today-pane.js)
     content/calendar/calendar-alarm-dialog.js              (content/dialogs/calendar-alarm-dialog.js)
     content/calendar/calendar-alarm-dialog.xul             (content/dialogs/calendar-alarm-dialog.xul)
+    content/calendar/calendar-conflicts-dialog.xul         (content/dialogs/calendar-conflicts-dialog.xul)
     content/calendar/calendar-creation.js                  (content/dialogs/calendar-creation.js)
     content/calendar/calendar-dialog-utils.js              (content/dialogs/calendar-dialog-utils.js)
     content/calendar/calendar-error-prompt.xul             (content/dialogs/calendar-error-prompt.xul)
