@@ -47,12 +47,15 @@
 <?xul-overlay href="chrome://communicator/content/contentAreaContextOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/addressbook/abResultsPaneOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/addressbook/abCardViewOverlay.xul"?>
+<?xul-overlay href="chrome://navigator/content/platformMailOverlay.xul"?>
 
 <!DOCTYPE window [
 <!ENTITY % abMainWindowDTD SYSTEM "chrome://messenger/locale/addressbook/abMainWindow.dtd" >
 %abMainWindowDTD;
 <!ENTITY % abResultsPaneOverlayDTD SYSTEM "chrome://messenger/locale/addressbook/abResultsPaneOverlay.dtd" >
 %abResultsPaneOverlayDTD;
+<!ENTITY % mailOverlayDTD SYSTEM "chrome://messenger/locale/mailOverlay.dtd">
+%mailOverlayDTD;
 <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd" >
 %messengerDTD;
 <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" >
@@ -101,7 +104,7 @@
     <command id="cmd_newEditor"/>
     <command id="cmd_newcard" oncommand="AbNewCard();"/>
     <command id="cmd_newlist" oncommand="AbNewList();"/>
-    <command id="cmd_newmessage" oncommand="AbNewMessage()"/>
+    <command id="cmd_newMessage" oncommand="AbNewMessage();"/>
     <command id="cmd_newim" oncommand="AbIMSelected()"/>
     <command id="cmd_printSetup" oncommand="PrintUtils.showPageSetup()"/>
     <command id="cmd_printCard" oncommand="AbPrintCard()"/>
@@ -140,6 +143,10 @@
   <!-- File Menu -->
   <key id="key_newNavigator"/>
   <key id="key_newBlankPage"/>
+  <key id="key_newMessage"
+       key="&newMessageCmd.key;"
+       command="cmd_newMessage"
+       modifiers="accel"/>
   <key id="key_printCard" key="&printContactViewCmd.key;"
        command="cmd_printCard" modifiers="accel"/>
   <key id="key_close"/>
@@ -200,7 +207,7 @@
   <menuitem id="abResultsTreeContext-newmessage"
             label="&newmsgButton.label;"
             accesskey="&newmsgButton.accesskey;"
-            command="cmd_newmessage"/>
+            command="cmd_newMessage"/>
   <menuitem id="abResultsTreeContext-newim"
             label="&newimButton.label;"
             accesskey="&newimButton.accesskey;"
@@ -246,6 +253,11 @@
                       <menuitem label="&newLDAPDirectoryCmd.label;" id="addLDAP" accesskey="&newLDAPDirectoryCmd.accesskey;" oncommand="AbNewLDAPDirectory()"/>
                       <menuseparator/>
                       <menuitem id="menu_newNavigator"/>
+                      <menuitem id="menu_newMessage"
+                                label="&newMessageCmd.label;"
+                                accesskey="&newMessageCmd.accesskey;"
+                                key="key_newMessage"
+                                command="cmd_newMessage"/>
                       <menuitem id="menu_newEditor"/>
                     </menupopup>
                 </menu>
