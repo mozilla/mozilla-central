@@ -139,7 +139,7 @@ protected:
   nsIOutputStream     *mOutStream;
   nsIInputStream      *mInputStream;
   nsIStreamListener   *mOutListener;
-  nsIChannel          *mChannel;
+  nsCOMPtr<nsIChannel> mChannel;
 
   // For gathering statistics on processing...
   PRUint32            mTotalWritten;

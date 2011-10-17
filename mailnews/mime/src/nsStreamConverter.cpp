@@ -120,7 +120,7 @@ bridge_set_output_type(void *bridgeStream, nsMimeOutputType aType)
   if (session)
   {
     // BAD ASSUMPTION!!!! NEED TO CHECK aType
-    struct mime_stream_data *msd = (struct mime_stream_data *)session->data_object;
+    mime_stream_data *msd = (mime_stream_data *)session->data_object;
     if (msd)
       msd->format_out = aType;     // output format type
   }
@@ -153,7 +153,7 @@ bridge_new_new_uri(void *bridgeStream, nsIURI *aURI, PRInt32 aOutputType)
       }
       else
       {
-        struct mime_stream_data *msd = (struct mime_stream_data *)session->data_object;
+        mime_stream_data *msd = (mime_stream_data *)session->data_object;
 
         if (msd->options)
         {
@@ -258,7 +258,7 @@ static int
 mime_headers_callback ( void *closure, MimeHeaders *headers )
 {
   // We get away with this because this doesn't get called on draft operations.
-  struct mime_stream_data *msd = (struct mime_stream_data *)closure;
+  mime_stream_data *msd = (mime_stream_data *)closure;
 
   NS_ASSERTION(msd && headers, "null mime stream data or headers");
   if ( !msd || ! headers )
@@ -297,7 +297,7 @@ bridge_set_mime_stream_converter_listener(void *bridgeStream, nsIMimeStreamConve
     }
     else
     {
-      struct mime_stream_data *msd = (struct mime_stream_data *)session->data_object;
+      mime_stream_data *msd = (mime_stream_data *)session->data_object;
 
       if (msd->options)
       {
@@ -1064,7 +1064,7 @@ nsStreamConverter::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresul
       }
       else
       {
-        struct mime_stream_data *msd = (struct mime_stream_data *)tSession->data_object;
+        mime_stream_data *msd = (mime_stream_data *)tSession->data_object;
         if (msd)
           workHeaders = &(msd->headers);
       }

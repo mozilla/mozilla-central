@@ -110,6 +110,12 @@ static MimeHeadersState MIME_HeaderType;
 static bool MIME_WrapLongLines;
 static bool MIME_VariableWidthPlaintext;
 
+mime_stream_data::mime_stream_data() : url_name(nsnull), orig_url_name(nsnull),
+  pluginObj2(nsnull), istream(nsnull), obj(nsnull), options(nsnull),
+  headers(nsnull), output_emitter(nsnull), firstCheck(false)
+{
+}
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Attachment handling routines
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -922,7 +928,7 @@ static int
 mime_output_fn(const char *buf, PRInt32 size, void *stream_closure)
 {
   PRUint32  written = 0;
-  struct mime_stream_data *msd = (struct mime_stream_data *) stream_closure;
+  mime_stream_data *msd = (mime_stream_data *) stream_closure;
   if ( (!msd->pluginObj2) && (!msd->output_emitter) )
     return -1;
 
@@ -955,7 +961,7 @@ mime_display_stream_write (nsMIMESession *stream,
                            const char* buf,
                            PRInt32 size)
 {
-  struct mime_stream_data *msd = (struct mime_stream_data *) ((nsMIMESession *)stream)->data_object;
+  mime_stream_data *msd = (mime_stream_data *) ((nsMIMESession *)stream)->data_object;
 
   MimeObject *obj = (msd ? msd->obj : 0);
   if (!obj) return -1;
@@ -993,7 +999,7 @@ mime_display_stream_write (nsMIMESession *stream,
 extern "C" void
 mime_display_stream_complete (nsMIMESession *stream)
 {
-  struct mime_stream_data *msd = (struct mime_stream_data *) ((nsMIMESession *)stream)->data_object;
+  mime_stream_data *msd = (mime_stream_data *) ((nsMIMESession *)stream)->data_object;
   MimeObject *obj = (msd ? msd->obj : 0);
   if (obj)
   {
@@ -1048,13 +1054,13 @@ mime_display_stream_complete (nsMIMESession *stream)
   if (msd->orig_url_name)
       NS_Free(msd->orig_url_name);
 
-  PR_FREEIF(msd);
+  delete msd;
 }
 
 extern "C" void
 mime_display_stream_abort (nsMIMESession *stream, int status)
 {
-  struct mime_stream_data *msd = (struct mime_stream_data *) ((nsMIMESession *)stream)->data_object;
+  mime_stream_data *msd = (mime_stream_data *) ((nsMIMESession *)stream)->data_object;
 
   MimeObject *obj = (msd ? msd->obj : 0);
   if (obj)
@@ -1083,7 +1089,7 @@ mime_display_stream_abort (nsMIMESession *stream, int status)
   if (msd->orig_url_name)
       NS_Free(msd->orig_url_name);
 
-  PR_FREEIF(msd);
+  delete msd;
 }
 
 static int
@@ -1094,7 +1100,7 @@ mime_output_init_fn (const char *type,
                      const char *x_mac_creator,
                      void *stream_closure)
 {
-  struct mime_stream_data *msd = (struct mime_stream_data *) stream_closure;
+  mime_stream_data *msd = (mime_stream_data *) stream_closure;
 
   // Now, all of this stream creation is done outside of libmime, so this
   // is just a check of the pluginObj member and returning accordingly.
@@ -1117,7 +1123,7 @@ class mime_image_stream_data {
 public:
   mime_image_stream_data();
 
-  struct mime_stream_data *msd;
+  mime_stream_data *msd;
   char                    *url;
   nsMIMESession           *istream;
   nsCOMPtr<nsIOutputStream> memCacheOutputStream;
@@ -1136,7 +1142,7 @@ static void *
 mime_image_begin(const char *image_url, const char *content_type,
                  void *stream_closure)
 {
-  struct mime_stream_data *msd = (struct mime_stream_data *) stream_closure;
+  mime_stream_data *msd = (mime_stream_data *) stream_closure;
   class mime_image_stream_data *mid;
 
   mid = new mime_image_stream_data;
@@ -1270,7 +1276,7 @@ mime_image_write_buffer(const char *buf, PRInt32 size, void *image_closure)
 {
   mime_image_stream_data *mid =
                 (mime_image_stream_data *) image_closure;
-  struct mime_stream_data *msd = mid->msd;
+  mime_stream_data *msd = mid->msd;
 
   if ( ( (!msd->output_emitter) ) &&
        ( (!msd->pluginObj2)     ) )
@@ -1511,13 +1517,13 @@ mime_bridge_create_display_stream(
 {
   int                       status = 0;
   MimeObject                *obj;
-  struct mime_stream_data   *msd;
+  mime_stream_data   *msd;
   nsMIMESession             *stream = 0;
 
   if (!uri)
     return nsnull;
 
-  msd = PR_NEWZAP(struct mime_stream_data);
+  msd = new mime_stream_data;
   if (!msd)
     return NULL;
 
@@ -1539,7 +1545,7 @@ mime_bridge_create_display_stream(
       msd->url_name = ToNewCString(urlString);
       if (!(msd->url_name))
       {
-        PR_FREEIF(msd);
+        delete msd;
         return NULL;
       }
       nsCOMPtr<nsIMsgMessageUrl> msgUrl = do_QueryInterface(uri);
@@ -1554,7 +1560,7 @@ mime_bridge_create_display_stream(
   msd->options = new MimeDisplayOptions;
   if (!msd->options)
   {
-    PR_Free(msd);
+    delete msd;
     return 0;
   }
 //  memset(msd->options, 0, sizeof(*msd->options));
@@ -1563,7 +1569,7 @@ mime_bridge_create_display_stream(
   msd->options->m_prefBranch = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   if (NS_FAILED(rv))
   {
-    PR_FREEIF(msd);
+    delete msd;
     return nsnull;
   }
 
@@ -1572,7 +1578,7 @@ mime_bridge_create_display_stream(
   if (NS_FAILED(rv))
   {
     msd->options->m_prefBranch = 0;
-    PR_FREEIF(msd);
+    delete msd;
     return nsnull;
   }
 
@@ -1654,7 +1660,7 @@ mime_bridge_create_display_stream(
   {
     PR_FREEIF(msd->options->part_to_load);
     PR_Free(msd->options);
-    PR_Free(msd);
+    delete msd;
     return 0;
   }
 
@@ -1691,7 +1697,7 @@ mime_bridge_create_display_stream(
   if (!obj)
   {
     delete msd->options;
-    PR_Free(msd);
+    delete msd;
     return 0;
   }
 
@@ -1705,7 +1711,7 @@ mime_bridge_create_display_stream(
   if (!stream)
   {
     delete msd->options;
-    PR_Free(msd);
+    delete msd;
     PR_Free(obj);
     return 0;
   }
@@ -1726,7 +1732,7 @@ mime_bridge_create_display_stream(
   {
     PR_Free(stream);
     delete msd->options;
-    PR_Free(msd);
+    delete msd;
     PR_Free(obj);
     return 0;
   }

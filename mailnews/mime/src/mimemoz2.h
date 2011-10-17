@@ -112,12 +112,15 @@ struct _nsMIMESession {
 /*
  * This is for the reworked mime parser.
  */
-struct mime_stream_data {           /* This struct is the state we pass around
+class mime_stream_data {           /* This object is the state we pass around
                                        amongst the various stream functions
                                        used by MIME_MessageConverter(). */
+public:
+  mime_stream_data();
+
   char                *url_name;
   char                *orig_url_name; /* original url name */
-  nsIChannel          *channel;
+  nsCOMPtr<nsIChannel> channel;
   nsMimeOutputType    format_out;
   void                *pluginObj2;  /* The new XP-COM stream converter object */
   nsMIMESession       *istream;     /* Holdover - new stream we're writing out image data-if any. */

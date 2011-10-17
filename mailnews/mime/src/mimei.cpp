@@ -408,7 +408,7 @@ void getMsgHdrForCurrentURL(MimeDisplayOptions *opts, nsIMsgDBHdr ** aMsgHdr)
   if (!msd)
     return;
 
-  nsIChannel *channel = msd->channel;  // note the lack of ref counting...
+  nsCOMPtr<nsIChannel> channel = msd->channel;  // note the lack of ref counting...
   if (channel)
   {
     nsCOMPtr<nsIURI> uri;

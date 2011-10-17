@@ -92,7 +92,6 @@ nsMimeBaseEmitter::nsMimeBaseEmitter()
   mInputStream = nsnull;
   mOutStream = nsnull;
   mOutListener = nsnull;
-  mChannel = nsnull;
 
   // Display output control vars...
   mDocHeader = PR_FALSE;
@@ -357,10 +356,7 @@ nsMimeBaseEmitter::Initialize(nsIURI *url, nsIChannel * aChannel, PRInt32 aForma
   mChannel = aChannel;
 
   // Create rebuffering object
-  if (mBufferMgr)
-  {
-    delete mBufferMgr;
-  }
+  delete mBufferMgr;
   mBufferMgr = new MimeRebuffer();
 
   // Counters for output stream
