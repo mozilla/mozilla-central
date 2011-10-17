@@ -523,7 +523,7 @@ MimeMultipart_create_child(MimeObject *obj)
     /* if we are saving an apple double attachment, we need to set correctly the conten type of the channel */
     if (mime_typep(obj, (MimeObjectClass *) &mimeMultipartAppleDoubleClass))
     {
-      mime_stream_data *msd = (smime_stream_data *)body->options->stream_closure;
+      mime_stream_data *msd = (mime_stream_data *)body->options->stream_closure;
       if (!body->options->write_html_p && body->content_type && !PL_strcasecmp(body->content_type, APPLICATION_APPLEFILE))
       {
         if (msd && msd->channel)
