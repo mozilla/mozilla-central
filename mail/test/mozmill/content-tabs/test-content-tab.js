@@ -95,6 +95,7 @@ function test_spellcheck_in_content_tabs() {
   let eidMailContext = mc.eid("mailContext");
 
   // Test a few random items
+  mc.click(new elementslib.Elem(textarea));
   mc.rightClick(new elementslib.Elem(textarea));
   assert_element_visible("mailContext-spell-dictionaries");
   assert_element_visible("mailContext-spell-check-enabled");
