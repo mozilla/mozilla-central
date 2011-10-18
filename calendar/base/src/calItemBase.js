@@ -735,7 +735,8 @@ calItemBase.prototype = {
         "CATEGORIES": true,
         "ORGANIZER": true,
         "RECURRENCE-ID": true,
-        "X-MOZ-LASTACK": true
+        "X-MOZ-LASTACK": true,
+        "RELATED-TO": true
     },
 
     /**
