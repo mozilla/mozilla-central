@@ -37,6 +37,16 @@
         'peerconnection/samples/server/utils.cc',
         'peerconnection/samples/server/utils.h',
       ],
+          'dependencies': [
+            'third_party_mods/libjingle/libjingle.gyp:libjingle_app',
+            # TODO(tommi): Switch to this and remove specific gtk dependency
+            # sections below for cflags and link_settings.
+            # '<(DEPTH)/build/linux/system.gyp:gtk',
+          ],
+          'include_dirs': [
+            'third_party/libjingle/source',
+            'third_party_mods/libjingle/source',
+          ],
     },
   ],
   'conditions': [
@@ -74,6 +84,7 @@
       ],  # targets
     }, ],  # OS="win"
     ['OS=="linux"', {
+# comment this out for Win32...
       'targets': [
         {
           'target_name': 'peerconnection_client',

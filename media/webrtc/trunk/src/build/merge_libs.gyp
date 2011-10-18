@@ -36,6 +36,8 @@
         },
       ],
     },
+#    'conditions': [
+#       [OS!="mac", {
     {
       'target_name': 'merged_lib',
       'type': 'none',
@@ -61,5 +63,7 @@
         },
       ],
     },
+#      }],
+#    ],
   ],
 }

@@ -11,7 +11,9 @@
         # See crbug.com/30288 and 31427 for why we skip OS=="linux" above.
         'use_system_libjpeg%': 1,
       }, {  # chromeos!=1 and OS!="freebsd" and OS!="openbsd"
-        'use_system_libjpeg%': 0,
+        # Mozilla has jpeg...
+        # was 0
+        'use_system_libjpeg%': 1, 
       }],
       [ 'OS=="win"', {
         'object_suffix': 'obj',
@@ -191,10 +193,22 @@
               ],
               'variables': {
                 'yasm_path': '<(PRODUCT_DIR)/yasm',
-                'yasm_format': '-fmacho',
-                'yasm_flags': [
-                  '-DMACHO',
-                  '-Imac/'
+                'conditions': [
+                  [ 'target_arch=="ia32"', {
+                    'yasm_format': '-fmacho',
+                    'yasm_flags': [
+                      '-DMACHO',
+                      '-Imac/',
+                      '-D__x86__',
+                    ],
+                  }, {
+                    'yasm_format': '-fmacho64',
+                    'yasm_flags': [
+                      '-DMACHO',
+                      '-Imac/',
+                      '-D__x86_64__',
+                    ],
+                  }],
                 ],
               },
             }],

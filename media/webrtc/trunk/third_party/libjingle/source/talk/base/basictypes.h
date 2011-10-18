@@ -54,8 +54,16 @@ typedef __int64 int64;
 #define INT64_F "I64"
 #else  // COMPILER_MSVC
 #ifdef __LP64__
+#ifndef _UINT64_T
 typedef unsigned long uint64;
+#else
+typedef uint64_t uint64;
+#endif
+#ifndef _INT64_T
 typedef long int64;
+#else
+typedef int64_t int64;
+#endif
 #ifndef INT64_C
 #define INT64_C(x) x ## L
 #endif

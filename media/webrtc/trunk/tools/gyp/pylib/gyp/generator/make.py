@@ -191,6 +191,7 @@ MAKEFLAGS=-r
 
 # The source directory tree.
 srcdir := %(srcdir)s
+os_sep := %(os_sep)s
 
 # The name of the builddir.
 builddir_name ?= %(builddir)s
@@ -557,6 +558,7 @@ def StringToMakefileVariable(string):
   return string.replace(' ', '_')
 
 
+os_sep = os.sep
 srcdir_prefix = ''
 def Sourceify(path):
   """Convert a path to its source directory form."""
@@ -808,7 +810,7 @@ class XcodeSettings(object):
     self._WarnUnimplemented('STRIP_INSTALLED_PRODUCT')
 
     # TODO: Do not hardcode arch. Supporting fat binaries will be annoying.
-    cflags.append('-arch i386')
+    cflags.append('-arch $(TARGET_CPU)')
 
     cflags += self._Settings().get('OTHER_CFLAGS', [])
     cflags += self._Settings().get('WARNING_CFLAGS', [])
@@ -841,6 +843,12 @@ class XcodeSettings(object):
       cflags_cc.append('-fvisibility-inlines-hidden')
     if self._Test('GCC_THREADSAFE_STATICS', 'NO', default='YES'):
       cflags_cc.append('-fno-threadsafe-statics')
+    if self._Test('OTHER_CPLUSPLUSFLAGS', '-x objective-c++', default=''):
+      cflags_cc.append('-x objective-c++')
+    if self._Test('OTHER_CPLUSPLUSFLAGS', '-fno-strict-aliasing', default=''):
+      cflags_cc.append('-fno-strict-aliasing')
+# Want to do it this way, but you get "- x   o b j e c t i v e - c + +"
+#    cflags_cc.append(self._Settings().get('OTHER_CPLUSPLUSFLAGS', []))
     self.configname = None
     return cflags_cc
 
@@ -902,7 +910,7 @@ class XcodeSettings(object):
                      '-Wl,' + target.Absolutify(self._Settings()['ORDER_FILE']))
 
     # TODO: Do not hardcode arch. Supporting fat binaries will be annoying.
-    ldflags.append('-arch i386')
+    ldflags.append('-arch $(TARGET_CPU)')
 
     # Xcode adds the product directory by default. It writes static libraries
     # into the product directory. So add both.
@@ -2418,13 +2426,15 @@ def GenerateOutput(target_list, target_dicts, data, params):
     default_configuration = 'Default'
 
   srcdir = '.'
+  global os_sep
+  os_sep = os.sep
   makefile_name = 'Makefile' + options.suffix
   makefile_path = os.path.join(options.toplevel_dir, makefile_name)
   if options.generator_output:
     global srcdir_prefix
     makefile_path = os.path.join(options.generator_output, makefile_path)
     srcdir = gyp.common.RelativePath(srcdir, options.generator_output)
-    srcdir_prefix = '$(srcdir)/'
+    srcdir_prefix = '$(srcdir)' + os.sep
 
   header_params = {
       'builddir': builddir_name,
@@ -2434,6 +2444,7 @@ def GenerateOutput(target_list, target_dicts, data, params):
       'link_commands': LINK_COMMANDS_LINUX,
       'mac_commands': '',
       'srcdir': srcdir,
+      'os_sep': os.sep,
     }
   if flavor == 'mac':
     header_params.update({

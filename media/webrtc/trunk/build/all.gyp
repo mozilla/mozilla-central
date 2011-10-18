@@ -301,13 +301,14 @@
       'dependencies': [
         '../chrome/chrome.gyp:chromedriver',
       ],
-      'conditions': [
-        ['OS=="mac" or OS=="win" or (os_posix==1 and target_arch==python_arch)', {
-          'dependencies': [
-            '../chrome/chrome.gyp:pyautolib',
-          ],
-        }],
-      ],
+# not needed for Mozilla
+#      'conditions': [
+#        ['OS=="mac" or OS=="win" or (os_posix==1 and target_arch==python_arch)', {
+#          'dependencies': [
+#            '../chrome/chrome.gyp:pyautolib',
+#          ],
+#        }],
+#      ],
     }, # target_name: chromium_builder_qa
   ],
   'conditions': [

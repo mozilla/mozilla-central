@@ -56,7 +56,7 @@
 
         # Compute the architecture that we're building on.
         'conditions': [
-          [ 'OS=="win" or OS=="mac"', {
+          [ 'OS=="win"', {
             'host_arch%': 'ia32',
           }, {
             # This handles the Unix platforms for which there is some support.
@@ -549,9 +549,12 @@
       ['os_posix==1 and OS!="mac"', {
         # This will set gcc_version to XY if you are running gcc X.Y.*.
         # This is used to tweak build flags for gcc 4.4.
-        'gcc_version%': '<!(python <(DEPTH)/build/compiler_version.py)',
+
+	# disabled for Mozilla since it doesn't use this, and 'msys' messes $(CXX) up
+	#        'gcc_version%': '<!(python <(DEPTH)/build/compiler_version.py)',
         # Figure out the python architecture to decide if we build pyauto.
-        'python_arch%': '<!(<(DEPTH)/build/linux/python_arch.sh <(sysroot)/usr/lib/libpython<(python_ver).so.1.0)',
+	# disabled for mozilla because windows != mac and this runs a shell script
+	#        'python_arch%': '<!(<(DEPTH)/build/linux/python_arch.sh <(sysroot)/usr/lib/libpython<(python_ver).so.1.0)',
         'conditions': [
           ['branding=="Chrome"', {
             'linux_breakpad%': 1,
@@ -1713,7 +1716,7 @@
                   # Define change_mach_o_flags in a variable ending in _path
                   # so that GYP understands it's a path and performs proper
                   # relativization during dict merging.
-                  'change_mach_o_flags_path':
+                  'change_mach_o_flags':
                       'mac/change_mach_o_flags_from_xcode.sh',
                   'change_mach_o_flags_options': [
                   ],
@@ -1731,7 +1734,7 @@
                 },
                 'postbuild_name': 'Change Mach-O Flags',
                 'action': [
-                  '<(change_mach_o_flags_path)',
+                   '$(srcdir)$(os_sep)build$(os_sep)<(change_mach_o_flags)',
                   '>@(change_mach_o_flags_options)',
                 ],
               },
@@ -1787,10 +1790,10 @@
                       # Define strip_from_xcode in a variable ending in _path
                       # so that gyp understands it's a path and performs proper
                       # relativization during dict merging.
-                      'strip_from_xcode_path': 'mac/strip_from_xcode',
+                      'strip_from_xcode': 'mac/strip_from_xcode',
                     },
                     'postbuild_name': 'Strip If Needed',
-                    'action': ['<(strip_from_xcode_path)'],
+                    'action': ['$(srcdir)$(os_sep)build$(os_sep)<(strip_from_xcode)'],
                   },
                 ],  # postbuilds
               }],  # mac_real_dsym

@@ -443,8 +443,6 @@
         }],
         ['os_posix == 1', {
           'sources': [
-            '<(libjingle_orig)/source/talk/base/latebindingsymboltable.cc',
-            '<(libjingle_orig)/source/talk/base/latebindingsymboltable.h',
             '<(libjingle_orig)/source/talk/base/sslstreamadapter.cc',
             '<(libjingle_orig)/source/talk/base/sslstreamadapter.h',
             '<(libjingle_orig)/source/talk/base/unixfilesystem.cc',
@@ -453,6 +451,9 @@
         }],
         ['OS=="linux"', {
           'sources': [
+# moved latebindings here because they cause a problem on Mac for Mozilla
+            '<(libjingle_orig)/source/talk/base/latebindingsymboltable.cc',
+            '<(libjingle_orig)/source/talk/base/latebindingsymboltable.h',
             '<(libjingle_orig)/source/talk/base/linux.cc',
             '<(libjingle_orig)/source/talk/base/linux.h',
           ],

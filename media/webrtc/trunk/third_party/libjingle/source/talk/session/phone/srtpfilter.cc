@@ -33,7 +33,7 @@
 #ifdef OSX
 // TODO: For the XCode build, we force SRTP (b/2500074)
 #ifndef HAVE_SRTP
-#define HAVE_SRTP 1
+//#define HAVE_SRTP 1
 #endif  // HAVE_SRTP
 // If LOGGING is not defined, define it to 1 (b/3245816)
 #ifndef LOGGING
