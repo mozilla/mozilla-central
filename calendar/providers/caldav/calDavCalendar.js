@@ -279,6 +279,9 @@ calDavCalendar.prototype = {
                 this.setProperty("currentStatus", Components.results.NS_OK);
                 this.readOnly = false;
                 this.disabled = false;
+                if (this.mHaveScheduling || this.hasAutoScheduling) {
+                    cal.getFreeBusyService().addProvider(this);
+                }
             } else {
                 var itemDataArray = itemData.split("\u001A");
                 var etag = itemDataArray[0];
