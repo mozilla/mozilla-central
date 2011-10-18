@@ -55,14 +55,25 @@ function calItemBase() {
 }
 
 calItemBase.prototype = {
+    mProperties: null,
     mPropertyParams: null,
+
     mIsProxy: false,
-    mAlarms: null,
     mHashId: null,
     mImmutable: false,
     mDirty: false,
-    mAlarmLastAck: null,
     mCalendar: null,
+    mParentItem: null,
+    mRecurrenceInfo: null,
+    mOrganizer: null,
+
+    mAlarms: null,
+    mAlarmLastAck: null,
+
+    mAttendees: null,
+    mAttachments: null,
+    mRelations: null,
+    mCategories: null,
 
     /**
      * Initialize the base item's attributes. Can be called from inheriting
@@ -132,7 +143,6 @@ calItemBase.prototype = {
     },
 
     // attribute calIItemBase parentItem;
-    mParentItem: null,
     get parentItem() {
         return (this.mParentItem || this);
     },

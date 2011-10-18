@@ -1590,8 +1590,8 @@
               // tweaking. We could just do this for every event but
               // getInTimezone is slow, so it's much better to only do this
               // when the timezones actually differ from the view's.
-              if (this.mTimezone != newStart.timezone ||
-                  this.mTimezone != newEnd.timezone) {
+              if (col.mTimezone != newStart.timezone ||
+                  col.mTimezone != newEnd.timezone) {
                   startTZ = newStart.timezone;
                   endTZ = newEnd.timezone;
                   newStart = newStart.getInTimezone(col.calendarView.mTimezone);
@@ -1707,7 +1707,8 @@
               dragOccurrence: aOccurrence,
               mouseOffset: 0,
               offset: null,
-              shadows: null
+              shadows: null,
+              limitStartMin: null
           };
 
           // snap interval: 15 minutes or 1 minute if modifier key is pressed
@@ -1951,7 +1952,8 @@
             dragType: "new",
             mouseOffset: 0,
             offset: null,
-            shadows: null
+            shadows: null,
+            limitStartMin: null
         };
 
         // snap interval: 15 minutes or 1 minute if modifier key is pressed
