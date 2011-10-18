@@ -327,7 +327,9 @@
     <handlers>
       <handler event="contextmenu" phase="capturing"><![CDATA[
        // If the middle/right button was used for click just select the item.
-        this.select(event);
+       if (!this.selected) {
+         this.select(event);
+       }
       ]]></handler>
       <handler event="click" button="0"><![CDATA[
         if (this.mEditing) {
