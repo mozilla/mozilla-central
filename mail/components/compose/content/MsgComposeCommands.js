@@ -46,6 +46,7 @@ Components.utils.import("resource:///modules/attachmentChecker.js");
 Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource:///modules/errUtils.js");
 Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm")
 
 /**
  * interfaces
@@ -338,11 +339,8 @@ var gSendListener = {
   onProgress: function (aMsgID, aProgress, aProgressMax) {},
   onStatus: function (aMsgID, aMsg) {},
   onStopSending: function (aMsgID, aStatus, aMsg, aReturnFile) {
-    if (Components.isSuccessCode(aStatus)) {
-      Components.classes["@mozilla.org/observer-service;1"]
-      .getService(Components.interfaces.nsIObserverService)
-      .notifyObservers(null, "mail:composeSendSucceeded", null);
-    }
+    if (Components.isSuccessCode(aStatus))
+      Services.obs.notifyObservers(null, "mail:composeSendSucceeded", null);
   },
   onGetDraftFolderURI: function (aFolderURI) {},
   onSendNotPerformed: function (aMsgID, aStatus) {},
@@ -734,39 +732,54 @@ function updateOptionItems()
   goUpdateCommand("cmd_quoteMessage");
 }
 
-var messageComposeOfflineObserver =
+/* messageComposeOfflineQuitObserver is notified whenever the network
+ * connection status has switched to offline, or when the application
+ * has received a request to quit.
+ */
+var messageComposeOfflineQuitObserver =
 {
-  observe: function(subject, topic, state)
+  observe: function(aSubject, aTopic, aData)
   {
     // sanity checks
-    if (topic != "network:offline-status-changed")
-      return;
-    gIsOffline = state == "offline";
-    MessageComposeOfflineStateChanged(gIsOffline);
+    if (aTopic == "network:offline-status-changed")
+    {
+      gIsOffline = aData == "offline";
+      MessageComposeOfflineStateChanged(gIsOffline);
 
-    try {
-      setupLdapAutocompleteSession();
-    } catch (ex) {
-      // catch the exception and ignore it, so that if LDAP setup
-      // fails, the entire compose window stuff doesn't get aborted
+      try {
+        setupLdapAutocompleteSession();
+      } catch (ex) {
+        // catch the exception and ignore it, so that if LDAP setup
+        // fails, the entire compose window stuff doesn't get aborted
+      }
     }
+    // check whether to veto the quit request (unless another observer already
+    // did)
+    else if (aTopic == "quit-application-requested"
+        && (aSubject instanceof Components.interfaces.nsISupportsPRBool)
+        && !aSubject.data)
+      aSubject.data = !ComposeCanClose();
   }
 }
 
-function AddMessageComposeOfflineObserver()
+function AddMessageComposeOfflineQuitObserver()
 {
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.addObserver(messageComposeOfflineObserver, "network:offline-status-changed", false);
+  Services.obs.addObserver(messageComposeOfflineQuitObserver,
+                           "network:offline-status-changed", false);
+  Services.obs.addObserver(messageComposeOfflineQuitObserver,
+                           "quit-application-requested", false);
 
   gIsOffline = gIOService.offline;
   // set the initial state of the send button
   MessageComposeOfflineStateChanged(gIsOffline);
 }
 
-function RemoveMessageComposeOfflineObserver()
+function RemoveMessageComposeOfflineQuitObserver()
 {
-  var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-  observerService.removeObserver(messageComposeOfflineObserver,"network:offline-status-changed");
+  Services.obs.removeObserver(messageComposeOfflineQuitObserver,
+                              "network:offline-status-changed");
+  Services.obs.removeObserver(messageComposeOfflineQuitObserver,
+                              "quit-application-requested");
 }
 
 function MessageComposeOfflineStateChanged(goingOffline)
@@ -1782,7 +1795,7 @@ function ComposeLoad()
     dump("failed to get the mail.compose.other.header pref\n");
   }
 
-  AddMessageComposeOfflineObserver();
+  AddMessageComposeOfflineQuitObserver();
   AddDirectoryServerObserver(true);
 
   try {
@@ -1819,7 +1832,6 @@ function ComposeLoad()
     MsgComposeCloseWindow(false); // Don't try to recycle a bogus window
     return;
   }
-  window.tryToClose=ComposeCanClose;
 
   // initialize the customizeDone method on the customizeable toolbar
   var toolbox = document.getElementById("compose-toolbox");
@@ -1844,8 +1856,10 @@ function ComposeUnload()
 
   if (gMsgCompose)
     gMsgCompose.removeMsgSendListener(gSendListener);
-  RemoveMessageComposeOfflineObserver();
+
+  RemoveMessageComposeOfflineQuitObserver();
   RemoveDirectoryServerObserver(null);
+
   if (gCurrentIdentity)
     RemoveDirectoryServerObserver("mail.identity." + gCurrentIdentity.key);
   if (gCurrentAutocompleteDirectory)
@@ -2129,8 +2143,7 @@ function GenericSendMessage( msgType )
       }
 
       // hook for extra compose pre-processing
-      var observerService = Components.classes["@mozilla.org/observer-service;1"].getService(Components.interfaces.nsIObserverService);
-      observerService.notifyObservers(window, "mail:composeOnSend", null);
+      Services.obs.notifyObservers(window, "mail:composeOnSend", null);
 
       var originalCharset = gMsgCompose.compFields.characterSet;
       // Check if the headers of composing mail can be converted to a mail charset.
@@ -4000,3 +4013,4 @@ function getPref(aPrefName, aIsComplex) {
       return null;
   }
 }
+

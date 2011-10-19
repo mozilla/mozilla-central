@@ -596,8 +596,6 @@
 @BINPATH@/components/lwbrk.xpt
 @BINPATH@/components/nsINIProcessor.js
 @BINPATH@/components/nsINIProcessor.manifest
-@BINPATH@/components/nsTryToClose.js
-@BINPATH@/components/nsTryToClose.manifest
 @BINPATH@/components/pluginGlue.manifest
 @BINPATH@/components/txEXSLTRegExFunctions.js
 @BINPATH@/components/txEXSLTRegExFunctions.manifest

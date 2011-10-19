@@ -43,7 +43,8 @@ var MODULE_NAME = "test-message-filters";
 
 var RELATIVE_ROOT = "../shared-modules";
 var MODULE_REQUIRES = ["folder-display-helpers", "window-helpers",
-                       "test-nntp-helpers", "address-book-helpers"];
+                       "test-nntp-helpers", "address-book-helpers",
+                       "prompt-helpers"];
 
 var elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
@@ -59,6 +60,8 @@ function setupModule(module)
   nh.installInto(module);
   let abh = collector.getModule("address-book-helpers");
   abh.installInto(module);
+  let ph = collector.getModule("prompt-helpers");
+  ph.installInto(module);
 
   setupNNTPDaemon();
 
@@ -147,6 +150,45 @@ function test_customize_toolbar_doesnt_double_get_mail_menu()
                 "Incorrect number of items for GetNewMessages after customization");
 }
 
+/* A helper function that opens up the new filter dialog (assuming that the
+ * main filters dialog is already open), creates a simple filter, and then
+ * closes the dialog.
+ */
+function create_simple_filter() {
+  // Open the "Tools » Message Filters…" window,
+  // a.k.a. "tasksMenu » filtersCmd".
+  mc.menus.Tools.filtersCmd.click();
+
+  // We'll assume that the filters dialog is already open from
+  // the previous tests.
+  let filterc = wait_for_existing_window("mailnews:filterlist");
+
+  function fill_in_filter_fields(fec) {
+    let filterName = fec.e("filterName");
+    filterName.value = "A Simple Filter";
+    let searchAttr = fec.e("searchAttr0");
+    let attrList = fec.window.document.getAnonymousNodes(searchAttr)[0];
+    attrList.value = Components.interfaces.nsMsgSearchAttrib.To;
+    let searchOp = fec.e("searchOp0");
+    let opList = fec.window.document.getAnonymousNodes(searchOp)[0];
+    opList.value = Components.interfaces.nsMsgSearchOp.Is;
+    let searchValList = fec.e("searchVal0");
+    let searchVal = fec.window.document.getAnonymousNodes(searchValList)[0];
+    searchVal.setAttribute("value", "test@invalid.com");
+
+    let filterActions = fec.e("filterActionList");
+    let firstAction = filterActions.getItemAtIndex(0);
+    firstAction.setAttribute("value", "markasflagged");
+    fec.e("FilterEditor").acceptDialog();
+  }
+
+  // Let's open the filter editor.
+  plan_for_modal_dialog("mailnews:filtereditor", fill_in_filter_fields);
+  filterc.click(filterc.eid("newButton"));
+  wait_for_modal_dialog("mailnews:filtereditor");
+
+}
+
 /*
  * Test that the address books can appear in the message filter dropdown
  */
@@ -194,3 +236,83 @@ function test_address_books_appear_in_message_filter_dropdown()
   filterc.click(filterc.eid("newButton"));
   wait_for_modal_dialog("mailnews:filtereditor");
 }
+
+/* Test that if the user has started running a filter, and the
+ * "quit-application-requested" notification is fired, the user
+ * is given a dialog asking whether or not to quit.
+ *
+ * This also tests whether or not cancelling quit works.
+ */
+function test_can_cancel_quit_on_filter_changes() {
+  // Register the Mock Prompt Service
+  gMockPromptService.register();
+
+  create_simple_filter();
+
+  let filterc = wait_for_existing_window("mailnews:filterlist");
+  let runButton = filterc.e("runFiltersButton");
+  runButton.setAttribute("label",
+                         runButton.getAttribute("stoplabel"));
+
+  let cancelQuit = Cc["@mozilla.org/supports-PRBool;1"]
+                 .createInstance(Components.interfaces.nsISupportsPRBool);
+
+  // Set the Mock Prompt Service to return false, so that we
+  // cancel the quit.
+  gMockPromptService.returnValue = false;
+  // Trigger the quit-application-request notification
+  Services.obs.notifyObservers(cancelQuit, "quit-application-requested",
+                               null);
+  let promptState = gMockPromptService.promptState;
+  assert_not_equals(null, promptState, "Expected a confirmEx prompt");
+
+  assert_equals("confirmEx", promptState.method);
+  // Since we returned false on the confirmation dialog,
+  // we should be cancelling the quit - so cancelQuit.data
+  // should now be true
+  assert_true(cancelQuit.data, "Didn't cancel the quit");
+
+  // Unregister the Mock Prompt Service
+  gMockPromptService.unregister();
+}
+
+/* Test that if the user has started running a filter, and the
+ * "quit-application-requested" notification is fired, the user
+ * is given a dialog asking whether or not to quit.
+ *
+ * This also tests whether or not allowing quit works.
+ */
+function test_can_quit_on_filter_changes() {
+  // Register the Mock Prompt Service
+  gMockPromptService.register();
+
+  create_simple_filter();
+
+  let filterc = wait_for_existing_window("mailnews:filterlist");
+  let runButton = filterc.e("runFiltersButton");
+  runButton.setAttribute("label",
+                         runButton.getAttribute("stoplabel"));
+
+  let cancelQuit = Cc["@mozilla.org/supports-PRBool;1"]
+                 .createInstance(Components.interfaces.nsISupportsPRBool);
+
+  // Set the Mock Prompt Service to return true, so that we
+  // allow the quit.
+  gMockPromptService.returnValue = true;
+  // Trigger the quit-application-request notification
+  Services.obs.notifyObservers(cancelQuit, "quit-application-requested",
+                               null);
+  let promptState = gMockPromptService.promptState;
+  assert_not_equals(null, promptState, "Expected a confirmEx prompt");
+
+  assert_equals("confirmEx", promptState.method);
+  // Since we returned true on the confirmation dialog,
+  // we should be allowing the quit - so cancelQuit.data
+  // should now be false
+  assert_false(cancelQuit.data, "Cancelled the quit");
+
+  // Unregister the Mock Prompt Service
+  gMockPromptService.unregister();
+}
+
+

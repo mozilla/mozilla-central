@@ -37,6 +37,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gFilterListMsgWindow = null;
 var gCurrentFilterList;
 var gCurrentFolder;
@@ -89,6 +91,18 @@ var gStatusFeedback = {
   }
 };
 
+var filterEditorQuitObserver = {
+  observe: function(aSubject, aTopic, aData)
+  {
+    // Check whether or not we want to veto the quit request (unless another
+    // observer already did.
+    if (aTopic == "quit-application-requested" &&
+        (aSubject instanceof Components.interfaces.nsISupportsPRBool) &&
+        !aSubject.data)
+      aSubject.data = !onFilterClose();
+  }
+}
+
 function onLoad()
 {
     gFilterListMsgWindow = Components.classes["@mozilla.org/messenger/msgwindow;1"].createInstance(Components.interfaces.nsIMsgWindow);
@@ -112,7 +126,8 @@ function onLoad()
         selectFolder(firstItem);
     }
 
-    window.tryToClose = onFilterClose;
+    Services.obs.addObserver(filterEditorQuitObserver,
+                             "quit-application-requested", false);
 }
 
 /**
@@ -298,6 +313,8 @@ function viewLog()
 function onFilterUnload()
 {
   gCurrentFilterList.saveToDefaultFile();
+  Services.obs.removeObserver(filterEditorQuitObserver,
+                              "quit-application-requested");
 }
 
 function onFilterClose()

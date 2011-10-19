@@ -43,7 +43,8 @@ var MODULE_NAME = 'test-address-book';
 
 var RELATIVE_ROOT = '../shared-modules';
 var MODULE_REQUIRES = ['address-book-helpers', 'folder-display-helpers',
-                       'compose-helpers', 'window-helpers'];
+                       'compose-helpers', 'window-helpers',
+                       'prompt-helpers'];
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource:///modules/Services.jsm");
@@ -53,79 +54,6 @@ let abController = null;
 var addrBook1, addrBook2, addrBook3, addrBook4;
 var mListA, mListB, mListC, mListD, mListE;
 var windowHelper;
-
-var gMockPromptService = {
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsIPromptService]),
-  _will_return: null,
-  _did_confirm: false,
-  _confirm_msg: null,
-  _originalFactory: null,
-  _cid: null,
-  _contractID: "@mozilla.org/embedcomp/prompt-service;1",
-
-  confirm: function(aParent, aDialogTitle, aText) {
-    this._did_confirm = true;
-    this._confirm_msg = aText;
-    return this._will_return;
-  },
-
-  _return: function(aReturn) {
-    this._will_return = aReturn;
-  },
-
-  _reset: function() {
-    this._will_return = null;
-    this._did_confirm = false;
-    this._confirm_msg = null;
-  },
-
-  register: function() {
-    let Cm = Components.manager;
-    let Cc = Components.classes;
-    let Ci = Components.interfaces;
-
-    this._originalFactory = Cm.getClassObject(Cc[this._contractID], Ci.nsIFactory);
-
-    let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
-    this._cid = registrar.contractIDToCID(this._contractID);
-
-    registrar.unregisterFactory(this._cid,
-                                this._originalFactory);
-
-    registrar.registerFactory(this._cid,
-                              "Mock Prompt Service",
-                              this._contractID,
-                              gMockPromptServiceFactory);
-  },
-
-  unregister: function() {
-    let Cm = Components.manager;
-    let Ci = Components.interfaces;
-
-    let registrar = Cm.QueryInterface(Ci.nsIComponentRegistrar);
-
-    registrar.unregisterFactory(this._cid,
-                                gMockPromptServiceFactory);
-
-    registrar.registerFactory(this._cid,
-                              "Prompt Service",
-                              this._contractID,
-                              this._originalFactory);
-  },
-
-};
-
-var gMockPromptServiceFactory = {
-  createInstance: function(aOuter, aIID) {
-    if (aOuter != null)
-      throw Cr.NS_ERROR_NO_AGGREGATION;
-
-    if (!aIID.equals(Ci.nsIPromptService))
-      throw Cr.NS_ERROR_NO_INTERFACE;
-
-    return gMockPromptService;
-  }
-};
 
 function setupModule(module)
 {
@@ -137,6 +65,9 @@ function setupModule(module)
 
   let ch = collector.getModule('compose-helpers');
   ch.installInto(module);
+
+  let ph = collector.getModule('prompt-helpers');
+  ph.installInto(module);
 
   windowHelper = collector.getModule('window-helpers');
 
@@ -268,31 +199,35 @@ function test_deleting_contact_causes_confirm_prompt()
 
   // Set the mock prompt to return false, so that the
   // contact should not be deleted.
-  gMockPromptService._return(false);
+  gMockPromptService.returnValue = false;
 
   // Now attempt to delete the contact
   select_contact(toDelete);
   abController.keypress(null, "VK_DELETE", {});
 
+  let promptState = gMockPromptService.promptState;
+  assert_not_equals(null, promptState, "Expected a prompt state");
   // Was a confirm displayed?
-  assert_true(gMockPromptService._did_confirm);
+  assert_equals("confirm", promptState.method);
   // Was the right message displayed?
-  assert_equals(gMockPromptService._confirm_msg, confirmSingle);
+  assert_equals(confirmSingle, promptState.text);
   // The contact should not have been deleted.
   assert_equals(abController.window.gAbView.rowCount, totalEntries);
 
-  gMockPromptService._reset();
+  gMockPromptService.reset();
 
   // Now we'll return true on confirm so that
   // the contact is deleted.
-  gMockPromptService._return(true);
+  gMockPromptService.returnValue = true;
   select_contact(toDelete);
   abController.keypress(null, "VK_DELETE", {});
 
+  promptState = gMockPromptService.promptState;
+  assert_not_equals(null, promptState, "Expected a prompt state");
   // Was a confirm displayed?
-  assert_true(gMockPromptService._did_confirm);
+  assert_equals("confirm", promptState.method);
   // Was the right message displayed?
-  assert_equals(gMockPromptService._confirm_msg, confirmSingle);
+  assert_equals(confirmSingle, promptState.text);
   // The contact should have been deleted.
   assert_equals(abController.window.gAbView.rowCount,
                 totalEntries - toDelete.length);
@@ -327,31 +262,35 @@ function test_deleting_contacts_causes_confirm_prompt()
 
   // Set the mock prompt to return false, so that the
   // contact should not be deleted.
-  gMockPromptService._return(false);
+  gMockPromptService.returnValue = false;
 
   // Now attempt to delete the contact
   select_contacts(toDelete);
   abController.keypress(null, "VK_DELETE", {});
 
+  let promptState = gMockPromptService.promptState;
+  assert_not_equals(null, promptState, "Expected a prompt state");
   // Was a confirm displayed?
-  assert_true(gMockPromptService._did_confirm);
+  assert_equals("confirm", promptState.method);
   // Was the right message displayed?
-  assert_equals(gMockPromptService._confirm_msg, confirmMultiple);
+  assert_equals(confirmMultiple, promptState.text);
   // The contact should not have been deleted.
   assert_equals(abController.window.gAbView.rowCount, totalEntries);
 
-  gMockPromptService._reset();
+  gMockPromptService.reset();
 
   // Now we'll return true on confirm so that
   // the contact is deleted.
-  gMockPromptService._return(true);
+  gMockPromptService.returnValue = true;
   select_contacts(toDelete);
   abController.keypress(null, "VK_DELETE", {});
 
+  promptState = gMockPromptService.promptState;
+  assert_not_equals(null, promptState, "Expected a prompt state");
   // Was a confirm displayed?
-  assert_true(gMockPromptService._did_confirm);
+  assert_equals("confirm", promptState.method);
   // Was the right message displayed?
-  assert_equals(gMockPromptService._confirm_msg, confirmMultiple);
+  assert_equals(confirmMultiple, promptState.text);
   // The contact should have been deleted.
   assert_equals(abController.window.gAbView.rowCount,
                 totalEntries - toDelete.length);
@@ -378,23 +317,29 @@ function test_deleting_mailing_lists() {
 
   // Let's click "cancel" on the confirm dialog box
   // first.
-  gMockPromptService._return(false);
+  gMockPromptService.returnValue = false;
 
   abController.window.AbDeleteDirectory(addedList.URI);
 
+  let promptState = gMockPromptService.promptState;
+  assert_not_equals(null, promptState, "Expected a prompt state");
+
   // Test that the confirmation dialog was brought up.
-  assert_true(gMockPromptService._did_confirm);
+  assert_equals("confirm", promptState.method);
 
   // Ensure that the mailing list was not removed.
   assert_true(addrBook1.hasDirectory(addedList));
 
   // This time, let's click "OK" on the confirm dialog box
-  gMockPromptService._return(true);
+  gMockPromptService.reset();
+  gMockPromptService.returnValue = true;
 
   abController.window.AbDeleteDirectory(addedList.URI);
 
   // Test that the confirmation dialog was brought up.
-  assert_true(gMockPromptService._did_confirm);
+  promptState = gMockPromptService.promptState;
+  assert_not_equals(null, promptState, "Expected a prompt state");
+  assert_equals("confirm", promptState.method);
 
   // Ensure that the mailing list was removed.
   assert_false(addrBook1.hasDirectory(addedList));
