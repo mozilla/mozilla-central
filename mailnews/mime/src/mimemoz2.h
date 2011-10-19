@@ -190,7 +190,7 @@ extern "C" nsresult     mimeEmitterEndAttachment(MimeDisplayOptions *opt);
 extern "C" nsresult     mimeEmitterEndAllAttachments(MimeDisplayOptions *opt);
 extern "C" nsresult     mimeEmitterStartBody(MimeDisplayOptions *opt, bool bodyOnly, const char *msgID, const char *outCharset);
 extern "C" nsresult     mimeEmitterEndBody(MimeDisplayOptions *opt);
-extern "C" nsresult     mimeEmitterEndHeader(MimeDisplayOptions *opt);
+extern "C" nsresult     mimeEmitterEndHeader(MimeDisplayOptions *opt, MimeObject *obj);
 extern "C" nsresult     mimeEmitterStartHeader(MimeDisplayOptions *opt, bool rootMailHeader, bool headerOnly, const char *msgID,
                                                const char *outCharset);
 extern "C" nsresult     mimeEmitterUpdateCharacterSet(MimeDisplayOptions *opt, const char *aCharset);

@@ -1943,7 +1943,7 @@ mimeEmitterEndBody(MimeDisplayOptions *opt)
 }
 
 extern "C" nsresult
-mimeEmitterEndHeader(MimeDisplayOptions *opt)
+mimeEmitterEndHeader(MimeDisplayOptions *opt, MimeObject *obj)
 {
   // Check for draft processing...
   if (NoEmitterProcessing(opt->format_out))
@@ -1958,17 +1958,22 @@ mimeEmitterEndHeader(MimeDisplayOptions *opt)
     nsIMimeEmitter *emitter = (nsIMimeEmitter *)msd->output_emitter;
 
     nsCString name;
-    nsMsgAttachmentData *attachments = nsnull;
     if (msd->format_out == nsMimeOutput::nsMimeMessageSplitDisplay ||
         msd->format_out == nsMimeOutput::nsMimeMessageHeaderDisplay ||
-        msd->format_out == nsMimeOutput::nsMimeMessageBodyDisplay) {
-      nsresult rv = MimeGetAttachmentList(msd->obj, msd->url_name, &attachments);
-      if (NS_SUCCEEDED(rv) && attachments)
-        name.Assign(attachments->m_realName);
+        msd->format_out == nsMimeOutput::nsMimeMessageBodyDisplay ||
+        msd->format_out == nsMimeOutput::nsMimeMessageSaveAs) {
+      if (obj->headers) {
+        nsMsgAttachmentData attachment;
+        attIndex = 0;
+        nsresult rv = GenerateAttachmentData(obj, msd->url_name, opt, false,
+                                             0, &attachment);
+
+        if (NS_SUCCEEDED(rv))
+          name.Assign(attachment.m_realName);
+      }
     }
 
     MimeHeaders_convert_header_value(opt, name, false);
-    MimeFreeAttachmentList(attachments);
     return emitter->EndHeader(name);
   }
 

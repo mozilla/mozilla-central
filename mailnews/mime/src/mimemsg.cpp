@@ -738,7 +738,7 @@ MimeMessage_write_headers_html (MimeObject *obj)
     status = MimeObject_output_init (obj, TEXT_HTML);
     if (status < 0)
     {
-      mimeEmitterEndHeader(obj->options);
+      mimeEmitterEndHeader(obj->options, obj);
       return status;
     }
     PR_ASSERT(obj->options->state->first_data_written_p);
@@ -791,7 +791,7 @@ MimeMessage_write_headers_html (MimeObject *obj)
   status = MimeHeaders_write_all_headers (msg->hdrs, obj->options, PR_FALSE);
   if (status < 0)
   {
-    mimeEmitterEndHeader(obj->options);
+    mimeEmitterEndHeader(obj->options, obj);
     return status;
   }
 
@@ -820,14 +820,14 @@ MimeMessage_write_headers_html (MimeObject *obj)
         PR_Free(html);
         if (status < 0)
         {
-          mimeEmitterEndHeader(obj->options);
+          mimeEmitterEndHeader(obj->options, obj);
           return status;
         }
       }
     }
   }
 
-  mimeEmitterEndHeader(obj->options);
+  mimeEmitterEndHeader(obj->options, obj);
 
   // rhp:
   // For now, we are going to parse the entire message, even if we are
