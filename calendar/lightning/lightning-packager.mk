@@ -64,11 +64,11 @@ endif
 unpack: $(ZIP_IN)
 # We're unpacking directly into FINAL_TARGET, this keeps code to do manual
 # repacks cleaner.
-	if test -d $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME); then \
-	  $(RM) -r -v $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME); \
+	if test -d $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(XPI_NAME); then \
+	  $(RM) -r -v $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(XPI_NAME); \
 	fi
-	$(NSINSTALL) -D $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME)
-	cd $(DIST)/$(UNIVERSAL_PATH)/xpi-stage/$(FINAL_XPI_NAME) && $(UNZIP) $(ZIP_IN)
+	$(NSINSTALL) -D $(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(XPI_NAME)
+	cd $(DIST)/$(UNIVERSAL_PATH)/xpi-stage/$(XPI_NAME) && $(UNZIP) $(ZIP_IN)
 	@echo done unpacking
 
 # Call this target to upload the localized lightning package.
