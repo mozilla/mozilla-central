@@ -54,6 +54,9 @@ var epsilon;
 var isWindows;
 var filePrefix;
 
+var os = {};
+Components.utils.import('resource://mozmill/stdlib/os.js', os);
+
 const rawAttachment =
   "Can't make the frug contest, Helen; stomach's upset. I'll fix you, " +
   "Ubik! Ubik drops you back in the thick of things fast. Taken as " +
@@ -262,6 +265,33 @@ function test_rename_attachment() {
 
   check_attachment_size(cwc, 0, size);
   check_total_attachment_size(cwc, 1);
+
+  close_compose_window(cwc);
+}
+
+function subtest_open_attachment(cwc) {
+  cwc.window.document.documentElement.getButton("cancel").doCommand();
+}
+
+function test_open_attachment() {
+  let cwc = open_compose_new_mail();
+
+  // set up our external file for attaching
+  let thisFilePath = os.getFileForPath(__file__);
+  let file = os.getFileForPath(os.abspath("./attachment.txt", thisFilePath));
+  let fileHandler = Services.io.getProtocolHandler("file")
+                            .QueryInterface(Ci.nsIFileProtocolHandler);
+  let url = fileHandler.getURLSpecFromFile(file);
+  let size = file.fileSize;
+
+  add_attachment(cwc, url, size);
+
+  // Now, open the attachment.
+  let bucket = cwc.e("attachmentBucket");
+  let node = bucket.getElementsByTagName("attachmentitem")[0];
+  plan_for_modal_dialog("unknownContentType", subtest_open_attachment);
+  cwc.doubleClick(new elib.Elem(node));
+  wait_for_modal_dialog("unknownContentType");
 
   close_compose_window(cwc);
 }
