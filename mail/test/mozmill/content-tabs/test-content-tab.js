@@ -126,6 +126,8 @@ function test_spellcheck_in_content_tabs() {
   assert_true(suggestions.length == 0, "But I just taught you this word!");
   close_popup(mc, eidMailContext);
 }
+// XXX Currently the spellcheck test has focus issues on non-Mac
+test_spellcheck_in_content_tabs.EXCLUDED_PLATFORMS = ['winnt', 'linux'];
 
 function test_content_tab_open_same() {
   let preCount = mc.tabmail.tabContainer.childNodes.length;
