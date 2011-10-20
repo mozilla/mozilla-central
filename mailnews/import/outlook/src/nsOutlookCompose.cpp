@@ -119,7 +119,7 @@ public:
   // convertCRs controls if we want to convert standalone CRs to CRLFs
   CCompositionFile(nsIFile* aFile, void* fifoBuffer, PRUint32 fifoBufferSize, bool convertCRs=false);
 
-  operator bool() const { return m_fileSize; }
+  operator bool() const { return m_fileSize && m_pInputStream; }
 
   // Reads up to and including the term sequence, or entire file if term isn't found
   // termSize may be used to include NULLs in the terminator sequences.
@@ -739,7 +739,7 @@ bool nsOutlookCompose::GenerateHackSequence(const wchar_t* body, size_t origLen)
 
 CCompositionFile::CCompositionFile(nsIFile* aFile, void* fifoBuffer,
                                    PRUint32 fifoBufferSize, bool convertCRs)
-  : m_pFile(aFile), m_fileReadPos(0),
+  : m_pFile(aFile), m_fileSize(0), m_fileReadPos(0),
     m_fifoBuffer(static_cast<char*>(fifoBuffer)),
     m_fifoBufferSize(fifoBufferSize),
     m_fifoBufferReadPos(static_cast<char*>(fifoBuffer)),
