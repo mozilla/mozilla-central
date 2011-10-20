@@ -197,7 +197,7 @@ calAlarmMonitor.prototype = {
         let calAlarmWindow = peekAlarmWindow();
         this.mAlarms = this.mAlarms.filter(function(itemAlarm) {
             let [thisItem, alarm] = itemAlarm;
-            let ret = (aItem.hashId != thisItem.parentItem.hashId);
+            let ret = (aItem.hashId != thisItem.hashId);
             if (!ret && calAlarmWindow) { // window is open
                 calAlarmWindow.removeWidgetFor(thisItem, alarm);
             }

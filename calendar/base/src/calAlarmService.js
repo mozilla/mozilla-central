@@ -23,6 +23,7 @@
  *   Daniel Boelzle <daniel.boelzle@sun.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
+ *   Matthew Mecca <matthew.mecca@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -80,20 +81,7 @@ function calAlarmService() {
         },
 
         onAddItem: function(aItem) {
-            let occs = [];
-            if (aItem.recurrenceInfo) {
-                let start = this.alarmService.mRangeEnd.clone();
-                // We search 1 month in each direction for alarms.  Therefore,
-                // we need to go back 2 months from the end to get this right.
-                start.month -= 2;
-                occs = aItem.recurrenceInfo.getOccurrences(start, this.alarmService.mRangeEnd, 0, {});
-            } else {
-                occs = [aItem];
-            }
-
-            // Add an alarm for each occurrence
-            occs.forEach(this.alarmService.addAlarmsForItem,
-                         this.alarmService);
+            this.alarmService.addAlarmsForOccurrences(aItem);
         },
         onModifyItem: function(aNewItem, aOldItem) {
             if (!aNewItem.recurrenceId) {
@@ -105,7 +93,7 @@ function calAlarmService() {
             this.onAddItem(aNewItem);
         },
         onDeleteItem: function(aDeletedItem) {
-            this.alarmService.removeAlarmsForItem(aDeletedItem);
+            this.alarmService.removeAlarmsForOccurrences(aDeletedItem);
         },
         onError: function(aCalendar, aErrNo, aMessage) {},
         onPropertyChanged: function(aCalendar, aName, aValue, aOldValue) {
@@ -450,6 +438,32 @@ calAlarmService.prototype = {
         for each (let alarm in aItem.getAlarms({})) {
             this.removeTimer(aItem, alarm);
         }
+    },
+
+    getOccurrencesInRange: function cAS_getOccurrencesInRange(aItem) {
+        if (aItem && aItem.recurrenceInfo) {
+            let start = this.mRangeEnd.clone();
+            // We search 1 month in each direction for alarms.  Therefore,
+            // we need to go back 2 months from the end to get this right.
+            start.month -= 2;
+            return aItem.recurrenceInfo.getOccurrences(start, this.mRangeEnd, 0, {});
+        } else {
+            return [aItem];
+        }
+    },
+
+    addAlarmsForOccurrences: function cAS_addAlarmsForOccurrences(aParentItem) {
+        let occs = this.getOccurrencesInRange(aParentItem);
+
+        // Add an alarm for each occurrence
+        occs.forEach(this.addAlarmsForItem, this);
+    },
+
+    removeAlarmsForOccurrences: function cAS_removeAlarmsForOccurrences(aParentItem) {
+        let occs = this.getOccurrencesInRange(aParentItem);
+
+        // Remove alarm for each occurrence
+        occs.forEach(this.removeAlarmsForItem, this);
     },
 
     addTimer: function cAS_addTimer(aItem, aAlarm, aTimeout) {
