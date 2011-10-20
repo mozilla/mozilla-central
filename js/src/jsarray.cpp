@@ -123,7 +123,6 @@
 #include "jsobj.h"
 #include "jsscope.h"
 #include "jsstr.h"
-#include "jsstaticcheck.h"
 #include "jstracer.h"
 #include "jswrapper.h"
 #include "methodjit/MethodJIT.h"
@@ -245,7 +244,7 @@ BigIndexToId(JSContext *cx, JSObject *obj, jsuint index, JSBool createAtom,
     JS_ASSERT(index > JSID_INT_MAX);
 
     jschar buf[10];
-    jschar *start = JS_ARRAY_END(buf);
+    jschar *start = ArrayEnd(buf);
     do {
         --start;
         *start = (jschar)('0' + index % 10);
@@ -261,13 +260,13 @@ BigIndexToId(JSContext *cx, JSObject *obj, jsuint index, JSBool createAtom,
      */
     JSAtom *atom;
     if (!createAtom && (obj->isSlowArray() || obj->isArguments() || obj->isObject())) {
-        atom = js_GetExistingStringAtom(cx, start, JS_ARRAY_END(buf) - start);
+        atom = js_GetExistingStringAtom(cx, start, ArrayEnd(buf) - start);
         if (!atom) {
             *idp = JSID_VOID;
             return JS_TRUE;
         }
     } else {
-        atom = js_AtomizeChars(cx, start, JS_ARRAY_END(buf) - start);
+        atom = js_AtomizeChars(cx, start, ArrayEnd(buf) - start);
         if (!atom)
             return JS_FALSE;
     }
@@ -391,7 +390,7 @@ GetElement(JSContext *cx, JSObject *obj, jsdouble index, JSBool *hole, Value *vp
 
     JSObject *obj2;
     JSProperty *prop;
-    if (!obj->lookupProperty(cx, idr.id(), &obj2, &prop))
+    if (!obj->lookupGeneric(cx, idr.id(), &obj2, &prop))
         return JS_FALSE;
     if (!prop) {
         *hole = JS_TRUE;
@@ -713,8 +712,8 @@ IsDenseArrayId(JSContext *cx, JSObject *obj, jsid id)
 }
 
 static JSBool
-array_lookupProperty(JSContext *cx, JSObject *obj, jsid id, JSObject **objp,
-                     JSProperty **propp)
+array_lookupGeneric(JSContext *cx, JSObject *obj, jsid id, JSObject **objp,
+                    JSProperty **propp)
 {
     if (!obj->isDenseArray())
         return js_LookupProperty(cx, obj, id, objp, propp);
@@ -731,7 +730,14 @@ array_lookupProperty(JSContext *cx, JSObject *obj, jsid id, JSObject **objp,
         *propp = NULL;
         return JS_TRUE;
     }
-    return proto->lookupProperty(cx, id, objp, propp);
+    return proto->lookupGeneric(cx, id, objp, propp);
+}
+
+static JSBool
+array_lookupProperty(JSContext *cx, JSObject *obj, PropertyName *name, JSObject **objp,
+                     JSProperty **propp)
+{
+    return array_lookupGeneric(cx, obj, ATOM_TO_JSID(name), objp, propp);
 }
 
 static JSBool
@@ -759,7 +765,7 @@ static JSBool
 array_lookupSpecial(JSContext *cx, JSObject *obj, SpecialId sid, JSObject **objp,
                     JSProperty **propp)
 {
-    return array_lookupProperty(cx, obj, SPECIALID_TO_JSID(sid), objp, propp);
+    return array_lookupGeneric(cx, obj, SPECIALID_TO_JSID(sid), objp, propp);
 }
 
 JSBool
@@ -1227,7 +1233,7 @@ Class js::ArrayClass = {
     array_trace,    /* trace       */
     JS_NULL_CLASS_EXT,
     {
-        array_lookupProperty,
+        array_lookupGeneric,
         array_lookupProperty,
         array_lookupElement,
         array_lookupSpecial,
@@ -2559,8 +2565,26 @@ js::array_pop(JSContext *cx, uintN argc, Value *vp)
     return array_pop_slowly(cx, obj, vp);
 }
 
-static JSBool
-array_shift(JSContext *cx, uintN argc, Value *vp)
+#ifdef JS_METHODJIT
+void JS_FASTCALL
+mjit::stubs::ArrayShift(VMFrame &f)
+{
+    JSObject *obj = &f.regs.sp[-1].toObject();
+    JS_ASSERT(obj->isDenseArray());
+    JS_ASSERT(!js_PrototypeHasIndexedProperties(f.cx, obj));
+
+    /*
+     * At this point the length and initialized length have already been
+     * decremented and the result fetched, so just shift the array elements
+     * themselves.
+     */
+    uint32 initlen = obj->getDenseArrayInitializedLength();
+    obj->moveDenseArrayElements(0, 1, initlen);
+}
+#endif /* JS_METHODJIT */
+
+JSBool
+js::array_shift(JSContext *cx, uintN argc, Value *vp)
 {
     JSObject *obj = ToObject(cx, &vp[1]);
     if (!obj)
@@ -2916,11 +2940,41 @@ array_splice(JSContext *cx, uintN argc, Value *vp)
     return true;
 }
 
+#ifdef JS_METHODJIT
+void JS_FASTCALL
+mjit::stubs::ArrayConcatTwoArrays(VMFrame &f)
+{
+    JSObject *result = &f.regs.sp[-3].toObject();
+    JSObject *obj1 = &f.regs.sp[-2].toObject();
+    JSObject *obj2 = &f.regs.sp[-1].toObject();
+
+    JS_ASSERT(result->isDenseArray() && obj1->isDenseArray() && obj2->isDenseArray());
+
+    uint32 initlen1 = obj1->getDenseArrayInitializedLength();
+    JS_ASSERT(initlen1 == obj1->getArrayLength());
+
+    uint32 initlen2 = obj2->getDenseArrayInitializedLength();
+    JS_ASSERT(initlen2 == obj2->getArrayLength());
+
+    /* No overflow here due to nslots limit. */
+    uint32 len = initlen1 + initlen2;
+
+    if (!result->ensureSlots(f.cx, len))
+        THROW();
+
+    result->copyDenseArrayElements(0, obj1->getDenseArrayElements(), initlen1);
+    result->copyDenseArrayElements(initlen1, obj2->getDenseArrayElements(), initlen2);
+
+    result->setDenseArrayInitializedLength(len);
+    result->setDenseArrayLength(len);
+}
+#endif /* JS_METHODJIT */
+
 /*
  * Python-esque sequence operations.
  */
-static JSBool
-array_concat(JSContext *cx, uintN argc, Value *vp)
+JSBool
+js::array_concat(JSContext *cx, uintN argc, Value *vp)
 {
     /* Treat our |this| object as the first argument; see ECMA 15.4.4.4. */
     Value *p = JS_ARGV(cx, vp) - 1;

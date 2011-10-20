@@ -48,6 +48,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#include "mozilla/Util.h"
+
 #include "jstypes.h"
 #include "jsstdint.h"
 #include "jsutil.h"
@@ -57,18 +60,17 @@
 #include "jsatom.h"
 #include "jscntxt.h"
 #include "jsversion.h"
-#include "jsemit.h"
 #include "jsfun.h"
 #include "jsiter.h"
 #include "jsnum.h"
 #include "jsobj.h"
 #include "jsopcode.h"
-#include "jsscan.h"
 #include "jsscope.h"
 #include "jsscript.h"
 #include "jsstr.h"
-#include "jsstaticcheck.h"
 
+#include "frontend/BytecodeGenerator.h"
+#include "frontend/TokenStream.h"
 #include "vm/Debugger.h"
 
 #include "jscntxtinlines.h"
@@ -80,6 +82,7 @@
 
 #include "vm/RegExpObject-inl.h"
 
+using namespace mozilla;
 using namespace js;
 using namespace js::gc;
 
@@ -959,7 +962,7 @@ js_GetPrinterOutput(JSPrinter *jp)
 }
 
 /*
- * NB: Indexed by SRC_DECL_* defines from jsemit.h.
+ * NB: Indexed by SRC_DECL_* defines from frontend/BytecodeGenerator.h.
  */
 static const char * const var_prefix[] = {"var ", "const ", "let "};
 
@@ -2757,7 +2760,7 @@ Decompile(SprintStack *ss, jsbytecode *pc, intN nb, JSOp nextop)
 
                 LOAD_OBJECT(0);
                 argc = OBJ_BLOCK_COUNT(cx, obj);
-                if ((size_t)argc <= JS_ARRAY_LENGTH(smallv)) {
+                if ((size_t)argc <= ArrayLength(smallv)) {
                     atomv = smallv;
                 } else {
                     atomv = (JSAtom **) cx->malloc_(argc * sizeof(JSAtom *));
