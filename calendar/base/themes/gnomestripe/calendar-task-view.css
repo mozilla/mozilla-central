@@ -103,7 +103,7 @@
     text-align: left;
     background-color: transparent;
     border: none;
-    color: black;
+    color: WindowText;
 }
 
 #calendar-task-tree {
