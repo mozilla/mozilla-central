@@ -23,7 +23,6 @@ SHARED_LIBRARY_LIBS += \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libwebrtc_video_coding.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libwebrtc_i420.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libwebrtc_vp8.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/third_party/libvpx/libvpx.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/common_video/libwebrtc_vplib.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libvideo_render_module.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/video_engine/libvideo_engine_core.a \

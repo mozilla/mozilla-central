@@ -53,15 +53,35 @@
              'WEBRTC_LIBVPX_VERSION=960' # Bali
            ],
         },{
-          'dependencies': [
-            '<(webrtc_root)/../third_party/libvpx/libvpx.gyp:libvpx',
-          ],
-          'include_dirs': [
-            '../../../../../../../third_party/libvpx/source/libvpx',
-          ],
-          'defines': [
-            'WEBRTC_LIBVPX_VERSION=971' # Cayuga
-          ],
+          'conditions': [
+             ['build_with_mozilla==1', {
+               'dependencies': [
+#                 '<(webrtc_root)/../third_party/libvpx/libvpx.gyp:libvpx_include',
+               ],
+               'include_dirs': [
+                 '$(LIBVPX_INCLUDE)',
+               ],
+               'defines': [
+                 # This must be updated to match mozilla's version of libvpx
+                 'WEBRTC_LIBVPX_VERSION=971'
+               ],
+               'link_settings': {
+                 'libraries': [
+                    '$(LIBVPX_OBJ)/libvpx.a',
+                 ],
+               },
+             },{
+               'dependencies': [
+                 '<(webrtc_root)/../third_party/libvpx/libvpx.gyp:libvpx',
+               ],
+               'include_dirs': [
+                 '../../../../../../../third_party/libvpx/source/libvpx',
+               ],
+               'defines': [
+                 'WEBRTC_LIBVPX_VERSION=971' # Cayuga
+               ],
+             }],
+           ],
         }],
       ],
       'direct_dependent_settings': {
