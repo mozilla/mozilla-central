@@ -289,7 +289,7 @@ public:
   // if detaching, do without warning? Will create unique files instead of
   //  prompting if duplicate files exist.
   bool m_withoutWarning;
-  nsCStringArray m_savedFiles; // if detaching first, remember where we saved to.
+  nsTArray<nsCString> m_savedFiles; // if detaching first, remember where we saved to.
 };
 
 //
@@ -494,7 +494,7 @@ void nsMessenger::AddMsgUrlToNavigateHistory(const nsACString& aURL)
   // in which case we don't want to add the url to the history list.
   // Or if the entry at the cur history pos is the same as what we're loading, don't
   // add it to the list.
-  if (!mNavigatingToUri.Equals(aURL) && (mCurHistoryPos < 0 || !mLoadedMsgHistory[mCurHistoryPos]->Equals(aURL)))
+  if (!mNavigatingToUri.Equals(aURL) && (mCurHistoryPos < 0 || !mLoadedMsgHistory[mCurHistoryPos].Equals(aURL)))
   {
     mNavigatingToUri = aURL;
     nsCString curLoadedFolderUri;
@@ -507,8 +507,8 @@ void nsMessenger::AddMsgUrlToNavigateHistory(const nsACString& aURL)
     if (curLoadedFolder)
       curLoadedFolder->GetURI(curLoadedFolderUri);
 
-    mLoadedMsgHistory.InsertCStringAt(mNavigatingToUri, mCurHistoryPos++ + 2);
-    mLoadedMsgHistory.InsertCStringAt(curLoadedFolderUri, mCurHistoryPos++ + 2);
+    mLoadedMsgHistory.InsertElementAt(mCurHistoryPos++ + 2, mNavigatingToUri);
+    mLoadedMsgHistory.InsertElementAt(mCurHistoryPos++ + 2, curLoadedFolderUri);
     // we may want to prune this history if it gets large, but I think it's
     // more interesting to prune the back and forward menu.
   }
@@ -747,7 +747,7 @@ nsresult nsMessenger::SaveAttachment(nsIFile *aFile,
       NS_ENSURE_SUCCESS(rv, rv);
       nsCAutoString fileUriSpec;
       outputURI->GetSpec(fileUriSpec);
-      saveState->m_savedFiles.AppendCString(fileUriSpec);
+      saveState->m_savedFiles.AppendElement(fileUriSpec);
     }
   }
 
@@ -2158,9 +2158,9 @@ nsMessenger::SetLastSaveDirectory(nsILocalFile *aLocalFile)
 NS_IMETHODIMP nsMessenger::GetMsgUriAtNavigatePos(PRInt32 aPos, nsACString& aMsgUri)
 {
   PRInt32 desiredArrayIndex = (mCurHistoryPos + (aPos << 1));
-  if (desiredArrayIndex >= 0 && desiredArrayIndex < mLoadedMsgHistory.Count())
+  if (desiredArrayIndex >= 0 && desiredArrayIndex < (PRInt32)mLoadedMsgHistory.Length())
   {
-    mNavigatingToUri = mLoadedMsgHistory[desiredArrayIndex]->get();
+    mNavigatingToUri = mLoadedMsgHistory[desiredArrayIndex];
     aMsgUri = mNavigatingToUri;
     return NS_OK;
   }
@@ -2169,7 +2169,7 @@ NS_IMETHODIMP nsMessenger::GetMsgUriAtNavigatePos(PRInt32 aPos, nsACString& aMsg
 
 NS_IMETHODIMP nsMessenger::SetNavigatePos(PRInt32 aPos)
 {
-  if ((aPos << 1) < mLoadedMsgHistory.Count())
+  if ((aPos << 1) < (PRInt32)mLoadedMsgHistory.Length())
   {
     mCurHistoryPos = aPos << 1;
     return NS_OK;
@@ -2189,9 +2189,9 @@ NS_IMETHODIMP nsMessenger::GetNavigatePos(PRInt32 *aPos)
 NS_IMETHODIMP nsMessenger::GetFolderUriAtNavigatePos(PRInt32 aPos, nsACString& aFolderUri)
 {
   PRInt32 desiredArrayIndex = (mCurHistoryPos + (aPos << 1));
-  if (desiredArrayIndex >= 0 && desiredArrayIndex < mLoadedMsgHistory.Count())
+  if (desiredArrayIndex >= 0 && desiredArrayIndex < (PRInt32)mLoadedMsgHistory.Length())
   {
-    mNavigatingToUri = mLoadedMsgHistory[desiredArrayIndex + 1]->get();
+    mNavigatingToUri = mLoadedMsgHistory[desiredArrayIndex + 1];
     aFolderUri = mNavigatingToUri;
     return NS_OK;
   }
@@ -2204,7 +2204,7 @@ NS_IMETHODIMP nsMessenger::GetNavigateHistory(PRUint32 *aCurPos, PRUint32 *aCoun
   NS_ENSURE_ARG_POINTER(aCurPos);
 
   *aCurPos = mCurHistoryPos >> 1;
-  *aCount = mLoadedMsgHistory.Count();
+  *aCount = mLoadedMsgHistory.Length();
   // for just enabling commands, we don't need the history uris.
   if (!aHistoryUris)
     return NS_OK;
@@ -2214,7 +2214,7 @@ NS_IMETHODIMP nsMessenger::GetNavigateHistory(PRUint32 *aCurPos, PRUint32 *aCoun
   if (!outArray) return NS_ERROR_OUT_OF_MEMORY;
   for (PRUint32 i = 0; i < *aCount; i++)
   {
-    *next = ToNewCString(*(mLoadedMsgHistory[i]));
+    *next = ToNewCString(mLoadedMsgHistory[i]);
     if (!*next)
       return NS_ERROR_OUT_OF_MEMORY;
     next++;
@@ -2257,8 +2257,8 @@ NS_IMETHODIMP nsMessenger::OnItemRemoved(nsIMsgFolder *parentItem, nsISupports *
       PRInt32 uriPos = mLoadedMsgHistory.IndexOf(msgUri);
       if (uriPos != kNotFound)
       {
-        mLoadedMsgHistory.RemoveCStringAt(uriPos);
-        mLoadedMsgHistory.RemoveCStringAt(uriPos); // and the folder uri entry
+        mLoadedMsgHistory.RemoveElementAt(uriPos);
+        mLoadedMsgHistory.RemoveElementAt(uriPos); // and the folder uri entry
         if ((PRInt32) mCurHistoryPos >= uriPos)
           mCurHistoryPos -= 2;
       }
@@ -2589,7 +2589,7 @@ public:
    // temp
   bool mWrittenExtra;
   bool mDetaching;
-  nsCStringArray mDetachedFileUris;
+  nsTArray<nsCString> mDetachedFileUris;
 };
 
 //
@@ -2896,7 +2896,7 @@ nsDelAttachListener::StartProcessing(nsMessenger * aMessenger, nsIMsgWindow * aM
     nextField = PL_strchr(partId, '&');
     sHeader.Append(partId, nextField ? nextField - partId : -1);
     if (detaching)
-      detachToHeader.Append(mDetachedFileUris.CStringAt(u)->get());
+      detachToHeader.Append(mDetachedFileUris[u]);
   }
 
   if (detaching)
@@ -2957,12 +2957,12 @@ nsMessenger::DetachAllAttachments(PRUint32 aCount,
 
 nsresult
 nsMessenger::DetachAttachments(PRUint32 aCount,
-                                  const char ** aContentTypeArray,
-                                  const char ** aUrlArray,
-                                  const char ** aDisplayNameArray,
-                                  const char ** aMessageUriArray,
-                                  nsCStringArray *saveFileUris,
-                                  bool withoutWarning)
+                               const char ** aContentTypeArray,
+                               const char ** aUrlArray,
+                               const char ** aDisplayNameArray,
+                               const char ** aMessageUriArray,
+                               nsTArray<nsCString> *saveFileUris,
+                               bool withoutWarning)
 {
   // if withoutWarning no dialog for user
   if (!withoutWarning && NS_FAILED(PromptIfDeleteAttachments(saveFileUris != nsnull, aCount, aDisplayNameArray)))

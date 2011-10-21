@@ -48,7 +48,6 @@
 #include "nsILocalFile.h"
 #include "nsWeakReference.h"
 #include "nsIDOMWindow.h"
-#include "nsVoidArray.h"
 
 class nsMessenger : public nsIMessenger, public nsSupportsWeakReference, public nsIFolderListener
 {
@@ -72,7 +71,7 @@ public:
                              const char ** aUrlArray,
                              const char ** aDisplayNameArray,
                              const char ** aMessageUriArray,
-                             nsCStringArray *saveFileUris,
+                             nsTArray<nsCString> *saveFileUris,
                              bool withoutWarning = false);
   nsresult SaveAllAttachments(PRUint32 count,
                               const char **contentTypeArray,
@@ -120,7 +119,7 @@ private:
   nsCString   mLastDisplayURI; // this used when the user attempts to force a charset reload of a message...we need to get the last displayed
                                // uri so we can re-display it..
   nsCString mNavigatingToUri;
-  nsCStringArray mLoadedMsgHistory;
+  nsTArray<nsCString> mLoadedMsgHistory;
   PRInt32 mCurHistoryPos;
 };
 
