@@ -89,6 +89,8 @@
 #include "nsIMsgFolder.h"
 #include "nsIMsgAsyncPrompter.h"
 #include "mozilla/ReentrantMonitor.h"
+#include "nsSyncRunnableHelpers.h"
+
 class nsIMAPMessagePartIDArray;
 class nsIMsgIncomingServer;
 class nsIPrefBranch;
@@ -400,10 +402,10 @@ private:
   bool        m_nextUrlReadyToRun;
   nsWeakPtr   m_server;
 
-  nsCOMPtr<nsIImapMailFolderSink>     m_imapMailFolderSink;
-  nsCOMPtr<nsIImapMessageSink>        m_imapMessageSink;
-  nsCOMPtr<nsIImapServerSink>         m_imapServerSink;
-  nsCOMPtr<nsIImapProtocolSink>       m_imapProtocolSink;
+  nsRefPtr<ImapMailFolderSinkProxy> m_imapMailFolderSink;
+  nsRefPtr<ImapMessageSinkProxy>    m_imapMessageSink;
+  nsRefPtr<ImapServerSinkProxy>     m_imapServerSink;
+  nsRefPtr<ImapProtocolSinkProxy>   m_imapProtocolSink;
 
   // helper function to setup imap sink interface proxies
   void SetupSinkProxy();
@@ -668,6 +670,8 @@ private:
   bool m_closeNeededBeforeSelect;
   bool m_retryUrlOnError;
   bool m_preferPlainText;
+
+  PRInt32 m_uidValidity; // stored uid validity for the selected folder.
 
   enum EMailboxHierarchyNameState {
     kNoOperationInProgress,

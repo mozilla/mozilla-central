@@ -69,7 +69,6 @@
 #include "nsIImapService.h"
 #include "nsISocketTransportService.h"
 #include "nsIStreamListenerTee.h"
-#include "nsXPCOMCIDInternal.h"
 #include "nsNetUtil.h"
 #include "nsIDBFolderInfo.h"
 #include "nsIPipe.h"
@@ -94,6 +93,7 @@
 #include "nsIInterfaceRequestor.h"
 #include "nsXPCOMCIDInternal.h"
 #include "nsIXULAppInfo.h"
+#include "nsSyncRunnableHelpers.h"
 
 PRLogModuleInfo *IMAP;
 
@@ -105,7 +105,6 @@ PRLogModuleInfo *IMAP;
 #include "nsIPrefService.h"
 #include "nsIPrefLocalizedString.h"
 #include "nsImapUtils.h"
-#include "nsIProxyObjectManager.h"
 #include "nsIStreamConverterService.h"
 #include "nsIProxyInfo.h"
 #include "nsISSLSocketControl.h"
@@ -610,66 +609,34 @@ nsImapProtocol::GetImapServerKey()
 void
 nsImapProtocol::SetupSinkProxy()
 {
-  nsresult res = NS_ERROR_FAILURE;
-
+  nsresult res;
   if (m_runningUrl)
   {
-    NS_ASSERTION(m_sinkEventTarget && m_thread, "fatal... null sink event queue or thread");
-
-    nsCOMPtr<nsIProxyObjectManager> proxyManager(do_GetService(NS_XPCOMPROXY_CONTRACTID, &res));
-    if (proxyManager) // if we don't get one of these are as good as dead...
+    if (!m_imapMailFolderSink)
     {
-      if (!m_imapMailFolderSink)
-      {
-        nsCOMPtr<nsIImapMailFolderSink> aImapMailFolderSink;
-        res = m_runningUrl->GetImapMailFolderSink(getter_AddRefs(aImapMailFolderSink));
-        if (NS_SUCCEEDED(res) && aImapMailFolderSink)
-          res = proxyManager->GetProxyForObject(m_sinkEventTarget,
-                                             NS_GET_IID(nsIImapMailFolderSink),
-                                             aImapMailFolderSink,
-                                             NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                                             getter_AddRefs(m_imapMailFolderSink));
-      }
-
-      if (!m_imapMessageSink)
-      {
-        nsCOMPtr<nsIImapMessageSink> aImapMessageSink;
-        res = m_runningUrl->GetImapMessageSink(getter_AddRefs(aImapMessageSink));
-        if (NS_SUCCEEDED(res) && aImapMessageSink)
-          res = proxyManager->GetProxyForObject(m_sinkEventTarget,
-                                             NS_GET_IID(nsIImapMessageSink),
-                                             aImapMessageSink,
-                                             NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                                             getter_AddRefs(m_imapMessageSink));
-      }
-      if (!m_imapServerSink)
-      {
-         nsCOMPtr<nsIImapServerSink> aImapServerSink;
-         res = m_runningUrl->GetImapServerSink(getter_AddRefs(aImapServerSink));
-         if (NS_SUCCEEDED(res) && aImapServerSink)
-            res = proxyManager->GetProxyForObject(  m_sinkEventTarget,
-                             NS_GET_IID(nsIImapServerSink),
-                             aImapServerSink,
-                             NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                             getter_AddRefs(m_imapServerSink));
-        NS_ASSERTION(NS_SUCCEEDED(res), "couldn't get proxies");
-      }
-      if (!m_imapProtocolSink)
-      {
-        nsCOMPtr<nsIImapProtocolSink> anImapProxyHelper(do_QueryInterface(NS_ISUPPORTS_CAST(nsIImapProtocolSink*, this), &res));
-        if (NS_SUCCEEDED(res) && anImapProxyHelper)
-          res = proxyManager->GetProxyForObject(  m_sinkEventTarget,
-                             NS_GET_IID(nsIImapProtocolSink),
-                             anImapProxyHelper,
-                             NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                             getter_AddRefs(m_imapProtocolSink));
-        NS_ASSERTION(NS_SUCCEEDED(res), "couldn't get proxies");
-      }
+      nsCOMPtr<nsIImapMailFolderSink> aImapMailFolderSink;
+      (void) m_runningUrl->GetImapMailFolderSink(getter_AddRefs(aImapMailFolderSink));
+      m_imapMailFolderSink = new ImapMailFolderSinkProxy(aImapMailFolderSink);
     }
-    else
-      NS_ASSERTION(PR_FALSE, "can't get proxy service");
+
+    if (!m_imapMessageSink)
+    {
+      nsCOMPtr<nsIImapMessageSink> aImapMessageSink;
+      (void) m_runningUrl->GetImapMessageSink(getter_AddRefs(aImapMessageSink));
+      m_imapMessageSink = new ImapMessageSinkProxy(aImapMessageSink);
+    }
+    if (!m_imapServerSink)
+    {
+       nsCOMPtr<nsIImapServerSink> aImapServerSink;
+       res = m_runningUrl->GetImapServerSink(getter_AddRefs(aImapServerSink));
+       m_imapServerSink = new ImapServerSinkProxy(aImapServerSink);
+    }
+    if (!m_imapProtocolSink)
+    {
+      nsCOMPtr<nsIImapProtocolSink> anImapProxyHelper(do_QueryInterface(NS_ISUPPORTS_CAST(nsIImapProtocolSink*, this), &res));
+      m_imapProtocolSink = new ImapProtocolSinkProxy(anImapProxyHelper);
+    }
   }
-  NS_ASSERTION(NS_SUCCEEDED(res), "couldn't get proxies");
 }
 
 static void SetSecurityCallbacksFromChannel(nsISocketTransport* aTrans, nsIChannel* aChannel)
@@ -713,6 +680,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
     mFolderLastModSeq = 0;
     mFolderTotalMsgCount = 0;
     mFolderHighestUID = 0;
+    m_uidValidity = kUidUnknown;
     if (folder)
     {
       nsCOMPtr<nsIMsgDatabase> folderDB;
@@ -725,7 +693,8 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
         mFolderLastModSeq = ParseUint64Str(modSeqStr.get());
         folderInfo->GetNumMessages(&mFolderTotalMsgCount);
         folderInfo->GetUint32Property(kHighestRecordedUIDPropertyName, 0, &mFolderHighestUID);
-      } 
+        folderInfo->GetImapUidValidity(&m_uidValidity);
+      }
     }
     nsCOMPtr<nsIImapIncomingServer> imapServer = do_QueryInterface(server);
     nsCOMPtr<nsIStreamListener> aRealStreamListener = do_QueryInterface(aConsumer);
@@ -780,12 +749,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
     if (aRealStreamListener)
     {
       NS_ASSERTION(!m_channelListener, "shouldn't already have a channel listener");
-      rv = MsgGetProxyForObject(m_sinkEventTarget,
-                                NS_GET_IID(nsIStreamListener),
-                                aRealStreamListener,
-                                NS_PROXY_SYNC | NS_PROXY_ALWAYS,
-                                getter_AddRefs(m_channelListener));
-      if (NS_FAILED(rv)) return rv;
+      m_channelListener = new StreamListenerProxy(aRealStreamListener);
     }
 
     PRUint32 capability = kCapabilityUndefined;
@@ -1816,7 +1780,7 @@ bool nsImapProtocol::ProcessCurrentURL()
   if (suspendUrl)
     m_imapServerSink->SuspendUrl(m_runningUrl);
   // save the imap folder sink since we need it to do the CopyNextStreamMessage
-  nsCOMPtr<nsIImapMailFolderSink> imapMailFolderSink = m_imapMailFolderSink;
+  nsRefPtr<ImapMailFolderSinkProxy> imapMailFolderSink = m_imapMailFolderSink;
   // release the url as we are done with it...
   ReleaseUrlState(PR_FALSE);
   ResetProgressInfo();
@@ -2488,19 +2452,12 @@ void nsImapProtocol::ProcessSelectedStateURL()
     if (GetServerStateParser().LastCommandSuccessful() && selectIssued &&
       (m_imapAction != nsIImapUrl::nsImapSelectFolder) && (m_imapAction != nsIImapUrl::nsImapLiteSelectFolder))
     {
-      if (m_imapMailFolderSink)
-      {
-        PRInt32 uidValidity;
-        m_imapMailFolderSink->GetUidValidity(&uidValidity);
 
-
-        // error on the side of caution, if the fe event fails to set uidStruct->returnValidity, then assume that UIDVALIDITY
-        // did not roll.  This is a common case event for attachments that are fetched within a browser context.
-        if (!DeathSignalReceived())
-          uidValidityOk = uidValidity == kUidUnknown ||
-                          uidValidity == GetServerStateParser().FolderUID();
-      }
-
+      // error on the side of caution, if the fe event fails to set uidStruct->returnValidity, then assume that UIDVALIDITY
+      // did not roll.  This is a common case event for attachments that are fetched within a browser context.
+      if (!DeathSignalReceived())
+        uidValidityOk = m_uidValidity == kUidUnknown ||
+                        m_uidValidity == GetServerStateParser().FolderUID();
     }
 
     if (!uidValidityOk)

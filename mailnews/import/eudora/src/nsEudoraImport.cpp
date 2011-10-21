@@ -369,6 +369,7 @@ nsresult ImportEudoraMailImpl::Create(nsIImportMail** aImport)
 
 ImportEudoraMailImpl::ImportEudoraMailImpl()
 {
+  nsEudoraCompose::CreateIdentity();
   // Create keys to support the default Eudora label colors.
   // Ideally importing the settings will have already created these,
   // in which case we won't bother (we'll detect that each key already

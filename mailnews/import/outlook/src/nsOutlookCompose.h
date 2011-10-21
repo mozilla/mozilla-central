@@ -66,6 +66,8 @@ public:
   ~nsOutlookCompose();
 
   nsresult ProcessMessage(nsMsgDeliverMode mode, CMapiMessage &msg, nsIOutputStream *pDst);
+  static nsresult CreateIdentity(void);
+  static void ReleaseIdentity(void);
 private:
   struct CidReplacePair {
     nsCString cidOrig;
@@ -73,7 +75,6 @@ private:
   };
 
   nsresult  CreateComponents( void);
-  nsresult  CreateIdentity( void);
 
   void      UpdateHeader(CMapiMessageHeaders& oldHeaders, const CMapiMessageHeaders& newHeaders, CMapiMessageHeaders::SpecialHeader header, bool addIfAbsent = true);
   void      UpdateHeaders(CMapiMessageHeaders& oldHeaders, const CMapiMessageHeaders& newHeaders);
@@ -104,7 +105,7 @@ private:
 
   nsIMsgSendListener *  m_pListener;
   nsIMsgCompFields *    m_pMsgFields;
-  nsIMsgIdentity *    m_pIdentity;
+  static nsIMsgIdentity *    m_pIdentity;
   char* m_optimizationBuffer;
   unsigned int m_optimizationBufferSize;
   nsCOMPtr<nsIImportService>  m_pImportService;

@@ -43,8 +43,6 @@
 #include "MapiApi.h"
 #include "nsIMsgSend.h"
 
-#include "nsProxiedService.h"
-
 #include <vector>
 
 #ifndef PR_LAST_VERB_EXECUTED
@@ -263,8 +261,8 @@ private:
 
   PRUint32 m_msgFlags;
   PRUint32 m_msgLastVerb;
-  
-  nsIIOService *      m_pIOService;
+
+  nsCOMPtr<nsIIOService> m_pIOService;
 
   void    GetDownloadState();
 

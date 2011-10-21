@@ -40,7 +40,6 @@
 #include "nsIStringBundle.h"
 #include "nsImportStringBundle.h"
 #include "nsIServiceManager.h"
-#include "nsIProxyObjectManager.h"
 #include "nsIURI.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"

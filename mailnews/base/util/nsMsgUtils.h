@@ -50,7 +50,6 @@
 #include "nsISupportsArray.h"
 #include "nsIAtom.h"
 #include "nsINetUtil.h"
-#include "nsIProxyObjectManager.h"
 #include "nsServiceManagerUtils.h"
 #include "nsUnicharUtils.h"
 
@@ -336,8 +335,6 @@ NS_MSG_BASE PRUint64 ParseUint64Str(const char *str);
         NS_NewInterfaceRequestorAggregation(aFirst, aSecond, aResult)
 #define MsgNewNotificationCallbacksAggregation(aCallbacks, aLoadGroup, aResult) \
         NS_NewNotificationCallbacksAggregation(aCallbacks, aLoadGroup, aResult)
-#define MsgGetProxyForObject(aTarget, aIID, aObj, aProxyType, aProxyObject) \
-        NS_GetProxyForObject(aTarget, aIID, aObj, aProxyType, aProxyObject)
 #define MsgGetAtom(aString) \
         do_GetAtom(aString)
 #define MsgNewAtom(aString) \
@@ -491,26 +488,6 @@ do_QueryElementAt( nsISupportsArray* array, PRUint32 aIndex, nsresult* aErrorPtr
 {
     return MsgQueryElementAt(array, aIndex, aErrorPtr);
 }
-
-/// Equivalent of NS_GetProxyForObject(aTarget, aIID, aObj, aProxyType, aProxyObject)
-inline
-nsresult
-MsgGetProxyForObject(nsIEventTarget *target,
-                     REFNSIID aIID,
-                     nsISupports* aObj,
-                     PRInt32 proxyType,
-                     void** aProxyObject)
-{
-    // get the proxy object manager
-    nsresult rv;
-    nsCOMPtr<nsIProxyObjectManager> proxyObjMgr = do_GetService("@mozilla.org/xpcomproxy;1", &rv);
-    if (NS_FAILED(rv))
-        return rv;
-    // and try to get the proxy object
-    return proxyObjMgr->GetProxyForObject(target, aIID, aObj,
-                                          proxyType, aProxyObject);
-}
-
 #endif
 
 #endif

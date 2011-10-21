@@ -41,7 +41,6 @@
 #include "nsIStringBundle.h"
 #include "nsOutlookStringBundle.h"
 #include "nsIServiceManager.h"
-#include "nsIProxyObjectManager.h"
 #include "nsIURI.h"
 
 #define OUTLOOK_MSGS_URL       "chrome://messenger/locale/outlookImportMsgs.properties"

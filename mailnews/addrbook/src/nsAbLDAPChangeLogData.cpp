@@ -48,7 +48,6 @@
 #include "nsAbUtils.h"
 #include "nsAbMDBCard.h"
 #include "nsAbLDAPCard.h"
-#include "nsProxiedService.h"
 #include "nsIAuthPrompt.h"
 #include "nsIStringBundle.h"
 #include "nsIWindowWatcher.h"

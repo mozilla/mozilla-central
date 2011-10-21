@@ -47,8 +47,6 @@
 #include "nsIServiceManager.h"
 #include "nsIIOService.h"
 #include "nsIURI.h"
-#include "nsIProxyObjectManager.h"
-#include "nsProxiedService.h"
 #include "nsMsgI18N.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsIOutputStream.h"
@@ -251,15 +249,16 @@ void nsOutlookCompose::ClearReplaceCids()
   m_replacedCids.clear();
 }
 
+nsIMsgIdentity * nsOutlookCompose::m_pIdentity = nsnull;
+
 nsresult nsOutlookCompose::CreateIdentity( void)
 {
   if (m_pIdentity)
     return NS_OK;
 
   nsresult rv;
-  NS_WITH_PROXIED_SERVICE(nsIMsgAccountManager, accMgr,
-                          NS_MSGACCOUNTMANAGER_CONTRACTID,
-                          NS_PROXY_TO_MAIN_THREAD, &rv);
+  nsCOMPtr<nsIMsgAccountManager> accMgr =
+    do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   rv = accMgr->CreateIdentity(&m_pIdentity);
   nsString name;
@@ -269,8 +268,12 @@ nsresult nsOutlookCompose::CreateIdentity( void)
     m_pIdentity->SetIdentityName(name);
     m_pIdentity->SetEmail(NS_LITERAL_CSTRING("import@import.service"));
   }
-
   return rv;
+}
+
+void nsOutlookCompose::ReleaseIdentity()
+{
+  NS_IF_RELEASE(m_pIdentity);
 }
 
 nsresult nsOutlookCompose::CreateComponents( void)

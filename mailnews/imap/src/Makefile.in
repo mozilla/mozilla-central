@@ -73,6 +73,7 @@ CPPSRCS		= \
 		nsImapOfflineSync.cpp \
 		nsAutoSyncState.cpp \
 		nsAutoSyncManager.cpp \
+		nsSyncRunnableHelpers.cpp \
 		$(NULL)
 
 include $(topsrcdir)/config/config.mk

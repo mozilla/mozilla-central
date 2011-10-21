@@ -47,9 +47,8 @@
 #include "nsIServiceManager.h"
 #include "nsIIOService.h"
 #include "nsIURI.h"
-#include "nsIProxyObjectManager.h"
-#include "nsProxiedService.h"
 #include "nsIOutputStream.h"
+#include "nsThreadUtils.h"
 
 #include "nsMsgBaseCID.h"
 #include "nsMsgCompCID.h"
@@ -191,7 +190,6 @@ nsresult EudoraSendListener::CreateSendListener( nsIMsgSendListener **ppListener
 
 nsEudoraCompose::nsEudoraCompose()
 {
-  m_pIOService = nsnull;
   m_pAttachments = nsnull;
   m_pListener = nsnull;
   m_pMsgFields = nsnull;
@@ -212,7 +210,6 @@ nsEudoraCompose::nsEudoraCompose()
 
 nsEudoraCompose::~nsEudoraCompose()
 {
-  NS_IF_RELEASE( m_pIOService);
   NS_IF_RELEASE( m_pListener);
   NS_IF_RELEASE( m_pMsgFields);
 }
@@ -222,9 +219,12 @@ nsresult nsEudoraCompose::CreateIdentity( void)
   if (s_pIdentity)
     return( NS_OK);
 
-  nsresult  rv;
-  NS_WITH_PROXIED_SERVICE(nsIMsgAccountManager, accMgr, NS_MSGACCOUNTMANAGER_CONTRACTID, NS_PROXY_TO_MAIN_THREAD, &rv);
-  if (NS_FAILED(rv)) return( rv);
+  // Should only create identity from main thread
+  NS_ENSURE_TRUE(NS_IsMainThread(), NS_ERROR_FAILURE);
+  nsresult rv;
+  nsCOMPtr<nsIMsgAccountManager> accMgr(do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   rv = accMgr->CreateIdentity( &s_pIdentity);
   nsString name(NS_LITERAL_STRING("Import Identity"));
   if (s_pIdentity) {
@@ -261,12 +261,9 @@ nsresult nsEudoraCompose::CreateComponents( void)
 
   if (!m_pIOService) {
     IMPORT_LOG0( "Creating nsIOService\n");
-
-    NS_WITH_PROXIED_SERVICE(nsIIOService, service, NS_IOSERVICE_CONTRACTID, NS_PROXY_TO_MAIN_THREAD, &rv);
-    if (NS_FAILED(rv))
-      return( rv);
-    m_pIOService = service;
-    NS_IF_ADDREF( m_pIOService);
+    
+    m_pIOService = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
   NS_IF_RELEASE( m_pMsgFields);
@@ -565,8 +562,6 @@ nsresult nsEudoraCompose::GetLocalAttachments(nsIArray **aArray)
 nsresult nsEudoraCompose::SendTheMessage(nsIFile *pMailImportLocation, nsIFile **pMsg)
 {
   nsresult rv = CreateComponents();
-  if (NS_SUCCEEDED( rv))
-    rv = CreateIdentity();
   if (NS_FAILED( rv))
     return( rv);
 

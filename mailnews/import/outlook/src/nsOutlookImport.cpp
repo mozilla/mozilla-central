@@ -229,7 +229,7 @@ NS_IMETHODIMP nsOutlookImport::GetSupportsUpgrade( bool *pUpgrade)
   if (! pUpgrade)
     return NS_ERROR_NULL_POINTER;
 
-  *pUpgrade = PR_TRUE;
+  *pUpgrade = true;
   return( NS_OK);
 }
 
@@ -320,10 +320,12 @@ nsresult ImportOutlookMailImpl::Create(nsIImportMail** aImport)
 
 ImportOutlookMailImpl::ImportOutlookMailImpl()
 {
+  nsOutlookCompose::CreateIdentity();
 }
 
 ImportOutlookMailImpl::~ImportOutlookMailImpl()
 {
+  nsOutlookCompose::ReleaseIdentity();
 }
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(ImportOutlookMailImpl, nsIImportMail)
@@ -336,9 +338,9 @@ NS_IMETHODIMP ImportOutlookMailImpl::GetDefaultLocation( nsIFile **ppLoc, bool *
   if (!ppLoc || !found || !userVerify)
     return NS_ERROR_NULL_POINTER;
 
-  *found = PR_FALSE;
+  *found = false;
   *ppLoc = nsnull;
-  *userVerify = PR_FALSE;
+  *userVerify = false;
   // We need to verify here that we can get the mail, if true then
   // return a dummy location, otherwise return no location
   CMapiApi  mapi;
@@ -360,9 +362,9 @@ NS_IMETHODIMP ImportOutlookMailImpl::GetDefaultLocation( nsIFile **ppLoc, bool *
   if (NS_FAILED(rv))
     return(rv);
 
-  *found = PR_TRUE;
+  *found = true;
   NS_IF_ADDREF(*ppLoc = resultFile);
-  *userVerify = PR_FALSE;
+  *userVerify = false;
 
   return( NS_OK);
 }
@@ -433,7 +435,7 @@ NS_IMETHODIMP ImportOutlookMailImpl::ImportMailbox(  nsIImportMailboxDescriptor 
   if (!pSource || !pDestination || !fatalError) {
     nsOutlookStringBundle::GetStringByID( OUTLOOKIMPORT_MAILBOX_BADPARAM, error);
     if (fatalError)
-      *fatalError = PR_TRUE;
+      *fatalError = true;
     SetLogs( success, error, pErrorLog, pSuccessLog);
       return NS_ERROR_NULL_POINTER;
   }
@@ -530,7 +532,7 @@ NS_IMETHODIMP ImportOutlookAddressImpl::GetAutoFind(PRUnichar **description, boo
   if (! description || !_retval)
     return NS_ERROR_NULL_POINTER;
 
-  *_retval = PR_TRUE;
+  *_retval = true;
   nsString str;
   nsOutlookStringBundle::GetStringByID( OUTLOOKIMPORT_ADDRNAME, str);
   *description = ToNewUnicode(str);
@@ -566,7 +568,7 @@ NS_IMETHODIMP ImportOutlookAddressImpl::ImportAddressBook(nsIImportABDescriptor 
     IMPORT_LOG0( "*** Bad param passed to outlook address import\n");
     nsOutlookStringBundle::GetStringByID( OUTLOOKIMPORT_ADDRESS_BADPARAM, error);
     if (fatalError)
-      *fatalError = PR_TRUE;
+      *fatalError = true;
     ImportOutlookMailImpl::SetLogs( success, error, pErrorLog, pSuccessLog);
       return NS_ERROR_NULL_POINTER;
   }
