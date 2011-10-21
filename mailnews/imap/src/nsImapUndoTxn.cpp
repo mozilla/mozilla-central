@@ -181,17 +181,15 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
                                                  kImapMsgDeletedFlag,
                                                  m_idsAreUids);
         else
-        {
           rv = imapService->AddMessageFlags(m_eventTarget, srcFolder,
                                             srcListener, nsnull,
                                             m_srcMsgIdString,
                                             kImapMsgDeletedFlag,
                                             m_idsAreUids);
-          finishInOnStopRunningUrl = PR_TRUE;
-        }
         if (NS_FAILED(rv)) 
           return rv;
 
+        finishInOnStopRunningUrl = PR_TRUE;
         if (deleteModel != nsMsgImapDeleteModels::IMAPDelete)
           rv = imapService->GetHeaders(m_eventTarget, srcFolder,
                                 srcListener, nsnull, m_srcMsgIdString, PR_TRUE);
@@ -599,6 +597,7 @@ NS_IMETHODIMP nsImapOfflineTxn::UndoTransaction(void)
     case nsIMsgOfflineImapOperation::kMsgCopy:
     case nsIMsgOfflineImapOperation::kAddedHeader:
     case nsIMsgOfflineImapOperation::kFlagsChanged:
+    case nsIMsgOfflineImapOperation::kDeletedMsg:
     {
       rv = srcDB->GetOfflineOpForKey(hdrKey, PR_FALSE, getter_AddRefs(op));
       bool offlineOpPlayedBack = true;
@@ -615,33 +614,31 @@ NS_IMETHODIMP nsImapOfflineTxn::UndoTransaction(void)
         return nsImapMoveCopyMsgTxn::UndoTransaction();
       }
 
-      if (m_header && (m_opType == nsIMsgOfflineImapOperation::kAddedHeader))
+      if (!m_header)
+        break;
+      nsMsgKey msgKey;
+      m_header->GetMessageKey(&msgKey);
+      if (m_opType == nsIMsgOfflineImapOperation::kAddedHeader)
       {
         nsCOMPtr <nsIMsgDBHdr> mailHdr;
-        nsMsgKey msgKey;
-        m_header->GetMessageKey(&msgKey);
         rv = srcDB->GetMsgHdrForKey(msgKey, getter_AddRefs(mailHdr));
         if (mailHdr)
           srcDB->DeleteHeader(mailHdr, nsnull, PR_TRUE, PR_FALSE);
       }
-      break;
-    }
-    case nsIMsgOfflineImapOperation::kDeletedMsg:
+      else if (m_opType == nsIMsgOfflineImapOperation::kDeletedMsg)
       {
-        nsMsgKey msgKey;
-        m_header->GetMessageKey(&msgKey);
         nsCOMPtr<nsIMsgDBHdr> undeletedHdr;
         m_srcHdrs->QueryElementAt(0, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(undeletedHdr));
         if (undeletedHdr)
         {
           nsCOMPtr<nsIMsgDBHdr> newHdr;
-
           srcDB->CopyHdrFromExistingHdr (msgKey, undeletedHdr, PR_TRUE, getter_AddRefs(newHdr));
         }
         srcDB->Close(PR_TRUE);
         srcFolder->SummaryChanged();
       }
       break;
+    }
     case nsIMsgOfflineImapOperation::kMsgMarkedDeleted:
       srcDB->MarkImapDeleted(hdrKey, PR_FALSE, nsnull);
       break;

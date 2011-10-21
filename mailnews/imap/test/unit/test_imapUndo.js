@@ -104,6 +104,7 @@ const gTestArray =
   function verifyFolders() {
     let msgRestored = gIMAPInbox.msgDatabase.getMsgHdrForMessageID(gMsgId1);
     do_check_neq(msgRestored, null);
+    do_check_eq(gIMAPInbox.msgDatabase.dBFolderInfo.numMessages, 4);
     doTest(++gCurTestNum);
   },
 ];
