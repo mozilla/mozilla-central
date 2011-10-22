@@ -1751,11 +1751,9 @@ nsNntpIncomingServer::GetCellProperties(PRInt32 row, nsITreeColumn* col, nsISupp
         // if <name> is in our temporary list of subscribed groups
         // add the "subscribed" property so the check mark shows up
         // in the "subscribedCol"
-        nsCString name;
         if (mSearchResultSortDescending)
-          row = mSubscribeSearchResult.Length() + ~row;
-        mSubscribeSearchResult.SafeElementAt(row, name);
-        if (mTempSubscribed.IndexOf(name) != mTempSubscribed.NoIndex) {
+          row = mSubscribeSearchResult.Length() - 1 - row;
+        if (mTempSubscribed.IndexOf(mSubscribeSearchResult.ElementAt(row)) != mTempSubscribed.NoIndex) {
           properties->AppendElement(mSubscribedAtom);
         }
     }
@@ -1880,11 +1878,10 @@ nsNntpIncomingServer::GetCellText(PRInt32 row, nsITreeColumn* col, nsAString& _r
     if (colID[0] == 'n') {
       nsCAutoString str;
       if (mSearchResultSortDescending)
-        row = mSubscribeSearchResult.Length() + ~row;
-      mSubscribeSearchResult.SafeElementAt(row, str);
+        row = mSubscribeSearchResult.Length() - 1 - row;
       // some servers have newsgroup names that are non ASCII.  we store
       // those as escaped. unescape here so the UI is consistent
-      rv = NS_MsgDecodeUnescapeURLPath(str, _retval);
+      rv = NS_MsgDecodeUnescapeURLPath(mSubscribeSearchResult.ElementAt(row), _retval);
     }
     return rv;
 }
