@@ -217,7 +217,7 @@ function backupDB(db, currentVersion) {
         let backupPath = cal.getCalendarDirectory();
         backupPath.append("backup");
         if (!backupPath.exists()) {
-            backupPath.create(CI.nsIFile.DIRECTORY_TYPE, parseInt("0755", 8));
+            backupPath.create(Components.interfaces.nsIFile.DIRECTORY_TYPE, parseInt("0755", 8));
         }
 
         // Create a backup file and notify the user via WARN, since LOG will not
