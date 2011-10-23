@@ -1226,8 +1226,8 @@ var tests = [
   test_attachment_flag,
   test_attributes_fundamental,
   test_attributes_fundamental_from_disk,
-  test_moved_message_attributes,
   test_attributes_explicit,
+  test_moved_message_attributes,
   test_attributes_cant_query,
 
   test_streamed_bodies_are_size_capped,
