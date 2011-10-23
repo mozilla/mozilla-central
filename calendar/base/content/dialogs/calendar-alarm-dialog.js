@@ -83,11 +83,15 @@ function onDismissAlarm(event) {
 function onDismissAllAlarms() {
     // removes widgets on the fly:
     let alarmRichlist = document.getElementById("alarm-richlist");
+    let parentItems = {};
 
     // Make a copy of the child nodes as they get modified live
     for each (let node in Array.slice(alarmRichlist.childNodes)) {
         // Check if the node is a valid alarm and is still part of DOM
-        if (node.parentNode && node.item && node.alarm) {
+        if (node.parentNode && node.item && node.alarm &&
+            !(node.item.parentItem.hashId in parentItems)) {
+            // We only need to acknowledge one occurrence for repeating items
+            parentItems[node.item.parentItem.hashId] = node.item.parentItem;
             getAlarmService().dismissAlarm(node.item, node.alarm);
         }
     }
@@ -188,11 +192,15 @@ function snoozeAllItems(aDurationMinutes) {
     duration.normalize();
 
     let alarmRichlist = document.getElementById("alarm-richlist");
+    let parentItems = {};
 
     // Make a copy of the child nodes as they get modified live
     for each (let node in Array.slice(alarmRichlist.childNodes)) {
         // Check if the node is a valid alarm and is still part of DOM
-        if (node.parentNode && node.item && node.alarm) {
+        if (node.parentNode && node.item && node.alarm &&
+            !(node.item.parentItem.hashId in parentItems)) {
+            // We only need to acknowledge one occurrence for repeating items
+            parentItems[node.item.parentItem.hashId] = node.item.parentItem;
             getAlarmService().snoozeAlarm(node.item, node.alarm, duration);
         }
     }
