@@ -165,6 +165,7 @@
                         </toolbarpalette>
 
                         <toolbar id="task-actions-toolbar" align="start"
+                                 class="inline-toolbar"
                                  customizable="true" mode="full"
                                  defaulticonsize="small" defaultmode="full"
                                  context="task-actions-toolbar-context-menu"
