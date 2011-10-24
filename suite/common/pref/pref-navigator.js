@@ -217,7 +217,7 @@ function HomePagePrefCleanup()
   {
     // clear <preference>
     var pref = GetHomePagePref(j);
-    pref.reset();
+    pref.valueFromPreferences = undefined;
     pref.parentNode.removeChild(pref);
   }
   gHomePagePrefPeak = 0; // cleanup done
