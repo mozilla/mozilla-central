@@ -1349,6 +1349,31 @@
         ]]></body>
       </method>
 
+      <method name="onEventSweepKeypress">
+        <parameter name="event"/>
+        <body><![CDATA[
+          let col = document.calendarEventColumnDragging;
+          if (col && event.keyCode == event.DOM_VK_ESCAPE) {
+              window.removeEventListener("mousemove", col.onEventSweepMouseMove, false);
+              window.removeEventListener("mouseup", col.onEventSweepMouseUp, false);
+              window.removeEventListener("keypress", col.onEventSweepKeypress, false);
+
+              let lateralColumns = col.firstLastShadowColumns();
+              let column = lateralColumns.firstCol;
+              let index = lateralColumns.firstIndex;
+              while (column && index < col.mDragState.shadows) {
+                  column.fgboxes.dragbox.removeAttribute("dragging");
+                  column.fgboxes.box.removeAttribute("dragging");
+                  column = column.nextSibling;
+                  index++;
+              }
+
+              col.mDragState = null;
+              document.calendarEventColumnDragging = null;
+          }
+        ]]></body>
+      </method>
+
       <!--
          - Event sweep handlers
         -->
@@ -1378,6 +1403,7 @@
 
               window.removeEventListener("mousemove", col.onEventSweepMouseMove, false);
               window.removeEventListener("mouseup", col.onEventSweepMouseUp, false);
+              window.removeEventListener("keypress", col.onEventSweepKeypress, false);
               document.calendarEventColumnDragging = null;
               col.mDragState = null;
 
@@ -1546,6 +1572,7 @@
 
           window.removeEventListener("mousemove", col.onEventSweepMouseMove, false);
           window.removeEventListener("mouseup", col.onEventSweepMouseUp, false);
+          window.removeEventListener("keypress", col.onEventSweepKeypress, false);
 
           document.calendarEventColumnDragging = null;
 
@@ -1820,6 +1847,7 @@
 
           window.addEventListener("mousemove", this.onEventSweepMouseMove, false);
           window.addEventListener("mouseup", this.onEventSweepMouseUp, false);
+          window.addEventListener("keypress", this.onEventSweepKeypress, false);
         ]]></body>
       </method>
 
@@ -1977,9 +2005,8 @@
 
         window.addEventListener("mousemove", this.onEventSweepMouseMove, false);
         window.addEventListener("mouseup", this.onEventSweepMouseUp, false);
+        window.addEventListener("keypress", this.onEventSweepKeypress, false);
       ]]></handler>
-
-
     </handlers>
   </binding>
 
