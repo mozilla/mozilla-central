@@ -14,7 +14,7 @@
  *
  * The Original Code is Places test code.
  *
- * The Initial Developer of the Original Code is Mozilla Corp.
+ * The Initial Developer of the Original Code is the Mozilla Foundation.
  * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
@@ -78,6 +78,8 @@ function test() {
   var rawNode = PlacesUtils.unwrapNodes(serializedNode, PlacesUtils.TYPE_X_MOZ_PLACE_CONTAINER).shift();
   // confirm serialization
   ok(rawNode.type, "confirm json node");
+  folderANode.containerOpen = false;
+
   var transaction = PlacesUIUtils.makeTransaction(rawNode,
                                                   PlacesUtils.TYPE_X_MOZ_PLACE_CONTAINER,
                                                   testRootId,
