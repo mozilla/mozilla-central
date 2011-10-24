@@ -109,7 +109,7 @@
                 <row>
                      <label/>
                      <checkbox id="cache"
-                               label="&calendarproperties.cache.label;"/>
+                               label="&calendarproperties.cache2.label;"/>
                 </row>
                 <notificationbox id="location-notifications" flex="1"/>
                 <!--
