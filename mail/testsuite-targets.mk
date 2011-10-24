@@ -74,6 +74,7 @@ make-stage-dir:
 # some of the required xpcshell bits are packaged by mochitest, so we have to
 # package those as well.
 stage-mozilla-tests: make-stage-dir
+	$(MAKE) -C $(DEPTH)/mozilla/layout/tools/reftest stage-package
 	$(MAKE) -C $(DEPTH)/mozilla/testing/mochitest stage-package
 	$(MAKE) -C $(DEPTH)/mozilla/testing/xpcshell stage-package
 
