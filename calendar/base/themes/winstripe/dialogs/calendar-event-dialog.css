@@ -567,6 +567,7 @@ daypicker-monthday {
     border-right: 1px solid #BDBEC0;
     background-color: #E09EBD;
     color: #E09EBD;
+    min-height: 16px;
 }
 
 .freebusy-grid[state="busy"] {
