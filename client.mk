@@ -175,13 +175,12 @@ CONFIGURES += $(TOPSRCDIR)/mozilla/js/src/configure
 build::
 
 # These targets are candidates for auto-running client.py
-ifdef  ALWAYS_RUN_CLIENT_PY
-ifeq (0,${MAKELEVEL})
-build::                      run_client_py
-profiledbuild::              run_client_py
-configure::                  run_client_py
-endif
-endif
+
+ifeq (01,$(MAKELEVEL)$(if $(ALWAYS_RUN_CLIENT_PY),1,))
+
+build profiledbuild configure:: run_client_py
+	$(MAKE) -f $(TOPSRCDIR)/client.mk $@
+else
 
 
 # Print out any options loaded from mozconfig.
@@ -385,6 +384,7 @@ ifdef MOZ_POSTFLIGHT
 endif
 
 endif # MOZ_CURRENT_PROJECT
+endif # RAN_CLIENT_PY
 
 ####################################
 # Postflight, after building all projects
