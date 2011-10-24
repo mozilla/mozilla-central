@@ -125,11 +125,13 @@ repack-l10n-%:
 # Actual locale packaging targets. If L10N_XPI_NAME is set, then use it.
 # Otherwise keep the original XPI_NAME
 # Overriding the final target is a bit of a hack for universal builds
-# so that we can ensure we get the right xpi that gets repacked
+# so that we can ensure we get the right xpi that gets repacked.
+# The ../ is added to dist because calendar/lightning/locales is at a different level
+# to this makefile.
 libs-%: FINAL_XPI_NAME=$(if $(L10N_XPI_NAME),$(L10N_XPI_NAME),$(XPI_NAME))
 libs-%:
-	$(MAKE) -C locales libs AB_CD=$* FINAL_TARGET=$(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME) XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
-	$(MAKE) -C ../locales libs AB_CD=$* FINAL_TARGET=$(DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME) XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
+	$(MAKE) -C locales libs AB_CD=$* FINAL_TARGET=$(_ABS_DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME) XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
+	$(MAKE) -C ../locales libs AB_CD=$* FINAL_TARGET=$(_ABS_DIST)/$(UNIVERSAL_PATH)xpi-stage/$(FINAL_XPI_NAME) XPI_NAME=$(FINAL_XPI_NAME) XPI_PKGNAME=$(FINAL_XPI_NAME) USE_EXTENSION_MANIFEST=1
 
 # For localized xpis, the install.rdf and lightning-l10n.js need to be
 # reprocessed with some defines from the locale.
