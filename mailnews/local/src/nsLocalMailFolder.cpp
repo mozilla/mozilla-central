@@ -2373,7 +2373,12 @@ nsresult nsMsgLocalMailFolder::WriteStartOfNewMessage()
     if (mCopyState->m_parseMsgState)
         mCopyState->m_parseMsgState->ParseAFolderLine(
           result.get(), result.Length());
-    mCopyState->m_fromLineSeen = PR_TRUE;
+    result = X_MOZILLA_KEYWORDS;
+    mCopyState->m_fileStream->Write(result.get(), result.Length(), &bytesWritten);
+    if (mCopyState->m_parseMsgState)
+        mCopyState->m_parseMsgState->ParseAFolderLine(
+          result.get(), result.Length());
+   mCopyState->m_fromLineSeen = PR_TRUE;
   }
   else
     mCopyState->m_fromLineSeen = PR_FALSE;
