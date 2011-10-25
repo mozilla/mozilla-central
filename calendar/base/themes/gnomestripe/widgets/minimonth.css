@@ -88,8 +88,8 @@ minimonth {
 
 .minimonth-nav-btns {
   padding: 0px;
+  max-width: 19px;
   min-width: 19px;
-  list-style-image: url("chrome://calendar/skin/widgets/nav-buttons.png");
   -moz-user-focus: normal;
 }
 
@@ -97,50 +97,25 @@ minimonth {
   display: none;
 }
 
-.minimonth-nav-btns[dir="-1"],
-.minimonth-nav-btns[dir="1"][chromedir="rtl"] {
-  -moz-image-region: rect(0px 5px 13px 0px);
+.minimonth-nav-btns[disabled] {
+  opacity: .3;
 }
 
-.minimonth-nav-btns[dir="-1"]:hover,
-.minimonth-nav-btns[dir="-1"]:hover:active,
-.minimonth-nav-btns[dir="1"][chromedir="rtl"]:hover,
-.minimonth-nav-btns[dir="1"][chromedir="rtl"]:hover:active {
-  -moz-image-region: rect(13px 5px 26px 0px);
+.minimonth-nav-btns[dir="1"] > .toolbarbutton-icon {
+  -moz-appearance: button-arrow-next;
 }
 
-.minimonth-nav-btns[dir="-1"][disabled],
-.minimonth-nav-btns[dir="1"][disabled][chromedir="rtl"] {
-  -moz-image-region: rect(26px 5px 39px 0px);
+.minimonth-nav-btns[dir="-1"] > .toolbarbutton-icon {
+  -moz-appearance: button-arrow-previous;
 }
 
 .minimonth-nav-btns[dir="0"] {
-  -moz-image-region: rect(0px 16px 13px 5px);
+  list-style-image: url("chrome://calendar/skin/widgets/nav-today.svg");
+  max-width: none;
 }
 
-.minimonth-nav-btns[dir="0"]:hover,
-.minimonth-nav-btns[dir="0"]:hover:active {
-  -moz-image-region: rect(13px 16px 26px 5px);
-}
-
-.minimonth-nav-btns[dir="0"][disabled] {
-  -moz-image-region: rect(26px 16px 39px 5px);
-}
-
-.minimonth-nav-btns[dir="1"],
-.minimonth-nav-btns[dir="-1"][chromedir="rtl"] {
-  -moz-image-region: rect(0px 21px 13px 16px);
-}
-.minimonth-nav-btns[dir="1"]:hover,
-.minimonth-nav-btns[dir="1"]:hover:active,
-.minimonth-nav-btns[dir="-1"][chromedir="rtl"]:hover,
-.minimonth-nav-btns[dir="-1"][chromedir="rtl"]:hover:active {
-  -moz-image-region: rect(13px 21px 26px 16px);
-}
-
-.minimonth-nav-btns[dir="1"][disabled],
-.minimonth-nav-btns[dir="1"][disabled][chromedir="rtl"] {
-  -moz-image-region: rect(26px 21px 39px 16px);
+.minimonth-nav-btns[dir="0"]:hover {
+  list-style-image: url("chrome://calendar/skin/widgets/nav-today-hov.svg");
 }
 
 .minimonth-row-header {
