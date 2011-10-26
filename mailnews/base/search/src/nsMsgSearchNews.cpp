@@ -536,7 +536,7 @@ nsresult nsMsgSearchValidityManager::InitNewsFilterTable()
     m_newsFilterTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::Is, 1);
     m_newsFilterTable->SetAvailable (nsMsgSearchAttrib::Date, nsMsgSearchOp::Isnt, 1);
     m_newsFilterTable->SetEnabled   (nsMsgSearchAttrib::Date, nsMsgSearchOp::Isnt, 1);
-  
+
     m_newsFilterTable->SetAvailable (nsMsgSearchAttrib::Size, nsMsgSearchOp::IsGreaterThan, 1);
     m_newsFilterTable->SetEnabled   (nsMsgSearchAttrib::Size, nsMsgSearchOp::IsGreaterThan, 1);
     m_newsFilterTable->SetAvailable (nsMsgSearchAttrib::Size, nsMsgSearchOp::IsLessThan, 1);
@@ -544,8 +544,12 @@ nsresult nsMsgSearchValidityManager::InitNewsFilterTable()
 
     m_newsFilterTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
     m_newsFilterTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Contains, 1);
+    m_newsFilterTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::DoesntContain, 1);
+    m_newsFilterTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::DoesntContain, 1);
     m_newsFilterTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Is, 1);
     m_newsFilterTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Is, 1);
+    m_newsFilterTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Isnt, 1);
+    m_newsFilterTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::Isnt, 1);
     m_newsFilterTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::BeginsWith, 1);
     m_newsFilterTable->SetEnabled   (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::BeginsWith, 1);
     m_newsFilterTable->SetAvailable (nsMsgSearchAttrib::OtherHeader, nsMsgSearchOp::EndsWith, 1);
