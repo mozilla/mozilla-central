@@ -41,6 +41,7 @@
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const kHoursBetweenUpdates = 6;
 
@@ -67,6 +68,8 @@ function calAlarmService() {
 
     this.calendarObserver = {
         alarmService: this,
+
+        QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIObserver]),
 
         // calIObserver:
         onStartBatch: function() { },
@@ -111,6 +114,8 @@ function calAlarmService() {
 
     this.calendarManagerObserver = {
         alarmService: this,
+
+        QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calICalendarManagerObserver]),
 
         onCalendarRegistered: function(aCalendar) {
             this.alarmService.observeCalendar(aCalendar);

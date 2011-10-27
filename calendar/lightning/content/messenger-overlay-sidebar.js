@@ -45,6 +45,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
 var gLastShownCalendarView = null;
 
 var calendarTabMonitor = {
@@ -353,6 +355,8 @@ var gInvitationsOperationListener = {
 
 var gInvitationsCalendarManagerObserver = {
     mSideBar: this,
+
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calICalendarManagerObserver]),
 
     onCalendarRegistered: function cMO_onCalendarRegistered(aCalendar) {
         this.mSideBar.rescheduleInvitationsUpdate(FIRST_DELAY_REGISTER);

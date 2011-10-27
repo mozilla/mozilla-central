@@ -58,6 +58,7 @@
  */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 // Set this to true when the calendar event tree is clicked to allow for
 // multiple selection
@@ -434,6 +435,8 @@ function unifinderKeyPress(aEvent) {
  * Tree controller for unifinder search results
  */
 var unifinderTreeView = {
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsITreeView]),
+
     // Provide a default tree that holds all the functions used here to avoid
     // cludgy if (this.tree) { this.tree.rowCountChanged(...); } constructs.
     tree: {

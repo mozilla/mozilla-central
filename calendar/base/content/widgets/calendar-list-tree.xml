@@ -100,6 +100,8 @@
       <field name="calMgrObserver"><![CDATA[
       ({ listTree: this,
 
+        QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calICalendarManagerObserver]),
+
         // calICalendarManagerObserver
         onCalendarRegistered: function cMO_onCalendarRegistered(aCalendar) {
             this.listTree.addCalendar(aCalendar);
@@ -126,14 +128,8 @@
       <field name="compositeObserver"><![CDATA[
       ({ listTree: this,
 
-        QueryInterface: function cO_QueryInterface(aIID) {
-            if (!aIID.equals(Components.interfaces.calICompositeObserver) &&
-                !aIID.equals(Components.interfaces.calIObserver) &&
-                !aIID.equals(Components.interfaces.nsISupports)) {
-                throw Components.results.NS_ERROR_NO_INTERFACE;
-            }
-            return this;
-        },
+        QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calICompositeObserver,
+                                               Components.interfaces.calIObserver]),
 
         // calICompositeObserver
         onCalendarAdded: function onCalendarAdded(aCalendar) {
@@ -266,6 +262,7 @@
 
       <constructor><![CDATA[
         Components.utils.import("resource://calendar/modules/calUtils.jsm");
+        Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
         this.tree.view = this;
       ]]></constructor>
       <destructor><![CDATA[
@@ -285,6 +282,8 @@
 
       <field name="calObserver"><![CDATA[
       ({ listTree: this,
+
+        QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIObserver]),
 
         // calIObserver. Note that each registered calendar uses this observer
         onStartBatch: function cMO_onStartBatch() { },
@@ -330,13 +329,7 @@
       <field name="compositeObserver"><![CDATA[
       ({ listTree: this,
 
-        QueryInterface: function cO_QueryInterface(aIID) {
-            if (!aIID.equals(Components.interfaces.calICompositeObserver) &&
-                !aIID.equals(Components.interfaces.nsISupports)) {
-                throw Components.results.NS_ERROR_NO_INTERFACE;
-            }
-            return this;
-        },
+        QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calICompositeObserver]),
 
         // calICompositeObserver
         onCalendarAdded: function onCalendarAdded(aCalendar) {

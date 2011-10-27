@@ -56,6 +56,8 @@ function calCompositeCalendarObserverHelper (compCalendar) {
 calCompositeCalendarObserverHelper.prototype = {
     pendingLoads: null,
 
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIObserver]),
+
     onStartBatch: function() {
         this.compCalendar.mObservers.notify("onStartBatch");
     },
