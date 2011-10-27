@@ -229,7 +229,10 @@
 }
 
 .dateLabel {
-  -moz-padding-end: 3px;
+  line-height: 1.5em;
+  margin: 0;
+  padding: .1em 0;
+  -moz-padding-end: 6px;
   -moz-user-select: text;
   -moz-user-focus: normal;
   cursor: text;
