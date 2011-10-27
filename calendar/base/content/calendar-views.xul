@@ -95,8 +95,8 @@
                </hbox>
             <hbox flex="1" class="navigation-bottombox"/>
          </vbox>
-         <vbox pack="end">
-             <tabs id="view-tabs"
+         <tabbox id="view-tabbox" pack="end">
+            <tabs id="view-tabs"
                    class="calview-tabs"
                    setfocus="true">
                <tab id="calendar-day-view-button"
@@ -119,9 +119,9 @@
                     tooltiptext="&calendar.month.button.tooltip;"
                     calview="month"
                     observes="calendar_month-view_command"/>
-             </tabs>
-           <box class="navigation-bottombox"/>
-         </vbox>
+            </tabs>
+            <box class="navigation-bottombox"/>
+         </tabbox>
          <vbox>
            <vbox flex="1" class="navigation-spacer-box"/>
            <hbox class="navigation-bottombox"/>

@@ -728,8 +728,13 @@ agenda-richlist-item[status="CANCELLED"] .agenda-container-box {
     padding-right: 20px;
 }
 
+#view-tabbox {
+    margin: 0;
+}
+
 .calview-tabs {
     margin-bottom: 0;
+    padding: 0;
 }
 
 tab[calview] {
