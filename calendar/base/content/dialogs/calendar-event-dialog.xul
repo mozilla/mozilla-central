@@ -1097,6 +1097,8 @@
               <label value="&event.url.label;"
                      control="url-link"/>
               <label id="url-link"
+                     onclick="launchBrowser(this.getAttribute('href'), event)"
+                     oncommand="launchBrowser(this.getAttribute('href'), event)"
                      class="text-link"
                      crop="end"/>
             </row>

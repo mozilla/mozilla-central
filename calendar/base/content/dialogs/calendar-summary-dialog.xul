@@ -311,7 +311,8 @@
                       control="url-link"/>
     <label id="url-link"
            class="text-link default-indent"
-           value=" "
+           onclick="launchBrowser(this.getAttribute('href'), event)"
+           oncommand="launchBrowser(this.getAttribute('href'), event)"
            crop="end"/>
   </box>
 
