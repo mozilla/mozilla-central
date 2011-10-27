@@ -296,6 +296,7 @@ modern.jar:
   skin/modern/global/media/scrubberThumb.png                       (global/media/scrubberThumb.png)
   skin/modern/global/media/scrubberThumbWide.png                   (global/media/scrubberThumbWide.png)
   skin/modern/global/media/throbber.png                            (/mozilla/toolkit/themes/winstripe/global/media/throbber.png)
+  skin/modern/global/media/stalled.png                             (global/media/stalled.png)
   skin/modern/global/media/unmuteButton.png                        (global/media/unmuteButton.png)
   skin/modern/global/media/videocontrols.css                       (global/media/videocontrols.css)
   skin/modern/global/menu/menu-arrow-dis.gif                       (global/menu/menu-arrow-dis.gif)

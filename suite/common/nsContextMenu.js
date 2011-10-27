@@ -140,6 +140,7 @@ nsContextMenu.prototype = {
     this.showItem("context-saveimage", showSave);
     this.showItem("context-savevideo", this.onVideo);
     this.showItem("context-saveaudio", this.onAudio);
+    this.showItem("context-video-saveimage", this.onVideo);
     if (this.onVideo)
       this.setItemAttr("context-savevideo", "disabled", !this.mediaURL);
     if (this.onAudio)
@@ -378,6 +379,14 @@ nsContextMenu.prototype = {
     this.showItem("context-media-showcontrols", onMedia && !this.target.controls);
     this.showItem("context-media-hidecontrols", onMedia && this.target.controls);
     this.showItem("context-video-fullscreen", this.onVideo);
+
+    var statsShowing = this.onVideo &&
+                       this.target.wrappedJSObject.mozMediaStatisticsShowing;
+    this.showItem("context-video-showstats",
+                  this.onVideo && this.target.controls && !statsShowing);
+    this.showItem("context-video-hidestats",
+                  this.onVideo && this.target.controls && statsShowing);
+
     // Disable them when there isn't a valid media source loaded.
     if (onMedia) {
       var hasError = this.target.error != null ||
@@ -388,8 +397,13 @@ nsContextMenu.prototype = {
       this.setItemAttr("context-media-unmute", "disabled", hasError);
       this.setItemAttr("context-media-showcontrols", "disabled", hasError);
       this.setItemAttr("context-media-hidecontrols", "disabled", hasError);
-      if (this.onVideo)
-        this.setItemAttr("context-video-fullscreen",  "disabled", hasError);
+      if (this.onVideo) {
+        let canSave = this.target.readyState >= this.target.HAVE_CURRENT_DATA;
+        this.setItemAttr("context-video-saveimage", "disabled", !canSave);
+        this.setItemAttr("context-video-fullscreen", "disabled", hasError);
+        this.setItemAttr("context-video-showstats", "disabled", hasError);
+        this.setItemAttr("context-video-hidestats", "disabled", hasError);
+      }
     }
     this.showItem("context-media-sep-commands", onMedia);
   },
@@ -825,6 +839,27 @@ nsContextMenu.prototype = {
       openTopWin(viewURL, doc.defaultView);
     else
       openUILinkIn(viewURL, where, null, null, doc.documentURIObject);
+  },
+
+  saveVideoFrameAsImage: function () {
+    urlSecurityCheck(this.mediaURL, this.browser.contentPrincipal,
+                     Components.interfaces.nsIScriptSecurityManager.DISALLOW_SCRIPT);
+    var name = "snapshot.jpg";
+    try {
+      let uri = makeURI(this.mediaURL);
+      let url = uri.QueryInterface(Components.interfaces.nsIURL);
+      if (url.fileBaseName)
+        name = url.fileBaseName + ".jpg";
+    } catch (e) { }
+    var video = this.target;
+    var canvas = document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    var ctxDraw = canvas.getContext("2d");
+    ctxDraw.drawImage(video, 0, 0);
+    saveImageURL(canvas.toDataURL("image/jpeg", ""), name, "SaveImageTitle",
+                                  true, true,
+                                  this.target.ownerDocument.documentURIObject);
   },
 
   // Full screen video playback
@@ -1316,7 +1351,7 @@ nsContextMenu.prototype = {
     return form.method == "get" || (form.method == "post" &&
            form.enctype == "application/x-www-form-urlencoded");
   },
-  
+
   // Determines whether or not the separator with the specified ID should be
   // shown or not by determining if there are any non-hidden items between it
   // and the previous separator.
@@ -1354,6 +1389,16 @@ nsContextMenu.prototype = {
         break;
       case "showcontrols":
         media.setAttribute("controls", "true");
+        break;
+      case "showstats":
+        var event = document.createEvent("CustomEvent");
+        event.initCustomEvent("media-showStatistics", false, true, true);
+        media.dispatchEvent(event);
+        break;
+      case "hidestats":
+        var event = document.createEvent("CustomEvent");
+        event.initCustomEvent("media-showStatistics", false, true, false);
+        media.dispatchEvent(event);
         break;
     }
   },
