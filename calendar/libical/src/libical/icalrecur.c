@@ -1072,7 +1072,14 @@ icalrecur_iterator* icalrecur_iterator_new(struct icalrecurrencetype rule,
 	}
 	
     } else if (has_by_data(impl,BY_MONTH_DAY)) {
-	impl->last = icaltime_normalize(impl->last);
+        // setup_defaults sets the day to -1 for negative BYMONTHDAY values,
+        // so make sure to re-calculate with days_in_month
+        if (impl->last.day < 0) {
+            int days_in_month =
+                    icaltime_days_in_month(impl->last.month, impl->last.year);
+            impl->last.day = days_in_month + impl->last.day + 1;
+        }
+        impl->last = icaltime_normalize(impl->last);
     }
 
 
