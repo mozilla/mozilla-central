@@ -2131,6 +2131,8 @@ function toggleAttachmentList(expanded, updateFocus)
     attachmentBar.setAttribute("tooltiptext", bundle.getString(
       "collapseAttachmentPaneTooltip"));
 
+    attachmentList.setOptimumWidth();
+
     var attachmentHeight = attachmentView.boxObject.height -
       attachmentList.boxObject.height + attachmentList.preferredHeight;
 

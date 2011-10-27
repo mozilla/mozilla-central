@@ -311,6 +311,17 @@
         </xul:hbox>
       </xul:scrollbox>
     </content>
+    <implementation>
+      <method name="setOptimumWidth">
+        <body><![CDATA[
+          let width = 0;
+          for (let i = 0; i < this.children.length; i++)
+            width = Math.max(width, this.children[i].scrollWidth);
+          for (let i = 0; i < this.children.length; i++)
+            this.children[i].width = width;
+        ]]></body>
+      </method>
+    </implementation>
     <handlers>
       <handler event="keypress" keycode="VK_LEFT" modifiers="control shift any"
                action="this.moveByOffset(-1, !event.ctrlKey, event.shiftKey);"
