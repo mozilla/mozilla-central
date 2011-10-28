@@ -237,7 +237,7 @@ nsLDAPConnection::Close()
 
   PR_LOG(gLDAPLogModule, PR_LOG_DEBUG, ("unbound\n"));
 
-  NS_ASSERTION(NS_SUCCEEDED(mThread->Shutdown()),
+  NS_ASSERTION(!mThread || NS_SUCCEEDED(mThread->Shutdown()),
                "Failed to shutdown thread cleanly");
 
   // Cancel the DNS lookup if needed, and also drop the reference to the
@@ -744,6 +744,24 @@ NS_IMETHODIMP nsLDAPConnectionRunnable::Run()
               NS_ENSURE_SUCCESS(rv, rv);
               return NS_OK;
             }
+          }
+          // If we're midway through a SASL Bind, we need to continue
+          // without letting our caller know what we're up to!
+          //
+          if (errorCode == LDAP_SASL_BIND_IN_PROGRESS) {
+            struct berval *creds;
+            ldap_parse_sasl_bind_result(
+              mConnection->mConnectionHandle, msgHandle,
+              &creds, 0);
+
+            nsCOMPtr<nsILDAPOperation> operation;
+            mConnection->mPendingOperations.Get((PRUint32)mOperationID, getter_AddRefs(operation));
+
+            NS_ENSURE_TRUE(operation, NS_ERROR_NULL_POINTER);
+
+            nsresult rv = operation->SaslStep(creds->bv_val, creds->bv_len);
+            if (NS_SUCCEEDED(rv))
+              return NS_OK;
           }
           break;
         }
