@@ -63,6 +63,7 @@
 #include "nsQuickSort.h"
 #include "nsComponentManagerUtils.h"
 #include "msgCore.h"
+#include "nsStringGlue.h"
 
 #include <ctype.h>
 

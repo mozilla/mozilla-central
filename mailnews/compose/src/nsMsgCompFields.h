@@ -45,6 +45,7 @@
 #include "nsTArray.h"
 #include "nsCOMArray.h"
 #include "nsCOMPtr.h"
+#include "nsStringGlue.h"
 
 struct nsMsgRecipient
 {
