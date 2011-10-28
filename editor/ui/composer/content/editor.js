@@ -904,6 +904,11 @@ function CheckAndSaveDocument(command, allowDontSave)
 // This is hooked up to the OS's window close widget (e.g., "X" for Windows)
 function EditorCanClose(aCancelQuit, aTopic, aData)
 {
+  if (aTopic == "quit-application-requested" &&
+      aCancelQuit instanceof Components.interfaces.nsISupportsPRBool &&
+      aCancelQuit.data)
+    return false;
+
   // Returns FALSE only if user cancels save action
 
   // "true" means allow "Don't Save" button
@@ -916,8 +921,7 @@ function EditorCanClose(aCancelQuit, aTopic, aData)
   if (canClose && "InsertCharWindow" in window && window.InsertCharWindow)
     SwitchInsertCharToAnotherEditorOrClose();
 
-  if (!canClose && aTopic == "quit-application-requested" &&
-      aCancelQuit instanceof Components.interfaces.nsISupportsPRBool)
+  if (!canClose && aTopic == "quit-application-requested")
     aCancelQuit.data = true;
 
   return canClose;
