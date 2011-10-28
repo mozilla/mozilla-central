@@ -717,7 +717,8 @@ function OnLoadMessenger()
   let tabmail = GetTabMail();
   tabmail.registerTabType(gMailNewsTabsType);
   tabmail.openFirstTab();
-  window.tryToClose = MailWindowIsClosing;
+  Services.obs.addObserver(MailWindowIsClosing,
+                           "quit-application-requested", false);
 
   InitMsgWindow();
   messenger.setWindow(window, msgWindow);
@@ -819,6 +820,8 @@ function OnUnloadMessenger()
   pref.removeObserver("mail.pane_config.dynamic", MailPrefObserver, false);
   pref.removeObserver("mail.showCondensedAddresses", MailPrefObserver, false);
   window.removeEventListener("AppCommand", HandleAppCommandEvent, true);
+  Services.obs.removeObserver(MailWindowIsClosing,
+                              "quit-application-requested");
 
   OnLeavingFolder(gMsgFolderSelected);  // mark all read in current folder
   accountManager.removeIncomingServerListener(gThreePaneIncomingServerListener);
@@ -831,8 +834,13 @@ function OnUnloadMessenger()
 }
 
 // we probably want to warn if more than one tab is closed
-function MailWindowIsClosing()
+function MailWindowIsClosing(aCancelQuit, aTopic, aData)
 {
+  if (aTopic == "quit-application-requested" &&
+      aCancelQuit instanceof Components.interfaces.nsISupportsPRBool &&
+      aCancelQuit.data)
+    return false;
+
   let reallyClose = true;
   let numtabs = GetTabMail().tabInfo.length;
   if (numtabs > 1)
@@ -859,6 +867,10 @@ function MailWindowIsClosing()
         pref.setBoolPref("browser.tabs.warnOnClose", false);
     }
   }
+
+  if (!reallyClose && aTopic == "quit-application-requested")
+    aCancelQuit.data = true;
+
   return reallyClose;
 }
 

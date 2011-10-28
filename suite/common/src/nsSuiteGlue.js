@@ -211,12 +211,6 @@ SuiteGlue.prototype = {
     this._isPlacesLockedObserver = true;
     Services.obs.addObserver(this, "places-shutdown", false);
     this._isPlacesShutdownObserver = true;
-    try {
-      tryToClose = Components.classes["@mozilla.org/appshell/trytoclose;1"]
-                             .getService(Components.interfaces.nsIObserver);
-      Services.obs.removeObserver(tryToClose, "quit-application-requested");
-      Services.obs.addObserver(tryToClose, "quit-application-requested", true);
-    } catch (e) {}
   },
 
   // cleanup (called on application shutdown)

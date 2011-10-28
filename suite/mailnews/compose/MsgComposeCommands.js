@@ -654,34 +654,46 @@ function updateOptionItems()
   goUpdateCommand("cmd_quoteMessage");
 }
 
-var messageComposeOfflineObserver = {
-  observe: function(subject, topic, state) {
+var messageComposeOfflineQuitObserver = {
+  observe: function(aSubject, aTopic, aState) {
     // sanity checks
-    if (topic != "network:offline-status-changed") return;
-    MessageComposeOfflineStateChanged(state == "offline");
+    if (aTopic == "network:offline-status-changed")
+    {
+      MessageComposeOfflineStateChanged(aState == "offline");
 
-    try {
+      try {
         setupLdapAutocompleteSession();
-    } catch (ex) {
+      } catch (ex) {
         // catch the exception and ignore it, so that if LDAP setup
         // fails, the entire compose window stuff doesn't get aborted
+      }
     }
+    // check whether to veto the quit request (unless another observer already
+    // did)
+    else if (aTopic == "quit-application-requested" &&
+             aSubject instanceof Components.interfaces.nsISupportsPRBool &&
+             !aSubject.data)
+      aSubject.data = !ComposeCanClose();
   }
 }
 
-function AddMessageComposeOfflineObserver()
+function AddMessageComposeOfflineQuitObserver()
 {
-  Services.obs.addObserver(messageComposeOfflineObserver,
+  Services.obs.addObserver(messageComposeOfflineQuitObserver,
                            "network:offline-status-changed", false);
+  Services.obs.addObserver(messageComposeOfflineQuitObserver,
+                           "quit-application-requested", false);
 
   // set the initial state of the send button
   MessageComposeOfflineStateChanged(Services.io.offline);
 }
 
-function RemoveMessageComposeOfflineObserver()
+function RemoveMessageComposeOfflineQuitObserver()
 {
-  Services.obs.removeObserver(messageComposeOfflineObserver,
+  Services.obs.removeObserver(messageComposeOfflineQuitObserver,
                               "network:offline-status-changed");
+  Services.obs.removeObserver(messageComposeOfflineQuitObserver,
+                              "quit-application-requested");
 }
 
 function MessageComposeOfflineStateChanged(goingOffline)
@@ -1494,7 +1506,7 @@ function ComposeLoad()
     dump("failed to get RDF\n");
   }
 
-  AddMessageComposeOfflineObserver();
+  AddMessageComposeOfflineQuitObserver();
   AddDirectoryServerObserver(true);
 
   if (gLogComposePerformance)
@@ -1524,7 +1536,6 @@ function ComposeLoad()
     MsgComposeCloseWindow(false); // Don't try to recycle a bogus window
     return;
   }
-  window.tryToClose=ComposeCanClose;
   if (gLogComposePerformance)
     sMsgComposeService.TimeStamp("Done with the initialization (ComposeLoad). Waiting on editor to load about:blank", false);
 
@@ -1546,8 +1557,9 @@ function ComposeUnload()
 
   EditorCleanup();
 
-  RemoveMessageComposeOfflineObserver();
+  RemoveMessageComposeOfflineQuitObserver();
   RemoveDirectoryServerObserver(null);
+
   if (gCurrentIdentity)
     RemoveDirectoryServerObserver("mail.identity." + gCurrentIdentity.key);
   if (gCurrentAutocompleteDirectory)

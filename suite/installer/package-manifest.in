@@ -383,8 +383,6 @@
 @BINPATH@/components/nsSetDefault.manifest
 #endif
 @BINPATH@/components/nsTaggingService.js
-@BINPATH@/components/nsTryToClose.js
-@BINPATH@/components/nsTryToClose.manifest
 @BINPATH@/components/nsTypeAheadFind.js
 #ifdef MOZ_UPDATER
 @BINPATH@/components/nsUpdateService.js

@@ -202,7 +202,8 @@ function onLoad()
     // Focus the list.
     gFilterTree.focus();
 
-    window.tryToClose = onFilterClose;
+    Services.obs.addObserver(onFilterClose,
+                             "quit-application-requested", false);
 
     top.controllers.insertControllerAt(0, gFilterController);
 }
@@ -448,11 +449,17 @@ function onFilterUnload()
   if (filterList) 
     filterList.saveToDefaultFile();
 
+  Services.obs.removeObserver(onFilterClose, "quit-application-requested");
   top.controllers.removeController(gFilterController);
 }
 
-function onFilterClose()
+function onFilterClose(aCancelQuit, aTopic, aData)
 {
+  if (aTopic == "quit-application-requested" &&
+      aCancelQuit instanceof Components.interfaces.nsISupportsPRBool &&
+      aCancelQuit.data)
+    return false;
+
   if (gRunFiltersButton.getAttribute("label") == gRunFiltersButton.getAttribute("stoplabel")) {
     var promptTitle = gFilterBundle.getString("promptTitle");
     var promptMsg = gFilterBundle.getString("promptMsg");;
@@ -463,10 +470,12 @@ function onFilterClose()
         (Services.prompt.BUTTON_TITLE_IS_STRING *
          Services.prompt.BUTTON_POS_0) +
         (Services.prompt.BUTTON_TITLE_IS_STRING * Services.prompt.BUTTON_POS_1),
-        continueButtonLabel, stopButtonLabel, null, null, {value:0}))
-      gFilterListMsgWindow.StopUrls();
-    else
+        continueButtonLabel, stopButtonLabel, null, null, {value:0}) == 0) {
+      if (aTopic == "quit-application-requested")
+        aCancelQuit.data = true;
       return false;
+    }
+    gFilterListMsgWindow.StopUrls();
   }
 
   return true;
