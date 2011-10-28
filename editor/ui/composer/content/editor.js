@@ -224,8 +224,6 @@ function EditorOnLoad()
       }
     }
 
-    window.tryToClose = EditorCanClose;
-
     // Continue with normal startup.
     EditorStartup();
 
@@ -553,6 +551,8 @@ function EditorStartup()
 
   gCSSPrefListener = new nsPrefListener(kUseCssPref);
   gReturnInParagraphPrefListener = new nsPrefListener(kCRInParagraphsPref);
+  Services.obs.addObserver(EditorCanClose, "quit-application-requested", false);
+
 
   // hide Highlight button if we are in an HTML editor with CSS mode off
   // and tell the editor if a CR in a paragraph creates a new paragraph
@@ -754,6 +754,8 @@ function EditorResetFontAndColorAttributes()
 
 function EditorShutdown()
 {
+  Services.obs.removeObserver(EditorCanClose, "quit-application-requested");
+
   gEditorToolbarPrefListener.shutdown();
   gCSSPrefListener.shutdown();
   gReturnInParagraphPrefListener.shutdown();
@@ -900,8 +902,13 @@ function CheckAndSaveDocument(command, allowDontSave)
 
 // Check for changes to document and allow saving before closing
 // This is hooked up to the OS's window close widget (e.g., "X" for Windows)
-function EditorCanClose()
+function EditorCanClose(aCancelQuit, aTopic, aData)
 {
+  if (aTopic == "quit-application-requested" &&
+      aCancelQuit instanceof Components.interfaces.nsISupportsPRBool &&
+      aCancelQuit.data)
+    return false;
+
   // Returns FALSE only if user cancels save action
 
   // "true" means allow "Don't Save" button
@@ -913,6 +920,9 @@ function EditorCanClose()
   //   editor or close any non-modal windows now
   if (canClose && "InsertCharWindow" in window && window.InsertCharWindow)
     SwitchInsertCharToAnotherEditorOrClose();
+
+  if (!canClose && aTopic == "quit-application-requested")
+    aCancelQuit.data = true;
 
   return canClose;
 }
