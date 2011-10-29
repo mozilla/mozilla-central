@@ -1535,11 +1535,6 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::SetTextContent(const nsAString & aTextCo
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsEudoraHTMLImageElement::IsSameNode(nsIDOMNode *other, bool *_retval NS_OUTPARAM)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 NS_IMETHODIMP nsEudoraHTMLImageElement::Contains(nsIDOMNode* aOther, bool* aReturn)
 {
   return NS_ERROR_NOT_IMPLEMENTED;

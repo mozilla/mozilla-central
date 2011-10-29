@@ -1215,11 +1215,6 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetTextContent(const nsAString & aTextC
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsOutlookHTMLImageElement::IsSameNode(nsIDOMNode *other, bool *_retval NS_OUTPARAM)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 NS_IMETHODIMP nsOutlookHTMLImageElement::Contains(nsIDOMNode* aOther, bool* aReturn)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
