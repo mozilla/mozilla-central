@@ -67,6 +67,8 @@
 #include "nsIMsgIncomingServer.h"
 #include "nsAlgorithm.h"
 
+using namespace mozilla;
+
 NS_IMPL_THREADSAFE_ADDREF(nsMsgProtocol)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgProtocol)
 
@@ -139,7 +141,7 @@ nsMsgProtocol::GetQoSBits(PRUint8 *aQoSBits)
   PRInt32 val;
   rv = prefBranch->GetIntPref(prefName.get(), &val);
   NS_ENSURE_SUCCESS(rv, rv);
-  *aQoSBits = (PRUint8) NS_CLAMP(val, 0, 0xff);
+  *aQoSBits = (PRUint8) clamped(val, 0, 0xff);
   return NS_OK;
 }
 
