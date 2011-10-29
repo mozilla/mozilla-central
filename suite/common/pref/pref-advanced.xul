@@ -1,4 +1,4 @@
-<?xml version="1.0"?> 
+<?xml version="1.0"?>
 
 <!-- ***** BEGIN LICENSE BLOCK *****
    - Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -75,5 +75,12 @@
                 preference="shell.checkDefaultClient"/>
     </groupbox>
 
+    <groupbox id="crashReports" hidden="true">
+      <caption id="crashReportsCaption" label="&crashReports.caption;"/>
+      <checkbox id="submitCrashes"
+                label="&submitCrashes.label;"
+                accesskey="&submitCrashes.accesskey;"
+                oncommand="updateSubmitCrashes(this.checked);"/>
+    </groupbox>
   </prefpane>
 </overlay>

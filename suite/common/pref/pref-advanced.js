@@ -60,5 +60,26 @@ function ShellServiceCheck()
   const NS_SHELLSERVICE_CID = "@mozilla.org/suite/shell-service;1";
 
   if (NS_SHELLSERVICE_CID in Components.classes)
+  {
     document.getElementById("checkDefault").hidden = false;
+    CrashReportsCheck();
+  }
+}
+
+function CrashReportsCheck()
+{
+  if ("nsICrashReporter" in Components.interfaces)
+  {
+    var cr = Components.classes["@mozilla.org/toolkit/crash-reporter;1"]
+                       .getService(Components.interfaces.nsICrashReporter);
+    document.getElementById("crashReports").hidden = !cr.enabled;
+    document.getElementById("submitCrashes").checked = cr.submitReports;
+  }
+}
+
+function updateSubmitCrashes(aChecked)
+{
+  Components.classes["@mozilla.org/toolkit/crash-reporter;1"]
+            .getService(Components.interfaces.nsICrashReporter)
+            .submitReports = aChecked;
 }
