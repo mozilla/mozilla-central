@@ -1307,7 +1307,7 @@ nsContextMenu.prototype = {
       return true;
 
     for (var node = this.target; node; node = node.parentNode)
-      if (node instanceof Components.interfaces.nsIDOMNSHTMLElement)
+      if (node instanceof Components.interfaces.nsIDOMHTMLElement)
         return node.isContentEditable;
     return false;
   },

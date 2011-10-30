@@ -182,8 +182,8 @@ typeAheadFind.prototype = {
     // Don't start a find if the focus is an editable element.
     var window = aEvent.currentTarget;
     var element = window.document.commandDispatcher.focusedElement;
-    if (element instanceof Components.interfaces.nsIDOMNSHTMLElement &&
-        element.contentEditable == "true")
+    if (element instanceof Components.interfaces.nsIDOMHTMLElement &&
+        element.isContentEditable)
       return true;
 
     // Don't start a find if the focus is on a form element.
