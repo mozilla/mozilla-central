@@ -1228,7 +1228,6 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetId(nsAString & aId)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-
 NS_IMETHODIMP nsEudoraHTMLImageElement::SetId(const nsAString & aId)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
@@ -1240,7 +1239,6 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetTitle(nsAString & aTitle)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
-
 
 NS_IMETHODIMP nsEudoraHTMLImageElement::SetTitle(const nsAString & aTitle)
 {
@@ -1254,7 +1252,6 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetLang(nsAString & aLang)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-
 NS_IMETHODIMP nsEudoraHTMLImageElement::SetLang(const nsAString & aLang)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
@@ -1266,7 +1263,6 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetDir(nsAString & aDir)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
-
 
 NS_IMETHODIMP nsEudoraHTMLImageElement::SetDir(const nsAString & aDir)
 {
@@ -1280,41 +1276,200 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetClassName(nsAString & aClassName)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-
 NS_IMETHODIMP nsEudoraHTMLImageElement::SetClassName(const nsAString & aClassName)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsEudoraHTMLImageElement::GetAccessKey(nsAString &aAccessKey)
+
+// readonly attribute nsIDOMDOMStringMap dataset
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetDataset(nsIDOMDOMStringMap * *aDataset)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsEudoraHTMLImageElement::SetAccessKey(const nsAString &aAccessKey)
+
+// attribute boolean hidden
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetHidden(bool *aHidden)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsEudoraHTMLImageElement::GetAccessKeyLabel(nsAString &aAccessKey)
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetHidden(bool aHidden)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsEudoraHTMLImageElement::Blur()
+
+// void click ()
+NS_IMETHODIMP nsEudoraHTMLImageElement::Click()
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+
+// attribute long tabIndex
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetTabIndex(PRInt32 *aTabIndex)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetTabIndex(PRInt32 aTabIndex)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// void focus ()
 NS_IMETHODIMP nsEudoraHTMLImageElement::Focus()
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-NS_IMETHODIMP nsEudoraHTMLImageElement::Click()
+
+// void blur ()
+NS_IMETHODIMP nsEudoraHTMLImageElement::Blur()
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
+
+
+// attribute DOMString accessKey
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetAccessKey(nsAString & aAccessKey)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetAccessKey(const nsAString & aAccessKey)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute DOMString accessKeyLabel
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetAccessKeyLabel(nsAString & aAccessKeyLabel)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// attribute boolean draggable
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetDraggable(bool *aDraggable)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetDraggable(bool aDraggable)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// attribute DOMString contentEditable
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetContentEditable(nsAString & aContentEditable)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetContentEditable(const nsAString & aContentEditable)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute boolean isContentEditable
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetIsContentEditable(bool *aIsContentEditable)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute nsIDOMHTMLMenuElement contextMenu
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetContextMenu(nsIDOMHTMLMenuElement * *aContextMenu)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// attribute boolean spellcheck
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetSpellcheck(bool *aSpellcheck)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetSpellcheck(bool aSpellcheck)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// attribute DOMString innerHTML
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetInnerHTML(nsAString & aInnerHTML)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetInnerHTML(const nsAString & aInnerHTML)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// void insertAdjacentHTML (in DOMString position, in DOMString text)
+NS_IMETHODIMP nsEudoraHTMLImageElement::InsertAdjacentHTML(const nsAString & position, const nsAString & text)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// [optional_argc] void scrollIntoView ([optional] in boolean top)
+NS_IMETHODIMP nsEudoraHTMLImageElement::ScrollIntoView(bool top, PRUint8 _argc)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute nsIDOMElement offsetParent
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetOffsetParent(nsIDOMElement * *aOffsetParent)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute long offsetTop
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetOffsetTop(PRInt32 *aOffsetTop)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute long offsetLeft
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetOffsetLeft(PRInt32 *aOffsetLeft)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute long offsetWidth
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetOffsetWidth(PRInt32 *aOffsetWidth)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute long offsetHeight
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetOffsetHeight(PRInt32 *aOffsetHeight)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// void mozRequestFullScreen ()
+NS_IMETHODIMP nsEudoraHTMLImageElement::MozRequestFullScreen()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 
 // attribute DOMString name
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetName(nsAString & aName)

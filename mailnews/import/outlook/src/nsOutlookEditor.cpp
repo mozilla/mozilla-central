@@ -927,6 +927,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetOnmouseleave(JSContext *cx, const JS
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+
 // attribute DOMString id
 NS_IMETHODIMP nsOutlookHTMLImageElement::GetId(nsAString & aId)
 {
@@ -937,6 +938,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetId(const nsAString & aId)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
+
 
 // attribute DOMString title
 NS_IMETHODIMP nsOutlookHTMLImageElement::GetTitle(nsAString & aTitle)
@@ -949,6 +951,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetTitle(const nsAString & aTitle)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+
 // attribute DOMString lang
 NS_IMETHODIMP nsOutlookHTMLImageElement::GetLang(nsAString & aLang)
 {
@@ -959,6 +962,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetLang(const nsAString & aLang)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
+
 
 // attribute DOMString dir
 NS_IMETHODIMP nsOutlookHTMLImageElement::GetDir(nsAString & aDir)
@@ -971,6 +975,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetDir(const nsAString & aDir)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+
 // attribute DOMString className
 NS_IMETHODIMP nsOutlookHTMLImageElement::GetClassName(nsAString & aClassName)
 {
@@ -981,6 +986,196 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetClassName(const nsAString & aClassNa
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
+
+
+// readonly attribute nsIDOMDOMStringMap dataset
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetDataset(nsIDOMDOMStringMap * *aDataset)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// attribute boolean hidden
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetHidden(bool *aHidden)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetHidden(bool aHidden)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// void click ()
+NS_IMETHODIMP nsOutlookHTMLImageElement::Click()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// attribute long tabIndex
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetTabIndex(PRInt32 *aTabIndex)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetTabIndex(PRInt32 aTabIndex)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// void focus ()
+NS_IMETHODIMP nsOutlookHTMLImageElement::Focus()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// void blur ()
+NS_IMETHODIMP nsOutlookHTMLImageElement::Blur()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// attribute DOMString accessKey
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetAccessKey(nsAString & aAccessKey)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetAccessKey(const nsAString & aAccessKey)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute DOMString accessKeyLabel
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetAccessKeyLabel(nsAString & aAccessKeyLabel)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// attribute boolean draggable
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetDraggable(bool *aDraggable)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetDraggable(bool aDraggable)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// attribute DOMString contentEditable
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetContentEditable(nsAString & aContentEditable)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetContentEditable(const nsAString & aContentEditable)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute boolean isContentEditable
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetIsContentEditable(bool *aIsContentEditable)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute nsIDOMHTMLMenuElement contextMenu
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetContextMenu(nsIDOMHTMLMenuElement * *aContextMenu)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// attribute boolean spellcheck
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetSpellcheck(bool *aSpellcheck)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetSpellcheck(bool aSpellcheck)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// attribute DOMString innerHTML
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetInnerHTML(nsAString & aInnerHTML)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetInnerHTML(const nsAString & aInnerHTML)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// void insertAdjacentHTML (in DOMString position, in DOMString text)
+NS_IMETHODIMP nsOutlookHTMLImageElement::InsertAdjacentHTML(const nsAString & position, const nsAString & text)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// [optional_argc] void scrollIntoView ([optional] in boolean top)
+NS_IMETHODIMP nsOutlookHTMLImageElement::ScrollIntoView(bool top, PRUint8 _argc)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute nsIDOMElement offsetParent
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetOffsetParent(nsIDOMElement * *aOffsetParent)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute long offsetTop
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetOffsetTop(PRInt32 *aOffsetTop)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute long offsetLeft
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetOffsetLeft(PRInt32 *aOffsetLeft)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute long offsetWidth
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetOffsetWidth(PRInt32 *aOffsetWidth)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// readonly attribute long offsetHeight
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetOffsetHeight(PRInt32 *aOffsetHeight)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+
+// void mozRequestFullScreen ()
+NS_IMETHODIMP nsOutlookHTMLImageElement::MozRequestFullScreen()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 
 // attribute DOMString name
 NS_IMETHODIMP nsOutlookHTMLImageElement::GetName(nsAString & aName)
@@ -1161,36 +1356,6 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::GetWidth(PRUint32 *aWidth)
 }
 
 NS_IMETHODIMP nsOutlookHTMLImageElement::SetWidth(PRUint32 aWidth)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP nsOutlookHTMLImageElement::GetAccessKey(nsAString &aAccessKey)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP nsOutlookHTMLImageElement::SetAccessKey(const nsAString &aAccessKey)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP nsOutlookHTMLImageElement::GetAccessKeyLabel(nsAString &aAccessKey)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP nsOutlookHTMLImageElement::Blur()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP nsOutlookHTMLImageElement::Focus()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP nsOutlookHTMLImageElement::Click()
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
