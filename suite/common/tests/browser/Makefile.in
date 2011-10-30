@@ -103,6 +103,7 @@ _BROWSER_FILES = \
 	browser_607016.js \
 	browser_615394-SSWindowState_events.js \
 	browser_625257.js \
+        browser_694378.js \
 	browser_isempty.js \
 	browser_markPageAsFollowedLink.js \
 	framedPage.html \

@@ -2281,7 +2281,7 @@ SessionStoreService.prototype = {
       this._closedWindows = root._closedWindows;
 
     var winData;
-    if (!aState.selectedWindow) {
+    if (!aState.selectedWindow || aState.selectedWindow > aState.windows.length) {
       aState.selectedWindow = 0;
     }
     // open new windows for all further window entries of a multi-window session
