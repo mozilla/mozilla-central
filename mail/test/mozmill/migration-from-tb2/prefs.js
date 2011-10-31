@@ -14,6 +14,7 @@ user_pref("app.update.lastUpdateTime.background-update-timer", 1273257684);
 user_pref("app.update.lastUpdateTime.blocklist-background-update-timer", 1273257684);
 user_pref("extensions.checkCompatibility.nightly", false);
 user_pref("extensions.testpilot.lastversion", "1.0");
+user_pref("extensions.autoDisableScopes", 10);
 user_pref("intl.charsetmenu.mailview.cache", "windows-1252, ISO-8859-1, UTF-8");
 user_pref("ldap_2.prefs_migrated", true);
 user_pref("ldap_2.servers.default.filename", "default.mab");

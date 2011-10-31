@@ -118,6 +118,8 @@ class ThunderTestProfile(mozrunner.ThunderbirdProfile):
         # disable extension stuffs
         'extensions.update.enabled'    : False,
         'extensions.update.notifyUser' : False,
+        # don't warn about third party extensions in profile or elsewhere.
+        'extensions.autoDisableScopes': 10,
         # do not ask about being the default mail client
         'mail.shell.checkDefaultClient': False,
         # do not tell us about the greatness that is mozilla (about:rights)

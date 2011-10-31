@@ -135,6 +135,11 @@ pref("extensions.logging.enabled", false);
 
 pref("extensions.update.autoUpdateDefault", true);
 
+// Disable add-ons installed into the shared user and shared system areas by
+// default. This does not include the application directory. See the SCOPE
+// constants in AddonManager.jsm for values to use here
+pref("extensions.autoDisableScopes", 15);
+
 // Preferences for AMO integration
 pref("extensions.getAddons.cache.enabled", true);
 pref("extensions.getAddons.maxResults", 15);
