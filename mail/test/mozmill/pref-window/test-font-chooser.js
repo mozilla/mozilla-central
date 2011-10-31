@@ -108,6 +108,11 @@ function _verify_fonts_displayed(aSerif, aSansSerif, aMonospace) {
                          "sans-serif");
     let displayPaneExpected = isSansDefault ? aSansSerif : aSerif;
     let displayPaneActual = prefc.e("defaultFont").value;
+    // Bug 454532 made us use Courier New rather than Courier on Windows as
+    // the default font in some instances. Account for that here.
+    if (mc.mozmillModule.isWindows &&
+        displayPaneExpected == "Courier")
+      displayPaneExpected = "Courier New";
     assert_fonts_equal("display pane", displayPaneExpected, displayPaneActual);
   }
 
