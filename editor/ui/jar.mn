@@ -80,6 +80,7 @@ comm.jar:
       content/editor/EdConvertToTable.js                       (dialogs/content/EdConvertToTable.js) 
 #ifdef MOZ_SUITE
       content/editor/editor.xul                                (composer/content/editor.xul)
+      content/editor/editingOverlay.js                         (composer/content/editingOverlay.js)
       content/editor/publishprefs.js                           (composer/content/publishprefs.js)
       content/editor/EditorContextMenu.js                      (composer/content/EditorContextMenu.js)
       content/editor/EditorContextMenuOverlay.xul              (composer/content/EditorContextMenuOverlay.xul)

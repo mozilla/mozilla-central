@@ -169,7 +169,7 @@
 
   <toolbox class="toolbox-top" id="EditorToolbox">
   <menubar id="main-menubar" class="chromeclass-menubar" persist="collapsed" grippytooltiptext="&menuBar.tooltip;">
-    <menu id="fileMenu"/>
+    <menu id="menu_File"/>
     <menu id="menu_Edit"/>
 
     <menu id="menu_View">

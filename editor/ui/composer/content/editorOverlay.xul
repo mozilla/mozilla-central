@@ -58,20 +58,10 @@
     <!-- defined in globalOverlay -->
     <key id="key_newNavigator"/>
     <key id="key_newBlankPage"/>
-    <key id="openeditorkb"
-         key="&openFileCmd.key;"
-         command="cmd_open"  modifiers="accel"/>
-    <key id="openremoteeditorkb"
-         key="&openRemoteCmd.key;"
-         command="cmd_openRemote"  modifiers="accel,shift"/>
     <key id="key_save"
          key="&saveCmd.key;"
          command="cmd_save"
          modifiers="accel"/>
-    <key id="publishkb"
-         key="&publishCmd.key;"
-         command="cmd_publish"
-         modifiers="accel,shift"/>
     <key id="key_print"/>
     <key id="key_close"/>
     <key id="key_quit"/>
@@ -165,10 +155,7 @@
           commandupdater="true"
           events="create"
           oncommandupdate="goUpdateComposerMenuItems(this)">
-    <command id="cmd_open"                                          oncommand="goDoCommand('cmd_open')"/>
-    <command id="cmd_openRemote"   label="&openRemoteCmd.label;"    oncommand="goDoCommand('cmd_openRemote')"/>
     <command id="cmd_printSetup"   oncommand="goDoCommand('cmd_printSetup')"/>
-    <command id="cmd_printpreview" oncommand="goDoCommand('cmd_printpreview');"/>
     <command id="cmd_print"        oncommand="goDoCommand('cmd_print')"/>
     <command id="cmd_close"        oncommand="goDoCommand('cmd_close');"/>
     <command id="cmd_quit"         oncommand="goDoCommand('cmd_quit')"/>
@@ -209,18 +196,6 @@
     <command id="cmd_renderedHTMLEnabler"/>
   </commandset>
   
-  <commandset id="composerSaveMenuItems"
-          commandupdater="true"
-          events="create, save"
-          oncommandupdate="goUpdateComposerMenuItems(this)">
-    <command id="cmd_save"           label="&saveCmd.label;"           oncommand="goDoCommand('cmd_save')"/>
-    <command id="cmd_saveAs"         label="&saveAsCmd.label;"         oncommand="goDoCommand('cmd_saveAs')"/>
-    <command id="cmd_saveAndChangeEncoding"  label="&saveAsChangeEncodingCmd.label;"  oncommand="goDoCommand('cmd_saveAndChangeEncoding')"/>
-    <command id="cmd_publish"        label="&publishCmd.label;"        oncommand="goDoCommand('cmd_publish')"/>
-    <command id="cmd_publishAs"      label="&publishAsCmd.label;"      oncommand="goDoCommand('cmd_publishAs')"/>
-    <command id="cmd_revert"         label="&fileRevert.label;"        oncommand="goDoCommand('cmd_revert')"/>
-  </commandset>
-
   <!-- edit menu commands. These get updated by code in globalOverlay.js -->
   <commandset id="composerEditMenuItems"
           commandupdater="true"
@@ -352,67 +327,6 @@
     <command id="cmd_viewCompToolbar"     oncommand="goToggleToolbar('EditToolbar','cmd_viewCompToolbar');"         checked="true"/>
     <command id="cmd_viewFormatToolbar"   oncommand="goToggleToolbar('FormatToolbar','cmd_viewFormatToolbar');"     checked="true"/>
   </commandset>
-
-  <!-- File  menu items -->
-  <menu id="fileMenu" label="&fileMenu.label;" accesskey="&fileMenu.accesskey;">
-    <menupopup id="menu_FilePopup" onpopupshowing="EditorInitFileMenu();">
-      <menu id="menu_New">
-        <menupopup id="menu_NewPopup">
-          <menuitem id="menu_newEditor"/>
-          <menuseparator id="composerBeginGlobalNewItems"/>
-          <menuitem id="menu_newNavigator"/>
-        </menupopup>
-      </menu>
-      <menuitem id="menu_openRemote"
-                accesskey="&openRemoteCmd.accesskey;"
-                key="openremoteeditorkb"
-                command="cmd_openRemote"/>
-      <menuitem id="menu_openFile"
-                label="&openFileCmd.label;"
-                accesskey="&openFileCmd.accesskey;"
-                key="openeditorkb"
-                command="cmd_open"/>
-      <menu id="menu_RecentFiles"
-            label="&fileRecentMenu.label;"
-            accesskey="&fileRecentMenu.accesskey;"
-            onpopupshowing="BuildRecentPagesMenu();">
-        <menupopup id="menupopup_RecentFiles"
-                   oncommand="editPage(event.target.getAttribute('value'),
-                                       event.target.getAttribute('fileType'));"/>
-          <!-- menuitems appended at runtime -->
-      </menu>
-      <menuitem id="menu_close"/>
-      <menuseparator id="fileMenuAfterCloseSeparator"/>
-      <menuitem id="saveMenuitem"
-                accesskey="&saveCmd.accesskey;"
-                key="key_save"
-                command="cmd_save"/>
-      <menuitem id="menu_saveAs"
-                accesskey="&saveAsCmd.accesskey;"
-                command="cmd_saveAs"/>
-      <menuitem id="menu_saveAsChangeEncoding"
-                accesskey="&saveAsChangeEncodingCmd.accesskey;"
-                command="cmd_saveAndChangeEncoding"/>
-      <menuseparator id="fileMenuAfterSaveAsChangeEncodingSeparator"/>
-      <menuitem id="publishMenuitem"
-                accesskey="&publishCmd.accesskey;"
-                key="publishkb"
-                command="cmd_publish"/>
-      <menuitem id="menu_publishAs"
-                accesskey="&publishAsCmd.accesskey;"
-                command="cmd_publishAs"/>
-      <menuseparator id="fileMenuAfterPublishAsSeparator"/>
-      <menuitem id="menu_fileRevert"
-                accesskey="&fileRevert.accesskey;"
-                command="cmd_revert"/>
-      <menuseparator id="fileMenuAfterFileRevertSeparator"/>
-      <!-- menuitems are merged in here from composerOverlay.xul -->
-      <menuitem id="menu_printSetup"/>
-      <menuitem id="menu_printPreview"/>
-      <menuitem id="menu_print"/>
-      <!-- The Exit/Quit item is merged from platformGlobalOverlay.xul -->
-    </menupopup>
-  </menu>
 
   <menu id="menu_Edit">
     <menupopup id="menu_EditPopup">

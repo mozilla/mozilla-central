@@ -114,7 +114,7 @@
 
   <toolbox id="EditorToolbox">
     <menubar id="main-menubar" class="chromeclass-menubar">
-      <menu id="fileMenu"/>
+      <menu id="menu_File"/>
       <menu id="menu_Edit"/>
 
       <menu id="menu_View">

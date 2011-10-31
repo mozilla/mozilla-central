@@ -2100,45 +2100,6 @@ function UpdateWindowTitle()
   } catch (e) { dump(e); }
 }
 
-function BuildRecentPagesMenu()
-{
-  var editor = GetCurrentEditor();
-  if (!editor || !gPrefs)
-    return;
-
-  var popup = document.getElementById("menupopup_RecentFiles");
-  if (!popup || !editor.document)
-    return;
-
-  // Delete existing menu
-  while (popup.firstChild)
-    popup.removeChild(popup.firstChild);
-
-  // Current page is the "0" item in the list we save in prefs,
-  //  but we don't include it in the menu.
-  var curUrl = StripPassword(GetDocumentUrl());
-  var historyCount = 10;
-  try {
-    historyCount = gPrefs.getIntPref("editor.history.url_maximum");
-  } catch(e) {}
-  var menuIndex = 1;
-
-  for (var i = 0; i < historyCount; i++)
-  {
-    var url = GetUnicharPref("editor.history_url_"+i);
-
-    // Skip over current url
-    if (url && url != curUrl)
-    {
-      // Build the menu
-      var title = GetUnicharPref("editor.history_title_"+i);
-      var fileType = GetUnicharPref("editor.history_type_" + i);
-      AppendRecentMenuitem(popup, title, url, fileType, menuIndex);
-      menuIndex++;
-    }
-  }
-}
-
 function SaveRecentFilesPrefs(aTitle, aFileType)
 {
   // Can't do anything if no prefs
@@ -2186,69 +2147,6 @@ function SaveRecentFilesPrefs(aTitle, aFileType)
     SetUnicharPref("editor.history_url_"+i, urlArray[i]);
     SetUnicharPref("editor.history_type_" + i, typeArray[i]);
   }
-}
-
-function AppendRecentMenuitem(menupopup, title, url, aFileType, menuIndex)
-{
-  if (menupopup)
-  {
-    var menuItem = document.createElementNS(XUL_NS, "menuitem");
-    if (menuItem)
-    {
-      var accessKey;
-      if (menuIndex <= 9)
-        accessKey = String(menuIndex);
-      else if (menuIndex == 10)
-        accessKey = "0";
-      else
-        accessKey = " ";
-
-      var itemString = accessKey+" ";
-
-      // Show "title [url]" or just the URL
-      if (title)
-      {
-       itemString += title;
-       itemString += " [";
-      }
-      itemString += url;
-      if (title)
-        itemString += "]";
-
-      menuItem.setAttribute("label", itemString);
-      menuItem.setAttribute("crop", "center");
-      menuItem.setAttribute("tooltiptext", url);
-      menuItem.setAttribute("value", url);
-      menuItem.setAttribute("fileType", aFileType);
-      if (accessKey != " ")
-        menuItem.setAttribute("accesskey", accessKey);
-      menupopup.appendChild(menuItem);
-    }
-  }
-}
-
-function EditorInitFileMenu()
-{
-  // Disable "Save" menuitem when editing remote url. User should use "Save As"
-  var docUrl = GetDocumentUrl();
-  var scheme = GetScheme(docUrl);
-  if (scheme && scheme != "file")
-    SetElementEnabledById("saveMenuitem", false);
-
-  // Enable recent pages submenu if there are any history entries in prefs
-  var historyUrl = "";
-
-  var historyCount = 10;
-  try { historyCount = gPrefs.getIntPref("editor.history.url_maximum"); } catch(e) {}
-  if (historyCount)
-  {
-    historyUrl = GetUnicharPref("editor.history_url_0");
-    
-    // See if there's more if current file is only entry in history list
-    if (historyUrl && historyUrl == docUrl)
-      historyUrl = GetUnicharPref("editor.history_url_1");
-  }
-  SetElementEnabledById("menu_RecentFiles", historyUrl != "");
 }
 
 function EditorInitFormatMenu()

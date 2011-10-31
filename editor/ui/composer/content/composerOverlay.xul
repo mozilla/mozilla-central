@@ -48,7 +48,7 @@
   <!-- Items in the File menu used only by Composer app -->
   <menupopup id="menu_FilePopup">
     <menuitem id="fileExportToText"
-              insertafter="fileMenuAfterFileRevertSeparator"
+              insertafter="sep_print"
               command="cmd_exportToText"/>
     <menuitem id="previewInBrowser"
               label="&previewCmd.label;"
