@@ -86,6 +86,7 @@ comm.jar:
       content/editor/EditorAllTags.css                         (composer/content/EditorAllTags.css)
       content/editor/EditorParagraphMarks.css                  (composer/content/EditorParagraphMarks.css)
       content/editor/editorOverlay.xul                         (composer/content/editorOverlay.xul) 
+      content/editor/editingOverlay.xul                        (composer/content/editingOverlay.xul)
       content/editor/composerOverlay.xul                       (composer/content/composerOverlay.xul)
       content/editor/pref-toolbars.xul                         (composer/content/pref-toolbars.xul)
       content/editor/pref-editing.xul                          (composer/content/pref-editing.xul)

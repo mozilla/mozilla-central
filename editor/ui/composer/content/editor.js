@@ -391,7 +391,7 @@ var gEditorDocumentObserver =
         if (IsWebComposer())
         {
           InlineSpellCheckerUI.init(editor);
-          document.getElementById('menu_inlinespellcheck').setAttribute('disabled', !InlineSpellCheckerUI.canSpellCheck);
+          document.getElementById('menu_inlineSpellCheck').setAttribute('disabled', !InlineSpellCheckerUI.canSpellCheck);
 
           editor.returnInParagraphCreatesNewParagraph = gPrefs.getBoolPref(kCRInParagraphsPref);
 
@@ -1776,7 +1776,7 @@ function SetEditMode(mode)
 
   // must have editor if here!
   var editor = GetCurrentEditor();
-  var inlineSpellCheckItem = document.getElementById('menu_inlinespellcheck');
+  var inlineSpellCheckItem = document.getElementById('menu_inlineSpellCheck');
 
   // Switch the UI mode before inserting contents
   //   so user can't type in source window while new window is being filled

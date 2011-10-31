@@ -83,6 +83,7 @@ messenger.jar:
     content/messenger/messengercompose/pref-formatting.xul                     (compose/prefs/pref-formatting.xul)
     content/messenger/messengercompose/pref-formatting.js                      (compose/prefs/pref-formatting.js)
     content/messenger/messengercompose/messengercompose.xul                    (compose/messengercompose.xul)
+    content/messenger/messengercompose/mailComposeOverlay.xul                  (compose/mailComposeOverlay.xul)
     content/messenger/messengercompose/msgComposeContextOverlay.xul            (compose/msgComposeContextOverlay.xul)
     content/messenger/messengercompose/MsgComposeCommands.js                   (compose/MsgComposeCommands.js)
     content/messenger/messengercompose/addressingWidgetOverlay.js              (compose/addressingWidgetOverlay.js)

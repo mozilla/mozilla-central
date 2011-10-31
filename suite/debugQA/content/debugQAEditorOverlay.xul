@@ -64,7 +64,9 @@
         <menuitem label="&outputHTMLCmd.label;"
                   oncommand="EditorGetHTML()"/>
         <menuseparator/>
-        <menuitem id="menu_pasteQuote"/>
+        <menuitem id="menu_pasteQuote"
+                  key="pastequotationkb"
+                  command="cmd_pasteQuote"/>
         <menuitem label="&editRewrapCmd.label;"
                   oncommand="try { GetCurrentEditor().rewrap(true); } catch (e) {}"/>
         <menuitem label="&editStripQuotesCmd.label;"

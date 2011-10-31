@@ -55,6 +55,7 @@
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 <?xul-overlay href="chrome://editor/content/editorOverlay.xul"?>
 <?xul-overlay href="chrome://editor/content/editorSmileyOverlay.xul"?>
+<?xul-overlay href="chrome://messenger/content/messengercompose/mailComposeOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/messengercompose/mailComposeExtrasOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/mailOverlay.xul"?>
 
@@ -135,10 +136,16 @@
   <!--command id="cmd_pasteQuote"/  DO NOT INCLUDE THOSE COMMANDS ELSE THE EDIT MENU WILL BE BROKEN! -->
   <!--command id="cmd_find"/-->
   <!--command id="cmd_findNext"/-->
-  <command id="cmd_rewrap"  oncommand="goDoCommand('cmd_rewrap')"/>
+  <command id="cmd_rewrap"
+           label="&editRewrapCmd.label;"
+           accesskey="&editRewrapCmd.accesskey;"
+           oncommand="goDoCommand('cmd_rewrap');"/>
   <command id="cmd_renameAttachment" oncommand="goDoCommand('cmd_renameAttachment')" disabled="true"/>
   <command id="cmd_openAttachment" oncommand="goDoCommand('cmd_openAttachment')"/>
-  <command id="cmd_account" oncommand="goDoCommand('cmd_account')"/>
+  <command id="cmd_account"
+           label="&accountManagerCmd.label;"
+           accesskey="&accountManagerCmd.accesskey;"
+           oncommand="goDoCommand('cmd_account');"/>
 
   <!-- Options Menu -->
   <command id="cmd_selectAddress" oncommand="goDoCommand('cmd_selectAddress')"/>
@@ -301,39 +308,7 @@
               <menuitem id="menu_print"/>
             </menupopup>
           </menu>
-          <menu id="menu_Edit">
-            <menupopup id="menu_EditPopup" onpopupshowing="updateEditItems();">
-              <menuitem id="menu_undo"/>
-              <menuitem id="menu_redo"/>
-              <menuseparator id="menuEditAfterRedoSeparator"/>
-              <menuitem id="menu_cut"/>
-              <menuitem id="menu_copy"/>
-              <menuitem id="menu_paste"/>
-              <menuitem id="menu_pasteNoFormatting"
-                        command="cmd_pasteNoFormatting"
-                        key="pastenoformattingkb"/>
-              <menuitem id="menu_pasteQuote"/>
-              <menuitem id="menu_rewrap"
-                        label="&editRewrapCmd.label;"
-                        accesskey="&editRewrapCmd.accesskey;"
-                        key="key_rewrap"
-                        command="cmd_rewrap"/>
-              <menuitem id="menu_delete"/>
-              <menuseparator id="menuEditAfterDeleteSeparator"/>
-              <menuitem id="menu_selectAll"/>
-              <menuseparator id="menuEditAfterSelectAllSeparator"/>
-              <menuitem id="menu_find" label="&findCmd.label;"/>
-              <menuitem id="menu_findNext"/>
-              <menuitem id="menu_findPrev"/>
-              <menuseparator id="prefSep"/>
-              <menuitem id="menu_accountmgr"
-                        label="&accountManagerCmd.label;"
-                        accesskey="&accountManagerCmd.accesskey;"
-                        command="cmd_account"/>
-              <menuitem id="menu_preferences"
-                        oncommand="goDoCommand('cmd_preferences')"/>
-            </menupopup>
-          </menu>
+          <menu id="menu_Edit"/>
           <menu id="menu_View">
             <menupopup id="menu_View_Popup">
               <menu id="menu_Toolbars">
@@ -374,16 +349,6 @@
                         label="&selectAddressCmd.label;"
                         accesskey="&selectAddressCmd.accesskey;"
                         command="cmd_selectAddress"/>
-              <menuitem id="menu_checkspelling"
-                        label="&checkSpellingCmd2.label;"
-                        accesskey="&checkSpellingCmd2.accesskey;"
-                        key="key_checkspelling"
-                        command="cmd_spelling"/>
-              <menuitem id="menu_inlineSpellCheck"
-                        type="checkbox"
-                        label="&enableInlineSpellChecker.label;"
-                        accesskey="&enableInlineSpellChecker.accesskey;"
-                        oncommand="EnableInlineSpellCheck(!InlineSpellCheckerUI.enabled);"/>
               <menuitem id="menu_quoteMessage"
                         label="&quoteCmd.label;"
                         accesskey="&quoteCmd.accesskey;"

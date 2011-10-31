@@ -42,6 +42,7 @@
 <?xml-stylesheet href="chrome://editor/skin/editor.css" type="text/css"?>
 <?xml-stylesheet href="chrome://editor/skin/editorPrimaryToolbar.css" type="text/css"?>
 <?xul-overlay href="chrome://editor/content/editorOverlay.xul"?>
+<?xul-overlay href="chrome://editor/content/editingOverlay.xul"?>
 <?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://global/content/charsetOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
@@ -114,7 +115,7 @@
   <toolbox id="EditorToolbox">
     <menubar id="main-menubar" class="chromeclass-menubar">
       <menu id="fileMenu"/>
-      <menu id="editMenu"/>
+      <menu id="menu_Edit"/>
 
       <menu id="menu_View">
         <!-- id pulls in "Show Sidebar" item from sidebarOverlay -->

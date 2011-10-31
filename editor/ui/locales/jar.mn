@@ -36,6 +36,7 @@
 @AB_CD@.jar:
 % locale editor-region @AB_CD@ %locale/@AB_CD@/editor-region/
   locale/@AB_CD@/editor/editor.dtd                           (%chrome/composer/editor.dtd)
+  locale/@AB_CD@/editor/editingOverlay.dtd                   (%chrome/composer/editingOverlay.dtd)
   locale/@AB_CD@/editor/editorPrefsOverlay.dtd               (%chrome/composer/editorPrefsOverlay.dtd)
   locale/@AB_CD@/editor/pref-toolbars.dtd                    (%chrome/composer/pref-toolbars.dtd)
   locale/@AB_CD@/editor/pref-editing.dtd                     (%chrome/composer/pref-editing.dtd)

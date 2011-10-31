@@ -245,8 +245,6 @@
              label="&pasteAsQuotationCmd.label;"
              accesskey="&pasteAsQuotationCmd.accesskey;"
              oncommand="goDoCommand('cmd_pasteQuote');"/>
-    <command id="cmd_publishSettings"
-             oncommand="goDoCommand('cmd_publishSettings');"/>
   </commandset>
 
   <!-- style related commands that update on creation, and on selection change -->
@@ -416,12 +414,12 @@
     </menupopup>
   </menu>
 
-  <menu id="editMenu" label="&editMenu.label;" accesskey="&editMenu.accesskey;">
-    <menupopup id="edEditMenuPopup">
+  <menu id="menu_Edit">
+    <menupopup id="menu_EditPopup">
       <!-- from utilityOverlay.xul -->
       <menuitem id="menu_undo"/>
       <menuitem id="menu_redo"/>
-      <menuseparator id="edEditMenuSep1" />
+      <menuseparator id="sep_cut"/>
       <menuitem id="menu_cut"/>
       <menuitem id="menu_copy"/>
       <menuitem id="menu_paste"/>
@@ -429,7 +427,7 @@
                 key="pastenoformattingkb"
                 command="cmd_pasteNoFormatting"/>
       <menuitem id="menu_delete"/>
-      <menuseparator id="edEditMenuSep2" />
+      <menuseparator id="sep_selectAll"/>
       <menuitem id="menu_selectAll"/>
       <menuseparator id="sep_find"/>
       <menuitem id="menu_find" label="&findCmd.label;"/>
@@ -441,16 +439,11 @@
                 accesskey="&checkSpellingCmd2.accesskey;"
                 key="key_checkspelling"
                 command="cmd_spelling"/>
-      <menuitem id="menu_inlinespellcheck"
+      <menuitem id="menu_inlineSpellCheck"
                 type="checkbox"
                 label="&enableInlineSpellChecker.label;"
-                accesskey="&enableInlineSpellChecker.accesskey;"
-                oncommand="InlineSpellCheckerUI.enabled = !InlineSpellCheckerUI.enabled"/>
-      <menuseparator id="menu_prefsSep"/>
-      <menuitem id="menu_publishSettings"
-                label="&publishSettings.label;"
-                accesskey="&publishSettings.accesskey;"
-                command="cmd_publishSettings"/>
+                accesskey="&enableInlineSpellChecker.accesskey;"/>
+      <menuseparator id="sep_preferences"/>
       <menuitem id="menu_preferences"
                 command="cmd_preferences"/>
     </menupopup>
@@ -1388,11 +1381,4 @@
                  class="formatting-button"
                  tooltiptext="&layerBringToFront.tooltip;"
                  command="cmd_increaseZIndex"/>
-
-  <!-- Paste as quotation is used by mail compose,
-       but in composer it has to go in the debug menu
-   -->
-  <menuitem id="menu_pasteQuote"
-            command="cmd_pasteQuote" key="pastequotationkb"/>
-
 </overlay>
