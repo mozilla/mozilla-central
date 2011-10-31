@@ -90,6 +90,10 @@ function onInit(aPageId, aServerId)
   // set up the whitelist UI
   var wList = document.getElementById("whiteListAbURI");
 
+  // Ensure the whitelist is empty
+  while (wList.lastChild)
+    wList.removeChild(wList.lastChild);
+
   // Populate the listbox with address books
   let abItems = [];
   for (let ab in fixIterator(MailServices.ab.directories,
