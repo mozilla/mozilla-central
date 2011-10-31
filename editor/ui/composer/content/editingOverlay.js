@@ -121,3 +121,12 @@ function EditorInitFileMenu()
   }
   SetElementEnabledById("menu_RecentFiles", historyUrl != "");
 }
+
+function updateCharsetPopupMenu(aMenuPopup)
+{
+  if (IsDocumentModified() && !IsDocumentEmpty())
+  {
+    for (var i = 0; i < aMenuPopup.childNodes.length; i++)
+      aMenuPopup.childNodes[i].setAttribute("disabled", "true");
+  }
+}

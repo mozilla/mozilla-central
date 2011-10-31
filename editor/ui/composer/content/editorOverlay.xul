@@ -363,8 +363,6 @@
     </menupopup>
   </menu>
 
-  <menupopup id = "composerCharsetMenuPopup"  onpopupshowing="updateCharsetPopupMenu(this)" />
-
   <!-- Insert menu -->
   <menu id="insertMenu"
         label="&insertMenu.label;"

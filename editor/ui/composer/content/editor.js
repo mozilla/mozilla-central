@@ -945,19 +945,6 @@ function EditorSetDocumentCharacterSet(aCharset)
   } catch (e) {}
 }
 
-// ------------------------------------------------------------------
-function updateCharsetPopupMenu(menuPopup)
-{
-  if (IsDocumentModified() && !IsDocumentEmpty())
-  {
-    for (var i = 0; i < menuPopup.childNodes.length; i++)
-    {
-      var menuItem = menuPopup.childNodes[i];
-      menuItem.setAttribute('disabled', 'true');
-    }
-  }
-}
-
 // --------------------------- Text style ---------------------------
 
 function onParagraphFormatChange(paraMenuList, commandID)
