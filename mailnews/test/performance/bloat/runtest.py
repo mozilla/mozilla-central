@@ -109,15 +109,10 @@ if automation.IS_MAC:
 else:
   BINDIR = os.path.join(DISTDIR, 'bin')
 
-if automation.IS_MAC:
-  EXECUTABLE = options.bin + '-bin'
-else:
-  EXECUTABLE = options.bin
-BIN = os.path.join(BINDIR, EXECUTABLE)
+BIN = os.path.join(BINDIR, options.bin)
 EXTENSIONDIR = os.path.join(DISTDIR, '..', '_tests', 'mailbloat', 'mailbloat')
 PROFILE = os.path.join(DISTDIR, '..', '_tests', 'mailbloat', 'leakprofile')
 print BIN
-print EXECUTABLE
 
 # Wipe the profile
 if os.path.exists(PROFILE):
