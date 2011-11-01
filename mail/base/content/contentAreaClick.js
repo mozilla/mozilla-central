@@ -89,7 +89,7 @@
     {
       if (img.className == "moz-attached-image")
       {
-        if (img.naturalWidth <= doc.width)
+        if (img.naturalWidth <= doc.body.clientWidth)
         {
           img.removeAttribute("isshrunk");
           img.removeAttribute("overflowing");

@@ -2884,7 +2884,7 @@ function OnMsgParsed(aUrl)
   var imgs = doc.getElementsByTagName("img");
   for each (var img in imgs)
   {
-    if (img.className == "moz-attached-image" && img.naturalWidth > doc.width)
+    if (img.className == "moz-attached-image" && img.naturalWidth > doc.body.clientWidth)
     {
       if (img.hasAttribute("shrinktofit"))
         img.setAttribute("isshrunk", "true");
