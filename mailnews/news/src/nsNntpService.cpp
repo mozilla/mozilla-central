@@ -1802,6 +1802,8 @@ nsNntpService::MessageURIToMsgHdr(const char *uri, nsIMsgDBHdr **_retval)
 
   rv = DecomposeNewsMessageURI(uri, getter_AddRefs(folder), &msgKey);
   NS_ENSURE_SUCCESS(rv,rv);
+  if (!folder)
+    return NS_ERROR_NULL_POINTER;
 
   rv = folder->GetMessageHeader(msgKey, _retval);
   NS_ENSURE_SUCCESS(rv,rv);
