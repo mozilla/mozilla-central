@@ -388,6 +388,7 @@ nsMessengerWinIntegration::Init()
   if (hModule) {
     mSHSetUnreadMailCount = (fnSHSetUnreadMailCount)GetProcAddress(hModule, XP_SHSetUnreadMailCounts);
     mSHEnumerateUnreadMailAccounts = (fnSHEnumerateUnreadMailAccounts)GetProcAddress(hModule, XP_SHEnumerateUnreadMailAccounts);
+    mSHQueryUserNotificationState = (fnSHQueryUserNotificationState)GetProcAddress(hModule, "SHQueryUserNotificationState");
   }
 
   // if failed to get either of the process addresses, this is not XP platform
@@ -534,6 +535,16 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(bool aUserInitiated
 
   if (prefBranch)
     prefBranch->GetBoolPref(SHOW_ALERT_PREF, &showAlert);
+
+  // check if we are allowed to show a notification
+  if (showAlert && mSHQueryUserNotificationState) {
+    MOZ_QUERY_USER_NOTIFICATION_STATE qstate;    
+    if (SUCCEEDED(mSHQueryUserNotificationState(&qstate))) {
+      if (qstate != QUNS_ACCEPTS_NOTIFICATIONS) {
+        showAlert = false;
+      }
+    }
+  }
 
   if (showAlert)
   {
