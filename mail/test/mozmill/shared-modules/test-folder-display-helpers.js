@@ -1755,8 +1755,8 @@ function assert_message_pane_visible(aThreadPaneIllegal) {
                     "it should!");
 
   // - message pane should be visible
-  if (mc.e("messagepanebox").getAttribute("collapsed"))
-    throw new Error("messagepanebox should not be collapsed!");
+  if (mc.e("messagepaneboxwrapper").getAttribute("collapsed"))
+    throw new Error("messagepaneboxwrapper should not be collapsed!");
 
   // if the thread pane is illegal, then the splitter should not be visible
   if (aThreadPaneIllegal) {
@@ -1791,8 +1791,8 @@ function assert_message_pane_hidden(aMessagePaneIllegal) {
     throw new Error("The message display thinks it is visible, but it should " +
                     "not!");
 
-  if (mc.e("messagepanebox").getAttribute("collapsed") != "true")
-    throw new Error("messagepanebox should be collapsed!");
+  if (mc.e("messagepaneboxwrapper").getAttribute("collapsed") != "true")
+    throw new Error("messagepaneboxwrapper should be collapsed!");
 
   // force the view menu to update.
   mc.window.view_init();
@@ -2742,6 +2742,37 @@ function throw_and_dump_view_state(aMessage, aController) {
   dump("******** " + aMessage + "\n");
   testHelperModule.dump_view_state(aController.folderDisplay.view);
   throw new Error(aMessage);
+}
+
+/**
+ * Copy constants from mailWindowOverlay.js
+ */
+
+const kClassicMailLayout = 0;
+const kWideMailLayout = 1;
+const kVerticalMailLayout = 2;
+
+/**
+ * Assert that the current mail pane layout is shown
+ */
+
+function assert_pane_layout(aLayout) {
+  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
+                      .getService(Ci.nsIPrefService).getBranch(null);
+  let actualPaneLayout = prefBranch.getIntPref("mail.pane_config.dynamic");
+  if (actualPaneLayout != aLayout)
+    throw new Error("The mail pane layout should be " + aLayout +
+                    ", but is actually " + actualPaneLayout);
+}
+
+/**
+ * Change that the current mail pane layout
+ */
+
+function set_pane_layout(aLayout) {
+  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
+                      .getService(Ci.nsIPrefService).getBranch(null);
+  prefBranch.setIntPref("mail.pane_config.dynamic", aLayout);
 }
 
 /** exported from messageInjection */

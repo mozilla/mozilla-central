@@ -1722,7 +1722,7 @@ FolderDisplayWidget.prototype = {
 
       // save the message pane's state only when it is potentially visible
       this.messagePaneCollapsed =
-        document.getElementById("messagepanebox").collapsed;
+        document.getElementById("messagepaneboxwrapper").collapsed;
 
       this.hookUpFakeTreeBox(true);
     }

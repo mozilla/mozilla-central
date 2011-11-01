@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Siddharth Agarwal <sid.bugzilla@gmail.com>
+ *   Joachim Herb <joachim.herb@gmx.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -92,6 +93,8 @@ function test_open_single_message_in_tab() {
   assert_selected_and_displayed(msgHdr);
   // Check that the message pane is focused
   assert_message_pane_focused();
+  // Check that the message pane in a newly opened tab has full height.
+  check_message_pane_in_tab_full_height();
   // Clean up, close the tab
   close_tab(mc.tabmail.currentTabInfo);
   switch_tab(folderTab);
@@ -154,6 +157,10 @@ function test_open_message_in_new_window() {
   wait_for_message_display_completion(msgc, true);
 
   assert_selected_and_displayed(msgc, msgHdr);
+
+  // Check that the message pane in a newly opened window has full height.
+  check_message_pane_in_window_full_height(msgc);
+
   // Clean up, close the window
   close_message_window(msgc);
   reset_open_message_behavior();
@@ -184,4 +191,42 @@ function test_open_message_in_existing_window() {
   // Clean up, close the window
   close_message_window(msgc);
   reset_open_message_behavior();
+}
+
+/**
+ * Check if the message pane in a new tab has the full height, so no
+ * empty box is visible below it.
+ */
+
+function check_message_pane_in_tab_full_height() {
+  let messagesBoxHeight = mc.e("messagesBox").boxObject.height;
+  let displayDeckHeight = mc.e("displayDeck").boxObject.height;
+  let messagePaneBoxWrapperHeight = mc.e("messagepaneboxwrapper").boxObject.height;
+
+  assert_equals(messagesBoxHeight, displayDeckHeight + messagePaneBoxWrapperHeight,
+      "messanges box height (" + messagesBoxHeight +
+      ") not equal to the sum of displayDeck height (" + displayDeckHeight +
+      ") and message pane box wrapper height (" + messagePaneBoxWrapperHeight +
+      ")");
+}
+
+/**
+ * Check if the message pane in a new window has the full height, so no
+ * empty box is visible below it.
+ */
+
+function check_message_pane_in_window_full_height(aWC) {
+  let messengerWindowHeight = aWC.e("messengerWindow").boxObject.height;
+  let messengerChildren = aWC.e("messengerWindow").children;
+  let childrenHeightsSum = 0;
+  let childrenHeightsStr = "";
+  for (var i=0; i < messengerChildren.length; i++) {
+    childrenHeightsSum += messengerChildren[i].boxObject.height;
+    childrenHeightsStr += '"' + messengerChildren[i].id + '": ' +
+                          messengerChildren[i].boxObject.height + ', ';
+  }
+
+  assert_equals(messengerWindowHeight, childrenHeightsSum,
+    "messenger window height not equal to the sum of children heights: " +
+    childrenHeightsStr);
 }
