@@ -102,12 +102,12 @@ EXPORTS = \
 	./trunk/src/modules/audio_coding/codecs/iLBC/main/interface/ilbc.h \
 	./trunk/src/modules/video_capture/main/interface/video_capture.h \
 	./trunk/src/modules/video_capture/main/interface/video_capture_defines.h \
-	./trunk/src/modules/audio_processing/agc/main/interface/gain_control.h \
-	./trunk/src/modules/audio_processing/main/interface/audio_processing.h \
-	./trunk/src/modules/audio_processing/aec/main/interface/echo_cancellation.h \
-	./trunk/src/modules/audio_processing/aecm/main/interface/echo_control_mobile.h \
-	./trunk/src/modules/audio_processing/ns/main/interface/noise_suppression.h \
-	./trunk/src/modules/audio_processing/ns/main/interface/noise_suppression_x.h \
+	./trunk/src/modules/audio_processing/agc/interface/gain_control.h \
+	./trunk/src/modules/audio_processing/interface/audio_processing.h \
+	./trunk/src/modules/audio_processing/aec/interface/echo_cancellation.h \
+	./trunk/src/modules/audio_processing/aecm/interface/echo_control_mobile.h \
+	./trunk/src/modules/audio_processing/ns/interface/noise_suppression.h \
+	./trunk/src/modules/audio_processing/ns/interface/noise_suppression_x.h \
 	./trunk/src/modules/rtp_rtcp/interface/rtp_rtcp.h \
 	./trunk/src/modules/rtp_rtcp/interface/rtp_rtcp_defines.h \
 	./trunk/src/modules/udp_transport/interface/udp_transport.h \

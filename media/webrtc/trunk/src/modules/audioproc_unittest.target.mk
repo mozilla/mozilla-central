@@ -4,9 +4,12 @@ TOOLSET := target
 TARGET := audioproc_unittest
 DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -15,9 +18,9 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
 	'-DWEBRTC_APM_UNIT_TEST_FLOAT_PROFILE' \
+	'-DGOOGLE_PROTOBUF_NO_RTTI' \
 	'-DUNIT_TEST' \
 	'-DGTEST_HAS_RTTI=0' \
-	'-DGOOGLE_PROTOBUF_NO_RTTI' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
@@ -49,20 +52,24 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Itesting/gtest/include \
-	-I$(obj)/gen/protoc_out \
-	-Isrc/modules/audio_processing/main/interface \
+	-Isrc/modules/audio_processing/interface \
 	-Isrc/modules/interface \
+	-I$(obj)/gen/protoc_out \
+	-Ithird_party/protobuf \
+	-Ithird_party/protobuf/src \
 	-Isrc/common_audio/signal_processing_library/main/interface \
 	-Isrc/system_wrappers/interface \
-	-Ithird_party/protobuf \
-	-Ithird_party/protobuf/src
+	-Itest \
+	-Itesting/gtest/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -71,9 +78,9 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
 	'-DWEBRTC_APM_UNIT_TEST_FLOAT_PROFILE' \
+	'-DGOOGLE_PROTOBUF_NO_RTTI' \
 	'-DUNIT_TEST' \
 	'-DGTEST_HAS_RTTI=0' \
-	'-DGOOGLE_PROTOBUF_NO_RTTI' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
@@ -107,23 +114,23 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Itesting/gtest/include \
-	-I$(obj)/gen/protoc_out \
-	-Isrc/modules/audio_processing/main/interface \
+	-Isrc/modules/audio_processing/interface \
 	-Isrc/modules/interface \
+	-I$(obj)/gen/protoc_out \
+	-Ithird_party/protobuf \
+	-Ithird_party/protobuf/src \
 	-Isrc/common_audio/signal_processing_library/main/interface \
 	-Isrc/system_wrappers/interface \
-	-Ithird_party/protobuf \
-	-Ithird_party/protobuf/src
+	-Itest \
+	-Itesting/gtest/include
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/main/test/unit_test/unit_test.o \
-	$(obj).target/$(TARGET)/gen/protoc_out/webrtc/audio_processing/unittest.pb.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/test/unit_test.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/audioproc_unittest_proto.stamp $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgtest_main.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a
+$(OBJS): | $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_unittest_proto.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -159,9 +166,9 @@ LIBS := -lrt
 
 $(builddir)/audioproc_unittest: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/audioproc_unittest: LIBS := $(LIBS)
-$(builddir)/audioproc_unittest: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgtest_main.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a
+$(builddir)/audioproc_unittest: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_unittest_proto.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a
 $(builddir)/audioproc_unittest: TOOLSET := $(TOOLSET)
-$(builddir)/audioproc_unittest: $(OBJS) $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgtest_main.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a FORCE_DO_CMD
+$(builddir)/audioproc_unittest: $(OBJS) $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_unittest_proto.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/audioproc_unittest

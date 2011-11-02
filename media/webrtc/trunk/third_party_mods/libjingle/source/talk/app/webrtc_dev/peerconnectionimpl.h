@@ -32,6 +32,7 @@
 #include <string>
 
 #include "talk/app/webrtc_dev/peerconnection.h"
+#include "talk/app/webrtc_dev/peerconnectionfactoryimpl.h"
 #include "talk/app/webrtc_dev/peerconnectionsignaling.h"
 #include "talk/app/webrtc_dev/webrtcsession.h"
 #include "talk/base/scoped_ptr.h"
@@ -49,15 +50,11 @@ class StreamCollectionImpl;
 // PeerConnectionImpl implements the PeerConnection interface.
 // It uses PeerConnectionSignaling and WebRtcSession to implement
 // the PeerConnection functionality.
-class PeerConnectionImpl : public PeerConnection,
+class PeerConnectionImpl : public PeerConnectionInterface,
                            public talk_base::MessageHandler,
                            public sigslot::has_slots<> {
  public:
-  PeerConnectionImpl(cricket::ChannelManager* channel_manager,
-                     talk_base::Thread* signaling_thread,
-                     talk_base::Thread* worker_thread,
-                     PcNetworkManager* network_manager,
-                     PcPacketSocketFactory* socket_factory);
+  explicit PeerConnectionImpl(PeerConnectionFactoryImpl* factory);
 
   bool Initialize(const std::string& configuration,
                   PeerConnectionObserver* observer);
@@ -69,8 +66,8 @@ class PeerConnectionImpl : public PeerConnection,
     // TODO(perkj): implement
     ASSERT(false);
   }
-  virtual scoped_refptr<StreamCollection> local_streams();
-  virtual scoped_refptr<StreamCollection> remote_streams();
+  virtual talk_base::scoped_refptr<StreamCollectionInterface> local_streams();
+  virtual talk_base::scoped_refptr<StreamCollectionInterface> remote_streams();
   virtual void AddStream(LocalMediaStreamInterface* stream);
   virtual void RemoveStream(LocalMediaStreamInterface* stream);
   virtual void CommitStreamChanges();
@@ -86,14 +83,21 @@ class PeerConnectionImpl : public PeerConnection,
 
   void Terminate_s();
 
-  PeerConnectionObserver* observer_;
-  scoped_refptr<StreamCollectionImpl> local_media_streams_;
-  scoped_refptr<StreamCollectionImpl> remote_media_streams_;
+  talk_base::Thread* signaling_thread() {
+    return factory_->signaling_thread();
+  }
 
-  talk_base::Thread* signaling_thread_;  // Weak ref from PeerConnectionManager.
-  cricket::ChannelManager* channel_manager_;
-  scoped_refptr<PcNetworkManager> network_manager_;
-  scoped_refptr<PcPacketSocketFactory> socket_factory_;
+  // Storing the factory as a scoped reference pointer ensures that the memory
+  // in the PeerConnectionFactoryImpl remains available as long as the
+  // PeerConnection is running. It is passed to PeerConnection as a raw pointer.
+  // However, since the reference counting is done in the
+  // PeerConnectionFactoryInteface all instances created using the raw pointer
+  // will refer to the same reference count.
+  talk_base::scoped_refptr<PeerConnectionFactoryImpl> factory_;
+  PeerConnectionObserver* observer_;
+  talk_base::scoped_refptr<StreamCollectionImpl> local_media_streams_;
+  talk_base::scoped_refptr<StreamCollectionImpl> remote_media_streams_;
+
   talk_base::scoped_ptr<cricket::HttpPortAllocator> port_allocator_;
   talk_base::scoped_ptr<WebRtcSession> session_;
   talk_base::scoped_ptr<PeerConnectionSignaling> signaling_;

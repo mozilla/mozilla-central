@@ -35,6 +35,7 @@
 #include "talk/base/thread.h"
 
 namespace webrtc {
+using talk_base::scoped_refptr;
 
 // MediaStreamProxy is a proxy for the MediaStream interface. The purpose is
 // to make sure MediaStreamImpl is only accessed from the signaling thread.
@@ -42,53 +43,67 @@ namespace webrtc {
 class MediaStreamProxy : public LocalMediaStreamInterface,
                          public talk_base::MessageHandler {
  public:
-  class MediaStreamTrackListProxy : public MediaStreamTrackListInterface,
-                                    public talk_base::MessageHandler {
-   public:
-    MediaStreamTrackListProxy(MediaStreamTrackListInterface* track_list,
-                              talk_base::Thread* signaling_thread);
-    virtual size_t count();
-    virtual MediaStreamTrackInterface* at(size_t index);
-
-    // Implement Notifier
-    virtual void RegisterObserver(Observer* observer);
-    virtual void UnregisterObserver(Observer* observer);
-   private:
-    void Send(uint32 id, talk_base::MessageData* data);
-    void OnMessage(talk_base::Message* msg);
-
-    scoped_refptr<MediaStreamTrackListInterface> track_list_;
-    talk_base::Thread* signaling_thread_;
-  };
-
   static scoped_refptr<MediaStreamProxy> Create(
       const std::string& label,
       talk_base::Thread* signaling_thread);
 
+  static scoped_refptr<MediaStreamProxy> Create(
+      const std::string& label,
+      talk_base::Thread* signaling_thread,
+      LocalMediaStreamInterface* media_stream_impl);
+
   // Implement LocalStream.
-  virtual bool AddTrack(MediaStreamTrackInterface* track);
+  virtual bool AddTrack(AudioTrackInterface* track);
+  virtual bool AddTrack(VideoTrackInterface* track);
 
   // Implement MediaStream.
-  virtual const std::string& label();
-  virtual MediaStreamTrackListInterface* tracks();
+  virtual std::string label() const;
+  virtual AudioTracks* audio_tracks() {
+    return audio_tracks_;
+  }
+  virtual VideoTracks* video_tracks() {
+    return video_tracks_;
+  }
   virtual ReadyState ready_state();
   virtual void set_ready_state(ReadyState new_state);
 
   // Implement Notifier
-  virtual void RegisterObserver(Observer* observer);
-  virtual void UnregisterObserver(Observer* observer);
+  virtual void RegisterObserver(ObserverInterface* observer);
+  virtual void UnregisterObserver(ObserverInterface* observer);
 
  protected:
-  explicit MediaStreamProxy(const std::string& label,
-                            talk_base::Thread* signaling_thread);
+  MediaStreamProxy(const std::string& label,
+                   talk_base::Thread* signaling_thread,
+                   LocalMediaStreamInterface* media_stream_impl);
 
-  void Send(uint32 id, talk_base::MessageData* data);
-  // Implement MessageHandler
+  template <class T>
+  class MediaStreamTrackListProxy : public MediaStreamTrackListInterface<T>,
+                                    public talk_base::MessageHandler {
+   public:
+    explicit MediaStreamTrackListProxy(talk_base::Thread* signaling_thread);
+
+    void SetImplementation(MediaStreamTrackListInterface<T>* track_list);
+    virtual size_t count();
+    virtual T* at(size_t index);
+
+   private:
+    void Send(uint32 id, talk_base::MessageData* data) const;
+    void OnMessage(talk_base::Message* msg);
+
+    talk_base::scoped_refptr<MediaStreamTrackListInterface<T> > track_list_;
+    mutable talk_base::Thread* signaling_thread_;
+  };
+  typedef MediaStreamTrackListProxy<AudioTrackInterface> AudioTrackListProxy;
+  typedef MediaStreamTrackListProxy<VideoTrackInterface> VideoTrackListProxy;
+
+  void Send(uint32 id, talk_base::MessageData* data) const;
+  // Implement MessageHandler.
   virtual void OnMessage(talk_base::Message* msg);
 
-  talk_base::Thread* signaling_thread_;
-  scoped_refptr<MediaStreamImpl> media_stream_impl_;
-  scoped_refptr<MediaStreamTrackListProxy> track_list_;
+  mutable talk_base::Thread* signaling_thread_;
+  scoped_refptr<LocalMediaStreamInterface> media_stream_impl_;
+  scoped_refptr<AudioTrackListProxy> audio_tracks_;
+  scoped_refptr<VideoTrackListProxy> video_tracks_;
 };
 
 }  // namespace webrtc

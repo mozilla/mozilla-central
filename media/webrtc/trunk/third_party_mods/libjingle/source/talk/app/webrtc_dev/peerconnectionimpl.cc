@@ -30,7 +30,6 @@
 #include <vector>
 
 #include "talk/app/webrtc_dev/mediastreamhandler.h"
-#include "talk/app/webrtc_dev/scoped_refptr_msg.h"
 #include "talk/app/webrtc_dev/streamcollectionimpl.h"
 #include "talk/base/logging.h"
 #include "talk/session/phone/channelmanager.h"
@@ -110,11 +109,17 @@ bool static ParseConfigString(const std::string& config,
 
 struct SignalingParams : public talk_base::MessageData {
   SignalingParams(const std::string& msg,
-                  webrtc::StreamCollection* local_streams)
+                  webrtc::StreamCollectionInterface* local_streams)
       : msg(msg),
         local_streams(local_streams) {}
   const std::string msg;
-  scoped_refptr<webrtc::StreamCollection> local_streams;
+  talk_base::scoped_refptr<webrtc::StreamCollectionInterface> local_streams;
+};
+
+struct StreamCollectionParams : public talk_base::MessageData {
+  explicit StreamCollectionParams(webrtc::StreamCollectionInterface* streams)
+        : streams(streams) {}
+  talk_base::scoped_refptr<webrtc::StreamCollectionInterface> streams;
 };
 
 }  // namespace
@@ -122,25 +127,20 @@ struct SignalingParams : public talk_base::MessageData {
 namespace webrtc {
 
 PeerConnectionImpl::PeerConnectionImpl(
-    cricket::ChannelManager* channel_manager,
-    talk_base::Thread* signaling_thread,
-    talk_base::Thread* worker_thread,
-    PcNetworkManager* network_manager,
-    PcPacketSocketFactory* socket_factory)
-    : observer_(NULL),
+    PeerConnectionFactoryImpl* factory)
+    : factory_(factory),
+      observer_(NULL),
       local_media_streams_(StreamCollectionImpl::Create()),
       remote_media_streams_(StreamCollectionImpl::Create()),
-      signaling_thread_(signaling_thread),
-      channel_manager_(channel_manager),
-      network_manager_(network_manager),
-      socket_factory_(socket_factory),
       port_allocator_(new cricket::HttpPortAllocator(
-          network_manager->network_manager(),
-          socket_factory->socket_factory(),
+          factory->network_manager(),
+          factory->socket_factory(),
           std::string(kUserAgent))),
-      session_(new WebRtcSession(channel_manager, signaling_thread,
-          worker_thread, port_allocator_.get())),
-      signaling_(new PeerConnectionSignaling(signaling_thread,
+      session_(new WebRtcSession(factory->channel_manager(),
+                                 factory->signaling_thread(),
+                                 factory->worker_thread(),
+                                 port_allocator_.get())),
+      signaling_(new PeerConnectionSignaling(factory->signaling_thread(),
                                              session_.get())),
       stream_handler_(new MediaStreamHandlers(session_.get())) {
   signaling_->SignalNewPeerConnectionMessage.connect(
@@ -154,8 +154,8 @@ PeerConnectionImpl::PeerConnectionImpl(
 }
 
 PeerConnectionImpl::~PeerConnectionImpl() {
-  signaling_thread_->Clear(this);
-  signaling_thread_->Send(this, MSG_TERMINATE);
+  signaling_thread()->Clear(this);
+  signaling_thread()->Send(this, MSG_TERMINATE);
 }
 
 // Clean up what needs to be cleaned up on the signaling thread.
@@ -199,21 +199,22 @@ bool PeerConnectionImpl::Initialize(const std::string& configuration,
   return session_->Initialize();
 }
 
-scoped_refptr<StreamCollection> PeerConnectionImpl::local_streams() {
+talk_base::scoped_refptr<StreamCollectionInterface>
+PeerConnectionImpl::local_streams() {
   return local_media_streams_;
 }
 
-scoped_refptr<StreamCollection> PeerConnectionImpl::remote_streams() {
-  ScopedRefMessageData<StreamCollection>* msg =
-      new ScopedRefMessageData<StreamCollection>(NULL);
-  signaling_thread_->Send(this, MSG_RETURNREMOTEMEDIASTREAMS, msg);
-  return msg->data();
+talk_base::scoped_refptr<StreamCollectionInterface>
+PeerConnectionImpl::remote_streams() {
+  StreamCollectionParams msg(NULL);
+  signaling_thread()->Send(this, MSG_RETURNREMOTEMEDIASTREAMS, &msg);
+  return msg.streams;
 }
 
 bool PeerConnectionImpl::ProcessSignalingMessage(const std::string& msg) {
   SignalingParams* parameter(new SignalingParams(
       msg, StreamCollectionImpl::Create(local_media_streams_)));
-  signaling_thread_->Post(this, MSG_PROCESSSIGNALINGMESSAGE, parameter);
+  signaling_thread()->Post(this, MSG_PROCESSSIGNALINGMESSAGE, parameter);
 }
 
 void PeerConnectionImpl::AddStream(LocalMediaStreamInterface* local_stream) {
@@ -226,20 +227,19 @@ void PeerConnectionImpl::RemoveStream(
 }
 
 void PeerConnectionImpl::CommitStreamChanges() {
-  ScopedRefMessageData<StreamCollection>* msg =
-      new ScopedRefMessageData<StreamCollection> (
-          StreamCollectionImpl::Create(local_media_streams_));
-  signaling_thread_->Post(this, MSG_COMMITSTREAMCHANGES, msg);
+  StreamCollectionParams* msg(new StreamCollectionParams(
+          StreamCollectionImpl::Create(local_media_streams_)));
+  signaling_thread()->Post(this, MSG_COMMITSTREAMCHANGES, msg);
 }
 
 void PeerConnectionImpl::OnMessage(talk_base::Message* msg) {
   talk_base::MessageData* data = msg->pdata;
   switch (msg->message_id) {
     case MSG_COMMITSTREAMCHANGES: {
-      ScopedRefMessageData<StreamCollection>* param(
-          static_cast<ScopedRefMessageData<StreamCollection>*> (data));
-      signaling_->CreateOffer(param->data());
-      stream_handler_->CommitLocalStreams(param->data());
+      StreamCollectionParams* param(
+          static_cast<StreamCollectionParams*> (data));
+      signaling_->CreateOffer(param->streams);
+      stream_handler_->CommitLocalStreams(param->streams);
       delete data;  // Because it is Posted.
       break;
     }
@@ -250,9 +250,9 @@ void PeerConnectionImpl::OnMessage(talk_base::Message* msg) {
       break;
     }
     case MSG_RETURNREMOTEMEDIASTREAMS: {
-      ScopedRefMessageData<StreamCollection>* param(
-          static_cast<ScopedRefMessageData<StreamCollection>*> (data));
-      param->data() = StreamCollectionImpl::Create(remote_media_streams_);
+      StreamCollectionParams* param(
+          static_cast<StreamCollectionParams*> (data));
+      param->streams = StreamCollectionImpl::Create(remote_media_streams_);
       break;
     }
     case MSG_TERMINATE: {

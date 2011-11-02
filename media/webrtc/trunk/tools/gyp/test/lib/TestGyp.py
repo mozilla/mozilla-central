@@ -397,7 +397,7 @@ class TestGypMake(TestGypBase):
       result.append(chdir)
     configuration = self.configuration_dirname()
     result.extend(['out', configuration])
-    if type == self.STATIC_LIB:
+    if type == self.STATIC_LIB and sys.platform != 'darwin':
       result.append('obj.target')
     elif type == self.SHARED_LIB and sys.platform != 'darwin':
       result.append('lib.target')
@@ -437,10 +437,9 @@ class TestGypNinja(TestGypBase):
 
     arguments = kw.get('arguments', [])[:]
 
-    # Add a -f path/to/build.ninja to the command line.
-    arguments.append('-f')
-    arguments.append(os.path.join('out', self.configuration_dirname(),
-                                  'build.ninja'))
+    # Add a -C output/path to the command line.
+    arguments.append('-C')
+    arguments.append(os.path.join('out', self.configuration_dirname()))
 
     if target is None:
       target = 'all'
@@ -472,8 +471,7 @@ class TestGypNinja(TestGypBase):
     return self.workpath(*result)
 
   def up_to_date(self, gyp_file, target=None, **kw):
-    # Ninja prints no output when the target is up to date.
-    kw['stdout'] = ""
+    kw['stdout'] = "ninja: no work to do.\n"
     return self.build(gyp_file, target, **kw)
 
 

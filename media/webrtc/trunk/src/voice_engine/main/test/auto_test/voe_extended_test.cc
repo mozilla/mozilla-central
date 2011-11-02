@@ -43,10 +43,8 @@ const char* RemoteIP = "192.168.200.1"; // transmit to this IP address
 
 #ifdef MAC_IPHONE
 #define SLEEP_IF_IPHONE(x) SLEEP(x)
-extern char micFile[256];
 #else
 #define SLEEP_IF_IPHONE(x)
-extern const char* micFile;
 #endif
 
 #ifdef WEBRTC_ANDROID
@@ -355,7 +353,8 @@ void VoEExtendedTest::Play(int channel,
     fflush(NULL);
     if (addFileAsMicrophone)
     {
-        file->StartPlayingFileAsMicrophone(channel, micFile, true, true);
+        file->StartPlayingFileAsMicrophone(channel, _mgr.AudioFilename(), true,
+                                           true);
         TEST_LOG("[file as mic]");
         fflush(NULL);
     }
@@ -1677,7 +1676,8 @@ int VoEExtendedTest::TestCallReport()
     TEST_MUSTPASS(base->StartReceive(0));
     TEST_MUSTPASS(base->StartSend(0));
     TEST_MUSTPASS(base->StartPlayout(0));
-    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, micFile, true ,true));
+    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, _mgr.AudioFilename(),
+                                                     true, true));
 
     ///////////////////////////
     // Actual test starts here
@@ -1699,13 +1699,14 @@ int VoEExtendedTest::TestCallReport()
     EchoStatistics echo;
     TEST(GetEchoMetricSummary);
     ANL();
-    TEST_MUSTPASS(apm->GetEchoMetricsStatus(enabled));
+    TEST_MUSTPASS(apm->GetEcMetricsStatus(enabled));
     TEST_MUSTPASS(enabled != false);
-    TEST_MUSTPASS(apm->SetEchoMetricsStatus(true));
+    TEST_MUSTPASS(apm->SetEcMetricsStatus(true));
     TEST_MUSTPASS(report->GetEchoMetricSummary(echo)); // all outputs will be
                                        // -100 in loopback (skip further tests)
     AOK();
     ANL();
+
     // TODO(xians): investigate the cause of test failure before enabling.
     /*
     StatVal delays;
@@ -2635,8 +2636,10 @@ int VoEExtendedTest::TestCodec()
     TEST_MUSTPASS(base->StartSend(0));
     if (file)
     {
-        TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, micFile,
-                                                         true, true));
+        TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0,
+                                                         _mgr.AudioFilename(),
+                                                         true,
+                                                         true));
     }
 
     // Scan all supported and valid codecs and remove from receiving db, then
@@ -3657,7 +3660,8 @@ int VoEExtendedTest::TestEncryption()
     TEST_MUSTPASS(base->StartReceive(0));
     TEST_MUSTPASS(base->StartSend(0));
     TEST_MUSTPASS(base->StartPlayout(0));
-    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, micFile, true ,true));
+    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, _mgr.AudioFilename(),
+                                                     true, true));
 
     ///////////////////////////
     // Actual test starts here
@@ -3912,7 +3916,8 @@ int VoEExtendedTest::TestEncryption()
     TEST_MUSTPASS(base->StartReceive(0));
     TEST_MUSTPASS(base->StartPlayout(0));
     TEST_MUSTPASS(base->StartSend(0));
-    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, micFile, true ,true));
+    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, _mgr.AudioFilename(),
+                                                     true, true));
     MARK(); SLEEP(2000);
     TEST_MUSTPASS(encrypt->DisableSRTPSend(0));
     TEST_MUSTPASS(encrypt->DisableSRTPReceive(0));
@@ -5887,7 +5892,8 @@ int VoEExtendedTest::TestNetwork()
     TEST_MUSTPASS(base->SetSendDestination(0, 8000, "::1"));
     TEST_MUSTPASS(base->StartPlayout(0));
     TEST_MUSTPASS(base->StartSend(0));
-    file->StartPlayingFileAsMicrophone(0, micFile, true ,true);
+    file->StartPlayingFileAsMicrophone(0, _mgr.AudioFilename(), true,
+                                       true);
     SLEEP(500); // ensure that we receieve some packets
 
     // SetSourceFilter and GetSourceFilter
@@ -6968,7 +6974,8 @@ int VoEExtendedTest::TestRTP_RTCP()
     MARK();
     ANL();
 
-    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, micFile, true ,true));
+    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, _mgr.AudioFilename(),
+                                                     true, true));
 
     // ------------------------------------------------------------------------
     // >> InsertExtraRTPPacket
@@ -7004,7 +7011,8 @@ int VoEExtendedTest::TestRTP_RTCP()
     MARK(); // not sending
     TEST_ERROR(VE_NOT_SENDING);
     TEST_MUSTPASS(base->StartSend(0));
-    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, micFile, true ,true));
+    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, _mgr.AudioFilename(),
+                                                     true, true));
 
     SLEEP(1000);
     for (int p = 0; p < 128; p++)
@@ -7212,7 +7220,8 @@ int VoEExtendedTest::TestRTP_RTCP()
     TEST_MUSTPASS(base->StartReceive(0));
     TEST_MUSTPASS(base->StartSend(0));
     TEST_MUSTPASS(base->StartPlayout(0));
-    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, micFile, true ,true));
+    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, _mgr.AudioFilename(),
+                                                     true, true));
 
     SLEEP(8000);
 
@@ -7466,7 +7475,8 @@ TEST(RTCPStatistics #2);
     TEST_MUSTPASS(base->StartReceive(0));
     TEST_MUSTPASS(base->StartSend(0));
     TEST_LOG("Start playing a file as microphone again \n");
-    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, micFile, true ,true));
+    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, _mgr.AudioFilename(),
+                                                     true, true));
     TEST_MUSTPASS(rtp_rtcp->SetFECStatus(0, true, 126));
     MARK();
     TEST_LOG("Should sound OK with FEC enabled\n");
@@ -7635,7 +7645,8 @@ int VoEExtendedTest::TestVolumeControl()
     TEST_MUSTPASS(base->StartPlayout(0));
     TEST_MUSTPASS(base->StartSend(0));
 #ifdef _TEST_FILE_
-    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, micFile, true ,true));
+    TEST_MUSTPASS(file->StartPlayingFileAsMicrophone(0, _mgr.AudioFilename(),
+                                                     true, true));
 #endif
 
     ////////////////////////////
@@ -8117,26 +8128,26 @@ digitalCompressionGaindBDefault);
     SLEEP(NSSleep);
 
     //////////////////////////////////
-    // Echo Metrics
+    // Ec Metrics
 
 #if (!defined(MAC_IPHONE) && !defined(WEBRTC_ANDROID))
-    TEST(GetEchoMetricsStatus);
+    TEST(GetEcMetricsStatus);
     ANL();
-    TEST(SetEchoMetricsStatus);
+    TEST(SetEcMetricsStatus);
     ANL();
-    TEST_MUSTPASS(apm->GetEchoMetricsStatus(enabled));
+    TEST_MUSTPASS(apm->GetEcMetricsStatus(enabled));
     MARK();
     TEST_MUSTPASS(enabled != false);
     MARK(); // should be OFF by default
-    TEST_MUSTPASS(apm->SetEchoMetricsStatus(true));
+    TEST_MUSTPASS(apm->SetEcMetricsStatus(true));
     MARK();
-    TEST_MUSTPASS(apm->GetEchoMetricsStatus(enabled));
+    TEST_MUSTPASS(apm->GetEcMetricsStatus(enabled));
     MARK();
     TEST_MUSTPASS(enabled != true);
     MARK();
-    TEST_MUSTPASS(apm->SetEchoMetricsStatus(false));
+    TEST_MUSTPASS(apm->SetEcMetricsStatus(false));
     MARK();
-    TEST_MUSTPASS(apm->GetEchoMetricsStatus(enabled));
+    TEST_MUSTPASS(apm->GetEcMetricsStatus(enabled));
     MARK();
     TEST_MUSTPASS(enabled != false);
     MARK();
@@ -8148,21 +8159,43 @@ digitalCompressionGaindBDefault);
 
     int ERL, ERLE, RERL, A_NLP;
     TEST_MUSTPASS(-1 != apm->GetEchoMetrics(ERL, ERLE, RERL, A_NLP));
-    MARK(); // should fail since not activated
+    MARK(); // Should fail since not activated.
     err = base->LastError();
     TEST_MUSTPASS(err != VE_APM_ERROR);
-    TEST_MUSTPASS(apm->SetEchoMetricsStatus(true));
+    TEST_MUSTPASS(apm->SetEcMetricsStatus(true));
     TEST_MUSTPASS(-1 != apm->GetEchoMetrics(ERL, ERLE, RERL, A_NLP));
-    MARK(); // should fail since AEC is off
+    MARK(); // Should fail since AEC is off.
     err = base->LastError();
     TEST_MUSTPASS(err != VE_APM_ERROR);
     TEST_MUSTPASS(apm->SetEcStatus(true));
     TEST_MUSTPASS(apm->GetEchoMetrics(ERL, ERLE, RERL, A_NLP));
-    MARK(); // should work now
-    TEST_LOG(
-        "\nEcho: ERL=%d, ERLE=%d, RERL=%d, A_NLP=%d [dB]\n",
-        ERL, ERLE, RERL, A_NLP);
-    TEST_MUSTPASS(apm->SetEchoMetricsStatus(false));
+    MARK(); // Should work now.
+    TEST_LOG("\nEcho: ERL=%d, ERLE=%d, RERL=%d, A_NLP=%d [dB]\n",
+             ERL, ERLE, RERL, A_NLP);
+    TEST_MUSTPASS(apm->SetEcMetricsStatus(false));
+    TEST_MUSTPASS(apm->SetEcStatus(false));
+    AOK();
+    ANL();
+
+    TEST(GetEcDelayMetrics);
+    ANL();
+
+    int delay_median = 0;
+    int delay_std = 0;
+    TEST_MUSTPASS(-1 != apm->GetEcDelayMetrics(delay_median, delay_std));
+    MARK(); // Should fail since not activated.
+    err = base->LastError();
+    TEST_MUSTPASS(err != VE_APM_ERROR);
+    TEST_MUSTPASS(apm->SetEcMetricsStatus(true));
+    TEST_MUSTPASS(-1 != apm->GetEcDelayMetrics(delay_median, delay_std));
+    MARK(); // Should fail since AEC is off.
+    err = base->LastError();
+    TEST_MUSTPASS(err != VE_APM_ERROR);
+    TEST_MUSTPASS(apm->SetEcStatus(true));
+    TEST_MUSTPASS(apm->GetEcDelayMetrics(delay_median, delay_std));
+    MARK(); // Should work now.
+    TEST_LOG("\nEC Delay: median=%d, std=%d [ms]\n", delay_median, delay_std);
+    TEST_MUSTPASS(apm->SetEcMetricsStatus(false));
     TEST_MUSTPASS(apm->SetEcStatus(false));
     AOK();
     ANL();

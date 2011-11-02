@@ -4,7 +4,7 @@ TOOLSET := target
 TARGET := All
 ### Rules for final target.
 $(obj).target/All.stamp: TOOLSET := $(TOOLSET)
-$(obj).target/All.stamp: $(obj).target/src/common_audio/libspl.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(builddir)/common_audio_unittests $(obj).target/src/video_engine/libvideo_engine_core.a $(builddir)/vie_auto_test $(obj).target/src/voice_engine/libvoice_engine_core.a $(builddir)/voe_auto_test $(builddir)/voe_cmd_test FORCE_DO_CMD
+$(obj).target/All.stamp: $(obj).target/src/common_audio/libspl.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(builddir)/common_audio_unittests $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(builddir)/system_wrappers_unittests $(obj).target/src/video_engine/libvideo_engine_core.a $(builddir)/vie_auto_test $(obj).target/src/voice_engine/libvoice_engine_core.a $(builddir)/voe_auto_test $(builddir)/voe_cmd_test FORCE_DO_CMD
 	$(call do_cmd,touch)
 
 all_deps += $(obj).target/All.stamp

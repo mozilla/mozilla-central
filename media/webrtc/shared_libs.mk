@@ -39,6 +39,7 @@ SHARED_LIBRARY_LIBS += \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libaecm.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libagc.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libns.a \
+        $(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libaudioproc_debug_proto.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/third_party/protobuf/libprotobuf_lite.a \
         $(MKSHLIB_UNFORCE_ALL) \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/common_video/libwebrtc_jpeg.a \

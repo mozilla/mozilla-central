@@ -3,4 +3,4 @@
 export builddir_name ?= trunk/src/modules/$(OBJDIR)/media/webrtc/out
 .PHONY: all
 all:
-	$(MAKE) -C ../.. PCM16B G711 G722 iSAC iSACFix iLBC agc apm_util CNG webrtc_i420 audio_conference_mixer udp_transport rtp_rtcp ns aecm aec audio_device NetEq audio_coding_module debug_proto audio_processing webrtc_vp8 webrtc_video_coding webrtc_utility video_render_module media_file video_processing video_capture_module
+	$(MAKE) -C ../.. PCM16B G711 G722 iSAC iSACFix iLBC agc apm_util CNG webrtc_i420 audio_conference_mixer udp_transport rtp_rtcp ns aecm aec audio_device NetEq audio_coding_module audioproc_debug_proto audio_processing webrtc_vp8 webrtc_video_coding webrtc_utility video_render_module media_file video_processing video_capture_module

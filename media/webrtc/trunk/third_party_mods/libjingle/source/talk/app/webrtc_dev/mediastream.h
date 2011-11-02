@@ -25,14 +25,20 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// This file contains interfaces for MediaStream and MediaTrack. These
+// interfaces are used for implementing MediaStream and MediaTrack as defined
+// in http://dev.w3.org/2011/webrtc/editor/webrtc.html#stream-api. These
+// interfaces must be used only with PeerConnection. PeerConnectionManager
+// interface provides the factory methods to create MediaStream and MediaTracks.
+
 #ifndef TALK_APP_WEBRTC_MEDIASTREAM_H_
 #define TALK_APP_WEBRTC_MEDIASTREAM_H_
 
 #include <string>
 
-#include "talk/app/webrtc_dev/ref_count.h"
-#include "talk/app/webrtc_dev/scoped_refptr.h"
 #include "talk/base/basictypes.h"
+#include "talk/base/refcount.h"
+#include "talk/base/scoped_refptr.h"
 
 namespace cricket {
 class VideoRenderer;
@@ -45,23 +51,25 @@ class AudioDeviceModule;
 class VideoCaptureModule;
 
 // Generic observer interface.
-class Observer {
+class ObserverInterface {
  public:
   virtual void OnChanged() = 0;
 
  protected:
-  virtual ~Observer() {}
+  virtual ~ObserverInterface() {}
 };
 
-class Notifier {
+class NotifierInterface {
  public:
-  virtual void RegisterObserver(Observer* observer) = 0;
-  virtual void UnregisterObserver(Observer* observer) = 0;
+  virtual void RegisterObserver(ObserverInterface* observer) = 0;
+  virtual void UnregisterObserver(ObserverInterface* observer) = 0;
+
+  virtual ~NotifierInterface() {}
 };
 
 // Information about a track.
-class MediaStreamTrackInterface : public talk_base::RefCount,
-                                  public Notifier {
+class MediaStreamTrackInterface : public talk_base::RefCountInterface,
+                                  public NotifierInterface {
  public:
   enum TrackState {
     kInitializing,  // Track is beeing negotiated.
@@ -70,45 +78,40 @@ class MediaStreamTrackInterface : public talk_base::RefCount,
     kFailed = 3,  // Track negotiation failed.
   };
 
-  enum TrackType {
-    kAudio = 0, 
-    kVideo = 1,
-  };
-
-  virtual const char* kind() const = 0;
-  virtual const std::string& label()  const = 0;
-  virtual TrackType type() const = 0;
-  virtual uint32 ssrc() const = 0;
+  virtual std::string kind() const = 0;
+  virtual std::string label() const = 0;
   virtual bool enabled() const = 0;
   virtual TrackState state() const = 0;
   virtual bool set_enabled(bool enable) = 0;
-  // Return false (or assert) if the ssrc is already set.
-  virtual bool set_ssrc(uint32 ssrc) = 0;
+  // These methods should be called by implementation only.
   virtual bool set_state(TrackState new_state) = 0;
 };
 
 // Reference counted wrapper for a VideoRenderer.
-class VideoRendererInterface : public talk_base::RefCount {
+class VideoRendererWrapperInterface : public talk_base::RefCountInterface {
  public:
   virtual cricket::VideoRenderer* renderer() = 0;
 
  protected:
-  virtual ~VideoRendererInterface() {}
+  virtual ~VideoRendererWrapperInterface() {}
 };
 
-// Creates a reference counted object of type webrtc::VideoRenderer.
-// webrtc::VideoRenderer take ownership of cricket::VideoRenderer.
-scoped_refptr<VideoRendererInterface> CreateVideoRenderer(
+// Creates a reference counted object of type cricket::VideoRenderer.
+// webrtc::VideoRendererWrapperInterface take ownership of
+// cricket::VideoRenderer.
+talk_base::scoped_refptr<VideoRendererWrapperInterface> CreateVideoRenderer(
     cricket::VideoRenderer* renderer);
 
 class VideoTrackInterface : public MediaStreamTrackInterface {
  public:
   // Set the video renderer for a local or remote stream.
   // This call will start decoding the received video stream and render it.
-  virtual void SetRenderer(VideoRendererInterface* renderer) = 0;
+  // The VideoRendererInterface is stored as a scoped_refptr. This means that
+  // it is not allowed to call delete renderer after this API has been called.
+  virtual void SetRenderer(VideoRendererWrapperInterface* renderer) = 0;
 
   // Get the VideoRenderer associated with this track.
-  virtual VideoRendererInterface* GetRenderer() = 0;
+  virtual VideoRendererWrapperInterface* GetRenderer() = 0;
 
  protected:
   virtual ~VideoTrackInterface() {}
@@ -117,15 +120,13 @@ class VideoTrackInterface : public MediaStreamTrackInterface {
 class LocalVideoTrackInterface : public VideoTrackInterface {
  public:
   // Get the VideoCapture device associated with this track.
+  // TODO(mallinath) - Update with VideoCapturerWrapper to support both
+  // cricket and webrtc capture interface.
   virtual VideoCaptureModule* GetVideoCapture() = 0;
 
  protected:
   virtual ~LocalVideoTrackInterface() {}
 };
-
-scoped_refptr<LocalVideoTrackInterface> CreateLocalVideoTrack(
-    const std::string& label,
-    VideoCaptureModule* video_device);
 
 class AudioTrackInterface : public MediaStreamTrackInterface {
  public:
@@ -141,26 +142,26 @@ class LocalAudioTrackInterface : public AudioTrackInterface {
   virtual ~LocalAudioTrackInterface() {}
 };
 
-scoped_refptr<LocalAudioTrackInterface> CreateLocalAudioTrack(
-    const std::string& label,
-    AudioDeviceModule* audio_device);
-
 // List of of tracks.
-class MediaStreamTrackListInterface : public talk_base::RefCount,
-                                      public Notifier {
+template <class TrackType>
+class MediaStreamTrackListInterface : public talk_base::RefCountInterface {
  public:
   virtual size_t count() = 0;
-  virtual MediaStreamTrackInterface* at(size_t index) = 0;
+  virtual TrackType* at(size_t index) = 0;
 
  protected:
   virtual ~MediaStreamTrackListInterface() {}
 };
 
-class MediaStreamInterface : public talk_base::RefCount,
-                             public Notifier {
+typedef MediaStreamTrackListInterface<AudioTrackInterface> AudioTracks;
+typedef MediaStreamTrackListInterface<VideoTrackInterface> VideoTracks;
+
+class MediaStreamInterface : public talk_base::RefCountInterface,
+                             public NotifierInterface {
  public:
-  virtual const std::string& label() = 0;
-  virtual MediaStreamTrackListInterface* tracks() = 0;
+  virtual std::string label() const = 0;
+  virtual AudioTracks* audio_tracks() = 0;
+  virtual VideoTracks* video_tracks() = 0;
 
   enum ReadyState {
     kInitializing,
@@ -170,7 +171,7 @@ class MediaStreamInterface : public talk_base::RefCount,
 
   virtual ReadyState ready_state() = 0;
 
-  // Only to be used by the implementation.
+  // These methods should be called by implementation only.
   virtual void set_ready_state(ReadyState state) = 0;
 
  protected:
@@ -179,7 +180,8 @@ class MediaStreamInterface : public talk_base::RefCount,
 
 class LocalMediaStreamInterface : public MediaStreamInterface {
  public:
-  virtual bool AddTrack(MediaStreamTrackInterface* track) = 0;
+  virtual bool AddTrack(AudioTrackInterface* track) = 0;
+  virtual bool AddTrack(VideoTrackInterface* track) = 0;
 };
 
 }  // namespace webrtc

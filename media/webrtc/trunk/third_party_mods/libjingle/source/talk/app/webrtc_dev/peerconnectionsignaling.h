@@ -40,13 +40,13 @@
 #include "talk/app/webrtc_dev/mediastreamproxy.h"
 #include "talk/app/webrtc_dev/peerconnection.h"
 #include "talk/app/webrtc_dev/peerconnectionmessage.h"
-#include "talk/app/webrtc_dev/ref_count.h"
-#include "talk/app/webrtc_dev/scoped_refptr.h"
 #include "talk/app/webrtc_dev/sessiondescriptionprovider.h"
 #include "talk/app/webrtc_dev/webrtcsessionobserver.h"
 #include "talk/base/basictypes.h"
 #include "talk/base/messagehandler.h"
+#include "talk/base/refcount.h"
 #include "talk/base/scoped_ptr.h"
+#include "talk/base/scoped_refptr.h"
 #include "talk/base/thread.h"
 #include "talk/session/phone/mediasession.h"
 #include "talk/p2p/base/sessiondescription.h"
@@ -94,13 +94,13 @@ class PeerConnectionSignaling : public WebRtcSessionObserver,
 
   // Process a received offer/answer from the remote peer.
   void ProcessSignalingMessage(const std::string& message,
-                               StreamCollection* local_streams);
+                               StreamCollectionInterface* local_streams);
 
   // Creates an offer containing all tracks in local_streams.
   // When the offer is ready it is signaled by SignalNewPeerConnectionMessage.
   // When the remote peer is ready to receive media on a stream , the state of
   // the local stream will change to kAlive.
-  void CreateOffer(StreamCollection* local_streams);
+  void CreateOffer(StreamCollectionInterface* local_streams);
 
   // Returns the current state.
   State GetState();
@@ -129,29 +129,30 @@ class PeerConnectionSignaling : public WebRtcSessionObserver,
   void CreateAnswer_s();
 
   void InitMediaSessionOptions(cricket::MediaSessionOptions* options,
-                               StreamCollection* local_streams);
+                               StreamCollectionInterface* local_streams);
 
   void UpdateRemoteStreams(const cricket::SessionDescription* remote_desc);
   void UpdateSendingLocalStreams(
       const cricket::SessionDescription* answer_desc,
-      StreamCollection* negotiated_streams);
+      StreamCollectionInterface* negotiated_streams);
 
-  typedef std::list<scoped_refptr<StreamCollection> > StreamCollectionList;
+  typedef std::list<talk_base::scoped_refptr<StreamCollectionInterface> >
+      StreamCollectionList;
   StreamCollectionList queued_offers_;
 
   typedef std::pair<PeerConnectionMessage*,
-                    scoped_refptr<StreamCollection> >  RemoteOfferPair;
+                    talk_base::scoped_refptr<StreamCollectionInterface> >
+      RemoteOfferPair;
   RemoteOfferPair queued_received_offer_;
 
   talk_base::Thread* signaling_thread_;
   SessionDescriptionProvider* provider_;
   State state_;
-  uint32 ssrc_counter_;
 
-  typedef std::map<std::string, scoped_refptr<MediaStreamProxy> >
+  typedef std::map<std::string, talk_base::scoped_refptr<MediaStreamProxy> >
       RemoteStreamMap;
   RemoteStreamMap remote_streams_;
-  typedef std::map<std::string, scoped_refptr<MediaStreamInterface> >
+  typedef std::map<std::string, talk_base::scoped_refptr<MediaStreamInterface> >
       LocalStreamMap;
   LocalStreamMap local_streams_;
   cricket::Candidates candidates_;
