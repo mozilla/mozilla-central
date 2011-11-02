@@ -80,11 +80,15 @@
         </xul:vbox>
         <xul:vbox>
           <xul:button anonid="accept"
+            xbl:inherits="group=itemId"
+            type="radio"
             class="calendar-invitations-richlistitem-accept-button
             calendar-invitations-richlistitem-button"
             label="&calendar.invitations.list.accept.button.label;"
             oncommand="accept();"/>
           <xul:button anonid="decline"
+            xbl:inherits="group=itemId"
+            type="radio"
             class="calendar-invitations-richlistitem-decline-button
             calendar-invitations-richlistitem-button"
             label="&calendar.invitations.list.decline.button.label;"
@@ -214,6 +218,7 @@
                 }
             }
             attendeeLabel.setAttribute("value", attendeeString);
+            this.setAttribute("itemId", aItem.hashId);
           ]]>
         </body>
       </method>
