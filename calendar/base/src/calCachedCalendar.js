@@ -453,7 +453,7 @@ calCachedCalendar.prototype = {
                 if (Components.isSuccessCode(status)) {
                     storage.resetItemOfflineFlag(detail, resetListener);
                 } else {
-                    cal.LOG("[calCachedCalendar.js] Unable to playback the items to the server. Will try back again. Aborting\n");
+                    cal.LOG("[calCachedCalendar.js] Unable to playback the items to the server. Will try again later. Aborting\n");
                     // TODO does something need to be called back?
                 }
 
@@ -478,12 +478,21 @@ calCachedCalendar.prototype = {
                     cal.LOG("[calCachedCalendar] Adding "  + this.items.length + " items to " + this_.name);
                     if (this.items.length > 0) {
                         addListener.itemCount = this.items.length;
-                        for each (var aItem in this.items) {
-                            if (this_.supportsChangeLog) {
-                                this_.mUncachedCalendar.addItemOrUseCache(aItem, false, addListener);
-                            } else {
-                                // default mechanism for providers not implementing calIChangeLog
-                                this_.mUncachedCalendar.adoptItem(aItem.clone(), addListener);
+                        for each (let item in this.items) {
+                            try {
+                                if (this_.supportsChangeLog) {
+                                    this_.mUncachedCalendar.addItemOrUseCache(item, false, addListener);
+                                } else {
+                                    // default mechanism for providers not implementing calIChangeLog
+                                    this_.mUncachedCalendar.adoptItem(item.clone(), addListener);
+                                }
+                            } catch (e) {
+                                cal.ERROR("[calCachedCalendar] Could not playback added item " + item.title + ": " + e);
+                                addListener.onOperationComplete(thisCalendar,
+                                                                e.result,
+                                                                Components.interfaces.calIOperationListener.ADD,
+                                                                item.id,
+                                                                e.message);
                             }
                         }
                     } else {
@@ -537,13 +546,22 @@ calCachedCalendar.prototype = {
                     if (this.items.length > 0) {
                         modifyListener.itemCount = this.items.length;
                         for each (let item in this.items) {
-                            if (this_.supportsChangeLog) {
-                                // The calendar supports the changelog functions, let it modify the item
-                                // TODO is it ok to not have the old item here? Pass null or the new item?
-                                this_.mUncachedCalendar.modifyItemOrUseCache(item, item, false, modifyListener);
-                            } else {
-                                // Default strategy for providers not implementing calIChangeLog
-                                this_.mUncachedCalendar.modifyItem(item, null, modifyListener);
+                            try {
+                                if (this_.supportsChangeLog) {
+                                    // The calendar supports the changelog functions, let it modify the item
+                                    // TODO is it ok to not have the old item here? Pass null or the new item?
+                                    this_.mUncachedCalendar.modifyItemOrUseCache(item, item, false, modifyListener);
+                                } else {
+                                    // Default strategy for providers not implementing calIChangeLog
+                                    this_.mUncachedCalendar.modifyItem(item, null, modifyListener);
+                                }
+                            } catch (e) {
+                                cal.ERROR("[calCachedCalendar] Could not playback modified item " + item.title + ": " + e);
+                                modifyListener.onOperationComplete(thisCalendar,
+                                                                   e.result,
+                                                                   Components.interfaces.calIOperationListener.MODIFY,
+                                                                   item.id,
+                                                                   e.message);
                             }
                         }
                     } else {
@@ -595,12 +613,21 @@ calCachedCalendar.prototype = {
                     cal.LOG("[calCachedCalendar] Deleting "  + this.items.length + " items from " + this_.name);
                     if (this.items.length > 0) {
                         deleteListener.itemCount = this.items.length;
-                        for each (var aItem in this.items) {
-                            if (this_.supportsChangeLog) {
-                                this_.mUncachedCalendar.deleteItemOrUseCache(aItem, false, deleteListener);
-                            } else {
-                                //Default strategy for providers not implementing calIChangeLog
-                                this_.mUncachedCalendar.deleteItem(aItem, deleteListener);
+                        for each (let item in this.items) {
+                            try {
+                                if (this_.supportsChangeLog) {
+                                    this_.mUncachedCalendar.deleteItemOrUseCache(item, false, deleteListener);
+                                } else {
+                                    // Default strategy for providers not implementing calIChangeLog
+                                    this_.mUncachedCalendar.deleteItem(item, deleteListener);
+                                }
+                            } catch (e) {
+                                cal.ERROR("[calCachedCalendar] Could not playback deleted item " + item.title + ": " + e);
+                                deleteListener.onOperationComplete(thisCalendar,
+                                                                   e.result,
+                                                                   Components.interfaces.calIOperationListener.MODIFY,
+                                                                   item.id,
+                                                                   e.message);
                             }
                         }
                     } else if (callbackFunc) {
