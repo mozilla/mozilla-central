@@ -268,9 +268,9 @@
     -->
   <binding id="calendar-event-column">
     <content>
-      <xul:stack anonid="boxstack" flex="1" style="min-width: 1px; min-height: 1px">
-        <xul:box anonid="bgbox" flex="1" style="min-width: 1px; min-height: 1px"/>
-        <xul:box xbl:inherits="context" anonid="topbox" flex="1" equalsize="always" style="min-width: 1px; min-height: 1px" mousethrough="always"/>
+      <xul:stack anonid="boxstack" flex="1" class="multiday-column-box-stack" style="min-width: 1px; min-height: 1px">
+        <xul:box anonid="bgbox" flex="1" class="multiday-column-bg-box" style="min-width: 1px; min-height: 1px"/>
+        <xul:box xbl:inherits="context" anonid="topbox" flex="1" equalsize="always" class="multiday-column-top-box" style="min-width: 1px; min-height: 1px" mousethrough="always"/>
         <xul:box anonid="fgbox" flex="1" class="fgdragcontainer" style="min-width: 1px; min-height: 1px; overflow:hidden;">
           <xul:box anonid="fgdragspacer" style="display: inherit; overflow: hidden;">
             <xul:spacer flex="1"/>
@@ -2167,7 +2167,6 @@
                          class="calendar-event-box-container"
                          flex="1"
                          xbl:inherits="context,parentorient=orient,readonly,flashing,alarm,allday,priority,progress,status,calendar,categories">
-                <xul:image flex="1" class="calendar-event-box-gradient"/>
                 <xul:hbox class="calendar-event-details"
                           anonid="calendar-event-details"
                           align="start">
@@ -2397,28 +2396,26 @@
 
   <binding id="calendar-multiday-view" extends="chrome://calendar/content/calendar-base-view.xml#calendar-base-view">
     <content flex="1" orient="vertical" xbl:inherits="context,item-context">
-      <xul:box anonid="mainbox" flex="1">
+      <xul:box anonid="mainbox" class="multiday-view-main-box" flex="1">
         <!-- these boxes are tricky: width or height in CSS depend on orient -->
-        <xul:box anonid="labelbox">
-          <xul:box anonid="labeltimespacer"/>
+        <xul:box anonid="labelbox" class="multiday-view-label-box">
+          <xul:box anonid="labeltimespacer" class="multiday-view-label-time-spacer"/>
           <xul:box anonid="labeldaybox"
-                   class="calendar-label-day-box"
+                   class="multiday-view-label-day-box"
                    flex="1"
                    chromedir="&locale.dir;"
                    equalsize="always"/>
           <xul:box anonid="labelscrollbarspacer"/>
         </xul:box>
-        <xul:box anonid="headerbox">
-          <xul:box anonid="headertimespacer"
-                   class="calendar-header-time-spacer"/>
-          <xul:box anonid="headerdaybox" class="calendar-header-day-box"
-                   flex="1" equalsize="always" />
+        <xul:box anonid="headerbox" class="multiday-view-header-box">
+          <xul:box anonid="headertimespacer" class="multiday-view-header-time-spacer"/>
+          <xul:box anonid="headerdaybox" class="multiday-view-header-day-box" flex="1" equalsize="always" />
           <xul:box anonid="headerscrollbarspacer"/>
         </xul:box>
         <xul:scrollbox anonid="scrollbox" flex="1">
           <!-- the orient of the calendar-time-bar needs to be the opposite of the parent -->
           <xul:calendar-time-bar xbl:inherits="orient" anonid="timebar"/>
-          <xul:box anonid="daybox" class="calendar-day-box" flex="1"
+          <xul:box anonid="daybox" class="multiday-view-day-box" flex="1"
                    equalsize="always"/>
         </xul:scrollbox>
       </xul:box>

@@ -89,10 +89,6 @@
                               xbl:inherits="flashing"/>
                   </xul:stack>
                 </xul:hbox>
-                <xul:image anonid="gradient"
-                           class="calendar-event-box-gradient"
-                           height="1px"
-                           mousethrough="always"/>
               </xul:stack>
             </xul:box>
           </xul:box>

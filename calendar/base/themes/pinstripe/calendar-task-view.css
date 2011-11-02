@@ -37,10 +37,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #calendar-task-details-container {
-    border-top: 1px solid ThreeDShadow;
-    border-left: 1px solid ThreeDShadow;
-    border-right: 0px;
-    border-bottom: 0px;
     overflow: hidden;
 }
 
@@ -65,6 +61,7 @@
     border-left: 1px solid ThreeDShadow;
     border-right: 0px;
     border-bottom: 1px solid ThreeDShadow;
+    background: -moz-linear-gradient(top, #eaeaea, #d1d1d1);
 }
 
 #calendar-task-details-description {

@@ -247,8 +247,8 @@ agenda-allday-richlist-item {
 .agenda-allday-container-box[selected="true"][current="true"],
 .agenda-checkbox[selected="true"][current="true"] {
   background-image: url("chrome://mozapps/skin/extensions/itemEnabledFader.png");
-  background-color: Highlight;
-  color: HighlightText;
+  background-color: #FDF5A0;
+  color: #000000;
 }
 
 .agenda-container-box[current="true"],
