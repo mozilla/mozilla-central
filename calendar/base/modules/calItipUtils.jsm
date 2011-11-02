@@ -286,6 +286,9 @@ cal.itip = {
             // This case, they clicked on an old message that has already been
             // added/updated, we want to tell them that.
             data.label = _gs("imipBarAlreadyProcessedText");
+            // TODO this needs its own string, but we are in string freeze. (Details...)
+            data.button1.label = cal.calGetString("calendar", "Open");
+            data.button1.actionMethod = "X-SHOWDETAILS"; // not a real method, but helps us decide
         } else if (Components.isSuccessCode(rc)) {
 
             cal.LOG("iTIP options on: " + actionFunc.method);
@@ -988,6 +991,9 @@ ItipFindItemListener.prototype = {
         let operations = [];
 
         if (this.mFoundItems.length > 0) {
+            // Save the target calendar on the itip item
+            this.mItipItem.targetCalendar = this.mFoundItems[0].calendar;
+
             cal.LOG("iTIP on " + method + ": found " + this.mFoundItems.length + " items.");
             switch (method) {
                 // XXX todo: there's still a potential flaw, if multiple PUBLISH/REPLY/REQUEST on

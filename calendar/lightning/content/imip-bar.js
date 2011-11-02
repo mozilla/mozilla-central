@@ -161,7 +161,14 @@ var ltnImipBar = {
     },
 
     executeAction: function ltnExecAction(partStat) {
-        if (cal.itip.promptCalendar(ltnImipBar.actionFunc.method, ltnImipBar.itipItem, window)) {
+        if (partStat == "X-SHOWDETAILS") {
+            let items = ltnImipBar.itipItem.getItemList({});
+            if (items.length) {
+                let item = items[0].isMutable ? items[0] : items[0].clone();
+                item.calendar = ltnImipBar.itipItem.targetCalendar;
+                modifyEventWithDialog(item);
+            }
+        } else if (cal.itip.promptCalendar(ltnImipBar.actionFunc.method, ltnImipBar.itipItem, window)) {
             // hide the buttons now, to disable pressing them twice...
             hideElement("imip-button1");
             hideElement("imip-button2");
