@@ -95,6 +95,7 @@ calendar-header-container[rotated] {
 }
 
 calendar-event-column {
+    -moz-user-focus: normal;
     background-color: #FFFFFF;
 }
 

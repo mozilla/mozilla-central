@@ -1949,6 +1949,7 @@
 
       <handler event="click" button="0"><![CDATA[
         this.calendarView.setSelectedItems(0, []);
+        this.focus();
       ]]></handler>
 
       <handler event="click" button="2"><![CDATA[
