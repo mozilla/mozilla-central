@@ -4,9 +4,12 @@ TOOLSET := target
 TARGET := voice_engine_core
 DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -54,7 +57,7 @@ INCS_Debug := -Isrc \
 	-Isrc/modules/audio_conference_mixer/interface \
 	-Isrc \
 	-Isrc/modules/audio_device/main/interface \
-	-Isrc/modules/audio_processing/main/interface \
+	-Isrc/modules/audio_processing/interface \
 	-Isrc/modules/media_file/interface \
 	-Isrc/modules/rtp_rtcp/interface \
 	-Isrc/modules/udp_transport/interface \
@@ -63,9 +66,12 @@ INCS_Debug := -Isrc \
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -115,7 +121,7 @@ INCS_Release := -Isrc \
 	-Isrc/modules/audio_conference_mixer/interface \
 	-Isrc \
 	-Isrc/modules/audio_device/main/interface \
-	-Isrc/modules/audio_processing/main/interface \
+	-Isrc/modules/audio_processing/interface \
 	-Isrc/modules/media_file/interface \
 	-Isrc/modules/rtp_rtcp/interface \
 	-Isrc/modules/udp_transport/interface \

@@ -862,11 +862,11 @@ class TestCmd(object):
         self.verbose_set(verbose)
         self.combine = combine
         self.universal_newlines = universal_newlines
-        if not match is None:
+        if match is not None:
             self.match_function = match
         else:
             self.match_function = match_re
-        if not diff is None:
+        if diff is not None:
             self.diff_function = diff
         else:
             try:

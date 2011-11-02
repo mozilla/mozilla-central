@@ -16,9 +16,12 @@ DEFS_Debug := '-DFEATURE_ENABLE_SSL' \
 	'-DLINUX' \
 	'-DPOSIX' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -71,9 +74,12 @@ DEFS_Release := '-DFEATURE_ENABLE_SSL' \
 	'-DLINUX' \
 	'-DPOSIX' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -120,6 +126,9 @@ OBJS := $(obj).target/$(TARGET)/third_party/jsoncpp/src/lib_json/json_reader.o \
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
+
+# Make sure our dependencies are built before any of us.
+$(OBJS): | $(obj).target/third_party/expat/expat.stamp
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.

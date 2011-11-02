@@ -32,20 +32,14 @@ namespace webrtc {
 
 static const char kAudioTrackKind[] = "audio";
 
-AudioTrack::AudioTrack(const std::string& label, uint32 ssrc)
-    : enabled_(true),
-      label_(label),
-      ssrc_(ssrc),
-      state_(kInitializing),
+AudioTrack::AudioTrack(const std::string& label)
+    : MediaTrack<LocalAudioTrackInterface>(label),
       audio_device_(NULL) {
 }
 
 AudioTrack::AudioTrack(const std::string& label,
                        AudioDeviceModule* audio_device)
-    : enabled_(true),
-      label_(label),
-      ssrc_(0),
-      state_(kInitializing),
+    : MediaTrack<LocalAudioTrackInterface>(label),
       audio_device_(audio_device) {
 }
 
@@ -55,47 +49,22 @@ AudioDeviceModule* AudioTrack::GetAudioDevice() {
 }
 
   // Implement MediaStreamTrack
-const char* AudioTrack::kind() const {
-  return kAudioTrackKind;
+std::string AudioTrack::kind() const {
+  return std::string(kAudioTrackKind);
 }
 
-bool AudioTrack::set_enabled(bool enable) {
-  bool fire_on_change = (enable != enabled_);
-  enabled_ = enable;
-  if (fire_on_change)
-    NotifierImpl<LocalAudioTrackInterface>::FireOnChanged();
-}
-
-bool AudioTrack::set_ssrc(uint32 ssrc) {
-  ASSERT(ssrc_ == 0);
-  ASSERT(ssrc != 0);
-  if (ssrc_ != 0)
-    return false;
-  ssrc_ = ssrc;
-  NotifierImpl<LocalAudioTrackInterface>::FireOnChanged();
-  return true;
-}
-
-bool AudioTrack::set_state(TrackState new_state) {
-  bool fire_on_change = (state_ != new_state);
-  state_ = new_state;
-  if (fire_on_change)
-    NotifierImpl<LocalAudioTrackInterface>::FireOnChanged();
-  return true;
-}
-
-scoped_refptr<AudioTrackInterface> AudioTrack::Create(
-    const std::string& label, uint32 ssrc) {
-  talk_base::RefCountImpl<AudioTrack>* track =
-      new talk_base::RefCountImpl<AudioTrack>(label, ssrc);
+talk_base::scoped_refptr<AudioTrack> AudioTrack::CreateRemote(
+    const std::string& label) {
+  talk_base::RefCountedObject<AudioTrack>* track =
+      new talk_base::RefCountedObject<AudioTrack>(label);
   return track;
 }
 
-scoped_refptr<LocalAudioTrackInterface> CreateLocalAudioTrack(
+talk_base::scoped_refptr<AudioTrack> AudioTrack::CreateLocal(
     const std::string& label,
     AudioDeviceModule* audio_device) {
-  talk_base::RefCountImpl<AudioTrack>* track =
-      new talk_base::RefCountImpl<AudioTrack>(label, audio_device);
+  talk_base::RefCountedObject<AudioTrack>* track =
+      new talk_base::RefCountedObject<AudioTrack>(label, audio_device);
   return track;
 }
 

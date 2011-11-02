@@ -4,9 +4,12 @@ TOOLSET := target
 TARGET := ns
 DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -45,15 +48,18 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/audio_processing/ns/main/interface \
+	-Isrc/modules/audio_processing/ns/interface \
 	-Isrc/common_audio/signal_processing_library/main/interface \
 	-Isrc/modules/audio_processing/utility
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -94,12 +100,12 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/audio_processing/ns/main/interface \
+	-Isrc/modules/audio_processing/ns/interface \
 	-Isrc/common_audio/signal_processing_library/main/interface \
 	-Isrc/modules/audio_processing/utility
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/ns/main/source/noise_suppression.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/ns/main/source/ns_core.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/ns/noise_suppression.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/ns/ns_core.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

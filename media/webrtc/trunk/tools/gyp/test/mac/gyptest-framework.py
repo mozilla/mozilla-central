@@ -42,6 +42,9 @@ if sys.platform == 'darwin':
                              chdir='framework')
   test.built_file_must_exist('Test Framework.framework/Test Framework',
                              chdir='framework')
+  # PkgInfo.
+  test.built_file_must_not_exist(
+      'Test Framework.framework/Versions/A/Resources/PkgInfo',
+      chdir='framework')
 
   test.pass_test()
-

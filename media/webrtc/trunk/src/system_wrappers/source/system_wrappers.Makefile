@@ -3,4 +3,4 @@
 export builddir_name ?= trunk/src/system_wrappers/source/$(OBJDIR)/media/webrtc/out
 .PHONY: all
 all:
-	$(MAKE) -C ../../.. system_wrappers
+	$(MAKE) -C ../../.. system_wrappers system_wrappers_unittests

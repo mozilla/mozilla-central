@@ -17,6 +17,7 @@
         '<(webrtc_root)/modules/modules.gyp:video_capture_module',
         '<(webrtc_root)/voice_engine/voice_engine.gyp:voice_engine_core',
         '<(webrtc_root)/../testing/gtest.gyp:gtest',
+        '<(webrtc_root)/../third_party/google-gflags/google-gflags.gyp:google-gflags',
         'video_engine_core',
       ],
       'include_dirs': [
@@ -41,10 +42,12 @@
         'interface/vie_autotest_main.h',
         'interface/vie_autotest_window_manager_interface.h',
         'interface/vie_autotest_windows.h',
-        
+
         # Helper classes
         'helpers/vie_window_creator.cc',
-        
+        'helpers/vie_file_capture_device.cc',
+        'helpers/vie_fake_camera.cc',
+
         # New, fully automated tests
         'automated/vie_api_integration_test.cc',
         'automated/vie_extended_integration_test.cc',
@@ -75,11 +78,14 @@
         # Platform dependent
         # Linux
         'source/vie_autotest_linux.cc',
+        'source/vie_window_manager_factory_linux.cc',
         # Mac
         'source/vie_autotest_mac_cocoa.mm',
         'source/vie_autotest_mac_carbon.cc',
+        'source/vie_window_manager_factory_mac.mm',
         # Windows
         'source/vie_autotest_windows.cc',
+        'source/vie_window_manager_factory_win.cc',
       ],
       'copies': [{
         'destination': '/tmp',
@@ -99,11 +105,17 @@
           'sources!': [
             'source/vie_autotest_mac_cocoa.cc',
             'source/vie_autotest_mac_carbon.cc',
+            'source/vie_window_manager_factory_mac.mm',
           ],
         }],
         ['OS!="win"', {
           'sources!': [
             'source/vie_autotest_windows.cc',
+          ],
+        }],
+        ['OS!="linux"', {
+          'sources!': [
+            'source/vie_window_manager_factory_linux.cc',
           ],
         }],
 
@@ -124,9 +136,6 @@
         }],
         ['OS=="mac"', {
           'xcode_settings': {
-            # TODO(andrew): remove this when the issue with Objective-C in
-            # vie_autotest_main.cc is worked out.
-            'OTHER_CPLUSPLUSFLAGS': '-x objective-c++',
             'OTHER_LDFLAGS': [
               '-framework Foundation -framework AppKit -framework Cocoa -framework OpenGL -framework CoreVideo -framework CoreAudio -framework AudioToolbox',
             ],

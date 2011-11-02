@@ -6,7 +6,7 @@
 set -e
 
 lib="${BUILT_PRODUCTS_DIR}/${FULL_PRODUCT_NAME}"
-nm ${lib} 2> /dev/null  # Just make sure this works.
+nm ${lib} > /dev/null  # Just make sure this works.
 
 pattern="${1}"
 

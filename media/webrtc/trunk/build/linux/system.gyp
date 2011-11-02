@@ -30,7 +30,8 @@
   'targets': [
     {
       'target_name': 'gtk',
-      'type': 'settings',
+      'type': 'none',
+      'toolsets': ['host', 'target'],
       'conditions': [
         ['_toolset=="target"', {
           'direct_dependent_settings': {
@@ -46,16 +47,31 @@
               '<!@(<(pkg-config) --libs-only-l gtk+-2.0 gthread-2.0)',
             ],
           },
-      }],
-      [ 'chromeos==1', {
-        'link_settings': {
-          'libraries': [ '-lXtst' ]
-        }
-      }]]
+        }, {
+          'direct_dependent_settings': {
+            'cflags': [
+              '<!@(pkg-config --cflags gtk+-2.0 gthread-2.0)',
+            ],
+          },
+          'link_settings': {
+            'ldflags': [
+              '<!@(pkg-config --libs-only-L --libs-only-other gtk+-2.0 gthread-2.0)',
+            ],
+            'libraries': [
+              '<!@(pkg-config --libs-only-l gtk+-2.0 gthread-2.0)',
+            ],
+          },
+        }],
+        ['chromeos==1', {
+          'link_settings': {
+            'libraries': [ '-lXtst' ]
+          }
+        }],
+      ],
     },
     {
       'target_name': 'gtkprint',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['_toolset=="target"', {
           'direct_dependent_settings': {
@@ -71,11 +87,12 @@
               '<!@(<(pkg-config) --libs-only-l gtk+-unix-print-2.0)',
             ],
           },
-      }]]
+        }],
+      ],
     },
     {
       'target_name': 'ssl',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['_toolset=="target"', {
           'conditions': [
@@ -132,7 +149,7 @@
     },
     {
       'target_name': 'freetype2',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['_toolset=="target"', {
           'direct_dependent_settings': {
@@ -148,11 +165,12 @@
               '<!@(<(pkg-config) --libs-only-l freetype2)',
             ],
           },
-      }]]
+        }],
+      ],
     },
     {
       'target_name': 'fontconfig',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['_toolset=="target"', {
           'direct_dependent_settings': {
@@ -168,11 +186,12 @@
               '<!@(<(pkg-config) --libs-only-l fontconfig)',
             ],
           },
-      }]]
+        }],
+      ],
     },
     {
       'target_name': 'gdk',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['_toolset=="target"', {
           'direct_dependent_settings': {
@@ -188,11 +207,12 @@
               '<!@(<(pkg-config) --libs-only-l gdk-2.0)',
             ],
           },
-      }]]
+        }],
+      ],
     },
     {
       'target_name': 'gconf',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['use_gconf==1 and _toolset=="target"', {
           'direct_dependent_settings': {
@@ -211,11 +231,12 @@
               '<!@(<(pkg-config) --libs-only-l gconf-2.0)',
             ],
           },
-      }]]
+        }],
+      ],
     },
     {
       'target_name': 'gio',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['use_gio==1 and _toolset=="target"', {
           'direct_dependent_settings': {
@@ -246,11 +267,13 @@
               }],
             ],
           },
-      }]]
+        }],
+      ],
     },
     {
       'target_name': 'x11',
-      'type': 'settings',
+      'type': 'none',
+      'toolsets': ['host', 'target'],
       'conditions': [
         ['_toolset=="target"', {
           'direct_dependent_settings': {
@@ -266,12 +289,26 @@
               '<!@(<(pkg-config) --libs-only-l x11 xi)',
             ],
           },
-      }],
+        }, {
+          'direct_dependent_settings': {
+            'cflags': [
+              '<!@(pkg-config --cflags x11)',
+            ],
+          },
+          'link_settings': {
+            'ldflags': [
+              '<!@(pkg-config --libs-only-L --libs-only-other x11 xi)',
+            ],
+            'libraries': [
+              '<!@(pkg-config --libs-only-l x11 xi)',
+            ],
+          },
+        }],
       ],
     },
     {
       'target_name': 'xext',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['_toolset=="target"', {
           'direct_dependent_settings': {
@@ -287,11 +324,12 @@
               '<!@(<(pkg-config) --libs-only-l xext)',
             ],
           },
-      }]]
+        }],
+      ],
     },
     {
       'target_name': 'libgcrypt',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['_toolset=="target" and use_cups==1', {
           'direct_dependent_settings': {
@@ -304,11 +342,12 @@
               '<!@(libgcrypt-config --libs)',
             ],
           },
-      }]]
+        }],
+      ],
     },
     {
       'target_name': 'selinux',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['_toolset=="target"', {
           'link_settings': {
@@ -316,11 +355,12 @@
               '-lselinux',
             ],
           },
-      }]]
+        }],
+      ],
     },
     {
       'target_name': 'gnome_keyring',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['use_gnome_keyring==1', {
           'direct_dependent_settings': {
@@ -363,7 +403,7 @@
       # link directly in this version of the target to allow this.
       # *** Do not use this target in the main binary! ***
       'target_name': 'gnome_keyring_direct',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['use_gnome_keyring==1', {
           'direct_dependent_settings': {
@@ -392,7 +432,7 @@
     },
     {
       'target_name': 'dbus',
-      'type': 'settings',
+      'type': 'none',
       'direct_dependent_settings': {
         'cflags': [
           '<!@(<(pkg-config) --cflags dbus-1)',
@@ -410,7 +450,7 @@
     {
       # TODO(satorux): Remove this once dbus-glib clients are gone.
       'target_name': 'dbus-glib',
-      'type': 'settings',
+      'type': 'none',
       'direct_dependent_settings': {
         'cflags': [
           '<!@(<(pkg-config) --cflags dbus-glib-1)',
@@ -426,8 +466,85 @@
       },
     },
     {
+      'target_name': 'glib',
+      'type': 'none',
+      'toolsets': ['host', 'target'],
+      'conditions': [
+        ['_toolset=="target"', {
+          'direct_dependent_settings': {
+            'cflags': [
+              '<!@(<(pkg-config) --cflags glib-2.0 gobject-2.0 gthread-2.0)',
+            ],
+          },
+          'link_settings': {
+            'ldflags': [
+              '<!@(<(pkg-config) --libs-only-L --libs-only-other glib-2.0 gobject-2.0 gthread-2.0)',
+            ],
+            'libraries': [
+              '<!@(<(pkg-config) --libs-only-l glib-2.0 gobject-2.0 gthread-2.0)',
+            ],
+          },
+        }, {
+          'direct_dependent_settings': {
+            'cflags': [
+              '<!@(pkg-config --cflags glib-2.0 gobject-2.0 gthread-2.0)',
+            ],
+          },
+          'link_settings': {
+            'ldflags': [
+              '<!@(pkg-config --libs-only-L --libs-only-other glib-2.0 gobject-2.0 gthread-2.0)',
+            ],
+            'libraries': [
+              '<!@(pkg-config --libs-only-l glib-2.0 gobject-2.0 gthread-2.0)',
+            ],
+          },
+        }],
+        ['chromeos==1', {
+          'link_settings': {
+            'libraries': [ '-lXtst' ]
+          }
+        }],
+      ],
+    },
+    {
+      'target_name': 'pangocairo',
+      'type': 'none',
+      'toolsets': ['host', 'target'],
+      'conditions': [
+        ['_toolset=="target"', {
+          'direct_dependent_settings': {
+            'cflags': [
+              '<!@(<(pkg-config) --cflags pangocairo)',
+            ],
+          },
+          'link_settings': {
+            'ldflags': [
+              '<!@(<(pkg-config) --libs-only-L --libs-only-other pangocairo)',
+            ],
+            'libraries': [
+              '<!@(<(pkg-config) --libs-only-l pangocairo)',
+            ],
+          },
+        }, {
+          'direct_dependent_settings': {
+            'cflags': [
+              '<!@(pkg-config --cflags pangocairo)',
+            ],
+          },
+          'link_settings': {
+            'ldflags': [
+              '<!@(pkg-config --libs-only-L --libs-only-other pangocairo)',
+            ],
+            'libraries': [
+              '<!@(pkg-config --libs-only-l pangocairo)',
+            ],
+          },
+        }],
+      ],
+    },
+    {
       'target_name': 'libresolv',
-      'type': 'settings',
+      'type': 'none',
       'link_settings': {
         'libraries': [
           '-lresolv',
@@ -436,7 +553,7 @@
     },
     {
       'target_name': 'ibus',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['use_ibus==1', {
           'variables': {
@@ -461,7 +578,7 @@
     },
     {
       'target_name': 'wayland',
-      'type': 'settings',
+      'type': 'none',
       'conditions': [
         ['use_wayland == 1', {
           'cflags': [

@@ -242,8 +242,19 @@ RTPSender::ActualSendBitrateKbit() const
 }
 
 WebRtc_UWord32
+RTPSender::VideoBitrateSent() const {
+  if (_video)
+    return _video->VideoBitrateSent();
+  else
+    return 0;
+}
+
+WebRtc_UWord32
 RTPSender::FecOverheadRate() const {
-  return _video->FecOverheadRate();
+  if (_video)
+    return _video->FecOverheadRate();
+  else
+    return 0;
 }
 
 WebRtc_UWord32
@@ -1074,6 +1085,9 @@ RTPSender::ProcessBitrate()
 
     Bitrate::Process();
     _nackBitrate.Process();
+
+    if (_audioConfigured)
+      return;
     _video->ProcessBitrate();
 }
 

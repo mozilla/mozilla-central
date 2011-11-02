@@ -21,7 +21,7 @@
       'targets': [
         {
           'target_name': 'expat',
-          'type': 'settings',
+          'type': 'none',
           'link_settings': {
             'libraries': [
               '-lexpat',

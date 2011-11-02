@@ -504,9 +504,12 @@ rule_libvpx_assemble_outputs := $(obj)/gen/third_party/libvpx/asm_enc_offsets.o 
 
 DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -548,9 +551,12 @@ INCS_Debug := -Ithird_party/libvpx/source/config/linux/x64 \
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -610,7 +616,6 @@ OBJS := $(obj).target/$(TARGET)/third_party/libvpx/source/config/linux/x64/vpx_c
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/asm_com_offsets.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/blockd.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/debugmodes.o \
-	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/defaultcoefcounts.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/entropy.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/entropymode.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/entropymv.o \

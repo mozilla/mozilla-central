@@ -552,7 +552,7 @@ typedef struct VP8_COMP
 
         int gf_group_bits;                // Projected Bits available for a group of frames including 1 GF or ARF
         int gf_bits;                     // Bits for the golden frame or ARF - 2 pass only
-        int mid_gf_extra_bits;             // A few extra bits for the frame half way between two gfs.
+        int alt_extra_bits;
         double est_max_qcorrection_factor;
     } twopass;
 
@@ -609,9 +609,8 @@ typedef struct VP8_COMP
     int *lf_ref_frame_sign_bias;
     int *lf_ref_frame;
 
-#if CONFIG_REALTIME_ONLY
     int force_next_frame_intra; /* force next frame to intra when kf_auto says so */
-#endif
+
     int droppable;
 } VP8_COMP;
 

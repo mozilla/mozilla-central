@@ -549,23 +549,22 @@ void ViEEncoder::DeliverFrame(int id, webrtc::VideoFrame& videoFrame,
     if (_vcm.SendCodec() == webrtc::kVideoCodecVP8)
     {
         webrtc::CodecSpecificInfo codecSpecificInfo;
-        codecSpecificInfo.codecType = webrtc::kVideoCodecUnknown;
+        codecSpecificInfo.codecType = webrtc::kVideoCodecVP8;
         if (_hasReceivedSLI || _hasReceivedRPSI)
         {
-            webrtc::VideoCodec currentSendCodec;
-            _vcm.SendCodec(&currentSendCodec);
-            if (currentSendCodec.codecType == webrtc::kVideoCodecVP8)
-            {
-                codecSpecificInfo.codecType = webrtc::kVideoCodecVP8;
-                codecSpecificInfo.codecSpecific.VP8.hasReceivedRPSI = _hasReceivedRPSI;
-                codecSpecificInfo.codecSpecific.VP8.hasReceivedSLI = _hasReceivedSLI;
-                codecSpecificInfo.codecSpecific.VP8.pictureIdRPSI = _pictureIdRPSI;
-                codecSpecificInfo.codecSpecific.VP8.pictureIdSLI  = _pictureIdSLI;
+          {
+            codecSpecificInfo.codecSpecific.VP8.hasReceivedRPSI =
+                _hasReceivedRPSI;
+            codecSpecificInfo.codecSpecific.VP8.hasReceivedSLI =
+                _hasReceivedSLI;
+            codecSpecificInfo.codecSpecific.VP8.pictureIdRPSI =
+                _pictureIdRPSI;
+            codecSpecificInfo.codecSpecific.VP8.pictureIdSLI  =
+                _pictureIdSLI;
             }
-            _hasReceivedSLI = false;
-            _hasReceivedRPSI = false;
+          _hasReceivedSLI = false;
+          _hasReceivedRPSI = false;
         }
-        // Pass frame via preprocessor
         VideoFrame *decimatedFrame = NULL;
         const int ret = _vpm.PreprocessFrame(&videoFrame, &decimatedFrame);
         if (ret == 1)
@@ -585,6 +584,11 @@ void ViEEncoder::DeliverFrame(int id, webrtc::VideoFrame& videoFrame,
 
         VideoContentMetrics* contentMetrics = NULL;
         contentMetrics = _vpm.ContentMetrics();
+
+        // frame was not sampled => use original
+        if (decimatedFrame == NULL)  {
+          decimatedFrame = &videoFrame;
+        }
 
         if (_vcm.AddVideoFrame
             (*decimatedFrame, contentMetrics, &codecSpecificInfo) != VCM_OK)
@@ -609,6 +613,10 @@ void ViEEncoder::DeliverFrame(int id, webrtc::VideoFrame& videoFrame,
         WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceVideo, ViEId(_engineId, _channelId),
                   "%s: Error preprocessing frame %u", __FUNCTION__, videoFrame.TimeStamp());
         return;
+    }
+    // frame was not sampled => use original
+    if (decimatedFrame == NULL)  {
+      decimatedFrame = &videoFrame;
     }
     if (_vcm.AddVideoFrame(*decimatedFrame) != VCM_OK)
     {

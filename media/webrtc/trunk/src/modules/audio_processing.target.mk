@@ -4,9 +4,12 @@ TOOLSET := target
 TARGET := audio_processing
 DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -47,24 +50,27 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/audio_processing/main/interface \
+	-Isrc/modules/audio_processing/interface \
 	-Isrc/modules/interface \
 	-I$(obj)/gen/protoc_out \
-	-Isrc/modules/audio_processing/aec/main/interface \
-	-Isrc/modules/audio_processing/aecm/main/interface \
-	-Isrc/modules/audio_processing/agc/main/interface \
+	-Ithird_party/protobuf \
+	-Ithird_party/protobuf/src \
+	-Isrc/modules/audio_processing/aec/interface \
+	-Isrc/modules/audio_processing/aecm/interface \
+	-Isrc/modules/audio_processing/agc/interface \
 	-Isrc/common_audio/signal_processing_library/main/interface \
 	-Isrc/common_audio/vad/main/interface \
 	-Isrc/system_wrappers/interface \
-	-Isrc/modules/audio_processing/ns/main/interface \
-	-Ithird_party/protobuf \
-	-Ithird_party/protobuf/src
+	-Isrc/modules/audio_processing/ns/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -107,37 +113,36 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/audio_processing/main/interface \
+	-Isrc/modules/audio_processing/interface \
 	-Isrc/modules/interface \
 	-I$(obj)/gen/protoc_out \
-	-Isrc/modules/audio_processing/aec/main/interface \
-	-Isrc/modules/audio_processing/aecm/main/interface \
-	-Isrc/modules/audio_processing/agc/main/interface \
+	-Ithird_party/protobuf \
+	-Ithird_party/protobuf/src \
+	-Isrc/modules/audio_processing/aec/interface \
+	-Isrc/modules/audio_processing/aecm/interface \
+	-Isrc/modules/audio_processing/agc/interface \
 	-Isrc/common_audio/signal_processing_library/main/interface \
 	-Isrc/common_audio/vad/main/interface \
 	-Isrc/system_wrappers/interface \
-	-Isrc/modules/audio_processing/ns/main/interface \
-	-Ithird_party/protobuf \
-	-Ithird_party/protobuf/src
+	-Isrc/modules/audio_processing/ns/interface
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/main/source/audio_buffer.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/main/source/audio_processing_impl.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/main/source/echo_cancellation_impl.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/main/source/echo_control_mobile_impl.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/main/source/gain_control_impl.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/main/source/high_pass_filter_impl.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/main/source/level_estimator_impl.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/main/source/noise_suppression_impl.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/main/source/splitting_filter.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/main/source/processing_component.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/main/source/voice_detection_impl.o \
-	$(obj).target/$(TARGET)/gen/protoc_out/webrtc/audio_processing/debug.pb.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/audio_buffer.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/audio_processing_impl.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/echo_cancellation_impl.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/echo_control_mobile_impl.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/gain_control_impl.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/high_pass_filter_impl.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/level_estimator_impl.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/noise_suppression_impl.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/splitting_filter.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/processing_component.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/voice_detection_impl.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/debug_proto.stamp
+$(OBJS): | $(obj).target/src/modules/libaudioproc_debug_proto.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -174,7 +179,7 @@ LIBS :=
 $(obj).target/src/modules/libaudio_processing.a: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(obj).target/src/modules/libaudio_processing.a: LIBS := $(LIBS)
 $(obj).target/src/modules/libaudio_processing.a: TOOLSET := $(TOOLSET)
-$(obj).target/src/modules/libaudio_processing.a: $(OBJS) FORCE_DO_CMD
+$(obj).target/src/modules/libaudio_processing.a: $(OBJS) $(obj).target/src/modules/libaudioproc_debug_proto.a FORCE_DO_CMD
 	$(call do_cmd,alink)
 
 all_deps += $(obj).target/src/modules/libaudio_processing.a

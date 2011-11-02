@@ -19,6 +19,14 @@
             'arg with spaces',
           ],
         },
+        {
+          'postbuild_name': 'Test variable in gyp file',
+          'action': [
+            'cp',
+            '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}',
+            '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}_gyp_touch.a',
+          ],
+        },
       ],
     },
     {
@@ -40,6 +48,29 @@
             'script/shared_library_postbuild.sh',
             '<(some_regex)',
             'arg with spaces',
+          ],
+        },
+        {
+          'postbuild_name': 'Test variable in gyp file',
+          'action': [
+            'cp',
+            '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}',
+            '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}_gyp_touch',
+          ],
+        },
+      ],
+    },
+    {
+      'target_name': 'dyna_standalone',
+      'type': 'shared_library',
+      'sources': [ 'file.c', ],
+      'postbuilds': [
+        {
+          'postbuild_name': 'Test variable in gyp file',
+          'action': [
+            'cp',
+            '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}',
+            '${BUILT_PRODUCTS_DIR}/${EXECUTABLE_PATH}_gyp_touch.dylib',
           ],
         },
       ],

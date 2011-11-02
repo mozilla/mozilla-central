@@ -24,48 +24,50 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
+
 #include "talk/app/webrtc_dev/mediastreamimpl.h"
+#include "talk/base/logging.h"
 
 namespace webrtc {
 
-scoped_refptr<LocalMediaStreamInterface> CreateLocalMediaStream(
+talk_base::scoped_refptr<MediaStream> MediaStream::Create(
     const std::string& label) {
-  return MediaStreamImpl::Create(label);
-}
-
-scoped_refptr<MediaStreamImpl> MediaStreamImpl::Create(
-    const std::string& label) {
-  talk_base::RefCountImpl<MediaStreamImpl>* stream =
-      new talk_base::RefCountImpl<MediaStreamImpl>(label);
+  talk_base::RefCountedObject<MediaStream>* stream =
+      new talk_base::RefCountedObject<MediaStream>(label);
   return stream;
 }
 
-MediaStreamImpl::MediaStreamImpl(const std::string& label)
+MediaStream::MediaStream(const std::string& label)
     : label_(label),
       ready_state_(MediaStreamInterface::kInitializing),
-      track_list_(new talk_base::RefCountImpl<MediaStreamTrackListImpl>()) {
+      audio_track_list_(
+          new talk_base::RefCountedObject<
+          MediaStreamTrackList<AudioTrackInterface> >()),
+      video_track_list_(
+          new talk_base::RefCountedObject<
+          MediaStreamTrackList<VideoTrackInterface> >()) {
 }
 
-void MediaStreamImpl::set_ready_state(
+void MediaStream::set_ready_state(
     MediaStreamInterface::ReadyState new_state) {
   if (ready_state_ != new_state) {
     ready_state_ = new_state;
-    NotifierImpl<LocalMediaStreamInterface>::FireOnChanged();
+    Notifier<LocalMediaStreamInterface>::FireOnChanged();
   }
 }
 
-bool MediaStreamImpl::AddTrack(MediaStreamTrackInterface* track) {
+bool MediaStream::AddTrack(AudioTrackInterface* track) {
   if (ready_state() != kInitializing)
     return false;
-
-  track_list_->AddTrack(track);
+  audio_track_list_->AddTrack(track);
   return true;
 }
 
-void MediaStreamImpl::MediaStreamTrackListImpl::AddTrack(
-    MediaStreamTrackInterface* track) {
-  tracks_.push_back(track);
-  NotifierImpl<MediaStreamTrackListInterface>::FireOnChanged();
+bool MediaStream::AddTrack(VideoTrackInterface* track) {
+  if (ready_state() != kInitializing)
+    return false;
+  video_track_list_->AddTrack(track);
+  return true;
 }
 
 }  // namespace webrtc
