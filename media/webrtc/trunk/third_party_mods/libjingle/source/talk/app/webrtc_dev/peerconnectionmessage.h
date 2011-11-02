@@ -34,10 +34,10 @@
 #include <string>
 #include <vector>
 
-#include "talk/app/webrtc_dev/ref_count.h"
-#include "talk/app/webrtc_dev/scoped_refptr.h"
+#include "talk/base/refcount.h"
 #include "talk/base/basictypes.h"
 #include "talk/base/scoped_ptr.h"
+#include "talk/base/scoped_refptr.h"
 #include "talk/session/phone/mediasession.h"
 #include "talk/p2p/base/sessiondescription.h"
 

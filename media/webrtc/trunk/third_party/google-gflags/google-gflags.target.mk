@@ -4,9 +4,12 @@ TOOLSET := target
 TARGET := google-gflags
 DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -48,9 +51,12 @@ INCS_Debug := -Ithird_party/google-gflags/gen/arch/linux/x64/include/private \
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -141,4 +147,8 @@ all_deps += $(obj).target/third_party/google-gflags/libgoogle-gflags.a
 # Add target alias
 .PHONY: google-gflags
 google-gflags: $(obj).target/third_party/google-gflags/libgoogle-gflags.a
+
+# Add target alias to "all" target.
+.PHONY: all
+all: google-gflags
 

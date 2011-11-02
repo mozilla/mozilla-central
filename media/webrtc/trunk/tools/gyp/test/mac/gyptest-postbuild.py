@@ -29,15 +29,23 @@ if sys.platform == 'darwin':
   test.built_file_must_exist('el.a_touch',
                              type=test.STATIC_LIB,
                              chdir='postbuilds')
+  test.built_file_must_exist('el.a_gyp_touch',
+                             type=test.STATIC_LIB,
+                             chdir='postbuilds')
   test.built_file_must_exist('nest_el.a_touch',
                              type=test.STATIC_LIB,
-                             chdir=chdir,
-                             subdir='subdirectory')
+                             chdir=chdir)
   test.built_file_must_exist(
       'dyna.framework/Versions/A/dyna_touch',
       chdir='postbuilds')
   test.built_file_must_exist(
+      'dyna.framework/Versions/A/dyna_gyp_touch',
+      chdir='postbuilds')
+  test.built_file_must_exist(
       'nest_dyna.framework/Versions/A/nest_dyna_touch',
       chdir=chdir)
+  test.built_file_must_exist('dyna_standalone.dylib_gyp_touch',
+                             type=test.SHARED_LIB,
+                             chdir='postbuilds')
 
   test.pass_test()

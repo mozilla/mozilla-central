@@ -27,8 +27,6 @@
 
 #include "talk/app/webrtc_dev/mediastreamhandler.h"
 
-#include "talk/app/webrtc_dev/scoped_refptr_msg.h"
-
 #ifdef WEBRTC_RELATIVE_PATH
 #include "modules/video_capture/main/interface/video_capture.h"
 #else
@@ -37,24 +35,13 @@
 
 namespace webrtc {
 
-enum {
-  MSG_TRACK_STATECHANGED = 1,
-  MSG_TRACK_RENDERERCHANGED = 2,
-  MSG_TRACK_ENABLEDCHANGED = 3,
-};
-
-typedef talk_base::TypedMessageData<MediaStreamTrackInterface::TrackState>
-    TrackStateMessageData;
-typedef talk_base::TypedMessageData<bool> TrackEnabledMessageData;
-
 VideoTrackHandler::VideoTrackHandler(VideoTrackInterface* track,
                                      MediaProviderInterface* provider)
     : provider_(provider),
       video_track_(track),
       state_(track->state()),
       enabled_(track->enabled()),
-      renderer_(track->GetRenderer()),
-      signaling_thread_(talk_base::Thread::Current()) {
+      renderer_(track->GetRenderer()) {
   video_track_->RegisterObserver(this);
 }
 
@@ -65,40 +52,15 @@ VideoTrackHandler::~VideoTrackHandler() {
 void VideoTrackHandler::OnChanged() {
   if (state_ != video_track_->state()) {
     state_ = video_track_->state();
-    TrackStateMessageData* state_param(new TrackStateMessageData(state_));
-    signaling_thread_->Post(this, MSG_TRACK_STATECHANGED, state_param);
+    OnStateChanged();
   }
   if (renderer_.get() != video_track_->GetRenderer()) {
     renderer_ = video_track_->GetRenderer();
-    signaling_thread_->Post(this, MSG_TRACK_RENDERERCHANGED);
+    OnRendererChanged();
   }
   if (enabled_ != video_track_->enabled()) {
-    enabled_ =video_track_->enabled();
-    TrackEnabledMessageData* enabled_param(
-        new TrackEnabledMessageData(enabled_));
-    signaling_thread_->Post(this, MSG_TRACK_ENABLEDCHANGED, enabled_param);
-  }
-}
-
-void VideoTrackHandler::OnMessage(talk_base::Message* msg) {
-  switch (msg->message_id) {
-    case MSG_TRACK_STATECHANGED: {
-      TrackStateMessageData* data =
-          static_cast<TrackStateMessageData*>(msg->pdata);
-      OnStateChanged(data->data());
-      delete data;
-      break;
-    }
-    case MSG_TRACK_RENDERERCHANGED: {
-      OnRendererChanged();
-      break;
-    }
-    case MSG_TRACK_ENABLEDCHANGED: {
-      TrackEnabledMessageData* data =
-          static_cast<TrackEnabledMessageData*>(msg->pdata);
-      OnEnabledChanged(data->data());
-      break;
-    }
+    enabled_ = video_track_->enabled();
+    OnEnabledChanged();
   }
 }
 
@@ -109,28 +71,33 @@ LocalVideoTrackHandler::LocalVideoTrackHandler(
       local_video_track_(track) {
 }
 
-void LocalVideoTrackHandler::OnRendererChanged() {
-  VideoRendererInterface* renderer(video_track_->GetRenderer());
-  if (renderer)
-    provider_->SetLocalRenderer(video_track_->ssrc(), renderer->renderer());
-  else
-    provider_->SetLocalRenderer(video_track_->ssrc(), NULL);
+LocalVideoTrackHandler::~LocalVideoTrackHandler() {
+  // Since cricket::VideoRenderer is not reference counted
+  // we need to remove the renderer before we are deleted.
+  provider_->SetLocalRenderer(video_track_->label(), NULL);
 }
 
-void LocalVideoTrackHandler::OnStateChanged(
-    MediaStreamTrackInterface::TrackState state) {
-  if (state == VideoTrackInterface::kLive) {
-    provider_->SetCaptureDevice(local_video_track_->ssrc(),
+void LocalVideoTrackHandler::OnRendererChanged() {
+  VideoRendererWrapperInterface* renderer(video_track_->GetRenderer());
+  if (renderer)
+    provider_->SetLocalRenderer(video_track_->label(), renderer->renderer());
+  else
+    provider_->SetLocalRenderer(video_track_->label(), NULL);
+}
+
+void LocalVideoTrackHandler::OnStateChanged() {
+  if (local_video_track_->state() == VideoTrackInterface::kLive) {
+    provider_->SetCaptureDevice(local_video_track_->label(),
                                 local_video_track_->GetVideoCapture());
-    VideoRendererInterface* renderer(video_track_->GetRenderer());
+    VideoRendererWrapperInterface* renderer(video_track_->GetRenderer());
     if (renderer)
-      provider_->SetLocalRenderer(video_track_->ssrc(), renderer->renderer());
+      provider_->SetLocalRenderer(video_track_->label(), renderer->renderer());
     else
-      provider_->SetLocalRenderer(video_track_->ssrc(), NULL);
+      provider_->SetLocalRenderer(video_track_->label(), NULL);
   }
 }
 
-void LocalVideoTrackHandler::OnEnabledChanged(bool enabled) {
+void LocalVideoTrackHandler::OnEnabledChanged() {
   // TODO(perkj) What should happen when enabled is changed?
 }
 
@@ -141,19 +108,25 @@ RemoteVideoTrackHandler::RemoteVideoTrackHandler(
       remote_video_track_(track) {
 }
 
+RemoteVideoTrackHandler::~RemoteVideoTrackHandler() {
+  // Since cricket::VideoRenderer is not reference counted
+  // we need to remove the renderer before we are deleted.
+  provider_->SetRemoteRenderer(video_track_->label(), NULL);
+}
+
+
 void RemoteVideoTrackHandler::OnRendererChanged() {
-  VideoRendererInterface* renderer(video_track_->GetRenderer());
+  VideoRendererWrapperInterface* renderer(video_track_->GetRenderer());
   if (renderer)
-    provider_->SetRemoteRenderer(video_track_->ssrc(), renderer->renderer());
+    provider_->SetRemoteRenderer(video_track_->label(), renderer->renderer());
   else
-    provider_->SetRemoteRenderer(video_track_->ssrc(), NULL);
+    provider_->SetRemoteRenderer(video_track_->label(), NULL);
 }
 
-void RemoteVideoTrackHandler::OnStateChanged(
-    MediaStreamTrackInterface::TrackState state) {
+void RemoteVideoTrackHandler::OnStateChanged() {
 }
 
-void RemoteVideoTrackHandler::OnEnabledChanged(bool enabled) {
+void RemoteVideoTrackHandler::OnEnabledChanged() {
   // TODO(perkj): What should happen when enabled is changed?
 }
 
@@ -183,17 +156,13 @@ LocalMediaStreamHandler::LocalMediaStreamHandler(
     MediaStreamInterface* stream,
     MediaProviderInterface* provider)
     : MediaStreamHandler(stream, provider) {
-  MediaStreamTrackListInterface* tracklist(stream->tracks());
+  VideoTracks* tracklist(stream->video_tracks());
 
   for (size_t j = 0; j < tracklist->count(); ++j) {
-    MediaStreamTrackInterface* track = tracklist->at(j);
-    if (track->type() == MediaStreamTrackInterface::kVideo) {
-      LocalVideoTrackInterface* video_track =
-          static_cast<LocalVideoTrackInterface*>(track);
-      VideoTrackHandler* handler(new LocalVideoTrackHandler(video_track,
-                                                            provider));
-      video_handlers_.push_back(handler);
-    }
+    LocalVideoTrackInterface* track =
+        static_cast<LocalVideoTrackInterface*>(tracklist->at(j));
+    VideoTrackHandler* handler(new LocalVideoTrackHandler(track, provider));
+    video_handlers_.push_back(handler);
   }
 }
 
@@ -201,17 +170,13 @@ RemoteMediaStreamHandler::RemoteMediaStreamHandler(
     MediaStreamInterface* stream,
     MediaProviderInterface* provider)
     : MediaStreamHandler(stream, provider) {
-  MediaStreamTrackListInterface* tracklist(stream->tracks());
+  VideoTracks* tracklist(stream->video_tracks());
 
   for (size_t j = 0; j < tracklist->count(); ++j) {
-    MediaStreamTrackInterface* track = tracklist->at(j);
-    if (track->type() == MediaStreamTrackInterface::kVideo) {
-      VideoTrackInterface* video_track =
-          static_cast<VideoTrackInterface*>(track);
-      VideoTrackHandler* handler(new RemoteVideoTrackHandler(video_track,
-                                                             provider));
-      video_handlers_.push_back(handler);
-    }
+    VideoTrackInterface* track =
+        static_cast<VideoTrackInterface*>(tracklist->at(j));
+    VideoTrackHandler* handler(new RemoteVideoTrackHandler(track, provider));
+    video_handlers_.push_back(handler);
   }
 }
 
@@ -248,7 +213,8 @@ void MediaStreamHandlers::RemoveRemoteStream(MediaStreamInterface* stream) {
   remote_streams_handlers_.erase(it);
 }
 
-void MediaStreamHandlers::CommitLocalStreams(StreamCollection* streams) {
+void MediaStreamHandlers::CommitLocalStreams(
+    StreamCollectionInterface* streams) {
   // Iterate the old list of local streams.
   // If its not found in the new collection it have been removed.
   // We can not erase from the old collection at the same time as we iterate.

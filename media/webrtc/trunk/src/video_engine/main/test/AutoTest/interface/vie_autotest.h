@@ -39,6 +39,8 @@
 #include <string>
 #endif
 
+class tbInterfaces;
+
 class ViEAutoTest
 {
 public:
@@ -55,49 +57,15 @@ public:
     // custom call and helper functions
     int ViECustomCall();
 
-    // general settings functions
-    bool GetVideoDevice(webrtc::ViEBase* ptrViEBase,
-                        webrtc::ViECapture* ptrViECapture,
-                        char* captureDeviceName, char* captureDeviceUniqueId);
-    bool GetIPAddress(char* IP);
-#ifndef WEBRTC_ANDROID
-    bool ValidateIP(std::string iStr);
-#endif
-    void PrintCallInformation(char* IP, char* videoCaptureDeviceName,
-                              char* videoCaptureUniqueId,
-                              webrtc::VideoCodec videoCodec, int videoTxPort,
-                              int videoRxPort, char* audioCaptureDeviceName,
-                              char* audioPlaybackDeviceName,
-                              webrtc::CodecInst audioCodec, int audioTxPort,
-                              int audioRxPort);
-
-    // video settings functions
-    bool GetVideoPorts(int* txPort, int* rxPort);
-    bool GetVideoCodecType(webrtc::ViECodec* ptrViECodec,
-                           webrtc::VideoCodec& videoCodec);
-    bool GetVideoCodecResolution(webrtc::ViECodec* ptrViECodec,
-                           webrtc::VideoCodec& videoCodec);
-    bool GetVideoCodecSize(webrtc::ViECodec* ptrViECodec,
-                           webrtc::VideoCodec& videoCodec);
-    bool GetVideoCodecBitrate(webrtc::ViECodec* ptrViECodec,
-                           webrtc::VideoCodec& videoCodec);
-
-    // audio settings functions
-    bool GetAudioDevices(webrtc::VoEBase* ptrVEBase,
-                         webrtc::VoEHardware* ptrVEHardware,
-                         char* recordingDeviceName, int& recordingDeviceIndex,
-                         char* playbackDeviceName, int& playbackDeviceIndex);
-    bool GetAudioDevices(webrtc::VoEBase* ptrVEBase,
-                         webrtc::VoEHardware* ptrVEHardware,
-                         int& recordingDeviceIndex, int& playbackDeviceIndex);
-    bool GetAudioPorts(int* txPort, int* rxPort);
-    bool GetAudioCodec(webrtc::VoECodec* ptrVeCodec,
-                       webrtc::CodecInst& audioCodec);
-
     // vie_autotest_base.cc
     int ViEBaseStandardTest();
     int ViEBaseExtendedTest();
     int ViEBaseAPITest();
+
+    // This is a variant of the base standard test, meant to run in GTest.
+    void ViEAutomatedBaseStandardTest(const std::string& pathToTestI420Video,
+                                      int width,
+                                      int height);
 
     // vie_autotest_capture.cc
     int ViECaptureStandardTest();
@@ -110,6 +78,10 @@ public:
     int ViECodecExtendedTest();
     int ViECodecExternalCodecTest();
     int ViECodecAPITest();
+
+    void ViEAutomatedCodecStandardTest(const std::string& pathToTestI420Video,
+                                       int width,
+                                       int height);
 
     // vie_autotest_encryption.cc
     int ViEEncryptionStandardTest();
@@ -147,14 +119,22 @@ private:
     // If this operation fails, device_id is assigned a negative value
     // and number_of_errors is incremented.
     void FindCaptureDeviceOnSystem(webrtc::ViECapture* capture,
-                                   WebRtc_UWord8* device_name,
+                                   unsigned char* device_name,
                                    const unsigned int kDeviceNameLength,
                                    int* device_id,
                                    int* number_of_errors,
                                    webrtc::VideoCaptureModule** device_video);
 
+    webrtc::ViERender *RenderInBothWindows(webrtc::VideoEngine * ptrViE,
+                                           int & numberOfErrors, int captureId,
+                                           int videoChannel);
+
     void PrintAudioCodec(const webrtc::CodecInst audioCodec);
     void PrintVideoCodec(const webrtc::VideoCodec videoCodec);
+
+    void RunCodecTestInternal(const tbInterfaces& interfaces,
+                              int & numberOfErrors,
+                              int captureId);
 
     void* _window1;
     void* _window2;

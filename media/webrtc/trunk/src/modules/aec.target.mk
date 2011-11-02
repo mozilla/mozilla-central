@@ -4,9 +4,12 @@ TOOLSET := target
 TARGET := aec
 DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -45,15 +48,18 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/audio_processing/aec/main/interface \
+	-Isrc/modules/audio_processing/aec/interface \
 	-Isrc/common_audio/signal_processing_library/main/interface \
 	-Isrc/modules/audio_processing/utility
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -94,16 +100,16 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/audio_processing/aec/main/interface \
+	-Isrc/modules/audio_processing/aec/interface \
 	-Isrc/common_audio/signal_processing_library/main/interface \
 	-Isrc/modules/audio_processing/utility
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/aec/main/source/echo_cancellation.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/main/source/aec_core.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/main/source/aec_core_sse2.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/main/source/aec_rdft.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/main/source/aec_rdft_sse2.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/main/source/resampler.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/aec/echo_cancellation.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/aec_core.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/aec_core_sse2.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/aec_rdft.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/aec_rdft_sse2.o \
+	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/resampler.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

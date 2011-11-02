@@ -4,9 +4,12 @@ TOOLSET := target
 TARGET := common_audio_unittests
 DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -49,13 +52,17 @@ INCS_Debug := -Isrc \
 	-I. \
 	-Itest \
 	-Itesting/gtest/include \
-	-Isrc/common_audio/resampler/main/interface
+	-Isrc/common_audio/resampler/main/interface \
+	-Isrc/common_audio/vad/main/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
+	'-DUSE_NSS=1' \
+	'-DTOOLKIT_USES_GTK=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
+	'-DENABLE_INPUT_SPEECH' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -100,16 +107,18 @@ INCS_Release := -Isrc \
 	-I. \
 	-Itest \
 	-Itesting/gtest/include \
-	-Isrc/common_audio/resampler/main/interface
+	-Isrc/common_audio/resampler/main/interface \
+	-Isrc/common_audio/vad/main/interface
 
 OBJS := $(obj).target/$(TARGET)/test/run_all_unittests.o \
-	$(obj).target/$(TARGET)/src/common_audio/resampler/main/source/resampler_unittest.o
+	$(obj).target/$(TARGET)/src/common_audio/resampler/main/source/resampler_unittest.o \
+	$(obj).target/$(TARGET)/src/common_audio/vad/test/vad_unittest.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libspl.a
+$(OBJS): | $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/common_audio/libspl.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -145,9 +154,9 @@ LIBS :=
 
 $(builddir)/common_audio_unittests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/common_audio_unittests: LIBS := $(LIBS)
-$(builddir)/common_audio_unittests: LD_INPUTS := $(OBJS) $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libspl.a
+$(builddir)/common_audio_unittests: LD_INPUTS := $(OBJS) $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/common_audio/libspl.a
 $(builddir)/common_audio_unittests: TOOLSET := $(TOOLSET)
-$(builddir)/common_audio_unittests: $(OBJS) $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libspl.a FORCE_DO_CMD
+$(builddir)/common_audio_unittests: $(OBJS) $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/common_audio/libspl.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/common_audio_unittests

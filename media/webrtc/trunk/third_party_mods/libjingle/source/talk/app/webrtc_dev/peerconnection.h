@@ -25,6 +25,47 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+// This file contains the PeerConnection interface as defined in
+// http://dev.w3.org/2011/webrtc/editor/webrtc.html#peer-to-peer-connections.
+// Applications must use this interface to implement peerconnection.
+// PeerConnectionFactory class provides factory methods to create
+// peerconnection, mediastream and media tracks objects.
+//
+// The Following steps are needed to setup a typical call.
+// 1. Create a PeerConnectionFactoryInterface. Check constructors for more
+// information about input parameters.
+// 2. Create a PeerConnection object. Provide a configuration string which
+// points either to stun or turn server to generate ICE candidates and provide
+// an object that implements the PeerConnectionObserver interface.
+// Now PeerConnection will startcollecting ICE candidates.
+// 3. Create local MediaStream and MediaTracks using the PeerConnectionFactory
+// and add it to PeerConnection by calling AddStream.
+// 4. Once all mediastreams are added to peerconnection, call
+// CommitStreamChanges. Now PeerConnection starts generating an offer based on
+// the local mediastreams.
+// 5. When PeerConnection have generated the ICE candidates it will call the
+// observer OnSignalingMessage callback with the initial offer.
+// 6. When an Answer from peer received it must be supplied to the
+// PeerConnection by calling ProcessSignalingMessage.
+// At this point PeerConnection knows remote capabilities and ICE candidates.
+// Media will start flowing to the remote peer.
+
+// The Receiver of a call can decide to accept or reject the call.
+// This decision will be taken by the application not peerconnection.
+// If application decides to accept the call
+// 1. Create PeerConnectionFactoryInterface if it doesn't exist.
+// 2. Create new PeerConnection
+// 3. Provide the remote offer to the new PeerConnection object by calling
+// ProcessSignalingMessage.
+// 4. PeerConnection will call the observer function OnAddStream with remote
+// MediaStream and tracks information.
+// 5. PeerConnection will call the observer function OnSignalingMessage with
+// local ICE candidates in a answer message.
+// 6. Application can add it's own MediaStreams by calling AddStream.
+// When all streams have been added the application must call
+// CommitStreamChanges. Streams can be added at any time after the
+// PeerConnection object have been created.
+
 #ifndef TALK_APP_WEBRTC_PEERCONNECTION_H_
 #define TALK_APP_WEBRTC_PEERCONNECTION_H_
 
@@ -39,18 +80,19 @@ namespace talk_base {
 }
 
 namespace webrtc {
-
-class StreamCollection : public talk_base::RefCount {
+// MediaStream container interface.
+class StreamCollectionInterface : public talk_base::RefCountInterface {
  public:
   virtual size_t count() = 0;
   virtual MediaStreamInterface* at(size_t index) = 0;
   virtual MediaStreamInterface* find(const std::string& label) = 0;
  protected:
   // Dtor protected as objects shouldn't be deleted via this interface.
-  ~StreamCollection() {}
+  ~StreamCollectionInterface() {}
 };
 
-/////////////////////////////////////////////
+// PeerConnection callback interface. Application should implement these
+// methods.
 class PeerConnectionObserver {
  public:
   enum Readiness {
@@ -79,7 +121,7 @@ class PeerConnectionObserver {
 };
 
 
-class PeerConnection : public talk_base::RefCount {
+class PeerConnectionInterface : public talk_base::RefCountInterface {
  public:
   // SignalingMessage in json format
   virtual bool ProcessSignalingMessage(const std::string& msg) = 0;
@@ -88,10 +130,12 @@ class PeerConnection : public talk_base::RefCount {
   virtual bool Send(const std::string& msg) = 0;
 
   // Accessor methods to active local streams.
-  virtual scoped_refptr<StreamCollection> local_streams() = 0;
+  virtual talk_base::scoped_refptr<StreamCollectionInterface>
+      local_streams() = 0;
 
   // Accessor methods to remote streams.
-  virtual scoped_refptr<StreamCollection> remote_streams() = 0;
+  virtual talk_base::scoped_refptr<StreamCollectionInterface>
+      remote_streams() = 0;
 
   // Add a new local stream.
   // This function does not trigger any changes to the stream until
@@ -109,65 +153,55 @@ class PeerConnection : public talk_base::RefCount {
 
  protected:
   // Dtor protected as objects shouldn't be deleted via this interface.
-  ~PeerConnection() {}
+  ~PeerConnectionInterface() {}
 };
 
-// Reference counted wrapper for talk_base::NetworkManager.
-class PcNetworkManager : public talk_base::RefCount {
+// PeerConnectionFactoryInterface is the factory interface use for creating
+// PeerConnection, MediaStream and media tracks.
+// PeerConnectionFactoryInterface will create required libjingle threads,
+// socket and network manager factory classes for networking.
+// If application decides to provide its own implementation of these classes
+// it should use alternate create method which accepts these parameters
+// as input.
+
+class PeerConnectionFactoryInterface : public talk_base::RefCountInterface {
  public:
-  static scoped_refptr<PcNetworkManager> Create(
-      talk_base::NetworkManager* network_manager);
-  virtual talk_base::NetworkManager* network_manager() const;
+  virtual talk_base::scoped_refptr<PeerConnectionInterface>
+      CreatePeerConnection(const std::string& config,
+                           PeerConnectionObserver* observer) = 0;
+
+  virtual talk_base::scoped_refptr<LocalMediaStreamInterface>
+      CreateLocalMediaStream(const std::string& label) = 0;
+
+  virtual talk_base::scoped_refptr<LocalVideoTrackInterface>
+      CreateLocalVideoTrack(const std::string& label,
+                            VideoCaptureModule* video_device) = 0;
+
+  virtual talk_base::scoped_refptr<LocalAudioTrackInterface>
+      CreateLocalAudioTrack(const std::string& label,
+                            AudioDeviceModule* audio_device) = 0;
 
  protected:
-  explicit PcNetworkManager(talk_base::NetworkManager* network_manager);
-  virtual ~PcNetworkManager();
-
-  talk_base::NetworkManager* network_manager_;
+  // Dtor and ctor protected as objects shouldn't be created or deleted via
+  // this interface.
+  PeerConnectionFactoryInterface() {}
+  ~PeerConnectionFactoryInterface() {}  // NOLINT
 };
 
-// Reference counted wrapper for talk_base::PacketSocketFactory.
-class PcPacketSocketFactory : public talk_base::RefCount {
- public:
-  static scoped_refptr<PcPacketSocketFactory> Create(
-      talk_base::PacketSocketFactory* socket_factory);
-  virtual talk_base::PacketSocketFactory* socket_factory() const;
+// Create a new instance of PeerConnectionFactoryInterface.
+talk_base::scoped_refptr<PeerConnectionFactoryInterface>
+CreatePeerConnectionFactory();
 
- protected:
-  explicit PcPacketSocketFactory(
-      talk_base::PacketSocketFactory* socket_factory);
-  virtual ~PcPacketSocketFactory();
-
-  talk_base::PacketSocketFactory* socket_factory_;
-};
-
-class PeerConnectionManager : public talk_base::RefCount {
- public:
-  // Create a new instance of PeerConnectionManager.
-  static scoped_refptr<PeerConnectionManager> Create();
-
-  // Create a new instance of PeerConnectionManager.
-  // Ownership of the arguments are not transfered to this object and must
-  // remain in scope for the lifetime of the PeerConnectionManager.
-  static scoped_refptr<PeerConnectionManager> Create(
-      talk_base::Thread* worker_thread,
-      talk_base::Thread* signaling_thread,
-      PcNetworkManager* network_manager,
-      PcPacketSocketFactory* packet_socket_factory,
-      AudioDeviceModule* default_adm);
-
-  virtual scoped_refptr<PeerConnection> CreatePeerConnection(
-      const std::string& config,
-      PeerConnectionObserver* observer) = 0;
-
-  virtual scoped_refptr<LocalMediaStreamInterface> CreateLocalMediaStream(
-      const std::string& label) = 0;
-
-
- protected:
-  // Dtor protected as objects shouldn't be deleted via this interface.
-  ~PeerConnectionManager() {}
-};
+// Create a new instance of PeerConnectionFactoryInterface.
+// Ownership of the arguments are not transfered to this object and must
+// remain in scope for the lifetime of the PeerConnectionFactoryInterface.
+talk_base::scoped_refptr<PeerConnectionFactoryInterface>
+CreatePeerConnectionFactory(
+    talk_base::Thread* worker_thread,
+    talk_base::Thread* signaling_thread,
+    talk_base::NetworkManager* network_manager,
+    talk_base::PacketSocketFactory* packet_socket_factory,
+    AudioDeviceModule* default_adm);
 
 }  // namespace webrtc
 

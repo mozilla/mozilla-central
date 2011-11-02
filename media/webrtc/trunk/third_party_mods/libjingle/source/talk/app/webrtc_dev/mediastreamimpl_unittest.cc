@@ -29,6 +29,7 @@
 
 #include "gtest/gtest.h"
 #include "talk/app/webrtc_dev/mediastreamimpl.h"
+#include "talk/app/webrtc_dev/videotrackimpl.h"
 
 static const char kStreamLabel1[] = "local_stream_1";
 static const char kVideoDeviceName[] = "dummy_video_cam_1";
@@ -36,7 +37,7 @@ static const char kVideoDeviceName[] = "dummy_video_cam_1";
 namespace webrtc {
 
 // Helper class to test the Observer.
-class TestObserver : public Observer {
+class TestObserver : public ObserverInterface {
  public:
   TestObserver() : changed_(0) {}
   void OnChanged() {
@@ -56,8 +57,8 @@ class TestObserver : public Observer {
 TEST(LocalStreamTest, Create) {
   // Create a local stream.
   std::string label(kStreamLabel1);
-  scoped_refptr<LocalMediaStreamInterface> stream(
-      MediaStreamImpl::Create(label));
+  talk_base::scoped_refptr<LocalMediaStreamInterface> stream(
+      MediaStream::Create(label));
 
   EXPECT_EQ(label, stream->label());
   //  Check state.
@@ -65,22 +66,18 @@ TEST(LocalStreamTest, Create) {
 
   // Create a local Video track.
   TestObserver tracklist_observer;
-  scoped_refptr<LocalVideoTrackInterface> video_track(CreateLocalVideoTrack(
-                          kVideoDeviceName, NULL));
+  talk_base::scoped_refptr<LocalVideoTrackInterface>
+      video_track(VideoTrack::CreateLocal(kVideoDeviceName, NULL));
   // Add an observer to the track list.
-  scoped_refptr<MediaStreamTrackListInterface> track_list(stream->tracks());
-  stream->tracks()->RegisterObserver(&tracklist_observer);
+  talk_base::scoped_refptr<MediaStreamTrackListInterface<VideoTrackInterface> >
+      track_list(stream->video_tracks());
   // Add the track to the local stream.
   EXPECT_TRUE(stream->AddTrack(video_track));
-  // Verify that the track list observer have been notified
-  // that the track have been added.
-  EXPECT_EQ(1u, tracklist_observer.NumChanges());
-  EXPECT_EQ(1u, stream->tracks()->count());
+  EXPECT_EQ(1u, stream->video_tracks()->count());
 
   // Verify the track.
-  scoped_refptr<webrtc::MediaStreamTrackInterface> track(
-      stream->tracks()->at(0));
-  EXPECT_EQ(MediaStreamTrackInterface::kVideo, track->type());
+  talk_base::scoped_refptr<webrtc::MediaStreamTrackInterface> track(
+      stream->video_tracks()->at(0));
   EXPECT_EQ(0, track->label().compare(kVideoDeviceName));
   EXPECT_TRUE(track->enabled());
 

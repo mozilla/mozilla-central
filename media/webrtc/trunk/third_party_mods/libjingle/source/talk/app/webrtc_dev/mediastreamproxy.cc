@@ -26,39 +26,48 @@
  */
 
 #include "talk/app/webrtc_dev/mediastreamproxy.h"
-#include "talk/app/webrtc_dev/ref_count.h"
-#include "talk/app/webrtc_dev/scoped_refptr.h"
+#include "talk/base/refcount.h"
+#include "talk/base/scoped_refptr.h"
 
 namespace {
 
 enum {
-  MSG_REGISTER_OBSERVER = 1,
+  MSG_SET_TRACKLIST_IMPLEMENTATION = 1,
+  MSG_REGISTER_OBSERVER,
   MSG_UNREGISTER_OBSERVER,
-  MSG_ADD_TRACK,
+  MSG_LABEL,
+  MSG_ADD_AUDIO_TRACK,
+  MSG_ADD_VIDEO_TRACK,
   MSG_READY_STATE,
-  MSG_SET_READY_STATE,
   MSG_COUNT,
   MSG_AT
 };
 
+typedef talk_base::TypedMessageData<std::string*> LabelMessageData;
 typedef talk_base::TypedMessageData<size_t> SizeTMessageData;
-typedef talk_base::TypedMessageData<webrtc::Observer*> ObserverMessageData;
+typedef talk_base::TypedMessageData<webrtc::ObserverInterface*>
+    ObserverMessageData;
 typedef talk_base::TypedMessageData<webrtc::MediaStreamInterface::ReadyState>
     ReadyStateMessageData;
 
-
+template<typename T>
 class MediaStreamTrackMessageData : public talk_base::MessageData {
  public:
-  explicit MediaStreamTrackMessageData(
-      webrtc::MediaStreamTrackInterface* track)
+  explicit MediaStreamTrackMessageData(T* track)
       : track_(track),
         result_(false) {
   }
 
-  scoped_refptr<webrtc::MediaStreamTrackInterface> track_;
+  talk_base::scoped_refptr<T> track_;
   bool result_;
 };
 
+typedef MediaStreamTrackMessageData<webrtc::AudioTrackInterface>
+    AudioTrackMsgData;
+typedef MediaStreamTrackMessageData<webrtc::VideoTrackInterface>
+    VideoTrackMsgData;
+
+template <class TrackType>
 class MediaStreamTrackAtMessageData : public talk_base::MessageData {
  public:
   explicit MediaStreamTrackAtMessageData(size_t index)
@@ -66,37 +75,71 @@ class MediaStreamTrackAtMessageData : public talk_base::MessageData {
   }
 
   size_t index_;
-  scoped_refptr<webrtc::MediaStreamTrackInterface> track_;
+  talk_base::scoped_refptr<TrackType> track_;
+};
+
+class MediaStreamTrackListsMessageData : public talk_base::MessageData {
+ public:
+  talk_base::scoped_refptr<webrtc::AudioTracks> audio_tracks_;
+  talk_base::scoped_refptr<webrtc::VideoTracks> video_tracks_;
 };
 
 }  // namespace anonymous
 
 namespace webrtc {
 
-scoped_refptr<MediaStreamProxy> MediaStreamProxy::Create(
+talk_base::scoped_refptr<MediaStreamProxy> MediaStreamProxy::Create(
     const std::string& label,
     talk_base::Thread* signaling_thread) {
   ASSERT(signaling_thread);
-  talk_base::RefCountImpl<MediaStreamProxy>* stream =
-      new talk_base::RefCountImpl<MediaStreamProxy>(label, signaling_thread);
+  talk_base::RefCountedObject<MediaStreamProxy>* stream =
+      new talk_base::RefCountedObject<MediaStreamProxy>(
+          label, signaling_thread,
+          reinterpret_cast<LocalMediaStreamInterface*>(NULL));
+  return stream;
+}
+
+talk_base::scoped_refptr<MediaStreamProxy> MediaStreamProxy::Create(
+    const std::string& label,
+    talk_base::Thread* signaling_thread,
+    LocalMediaStreamInterface* media_stream_impl) {
+  ASSERT(signaling_thread);
+  ASSERT(media_stream_impl);
+  talk_base::RefCountedObject<MediaStreamProxy>* stream =
+      new talk_base::RefCountedObject<MediaStreamProxy>(label, signaling_thread,
+                                                media_stream_impl);
   return stream;
 }
 
 MediaStreamProxy::MediaStreamProxy(const std::string& label,
-                                   talk_base::Thread* signaling_thread)
+                                   talk_base::Thread* signaling_thread,
+                                   LocalMediaStreamInterface* media_stream_impl)
     : signaling_thread_(signaling_thread),
-      media_stream_impl_(MediaStreamImpl::Create(label)),
-      track_list_(new talk_base::RefCountImpl<MediaStreamTrackListProxy>(
-          media_stream_impl_->tracks(),
-          signaling_thread_)) {
+      media_stream_impl_(media_stream_impl),
+      audio_tracks_(new talk_base::RefCountedObject<
+                        MediaStreamTrackListProxy<AudioTrackInterface> >(
+                              signaling_thread_)),
+      video_tracks_(new talk_base::RefCountedObject<
+                        MediaStreamTrackListProxy<VideoTrackInterface> >(
+                            signaling_thread_)) {
+  if (media_stream_impl_ == NULL) {
+    media_stream_impl_ = MediaStream::Create(label);
+  }
+
+  MediaStreamTrackListsMessageData tracklists;
+  Send(MSG_SET_TRACKLIST_IMPLEMENTATION, &tracklists);
+  audio_tracks_->SetImplementation(tracklists.audio_tracks_);
+  video_tracks_->SetImplementation(tracklists.video_tracks_);
 }
 
-const std::string& MediaStreamProxy::label() {
+std::string MediaStreamProxy::label() const {
+  if (!signaling_thread_->IsCurrent()) {
+    std::string label;
+    LabelMessageData msg(&label);
+    Send(MSG_LABEL, &msg);
+    return label;
+  }
   return media_stream_impl_->label();
-}
-
-MediaStreamTrackListInterface* MediaStreamProxy::tracks() {
-  return track_list_;
 }
 
 MediaStreamInterface::ReadyState MediaStreamProxy::ready_state() {
@@ -111,23 +154,32 @@ MediaStreamInterface::ReadyState MediaStreamProxy::ready_state() {
 void MediaStreamProxy::set_ready_state(
     MediaStreamInterface::ReadyState new_state) {
   if (!signaling_thread_->IsCurrent()) {
-    ReadyStateMessageData msg(MediaStreamInterface::kInitializing);
-    Send(MSG_SET_READY_STATE, &msg);
+    // State should only be allowed to be changed from the signaling thread.
+    ASSERT(!"Not Allowed!");
     return;
   }
   media_stream_impl_->set_ready_state(new_state);
 }
 
-bool MediaStreamProxy::AddTrack(MediaStreamTrackInterface* track) {
+bool MediaStreamProxy::AddTrack(AudioTrackInterface* track) {
   if (!signaling_thread_->IsCurrent()) {
-    MediaStreamTrackMessageData msg(track);
-    Send(MSG_ADD_TRACK, &msg);
+    AudioTrackMsgData msg(track);
+    Send(MSG_ADD_AUDIO_TRACK, &msg);
     return msg.result_;
   }
   return media_stream_impl_->AddTrack(track);
 }
 
-void MediaStreamProxy::RegisterObserver(Observer* observer) {
+bool MediaStreamProxy::AddTrack(VideoTrackInterface* track) {
+  if (!signaling_thread_->IsCurrent()) {
+    VideoTrackMsgData msg(track);
+    Send(MSG_ADD_VIDEO_TRACK, &msg);
+    return msg.result_;
+  }
+  return media_stream_impl_->AddTrack(track);
+}
+
+void MediaStreamProxy::RegisterObserver(ObserverInterface* observer) {
   if (!signaling_thread_->IsCurrent()) {
     ObserverMessageData msg(observer);
     Send(MSG_REGISTER_OBSERVER, &msg);
@@ -136,7 +188,7 @@ void MediaStreamProxy::RegisterObserver(Observer* observer) {
   media_stream_impl_->RegisterObserver(observer);
 }
 
-void MediaStreamProxy::UnregisterObserver(Observer* observer) {
+void MediaStreamProxy::UnregisterObserver(ObserverInterface* observer) {
   if (!signaling_thread_->IsCurrent()) {
     ObserverMessageData msg(observer);
     Send(MSG_UNREGISTER_OBSERVER, &msg);
@@ -145,14 +197,22 @@ void MediaStreamProxy::UnregisterObserver(Observer* observer) {
   media_stream_impl_->UnregisterObserver(observer);
 }
 
-void MediaStreamProxy::Send(uint32 id, talk_base::MessageData* data) {
-  signaling_thread_->Send(this, id, data);
+void MediaStreamProxy::Send(uint32 id, talk_base::MessageData* data) const {
+  signaling_thread_->Send(const_cast<MediaStreamProxy*>(this), id,
+                          data);
 }
 
 // Implement MessageHandler
 void MediaStreamProxy::OnMessage(talk_base::Message* msg) {
   talk_base::MessageData* data = msg->pdata;
   switch (msg->message_id) {
+    case MSG_SET_TRACKLIST_IMPLEMENTATION: {
+      MediaStreamTrackListsMessageData* lists =
+          static_cast<MediaStreamTrackListsMessageData*>(data);
+      lists->audio_tracks_ = media_stream_impl_->audio_tracks();
+      lists->video_tracks_ = media_stream_impl_->video_tracks();
+      break;
+    }
     case MSG_REGISTER_OBSERVER: {
       ObserverMessageData* observer = static_cast<ObserverMessageData*>(data);
       media_stream_impl_->RegisterObserver(observer->data());
@@ -163,9 +223,20 @@ void MediaStreamProxy::OnMessage(talk_base::Message* msg) {
       media_stream_impl_->UnregisterObserver(observer->data());
       break;
     }
-    case MSG_ADD_TRACK: {
-      MediaStreamTrackMessageData * track =
-          static_cast<MediaStreamTrackMessageData*>(data);
+    case MSG_LABEL: {
+      LabelMessageData * label = static_cast<LabelMessageData*>(data);
+      *(label->data()) = media_stream_impl_->label();
+      break;
+    }
+    case MSG_ADD_AUDIO_TRACK: {
+      AudioTrackMsgData * track =
+          static_cast<AudioTrackMsgData *>(data);
+      track->result_ = media_stream_impl_->AddTrack(track->track_.get());
+      break;
+    }
+    case MSG_ADD_VIDEO_TRACK: {
+      VideoTrackMsgData * track =
+          static_cast<VideoTrackMsgData *>(data);
       track->result_ = media_stream_impl_->AddTrack(track->track_.get());
       break;
     }
@@ -174,25 +245,26 @@ void MediaStreamProxy::OnMessage(talk_base::Message* msg) {
       state->data() = media_stream_impl_->ready_state();
       break;
     }
-    case MSG_SET_READY_STATE: {
-      ReadyStateMessageData* state = static_cast<ReadyStateMessageData*>(data);
-      media_stream_impl_->set_ready_state(state->data());
-      break;
-    }
     default:
       ASSERT(!"Not Implemented!");
       break;
   }
 }
 
-MediaStreamProxy::MediaStreamTrackListProxy::MediaStreamTrackListProxy(
-    MediaStreamTrackListInterface* track_list,
+template <class T>
+MediaStreamProxy::MediaStreamTrackListProxy<T>::MediaStreamTrackListProxy(
     talk_base::Thread* signaling_thread)
-    :  track_list_(track_list),
-       signaling_thread_(signaling_thread) {
+    : signaling_thread_(signaling_thread) {
 }
 
-size_t MediaStreamProxy::MediaStreamTrackListProxy::count() {
+template <class T>
+void MediaStreamProxy::MediaStreamTrackListProxy<T>::SetImplementation(
+    MediaStreamTrackListInterface<T>* track_list) {
+  track_list_ = track_list;
+}
+
+template <class T>
+size_t MediaStreamProxy::MediaStreamTrackListProxy<T>::count() {
   if (!signaling_thread_->IsCurrent()) {
     SizeTMessageData msg(0u);
     Send(MSG_COUNT, &msg);
@@ -201,64 +273,39 @@ size_t MediaStreamProxy::MediaStreamTrackListProxy::count() {
   return track_list_->count();
 }
 
-MediaStreamTrackInterface* MediaStreamProxy::MediaStreamTrackListProxy::at(
+template <class T>
+T* MediaStreamProxy::MediaStreamTrackListProxy<T>::at(
     size_t index) {
   if (!signaling_thread_->IsCurrent()) {
-    MediaStreamTrackAtMessageData msg(index);
+    MediaStreamTrackAtMessageData<T> msg(index);
     Send(MSG_AT, &msg);
     return msg.track_;
   }
   return track_list_->at(index);
 }
 
-void MediaStreamProxy::MediaStreamTrackListProxy::RegisterObserver(
-    Observer* observer) {
-  if (!signaling_thread_->IsCurrent()) {
-    ObserverMessageData msg(observer);
-    Send(MSG_REGISTER_OBSERVER, &msg);
-    return;
-  }
-  track_list_->RegisterObserver(observer);
-}
-
-void MediaStreamProxy::MediaStreamTrackListProxy::UnregisterObserver(
-    Observer* observer) {
-  if (!signaling_thread_->IsCurrent()) {
-    ObserverMessageData msg(observer);
-    Send(MSG_UNREGISTER_OBSERVER, &msg);
-    return;
-  }
-  track_list_->UnregisterObserver(observer);
-}
-
-void MediaStreamProxy::MediaStreamTrackListProxy::Send(
-    uint32 id, talk_base::MessageData* data) {
-  signaling_thread_->Send(this, id, data);
+template <class T>
+void MediaStreamProxy::MediaStreamTrackListProxy<T>::Send(
+    uint32 id, talk_base::MessageData* data) const {
+  signaling_thread_->Send(
+      const_cast<MediaStreamProxy::MediaStreamTrackListProxy<T>*>(
+          this), id, data);
 }
 
 // Implement MessageHandler
-void MediaStreamProxy::MediaStreamTrackListProxy::OnMessage(
+template <class T>
+void MediaStreamProxy::MediaStreamTrackListProxy<T>::OnMessage(
     talk_base::Message* msg) {
   talk_base::MessageData* data = msg->pdata;
   switch (msg->message_id) {
-    case MSG_REGISTER_OBSERVER: {
-      ObserverMessageData* observer = static_cast<ObserverMessageData*>(data);
-      track_list_->RegisterObserver(observer->data());
-      break;
-    }
-    case MSG_UNREGISTER_OBSERVER: {
-      ObserverMessageData* observer = static_cast<ObserverMessageData*>(data);
-      track_list_->UnregisterObserver(observer->data());
-      break;
-    }
     case MSG_COUNT: {
       SizeTMessageData* count = static_cast<SizeTMessageData*>(data);
       count->data() = track_list_->count();
       break;
     }
     case MSG_AT: {
-      MediaStreamTrackAtMessageData* track =
-          static_cast<MediaStreamTrackAtMessageData*>(data);
+      MediaStreamTrackAtMessageData<T>* track =
+          static_cast<MediaStreamTrackAtMessageData<T>*>(data);
       track->track_ = track_list_->at(track->index_);
       break;
     }

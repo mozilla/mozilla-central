@@ -6,6 +6,9 @@
   'variables': {
     'no_libjingle_logging%': 0,
   },
+  'includes': [
+    '../../build/win_precompile.gypi',
+  ],
   'target_defaults': {
     'defines': [
       'FEATURE_ENABLE_SSL',
@@ -13,6 +16,9 @@
       '_USE_32BIT_TIME_T',
       'SAFE_TO_DEFINE_TALK_BASE_LOGGING_MACROS',
       'EXPAT_RELATIVE_PATH',
+      'WEBRTC_RELATIVE_PATH',
+      'HAVE_WEBRTC_VIDEO',
+      'HAVE_WEBRTC_VOICE',
     ],
     'configurations': {
       'Debug': {
@@ -44,6 +50,7 @@
         'FEATURE_ENABLE_SSL',
         'FEATURE_ENABLE_VOICEMAIL',
         'EXPAT_RELATIVE_PATH',
+        'WEBRTC_RELATIVE_PATH',
       ],
       'conditions': [
         ['OS=="win"', {
@@ -348,7 +355,7 @@
           ],
         }],
       ],
-    },
+    },  # target libjingle
     # This has to be is a separate project due to a bug in MSVS:
     # https://connect.microsoft.com/VisualStudio/feedback/details/368272/duplicate-cpp-filename-in-c-project-visual-studio-2008
     # We have two files named "constants.cc" and MSVS doesn't handle this
@@ -419,8 +426,71 @@
         'source/talk/session/tunnel/tunnelsessionclient.h',
       ],
       'dependencies': [
-          'libjingle',
+        'libjingle',
       ],
-    },
+    },  # target libjingle_p2p
+    {
+      'target_name': 'libjingle_peerconnection',
+      'type': 'static_library',
+      'sources': [        
+        'source/talk/app/webrtc/peerconnection.h',
+        'source/talk/app/webrtc/peerconnectionfactory.h',
+        'source/talk/app/webrtc/peerconnectionfactory.cc',
+        'source/talk/app/webrtc/peerconnectionproxy.cc',
+        'source/talk/app/webrtc/peerconnectionproxy.h',
+        'source/talk/session/phone/audiomonitor.cc',
+        'source/talk/session/phone/audiomonitor.h',
+        'source/talk/session/phone/call.cc',
+        'source/talk/session/phone/call.h',
+        'source/talk/session/phone/channel.cc',
+        'source/talk/session/phone/channel.h',
+        'source/talk/session/phone/channelmanager.cc',
+        'source/talk/session/phone/channelmanager.h',
+        'source/talk/session/phone/codec.cc',
+        'source/talk/session/phone/codec.h',
+        'source/talk/session/phone/cryptoparams.h',
+        'source/talk/session/phone/currentspeakermonitor.cc',
+        'source/talk/session/phone/currentspeakermonitor.h',
+        'source/talk/session/phone/filemediaengine.cc',
+        'source/talk/session/phone/filemediaengine.h',   
+        'source/talk/session/phone/mediachannel.h',
+        'source/talk/session/phone/mediaengine.cc',
+        'source/talk/session/phone/mediaengine.h',
+        'source/talk/session/phone/mediamessages.cc',
+        'source/talk/session/phone/mediamessages.h',
+        'source/talk/session/phone/mediamonitor.cc',
+        'source/talk/session/phone/mediamonitor.h',
+        'source/talk/session/phone/mediasession.cc',
+        'source/talk/session/phone/mediasessionclient.cc',
+        'source/talk/session/phone/mediasessionclient.h',
+        'source/talk/session/phone/mediasink.h',
+        'source/talk/session/phone/rtcpmuxfilter.cc',
+        'source/talk/session/phone/rtcpmuxfilter.h',        
+        'source/talk/session/phone/rtpdump.cc',
+        'source/talk/session/phone/rtpdump.h',
+        'source/talk/session/phone/rtputils.cc',
+        'source/talk/session/phone/rtputils.h',
+        'source/talk/session/phone/soundclip.cc',
+        'source/talk/session/phone/soundclip.h',
+        'source/talk/session/phone/srtpfilter.cc',
+        'source/talk/session/phone/srtpfilter.h',
+        'source/talk/session/phone/videocommon.h',
+        'source/talk/session/phone/voicechannel.h',
+        'source/talk/session/phone/webrtccommon.h',
+        'source/talk/session/phone/webrtcpassthroughrender.cc',
+        'source/talk/session/phone/webrtcvideoframe.cc',
+        'source/talk/session/phone/webrtcvideoframe.h',
+        'source/talk/session/phone/webrtcvie.h',
+        'source/talk/session/phone/webrtcvoe.h',
+      ],
+      'dependencies': [
+        '../../third_party/webrtc/modules/modules.gyp:video_capture_module',
+        '../../third_party/webrtc/modules/modules.gyp:video_render_module',
+        '../../third_party/webrtc/video_engine/video_engine.gyp:video_engine_core',
+        '../../third_party/webrtc/voice_engine/voice_engine.gyp:voice_engine_core',
+        '../../third_party/webrtc/system_wrappers/source/system_wrappers.gyp:system_wrappers',
+        'libjingle_p2p',
+      ],          
+    },  # target libjingle_peerconnection
   ],
 }

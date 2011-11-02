@@ -14,8 +14,10 @@
 #include <string.h>
 
 #include "func_test_manager.h"
+#include "testsupport/fileutils.h"
 
 #include "../source/audio_device_config.h"
+#include "../source/audio_device_impl.h"
 
 #ifndef __GNUC__
 // Disable warning message ('sprintf': name was marked as #pragma deprecated)
@@ -24,21 +26,14 @@
 #pragma warning( disable : 4996 )
 #endif
 
-const WebRtc_Word8 PlayoutFile48[] = "audio_short48.pcm";
-const WebRtc_Word8 PlayoutFile44[] = "audio_short44.pcm";
-const WebRtc_Word8 PlayoutFile16[] = "audio_short16.pcm";
-const WebRtc_Word8 PlayoutFile8[] = "audio_short8.pcm";
-const WebRtc_Word8 RecordedMicrophoneFile[] = "recorded_microphone_mono_48.pcm";
-const WebRtc_Word8 RecordedMicrophoneVolumeFile[] =
-    "recorded_microphone_volume_mono_48.pcm";
-const WebRtc_Word8 RecordedMicrophoneMuteFile[] =
-    "recorded_microphone_mute_mono_48.pcm";
-const WebRtc_Word8 RecordedMicrophoneBoostFile[] =
-    "recorded_microphone_boost_mono_48.pcm";
-const WebRtc_Word8 RecordedMicrophoneAGCFile[] =
-    "recorded_microphone_AGC_mono_48.pcm";
-const WebRtc_Word8 RecordedSpeakerFile[] = "recorded_speaker_48.pcm";
-const WebRtc_Word8 ReadMeFile[] = "README.txt";
+const char* RecordedMicrophoneFile = "recorded_microphone_mono_48.pcm";
+const char* RecordedMicrophoneVolumeFile =
+"recorded_microphone_volume_mono_48.pcm";
+const char* RecordedMicrophoneMuteFile = "recorded_microphone_mute_mono_48.pcm";
+const char* RecordedMicrophoneBoostFile =
+"recorded_microphone_boost_mono_48.pcm";
+const char* RecordedMicrophoneAGCFile = "recorded_microphone_AGC_mono_48.pcm";
+const char* RecordedSpeakerFile = "recorded_speaker_48.pcm";
 
 struct AudioPacket
 {
@@ -574,18 +569,23 @@ WebRtc_Word32 AudioTransportImpl::NeedMorePlayData(
 ;
 
 FuncTestManager::FuncTestManager() :
+    _resourcePath(webrtc::test::GetProjectRootPath() +
+        "test/data/audio_device/"),
     _processThread(NULL),
     _audioDevice(NULL),
     _audioEventObserver(NULL),
     _audioTransport(NULL)
 {
+  assert(!_resourcePath.empty());
+  _playoutFile48 = _resourcePath + "audio_short48.pcm";
+  _playoutFile44 = _resourcePath + "audio_short44.pcm";
+  _playoutFile16 = _resourcePath + "audio_short16.pcm";
+  _playoutFile8 = _resourcePath + "audio_short8.pcm";
 }
-;
 
 FuncTestManager::~FuncTestManager()
 {
 }
-;
 
 WebRtc_Word32 FuncTestManager::Init()
 {
@@ -597,11 +597,13 @@ WebRtc_Word32 FuncTestManager::Init()
     _processThread->Start();
 
     // create the Audio Device module
-    TEST((_audioDevice = AudioDeviceModule::Create(555, ADM_AUDIO_LAYER)) != NULL);
+    TEST((_audioDevice = AudioDeviceModuleImpl::Create(
+        555, ADM_AUDIO_LAYER)) != NULL);
     if (_audioDevice == NULL)
     {
         return -1;
     }
+    TEST(_audioDevice->AddRef() == 1);
 
     // register the Audio Device module
     _processThread->RegisterModule(_audioDevice);
@@ -656,7 +658,7 @@ WebRtc_Word32 FuncTestManager::Close()
     // release the AudioDeviceModule object
     if (_audioDevice)
     {
-        AudioDeviceModule::Destroy(_audioDevice);
+        TEST(_audioDevice->Release() == 0);
         _audioDevice = NULL;
     }
 
@@ -826,7 +828,7 @@ WebRtc_Word32 FuncTestManager::TestAudioLayerSelection()
         // release the AudioDeviceModule object
         if (_audioDevice)
         {
-            AudioDeviceModule::Destroy(_audioDevice);
+            TEST(_audioDevice->Release() == 0);
             _audioDevice = NULL;
         }
 
@@ -843,12 +845,12 @@ WebRtc_Word32 FuncTestManager::TestAudioLayerSelection()
         // create the Audio Device module based on selected audio layer
         if (tryWinWave)
         {
-            _audioDevice = AudioDeviceModule::Create(
+            _audioDevice = AudioDeviceModuleImpl::Create(
                 555,
                 AudioDeviceModule::kWindowsWaveAudio);
         } else if (tryWinCore)
         {
-            _audioDevice = AudioDeviceModule::Create(
+            _audioDevice = AudioDeviceModuleImpl::Create(
                 555,
                 AudioDeviceModule::kWindowsCoreAudio);
         }
@@ -857,7 +859,7 @@ WebRtc_Word32 FuncTestManager::TestAudioLayerSelection()
         {
             TEST_LOG("\nERROR: Switch of audio layer failed!\n");
             // restore default audio layer instead
-            TEST((_audioDevice = AudioDeviceModule::Create(
+            TEST((_audioDevice = AudioDeviceModuleImpl::Create(
                 555, AudioDeviceModule::kPlatformDefaultAudio)) != NULL);
         }
 
@@ -866,6 +868,8 @@ WebRtc_Word32 FuncTestManager::TestAudioLayerSelection()
             TEST_LOG("\nERROR: Failed to revert back to default audio layer!\n");
             return -1;
         }
+
+        TEST(_audioDevice->AddRef() == 1);
 
         // register the Audio Device module
         _processThread->RegisterModule(_audioDevice);
@@ -1259,16 +1263,19 @@ WebRtc_Word32 FuncTestManager::TestAudioTransport()
 
         TEST(audioDevice->InitPlayout() == 0);
         TEST(audioDevice->PlayoutSampleRate(&samplesPerSec) == 0);
-        if (samplesPerSec == 48000)
-            _audioTransport->SetFilePlayout(true, GetResource(PlayoutFile48));
-        else if (samplesPerSec == 44100 || samplesPerSec == 44000)
-            _audioTransport->SetFilePlayout(true, GetResource(PlayoutFile44));
-        else if (samplesPerSec == 16000)
-            _audioTransport->SetFilePlayout(true, GetResource(PlayoutFile16));
-        else if (samplesPerSec == 8000)
-            _audioTransport->SetFilePlayout(true, GetResource(PlayoutFile8));
-        else
-        {
+        if (samplesPerSec == 48000) {
+            _audioTransport->SetFilePlayout(
+                true, GetResource(_playoutFile48.c_str()));
+        } else if (samplesPerSec == 44100 || samplesPerSec == 44000) {
+            _audioTransport->SetFilePlayout(
+                true, GetResource(_playoutFile44.c_str()));
+        } else if (samplesPerSec == 16000) {
+            _audioTransport->SetFilePlayout(
+                true, GetResource(_playoutFile16.c_str()));
+        } else if (samplesPerSec == 8000) {
+            _audioTransport->SetFilePlayout(
+                true, GetResource(_playoutFile8.c_str()));
+        } else {
             TEST_LOG("\nERROR: Sample rate (%u) is not supported!\n \n",
                      samplesPerSec);
             return -1;
@@ -1489,16 +1496,19 @@ WebRtc_Word32 FuncTestManager::TestSpeakerVolume()
     {
         TEST(audioDevice->InitPlayout() == 0);
         TEST(audioDevice->PlayoutSampleRate(&samplesPerSec) == 0);
-        if (48000 == samplesPerSec)
-            _audioTransport->SetFilePlayout(true, GetResource(PlayoutFile48));
-        else if (44100 == samplesPerSec || samplesPerSec == 44000)
-            _audioTransport->SetFilePlayout(true, GetResource(PlayoutFile44));
-        else if (samplesPerSec == 16000)
-            _audioTransport->SetFilePlayout(true, GetResource(PlayoutFile16));
-        else if (samplesPerSec == 8000)
-            _audioTransport->SetFilePlayout(true, GetResource(PlayoutFile8));
-        else
-        {
+        if (48000 == samplesPerSec) {
+            _audioTransport->SetFilePlayout(
+                true, GetResource(_playoutFile48.c_str()));
+        } else if (44100 == samplesPerSec || samplesPerSec == 44000) {
+            _audioTransport->SetFilePlayout(
+                true, GetResource(_playoutFile44.c_str()));
+        } else if (samplesPerSec == 16000) {
+            _audioTransport->SetFilePlayout(
+                true, GetResource(_playoutFile16.c_str()));
+        } else if (samplesPerSec == 8000) {
+            _audioTransport->SetFilePlayout(
+                true, GetResource(_playoutFile8.c_str()));
+        } else {
             TEST_LOG("\nERROR: Sample rate (%d) is not supported!\n \n",
                      samplesPerSec);
             return -1;
@@ -1589,9 +1599,9 @@ WebRtc_Word32 FuncTestManager::TestSpeakerMute()
         TEST(audioDevice->InitPlayout() == 0);
         TEST(audioDevice->PlayoutSampleRate(&samplesPerSec) == 0);
         if (48000 == samplesPerSec)
-            _audioTransport->SetFilePlayout(true, PlayoutFile48);
+            _audioTransport->SetFilePlayout(true, _playoutFile48.c_str());
         else if (44100 == samplesPerSec || 44000 == samplesPerSec)
-            _audioTransport->SetFilePlayout(true, PlayoutFile44);
+            _audioTransport->SetFilePlayout(true, _playoutFile44.c_str());
         else
         {
             TEST_LOG("\nERROR: Sample rate (%d) is not supported!\n \n",

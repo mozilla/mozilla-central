@@ -824,15 +824,6 @@ WebRtc_Word32 Channel::GetAudioFrame(const WebRtc_Word32 id,
     WEBRTC_TRACE(kTraceStream, kTraceVoice, VoEId(_instanceId,_channelId),
                  "Channel::GetAudioFrame(id=%d)", id);
 
-    // TODO(zakkhoyt): temporary logs for tracking down an issue. Remove when
-    // Checking to ensure receive VAD is enabled
-    if (!_audioCodingModule.ReceiveVADStatus())
-    {  
-        WEBRTC_TRACE(kTraceWarning, kTraceVoice,
-                     VoEId(_instanceId,_channelId),
-                     "VAD is currently disabled");
-    }
-
     // Get 10ms raw PCM data from the ACM (mixer limits output frequency)
     if (_audioCodingModule.PlayoutData10Ms(
         audioFrame._frequencyInHz, (AudioFrame&)audioFrame) == -1)
@@ -841,10 +832,6 @@ WebRtc_Word32 Channel::GetAudioFrame(const WebRtc_Word32 id,
                      VoEId(_instanceId,_channelId),
                      "Channel::GetAudioFrame() PlayoutData10Ms() failed!");
     }
-    
-    // TODO(zakkhoyt): temporary logs for tracking down an issue. Remove when
-    // possible.
-    assert(audioFrame._vadActivity != AudioFrame::kVadUnknown);
 
     if (_RxVadDetection)
     {
@@ -1419,18 +1406,6 @@ Channel::Init()
         _engineStatisticsPtr->SetLastError(
             VE_AUDIO_CODING_MODULE_ERROR, kTraceError,
             "Channel::Init() unable to initialize the ACM - 1");
-        return -1;
-    }
-
-    // TODO(zakkhoyt): temporary logs for tracking down an issue. Remove when
-    // possible.
-    // enable RX VAD by default (improves output mixing)
-    if (_audioCodingModule.SetReceiveVADStatus(true) == -1)
-    {
-        _engineStatisticsPtr->SetLastError(
-            VE_AUDIO_CODING_MODULE_ERROR, kTraceError,
-            "Channel::Init() unable to initialize the ACM - 1. "
-            "ACM failed to SetReceiveVADStatus");
         return -1;
     }
 
@@ -3462,47 +3437,65 @@ int Channel::StartPlayingFileLocally(const char* fileName,
         return -1;
     }
 
-    CriticalSectionScoped cs(_fileCritSect);
-
-    if (_outputFilePlayerPtr)
     {
-        _outputFilePlayerPtr->RegisterModuleFileCallback(NULL);
-        FilePlayer::DestroyFilePlayer(_outputFilePlayerPtr);
-        _outputFilePlayerPtr = NULL;
+        CriticalSectionScoped cs(_fileCritSect);
+
+        if (_outputFilePlayerPtr)
+        {
+            _outputFilePlayerPtr->RegisterModuleFileCallback(NULL);
+            FilePlayer::DestroyFilePlayer(_outputFilePlayerPtr);
+            _outputFilePlayerPtr = NULL;
+        }
+
+        _outputFilePlayerPtr = FilePlayer::CreateFilePlayer(
+            _outputFilePlayerId, (const FileFormats)format);
+
+        if (_outputFilePlayerPtr == NULL)
+        {
+            _engineStatisticsPtr->SetLastError(
+                VE_INVALID_ARGUMENT, kTraceError,
+                "StartPlayingFileLocally() filePlayer format isnot correct");
+            return -1;
+        }
+
+        const WebRtc_UWord32 notificationTime(0);
+
+        if (_outputFilePlayerPtr->StartPlayingFile(
+                fileName,
+                loop,
+                startPosition,
+                volumeScaling,
+                notificationTime,
+                stopPosition,
+                (const CodecInst*)codecInst) != 0)
+        {
+            _engineStatisticsPtr->SetLastError(
+                VE_BAD_FILE, kTraceError,
+                "StartPlayingFile() failed to start file playout");
+            _outputFilePlayerPtr->StopPlayingFile();
+            FilePlayer::DestroyFilePlayer(_outputFilePlayerPtr);
+            _outputFilePlayerPtr = NULL;
+            return -1;
+        }
+        _outputFilePlayerPtr->RegisterModuleFileCallback(this);
+        _outputFilePlaying = true;
     }
-
-    _outputFilePlayerPtr = FilePlayer::CreateFilePlayer(
-        _outputFilePlayerId, (const FileFormats)format);
-
-    if (_outputFilePlayerPtr == NULL)
+    // _fileCritSect cannot be taken while calling
+    // SetAnonymousMixabilityStatus since as soon as the participant is added
+    // frames can be pulled by the mixer. Since the frames are generated from
+    // the file, _fileCritSect will be taken. This would result in a deadlock.
+    if (_outputMixerPtr->SetAnonymousMixabilityStatus(*this, true) != 0)
     {
+        CriticalSectionScoped cs(_fileCritSect);
+        _outputFilePlaying = false;
         _engineStatisticsPtr->SetLastError(
-            VE_INVALID_ARGUMENT, kTraceError,
-            "StartPlayingFileLocally() filePlayer format isnot correct");
-        return -1;
-    }
-
-    const WebRtc_UWord32 notificationTime(0);
-
-    if (_outputFilePlayerPtr->StartPlayingFile(
-        fileName,
-        loop,
-        startPosition,
-        volumeScaling,
-        notificationTime,
-        stopPosition,
-        (const CodecInst*)codecInst) != 0)
-    {
-       _engineStatisticsPtr->SetLastError(
-           VE_BAD_FILE, kTraceError,
-           "StartPlayingFile() failed to start file playout");
+            VE_AUDIO_CONF_MIX_MODULE_ERROR, kTraceError,
+            "StartPlayingFile() failed to add participant as file to mixer");
         _outputFilePlayerPtr->StopPlayingFile();
         FilePlayer::DestroyFilePlayer(_outputFilePlayerPtr);
         _outputFilePlayerPtr = NULL;
         return -1;
     }
-    _outputFilePlayerPtr->RegisterModuleFileCallback(this);
-    _outputFilePlaying = true;
 
     return 0;
 }
@@ -3536,46 +3529,63 @@ int Channel::StartPlayingFileLocally(InStream* stream,
         return -1;
     }
 
-    CriticalSectionScoped cs(_fileCritSect);
-
-    // Destroy the old instance
-    if (_outputFilePlayerPtr)
     {
-        _outputFilePlayerPtr->RegisterModuleFileCallback(NULL);
-        FilePlayer::DestroyFilePlayer(_outputFilePlayerPtr);
-        _outputFilePlayerPtr = NULL;
+      CriticalSectionScoped cs(_fileCritSect);
+
+      // Destroy the old instance
+      if (_outputFilePlayerPtr)
+      {
+          _outputFilePlayerPtr->RegisterModuleFileCallback(NULL);
+          FilePlayer::DestroyFilePlayer(_outputFilePlayerPtr);
+          _outputFilePlayerPtr = NULL;
+      }
+
+      // Create the instance
+      _outputFilePlayerPtr = FilePlayer::CreateFilePlayer(
+          _outputFilePlayerId,
+          (const FileFormats)format);
+
+      if (_outputFilePlayerPtr == NULL)
+      {
+          _engineStatisticsPtr->SetLastError(
+              VE_INVALID_ARGUMENT, kTraceError,
+              "StartPlayingFileLocally() filePlayer format isnot correct");
+          return -1;
+      }
+
+      const WebRtc_UWord32 notificationTime(0);
+
+      if (_outputFilePlayerPtr->StartPlayingFile(*stream, startPosition,
+                                                 volumeScaling,
+                                                 notificationTime,
+                                                 stopPosition, codecInst) != 0)
+      {
+          _engineStatisticsPtr->SetLastError(VE_BAD_FILE, kTraceError,
+                                             "StartPlayingFile() failed to "
+                                             "start file playout");
+          _outputFilePlayerPtr->StopPlayingFile();
+          FilePlayer::DestroyFilePlayer(_outputFilePlayerPtr);
+          _outputFilePlayerPtr = NULL;
+          return -1;
+      }
+      _outputFilePlayerPtr->RegisterModuleFileCallback(this);
+      _outputFilePlaying = true;
     }
-
-    // Create the instance
-    _outputFilePlayerPtr = FilePlayer::CreateFilePlayer(
-        _outputFilePlayerId,
-        (const FileFormats)format);
-
-    if (_outputFilePlayerPtr == NULL)
+    // _fileCritSect cannot be taken while calling
+    // SetAnonymousMixibilityStatus. Refer to comments in
+    // StartPlayingFileLocally(const char* ...) for more details.
+    if (_outputMixerPtr->SetAnonymousMixabilityStatus(*this, true) != 0)
     {
+        CriticalSectionScoped cs(_fileCritSect);
+        _outputFilePlaying = false;
         _engineStatisticsPtr->SetLastError(
-            VE_INVALID_ARGUMENT, kTraceError,
-            "StartPlayingFileLocally() filePlayer format isnot correct");
-        return -1;
-    }
-
-    const WebRtc_UWord32 notificationTime(0);
-
-    if (_outputFilePlayerPtr->StartPlayingFile(*stream, startPosition,
-                                               volumeScaling, notificationTime,
-                                               stopPosition, codecInst) != 0)
-    {
-        _engineStatisticsPtr->SetLastError(VE_BAD_FILE, kTraceError,
-                                           "StartPlayingFile() failed to "
-                                           "start file playout");
+            VE_AUDIO_CONF_MIX_MODULE_ERROR, kTraceError,
+            "StartPlayingFile() failed to add participant as file to mixer");
         _outputFilePlayerPtr->StopPlayingFile();
         FilePlayer::DestroyFilePlayer(_outputFilePlayerPtr);
         _outputFilePlayerPtr = NULL;
         return -1;
     }
-
-    _outputFilePlayerPtr->RegisterModuleFileCallback(this);
-    _outputFilePlaying = true;
 
     return 0;
 }
@@ -3593,19 +3603,32 @@ int Channel::StopPlayingFileLocally()
         return 0;
     }
 
-    CriticalSectionScoped cs(_fileCritSect);
+    {
+        CriticalSectionScoped cs(_fileCritSect);
 
-    if (_outputFilePlayerPtr->StopPlayingFile() != 0)
+        if (_outputFilePlayerPtr->StopPlayingFile() != 0)
+        {
+            _engineStatisticsPtr->SetLastError(
+                VE_STOP_RECORDING_FAILED, kTraceError,
+                "StopPlayingFile() could not stop playing");
+            return -1;
+        }
+        _outputFilePlayerPtr->RegisterModuleFileCallback(NULL);
+        FilePlayer::DestroyFilePlayer(_outputFilePlayerPtr);
+        _outputFilePlayerPtr = NULL;
+        _outputFilePlaying = false;
+    }
+    // _fileCritSect cannot be taken while calling
+    // SetAnonymousMixibilityStatus. Refer to comments in
+    // StartPlayingFileLocally(const char* ...) for more details.
+    if (_outputMixerPtr->SetAnonymousMixabilityStatus(*this, false) != 0)
     {
         _engineStatisticsPtr->SetLastError(
-            VE_STOP_RECORDING_FAILED, kTraceError,
-            "StopPlayingFile() could not stop playing");
+            VE_AUDIO_CONF_MIX_MODULE_ERROR, kTraceError,
+            "StopPlayingFile() failed to stop participant from playing as"
+            "file in the mixer");
         return -1;
     }
-    _outputFilePlayerPtr->RegisterModuleFileCallback(NULL);
-    FilePlayer::DestroyFilePlayer(_outputFilePlayerPtr);
-    _outputFilePlayerPtr = NULL;
-    _outputFilePlaying = false;
 
     return 0;
 }
