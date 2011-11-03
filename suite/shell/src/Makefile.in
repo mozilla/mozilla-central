@@ -35,10 +35,9 @@ MODULE_NAME = nsSuiteShellModule
 endif
 endif
 
-ifdef MOZ_MAIL_NEWS
-DEFINES += -DMOZ_MAIL_NEWS
-endif
-
-DEFINES += -DMOZ_APP_NAME=\"$(MOZ_APP_NAME)\"
+DEFINES += \
+	-DMOZ_MAIL_NEWS \
+	-DMOZ_APP_NAME=\"$(MOZ_APP_NAME)\" \
+	$(NULL)
 
 include $(topsrcdir)/config/rules.mk

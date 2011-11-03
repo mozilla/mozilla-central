@@ -72,9 +72,7 @@ if [ "$MOZ_COMPOSER" ]; then
   . "${srcdir}/editor/ui/makefiles.sh"
 fi
 
-if [ "$MOZ_MAIL_NEWS" ]; then
-  . "${srcdir}/mailnews/makefiles.sh"
-fi
+. "${srcdir}/mailnews/makefiles.sh"
 
 if [ "$MOZ_CALENDAR" ]; then
   . "${srcdir}/calendar/shared_makefiles.sh"

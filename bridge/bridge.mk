@@ -47,10 +47,8 @@ APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/ldap/xpcom
 APP_LIBXUL_DIRS += $(DEPTH)$(SUBDIR)/db/mork
 #endif
 
-ifdef MOZ_MAIL_NEWS
 APP_LIBXUL_DIRS += \
   $(DEPTH)$(SUBDIR)/mailnews/base \
   $(DEPTH)$(SUBDIR)/mailnews/mime/public \
   $(DEPTH)$(SUBDIR)/mailnews \
   $(NULL)
-endif

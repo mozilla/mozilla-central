@@ -534,12 +534,10 @@ nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClie
     BOOL isDefaultNews    = PR_TRUE;
     if (aApps & nsIShellService::BROWSER)
       pAAR->QueryAppIsDefaultAll(AL_EFFECTIVE, APP_REG_NAME, &isDefaultBrowser);
-#ifdef MOZ_MAIL_NEWS
     if (aApps & nsIShellService::MAIL)
       pAAR->QueryAppIsDefaultAll(AL_EFFECTIVE, APP_REG_NAME_MAIL, &isDefaultMail);
     if (aApps & nsIShellService::NEWS)
       pAAR->QueryAppIsDefaultAll(AL_EFFECTIVE, APP_REG_NAME_NEWS, &isDefaultNews);
-#endif
 
     *aIsDefaultClient = isDefaultBrowser && isDefaultNews && isDefaultMail;
 
@@ -570,7 +568,6 @@ nsWindowsShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool 
     if (*aIsDefaultClient)
       IsDefaultClientVista(nsIShellService::BROWSER, aIsDefaultClient);
   }
-#ifdef MOZ_MAIL_NEWS
   if (aApps & nsIShellService::MAIL) {
     *aIsDefaultClient &= TestForDefault(gMailSettings, sizeof(gMailSettings)/sizeof(SETTING));
     // Only check if this app is default on Vista if the previous checks
@@ -585,7 +582,6 @@ nsWindowsShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool 
     if (*aIsDefaultClient)
       IsDefaultClientVista(nsIShellService::NEWS, aIsDefaultClient);
   }
-#endif
 
   return NS_OK;
 }

@@ -38,7 +38,6 @@
 
 MOZ_APP_NAME=seamonkey
 MOZ_APP_DISPLAYNAME=SeaMonkey
-MOZ_MAIL_NEWS=1
 if [ "$COMM_BUILD" ]; then
   MOZ_LDAP_XPCOM=1
 fi

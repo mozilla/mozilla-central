@@ -55,6 +55,7 @@ PARALLEL_DIRS	+= \
 		feeds/public \
 		feeds/src \
 		locales \
+		mailnews \
 		modules \
 		themes/classic \
 		themes/modern \
@@ -69,10 +70,6 @@ ifeq ($(OS_ARCH),WINNT)
 ifdef MOZ_INSTALLER
 PARALLEL_DIRS += installer/windows
 endif
-endif
-
-ifdef MOZ_MAIL_NEWS
-PARALLEL_DIRS += mailnews
 endif
 
 # app is always last as it packages up the built files on mac
