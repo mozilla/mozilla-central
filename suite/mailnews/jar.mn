@@ -47,6 +47,7 @@ messenger.jar:
     content/messenger/mailTasksOverlay.xul
     content/messenger/mailTasksOverlay.js
     content/messenger/mailEditorOverlay.xul
+    content/messenger/mailKeysOverlay.xul
     content/messenger/phishingDetector.js
     content/messenger/mailOverlay.xul
     content/messenger/mailOverlay.js

@@ -69,14 +69,16 @@ var nsSearchResultsController =
     supportsCommand: function(command)
     {
         switch(command) {
+        case "cmd_openMessage":
         case "cmd_delete":
         case "cmd_shiftDelete":
         case "button_delete":
-        case "cmd_open":
         case "file_message_button":
         case "goto_folder_button":
         case "saveas_vf_button":
         case "cmd_selectAll":
+        case "cmd_markAsRead":
+        case "cmd_markAsFlagged":
             return true;
         default:
             return false;
@@ -119,7 +121,7 @@ var nsSearchResultsController =
     doCommand: function(command)
     {
         switch(command) {
-        case "cmd_open":
+        case "cmd_openMessage":
             MsgOpenSelectedMessages();
             return true;
 
@@ -144,7 +146,15 @@ var nsSearchResultsController =
             GetThreadTree().focus();
             GetDBView().doCommand(nsMsgViewCommandType.selectAll)
             return true;
-                            
+
+        case "cmd_markAsRead":
+            MsgMarkMsgAsRead(null);
+            return true;
+
+        case "cmd_markAsFlagged":
+            MsgMarkAsFlagged(null);
+            return true;
+
         default:
             return false;
         }
@@ -277,8 +287,6 @@ function searchOnLoad()
   HideSearchColumn("totalCol"); // since you can't thread search results
   HideSearchColumn("unreadCol"); // since you can't thread search results
   HideSearchColumn("unreadButtonColHeader");
-  HideSearchColumn("statusCol");
-  HideSearchColumn("flaggedCol");
   HideSearchColumn("idCol");
   HideSearchColumn("junkStatusCol");
   HideSearchColumn("accountCol");
@@ -772,4 +780,9 @@ function saveAsVirtualFolder()
                                  {folder:window.arguments[0].folder,
                                   searchTerms:gSearchSession.searchTerms,
                                   searchFolderURIs: searchFolderURIs});
+}
+
+function OnTagsChange()
+{
+  // Dummy, called by RemoveAllMessageTags and ToggleMessageTag
 }

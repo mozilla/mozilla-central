@@ -259,6 +259,7 @@
   locale/@AB_CD@/messenger/junkLog.dtd                                      (%chrome/mailnews/junkLog.dtd)
   locale/@AB_CD@/messenger/junkMailInfo.dtd                                 (%chrome/mailnews/junkMailInfo.dtd)
   locale/@AB_CD@/messenger/mailEditorOverlay.dtd                            (%chrome/mailnews/mailEditorOverlay.dtd)
+  locale/@AB_CD@/messenger/mailKeysOverlay.dtd                              (%chrome/mailnews/mailKeysOverlay.dtd)
   locale/@AB_CD@/messenger/mailOverlay.dtd                                  (%chrome/mailnews/mailOverlay.dtd)
   locale/@AB_CD@/messenger/mailPrefsOverlay.dtd                             (%chrome/mailnews/pref/mailPrefsOverlay.dtd)
   locale/@AB_CD@/messenger/mailTasksOverlay.dtd                             (%chrome/mailnews/mailTasksOverlay.dtd)

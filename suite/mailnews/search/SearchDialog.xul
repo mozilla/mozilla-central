@@ -43,7 +43,7 @@
 <?xul-overlay href="chrome://messenger/content/searchTermOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/msgFolderPickerOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
-<?xul-overlay href="chrome://messenger/content/platformMailnewsOverlay.xul"?>
+<?xul-overlay href="chrome://messenger/content/mailKeysOverlay.xul"?>
 
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/SearchDialog.dtd">
 
@@ -94,7 +94,7 @@
                 commandupdater="true"
                 events="mail-search"
                 oncommandupdate="goUpdateSearchItems(this)">
-      <command id="cmd_open" oncommand="goDoCommand('cmd_open')" disabled="true"/>
+      <command id="cmd_openMessage" oncommand="goDoCommand('cmd_openMessage');" disabled="true"/>
       <command id="button_delete" oncommand="goDoCommand('button_delete')" disabled="true"/>
       <command id="goto_folder_button" oncommand="goDoCommand('goto_folder_button')" disabled="true"/>
       <command id="saveas_vf_button" oncommand="goDoCommand('saveas_vf_button')" disabled="false"/>
@@ -104,12 +104,7 @@
     </commandset>
   </commands>
 
-  <keyset id="mailKeys">
-    <key id="key_delete"/>
-    <key id="key_shiftDelete"/>
-    <key id="key_delete2"/> <!-- secondary delete key -->
-    <key id="key_shiftDelete2"/>
-  </keyset>
+  <keyset id="mailKeys"/>
 
   <broadcasterset id="mailBroadcasters">
     <broadcaster id="Communicator:WorkMode"/>
@@ -155,7 +150,7 @@
        </vbox>
        <hbox align="center">
  
-            <button label="&openButton.label;" id="openButton" command="cmd_open" accesskey="&openButton.accesskey;"/>
+            <button label="&openButton.label;" id="openButton" command="cmd_openMessage" accesskey="&openButton.accesskey;"/>
             <button id="fileMessageButton"
                     type="menu"
                     label="&fileButton.label;"

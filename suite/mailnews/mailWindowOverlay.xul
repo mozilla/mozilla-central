@@ -48,11 +48,13 @@
 <?xul-overlay href="chrome://communicator/content/viewApplyThemeOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/msgHdrViewOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/mailOverlay.xul"?>
-<?xul-overlay href="chrome://messenger/content/platformMailnewsOverlay.xul"?>
+<?xul-overlay href="chrome://messenger/content/mailKeysOverlay.xul"?>
 
 <!DOCTYPE overlay [
   <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd">
   %messengerDTD;
+  <!ENTITY % mailKeysDTD SYSTEM "chrome://messenger/locale/mailKeysOverlay.dtd">
+  %mailKeysDTD;
   <!ENTITY % globalDTD SYSTEM "chrome://global/locale/global.dtd">
   %globalDTD;
   <!ENTITY % msgViewPickerDTD SYSTEM "chrome://messenger/locale/msgViewPickerOverlay.dtd">
@@ -354,15 +356,8 @@
   <key id="key_cut"/>
   <key id="key_copy"/>
   <key id="key_paste"/>
-  <key id="key_delete"/>
-  <key id="key_shiftDelete"/>
-  <key id="key_delete2"/> <!-- secondary delete key -->
-  <key id="key_shiftDelete2"/>
-  <key id="key_selectAll"/>
   <key id="key_selectThread" key="&selectThreadCmd.key;"             oncommand="goDoCommand('cmd_selectThread');" modifiers="alt, shift"/>
 
-  <key id="key_toggleRead" key="&markAsReadCmd.key;"                 oncommand="goDoCommand('cmd_markAsRead');"/>
-  <key id="key_toggleFlagged" key="&markFlaggedCmd.key;"             oncommand="goDoCommand('cmd_markAsFlagged');"/>
   <key id="key_markJunk" key="&markAsJunkCmd.key;"                   oncommand="goDoCommand('cmd_markAsJunk');"/>
   <key id="key_markNotJunk" key="&markAsNotJunkCmd.key;"             oncommand="goDoCommand('cmd_markAsNotJunk');"
        modifiers="shift"/>
@@ -392,7 +387,6 @@
   <key id="key_watchThread" key="&watchThreadMenu.key;"              oncommand="goDoCommand('cmd_watchThread')" />
   <key id="key_killThread" key="&killThreadMenu.key;"                oncommand="goDoCommand('cmd_killThread')" />
   <key id="key_killSubthread" key="&killSubthreadMenu.key;"          oncommand="goDoCommand('cmd_killSubthread')" modifiers="shift" />
-  <key id="key_openMessage" key="&openMessageWindowCmd.key;"         oncommand="goDoCommand('cmd_openMessage')" modifiers="accel"/>
   <key id="key_print"/>
   <key id="key_saveAsFile" key="&saveAsFileCmd.key;"                 oncommand="goDoCommand('cmd_saveAsFile')" modifiers="accel"/>
   <key id="key_viewPageSource" key="&pageSourceCmd.key;"             oncommand="goDoCommand('cmd_viewPageSource')" modifiers="accel"/>
@@ -430,30 +424,6 @@
        keycode="VK_F8"
        oncommand="MsgToggleMessagePane(true);"
        disabled="true"/>
-
-  <!-- Tag Keys -->
-  <!-- Includes both shifted and not, for Azerty and other layouts where the
-       numeric keys are shifted. -->
-  <key id="key_tag0" key="&tagCmd0.key;" modifiers="shift any"
-       oncommand="RemoveAllMessageTags();"/>
-  <key id="key_tag1" key="&tagCmd1.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(1);"/>
-  <key id="key_tag2" key="&tagCmd2.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(2);"/>
-  <key id="key_tag3" key="&tagCmd3.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(3);"/>
-  <key id="key_tag4" key="&tagCmd4.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(4);"/>
-  <key id="key_tag5" key="&tagCmd5.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(5);"/>
-  <key id="key_tag6" key="&tagCmd6.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(6);"/>
-  <key id="key_tag7" key="&tagCmd7.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(7);"/>
-  <key id="key_tag8" key="&tagCmd8.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(8);"/>
-  <key id="key_tag9" key="&tagCmd9.key;" modifiers="shift any"
-       oncommand="ToggleMessageTagKey(9);"/>
 
   <key id="key_searchMail" key="&searchMailCmd.key;" oncommand="goDoCommand('cmd_search')" modifiers="accel, shift"/>
 
