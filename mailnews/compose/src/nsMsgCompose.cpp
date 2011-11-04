@@ -394,6 +394,7 @@ nsresult nsMsgCompose::ResetUrisForEmbeddedObjects()
       mMsgSend->GetFolderUri(folderUri);
       nsCOMPtr<nsIMsgFolder> folder;
       rv = GetExistingFolder(folderUri, getter_AddRefs(folder));
+      NS_ENSURE_SUCCESS(rv, rv);
       folder->GetBaseMessageURI(baseMsgUri);
       NS_ENSURE_SUCCESS(rv, rv);
 
@@ -407,6 +408,8 @@ nsresult nsMsgCompose::ResetUrisForEmbeddedObjects()
         nsCOMPtr<nsIDOMHTMLImageElement> image = do_QueryInterface(domElement);
         if (!image)
           continue;
+        nsCString partNum;
+        mMsgSend->GetPartForDomIndex(i, partNum);
         // do we care about anything besides images?
         nsAutoString objURL;
         image->GetSrc(objURL);
@@ -426,6 +429,15 @@ nsresult nsMsgCompose::ResetUrisForEmbeddedObjects()
         newURI.Append('#');
         newURI.AppendInt(newMsgKey);
         nsString restOfUrl(Substring(objURL, restOfUrlIndex, objURL.Length() - restOfUrlIndex));
+        PRInt32 partIndex = restOfUrl.Find("part=");
+        if (partIndex != kNotFound)
+        {
+          partIndex += 5;
+          PRInt32 endPart = restOfUrl.FindChar('&', partIndex);
+          PRInt32 existingPartLen = (endPart == kNotFound) ? -1 : endPart - partIndex;
+          restOfUrl.Replace(partIndex, existingPartLen, NS_ConvertASCIItoUTF16(partNum));
+        }
+
         nsCOMPtr<nsIMsgMessageService> msgService;
         rv = GetMessageServiceFromURI(newURI, getter_AddRefs(msgService));
         if (NS_FAILED(rv))

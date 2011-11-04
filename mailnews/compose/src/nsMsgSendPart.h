@@ -95,6 +95,7 @@ public:
                       {
                         return m_mainpart;
                       }
+  nsCString           m_partNum;
 protected:
 	int                 CopyString(char** dest, const char* src);
 	int                 PushBody(const char* buffer, PRInt32 length);

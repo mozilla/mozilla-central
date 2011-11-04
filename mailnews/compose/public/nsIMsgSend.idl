@@ -251,7 +251,7 @@ public:
 [ptr] native nsMsgAttachmentHandler(nsMsgAttachmentHandler);
 [ptr] native nsMsgAttachedFile(nsMsgAttachedFile);
 
-[scriptable, uuid(fd21915b-0b12-4ab1-b3c9-feec98fcb6d1)]
+[scriptable, uuid(22cfe1cb-4e9a-451f-82e5-0b75d2b65a95)]
 interface nsIMsgSend : nsISupports
 {
   //
@@ -400,6 +400,18 @@ interface nsIMsgSend : nsISupports
     void getMessageId(out ACString messageID);
     /// When saving as draft, the folder uri we saved to.
     readonly attribute ACString folderUri;
+
+    /**
+     * After a draft is saved, use this to get the mime part number for the dom
+     * node in the editor embedded object list with the passed in index.
+     *
+     * @param aDomIndex - index in the editor dom embedded object list of
+     * the part we're interested in. These are generally images.
+     *
+     * @return the mime part number for that object.
+     */
+    ACString getPartForDomIndex(in long aDomIndex);
+
     attribute nsMsgKey messageKey;
 
     nsIPrompt getDefaultPrompt();

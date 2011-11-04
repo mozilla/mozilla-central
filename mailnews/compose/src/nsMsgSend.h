@@ -327,6 +327,9 @@ public:
 
   // Variable for storing the draft name;
   nsCString                  m_folderName;
+
+  // mapping between editor dom node indexes and saved mime part numbers.
+  nsTArray<nsCString> m_partNumbers;
   //
   // These variables are needed for message Copy operations!
   //

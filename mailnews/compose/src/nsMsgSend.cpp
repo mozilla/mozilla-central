@@ -753,7 +753,6 @@ nsMsgComposeAndSend::GatherMimeAttachments()
     mainbody = m_related_part->GetChild(0);
     mainbody->SetMainPart(PR_TRUE);
   }
-
   if (m_plaintext)
   {
     //
@@ -1019,7 +1018,22 @@ nsMsgComposeAndSend::GatherMimeAttachments()
         // to a lot of prompts about not being able to fetch this part!
         //
         if (m_attachments[i].mPartUserOmissionOverride)
+        {
+          // look for earlier part with the same content id. If we find it,
+          // need to remember the mapping between our node index and the
+          // part num of the earlier part.
+          PRInt32 nodeIndex = m_attachments[i].mNodeIndex;
+          if (nodeIndex != -1)
+          {
+            for (PRUint32 j = 0; j < i; j++)
+            {
+              if (m_attachments[j].mNodeIndex != -1 &&
+                  m_attachments[j].m_contentId.Equals(m_attachments[i].m_contentId))
+                m_partNumbers[nodeIndex] = m_partNumbers[m_attachments[j].mNodeIndex];
+            }
+          }
           continue;
+        }
 
         // Now, we need to add this part to the m_related_part member so the
         // message will be generated correctly.
@@ -1155,6 +1169,10 @@ nsMsgComposeAndSend::PreProcessPart(nsMsgAttachmentHandler  *ma,
   if (!part)
     return 0;
   status = toppart->AddChild(part);
+  // Remember the part number if it has a node index.
+  if (ma->mNodeIndex != -1)
+    m_partNumbers[ma->mNodeIndex] = part->m_partNum;
+
   if (NS_FAILED(status))
     return 0;
   status = part->SetType(ma->m_type.get());
@@ -1346,7 +1364,6 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
         forceToBeAttached = PR_TRUE;
     }
   }
-
   // Now, we know the types of objects this node can be, so we will do
   // our query interface here and see what we come up with
   nsCOMPtr<nsIDOMHTMLBodyElement>     body = (do_QueryInterface(node));
@@ -1544,6 +1561,8 @@ nsMsgComposeAndSend::GetMultipartRelatedCount(bool forceToBeCalculated /*=false*
   {
     if (count > 0)
     {
+      // preallocate space for part numbers
+      m_partNumbers.SetLength(count);
       // Let parse the list to count the number of valid objects. BTW, we can remove the others from the list
       nsMsgAttachmentData attachment;
 
@@ -1561,13 +1580,10 @@ nsMsgComposeAndSend::GetMultipartRelatedCount(bool forceToBeCalculated /*=false*
         mEmbeddedObjectList->QueryElementAt(i, NS_GET_IID(nsIDOMNode), getter_AddRefs(node));
         if (!node)
           continue;
-
         bool acceptObject = false;
         rv = GetEmbeddedObjectInfo(node, &attachment, &acceptObject);
         if (NS_SUCCEEDED(rv) && acceptObject)
           count ++;
-        else
-          mEmbeddedObjectList->DeleteElementAt(i);
       }
     }
     mMultipartRelatedAttachmentCount = (PRInt32)count;
@@ -1871,20 +1887,14 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
   }
 
   nsCOMPtr<nsIDOMNode> node;
-  for (i = mPreloadedAttachmentCount; i < (mPreloadedAttachmentCount + multipartCount); i++)
+  for (i = mPreloadedAttachmentCount; i < (mPreloadedAttachmentCount + multipartCount);)
   {
-    // MUST set this to get placed in the correct part of the message
-    m_attachments[i].mMHTMLPart = PR_TRUE;
-
-    locCount++;
-    m_attachments[i].mDeleteFile = PR_TRUE;
-    m_attachments[i].m_done = PR_FALSE;
-    m_attachments[i].SetMimeDeliveryState(this);
 
     // Ok, now we need to get the element in the array and do the magic
     // to process this element.
     //
 
+    locCount++;
     mEmbeddedObjectList->QueryElementAt(locCount, NS_GET_IID(nsIDOMNode), getter_AddRefs(node));
     if (!node)
       return NS_ERROR_MIME_MPART_ATTACHMENT_ERROR;
@@ -1892,9 +1902,16 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
     bool acceptObject = false;
     rv = GetEmbeddedObjectInfo(node, &attachment, &acceptObject);
     NS_ENSURE_SUCCESS(rv, NS_ERROR_MIME_MPART_ATTACHMENT_ERROR);
-
     if (!acceptObject)
         continue;
+
+    // MUST set this to get placed in the correct part of the message
+    m_attachments[i].mMHTMLPart = PR_TRUE;
+
+    m_attachments[i].mDeleteFile = PR_TRUE;
+    m_attachments[i].m_done = PR_FALSE;
+    m_attachments[i].SetMimeDeliveryState(this);
+    m_attachments[i].mNodeIndex = locCount;
 
     j++;
     domSaveArray[j].node = node;
@@ -1957,6 +1974,8 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
           (*aNewsCount)++;
       }
     }
+    else
+      m_attachments[i].m_contentId = m_attachments[duplicateOf].m_contentId;
 
     //
     // Ok, while we are here, we should whack the DOM with the generated
@@ -2000,6 +2019,7 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
       if (!domURL.IsEmpty())
         domSaveArray[j].url = ToNewCString(NS_LossyConvertUTF16toASCII(domURL));
     }
+    i++;
   }
 
   rv = GetBodyFromEditor();
@@ -2050,7 +2070,6 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
 
   m_related_part->SetMimeDeliveryState(this);
   m_related_part->SetType(MULTIPART_RELATED);
-
   // We are now going to use the m_related_part as a way to store the
   // MHTML message for this email.
   //
@@ -4012,6 +4031,13 @@ NS_IMETHODIMP
 nsMsgComposeAndSend::GetFolderUri(nsACString &aFolderUri)
 {
   aFolderUri = m_folderName;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsMsgComposeAndSend::GetPartForDomIndex(PRInt32 aDomIndex, nsACString &aPartNum)
+{
+  aPartNum = m_partNumbers.SafeElementAt(aDomIndex, EmptyCString());
   return NS_OK;
 }
 

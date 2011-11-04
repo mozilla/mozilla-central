@@ -153,7 +153,7 @@ nsMsgAttachmentHandler::nsMsgAttachmentHandler() :
   mMHTMLPart(PR_FALSE),
   mPartUserOmissionOverride(PR_FALSE),
   mMainBody(PR_FALSE),
-
+  mNodeIndex(-1),
   // For analyzing the attachment file...
   m_size(0),
   m_unprintable_count(0),

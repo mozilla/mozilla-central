@@ -65,7 +65,8 @@ nsMsgSendPart::nsMsgSendPart(nsIMsgSend* state, const char *part_charset)
   m_charset_name[sizeof(m_charset_name)-1] = '\0';
   m_children = nsnull;
   m_numchildren = 0;
-  
+  // if we're not added as a child, the default part number will be "1".
+  m_partNum = "1";
   SetMimeDeliveryState(state);
 
   m_parent = nsnull;
@@ -199,6 +200,10 @@ int nsMsgSendPart::AddChild(nsMsgSendPart* child)
   m_children = tmp;
   m_children[m_numchildren - 1] = child;
   child->m_parent = this;
+  nsCString partNum(m_partNum);
+  partNum.Append(".");
+  partNum.AppendInt(m_numchildren);
+  child->m_partNum = partNum;
   return 0;
 }
 

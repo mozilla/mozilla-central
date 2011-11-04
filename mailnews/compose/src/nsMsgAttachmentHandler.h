@@ -92,8 +92,6 @@ class nsMsgAttachmentHandler
 public:
   nsMsgAttachmentHandler();
   ~nsMsgAttachmentHandler();
-  
-  //
 public:
   nsresult              SnarfAttachment(nsMsgCompFields *compFields);
   int                   PickEncoding (const char *charset, nsIMsgSend* mime_delivery_state);
@@ -178,7 +176,9 @@ public:
   bool                  mMHTMLPart;           // This is true if its an MHTML part, otherwise, false
   bool                  mPartUserOmissionOverride;  // This is true if the user send send the email without this part
   bool                  mMainBody;            // True if this is a main body.
-
+  PRInt32 mNodeIndex; //If this is an embedded image, this is the index of the
+                      // corresponding domNode in the editor's
+                      //GetEmbeddedObjects. Otherwise, it will be -1.
   //
   // Vars for analyzing file data...
   //
