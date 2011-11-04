@@ -152,8 +152,8 @@ radio[pane=paneLightning] {
 
 /* Write button */
 #newMsgButton-mail-menuitem {
-  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
-  -moz-image-region: rect(0px 48px 24px 24px);
+  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar-small.png);
+  -moz-image-region: rect(0px 32px 16px 16px);
 }
 
 #newMsgButton-calendar-menuitem {

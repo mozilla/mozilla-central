@@ -45,12 +45,16 @@
     -moz-padding-start: 0.1em;
 }
 
-#calendar-task-details-grid,
-#other-actions-box {
-    padding: 0.1em;
+#calendar-task-details-grid {
+    padding-top: 1px;
     -moz-padding-start: 0;
     -moz-padding-end: 0;
     padding-bottom: 0.2em;
+}
+
+#other-actions-box {
+    -moz-margin-end: 3px;
+    padding-bottom: 0.3em;
 }
 
 #calendar-task-details {
@@ -177,7 +181,7 @@ window[toolboxId="task-actions-toolbox"] #modelist menuitem:first-child {
 
 #task-actions-toolbox[doCustomization] #task-actions-toolbar {
     min-width: 100px;
-    min-height: 10px;
+    min-height: 24px;
 }
 
 #task-actions-category {
