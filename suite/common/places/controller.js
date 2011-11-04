@@ -283,10 +283,12 @@ PlacesController.prototype = {
       break;
     case "placesCmd_show:info":
       var dd = document.getElementById("detailsDeck");
-      if (dd)
+      if (dd) {
         dd.collapsed = false;
-      else
+        document.getElementById("editBMPanel_namePicker").focus();
+      } else {
         this.showBookmarkPropertiesForSelection();
+      }
       break;
     case "placesCmd_moveBookmarks":
       this.moveSelectedBookmarks();
