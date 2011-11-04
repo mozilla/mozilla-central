@@ -1221,7 +1221,7 @@ ItipFindItemListener.prototype = {
             actionFunc.method = actionMethod;
         }
 
-        this.mOptionsFunc(this.mItipItem, rc, actionFunc);
+        this.mOptionsFunc(this.mItipItem, rc, actionFunc, this.mFoundItems);
     },
 
     onGetResult: function ItipFindItemListener_onGetResult(aCalendar,
