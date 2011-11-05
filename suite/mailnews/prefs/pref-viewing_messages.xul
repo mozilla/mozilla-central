@@ -176,14 +176,14 @@
         </radiogroup>
       </hbox>
 
-      <vbox align="start">
+      <hbox pack="start">
         <checkbox id="wrapLongLines" label="&wrapInMsg.label;"
                   accesskey="&wrapInMsg.accesskey;"
                   preference="mail.wrap_long_lines"/>
         <checkbox id="displayGlyph" label="&convertEmoticons.label;"
                   accesskey="&convertEmoticons.accesskey;"
                   preference="mail.display_glyph"/>
-      </vbox>
+      </hbox>
 
       <separator class="thin"/>
 
