@@ -38,12 +38,10 @@
 
 <?xml-stylesheet href="chrome://messenger/skin/dialogs.css" type="text/css"?>
 
-<?xul-overlay href="chrome://global/content/globalOverlay.xul"?>
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
 
 <window id="printEngineWin"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        xmlns:nc="http://home.netscape.com/NC-rdf#"
         onload="OnLoadPrintEngine()"
         width="750"
         height="500"
@@ -58,6 +56,8 @@
 
   <script type="application/javascript"
           src="chrome://global/content/printUtils.js"/>
+  <script type="application/javascript"
+          src="chrome://global/content/globalOverlay.js"/>
   <script type="application/javascript"
           src="chrome://messenger/content/msgPrintEngine.js"/>
 
