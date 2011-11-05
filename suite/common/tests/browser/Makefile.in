@@ -104,6 +104,8 @@ _BROWSER_FILES = \
 	browser_615394-SSWindowState_events.js \
 	browser_625257.js \
 	browser_665702-state_session.js \
+	browser_687710.js \
+	browser_687710_2.js \
         browser_694378.js \
 	browser_isempty.js \
 	browser_markPageAsFollowedLink.js \

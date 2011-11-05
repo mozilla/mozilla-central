@@ -2891,6 +2891,7 @@ SessionStoreService.prototype = {
       shEntry.postData = stream;
     }
 
+    let childDocIdents = {};
     if (aEntry.docIdentifier) {
       // If we have a serialized document identifier, try to find an SHEntry
       // which matches that doc identifier and adopt that SHEntry's
@@ -2898,10 +2899,12 @@ SessionStoreService.prototype = {
       // for the document identifier.
       let matchingEntry = aDocIdentMap[aEntry.docIdentifier];
       if (!matchingEntry) {
-        aDocIdentMap[aEntry.docIdentifier] = shEntry;
+        matchingEntry = {shEntry: shEntry, childDocIdents: childDocIdents};
+        aDocIdentMap[aEntry.docIdentifier] = matchingEntry;
       }
       else {
-        shEntry.adoptBFCacheEntry(matchingEntry);
+        shEntry.adoptBFCacheEntry(matchingEntry.shEntry);
+        childDocIdents = matchingEntry.childDocIdents;
       }
     }
 
@@ -2923,8 +2926,24 @@ SessionStoreService.prototype = {
         //XXXzpao Wallpaper patch for bug 509315
         if (!aEntry.children[i].url)
           continue;
+
+        // We're mysteriously getting sessionrestore.js files with a cycle in
+        // the doc-identifier graph.  (That is, we have an entry where doc
+        // identifier A is an ancestor of doc identifier B, and another entry
+        // where doc identifier B is an ancestor of A.)
+        //
+        // If we were to respect these doc identifiers, we'd create a cycle in
+        // the SHEntries themselves, which causes the docshell to loop forever
+        // when it looks for the root SHEntry.
+        //
+        // So as a hack to fix this, we restrict the scope of a doc identifier
+        // to be a node's siblings and cousins, and pass childDocIdents, not
+        // aDocIdents, to _deserializeHistoryEntry.  That is, we say that two
+        // SHEntries with the same doc identifier have the same document iff
+        // they have the same parent or their parents have the same document.
+
         shEntry.AddChild(this._deserializeHistoryEntry(aEntry.children[i], aIdMap,
-                                                       aDocIdentMap), i);
+                                                       childDocIdents), i);
       }
     }
 
