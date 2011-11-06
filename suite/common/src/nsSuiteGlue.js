@@ -43,6 +43,7 @@ const XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/AddonManager.jsm");
 Components.utils.import("resource:///modules/Sanitizer.jsm");
 Components.utils.import("resource:///modules/mailnewsMigrator.js");
 
@@ -273,6 +274,21 @@ SuiteGlue.prototype = {
   {
     if (Services.prefs.getBoolPref("plugins.update.notifyUser"))
       this._showPluginUpdatePage(aWindow);
+
+    // For any add-ons that were installed disabled and can be enabled offer
+    // them to the user.
+    var win = this.getMostRecentBrowserWindow();
+    var browser = win.gBrowser;
+    var changedIDs = AddonManager.getStartupChanges(AddonManager.STARTUP_CHANGE_INSTALLED);
+    AddonManager.getAddonsByIDs(changedIDs, function(aAddons) {
+      aAddons.forEach(function(aAddon) {
+        // If the add-on isn't user disabled or can't be enabled then skip it.
+        if (!aAddon.userDisabled || !(aAddon.permissions & AddonManager.PERM_CAN_ENABLE))
+          return;
+
+        browser.selectedTab = browser.addTab("about:newaddon?id=" + aAddon.id);
+      })
+    });
 
     var notifyBox = aWindow.getBrowser().getNotificationBox();
 

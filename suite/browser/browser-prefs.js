@@ -571,6 +571,11 @@ pref("extensions.update.url", "https://versioncheck.addons.mozilla.org/update/Ve
 pref("extensions.update.interval", 86400);         // Check daily for updates to add-ons
 pref("extensions.update.autoUpdateDefault", true); // Download and install automatically
 
+// Disable add-ons installed into the shared user and shared system areas by
+// default. This does not include the application directory. See the SCOPE
+// constants in AddonManager.jsm for values to use here.
+pref("extensions.autoDisableScopes", 15);
+
 // Preferences for AMO integration
 pref("extensions.getAddons.cache.enabled", true);  // also toggles personalized recommendations
 pref("extensions.getAddons.maxResults", 15);
