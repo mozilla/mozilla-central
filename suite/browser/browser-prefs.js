@@ -189,6 +189,7 @@ pref("browser.urlbar.restrict.typed", "~");
 pref("browser.urlbar.match.title", "#");
 pref("browser.urlbar.match.url", "@");
 
+pref("browser.history.last_page_visited", "about:blank");
 pref("browser.history.grouping", "day");
 pref("browser.sessionhistory.max_entries", 50);
 

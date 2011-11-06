@@ -188,8 +188,8 @@ function getURLToLoad()
       return getHomePageGroup(prefs);
 
     case 2:
-      return Components.classes["@mozilla.org/browser/global-history;2"]
-                       .getService(nsIBrowserHistory).lastPageVisited;
+      return prefs.getComplexValue("browser.history.last_page_visited"
+                                   nsISupportsString).data);
     }
   } catch (e) {
   } 

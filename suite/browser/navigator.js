@@ -598,9 +598,7 @@ function Startup()
           uriArray = getHomePage();
           break;
         case 2:
-          var history = Components.classes["@mozilla.org/browser/global-history;2"]
-                                  .getService(Components.interfaces.nsIBrowserHistory);
-          uriArray = [history.lastPageVisited];
+          uriArray = [GetStringPref("browser.history.last_page_visited")];
           break;
       }
     }
@@ -1331,10 +1329,7 @@ function BrowserOpenTab()
         uriToLoad = GetLocalizedStringPref("browser.startup.homepage");
         break;
       case 2:
-        uriToLoad = gBrowser ? getWebNavigation().currentURI.spec
-                             : Components.classes["@mozilla.org/browser/global-history;2"]
-                                         .getService(Components.interfaces.nsIBrowserHistory)
-                                         .lastPageVisited;
+        uriToLoad = GetStringPref("browser.history.last_page_visited");
         break;
     }
 

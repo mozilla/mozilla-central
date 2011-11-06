@@ -190,6 +190,38 @@ SuiteGlue.prototype = {
     }
   },
 
+  // nsIWebProgressListener partial implementation
+  onLocationChange: function(aWebProgress, aRequest, aLocation)
+  {
+    if (aWebProgress.DOMWindow.top == aWebProgress.DOMWindow &&
+        aWebProgress instanceof Components.interfaces.nsIDocShell &&
+        aWebProgress.loadType & Components.interfaces.nsIDocShell.LOAD_CMD_NORMAL &&
+        aWebProgress instanceof Components.interfaces.nsIDocShellHistory &&
+        aWebProgress.useGlobalHistory) {
+      switch (aLocation.scheme) {
+        case "about":
+        case "imap":
+        case "news":
+        case "mailbox":
+        case "moz-anno":
+        case "view-source":
+        case "chrome":
+        case "resource":
+        case "data":
+        case "wyciwyg":
+        case "javascript":
+          break;
+        default:
+          var str = Components.classes["@mozilla.org/supports-string;1"]
+                              .createInstance(Components.interfaces.nsISupportsString);
+          str.data = aLocation.spec;
+          Services.prefs.setComplexValue("browser.history.last_page_visited",
+                                         Components.interfaces.nsISupportsString, str);
+          break;
+      }
+    }
+  },
+
   // initialization (called on application startup)
   _init: function()
   {
@@ -212,6 +244,9 @@ SuiteGlue.prototype = {
     this._isPlacesLockedObserver = true;
     Services.obs.addObserver(this, "places-shutdown", false);
     this._isPlacesShutdownObserver = true;
+    Components.classes['@mozilla.org/docloaderservice;1']
+              .getService(Components.interfaces.nsIWebProgress)
+              .addProgressListener(this, Components.interfaces.nsIWebProgress.NOTIFY_LOCATION);
   },
 
   // cleanup (called on application shutdown)
@@ -999,6 +1034,7 @@ SuiteGlue.prototype = {
   classID: Components.ID("{bbbbe845-5a1b-40ee-813c-f84b8faaa07c}"),
 
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIObserver,
+                                         Components.interfaces.nsIWebProgressListener,
                                          Components.interfaces.nsISupportsWeakReference,
                                          Components.interfaces.nsISuiteGlue])
 
