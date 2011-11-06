@@ -282,9 +282,9 @@ PlacesController.prototype = {
       this.newSeparator();
       break;
     case "placesCmd_show:info":
-      var dd = document.getElementById("detailsDeck");
-      if (dd) {
-        dd.collapsed = false;
+      var dds = document.getElementById("detailsDeck-splitter");
+      if (dds) {
+        dds.removeAttribute("state");
         document.getElementById("editBMPanel_namePicker").focus();
       } else {
         this.showBookmarkPropertiesForSelection();
