@@ -174,7 +174,7 @@
            We will readd a mechanism for sidebar panes in bug 178003.
     -->
   <hbox id="tabmail-container" flex="1">
-    <tabbrowser id="tabmail" flex="1" panelcontainer="tabpanelcontainer">
+    <tabmail id="tabmail" flex="1" panelcontainer="tabpanelcontainer">
       <box id="tabmail-buttons" orientation="horizontal"/>
       <tabpanels id="tabpanelcontainer" flex="1" class="plain" selectedIndex="0">
         <!-- The main mail three pane frame -->
@@ -282,7 +282,7 @@
           </box>
         </box>
       </tabpanels>
-    </tabbrowser>
+    </tabmail>
   </hbox>
 
   <statusbar id="status-bar" class="chromeclass-status mailwindow-statusbar"/>
