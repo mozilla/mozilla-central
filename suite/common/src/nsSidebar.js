@@ -61,7 +61,6 @@ const CONTAINER_CONTRACTID = "@mozilla.org/rdf/container;1";
 const NETSEARCH_CONTRACTID = "@mozilla.org/rdf/datasource;1?name=internetsearch"
 const nsISupports      = Components.interfaces.nsISupports;
 const nsISidebar       = Components.interfaces.nsISidebar;
-const nsISidebarPanel  = Components.interfaces.nsISidebarPanel;
 const nsISidebarExternal = Components.interfaces.nsISidebarExternal;
 const nsIRDFContainer  = Components.interfaces.nsIRDFContainer;
 const nsIProperties    = Components.interfaces.nsIProperties;
@@ -339,11 +338,11 @@ nsSidebar.prototype.classInfo = XPCOMUtils.generateCI({
     classID: SIDEBAR_CID,
     contractID: SIDEBAR_CONTRACTID,
     classDescription: "Sidebar",
-    interfaces: [nsISidebar, nsISidebarPanel, nsISidebarExternal],
+    interfaces: [nsISidebar, nsISidebarExternal],
     flags: nsIClassInfo.DOM_OBJECT});
 
 nsSidebar.prototype.QueryInterface =
-    XPCOMUtils.generateQI([nsISidebar, nsISidebarPanel, nsISidebarExternal]);
+    XPCOMUtils.generateQI([nsISidebar, nsISidebarExternal]);
 
 nsSidebar.prototype.classID = SIDEBAR_CID;
 

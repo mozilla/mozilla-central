@@ -46,10 +46,9 @@ MODULE		= suitecommon
 XPIDL_MODULE	= suitecommon
 
 XPIDLSRCS = \
+	nsISuiteGlue.idl \
 	nsISessionStartup.idl \
 	nsISessionStore.idl \
-	nsISidebarPanel.idl \
-	nsISuiteGlue.idl \
 	nsISuiteDownloadManagerUI.idl \
 	$(NULL)
 
