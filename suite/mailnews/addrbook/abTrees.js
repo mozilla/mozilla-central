@@ -347,8 +347,20 @@ directoryTreeView.prototype =
       return;
 
     var index = this.getIndexOfDirectory(aItem);
-    if (index > -1)
-      this._tree.invalidateRow(index);
+    var current = this.getDirectoryAtIndex(this.selection.currentIndex);
+    var tree = this._tree;
+    this._tree = null;
+    this._rebuild();
+    this._tree = tree;
+    this.selection.select(this.getIndexOfDirectory(current));
+
+    if (index > -1) {
+      var newIndex = this.getIndexOfDirectory(aItem);
+      if (newIndex >= index)
+        this._tree.invalidateRange(index, newIndex);
+      else
+        this._tree.invalidateRange(newIndex, index);
+    }
   }
 };
 
