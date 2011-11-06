@@ -277,8 +277,7 @@ SuiteGlue.prototype = {
 
     // For any add-ons that were installed disabled and can be enabled offer
     // them to the user.
-    var win = this.getMostRecentBrowserWindow();
-    var browser = win.gBrowser;
+    var browser = aWindow.getBrowser();
     var changedIDs = AddonManager.getStartupChanges(AddonManager.STARTUP_CHANGE_INSTALLED);
     AddonManager.getAddonsByIDs(changedIDs, function(aAddons) {
       aAddons.forEach(function(aAddon) {
@@ -290,7 +289,7 @@ SuiteGlue.prototype = {
       })
     });
 
-    var notifyBox = aWindow.getBrowser().getNotificationBox();
+    var notifyBox = browser.getNotificationBox();
 
     // Show about:rights notification, if needed.
     if (this._shouldShowRights())
