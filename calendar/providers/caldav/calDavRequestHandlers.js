@@ -573,10 +573,21 @@ webDavSyncHandler.prototype = {
             case "response": // WebDAV Sync draft 3
             case "sync-response": // WebDAV Sync draft 0,1,2
                 let r = this.currentResponse;
-                if (r.href &&
-                    r.href.length) {
+                if (r.href && r.href.length) {
                     r.href = this.calendar.ensureDecodedPath(r.href);
                 }
+
+                if ((!r.getcontenttype || r.getcontenttype == "text/plain")  &&
+                    r.href &&
+                    r.href.length >= 4 &&
+                    r.href.substr(r.href.length - 4,4) == ".ics") {
+                  // If there is no content-type (iCloud) or text/plain was passed
+                  // (iCal Server) for the resource but its name ends with ".ics"
+                  // assume the content type to be text/calendar. Apple
+                  // iCloud/iCal Server interoperability fix.
+                  r.getcontenttype = "text/calendar";
+                }
+
                 // Deleted item
                 if (r.href && r.href.length &&
                     r.status &&
@@ -597,6 +608,7 @@ webDavSyncHandler.prototype = {
                            (!r.status ||                 // Draft 3 does not require
                             r.status.length == 0 ||      // a status for created or updated items but
                             r.status.indexOf(" 204") ||  // draft 0, 1 and 2 needed it so treat no status
+                            r.status.indexOf(" 200") ||  // Apple iCloud returns 200 status for each item
                             r.status.indexOf(" 201"))) { // and status 201 and 204 the same
                     this.itemsReported[r.href] = r.getetag;
                     let itemId = this.calendar.mHrefIndex[r.href];
