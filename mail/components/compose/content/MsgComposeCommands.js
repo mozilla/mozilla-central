@@ -2788,8 +2788,6 @@ function ComposeCanClose()
           break;
       }
     }
-
-    SetContentAndBodyAsUnmodified();
   }
 
   return true;

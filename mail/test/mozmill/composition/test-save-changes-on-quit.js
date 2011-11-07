@@ -151,3 +151,57 @@ function test_can_quit_on_changes() {
   // Unregister the Mock Prompt Service
   gMockPromptService.unregister();
 }
+
+/* Bug 698077 - test that when quitting with two compose windows open, if
+ * one chooses "Don't Save", and the other chooses "Cancel", that the first
+ * window's state is such that subsequent quit requests still cause the
+ * Don't Save / Cancel / Save dialog to come up.
+ */
+function test_window_quit_state_reset_on_aborted_quit() {
+  // Register the Mock Prompt Service
+  gMockPromptService.register();
+
+  // open two new compose windows
+  let cwc1 = open_compose_new_mail(mc);
+  let cwc2 = open_compose_new_mail(mc);
+
+  // Type something in each window.
+  cwc1.type(cwc1.eid("content-frame"), "Marco!");
+  cwc2.type(cwc2.eid("content-frame"), "Polo!");
+
+  let cancelQuit = Cc["@mozilla.org/supports-PRBool;1"]
+                   .createInstance(Components.interfaces.nsISupportsPRBool);
+
+  // This is a hacky method for making sure that the second window
+  // receives a CANCEL click in the popup dialog.
+  var numOfPrompts = 0;
+  gMockPromptService.onPromptCallback = function() {
+    numOfPrompts++;
+
+    if (numOfPrompts > 1)
+      gMockPromptService.returnValue = CANCEL;
+  }
+
+  gMockPromptService.returnValue = DONT_SAVE;
+
+  // Trigger the quit-application-request notification
+  Services.obs.notifyObservers(cancelQuit, "quit-application-requested",
+                               null);
+
+  // We should have cancelled the quit appropraitely.
+  assert_true(cancelQuit.data);
+
+  // The quit behaviour is that the second window to spawn is the first
+  // one that prompts for Save / Don't Save, etc.
+  gMockPromptService.reset();
+
+  // The first window should still prompt when attempting to close the
+  // window.
+  gMockPromptService.returnValue = DONT_SAVE;
+  cwc2.click(cwc2.eid("menu_close"));
+
+  let promptState = gMockPromptService.promptState;
+  assert_not_equals(null, promptState, "Expected a confirmEx prompt");
+
+  gMockPromptService.unregister();
+}

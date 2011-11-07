@@ -67,6 +67,7 @@ var gMockPromptService = {
   _willReturn: null,
   _promptState: null,
   _origFactory: null,
+  _promptCb: null,
 
   confirm: function(aParent, aDialogTitle, aText) {
     this._promptState = {
@@ -75,6 +76,8 @@ var gMockPromptService = {
       dialogTitle: aDialogTitle,
       text: aText,
     };
+
+    this.fireCb();
 
     return this._will_return;
   },
@@ -95,6 +98,8 @@ var gMockPromptService = {
       checkState: aCheckState,
     };
 
+    this.fireCb();
+
     return this._will_return;
   },
 
@@ -110,11 +115,21 @@ var gMockPromptService = {
     this._will_return = aReturn;
   },
 
+  set onPromptCallback(aCb) {
+    this._promptCb = aCb;
+  },
+
+  fireCb: function() {
+    if (typeof(this._promptCb) == "function")
+      this._promptCb.call();
+  },
+
   /* Wipes out the prompt state and any return values.
    */
   reset: function() {
     this._will_return = null;
     this._promptState = null;
+    this._promptCb = null;
   },
 
   /* Returns the prompt state if one was observed since registering
