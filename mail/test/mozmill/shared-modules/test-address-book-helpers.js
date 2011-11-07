@@ -41,7 +41,7 @@ var Cu = Components.utils;
 
 const MODULE_NAME = "address-book-helpers";
 const RELATIVE_ROOT = "../shared-modules";
-const MODULE_REQUIRES = ['window-helpers'];
+const MODULE_REQUIRES = ['folder-display-helpers', 'window-helpers'];
 
 const ABMDB_PREFIX = "moz-abmdbdirectory://";
 const ABLDAP_PREFIX = "moz-abldapdirectory://";
@@ -74,6 +74,7 @@ function installInto(module) {
   module.ensure_card_exists = ensure_card_exists;
   module.ensure_no_card_exists = ensure_no_card_exists;
   module.open_address_book_window = open_address_book_window;
+  module.close_address_book_window = close_address_book_window;
   module.create_mork_address_book = create_mork_address_book;
   module.create_ldap_address_book = create_ldap_address_book;
   module.create_contact = create_contact;
@@ -175,7 +176,20 @@ function open_address_book_window(aController)
   // XXX this should probably be changed to making callers pass in which address
   // book they want to work with, just like test-compose-helpers.
   abController = windowHelper.wait_for_new_window("mail:addressbook");
+  windowHelper.augment_controller(abController);
   return abController;
+}
+
+/**
+ * Closes the address book interface
+ * @param abc the controller for the address book window to close
+ * @return the result from wait_for_window_close
+ */
+function close_address_book_window(abc)
+{
+  windowHelper.plan_for_window_close(abc);
+  abc.window.close();
+  return windowHelper.wait_for_window_close(abc);
 }
 
 /**
