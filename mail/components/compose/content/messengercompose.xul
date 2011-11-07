@@ -471,18 +471,6 @@
                 accesskey="&viewToolbarsMenuNew.accesskey;"
                 onpopupshowing="onViewToolbarsPopupShowing(event, 'compose-toolbox');">
             <menupopup id="view_toolbars_popup">
-              <menuitem id="menu_showFormatToolbar"
-                        type="checkbox"
-                        label="&showFormattingBarCmd.label;"
-                        accesskey="&showFormattingBarCmd.accesskey;"
-                        command="cmd_showFormatToolbar"
-                        checked="true"/>
-              <menuitem id="menu_showTaskbar"
-                        type="checkbox"
-                        label="&showTaskbarCmd.label;"
-                        accesskey="&showTaskbarCmd.accesskey;"
-                        oncommand="goToggleToolbar('status-bar', 'menu_showTaskbar')"
-                        checked="true"/>
               <menuseparator id="viewMenuBeforeCustomizeComposeToolbarsSeparator"/>
               <menuitem id="customizeComposeToolbars"
                         label="&customizeToolbar.label;"
@@ -490,6 +478,18 @@
                         command="cmd_CustomizeComposeToolbar"/>
             </menupopup>
           </menu>
+          <menuitem id="menu_showFormatToolbar"
+                    type="checkbox"
+                    label="&showFormattingBarCmd.label;"
+                    accesskey="&showFormattingBarCmd.accesskey;"
+                    command="cmd_showFormatToolbar"
+                    checked="true"/>
+          <menuitem id="menu_showTaskbar"
+                    type="checkbox"
+                    label="&showTaskbarCmd.label;"
+                    accesskey="&showTaskbarCmd.accesskey;"
+                    oncommand="goToggleToolbar('status-bar', 'menu_showTaskbar')"
+                    checked="true"/>
           <menuitem id="menu_AddressSidebar"
                     label="&addressSidebar.label;" accesskey="&addressSidebar.accesskey;"
                     key="key_addressSidebar" observes="viewAddressPicker"/>

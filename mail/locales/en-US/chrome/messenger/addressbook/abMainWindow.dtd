@@ -87,12 +87,8 @@
 <!ENTITY showTaskbarCmd.accesskey                       "S">
 <!ENTITY customizeToolbar.label                         "Customize…">
 <!ENTITY customizeToolbar.accesskey                     "C">
-<!ENTITY layoutMenu.label                               "Layout">
-<!ENTITY layoutMenu.accesskey                           "L">
-<!ENTITY showDirectoryPane.label                        "Directory Pane">
-<!ENTITY showDirectoryPane.accesskey                    "D">
-<!ENTITY showContactPane2.label                         "Contact Pane">
-<!ENTITY showContactPane2.accesskey                     "C">
+<!ENTITY showContactPane.label                          "Contact Summary Pane">
+<!ENTITY showContactPane.accesskey                      "C">
 <!ENTITY menu_ShowNameAs.label                          "Show Name As">
 <!ENTITY menu_ShowNameAs.accesskey                      "n"> 
 <!-- LOCALIZATION NOTE (firstLastCmd2.label): We're not including a comma here

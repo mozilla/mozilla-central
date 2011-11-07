@@ -74,13 +74,6 @@ function assert_folder_pane_visible() {
   // - the folder pane splitter should not be collapsed
   if (mc.e("folderpane_splitter").collapsed === true)
     throw new Error("folderpane_splitter should not be collapsed!");
-
-  // - the menu item should be checked
-  // force the view menu to update.
-  mc.window.view_init();
-  let paneMenuItem = mc.e("menu_showFolderPane");
-  if (paneMenuItem.getAttribute("checked") != "true")
-    throw new Error("The Folder Pane menu item should be checked.");
 }
 
 /**
@@ -99,29 +92,25 @@ function assert_folder_pane_hidden(aFolderPaneIllegal) {
   if (mc.e("folderPaneBox").collapsed === false)
     throw new Error("folderPaneBox should be collapsed!");
 
-  // force the view menu to update.
-  mc.window.view_init();
-  let paneMenuItem = mc.e("menu_showFolderPane");
   // - the folder pane splitter should or should not be collapsed, depending on
   //   aFolderPaneIllegal
   if (aFolderPaneIllegal) {
     if (mc.e("folderpane_splitter").collapsed === false)
       throw new Error("folderpane_splitter should be collapsed!");
-    //if (paneMenuItem.getAttribute("disabled") != "true")
-    //  throw new Error("The Folder Pane menu item should be disabled.");
   }
   else {
     if (mc.e("folderpane_splitter").collapsed === true)
       throw new Error("folderpane_splitter should not be collapsed!");
-    if (paneMenuItem.getAttribute("checked") == "true")
-      throw new Error("The Folder Pane menu item should not be checked.");
   }
 }
 
 function toggle_folder_pane() {
   // Since we don't have a shortcut to toggle the folder pane, we're going to
   // have to collapse it ourselves
-  mc.window.MsgToggleFolderPane();
+  let folderPaneBox = mc.e("folderPaneBox");
+  let currentState = folderPaneBox.collapsed;
+
+  folderPaneBox.collapsed = !currentState;
 }
 
 /**

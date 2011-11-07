@@ -556,10 +556,6 @@ function HideMenus()
   if (message_menuitem)
     message_menuitem.setAttribute("hidden", "true");
 
-  var folderPane_menuitem=document.getElementById('menu_showFolderPane');
-  if (folderPane_menuitem)
-    folderPane_menuitem.setAttribute("hidden", "true");
-
   var showSearch_showMessage_Separator = document.getElementById('menu_showSearch_showMessage_Separator');
   if (showSearch_showMessage_Separator)
     showSearch_showMessage_Separator.setAttribute("hidden", "true");
