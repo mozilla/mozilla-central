@@ -49,21 +49,21 @@
 #include "nsIMutableArray.h"
 
 nsresult nsAbQueryStringToExpression::Convert (
-    const char* queryString,
+    const nsACString &aQueryString,
     nsIAbBooleanExpression** expression)
 {
     nsresult rv;
 
-    nsCAutoString q(queryString);
-    q.StripWhitespace ();
-    queryString = q.get ();
+    nsCAutoString q(aQueryString);
+    q.StripWhitespace();
+    const char *queryChars = q.get();
 
     nsCOMPtr<nsISupports> s;
-    rv = ParseExpression (&queryString, getter_AddRefs(s));
+    rv = ParseExpression(&queryChars, getter_AddRefs(s));
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Case: Not end of string
-    if (*queryString != 0)
+    if (*queryChars != 0)
         return NS_ERROR_FAILURE;
 
     nsCOMPtr<nsIAbBooleanExpression> e(do_QueryInterface(s, &rv));
@@ -156,7 +156,7 @@ nsresult nsAbQueryStringToExpression::ParseExpressions (
     while (**index == '(')
     {
         nsCOMPtr<nsISupports> childExpression;
-        rv = ParseExpression (index, getter_AddRefs (childExpression));
+        rv = ParseExpression(index, getter_AddRefs (childExpression));
         NS_ENSURE_SUCCESS(rv, rv);
 
         expressions->AppendElement(childExpression, PR_FALSE);

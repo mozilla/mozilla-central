@@ -45,7 +45,7 @@ class nsAbQueryStringToExpression
 {
 public:
     static nsresult Convert (
-        const char* queryString,
+        const nsACString &aQueryString,
         nsIAbBooleanExpression** expression);
 
 protected:

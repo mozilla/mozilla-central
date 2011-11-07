@@ -53,7 +53,7 @@ interface nsIAbBooleanExpression;
  * It contains the main functions to create and delete address books as well
  * as some helper functions.
  */
-[scriptable, uuid(479919a2-c5f9-4d84-af87-f99c4ecb7f5e)]
+[scriptable, uuid(c3b33078-0b9c-4b56-83ed-3c5e84de82c8)]
 interface nsIAbManager : nsISupports 
 {
   /**
@@ -210,5 +210,5 @@ interface nsIAbManager : nsISupports
    * @param aQueryString The nsIAbDirectory query string
    * @return an nsIAbBooleanExpression for the query string
    */
-  nsIAbBooleanExpression convertQueryStringToExpression(in string aQueryString);
+  nsIAbBooleanExpression convertQueryStringToExpression(in AUTF8String aQueryString);
 };

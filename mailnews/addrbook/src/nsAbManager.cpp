@@ -1304,9 +1304,10 @@ nsAbManager::GenerateUUID(const nsACString &aDirectoryId,
 }
 
 NS_IMETHODIMP
-nsAbManager::ConvertQueryStringToExpression(const char *aQueryString,
+nsAbManager::ConvertQueryStringToExpression(const nsACString &aQueryString,
                                             nsIAbBooleanExpression **_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
-  return nsAbQueryStringToExpression::Convert(aQueryString, _retval);
+  return nsAbQueryStringToExpression::Convert(aQueryString,
+                                              _retval);
 }

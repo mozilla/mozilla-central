@@ -963,7 +963,7 @@ NS_IMETHODIMP nsAbOutlookDirectory::StartSearch(void)
     nsCOMPtr<nsIAbDirectoryQueryArguments> arguments = do_CreateInstance(NS_ABDIRECTORYQUERYARGUMENTS_CONTRACTID,&retCode);
     NS_ENSURE_SUCCESS(retCode, retCode);
 
-    retCode = nsAbQueryStringToExpression::Convert(mQueryString.get (), getter_AddRefs(expression)) ;
+    retCode = nsAbQueryStringToExpression::Convert(mQueryString, getter_AddRefs(expression)) ;
     NS_ENSURE_SUCCESS(retCode, retCode) ;
     retCode = arguments->SetExpression(expression) ;
     NS_ENSURE_SUCCESS(retCode, retCode) ;

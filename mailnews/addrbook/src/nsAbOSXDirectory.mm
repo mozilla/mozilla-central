@@ -942,7 +942,7 @@ nsAbOSXDirectory::GetChildCards(nsISimpleEnumerator **aCards)
   if (mIsQueryURI)
   {
     nsCOMPtr<nsIAbBooleanExpression> expression;
-    rv = nsAbQueryStringToExpression::Convert(mQueryString.get(),
+    rv = nsAbQueryStringToExpression::Convert(mQueryString,
                                               getter_AddRefs(expression));
     NS_ENSURE_SUCCESS(rv, rv);
     

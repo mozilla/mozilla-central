@@ -923,7 +923,7 @@ NS_IMETHODIMP nsAbMDBDirectory::StartSearch()
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIAbBooleanExpression> expression;
-  rv = nsAbQueryStringToExpression::Convert(mQueryString.get(),
+  rv = nsAbQueryStringToExpression::Convert(mQueryString,
     getter_AddRefs(expression));
   NS_ENSURE_SUCCESS(rv, rv);
 
