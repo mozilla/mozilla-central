@@ -188,8 +188,8 @@ function getURLToLoad()
       return getHomePageGroup(prefs);
 
     case 2:
-      return prefs.getComplexValue("browser.history.last_page_visited"
-                                   nsISupportsString).data);
+      return prefs.getComplexValue("browser.history.last_page_visited",
+                                   nsISupportsString).data;
     }
   } catch (e) {
   } 
