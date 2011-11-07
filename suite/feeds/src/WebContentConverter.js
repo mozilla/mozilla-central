@@ -481,7 +481,7 @@ WebContentConverterRegistrar.prototype = {
       buttons = [addButton];
     }
 
-    var notificationBox = getNotificationBox(browserElement);
+    var notificationBox = getNotificationBox(aContentWindow);
     notificationBox.appendNotification(message,
                                        notificationValue,
                                        notificationIcon,
@@ -508,7 +508,7 @@ WebContentConverterRegistrar.prototype = {
     if (aContentWindow) {
       var uri = this._checkAndGetURI(aURIString, aContentWindow);
 
-      this._appendFeedReaderNotification(uri, aTitle, getNotificationBox(browserElement));
+      this._appendFeedReaderNotification(uri, aTitle, getNotificationBox(aContentWindow));
     }
     else
       this._registerContentHandler(contentType, aURIString, aTitle);
