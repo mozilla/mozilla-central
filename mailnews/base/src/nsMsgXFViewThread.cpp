@@ -202,45 +202,49 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
     newHdr->GetDateInSeconds(&msgDate);
     nsCOMPtr<nsIMsgDBHdr> child;
     nsMsgViewIndex i;
-    PRInt32 insertIndex = m_keys.Length();
+    nsMsgViewIndex insertIndex = m_keys.Length();
+    PRUint8 insertLevel = parentLevel + 1;
     for (i = parentIndex; 
-         i < m_keys.Length() && (i == parentIndex ||  m_levels[i] > parentLevel); i++)
+         i < m_keys.Length() && (i == parentIndex ||  m_levels[i] >= parentLevel); i++)
     {
-      if (m_levels[i] == parentLevel + 1) // possible sibling
+      GetChildHdrAt(i, getter_AddRefs(child));
+      if (child)
       {
-        GetChildHdrAt(i, getter_AddRefs(child));
-        if (child)
+        if (reparentChildren && IsHdrParentOf(newHdr, child))
         {
-          if (reparentChildren && IsHdrParentOf(newHdr, child))
+          insertIndex = i;
+          // bump all the children of the current child, and the child
+          nsMsgViewIndex j = insertIndex;
+          PRUint8 childLevel = m_levels[insertIndex];
+          do
           {
-            insertIndex = i;
-            // bump all the children of the current child.
-            nsMsgViewIndex i = insertIndex; 
-            do 
-            {
-              m_levels[i] = m_levels[i] + 1;
-              i++;
-            }
-            while (i < m_keys.Length() && m_levels[i] > parentLevel + 1);
-            break;
+            m_levels[j] = m_levels[j] + 1;
+            j++;
           }
-          else
+          while (j < m_keys.Length() && m_levels[j] > childLevel);
+          break;
+        }
+        else if (m_levels[i] == parentLevel + 1) // possible sibling
+        {
+          child->GetDateInSeconds(&childDate);
+          if (msgDate < childDate)
           {
-            child->GetDateInSeconds(&childDate);
-            if (msgDate < childDate)
-            {
-              // if we think we need to reparent, remember this
-              // insert index, but keep looking for children.
-              insertIndex = i;
-              if (!reparentChildren)
-                break;
-            }
+            // if we think we need to reparent, remember this
+            // insert index, but keep looking for children.
+            insertIndex = i;
+            insertLevel = m_levels[i];
+            // if the sibling we're inserting after has children, we need
+            // to go after the children.
+            while (insertIndex + 1 < m_keys.Length() && m_levels[insertIndex + 1] > insertLevel)
+              insertIndex++;
+            if (!reparentChildren)
+              break;
           }
         }
       }
     }
     m_keys.InsertElementAt(insertIndex, newHdrKey);
-    m_levels.InsertElementAt(insertIndex, m_levels[parentIndex] + 1);
+    m_levels.InsertElementAt(insertIndex, insertLevel);
     m_folders.InsertObjectAt(newHdrFolder, insertIndex);
     whereInserted = insertIndex;
   }
@@ -257,9 +261,9 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
       m_levels.InsertElementAt(0, 0);
       m_folders.InsertObjectAt(newHdrFolder, 0);
       whereInserted = 0;
-      // Adjust level of root hdr. We still have to reparent children of root,
-      // and adjust levels if if neccessary.
-      m_levels[1] = 1;
+      // Adjust level of old root hdr and its children
+      for (nsMsgViewIndex i = 1; i < m_keys.Length(); i++)
+        m_levels[i] = m_levels[1] + 1;
     }
     else
     {

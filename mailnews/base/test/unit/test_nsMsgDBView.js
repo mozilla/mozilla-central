@@ -114,7 +114,6 @@ function dump_view_contents() {
     if (flags & MSG_VIEW_FLAG_DUMMY)
       s += "dummy: ";
     s += gDBView.cellTextForColumn(iViewIndex, "subject")
-
     dump(s + "\n");
   }
   dump("********* end view state\n");
@@ -167,6 +166,11 @@ function assert_view_index_is_not_dummy() {
     if (flags & MSG_VIEW_FLAG_DUMMY)
       view_throw("Expected index " + viewIndex + " to not be a dummy!");
   }
+}
+
+function assert_view_level_is(index, level) {
+  if (gDBView.getLevel(index) != level)
+    view_throw("Expected index " + index + " to be level " + level + " not " + gDBView.getLevel(index));
 }
 
 /**
@@ -615,6 +619,51 @@ function test_group_dummies_under_mutation_by_date() {
   assert_view_message_at_indices(older, 0, 1);
 }
 
+function test_xfvf_threading() {
+  // - start with an empty folder
+  let save_gTestFolder = gTestFolder;
+  gTestFolder = make_empty_folder();
+
+  let messages = [];
+  // Add messages such that ancestors arrive after their descendents in
+  // various interesting ways.
+  // build a hierarchy like this (the UID order corresponds to the date order)
+  //   3
+  //    1
+  //     4
+  //      2
+  //     5
+  let msg3 = gMessageGenerator.makeMessage({age: {days: 2, hours: 5}});
+  let msg1 = gMessageGenerator.makeMessage({age: {days: 2, hours: 4}, inReplyTo: msg3});
+  let msg4 = gMessageGenerator.makeMessage({age: {days: 2, hours: 3}, inReplyTo: msg1});
+  let msg2 = gMessageGenerator.makeMessage({age: {days: 2, hours: 1}, inReplyTo: msg4});
+  let msg5 = gMessageGenerator.makeMessage({age: {days: 2, hours: 2}, inReplyTo: msg1});
+  messages = messages.concat([msg1, msg2, msg3, msg4, msg5]);
+
+  let msgSet = new SyntheticMessageSet(messages);
+
+  gTestFolder = make_empty_folder();
+
+  // - create the view
+  add_sets_to_folders(gTestFolder, [msgSet]);
+  setup_view("xfvf", ViewFlags.kThreadedDisplay);
+  assert_view_row_count(5);
+  gDBView.toggleOpenState(0);
+  gDBView.toggleOpenState(0);
+
+  assert_view_message_at_indices(msg3, 0);
+  assert_view_message_at_indices(msg1, 1);
+  assert_view_message_at_indices(msg4, 2);
+  assert_view_message_at_indices(msg2, 3);
+  assert_view_message_at_indices(msg5, 4);
+  assert_view_level_is(0, 0);
+  assert_view_level_is(1, 1);
+  assert_view_level_is(2, 2);
+  assert_view_level_is(3, 3);
+  assert_view_level_is(4, 2);
+  gTestFolder = save_gTestFolder;
+}
+
 var view_types = [
   ["threaded", ViewFlags.kThreadedDisplay],
   ["quicksearch", ViewFlags.kThreadedDisplay],
@@ -642,6 +691,9 @@ var tests_for_specific_views = {
   ],
   quicksearch: [
     test_qs_results
+  ],
+  xfvf: [
+    test_xfvf_threading
   ]
 };
 
