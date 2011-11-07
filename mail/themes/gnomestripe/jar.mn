@@ -164,6 +164,13 @@ classic.jar:
   skin/classic/messenger/icons/red_pin.png                    (mail/icons/red_pin.png)
   skin/classic/messenger/icons/tab.png                        (mail/icons/tab.png)
   skin/classic/messenger/icons/tabDragIndicator.png           (mail/icons/tabDragIndicator.png)
+  skin/classic/messenger/icons/button-archive.svg             (mail/icons/button-archive.svg)
+  skin/classic/messenger/icons/button-delete.svg              (mail/icons/button-delete.svg)
+  skin/classic/messenger/icons/button-forward.svg             (mail/icons/button-forward.svg)
+  skin/classic/messenger/icons/button-junk.svg                (mail/icons/button-junk.svg)
+  skin/classic/messenger/icons/button-reply.svg               (mail/icons/button-reply.svg)
+  skin/classic/messenger/icons/button-reply-all.svg           (mail/icons/button-reply-all.svg)
+  skin/classic/messenger/icons/button-reply-list.svg          (mail/icons/button-reply-list.svg)
 % skin communicator classic/1.0 %skin/classic/communicator/
   skin/classic/communicator/communicator.css                      (mail/communicator.css)
   skin/classic/communicator/icons/smileys/smiley-smile.png        (mail/icons/smiley-smile.png)

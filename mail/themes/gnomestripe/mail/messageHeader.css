@@ -273,74 +273,31 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
 .hdrDummyReplyButton,
 .hdrReplyOnlyButton,
 .hdrReplyButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 96px 24px 72px);
-}
-
-toolbar[iconsize="small"] .hdrReplyToSenderButton,
-toolbar[iconsize="small"] .hdrDummyReplyButton,
-toolbar[iconsize="small"] .hdrReplyOnlyButton,
-toolbar[iconsize="small"] .hdrReplyButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 64px 16px 48px);
+  list-style-image: url("chrome://messenger/skin/icons/button-reply.svg");
 }
 
 .hdrReplyAllButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 120px 24px 96px);
-}
-
-toolbar[iconsize="small"] .hdrReplyAllButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 80px 16px 64px);
+  list-style-image: url("chrome://messenger/skin/icons/button-reply-all.svg");
 }
 
 .hdrReplyListButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 144px 24px 120px);
-}
-
-toolbar[iconsize="small"] .hdrReplyListButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 96px 16px 80px);
+  list-style-image: url("chrome://messenger/skin/icons/button-reply-list.svg");
 }
 
 .hdrForwardButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 168px 24px 144px);
-}
-
-toolbar[iconsize="small"] .hdrForwardButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 112px 16px 96px);
+  list-style-image: url("chrome://messenger/skin/icons/button-forward.svg");
 }
 
 .hdrArchiveButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 336px 24px 312px);
-}
-
-toolbar[iconsize="small"] .hdrArchiveButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 224px 16px 208px);
+  list-style-image: url("chrome://messenger/skin/icons/button-archive.svg");
 }
 
 .hdrJunkButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
-  -moz-image-region: rect(0px 192px 24px 168px);
-}
-
-toolbar[iconsize="small"] .hdrJunkButton {
-  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
-  -moz-image-region: rect(0px 128px 16px 112px);
+  list-style-image: url("chrome://messenger/skin/icons/button-junk.svg");
 }
 
 .hdrTrashButton {
-  list-style-image: url("moz-icon://stock/gtk-delete?size=toolbar");
-}
-
-toolbar[iconsize="small"] .hdrTrashButton {
-  list-style-image: url("moz-icon://stock/gtk-delete?size=menu");
+  list-style-image: url("chrome://messenger/skin/icons/button-delete.svg");
 }
 
 .inline-toolbar toolbarpaletteitem toolbarseparator,
