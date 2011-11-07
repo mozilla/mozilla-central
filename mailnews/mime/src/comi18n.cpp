@@ -787,7 +787,10 @@ MIME_get_unicode_decoder(const char* aInputCharset, nsIUnicodeDecoder **aDecoder
     if (!*aInputCharset || !PL_strcasecmp("us-ascii", aInputCharset))
       res = ccm->GetUnicodeDecoderRaw("ISO-8859-1", aDecoder);
     else
-      res = ccm->GetUnicodeDecoder(aInputCharset, aDecoder);
+      // GetUnicodeDecoderInternal in order to support UTF-7 messages
+      //
+      // XXX this means that even HTML messages in UTF-7 will be decoded
+      res = ccm->GetUnicodeDecoderInternal(aInputCharset, aDecoder);
   }
 
   return res;
