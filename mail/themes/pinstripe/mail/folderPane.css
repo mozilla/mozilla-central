@@ -164,11 +164,6 @@ treechildren::-moz-tree-cell-text(folderNameCol, specialFolder-Inbox, newMessage
   color: blue;
 }
 
-treechildren::-moz-tree-cell(folderNameCol, newMessages-true),
-treechildren::-moz-tree-cell(folderNameCol, specialFolder-Inbox, newMessages-true) {
-
-}
-
 treechildren::-moz-tree-cell-text(subfoldersHaveUnreadMessages-true) {
   font-weight: bold;
 }
@@ -200,5 +195,5 @@ treechildren::-moz-tree-cell-text(folderNameCol, noSelect-true) {
 }
 
 .folderSummary-previewText {
-  color: grey; 
+  color: gray; 
 }
