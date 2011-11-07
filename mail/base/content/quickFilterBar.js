@@ -90,6 +90,19 @@ let QuickFilterBarMuxer = {
                         !aFolderDisplay.displayedFolder.isServer;
     document.getElementById("qfb-show-filter-bar").style.visibility =
       (appropriate ? "visible" : "hidden");
+
+    // The case in that previous aFolderDisplay is showing a normal folder is
+    //  handled by onLoadingFolder. Here we handle the case where previous
+    // aFolderDisplay shows an account folder instead (this cannot be done
+    // in onLoadingFolder because that event is not raised).
+    if (!aFolderDisplay.displayedFolder ||
+        aFolderDisplay.displayedFolder.isServer) {
+      let filterer = this.maybeActiveFilterer;
+      if (!filterer)
+        return;
+      // Clear displayedFolder to force next onLoadingFolder to recreate the view
+      filterer.displayedFolder = null;
+    }
   },
 
   /**
