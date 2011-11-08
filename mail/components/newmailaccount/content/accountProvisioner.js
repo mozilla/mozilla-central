@@ -187,9 +187,6 @@ function tryToPopulateProviderList() {
     wakeTimeoutId = null;
   }
 
-  // Defeat caching while I test!!!  REMOVE ME!!!
-  providerList += "?" + Math.round(new Date().getTime());
-
   $.getJSON(providerList, function(data) {
     providers = {};
     for each (let [i, provider] in Iterator(data)) {
