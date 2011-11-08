@@ -1,0 +1,480 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is AccountProvisioner Code.
+ *
+ * The Initial Developer of the Original Code is
+ * The Mozilla Foundation.
+ * Portions created by the Initial Developer are Copyright (C) 2010
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ * Blake Winton <bwinton@mozillamessaging.com>
+ * Bryan Clark <clarkbw@mozillamessaging.com>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+* {
+  margin: 0;
+  padding: 0;
+  -moz-box-sizing: border-box;
+}
+
+body {
+  font-family: sans-serif;
+  background-color: -moz-dialog;
+}
+
+input[type="submit"]::-moz-focus-inner,
+button::-moz-focus-inner {
+  border:0 none;
+}
+
+input[type="submit"],
+button {
+  -moz-box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.75) inset;
+  background-image: -moz-linear-gradient(center top , #EEEEEE 0%, #EEEEEE 50%, #E1E1E1 50%, #E1E1E1 100%);
+  border-color: #AAAAAA #AAAAAA #888888;
+  border-style: solid;
+  border-width: 1px;
+  color: #222222;
+  cursor: pointer;
+  font-weight: bold;
+  font: 1em sans-serif;
+  padding: 0 10px;
+  height: 32px;
+  text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.75);
+  white-space: nowrap;
+}
+
+input[type="submit"]:hover,
+button:hover {
+  background-image: -moz-linear-gradient(center top , #fafafa 0%, #fafafa 50%, #eee 50%, #eee 100%);
+}
+
+input[type="submit"]:active,
+button:active {
+  background-image: -moz-linear-gradient(center top , #ddd 0%, #ddd 100%);
+}
+
+#window {
+  padding: 10px;
+  width: 100%;
+}
+
+.tinyheader,
+.header h2 {
+  font-size: 20px;
+  font-weight: bold;
+  padding-left: 10px;
+  padding-top: 10px;
+  color: #222;
+}
+
+#content .description {
+  font-size: smaller;
+  margin: 5px;
+  color: #444;
+  display: none;
+}
+
+.header .commentary {
+  font-size: small;
+  margin: 5px;
+}
+
+.description p {
+  margin: 5px;
+}
+
+#providers .icon {
+  padding-left: 5px;
+  padding-top: 5px;
+}
+
+#providers .provider {
+  padding-right: 150px;
+}
+
+#otherLangDesc,
+#otherLanguages {
+  display: none;
+}
+
+/* External things are links that open in a browser, so underline them. */
+.external {
+  text-decoration: underline;
+}
+
+#content,
+#existing {
+  background-color: rgba(255,255,255,0.9);
+  -moz-border-radius: 5px;
+  -moz-box-shadow: 0 0 2px rgba(0,0,0,0.75) inset;
+  margin-bottom: 10px;
+  overflow: visible;
+}
+
+#name {
+  width: 82%;
+}
+
+#search {
+  width: 100%;
+  padding: 10px;
+  border-bottom: 1px solid #ccc;
+}
+
+input[type="text"], input[type="password"], textarea {
+  height: 32px;
+  font: 1em sans-serif;
+  padding: 8px 2px;
+  border: 1px solid #aaa;
+  -moz-box-shadow: 0 1px 2px -1px rgba(0,0,0,0.25) inset;
+}
+
+#search input[type="text"] {
+  margin-right: 10px;
+  padding: 0 8px;
+}
+
+input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
+  -moz-box-shadow: 0 0 0 3px #CCF1FF inset;
+}
+
+textarea { height: auto; }
+
+input[type="submit"].search {
+  font-weight: bold;
+}
+
+#search #Name {
+  padding-left: 24px;
+  background-image: url("chrome://messenger/content/newmailaccount/search.gif");
+  background-position: 5px center;
+  background-repeat: no-repeat;
+}
+
+#search input[type="text"]:placeholder {
+  color: #999;
+}
+
+#notifications {
+  padding: 10px;
+}
+
+#notifications .spinner,
+#new_account .spinner,
+#notifications .error,
+#notifications .success {
+  display: none;
+}
+
+.spinner {
+  float: left;
+  margin: 114px 270px 114px 283px;
+}
+
+#new_account .spinner {
+  position: absolute;
+  top: 0px;
+}
+
+.error {
+  color: red;
+  padding: 0 4px;
+  margin-top: 4px;
+  display: block;
+}
+
+.success .title {
+  color: #333;
+}
+
+#FirstAndLastName {
+  font-weight: bold;
+}
+
+.hbox.row.th.displayNone { display: none; }
+
+#results {
+  width: 100%;
+  margin: 10px 0;
+  border: 1px solid #ccc;
+  color: #333;
+}
+
+#results .price,
+#results .provider {
+  font-weight: bold;
+}
+
+#results .row {
+  width: 100%;
+  padding: 7px;
+  background-color: #fff;
+  -moz-box-align: center;
+  -moz-box-pack: center;
+  border-bottom: 1px solid #ccc;
+}
+
+#results :-moz-any(div.address, div.more) {
+  cursor: pointer;
+}
+
+#results .row:last-child {
+  border-bottom: none;
+}
+
+#results .row:hover {
+  background-color: #fafafa;
+}
+
+#results .row.th:hover {
+  background-color: #f2f2f2;
+}
+
+#results .row.th {
+  background-color: #f2f2f2;
+}
+
+#results .row.more {
+  text-align: right;
+}
+
+#results .row.more:hover {
+  cursor: pointer;
+}
+
+#results:not(.showAll) .noUserLang {
+  display: none;
+}
+
+.showMoreProvidersLink {
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.footer {
+  margin-bottom: 10px;
+}
+
+.row .address.th {
+  font-weight: normal;
+}
+
+.row .pricing.th {
+  border-left: 1px solid #ccc;
+  text-align: left;
+  padding-left: 7px;
+}
+
+.row .address {
+  font-weight: bold;
+}
+
+.row .pricing {
+  text-align: right;
+  min-width: 200px;
+  display: none;
+}
+
+.pricing button.create {
+  -moz-border-radius: 12px;
+}
+
+.pricing span.create {
+  display: none;
+}
+
+#existing {
+  height: 250px;
+  width: 100%;
+  color: graytext;
+  font-weight: bold;
+  text-align: center;
+}
+
+#existing .header {
+    text-align: left;
+}
+
+
+/* === NEW ACCOUNT FORM === */
+
+#new_account {
+  display: none;
+  padding: 10px;
+}
+
+#provision_form label {
+  min-width: 150px;
+  display: inline-block;
+  color: #333333;
+  text-align: right;
+}
+
+#provision_form label.tos {
+  vertical-align: top;
+}
+
+#provision_form input {
+  width: 100%;
+}
+
+#provision_form input[type="checkbox"] {
+  width: auto;
+}
+
+#back, #submitbutton {
+  margin: 10px;
+}
+
+#submitbutton {
+  font-weight: bold;
+}
+
+
+/* === SUCCESSFUL ACCOUNT CREATION PAGE === */
+
+#successful_account, #search_engine_page {
+  display: none;
+  padding: 10px;
+  width: 100%;
+}
+
+#search_engine_wrap {
+  margin: 1em 0;
+}
+
+
+/* START hbox/vbox normalization from http://alex.dojotoolkit.org/2009/08/css-3-progress/ */
+/* hbox and vbox classes for Mozilla only */
+ 
+.hbox {
+  display: -moz-box;
+  -moz-box-orient: horizontal;
+  -moz-box-align: stretch;
+
+  /*display: box;*/
+  /*box-orient: horizontal;*/
+  /*box-align: stretch;*/
+}
+
+.hbox > * {
+  -moz-box-flex: 0;
+  /*box-flex: 0;*/
+  display: block;
+}
+
+.vbox {
+  display: -moz-box;
+  -moz-box-orient: vertical;
+  -moz-box-align: stretch;
+
+  /*display: box;*/
+  /*box-orient: vertical;*/
+  /*box-align: stretch;*/
+}
+
+.vbox > * {
+  -moz-box-flex: 0;
+  /*box-flex: 0;*/
+  display: block;
+}
+
+.spacer {
+  -moz-box-flex: 1;
+  /*box-flex: 1;*/
+}
+
+.reverse {
+  -moz-box-direction: reverse;
+  /*box-direction: reverse;*/
+}
+
+.boxFlex0 {
+  -moz-box-flex: 0;
+  /*box-flex: 0;*/
+}
+
+.boxFlex1, .boxFlex {
+  -moz-box-flex: 1;
+  /*box-flex: 1;*/
+}
+
+.boxFlex2 {
+  -moz-box-flex: 2;
+  /*box-flex: 2;*/
+}
+
+.start {
+  -moz-box-pack: start;
+  /*box-pack: start;*/
+}
+ 
+.end {
+  -moz-box-pack: end;
+  /*box-pack: end;*/
+}
+ 
+.center {
+  -moz-box-pack: center;
+  /*box-pack: center;*/
+}
+/* END hbox/vbox normalization from http://alex.dojotoolkit.org/2009/08/css-3-progress/ */
+
+.cvv-image {
+  vertical-align: middle;
+  margin-left: 10px;
+}
+
+/* for the final page */
+#successful_account h4 {
+  margin: 0;
+}
+
+#success-message {
+  padding-bottom: 1em;
+}
+
+#success-compose, #success-addons, #success-signature, #search_engine_wrap {
+  padding: 10px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  border: 1px solid #888a85;
+  background: -moz-linear-gradient( center bottom, rgb(238,238,236) 16%, rgb(255,255,255) 76%);
+  -moz-border-radius: 5px;
+}
+
+#success-compose img, #success-addons img, #success-signature img {
+  float: left;
+  margin-right: 10px;
+}
+
+#search_engine_wrap img {
+  vertical-align: middle;
+  margin-right: 10px;
+}

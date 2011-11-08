@@ -90,6 +90,10 @@ function readFromXML(clientConfigXML)
       iO.port = sanitize.integerRange(iX.port[0], 1, 65535);
       // We need a username even for Kerberos, need it even internally.
       iO.username = sanitize.string(iX.username[0]); // may be a %VARIABLE%
+      if (iX.password) {
+        d.rememberPassword = true;
+        iO.password = sanitize.string(iX.password[0]);
+      }
 
       for each (let iXsocketType in iX.socketType)
       {
@@ -209,6 +213,11 @@ function readFromXML(clientConfigXML)
           oO.auth == Ci.nsMsgAuthMethod.passwordCleartext ||
           oO.auth == Ci.nsMsgAuthMethod.passwordEncrypted)
         oO.username = sanitize.string(oX.username[0]);
+
+      if (oX.password) {
+        d.rememberPassword = true;
+        oO.password = sanitize.string(oX.password[0]);
+      }
 
       try {
         // defaults are in accountConfig.js

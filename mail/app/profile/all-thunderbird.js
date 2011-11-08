@@ -730,3 +730,10 @@ pref("plugins.crash.supportUrl", "https://live.mozillamessaging.com/%APP%/plugin
 pref("mail.taskbar.lists.enabled", true);
 pref("mail.taskbar.lists.tasks.enabled", true);
 #endif
+
+// Account provisioner. Commented out prefs are for "the real world".
+// pref("mail.provider.providerList", "https://broker-live.mozillamessaging.com/provider/list");
+pref("mail.provider.providerList", "http://bwinton.latte.ca/Work/provider/list");
+// pref("mail.provider.suggestFromName", "https://broker-live.mozillamessaging.com/provider/suggest");
+pref("mail.provider.suggestFromName", "http://bwinton.latte.ca/Work/provider/suggestFromName.cgi");
+

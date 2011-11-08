@@ -1,0 +1,19 @@
+[{"id": "foo",
+  "label": "foo",
+  "paid": true,
+  "languages" : ["en-US"],
+  "api": "http://www.example.com/tbReg?first={firstname}&last={lastname}&email={email}",
+  "url": "http://www.example.com/api/order",
+  "tos_url": "http://example.com/tos",
+  "privacy_url": "http://example.com/privacy"
+ },
+ {"id": "bar",
+  "label": "bar",
+  "paid": false,
+  "languages" : ["en-US", "fr-FR"],
+  "api": "http://localhost:43336/registration.html",
+  "url": "http://example.com/",
+  "tos_url": "http://example.com/tos",
+  "privacy_url": "http://example.com/privacy",
+  "search_engine": "bar"
+}]
