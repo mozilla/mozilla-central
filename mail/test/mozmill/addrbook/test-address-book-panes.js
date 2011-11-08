@@ -55,6 +55,16 @@ function setupModule(module) {
   abController = open_address_book_window();
 }
 
+function teardownModule(module) {
+  // Make sure the panes are all visible now that we're
+  // done these tests.
+  toggle_directory_pane();
+  toggle_contact_pane();
+
+  assert_directory_pane_visibility(true);
+  assert_contact_pane_visibility(true);
+}
+
 /**
  * Helper function to toggle a pane.
  *
@@ -73,12 +83,12 @@ function _help_toggle_pane(splitterId) {
  */
 function _help_assert_pane_visibility(paneId, menuitemId, visible) {
   if (abController.e(paneId).collapsed == visible)
-    throw new Error(paneId+" pane should be " +
+    throw new Error(paneId + " pane should be " +
                     (visible ? "visible" : "hidden"));
 
   abController.window.InitViewLayoutMenuPopup();
   if ((abController.e(menuitemId).getAttribute("checked") == "true") != visible)
-    throw new Error(menuitemId+" menuitem should be " +
+    throw new Error(menuitemId + " menuitem should be " +
                     (visible ? "checked" : "unchecked"));
 
 }
