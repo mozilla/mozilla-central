@@ -151,7 +151,7 @@ DEFINES += -DGRE_BUILDID=$(GRE_BUILDID)
 
 # xxx todo: unless our packaging story is revised (bug 406579) we package up timezones.sqlite
 libs::
-	$(NSINSTALL) $(srcdir)/../timezones/timezones.sqlite $(FINAL_TARGET)
+	$(NSINSTALL) -m 0644 $(srcdir)/../timezones/timezones.sqlite $(FINAL_TARGET)
 
 include $(topsrcdir)/config/rules.mk
 include $(srcdir)/lightning-packager.mk

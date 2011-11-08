@@ -97,7 +97,7 @@ libs::
 endif
 
 libs::
-	$(NSINSTALL) $(TIMEZONES_SQLITE) $(FINAL_TARGET)
+	$(NSINSTALL) -m 0644 $(TIMEZONES_SQLITE) $(FINAL_TARGET)
 
 libs-%:
 	$(MAKE) -C locales libs AB_CD=$* XPI_NAME=calendar-timezones USE_EXTENSION_MANIFEST=1
