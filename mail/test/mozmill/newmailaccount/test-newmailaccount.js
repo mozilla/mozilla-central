@@ -64,6 +64,11 @@ Services.prefs.setCharPref("mail.provider.providerList", url + "providerList");
 Services.prefs.setCharPref("mail.provider.suggestFromName", url + "suggestFromName");
 
 const kProvisionerUrl = "chrome://messenger/content/newmailaccount/accountProvisioner.xhtml";
+const kProvisionerEnabledPref = "mail.provider.enabled";
+
+// Record what the original value of the mail.provider.enabled pref is so
+// that we can put it back once the tests are done.
+var gProvisionerEnabled = Services.prefs.getBoolPref(kProvisionerEnabledPref);
 
 var setupModule = function(module) {
   let fdh = collector.getModule('folder-display-helpers');
@@ -74,7 +79,15 @@ var setupModule = function(module) {
   dh.installInto(module);
   let wh = collector.getModule('window-helpers');
   wh.installInto(module);
+
+  // Make sure we enable the Account Provisioner.
+  Services.prefs.setBoolPref(kProvisionerEnabledPref, true);
 };
+
+function teardownModule(module) {
+  // Put the mail.provider.enabled pref back the way it was.
+  Services.prefs.setBoolPref(kProvisionerEnabledPref, gProvisionerEnabled);
+}
 
 // We can't use plan_for_new_window because it expects a window type and I have
 // no idea what on earth is the windowtype of an HTML window.

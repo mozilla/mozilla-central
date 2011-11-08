@@ -212,6 +212,11 @@ EmailConfigWizard.prototype =
     e("incoming_port").value = gStringsBundle.getString("port_auto");
     this.fillPortDropdown("smtp");
 
+    // If the account provisioner is preffed off, don't display
+    // the account provisioner button.
+    if (!Services.prefs.getBoolPref("mail.provider.enabled"))
+      _hide("provisioner_button");
+
     // Populate SMTP server dropdown with already configured SMTP servers from
     // other accounts.
     var menulist = e("outgoing_hostname");

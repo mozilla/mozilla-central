@@ -97,10 +97,15 @@ var gMarkViewedMessageAsReadTimer = null;
 var gDisallow_classes_no_html = 1;
 
 // Disable the new account menu item if the account preference is locked.
-// Two other affected areas are the account central and the account manager
-// dialog.
+// The other affected areas are the account central, the account manager
+// dialog, and the account provisioner window.
 function menu_new_init()
 {
+  // If the account provisioner is pref'd off, we shouldn't display the menu
+  // item.
+  ShowMenuItem("newCreateEmailAccountMenuItem",
+               gPrefBranch.getBoolPref("mail.provider.enabled"));
+
   // If we don't have a gFolderDisplay, just get out of here and leave the menu
   // as it is.
   if (!gFolderDisplay)

@@ -319,7 +319,10 @@ const MailPrefObserver = {
  */
 function AutoConfigWizard(okCallback)
 {
-  NewMailAccountProvisioner(msgWindow, { okCallback: okCallback });
+  if (gPrefBranch.getBoolPref("mail.provider.enabled"))
+    NewMailAccountProvisioner(msgWindow, { okCallback: okCallback });
+  else
+    NewMailAccount(msgWindow, okCallback);
 }
 
 /**
