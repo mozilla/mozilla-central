@@ -2782,12 +2782,39 @@ NS_IMETHODIMP QuotingOutputStreamListener::OnStopRequest(nsIRequest *request, ns
           // Remove my own address if using Mail-Followup-To (see bug 325429)
           if (mIdentity)
           {
-            nsCString email;
-            mIdentity->GetEmail(email);
-            addressToBeRemoved.AppendLiteral(", ");
-            addressToBeRemoved.Append(email);
+            bool removeMyEmailInCc = true;
+            nsCString myEmail;
+            mIdentity->GetEmail(myEmail);
+
+            // Remove own address from CC unless we want it in there
+            // through the automatic-CC-to-self (see bug 584962). There are
+            // three cases:
+            // - user has no automatic CC
+            // - user has automatic CC but own email is not in it
+            // - user has automatic CC and own email in it
+            // Only in the last case do we want our own email address to stay
+            // in the CC list.
+            bool automaticCc;
+            mIdentity->GetDoCc(&automaticCc);
+            if (automaticCc)
+            {
+              nsCString ccList, ccListEmailAddresses;
+              mIdentity->GetDoCcList(ccList);
+              rv = parser->ExtractHeaderAddressMailboxes(ccList,
+                                                         ccListEmailAddresses);
+              if (NS_SUCCEEDED(rv) &&
+                  ccListEmailAddresses.Find(myEmail) != kNotFound)
+                removeMyEmailInCc = false;
+            }
+
+            if (removeMyEmailInCc)
+            {
+              addressToBeRemoved.AppendLiteral(", ");
+              addressToBeRemoved.Append(myEmail);
+            }
+
             rv = parser->RemoveDuplicateAddresses(nsDependentCString(_compFields->GetTo()),
-                                                  email, resultStr);
+                                                  myEmail, resultStr);
             if (NS_SUCCEEDED(rv))
             {
               if (type == nsIMsgCompType::ReplyAll && !mailFollowupTo.IsEmpty())
