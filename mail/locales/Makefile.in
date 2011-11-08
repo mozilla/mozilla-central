@@ -44,6 +44,9 @@ include $(DEPTH)/config/autoconf.mk
 
 include $(topsrcdir)/config/config.mk
 
+vpath %.xml @srcdir@/en-US/searchplugins
+vpath %.xml $(LOCALE_SRCDIR)/searchplugins
+
 _ABS_SRCDIR := $(call core_abspath,$(topsrcdir))
 
 SUBMAKEFILES += \
@@ -96,6 +99,14 @@ $(STAGEDIST): $(DIST)/branding
 $(DIST)/branding:
 	$(NSINSTALL) -D $@
 
+SEARCH_PLUGINS = $(shell cat $(call MERGE_FILE,/searchplugins/list.txt))
+
+libs:: $(addsuffix .xml,$(SEARCH_PLUGINS))
+	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/searchplugins
+
+install:: $(addsuffix .xml,$(SEARCH_PLUGINS))
+	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/searchplugins
+
 libs-%:
 	$(NSINSTALL) -D $(DIST)/install
 	@$(MAKE) -C ../../mozilla/toolkit/locales libs-$* BOTH_MANIFESTS=1
@@ -139,7 +150,8 @@ clobber-zip:
 	$(RM) $(STAGEDIST)/chrome/$(AB_CD).jar \
 	  $(STAGEDIST)/chrome/$(AB_CD).manifest \
 	  $(STAGEDIST)/defaults/pref/all-l10n.js
-	$(RM) -r $(STAGEDIST)/dictionaries \
+	$(RM) -rf $(STAGEDIST)/searchplugins \
+	  $(STAGEDIST)/dictionaries \
 	  $(STAGEDIST)/hyphenation/$(AB_CD) \
 	  $(STAGEDIST)/isp/$(AB_CD) \
 	  $(STAGEDIST)/chrome/$(AB_CD)

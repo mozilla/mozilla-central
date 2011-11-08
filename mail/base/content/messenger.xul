@@ -50,6 +50,7 @@
 <?xul-overlay href="chrome://messenger/content/mailOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/editContactOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/specialTabs.xul"?>
+<?xul-overlay href="chrome://messenger/content/webSearchTab.xul"?>
 <?xul-overlay href="chrome://messenger/content/quickFilterBar.xul"?>
 
 <!DOCTYPE window [
@@ -142,6 +143,7 @@
   <commandset id="globalEditMenuItems"/>
   <commandset id="selectEditMenuItems"/>
   <commandset id="clipboardEditMenuItems"/>
+  <commandset id="webSearchItems"/>
   <commandset id="FocusRingUpdate_Mail"
         commandupdater="true"
         events="focus"

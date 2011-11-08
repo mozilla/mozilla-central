@@ -41,6 +41,7 @@ Components.utils.import("resource:///modules/appIdleManager.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/gloda/log4moz.js");
 Components.utils.import("resource:///modules/gloda/public.js");
+Components.utils.import("resource:///modules/glodaWebSearch.js");
 
 //This file stores variables common to mail windows
 var messenger;
@@ -148,6 +149,8 @@ function InitMsgWindow()
   msgWindow.rootDocShell.appType = Components.interfaces.nsIDocShell.APP_TYPE_MAIL;
   // Ensure we don't load xul error pages into the main window
   msgWindow.rootDocShell.useErrorPages = false;
+
+  GlodaWebSearch.onLoad();
 }
 
 // We're going to implement our status feedback for the mail window in JS now.

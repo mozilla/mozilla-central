@@ -346,6 +346,16 @@ ifeq ($(OS_ARCH),OS2)
 TAR_CREATE_FLAGS = -cvf
 endif
 
+ifdef LOCALE_MERGEDIR
+MERGE_FILE = $(firstword \
+  $(wildcard $(LOCALE_MERGEDIR)/$(subst /locales,,$(relativesrcdir))/$(1)) \
+  $(wildcard $(LOCALE_SRCDIR)/$(1)) \
+  $(srcdir)/en-US/$(1) )
+else
+MERGE_FILE = $(LOCALE_SRCDIR)/$(1)
+endif
+MERGE_FILES = $(foreach f,$(1),$(call MERGE_FILE,$(f)))
+
 #
 # Personal makefile customizations go in these optional make include files.
 #

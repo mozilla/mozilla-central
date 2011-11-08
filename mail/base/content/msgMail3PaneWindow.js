@@ -401,6 +401,7 @@ function OnLoadMessenger()
 
   // This also registers the contentTabType ("contentTab")
   specialTabs.openSpecialTabsOnStartup();
+  tabmail.registerTabType(webSearchTabType);
 
   window.addEventListener("AppCommand", HandleAppCommandEvent, true);
 }

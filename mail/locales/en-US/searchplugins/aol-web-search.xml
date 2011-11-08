@@ -1,0 +1,10 @@
+<SearchPlugin xmlns="http://www.mozilla.org/2006/browser/search/" xmlns:os="http://a9.com/-/spec/opensearch/1.1/">
+<os:ShortName>AOL Web Search</os:ShortName>
+<os:Description>The AOL Search engine delivers great web search results, enhanced by Google, plus relevant multimedia results delivered on a single page-so you can search less and discover more.</os:Description>
+<os:InputEncoding>UTF-8</os:InputEncoding>
+<os:Image width="16" height="16">data:image/png,%89PNG%0D%0A%1A%0A%00%00%00%0DIHDR%00%00%00%10%00%00%00%10%08%06%00%00%00%1F%F3%FFa%00%00%00%06bKGD%00%FF%00%FF%00%FF%A0%BD%A7%93%00%00%00%09pHYs%00%00%00H%00%00%00H%00F%C9k%3E%00%00%00%FAIDAT8%CB%9D%D3%B1q%C2%40%10%85%E1%0F%8F%0B%A0%04%97%00%1D%40%05%C6%01%B9%95*1%AA%C0C%05%E0%84%D4%E4%0A%0C%15H%EE%40%1D%98%12%D4%81%1D%E84%C8B%60%C9%2F9%AD%EE%EE%9F%DD%B7%7B%23%B0%DC%7D%A3D%22%8D%F7%06h%D4%00%D4*%02(%EF%03%B8%EB%F87Af%B9%7B%EF%03%B8o%C59%DE%A4%F1%E1%3F%25%EC%91%60%83%87%B0%FF%89m%F8%5Et%F9S%032%3C%E1%0B%E3%D6%99%02s%7C%848%91%C6E%1B0%C1%0B%9E%AFd%9A%E0%D4%80l%B1%96%C6eebE%9C%DC(%F51dRk%15%B2%FD%D5%85%B1a*%CF%80%AA%84%FC%C6%E1%23f%8Dx%8D)%E76n%10aq%C5%C4%03%B2%B0%26%D2%F8To%D6%80Y0q%8AW%97m%1C%23%EA%9A%CE%E6%20%AD%82%91%5D%83T%AA%BAp%A1%AE%B7Pk%2F%8D%A3%BF%9C%ECz%0B9%E6%7D.7K(%C3%3A%F89%FF%00_%82G%C3%D5%0E(%3E%00%00%00%00IEND%AEB%60%82</os:Image>
+<SearchForm>http://search.aol.com</SearchForm>
+<os:Url type="text/html" method="GET" template="http://search.aol.com/aol/search">
+  <os:Param name="query" value="{searchTerms}"/>
+</os:Url>
+</SearchPlugin>

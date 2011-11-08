@@ -235,6 +235,40 @@ function openWhatsNew()
 }
 
 /**
+ * Open the specified tab type (possibly in a new window)
+ *
+ * @param tabType the tab type to open (e.g. "contentTab")
+ * @param tabParams the parameters to pass to the tab
+ * @param where 'tab' to open in a new tab (default) or 'window' to open in a
+ *        new window
+ */
+function openTab(tabType, tabParams, where)
+{
+  if (where != "window") {
+    let tabmail = document.getElementById("tabmail");
+    if (!tabmail) {
+      // Try opening new tabs in an existing 3pane window
+      let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
+      if (mail3PaneWindow) {
+        tabmail = mail3PaneWindow.document.getElementById("tabmail");
+        mail3PaneWindow.focus();
+      }
+    }
+
+    if (tabmail) {
+      tabmail.openTab(tabType, tabParams);
+      return;
+    }
+  }
+
+  // Either we explicitly wanted to open in a new window, or we fell through to
+  // here because there's no 3pane.
+  window.openDialog("chrome://messenger/content/", "_blank",
+                    "chrome,dialog=no,all", null,
+                    { tabType: tabType, tabParams: tabParams });
+}
+
+/**
  * Open the specified URL as a content tab (or window)
  *
  * @param url the location to open
@@ -250,29 +284,37 @@ function openContentTab(url, where, handlerRegExp)
   if (handlerRegExp)
     clickHandler = "specialTabs.siteClickHandler(event, new RegExp(\"" + handlerRegExp + "\"));";
 
-  if (where != "window") {
-    let tabmail = document.getElementById("tabmail");
-    if (!tabmail) {
-      // Try opening new tabs in an existing 3pane window
-      let mail3PaneWindow = Services.wm.getMostRecentWindow("mail:3pane");
-      if (mail3PaneWindow) {
-        tabmail = mail3PaneWindow.document.getElementById("tabmail");
-        mail3PaneWindow.focus();
-      }
-    }
+  openTab("contentTab", {contentPage: url, clickHandler: clickHandler}, where);
+}
 
-    if (tabmail) {
-      tabmail.openTab("contentTab", {contentPage: url, clickHandler: clickHandler});
-      return;
-    }
+/**
+ * Open a search page for the specified query in a new tab, window, or
+ * externally. If mail.websearch.open_externally is true, always open
+ * externally.
+ *
+ * @param query the term to search for
+ * @param where 'tab' to open in a new tab (default), 'window' to open in a
+ *        new window, or 'external' to open in the default browser
+ */
+function openSearchTab(query, where) {
+  let currentEngine = Services.search.currentEngine;
+  let submission = currentEngine.getSubmission(query);
+
+  if (where == "external" ||
+      Services.prefs.getBoolPref("mail.websearch.open_externally")) {
+    openLinkExternally(submission.uri.spec);
+    return;
   }
 
-  // Either we explicitly wanted to open in a new window, or we fell through to
-  // here because there's no 3pane.
-  window.openDialog("chrome://messenger/content/", "_blank",
-                    "chrome,dialog=no,all", null,
-                    { tabType: "contentTab",
-                      tabParams: {contentPage: url, clickHandler: clickHandler} });
+  let params = {
+    background: false,
+    contentPage: submission.uri.spec,
+    postData: submission.postData,
+    query: query,
+    engine: currentEngine,
+    clickHandler: "webSearchTabType.siteClickHandler(event)",
+  };
+  openTab("webSearchTab", params, where);
 }
 
 /**

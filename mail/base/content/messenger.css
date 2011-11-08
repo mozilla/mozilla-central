@@ -43,6 +43,10 @@
 
 /* ::::: mail xbl bindings ::::: */
 
+.autocomplete-richlistitem[type="websearch"] {
+  -moz-binding: url("chrome://messenger/content/webSearch.xml#websearch");
+}
+
 /* attachment list styles */
 
 attachmentlist {

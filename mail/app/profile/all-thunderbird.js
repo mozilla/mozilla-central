@@ -730,3 +730,19 @@ pref("plugins.crash.supportUrl", "https://live.mozillamessaging.com/%APP%/plugin
 pref("mail.taskbar.lists.enabled", true);
 pref("mail.taskbar.lists.tasks.enabled", true);
 #endif
+
+pref("mail.websearch.open_externally", false);
+
+// Pointer to the default engine name.
+pref("browser.search.defaultenginename", "chrome://messenger-region/locale/region.properties");
+
+// Ordering of search engines in the engine list.
+pref("browser.search.order.1", "chrome://messenger-region/locale/region.properties");
+pref("browser.search.order.2", "chrome://messenger-region/locale/region.properties");
+pref("browser.search.order.3", "chrome://messenger-region/locale/region.properties");
+
+// XXX Don't update yet, until we've verified how that affects us.
+pref("browser.search.update", false);
+
+// Check whether we need to perform engine updates every 6 hours
+pref("browser.search.update.interval", 21600);

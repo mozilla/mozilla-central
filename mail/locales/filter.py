@@ -16,4 +16,11 @@ def test(mod, path, entity = None):
      entity == "MOZ_LANGPACK_CONTRIBUTORS":
     return False
   # ignore dictionaries
-  return not mod == "extensions/spellcheck"
+  if mod == "extensions/spellcheck":
+    return False
+
+  if path == "chrome/messenger-region/region.properties":
+    return not (re.match(r"browser\.search\.order\.[1-9]", entity)) 
+
+  # ignore search plugins
+  return not (re.match(r"searchplugins\/.+\.xml", path))

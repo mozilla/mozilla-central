@@ -604,11 +604,15 @@
               label="&pasteCmd.label;"
               accesskey="&pasteCmd.accesskey;"
               command="cmd_paste"/>
-    <menuseparator id="mailContext-sep-clipboard"/>
     <menuitem id="mailContext-selectall"
               label="&selectAllCmd.label;"
               accesskey="&selectAllCmd.accesskey;"
               command="cmd_selectAll"/>
+    <menuseparator id="mailContext-sep-clipboard"/>
+
+    <menuitem id="mailContext-searchTheWeb"
+              label="Search the web"
+              oncommand="openSearchTab(event.target.value)"/>
 
     <!-- Spellchecking general menu items (enable, add dictionaries...) -->
     <menuseparator id="mailContext-spell-separator"/>

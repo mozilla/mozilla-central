@@ -21,6 +21,7 @@ classic.jar:
   skin/classic/messenger/messageHeader.css                       (mail/messageHeader.css)
   skin/classic/messenger/messageWindow.css                       (mail/messageWindow.css)
   skin/classic/messenger/messageBody.css                         (mail/messageBody.css)
+  skin/classic/messenger/webSearch.css                          (mail/webSearch.css)
   skin/classic/messenger/attachmentList.css                      (mail/attachmentList.css)
   skin/classic/messenger/msgSelectOffline.css                    (mail/msgSelectOffline.css)
   skin/classic/messenger/mailWindow1.css                         (mail/mailWindow1.css)
@@ -275,6 +276,7 @@ classic.jar:
   skin/classic/messenger/icons/arrow/arrow-right-dim.png         (mail/icons/arrow/arrow-right-dim.png)
   skin/classic/messenger/icons/arrow/arrow-up-dim.png            (mail/icons/arrow/arrow-up-dim.png)
   skin/classic/messenger/icons/arrow/arrow-down-dim.png          (mail/icons/arrow/arrow-down-dim.png)
+  skin/classic/messenger/icons/search-favorite.png               (mail/icons/search-favorite.png)
   skin/classic/messenger/tagbg.png                               (mail/tagbg.png)
   skin/classic/messenger/icons/download.png                      (mail/icons/download.png)
 % skin editor classic/1.0 %skin/classic/editor/
