@@ -426,6 +426,8 @@ endif # MOZ_OPTIMIZE == 1
 endif # MOZ_OPTIMIZE
 endif # CROSS_COMPILE
 
+CFLAGS += $(MOZ_FRAMEPTR_FLAGS)
+CXXFLAGS += $(MOZ_FRAMEPTR_FLAGS)
 
 ifeq ($(OS_ARCH)_$(GNU_CC),WINNT_)
 #// Currently, unless USE_STATIC_LIBS is defined, the multithreaded
