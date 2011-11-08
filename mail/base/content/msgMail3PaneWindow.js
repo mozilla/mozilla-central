@@ -202,6 +202,8 @@ function UpdateMailPaneConfig(aMsgWindowInitialized) {
   const dynamicIds = ["messagesBox", "mailContent", "threadPaneBox"];
   const layouts = ["standard", "wide", "vertical"];
   var layoutView = gPrefBranch.getIntPref("mail.pane_config.dynamic");
+  // Ensure valid value; hard fail if not.
+  layoutView = dynamicIds[layoutView] ? layoutView : kStandardPaneConfig;
   var desiredId = dynamicIds[layoutView];
   document.getElementById("mailContent")
           .setAttribute("layout", layouts[layoutView]);
