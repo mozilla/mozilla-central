@@ -35,7 +35,7 @@
    -
    - ***** END LICENSE BLOCK ***** -->
 
-<?xml-stylesheet href="chrome://messenger/skin/smime/msgReadSMIMEOverlay.css" type="text/css"?> 
+<?xml-stylesheet href="chrome://messenger/skin/smime/msgReadSMIMEOverlay.css" type="text/css"?>
 
 <!DOCTYPE overlay SYSTEM "chrome://messenger-smime/locale/msgReadSMIMEOverlay.dtd">
 
@@ -48,8 +48,8 @@
   </commandset>
 
   <menupopup id="menu_View_Popup">
-    <menuitem insertafter="pageSourceMenuItem" label="&menu_securityStatus.label;" 
-      accesskey="&menu_securityStatus.accesskey;" observes="cmd_viewSecurityStatus"/>
+    <menuitem insertafter="pageSourceMenuItem" label="&menu_securityStatus.label;"
+      accesskey="&menu_securityStatus.accesskey;" command="cmd_viewSecurityStatus"/>
   </menupopup>
 
   <statusbar id="status-bar">
