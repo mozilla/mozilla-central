@@ -250,6 +250,176 @@ const kTelemetryPrompted    = "toolkit.telemetry.prompted";
 const kTelemetryEnabled     = "toolkit.telemetry.enabled";
 const kTelemetryServerOwner = "toolkit.telemetry.server_owner";
 
+var contentTabBaseType = {
+  shouldSwitchTo: function onSwitchTo({contentPage: aContentPage}) {
+    let tabmail = document.getElementById("tabmail");
+    let tabInfo = tabmail.tabInfo;
+
+    // Remove any anchors - especially for the about: pages, we just want
+    // to re-use the same tab.
+    let regEx = new RegExp("#.*");
+
+    let contentUrl = aContentPage.replace(regEx, "");
+
+    for (let selectedIndex = 0; selectedIndex < tabInfo.length;
+         ++selectedIndex) {
+      if (tabInfo[selectedIndex].mode.name == this.name &&
+          tabInfo[selectedIndex].browser.currentURI.spec
+                                .replace(regEx, "") == contentUrl) {
+        // Ensure we go to the correct location on the page.
+        tabInfo[selectedIndex].browser
+                              .setAttribute("src", aContentPage);
+        return selectedIndex;
+      }
+    }
+    return -1;
+  },
+
+  closeTab: function onTabClosed(aTab) {
+    aTab.browser.removeEventListener("DOMTitleChanged",
+                                     aTab.titleListener, true);
+    aTab.browser.removeEventListener("DOMWindowClose",
+                                     aTab.closeListener, true);
+    aTab.browser.removeEventListener("DOMLinkAdded", DOMLinkHandler, false);
+    gPluginHandler.removeEventListeners(aTab.browser);
+    aTab.browser.webProgress.removeProgressListener(aTab.filter);
+    aTab.filter.removeProgressListener(aTab.progressListener);
+    aTab.browser.destroy();
+  },
+
+  saveTabState: function onSaveTabState(aTab) {
+    aTab.browser.setAttribute("type", "content-targetable");
+  },
+
+  showTab: function onShowTab(aTab) {
+    aTab.browser.setAttribute("type", "content-primary");
+  },
+
+  getBrowser: function getBrowser(aTab) {
+    return aTab.browser;
+  },
+
+  // Internal function used to set up the title listener on a content tab.
+  _setUpTitleListener: function setUpTitleListener(aTab) {
+    function onDOMTitleChanged(aEvent) {
+      aTab.title = aTab.browser.contentTitle;
+      document.getElementById("tabmail").setTabTitle(aTab);
+    }
+    // Save the function we'll use as listener so we can remove it later.
+    aTab.titleListener = onDOMTitleChanged;
+    // Add the listener.
+    aTab.browser.addEventListener("DOMTitleChanged", aTab.titleListener, true);
+  },
+
+    /**
+     * Internal function used to set up the close window listener on a content
+     * tab.
+     */
+  _setUpCloseWindowListener: function setUpCloseWindowListener(aTab) {
+    function onDOMWindowClose(aEvent) {
+      if (!aEvent.isTrusted)
+        return;
+
+      // Redirect any window.close events to closing the tab. As a 3-pane tab
+      // must be open, we don't need to worry about being the last tab open.
+      document.getElementById("tabmail").closeTab(aTab);
+      aEvent.preventDefault();
+    }
+    // Save the function we'll use as listener so we can remove it later.
+    aTab.closeListener = onDOMWindowClose;
+    // Add the listener.
+    aTab.browser.addEventListener("DOMWindowClose", aTab.closeListener, true);
+  },
+
+  supportsCommand: function supportsCommand(aCommand, aTab) {
+    switch (aCommand) {
+      case "cmd_fullZoomReduce":
+      case "cmd_fullZoomEnlarge":
+      case "cmd_fullZoomReset":
+      case "cmd_fullZoomToggle":
+      case "cmd_find":
+      case "cmd_findAgain":
+      case "cmd_findPrevious":
+      case "cmd_printSetup":
+      case "cmd_print":
+      case "button_print":
+      case "cmd_stop":
+      case "cmd_reload":
+      // XXX print preview not currently supported - bug 497994 to implement.
+      // case "cmd_printpreview":
+        return true;
+      default:
+        return false;
+    }
+  },
+
+  isCommandEnabled: function isCommandEnabled(aCommand, aTab) {
+    switch (aCommand) {
+      case "cmd_fullZoomReduce":
+      case "cmd_fullZoomEnlarge":
+      case "cmd_fullZoomReset":
+      case "cmd_fullZoomToggle":
+      case "cmd_find":
+      case "cmd_findAgain":
+      case "cmd_findPrevious":
+      case "cmd_printSetup":
+      case "cmd_print":
+      case "button_print":
+      // XXX print preview not currently supported - bug 497994 to implement.
+      // case "cmd_printpreview":
+        return true;
+      case "cmd_reload":
+        return aTab.reloadEnabled;
+      case "cmd_stop":
+        return aTab.busy;
+      default:
+        return false;
+    }
+  },
+
+  doCommand: function doCommand(aCommand, aTab) {
+    switch (aCommand) {
+      case "cmd_fullZoomReduce":
+        ZoomManager.reduce();
+        break;
+      case "cmd_fullZoomEnlarge":
+        ZoomManager.enlarge();
+        break;
+      case "cmd_fullZoomReset":
+        ZoomManager.reset();
+        break;
+      case "cmd_fullZoomToggle":
+        ZoomManager.toggleZoom();
+        break;
+      case "cmd_find":
+        aTab.findbar.onFindCommand();
+        break;
+      case "cmd_findAgain":
+        aTab.findbar.onFindAgainCommand(false);
+        break;
+      case "cmd_findPrevious":
+        aTab.findbar.onFindAgainCommand(true);
+        break;
+      case "cmd_printSetup":
+        PrintUtils.showPageSetup();
+        break;
+      case "cmd_print":
+        PrintUtils.print();
+        break;
+      // XXX print preview not currently supported - bug 497994 to implement.
+      //case "cmd_printpreview":
+      //  PrintUtils.printPreview();
+      //  break;
+      case "cmd_stop":
+        aTab.browser.stop();
+        break;
+      case "cmd_reload":
+        aTab.browser.reload();
+        break;
+    }
+  },
+};
+
 var specialTabs = {
   _kAboutRightsVersion: 1,
   get _protocolSvc() {
@@ -323,6 +493,7 @@ var specialTabs = {
    * A tab to show content pages.
    */
   contentTabType: {
+    __proto__: contentTabBaseType,
     name: "contentTab",
     perTabPanel: "vbox",
     lastBrowserId: 0,
@@ -338,29 +509,7 @@ var specialTabs = {
         maxTabs: 10
       }
     },
-    shouldSwitchTo: function onSwitchTo({contentPage: aContentPage}) {
-      let tabmail = document.getElementById("tabmail");
-      let tabInfo = tabmail.tabInfo;
 
-      // Remove any anchors - especially for the about: pages, we just want
-      // to re-use the same tab.
-      let regEx = new RegExp("#.*");
-
-      let contentUrl = aContentPage.replace(regEx, "");
-
-      for (let selectedIndex = 0; selectedIndex < tabInfo.length;
-           ++selectedIndex) {
-        if (tabInfo[selectedIndex].mode.name == this.name &&
-            tabInfo[selectedIndex].browser.currentURI.spec
-                                  .replace(regEx, "") == contentUrl) {
-          // Ensure we go to the correct location on the page.
-          tabInfo[selectedIndex].browser
-                                .setAttribute("src", aContentPage);
-          return selectedIndex;
-        }
-      }
-      return -1;
-    },
     /**
      * This is the internal function used by content tabs to open a new tab. To
      * open a contentTab, use specialTabs.openTab("contentTab", aArgs)
@@ -457,23 +606,6 @@ var specialTabs = {
       return !(docShell && docShell.contentViewer
         && !docShell.contentViewer.permitUnload());
     },
-    closeTab: function onTabClosed(aTab) {
-      aTab.browser.removeEventListener("DOMTitleChanged",
-                                       aTab.titleListener, true);
-      aTab.browser.removeEventListener("DOMWindowClose",
-                                       aTab.closeListener, true);
-      aTab.browser.removeEventListener("DOMLinkAdded", DOMLinkHandler, false);
-      gPluginHandler.removeEventListeners(aTab.browser);
-      aTab.browser.webProgress.removeProgressListener(aTab.filter);
-      aTab.filter.removeProgressListener(aTab.progressListener);
-      aTab.browser.destroy();
-    },
-    saveTabState: function onSaveTabState(aTab) {
-      aTab.browser.setAttribute("type", "content-targetable");
-    },
-    showTab: function onShowTab(aTab) {
-      aTab.browser.setAttribute("type", "content-primary");
-    },
     persistTab: function onPersistTab(aTab) {
       if (aTab.browser.currentURI.spec == "about:blank")
         return null;
@@ -490,126 +622,6 @@ var specialTabs = {
                                        clickHandler: aPersistedState.clickHandler,
                                        background: true } );
     },
-    supportsCommand: function supportsCommand(aCommand, aTab) {
-      switch (aCommand) {
-        case "cmd_fullZoomReduce":
-        case "cmd_fullZoomEnlarge":
-        case "cmd_fullZoomReset":
-        case "cmd_fullZoomToggle":
-        case "cmd_find":
-        case "cmd_findAgain":
-        case "cmd_findPrevious":
-        case "cmd_printSetup":
-        case "cmd_print":
-        case "button_print":
-        case "cmd_stop":
-        case "cmd_reload":
-        // XXX print preview not currently supported - bug 497994 to implement.
-        // case "cmd_printpreview":
-          return true;
-        default:
-          return false;
-      }
-    },
-    isCommandEnabled: function isCommandEnabled(aCommand, aTab) {
-      switch (aCommand) {
-        case "cmd_fullZoomReduce":
-        case "cmd_fullZoomEnlarge":
-        case "cmd_fullZoomReset":
-        case "cmd_fullZoomToggle":
-        case "cmd_find":
-        case "cmd_findAgain":
-        case "cmd_findPrevious":
-        case "cmd_printSetup":
-        case "cmd_print":
-        case "button_print":
-        // XXX print preview not currently supported - bug 497994 to implement.
-        // case "cmd_printpreview":
-          return true;
-        case "cmd_reload":
-          return aTab.reloadEnabled;
-        case "cmd_stop":
-          return aTab.busy;
-        default:
-          return false;
-      }
-    },
-    doCommand: function isCommandEnabled(aCommand, aTab) {
-      switch (aCommand) {
-        case "cmd_fullZoomReduce":
-          ZoomManager.reduce();
-          break;
-        case "cmd_fullZoomEnlarge":
-          ZoomManager.enlarge();
-          break;
-        case "cmd_fullZoomReset":
-          ZoomManager.reset();
-          break;
-        case "cmd_fullZoomToggle":
-          ZoomManager.toggleZoom();
-          break;
-        case "cmd_find":
-          aTab.findbar.onFindCommand();
-          break;
-        case "cmd_findAgain":
-          aTab.findbar.onFindAgainCommand(false);
-          break;
-        case "cmd_findPrevious":
-          aTab.findbar.onFindAgainCommand(true);
-          break;
-        case "cmd_printSetup":
-          PrintUtils.showPageSetup();
-          break;
-        case "cmd_print":
-          PrintUtils.print();
-          break;
-        // XXX print preview not currently supported - bug 497994 to implement.
-        //case "cmd_printpreview":
-        //  PrintUtils.printPreview();
-        //  break;
-        case "cmd_stop":
-          aTab.browser.stop();
-          break;
-        case "cmd_reload":
-          aTab.browser.reload();
-          break;
-      }
-    },
-    getBrowser: function getBrowser(aTab) {
-      return aTab.browser;
-    },
-    // Internal function used to set up the title listener on a content tab.
-    _setUpTitleListener: function setUpTitleListener(aTab) {
-      function onDOMTitleChanged(aEvent) {
-        aTab.title = aTab.browser.contentTitle;
-        document.getElementById("tabmail").setTabTitle(aTab);
-      }
-      // Save the function we'll use as listener so we can remove it later.
-      aTab.titleListener = onDOMTitleChanged;
-      // Add the listener.
-      aTab.browser.addEventListener("DOMTitleChanged",
-                                    aTab.titleListener, true);
-    },
-    /**
-     * Internal function used to set up the close window listener on a content
-     * tab.
-     */
-    _setUpCloseWindowListener: function setUpCloseWindowListener(aTab) {
-      function onDOMWindowClose(aEvent) {
-        if (!aEvent.isTrusted)
-          return;
-
-        // Redirect any window.close events to closing the tab. As a 3-pane tab
-        // must be open, we don't need to worry about being the last tab open.
-        document.getElementById("tabmail").closeTab(aTab);
-        aEvent.preventDefault();
-      }
-      // Save the function we'll use as listener so we can remove it later.
-      aTab.closeListener = onDOMWindowClose;
-      // Add the listener.
-      aTab.browser.addEventListener("DOMWindowClose",
-                                    aTab.closeListener, true);
-    }
   },
 
   /**
@@ -892,29 +904,9 @@ var specialTabs = {
         maxTabs: 10
       }
     },
-    shouldSwitchTo: function onSwitchTo({chromePage: achromePage}) {
-      let tabmail = document.getElementById("tabmail");
-      let tabInfo = tabmail.tabInfo;
 
-      // Remove any anchors - especially for the about: pages, we just want
-      // to re-use the same tab.
-      let regEx = new RegExp("#.*");
+    shouldSwitchTo: contentTabBaseType.shouldSwitchTo,
 
-      let contentUrl = achromePage.replace(regEx, "");
-
-      for (let selectedIndex = 0; selectedIndex < tabInfo.length;
-           ++selectedIndex) {
-        if (tabInfo[selectedIndex].mode.name == this.name &&
-            tabInfo[selectedIndex].browser.currentURI.spec
-                                  .replace(regEx, "") == contentUrl) {
-          // Ensure we go to the correct location on the page.
-          tabInfo[selectedIndex].browser
-                                .setAttribute("src", achromePage);
-          return selectedIndex;
-        }
-      }
-      return -1;
-    },
     /**
      * This is the internal function used by chrome tabs to open a new tab. To
      * open a chromeTab, use specialTabs.openTab("chromeTab", aArgs)
