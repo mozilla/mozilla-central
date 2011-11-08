@@ -88,8 +88,6 @@
           src="chrome://messenger/content/accountcreation/createInBackend.js"/>
   <script type="application/javascript"
           src="chrome://messenger/content/accountcreation/MyBadCertHandler.js"/>
-  <script type="application/javascript"
-          src="chrome://messenger/content/accountUtils.js" />
 
   <keyset id="mailKeys">
     <key keycode="VK_ESCAPE" oncommand="window.close();"/>
@@ -384,11 +382,6 @@
     <spacer flex="1" />
     <hbox id="buttons_area">
       <hbox id="left_buttons_area" align="center" pack="start">
-        <button id="provisioner_button"
-                label="&switch-to-provisioner.label;"
-                accesskey="&switch-to-provisioner.accesskey;"
-                class="larger-button"
-                oncommand="gEmailConfigWizard.onSwitchToProvisioner();"/>
         <button id="manual-edit_button"
                 label="&manual-edit.label;"
                 accesskey="&manual-edit.accesskey;"

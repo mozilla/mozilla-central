@@ -23,10 +23,8 @@
 <!ENTITY newVirtualFolderCmd.accesskey "S">
 <!ENTITY newOtherAccountsCmd.label "Other Accounts…">
 <!ENTITY newOtherAccountsCmd.accesskey "O">
-<!ENTITY newCreateEmailAccountCmd.label "Get a New Mail Account…">
-<!ENTITY newCreateEmailAccountCmd.accesskey "G">
-<!ENTITY newExistingEmailAccountCmd.label "Existing Mail Account…">
-<!ENTITY newExistingEmailAccountCmd.accesskey "E">
+<!ENTITY newEmailAccountCmd.label "Mail Account…">
+<!ENTITY newEmailAccountCmd.accesskey "A">
 <!ENTITY openMessageFileCmd.label "Open Saved Message…">
 <!ENTITY openMessageFileCmd.accesskey "O">
 <!ENTITY openAttachmentCmd.label "Attachments">

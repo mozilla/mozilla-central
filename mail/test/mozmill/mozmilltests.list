@@ -14,7 +14,6 @@ message-header
 message-window
 migration
 migration-from-tb2
-newmailaccount
 notification
 pref-window
 quick-filter-bar

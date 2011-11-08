@@ -36,8 +36,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Components.utils.import("resource://gre/modules/Services.jsm");
-
 var accountManagerContractID   = "@mozilla.org/messenger/account-manager;1";
 var gAnyValidIdentity = false; //If there are no valid identities for any account
 // returns the first account with an invalid server or identity
@@ -327,73 +325,9 @@ function NewMailAccount(msgWindow, okCallback, extraData)
 {
   if (!msgWindow)
     throw new Error("NewMailAccount must be given a msgWindow.");
-
-  // Populate the extra data.
-  if (!extraData)
-    extraData = {};
-  extraData.msgWindow = msgWindow;
-
-  let mail3Pane = Services.wm.getMostRecentWindow("mail:3pane");
-
-  if (!extraData.NewMailAccount)
-    extraData.NewMailAccount = NewMailAccount;
-
-  if (!extraData.msgNewMailAccount)
-    extraData.msgNewMailAccount = msgNewMailAccount;
-
-  if (!extraData.NewComposeMessage)
-    extraData.NewComposeMessage = mail3Pane.ComposeMessage;
-
-  if (!extraData.openAddonsMgr)
-    extraData.openAddonsMgr = mail3Pane.openAddonsMgr;
-
-  if (!extraData.okCallback)
-    extraData.okCallback = null;
-
-  if (!extraData.success)
-    extraData.success = false;
-
-  setTimeout(extraData.msgNewMailAccount, 0, msgWindow, okCallback, extraData);
+  setTimeout(msgNewMailAccount, 0, msgWindow, okCallback, extraData);
 }
 
-function NewMailAccountProvisioner(aMsgWindow, args) {
-  if (!args)
-    args = {};
-  if (!aMsgWindow)
-    aMsgWindow = Components.classes["@mozilla.org/messenger/services/session;1"]
-                   .getService(Components.interfaces.nsIMsgMailSession)
-                   .topmostMsgWindow;
-  args.msgWindow = aMsgWindow;
-
-  let mail3Pane = Services.wm.getMostRecentWindow("mail:3pane");
-
-  // XXX make sure these are all defined in all contexts... to be on the safe
-  // side, just get a mail:3pane and borrow the functions from it?
-  if (!args.NewMailAccount)
-    args.NewMailAccount = NewMailAccount;
-
-  if (!args.msgNewMailAccount)
-    args.msgNewMailAccount = msgNewMailAccount;
-
-  if (!args.NewComposeMessage)
-    args.NewComposeMessage = mail3Pane.ComposeMessage;
-
-  if (!args.openAddonsMgr)
-    args.openAddonsMgr = mail3Pane.openAddonsMgr;
-
-  if (!args.okCallback)
-    args.okCallback = null;
-
-  if (!args.success)
-    args.success = false;
-
-  window.openDialog(
-    "chrome://messenger/content/newmailaccount/accountProvisioner.xhtml",
-    "AccountCreation",
-    // disabling modal for the time being, see 688273 REMOVEME
-    "chrome,titlebar,centerscreen,width=640,height=480",
-    args);
-}
 /**
  * Open the New Mail Account Wizard, or focus it if it's already open.
  *
@@ -415,9 +349,8 @@ function msgNewMailAccount(msgWindow, okCallback, extraData)
   if (existingWindow)
     existingWindow.focus();
   else
-    // disabling modal for the time being, see 688273 REMOVEME
     window.openDialog("chrome://messenger/content/accountcreation/emailWizard.xul",
-                      "AccountSetup", "chrome,titlebar,centerscreen",
+                      "AccountSetup", "chrome,titlebar,modal,centerscreen",
                       {msgWindow:msgWindow,
                        okCallback:okCallback,
                        extraData:extraData});

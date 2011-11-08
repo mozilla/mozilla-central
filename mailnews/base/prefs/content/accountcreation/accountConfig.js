@@ -256,10 +256,8 @@ function replaceVariables(account, realname, emailfull, password)
   otherVariables.EMAILDOMAIN = emaildomain;
   otherVariables.REALNAME = realname;
 
-  if (password) {
-    account.incoming.password = password;
-    account.outgoing.password = password; // set member only if auth required?
-  }
+  account.incoming.password = password;
+  account.outgoing.password = password; // set member only if auth required?
   account.incoming.username = _replaceVariable(account.incoming.username,
                                                otherVariables);
   account.outgoing.username = _replaceVariable(account.outgoing.username,

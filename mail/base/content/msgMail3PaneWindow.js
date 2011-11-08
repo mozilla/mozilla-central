@@ -312,12 +312,9 @@ const MailPrefObserver = {
   }
 };
 
-/**
- * Called on startup if there are no accounts.
- */
 function AutoConfigWizard(okCallback)
 {
-  NewMailAccountProvisioner(msgWindow, { okCallback: okCallback });
+  NewMailAccount(msgWindow, okCallback);
 }
 
 /**

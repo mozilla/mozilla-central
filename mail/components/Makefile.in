@@ -44,7 +44,7 @@ include $(DEPTH)/config/autoconf.mk
 
 # Only Mac and Windows have search integration components, but we include at
 # least one module from search/ on all platforms
-DIRS    = compose preferences addrbook migration activity search about-support wintaskbar newmailaccount
+DIRS    = compose preferences addrbook migration activity search about-support wintaskbar
 
 ifneq (,$(filter windows gtk2 cocoa, $(MOZ_WIDGET_TOOLKIT)))
 DIRS += shell

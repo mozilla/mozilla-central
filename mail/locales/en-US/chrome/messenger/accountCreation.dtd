@@ -49,8 +49,6 @@
 <!ENTITY half-manual-test.accesskey      "t">
 <!ENTITY manual-edit.label               "Manual config">
 <!ENTITY manual-edit.accesskey           "M">
-<!ENTITY switch-to-provisioner.label     "Get a new account">
-<!ENTITY switch-to-provisioner.accesskey "G">
 
 
 <!ENTITY warning.label                   "Warning!">

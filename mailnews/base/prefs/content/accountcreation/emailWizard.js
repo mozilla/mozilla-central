@@ -1325,17 +1325,6 @@ EmailConfigWizard.prototype =
   },
 
   /**
-   * [Switch to provisioner] button click handler. Always active, allows
-   * one to switch to the account provisioner screen.
-   */
-  onSwitchToProvisioner : function ()
-  {
-    this._okCallback = null;
-    NewMailAccountProvisioner(window.arguments[0].msgWindow, window.arguments[0].extraData)
-    window.close();
-  },
-
-  /**
    * [Advanced Setup...] button click handler
    * Only active in manual edit mode, and goes straight into
    * Account Settings (pref UI) dialog. Requires a backend account,
