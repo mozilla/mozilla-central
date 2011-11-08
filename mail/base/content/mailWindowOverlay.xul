@@ -84,6 +84,7 @@
 <script type="application/javascript" src="chrome://messenger/content/msgViewPickerOverlay.js"/>
 <script type="application/javascript" src="chrome://messenger/content/plugins.js"/>
 <script type="application/javascript" src="chrome://global/content/viewZoomOverlay.js"/>
+<script type="application/javascript" src="chrome://messenger/content/newmailaccount/uriListener.js"/>
 
 <stringbundleset id="stringbundleset">
   <stringbundle id="bundle_messenger" src="chrome://messenger/locale/messenger.properties"/>
@@ -986,9 +987,13 @@
                          oncommand="gFolderTreeController.newVirtualFolder();"
                          accesskey="&newVirtualFolderCmd.accesskey;"/>
               <menuseparator id="newAccountPopupMenuSeparator"/>
+              <menuitem id="newCreateEmailAccountMenuItem"
+                        label="&newCreateEmailAccountCmd.label;"
+                        accesskey="&newCreateEmailAccountCmd.accesskey;"
+                        oncommand="NewMailAccountProvisioner(msgWindow);"/>
               <menuitem id="newMailAccountMenuItem"
-                        label="&newEmailAccountCmd.label;"
-                        accesskey="&newEmailAccountCmd.accesskey;"
+                        label="&newExistingEmailAccountCmd.label;"
+                        accesskey="&newExistingEmailAccountCmd.accesskey;"
                         oncommand="NewMailAccount(msgWindow);"/>
               <menuitem id="newAccountMenuItem"
                         label="&newOtherAccountsCmd.label;"

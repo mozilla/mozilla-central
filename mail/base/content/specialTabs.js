@@ -44,6 +44,7 @@ function tabProgressListener(aTab, aStartsBlank) {
   this.mTab = aTab;
   this.mBrowser = aTab.browser;
   this.mBlank = aStartsBlank;
+  this.mProgressListener = null;
 }
 
 tabProgressListener.prototype =
@@ -51,6 +52,7 @@ tabProgressListener.prototype =
   mTab: null,
   mBrowser: null,
   mBlank: null,
+  mProgressListener: null,
 
   // cache flags for correct status bar update after tab switching
   mStateFlags: 0,
@@ -60,20 +62,35 @@ tabProgressListener.prototype =
   // count of open requests (should always be 0 or 1)
   mRequestCount: 0,
 
+  addProgressListener: function tPL_addProgressListener(aProgressListener) {
+    this.mProgressListener = aProgressListener;
+  },
+
   onProgressChange: function tPL_onProgressChange(aWebProgress, aRequest,
                                                   aCurSelfProgress,
                                                   aMaxSelfProgress,
                                                   aCurTotalProgress,
                                                   aMaxTotalProgress) {
+    if (this.mProgressListener)
+      this.mProgressListener.onProgressChange(aWebProgress, aRequest,
+        aCurSelfProgress, aMaxSelfProgress, aCurTotalProgress,
+        aMaxTotalProgress);
   },
   onProgressChange64: function tPL_onProgressChange64(aWebProgress, aRequest,
                                                       aCurSelfProgress,
                                                       aMaxSelfProgress,
                                                       aCurTotalProgress,
                                                       aMaxTotalProgress) {
+    if (this.mProgressListener)
+      this.mProgressListener.onProgressChange64(aWebProgress, aRequest,
+        aCurSelfProgress, aMaxSelfProgress, aCurTotalProgress,
+        aMaxTotalProgress);
   },
   onLocationChange: function tPL_onLocationChange(aWebProgress, aRequest,
                                                   aLocationURI) {
+    if (this.mProgressListener)
+      this.mProgressListener.onLocationChange(aWebProgress, aRequest,
+        aLocationURI);
     // onLocationChange is called for both the top-level content
     // and the subframes.
     if (aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
@@ -100,6 +117,10 @@ tabProgressListener.prototype =
   },
   onStateChange: function tPL_onStateChange(aWebProgress, aRequest, aStateFlags,
                                             aStatus) {
+    if (this.mProgressListener)
+      this.mProgressListener.onStateChange(aWebProgress, aRequest, aStateFlags,
+        aStatus);
+
     if (!aRequest)
       return;
 
@@ -149,12 +170,20 @@ tabProgressListener.prototype =
   },
   onStatusChange: function tPL_onStatusChange(aWebProgress, aRequest, aStatus,
                                               aMessage) {
+    if (this.mProgressListener)
+      this.mProgressListener.onStatusChange(aWebProgress, aRequest, aStatus,
+        aMessage);
   },
   onSecurityChange: function tPL_onSecurityChange(aWebProgress, aRequest,
                                                   aState) {
+    if (this.mProgressListener)
+      this.mProgressListener.onSecurityChange(aWebProgress, aRequest, aState);
   },
   onRefreshAttempted: function tPL_OnRefreshAttempted(aWebProgress, aURI,
                                                       aDelay, aSameURI) {
+    if (this.mProgressListener)
+      this.mProgressListener.onRefreshAttempted(aWebProgress, aURI, aDelay,
+        aSameURI);
   },
   QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIWebProgressListener,
                                          Components.interfaces.nsIWebProgressListener2,
@@ -573,6 +602,7 @@ var specialTabs = {
       if ("onLoad" in aArgs) {
         aTab.browser.addEventListener("load", function _contentTab_onLoad (event) {
           aArgs.onLoad(event, aTab.browser);
+          aTab.browser.removeEventListener("load", _contentTab_onLoad, true);
         }, true);
       }
 
@@ -586,6 +616,9 @@ var specialTabs = {
       aTab.progressListener = new tabProgressListener(aTab, false);
 
       filter.addProgressListener(aTab.progressListener, Components.interfaces.nsIWebProgress.NOTIFY_ALL);
+
+      if ("onListener" in aArgs)
+        aArgs.onListener(aTab.browser, aTab.progressListener);
 
       // Initialize our unit testing variables.
       aTab.pageLoading = false;
@@ -963,6 +996,7 @@ var specialTabs = {
       if ("onLoad" in aArgs) {
         aTab.browser.addEventListener("load", function _chromeTab_onLoad (event) {
           aArgs.onLoad(event, aTab.browser);
+          aTab.browser.removeEventListener("load", _chromeTab_onLoad, true);
         }, true);
       }
 

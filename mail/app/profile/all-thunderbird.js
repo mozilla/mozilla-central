@@ -731,6 +731,12 @@ pref("mail.taskbar.lists.enabled", true);
 pref("mail.taskbar.lists.tasks.enabled", true);
 #endif
 
+// Account provisioner. Commented out prefs are for "the real world".
+// pref("mail.provider.providerList", "https://broker-live.mozillamessaging.com/provider/list");
+pref("mail.provider.providerList", "http://bwinton.latte.ca/Work/provider/list");
+// pref("mail.provider.suggestFromName", "https://broker-live.mozillamessaging.com/provider/suggest");
+pref("mail.provider.suggestFromName", "http://bwinton.latte.ca/Work/provider/suggestFromName.cgi");
+
 pref("mail.websearch.open_externally", false);
 
 // Pointer to the default engine name.

@@ -152,6 +152,8 @@
   locale/@AB_CD@/messenger/preferences/permissions.dtd                  (%chrome/messenger/preferences/permissions.dtd)
   locale/@AB_CD@/messenger/migration/migration.dtd                      (%chrome/messenger/migration/migration.dtd)
   locale/@AB_CD@/messenger/migration/migration.properties               (%chrome/messenger/migration/migration.properties)
+  locale/@AB_CD@/messenger/newmailaccount/accountProvisioner.properties (%chrome/messenger/newmailaccount/accountProvisioner.properties)
+  locale/@AB_CD@/messenger/newmailaccount/accountProvisioner.dtd        (%chrome/messenger/newmailaccount/accountProvisioner.dtd)
   locale/@AB_CD@/messenger/searchIntegrationWin.dtd                     (%chrome/messenger/searchIntegrationWin.dtd)
   locale/@AB_CD@/messenger/searchIntegrationMac.dtd                     (%chrome/messenger/searchIntegrationMac.dtd)
   locale/@AB_CD@/messenger/searchIntegrationDefault.dtd                 (%chrome/messenger/searchIntegrationDefault.dtd)
