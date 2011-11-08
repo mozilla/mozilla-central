@@ -803,9 +803,9 @@ ImportMailThread( void *stuff)
           pData->fatalError = true;
           break;
         }
-
+        curFolder = subFolder;
         // Make sure this new parent folder obj has the correct subfolder list so far.
-        rv = ProxyGetSubFolders(subFolder, getter_AddRefs(enumerator));
+        rv = ProxyGetSubFolders(curFolder, getter_AddRefs(enumerator));
       }
       else if (newDepth < depth) {
         rv = NS_OK;
