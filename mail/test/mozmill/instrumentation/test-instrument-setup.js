@@ -79,6 +79,10 @@ function test_mail_account_setup() {
   // Force .com MIME-Type to text/xml
   collector.httpd.registerContentType("com", "text/xml");
 
+  // Spawn the existing mail account config dialog by clicking on
+  // File > New > Existing Mail Account
+  mc.click(mc.eid("newMailAccountMenuItem"));
+
   awc = wh.wait_for_existing_window("mail:autoconfig");
 
   // Input user's account information
