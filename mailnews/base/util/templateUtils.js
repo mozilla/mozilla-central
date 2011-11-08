@@ -45,8 +45,6 @@ Cu.import("resource:///modules/StringBundle.js");
 
 const gTemplateUtilsStrings =
   new StringBundle("chrome://messenger/locale/templateUtils.properties");
-const gDownloadManagerStrings =
-  new StringBundle("chrome://mozapps/locale/downloads/downloads.properties");
 
 /**
  * Helper function to generate a localized "friendly" representation of
@@ -93,7 +91,7 @@ function makeFriendlyDateAgo(time)
     let month = end.toLocaleFormat("%B");
     // Remove leading 0 by converting the date string to a number
     let date = Number(end.toLocaleFormat("%d"));
-    let dayMonth = gDownloadManagerStrings.get("monthDate");
+    let dayMonth = gTemplateUtilsStrings.get("monthDate");
     dateTime = replaceInsert(dayMonth, 1, month);
     dateTime = replaceInsert(dateTime, 2, date);
   } else {
