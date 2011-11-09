@@ -44,6 +44,7 @@ let Ci = Components.interfaces;
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/NetUtil.jsm");
+Cu.import("resource://gre/modules/PluralForm.jsm");
 Cu.import("resource:///modules/StringBundle.js");
 
 let stringBundle = new StringBundle("chrome://messenger/locale/newmailaccount/accountProvisioner.properties");
@@ -378,7 +379,7 @@ function AccountProvisionerInit() {
           if (provider.price && provider.price != "0")
             header.children(".price").text(provider.price);
           else
-            header.children(".price").text("Free");
+            header.children(".price").text(stringBundle.get("free"));
           group.append(header);
           for each (let [j, address] in Iterator(provider.addresses)) {
             let tmplData = {
@@ -393,7 +394,7 @@ function AccountProvisionerInit() {
             let more = provider.addresses.length - MAX_SMALL_ADDRESSES;
             let last = group.children(".row:nth-child("+(MAX_SMALL_ADDRESSES+1)+")");
             let tmplData = {
-              moreStr: stringBundle.get("more", [more]),
+              moreStr: PluralForm.get(more, stringBundle.get("more")).replace("#1", more),
             };
             $("#more_results_tmpl").render(tmplData).appendTo(last);
           }
