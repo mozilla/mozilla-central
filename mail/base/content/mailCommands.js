@@ -487,6 +487,10 @@ function ViewPageSource(messages)
     {
       // Now, we need to get a URL from a URI
       var url = mailSession.ConvertMsgURIToMsgURL(messages[i], msgWindow);
+
+      // Strip out the message-display parameter to ensure that attached emails
+      // display the message source, not the processed HTML.
+      url = url.replace(/type=application\/x-message-display&/, "");
       window.openDialog("chrome://global/content/viewSource.xul",
                         "_blank", "all,dialog=no", url,
                         mailCharacterSet);
