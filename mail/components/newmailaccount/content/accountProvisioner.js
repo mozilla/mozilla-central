@@ -394,7 +394,7 @@ function AccountProvisionerInit() {
             let more = provider.addresses.length - MAX_SMALL_ADDRESSES;
             let last = group.children(".row:nth-child("+(MAX_SMALL_ADDRESSES+1)+")");
             let tmplData = {
-              moreStr: PluralForm.get(more, stringBundle.get("more")).replace("#1", more),
+              moreStr: PluralForm.get(more, stringBundle.get("moreOptions")).replace("#1", more),
             };
             $("#more_results_tmpl").render(tmplData).appendTo(last);
           }
