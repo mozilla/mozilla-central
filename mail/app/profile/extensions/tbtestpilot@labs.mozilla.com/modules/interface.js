@@ -103,6 +103,9 @@ var TestPilotUIBuilder = {
   },
 
   buildFeedbackInterface: function(window) {
+    // Until input.mozilla.org works for Thunderbird, just bail out.
+    return;
+
     /* If this is first run, and it's ffx4 beta version, and the feedback
      * button is not in the expected place, put it there!
      * (copied from MozReporterButtons extension) */
