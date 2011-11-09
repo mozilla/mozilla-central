@@ -315,7 +315,9 @@ nsContextMenu.prototype = {
     this.enableItem("mailContext-moveMenu", canMove && !this.onPlayableMedia);
 
     // Copy is available as long as something is selected.
-    this.showItem("mailContext-copyMenu", msgModifyItems);
+    let canCopy = msgModifyItems || (gMessageDisplay.isDummy &&
+                                     window.arguments[0].scheme == "file");
+    this.showItem("mailContext-copyMenu", canCopy);
 
     this.showItem("mailContext-moveToFolderAgain", msgModifyItems);
     if (msgModifyItems) {

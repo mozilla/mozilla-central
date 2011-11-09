@@ -370,7 +370,9 @@ function InitMessageMenu()
   document.getElementById("moveMenu").disabled = !canMove;
 
   // Also disable copy when no folder is loaded (like for .eml files).
-  document.getElementById("copyMenu").disabled = !messageStoredInternally;
+  let canCopy = selectedMsg && (!gMessageDisplay.isDummy ||
+                                window.arguments[0].scheme == "file");
+  document.getElementById("copyMenu").disabled = !canCopy;
 
   initMoveToFolderAgainMenu(document.getElementById("moveToFolderAgain"));
 
@@ -1296,7 +1298,16 @@ function MsgDeleteMessage(reallyDelete, fromToolbar)
  */
 function MsgCopyMessage(aDestFolder)
 {
-  gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, aDestFolder);
+  if (gMessageDisplay.isDummy) {
+    let file = window.arguments[0].QueryInterface(Components.interfaces
+                                                            .nsIFileURL).file;
+    MailServices.copy.CopyFileMessage(file, aDestFolder, null, false,
+                                      Components.interfaces.nsMsgMessageFlags.Read,
+                                      "", null, msgWindow);
+  }
+  else
+    gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, aDestFolder);
+
   pref.setCharPref("mail.last_msg_movecopy_target_uri", aDestFolder.URI);
   pref.setBoolPref("mail.last_msg_movecopy_was_move", false);
 }
