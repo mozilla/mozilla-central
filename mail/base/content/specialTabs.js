@@ -938,7 +938,8 @@ var specialTabs = {
       }
     },
 
-    shouldSwitchTo: contentTabBaseType.shouldSwitchTo,
+    shouldSwitchTo: function ({ chromePage: x })
+      contentTabBaseType.shouldSwitchTo({ contentPage: x }),
 
     /**
      * This is the internal function used by chrome tabs to open a new tab. To
