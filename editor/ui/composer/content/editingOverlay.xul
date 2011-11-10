@@ -177,4 +177,24 @@
   <!-- View menu items -->
   <menupopup id="composerCharsetMenuPopup"
              onpopupshowing="updateCharsetPopupMenu(this);"/>
+
+  <!-- Toolbar buttons/items -->
+  <toolbarbutton id="newButton"
+                 class="toolbarbutton-1"
+                 label="&newToolbarCmd.label;"
+                 command="cmd_newEditor"
+                 tooltiptext="&newToolbarCmd.tooltip;"/>
+  <toolbarbutton id="openButton"
+                 class="toolbarbutton-1"
+                 label="&openToolbarCmd.label;"
+                 command="cmd_open"
+                 tooltiptext="&openToolbarCmd.tooltip;"/>
+  <toolbarbutton id="saveButton"
+                 class="toolbarbutton-1"
+                 command="cmd_save"
+                 tooltiptext="&saveToolbarCmd.tooltip;"/>
+  <toolbarbutton id="publishButton"
+                 class="toolbarbutton-1"
+                 command="cmd_publish"
+                 tooltiptext="&publishToolbarCmd.tooltip;"/>
 </overlay>

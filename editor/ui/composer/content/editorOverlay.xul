@@ -1013,24 +1013,6 @@
 
   <!-- Editor toolbar items -->
   <!-- note that we override the submenu item label "Blank Window" with "New" used for the menu -->
-  <toolbarbutton id="newButton"
-                 class="toolbarbutton-1"
-                 label="&newToolbarCmd.label;"
-                 command="cmd_newEditor"
-                 tooltiptext="&newToolbarCmd.tooltip;"/>
-  <toolbarbutton id="openButton"
-                 class="toolbarbutton-1"
-                 label="&openToolbarCmd.label;"
-                 command="cmd_open"
-                 tooltiptext="&openToolbarCmd.tooltip;"/>
-  <toolbarbutton id="saveButton"
-                 class="toolbarbutton-1"
-                 command="cmd_save"
-                 tooltiptext="&saveToolbarCmd.tooltip;"/>
-  <toolbarbutton id="publishButton"
-                 class="toolbarbutton-1"
-                 command="cmd_publish"
-                 tooltiptext="&publishToolbarCmd.tooltip;"/>
   <toolbarbutton id="cutButton" class="toolbarbutton-1"
                  command="cmd_cut"
                  tooltiptext="&cutToolbarCmd.tooltip;"/>
