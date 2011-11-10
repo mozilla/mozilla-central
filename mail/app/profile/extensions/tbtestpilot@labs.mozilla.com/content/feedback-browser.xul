@@ -18,9 +18,11 @@
 <toolbar id="nav-bar">
   <panel id="pilot-notification-popup"/>
 </toolbar>
+<!-- XXX Disabled until we're ready for the feedback button.
 <toolbar id="mail-bar3">
   <panel id="pilot-notification-popup"/>
 </toolbar>
+-->
 
 
 <panel id="pilot-notification-popup" hidden="true" noautofocus="true"
