@@ -157,7 +157,8 @@ AccountProvisionerListener.prototype = {
 
   onLocationChange: function (/* in nsIWebProgress */ aWebProgress,
                               /* in nsIRequest */ aRequest,
-                              /* in nsIURI */ aLocation) {
+                              /* in nsIURI */ aLocation,
+                              /* in int */ aFlags) {
   },
 
   onStatusChange: function (/* in nsIWebProgress */ aWebProgress,

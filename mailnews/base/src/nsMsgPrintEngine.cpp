@@ -220,7 +220,8 @@ nsMsgPrintEngine::OnProgressChange(nsIWebProgress *aWebProgress,
 NS_IMETHODIMP
 nsMsgPrintEngine::OnLocationChange(nsIWebProgress* aWebProgress,
                       nsIRequest* aRequest,
-                      nsIURI *location)
+                      nsIURI *location,
+                      PRUint32 aFlags)
 {
     NS_NOTREACHED("notification excluded in AddProgressListener(...)");
     return NS_OK;

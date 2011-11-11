@@ -197,8 +197,8 @@ NS_IMETHODIMP nsMsgProgress::OnProgressChange(nsIWebProgress *aWebProgress, nsIR
   return NS_OK;
 }
 
-/* void onLocationChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsIURI location); */
-NS_IMETHODIMP nsMsgProgress::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location)
+/* void onLocationChange (in nsIWebProgress aWebProgress, in nsIRequest aRequest, in nsIURI location, in unsigned long aFlags); */
+NS_IMETHODIMP nsMsgProgress::OnLocationChange(nsIWebProgress *aWebProgress, nsIRequest *aRequest, nsIURI *location, PRUint32 aFlags)
 {
   return NS_OK;
 }

@@ -411,7 +411,8 @@ nsURLFetcher::OnStateChange(nsIWebProgress *aProgress, nsIRequest *aRequest,
 NS_IMETHODIMP
 nsURLFetcher::OnLocationChange(nsIWebProgress* aWebProgress,
                                nsIRequest* aRequest,
-                               nsIURI *aURI)
+                               nsIURI *aURI,
+                               PRUint32 aFlags)
 {
   NS_NOTREACHED("notification excluded in AddProgressListener(...)");
   return NS_OK;

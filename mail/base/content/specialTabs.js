@@ -87,10 +87,10 @@ tabProgressListener.prototype =
         aMaxTotalProgress);
   },
   onLocationChange: function tPL_onLocationChange(aWebProgress, aRequest,
-                                                  aLocationURI) {
+                                                  aLocationURI, aFlags) {
     if (this.mProgressListener)
       this.mProgressListener.onLocationChange(aWebProgress, aRequest,
-        aLocationURI);
+        aLocationURI, aFlags);
     // onLocationChange is called for both the top-level content
     // and the subframes.
     if (aWebProgress.DOMWindow == this.mBrowser.contentWindow) {

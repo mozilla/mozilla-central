@@ -111,7 +111,7 @@ nsMsgShutdownTaskListener.prototype =
     updateTaskProgressLabel(aCurTotalProgress + 1);
   },
 
-  onLocationChange: function(aWebProgress, aRequest, aLocation)
+  onLocationChange: function(aWebProgress, aRequest, aLocation, aFlags)
   {
     // we can ignore this notification
   },

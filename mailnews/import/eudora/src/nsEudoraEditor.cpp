@@ -1414,6 +1414,15 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::SetInnerHTML(const nsAString & aInnerHTM
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetOuterHTML(nsAString & aOuterHTML)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetOuterHTML(const nsAString & aOuterHTML)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
 
 // void insertAdjacentHTML (in DOMString position, in DOMString text)
 NS_IMETHODIMP nsEudoraHTMLImageElement::InsertAdjacentHTML(const nsAString & position, const nsAString & text)

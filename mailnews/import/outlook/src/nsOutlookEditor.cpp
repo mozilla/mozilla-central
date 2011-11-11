@@ -1121,6 +1121,16 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetInnerHTML(const nsAString & aInnerHT
 }
 
 
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetOuterHTML(nsAString & aOuterHTML)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetOuterHTML(const nsAString & aOuterHTML)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 // void insertAdjacentHTML (in DOMString position, in DOMString text)
 NS_IMETHODIMP nsOutlookHTMLImageElement::InsertAdjacentHTML(const nsAString & position, const nsAString & text)
 {

@@ -299,7 +299,7 @@ nsBrowserStatusHandler.prototype =
     }
   },
 
-  onLocationChange : function(aWebProgress, aRequest, aLocation)
+  onLocationChange : function(aWebProgress, aRequest, aLocation, aFlags)
   {
     if (gContextMenu) {
       // Optimise for the common case

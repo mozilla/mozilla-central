@@ -107,7 +107,7 @@ var progressListener = {
     gProgressText.value = gReplicationBundle.getFormattedString("currentCount",
                                                                 [aCurSelfProgress]);
   },
-  onLocationChange: function(aWebProgress, aRequest, aLocation)
+  onLocationChange: function(aWebProgress, aRequest, aLocation, aFlags)
   {
   },
   onStatusChange: function(aWebProgress, aRequest, aStatus, aMessage)

@@ -192,7 +192,8 @@ nsMsgStatusFeedback::OnStateChange(nsIWebProgress* aWebProgress,
 
 NS_IMETHODIMP nsMsgStatusFeedback::OnLocationChange(nsIWebProgress* aWebProgress,
                                                     nsIRequest* aRequest,
-                                                    nsIURI* aLocation)
+                                                    nsIURI* aLocation,
+                                                    PRUint32 aFlags)
 {
    return NS_OK;
 }

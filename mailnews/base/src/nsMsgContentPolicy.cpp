@@ -836,7 +836,8 @@ nsMsgContentPolicy::OnProgressChange(nsIWebProgress *aWebProgress,
 
 NS_IMETHODIMP 
 nsMsgContentPolicy::OnLocationChange(nsIWebProgress *aWebProgress,
-                                     nsIRequest *aRequest, nsIURI *aLocation)
+                                     nsIRequest *aRequest, nsIURI *aLocation,
+                                     PRUint32 aFlags)
 {
   nsresult rv;
 

@@ -1297,7 +1297,7 @@ var gEditorOutputProgressListener =
     }
   },
 
-  onLocationChange : function(aWebProgress, aRequest, aLocation)
+  onLocationChange : function(aWebProgress, aRequest, aLocation, aFlags)
   {
     if (gShowDebugOutputLocationChange)
     {

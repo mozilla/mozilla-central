@@ -563,7 +563,7 @@
             // the second one is considered a user action.
             mLocationChangeCount : 0,
 
-            onLocationChange: function(aWebProgress, aRequest, aLocation) {
+            onLocationChange: function(aWebProgress, aRequest, aLocation, aFlags) {
               if (aRequest && aWebProgress.DOMWindow == this.mBrowser.contentWindow) {
                 this.mBrowser.mIconURL = "";
                 this.mFeeds = [];
@@ -590,7 +590,7 @@
                                               null, this.mBrowser, this.mFeeds);
 
               this.mTabBrowser._callProgressListeners(this.mBrowser, "onLocationChange",
-                                                      [aWebProgress, aRequest, aLocation],
+                                                      [aWebProgress, aRequest, aLocation, aFlags],
                                                       false);
             },
 
@@ -691,7 +691,7 @@
               }
             },
 
-            onLocationChange : function(aWebProgress, aRequest, aLocation)
+            onLocationChange : function(aWebProgress, aRequest, aLocation, aFlags)
             {
             },
 
@@ -892,7 +892,7 @@
               function notifyUrlBar(element) {
                 try {
                   if ("onLocationChange" in element)
-                    element.onLocationChange(aWebProgress, aRequest, aLocation);
+                    element.onLocationChange(aWebProgress, aRequest, aLocation, 0);
                   // If switching tabs, the security may have changed.
                   if (aSecurityUI && "onSecurityChange" in element)
                     element.onSecurityChange(aWebProgress, null, aSecurityUI.state);

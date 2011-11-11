@@ -79,6 +79,7 @@
         <parameter name="aWebProgress" />
         <parameter name="aRequest" />
         <parameter name="aLocation" />
+        <parameter name="aFlags" />
         <body>
           <![CDATA[
             var errorPage = aRequest && !Components.isSuccessCode(aRequest.status);
