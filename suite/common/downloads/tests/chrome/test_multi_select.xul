@@ -110,119 +110,122 @@ function test()
       if (aTopic != DLMGR_UI_DONE)
         return;
 
-      var win = aSubject;
-      var downloadView = win.document.getElementById("downloadTree").view;
-
-      // Default test/check for invocations
-      var invokeCount = 0;
-      var counter = function() invokeCount++;
-
-      // Accessors for returning a value for various properties
-      var getItems = function() downloadView.rowCount;
-      var getSelected = function() downloadView.selection.count;
-      var getClipboard = function() {
-        var clip = Components.classes["@mozilla.org/widget/clipboard;1"]
-                             .getService(Components.interfaces.nsIClipboard);
-        var trans = Components.classes["@mozilla.org/widget/transferable;1"]
-                              .createInstance(Components.interfaces.nsITransferable);
-        trans.addDataFlavor("text/unicode");
-        clip.getData(trans, clip.kGlobalClipboard);
-        var str = {};
-        var strLen = {};
-        trans.getTransferData("text/unicode", str, strLen);
-        return str.value.QueryInterface(Components.interfaces.nsISupportsString)
-                  .data.substring(0, strLen.value / 2);
-      };
-
-      // Array of tests that consist of the command name, download manager
-      // function to temporarily replace, method to use in its place, value to
-      // use when checking correctness
-      var commandTests = [
-        ["pause", "pauseDownload", counter, counter],
-        ["resume", "resumeDownload", counter, counter],
-        ["cancel", "cancelDownload", counter, counter],
-        ["open", "openDownload", counter, counter],
-        ["show", "showDownload", counter, counter],
-        ["properties", "showProperties", counter, counter],
-        ["retry", "retryDownload", counter, counter],
-        ["openReferrer", "openUILink", counter, counter],
-        ["copyLocation", null, null, getClipboard],
-        ["remove", null, null, getItems],
-        ["selectAll", null, null, getSelected],
-      ];
-
-      // All the expected results for both single and double selections
-      var allExpected = {
-        single: {
-          pause: [0, "Paused no downloads"],
-          resume: [0, "Resumed no downloads"],
-          cancel: [0, "Canceled no downloads"],
-          open: [0, "Opened no downloads"],
-          show: [0, "Showed no downloads"],
-          properties: [1, "Called properties for one download"],
-          retry: [0, "Retried no downloads"],
-          openReferrer: [1, "Opened one referrer"],
-          copyLocation: ["http://ed.agadak.net/file", "Copied one location"],
-          remove: [3, "Removed one download, remaining 3"],
-          selectAll: [3, "Selected all 3 remaining downloads"],
-        },
-        double: {
-          pause: [0, "Paused neither download"],
-          resume: [0, "Resumed neither download"],
-          cancel: [0, "Canceled neither download"],
-          open: [0, "Opened neither download"],
-          show: [0, "Showed neither download"],
-          properties: [0, "Called properties for neither download"],
-          retry: [0, "Retried neither download"],
-          openReferrer: [0, "Opened neither referrer"],
-          copyLocation: ["http://mozilla.org/file\nhttp://mozilla.com/file", "Copied both locations"],
-          remove: [1, "Removed both downloads, remaining 1"],
-          selectAll: [1, "Selected the 1 remaining download"],
-        },
-      };
-
-      var cmdName;
-
-      // Run two tests: single selected, double selected
-      for each (let whichTest in ["single", "double"]) {
-        let expected = allExpected[whichTest];
-
-        if (whichTest == "double")
-          // Select the first 2 downloads for double
-          downloadView.selection.rangedSelect(0, 1, false);
-        else
-          // Select the first download for single
-          downloadView.selection.select(0);
-
-        for each (let [command, func, test, value] in commandTests) {
-          // Make a copy of the original function and replace it with a test
-          let copy;
-          [copy, win[func]] = [win[func], test];
-
-          // Run the command from the menu
-          if (command == "selectAll")
-            cmdName = "menu_" + command;
-          else
-            cmdName = "dlMenu_" + command;
-
-          win.document.getElementById(cmdName).doCommand();
-
-          // Make sure the value is as expected
-          let [correct, message] = expected[command];
-          is(value(), correct, message);
-
-          // Restore original values
-          invokeCount = 0;
-          win[func] = copy;
-        }
-      }
-
-      // We're done!
-      win.close();
-      obs.removeObserver(testObs, DLMGR_UI_DONE);
-      SimpleTest.finish();
+      SimpleTest.waitForFocus(function () { continueTest(aSubject) }, aSubject);
     }
   };
+
+  function continueTest(win) {
+    var downloadView = win.document.getElementById("downloadTree").view;
+
+    // Default test/check for invocations
+    var invokeCount = 0;
+    var counter = function() invokeCount++;
+
+    // Accessors for returning a value for various properties
+    var getItems = function() downloadView.rowCount;
+    var getSelected = function() downloadView.selection.count;
+    var getClipboard = function() {
+      var clip = Components.classes["@mozilla.org/widget/clipboard;1"]
+                           .getService(Components.interfaces.nsIClipboard);
+      var trans = Components.classes["@mozilla.org/widget/transferable;1"]
+                            .createInstance(Components.interfaces.nsITransferable);
+      trans.addDataFlavor("text/unicode");
+      clip.getData(trans, clip.kGlobalClipboard);
+      var str = {};
+      var strLen = {};
+      trans.getTransferData("text/unicode", str, strLen);
+      return str.value.QueryInterface(Components.interfaces.nsISupportsString)
+                .data.substring(0, strLen.value / 2);
+    };
+
+    // Array of tests that consist of the command name, download manager
+    // function to temporarily replace, method to use in its place, value to
+    // use when checking correctness
+    var commandTests = [
+      ["pause", "pauseDownload", counter, counter],
+      ["resume", "resumeDownload", counter, counter],
+      ["cancel", "cancelDownload", counter, counter],
+      ["open", "openDownload", counter, counter],
+      ["show", "showDownload", counter, counter],
+      ["properties", "showProperties", counter, counter],
+      ["retry", "retryDownload", counter, counter],
+      ["openReferrer", "openUILink", counter, counter],
+      ["copyLocation", null, null, getClipboard],
+      ["remove", null, null, getItems],
+      ["selectAll", null, null, getSelected],
+    ];
+
+    // All the expected results for both single and double selections
+    var allExpected = {
+      single: {
+        pause: [0, "Paused no downloads"],
+        resume: [0, "Resumed no downloads"],
+        cancel: [0, "Canceled no downloads"],
+        open: [0, "Opened no downloads"],
+        show: [0, "Showed no downloads"],
+        properties: [1, "Called properties for one download"],
+        retry: [0, "Retried no downloads"],
+        openReferrer: [1, "Opened one referrer"],
+        copyLocation: ["http://ed.agadak.net/file", "Copied one location"],
+        remove: [3, "Removed one download, remaining 3"],
+        selectAll: [3, "Selected all 3 remaining downloads"],
+      },
+      double: {
+        pause: [0, "Paused neither download"],
+        resume: [0, "Resumed neither download"],
+        cancel: [0, "Canceled neither download"],
+        open: [0, "Opened neither download"],
+        show: [0, "Showed neither download"],
+        properties: [0, "Called properties for neither download"],
+        retry: [0, "Retried neither download"],
+        openReferrer: [0, "Opened neither referrer"],
+        copyLocation: ["http://mozilla.org/file\nhttp://mozilla.com/file", "Copied both locations"],
+        remove: [1, "Removed both downloads, remaining 1"],
+        selectAll: [1, "Selected the 1 remaining download"],
+      },
+    };
+
+    var cmdName;
+
+    // Run two tests: single selected, double selected
+    for each (let whichTest in ["single", "double"]) {
+      let expected = allExpected[whichTest];
+
+      if (whichTest == "double")
+        // Select the first 2 downloads for double
+        downloadView.selection.rangedSelect(0, 1, false);
+      else
+        // Select the first download for single
+        downloadView.selection.select(0);
+
+      for each (let [command, func, test, value] in commandTests) {
+        // Make a copy of the original function and replace it with a test
+        let copy;
+        [copy, win[func]] = [win[func], test];
+
+        // Run the command from the menu
+        if (command == "selectAll")
+          cmdName = "menu_" + command;
+        else
+          cmdName = "dlMenu_" + command;
+
+        win.document.getElementById(cmdName).doCommand();
+
+        // Make sure the value is as expected
+        let [correct, message] = expected[command];
+        is(value(), correct, message);
+
+        // Restore original values
+        invokeCount = 0;
+        win[func] = copy;
+      }
+    }
+
+    // We're done!
+    win.close();
+    obs.removeObserver(testObs, DLMGR_UI_DONE);
+    SimpleTest.finish();
+  }
   obs.addObserver(testObs, DLMGR_UI_DONE, false);
 
   // Show the Download Manager UI
