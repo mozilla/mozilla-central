@@ -1558,3 +1558,7 @@ NS_IMETHODIMP nsImapUrl::GetMessageHeader(nsIMsgDBHdr ** aMsgHdr)
   return GetMsgDBHdrFromURI(uri.get(), aMsgHdr);
 }
 
+NS_IMETHODIMP nsImapUrl::SetMessageHeader(nsIMsgDBHdr *aMsgHdr)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}

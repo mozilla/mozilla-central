@@ -1601,15 +1601,25 @@ nsMsgComposeService::RunMessageThroughMimeDraft(
 
   nsCOMPtr<nsIURI> url;
   bool fileUrl = StringBeginsWith(aMsgURI, NS_LITERAL_CSTRING("file:"));
+  nsCString mailboxUri(aMsgURI);
+  if (fileUrl)
+  {
+    // We loaded a .eml file from a file: url. Construct equivalent mailbox url.
+    mailboxUri.Replace(0, 5, NS_LITERAL_CSTRING("mailbox:"));
+    mailboxUri.Append(NS_LITERAL_CSTRING("&number=0"));
+    // Need this to prevent nsMsgCompose::TagEmbeddedObjects from setting
+    // inline images as moz-do-not-send.
+    mimeConverter->SetOriginalMsgURI(mailboxUri.get());
+  }
   if (fileUrl || PromiseFlatCString(aMsgURI).Find("&type=application/x-message-display") >= 0)
-    rv = NS_NewURI(getter_AddRefs(url), aMsgURI);
+    rv = NS_NewURI(getter_AddRefs(url), mailboxUri);
   else
     rv = messageService->GetUrlForUri(PromiseFlatCString(aMsgURI).get(), getter_AddRefs(url), aMsgWindow);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // ignore errors here - it's not fatal, and in the case of mailbox messages,
   // we're always passing in an invalid spec...
-  (void )url->SetSpec(aMsgURI);
+  (void )url->SetSpec(mailboxUri);
 
   // if we are forwarding a message and that message used a charset over ride
   // then use that over ride charset instead of the charset specified in the message

@@ -79,7 +79,7 @@ class nsMsgCompose : public nsIMsgCompose, public nsSupportsWeakReference
 private:
 
  // Deal with quoting issues...
-	nsresult                      QuoteOriginalMessage(const char * originalMsgURI, PRInt32 what); // New template
+	nsresult                      QuoteOriginalMessage(); // New template
   nsresult                      SetQuotingToFollow(bool aVal);
   nsresult                      ConvertHTMLToText(nsILocalFile *aSigFile, nsString &aSigData);
   nsresult                      ConvertTextToHTML(nsILocalFile *aSigFile, nsString &aSigData);

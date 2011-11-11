@@ -39,7 +39,9 @@
 #include "nsIChannel.idl"
 #include "nsIMimeStreamConverter.idl"
 
-[scriptable, uuid(5e601eed-95e8-4598-8917-26fe983e2803)]
+interface nsIMsgDBHdr;
+
+[scriptable, uuid(f79b1d55-f546-4ed5-9f75-9428e35c4eff)]
 interface nsIMsgQuote : nsISupports {
 
  /**
@@ -50,7 +52,8 @@ interface nsIMsgQuote : nsISupports {
   */
   void quoteMessage(in string msgURI, in boolean quoteHeaders,
                     in nsIMsgQuotingOutputStreamListener streamListener,
-                    in string charset, in boolean headersOnly);
+                    in string charset, in boolean headersOnly,
+                    in nsIMsgDBHdr aOrigHdr);
 
   readonly attribute nsIMimeStreamConverterListener quoteListener;
   readonly attribute nsIChannel quoteChannel;

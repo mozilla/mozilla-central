@@ -261,7 +261,18 @@ nsresult nsMailboxUrl::GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr)
 
 NS_IMETHODIMP nsMailboxUrl::GetMessageHeader(nsIMsgDBHdr ** aMsgHdr)
 {
+  if (m_dummyHdr)
+  {
+    NS_IF_ADDREF(*aMsgHdr = m_dummyHdr);
+    return NS_OK;
+  }
   return GetMsgHdrForKey(m_messageKey, aMsgHdr);
+}
+
+NS_IMETHODIMP nsMailboxUrl::SetMessageHeader(nsIMsgDBHdr *aMsgHdr)
+{
+  m_dummyHdr = aMsgHdr;
+  return NS_OK;
 }
 
 NS_IMPL_GETSET(nsMailboxUrl, AddDummyEnvelope, bool, m_addDummyEnvelope)

@@ -3145,12 +3145,13 @@ nsMsgCompose::QuoteMessage(const char *msgURI)
   mQuoteStreamListener->SetComposeObj(this);
 
   rv = mQuote->QuoteMessage(msgURI, PR_FALSE, mQuoteStreamListener,
-                            mCharsetOverride ? m_compFields->GetCharacterSet() : "", PR_FALSE);
+                            mCharsetOverride ? m_compFields->GetCharacterSet() : "",
+                            PR_FALSE, msgHdr);
   return rv;
 }
 
 nsresult
-nsMsgCompose::QuoteOriginalMessage(const char *originalMsgURI, PRInt32 what) // New template
+nsMsgCompose::QuoteOriginalMessage() // New template
 {
   nsresult    rv;
 
@@ -3167,13 +3168,20 @@ nsMsgCompose::QuoteOriginalMessage(const char *originalMsgURI, PRInt32 what) // 
   nsCOMPtr <nsIMsgDBHdr> originalMsgHdr = mOrigMsgHdr;
   if (!originalMsgHdr)
   {
-    rv = GetMsgDBHdrFromURI(originalMsgURI, getter_AddRefs(originalMsgHdr));
+    rv = GetMsgDBHdrFromURI(mOriginalMsgURI.get(), getter_AddRefs(originalMsgHdr));
     NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  bool fileUrl = StringBeginsWith(mOriginalMsgURI, NS_LITERAL_CSTRING("file:"));
+  if (fileUrl)
+  {
+    mOriginalMsgURI.Replace(0, 5, NS_LITERAL_CSTRING("mailbox:"));
+    mOriginalMsgURI.AppendLiteral("?number=0");
   }
 
   // Create the consumer output stream.. this will receive all the HTML from libmime
   mQuoteStreamListener =
-    new QuotingOutputStreamListener(originalMsgURI, originalMsgHdr, what != 1,
+    new QuotingOutputStreamListener(mOriginalMsgURI.get(), originalMsgHdr, mWhatHolder != 1,
                                     !bAutoQuote || !mHtmlToQuote.IsEmpty(), m_identity,
                                     mQuoteCharset.get(), mCharsetOverride, PR_TRUE, mHtmlToQuote);
 
@@ -3183,8 +3191,9 @@ nsMsgCompose::QuoteOriginalMessage(const char *originalMsgURI, PRInt32 what) // 
 
   mQuoteStreamListener->SetComposeObj(this);
 
-  rv = mQuote->QuoteMessage(originalMsgURI, what != 1, mQuoteStreamListener,
-                            mCharsetOverride ? mQuoteCharset.get() : "", !bAutoQuote);
+  rv = mQuote->QuoteMessage(mOriginalMsgURI.get(), mWhatHolder != 1, mQuoteStreamListener,
+                            mCharsetOverride ? mQuoteCharset.get() : "",
+                            !bAutoQuote, originalMsgHdr);
   return rv;
 }
 
@@ -4088,7 +4097,7 @@ nsMsgCompose::BuildQuotedMessageAndSignature(void)
 
   // We will fire off the quote operation and wait for it to
   // finish before we actually do anything with Ender...
-  return QuoteOriginalMessage(mOriginalMsgURI.get(), mWhatHolder);
+  return QuoteOriginalMessage();
 }
 
 //

@@ -139,7 +139,7 @@ interface nsIMsgMailNewsUrl : nsIURL {
 // grouping it into a separate interface...
 //////////////////////////////////////////////////////////////////////////////////
 
-[scriptable, uuid(1a7340d8-be3c-4fb6-919d-152fb3074da7)]
+[scriptable, uuid(388a37ec-2e1a-4a4f-9d8b-189bedf1bda2)]
 interface nsIMsgMessageUrl : nsISupports {
   // get and set the RDF URI associated with the url. Note, not all urls have
   // had uri's set on them so be prepared to handle cases where this string is empty.
@@ -158,7 +158,7 @@ interface nsIMsgMessageUrl : nsISupports {
    *  on this interface to get the  appropriate nsIMsgMessageService and
    *  then get the header from there.
    */
-  readonly attribute nsIMsgDBHdr messageHeader;
+  attribute nsIMsgDBHdr messageHeader;
 };
 
 //////////////////////////////////////////////////////////////////////////////////

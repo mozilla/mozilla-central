@@ -396,6 +396,11 @@ nsresult nsNntpUrl::GetMessageToPost(nsINNTPNewsgroupPost **aPost)
   return NS_OK;
 }
 
+NS_IMETHODIMP nsNntpUrl::SetMessageHeader(nsIMsgDBHdr *aMsgHdr)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 NS_IMETHODIMP nsNntpUrl::GetMessageHeader(nsIMsgDBHdr ** aMsgHdr)
 {
   nsresult rv;

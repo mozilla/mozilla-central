@@ -147,7 +147,8 @@ NS_IMETHODIMP nsMsgQuote::GetStreamListener(nsIMsgQuotingOutputStreamListener **
 nsresult
 nsMsgQuote::QuoteMessage(const char *msgURI, bool quoteHeaders,
                          nsIMsgQuotingOutputStreamListener * aQuoteMsgStreamListener,
-                         const char * aMsgCharSet, bool headersOnly)
+                         const char * aMsgCharSet, bool headersOnly,
+                         nsIMsgDBHdr *aMsgHdr)
 {
   nsresult  rv;
   if (!msgURI)
@@ -160,7 +161,16 @@ nsMsgQuote::QuoteMessage(const char *msgURI, bool quoteHeaders,
   bool fileUrl = !strncmp(msgURI, "file:", 5);
   bool forwardedMessage = PL_strstr(msgURI, "&realtype=message/rfc822") != nsnull;
   nsCOMPtr<nsIURI> aURL;
-  if (fileUrl || forwardedMessage)
+  if (fileUrl)
+  {
+    msgUri.Replace(0, 5, NS_LITERAL_CSTRING("mailbox:"));
+    msgUri.AppendLiteral("?number=0");
+    rv = NS_NewURI(getter_AddRefs(aURL), msgUri);
+    nsCOMPtr<nsIMsgMessageUrl> mailUrl(do_QueryInterface(aURL));
+    if (mailUrl)
+      mailUrl->SetMessageHeader(aMsgHdr);
+  }
+  else if (forwardedMessage)
     rv = NS_NewURI(getter_AddRefs(aURL), msgURI);
   else
   {

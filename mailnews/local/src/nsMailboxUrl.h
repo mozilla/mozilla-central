@@ -96,6 +96,9 @@ protected:
   PRUint32 m_messageSize;
   nsMsgKey m_messageKey;
   nsCString m_file;
+  // This is currently only set when we're doing something with a .eml file.
+  // If that changes, we should change the name of this var.
+  nsCOMPtr<nsIMsgDBHdr> m_dummyHdr;
 
   // used by save message to disk
   nsCOMPtr<nsIFile> m_messageFile;
