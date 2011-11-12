@@ -191,7 +191,7 @@ SuiteGlue.prototype = {
   },
 
   // nsIWebProgressListener partial implementation
-  onLocationChange: function(aWebProgress, aRequest, aLocation)
+  onLocationChange: function(aWebProgress, aRequest, aLocation, aFlags)
   {
     if (aWebProgress.DOMWindow.top == aWebProgress.DOMWindow &&
         aWebProgress instanceof Components.interfaces.nsIDocShell &&
