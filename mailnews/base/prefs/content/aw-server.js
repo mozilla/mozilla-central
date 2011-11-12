@@ -103,6 +103,8 @@ function serverPageUnload()
     }
     var smtpserver = document.getElementById("smtphostname");
     setPageData(pageData, "server", "smtphostname", trim(smtpserver.value));
+    var serverport = document.getElementById("serverPort").value;
+    setPageData(pageData, "server", "port", serverport);
   }
   else if (gOnNewsServerPage) {
     var newsServerName = document.getElementById("newsServer");
@@ -253,10 +255,16 @@ function setServerType()
   var serverType = document.getElementById("servertype").value;
   var deferStorageBox = document.getElementById("deferStorageBox");
   var leaveMessages = document.getElementById("leaveMsgsOnSrvrBox");
+  var port = serverType == "pop3" ? 110 : 143;
+
+  document.getElementById("serverPort").value = port;
+  document.getElementById("defaultPortValue").value = port;
+
   deferStorageBox.hidden = serverType == "imap";
   leaveMessages.hidden = serverType == "imap";
   document.getElementById("incomingServerSeparator").hidden = false;
   setPageData(pageData, "server", "servertype", serverType);
+  setPageData(pageData, "server", "port", port);
 }
 
 function setServerPrefs(aThis)

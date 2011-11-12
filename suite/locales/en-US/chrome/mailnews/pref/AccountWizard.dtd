@@ -54,6 +54,10 @@
 <!-- LOCALIZATION NOTE (popType.label) : Do not translate "POP" in below line -->
 <!ENTITY popType.label "POP">
 <!ENTITY popType.accesskey "P">
+<!ENTITY portNum.label "Port:">
+<!ENTITY portNum.accesskey "o">
+<!ENTITY defaultPortLabel.label "Default:">
+<!ENTITY defaultPortValue.label "">
 <!ENTITY leaveMsgsOnSrvr.label "Leave messages on server">
 <!ENTITY leaveMsgsOnSrvr.accesskey "L">
 

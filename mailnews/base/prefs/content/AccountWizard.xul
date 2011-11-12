@@ -156,6 +156,12 @@
                 <radio group="servertype" value="imap" id="imap" label="&imapType.label;"
                        wsm_persist="true" oncommand="setServerType();" accesskey="&imapType.accesskey;"/>
             </radiogroup>
+            <label id="serverPortLabel" control="serverPort" 
+                   accesskey="&portNum.accesskey;"
+                   value="&portNum.label;"/>
+            <textbox id="serverPort" type="number" size="3" max="65535"/>
+            <label id="defaultPortLabel" value="&defaultPortLabel.label;"/>
+            <label id="defaultPortValue" value="&defaultPortValue.label;"/>
           </hbox>
           <separator/>
         </vbox>
@@ -310,6 +316,10 @@
           <row align="center" id="server.type">
             <label class="label" flex="1" id="server.type.label" value="&serverTypePrefix.label;"/>
             <label class="label" id="server.type.text"/>
+          </row>
+          <row align="center" id="server.port">
+            <label class="label" id="server.port.label" flex="1" value="&portNum.label;"/>
+            <label class="label" id="server.port.text"/>
           </row>
           <row align="center" id="newsServer.name">
             <label class="label" flex="1" id="newsServer.name.label" value="&newsServerNamePrefix.label;"/>

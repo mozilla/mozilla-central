@@ -343,11 +343,14 @@ function PageDataToAccountData(pageData, accountData)
         accountData.smtp = new Object;
     if (!accountData.pop3)
         accountData.pop3 = new Object;
+    if (!accountData.imap)
+        accountData.imap = new Object;
     
     var identity = accountData.identity;
     var server = accountData.incomingServer;
     var smtp = accountData.smtp;
     var pop3 = accountData.pop3;
+    var imap = accountData.imap;
 
     if (pageData.identity.email)
         identity.email = pageData.identity.email.value;
@@ -391,6 +394,21 @@ function PageDataToAccountData(pageData, accountData)
         }
         if (pageData.identity && pageData.identity.smtpServerKey)
             identity.smtpServerKey = pageData.identity.smtpServerKey.value;
+
+        if (pageData.server.port &&
+            pageData.server.port.value)
+        {
+          if (server.type == 'imap')
+          {
+            imap.port = pageData.server.port.value;
+            server["ServerType-imap"] = imap;
+          }
+          else if (server.type == 'pop3')
+          {
+            pop3.port = pageData.server.port.value;
+            server["ServerType-pop3"] = pop3;
+          }
+        }
 
         if (pageData.server.leaveMessagesOnServer &&
             pageData.server.leaveMessagesOnServer.value)

@@ -145,7 +145,7 @@ function donePageInit() {
         // Hide the incoming server name field if the user specified
         // wizardHideIncoming in the ISP defaults file
         setDivTextFromForm("server.name", hideIncoming ? null : incomingServerName);
-
+        setDivTextFromForm("server.port", pageData.server.port.value);
         var incomingServerType="";
         if (pageData.server && pageData.server.servertype) {
             incomingServerType = pageData.server.servertype.value;
