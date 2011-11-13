@@ -498,6 +498,7 @@ xpicleanup@BIN_SUFFIX@
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 
 #ifdef MOZ_OMNIJAR
+  omni.jar
   chrome/be.jar
   chrome/ca.jar
   chrome/cs.jar
@@ -994,6 +995,7 @@ xpicleanup@BIN_SUFFIX@
 #else
   components/binary.manifest
   omni.jar
+  omni.ja
 #endif
 
 ; pre-libxul static mail library

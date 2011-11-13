@@ -372,6 +372,7 @@ regxpcom.exe
 # ****************************************************************************
 
 #ifdef MOZ_OMNIJAR
+  omni.jar
   chrome/@AB_CD@.jar
   chrome/@AB_CD@.manifest
   chrome/classic.jar
@@ -623,6 +624,7 @@ regxpcom.exe
 #else
   components/binary.manifest
   omni.jar
+  omni.ja
 #endif
 
 # ****************************************************************************

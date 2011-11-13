@@ -6176,6 +6176,8 @@ if test "$MOZ_CHROME_FILE_FORMAT" = "omni"; then
     MOZ_CHROME_FILE_FORMAT=flat
 fi
 
+OMNIJAR_NAME=omni.ja
+AC_SUBST(OMNIJAR_NAME)
 AC_SUBST(MOZ_OMNIJAR)
 
 dnl ========================================================
