@@ -921,7 +921,7 @@ let gFolderTreeView = {
 
   _subFoldersWithStringProperty: function ftv_subFoldersWithStringProperty(folder, folders, aFolderName, deep)
   {
-    for each (child in fixIterator(folder.subFolders, Components.interfaces.nsIMsgFolder)) {
+    for each (let child in fixIterator(folder.subFolders, Components.interfaces.nsIMsgFolder)) {
       // if the folder selection is based on a string propery, use that
       if (aFolderName == getSmartFolderName(child)) {
         folders.push(child);
@@ -938,7 +938,7 @@ let gFolderTreeView = {
   _allFoldersWithStringProperty: function ftv_getAllFoldersWithProperty(accounts, aFolderName, deep)
   {
     let folders = [];
-    for each (acct in accounts) {
+    for each (let acct in accounts) {
       let folder = acct.incomingServer.rootFolder;
       this._subFoldersWithStringProperty(folder, folders, aFolderName, deep);
     }
@@ -948,10 +948,10 @@ let gFolderTreeView = {
   _allFoldersWithFlag: function ftv_getAllFolders(accounts, aFolderFlag, deep)
   {
     let folders = [];
-    for each (acct in accounts) {
+    for each (let acct in accounts) {
       let foldersWithFlag = acct.incomingServer.rootFolder.getFoldersWithFlags(aFolderFlag);
       if (foldersWithFlag.length > 0) {
-        for each (folderWithFlag in fixIterator(foldersWithFlag.enumerate(),
+        for each (let folderWithFlag in fixIterator(foldersWithFlag.enumerate(),
                                                 Components.interfaces.nsIMsgFolder)) {
           folders.push(folderWithFlag);
           // Add sub-folders of Sent and Archive to the result.
@@ -1013,7 +1013,7 @@ let gFolderTreeView = {
     if (!smartFolder) {
       let searchFolders = gFolderTreeView._allSmartFolders(accounts, flag, folderName, true);
       let searchFolderURIs = "";
-      for each (searchFolder in searchFolders) {
+      for each (let searchFolder in searchFolders) {
         if (searchFolderURIs.length)
           searchFolderURIs += '|';
         searchFolderURIs +=  searchFolder.URI;
@@ -1576,12 +1576,12 @@ let gFolderTreeView = {
         }
 
         sortFolderItems(smartChildren);
-        for each (smartChild in smartChildren)
+        for each (let smartChild in smartChildren)
           map.push(smartChild);
 
         MailUtils.discoverFolders();
 
-        for each (acct in accounts)
+        for each (let acct in accounts)
           map.push(new ftv_SmartItem(acct.incomingServer.rootFolder));
 
         return map;
