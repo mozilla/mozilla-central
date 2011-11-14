@@ -58,6 +58,7 @@
   <menupopup id="pilot-menu-popup"
              onpopupshowing="TestPilotMenuUtils.onPopupShowing(event);"
              onpopuphiding="TestPilotMenuUtils.onPopupHiding(event);">
+<!-- XXX Disabled until we're ready for the feedback button.
     <menuitem id="feedback-menu-happy-button"
               class="menuitem-iconic"
               image="chrome://testpilot-os/skin/feedback-smile-16x16.png"
@@ -71,6 +72,7 @@
               thunderbirdLabel="&testpilot.sad.thunderbirdLabel;"
               oncommand="TestPilotWindowUtils.openFeedbackPage('sad');"/>
     <menuseparator/>
+-->
     <menuitem id="feedback-menu-show-studies"
               label="&testpilot.allYourStudies.label;"
               oncommand="TestPilotWindowUtils.openAllStudiesWindow();"/>
