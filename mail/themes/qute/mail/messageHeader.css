@@ -468,7 +468,8 @@ toolbarpaletteitem .msgHeaderView-button {
 }
 
 .headerName {
-  color: #888a85; /* lower contrast */
+  color: windowtext;
+  opacity: 0.5; /* lower contrast */
   text-align: right;
   background-color: transparent;
   padding: 0px;
