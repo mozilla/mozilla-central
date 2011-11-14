@@ -37,9 +37,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "msgCore.h"
-#include "nsMsgThread.h"
 #include "nsMsgDatabase.h"
 #include "nsCOMPtr.h"
+#include "nsMsgThread.h"
 #include "MailNewsTypes2.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgThread, nsIMsgThread)

@@ -51,6 +51,7 @@
 
 #include "nscore.h"
 #include "nsIServiceManager.h"
+#include "nsCOMPtr.h"
 #include "nsIImportService.h"
 #include "nsMsgI18N.h"
 #include "nsIComponentManager.h"

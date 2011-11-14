@@ -4077,7 +4077,7 @@ nsMsgCompose::LoadDataFromFile(nsILocalFile *file, nsString &sigData,
   {
     nsCAutoString metaCharset("charset=");
     metaCharset.Append(sigEncoding);
-    PRInt32 pos = sigData.Find(metaCharset.BeginReading(), PR_TRUE);
+    PRInt32 pos = sigData.Find(metaCharset.BeginReading(), true);
     if (pos != kNotFound)
       sigData.Cut(pos, metaCharset.Length());
   }
@@ -4305,9 +4305,9 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, bool aQuoted, nsString 
       sigOutput.AppendLiteral(CRLF);
 
     if ((reply_on_top != 1 || sig_bottom || !aQuoted) &&
-        sigData.Find("\r-- \r", PR_TRUE) < 0 &&
-        sigData.Find("\n-- \n", PR_TRUE) < 0 &&
-        sigData.Find("\n-- \r", PR_TRUE) < 0)
+        sigData.Find("\r-- \r", true) < 0 &&
+        sigData.Find("\n-- \n", true) < 0 &&
+        sigData.Find("\n-- \r", true) < 0)
     {
       nsDependentSubstring firstFourChars(sigData, 0, 4);
 
@@ -5375,7 +5375,7 @@ nsMsgCompose::SetIdentity(nsIMsgIdentity *aIdentity)
         rv = element->GetAttribute(attributeName, attributeValue);
         if (NS_SUCCEEDED(rv))
         {
-          if (attributeValue.Find("moz-signature", PR_TRUE) != kNotFound)
+          if (attributeValue.Find("moz-signature", true) != kNotFound)
           {
             //Now, I am sure I get the right node!
             m_editor->BeginTransaction();

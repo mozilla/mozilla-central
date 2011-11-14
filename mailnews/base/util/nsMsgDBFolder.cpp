@@ -144,6 +144,7 @@ NS_IMPL_ISUPPORTS_INHERITED6(nsMsgDBFolder, nsRDFResource,
 #include "nsMsgDBFolderAtomList.h"
 #undef MSGDBFOLDER_ATOM
 
+#ifdef MOZILLA_INTERNAL_API // These macros are relevant only for internal API
 #define MSGDBFOLDER_ATOM(name_, value_) NS_STATIC_ATOM_BUFFER(name_##_buffer, value_)
 #include "nsMsgDBFolderAtomList.h"
 #undef MSGDBFOLDER_ATOM
@@ -153,6 +154,7 @@ const nsStaticAtom nsMsgDBFolder::folder_atoms[] = {
 #include "nsMsgDBFolderAtomList.h"
 #undef MSGDBFOLDER_ATOM
 };
+#endif
 
 nsMsgDBFolder::nsMsgDBFolder(void)
 : mAddListener(PR_TRUE),
@@ -180,7 +182,9 @@ nsMsgDBFolder::nsMsgDBFolder(void)
 #ifdef MOZILLA_INTERNAL_API //FIXME NS_RegisterStaticAtoms
     NS_RegisterStaticAtoms(folder_atoms, NS_ARRAY_LENGTH(folder_atoms));
 #else
-    NS_ERROR("NS_RegisterStaticAtoms not implemented in frozen linkage");
+#define MSGDBFOLDER_ATOM(name_, value_) name_ = MsgNewPermanentAtom(value_);
+#include "nsMsgDBFolderAtomList.h"
+#undef MSGDBFOLDER_ATOM
 #endif
     initializeStrings();
     createCollationKeyGenerator();

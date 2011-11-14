@@ -49,6 +49,7 @@
 #include "nsIImportAddressBooks.h"
 #include "nsIImportFieldMap.h"
 #include "nsIImportGeneric.h"
+#include "nsCOMPtr.h"
 #include "nsIImportService.h"
 #include "nsILocalFile.h"
 #include "nsImportStringBundle.h"

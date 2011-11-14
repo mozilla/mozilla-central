@@ -83,6 +83,7 @@
 #include "msgCore.h"
 #include "nsCOMArray.h"
 #include "nsIMutableArray.h"
+#include "nsMemory.h"
 
 #define ALERT_CHROME_URL "chrome://messenger/content/newmailalert.xul"
 #define NEW_MAIL_ALERT_ICON "chrome://messenger/skin/icons/new-mail-alert.png"

@@ -738,7 +738,7 @@ nsresult nsImapProtocol::SetupWithUrl(nsIURI * aURL, nsISupports* aConsumer)
         nsCOMPtr<nsIInterfaceRequestor> interfaceRequestor;
         msgWindow->GetNotificationCallbacks(getter_AddRefs(interfaceRequestor));
         nsCOMPtr<nsIInterfaceRequestor> aggregateIR;
-        NS_NewInterfaceRequestorAggregation(interfaceRequestor, ir, getter_AddRefs(aggregateIR));
+        MsgNewInterfaceRequestorAggregation(interfaceRequestor, ir, getter_AddRefs(aggregateIR));
         m_mockChannel->SetNotificationCallbacks(aggregateIR);
       }
     }

@@ -46,6 +46,7 @@
 #include "nsAbLDAPReplicationQuery.h"
 #include "nsILDAPErrors.h"
 #include "nsComponentManagerUtils.h"
+#include "nsMsgUtils.h"
 
 // once bug # 101252 gets fixed, this should be reverted back to be non threadsafe
 // implementation is not really thread safe since each object should exist 

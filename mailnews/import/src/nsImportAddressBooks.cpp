@@ -38,6 +38,7 @@
 
 #include "prprf.h"
 #include "plstr.h"
+#include "nsCOMPtr.h"
 #include "nsIImportService.h"
 #include "nsIImportAddressBooks.h"
 #include "nsIImportGeneric.h"

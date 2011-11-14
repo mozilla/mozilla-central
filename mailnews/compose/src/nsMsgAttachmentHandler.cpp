@@ -492,7 +492,7 @@ nsMsgAttachmentHandler::PickCharset()
   if (!detector)
   {
     nsresult rv;
-    nsAdoptingString detectorName;
+    nsString detectorName;
     nsCOMPtr<nsIPrefBranch> prefBranch =
       do_GetService(NS_PREFSERVICE_CONTRACTID,&rv);
     NS_ENSURE_SUCCESS(rv,rv);

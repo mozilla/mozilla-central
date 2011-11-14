@@ -132,7 +132,6 @@
 #include "nsIStringEnumerator.h"
 #include "nsIMsgStatusFeedback.h"
 #include "nsAlgorithm.h"
-#include "nsPrintfCString.h"
 #include "nsMsgLineBuffer.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);

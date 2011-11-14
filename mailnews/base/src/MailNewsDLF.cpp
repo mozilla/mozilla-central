@@ -45,6 +45,7 @@
 #include "nsIServiceManager.h"
 #include "nsIStreamConverterService.h"
 #include "nsNetCID.h"
+#include "nsMsgUtils.h"
 
 namespace mozilla {
 namespace mailnews {

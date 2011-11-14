@@ -41,7 +41,7 @@
 
 #include "nsAbMDBDirFactory.h"
 #include "nsAbUtils.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsServiceManagerUtils.h"
 #include "nsILocalFile.h"
 #include "nsIAbManager.h"

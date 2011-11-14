@@ -48,6 +48,7 @@
 #include "nsDirPrefs.h"
 #include "prmem.h"
 #include "nsComponentManagerUtils.h"
+#include "nsMsgUtils.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbLDAPReplicationQuery,
                               nsIAbLDAPReplicationQuery)

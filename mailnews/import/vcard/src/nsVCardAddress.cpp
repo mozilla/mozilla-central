@@ -48,6 +48,7 @@
 
 #include "plstr.h"
 #include "msgCore.h"
+#include "nsMsgUtils.h"
 
 nsVCardAddress::nsVCardAddress()
 {
