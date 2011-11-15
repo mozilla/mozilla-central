@@ -37,7 +37,7 @@
 # ***** END LICENSE BLOCK *****
 
 const kNonVcardFields =
-        ["nickNameContainer", "secondaryEmailContainer", "screenNameContainer",
+        ["NickNameContainer", "SecondaryEmailContainer", "ScreenNameContainer",
          "customFields", "allowRemoteContent", "preferDisplayName"];
 
 const kPhoneticFields =
