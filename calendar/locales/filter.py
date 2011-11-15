@@ -7,6 +7,10 @@ def test(mod, path, entity = None):
                  "calendar", "other-licenses/branding/sunbird"):
     return False
 
+  # Timezone properties don't have to be translated
+  if path == "chrome/calendar/timezones.properties":
+    return False
+
   # Noun class entries do not have to be translated
   if path == "chrome/calendar/calendar-event-dialog.properties":
     return not re.match(r".*Nounclass[1-9]", entity)

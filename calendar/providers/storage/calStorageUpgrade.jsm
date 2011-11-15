@@ -394,6 +394,7 @@ function reportErrorAndRollback(db, e) {
 function ensureUpdatedTimezones(db) {
     // check if timezone version has changed:
     let selectTzVersion = createStatement(db, "SELECT version FROM cal_tz_version LIMIT 1");
+    let tzServiceVersion = cal.getTimezoneService().version;
     let version;
     try {
         version = (selectTzVersion.step() ? selectTzVersion.row.version : null);
@@ -405,15 +406,11 @@ function ensureUpdatedTimezones(db) {
     if (version) {
         versionComp = Components.classes["@mozilla.org/xpcom/version-comparator;1"]
                                 .getService(Components.interfaces.nsIVersionComparator)
-                                .compare(cal.getTimezoneService().version, version);
+                                .compare(tzServiceVersion, version);
     }
 
-    if (versionComp < 0) {
-        // A timezones downgrade has happened!
-        throw new Components.Exception("Attempt to downgrade timezones",
-                                       Components.interfaces.calIErrors.STORAGE_UNKNOWN_TIMEZONES_ERROR);
-    } else if (versionComp > 0) {
-        cal.LOG("Timezones have been updated, updating calendar data.");
+    if (versionComp != 0) {
+        cal.LOG("[calStorageCalendar] Timezones have been changed from " + version + " to " + tzServiceVersion + ", updating calendar data.");
 
         let zonesToUpdate = [];
         let getZones = createStatement(db,
