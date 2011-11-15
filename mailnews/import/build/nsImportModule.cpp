@@ -159,7 +159,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsWMImport)
 
 static const mozilla::Module::CategoryEntry kMailNewsImportCategories[] = {
   // XXX These CIDs should match the explicit CIDs defined in the header files,
-  // or be changed so that they are contract IDs (with appropraite code updates)
+  // or be changed so that they are contract IDs (with appropriate code updates)
   { "mailnewsimport", "{A5991D01-ADA7-11d3-A9C2-00A0CC26DA63}", NS_IMPORT_ADDRESS_STR },
   { "mailnewsimport", "{0eb034a3-964a-4e2f-92eb-cc55d9ae9dd2}", NS_IMPORT_ADDRESS_STR },
   { "mailnewsimport", "{647cc990-2bdb-11d6-92a0-0010a4b26cda}", kComm4xMailSupportsString},

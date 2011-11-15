@@ -77,7 +77,7 @@ interface nsIMailProfileMigrator : nsISupports
 
   /**
    * Whether or not there is any data that can be imported from this
-   * browser (i.e. whether or not it is installed, and there exists
+   * mailer (i.e. whether or not it is installed, and there exists
    * a user profile)
    */
   readonly attribute boolean          sourceExists;
