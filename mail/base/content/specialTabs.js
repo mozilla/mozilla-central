@@ -669,6 +669,8 @@ var specialTabs = {
   splitVersion: function(version) {
     let re = /^(\d+)\.(\d+)\.?(.*)$/;
     let fields = re.exec(version);
+    if (fields === null)
+      return null;
     /* First element of the array from regex match is the entire string; drop that */
     fields.shift();
     return fields;
