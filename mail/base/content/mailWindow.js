@@ -517,7 +517,7 @@ function getNotificationBox(aWindow) {
                       tabInfo[i].mode.tabType.getBrowser;
     if (browserFunc) {
       var possBrowser = browserFunc.call(tabInfo[i].mode.tabType, tabInfo[i]);
-      if (possBrowser && possBrowser.contentWindow == aWindow)
+      if (possBrowser && possBrowser.contentWindow == aWindow && possBrowser.parentNode.tagName == "notificationbox")
         return possBrowser.parentNode;
     }
   }
