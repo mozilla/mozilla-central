@@ -71,6 +71,13 @@ extension_path = os.path.join(basedir, 'extension')
 
 mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
 
+try:
+    import pkg_resources
+    version = pkg_resources.get_distribution('mozmill').version
+except:
+    # pkg_resources not available
+    version = None
+
 class LoggerListener(object):
     cases = {
         'mozmill.pass':   lambda string: logger.info('Step Pass: ' + string),
@@ -281,6 +288,10 @@ class MozMill(object):
         print "TEST-START | %s | %s" % (test['filename'], test['name'])
 
     def endTest_listener(self, test):
+        fname = os.path.split(test['filename'])[1]
+        if fname:
+            test['name'] = "%s::%s" % (fname, test['name'])
+
         self.alltests.append(test)
         if test.get('skipped', False):
             print "WARNING | %s | (SKIP) %s" % (test['name'], test.get('skipped_reason', ''))
@@ -401,6 +412,7 @@ class MozMill(object):
             self.endtime = datetime.utcnow()
 
         report = {'report_type': self.report_type,
+                  'mozmill_version': version,
                   'time_start': self.starttime.strftime(format),
                   'time_end': self.endtime.strftime(format),
                   'time_upload': 'n/a',

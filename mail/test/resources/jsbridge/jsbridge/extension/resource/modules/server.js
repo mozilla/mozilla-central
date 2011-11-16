@@ -50,9 +50,6 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
     .getService(Components.interfaces.nsIAppShellService)
     .hiddenDOMWindow;
     
-var nativeJSON = Components.classes["@mozilla.org/dom/json;1"]
-    .createInstance(Components.interfaces.nsIJSON);
-
 var json2 = Components.utils.import("resource://jsbridge/modules/json2.js");
 
 var jsonEncode = json2.JSON.stringify;    

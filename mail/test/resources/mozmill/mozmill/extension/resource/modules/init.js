@@ -51,26 +51,22 @@ var windowObserver = {
     attachEventListeners(subject);
   }
 };
-  
+
 /**
  * Attach event listeners
  */
-function attachEventListeners(window) {
-  window.addEventListener("load", function (event) {
-    window.mozmillDocumentLoaded = true;
+function attachEventListeners(aWindow) {
+  aWindow.addEventListener("load", function (event) {
+    aWindow.mozmillDocumentLoaded = true;
  
-    if (window.gBrowser) {
+    if ("gBrowser" in aWindow) {
       // Page is ready
-      window.gBrowser.addEventListener("load", function (event) {
-        // this is the content document of the loaded page.
+      aWindow.gBrowser.addEventListener("load", function (event) {
         var doc = event.originalTarget;
-        var tab = window.gBrowser.getBrowserForDocument(doc);
 
-        if (tab) {
-          //dump("*** Loaded tab: location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-          tab.mozmillDocumentLoaded = true;
-        } else {
-          //dump("*** Loaded HTML location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
+        // Only update the flag if we have a document as target
+        if ("defaultView" in doc) {
+          // dump("*** Window content loaded: " + doc + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
           doc.defaultView.mozmillDocumentLoaded = true;
         }
       }, true);
@@ -79,31 +75,31 @@ function attachEventListeners(window) {
       // have to wait for the "DOMContentLoaded" event. That's the final state.
       // Error pages will always have a baseURI starting with
       // "about:" followed by "error" or "blocked".
-      window.gBrowser.addEventListener("DOMContentLoaded", function (event) {
+      aWindow.gBrowser.addEventListener("DOMContentLoaded", function (event) {
+        var doc = event.originalTarget;
+
         var errorRegex = /about:.+(error)|(blocked)\?/;
-        if (errorRegex.exec(event.target.baseURI)) {
+        if (errorRegex.exec(doc.baseURI)) {
           // Wait about 1s to be sure the DOM is ready
           mozmill.utils.sleep(1000);
 
-          var tab = window.gBrowser.getBrowserForDocument(event.target);
-          if (tab)
-            tab.mozmillDocumentLoaded = true;
+          // Only update the flag if we have a document as target
+          if ("defaultView" in doc) {
+            // dump("*** Window content loaded: " + doc + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
+            doc.defaultView.mozmillDocumentLoaded = true;
+          }
         }
       }, true);
   
       // Page is about to get unloaded
-      window.gBrowser.addEventListener("beforeunload", function (event) {
+      aWindow.gBrowser.addEventListener("beforeunload", function (event) {
         var doc = event.originalTarget;
-        var tab = window.gBrowser.getBrowserForDocument(event.target);
 
-        if (tab) {
-          //dump("*** Unload tab: location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-          tab.mozmillDocumentLoaded = false;
-        } else {
-          //dump("*** Unload HTML location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
+        // Only update the flag if we have a document as target
+        if ("defaultView" in doc) {
+          // dump("*** Window content unloaded: " + doc + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
           doc.defaultView.mozmillDocumentLoaded = false;
         }
-
       }, true);
     }
   }, false);

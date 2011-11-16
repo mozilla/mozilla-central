@@ -140,7 +140,10 @@ class Profile(object):
 
         self.create_new = not(bool(profile))
         if profile:
-            self.profile = profile
+            # Ensure we have a full path to the profile
+            self.profile = os.path.abspath(os.path.expanduser(profile))
+            if not os.path.exists(self.profile):
+                os.makedirs(self.profile)
         else:
             self.profile = self.create_new_profile(self.binary)
 
@@ -312,15 +315,17 @@ class FirefoxProfile(Profile):
                    'browser.tabs.warnOnClose' : False,
                    # Don't warn when exiting the browser
                    'browser.warnOnQuit': False,
-                   # Only install add-ons from the profile
-                   'extensions.enabledScopes' : 1,
-                   # XXX: App-wide extensions are still installed until bug 660898
-                   #      is fixed. Use a workaround for now to disable it.
+                   # Only install add-ons from the profile and the application scope
+                   # Also ensure that those are not getting disabled.
+                   # see: https://developer.mozilla.org/en/Installing_extensions
+                   'extensions.enabledScopes' : 5,
+                   'extensions.autoDisableScopes' : 10,
+                   # Don't install distribution add-ons from the app folder
                    'extensions.installDistroAddons' : False,
                    # Dont' run the add-on compatibility check during start-up
                    'extensions.showMismatchUI' : False,
                    # Don't automatically update add-ons
-                   'extensions.update.enabled'    : False,
+                   'extensions.update.enabled' : False,
                    # Don't open a dialog to show available add-on updates
                    'extensions.update.notifyUser' : False,
 
@@ -340,6 +345,13 @@ class FirefoxProfile(Profile):
                    'extensions.checkCompatibility.6.0a' : False,
                    'extensions.checkCompatibility.6.0b' : False,
                    'extensions.checkCompatibility.6.0pre' : False,
+                   'extensions.checkCompatibility.7.0' : False,
+                   'extensions.checkCompatibility.7.0a' : False,
+                   'extensions.checkCompatibility.8.0' : False,
+                   'extensions.checkCompatibility.8.0a' : False,
+                   'extensions.checkCompatibility.9.0' : False,
+                   'extensions.checkCompatibility.9.0a' : False,
+                   'extensions.checkCompatibility.nightly' : False,
                    }
 
     @property

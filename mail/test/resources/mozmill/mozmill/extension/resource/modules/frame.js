@@ -117,18 +117,21 @@ var loadFile = function(path, collector) {
   }
   try {
     loader.loadSubScript(uri, module, "UTF-8");
-  } catch(e) {
-    events.fail(e);
+  } catch (e) {
+    events.fail({'exception' : e});
+
     var obj = {
-      'filename':path,
-      'passed':false,
-      'failed':true,
-      'passes':0,
-      'fails' :1,
-      'name'  :'Unknown Test',
+      'filename': path,
+      'passed': 0,
+      'failed': 1,
+      'passes': [ ],
+      'fails' : [{'exception' : {
+                     message: e.message,
+                     filename: e.filename,
+                     lineNumber: e.lineNumber}}],
+      'name'  : '<TOP_LEVEL>'
     };
     events.fireEvent('endTest', obj);
-    Components.utils.reportError(e);
   }
   
   module.__file__ = path;

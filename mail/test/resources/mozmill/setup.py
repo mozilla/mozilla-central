@@ -41,7 +41,7 @@ desc = """UI Automation tool for Mozilla applications."""
 summ = """A tool for full UI automation of Mozilla applications."""
 
 PACKAGE_NAME = "mozmill"
-PACKAGE_VERSION = "1.5.4b4"
+PACKAGE_VERSION = "1.5.6"
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
@@ -62,8 +62,8 @@ setup(name=PACKAGE_NAME,
           mozmill-restart = mozmill:restart_cli
         """,
       platforms =['Any'],
-      install_requires = ['jsbridge == 2.4.4b4',
-                          'mozrunner == 2.5.5b4',
+      install_requires = ['jsbridge == 2.4.6',
+                          'mozrunner == 2.5.7',
                           'ManifestDestiny == 0.2.2'],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',

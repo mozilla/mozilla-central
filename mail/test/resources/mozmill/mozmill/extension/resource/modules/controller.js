@@ -1268,35 +1268,28 @@ function browserAdditions (controller) {
 
   controller.waitForPageLoad = function(aDocument, aTimeout, aInterval) {
     var timeout = aTimeout || 30000;
-    var owner = null;
+    var win = null;
 
     // If a user tries to do waitForPageLoad(2000), this will assign the
     // interval the first arg which is most likely what they were expecting
-    if (typeof(aDocument) == "number"){
+    if (typeof(aDocument) === "number")
       timeout = aDocument;
-    }
 
-    // If the document is a tab find the corresponding browser element.
-    // Otherwise we have to handle an embedded web page.
-    if (aDocument && typeof(aDocument) == "object") {
-      owner = this.window.gBrowser.getBrowserForDocument(aDocument);
+    // If we have a real document use its default view
+    if (aDocument && (typeof(aDocument) === "object") &&
+        "defaultView" in aDocument)
+      win = aDocument.defaultView;
 
-      if (!owner) {
-        // If the document doesn't belong to a tab it will be a
-        // HTMLDocument of a browser element embedded inside a tab.
-        // In such a case use the default window of the document.
-        owner = aDocument.defaultView;
-      }
-    }
-
-    // If no owner has been specified, fallback to the selected tab browser
-    owner = owner || this.window.gBrowser.selectedBrowser;
+    // If no document has been specified, fallback to the default view of the
+    // currently selected tab browser
+    win = win || this.window.gBrowser.selectedBrowser.contentWindow;
 
     // Wait until the content in the tab has been loaded
     this.waitFor(function() {
-      return this.isLoaded(owner);
+      return this.isLoaded(win);
     }, "controller.waitForPageLoad(): Timeout waiting for page loaded.",
-      timeout, aInterval, this);
+       timeout, aInterval, this);
+
     frame.events.pass({'function':'controller.waitForPageLoad()'});
   }
 }

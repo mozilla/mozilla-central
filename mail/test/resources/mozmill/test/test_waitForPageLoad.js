@@ -10,8 +10,7 @@ const LOCATIONS = [
   // Error pages
  {url : "https://mur.at", type: "id", value : "cert_domain_link"},
  {url : "http://www.mozilla.com/firefox/its-a-trap.html", type: "id", value : "ignoreWarningButton"},
- {url : "https://mozilla.org/", type: "id", value : "getMeOutOfHereButton"},
- {url : "http://people.mozilla.org/~ctalbert/testpages/iframetest.html", type: "id", value: "iframe"}
+ {url : "https://mozilla.org/", type: "id", value : "getMeOutOfHereButton"}
 ];
 
 
@@ -127,19 +126,26 @@ var testWaitForPageLoad = function() {
   controller.assertNode(element);
 
   /**
-   * PART VII - Loading an embedded web page (discovery pane)
+   * PART VII - Loading an iFrame
    */
-  controller.open("about:addons");
+
+  // Load the container page
+  var page = collector.addHttpResource('./files/') + "iframe.html";
+  controller.open(page);
   controller.waitForPageLoad();
 
-  var browser = new elementslib.ID(controller.tabs.activeTab, "discover-browser");
-  var doc = browser.getNode().contentDocument;
+  // Get trigger element and the controller for the iFrame
+  var trigger = new elementslib.Selector(controller.tabs.activeTab, "#load");
+  var frame = new elementslib.Selector(controller.tabs.activeTab, "#iframe");
+  var frameWindow = frame.getNode().contentWindow;
+  var frameController = new mozmill.controller.MozMillController(frameWindow);
 
-  // Before the real discovery pane gets loaded a blank page is shown
-  controller.waitForPageLoad(doc, 1000);
-  controller.assert(function () {
-    return doc.location.href === "about:blank";
-  }, "Initial page has been loaded, got '" + doc.location +
-     "' - expected 'about:blank'.");
+  // Trigger the loading of the iframe from the main controller
+  controller.click(trigger);
+  controller.waitForPageLoad(frameController.window.document);
+
+  // Once the iframe has been loaded assert that the element exists
+  var home = new elementslib.Selector(frameController.window.document, "#home");
+  frameController.assertNode(home);
 }
 
