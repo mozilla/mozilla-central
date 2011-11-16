@@ -1063,7 +1063,8 @@ var genericPhotoHandler = {
   onSave: function(aCard, aDocument) {
     // If we had the photo saved locally, clear it.
     removePhoto(aCard.getProperty("PhotoName", null));
-    aCard.setProperty("PhotoName", null);
+    aCard.setProperty("PhotoName", "");
+    aCard.setProperty("PhotoURI", "");
     aCard.setProperty("PhotoType", "generic");
     return true;
   }
