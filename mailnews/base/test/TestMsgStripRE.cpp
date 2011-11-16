@@ -96,14 +96,14 @@ int main(int argc, char** argv)
   nsCOMPtr<nsISupportsString> rePrefixes = 
     do_CreateInstance("@mozilla.org/supports-string;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  
-  // portable C++ expression of "SV,ÆØÅ" 
-  static const char utf8Prefixes[] = 
-    {'S', 'V', ',', 0303, 0206, 0303, 0230, 0303, 0205, '\0'}; 
-  
+
+  // portable C++ expression of "SV,ÆØÅ"
+  static const unsigned char utf8Prefixes[] =
+    {'S', 'V', ',', 0303, 0206, 0303, 0230, 0303, 0205, '\0'};
+
   rv = rePrefixes->SetData(NS_ConvertUTF8toUTF16(utf8Prefixes));
   NS_ENSURE_SUCCESS(rv, rv);
-  
+
   // set localizedRe pref
   rv = prefBranch->SetComplexValue("mailnews.localizedRe", 
                                    NS_GET_IID(nsISupportsString), rePrefixes);
