@@ -945,10 +945,10 @@ var gFeedSubscriptionsWindow = {
 
   importOPML: function()
   {
-    var rv = pickOpen(this.mBundle.getString("subscribe-OPMLImportTitle"), '$xml $opml $all');
+    var rv = pickOpen(this.mBundle.getString("subscribe-OPMLImportTitle"), '$opml $xml $all');
     if(rv.reason == PICK_CANCEL)
       return;
-    
+
     var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(IPS);
     var stream = Components.classes["@mozilla.org/network/file-input-stream;1"].createInstance(Components.interfaces.nsIFileInputStream);
     var opmlDom = null;
