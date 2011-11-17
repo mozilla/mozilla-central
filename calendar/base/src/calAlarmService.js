@@ -133,6 +133,7 @@ function calAlarmService() {
 }
 
 calAlarmService.prototype = {
+    mRangeStart: null,
     mRangeEnd: null,
     mUpdateTimer: null,
     mStarted: false,
@@ -289,6 +290,7 @@ calAlarmService.prototype = {
                     // for a month, they'll miss some, but that's a slim chance
                     start = now.clone();
                     start.month -= 1;
+                    this.alarmService.mRangeStart = start.clone();
                 } else {
                     // This is a subsequent search, so we got all the past alarms before
                     start = this.alarmService.mRangeEnd.clone();
@@ -447,11 +449,12 @@ calAlarmService.prototype = {
 
     getOccurrencesInRange: function cAS_getOccurrencesInRange(aItem) {
         if (aItem && aItem.recurrenceInfo) {
-            let start = this.mRangeEnd.clone();
             // We search 1 month in each direction for alarms.  Therefore,
-            // we need to go back 2 months from the end to get this right.
-            start.month -= 2;
-            return aItem.recurrenceInfo.getOccurrences(start, this.mRangeEnd, 0, {});
+            // we need occurrences between initial start date and 1 month from now
+            let until = nowUTC();
+            until.month += 1;
+
+            return aItem.recurrenceInfo.getOccurrences(this.mRangeStart, until, 0, {});
         } else {
             return [aItem];
         }
