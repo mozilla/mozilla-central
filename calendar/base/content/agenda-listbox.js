@@ -818,7 +818,7 @@ function removeListItems() {
                 leaveloop = true;
             }
             if (this.isEventListItem(listItem)) {
-                if (!listItem.isSameNode(this.agendaListboxControl.firstChild)) {
+                if (listItem != this.agendaListboxControl.firstChild) {
                     this.agendaListboxControl.removeChild(listItem);
                 } else {
                     leaveloop = true;
