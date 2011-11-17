@@ -163,3 +163,16 @@ tabpanels {
 #tagList:focus > listitem[selected="true"] {
   color: HighlightText !important;
 }
+
+/* Quota meter in Folder Properties */
+
+#quotaPercentageBar {
+  -moz-appearance: none;
+  border: 1px solid #8B8B8B;
+}
+
+#quotaPercentageBar > .progress-bar {
+  -moz-appearance: none;
+  background-color: #88AAFF;
+  opacity: .5;
+}
