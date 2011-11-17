@@ -905,7 +905,7 @@ bool CMapiMessage::CopyMsgAttachToFile(LPATTACH lpAttach, /*out*/ nsILocalFile *
   if (NS_FAILED(rv)) {
     (*tmp_file)->Remove(PR_FALSE);
     (*tmp_file)->Release();
-    tmp_file = 0;
+    *tmp_file = 0;
   }
 
   return NS_SUCCEEDED(rv);

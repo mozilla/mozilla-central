@@ -808,11 +808,12 @@ public:
       return false;
     if (m_matchPos >= m_termSize) // check past success!
       m_matchPos = 0;
+    if (m_term[m_matchPos] != c) // Reset sequence
+      m_matchPos = 0;
     if (m_term[m_matchPos] == c) { // Sequence continues
       return (++m_matchPos == m_termSize); // If equal then sequence complete!
     }
     // Sequence broken
-    m_matchPos = 0;
     return false;
   }
 private:
