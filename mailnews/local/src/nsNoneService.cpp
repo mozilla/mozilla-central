@@ -192,12 +192,3 @@ nsNoneService::GetShowComposeMsgLink(bool *showComposeMsgLink)
     *showComposeMsgLink = PR_FALSE;    
     return NS_OK;
 }
-
-NS_IMETHODIMP
-nsNoneService::GetSpecialFoldersDeletionAllowed(bool *specialFoldersDeletionAllowed)
-{
-    NS_ENSURE_ARG_POINTER(specialFoldersDeletionAllowed);
-    *specialFoldersDeletionAllowed = PR_TRUE;
-    return NS_OK;
-}
-

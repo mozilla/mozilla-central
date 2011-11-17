@@ -1388,11 +1388,11 @@ NS_IMETHODIMP nsMsgLocalMailFolder::GetDeletable(bool *deletable)
 
   bool isServer;
   GetIsServer(&isServer);
-  *deletable = !(isServer || mFlags & nsMsgFolderFlags::Inbox ||
-    mFlags & nsMsgFolderFlags::Drafts ||
-    mFlags & nsMsgFolderFlags::Trash ||
-    mFlags & nsMsgFolderFlags::Templates ||
-    mFlags & nsMsgFolderFlags::Junk);
+  *deletable = !(isServer || (mFlags & (nsMsgFolderFlags::Inbox |
+    nsMsgFolderFlags::Drafts | nsMsgFolderFlags::Templates |
+    nsMsgFolderFlags::SentMail | nsMsgFolderFlags::Archive |
+    nsMsgFolderFlags::Junk | nsMsgFolderFlags::Trash |
+    nsMsgFolderFlags::Queue)));
   return NS_OK;
 }
 

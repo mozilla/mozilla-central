@@ -3008,13 +3008,6 @@ NS_IMETHODIMP nsImapService::GetShowComposeMsgLink(bool *showComposeMsgLink)
   NS_ENSURE_ARG_POINTER(showComposeMsgLink);
   *showComposeMsgLink = PR_TRUE;
   return NS_OK;
-}        
-
-NS_IMETHODIMP nsImapService::GetSpecialFoldersDeletionAllowed(bool *specialFoldersDeletionAllowed)
-{
-  NS_ENSURE_ARG_POINTER(specialFoldersDeletionAllowed);
-  *specialFoldersDeletionAllowed = PR_FALSE;
-  return NS_OK;
 }
 
 NS_IMETHODIMP nsImapService::GetListOfFoldersWithPath(nsIImapIncomingServer *aServer, 

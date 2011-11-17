@@ -45,7 +45,7 @@ interface nsILocalFile;
 %}
 
 
-[scriptable, uuid(035fd631-e751-46af-9bbd-a660b930c288)]
+[scriptable, uuid(9428b5f5-8b12-493c-aae2-18296c2877b0)]
 interface nsIMsgProtocolInfo : nsISupports
 {
     /**
@@ -122,10 +122,5 @@ interface nsIMsgProtocolInfo : nsISupports
      * do we need to show compose message link in the AccountCentral page ? 
      */
     readonly attribute boolean showComposeMsgLink;
-
-    /**
-     * do we allow special folder deletion ?
-     */
-    readonly attribute boolean specialFoldersDeletionAllowed;
 };
 

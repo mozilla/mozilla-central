@@ -1429,14 +1429,6 @@ nsNntpService::GetShowComposeMsgLink(bool *showComposeMsgLink)
     return NS_OK;
 }
 
-NS_IMETHODIMP
-nsNntpService::GetSpecialFoldersDeletionAllowed(bool *specialFoldersDeletionAllowed)
-{
-    NS_ENSURE_ARG_POINTER(specialFoldersDeletionAllowed);
-    *specialFoldersDeletionAllowed = PR_FALSE;
-    return NS_OK;
-}
-
 //
 // rhp: Right now, this is the same as simple DisplayMessage, but it will change
 // to support print rendering.

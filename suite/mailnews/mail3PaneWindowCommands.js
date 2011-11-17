@@ -964,29 +964,18 @@ function MsgDeleteFolder()
                 folder.parent.deleteSubFolders(array, msgWindow);
                 continue;
             }
-            var protocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + selectedFolder.server.type].getService(Components.interfaces.nsIMsgProtocolInfo);
 
-            // do not allow deletion of special folders on imap accounts
-            if ((specialFolder == "Sent" || 
-                specialFolder == "Drafts" || 
-                specialFolder == "Templates" ||
-                (specialFolder == "Junk" && !CanRenameDeleteJunkMail(GetSelectedFolderURI()))) &&
-                !protocolInfo.specialFoldersDeletionAllowed)
-            {
-                var errorMessage = gMessengerBundle.getFormattedString("specialFolderDeletionErr",
-                                                    [specialFolder]);
-                var specialFolderDeletionErrTitle = gMessengerBundle.getString("specialFolderDeletionErrTitle");
-                prompt.alert(window, specialFolderDeletionErrTitle, errorMessage);
-                continue;
-            }   
-            else if (isNewsURI(selectedFolder.URI))
+            if (isNewsURI(selectedFolder.URI))
             {
                 var unsubscribe = ConfirmUnsubscribe(selectedFolder);
                 if (unsubscribe)
                     UnSubscribe(selectedFolder);
             }
-            else
+            else if (specialFolder == "Junk" ?
+                     CanRenameDeleteJunkMail(folder.URI) : folder.deletable)
             {
+                // We can delete this folder.
+
                 var array = Components.classes["@mozilla.org/array;1"]
                                       .createInstance(Components.interfaces.nsIMutableArray);
                 array.appendElement(selectedFolder, false);

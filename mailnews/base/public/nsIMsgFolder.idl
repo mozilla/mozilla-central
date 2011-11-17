@@ -283,15 +283,14 @@ interface nsIMsgFolder : nsISupports {
 
   /**
    * clear new status flag of all of the new messages
-   *
    */
   void clearNewMessages();
 
   readonly attribute unsigned long expungedBytes;
 
   /**
-   * can this folder be deleted?
-   * for example, special folders cannot be deleted
+   * Can this folder be deleted?
+   * For example, special folders and isServer folders cannot be deleted.
    */
   readonly attribute boolean deletable;
 

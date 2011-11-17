@@ -151,8 +151,3 @@ NS_IMETHODIMP nsRssService::GetShowComposeMsgLink(bool *aShowComposeMsgLink)
     *aShowComposeMsgLink = PR_FALSE;    
     return NS_OK;
 }
-
-NS_IMETHODIMP nsRssService::GetSpecialFoldersDeletionAllowed(bool *aSpecialFoldersDeletionAllowed)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}

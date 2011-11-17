@@ -366,6 +366,31 @@ nsImapIncomingServer::SetDeleteModel(PRInt32 ivalue)
     NS_ENSURE_SUCCESS(rv,rv);
     hostSession->SetDeleteIsMoveToTrashForHost(m_serverKey.get(), ivalue == nsMsgImapDeleteModels::MoveToTrash);
     hostSession->SetShowDeletedMessagesForHost(m_serverKey.get(), ivalue == nsMsgImapDeleteModels::IMAPDelete);
+
+    nsAutoString trashFolderName;
+    nsresult rv = GetTrashFolderName(trashFolderName);
+    if (NS_SUCCEEDED(rv))
+    {
+      nsCAutoString trashFolderNameUtf7;
+      rv = CopyUTF16toMUTF7(trashFolderName, trashFolderNameUtf7);
+      if (NS_SUCCEEDED(rv))
+      {
+        nsCOMPtr<nsIMsgFolder> trashFolder;
+        rv = GetFolder(trashFolderNameUtf7, getter_AddRefs(trashFolder));
+        NS_ENSURE_SUCCESS(rv, rv);
+        nsCString trashURI;
+        trashFolder->GetURI(trashURI);
+        GetMsgFolderFromURI(trashFolder, trashURI, getter_AddRefs(trashFolder));
+        if (NS_SUCCEEDED(rv) && trashFolder)
+        {
+           // If the trash folder is used, set the flag, otherwise clear it.
+          if (ivalue == nsMsgImapDeleteModels::MoveToTrash)
+            trashFolder->SetFlag(nsMsgFolderFlags::Trash);
+          else
+            trashFolder->ClearFlag(nsMsgFolderFlags::Trash);
+        }
+      }
+    }
   }
   return rv;
 }

@@ -316,10 +316,9 @@ function FillFolderPaneContextMenu()
 
 function SetupRenameMenuItem(msgFolder, numSelected, isServer, serverType, specialFolder)
 {
-  var isSpecialFolder = !(specialFolder == "none" || (specialFolder == "Junk" && CanRenameDeleteJunkMail(msgFolder.URI))
-                                                  || (specialFolder == "Virtual"));
-  let canRename = msgFolder.canRename;
-  ShowMenuItem("folderPaneContext-rename", (numSelected <= 1) && !isServer && !isSpecialFolder && canRename);
+  var canRename = (specialFolder == "Junk") ?
+                  CanRenameDeleteJunkMail(msgFolder.URI) : msgFolder.canRename;
+  ShowMenuItem("folderPaneContext-rename", (numSelected <= 1) && canRename);
   EnableMenuItem("folderPaneContext-rename", !isServer && msgFolder.isCommandEnabled("cmd_renameFolder"));
 
   if (canRename)
@@ -329,15 +328,15 @@ function SetupRenameMenuItem(msgFolder, numSelected, isServer, serverType, speci
 function SetupRemoveMenuItem(msgFolder, numSelected, isServer, serverType, specialFolder)
 {
   var isMail = serverType != 'nntp';
-  var isSpecialFolder = !(specialFolder == "none" || (specialFolder == "Junk" && CanRenameDeleteJunkMail(msgFolder.URI))
-                                                  || (specialFolder == "Virtual"));
-  //Can't currently delete Accounts or special folders.
-  var showRemove = (numSelected <=1) && (isMail && !isSpecialFolder) && !isServer;
+  var canDelete = (specialFolder == "Junk") ?
+                  CanRenameDeleteJunkMail(msgFolder.URI) : msgFolder.deletable;
+
+  var showRemove = (numSelected <=1) && isMail && canDelete;
 
   ShowMenuItem("folderPaneContext-remove", showRemove);
   if (showRemove)
     EnableMenuItem("folderPaneContext-remove", msgFolder.isCommandEnabled("cmd_delete"));
-  if (isMail && !isSpecialFolder)
+  if (canDelete)
     SetMenuItemLabel("folderPaneContext-remove", gMessengerBundle.getString("removeFolder"));
 }
 

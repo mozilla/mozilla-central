@@ -442,10 +442,9 @@ function fillFolderPaneContextMenu()
 
   // --- Set up the delete folder menu item.
   function checkCanDeleteFolder(folder) {
-    let specialFolder = getSpecialFolderString(folder);
-    return folder.server.type != "nntp" && !folder.isServer &&
-           (specialFolder == "none" || specialFolder == "Virtual" ||
-            (specialFolder == "Junk" && CanRenameDeleteJunkMail(folder.URI)));
+    if (folder.isSpecialFolder(nsMsgFolderFlags.Junk, false))
+      return CanRenameDeleteJunkMail(folder.URI);
+    return folder.deletable;
   }
   var haveOnlyDeletableFolders = folders.every(checkCanDeleteFolder);
   ShowMenuItem("folderPaneContext-remove", haveOnlyDeletableFolders && numSelected == 1);

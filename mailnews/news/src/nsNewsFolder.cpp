@@ -786,7 +786,8 @@ NS_IMETHODIMP nsMsgNewsFolder::GetExpungedBytesCount(PRUint32 *count)
 
 NS_IMETHODIMP nsMsgNewsFolder::GetDeletable(bool *deletable)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  *deletable = false;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::GetRequiresCleanup(bool *requiresCleanup)

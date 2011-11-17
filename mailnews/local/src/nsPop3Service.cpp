@@ -655,14 +655,6 @@ nsPop3Service::GetDefaultServerPort(bool isSecure, PRInt32 *aPort)
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetSpecialFoldersDeletionAllowed(bool *specialFoldersDeletionAllowed)
-{
-    NS_ENSURE_ARG_POINTER(specialFoldersDeletionAllowed);
-    *specialFoldersDeletionAllowed = PR_TRUE;
-    return NS_OK;
-}
-
-NS_IMETHODIMP
 nsPop3Service::NotifyDownloadStarted(nsIMsgFolder *aFolder)
 {
   nsTObserverArray<nsCOMPtr<nsIPop3ServiceListener> >::ForwardIterator
