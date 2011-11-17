@@ -9,7 +9,7 @@ def test(mod, path, entity = None):
 
   # Timezone properties don't have to be translated
   if path == "chrome/calendar/timezones.properties":
-    return False
+    return "report"
 
   # Noun class entries do not have to be translated
   if path == "chrome/calendar/calendar-event-dialog.properties":
