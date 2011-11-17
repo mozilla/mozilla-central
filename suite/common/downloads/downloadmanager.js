@@ -369,7 +369,7 @@ function onUpdateProgress()
   var base = 0;
   var dls = gDownloadManager.activeDownloads;
   while (dls.hasMoreElements()) {
-    var dl = dls.getNext().QueryInterface(Components.interfaces.nsIDownload);
+    var dl = dls.getNext();
     if (dl.percentComplete < 100 && dl.size > 0) {
       mean += dl.amountTransferred;
       base += dl.size;
