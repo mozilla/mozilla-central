@@ -589,14 +589,17 @@ function dateTimeControls2State(aStartDatepicker) {
     var saveEndTime = gEndTime;
     var kDefaultTimezone = calendarDefaultTimezone();
 
-    var menuItem = document.getElementById('options-timezone-menuitem');
+    let timezonesEnabled = document.getElementById('options-timezone-menuitem')
+                           .getAttribute('checked') == 'true';
     if (gStartTime) {
         // jsDate is always in OS timezone, thus we create a calIDateTime
-        // object from the jsDate representation and simply set the new
-        // timezone instead of converting.
-        gStartTime = jsDateToDateTime(
-            getElementValue(startWidgetId),
-            (menuItem.getAttribute('checked') == 'true' || allDay) ? gStartTimezone : kDefaultTimezone);
+        // object from the jsDate representation then we convert the timezone
+        // in order to keep gStartTime in default timezone.
+        gStartTime = jsDateToDateTime(getElementValue(startWidgetId),
+                                      (timezonesEnabled || allDay) ? gStartTimezone : kDefaultTimezone);
+        if (timezonesEnabled || allDay) {
+            gStartTime = gStartTime.getInTimezone(kDefaultTimezone);
+        }
         gStartTime.isDate = allDay;
     }
     if (gEndTime) {
@@ -605,7 +608,6 @@ function dateTimeControls2State(aStartDatepicker) {
             gEndTime = gStartTime.clone();
             if (gItemDuration) {
                 gEndTime.addDuration(gItemDuration);
-                gEndTime = gEndTime.getInTimezone(gEndTimezone);
             }
         } else {
             let timezone = gEndTimezone;
@@ -614,9 +616,12 @@ function dateTimeControls2State(aStartDatepicker) {
                     timezone = gStartTimezone;
                 }
             }
-            gEndTime = jsDateToDateTime(
-                getElementValue(endWidgetId),
-                (menuItem.getAttribute('checked') == 'true' || allDay) ? timezone : kDefaultTimezone);
+            gEndTime = jsDateToDateTime(getElementValue(endWidgetId),
+                                        (timezonesEnabled || allDay) ? timezone : kDefaultTimezone);
+            if (timezonesEnabled || allDay) {
+                gEndTime = gEndTime.getInTimezone(kDefaultTimezone);
+            }
+
             gEndTime.isDate = allDay;
             if (keepAttribute && gItemDuration) {
                 // Keepduration-button links the the Start to the End date. We
@@ -625,7 +630,6 @@ function dateTimeControls2State(aStartDatepicker) {
                 fduration.isNegative = true;
                 gStartTime = gEndTime.clone();
                 gStartTime.addDuration(fduration);
-                gStartTime = gStartTime.getInTimezone(gStartTimezone);
             }
         }
     }
@@ -1142,8 +1146,12 @@ function updateAccept() {
     return enableAccept;
 }
 
+// Global variables used to restore start and end date-time when changing the
+// "all day" status in the onUpdateAllday() function.
 var gOldStartTime = null;
 var gOldEndTime = null;
+var gOldStartTimezone = null;
+var gOldEndTimezone = null;
 
 /**
  * Handler function to update controls in consequence of the "all day" checkbox
@@ -1154,11 +1162,15 @@ function onUpdateAllDay() {
         return;
     }
     let allDay = getElementValue("event-all-day", "checked");
+    let kDefaultTimezone = calendarDefaultTimezone();
 
-    // Store/restore datetimes when "All day" checkbox changes status.
     if (allDay) {
+        // Store date-times and related timezones so we can restore
+        // if the user unchecks the "all day" checkbox.
         gOldStartTime = gStartTime.clone();
         gOldEndTime = gEndTime.clone();
+        gOldStartTimezone = gStartTimezone;
+        gOldEndTimezone = gEndTimezone;
         // When events that end at 0:00 become all-day events, we need to
         // subtract a day from the end date because the real end is midnight.
         if (gEndTime.hour == 0 && gEndTime.minute == 0) {
@@ -1172,45 +1184,32 @@ function onUpdateAllDay() {
             }
         }
     } else {
-        if (gStartTime.isDate || gEndTime.isDate) {
-            if (!gOldStartTime && !gOldEndTime) {
-                // Checkbox "all day" has been unchecked for the first time.
-                gOldStartTime = gStartTime.clone();
-                gOldStartTime.isDate = false;
-                gOldStartTime.hour = getDefaultStartDate(window.initialStartDateValue).hour;
-                gOldEndTime = gEndTime.clone();
-                gOldEndTime.isDate = false;
-                gOldEndTime.hour = gOldStartTime.hour;
-                gOldEndTime.minute += getPrefSafe("calendar.event.defaultlength", 60);
-            } else if (gOldStartTime != gStartTime || gOldEndTime != gEndTime) {
-                // Checkbox "all day" has been unchecked after a date change.
-                let startTimeHour = gOldStartTime.hour;
-                let startTimeMinute = gOldStartTime.minute;
-                let endTimeHour = gOldEndTime.hour;
-                let endTimeMinute = gOldEndTime.minute;
-                gOldStartTime = gStartTime.clone();
-                gOldStartTime.isDate = false;
-                gOldStartTime.hour = startTimeHour;
-                gOldStartTime.minute = startTimeMinute;
-                gOldEndTime = gEndTime.clone();
-                gOldEndTime.isDate = false;
-                gOldEndTime.hour = endTimeHour;
-                gOldEndTime.minute = endTimeMinute;
-                // When we restore 0:00 as end time, we need to add one day to
-                // the end date in order to include the last day until midnight.
-                if (endTimeHour == 0 && endTimeMinute == 0) {
-                    gOldEndTime.day++;
-                }
+        gStartTime.isDate = false;
+        gEndTime.isDate = false;
+        if (!gOldStartTime && !gOldEndTime) {
+            // The checkbox has been unchecked for the first time, the event
+            // was an "All day" type, so we have to set default values.
+            gStartTime.hour = getDefaultStartDate(window.initialStartDateValue).hour;
+            gEndTime.hour = gStartTime.hour;
+            gEndTime.minute += getPrefSafe("calendar.event.defaultlength", 60);
+            gOldStartTimezone = kDefaultTimezone;
+            gOldEndTimezone = kDefaultTimezone;
+        } else {
+            // Restore date-times previously stored.
+            gStartTime.hour = gOldStartTime.hour;
+            gStartTime.minute = gOldStartTime.minute;
+            gEndTime.hour = gOldEndTime.hour;
+            gEndTime.minute = gOldEndTime.minute;
+            // When we restore 0:00 as end time, we need to add one day to
+            // the end date in order to include the last day until midnight.
+            if (gEndTime.hour == 0 && gEndTime.minute == 0) {
+                gEndTime.day++;
             }
         }
-        gStartTime = gOldStartTime.clone();
-        gEndTime = gOldEndTime.clone();
     }
+    gStartTimezone = (allDay ? cal.floating() : gOldStartTimezone);
+    gEndTimezone = (allDay ? cal.floating() : gOldEndTimezone);
 
-    gStartTimezone = (allDay ? floating(): calendarDefaultTimezone());
-    gEndTimezone = gStartTimezone;
-    gStartTime.timezone = gStartTimezone;
-    gEndTime.timezone = gEndTimezone;
     updateAllDay();
 }
 
