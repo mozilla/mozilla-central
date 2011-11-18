@@ -449,3 +449,23 @@ function test_attachments_compose_menu() {
 
   close_compose_window(cwc);
 }
+
+function test_delete_from_toolbar() {
+  be_in_folder(folder);
+
+  // First, select the message with two attachments.
+  select_none();
+  select_click_row(3);
+
+  // Expand the attachment list.
+  mc.click(mc.eid("attachmentToggle"));
+
+  let firstAttachment = new elib.Elem(mc.e("attachmentList").firstChild);
+  mc.click(firstAttachment, 5, 5);
+
+  // Make sure clicking the "Delete" toolbar button with an attachment focused
+  // deletes the *message*.
+  plan_to_wait_for_folder_events("DeleteOrMoveMsgCompleted");
+  mc.click(mc.eid("hdrTrashButton"));
+  wait_for_folder_events();
+}

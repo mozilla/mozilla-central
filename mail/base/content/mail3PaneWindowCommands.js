@@ -48,6 +48,7 @@ var FolderPaneController =
       case "cmd_delete":
       case "cmd_shiftDelete":
       case "button_delete":
+      case "button_shiftDelete":
         // Even if the folder pane has focus, don't do a folder delete if
         // we have a selected message, but do a message delete instead.
         // Return false here supportsCommand and let the command fall back
@@ -76,6 +77,7 @@ var FolderPaneController =
       case "cmd_delete":
       case "cmd_shiftDelete":
       case "button_delete":
+      case "button_shiftDelete":
       {
         // Make sure the button doesn't show "Undelete" for folders.
         UpdateDeleteToolbarButton();
@@ -104,6 +106,7 @@ var FolderPaneController =
       case "cmd_delete":
       case "cmd_shiftDelete":
       case "button_delete":
+      case "button_shiftDelete":
       case "cmd_deleteFolder":
         gFolderTreeController.deleteFolder();
         break;
@@ -158,6 +161,7 @@ var DefaultController =
       case "button_delete":
       case "button_junk":
       case "cmd_shiftDelete":
+      case "button_shiftDelete":
       case "cmd_nextMsg":
       case "button_next":
       case "button_previous":
@@ -284,6 +288,7 @@ var DefaultController =
         UpdateDeleteToolbarButton();
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.deleteMsg);
       case "cmd_shiftDelete":
+      case "button_shiftDelete":
         return gFolderDisplay.getCommandStatus(nsMsgViewCommandType.deleteNoTrash);
       case "cmd_cancel": {
         let selectedMessages = gFolderDisplay.selectedMessages;
@@ -655,6 +660,7 @@ var DefaultController =
         message.folder.QueryInterface(Components.interfaces.nsIMsgNewsFolder)
                       .cancelMessage(message, msgWindow);
         break;
+      case "button_shiftDelete":
       case "cmd_shiftDelete":
         MarkSelectedMessagesRead(true);
         gFolderDisplay.hintAboutToDeleteMessages();

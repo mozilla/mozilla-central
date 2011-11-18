@@ -209,8 +209,8 @@
                              tooltiptext="&hdrTrashButton1.tooltip;"
                              observes="button_delete"
                              class="toolbarbutton-1 msgHeaderView-button hdrTrashButton"
-                             oncommand="goDoCommand(event.shiftKey ? 'cmd_shiftDelete' :
-                                                    'cmd_delete');RestoreFocusAfterHdrButton();"/>
+                             oncommand="goDoCommand(event.shiftKey ? 'button_shiftDelete' :
+                                                    'button_delete');RestoreFocusAfterHdrButton();"/>
               <toolbarbutton id="hdrReplyToSenderButton" label="&hdrReplyButton1.label;"
                              tooltiptext="&hdrReplyButton1.tooltip;"
                              oncommand="MsgReplyMessage(event);RestoreFocusAfterHdrButton();"
