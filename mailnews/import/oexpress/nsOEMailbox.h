@@ -40,7 +40,7 @@
 
 #include "nscore.h"
 #include "prtypes.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIFile.h"
 
 class CImportMailbox {

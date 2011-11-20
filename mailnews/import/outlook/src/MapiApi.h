@@ -38,7 +38,7 @@
 #define MapiApi_h___
 
 #include "nscore.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsVoidArray.h"
 
 #include <stdio.h>

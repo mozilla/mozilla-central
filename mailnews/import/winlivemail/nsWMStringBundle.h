@@ -37,7 +37,7 @@
 #ifndef _nsWMStringBundle_H__
 #define _nsWMStringBundle_H__
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsIStringBundle;
 

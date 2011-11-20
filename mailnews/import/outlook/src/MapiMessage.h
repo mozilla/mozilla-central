@@ -38,7 +38,7 @@
 #define MapiMessage_h___
 
 #include "nsTArray.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsILocalFile.h"
 #include "MapiApi.h"
 #include "nsIMsgSend.h"

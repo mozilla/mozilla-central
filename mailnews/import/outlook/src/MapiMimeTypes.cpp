@@ -36,7 +36,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nscore.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "MapiMimeTypes.h"
 
 PRUint8 CMimeTypes::m_mimeBuffer[kMaxMimeTypeSize];

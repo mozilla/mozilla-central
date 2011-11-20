@@ -45,7 +45,7 @@
 
 #include "nscore.h"
 #include <time.h>
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsMsgUtils.h"
 #include "nsMimeTypes.h"

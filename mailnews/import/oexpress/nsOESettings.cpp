@@ -44,7 +44,7 @@
 
 #include "nsCOMPtr.h"
 #include "nscore.h"
-#include "nsReadableUtils.h"
+#include "nsMsgUtils.h"
 #include "nsOEImport.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"

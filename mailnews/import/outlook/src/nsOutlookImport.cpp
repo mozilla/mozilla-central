@@ -45,8 +45,8 @@
 #endif
 
 #include "nscore.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
+#include "nsMsgUtils.h"
 #include "nsIServiceManager.h"
 #include "nsIImportService.h"
 #include "nsIComponentManager.h"

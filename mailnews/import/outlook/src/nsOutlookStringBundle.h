@@ -38,7 +38,7 @@
 #define _nsOutlookStringBundle_H__
 
 #include "nsCRTGlue.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsIStringBundle;
 

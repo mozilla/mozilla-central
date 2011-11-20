@@ -39,7 +39,7 @@
 #define nsOutlookMail_h___
 
 #include "nsISupportsArray.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsVoidArray.h"
 #include "nsOutlookCompose.h"
 #include "nsIFile.h"

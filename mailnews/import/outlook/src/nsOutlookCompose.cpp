@@ -38,8 +38,8 @@
 
 #include "nscore.h"
 #include "prthread.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
+#include "nsMsgUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsCOMPtr.h"
 #include "nsIFile.h"

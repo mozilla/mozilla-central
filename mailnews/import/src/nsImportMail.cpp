@@ -59,6 +59,7 @@
 #include "nsStringGlue.h"
 #include "nsUnicharUtils.h"
 
+#include "nsMsgUtils.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
 #include "nsIMsgFolder.h"

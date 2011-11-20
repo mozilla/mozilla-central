@@ -42,12 +42,12 @@
 
 #include "nsCOMPtr.h"
 #include "nscore.h"
+#include "nsMsgUtils.h"
 #include "nsIServiceManager.h"
 #include "nsIImportService.h"
 #include "nsIImportFieldMap.h"
 #include "nsIImportMailboxDescriptor.h"
 #include "nsIImportABDescriptor.h"
-#include "nsReadableUtils.h"
 #include "nsOutlookStringBundle.h"
 #include "nsABBaseCID.h"
 #include "nsIAbCard.h"

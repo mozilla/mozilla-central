@@ -40,7 +40,7 @@
 #define nsOutlookCompose_h__
 
 #include "nscore.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIFile.h"
 #include "nsVoidArray.h"
 #include "nsIImportService.h"

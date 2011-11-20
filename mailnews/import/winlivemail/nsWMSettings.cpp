@@ -45,6 +45,7 @@
 #include "nsCOMPtr.h"
 #include "nscore.h"
 #include "nsStringGlue.h"
+#include "nsMsgUtils.h"
 #include "nsWMImport.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
@@ -380,7 +381,7 @@ bool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
                                 nsIMsgAccount **ppAccount)
 {
   PRInt32 authMethod;   // Secure Password Authentication (SPA)
-  PRInt32 errorCode;
+  nsresult errorCode;
   if (ppAccount)
     *ppAccount = nsnull;
 
@@ -479,7 +480,7 @@ bool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
                                 nsIMsgAccount **ppAccount)
 {
   PRInt32 authMethod;   // Secure Password Authentication (SPA)
-  PRInt32 errorCode;
+  nsresult errorCode;
   if (ppAccount)
     *ppAccount = nsnull;
 
@@ -621,7 +622,7 @@ bool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
                                 nsIMsgAccount **ppAccount)
 {
   PRInt32 authMethod;
-  PRInt32 errorCode;
+  nsresult errorCode;
   if (ppAccount)
     *ppAccount = nsnull;
 
@@ -760,7 +761,7 @@ void WMSettings::SetIdentities(nsIMsgAccountManager *pMgr, nsIMsgAccount *pAcc,
 void WMSettings::SetSmtpServer(nsIDOMDocument *xmlDoc, nsIMsgIdentity *id,
                                nsAutoString& inUserName, PRInt32 authMethodIncoming)
 {
-  PRInt32 errorCode;
+  nsresult errorCode;
 
   // set the id.smtpserver accordingly
   if (!id)

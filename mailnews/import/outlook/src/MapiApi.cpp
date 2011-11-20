@@ -42,7 +42,8 @@
 #include "rtfMailDecoder.h"
 
 #include "prprf.h"
-#include "nsReadableUtils.h"
+#include "nsMemory.h"
+#include "nsMsgUtils.h"
 #include "nsUnicharUtils.h"
 
 int      CMapiApi::m_clients = 0;

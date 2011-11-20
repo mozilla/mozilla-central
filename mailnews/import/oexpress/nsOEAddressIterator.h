@@ -41,7 +41,7 @@
 #include "WabObject.h"
 #include "nsIAddrDatabase.h"
 #include "mdb.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsInterfaceHashtable.h"
 
 class nsOEAddressIterator : public CWabIterator {

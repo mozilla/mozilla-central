@@ -39,7 +39,7 @@
 #define nsOEScanBoxes_h___
 
 #include "prtypes.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIImportModule.h"
 #include "nsVoidArray.h"
 #include "nsISupportsArray.h"

@@ -35,6 +35,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 #include "nsOEScanBoxes.h"
+#include "nsMsgUtils.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsIImportService.h"
