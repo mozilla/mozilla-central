@@ -85,6 +85,8 @@
 #include "nsIWindowWatcher.h"
 #include "nsICommandLine.h"
 #include "nsIMsgMailNewsUrl.h"
+#include "nsIMsgMailSession.h"
+#include "nsISupportsPrimitives.h"
 
 #undef GetPort  // XXX Windows!
 #undef SetPort  // XXX Windows!
@@ -1045,79 +1047,42 @@ nsNntpService::GetServerForUri(nsIURI *aUri, nsINntpIncomingServer **aServer)
   // migrate if necessary, before searching for it.
   // if it doesn't exist, create it.
   nsCOMPtr<nsIMsgIncomingServer> server;
-  nsCOMPtr<nsINntpIncomingServer> nntpServer;
 
-  nsCOMPtr <nsISupportsArray> accounts;
-  rv = accountManager->GetAccounts(getter_AddRefs(accounts));
-  if (NS_FAILED(rv)) return rv;
+  // Grab all servers for if this is a no-authority URL. This also loads
+  // accounts if they haven't been loaded, i.e., we're running this straight
+  // from the command line
+  nsCOMPtr <nsISupportsArray> servers;
+  rv = accountManager->GetAllServers(getter_AddRefs(servers));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  // news:group becomes news://group, so we have three types of urls:
-  // news://group       (autosubscribing without a host)
-  // news://host/group  (autosubscribing with a host)
-  // news://host        (updating the unread message counts on a server)
-  //
-  // first, check if hostName is really a server or a group
-  // by looking for a server with hostName
-  //
-  // xxx todo what if we have two servers on the same host, but different ports?
-  // Or no port, but scheme (snews:// vs news://) is different?
-  rv = accountManager->FindServerByURI(aUri, PR_FALSE,
-                                getter_AddRefs(server));
+  nsCOMPtr<nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(aUri, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  if (!server)
+  rv = mailUrl->GetServer(getter_AddRefs(server));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (!server && !hostName.IsEmpty())
   {
-    // try the "real" settings ("realservername" and "realusername")
-    rv = accountManager->FindServerByURI(aUri, PR_TRUE,
-                                getter_AddRefs(server));
-  }
-
-  // if we didn't find the server, and path was "/", this is a news://group url
-  if (!server && !strcmp("/",path.get()))
-  {
-    // the uri was news://group and we want to turn that into news://host/group
-    // step 1, set the path to be the hostName;
-    rv = aUri->SetPath(hostName);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    // until we support default news servers, use the first nntp server we find
-    rv = accountManager->FindServerByURI(aUri, PR_FALSE, getter_AddRefs(server));
-    if (NS_FAILED(rv) || !server)
-    {
-        // step 2, set the uri's hostName and the local variable hostName
-        // to be "news"
-        rv = aUri->SetHost(NS_LITERAL_CSTRING("news"));
-        NS_ENSURE_SUCCESS(rv,rv);
-
-        rv = aUri->GetAsciiHost(hostName);
-        NS_ENSURE_SUCCESS(rv,rv);
-    }
-    else
-    {
-        // step 2, set the uri's hostName and the local variable hostName
-        // to be the host name of the server we found
-        rv = server->GetHostName(hostName);
-        NS_ENSURE_SUCCESS(rv,rv);
-
-        rv = aUri->SetHost(hostName);
-        NS_ENSURE_SUCCESS(rv,rv);
-    }
-  }
-
-  if (NS_FAILED(rv) || !server)
-  {
+    // If we don't have this server but it isn't no-auth, add it.
+    // Ideally, we should remove this account quickly (see bug 41133)
     bool useSSL = false;
-    if (PL_strcasecmp("snews", scheme.get()) == 0)
+    if (scheme.EqualsLiteral("snews") || scheme.EqualsLiteral("nntps"))
     {
       useSSL = PR_TRUE;
       if ((port == 0) || (port == -1))
           port = nsINntpUrl::DEFAULT_NNTPS_PORT;
     }
     rv = CreateNewsAccount(hostName.get(), useSSL, port, getter_AddRefs(server));
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  if (NS_FAILED(rv)) return rv;
+  if (!server && hostName.IsEmpty())
+    // XXX: Until we support no-auth uris, bail
+    return NS_ERROR_FAILURE;
+
   if (!server) return NS_ERROR_FAILURE;
 
+  nsCOMPtr<nsINntpIncomingServer> nntpServer;
   nntpServer = do_QueryInterface(server, &rv);
 
   if (!nntpServer || NS_FAILED(rv))
@@ -1748,42 +1713,58 @@ nsNntpService::HandleContent(const char * aContentType, nsIInterfaceRequestor* a
     nsCOMPtr<nsIURI> uri;
     rv = aChannel->GetURI(getter_AddRefs(uri));
     NS_ENSURE_SUCCESS(rv, rv);
-    if (uri)
+
+    nsCOMPtr<nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(uri);
+    if (mailUrl)
     {
-      nsCString uriStr;
-      rv = uri->GetSpec(uriStr);
+      nsCOMPtr<nsIMsgFolder> msgFolder;
+      rv = mailUrl->GetFolder(getter_AddRefs(msgFolder));
       NS_ENSURE_SUCCESS(rv, rv);
 
-      PRInt32 cutChar = uriStr.FindChar('?');
-      if (cutChar > 0)
-        uriStr.SetLength(cutChar);
+      // No folder means we can't handle this
+      if (!msgFolder)
+        return NS_ERROR_WONT_HANDLE_CONTENT;
 
-      // Try to get a valid folder...
-      nsCOMPtr <nsIMsgFolder> msgFolder;
-      GetFolderFromUri(uriStr.get(), getter_AddRefs(msgFolder));
-
-      // ... and only go on if we have a valid URI (i.e., valid folder)
-      if (msgFolder)
+      nsCString folderURL;
+      rv = msgFolder->GetURI(folderURL);
+      NS_ENSURE_SUCCESS(rv, rv);
+      
+      nsCOMPtr<nsIMsgWindow> msgWindow;
+      mailUrl->GetMsgWindow(getter_AddRefs(msgWindow));
+      if (!msgWindow)
       {
-        nsCOMPtr <nsIURI> originalUri;
-        aChannel->GetOriginalURI(getter_AddRefs(originalUri));
-        if (originalUri)
+        // This came from a docshell that didn't set msgWindow, so find one
+        nsCOMPtr<nsIMsgMailSession> mailSession =
+          do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+
+        mailSession->GetTopmostMsgWindow(getter_AddRefs(msgWindow));
+
+        if (!msgWindow)
         {
-          nsCOMPtr <nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(originalUri);
-          if (mailUrl)
-          {
-            nsCOMPtr <nsIMsgWindow> msgWindow;
-            mailUrl->GetMsgWindow(getter_AddRefs(msgWindow));
-            if (msgWindow)
-            {
-              nsCOMPtr <nsIMsgWindowCommands> windowCommands;
-              msgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
-              if (windowCommands)
-                windowCommands->SelectFolder(uriStr);
-            }
-          }
+          // We need to create a 3-pane window, then
+          nsCOMPtr<nsIWindowWatcher> wwatcher =
+            do_GetService(NS_WINDOWWATCHER_CONTRACTID, &rv);
+          NS_ENSURE_SUCCESS(rv, rv);
+
+          nsCOMPtr<nsISupportsCString> arg =
+            do_CreateInstance(NS_SUPPORTS_CSTRING_CONTRACTID);
+          arg->SetData(folderURL);
+
+          nsCOMPtr<nsIDOMWindow> newWindow;
+          rv = wwatcher->OpenWindow(nsnull, "chrome://messenger/content/",
+            "_blank", "chome,all,dialog=no", arg, getter_AddRefs(newWindow));
+          NS_ENSURE_SUCCESS(rv, rv);
         }
       }
+      if (msgWindow)
+      {
+        nsCOMPtr<nsIMsgWindowCommands> windowCommands;
+        msgWindow->GetWindowCommands(getter_AddRefs(windowCommands));
+        if (windowCommands)
+          windowCommands->SelectFolder(folderURL);
+      }
+      request->Cancel(NS_BINDING_ABORTED);
     }
   } else // The content-type was not x-application-newsgroup.
     rv = NS_ERROR_WONT_HANDLE_CONTENT;

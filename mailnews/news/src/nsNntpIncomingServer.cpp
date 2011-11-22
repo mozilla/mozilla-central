@@ -769,6 +769,17 @@ nsNntpIncomingServer::ContainsNewsgroup(const nsACString &name,
                                         bool *containsGroup)
 {
     if (name.IsEmpty()) return NS_ERROR_FAILURE;
+    if (mSubscribedNewsgroups.Length() == 0)
+    {
+      // If this is empty, we may need to discover folders
+      nsCOMPtr<nsIMsgFolder> rootFolder;
+      GetRootFolder(getter_AddRefs(rootFolder));
+      if (rootFolder)
+      {
+        nsCOMPtr<nsISimpleEnumerator> subfolders;
+        rootFolder->GetSubFolders(getter_AddRefs(subfolders));
+      }
+    }
     nsCAutoString unescapedName;
     MsgUnescapeString(name, 0, unescapedName);
     *containsGroup = mSubscribedNewsgroups.Contains(name);

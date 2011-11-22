@@ -555,6 +555,10 @@ nsresult nsMsgProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
 
         m_request = pump; // keep a reference to the pump so we can cancel it
 
+        // This helps when running URLs from the command line
+        rv = pump->SetLoadGroup(m_loadGroup);
+        NS_ENSURE_SUCCESS(rv, rv);
+
         // put us in a state where we are always notified of incoming data
         rv = pump->AsyncRead(this, urlSupports);
         NS_ASSERTION(NS_SUCCEEDED(rv), "AsyncRead failed");

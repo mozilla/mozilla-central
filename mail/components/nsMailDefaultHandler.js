@@ -156,8 +156,17 @@ function openURI(uri)
 
   var listener = {
     onStartURIOpen: function(uri) { return false; },
-    doContent: function(ctype, preferred, request, handler) { return false; },
-    isPreferred: function(ctype, desired) { return false; },
+    doContent: function(ctype, preferred, request, handler) {
+      var newHandler = Components.classes["@mozilla.org/uriloader/content-handler;1?type=application/x-message-display"]
+                                 .createInstance(Components.interfaces.nsIContentHandler);
+      newHandler.handleContent("application/x-message-display", this, request);
+      return true;
+    },
+    isPreferred: function(ctype, desired) {
+      if (ctype == "message/rfc822")
+        return true;
+      return false;
+    },
     canHandleContent: function(ctype, preferred, desired) { return false; },
     loadCookie: null,
     parentContentListener: null,
