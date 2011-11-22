@@ -252,6 +252,8 @@ nsWindow::Create(nsIWidget *aParent,
 NS_IMETHODIMP
 nsWindow::Destroy(void)
 {
+    nsBaseWidget::mOnDestroyCalled = true;
+
     for (PRUint32 i = 0; i < mChildren.Length(); ++i) {
         // why do we still have children?
         ALOG("### Warning: Destroying window %p and reparenting child %p to null!", (void*)this, (void*)mChildren[i]);
@@ -563,7 +565,10 @@ nsWindow::BringToFront()
         return;
     }
 
+    nsRefPtr<nsWindow> kungFuDeathGrip(this);
+
     nsWindow *oldTop = nsnull;
+    nsWindow *newTop = this;
     if (!gTopLevelWindows.IsEmpty())
         oldTop = gTopLevelWindows[0];
 
@@ -575,11 +580,20 @@ nsWindow::BringToFront()
         DispatchEvent(&event);
     }
 
-    nsGUIEvent event(true, NS_ACTIVATE, this);
+    if (Destroyed()) {
+        // somehow the deactivate event handler destroyed this window.
+        // try to recover by grabbing the next window in line and activating
+        // that instead
+        if (gTopLevelWindows.IsEmpty())
+            return;
+        newTop = gTopLevelWindows[0];
+    }
+
+    nsGUIEvent event(true, NS_ACTIVATE, newTop);
     DispatchEvent(&event);
 
     // force a window resize
-    nsAppShell::gAppShell->ResendLastResizeEvent(this);
+    nsAppShell::gAppShell->ResendLastResizeEvent(newTop);
     nsAppShell::gAppShell->PostEvent(new AndroidGeckoEvent(-1, -1, -1, -1));
 }
 
@@ -902,6 +916,7 @@ nsWindow::DrawTo(gfxASurface *targetSurface)
     if (!mIsVisible)
         return false;
 
+    nsRefPtr<nsWindow> kungFuDeathGrip(this);
     nsEventStatus status;
     nsIntRect boundsRect(0, 0, mBounds.width, mBounds.height);
 
@@ -1134,6 +1149,7 @@ nsWindow::OnSizeChanged(const gfxIntSize& aSize)
 
     ALOG("nsWindow: %p OnSizeChanged [%d %d]", (void*)this, w, h);
 
+    nsRefPtr<nsWindow> kungFuDeathGrip(this);
     nsSizeEvent event(true, NS_SIZE, this);
     InitEvent(event);
 
@@ -1208,6 +1224,7 @@ nsWindow::OnMotionEvent(AndroidGeckoEvent *ae)
             return;
     }
 
+    nsRefPtr<nsWindow> kungFuDeathGrip(this);
     nsIntPoint pt(ae->P0());
     nsIntPoint offset = WidgetToScreenOffset();
 
@@ -1240,6 +1257,8 @@ send_again:
     // XXX add the double-click handling logic here
 
     DispatchEvent(&event);
+    if (Destroyed())
+        return;
 
     if (msg == NS_MOUSE_BUTTON_DOWN) {
         msg = NS_MOUSE_MOVE;
@@ -1289,7 +1308,10 @@ void nsWindow::OnMultitouchEvent(AndroidGeckoEvent *ae)
     }
 
     if (!mGestureFinished) {
+        nsRefPtr<nsWindow> kungFuDeathGrip(this);
         DispatchGestureEvent(msg, 0, pinchDelta, refPoint, ae->Time());
+        if (Destroyed())
+            return;
 
         // If the cumulative pinch delta goes past the threshold, treat this
         // as a pinch only, and not a swipe.
@@ -1316,6 +1338,8 @@ void nsWindow::OnMultitouchEvent(AndroidGeckoEvent *ae)
                 // Finish the pinch gesture, then fire the swipe event:
                 msg = NS_SIMPLE_GESTURE_MAGNIFY;
                 DispatchGestureEvent(msg, 0, pinchDist - mStartDist, refPoint, ae->Time());
+                if (Destroyed())
+                    return;
                 msg = NS_SIMPLE_GESTURE_SWIPE;
                 DispatchGestureEvent(msg, direction, 0, refPoint, ae->Time());
 
@@ -1518,6 +1542,7 @@ nsWindow::InitKeyEvent(nsKeyEvent& event, AndroidGeckoEvent& key)
 void
 nsWindow::HandleSpecialKey(AndroidGeckoEvent *ae)
 {
+    nsRefPtr<nsWindow> kungFuDeathGrip(this);
     nsCOMPtr<nsIAtom> command;
     bool isDown = ae->Action() == AndroidKeyEvent::ACTION_DOWN;
     bool isLongPress = !!(ae->Flags() & AndroidKeyEvent::FLAG_LONG_PRESS);
@@ -1579,6 +1604,7 @@ nsWindow::HandleSpecialKey(AndroidGeckoEvent *ae)
 void
 nsWindow::OnKeyEvent(AndroidGeckoEvent *ae)
 {
+    nsRefPtr<nsWindow> kungFuDeathGrip(this);
     PRUint32 msg;
     switch (ae->Action()) {
     case AndroidKeyEvent::ACTION_DOWN:
@@ -1621,6 +1647,8 @@ nsWindow::OnKeyEvent(AndroidGeckoEvent *ae)
     InitKeyEvent(event, *ae);
     DispatchEvent(&event, status);
 
+    if (Destroyed())
+        return;
     if (!firePress)
         return;
 
@@ -1668,6 +1696,7 @@ nsWindow::OnIMEAddRange(AndroidGeckoEvent *ae)
 void
 nsWindow::OnIMEEvent(AndroidGeckoEvent *ae)
 {
+    nsRefPtr<nsWindow> kungFuDeathGrip(this);
     switch (ae->Action()) {
     case AndroidGeckoEvent::IME_COMPOSITION_END:
         {
@@ -1713,9 +1742,8 @@ nsWindow::OnIMEEvent(AndroidGeckoEvent *ae)
                 compositionUpdate.data = event.theText;
                 mIMELastDispatchedComposingText = event.theText;
                 DispatchEvent(&compositionUpdate);
-                // XXX We must check whether this widget is destroyed or not
-                //     before dispatching next event.  However, Android's
-                //     nsWindow has never checked it...
+                if (Destroyed())
+                    return;
             }
 
             ALOGIME("IME: IME_SET_TEXT: l=%u, r=%u",
@@ -1836,6 +1864,8 @@ nsWindow::ResetInputState()
 
     // Cancel composition on Gecko side
     if (mIMEComposing) {
+        nsRefPtr<nsWindow> kungFuDeathGrip(this);
+
         nsTextEvent textEvent(true, NS_TEXT_TEXT, this);
         InitEvent(textEvent, nsnull);
         textEvent.theText = mIMEComposingText;
@@ -1887,6 +1917,8 @@ nsWindow::CancelIMEComposition()
 
     // Cancel composition on Gecko side
     if (mIMEComposing) {
+        nsRefPtr<nsWindow> kungFuDeathGrip(this);
+
         nsTextEvent textEvent(true, NS_TEXT_TEXT, this);
         InitEvent(textEvent, nsnull);
         DispatchEvent(&textEvent);
@@ -1927,6 +1959,7 @@ nsWindow::OnIMETextChange(PRUint32 aStart, PRUint32 aOldEnd, PRUint32 aNewEnd)
     // The more efficient way would have been passing the substring from index
     // aStart to index aNewEnd
 
+    nsRefPtr<nsWindow> kungFuDeathGrip(this);
     nsQueryContentEvent event(true, NS_QUERY_TEXT_CONTENT, this);
     InitEvent(event, nsnull);
     event.InitForQueryTextContent(0, PR_UINT32_MAX);
@@ -1947,6 +1980,7 @@ nsWindow::OnIMESelectionChange(void)
 {
     ALOGIME("IME: OnIMESelectionChange");
 
+    nsRefPtr<nsWindow> kungFuDeathGrip(this);
     nsQueryContentEvent event(true, NS_QUERY_SELECTED_TEXT, this);
     InitEvent(event, nsnull);
 
