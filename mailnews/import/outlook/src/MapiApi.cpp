@@ -431,6 +431,9 @@ BOOL CGetStoreFoldersIter::ExcludeFolderClass( const PRUnichar *pName)
       bResult = TRUE;
     else if (pNameStr.EqualsLiteral("IPF.Task"))
       bResult = TRUE;
+    // Skip IMAP folders
+    else if (pNameStr.EqualsLiteral("IPF.Imap"))
+      bResult = TRUE;
     // else if (!stricmp( pName, "IPF.Note"))
     //  bResult = TRUE;
   }
