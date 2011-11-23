@@ -45,7 +45,7 @@
 #include "nscore.h"
 #include "nsEudoraSettings.h"
 #include "nsEudoraStringBundle.h"
-
+#include "nsComponentManagerUtils.h"
 #include "EudoraDebugLog.h"
 
 #if defined(XP_WIN) || defined(XP_OS2)

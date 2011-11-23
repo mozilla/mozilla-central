@@ -40,10 +40,9 @@
 #include "prprf.h"
 #include "prmem.h"
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
 #include "nsIStringBundle.h"
 #include "nsEudoraStringBundle.h"
-#include "nsIServiceManager.h"
+#include "nsServiceManagerUtils.h"
 #include "nsIURI.h"
 #include "nsTextFormatter.h"
 

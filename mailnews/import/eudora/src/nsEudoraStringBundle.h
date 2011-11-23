@@ -39,7 +39,7 @@
 #ifndef nsEudoraStringBundle_H__
 #define nsEudoraStringBundle_H__
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 
 class nsIStringBundle;
 

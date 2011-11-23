@@ -41,7 +41,7 @@
 #include "nsIEditorMailSupport.h"
 #include "nsIDOMHTMLImageElement.h"
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIFile.h"
 
 class nsOutlookEditor : public nsIEditor, public nsIEditorMailSupport

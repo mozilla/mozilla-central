@@ -72,7 +72,7 @@
 #include "nsIPrefBranch.h"
 #include "TextDebugLog.h"
 #include "nsNetUtil.h"
-#include "nsISupportsArray.h"
+#include "nsMsgUtils.h"
 
 #define TEXT_MSGS_URL "chrome://messenger/locale/textImportMsgs.properties"
 #define TEXTIMPORT_NAME                  2000

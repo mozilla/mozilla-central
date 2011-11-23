@@ -40,7 +40,7 @@
 
 #include "nscore.h"
 #include "prtypes.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsILocalFile.h"
 
 #include <windows.h>

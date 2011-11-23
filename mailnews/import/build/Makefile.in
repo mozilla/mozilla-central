@@ -44,9 +44,11 @@ include $(DEPTH)/config/autoconf.mk
 
 MODULE = import
 LIBRARY_NAME = import
-EXPORT_LIBRARY = 1
 IS_COMPONENT	= 1
-ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
+ifdef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
+FORCE_SHARED_LIB=1
+else
+EXPORT_LIBRARY = 1
 MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY = 1
 endif
@@ -111,11 +113,14 @@ EXTRA_DSO_LDOPTS += \
 	$(MOZ_COMPONENT_LIBS) \
 	$(NULL)
 else
-EXTRA_DSO_LDOPTS = \
+EXTRA_DSO_LDOPTS += \
 	$(LIBS_DIR) \
-	$(EXTRA_DSO_LIBS) \
+	$(ZLIB_LIBS) \
+	$(MOZ_ZLIB_LIBS) \
+	$(MOZ_JS_LIBS) \
 	$(XPCOM_GLUE_LDOPTS) \
 	$(call EXPAND_LIBNAME_PATH,unicharutil_external_s,$(LIBXUL_DIST)/lib) \
+	$(MOZDEPTH)/rdf/util/src/$(LIB_PREFIX)rdfutil_external_s.$(LIB_SUFFIX) \
 	$(MOZDEPTH)/modules/libreg/src/$(LIB_PREFIX)mozreg_s.$(LIB_SUFFIX) \
 	$(NSPR_LIBS) \
 	$(NULL)

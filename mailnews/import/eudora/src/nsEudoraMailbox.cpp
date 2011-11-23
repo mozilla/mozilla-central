@@ -39,7 +39,6 @@
 
 #include "msgCore.h"
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
 #include "nsEudoraMailbox.h"
 #include "nsDirectoryServiceDefs.h"
 #include "nsEudoraCompose.h"

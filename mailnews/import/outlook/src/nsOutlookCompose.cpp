@@ -48,7 +48,6 @@
 #include "nsIIOService.h"
 #include "nsIURI.h"
 #include "nsMsgI18N.h"
-#include "nsNativeCharsetUtils.h"
 #include "nsIOutputStream.h"
 
 #include "nsMsgBaseCID.h"
@@ -434,14 +433,14 @@ nsOutlookCompose::ReplaceCidInLine::ReplaceCidInLine(nsCString& line)
   : m_line(line)
 {
   // If the line begins with Content-ID: string, process it! Otherwise, no need to waste time
-  m_finishedReplacing = (line.Compare("Content-ID:", PR_TRUE, 11) != 0);
+  m_finishedReplacing = StringBeginsWith(line, NS_LITERAL_CSTRING("Content-ID:"), nsCaseInsensitiveCStringComparator());
 }
 
 void nsOutlookCompose::ReplaceCidInLine::operator () (const CidReplacePair* pair)
 {
   if (m_finishedReplacing)
     return; // Only one cid per line possible!
-  PRInt32 pos = m_line.Find(pair->cidNew, PR_FALSE, 12);
+  PRInt32 pos = MsgFind(m_line, pair->cidNew, false, 12);
   if (pos != kNotFound) {
     m_finishedReplacing = true; // Stop further search
     m_line.Replace(pos, pair->cidNew.Length(), pair->cidOrig);
@@ -639,7 +638,9 @@ void nsOutlookCompose::UpdateHeaders(CMapiMessageHeaders& oldHeaders, const CMap
 
 void nsOutlookCompose::HackBody(const wchar_t* orig, size_t origLen, nsString& hack)
 {
+#ifdef MOZILLA_INTERNAL_API
   hack.SetCapacity(static_cast<size_t>(origLen*1.4));
+#endif
   hack.Assign(hackBeginW);
   hack.Append(m_hackedPostfix);
 
@@ -674,50 +675,26 @@ void nsOutlookCompose::UnhackBody(nsCString& txt)
 
   hackedString.Assign(hackEndA);
   hackedString.Append(hackedPostfixA);
-  PRInt32 end = txt.Find(hackedString, PR_FALSE, begin);
+  PRInt32 end = MsgFind(txt, hackedString, PR_FALSE, begin);
   if (end == kNotFound)
     return; // ?
   txt.Cut(end, hackedString.Length());
 
+  nsCString range;
+  range.Assign(Substring(txt, begin, end - begin));
   // 1. Remove all CRLFs from the selected range
-  PRInt32 i = begin;
-  while (i < end) {
-    PRInt32 r = txt.Find(MSG_LINEBREAK, PR_FALSE, i, end-i);
-    if (r == kNotFound)
-      break;
-
-    txt.Cut(r, 2);
-    end -= 2;
-    i = r;
-  }
-
+  MsgReplaceSubstring(range, MSG_LINEBREAK, "");
   // 2. Restore the original CRLFs
   hackedString.Assign(hackCRLFA);
   hackedString.Append(hackedPostfixA);
-  i = begin;
-  while (i < end) {
-    PRInt32 r = txt.Find(hackedString, PR_FALSE, i, end-i);
-    if (r == kNotFound)
-      break;
-
-    txt.Replace(r, hackedString.Length(), MSG_LINEBREAK, 2);
-    end -= hackedString.Length()-2;
-    i = r+2;
-  }
+  MsgReplaceSubstring(range, hackedString.get(), MSG_LINEBREAK);
 
   // 3. Restore the original ampersands
   hackedString.Assign(hackAmpersandA);
   hackedString.Append(hackedPostfixA);
-  i = begin;
-  while (i < end) {
-    PRInt32 r = txt.Find(hackedString, PR_FALSE, i, end-i);
-    if (r == kNotFound)
-      break;
+  MsgReplaceSubstring(range, hackedString.get(), "&");
 
-    txt.Replace(r, hackedString.Length(), '&');
-    end -= hackedString.Length()-1;
-    i = r+1;
-  }
+  txt.Replace(begin, end - begin, range);
 }
 
 bool nsOutlookCompose::GenerateHackSequence(const wchar_t* body, size_t origLen)
@@ -827,9 +804,11 @@ nsresult CCompositionFile::ToDest(_OutFn dest, const char* term, int termSize)
 {
   CTermGuard guard(term, termSize);
 
+#ifdef MOZILLA_INTERNAL_API
   // We already know the required string size, so reduce future reallocations
   if (!guard.IsChecking() && !m_convertCRs) 
     dest.SetCapacity(m_fileSize - m_fileReadPos);
+#endif
 
   bool wasCR = false;
   char c = 0;
@@ -881,7 +860,9 @@ nsresult CCompositionFile::ToDest(_OutFn dest, const char* term, int termSize)
 class dest_nsCString {
 public:
   dest_nsCString(nsCString& str) : m_str(str) { m_str.Truncate(); }
+#ifdef MOZILLA_INTERNAL_API
   void SetCapacity(PRInt32 sz) { m_str.SetCapacity(sz); }
+#endif
   nsresult Append(const char* buf, PRUint32 count) {
     m_str.Append(buf, count); return NS_OK; }
 private:
@@ -891,7 +872,9 @@ private:
 class dest_Stream {
 public:
   dest_Stream(nsIOutputStream *dest) : m_stream(dest) {}
+#ifdef MOZILLA_INTERNAL_API
   void SetCapacity(PRInt32) { /*do nothing*/ }
+#endif
   // const_cast here is due to the poor design of the EscapeFromSpaceLine()
   // that requires a non-constant pointer while doesn't modify its data
   nsresult Append(const char* buf, PRUint32 count) {

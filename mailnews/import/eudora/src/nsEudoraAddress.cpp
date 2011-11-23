@@ -45,9 +45,8 @@
 #include "nsIAbCard.h"
 #include "nsIServiceManager.h"
 #include "nsEudoraImport.h"
-#include "nsReadableUtils.h"
-#include "nsMsgI18N.h"
-#include "nsNativeCharsetUtils.h"
+#include "nsEudoraCompose.h"
+#include "nsMsgUtils.h"
 #include "nsTextFormatter.h"
 #include "nsEudoraStringBundle.h"
 #include "nsIStringBundle.h"
@@ -559,8 +558,8 @@ bool CAliasData::Process( const char *pLine, PRInt32 len)
     return( PR_FALSE);
   }
 
-  str.Right( m_email, str.Length() - tCnt - 1);
-  str.Left( m_realName, tCnt);
+  m_email = Substring(str, tCnt + 1);
+  m_realName = StringHead(str, tCnt);
   m_realName.Trim( kWhitespace);
   m_email.Trim( kWhitespace);
 
@@ -743,15 +742,9 @@ void nsEudoraAddress::ExtractNoteField( nsCString& note, nsCString& value, const
     PRInt32 endIdx = note.FindChar( '>', idx);
     if (endIdx == -1)
       endIdx = note.Length() - 1;
-    note.Mid( value, idx, endIdx - idx);
+    value = Substring(note, idx, endIdx - idx);
     idx -= field.Length();
-    nsCString tempL;
-    if (idx)
-      note.Left( tempL, idx);
-    nsCString tempR;
-    note.Right( tempR, note.Length() - endIdx - 1);
-    note = tempL;
-    note.Append( tempR);
+    note.Cut(idx, endIdx + 1);
   }
 }
 
@@ -768,9 +761,8 @@ void nsEudoraAddress::FormatExtraDataInNoteField(PRInt32 labelStringID, nsCStrin
 
 void nsEudoraAddress::SanitizeValue( nsCString& val)
 {
-  val.ReplaceSubstring( "\n", ", ");
-  val.ReplaceChar( 13, ',');
-  val.ReplaceChar( 10, ',');
+  MsgReplaceSubstring(val, "\n", ", ");
+  MsgReplaceChar(val, '\r', ',');
 }
 
 void nsEudoraAddress::SplitString( nsCString& val1, nsCString& val2)
@@ -787,9 +779,8 @@ void nsEudoraAddress::SplitString( nsCString& val1, nsCString& val2)
   if (idx == -1)
     idx= val1.RFindChar( 10);
   if (idx != -1) {
-    val1.Right( val2, val1.Length() - idx - cnt);
-    val1.Left( temp, idx);
-    val1 = temp;
+    val2 = Substring(val1, idx + cnt);
+    val1.SetLength(idx);
     SanitizeValue( val1);
   }
 }
@@ -857,21 +848,20 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
       if ( !additionalEmail.IsEmpty() )
       {
         // Reconstitute line breaks for additional email
-        additionalEmail.ReplaceSubstring( "\x03", "\n");
+        MsgReplaceSubstring(additionalEmail, "\x03", "\n");
 
         // Try to figure out if there are multiple email addresses in additionalEmail
-        PRInt32     idx = additionalEmail.FindCharInSet("\t\r\n,; ");
+        PRInt32     idx = MsgFindCharInSet(additionalEmail, "\t\r\n,; ");
 
         if (idx != -1)
         {
           // We found a character that indicates that there's more than one email address here.
           // Separate out the addresses after the first one.
-          additionalEmail.Right(stillMoreEmail, additionalEmail.Length() - idx - 1);
+          stillMoreEmail = Substring(additionalEmail, idx + 1);
           stillMoreEmail.Trim(kWhitespace);
 
           // Separate out the first address.
-          nsCString   tempStashEmail(additionalEmail);
-          tempStashEmail.Left(additionalEmail, idx);
+          additionalEmail.SetLength(idx);
         }
 
         // If there were more than one additional email addresses store all the extra
@@ -883,7 +873,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
       if ( !otherPhone.IsEmpty() )
       {
         // Reconstitute line breaks for other phone numbers
-        otherPhone.ReplaceSubstring( "\x03", "\n");
+        MsgReplaceSubstring(otherPhone, "\x03", "\n");
 
         // Store other phone numbers in the notes field, labeled nicely
         FormatExtraDataInNoteField(EUDORAIMPORT_ADDRESS_LABEL_OTHERPHONE, otherPhone, noteUTF16);
@@ -892,7 +882,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
       if ( !otherWeb.IsEmpty() )
       {
         // Reconstitute line breaks for other web sites
-        otherWeb.ReplaceSubstring( "\x03", "\n");
+        MsgReplaceSubstring(otherWeb, "\x03", "\n");
 
         // Store other web sites in the notes field, labeled nicely
         FormatExtraDataInNoteField(EUDORAIMPORT_ADDRESS_LABEL_OTHERWEB, otherWeb, noteUTF16);
@@ -911,27 +901,27 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
   else
     displayName = pEntry->m_name;
 
-  address.ReplaceSubstring( "\x03", "\n");
+  MsgReplaceSubstring(address, "\x03", "\n");
   SplitString( address, address2);
-  note.ReplaceSubstring( "\x03", "\n");
-  fax.ReplaceSubstring( "\x03", " ");
-  secondaryFax.ReplaceSubstring( "\x03", " ");
-  phone.ReplaceSubstring( "\x03", " ");
-  name.ReplaceSubstring( "\x03", " ");
-  city.ReplaceSubstring( "\x03", " ");
-  state.ReplaceSubstring( "\x03", " ");
-  zip.ReplaceSubstring( "\x03", " ");
-  country.ReplaceSubstring( "\x03", " ");
+  MsgReplaceSubstring(note, "\x03", "\n");
+  MsgReplaceSubstring(fax, "\x03", " ");
+  MsgReplaceSubstring(secondaryFax, "\x03", " ");
+  MsgReplaceSubstring(phone, "\x03", " ");
+  MsgReplaceSubstring(name, "\x03", " ");
+  MsgReplaceSubstring(city, "\x03", " ");
+  MsgReplaceSubstring(state, "\x03", " ");
+  MsgReplaceSubstring(zip, "\x03", " ");
+  MsgReplaceSubstring(country, "\x03", " ");
 
-  addressWK.ReplaceSubstring( "\x03", "\n");
+  MsgReplaceSubstring(addressWK, "\x03", "\n");
   SplitString( addressWK, address2WK);
-  phoneWK.ReplaceSubstring( "\x03", " ");
-  cityWK.ReplaceSubstring( "\x03", " ");
-  stateWK.ReplaceSubstring( "\x03", " ");
-  zipWK.ReplaceSubstring( "\x03", " ");
-  countryWK.ReplaceSubstring( "\x03", " ");
-  title.ReplaceSubstring( "\x03", " ");
-  company.ReplaceSubstring( "\x03", " ");
+  MsgReplaceSubstring(phoneWK, "\x03", " ");
+  MsgReplaceSubstring(cityWK, "\x03", " ");
+  MsgReplaceSubstring(stateWK, "\x03", " ");
+  MsgReplaceSubstring(zipWK, "\x03", " ");
+  MsgReplaceSubstring(countryWK, "\x03", " ");
+  MsgReplaceSubstring(title, "\x03", " ");
+  MsgReplaceSubstring(company, "\x03", " ");
 
   if (newRow)
   {
@@ -965,7 +955,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
     ADD_FIELD_TO_DB_ROW(pDb, AddWorkState, newRow, stateWK, uniStr);
     ADD_FIELD_TO_DB_ROW(pDb, AddWorkCountry, newRow, countryWK, uniStr);
 
-    if ( (primaryLocation.IsEmpty() || primaryLocation.LowerCaseEqualsASCII("home")) &&
+    if ( (primaryLocation.IsEmpty() || primaryLocation.LowerCaseEqualsLiteral("home")) &&
          !mobile.IsEmpty() )
     {
       // Primary location field is either specified to be "home" or is not
@@ -985,7 +975,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
       isSecondaryMobileWorkNumber = PR_FALSE;
     }
 
-    if ( (primaryLocation.IsEmpty() || primaryLocation.LowerCaseEqualsASCII("home")) &&
+    if ( (primaryLocation.IsEmpty() || primaryLocation.LowerCaseEqualsLiteral("home")) &&
          !fax.IsEmpty() )
     {
       // Primary location field is either specified to be "home" or is not
@@ -1135,7 +1125,8 @@ nsresult nsEudoraAddress::AddSingleList(CAliasEntry *pEntry, nsVoidArray &emailL
   for (PRInt32 i = 0; i < max; i++)
   {
     CAliasData *pData = (CAliasData *)emailList.ElementAt(i);
-    nsCAutoString ldifValue(NS_LITERAL_CSTRING("mail=") + nsDependentCString(pData->m_email.get()));
+    nsCAutoString ldifValue("mail");
+    ldifValue.Append(pData->m_email);
     rv = pDb->AddLdifListMember(newRow, ldifValue.get());
   }
 

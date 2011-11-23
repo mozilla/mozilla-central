@@ -38,7 +38,7 @@
 #ifndef nsOE5File_h___
 #define nsOE5File_h___
 
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIFile.h"
 #include <windows.h>
 

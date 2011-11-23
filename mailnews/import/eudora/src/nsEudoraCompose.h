@@ -41,13 +41,20 @@
 
 #include "nscore.h"
 #include "nsCOMPtr.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
+#include "nsMsgUtils.h"
 #include "nsIFile.h"
 #include "nsIInputStream.h"
 #include "nsVoidArray.h"
 #include "nsIImportService.h"
-#include "nsNativeCharsetUtils.h"
 
+#ifdef MOZILLA_INTERNAL_API
+#include "nsNativeCharsetUtils.h"
+#else
+#include "nsMsgI18N.h"
+#define NS_CopyNativeToUnicode(source, dest) \
+        nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(), source, dest)
+#endif
 
 class nsIMsgSend;
 class nsIMsgCompFields;

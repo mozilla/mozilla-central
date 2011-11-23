@@ -57,7 +57,6 @@
 #include "nsEudoraStringBundle.h"
 #include "nsEudoraImport.h"
 #include "nsIPop3IncomingServer.h"
-#include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsNetUtil.h"
 #include "EudoraDebugLog.h"

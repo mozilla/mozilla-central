@@ -49,6 +49,8 @@
 #include "prmem.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
+#include "nsMsgUtils.h"
 
 #define  kCopyBufferSize    8192
 #define  kMailReadBufferSize  16384

@@ -49,7 +49,13 @@
 #include "nsISeekableStream.h"
 #include "plstr.h"
 
+#ifdef MOZILLA_INTERNAL_API
 #include "nsNativeCharsetUtils.h"
+#else
+#include "nsMsgI18N.h"
+#define NS_CopyNativeToUnicode(source, dest) \
+        nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(), source, dest)
+#endif
 
 /*
   .nch file format???
@@ -248,8 +254,6 @@ bool nsOEScanBoxes::FindMailBoxes( nsIFile* descFile)
   PRUint32    next;
   MailboxEntry *  pEntry;
   bool        failed;
-  nsCString    ext;
-  nsCString    mbxExt( ".mbx");
 
   while (!done) {
 
@@ -283,8 +287,7 @@ bool nsOEScanBoxes::FindMailBoxes( nsIFile* descFile)
     IMPORT_LOG3( "      Parent: %ld, Child: %ld, Sibling: %ld\n", pEntry->parent, pEntry->child, pEntry->sibling);
     #endif
 
-    pEntry->fileName.Right( ext, 4);
-    if (!ext.Equals(mbxExt))
+    if (!StringEndsWith(pEntry->fileName, NS_LITERAL_CSTRING(".mbx")))
       pEntry->fileName.Append( ".mbx");
 
     m_entryArray.AppendElement( pEntry);
@@ -875,7 +878,7 @@ bool nsOEScanBoxes::ReadString( nsIInputStream * stream, nsString& str, PRUint32
   if (NS_FAILED( rv) || (cntRead != kOutlookExpressStringLength))
     return( PR_FALSE);
   buffer[kOutlookExpressStringLength - 1] = 0;
-  CopyASCIItoUTF16(buffer, str);
+  str.AssignASCII(buffer);
   return( PR_TRUE);
 }
 

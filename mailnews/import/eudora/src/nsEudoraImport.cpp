@@ -50,10 +50,11 @@
 #endif
 
 #include "nscore.h"
-#include "nsString.h"
-#include "nsIServiceManager.h"
+#include "nsCOMPtr.h"
+#include "nsStringGlue.h"
+#include "nsServiceManagerUtils.h"
 #include "nsIImportService.h"
-#include "nsIComponentManager.h"
+#include "nsComponentManagerUtils.h"
 #include "nsEudoraImport.h"
 #include "nsIMemory.h"
 #include "nsIImportService.h"
@@ -75,7 +76,6 @@
 #include "nsEudoraCompose.h"
 #include "nsEudoraSettings.h"
 #include "nsEudoraFilters.h"
-#include "nsReadableUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsIMsgTagService.h"
 #include "nsMsgBaseCID.h"

@@ -39,8 +39,8 @@
 
 #include "nscore.h"
 #include "prthread.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
+#include "nsMsgUtils.h"
 #include "nsUnicharUtils.h"
 #include "nsCOMPtr.h"
 #include "nsIComponentManager.h"
@@ -67,7 +67,6 @@
 #include "EudoraDebugLog.h"
 
 #include "nsMimeTypes.h"
-#include "nsMsgUtils.h"
 #include "nsNetUtil.h"
 #include "nsAutoPtr.h"
 #include "nsIMutableArray.h"
@@ -462,20 +461,16 @@ void nsEudoraCompose::GetHeaderValue( const char *pData, PRInt32 dataLen, const 
 
 void nsEudoraCompose::ExtractCharset( nsString& str)
 {
-  nsString tStr;
-  PRInt32 idx = str.Find( "charset=", PR_TRUE);
+  PRInt32 idx = MsgFind(str, "charset=", PR_TRUE, 0);
   if (idx != -1) {
-    idx += 8;
-    str.Right( tStr, str.Length() - idx);
-    idx = tStr.FindChar( ';');
+    str.Cut(0, idx + 8);
+    idx = str.FindChar( ';');
     if (idx != -1)
-      tStr.Left( str, idx);
-    else
-      str = tStr;
+      str.SetLength(idx);
     str.Trim( kWhitespace);
     if ((str.CharAt( 0) == '"') && (str.Length() > 2)) {
-      str.Mid( tStr, 1, str.Length() - 2);
-      str = tStr;
+      str.SetLength(str.Length() - 1);
+      str.Cut(0, 1);
       str.Trim( kWhitespace);
     }
   }
@@ -487,25 +482,21 @@ void nsEudoraCompose::ExtractType( nsString& str)
 {
   nsString tStr;
   PRInt32 idx = str.FindChar( ';');
-  if (idx != -1) {
-    str.Left( tStr, idx);
-    str = tStr;
-  }
+  if (idx != -1)
+    str.SetLength(idx);
+
   str.Trim( kWhitespace);
 
   if ((str.CharAt( 0) == '"') && (str.Length() > 2)) {
-    str.Mid( tStr, 1, str.Length() - 2);
-    str = tStr;
+    str.SetLength(str.Length() - 1);
+    str.Cut(0, 1);
     str.Trim( kWhitespace);
   }
 
   // if multipart then ignore it since no outlook message body is ever
   // valid multipart!
-  if (str.Length() > 10) {
-    str.Left( tStr, 10);
-    if (tStr.LowerCaseEqualsLiteral("multipart/"))
-      str.Truncate();
-  }
+  if (StringBeginsWith(str, NS_LITERAL_STRING("multipart/"), nsCaseInsensitiveStringComparator()))
+    str.Truncate();
 }
 
 nsresult nsEudoraCompose::GetLocalAttachments(nsIArray **aArray)
@@ -591,7 +582,7 @@ nsresult nsEudoraCompose::SendTheMessage(nsIFile *pMailImportLocation, nsIFile *
   // As the last resort we'll use the mail default charset.
   if ( headerVal.IsEmpty() || (headerVal.Length() > kContentTypeLengthSanityCheck) )
   {
-    CopyASCIItoUTF16(nsMsgI18NFileSystemCharset(), headerVal);
+    headerVal.AssignASCII(nsMsgI18NFileSystemCharset());
     if (headerVal.IsEmpty())
     { // last resort
       if (m_defCharset.IsEmpty())
@@ -619,7 +610,7 @@ nsresult nsEudoraCompose::SendTheMessage(nsIFile *pMailImportLocation, nsIFile *
   // what about all of the other headers?!?!?!?!?!?!
   char *pMimeType;
   if (!bodyType.IsEmpty())
-    pMimeType = ToNewCString(bodyType);
+    pMimeType = ToNewCString(NS_LossyConvertUTF16toASCII(bodyType));
   else
     pMimeType = ToNewCString(m_bodyType);
 

@@ -49,6 +49,12 @@
 #include "plstr.h"
 #include "msgCore.h"
 
+#ifndef MOZILLA_INTERNAL_API
+#include "nsMsgI18N.h"
+#define NS_CopyNativeToUnicode(source, dest) \
+        nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(), source, dest)
+#endif
+
 #define kWhitespace    " \t\b\r\n"
 
 // If we get a line longer than 32K it's just toooooo bad!

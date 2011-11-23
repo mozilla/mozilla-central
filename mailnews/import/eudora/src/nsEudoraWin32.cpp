@@ -39,7 +39,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsCOMPtr.h"
-#include "nsReadableUtils.h"
+#include "nsMsgUtils.h"
 #include "nsIComponentManager.h"
 #include "nsIServiceManager.h"
 #include "nsIMsgAccountManager.h"
@@ -47,7 +47,6 @@
 #include "nsIPop3IncomingServer.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgCompCID.h"
-#include "nsMsgI18N.h"
 #include "nsISmtpService.h"
 #include "nsISmtpServer.h"
 #include "nsEudoraWin32.h"
@@ -122,7 +121,7 @@ bool nsEudoraWin32::FindEudoraLocation( nsIFile **pFolder, bool findIni)
       nsCString str((const char *)pBytes);
       delete [] pBytes;
 
-      str.CompressWhitespace();
+      MsgCompressWhitespace(str);
 
       // Command line is Eudora mailfolder eudora.ini
       if (findIni)
@@ -132,10 +131,7 @@ bool nsEudoraWin32::FindEudoraLocation( nsIFile **pFolder, bool findIni)
         if (index != -1)
         {
           index++; // skip the space
-          nsCString  path;
-          str.Mid( path, index, str.Length() - index);
-
-          eudoraPath->InitWithNativePath(path);
+          eudoraPath->InitWithNativePath(Substring(str, index));
           eudoraPath->IsFile( &exists);
           if (exists)
             result = exists;
@@ -170,10 +166,7 @@ bool nsEudoraWin32::FindEudoraLocation( nsIFile **pFolder, bool findIni)
             endIdx = str.FindChar( ' ', idx);
           if (endIdx != -1)
           {
-            nsCString  path;
-            str.Mid( path, idx, endIdx - idx);
-
-            eudoraPath->InitWithNativePath(path);
+            eudoraPath->InitWithNativePath(Substring(str, idx, endIdx - idx));
 
             if (NS_SUCCEEDED( eudoraPath->IsDirectory( &exists)))
               result = exists;
@@ -298,8 +291,8 @@ nsresult nsEudoraWin32::IterateMailDir( nsIFile *pFolder, nsISupportsArray *pArr
       {
         if (fName.Length() > 4)
         {
-          fName.Right( ext, 4);
-          fName.Left( name, fName.Length() - 4);
+          ext = StringTail(fName, 4);
+          name = StringHead(fName, fName.Length() - 4);
         }
         else
         {
@@ -559,7 +552,7 @@ nsresult nsEudoraWin32::FindTOCFile( nsIFile *pMailFile, nsIFile **ppTOCFile, bo
 
   nsCString  name;
   if ((leaf.Length() > 4) && (leaf.CharAt( leaf.Length() - 4) == '.'))
-    leaf.Left( name, leaf.Length() - 4);
+    name = StringHead(leaf, leaf.Length() - 4);
   else
     name = leaf;
   name.Append( ".toc");
@@ -794,10 +787,7 @@ void nsEudoraWin32::GetServerAndUserName( const char *pSection, const char *pIni
       serverName = pBuff;
       idx = serverName.FindChar( '@');
       if (idx != -1)
-      {
-        serverName.Right( tStr, serverName.Length() - idx - 1);
-        serverName = tStr;
-      }
+        serverName = Substring(serverName, idx + 1);
     }
   }
   valSize = ::GetPrivateProfileString( pSection, "LoginName", "", pBuff, kIniValueSize, pIni);
@@ -811,10 +801,7 @@ void nsEudoraWin32::GetServerAndUserName( const char *pSection, const char *pIni
       userName = pBuff;
       idx = userName.FindChar( '@');
       if (idx != -1)
-      {
-        userName.Left( tStr, idx);
-        userName = tStr;
-      }
+        userName.SetLength(idx);
     }
   }
 }
@@ -832,17 +819,9 @@ void nsEudoraWin32::GetAccountName( const char *pSection, nsString& str)
   }
   else
   {
-    nsCString tStr;
-    CopyASCIItoUTF16(pSection, str);
-    if (s.Length() > 8)
-    {
-      s.Left( tStr, 8);
-      if (tStr.LowerCaseEqualsLiteral("persona-"))
-      {
-        s.Right( tStr, s.Length() - 8);
-        CopyASCIItoUTF16(tStr, str);
-      }
-    }
+    str.AssignASCII(pSection);
+    if (StringBeginsWith(s, NS_LITERAL_CSTRING("persona-"), nsCaseInsensitiveCStringComparator()))
+      CopyASCIItoUTF16(Substring(s, 8), str);
   }
 }
 
@@ -1113,15 +1092,15 @@ nsresult nsEudoraWin32::GetAttachmentInfo( const char *pFileName, nsIFile *pFile
       PRInt32 idx = name.RFindChar( '.');
       if (idx != -1)
       {
-        name.Right( ext, name.Length() - idx);
-        GetMimeTypeFromExtension( ext, mimeType);
+        ext = Substring(name, idx);
+        GetMimeTypeFromExtension(ext, mimeType);
       }
     }
     if (mimeType.IsEmpty())
       mimeType = "application/octet-stream";
 
     nsAutoString description;
-    rv = nsMsgI18NConvertToUnicode(nsMsgI18NFileSystemCharset(), name, description);
+    rv = NS_CopyNativeToUnicode(name, description);
  
     if (NS_SUCCEEDED(rv))
       aAttachmentName = NS_ConvertUTF16toUTF8(description);
@@ -1168,8 +1147,8 @@ bool nsEudoraWin32::FindMimeIniFile( nsIFile *pFile)
       {
         if (fName.Length() > 4)
         {
-          fName.Right( ext, 4);
-          fName.Left( name, fName.Length() - 4);
+          ext = StringTail(fName, 4);
+          name = StringHead(fName, fName.Length() - 4);
         }
         else
         {
@@ -1473,7 +1452,7 @@ nsresult nsEudoraWin32::FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppA
   nsCString  currentDir;
   while ((idx = dirs.FindChar( ';')) != -1)
   {
-    dirs.Left( currentDir, idx);
+    currentDir = StringHead(dirs, idx);
     currentDir.Trim( kWhitespace);
     if (!currentDir.IsEmpty())
     {
@@ -1490,8 +1469,7 @@ nsresult nsEudoraWin32::FindAddressBooks( nsIFile *pRoot, nsISupportsArray **ppA
           return( rv);
       }
     }
-    dirs.Right( currentDir, dirs.Length() - idx - 1);
-    dirs = currentDir;
+    dirs = Substring(dirs, idx + 1);
     dirs.Trim( kWhitespace);
   }
   if (!dirs.IsEmpty())
@@ -1547,8 +1525,8 @@ nsresult nsEudoraWin32::ScanAddressDir( nsIFile *pDir, nsISupportsArray *pArray,
       {
         if (fName.Length() > 4)
         {
-          fName.Right( ext, 4);
-          fName.Left( name, fName.Length() - 4);
+          ext = StringTail(fName, 4);
+          name = StringHead(fName, fName.Length() - 4);
         }
         else
         {
@@ -1592,12 +1570,9 @@ nsresult nsEudoraWin32::FoundAddressBook( nsIFile *file, const PRUnichar *pName,
     if (leaf.IsEmpty())
       return( NS_ERROR_FAILURE);
     nsString  tStr;
-    leaf.Right( tStr, 4);
+    tStr = StringTail(leaf, 4);
     if (tStr.LowerCaseEqualsLiteral(".txt")  || tStr.LowerCaseEqualsLiteral(".nnt"))
-    {
-      leaf.Left( tStr, leaf.Length() - 4);
-      leaf = tStr;
-    }
+      leaf.SetLength(leaf.Length() - 4);
   }
 
   nsCOMPtr<nsILocalFile> fileLoc = do_QueryInterface(file, &rv);
@@ -1636,23 +1611,19 @@ void nsEudoraWin32::ConvertPath( nsCString& str)
   idx = str.FindChar( '\\', idx);
   if ((idx == 2) && (str.CharAt( 1) == ':'))
   {
-    str.Left( path, 3);
+    path = StringHead(str, 3);
     idx++;
     idx = str.FindChar( '\\', idx);
     start = 3;
     if ((idx == -1) && (str.Length() > 3))
-    {
-      str.Right( temp, str.Length() - start);
-      path.Append( temp);
-    }
+      path.Append(Substring(str, start));
   }
 
   WIN32_FIND_DATA findFileData;
   while (idx != -1)
   {
-    str.Mid( temp, start, idx - start);
     search = path;
-    search.Append( temp);
+    search.Append(Substring(str, start, idx - start));
     HANDLE h = FindFirstFile( search.get(), &findFileData);
     if (h == INVALID_HANDLE_VALUE)
       return;
@@ -1665,9 +1636,8 @@ void nsEudoraWin32::ConvertPath( nsCString& str)
       path.Append( '\\');
     else
     {
-      str.Right( temp, str.Length() - start);
       path.Append( '\\');
-      path.Append( temp);
+      path.Append(Substring(str, start));
     }
   }
 

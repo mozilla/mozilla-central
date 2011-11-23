@@ -41,7 +41,7 @@
 #define nsEudoraMac_h__
 
 #include "nscore.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIFile.h"
 #include "nsISupportsArray.h"
 #include "nsEudoraMailbox.h"

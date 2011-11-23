@@ -46,6 +46,7 @@
 #include "nspr.h"
 #include "plstr.h"
 #include "nsMsgBaseCID.h"
+#include "nsMsgUtils.h"
 #include "nsIPrefBranch.h"
 #include "nsIPrefService.h"
 #include "nsIMsgFilterList.h"
@@ -264,7 +265,11 @@ bool nsEudoraFilters::RealImport()
         {
           nsAutoString unicodeMailboxPath;
           NS_CopyNativeToUnicode(nsCString(pMailboxPath), unicodeMailboxPath);
-          m_errorLog += NS_LITERAL_STRING("- ") + name + NS_LITERAL_STRING(": ") + nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_MAILBOX_MISSING, unicodeMailboxPath.get()) + NS_LITERAL_STRING("\n") ;
+          m_errorLog += NS_LITERAL_STRING("- ");
+          m_errorLog += name;
+          m_errorLog += NS_LITERAL_STRING(": ");
+          m_errorLog += nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_MAILBOX_MISSING, unicodeMailboxPath.get());
+          m_errorLog += NS_LITERAL_STRING("\n");
           rv = NS_OK;
         }
       }
@@ -324,12 +329,22 @@ bool nsEudoraFilters::RealImport()
       else if (strcmp(pLine, "manual") == 0)
         ;// Just ignore manual as TB handles manual in a different way
       else if (strcmp(pLine, "outgoing") == 0)
-        m_errorLog += NS_LITERAL_STRING("- ") + name + NS_LITERAL_STRING(": ") + nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_OUTGOING) + NS_LITERAL_STRING("\n") ;
+      {
+        m_errorLog += NS_LITERAL_STRING("- ");
+        m_errorLog += name;
+        m_errorLog += NS_LITERAL_STRING(": ");
+        m_errorLog += nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_OUTGOING);
+        m_errorLog += NS_LITERAL_STRING("\n");
+      }
       else
       {
         nsAutoString unicodeLine;
         NS_CopyNativeToUnicode(nsCString(pLine), unicodeLine);
-        m_errorLog += NS_LITERAL_STRING("- ") + name + NS_LITERAL_STRING(": ") + nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_ACTION, unicodeLine.get()) + NS_LITERAL_STRING("\n");
+        m_errorLog += NS_LITERAL_STRING("- ");
+        m_errorLog += name;
+        m_errorLog += NS_LITERAL_STRING(": ");
+        m_errorLog += nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_ACTION, unicodeLine.get());
+        m_errorLog += NS_LITERAL_STRING("\n");
       }
     }
   }
@@ -690,17 +705,27 @@ nsresult nsEudoraFilters::AddTerm(const char* pHeader, const char* pVerb, const 
   NS_CopyNativeToUnicode(nsCString(pVerb), unicodeVerb);
   NS_CopyNativeToUnicode(nsCString(pValue), unicodeValue);
 
-  filterTitle = NS_LITERAL_STRING("- ") + unicodeHeader + NS_LITERAL_STRING(" ") + unicodeVerb + NS_LITERAL_STRING(" ") + unicodeValue + NS_LITERAL_STRING(": ");
+  filterTitle = NS_LITERAL_STRING("- ");
+  filterTitle += unicodeHeader;
+  filterTitle += NS_LITERAL_STRING(" ");
+  filterTitle += unicodeVerb;
+  filterTitle += NS_LITERAL_STRING(" ");
+  filterTitle += unicodeValue;
+  filterTitle += NS_LITERAL_STRING(": ");
 
   if (op < 0)
   {
-    m_errorLog += filterTitle + nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_VERB, pVerb) + NS_LITERAL_STRING("\n");
+    m_errorLog += filterTitle;
+    m_errorLog += nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_VERB, pVerb);
+    m_errorLog += NS_LITERAL_STRING("\n");
     return NS_ERROR_INVALID_ARG;
   }
 
   if (!pHeader || !*pHeader)
   {
-    m_errorLog += filterTitle + nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_EMPTY_HEADER) + NS_LITERAL_STRING("\n");
+    m_errorLog += filterTitle;
+    m_errorLog += nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_EMPTY_HEADER);
+    m_errorLog += NS_LITERAL_STRING("\n");
     return NS_ERROR_INVALID_ARG;
   }
 
@@ -719,7 +744,9 @@ nsresult nsEudoraFilters::AddTerm(const char* pHeader, const char* pVerb, const 
         op--;
         break;
       default:
-        m_errorLog += filterTitle + nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_NEGATE_VERB, unicodeVerb.get()) + NS_LITERAL_STRING("\n");
+        m_errorLog += filterTitle;
+        m_errorLog += nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_NEGATE_VERB, unicodeVerb.get());
+        m_errorLog += NS_LITERAL_STRING("\n");
         return NS_ERROR_INVALID_ARG;
     }
   }
@@ -729,7 +756,9 @@ nsresult nsEudoraFilters::AddTerm(const char* pHeader, const char* pVerb, const 
     // Can't handle other Eudora meta-headers (Any Header, Personality, Junk Score)
     if (*pHeader == *LDAQ)
     {
-      m_errorLog += filterTitle + nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_META_HEADER, unicodeHeader.get()) + NS_LITERAL_STRING("\n");
+      m_errorLog += filterTitle;
+      m_errorLog += nsEudoraStringBundle::FormatString(EUDORAIMPORT_FILTERS_WARN_META_HEADER, unicodeHeader.get());
+      m_errorLog += NS_LITERAL_STRING("\n");
       return NS_ERROR_INVALID_ARG;
     }
 

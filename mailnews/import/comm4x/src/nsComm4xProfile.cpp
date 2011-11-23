@@ -41,6 +41,7 @@
 #include "nsILineInputStream.h"
 #include "nsNetCID.h"
 #include "nsDirectoryServiceDefs.h"
+#include "nsDirectoryServiceUtils.h"
 #include "NSReg.h"
 #include "nsComponentManagerUtils.h"
 
@@ -128,7 +129,7 @@ nsComm4xProfile::GetProfileList(PRUint32 *length, PRUnichar ***profileNames)
     enumstate = 0;
 
     PRUnichar **outArray, **next;
-    next = outArray = (PRUnichar **)nsMemory::Alloc(numProfileEntries * sizeof(PRUnichar *));
+    next = outArray = (PRUnichar **)NS_Alloc(numProfileEntries * sizeof(PRUnichar *));
     if (!outArray)
         return NS_ERROR_OUT_OF_MEMORY;
 

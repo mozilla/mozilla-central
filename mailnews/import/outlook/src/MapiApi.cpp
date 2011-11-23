@@ -194,7 +194,7 @@ BOOL CMapiApi::GetRTFPropertyDecodedAsUTF16( LPMAPIPROP pProp, nsString& val,
       val.Assign(decoder.text(), decoder.textSize());
     }
     else { // WrapCompressedRTFStreamEx available and original type is not rtf
-      CopyUTF8toUTF16(streamData.c_str(), val);
+      CopyUTF8toUTF16(nsDependentCString(streamData.c_str()), val);
     }
     return TRUE;
   }
@@ -1273,7 +1273,7 @@ BOOL CMapiApi::GetLargeStringProperty( LPMAPIPROP pProp, ULONG tag, nsCString& v
   if (!GetLargeProperty(pProp, tag, &result))
     return FALSE;
   if (PROP_TYPE(tag) == PT_UNICODE) // unicode string
-    LossyCopyUTF16toASCII(static_cast<wchar_t*>(result), val);
+    LossyCopyUTF16toASCII(nsDependentString(static_cast<wchar_t*>(result)), val);
   else // either PT_STRING8 or some other binary - use as is
     val.Assign(static_cast<char*>(result));
   delete[] result;
@@ -1325,7 +1325,7 @@ BOOL CMapiApi::GetStringFromProp( LPSPropValue pVal, nsCString& val, BOOL delVal
   if ( pVal && (PROP_TYPE( pVal->ulPropTag) == PT_STRING8))
     val = pVal->Value.lpszA;
   else if ( pVal && (PROP_TYPE( pVal->ulPropTag) == PT_UNICODE))
-    LossyCopyUTF16toASCII((PRUnichar *) pVal->Value.lpszW, val);
+    LossyCopyUTF16toASCII(nsDependentString(pVal->Value.lpszW), val);
   else if (pVal && (PROP_TYPE( pVal->ulPropTag) == PT_NULL))
     val.Truncate();
   else if (pVal && (PROP_TYPE( pVal->ulPropTag) == PT_ERROR)) {
@@ -1522,44 +1522,21 @@ void CMapiApi::GetPropTagName( ULONG tag, nsCString& s)
   }
 }
 
-void ReplaceEolChars( nsCString& s)
-{
-  int        idx;
-  nsCString    t;
-  nsCString    rt;
-
-  while ((idx = s.Find( "\x0D")) != -1) {
-    s.Left( t, idx);
-    t += "\\n";
-    s.Right( rt, s.Length() - idx - 1);
-    t += rt;
-    s = t;
-  }
-  while ((idx = s.Find( "\x0A")) != -1) {
-    s.Left( t, idx);
-    t += "\\r";
-    s.Right( rt, s.Length() - idx - 1);
-    t += rt;
-    s = t;
-  }
-}
-
 void CMapiApi::ListPropertyValue( LPSPropValue pVal, nsCString& s)
 {
   nsCString    strVal;
   char      nBuff[64];
-  nsCString    t;
 
   s += "value: ";
   switch (PROP_TYPE( pVal->ulPropTag)) {
     case PT_STRING8:
       GetStringFromProp( pVal, strVal, FALSE);
       if (strVal.Length() > 60) {
-        strVal.Left( t, 60);
-        strVal = t;
+        strVal.SetLength(60);
         strVal += "...";
       }
-      ReplaceEolChars( strVal);
+      MsgReplaceSubstring(strVal, "\r", "\\r");
+      MsgReplaceSubstring(strVal, "\n", "\\n");
       s += strVal;
     break;
     case PT_LONG:

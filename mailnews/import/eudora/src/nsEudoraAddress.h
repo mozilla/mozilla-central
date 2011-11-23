@@ -40,7 +40,7 @@
 #define nsEudoraAddress_h__
 
 #include "nscore.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsVoidArray.h"
 #include "nsILocalFile.h"
 #include "nsISupportsArray.h"

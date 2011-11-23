@@ -41,7 +41,8 @@
 #include "nsISupportsArray.h"
 #include "nsIDOMHTMLImageElement.h"
 #include "nsComponentManagerUtils.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
+#include "nsMsgUtils.h"
 #include "nsNetUtil.h"
 
 NS_IMPL_ISUPPORTS2(nsEudoraEditor, nsIEditor, nsIEditorMailSupport)
@@ -741,12 +742,10 @@ NS_IMETHODIMP nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
       // Extract the file name from the embedded content line
       PRInt32   startFileName = startEmbeddedContentLine + lenEmbeddedContentTag;
       PRInt32   endFileName = m_body.Find(":", PR_FALSE, startFileName);
-      nsString  fileName;
-      m_body.Mid(fileName, startFileName, endFileName - startFileName);
 
       // Create the file spec for the embedded image
       embeddedFolderSpec->Clone(getter_AddRefs(embeddedImageSpec));
-      embeddedImageSpec->Append(fileName);
+      embeddedImageSpec->Append(Substring(m_body, startFileName, endFileName - startFileName));
 
       // Verify that the embedded image spec exists and is a file
       bool      isFile = false;
@@ -767,13 +766,13 @@ NS_IMETHODIMP nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
         if (endCIDHash != kNotFound)
         {
           nsString    cidHash;
-          m_body.Mid(cidHash, startCIDHash, endCIDHash - startCIDHash);
+          cidHash.Assign(Substring(m_body, startCIDHash, endCIDHash - startCIDHash));
 
           if ( !cidHash.IsEmpty() )
           {
             // Convert CID hash string to numeric value
-            PRInt32   aErrorCode;
-            cidHashValue = cidHash.ToInteger(&aErrorCode, kRadix16);
+            nsresult aErrorCode;
+            cidHashValue = cidHash.ToInteger(&aErrorCode, 16);
           }
         }
       }
@@ -857,16 +856,16 @@ bool nsEudoraEditor::UpdateEmbeddedImageReference(PRUint32 aCIDHash, const nsASt
     // Move past the quote
     ++startSrcValue;
 
-    PRInt32   endSrcValue = m_body.Find(nsCString(quoteChar), PR_FALSE, startSrcValue);
+    PRInt32   endSrcValue = m_body.FindChar(quoteChar, startSrcValue);
     PRInt32   srcLength = endSrcValue - startSrcValue;
 
     nsString  srcValue;
-    m_body.Mid(srcValue, startSrcValue, srcLength);
+    srcValue.Assign(Substring(m_body, startSrcValue, srcLength));
 
     if (aCIDHash != 0)
     {
       // Verify source value starts with "cid:"
-      if ( !srcValue.EqualsIgnoreCase("cid:", 4) )
+      if (!StringBeginsWith(srcValue, NS_LITERAL_STRING("cid:"), nsCaseInsensitiveStringComparator()))
         continue;
 
       // Remove "cid:" from the start

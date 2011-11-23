@@ -613,8 +613,10 @@ void nsAppleMailImportMail::ReportStatus(PRInt32 aErrorNum, nsString &aName, nsA
   const PRUnichar *fmt = { aName.get() };
   nsresult rv = mBundle->FormatStringFromID(aErrorNum, &fmt, 1, getter_Copies(outString));
   // write it out the stream
-  if (NS_SUCCEEDED(rv))
-    aStream.Append(outString + NS_LITERAL_STRING("\n"));
+  if (NS_SUCCEEDED(rv)) {
+    aStream.Append(outString);
+    aStream.Append(PRUnichar('\n'));
+  }
 }
 
 void nsAppleMailImportMail::SetLogs(const nsAString &aSuccess, const nsAString &aError, PRUnichar **aOutSuccess, PRUnichar **aOutError)

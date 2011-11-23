@@ -38,10 +38,10 @@
 
 
 #include "nsOutlookEditor.h"
-#include "nsISupportsArray.h"
+#include "nsMsgUtils.h"
 #include "nsIDOMHTMLImageElement.h"
 #include "nsComponentManagerUtils.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsNetUtil.h"
 
 NS_IMPL_ISUPPORTS2(nsOutlookEditor, nsIEditor, nsIEditorMailSupport)
@@ -637,8 +637,8 @@ nsresult nsOutlookEditor::GetCids(PRUint32 embedIndex, nsACString& origCid,
   if (node) {
     if (!node->NewCid())
       return NS_ERROR_FAILURE; // no need to replace anything!
-    LossyCopyUTF16toASCII(node->OrigCid(), origCid);
-    LossyCopyUTF16toASCII(node->NewCid(), newCid);
+    LossyCopyUTF16toASCII(nsDependentString(node->OrigCid()), origCid);
+    LossyCopyUTF16toASCII(nsDependentString(node->NewCid()), newCid);
   }
   return rv;
 }
@@ -1332,7 +1332,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::SetSrc(const nsAString & aSrc)
   // The nsMsgNend::ProcessMultipartRelated seems to call SetSrc twice.
   // I'm not sure if I need to do it second time.
   if (m_cid_new.IsEmpty()) 
-    m_cid_new.Assign(aSrc.Data()+4, aSrc.Length()-4); // strip the "cid:"
+    m_cid_new.Assign(Substring(aSrc, 4)); // strip the "cid:"
 
   return NS_OK;
 }

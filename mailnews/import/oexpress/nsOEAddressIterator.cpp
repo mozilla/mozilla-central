@@ -44,9 +44,9 @@
 */
 #include "nscore.h"
 #include "nsCOMPtr.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
-#include "nsIComponentManager.h"
+#include "nsStringGlue.h"
+#include "nsMsgUtils.h"
+#include "nsComponentManagerUtils.h"
 #include "nsIServiceManager.h"
 #include "nsIImportService.h"
 #include "nsIImportFieldMap.h"
@@ -257,16 +257,12 @@ nsresult nsOEAddressIterator::EnumList( const PRUnichar * pName, LPENTRYID pEid,
 
 void nsOEAddressIterator::SanitizeValue( nsString& val)
 {
-  val.ReplaceSubstring(NS_LITERAL_STRING("\x0D\x0A").get(),
-                         NS_LITERAL_STRING(", ").get());
-  val.ReplaceChar( 13, ',');
-  val.ReplaceChar( 10, ',');
+  MsgReplaceSubstring(val, NS_LITERAL_STRING("\r\n"), NS_LITERAL_STRING(", "));
+  MsgReplaceChar(val, "\r\n", ',');
 }
 
 void nsOEAddressIterator::SplitString( nsString& val1, nsString& val2)
 {
-  nsString  temp;
-  
   // Find the last line if there is more than one!
   PRInt32 idx = val1.RFind( "\x0D\x0A");
   PRInt32  cnt = 2;
@@ -277,9 +273,8 @@ void nsOEAddressIterator::SplitString( nsString& val1, nsString& val2)
   if (idx == -1)
     idx= val1.RFindChar( 10);
   if (idx != -1) {
-    val1.Right( val2, val1.Length() - idx - cnt);
-    val1.Left( temp, idx);
-    val1 = temp;
+    val2 = Substring(val1, idx + cnt);
+    val1.SetLength(idx);
     SanitizeValue( val1);
   }
 }
