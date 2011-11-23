@@ -2100,8 +2100,12 @@ NS_IMETHODIMP nsParseNewMailState::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWi
         }
         break;
       case nsMsgFilterAction::MarkRead:
-        msgIsNew = PR_FALSE;
+        msgIsNew = false;
         MarkFilteredMessageRead(msgHdr);
+        break;
+      case nsMsgFilterAction::MarkUnread:
+        msgIsNew = true;
+        MarkFilteredMessageUnread(msgHdr);
         break;
       case nsMsgFilterAction::KillThread:
         msgHdr->SetUint32Property("ProtoThreadFlags", nsMsgMessageFlags::Ignored);
@@ -2310,20 +2314,35 @@ nsresult nsParseNewMailState::ApplyForwardAndReplyFilter(nsIMsgWindow *msgWindow
   return rv;
 }
 
-
-int nsParseNewMailState::MarkFilteredMessageRead(nsIMsgDBHdr *msgHdr)
+void nsParseNewMailState::MarkFilteredMessageRead(nsIMsgDBHdr *msgHdr)
 {
   PRUint32 newFlags;
   if (m_mailDB)
   {
-    m_mailDB->MarkHdrRead(msgHdr, PR_TRUE, nsnull);
+    m_mailDB->MarkHdrRead(msgHdr, true, nsnull);
   }
   else
   {
     msgHdr->OrFlags(nsMsgMessageFlags::Read, &newFlags);
     msgHdr->AndFlags(~nsMsgMessageFlags::New, &newFlags);
   }
-  return 0;
+}
+
+void nsParseNewMailState::MarkFilteredMessageUnread(nsIMsgDBHdr *msgHdr)
+{
+  PRUint32 newFlags;
+  if (m_mailDB)
+  {
+    nsMsgKey msgKey;
+    msgHdr->GetMessageKey(&msgKey);
+    m_mailDB->AddToNewList(msgKey);
+    m_mailDB->MarkHdrRead(msgHdr, false, nsnull);
+  }
+  else
+  {
+    msgHdr->AndFlags(~nsMsgMessageFlags::Read, &newFlags);
+    msgHdr->OrFlags(nsMsgMessageFlags::New, &newFlags);
+  }
 }
 
 nsresult nsParseNewMailState::EndMsgDownload()

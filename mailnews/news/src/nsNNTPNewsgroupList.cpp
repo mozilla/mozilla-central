@@ -688,7 +688,10 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
         m_addHdrToDB = PR_FALSE;
         break;
       case nsMsgFilterAction::MarkRead:
-        m_newsDB->MarkHdrRead(m_newMsgHdr, PR_TRUE, nsnull);
+        m_newsDB->MarkHdrRead(m_newMsgHdr, true, nsnull);
+        break;
+      case nsMsgFilterAction::MarkUnread:
+        m_newsDB->MarkHdrRead(m_newMsgHdr, false, nsnull);
         break;
       case nsMsgFilterAction::KillThread:
         m_newMsgHdr->SetUint32Property("ProtoThreadFlags", nsMsgMessageFlags::Ignored);

@@ -584,13 +584,15 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
         if (actionType == nsMsgFilterAction::MoveToFolder)
           *aApplyMore = PR_FALSE;
       }
-
         break;
       case nsMsgFilterAction::MarkRead:
           // crud, no listener support here - we'll probably just need to go on and apply
           // the next filter, and, in the imap case, rely on multiple connection and url
           // queueing to stay out of trouble
-          m_curFolder->MarkMessagesRead(m_searchHitHdrs, PR_TRUE);
+        m_curFolder->MarkMessagesRead(m_searchHitHdrs, true);
+        break;
+      case nsMsgFilterAction::MarkUnread:
+        m_curFolder->MarkMessagesRead(m_searchHitHdrs, false);
         break;
       case nsMsgFilterAction::MarkFlagged:
         m_curFolder->MarkMessagesFlagged(m_searchHitHdrs, PR_TRUE);

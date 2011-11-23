@@ -28,7 +28,8 @@ var attribResults = {
   "4@regular.invalid" : ["isRead", true],
   "5@regular.invalid" : ["isRead", true],
   "6.odd@regular.invalid" : ["isRead", true],
-  "7@regular.invalid" : ["isRead", true]
+  "7@regular.invalid" : ["isRead", true],
+  "8.unread@regular.invalid" : ["isRead", true]
 };
 function testAttrib(handler, daemon, localserver) {
   var server = makeServer(handler, daemon);
@@ -47,7 +48,7 @@ function testAttrib(handler, daemon, localserver) {
 
   try
   {
-    do_check_eq(headers.length, 7);
+    do_check_eq(headers.length, 8);
     for each (var header in headers) {
       var id = header.messageId;
       dump("Testing message "+id+"\n");
@@ -83,7 +84,8 @@ var actionResults = {
   "6.odd@regular.invalid" : ["isRead", false],
   "7@regular.invalid" : function (header, folder) {
     return header.getStringProperty("keywords") == "tag";
-  }
+  },
+  "8.unread@regular.invalid" : ["isRead", false]
 };
 function testAction(handler, daemon, localserver) {
   var server = makeServer(handler, daemon);
@@ -102,7 +104,7 @@ function testAction(handler, daemon, localserver) {
 
   try
   {
-    do_check_eq(headers.length, 6);
+    do_check_eq(headers.length, 7);
     for each (var header in headers) {
       var id = header.messageId;
       dump("Testing message "+id+"\n");
@@ -137,6 +139,7 @@ function run_test() {
   createFilter(serverFilters, "size", 2, "read");
   createFilter(serverFilters, "message-id", "odd", "read");
   createFilter(serverFilters, "user-agent", "Odd/1.0", "read");
+  createFilter(serverFilters, "message-id", "8.unread", "read");
   localserver.setFilterList(serverFilters);
 
   handlers.forEach( function (handler) {
@@ -160,6 +163,8 @@ function run_test() {
   // This shouldn't be hit, because of the previous filter
   createFilter(folderFilters, "message-id", "6.odd", "read");
   createFilter(folderFilters, "user-agent", "Odd/1.0", "tag");
+  createFilter(folderFilters, "message-id", "8.unread", "read");
+  createFilter(folderFilters, "message-id", "8.unread", "unread");
   folderFilters.loggingEnabled = true;
   folder.setFilterList(folderFilters);
 

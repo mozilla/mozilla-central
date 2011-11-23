@@ -98,7 +98,7 @@ const gTestArray =
   },
   function MarkRead() {
     gAction.type = Ci.nsMsgFilterAction.MarkRead;
-    gChecks = function checks() {
+    gChecks = function checkMarkRead() {
       testCounts(false, 0, 0, 0);
       do_check_true(gHeader.isRead);
     }
@@ -106,12 +106,11 @@ const gTestArray =
   },
   function MarkReadBody() {
     gAction.type = Ci.nsMsgFilterAction.MarkRead;
-    gChecks = function checkMarkRead() {
+    gChecks = function checkMarkReadBody() {
       testCounts(false, 0, 0, 0);
       do_check_true(gHeader.isRead);
     }
     setupTest(gBodyFilter, gAction);
-
   },
   function KillThread() {
     gAction.type = Ci.nsMsgFilterAction.KillThread;
@@ -173,6 +172,22 @@ const gTestArray =
   },
 
   // The remaining tests add new messages
+  function MarkUnread() {
+    gAction.type = Ci.nsMsgFilterAction.MarkUnread;
+    gChecks = function checkMarkUnread() {
+      testCounts(true, 1, 1, 1);
+      do_check_true(!gHeader.isRead);
+    }
+    setupTest(gFilter, gAction);
+  },
+  function MarkUnreadBody() {
+    gAction.type = Ci.nsMsgFilterAction.MarkUnread;
+    gChecks = function checkMarkUnreadBody() {
+      testCounts(true, 1, 1, 1);
+      do_check_true(!gHeader.isRead);
+    }
+    setupTest(gBodyFilter, gAction);
+  },
   function WatchThread() {
     gAction.type = Ci.nsMsgFilterAction.WatchThread;
     gChecks = function checkWatchThread() {

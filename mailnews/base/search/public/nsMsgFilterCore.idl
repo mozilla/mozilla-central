@@ -90,5 +90,6 @@ interface nsMsgFilterAction {
     const long CopyToFolder=16;
     const long AddTag=17;
     const long KillSubthread=18;
+    const long MarkUnread=19;
 };
 

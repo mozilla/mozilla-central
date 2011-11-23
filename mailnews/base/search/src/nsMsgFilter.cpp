@@ -912,6 +912,7 @@ static struct RuleActionsTableEntry ruleActionsTable[] =
   { nsMsgFilterAction::JunkScore,               "JunkScore"},
   { nsMsgFilterAction::FetchBodyFromPop3Server, "Fetch body from Pop3Server"},
   { nsMsgFilterAction::AddTag,                  "AddTag"},
+  { nsMsgFilterAction::MarkUnread,              "Mark unread"},
   { nsMsgFilterAction::Custom,                  "Custom"},
 };
 

@@ -261,13 +261,14 @@ public:
   PRInt32     m_numNotNewMessages;
 protected:
   virtual nsresult GetTrashFolder(nsIMsgFolder **pTrashFolder);
-  virtual nsresult  MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
+  virtual nsresult MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
                                           nsIMsgDatabase *sourceDB,
                                           nsIMsgFolder *destIFolder,
                                           nsIMsgFilter *filter,
                                           nsIMsgWindow *msgWindow);
-  virtual int   MarkFilteredMessageRead(nsIMsgDBHdr *msgHdr);
-  void          LogRuleHit(nsIMsgFilter *filter, nsIMsgDBHdr *msgHdr);
+  virtual void     MarkFilteredMessageRead(nsIMsgDBHdr *msgHdr);
+  virtual void     MarkFilteredMessageUnread(nsIMsgDBHdr *msgHdr);
+  void             LogRuleHit(nsIMsgFilter *filter, nsIMsgDBHdr *msgHdr);
 
   nsCOMPtr <nsIMsgFilterList> m_filterList;
   nsCOMPtr <nsIMsgFilterList> m_deferredToServerFilterList;

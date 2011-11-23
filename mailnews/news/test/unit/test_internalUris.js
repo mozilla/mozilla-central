@@ -46,7 +46,7 @@ function test_newMsgs() {
   do_check_eq(folder.getTotalMessages(false), 0);
   folder.getNewMessages(null, asyncUrlListener);
   yield false;
-  do_check_eq(folder.getTotalMessages(false), 7);
+  do_check_eq(folder.getTotalMessages(false), 8);
   yield true;
 }
 
@@ -77,7 +77,7 @@ function test_cancel() {
         .cancelMessage(hdr, dummyMsgWindow);
   yield false;
 
-  do_check_eq(folder.getTotalMessages(false), 6);
+  do_check_eq(folder.getTotalMessages(false), 7);
   yield true;
 }
 

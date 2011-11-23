@@ -3602,9 +3602,16 @@ NS_IMETHODIMP nsImapMailFolder::ApplyFilterHit(nsIMsgFilter *filter, nsIMsgWindo
         break;
         case nsMsgFilterAction::MarkRead:
         {
-          mDatabase->MarkHdrRead(msgHdr, PR_TRUE, nsnull);
-          StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, &msgKey, 1, nsnull);
-          msgIsNew = PR_FALSE;
+          mDatabase->MarkHdrRead(msgHdr, true, nsnull);
+          StoreImapFlags(kImapMsgSeenFlag, true, &msgKey, 1, nsnull);
+          msgIsNew = false;
+        }
+        break;
+        case nsMsgFilterAction::MarkUnread:
+        {
+          mDatabase->MarkHdrRead(msgHdr, false, nsnull);
+          StoreImapFlags(kImapMsgSeenFlag, false, &msgKey, 1, nsnull);
+          msgIsNew = true;
         }
         break;
         case nsMsgFilterAction::MarkFlagged:

@@ -19,6 +19,7 @@ var ACTION_MAP = {
   "priority" : [Ci.nsMsgFilterAction.ChangePriority, "priority", 6],
   "delete" : [Ci.nsMsgFilterAction.Delete],
   "read" : [Ci.nsMsgFilterAction.MarkRead],
+  "unread" : [Ci.nsMsgFilterAction.MarkUnread],
   "kill" : [Ci.nsMsgFilterAction.KillThread],
   "watch" : [Ci.nsMsgFilterAction.WatchThread],
   "flag" : [Ci.nsMsgFilterAction.MarkFlagged],
