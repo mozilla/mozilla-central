@@ -64,14 +64,14 @@ public:
   nsresult DetermineDelim(nsIFile *pSrc);
   char GetDelim( void) { return( m_delim);}
 
-  static nsresult ReadRecordNumber(nsIFile *pSrc, nsCString &aLine, char delim, PRInt32 rNum);
+  static nsresult ReadRecordNumber(nsIFile *pSrc, nsCString &aLine, PRInt32 rNum);
   static bool GetField(const char *pLine, PRInt32 maxLen, PRInt32 index, nsCString& field, char delim);
 
 private:
   nsresult ProcessLine(const char *pLine, PRInt32 len, nsString& errors);
 
   static PRInt32 CountFields(const char *pLine, PRInt32 maxLen, char delim);
-  static nsresult ReadRecord(nsILineInputStream *pSrc, nsCString &aLine, char delim, bool *aMore);
+  static nsresult ReadRecord(nsILineInputStream *pSrc, nsCString &aLine, bool *aMore);
 
   char m_delim;
   PRInt32 m_LFCount;

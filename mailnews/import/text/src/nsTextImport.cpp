@@ -605,7 +605,7 @@ NS_IMETHODIMP ImportAddressImpl::GetSampleData( PRInt32 index, bool *pFound, PRU
   }
 
   nsCString line;
-  rv = nsTextAddress::ReadRecordNumber(m_fileLoc, line, m_delim, index);
+  rv = nsTextAddress::ReadRecordNumber(m_fileLoc, line, index);
   if (NS_SUCCEEDED( rv)) {
     nsString str;
     nsCString field;
