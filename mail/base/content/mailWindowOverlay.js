@@ -2302,7 +2302,7 @@ function IsGetNextNMessagesEnabled()
   var menuItem = document.getElementById("menu_getnextnmsg");
   if (folder && !folder.isServer &&
       folder.server instanceof Components.interfaces.nsINntpIncomingServer) {
-    menuitem.label = document.getElementById("bundle_messenger")
+    menuItem.label = document.getElementById("bundle_messenger")
                              .getFormattedString("getNextNMessages",
                                                  [folder.server.maxArticles]);
     menuItem.removeAttribute("hidden");
