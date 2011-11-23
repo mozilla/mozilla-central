@@ -85,7 +85,7 @@ interface nsIImapService : nsISupports
                         in nsIMsgFolder aImapMailFolder,
                         in nsIUrlListener aUrlListener,
                         in nsIMsgWindow aMsgWindow);
-  
+
   void addImapFetchToUrl(in nsIURI aURL,
                          in nsIMsgFolder aImapMailFolder,
                          in ACString aMessageIdentifierList,
@@ -95,7 +95,7 @@ interface nsIImapService : nsISupports
                     in nsImapState aImapAction,
                     in nsIMsgFolder aImapMailFolder,
                     in nsIImapMessageSink aImapMessageSink,
-                    in nsIMsgWindow aMsgWindow, 
+                    in nsIMsgWindow aMsgWindow,
                     in nsISupports aConsumer,
                     in ACString aMessageIdentifierList,
                     in boolean convertDataToText,
@@ -178,7 +178,7 @@ interface nsIImapService : nsISupports
                          in nsIMsgFolder aImapMailFolder,
                          in nsIUrlListener aUrlListener,
                          out nsIURI aURL);
-  
+
   void addMessageFlags(in nsIEventTarget aClientEventTarget,
                          in nsIMsgFolder aImapMailFolder,
                          in nsIUrlListener aUrlListener,
@@ -186,7 +186,7 @@ interface nsIImapService : nsISupports
                          in ACString aMessageIdentifierList,
                          in imapMessageFlagsType aFlags,
                          in boolean aMessageIdsAreUID);
-  
+
   void subtractMessageFlags(in nsIEventTarget aClientEventTarget,
                             in nsIMsgFolder aImapMailFolder,
                             in nsIUrlListener aUrlListener,
@@ -202,7 +202,7 @@ interface nsIImapService : nsISupports
                        in ACString aMessageIdentifierList,
                        in imapMessageFlagsType aFlags,
                        in boolean aMessageIdsAreUID);
-  
+
   void discoverAllFolders(in nsIEventTarget aClientEventTarget,
                           in nsIMsgFolder aImapMailFolder,
                           in nsIUrlListener aUrlListener,
@@ -213,7 +213,7 @@ interface nsIImapService : nsISupports
                                        in nsIMsgFolder aImapMailFolder,
                                        in nsIUrlListener aUrlListener,
                                        out nsIURI aURL);
-  void discoverChildren(in nsIEventTarget aClientEventTarget, 
+  void discoverChildren(in nsIEventTarget aClientEventTarget,
                         in nsIMsgFolder aImapMailFolder,
                         in nsIUrlListener aUrlListener,
                         in ACString folderPath,
@@ -241,7 +241,7 @@ interface nsIImapService : nsISupports
                              out nsIURI aURL,
                              in nsISupports aCopyState,
                              in nsIMsgWindow aMsgWindow);
-  
+
   void downloadMessagesForOffline(in ACString aMessageIds, in nsIMsgFolder aSrcFolder,
                       in nsIUrlListener aListener, in nsIMsgWindow   aMsgWindow);
 
@@ -266,7 +266,7 @@ interface nsIImapService : nsISupports
                       in nsIMsgFolder aParentFolder,
                       in AString aLeafName,
                       in nsIUrlListener aUrlListener);
-  
+
   nsIURI listFolder(in nsIEventTarget aClientEventTarget,
                     in nsIMsgFolder aMailFolder,
                     in nsIUrlListener aUrlListener);
