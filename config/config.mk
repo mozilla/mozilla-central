@@ -368,7 +368,7 @@ MY_RULES	:= $(DEPTH)/config/myrules.mk
 CCC		= $(CXX)
 PURIFY		= purify $(PURIFYOPTIONS)
 QUANTIFY	= quantify $(QUANTIFYOPTIONS)
-XPIDL_LINK = $(PYTHON) $(SDK_BIN_DIR)/xpt.py link
+XPIDL_LINK = $(PYTHON) $(LIBXUL_DIST)/sdk/bin/xpt.py link
 
 INCLUDES = \
   $(LOCAL_INCLUDES) \
