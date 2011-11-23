@@ -133,7 +133,7 @@ label.label {
  *-------------------------------------------------------------------*/
 
 .cal-event-toolbarbutton {
-    list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar.png");
+    list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar.png") !important;
 }
 
 /*--------------------------------------------------------------------
@@ -141,7 +141,7 @@ label.label {
  *-------------------------------------------------------------------*/
 
 toolbar[iconsize="small"] .cal-event-toolbarbutton {
-    list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar-small.png");
+    list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar-small.png") !important;
 }
 
 /*--------------------------------------------------------------------

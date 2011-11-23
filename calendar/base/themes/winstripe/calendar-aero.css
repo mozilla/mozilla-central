@@ -227,7 +227,7 @@
 
 .cal-event-toolbarbutton,
 toolbar[iconsize="small"] .cal-event-toolbarbutton {
-  list-style-image: url(chrome://calendar/skin/calendar-event-dialog-toolbar-aero.png);
+  list-style-image: url(chrome://calendar/skin/calendar-event-dialog-toolbar-aero.png) !important;
 }
 
 #button-save {

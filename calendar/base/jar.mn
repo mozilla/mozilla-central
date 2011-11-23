@@ -103,6 +103,7 @@ calendar.jar:
 % skin calendar classic/1.0 %skin/calendar/
 % style chrome://calendar/content/calendar-event-dialog.xul chrome://global/skin/toolbar.css
 % style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar-task-view.css
+% style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar-event-dialog.css
     skin/calendar/abcard.png                               (themes/common/images/abcard.png)
     skin/calendar/alarm-flashing.png                       (themes/common/images/alarm-flashing.png)
     skin/calendar/alarm-icons.png                          (themes/common/images/alarm-icons.png)
@@ -167,6 +168,7 @@ calendar.jar:
 % style chrome://calendar/content/calendar-common-sets.xul chrome://calendar/skin/calendar-aero.css os=WINNT osversion>=6
 % style chrome://calendar/content/calendar-event-dialog.xul chrome://calendar/skin/calendar-aero.css os=WINNT osversion>=6
 % style chrome://calendar/content/calendar-occurrence-prompt.xul chrome://calendar/skin/calendar-aero.css os=WINNT osversion>=6
+% style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar-aero.css os=WINNT osversion>=6
     skin/calendar/calendar-aero.css                        (themes/@THEME@/calendar-aero.css)
     skin/calendar/calendar-event-dialog-toolbar-aero.png   (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-aero.png)
     skin/calendar/calendar-occurrence-prompt-aero.png      (themes/@THEME@/images/calendar-occurrence-prompt-aero.png)
