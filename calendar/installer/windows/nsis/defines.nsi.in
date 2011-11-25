@@ -13,6 +13,5 @@
 !define AB_CD                 "@AB_CD@"
 
 !define FileMainEXE           "sunbird.exe"
-!define NO_UNINSTALL_SURVEY
 !define WindowClass           "SunbirdMessageWindow"
 !define MinSupportedVer       "Microsoft Windows 2000"

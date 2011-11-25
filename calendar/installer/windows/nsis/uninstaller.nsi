@@ -160,16 +160,6 @@ UninstPage custom un.preConfirm un.leaveConfirm
 
 ; Finish Page
 
-; Don't setup the survey controls, functions, etc. when the application has
-; defined NO_UNINSTALL_SURVEY
-!ifndef NO_UNINSTALL_SURVEY
-!define MUI_PAGE_CUSTOMFUNCTION_PRE un.preFinish
-!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
-!define MUI_FINISHPAGE_SHOWREADME ""
-!define MUI_FINISHPAGE_SHOWREADME_TEXT $(SURVEY_TEXT)
-!define MUI_FINISHPAGE_SHOWREADME_FUNCTION un.Survey
-!endif
-
 !insertmacro MUI_UNPAGE_FINISH
 
 ; Use the default dialog for IDD_VERIFY for a simple Banner
@@ -293,17 +283,6 @@ Section "Uninstall"
 SectionEnd
 
 ################################################################################
-# Helper Functions
-
-; Don't setup the survey controls, functions, etc. when the application has
-; defined NO_UNINSTALL_SURVEY
-!ifndef NO_UNINSTALL_SURVEY
-Function un.Survey
-  ExecShell "open" "${SurveyURL}"
-FunctionEnd
-!endif
-
-################################################################################
 # Language
 
 !insertmacro MOZ_MUI_LANGUAGE 'baseLocale'
@@ -418,24 +397,6 @@ Function un.leaveConfirm
     ${un.ManualCloseAppPrompt} "${WindowClass}" "$(WARN_MANUALLY_CLOSE_APP_UNINSTALL)"
   ${EndIf}
 FunctionEnd
-
-!ifndef NO_UNINSTALL_SURVEY
-Function un.preFinish
-  ; Do not modify the finish page if there is a reboot pending.
-  ${Unless} ${RebootFlag}
-    ; Don't display the option to take a survey on the finish page if the OS is
-    ; Vista or above since the process will be running elevated.
-    ${If} ${AtLeastWinVista}
-      !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "settings" "NumFields" "3"
-    ${Else}
-      ; When we add an optional action to the finish page the cancel button
-      ; is enabled. This disables it and leaves the finish button as the
-      ; only choice.
-      !insertmacro MUI_INSTALLOPTIONS_WRITE "ioSpecial.ini" "settings" "cancelenabled" "0"
-    ${EndIf}
-  ${EndUnless}
-FunctionEnd
-!endif
 
 ################################################################################
 # Initialization Functions
