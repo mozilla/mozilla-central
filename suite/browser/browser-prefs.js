@@ -548,6 +548,14 @@ pref("app.update.incompatible.mode", 0);
 // Enables some extra Extension System Logging (can reduce performance)
 pref("extensions.logging.enabled", false);
 
+// Enables strict compatibility. To be toggled in bug 698653, to make addons
+// compatible by default.
+pref("extensions.strictCompatibility", true);
+
+// Specifies a minimum maxVersion an addon needs to say it's compatible with
+// for it to be compatible by default.
+pref("extensions.minCompatibleAppVersion", "2.1");
+
 // Blocklist preferences
 pref("extensions.blocklist.enabled", true);
 pref("extensions.blocklist.interval", 86400);
