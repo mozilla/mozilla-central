@@ -166,13 +166,18 @@ interface nsIImportAddressBooks : nsISupports
   void  SetSampleLocation( in nsIFile location);
 
   /*
-    Return a string of sample data for a record, each field
-    is separated by a newline (which means no newlines in the fields!)
-    This is only supported by address books which use field maps and
-    is used by the field map UI to allow the user to properly
-    align fields to be imported.
-  */
-  wstring GetSampleData( in long recordNumber, out boolean recordExists);
+   * Return a string of sample data for a record, each field
+   * is separated by a newline (which means no newlines in the fields!)
+   * This is only supported by address books which use field maps and
+   * is used by the field map UI to allow the user to properly
+   * align fields to be imported.
+   *
+   * @param recordNumber index of the recrds, starting from 0.
+   * @param recordExists true if the record exists.
+   *
+   * @returns a string of sample data for the desired record
+   */
+  wstring GetSampleData(in long recordNumber, out boolean recordExists);
 
 };
 
