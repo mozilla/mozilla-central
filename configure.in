@@ -7328,6 +7328,9 @@ if test -n "$COMPILE_ENVIRONMENT" -a -n "$MOZ_LDAP_XPCOM"; then
         dnl A 64-bit OS was (auto-)detected: (explicitly) enable 64-bit support.
         ac_configure_args="$ac_configure_args --enable-64bit"
     fi
+    if test -n "$LIBXUL_SDK"; then
+        ac_configure_args="$ac_configure_args --with-nspr=$LIBXUL_DIST"
+    fi
     AC_OUTPUT_SUBDIRS(ldap/sdks/c-sdk)
     ac_configure_args="$_SUBDIR_CONFIG_ARGS"
 fi # COMPILE_ENVIRONMENT && MOZ_LDAP_XPCOM

@@ -45,7 +45,11 @@ include $(DEPTH)/config/autoconf.mk
 MODULE		= mork
 LIBRARY_NAME	= msgmork_s
 FORCE_STATIC_LIB=1
+
+ifndef MOZ_INCOMPLETE_EXTERNAL_LINKAGE
+MOZILLA_INTERNAL_API = 1
 LIBXUL_LIBRARY	= 1
+endif
 
 CPPSRCS		= \
 		orkinHeap.cpp \

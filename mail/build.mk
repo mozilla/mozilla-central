@@ -45,6 +45,9 @@ APP_LIBXUL_DIRS += $(DEPTH)/../mail/components
 
 ifndef LIBXUL_SDK
 include $(topsrcdir)/toolkit/toolkit-tiers.mk
+else
+tier_app_staticdirs += $(APP_LIBXUL_STATICDIRS)
+tier_app_dirs += $(APP_LIBXUL_DIRS)
 endif
 
 TIERS += app
