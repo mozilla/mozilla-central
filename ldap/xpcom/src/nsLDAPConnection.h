@@ -43,7 +43,7 @@
 
 #include "nsILDAPConnection.h"
 #include "ldap.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIThread.h"
 #include "nsIRunnable.h"
 #include "nsCOMPtr.h"

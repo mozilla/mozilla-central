@@ -39,11 +39,12 @@
 
 #include "nsLDAPSyncQuery.h"
 #include "nsIServiceManager.h"
-#include "nsXPIDLString.h"
 #include "nsILDAPErrors.h"
 #include "nsThreadUtils.h"
-#include "nsReadableUtils.h"
 #include "nsILDAPMessage.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
+#include "nsMemory.h"
 
 // nsISupports Implementation
 

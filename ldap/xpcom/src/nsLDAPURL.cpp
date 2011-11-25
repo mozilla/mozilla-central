@@ -197,7 +197,7 @@ nsLDAPURL::SetSpec(const nsACString &aSpec)
   rv = mBaseURL->SetSpec(aSpec);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = SetPathInternal(nsPromiseFlatCString(aSpec));
+  rv = SetPathInternal(PromiseFlatCString(aSpec));
   if (NS_FAILED(rv))
     mBaseURL->SetSpec(originalSpec);
 
@@ -342,7 +342,7 @@ NS_IMETHODIMP nsLDAPURL::SetPath(const nsACString &aPath)
   if (!mBaseURL)
     return NS_ERROR_NOT_INITIALIZED;
 
-  nsresult rv = SetPathInternal(nsPromiseFlatCString(aPath));
+  nsresult rv = SetPathInternal(PromiseFlatCString(aPath));
   NS_ENSURE_SUCCESS(rv, rv);
 
   return mBaseURL->SetPath(aPath);
@@ -548,7 +548,7 @@ NS_IMETHODIMP nsLDAPURL::AddAttribute(const nsACString &aAttribute)
   else
   {
     // Wrap the attribute in commas, so that we can do an exact match.
-    nsCAutoString findAttribute(',');
+    nsCAutoString findAttribute(",");
     findAttribute.Append(aAttribute);
     findAttribute.Append(',');
 
@@ -578,7 +578,7 @@ NS_IMETHODIMP nsLDAPURL::RemoveAttribute(const nsACString &aAttribute)
   if (mAttributes.IsEmpty())
     return NS_OK;
 
-  nsCAutoString findAttribute(',');
+  nsCAutoString findAttribute(",");
   findAttribute.Append(aAttribute);
   findAttribute.Append(',');
 
@@ -606,7 +606,7 @@ NS_IMETHODIMP nsLDAPURL::HasAttribute(const nsACString &aAttribute,
 {
   NS_ENSURE_ARG_POINTER(_retval);
 
-  nsCAutoString findAttribute(',');
+  nsCAutoString findAttribute(",");
   findAttribute.Append(aAttribute);
   findAttribute.Append(',');
 

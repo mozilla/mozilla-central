@@ -41,6 +41,7 @@
 #include "nsILDAPBERValue.h"
 #include "nsISimpleEnumerator.h"
 #include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 
 using namespace mozilla;
 

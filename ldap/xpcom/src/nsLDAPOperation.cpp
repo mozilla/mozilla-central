@@ -44,7 +44,6 @@
 #include "nsILDAPMessage.h"
 #include "nsILDAPModification.h"
 #include "nsIComponentManager.h"
-#include "nsReadableUtils.h"
 #include "nspr.h"
 #include "nsISimpleEnumerator.h"
 #include "nsLDAPControl.h"
@@ -52,6 +51,7 @@
 #include "nsIClassInfoImpl.h"
 #include "nsIAuthModule.h"
 #include "nsArrayUtils.h"
+#include "nsMemory.h"
 
 // Helper function
 static nsresult TranslateLDAPErrorToNSError(const int ldapError)

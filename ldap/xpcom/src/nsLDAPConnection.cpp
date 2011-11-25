@@ -45,8 +45,7 @@
 
 #include "nsLDAPInternal.h"
 #include "nsIServiceManager.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 #include "nsIComponentManager.h"
 #include "nsLDAPConnection.h"
 #include "nsLDAPMessage.h"
@@ -63,6 +62,7 @@
 #include "nsIObserverService.h"
 #include "mozilla/Services.h"
 #include "nsCRT.h"
+#include "nsLDAPUtils.h"
 
 const char kConsoleServiceContractId[] = "@mozilla.org/consoleservice;1";
 const char kDNSServiceContractId[] = "@mozilla.org/network/dns-service;1";
@@ -82,7 +82,7 @@ nsLDAPConnection::nsLDAPConnection()
 nsLDAPConnection::~nsLDAPConnection()
 {
   nsCOMPtr<nsIObserverService> obsServ =
-      mozilla::services::GetObserverService();
+      do_GetService(NS_OBSERVERSERVICE_CONTRACTID);
   if (obsServ)
       obsServ->RemoveObserver(this, "profile-change-net-teardown");
   Close();
@@ -113,9 +113,10 @@ nsLDAPConnection::Init(nsILDAPURL *aUrl, const nsACString &aBindName,
   NS_ENSURE_ARG_POINTER(aUrl);
   NS_ENSURE_ARG_POINTER(aMessageListener);
 
+  nsresult rv;
   nsCOMPtr<nsIObserverService> obsServ =
-      mozilla::services::GetObserverService();
-
+        do_GetService(NS_OBSERVERSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
   // We have to abort all LDAP pending operation before shutdown.
   obsServ->AddObserver(this, "profile-change-net-teardown", PR_TRUE);
 
@@ -136,8 +137,6 @@ nsLDAPConnection::Init(nsILDAPURL *aUrl, const nsACString &aBindName,
     return NS_ERROR_ILLEGAL_VALUE;
   }
   mVersion = aVersion;
-
-  nsresult rv;
 
   // Get the port number, SSL flag for use later, once the DNS server(s)
   // has resolved the host part.
@@ -185,12 +184,12 @@ nsLDAPConnection::Init(nsILDAPURL *aUrl, const nsACString &aBindName,
   // ldap c-sdk allows, strip off the trailing hosts for now.
   // Soon, we'd like to make multiple hosts work, but now make
   // at least the first one work.
-  mDNSHost.CompressWhitespace(PR_TRUE, PR_TRUE);
+  LdapCompressWhitespace(mDNSHost);
 
   PRInt32 spacePos = mDNSHost.FindChar(' ');
   // trim off trailing host(s)
   if (spacePos != kNotFound)
-    mDNSHost.Truncate(spacePos);
+    mDNSHost.SetLength(spacePos);
 
   rv = pDNSService->AsyncResolve(mDNSHost, 0, this, curThread,
                                  getter_AddRefs(mDNSRequest));
@@ -351,7 +350,7 @@ nsLDAPConnection::GetErrorString(PRUnichar **_retval)
 
     // make a copy using the XPCOM shared allocator
     //
-    *_retval = UTF8ToNewUnicode(nsDependentCString(rv));
+    *_retval = ToNewUnicode(NS_ConvertUTF8toUTF16(rv));
     if (!*_retval) {
         return NS_ERROR_OUT_OF_MEMORY;
     }

@@ -46,7 +46,7 @@
 #include "nsILDAPConnection.h"
 #include "nsILDAPOperation.h"
 #include "nsILDAPMessageListener.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsIMutableArray.h"
 #include "nsLDAPConnection.h"
 

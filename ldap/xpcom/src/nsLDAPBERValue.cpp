@@ -39,8 +39,7 @@
 
 #include "nsLDAPBERValue.h"
 #include "nsMemory.h"
-#include "nsString.h"
-#include "nsReadableUtils.h"
+#include "nsStringGlue.h"
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsLDAPBERValue, nsILDAPBERValue)
 

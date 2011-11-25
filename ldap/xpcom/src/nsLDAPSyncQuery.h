@@ -42,7 +42,7 @@
 #include "nsILDAPOperation.h"
 #include "nsILDAPMessageListener.h"
 #include "nsILDAPURL.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsILDAPSyncQuery.h"
 
 // DDDEE14E-ED81-4182-9323-C2AB22FBA68E

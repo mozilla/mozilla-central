@@ -41,7 +41,7 @@
 
 #include "nsILDAPModification.h"
 #include "nsIMutableArray.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsCOMPtr.h"
 #include "mozilla/Mutex.h"
 

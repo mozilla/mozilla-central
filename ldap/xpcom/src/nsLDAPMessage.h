@@ -44,7 +44,6 @@
 #include "nsILDAPMessage.h"
 #include "nsILDAPOperation.h"
 #include "nsCOMPtr.h"
-#include "nsHashtable.h"
 
 // 76e061ad-a59f-43b6-b812-ee6e8e69423f
 //

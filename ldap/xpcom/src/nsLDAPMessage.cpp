@@ -43,11 +43,11 @@
 #include "nsDebug.h"
 #include "nsCRT.h"
 #include "nsLDAPConnection.h"
-#include "nsReadableUtils.h"
 #include "nsISupportsUtils.h"
 #include "nsLDAPBERValue.h"
 #include "nsILDAPErrors.h"
 #include "nsIClassInfoImpl.h"
+#include "nsLDAPUtils.h"
 
 NS_IMPL_CLASSINFO(nsLDAPMessage, NULL, nsIClassInfo::THREADSAFE,
                   NS_LDAPMESSAGE_CID)
@@ -537,9 +537,9 @@ nsLDAPMessage::GetValues(const char *aAttr, PRUint32 *aCount,
     for ( i = 0 ; i < numVals ; i++ ) {
         nsDependentCString sValue(values[i]);
         if (IsUTF8(sValue))
-            (*aValues)[i] = UTF8ToNewUnicode(sValue);
+            (*aValues)[i] = ToNewUnicode(NS_ConvertUTF8toUTF16(sValue));
         else
-            (*aValues)[i] = ToNewUnicode(sValue);
+            (*aValues)[i] = ToNewUnicode(NS_ConvertASCIItoUTF16(sValue));
         if ( ! (*aValues)[i] ) {
             NS_FREE_XPCOM_ALLOCATED_POINTER_ARRAY(i, aValues);
             ldap_value_free(values);

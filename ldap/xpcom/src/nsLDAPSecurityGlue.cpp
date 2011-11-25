@@ -54,6 +54,8 @@
 #include "plstr.h"
 #include "ldap.h"
 #include "ldappr.h"
+#include "nsComponentManagerUtils.h"
+#include "nsServiceManagerUtils.h"
 
 // LDAP per-session data structure.
 //

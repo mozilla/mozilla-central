@@ -40,7 +40,7 @@
 #include "nsILDAPControl.h"
 #include "nsCOMPtr.h"
 #include "nsILDAPBERValue.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "ldap.h"
 
 // {5B608BBE-C0EA-4f74-B209-9CDCD79EC401}

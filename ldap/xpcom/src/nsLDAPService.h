@@ -38,9 +38,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "ldap.h"
-#include "nsString.h"
+#include "nsStringGlue.h"
 #include "nsCOMArray.h"
-#include "nsHashtable.h"
+#include "nsDataHashtable.h"
 #include "nsILDAPService.h"
 #include "nsILDAPMessage.h"
 #include "nsILDAPMessageListener.h"
@@ -65,7 +65,7 @@ class nsLDAPServiceEntry
 {
   public:
     nsLDAPServiceEntry();
-    virtual ~nsLDAPServiceEntry();
+    virtual ~nsLDAPServiceEntry() {};
     bool Init();
 
     inline PRUint32 GetLeases();
@@ -131,19 +131,19 @@ class nsLDAPService : public nsILDAPService, public nsILDAPMessageListener
     // kinda like strtok_r, but with iterators.  for use by 
     // createFilter
     //
-    char *NextToken(nsReadingIterator<char> & aIter,
-                    nsReadingIterator<char> & aIterEnd);
+    char *NextToken(const char **aIter, const char **aIterEnd);
 
     // count how many tokens are in this string; for use by
     // createFilter; note that unlike with NextToken, these params
     // are copies, not references.
     //
-    PRUint32 CountTokens(nsReadingIterator<char> aIter,
-                         nsReadingIterator<char> aIterEnd);
+    PRUint32 CountTokens(const char * aIter, const char * aIterEnd);
                    
     
     mozilla::Mutex mLock;       // Lock mechanism
-    nsHashtable *mServers;      // Hash table holding server entries
-    nsHashtable *mConnections;  // Hash table holding "reverse"
-                                // lookups from connection to server
+
+    // Hash table holding server entries
+    nsDataHashtable<nsStringHashKey, nsLDAPServiceEntry*> mServers;
+    // Hash table holding "reverse" lookups from connection to server
+    nsDataHashtable<nsVoidPtrHashKey, nsLDAPServiceEntry*> mConnections;
 };
