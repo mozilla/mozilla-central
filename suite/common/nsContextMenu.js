@@ -53,20 +53,31 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
-function nsContextMenu(aXulMenu, aBrowser) {
+XPCOMUtils.defineLazyGetter(this, "PageMenu", function() {
+  let tmp = {};
+  Components.utils.import("resource://gre/modules/PageMenu.jsm", tmp);
+  return new tmp.PageMenu();
+});
+
+function nsContextMenu(aXulMenu, aBrowser, aIsShift) {
   this.shouldDisplay = true;
-  this.initMenu();
+  this.initMenu(aBrowser, aXulMenu, aIsShift);
 }
 
 // Prototype for nsContextMenu "class."
 nsContextMenu.prototype = {
-  initMenu: function() {
+  initMenu: function(aBrowser, aXulMenu, aIsShift) {
     // Get contextual info.
     this.setTarget(document.popupNode, document.popupRangeParent,
                    document.popupRangeOffset);
 
     if (!this.shouldDisplay)
       return;
+
+    this.hasPageMenu = false;
+    if (!aIsShift && aXulMenu.hasAttribute("pagemenu"))
+      this.hasPageMenu = PageMenu.maybeBuildAndAttachMenu(this.target,
+                                                          aXulMenu);
 
     this.isTextSelected = this.isTextSelection();
     this.isContentSelected = this.isContentSelection();
@@ -78,6 +89,7 @@ nsContextMenu.prototype = {
   },
 
   initItems: function() {
+    this.initPageMenuSeparator();
     this.initOpenItems();
     this.initNavigationItems();
     this.initViewItems();
@@ -87,6 +99,10 @@ nsContextMenu.prototype = {
     this.initClipboardItems();
     this.initMetadataItems();
     this.initMediaPlayerItems();
+  },
+
+  initPageMenuSeparator: function() {
+    this.showItem("page-menu-separator", this.hasPageMenu);
   },
 
   initOpenItems: function() {
