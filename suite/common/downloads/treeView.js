@@ -355,6 +355,7 @@ DownloadTreeView.prototype = {
           break;
         default:
           dl.isActive = 0;
+          dl.progressMode = nsITreeView.PROGRESS_NONE;
           gDMUI.getAttention();
           break;
       }
