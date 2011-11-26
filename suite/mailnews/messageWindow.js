@@ -618,7 +618,6 @@ var MessageWindowController =
       case "button_junk":
       case "cmd_shiftDelete":
       case "cmd_saveAsTemplate":
-      case "cmd_viewPageSource":
       case "cmd_getMsgsForAuthAccounts":
       case "button_mark":
       case "cmd_markAsRead":
@@ -649,6 +648,8 @@ var MessageWindowController =
       case "cmd_goForward":
       case "button_goForward":
         return (gDBView.keyForFirstSelectedMessage != nsMsgKey_None);
+      case "cmd_viewPageSource":
+        return GetNumSelectedMessages() > 0;
       case "cmd_reply":
       case "button_reply":
       case "cmd_replySender":
