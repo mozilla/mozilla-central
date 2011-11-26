@@ -49,6 +49,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/mailServices.js");
 Components.utils.import("resource:///modules/folderUtils.jsm");
 
 const kClassicMailLayout  = 0;
@@ -397,8 +398,10 @@ function InitMessageMenu()
   }
 
   var copyMenu = document.getElementById("copyMenu");
-  if(copyMenu)
-      copyMenu.setAttribute("disabled", !aMessage);
+  var canCopy = aMessage && (!gMessageDisplay.isDummy ||
+                             window.arguments[0].scheme == "file");
+  if (copyMenu)
+      copyMenu.setAttribute("disabled", !canCopy);
 
   // Disable the Forward as/Tag menu items if no message is selected.
   var forwardAsMenu = document.getElementById("forwardAsMenu");
@@ -1057,7 +1060,17 @@ function MsgCopyMessage(destFolder)
     // get the msg folder we're copying messages into
     var destUri = destFolder.getAttribute('id');
     let destMsgFolder = GetMsgFolderFromUri(destUri);
-    gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, destMsgFolder);
+    if (gMessageDisplay.isDummy)
+    {
+      let file = window.arguments[0].QueryInterface(Components.interfaces.nsIFileURL).file;
+      MailServices.copy.CopyFileMessage(file, destMsgFolder, null, false,
+                                        Components.interfaces.nsMsgMessageFlags.Read,
+                                        "", null, msgWindow);
+    }
+    else
+    {
+      gDBView.doCommandWithFolder(nsMsgViewCommandType.copyMessages, destMsgFolder);
+    }
   }
   catch (ex) {
     dump("MsgCopyMessage failed: " + ex + "\n");

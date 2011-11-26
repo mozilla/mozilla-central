@@ -175,7 +175,9 @@ function FillMailContextMenu(aTarget)
                  oneOrMore && msgFolder && msgFolder.canDeleteMessages);
 
   // Copy is available as long as something is selected.
-  ShowMenuItem("mailContext-copyMenu", showMailItems && oneOrMore);
+  var canCopy = showMailItems && oneOrMore && (!gMessageDisplay.isDummy ||
+                                               window.arguments[0].scheme == "file");
+  ShowMenuItem("mailContext-copyMenu", canCopy);
   ShowMenuItem("mailContext-tags", showMailItems && oneOrMore);
   ShowMenuItem("mailContext-mark", showMailItems && oneOrMore);
   ShowMenuItem("mailContext-saveAs", showMailItems && oneOrMore);

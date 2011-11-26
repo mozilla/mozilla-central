@@ -133,6 +133,11 @@ var gMessageDisplay =
                                               gDBView.getMsgHdrAt(viewIndex);
   },
 
+  get isDummy()
+  {
+    return gDBView && gDBView.keyForFirstSelectedMessage == nsMsgKey_None;
+  },
+
   get visible()
   {
     return !GetMessagePane().collapsed;
