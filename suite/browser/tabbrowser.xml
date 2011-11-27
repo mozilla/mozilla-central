@@ -577,8 +577,9 @@
                   this.mTabBrowser.forwardBrowserGroup = [];
                 }
 
-                // The document loaded correctly, clear the value if we should
-                if (this.mBrowser.userTypedClear > 0)
+                // Clear the value if this was a user document or an error page.
+                if (this.mBrowser.userTypedClear > 0 ||
+                    !Components.isSuccessCode(aRequest.status))
                   this.mBrowser.userTypedValue = null;
               }
 
