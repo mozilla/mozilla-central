@@ -133,8 +133,15 @@ interface nsINntpIncomingServer : nsISupports {
      */
     [noscript] void prepareForNextUrl(in nsNNTPProtocol aNntpConnection);
 
-    /* used for auto subscribing */
-    boolean containsNewsgroup(in AUTF8String name);
+    /**
+     * Returns whether or not the server has subscribed to the given newsgroup.
+     *
+     * Note that the name here is intended to be escaped; however, since `%' is
+     * not a legal newsgroup name, it is possibly safe to pass in an unescaped
+     * newsgroup name.
+     */
+    boolean containsNewsgroup(in AUTF8String escapedName);
+
     void subscribeToNewsgroup(in AUTF8String name);
 
     /* used for the subscribe dialog.
@@ -158,6 +165,14 @@ interface nsINntpIncomingServer : nsISupports {
     void addSearchableHeader(in string headerName);
     boolean querySearchableHeader(in string headerName);
 
+    /**
+     * Returns the folder corresponding to the given group.
+     *
+     * Note that this name is expected to be unescaped.
+     * @note If the group does not exist, a bogus news folder will be returned.
+     *       DO NOT call this method unless you are sure that the newsgroup
+     *       is subscribed to (e.g., by containsNewsgroup)
+     */
     nsIMsgNewsFolder findGroup(in AUTF8String name);
 
     readonly attribute AUTF8String firstGroupNeedingExtraInfo;

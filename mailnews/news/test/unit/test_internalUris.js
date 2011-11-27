@@ -36,6 +36,7 @@ let tests = [
   test_search,
   test_grouplist,
   test_postMessage,
+  test_escapedName,
   cleanUp
 ];
 
@@ -184,6 +185,38 @@ function test_forwardInline() {
   let hdr = folder.msgDatabase.GetMsgHdrForKey(1);
   composeSvc.forwardMessage("a@b.c", hdr, null,
     localserver, Ci.nsIMsgComposeService.kForwardInline);
+}
+
+function test_escapedName() {
+  // This does a few tests to make sure our internal URIs work for newsgroups
+  // with names that need escaping
+  let evilName = "test.malformed&name";
+  daemon.addGroup(evilName);
+  daemon.addArticle(make_article(do_get_file("postings/bug670935.eml")));
+  localserver.subscribeToNewsgroup(evilName);
+
+  // Can we access it?
+  let folder = localserver.rootFolder.getChildNamed(evilName);
+  folder.getNewMessages(null, asyncUrlListener);
+  yield false;
+
+  // If we get here, we didn't crash--newsgroups unescape properly.
+  // Load a message, to test news-message: URI unescaping
+  var statuscode = -1;
+  let streamlistener = {
+    onDataAvailable: function() {},
+    onStartRequest: function() {
+    },
+    onStopRequest: function (aRequest, aContext, aStatus) {
+      statuscode = aStatus;
+    },
+    QueryInterface: XPCOMUtils.generateQI([Ci.nsIStreamListener,
+                                           Ci.nsIRequestObserver])
+  };
+  nntpService.fetchMessage(folder, 1, null, streamlistener, asyncUrlListener);
+  yield false;
+  do_check_eq(statuscode, Components.results.NS_OK);
+  yield true;
 }
 
 function run_test() {

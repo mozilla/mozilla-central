@@ -1550,8 +1550,13 @@ nsNntpIncomingServer::FindGroup(const nsACString &name, nsIMsgNewsFolder **resul
 
   if (!serverFolder) return NS_ERROR_FAILURE;
 
+  // Escape the name for using FindSubFolder
+  nsCAutoString escapedName;
+  rv = MsgEscapeString(name, nsINetUtil::ESCAPE_URL_PATH, escapedName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   nsCOMPtr <nsIMsgFolder> subFolder;
-  rv = serverFolder->FindSubFolder(name, getter_AddRefs(subFolder));
+  rv = serverFolder->FindSubFolder(escapedName, getter_AddRefs(subFolder));
   NS_ENSURE_SUCCESS(rv,rv);
   if (!subFolder) return NS_ERROR_FAILURE;
 

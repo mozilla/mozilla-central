@@ -88,7 +88,12 @@ interface nsINntpUrl : nsISupports {
   /// For ActionGetNewNews URIs, whether or not to get older messages.
   attribute boolean getOldMessages;
 
-  /// The group portion of the URI, if one is present
+  /**
+   * The group portion of the URI, if one is present.
+   *
+   * This group name is fully unescaped; if you need to construct news URLs with
+   * this value, be sure to escape it first.
+   */
   readonly attribute ACString group;
 
   /// The message ID portion of the URI, if one is present

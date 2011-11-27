@@ -60,7 +60,12 @@ nsParseNewsMessageURI(const char* uri, nsCString& group, PRUint32 *key)
     PRInt32 groupSeparator = group.RFind("/");
     if (groupSeparator == -1)
       return NS_ERROR_FAILURE;
-    group = Substring(group, groupSeparator + 1);
+
+    // Our string APIs don't let us unescape into the same buffer from earlier,
+    // so escape into a temporary
+    nsCAutoString unescapedGroup;
+    MsgUnescapeString(Substring(group, groupSeparator + 1), 0, unescapedGroup);
+    group = unescapedGroup;
 
     nsCAutoString keyStr;
     if (keyEndSeparator != -1)
