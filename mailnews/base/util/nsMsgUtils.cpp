@@ -94,6 +94,11 @@
 #include "nsIAtomService.h"
 #include "nsIStreamListener.h"
 #include "nsReadLine.h"
+#include "nsICharsetDetectionObserver.h"
+#include "nsICharsetDetector.h"
+#include "nsILineInputStream.h"
+#include "nsIPlatformCharset.h"
+#include "mozilla/Preferences.h"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
@@ -2226,3 +2231,111 @@ MsgStreamMsgHeaders(nsIInputStream *aInputStream, nsIStreamListener *aConsumer)
 
 }
 
+class CharsetDetectionObserver : public nsICharsetDetectionObserver
+{
+public:
+  NS_DECL_ISUPPORTS
+  CharsetDetectionObserver() {};
+  virtual ~CharsetDetectionObserver() {};
+  NS_IMETHOD Notify(const char* aCharset, nsDetectionConfident aConf)
+  {
+    mCharset = aCharset;
+    return NS_OK;
+  };
+  const char *GetDetectedCharset() { return mCharset.get(); }
+
+private:
+  nsCString mCharset;
+};
+
+NS_IMPL_ISUPPORTS1(CharsetDetectionObserver, nsICharsetDetectionObserver)
+
+NS_MSG_BASE nsresult
+MsgDetectCharsetFromFile(nsILocalFile *aFile, nsACString &aCharset)
+{
+  // First try the universal charset detector
+  nsCOMPtr<nsICharsetDetector> detector
+    = do_CreateInstance(NS_CHARSET_DETECTOR_CONTRACTID_BASE
+                        "universal_charset_detector");
+  if (!detector) {
+    // No universal charset detector, try the default charset detector
+    const nsAdoptingCString& detectorName =
+      mozilla::Preferences::GetLocalizedCString("intl.charset.detector");
+    if (!detectorName.IsEmpty()) {
+      nsCAutoString detectorContractID;
+      detectorContractID.AssignLiteral(NS_CHARSET_DETECTOR_CONTRACTID_BASE);
+      detectorContractID += detectorName;
+      detector = do_CreateInstance(detectorContractID.get());
+    }
+  }
+
+  nsresult rv;
+  nsCOMPtr<nsIInputStream> inputStream;
+  rv = NS_NewLocalFileInputStream(getter_AddRefs(inputStream), aFile);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (detector) {
+    nsCAutoString buffer;
+
+    nsCOMPtr<CharsetDetectionObserver> observer = new CharsetDetectionObserver();
+
+    rv = detector->Init(observer);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsILineInputStream> lineInputStream;
+    lineInputStream = do_QueryInterface(inputStream, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    bool isMore = true;
+    bool dontFeed = false;
+    while (isMore &&
+           NS_SUCCEEDED(lineInputStream->ReadLine(buffer, &isMore)) &&
+           buffer.Length() > 0) {
+      detector->DoIt(buffer.get(), buffer.Length(), &dontFeed);
+      NS_ENSURE_SUCCESS(rv, rv);
+      if (dontFeed)
+        break;
+    }
+    rv = detector->Done();
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    aCharset = observer->GetDetectedCharset();
+  } else {
+    // no charset detector available, check the BOM
+    char sniffBuf[3];
+    PRUint32 numRead;
+    rv = inputStream->Read(sniffBuf, sizeof(sniffBuf), &numRead);
+
+    if (numRead >= 2 &&
+               sniffBuf[0] == 0xfe &&
+               sniffBuf[1] == 0xff) {
+      aCharset = "UTF-16BE";
+    } else if (numRead >= 2 &&
+               sniffBuf[0] == 0xff &&
+               sniffBuf[1] == 0xfe) {
+      aCharset = "UTF-16LE";
+    } else if (numRead >= 3 &&
+               sniffBuf[0] == 0xef &&
+               sniffBuf[1] == 0xbb &&
+               sniffBuf[2] == 0xbf) {
+      aCharset = "UTF-8";
+    }
+  }
+
+  if (aCharset.IsEmpty()) {
+    // no charset detected, default to the system charset
+    nsCOMPtr<nsIPlatformCharset> platformCharset =
+      do_GetService(NS_PLATFORMCHARSET_CONTRACTID, &rv);
+    if (NS_SUCCEEDED(rv)) {
+      rv = platformCharset->GetCharset(kPlatformCharsetSel_PlainTextInFile,
+                                       aCharset);
+    }
+  }
+
+  if (aCharset.IsEmpty()) {
+    // no sniffed or default charset, try UTF-8
+    aCharset.AssignLiteral("UTF-8");
+  }
+
+  return NS_OK;
+}

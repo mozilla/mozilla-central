@@ -35,8 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsICharsetDetectionObserver.h"
-#include "nsICharsetDetector.h"
 #include "nsIPrefLocalizedString.h"
 #include "nsILineInputStream.h"
 #include "nsMsgAttachmentHandler.h"
@@ -452,32 +450,9 @@ DONE:
   return 0;
 }
 
-class CharsetDetectionObserver : public nsICharsetDetectionObserver
-{
-public:
-  NS_DECL_ISUPPORTS
-  CharsetDetectionObserver(nsMsgAttachmentHandler* aAttachment)
-  {
-    m_attachment = aAttachment;
-  };
-
-  virtual ~CharsetDetectionObserver() {};
-  NS_IMETHOD Notify(const char* aCharset, nsDetectionConfident aConf)
-  {
-    m_attachment->m_charset = aCharset;
-    return NS_OK;
-  };
-
-private:
-  nsMsgAttachmentHandler* m_attachment;
-};
-
-NS_IMPL_ISUPPORTS1(CharsetDetectionObserver, nsICharsetDetectionObserver)
-
 nsresult
 nsMsgAttachmentHandler::PickCharset()
 {
-
   if (!m_charset.IsEmpty() || !m_type.LowerCaseEqualsLiteral(TEXT_PLAIN))
     return NS_OK;
 
@@ -486,66 +461,7 @@ nsMsgAttachmentHandler::PickCharset()
   if (!tmpFile)
     return NS_OK;
   
-  nsCOMPtr<nsICharsetDetector> detector =
-    do_CreateInstance(NS_CHARSET_DETECTOR_CONTRACTID_BASE
-                             "universal_charset_detector");
-  if (!detector)
-  {
-    nsresult rv;
-    nsString detectorName;
-    nsCOMPtr<nsIPrefBranch> prefBranch =
-      do_GetService(NS_PREFSERVICE_CONTRACTID,&rv);
-    NS_ENSURE_SUCCESS(rv,rv);
-
-    if (prefBranch)
-    {
-      nsCOMPtr<nsIPrefLocalizedString> prefLocalString;
-      prefBranch->GetComplexValue("intl.charset.detector",
-                          NS_GET_IID(nsIPrefLocalizedString),
-                          getter_AddRefs(prefLocalString));
-      prefLocalString->GetData(getter_Copies(detectorName));
-    }
-
-    // No universal charset detector, try the default charset detector
-    if (!detectorName.IsEmpty())
-    {
-      nsCAutoString detectorContractID;
-      detectorContractID.AssignLiteral(NS_CHARSET_DETECTOR_CONTRACTID_BASE);
-      AppendUTF16toUTF8(detectorName, detectorContractID);
-      detector = do_CreateInstance(detectorContractID.get());
-    }
-  }
-  
-  if (detector)
-  {
-    nsCOMPtr<nsIInputStream> inputFile;
-    nsCOMPtr<nsILineInputStream> lineInputStream;
-    nsCAutoString buffer;
-    bool isMore = true;
-    bool dontFeed = false;
-    nsCOMPtr<CharsetDetectionObserver> obs = new CharsetDetectionObserver(this);
-    nsresult rv;
-
-    nsCAutoString leafName;
-    tmpFile->GetNativeLeafName(leafName);
-    rv = NS_NewLocalFileInputStream(getter_AddRefs(inputFile), tmpFile);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    lineInputStream = do_QueryInterface(inputFile, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    detector->Init(obs);
-    while (isMore &&
-           NS_SUCCEEDED(lineInputStream->ReadLine(buffer, &isMore)) &&
-           buffer.Length() > 0)
-    {
-      detector->DoIt(buffer.get(), buffer.Length(), &dontFeed);
-      if (dontFeed)
-        break;
-    }
-    detector->Done();
-  }
-  return NS_OK;
+  return MsgDetectCharsetFromFile(tmpFile, m_charset);
 }
     
 static nsresult

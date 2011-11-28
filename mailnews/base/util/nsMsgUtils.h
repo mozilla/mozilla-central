@@ -52,6 +52,7 @@
 #include "nsINetUtil.h"
 #include "nsServiceManagerUtils.h"
 #include "nsUnicharUtils.h"
+#include "nsILocalFile.h"
 
 class nsILocalFile;
 class nsIPrefBranch;
@@ -299,6 +300,14 @@ MsgStreamMsgHeaders(nsIInputStream *aInputStream, nsIStreamListener *aConsumer);
  * @returns   PRUint64 vaule for success, 0 for parse failure
  */
 NS_MSG_BASE PRUint64 ParseUint64Str(const char *str);
+
+/**
+ * Detect charset of file
+ *
+ * @param      aFile    The target of nsILocalFile
+ * @param[out] aCharset The charset string
+ */
+NS_MSG_BASE nsresult MsgDetectCharsetFromFile(nsILocalFile *aFile, nsACString &aCharset);
 
 /**
  * The following definitons exist for compatibility between the internal and
