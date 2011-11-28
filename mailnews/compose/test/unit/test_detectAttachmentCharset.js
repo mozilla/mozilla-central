@@ -9,7 +9,6 @@ Components.utils.import("resource:///modules/mailServices.js");
 var gSmtpServer;
 var gDraftFolder;
 var gCurTestNum = 0;
-var gAttachedFilePath = null;
 
 var progressListener = {
   onStateChange: function(aWebProgress, aRequest, aStateFlags, aStatus) {
@@ -34,9 +33,9 @@ var progressListener = {
   }
 };
 
-function createMessage(folding)
+function createMessage(attachmentPath)
 {
-  Services.prefs.setIntPref("mail.strictly_mime.parm_folding", folding);
+  Services.prefs.setIntPref("mail.strictly_mime.parm_folding", 0);
 
   var fields = Cc["@mozilla.org/messengercompose/composefields;1"]
                  .createInstance(Ci.nsIMsgCompFields);
@@ -63,9 +62,10 @@ function createMessage(folding)
   var attachment = Cc["@mozilla.org/messengercompose/attachment;1"]
                      .createInstance(Ci.nsIMsgAttachment);
   //Set attachment file
-  attachment.url = "file://" + gAttachedFilePath;
+  var file = do_get_file(attachmentPath);
+  attachment.url = "file://" + file.path;
   attachment.contentType = 'text/plain';
-  attachment.name = "test-UTF-8.txt";
+  attachment.name = file.leafName;
   fields.addAttachment(attachment);
 
   var progress = Cc["@mozilla.org/messenger/progress;1"]
@@ -75,18 +75,25 @@ function createMessage(folding)
                      progress);
 }
 
-function checkAttachment()
+function checkAttachment(charset)
 {
   var fileData = loadFileToString(gDraftFolder.filePath);
-  var pos = fileData.indexOf("Content-Type: text/plain; charset=UTF-8;");
+  var pos = fileData.indexOf("Content-Type: text/plain; charset=" + charset + ";");
   do_check_neq(pos, -1);
   do_timeout(0, function() {doTest(++gCurTestNum);});
 }
 
 const gTestArray =
 [
-  function createMessage1() { createMessage(0); },
-  function checkAttachment1() { checkAttachment(); }
+  function createMessage1() { createMessage("data/test-UTF-8.txt"); },
+  function checkAttachment1() { checkAttachment("UTF-8"); },
+
+  function createMessage2() { createMessage("data/test-UTF-16.txt"); },
+  function checkAttachment2() { checkAttachment("UTF-16"); },
+
+  function createMessage3() { createMessage("data/test-SHIFT_JIS.txt"); },
+  function checkAttachment3() { checkAttachment("Shift_JIS"); }
+
 ]
 
 function run_test()
@@ -96,8 +103,6 @@ function run_test()
 
   gSmtpServer = getBasicSmtpServer();
 
-  var attachment_file = do_get_file("data/test-UTF-8.txt");
-  gAttachedFilePath = attachment_file.path;
   do_test_pending();
 
   doTest(1);
