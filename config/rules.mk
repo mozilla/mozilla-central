@@ -903,11 +903,11 @@ ifneq (,$(SHARED_LIBRARY)$(PROGRAM))
 export::
 ifdef PROGRAM
 	$(PYTHON) $(MOZILLA_SRCDIR)/build/win32/pgomerge.py \
-	  $(PROGRAM:$(BIN_SUFFIX)=) $(DIST)/$(MOZ_APP_NAME)
+	  $(PROGRAM:$(BIN_SUFFIX)=) $(DIST)/bin
 endif
 ifdef SHARED_LIBRARY
-	$(PYTHON) $(topsrcdir)/build/win32/pgomerge.py \
-	  $(SHARED_LIBRARY_NAME) $(DIST)/$(MOZ_APP_NAME)
+	$(PYTHON) $(MOZILLA_SRCDIR)/build/win32/pgomerge.py \
+	  $(SHARED_LIBRARY_NAME) $(DIST)/bin
 endif
 endif # SHARED_LIBRARY || PROGRAM
 endif # WINNT_
