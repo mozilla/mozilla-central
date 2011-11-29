@@ -561,13 +561,7 @@ function ExitSpellChecker()
   {
     try
     {
-      var curLang = gSpellChecker.GetCurrentDictionary();
       gSpellChecker.UninitSpellChecker();
-      if ("@mozilla.org/spellchecker;1" in Components.classes) {
-        var spellChecker = Components.classes["@mozilla.org/spellchecker/engine;1"]
-                                     .getService(Components.interfaces.mozISpellCheckingEngine);
-        spellChecker.dictionary = curLang;
-      }
       // now check the document over again with the new dictionary
       // if we have an inline spellchecker
       if (("InlineSpellCheckerUI" in window.opener) &&

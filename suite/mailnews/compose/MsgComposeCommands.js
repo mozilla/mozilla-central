@@ -2204,7 +2204,8 @@ function InitLanguageMenu()
 function OnShowDictionaryMenu(aTarget)
 {
   InitLanguageMenu();
-  var curLang = GetStringPref("spellchecker.dictionary");
+  var spellChecker = gSpellChecker.mInlineSpellChecker.spellChecker;
+  var curLang = spellChecker.GetCurrentDictionary();
   var languages = aTarget.getElementsByAttribute("value", curLang);
   if (languages.length > 0)
     languages[0].setAttribute("checked", true);
@@ -2215,12 +2216,10 @@ function ChangeLanguage(event)
   // We need to change the dictionary language and if we are using inline spell check,
   // recheck the message
 
-  var spellChecker = Components.classes["@mozilla.org/spellchecker/engine;1"]
-                               .getService(mozISpellCheckingEngine);
-  if (spellChecker.dictionary != event.target.value)
+  var spellChecker = gSpellChecker.mInlineSpellChecker.spellChecker;
+  if (spellChecker.GetCurrentDictionary() != event.target.value)
   {
-    spellChecker.dictionary = event.target.value;
-    SetStringPref("spellchecker.dictionary", event.target.value);
+    spellChecker.SetCurrentDictionary(event.target.value);
 
     // now check the document and the subject over again with the new dictionary
     if (InlineSpellCheckerUI.enabled)
