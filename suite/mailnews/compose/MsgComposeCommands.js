@@ -2204,7 +2204,7 @@ function InitLanguageMenu()
 function OnShowDictionaryMenu(aTarget)
 {
   InitLanguageMenu();
-  var spellChecker = gSpellChecker.mInlineSpellChecker.spellChecker;
+  var spellChecker = InlineSpellCheckerUI.mInlineSpellChecker.spellChecker;
   var curLang = spellChecker.GetCurrentDictionary();
   var languages = aTarget.getElementsByAttribute("value", curLang);
   if (languages.length > 0)
@@ -2216,7 +2216,7 @@ function ChangeLanguage(event)
   // We need to change the dictionary language and if we are using inline spell check,
   // recheck the message
 
-  var spellChecker = gSpellChecker.mInlineSpellChecker.spellChecker;
+  var spellChecker = InlineSpellCheckerUI.mInlineSpellChecker.spellChecker;
   if (spellChecker.GetCurrentDictionary() != event.target.value)
   {
     spellChecker.SetCurrentDictionary(event.target.value);
