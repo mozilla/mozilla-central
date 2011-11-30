@@ -50,7 +50,6 @@
   <!ENTITY % calendarMenuOverlayDTD SYSTEM "chrome://calendar/locale/menuOverlay.dtd" > %calendarMenuOverlayDTD;
   <!ENTITY % sunbirdMenuOverlayDTD SYSTEM "chrome://sunbird/locale/menuOverlay.dtd" > %sunbirdMenuOverlayDTD;
   <!ENTITY % brandDTD SYSTEM "chrome://branding/locale/brand.dtd" > %brandDTD;
-  <!ENTITY % globalRegionDTD SYSTEM "chrome://global-region/locale/region.dtd"> %globalRegionDTD;
   <!ENTITY % calendar-event-dialogDTD SYSTEM "chrome://calendar/locale/calendar-event-dialog.dtd">
   %calendar-event-dialogDTD;
 ]>

@@ -5,3 +5,4 @@
  *
  * For more information, see http://www.mozilla.org/unix/customizing.html#prefs
  */
+pref("app.vendorURL", "http://www.mozilla.org/projects/%APP%/");
