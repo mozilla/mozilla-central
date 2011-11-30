@@ -188,4 +188,5 @@ function deleteHistoryItems(aParent)
 function updateGoMenu(event)
   {
     FillHistoryMenu(event.target, "go");
+    updateRecentMenuItems();
   }
