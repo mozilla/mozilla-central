@@ -730,7 +730,10 @@ Application.prototype = {
 
   get activeWindow() {
     return new Window(Utilities.windowMediator.getMostRecentWindow("navigator:browser"));
-  }
+  },
+
+  // For steelIApplication compatibility.
+  platformIsMac: "nsILocalFileMac" in Components.interfaces
 };
 
 #include ../../../mozilla/toolkit/components/exthelper/extApplication.js
