@@ -133,6 +133,9 @@ pref("app.support.baseURL", "http://support.live.mozillamessaging.com/%LOCALE%/%
 // Controls enabling of the extension system logging (can reduce performance)
 pref("extensions.logging.enabled", false);
 
+// Disables strict compatibility, making addons compatible-by-default.
+pref("extensions.strictCompatibility", false);
+
 pref("extensions.update.autoUpdateDefault", true);
 
 // Disable add-ons installed into the shared user and shared system areas by
