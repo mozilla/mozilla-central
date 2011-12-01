@@ -41,7 +41,9 @@
 #include "nsMsgMessageFlags.h"
 
 nsMsgThreadsWithUnreadDBView::nsMsgThreadsWithUnreadDBView()
+: m_totalUnwantedMessagesInView(0)
 {
+  
 }
 
 nsMsgThreadsWithUnreadDBView::~nsMsgThreadsWithUnreadDBView()
@@ -62,8 +64,11 @@ bool nsMsgThreadsWithUnreadDBView::WantsThisThread(nsIMsgThread *threadHdr)
     PRUint32 numNewChildren;
 
     threadHdr->GetNumUnreadChildren(&numNewChildren);
-    if (numNewChildren > 0) 
-      return PR_TRUE;
+    if (numNewChildren > 0)
+      return true;
+    PRUint32 numChildren;
+    threadHdr->GetNumChildren(&numChildren);
+    m_totalUnwantedMessagesInView += numChildren;
   }
   return PR_FALSE;
 }
@@ -89,7 +94,10 @@ nsresult nsMsgThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThread *thr
       if (viewIndex != nsMsgViewIndex_None)
         OrExtraFlag(viewIndex, nsMsgMessageFlags::Elided | MSG_VIEW_FLAG_HASCHILDREN);
     }
+    m_totalUnwantedMessagesInView -= numMsgsInThread;
   }
+  else
+    m_totalUnwantedMessagesInView++;
   return rv;
 }
 
@@ -110,7 +118,15 @@ nsMsgThreadsWithUnreadDBView::CloneDBView(nsIMessenger *aMessengerInstance, nsIM
 
 NS_IMETHODIMP nsMsgThreadsWithUnreadDBView::GetNumMsgsInView(PRInt32 *aNumMsgs)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  nsresult rv = nsMsgDBView::GetNumMsgsInView(aNumMsgs);
+  NS_ENSURE_SUCCESS(rv, rv);
+  *aNumMsgs = *aNumMsgs - m_totalUnwantedMessagesInView;
+  return rv;
+}
+
+nsMsgWatchedThreadsWithUnreadDBView::nsMsgWatchedThreadsWithUnreadDBView()
+: m_totalUnwantedMessagesInView(0)
+{
 }
 
 NS_IMETHODIMP nsMsgWatchedThreadsWithUnreadDBView::GetViewType(nsMsgViewTypeValue *aViewType)
@@ -122,15 +138,18 @@ NS_IMETHODIMP nsMsgWatchedThreadsWithUnreadDBView::GetViewType(nsMsgViewTypeValu
 
 bool nsMsgWatchedThreadsWithUnreadDBView::WantsThisThread(nsIMsgThread *threadHdr)
 {
-	if (threadHdr)
+  if (threadHdr)
   {
     PRUint32 numNewChildren;
     PRUint32 threadFlags;
 
     threadHdr->GetNumUnreadChildren(&numNewChildren);
     threadHdr->GetFlags(&threadFlags);
-    if (numNewChildren > 0 && (threadFlags & nsMsgMessageFlags::Watched) != 0) 
-      return PR_TRUE;
+    if (numNewChildren > 0 && (threadFlags & nsMsgMessageFlags::Watched) != 0)
+      return true;
+    PRUint32 numChildren;
+    threadHdr->GetNumChildren(&numChildren);
+    m_totalUnwantedMessagesInView += numChildren;
   }
   return PR_FALSE;
 }
@@ -159,8 +178,11 @@ nsresult nsMsgWatchedThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThre
         if (viewIndex != nsMsgViewIndex_None)
           OrExtraFlag(viewIndex, nsMsgMessageFlags::Elided | MSG_VIEW_FLAG_ISTHREAD | MSG_VIEW_FLAG_HASCHILDREN | nsMsgMessageFlags::Watched);
       }
+      m_totalUnwantedMessagesInView -= numChildren;
+      return rv;
     }
   }
+  m_totalUnwantedMessagesInView++;
   return rv;
 }
 
@@ -182,5 +204,8 @@ nsMsgWatchedThreadsWithUnreadDBView::CloneDBView(nsIMessenger *aMessengerInstanc
 NS_IMETHODIMP
 nsMsgWatchedThreadsWithUnreadDBView::GetNumMsgsInView(PRInt32 *aNumMsgs)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  nsresult rv = nsMsgDBView::GetNumMsgsInView(aNumMsgs);
+  NS_ENSURE_SUCCESS(rv, rv);
+  *aNumMsgs = *aNumMsgs - m_totalUnwantedMessagesInView;
+  return rv;
 }

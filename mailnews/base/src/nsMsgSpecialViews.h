@@ -53,12 +53,13 @@ public:
 virtual bool WantsThisThread(nsIMsgThread *threadHdr);
 protected:
   virtual nsresult AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, bool ensureListed);
-
+  PRUint32 m_totalUnwantedMessagesInView;
 };
 
 class nsMsgWatchedThreadsWithUnreadDBView : public nsMsgThreadedDBView
 {
 public:
+  nsMsgWatchedThreadsWithUnreadDBView ();
   NS_IMETHOD GetViewType(nsMsgViewTypeValue *aViewType);
   NS_IMETHOD CloneDBView(nsIMessenger *aMessengerInstance, nsIMsgWindow *aMsgWindow, nsIMsgDBViewCommandUpdater *aCommandUpdater, nsIMsgDBView **_retval);
   NS_IMETHOD GetNumMsgsInView(PRInt32 *aNumMsgs);
@@ -66,6 +67,7 @@ public:
   virtual bool WantsThisThread(nsIMsgThread *threadHdr);
 protected:
   virtual nsresult AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, bool ensureListed);
+  PRUint32 m_totalUnwantedMessagesInView;
 
 };
 #ifdef DOING_CACHELESS_VIEW
