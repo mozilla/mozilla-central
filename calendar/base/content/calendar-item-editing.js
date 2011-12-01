@@ -39,6 +39,7 @@
 
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 /**
  * Takes a job and makes sure the dispose function on it is called. If there is
@@ -363,7 +364,17 @@ function openEventDialog(calendarItem, calendar, mode, callback, job, initialDat
         url = "chrome://calendar/content/calendar-summary-dialog.xul";
     }
 
-    openDialog(url, "_blank", "chrome,titlebar,resizable", args);
+    var features;
+    if (Services.appinfo.OS == "WINNT") {
+        features = "chrome,titlebar,resizable,dependent";
+    } else if (Services.appinfo.OS == "Darwin") {
+        features = "chrome,titlebar,resizable,minimizable=no";
+    } else {
+        // All other targets, mostly Linux flavors using gnome.
+        features = "chrome,titlebar,resizable,dependent,minimizable=no,dialog=no";
+    }
+
+    openDialog(url, "_blank", features, args);
 }
 
 /**
