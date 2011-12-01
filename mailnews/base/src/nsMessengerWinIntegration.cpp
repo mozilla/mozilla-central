@@ -72,11 +72,16 @@
 #include "nsIAlertsService.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
+#include "nsIProperties.h"
 #include "nsISupportsPrimitives.h"
 #include "nsIInterfaceRequestorUtils.h"
+#include "nsIWeakReferenceUtils.h"
+#include "nsComponentManagerUtils.h"
 #include "nsNativeCharsetUtils.h"
 #include "nsMsgUtils.h"
+#ifdef MOZ_THUNDERBIRD
 #include "mozilla/LookAndFeel.h"
+#endif
 
 #include "nsToolkitCompsCID.h"
 #include <stdlib.h>
@@ -86,7 +91,7 @@
 #define XP_SHEnumerateUnreadMailAccounts "SHEnumerateUnreadMailAccountsW"
 #define NOTIFICATIONCLASSNAME "MailBiffNotificationMessageWindow"
 #define UNREADMAILNODEKEY "Software\\Microsoft\\Windows\\CurrentVersion\\UnreadMail\\"
-#define SHELL32_DLL NS_LITERAL_CSTRING("shell32.dll")
+#define SHELL32_DLL "shell32.dll"
 #define DOUBLE_QUOTE "\""
 #define MAIL_COMMANDLINE_ARG " -mail"
 #define IDI_MAILBIFF 32576
@@ -377,10 +382,10 @@ nsMessengerWinIntegration::Init()
   rv = systemDir->GetNativePath(shellFile);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  mShellDllPath.Assign(shellFile + NS_LITERAL_CSTRING("\\") + SHELL32_DLL);
+  shellFile.AppendLiteral("\\" SHELL32_DLL);
 
   // load shell dll. If no such dll found, return
-  HMODULE hModule = ::LoadLibrary(mShellDllPath.get());
+  HMODULE hModule = ::LoadLibrary(shellFile.get());
   if (!hModule)
     return NS_OK;
 

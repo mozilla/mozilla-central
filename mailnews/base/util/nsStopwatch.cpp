@@ -34,7 +34,9 @@ static double gTicks = 0;
 #define MICRO_SECONDS_TO_SECONDS_MULT static_cast<double>(1.0e-6)
 #elif defined(WIN32)
 #ifdef DEBUG
+#ifdef MOZILLA_INTERNAL_API
 #include "nsPrintfCString.h"
+#endif
 #endif
 // 1 tick per 100ns = 10 per us = 10 * 1,000 per ms = 10 * 1,000 * 1,000 per sec.
 #define WIN32_TICK_RESOLUTION static_cast<double>(1.0e-7)
@@ -156,8 +158,10 @@ double nsStopwatch::GetCPUTime()
     GetProcessTimes(hProcess, &ftCreate, &ftExit,
                               &ftKernel.ftFileTime, &ftUser.ftFileTime);
 #ifdef DEBUG
+#ifdef MOZILLA_INTERNAL_API
   if (!ret)
     NS_ERROR(nsPrintfCString("GetProcessTimes() failed, error=0x%lx.", GetLastError()).get());
+#endif
 #endif
 
   /*

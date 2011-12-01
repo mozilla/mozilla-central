@@ -95,11 +95,14 @@ EXTRA_DSO_LDOPTS = \
 		$(MOZ_UNICHARUTIL_LIBS) \
 		$(MOZ_COMPONENT_LIBS) \
 		$(ZLIB_LIBS) \
+		$(MOZ_ZLIB_LIBS) \
 		$(NULL)
 else
 EXTRA_DSO_LDOPTS = \
 	$(LIBS_DIR) \
 	$(ZLIB_LIBS) \
+	$(MOZ_ZLIB_LIBS) \
+	$(MOZ_JS_LIBS) \
 	$(XPCOM_GLUE_LDOPTS) \
 	$(call EXPAND_LIBNAME_PATH,unicharutil_external_s,$(LIBXUL_DIST)/lib) \
 	$(call EXPAND_LIBNAME_PATH,rdfutil_external_s,$(LIBXUL_DIST)/lib) \

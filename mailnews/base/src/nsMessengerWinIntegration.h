@@ -151,7 +151,6 @@ private:
 
   nsString  mAppName;
   nsString  mEmailPrefix;
-  nsCString mShellDllPath;
 
   nsString mProfilePath;
 
