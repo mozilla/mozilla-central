@@ -177,7 +177,7 @@ calItipEmailTransport.prototype = {
         try {
             let smtpSvc = Components.classes["@mozilla.org/messengercompose/smtp;1"]
                                     .getService(Components.interfaces.nsISmtpService);
-            this.mSmtpServer = smtpSvc.defaultServer;
+            this.mDefaultSmtpServer = smtpSvc.defaultServer;
 
             let accountMgrSvc = Components.classes["@mozilla.org/messenger/account-manager;1"]
                                           .getService(Components.interfaces.nsIMsgAccountManager);
