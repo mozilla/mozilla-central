@@ -344,8 +344,7 @@ menuitem[command="cmd_goForward"][disabled]:-moz-locale-dir(rtl) {
 
 statusbarpanel {
   -moz-appearance: none !important;
-  border: none;
-  padding: 0 4px;
+  border: none !important;
 }
 
 treechildren::-moz-tree-cell-text {
