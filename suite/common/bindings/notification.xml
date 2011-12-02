@@ -1542,10 +1542,9 @@
             else { // doPrompt
               // link submit checkbox to the gCrashReporter submitReports preference.
               submitChk.checked = submitReports;
-
-              this.addLinkClickCallback(submitChk, function() {
-                cr.submitReports = submitChk.checked;
-              });
+              submitChk.addEventListener("click", function() {
+                cr.submitReports = this.checked;
+              }, false);
 
               status = "please";
             }
