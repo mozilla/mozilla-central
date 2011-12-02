@@ -103,6 +103,15 @@ var setupModule = function (module) {
                       filename: 'ubik.xxyyzz',
                       format: '' }],
     },
+    // attachment with a long name; the attachment bar should crop this
+    { attachments: [{ body: textAttachment,
+                      filename: 'this-is-a-file-with-an-extremely-long-name-' +
+                                'that-seems-to-go-on-forever-seriously-you-' +
+                                'would-not-believe-how-long-this-name-is-it-' +
+                                'surely-exceeds-the-maximum-filename-length-' +
+                                'for-most-filesystems.txt',
+                      format: '' }],
+    },
     // evilly-named attachment; spaces should be collapsed and trimmed on the
     // ends
     { attachments: [{ body: textAttachment,
@@ -181,6 +190,19 @@ function test_attachment_name_sanitization() {
                       attachments[j].filename);
     }
   }
+}
+
+function test_long_attachment_name() {
+  be_in_folder(folder);
+
+  select_click_row(4);
+  assert_selected_and_displayed(4);
+
+  let messagepaneBox = mc.e("messagepanebox");
+  let attachmentBar = mc.e("attachmentBar");
+
+  assert_true(messagepaneBox.boxObject.width >= attachmentBar.boxObject.width,
+              "Attachment bar has expanded off the edge of the window!");
 }
 
 function test_attachment_name_click() {

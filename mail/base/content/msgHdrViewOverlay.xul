@@ -516,7 +516,7 @@
             onmousedown="event.preventDefault();"
             onclick="event.stopPropagation();"
             oncommand="toggleAttachmentList(this.checked, true);"/>
-    <hbox align="center" id="attachmentInfo">
+    <hbox align="center" id="attachmentInfo" flex="1">
       <image id="attachmentIcon"/>
       <label id="attachmentCount"/>
       <label id="attachmentName" crop="center" flex="1"
