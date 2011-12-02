@@ -730,6 +730,9 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/isp/movemail.rdf
 #endif
 @BINPATH@/isp/rss.rdf
+@BINPATH@/isp/Bogofilter.sfd
+@BINPATH@/isp/DSPAM.sfd
+@BINPATH@/isp/POPFile.sfd
 @BINPATH@/isp/SpamAssassin.sfd
 @BINPATH@/isp/SpamPal.sfd
 

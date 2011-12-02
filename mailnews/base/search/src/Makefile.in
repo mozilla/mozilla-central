@@ -72,6 +72,9 @@ EXTRA_COMPONENTS += \
 		$(NULL)
  
 EXPORT_RESOURCE_FILES	= \
+				  Bogofilter.sfd \
+				  DSPAM.sfd \
+				  POPFile.sfd \
 				  SpamAssassin.sfd \
 				  SpamPal.sfd \
 			        $(NULL)
