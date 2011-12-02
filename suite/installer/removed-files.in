@@ -299,6 +299,10 @@ modules/searchSpec.js
     msvcp100.dll
     msvcr100.dll
   #endif
+  #if _MSC_VER != 1700
+    msvcp110.dll
+    msvcr110.dll
+  #endif
 #endif
 @DLL_PREFIX@mozlcms@DLL_SUFFIX@
 #ifdef XP_MACOSX
