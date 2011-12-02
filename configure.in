@@ -577,12 +577,14 @@ case "$target" in
             AC_DEFINE(_CRT_NONSTDC_NO_DEPRECATE)
         elif test "$_CC_MAJOR_VERSION" = "15"; then
             _CC_SUITE=9
-            LDFLAGS="$LDFLAGS -MANIFESTUAC:NO"
             AC_DEFINE(_CRT_SECURE_NO_WARNINGS)
             AC_DEFINE(_CRT_NONSTDC_NO_WARNINGS)
         elif test "$_CC_MAJOR_VERSION" = "16"; then
             _CC_SUITE=10
-            LDFLAGS="$LDFLAGS -MANIFESTUAC:NO"
+            AC_DEFINE(_CRT_SECURE_NO_WARNINGS)
+            AC_DEFINE(_CRT_NONSTDC_NO_WARNINGS)
+        elif test "$_CC_MAJOR_VERSION" = "17"; then
+            _CC_SUITE=11
             AC_DEFINE(_CRT_SECURE_NO_WARNINGS)
             AC_DEFINE(_CRT_NONSTDC_NO_WARNINGS)
         else
