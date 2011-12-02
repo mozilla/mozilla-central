@@ -177,7 +177,12 @@ let messages = [
     ]),
     size: textAttachment.length + imageSize,
   },
-  ];
+  // an "attachment" that's really the body of the message
+  { body: { body: textAttachment,
+            contentType: 'application/x-ubik; name=attachment.ubik' },
+    size: textAttachment.length,
+  },
+];
 
 
 let gStreamListener = {

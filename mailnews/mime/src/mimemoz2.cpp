@@ -122,6 +122,22 @@ mime_stream_data::mime_stream_data() : url_name(nsnull), orig_url_name(nsnull),
 //
 MimeObject    *mime_get_main_object(MimeObject* obj);
 
+nsresult MimeGetSize(MimeObject *child, PRInt32 *size) {
+  bool isLeaf = mime_subclass_p(child->clazz, (MimeObjectClass *) &mimeLeafClass);
+  bool isContainer = mime_subclass_p(child->clazz, (MimeObjectClass *) &mimeContainerClass);
+
+  if (isLeaf) {
+    *size += ((MimeLeaf *)child)->sizeSoFar;
+  } else if (isContainer) {
+    int i;
+    MimeContainer *cont = (MimeContainer *)child;
+    for (i = 0; i < cont->nchildren; ++i) {
+      MimeGetSize(cont->children[i], size);
+    }
+  }
+  return NS_OK;
+}
+
 nsresult
 ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
 {
@@ -130,11 +146,11 @@ ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
   char                  *disp = nsnull;
   char                  *charset = nsnull;
 
-  // Ok, this is the special case when somebody sends an "attachment" as the body
-  // of an RFC822 message...I really don't think this is the way this should be done.
-  // I belive this should really be a multipart/mixed message with an empty body part,
-  // but what can ya do...our friends to the North seem to do this.
-  //
+  // Ok, this is the special case when somebody sends an "attachment" as the
+  // body of an RFC822 message...I really don't think this is the way this
+  // should be done.  I belive this should really be a multipart/mixed message
+  // with an empty body part, but what can ya do...our friends to the North seem
+  // to do this.
   MimeObject    *child = obj;
 
   n = 1;
@@ -160,6 +176,8 @@ ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
     tmp->m_realName.Adopt(MimeHeaders_get_name(child->headers, obj->options));
   }
 
+  tmp->m_hasFilename = !tmp->m_realName.IsEmpty();
+
   if (tmp->m_realName.IsEmpty() &&
       StringBeginsWith(tmp->m_realType, NS_LITERAL_CSTRING("text"),
                        nsCaseInsensitiveCStringComparator()))
@@ -172,6 +190,8 @@ ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
   id = mime_part_address (obj);
   if (obj->options->missing_parts)
     id_imap = mime_imap_part_address (obj);
+
+  tmp->m_isDownloaded = !id_imap;
 
   if (! id)
   {
@@ -209,6 +229,10 @@ ProcessBodyAsAttachment(MimeObject *obj, nsMsgAttachmentData **data)
   PR_FREEIF(id_imap);
   PR_FREEIF(tmpURL);
   tmp->m_description.Adopt(MimeHeaders_get(child->headers, HEADER_CONTENT_DESCRIPTION, PR_FALSE, PR_FALSE));
+
+  tmp->m_size = 0;
+  MimeGetSize(child, &tmp->m_size);
+
   return NS_OK;
 }
 
@@ -353,7 +377,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   tmp->m_size = attSize;
 
   char *part_addr = mime_imap_part_address(object);
-  tmp->m_isDownloaded = (part_addr == nsnull);
+  tmp->m_isDownloaded = !part_addr;
   PR_FREEIF(part_addr);
 
   PRInt32 i;
@@ -439,7 +463,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   {
     // Keep in mind that the name was provided by us and this is probably not a
     // real attachment.
-    tmp->m_hasFilename = PR_FALSE;
+    tmp->m_hasFilename = false;
     /* If this attachment doesn't have a name, just give it one... */
     tmp->m_realName.Adopt(MimeGetStringByID(MIME_MSG_DEFAULT_ATTACHMENT_NAME));
     if (!tmp->m_realName.IsEmpty())
@@ -451,7 +475,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
     else
       tmp->m_realName.Adopt(mime_part_address(object));
   } else {
-    tmp->m_hasFilename = PR_TRUE;
+    tmp->m_hasFilename = true;
   }
   nsCString urlString(urlSpec);
 
@@ -481,22 +505,6 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
 
   ValidateRealName(tmp, object->headers);
 
-  return NS_OK;
-}
-
-nsresult MimeGetSize(MimeObject *child, PRInt32 *size) {
-  bool isLeaf = mime_subclass_p(child->clazz, (MimeObjectClass *) &mimeLeafClass);
-  bool isContainer = mime_subclass_p(child->clazz, (MimeObjectClass *) &mimeContainerClass);
-
-  if (isLeaf) {
-    *size += ((MimeLeaf *)child)->sizeSoFar;
-  } else if (isContainer) {
-    int i;
-    MimeContainer *cont = (MimeContainer *)child;
-    for (i = 0; i < cont->nchildren; ++i) {
-      MimeGetSize(cont->children[i], size);
-    }
-  }
   return NS_OK;
 }
 
