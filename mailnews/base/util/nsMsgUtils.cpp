@@ -98,7 +98,6 @@
 #include "nsICharsetDetector.h"
 #include "nsILineInputStream.h"
 #include "nsIPlatformCharset.h"
-#include "mozilla/Preferences.h"
 
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
@@ -2259,12 +2258,13 @@ MsgDetectCharsetFromFile(nsILocalFile *aFile, nsACString &aCharset)
                         "universal_charset_detector");
   if (!detector) {
     // No universal charset detector, try the default charset detector
-    const nsAdoptingCString& detectorName =
-      mozilla::Preferences::GetLocalizedCString("intl.charset.detector");
+    nsString detectorName;
+    NS_GetLocalizedUnicharPreferenceWithDefault(nsnull, "intl.charset.detector",
+                                                EmptyString(), detectorName);
     if (!detectorName.IsEmpty()) {
       nsCAutoString detectorContractID;
       detectorContractID.AssignLiteral(NS_CHARSET_DETECTOR_CONTRACTID_BASE);
-      detectorContractID += detectorName;
+      AppendUTF16toUTF8(detectorName, detectorContractID);
       detector = do_CreateInstance(detectorContractID.get());
     }
   }
