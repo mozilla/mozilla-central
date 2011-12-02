@@ -281,32 +281,24 @@ modules/searchSpec.js
 @DLL_PREFIX@mozz@DLL_SUFFIX@
 @DLL_PREFIX@jemalloc@DLL_SUFFIX@
 #ifdef XP_WIN
-mozcpp19.dll
-mozcrt19.dll
-#if _MSC_VER == 1400
-Microsoft.VC90.CRT.manifest
-msvcm90.dll
-msvcp100.dll
-msvcp90.dll
-msvcr100.dll
-msvcr90.dll
-#elif _MSC_VER == 1500
-Microsoft.VC80.CRT.manifest
-msvcm80.dll
-msvcp100.dll
-msvcp80.dll
-msvcr100.dll
-msvcr80.dll
-#elif _MSC_VER == 1600
-Microsoft.VC80.CRT.manifest
-Microsoft.VC90.CRT.manifest
-msvcm80.dll
-msvcm90.dll
-msvcp80.dll
-msvcp90.dll
-msvcr80.dll
-msvcr90.dll
-#endif
+  mozcpp19.dll
+  mozcrt19.dll
+  #if _MSC_VER != 1400
+    Microsoft.VC80.CRT.manifest
+    msvcm80.dll
+    msvcp80.dll
+    msvcr80.dll
+  #endif
+  #if _MSC_VER != 1500
+    Microsoft.VC90.CRT.manifest
+    msvcm90.dll
+    msvcp90.dll
+    msvcr90.dll
+  #endif
+  #if _MSC_VER != 1600
+    msvcp100.dll
+    msvcr100.dll
+  #endif
 #endif
 @DLL_PREFIX@mozlcms@DLL_SUFFIX@
 #ifdef XP_MACOSX
