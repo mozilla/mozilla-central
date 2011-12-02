@@ -72,13 +72,14 @@
               />
   </menupopup>
 
-  <hbox id="thunderbird-private-tabmail-buttons">
+  <toolbarpalette id="MailToolbarPalette">
     <!-- gets hidden but keeps space allocation when not legal-->
     <toolbarbutton id="qfb-show-filter-bar" type="checkbox"
+                   label="&quickFilterBar.qfbShowFilterBar.label;"
                    command="cmd_toggleQuickFilterBar"
                    tooltiptext="&quickFilterBar.toggleBarVisibility.button.tooltip;"
                    />
-  </hbox>
+  </toolbarpalette>
 
   <popupset id="mainPopupSet">
     <!-- Using an actual panel resulted in serious focus problems on linux,

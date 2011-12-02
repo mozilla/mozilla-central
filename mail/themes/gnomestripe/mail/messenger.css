@@ -23,6 +23,16 @@ toolbar:not(.inline-toolbar):not(:-moz-lwtheme) {
   -moz-appearance: menubar;
 }
 
+#tabbar-toolbar {
+  -moz-appearance: none;
+  padding: 0;
+}
+
+#tabbar-toolbar[customizing="true"] {
+  min-width: 16px;
+  min-height: 10px;
+}
+
 /*
  * Override the menulist icon forbidding in menu.css so that we can show
  * check-marks. bug 443516

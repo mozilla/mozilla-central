@@ -316,175 +316,67 @@ tabpanels {
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-up {
-  -moz-appearance: none !important;
-  border: none !important;
   margin-top: 2px;
-  margin-bottom: 4px !important;
-  padding: 0px;
+  margin-bottom: 4px;
+  padding: 0 0 3px;
   width: 18px;
-  height: 23px;
   -moz-margin-start: 0px;
-  -moz-margin-end: 0px;
-  list-style-image: url("chrome://messenger/skin/icons/tab-arrow-start.png");
-  -moz-image-region: rect(0, 11px, 14px, 0);
-  background-repeat: no-repeat;
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-start-bkgnd-enabled.png");
-  background-color: -moz-dialog;
-  border-top-right-radius: 4px;
-}
-
-.tabmail-arrowscrollbox:-moz-locale-dir(rtl) > .scrollbutton-up {
-  list-style-image: url("chrome://messenger/skin/icons/tab-arrow-end.png");
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-enabled.png");
-  border-top-left-radius: 4px;
-  border-top-right-radius: 0px;
-}
-
-.tabmail-arrowscrollbox > .scrollbutton-up[disabled="true"] {
-  -moz-image-region: rect(0, 33px, 14px, 22px);
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-start-bkgnd-disabled.png");
-}
-
-.tabmail-arrowscrollbox:-moz-locale-dir(rtl) > .scrollbutton-up[disabled="true"] {
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-disabled.png");
-}
-
-.tabmail-arrowscrollbox > .scrollbutton-up:not([disabled="true"]):hover {
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-start-bkgnd-hover.png");
-  -moz-image-region: rect(0, 22px, 14px, 11px);
-}
-
-.tabmail-arrowscrollbox:-moz-locale-dir(rtl) > .scrollbutton-up:not([disabled="true"]):hover {
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-hover.png");
-}
-
-.tabmail-arrowscrollbox > .scrollbutton-up:not([disabled="true"]):hover:active {
-  -moz-image-region: rect(0, 44px, 14px, 33px);
+  -moz-margin-end: 2px;
+  list-style-image: url(chrome://messenger/skin/icons/tab-arrow-left.png);
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-up > .toolbarbutton-icon {
-  margin: 6px 0px 0px;
+  margin: 2px 0px 0px;
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-down-stack {
   margin-top: 2px;
   margin-bottom: 4px;
-  height: 23px;
+  -moz-margin-start: 2px;
 }
 
 .tabmail-arrowscrollbox > stack > .scrollbutton-down-box {
-  -moz-appearance: none !important;
-  border: none !important;
   width: 18px;
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-enabled.png");
-  background-repeat: no-repeat;
-  background-color: -moz-dialog;
-  border-top-left-radius: 4px;
-}
-
-.tabmail-arrowscrollbox:-moz-locale-dir(rtl) > stack > .scrollbutton-down-box {
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-start-bkgnd-enabled.png");
-  border-top-left-radius: 0px;
-  border-top-right-radius: 4px;
-}
-
-.tabmail-arrowscrollbox > stack > .scrollbutton-down-box[disabled="true"] {
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-disabled.png");
-}
-
-.tabmail-arrowscrollbox:-moz-locale-dir(rtl) > stack > .scrollbutton-down-box[disabled="true"] {
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-start-bkgnd-disabled.png");
-}
-
-.tabmail-arrowscrollbox > stack > .scrollbutton-down-box-animate {
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-animate.png");
-  background-repeat: no-repeat;
-  opacity: 0.0;
-}
-
-.tabmail-arrowscrollbox:-moz-locale-dir(rtl) > stack > .scrollbutton-down-box-animate {
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-start-bkgnd-animate.png");
 }
 
 .tabmail-arrowscrollbox > stack > .scrollbutton-down {
-  -moz-appearance: none !important;
-  border: none !important;
   width: 18px;
-  list-style-image: url("chrome://messenger/skin/icons/tab-arrow-end.png");
-  -moz-image-region: rect(0, 11px, 14px, 0);
   margin: 0px;
-  padding: 0px;
-}
-
-.tabmail-arrowscrollbox:-moz-locale-dir(rtl) > stack > .scrollbutton-down {
-  list-style-image: url("chrome://messenger/skin/icons/tab-arrow-start.png");
-}
-
-.tabmail-arrowscrollbox > stack > .scrollbutton-down[disabled="true"] {
-  -moz-image-region: rect(0, 33px, 14px, 22px);
-}
-
-.tabmail-arrowscrollbox > stack > .scrollbutton-down:not([disabled="true"]):hover {
-  -moz-image-region: rect(0, 22px, 14px, 11px);
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-hover.png");
-  background-repeat: no-repeat;
-  background-position: top left;
-}
-
-.tabmail-arrowscrollbox:-moz-locale-dir(rtl) > stack > .scrollbutton-down:not([disabled="true"]):hover {
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-start-bkgnd-hover.png");
-}
-
-.tabmail-arrowscrollbox > stack > .scrollbutton-down:not([disabled="true"]):hover:active {
-  -moz-image-region: rect(0, 44px, 14px, 33px);
+  padding: 0 0 3px;
+  list-style-image: url(chrome://messenger/skin/icons/tab-arrow-left.png);
 }
 
 .tabmail-arrowscrollbox > stack > .scrollbutton-down > .toolbarbutton-icon {
-  margin-top: 6px;
+  margin-top: 2px;
   margin-bottom: 0px;
   -moz-margin-start: 1px;
   -moz-margin-end: 0px;
+}
+
+.tabmail-arrowscrollbox > .scrollbutton-up:-moz-lwtheme-brighttext,
+.tabmail-arrowscrollbox > stack > .scrollbutton-down:-moz-lwtheme-brighttext {
+  list-style-image: url(chrome://messenger/skin/icons/tab-arrow-left-inverted.png);
+}
+
+.tabmail-arrowscrollbox > .scrollbutton-up[disabled],
+.tabmail-arrowscrollbox > stack > .scrollbutton-down[disabled] {
+  opacity: .4;
+}
+
+.tabmail-arrowscrollbox > .scrollbutton-up:-moz-locale-dir(rtl),
+.tabmail-arrowscrollbox > stack > .scrollbutton-down:-moz-locale-dir(ltr) {
+  -moz-transform: scaleX(-1);
 }
 
 /**
  * All Tabs Button
  */
 
-.tabs-alltabs-box {
-  margin-top: 2px;
-  margin-bottom: 4px;
-  width: 18px !important;
-  height: 23px !important;
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-enabled.png");
-  background-repeat: no-repeat;
-  background-color: -moz-dialog;
-  border-top-left-radius: 4px;
-}
-
-stack:-moz-locale-dir(rtl) > hbox > .tabs-alltabs-box {
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-start-bkgnd-enabled.png");
-  border-top-left-radius: 0px;
-  border-top-right-radius: 4px;
-}
-
-.tabmail-tabs[overflow="true"] .tabs-alltabs-box {
-  background-image: url("chrome://messenger/skin/icons/alltabs-box-overflow-end-bkgnd.png");
-  border-top-left-radius: 0px;
-  border-top-right-radius: 0px;
-}
-
-.tabmail-tabs[overflow="true"] stack:-moz-locale-dir(rtl) > hbox > .tabs-alltabs-box {
-  background-image: url("chrome://messenger/skin/icons/alltabs-box-overflow-start-bkgnd.png");
-}
-
 .tabs-alltabs-button {
-  -moz-appearance: none !important;
-  border: 0px !important;
   margin-top: 2px;
   margin-bottom: 4px;
   width: 18px !important;
   height: 23px !important;
-  border: 0px !important;
   -moz-padding-start: 4px !important;
   -moz-padding-end: 4px !important;
   padding: 0px;
@@ -495,42 +387,17 @@ stack:-moz-locale-dir(rtl) > hbox > .tabs-alltabs-box {
 }
 
 .tabs-alltabs-button > .toolbarbutton-icon {
-  -moz-margin-end: 2px;
+  -moz-margin-end: 0;
 }
 
 .tabs-alltabs-button > .toolbarbutton-menu-dropmarker {
-  margin-top: 3px !important;
+  -moz-margin-end: 3px !important;
+  list-style-image: url(chrome://messenger/skin/icons/mainwindow-dropdown-arrow.png);
+  -moz-image-region: rect(0, 13px, 11px, 0);
 }
 
-.tabs-alltabs-button:hover {
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-end-bkgnd-hover.png");
-  background-repeat: no-repeat;
-}
-
-stack:-moz-locale-dir(rtl) > hbox > .tabs-alltabs-button:hover {
-  background-image: url("chrome://messenger/skin/icons/tab-arrow-start-bkgnd-hover.png");
-}
-
-.tabmail-tabs[overflow="true"] .tabs-alltabs-button:hover {
-  background-image: url("chrome://messenger/skin/icons/alltabs-box-overflow-end-bkgnd-hover.png");
-}
-
-.tabmail-tabs[overflow="true"] stack:-moz-locale-dir(rtl) > hbox > .tabs-alltabs-button:hover {
-  background-image: url("chrome://messenger/skin/icons/alltabs-box-overflow-start-bkgnd-hover.png");
-}
-
-.tabs-alltabs-box-animate {
-  margin-top: 2px;
-  margin-bottom: 4px;
-  width: 18px !important;
-  height: 23px !important;
-  background-image: url("chrome://messenger/skin/icons/alltabs-box-overflow-end-bkgnd-animate.png");
-  background-repeat: no-repeat;
-  opacity: 0.0;
-}
-
-stack:-moz-locale-dir(rtl) > hbox > .tabs-alltabs-box-animate {
-  background-image: url("chrome://messenger/skin/icons/alltabs-box-overflow-start-bkgnd-animate.png");
+.tabs-alltabs-button > .toolbarbutton-menu-dropmarker:-moz-lwtheme-brighttext {
+  list-style-image: url(chrome://messenger/skin/icons/mainwindow-dropdown-arrow-inverted.png);
 }
 
 /**

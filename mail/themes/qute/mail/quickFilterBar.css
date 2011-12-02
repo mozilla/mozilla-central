@@ -3,71 +3,94 @@
 /* :::: Filter Tab Bar Button :::: */
 
 #qfb-show-filter-bar {
-  -moz-appearance: none;
-  list-style-image: url("chrome://messenger/skin/icons/filter.png");
-  background: -moz-linear-gradient(top, #e3e3e3 0px, #e3e3e3 9px, #dedede 9px, #dedede 10px, #d9d9d9 10px, #e5e5e5 100%);
-  border-right: 2px solid;
-  border-top: 2px solid;
-  border-left: 2px solid;
-  -moz-border-top-colors: threedshadow #f2f2f2;
-  -moz-border-left-colors: threedshadow #f2f2f2;
-  -moz-border-right-colors: threedshadow #f2f2f2;
-  border-bottom: none;
-  border-radius: 4px 4px 0pt 0pt;
-  margin: 2px 2px 3px 0;
-  padding: 0 !important;
-  -moz-padding-start: 4px !important;
-  -moz-padding-end: 4px !important;
+  -moz-box-orient: vertical;
+  visibility: visible !important;
+  min-width: 34px;
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
+  -moz-image-region: rect(0px 336px 16px 320px);
+  margin: 2px 2px 4px;
+  padding: 3px 4px;
 }
 
 #qfb-show-filter-bar:hover {
-  background: -moz-linear-gradient(top, #f6f6f6 0px, #ededed 9px, #e4e4e4 9px, #e4e4e4 10px, #d6d6d6 10px, #e4e4e4 100%);
+  -moz-image-region: rect(16px 336px 32px 320px);
 }
 
-#qfb-show-filter-bar:hover:active,
-#qfb-show-filter-bar[checked],
-#qfb-show-filter-bar[checked]:hover {
-  -moz-border-top-colors: ThreeDDarkShadow #bdbdbd;
-  -moz-border-left-colors: ThreeDDarkShadow #bdbdbd;
-  -moz-border-right-colors: ThreeDDarkShadow #bdbdbd;
-  background: #cbcbcb;
-  padding: 0 !important;
-  -moz-padding-start: 4px !important;
-  -moz-padding-end: 4px !important;
+toolbar[iconsize="large"] #qfb-show-filter-bar {
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 504px 24px 480px);
+}
+
+toolbar[iconsize="large"] #qfb-show-filter-bar:hover {
+  -moz-image-region: rect(24px 504px 48px 480px);
 }
 
 #qfb-show-filter-bar > .toolbarbutton-icon {
+  -moz-margin-end: 0;
   padding: 0 3px;
 }
 
-#qfb-show-filter-bar > .toolbarbutton-text {
-  display: none;
+#qfb-show-filter-bar[style="visibility: hidden;"] {
+  -moz-appearance: none;
+  -moz-user-input: none;
+  -moz-image-region: rect(32px 336px 48px 320px);
+  border-width: 0;
+  background: none;
+}
+
+toolbar[iconsize="large"] #qfb-show-filter-bar[style="visibility: hidden;"] {
+  -moz-image-region: rect(48px 504px 72px 480px);
+}
+
+/* ::::: QFB button on main toolbar ::::: */
+
+#mail-toolbox #qfb-show-filter-bar {
+  margin: 0;
+  padding-top: 5px;
+  padding-bottom: 6px;
+  -moz-padding-start: 4px;
+  -moz-padding-end: 5px;
+}
+
+#mail-toolbox #qfb-show-filter-bar[open="true"],
+#mail-toolbox #qfb-show-filter-bar:hover:active {
+  padding-top: 6px;
+  padding-bottom: 5px;
+  -moz-padding-start: 5px;
+  -moz-padding-end: 4px;
+}
+
+#mail-toolbox #qfb-show-filter-bar[checked="true"] {
+  padding-top: 6px !important;
+  padding-bottom: 5px !important;
+  -moz-padding-start: 5px !important;
+  -moz-padding-end: 4px !important;
+}
+
+#mail-toolbox #qfb-show-filter-bar[style="visibility: hidden;"] {
+  color: GrayText;
+  text-shadow: none;
+}
+
+toolbox[labelalign="end"] #qfb-show-filter-bar {
+  -moz-box-orient: horizontal;
 }
 
 /* :::: Filter Bar :::: */
 
 #quick-filter-bar-main-bar {
-  border-left: 1px solid ThreeDShadow;
   border-top: 1px solid ThreeDHighlight;
   border-bottom: 1px solid ThreeDShadow;
 }
 
 #quick-filter-bar-main-bar:-moz-system-metric(windows-default-theme) {
   background: -moz-linear-gradient(top, #f2f7fd 0, #e9f2fc 12px, #e3eefb 12px, #e3eefb 100%);
-  border-left: 2px solid;
   border-top: 1px solid #fff;
   border-bottom: 2px solid;
-  -moz-border-left-colors: #9196a2 #fff;
   -moz-border-bottom-colors: #9196a2 #fff;
 }
 
-#quick-filter-bar-expando {
-  border-left: 1px solid ThreeDShadow;
-}
-
 #quick-filter-bar-expando:-moz-system-metric(windows-default-theme) {
-  border-left: 2px solid;
-  -moz-border-left-colors: #9196a2 #fff;
   background: #f2f6fb;
 }
 

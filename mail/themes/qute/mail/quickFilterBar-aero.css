@@ -41,40 +41,90 @@
 
 #qfb-show-filter-bar {
   -moz-appearance: none;
-  list-style-image: url("chrome://messenger/skin/icons/filter.png");
-  background: -moz-linear-gradient(left, transparent, transparent 1px,
-              rgba(255, 255, 255, .4) 1px, rgba(255, 255, 255, .4));
-  background-position: -5px -2px;
-  background-repeat: no-repeat;
-  background-size: -moz-calc(100% + 11px) -moz-calc(100% + 7px);
+  -moz-box-orient: vertical;
+  visibility: visible !important;
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 378px, 18px, 360px);
   border: 0;
-  margin: 3px 0 0;
+  margin: 3px 0 1px;
   -moz-margin-end: 1px;
   padding: 0 4px;
-  -moz-border-image: url(chrome://messenger/skin/icons/tab.png) 4 5 3 6 /
-                     4px 5px 3px 6px repeat stretch;
-  height: 22px;
-  border-radius: 10px 8px 0 0;
+  background: rgba(151, 152, 153, .05)
+              -moz-linear-gradient(rgba(251, 252, 253, .95),
+              rgba(246, 247, 248, .47) 49%, rgba(231, 232, 233, .45) 51%,
+              rgba(225, 226, 229, .3));
+  border-radius: 3.5px;
+  border: 1px solid;
+  border-color: rgba(0, 0, 0, .12) rgba(0, 0, 0, .19) rgba(0, 0, 0, .38);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .3) inset,
+              0 0 0 2px rgba(255, 255, 255, .1) inset;
 }
 
-#qfb-show-filter-bar:hover {
-  background-image: -moz-linear-gradient(left, transparent, transparent 1px,
-                    rgba(255, 255, 255, .6) 1px, rgba(255, 255, 255, .6));
+#qfb-show-filter-bar:not([style="visibility: hidden;"]):not(:active):hover {
+  background-color: hsla(190, 60%, 70%, .5);
+  border-color: hsla(190, 50%, 65%, .8) hsla(190, 50%, 50%, .8)
+                hsla(190, 50%, 40%, .8);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .3) inset,
+              0 0 0 2px rgba(255, 255, 255, .1) inset,
+              0 0 5px hsl(190, 90%, 80%);
+  -moz-transition: background-color .4s ease-in,
+                   border-color .3s ease-in,
+                   box-shadow .3s ease-in;
 }
 
-#qfb-show-filter-bar:hover:active,
-#qfb-show-filter-bar[checked],
-#qfb-show-filter-bar[checked]:hover {
-  background-image: -moz-linear-gradient(left, transparent, transparent 1px,
-                    rgba(255, 255, 255, .8) 1px, rgba(255, 255, 255, .9));
+#qfb-show-filter-bar:not([style="visibility: hidden;"]):hover:active,
+#qfb-show-filter-bar:not([style="visibility: hidden;"])[checked="true"] {
+  background-color: transparent;
+  border-color: rgba(0, 0, 0, .65) rgba(0, 0, 0, .55) rgba(0, 0, 0, .5);
+  box-shadow: 0 0 9px rgba(0, 0, 0, .4) inset,
+              0 0 3px rgba(0, 0, 0, .4) inset,
+              0 1px 0 rgba(255, 255, 255, .4);
+  text-shadow: none;
+}
+
+#tabbar-toolbar > #qfb-show-filter-bar[style="visibility: hidden;"] {
+  -moz-user-input: none;
+  opacity: .4;
+}
+
+/* ::::: QFB button on main toolbar ::::: */
+
+#mail-toolbox #qfb-show-filter-bar {
+  margin: 1px 3px;
+  padding: 1px 5px;
+  color: ButtonText;
+  text-shadow: 0 0 3px white;
+}
+
+#mail-toolbox #qfb-show-filter-bar[style="visibility: hidden;"] {
+  -moz-user-input: none;
+  color: GrayText;
+  text-shadow: none;
+  opacity: .8;
+}
+
+toolbox[labelalign="end"] #qfb-show-filter-bar {
+  -moz-box-orient: horizontal;
+}
+
+#mail-toolbox #qfb-show-filter-bar > .toolbarbutton-icon {
+  padding: 0;
+}
+
+/* lesser transparency on Glass background */
+
+@media all and (-moz-windows-compositor) {
+  #qfb-show-filter-bar:not(:-moz-lwtheme) {
+    background-color: rgba(227, 237, 246, .7);
+  }
+
+  #qfb-show-filter-bar:not(:-moz-lwtheme):not([style="visibility: hidden;"]):not([checked="true"]):not(:active):hover {
+    background-color: rgba(136, 197, 213, .85);
+  }
 }
 
 #qfb-show-filter-bar > .toolbarbutton-icon {
   padding: 0 3px;
-}
-
-#qfb-show-filter-bar > .toolbarbutton-text {
-  display: none;
 }
 
 /* :::: Filter Bar :::: */

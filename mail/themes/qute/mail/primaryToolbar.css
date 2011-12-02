@@ -624,6 +624,31 @@ toolbar[iconsize="small"] #button-archive[disabled] {
 
 /* ::::: end small primary toolbar buttons ::::: */
 
+/* ::::: toolbar buttons on tabbar toolbar ::::: */
+
+#tabbar-toolbar .toolbarbutton-1 {
+  margin-top: 2px;
+  margin-bottom: 4px;
+  padding-bottom: 5px;
+}
+
+#tabbar-toolbar .toolbarbutton-1:hover:active:not([disabled]),
+#tabbar-toolbar .toolbarbutton-1[open="true"],
+#tabbar-toolbar .toolbarbutton-menubutton-button:hover:active:not([disabled]),
+#tabbar-toolbar .toolbarbutton-menubutton-button[open="true"] {
+  padding-bottom: 4px;
+}
+
+#tabbar-toolbar .toolbarbutton-1[checked="true"] {
+  padding-bottom: 4px !important;
+}
+
+#palette-box #qfb-show-filter-bar {
+  visibility: visible !important;
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 504px 24px 480px);
+}
+
 /* ::::: message notification bar style rules ::::: */
 
 .msgNotificationBar {

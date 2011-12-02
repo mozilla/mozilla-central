@@ -252,13 +252,14 @@ tabpanels {
   -moz-image-region: rect(0, 64px, 16px, 48px);
   height: 24px;
   border: none !important;
-  padding: 0px;
+  padding: 0 !important;
   cursor: default;
   list-style-image: url("chrome://global/skin/icons/close.png");
+  background: none !important;
 }
 
 .tabs-closebutton {
-  padding: 0 2px;
+  padding: 0 2px !important;
 }
 
 .tabmail-tab:not([selected="true"]) > .tab-close-button {
@@ -304,12 +305,20 @@ tabpanels {
 
 .tabmail-arrowscrollbox > .scrollbutton-up,
 .tabmail-arrowscrollbox > stack > .scrollbutton-down {
-  -moz-appearance: toolbarbutton;
   margin: 3px 0 0;
   -moz-margin-end: 1px;
   list-style-image: url("chrome://messenger/skin/icons/tab-arrow-left.png");
   -moz-image-region: rect(0, 15px, 17px, 0);
   border-radius: 0;
+}
+
+.tabmail-arrowscrollbox >
+  .scrollbutton-up:-moz-system-metric(windows-compositor):not(:-moz-lwtheme),
+.tabmail-arrowscrollbox > stack >
+  .scrollbutton-down:-moz-system-metric(windows-compositor):not(:-moz-lwtheme),
+.tabmail-arrowscrollbox > .scrollbutton-up:-moz-lwtheme-brighttext,
+.tabmail-arrowscrollbox > stack > .scrollbutton-down:-moz-lwtheme-brighttext {
+  list-style-image: url(chrome://messenger/skin/icons/tab-arrow-left-inverted.png);
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-up:-moz-locale-dir(rtl),
@@ -322,18 +331,6 @@ tabpanels {
 .tabmail-arrowscrollbox > .scrollbutton-up[disabled="true"],
 .tabmail-arrowscrollbox > stack > .scrollbutton-down[disabled="true"] {
   opacity: .4;
-}
-
-.tabmail-arrowscrollbox > .scrollbutton-up:not([disabled="true"]):hover,
-.tabmail-arrowscrollbox > stack >
-                              .scrollbutton-down:not([disabled="true"]):hover {
-  -moz-image-region: rect(0, 30px, 17px, 15px);
-}
-
-.tabmail-arrowscrollbox > .scrollbutton-up:not([disabled="true"]):hover:active,
-.tabmail-arrowscrollbox > stack >
-                       .scrollbutton-down:not([disabled="true"]):hover:active {
-  -moz-image-region: rect(0, 45px, 17px, 30px);
 }
 
 .tabmail-arrowscrollbox > .scrollbutton-down-stack {
@@ -350,14 +347,13 @@ tabpanels {
   margin: 3px 0 0;
   width: 18px;
   height: 23px;
-  padding: 0px 4px;
   list-style-image: url(chrome://messenger/skin/icons/mainwindow-dropdown-arrow.png);
   -moz-image-region: rect(0, 13px, 11px, 0);
 }
 
-.tabs-alltabs-button:hover:active,
-.tabs-alltabs-button[open="true"] {
-  -moz-image-region: rect(0, 26px, 11px, 13px);
+.tabs-alltabs-button:-moz-system-metric(windows-compositor):not(:-moz-lwtheme),
+.tabs-alltabs-button:-moz-lwtheme-brighttext {
+  list-style-image: url(chrome://messenger/skin/icons/mainwindow-dropdown-arrow-inverted.png);
 }
 
 .tabs-alltabs-button > .toolbarbutton-text {
@@ -387,4 +383,27 @@ tabpanels {
 
 .alltabs-item[busy] {
   list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+}
+
+/**
+* Toolbarbuttons on tab bar
+*/
+
+.tabmail-tabs toolbarbutton {
+  -moz-appearance: none;
+  border-style: none;
+  padding: 0 3px;
+  margin-top: 3px;
+}
+
+.tabmail-tabs toolbarbutton[open],
+.tabmail-tabs toolbarbutton:hover:active,
+.tabmail-tabs toolbarbutton:not([disabled]):hover {
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0),
+                    rgba(255, 255, 255, .5)),
+                    -moz-linear-gradient(transparent, rgba(0, 0, 0, .25) 30%),
+                    -moz-linear-gradient(transparent, rgba(0, 0, 0, .25) 30%);
+  background-position: 1px -1px, 0 -1px, 100% -1px;
+  background-size: -moz-calc(100% - 2px) 100%, 1px 100%, 1px 100%;
+  background-repeat: no-repeat;
 }

@@ -27,6 +27,7 @@ treechildren::-moz-tree-cell-text {
 
 #tabmail-buttons > toolbarbutton {
   margin-top: 3px;
+  margin-bottom: 0;
 }
 
 @media all and (-moz-windows-default-theme) {

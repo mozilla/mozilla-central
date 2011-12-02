@@ -652,6 +652,12 @@ toolbar[iconsize="small"] #button-archive[disabled] {
 
 /* ::::: end small primary toolbar buttons ::::: */
 
+#palette-box #qfb-show-filter-bar {
+  visibility: visible !important;
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px 672px 32px 640px);
+}
+
 .msgNotificationBarText {
   font: icon;
   font-weight: bold;

@@ -88,8 +88,9 @@ let QuickFilterBarMuxer = {
     let appropriate = ("quickFilter" in tab._ext) &&
                         aFolderDisplay.displayedFolder &&
                         !aFolderDisplay.displayedFolder.isServer;
-    document.getElementById("qfb-show-filter-bar").style.visibility =
-      (appropriate ? "visible" : "hidden");
+    let qfbButton = document.getElementById("qfb-show-filter-bar");
+    if (qfbButton)
+      qfbButton.style.visibility = (appropriate ? "visible" : "hidden");
 
     // The case in that previous aFolderDisplay is showing a normal folder is
     //  handled by onLoadingFolder. Here we handle the case where previous
@@ -270,7 +271,9 @@ let QuickFilterBarMuxer = {
 
     document.getElementById("quick-filter-bar").collapsed =
       !aFilterer.visible;
-    document.getElementById("qfb-show-filter-bar").checked = aFilterer.visible;
+    let qfbButton = document.getElementById("qfb-show-filter-bar");
+    if (qfbButton)
+      qfbButton.checked = aFilterer.visible;
   },
 
   /**
@@ -470,8 +473,11 @@ let QuickFilterBarMuxer = {
     let filterer = this.maybeActiveFilterer;
     if (filterer)
       this.reflectFiltererState(filterer, aTab.folderDisplay);
-    else // this only happens for tabs we are not legal on
-      document.getElementById("qfb-show-filter-bar").style.visibility = "hidden";
+    else { // this only happens for tabs we are not legal on
+      let qfbButton = document.getElementById("qfb-show-filter-bar");
+      if (qfbButton)
+        qfbButton.style.visibility = "hidden";
+    }
   },
 
   supportsCommand: function QFBM_supportsCommand(aCommand, aTab) {

@@ -3,22 +3,46 @@
 /* :::: Filter Tab Bar Button :::: */
 
 #qfb-show-filter-bar {
-  list-style-image: url("chrome://messenger/skin/icons/filter.svg");
+  -moz-box-orient: vertical;
+  visibility: visible !important;
+  list-style-image: url("moz-icon://stock/gtk-find?size=menu");
   margin: 0 0 1px;
   padding: 0 4px;
 }
 
-#qfb-show-filter-bar:hover,
-#qfb-show-filter-bar[checked] {
-  list-style-image: url("chrome://messenger/skin/icons/filter-hover.svg");
+toolbar[iconsize="large"] #qfb-show-filter-bar {
+  list-style-image: url("moz-icon://stock/gtk-find?size=toolbar");
+}
+
+#qfb-show-filter-bar[style="visibility: hidden;"] {
+  -moz-appearance: none;
+  -moz-user-input: none;
+  padding: 5px !important;
+  border-color: transparent !important;
+  background: none !important;
+  list-style-image: url("moz-icon://stock/gtk-find?size=menu&state=disabled");
+}
+
+toolbar[iconsize="large"] #qfb-show-filter-bar[style="visibility: hidden;"] {
+  list-style-image: url("moz-icon://stock/gtk-find?size=toolbar&state=disabled");
+}
+
+#qfb-show-filter-bar[style="visibility: hidden;"] > .toolbarbutton-text {
+  color: #000 !important;
 }
 
 #qfb-show-filter-bar > .toolbarbutton-icon {
-  padding: 0 3px;
+  -moz-margin-end: 0;
 }
 
-#qfb-show-filter-bar > .toolbarbutton-text {
-  display: none;
+/* ::::: QFB button on main toolbar ::::: */
+
+#mail-toolbox #qfb-show-filter-bar {
+  margin: 0;
+}
+
+toolbox[labelalign="end"] #qfb-show-filter-bar {
+  -moz-box-orient: horizontal;
 }
 
 /* :::: Filter Bar :::: */

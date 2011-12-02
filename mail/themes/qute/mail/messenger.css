@@ -25,6 +25,17 @@ menuitem.menuitem-iconic > .menu-iconic-left {
   display: -moz-box;
 }
 
+#tabbar-toolbar {
+  -moz-appearance: none;
+  padding: 0;
+  border: none;
+}
+
+#tabbar-toolbar[customizing="true"] {
+  min-width: 24px;
+  min-height: 10px;
+}
+
 /* ::::: menubar ::::: */
 
 #menubar-items {
@@ -126,6 +137,11 @@ sidebarheader .toolbarbutton-text:not([value]) {
 
 #status-bar:-moz-lwtheme {
   padding-bottom: 1px;
+}
+
+#tabmail-buttons > toolbarbutton {
+  margin-top: 2px;
+  margin-bottom: 4px;
 }
 
 treechildren::-moz-tree-cell-text {

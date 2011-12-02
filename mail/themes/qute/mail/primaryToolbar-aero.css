@@ -246,6 +246,13 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-binding: url("chrome://global/content/bindings/toolbarbutton.xml#menu");
 }
 
+/* ::::: toolbar buttons on tabbar toolbar ::::: */
+
+#tabbar-toolbar .toolbarbutton-1 {
+  margin: 3px 0 1px;
+  -moz-margin-end: 1px;
+}
+
 @media all and (-moz-windows-compositor) {
   #messengerWindow {
     -moz-appearance: -moz-win-borderless-glass;
@@ -401,6 +408,28 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 #button-archive {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px, 360px, 18px, 342px);
+}
+
+#palette-box #qfb-show-filter-bar {
+  -moz-appearance: none;
+  visibility: visible !important;
+  margin: 1px 3px;
+  padding: 1px 5px;
+  list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
+  -moz-image-region: rect(0px, 378px, 18px, 360px);
+  background: rgba(151, 152, 153, .05)
+              -moz-linear-gradient(rgba(251, 252, 253, .95),
+              rgba(246, 247, 248, .47) 49%, rgba(231, 232, 233, .45) 51%,
+              rgba(225, 226, 229, .3));
+  border-radius: 3.5px;
+  border: 1px solid;
+  border-color: rgba(0, 0, 0, .12) rgba(0, 0, 0, .19) rgba(0, 0, 0, .38);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, .3) inset,
+              0 0 0 2px rgba(255, 255, 255, .1) inset;
+}
+
+#palette-box #qfb-show-filter-bar > .toolbarbutton-icon {
+  -moz-margin-end: 0;
 }
 
 /* ::::: message notification bar style rules ::::: */

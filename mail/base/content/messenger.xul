@@ -250,10 +250,17 @@
   <hbox id="tabmail-container" flex="1">
     <tabmail id="tabmail" flex="1" panelcontainer="tabpanelcontainer">
       <hbox>
-        <!-- extensions can put stuff in here -->
+        <!-- Use of this element for extensions is deprecated! Current
+             extensions should add to #mail-toolbox and add a toolbar item to
+             #tabbar-toolbar below. -->
         <hbox id="tabmail-buttons"/>
-        <!-- extensions must not put stuff in here -->
-        <hbox id="thunderbird-private-tabmail-buttons"/>
+
+        <toolbar id="tabbar-toolbar" toolboxid="mail-toolbox"
+                 context="toolbar-context-menu"
+                 customizable="true"
+                 mode="icons" defaultmode="icons" lockmode="true"
+                 iconsize="small" defaulticonsize="small" lockiconsize="true"
+                 defaultset="qfb-show-filter-bar"/>
       </hbox>
       <tabpanels id="tabpanelcontainer" flex="1" class="plain" selectedIndex="0">
         <!-- mailContent is the container used for the "wide" layout. Normally,
