@@ -1549,12 +1549,17 @@ nsMsgComposeAndSend::GetMultipartRelatedCount(bool forceToBeCalculated /*=false*
 
   //First time here, let's calculate the correct number of related part we need to generate
   mMultipartRelatedAttachmentCount = 0;
-  nsCOMPtr<nsIEditorMailSupport> mailEditor (do_QueryInterface(mEditor));
-  if (!mailEditor)
-    return 0;
+  if (mEditor)
+  {
+    nsCOMPtr<nsIEditorMailSupport> mailEditor (do_QueryInterface(mEditor));
+    if (!mailEditor)
+      return 0;
 
-  rv = mailEditor->GetEmbeddedObjects(getter_AddRefs(mEmbeddedObjectList));
-  if ((NS_FAILED(rv) || (!mEmbeddedObjectList)))
+    rv = mailEditor->GetEmbeddedObjects(getter_AddRefs(mEmbeddedObjectList));
+    if (NS_FAILED(rv))
+      return 0;
+  }
+  if (!mEmbeddedObjectList)
     return 0;
 
   if (NS_SUCCEEDED(mEmbeddedObjectList->Count(&count)))
@@ -1615,7 +1620,10 @@ nsMsgComposeAndSend::GetBodyFromEditor()
 
   // Ok, get the body...the DOM should have been whacked with
   // Content ID's already
-  mEditor->OutputToString(format, flags, bodyStr);
+  if (mEditor)
+    mEditor->OutputToString(format, flags, bodyStr);
+  else
+    bodyStr = NS_ConvertASCIItoUTF16(m_attachment1_body);
 
  //
   // If we really didn't get a body, just return NS_OK
@@ -1868,10 +1876,6 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
   PRInt32                   duplicateOf;
   domSaveStruct             *domSaveArray = nsnull;
 
-  // Sanity check to see if we should be here or not...if not, just return
-  if (!mEditor)
-    return NS_OK;
-
    if (!mEmbeddedObjectList)
     return NS_ERROR_MIME_MPART_ATTACHMENT_ERROR;
 
@@ -1950,13 +1954,19 @@ nsMsgComposeAndSend::ProcessMultipartRelated(PRInt32 *aMailboxCount, PRInt32 *aN
       if (m_attachments[i].mURL)
         msg_pick_real_name(&m_attachments[i], nsnull, mCompFields->GetCharacterSet());
 
-      //
-      // Next, generate a content id for use with this part
-      //
-      nsCString email;
-      mUserIdentity->GetEmail(email);
-      email.StripWhitespace();
-      m_attachments[i].m_contentId = mime_gen_content_id(locCount+1, email.get());
+      nsString contentId;
+      node->GetNodeValue(contentId);
+      if (!contentId.IsEmpty())
+        m_attachments[i].m_contentId = NS_LossyConvertUTF16toASCII(contentId);
+      else
+      {
+        //
+        // Next, generate a content id for use with this part
+        //
+        nsCString email;
+        mUserIdentity->GetEmail(email);
+        m_attachments[i].m_contentId = mime_gen_content_id(locCount+1, email.get());
+      }
 
       //
       // Start counting the attachments which are going to come from mail folders
@@ -4230,6 +4240,51 @@ nsMsgComposeAndSend::CreateAndSendMessage(
           attachment1_body_length,
           attachments, preloaded_attachments,
           password, aOriginalMsgURI, aType);
+
+  if (NS_FAILED(rv) && mSendReport)
+    mSendReport->SetError(nsIMsgSendReport::process_Current, rv, PR_FALSE);
+
+  return rv;
+}
+
+NS_IMETHODIMP
+nsMsgComposeAndSend::CreateRFC822Message(
+              nsIMsgIdentity *aUserIdentity,
+              nsIMsgCompFields *aFields,
+              const char *aMsgType,
+              const char *aMsgBody,
+              PRUint32 aMsgBodyLength,
+              bool aIsDraft,
+              nsIArray *aAttachments,
+              nsISupportsArray *aEmbeddedObjects,
+              nsIMsgSendListener *aListener
+              )
+{
+  nsresult rv;
+  nsMsgDeliverMode mode = aIsDraft ? nsIMsgSend::nsMsgSaveAsDraft :
+                                     nsIMsgSend::nsMsgDeliverNow;
+
+  /* First thing to do is to reset the send errors report */
+  mSendReport->Reset();
+  mSendReport->SetDeliveryMode(mode);
+
+  mParentWindow = nsnull;
+  mSendProgress = nsnull;
+  mListener = aListener;
+  mEmbeddedObjectList = aEmbeddedObjects;
+
+  if (!aMsgBody || !*aMsgBody)
+  {
+    aMsgBodyLength = 0;
+    aMsgBody = (char *) nsnull;
+  }
+
+  rv = Init(aUserIdentity, nsnull, (nsMsgCompFields *)aFields, nsnull,
+            false, true, mode, nsnull,
+            aMsgType, aMsgBody,
+            aMsgBodyLength,
+            nsnull, aAttachments,
+            nsnull, EmptyCString(), nsnull);
 
   if (NS_FAILED(rv) && mSendReport)
     mSendReport->SetError(nsIMsgSendReport::process_Current, rv, PR_FALSE);

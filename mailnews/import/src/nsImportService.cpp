@@ -72,6 +72,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsIMutableArray.h"
+#include "nsISupportsArray.h"
 
 PRLogModuleInfo *IMPORTLOGMODULE = nsnull;
 
@@ -320,39 +321,42 @@ NS_IMETHODIMP nsImportService::GetModuleDescription(const char *filter, PRInt32 
 class nsProxySendRunnable : public nsRunnable
 {
 public:
-  nsProxySendRunnable(nsIEditor *aEditor, nsIMsgIdentity *aIdentity,
+  nsProxySendRunnable(nsIMsgIdentity *aIdentity,
                        nsIMsgCompFields *aMsgFields,
-                       nsMsgDeliverMode aDeliverMode,
                        const char *attachment1_type,
                        const char *attachment1_body,
                        PRUint32 attachment1_body_length,
-                       nsIArray *loaded_attachments,
+                       bool aIsDraft,
+                       nsIArray *aLoadedAttachments,
+                       nsISupportsArray *aEmbeddedAttachments,
                        nsIMsgSendListener *aListener);
   NS_DECL_NSIRUNNABLE
 private:
-  nsCOMPtr<nsIEditor> m_editor;
   nsCOMPtr<nsIMsgIdentity> m_identity;
   nsCOMPtr<nsIMsgCompFields> m_compFields;
-  nsMsgDeliverMode m_deliverMode;
+  bool m_isDraft;
   nsCString m_bodyType;
   nsCString m_body;
   PRUint32 m_bodyLength;
   nsCOMPtr<nsIArray> m_loadedAttachments;
+  nsCOMPtr<nsISupportsArray> m_embeddedAttachments;
   nsCOMPtr<nsIMsgSendListener> m_listener;
 
 };
 
-nsProxySendRunnable::nsProxySendRunnable(nsIEditor *aEditor, nsIMsgIdentity *aIdentity,
+nsProxySendRunnable::nsProxySendRunnable(nsIMsgIdentity *aIdentity,
                                          nsIMsgCompFields *aMsgFields,
-                                         nsMsgDeliverMode aDeliverMode,
                                          const char *aBodyType,
                                          const char *aBody,
                                          PRUint32 aBodyLength,
+                                         bool aIsDraft,
                                          nsIArray *aLoadedAttachments,
+                                         nsISupportsArray *aEmbeddedAttachments,
                                          nsIMsgSendListener *aListener) :
-  m_editor(aEditor), m_identity(aIdentity), m_compFields(aMsgFields),
-  m_deliverMode(aDeliverMode), m_bodyType(aBodyType),
+  m_identity(aIdentity), m_compFields(aMsgFields),
+  m_isDraft(aIsDraft), m_bodyType(aBodyType),
   m_body(aBody), m_bodyLength(aBodyLength), m_loadedAttachments(aLoadedAttachments),
+  m_embeddedAttachments(aEmbeddedAttachments),
   m_listener(aListener)
 {
 }
@@ -363,33 +367,35 @@ NS_IMETHODIMP nsProxySendRunnable::Run()
   nsCOMPtr<nsIMsgSend> msgSend = do_CreateInstance(NS_MSGSEND_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return msgSend->CreateAndSendMessage(m_editor, m_identity, nsnull, m_compFields,
-                                       PR_FALSE, PR_TRUE, 
-                                       m_deliverMode, nsnull, m_bodyType.get(), m_body.get(),
-                                       m_bodyLength, nsnull, m_loadedAttachments,
-                                       nsnull, nsnull, m_listener, nsnull,
-                                       EmptyCString(), nsnull);
+  return msgSend->CreateRFC822Message(m_identity, m_compFields,
+                                      m_bodyType.get(), m_body.get(),
+                                      m_bodyLength, m_isDraft, m_loadedAttachments,
+                                      m_embeddedAttachments,
+                                      m_listener);
 }
 
 
-NS_IMETHODIMP nsImportService::ProxySend(nsIEditor *aEditor, nsIMsgIdentity *aIdentity,
-                                         nsIMsgCompFields *aMsgFields,
-                                         nsMsgDeliverMode aDeliverMode,
-                                         const char *attachment1_type,
-                                         const char *attachment1_body,
-                                         PRUint32 attachment1_body_length,
-                                         nsIArray *loaded_attachments,
-                                         nsIMsgSendListener *aListener)
+NS_IMETHODIMP
+nsImportService::CreateRFC822Message(nsIMsgIdentity *aIdentity,
+                                     nsIMsgCompFields *aMsgFields,
+                                     const char *aBodyType,
+                                     const char *aBody,
+                                     PRUint32 aBodyLength,
+                                     bool aIsDraft,
+                                     nsIArray *aLoadedAttachments,
+                                     nsISupportsArray *aEmbeddedAttachments,
+                                     nsIMsgSendListener *aListener)
 {
     nsRefPtr<nsProxySendRunnable> runnable =
-      new nsProxySendRunnable(aEditor, aIdentity,
-                                       aMsgFields,
-                                       aDeliverMode,
-                                       attachment1_type,
-                                       attachment1_body,
-                                       attachment1_body_length,
-                                       loaded_attachments,
-                                       aListener);
+      new nsProxySendRunnable(aIdentity,
+                              aMsgFields,
+                              aBodyType,
+                              aBody,
+                              aBodyLength,
+                              aIsDraft,
+                              aLoadedAttachments,
+                              aEmbeddedAttachments,
+                              aListener);
     // invoke the callback
     return NS_DispatchToMainThread(runnable);
 }

@@ -54,7 +54,7 @@ interface nsIMsgCompFields;
 interface nsIMsgSendListener;
 interface nsIArray;
 
-[scriptable, uuid(8de585fc-8557-402e-b784-875b82e79b1a)]
+[scriptable, uuid(376fc4c2-76d3-4b47-8095-406260cb9b1f)]
 interface nsIImportService : nsISupports
 {
     void DiscoverModules();
@@ -71,14 +71,15 @@ interface nsIImportService : nsISupports
   nsIImportABDescriptor    CreateNewABDescriptor();
   nsIImportGeneric      CreateNewGenericMail();
   nsIImportGeneric      CreateNewGenericAddressBooks();
-  [noscript] void ProxySend(in nsIEditor aEditor, in nsIMsgIdentity aIdentity,
-                            in nsIMsgCompFields aMsgFields,
-                            in nsMsgDeliverMode aDeliverMode,
-                            in string attachment1_type,
-                            in string attachment1_body,
-                            in PRUint32 attachment1_body_length,
-                            in nsIArray loaded_attachments,
-                            in nsIMsgSendListener aListener);
+  void CreateRFC822Message(in nsIMsgIdentity aIdentity,
+                           in nsIMsgCompFields aMsgFields,
+                           in string aBodytype,
+                           in string aBody,
+                           in unsigned long aBodyLength,
+                           in boolean aCreateAsDraft,
+                           in nsIArray aLoadedAttachments,
+                           in nsISupportsArray aEmbeddedObjects,
+                           in nsIMsgSendListener aListener);
 
 };
 

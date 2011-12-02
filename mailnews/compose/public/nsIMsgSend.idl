@@ -72,10 +72,11 @@ interface nsIMsgComposeSecure;
 interface nsIMsgStatusFeedback;
 interface nsIEditor;
 interface nsIArray;
+interface nsISupportsArray;
 
 typedef long nsMsgDeliverMode;
 
-[scriptable, uuid(d664fd40-87b6-487f-a01f-c54ab2e29314)]
+[scriptable, uuid(c658cd1f-dc4a-43c0-911c-c6d3e569ca7e)]
 interface nsIMsgAttachmentData : nsISupports
 {
   /// The URL to attach.
@@ -323,6 +324,37 @@ interface nsIMsgSend : nsISupports
                               in string aPassword,
                               in AUTF8String aOriginalMsgURI,
                               in MSG_ComposeType aType);
+
+  /**
+   * Creates a file containing an rfc822 message, using the passed information.
+   * aListener's OnStopSending method will get called with the file the message
+   * was stored in. OnStopSending may be called sync or async, depending on
+   * content, so you need to handle both cases.
+   *
+   * @param aUserIdentity    The user identity to use for sending this email.
+   * @param aFields          An nsIMsgCompFields object containing information
+   *                         on who to send the message to.
+   * @param aBodyType content type of message body
+   * @param aBody message body text (should have native line endings)
+   * @param aBodyLength passed in to avoid extra strlen call.
+   * @param aCreateAsDraft If true, this message will be put in a drafts folder
+   * @param aAttachments Array of nsIMsgAttachmentData
+   * @param aEmbeddedObjects Array of nsIDomNode objects for MHTML messages.
+   *                         Primarily used for embedded images.
+   *                         Almost all methods can be noops, but
+   *                         GetNodeValue should return the
+   *                         cid of the embedded object.
+   * @param aListener listener for msg creation progress and resulting file.
+   */
+  void createRFC822Message(in nsIMsgIdentity aUserIdentity,
+                           in nsIMsgCompFields aFields,
+                           in string aBodyType,
+                           in string aBody,
+                           in unsigned long aBodyLength,
+                           in boolean aCreateAsDraft,
+                           in nsIArray aAttachments,
+                           in nsISupportsArray aEmbeddedObjects,
+                           in nsIMsgSendListener aListener);
 
   /**
    * Sends a file to the specified composition fields, via the user identity

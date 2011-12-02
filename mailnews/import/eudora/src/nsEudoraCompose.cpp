@@ -614,9 +614,15 @@ nsresult nsEudoraCompose::SendTheMessage(nsIFile *pMailImportLocation, nsIFile *
   else
     pMimeType = ToNewCString(m_bodyType);
 
-  // IMPORT_LOG0( "Outlook compose calling CreateAndSendMessage\n");
   nsCOMPtr<nsIArray> pAttach;
   GetLocalAttachments(getter_AddRefs(pAttach));
+  nsEudoraEditor eudoraEditor(m_pBody, pMailImportLocation);
+  nsCOMPtr<nsISupportsArray> embeddedObjects;
+  if (eudoraEditor.HasEmbeddedContent())
+    eudoraEditor.GetEmbeddedObjects(getter_AddRefs(embeddedObjects));
+
+  nsString uniBody;
+  NS_CopyNativeToUnicode(nsDependentCString(m_pBody), uniBody);
 
   /*
     l10n - I have the body of the message in the system charset,
@@ -626,9 +632,6 @@ nsresult nsEudoraCompose::SendTheMessage(nsIFile *pMailImportLocation, nsIFile *
     be if it doesn't exist?
 
   */
-
-  nsString uniBody;
-  NS_CopyNativeToUnicode( nsDependentCString(m_pBody), uniBody);
 
   nsCString body;
 
@@ -649,38 +652,26 @@ nsresult nsEudoraCompose::SendTheMessage(nsIFile *pMailImportLocation, nsIFile *
   // See if it's a draft msg (ie, no From: or no To: AND no Cc: AND no Bcc:).
   // Eudora saves sent and draft msgs in Out folder (ie, mixed) and it does
   // store Bcc: header in the msg itself.
-  nsMsgDeliverMode mode = nsIMsgSend::nsMsgDeliverNow;
   nsAutoString from, to, cc, bcc;
   rv = m_pMsgFields->GetFrom(from);
   rv = m_pMsgFields->GetTo(to);
   rv = m_pMsgFields->GetCc(cc);
   rv = m_pMsgFields->GetBcc(bcc);
-  if ( from.IsEmpty() || to.IsEmpty() && cc.IsEmpty() && bcc.IsEmpty() )
-    mode = nsIMsgSend::nsMsgSaveAsDraft;
-
-  // We only get the editor interface when there's embedded content.
-  // Otherwise pEditor remains NULL. That way we only import with the pseudo
-  // editor when it helps.
-  nsRefPtr<nsEudoraEditor>  pEudoraEditor = new nsEudoraEditor(m_pBody, pMailImportLocation);
-  nsCOMPtr<nsIEditor>       pEditor;
-
-  if (pEudoraEditor->HasEmbeddedContent())
-    // There's embedded content that we need to import, so query for the editor interface
-    pEudoraEditor->QueryInterface( NS_GET_IID(nsIEditor), getter_AddRefs(pEditor) );
+  bool createAsDraft = from.IsEmpty() || to.IsEmpty() && cc.IsEmpty() && bcc.IsEmpty();
 
   nsCOMPtr<nsIImportService> impService(do_GetService(NS_IMPORTSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
-  impService->ProxySend(pEditor,                       // pseudo editor shell when there's embedded content
+
+  rv = impService->CreateRFC822Message(
                         s_pIdentity,                  // dummy identity
                         m_pMsgFields,                 // message fields
-                        mode,                         // mode
                         pMimeType,                    // body type
                         body.get(),                   // body pointer
                         body.Length(),                // body length
+                        createAsDraft,
                         pAttach,                      // local attachments
-                        m_pListener);              // originalMsgURI
-
-  // IMPORT_LOG0( "Returned from ProxySend\n");
+                        embeddedObjects,
+                        m_pListener);                 // listener
 
   EudoraSendListener *pListen = (EudoraSendListener *)m_pListener;
   if (NS_FAILED( rv)) {

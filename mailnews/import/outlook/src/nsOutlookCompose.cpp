@@ -239,13 +239,6 @@ nsOutlookCompose::~nsOutlookCompose()
     NS_RELEASE(m_pIdentity);
   }
   delete[] m_optimizationBuffer;
-  ClearReplaceCids();
-}
-
-void nsOutlookCompose::ClearReplaceCids()
-{
-  std::for_each(m_replacedCids.begin(), m_replacedCids.end(), ClearReplaceCid);
-  m_replacedCids.clear();
 }
 
 nsIMsgIdentity * nsOutlookCompose::m_pIdentity = nsnull;
@@ -332,51 +325,46 @@ nsresult nsOutlookCompose::ComposeTheMessage(nsMsgDeliverMode mode, CMapiMessage
   // Bug 593907
   if (GenerateHackSequence(msg.GetBody(), msg.GetBodyLen()))
     HackBody(msg.GetBody(), msg.GetBodyLen(), bodyW);
+  else
+    bodyW = msg.GetBody();
   // End Bug 593907
 
-  // We only get the editor interface when there's embedded content.
-  // Otherwise pEditor remains NULL. That way we only import with the pseudo
-  // editor when it helps.
-  nsRefPtr<nsOutlookEditor> pOutlookEditor = new nsOutlookEditor(bodyW.IsEmpty() ? msg.GetBody() : bodyW.get());
-  nsCOMPtr<nsIEditor> pEditor;
+  nsCOMPtr<nsISupportsArray> embeddedObjects;
 
   if (msg.BodyIsHtml()) {
-    for (unsigned int i = 0; i<msg.EmbeddedAttachmentsCount(); i++) {
+    for (unsigned int i = 0; i <msg.EmbeddedAttachmentsCount(); i++) {
       nsIURI *uri;
       const char* cid;
       const char* name;
-      if (msg.GetEmbeddedAttachmentInfo(i, &uri, &cid, &name))
-        pOutlookEditor->AddEmbeddedImage(uri, NS_ConvertASCIItoUTF16(cid).get(), NS_ConvertASCIItoUTF16(name).get());
+      if (msg.GetEmbeddedAttachmentInfo(i, &uri, &cid, &name)) {
+        if (!embeddedObjects) {
+          embeddedObjects = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID, &rv);
+          NS_ENSURE_SUCCESS(rv, rv);
+        }
+        nsCOMPtr<nsIDOMHTMLImageElement> imageNode =
+          new nsOutlookHTMLImageElement(uri, NS_ConvertASCIItoUTF16(cid),
+                                             NS_ConvertASCIItoUTF16(name));
+        embeddedObjects->AppendElement(imageNode);
+      }
     }
   }
 
   nsCString bodyA;
-  if (pOutlookEditor && pOutlookEditor->HasEmbeddedContent()) {
-    // There's embedded content that we need to import, so query for the editor interface
-    pEditor = do_QueryObject(pOutlookEditor);
-  }
-  else {
-    if (bodyW.IsEmpty())
-      msg.GetBody(bodyA);
-    else
-      nsMsgI18NConvertFromUnicode(msg.GetBodyCharset(), bodyW, bodyA);
-  }
+  nsMsgI18NConvertFromUnicode(msg.GetBodyCharset(), bodyW, bodyA);
 
-  // IMPORT_LOG0( "Outlook compose calling CreateAndSendMessage\n");
   nsCOMPtr<nsIImportService> impService(do_GetService(NS_IMPORTSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = impService->ProxySend(
-                    pEditor,                      // editor shell
-                    m_pIdentity,                  // dummy identity
-                    m_pMsgFields,                 // message fields
-                    mode,                         // mode
-                    msg.BodyIsHtml() ? "text/html" : "text/plain",           // body type
-                    bodyA.get(),                  // body pointer
-                    bodyA.Length(),               // body length
-                    pAttach,                      // local attachments
-                    m_pListener);              // originalMsgURI
-  // IMPORT_LOG0( "Returned from CreateAndSendMessage\n");
+  rv = impService->CreateRFC822Message(
+                        m_pIdentity,                  // dummy identity
+                        m_pMsgFields,                 // message fields
+                        msg.BodyIsHtml() ? "text/html" : "text/plain",
+                        bodyA.get(),                  // body pointer
+                        bodyA.Length(),               // body length
+                        mode == nsIMsgSend::nsMsgSaveAsDraft,
+                        pAttach,                      // local attachments
+                        embeddedObjects,
+                        m_pListener);                 // listener
 
   OutlookSendListener *pListen = (OutlookSendListener *)m_pListener;
   if (NS_FAILED(rv)) {
@@ -415,36 +403,7 @@ nsresult nsOutlookCompose::ComposeTheMessage(nsMsgDeliverMode mode, CMapiMessage
   }
 
   pListen->Reset();
-
-  if (NS_SUCCEEDED(rv) && pEditor) {
-    PRUint32 embedCount = pOutlookEditor->EmbeddedObjectsCount();
-    for (PRUint32 i=0; i<embedCount; i++) {
-      CidReplacePair *pair = new CidReplacePair;
-      if (NS_SUCCEEDED(pOutlookEditor->GetCids(i, pair->cidOrig, pair->cidNew)))
-        m_replacedCids.push_back(pair);
-      else delete pair;
-    }
-  }
-
   return rv;
-}
-
-nsOutlookCompose::ReplaceCidInLine::ReplaceCidInLine(nsCString& line)
-  : m_line(line)
-{
-  // If the line begins with Content-ID: string, process it! Otherwise, no need to waste time
-  m_finishedReplacing = StringBeginsWith(line, NS_LITERAL_CSTRING("Content-ID:"), nsCaseInsensitiveCStringComparator());
-}
-
-void nsOutlookCompose::ReplaceCidInLine::operator () (const CidReplacePair* pair)
-{
-  if (m_finishedReplacing)
-    return; // Only one cid per line possible!
-  PRInt32 pos = MsgFind(m_line, pair->cidNew, false, 12);
-  if (pos != kNotFound) {
-    m_finishedReplacing = true; // Stop further search
-    m_line.Replace(pos, pair->cidNew.Length(), pair->cidOrig);
-  }
 }
 
 nsresult nsOutlookCompose::CopyComposedMessage(nsIFile *pSrc,
@@ -520,8 +479,6 @@ nsresult nsOutlookCompose::CopyComposedMessage(nsIFile *pSrc,
   // attachments were replaced with new ones.
   nsCString line;
   while (NS_SUCCEEDED(f.ToString(line, MSG_LINEBREAK))) {
-    if (!m_replacedCids.empty())
-      std::for_each(m_replacedCids.begin(), m_replacedCids.end(), ReplaceCidInLine(line));
     EscapeFromSpaceLine(pDst, const_cast<char*>(line.get()), line.get()+line.Length());
   }
 

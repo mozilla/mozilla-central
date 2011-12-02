@@ -44,10 +44,9 @@
 #include "nsStringGlue.h"
 #include "nsMsgUtils.h"
 #include "nsNetUtil.h"
+#include "nsIMsgSend.h"
 
-NS_IMPL_ISUPPORTS2(nsEudoraEditor, nsIEditor, nsIEditorMailSupport)
 NS_IMPL_ISUPPORTS4(nsEudoraHTMLImageElement, nsIDOMNode, nsIDOMElement, nsIDOMHTMLElement, nsIDOMHTMLImageElement)
-
 
 static char *     sEudoraEmbeddedContentLines[] = {
   "Embedded Content: ",
@@ -94,594 +93,7 @@ nsEudoraEditor::~nsEudoraEditor()
 {
 }
 
-
-// readonly attribute nsISelection selection
-NS_IMETHODIMP nsEudoraEditor::GetSelection(nsISelection * *aSelection)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// [noscript] void init (in nsIDOMDocument doc, in nsIContentPtr aRoot, in nsISelectionController aSelCon, in unsigned long aFlags)
-NS_IMETHODIMP nsEudoraEditor::Init(nsIDOMDocument *doc, nsIContent * aRoot, nsISelectionController *aSelCon, PRUint32 aFlags)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void setAttributeOrEquivalent (in nsIDOMElement element, in AString sourceAttrName, in AString sourceAttrValue, in boolean aSuppressTransaction)
-NS_IMETHODIMP nsEudoraEditor::SetAttributeOrEquivalent(nsIDOMElement *element, const nsAString & sourceAttrName, const nsAString & sourceAttrValue, bool aSuppressTransaction)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void removeAttributeOrEquivalent (in nsIDOMElement element, in DOMString sourceAttrName, in boolean aSuppressTransaction)
-NS_IMETHODIMP nsEudoraEditor::RemoveAttributeOrEquivalent(nsIDOMElement *element, const nsAString & sourceAttrName, bool aSuppressTransaction)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void postCreate ()
-NS_IMETHODIMP nsEudoraEditor::PostCreate()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void preDestroy (in boolean aDestroyingFrames)
-NS_IMETHODIMP nsEudoraEditor::PreDestroy(bool aDestroyingFrames)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// attribute unsigned long flags
-NS_IMETHODIMP nsEudoraEditor::GetFlags(PRUint32 *aFlags)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-NS_IMETHODIMP nsEudoraEditor::SetFlags(PRUint32 aFlags)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// attribute string contentsMIMEType
-NS_IMETHODIMP nsEudoraEditor::GetContentsMIMEType(char * *aContentsMIMEType)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-NS_IMETHODIMP nsEudoraEditor::SetContentsMIMEType(const char * aContentsMIMEType)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// readonly attribute boolean isDocumentEditable
-NS_IMETHODIMP nsEudoraEditor::GetIsDocumentEditable(bool *aIsDocumentEditable)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP nsEudoraEditor::GetIsSelectionEditable(bool *aIsSelectionEditable)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-// readonly attribute nsIDOMDocument document
-NS_IMETHODIMP nsEudoraEditor::GetDocument(nsIDOMDocument * *aDocument)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// readonly attribute nsIDOMElement rootElement
-NS_IMETHODIMP nsEudoraEditor::GetRootElement(nsIDOMElement * *aRootElement)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// readonly attribute nsISelectionController selectionController
-NS_IMETHODIMP nsEudoraEditor::GetSelectionController(nsISelectionController * *aSelectionController)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void deleteSelection (in short action)
-NS_IMETHODIMP nsEudoraEditor::DeleteSelection(PRInt16 action)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// readonly attribute boolean documentIsEmpty
-NS_IMETHODIMP nsEudoraEditor::GetDocumentIsEmpty(bool *aDocumentIsEmpty)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// readonly attribute boolean documentModified
-NS_IMETHODIMP nsEudoraEditor::GetDocumentModified(bool *aDocumentModified)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// attribute ACString documentCharacterSet
-NS_IMETHODIMP nsEudoraEditor::GetDocumentCharacterSet(nsACString & aDocumentCharacterSet)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-NS_IMETHODIMP nsEudoraEditor::SetDocumentCharacterSet(const nsACString & aDocumentCharacterSet)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void resetModificationCount ()
-NS_IMETHODIMP nsEudoraEditor::ResetModificationCount()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// long getModificationCount ()
-NS_IMETHODIMP nsEudoraEditor::GetModificationCount(PRInt32 *_retval)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void incrementModificationCount (in long aModCount)
-NS_IMETHODIMP nsEudoraEditor::IncrementModificationCount(PRInt32 aModCount)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-//  attribute nsITransactionManager transactionManager
-NS_IMETHODIMP nsEudoraEditor::GetTransactionManager(nsITransactionManager * *aTransactionManager)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP nsEudoraEditor::SetTransactionManager(nsITransactionManager *aTxnManager)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void doTransaction (in nsITransaction txn)
-NS_IMETHODIMP nsEudoraEditor::DoTransaction(nsITransaction *txn)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void enableUndo (in boolean enable)
-NS_IMETHODIMP nsEudoraEditor::EnableUndo(bool enable)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void undo (in unsigned long count)
-NS_IMETHODIMP nsEudoraEditor::Undo(PRUint32 count)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void canUndo (out boolean isEnabled, out boolean canUndo)
-NS_IMETHODIMP nsEudoraEditor::CanUndo(bool *isEnabled, bool *canUndo)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void redo (in unsigned long count)
-NS_IMETHODIMP nsEudoraEditor::Redo(PRUint32 count)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void canRedo (out boolean isEnabled, out boolean canRedo)
-NS_IMETHODIMP nsEudoraEditor::CanRedo(bool *isEnabled, bool *canRedo)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void beginTransaction ()
-NS_IMETHODIMP nsEudoraEditor::BeginTransaction()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void endTransaction ()
-NS_IMETHODIMP nsEudoraEditor::EndTransaction()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void beginPlaceHolderTransaction (in nsIAtom name)
-NS_IMETHODIMP nsEudoraEditor::BeginPlaceHolderTransaction(nsIAtom *name)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void endPlaceHolderTransaction ()
-NS_IMETHODIMP nsEudoraEditor::EndPlaceHolderTransaction()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// boolean shouldTxnSetSelection ()
-NS_IMETHODIMP nsEudoraEditor::ShouldTxnSetSelection(bool *_retval)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void setShouldTxnSetSelection (in boolean should)
-NS_IMETHODIMP nsEudoraEditor::SetShouldTxnSetSelection(bool should)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// readonly attribute nsIInlineSpellChecker inlineSpellChecker
-NS_IMETHODIMP nsEudoraEditor::GetInlineSpellChecker(bool autoCreate, nsIInlineSpellChecker * *aInlineSpellChecker)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-NS_IMETHODIMP nsEudoraEditor::SyncRealTimeSpell()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP nsEudoraEditor::SetSpellcheckUserOverride(bool enable)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-bool
-nsEudoraEditor::IsModifiableNode(nsIDOMNode *aNode)
-{
-  return PR_TRUE;
-}
-// void cut ()
-NS_IMETHODIMP nsEudoraEditor::Cut()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// boolean canCut ()
-NS_IMETHODIMP nsEudoraEditor::CanCut(bool *_retval)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void copy ()
-NS_IMETHODIMP nsEudoraEditor::Copy()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// boolean canCopy ()
-NS_IMETHODIMP nsEudoraEditor::CanCopy(bool *_retval)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void paste (in long aSelectionType)
-NS_IMETHODIMP nsEudoraEditor::Paste(PRInt32 aSelectionType)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// boolean canPaste (in long aSelectionType)
-NS_IMETHODIMP nsEudoraEditor::CanPaste(PRInt32 aSelectionType, bool *_retval)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-class nsITransferable;
-
-// void pasteTransferable(in nsITransferable aTransferable)
-NS_IMETHODIMP nsEudoraEditor::PasteTransferable(nsITransferable *aTransferable)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// boolean canPasteTransferable([optional] in nsITransferable aTransferable)
-NS_IMETHODIMP nsEudoraEditor::CanPasteTransferable(nsITransferable *aTransferable, bool *aCanPaste)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void selectAll ()
-NS_IMETHODIMP nsEudoraEditor::SelectAll()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void beginningOfDocument ()
-NS_IMETHODIMP nsEudoraEditor::BeginningOfDocument()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void endOfDocument ()
-NS_IMETHODIMP nsEudoraEditor::EndOfDocument()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// boolean canDrag (in nsIDOMEvent aEvent)
-NS_IMETHODIMP nsEudoraEditor::CanDrag(nsIDOMEvent *aEvent, bool *_retval)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void doDrag (in nsIDOMEvent aEvent)
-NS_IMETHODIMP nsEudoraEditor::DoDrag(nsIDOMEvent *aEvent)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void insertFromDrop (in nsIDOMEvent aEvent)
-NS_IMETHODIMP nsEudoraEditor::InsertFromDrop(nsIDOMEvent *aEvent)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void setAttribute (in nsIDOMElement aElement, in AString attributestr, in AString attvalue)
-NS_IMETHODIMP nsEudoraEditor::SetAttribute(nsIDOMElement *aElement, const nsAString & attributestr, const nsAString & attvalue)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* boolean getAttributeValue (in nsIDOMElement aElement, in AString attributestr, out AString resultValue); */
-NS_IMETHODIMP nsEudoraEditor::GetAttributeValue(nsIDOMElement *aElement, const nsAString & attributestr, nsAString & resultValue, bool *_retval)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* void removeAttribute (in nsIDOMElement aElement, in AString aAttribute); */
-NS_IMETHODIMP nsEudoraEditor::RemoveAttribute(nsIDOMElement *aElement, const nsAString & aAttribute)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* void cloneAttribute (in AString aAttribute, in nsIDOMNode aDestNode, in nsIDOMNode aSourceNode); */
-NS_IMETHODIMP nsEudoraEditor::CloneAttribute(const nsAString & aAttribute, nsIDOMNode *aDestNode, nsIDOMNode *aSourceNode)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* void cloneAttributes (in nsIDOMNode destNode, in nsIDOMNode sourceNode); */
-NS_IMETHODIMP nsEudoraEditor::CloneAttributes(nsIDOMNode *destNode, nsIDOMNode *sourceNode)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* nsIDOMNode createNode (in AString tag, in nsIDOMNode parent, in long position); */
-NS_IMETHODIMP nsEudoraEditor::CreateNode(const nsAString & tag, nsIDOMNode *parent, PRInt32 position, nsIDOMNode **_retval)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void insertNode (in nsIDOMNode node, in nsIDOMNode parent, in long aPosition)
-NS_IMETHODIMP nsEudoraEditor::InsertNode(nsIDOMNode *node, nsIDOMNode *parent, PRInt32 aPosition)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void splitNode (in nsIDOMNode existingRightNode, in long offset, out nsIDOMNode newLeftNode)
-NS_IMETHODIMP nsEudoraEditor::SplitNode(nsIDOMNode *existingRightNode, PRInt32 offset, nsIDOMNode **newLeftNode)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void joinNodes (in nsIDOMNode leftNode, in nsIDOMNode rightNode, in nsIDOMNode parent)
-NS_IMETHODIMP nsEudoraEditor::JoinNodes(nsIDOMNode *leftNode, nsIDOMNode *rightNode, nsIDOMNode *parent)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void deleteNode (in nsIDOMNode child)
-NS_IMETHODIMP nsEudoraEditor::DeleteNode(nsIDOMNode *child)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void markNodeDirty (in nsIDOMNode node)
-NS_IMETHODIMP nsEudoraEditor::MarkNodeDirty(nsIDOMNode *node)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void switchTextDirection ()
-NS_IMETHODIMP nsEudoraEditor::SwitchTextDirection()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// AString outputToString (in AString formatType, in unsigned long flags)
-NS_IMETHODIMP nsEudoraEditor::OutputToString(const nsAString & formatType, PRUint32 flags, nsAString & _retval)
-{
-  _retval = m_body;
-
-  return NS_OK;
-}
-
-
-// void outputToStream (in nsIOutputStream aStream, in AString formatType, in ACString charsetOverride, in unsigned long flags)
-NS_IMETHODIMP nsEudoraEditor::OutputToStream(nsIOutputStream *aStream, const nsAString & formatType, const nsACString & charsetOverride, PRUint32 flags)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void addEditorObserver (in nsIEditorObserver observer)
-NS_IMETHODIMP nsEudoraEditor::AddEditorObserver(nsIEditorObserver *observer)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void removeEditorObserver (in nsIEditorObserver observer)
-NS_IMETHODIMP nsEudoraEditor::RemoveEditorObserver(nsIEditorObserver *observer)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void addEditActionListener (in nsIEditActionListener listener)
-NS_IMETHODIMP nsEudoraEditor::AddEditActionListener(nsIEditActionListener *listener)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void removeEditActionListener (in nsIEditActionListener listener)
-NS_IMETHODIMP nsEudoraEditor::RemoveEditActionListener(nsIEditActionListener *listener)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void addDocumentStateListener (in nsIDocumentStateListener listener)
-NS_IMETHODIMP nsEudoraEditor::AddDocumentStateListener(nsIDocumentStateListener *listener)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void removeDocumentStateListener (in nsIDocumentStateListener listener)
-NS_IMETHODIMP nsEudoraEditor::RemoveDocumentStateListener(nsIDocumentStateListener *listener)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void dumpContentTree ()
-NS_IMETHODIMP nsEudoraEditor::DumpContentTree()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void debugDumpContent ()
-NS_IMETHODIMP nsEudoraEditor::DebugDumpContent()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void debugUnitTests (out long outNumTests, out long outNumTestsFailed)
-NS_IMETHODIMP nsEudoraEditor::DebugUnitTests(PRInt32 *outNumTests, PRInt32 *outNumTestsFailed)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-//  readonly attribute boolean transactionManager
-NS_IMETHODIMP nsEudoraEditor::GetLastKeypressEventTrusted(bool *aResult)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-// void pasteAsQuotation (in long aSelectionType)
-NS_IMETHODIMP nsEudoraEditor::PasteAsQuotation(PRInt32 aSelectionType)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// nsIDOMNode insertAsQuotation (in AString aQuotedText)
-NS_IMETHODIMP nsEudoraEditor::InsertAsQuotation(const nsAString & aQuotedText, nsIDOMNode **_retval)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void insertTextWithQuotations (in DOMString aStringToInsert)
-NS_IMETHODIMP nsEudoraEditor::InsertTextWithQuotations(const nsAString & aStringToInsert)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void pasteAsCitedQuotation (in AString aCitation, in long aSelectionType)
-NS_IMETHODIMP nsEudoraEditor::PasteAsCitedQuotation(const nsAString & aCitation, PRInt32 aSelectionType)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// nsIDOMNode insertAsCitedQuotation (in AString aQuotedText, in AString aCitation, in boolean aInsertHTML)
-NS_IMETHODIMP nsEudoraEditor::InsertAsCitedQuotation(const nsAString & aQuotedText, const nsAString & aCitation, bool aInsertHTML, nsIDOMNode **_retval)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void rewrap (in boolean aRespectNewlines)
-NS_IMETHODIMP nsEudoraEditor::Rewrap(bool aRespectNewlines)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// void stripCites ()
-NS_IMETHODIMP nsEudoraEditor::StripCites()
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-
-// nsISupportsArray getEmbeddedObjects ()
-NS_IMETHODIMP nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
+nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
 {
   NS_ENSURE_ARG_POINTER(aNodeList);
 
@@ -782,8 +194,14 @@ NS_IMETHODIMP nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
       rv = NS_GetURLSpecFromFile(embeddedImageSpec, embeddedImageURL);
       NS_ENSURE_SUCCESS(rv, rv);
 
+      NS_ConvertASCIItoUTF16 srcUrl(embeddedImageURL);
+      nsString cid;
+      // We're going to remember the original cid in the image element,
+      // which the send code will retrieve as the kMozCIDAttrName property.
+      GetEmbeddedImageCID(cidHashValue, srcUrl, cid);
       // Create the embedded image node
-      nsEudoraHTMLImageElement *         image = new nsEudoraHTMLImageElement(this, NS_ConvertASCIItoUTF16(embeddedImageURL), cidHashValue);
+      nsEudoraHTMLImageElement *image =
+        new nsEudoraHTMLImageElement(srcUrl, cid);
 
       nsCOMPtr<nsIDOMHTMLImageElement>   imageNode;
       image->QueryInterface( NS_GET_IID(nsIDOMHTMLImageElement), getter_AddRefs(imageNode) );
@@ -811,22 +229,22 @@ NS_IMETHODIMP nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
   return NS_OK;
 }
 
-bool nsEudoraEditor::UpdateEmbeddedImageReference(PRUint32 aCIDHash, const nsAString & aOldRef, const nsAString & aUpdatedRef)
+bool nsEudoraEditor::GetEmbeddedImageCID(PRUint32 aCIDHash, const nsAString & aOldRef, nsString &aCID)
 {
   bool      foundMatch = false;
   PRInt32   startImageTag = 0;
   PRInt32   closeImageTag = 0;
 
-  while ( (startImageTag = m_body.Find("<img", PR_TRUE, closeImageTag)) != kNotFound )
+  while ( (startImageTag = m_body.Find("<img", true, closeImageTag)) != kNotFound )
   {
-    closeImageTag = m_body.Find(">", PR_FALSE, startImageTag);
+    closeImageTag = m_body.Find(">", false, startImageTag);
 
     // We should always find a close tag, bail if we don't
     if (closeImageTag == kNotFound)
       break;
 
     // Find the source attribute and make sure it's for our image tag
-    PRInt32   startSrcValue = m_body.Find("src", PR_TRUE, startImageTag);
+    PRInt32   startSrcValue = m_body.Find("src", true, startImageTag);
     if ( (startSrcValue == kNotFound) || (startSrcValue > closeImageTag) )
       continue;
 
@@ -860,29 +278,23 @@ bool nsEudoraEditor::UpdateEmbeddedImageReference(PRUint32 aCIDHash, const nsASt
     PRInt32   srcLength = endSrcValue - startSrcValue;
 
     nsString  srcValue;
-    srcValue.Assign(Substring(m_body, startSrcValue, srcLength));
+    aCID.Assign(Substring(m_body, startSrcValue, srcLength));
 
     if (aCIDHash != 0)
     {
       // Verify source value starts with "cid:"
-      if (!StringBeginsWith(srcValue, NS_LITERAL_STRING("cid:"), nsCaseInsensitiveStringComparator()))
+      if (!StringBeginsWith(aCID, NS_LITERAL_STRING("cid:"), nsCaseInsensitiveStringComparator()))
         continue;
 
       // Remove "cid:" from the start
-      srcValue.Cut(0, 4);
+      aCID.Cut(0, 4);
 
-      PRUint32  hashValue = EudoraHashString( NS_LossyConvertUTF16toASCII(srcValue).get() );
+      PRUint32  hashValue = EudoraHashString( NS_LossyConvertUTF16toASCII(aCID).get() );
       foundMatch = (hashValue == aCIDHash);
     }
     else
     {
-      foundMatch = srcValue.Equals(aOldRef);
-    }
-
-    if (foundMatch)
-    {
-      m_body.Replace(startSrcValue, srcLength, aUpdatedRef);
-      break;
+      foundMatch = aCID.Equals(aOldRef);
     }
   }
 
@@ -907,15 +319,14 @@ bool nsEudoraEditor::HasEmbeddedContent()
 }
 
 
-nsEudoraHTMLImageElement::nsEudoraHTMLImageElement(nsEudoraEditor * pEditor, const nsAString & aSrc, PRUint32 aCIDHash)
-  : m_pEditor(pEditor), m_src(aSrc), m_cidHash(aCIDHash)
+nsEudoraHTMLImageElement::nsEudoraHTMLImageElement(const nsAString & aSrc,
+                                                   const nsAString &aCID)
+  : m_src(aSrc), m_cidOrig(aCID)
 {
-  /* member initializers and constructor code */
 }
 
 nsEudoraHTMLImageElement::~nsEudoraHTMLImageElement()
 {
-  /* destructor code */
 }
 
 
@@ -929,7 +340,8 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetNodeName(nsAString & aNodeName)
 // attribute DOMString nodeValue
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetNodeValue(nsAString & aNodeValue)
 {
-  return NS_ERROR_NOT_IMPLEMENTED;
+  aNodeValue = m_cidOrig;
+  return NS_OK;
 }
 
 
@@ -1096,13 +508,11 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetTagName(nsAString & aTagName)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-
 // DOMString getAttribute (in DOMString name)
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetAttribute(const nsAString & name, nsAString & _retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
-
 
 // void setAttribute (in DOMString name, in DOMString value)  raises (DOMException)
 NS_IMETHODIMP nsEudoraHTMLImageElement::SetAttribute(const nsAString & name, const nsAString & value)
@@ -1618,27 +1028,17 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::SetLongDesc(const nsAString & aLongDesc)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-
-// attribute DOMString src
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetSrc(nsAString & aSrc)
 {
   aSrc = m_src;
-
   return NS_OK;
 }
-
 
 NS_IMETHODIMP nsEudoraHTMLImageElement::SetSrc(const nsAString & aSrc)
 {
-  nsEudoraEditor *    pEditor = static_cast <nsEudoraEditor *> (static_cast <nsIEditor *> (m_pEditor.get()));
-
-  if ( pEditor->UpdateEmbeddedImageReference(m_cidHash, m_src, aSrc) )
-    m_cidHash = 0;
   m_src = aSrc;
-
   return NS_OK;
 }
-
 
 // attribute DOMString useMap
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetUseMap(nsAString & aUseMap)

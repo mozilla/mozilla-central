@@ -37,35 +37,12 @@
 * ***** END LICENSE BLOCK ***** */
 
 #include "nscore.h"
-#include "nsIEditor.h"
-#include "nsIEditorMailSupport.h"
 #include "nsIDOMHTMLImageElement.h"
 #include "nsCOMPtr.h"
 #include "nsStringGlue.h"
 #include "nsIFile.h"
-
-class nsOutlookEditor : public nsIEditor, public nsIEditorMailSupport
-{
-  public:
-    NS_DECL_ISUPPORTS
-    NS_DECL_NSIEDITOR
-    NS_DECL_NSIEDITORMAILSUPPORT
-
-    nsOutlookEditor(const wchar_t * body);
-
-    nsresult AddEmbeddedImage(nsIURI *uri, const wchar_t *cid, const wchar_t *name);
-
-    inline bool HasEmbeddedContent() const { return (m_EmbeddedObjectList != nsnull); }
-    PRUint32 EmbeddedObjectsCount() const;
-    nsresult GetCids(PRUint32 embedIndex, nsACString& origCid, nsACString& newCid) const;
-
-    ~nsOutlookEditor();
-
-  private:
-//    nsString                    m_body;
-    const wchar_t*              m_body;
-    nsCOMPtr<nsISupportsArray>  m_EmbeddedObjectList; // it's initialized when AddEmbeddedImage is called
-};
+#include "nsISupportsArray.h"
+#include "nsIURI.h"
 
 #define NS_OUTLOOKHTMLIMAGEELEMENT_IID_STR "5fb3c060-20b5-11e0-b2ba-0002a5d5c51b"
 
@@ -84,17 +61,14 @@ class nsOutlookHTMLImageElement : public nsIDOMHTMLImageElement
     NS_DECL_NSIDOMHTMLELEMENT
     NS_DECL_NSIDOMHTMLIMAGEELEMENT
 
-    nsOutlookHTMLImageElement(nsOutlookEditor *pEditor, nsIURI *uri, const wchar_t *cid, const wchar_t *name);
+    nsOutlookHTMLImageElement(nsIURI *uri, const nsAString &cid, const nsAString &name);
     inline const wchar_t* OrigCid() const { return m_cid_orig.get(); }
-    inline const wchar_t* NewCid() const { return m_cid_new.IsEmpty() ? 0 : m_cid_new.get(); }
 
   private:
     ~nsOutlookHTMLImageElement();
 
-    nsCOMPtr<nsIEditor>         m_pEditor;
     nsString                    m_src;
     nsString                    m_cid_orig;
-    nsString                    m_cid_new;
     nsString                    m_name;
 };
 

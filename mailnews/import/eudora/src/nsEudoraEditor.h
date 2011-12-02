@@ -45,25 +45,20 @@
 #include "nsIFile.h"
 
 
-class nsEudoraEditor : public nsIEditor, public nsIEditorMailSupport
+class nsEudoraEditor
 {
   public:
-    NS_DECL_ISUPPORTS
-    NS_DECL_NSIEDITOR
-    NS_DECL_NSIEDITORMAILSUPPORT
-
-                                nsEudoraEditor(const char * pBody, nsIFile * pMailImportLocation);
-
-    bool                        UpdateEmbeddedImageReference(PRUint32 aCIDHash, const nsAString & aOldRef, const nsAString & aUpdatedRef);
-
-    bool                        HasEmbeddedContent();
-
+    nsEudoraEditor(const char * pBody, nsIFile * pMailImportLocation);
     ~nsEudoraEditor();
 
+    bool GetEmbeddedImageCID(PRUint32 aCIDHash, const nsAString & aOldRef, nsString &aCID);
+    bool HasEmbeddedContent();
+    nsresult GetEmbeddedObjects(nsISupportsArray ** aNodeList);
+    nsresult GetBody(nsAString & _retval) {_retval = m_body; return NS_OK;}
   protected:
     NS_ConvertASCIItoUTF16      m_body;
     nsCOMPtr <nsIFile>          m_pMailImportLocation;
-    nsCOMPtr<nsISupportsArray>  m_EmbeddedObjectList; // it's initialized when GetEmbeddedObjects is called
+    nsCOMPtr<nsISupportsArray>  m_EmbeddedObjectList; // Initialized when GetEmbeddedObjects is called
 };
 
 
@@ -76,13 +71,12 @@ class nsEudoraHTMLImageElement : public nsIDOMHTMLImageElement
     NS_DECL_NSIDOMHTMLELEMENT
     NS_DECL_NSIDOMHTMLIMAGEELEMENT
 
-                                nsEudoraHTMLImageElement(nsEudoraEditor * pEditor, const nsAString & aSrc, PRUint32 aCIDHash);
+    nsEudoraHTMLImageElement(const nsAString & aSrc, const nsAString &aCID);
 
   private:
     ~nsEudoraHTMLImageElement();
 
   protected:
-    nsCOMPtr<nsIEditor>         m_pEditor;
     nsString                    m_src;
-    PRUint32                    m_cidHash;
+    nsString                    m_cidOrig;
 };

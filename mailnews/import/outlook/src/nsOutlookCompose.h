@@ -69,11 +69,6 @@ public:
   static nsresult CreateIdentity(void);
   static void ReleaseIdentity(void);
 private:
-  struct CidReplacePair {
-    nsCString cidOrig;
-    nsCString cidNew;
-  };
-
   nsresult  CreateComponents( void);
 
   void      UpdateHeader(CMapiMessageHeaders& oldHeaders, const CMapiMessageHeaders& newHeaders, CMapiMessageHeaders::SpecialHeader header, bool addIfAbsent = true);
@@ -88,21 +83,7 @@ private:
   bool GenerateHackSequence(const wchar_t* body, size_t origLen);
   // End Bug 593907
 
-  static void ClearReplaceCid(CidReplacePair* pair) { delete pair; }
-  void ClearReplaceCids();
 private:
-  std::list<CidReplacePair*> m_replacedCids;
-
-  class ReplaceCidInLine {
-  public:
-    ReplaceCidInLine(nsCString& line);
-    void operator () (const CidReplacePair* pair);
-  private:
-    nsCString& m_line;
-    bool m_finishedReplacing;
-  };
-
-
   nsIMsgSendListener *  m_pListener;
   nsIMsgCompFields *    m_pMsgFields;
   static nsIMsgIdentity *    m_pIdentity;

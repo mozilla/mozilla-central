@@ -162,8 +162,11 @@ bool nsEudoraWin32::FindEudoraLocation( nsIFile **pFolder, bool findIni)
           int endIdx = -1;
           if (str.CharAt( idx) == '"')
             endIdx = str.FindChar( '"', idx);
-          else
+          else {
             endIdx = str.FindChar( ' ', idx);
+            if (endIdx == -1)
+              endIdx = str.Length();
+          }
           if (endIdx != -1)
           {
             eudoraPath->InitWithNativePath(Substring(str, idx, endIdx - idx));
