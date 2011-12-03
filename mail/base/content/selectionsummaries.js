@@ -226,10 +226,15 @@ MultiMessageSummary.prototype = {
     return senderName;
   },
 
+  summarize: function() {
+    const URL = "chrome://messenger/content/multimessageview.xhtml";
+    gSummaryFrameManager.loadAndCallback(URL, this._onLoad.bind(this));
+  },
+
   /**
    * Fill in the summary pane describing the selected messages
    **/
-  summarize: function() {
+  _onLoad: function() {
     let htmlpane = document.getElementById('multimessage');
     // First, we group the messages in threads.
     // count threads
@@ -542,7 +547,7 @@ function ThreadSummary(aMessages, aListener)
 ThreadSummary.prototype = {
   __proto__: MultiMessageSummary.prototype,
 
-  summarize: function() {
+  _onLoad: function() {
     this._msgNodes = {};
 
     let htmlpane = document.getElementById('multimessage');

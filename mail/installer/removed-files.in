@@ -574,6 +574,7 @@ regxpcom.exe
   modules/quickFilterManager.js
   modules/searchSpec.js
   modules/sessionStoreManager.js
+  modules/summaryFrameManager.js
   modules/templateUtils.js
   modules/traceHelper.js
   modules/utils.js

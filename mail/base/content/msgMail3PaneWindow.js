@@ -51,6 +51,7 @@ Components.utils.import("resource:///modules/errUtils.js");
 Components.utils.import("resource:///modules/IOUtils.js");
 Components.utils.import("resource:///modules/mailnewsMigrator.js");
 Components.utils.import("resource:///modules/sessionStoreManager.js");
+Components.utils.import("resource:///modules/summaryFrameManager.js");
 Components.utils.import("resource:///modules/mailInstrumentation.js");
 
 /* This is where functions related to the 3 pane window are kept */
@@ -87,6 +88,9 @@ var gRightMouseButtonSavedSelection = null;
 var gNewAccountToLoad = null;
 
 var gDisplayStartupPage = false;
+
+// The object in charge of managing the mail summary pane
+var gSummaryFrameManager;
 
 // the folderListener object
 var folderListener = {
@@ -410,6 +414,11 @@ function OnLoadMessenger()
   // This also registers the contentTabType ("contentTab")
   specialTabs.openSpecialTabsOnStartup();
   tabmail.registerTabType(webSearchTabType);
+
+  // Set up the summary frame manager to handle loading pages in the
+  // multi-message pane
+  gSummaryFrameManager = new SummaryFrameManager(
+                         document.getElementById("multimessage"));
 
   window.addEventListener("AppCommand", HandleAppCommandEvent, true);
 }
