@@ -7,7 +7,8 @@ const defaultProtocolFlags =
   Ci.nsIProtocolHandler.URI_NORELATIVE |
   Ci.nsIProtocolHandler.URI_LOADABLE_BY_ANYONE |
   Ci.nsIProtocolHandler.ALLOWS_PROXY |
-  Ci.nsIProtocolHandler.URI_FORBIDS_AUTOMATIC_DOCUMENT_REPLACEMENT;
+  Ci.nsIProtocolHandler.URI_FORBIDS_AUTOMATIC_DOCUMENT_REPLACEMENT |
+  Ci.nsIProtocolHandler.URI_FORBIDS_COOKIE_ACCESS;
 
 const protocols =
   [ { protocol: "news",
