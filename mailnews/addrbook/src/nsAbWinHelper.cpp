@@ -390,7 +390,7 @@ BOOL nsAbWinHelper::GetPropertyString(const nsMapiEntry& aObject,
         if (PROP_TYPE(values->ulPropTag) == PT_STRING8)
             aName = values->Value.lpszA ;
         else if (PROP_TYPE(values->ulPropTag) == PT_UNICODE)
-            LossyCopyUTF16toASCII(values->Value.lpszW, aName);
+            aName = NS_LossyConvertUTF16toASCII(values->Value.lpszW);
     }
     FreeBuffer(values) ;
     return TRUE ;
@@ -408,7 +408,7 @@ BOOL nsAbWinHelper::GetPropertyUString(const nsMapiEntry& aObject, ULONG aProper
         if (PROP_TYPE(values->ulPropTag) == PT_UNICODE)
             aName = values->Value.lpszW ;
         else if (PROP_TYPE(values->ulPropTag) == PT_STRING8)
-            CopyASCIItoUTF16(values->Value.lpszA, aName);
+            aName.AssignASCII(values->Value.lpszA);
     }
     FreeBuffer(values) ;
     return TRUE ;
@@ -431,7 +431,7 @@ BOOL nsAbWinHelper::GetPropertiesUString(const nsMapiEntry& aObject, const ULONG
       if (PROP_ID(values[i].ulPropTag) == PROP_ID(aPropertyTags[i]))
       {
         if (PROP_TYPE(values[i].ulPropTag) == PT_STRING8)
-          CopyASCIItoUTF16(values[i].Value.lpszA, aNames[i]);
+          aNames[i].AssignASCII(values[i].Value.lpszA);
         else if (PROP_TYPE(values[i].ulPropTag) == PT_UNICODE)
           aNames[i] = values[i].Value.lpszW;
       }
@@ -554,7 +554,7 @@ BOOL nsAbWinHelper::SetPropertyUString(const nsMapiEntry& aObject, ULONG aProper
         value.Value.lpszW = const_cast<WCHAR *>(aValue) ;
     }
     else if (PROP_TYPE(aPropertyTag) == PT_STRING8) {
-        LossyCopyUTF16toASCII(aValue, alternativeValue);
+        alternativeValue = NS_LossyConvertUTF16toASCII(aValue);
         value.Value.lpszA = const_cast<char *>(alternativeValue.get()) ;
     }
     else {
@@ -582,7 +582,7 @@ BOOL nsAbWinHelper::SetPropertiesUString(const nsMapiEntry& aObject, const ULONG
             values [currentValue ++].Value.lpszW = const_cast<WCHAR *>(aValues [i].get()) ;
         }
         else if (PROP_TYPE(aPropertiesTag [i]) == PT_STRING8) {
-            LossyCopyUTF16toASCII(aValues [i].get(), alternativeValue);
+            LossyCopyUTF16toASCII(aValues [i], alternativeValue);
             char *av = strdup(alternativeValue.get()) ;
             if (!av) {
                 retCode = FALSE ;

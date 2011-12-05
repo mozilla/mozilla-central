@@ -50,6 +50,7 @@
 #include "nsAbUtils.h"
 #include "nsEnumeratorUtils.h"
 #include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 #include "prlog.h"
 #include "prthread.h"
 #include "nsIPrefService.h"
@@ -1293,11 +1294,11 @@ static void UnicodeToWord(const PRUnichar *aUnicode, WORD& aWord)
 {
     aWord = 0 ;
     if (aUnicode == nsnull || *aUnicode == 0) { return ; }
-    PRInt32 errorCode = 0 ;
+    nsresult errorCode = NS_OK;
     nsAutoString unichar (aUnicode) ;
 
     aWord = static_cast<WORD>(unichar.ToInteger(&errorCode));
-    if (errorCode != 0) {
+    if (NS_FAILED(errorCode)) {
         PRINTF(("Error conversion string %S: %08x.\n", unichar.get(), errorCode)) ;
     }
 }

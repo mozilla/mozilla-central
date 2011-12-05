@@ -42,6 +42,7 @@
 #include "nsIAbManager.h"
 #include "nsEnumeratorUtils.h"
 #include "nsServiceManagerUtils.h"
+#include "nsComponentManagerUtils.h"
 #include "nsIMutableArray.h"
 #include "nsArrayEnumerator.h"
 #include "nsAbBaseCID.h"
