@@ -3929,6 +3929,8 @@ nsMsgLocalMailFolder::AddMessageBatch(PRUint32 aMessageCount,
   newMailParser->SetDBFolderStream(nsnull); // stream is going away
   outFileStream->Close();
   newMailParser->EndMsgDownload();
+  if (newMailParser->m_mailDB)
+    newMailParser->m_mailDB->SetSummaryValid(true);
 
   ReleaseSemaphore(static_cast<nsIMsgLocalMailFolder*>(this));
   return rv;
