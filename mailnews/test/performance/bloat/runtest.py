@@ -119,7 +119,7 @@ if os.path.exists(PROFILE):
   shutil.rmtree(PROFILE)
 os.mkdir(PROFILE)
 
-defaultEnv = dict(os.environ)
+defaultEnv = automation.environment()
 defaultEnv['NO_EM_RESTART'] = '1'
 if (not "XPCOM_DEBUG_BREAK" in defaultEnv):
   defaultEnv['XPCOM_DEBUG_BREAK'] = 'stack'
