@@ -1416,8 +1416,6 @@ function updateCloseItems()
   document.getElementById("menu_closeOtherTabs").hidden = hideCloseOtherTabs;
   if (!hideCloseOtherTabs)
     document.getElementById("cmd_closeOtherTabs").setAttribute("disabled", hideCloseWindow);
-
-  updateRecentMenuItems();
 }
 
 function updateRecentMenuItems()
