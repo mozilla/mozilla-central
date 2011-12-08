@@ -40,6 +40,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource:///modules/editorUtilities.jsm");
+
 /* Main Composer window UI control */
 
 var gComposerWindowControllerID = 0;
@@ -223,6 +225,8 @@ function EditorOnLoad()
         }
       }
     }
+
+    gUntitledString = GetFormattedString("untitledTitle", GetNextUntitledValue());
 
     // Continue with normal startup.
     EditorStartup();
@@ -833,7 +837,7 @@ function CheckAndSaveDocument(command, allowDontSave)
 
   var title = document.title;
   if (!title)
-    title = GetString("untitled");
+    title = gUntitledString;
 
   var dialogTitle = GetString(doPublish ? "PublishPage" : "SaveDocument");
   var dialogMsg = GetString(doPublish ? "PublishPrompt" : "SaveFilePrompt");
@@ -2080,7 +2084,8 @@ function UpdateWindowTitle()
 
     // Set window title with " - Composer" or " - Text Editor" appended.
     var xulWin = document.documentElement;
-    document.title = (title || filename || GetString("untitled")) +
+
+    document.title = (title || filename || gUntitledString) +
                      windowTitle +
                      xulWin.getAttribute("titlemenuseparator") + 
                      xulWin.getAttribute("titlemodifier");

@@ -110,7 +110,7 @@ function Startup()
   SetWindowLocation();
   var title = GetDocumentTitle();
   if (!title)
-    title = "("+GetString("untitled")+")";
+    title = "(" + opener.gUntitledString + ")";
   document.title = GetString("PublishProgressCaption").replace(/%title%/, title);
 
   document.getElementById("PublishToSite").value = 

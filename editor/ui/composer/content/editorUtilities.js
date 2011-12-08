@@ -135,6 +135,27 @@ function GetString(name)
   return null;
 }
 
+function GetFormattedString(aName, aVal)
+{
+  if (!gStringBundle)
+  {
+    try {
+      var gStringBundle =
+          Components.classes["@mozilla.org/intl/stringbundle;1"]
+                    .getService(Components.interfaces.nsIStringBundleService)
+                    .createBundle("chrome://editor/locale/editor.properties"); 
+
+    } catch (ex) {}
+  }
+  if (gStringBundle)
+  {
+    try {
+      return gStringBundle.formatStringFromName(aName, [aVal], 1);
+    } catch (e) {}
+  }
+  return null;
+}
+
 function TrimStringLeft(string)
 {
   if(!string) return "";

@@ -810,8 +810,8 @@ function GetSuggestedFileName(aDocumentURLString, aMIMEType)
   } 
 
   // check if there is a title we can use to generate a valid filename,
-  // if we can't, just go with "untitled"
-  var title = validateFileName(GetDocumentTitle()) || GetString("untitled");
+  // if we can't, just go with gUntitledString
+  var title = validateFileName(GetDocumentTitle()) || gUntitledString;
   return title + extension;
 }
 
@@ -2103,7 +2103,7 @@ var nsRevertCommand =
       // Put the page title in the message string
       var title = GetDocumentTitle();
       if (!title)
-        title = GetString("untitled");
+        title = gUntitledString;
 
       var msg = GetString("AbandonChanges").replace(/%title%/,title);
 
