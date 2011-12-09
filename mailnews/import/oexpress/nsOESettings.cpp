@@ -82,6 +82,7 @@ public:
   static void SetSmtpServer( char *pSmtpServer, HKEY hKey, nsIMsgIdentity *id,
                              char *pIncomgUserName, PRInt32 authMethodIncoming);
   static nsresult GetAccountName(HKEY hKey, char *defaultName, nsString &acctName);
+  static bool IsKB933612Applied();
 };
 
 static PRInt32 checkNewMailTime;// OE global setting, let's default to 30
@@ -853,21 +854,28 @@ void OESettings::SetSmtpServer(char *pSmtpServer, HKEY hKey,
     }
     else {
       nsCOMPtr<nsISmtpServer> smtpServer;
+      PRInt32 port;
       rv = smtpService->CreateSmtpServer(getter_AddRefs( smtpServer));
       if (NS_SUCCEEDED( rv) && smtpServer) {
         pBytes = nsOERegUtil::GetValueBytes(hKey, "SMTP Port");
         if (pBytes)
         {
           smtpServer->SetPort(*(PRInt32 *) pBytes);
+          port = *(PRInt32 *) pBytes;
           nsOERegUtil::FreeValueBytes(pBytes);
         }
         pBytes = nsOERegUtil::GetValueBytes(hKey,"SMTP Secure Connection");
         if (pBytes)
         {
-          if (*(PRInt32 *)pBytes == 1)
-            smtpServer->SetSocketType(nsMsgSocketType::SSL);
-          else
+          if (*(PRInt32 *)pBytes == 1) {
+            // Outlook Express does not support STARTTLS without KB933612 fix.
+            if (IsKB933612Applied() && port != 465)
+              smtpServer->SetSocketType(nsMsgSocketType::alwaysSTARTTLS);
+            else
+              smtpServer->SetSocketType(nsMsgSocketType::SSL);
+          } else {
             smtpServer->SetSocketType(nsMsgSocketType::plain);
+          }
           nsOERegUtil::FreeValueBytes(pBytes);
         }
         smtpServer->SetUsername(userName);
@@ -895,3 +903,30 @@ void OESettings::SetSmtpServer(char *pSmtpServer, HKEY hKey,
     }
   }
 }
+
+bool OESettings::IsKB933612Applied()
+{
+  OSVERSIONINFOEX versionInfo = { 0 };
+  versionInfo.dwOSVersionInfoSize = sizeof(versionInfo);
+  GetVersionEx(reinterpret_cast<OSVERSIONINFO*>(&versionInfo));
+
+  // Windows XP SP3 and Windows Vista SP1 include KB933612 fix.
+  // See http://support.microsoft.com/kb/929123 and
+  // http://support.microsoft.com/kb/933612
+  switch (versionInfo.dwMajorVersion) {
+    case 6:
+      if ((versionInfo.dwMinorVersion == 0 && versionInfo.wServicePackMajor > 0) ||
+          versionInfo.dwMinorVersion == 1) {
+        return true;
+      }
+      break;
+    case 5:
+      if (versionInfo.dwMinorVersion > 0 && versionInfo.wServicePackMajor > 2)
+        return true;
+      break;
+    default:
+      break;
+  }
+  return false;
+}
+
