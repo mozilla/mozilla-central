@@ -46,7 +46,7 @@ Components.utils.import("resource:///modules/MailUtils.js");
 var gSpellChecker = new InlineSpellChecker();
 var gGlodaBundle = null;
 
-function nsContextMenu(aXulMenu) {
+function nsContextMenu(aXulMenu, aIsShift) {
   this.target         = null;
   this.menu           = null;
   this.onTextInput    = false;
@@ -76,7 +76,7 @@ function nsContextMenu(aXulMenu) {
   this.isNewsgroup = false;
   this.hideMailItems = false;
 
-  this.initMenu(aXulMenu);
+  this.initMenu(aXulMenu, aIsShift);
 }
 
 nsContextMenu.prototype = {
@@ -85,7 +85,7 @@ nsContextMenu.prototype = {
    * the world, then determine which context menu items to show based on
    * those properties.
    */
-  initMenu : function CM_initMenu(aPopup) {
+  initMenu : function CM_initMenu(aPopup, aIsShift) {
     this.menu = aPopup;
 
     // Get contextual info.
@@ -93,9 +93,16 @@ nsContextMenu.prototype = {
     this.setMessageTargets(document.popupNode);
     this.isContentSelected = this.isContentSelection();
 
+    this.hasPageMenu = false;
+    if (!aIsShift) {
+      this.hasPageMenu = PageMenu.maybeBuildAndAttachMenu(this.target,
+                                                          aPopup);
+    }
+
     this.initItems();
   },
   initItems : function CM_initItems() {
+    this.initPageMenuSeparator();
     this.initSaveItems();
     this.initClipboardItems();
     this.initMediaPlayerItems();
@@ -106,6 +113,9 @@ nsContextMenu.prototype = {
   },
   addDictionaries: function CM_addDictionaries() {
     openDictionaryList();
+  },
+  initPageMenuSeparator: function CM_initPageMenuSeparator() {
+    this.showItem("page-menu-separator", this.hasPageMenu);
   },
   initSpellingItems: function CM_initSpellingItems() {
     let canSpell = gSpellChecker.canSpellCheck;

@@ -129,6 +129,29 @@ function test_spellcheck_in_content_tabs() {
 // XXX Currently the spellcheck test has focus issues on non-Mac
 test_spellcheck_in_content_tabs.EXCLUDED_PLATFORMS = ['winnt', 'linux'];
 
+function test_content_tab_context_menu() {
+  let tabmail = mc.tabmail;
+  let w = tabmail.selectedTab.browser.contentWindow;
+  let heading = w.document.getElementsByTagName("h1")[0];
+  let mailContext = mc.e("mailContext");
+
+  // Make sure the page's menu items are added on right-click.
+  EventUtils.synthesizeMouse(heading, 5, 5, { type: "contextmenu", button: 2 },
+                             w);
+  wait_for_popup_to_open(mailContext);
+  assert_equals(mailContext.firstChild.label, "Click me!");
+  assert_element_visible("page-menu-separator");
+  close_popup(mc, new elementslib.Elem(mailContext));
+
+  // Make sure the page's menu items are *not* added on shift-right-click.
+  EventUtils.synthesizeMouse(heading, 5, 5, { type: "contextmenu", button: 2,
+                                              shiftKey: true }, w);
+  wait_for_popup_to_open(mailContext);
+  assert_not_equals(mailContext.firstChild.label, "Click me!");
+  assert_element_not_visible("page-menu-separator");
+  close_popup(mc, new elementslib.Elem(mailContext));
+}
+
 function test_content_tab_open_same() {
   let preCount = mc.tabmail.tabContainer.childNodes.length;
 

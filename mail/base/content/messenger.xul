@@ -236,6 +236,11 @@
               oncommand="SubscribeToNewsgroup(findEmailNodeFromPopupNode(document.popupNode, 'newsgroupPopup'))"/>
 </menupopup>
 
+<menupopup id="pageContextMenu"
+           pagemenu="end"
+           onpopupshowing="InitPageMenu(this, event);">
+</menupopup>
+
 <menupopup id="messageIdContext"/>
 
 <tooltip id="folderpopup" class="folderSummaryPopup"/>
@@ -320,7 +325,9 @@
                       >
                   <!-- first panel in displayDeck is Account Central -->
                   <vbox id="accountCentralBox" flex="1">
-                    <iframe name="accountCentralPane" width="150" flex="1" src="about:blank"/>
+                    <iframe name="accountCentralPane"
+                            contextmenu="pageContextMenu"
+                            width="150" flex="1" src="about:blank"/>
                   </vbox>
                   <!-- The threadPaneBox is the basis for the vertical view and you
                        should not put anything in it, because the messagepane will
@@ -439,6 +446,7 @@
                     <!-- This next iframe is used to display summaries of -->
                     <!-- multiple selected messages or collapsed threads -->
                     <browser id="multimessage"
+                             contextmenu="pageContextMenu"
                              style="height: 0px; min-height: 1px"
                              flex="1" name="multimessage"
                              hidden="true"

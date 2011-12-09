@@ -54,6 +54,12 @@ Components.utils.import("resource:///modules/sessionStoreManager.js");
 Components.utils.import("resource:///modules/summaryFrameManager.js");
 Components.utils.import("resource:///modules/mailInstrumentation.js");
 
+XPCOMUtils.defineLazyGetter(this, "PageMenu", function() {
+  let tmp = {};
+  Cu.import("resource://gre/modules/PageMenu.jsm", tmp);
+  return new tmp.PageMenu();
+});
+
 /* This is where functions related to the 3 pane window are kept */
 
 // from MailNewsTypes.h
@@ -1590,4 +1596,21 @@ var LightWeightThemeWebInstaller = {
     return this._manager.parseTheme(node.getAttribute("data-browsertheme"),
                                     node.baseURI);
   }
+}
+
+/**
+ * Initialize and attach the HTML5 context menu to the specified menupopup
+ * during the onpopupshowing event.
+ *
+ * @param menuPopup the menupopup element
+ * @param event the event responsible for showing the popup
+ */
+function InitPageMenu(menuPopup, event) {
+  if (event.target != menuPopup)
+    return;
+
+  PageMenu.maybeBuildAndAttachMenu(menuPopup.triggerNode, menuPopup);
+
+  if (menuPopup.children.length == 0)
+    event.preventDefault();
 }

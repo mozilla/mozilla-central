@@ -557,8 +557,11 @@
 
   <!-- "Please keep all items and separators up to date in nsContextMenu.js when making changes here" -->
   <menupopup id="mailContext"
+             pagemenu="start"
              onpopupshowing="return fillMailContextMenu(event);"
              onpopuphiding="mailContextOnPopupHiding(event);">
+
+    <menuseparator id="page-menu-separator"/>
 
     <!-- Spellchecking suggestions -->
     <menuitem id="mailContext-spell-no-suggestions"
