@@ -49,7 +49,7 @@ VP8Encoder::VP8Encoder():
     _rcMaxIntraTarget(0),
     _tokenPartitions(VP8_ONE_TOKENPARTITION),
     _rps(new ReferencePictureSelection),
-#if WEBRTC_LIBVPX_VERSION >= 971
+#if WEBRTC_LIBVPX_VERSION >= 971 && WEBRTC_LIBVPX_TEMPORAL_LAYERS != 0
     _temporalLayers(NULL),
 #endif
     _encoder(NULL),
@@ -115,7 +115,7 @@ VP8Encoder::Release()
         delete _raw;
         _raw = NULL;
     }
-#if WEBRTC_LIBVPX_VERSION >= 971
+#if WEBRTC_LIBVPX_VERSION >= 971 && WEBRTC_LIBVPX_TEMPORAL_LAYERS != 0
     if (_temporalLayers != NULL)
     {
         delete _temporalLayers;
@@ -176,7 +176,7 @@ VP8Encoder::SetRates(WebRtc_UWord32 newBitRateKbit, WebRtc_UWord32 newFrameRate)
     }
     _cfg->rc_target_bitrate = newBitRateKbit; // in kbit/s
 
-#if WEBRTC_LIBVPX_VERSION >= 971
+#if WEBRTC_LIBVPX_VERSION >= 971 && WEBRTC_LIBVPX_TEMPORAL_LAYERS != 0
     if (_temporalLayers)
     {
         _temporalLayers->ConfigureBitrates(newBitRateKbit, _cfg);
@@ -244,7 +244,7 @@ VP8Encoder::InitEncode(const VideoCodec* inst,
     _width = inst->width;
     _height = inst->height;
 
-#if WEBRTC_LIBVPX_VERSION >= 971
+#if WEBRTC_LIBVPX_VERSION >= 971 && WEBRTC_LIBVPX_TEMPORAL_LAYERS != 0
     if (inst->codecSpecific.VP8.numberOfTemporalLayers > 1)
     {
       assert(_temporalLayers == NULL);
@@ -282,7 +282,7 @@ VP8Encoder::InitEncode(const VideoCodec* inst,
     {
       _cfg->rc_target_bitrate = inst->startBitrate;  // in kbit/s
     }
-#if WEBRTC_LIBVPX_VERSION >= 971
+#if WEBRTC_LIBVPX_VERSION >= 971 && WEBRTC_LIBVPX_TEMPORAL_LAYERS != 0
     if (_temporalLayers)
     {
         _temporalLayers->ConfigureBitrates(inst->startBitrate, _cfg);
@@ -446,7 +446,7 @@ VP8Encoder::Encode(const RawImage& inputImage,
     _raw->planes[PLANE_V] =  &inputImage._buffer[_height * _width * 5 >> 2];
 
     int flags = 0;
-#if WEBRTC_LIBVPX_VERSION >= 971
+#if WEBRTC_LIBVPX_VERSION >= 971 && WEBRTC_LIBVPX_TEMPORAL_LAYERS != 0
     if (_temporalLayers) {
       flags |= _temporalLayers->EncodeFlags();
     }
@@ -502,7 +502,7 @@ void VP8Encoder::PopulateCodecSpecific(CodecSpecificInfo* codec_specific,
   vp8Info->simulcastIdx = _simulcastIdx;
   vp8Info->keyIdx = kNoKeyIdx;  // TODO(hlundin) populate this
   vp8Info->nonReference = (pkt.data.frame.flags & VPX_FRAME_IS_DROPPABLE);
-#if WEBRTC_LIBVPX_VERSION >= 971
+#if WEBRTC_LIBVPX_VERSION >= 971 && WEBRTC_LIBVPX_TEMPORAL_LAYERS != 0
   if (_temporalLayers) {
     _temporalLayers->PopulateCodecSpecific(
         (pkt.data.frame.flags & VPX_FRAME_IS_KEY) ? true : false, vp8Info);
@@ -510,7 +510,7 @@ void VP8Encoder::PopulateCodecSpecific(CodecSpecificInfo* codec_specific,
 #endif
     vp8Info->temporalIdx = kNoTemporalIdx;
     vp8Info->tl0PicIdx = kNoTl0PicIdx;
-#if WEBRTC_LIBVPX_VERSION >= 971
+#if WEBRTC_LIBVPX_VERSION >= 971 && WEBRTC_LIBVPX_TEMPORAL_LAYERS != 0
   }
 #endif
   _pictureID = (_pictureID + 1) % 0x7FFF; // prepare next

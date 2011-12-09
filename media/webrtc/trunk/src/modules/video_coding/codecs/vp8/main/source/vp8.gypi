@@ -40,7 +40,8 @@
                ],
                'defines': [
                  # This must be updated to match mozilla's version of libvpx
-                 'WEBRTC_LIBVPX_VERSION=971'
+                 'WEBRTC_LIBVPX_VERSION=971',
+                 'WEBRTC_LIBVPX_TEMPORAL_LAYERS=0'
                ],
                'link_settings': {
                  'libraries': [
@@ -52,7 +53,8 @@
                  '<(webrtc_root)/../third_party/libvpx/libvpx.gyp:libvpx',
                ],
                'defines': [
-                 'WEBRTC_LIBVPX_VERSION=971' # Cayuga
+                 'WEBRTC_LIBVPX_VERSION=971', # Cayuga
+                 'WEBRTC_LIBVPX_TEMPORAL_LAYERS=1'
                ],
                'sources': [
                  'temporal_layers.h',

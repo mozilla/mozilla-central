@@ -23,7 +23,7 @@ SHARED_LIBRARY_LIBS += \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libwebrtc_video_coding.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libwebrtc_i420.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libwebrtc_vp8.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/common_video/libwebrtc_vplib.a \
+	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/common_video/libwebrtc_libyuv.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libvideo_render_module.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/video_engine/libvideo_engine_core.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libmedia_file.a \
@@ -41,6 +41,7 @@ SHARED_LIBRARY_LIBS += \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libns.a \
         $(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libaudioproc_debug_proto.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/third_party/protobuf/libprotobuf_lite.a \
+	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/third_party/libyuv/libyuv.a \
         $(MKSHLIB_UNFORCE_ALL) \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/common_video/libwebrtc_jpeg.a \
 	-lexpat \

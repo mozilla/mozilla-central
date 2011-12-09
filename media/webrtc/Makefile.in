@@ -62,11 +62,11 @@ EXPORTS = \
 	./trunk/src/modules/rtp_rtcp/test/BWEStandAlone/BWETwoWayLimitFinding.h \
 	./trunk/src/modules/rtp_rtcp/test/BWEStandAlone/TestLoadGenerator.h \
 	./trunk/src/modules/rtp_rtcp/test/BWEStandAlone/TestSenderReceiver.h \
-	./trunk/src/common_audio/resampler/main/interface/resampler.h \
-	./trunk/src/common_audio/signal_processing_library/main/interface/signal_processing_library.h \
-	./trunk/src/common_audio/signal_processing_library/main/interface/spl_inl.h \
-	./trunk/src/common_audio/signal_processing_library/main/interface/spl_inl_armv7.h \
-	./trunk/src/common_audio/vad/main/interface/webrtc_vad.h \
+	./trunk/src/common_audio/resampler/include/resampler.h \
+	./trunk/src/common_audio/signal_processing/include/signal_processing_library.h \
+	./trunk/src/common_audio/signal_processing/include/spl_inl.h \
+	./trunk/src/common_audio/signal_processing/include/spl_inl_armv7.h \
+	./trunk/src/common_audio/vad/include/webrtc_vad.h \
 	./trunk/src/voice_engine/main/test/auto_test/voe_test_interface.h \
 	./trunk/src/voice_engine/main/interface/voe_volume_control.h \
 	./trunk/src/voice_engine/main/interface/voe_external_media.h \
@@ -89,17 +89,17 @@ EXPORTS = \
 	./trunk/src/modules/video_processing/main/interface/video_processing.h \
 	./trunk/src/modules/audio_coding/main/interface/audio_coding_module_typedefs.h \
 	./trunk/src/modules/audio_coding/main/interface/audio_coding_module.h \
-	./trunk/src/modules/audio_coding/NetEQ/main/interface/webrtc_neteq_help_macros.h \
-	./trunk/src/modules/audio_coding/NetEQ/main/interface/webrtc_neteq.h \
-	./trunk/src/modules/audio_coding/NetEQ/main/interface/webrtc_neteq_internal.h \
-	./trunk/src/modules/audio_coding/codecs/CNG/main/interface/webrtc_cng.h \
+	./trunk/src/modules/audio_coding/neteq/interface/webrtc_neteq_help_macros.h \
+	./trunk/src/modules/audio_coding/neteq/interface/webrtc_neteq.h \
+	./trunk/src/modules/audio_coding/neteq/interface/webrtc_neteq_internal.h \
+	./trunk/src/modules/audio_coding/codecs/cng/include/webrtc_cng.h \
 	./trunk/src/modules/audio_coding/codecs/iSAC/main/interface/isac.h \
 	./trunk/src/modules/audio_coding/codecs/iSAC/fix/interface/isacfix.h \
-	./trunk/src/modules/audio_coding/codecs/G722/main/interface/g722_interface.h \
-	./trunk/src/modules/audio_coding/codecs/G711/main/interface/g711_interface.h \
-	./trunk/src/modules/audio_coding/codecs/PCM16B/main/interface/pcm16b.h \
-	./trunk/src/modules/audio_coding/codecs/iLBC/main/source/enhancer_interface.h \
-	./trunk/src/modules/audio_coding/codecs/iLBC/main/interface/ilbc.h \
+	./trunk/src/modules/audio_coding/codecs/g722/include/g722_interface.h \
+	./trunk/src/modules/audio_coding/codecs/g711/include/g711_interface.h \
+	./trunk/src/modules/audio_coding/codecs/pcm16b/include/pcm16b.h \
+	./trunk/src/modules/audio_coding/codecs/ilbc/enhancer_interface.h \
+	./trunk/src/modules/audio_coding/codecs/ilbc/interface/ilbc.h \
 	./trunk/src/modules/video_capture/main/interface/video_capture.h \
 	./trunk/src/modules/video_capture/main/interface/video_capture_defines.h \
 	./trunk/src/modules/audio_processing/agc/interface/gain_control.h \
@@ -129,20 +129,20 @@ EXPORTS = \
 	./trunk/src/modules/video_render/main/interface/video_render.h \
 	./trunk/src/modules/interface/module_common_types.h \
 	./trunk/src/modules/interface/module.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/vie_autotest_window_manager_interface.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/tb_video_channel.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/vie_autotest_windows.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/vie_autotest_mac_carbon.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/vie_autotest.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/tb_external_transport.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/tb_interfaces.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/vie_autotest_main.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/tb_I420_codec.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/vie_autotest_mac_cocoa.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/vie_autotest_defines.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/tb_capture_device.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/vie_autotest_linux.h \
-	./trunk/src/video_engine/main/test/AutoTest/interface/vie_autotest_android.h \
+	./trunk/src/video_engine/test/auto_test/interface/vie_autotest_window_manager_interface.h \
+	./trunk/src/video_engine/test/auto_test/interface/tb_video_channel.h \
+	./trunk/src/video_engine/test/auto_test/interface/vie_autotest_windows.h \
+	./trunk/src/video_engine/test/auto_test/interface/vie_autotest_mac_carbon.h \
+	./trunk/src/video_engine/test/auto_test/interface/vie_autotest.h \
+	./trunk/src/video_engine/test/auto_test/interface/tb_external_transport.h \
+	./trunk/src/video_engine/test/auto_test/interface/tb_interfaces.h \
+	./trunk/src/video_engine/test/auto_test/interface/vie_autotest_main.h \
+	./trunk/src/video_engine/test/auto_test/interface/tb_I420_codec.h \
+	./trunk/src/video_engine/test/auto_test/interface/vie_autotest_mac_cocoa.h \
+	./trunk/src/video_engine/test/auto_test/interface/vie_autotest_defines.h \
+	./trunk/src/video_engine/test/auto_test/interface/tb_capture_device.h \
+	./trunk/src/video_engine/test/auto_test/interface/vie_autotest_linux.h \
+	./trunk/src/video_engine/test/auto_test/interface/vie_autotest_android.h \
 	./trunk/src/video_engine/main/interface/vie_render.h \
 	./trunk/src/video_engine/main/interface/vie_capture.h \
 	./trunk/src/video_engine/main/interface/vie_rtp_rtcp.h \
@@ -154,10 +154,9 @@ EXPORTS = \
 	./trunk/src/video_engine/main/interface/vie_external_codec.h \
 	./trunk/src/video_engine/main/interface/vie_image_process.h \
 	./trunk/src/video_engine/main/interface/vie_codec.h \
-	./trunk/src/common_video/vplib/main/interface/vplib.h \
-	./trunk/src/common_video/vplib/main/interface/interpolator.h \
 	./trunk/src/common_video/jpeg/main/interface/jpeg.h \
 	./trunk/src/common_video/interface/video_image.h \
+	./trunk/src/common_video/libyuv/include/libyuv.h \
 	./trunk/src/system_wrappers/interface/event_wrapper.h \
 	./trunk/src/system_wrappers/interface/tick_util.h \
 	./trunk/src/system_wrappers/interface/fix_interlocked_exchange_pointer_windows.h \
