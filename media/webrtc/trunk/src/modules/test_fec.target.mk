@@ -158,3 +158,7 @@ all_deps += $(builddir)/test_fec
 .PHONY: test_fec
 test_fec: $(builddir)/test_fec
 
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/test_fec
+

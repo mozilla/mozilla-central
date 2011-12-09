@@ -9,15 +9,15 @@
 MY_WEBRTC_ROOT_PATH := $(call my-dir)
 
 # voice
-include $(MY_WEBRTC_ROOT_PATH)/src/common_audio/resampler/main/source/Android.mk
-include $(MY_WEBRTC_ROOT_PATH)/src/common_audio/signal_processing_library/main/source/Android.mk
-include $(MY_WEBRTC_ROOT_PATH)/src/common_audio/vad/main/source/Android.mk
-include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/NetEQ/main/source/Android.mk
-include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/codecs/CNG/main/source/Android.mk
-include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/codecs/G711/main/source/Android.mk
-include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/codecs/G722/main/source/Android.mk
-include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/codecs/PCM16B/main/source/Android.mk
-include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/codecs/iLBC/main/source/Android.mk
+include $(MY_WEBRTC_ROOT_PATH)/src/common_audio/resampler/Android.mk
+include $(MY_WEBRTC_ROOT_PATH)/src/common_audio/signal_processing/Android.mk
+include $(MY_WEBRTC_ROOT_PATH)/src/common_audio/vad/Android.mk
+include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/neteq/Android.mk
+include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/codecs/cng/Android.mk
+include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/codecs/g711/Android.mk
+include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/codecs/g722/Android.mk
+include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/codecs/pcm16b/Android.mk
+include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/codecs/ilbc/Android.mk
 include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/codecs/iSAC/fix/source/Android.mk
 include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/codecs/iSAC/main/source/Android.mk
 include $(MY_WEBRTC_ROOT_PATH)/src/modules/audio_coding/main/source/Android.mk
@@ -54,6 +54,7 @@ include $(MY_WEBRTC_ROOT_PATH)/libvpx.mk
 LOCAL_PATH := $(call my-dir)
 
 include $(CLEAR_VARS)
+include $(LOCAL_PATH)/../../external/webrtc/android-webrtc.mk
 
 LOCAL_ARM_MODE := arm
 LOCAL_MODULE := libwebrtc_audio_preprocessing
@@ -70,6 +71,17 @@ LOCAL_WHOLE_STATIC_LIBRARIES := \
     libwebrtc_aec \
     libwebrtc_aecm \
     libwebrtc_system_wrappers
+
+# Add Neon libraries.
+ifneq (,$(filter '-DWEBRTC_DETECT_ARM_NEON',$(MY_WEBRTC_COMMON_DEFS)))
+LOCAL_WHOLE_STATIC_LIBRARIES += \
+    libwebrtc_aecm_neon \
+    libwebrtc_ns_neon
+else ifeq ($(ARCH_ARM_HAVE_NEON),true)
+LOCAL_WHOLE_STATIC_LIBRARIES += \
+    libwebrtc_aecm_neon \
+    libwebrtc_ns_neon
+endif
 
 LOCAL_STATIC_LIBRARIES := \
     libprotobuf-cpp-2.3.0-lite

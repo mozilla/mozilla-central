@@ -9,6 +9,9 @@
  */
 
 #include "codec_database.h"
+
+#include <assert.h>
+
 #include "../../../../engine_configurations.h"
 #include "internal_defines.h"
 #include "trace.h"
@@ -694,8 +697,14 @@ VCMCodecDataBase::CopyDecoder(const VCMGenericDecoder& decoder)
     VideoDecoder* decoderCopy = decoder._decoder.Copy();
     if (decoderCopy != NULL)
     {
+        VCMDecodedFrameCallback* cb = _ptrDecoder->_callback;
         ReleaseDecoder(_ptrDecoder);
-        _ptrDecoder = new VCMGenericDecoder(*decoderCopy, _id, decoder.External());
+        _ptrDecoder = new VCMGenericDecoder(*decoderCopy, _id,
+                                            decoder.External());
+        if (cb && _ptrDecoder->RegisterDecodeCompleteCallback(cb))
+        {
+            assert(false);
+        }
     }
 }
 

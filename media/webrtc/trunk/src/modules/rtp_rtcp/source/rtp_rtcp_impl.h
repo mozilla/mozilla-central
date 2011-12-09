@@ -30,7 +30,8 @@ class ModuleRtpRtcpImpl : public RtpRtcp, private TMMBRHelp
 {
 public:
     ModuleRtpRtcpImpl(const WebRtc_Word32 id,
-                      const bool audio);
+                      const bool audio,
+                      RtpRtcpClock* clock);
 
     virtual ~ModuleRtpRtcpImpl();
 
@@ -284,14 +285,14 @@ public:
 
     // statistics of the amount of data sent and received
     virtual WebRtc_Word32 DataCountersRTP(WebRtc_UWord32 *bytesSent,
-                                        WebRtc_UWord32 *packetsSent,
-                                        WebRtc_UWord32 *bytesReceived,
-                                        WebRtc_UWord32 *packetsReceived) const;
+                                          WebRtc_UWord32 *packetsSent,
+                                          WebRtc_UWord32 *bytesReceived,
+                                          WebRtc_UWord32 *packetsReceived) const;
 
     virtual WebRtc_Word32 ReportBlockStatistics(WebRtc_UWord8 *fraction_lost,
-                                              WebRtc_UWord32 *cum_lost,
-                                              WebRtc_UWord32 *ext_max,
-                                              WebRtc_UWord32 *jitter);
+                                                WebRtc_UWord32 *cum_lost,
+                                                WebRtc_UWord32 *ext_max,
+                                                WebRtc_UWord32 *jitter);
 
     // Get received RTCP report, sender info
     virtual WebRtc_Word32 RemoteRTCPStat( RTCPSenderInfo* senderInfo);
@@ -481,7 +482,8 @@ public:
     void OnPacketLossStatisticsUpdate(
         const WebRtc_UWord8 fractionLost,
         const WebRtc_UWord16 roundTripTime,
-        const WebRtc_UWord32 lastReceivedExtendedHighSeqNum);
+        const WebRtc_UWord32 lastReceivedExtendedHighSeqNum,
+        bool triggerOnNetworkChanged);
 
     void OnReceivedTMMBR();
 
@@ -530,8 +532,11 @@ protected:
 
     RTCPSender                _rtcpSender;
     RTCPReceiver              _rtcpReceiver;
+
+    RtpRtcpClock&             _clock;
 private:
     void SendKeyFrame();
+    void ProcessDefaultModuleBandwidth(bool triggerOnNetworkChanged);
 
     WebRtc_Word32             _id;
     const bool                _audio;

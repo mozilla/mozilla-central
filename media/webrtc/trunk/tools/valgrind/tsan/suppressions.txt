@@ -1,0 +1,642 @@
+# There are a few kinds of suppressions in this file.
+# 1. third party stuff we have no control over
+#
+# 2. intentional unit test errors, or stuff that is somehow a false positive
+# in our own code, or stuff that is so trivial it's not worth fixing
+#
+# 3. Suppressions for real chromium bugs that are not yet fixed.
+# These should all be in chromium's bug tracking system (but a few aren't yet).
+# Periodically we should sweep this file and the bug tracker clean by
+# running overnight and removing outdated bugs/suppressions.
+#-----------------------------------------------------------------------
+
+# 1. third party stuff we have no control over
+############################
+# 1.1 Benign races in libc
+
+# A benign race inside the implementation of internal libc mutex
+{
+  Benign races in __lll_*lock_*_private
+  ThreadSanitizer:Race
+  fun:__lll_*lock_*_private
+}
+
+# Benign races below thread-safe time-conversion functions
+{
+  fun:__tz*
+  ThreadSanitizer:Race
+  fun:__tz*
+}
+{
+  fun:tzset*
+  ThreadSanitizer:Race
+  ...
+  fun:tzset*
+}
+
+# Benign race in thread-safe function
+{
+  fun:mkstemp*
+  ThreadSanitizer:Race
+  ...
+  fun:mkstemp*
+}
+
+# We already ignore memory accesses inside ld
+# but we also need to ignore accesses below it.
+{
+  fun:_dl_close
+  ThreadSanitizer:Race
+  ...
+  fun:_dl_close
+}
+
+# fprintf is thread-safe. The benign races happen on the internal lock.
+{
+  Benign race below fprintf (1)
+  ThreadSanitizer:Race
+  ...
+  fun:buffered_vfprintf
+  ...
+  fun:fprintf
+}
+{
+  Benign race below fprintf (2)
+  ThreadSanitizer:Race
+  fun:new_do_write
+  fun:vfprintf
+}
+
+{
+  fun:timegm
+  ThreadSanitizer:Race
+  ...
+  fun:timegm
+}
+
+{
+  fun:mktime
+  ThreadSanitizer:Race
+  ...
+  fun:mktime
+}
+
+{
+  Benign race in nss (PR_EnterMonitor)
+  ThreadSanitizer:Race
+  fun:PR_EnterMonitor
+}
+
+# (Looks same as the one above)
+{
+  bug_84244
+  ThreadSanitizer:Race
+  fun:PR_ExitMonitor
+  ...
+  fun:nss*
+}
+
+############################
+# 1.2 Benign races in ICU
+{
+  Two writes, same value (ICU gGlobalMutex, gMutexesInUse)
+  ThreadSanitizer:Race
+  ...
+  fun:umtx_init_46
+}
+
+{
+  Two writes, same value (ICU gHeapInUse)
+  ThreadSanitizer:Race
+  fun:uprv_malloc_46
+}
+
+{
+  Two writes, same value (ICU gLibCleanupFunctions[UCLN_UPLUG])
+  ThreadSanitizer:Race
+  fun:ucln_registerCleanup_46
+  fun:uplug_init_46
+  fun:u_init_46
+}
+
+# Reading a pointer to a mutex being initialized in a concurrent thread.
+{
+  A benign race in umtx_lock_46
+  ThreadSanitizer:Race
+  fun:umtx_lock_46
+}
+
+############################
+# 1.3 Benign races in SQLLite
+# TODO(timurrr|oshima): following three suppression could be obsolete.
+{
+  Two writes, same value (SQLLite pthreadMutexAlloc)
+  ThreadSanitizer:Race
+  ...
+  fun:pthreadMutexAlloc
+  fun:sqlite3MutexAlloc
+}
+
+{
+  Two writes, same value (under sqlite3Malloc)
+  ThreadSanitizer:Race
+  ...
+  fun:sqlite3Malloc*
+}
+
+{
+  Two writes, same value (sqlite3_initialize)
+  ThreadSanitizer:Race
+  fun:sqlite3_initialize
+  fun:openDatabase
+}
+
+{
+  bug_84094_a  (Could be benign. See bug for details)
+  ThreadSanitizer:Race
+  ...
+  fun:pcache1Fetch
+  fun:sqlite3PcacheFetch
+}
+
+{
+  bug_84094_b (Could be benign. See bug for details)
+  ThreadSanitizer:Race
+  fun:sqlite3StatusSet
+  fun:pcache1Alloc
+}
+
+{
+  bug_84094_c (Could be benign. See bug for details)
+  ThreadSanitizer:Race
+  ...
+  fun:pcache1Unpin
+  fun:pcacheUnpin
+  fun:sqlite3PcacheMakeClean
+  fun:sqlite3PcacheCleanAll
+}
+
+############################
+# 1.4 Real races in third_party
+{
+  Nvidia GL driver destroys an invalid lock
+  ThreadSanitizer:InvalidLock
+  fun:pthread_mutex_destroy
+  obj:*nvidia*/libGL.so.*
+}
+
+# http://code.google.com/p/v8/issues/detail?id=361
+{
+  V8: race on Locker::active_
+  ThreadSanitizer:Race
+  fun:v8::Locker::*
+}
+
+{
+  bug_23244 (libevent)
+  ThreadSanitizer:Race
+  fun:event_*
+  fun:event_*
+}
+
+{
+  bug_28396 (libevent) (1)
+  ThreadSanitizer:Race
+  fun:detect_monotonic
+  fun:event_base_new
+}
+
+{
+  bug_28396 (libevent) (2)
+  ThreadSanitizer:Race
+  fun:gettime
+  fun:event_base_loop
+}
+
+{
+  bug_28765 (tcmalloc)
+  ThreadSanitizer:Race
+  ...
+  fun:*tcmalloc*ThreadCache*DeleteCache*
+}
+
+{
+  bug_70938
+  ThreadSanitizer:Race
+  ...
+  obj:*libdbus*
+}
+
+{
+  bug_84467 (Could be benign. See bug for details)
+  ThreadSanitizer:Race
+  fun:unixTempFileDir
+}
+
+{
+  bug_84726_a
+  ThreadSanitizer:Race
+  fun:qsort_r
+  fun:qsort
+  fun:_xdg_mime_alias_read_from_file
+}
+
+{
+  bug_84726_b
+  ThreadSanitizer:Race
+  fun:qsort_r
+  fun:qsort
+  fun:_cairo_bentley_ottmann_tessellate_polygon
+}
+
+# 2. intentional unit test errors, or stuff that is somehow a false positive
+############################
+# 2.1 Data races in tests
+{
+  bug_30582
+  ThreadSanitizer:Race
+  fun:*LongCallbackD*
+  fun:*WorkerThreadTickerTest_LongCallback_Test*TestBody*
+}
+
+{
+  bug_61731
+  ThreadSanitizer:Race
+  fun:*Log*
+  ...
+  fun:*Worker*
+  ...
+  obj:*ipc_tests
+}
+
+{
+  bug_68481 [test-only race on bool]
+  ThreadSanitizer:Race
+  fun:tracked_objects::ThreadData::StartTracking*
+  fun:tracked_objects::TrackedObjectsTest_MinimalStartupShutdown_Test::TestBody*
+}
+
+# TODO(timurrrr): bug item
+{
+  Data race on bool in AssertReporter [test-only]
+  ThreadSanitizer:Race
+  ...
+  fun:*AssertReporter*warn*
+}
+
+# TODO(timurrrr): bug item
+{
+  Data race on WatchdogCounter [test-only]
+  ThreadSanitizer:Race
+  ...
+  fun:*WatchdogCounter*larm*
+}
+
+# TODO(timurrrr): bug item
+{
+  Data race on counter in WorkQueue [test-only]
+  ThreadSanitizer:Race
+  ...
+  fun:*WorkQueue*
+}
+
+# TODO(timurrrr): bug item
+{
+  Data race on vfptr in base/watchdog_unittest
+  ThreadSanitizer:Race
+  ...
+  fun:*WatchdogTest_*arm*Test_Test*TestBody*
+}
+
+# TODO(timurrrr): bug item
+{
+  Data race on bool in chrome/browser/net/url_fetcher_unittest (1)
+  ThreadSanitizer:Race
+  fun:*URLFetcherCancelTest*TestContextReleased*
+}
+{
+  Data race on bool in chrome/browser/net/url_fetcher_unittest (2)
+  ThreadSanitizer:Race
+  fun:*CancelTestURLRequestContext*CancelTestURLRequestContext*
+}
+
+{
+  ThreadSanitizer sanity test (ToolsSanityTest.DataRace).
+  ThreadSanitizer:Race
+  fun:*TOOLS_SANITY_TEST_CONCURRENT_THREAD::ThreadMain
+}
+
+{
+  Benign race (or even a false positive) on atomics in ThreadCollisionWarner
+  ThreadSanitizer:Race
+  fun:base::subtle::NoBarrier_Store
+  fun:base::ThreadCollisionWarner::Leave
+}
+
+{
+   bug_100026
+   ThreadSanitizer:Race
+   ...
+   fun:std::ostream::operator*
+   ...
+   fun:logging::LogMessage::*LogMessage
+   fun:base::PlatformThread::SetThreadPriority
+   fun:base::SimpleThread::SetThreadPriority
+   fun:AudioRendererImpl::Run
+}
+{
+   bug_100143
+   ThreadSanitizer:Race
+   ...
+   fun:GpuDataManager::Initialize
+   fun:GpuDataManager::GetInstance
+   fun:GpuBlacklistUpdater::SetupOnFileThread
+}
+
+############################
+# 2.2 Benign races in Chromium
+{
+  bug_61179 [benign race on tracked_objects::Births]
+  ThreadSanitizer:Race
+  fun:tracked_objects::Births::*Birth*
+}
+
+{
+  bug_62694 [benign races in Histogram in CookieMonster]
+  ThreadSanitizer:Race
+  ...
+  fun:base::Histogram::*
+  fun:net::CookieMonster::*
+}
+
+{
+  bug_64185a [probably-benign races in Histogram in skia::ImageOperations]
+  ThreadSanitizer:Race
+  ...
+  fun:base::Histogram::*
+  fun:skia::ImageOperations::*
+}
+
+{
+  bug_64185b [probably-benign races in Histogram in skia::ImageOperations]
+  ThreadSanitizer:Race
+  ...
+  fun:base::Histogram::*
+  fun:HistogramSynchronizer::DeserializeHistogramList*
+}
+
+# 3. Suppressions for real chromium bugs that are not yet fixed.
+############################
+# Real races in Chromium
+{
+  bug_23433
+  ThreadSanitizer:Race
+  fun:*logging*SetMinLogLevel*
+}
+
+{
+  bug_24419
+  ThreadSanitizer:Race
+  fun:*BrowserProcessImpl*nspector*iles*
+}
+
+{
+  bug_37496
+  ThreadSanitizer:Race
+  ...
+  fun:*browser_sync*SyncShareIntercept*Observe*
+}
+
+{
+  bug_41314
+  ThreadSanitizer:Race
+  ...
+  fun:base::LaunchApp*
+  fun:ChildProcessLauncher::Context::LaunchInternal*
+}
+
+{
+  bug_46642a
+  ThreadSanitizer:Race
+  fun:*media*PipelineImpl*InitializeTask*
+}
+
+{
+  bug_46642b
+  ThreadSanitizer:Race
+  fun:*media*PipelineImpl*GetCurrentTime*
+}
+
+{
+  bug_57266a
+  ThreadSanitizer:Race
+  ...
+  fun:*vp8*_*
+}
+
+{
+  bug_57266b
+  ThreadSanitizer:Race
+  ...
+  obj:*libffmpegsumo.*
+  fun:ThreadSanitizerStartThread
+}
+
+{
+  bug_57266c
+  ThreadSanitizer:Race
+  fun:thread_encoding_proc
+}
+
+{
+  bug_64075a
+  ThreadSanitizer:Race
+  fun:disk_cache::EntryImpl::GetDataSize*
+  fun:net::HttpCache::Transaction::*
+}
+
+{
+  bug_64075b
+  ThreadSanitizer:Race
+  fun:disk_cache::EntryImpl::UpdateSize*
+  ...
+  fun:disk_cache::EntryImpl::WriteDataImpl*
+}
+
+{
+  bug_67957
+  ThreadSanitizer:Race
+  fun:Replace_memcpy
+  fun:memcpy
+  fun:Serialize
+  fun:UserScriptMaster::ScriptReloader::RunLoad
+}
+
+{
+  bug_72548
+  ThreadSanitizer:Race
+  ...
+  fun:JSC::Yarr::Interpreter::*Disjunction*
+  fun:JSC::Yarr::Interpreter::interpret*
+  fun:JSC::Yarr::interpret*
+}
+
+{
+  bug_86916
+  ThreadSanitizer:Race
+  fun:loopfilter_frame
+  fun:loopfilter_thread
+}
+
+{
+  bug_87062b
+  ThreadSanitizer:Race
+  ...
+  fun:net::SdchManager::*
+  fun:net::URLRequestHttpJob::AddExtraHeaders
+  fun:net::URLRequestHttpJob::Start
+  fun:net::URLRequest::StartJob
+  fun:net::URLRequest::Start
+  fun:URLFetcher::Core::StartURLRequest
+  fun:URLFetcher::Core::StartURLRequestWhenAppropriate
+}
+{
+  bug_87062c
+  ThreadSanitizer:Race
+  fun:net::SdchManager::~SdchManager
+  fun:ChromeBrowserMainParts::PreMainMessageLoopRunInternal
+  fun:ChromeBrowserMainParts::PreMainMessageLoopRun
+  fun:content::BrowserMainParts::RunMainMessageLoopParts
+}
+{
+  bug_87062d
+  ThreadSanitizer:Race
+  ...
+  fun:ChromeBrowserMainParts::MainMessageLoopRun
+  fun:content::BrowserMainParts::RunMainMessageLoopParts
+}
+{
+  bug_87747
+  ThreadSanitizer:Race
+  fun:base::MessagePumpLibevent::FileDescriptorWatcher::~FileDescriptorWatcher
+  fun:ProcessSingleton::LinuxWatcher::SocketReader::~SocketReader
+  fun:ProcessSingleton::LinuxWatcher::RemoveSocketReader
+  fun:ProcessSingleton::LinuxWatcher::SocketReader::FinishWithACK
+  fun:ProcessSingleton::LinuxWatcher::HandleMessage
+}
+{
+  bug_89141
+  ThreadSanitizer:Race
+  fun:base::Thread::message_loop
+  fun:BrowserThread::IsMessageLoopValid
+  fun:ThreadWatcherList::StartWatching
+  fun:ThreadWatcherList::InitializeAndStartWatching
+}
+{
+  bug_93757_a
+  ThreadSanitizer:Race
+  fun:__memset_sse2
+  fun:VisitedLinkMaster::CreateURLTable
+}
+{
+  bug_93757_b
+  ThreadSanitizer:Race
+  ...
+  fun:webkit::npapi::PluginLib::ReadWebPluginInfo
+  fun:webkit::npapi::PluginList::ReadPluginInfo
+  fun:webkit::npapi::PluginList::LoadPlugin
+  fun:webkit::npapi::PluginList::LoadPluginsFromDir
+  fun:webkit::npapi::PluginList::LoadPluginsInternal
+  fun:webkit::npapi::PluginList::LoadPlugins
+  fun:webkit::npapi::PluginList::GetPlugins
+  fun:PluginService::GetPluginsInternal
+}
+{
+  bug_93932_a
+  ThreadSanitizer:Race
+  ...
+  fun:frame_thread_free
+  ...
+  fun:avcodec_close
+  ...
+  fun:media::FFmpegVideoDecodeEngine::~FFmpegVideoDecodeEngine
+  ...
+  fun:scoped_ptr::reset
+  fun:media::FFmpegVideoDecodeEngineTest::~FFmpegVideoDecodeEngineTest
+}
+{
+  bug_93932_b
+  ThreadSanitizer:Race
+  ...
+  fun:ff_thread_decode_frame
+  fun:avcodec_decode_video2
+  ...
+  fun:media::FFmpegVideoDecodeEngine::DecodeFrame
+  fun:media::FFmpegVideoDecodeEngine::ConsumeVideoSample
+  fun:media::DemuxCompleteActionP2::gmock_Impl::gmock_PerformImpl
+  fun:testing::internal::ActionHelper::Perform
+  ...
+  fun:testing::Action::Perform
+  fun:testing::internal::ActionResultHolder::PerformAction
+  fun:testing::internal::FunctionMockerBase::UntypedPerformAction
+  fun:testing::internal::UntypedFunctionMockerBase::UntypedInvokeWith
+  fun:testing::internal::FunctionMockerBase::InvokeWith
+  fun:testing::internal::FunctionMocker::Invoke
+  fun:media::FFmpegVideoDecodeEngineTest::ProduceVideoSample
+  ...
+  fun:media::FFmpegVideoDecodeEngine::ReadInput
+}
+{
+  bug_93932_c
+  ThreadSanitizer:Race
+  fun:Replace_memcpy
+  fun:memcpy
+  fun:media::CopyPlane
+  fun:media::Copy*Plane
+  fun:media::FFmpegVideoDecodeEngine::DecodeFrame
+  fun:media::FFmpegVideoDecodeEngine::ConsumeVideoSample
+  fun:media::DemuxCompleteActionP2::gmock_Impl::gmock_PerformImpl
+  fun:testing::internal::ActionHelper::Perform
+  ...
+  fun:testing::Action::Perform
+  fun:testing::internal::ActionResultHolder::PerformAction
+  fun:testing::internal::FunctionMockerBase::UntypedPerformAction
+  fun:testing::internal::UntypedFunctionMockerBase::UntypedInvokeWith
+  fun:testing::internal::FunctionMockerBase::InvokeWith
+  fun:testing::internal::FunctionMocker::Invoke
+  fun:media::FFmpegVideoDecodeEngineTest::ProduceVideoSample
+  ...
+  fun:media::FFmpegVideoDecodeEngine::ReadInput
+}
+{
+  bug_93932_d
+  ThreadSanitizer:Race
+  fun:frame_worker_thread
+}
+{
+   bug_93932_e
+   ThreadSanitizer:Race
+   ...
+   fun:frame_thread_free
+   fun:avcodec_close
+   fun:media::FFmpegVideoDecodeEngine::~FFmpegVideoDecodeEngine
+   fun:scoped_ptr::reset
+   fun:media::FFmpegVideoDecodeEngineTest::~FFmpegVideoDecodeEngineTest
+}
+{
+   bug_95509
+   ThreadSanitizer:Race
+   fun:base::SyncSocket::Close
+   fun:AudioRendererImpl::OnStop
+   fun:media::AudioRendererBase::Stop
+   fun:media::CompositeFilter::CallFilter
+   fun:media::CompositeFilter::SerialCallback
+}
+{
+  bug_100020
+  ThreadSanitizer:Race
+  fun:linked_ptr_internal::join
+  fun:linked_ptr::copy
+  ...
+  fun:HostContentSettingsMap::GetDefaultContentSetting
+}

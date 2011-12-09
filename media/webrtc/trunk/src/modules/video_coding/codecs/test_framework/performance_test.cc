@@ -9,8 +9,12 @@
  */
 
 #include "performance_test.h"
-#include "tick_util.h"
+
 #include <assert.h>
+
+#include "gtest/gtest.h"
+#include "testsupport/fileutils.h"
+#include "tick_util.h"
 
 using namespace webrtc;
 
@@ -84,7 +88,7 @@ PerformanceTest::~PerformanceTest()
 void
 PerformanceTest::Setup()
 {
-    _inname = "../../../../testFiles/foreman.yuv";
+    _inname = webrtc::test::ProjectRootPath() + "resources/foreman_cif.yuv";
     NormalAsyncTest::Setup(); // Setup input and output files
     CodecSettings(352, 288, 30, _bitRate); // common to all codecs
     for (int i=0; i < _numCodecs; i++)
@@ -129,7 +133,8 @@ PerformanceTest::Perform()
             // Read a new frame from file
             WriteLockScoped imageLock(*_rawImageLock);
             _lengthEncFrame = 0;
-            fread(_sourceBuffer, 1, _lengthSourceFrame, _sourceFile);
+            EXPECT_GT(fread(_sourceBuffer, 1, _lengthSourceFrame, _sourceFile),
+                      0u);
             if (feof(_sourceFile) != 0)
             {
                 rewind(_sourceFile);
@@ -269,6 +274,7 @@ bool PerformanceTest::Encode()
     }
     webrtc::CodecSpecificInfo* codecSpecificInfo = CreateEncoderSpecificInfo();
     int ret = _encoder->Encode(rawImage, codecSpecificInfo, &frameType);
+    EXPECT_EQ(ret, WEBRTC_VIDEO_CODEC_OK);
     if (codecSpecificInfo != NULL)
     {
         delete codecSpecificInfo;

@@ -196,6 +196,12 @@ int main(int argc, char **argv)
     case 10:
         ret = DecodeFromStorageTest(args);
         break;
+    case 11:
+        ret = NormalTest::RunTest(args);
+        ret |= CodecDataBaseTest::RunTest(args);
+        ret |= ReceiverTimingTests(args);
+        ret |= JitterBufferTest(args);
+        break;
     default:
         ret = -1;
         break;

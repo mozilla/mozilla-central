@@ -54,7 +54,6 @@ INCS_Debug := -Isrc \
 	-Isrc/modules/interface \
 	-Isrc/modules/utility/interface \
 	-Isrc/modules/audio_coding/main/interface \
-	-Isrc/common_video/vplib/main/interface \
 	-Isrc/system_wrappers/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
@@ -111,7 +110,6 @@ INCS_Release := -Isrc \
 	-Isrc/modules/interface \
 	-Isrc/modules/utility/interface \
 	-Isrc/modules/audio_coding/main/interface \
-	-Isrc/common_video/vplib/main/interface \
 	-Isrc/system_wrappers/interface
 
 OBJS := $(obj).target/$(TARGET)/src/modules/video_render/main/source/incoming_video_stream.o \

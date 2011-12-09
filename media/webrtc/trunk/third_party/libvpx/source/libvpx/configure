@@ -22,6 +22,7 @@ show_help(){
 Advanced options:
   ${toggle_libs}                  don't build libraries
   ${toggle_examples}              don't build examples
+  ${toggle_unit_tests}            build unit tests
   --libc=PATH                     path to alternate libc
   --as={yasm|nasm|auto}           use specified assembler [auto, yasm preferred]
   ${toggle_fast_unaligned}        don't use unaligned accesses, even when
@@ -107,6 +108,7 @@ all_platforms="${all_platforms} x86-darwin8-gcc"
 all_platforms="${all_platforms} x86-darwin8-icc"
 all_platforms="${all_platforms} x86-darwin9-gcc"
 all_platforms="${all_platforms} x86-darwin9-icc"
+all_platforms="${all_platforms} x86-darwin10-gcc"
 all_platforms="${all_platforms} x86-linux-gcc"
 all_platforms="${all_platforms} x86-linux-icc"
 all_platforms="${all_platforms} x86-solaris-gcc"
@@ -258,6 +260,7 @@ CONFIG_LIST="
     small
     postproc_visualizer
     os_support
+    unit_tests
 "
 CMDLINE_SELECT="
     extra_warnings
@@ -299,6 +302,7 @@ CMDLINE_SELECT="
     static
     small
     postproc_visualizer
+    unit_tests
 "
 
 process_cmdline() {
@@ -561,7 +565,8 @@ process_toolchain() {
 ##
 CONFIGURE_ARGS="$@"
 process "$@"
-cat <<EOF > ${BUILD_PFX}vpx_config.c
+print_webm_license ${BUILD_PFX}vpx_config.c "/*" " */"
+cat <<EOF >> ${BUILD_PFX}vpx_config.c
 static const char* const cfg = "$CONFIGURE_ARGS";
 const char *vpx_codec_build_config(void) {return cfg;}
 EOF

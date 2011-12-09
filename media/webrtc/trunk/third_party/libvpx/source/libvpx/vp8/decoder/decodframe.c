@@ -128,57 +128,6 @@ static void skip_recon_mb(VP8D_COMP *pbi, MACROBLOCKD *xd)
     }
 }
 
-static void clamp_mv_to_umv_border(MV *mv, const MACROBLOCKD *xd)
-{
-    /* If the MV points so far into the UMV border that no visible pixels
-     * are used for reconstruction, the subpel part of the MV can be
-     * discarded and the MV limited to 16 pixels with equivalent results.
-     *
-     * This limit kicks in at 19 pixels for the top and left edges, for
-     * the 16 pixels plus 3 taps right of the central pixel when subpel
-     * filtering. The bottom and right edges use 16 pixels plus 2 pixels
-     * left of the central pixel when filtering.
-     */
-    if (mv->col < (xd->mb_to_left_edge - (19 << 3)))
-        mv->col = xd->mb_to_left_edge - (16 << 3);
-    else if (mv->col > xd->mb_to_right_edge + (18 << 3))
-        mv->col = xd->mb_to_right_edge + (16 << 3);
-
-    if (mv->row < (xd->mb_to_top_edge - (19 << 3)))
-        mv->row = xd->mb_to_top_edge - (16 << 3);
-    else if (mv->row > xd->mb_to_bottom_edge + (18 << 3))
-        mv->row = xd->mb_to_bottom_edge + (16 << 3);
-}
-
-/* A version of the above function for chroma block MVs.*/
-static void clamp_uvmv_to_umv_border(MV *mv, const MACROBLOCKD *xd)
-{
-    mv->col = (2*mv->col < (xd->mb_to_left_edge - (19 << 3))) ? (xd->mb_to_left_edge - (16 << 3)) >> 1 : mv->col;
-    mv->col = (2*mv->col > xd->mb_to_right_edge + (18 << 3)) ? (xd->mb_to_right_edge + (16 << 3)) >> 1 : mv->col;
-
-    mv->row = (2*mv->row < (xd->mb_to_top_edge - (19 << 3))) ? (xd->mb_to_top_edge - (16 << 3)) >> 1 : mv->row;
-    mv->row = (2*mv->row > xd->mb_to_bottom_edge + (18 << 3)) ? (xd->mb_to_bottom_edge + (16 << 3)) >> 1 : mv->row;
-}
-
-void clamp_mvs(MACROBLOCKD *xd)
-{
-    if (xd->mode_info_context->mbmi.mode == SPLITMV)
-    {
-        int i;
-
-        for (i=0; i<16; i++)
-            clamp_mv_to_umv_border(&xd->block[i].bmi.mv.as_mv, xd);
-        for (i=16; i<24; i++)
-            clamp_uvmv_to_umv_border(&xd->block[i].bmi.mv.as_mv, xd);
-    }
-    else
-    {
-        clamp_mv_to_umv_border(&xd->mode_info_context->mbmi.mv.as_mv, xd);
-        clamp_uvmv_to_umv_border(&xd->block[16].bmi.mv.as_mv, xd);
-    }
-
-}
-
 static void decode_macroblock(VP8D_COMP *pbi, MACROBLOCKD *xd,
                               unsigned int mb_idx)
 {
@@ -196,11 +145,7 @@ static void decode_macroblock(VP8D_COMP *pbi, MACROBLOCKD *xd,
         eobtotal = vp8_decode_mb_tokens(pbi, xd);
     }
 
-    /* Perform temporary clamping of the MV to be used for prediction */
-    if (xd->mode_info_context->mbmi.need_to_clamp_mvs)
-    {
-        clamp_mvs(xd);
-    }
+
 
     mode = xd->mode_info_context->mbmi.mode;
 
@@ -222,12 +167,12 @@ static void decode_macroblock(VP8D_COMP *pbi, MACROBLOCKD *xd,
     /* do prediction */
     if (xd->mode_info_context->mbmi.ref_frame == INTRA_FRAME)
     {
-        RECON_INVOKE(&pbi->common.rtcd.recon, build_intra_predictors_mbuv)(xd);
+        RECON_INVOKE(&pbi->common.rtcd.recon, build_intra_predictors_mbuv_s)(xd);
 
         if (mode != B_PRED)
         {
             RECON_INVOKE(&pbi->common.rtcd.recon,
-                         build_intra_predictors_mby)(xd);
+                         build_intra_predictors_mby_s)(xd);
         } else {
             vp8_intra_prediction_down_copy(xd);
         }
@@ -266,20 +211,25 @@ static void decode_macroblock(VP8D_COMP *pbi, MACROBLOCKD *xd,
             int b_mode = xd->mode_info_context->bmi[i].as_mode;
 
             RECON_INVOKE(RTCD_VTABLE(recon), intra4x4_predict)
-                          (b, b_mode, b->predictor);
+                          ( *(b->base_dst) + b->dst, b->dst_stride, b_mode,
+                            *(b->base_dst) + b->dst, b->dst_stride );
 
-            if (xd->eobs[i] > 1)
+            if (xd->eobs[i] )
             {
-                DEQUANT_INVOKE(&pbi->dequant, idct_add)
-                    (b->qcoeff, b->dequant,  b->predictor,
-                    *(b->base_dst) + b->dst, 16, b->dst_stride);
-            }
-            else
-            {
-                IDCT_INVOKE(RTCD_VTABLE(idct), idct1_scalar_add)
-                    (b->qcoeff[0] * b->dequant[0], b->predictor,
-                    *(b->base_dst) + b->dst, 16, b->dst_stride);
-                ((int *)b->qcoeff)[0] = 0;
+                if (xd->eobs[i] > 1)
+                {
+                    DEQUANT_INVOKE(&pbi->dequant, idct_add)
+                        (b->qcoeff, b->dequant,
+                        *(b->base_dst) + b->dst, b->dst_stride);
+                }
+                else
+                {
+                    IDCT_INVOKE(RTCD_VTABLE(idct), idct1_scalar_add)
+                        (b->qcoeff[0] * b->dequant[0],
+                        *(b->base_dst) + b->dst, b->dst_stride,
+                        *(b->base_dst) + b->dst, b->dst_stride);
+                    ((int *)b->qcoeff)[0] = 0;
+                }
             }
         }
 
@@ -288,18 +238,18 @@ static void decode_macroblock(VP8D_COMP *pbi, MACROBLOCKD *xd,
     {
         DEQUANT_INVOKE (&pbi->dequant, idct_add_y_block)
                         (xd->qcoeff, xd->block[0].dequant,
-                         xd->predictor, xd->dst.y_buffer,
+                         xd->dst.y_buffer,
                          xd->dst.y_stride, xd->eobs);
     }
     else
     {
         BLOCKD *b = &xd->block[24];
 
-        DEQUANT_INVOKE(&pbi->dequant, block)(b);
-
         /* do 2nd order transform on the dc block */
         if (xd->eobs[24] > 1)
         {
+            DEQUANT_INVOKE(&pbi->dequant, block)(b);
+
             IDCT_INVOKE(RTCD_VTABLE(idct), iwalsh16)(&b->dqcoeff[0], b->diff);
             ((int *)b->qcoeff)[0] = 0;
             ((int *)b->qcoeff)[1] = 0;
@@ -312,19 +262,20 @@ static void decode_macroblock(VP8D_COMP *pbi, MACROBLOCKD *xd,
         }
         else
         {
+            b->dqcoeff[0] = b->qcoeff[0] * b->dequant[0];
             IDCT_INVOKE(RTCD_VTABLE(idct), iwalsh1)(&b->dqcoeff[0], b->diff);
             ((int *)b->qcoeff)[0] = 0;
         }
 
         DEQUANT_INVOKE (&pbi->dequant, dc_idct_add_y_block)
                         (xd->qcoeff, xd->block[0].dequant,
-                         xd->predictor, xd->dst.y_buffer,
+                         xd->dst.y_buffer,
                          xd->dst.y_stride, xd->eobs, xd->block[24].diff);
     }
 
     DEQUANT_INVOKE (&pbi->dequant, idct_add_uv_block)
                     (xd->qcoeff+16*16, xd->block[16].dequant,
-                     xd->predictor+16*16, xd->dst.u_buffer, xd->dst.v_buffer,
+                     xd->dst.u_buffer, xd->dst.v_buffer,
                      xd->dst.uv_stride, xd->eobs+16);
 }
 
@@ -466,49 +417,6 @@ static unsigned int read_partition_size(const unsigned char *cx_size)
     return size;
 }
 
-static void setup_token_decoder_partition_input(VP8D_COMP *pbi)
-{
-    vp8_reader *bool_decoder = &pbi->bc2;
-    int part_idx = 1;
-    int num_token_partitions;
-
-    TOKEN_PARTITION multi_token_partition =
-            (TOKEN_PARTITION)vp8_read_literal(&pbi->bc, 2);
-    if (!vp8dx_bool_error(&pbi->bc))
-        pbi->common.multi_token_partition = multi_token_partition;
-    num_token_partitions = 1 << pbi->common.multi_token_partition;
-    if (num_token_partitions + 1 > pbi->num_partitions)
-        vpx_internal_error(&pbi->common.error, VPX_CODEC_CORRUPT_FRAME,
-                           "Partitions missing");
-    assert(vp8dx_bool_error(&pbi->bc) ||
-           multi_token_partition == pbi->common.multi_token_partition);
-    if (pbi->num_partitions > 2)
-    {
-        CHECK_MEM_ERROR(pbi->mbc, vpx_malloc((pbi->num_partitions - 1) *
-                                             sizeof(vp8_reader)));
-        bool_decoder = pbi->mbc;
-    }
-
-    for (; part_idx < pbi->num_partitions; ++part_idx)
-    {
-        if (vp8dx_start_decode(bool_decoder,
-                               pbi->partitions[part_idx],
-                               pbi->partition_sizes[part_idx]))
-            vpx_internal_error(&pbi->common.error, VPX_CODEC_MEM_ERROR,
-                               "Failed to allocate bool decoder %d",
-                               part_idx);
-
-        bool_decoder++;
-    }
-
-#if CONFIG_MULTITHREAD
-    /* Clamp number of decoder threads */
-    if (pbi->decoding_thread_count > pbi->num_partitions - 1)
-        pbi->decoding_thread_count = pbi->num_partitions - 1;
-#endif
-}
-
-
 static int read_is_valid(const unsigned char *start,
                          size_t               len,
                          const unsigned char *end)
@@ -516,93 +424,145 @@ static int read_is_valid(const unsigned char *start,
     return (start + len > start && start + len <= end);
 }
 
+static unsigned int read_available_partition_size(
+                                       VP8D_COMP *pbi,
+                                       const unsigned char *token_part_sizes,
+                                       const unsigned char *fragment_start,
+                                       const unsigned char *first_fragment_end,
+                                       const unsigned char *fragment_end,
+                                       int i,
+                                       int num_part)
+{
+    VP8_COMMON* pc = &pbi->common;
+    const unsigned char *partition_size_ptr = token_part_sizes + i * 3;
+    unsigned int partition_size;
+    ptrdiff_t bytes_left = fragment_end - fragment_start;
+    /* Calculate the length of this partition. The last partition
+     * size is implicit. If the partition size can't be read, then
+     * either use the remaining data in the buffer (for EC mode)
+     * or throw an error.
+     */
+    if (i < num_part - 1)
+    {
+        if (read_is_valid(partition_size_ptr, 3, first_fragment_end))
+            partition_size = read_partition_size(partition_size_ptr);
+        else if (pbi->ec_active)
+            partition_size = bytes_left;
+        else
+            vpx_internal_error(&pc->error, VPX_CODEC_CORRUPT_FRAME,
+                               "Truncated partition size data");
+    }
+    else
+        partition_size = bytes_left;
+
+    /* Validate the calculated partition length. If the buffer
+     * described by the partition can't be fully read, then restrict
+     * it to the portion that can be (for EC mode) or throw an error.
+     */
+    if (!read_is_valid(fragment_start, partition_size, fragment_end))
+    {
+        if (pbi->ec_active)
+            partition_size = bytes_left;
+        else
+            vpx_internal_error(&pc->error, VPX_CODEC_CORRUPT_FRAME,
+                               "Truncated packet or corrupt partition "
+                               "%d length", i + 1);
+    }
+    return partition_size;
+}
+
 
 static void setup_token_decoder(VP8D_COMP *pbi,
-                                const unsigned char *cx_data)
+                                const unsigned char* token_part_sizes)
 {
-    int num_part;
-    int i;
-    VP8_COMMON          *pc = &pbi->common;
-    const unsigned char *user_data_end = pbi->Source + pbi->source_sz;
-    vp8_reader          *bool_decoder;
-    const unsigned char *partition;
+    vp8_reader *bool_decoder = &pbi->bc2;
+    int fragment_idx, partition_idx;
+    int num_token_partitions;
+    const unsigned char *first_fragment_end = pbi->fragments[0] +
+                                          pbi->fragment_sizes[0];
 
-    /* Parse number of token partitions to use */
-    const TOKEN_PARTITION multi_token_partition =
+    TOKEN_PARTITION multi_token_partition =
             (TOKEN_PARTITION)vp8_read_literal(&pbi->bc, 2);
-    /* Only update the multi_token_partition field if we are sure the value
-     * is correct. */
-    if (!pbi->ec_active || !vp8dx_bool_error(&pbi->bc))
-        pc->multi_token_partition = multi_token_partition;
-
-    num_part = 1 << pc->multi_token_partition;
-
-    /* Set up pointers to the first partition */
-    partition = cx_data;
-    bool_decoder = &pbi->bc2;
-
-    if (num_part > 1)
+    if (!vp8dx_bool_error(&pbi->bc))
+        pbi->common.multi_token_partition = multi_token_partition;
+    num_token_partitions = 1 << pbi->common.multi_token_partition;
+    if (num_token_partitions > 1)
     {
-        CHECK_MEM_ERROR(pbi->mbc, vpx_malloc(num_part * sizeof(vp8_reader)));
+        CHECK_MEM_ERROR(pbi->mbc, vpx_malloc(num_token_partitions *
+                                             sizeof(vp8_reader)));
         bool_decoder = pbi->mbc;
-        partition += 3 * (num_part - 1);
     }
 
-    for (i = 0; i < num_part; i++)
+    /* Check for partitions within the fragments and unpack the fragments
+     * so that each fragment pointer points to its corresponding partition. */
+    for (fragment_idx = 0; fragment_idx < pbi->num_fragments; ++fragment_idx)
     {
-        const unsigned char *partition_size_ptr = cx_data + i * 3;
-        ptrdiff_t            partition_size, bytes_left;
-
-        bytes_left = user_data_end - partition;
-
-        /* Calculate the length of this partition. The last partition
-         * size is implicit. If the partition size can't be read, then
-         * either use the remaining data in the buffer (for EC mode)
-         * or throw an error.
-         */
-        if (i < num_part - 1)
+        unsigned int fragment_size = pbi->fragment_sizes[fragment_idx];
+        const unsigned char *fragment_end = pbi->fragments[fragment_idx] +
+                                            fragment_size;
+        /* Special case for handling the first partition since we have already
+         * read its size. */
+        if (fragment_idx == 0)
         {
-            if (read_is_valid(partition_size_ptr, 3, user_data_end))
-                partition_size = read_partition_size(partition_size_ptr);
-            else if (pbi->ec_active)
-                partition_size = bytes_left;
-            else
-                vpx_internal_error(&pc->error, VPX_CODEC_CORRUPT_FRAME,
-                                   "Truncated partition size data");
+            /* Size of first partition + token partition sizes element */
+            ptrdiff_t ext_first_part_size = token_part_sizes -
+                pbi->fragments[0] + 3 * (num_token_partitions - 1);
+            fragment_size -= ext_first_part_size;
+            if (fragment_size > 0)
+            {
+                pbi->fragment_sizes[0] = ext_first_part_size;
+                /* The fragment contains an additional partition. Move to
+                 * next. */
+                fragment_idx++;
+                pbi->fragments[fragment_idx] = pbi->fragments[0] +
+                  pbi->fragment_sizes[0];
+            }
         }
-        else
-            partition_size = bytes_left;
-
-        /* Validate the calculated partition length. If the buffer
-         * described by the partition can't be fully read, then restrict
-         * it to the portion that can be (for EC mode) or throw an error.
-         */
-        if (!read_is_valid(partition, partition_size, user_data_end))
+        /* Split the chunk into partitions read from the bitstream */
+        while (fragment_size > 0)
         {
-            if (pbi->ec_active)
-                partition_size = bytes_left;
-            else
-                vpx_internal_error(&pc->error, VPX_CODEC_CORRUPT_FRAME,
-                                   "Truncated packet or corrupt partition "
-                                   "%d length", i + 1);
+            ptrdiff_t partition_size = read_available_partition_size(
+                                                 pbi,
+                                                 token_part_sizes,
+                                                 pbi->fragments[fragment_idx],
+                                                 first_fragment_end,
+                                                 fragment_end,
+                                                 fragment_idx - 1,
+                                                 num_token_partitions);
+            pbi->fragment_sizes[fragment_idx] = partition_size;
+            fragment_size -= partition_size;
+            assert(fragment_idx <= num_token_partitions);
+            if (fragment_size > 0)
+            {
+                /* The fragment contains an additional partition.
+                 * Move to next. */
+                fragment_idx++;
+                pbi->fragments[fragment_idx] =
+                    pbi->fragments[fragment_idx - 1] + partition_size;
+            }
         }
+    }
 
-        if (vp8dx_start_decode(bool_decoder, partition, partition_size))
-            vpx_internal_error(&pc->error, VPX_CODEC_MEM_ERROR,
-                               "Failed to allocate bool decoder %d", i + 1);
+    pbi->num_fragments = num_token_partitions + 1;
 
-        /* Advance to the next partition */
-        partition += partition_size;
+    for (partition_idx = 1; partition_idx < pbi->num_fragments; ++partition_idx)
+    {
+        if (vp8dx_start_decode(bool_decoder,
+                               pbi->fragments[partition_idx],
+                               pbi->fragment_sizes[partition_idx]))
+            vpx_internal_error(&pbi->common.error, VPX_CODEC_MEM_ERROR,
+                               "Failed to allocate bool decoder %d",
+                               partition_idx);
+
         bool_decoder++;
     }
 
 #if CONFIG_MULTITHREAD
     /* Clamp number of decoder threads */
-    if (pbi->decoding_thread_count > num_part - 1)
-        pbi->decoding_thread_count = num_part - 1;
+    if (pbi->decoding_thread_count > num_token_partitions - 1)
+        pbi->decoding_thread_count = num_token_partitions - 1;
 #endif
 }
-
 
 static void stop_token_decoder(VP8D_COMP *pbi)
 {
@@ -695,8 +655,8 @@ int vp8_decode_frame(VP8D_COMP *pbi)
     vp8_reader *const bc = & pbi->bc;
     VP8_COMMON *const pc = & pbi->common;
     MACROBLOCKD *const xd  = & pbi->mb;
-    const unsigned char *data = (const unsigned char *)pbi->Source;
-    const unsigned char *data_end = data + pbi->source_sz;
+    const unsigned char *data = pbi->fragments[0];
+    const unsigned char *data_end =  data + pbi->fragment_sizes[0];
     ptrdiff_t first_partition_length_in_bytes;
 
     int mb_row;
@@ -705,33 +665,25 @@ int vp8_decode_frame(VP8D_COMP *pbi)
     int corrupt_tokens = 0;
     int prev_independent_partitions = pbi->independent_partitions;
 
-    if (pbi->input_partition)
-    {
-        data = pbi->partitions[0];
-        data_end =  data + pbi->partition_sizes[0];
-    }
-
     /* start with no corruption of current frame */
     xd->corrupted = 0;
     pc->yv12_fb[pc->new_fb_idx].corrupted = 0;
 
     if (data_end - data < 3)
     {
-        if (pbi->ec_active)
-        {
-            /* Declare the missing frame as an inter frame since it will
-               be handled as an inter frame when we have estimated its
-               motion vectors. */
-            pc->frame_type = INTER_FRAME;
-            pc->version = 0;
-            pc->show_frame = 1;
-            first_partition_length_in_bytes = 0;
-        }
-        else
+        if (!pbi->ec_active)
         {
             vpx_internal_error(&pc->error, VPX_CODEC_CORRUPT_FRAME,
                                "Truncated packet");
         }
+
+        /* Declare the missing frame as an inter frame since it will
+           be handled as an inter frame when we have estimated its
+           motion vectors. */
+        pc->frame_type = INTER_FRAME;
+        pc->version = 0;
+        pc->show_frame = 1;
+        first_partition_length_in_bytes = 0;
     }
     else
     {
@@ -929,14 +881,8 @@ int vp8_decode_frame(VP8D_COMP *pbi)
         }
     }
 
-    if (pbi->input_partition)
-    {
-        setup_token_decoder_partition_input(pbi);
-    }
-    else
-    {
-        setup_token_decoder(pbi, data + first_partition_length_in_bytes);
-    }
+    setup_token_decoder(pbi, data + first_partition_length_in_bytes);
+
     xd->current_bc = &pbi->bc2;
 
     /* Read the default quantizers. */

@@ -124,7 +124,7 @@ OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/test/process_test.o
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a
+$(OBJS): | $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libaec.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a $(obj).target/third_party/protobuf/libprotobuf_lite.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -160,13 +160,17 @@ LIBS := -lrt
 
 $(builddir)/audioproc: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/audioproc: LIBS := $(LIBS)
-$(builddir)/audioproc: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a
+$(builddir)/audioproc: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libaec.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a $(obj).target/third_party/protobuf/libprotobuf_lite.a
 $(builddir)/audioproc: TOOLSET := $(TOOLSET)
-$(builddir)/audioproc: $(OBJS) $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a FORCE_DO_CMD
+$(builddir)/audioproc: $(OBJS) $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libaec.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a $(obj).target/third_party/protobuf/libprotobuf_lite.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/audioproc
 # Add target alias
 .PHONY: audioproc
 audioproc: $(builddir)/audioproc
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/audioproc
 

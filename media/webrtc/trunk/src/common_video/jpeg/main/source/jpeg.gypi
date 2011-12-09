@@ -15,7 +15,7 @@
       'target_name': 'webrtc_jpeg',
       'type': '<(library)',
       'dependencies': [
-        'webrtc_vplib',
+        'webrtc_libyuv',
       ],
       'include_dirs': [
         '../../../interface',
@@ -76,8 +76,7 @@
           ],
           'include_dirs': [
             '../interface',
-             '../../../vplib/main/interface',
-             '../source',
+            '../source',
           ],
           'sources': [
 

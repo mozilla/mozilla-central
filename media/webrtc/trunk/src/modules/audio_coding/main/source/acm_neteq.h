@@ -8,8 +8,8 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#ifndef ACM_NETEQ_H
-#define ACM_NETEQ_H
+#ifndef WEBRTC_MODULES_AUDIO_CODING_MAIN_SOURCE_ACM_NETEQ_H_
+#define WEBRTC_MODULES_AUDIO_CODING_MAIN_SOURCE_ACM_NETEQ_H_
 
 #include "audio_coding_module.h"
 #include "audio_coding_module_typedefs.h"
@@ -69,7 +69,7 @@ public:
     //                            if out of memory.
     //
     WebRtc_Word32 Init();
-    
+
     //
     // RecIn()
     // Gives the payload to NetEQ.
@@ -132,7 +132,7 @@ public:
     //                            <0 if NetEQ returned an error.
     //
     WebRtc_Word32 AllocatePacketBuffer(
-        WebRtcNetEQDecoder* usedCodecs, 
+        const WebRtcNetEQDecoder* usedCodecs,
         WebRtc_Word16    noOfCodecs);
 
     //
@@ -214,64 +214,6 @@ public:
         ACMNetworkStatistics* statistics) const;
 
     //
-    // JitterStatistics()
-    // Get the current jitter statistics from NetEQ.
-    //
-    // Output:
-    //   - jitterStatistics      : The current jitter statistics.
-    //
-    // Return value              : 0 if ok.
-    //                            <0 if NetEQ returned an error.
-    //
-    WebRtc_Word32 JitterStatistics(
-        ACMJitterStatistics* jitterStatistics) const;
-
-    //
-    // PreferredBufferSize()
-    // Get the currently preferred buffer size from NetEQ.
-    //
-    // Output:
-    //   - prefBufSize           : The optimal buffer size for the current network
-    //                             conditions.
-    //
-    // Return value              : 0 if ok.
-    //                            <0 if NetEQ returned an error.
-    //
-    WebRtc_Word32 PreferredBufferSize(
-        WebRtc_UWord16* prefBufSize) const;
-
-    //
-    // ResetJitterStatistics()
-    // Resets the NetEQ jitter statistics.
-    //
-    // Return value              : 0 if ok.
-    //                            <0 if NetEQ returned an error.
-    //
-    WebRtc_Word32 ResetJitterStatistics() const;
-
-    //
-    // VADStatus()
-    // Get the current VAD status.
-    //
-    // Return value              : True if VAD is enabled.
-    //                             False if VAD is disabled.
-    //
-    bool VADStatus() const;
-
-    //
-    // SetVADStatus()
-    // Enable/disable VAD.
-    //
-    // Input:
-    //   - enable                : Enable if true, disable if false.
-    //
-    // Return value              : 0 if ok.
-    //                            -1 if an error occurred.
-    //
-    WebRtc_Word16 SetVADStatus(
-        const bool status);
-
-    //
     // VADMode()
     // Get the current VAD Mode.
     //
@@ -298,9 +240,9 @@ public:
     //
     // Return value              : Pointer to the decode lock.
     //
-    RWLockWrapper* DecodeLock() const 
-    { 
-        return _decodeLock; 
+    RWLockWrapper* DecodeLock() const
+    {
+        return _decodeLock;
     }
 
     //
@@ -326,20 +268,6 @@ public:
         WebRtcNetEQDecoder codecIdx,
         bool isStereo = false);
 
-
-    //
-    // Delay()
-    // Get the length of the current audio buffer in milliseconds. That is
-    // approximately the playout delay, which can be used for lip-synch.
-    //
-    // Output:
-    //   - currentDelayInMs      : delay in audio buffer given in milliseconds
-    //
-    // return value              : 0 if ok
-    //                            -1 if an error occurred.
-    //
-    WebRtc_Word16 Delay(
-        WebRtc_UWord16& currentDelayInMs) const;
 
     //
     // SetBackgroundNoiseMode()
@@ -372,13 +300,13 @@ public:
 
     void SetReceivedStereo(
         bool receivedStereo);
-    
+
     WebRtc_UWord8 NumSlaves();
 
     enum JB {masterJB = 0, slaveJB = 1};
 
     WebRtc_Word16 AddSlave(
-        WebRtcNetEQDecoder*    usedCodecs, 
+        const WebRtcNetEQDecoder*    usedCodecs,
         WebRtc_Word16       noOfCodecs);
 
 private:
@@ -408,11 +336,19 @@ private:
     WebRtc_Word16 InitByIdxSafe(
         const WebRtc_Word16 idx);
 
+    // EnableVAD()
+    // Enable VAD.
+    //
+    // Return value              : 0 if ok.
+    //                            -1 if an error occurred.
+    //
+    WebRtc_Word16 EnableVAD();
+
     WebRtc_Word16 EnableVADByIdxSafe(
         const WebRtc_Word16 idx);
 
     WebRtc_Word16 AllocatePacketBufferByIdxSafe(
-        WebRtcNetEQDecoder* usedCodecs,
+        const WebRtcNetEQDecoder* usedCodecs,
         WebRtc_Word16       noOfCodecs,
         const WebRtc_Word16 idx);
 
@@ -426,7 +362,7 @@ private:
     bool                    _avtPlayout;
     AudioPlayoutMode        _playoutMode;
     CriticalSectionWrapper* _netEqCritSect;
-    
+
     WebRtcVadInst*          _ptrVADInst[MAX_NUM_SLAVE_NETEQ + 1];
 
     bool                    _vadStatus;
@@ -437,10 +373,11 @@ private:
     bool                    _receivedStereo;
     void*                   _masterSlaveInfo;
     AudioFrame::VADActivity _previousAudioActivity;
+    WebRtc_Word32           _extraDelay;
 
     CriticalSectionWrapper* _callbackCritSect;
 };
 
 } //namespace webrtc
 
-#endif //ACM_NETEQ_H
+#endif  // WEBRTC_MODULES_AUDIO_CODING_MAIN_SOURCE_ACM_NETEQ_H_

@@ -10,7 +10,7 @@
 
 #include "test.h"
 #include "video_source.h"
-#include "vplib.h"
+#include "common_video/libyuv/include/libyuv.h"
 #include "event_wrapper.h"
 #include "thread_wrapper.h"
 #include <iostream>
@@ -110,6 +110,8 @@ Test::CodecSettings(int width, int height, WebRtc_UWord32 frameRate /*=30*/, Web
     {
         _bitRate = 600;
     }
+    _inst.codecType = kVideoCodecVP8;
+    _inst.codecSpecific.VP8.feedbackModeOn = true;
     _inst.maxFramerate = (unsigned char)frameRate;
     _inst.startBitrate = (int)_bitRate;
     _inst.maxBitrate = 8000;
@@ -494,7 +496,7 @@ double Test::ActualBitRate(int nFrames)
     return 8.0 * _sumEncBytes / (nFrames / _inst.maxFramerate);
 }
 
-bool Test::PacketLoss(double lossRate)
+bool Test::PacketLoss(double lossRate, int /*thrown*/)
 {
     return RandUniform() < lossRate;
 }

@@ -14,14 +14,14 @@
 #include "echo_cancellation.h"
 
 #include <math.h>
-#ifdef AEC_DEBUG
+#ifdef WEBRTC_AEC_DEBUG_DUMP
 #include <stdio.h>
 #endif
 #include <stdlib.h>
 #include <string.h>
 
 #include "aec_core.h"
-#include "resampler.h"
+#include "aec_resampler.h"
 #include "ring_buffer.h"
 
 #define BUF_SIZE_FRAMES 50 // buffer size (frames)
@@ -37,6 +37,10 @@ static const int sampMsNb = 8; // samples per ms in nb
 static const float targetSupp[3] = {-6.9f, -11.5f, -18.4f};
 static const float minOverDrive[3] = {1.0f, 2.0f, 5.0f};
 static const int initCheck = 42;
+
+#ifdef WEBRTC_AEC_DEBUG_DUMP
+static int instance_count = 0;
+#endif
 
 typedef struct {
     int delayCtr;
@@ -71,13 +75,11 @@ typedef struct {
     int delayChange;
     short lastDelayDiff;
 
-#ifdef AEC_DEBUG
+#ifdef WEBRTC_AEC_DEBUG_DUMP
     FILE *bufFile;
     FILE *delayFile;
     FILE *skewFile;
-    FILE *preCompFile;
-    FILE *postCompFile;
-#endif // AEC_DEBUG
+#endif
 
     // Structures
     void *farendBuf;
@@ -134,18 +136,26 @@ WebRtc_Word32 WebRtcAec_Create(void **aecInst)
     aecpc->initFlag = 0;
     aecpc->lastError = 0;
 
-#ifdef AEC_DEBUG
-    aecpc->aec->farFile = fopen("aecFar.pcm","wb");
-    aecpc->aec->nearFile = fopen("aecNear.pcm","wb");
-    aecpc->aec->outFile = fopen("aecOut.pcm","wb");
-    aecpc->aec->outLpFile = fopen("aecOutLp.pcm","wb");
-
-    aecpc->bufFile = fopen("aecBuf.dat", "wb");
-    aecpc->skewFile = fopen("aecSkew.dat", "wb");
-    aecpc->delayFile = fopen("aecDelay.dat", "wb");
-    aecpc->preCompFile = fopen("preComp.pcm", "wb");
-    aecpc->postCompFile = fopen("postComp.pcm", "wb");
-#endif // AEC_DEBUG
+#ifdef WEBRTC_AEC_DEBUG_DUMP
+    {
+      char filename[64];
+      sprintf(filename, "aec_far%d.pcm", instance_count);
+      aecpc->aec->farFile = fopen(filename, "wb");
+      sprintf(filename, "aec_near%d.pcm", instance_count);
+      aecpc->aec->nearFile = fopen(filename, "wb");
+      sprintf(filename, "aec_out%d.pcm", instance_count);
+      aecpc->aec->outFile = fopen(filename, "wb");
+      sprintf(filename, "aec_out_linear%d.pcm", instance_count);
+      aecpc->aec->outLinearFile = fopen(filename, "wb");
+      sprintf(filename, "aec_buf%d.dat", instance_count);
+      aecpc->bufFile = fopen(filename, "wb");
+      sprintf(filename, "aec_skew%d.dat", instance_count);
+      aecpc->skewFile = fopen(filename, "wb");
+      sprintf(filename, "aec_delay%d.dat", instance_count);
+      aecpc->delayFile = fopen(filename, "wb");
+      instance_count++;
+    }
+#endif
 
     return 0;
 }
@@ -158,18 +168,15 @@ WebRtc_Word32 WebRtcAec_Free(void *aecInst)
         return -1;
     }
 
-#ifdef AEC_DEBUG
+#ifdef WEBRTC_AEC_DEBUG_DUMP
     fclose(aecpc->aec->farFile);
     fclose(aecpc->aec->nearFile);
     fclose(aecpc->aec->outFile);
-    fclose(aecpc->aec->outLpFile);
-
+    fclose(aecpc->aec->outLinearFile);
     fclose(aecpc->bufFile);
     fclose(aecpc->skewFile);
     fclose(aecpc->delayFile);
-    fclose(aecpc->preCompFile);
-    fclose(aecpc->postCompFile);
-#endif // AEC_DEBUG
+#endif
 
     WebRtcAec_FreeAec(aecpc->aec);
     WebRtcApm_FreeBuffer(aecpc->farendBuf);
@@ -311,11 +318,6 @@ WebRtc_Word32 WebRtcAec_BufferFarend(void *aecInst, const WebRtc_Word16 *farend,
                                                   skew,
                                                   newFarend);
         WebRtcApm_WriteBuffer(aecpc->farendBuf, newFarend, newNrOfSamples);
-
-#ifdef AEC_DEBUG
-        fwrite(farend, 2, nrOfSamples, aecpc->preCompFile);
-        fwrite(newFarend, 2, newNrOfSamples, aecpc->postCompFile);
-#endif
     }
     else {
         WebRtcApm_WriteBuffer(aecpc->farendBuf, farend, nrOfSamples);
@@ -335,9 +337,6 @@ WebRtc_Word32 WebRtcAec_Process(void *aecInst, const WebRtc_Word16 *nearend,
     short nmbrOfFilledBuffers;
     short nBlocks10ms;
     short nFrames;
-#ifdef AEC_DEBUG
-    short msInAECBuf;
-#endif
     // Limit resampling to doubling/halving of signal
     const float minSkewEst = -0.5f;
     const float maxSkewEst = 1.0f;
@@ -383,6 +382,7 @@ WebRtc_Word32 WebRtcAec_Process(void *aecInst, const WebRtc_Word16 *nearend,
         aecpc->lastError = AEC_BAD_PARAMETER_WARNING;
         retVal = -1;
     }
+    // TODO(andrew): we need to investigate if this +10 is really wanted.
     msInSndCardBuf += 10;
     aecpc->msInSndCardBuf = msInSndCardBuf;
 
@@ -413,7 +413,7 @@ WebRtc_Word32 WebRtcAec_Process(void *aecInst, const WebRtc_Word16 *nearend,
                 aecpc->skew = maxSkewEst;
             }
 
-#ifdef AEC_DEBUG
+#ifdef WEBRTC_AEC_DEBUG_DUMP
             fwrite(&aecpc->skew, sizeof(aecpc->skew), 1, aecpc->skewFile);
 #endif
         }
@@ -523,10 +523,13 @@ WebRtc_Word32 WebRtcAec_Process(void *aecInst, const WebRtc_Word16 *nearend,
         }
     }
 
-#ifdef AEC_DEBUG
-    msInAECBuf = WebRtcApm_get_buffer_size(aecpc->farendBuf) / (sampMsNb*aecpc->aec->mult);
-    fwrite(&msInAECBuf, 2, 1, aecpc->bufFile);
-    fwrite(&(aecpc->knownDelay), sizeof(aecpc->knownDelay), 1, aecpc->delayFile);
+#ifdef WEBRTC_AEC_DEBUG_DUMP
+    {
+        short msInAECBuf = WebRtcApm_get_buffer_size(aecpc->farendBuf) /
+            (sampMsNb*aecpc->aec->mult);
+        fwrite(&msInAECBuf, 2, 1, aecpc->bufFile);
+        fwrite(&(aecpc->knownDelay), sizeof(aecpc->knownDelay), 1, aecpc->delayFile);
+    }
 #endif
 
     return retVal;
@@ -761,11 +764,13 @@ int WebRtcAec_GetDelayMetrics(void* handle, int* median, int* std) {
   }
 
   // Get number of delay values since last update
-  for (i = 0; i < kMaxDelay; i++) {
+  for (i = 0; i < kHistorySizeBlocks; i++) {
     num_delay_values += self->aec->delay_histogram[i];
   }
   if (num_delay_values == 0) {
-    // We have no new delay value data
+    // We have no new delay value data. Even though -1 is a valid estimate, it
+    // will practically never be used since multiples of |kMsPerBlock| will
+    // always be returned.
     *median = -1;
     *std = -1;
     return 0;
@@ -773,17 +778,18 @@ int WebRtcAec_GetDelayMetrics(void* handle, int* median, int* std) {
 
   delay_values = num_delay_values >> 1; // Start value for median count down
   // Get median of delay values since last update
-  for (i = 0; i < kMaxDelay; i++) {
+  for (i = 0; i < kHistorySizeBlocks; i++) {
     delay_values -= self->aec->delay_histogram[i];
     if (delay_values < 0) {
       my_median = i;
       break;
     }
   }
-  *median = my_median * kMsPerBlock;
+  // Account for lookahead.
+  *median = (my_median - kLookaheadBlocks) * kMsPerBlock;
 
   // Calculate the L1 norm, with median value as central moment
-  for (i = 0; i < kMaxDelay; i++) {
+  for (i = 0; i < kHistorySizeBlocks; i++) {
     l1_norm += (float) (fabs(i - my_median) * self->aec->delay_histogram[i]);
   }
   *std = (int) (l1_norm / (float) num_delay_values + 0.5f) * kMsPerBlock;

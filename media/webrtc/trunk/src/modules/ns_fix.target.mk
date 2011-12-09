@@ -49,7 +49,8 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/audio_processing/ns/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface
+	-Isrc/common_audio/signal_processing/include \
+	-Isrc/system_wrappers/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -100,7 +101,8 @@ CFLAGS_CC_Release := -fno-rtti \
 INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/audio_processing/ns/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface
+	-Isrc/common_audio/signal_processing/include \
+	-Isrc/system_wrappers/interface
 
 OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/ns/noise_suppression_x.o \
 	$(obj).target/$(TARGET)/src/modules/audio_processing/ns/nsx_core.o
@@ -150,4 +152,8 @@ all_deps += $(obj).target/src/modules/libns_fix.a
 # Add target alias
 .PHONY: ns_fix
 ns_fix: $(obj).target/src/modules/libns_fix.a
+
+# Add target alias to "all" target.
+.PHONY: all
+all: ns_fix
 

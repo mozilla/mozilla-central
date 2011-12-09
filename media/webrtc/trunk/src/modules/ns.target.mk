@@ -49,7 +49,7 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/audio_processing/ns/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/modules/audio_processing/utility
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
@@ -101,7 +101,7 @@ CFLAGS_CC_Release := -fno-rtti \
 INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/audio_processing/ns/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/modules/audio_processing/utility
 
 OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/ns/noise_suppression.o \

@@ -32,7 +32,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 #endif
-#include "vpx_version.h"
 #include "vpx/vp8cx.h"
 #include "vpx_ports/mem_ops.h"
 #include "vpx_ports/vpx_timer.h"
@@ -48,9 +47,11 @@ typedef __int64 off_t;
 #define fseeko _fseeki64
 #define ftello _ftelli64
 #elif defined(_WIN32)
-/* MinGW defines off_t, and uses f{seek,tell}o64 */
+/* MinGW defines off_t as long
+   and uses f{seek,tell}o64/off64_t for large files */
 #define fseeko fseeko64
 #define ftello ftello64
+#define off_t off64_t
 #endif
 
 #if defined(_MSC_VER)
@@ -624,6 +625,18 @@ write_webm_seek_info(EbmlGlobal *ebml)
         //segment info
         EbmlLoc startInfo;
         uint64_t frame_time;
+        char version_string[64];
+
+        /* Assemble version string */
+        if(ebml->debug)
+            strcpy(version_string, "vpxenc");
+        else
+        {
+            strcpy(version_string, "vpxenc ");
+            strncat(version_string,
+                    vpx_codec_version_str(),
+                    sizeof(version_string) - 1 - strlen(version_string));
+        }
 
         frame_time = (uint64_t)1000 * ebml->framerate.den
                      / ebml->framerate.num;
@@ -632,10 +645,8 @@ write_webm_seek_info(EbmlGlobal *ebml)
         Ebml_SerializeUnsigned(ebml, TimecodeScale, 1000000);
         Ebml_SerializeFloat(ebml, Segment_Duration,
                             ebml->last_pts_ms + frame_time);
-        Ebml_SerializeString(ebml, 0x4D80,
-            ebml->debug ? "vpxenc" : "vpxenc" VERSION_STRING);
-        Ebml_SerializeString(ebml, 0x5741,
-            ebml->debug ? "vpxenc" : "vpxenc" VERSION_STRING);
+        Ebml_SerializeString(ebml, 0x4D80, version_string);
+        Ebml_SerializeString(ebml, 0x5741, version_string);
         Ebml_EndSubElement(ebml, &startInfo);
     }
 }
@@ -1744,7 +1755,7 @@ int main(int argc, const char **argv_)
     for (pass = one_pass_only ? one_pass_only - 1 : 0; pass < arg_passes; pass++)
     {
         int frames_in = 0, frames_out = 0;
-        unsigned long nbytes = 0;
+        int64_t nbytes = 0;
         struct detect_buffer detect;
 
         /* Parse certain options from the input file, if possible */
@@ -1961,8 +1972,8 @@ int main(int argc, const char **argv_)
                     frames_in++;
 
                 fprintf(stderr,
-                        "\rPass %d/%d frame %4d/%-4d %7ldB \033[K", pass + 1,
-                        arg_passes, frames_in, frames_out, nbytes);
+                        "\rPass %d/%d frame %4d/%-4d %7"PRId64"B \033[K",
+                        pass + 1, arg_passes, frames_in, frames_out, nbytes);
             }
             else
                 frame_avail = 0;
@@ -2056,13 +2067,14 @@ int main(int argc, const char **argv_)
         }
 
         fprintf(stderr,
-               "\rPass %d/%d frame %4d/%-4d %7ldB %7ldb/f %7"PRId64"b/s"
+               "\rPass %d/%d frame %4d/%-4d %7"PRId64"B %7lub/f %7"PRId64"b/s"
                " %7lu %s (%.2f fps)\033[K", pass + 1,
-               arg_passes, frames_in, frames_out, nbytes, nbytes * 8 / frames_in,
-               nbytes * 8 *(int64_t)arg_framerate.num / arg_framerate.den / frames_in,
+               arg_passes, frames_in, frames_out, nbytes,
+               frames_in ? (unsigned long)(nbytes * 8 / frames_in) : 0,
+               frames_in ? nbytes * 8 *(int64_t)arg_framerate.num / arg_framerate.den / frames_in : 0,
                cx_time > 9999999 ? cx_time / 1000 : cx_time,
                cx_time > 9999999 ? "ms" : "us",
-               (float)frames_in * 1000000.0 / (float)cx_time);
+               cx_time > 0 ? (float)frames_in * 1000000.0 / (float)cx_time : 0);
 
         if ( (show_psnr) && (psnr_count>0) )
         {

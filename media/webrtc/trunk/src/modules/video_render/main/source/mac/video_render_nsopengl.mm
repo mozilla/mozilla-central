@@ -16,7 +16,7 @@
 #include "event_wrapper.h"
 #include "trace.h"
 #include "thread_wrapper.h"
-#include "vplib.h"
+#include "common_video/libyuv/include/libyuv.h"
 
 namespace webrtc {
 
@@ -232,7 +232,7 @@ int VideoChannelNSOpenGL::DeliverFrame(unsigned char* buffer, int bufferSize, un
         return -1;
     }
 
-    int rgbLength = ConvertFromI420(kRGBAMac, buffer, _width, _height, _buffer);
+    int rgbLength = ConvertI420ToRGBAMac(buffer, _buffer, _width, _height, 0);
     if (rgbLength == -1)
     {
         _owner->UnlockAGLCntx();
@@ -387,7 +387,9 @@ _windowHeight( 0),
 _nsglChannels( ),
 _zOrderToChannel( ),
 _threadID (0),
-_renderingIsPaused (FALSE)
+_renderingIsPaused (FALSE),
+_windowRefSuperView(NULL),
+_windowRefSuperViewFrame(NSMakeRect(0,0,0,0))
 {
     _screenUpdateThread = ThreadWrapper::CreateThread(ScreenUpdateThreadProc, this, kRealtimePriority);
     _screenUpdateEvent = EventWrapper::Create();
@@ -450,9 +452,6 @@ WebRtc_Word32 VideoRenderNSOpenGL::StartRender()
         return 0;
     }
 
-    WEBRTC_TRACE(kTraceDebug, kTraceVideoRenderer, _id, "Starting screenUpdateThread and screenUpdateEvent");
-    _screenUpdateThread = ThreadWrapper::CreateThread(ScreenUpdateThreadProc, this, kRealtimePriority);
-    _screenUpdateEvent = EventWrapper::Create();
 
     if (!_screenUpdateThread)
     {
@@ -461,9 +460,6 @@ WebRtc_Word32 VideoRenderNSOpenGL::StartRender()
         return -1;
     }
 
-    _screenUpdateThread->Start(_threadID);
-
-    _screenUpdateEvent->StartTimer(true, 1000/MONITOR_FREQ);
 
     UnlockAGLCntx();
     return 0;
@@ -615,11 +611,17 @@ int VideoRenderNSOpenGL::setRenderTargetFullScreen()
 
     NSOpenGLPixelFormat* fmt = [[NSOpenGLPixelFormat alloc] initWithAttributes: (NSOpenGLPixelFormatAttribute*) attribs];
 
+    // Store original superview and frame for use when exiting full screens
+    _windowRefSuperViewFrame = [_windowRef frame];
+    _windowRefSuperView = [_windowRef superview];
+
+
     // create new fullscreen window
     NSRect screenRect = [[NSScreen mainScreen]frame];
     [_windowRef setFrame:screenRect];
     [_windowRef setBounds:screenRect];
 
+    
     _fullScreenWindow = [[CocoaFullScreenWindow alloc]init];
     [_fullScreenWindow grabFullScreen];
     [[[_fullScreenWindow window] contentView] addSubview:_windowRef];
@@ -656,8 +658,18 @@ VideoRenderNSOpenGL::~VideoRenderNSOpenGL()
     {
         if(_fullScreenWindow)
         {
+            // Detach CocoaRenderView from full screen view back to 
+            // it's original parent.
+            [_windowRef removeFromSuperview];
+            if(_windowRefSuperView) 
+            {
+              [_windowRefSuperView addSubview:_windowRef];
+              [_windowRef setFrame:_windowRefSuperViewFrame];
+            }
+            
             WEBRTC_TRACE(kTraceDebug, kTraceVideoRenderer, 0, "%s:%d Attempting to release fullscreen window", __FUNCTION__, __LINE__);
             [_fullScreenWindow releaseFullScreen];
+     
         }
     }
 

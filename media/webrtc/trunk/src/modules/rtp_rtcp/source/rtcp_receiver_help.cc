@@ -56,17 +56,23 @@ RTCPPacketInformation::AddApplicationData(const WebRtc_UWord8* data, const WebRt
     WebRtc_UWord8* oldData = applicationData;
     WebRtc_UWord16 oldLength = applicationLength;
 
-    applicationLength += size;
+    // Don't copy more than kRtcpAppCode_DATA_SIZE bytes.
+    WebRtc_UWord16 copySize = size;
+    if (size > kRtcpAppCode_DATA_SIZE) {
+        copySize = kRtcpAppCode_DATA_SIZE;
+    }
+
+    applicationLength += copySize;
     applicationData = new WebRtc_UWord8[applicationLength];
 
     if(oldData)
     {
         memcpy(applicationData, oldData, oldLength);
-        memcpy(applicationData+oldLength, data, size);
+        memcpy(applicationData+oldLength, data, copySize);
         delete [] oldData;
     } else
     {
-        memcpy(applicationData, data, size);
+        memcpy(applicationData, data, copySize);
     }
 }
 
@@ -179,7 +185,8 @@ RTCPReceiveInformation::VerifyAndAllocateTMMBRSet(const WebRtc_UWord32 minimumSi
 
 void
 RTCPReceiveInformation::InsertTMMBRItem(const WebRtc_UWord32 senderSSRC,
-                                        const RTCPUtility::RTCPPacketRTPFBTMMBRItem& TMMBRItem)
+                                        const RTCPUtility::RTCPPacketRTPFBTMMBRItem& TMMBRItem,
+                                        const WebRtc_UWord32 currentTimeMS)
 {
     // serach to see if we have it in our list
     for(WebRtc_UWord32 i = 0; i < TmmbrSet.lengthOfSet; i++)
@@ -190,7 +197,7 @@ RTCPReceiveInformation::InsertTMMBRItem(const WebRtc_UWord32 senderSSRC,
             // update it
             TmmbrSet.ptrPacketOHSet[i] = TMMBRItem.MeasuredOverhead;
             TmmbrSet.ptrTmmbrSet[i] = TMMBRItem.MaxTotalMediaBitRate;
-            _tmmbrSetTimeouts[i] = ModuleRTPUtility::GetTimeInMS();
+            _tmmbrSetTimeouts[i] = currentTimeMS;
             return;
         }
     }
@@ -200,14 +207,15 @@ RTCPReceiveInformation::InsertTMMBRItem(const WebRtc_UWord32 senderSSRC,
     TmmbrSet.ptrPacketOHSet[idx] = TMMBRItem.MeasuredOverhead;
     TmmbrSet.ptrTmmbrSet[idx] = TMMBRItem.MaxTotalMediaBitRate;
     TmmbrSet.ptrSsrcSet[idx] = senderSSRC;
-    _tmmbrSetTimeouts[idx] = ModuleRTPUtility::GetTimeInMS();
+    _tmmbrSetTimeouts[idx] = currentTimeMS;
     TmmbrSet.lengthOfSet++;
 }
 
 WebRtc_Word32
 RTCPReceiveInformation::GetTMMBRSet(const WebRtc_UWord32 sourceIdx,
                                     const WebRtc_UWord32 targetIdx,
-                                    TMMBRSet* candidateSet)
+                                    TMMBRSet* candidateSet,
+                                    const WebRtc_UWord32 currentTimeMS)
 {
     if(sourceIdx >= TmmbrSet.lengthOfSet)
     {
@@ -217,7 +225,7 @@ RTCPReceiveInformation::GetTMMBRSet(const WebRtc_UWord32 sourceIdx,
     {
         return -1;
     }
-    WebRtc_UWord32 timeNow = ModuleRTPUtility::GetTimeInMS();
+    WebRtc_UWord32 timeNow = currentTimeMS;
 
     // use audio define since we don't know what interval the remote peer is using
     if(timeNow - _tmmbrSetTimeouts[sourceIdx] > 5*RTCP_INTERVAL_AUDIO_MS)

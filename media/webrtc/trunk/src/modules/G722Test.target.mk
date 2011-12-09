@@ -34,7 +34,6 @@ CFLAGS_Debug := -Werror \
 	-pipe \
 	-fPIC \
 	-fno-strict-aliasing \
-	-fexceptions \
 	-O0 \
 	-g
 
@@ -49,7 +48,7 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/codecs/G722/main/interface
+	-Isrc/modules/audio_coding/codecs/g722/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -83,7 +82,6 @@ CFLAGS_Release := -Werror \
 	-pipe \
 	-fPIC \
 	-fno-strict-aliasing \
-	-fexceptions \
 	-O2 \
 	-fno-ident \
 	-fdata-sections \
@@ -100,9 +98,9 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/codecs/G722/main/interface
+	-Isrc/modules/audio_coding/codecs/g722/include
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/G722/main/testG722/testG722.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/g722/test/testG722.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
@@ -153,4 +151,8 @@ all_deps += $(builddir)/G722Test
 # Add target alias
 .PHONY: G722Test
 G722Test: $(builddir)/G722Test
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/G722Test
 

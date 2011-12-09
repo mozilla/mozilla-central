@@ -18,6 +18,7 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
 	'-DWEBRTC_APM_UNIT_TEST_FLOAT_PROFILE' \
+	'-DWEBRTC_AUDIOPROC_DEBUG_DUMP' \
 	'-DGOOGLE_PROTOBUF_NO_RTTI' \
 	'-DUNIT_TEST' \
 	'-DGTEST_HAS_RTTI=0' \
@@ -52,14 +53,14 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
+	-Itest \
 	-Isrc/modules/audio_processing/interface \
 	-Isrc/modules/interface \
 	-I$(obj)/gen/protoc_out \
 	-Ithird_party/protobuf \
 	-Ithird_party/protobuf/src \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/system_wrappers/interface \
-	-Itest \
 	-Itesting/gtest/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
@@ -78,6 +79,7 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
 	'-DWEBRTC_APM_UNIT_TEST_FLOAT_PROFILE' \
+	'-DWEBRTC_AUDIOPROC_DEBUG_DUMP' \
 	'-DGOOGLE_PROTOBUF_NO_RTTI' \
 	'-DUNIT_TEST' \
 	'-DGTEST_HAS_RTTI=0' \
@@ -114,14 +116,14 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
+	-Itest \
 	-Isrc/modules/audio_processing/interface \
 	-Isrc/modules/interface \
 	-I$(obj)/gen/protoc_out \
 	-Ithird_party/protobuf \
 	-Ithird_party/protobuf/src \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/system_wrappers/interface \
-	-Itest \
 	-Itesting/gtest/include
 
 OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/test/unit_test.o
@@ -130,7 +132,7 @@ OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/test/unit_test.o
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_unittest_proto.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a
+$(OBJS): | $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_unittest_proto.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/testing/libgmock.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -166,13 +168,17 @@ LIBS := -lrt
 
 $(builddir)/audioproc_unittest: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/audioproc_unittest: LIBS := $(LIBS)
-$(builddir)/audioproc_unittest: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_unittest_proto.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a
+$(builddir)/audioproc_unittest: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_unittest_proto.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/testing/libgmock.a
 $(builddir)/audioproc_unittest: TOOLSET := $(TOOLSET)
-$(builddir)/audioproc_unittest: $(OBJS) $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_unittest_proto.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a FORCE_DO_CMD
+$(builddir)/audioproc_unittest: $(OBJS) $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_unittest_proto.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libns.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/testing/libgmock.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/audioproc_unittest
 # Add target alias
 .PHONY: audioproc_unittest
 audioproc_unittest: $(builddir)/audioproc_unittest
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/audioproc_unittest
 

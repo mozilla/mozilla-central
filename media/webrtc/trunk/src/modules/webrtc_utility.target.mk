@@ -53,9 +53,8 @@ INCS_Debug := -Isrc \
 	-Isrc/modules/interface \
 	-Isrc/modules/media_file/interface \
 	-Isrc/modules/video_coding/main/interface \
-	-Isrc/common_video/vplib/main/interface \
 	-Isrc/modules/audio_coding/main/interface \
-	-Isrc/common_audio/resampler/main/interface \
+	-Isrc/common_audio/resampler/include \
 	-Isrc/system_wrappers/interface \
 	-Isrc/modules/video_coding/codecs/interface
 
@@ -112,9 +111,8 @@ INCS_Release := -Isrc \
 	-Isrc/modules/interface \
 	-Isrc/modules/media_file/interface \
 	-Isrc/modules/video_coding/main/interface \
-	-Isrc/common_video/vplib/main/interface \
 	-Isrc/modules/audio_coding/main/interface \
-	-Isrc/common_audio/resampler/main/interface \
+	-Isrc/common_audio/resampler/include \
 	-Isrc/system_wrappers/interface \
 	-Isrc/modules/video_coding/codecs/interface
 

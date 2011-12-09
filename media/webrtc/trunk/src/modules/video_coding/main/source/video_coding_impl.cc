@@ -547,7 +547,7 @@ VideoCodingModuleImpl::FrameRate() const
 WebRtc_Word32
 VideoCodingModuleImpl::SetChannelParameters(WebRtc_UWord32 availableBandWidth,
                                             WebRtc_UWord8 lossRate,
-                                            WebRtc_UWord32 RTT)
+                                            WebRtc_UWord32 rtt)
 {
     WEBRTC_TRACE(webrtc::kTraceModuleCall,
                  webrtc::kTraceVideoCoding,
@@ -558,10 +558,10 @@ VideoCodingModuleImpl::SetChannelParameters(WebRtc_UWord32 availableBandWidth,
         CriticalSectionScoped sendCs(_sendCritSect);
         WebRtc_UWord32 targetRate = _mediaOpt.SetTargetRates(availableBandWidth,
                                                              lossRate,
-                                                             RTT);
+                                                             rtt);
         if (_encoder != NULL)
         {
-            ret = _encoder->SetPacketLoss(lossRate);
+            ret = _encoder->SetChannelParameters(lossRate, rtt);
             if (ret < 0 )
             {
                 return ret;
@@ -582,14 +582,14 @@ VideoCodingModuleImpl::SetChannelParameters(WebRtc_UWord32 availableBandWidth,
 }
 
 WebRtc_Word32
-VideoCodingModuleImpl::SetReceiveChannelParameters(WebRtc_UWord32 RTT)
+VideoCodingModuleImpl::SetReceiveChannelParameters(WebRtc_UWord32 rtt)
 {
     WEBRTC_TRACE(webrtc::kTraceModuleCall,
                  webrtc::kTraceVideoCoding,
                  VCMId(_id),
                  "SetReceiveChannelParameters()");
     CriticalSectionScoped receiveCs(_receiveCritSect);
-    _receiver.UpdateRtt(RTT);
+    _receiver.UpdateRtt(rtt);
     return 0;
 }
 
@@ -1071,6 +1071,10 @@ VideoCodingModuleImpl::Decode(WebRtc_UWord16 maxWaitTimeMs)
             _dualDecoder->RegisterDecodeCompleteCallback(
                 &_dualDecodedFrameCallback);
         }
+        else
+        {
+            _dualReceiver.Reset();
+        }
     }
 
     if (frame == NULL)
@@ -1405,16 +1409,20 @@ VideoCodingModuleImpl::IncomingPacket(const WebRtc_UWord8* incomingPayload,
         ret = _dualReceiver.InsertPacket(packet,
                                          rtpInfo.type.Video.width,
                                          rtpInfo.type.Video.height);
-        if (ret < 0)
-        {
-            return ret;
+        if (ret == VCM_FLUSH_INDICATOR) {
+          RequestKeyFrame();
+          ResetDecoder();
+        } else if (ret < 0) {
+          return ret;
         }
     }
     ret = _receiver.InsertPacket(packet, rtpInfo.type.Video.width,
                                  rtpInfo.type.Video.height);
-    if (ret < 0)
-    {
-        return ret;
+    if (ret == VCM_FLUSH_INDICATOR) {
+      RequestKeyFrame();
+      ResetDecoder();
+    } else if (ret < 0) {
+      return ret;
     }
     return VCM_OK;
 }

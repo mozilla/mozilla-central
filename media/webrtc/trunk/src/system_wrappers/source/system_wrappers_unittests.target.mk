@@ -50,9 +50,9 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
+	-Itest \
 	-Isrc/system_wrappers/interface \
-	-Itesting/gtest/include \
-	-Itest
+	-Itesting/gtest/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -104,23 +104,22 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
+	-Itest \
 	-Isrc/system_wrappers/interface \
-	-Itesting/gtest/include \
-	-Itest
+	-Itesting/gtest/include
 
 OBJS := $(obj).target/$(TARGET)/src/system_wrappers/source/cpu_wrapper_unittest.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/list_unittest.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/map_unittest.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/data_log_helpers_unittest.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/data_log_c_helpers_unittest.o \
-	$(obj).target/$(TARGET)/test/run_all_unittests.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/data_log_unittest_disabled.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/test/libtest_support.a
+$(OBJS): | $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/test/libtest_support_main.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -165,9 +164,9 @@ LIBS := -lrt
 
 $(builddir)/system_wrappers_unittests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/system_wrappers_unittests: LIBS := $(LIBS)
-$(builddir)/system_wrappers_unittests: LD_INPUTS := $(OBJS) $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/test/libtest_support.a
+$(builddir)/system_wrappers_unittests: LD_INPUTS := $(OBJS) $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/test/libtest_support_main.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a
 $(builddir)/system_wrappers_unittests: TOOLSET := $(TOOLSET)
-$(builddir)/system_wrappers_unittests: $(OBJS) $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/test/libtest_support.a FORCE_DO_CMD
+$(builddir)/system_wrappers_unittests: $(OBJS) $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/test/libtest_support_main.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/system_wrappers_unittests

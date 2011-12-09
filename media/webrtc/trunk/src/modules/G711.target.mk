@@ -48,7 +48,7 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/codecs/G711/main/interface
+	-Isrc/modules/audio_coding/codecs/g711/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -98,10 +98,10 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/codecs/G711/main/interface
+	-Isrc/modules/audio_coding/codecs/g711/include
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/G711/main/source/g711_interface.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/G711/main/source/g711.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/g711/g711_interface.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/g711/g711.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

@@ -13,7 +13,7 @@
 #define __INC_VP8_INT_H
 
 #include <stdio.h>
-#include "vpx_ports/config.h"
+#include "vpx_config.h"
 #include "vp8/common/onyx.h"
 #include "treewriter.h"
 #include "tokenize.h"
@@ -55,6 +55,8 @@
 #if !(CONFIG_REALTIME_ONLY)
 #define VP8_TEMPORAL_ALT_REF 1
 #endif
+
+#define MAX_PERIODICITY 16
 
 typedef struct
 {
@@ -108,6 +110,7 @@ typedef struct
     double MVrv;
     double MVcv;
     double mv_in_out_count;
+    double new_mv_count;
     double duration;
     double count;
 }
@@ -237,6 +240,52 @@ enum
     BLOCK_MAX_SEGMENTS
 };
 
+typedef struct
+{
+    // Layer configuration
+    double frame_rate;
+    int target_bandwidth;
+
+    // Layer specific coding parameters
+    int starting_buffer_level;
+    int optimal_buffer_level;
+    int maximum_buffer_size;
+
+    int avg_frame_size_for_layer;
+
+    int buffer_level;
+    int bits_off_target;
+
+    long long total_actual_bits;
+    int total_target_vs_actual;
+
+    int worst_quality;
+    int active_worst_quality;
+    int best_quality;
+    int active_best_quality;
+
+    int ni_av_qi;
+    int ni_tot_qi;
+    int ni_frames;
+    int avg_frame_qindex;
+
+    double rate_correction_factor;
+    double key_frame_rate_correction_factor;
+    double gf_rate_correction_factor;
+
+    int zbin_over_quant;
+
+    int inter_frame_target;
+    INT64 total_byte_count;
+
+    int filter_level;
+
+    int last_frame_percent_intra;
+
+    int count_mb_ref_frame_usage[MAX_REF_FRAMES];
+
+} LAYER_CONTEXT;
+
 typedef struct VP8_COMP
 {
 
@@ -362,12 +411,15 @@ typedef struct VP8_COMP
     int zbin_over_quant;
     int zbin_mode_boost;
     int zbin_mode_boost_enabled;
+    int last_zbin_over_quant;
+    int last_zbin_mode_boost;
 
     int64_t total_byte_count;
 
     int buffered_mode;
 
-    int buffer_level;
+    double frame_rate;
+    int64_t buffer_level;
     int bits_off_target;
 
     int rolling_target_bits;
@@ -523,6 +575,7 @@ typedef struct VP8_COMP
         FIRSTPASS_STATS *total_stats;
         FIRSTPASS_STATS *this_frame_stats;
         FIRSTPASS_STATS *stats_in, *stats_in_end, *stats_in_start;
+        FIRSTPASS_STATS *total_left_stats;
         int first_pass_done;
         int64_t bits_left;
         int64_t clip_bits_total;
@@ -530,10 +583,6 @@ typedef struct VP8_COMP
         double modified_error_total;
         double modified_error_used;
         double modified_error_left;
-        double total_error_left;
-        double total_intra_error_left;
-        double total_coded_error_left;
-        double start_tot_err_left;
         double kf_intra_err_min;
         double gf_intra_err_min;
         int frames_to_key;
@@ -612,13 +661,32 @@ typedef struct VP8_COMP
     int force_next_frame_intra; /* force next frame to intra when kf_auto says so */
 
     int droppable;
+
+    // Coding layer state variables
+    unsigned int current_layer;
+    LAYER_CONTEXT layer_context[MAX_LAYERS];
+
+    long long frames_in_layer[MAX_LAYERS];
+    long long bytes_in_layer[MAX_LAYERS];
+    double sum_psnr[MAX_LAYERS];
+    double sum_psnr_p[MAX_LAYERS];
+    double total_error2[MAX_LAYERS];
+    double total_error2_p[MAX_LAYERS];
+    double sum_ssim[MAX_LAYERS];
+    double sum_weights[MAX_LAYERS];
+
+    double total_ssimg_y_in_layer[MAX_LAYERS];
+    double total_ssimg_u_in_layer[MAX_LAYERS];
+    double total_ssimg_v_in_layer[MAX_LAYERS];
+    double total_ssimg_all_in_layer[MAX_LAYERS];
+
 } VP8_COMP;
 
 void control_data_rate(VP8_COMP *cpi);
 
 void vp8_encode_frame(VP8_COMP *cpi);
 
-void vp8_pack_bitstream(VP8_COMP *cpi, unsigned char *dest, unsigned long *size);
+void vp8_pack_bitstream(VP8_COMP *cpi, unsigned char *dest, unsigned char *dest_end, unsigned long *size);
 
 void vp8_activity_masking(VP8_COMP *cpi, MACROBLOCK *x);
 

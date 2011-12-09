@@ -21,7 +21,7 @@
         'PCM16B',
         'NetEq',
         '<(webrtc_root)/common_audio/common_audio.gyp:resampler',
-        '<(webrtc_root)/common_audio/common_audio.gyp:spl',
+        '<(webrtc_root)/common_audio/common_audio.gyp:signal_processing',
         '<(webrtc_root)/common_audio/common_audio.gyp:vad',
         '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
       ],
@@ -100,6 +100,7 @@
           'type': 'executable',
           'dependencies': [
             'audio_coding_module',
+            '<(webrtc_root)/../testing/gtest.gyp:gtest',
             '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
           ],
           'sources': [

@@ -1,0 +1,6 @@
+# Fails under Valgrind; see http://crbug.com/36770
+URLFetcherBadHTTPSTest.BadHTTPSTest
+# Fails under Valgrind; see http://crbug.com/44552
+RenderViewTest.OnHandleKeyboardEvent
+# http://crbug.com/88221
+ConnectionTesterTest.DeleteWhileInProgress

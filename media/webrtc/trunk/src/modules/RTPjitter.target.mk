@@ -17,6 +17,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
@@ -47,7 +49,8 @@ CFLAGS_CC_Debug := -fno-rtti \
 	-Wsign-compare
 
 INCS_Debug := -Isrc \
-	-I.
+	-I. \
+	-Itesting/gtest/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -64,6 +67,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
@@ -96,12 +101,16 @@ CFLAGS_CC_Release := -fno-rtti \
 	-Wsign-compare
 
 INCS_Release := -Isrc \
-	-I.
+	-I. \
+	-Itesting/gtest/include
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/test/RTPjitter.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/neteq/test/RTPjitter.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
+
+# Make sure our dependencies are built before any of us.
+$(OBJS): | $(obj).target/testing/libgtest.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -137,13 +146,17 @@ LIBS :=
 
 $(builddir)/RTPjitter: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/RTPjitter: LIBS := $(LIBS)
-$(builddir)/RTPjitter: LD_INPUTS := $(OBJS)
+$(builddir)/RTPjitter: LD_INPUTS := $(OBJS) $(obj).target/testing/libgtest.a
 $(builddir)/RTPjitter: TOOLSET := $(TOOLSET)
-$(builddir)/RTPjitter: $(OBJS) FORCE_DO_CMD
+$(builddir)/RTPjitter: $(OBJS) $(obj).target/testing/libgtest.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/RTPjitter
 # Add target alias
 .PHONY: RTPjitter
 RTPjitter: $(builddir)/RTPjitter
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/RTPjitter
 

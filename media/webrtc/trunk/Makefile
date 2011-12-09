@@ -354,28 +354,23 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,peerconnection_client.target.mk)))),)
-  include peerconnection_client.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
-                 $(join ^,peerconnection_server.target.mk)))),)
-  include peerconnection_server.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/common_audio/common_audio_unittests.target.mk)))),)
-  include src/common_audio/common_audio_unittests.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
                  $(join ^,src/common_audio/resampler.target.mk)))),)
   include src/common_audio/resampler.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/common_audio/spl.target.mk)))),)
-  include src/common_audio/spl.target.mk
+                 $(join ^,src/common_audio/resampler_unittests.target.mk)))),)
+  include src/common_audio/resampler_unittests.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/common_audio/signal_processing.target.mk)))),)
+  include src/common_audio/signal_processing.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/common_audio/signal_processing_unittests.target.mk)))),)
+  include src/common_audio/signal_processing_unittests.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -384,13 +379,18 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/common_audio/vad_unittests.target.mk)))),)
+  include src/common_audio/vad_unittests.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
                  $(join ^,src/common_video/jpeg_test.target.mk)))),)
   include src/common_video/jpeg_test.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/common_video/vplib_test.target.mk)))),)
-  include src/common_video/vplib_test.target.mk
+                 $(join ^,src/common_video/libyuv_unittests.target.mk)))),)
+  include src/common_video/libyuv_unittests.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -399,8 +399,8 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/common_video/webrtc_vplib.target.mk)))),)
-  include src/common_video/webrtc_vplib.target.mk
+                 $(join ^,src/common_video/webrtc_libyuv.target.mk)))),)
+  include src/common_video/webrtc_libyuv.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -474,11 +474,6 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/VPMUnitTest.target.mk)))),)
-  include src/modules/VPMUnitTest.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
                  $(join ^,src/modules/aec.target.mk)))),)
   include src/modules/aec.target.mk
 endif
@@ -511,6 +506,11 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
                  $(join ^,src/modules/audio_conference_mixer.target.mk)))),)
   include src/modules/audio_conference_mixer.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/modules/audio_conference_mixer_unittests.target.mk)))),)
+  include src/modules/audio_conference_mixer_unittests.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -554,8 +554,23 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/modules/cng_unittests.target.mk)))),)
+  include src/modules/cng_unittests.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
                  $(join ^,src/modules/g711_test.target.mk)))),)
   include src/modules/g711_test.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/modules/g711_unittests.target.mk)))),)
+  include src/modules/g711_unittests.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/modules/g722_unittests.target.mk)))),)
+  include src/modules/g722_unittests.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -604,8 +619,13 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/neteq_unittest.target.mk)))),)
-  include src/modules/neteq_unittest.target.mk
+                 $(join ^,src/modules/media_file_unittests.target.mk)))),)
+  include src/modules/media_file_unittests.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/modules/neteq_unittests.target.mk)))),)
+  include src/modules/neteq_unittests.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -619,13 +639,8 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/rtcp_format_remb_unittest.target.mk)))),)
-  include src/modules/rtcp_format_remb_unittest.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/rtp_format_vp8_unittest.target.mk)))),)
-  include src/modules/rtp_format_vp8_unittest.target.mk
+                 $(join ^,src/modules/pcm16b_unittests.target.mk)))),)
+  include src/modules/pcm16b_unittests.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -634,8 +649,8 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/rtp_utility_test.target.mk)))),)
-  include src/modules/rtp_utility_test.target.mk
+                 $(join ^,src/modules/rtp_rtcp_unittests.target.mk)))),)
+  include src/modules/rtp_rtcp_unittests.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -659,8 +674,13 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/unpack.target.mk)))),)
-  include src/modules/unpack.target.mk
+                 $(join ^,src/modules/udp_transport_unittests.target.mk)))),)
+  include src/modules/udp_transport_unittests.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/modules/unpack_aecdump.target.mk)))),)
+  include src/modules/unpack_aecdump.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -689,18 +709,18 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/video_coding_test_lib.target.mk)))),)
-  include src/modules/video_coding_test_lib.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
-                 $(join ^,src/modules/video_coding_unit_test.target.mk)))),)
-  include src/modules/video_coding_unit_test.target.mk
+                 $(join ^,src/modules/video_coding_unittests.target.mk)))),)
+  include src/modules/video_coding_unittests.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
                  $(join ^,src/modules/video_processing.target.mk)))),)
   include src/modules/video_processing.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/modules/video_processing_unittests.target.mk)))),)
+  include src/modules/video_processing_unittests.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -724,6 +744,11 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/modules/vp8_unittests.target.mk)))),)
+  include src/modules/vp8_unittests.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
                  $(join ^,src/modules/webrtc_i420.target.mk)))),)
   include src/modules/webrtc_i420.target.mk
 endif
@@ -731,6 +756,11 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
                  $(join ^,src/modules/webrtc_utility.target.mk)))),)
   include src/modules/webrtc_utility.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/modules/webrtc_utility_unittests.target.mk)))),)
+  include src/modules/webrtc_utility_unittests.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -784,6 +814,11 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
+                 $(join ^,test/test_support_main.target.mk)))),)
+  include test/test_support_main.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
                  $(join ^,test/test_support_unittests.target.mk)))),)
   include test/test_support_unittests.target.mk
 endif
@@ -809,11 +844,6 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party/expat/expat.target.mk)))),)
-  include third_party/expat/expat.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
                  $(join ^,third_party/google-gflags/google-gflags.target.mk)))),)
   include third_party/google-gflags/google-gflags.target.mk
 endif
@@ -826,6 +856,11 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
                  $(join ^,third_party/libvpx/libvpx.target.mk)))),)
   include third_party/libvpx/libvpx.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,third_party/libyuv/libyuv.target.mk)))),)
+  include third_party/libyuv/libyuv.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -907,35 +942,10 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
                  $(join ^,third_party/yasm/yasm.host.mk)))),)
   include third_party/yasm/yasm.host.mk
 endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party_mods/libjingle/jsoncpp.target.mk)))),)
-  include third_party_mods/libjingle/jsoncpp.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party_mods/libjingle/libjingle.target.mk)))),)
-  include third_party_mods/libjingle/libjingle.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party_mods/libjingle/libjingle_app.target.mk)))),)
-  include third_party_mods/libjingle/libjingle_app.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party_mods/libjingle/libjingle_p2p.target.mk)))),)
-  include third_party_mods/libjingle/libjingle_p2p.target.mk
-endif
-ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
-    $(findstring $(join ^,$(prefix)),\
-                 $(join ^,third_party_mods/libjingle/peerconnection_unittests.target.mk)))),)
-  include third_party_mods/libjingle/peerconnection_unittests.target.mk
-endif
 
 quiet_cmd_regen_makefile = ACTION Regenerating $@
 cmd_regen_makefile = ./build/gyp_chromium -fmake --ignore-environment "--toplevel-dir=." -Ibuild/common.gypi -I/home/jesup/src/mozilla/webrtc_import/media/webrtc/webrtc_update/trunk/src/supplement.gypi "--depth=." "-Goutput_dir=$(OBJDIR)/media/webrtc/out" webrtc.gyp
-Makefile: src/modules/udp_transport/source/udp_transport.gypi src/modules/video_processing/main/test/vpm_tests.gypi src/modules/video_coding/codecs/test/video_codecs_test_framework.gypi src/modules/modules.gyp test/test.gyp src/common_audio/resampler/main/source/resampler.gypi third_party_mods/libjingle/libjingle.gyp src/modules/rtp_rtcp/source/rtp_rtcp.gypi third_party/libvpx/input_files_win.gypi src/build/common.gypi src/modules/audio_processing/apm_tests.gypi third_party/google-gflags/google-gflags.gyp third_party/yasm/yasm.gyp build/protoc.gypi src/modules/audio_conference_mixer/source/audio_conference_mixer.gypi src/modules/video_coding/codecs/i420/main/source/i420.gypi src/modules/video_capture/main/source/video_capture.gypi build/internal/release_impl.gypi src/supplement.gypi src/voice_engine/voice_engine.gyp src/modules/audio_coding/codecs/iSAC/isacfix_test.gypi src/common_video/jpeg/main/source/jpeg.gypi src/common_settings.gypi src/modules/rtp_rtcp/test/testFec/test_fec.gypi third_party/libvpx/input_files_linux.gypi src/modules/video_processing/main/source/video_processing.gypi src/modules/audio_processing/utility/util.gypi src/modules/audio_coding/NetEQ/main/neteq_tests.gypi src/modules/media_file/source/media_file.gypi src/modules/audio_coding/codecs/PCM16B/main/source/pcm16b.gypi src/modules/video_coding/codecs/test_framework/test_framework.gypi build/internal/release_impl_official.gypi build/internal/release_defaults.gypi src/modules/audio_coding/codecs/iLBC/ilbc_test.gypi src/common_video/common_video.gyp src/video_engine/video_engine.gyp src/video_engine/main/test/AutoTest/vie_auto_test.gypi src/modules/audio_processing/agc/agc.gypi src/common_video/vplib/main/source/vplib.gypi src/video_engine/main/source/video_engine_core.gypi src/common_audio/vad/main/source/vad.gypi third_party/expat/expat.gyp src/modules/audio_coding/codecs/G711/main/source/g711.gypi src/voice_engine/main/test/voice_engine_tests.gypi src/modules/audio_processing/aecm/aecm.gypi src/system_wrappers/source/system_wrappers.gyp src/modules/audio_coding/codecs/iLBC/main/source/ilbc.gypi src/modules/video_coding/main/source/video_coding_test.gypi src/voice_engine/main/source/voice_engine_core.gypi src/common_audio/signal_processing_library/main/source/spl.gypi src/modules/video_render/main/source/video_render.gypi src/modules/video_coding/codecs/tools/video_codecs_tools.gypi build/release.gypi testing/gtest.gyp build/common.gypi src/modules/audio_processing/aec/aec.gypi src/modules/audio_coding/codecs/iSAC/isac_test.gypi testing/gmock.gyp src/modules/video_coding/codecs/vp8/main/source/vp8.gypi third_party/libvpx/input_files_mac.gypi src/modules/audio_coding/codecs/iSAC/main/source/isac.gypi src/modules/audio_coding/NetEQ/main/source/neteq.gypi src/modules/rtp_rtcp/test/test_bwe/test_bwe.gypi src/modules/audio_coding/codecs/CNG/main/source/cng.gypi src/modules/video_coding/main/source/video_coding.gypi third_party/libvpx/libvpx.gyp third_party/libjpeg_turbo/libjpeg.gyp src/modules/audio_coding/codecs/iSAC/fix/source/isacfix.gypi src/video_engine/main/test/WindowsTest/windowstest.gypi src/modules/audio_device/main/source/audio_device.gypi src/modules/audio_coding/main/source/audio_coding_module.gypi third_party/protobuf/protobuf.gyp src/common_audio/common_audio.gyp src/modules/audio_processing/audio_processing.gypi src/modules/rtp_rtcp/source/rtp_rtcp_tests.gypi src/modules/audio_coding/codecs/G722/main/source/g722.gypi webrtc.gyp src/modules/utility/source/utility.gypi src/modules/audio_processing/ns/ns.gypi
+Makefile: src/modules/udp_transport/source/udp_transport.gypi src/modules/video_processing/main/test/vpm_tests.gypi src/modules/video_coding/codecs/test/video_codecs_test_framework.gypi third_party/google-gflags/google-gflags.gyp src/common_audio/signal_processing/signal_processing.gypi src/common_audio/resampler/resampler.gypi src/modules/video_capture/main/source/video_capture.gypi src/build/common.gypi src/modules/audio_processing/apm_tests.gypi third_party/yasm/yasm.gyp src/modules/audio_conference_mixer/source/audio_conference_mixer.gypi src/modules/video_coding/codecs/i420/main/source/i420.gypi src/modules/audio_coding/codecs/g711/g711.gypi src/modules/rtp_rtcp/test/testFec/test_fec.gypi build/internal/release_impl.gypi src/supplement.gypi src/voice_engine/voice_engine.gyp third_party/yasm/yasm_compile.gypi src/common_video/jpeg/main/source/jpeg.gypi src/common_settings.gypi src/modules/video_coding/main/source/video_coding.gypi src/modules/video_processing/main/source/video_processing.gypi src/modules/audio_processing/utility/util.gypi src/modules/audio_coding/codecs/pcm16b/pcm16b.gypi src/modules/media_file/source/media_file.gypi src/modules/modules.gyp src/modules/video_coding/codecs/test_framework/test_framework.gypi build/internal/release_impl_official.gypi build/internal/release_defaults.gypi src/modules/audio_coding/codecs/iSAC/main/source/isac.gypi src/common_audio/vad/vad.gypi src/common_video/common_video.gyp src/video_engine/test/auto_test/vie_auto_test.gypi third_party/libvpx/libvpx_srcs_arm_neon.gypi third_party/libvpx/libvpx_srcs_arm.gypi src/build/protoc.gypi src/modules/rtp_rtcp/source/rtp_rtcp.gypi third_party/libvpx/libvpx.gyp testing/gmock.gyp test/test.gyp src/voice_engine/main/test/voice_engine_tests.gypi src/modules/audio_processing/aecm/aecm.gypi src/system_wrappers/source/system_wrappers.gyp src/modules/audio_coding/codecs/iSAC/isacfix_test.gypi src/modules/video_coding/main/source/video_coding_test.gypi src/voice_engine/main/source/voice_engine_core.gypi src/modules/audio_coding/codecs/ilbc/ilbc.gypi src/modules/video_render/main/source/video_render.gypi src/modules/video_coding/codecs/tools/video_codecs_tools.gypi build/release.gypi testing/gtest.gyp build/common.gypi src/modules/audio_processing/aec/aec.gypi src/modules/audio_coding/codecs/iSAC/isac_test.gypi src/modules/video_coding/codecs/vp8/main/source/vp8.gypi third_party/libyuv/libyuv.gyp third_party/libvpx/libvpx_srcs_x86_64.gypi src/modules/audio_coding/codecs/g722/g722.gypi src/video_engine/video_engine.gyp src/modules/rtp_rtcp/test/test_bwe/test_bwe.gypi src/common_audio/common_audio.gyp src/modules/audio_processing/agc/agc.gypi src/modules/audio_coding/neteq/neteq.gypi third_party/libjpeg_turbo/libjpeg.gyp third_party/libvpx/libvpx_srcs_x86.gypi src/modules/audio_coding/codecs/iSAC/fix/source/isacfix.gypi src/video_engine/video_engine_core.gypi src/video_engine/main/test/WindowsTest/windowstest.gypi src/modules/audio_device/main/source/audio_device.gypi src/modules/audio_coding/main/source/audio_coding_module.gypi third_party/protobuf/protobuf.gyp src/common_video/libyuv/libyuv.gypi src/modules/audio_processing/audio_processing.gypi src/modules/rtp_rtcp/source/rtp_rtcp_tests.gypi src/modules/audio_coding/codecs/cng/cng.gypi webrtc.gyp src/modules/utility/source/utility.gypi src/modules/audio_processing/ns/ns.gypi
 	$(call do_cmd,regen_makefile)
 
 # "all" is a concatenation of the "all" targets from all the included

@@ -17,6 +17,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
@@ -51,9 +53,10 @@ INCS_Debug := -Isrc \
 	-Isrc/voice_engine/main/test/auto_test \
 	-Isrc/modules/interface \
 	-Isrc/modules/audio_device/main/interface \
+	-Itest \
 	-Isrc/voice_engine/main/interface \
 	-Isrc/system_wrappers/interface \
-	-Itest
+	-Itesting/gtest/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -70,6 +73,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
@@ -106,12 +111,15 @@ INCS_Release := -Isrc \
 	-Isrc/voice_engine/main/test/auto_test \
 	-Isrc/modules/interface \
 	-Isrc/modules/audio_device/main/interface \
+	-Itest \
 	-Isrc/voice_engine/main/interface \
 	-Isrc/system_wrappers/interface \
-	-Itest
+	-Itesting/gtest/include
 
-OBJS := $(obj).target/$(TARGET)/src/voice_engine/main/test/auto_test/voe_cpu_test.o \
+OBJS := $(obj).target/$(TARGET)/src/voice_engine/main/test/auto_test/automated_mode.o \
+	$(obj).target/$(TARGET)/src/voice_engine/main/test/auto_test/voe_cpu_test.o \
 	$(obj).target/$(TARGET)/src/voice_engine/main/test/auto_test/voe_extended_test.o \
+	$(obj).target/$(TARGET)/src/voice_engine/main/test/auto_test/voe_standard_integration_test.o \
 	$(obj).target/$(TARGET)/src/voice_engine/main/test/auto_test/voe_standard_test.o \
 	$(obj).target/$(TARGET)/src/voice_engine/main/test/auto_test/voe_stress_test.o \
 	$(obj).target/$(TARGET)/src/voice_engine/main/test/auto_test/voe_unit_test.o
@@ -120,7 +128,7 @@ OBJS := $(obj).target/$(TARGET)/src/voice_engine/main/test/auto_test/voe_cpu_tes
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/testing/libgtest.a
+$(OBJS): | $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/testing/libgmock.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -159,9 +167,9 @@ LIBS := -lrt \
 
 $(builddir)/voe_auto_test: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/voe_auto_test: LIBS := $(LIBS)
-$(builddir)/voe_auto_test: LD_INPUTS := $(OBJS) $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/testing/libgtest.a
+$(builddir)/voe_auto_test: LD_INPUTS := $(OBJS) $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/testing/libgmock.a
 $(builddir)/voe_auto_test: TOOLSET := $(TOOLSET)
-$(builddir)/voe_auto_test: $(OBJS) $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/testing/libgtest.a FORCE_DO_CMD
+$(builddir)/voe_auto_test: $(OBJS) $(obj).target/src/voice_engine/libvoice_engine_core.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libaudio_conference_mixer.a $(obj).target/src/modules/libaudio_processing.a $(obj).target/src/modules/libaec.a $(obj).target/src/modules/libapm_util.a $(obj).target/src/modules/libaecm.a $(obj).target/src/modules/libagc.a $(obj).target/src/modules/libns.a $(obj).target/src/modules/libaudioproc_debug_proto.a $(obj).target/third_party/protobuf/libprotobuf_lite.a $(obj).target/src/modules/libaudio_device.a $(obj).target/src/modules/libmedia_file.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/modules/libudp_transport.a $(obj).target/testing/libgmock.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/voe_auto_test

@@ -24,8 +24,9 @@
 
 ; r0 BOOL_CODER *br
 ; r1 unsigned char *source
-
+; r2 unsigned char *source_end
 |vp8_start_encode| PROC
+    str     r2,  [r0, #vp8_writer_buffer_end]
     mov     r12, #0
     mov     r3,  #255
     mvn     r2,  #23
@@ -53,10 +54,10 @@
     sub     r7, r5, #1                  ; range-1
 
     cmp     r1, #0
-    mul     r4, r4, r7                  ; ((range-1) * probability)
+    mul     r6, r4, r7                  ; ((range-1) * probability)
 
     mov     r7, #1
-    add     r4, r7, r4, lsr #8          ; 1 + (((range-1) * probability) >> 8)
+    add     r4, r7, r6, lsr #8          ; 1 + (((range-1) * probability) >> 8)
 
     addne   r2, r2, r4                  ; if  (bit) lowvalue += split
     subne   r4, r5, r4                  ; if  (bit) range = range-split

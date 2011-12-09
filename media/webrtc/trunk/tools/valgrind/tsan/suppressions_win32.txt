@@ -1,0 +1,108 @@
+############################
+# Chromium
+
+{
+  Benign race durung InitializeClock
+  ThreadSanitizer:Race
+  ...
+  fun:*InitializeClock*
+}
+
+{
+  bug_62560
+  ThreadSanitizer:Race
+  ...
+  fun:_initterm
+  fun:doexit
+}
+
+############################
+# Reports on the guts of Windows
+{
+  UuidCreate
+  ThreadSanitizer:Race
+  ...
+  fun:UuidCreate
+}
+
+{
+  ILFindLastID
+  ThreadSanitizer:Race
+  ...
+  fun:ILFindLastID
+}
+
+{
+  RpcServerUnregisterIf
+  ThreadSanitizer:Race
+  ...
+  fun:RpcServerUnregisterIf
+}
+
+# http://code.google.com/p/data-race-test/issues/detail?id=45
+{
+  accessing an invalid lock in unnamedImageEntryPoint
+  ThreadSanitizer:InvalidLock
+  fun:unnamedImageEntryPoint
+}
+{
+  accessing an invalid lock in CoFreeAllLibraries
+  ThreadSanitizer:InvalidLock
+  fun:CoFreeAllLibraries
+}
+{
+  accessing an invalid lock under exit/doexit
+  ThreadSanitizer:InvalidLock
+  fun:*~Lock*
+  ...
+  fun:doexit
+  fun:exit
+}
+{
+  bug_81793a
+  ThreadSanitizer:Race
+  ...
+  fun:NetTestSuite::InitializeTestThread
+}
+{
+  bug_81793b
+  ThreadSanitizer:Race
+  fun:MessageLoop::CalculateDelayedRuntime
+  fun:MessageLoop::PostDelayedTask
+  fun:net::internal::ClientSocketPoolBaseHelper::Group::StartBackupSocketTimer
+}
+{
+  bug_93932a
+  ThreadSanitizer:Race
+  fun:avcodec_default_release_buffer 
+  fun:ff_mpeg4video_split
+}
+{
+  bug_93932b
+  ThreadSanitizer:Race
+  ...
+  fun:ff_mpeg4video_split
+  fun:avcodec_close
+  fun:media::FFmpegVideoDecodeEngine::~FFmpegVideoDecodeEngine
+}
+{
+  bug_93932c
+  ThreadSanitizer:Race
+  ...
+  fun:ff_thread_decode_frame
+  fun:avcodec_decode_video2
+  fun:media::FFmpegVideoDecodeEngine::DecodeFrame
+}
+{
+  bug_93932d
+  ThreadSanitizer:Race
+  fun:memcpy
+  fun:media::CopyPlane
+}
+{
+  bug_93932e
+  ThreadSanitizer:Race
+  ...
+  fun:ff_thread_finish_setup
+  fun:ptw32_threadStart@4
+}
