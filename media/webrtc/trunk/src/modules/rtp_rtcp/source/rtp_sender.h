@@ -49,6 +49,7 @@ public:
     virtual WebRtc_UWord16 IncrementSequenceNumber() = 0;
     virtual WebRtc_UWord16 SequenceNumber()   const = 0;
     virtual WebRtc_UWord16 MaxPayloadLength() const = 0;
+    virtual WebRtc_UWord16 MaxDataPayloadLength() const = 0;
     virtual WebRtc_UWord16 PacketOverHead() const = 0;
     virtual WebRtc_UWord16 TargetSendBitrateKbit() const = 0;
     virtual WebRtc_UWord16 ActualSendBitrateKbit() const = 0;
@@ -62,7 +63,7 @@ public:
 class RTPSender : public Bitrate, public RTPSenderInterface
 {
 public:
-    RTPSender(const WebRtc_Word32 id, const bool audio);
+    RTPSender(const WebRtc_Word32 id, const bool audio, RtpRtcpClock* clock);
     virtual ~RTPSender();
 
     WebRtc_Word32 Init(const WebRtc_UWord32 remoteSSRC);

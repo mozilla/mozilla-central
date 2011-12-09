@@ -50,9 +50,9 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/NetEQ/main/interface \
-	-Isrc/modules/audio_coding/codecs/CNG/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface
+	-Isrc/modules/audio_coding/neteq/interface \
+	-Isrc/modules/audio_coding/codecs/cng/include \
+	-Isrc/common_audio/signal_processing/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -104,43 +104,43 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/NetEQ/main/interface \
-	-Isrc/modules/audio_coding/codecs/CNG/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface
+	-Isrc/modules/audio_coding/neteq/interface \
+	-Isrc/modules/audio_coding/codecs/cng/include \
+	-Isrc/common_audio/signal_processing/include
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/accelerate.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/automode.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/bgn_update.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/bufstats_decision.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/cng_internal.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/codec_db.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/correlator.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/dsp.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/dsp_helpfunctions.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/dtmf_buffer.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/dtmf_tonegen.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/expand.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/mcu_address_init.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/mcu_dsp_common.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/mcu_reset.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/merge.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/min_distortion.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/mix_voice_unvoice.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/mute_signal.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/normal.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/packet_buffer.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/peak_detection.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/preemptive_expand.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/random_vector.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/recin.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/recout.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/rtcp.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/rtp.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/set_fs.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/signal_mcu.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/split_and_insert.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/unmute_signal.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/source/webrtc_neteq.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/neteq/accelerate.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/automode.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/bgn_update.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/bufstats_decision.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/cng_internal.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/codec_db.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/correlator.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/dsp.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/dsp_helpfunctions.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/dtmf_buffer.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/dtmf_tonegen.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/expand.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/mcu_address_init.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/mcu_dsp_common.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/mcu_reset.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/merge.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/min_distortion.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/mix_voice_unvoice.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/mute_signal.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/normal.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/packet_buffer.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/peak_detection.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/preemptive_expand.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/random_vector.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/recin.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/recout.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/rtcp.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/rtp.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/set_fs.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/signal_mcu.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/split_and_insert.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/unmute_signal.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/webrtc_neteq.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

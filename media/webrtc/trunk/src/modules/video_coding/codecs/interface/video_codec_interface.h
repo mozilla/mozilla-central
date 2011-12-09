@@ -8,13 +8,13 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#ifndef VIDEO_CODEC_INTERFACE_H
-#define VIDEO_CODEC_INTERFACE_H
+#ifndef WEBRTC_MODULES_VIDEO_CODING_CODECS_INTERFACE_VIDEO_CODEC_INTERFACE_H
+#define WEBRTC_MODULES_VIDEO_CODING_CODECS_INTERFACE_VIDEO_CODEC_INTERFACE_H
 
 #include "common_types.h"
+#include "common_video/interface/video_image.h"
+#include "modules/video_coding/codecs/interface/video_error_codes.h"
 #include "typedefs.h"
-#include "video_image.h"
-#include "video_error_codes.h"
 
 namespace webrtc
 {
@@ -33,6 +33,8 @@ struct CodecSpecificInfoVP8
     bool             nonReference;
     WebRtc_UWord8    simulcastIdx;
     WebRtc_UWord8    temporalIdx;
+    int              tl0PicIdx;         // Negative value to skip tl0PicIdx
+    WebRtc_Word8     keyIdx;            // negative value to skip keyIdx
 };
 
 union CodecSpecificInfoUnion
@@ -129,14 +131,16 @@ public:
     // Return value                : WEBRTC_VIDEO_CODEC_OK if OK, < 0 otherwise.
     virtual WebRtc_Word32 Reset() = 0;
 
-    // Inform the encoder about the packet loss and round trip time on the network
-    // used to decide the best pattern and signaling.
+    // Inform the encoder about the packet loss and round trip time on the
+    // network used to decide the best pattern and signaling.
     //
-    //          - packetLoss       : Fraction lost
-    //                               (loss rate in percent = 100 * packetLoss / 255)
+    //          - packetLoss       : Fraction lost (loss rate in percent =
+    //                               100 * packetLoss / 255)
+    //          - rtt              : Round-trip time in milliseconds
     //
     // Return value                : WEBRTC_VIDEO_CODEC_OK if OK, < 0 otherwise.
-    virtual WebRtc_Word32 SetPacketLoss(WebRtc_UWord32 packetLoss) = 0;
+    virtual WebRtc_Word32 SetChannelParameters(WebRtc_UWord32 packetLoss,
+                                               int rtt) = 0;
 
     // Inform the encoder about the new target bit rate.
     //
@@ -256,4 +260,4 @@ public:
 
 } // namespace webrtc
 
-#endif // VIDEO_CODEC_INTERFACE_H
+#endif // WEBRTC_MODULES_VIDEO_CODING_CODECS_INTERFACE_VIDEO_CODEC_INTERFACE_H

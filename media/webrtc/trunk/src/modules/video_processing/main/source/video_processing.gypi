@@ -13,8 +13,8 @@
       'type': '<(library)',
       'dependencies': [
         'webrtc_utility',
-        '<(webrtc_root)/common_audio/common_audio.gyp:spl',
-        '<(webrtc_root)/common_video/common_video.gyp:webrtc_vplib',
+        '<(webrtc_root)/common_audio/common_audio.gyp:signal_processing',
+         '<(webrtc_root)/common_video/common_video.gyp:webrtc_libyuv',
         '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
       ],
       'include_dirs': [
@@ -33,6 +33,7 @@
         # headers
         'video_processing_impl.h',
         'brightness_detection.h',
+	'brighten.h',
         'color_enhancement.h',
         'color_enhancement_private.h',
         'content_analysis.h',
@@ -45,6 +46,7 @@
         # sources
         'video_processing_impl.cc',
         'brightness_detection.cc',
+	'brighten.cc',
         'color_enhancement.cc',
         'content_analysis.cc',
         'deflickering.cc',

@@ -50,7 +50,7 @@ INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/test \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/util
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
@@ -103,7 +103,7 @@ INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/test \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/util
 
 OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iSAC/main/test/SwitchingSampRate/SwitchingSampRate.o \
@@ -113,7 +113,7 @@ OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iSAC/main/test/S
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libspl.a
+$(OBJS): | $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libsignal_processing.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -158,13 +158,17 @@ LIBS :=
 
 $(builddir)/iSACSwitchSampRateTest: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/iSACSwitchSampRateTest: LIBS := $(LIBS)
-$(builddir)/iSACSwitchSampRateTest: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libspl.a
+$(builddir)/iSACSwitchSampRateTest: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libsignal_processing.a
 $(builddir)/iSACSwitchSampRateTest: TOOLSET := $(TOOLSET)
-$(builddir)/iSACSwitchSampRateTest: $(OBJS) $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libspl.a FORCE_DO_CMD
+$(builddir)/iSACSwitchSampRateTest: $(OBJS) $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libsignal_processing.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/iSACSwitchSampRateTest
 # Add target alias
 .PHONY: iSACSwitchSampRateTest
 iSACSwitchSampRateTest: $(builddir)/iSACSwitchSampRateTest
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/iSACSwitchSampRateTest
 

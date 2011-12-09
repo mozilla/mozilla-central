@@ -20,7 +20,7 @@ LOCAL_SRC_FILES := \
     fft4g.c \
     ring_buffer.c \
     delay_estimator.c \
-    delay_estimator_float.c
+    delay_estimator_wrapper.c
 
 # Flags passed to both C and C++ files.
 LOCAL_CFLAGS := \
@@ -30,7 +30,7 @@ LOCAL_CFLAGS := \
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH) \
     $(LOCAL_PATH)/../../.. \
-    $(LOCAL_PATH)/../../../common_audio/signal_processing_library/main/interface
+    $(LOCAL_PATH)/../../../common_audio/signal_processing/include
 
 LOCAL_SHARED_LIBRARIES := \
     libcutils \

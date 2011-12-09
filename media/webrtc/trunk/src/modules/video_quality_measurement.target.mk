@@ -51,15 +51,10 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/video_coding/codecs/test \
-	-Isrc/modules/video_coding/codecs/interface \
-	-Isrc/common_video/interface \
-	-Itesting/gtest/include \
-	-Isrc/modules/video_coding/main/test \
+	-Itest \
 	-Isrc/modules/video_coding/codecs/vp8/main/interface \
 	-Isrc/common_video/interface \
-	-Isrc/system_wrappers/interface \
-	-Isrc/common_video/vplib/main/interface \
+	-Isrc/modules/video_coding/codecs/interface \
 	-Ithird_party/google-gflags/gen/arch/linux/x64/include \
 	-Ithird_party/google-gflags/src
 
@@ -114,15 +109,10 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/video_coding/codecs/test \
-	-Isrc/modules/video_coding/codecs/interface \
-	-Isrc/common_video/interface \
-	-Itesting/gtest/include \
-	-Isrc/modules/video_coding/main/test \
+	-Itest \
 	-Isrc/modules/video_coding/codecs/vp8/main/interface \
 	-Isrc/common_video/interface \
-	-Isrc/system_wrappers/interface \
-	-Isrc/common_video/vplib/main/interface \
+	-Isrc/modules/video_coding/codecs/interface \
 	-Ithird_party/google-gflags/gen/arch/linux/x64/include \
 	-Ithird_party/google-gflags/src
 
@@ -132,7 +122,7 @@ OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/codecs/tools/video_qual
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/modules/libvideo_coding_test_lib.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a $(obj).target/testing/libgtest.a $(obj).target/third_party/libvpx/libvpx.a
+$(OBJS): | $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -168,13 +158,17 @@ LIBS := -lrt
 
 $(builddir)/video_quality_measurement: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/video_quality_measurement: LIBS := $(LIBS)
-$(builddir)/video_quality_measurement: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/modules/libvideo_coding_test_lib.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a $(obj).target/testing/libgtest.a $(obj).target/third_party/libvpx/libvpx.a
+$(builddir)/video_quality_measurement: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a
 $(builddir)/video_quality_measurement: TOOLSET := $(TOOLSET)
-$(builddir)/video_quality_measurement: $(OBJS) $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/modules/libvideo_coding_test_lib.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a $(obj).target/testing/libgtest.a $(obj).target/third_party/libvpx/libvpx.a FORCE_DO_CMD
+$(builddir)/video_quality_measurement: $(OBJS) $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/video_quality_measurement
 # Add target alias
 .PHONY: video_quality_measurement
 video_quality_measurement: $(builddir)/video_quality_measurement
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/video_quality_measurement
 

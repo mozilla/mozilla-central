@@ -8,7 +8,10 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "tick_util.h"
+#if _WIN32
+#include <windows.h>
+#endif
+
 #include "trace.h"
 #include "overuse_detector.h"
 #include "remote_rate_control.h"
@@ -135,11 +138,13 @@ void OverUseDetector::Reset()
     }
 }
 
-bool OverUseDetector::Update(const WebRtcRTPHeader& rtpHeader, const WebRtc_UWord16 packetSize)
+bool OverUseDetector::Update(const WebRtcRTPHeader& rtpHeader,
+                             const WebRtc_UWord16 packetSize,
+                             const WebRtc_Word64 nowMS)
 {
 #ifdef MATLAB
     // Create plots
-    const WebRtc_Word64 startTimeMs = TickTime::MillisecondTimestamp();
+    const WebRtc_Word64 startTimeMs = nowMS;
     if (_plot1 == NULL)
     {
         _plot1 = eng.NewPlot(new MatlabPlot());
@@ -173,7 +178,6 @@ bool OverUseDetector::Update(const WebRtcRTPHeader& rtpHeader, const WebRtc_UWor
 
     bool wrapped = false;
     bool completeFrame = false;
-    const WebRtc_Word64 nowMs = TickTime::MillisecondTimestamp();
     if (_currentFrame._timestamp == -1)
     {
         _currentFrame._timestamp = rtpHeader.header.timestamp;
@@ -206,55 +210,12 @@ bool OverUseDetector::Update(const WebRtcRTPHeader& rtpHeader, const WebRtc_UWor
     }
     // Accumulate the frame size
     _currentFrame._size += packetSize;
-    _currentFrame._completeTimeMs = nowMs;
+    _currentFrame._completeTimeMs = nowMS;
     return completeFrame;
 }
 
 BandwidthUsage OverUseDetector::State() const
 {
-#ifdef _DEBUG
-    char logStr[256];
-    static BandwidthUsage oldState = kBwNormal;
-    if (_hypothesis != oldState)
-    {
-        switch(_hypothesis)
-        {
-        case kBwOverusing:
-            {
-#ifdef _WIN32
-                _snprintf(logStr,256, "State: OVER-USING\n");
-#else
-                snprintf(logStr,256, "State: OVER-USING\n");
-#endif
-                break;
-            }
-        case kBwUnderUsing:
-            {
-#ifdef _WIN32
-                _snprintf(logStr,256, "State: UNDER-USING\n");
-#else
-                snprintf(logStr,256, "State: UNDER-USING\n");
-#endif
-                break;
-            }
-        case kBwNormal:
-            {
-#ifdef _WIN32
-                _snprintf(logStr,256, "State: NORMAL\n");
-#else
-                snprintf(logStr,256, "State: NORMAL\n");
-#endif
-                break;
-            }
-        }
-#ifdef _WIN32
-        OutputDebugStringA(logStr);
-#else
-        //TODO
-#endif
-        oldState = _hypothesis;
-    }
-#endif
     return _hypothesis;
 }
 

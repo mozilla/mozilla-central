@@ -41,19 +41,19 @@ LOCAL_CFLAGS := \
 
 LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/../interface \
-    $(LOCAL_PATH)/../../codecs/CNG/main/interface \
-    $(LOCAL_PATH)/../../codecs/G711/main/interface \
-    $(LOCAL_PATH)/../../codecs/G722/main/interface \
-    $(LOCAL_PATH)/../../codecs/iLBC/main/interface \
+    $(LOCAL_PATH)/../../codecs/cng/include \
+    $(LOCAL_PATH)/../../codecs/g711/include \
+    $(LOCAL_PATH)/../../codecs/g722/include \
+    $(LOCAL_PATH)/../../codecs/ilbc/interface \
     $(LOCAL_PATH)/../../codecs/iSAC/main/interface \
     $(LOCAL_PATH)/../../codecs/iSAC/fix/interface \
-    $(LOCAL_PATH)/../../codecs/PCM16B/main/interface \
-    $(LOCAL_PATH)/../../NetEQ/main/interface \
+    $(LOCAL_PATH)/../../codecs/pcm16b/include \
+    $(LOCAL_PATH)/../../neteq/interface \
     $(LOCAL_PATH)/../../../.. \
     $(LOCAL_PATH)/../../../interface \
-    $(LOCAL_PATH)/../../../../common_audio/resampler/main/interface \
-    $(LOCAL_PATH)/../../../../common_audio/signal_processing_library/main/interface \
-    $(LOCAL_PATH)/../../../../common_audio/vad/main/interface \
+    $(LOCAL_PATH)/../../../../common_audio/resampler/include \
+    $(LOCAL_PATH)/../../../../common_audio/signal_processing/include \
+    $(LOCAL_PATH)/../../../../common_audio/vad/include \
     $(LOCAL_PATH)/../../../../system_wrappers/interface 
 
 LOCAL_SHARED_LIBRARIES := \

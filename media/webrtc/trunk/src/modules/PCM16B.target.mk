@@ -48,7 +48,7 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/codecs/PCM16B/main/interface
+	-Isrc/modules/audio_coding/codecs/pcm16b/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -98,9 +98,9 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/codecs/PCM16B/main/interface
+	-Isrc/modules/audio_coding/codecs/pcm16b/include
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/PCM16B/main/source/pcm16b.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/pcm16b/pcm16b.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

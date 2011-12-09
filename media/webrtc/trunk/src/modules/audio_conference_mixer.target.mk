@@ -50,6 +50,7 @@ INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/audio_conference_mixer/interface \
 	-Isrc/modules/interface \
+	-Isrc/modules/audio_processing/interface \
 	-Isrc/system_wrappers/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
@@ -102,6 +103,7 @@ INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/audio_conference_mixer/interface \
 	-Isrc/modules/interface \
+	-Isrc/modules/audio_processing/interface \
 	-Isrc/system_wrappers/interface
 
 OBJS := $(obj).target/$(TARGET)/src/modules/audio_conference_mixer/source/audio_frame_manipulator.o \

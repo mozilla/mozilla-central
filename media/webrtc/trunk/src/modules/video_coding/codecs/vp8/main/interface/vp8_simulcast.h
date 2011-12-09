@@ -20,7 +20,8 @@
 #ifndef WEBRTC_MODULES_VIDEO_CODING_CODECS_VP8_SIMULCAST_H_
 #define WEBRTC_MODULES_VIDEO_CODING_CODECS_VP8_SIMULCAST_H_
 
-#include "interpolator.h"
+#include "common_video/libyuv/include/scaler.h"
+
 #include "video_codec_interface.h"
 #include "vp8.h"
 
@@ -96,15 +97,18 @@ public:
   virtual WebRtc_Word32 RegisterEncodeCompleteCallback(
       EncodedImageCallback* callback);
 
-// Inform the encoder of the new packet loss rate in the network
+// Inform the encoder of the new packet loss rate and round-trip time of the
+// network
 //
 //          - packetLoss       : Fraction lost
 //                               (loss rate in percent = 100 * packetLoss / 255)
+//          - rtt              : Round-trip time in milliseconds
 // Return value                : WEBRTC_VIDEO_CODEC_OK if OK
 //                               <0 - Errors:
 //                                  WEBRTC_VIDEO_CODEC_ERROR
 //
-  virtual WebRtc_Word32 SetPacketLoss(WebRtc_UWord32 packetLoss);
+  virtual WebRtc_Word32 SetChannelParameters(WebRtc_UWord32 packetLoss,
+                                             int rtt);
 
 // Inform the encoder about the new target bit rate.
 //
@@ -135,7 +139,7 @@ private:
   VP8Encoder* encoder_[kMaxSimulcastStreams];
   bool encode_stream_[kMaxSimulcastStreams];
   VideoFrameType frame_type_[kMaxSimulcastStreams];
-  interpolator* interpolator_[kMaxSimulcastStreams];
+  Scaler* scaler_[kMaxSimulcastStreams];
   RawImage video_frame_[kMaxSimulcastStreams];
   VideoCodec video_codec_;
 };// end of VP8SimulcastEncoder class

@@ -17,6 +17,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
@@ -48,8 +50,9 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/NetEQ/main/test \
-	-Isrc/modules/audio_coding/NetEQ/main/interface
+	-Isrc/modules/audio_coding/neteq/interface \
+	-Isrc/modules/audio_coding/neteq/test \
+	-Itesting/gtest/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -66,6 +69,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
@@ -99,16 +104,17 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/NetEQ/main/test \
-	-Isrc/modules/audio_coding/NetEQ/main/interface
+	-Isrc/modules/audio_coding/neteq/interface \
+	-Isrc/modules/audio_coding/neteq/test \
+	-Itesting/gtest/include
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/test/RTPcat.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/neteq/test/RTPcat.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libNetEqTestTools.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libCNG.a
+$(OBJS): | $(obj).target/src/modules/libNetEqTestTools.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libCNG.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -144,13 +150,17 @@ LIBS :=
 
 $(builddir)/RTPcat: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/RTPcat: LIBS := $(LIBS)
-$(builddir)/RTPcat: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libNetEqTestTools.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libCNG.a
+$(builddir)/RTPcat: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libNetEqTestTools.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libCNG.a
 $(builddir)/RTPcat: TOOLSET := $(TOOLSET)
-$(builddir)/RTPcat: $(OBJS) $(obj).target/src/modules/libNetEqTestTools.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libCNG.a FORCE_DO_CMD
+$(builddir)/RTPcat: $(OBJS) $(obj).target/src/modules/libNetEqTestTools.a $(obj).target/testing/libgtest.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libCNG.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/RTPcat
 # Add target alias
 .PHONY: RTPcat
 RTPcat: $(builddir)/RTPcat
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/RTPcat
 

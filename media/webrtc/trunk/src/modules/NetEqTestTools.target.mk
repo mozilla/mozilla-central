@@ -30,6 +30,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCODEC_CNGCODEC32' \
 	'-DCODEC_ATEVENT_DECODE' \
 	'-DCODEC_RED' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
@@ -47,7 +49,6 @@ CFLAGS_Debug := -Werror \
 	-pipe \
 	-fPIC \
 	-fno-strict-aliasing \
-	-fexceptions \
 	-O0 \
 	-g
 
@@ -62,15 +63,15 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/NetEQ/main/source \
-	-Isrc/modules/audio_coding/NetEQ/main/interface \
-	-Isrc/modules/audio_coding/NetEQ/main/test \
-	-Isrc/modules/audio_coding/codecs/G711/main/interface \
-	-Isrc/modules/audio_coding/codecs/G722/main/interface \
-	-Isrc/modules/audio_coding/codecs/PCM16B/main/interface \
-	-Isrc/modules/audio_coding/codecs/iLBC/main/interface \
+	-Isrc/modules/audio_coding/neteq/interface \
+	-Isrc/modules/audio_coding/neteq/test \
+	-Isrc/modules/audio_coding/codecs/g711/include \
+	-Isrc/modules/audio_coding/codecs/g722/include \
+	-Isrc/modules/audio_coding/codecs/pcm16b/include \
+	-Isrc/modules/audio_coding/codecs/ilbc/interface \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/interface \
-	-Isrc/modules/audio_coding/codecs/CNG/main/interface
+	-Isrc/modules/audio_coding/codecs/cng/include \
+	-Itesting/gtest/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -100,6 +101,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCODEC_CNGCODEC32' \
 	'-DCODEC_ATEVENT_DECODE' \
 	'-DCODEC_RED' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
@@ -117,7 +120,6 @@ CFLAGS_Release := -Werror \
 	-pipe \
 	-fPIC \
 	-fno-strict-aliasing \
-	-fexceptions \
 	-O2 \
 	-fno-ident \
 	-fdata-sections \
@@ -134,19 +136,19 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/NetEQ/main/source \
-	-Isrc/modules/audio_coding/NetEQ/main/interface \
-	-Isrc/modules/audio_coding/NetEQ/main/test \
-	-Isrc/modules/audio_coding/codecs/G711/main/interface \
-	-Isrc/modules/audio_coding/codecs/G722/main/interface \
-	-Isrc/modules/audio_coding/codecs/PCM16B/main/interface \
-	-Isrc/modules/audio_coding/codecs/iLBC/main/interface \
+	-Isrc/modules/audio_coding/neteq/interface \
+	-Isrc/modules/audio_coding/neteq/test \
+	-Isrc/modules/audio_coding/codecs/g711/include \
+	-Isrc/modules/audio_coding/codecs/g722/include \
+	-Isrc/modules/audio_coding/codecs/pcm16b/include \
+	-Isrc/modules/audio_coding/codecs/ilbc/interface \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/interface \
-	-Isrc/modules/audio_coding/codecs/CNG/main/interface
+	-Isrc/modules/audio_coding/codecs/cng/include \
+	-Itesting/gtest/include
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/test/NETEQTEST_NetEQClass.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/test/NETEQTEST_RTPpacket.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/test/NETEQTEST_CodecClass.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/neteq/test/NETEQTEST_NetEQClass.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/test/NETEQTEST_RTPpacket.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/neteq/test/NETEQTEST_CodecClass.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
@@ -193,4 +195,8 @@ all_deps += $(obj).target/src/modules/libNetEqTestTools.a
 # Add target alias
 .PHONY: NetEqTestTools
 NetEqTestTools: $(obj).target/src/modules/libNetEqTestTools.a
+
+# Add target alias to "all" target.
+.PHONY: all
+all: NetEqTestTools
 

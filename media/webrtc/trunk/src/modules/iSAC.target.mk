@@ -49,7 +49,7 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface
+	-Isrc/common_audio/signal_processing/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -100,7 +100,7 @@ CFLAGS_CC_Release := -fno-rtti \
 INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface
+	-Isrc/common_audio/signal_processing/include
 
 OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iSAC/main/source/arith_routines.o \
 	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iSAC/main/source/arith_routines_hist.o \

@@ -13,19 +13,19 @@
       'type': '<(library)',
       'dependencies': [
         'webrtc_utility',
-        '<(webrtc_root)/common_video/common_video.gyp:webrtc_vplib',
+          '<(webrtc_root)/common_video/common_video.gyp:webrtc_libyuv',
         '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
       ],
       'include_dirs': [
         '../interface',
         '../../../interface',
-        '../../../../common_video/vplib/main/interface',
+        '<(webrtc_root)/common_video/libyuv/include',
       ],
       'direct_dependent_settings': {
         'include_dirs': [
           '../interface',
           '../../../interface',
-          '../../../../common_video/vplib/main/interface',
+          '<(webrtc_root)/common_video/libyuv/include',
         ],
       },
       'sources': [
@@ -194,45 +194,24 @@
    # Exclude the test targets when building with chromium.
   'conditions': [
     ['build_with_chromium==0', {
-      'targets': [
-        {
+      'targets': [        
+        {        
           'target_name': 'video_capture_module_test',
           'type': 'executable',
           'dependencies': [
            'video_capture_module',
-           '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
            'webrtc_utility',
-           'video_render_module',
-           'webrtc_video_coding',
+           '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
+           '<(webrtc_root)/../testing/gtest.gyp:gtest',
+           '<(webrtc_root)/../test/test.gyp:test_support_main',
           ],
           'include_dirs': [
             '../interface',
           ],
           'sources': [
-            # sources
-            '../test/testAPI/cocoa_renderer.h',
-            '../test/testAPI/cocoa_renderer.mm',
-            '../test/testAPI/testDefines.h',
-            '../test/testAPI/testAPI.cpp',
-            '../test/testAPI/testCameraEncoder.cpp',
-            '../test/testAPI/testCameraEncoder.h',
-            '../test/testAPI/testExternalCapture.cpp',
-            '../test/testAPI/testExternalCapture.h',
-            '../test/testAPI/testPlatformDependent.cpp',
-            '../test/testAPI/testPlatformDependent.h',
-            '../test/testAPI/Logger.h',
-            '../test/testAPI/Logger.cpp',
-            '../test/testAPI/Renderer.h',
-            '../test/testAPI/Renderer.cpp',
-          ], # source
-          'conditions': [
-            # DEFINE PLATFORM SPECIFIC SOURCE FILES
-            ['OS!="mac"', {
-              'sources!': [
-                '../test/testAPI/cocoa_renderer.h',
-                '../test/testAPI/cocoa_renderer.mm',
-              ],
-            }],
+            '../test/video_capture_unittest.cc',
+          ],
+          'conditions': [            
            # DEFINE PLATFORM SPECIFIC INCLUDE AND CFLAGS
             ['OS=="mac" or OS=="linux"', {
               'cflags': [

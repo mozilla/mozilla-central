@@ -54,7 +54,8 @@ INCS_Debug := -Isrc \
 	-Isrc/common_video/interface \
 	-Isrc/modules/video_coding/codecs/i420/main/interface \
 	-Isrc/modules/video_coding/codecs/vp8/main/interface \
-	-Isrc/common_video/vplib/main/interface \
+	-Isrc/common_video/interface \
+	-Isrc/modules/video_coding/codecs/interface \
 	-Isrc/system_wrappers/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
@@ -111,7 +112,8 @@ INCS_Release := -Isrc \
 	-Isrc/common_video/interface \
 	-Isrc/modules/video_coding/codecs/i420/main/interface \
 	-Isrc/modules/video_coding/codecs/vp8/main/interface \
-	-Isrc/common_video/vplib/main/interface \
+	-Isrc/common_video/interface \
+	-Isrc/modules/video_coding/codecs/interface \
 	-Isrc/system_wrappers/interface
 
 OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/main/source/codec_database.o \

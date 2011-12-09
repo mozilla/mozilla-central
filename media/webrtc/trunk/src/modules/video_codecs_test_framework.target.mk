@@ -17,11 +17,6 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
-	'-DUNIT_TEST' \
-	'-DGTEST_HAS_RTTI=0' \
-	'-DGFLAGS_DLL_DECL=' \
-	'-DGFLAGS_DLL_DECLARE_FLAG=' \
-	'-DGFLAGS_DLL_DEFINE_FLAG=' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
@@ -53,14 +48,7 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/video_coding/codecs/interface \
-	-Isrc/common_video/interface \
-	-Itesting/gtest/include \
-	-Isrc/system_wrappers/interface \
-	-Isrc/common_video/vplib/main/interface \
-	-Itesting/gtest/include \
-	-Ithird_party/google-gflags/gen/arch/linux/x64/include \
-	-Ithird_party/google-gflags/src
+	-Itest
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -77,11 +65,6 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
-	'-DUNIT_TEST' \
-	'-DGTEST_HAS_RTTI=0' \
-	'-DGFLAGS_DLL_DECL=' \
-	'-DGFLAGS_DLL_DECLARE_FLAG=' \
-	'-DGFLAGS_DLL_DEFINE_FLAG=' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
@@ -115,21 +98,11 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/video_coding/codecs/interface \
-	-Isrc/common_video/interface \
-	-Itesting/gtest/include \
-	-Isrc/system_wrappers/interface \
-	-Isrc/common_video/vplib/main/interface \
-	-Itesting/gtest/include \
-	-Ithird_party/google-gflags/gen/arch/linux/x64/include \
-	-Ithird_party/google-gflags/src
+	-Itest
 
-OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/file_handler.o \
-	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/packet_manipulator.o \
-	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/packet_reader.o \
+OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/packet_manipulator.o \
 	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/stats.o \
-	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/videoprocessor.o \
-	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/util.o
+	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/videoprocessor.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
@@ -176,4 +149,8 @@ all_deps += $(obj).target/src/modules/libvideo_codecs_test_framework.a
 # Add target alias
 .PHONY: video_codecs_test_framework
 video_codecs_test_framework: $(obj).target/src/modules/libvideo_codecs_test_framework.a
+
+# Add target alias to "all" target.
+.PHONY: all
+all: video_codecs_test_framework
 

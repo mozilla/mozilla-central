@@ -50,14 +50,10 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/common_video/interface \
-	-Isrc/modules/video_coding/codecs/interface \
-	-Itesting/gtest/include \
+	-Itest \
 	-Isrc/system_wrappers/interface \
-	-Isrc/common_video/vplib/main/interface \
 	-Itesting/gmock/include \
-	-Itesting/gtest/include \
-	-Itest
+	-Itesting/gtest/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -109,19 +105,12 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/common_video/interface \
-	-Isrc/modules/video_coding/codecs/interface \
-	-Itesting/gtest/include \
+	-Itest \
 	-Isrc/system_wrappers/interface \
-	-Isrc/common_video/vplib/main/interface \
 	-Itesting/gmock/include \
-	-Itesting/gtest/include \
-	-Itest
+	-Itesting/gtest/include
 
-OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/file_handler_unittest.o \
-	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/packet_manipulator_unittest.o \
-	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/packet_reader_unittest.o \
-	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/run_all_unittests.o \
+OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/packet_manipulator_unittest.o \
 	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/stats_unittest.o \
 	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/videoprocessor_unittest.o
 
@@ -129,7 +118,7 @@ OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/codecs/test/file_handle
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/testing/libgmock.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a
+$(OBJS): | $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgmock.a $(obj).target/test/libtest_support_main.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -165,13 +154,17 @@ LIBS := -lrt
 
 $(builddir)/video_codecs_test_framework_unittests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/video_codecs_test_framework_unittests: LIBS := $(LIBS)
-$(builddir)/video_codecs_test_framework_unittests: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/testing/libgmock.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a
+$(builddir)/video_codecs_test_framework_unittests: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgmock.a $(obj).target/test/libtest_support_main.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a
 $(builddir)/video_codecs_test_framework_unittests: TOOLSET := $(TOOLSET)
-$(builddir)/video_codecs_test_framework_unittests: $(OBJS) $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/testing/libgmock.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a FORCE_DO_CMD
+$(builddir)/video_codecs_test_framework_unittests: $(OBJS) $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgmock.a $(obj).target/test/libtest_support_main.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/video_codecs_test_framework_unittests
 # Add target alias
 .PHONY: video_codecs_test_framework_unittests
 video_codecs_test_framework_unittests: $(builddir)/video_codecs_test_framework_unittests
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/video_codecs_test_framework_unittests
 

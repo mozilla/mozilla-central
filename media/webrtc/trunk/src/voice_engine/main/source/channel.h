@@ -11,28 +11,28 @@
 #ifndef WEBRTC_VOICE_ENGINE_CHANNEL_H
 #define WEBRTC_VOICE_ENGINE_CHANNEL_H
 
-#include "voe_network.h"
-
 #include "audio_coding_module.h"
+#include "audio_conference_mixer_defines.h"
 #include "common_types.h"
-#include "shared_data.h"
+#include "dtmf_inband.h"
+#include "dtmf_inband_queue.h"
+#include "file_player.h"
+#include "file_recorder.h"
+#include "level_indicator.h"
+#include "resampler.h"
 #include "rtp_rtcp.h"
+#include "scoped_ptr.h"
+#include "shared_data.h"
 #include "voe_audio_processing.h"
+#include "voe_network.h"
 #include "voice_engine_defines.h"
 
 #ifndef WEBRTC_EXTERNAL_TRANSPORT
 #include "udp_transport.h"
 #endif
-#include "audio_conference_mixer_defines.h"
-#include "file_player.h"
-#include "file_recorder.h"
 #ifdef WEBRTC_SRTP
 #include "SrtpModule.h"
 #endif
-#include "dtmf_inband.h"
-#include "dtmf_inband_queue.h"
-#include "level_indicator.h"
-#include "resampler.h"
 #ifdef WEBRTC_DTMF_DETECTION
 #include "voe_dtmf.h" // TelephoneEventDetectionMethods, TelephoneEventObserver
 #endif
@@ -79,7 +79,6 @@ class Channel:
 public:
     enum {KNumSocketThreads = 1};
     enum {KNumberOfSocketBuffers = 8};
-    static WebRtc_UWord8 numSocketThreads;
 public:
     virtual ~Channel();
     static WebRtc_Word32 CreateChannel(Channel*& channel,
@@ -243,9 +242,6 @@ public:
 
     // VoENetEqStats
     int GetNetworkStatistics(NetworkStatistics& stats);
-    int GetJitterStatistics(JitterStatistics& stats);
-    int GetPreferredBufferSize(unsigned short& preferredBufferSize);
-    int ResetJitterStatistics();
 
     // VoEVideoSync
     int GetDelayEstimate(int& delayMs) const;
@@ -466,55 +462,58 @@ public:
     WebRtc_UWord32 InstanceId() const
     {
         return _instanceId;
-    };
+    }
     WebRtc_Word32 ChannelId() const
     {
         return _channelId;
-    };
+    }
     bool Playing() const
     {
         return _playing;
-    };
+    }
     bool Sending() const
     {
+        // A lock is needed because |_sending| is accessed by both
+        // TransmitMixer::PrepareDemux() and StartSend()/StopSend(), which
+        // are called by different threads.
+        CriticalSectionScoped cs(_callbackCritSect);
         return _sending;
-    };
+    }
     bool Receiving() const
     {
         return _receiving;
-    };
+    }
     bool ExternalTransport() const
     {
         return _externalTransport;
-    };
+    }
     bool OutputIsOnHold() const
     {
         return _outputIsOnHold;
-    };
+    }
     bool InputIsOnHold() const
     {
         return _inputIsOnHold;
-    };
+    }
     RtpRtcp* RtpRtcpModulePtr() const
     {
         return &_rtpRtcpModule;
-    };
+    }
     WebRtc_Word8 OutputEnergyLevel() const
     {
         return _outputAudioLevel.Level();
-    };
+    }
 #ifndef WEBRTC_EXTERNAL_TRANSPORT
     bool SendSocketsInitialized() const
     {
         return _socketTransportModule.SendSocketsInitialized();
-    };
+    }
     bool ReceiveSocketsInitialized() const
     {
         return _socketTransportModule.ReceiveSocketsInitialized();
-    };
+    }
 #endif
-    WebRtc_UWord32 Demultiplex(const AudioFrame& audioFrame,
-                               const WebRtc_UWord8 audioLevel_dBov);
+    WebRtc_UWord32 Demultiplex(const AudioFrame& audioFrame);
     WebRtc_UWord32 PrepareEncodeAndSend(int mixingFrequency);
     WebRtc_UWord32 EncodeAndSend();
 
@@ -543,6 +542,7 @@ private:
     RtpRtcp& _rtpRtcpModule;
     AudioCodingModule& _audioCodingModule;
 #ifndef WEBRTC_EXTERNAL_TRANSPORT
+    WebRtc_UWord8 _numSocketThreads;
     UdpTransport& _socketTransportModule;
 #endif
 #ifdef WEBRTC_SRTP
@@ -590,6 +590,7 @@ private:
     CriticalSectionWrapper* _callbackCritSectPtr; // owned by base
     Transport* _transportPtr; // WebRtc socket or external transport
     Encryption* _encryptionPtr; // WebRtc SRTP or external encryption
+    scoped_ptr<AudioProcessing> _rtpAudioProc;
     AudioProcessing* _rxAudioProcessingModulePtr; // far end AudioProcessing
 #ifdef WEBRTC_DTMF_DETECTION
     VoETelephoneEventObserver* _telephoneEventDetectionPtr;

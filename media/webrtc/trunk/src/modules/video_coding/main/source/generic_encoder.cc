@@ -86,9 +86,9 @@ VCMGenericEncoder::Encode(const VideoFrame& inputFrame,
 }
 
 WebRtc_Word32
-VCMGenericEncoder::SetPacketLoss(WebRtc_Word32 packetLoss)
+VCMGenericEncoder::SetChannelParameters(WebRtc_Word32 packetLoss, int rtt)
 {
-    return _encoder.SetPacketLoss(packetLoss);
+    return _encoder.SetChannelParameters(packetLoss, rtt);
 }
 
 WebRtc_Word32
@@ -267,6 +267,10 @@ void VCMEncodedFrameCallback::CopyCodecSpecific(const CodecSpecificInfo& info,
                  info.codecSpecific.VP8.nonReference;
             (*rtp)->codecHeader.VP8.temporalIdx =
                  info.codecSpecific.VP8.temporalIdx;
+            (*rtp)->codecHeader.VP8.tl0PicIdx =
+                info.codecSpecific.VP8.tl0PicIdx;
+            (*rtp)->codecHeader.VP8.keyIdx =
+                 info.codecSpecific.VP8.keyIdx;
             (*rtp)->simulcastIdx = info.codecSpecific.VP8.simulcastIdx;
             return;
         }

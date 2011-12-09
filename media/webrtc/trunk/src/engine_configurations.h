@@ -21,13 +21,16 @@
 //  [Voice] Codec settings
 // ----------------------------------------------------------------------------
 
-#define WEBRTC_CODEC_ILBC
 #define WEBRTC_CODEC_ISAC       // floating-point iSAC implementation (default)
 // #define WEBRTC_CODEC_ISACFX  // fix-point iSAC implementation
+#define WEBRTC_CODEC_AVT
+
+#ifndef WEBRTC_CHROMIUM_BUILD
+#define WEBRTC_CODEC_ILBC
 #define WEBRTC_CODEC_G722
 #define WEBRTC_CODEC_PCM16
 #define WEBRTC_CODEC_RED
-#define WEBRTC_CODEC_AVT
+#endif
 
 // ----------------------------------------------------------------------------
 //  [Video] Codec settings
@@ -47,8 +50,11 @@
 #define WEBRTC_VOICE_ENGINE_AGC                 // Near-end AGC
 #define WEBRTC_VOICE_ENGINE_ECHO                // Near-end AEC
 #define WEBRTC_VOICE_ENGINE_NR                  // Near-end NS
-#define WEBRTC_VOICE_ENGINE_TYPING_DETECTION
 #define WEBRTC_VOE_EXTERNAL_REC_AND_PLAYOUT
+
+#ifndef WEBRTC_CHROMIUM_BUILD
+#define WEBRTC_VOICE_ENGINE_TYPING_DETECTION    // Typing detection
+#endif
 
 // ----------------------------------------------------------------------------
 //  VoiceEngine sub-APIs

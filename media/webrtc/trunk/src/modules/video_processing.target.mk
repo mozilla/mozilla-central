@@ -52,8 +52,7 @@ INCS_Debug := -Isrc \
 	-Isrc/modules/utility/interface \
 	-Isrc/modules/interface \
 	-Isrc/modules/audio_coding/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
-	-Isrc/common_video/vplib/main/interface \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/system_wrappers/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
@@ -108,12 +107,12 @@ INCS_Release := -Isrc \
 	-Isrc/modules/utility/interface \
 	-Isrc/modules/interface \
 	-Isrc/modules/audio_coding/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
-	-Isrc/common_video/vplib/main/interface \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/system_wrappers/interface
 
 OBJS := $(obj).target/$(TARGET)/src/modules/video_processing/main/source/video_processing_impl.o \
 	$(obj).target/$(TARGET)/src/modules/video_processing/main/source/brightness_detection.o \
+	$(obj).target/$(TARGET)/src/modules/video_processing/main/source/brighten.o \
 	$(obj).target/$(TARGET)/src/modules/video_processing/main/source/color_enhancement.o \
 	$(obj).target/$(TARGET)/src/modules/video_processing/main/source/content_analysis.o \
 	$(obj).target/$(TARGET)/src/modules/video_processing/main/source/deflickering.o \

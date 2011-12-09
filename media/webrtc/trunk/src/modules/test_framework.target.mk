@@ -17,6 +17,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
@@ -49,9 +51,11 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/video_coding/codecs/interface \
+	-Itesting/gtest/include \
 	-Isrc/common_video/interface \
-	-Isrc/system_wrappers/interface \
-	-Isrc/common_video/vplib/main/interface
+	-Itest \
+	-Itesting/gtest/include \
+	-Isrc/system_wrappers/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -68,6 +72,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
@@ -102,9 +108,11 @@ CFLAGS_CC_Release := -fno-rtti \
 INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/video_coding/codecs/interface \
+	-Itesting/gtest/include \
 	-Isrc/common_video/interface \
-	-Isrc/system_wrappers/interface \
-	-Isrc/common_video/vplib/main/interface
+	-Itest \
+	-Itesting/gtest/include \
+	-Isrc/system_wrappers/interface
 
 OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/codecs/test_framework/benchmark.o \
 	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/test_framework/normal_async_test.o \
@@ -161,4 +169,8 @@ all_deps += $(obj).target/src/modules/libtest_framework.a
 # Add target alias
 .PHONY: test_framework
 test_framework: $(obj).target/src/modules/libtest_framework.a
+
+# Add target alias to "all" target.
+.PHONY: all
+all: test_framework
 

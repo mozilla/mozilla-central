@@ -12,7 +12,7 @@
       'target_name': 'apm_util',
       'type': '<(library)',
       'dependencies': [
-        '<(webrtc_root)/common_audio/common_audio.gyp:spl',
+        '<(webrtc_root)/common_audio/common_audio.gyp:signal_processing',
       ],
       'direct_dependent_settings': {
         'include_dirs': [
@@ -20,10 +20,10 @@
         ],
       },
       'sources': [
-        'delay_estimator_float.c',
-        'delay_estimator_float.h',
         'delay_estimator.c',
         'delay_estimator.h',
+        'delay_estimator_wrapper.c',
+        'delay_estimator_wrapper.h',
         'fft4g.c',
         'fft4g.h',
         'ring_buffer.c',

@@ -106,14 +106,17 @@ INCS_Release := -Isrc \
 	-Itest \
 	-Itesting/gtest/include
 
-OBJS := $(obj).target/$(TARGET)/test/run_all_unittests.o \
-	$(obj).target/$(TARGET)/test/testsupport/fileutils_unittest.o
+OBJS := $(obj).target/$(TARGET)/test/testsupport/fileutils_unittest.o \
+	$(obj).target/$(TARGET)/test/testsupport/frame_reader_unittest.o \
+	$(obj).target/$(TARGET)/test/testsupport/frame_writer_unittest.o \
+	$(obj).target/$(TARGET)/test/testsupport/packet_reader_unittest.o \
+	$(obj).target/$(TARGET)/test/testsupport/metrics/video_metrics_unittest.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a
+$(OBJS): | $(obj).target/test/libtest_support_main.a $(obj).target/testing/libgtest.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -149,13 +152,17 @@ LIBS :=
 
 $(builddir)/test_support_unittests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/test_support_unittests: LIBS := $(LIBS)
-$(builddir)/test_support_unittests: LD_INPUTS := $(OBJS) $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a
+$(builddir)/test_support_unittests: LD_INPUTS := $(OBJS) $(obj).target/test/libtest_support_main.a $(obj).target/testing/libgtest.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a
 $(builddir)/test_support_unittests: TOOLSET := $(TOOLSET)
-$(builddir)/test_support_unittests: $(OBJS) $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a FORCE_DO_CMD
+$(builddir)/test_support_unittests: $(OBJS) $(obj).target/test/libtest_support_main.a $(obj).target/testing/libgtest.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/test_support_unittests
 # Add target alias
 .PHONY: test_support_unittests
 test_support_unittests: $(builddir)/test_support_unittests
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/test_support_unittests
 

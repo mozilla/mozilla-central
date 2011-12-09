@@ -1,0 +1,14 @@
+# See http://crbug.com/82391
+URLRequestTestHTTP.HTTPSToHTTPRedirectNoRefererTest
+
+# Dr. Memory hits an assertion:
+# http://code.google.com/p/drmemory/issues/detail?id=422
+HttpAuthTest.*
+HttpAuthHandlerFactoryTest.*
+X509CertificateTest.*
+
+# Too many uninits and too slow. TODO(timurrrr): investigate uninits
+ProxyResolverV8Test.*
+
+# Slow
+CookieMonsterTest.GarbageCollectionTriggers

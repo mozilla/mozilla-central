@@ -18,6 +18,7 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
 	'-DWEBRTC_NS_FLOAT' \
+	'-DWEBRTC_AUDIOPROC_DEBUG_DUMP' \
 	'-DGOOGLE_PROTOBUF_NO_RTTI' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
@@ -52,16 +53,16 @@ INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/audio_processing/interface \
 	-Isrc/modules/interface \
-	-I$(obj)/gen/protoc_out \
-	-Ithird_party/protobuf \
-	-Ithird_party/protobuf/src \
 	-Isrc/modules/audio_processing/aec/interface \
 	-Isrc/modules/audio_processing/aecm/interface \
 	-Isrc/modules/audio_processing/agc/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
-	-Isrc/common_audio/vad/main/interface \
+	-Isrc/common_audio/signal_processing/include \
+	-Isrc/common_audio/vad/include \
 	-Isrc/system_wrappers/interface \
-	-Isrc/modules/audio_processing/ns/interface
+	-Isrc/modules/audio_processing/ns/interface \
+	-I$(obj)/gen/protoc_out \
+	-Ithird_party/protobuf \
+	-Ithird_party/protobuf/src
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -79,6 +80,7 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
 	'-DWEBRTC_NS_FLOAT' \
+	'-DWEBRTC_AUDIOPROC_DEBUG_DUMP' \
 	'-DGOOGLE_PROTOBUF_NO_RTTI' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DNDEBUG' \
@@ -115,16 +117,16 @@ INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/audio_processing/interface \
 	-Isrc/modules/interface \
-	-I$(obj)/gen/protoc_out \
-	-Ithird_party/protobuf \
-	-Ithird_party/protobuf/src \
 	-Isrc/modules/audio_processing/aec/interface \
 	-Isrc/modules/audio_processing/aecm/interface \
 	-Isrc/modules/audio_processing/agc/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
-	-Isrc/common_audio/vad/main/interface \
+	-Isrc/common_audio/signal_processing/include \
+	-Isrc/common_audio/vad/include \
 	-Isrc/system_wrappers/interface \
-	-Isrc/modules/audio_processing/ns/interface
+	-Isrc/modules/audio_processing/ns/interface \
+	-I$(obj)/gen/protoc_out \
+	-Ithird_party/protobuf \
+	-Ithird_party/protobuf/src
 
 OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/audio_buffer.o \
 	$(obj).target/$(TARGET)/src/modules/audio_processing/audio_processing_impl.o \

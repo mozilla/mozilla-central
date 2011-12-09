@@ -43,7 +43,6 @@
 #endif
 
 
-extern void vp8cx_mb_init_quantizer(VP8_COMP *cpi, MACROBLOCK *x);
 extern void vp8_update_zbin_extra(VP8_COMP *cpi, MACROBLOCK *x);
 
 #define MAXF(a,b)            (((a) > (b)) ? (a) : (b))
@@ -297,7 +296,7 @@ void vp8_initialize_rd_consts(VP8_COMP *cpi, int Qvalue)
 
 void vp8_auto_select_speed(VP8_COMP *cpi)
 {
-    int milliseconds_for_compress = (int)(1000000 / cpi->oxcf.frame_rate);
+    int milliseconds_for_compress = (int)(1000000 / cpi->frame_rate);
 
     milliseconds_for_compress = milliseconds_for_compress * (16 - cpi->oxcf.cpu_used) / 16;
 
@@ -485,7 +484,7 @@ int VP8_UVSSE(MACROBLOCK *x, const vp8_variance_rtcd_vtable_t *rtcd)
 static int cost_coeffs(MACROBLOCK *mb, BLOCKD *b, int type, ENTROPY_CONTEXT *a, ENTROPY_CONTEXT *l)
 {
     int c = !type;              /* start at coef 0, unless Y with Y2 */
-    int eob = b->eob;
+    int eob = (int)(*b->eob);
     int pt ;    /* surrounding block/prev coef predictor */
     int cost = 0;
     short *qcoeff_ptr = b->qcoeff;
@@ -631,7 +630,8 @@ static int rd_pick_intra4x4block(
         rate = bmode_costs[mode];
 
         RECON_INVOKE(&cpi->rtcd.common->recon, intra4x4_predict)
-                     (b, mode, b->predictor);
+                     (*(b->base_dst) + b->dst, b->dst_stride,
+                      mode, b->predictor, 16);
         ENCODEMB_INVOKE(IF_RTCD(&cpi->rtcd.encodemb), subb)(be, b, 16);
         x->vp8_short_fdct4x4(be->src_diff, be->coeff, 32);
         x->quantize_b(be, b);
@@ -660,8 +660,8 @@ static int rd_pick_intra4x4block(
     }
     b->bmi.as_mode = (B_PREDICTION_MODE)(*best_mode);
 
-    IDCT_INVOKE(IF_RTCD(&cpi->rtcd.common->idct), idct16)(best_dqcoeff, b->diff, 32);
-    RECON_INVOKE(IF_RTCD(&cpi->rtcd.common->recon), recon)(best_predictor, b->diff, *(b->base_dst) + b->dst, b->dst_stride);
+    IDCT_INVOKE(IF_RTCD(&cpi->rtcd.common->idct), idct16)(best_dqcoeff,
+        best_predictor, 16, *(b->base_dst) + b->dst, b->dst_stride);
 
     return best_rd;
 }
@@ -1299,11 +1299,9 @@ static void rd_check_segment(VP8_COMP *cpi, MACROBLOCK *x,
         // store everything needed to come back to this!!
         for (i = 0; i < 16; i++)
         {
-            BLOCKD *bd = &x->e_mbd.block[i];
-
             bsi->mvs[i].as_mv = x->partition_info->bmi[i].mv.as_mv;
             bsi->modes[i] = x->partition_info->bmi[i].mode;
-            bsi->eobs[i] = bd->eob;
+            bsi->eobs[i] = x->e_mbd.eobs[i];
         }
     }
 }
@@ -1432,7 +1430,7 @@ static int vp8_rd_pick_best_mbsegmentation(VP8_COMP *cpi, MACROBLOCK *x,
         BLOCKD *bd = &x->e_mbd.block[i];
 
         bd->bmi.mv.as_int = bsi.mvs[i].as_int;
-        bd->eob = bsi.eobs[i];
+        *bd->eob = bsi.eobs[i];
     }
 
     *returntotrate = bsi.r;
@@ -2271,7 +2269,7 @@ void vp8_rd_pick_inter_mode(VP8_COMP *cpi, MACROBLOCK *x, int recon_yoffset, int
 
                 for (i = 0; i <= 24; i++)
                 {
-                    tteob += x->e_mbd.block[i].eob;
+                    tteob += x->e_mbd.eobs[i];
                 }
 
                 if (tteob == 0)

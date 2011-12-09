@@ -16,7 +16,7 @@
 #include "list_wrapper.h"
 #include "rtp_utility.h"
 
-#define VERBOSE_OUTPUT
+//#define VERBOSE_OUTPUT
 
 void ReceivePackets(webrtc::ListWrapper& toDecodeList, webrtc::ListWrapper& receivedPacketList,
                     WebRtc_UWord32 numPacketsToDecode, float reorderRate, float duplicateRate);
@@ -25,6 +25,9 @@ int main()
 {
     enum { kMaxNumberMediaPackets = 48 };
     enum { kMaxNumberFecPackets = 48 };
+
+    const WebRtc_UWord32 kNumMaskBytesL0 = 2;
+    const WebRtc_UWord32 kNumMaskBytesL1 = 6;
 
     // FOR UEP
     const bool kUseUnequalProtection = true;
@@ -63,6 +66,9 @@ int main()
 
     for (WebRtc_UWord32 lossRateIdx = 0; lossRateIdx < lossRateSize; lossRateIdx++)
     {
+        WebRtc_UWord8* packetMask =
+            new WebRtc_UWord8[kMaxNumberMediaPackets * kNumMaskBytesL1];
+
         printf("Loss rate: %.2f\n", lossRate[lossRateIdx]);
         for (WebRtc_UWord32 numMediaPackets = 1; numMediaPackets <= kMaxNumberMediaPackets;
             numMediaPackets++)
@@ -80,17 +86,14 @@ int main()
                     WebRtc_UWord8 protectionFactor = static_cast<WebRtc_UWord8>
                         (numFecPackets * 255 / numMediaPackets);
 
+                    const WebRtc_UWord32 maskBytesPerFecPacket =
+                        (numMediaPackets > 16) ? kNumMaskBytesL1 :
+                                                 kNumMaskBytesL0;
 
-                    WebRtc_UWord32 maskBytesPerFecPacket = 2;
-                    if (numMediaPackets > 16)
-                    {
-                        maskBytesPerFecPacket = 6;
-                    }
+                    memset(packetMask, 0,
+                           numMediaPackets * maskBytesPerFecPacket);
 
                     // Transfer packet masks from bit-mask to byte-mask.
-                    WebRtc_UWord8 packetMask[numFecPackets * maskBytesPerFecPacket];
-                    memset(packetMask, 0, numFecPackets * maskBytesPerFecPacket);
-
                      webrtc::internal::GeneratePacketMasks(numMediaPackets,
                                                            numFecPackets,
                                                            numImpPackets,
@@ -126,11 +129,6 @@ int main()
 #endif
                     // Check for all zero rows or columns: indicates incorrect mask
                     WebRtc_UWord32 rowLimit = numMediaPackets;
-                    if (numFecPackets <= numImpPackets &&
-                        kUseUnequalProtection == true)
-                    {
-                        rowLimit = numImpPackets;
-                    }
                     for (WebRtc_UWord32 i = 0; i < numFecPackets; i++)
                     {
                         WebRtc_UWord32 rowSum = 0;
@@ -171,27 +169,45 @@ int main()
                         {
                             mediaPacket->length = 12;
                         }
-                        // Set the RTP version to 2.
-                        mediaPacket->data[0] |= 0x80; // Set the 1st bit.
-                        mediaPacket->data[0] &= 0xbf; // Clear the 2nd bit.
 
-                        mediaPacket->data[1] &= 0x7f; // Clear marker bit.
+                        // Generate random values for the first 2 bytes
+                        mediaPacket->data[0] =
+                            static_cast<WebRtc_UWord8>(rand() % 256);
+
+                        mediaPacket->data[1] =
+                            static_cast<WebRtc_UWord8>(rand() % 256);
+
+                        // The first two bits are assumed to be 10 by the
+                        // FEC encoder. In fact the FEC decoder will set the
+                        // two first bits to 10 regardless of what they
+                        // actually were. Set the first two bits to 10
+                        // so that a memcmp can be performed for the
+                        // whole restored packet.
+                        mediaPacket->data[0] |= 0x80;
+                        mediaPacket->data[0] &= 0xbf;
+
+                        // FEC is applied to a whole frame.
+                        // A frame is signaled by multiple packets without
+                        // the marker bit set followed by the last packet of
+                        // the frame for which the marker bit is set.
+                        // Only push one (fake) frame to the FEC.
+                        mediaPacket->data[1] &= 0x7f;
+
                         webrtc::ModuleRTPUtility::AssignUWord16ToBuffer(&mediaPacket->data[2],
                                                                         seqNum);
                         webrtc::ModuleRTPUtility::AssignUWord32ToBuffer(&mediaPacket->data[4],
                                                                         timeStamp);
                         webrtc::ModuleRTPUtility::AssignUWord32ToBuffer(&mediaPacket->data[8],
                                                                         ssrc);
-
+                        // Generate random values for payload
                         for (WebRtc_Word32 j = 12; j < mediaPacket->length; j++)
                         {
                             mediaPacket->data[j] =
-                                static_cast<WebRtc_UWord8>((static_cast<float>(rand()) /
-                                RAND_MAX) * 255);
+                                static_cast<WebRtc_UWord8> (rand() % 256);
                         }
                         seqNum++;
                     }
-                    mediaPacket->data[1] |= 0x80; // Set the marker bit of the last packet.
+                    mediaPacket->data[1] |= 0x80;
 
                     if (fec.GenerateFEC(mediaPacketList, protectionFactor, numImpPackets,
                         kUseUnequalProtection, fecPacketList) != 0)
@@ -235,7 +251,7 @@ int main()
                                 webrtc::ModuleRTPUtility::BufferToUWord16(&mediaPacket->data[2]);
                             receivedPacket->isFec = false;
                             receivedPacket->lastMediaPktInFrame =
-                                mediaPacket->data[1] & 0x80;
+                                (mediaPacket->data[1] & 0x80) != 0;
                         }
                         mediaPacketIdx++;
                         mediaPacketListItem = mediaPacketList.Next(mediaPacketListItem);
@@ -492,10 +508,10 @@ int main()
                         fecMaskList.PopFront();
                     }
                     timeStamp += 90000 / 30;
-
                 } //loop over numImpPackets
             } //loop over FecPackets
         } //loop over numMediaPackets
+        delete [] packetMask;
     } // loop over loss rates
 
     // Have DecodeFEC free allocated memory.

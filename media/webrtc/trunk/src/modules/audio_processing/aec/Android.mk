@@ -17,7 +17,7 @@ LOCAL_MODULE := libwebrtc_aec
 LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := \
     echo_cancellation.c \
-    resampler.c \
+    aec_resampler.c \
     aec_core.c \
     aec_rdft.c \
     aec_core_sse2.c \
@@ -32,7 +32,7 @@ LOCAL_C_INCLUDES := \
     $(LOCAL_PATH)/interface \
     $(LOCAL_PATH)/../utility \
     $(LOCAL_PATH)/../../.. \
-    $(LOCAL_PATH)/../../../common_audio/signal_processing_library/main/interface
+    $(LOCAL_PATH)/../../../common_audio/signal_processing/include
 
 LOCAL_SHARED_LIBRARIES := \
     libcutils \

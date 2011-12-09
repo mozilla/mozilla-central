@@ -50,17 +50,17 @@ INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/audio_coding/main/interface \
 	-Isrc/modules/interface \
-	-Isrc/modules/audio_coding/codecs/CNG/main/interface \
-	-Isrc/modules/audio_coding/codecs/G711/main/interface \
-	-Isrc/modules/audio_coding/codecs/G722/main/interface \
-	-Isrc/modules/audio_coding/codecs/iLBC/main/interface \
+	-Isrc/modules/audio_coding/codecs/cng/include \
+	-Isrc/modules/audio_coding/codecs/g711/include \
+	-Isrc/modules/audio_coding/codecs/g722/include \
+	-Isrc/modules/audio_coding/codecs/ilbc/interface \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/interface \
 	-Isrc/modules/audio_coding/codecs/iSAC/fix/interface \
-	-Isrc/modules/audio_coding/codecs/PCM16B/main/interface \
-	-Isrc/modules/audio_coding/NetEQ/main/interface \
-	-Isrc/common_audio/resampler/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
-	-Isrc/common_audio/vad/main/interface \
+	-Isrc/modules/audio_coding/codecs/pcm16b/include \
+	-Isrc/modules/audio_coding/neteq/interface \
+	-Isrc/common_audio/resampler/include \
+	-Isrc/common_audio/signal_processing/include \
+	-Isrc/common_audio/vad/include \
 	-Isrc/system_wrappers/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
@@ -113,17 +113,17 @@ INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/audio_coding/main/interface \
 	-Isrc/modules/interface \
-	-Isrc/modules/audio_coding/codecs/CNG/main/interface \
-	-Isrc/modules/audio_coding/codecs/G711/main/interface \
-	-Isrc/modules/audio_coding/codecs/G722/main/interface \
-	-Isrc/modules/audio_coding/codecs/iLBC/main/interface \
+	-Isrc/modules/audio_coding/codecs/cng/include \
+	-Isrc/modules/audio_coding/codecs/g711/include \
+	-Isrc/modules/audio_coding/codecs/g722/include \
+	-Isrc/modules/audio_coding/codecs/ilbc/interface \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/interface \
 	-Isrc/modules/audio_coding/codecs/iSAC/fix/interface \
-	-Isrc/modules/audio_coding/codecs/PCM16B/main/interface \
-	-Isrc/modules/audio_coding/NetEQ/main/interface \
-	-Isrc/common_audio/resampler/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
-	-Isrc/common_audio/vad/main/interface \
+	-Isrc/modules/audio_coding/codecs/pcm16b/include \
+	-Isrc/modules/audio_coding/neteq/interface \
+	-Isrc/common_audio/resampler/include \
+	-Isrc/common_audio/signal_processing/include \
+	-Isrc/common_audio/vad/include \
 	-Isrc/system_wrappers/interface
 
 OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/main/source/acm_amr.o \

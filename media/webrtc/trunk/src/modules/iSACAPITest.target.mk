@@ -111,7 +111,7 @@ OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iSAC/main/test/R
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libspl.a
+$(OBJS): | $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libsignal_processing.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -156,13 +156,17 @@ LIBS :=
 
 $(builddir)/iSACAPITest: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/iSACAPITest: LIBS := $(LIBS)
-$(builddir)/iSACAPITest: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libspl.a
+$(builddir)/iSACAPITest: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libsignal_processing.a
 $(builddir)/iSACAPITest: TOOLSET := $(TOOLSET)
-$(builddir)/iSACAPITest: $(OBJS) $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libspl.a FORCE_DO_CMD
+$(builddir)/iSACAPITest: $(OBJS) $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libsignal_processing.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/iSACAPITest
 # Add target alias
 .PHONY: iSACAPITest
 iSACAPITest: $(builddir)/iSACAPITest
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/iSACAPITest
 

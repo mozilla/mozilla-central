@@ -9,7 +9,7 @@
  */
 
 
-#include "vpx_ports/config.h"
+#include "vpx_config.h"
 #include "encodemb.h"
 #include "encodemv.h"
 #include "vp8/common/common.h"
@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include "vp8/common/subpixel.h"
+#include "vp8/common/invtrans.h"
 #include "vpx_ports/vpx_timer.h"
 
 #if CONFIG_RUNTIME_CPU_DETECT
@@ -456,7 +457,7 @@ void encode_mb_row(VP8_COMP *cpi,
             vp8_activity_masking(cpi, x);
 
         // Is segmentation enabled
-        // MB level adjutment to quantizer
+        // MB level adjustment to quantizer
         if (xd->segmentation_enabled)
         {
             // Code to set segment id in xd->mbmi.segment_id for current MB (with range checking)
@@ -465,7 +466,7 @@ void encode_mb_row(VP8_COMP *cpi,
             else
                 xd->mode_info_context->mbmi.segment_id = 0;
 
-            vp8cx_mb_init_quantizer(cpi, x);
+            vp8cx_mb_init_quantizer(cpi, x, 1);
         }
         else
             xd->mode_info_context->mbmi.segment_id = 0;         // Set to Segment 0 by default
@@ -505,7 +506,8 @@ void encode_mb_row(VP8_COMP *cpi,
             // Special case code for cyclic refresh
             // If cyclic update enabled then copy xd->mbmi.segment_id; (which may have been updated based on mode
             // during vp8cx_encode_inter_macroblock()) back into the global sgmentation map
-            if (cpi->cyclic_refresh_mode_enabled && xd->segmentation_enabled)
+            if ((cpi->current_layer == 0) &&
+                (cpi->cyclic_refresh_mode_enabled && xd->segmentation_enabled))
             {
                 cpi->segmentation_map[map_index+mb_col] = xd->mode_info_context->mbmi.segment_id;
 
@@ -647,6 +649,30 @@ void init_encode_frame_mb_context(VP8_COMP *cpi)
         xd->ref_frame_cost[ALTREF_FRAME]  = vp8_cost_one(cpi->prob_intra_coded)
                                         + vp8_cost_one(255)
                                         + vp8_cost_one(128);
+    }
+    else if ((cpi->oxcf.number_of_layers > 1) &&
+               (cpi->ref_frame_flags == VP8_GOLD_FLAG))
+    {
+        xd->ref_frame_cost[LAST_FRAME]    = vp8_cost_one(cpi->prob_intra_coded)
+                                        + vp8_cost_zero(1);
+        xd->ref_frame_cost[GOLDEN_FRAME]  = vp8_cost_one(cpi->prob_intra_coded)
+                                        + vp8_cost_one(1)
+                                        + vp8_cost_zero(255);
+        xd->ref_frame_cost[ALTREF_FRAME]  = vp8_cost_one(cpi->prob_intra_coded)
+                                        + vp8_cost_one(1)
+                                        + vp8_cost_one(255);
+    }
+    else if ((cpi->oxcf.number_of_layers > 1) &&
+                (cpi->ref_frame_flags == VP8_ALT_FLAG))
+    {
+        xd->ref_frame_cost[LAST_FRAME]    = vp8_cost_one(cpi->prob_intra_coded)
+                                        + vp8_cost_zero(1);
+        xd->ref_frame_cost[GOLDEN_FRAME]  = vp8_cost_one(cpi->prob_intra_coded)
+                                        + vp8_cost_one(1)
+                                        + vp8_cost_zero(1);
+        xd->ref_frame_cost[ALTREF_FRAME]  = vp8_cost_one(cpi->prob_intra_coded)
+                                        + vp8_cost_one(1)
+                                        + vp8_cost_one(1);
     }
     else
     {
@@ -937,7 +963,8 @@ void vp8_encode_frame(VP8_COMP *cpi)
     // Adjust the projected reference frame useage probability numbers to reflect
     // what we have just seen. This may be usefull when we make multiple itterations
     // of the recode loop rather than continuing to use values from the previous frame.
-    if ((cm->frame_type != KEY_FRAME) && !cm->refresh_alt_ref_frame && !cm->refresh_golden_frame)
+    if ((cm->frame_type != KEY_FRAME) && ((cpi->oxcf.number_of_layers > 1) ||
+        (!cm->refresh_alt_ref_frame && !cm->refresh_golden_frame)))
     {
         const int *const rfct = cpi->count_mb_ref_frame_usage;
         const int rf_intra = rfct[INTRA_FRAME];
@@ -1139,6 +1166,11 @@ int vp8cx_encode_intra_macro_block(VP8_COMP *cpi, MACROBLOCK *x, TOKENEXTRA **t)
     sum_intra_stats(cpi, x);
     vp8_tokenize_mb(cpi, &x->e_mbd, t);
 
+    if (x->e_mbd.mode_info_context->mbmi.mode != B_PRED)
+        vp8_inverse_transform_mby(IF_RTCD(&cpi->rtcd.common->idct), &x->e_mbd);
+
+    vp8_inverse_transform_mbuv(IF_RTCD(&cpi->rtcd.common->idct), &x->e_mbd);
+
     return rate;
 }
 #ifdef SPEEDSTATS
@@ -1220,7 +1252,7 @@ int vp8cx_encode_inter_macroblock
     if (xd->segmentation_enabled)
     {
         // If cyclic update enabled
-        if (cpi->cyclic_refresh_mode_enabled)
+        if (cpi->current_layer == 0 && cpi->cyclic_refresh_mode_enabled)
         {
             // Clear segment_id back to 0 if not coded (last frame 0,0)
             if ((xd->mode_info_context->mbmi.segment_id == 1) &&
@@ -1229,7 +1261,7 @@ int vp8cx_encode_inter_macroblock
                 xd->mode_info_context->mbmi.segment_id = 0;
 
                 /* segment_id changed, so update */
-                vp8cx_mb_init_quantizer(cpi, x);
+                vp8cx_mb_init_quantizer(cpi, x, 1);
             }
         }
     }
@@ -1311,7 +1343,15 @@ int vp8cx_encode_inter_macroblock
     }
 
     if (!x->skip)
+    {
         vp8_tokenize_mb(cpi, xd, t);
+        if (x->e_mbd.mode_info_context->mbmi.mode != B_PRED)
+        {
+          vp8_inverse_transform_mby(IF_RTCD(&cpi->rtcd.common->idct),
+                                      &x->e_mbd);
+        }
+        vp8_inverse_transform_mbuv(IF_RTCD(&cpi->rtcd.common->idct), &x->e_mbd);
+    }
     else
     {
         if (cpi->common.mb_no_coeff_skip)

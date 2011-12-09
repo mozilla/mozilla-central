@@ -1,0 +1,10 @@
+# Following tests create real libjingle connections, and libjingle has
+# hardcoded timeouts, so these tests fail under TSan.
+JingleSessionTest.Connect
+JingleSessionTest.TestUdpChannel
+JingleSessionTest.TestTcpChannel
+JingleSessionTest.TestSpeed
+
+# This test fails on an assertion, see http://crbug.com/57266
+EncoderVp8Test.TestEncoder
+DecoderVp8Test.EncodeAndDecode

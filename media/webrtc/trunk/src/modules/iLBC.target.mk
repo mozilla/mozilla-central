@@ -48,8 +48,8 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/codecs/iLBC/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface
+	-Isrc/modules/audio_coding/codecs/ilbc/interface \
+	-Isrc/common_audio/signal_processing/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -99,78 +99,78 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/codecs/iLBC/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface
+	-Isrc/modules/audio_coding/codecs/ilbc/interface \
+	-Isrc/common_audio/signal_processing/include
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/abs_quant.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/abs_quant_loop.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/augmented_cb_corr.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/bw_expand.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/cb_construct.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/cb_mem_energy.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/cb_mem_energy_augmentation.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/cb_mem_energy_calc.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/cb_search.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/cb_search_core.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/cb_update_best_index.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/chebyshev.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/comp_corr.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/constants.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/create_augmented_vec.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/decode.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/decode_residual.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/decoder_interpolate_lsf.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/do_plc.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/encode.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/energy_inverse.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/enh_upsample.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/enhancer.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/enhancer_interface.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/filtered_cb_vecs.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/frame_classify.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/gain_dequant.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/gain_quant.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/get_cd_vec.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/get_lsp_poly.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/get_sync_seq.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/hp_input.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/hp_output.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/ilbc.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/index_conv_dec.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/index_conv_enc.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/init_decode.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/init_encode.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/interpolate.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/interpolate_samples.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/lpc_encode.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/lsf_check.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/lsf_interpolate_to_poly_dec.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/lsf_interpolate_to_poly_enc.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/lsf_to_lsp.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/lsf_to_poly.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/lsp_to_lsf.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/my_corr.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/nearest_neighbor.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/pack_bits.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/poly_to_lsf.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/poly_to_lsp.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/refiner.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/simple_interpolate_lsf.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/simple_lpc_analysis.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/simple_lsf_dequant.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/simple_lsf_quant.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/smooth.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/smooth_out_data.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/sort_sq.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/split_vq.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/state_construct.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/state_search.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/swap_bytes.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/unpack_bits.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/vq3.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/vq4.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/window32_w32.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/source/xcorr_coef.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/abs_quant.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/abs_quant_loop.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/augmented_cb_corr.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/bw_expand.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/cb_construct.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/cb_mem_energy.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/cb_mem_energy_augmentation.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/cb_mem_energy_calc.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/cb_search.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/cb_search_core.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/cb_update_best_index.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/chebyshev.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/comp_corr.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/constants.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/create_augmented_vec.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/decode.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/decode_residual.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/decoder_interpolate_lsf.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/do_plc.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/encode.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/energy_inverse.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/enh_upsample.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/enhancer.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/enhancer_interface.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/filtered_cb_vecs.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/frame_classify.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/gain_dequant.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/gain_quant.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/get_cd_vec.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/get_lsp_poly.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/get_sync_seq.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/hp_input.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/hp_output.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/ilbc.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/index_conv_dec.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/index_conv_enc.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/init_decode.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/init_encode.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/interpolate.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/interpolate_samples.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/lpc_encode.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/lsf_check.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/lsf_interpolate_to_poly_dec.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/lsf_interpolate_to_poly_enc.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/lsf_to_lsp.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/lsf_to_poly.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/lsp_to_lsf.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/my_corr.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/nearest_neighbor.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/pack_bits.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/poly_to_lsf.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/poly_to_lsp.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/refiner.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/simple_interpolate_lsf.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/simple_lpc_analysis.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/simple_lsf_dequant.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/simple_lsf_quant.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/smooth.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/smooth_out_data.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/sort_sq.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/split_vq.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/state_construct.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/state_search.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/swap_bytes.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/unpack_bits.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/vq3.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/vq4.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/window32_w32.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/xcorr_coef.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

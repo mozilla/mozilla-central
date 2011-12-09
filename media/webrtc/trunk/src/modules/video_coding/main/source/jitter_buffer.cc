@@ -16,7 +16,6 @@
 #include "jitter_buffer.h"
 #include "jitter_buffer_common.h"
 #include "jitter_estimator.h"
-#include "media_optimization.h" // hybrid NACK/FEC thresholds.
 #include "packet.h"
 
 #include "event.h"
@@ -86,6 +85,8 @@ VCMJitterBuffer::VCMJitterBuffer(WebRtc_Word32 vcmId, WebRtc_Word32 receiverId,
     _jitterEstimate(vcmId, receiverId),
     _rttMs(0),
     _nackMode(kNoNack),
+    _lowRttNackThresholdMs(-1),
+    _highRttNackThresholdMs(-1),
     _NACKSeqNum(),
     _NACKSeqNumLength(0),
     _waitingForKeyFrame(false),
@@ -115,8 +116,8 @@ VCMJitterBuffer::~VCMJitterBuffer()
     delete &_critSect;
 }
 
-VCMJitterBuffer&
-VCMJitterBuffer::operator=(const VCMJitterBuffer& rhs)
+void
+VCMJitterBuffer::CopyFrom(const VCMJitterBuffer& rhs)
 {
     if (this != &rhs)
     {
@@ -138,7 +139,6 @@ VCMJitterBuffer::operator=(const VCMJitterBuffer& rhs)
         _jitterEstimate = rhs._jitterEstimate;
         _delayEstimate = rhs._delayEstimate;
         _waitingForCompletion = rhs._waitingForCompletion;
-        _nackMode = rhs._nackMode;
         _rttMs = rhs._rttMs;
         _NACKSeqNumLength = rhs._NACKSeqNumLength;
         _waitingForKeyFrame = rhs._waitingForKeyFrame;
@@ -173,7 +173,6 @@ VCMJitterBuffer::operator=(const VCMJitterBuffer& rhs)
         rhs._critSect.Leave();
         _critSect.Leave();
     }
-    return *this;
 }
 
 // Start jitter buffer
@@ -300,7 +299,7 @@ VCMJitterBuffer::ReleaseFrameInternal(VCMFrameBuffer* frame)
 // Doing it here increases the degree of freedom for e.g. future
 // reconstructability of separate layers. Must be called under the
 // critical section _critSect.
-void
+VCMFrameBufferEnum
 VCMJitterBuffer::UpdateFrameState(VCMFrameBuffer* frame)
 {
     if (frame == NULL)
@@ -308,7 +307,7 @@ VCMJitterBuffer::UpdateFrameState(VCMFrameBuffer* frame)
         WEBRTC_TRACE(webrtc::kTraceWarning, webrtc::kTraceVideoCoding,
                      VCMId(_vcmId, _receiverId), "JB(0x%x) FB(0x%x): "
                          "UpdateFrameState NULL frame pointer", this, frame);
-        return;
+        return kNoError;
     }
 
     int length = frame->Length();
@@ -352,11 +351,11 @@ VCMJitterBuffer::UpdateFrameState(VCMFrameBuffer* frame)
                      _dropCount, _numConsecutiveOldFrames);
         // Flush() if this happens consistently.
         _numConsecutiveOldFrames++;
-        if (_numConsecutiveOldFrames > kMaxConsecutiveOldFrames)
-        {
-            FlushInternal();
+        if (_numConsecutiveOldFrames > kMaxConsecutiveOldFrames) {
+          FlushInternal();
+          return kFlushIndicator;
         }
-        return;
+        return kNoError;
     }
     _numConsecutiveOldFrames = 0;
     frame->SetState(kStateComplete);
@@ -393,7 +392,8 @@ VCMJitterBuffer::UpdateFrameState(VCMFrameBuffer* frame)
 
         }
     }
-    const VCMFrameListItem* oldFrameListItem = FindOldestCompleteContinuousFrame();
+    const VCMFrameListItem*
+      oldFrameListItem = FindOldestCompleteContinuousFrame(false);
     VCMFrameBuffer* oldFrame = NULL;
     if (oldFrameListItem != NULL)
     {
@@ -406,6 +406,7 @@ VCMJitterBuffer::UpdateFrameState(VCMFrameBuffer* frame)
     {
         _frameEvent.Set();
     }
+    return kNoError;
 }
 
 // Get received key and delta frames
@@ -452,6 +453,8 @@ VCMJitterBuffer::GetFrame(const VCMPacket& packet, VCMEncodedFrame*& frame)
         if (_numConsecutiveOldPackets > kMaxConsecutiveOldPackets)
         {
             FlushInternal();
+            _critSect.Leave();
+            return VCM_FLUSH_INDICATOR;
         }
         _critSect.Leave();
         return VCM_OLD_PACKET_ERROR;
@@ -592,52 +595,56 @@ VCMJitterBuffer::FindOldestSequenceNum() const
 // Based on sequence number
 // Return NULL for lost packets
 VCMFrameListItem*
-VCMJitterBuffer::FindOldestCompleteContinuousFrame()
-{
-    // if we have more than one frame done since last time, pick oldest
-    VCMFrameBuffer* oldestFrame = NULL;
-    int currentLow = -1;
+VCMJitterBuffer::FindOldestCompleteContinuousFrame(bool enableDecodable) {
+  // If we have more than one frame done since last time, pick oldest.
+  VCMFrameBuffer* oldestFrame = NULL;
+  int currentLow = -1;
 
-    VCMFrameListItem* oldestFrameItem = _frameBuffersTSOrder.First();
-    if (oldestFrameItem != NULL)
-    {
-        oldestFrame = oldestFrameItem->GetItem();
+  VCMFrameListItem* oldestFrameItem = _frameBuffersTSOrder.First();
+  if (oldestFrameItem != NULL) {
+    oldestFrame = oldestFrameItem->GetItem();
+  }
+  if (oldestFrame != NULL) {
+    // Check for a complete or decodable frame (when enabled).
+    VCMFrameBufferStateEnum state = oldestFrame->GetState();
+    bool decodable = enableDecodable && (state == kStateDecodable);
+    if ((state != kStateComplete) && !decodable) {
+      oldestFrame = NULL;
     }
-    // is the frame complete?
-    if (oldestFrame != NULL && kStateComplete != oldestFrame->GetState())
-    {
-        oldestFrame = NULL;
-    }
-    if (oldestFrame == NULL)
-    {
-        // no complete frame no point to continue
-        return NULL;
-    }
+  }
+  if (oldestFrame == NULL) {
+    // No complete frame no point to continue
+    return NULL;
+  }
 
-    // we have a complete frame
-    // check if it's continuous, otherwise we are missing a full frame
-    // Use seqNum not timestamp since a full frame might be lost
-    if (_lastDecodedSeqNum != -1 && !_waitingForKeyFrame)
-    {
-        // it's not enough that we have complete frame we need the layers to
-        // be continuous too
-        currentLow = oldestFrame->GetLowSeqNum();
+  // We have a complete frame.
+  // Check if it's continuous, otherwise we are missing a full frame.
 
-        WebRtc_UWord16 lastDecodedSeqNum = (WebRtc_UWord16)_lastDecodedSeqNum;
-
-        // We could have received the first packet of the last frame before a
-        // long period if drop, that case is handled by GetNackList
-        if (((WebRtc_UWord16)(lastDecodedSeqNum + 1)) != currentLow)
-        {
-            // Wait since we want a complete continuous frame
-            return NULL;
-        }
-    }
-    else if (oldestFrame->FrameType() != kVideoFrameKey)
-    {
-        return NULL;
-    }
+  // Use pictureId if available. Otherwise use seqNum and not timestamps, as
+  // a complete frame might be lost.
+  // First determine if we are waiting for a key frame.
+  if (_waitingForKeyFrame && oldestFrame->FrameType() != kVideoFrameKey) {
+    return NULL;
+  }
+  // Is this the first frame to be decoded?
+  // Otherwise, establish continuity - use PictureId when available.
+  if (_lastDecodedSeqNum == -1) {
     return oldestFrameItem;
+  } else if (oldestFrame->PictureId() == kNoPictureId) {
+    currentLow = oldestFrame->GetLowSeqNum();
+    WebRtc_UWord16 lastDecodedSeqNum = (WebRtc_UWord16)_lastDecodedSeqNum;
+
+    // We could have received the first packet of the last frame before a long
+    // period if drop, that case is handled by GetNackList (when applicable).
+    if (((WebRtc_UWord16)(lastDecodedSeqNum + 1)) != currentLow) {
+      // Wait since we want a complete continuous frame.
+      return NULL;
+    }
+  } else if (!ContinuousPictureId(oldestFrame->PictureId())) {
+    // We don't have a continuous frame.
+    return NULL;
+  }
+  return oldestFrameItem;
 }
 
 // Call from inside the critical section _critSect
@@ -726,7 +733,7 @@ VCMJitterBuffer::GetUpdate(WebRtc_UWord32& frameRate, WebRtc_UWord32& bitRate)
     return 0;
 }
 
-// Returns immediately or a X ms event hang waiting for a decodable frame,
+// Returns immediately or a X ms event hang waiting for a complete frame,
 // X decided by caller
 VCMEncodedFrame*
 VCMJitterBuffer::GetCompleteFrameForDecoding(WebRtc_UWord32 maxWaitTimeMS)
@@ -741,7 +748,11 @@ VCMJitterBuffer::GetCompleteFrameForDecoding(WebRtc_UWord32 maxWaitTimeMS)
     CleanUpOldFrames();
     CleanUpSizeZeroFrames();
 
-    VCMFrameListItem* oldestFrameListItem = FindOldestCompleteContinuousFrame();
+    if (_lastDecodedSeqNum == -1 && WaitForNack()) {
+      _waitingForKeyFrame = true;
+    }
+    VCMFrameListItem*
+      oldestFrameListItem = FindOldestCompleteContinuousFrame(false);
     VCMFrameBuffer* oldestFrame = NULL;
     if (oldestFrameListItem != NULL)
     {
@@ -777,7 +788,7 @@ VCMJitterBuffer::GetCompleteFrameForDecoding(WebRtc_UWord32 maxWaitTimeMS)
                 // sequence number and size
                 CleanUpOldFrames();
                 CleanUpSizeZeroFrames();
-                oldestFrameListItem = FindOldestCompleteContinuousFrame();
+                oldestFrameListItem = FindOldestCompleteContinuousFrame(false);
                 if (oldestFrameListItem != NULL)
                 {
                     oldestFrame = oldestFrameListItem->GetItem();
@@ -860,8 +871,10 @@ VCMJitterBuffer::GetEstimatedJitterMsInternal()
     WebRtc_UWord32 estimate = VCMJitterEstimator::OPERATING_SYSTEM_JITTER;
 
     // Compute RTT multiplier for estimation
+    // _lowRttNackThresholdMs == -1 means no FEC.
     double rttMult = 1.0f;
-    if (_nackMode == kNackHybrid && _rttMs > kLowRttNackMs)
+    if (_nackMode == kNackHybrid && (_lowRttNackThresholdMs >= 0 &&
+        static_cast<int>(_rttMs) > _lowRttNackThresholdMs))
     {
         // from here we count on FEC
         rttMult = 0.0f;
@@ -966,10 +979,14 @@ VCMJitterBuffer::CompleteSequenceWithNextFrame()
     VCMFrameBuffer* oldestFrame = oldestFrameListItem->GetItem();
     const VCMFrameListItem* nextFrameItem =
                             _frameBuffersTSOrder.Next(oldestFrameListItem);
-    if (nextFrameItem == NULL)
+    if (nextFrameItem == NULL && oldestFrame->GetState() != kStateComplete)
     {
         // Frame not ready to be decoded.
         return true;
+    }
+    if (!oldestFrame->Complete())
+    {
+        return false;
     }
 
     // See if we have lost a frame before this one.
@@ -1030,7 +1047,8 @@ VCMJitterBuffer::GetFrameForDecoding()
 
     const VCMFrameListItem* nextFrameItem =
                             _frameBuffersTSOrder.Next(oldestFrameListItem);
-    if (nextFrameItem == NULL)
+    // Don't output incomplete frames if subsequent frames haven't arrived yet.
+    if (nextFrameItem == NULL && oldestFrame->GetState() != kStateComplete)
     {
         return NULL;
     }
@@ -1100,7 +1118,16 @@ VCMJitterBuffer::GetFrameForDecodingNACK()
     CleanUpSizeZeroFrames();
 
     // First look for a complete _continuous_ frame.
-    VCMFrameListItem* oldestFrameListItem = FindOldestCompleteContinuousFrame();
+    // When waiting for nack, wait for a key frame, if a continuous frame cannot
+    // be determined (i.e. lastDecodedSeqNum = -1)
+    if (_lastDecodedSeqNum == -1) {
+      _waitingForKeyFrame = true;
+    }
+
+    // Allow for a decodable frame when in Hybrid mode.
+    bool enableDecodable = _nackMode == kNackHybrid ? true : false;
+    VCMFrameListItem*
+    oldestFrameListItem = FindOldestCompleteContinuousFrame(enableDecodable);
     VCMFrameBuffer* oldestFrame = NULL;
     if (oldestFrameListItem != NULL)
     {
@@ -1456,17 +1483,9 @@ VCMJitterBuffer::CreateNackList(WebRtc_UWord16& nackSize, bool& listExtended)
             // not to add empty packets to the nack list
             if (_nackMode == kNackHybrid)
             {
-                // build external rttScore based on RTT value
-                float rttScore = 1.0f;
                 _frameBuffers[i]->ZeroOutSeqNumHybrid(_NACKSeqNumInternal,
                                                       numberOfSeqNum,
-                                                      rttScore);
-                if (_frameBuffers[i]->IsRetransmitted() == false)
-                {
-                    // If no retransmission required,set the state to decodable
-                    // meaning that we will not wait for NACK.
-                    _frameBuffers[i]->SetState(kStateDecodable);
-                }
+                                                      _rttMs);
             }
             else
             {
@@ -1641,7 +1660,13 @@ VCMJitterBuffer::InsertPacket(VCMEncodedFrame* buffer, const VCMPacket& packet)
         // High sequence number will be -1 if neither an empty packet nor
         // a media packet has been inserted.
         bool first = (frame->GetHighSeqNum() == -1);
-        bufferReturn = frame->InsertPacket(packet, nowMs);
+        // When in Hybrid mode, we allow for a decodable state
+        // Note: Under current version, a decodable frame will never be
+        // triggered, as the body of the function is empty.
+        // TODO (mikhal): Update when decodable is enabled.
+        bufferReturn = frame->InsertPacket(packet, nowMs,
+                                           _nackMode == kNackHybrid,
+                                           _rttMs);
         ret = bufferReturn;
 
         if (bufferReturn > 0)
@@ -1679,16 +1704,19 @@ VCMJitterBuffer::InsertPacket(VCMEncodedFrame* buffer, const VCMPacket& packet)
         }
     case kCompleteSession:
         {
-            UpdateFrameState(frame);
+            // Only update return value for a JB flush indicator.
+            if (UpdateFrameState(frame) == kFlushIndicator)
+              ret = kFlushIndicator;
             // Signal that we have a received packet
             _packetEvent.Set();
             break;
         }
+    case kDecodableSession:
     case kIncomplete:
         {
-            // Signal that we have a received packet
-            _packetEvent.Set();
-            break;
+          // Signal that we have a received packet
+          _packetEvent.Set();
+          break;
         }
     case kNoError:
     case kDuplicatePacket:
@@ -1700,8 +1728,7 @@ VCMJitterBuffer::InsertPacket(VCMEncodedFrame* buffer, const VCMPacket& packet)
             assert(!"JitterBuffer::InsertPacket: Undefined value");
         }
     }
-
-    return ret;
+   return ret;
 }
 
 // Must be called from within _critSect
@@ -1752,10 +1779,18 @@ VCMJitterBuffer::GetNackMode() const
 
 // Set NACK mode
 void
-VCMJitterBuffer::SetNackMode(VCMNackMode mode)
+VCMJitterBuffer::SetNackMode(VCMNackMode mode,
+                             int lowRttNackThresholdMs,
+                             int highRttNackThresholdMs)
 {
     CriticalSectionScoped cs(_critSect);
     _nackMode = mode;
+    assert(lowRttNackThresholdMs >= -1 && highRttNackThresholdMs >= -1);
+    assert(highRttNackThresholdMs == -1 ||
+           lowRttNackThresholdMs <= highRttNackThresholdMs);
+    assert(lowRttNackThresholdMs > -1 || highRttNackThresholdMs == -1);
+    _lowRttNackThresholdMs = lowRttNackThresholdMs;
+    _highRttNackThresholdMs = highRttNackThresholdMs;
     if (_nackMode == kNoNack)
     {
         _jitterEstimate.ResetNackCount();
@@ -2014,7 +2049,8 @@ VCMJitterBuffer::WaitForNack()
      }
      // else: hybrid mode, evaluate
      // RTT high, don't wait
-     if (_rttMs >= kHighRttNackMs)
+     if (_highRttNackThresholdMs >= 0 &&
+         _rttMs >= static_cast<unsigned int>(_highRttNackThresholdMs))
      {
          return false;
      }
@@ -2022,5 +2058,4 @@ VCMJitterBuffer::WaitForNack()
      return true;
 }
 
-
-}
+}  // namespace webrtc

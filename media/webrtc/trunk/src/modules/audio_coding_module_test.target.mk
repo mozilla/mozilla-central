@@ -17,6 +17,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
@@ -51,6 +53,7 @@ INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/audio_coding/main/interface \
 	-Isrc/modules/interface \
+	-Itesting/gtest/include \
 	-Isrc/system_wrappers/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
@@ -68,6 +71,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
@@ -104,6 +109,7 @@ INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/audio_coding/main/interface \
 	-Isrc/modules/interface \
+	-Itesting/gtest/include \
 	-Isrc/system_wrappers/interface
 
 OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/main/test/ACMTest.o \
@@ -128,7 +134,7 @@ OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/main/test/ACMTest.o \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a
+$(OBJS): | $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/testing/libgtest.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -164,13 +170,17 @@ LIBS := -lrt
 
 $(builddir)/audio_coding_module_test: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/audio_coding_module_test: LIBS := $(LIBS)
-$(builddir)/audio_coding_module_test: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a
+$(builddir)/audio_coding_module_test: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/testing/libgtest.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a
 $(builddir)/audio_coding_module_test: TOOLSET := $(TOOLSET)
-$(builddir)/audio_coding_module_test: $(OBJS) $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a FORCE_DO_CMD
+$(builddir)/audio_coding_module_test: $(OBJS) $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/testing/libgtest.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/audio_coding_module_test
 # Add target alias
 .PHONY: audio_coding_module_test
 audio_coding_module_test: $(builddir)/audio_coding_module_test
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/audio_coding_module_test
 
