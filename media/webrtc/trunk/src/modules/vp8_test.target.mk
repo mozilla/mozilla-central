@@ -17,6 +17,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
@@ -48,11 +50,13 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
+	-Itest \
 	-Isrc/modules/video_coding/codecs/interface \
 	-Isrc/modules/video_coding/codecs/vp8/main/interface \
 	-Isrc/common_video/interface \
-	-Isrc/common_video/vplib/main/interface \
-	-Isrc/system_wrappers/interface
+	-Isrc/modules/video_coding/codecs/interface \
+	-Isrc/system_wrappers/interface \
+	-Itesting/gtest/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -69,6 +73,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
@@ -102,24 +108,27 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
+	-Itest \
 	-Isrc/modules/video_coding/codecs/interface \
 	-Isrc/modules/video_coding/codecs/vp8/main/interface \
 	-Isrc/common_video/interface \
-	-Isrc/common_video/vplib/main/interface \
-	-Isrc/system_wrappers/interface
+	-Isrc/modules/video_coding/codecs/interface \
+	-Isrc/system_wrappers/interface \
+	-Itesting/gtest/include
 
 OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/codecs/vp8/main/test/benchmark.o \
+	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/vp8/main/test/dual_decoder_test.o \
 	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/vp8/main/test/normal_async_test.o \
 	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/vp8/main/test/packet_loss_test.o \
+	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/vp8/main/test/rps_test.o \
 	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/vp8/main/test/tester.o \
-	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/vp8/main/test/unit_test.o \
-	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/vp8/main/test/dual_decoder_test.o
+	$(obj).target/$(TARGET)/src/modules/video_coding/codecs/vp8/main/test/unit_test.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libtest_framework.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/third_party/libvpx/libvpx.a
+$(OBJS): | $(obj).target/src/modules/libtest_framework.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -155,13 +164,17 @@ LIBS := -lrt
 
 $(builddir)/vp8_test: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/vp8_test: LIBS := $(LIBS)
-$(builddir)/vp8_test: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libtest_framework.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/third_party/libvpx/libvpx.a
+$(builddir)/vp8_test: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libtest_framework.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a
 $(builddir)/vp8_test: TOOLSET := $(TOOLSET)
-$(builddir)/vp8_test: $(OBJS) $(obj).target/src/modules/libtest_framework.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/third_party/libvpx/libvpx.a FORCE_DO_CMD
+$(builddir)/vp8_test: $(OBJS) $(obj).target/src/modules/libtest_framework.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/vp8_test
 # Add target alias
 .PHONY: vp8_test
 vp8_test: $(builddir)/vp8_test
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/vp8_test
 

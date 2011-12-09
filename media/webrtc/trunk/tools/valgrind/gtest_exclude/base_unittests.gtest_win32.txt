@@ -1,0 +1,7 @@
+# Too slow under Valgrind/Wine and TSan/Windows
+TimeTicks.WinRollover
+
+# Very sensitive to slowdown
+TimeTicks.Deltas
+TimeTicks.HighResNow
+TimerTest.RepeatingTimer*

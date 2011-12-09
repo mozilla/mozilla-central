@@ -15,10 +15,19 @@
     {
       'target_name': 'test_support',
       'type': 'static_library',
-      'dependencies': [
-        '<(webrtc_root)/../testing/gtest.gyp:gtest',
+      'include_dirs': [
+        '.',
       ],
       'direct_dependent_settings': {
+        'include_dirs': [
+          '.', # Some includes are hierarchical
+        ],
+      },
+      'dependencies': [
+        '<(webrtc_root)/../testing/gtest.gyp:gtest',
+        '<(webrtc_root)/../testing/gmock.gyp:gmock',
+      ],
+      'all_dependent_settings': {
         'include_dirs': [
           '.',
         ],
@@ -28,18 +37,44 @@
         'test_suite.h',
         'testsupport/fileutils.h',
         'testsupport/fileutils.cc',
+        'testsupport/frame_reader.h',
+        'testsupport/frame_reader.cc',
+        'testsupport/frame_writer.h',
+        'testsupport/frame_writer.cc',
+        'testsupport/packet_reader.h',
+        'testsupport/packet_reader.cc',
+        'testsupport/metrics/video_metrics.h',
+        'testsupport/metrics/video_metrics.cc',
+        'testsupport/mock/mock_frame_reader.h',
+        'testsupport/mock/mock_frame_writer.h',
+      ],
+    },
+    {
+      # Depend on this target when you want to have test_support but also the
+      # main method needed for gtest to execute!
+      'target_name': 'test_support_main',
+      'type': 'static_library',
+      'dependencies': [
+        'test_support',
+      ],
+      'sources': [
+        'run_all_unittests.cc',
       ],
     },
     {
       'target_name': 'test_support_unittests',
       'type': 'executable',
       'dependencies': [
-        'test_support',
+        'test_support_main',
         '<(webrtc_root)/../testing/gtest.gyp:gtest',
       ],
-       'sources': [
-        'run_all_unittests.cc',
+      'sources': [
+        'testsupport/unittest_utils.h',
         'testsupport/fileutils_unittest.cc',
+        'testsupport/frame_reader_unittest.cc',
+        'testsupport/frame_writer_unittest.cc',
+        'testsupport/packet_reader_unittest.cc',
+        'testsupport/metrics/video_metrics_unittest.cc',
       ],
     },
   ],

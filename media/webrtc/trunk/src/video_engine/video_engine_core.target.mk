@@ -52,7 +52,6 @@ INCS_Debug := -Isrc \
 	-Isrc/common_video/interface \
 	-Isrc/modules/video_capture/main/interface \
 	-Isrc/modules/video_render/main/interface \
-	-Isrc/common_video/vplib/main/interface \
 	-Isrc/common_video/jpeg/main/interface \
 	-Isrc/modules/media_file/interface \
 	-Isrc/modules/interface \
@@ -118,7 +117,6 @@ INCS_Release := -Isrc \
 	-Isrc/common_video/interface \
 	-Isrc/modules/video_capture/main/interface \
 	-Isrc/modules/video_render/main/interface \
-	-Isrc/common_video/vplib/main/interface \
 	-Isrc/common_video/jpeg/main/interface \
 	-Isrc/modules/media_file/interface \
 	-Isrc/modules/interface \
@@ -132,35 +130,35 @@ INCS_Release := -Isrc \
 	-Isrc/voice_engine/main/interface \
 	-Isrc/system_wrappers/interface
 
-OBJS := $(obj).target/$(TARGET)/src/video_engine/main/source/vie_base_impl.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_capture_impl.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_codec_impl.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_encryption_impl.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_external_codec_impl.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_file_impl.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_image_process_impl.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_impl.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_network_impl.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_ref_count.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_render_impl.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_rtp_rtcp_impl.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_shared_data.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_capturer.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_channel.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_channel_manager.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_encoder.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_file_image.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_file_player.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_file_recorder.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_frame_provider_base.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_input_manager.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_manager_base.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_performance_monitor.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_receiver.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_renderer.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_render_manager.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_sender.o \
-	$(obj).target/$(TARGET)/src/video_engine/main/source/vie_sync_module.o
+OBJS := $(obj).target/$(TARGET)/src/video_engine/vie_base_impl.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_capture_impl.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_codec_impl.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_encryption_impl.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_external_codec_impl.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_file_impl.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_image_process_impl.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_impl.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_network_impl.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_ref_count.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_render_impl.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_rtp_rtcp_impl.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_shared_data.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_capturer.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_channel.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_channel_manager.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_encoder.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_file_image.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_file_player.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_file_recorder.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_frame_provider_base.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_input_manager.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_manager_base.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_performance_monitor.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_receiver.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_renderer.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_render_manager.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_sender.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_sync_module.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

@@ -148,3 +148,7 @@ all_deps += $(obj).target/testing/libgmock.a
 .PHONY: gmock
 gmock: $(obj).target/testing/libgmock.a
 
+# Add target alias to "all" target.
+.PHONY: all
+all: gmock
+

@@ -359,6 +359,8 @@ AudioDeviceWindowsCore::AudioDeviceWindowsCore(const WebRtc_Word32 id) :
     _ptrCaptureClient(NULL),
     _ptrCaptureVolume(NULL),
     _ptrRenderSimpleVolume(NULL),
+    _dmo(NULL),
+    _mediaBuffer(NULL),
     _builtInAecEnabled(false),
     _playAudioFrameSize(0),
     _playSampleRate(0),
@@ -491,15 +493,16 @@ AudioDeviceWindowsCore::AudioDeviceWindowsCore(const WebRtc_Word32 id) :
                               CLSCTX_INPROC_SERVER,
                               IID_IMediaObject,
                               reinterpret_cast<void**>(&ptrDMO));
+        if (FAILED(hr) || ptrDMO == NULL)
+        {
+            // Since we check that _dmo is non-NULL in EnableBuiltInAEC(), the
+            // feature is prevented from being enabled.
+            _builtInAecEnabled = false;
+            _TraceCOMError(hr);
+        }
         _dmo = ptrDMO;
-        ptrDMO->Release();
+        SAFE_RELEASE(ptrDMO);
     }
-    if (FAILED(hr))
-    {
-        _TraceCOMError(hr);
-        assert(false);
-    }
-    assert(_dmo != NULL);
 }
 
 // ----------------------------------------------------------------------------
@@ -3351,20 +3354,6 @@ DWORD AudioDeviceWindowsCore::DoGetCaptureVolumeThread()
 
     while (1)
     {
-        DWORD waitResult = WaitForSingleObject(waitObject,
-                                               GET_MIC_VOLUME_INTERVAL_MS);
-        switch (waitResult)
-        {
-            case WAIT_OBJECT_0: // _hShutdownCaptureEvent
-                return 0;
-            case WAIT_TIMEOUT:	// timeout notification
-                break;
-            default:            // unexpected error
-                WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
-                    "  unknown wait termination on get volume thread");
-                return -1;
-        }
-
         if (AGC())
         {
             WebRtc_UWord32 currentMicLevel = 0;
@@ -3379,6 +3368,20 @@ DWORD AudioDeviceWindowsCore::DoGetCaptureVolumeThread()
                 _UnLock();
             }
         }
+
+        DWORD waitResult = WaitForSingleObject(waitObject,
+                                               GET_MIC_VOLUME_INTERVAL_MS);
+        switch (waitResult)
+        {
+            case WAIT_OBJECT_0: // _hShutdownCaptureEvent
+                return 0;
+            case WAIT_TIMEOUT:  // timeout notification
+                break;
+            default:            // unexpected error
+                WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
+                    "  unknown wait termination on get volume thread");
+                return -1;
+        }
     }
 }
 
@@ -3391,11 +3394,11 @@ DWORD AudioDeviceWindowsCore::DoSetCaptureVolumeThread()
         DWORD waitResult = WaitForMultipleObjects(2, waitArray, FALSE, INFINITE);
         switch (waitResult)
         {
-            case WAIT_OBJECT_0:     // _hShutdownCaptureEvent
+            case WAIT_OBJECT_0:      // _hShutdownCaptureEvent
                 return 0;
-           case WAIT_OBJECT_0 + 1:  // _hSetCaptureVolumeEvent
+            case WAIT_OBJECT_0 + 1:  // _hSetCaptureVolumeEvent
                 break;
-           default:                 // unexpected error
+            default:                 // unexpected error
                 WEBRTC_TRACE(kTraceWarning, kTraceAudioDevice, _id,
                     "  unknown wait termination on set volume thread");
                     return -1;
@@ -3589,8 +3592,17 @@ DWORD AudioDeviceWindowsCore::DoRenderThread()
                 {
                     // Request data to be played out (#bytes = _playBlockSize*_audioFrameSize)
                     _UnLock();
-                    WebRtc_UWord32 nSamples = _ptrAudioBuffer->RequestPlayoutData(_playBlockSize);
+                    WebRtc_Word32 nSamples =
+                    _ptrAudioBuffer->RequestPlayoutData(_playBlockSize);
                     _Lock();
+
+                    if (nSamples == -1) 
+                    {
+                        _UnLock();
+                        WEBRTC_TRACE(kTraceCritical, kTraceAudioDevice, _id,
+                                     "failed to read data from render client");
+                        goto Exit;
+                    }
 
                     // Sanity check to ensure that essential states are not modified during the unlocked period
                     if (_ptrRenderClient == NULL || _ptrClientOut == NULL)
@@ -3778,7 +3790,7 @@ DWORD AudioDeviceWindowsCore::DoCaptureThreadPollDMO()
                 // copy available data to |dmoBuffer|, and should only return
                 // 10 ms frames. The value of |dwStatus| should be ignored.
                 hr = _dmo->ProcessOutput(0, 1, &dmoBuffer, &dwStatus);
-                dmoBuffer.pBuffer->Release();
+                SAFE_RELEASE(dmoBuffer.pBuffer);
                 dwStatus = dmoBuffer.dwStatus;
             }
             if (FAILED(hr))
@@ -4052,7 +4064,7 @@ DWORD AudioDeviceWindowsCore::DoCaptureThread()
                     clock->GetPosition(&pos, NULL);
                     clock->GetFrequency(&freq);
                     _sndCardPlayDelay = ROUND((double(_writtenSamples) / _devicePlaySampleRate - double(pos) / freq) * 1000.0);
-                    clock->Release();
+                    SAFE_RELEASE(clock);
                 }
 
                 // Send the captured data to the registered consumer
@@ -4217,15 +4229,14 @@ int AudioDeviceWindowsCore::SetDMOProperties()
         IPropertyStore* ptrPS = NULL;
         hr = _dmo->QueryInterface(IID_IPropertyStore,
                                   reinterpret_cast<void**>(&ptrPS));
+        if (FAILED(hr) || ptrPS == NULL)
+        {
+            _TraceCOMError(hr);
+            return -1;
+        }
         ps = ptrPS;
-        ptrPS->Release();
+        SAFE_RELEASE(ptrPS);
     }
-    if (FAILED(hr))
-    {
-        _TraceCOMError(hr);
-        return -1;
-    }
-    assert(ps != NULL);
 
     // Set the AEC system mode.
     // SINGLE_CHANNEL_AEC - AEC processing only.
@@ -4650,13 +4661,13 @@ WebRtc_Word32 AudioDeviceWindowsCore::_GetDefaultDeviceIndex(EDataFlow dir,
         {
             IMMDevice* ptrDevice = NULL;
             hr = collection->Item(i, &ptrDevice);
+            if (FAILED(hr) || ptrDevice == NULL)
+            {
+                _TraceCOMError(hr);
+                return -1;
+            }
             device = ptrDevice;
-            ptrDevice->Release();
-        }
-        if (FAILED(hr))
-        {
-            _TraceCOMError(hr);
-            return -1;
+            SAFE_RELEASE(ptrDevice);
         }
 
         if (_GetDeviceID(device, szDeviceID, kDeviceIDLength) == -1)

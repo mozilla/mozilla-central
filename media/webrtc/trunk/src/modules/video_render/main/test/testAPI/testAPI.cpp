@@ -8,8 +8,7 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-// testAPI.cpp : Defines the entry point for the console application.
-//
+#include "testAPI.h"
 
 #include <stdio.h>
 
@@ -29,18 +28,6 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <sys/time.h>
-
-#elif defined(WEBRTC_MAC_INTEL)
-
-#import <Foundation/Foundation.h>
-#import <Cocoa/Cocoa.h>
-#import <AppKit/AppKit.h>
-#import <QTKit/QTKit.h>
-#include <sys/time.h>
-#include <iostream>
-using namespace std;
-
-@class CocoaRenderView;
 
 #endif
 
@@ -102,6 +89,8 @@ unsigned long timeGetTime()
 }
 
 #elif defined(WEBRTC_MAC_INTEL)
+
+#include <unistd.h>
 
 #define GET_TIME_IN_MS timeGetTime()
 #define SLEEP(x) usleep(x * 1000)
@@ -205,13 +194,13 @@ int WebRtcCreateWindow(Window *outWindow, Display **outDisplay, int winNum, int 
     // get screen number
     screen = DefaultScreen(_display);
 
-    // put desired visual info for the screen in vinfo 
+    // put desired visual info for the screen in vinfo
     if( XMatchVisualInfo(_display, screen, 24, TrueColor, &vinfo) != 0 )
     {
         //printf( "Screen visual info match!\n" );
     }
 
-    // set window attributes 
+    // set window attributes
     xswa.colormap = XCreateColormap(_display, DefaultRootWindow(_display), vinfo.visual, AllocNone);
     xswa.event_mask = StructureNotifyMask | ExposureMask;
     xswa.background_pixel = 0;
@@ -256,7 +245,7 @@ int WebRtcCreateWindow(Window *outWindow, Display **outDisplay, int winNum, int 
         XSetIconName(_display, _window, "VE MM Remote Window");
     }
 
-    // make x report events for mask 
+    // make x report events for mask
     XSelectInput(_display, _window, StructureNotifyMask);
 
     // map the window to the display
@@ -274,31 +263,9 @@ int WebRtcCreateWindow(Window *outWindow, Display **outDisplay, int winNum, int 
 
     return 0;
 }
+#endif  // LINUX
 
-#elif defined(WEBRTC_MAC_INTEL) // LINUX
-int WebRtcCreateWindow(CocoaRenderView*& cocoaRenderer, int winNum, int width, int height) // unsigned char* title, int titleLength)
-
-{
-    // In Cocoa, rendering is not done directly to a window like in Windows and Linux.
-    // It is rendererd to a Subclass of NSOpenGLView
-
-    // create cocoa container window
-    NSRect outWindowFrame = NSMakeRect(200, 800, width + 20, height + 20);
-    NSWindow* outWindow = [[NSWindow alloc] initWithContentRect:outWindowFrame styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
-    [outWindow orderOut:nil];
-    [outWindow setTitle:@"Cocoa Renderer"];
-    [outWindow setBackgroundColor:[NSColor blueColor]];
-
-    // create renderer and attach to window
-    NSRect cocoaRendererFrame = NSMakeRect(10, 10, width, height);
-    cocoaRenderer = [[CocoaRenderView alloc] initWithFrame:cocoaRendererFrame];
-    [[outWindow contentView] addSubview:cocoaRenderer];
-
-    [outWindow makeKeyAndOrderFront:NSApp];
-
-    return 0;
-}
-#endif  
+// Note: Mac code is in testApi_mac.mm.
 
 class MyRenderCallback: public VideoRenderCallback
 {
@@ -470,15 +437,15 @@ int TestBitmapText(VideoRender* renderModule) {
     // Sleep and let all frames be rendered before closing
     SLEEP(renderDelayMs*2);
 
-   
+
     // Shut down
     printf("Closing...\n");
     ColorKey.dwColorSpaceHighValue = RGB(0,0,0);
-	  ColorKey.dwColorSpaceLowValue = RGB(0,0,0);
+    ColorKey.dwColorSpaceLowValue = RGB(0,0,0);
     renderModule->SetBitmap(NULL, 0, &ColorKey, 0.0f, 0.0f, 0.0f, 0.0f);
-	  renderModule->SetText(1, NULL, 20, RGB(255,255,255), 
+    renderModule->SetText(1, NULL, 20, RGB(255,255,255),
                     RGB(0,0,0), 0.0f, 0.0f, 0.0f, 0.0f);
-    
+
     error = renderModule->StopRender(streamId0);
     assert(error == 0);
 
@@ -626,45 +593,12 @@ int TestExternalRender(VideoRender* renderModule) {
     return 0;
 }
 
-#if defined(_WIN32)
-int _tmain(int argc, _TCHAR* argv[])
-#elif defined(WEBRTC_LINUX)
-int main(int argc, char* argv[])
-#elif defined(WEBRTC_MAC_INTEL)
-int main (int argc, const char * argv[])
-//int begin()
-#endif
-{
-#ifdef WEBRTC_MAC_INTEL
-    NSAutoreleasePool * pool = [[NSAutoreleasePool alloc] init];
-    [NSApplication sharedApplication];
-#endif
-
-    int myId = 12345;
-
-    // Create a window for testing
-    void* window = NULL;
-#if defined (_WIN32)
-    HWND testHwnd;
-    WebRtcCreateWindow(testHwnd, 0, 352, 288);
-    window = (void*)testHwnd;
-    VideoRenderType windowType = kRenderWindows;
-#elif defined(WEBRTC_LINUX)
-    Window testWindow;
-    Display* display;
-    WebRtcCreateWindow(&testWindow, &display, 0, 352, 288);
-    VideoRenderType windowType = kRenderX11;
-    window = (void*)testWindow;
-#elif defined(WEBRTC_MAC_INTEL)
-    CocoaRenderView* testWindow;
-    WebRtcCreateWindow(testWindow, 0, 352, 288);
-    VideoRenderType windowType = kRenderCocoa;
-    window = (void*)testWindow;
-#endif
-
+void RunVideoRenderTests(void* window, VideoRenderType windowType) {
 #ifndef WEBRTC_INCLUDE_INTERNAL_VIDEO_RENDER
     windowType = kRenderExternal;
 #endif
+
+    int myId = 12345;
 
     // Create the render module
     printf("Create render module\n");
@@ -710,9 +644,32 @@ int main (int argc, const char * argv[])
     renderModule = NULL;
 
     printf("VideoRender unit tests passed.\n");
+}
 
-#if defined(WEBRTC_MAC_INTEL)
-    [pool release];
+// Note: The Mac main is implemented in testApi_mac.mm.
+#if defined(_WIN32)
+int _tmain(int argc, _TCHAR* argv[])
+#elif defined(WEBRTC_LINUX)
+int main(int argc, char* argv[])
 #endif
+#if !defined(WEBRTC_MAC)
+{
+    // Create a window for testing.
+    void* window = NULL;
+#if defined (_WIN32)
+    HWND testHwnd;
+    WebRtcCreateWindow(testHwnd, 0, 352, 288);
+    window = (void*)testHwnd;
+    VideoRenderType windowType = kRenderWindows;
+#elif defined(WEBRTC_LINUX)
+    Window testWindow;
+    Display* display;
+    WebRtcCreateWindow(&testWindow, &display, 0, 352, 288);
+    VideoRenderType windowType = kRenderX11;
+    window = (void*)testWindow;
+#endif // WEBRTC_LINUX
+
+    RunVideoRenderTests(window, windowType);
     return 0;
 }
+#endif  // !WEBRTC_MAC

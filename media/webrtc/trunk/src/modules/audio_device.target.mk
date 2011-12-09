@@ -55,8 +55,8 @@ INCS_Debug := -Isrc \
 	-Isrc/modules/audio_device/main/interface \
 	-Isrc/modules/audio_device/main/source/dummy \
 	-Isrc/modules/audio_device/main/source/linux \
-	-Isrc/common_audio/resampler/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/resampler/include \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/system_wrappers/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
@@ -114,8 +114,8 @@ INCS_Release := -Isrc \
 	-Isrc/modules/audio_device/main/interface \
 	-Isrc/modules/audio_device/main/source/dummy \
 	-Isrc/modules/audio_device/main/source/linux \
-	-Isrc/common_audio/resampler/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/resampler/include \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/system_wrappers/interface
 
 OBJS := $(obj).target/$(TARGET)/src/modules/audio_device/main/source/audio_device_buffer.o \

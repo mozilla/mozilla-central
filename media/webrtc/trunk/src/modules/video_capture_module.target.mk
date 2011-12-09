@@ -50,7 +50,7 @@ INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/video_capture/main/interface \
 	-Isrc/modules/interface \
-	-Isrc/common_video/vplib/main/interface \
+	-Isrc/common_video/libyuv/include \
 	-Isrc/modules/video_capture/main/source/Linux \
 	-Isrc/modules/utility/interface \
 	-Isrc/modules/audio_coding/main/interface \
@@ -106,7 +106,7 @@ INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/video_capture/main/interface \
 	-Isrc/modules/interface \
-	-Isrc/common_video/vplib/main/interface \
+	-Isrc/common_video/libyuv/include \
 	-Isrc/modules/video_capture/main/source/Linux \
 	-Isrc/modules/utility/interface \
 	-Isrc/modules/audio_coding/main/interface \

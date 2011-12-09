@@ -19,6 +19,7 @@ extern "C"
 
 #include "vpx/internal/vpx_codec_internal.h"
 #include "vpx/vp8cx.h"
+#include "vpx/vpx_encoder.h"
 #include "vpx_scale/yv12config.h"
 #include "type_aliases.h"
 #include "ppflags.h"
@@ -103,7 +104,7 @@ extern "C"
         int Version;            // 4 versions of bitstream defined 0 best quality/slowest decode, 3 lowest quality/fastest decode
         int Width;              // width of data passed to the compressor
         int Height;             // height of data passed to the compressor
-        double frame_rate;       // set to passed in framerate
+        struct vpx_rational  timebase;
         int target_bandwidth;    // bandwidth to be used in kilobits per second
 
         int noise_sensitivity;   // parameter used for applying pre processing blur: recommendation 0
@@ -145,9 +146,9 @@ extern "C"
         int over_shoot_pct;
 
         // buffering parameters
-        int starting_buffer_level;  // in seconds
-        int optimal_buffer_level;
-        int maximum_buffer_size;
+        int64_t starting_buffer_level;  // in seconds
+        int64_t optimal_buffer_level;
+        int64_t maximum_buffer_size;
 
         // controlling quality
         int fixed_q;
@@ -198,6 +199,14 @@ extern "C"
         struct vpx_codec_pkt_list  *output_pkt_list;
 
         vp8e_tuning tuning;
+
+        // Temporal scaling parameters
+        unsigned int number_of_layers;
+        unsigned int target_bitrate[MAX_PERIODICITY];
+        unsigned int rate_decimator[MAX_PERIODICITY];
+        unsigned int periodicity;
+        unsigned int layer_id[MAX_PERIODICITY];
+
     } VP8_CONFIG;
 
 
@@ -212,7 +221,7 @@ extern "C"
 // receive a frames worth of data caller can assume that a copy of this frame is made
 // and not just a copy of the pointer..
     int vp8_receive_raw_frame(VP8_PTR comp, unsigned int frame_flags, YV12_BUFFER_CONFIG *sd, int64_t time_stamp, int64_t end_time_stamp);
-    int vp8_get_compressed_data(VP8_PTR comp, unsigned int *frame_flags, unsigned long *size, unsigned char *dest, int64_t *time_stamp, int64_t *time_end, int flush);
+    int vp8_get_compressed_data(VP8_PTR comp, unsigned int *frame_flags, unsigned long *size, unsigned char *dest, unsigned char *dest_end, int64_t *time_stamp, int64_t *time_end, int flush);
     int vp8_get_preview_raw_frame(VP8_PTR comp, YV12_BUFFER_CONFIG *dest, vp8_ppflags_t *flags);
 
     int vp8_use_as_reference(VP8_PTR comp, int ref_frame_flags);

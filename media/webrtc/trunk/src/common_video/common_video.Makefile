@@ -3,4 +3,4 @@
 export builddir_name ?= trunk/src/common_video/$(OBJDIR)/media/webrtc/out
 .PHONY: all
 all:
-	$(MAKE) -C ../.. webrtc_vplib webrtc_jpeg
+	$(MAKE) -C ../.. webrtc_libyuv libyuv_unittests webrtc_jpeg jpeg_test

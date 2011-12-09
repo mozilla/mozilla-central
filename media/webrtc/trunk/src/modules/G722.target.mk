@@ -48,7 +48,7 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/codecs/G722/main/interface
+	-Isrc/modules/audio_coding/codecs/g722/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -98,11 +98,11 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/codecs/G722/main/interface
+	-Isrc/modules/audio_coding/codecs/g722/include
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/G722/main/source/g722_interface.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/G722/main/source/g722_encode.o \
-	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/G722/main/source/g722_decode.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/g722/g722_interface.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/g722/g722_encode.o \
+	$(obj).target/$(TARGET)/src/modules/audio_coding/codecs/g722/g722_decode.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

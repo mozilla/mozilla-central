@@ -13,65 +13,45 @@
       'type': '<(library)',
       'dependencies': [
         '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
+        '<(webrtc_root)/common_video/common_video.gyp:webrtc_libyuv',
       ],
       'include_dirs': [
         '../interface',
-        '../../../../../../common_video/interface',
-        '../../../../../../common_video/vplib/main/interface',
-        '../../../interface',
-        '../../../../../interface',
+        '<(webrtc_root)/common_video/interface',
+        '<(webrtc_root)/modules/video_coding/codecs/interface',
+        '<(webrtc_root)/modules/interface',
       ],
       'conditions': [
         ['build_with_chromium==1', {
-           'conditions': [
-             ['target_arch=="arm"', {
-               'dependencies': [
-                 '<(webrtc_root)/../libvpx/libvpx.gyp:libvpx_lib',
-                 '<(webrtc_root)/../libvpx/libvpx.gyp:libvpx_include',
-               ],
-             }, {  # arm
-               'conditions': [
-                 ['OS=="win"', {
-                   'dependencies': [
-                     # We don't want to link with the static library inside Chromium
-                     # on Windows. Chromium uses the ffmpeg DLL and exports the
-                     # necessary libvpx symbols for us.
-                     '<(webrtc_root)/../libvpx/libvpx.gyp:libvpx_include',
-                   ],
-                 },{ # non-arm, win
-                   'dependencies': [
-                     '<(webrtc_root)/../libvpx/libvpx.gyp:libvpx',
-                   ],
-                   'include_dirs': [
-                     '../../../../../../../libvpx/source/libvpx',
-                   ],
-                 }], # non-arm, non-win
-               ],
-             }],
-           ],
-           'defines': [
-             'WEBRTC_LIBVPX_VERSION=960' # Bali
-           ],
+          'dependencies': [
+            '<(webrtc_root)/../libvpx/libvpx.gyp:libvpx',
+          ],
+          'defines': [
+            'WEBRTC_LIBVPX_VERSION=960' # Bali
+          ],
         },{
           'dependencies': [
             '<(webrtc_root)/../third_party/libvpx/libvpx.gyp:libvpx',
           ],
-          'include_dirs': [
-            '../../../../../../../third_party/libvpx/source/libvpx',
-          ],
           'defines': [
             'WEBRTC_LIBVPX_VERSION=971' # Cayuga
+          ],
+          'sources': [
+            'temporal_layers.h',
+            'temporal_layers.cc',
           ],
         }],
       ],
       'direct_dependent_settings': {
         'include_dirs': [
           '../interface',
-          '../../../../../../common_video/interface',
-          '../../../interface',
+          '<(webrtc_root)/common_video/interface',
+          '<(webrtc_root)/modules/video_coding/codecs/interface',
         ],
       },
       'sources': [
+        'reference_picture_selection.h',
+        'reference_picture_selection.cc',
         '../interface/vp8.h',
         '../interface/vp8_simulcast.h',
         'vp8.cc',
@@ -89,24 +69,45 @@
           'dependencies': [
             'test_framework',
             'webrtc_vp8',
-            '<(webrtc_root)/common_video/common_video.gyp:webrtc_vplib',
+            '<(webrtc_root)/common_video/common_video.gyp:webrtc_libyuv',
             '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
+            '<(webrtc_root)/../test/test.gyp:test_support',
+            '<(webrtc_root)/../testing/gtest.gyp:gtest',
           ],
          'sources': [
             # header files
             '../test/benchmark.h',
+            '../test/dual_decoder_test.h',
             '../test/normal_async_test.h',
             '../test/packet_loss_test.h',
+            '../test/rps_test.h',
             '../test/unit_test.h',
-            '../test/dual_decoder_test.h',
 
            # source files
             '../test/benchmark.cc',
+            '../test/dual_decoder_test.cc',
             '../test/normal_async_test.cc',
             '../test/packet_loss_test.cc',
+            '../test/rps_test.cc',
             '../test/tester.cc',
             '../test/unit_test.cc',
-            '../test/dual_decoder_test.cc',
+          ],
+        },
+        {
+          'target_name': 'vp8_unittests',
+          'type': 'executable',
+          'dependencies': [
+            '<(webrtc_root)/../test/test.gyp:test_support_main',
+            '<(webrtc_root)/../testing/gtest.gyp:gtest',
+            '<(webrtc_root)/../third_party/libvpx/libvpx.gyp:libvpx',
+            'webrtc_vp8',
+          ],
+          'include_dirs': [
+            '<(webrtc_root)/../third_party/libvpx/source/libvpx',
+          ],
+          'sources': [
+            'reference_picture_selection_unittest.cc',
+            'temporal_layers_unittest.cc',
           ],
         },
       ], # targets

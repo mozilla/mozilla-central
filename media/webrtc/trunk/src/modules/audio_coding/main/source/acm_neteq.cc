@@ -44,6 +44,7 @@ _numSlaves(0),
 _receivedStereo(false),
 _masterSlaveInfo(NULL),
 _previousAudioActivity(AudioFrame::kVadUnknown),
+_extraDelay(0),
 _callbackCritSect(CriticalSectionWrapper::CreateCriticalSection())
 {
     for(int n = 0; n < MAX_NUM_SLAVE_NETEQ + 1; n++)
@@ -122,7 +123,7 @@ ACMNetEQ::Init()
             // Has to enable VAD
             if(EnableVADByIdxSafe(idx) < 0)
             {
-                // Failed to enable VAD. 
+                // Failed to enable VAD.
                 // Delete VAD instance, if it is created
                 if(_ptrVADInst[idx] != NULL)
                 {
@@ -141,6 +142,10 @@ ACMNetEQ::Init()
             }
         }
         _isInitialized[idx] = true;
+    }
+    if (EnableVAD() == -1)
+    {
+        return -1;
     }
     return 0;
 }
@@ -164,7 +169,7 @@ ACMNetEQ::InitByIdxSafe(
     _instMem[idx] = malloc(memorySizeBytes);
     if (_instMem[idx] == NULL)
     {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
             "InitByIdxSafe: NetEq Initialization error: could not allocate memory for NetEq");
         _isInitialized[idx] = false;
         return -1;
@@ -176,8 +181,8 @@ ACMNetEQ::InitByIdxSafe(
             _instMem[idx] = NULL;
         }
         LogError("Assign", idx);
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
-            "InitByIdxSafe: NetEq Initialization error: could not Assign");   
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
+            "InitByIdxSafe: NetEq Initialization error: could not Assign");
         _isInitialized[idx] = false;
         return -1;
     }
@@ -188,8 +193,8 @@ ACMNetEQ::InitByIdxSafe(
             _instMem[idx] = NULL;
         }
         LogError("Init", idx);
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
-            "InitByIdxSafe: NetEq Initialization error: could not initialize NetEq"); 
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
+            "InitByIdxSafe: NetEq Initialization error: could not initialize NetEq");
         _isInitialized[idx] = false;
         return -1;
     }
@@ -206,28 +211,28 @@ ACMNetEQ::EnableVADByIdxSafe(
         if(WebRtcVad_Create(&_ptrVADInst[idx]) < 0)
         {
             _ptrVADInst[idx] = NULL;
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
-                "EnableVADByIdxSafe: NetEq Initialization error: could not create VAD");   
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
+                "EnableVADByIdxSafe: NetEq Initialization error: could not create VAD");
             return -1;
         }
     }
-    
+
     if(WebRtcNetEQ_SetVADInstance(_inst[idx], _ptrVADInst[idx],
         (WebRtcNetEQ_VADInitFunction)    WebRtcVad_Init,
         (WebRtcNetEQ_VADSetmodeFunction) WebRtcVad_set_mode,
         (WebRtcNetEQ_VADFunction)        WebRtcVad_Process) < 0)
     {
        LogError("setVADinstance", idx);
-       WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
-           "EnableVADByIdxSafe: NetEq Initialization error: could not set VAD instance");   
+       WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
+           "EnableVADByIdxSafe: NetEq Initialization error: could not set VAD instance");
         return -1;
     }
 
     if(WebRtcNetEQ_SetVADMode(_inst[idx], _vadMode) < 0)
     {
         LogError("setVADmode", idx);
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
-            "EnableVADByIdxSafe: NetEq Initialization error: could not set VAD mode");   
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
+            "EnableVADByIdxSafe: NetEq Initialization error: could not set VAD mode");
         return -1;
     }
     return 0;
@@ -238,18 +243,18 @@ ACMNetEQ::EnableVADByIdxSafe(
 
 WebRtc_Word32
 ACMNetEQ::AllocatePacketBuffer(
-    WebRtcNetEQDecoder* usedCodecs, 
+    const WebRtcNetEQDecoder* usedCodecs,
     WebRtc_Word16     noOfCodecs)
 {
     // Due to WebRtcNetEQ_GetRecommendedBufferSize
     // the following has to be int otherwise we will have compiler error
-    // if not casted 
+    // if not casted
 
     CriticalSectionScoped lock(*_netEqCritSect);
     for(WebRtc_Word16 idx = 0; idx < _numSlaves + 1; idx++)
     {
         if(AllocatePacketBufferByIdxSafe(usedCodecs, noOfCodecs, idx) < 0)
-        {       
+        {
             return -1;
         }
     }
@@ -258,7 +263,7 @@ ACMNetEQ::AllocatePacketBuffer(
 
 WebRtc_Word16
 ACMNetEQ::AllocatePacketBufferByIdxSafe(
-    WebRtcNetEQDecoder*    usedCodecs, 
+    const WebRtcNetEQDecoder*    usedCodecs,
     WebRtc_Word16       noOfCodecs,
     const WebRtc_Word16 idx)
 {
@@ -267,11 +272,11 @@ ACMNetEQ::AllocatePacketBufferByIdxSafe(
 
     if(!_isInitialized[idx])
     {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
             "AllocatePacketBufferByIdxSafe: NetEq is not initialized.");
         return -1;
     }
-    if (WebRtcNetEQ_GetRecommendedBufferSize(_inst[idx], usedCodecs, noOfCodecs, 
+    if (WebRtcNetEQ_GetRecommendedBufferSize(_inst[idx], usedCodecs, noOfCodecs,
         kTCPLargeJitter , &maxNoPackets, &bufferSizeInBytes)
         != 0)
     {
@@ -286,8 +291,8 @@ ACMNetEQ::AllocatePacketBufferByIdxSafe(
 
     _netEqPacketBuffer[idx] = (WebRtc_Word16 *)malloc(bufferSizeInBytes);
     if (_netEqPacketBuffer[idx] == NULL)
-    {   
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+    {
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
             "AllocatePacketBufferByIdxSafe: NetEq Initialization error: could not allocate "
             "memory for NetEq Packet Buffer");
         return -1;
@@ -319,7 +324,7 @@ ACMNetEQ::SetExtraDelay(
     {
         if(!_isInitialized[idx])
         {
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "SetExtraDelay: NetEq is not initialized.");
             return -1;
         }
@@ -329,7 +334,8 @@ ACMNetEQ::SetExtraDelay(
             return -1;
         }
     }
-    return 0;            
+    _extraDelay = delayInMS;
+    return 0;
 }
 
 
@@ -344,7 +350,7 @@ ACMNetEQ::SetAVTPlayout(
         {
             if(!_isInitialized[idx])
             {
-                WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+                WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                     "SetAVTPlayout: NetEq is not initialized.");
                 return -1;
             }
@@ -373,7 +379,7 @@ ACMNetEQ::CurrentSampFreqHz() const
     CriticalSectionScoped lock(*_netEqCritSect);
     if(!_isInitialized[0])
     {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
             "CurrentSampFreqHz: NetEq is not initialized.");
         return -1;
     }
@@ -392,7 +398,7 @@ ACMNetEQ::SetPlayoutMode(
         {
             if(!_isInitialized[idx])
             {
-                WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+                WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                     "SetPlayoutMode: NetEq is not initialized.");
                 return -1;
             }
@@ -410,10 +416,9 @@ ACMNetEQ::SetPlayoutMode(
                 playoutMode = kPlayoutStreaming;
                 break;
             default:
-                WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
-                    "SetPlayoutMode: NetEq Error playout mode not recognized");   
+                WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
+                    "SetPlayoutMode: NetEq Error playout mode not recognized");
                 return -1;
-                break;
             }
             if(WebRtcNetEQ_SetPlayoutMode(_inst[idx], playoutMode) < 0)
             {
@@ -443,7 +448,7 @@ ACMNetEQ::NetworkStatistics(
     CriticalSectionScoped lock(*_netEqCritSect);
     if(!_isInitialized[0])
     {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
             "NetworkStatistics: NetEq is not initialized.");
         return -1;
     }
@@ -465,81 +470,6 @@ ACMNetEQ::NetworkStatistics(
     }
 }
 
-
-WebRtc_Word32
-ACMNetEQ::JitterStatistics(
-    ACMJitterStatistics* jitterStatistics) const
-{
-    WebRtcNetEQ_JitterStatistics stats;
-    CriticalSectionScoped lock(*_netEqCritSect);
-    if(!_isInitialized[0])
-    {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
-            "JitterStatistics: NetEq is not initialized.");
-        return -1;
-    }
-    if(WebRtcNetEQ_GetJitterStatistics(_inst[0], &stats) == 0)
-    {
-        jitterStatistics->accelerateMs            = stats.accelerateMs;
-        jitterStatistics->avgPacketDelayMs        = stats.avgPacketDelayMs;
-        jitterStatistics->numExpandTiny           = stats.countExpandMoreThan120ms;
-        jitterStatistics->numExpandLong           = stats.countExpandMoreThan2000ms;
-        jitterStatistics->numExpandSmall          = stats.countExpandMoreThan250ms;
-        jitterStatistics->numExpandMedium         = stats.countExpandMoreThan500ms;
-        jitterStatistics->countIAT1000ms          = stats.countIAT1000ms;
-        jitterStatistics->countIAT2000ms          = stats.countIAT2000ms;
-        jitterStatistics->countIAT500ms           = stats.countIAT500ms;
-        jitterStatistics->flushedMs               = stats.flushedMs;
-        jitterStatistics->generatedSilentMs       = stats.generatedSilentMs;
-        jitterStatistics->interpolatedSilentMs    = stats.interpolatedSilentMs;
-        jitterStatistics->interpolatedVoiceMs     = stats.interpolatedVoiceMs;
-        jitterStatistics->jbAvgSize               = stats.jbAvgSize;
-        jitterStatistics->jbChangeCount           = stats.jbChangeCount;
-        jitterStatistics->jbMaxSize               = stats.jbMaxSize;
-        jitterStatistics->jbMinSize               = stats.jbMinSize;
-        jitterStatistics->lateLossMs              = stats.lateLossMs;
-        jitterStatistics->longestExpandDurationMs = stats.longestExpandDurationMs;
-        jitterStatistics->longestIATms            = stats.longestIATms;
-        jitterStatistics->maxPacketDelayMs        = stats.maxPacketDelayMs;
-        jitterStatistics->minPacketDelayMs        = stats.minPacketDelayMs;
-        return 0;
-    }
-    else
-    {
-        LogError("getJitterStatistics", 0);
-        return -1;
-    }
-}
-
-WebRtc_Word32
-ACMNetEQ::PreferredBufferSize(
-    WebRtc_UWord16* prefBufSize) const
-{
-    CriticalSectionScoped lock(*_netEqCritSect);
-    WebRtc_Word32 ok = WebRtcNetEQ_GetPreferredBufferSize(_inst[0], prefBufSize);
-    if((*prefBufSize == 0) || (*prefBufSize == 0xFFFF))
-    {
-        ok = -1;
-        LogError("getPreferredBufferSize", 0);
-    }
-    return ok;
-}
-
-WebRtc_Word32
-ACMNetEQ::ResetJitterStatistics() const
-{
-    CriticalSectionScoped lock(*_netEqCritSect);
-    if(WebRtcNetEQ_ResetJitterStatistics(_inst[0]) < 0)
-    {
-        LogError("resetJitterStatistics", 0);
-        return -1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
 WebRtc_Word32
 ACMNetEQ::RecIn(
     const WebRtc_Word8*    incomingPayload,
@@ -555,7 +485,7 @@ ACMNetEQ::RecIn(
     netEqRTPInfo.markerBit = rtpInfo.header.markerBit;
 
     CriticalSectionScoped lock(*_netEqCritSect);
-    // Down-cast the time to (32-6)-bit since we only care about 
+    // Down-cast the time to (32-6)-bit since we only care about
     // the least significant bits. (32-6) bits cover 2^(32-6) = 67108864 ms.
     // we masked 6 most significant bits of 32-bit so we don't loose resolution
     // when do the following multiplication.
@@ -565,23 +495,23 @@ ACMNetEQ::RecIn(
         (_currentSampFreqKHz * nowInMs);
 
     int status;
-    
+
     if(rtpInfo.type.Audio.channel == 1)
     {
         if(!_isInitialized[0])
         {
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "RecIn: NetEq is not initialized.");
             return -1;
         }
         // PUSH into Master
-        status = WebRtcNetEQ_RecInRTPStruct(_inst[0], &netEqRTPInfo, 
+        status = WebRtcNetEQ_RecInRTPStruct(_inst[0], &netEqRTPInfo,
             (WebRtc_UWord8 *)incomingPayload, (WebRtc_Word16)payloadLength,
             recvTimestamp);
         if(status < 0)
         {
             LogError("RecInRTPStruct", 0);
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "RecIn: NetEq, error in pushing in Master");
             return -1;
         }
@@ -590,27 +520,27 @@ ACMNetEQ::RecIn(
     {
         if(!_isInitialized[1])
         {
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "RecIn: NetEq is not initialized.");
             return -1;
         }
         // PUSH into Slave
-        status = WebRtcNetEQ_RecInRTPStruct(_inst[1], &netEqRTPInfo, 
+        status = WebRtcNetEQ_RecInRTPStruct(_inst[1], &netEqRTPInfo,
             (WebRtc_UWord8 *)incomingPayload, (WebRtc_Word16)payloadLength,
             recvTimestamp);
         if(status < 0)
         {
             LogError("RecInRTPStruct", 1);
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "RecIn: NetEq, error in pushing in Slave");
             return -1;
         }
     }
     else
     {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "RecIn: NetEq, error invalid numbe of channels %d \
-(1, for Master stream, and 2, for slave stream, are valid values)", 
+(1, for Master stream, and 2, for slave stream, are valid values)",
                 rtpInfo.type.Audio.channel);
         return -1;
     }
@@ -635,13 +565,13 @@ ACMNetEQ::RecOut(
     {
         if(!_isInitialized[0])
         {
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "RecOut: NetEq is not initialized.");
             return -1;
         }
         {
             WriteLockScoped lockCodec(*_decodeLock);
-            if(WebRtcNetEQ_RecOut(_inst[0], &(audioFrame._payloadData[0]), 
+            if(WebRtcNetEQ_RecOut(_inst[0], &(audioFrame._payloadData[0]),
                 &payloadLenSample) != 0)
             {
                 LogError("RecOut", 0);
@@ -665,7 +595,7 @@ ACMNetEQ::RecOut(
     {
         if(!_isInitialized[0] || !_isInitialized[1])
         {
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "RecOut: NetEq is not initialized.");
             return -1;
         }
@@ -673,11 +603,11 @@ ACMNetEQ::RecOut(
         WebRtc_Word16 payloadSlave[480];
         {
             WriteLockScoped lockCodec(*_decodeLock);
-            if(WebRtcNetEQ_RecOutMasterSlave(_inst[0], payloadMaster, 
+            if(WebRtcNetEQ_RecOutMasterSlave(_inst[0], payloadMaster,
                 &payloadLenSample, _masterSlaveInfo, 1) != 0)
             {
                 LogError("RecOutMasterSlave", 0);
-                WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+                WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                     "RecOut: NetEq, error in pulling out for master");
 
                 // Check for errors that can be recovered from:
@@ -689,11 +619,11 @@ ACMNetEQ::RecOut(
                     return -1;
                 }
             }
-            if(WebRtcNetEQ_RecOutMasterSlave(_inst[1], payloadSlave, 
+            if(WebRtcNetEQ_RecOutMasterSlave(_inst[1], payloadSlave,
                 &payloadLenSampleSlave, _masterSlaveInfo, 0) != 0)
             {
                 LogError("RecOutMasterSlave", 1);
-                WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+                WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                     "RecOut: NetEq, error in pulling out for slave");
 
                 // Check for errors that can be recovered from:
@@ -708,15 +638,15 @@ ACMNetEQ::RecOut(
         }
         if(payloadLenSample != payloadLenSampleSlave)
         {
-            WEBRTC_TRACE(webrtc::kTraceWarning, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceWarning, webrtc::kTraceAudioCoding, _id,
                 "RecOut: mismatch between the lenght of the decoded \
-audio by Master (%d samples) and Slave (%d samples).", 
+audio by Master (%d samples) and Slave (%d samples).",
             payloadLenSample, payloadLenSampleSlave);
             if(payloadLenSample > payloadLenSampleSlave)
             {
-                memset(&payloadSlave[payloadLenSampleSlave], 0, 
+                memset(&payloadSlave[payloadLenSampleSlave], 0,
                     (payloadLenSample - payloadLenSampleSlave) * sizeof(WebRtc_Word16));
-            }      
+            }
         }
 
         for(WebRtc_Word16 n = 0; n < payloadLenSample; n++)
@@ -728,12 +658,12 @@ audio by Master (%d samples) and Slave (%d samples).",
 
         WebRtcNetEQ_GetSpeechOutputType(_inst[0], &typeMaster);
         WebRtcNetEQ_GetSpeechOutputType(_inst[1], &typeSlave);
-        if((typeMaster == kOutputNormal) || 
+        if((typeMaster == kOutputNormal) ||
             (typeSlave == kOutputNormal))
         {
             type = kOutputNormal;
         }
-        else 
+        else
         {
             type = typeMaster;
         }
@@ -741,7 +671,7 @@ audio by Master (%d samples) and Slave (%d samples).",
 
     audioFrame._payloadDataLengthInSamples = static_cast<WebRtc_UWord16>(payloadLenSample);
     // NetEq always returns 10 ms of audio.
-    _currentSampFreqKHz = static_cast<float>(audioFrame._payloadDataLengthInSamples) / 10.0f; 
+    _currentSampFreqKHz = static_cast<float>(audioFrame._payloadDataLengthInSamples) / 10.0f;
     audioFrame._frequencyInHz = audioFrame._payloadDataLengthInSamples * 100;
     if(_vadStatus)
     {
@@ -796,7 +726,7 @@ audio by Master (%d samples) and Slave (%d samples).",
         {
             // type is kOutputVADPassive which
             // we don't expect to get if _vadStatus is false
-            WEBRTC_TRACE(webrtc::kTraceWarning, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceWarning, webrtc::kTraceAudioCoding, _id,
                 "RecOut: NetEq returned kVadPassive while _vadStatus is false.");
             audioFrame._vadActivity = AudioFrame::kVadUnknown;
             audioFrame._speechType  = AudioFrame::kNormalSpeech;
@@ -816,7 +746,7 @@ ACMNetEQ::AddCodec(
 {
     if (codecDef == NULL)
     {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
             "ACMNetEQ::AddCodec: error, codecDef is NULL");
         return -1;
     }
@@ -834,14 +764,14 @@ ACMNetEQ::AddCodec(
 
     if(!_isInitialized[idx])
     {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "ACMNetEQ::AddCodec: NetEq is not initialized.");
         return -1;
     }
     if(WebRtcNetEQ_CodecDbAdd(_inst[idx], codecDef) < 0)
     {
         LogError("CodecDB_Add", idx);
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
             "ACMNetEQ::AddCodec: NetEq, error in adding codec");
         return -1;
     }
@@ -863,50 +793,50 @@ ACMNetEQ::RTPPack(
     WebRtc_Word32 idx = 0;
     WEBRTC_SPL_SET_BYTE(rtpPacket, (WebRtc_Word8)0x80, idx);
     idx++;
-    
+
     WEBRTC_SPL_SET_BYTE(rtpPacket, rtpInfo.header.payloadType, idx);
     idx++;
-    
+
     WEBRTC_SPL_SET_BYTE(rtpPacket, WEBRTC_SPL_GET_BYTE(
         &(rtpInfo.header.sequenceNumber), 1), idx);
     idx++;
-    
+
     WEBRTC_SPL_SET_BYTE(rtpPacket, WEBRTC_SPL_GET_BYTE(
         &(rtpInfo.header.sequenceNumber), 0), idx);
     idx++;
-        
+
     WEBRTC_SPL_SET_BYTE(rtpPacket, WEBRTC_SPL_GET_BYTE(
         &(rtpInfo.header.timestamp), 3), idx);
     idx++;
-    
+
     WEBRTC_SPL_SET_BYTE(rtpPacket, WEBRTC_SPL_GET_BYTE(
         &(rtpInfo.header.timestamp), 2), idx);
     idx++;
-    
+
     WEBRTC_SPL_SET_BYTE(rtpPacket, WEBRTC_SPL_GET_BYTE(
         &(rtpInfo.header.timestamp), 1), idx);
     idx++;
-    
+
     WEBRTC_SPL_SET_BYTE(rtpPacket, WEBRTC_SPL_GET_BYTE(
         &(rtpInfo.header.timestamp), 0), idx);
     idx++;
-    
+
     WEBRTC_SPL_SET_BYTE(rtpPacket, WEBRTC_SPL_GET_BYTE(
         &(rtpInfo.header.ssrc), 3), idx);
     idx++;
-    
+
     WEBRTC_SPL_SET_BYTE(rtpPacket, WEBRTC_SPL_GET_BYTE(
         &(rtpInfo.header.ssrc), 2), idx);
     idx++;
-    
+
     WEBRTC_SPL_SET_BYTE(rtpPacket, WEBRTC_SPL_GET_BYTE(
         &(rtpInfo.header.ssrc), 1), idx);
     idx++;
-    
+
     WEBRTC_SPL_SET_BYTE(rtpPacket, WEBRTC_SPL_GET_BYTE(
         &(rtpInfo.header.ssrc), 0), idx);
     idx++;
-    
+
     for (WebRtc_Word16 i=0; i < payloadLengthW8; i++)
     {
         WEBRTC_SPL_SET_BYTE(rtpPacket, payload[i], idx);
@@ -920,64 +850,32 @@ ACMNetEQ::RTPPack(
     }
 }
 
-
-bool 
-ACMNetEQ::VADStatus() const
-{
-    CriticalSectionScoped lock(*_netEqCritSect);
-    return _vadStatus;
-}
-
-
 WebRtc_Word16
-ACMNetEQ::SetVADStatus(
-    const bool status)
+ACMNetEQ::EnableVAD()
 {
     CriticalSectionScoped lock(*_netEqCritSect);
+    if (_vadStatus)
+    {
+        return 0;
+    }
     for(WebRtc_Word16 idx = 0; idx < _numSlaves + 1; idx++)
     {
         if(!_isInitialized[idx])
         {
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "SetVADStatus: NetEq is not initialized.");
             return -1;
         }
-        if(_vadStatus && !status)
+        // VAD was off and we have to turn it on
+        if(EnableVADByIdxSafe(idx) < 0)
         {
-            // We have been using VAD but we want to stop using it calling the 
-            // following function with NULL as VAD instance switches off the
-            // post-decode VAD
-            if(WebRtcNetEQ_SetVADInstance(_inst[idx], NULL, 
-                (WebRtcNetEQ_VADInitFunction)    WebRtcVad_Init,
-                (WebRtcNetEQ_VADSetmodeFunction) WebRtcVad_set_mode,
-                (WebRtcNetEQ_VADFunction)        WebRtcVad_Process) < 0)
-            {
-                LogError("setVADinstance", idx);
-                return -1;
-            }
-            // Free VAD Memory
-            if(_ptrVADInst[idx] != NULL)
-            {
-                WebRtcVad_Free(_ptrVADInst[idx]);
-                _ptrVADInst[idx] = NULL;
-            }
+            return -1;
+        }
 
-            // Set previous VAD status to UNKNOWN
-            _previousAudioActivity = AudioFrame::kVadUnknown;
-        }
-        else if(!_vadStatus && status)
-        {
-            // VAD was off and we have to turn it on
-            if(EnableVADByIdxSafe(idx) < 0)
-            {
-                return -1;
-            }
-            
-            // Set previous VAD status to PASSIVE
-            _previousAudioActivity = AudioFrame::kVadPassive;
-        }
+        // Set previous VAD status to PASSIVE
+        _previousAudioActivity = AudioFrame::kVadPassive;
     }
-    _vadStatus = status;
+    _vadStatus = true;
     return 0;
 }
 
@@ -997,7 +895,7 @@ ACMNetEQ::SetVADMode(
     CriticalSectionScoped lock(*_netEqCritSect);
     if((mode < VADNormal) || (mode > VADVeryAggr))
     {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
             "SetVADMode: NetEq error: could not set VAD mode, mode is not supported");
         return -1;
     }
@@ -1007,7 +905,7 @@ ACMNetEQ::SetVADMode(
         {
             if(!_isInitialized[idx])
             {
-                WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+                WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                     "SetVADMode: NetEq is not initialized.");
                 return -1;
             }
@@ -1031,7 +929,7 @@ ACMNetEQ::FlushBuffers()
     {
         if(!_isInitialized[idx])
         {
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "FlushBuffers: NetEq is not initialized.");
             return -1;
         }
@@ -1081,22 +979,22 @@ ACMNetEQ::RemoveCodec(
     WebRtcNetEQDecoder codecIdx,
     bool               isStereo)
 {
-    // sanity check 
+    // sanity check
     if((codecIdx <= kDecoderReservedStart) ||
         (codecIdx >= kDecoderReservedEnd))
     {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
             "RemoveCodec: NetEq error: could not Remove Codec, codec index out of range");
         return -1;
     }
     CriticalSectionScoped lock(*_netEqCritSect);
     if(!_isInitialized[0])
     {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
             "RemoveCodec: NetEq is not initialized.");
         return -1;
     }
-    
+
     if(WebRtcNetEQ_CodecDbRemove(_inst[0], codecIdx) < 0)
     {
         LogError("CodecDB_Remove", 0);
@@ -1116,29 +1014,6 @@ ACMNetEQ::RemoveCodec(
 }
 
 WebRtc_Word16
-ACMNetEQ::Delay(
-    WebRtc_UWord16& currentDelayInMs) const
-{
-    CriticalSectionScoped lock(*_netEqCritSect);
-    if(!_isInitialized[0])
-    {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
-            "Delay: NetEq is not initialized.");
-        return -1;
-    }
-    if(WebRtcNetEQ_GetCurrentDelay(_inst[0], &currentDelayInMs) < 0)
-    {
-        LogError("GetCurrentDelay", 0);
-        return -1;
-    }
-    else
-    {
-        return 0;
-    }
-}
-
-
-WebRtc_Word16
 ACMNetEQ::SetBackgroundNoiseMode(
     const ACMBackgroundNoiseMode mode)
 {
@@ -1147,7 +1022,7 @@ ACMNetEQ::SetBackgroundNoiseMode(
     {
         if(!_isInitialized[idx])
         {
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "SetBackgroundNoiseMode: NetEq is not initialized.");
             return -1;
         }
@@ -1168,7 +1043,7 @@ ACMNetEQ::BackgroundNoiseMode(
     CriticalSectionScoped lock(*_netEqCritSect);
     if(!_isInitialized[0])
     {
-        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+        WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
             "BackgroundNoiseMode: NetEq is not initialized.");
         return -1;
     }
@@ -1193,7 +1068,7 @@ ACMNetEQ::SetUniqueId(
 }
 
 
-void 
+void
 ACMNetEQ::LogError(
     const WebRtc_Word8* neteqFuncName,
     const WebRtc_Word16 idx) const
@@ -1205,8 +1080,8 @@ ACMNetEQ::LogError(
     strncpy(myFuncName, neteqFuncName, 49);
     errorName[NETEQ_ERR_MSG_LEN_BYTE - 1] = '\0';
     myFuncName[49] = '\0';
-    WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
-        "NetEq-%d Error in function %s, error-code: %d, error-string: %s", 
+    WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
+        "NetEq-%d Error in function %s, error-code: %d, error-string: %s",
         idx,
         myFuncName,
         neteqErrorCode,
@@ -1232,7 +1107,7 @@ ACMNetEQ::PlayoutTimestamp(
 
 WebRtc_Word16
 ACMNetEQ::AddSlave(
-    WebRtcNetEQDecoder* usedCodecs,
+    const WebRtcNetEQDecoder* usedCodecs,
     WebRtc_Word16       noOfCodecs)
 {
     CriticalSectionScoped lock(*_netEqCritSect);
@@ -1242,19 +1117,19 @@ ACMNetEQ::AddSlave(
         // initialize the receiver, this also sets up VAD.
         if(InitByIdxSafe(slaveIdx) < 0)
         {
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "AddSlave: AddSlave Failed, Could not Initialize");
             return -1;
         }
-        
+
         // Allocate buffer.
         if(AllocatePacketBufferByIdxSafe(usedCodecs, noOfCodecs, slaveIdx) < 0)
         {
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "AddSlave: AddSlave Failed, Could not Allocate Packet Buffer");
             return -1;
         }
-        
+
         if(_masterSlaveInfo != NULL)
         {
             free(_masterSlaveInfo);
@@ -1262,32 +1137,24 @@ ACMNetEQ::AddSlave(
         }
         int msInfoSize = WebRtcNetEQ_GetMasterSlaveInfoSize();
         _masterSlaveInfo = malloc(msInfoSize);
-    
+
         if(_masterSlaveInfo == NULL)
         {
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "AddSlave: AddSlave Failed, Could not Allocate memory for Master-Slave Info");
             return -1;
         }
 
-        // We accept this as initialized NetEQ, the rest is to synchronize 
+        // We accept this as initialized NetEQ, the rest is to synchronize
         // Slave with Master.
         _numSlaves = 1;
         _isInitialized[slaveIdx] = true;
 
-        // Set Slave delay as Master delay
-        WebRtc_UWord16 currentDelayMs;
-        if(WebRtcNetEQ_GetCurrentDelay(_inst[0], &currentDelayMs) < 0)
-        {
-            LogError("GetCurrentDelay", 0);
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
-                "AddSlave: AddSlave Failed, Could not Get Current Delay from Master.");
-            return -1;
-        }
-        if(WebRtcNetEQ_SetExtraDelay(_inst[slaveIdx], currentDelayMs) < 0)
+        // Set Slave delay as all other instances.
+        if(WebRtcNetEQ_SetExtraDelay(_inst[slaveIdx], _extraDelay) < 0)
         {
             LogError("SetExtraDelay", slaveIdx);
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "AddSlave: AddSlave Failed, Could not set delay");
             return -1;
         }
@@ -1296,7 +1163,7 @@ ACMNetEQ::AddSlave(
         if(WebRtcNetEQ_SetAVTPlayout(_inst[slaveIdx], (_avtPlayout) ? 1 : 0) < 0)
         {
             LogError("SetAVTPlayout", slaveIdx);
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "AddSlave: AddSlave Failed, Could not set AVT playout.");
             return -1;
         }
@@ -1306,7 +1173,7 @@ ACMNetEQ::AddSlave(
         if(WebRtcNetEQ_GetBGNMode(_inst[0], &currentMode) < 0)
         {
             LogError("GetBGNMode", 0);
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "AAddSlave: AddSlave Failed, Could not Get BGN form Master.");
             return -1;
         }
@@ -1314,7 +1181,7 @@ ACMNetEQ::AddSlave(
         if(WebRtcNetEQ_SetBGNMode(_inst[slaveIdx], (WebRtcNetEQBGNMode)currentMode) < 0)
         {
             LogError("SetBGNMode", slaveIdx);
-             WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+             WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "AddSlave: AddSlave Failed, Could not set BGN mode.");
            return -1;
         }
@@ -1332,15 +1199,14 @@ ACMNetEQ::AddSlave(
             playoutMode = kPlayoutStreaming;
             break;
         default:
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
-                "AddSlave: NetEq Error, playout mode not recognized");   
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
+                "AddSlave: NetEq Error, playout mode not recognized");
             return -1;
-            break;
         }
         if(WebRtcNetEQ_SetPlayoutMode(_inst[slaveIdx], playoutMode) < 0)
         {
             LogError("SetPlayoutMode", 1);
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id, 
+            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceAudioCoding, _id,
                 "AddSlave: AddSlave Failed, Could not Set Playout Mode.");
             return -1;
         }
@@ -1365,4 +1231,3 @@ ACMNetEQ::NumSlaves()
 }
 
 } // namespace webrtc
-

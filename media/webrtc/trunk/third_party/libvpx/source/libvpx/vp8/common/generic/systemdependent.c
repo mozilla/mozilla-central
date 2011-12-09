@@ -9,7 +9,7 @@
  */
 
 
-#include "vpx_ports/config.h"
+#include "vpx_config.h"
 #include "vp8/common/g_common.h"
 #include "vp8/common/subpixel.h"
 #include "vp8/common/loopfilter.h"
@@ -70,7 +70,6 @@ void vp8_machine_specific_config(VP8_COMMON *ctx)
 #if CONFIG_RUNTIME_CPU_DETECT
     VP8_COMMON_RTCD *rtcd = &ctx->rtcd;
 
-    rtcd->idct.idct1        = vp8_short_idct4x4llm_1_c;
     rtcd->idct.idct16       = vp8_short_idct4x4llm_c;
     rtcd->idct.idct1_scalar_add = vp8_dc_only_idct_add_c;
     rtcd->idct.iwalsh1      = vp8_short_inv_walsh4x4_1_c;
@@ -79,11 +78,7 @@ void vp8_machine_specific_config(VP8_COMMON *ctx)
     rtcd->recon.copy16x16   = vp8_copy_mem16x16_c;
     rtcd->recon.copy8x8     = vp8_copy_mem8x8_c;
     rtcd->recon.copy8x4     = vp8_copy_mem8x4_c;
-    rtcd->recon.recon       = vp8_recon_b_c;
-    rtcd->recon.recon2      = vp8_recon2b_c;
-    rtcd->recon.recon4      = vp8_recon4b_c;
-    rtcd->recon.recon_mb    = vp8_recon_mb_c;
-    rtcd->recon.recon_mby   = vp8_recon_mby_c;
+
     rtcd->recon.build_intra_predictors_mby =
         vp8_build_intra_predictors_mby;
     rtcd->recon.build_intra_predictors_mby_s =
@@ -93,7 +88,7 @@ void vp8_machine_specific_config(VP8_COMMON *ctx)
     rtcd->recon.build_intra_predictors_mbuv_s =
         vp8_build_intra_predictors_mbuv_s;
     rtcd->recon.intra4x4_predict =
-        vp8_intra4x4_predict;
+        vp8_intra4x4_predict_c;
 
     rtcd->subpix.sixtap16x16   = vp8_sixtap_predict16x16_c;
     rtcd->subpix.sixtap8x8     = vp8_sixtap_predict8x8_c;

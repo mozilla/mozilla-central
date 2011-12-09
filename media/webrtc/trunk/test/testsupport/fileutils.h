@@ -8,8 +8,11 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
+#include <cstdio>
+
 // File utilities for testing purposes.
-// The GetProjectRootPath() method is a convenient way of getting an absolute
+//
+// The ProjectRootPath() method is a convenient way of getting an absolute
 // path to the project source tree root directory. Using this, it is easy to
 // refer to test resource files in a portable way.
 //
@@ -19,7 +22,7 @@
 //
 // Example use:
 // Assume we have the following code being used in a test source file:
-// const std::string kInputFile = webrtc::testing::GetProjectRootPath() +
+// const std::string kInputFile = webrtc::test::ProjectRootPath() +
 //     "test/data/voice_engine/audio_long16.wav";
 // // Use the kInputFile for the tests...
 //
@@ -29,7 +32,7 @@
 // * Test project located in /home/user/webrtc/trunk/src/testproject
 // * Test binary compiled as:
 //   /home/user/webrtc/trunk/out/Debug/testproject_unittests
-// Then GetProjectRootPath() will return /home/user/webrtc/trunk/ no matter if
+// Then ProjectRootPath() will return /home/user/webrtc/trunk/ no matter if
 // the test binary is executed from standing in either of:
 // /home/user/webrtc/trunk
 // or
@@ -41,7 +44,7 @@
 // * Test project located in C:\Users\user\webrtc\trunk\src\testproject
 // * Test binary compiled as:
 //   C:\Users\user\webrtc\trunk\src\testproject\Debug\testproject_unittests.exe
-// Then GetProjectRootPath() will return C:\Users\user\webrtc\trunk\ when the
+// Then ProjectRootPath() will return C:\Users\user\webrtc\trunk\ when the
 // test binary is executed from inside Visual Studio.
 // It will also return the same path if the test is executed from a command
 // prompt standing in C:\Users\user\webrtc\trunk\src\testproject\Debug
@@ -51,22 +54,22 @@
 // * Test project located in /Users/user/webrtc/trunk/src/testproject
 // * Test binary compiled as:
 //   /Users/user/webrtc/trunk/xcodebuild/Debug/testproject_unittests
-// Then GetProjectRootPath() will return /Users/user/webrtc/trunk/ no matter if
+// Then ProjectRootPath() will return /Users/user/webrtc/trunk/ no matter if
 // the test binary is executed from standing in either of:
 // /Users/user/webrtc/trunk
 // or
 // /Users/user/webrtc/trunk/out/Debug
 // (or any other directory below the trunk for that matter).
 
-#ifndef TEST_TESTSUPPORT_FILEUTILS_H_
-#define TEST_TESTSUPPORT_FILEUTILS_H_
+#ifndef WEBRTC_TEST_TESTSUPPORT_FILEUTILS_H_
+#define WEBRTC_TEST_TESTSUPPORT_FILEUTILS_H_
 
 #include <string>
 
 namespace webrtc {
 namespace test {
 
-// This is the "directory" returned if the GetProjectPath() function fails
+// This is the "directory" returned if the ProjectPath() function fails
 // to find the project root.
 extern const char* kCannotFindProjectRootDir;
 
@@ -86,9 +89,55 @@ extern const char* kCannotFindProjectRootDir;
 // WITH a trailing path delimiter.
 // If the project root is not found, the string specified by
 // kCannotFindProjectRootDir is returned.
-std::string GetProjectRootPath();
+std::string ProjectRootPath();
+
+// Creates and returns the absolute path to the output directory where log files
+// and other test artifacts should be put. The output directory is always a
+// directory named "out" at the top-level of the project, i.e. a subfolder to
+// the path returned by ProjectRootPath().
+//
+// Details described for ProjectRootPath() apply here too.
+//
+// Returns the path WITH a trailing path delimiter. If the project root is not
+// found, the current working directory ("./") is returned as a fallback.
+std::string OutputPath();
+
+// Returns a path to a resource file for the currently executing platform.
+// Adapts to what filenames are currently present in the
+// [project-root]/resources/ dir.
+// Returns an absolute path according to this priority list (the directory
+// part of the path is left out for readability):
+// 1. [name]_[platform]_[architecture].[extension]
+// 2. [name]_[platform].[extension]
+// 3. [name]_[architecture].[extension]
+// 4. [name].[extension]
+// Where
+// * platform is either of "win", "mac" or "linux".
+// * architecture is either of "32" or "64".
+//
+// Arguments:
+//    name - Name of the resource file. If a plain filename (no directory path)
+//           is supplied, the file is assumed to be located in resources/
+//           If a directory path is prepended to the filename, a subdirectory
+//           hierarchy reflecting that path is assumed to be present.
+//    extension - File extension, without the dot, i.e. "bmp" or "yuv".
+std::string ResourcePath(std::string name, std::string extension);
+
+// Gets the current working directory for the executing program.
+// Returns "./" if for some reason it is not possible to find the working
+// directory.
+std::string WorkingDir();
+
+// Creates a directory if it not already exists.
+// Returns true if successful. Will print an error message to stderr and return
+// false if a file with the same name already exists.
+bool CreateDirectory(std::string directory_name);
+
+// File size of the supplied file in bytes. Will return 0 if the file is
+// empty or if the file does not exist/is readable.
+size_t GetFileSize(std::string filename);
 
 }  // namespace test
 }  // namespace webrtc
 
-#endif  // TEST_TESTSUPPORT_FILEUTILS_H_
+#endif  // WEBRTC_TEST_TESTSUPPORT_FILEUTILS_H_

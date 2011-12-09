@@ -3,4 +3,4 @@
 export builddir_name ?= trunk/src/common_audio/$(OBJDIR)/media/webrtc/out
 .PHONY: all
 all:
-	$(MAKE) -C ../.. spl vad resampler common_audio_unittests
+	$(MAKE) -C ../.. signal_processing vad resampler vad_unittests signal_processing_unittests resampler_unittests

@@ -8,12 +8,14 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "video_coding.h"
-#include "trace.h"
+#include "receiver.h"
+
 #include "encoded_frame.h"
 #include "internal_defines.h"
-#include "receiver.h"
+#include "media_opt_util.h"
 #include "tick_time.h"
+#include "trace.h"
+#include "video_coding.h"
 
 #include <assert.h>
 
@@ -42,8 +44,8 @@ VCMReceiver::~VCMReceiver()
     delete &_critSect;
 }
 
-WebRtc_Word32
-VCMReceiver::Initialize()
+void
+VCMReceiver::Reset()
 {
     CriticalSectionScoped cs(_critSect);
     if (!_jitterBuffer.Running())
@@ -62,6 +64,16 @@ VCMReceiver::Initialize()
     else
     {
         _state = kPassive;
+    }
+}
+
+WebRtc_Word32
+VCMReceiver::Initialize()
+{
+    CriticalSectionScoped cs(_critSect);
+    Reset();
+    if (!_master)
+    {
         SetNackMode(kNoNack);
     }
     return VCM_OK;
@@ -102,10 +114,11 @@ VCMReceiver::InsertPacket(const VCMPacket& packet,
         {
             // Only trace the primary receiver to make it possible
             // to parse and plot the trace file.
-            WEBRTC_TRACE(webrtc::kTraceDebug, webrtc::kTraceVideoCoding, VCMId(_vcmId, _receiverId),
-                       "Packet seqNo %u of frame %u at %u",
-                       packet.seqNum, packet.timestamp,
-                       MaskWord64ToUWord32(VCMTickTime::MillisecondTimestamp()));
+            WEBRTC_TRACE(webrtc::kTraceDebug, webrtc::kTraceVideoCoding,
+                         VCMId(_vcmId, _receiverId),
+                         "Packet seqNo %u of frame %u at %u",
+                         packet.seqNum, packet.timestamp,
+                         MaskWord64ToUWord32(VCMTickTime::MillisecondTimestamp()));
         }
 
         const WebRtc_Word64 nowMs = VCMTickTime::MillisecondTimestamp();
@@ -118,7 +131,7 @@ VCMReceiver::InsertPacket(const VCMPacket& packet,
             // the incoming video stream and reset the JB and the timing.
             _jitterBuffer.Flush();
             _timing.Reset();
-            return VCM_OK;
+            return VCM_FLUSH_INDICATOR;
         }
         else if (renderTimeMs < nowMs - kMaxVideoDelayMs)
         {
@@ -127,7 +140,7 @@ VCMReceiver::InsertPacket(const VCMPacket& packet,
                 "Flushing jitter buffer and resetting timing.", kMaxVideoDelayMs);
             _jitterBuffer.Flush();
             _timing.Reset();
-            return VCM_OK;
+            return VCM_FLUSH_INDICATOR;
         }
         else if (_timing.TargetVideoDelay() > kMaxVideoDelayMs)
         {
@@ -136,7 +149,7 @@ VCMReceiver::InsertPacket(const VCMPacket& packet,
                 kMaxVideoDelayMs);
             _jitterBuffer.Flush();
             _timing.Reset();
-            return VCM_OK;
+            return VCM_FLUSH_INDICATOR;
         }
 
         // First packet received belonging to this frame.
@@ -161,16 +174,18 @@ VCMReceiver::InsertPacket(const VCMPacket& packet,
             }
         }
 
-        // Insert packet into jitter buffer
+        // Insert packet into the jitter buffer
         // both media and empty packets
-        const VCMFrameBufferEnum ret = _jitterBuffer.InsertPacket(buffer, packet);
-
-        if (ret < 0)
-        {
-            WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceVideoCoding, VCMId(_vcmId, _receiverId),
+        const VCMFrameBufferEnum
+        ret = _jitterBuffer.InsertPacket(buffer, packet);
+        if (ret == kFlushIndicator) {
+          return VCM_FLUSH_INDICATOR;
+        } else if (ret < 0) {
+          WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceVideoCoding,
+                       VCMId(_vcmId, _receiverId),
                        "Error inserting packet seqNo=%u, timeStamp=%u",
                        packet.seqNum, packet.timestamp);
-            return VCM_JITTER_BUFFER_ERROR;
+          return VCM_JITTER_BUFFER_ERROR;
         }
     }
     return VCM_OK;
@@ -360,7 +375,8 @@ void
 VCMReceiver::SetNackMode(VCMNackMode nackMode)
 {
     CriticalSectionScoped cs(_critSect);
-    _jitterBuffer.SetNackMode(nackMode);
+    // Default to always having NACK enabled in hybrid mode.
+    _jitterBuffer.SetNackMode(nackMode, kLowRttNackMs, -1);
     if (!_master)
     {
         _state = kPassive; // The dual decoder defaults to passive
@@ -416,7 +432,7 @@ VCMReceiver::DualDecoderCaughtUp(VCMEncodedFrame* dualFrame, VCMReceiver& dualRe
 void
 VCMReceiver::CopyJitterBufferStateFromReceiver(const VCMReceiver& receiver)
 {
-    _jitterBuffer = receiver._jitterBuffer;
+    _jitterBuffer.CopyFrom(receiver._jitterBuffer);
 }
 
 VCMReceiverState

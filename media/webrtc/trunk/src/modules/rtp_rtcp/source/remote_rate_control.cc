@@ -8,8 +8,11 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
+#if _WIN32
+#include <windows.h>
+#endif
+
 #include "remote_rate_control.h"
-#include "tick_util.h"
 #include "trace.h"
 #include <math.h>
 #include <string.h>
@@ -100,14 +103,17 @@ WebRtc_Word32 RemoteRateControl::SetConfiguredBitRates(WebRtc_UWord32 minBitRate
     return 0;
 }
 
-WebRtc_UWord32 RemoteRateControl::TargetBitRate(WebRtc_UWord32 RTT)
+WebRtc_UWord32 RemoteRateControl::TargetBitRate(WebRtc_UWord32 RTT,
+                                                WebRtc_Word64 nowMS)
 {
     _currentBitRate = ChangeBitRate(_currentBitRate, _currentInput._incomingBitRate,
-        _currentInput._noiseVar, RTT);
+        _currentInput._noiseVar, RTT, nowMS);
     return _currentBitRate;
 }
 
-RateControlRegion RemoteRateControl::Update(const RateControlInput& input, bool& firstOverUse)
+RateControlRegion RemoteRateControl::Update(const RateControlInput& input,
+                                            bool& firstOverUse,
+                                            WebRtc_Word64 nowMS)
 {
 #ifdef MATLAB
     // Create plots
@@ -141,10 +147,10 @@ RateControlRegion RemoteRateControl::Update(const RateControlInput& input, bool&
         {
             if (input._incomingBitRate > 0)
             {
-                _timeFirstIncomingEstimate = TickTime::MillisecondTimestamp();
+                _timeFirstIncomingEstimate = nowMS;
             }
         }
-        else if (TickTime::MillisecondTimestamp() - _timeFirstIncomingEstimate > 1000 &&
+        else if (nowMS - _timeFirstIncomingEstimate > 1000 &&
             input._incomingBitRate > 0)
         {
             _currentBitRate = input._incomingBitRate;
@@ -166,16 +172,18 @@ RateControlRegion RemoteRateControl::Update(const RateControlInput& input, bool&
 }
 
 WebRtc_UWord32 RemoteRateControl::ChangeBitRate(WebRtc_UWord32 currentBitRate,
-                                              WebRtc_UWord32 incomingBitRate, double noiseVar, WebRtc_UWord32 RTT)
+                                                WebRtc_UWord32 incomingBitRate,
+                                                double noiseVar,
+                                                WebRtc_UWord32 RTT,
+                                                WebRtc_Word64 nowMS)
 {
-    const WebRtc_Word64 now = TickTime::MillisecondTimestamp();
     if (!_updated)
     {
         return _currentBitRate;
     }
     _updated = false;
-    UpdateChangePeriod(now);
-    ChangeState(_currentInput, now);
+    UpdateChangePeriod(nowMS);
+    ChangeState(_currentInput, nowMS);
     // calculated here because it's used in multiple places
     const float incomingBitRateKbps = incomingBitRate / 1000.0f;
     // Calculate the max bit rate std dev given the normalized
@@ -203,18 +211,12 @@ WebRtc_UWord32 RemoteRateControl::ChangeBitRate(WebRtc_UWord32 currentBitRate,
                     ChangeRegion(kRcAboveMax);
                 }
             }
-#ifdef _DEBUG
-            char logStr[256];
-#ifdef _WIN32
-            _snprintf(logStr,256, "Response time: %f + %i + 10*33\n", _avgChangePeriod, RTT);
-            OutputDebugStringA(logStr);
-#else
-            snprintf(logStr,256, "Response time: %f + %i + 10*33\n", _avgChangePeriod, RTT);
-            //TODO
-#endif
-#endif
+            WEBRTC_TRACE(kTraceStream, kTraceRtpRtcp, -1,
+                         "BWE: Response time: %f + %i + 10*33\n",
+                         _avgChangePeriod, RTT);
             const WebRtc_UWord32 responseTime = static_cast<WebRtc_UWord32>(_avgChangePeriod + 0.5f) + RTT + 300;
-            double alpha = RateIncreaseFactor(now, _lastBitRateChange, responseTime, noiseVar);
+            double alpha = RateIncreaseFactor(nowMS, _lastBitRateChange,
+                                              responseTime, noiseVar);
 
             WEBRTC_TRACE(kTraceStream, kTraceRtpRtcp, -1,
                 "BWE: _avgChangePeriod = %f ms; RTT = %u ms", _avgChangePeriod, RTT);
@@ -233,19 +235,7 @@ WebRtc_UWord32 RemoteRateControl::ChangeBitRate(WebRtc_UWord32 currentBitRate,
             _maxHoldRate = 0;
             WEBRTC_TRACE(kTraceStream, kTraceRtpRtcp, -1,
                 "BWE: Increase rate to currentBitRate = %u kbps", currentBitRate/1000);
-#ifdef _DEBUG
-            //char logStr[256];
-#ifdef _WIN32
-            _snprintf(logStr,256, "New bitRate: %lu\n",
-                      static_cast<long unsigned int> (currentBitRate / 1000));
-            OutputDebugStringA(logStr);
-#else
-            snprintf(logStr,256, "New bitRate: %lu\n",
-                     static_cast<long unsigned int> (currentBitRate / 1000));
-            //TODO
-#endif
-#endif
-            _lastBitRateChange = now;
+            _lastBitRateChange = nowMS;
             break;
         }
     case kRcDecrease:
@@ -285,7 +275,7 @@ WebRtc_UWord32 RemoteRateControl::ChangeBitRate(WebRtc_UWord32 currentBitRate,
             }
             // Stay on hold until the pipes are cleared.
             ChangeState(kRcHold);
-            _lastBitRateChange = now;
+            _lastBitRateChange = nowMS;
             break;
         }
     }
@@ -295,7 +285,7 @@ WebRtc_UWord32 RemoteRateControl::ChangeBitRate(WebRtc_UWord32 currentBitRate,
         // Allow changing the bit rate if we are operating at very low rates
         // Don't change the bit rate if the send side is too far off
         currentBitRate = _currentBitRate;
-        _lastBitRateChange = now;
+        _lastBitRateChange = nowMS;
     }
 #ifdef MATLAB
     if (_avgMaxBitRate >= 0.0f)
@@ -321,11 +311,11 @@ double RemoteRateControl::RateIncreaseFactor(WebRtc_Word64 nowMs, WebRtc_Word64 
     const double c2 = 800.0;
     const double d = 0.85;
 
-    double alpha = 1.001 + B / (1 + exp( b * (d * reactionTimeMs - (c1 * noiseVar + c2))));
+    double alpha = 1.005 + B / (1 + exp( b * (d * reactionTimeMs - (c1 * noiseVar + c2))));
 
-    if (alpha < 1.001)
+    if (alpha < 1.005)
     {
-        alpha = 1.001;
+        alpha = 1.005;
     }
     else if (alpha > 1.3)
     {
@@ -452,25 +442,16 @@ void RemoteRateControl::ChangeState(RateControlState newState)
 {
     _cameFromState = _rcState;
     _rcState = newState;
-#ifdef _DEBUG
-    char logStr[256];
     char state1[15];
     char state2[15];
     char state3[15];
     StateStr(_cameFromState, state1);
     StateStr(_rcState, state2);
     StateStr(_currentInput._bwState, state3);
-#ifdef _WIN32
-    _snprintf(logStr,256, "\t%s => %s due to %s\n", state1, state2, state3);
-    OutputDebugStringA(logStr);
-#else
-    snprintf(logStr,256, "\t%s => %s due to %s\n", state1, state2, state3);
-    //TODO
-#endif
-#endif
+    WEBRTC_TRACE(kTraceStream, kTraceRtpRtcp, -1,
+                 "\t%s => %s due to %s\n", state1, state2, state3);
 }
 
-#ifdef _DEBUG
 void RemoteRateControl::StateStr(RateControlState state, char* str)
 {
     switch (state)
@@ -508,6 +489,5 @@ void RemoteRateControl::StateStr(BandwidthUsage state, char* str)
         break;
     }
 }
-#endif
 
 } // namespace webrtc

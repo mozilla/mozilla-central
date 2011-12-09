@@ -29,6 +29,7 @@
         '../interface/aligned_malloc.h',
         '../interface/atomic32_wrapper.h',
         '../interface/condition_variable_wrapper.h',
+        '../interface/cpu_info.h',
         '../interface/cpu_wrapper.h',
         '../interface/cpu_features_wrapper.h',
         '../interface/critical_section_wrapper.h',
@@ -57,6 +58,8 @@
         'condition_variable_posix.h',
         'condition_variable_windows.h',
         'cpu.cc',
+        'cpu_dummy.cc',
+        'cpu_info.cc',
         'cpu_linux.h',
         'cpu_mac.h',
         'cpu_windows.h',
@@ -141,6 +144,15 @@
             ],
           },
         }],
+        ['build_with_chromium==1', {
+          'sources!': [
+            'cpu.cc',
+          ],
+        }, {
+          'sources!': [
+            'cpu_dummy.cc',
+          ],
+        }]
       ] # conditions
     },
   ], # targets
@@ -153,7 +165,7 @@
           'dependencies': [
             'system_wrappers',
             '<(webrtc_root)/../testing/gtest.gyp:gtest',
-            '<(webrtc_root)/../test/test.gyp:test_support',
+            '<(webrtc_root)/../test/test.gyp:test_support_main',
           ],
           'sources': [
             'cpu_wrapper_unittest.cc',
@@ -162,7 +174,6 @@
             'data_log_helpers_unittest.cc',
             'data_log_c_helpers_unittest.c',
             'data_log_c_helpers_unittest.h',
-            '<(webrtc_root)/../test/run_all_unittests.cc',
           ],
           'conditions': [
             ['enable_data_logging==1', {

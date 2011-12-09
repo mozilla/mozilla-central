@@ -49,7 +49,8 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/audio_processing/aecm/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/signal_processing/include \
+	-Isrc/system_wrappers/interface \
 	-Isrc/modules/audio_processing/utility
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
@@ -101,7 +102,8 @@ CFLAGS_CC_Release := -fno-rtti \
 INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/audio_processing/aecm/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/signal_processing/include \
+	-Isrc/system_wrappers/interface \
 	-Isrc/modules/audio_processing/utility
 
 OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/aecm/echo_control_mobile.o \

@@ -1,0 +1,205 @@
+# There are two kinds of suppressions in this file.
+# 1. third party stuff we have no control over
+#
+# 2. Intentional unit test errors, or stuff that is somehow a false positive
+# in our own code, or stuff that is so trivial it's not worth fixing
+#
+# 3. Suppressions for real chromium bugs that are not yet fixed.
+# These should all be in chromium's bug tracking system (but a few aren't yet).
+# Periodically we should sweep this file and the bug tracker clean by
+# running overnight and removing outdated bugs/suppressions.
+#-----------------------------------------------------------------------
+
+# 1. third party stuff we have no control over
+# Several Cocoa-specific races
+{
+  Some Cocoa-specific race in NSRunLoop class
+  ThreadSanitizer:Race
+  ...
+  fun:*CFRunLoop*
+}
+
+{
+  A race releasing NSObject
+  ThreadSanitizer:Race
+  ...
+  fun:__CFDoExternRefOperation
+  fun:-[NSObject release]
+}
+
+{
+  A race retaining NSObject
+  ThreadSanitizer:Race
+  ...
+  fun:CFBagAddValue
+  fun:__CFDoExternRefOperation
+  fun:-[NSObject retain]
+}
+
+{
+  A race retaining NSBundle
+  ThreadSanitizer:Race
+  ...
+  fun:CFBagAddValue
+  fun:__CFDoExternRefOperation
+  fun:NSIncrementExtraRefCount
+  fun:-[NSBundle retain]
+}
+
+{
+  A race deallocating NSOperationQueue
+  ThreadSanitizer:Race
+  ...
+  fun:_CFRelease
+  fun:-[NSOperationQueue dealloc]
+}
+
+{
+  Another race deallocating NSOperationQueue
+  ThreadSanitizer:Race
+  ...
+  fun:-[NSIndexSet dealloc]
+  fun:-[NSOperationQueue dealloc]
+}
+
+# A related OpenRadar bug is at http://openradar.appspot.com/7396501.
+{
+   A benign race on a debug counter in __NSAutoreleaseObject
+   ThreadSanitizer:Race
+   fun:__NSAutoreleaseObject
+   fun:-[NSObject(NSObject) autorelease]
+}
+
+# media_unittests depend on the Darwin libraries which have many reports in
+# them. A related OpenRadar bug is at http://openradar.appspot.com/7223948
+{
+  Warnings in the CoreAudio component
+  ThreadSanitizer:Race
+  ...
+  obj:/System/Library/Components/CoreAudio.component*
+}
+
+{
+  Warnings in the CoreAudio framework
+  ThreadSanitizer:Race
+  ...
+  obj:/System/Library/Frameworks/CoreAudio.framework*
+}
+
+{
+  A warning in CoreAudio framework
+  ThreadSanitizer:Race
+  ...
+  fun:*HALRunLoop*
+}
+
+{
+  A warning in the AudioToolbox framework
+  ThreadSanitizer:Race
+  ...
+  fun:*CAPThread*
+}
+
+{
+  Warnings inside AQServer_{Stop,EnqueueBuffer}
+  ThreadSanitizer:Race
+  ...
+  fun:*AudioQueueObject*
+  ...
+  fun:AQServer_*
+}
+
+{
+  Warnings inside AudioHardwareGetProperty
+  ThreadSanitizer:Race
+  ...
+  fun:AudioHardwareGetProperty
+}
+
+{
+  Benign data race in CAMutex bug_23579
+  ThreadSanitizer:Race
+  fun:*CAMutex*ock*
+}
+
+{
+  A warning on destruction of third party ClientAudioQueue object (AudioToolbox)
+  ThreadSanitizer:Race
+  ...
+  fun:*AQClient*CheckDisposal*
+  fun:*ClientAudioQueueD*
+  fun:AudioQueueDispose
+}
+
+{
+  Destroying invalid lock in krb5int_getaddrinfo while terminating Kerberos.
+  ThreadSanitizer:InvalidLock
+  fun:pthread_mutex_destroy
+  fun:krb5int_getaddrinfo
+  fun:ImageLoaderMachO::doTermination*
+}
+
+{
+  bug_55946
+  ThreadSanitizer:Race
+  ...
+  fun:OSAtomicAdd32
+  fun:base::subtle::Barrier_AtomicIncrement*
+}
+
+#-----------------------------------------------------------------------
+# 2. Intentional unit test errors, or stuff that is somehow a false positive
+# in our own code, or stuff that is so trivial it's not worth fixing
+
+{
+  Benign data race inside PCMQueueOutAudioOutputStream::Stop bug_24801
+  ThreadSanitizer:Race
+  fun:*PCMQueueOutAudioOutputStream*Stop*
+}
+
+#-----------------------------------------------------------------------
+# 3. Suppressions for real chromium bugs that are not yet fixed.
+# These should all be in chromium's bug tracking system (but a few aren't yet).
+# Periodically we should sweep this file and the bug tracker clean by
+# running overnight and removing outdated bugs/suppressions.
+
+{
+   bug_93932_a
+   ThreadSanitizer:Race
+   fun:frame_thread_free
+   fun:avcodec_close
+   fun:media::FFmpegVideoDecodeEngine::~FFmpegVideoDecodeEngine
+   fun:scoped_ptr::reset
+   fun:media::FFmpegVideoDecodeEngineTest::~FFmpegVideoDecodeEngineTest
+}
+{
+   bug_97822
+   ThreadSanitizer:Race
+   ...
+   fun:media::FFmpegVideoDecodeEngine::DecodeFrame
+   fun:media::FFmpegVideoDecodeEngine::ConsumeVideoSample
+   fun:media::DemuxCompleteActionP2::gmock_Impl::gmock_PerformImpl
+   fun:testing::internal::ActionHelper::Perform
+   fun:testing::Action::Perform
+   fun:testing::internal::ActionResultHolder::PerformAction
+   fun:testing::internal::FunctionMockerBase::UntypedPerformAction
+   fun:testing::internal::UntypedFunctionMockerBase::UntypedInvokeWith
+   fun:testing::internal::FunctionMockerBase::InvokeWith
+   fun:testing::internal::FunctionMocker::Invoke
+   fun:media::FFmpegVideoDecodeEngineTest::ProduceVideoSample
+   fun:media::FFmpegVideoDecodeEngineTest::ProduceVideoSample
+   fun:media::FFmpegVideoDecodeEngine::ReadInput
+   fun:media::FFmpegVideoDecodeEngine::ProduceVideoFrame
+   fun:media::FFmpegVideoDecodeEngineTest::CallProduceVideoFrame
+   fun:media::FFmpegVideoDecodeEngineTest::DecodeIFrameThenTestFile
+   fun:media::FFmpegVideoDecodeEngineTest_DecodeFrame_SmallerWidth_Test::TestBody
+}
+{
+  bug_100313 TSan false positive
+  ThreadSanitizer:Race
+  ...
+  fun:__sfp
+  fun:fopen
+  fun:file_util::OpenFile
+  fun:base::SharedMemory::CreateNamed
+}

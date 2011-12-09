@@ -50,8 +50,8 @@ INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/voice_engine/main/interface \
 	-Isrc/modules/audio_device/main/source \
-	-Isrc/common_audio/resampler/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/resampler/include \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/modules/audio_coding/main/interface \
 	-Isrc/modules/interface \
 	-Isrc/modules/audio_conference_mixer/interface \
@@ -114,8 +114,8 @@ INCS_Release := -Isrc \
 	-I. \
 	-Isrc/voice_engine/main/interface \
 	-Isrc/modules/audio_device/main/source \
-	-Isrc/common_audio/resampler/main/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/resampler/include \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/modules/audio_coding/main/interface \
 	-Isrc/modules/interface \
 	-Isrc/modules/audio_conference_mixer/interface \

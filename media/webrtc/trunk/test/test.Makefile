@@ -3,4 +3,4 @@
 export builddir_name ?= trunk/test/$(OBJDIR)/media/webrtc/out
 .PHONY: all
 all:
-	$(MAKE) -C .. test_support
+	$(MAKE) -C .. test_support test_support_main test_support_unittests

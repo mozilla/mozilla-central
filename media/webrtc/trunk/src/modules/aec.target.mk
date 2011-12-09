@@ -49,7 +49,7 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/audio_processing/aec/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/modules/audio_processing/utility
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
@@ -101,7 +101,7 @@ CFLAGS_CC_Release := -fno-rtti \
 INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/audio_processing/aec/interface \
-	-Isrc/common_audio/signal_processing_library/main/interface \
+	-Isrc/common_audio/signal_processing/include \
 	-Isrc/modules/audio_processing/utility
 
 OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/aec/echo_cancellation.o \
@@ -109,7 +109,7 @@ OBJS := $(obj).target/$(TARGET)/src/modules/audio_processing/aec/echo_cancellati
 	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/aec_core_sse2.o \
 	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/aec_rdft.o \
 	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/aec_rdft_sse2.o \
-	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/resampler.o
+	$(obj).target/$(TARGET)/src/modules/audio_processing/aec/aec_resampler.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

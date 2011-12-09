@@ -16,6 +16,7 @@
 #include <math.h>   // sqrt()
 
 namespace webrtc {
+
 BandwidthManagement::BandwidthManagement(const WebRtc_Word32 id) :
     _id(id),
     _critsect(*CriticalSectionWrapper::CreateCriticalSection()),
@@ -31,7 +32,8 @@ BandwidthManagement::BandwidthManagement(const WebRtc_Word32 id) :
     _last_round_trip_time(0),
     _bwEstimateIncoming(0),
     _smoothedFractionLostQ4(-1), // indicate uninitialized
-    _sFLFactorQ4(14)             // 0.875 in Q4
+    _sFLFactorQ4(14),            // 0.875 in Q4
+    _timeLastIncrease(0)
 {
 }
 
@@ -107,7 +109,8 @@ WebRtc_Word32 BandwidthManagement::UpdatePacketLoss(
     WebRtc_UWord32 sentBitrate,
     const WebRtc_UWord16 rtt,
     WebRtc_UWord8* loss,
-    WebRtc_UWord32* newBitrate)
+    WebRtc_UWord32* newBitrate,
+    WebRtc_Word64 nowMS)
 {
     CriticalSectionScoped cs(_critsect);
 
@@ -157,9 +160,9 @@ WebRtc_Word32 BandwidthManagement::UpdatePacketLoss(
             }
             else
             {
-                // Report same loss as before and keep the accumulators until
-                // the next report.
-                *loss = _lastLoss;
+                // Report zero loss until we have enough data to estimate
+                // the loss rate.
+                *loss = 0;
             }
         }
     }
@@ -169,7 +172,7 @@ WebRtc_Word32 BandwidthManagement::UpdatePacketLoss(
     // Remember the sequence number until next time
     _lastPacketLossExtendedHighSeqNum = lastReceivedExtendedHighSeqNum;
 
-    WebRtc_UWord32 bitRate = ShapeSimple(*loss, rtt, sentBitrate);
+    WebRtc_UWord32 bitRate = ShapeSimple(*loss, rtt, sentBitrate, nowMS);
     if (bitRate == 0)
     {
         // no change
@@ -213,10 +216,22 @@ WebRtc_Word32 BandwidthManagement::CalcTFRCbps(WebRtc_Word16 avgPackSizeBytes,
 // protected
 WebRtc_UWord32 BandwidthManagement::ShapeSimple(WebRtc_Word32 packetLoss,
                                                 WebRtc_Word32 rtt,
-                                                WebRtc_UWord32 sentBitrate)
+                                                WebRtc_UWord32 sentBitrate,
+                                                WebRtc_Word64 nowMS)
 {
     WebRtc_UWord32 newBitRate = 0;
     bool reducing = false;
+
+    // Limit the rate increases to once a second.
+    if (packetLoss <= 5)
+    {
+        if ((nowMS - _timeLastIncrease) <
+            kBWEUpdateIntervalMs)
+        {
+            return _bitRate;
+        }
+        _timeLastIncrease = nowMS;
+    }
 
     if (packetLoss > 5 && packetLoss <= 26)
     {
@@ -234,8 +249,8 @@ WebRtc_UWord32 BandwidthManagement::ShapeSimple(WebRtc_Word32 packetLoss,
     }
     else
     {
-        // increase rate by 5%
-        newBitRate = static_cast<WebRtc_UWord32>(_bitRate * 1.05 + 0.5);
+        // increase rate by 8%
+        newBitRate = static_cast<WebRtc_UWord32>(_bitRate * 1.08 + 0.5);
 
         // add 1 kbps extra, just to make sure that we do not get stuck
         // (gives a little extra increase at low rates, negligible at higher rates)
@@ -276,6 +291,12 @@ WebRtc_UWord32 BandwidthManagement::ShapeSimple(WebRtc_Word32 packetLoss,
     }
     if (newBitRate < _minBitRateConfigured)
     {
+        WEBRTC_TRACE(kTraceWarning,
+                     kTraceRtpRtcp,
+                     _id,
+                     "The configured min bitrate (%u kbps) is greater than the "
+                     "estimated available bandwidth (%u kbps).\n",
+                     _minBitRateConfigured / 1000, newBitRate / 1000);
         newBitRate = _minBitRateConfigured;
     }
     return newBitRate;

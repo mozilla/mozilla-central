@@ -48,7 +48,7 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/codecs/iLBC/main/interface
+	-Isrc/modules/audio_coding/codecs/ilbc/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -98,15 +98,15 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/codecs/iLBC/main/interface
+	-Isrc/modules/audio_coding/codecs/ilbc/interface
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iLBC/main/test/iLBC_test.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/ilbc/test/iLBC_test.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libiLBC.a $(obj).target/src/common_audio/libspl.a
+$(OBJS): | $(obj).target/src/modules/libiLBC.a $(obj).target/src/common_audio/libsignal_processing.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -142,13 +142,17 @@ LIBS :=
 
 $(builddir)/iLBCtest: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/iLBCtest: LIBS := $(LIBS)
-$(builddir)/iLBCtest: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libiLBC.a $(obj).target/src/common_audio/libspl.a
+$(builddir)/iLBCtest: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libiLBC.a $(obj).target/src/common_audio/libsignal_processing.a
 $(builddir)/iLBCtest: TOOLSET := $(TOOLSET)
-$(builddir)/iLBCtest: $(OBJS) $(obj).target/src/modules/libiLBC.a $(obj).target/src/common_audio/libspl.a FORCE_DO_CMD
+$(builddir)/iLBCtest: $(OBJS) $(obj).target/src/modules/libiLBC.a $(obj).target/src/common_audio/libsignal_processing.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/iLBCtest
 # Add target alias
 .PHONY: iLBCtest
 iLBCtest: $(builddir)/iLBCtest
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/iLBCtest
 

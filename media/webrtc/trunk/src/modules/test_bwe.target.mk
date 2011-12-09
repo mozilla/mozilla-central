@@ -51,10 +51,11 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/rtp_rtcp/source \
+	-Itest \
 	-Isrc/modules/rtp_rtcp/interface \
 	-Isrc/modules/interface \
-	-Isrc/system_wrappers/interface \
-	-Itesting/gtest/include
+	-Itesting/gtest/include \
+	-Isrc/system_wrappers/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -107,10 +108,11 @@ CFLAGS_CC_Release := -fno-rtti \
 INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/rtp_rtcp/source \
+	-Itest \
 	-Isrc/modules/rtp_rtcp/interface \
 	-Isrc/modules/interface \
-	-Isrc/system_wrappers/interface \
-	-Itesting/gtest/include
+	-Itesting/gtest/include \
+	-Isrc/system_wrappers/interface
 
 OBJS := $(obj).target/$(TARGET)/src/modules/rtp_rtcp/test/test_bwe/unit_test.o \
 	$(obj).target/$(TARGET)/src/modules/rtp_rtcp/source/bitrate.o
@@ -119,7 +121,7 @@ OBJS := $(obj).target/$(TARGET)/src/modules/rtp_rtcp/test/test_bwe/unit_test.o \
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgtest_main.a
+$(OBJS): | $(obj).target/src/modules/librtp_rtcp.a $(obj).target/test/libtest_support_main.a $(obj).target/testing/libgtest.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -155,13 +157,17 @@ LIBS := -lrt
 
 $(builddir)/test_bwe: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/test_bwe: LIBS := $(LIBS)
-$(builddir)/test_bwe: LD_INPUTS := $(OBJS) $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgtest_main.a
+$(builddir)/test_bwe: LD_INPUTS := $(OBJS) $(obj).target/src/modules/librtp_rtcp.a $(obj).target/test/libtest_support_main.a $(obj).target/testing/libgtest.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a
 $(builddir)/test_bwe: TOOLSET := $(TOOLSET)
-$(builddir)/test_bwe: $(OBJS) $(obj).target/src/modules/librtp_rtcp.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgtest_main.a FORCE_DO_CMD
+$(builddir)/test_bwe: $(OBJS) $(obj).target/src/modules/librtp_rtcp.a $(obj).target/test/libtest_support_main.a $(obj).target/testing/libgtest.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/test_bwe
 # Add target alias
 .PHONY: test_bwe
 test_bwe: $(builddir)/test_bwe
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/test_bwe
 

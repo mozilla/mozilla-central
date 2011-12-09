@@ -61,15 +61,15 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/NetEQ/main/source \
-	-Isrc/modules/audio_coding/NetEQ/main/test \
-	-Isrc/modules/audio_coding/NetEQ/main/interface \
-	-Isrc/modules/audio_coding/codecs/G711/main/interface \
-	-Isrc/modules/audio_coding/codecs/G722/main/interface \
-	-Isrc/modules/audio_coding/codecs/PCM16B/main/interface \
-	-Isrc/modules/audio_coding/codecs/iLBC/main/interface \
+	-Isrc/modules/audio_coding/neteq \
+	-Isrc/modules/audio_coding/neteq/test \
+	-Isrc/modules/audio_coding/neteq/interface \
+	-Isrc/modules/audio_coding/codecs/g711/include \
+	-Isrc/modules/audio_coding/codecs/g722/include \
+	-Isrc/modules/audio_coding/codecs/pcm16b/include \
+	-Isrc/modules/audio_coding/codecs/ilbc/interface \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/interface \
-	-Isrc/modules/audio_coding/codecs/CNG/main/interface
+	-Isrc/modules/audio_coding/codecs/cng/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -132,23 +132,23 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/modules/audio_coding/NetEQ/main/source \
-	-Isrc/modules/audio_coding/NetEQ/main/test \
-	-Isrc/modules/audio_coding/NetEQ/main/interface \
-	-Isrc/modules/audio_coding/codecs/G711/main/interface \
-	-Isrc/modules/audio_coding/codecs/G722/main/interface \
-	-Isrc/modules/audio_coding/codecs/PCM16B/main/interface \
-	-Isrc/modules/audio_coding/codecs/iLBC/main/interface \
+	-Isrc/modules/audio_coding/neteq \
+	-Isrc/modules/audio_coding/neteq/test \
+	-Isrc/modules/audio_coding/neteq/interface \
+	-Isrc/modules/audio_coding/codecs/g711/include \
+	-Isrc/modules/audio_coding/codecs/g722/include \
+	-Isrc/modules/audio_coding/codecs/pcm16b/include \
+	-Isrc/modules/audio_coding/codecs/ilbc/interface \
 	-Isrc/modules/audio_coding/codecs/iSAC/main/interface \
-	-Isrc/modules/audio_coding/codecs/CNG/main/interface
+	-Isrc/modules/audio_coding/codecs/cng/include
 
-OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/NetEQ/main/test/NetEqRTPplay.o
+OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/neteq/test/NetEqRTPplay.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libNetEq.a $(obj).target/src/modules/libNetEqTestTools.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a
+$(OBJS): | $(obj).target/src/modules/libNetEq.a $(obj).target/src/modules/libNetEqTestTools.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/testing/libgtest.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -184,13 +184,17 @@ LIBS :=
 
 $(builddir)/NetEqRTPplay: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/NetEqRTPplay: LIBS := $(LIBS)
-$(builddir)/NetEqRTPplay: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libNetEq.a $(obj).target/src/modules/libNetEqTestTools.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a
+$(builddir)/NetEqRTPplay: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libNetEq.a $(obj).target/src/modules/libNetEqTestTools.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/testing/libgtest.a
 $(builddir)/NetEqRTPplay: TOOLSET := $(TOOLSET)
-$(builddir)/NetEqRTPplay: $(OBJS) $(obj).target/src/modules/libNetEq.a $(obj).target/src/modules/libNetEqTestTools.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a FORCE_DO_CMD
+$(builddir)/NetEqRTPplay: $(OBJS) $(obj).target/src/modules/libNetEq.a $(obj).target/src/modules/libNetEqTestTools.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/testing/libgtest.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/NetEqRTPplay
 # Add target alias
 .PHONY: NetEqRTPplay
 NetEqRTPplay: $(builddir)/NetEqRTPplay
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/NetEqRTPplay
 

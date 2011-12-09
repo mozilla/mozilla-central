@@ -8,7 +8,6 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include "../../../../engine_configurations.h"
 #include "frame_buffer.h"
 #include "packet.h"
 
@@ -73,6 +72,14 @@ int VCMFrameBuffer::PictureId() const {
   return _sessionInfo.PictureId();
 }
 
+int VCMFrameBuffer::TemporalId() const {
+  return _sessionInfo.TemporalId();
+}
+
+int VCMFrameBuffer::Tl0PicId() const {
+  return _sessionInfo.Tl0PicId();
+}
+
 bool
 VCMFrameBuffer::IsSessionComplete() const
 {
@@ -81,7 +88,8 @@ VCMFrameBuffer::IsSessionComplete() const
 
 // Insert packet
 VCMFrameBufferEnum
-VCMFrameBuffer::InsertPacket(const VCMPacket& packet, WebRtc_Word64 timeInMs)
+VCMFrameBuffer::InsertPacket(const VCMPacket& packet, WebRtc_Word64 timeInMs,
+                             bool enableDecodableState, WebRtc_UWord32 rttMS)
 {
     if (_state == kStateDecoding)
     {
@@ -159,7 +167,9 @@ VCMFrameBuffer::InsertPacket(const VCMPacket& packet, WebRtc_Word64 timeInMs)
 
     CopyCodecSpecific(&packet.codecSpecificHeader);
 
-    WebRtc_Word64 retVal = _sessionInfo.InsertPacket(packet, _buffer);
+    WebRtc_Word64 retVal = _sessionInfo.InsertPacket(packet, _buffer,
+                                                     enableDecodableState,
+                                                     rttMS);
     if (retVal == -1)
     {
         return kSizeError;
@@ -173,19 +183,18 @@ VCMFrameBuffer::InsertPacket(const VCMPacket& packet, WebRtc_Word64 timeInMs)
 
     _latestPacketTimeMs = timeInMs;
 
-    if (_sessionInfo.IsSessionComplete())
-    {
-        return kCompleteSession;
-    }
-    else
-    {
-        // this layer is not complete
-        if (_state == kStateComplete)
-        {
-            // we already have a complete layer
-            // wait for all independent layers belonging to the same frame
-            _state = kStateIncomplete;
-        }
+    if (_sessionInfo.IsSessionComplete()) {
+      return kCompleteSession;
+    } else if (_sessionInfo.IsSessionDecodable()) {
+      SetState(kStateDecodable);
+      return kDecodableSession;
+    } else {
+      // this layer is not complete
+      if (_state == kStateComplete) {
+        // we already have a complete layer
+        // wait for all independent layers belonging to the same frame
+        _state = kStateIncomplete;
+      }
     }
     return kIncomplete;
 }
@@ -215,9 +224,9 @@ VCMFrameBuffer::ZeroOutSeqNum(WebRtc_Word32* list, WebRtc_Word32 num)
 WebRtc_Word32
 VCMFrameBuffer::ZeroOutSeqNumHybrid(WebRtc_Word32* list,
                                     WebRtc_Word32 num,
-                                    float rttScore)
+                                    WebRtc_UWord32 rttMs)
 {
-    return _sessionInfo.ZeroOutSeqNumHybrid(list, num, rttScore);
+    return _sessionInfo.ZeroOutSeqNumHybrid(list, num, rttMs);
 }
 
 void
@@ -308,7 +317,7 @@ VCMFrameBuffer::SetState(VCMFrameBufferStateEnum state)
         break;
 
     case kStateDecoding:
-        // A frame migth have received empty packets, or media packets might
+        // A frame might have received empty packets, or media packets might
         // have been removed when making the frame decodable. The frame can
         // still be set to decodable since it can be used to inform the
         // decoder of a frame loss.
@@ -320,11 +329,6 @@ VCMFrameBuffer::SetState(VCMFrameBufferStateEnum state)
         break;
 
     case kStateDecodable:
-        if (_state == kStateComplete)
-        {
-            // if complete, obviously decodable, keep as is.
-            return;
-        }
         assert(_state == kStateEmpty ||
                _state == kStateIncomplete);
         break;

@@ -49,7 +49,6 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/common_video/jpeg/main/interface \
-	-Isrc/common_video/vplib/main/interface \
 	-Isrc/common_video/jpeg/main/source \
 	-Isrc/common_video/interface
 
@@ -102,7 +101,6 @@ CFLAGS_CC_Release := -fno-rtti \
 INCS_Release := -Isrc \
 	-I. \
 	-Isrc/common_video/jpeg/main/interface \
-	-Isrc/common_video/vplib/main/interface \
 	-Isrc/common_video/jpeg/main/source \
 	-Isrc/common_video/interface
 
@@ -112,7 +110,7 @@ OBJS := $(obj).target/$(TARGET)/src/common_video/jpeg/main/test/test_jpeg.o
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a
+$(OBJS): | $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -148,13 +146,17 @@ LIBS :=
 
 $(builddir)/jpeg_test: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/jpeg_test: LIBS := $(LIBS)
-$(builddir)/jpeg_test: LD_INPUTS := $(OBJS) $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a
+$(builddir)/jpeg_test: LD_INPUTS := $(OBJS) $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a
 $(builddir)/jpeg_test: TOOLSET := $(TOOLSET)
-$(builddir)/jpeg_test: $(OBJS) $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/src/common_video/libwebrtc_vplib.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a FORCE_DO_CMD
+$(builddir)/jpeg_test: $(OBJS) $(obj).target/src/common_video/libwebrtc_jpeg.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/jpeg_test
 # Add target alias
 .PHONY: jpeg_test
 jpeg_test: $(builddir)/jpeg_test
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/jpeg_test
 

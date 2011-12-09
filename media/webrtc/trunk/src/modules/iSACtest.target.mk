@@ -111,7 +111,7 @@ OBJS := $(obj).target/$(TARGET)/src/modules/audio_coding/codecs/iSAC/main/test/s
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libspl.a
+$(OBJS): | $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libsignal_processing.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -147,13 +147,17 @@ LIBS :=
 
 $(builddir)/iSACtest: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/iSACtest: LIBS := $(LIBS)
-$(builddir)/iSACtest: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libspl.a
+$(builddir)/iSACtest: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libsignal_processing.a
 $(builddir)/iSACtest: TOOLSET := $(TOOLSET)
-$(builddir)/iSACtest: $(OBJS) $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libspl.a FORCE_DO_CMD
+$(builddir)/iSACtest: $(OBJS) $(obj).target/src/modules/libiSAC.a $(obj).target/src/common_audio/libsignal_processing.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/iSACtest
 # Add target alias
 .PHONY: iSACtest
 iSACtest: $(builddir)/iSACtest
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/iSACtest
 

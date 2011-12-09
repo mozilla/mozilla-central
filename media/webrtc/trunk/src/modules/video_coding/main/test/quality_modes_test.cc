@@ -17,8 +17,8 @@
 #include "../source/event.h"
 #include "test_callbacks.h"
 #include "test_macros.h"
-#include "video_metrics.h"
-#include "vplib.h"
+#include "testsupport/metrics/video_metrics.h"
+#include "common_video/libyuv/include/libyuv.h"
 
 using namespace webrtc;
 
@@ -54,9 +54,9 @@ QualityModesTest::Setup()
 {
 
 
-    _inname= "../codecs/testFiles/database/crew_30f_4CIF.yuv";
-    _outname = "../out_qmtest.yuv";
-    _encodedName = "../encoded_qmtest.yuv";
+    _inname= test::ProjectRootPath() + "resources/crew_30f_4CIF.yuv";
+    _outname = test::OutputPath() + "out_qmtest.yuv";
+    _encodedName = test::OutputPath() + "encoded_qmtest.yuv";
 
     //NATIVE/SOURCE VALUES
     _nativeWidth = 2*352;
@@ -91,7 +91,8 @@ QualityModesTest::Setup()
         exit(1);
     }
 
-    _log.open("../TestLog.txt", std::fstream::out | std::fstream::app);
+    _log.open((test::OutputPath() + "TestLog.txt").c_str(),
+              std::fstream::out | std::fstream::app);
     return;
 }
 
@@ -236,7 +237,7 @@ QualityModesTest::Perform()
 
     while (feof(_sourceFile)== 0)
     {
-        fread(tmpBuffer, 1, _lengthSourceFrame, _sourceFile);
+        TEST(fread(tmpBuffer, 1, _lengthSourceFrame, _sourceFile) > 0);
         _frameCnt++;
         sourceFrame.CopyFrame(_lengthSourceFrame, tmpBuffer);
         sourceFrame.SetHeight(_nativeHeight);

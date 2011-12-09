@@ -16,7 +16,7 @@ UTILS-$(CONFIG_DECODERS)    += vpxdec.c
 vpxdec.SRCS                 += md5_utils.c md5_utils.h
 vpxdec.SRCS                 += vpx_ports/vpx_timer.h
 vpxdec.SRCS                 += vpx/vpx_integer.h
-vpxdec.SRCS                 += args.c args.h vpx_ports/config.h
+vpxdec.SRCS                 += args.c args.h
 vpxdec.SRCS                 += tools_common.c tools_common.h
 vpxdec.SRCS                 += nestegg/halloc/halloc.h
 vpxdec.SRCS                 += nestegg/halloc/src/align.h
@@ -30,13 +30,16 @@ vpxdec.DESCRIPTION           = Full featured decoder
 UTILS-$(CONFIG_ENCODERS)    += vpxenc.c
 vpxenc.SRCS                 += args.c args.h y4minput.c y4minput.h
 vpxenc.SRCS                 += tools_common.c tools_common.h
-vpxenc.SRCS                 += vpx_ports/config.h vpx_ports/mem_ops.h
+vpxenc.SRCS                 += vpx_ports/mem_ops.h
 vpxenc.SRCS                 += vpx_ports/mem_ops_aligned.h
 vpxenc.SRCS                 += libmkv/EbmlIDs.h
 vpxenc.SRCS                 += libmkv/EbmlWriter.c
 vpxenc.SRCS                 += libmkv/EbmlWriter.h
 vpxenc.GUID                  = 548DEC74-7A15-4B2B-AFC3-AA102E7C25C1
 vpxenc.DESCRIPTION           = Full featured encoder
+UTILS-$(CONFIG_ENCODERS)    += vp8_scalable_patterns.c
+vp8_scalable_patterns.GUID   = 0D6A210B-F482-4D6F-8570-4A9C01ACC88C
+vp8_scalable_patterns.DESCRIPTION = Temporal Scalability Encoder
 
 # Clean up old ivfenc, ivfdec binaries.
 ifeq ($(CONFIG_MSVS),yes)
@@ -86,9 +89,6 @@ GEN_EXAMPLES-$(CONFIG_ENCODERS) += error_resilient.c
 error_resilient.GUID             = DF5837B9-4145-4F92-A031-44E4F832E00C
 error_resilient.DESCRIPTION      = Error Resiliency Feature
 
-GEN_EXAMPLES-$(CONFIG_VP8_ENCODER) += vp8_scalable_patterns.c
-vp8_scalable_patterns.GUID          = 0D6A210B-F482-4D6F-8570-4A9C01ACC88C
-vp8_scalable_patterns.DESCRIPTION   = VP8 Scalable Bitstream Patterns
 GEN_EXAMPLES-$(CONFIG_VP8_ENCODER) += vp8_set_maps.c
 vp8_set_maps.GUID                   = ECB2D24D-98B8-4015-A465-A4AF3DCC145F
 vp8_set_maps.DESCRIPTION            = VP8 set active and ROI maps

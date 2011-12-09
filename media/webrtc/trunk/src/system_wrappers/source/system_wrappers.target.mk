@@ -106,6 +106,7 @@ OBJS := $(obj).target/$(TARGET)/src/system_wrappers/source/aligned_malloc.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/atomic32.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/condition_variable.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/cpu.o \
+	$(obj).target/$(TARGET)/src/system_wrappers/source/cpu_info.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/cpu_features.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/critical_section.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/data_log_c.o \

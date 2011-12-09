@@ -14,7 +14,6 @@
 #include "bwe_defines.h"
 #include "typedefs.h"
 #include "list_wrapper.h"
-#include <stdio.h>
 
 #ifdef MATLAB
 #include "../test/BWEStandAlone/MatlabPlot.h"
@@ -27,23 +26,24 @@ public:
     RemoteRateControl();
     ~RemoteRateControl();
     WebRtc_Word32 SetConfiguredBitRates(WebRtc_UWord32 minBitRate, WebRtc_UWord32 maxBitRate);
-    WebRtc_UWord32 TargetBitRate(WebRtc_UWord32 RTT);
-    RateControlRegion Update(const RateControlInput& input, bool& firstOverUse);
+    WebRtc_UWord32 TargetBitRate(WebRtc_UWord32 RTT, WebRtc_Word64 nowMS);
+    RateControlRegion Update(const RateControlInput& input, bool& firstOverUse,
+                             WebRtc_Word64 nowMS);
     void Reset();
 
 private:
     WebRtc_UWord32 ChangeBitRate(WebRtc_UWord32 currentBitRate,
-        WebRtc_UWord32 incomingBitRate, double delayFactor, WebRtc_UWord32 RTT);
+                                 WebRtc_UWord32 incomingBitRate,
+                                 double delayFactor, WebRtc_UWord32 RTT,
+                                 WebRtc_Word64 nowMS);
     double RateIncreaseFactor(WebRtc_Word64 nowMs, WebRtc_Word64 lastMs, WebRtc_UWord32 reactionTimeMs, double noiseVar) const;
     void UpdateChangePeriod(WebRtc_Word64 nowMs);
     void UpdateMaxBitRateEstimate(float incomingBitRateKbps);
     void ChangeState(const RateControlInput& input, WebRtc_Word64 nowMs);
     void ChangeState(RateControlState newState);
     void ChangeRegion(RateControlRegion region);
-#ifdef _DEBUG
     static void StateStr(RateControlState state, char* str);
     static void StateStr(BandwidthUsage state, char* str);
-#endif
 
     WebRtc_UWord32        _minConfiguredBitRate;
     WebRtc_UWord32        _maxConfiguredBitRate;

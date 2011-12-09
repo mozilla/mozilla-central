@@ -51,7 +51,6 @@ INCS_Debug := -Isrc \
 	-Isrc/common_video/interface \
 	-Isrc/common_video/jpeg/main/interface \
 	-I.. \
-	-Isrc/common_video/vplib/main/interface \
 	-Ithird_party/libjpeg_turbo
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
@@ -105,7 +104,6 @@ INCS_Release := -Isrc \
 	-Isrc/common_video/interface \
 	-Isrc/common_video/jpeg/main/interface \
 	-I.. \
-	-Isrc/common_video/vplib/main/interface \
 	-Ithird_party/libjpeg_turbo
 
 OBJS := $(obj).target/$(TARGET)/src/common_video/jpeg/main/source/jpeg.o \

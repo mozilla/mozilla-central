@@ -9,12 +9,16 @@
  */
 
 #include "normal_async_test.h"
-#include "typedefs.h"
-#include <sstream>
+
 #include <assert.h>
-#include <queue>
 #include <string.h>
+#include <sstream>
+#include <queue>
+
+#include "gtest/gtest.h"
 #include "tick_util.h"
+#include "testsupport/fileutils.h"
+#include "typedefs.h"
 
 using namespace webrtc;
 
@@ -32,6 +36,7 @@ _appendNext(false),
 _missingFrames(false),
 _rttFrames(0),
 _hasReceivedSLI(false),
+_hasReceivedRPSI(false),
 _hasReceivedPLI(false),
 _waitForKey(false)
 {
@@ -51,6 +56,7 @@ _appendNext(false),
 _missingFrames(false),
 _rttFrames(0),
 _hasReceivedSLI(false),
+_hasReceivedRPSI(false),
 _hasReceivedPLI(false),
 _waitForKey(false)
 {
@@ -71,6 +77,7 @@ _appendNext(false),
 _missingFrames(false),
 _rttFrames(0),
 _hasReceivedSLI(false),
+_hasReceivedRPSI(false),
 _hasReceivedPLI(false),
 _waitForKey(false)
 {
@@ -91,6 +98,7 @@ _appendNext(false),
 _missingFrames(false),
 _rttFrames(0),
 _hasReceivedSLI(false),
+_hasReceivedRPSI(false),
 _hasReceivedPLI(false),
 _waitForKey(false)
 {
@@ -112,6 +120,7 @@ _appendNext(false),
 _missingFrames(false),
 _rttFrames(rttFrames),
 _hasReceivedSLI(false),
+_hasReceivedRPSI(false),
 _hasReceivedPLI(false),
 _waitForKey(false)
 {
@@ -129,12 +138,14 @@ NormalAsyncTest::Setup()
     // Check if settings exist. Otherwise use defaults.
     if (_outname == "")
     {
-        _outname = "../../out_normaltest" + strTestNo + ".yuv";
+        _outname = webrtc::test::OutputPath() + "out_normaltest" + strTestNo +
+            ".yuv";
     }
 
     if (_encodedName == "")
     {
-        _encodedName = "../../encoded_normaltest" + strTestNo + ".yuv";
+        _encodedName = webrtc::test::OutputPath() + "encoded_normaltest" +
+            strTestNo + ".yuv";
     }
 
     if ((_sourceFile = fopen(_inname.c_str(), "rb")) == NULL)
@@ -295,7 +306,7 @@ NormalAsyncTest::Decoded(const RawImage& decodedImage)
 void
 NormalAsyncTest::Perform()
 {
-    _inname = "test/testFiles/foreman_cif.yuv";
+    _inname = webrtc::test::ProjectRootPath() + "resources/foreman_cif.yuv";
     CodecSettings(352, 288, 30, _bitRate);
     Setup();
     _inputVideoBuffer.VerifyAndAllocate(_lengthSourceFrame);
@@ -391,7 +402,7 @@ bool
 NormalAsyncTest::Encode()
 {
     _lengthEncFrame = 0;
-    fread(_sourceBuffer, 1, _lengthSourceFrame, _sourceFile);
+    EXPECT_GT(fread(_sourceBuffer, 1, _lengthSourceFrame, _sourceFile), 0u);
     _inputVideoBuffer.CopyBuffer(_lengthSourceFrame, _sourceBuffer);
     _inputVideoBuffer.SetTimeStamp((unsigned int)
         (_encFrameCnt * 9e4 / _inst.maxFramerate));
@@ -448,6 +459,7 @@ NormalAsyncTest::Encode()
 
     webrtc::CodecSpecificInfo* codecSpecificInfo = CreateEncoderSpecificInfo();
     int ret = _encoder->Encode(rawImage, codecSpecificInfo, &frameType);
+    EXPECT_EQ(ret, WEBRTC_VIDEO_CODEC_OK);
     if (codecSpecificInfo != NULL)
     {
         delete codecSpecificInfo;
@@ -535,8 +547,7 @@ NormalAsyncTest::CopyCodecSpecificInfo(
         const webrtc::CodecSpecificInfo* codecSpecificInfo) const
 {
     webrtc::CodecSpecificInfo* info = new webrtc::CodecSpecificInfo;
-    info->codecType = codecSpecificInfo->codecType;
-    info->codecSpecific = codecSpecificInfo->codecSpecific;
+    *info = *codecSpecificInfo;
     return info;
 }
 
@@ -562,6 +573,19 @@ void NormalAsyncTest::CopyEncodedImage(TestVideoEncodedBuffer& dest,
     dest.SetCaptureHeight((WebRtc_UWord16)src._encodedHeight);
     dest.SetTimeStamp(src._timeStamp);
 }
+
+WebRtc_Word32 NormalAsyncTest::ReceivedDecodedReferenceFrame(
+    const WebRtc_UWord64 pictureId) {
+  _lastDecRefPictureId = pictureId;
+  return 0;
+}
+
+WebRtc_Word32 NormalAsyncTest::ReceivedDecodedFrame(
+    const WebRtc_UWord64 pictureId) {
+  _lastDecPictureId = pictureId;
+  return 0;
+}
+
 double
 NormalAsyncTest::tGetTime()
 {// return time in sec

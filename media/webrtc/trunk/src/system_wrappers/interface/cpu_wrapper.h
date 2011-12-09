@@ -17,8 +17,6 @@ namespace webrtc {
 class CpuWrapper
 {
 public:
-    static WebRtc_UWord32 DetectNumberOfCores();
-
     static CpuWrapper* CreateCpu();
     virtual ~CpuWrapper() {}
 
@@ -34,6 +32,14 @@ public:
     // Note that the pointer passed as cpu_usage is redirected to a local member
     // of the CPU wrapper.
     // numCores is the number of cores in the cpu_usage array.
+    // The return value is -1 for failure or 0-100, indicating the average
+    // CPU usage across all cores.
+    // Note: on some OSs this class is initialized lazy. This means that it
+    // might not yet be possible to retrieve any CPU metrics. When this happens
+    // the return value will be zero (indicating that there is not a failure),
+    // numCores will be 0 and cpu_usage will be set to NULL (indicating that
+    // no metrics are available yet). Once the initialization is completed,
+    // which can take in the order of seconds, CPU metrics can be retrieved.
     virtual WebRtc_Word32 CpuUsageMultiCore(WebRtc_UWord32& numCores,
                                             WebRtc_UWord32*& cpu_usage) = 0;
 
@@ -42,10 +48,6 @@ public:
 
 protected:
     CpuWrapper() {}
-
-private:
-    static WebRtc_UWord32 _numberOfCores;
-
 };
 } // namespace webrtc
 #endif // WEBRTC_SYSTEM_WRAPPERS_INTERFACE_CPU_WRAPPER_H_

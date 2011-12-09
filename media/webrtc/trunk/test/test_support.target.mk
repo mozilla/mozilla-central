@@ -50,7 +50,9 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Itesting/gtest/include
+	-Itest \
+	-Itesting/gtest/include \
+	-Itesting/gmock/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -102,10 +104,16 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Itesting/gtest/include
+	-Itest \
+	-Itesting/gtest/include \
+	-Itesting/gmock/include
 
 OBJS := $(obj).target/$(TARGET)/test/test_suite.o \
-	$(obj).target/$(TARGET)/test/testsupport/fileutils.o
+	$(obj).target/$(TARGET)/test/testsupport/fileutils.o \
+	$(obj).target/$(TARGET)/test/testsupport/frame_reader.o \
+	$(obj).target/$(TARGET)/test/testsupport/frame_writer.o \
+	$(obj).target/$(TARGET)/test/testsupport/packet_reader.o \
+	$(obj).target/$(TARGET)/test/testsupport/metrics/video_metrics.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)

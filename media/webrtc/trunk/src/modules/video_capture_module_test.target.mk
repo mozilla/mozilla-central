@@ -17,6 +17,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
@@ -50,14 +52,13 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/video_capture/main/interface \
+	-Itest \
 	-Isrc/modules/interface \
-	-Isrc/common_video/vplib/main/interface \
-	-Isrc/system_wrappers/interface \
+	-Isrc/common_video/libyuv/include \
 	-Isrc/modules/utility/interface \
 	-Isrc/modules/audio_coding/main/interface \
-	-Isrc/modules/video_render/main/interface \
-	-Isrc/modules/video_coding/main/interface \
-	-Isrc/modules/video_coding/codecs/interface
+	-Isrc/system_wrappers/interface \
+	-Itesting/gtest/include
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
@@ -74,6 +75,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
+	'-DUNIT_TEST' \
+	'-DGTEST_HAS_RTTI=0' \
 	'-D__STDC_FORMAT_MACROS' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
@@ -109,27 +112,21 @@ CFLAGS_CC_Release := -fno-rtti \
 INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/video_capture/main/interface \
+	-Itest \
 	-Isrc/modules/interface \
-	-Isrc/common_video/vplib/main/interface \
-	-Isrc/system_wrappers/interface \
+	-Isrc/common_video/libyuv/include \
 	-Isrc/modules/utility/interface \
 	-Isrc/modules/audio_coding/main/interface \
-	-Isrc/modules/video_render/main/interface \
-	-Isrc/modules/video_coding/main/interface \
-	-Isrc/modules/video_coding/codecs/interface
+	-Isrc/system_wrappers/interface \
+	-Itesting/gtest/include
 
-OBJS := $(obj).target/$(TARGET)/src/modules/video_capture/main/test/testAPI/testAPI.o \
-	$(obj).target/$(TARGET)/src/modules/video_capture/main/test/testAPI/testCameraEncoder.o \
-	$(obj).target/$(TARGET)/src/modules/video_capture/main/test/testAPI/testExternalCapture.o \
-	$(obj).target/$(TARGET)/src/modules/video_capture/main/test/testAPI/testPlatformDependent.o \
-	$(obj).target/$(TARGET)/src/modules/video_capture/main/test/testAPI/Logger.o \
-	$(obj).target/$(TARGET)/src/modules/video_capture/main/test/testAPI/Renderer.o
+OBJS := $(obj).target/$(TARGET)/src/modules/video_capture/main/test/video_capture_unittest.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libvideo_render_module.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a
+$(OBJS): | $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/test/libtest_support_main.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -139,15 +136,15 @@ $(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE)) $(CFLAGS_$(BU
 
 # Suffix rules, putting all outputs into $(obj).
 
-$(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cpp FORCE_DO_CMD
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(srcdir)/%.cc FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
 # Try building from generated source, too.
 
-$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.cpp FORCE_DO_CMD
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj).$(TOOLSET)/%.cc FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
-$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cpp FORCE_DO_CMD
+$(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cc FORCE_DO_CMD
 	@$(call do_cmd,cxx,1)
 
 # End of this set of suffix rules
@@ -169,13 +166,17 @@ LIBS := -lrt \
 
 $(builddir)/video_capture_module_test: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/video_capture_module_test: LIBS := $(LIBS)
-$(builddir)/video_capture_module_test: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libvideo_render_module.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a
+$(builddir)/video_capture_module_test: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/test/libtest_support_main.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a
 $(builddir)/video_capture_module_test: TOOLSET := $(TOOLSET)
-$(builddir)/video_capture_module_test: $(OBJS) $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/modules/libvideo_render_module.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libspl.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/src/common_video/libwebrtc_vplib.a FORCE_DO_CMD
+$(builddir)/video_capture_module_test: $(OBJS) $(obj).target/src/modules/libvideo_capture_module.a $(obj).target/src/modules/libwebrtc_utility.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/testing/libgtest.a $(obj).target/test/libtest_support_main.a $(obj).target/src/modules/libaudio_coding_module.a $(obj).target/src/modules/libCNG.a $(obj).target/src/common_audio/libsignal_processing.a $(obj).target/src/modules/libG711.a $(obj).target/src/modules/libG722.a $(obj).target/src/modules/libiLBC.a $(obj).target/src/modules/libiSAC.a $(obj).target/src/modules/libiSACFix.a $(obj).target/src/modules/libPCM16B.a $(obj).target/src/modules/libNetEq.a $(obj).target/src/common_audio/libresampler.a $(obj).target/src/common_audio/libvad.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/video_capture_module_test
 # Add target alias
 .PHONY: video_capture_module_test
 video_capture_module_test: $(builddir)/video_capture_module_test
+
+# Add executable to "all" target.
+.PHONY: all
+all: $(builddir)/video_capture_module_test
 

@@ -19,6 +19,7 @@ VP8_COMMON_SRCS-yes += common/asm_com_offsets.c
 VP8_COMMON_SRCS-yes += common/blockd.c
 VP8_COMMON_SRCS-yes += common/coefupdateprobs.h
 VP8_COMMON_SRCS-yes += common/debugmodes.c
+VP8_COMMON_SRCS-yes += common/default_coef_probs.h
 VP8_COMMON_SRCS-yes += common/entropy.c
 VP8_COMMON_SRCS-yes += common/entropymode.c
 VP8_COMMON_SRCS-yes += common/entropymv.c
@@ -63,7 +64,6 @@ VP8_COMMON_SRCS-yes += common/mbpitch.c
 VP8_COMMON_SRCS-yes += common/modecont.c
 VP8_COMMON_SRCS-yes += common/modecontext.c
 VP8_COMMON_SRCS-yes += common/quant_common.c
-VP8_COMMON_SRCS-yes += common/recon.c
 VP8_COMMON_SRCS-yes += common/reconinter.c
 VP8_COMMON_SRCS-yes += common/reconintra.c
 VP8_COMMON_SRCS-yes += common/reconintra4x4.c
@@ -98,6 +98,9 @@ ifeq ($(CONFIG_POSTPROC),yes)
 VP8_COMMON_SRCS-$(HAVE_MMX) += common/x86/postproc_mmx.asm
 VP8_COMMON_SRCS-$(HAVE_SSE2) += common/x86/postproc_sse2.asm
 endif
+ifeq ($(ARCH_X86_64),yes)
+VP8_COMMON_SRCS-$(HAVE_SSE2) += common/x86/loopfilter_block_sse2.asm
+endif
 
 # common (c)
 VP8_COMMON_SRCS-$(ARCH_ARM)  += common/arm/arm_systemdependent.c
@@ -121,9 +124,9 @@ VP8_COMMON_SRCS-$(HAVE_ARMV6)  += common/arm/armv6/iwalsh_v6$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV6)  += common/arm/armv6/filter_v6$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV6)  += common/arm/armv6/idct_v6$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV6)  += common/arm/armv6/loopfilter_v6$(ASM)
-VP8_COMMON_SRCS-$(HAVE_ARMV6)  += common/arm/armv6/recon_v6$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV6)  += common/arm/armv6/simpleloopfilter_v6$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV6)  += common/arm/armv6/sixtappredict8x4_v6$(ASM)
+VP8_COMMON_SRCS-$(HAVE_ARMV6)  += common/arm/armv6/intra4x4_predict_v6$(ASM)
 
 # common (neon)
 VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/bilinearpredict4x4_neon$(ASM)
@@ -139,16 +142,10 @@ VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/loopfilter_neon$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/loopfiltersimplehorizontaledge_neon$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/loopfiltersimpleverticaledge_neon$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/mbloopfilter_neon$(ASM)
-VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/recon2b_neon$(ASM)
-VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/recon4b_neon$(ASM)
-VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/reconb_neon$(ASM)
-VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/shortidct4x4llm_1_neon$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/shortidct4x4llm_neon$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/sixtappredict4x4_neon$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/sixtappredict8x4_neon$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/sixtappredict8x8_neon$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/sixtappredict16x16_neon$(ASM)
-VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/recon16x16mb_neon$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/buildintrapredictorsmby_neon$(ASM)
 VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/save_neon_reg$(ASM)
-VP8_COMMON_SRCS-$(HAVE_ARMV7)  += common/arm/neon/recon_neon.c

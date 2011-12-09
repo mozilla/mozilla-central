@@ -26,6 +26,7 @@ namespace webrtc {
 enum { REDForFECHeaderLength = 1 };
 
 RTPSenderVideo::RTPSenderVideo(const WebRtc_Word32 id,
+                               RtpRtcpClock* clock,
                                RTPSenderInterface* rtpSender) :
     _id(id),
     _rtpSender(*rtpSender),
@@ -47,7 +48,8 @@ RTPSenderVideo::RTPSenderVideo(const WebRtc_Word32 id,
     _fecProtectionFactor(0),
     _fecUseUepProtection(false),
     _numberFirstPartition(0),
-    _fecOverheadRate(),
+    _fecOverheadRate(clock),
+    _videoBitrate(clock),
 
     // H263
     _savedByte(0),
@@ -1266,8 +1268,7 @@ RTPSenderVideo::SendVP8(const FrameType frameType,
     WebRtc_Word32 payloadBytesToSend = payloadSize;
     const WebRtc_UWord8* data = payloadData;
 
-    WebRtc_UWord16 maxPayloadLengthVP8 = _rtpSender.MaxPayloadLength()
-        - FECPacketOverhead() - rtpHeaderLength;
+    WebRtc_UWord16 maxPayloadLengthVP8 = _rtpSender.MaxDataPayloadLength();
 
     assert(rtpTypeHdr);
     RtpFormatVp8 packetizer(data, payloadBytesToSend, rtpTypeHdr->VP8,

@@ -109,12 +109,18 @@ const int kDynamicPayloadtypes[ACMCodecDB::kMaxNumCodecs] = {
 // Each entry needs the following parameters in the given order:
 // payload type, name, sampling frequency, packet size in samples,
 // default channel support, and default rate.
+#if (defined(WEBRTC_CODEC_PCM16) || \
+     defined(WEBRTC_CODEC_AMR) || defined(WEBRTC_CODEC_AMRWB) || \
+     defined(WEBRTC_CODEC_G729_1) || defined(WEBRTC_CODEC_SPEEX) || \
+     defined(WEBRTC_CODEC_G722_1) || defined(WEBRTC_CODEC_G722_1C))
 static int count_database = 0;
+#endif
+
 const CodecInst ACMCodecDB::database_[] = {
 #if (defined(WEBRTC_CODEC_ISAC) || defined(WEBRTC_CODEC_ISACFX))
-  {103, "ISAC", 16000, ISACWB_PAC_SIZE, 1, ISACWB_DEFAULT_RATE},
+  {103, "ISAC", 16000, kIsacPacSize480, 1, kIsacWbDefaultRate},
 # if (defined(WEBRTC_CODEC_ISAC))
-  {104, "ISAC", 32000, ISACSWB_PAC_SIZE, 1, ISACSWB_DEFAULT_RATE},
+  {104, "ISAC", 32000, kIsacPacSize960, 1, kIsacSwbDefaultRate},
 # endif
 #endif
 #ifdef WEBRTC_CODEC_PCM16
@@ -180,9 +186,9 @@ const CodecInst ACMCodecDB::database_[] = {
 // Basic block samples, max number of channels that are supported.
 const ACMCodecDB::CodecSettings ACMCodecDB::codec_settings_[] = {
 #if (defined(WEBRTC_CODEC_ISAC) || defined(WEBRTC_CODEC_ISACFX))
-  {2, {ISACWB_PAC_SIZE, ISACWB_PAC_SIZE*2}, 0, 1},
+  {2, {kIsacPacSize480, kIsacPacSize960}, 0, 1},
 # if (defined(WEBRTC_CODEC_ISAC))
-  {1, {ISACSWB_PAC_SIZE}, 0, 1},
+  {1, {kIsacPacSize960}, 0, 1},
 # endif
 #endif
 #ifdef WEBRTC_CODEC_PCM16
@@ -243,7 +249,7 @@ const ACMCodecDB::CodecSettings ACMCodecDB::codec_settings_[] = {
 };
 
 // Create a database of all NetEQ decoders at compile time.
-WebRtcNetEQDecoder ACMCodecDB::neteq_decoders_[] = {
+const WebRtcNetEQDecoder ACMCodecDB::neteq_decoders_[] = {
 #if (defined(WEBRTC_CODEC_ISAC) || defined(WEBRTC_CODEC_ISACFX))
   kDecoderISAC,
 # if (defined(WEBRTC_CODEC_ISAC))
@@ -532,7 +538,7 @@ int ACMCodecDB::BasicCodingBlock(int codec_id) {
 }
 
 // Returns the NetEQ decoder database.
-WebRtcNetEQDecoder* ACMCodecDB::NetEQDecoders() {
+const WebRtcNetEQDecoder* ACMCodecDB::NetEQDecoders() {
   return neteq_decoders_;
 }
 

@@ -189,3 +189,7 @@ all_deps += $(obj).target/src/modules/libaudioproc_unittest_proto.a
 .PHONY: audioproc_unittest_proto
 audioproc_unittest_proto: $(obj).target/src/modules/libaudioproc_unittest_proto.a
 
+# Add target alias to "all" target.
+.PHONY: all
+all: audioproc_unittest_proto
+

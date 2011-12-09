@@ -7,36 +7,17 @@
 # be found in the AUTHORS file in the root of the source tree.
 
 {
-  'targets': [
-    {
-      'target_name': 'video_coding_test_lib',
-      'type': '<(library)',
-      'dependencies': [
-      ],
-      'include_dirs': [
-      ],
-      'direct_dependent_settings': {
-        'include_dirs': [
-          '../test',
-        ],
-      },
-      'sources': [
-        # headers
-        '../test/video_metrics.h',
-        # sources
-        '../test/video_metrics.cc',
-      ], 
-    },
-    {
+  'targets': [{
       'target_name': 'video_coding_test',
       'type': 'executable',
       'dependencies': [
-         'video_coding_test_lib',
+         '<(webrtc_root)/../testing/gtest.gyp:gtest',
+         '<(webrtc_root)/../test/test.gyp:test_support',
          'webrtc_video_coding',
          'rtp_rtcp',
          'webrtc_utility',
          'video_processing',
-         '<(webrtc_root)/common_video/common_video.gyp:webrtc_vplib',
+         '<(webrtc_root)/common_video/common_video.gyp:webrtc_libyuv',
       ],
       'include_dirs': [
          '../../../interface',
@@ -46,7 +27,6 @@
          '../source',
       ],
       'sources': [
-
         # headers
         '../test/codec_database_test.h',
         '../test/generic_codec_test.h',
@@ -80,27 +60,16 @@
         '../test/video_rtp_play_mt.cc',
         '../test/video_rtp_play.cc',
         '../test/video_source.cc',
-
       ], # source
-
-      'conditions': [
-
-        ['OS=="linux"', {
-          'cflags': [
-            '-fexceptions',
-          ],
-        }],
-
-      ], # conditions
     },
     {
-      'target_name': 'video_coding_unit_test',
+      'target_name': 'video_coding_unittests',
       'type': 'executable',
       'dependencies': [
         'webrtc_video_coding',
-        '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
+        '<(webrtc_root)/../test/test.gyp:test_support_main',
         '<(webrtc_root)/../testing/gtest.gyp:gtest',
-        '<(webrtc_root)/../testing/gtest.gyp:gtest_main',
+        '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
       ],
       'include_dirs': [
         '../../../interface',
