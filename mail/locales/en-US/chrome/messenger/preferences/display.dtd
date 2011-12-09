@@ -8,7 +8,7 @@
 <!ENTITY italic.label                     "Italic">
 <!ENTITY boldItalic.label                 "Bold Italic">
 <!ENTITY size.label                       "Size:">
-<!ENTITY size.accesskey                   "s">
+<!ENTITY size.accesskey                   "z">
 <!ENTITY regularSize.label                "Regular">
 <!ENTITY bigger.label                     "Bigger">
 <!ENTITY smaller.label                    "Smaller">
@@ -25,7 +25,7 @@
 
 <!-- LOCALIZATION NOTE : (emoticonsAndStructs.label) 'Emoticons' are also known as 'Smileys', e.g. :-)   -->
 <!ENTITY convertEmoticons.label        "Display emoticons as graphics">
-<!ENTITY convertEmoticons.accesskey    "D">
+<!ENTITY convertEmoticons.accesskey    "e">
 
 <!-- labels -->
 <!ENTITY displayTagsText.label     "Tags can be used to categorize and prioritize your messages.">
