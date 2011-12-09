@@ -31,9 +31,9 @@
 #include "talk/session/phone/videocapturer.h"
 #include "talk/session/phone/videocommon.h"
 #ifdef WEBRTC_RELATIVE_PATH
-#include "common_video/vplib/main/interface/vplib.h"
+#include "common_video/libyuv/include/libyuv.h"
 #else
-#include "third_party/webrtc/files/include/vplib.h"
+#include "third_party/webrtc/files/include/libyuv.h"
 #endif
 
 namespace cricket {
@@ -219,7 +219,7 @@ size_t WebRtcVideoFrame::ConvertToRgbBuffer(uint32 to_fourcc,
 
   if (to_type != webrtc::kUnknown) {
     webrtc::ConvertFromI420(to_type, video_frame_.Buffer(),
-                            width, height, buffer);
+                            width, height, buffer,false,webrtc::kRotateNone);
   }
 
   return needed;
