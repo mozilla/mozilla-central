@@ -114,7 +114,7 @@ def main(args=None):
   env.pop('PYTHONHOME', None)
   # The --no-site-packages is because of https://github.com/pypa/virtualenv/issues/165
   returncode = call([sys.executable, os.path.join('virtualenv', 'virtualenv.py'),
-                     '--no-site-packages', destination], env=env)
+                     destination], env=env)
   if returncode:
     print 'Failure to install virtualenv'
     sys.exit(returncode)
