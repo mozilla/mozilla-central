@@ -347,7 +347,6 @@
                 tooltiptext="&goButton.tooltip;"
                 default="true"
                 oncommand="handleURLBarCommand('none', event);"
-                onclick="checkForMiddleClick(this, event);"
                 ondragover="nsDragAndDrop.dragOver(event, goButtonObserver);"
                 ondragdrop="nsDragAndDrop.drop(event, goButtonObserver);"
                 ondragexit="nsDragAndDrop.dragExit(event, goButtonObserver);"/>

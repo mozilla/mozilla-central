@@ -1608,8 +1608,7 @@ function handleURLBarCommand(aUserAction, aTriggeringEvent)
     // Accept both Control and Meta (=Command) as New-Window-Modifiers
     if (aTriggeringEvent &&
         (('ctrlKey' in aTriggeringEvent && aTriggeringEvent.ctrlKey) ||
-         ('metaKey' in aTriggeringEvent && aTriggeringEvent.metaKey) ||
-         ('button'  in aTriggeringEvent && aTriggeringEvent.button == 1))) {
+         ('metaKey' in aTriggeringEvent && aTriggeringEvent.metaKey))) {
       // Check if user requests Tabs instead of windows
       if (GetBoolPref("browser.tabs.opentabfor.urlbar", false)) {
         // Open link in new tab
