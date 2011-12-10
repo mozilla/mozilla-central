@@ -102,6 +102,9 @@
     <separator class="thin" orient="vertical"/>
 
     <vbox flex="1">
+      <tooltip id="treetip"
+               onpopupshowing="HandleToolTipEvent(event);">
+      </tooltip>
       <tree id="profiles" flex="1" style="height: 0px;" seltype="single"
             hidecolumnpicker="true"
             onselect="DoEnabling();"
@@ -109,7 +112,8 @@
         <treecols>
           <treecol label="&availableProfiles.label;" flex="1" sortLocked="true"/>
         </treecols>
-        <treechildren ondblclick="HandleClickEvent(event);"/>
+        <treechildren tooltip="treetip"
+                      ondblclick="HandleClickEvent(event);"/>
       </tree>
       <checkbox id="offlineState" label="&offlineState.label;" accesskey="&offlineState.accesskey;" hidden="true"/> 
       <checkbox id="autoSelect" label="&autoSelect.label;" accesskey="&autoSelect.accesskey;"/>

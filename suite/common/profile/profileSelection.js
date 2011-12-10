@@ -101,9 +101,14 @@ function AddItem(aProfile, aProfileToSelect)
   var treeitem = document.createElement("treeitem");
   var treerow = document.createElement("treerow");
   var treecell = document.createElement("treecell");
+  var treetip = document.getElementById("treetip");
+  var profileDir = gProfileService.getProfileByName(aProfile.name).rootDir;
+
   treecell.setAttribute("label", aProfile.name);
   treerow.appendChild(treecell);
   treeitem.appendChild(treerow);
+  treeitem.setAttribute("tooltip", profileDir.path);
+  treetip.setAttribute("value", profileDir.path);
   tree.lastChild.appendChild(treeitem);
   treeitem.profile = aProfile;
   if (aProfile == aProfileToSelect) {
@@ -359,4 +364,14 @@ function HandleClickEvent(aEvent)
   }
 
   return false;
+}
+
+function HandleToolTipEvent(aEvent)
+{
+  var treeTip = document.getElementById("treetip");
+  var tree = document.getElementById("profiles");
+  var row = {};
+
+  tree.treeBoxObject.getCellAt(aEvent.clientX, aEvent.clientY, row, {}, {});
+  treeTip.label = tree.view.getItemAtIndex(row.value).tooltip;
 }
