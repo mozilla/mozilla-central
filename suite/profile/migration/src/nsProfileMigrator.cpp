@@ -119,12 +119,9 @@ static const sInternalNameToMigratorName nameMap[] = {
   // ("firebird", "firefox"), Note: Internally the firebird->firefox migrator
   // ("firefox", "firefox"),  in firefox is known as phoenix.
   // ("phoenix", "firefox"),
-  {"seamonkey", "seamonkey"},
-  {"apprunner", "seamonkey"}
 };
 
 static const char* migratorNames[] = {
-  "seamonkey",
   "thunderbird"
 };
 

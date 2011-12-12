@@ -65,8 +65,6 @@
                  hidden="true">&importBookmarksFrom.label;</label>
 
     <radiogroup id="importSourceGroup" align="start">
-      <radio id="seamonkey" label="&importFromSeamonkey.label;"
-             accesskey="&importFromSeamonkey.accesskey;" value="seamonkey"/>
       <radio id="thunderbird" label="&importFromThunderbird.label;"
              accesskey="&importFromThunderbird.accesskey;"
              value="thunderbird"/>

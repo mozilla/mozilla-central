@@ -245,8 +245,6 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromSeamonkeyRegistry()
 #undef EXTRA_PREPEND
 
 #ifdef XP_WIN
-#define REGISTRY_FILE "registry.dat"
-#define OLD_FOLDER "Mozilla"
 #define NEW_FOLDER "SeaMonkey"
 #define EXTRA_PREPEND "Mozilla"
 
@@ -255,8 +253,6 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromSeamonkeyRegistry()
   NS_ENSURE_TRUE(seamonkeyData, NS_ERROR_FAILURE);
 
 #elif defined(XP_MACOSX)
-#define REGISTRY_FILE "Application Registry"
-#define OLD_FOLDER "Mozilla"
 #define NEW_FOLDER "SeaMonkey"
 #define EXTRA_PREPEND "Application Support"
   fileLocator->Get(NS_MAC_USER_LIB_DIR, NS_GET_IID(nsILocalFile),
@@ -264,8 +260,6 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromSeamonkeyRegistry()
   NS_ENSURE_TRUE(seamonkeyData, NS_ERROR_FAILURE);
 
 #elif defined(XP_UNIX)
-#define REGISTRY_FILE "appreg"
-#define OLD_FOLDER ".mozilla"
 #define NEW_FOLDER "seamonkey"
 #define EXTRA_PREPEND ".mozilla"
   fileLocator->Get(NS_UNIX_HOME_DIR, NS_GET_IID(nsILocalFile),
@@ -273,8 +267,6 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromSeamonkeyRegistry()
   NS_ENSURE_TRUE(seamonkeyData, NS_ERROR_FAILURE);
 
 #elif defined(XP_OS2)
-#define REGISTRY_FILE "registry.dat"
-#define OLD_FOLDER "Mozilla"
 #define NEW_FOLDER "SeaMonkey"
 #define EXTRA_PREPEND "Mozilla"
 

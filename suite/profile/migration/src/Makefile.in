@@ -48,7 +48,6 @@ CPPSRCS = \
 		nsProfileMigrator.cpp \
 		nsSuiteProfileMigratorUtils.cpp \
 		nsNetscapeProfileMigratorBase.cpp \
-		nsSeamonkeyProfileMigrator.cpp \
 		nsThunderbirdProfileMigrator.cpp \
 		$(NULL)
 
