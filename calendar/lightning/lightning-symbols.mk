@@ -14,9 +14,9 @@ MAKE_SYM_STORE_ARGS := -c --vcs-info
 ifdef PDBSTR_PATH
 MAKE_SYM_STORE_ARGS += -i
 endif
-DUMP_SYMS_BIN ?= $(topsrcdir)/toolkit/crashreporter/tools/win32/dump_syms_vc$(_MSC_VER).exe
+DUMP_SYMS_BIN ?= $(MOZILLA_SRCDIR)/toolkit/crashreporter/tools/win32/dump_syms_vc$(_MSC_VER).exe
 # PDB files don't get moved to dist, so we need to scan the whole objdir
-MAKE_SYM_STORE_PATH := .
+MAKE_SYM_STORE_PATH := $(DEPTH)
 endif
 ifeq ($(OS_ARCH),Darwin)
 # need to pass arch flags for universal builds
@@ -56,9 +56,9 @@ endif
 	echo packing symbols
 	$(NSINSTALL) -D $(DIST)/$(PKG_PATH)
 	cd $(DIST)/crashreporter-symbols && \
-          zip -r9D "../$(PKG_PATH)$(SYMBOL_FULL_ARCHIVE_BASENAME).zip" .
+	  zip -r9D "../$(PKG_PATH)$(SYMBOL_FULL_ARCHIVE_BASENAME).zip" .
 	cd $(DIST)/crashreporter-symbols && \
-	grep "sym" $(SYMBOL_INDEX_NAME) > $(SYMBOL_INDEX_NAME).tmp && \
+	  grep "sym" $(SYMBOL_INDEX_NAME) > $(SYMBOL_INDEX_NAME).tmp
 	  mv $(SYMBOL_INDEX_NAME).tmp $(SYMBOL_INDEX_NAME)
 	cd $(DIST)/crashreporter-symbols && \
           zip -r9D "../$(PKG_PATH)$(SYMBOL_ARCHIVE_BASENAME).zip" . -i "*.sym" -i "*.txt"
