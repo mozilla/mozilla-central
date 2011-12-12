@@ -107,6 +107,8 @@ nsProfileMigrator::Migrate(nsIProfileStartup* aStartup)
 
 NS_IMPL_ISUPPORTS1(nsProfileMigrator, nsIProfileMigrator)
 
+#if 0
+
 struct sInternalNameToMigratorName {
   const char* internalName;
   const char* key;
@@ -119,7 +121,11 @@ static const sInternalNameToMigratorName nameMap[] = {
   // ("firebird", "firefox"), Note: Internally the firebird->firefox migrator
   // ("firefox", "firefox"),  in firefox is known as phoenix.
   // ("phoenix", "firefox"),
+  // ("seamonkey", "seamonkey"),
+  // ("apprunner", "seamonkey")
 };
+
+#endif 
 
 static const char* migratorNames[] = {
   "thunderbird"
@@ -140,7 +146,7 @@ nsProfileMigrator::GetSuiteMigratorKey(nsACString& aKey,
   bool exists = false;
   nsCString migratorID;
   nsCOMPtr<nsISuiteProfileMigrator> result;
-#if XP_WIN
+#if 0 && XP_WIN
 
   nsCOMPtr<nsIWindowsRegKey> regKey =
     do_CreateInstance("@mozilla.org/windows-registry-key;1");
