@@ -122,9 +122,6 @@ protected:
   nsresult GetProfileDataFromProfilesIni(nsILocalFile* aDataDir,
                                          nsIMutableArray* aProfileNames,
                                          nsIMutableArray* aProfileLocations);
-  nsresult GetProfileDataFromRegistry(nsILocalFile* aRegistryFile,
-                                      nsIMutableArray* aProfileNames,
-                                      nsIMutableArray* aProfileLocations);
 
   nsresult CopyFile(const nsAString& aSourceFileName, const nsAString& aTargetFileName);
 

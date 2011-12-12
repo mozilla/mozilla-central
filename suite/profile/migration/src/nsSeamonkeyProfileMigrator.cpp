@@ -227,44 +227,7 @@ nsSeamonkeyProfileMigrator::GetSupportedItems(PRUint16 *aSupportedItems)
 nsresult
 nsSeamonkeyProfileMigrator::FillProfileDataFromRegistry()
 {
-  // Find the Seamonkey Registry
-  nsCOMPtr<nsIProperties> fileLocator(
-    do_GetService("@mozilla.org/file/directory_service;1"));
-  nsCOMPtr<nsILocalFile> seamonkeyRegistry;
-#ifdef XP_WIN
-  fileLocator->Get(NS_WIN_APPDATA_DIR, NS_GET_IID(nsILocalFile),
-                   getter_AddRefs(seamonkeyRegistry));
-
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("Mozilla"));
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("registry.dat"));
-#elif defined(XP_MACOSX)
-  fileLocator->Get(NS_MAC_USER_LIB_DIR, NS_GET_IID(nsILocalFile),
-                   getter_AddRefs(seamonkeyRegistry));
-
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("Mozilla"));
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("Application Registry"));
-#elif defined(XP_UNIX)
-  fileLocator->Get(NS_UNIX_HOME_DIR, NS_GET_IID(nsILocalFile),
-                   getter_AddRefs(seamonkeyRegistry));
-
-  seamonkeyRegistry->Append(NS_LITERAL_STRING(".mozilla"));
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("appreg"));
-#elif defined(XP_BEOS)
-   fileLocator->Get(NS_BEOS_SETTINGS_DIR, NS_GET_IID(nsILocalFile),
-                    getter_AddRefs(seamonkeyRegistry));
-
-   seamonkeyRegistry->Append(NS_LITERAL_STRING("Mozilla"));
-   seamonkeyRegistry->Append(NS_LITERAL_STRING("appreg"));
-#elif defined(XP_OS2)
-  fileLocator->Get(NS_OS2_HOME_DIR, NS_GET_IID(nsILocalFile),
-                   getter_AddRefs(seamonkeyRegistry));
-
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("Mozilla"));
-  seamonkeyRegistry->Append(NS_LITERAL_STRING("registry.dat"));
-#endif
-
-  return GetProfileDataFromRegistry(seamonkeyRegistry, mProfileNames,
-                                    mProfileLocations);
+  return NS_ERROR_FILE_NOT_FOUND;
 }
 
 static

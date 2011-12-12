@@ -276,14 +276,7 @@ nsThunderbirdProfileMigrator::FillProfileDataFromRegistry()
                                               mProfileNames,
                                               mProfileLocations);
 
-  if (rv != NS_ERROR_FILE_NOT_FOUND)
-    return rv;
-
-  thunderbirdData->Append(NS_LITERAL_STRING(REGISTRY_FILE));
-
-  // Then try the old registry format
-  return GetProfileDataFromRegistry(thunderbirdData, mProfileNames,
-                                    mProfileLocations);
+  return rv;
 }
 
 static

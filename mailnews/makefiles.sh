@@ -89,8 +89,6 @@ mailnews/imap/test/Makefile
 mailnews/import/Makefile
 mailnews/import/applemail/src/Makefile
 mailnews/import/build/Makefile
-mailnews/import/comm4x/public/Makefile
-mailnews/import/comm4x/src/Makefile
 mailnews/import/eudora/src/Makefile
 mailnews/import/oexpress/Makefile
 mailnews/import/outlook/src/Makefile

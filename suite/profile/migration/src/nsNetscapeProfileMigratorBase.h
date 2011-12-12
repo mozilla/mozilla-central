@@ -139,9 +139,6 @@ protected:
   nsresult GetProfileDataFromProfilesIni(nsILocalFile* aDataDir,
                                          nsIMutableArray* aProfileNames,
                                          nsIMutableArray* aProfileLocations);
-  nsresult GetProfileDataFromRegistry(nsILocalFile* aRegistryFile,
-                                      nsIMutableArray* aProfileNames,
-                                      nsIMutableArray* aProfileLocations);
   nsresult GetFileValue(nsIPrefBranch* aPrefBranch, const char* aRelPrefName,
                         const char* aPrefName, nsILocalFile** aReturnFile);
   nsresult CopyFile(const char* aSourceFileName,

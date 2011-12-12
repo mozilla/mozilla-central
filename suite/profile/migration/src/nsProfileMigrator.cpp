@@ -47,7 +47,6 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
-#include "NSReg.h"
 #include "nsStringAPI.h"
 #include "nsIProperties.h"
 #include "nsMemory.h"
@@ -56,16 +55,6 @@
 #include "nsIWindowsRegKey.h"
 #include "nsILocalFileWin.h"
 #include "nsUnicharUtils.h"
-#endif
-
-#ifndef MAXPATHLEN
-#ifdef _MAX_PATH
-#define MAXPATHLEN _MAX_PATH
-#elif defined(CCHMAXPATH)
-#define MAXPATHLEN CCHMAXPATH
-#else
-#define MAXPATHLEN 1024
-#endif
 #endif
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -111,19 +100,6 @@ nsProfileMigrator::Migrate(nsIProfileStartup* aStartup)
                         MIGRATION_WIZARD_FE_FEATURES,
                         params,
                         getter_AddRefs(migrateWizard));
-}
-
-NS_IMETHODIMP
-nsProfileMigrator::Import()
-{
-  // This is purposely broken as using this would mean that we have
-  // to use data from where profiles exist currently. We want to copy
-  // it so that we can create a "fresh" profile. There may be a way
-  // to do it from here, but currently we haven't found an easy one.
-  //if (ImportRegistryProfiles(NS_LITERAL_CSTRING("mozilla")))
-  //    return NS_OK;
-
-  return NS_ERROR_FAILURE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////

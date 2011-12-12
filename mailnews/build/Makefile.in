@@ -90,7 +90,6 @@ SHARED_LIBRARY_LIBS = \
 ifdef MOZILLA_INTERNAL_API
 EXTRA_DSO_LDOPTS = \
 		$(MOZDEPTH)/rdf/util/src/internal/$(LIB_PREFIX)rdfutil_s.$(LIB_SUFFIX) \
-		$(MOZDEPTH)/modules/libreg/src/$(LIB_PREFIX)mozreg_s.$(LIB_SUFFIX) \
 		$(MOZ_JS_LIBS) \
 		$(MOZ_UNICHARUTIL_LIBS) \
 		$(MOZ_COMPONENT_LIBS) \

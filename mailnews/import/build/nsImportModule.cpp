@@ -65,16 +65,6 @@ NS_DEFINE_NAMED_CID(NS_TEXTIMPORT_CID);
 NS_DEFINE_NAMED_CID(NS_VCARDIMPORT_CID);
 
 ////////////////////////////////////////////////////////////////////////////////
-// nsComm4x import Include Files
-////////////////////////////////////////////////////////////////////////////////
-#include "nsComm4xProfile.h"
-#include "nsComm4xMailStringBundle.h"
-#include "nsComm4xMailImport.h"
-
-NS_DEFINE_NAMED_CID(NS_COMM4XMAILIMPORT_CID);
-NS_DEFINE_NAMED_CID(NS_ICOMM4XPROFILE_CID);
-NS_DEFINE_NAMED_CID(NS_COMM4XMAILIMPL_CID);
-////////////////////////////////////////////////////////////////////////////////
 // eudora import Include Files
 ////////////////////////////////////////////////////////////////////////////////
 #if defined(XP_WIN) || defined(XP_MACOSX)
@@ -127,13 +117,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsTextImport)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsVCardImport)
 
 ////////////////////////////////////////////////////////////////////////////////
-// nsComm4x import factories
-////////////////////////////////////////////////////////////////////////////////
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsComm4xMailImport)
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(ImportComm4xMailImpl, Initialize)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsComm4xProfile)
-
-////////////////////////////////////////////////////////////////////////////////
 // eudora import factories
 ////////////////////////////////////////////////////////////////////////////////
 #if defined(XP_WIN) || defined(XP_MACOSX)
@@ -162,7 +145,6 @@ static const mozilla::Module::CategoryEntry kMailNewsImportCategories[] = {
   // or be changed so that they are contract IDs (with appropriate code updates)
   { "mailnewsimport", "{A5991D01-ADA7-11d3-A9C2-00A0CC26DA63}", NS_IMPORT_ADDRESS_STR },
   { "mailnewsimport", "{0eb034a3-964a-4e2f-92eb-cc55d9ae9dd2}", NS_IMPORT_ADDRESS_STR },
-  { "mailnewsimport", "{647cc990-2bdb-11d6-92a0-0010a4b26cda}", kComm4xMailSupportsString},
 #if defined(XP_WIN) || defined(XP_MACOSX)
   { "mailnewsimport", "{c8448da0-8f83-11d3-a206-00a0cc26da63}", kEudoraSupportsString },
 #endif
@@ -182,9 +164,6 @@ const mozilla::Module::CIDEntry kMailNewsImportCIDs[] = {
   { &kNS_IMPORTMIMEENCODE_CID, false, NULL, nsIImportMimeEncodeImplConstructor },
   { &kNS_TEXTIMPORT_CID, false, NULL, nsTextImportConstructor },
   { &kNS_VCARDIMPORT_CID, false, NULL, nsVCardImportConstructor },
-  { &kNS_COMM4XMAILIMPORT_CID, false, NULL, nsComm4xMailImportConstructor },
-  { &kNS_COMM4XMAILIMPL_CID, false, NULL, ImportComm4xMailImplConstructor },
-  { &kNS_ICOMM4XPROFILE_CID, false, NULL, nsComm4xProfileConstructor },
 #if defined(XP_WIN) || defined(XP_MACOSX)
   { &kNS_EUDORAIMPORT_CID, false, NULL, nsEudoraImportConstructor },
 #endif
@@ -206,9 +185,6 @@ const mozilla::Module::ContractIDEntry kMailNewsImportContracts[] = {
   { "@mozilla.org/import/import-mimeencode;1", &kNS_IMPORTMIMEENCODE_CID },
   { "@mozilla.org/import/import-text;1", &kNS_TEXTIMPORT_CID },
   { "@mozilla.org/import/import-vcard;1", &kNS_VCARDIMPORT_CID },
-  { "@mozilla.org/import/import-comm4xMail;1", &kNS_COMM4XMAILIMPORT_CID },
-  { NS_COMM4XMAILIMPL_CONTRACTID, &kNS_COMM4XMAILIMPL_CID },
-  { NS_ICOMM4XPROFILE_CONTRACTID, &kNS_ICOMM4XPROFILE_CID },
 #if defined(XP_WIN) || defined(XP_MACOSX)
   { "@mozilla.org/import/import-eudora;1", &kNS_EUDORAIMPORT_CID },
 #endif

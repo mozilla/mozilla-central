@@ -61,7 +61,6 @@
   <stringbundle id="bundle_importMsgs" src="chrome://messenger/locale/importMsgs.properties"/>
   <stringbundle id="bundle_addressbook" src="chrome://messenger/locale/addressbook/addressBook.properties"/>
   <stringbundle id="bundle_vcardImportMsgs" src="chrome://messenger/locale/vCardImportMsgs.properties"/>
-  <stringbundle id="bundle_comm4xImportMsgs" src="chrome://messenger/locale/comm4xMailImportMsgs.properties"/>
   <script type="application/javascript" src="chrome://messenger/content/importDialog.js"/>
 
   <keyset id="dialogKeys"/>

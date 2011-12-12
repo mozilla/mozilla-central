@@ -651,62 +651,6 @@ function ImportMail( module, success, error) {
   if (loc == null) {
     // No location found, check to see if we can ask the user.
     if (mailInterface.GetStatus( "canUserSetLocation") != 0) {
-      if (selectedModuleName ==
-          document.getElementById("bundle_comm4xImportMsgs")
-                  .getString('comm4xImportName'))
-    {
-      var errorValue = true;
-      //open the profile dialog.
-      var comm4xprofile = Components.classes["@mozilla.org/comm4xProfile;1"].createInstance();
-      if(comm4xprofile != null) {
-        comm4xprofile = comm4xprofile.QueryInterface( Components.interfaces.nsIComm4xProfile);
-        if(comm4xprofile != null) {
-          var length = {value:0};
-          var profileList = null;
-          try {
-            profileList = comm4xprofile.getProfileList(length);
-          }
-          catch (ex) {}
-          if (length.value)
-          {
-            var selected = {value:0};
-            if (length.value == 1)
-            {
-               errorValue = false;
-            }
-            else {
-              var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-              if (promptService) {
-                var clickedOk = false;
-                clickedOk = promptService.select(window, 
-                                               gImportMsgsBundle.getString('profileTitle'),
-                                               gImportMsgsBundle.getString('profileText'),
-                                               length.value, profileList, selected);
-                if (clickedOk) {
-                  errorValue = false;
-                }
-                else {
-                  // users cancel the pick list dialog so just return and
-                  // don't set error string so that current dialog can stay.
-                  return( false);
-                }
-              } // promptService
-            }
-            if (!errorValue) {
-              var profileDir = comm4xprofile.getMailDir(profileList[selected.value]);
-              var localfile = Components.classes["@mozilla.org/file/local;1"].createInstance(Components.interfaces.nsILocalFile);
-              localfile.initWithPath(profileDir);
-              mailInterface.SetData( "mailLocation", localfile);
-            }
-          } // profileList
-        } // comm4xprofile
-      } // comm4xprofile
-      if (errorValue) {
-        error.data = gImportMsgsBundle.getString('ImportMailNotFound');
-        return(false);
-      }         
-    }
-    else {
       var filePicker = Components.classes["@mozilla.org/filepicker;1"].createInstance();
       if (filePicker != null) {
         filePicker = filePicker.QueryInterface( Components.interfaces.nsIFilePicker);
@@ -732,7 +676,6 @@ function ImportMail( module, success, error) {
       else {
         error.data = gImportMsgsBundle.getString('ImportMailNotFound');
         return( false);
-      }
       }
     }
     else {

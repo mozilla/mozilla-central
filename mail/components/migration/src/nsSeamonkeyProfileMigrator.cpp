@@ -303,14 +303,7 @@ nsSeamonkeyProfileMigrator::FillProfileDataFromSeamonkeyRegistry()
                                               mProfileNames,
                                               mProfileLocations);
 
-  if (rv != NS_ERROR_FILE_NOT_FOUND)
-    return rv;
-
-  seamonkeyData->Append(NS_LITERAL_STRING(OLD_FOLDER));
-  seamonkeyData->Append(NS_LITERAL_STRING(REGISTRY_FILE));
-
-  return GetProfileDataFromRegistry(seamonkeyData, mProfileNames,
-                                    mProfileLocations);
+  return rv;
 }
 
 static

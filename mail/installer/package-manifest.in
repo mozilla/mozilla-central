@@ -151,7 +151,6 @@
 @BINPATH@/components/msgnews.xpt
 @BINPATH@/components/msgsearch.xpt
 @BINPATH@/components/import.xpt
-@BINPATH@/components/impComm4xMail.xpt
 @BINPATH@/components/mailview.xpt
 @BINPATH@/components/mailprofilemigration.xpt
 @BINPATH@/components/messageWakeupService.js
