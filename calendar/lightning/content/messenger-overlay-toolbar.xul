@@ -99,10 +99,12 @@
     <toolbarbutton id="lightning-button-calendar"
                    class="toolbarbutton-1"
                    label="&lightning.toolbar.calendar.label;"
+                   tooltiptext="&lightning.toolbar.calendar.tooltip;"
                    command="new_calendar_tab"/>
     <toolbarbutton id="lightning-button-tasks"
                    class="toolbarbutton-1"
                    label="&lightning.toolbar.task.label;"
+                   tooltiptext="&lightning.toolbar.task.tooltip;"
                    command="new_task_tab"/>
   </toolbarpalette>
 </overlay>

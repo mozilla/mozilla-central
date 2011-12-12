@@ -466,16 +466,16 @@
       <command id="agenda_delete_event_command" oncommand="agendaListbox.deleteSelectedItem(false);"/>
       <command id="agenda_edit_event_command" oncommand="agendaListbox.editSelectedItem(event);"/>
       <command id="switch2calendar"
-               oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('tooltiptext') })"/>
+               oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('title') })"/>
       <command id="switch2task"
-               oncommand="document.getElementById('tabmail').openTab('tasks', { title: document.getElementById('task-tab-button').getAttribute('tooltiptext') })"/>
+               oncommand="document.getElementById('tabmail').openTab('tasks', { title: document.getElementById('task-tab-button').getAttribute('title') })"/>
       <command id="new_calendar_tab"
-               oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('tooltiptext') })"/>
+               oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('title') })"/>
       <command id="new_task_tab"
-               oncommand="document.getElementById('tabmail').openTab('tasks', { title: document.getElementById('task-tab-button').getAttribute('tooltiptext') })"/>
+               oncommand="document.getElementById('tabmail').openTab('tasks', { title: document.getElementById('task-tab-button').getAttribute('title') })"/>
       <command id="calendar_go_to_today_command"
                observes="calendar_mode_calendar"
-               oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('tooltiptext') }); goToDate(now())"/>
+               oncommand="document.getElementById('tabmail').openTab('calendar', { title: document.getElementById('calendar-tab-button').getAttribute('title') }); goToDate(now())"/>
     </commandset>
 
     <keyset id="calendar-keys">
@@ -500,10 +500,14 @@
   </window>
 
   <hbox id="tabmail-buttons">
-    <toolbarbutton id="calendar-tab-button" command="new_calendar_tab"
-      tooltiptext="&lightning.toolbar.calendar.label;"/>
-    <toolbarbutton id="task-tab-button" command="new_task_tab"
-      tooltiptext="&lightning.toolbar.task.label;"/>
+    <toolbarbutton id="calendar-tab-button"
+                   title="&lightning.toolbar.calendar.label;"
+                   tooltiptext="&lightning.toolbar.calendar.tooltip;"
+                   command="new_calendar_tab"/>
+    <toolbarbutton id="task-tab-button"
+                   title="&lightning.toolbar.task.label;"
+                   tooltiptext="&lightning.toolbar.task.tooltip;"
+                   command="new_task_tab"/>
   </hbox>
 
   <tabpanels id="tabpanelcontainer">
