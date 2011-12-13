@@ -95,6 +95,9 @@ const ATOM_IETF_NS = "http://www.w3.org/2005/Atom";
 // The delay is currently one day.
 const INVALID_ITEM_PURGE_DELAY = 24 * 60 * 60 * 1000;
 
+// The delimiter used to delimit feed urls in the folder's "feedUrl" property.
+const kFeedUrlDelimiter = "|";
+
 // XXX There's a containerutils in forumzilla.js that this should be merged with.
 var containerUtils = Components.classes["@mozilla.org/rdf/container-utils;1"]
                                .getService(Components.interfaces.nsIRDFContainerUtils);
@@ -139,72 +142,143 @@ function addFeed(url, title, destFolder)
   ds.Flush();
 }
 
-function deleteFeed(aId, aServer)
+function deleteFeed(aId, aServer, aParentFolder)
 {
-  var feed = new Feed(aId, aServer);
-  var ds = getSubscriptionsDS(aServer);
+  let feed = new Feed(aId, aServer);
+  let ds = getSubscriptionsDS(aServer);
 
   if (feed && ds)
   {
-    // remove the feed from the subscriptions ds
-    var feeds = getSubscriptionsList(aServer, ds);
-    var index = feeds.IndexOf(aId);
+    // Remove the feed from the subscriptions ds.
+    let feeds = getSubscriptionsList(aServer, ds);
+    let index = feeds.IndexOf(aId);
     if (index != -1)
       feeds.RemoveElementAt(index, false);
 
-    // remove the feed property string from the folder data base
-    var currentFolder = ds.GetTarget(aId, FZ_DESTFOLDER, true);
-    if (currentFolder)
-    {
-      var currentFolderURI = currentFolder.QueryInterface(Components.interfaces.nsIRDFResource).Value;
-      currentFolder = rdf.GetResource(currentFolderURI)
-                         .QueryInterface(Components.interfaces.nsIMsgFolder);
-
-      var feedUrl = ds.GetTarget(aId, DC_IDENTIFIER, true);
-      ds.Unassert(aId, DC_IDENTIFIER, feedUrl, true);
-
-      feedUrl = feedUrl ? feedUrl.QueryInterface(Components.interfaces.nsIRDFLiteral).Value : "";
-
-      updateFolderFeedUrl(currentFolder, feedUrl, true); // remove the old url
-    }
-
     // Remove all assertions about the feed from the subscriptions database.
     removeAssertions(ds, aId);
-    ds.QueryInterface(Components.interfaces.nsIRDFRemoteDataSource).Flush(); // flush any changes
+    ds.QueryInterface(Components.interfaces.nsIRDFRemoteDataSource).Flush();
 
     // Remove all assertions about items in the feed from the items database.
-    var itemds = getItemsDS(aServer);
+    let itemds = getItemsDS(aServer);
     feed.invalidateItems();
-    feed.removeInvalidItems();
-    itemds.QueryInterface(Components.interfaces.nsIRDFRemoteDataSource).Flush(); // flush any changes
+    feed.removeInvalidItems(true);
+    itemds.QueryInterface(Components.interfaces.nsIRDFRemoteDataSource).Flush();
+
+    // Finally, make sure to remove the url from the folder's feedUrl
+    // property.  The correct folder is passed in by the Subscribe dialog or
+    // a folder pane folder delete.  The correct current folder cannot be
+    // currently determined from the feed's destFolder in the db, as it is not
+    // synced with folder pane moves.  Do this at the very end.
+    let feedUrl = aId.ValueUTF8;
+    updateFolderFeedUrl(aParentFolder, feedUrl, true);
   }
 }
 
-// Updates the "feedUrl" property in the message database for the folder
-// in question
+/**
+ * Get the list of feed urls for a folder.  For legacy reasons, we try
+ * 1) getStringProperty on the folder;
+ * 2) getCharProperty on the folder's msgDatabase.dBFolderInfo;
+ * 3) directly from the feeds.rdf subscriptions database, as identified by
+ *    the destFolder tag (currently not synced on folder moves in folder pane).
+ * 
+ * If folder move/renames are fixed, remove msgDatabase accesses and get the
+ * list directly from the feeds db.
+ * 
+ * @param  nsIMsgFolder - the folder.
+ * @return array of urls, or null if none.
+ */
+function getFeedUrlsInFolder(aFolder)
+{
+  let feedUrlArray = [];
 
-// The delimiter used to delimit feed urls in the msg folder database
-// "feedUrl" property
-var kFeedUrlDelimiter = '|';
+  let feedurls = aFolder.getStringProperty("feedUrl");
+  if (feedurls)
+    return feedurls.split(kFeedUrlDelimiter);
 
+  // Go to msgDatabase for the property, make sure to handle errors.
+  let msgDb;
+  try {
+    msgDb = aFolder.msgDatabase;
+  }
+  catch (ex) {}
+  if (!msgDb || !msgDb.dBFolderInfo) {
+    try {
+      msgDb = aFolder.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder)
+                     .getDatabaseWOReparse();
+    }
+    catch (ex) {}
+  }
+  if (msgDb && msgDb.dBFolderInfo) {
+    feedurls = msgDb.dBFolderInfo.getCharProperty("feedUrl");
+    // Clean up the feedUrl string.
+    feedurls.split(kFeedUrlDelimiter).forEach(
+      function(url) {
+        if (url && feedUrlArray.indexOf(url) == -1)
+          feedUrlArray.push(url);
+      });
+
+    feedurls = feedUrlArray.join(kFeedUrlDelimiter);
+    if (feedurls) {
+      // Set property on folder so we don't come here ever again.
+      aFolder.setStringProperty("feedUrl", feedurls);
+      aFolder.msgDatabase = null;
+
+      return feedUrlArray.length ? feedUrlArray : null;
+    }
+  }
+  else {
+    // Forcing a reparse with listener here is the last resort.  Not implemented
+    // as it may be unnecessary once feedUrl is property set on folder and not
+    // msgDatabase, and if eventually feedUrls are derived from the feeds db
+    // directly.
+  }
+
+  // Get the list from the feeds database.
+  let ds = getSubscriptionsDS(aFolder.server);
+  let enumerator = ds.GetSources(FZ_DESTFOLDER, aFolder, true);
+  while (enumerator.hasMoreElements())
+  {
+    let containerArc = enumerator.getNext();
+    let uri = containerArc.QueryInterface(Components.interfaces.nsIRDFResource).Value;
+    feedUrlArray.push(uri);
+  }
+
+  return feedUrlArray.length ? feedUrlArray : null;
+}
+
+/**
+ * Add or remove urls from feedUrl folder property.  Property is used for
+ * access to a folder's feeds in Subscribe dialog and when doing downloadFeed
+ * on a folder.  Ensure no dupes.
+ * 
+ * @param  nsIMsgFolder - the folder.
+ * @param  string       - the feed's url.
+ * @param  boolean      - true if removing the url.
+ */
 function updateFolderFeedUrl(aFolder, aFeedUrl, aRemoveUrl)
 {
-  var msgdb = aFolder.QueryInterface(Components.interfaces.nsIMsgFolder)
-                     .msgDatabase;
-  var folderInfo = msgdb.dBFolderInfo;
-  var oldFeedUrl = folderInfo.getCharProperty("feedUrl");
+  if (!aFeedUrl)
+    return;
+
+  let curFeedUrls = aFolder.getStringProperty("feedUrl");
+  curFeedUrls = curFeedUrls ? curFeedUrls.split(kFeedUrlDelimiter) : [];
+  let index = curFeedUrls.indexOf(aFeedUrl);
 
   if (aRemoveUrl)
   {
-    // Remove our feed url string from the list of feed urls
-    var newFeedUrl = oldFeedUrl.replace(kFeedUrlDelimiter + aFeedUrl, "");
-    folderInfo.setCharProperty("feedUrl", newFeedUrl);
+    if (index == -1)
+      return;
+    curFeedUrls.splice(index, 1);
   }
-  else
-    folderInfo.setCharProperty("feedUrl", oldFeedUrl + kFeedUrlDelimiter + aFeedUrl);
+  else {
+    if (index != -1)
+      return;
+    curFeedUrls.push(aFeedUrl);
+  }
 
-  // Commit the db to preserve our changes
-  msgdb.Close(true);
+  let newFeedUrls = curFeedUrls.join(kFeedUrlDelimiter);
+  aFolder.setStringProperty("feedUrl", newFeedUrls);
 }
 
 function getNodeValue(node)
