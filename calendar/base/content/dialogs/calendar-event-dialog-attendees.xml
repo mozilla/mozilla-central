@@ -739,8 +739,8 @@
                           currentIndex++;
                           for each (let entry in entries) {
                               currentNode = template.cloneNode(true);
-                              this._fillListItemWithEntry(currentNode, entry, currentIndex);
                               template.parentNode.insertBefore(currentNode, nextNode);
+                              this._fillListItemWithEntry(currentNode, entry, currentIndex);
                               currentIndex++;
                           }
                           this.mMaxAttendees += entries.length;
