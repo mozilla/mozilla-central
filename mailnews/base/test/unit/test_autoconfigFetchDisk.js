@@ -76,7 +76,7 @@ try {
 function onTestSuccess(config)
 {
   // Check that we got the expected config.
-  xmlReader.replaceVariables(config, 
+  xmlReader.replaceVariables(config,
                              "Yamato Nadeshiko",
                              "yamato.nadeshiko@example.com",
                              "abc12345");
@@ -97,19 +97,20 @@ function onTestFailure(e)
 
 function run_test()
 {
-  do_register_cleanup(finish_test);
   if (!xmlReader) {
     // if you see this and this is Thunderbird, then it's an error
     dump("INFO | test_autoconfigFetchDisk.js not running, because this is SeaMonkey.");
     return;
   }
 
+  do_register_cleanup(finish_test);
+
   // Copy the xml file into place
   let file = do_get_file("data/" + kXMLFile);
 
   copyLocation = Services.dirsvc.get("CurProcD", Ci.nsIFile);
   copyLocation.append("isp");
-  
+
   file.copyTo(copyLocation, kXMLFile);
 
   do_test_pending();
