@@ -176,7 +176,7 @@ function authMethodChanged(userAction)
  */
 function sslChanged(userAction)
 {
-  const DEFAULT_SMTP_PORT = "25";
+  const DEFAULT_SMTP_PORT = "587";
   const DEFAULT_SMTPS_PORT = "465";
   var socketType = gSmtpSocketType.value;
   var otherDefaultPort;
