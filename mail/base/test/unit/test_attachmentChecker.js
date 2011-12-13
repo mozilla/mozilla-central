@@ -72,17 +72,6 @@ function utf8_decode(s)
  * TESTS
  */
 
-/**
- * Test the GetAttachmentKeywords method with a simple word.
- */
-function test_GetAttachmentKeywords_simple()
-{
-  let mailData = utf8_decode("latte.ca");
-  let keywords = utf8_decode("latte");
-  let result = GetAttachmentKeywords(mailData, keywords);
-  assert_equal(result, "latte", "Simple keyword not equal!");
-}
-
 function test_GetAttachmentKeywords(desc, mailData, keywords, expected)
 {
   mailData = utf8_decode(mailData);
@@ -93,10 +82,13 @@ function test_GetAttachmentKeywords(desc, mailData, keywords, expected)
 }
 
 var tests = [
-  // This is a function to demonstrate that we can put functions here.
-  test_GetAttachmentKeywords_simple,
-
   // Desc, mail body Data, keywords to search for, expected keywords found.
+  ["Simple keyword", "latte.ca", "latte", "latte"],
+  ["Extension", "testing document.pdf", ".pdf", "document.pdf"],
+  ["Two Extensions", "testing document.pdf and test.pdf", ".pdf",
+    "document.pdf,test.pdf"],
+  ["Url", "testing http://document.pdf", ".pdf", ""],
+  ["Both", "testing http://document.pdf test.pdf", ".pdf", "test.pdf"],
   ["Greek", "This is a Θεωρία test", "Θεωρία,is", "Θεωρία,is"],
   ["Greek missing", "This a Θεωρίαω test", "Θεωρία", ""],
   ["Greek and punctuation", "This a:Θεωρία-test", "Θεωρία", "Θεωρία"],
@@ -108,6 +100,12 @@ var tests = [
   ["Japanese and English Mixed missing", "添付mailing", "添付mail", ""],
   ["Japanese trailers", "This is 添添付付! test", "Θεωρία,添付", "添付"],
   ["Multi-lang", "cv添付Θεωρία", "Θεωρία,添付,cv", "Θεωρία,添付,cv"],
+  ["Should match", "I've attached the http/test.pdf file", ".pdf",
+    "http/test.pdf"],
+  ["Should still fail", "a https://test.pdf a", ".pdf", ""],
+  ["Should match Japanese", "a test.添付 a", ".添付", "test.添付"],
+  ["Should match Greek", "a test.Θεωρία a", ".Θεωρία", "test.Θεωρία"],
+  ["Should match once", "a test.pdf.doc a", ".pdf,.doc", "test.pdf.doc"],
 ];
 
 function run_test()

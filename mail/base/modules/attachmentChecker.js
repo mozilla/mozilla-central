@@ -88,15 +88,32 @@ function GetAttachmentKeywords(mailData,keywordsInCsv)
     // If the keyword starts (ends) with a CJK character, we don't care
     // what the previous (next) character is, because the words aren't
     // space delimited.
-    var start = IsCJK(kw.charCodeAt(0)) ? "" : ("(^|" + NOT_W + ")");
-    var end = IsCJK(kw.charCodeAt(kw.length - 1)) ? "" : ("(" + NOT_W + "|$)");
-    var re = new RegExp(start + kw + end, "i");
-    var matching = re.exec(mailData);
-    // Ignore the match if it was a URL.
-    if (matching && !(/^http|^ftp/i.test(matching[0])))
-      // We're not worried about matching too much because we only add the
-      // keyword to the list of found keywords.
-      keywordsFound.push(keywordsArray[i]);
+    var re;
+    var matching;
+    var isFileType = kw.charAt(1) == ".";
+    var start;
+    var end;
+    if (isFileType) {
+      start = "(([^\\s]*)\\b)";
+      end = IsCJK(kw.charCodeAt(kw.length - 1)) ? "" : "(\\s|$)";
+      re = new RegExp(start + kw + end, "ig");
+      matching = mailData.match(re);
+      if (matching) {
+        var j, len;
+        for (j = 0, len = matching.length; j < len; j++) {
+          // Ignore the match if it was a URL.
+          if (!(/^(http|ftp|https):\/\//i.test(matching[j])))
+            keywordsFound.push(matching[j].trim());
+        }
+      }
+    } else {
+      start = IsCJK(kw.charCodeAt(0)) ? "" : ("(^|" + NOT_W + ")");
+      end = IsCJK(kw.charCodeAt(kw.length - 1)) ? "" : ("(" + NOT_W + "|$)");
+      re = new RegExp(start + kw + end, "i");
+      matching = re.exec(mailData);
+      if (matching)
+        keywordsFound.push(keywordsArray[i]);
+    }
   }
   return keywordsFound;
 }
