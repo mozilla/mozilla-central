@@ -397,23 +397,26 @@
               if (aItem.isCompleted && !this.binding.showCompleted) {
                   return;
               }
-              var index = this.binding.mHash2Index[aItem.hashId];
+
+              let index = this.binding.mHash2Index[aItem.hashId];
               if (index === undefined) {
-                  var index = this.binding.mTaskArray.length;
+                  index = this.binding.mTaskArray.length;
                   this.binding.mTaskArray.push(aItem);
                   this.binding.mHash2Index[aItem.hashId] = index;
                   // The rowCountChanged function takes two arguments, the index where the
                   // first row was inserted and the number of rows to insert.
                   this.treebox.rowCountChanged(index, 1);
-                  this.tree.view.selection.select(index);
               }
-              this.treebox.ensureRowIsVisible(this.rowCount - 1);
 
-              if(aDontSort) {
+              if (aDontSort) {
                 this.binding.recreateHashTable();
               } else {
                 this.binding.sortItems();
               }
+
+              index = this.binding.mHash2Index[aItem.hashId];
+              this.tree.view.selection.select(index);
+              this.treebox.ensureRowIsVisible(index);
           },
 
           removeItem: function tTV_removeItem(aItem, aDontSort) {
