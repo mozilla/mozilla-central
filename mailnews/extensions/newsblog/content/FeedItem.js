@@ -88,11 +88,18 @@ FeedItem.prototype =
 
   set url(aVal)
   {
-    var uri = Components.classes["@mozilla.org/network/standard-url;1"]
-                        .getService(Components.interfaces["nsIStandardURL"]);
-    uri.init(1, 80, aVal, null, null);
-    var uri = uri.QueryInterface(Components.interfaces.nsIURI);
-    this.mURL = uri.spec;
+    try
+    {
+      var ioService = Components.classes["@mozilla.org/network/io-service;1"]
+                                .getService(Components.interfaces.nsIIOService);
+      this.mURL = ioService.newURI(aVal, null, null).spec;
+    }
+    catch(ex)
+    {
+      // The url as published or constructed can be a non url.  It's used as a
+      // feeditem identifier in feeditems.rdf and as a messageId.  Save as is.
+      this.mURL = aVal;
+    }
   },
 
   get date()
