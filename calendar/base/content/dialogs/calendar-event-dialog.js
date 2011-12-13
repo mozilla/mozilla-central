@@ -223,7 +223,11 @@ function onLoad() {
     if (parentItem.parentItem != parentItem) {
         parentItem = parentItem.parentItem;
     }
-    window.recurrenceInfo = parentItem.recurrenceInfo;
+
+    window.recurrenceInfo = null;
+    if (parentItem.recurrenceInfo) {
+        window.recurrenceInfo = parentItem.recurrenceInfo.clone();
+    }
 
     document.documentElement.getButton("accept")
             .setAttribute("collapsed", "true");
