@@ -181,8 +181,10 @@ nsMailServer.prototype = {
     this._socketClosed = true;
     // We've been killed or we've stopped, reset the handler to the original
     // state (e.g. to require authentication again).
-    for (var i = 0; i < this._readers.length; i++)
+    for (var i = 0; i < this._readers.length; i++) {
       this._readers[i]._handler.resetTest();
+      this._readers[i]._realCloseSocket();
+    }
   },
 
   setDebugLevel : function (debug) {
@@ -212,6 +214,9 @@ nsMailServer.prototype = {
 
     this._socket.close();
     this._socket = null;
+
+    for each (let reader in this._readers)
+      reader._realCloseSocket();
 
     if (this._readers.some(function (e) { return e.observer.forced }))
       return;

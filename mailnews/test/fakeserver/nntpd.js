@@ -424,7 +424,7 @@ subclass(NNTP_RFC2980_handler, NNTP_RFC977_handler, {
     var header = args[0].toLowerCase();
     var found = false;
     var response = "221 Headers abound\n";
-    for each (var key in this.group.keys) {
+    for each (let key in this._filterRange(args[1], this.group.keys)) {
       if (!(header in this.group[key].headers))
         continue;
       found = true;
@@ -439,8 +439,9 @@ subclass(NNTP_RFC2980_handler, NNTP_RFC977_handler, {
     if (!this.group)
       return "412 No group selected";
 
+    args = args.split(/ +/, 3);
     var response = "224 List of articles\n";
-    for each (var key in this.group.keys) {
+    for each (let key in this._filterRange(args[0], this.group.keys)) {
       response += key + "\t";
       var article = this.group[key];
       response += article.headers["subject"] + "\t" +

@@ -306,6 +306,7 @@ NS_INTERFACE_MAP_END_INHERITING(nsMsgProtocol)
 nsNNTPProtocol::nsNNTPProtocol(nsINntpIncomingServer *aServer, nsIURI *aURL,
                                nsIMsgWindow *aMsgWindow)
 : nsMsgProtocol(aURL),
+  m_connectionBusy(false),
   m_nntpServer(aServer)
 {
   if (!NNTP)
@@ -332,7 +333,6 @@ nsNNTPProtocol::nsNNTPProtocol(nsINntpIncomingServer *aServer, nsIURI *aURL,
   }
 
   m_runningURL = nsnull;
-  SetIsBusy(false);
   m_fromCache = false;
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) creating",this));
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) initializing, so unset m_currentGroup",this));
