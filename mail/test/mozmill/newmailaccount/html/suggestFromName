@@ -1,8 +1,10 @@
 
-[{"product": "personalized_email", "addresses": ["green@bar.com",
-"green_llama@bar.com", "gllama@bar.com"], "succeeded": true, "quote":
+[{"product": "personalized_email", "addresses": ["green@example.com",
+"green_llama@example.com", "gllama@example.com"], "succeeded": true, "quote":
 "b28acb3c0a464d33af22", "price": 0, "provider": "bar"}, {"product":
-"personalized_email", "addresses": ["green@llama.com", "me@greenllama.com",
-"green@greenllama.com", "green@greenllama.net", "green@greenllama.org",
-"green@greenllama.me", "me@greenllama.me"], "succeeded": true, "quote":
-"3f93e48679ab46a49475", "price": "20.00", "provider": "foo"}]
+"personalized_email", "addresses": ["green-bar@example.com", "me-bar@example.com",
+"green-bar@madeup.nul", "green@bar.nul", "green@barexample.nul",
+"greenbar@greenllama.nul", "mebar@greenllama.nul"], "succeeded": true, "quote":
+"3f93e48679ab46a49475", "price": "20.00", "provider": "foo"},
+{"product": "personalized_email", "addresses": ["corrupt@corrupt.nul"],
+"succeeded": true, "quote": "abcdefg", "price": 0, "provider": "corrupt"}]

@@ -286,3 +286,12 @@ classic.jar:
   skin/classic/editor/icons/img-align-middle.gif                 (editor/img-align-middle.gif)
   skin/classic/editor/icons/img-align-right.gif                  (editor/img-align-right.gif)
   skin/classic/editor/icons/img-align-top.gif                    (editor/img-align-top.gif)
+  skin/classic/messenger/newmailaccount/accountProvisioner.css          (mail/newmailaccount/accountProvisioner.css)
+  skin/classic/messenger/newmailaccount/search.gif                      (mail/newmailaccount/search.gif)
+  skin/classic/messenger/newmailaccount/spinner.gif                     (mail/newmailaccount/spinner.gif)
+  skin/classic/messenger/newmailaccount/success-addons.png              (mail/newmailaccount/success-addons.png)
+  skin/classic/messenger/newmailaccount/success-border.png              (mail/newmailaccount/success-border.png)
+  skin/classic/messenger/newmailaccount/success-compose.png             (mail/newmailaccount/success-compose.png)
+  skin/classic/messenger/newmailaccount/success-signature.png           (mail/newmailaccount/success-signature.png)
+  skin/classic/messenger/newmailaccount/search.png                      (mail/newmailaccount/search.png)
+

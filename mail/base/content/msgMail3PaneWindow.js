@@ -329,8 +329,15 @@ const MailPrefObserver = {
  */
 function AutoConfigWizard(okCallback)
 {
-  if (gPrefBranch.getBoolPref("mail.provider.enabled"))
-    NewMailAccountProvisioner(msgWindow, { okCallback: okCallback });
+  if (gPrefBranch.getBoolPref("mail.provider.enabled")) {
+    // We need to let the event loop pump a little so that the 3pane finishes
+    // opening - so we use setTimeout. The 100ms is a bit arbitrary, but seems
+    // to be enough time to let the 3pane do it's thing, and not pull focus
+    // when the Account Provisioner modal window closes.
+    setTimeout(function() {
+      NewMailAccountProvisioner(msgWindow, { okCallback: okCallback });
+    }, 100);
+  }
   else
     NewMailAccount(msgWindow, okCallback);
 }

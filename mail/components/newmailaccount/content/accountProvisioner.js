@@ -22,6 +22,7 @@
  * Blake Winton <bwinton@mozillamessaging.com>
  * Bryan Clark <clarkbw@mozillamessaging.com>
  * Jonathan Protzenko <jprotzenko@mozilla.com>
+ * Mike Conley <mconley@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -46,16 +47,18 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/NetUtil.jsm");
 Cu.import("resource://gre/modules/PluralForm.jsm");
 Cu.import("resource:///modules/StringBundle.js");
+Cu.import("resource:///modules/mailServices.js");
+Cu.import("resource:///modules/gloda/log4moz.js");
 
+// Get a configured logger for this component.
+// To debug, set mail.provider.logging.dump (or .console)="All"
+let gLog = Log4Moz.getConfiguredLogger("mail.provider");
 let stringBundle = new StringBundle("chrome://messenger/locale/newmailaccount/accountProvisioner.properties");
 
-let isOSX = ("nsILocalFileMac" in Ci);
-let isWindows = ("@mozilla.org/windows-registry-key;1" in Cc);
+let isOSX = (Services.appinfo.OS == 'Darwin');
 
 const RETRY_TIMEOUT = 5000; // 5 seconds
-let tryingToPopulateProviders = false;
-let didPopulateProviders = false;
-let wakeTimeoutId = null;
+const CONNECTION_TIMEOUT = 10000; // 10 seconds
 
 function isAccel (event) (isOSX && event.metaKey || event.ctrlKey)
 
@@ -80,351 +83,358 @@ function getLocalStorage(page) {
   return dsm.getLocalStorageForPrincipal(principal, url);
 }
 
-/**
- * Save the state of this page to localstorage, so we can reconstitute it
- * later.
- */
-function saveState() {
-  var name = String.trim($("#name").val());
-  var username = $("#username").val();
-  var domain = $("#provider").find(":selected").attr("domain");
-
-  storage.setItem("name", name);
-  storage.setItem("username", username);
-  storage.setItem("domain", domain);
-}
-
-/**
- * Get the default opensearch engine. Stolen from bug 677421.
- */
-function getDefaultSearchEngine() {
-  if (Services.search.defaultEngine != null)
-    return Services.search.defaultEngine.name;
-  return "Google";
-}
-
-/**
- * Get the current opensearch engine. Stolen from bug 677421.
- */
-function getCurrentSearchEngine() {
-  try {
-    return Services.prefs.getCharPref("browser.search.selectedEngine");
-  } catch (e) {
-    return getDefaultSearchEngine();
-  }
-}
-
 const MAX_SMALL_ADDRESSES = 2;
 
 var storedData = {};
-var providers = {};
-var account = {};
-
-/**
- * Expand the New or Existing account section.
- *
- * @param existing True if we’re expanding the existing account section.
- */
-function expandSection(existing) {
-  // Don't expand or contract twice.
-  if ($("#existing").data("expanded") == existing)
-    return;
-
-  // Do this now, to avoid the scrollbar.
-  if (existing) {
-    $("#content .description").hide();
-    $("#providers").hide();
-    $("#notifications").children().hide();
-    $("#existing .header").show();
-    $(".tinyheader .title").fadeOut("fast", function() {
-      $(this).css({"opacity": "0.0", "display": "inline"});
-    });
-  }
-
-  $("#existing").animate({"height": existing ? "300px" : "50px",
-                          "font-size": existing ? "20pt" : "10pt"}, "fast",
-    function() {
-      if (!existing) {
-        $("#providers").fadeIn();
-        $("#content .description").fadeIn();
-        $("#existing .header").hide();
-        $(".tinyheader .title").css({"opacity": "1.0"}).fadeIn("fast");
-      }
-      $("#existing").data("expanded", existing);
-    });
-}
 
 function splitName(str) {
   let i = str.lastIndexOf(" ");
   if (i >= 1)
-    return [str.substring(0, i), str.substring(i+1)];
+    return [str.substring(0, i), str.substring(i + 1)];
   else
     return [str, ""];
 }
 
-function tryToPopulateProviderList() {
-  // If we're already in the middle of this, bail out.
-  if (tryingToPopulateProviders || didPopulateProviders)
-    return;
+/**
+ * Logic and functionality for the Account Provisioner dialog.  Sets and reacts
+ * to user interaction events, deals with searching and search results, and
+ * tracks / maintains window state throughout the Account Provisioner workflow.
+ */
+var EmailAccountProvisioner = {
 
-  let prefs = Services.prefs;
-  let providerList = prefs.getCharPref("mail.provider.providerList");
-  let suggestFromName = prefs.getCharPref("mail.provider.suggestFromName");
-  let commentary = $(".commentary")
-    .append($("<span>" + stringBundle.get("disclaimer",
-    ["https://www.mozilla.org/thunderbird/legal/privacy/"]) + "</span>"));
-  let placeholder = commentary.find(".placeholder");
-  let inputs = $("#otherLangDesc");
-  let otherLanguages = $("#otherLanguages");
-  let userLanguages = // "fr-FR, fr"; // for testing
-    Services.prefs.getComplexValue("intl.accept_languages",
-                                   Ci.nsIPrefLocalizedString)
-    .data.toLowerCase().split(",");
-  userLanguages = $.map(userLanguages, $.trim);
+  _inited: false,
+  _loadingProviders: false,
+  _loadedProviders: false,
+  _loadProviderRetryId: null,
+  _storage: null,
+  providers: {},
+  _someProvidersChecked: false,
+  // These get passed in when creating the Account Provisioner window.
+  NewMailAccount: window.arguments[0].NewMailAccount,
+  NewComposeMessage: window.arguments[0].NewComposeMessage,
+  openAddonsMgr: window.arguments[0].openAddonsMgr,
+  msgWindow: window.arguments[0].msgWindow,
+  okCallback: window.arguments[0].okCallback,
 
-  // If there's a timeout ID for waking the account provisioner, clear it.
-  if (wakeTimeoutId) {
-    window.clearTimeout(wakeTimeoutId)
-    wakeTimeoutId = null;
-  }
+  get someProvidersChecked() {
+    return this._someProvidersChecked;
+  },
 
-  $.getJSON(providerList, function(data) {
-    providers = {};
-    for each (let [i, provider] in Iterator(data)) {
-      providers[provider.id] = provider;
-      // Update the terms of service and privacy policy links.
-      let sep = "";
-      if (i == data.length - 1)
-        ;
-      else if (i == data.length - 2)
-        sep = stringBundle.get("sepAnd");
-      else
-        sep = stringBundle.get("sepComma");
-      placeholder
-        .append($("<span />").text(provider.label + " ("))
-        .append($("<a />")
-          .attr("href", provider.privacy_url)
-          .text(stringBundle.get("privacyPolicy"))
-          .addClass("privacy").addClass("external").addClass(provider.id)
-        )
-        .append($("<span />").text(", "))
-        .append($("<a />")
-          .attr("href", provider.tos_url)
-          .text(stringBundle.get("tos"))
-          .addClass("tos").addClass("external").addClass(provider.id)
-        )
-        .append($("<span />").text(")"+sep));
-      let supportsSomeUserLang = provider.languages
-        .some(function (x) userLanguages.indexOf(x.toLowerCase()) >= 0);
-      if (supportsSomeUserLang)
-        inputs.before('<span class="provider">'+
-          '<input type="checkbox" value="' + provider.id + '" checked="true"/>' +
-          '<img class="icon" src="' + provider.icon + '"/> ' +
-          provider.label + '</span>');
-      else
-        otherLanguages.append('<span class="provider">'+
-          '<input type="checkbox" value="' + provider.id + '"/>' +
-          '<img class="icon" src="' + provider.icon + '"/> ' +
-          provider.label + '</span>');
-    };
-    if (otherLanguages.children().length) {
-      $("#otherLangDesc").fadeIn();
-      $("#otherLangDesc").click(function() {
-        $("#otherLangDesc").fadeOut();
-        $("#otherLanguages").slideToggle();
+  set someProvidersChecked(aVal) {
+    this._someProvidersChecked = aVal;
+    EmailAccountProvisioner.onSearchInputOrProvidersChanged();
+  },
+
+  /**
+   * Get the list of loaded providers that we got back from the server.
+   */
+  get loadedProviders() {
+    return this._loadedProviders;
+  },
+
+  /**
+   * Returns the URL for retrieving suggested names from the
+   * selected providers.
+   */
+  get suggestFromName() {
+    return Services.prefs.getCharPref("mail.provider.suggestFromName");
+  },
+
+  /**
+   * Returns the languages that the user currently accepts.
+   */
+  get userLanguages() {
+    let userLanguages =
+      Services.prefs.getComplexValue("intl.accept_languages",
+                                     Ci.nsIPrefLocalizedString)
+                                       .data
+                                       .toLowerCase()
+                                       .split(",");
+    return $.map(userLanguages, $.trim);
+  },
+
+  /**
+   * A helper function to enable or disable the Search button.
+   */
+  searchButtonEnabled: function EAP_searchButtonEnabled(aVal) {
+    if (aVal) {
+      $("#searchSubmit").removeAttr("disabled");
+    } else {
+      $("#searchSubmit").attr("disabled", "true");
+    }
+  },
+
+  /**
+   * A setter for enabling / disabling the search fields.
+   */
+  searchEnabled: function EAP_searchEnabled(aVal) {
+    if (aVal) {
+      $("#name").removeAttr("disabled");
+    } else {
+      $("#name").attr("disabled", "true");
+    }
+    this.searchButtonEnabled(aVal);
+  },
+
+  /**
+   * If aVal is true, show the spinner, else hide.
+   */
+  spinning: function EAP_spinning(aVal) {
+    if (aVal) {
+      $("#notifications .spinner").css('display', 'block');
+    } else {
+      $("#notifications .spinner").css('display', 'none');
+    }
+  },
+
+  /**
+   * Sets the current window state to display the "success" page, with options
+   * for composing messages, setting a signature, finding add-ons, etc.
+   */
+  showSuccessPage: function EAP_showSuccessPage() {
+    gLog.info("Showing the success page");
+    let engine = Services.search.getEngineByName(window.arguments[0].search_engine);
+    let account = window.arguments[0].account;
+
+    if (engine && Services.search.defaultEngine != engine) {
+      // Expose the search engine checkbox
+      $("#search_engine_wrap").show()
+                              .click(function(event) {
+        $("#search_engine_check").click();
+        return false;
       });
+
+      $("#search_engine_check").click(function(event) {
+        event.stopPropagation();
+      });
+
+      // Set up the fields...
+      $("#search_engine_check").prop("checked", true);
+      $("#search_engine_desc").html(stringBundle.get("searchDesc", [engine.name]));
     }
-    beOnline();
-    didPopulateProviders = true;
-  }).error(function() {
-    // Ugh, we couldn't get the JSON file.  Maybe we're not online.  Or maybe
-    // the server is down, or the file isn't being served.  Regardless, if
-    // we get here, none of this stuff is going to work.
-    wakeTimeoutId = window.setTimeout(tryToPopulateProviderList,
-                                      RETRY_TIMEOUT);
-    beOffline();
-  });
 
-  tryingToPopulateProviders = false;
-}
+    $("#success-compose").click(function() {
+      MailServices.compose.OpenComposeWindow(null, null, null,
+                                             Ci.nsIMsgCompType.New,
+                                             Ci.nsIMsgCompFormat.Default,
+                                             account.defaultIdentity, null);
+    });
 
-function beOffline() {
-  $('#content').hide();
-  let offlineMsg = stringBundle.get("cannotConnect");
-  $('#cannotConnectMessage').text(offlineMsg).show();
-}
+    $("#success-addons").click(function() {
+      EmailAccountProvisioner.openAddonsMgr();
+    });
 
-function beOnline() {
-  $('#cannotConnectMessage').hide().text('');
-  $('#content').show();
-}
+    $("#success-signature").click(function() {
+      var existingAccountManager =
+        Services.wm.getMostRecentWindow("mailnews:accountmanager");
 
-function AccountProvisionerInit() {
-  // Snarf the things I need out of the window arguments.
-  let NewMailAccount = window.arguments[0].NewMailAccount;
-  let NewComposeMessage = window.arguments[0].NewComposeMessage;
-  let openAddonsMgr = window.arguments[0].openAddonsMgr;
-  let msgWindow = window.arguments[0].msgWindow;
-  let okCallback = window.arguments[0].okCallback;
+      if (existingAccountManager)
+        existingAccountManager.focus();
+      else
+        window.openDialog("chrome://messenger/content/AccountManager.xul",
+                          "AccountManager", "chrome,centerscreen,modal,titlebar",
+                          {server: account.incomingServer});
+    });
 
-  window.storage = getLocalStorage("accountProvisioner");
-  let opener = Cc["@mozilla.org/uriloader/external-protocol-service;1"]
-                         .getService(Ci.nsIExternalProtocolService);
+    $("#window").hide();
+    $("#successful_account").show();
+  },
 
-  $(".external").live("click", function (e) {
-    e.preventDefault();
-    opener.loadUrl(Services.io.newURI($(e.target).attr("href"), "UTF-8", null));
-  });
+  /**
+   * Save the name inputted in the search field to localstorage, so we can
+   * reconstitute it on respawn later.
+   */
+  saveName: function EAP_saveName() {
+    var name = String.trim($("#name").val());
+    this.storage.setItem("name", name);
+  },
 
-  let prefs = Services.prefs;
-  let providerList = prefs.getCharPref("mail.provider.providerList");
-  let suggestFromName = prefs.getCharPref("mail.provider.suggestFromName");
+  onSearchInputOrProvidersChanged: function EAP_onSearchInputOrProvidersChanged(event) {
+    let emptyName = $("#name").val() == "";
+    EmailAccountProvisioner.searchButtonEnabled(!emptyName
+                                                && EmailAccountProvisioner
+                                                   .someProvidersChecked);
+  },
 
-  let commentary = $(".commentary")
-    .append($("<span>" + stringBundle.get("disclaimer",
-    ["https://www.mozilla.org/thunderbird/legal/privacy/"]) + "</span>"));
-  let placeholder = commentary.find(".placeholder");
-  let inputs = $("#otherLangDesc");
-  let otherLanguages = $("#otherLanguages");
-  let userLanguages = // "fr-FR, fr"; // for testing
-    Services.prefs.getComplexValue("intl.accept_languages",
-                                   Ci.nsIPrefLocalizedString).data.split(",");
-  userLanguages = $.map(userLanguages, $.trim);
+  /**
+   * Hook up our events, populate the DOM, set our hooks, do all of our
+   * prep work.  Since this is called via jQuery on document ready,
+   * the value for "this" is the actual window document, hence the need
+   * to explicitly refer to EmailAccountProvisioner.
+   */
+  init: function EAP_init() {
+    // We can only init once, so bail out if we've been called again.
+    if (EmailAccountProvisioner._inited)
+      return;
 
-  tryToPopulateProviderList();
+    gLog.info("Initializing Email Account Provisioner");
 
-  let name = storage.getItem("name") || $("#name").text();
-  let username = storage.getItem("username");
-  let domain = storage.getItem("domain");
-  $("#name").val(name);
-  saveState();
+    // For any anchor element that gets the "external" class, make it so that
+    // when we click on that element, instead of loading up the href in the
+    // window itself, we open up the link in the default browser.
+    let opener = Cc["@mozilla.org/uriloader/external-protocol-service;1"]
+                           .getService(Ci.nsIExternalProtocolService);
+    $("a.external").live("click", function (e) {
+      e.preventDefault();
+      opener.loadUrl(Services.io.newURI($(e.target).attr("href"), "UTF-8", null));
+    });
 
-  let metaKey = false;
+    // Throw the disclaimer into the window.  In the future, this should probably
+    // be done in the actual XHTML page, instead of injected via JS.
+    let commentary = $(".commentary")
+      .append($("<span>" + stringBundle.get("disclaimer",
+      ["https://www.mozilla.org/thunderbird/legal/privacy/"]) + "</span>"));
 
-  $("#window").css("height", window.innerHeight - 1);
-  $("#content").focusin(function() {
-    expandSection(false);
-  }).click(function() {
-    expandSection(false);
-  });
+    EmailAccountProvisioner.tryToPopulateProviderList();
 
-  $("button.existing").click(function() {
-    saveState();
-    NewMailAccount(msgWindow, okCallback, window.arguments[0]);
-    // Set the callback to null, so that we don't call it.
-    okCallback = null;
-    window.close();
-  });
+    // Link the keypress function to the name field so that we can enable and
+    // disable the search button.
+    $("#name").keyup(EmailAccountProvisioner.onSearchInputOrProvidersChanged);
 
-  $("#existing").focusin(function(event) {
-    // Don't expand the section if the click originates from the button
-    // (otherwise the button moves from under the cursor).
-    if (!$(event.target).hasClass("existing"))
-      expandSection(true);
-  }).click(function(event) {
-    if (!$(event.target).hasClass("existing"))
-      expandSection(true);
-  });
+    // If we have a name stored in local storage from an earlier session,
+    // populate the search field with it.
+    let name = EmailAccountProvisioner.storage.getItem("name") ||
+               $("#name").text();
+    $("#name").val(name);
+    EmailAccountProvisioner.saveName();
 
-  $(".tinyheader .title").fadeOut(0, function() {
-    $(this).css({"opacity": "0.0", "display": "inline"});
-  });
+    // Pretend like we've typed something into the search input to set the
+    // initial enabled/disabled state of the search button.
+    EmailAccountProvisioner.onSearchInputOrProvidersChanged();
 
-  $(window).unload(function() {
-    if (okCallback)
-      okCallback();
-  });
+    $("#window").css("height", window.innerHeight - 1);
 
-  $(window).keypress(function(event) {
-    if (event.which == "119" && isAccel(event)) {
-      // Handle Ctrl-W.
+    $("button.existing").click(function() {
+      EmailAccountProvisioner.saveName();
+      EmailAccountProvisioner.NewMailAccount(EmailAccountProvisioner.msgWindow,
+                                             EmailAccountProvisioner.okCallback,
+                                             window.arguments[0]);
+      // Set the callback to null, so that we don't call it.
+      EmailAccountProvisioner.okCallback = null;
       window.close();
-    }
-  });
+    });
 
-  $(".search").click(function() {
-    $(".search").attr("disabled", "disabled");
+    $(window).unload(function() {
+      if (EmailAccountProvisioner.okCallback)
+        EmailAccountProvisioner.okCallback();
+    });
+
+    // Handle Ctrl-W and Esc
+    $(window).keypress(function(event) {
+      if ((event.which == "119" && isAccel(event))
+          || event.keyCode == 27) {
+        window.close();
+      }
+    });
+
+    $("#search").submit(EmailAccountProvisioner.onSearchSubmit);
+
+    $("#notifications").delegate("button.create", "click",
+                                 EmailAccountProvisioner.onAddressSelected);
+
+    // Handle clicking on both email address suggestions, as well
+    // as the headers for the providers of those suggestions.
+    $("#results").delegate("div.selection", "click", function() {
+      let self = $(this);
+      let resultsGroup = self.closest(".resultsGroup");
+
+      // Return if we're already expanded
+      if (resultsGroup.hasClass("expanded"))
+        return;
+
+      resultsGroup.siblings().removeClass("expanded");
+      resultsGroup.addClass("expanded");
+
+      // Hide the other boxes.
+      resultsGroup.siblings().children(".extra").slideUp();
+      resultsGroup.siblings().find(".more").show();
+      resultsGroup.siblings().find(".pricing").fadeOut("fast");
+      resultsGroup.siblings().find(".price").fadeIn("fast");
+
+      // And show this box.
+      resultsGroup.find(".more").hide();
+      resultsGroup.children().find(".pricing").fadeIn("fast");
+      resultsGroup.children().find(".price").fadeOut("fast");
+      self.siblings(".extra").slideDown();
+    });
+
+    $("button.close").click(function() {
+      window.close();
+    });
+
+    $(window).unload(function() {
+      if (window.arguments[0].search_engine
+          && $("#search_engine_check").prop("checked")) {
+        let engine = Services.search.getEngineByName(window.arguments[0].search_engine);
+        Services.search.currentEngine = engine;
+      }
+    });
+
+    if (window.arguments[0].search_engine || window.arguments[0].success) {
+      // Show the success page which lets a user compose mail, find add-ons,
+      // set a signature, etc.
+      gLog.info("Looks like we just finished ordering an address - showing the success page...");
+      EmailAccountProvisioner.showSuccessPage();
+    } else {
+      // The default mode, where we display the search input, providers, etc
+      $("#window").show();
+      $("#successful_account").hide();
+    }
+
+    gLog.info("Email Account Provisioner init complete.");
+
+    EmailAccountProvisioner._inited = true;
+  },
+
+  /**
+   * Event handler for when the user submits the search request for their
+   * name to the suggestFromName service.
+   */
+  onSearchSubmit: function EAP_onSearchSubmit() {
     $("#notifications").children().hide();
-    saveState();
-    let name = String.trim($("#name").val());
+    $("#instructions").fadeOut();
+    EmailAccountProvisioner.saveName();
+    // Here's where we do some kind of hack-y client-side sanitization.
+    // Believe it or not, this is how you sanitize stuff to HTML elements
+    // via jQuery.
+    let name = String.trim($("<div></div>").text($("#name").val()).html());
     if (name.length <= 0) {
       $("#name").select().focus();
-      $(".search").removeAttr("disabled");
       return;
     }
-    $("#notifications .spinner").show();
+
+    EmailAccountProvisioner.searchEnabled(false);
+    EmailAccountProvisioner.spinning(true);
     let [firstname, lastname] = splitName(name);
     let providerList = $(".provider input:checked").map(function() {
       return $(this).val();
     }).get().join(',');
 
-    $.getJSON(suggestFromName,
-              {"first_name": firstname,
-               "last_name": lastname,
-               "providers":providerList},
-              function(data) {
-      let results = $("#results").empty();
-      $(".search").removeAttr("disabled");
-      let searchingFailed = true;
-      if (data && data.length) {
-        $("#FirstAndLastName").text(firstname + " " + lastname);
-        for each (let [i, provider] in Iterator(data)) {
-          if (!provider.succeeded || provider.addresses.length <= 0 ||
-              !(provider.provider in providers))
-            continue;
-          searchingFailed = false;
-          let group = $("<div class='resultsGroup'></div>");
-          let header = $("#resultsHeader").clone().removeClass("displayNone");
-          header.children(".provider").text(providers[provider.provider].label);
-          if (provider.price && provider.price != "0")
-            header.children(".price").text(provider.price);
-          else
-            header.children(".price").text(stringBundle.get("free"));
-          group.append(header);
-          for each (let [j, address] in Iterator(provider.addresses)) {
-            let tmplData = {
-              address: address,
-              priceStr: stringBundle.get("price", [provider.price]),
-            };
-            let result = $("#result_tmpl").render(tmplData).appendTo(group);
-            if (j >= MAX_SMALL_ADDRESSES)
-              result.addClass("extra").hide();
-          }
-          if (provider.addresses.length > MAX_SMALL_ADDRESSES) {
-            let more = provider.addresses.length - MAX_SMALL_ADDRESSES;
-            let last = group.children(".row:nth-child("+(MAX_SMALL_ADDRESSES+1)+")");
-            let tmplData = {
-              moreStr: PluralForm.get(more, stringBundle.get("moreOptions")).replace("#1", more),
-            };
-            $("#more_results_tmpl").render(tmplData).appendTo(last);
-          }
-          group.find("button.create").data("provider", provider.provider);
-          group.append($("#resultsFooter").clone().removeClass("displayNone"));
+    $.ajax({
+      url: EmailAccountProvisioner.suggestFromName,
+      dataType: 'json',
+      data: {"first_name": firstname,
+             "last_name": lastname,
+             "providers": providerList},
+      timeout: CONNECTION_TIMEOUT,
+      success: EmailAccountProvisioner.onSearchResults})
+      .error(EmailAccountProvisioner.showSearchError)
+      .complete(function() {
+        $("#FirstAndLastName").html(firstname + " " + lastname);
+        EmailAccountProvisioner.searchEnabled(true);
+        EmailAccountProvisioner.spinning(false);
+      });
+  },
 
-          let supportsSomeUserLang =
-            providers[provider.provider].languages
-              .some(function (x) userLanguages.indexOf(x) >= 0);
-          results.append(group);
-        }
-        $("#notifications").children().hide();
-        $("#notifications .success").show();
-        for each (let [i, provider] in Iterator(data)) {
-          delete provider.succeeded
-          delete provider.addresses
-          delete provider.price
-          storedData[provider.provider] = provider;
-        }
-      }
-      if (searchingFailed) {
-        // Figure out what to do if it failed.
-        $("#notifications").children().hide();
-        $("#notifications .error").fadeIn();
-      }
-    });
-  });
-
-  $("#notifications").delegate("button.create", "click", function() {
-    let provider = providers[$(this).data("provider")];
+  /**
+   * Event handler for when the user selects an address by clicking on
+   * the price button for that address.  This function spawns the content
+   * tab for the address order form, and then closes the Account Provisioner
+   * window.
+   */
+  onAddressSelected: function EAP_onAddressSelected() {
+    gLog.info("An address was selected by the user.");
+    let provider = EmailAccountProvisioner.providers[$(this).data("provider")];
 
     // Replace the variables in the url.
     let url = provider.api;
@@ -442,6 +452,7 @@ function AccountProvisionerInit() {
               name + "=" + encodeURIComponent(data[name]);
     }
 
+    gLog.info("Opening up a contentTab with the order form.");
     // Then open a content tab.
     let mail3Pane = Cc["@mozilla.org/appshell/window-mediator;1"]
           .getService(Ci.nsIWindowMediator)
@@ -463,108 +474,414 @@ function AccountProvisionerInit() {
         aListener.addProgressListener(progressListener);
       },
       onLoad: function (event, aBrowser) {
+        // Close the Account Provisioner window once the page
+        // has loaded.
+        gLog.info("Handing off to the contentTab, and closing Email Account Provisioner.");
         window.close();
       },
     });
     // Wait for the handler to close us.
-    $("#notifications").children().hide();
-    $("#notifications .spinner").show();
-  });
+    EmailAccountProvisioner.spinning(true);
+    EmailAccountProvisioner.searchEnabled(false);
+    $("#notifications").children().not(".spinner").hide();
+  },
 
-  // The code is smart enough to work for both selectors.
-  $("#results").delegate("div.more, div.address", "click", function() {
-    let self = $(this);
-    let resultsGroup = self.closest(".resultsGroup");
-
-    // Return if we're already expanded
-    if (resultsGroup.hasClass("expanded"))
+  /**
+   * Attempt to fetch the provider list from the server.  If it fails,
+   * display an error message, and queue for retry.
+   */
+  tryToPopulateProviderList: function EAP_tryToPopulateProviderList() {
+    // If we're already in the middle of getting the provider list, or
+    // we already got it before, bail out.
+    if (this._loadingProviders || this._loadedProviders)
       return;
-    resultsGroup.siblings().removeClass("expanded");
-    resultsGroup.addClass("expanded");
 
-    // Hide the other boxes.
-    resultsGroup.siblings().children(".extra").slideUp();
-    resultsGroup.siblings().find(".more").show();
-    resultsGroup.siblings().find(".pricing").fadeOut("fast");
-    resultsGroup.siblings().find(".price").fadeIn("fast");
+    gLog.info("Trying to populate provider list...");
 
-    // And show this box.
-    resultsGroup.find(".more").hide();
-    resultsGroup.children().find(".pricing").fadeIn("fast");
-    self.parent().siblings(".extra").slideDown();
-    self.parent().siblings().find(".price").fadeOut("fast");
-  });
+    // If there's a timeout ID for waking the account provisioner, clear it.
+    if (this._loadProviderRetryId) {
+      window.clearTimeout(this._loadProviderRetryId)
+      this._loadProviderRetryId = null;
+    }
 
-  $("#back").click(function() {
-    $("#name").val($("#account\\.first_name").val() + " " + $("#account\\.last_name").val());
-    $("#window").css("height", window.innerHeight - 1);
-    $("#content .description").show();
-    $("button.create").show();
-    $("span.create").hide();
-    $("#window, #existing").show();
-    $("#provision_form .error").text("");
-    $(".header, .success .title, #existing").slideDown();
-    $("#results > .row, #search").removeClass("selected").show();
-  });
+    var self = this;
 
-  $("a.optional").click(function() {
-    $.scrollTo($("#existing .message"), 1000, {onAfter: function(){
-      $("#existing .message").effect("highlight", {}, 3000);
-    } } );
-  });
+    self.searchEnabled(false);
+    self.spinning(true);
 
-  if (window.arguments[0].search_engine) {
-    let engine = window.arguments[0].search_engine;
-    $("#window").hide();
-    $("#search_engine_next").click(function () {
-      if ($("#search_engine_check").prop("checked")) {
-        Services.prefs.setCharPref("browser.search.selectedEngine", engine);
+    let providerListUrl = Services.prefs.getCharPref("mail.provider.providerList");
+
+    $.ajax({
+      url: providerListUrl,
+      dataType: 'json',
+      data: '',
+      timeout: CONNECTION_TIMEOUT,
+      success: EmailAccountProvisioner.populateProviderList,
+      }).error(function() {
+        // Ugh, we couldn't get the JSON file.  Maybe we're not online.  Or maybe
+        // the server is down, or the file isn't being served.  Regardless, if
+        // we get here, none of this stuff is going to work.
+        EmailAccountProvisioner._loadProviderRetryId = window.setTimeout(EmailAccountProvisioner.tryToPopulateProviderList,
+                                                                         RETRY_TIMEOUT);
+        EmailAccountProvisioner._loadingProviders = false;
+        EmailAccountProvisioner.beOffline();
+        gLog.error("Something went wrong loading the provider list JSON file. "
+                   + "Going into offline mode.");
+      }).complete(function() {
+        EmailAccountProvisioner._loadingProviders = false;
+        EmailAccountProvisioner.spinning(false);
+        gLog.info("Got provider list JSON.");
+      });
+
+    EmailAccountProvisioner._loadingProviders = true;
+    gLog.info("We've kicked off a request for the provider list JSON file...");
+  },
+
+  providerHasCorrectFields: function EAP_providerHasCorrectFields(provider) {
+    let result = true;
+
+    let required = ["id", "label", "paid", "languages", "api", "tos_url",
+                    "privacy_url"];
+
+    for (let [index, aField] in Iterator(required)) {
+      let fieldExists = (aField in provider);
+      result &= fieldExists;
+
+      if (!fieldExists)
+        gLog.error("A provider did not have the field " + aField
+                   + ", and will be skipped.");
+    };
+
+    return result;
+  },
+
+  /**
+   * Take the fetched providers, create checkboxes, icons and labels,
+   * and insert them below the search input.
+   */
+  populateProviderList: function EAP_populateProviderList(data) {
+    gLog.info("Populating the provider list");
+
+    if (!data || !data.length) {
+      gLog.error("The provider list we got back from the server was empty!");
+      EmailAccountProvisioner.beOffline();
+      return;
+    }
+
+    let providerList = $("#providerList");
+    let otherLangProviders = [];
+
+    EmailAccountProvisioner.providers = {};
+
+    data.forEach(function(provider) {
+
+      if (!(EmailAccountProvisioner.providerHasCorrectFields(provider))) {
+        gLog.error("A provider had incorrect fields, and has been skipped");
+        return;
       }
-      $("#search_engine_page").hide();
-      $("#successful_account").show();
+
+      EmailAccountProvisioner.providers[provider.id] = provider;
+
+      // Let's go through the array of languages for this provider, and
+      // check to see if at least one of them matches one of the accepted
+      // languages for this user profile.  If so, supportsSomeUserLang becomes
+      // true, and we'll show / select this provider by default.
+      let supportsSomeUserLang = provider
+                                 .languages
+                                 .some(function (x) {
+                                   return EmailAccountProvisioner
+                                          .userLanguages
+                                          .indexOf(x.toLowerCase()) >= 0
+                                 });
+
+      let checkboxId = provider.id + "-check";
+
+      let providerCheckbox = $('<input type="checkbox" />')
+                             .val(provider.id)
+                             .attr("id", checkboxId);
+
+      let providerEntry = $('<li class="provider" />')
+                          .append(providerCheckbox);
+
+      let labelSpan = $('<label class="providerLabel" />')
+                      .append(provider.label)
+                      .appendTo(providerEntry)
+                      .attr("for", checkboxId);
+
+      if (provider.icon)
+        providerCheckbox.after('<img class="icon" src="' + provider.icon + '"/>');
+
+      providerCheckbox.change(function() {
+        EmailAccountProvisioner.populateTermsAndPrivacyLinks();
+      });
+
+      if (supportsSomeUserLang) {
+        providerCheckbox.attr('checked', 'checked');
+        providerEntry.css('display', 'inline-block');
+        providerList.append(providerEntry);
+      }
+      else {
+        providerEntry.addClass("otherLanguage");
+        otherLangProviders.push(providerEntry);
+      }
     });
 
-    if (getCurrentSearchEngine() == engine) {
-      // Skip this page if the search engine is already the right one.
-      $("#successful_account").show();
-    } else {
-      // Otherwise, proceed with the dialog.
-      let isChecked = (getCurrentSearchEngine() == getDefaultSearchEngine());
-      $("#search_engine_check").prop("checked", isChecked);
-      $("#search_engine_desc").html(stringBundle.get("searchDesc", [engine]));
-      $("#search_engine_page").show();
+    for each (let [i, provider] in Iterator(otherLangProviders)) {
+      providerList.append(provider);
+    };
+
+    if (otherLangProviders.length) {
+      $("#otherLangDesc").fadeIn();
+      $("#otherLangDesc").click(function() {
+        $("#otherLangDesc").fadeOut();
+        $(".otherLanguage").fadeIn().css("display", "inline-block");
+      });
     }
-  } else if (window.arguments[0].success) {
-    $("#window").hide();
-    $("#successful_account").show();
+
+    EmailAccountProvisioner.populateTermsAndPrivacyLinks();
+    EmailAccountProvisioner.beOnline();
+    EmailAccountProvisioner._loadedProviders = true;
+  },
+
+  /**
+   * Go through each of the checked providers, and add the appropriate
+   * ToS and privacy links to the disclaimer.
+   */
+  populateTermsAndPrivacyLinks: function EAP_populateTOSandPrivacyLinks() {
+    gLog.info("Refreshing terms and privacy links");
+    // Empty the Terms of Service and Privacy links placeholder.
+    let commentary = $(".commentary");
+    let placeholder = commentary.find(".placeholder");
+    placeholder.empty();
+
+    let selectedProviders = $(".provider input:checked");
+
+    EmailAccountProvisioner.someProvidersChecked = selectedProviders.length > 0;
+
+    let termsAndPrivacyLinks = [];
+    selectedProviders.each(function(i, checkbox) {
+      let providerId = $(checkbox).val();
+      let provider = EmailAccountProvisioner.providers[providerId];
+      let providerLinks = $("<span />").text(provider.label + " (")
+        .append($("<a />")
+          .attr("href", provider.privacy_url)
+          .text(stringBundle.get("privacyPolicy"))
+          .addClass("privacy").addClass("external").addClass(provider.id)
+        )
+        .append($("<span />").text(stringBundle.get("sepComma")))
+        .append($("<a />")
+          .attr("href", provider.tos_url)
+          .text(stringBundle.get("tos"))
+          .addClass("tos").addClass("external").addClass(provider.id)
+        ).append($("<span />").text(")"));
+      termsAndPrivacyLinks.push(providerLinks);
+    });
+
+    if (termsAndPrivacyLinks.length <= 0) {
+      // Something went really wrong - we shouldn't have gotten here. Bail out.
+      return;
+    } else if (termsAndPrivacyLinks.length == 1) {
+      placeholder.append(termsAndPrivacyLinks[0]);
+      return;
+    } else {
+      // Pop off the last terms and privacy links...
+      let lastTermsAndPrivacyLink = termsAndPrivacyLinks.pop();
+      // Join the remaining terms and privacy links with the comma separator...
+      $(termsAndPrivacyLinks).each(function(i, termsAndPrivacyLink) {
+        placeholder.append(termsAndPrivacyLink);
+        if (i < termsAndPrivacyLinks.length - 1)
+          placeholder.append($("<span />").text(stringBundle.get("sepComma")));
+      });
+      placeholder.append($("<span />").text(stringBundle.get("sepAnd")));
+      placeholder.append(lastTermsAndPrivacyLink);
+    }
+  },
+
+  /**
+   * Make the search pane a little bit taller, and the existing account
+   * pane a little bit shorter.
+   */
+  expandSearchPane: function() {
+    // Don't expand twice.
+    if ($("#existing").data("expanded"))
+      return;
+
+    $("#existing").animate({"height": "50px",
+                            "font-size": "10pt"}, "fast",
+      function() {
+        $("#providers").fadeIn();
+        $("#content .description").fadeIn();
+        $("#existing .header").hide();
+        $(".tinyheader .title").css({"opacity": "1.0"}).fadeIn("fast");
+        $("#existing").data("expanded", true);
+      });
+  },
+
+  /**
+   * Something went wrong during search.  Show a generic error.  In the future,
+   * we might want to show something a bit more descriptive.
+   */
+  showSearchError: function() {
+    $("#notifications").children().hide();
+    $("#notifications .error").fadeIn();
+  },
+
+  /**
+   * Once we've received search results from the server, create some
+   * elements to display those results, and inject them into the DOM.
+   */
+  onSearchResults: function(data) {
+    gLog.info("Got back search results");
+    // Expand the search pane if it hasn't been expanded yet.
+    EmailAccountProvisioner.expandSearchPane();
+
+    // Empty any old results.
+    let results = $("#results").empty();
+
+    if (!data || !data.length) {
+      // If we've gotten back nonsense, display the generic
+      // error message, and bail out.
+      gLog.error("We got nothing back from the server for search results!");
+      EmailAccountProvisioner.showSearchError();
+      return;
+    }
+
+    // Get a list of the providers that the user checked - we'll
+    // check against these to make sure the server didn't send any
+    // back from a provider that the user did not select.
+    let selectedProviders = $(".provider input:checked").map(function() {
+      return $(this).val();
+    });
+
+    // Filter out any results that don't match our requirements...
+    let returnedProviders = data.filter(function(aResult) {
+      // We require that the search succeeded for a provider, that we
+      // got at least one result, and that the provider is actually in
+      // the list of providers that we care about.
+      let providerInList = (aResult.provider in EmailAccountProvisioner.providers);
+
+      if (!providerInList)
+        gLog.error("Got a result back for a provider that was not "
+                   + "in the original providerList: " + aResult.provider);
+
+      let providerSelected = $.inArray(aResult.provider, selectedProviders) != -1;
+
+      if (!providerSelected)
+        gLog.error("Got a result back for a provider that the user did "
+                   + "not select: " + aResult.provider);
+
+      return (aResult.succeeded
+              && aResult.addresses.length > 0
+              && providerInList
+              && providerSelected);
+    });
+
+    if (returnedProviders.length == 0) {
+      gLog.info("There weren't any results for the selected providers.");
+      // Display the generic error message, and bail out.
+      EmailAccountProvisioner.showSearchError();
+      return;
+    }
+
+    for each (let [i, provider] in Iterator(returnedProviders)) {
+      let group = $("<div class='resultsGroup'></div>");
+      let header = $("#resultsHeader")
+                   .clone()
+                   .removeClass("displayNone")
+                   .addClass("selection");
+
+      header.children(".provider")
+            .text(EmailAccountProvisioner.providers[provider.provider].label);
+
+      if (provider.price && provider.price != "0")
+        header.children(".price").text(provider.price);
+      else
+        header.children(".price").text(stringBundle.get("free"));
+
+      group.append(header);
+
+      let renderedAddresses = 0;
+
+      for each (let [j, address] in Iterator(provider.addresses)) {
+        let tmplData = {
+          address: address,
+        };
+
+        if (provider.price && provider.price != "0")
+          tmplData.priceStr = stringBundle.get("price", [provider.price])
+        else
+          tmplData.priceStr = stringBundle.get("free");
+
+        try {
+          let result = $("#result_tmpl").render(tmplData).appendTo(group);
+          // If we got here, then we were able to successfully render the
+          // address - we'll keep a count of the rendered addresses for the
+          // "More" buttons, etc.
+          renderedAddresses++;
+
+          if (j >= MAX_SMALL_ADDRESSES)
+            result.addClass("extra").hide();
+
+        } catch(e) {
+          // An address was returned from the server that we jQuery templates
+          // can't render properly.  We'll ignore that address.
+          gLog.error("We got back an address that we couldn't render - more detail in the Error Console.");
+          Cu.reportError(e);
+        }
+      }
+
+      if (renderedAddresses > MAX_SMALL_ADDRESSES) {
+        let more = renderedAddresses - MAX_SMALL_ADDRESSES;
+        let last = group.children(".row:nth-child(" + (MAX_SMALL_ADDRESSES + 1) + ")");
+        let tmplData = {
+          moreStr: PluralForm.get(more, stringBundle.get("moreOptions")).replace("#1", more),
+        };
+        $("#more_results_tmpl").render(tmplData).appendTo(last);
+      }
+      group.find("button.create").data("provider", provider.provider);
+      group.append($("#resultsFooter").clone().removeClass("displayNone"));
+      results.append(group);
+    }
+
+    $("#notifications").children().hide();
+    $("#notifications .success").show();
+
+    for each (let [i, provider] in Iterator(data)) {
+      delete provider.succeeded
+      delete provider.addresses
+      delete provider.price
+      storedData[provider.provider] = provider;
+    }
+  },
+
+  /**
+   * If we cannot retrieve the provider list from the server, display a
+   * message about connection problems, and disable the search fields.
+   */
+  beOffline: function EAP_beOffline() {
+    let offlineMsg = stringBundle.get("cannotConnect");
+    $('#cannotConnectMessage').text(offlineMsg).show();
+    this.searchEnabled(false);
+    gLog.info("Email Account Provisioner is in offline mode.");
+  },
+
+  /**
+   * If we're suddenly able to get the provider list, hide the connection
+   * error message and re-enable the search fields.
+   */
+  beOnline: function EAP_beOnline() {
+    $('#cannotConnectMessage').hide().text('');
+    this.searchEnabled(true);
+    gLog.info("Email Account Provisioner is in online mode.");
   }
-
-  $("#success-compose").click(function() {
-    NewComposeMessage(Components.interfaces.nsIMsgCompType.New);
-    window.close();
-  });
-
-  $("#success-addons").click(function() {
-    openAddonsMgr();
-    window.close();
-  });
-
-  $("#success-signature").click(function() {
-    var existingAccountManager =
-      Services.wm.getMostRecentWindow("mailnews:accountmanager");
-
-    if (existingAccountManager)
-      existingAccountManager.focus();
-    else
-      window.openDialog("chrome://messenger/content/AccountManager.xul",
-                        "AccountManager", "chrome,centerscreen,modal,titlebar",
-                        {server: account.incomingServer});
-  });
-
-  $("button.close").click(function() {
-    window.close();
-  });
 }
 
-window.addEventListener("online", tryToPopulateProviderList);
-$(AccountProvisionerInit);
+
+XPCOMUtils.defineLazyGetter(EmailAccountProvisioner, "storage", function() {
+  return getLocalStorage("accountProvisioner");
+});
+
+window.addEventListener("online",
+                        EmailAccountProvisioner.tryToPopulateProviderList);
+
+$(EmailAccountProvisioner.init);

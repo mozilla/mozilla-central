@@ -79,6 +79,12 @@ button:active {
   background-image: -moz-linear-gradient(center top , #ddd 0%, #ddd 100%);
 }
 
+input[type="submit"][disabled="true"], input[type="submit"][disabled="true"]:hover {
+  background-image: -moz-linear-gradient(center top , #EEEEEE 0%, #EEEEEE 50%, #E1E1E1 50%, #E1E1E1 100%);
+  opacity: 0.5;
+  cursor: default;
+}
+
 #window {
   padding: 10px;
   width: 100%;
@@ -88,16 +94,23 @@ button:active {
 .header h2 {
   font-size: 20px;
   font-weight: bold;
-  padding-left: 10px;
-  padding-top: 10px;
   color: #222;
+}
+
+.tinyheader .title {
+  display: none;
+}
+
+#instructions {
+  font-size: smaller;
+  color: #444;
+  margin-bottom: 19px;
+  margin-top: 6px;
 }
 
 #content .description {
   font-size: smaller;
-  margin: 5px;
-  color: #444;
-  display: none;
+  color: gray;
 }
 
 .header .commentary {
@@ -105,22 +118,43 @@ button:active {
   margin: 5px;
 }
 
-.description p {
-  margin: 5px;
+#providerList {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
 }
 
 #providers .icon {
-  padding-left: 5px;
-  padding-top: 5px;
+  margin-left: 5px;
+  margin-right: 5px;
+  vertical-align: middle;
 }
 
 #providers .provider {
-  padding-right: 150px;
+  width: 280px;
 }
 
-#otherLangDesc,
+#providers .providerLabel {
+  vertical-align: top;
+  width: 240px;
+  display: inline-block;
+  word-wrap: break-word;
+}
+
+#providers input[type="checkbox"] {
+  vertical-align: middle;
+}
+
+.otherLanguage,
 #otherLanguages {
   display: none;
+}
+
+#otherLangDesc {
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: x-small;
+  margin-top: 9px;
 }
 
 /* External things are links that open in a browser, so underline them. */
@@ -143,8 +177,18 @@ button:active {
 
 #search {
   width: 100%;
-  padding: 10px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 14px;
+}
+
+hr {
   border-bottom: 1px solid #ccc;
+  border-top: 0;
+  border-left: 0;
+  border-right: 0;
+  margin: 0;
+  padding: 0;
 }
 
 input[type="text"], input[type="password"], textarea {
@@ -158,6 +202,7 @@ input[type="text"], input[type="password"], textarea {
 #search input[type="text"] {
   margin-right: 10px;
   padding: 0 8px;
+  width: 450px;
 }
 
 input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
@@ -181,31 +226,27 @@ input[type="submit"].search {
   color: #999;
 }
 
-#notifications {
-  padding: 10px;
+#searchFields {
+  margin-bottom: 13px;
+  width: 100%;
 }
 
 #notifications .spinner,
-#new_account .spinner,
 #notifications .error,
 #notifications .success {
   display: none;
 }
 
 .spinner {
-  float: left;
-  margin: 114px 270px 114px 283px;
-}
-
-#new_account .spinner {
-  position: absolute;
-  top: 0px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 25px;
+  margin-bottom: 25px;
+  display: block;
 }
 
 .error {
   color: red;
-  padding: 0 4px;
-  margin-top: 4px;
   display: block;
 }
 
@@ -240,7 +281,7 @@ input[type="submit"].search {
   border-bottom: 1px solid #ccc;
 }
 
-#results :-moz-any(div.address, div.more) {
+#results :-moz-any(div.selection) {
   cursor: pointer;
 }
 
@@ -264,19 +305,9 @@ input[type="submit"].search {
   text-align: right;
 }
 
-#results .row.more:hover {
-  cursor: pointer;
-}
-
 #results:not(.showAll) .noUserLang {
   display: none;
 }
-
-.showMoreProvidersLink {
-  text-decoration: underline;
-  cursor: pointer;
-}
-
 .footer {
   margin-bottom: 10px;
 }
@@ -292,7 +323,7 @@ input[type="submit"].search {
 }
 
 .row .address {
-  font-weight: bold;
+  font-weight: normal;
 }
 
 .row .pricing {
@@ -310,17 +341,20 @@ input[type="submit"].search {
 }
 
 #existing {
-  height: 250px;
   width: 100%;
   color: graytext;
   font-weight: bold;
   text-align: center;
+  padding: 15px;
 }
 
 #existing .header {
     text-align: left;
 }
 
+.contentPadded {
+  padding: 15px;
+}
 
 /* === NEW ACCOUNT FORM === */
 
@@ -359,20 +393,19 @@ input[type="submit"].search {
 
 /* === SUCCESSFUL ACCOUNT CREATION PAGE === */
 
-#successful_account, #search_engine_page {
+#successful_account {
   display: none;
   padding: 10px;
   width: 100%;
 }
 
 #search_engine_wrap {
-  margin: 1em 0;
+  display: none;
 }
-
 
 /* START hbox/vbox normalization from http://alex.dojotoolkit.org/2009/08/css-3-progress/ */
 /* hbox and vbox classes for Mozilla only */
- 
+
 .hbox {
   display: -moz-box;
   -moz-box-orient: horizontal;
@@ -402,7 +435,6 @@ input[type="submit"].search {
 .vbox > * {
   -moz-box-flex: 0;
   /*box-flex: 0;*/
-  display: block;
 }
 
 .spacer {
@@ -434,12 +466,12 @@ input[type="submit"].search {
   -moz-box-pack: start;
   /*box-pack: start;*/
 }
- 
+
 .end {
   -moz-box-pack: end;
   /*box-pack: end;*/
 }
- 
+
 .center {
   -moz-box-pack: center;
   /*box-pack: center;*/
@@ -457,7 +489,7 @@ input[type="submit"].search {
 }
 
 #success-message {
-  padding-bottom: 1em;
+  padding-bottom: 10px;
 }
 
 #success-compose, #success-addons, #success-signature, #search_engine_wrap {
@@ -477,4 +509,13 @@ input[type="submit"].search {
 #search_engine_wrap img {
   vertical-align: middle;
   margin-right: 10px;
+}
+
+/* HackHackHack*/
+
+#existing .tinyheader button {
+  font-size: 12px;
+  font-weight: normal;
+  margin-left: 7px;
+  margin-right: 8px;
 }

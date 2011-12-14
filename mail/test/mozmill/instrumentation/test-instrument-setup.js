@@ -47,6 +47,7 @@ var controller = {};
 Components.utils.import("resource://mozmill/modules/controller.js", controller);
 var elib = {};
 Components.utils.import("resource://mozmill/modules/elementslib.js", elib);
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 var wh, awc, account, incoming, outgoing;
 
@@ -56,6 +57,7 @@ var user = {
   incomingHost: "testin.example.com",
   outgoingHost: "testout.example.com",
 };
+
 
 function setupModule(module) {
   let pref = Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch);
@@ -82,7 +84,6 @@ function test_mail_account_setup() {
   // Spawn the existing mail account config dialog by clicking on
   // File > New > Existing Mail Account
   mc.click(mc.eid("newMailAccountMenuItem"));
-
   awc = wh.wait_for_existing_window("mail:autoconfig");
 
   // Input user's account information
@@ -104,18 +105,19 @@ function test_mail_account_setup() {
   plan_for_window_close(awc);
   awc.e("create_button").click();
 
+  let events = mc.window.mailInstrumentationManager._currentState.events;
+
   // Clean up
   pref.clearUserPref(pref_name);
   wait_for_window_close();
   remove_account();
-  let events = mc.window.mailInstrumentationManager._currentState.events;
+
   // we expect to have accountAdded and smtpServerAdded events.
   if (! (events["accountAdded"].data))
     throw new Error("failed to add an account");
   else if (! (events["smtpServerAdded"].data))
     throw new Error("failed to add an smtp server");
 }
-
 
 // Remove the account we added.
 function remove_account() {

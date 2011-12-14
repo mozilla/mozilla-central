@@ -387,13 +387,17 @@ function NewMailAccountProvisioner(aMsgWindow, args) {
   if (!args.success)
     args.success = false;
 
+  // NOTE: If you're a developer, and you notice that the jQuery code in
+  // accountProvisioner.xhtml isn't throwing errors or warnings, that's due
+  // to bug 688273.  Just make the window non-modal to get those errors and
+  // warnings back, and then clear this comment when bug 688273 is closed.
   window.openDialog(
     "chrome://messenger/content/newmailaccount/accountProvisioner.xhtml",
     "AccountCreation",
-    // disabling modal for the time being, see 688273 REMOVEME
-    "chrome,titlebar,centerscreen,width=640,height=480",
+    "modal,chrome,titlebar,centerscreen,width=640,height=480",
     args);
 }
+
 /**
  * Open the New Mail Account Wizard, or focus it if it's already open.
  *

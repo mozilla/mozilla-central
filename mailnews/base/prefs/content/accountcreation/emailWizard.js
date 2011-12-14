@@ -1335,8 +1335,16 @@ EmailConfigWizard.prototype =
    */
   onSwitchToProvisioner : function ()
   {
-    this._okCallback = null;
-    NewMailAccountProvisioner(window.arguments[0].msgWindow, window.arguments[0].extraData)
+    // We have to close this window first, otherwise msgNewMailAccount
+    // in accountUtils.js will think that this window still
+    // exists when it's called from the account provisioner window.
+    // This is because the account provisioner window is modal,
+    // and therefore blocks.  Therefore, we override the _okCallback
+    // with a function that spawns the account provisioner, and then
+    // close the window.
+    this._okCallback = function() {
+      NewMailAccountProvisioner(window.arguments[0].msgWindow, window.arguments[0].extraData);
+    }
     window.close();
   },
 

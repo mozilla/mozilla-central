@@ -94,7 +94,9 @@ AccountProvisionerListener.prototype = {
         this.browser.stop();
         let tabmail = window.document.getElementById("tabmail");
         let myTabInfo = tabmail.tabInfo
-          .filter((function (x) x.browser == this.browser).bind(this))[0];
+          .filter((function (x) {
+            return "browser" in x && x.browser == this.browser;
+          }).bind(this))[0];
         tabmail.closeTab(myTabInfo);
 
         // Fire off a request to get the XML again, this time so that we can
@@ -120,13 +122,14 @@ AccountProvisionerListener.prototype = {
               accountCreationFuncs.replaceVariables(accountConfig,
                 self.params.realName,
                 self.params.email);
-              accountCreationFuncs.createAccountInBackend(accountConfig);
+              let account = accountCreationFuncs.createAccountInBackend(accountConfig);
               NewMailAccountProvisioner(null, {
                 success: true,
                 search_engine: self.params.searchEngine,
+                account: account,
               });
             } catch (e) {
-              Components.utils.reportError(e);
+              Components.utils.reportError("Problem interpreting provider XML: "+ e);
             }
           },
 

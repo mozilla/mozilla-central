@@ -50,9 +50,10 @@
    - ***** END LICENSE BLOCK ***** -->
 
   <title>&window.title;</title>
+
   <link rel="stylesheet"
         type="text/css"
-        href="chrome://messenger/content/newmailaccount/accountProvisioner.css" />
+        href="chrome://messenger/skin/newmailaccount/accountProvisioner.css" />
 
   <script type="text/javascript;version=1.8"
           src="chrome://messenger/content/jquery.js">
@@ -91,107 +92,105 @@
 <body>
   <div id="window" class="vbox">
 
-    <div id="cannotConnectMessage" class="boxFlex error"></div>
+    <div id="content" class="boxFlex vbox">
 
-    <div id="content" class="boxFlex">
-
-      <div class="header">
-        <h2>&header.label;</h2>
-      </div>
-
-      <form onsubmit="return false;" id="search">
-        <input id="name" type="text" placeholder="&input.namePlaceholder;" />
-        <input type="submit" value="&input.search;" class="search"/>
-        <div id="providers">
-          <div id="otherLangDesc">&other.languages;</div>
-          <div id="otherLanguages"></div>
-        </div>
-      </form>
-
-      <div id="notifications">
-
-        <img class="spinner"
-             src="chrome://messenger/content/newmailaccount/spinner.gif"/>
-
-        <div class="error">
-          <p>&error.line1;</p>
-          <p>&error.line2;</p>
-          &error.suggest.before;<a
-            href="http://www.mozilla.org/en-US/thunderbird/features/email_providers.html"
-            class="external">&error.suggest.middle;</a>&error.suggest.after;
+      <div id="upper" class="contentPadded">
+        <div class="header">
+          <h2>&header.label;</h2>
         </div>
 
-        <div class="success">
-          <div class="title">&success.title.before;<span id="FirstAndLastName"></span>&success.title.after;</div>
+        <form id="search" onsubmit="return false;">
+          <div id="searchFields" class="hbox">
+            <input id="name" type="text" placeholder="&input.namePlaceholder;"
+                   maxlength="150" class="boxFlex"/>
+            <input type="submit" value="&input.search;" class="search boxFlex" id="searchSubmit"/>
+          </div>
+          <div id="providers">
+            <div id="instructions">&partnership.description;</div>
+            <ol id="providerList">
+            </ol>
+            <div id="otherLangDesc">&other.languages;</div>
+          </div>
+        </form>
 
-          <div class="boxFlex tip">&success.tip;</div>
+        <div id="notifications">
 
-          <div id="resultsHeader" class="hbox row th displayNone">
-            <div class="boxFlex provider th"></div>
-            <div class="price th"></div>
+          <img class="spinner"
+               src="chrome://messenger/skin/newmailaccount/spinner.gif"/>
+
+          <div id="cannotConnectMessage" class="error"></div>
+
+          <div class="error">
+            <p>&error.line1;</p>
+            <p>&error.line2;</p>
+            &error.suggest.before;<a
+              href="http://www.mozilla.org/en-US/thunderbird/features/email_providers.html"
+              class="external">&error.suggest.middle;</a>&error.suggest.after;
           </div>
 
-          <div id="results"></div>
+          <div class="success">
+            <div class="title">&success.title.before;<span id="FirstAndLastName"></span>&success.title.after;</div>
+
+            <div class="boxFlex tip">&success.tip;</div>
+
+            <div id="resultsHeader" class="hbox row th displayNone">
+              <div class="boxFlex provider th"></div>
+              <div class="price th"></div>
+            </div>
+
+            <div id="results"></div>
+          </div>
+
         </div>
-
       </div>
 
-      <div class="description">
-        <p>
-          &partnership.description;
-        </p>
-        <p class="commentary">
-        </p>
+      <div class="spacer"></div>
+      <hr />
+      <div class="description contentPadded">
+        <div class="commentary">
+        </div>
+      </div>
+
+    </div>
+
+    <div id="existing" class="contentPadded">
+      <div class="tinyheader hbox">
+        <button class="existing boxFlex">&tinyheader.existing;</button>
+        <button class="close boxFlex">&content.close;</button>
       </div>
     </div>
 
-    <div id="existing">
-      <div class="header">
-        <h2>&existing.header;</h2>
-      </div>
-      <div class="tinyheader">
-        <span class="title">&tinyheader.title;</span>
-        <button class="existing">&tinyheader.existing;</button>
-      </div>
-    </div>
-
-    <button class="close">&content.close;</button>
-  </div>
-
-  <div id="search_engine_page">
-    <h2>&search_engine.title;</h2>
-    <div>&search_engine.message;</div>
-    <div id="search_engine_wrap">
-      <img src="chrome://messenger/content/newmailaccount/search.png"/>
-      <input type="checkbox" id="search_engine_check" />
-      <span id="search_engine_desc"></span>
-    </div>
-    <button id="search_engine_next">&search_engine.button;</button>
   </div>
 
   <div id="successful_account">
     <h2>&successful.title;</h2>
     <div id="success-message">&successful.successMessage;</div>
 
+    <div id="search_engine_wrap">
+      <img src="chrome://messenger/skin/newmailaccount/search.png"/>
+      <input type="checkbox" id="search_engine_check" />
+      <span id="search_engine_desc"></span>
+    </div>
+
     <div id="success-compose">
-    <img src="chrome://messenger/content/newmailaccount/success-compose.png"/>
-    <h4>&successful.write;</h4>
-    &successful.write.desc;
+      <img src="chrome://messenger/skin/newmailaccount/success-compose.png"/>
+      <h4>&successful.write;</h4>
+      &successful.write.desc;
     </div>
 
     <div id="success-addons">
-    <img src="chrome://messenger/content/newmailaccount/success-addons.png"/>
-    <h4>&successful.customize;</h4>
-    &successful.customize.desc;
+      <img src="chrome://messenger/skin/newmailaccount/success-addons.png"/>
+      <h4>&successful.customize;</h4>
+      &successful.customize.desc;
     </div>
 
     <div id="success-signature">
-    <img src="chrome://messenger/content/newmailaccount/success-signature.png"/>
-    <h4>&successful.attach;</h4>
-    &successful.attach.desc;
+      <img src="chrome://messenger/skin/newmailaccount/success-signature.png"/>
+      <h4>&successful.attach;</h4>
+      &successful.attach.desc;
     </div>
 
-    <button class="close">&successful.close;</button>
+    <button id="closeWindow" class="close">&successful.close;</button>
   </div>
 
 </body>
@@ -199,7 +198,7 @@
   <!-- Templates!  Woo! -->
 
   <script id="result_tmpl" type="text/html"><![CDATA[
-    <div class="hbox row">
+    <div class="hbox row selection">
       <div class="boxFlex address">${address}</div>
       <div class="pricing">
         <button class="create"

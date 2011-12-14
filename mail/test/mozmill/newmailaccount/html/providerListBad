@@ -1,0 +1,15 @@
+[{"id": "foo",
+  "label": "foo",
+  "paid": true,
+  "languages" : ["en-US"],
+  "api": "http://www.example.com/tbReg?first={firstname}&last={lastname}&email={email}",
+  "url": "http://www.example.com/api/orde"http://foo.com/tos",
+  "privacy_url": "http://foo.com/privacy",
+  "search_engine": "foo"
+ },
+: "http://example.com/",
+  "tos_url": "http://example.com/tos",
+  "privacy_url": "http://example.com/privacy"
+}
+
+]

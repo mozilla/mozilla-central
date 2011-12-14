@@ -245,6 +245,14 @@ classic.jar:
   skin/classic/messenger-newsblog/feed-subscriptions.css      (mail/newsblog/feed-subscriptions.css)
   skin/classic/messenger-newsblog/icons/rss-feed.png          (mail/newsblog/rss-feed.png)
   skin/classic/messenger-newsblog/icons/server-rss.png        (mail/newsblog/server-rss.png)
+  skin/classic/messenger/newmailaccount/accountProvisioner.css          (mail/newmailaccount/accountProvisioner.css)
+  skin/classic/messenger/newmailaccount/search.gif                      (mail/newmailaccount/search.gif)
+  skin/classic/messenger/newmailaccount/spinner.gif                     (mail/newmailaccount/spinner.gif)
+  skin/classic/messenger/newmailaccount/success-addons.png              (mail/newmailaccount/success-addons.png)
+  skin/classic/messenger/newmailaccount/success-border.png              (mail/newmailaccount/success-border.png)
+  skin/classic/messenger/newmailaccount/success-compose.png             (mail/newmailaccount/success-compose.png)
+  skin/classic/messenger/newmailaccount/success-signature.png           (mail/newmailaccount/success-signature.png)
+  skin/classic/messenger/newmailaccount/search.png                      (mail/newmailaccount/search.png)
 #ifdef XP_WIN
 % skin communicator classic/1.0 %skin/classic/aero/communicator/ os=WINNT osversion>=6
   skin/classic/aero/communicator/communicator.css                       (mail/communicator.css)
@@ -462,5 +470,13 @@ classic.jar:
   skin/classic/aero/messenger-newsblog/feed-subscriptions.css      (mail/newsblog/feed-subscriptions.css)
   skin/classic/aero/messenger-newsblog/icons/rss-feed.png          (mail/newsblog/rss-feed-aero.png)
   skin/classic/aero/messenger-newsblog/icons/server-rss.png        (mail/newsblog/server-rss-aero.png)
+  skin/classic/aero/messenger/newmailaccount/accountProvisioner.css          (mail/newmailaccount/accountProvisioner-aero.css)
+  skin/classic/aero/messenger/newmailaccount/search.gif                      (mail/newmailaccount/search.gif)
+  skin/classic/aero/messenger/newmailaccount/spinner.gif                     (mail/newmailaccount/spinner.gif)
+  skin/classic/aero/messenger/newmailaccount/success-addons.png              (mail/newmailaccount/success-addons.png)
+  skin/classic/aero/messenger/newmailaccount/success-border.png              (mail/newmailaccount/success-border.png)
+  skin/classic/aero/messenger/newmailaccount/success-compose.png             (mail/newmailaccount/success-compose.png)
+  skin/classic/aero/messenger/newmailaccount/success-signature.png           (mail/newmailaccount/success-signature.png)
+  skin/classic/aero/messenger/newmailaccount/search.png                      (mail/newmailaccount/search.png)
 
 #endif

@@ -1,0 +1,25 @@
+<clientConfig versi">
+  <emailProvider id="%DOMAIN%">
+    <domain>%EMAILDOMAIN%</domain>
+    <displayName>Provisioned Account</displayName>
+    <displayShortName>Provisioned Account</displayShortName>
+    <incomingServer type="imap">
+      <hostname>imap.%EMAILDOMAIN%</hostname>
+      <socketType>SSL</socketType>
+      <username>%EMAILADDRESS%</username>
+      <authentication>password-cleartext</authentication>
+    </incomingServer>
+    <incomingServer type="pop3">
+      <username>%EMAILLOCALPART%</username>
+      <authentication>password-cleartext</authentication>
+      <password>Testing</password>
+      <pop3>
+      </pop3>
+    </incomingServer>
+    <outgoingServer type="smtp">
+      <hostname>smtp.%EMAILDOMAIN%</hostname>
+      <por465</port>
+      <socketType>SSL</socketType>
+      <username>%EMAILADDRESS%</username>
+      <autddhentication>password-cleartext</authentication>
+    </outgoingServer>

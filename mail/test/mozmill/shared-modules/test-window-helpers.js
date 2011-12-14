@@ -173,7 +173,15 @@ function getWindowTypeForXulWindow(aXULWindow, aBusyOk) {
   // finally, we can now have a windowtype!
   let windowType = outerDoc.documentElement.getAttribute("windowtype") ||
                    outerDoc.documentElement.getAttribute("id");
-  return windowType;
+
+  if (windowType)
+    return windowType;
+
+  // As a last resort, use the name given to the DOM window.
+  let domWindow = aXULWindow.docShell.QueryInterface(Ci.nsIInterfaceRequestor)
+                                     .getInterface(Ci.nsIDOMWindow);
+
+  return domWindow.name;
 }
 
 /**

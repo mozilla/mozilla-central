@@ -3,8 +3,8 @@
   "paid": true,
   "languages" : ["en-US"],
   "api": "http://www.example.com/tbReg?first={firstname}&last={lastname}&email={email}",
-  "tos_url": "http://www.example.com/foo-tos",
-  "privacy_url": "http://www.example.com/foo-privacy",
+  "tos_url": "http://www.example.com/tos",
+  "privacy_url": "http://www.example.com/privacy",
   "search_engine": "foo"
  },
  {"id": "bar",
@@ -12,8 +12,8 @@
   "paid": false,
   "languages" : ["en-US", "fr-FR"],
   "api": "http://localhost:43336/registration.html",
-  "tos_url": "http://www.example.com/bar-tos",
-  "privacy_url": "http://www.example.com/bar-privacy",
+  "tos_url": "http://www.example.com/tos",
+  "privacy_url": "http://www.example.com/privacy",
   "search_engine": "bar"
  },
  {"id": "French",
@@ -21,8 +21,8 @@
   "paid": false,
   "languages" : ["fr-FR"],
   "api": "http://localhost:43336/registration.html",
-  "tos_url": "http://www.example.com/French-tos",
-  "privacy_url": "http://www.example.com/French-privacy",
+  "tos_url": "http://www.example.com/tos",
+  "privacy_url": "http://www.example.com/privacy",
   "search_engine": "French"
  },
  {"id": "German",
@@ -30,16 +30,12 @@
   "paid": false,
   "languages" : ["de-DE"],
   "api": "http://localhost:43336/registration.html",
-  "tos_url": "http://www.example.com/German-tos",
-  "privacy_url": "http://www.example.com/German-privacy",
+  "tos_url": "http://www.example.com/tos",
+  "privacy_url": "http://www.example.com/privacy",
   "search_engine": "German"
-},{"id": "corrupt",
+},
+ {"id": "corrupt",
   "label": "Corrupt Provider",
-  "paid": false,
   "languages" : ["en-US"],
-  "api": "http://localhost:43336/registrationCorrupt.html",
-  "tos_url": "http://www.example.com/corrupt-tos",
-  "privacy_url": "http://www.example.com/corrupt-privacy"
-}
-
-]
+  "api": "http://localhost:43336/registrationCorrupt.html"
+}]
