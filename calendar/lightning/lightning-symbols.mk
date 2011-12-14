@@ -58,7 +58,7 @@ endif
 	cd $(DIST)/crashreporter-symbols && \
 	  zip -r9D "../$(PKG_PATH)$(SYMBOL_FULL_ARCHIVE_BASENAME).zip" .
 	cd $(DIST)/crashreporter-symbols && \
-	  grep "sym" $(SYMBOL_INDEX_NAME) > $(SYMBOL_INDEX_NAME).tmp
+	  grep "sym" $(SYMBOL_INDEX_NAME) > $(SYMBOL_INDEX_NAME).tmp && \
 	  mv $(SYMBOL_INDEX_NAME).tmp $(SYMBOL_INDEX_NAME)
 	cd $(DIST)/crashreporter-symbols && \
           zip -r9D "../$(PKG_PATH)$(SYMBOL_ARCHIVE_BASENAME).zip" . -i "*.sym" -i "*.txt"
