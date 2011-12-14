@@ -2696,7 +2696,7 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
         self.cls.addstmts([ dtor, Whitespace.NL ])
 
         if ptype.isToplevel():
-            # Open()
+            # Open(Transport*, ProcessHandle, MessageLoop*, Side)
             aTransportVar = ExprVar('aTransport')
             aThreadVar = ExprVar('aThread')
             processvar = ExprVar('aOtherProcess')
@@ -2719,6 +2719,31 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
                 StmtExpr(ExprAssn(p.otherProcessVar(), processvar)),
                 StmtReturn(ExprCall(ExprSelect(p.channelVar(), '.', 'Open'),
                                     [ aTransportVar, aThreadVar, sidevar ]))
+            ])
+            self.cls.addstmts([
+                openmeth,
+                Whitespace.NL ])
+
+            # Open(AsyncChannel *, MessageLoop *, Side)
+            aChannel = ExprVar('aChannel')
+            aMessageLoop = ExprVar('aMessageLoop')
+            sidevar = ExprVar('aSide')
+            openmeth = MethodDefn(
+                MethodDecl(
+                    'Open',
+                    params=[ Decl(Type('AsyncChannel', ptr=True),
+                                      aChannel.name),
+                             Param(Type('MessageLoop', ptr=True),
+                                   aMessageLoop.name),
+                             Param(Type('AsyncChannel::Side'),
+                                   sidevar.name,
+                                   default=ExprVar('Channel::Unknown')) ],
+                    ret=Type.BOOL))
+
+            openmeth.addstmts([
+                StmtExpr(ExprAssn(p.otherProcessVar(), ExprLiteral.ZERO)),
+                StmtReturn(ExprCall(ExprSelect(p.channelVar(), '.', 'Open'),
+                                    [ aChannel, aMessageLoop, sidevar ]))
             ])
             self.cls.addstmts([
                 openmeth,
@@ -3367,7 +3392,7 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
             # SharedMemory* CreateSharedMemory(size, type, bool, id_t*):
             #   nsAutoPtr<SharedMemory> seg(Shmem::Alloc(size, type, unsafe));
             #   if (!shmem)
-            #     return false
+            #     return null;
             #   Shmem s(seg, [nextshmemid]);
             #   Message descriptor;
             #   if (!s->ShareTo(subprocess, mId, descriptor) ||
@@ -3395,7 +3420,7 @@ class _GenerateProtocolActorCode(ipdl.ast.Visitor):
                                             p.routingId()))
             ])
             failif = StmtIf(ExprNot(descriptorvar))
-            failif.addifstmt(StmtReturn.FALSE)
+            failif.addifstmt(StmtReturn(ExprLiteral.NULL))
             createshmem.addstmt(failif)
 
             failif = StmtIf(ExprNot(ExprCall(

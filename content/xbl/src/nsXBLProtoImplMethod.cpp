@@ -51,6 +51,7 @@
 #include "nsContentUtils.h"
 #include "nsIScriptSecurityManager.h"
 #include "nsIXPConnect.h"
+#include "nsXBLPrototypeBinding.h"
 
 nsXBLProtoImplMethod::nsXBLProtoImplMethod(const PRUnichar* aName) :
   nsXBLProtoImplMember(aName), 
@@ -172,7 +173,7 @@ nsXBLProtoImplMethod::InstallMember(nsIScriptContext* aContext,
 
 nsresult 
 nsXBLProtoImplMethod::CompileMember(nsIScriptContext* aContext, const nsCString& aClassStr,
-                                    void* aClassObject)
+                                    JSObject* aClassObject)
 {
   NS_TIME_FUNCTION_MIN(5);
   NS_PRECONDITION(!IsCompiled(),
@@ -238,13 +239,13 @@ nsXBLProtoImplMethod::CompileMember(nsIScriptContext* aContext, const nsCString&
   nsresult rv = aContext->CompileFunction(aClassObject,
                                           cname,
                                           paramCount,
-                                          (const char**)args,
+                                          const_cast<const char**>(args),
                                           body, 
                                           functionUri.get(),
                                           uncompiledMethod->mBodyText.GetLineNumber(),
                                           JSVERSION_LATEST,
                                           true,
-                                          (void **) &methodObject);
+                                          &methodObject);
 
   // Destroy our uncompiled method and delete our arg list.
   delete uncompiledMethod;
@@ -265,6 +266,36 @@ nsXBLProtoImplMethod::Trace(TraceCallback aCallback, void *aClosure) const
   if (IsCompiled() && mJSMethodObject) {
     aCallback(nsIProgrammingLanguage::JAVASCRIPT, mJSMethodObject, "mJSMethodObject", aClosure);
   }
+}
+
+nsresult
+nsXBLProtoImplMethod::Read(nsIScriptContext* aContext,
+                           nsIObjectInputStream* aStream)
+{
+  nsresult rv = XBL_DeserializeFunction(aContext, aStream, &mJSMethodObject);
+  if (NS_FAILED(rv)) {
+    SetUncompiledMethod(nsnull);
+    return rv;
+  }
+
+#ifdef DEBUG
+  mIsCompiled = true;
+#endif
+
+  return NS_OK;
+}
+
+nsresult
+nsXBLProtoImplMethod::Write(nsIScriptContext* aContext,
+                            nsIObjectOutputStream* aStream)
+{
+  nsresult rv = aStream->Write8(XBLBinding_Serialize_Method);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  rv = aStream->WriteWStringZ(mName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return XBL_SerializeFunction(aContext, aStream, mJSMethodObject);
 }
 
 nsresult
@@ -344,6 +375,22 @@ nsXBLProtoImplAnonymousMethod::Execute(nsIContent* aBoundElement)
     if (saved)
         JS_RestoreFrameChain(cx);
     return NS_ERROR_FAILURE;
+  }
+
+  return NS_OK;
+}
+
+nsresult
+nsXBLProtoImplAnonymousMethod::Write(nsIScriptContext* aContext,
+                                     nsIObjectOutputStream* aStream,
+                                     XBLBindingSerializeDetails aType)
+{
+  if (mJSMethodObject) {
+    nsresult rv = aStream->Write8(aType);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    rv = XBL_SerializeFunction(aContext, aStream, mJSMethodObject);
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
   return NS_OK;

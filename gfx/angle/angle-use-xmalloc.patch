@@ -1,16 +1,16 @@
 # HG changeset patch
-# Parent 74f1894d664435118be4fdefd53cabfdaa9985bc
+# Parent 31d1c6ebb61eb118868ca924769a2fa3a50d54ef
 diff --git a/gfx/angle/Makefile.in b/gfx/angle/Makefile.in
 --- a/gfx/angle/Makefile.in
 +++ b/gfx/angle/Makefile.in
-@@ -123,16 +123,18 @@ CSRCS   = \
-         memory.c \
-         scanner.c \
-         symbols.c \
-         tokens.c \
+@@ -127,16 +127,18 @@ CSRCS   = \
  	$(NULL)
  
- DEFINES += -DANGLE_USE_NSPR -DANGLE_BUILD
+ DEFINES += -DANGLE_USE_NSPR -DANGLE_BUILD -DCOMPILER_IMPLEMENTATION
+ 
+ #these defines are from ANGLE's build_angle.gyp
+ DEFINES += -DANGLE_DISABLE_TRACE
+ DEFINES += -DANGLE_COMPILE_OPTIMIZATION_LEVEL=D3DCOMPILE_OPTIMIZATION_LEVEL0
  
 +EXTRA_DSO_LDOPTS = $(MOZALLOC_LIB)
 +
@@ -25,13 +25,13 @@ diff --git a/gfx/angle/Makefile.in b/gfx/angle/Makefile.in
 diff --git a/gfx/angle/README.mozilla b/gfx/angle/README.mozilla
 --- a/gfx/angle/README.mozilla
 +++ b/gfx/angle/README.mozilla
-@@ -4,16 +4,17 @@ Current revision: r740
+@@ -3,16 +3,17 @@ This is the ANGLE project, from http://c
+ Current revision: r885
  
  == Applied local patches ==
  
  In this order:
-   angle-nspr-misc.patch - don't bother with ANGLE_OS detection with NSPR
-   angle-renaming.patch - rename debug.h to compilerdebug.h to avoid conflict in our makefiles
+   angle-renaming-debug.patch - rename debug.h to compilerdebug.h to avoid conflict in our makefiles
    angle-intrinsic-msvc2005.patch - work around a MSVC 2005 compile error
    angle-limit-identifiers-to-250-chars.patch - see bug 675625
 +  angle-use-xmalloc.patch - see bug 680840. Can drop this patch whenever the new preprocessor lands.
@@ -43,20 +43,6 @@ diff --git a/gfx/angle/README.mozilla b/gfx/angle/README.mozilla
  1. Unapply patches
  2. Apply diff with new ANGLE version
  3. Reapply patches.
-diff --git a/gfx/angle/angle-limit-identifiers-to-250-chars.patch b/gfx/angle/angle-limit-identifiers-to-250-chars.patch
---- a/gfx/angle/angle-limit-identifiers-to-250-chars.patch
-+++ b/gfx/angle/angle-limit-identifiers-to-250-chars.patch
-@@ -1,8 +1,10 @@
-+# HG changeset patch
-+# Parent f9415c10c3ebd27856500cca7a0ee0f28a16f53c
- diff --git a/gfx/angle/src/compiler/preprocessor/scanner.h b/gfx/angle/src/compiler/preprocessor/scanner.h
- --- a/gfx/angle/src/compiler/preprocessor/scanner.h
- +++ b/gfx/angle/src/compiler/preprocessor/scanner.h
- @@ -44,17 +44,19 @@ NVIDIA HAS BEEN ADVISED OF THE POSSIBILI
-  //
-  // scanner.h
-  //
-  
 diff --git a/gfx/angle/src/compiler/preprocessor/atom.c b/gfx/angle/src/compiler/preprocessor/atom.c
 --- a/gfx/angle/src/compiler/preprocessor/atom.c
 +++ b/gfx/angle/src/compiler/preprocessor/atom.c
@@ -118,7 +104,7 @@ diff --git a/gfx/angle/src/compiler/preprocessor/atom.c b/gfx/angle/src/compiler
 diff --git a/gfx/angle/src/libEGL/Makefile.in b/gfx/angle/src/libEGL/Makefile.in
 --- a/gfx/angle/src/libEGL/Makefile.in
 +++ b/gfx/angle/src/libEGL/Makefile.in
-@@ -150,8 +150,10 @@ RCFILE = $(srcdir)/libEGL.rc
+@@ -153,8 +153,10 @@ RCFILE = $(srcdir)/libEGL.rc
  include $(topsrcdir)/config/rules.mk
  
  EXTRA_DSO_LDOPTS = "$(MOZ_DIRECTX_SDK_PATH)/lib/$(MOZ_DIRECTX_SDK_CPU_SUFFIX)/d3d9.lib" \
@@ -132,7 +118,7 @@ diff --git a/gfx/angle/src/libEGL/Makefile.in b/gfx/angle/src/libEGL/Makefile.in
 diff --git a/gfx/angle/src/libGLESv2/Makefile.in b/gfx/angle/src/libGLESv2/Makefile.in
 --- a/gfx/angle/src/libGLESv2/Makefile.in
 +++ b/gfx/angle/src/libGLESv2/Makefile.in
-@@ -159,8 +159,10 @@ CPPSRCS	+= \
+@@ -162,8 +162,10 @@ CPPSRCS	+= \
  DEFFILE = $(srcdir)/libGLESv2.def
  RCFILE = $(srcdir)/libGLESv2.rc
  

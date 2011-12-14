@@ -41,18 +41,26 @@
 #include "nsISupports.idl"
 
 interface nsIIDBKeyRange;
-interface nsIIDBRequest;
-interface nsIVariant;
+interface nsIIDBOpenDBRequest;
 
 /**
  * Interface that defines the indexedDB property on a window.  See
  * http://dvcs.w3.org/hg/IndexedDB/raw-file/tip/Overview.html#idl-def-IDBFactory
  * for more information.
  */
-[scriptable, uuid(137d17a5-fac5-4788-87b5-bc3806d7cfaf)]
+[scriptable, builtinclass, uuid(885abbb7-cf81-4945-b5f1-07fed07ada82)]
 interface nsIIDBFactory : nsISupports
 {
+  [optional_argc]
+  nsIIDBOpenDBRequest
+  open([Null(Stringify)] in DOMString name,
+       [optional] in long long version);
+
+  nsIIDBOpenDBRequest
+  deleteDatabase(in AString name);
+
   [implicit_jscontext]
-  nsIIDBRequest
-  open(in AString name);
+  short
+  cmp(in jsval first,
+      in jsval second);
 };

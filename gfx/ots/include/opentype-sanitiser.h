@@ -22,6 +22,7 @@ typedef unsigned __int64 uint64_t;
 
 #include <algorithm>  // for std::min
 #include <cassert>
+#include <cstddef>
 #include <cstring>
 
 namespace ots {
@@ -180,8 +181,10 @@ class OTSStream {
 //     partial output may have been written.
 //   input: the OpenType file
 //   length: the size, in bytes, of |input|
+//   preserve_graphite_tables: whether to preserve Graphite Layout tables
 // -----------------------------------------------------------------------------
-bool Process(OTSStream *output, const uint8_t *input, size_t length);
+bool Process(OTSStream *output, const uint8_t *input, size_t length,
+             bool preserve_graphite_tables = false);
 
 // Force to disable debug output even when the library is compiled with
 // -DOTS_DEBUG.

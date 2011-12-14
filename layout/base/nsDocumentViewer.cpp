@@ -657,10 +657,11 @@ DocumentViewerImpl::SyncParentSubDocMap()
       nsCOMPtr<nsIDocument> parent_doc(do_QueryInterface(dom_doc));
 
       if (parent_doc) {
-        if (mDocument && parent_doc->GetSubDocumentFor(content) != mDocument) {
+        if (mDocument &&
+            parent_doc->GetSubDocumentFor(content) != mDocument) {
           mDocument->SuppressEventHandling(parent_doc->EventHandlingSuppressed());
         }
-        return parent_doc->SetSubDocumentFor(content, mDocument);
+        return parent_doc->SetSubDocumentFor(content->AsElement(), mDocument);
       }
     }
   }
@@ -1887,14 +1888,19 @@ DocumentViewerImpl::SetBounds(const nsIntRect& aBounds)
     // window frame.
     // Don't have the widget repaint. Layout will generate repaint requests
     // during reflow.
-    if (mAttachedToParent)
-      mWindow->ResizeClient(aBounds.x, aBounds.y,
-                            aBounds.width, aBounds.height,
-                            false);
-    else
+    if (mAttachedToParent) {
+      if (aBounds.x != 0 || aBounds.y != 0) {
+        mWindow->ResizeClient(aBounds.x, aBounds.y,
+                              aBounds.width, aBounds.height,
+                              false);
+      } else {
+        mWindow->ResizeClient(aBounds.width, aBounds.height, false);
+      }
+    } else {
       mWindow->Resize(aBounds.x, aBounds.y,
                       aBounds.width, aBounds.height,
                       false);
+    }
   } else if (mPresContext && mViewManager) {
     PRInt32 p2a = mPresContext->AppUnitsPerDevPixel();
     mViewManager->SetWindowDimensions(NSIntPixelsToAppUnits(mBounds.width, p2a),
@@ -1959,7 +1965,7 @@ DocumentViewerImpl::Show(void)
         printf("About to evict content viewers: prev=%d, loaded=%d\n",
                prevIndex, loadedIndex);
 #endif
-        historyInt->EvictContentViewers(prevIndex, loadedIndex);
+        historyInt->EvictOutOfRangeContentViewers(loadedIndex);
       }
     }
   }
@@ -2216,6 +2222,11 @@ DocumentViewerImpl::CreateStyleSet(nsIDocument* aDocument,
   sheet = nsLayoutStylesheetCache::FormsSheet();
   if (sheet) {
     styleSet->PrependStyleSheet(nsStyleSet::eAgentSheet, sheet);
+  }
+
+  sheet = nsLayoutStylesheetCache::FullScreenOverrideSheet();
+  if (sheet) {
+    styleSet->PrependStyleSheet(nsStyleSet::eOverrideSheet, sheet);
   }
 
   // Make sure to clone the quirk sheet so that it can be usefully
@@ -3592,10 +3603,8 @@ DocumentViewerImpl::Print(nsIPrintSettings*       aPrintSettings,
     return NS_ERROR_GFX_PRINTER_DOC_IS_BUSY;
   }
 
-  nsCOMPtr<nsIPresShell> presShell;
-  docShell->GetPresShell(getter_AddRefs(presShell));
-  if (!presShell || !mDocument || !mDeviceContext) {
-    PR_PL(("Can't Print without pres shell, document etc"));
+  if (!mDocument || !mDeviceContext) {
+    PR_PL(("Can't Print without a document and a device context"));
     return NS_ERROR_FAILURE;
   }
 

@@ -54,7 +54,7 @@
 
 <?xml-stylesheet href="chrome://browser/content/browser.css" type="text/css"?>
 <?xml-stylesheet href="chrome://browser/content/places/places.css" type="text/css"?>
-<?xml-stylesheet href="chrome://global/skin/webConsole.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/devtools/webconsole.css" type="text/css"?>
 <?xml-stylesheet href="chrome://browser/skin/" type="text/css"?>
 
 <?xul-overlay href="chrome://global/content/editMenuOverlay.xul"?>
@@ -279,7 +279,11 @@
                                if (gContextMenu.shouldDisplay)
                                  updateEditUIVisibility();
                                return gContextMenu.shouldDisplay;"
-               onpopuphiding="if (event.target == this) { gContextMenu = null; updateEditUIVisibility(); }">
+               onpopuphiding="if (event.target != this)
+                                return;
+                              gContextMenu.hiding();
+                              gContextMenu = null;
+                              updateEditUIVisibility();">
 #include browser-context.inc
     </menupopup>
 
@@ -512,8 +516,6 @@
                  ontextentered="this.handleCommand(param);"
                  ontextreverted="return this.handleRevert();"
                  pageproxystate="invalid"
-                 onsearchbegin="LocationBarHelpers._searchBegin();"
-                 onsearchcomplete="LocationBarHelpers._searchComplete();"
                  onfocus="document.getElementById('identity-box').style.MozUserFocus= 'normal'"
                  onblur="setTimeout(function() document.getElementById('identity-box').style.MozUserFocus = '', 0);">
           <box id="notification-popup-box" hidden="true" align="center">
@@ -534,7 +536,6 @@
             <hbox id="identity-box-inner" align="center">
               <stack id="page-proxy-stack"
                      onclick="PageProxyClickHandler(event);">
-                <image id="urlbar-throbber" busy="false"/>
                 <image id="page-proxy-favicon" validate="never"
                        pageproxystate="invalid"
                        onerror="this.removeAttribute('src');"/>
@@ -966,22 +967,63 @@
                   onclick="return contentAreaClick(event, false);"/>
       <statuspanel id="statusbar-display" inactive="true"/>
     </vbox>
+    <splitter id="devtools-side-splitter" hidden="true"/>
+    <vbox id="devtools-sidebar-box" hidden="true"
+          style="min-width: 18em; width: 22em; max-width: 42em;" persist="width">
+      <toolbar id="devtools-sidebar-toolbar" nowindowdrag="true"/>
+      <deck id="devtools-sidebar-deck" flex="1"/>
+    </vbox>
     <vbox id="browser-border-end" hidden="true" layer="true"/>
+  </hbox>
+
+  <hbox id="full-screen-warning-container" hidden="true" fadeout="true">
+    <hbox style="width: 100%;" pack="center"> <!-- Inner hbox needed due to bug 579776. -->
+      <hbox id="full-screen-warning-message">
+        <description id="full-screen-warning-text" value="&domFullScreenWarning.label;"></description>
+      </hbox>
+    </hbox>
   </hbox>
 
   <vbox id="browser-bottombox" layer="true">
     <toolbar id="inspector-toolbar"
              nowindowdrag="true"
              hidden="true">
-      <toolbarbutton id="inspector-inspect-toolbutton"
-                     label="&inspectButton.label;"
-                     accesskey="&inspectButton.accesskey;"
-                     class="toolbarbutton-text"
-                     command="Inspector:Inspect"/>
-      <toolbarseparator />
-      <hbox id="inspector-tools">
-        <!-- registered tools go here -->
-      </hbox>
+      <vbox flex="1">
+        <resizer id="inspector-top-resizer" flex="1" 
+                 class="inspector-resizer"
+                 dir="top" disabled="true"
+                 element="inspector-tree-box"/>
+        <hbox>
+#ifdef XP_MACOSX
+          <toolbarbutton id="highlighter-closebutton"
+                         oncommand="InspectorUI.closeInspectorUI(false);"
+                         tooltiptext="&inspectCloseButton.tooltiptext;"/>
+#endif
+          <toolbarbutton id="inspector-inspect-toolbutton"
+                         label="&inspectButton.label;"
+                         accesskey="&inspectButton.accesskey;"
+                         command="Inspector:Inspect"/>
+          <arrowscrollbox id="inspector-breadcrumbs"
+                          flex="1" orient="horizontal"
+                          clicktoscroll="true"/>
+          <hbox id="inspector-tools">
+            <toolbarbutton id="inspector-style-button"
+                           label="&inspectStyleButton.label;"
+                           accesskey="&inspectStyleButton.accesskey;"
+                           command="Inspector:Sidebar"/>
+            <!-- registered tools go here -->
+          </hbox>
+#ifndef XP_MACOSX
+          <toolbarbutton id="highlighter-closebutton"
+                         oncommand="InspectorUI.closeInspectorUI(false);"
+                         tooltiptext="&inspectCloseButton.tooltiptext;"/>
+#endif
+          <resizer id="inspector-end-resizer"
+                   class="inspector-resizer"
+                   dir="top" disabled="true"
+                   element="inspector-tree-box"/>
+        </hbox>
+      </vbox>
     </toolbar>
     <toolbar id="addon-bar"
              toolbarname="&addonBarCmd.label;" accesskey="&addonBarCmd.accesskey;"
@@ -1021,6 +1063,10 @@
     <svg:mask id="pinstripe-keyhole-forward-mask" maskContentUnits="objectBoundingBox">
       <svg:rect x="0" y="0" width="1" height="1" fill="white"/>
       <svg:circle cx="-0.41" cy="0.5" r="0.65"/>
+    </svg:mask>
+    <svg:mask id="pinstripe-urlbar-back-button-mask" maskContentUnits="userSpaceOnUse">
+      <svg:rect x="0" y="-5" width="10000" height="55" fill="white"/>
+      <svg:circle cx="-9" cy="11" r="15"/>
     </svg:mask>
     <svg:mask id="pinstripe-tab-ontop-left-curve-mask" maskContentUnits="userSpaceOnUse">
       <svg:circle cx="9" cy="3" r="3" fill="white"/>

@@ -1577,7 +1577,15 @@ GetBackgroundClip(gfxContext *aCtx, PRUint8 aBackgroundClip,
   aClipState->mClippedRadii = aBGRadii;
   if (aBackgroundClip != NS_STYLE_BG_CLIP_BORDER) {
     nsMargin border = aForFrame->GetUsedBorder();
-    if (aBackgroundClip != NS_STYLE_BG_CLIP_PADDING) {
+    if (aBackgroundClip == NS_STYLE_BG_CLIP_MOZ_ALMOST_PADDING) {
+      // Reduce |border| by 1px (device pixels) on all sides, if
+      // possible, so that we don't get antialiasing seams between the
+      // background and border.
+      border.top = NS_MAX(0, border.top - aAppUnitsPerPixel);
+      border.right = NS_MAX(0, border.right - aAppUnitsPerPixel);
+      border.bottom = NS_MAX(0, border.bottom - aAppUnitsPerPixel);
+      border.left = NS_MAX(0, border.left - aAppUnitsPerPixel);
+    } else if (aBackgroundClip != NS_STYLE_BG_CLIP_PADDING) {
       NS_ASSERTION(aBackgroundClip == NS_STYLE_BG_CLIP_CONTENT,
                    "unexpected background-clip");
       border += aForFrame->GetUsedPadding();
@@ -1801,6 +1809,13 @@ ComputeLinearGradientLine(nsPresContext* aPresContext,
     } else {
       angle = -M_PI_2; // defaults to vertical gradient starting from top
     }
+    gfxPoint center(aBoxSize.width/2, aBoxSize.height/2);
+    *aLineEnd = ComputeGradientLineEndFromAngle(center, angle, aBoxSize);
+    *aLineStart = gfxPoint(aBoxSize.width, aBoxSize.height) - *aLineEnd;
+  } else if (aGradient->mToCorner) {
+    float xSign = aGradient->mBgPosX.GetPercentValue() * 2 - 1;
+    float ySign = 1 - aGradient->mBgPosY.GetPercentValue() * 2;
+    double angle = atan2(ySign * aBoxSize.width, xSign * aBoxSize.height);
     gfxPoint center(aBoxSize.width/2, aBoxSize.height/2);
     *aLineEnd = ComputeGradientLineEndFromAngle(center, angle, aBoxSize);
     *aLineStart = gfxPoint(aBoxSize.width, aBoxSize.height) - *aLineEnd;
@@ -2374,8 +2389,13 @@ nsCSSRendering::PaintBackgroundWithSC(nsPresContext* aPresContext,
     currentBackgroundClip = bg->BottomLayer().mClip;
     isSolidBorder =
       (aFlags & PAINTBG_WILL_PAINT_BORDER) && IsOpaqueBorder(aBorder);
-    if (isSolidBorder && currentBackgroundClip == NS_STYLE_BG_CLIP_BORDER)
-      currentBackgroundClip = NS_STYLE_BG_CLIP_PADDING;
+    if (isSolidBorder && currentBackgroundClip == NS_STYLE_BG_CLIP_BORDER) {
+      // If we have rounded corners, we need to inflate the background
+      // drawing area a bit to avoid seams between the border and
+      // background.
+      currentBackgroundClip = haveRoundedCorners ?
+        NS_STYLE_BG_CLIP_MOZ_ALMOST_PADDING : NS_STYLE_BG_CLIP_PADDING;
+    }
 
     GetBackgroundClip(ctx, currentBackgroundClip, aForFrame, aBorderArea,
                       aDirtyRect, haveRoundedCorners, bgRadii, appUnitsPerPixel,
@@ -2421,8 +2441,10 @@ nsCSSRendering::PaintBackgroundWithSC(nsPresContext* aPresContext,
       const nsStyleBackground::Layer &layer = bg->mLayers[i];
       if (!aBGClipRect) {
         PRUint8 newBackgroundClip = layer.mClip;
-        if (isSolidBorder && newBackgroundClip == NS_STYLE_BG_CLIP_BORDER)
-          newBackgroundClip = NS_STYLE_BG_CLIP_PADDING;
+        if (isSolidBorder && newBackgroundClip == NS_STYLE_BG_CLIP_BORDER) {
+          newBackgroundClip = haveRoundedCorners ?
+            NS_STYLE_BG_CLIP_MOZ_ALMOST_PADDING : NS_STYLE_BG_CLIP_PADDING;
+        }
         if (currentBackgroundClip != newBackgroundClip || !clipSet) {
           currentBackgroundClip = newBackgroundClip;
           // If clipSet is false that means this is the bottom layer and we
@@ -3829,9 +3851,8 @@ ImageRenderer::PrepareImage()
       // If the referenced element doesn't have a frame we might still be able
       // to paint it if it's an <img>, <canvas>, or <video> element.
       if (!mPaintServerFrame) {
-        nsCOMPtr<nsIDOMElement> imageElement =
-          do_QueryInterface(property->GetReferencedElement());
-        mImageElementSurface = nsLayoutUtils::SurfaceFromElement(imageElement);
+        mImageElementSurface =
+          nsLayoutUtils::SurfaceFromElement(property->GetReferencedElement());
         if (!mImageElementSurface.mSurface)
           return false;
       }

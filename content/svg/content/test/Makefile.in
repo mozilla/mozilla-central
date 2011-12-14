@@ -68,6 +68,7 @@ _TEST_FILES = \
 		dataTypes-helper.svg \
 		getCTM-helper.svg \
 		test_getCTM.html \
+		test_getElementById.xhtml \
 		test_getSubStringLength.xhtml \
 		getSubStringLength-helper.svg \
 		test_isSupported.xhtml \
@@ -83,6 +84,7 @@ _TEST_FILES = \
 		animated-svg-image-helper.html \
 		animated-svg-image-helper.svg \
 		test_stroke-linecap-hit-testing.xhtml \
+		test_SVG_namespace_ids.html \
 		test_SVGLengthList.xhtml \
 		test_SVGLengthList-2.xhtml \
 		test_SVGMatrix.xhtml \

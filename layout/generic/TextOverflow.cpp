@@ -51,6 +51,7 @@
 #include "nsRect.h"
 #include "nsRenderingContext.h"
 #include "nsTextFrame.h"
+#include "nsGfxScrollFrame.h"
 
 namespace mozilla {
 namespace css {
@@ -60,12 +61,10 @@ static const PRUnichar kASCIIPeriodsChar[] = { '.', '.', '.', 0x0 };
 
 // Return an ellipsis if the font supports it,
 // otherwise use three ASCII periods as fallback.
-static nsDependentString GetEllipsis(nsIFrame* aFrame)
+static nsDependentString GetEllipsis(nsFontMetrics *aFontMetrics)
 {
   // Check if the first font supports Unicode ellipsis.
-  nsRefPtr<nsFontMetrics> fm;
-  nsLayoutUtils::GetFontMetricsForFrame(aFrame, getter_AddRefs(fm));
-  gfxFontGroup* fontGroup = fm->GetThebesFontGroup();
+  gfxFontGroup* fontGroup = aFontMetrics->GetThebesFontGroup();
   gfxFont* firstFont = fontGroup->GetFontAt(0);
   return firstFont && firstFont->HasCharacter(kEllipsisChar[0])
     ? nsDependentString(kEllipsisChar,
@@ -104,11 +103,8 @@ IsFullyClipped(nsTextFrame* aFrame, nscoord aLeft, nscoord aRight,
   if (aLeft <= 0 && aRight <= 0) {
     return false;
   }
-  nsRefPtr<nsRenderingContext> rc =
-    aFrame->PresContext()->PresShell()->GetReferenceRenderingContext();
-  return rc &&
-    !aFrame->MeasureCharClippedText(rc->ThebesContext(), aLeft, aRight,
-                                    aSnappedLeft, aSnappedRight);
+  return !aFrame->MeasureCharClippedText(aLeft, aRight,
+                                         aSnappedLeft, aSnappedRight);
 }
 
 static bool
@@ -248,7 +244,8 @@ nsDisplayTextOverflowMarker::PaintTextToContext(nsRenderingContext* aCtx,
                                                 nsPoint aOffsetFromRect)
 {
   nsRefPtr<nsFontMetrics> fm;
-  nsLayoutUtils::GetFontMetricsForFrame(mFrame, getter_AddRefs(fm));
+  nsLayoutUtils::GetFontMetricsForFrame(mFrame, getter_AddRefs(fm),
+    nsLayoutUtils::FontSizeInflationFor(mFrame));
   aCtx->SetFont(fm);
   gfxFloat y = nsLayoutUtils::GetSnappedBaselineY(mFrame, aCtx->ThebesContext(),
                                                   mRect.y, mAscent);
@@ -278,6 +275,8 @@ TextOverflow::WillProcessLines(nsDisplayListBuilder*   aBuilder,
     textOverflow->mCanHaveHorizontalScrollbar =
       scroll->GetScrollbarStyles().mHorizontal != NS_STYLE_OVERFLOW_HIDDEN;
     textOverflow->mContentArea.MoveBy(scroll->GetScrollPosition());
+    nsIFrame* scrollFrame = do_QueryFrame(scroll);
+    scrollFrame->AddStateBits(NS_SCROLLFRAME_INVALIDATE_CONTENTS_ON_SCROLL);
   }
   PRUint8 direction = aBlockFrame->GetStyleVisibility()->mDirection;
   textOverflow->mBlockIsRTL = direction == NS_STYLE_DIRECTION_RTL;
@@ -288,23 +287,6 @@ TextOverflow::WillProcessLines(nsDisplayListBuilder*   aBuilder,
   // has overflow on that side.
 
   return textOverflow.forget();
-}
-
-void
-TextOverflow::DidProcessLines()
-{
-  nsIScrollableFrame* scroll = nsLayoutUtils::GetScrollableFrameFor(mBlock);
-  if (scroll) {
-    // Create a dummy item covering the entire area, it doesn't paint
-    // but reports true for IsVaryingRelativeToMovingFrame().
-    nsIFrame* scrollFrame = do_QueryFrame(scroll);
-    nsDisplayItem* marker = new (mBuilder)
-      nsDisplayForcePaintOnScroll(mBuilder, scrollFrame);
-    if (marker) {
-      mMarkerList->AppendNewToBottom(marker);
-      mBlock->PresContext()->SetHasFixedBackgroundFrame();
-    }
-  }
 }
 
 void
@@ -676,11 +658,12 @@ TextOverflow::Marker::SetupString(nsIFrame* aFrame)
   nsRefPtr<nsRenderingContext> rc =
     aFrame->PresContext()->PresShell()->GetReferenceRenderingContext();
   nsRefPtr<nsFontMetrics> fm;
-  nsLayoutUtils::GetFontMetricsForFrame(aFrame, getter_AddRefs(fm));
+  nsLayoutUtils::GetFontMetricsForFrame(aFrame, getter_AddRefs(fm),
+    nsLayoutUtils::FontSizeInflationFor(aFrame));
   rc->SetFont(fm);
 
   mMarkerString = mStyle->mType == NS_STYLE_TEXT_OVERFLOW_ELLIPSIS ?
-                    GetEllipsis(aFrame) : mStyle->mString;
+                    GetEllipsis(fm) : mStyle->mString;
   mWidth = nsLayoutUtils::GetStringWidth(aFrame, rc, mMarkerString.get(),
                                          mMarkerString.Length());
   mInitialized = true;

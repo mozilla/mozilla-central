@@ -99,7 +99,7 @@ XPCWrappedNativeProto::Init(XPCCallContext& ccx,
         mScriptableInfo =
             XPCNativeScriptableInfo::Construct(ccx, isGlobal, scriptableCreateInfo);
         if (!mScriptableInfo)
-            return JS_FALSE;
+            return false;
     }
 
     js::Class* jsclazz;
@@ -136,7 +136,7 @@ XPCWrappedNativeProto::Init(XPCCallContext& ccx,
             JS_SetPrivate(ccx, mJSProtoObject, nsnull);
             mJSProtoObject = nsnull;
             XPCThrower::Throw(rv, ccx);
-            return JS_FALSE;
+            return false;
         }
     }
 
@@ -163,7 +163,7 @@ XPCWrappedNativeProto::JSProtoObjectFinalized(JSContext *cx, JSObject *obj)
     GetRuntime()->GetDetachedWrappedNativeProtoMap()->Remove(this);
     GetRuntime()->GetDyingWrappedNativeProtoMap()->Add(this);
 
-    mJSProtoObject = nsnull;
+    mJSProtoObject.finalize(cx);
 }
 
 void
@@ -219,9 +219,9 @@ XPCWrappedNativeProto::GetNewOrUsed(XPCCallContext& ccx,
         (ScriptableCreateInfo &&
          ScriptableCreateInfo->GetFlags().DontSharePrototype())) {
         ciFlags |= XPC_PROTO_DONT_SHARE;
-        shared = JS_FALSE;
+        shared = false;
     } else {
-        shared = JS_TRUE;
+        shared = true;
     }
 
     if (shared) {
@@ -266,7 +266,7 @@ XPCWrappedNativeProto::DebugDump(PRInt16 depth)
     XPC_LOG_INDENT();
         XPC_LOG_ALWAYS(("gDEBUG_LiveProtoCount is %d", gDEBUG_LiveProtoCount));
         XPC_LOG_ALWAYS(("mScope @ %x", mScope));
-        XPC_LOG_ALWAYS(("mJSProtoObject @ %x", mJSProtoObject));
+        XPC_LOG_ALWAYS(("mJSProtoObject @ %x", mJSProtoObject.get()));
         XPC_LOG_ALWAYS(("mSet @ %x", mSet));
         XPC_LOG_ALWAYS(("mSecurityInfo of %x", mSecurityInfo));
         XPC_LOG_ALWAYS(("mScriptableInfo @ %x", mScriptableInfo));

@@ -97,6 +97,34 @@
       // disabled, too. See bug 429285.
       testAriaDisabledTree("group");
 
+      // aria-multiline
+      testStates("aria_multiline_textbox", 0, EXT_STATE_MULTI_LINE);
+
+      // aria-multiselectable
+      testStates("aria_multiselectable_listbox",
+                 STATE_MULTISELECTABLE | STATE_EXTSELECTABLE);
+
+      // aria-pressed
+      testStates("aria_pressed_button", STATE_PRESSED | STATE_CHECKABLE);
+
+      // aria-readonly
+      testStates("aria_readonly_textbox", STATE_READONLY);
+
+      // aria-selectable
+      testStates("aria_selectable_listitem", STATE_SELECTABLE | STATE_SELECTED);
+
+      // active state caused by aria-activedescendant
+      testStates("as_item1", 0, EXT_STATE_ACTIVE);
+      testStates("as_item2", 0, 0, 0, EXT_STATE_ACTIVE);
+
+      // universal ARIA properties inherited from file input control
+      var fileTextField = getAccessible("fileinput").firstChild;
+      testStates(fileTextField,
+                 STATE_BUSY | STATE_UNAVAILABLE | STATE_REQUIRED | STATE_HASPOPUP | STATE_INVALID);
+      var fileBrowseButton = getAccessible("fileinput").lastChild;
+      testStates(fileBrowseButton,
+                 STATE_BUSY | STATE_UNAVAILABLE | STATE_REQUIRED | STATE_HASPOPUP | STATE_INVALID);
+
       // offscreen test
       testStates("aria_offscreen_textbox", STATE_OFFSCREEN);
 
@@ -124,10 +152,16 @@
       testStates("aria_main_anchor", STATE_SELECTABLE);
       testStates("aria_navigation_anchor", STATE_SELECTABLE);
 
-      // scrollbar
-      testStates("aria_scrollbar", 0, EXT_STATE_VERTICAL);
+      // aria-orientation (applied to scrollbar, separator, slider)
+      testStates("aria_scrollbar", 0, EXT_STATE_HORIZONTAL);
       testStates("aria_hscrollbar", 0, EXT_STATE_HORIZONTAL);
       testStates("aria_vscrollbar", 0, EXT_STATE_VERTICAL);
+      testStates("aria_separator", 0, EXT_STATE_HORIZONTAL);
+      testStates("aria_hseparator", 0, EXT_STATE_HORIZONTAL);
+      testStates("aria_vseparator", 0, EXT_STATE_VERTICAL);
+      testStates("aria_slider", 0, EXT_STATE_HORIZONTAL);
+      testStates("aria_hslider", 0, EXT_STATE_HORIZONTAL);
+      testStates("aria_vslider", 0, EXT_STATE_VERTICAL);
 
       SimpleTest.finish();
     }
@@ -159,6 +193,26 @@
      href="https://bugzilla.mozilla.org/show_bug.cgi?id=681674"
      title="aria-autocomplete not supported on standard form text input controls">
     Mozilla Bug 681674
+  </a>
+  <a target="_blank"
+     href="https://bugzilla.mozilla.org/show_bug.cgi?id=681674"
+     title="aria-orientation should be applied to separator and slider roles">
+    Mozilla Bug 681674
+  </a>
+  <a target="_blank"
+     href="https://bugzilla.mozilla.org/show_bug.cgi?id=699017"
+     title="File input control should be propogate states to descendants">
+    Mozilla Bug 699017
+  </a>
+  <a target="_blank"
+     href="https://bugzilla.mozilla.org/show_bug.cgi?id=689847"
+     title="Expose active state on current item of selectable widgets">
+    Mozilla Bug 689847
+  </a>
+  <a target="_blank"
+     href="https://bugzilla.mozilla.org/show_bug.cgi?id=457226"
+     title="Mochitests for ARIA states">
+    Mozilla Bug 457226
   </a>
   <p id="display"></p>
   <div id="content" style="display: none"></div>
@@ -192,6 +246,13 @@
   <div id="aria_mixed_checkbox" role="checkbox" aria-checked="mixed">
     I might agree
   </div>
+  <div id="aria_multiline_textbox" role="textbox" aria-multiline="true"></div>
+  <div id="aria_multiselectable_listbox" role="listbox" aria-multiselectable="true"></div>
+  <div id="aria_pressed_button" role="button" aria-pressed="true">Button</div>
+  <div id="aria_readonly_textbox" role="textbox" aria-readonly="true">This text should be readonly</div>
+  <div role="listbox">
+    <div id="aria_selectable_listitem" role="option" aria-selected="true">Item1</div>
+  </div>
 
   <!-- Test that aria-disabled state gets propagated to all descendants -->
   <div id="group" role="group" aria-disabled="true">
@@ -204,7 +265,22 @@
     </div>
     <div role="slider" tabindex="0">A slider</div>
   </div>
-  
+
+  <!-- Test active state -->
+  <div id="as_listbox" tabindex="0" role="listbox"
+       aria-activedescendant="as_item1">
+    <div role="option" id="as_item1">Item 1</div>
+    <div role="option" id="as_item2">Item 2</div>
+  </div>
+
+  <!-- universal ARIA properties should be inherited by text field of file input -->
+  <input type="file" id="fileinput"
+         aria-busy="true"
+         aria-disabled="true"
+         aria-required="true"
+         aria-haspopup="true"
+         aria-invalid="true">
+
   <div id="offscreen_log" role="log" class="offscreen">
     <div id="aria_offscreen_textbox" role="textbox" aria-readonly="true">This text should be offscreen</div>
   </div>
@@ -227,9 +303,15 @@
   <a id="aria_main_anchor" role="main" name="main_anchor">main</a>
   <a id="aria_navigation_anchor" role="navigation" name="nav_anchor">nav</a>
 
-  <!-- scrollbar -->
-  <div id="aria_scrollbar" role="scrollbar">scrollbar</a>
-  <div id="aria_hscrollbar" role="scrollbar" aria-orientation="horizontal">horizontal scrollbar</a>
-  <div id="aria_vscrollbar" role="scrollbar" aria-orientation="vertical">vertical scrollbar</a>
+  <!-- aria-orientation -->
+  <div id="aria_scrollbar" role="scrollbar">scrollbar</div>
+  <div id="aria_hscrollbar" role="scrollbar" aria-orientation="horizontal">horizontal scrollbar</div>
+  <div id="aria_vscrollbar" role="scrollbar" aria-orientation="vertical">vertical scrollbar</div>
+  <div id="aria_separator" role="separator">separator</div>
+  <div id="aria_hseparator" role="separator" aria-orientation="horizontal">horizontal separator</div>
+  <div id="aria_vseparator" role="separator" aria-orientation="vertical">vertical separator</div>
+  <div id="aria_slider" role="slider">slider</div>
+  <div id="aria_hslider" role="slider" aria-orientation="horizontal">horizontal slider</div>
+  <div id="aria_vslider" role="slider" aria-orientation="vertical">vertical slider</div>
 </body>
 </html>

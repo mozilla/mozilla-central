@@ -174,8 +174,9 @@ NS_IMETHODIMP nsBMPEncoder::StartImageEncode(PRUint32 aWidth,
   return NS_OK;
 }
 
-// Returns the image buffer size
-NS_IMETHODIMP nsBMPEncoder::GetImageBufferSize(PRUint32 *aOutputSize)
+// Returns the number of bytes in the image buffer used.
+// For a BMP file, this is all bytes in the buffer.
+NS_IMETHODIMP nsBMPEncoder::GetImageBufferUsed(PRUint32 *aOutputSize)
 {
   NS_ENSURE_ARG_POINTER(aOutputSize);
   *aOutputSize = mImageBufferSize;
@@ -441,15 +442,12 @@ nsBMPEncoder::ConvertHostARGBRow(const PRUint8* aSrc, PRUint8* aDest,
     PRUint8 *pixelOut = &aDest[x * BytesPerPixel(mBMPInfoHeader.bpp)];
 
     PRUint8 alpha = (pixelIn & 0xff000000) >> 24;
-    if (alpha == 0) {
-      pixelOut[0] = pixelOut[1] = pixelOut[2] = 0;
-    } else {
-      pixelOut[0] = (((pixelIn & 0xff0000) >> 16) * 255 + alpha / 2) / alpha;
-      pixelOut[1] = (((pixelIn & 0x00ff00) >>  8) * 255 + alpha / 2) / alpha;
-      pixelOut[2] = (((pixelIn & 0x0000ff) >>  0) * 255 + alpha / 2) / alpha;
-      if(mBMPInfoHeader.bpp == 32) {
-        pixelOut[3] = alpha;
-      }
+    pixelOut[0] = (((pixelIn & 0xff0000) >> 16));
+    pixelOut[1] = (((pixelIn & 0x00ff00) >>  8));
+    pixelOut[2] = (((pixelIn & 0x0000ff) >>  0));
+
+    if (mBMPInfoHeader.bpp == 32) {
+      pixelOut[3] = alpha;
     }
   }
 }

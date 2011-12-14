@@ -271,7 +271,9 @@ public:
   void
   TraceInstance(JSTracer* aTrc)
   {
-    AssertIsOnParentThread();
+    // This should only happen on the parent thread but we can't assert that
+    // because it can also happen on the cycle collector thread when this is a
+    // top-level worker.
     events::EventTarget::TraceInstance(aTrc);
   }
 
@@ -375,7 +377,7 @@ public:
     return mBaseURI;
   }
 
-  nsresult
+  void
   SetBaseURI(nsIURI* aBaseURI);
 
   nsIURI*
@@ -506,6 +508,7 @@ class WorkerPrivate : public WorkerPrivateParent<WorkerPrivate>
 
   // Touched on multiple threads, protected with mMutex.
   JSContext* mJSContext;
+  nsRefPtr<WorkerCrossThreadDispatcher> mCrossThreadDispatcher;
 
   // Things touched on worker thread only.
   nsTArray<ParentType*> mChildWorkers;
@@ -690,6 +693,9 @@ public:
   AssertIsOnWorkerThread() const
   { }
 #endif
+
+  WorkerCrossThreadDispatcher*
+  GetCrossThreadDispatcher();
 
 private:
   WorkerPrivate(JSContext* aCx, JSObject* aObject, WorkerPrivate* aParent,

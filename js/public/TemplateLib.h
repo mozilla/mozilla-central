@@ -87,7 +87,7 @@ template <size_t i> struct CeilingLog2 {
 
 /* Round up to the nearest power of 2. */
 template <size_t i> struct RoundUpPow2 {
-    static const size_t result = 1u << CeilingLog2<i>::result;
+    static const size_t result = size_t(1) << CeilingLog2<i>::result;
 };
 template <> struct RoundUpPow2<0> {
     static const size_t result = 1;
@@ -170,10 +170,6 @@ template <> struct IsPodType<float>                 { static const bool result =
 template <> struct IsPodType<double>                { static const bool result = true; };
 template <> struct IsPodType<wchar_t>               { static const bool result = true; };
 template <typename T> struct IsPodType<T *>         { static const bool result = true; };
-
-/* Return the size/end of an array without using macros. */
-template <class T, size_t N> inline T *ArraySize(T (&)[N]) { return N; }
-template <class T, size_t N> inline T *ArrayEnd(T (&arr)[N]) { return arr + N; }
 
 template <bool cond, typename T, T v1, T v2> struct If        { static const T result = v1; };
 template <typename T, T v1, T v2> struct If<false, T, v1, v2> { static const T result = v2; };

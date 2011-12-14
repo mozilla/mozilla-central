@@ -108,6 +108,7 @@
     </p>
     
     <ul>
+      <li><a href="about:license#android">Android Open Source License</a></li>
       <li><a href="about:license#angle">ANGLE License</a></li>
       <li><a href="about:license#apple">Apple License</a></li>
       <li><a href="about:license#apple-mozilla">Apple/Mozilla NPRuntime License</a></li>
@@ -137,10 +138,13 @@
       <li><a href="about:license#hunspell-lt">Lithuanian Spellchecking Dictionary License</a></li>
       <li><a href="about:license#maattachedwindow">MAAttachedWindow</a></li>
       <li><a href="about:license#directx">Microsoft DirectX License</a></li>
+      <li><a href="about:license#msstdint">msstdint License</a></li>
       <li><a href="about:license#openvision">OpenVision License</a></li>
       <li><a href="about:license#qcms">qcms License</a></li>
       <li><a href="about:license#xdg">Red Hat xdg_user_dir_lookup License</a></li>
       <li><a href="about:license#hunspell-ru">Russian Spellchecking Dictionary License</a></li>
+      <li><a href="about:license#skia">Skia License</a></li>
+      <li><a href="about:license#snappy">Snappy License</a></li>
       <li><a href="about:license#sparkle">Sparkle License</a></li>
       <li><a href="about:license#sunsoft">SunSoft License</a></li>
       <li><a href="about:license#ucal">University of California License</a></li>      
@@ -1937,6 +1941,39 @@ necessary.  Here is a sample; alter the names:
 
     <hr>
 
+    <h1><a name="android"></a>Android Open Source License</h1>
+
+    <p>This license applies to the file
+    <span class="path">dom/plugins/base/android/android_npapi.h</span>.</p>
+
+<pre>
+ Copyright 2009, The Android Open Source Project
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions
+ are met:
+  * Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+  * Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS ``AS IS'' AND ANY
+ EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE COPYRIGHT OWNER OR
+ CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+ EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+ PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+ PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+ OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</pre>
+
+
+    <hr>
+
     <h1><a name="angle"></a>ANGLE License</h1>
 
     <p>This license applies to files in the directory <span class="path">gfx/angle/</span>.</p>
@@ -2014,7 +2051,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <h1><a name="apple-mozilla"></a>Apple/Mozilla NPRuntime License</h1>
 
     <p>This license applies to the file
-    <span class="path">modules/plugin/base/public/npruntime.h</span>.</p>
+    <span class="path">dom/plugins/base/npruntime.h</span>.</p>
 
 <pre>
 Copyright &copy; 2004, Apple Computer, Inc. and The Mozilla Foundation. 
@@ -2224,6 +2261,7 @@ WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
       and also some files in the directories
       <span class="path">ipc/chromium/</span>,
       <span class="path">dom/plugins/</span>,
+      <span class="path">tools/profiler/sps/</span>,
       <span class="path">gfx/ots/</span> and
       <span class="path">gfx/ycbcr</span>.
     </p>
@@ -2622,12 +2660,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     <h1><a name="growl"></a>Growl License</h1>
 
     <p>This license applies to certain files in the directory
-    <span class="path">toolkit/components/alerts/src/mac/growl/</span> and
-    <span class="path">camino/growl/</span>. (This code only ships in the Mac
-    OS X version of the product.)
+    <span class="path">toolkit/components/alerts/mac/growl/</span>.
+    (This code only ships in the Mac OS X version of the product.)
 
 <pre>
-Copyright (c) The Growl Project, 2004-2009
+Copyright (c) The Growl Project, 2004-2011
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification,
@@ -3105,6 +3142,46 @@ and international export laws and regulations that apply to the Distributable
 Code.
 </pre>
 
+
+    <hr>
+
+    <h1><a name="msstdint"></a>msstdint License</h1>
+
+    <p>This license applies to the file
+    <span class="path">mfbt/MSStdInt.h</span>.</p>
+
+<pre>
+ISO C9x  compliant stdint.h for Microsoft Visual Studio
+Based on ISO/IEC 9899:TC2 Committee draft (May 6, 2005) WG14/N1124 
+
+ Copyright (c) 2006-2008 Alexander Chemeris
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are met:
+
+  1. Redistributions of source code must retain the above copyright notice,
+     this list of conditions and the following disclaimer.
+
+  2. Redistributions in binary form must reproduce the above copyright
+     notice, this list of conditions and the following disclaimer in the
+     documentation and/or other materials provided with the distribution.
+
+  3. The name of the author may be used to endorse or promote products
+     derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</pre>
+
+
     <hr>
 
     <h1><a name="openvision"></a>OpenVision License</h1>
@@ -3237,6 +3314,80 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 POSSIBILITY OF SUCH DAMAGE.
 </pre>
 
+    <hr>
+
+    <h1><a name="skia"></a>Skia License</h1>
+
+    <p>This license applies to certain files in the directory
+    <span class="path">gfx/skia/</span>.</p>
+
+<pre>
+Copyright (c) 2011 Google Inc. All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+* Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+* Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+* Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</pre>
+    
+    <hr>
+
+    <h1><a name="snappy"></a>Snappy License</h1>
+
+    <p>This license applies to certain files in the directory
+    <span class="path">other-licenses/snappy/</span>.</p>
+
+<pre>
+Copyright 2011, Google Inc.
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+    * Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above
+copyright notice, this list of conditions and the following disclaimer
+in the documentation and/or other materials provided with the
+distribution.
+    * Neither the name of Google Inc. nor the names of its
+contributors may be used to endorse or promote products derived from
+this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+</pre>
 
     <hr>
 

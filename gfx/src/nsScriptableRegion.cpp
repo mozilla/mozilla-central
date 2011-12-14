@@ -152,52 +152,35 @@ NS_IMETHODIMP nsScriptableRegion::GetRegion(nsIntRegion* outRgn)
   return NS_OK;
 }
 
-NS_IMETHODIMP nsScriptableRegion::GetRects() {
-  nsAXPCNativeCallContext *ncc = nsnull;
-  nsresult rv;
-  nsCOMPtr<nsIXPConnect> xpConnect = do_GetService(nsIXPConnect::GetCID(), &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = xpConnect->GetCurrentNativeCallContext(&ncc);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if (!ncc)
-    return NS_ERROR_FAILURE;
-  
-  jsval *retvalPtr;
-  ncc->GetRetValPtr(&retvalPtr);
-
+NS_IMETHODIMP nsScriptableRegion::GetRects(JSContext* aCx, JS::Value* aRects)
+{
   PRUint32 numRects = mRegion.GetNumRects();
 
   if (!numRects) {
-    *retvalPtr = JSVAL_NULL;
-    ncc->SetReturnValueWasSet(true);
+    *aRects = JSVAL_NULL;
     return NS_OK;
   }
 
-  JSContext *cx = nsnull;
+  JSObject* destArray = JS_NewArrayObject(aCx, numRects * 4, NULL);
+  if (!destArray) {
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
 
-  rv = ncc->GetJSContext(&cx);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  JSObject *destArray = JS_NewArrayObject(cx, numRects*4, NULL);
-  *retvalPtr = OBJECT_TO_JSVAL(destArray);
-  ncc->SetReturnValueWasSet(true);
+  *aRects = OBJECT_TO_JSVAL(destArray);
 
   uint32 n = 0;
   nsIntRegionRectIterator iter(mRegion);
   const nsIntRect *rect;
 
   while ((rect = iter.Next())) {
-    // This will contain bogus data if values don't fit in 31 bit
-    JS_DefineElement(cx, destArray, n, INT_TO_JSVAL(rect->x), NULL, NULL, JSPROP_ENUMERATE);
-    JS_DefineElement(cx, destArray, n+1, INT_TO_JSVAL(rect->y), NULL, NULL, JSPROP_ENUMERATE);
-    JS_DefineElement(cx, destArray, n+2, INT_TO_JSVAL(rect->width), NULL, NULL, JSPROP_ENUMERATE);
-    JS_DefineElement(cx, destArray, n+3, INT_TO_JSVAL(rect->height), NULL, NULL, JSPROP_ENUMERATE);
-
+    if (!JS_DefineElement(aCx, destArray, n, INT_TO_JSVAL(rect->x), NULL, NULL, JSPROP_ENUMERATE) ||
+        !JS_DefineElement(aCx, destArray, n + 1, INT_TO_JSVAL(rect->y), NULL, NULL, JSPROP_ENUMERATE) ||
+        !JS_DefineElement(aCx, destArray, n + 2, INT_TO_JSVAL(rect->width), NULL, NULL, JSPROP_ENUMERATE) ||
+        !JS_DefineElement(aCx, destArray, n + 3, INT_TO_JSVAL(rect->height), NULL, NULL, JSPROP_ENUMERATE)) {
+      return NS_ERROR_FAILURE;
+    }
     n += 4;
   }
 
-  NS_ENSURE_SUCCESS(rv, rv);
   return NS_OK;
 }

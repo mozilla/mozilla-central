@@ -140,9 +140,9 @@ NS_MEMORY_REPORTER_IMPLEMENT(
 // DirectWrite is not available on all platforms, we need to use the function
 // pointer.
 typedef HRESULT (WINAPI*DWriteCreateFactoryFunc)(
-  __in   DWRITE_FACTORY_TYPE factoryType,
-  __in   REFIID iid,
-  __out  IUnknown **factory
+  DWRITE_FACTORY_TYPE factoryType,
+  REFIID iid,
+  IUnknown **factory
 );
 #endif
 
@@ -489,7 +489,13 @@ gfxWindowsPlatform::GetScaledFontForFont(gfxFont *aFont)
     return scaledFont;
   }
 
-  return NULL;
+  NativeFont nativeFont;
+  nativeFont.mType = NATIVE_FONT_GDI_FONT_FACE;
+  nativeFont.mFont = aFont;
+  RefPtr<ScaledFont> scaledFont =
+    Factory::CreateScaledFontForNativeFont(nativeFont, aFont->GetAdjustedSize());
+
+  return scaledFont;
 }
 
 already_AddRefed<gfxASurface>
@@ -516,6 +522,23 @@ gfxWindowsPlatform::GetThebesSurfaceForDrawTarget(DrawTarget *aTarget)
 #endif
 
   return gfxPlatform::GetThebesSurfaceForDrawTarget(aTarget);
+}
+
+bool
+gfxWindowsPlatform::SupportsAzure(BackendType& aBackend)
+{
+#ifdef CAIRO_HAS_D2D_SURFACE
+  if (mRenderMode == RENDER_DIRECT2D) {
+      aBackend = BACKEND_DIRECT2D;
+      return true;
+  }
+#endif
+  
+  if (Preferences::GetBool("gfx.canvas.azure.prefer-skia", false)) {
+    aBackend = BACKEND_SKIA;
+    return true;
+  }
+  return false;
 }
 
 nsresult

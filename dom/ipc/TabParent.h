@@ -103,11 +103,16 @@ public:
     virtual bool RecvNotifyIMETextHint(const nsString& aText);
     virtual bool RecvEndIMEComposition(const bool& aCancel,
                                        nsString* aComposition);
-    virtual bool RecvGetIMEEnabled(PRUint32* aValue);
-    virtual bool RecvSetInputMode(const PRUint32& aValue, const nsString& aType, const nsString& aAction, const PRUint32& aReason);
-    virtual bool RecvGetIMEOpenState(bool* aValue);
-    virtual bool RecvSetIMEOpenState(const bool& aValue);
+    virtual bool RecvGetInputContext(PRInt32* aIMEEnabled,
+                                     PRInt32* aIMEOpen);
+    virtual bool RecvSetInputContext(const PRInt32& aIMEEnabled,
+                                     const PRInt32& aIMEOpen,
+                                     const nsString& aType,
+                                     const nsString& aActionHint,
+                                     const PRInt32& aCause,
+                                     const PRInt32& aFocusChange);
     virtual bool RecvSetCursor(const PRUint32& aValue);
+    virtual bool RecvSetBackgroundColor(const nscolor& aValue);
     virtual bool RecvGetDPI(float* aValue);
     virtual bool RecvGetWidgetNativeData(WindowsHandle* aValue);
     virtual PContentDialogParent* AllocPContentDialog(const PRUint32& aType,
@@ -130,6 +135,13 @@ public:
     void UpdateDimensions(const nsRect& rect, const nsIntSize& size);
     void Activate();
     void Deactivate();
+
+    /**
+     * Is this object active?  That is, was Activate() called more recently than
+     * Deactivate()?
+     */
+    bool Active();
+
     void SendMouseEvent(const nsAString& aType, float aX, float aY,
                         PRInt32 aButton, PRInt32 aClickCount,
                         PRInt32 aModifiers, bool aIgnoreRootScrollFrame);
@@ -220,6 +232,7 @@ protected:
     PRUint32 mIMESeqno;
 
     float mDPI;
+    bool mActive;
 
 private:
     already_AddRefed<nsFrameLoader> GetFrameLoader() const;

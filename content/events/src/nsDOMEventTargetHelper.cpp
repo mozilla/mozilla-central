@@ -90,6 +90,13 @@ NS_IMPL_CYCLE_COLLECTING_RELEASE(nsDOMEventTargetHelper)
 
 NS_IMPL_DOMTARGET_DEFAULTS(nsDOMEventTargetHelper);
 
+nsDOMEventTargetHelper::~nsDOMEventTargetHelper()
+{
+  if (mListenerManager) {
+    mListenerManager->Disconnect();
+  }
+}
+
 NS_IMETHODIMP
 nsDOMEventTargetHelper::RemoveEventListener(const nsAString& aType,
                                             nsIDOMEventListener* aListener,
@@ -102,6 +109,8 @@ nsDOMEventTargetHelper::RemoveEventListener(const nsAString& aType,
 
   return NS_OK;
 }
+
+NS_IMPL_REMOVE_SYSTEM_EVENT_LISTENER(nsDOMEventTargetHelper)
 
 NS_IMETHODIMP
 nsDOMEventTargetHelper::AddEventListener(const nsAString& aType,
@@ -128,6 +137,31 @@ nsDOMEventTargetHelper::AddEventListener(const nsAString& aType,
   NS_ENSURE_STATE(elm);
   elm->AddEventListener(aType, aListener, aUseCapture, aWantsUntrusted);
   return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDOMEventTargetHelper::AddSystemEventListener(const nsAString& aType,
+                                               nsIDOMEventListener *aListener,
+                                               bool aUseCapture,
+                                               bool aWantsUntrusted,
+                                               PRUint8 aOptionalArgc)
+{
+  NS_ASSERTION(!aWantsUntrusted || aOptionalArgc > 1,
+               "Won't check if this is chrome, you want to set "
+               "aWantsUntrusted to false or make the aWantsUntrusted "
+               "explicit by making aOptionalArgc non-zero.");
+
+  if (aOptionalArgc < 2) {
+    nsresult rv;
+    nsIScriptContext* context = GetContextForEventHandlers(&rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIDocument> doc =
+      nsContentUtils::GetDocumentFromScriptContext(context);
+    aWantsUntrusted = doc && !nsContentUtils::IsChromeDoc(doc);
+  }
+
+  return NS_AddSystemEventListener(this, aType, aListener, aUseCapture,
+                                   aWantsUntrusted);
 }
 
 NS_IMETHODIMP

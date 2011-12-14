@@ -86,7 +86,7 @@ public:
   bool HasCALayer();
 
   void SetCALayer(void *aCALayer);
-  bool InitFrontSurface(size_t aWidth, size_t aHeight);
+  bool InitFrontSurface(size_t aWidth, size_t aHeight, AllowOfflineRendererEnum aAllowOfflineRenderer);
   void Render();
   void SwapSurfaces();
   void ClearFrontSurface();
@@ -94,8 +94,7 @@ public:
 
 private:
   void *mCALayer;
-  nsRefPtr<nsCARenderer> mFrontRenderer;
-  nsRefPtr<nsCARenderer> mBackRenderer;
+  nsRefPtr<nsCARenderer> mCARenderer;
   nsRefPtr<nsIOSurface> mFrontSurface;
   nsRefPtr<nsIOSurface> mBackSurface;
 };

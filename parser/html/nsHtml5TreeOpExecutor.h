@@ -112,6 +112,8 @@ class nsHtml5TreeOpExecutor : public nsContentSink,
 
     nsCOMPtr<nsIURI> mSpeculationBaseURI;
 
+    nsCOMPtr<nsIURI> mViewSourceBaseURI;
+
     /**
      * Whether the parser has started
      */
@@ -151,7 +153,7 @@ class nsHtml5TreeOpExecutor : public nsContentSink,
      * 
      */
     NS_IMETHOD WillBuildModel(nsDTDMode aDTDMode) {
-      NS_ASSERTION(GetDocument()->GetScriptGlobalObject(), 
+      NS_ASSERTION(!mDocShell || GetDocument()->GetScriptGlobalObject(),
                    "Script global object not ready");
       mDocument->AddObserver(this);
       WillBuildModelImpl();
@@ -251,6 +253,10 @@ class nsHtml5TreeOpExecutor : public nsContentSink,
       mPreventScriptExecution = aPreventScriptExecution;
     }
     
+    void PreventScriptExecution() {
+      mPreventScriptExecution = true;
+    }
+
     bool IsFragmentMode() {
       return mFragmentMode;
     }
@@ -415,6 +421,8 @@ class nsHtml5TreeOpExecutor : public nsContentSink,
       mStage.AssertEmpty();
     }
 #endif
+
+    nsIURI* GetViewSourceBaseURI();
 
     void PreloadScript(const nsAString& aURL,
                        const nsAString& aCharset,

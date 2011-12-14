@@ -90,6 +90,7 @@
 #include "nsSVGUtils.h"
 #include "nsMathMLAtoms.h"
 #include "nsMathMLOperators.h"
+#include "Navigator.h"
 
 #ifdef MOZ_XUL
 #include "nsXULPopupManager.h"
@@ -160,6 +161,7 @@ nsLayoutStatics::Initialize()
   }
 
   nsGlobalWindow::Init();
+  dom::Navigator::Init();
 
   rv = nsContentUtils::Init();
   if (NS_FAILED(rv)) {
@@ -256,6 +258,7 @@ nsLayoutStatics::Initialize()
 
   nsContentSink::InitializeStatics();
   nsHtml5Module::InitializeStatics();
+  nsLayoutUtils::Initialize();
   nsIPresShell::InitializeStatics();
   nsRefreshDriver::InitializeStatics();
 
@@ -265,7 +268,7 @@ nsLayoutStatics::Initialize()
 
   NS_SealStaticAtomTable();
 
-  nsDOMMemoryReporter::Init();
+  nsDOMMemoryMultiReporter::Init();
 
   return NS_OK;
 }

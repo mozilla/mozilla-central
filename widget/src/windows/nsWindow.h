@@ -114,7 +114,6 @@ public:
                                  const nsIntRect &aRect,
                                  EVENT_CALLBACK aHandleEventFunction,
                                  nsDeviceContext *aContext,
-                                 nsIToolkit *aToolkit = nsnull,
                                  nsWidgetInitData *aInitData = nsnull);
   NS_IMETHOD              Destroy();
   NS_IMETHOD              SetParent(nsIWidget *aNewParent);
@@ -126,7 +125,6 @@ public:
   NS_IMETHOD              Move(PRInt32 aX, PRInt32 aY);
   NS_IMETHOD              Resize(PRInt32 aWidth, PRInt32 aHeight, bool aRepaint);
   NS_IMETHOD              Resize(PRInt32 aX, PRInt32 aY, PRInt32 aWidth, PRInt32 aHeight, bool aRepaint);
-  NS_IMETHOD              ResizeClient(PRInt32 aX, PRInt32 aY, PRInt32 aWidth, PRInt32 aHeight, bool aRepaint);
   NS_IMETHOD              BeginResizeDrag(nsGUIEvent* aEvent, PRInt32 aHorizontal, PRInt32 aVertical);
   NS_IMETHOD              PlaceBehind(nsTopLevelWidgetZPlacement aPlacement, nsIWidget *aWidget, bool aActivate);
   NS_IMETHOD              SetSizeMode(PRInt32 aMode);
@@ -159,7 +157,7 @@ public:
   NS_IMETHOD              DispatchEvent(nsGUIEvent* event, nsEventStatus & aStatus);
   NS_IMETHOD              EnableDragDrop(bool aEnable);
   NS_IMETHOD              CaptureMouse(bool aCapture);
-  NS_IMETHOD              CaptureRollupEvents(nsIRollupListener * aListener, nsIMenuRollup * aMenuRollup,
+  NS_IMETHOD              CaptureRollupEvents(nsIRollupListener * aListener,
                                               bool aDoCapture, bool aConsumeRollupEvent);
   NS_IMETHOD              GetAttention(PRInt32 aCycleCount);
   virtual bool            HasPendingInputEvent();
@@ -180,10 +178,9 @@ public:
                                                      PRUint32 aNativeMessage,
                                                      PRUint32 aModifierFlags);
   NS_IMETHOD              ResetInputState();
-  NS_IMETHOD              SetIMEOpenState(bool aState);
-  NS_IMETHOD              GetIMEOpenState(bool* aState);
-  NS_IMETHOD              SetInputMode(const IMEContext& aContext);
-  NS_IMETHOD              GetInputMode(IMEContext& aContext);
+  NS_IMETHOD_(void)       SetInputContext(const InputContext& aContext,
+                                          const InputContextAction& aAction);
+  NS_IMETHOD_(InputContext) GetInputContext();
   NS_IMETHOD              CancelIMEComposition();
   NS_IMETHOD              GetToggledKeyState(PRUint32 aKeyCode, bool* aLEDState);
   NS_IMETHOD              RegisterTouchWindow();
@@ -206,6 +203,11 @@ public:
    * Statics used in other classes
    */
   static PRInt32          GetWindowsVersion();
+  static bool             GetRegistryKey(HKEY aRoot,
+                                         const PRUnichar* aKeyName,
+                                         const PRUnichar* aValueName,
+                                         PRUnichar* aBuffer,
+                                         DWORD aBufferLength);
 
   /**
    * Event helpers
@@ -239,7 +241,6 @@ public:
   /**
    * Window utilities
    */
-  static void             GlobalMsgWindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
   nsWindow*               GetTopLevelWindow(bool aStopOnDialogOrPopup);
   static HWND             GetTopLevelHWND(HWND aWnd, 
                                           bool aStopIfNotChild = false, 
@@ -259,7 +260,10 @@ public:
   virtual bool            AutoErase(HDC dc);
   nsIntPoint*             GetLastPoint() { return &mLastPoint; }
   // needed in nsIMM32Handler.cpp
-  bool                    PluginHasFocus() { return mIMEContext.mStatus == nsIWidget::IME_STATUS_PLUGIN; }
+  bool                    PluginHasFocus()
+  {
+    return (mInputContext.mIMEState.mEnabled == IMEState::PLUGIN);
+  }
   bool                    IsTopLevelWidget() { return mIsTopWidgetWindow; }
   /**
    * Start allowing Direct3D9 to be used by widgets when GetLayerManager is
@@ -301,6 +305,12 @@ public:
 #endif
 
   NS_IMETHOD              ReparentNativeWidget(nsIWidget* aNewParent);
+
+  // Open file picker tracking
+  void                    PickerOpen();
+  void                    PickerClosed();
+
+  bool                    const DestroyCalled() { return mDestroyCalled; }
 protected:
 
   // A magic number to identify the FAKETRACKPOINTSCROLLABLE window created
@@ -383,7 +393,7 @@ protected:
   static bool             EventIsInsideWindow(UINT Msg, nsWindow* aWindow);
   // Convert nsEventStatus value to a windows boolean
   static bool             ConvertStatus(nsEventStatus aStatus);
-  static void             PostSleepWakeNotification(const char* aNotification);
+  static void             PostSleepWakeNotification(const bool aIsSleepMode);
   PRInt32                 ClientMarginHitTestPoint(PRInt32 mx, PRInt32 my);
   static WORD             GetScanCode(LPARAM aLParam)
   {
@@ -440,6 +450,7 @@ protected:
                                                LPARAM aLParam,
                                                LRESULT *aRetValue);
   void                    OnWindowPosChanging(LPWINDOWPOS& info);
+  void                    OnSysColorChanged();
 
   /**
    * Function that registers when the user has been active (used for detecting
@@ -526,16 +537,18 @@ protected:
   bool                  mIsRTL;
   bool                  mFullscreenMode;
   bool                  mMousePresent;
+  bool                  mDestroyCalled;
   PRUint32              mBlurSuppressLevel;
   DWORD_PTR             mOldStyle;
   DWORD_PTR             mOldExStyle;
-  IMEContext            mIMEContext;
+  InputContext mInputContext;
   nsNativeDragTarget*   mNativeDragTarget;
   HKL                   mLastKeyboardLayout;
   nsPopupType           mPopupType;
   nsSizeMode            mOldSizeMode;
   WindowHook            mWindowHook;
   DWORD                 mAssumeWheelIsZoomUntil;
+  PRUint32              mPickerDisplayCount;
   static bool           sDropShadowEnabled;
   static PRUint32       sInstanceCount;
   static TriStateBool   sCanQuit;
@@ -591,7 +604,6 @@ protected:
   static nsIWidget*     sRollupWidget;
   static bool           sRollupConsumeEvent;
   static nsIRollupListener* sRollupListener;
-  static nsIMenuRollup* sMenuRollup;
 
   // Mouse Clicks - static variable definitions for figuring
   // out 1 - 3 Clicks.

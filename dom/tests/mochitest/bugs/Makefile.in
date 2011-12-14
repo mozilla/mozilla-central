@@ -52,6 +52,8 @@ _TEST_FILES	= \
 		test_bug159849.html \
 		test_bug265203.html \
 		test_bug291377.html \
+		file_bug291653.html \
+		test_bug291653.html \
 		test_bug308856.html \
 		test_bug317448.html \
 		test_bug327891.html \
@@ -142,12 +144,14 @@ _TEST_FILES	= \
 		test_bug648465.html \
 		test_bug654137.html \
 		test_bug684544.html \
+		test_bug698551.html \
 		test_window_bar.html \
 		file_window_bar.html \
 		test_resize_move_windows.html \
 		test_devicemotion_multiple_listeners.html \
 		devicemotion_outer.html \
 		devicemotion_inner.html \
+		test_bug698061.html \
 		$(NULL)
 
 libs:: 	$(_TEST_FILES)

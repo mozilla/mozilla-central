@@ -80,13 +80,13 @@
 #include "jsscope.h"
 #include "jsscript.h"
 #include "jsstr.h"
-#include "jstracer.h"
 
 #ifdef JS_METHODJIT
 # include "assembler/assembler/MacroAssembler.h"
 #endif
 #include "frontend/TokenStream.h"
 #include "frontend/ParseMaps.h"
+#include "yarr/BumpPointerAllocator.h"
 
 #include "jsatominlines.h"
 #include "jscntxtinlines.h"
@@ -98,19 +98,17 @@ using namespace js::gc;
 
 namespace js {
 
-ThreadData::ThreadData()
-  : interruptFlags(0),
+ThreadData::ThreadData(JSRuntime *rt)
+  : rt(rt),
+    interruptFlags(0),
 #ifdef JS_THREADSAFE
     requestDepth(0),
 #endif
-#ifdef JS_TRACER
-    onTraceCompartment(NULL),
-    recordingCompartment(NULL),
-    profilingCompartment(NULL),
-    maxCodeCacheBytes(DEFAULT_JIT_CACHE_SIZE),
-#endif
     waiveGCQuota(false),
     tempLifoAlloc(TEMP_LIFO_ALLOC_PRIMARY_CHUNK_SIZE),
+    execAlloc(NULL),
+    bumpAlloc(NULL),
+    repCache(NULL),
     dtoaState(NULL),
     nativeStackBase(GetNativeStackBase()),
     pendingProxyOperation(NULL),
@@ -123,6 +121,11 @@ ThreadData::ThreadData()
 
 ThreadData::~ThreadData()
 {
+    JS_ASSERT(!repCache);
+
+    rt->delete_<JSC::ExecutableAllocator>(execAlloc);
+    rt->delete_<WTF::BumpPointerAllocator>(bumpAlloc);
+
     if (dtoaState)
         js_DestroyDtoaState(dtoaState);
 }
@@ -130,12 +133,44 @@ ThreadData::~ThreadData()
 bool
 ThreadData::init()
 {
+    JS_ASSERT(!repCache);
     return stackSpace.init() && !!(dtoaState = js_NewDtoaState());
 }
+
+#ifdef JS_THREADSAFE
+void
+ThreadData::sizeOfExcludingThis(JSMallocSizeOfFun mallocSizeOf, size_t *normal, size_t *temporary,
+                                size_t *regexpCode, size_t *stackCommitted)
+{
+    /*
+     * There are other ThreadData members that could be measured; the ones
+     * below have been seen by DMD to be worth measuring.  More stuff may be
+     * added later.
+     */
+
+    /*
+     * The computedSize is 0 because sizeof(DtoaState) isn't available here and
+     * it's not worth making it available.
+     */
+    *normal = mallocSizeOf(dtoaState, /* sizeof(DtoaState) */0);
+
+    *temporary = tempLifoAlloc.sizeOfExcludingThis(mallocSizeOf);
+
+    size_t method = 0, regexp = 0, unused = 0;
+    if (execAlloc)
+        execAlloc->sizeOfCode(&method, &regexp, &unused);
+    JS_ASSERT(method == 0);     /* this execAlloc is only used for regexp code */
+    *regexpCode = regexp + unused;
+
+    *stackCommitted = stackSpace.sizeOfCommitted();
+}
+#endif
 
 void
 ThreadData::triggerOperationCallback(JSRuntime *rt)
 {
+    JS_ASSERT(rt == this->rt);
+
     /*
      * Use JS_ATOMIC_SET and JS_ATOMIC_INCREMENT in the hope that it ensures
      * the write will become immediately visible to other processors polling
@@ -153,23 +188,73 @@ ThreadData::triggerOperationCallback(JSRuntime *rt)
 #endif
 }
 
+JSC::ExecutableAllocator *
+ThreadData::createExecutableAllocator(JSContext *cx)
+{
+    JS_ASSERT(!execAlloc);
+    JS_ASSERT(cx->runtime == rt);
+
+    execAlloc = rt->new_<JSC::ExecutableAllocator>();
+    if (!execAlloc)
+        js_ReportOutOfMemory(cx);
+    return execAlloc;
+}
+
+WTF::BumpPointerAllocator *
+ThreadData::createBumpPointerAllocator(JSContext *cx)
+{
+    JS_ASSERT(!bumpAlloc);
+    JS_ASSERT(cx->runtime == rt);
+
+    bumpAlloc = rt->new_<WTF::BumpPointerAllocator>();
+    if (!bumpAlloc)
+        js_ReportOutOfMemory(cx);
+    return bumpAlloc;
+}
+
+RegExpPrivateCache *
+ThreadData::createRegExpPrivateCache(JSContext *cx)
+{
+    JS_ASSERT(!repCache);
+    JS_ASSERT(cx->runtime == rt);
+
+    RegExpPrivateCache *newCache = rt->new_<RegExpPrivateCache>(rt);
+
+    if (!newCache || !newCache->init()) {
+        js_ReportOutOfMemory(cx);
+        rt->delete_<RegExpPrivateCache>(newCache);
+        return NULL;
+    }
+
+    repCache = newCache;
+    return repCache;
+}
+
+void
+ThreadData::purgeRegExpPrivateCache()
+{
+    rt->delete_<RegExpPrivateCache>(repCache);
+    repCache = NULL;
+}
+
 } /* namespace js */
 
 JSScript *
 js_GetCurrentScript(JSContext *cx)
 {
-#ifdef JS_TRACER
-    VOUCH_DOES_NOT_REQUIRE_STACK();
-    if (JS_ON_TRACE(cx)) {
-        VMSideExit *bailExit = JS_TRACE_MONITOR_ON_TRACE(cx)->bailExit;
-        return bailExit ? bailExit->script : NULL;
-    }
-#endif
     return cx->hasfp() ? cx->fp()->maybeScript() : NULL;
 }
 
 
 #ifdef JS_THREADSAFE
+
+void
+JSThread::sizeOfIncludingThis(JSMallocSizeOfFun mallocSizeOf, size_t *normal, size_t *temporary,
+                              size_t *regexpCode, size_t *stackCommitted)
+{
+    data.sizeOfExcludingThis(mallocSizeOf, normal, temporary, regexpCode, stackCommitted);
+    *normal += mallocSizeOf(this, sizeof(JSThread));
+}
 
 JSThread *
 js_CurrentThreadAndLockGC(JSRuntime *rt)
@@ -197,7 +282,7 @@ js_CurrentThreadAndLockGC(JSRuntime *rt)
     } else {
         JS_UNLOCK_GC(rt);
 
-        thread = OffTheBooks::new_<JSThread>(id);
+        thread = OffTheBooks::new_<JSThread>(rt, id);
         if (!thread || !thread->init()) {
             Foreground::delete_(thread);
             return NULL;
@@ -315,9 +400,29 @@ js_PurgeThreads(JSContext *cx)
 #endif
 }
 
+void
+js_PurgeThreads_PostGlobalSweep(JSContext *cx)
+{
+#ifdef JS_THREADSAFE
+    for (JSThread::Map::Enum e(cx->runtime->threads);
+         !e.empty();
+         e.popFront())
+    {
+        JSThread *thread = e.front().value;
+
+        JS_ASSERT(!JS_CLIST_IS_EMPTY(&thread->contextList));
+        thread->data.purgeRegExpPrivateCache();
+    }
+#else
+    cx->runtime->threadData.purgeRegExpPrivateCache();
+#endif
+}
+
 JSContext *
 js_NewContext(JSRuntime *rt, size_t stackChunkSize)
 {
+    JS_AbortIfWrongThread(rt);
+
     /*
      * We need to initialize the new context fully before adding it to the
      * runtime list. After that it can be accessed from another thread via
@@ -328,7 +433,6 @@ js_NewContext(JSRuntime *rt, size_t stackChunkSize)
         return NULL;
 
     JS_ASSERT(cx->findVersion() == JSVERSION_DEFAULT);
-    VOUCH_DOES_NOT_REQUIRE_STACK();
 
     if (!cx->busyArrays.init()) {
         Foreground::delete_(cx);
@@ -416,13 +520,14 @@ js_NewContext(JSRuntime *rt, size_t stackChunkSize)
 void
 js_DestroyContext(JSContext *cx, JSDestroyContextMode mode)
 {
-    JSRuntime *rt;
+    JSRuntime *rt = cx->runtime;
+    JS_AbortIfWrongThread(rt);
+
     JSContextCallback cxCallback;
     JSBool last;
 
     JS_ASSERT(!cx->enumerators);
 
-    rt = cx->runtime;
 #ifdef JS_THREADSAFE
     /*
      * For API compatibility we allow to destroy contexts without a thread in
@@ -502,20 +607,16 @@ js_DestroyContext(JSContext *cx, JSDestroyContextMode mode)
              */
             {
                 AutoLockGC lock(rt);
-                JSCompartment **compartment = rt->compartments.begin();
-                JSCompartment **end = rt->compartments.end();
-                while (compartment < end) {
-                    (*compartment)->types.print(cx, false);
-                    compartment++;
-                }
+                for (CompartmentsIter c(rt); !c.done(); c.next())
+                    c->types.print(cx, false);
             }
 
             /* Unpin all common atoms before final GC. */
             js_FinishCommonAtoms(cx);
 
             /* Clear debugging state to remove GC roots. */
-            for (JSCompartment **c = rt->compartments.begin(); c != rt->compartments.end(); c++)
-                (*c)->clearTraps(cx, NULL);
+            for (CompartmentsIter c(rt); !c.done(); c.next())
+                c->clearTraps(cx);
             JS_ClearAllWatchPoints(cx);
         }
 
@@ -654,7 +755,7 @@ PopulateReportBlame(JSContext *cx, JSErrorReport *report)
     for (FrameRegsIter iter(cx); !iter.done(); ++iter) {
         if (iter.fp()->isScriptFrame()) {
             report->filename = iter.fp()->script()->filename;
-            report->lineno = js_FramePCToLineNumber(cx, iter.fp(), iter.pc());
+            report->lineno = js_PCToLineNumber(cx, iter.fp()->script(), iter.pc());
             break;
         }
     }
@@ -670,17 +771,11 @@ PopulateReportBlame(JSContext *cx, JSErrorReport *report)
 void
 js_ReportOutOfMemory(JSContext *cx)
 {
-#ifdef JS_TRACER
-    /*
-     * If we are in a builtin called directly from trace, don't report an
-     * error. We will retry in the interpreter instead.
-     */
-    if (JS_ON_TRACE(cx) && !JS_TRACE_MONITOR_ON_TRACE(cx)->bailExit)
-        return;
-#endif
-
     cx->runtime->hadOutOfMemory = true;
 
+    /* AtomizeInline can cal this indirectly when it creates the string. */
+    AutoUnlockAtomsCompartmentWhenLocked unlockAtomsCompartment(cx);
+    
     JSErrorReport report;
     JSErrorReporter onError = cx->errorReporter;
 
@@ -719,6 +814,17 @@ js_ReportOutOfMemory(JSContext *cx)
 JS_FRIEND_API(void)
 js_ReportOverRecursed(JSContext *maybecx)
 {
+#ifdef JS_MORE_DETERMINISTIC
+    /*
+     * We cannot make stack depth deterministic across different
+     * implementations (e.g. JIT vs. interpreter will differ in
+     * their maximum stack depth).
+     * However, we can detect externally when we hit the maximum
+     * stack depth which is useful for external testing programs
+     * like fuzzers.
+     */
+    fprintf(stderr, "js_ReportOverRecursed called\n");
+#endif
     if (maybecx)
         JS_ReportErrorNumber(maybecx, js_GetErrorMessage, NULL, JSMSG_OVER_RECURSED);
 }
@@ -1085,7 +1191,7 @@ js_ReportMissingArg(JSContext *cx, const Value &v, uintN arg)
     JS_snprintf(argbuf, sizeof argbuf, "%u", arg);
     bytes = NULL;
     if (IsFunctionObject(v)) {
-        atom = v.toObject().getFunctionPrivate()->atom;
+        atom = v.toObject().toFunction()->atom;
         bytes = DecompileValueGenerator(cx, JSDVG_SEARCH_STACK,
                                         v, atom);
         if (!bytes)
@@ -1268,41 +1374,7 @@ js_GetScriptedCaller(JSContext *cx, StackFrame *fp)
 jsbytecode*
 js_GetCurrentBytecodePC(JSContext* cx)
 {
-    jsbytecode *pc, *imacpc;
-
-#ifdef JS_TRACER
-    if (JS_ON_TRACE(cx)) {
-        pc = JS_TRACE_MONITOR_ON_TRACE(cx)->bailExit->pc;
-        imacpc = JS_TRACE_MONITOR_ON_TRACE(cx)->bailExit->imacpc;
-    } else
-#endif
-    {
-        JS_ASSERT_NOT_ON_TRACE(cx);  /* for static analysis */
-        pc = cx->hasfp() ? cx->regs().pc : NULL;
-        if (!pc)
-            return NULL;
-        imacpc = cx->fp()->maybeImacropc();
-    }
-
-    /*
-     * If we are inside GetProperty_tn or similar, return a pointer to the
-     * current instruction in the script, not the CALL instruction in the
-     * imacro, for the benefit of callers doing bytecode inspection.
-     */
-    return (*pc == JSOP_CALL && imacpc) ? imacpc : pc;
-}
-
-bool
-js_CurrentPCIsInImacro(JSContext *cx)
-{
-#ifdef JS_TRACER
-    VOUCH_DOES_NOT_REQUIRE_STACK();
-    if (JS_ON_TRACE(cx))
-        return JS_TRACE_MONITOR_ON_TRACE(cx)->bailExit->imacpc != NULL;
-    return cx->fp()->hasImacropc();
-#else
-    return false;
-#endif
+    return cx->hasfp() ? cx->regs().pc : NULL;
 }
 
 void
@@ -1362,6 +1434,7 @@ JSContext::JSContext(JSRuntime *rt)
     data(NULL),
     data2(NULL),
 #ifdef JS_THREADSAFE
+    atomsCompartmentIsLocked(false),
     outstandingRequests(0),
 #endif
     autoGCRooters(NULL),
@@ -1370,12 +1443,8 @@ JSContext::JSContext(JSRuntime *rt)
     resolveFlags(0),
     rngSeed(0),
     iterValue(MagicValue(JS_NO_ITER_VALUE)),
-#ifdef JS_TRACER
-    traceJitEnabled(false),
-#endif
 #ifdef JS_METHODJIT
     methodJitEnabled(false),
-    profilingEnabled(false),
 #endif
     inferenceEnabled(false),
 #ifdef MOZ_TRACE_JSCALLS
@@ -1404,7 +1473,6 @@ JSContext::~JSContext()
 #endif
 
     /* Free the stuff hanging off of cx. */
-    VOUCH_DOES_NOT_REQUIRE_STACK();
     if (parseMapPool_)
         Foreground::delete_<ParseMapPool>(parseMapPool_);
 
@@ -1550,11 +1618,11 @@ JSContext::purge()
     }
 }
 
-#if defined(JS_TRACER) || defined(JS_METHODJIT)
+#if defined(JS_METHODJIT)
 static bool
 ComputeIsJITBroken()
 {
-#ifndef ANDROID
+#if !defined(ANDROID) || defined(GONK)
     return false;
 #else  // ANDROID
     if (getenv("JS_IGNORE_JIT_BROKENNESS")) {
@@ -1626,15 +1694,6 @@ IsJITBrokenHere()
 void
 JSContext::updateJITEnabled()
 {
-#ifdef JS_TRACER
-    traceJitEnabled = ((runOptions & JSOPTION_JIT) &&
-                       !IsJITBrokenHere() &&
-                       compartment &&
-                       !compartment->debugMode() &&
-                       (debugHooks == &js_NullDebugHooks ||
-                        (debugHooks == &runtime->globalDebugHooks &&
-                         !runtime->debuggerInhibitsJIT())));
-#endif
 #ifdef JS_METHODJIT
     methodJitEnabled = (runOptions & JSOPTION_METHODJIT) &&
                        !IsJITBrokenHere()
@@ -1643,33 +1702,22 @@ JSContext::updateJITEnabled()
                           JSC::MacroAssemblerX86Common::HasSSE2
 # endif
                         ;
-#ifdef JS_TRACER
-    profilingEnabled = (runOptions & JSOPTION_PROFILING) && traceJitEnabled && methodJitEnabled;
 #endif
-#endif
+}
+
+size_t
+JSContext::sizeOfIncludingThis(JSMallocSizeOfFun mallocSizeOf) const
+{
+    /*
+     * There are other JSContext members that could be measured; the following
+     * ones have been found by DMD to be worth measuring.  More stuff may be
+     * added later.
+     */
+    return mallocSizeOf(this, sizeof(JSContext)) +
+           busyArrays.sizeOfExcludingThis(mallocSizeOf);
 }
 
 namespace js {
-
-JS_FORCES_STACK JS_FRIEND_API(void)
-LeaveTrace(JSContext *cx)
-{
-#ifdef JS_TRACER
-    if (JS_ON_TRACE(cx))
-        DeepBail(cx);
-#endif
-}
-
-bool
-CanLeaveTrace(JSContext *cx)
-{
-    JS_ASSERT(JS_ON_TRACE(cx));
-#ifdef JS_TRACER
-    return JS_TRACE_MONITOR_ON_TRACE(cx)->bailExit != NULL;
-#else
-    return false;
-#endif
-}
 
 AutoEnumStateRooter::~AutoEnumStateRooter()
 {

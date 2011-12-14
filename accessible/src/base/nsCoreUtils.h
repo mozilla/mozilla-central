@@ -328,12 +328,6 @@ public:
     GetFirstSensibleColumn(nsITreeBoxObject *aTree);
 
   /**
-   * Return last sensible column for the given tree box object.
-   */
-  static already_AddRefed<nsITreeColumn>
-    GetLastSensibleColumn(nsITreeBoxObject *aTree);
-
-  /**
    * Return sensible columns count for the given tree box object.
    */
   static PRUint32 GetSensibleColumnCount(nsITreeBoxObject *aTree);
@@ -369,11 +363,6 @@ public:
     return aContent->NodeInfo()->Equals(nsGkAtoms::th) ||
       aContent->HasAttr(kNameSpaceID_None, nsGkAtoms::scope);
   }
-
-  /**
-   * Check the visibility across both parent content and chrome.
-   */
-  static bool CheckVisibilityInParentChain(nsIFrame* aFrame);
 
 };
 

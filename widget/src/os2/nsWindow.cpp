@@ -74,12 +74,10 @@
 #include "nsDragService.h"
 #include "nsGfxCIID.h"
 #include "nsHashKeys.h"
-#include "nsIMenuRollup.h"
 #include "nsIRollupListener.h"
 #include "nsIScreenManager.h"
 #include "nsOS2Uni.h"
 #include "nsTHashtable.h"
-#include "nsToolkit.h"
 #include "nsGkAtoms.h"
 #include "wdgtos2rc.h"
 
@@ -185,7 +183,6 @@ using namespace mozilla;
 
 // Rollup Listener - used by nsWindow & os2FrameWindow
 nsIRollupListener*  gRollupListener           = 0;
-nsIMenuRollup*      gMenuRollup               = 0;
 nsIWidget*          gRollupWidget             = 0;
 bool                gRollupConsumeRollupEvent = false;
 
@@ -336,7 +333,6 @@ NS_METHOD nsWindow::Create(nsIWidget* aParent,
                            const nsIntRect& aRect,
                            EVENT_CALLBACK aHandleEventFunction,
                            nsDeviceContext* aContext,
-                           nsIToolkit* aToolkit,
                            nsWidgetInitData* aInitData)
 {
   mWindowState = nsWindowState_eInCreate;
@@ -359,9 +355,7 @@ NS_METHOD nsWindow::Create(nsIWidget* aParent,
     }
   }
 
-  BaseCreate(aParent, aRect, aHandleEventFunction,
-             aContext, aToolkit, aInitData);
-
+  BaseCreate(aParent, aRect, aHandleEventFunction, aContext, aInitData);
 
 #ifdef DEBUG_FOCUS
   mWindowIdentifier = currentWindowIdentifier;
@@ -490,9 +484,9 @@ NS_METHOD nsWindow::Destroy()
   // the rollup widget, rollup and turn off capture.
   if (this == gRollupWidget) {
     if (gRollupListener) {
-      gRollupListener->Rollup(PR_UINT32_MAX, nsnull);
+      gRollupListener->Rollup(PR_UINT32_MAX);
     }
-    CaptureRollupEvents(nsnull, nsnull, false, true);
+    CaptureRollupEvents(nsnull, false, true);
   }
 
   HWND hMain = GetMainWindow();
@@ -775,10 +769,7 @@ NS_METHOD nsWindow::GetBounds(nsIntRect& aRect)
 
 NS_METHOD nsWindow::GetClientBounds(nsIntRect& aRect)
 {
-  aRect.x = 0;
-  aRect.y = 0;
-  aRect.width = mBounds.width;
-  aRect.height = mBounds.height;
+  aRect = mBounds;
   return NS_OK;
 }
 
@@ -1540,7 +1531,6 @@ HBITMAP nsWindow::CreateTransparencyMask(gfxASurface::gfxImageFormat format,
 //=============================================================================
 
 NS_IMETHODIMP nsWindow::CaptureRollupEvents(nsIRollupListener* aListener,
-                                            nsIMenuRollup* aMenuRollup,
                                             bool aDoCapture,
                                             bool aConsumeRollupEvent)
 {
@@ -1552,14 +1542,10 @@ NS_IMETHODIMP nsWindow::CaptureRollupEvents(nsIRollupListener* aListener,
     gRollupConsumeRollupEvent = aConsumeRollupEvent;
     NS_IF_RELEASE(gRollupWidget);
     gRollupListener = aListener;
-    NS_IF_RELEASE(gMenuRollup);
-    gMenuRollup = aMenuRollup;
-    NS_IF_ADDREF(aMenuRollup);
     gRollupWidget = this;
     NS_ADDREF(this);
  } else {
     gRollupListener = nsnull;
-    NS_IF_RELEASE(gMenuRollup);
     NS_IF_RELEASE(gRollupWidget);
   }
 
@@ -1603,9 +1589,9 @@ bool nsWindow::RollupOnButtonDown(ULONG aMsg)
   // event was inside a parent of the current submenu.
   PRUint32 popupsToRollup = PR_UINT32_MAX;
 
-  if (gMenuRollup) {
+  if (gRollupListener) {
     nsAutoTArray<nsIWidget*, 5> widgetChain;
-    PRUint32 sameTypeCount = gMenuRollup->GetSubmenuWidgetChain(&widgetChain);
+    PRUint32 sameTypeCount = gRollupListener->GetSubmenuWidgetChain(&widgetChain);
     for (PRUint32 i = 0; i < widgetChain.Length(); ++i) {
       nsIWidget* widget = widgetChain[i];
       if (EventIsInsideWindow((nsWindow*)widget)) {
@@ -1619,8 +1605,9 @@ bool nsWindow::RollupOnButtonDown(ULONG aMsg)
   } // if rollup listener knows about menus
 
   // We only need to deal with the last rollup for left mouse down events.
-  gRollupListener->Rollup(popupsToRollup,
-                          aMsg == WM_BUTTON1DOWN ? &mLastRollup : nsnull);
+  NS_ASSERTION(!mLastRollup, "mLastRollup is null");
+  mLastRollup = gRollupListener->Rollup(popupsToRollup, aMsg == WM_BUTTON1DOWN);
+  NS_IF_ADDREF(mLastRollup);
 
   // If true, the buttondown event won't be passed on to the wndproc.
   return gRollupConsumeRollupEvent;
@@ -1639,9 +1626,9 @@ void nsWindow::RollupOnFocusLost(HWND aFocus)
   }
 
   // Exit if focus was lost to a parent of the current submenu.
-  if (gMenuRollup) {
+  if (gRollupListener) {
     nsAutoTArray<nsIWidget*, 5> widgetChain;
-    gMenuRollup->GetSubmenuWidgetChain(&widgetChain);
+    gRollupListener->GetSubmenuWidgetChain(&widgetChain);
     for (PRUint32 i = 0; i < widgetChain.Length(); ++i) {
       if (((nsWindow*)widgetChain[i])->mWnd == aFocus) {
         return;
@@ -1650,7 +1637,7 @@ void nsWindow::RollupOnFocusLost(HWND aFocus)
   }
 
   // Rollup all popups.
-  gRollupListener->Rollup(PR_UINT32_MAX, nsnull);
+  gRollupListener->Rollup(PR_UINT32_MAX);
   return;
 }
 
@@ -1921,7 +1908,7 @@ void nsWindow::OnDestroy()
   SetNSWindowPtr(mWnd, 0);
   mWnd = 0;
 
-  // release references to context, toolkit, appshell, children
+  // release references to context and children
   nsBaseWidget::OnDestroy();
 
   // dispatching of the event may cause the reference count to drop to 0

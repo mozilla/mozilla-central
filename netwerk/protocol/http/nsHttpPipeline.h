@@ -111,6 +111,14 @@ private:
     char     *mPushBackBuf;
     PRUint32  mPushBackLen;
     PRUint32  mPushBackMax;
+
+    // The number of transactions completed on this pipeline.
+    PRUint32  mHttp1xTransactionCount;
+
+    // For support of OnTransportStatus()
+    PRUint64  mReceivingFromProgress;
+    PRUint64  mSendingToProgress;
+    bool      mSuppressSendEvents;
 };
 
 #endif // nsHttpPipeline_h__

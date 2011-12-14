@@ -169,7 +169,7 @@ public:
 
   // The following can be called on the main thread only:
   // Get the URI
-  nsIURI* URI() { return mURI; }
+  nsIURI* URI() const { return mURI; }
   // Close the stream, stop any listeners, channels, etc.
   // Cancels any currently blocking Read request and forces that request to
   // return an error.
@@ -236,6 +236,9 @@ public:
   // block the load event. Any new loads initiated (for example to seek)
   // will also be in the background.
   void MoveLoadsToBackground();
+  // Ensures that the value returned by IsSuspendedByCache below is up to date
+  // (i.e. the cache has examined this stream at least once).
+  virtual void EnsureCacheUpToDate() {}
 
   // These can be called on any thread.
   // Cached blocks associated with this stream will not be evicted
@@ -267,7 +270,11 @@ public:
   // data, otherwise we may not be able to make progress.
   // nsMediaDecoder::NotifySuspendedStatusChanged is called when this
   // changes.
-  virtual bool IsSuspendedByCache() = 0;
+  // For resources using the media cache, this returns true only when all
+  // streams for the same resource are all suspended.
+  // If aActiveStream is non-null, fills it with a pointer to a stream
+  // for this resource that is not suspended or ended.
+  virtual bool IsSuspendedByCache(nsMediaStream** aActiveStream) = 0;
   // Returns true if this stream has been suspended.
   virtual bool IsSuspended() = 0;
   // Reads only data which is cached in the media cache. If you try to read
@@ -382,6 +389,7 @@ public:
   bool IsClosed() const { return mCacheStream.IsClosed(); }
   virtual nsMediaStream* CloneData(nsMediaDecoder* aDecoder);
   virtual nsresult ReadFromCache(char* aBuffer, PRInt64 aOffset, PRUint32 aCount);
+  virtual void     EnsureCacheUpToDate();
 
   // Other thread
   virtual void     SetReadMode(nsMediaCacheStream::ReadMode aMode);
@@ -398,7 +406,7 @@ public:
   virtual PRInt64 GetNextCachedData(PRInt64 aOffset);
   virtual PRInt64 GetCachedDataEnd(PRInt64 aOffset);
   virtual bool    IsDataCachedToEndOfStream(PRInt64 aOffset);
-  virtual bool    IsSuspendedByCache();
+  virtual bool    IsSuspendedByCache(nsMediaStream** aActiveStream);
   virtual bool    IsSuspended();
 
   class Listener : public nsIStreamListener,
@@ -475,10 +483,9 @@ protected:
   // Any thread access
   nsMediaCacheStream mCacheStream;
 
-  // This lock protects mChannelStatistics and mCacheSuspendCount
+  // This lock protects mChannelStatistics
   Mutex               mLock;
   nsChannelStatistics mChannelStatistics;
-  PRUint32            mCacheSuspendCount;
 
   // True if we couldn't suspend the stream and we therefore don't want
   // to resume later. This is usually due to the channel not being in the

@@ -315,9 +315,22 @@ var PlacesUtils = {
   //// nsIObserver
   observe: function PU_observe(aSubject, aTopic, aData)
   {
-    if (aTopic == this.TOPIC_SHUTDOWN) {
-      Services.obs.removeObserver(this, this.TOPIC_SHUTDOWN);
-      this._shutdownFunctions.forEach(function (aFunc) aFunc.apply(this), this);
+    switch (aTopic) {
+      case this.TOPIC_SHUTDOWN:
+        Services.obs.removeObserver(this, this.TOPIC_SHUTDOWN);
+        this._shutdownFunctions.forEach(function (aFunc) aFunc.apply(this), this);
+        if (this._bookmarksServiceObserversQueue.length > 0) {
+          Services.obs.removeObserver(this, "bookmarks-service-ready", false);
+          this._bookmarksServiceObserversQueue.length = 0;
+        }
+        break;
+      case "bookmarks-service-ready":
+        Services.obs.removeObserver(this, "bookmarks-service-ready", false);
+        while (this._bookmarksServiceObserversQueue.length > 0) {
+          let observer = this._bookmarksServiceObserversQueue.shift();
+          this.bookmarks.addObserver(observer, false);
+        }
+        break;
     }
   },
 
@@ -397,13 +410,14 @@ var PlacesUtils = {
    * @returns true if the node is readonly, false otherwise
    */
   nodeIsReadOnly: function PU_nodeIsReadOnly(aNode) {
-    if (this.nodeIsFolder(aNode) || this.nodeIsDynamicContainer(aNode)) {
-      if (this._readOnly.indexOf(aNode.itemId) != -1)
-        return true;
+    let itemId = aNode.itemId;
+    if (itemId != -1) {
+      return this._readOnly.indexOf(itemId) != -1;
     }
-    else if (this.nodeIsQuery(aNode) &&
-             asQuery(aNode).queryOptions.resultType !=
-             Ci.nsINavHistoryQueryOptions.RESULTS_AS_TAG_CONTENTS)
+
+    if (this.nodeIsQuery(aNode) &&
+        asQuery(aNode).queryOptions.resultType !=
+        Ci.nsINavHistoryQueryOptions.RESULTS_AS_TAG_CONTENTS)
       return aNode.childrenReadOnly;
     return false;
   },
@@ -456,8 +470,7 @@ var PlacesUtils = {
    */
   containerTypes: [Ci.nsINavHistoryResultNode.RESULT_TYPE_FOLDER,
                    Ci.nsINavHistoryResultNode.RESULT_TYPE_FOLDER_SHORTCUT,
-                   Ci.nsINavHistoryResultNode.RESULT_TYPE_QUERY,
-                   Ci.nsINavHistoryResultNode.RESULT_TYPE_DYNAMIC_CONTAINER],
+                   Ci.nsINavHistoryResultNode.RESULT_TYPE_QUERY],
   nodeIsContainer: function PU_nodeIsContainer(aNode) {
     return this.containerTypes.indexOf(aNode.type) != -1;
   },
@@ -477,21 +490,6 @@ var PlacesUtils = {
             resultType == Ci.nsINavHistoryQueryOptions.RESULTS_AS_SITE_QUERY ||
             this.nodeIsDay(aNode) ||
             this.nodeIsHost(aNode));
-  },
-
-  /**
-   * Determines whether or not a result-node is a dynamic-container item.
-   * The dynamic container result node type is for dynamically created
-   * containers (e.g. for the file browser service where you get your folders
-   * in bookmark menus).
-   * @param   aNode
-   *          A result node
-   * @returns true if the node is a dynamic container item, false otherwise
-   */
-  nodeIsDynamicContainer: function PU_nodeIsDynamicContainer(aNode) {
-    if (aNode.type == Ci.nsINavHistoryResultNode.RESULT_TYPE_DYNAMIC_CONTAINER)
-      return true;
-    return false;
   },
 
   /**
@@ -538,7 +536,7 @@ var PlacesUtils = {
   */
   isReadonlyFolder: function(aNode) {
     return this.nodeIsFolder(aNode) &&
-           this.bookmarks.getFolderReadonly(asQuery(aNode).folderItemId);
+           this._readOnly.indexOf(asQuery(aNode).folderItemId) != -1;
   },
 
   /**
@@ -1330,7 +1328,7 @@ var PlacesUtils = {
             // insert the data into the db
             node.children.forEach(function(child) {
               var index = child.index;
-              var [folders, searches] = this.importJSONNode(child, container, index);
+              var [folders, searches] = this.importJSONNode(child, container, index, 0);
               for (var i = 0; i < folders.length; i++) {
                 if (folders[i])
                   folderIdMap[i] = folders[i];
@@ -1338,9 +1336,9 @@ var PlacesUtils = {
               searchIds = searchIds.concat(searches);
             }, this);
           }
-          else
-            this.importJSONNode(node, this.placesRootId, node.index);
-
+          else {
+            this.importJSONNode(node, this.placesRootId, node.index, 0);
+          }
         }, PlacesUtils);
 
         // fixup imported place: uris that contain folders
@@ -1370,7 +1368,7 @@ var PlacesUtils = {
    *          and an array of saved search ids that need to be fixed up.
    *          eg: [[[oldFolder1, newFolder1]], [search1]]
    */
-  importJSONNode: function PU_importJSONNode(aData, aContainer, aIndex) {
+  importJSONNode: function PU_importJSONNode(aData, aContainer, aIndex, aGrandParentId) {
     var folderIdMap = [];
     var searchIds = [];
     var id = -1;
@@ -1423,7 +1421,7 @@ var PlacesUtils = {
           // process children
           if (aData.children) {
             aData.children.forEach(function(aChild, aIndex) {
-              var [folders, searches] = this.importJSONNode(aChild, id, aIndex);
+              var [folders, searches] = this.importJSONNode(aChild, id, aIndex, aContainer);
               for (var i = 0; i < folders.length; i++) {
                 if (folders[i])
                   folderIdMap[i] = folders[i];
@@ -1475,7 +1473,9 @@ var PlacesUtils = {
     }
 
     // set generic properties, valid for all nodes
-    if (id != -1) {
+    if (id != -1 &&
+        aContainer != PlacesUtils.tagsFolderId &&
+        aGrandParentId != PlacesUtils.tagsFolderId) {
       if (aData.dateAdded)
         this.bookmarks.setItemDateAdded(id, aData.dateAdded);
       if (aData.lastModified)
@@ -2116,7 +2116,56 @@ var PlacesUtils = {
         }
       }
     });
-  }
+  },
+
+  _isServiceInstantiated: function PU__isServiceInstantiated(aContractID) {
+    try {
+      return Components.manager
+                       .QueryInterface(Ci.nsIServiceManager)
+                       .isServiceInstantiatedByContractID(aContractID,
+                                                          Ci.nsISupports);
+    } catch (ex) {}
+    return false;
+  },
+
+  /**
+   * Lazily adds a bookmarks observer, waiting for the bookmarks service to be
+   * alive before registering the observer.  This is especially useful in the
+   * startup path, to avoid initializing the service just to add an observer.
+   *
+   * @param aObserver
+   *        Object implementing nsINavBookmarkObserver
+   * @note Correct functionality of lazy observers relies on the fact Places
+   *       notifies categories before real observers, and uses
+   *       PlacesCategoriesStarter component to kick-off the registration.
+   */
+  _bookmarksServiceObserversQueue: [],
+  addLazyBookmarkObserver:
+  function PU_addLazyBookmarkObserver(aObserver) {
+    if (this._isServiceInstantiated("@mozilla.org/browser/nav-bookmarks-service;1")) {
+      this.bookmarks.addObserver(aObserver, false);
+      return;
+    }
+    Services.obs.addObserver(this, "bookmarks-service-ready", false);
+    this._bookmarksServiceObserversQueue.push(aObserver);
+  },
+  /**
+   * Removes a bookmarks observer added through addLazyBookmarkObserver.
+   *
+   * @param aObserver
+   *        Object implementing nsINavBookmarkObserver
+   */
+  removeLazyBookmarkObserver:
+  function PU_removeLazyBookmarkObserver(aObserver) {
+    if (this._bookmarksServiceObserversQueue.length == 0) {
+      this.bookmarks.removeObserver(aObserver, false);
+      return;
+    }
+    let index = this._bookmarksServiceObserversQueue.indexOf(aObserver);
+    if (index != -1) {
+      this._bookmarksServiceObserversQueue.splice(index, 1);
+    }
+  },
 };
 
 /**

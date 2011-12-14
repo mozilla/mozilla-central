@@ -46,6 +46,7 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/FileUtils.jsm");
 Components.utils.import("resource://gre/modules/AddonManager.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource://gre/modules/ctypes.jsm")
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -133,6 +134,7 @@ const STATE_FAILED          = "failed";
 
 // From updater/errors.h:
 const WRITE_ERROR        = 7;
+const UNEXPECTED_ERROR   = 8;
 const ELEVATION_CANCELED = 9;
 
 const CERT_ATTR_CHECK_FAILED_NO_UPDATE  = 100;
@@ -198,6 +200,113 @@ XPCOMUtils.defineLazyGetter(this, "gOSVersion", function aus_gOSVersion() {
   }
 
   if (osVersion) {
+#ifdef XP_WIN
+    const BYTE = ctypes.uint8_t;
+    const WORD = ctypes.uint16_t;
+    const DWORD = ctypes.uint32_t;
+    const WCHAR = ctypes.jschar;
+    const BOOL = ctypes.int;
+
+    // This structure is described at:
+    // http://msdn.microsoft.com/en-us/library/ms724833%28v=vs.85%29.aspx
+    const SZCSDVERSIONLENGTH = 128;
+    const OSVERSIONINFOEXW = new ctypes.StructType('OSVERSIONINFOEXW',
+        [
+        {dwOSVersionInfoSize: DWORD},
+        {dwMajorVersion: DWORD},
+        {dwMinorVersion: DWORD},
+        {dwBuildNumber: DWORD},
+        {dwPlatformId: DWORD},
+        {szCSDVersion: ctypes.ArrayType(WCHAR, SZCSDVERSIONLENGTH)},
+        {wServicePackMajor: WORD},
+        {wServicePackMinor: WORD},
+        {wSuiteMask: WORD},
+        {wProductType: BYTE},
+        {wReserved: BYTE}
+        ]);
+
+    // This structure is described at:
+    // http://msdn.microsoft.com/en-us/library/ms724958%28v=vs.85%29.aspx
+    const SYSTEM_INFO = new ctypes.StructType('SYSTEM_INFO',
+        [
+        {wProcessorArchitecture: WORD},
+        {wReserved: WORD},
+        {dwPageSize: DWORD},
+        {lpMinimumApplicationAddress: ctypes.voidptr_t},
+        {lpMaximumApplicationAddress: ctypes.voidptr_t},
+        {dwActiveProcessorMask: DWORD.ptr},
+        {dwNumberOfProcessors: DWORD},
+        {dwProcessorType: DWORD},
+        {dwAllocationGranularity: DWORD},
+        {wProcessorLevel: WORD},
+        {wProcessorRevision: WORD}
+        ]);
+
+    let kernel32 = false;
+    try {
+      kernel32 = ctypes.open("Kernel32");
+    } catch (e) {
+      LOG("gOSVersion - Unable to open kernel32! " + e);
+      osVersion += ".unknown (unknown)";
+    }
+
+    if(kernel32) {
+      try {
+        // Get Service pack info
+        try {
+          let GetVersionEx = kernel32.declare("GetVersionExW",
+                                              ctypes.default_abi,
+                                              BOOL,
+                                              OSVERSIONINFOEXW.ptr);
+          let winVer = OSVERSIONINFOEXW();
+          winVer.dwOSVersionInfoSize = OSVERSIONINFOEXW.size;
+
+          if(0 !== GetVersionEx(winVer.address())) {
+            osVersion += "." + winVer.wServicePackMajor
+                      +  "." + winVer.wServicePackMinor;
+          } else {
+            LOG("gOSVersion - Unknown failure in GetVersionEX (returned 0)");
+            osVersion += ".unknown";
+          }
+        } catch (e) {
+          LOG("gOSVersion - error getting service pack information. Exception: " + e);
+          osVersion += ".unknown";
+        }
+
+        // Get processor architecture
+        let arch = "unknown";
+        try {
+          let GetNativeSystemInfo = kernel32.declare("GetNativeSystemInfo",
+                                                     ctypes.default_abi,
+                                                     ctypes.void_t,
+                                                     SYSTEM_INFO.ptr);
+          let sysInfo = SYSTEM_INFO();
+          // Default to unknown
+          sysInfo.wProcessorArchitecture = 0xffff;
+
+          GetNativeSystemInfo(sysInfo.address());
+          switch(sysInfo.wProcessorArchitecture) {
+            case 9:
+              arch = "x64";
+              break;
+            case 6:
+              arch = "IA64";
+              break;
+            case 0:
+              arch = "x86";
+              break;
+          }
+        } catch (e) {
+          LOG("gOSVersion - error getting processor architecture.  Exception: " + e);
+        } finally {
+          osVersion += " (" + arch + ")";
+        }
+      } finally {
+        kernel32.close();
+      }
+    }
+#endif
+
     try {
       osVersion += " (" + sysInfo.getProperty("secondaryLibrary") + ")";
     }
@@ -582,17 +691,22 @@ function getLocale() {
   if (gLocale)
     return gLocale;
 
-  var localeFile = FileUtils.getFile(KEY_APPDIR, [FILE_UPDATE_LOCALE]);
-  if (!localeFile.exists())
-    localeFile = FileUtils.getFile(KEY_GRED, [FILE_UPDATE_LOCALE]);
+  for each (res in ['app', 'gre']) {
+    var channel = Services.io.newChannel("resource://" + res + "/" + FILE_UPDATE_LOCALE, null, null);
+    try {
+      var inputStream = channel.open();
+      gLocale = readStringFromInputStream(inputStream);
+    } catch(e) {}
+    if (gLocale)
+      break;
+  }
 
-  if (!localeFile.exists())
+  if (!gLocale)
     throw Components.Exception(FILE_UPDATE_LOCALE + " file doesn't exist in " +
                                "either the " + KEY_APPDIR + " or " + KEY_GRED +
                                " directories", Cr.NS_ERROR_FILE_NOT_FOUND);
 
-  gLocale = readStringFromFile(localeFile);
-  LOG("getLocale - getting locale from file: " + localeFile.path +
+  LOG("getLocale - getting locale from file: " + channel.originalURI.spec +
       ", locale: " + gLocale);
   return gLocale;
 }
@@ -698,6 +812,17 @@ function writeStringToFile(file, text) {
   FileUtils.closeSafeFileOutputStream(fos);
 }
 
+function readStringFromInputStream(inputStream) {
+  var sis = Cc["@mozilla.org/scriptableinputstream;1"].
+            createInstance(Ci.nsIScriptableInputStream);
+  sis.init(inputStream);
+  var text = sis.read(sis.available());
+  sis.close();
+  if (text[text.length - 1] == "\n")
+    text = text.slice(0, -1);
+  return text;
+}
+
 /**
  * Reads a string of text from a file.  A trailing newline will be removed
  * before the result is returned.  This function only works with ASCII text.
@@ -710,14 +835,7 @@ function readStringFromFile(file) {
   var fis = Cc["@mozilla.org/network/file-input-stream;1"].
             createInstance(Ci.nsIFileInputStream);
   fis.init(file, FileUtils.MODE_RDONLY, FileUtils.PERMS_FILE, 0);
-  var sis = Cc["@mozilla.org/scriptableinputstream;1"].
-            createInstance(Ci.nsIScriptableInputStream);
-  sis.init(fis);
-  var text = sis.read(sis.available());
-  sis.close();
-  if (text[text.length - 1] == "\n")
-    text = text.slice(0, -1);
-  return text;
+  return readStringFromInputStream(fis);
 }
 
 /**
@@ -1246,6 +1364,7 @@ UpdateService.prototype = {
                    createInstance(Ci.nsIUpdatePrompt);
 
     update.state = status;
+    this._submitTelemetryPing(status);
     if (status == STATE_SUCCEEDED) {
       update.statusText = gUpdateBundle.GetStringFromName("installSuccess");
 
@@ -1306,6 +1425,31 @@ UpdateService.prototype = {
       update.QueryInterface(Ci.nsIWritablePropertyBag);
       update.setProperty("patchingFailed", oldType);
       prompter.showUpdateError(update);
+    }
+  },
+
+  /**
+   * Submit the results of applying the update via telemetry.
+   *
+   * @param  status
+   *         The status of the update as read from the update.status file
+   */
+  _submitTelemetryPing: function AUS__submitTelemetryPing(status) {
+    try {
+      let parts = status.split(":");
+      if ((parts.length == 1 && status != STATE_SUCCEEDED) ||
+          (parts.length > 1  && parts[0] != STATE_FAILED)) {
+        // we only want to report success or failure
+        return;
+      }
+      let result = 0; // 0 means success
+      if (parts.length > 1) {
+        result = parseInt(parts[1]) || UNEXPECTED_ERROR;
+      }
+      Services.telemetry.getHistogramById("UPDATE_STATUS").add(result);
+    } catch(e) {
+      // Don't allow any exception to be propagated.
+      Components.utils.reportError(e);
     }
   },
 

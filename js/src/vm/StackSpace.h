@@ -55,7 +55,7 @@ class GeneratorFrameGuard;
 enum InitialFrameFlags {
     INITIAL_NONE           =          0,
     INITIAL_CONSTRUCT      =       0x80, /* == StackFrame::CONSTRUCTING, asserted in Stack.h */
-    INITIAL_LOWERED        =   0x400000  /* == StackFrame::LOWERED_CALL_APPLY, asserted in Stack.h */
+    INITIAL_LOWERED        =   0x200000  /* == StackFrame::LOWERED_CALL_APPLY, asserted in Stack.h */
 };
 
 enum ExecuteType {
@@ -150,19 +150,6 @@ class StackSpace
 
     StackSegment &containingSegment(const StackFrame *target) const;
 
-#ifdef JS_TRACER
-    /*
-     * LeaveTree requires stack allocation to rebuild the stack. There is no
-     * good way to handle an OOM for these allocations, so this function checks
-     * that OOM cannot occur using the size of the TraceNativeStorage as a
-     * conservative upper bound.
-     *
-     * Despite taking a 'cx', this function does not report an error if it
-     * returns 'false'.
-     */
-    inline bool ensureEnoughSpaceToEnterTrace(JSContext *cx);
-#endif
-
     /*
      * Extra space to reserve on the stack for method JIT frames, beyond the
      * frame's nslots. This may be used for inlined stack frames, slots storing
@@ -194,7 +181,7 @@ class StackSpace
     void mark(JSTracer *trc);
 
     /* We only report the committed size;  uncommitted size is uninteresting. */
-    JS_FRIEND_API(size_t) committedSize();
+    JS_FRIEND_API(size_t) sizeOfCommitted();
 };
 
 /*****************************************************************************/
@@ -324,10 +311,10 @@ class ContextStack
      * The 'stackLimit' overload updates 'stackLimit' if it changes.
      */
     bool pushInlineFrame(JSContext *cx, FrameRegs &regs, const CallArgs &args,
-                         JSObject &callee, JSFunction *fun, JSScript *script,
+                         JSFunction &callee, JSScript *script,
                          InitialFrameFlags initial);
     bool pushInlineFrame(JSContext *cx, FrameRegs &regs, const CallArgs &args,
-                         JSObject &callee, JSFunction *fun, JSScript *script,
+                         JSFunction &callee, JSScript *script,
                          InitialFrameFlags initial, Value **stackLimit);
     void popInlineFrame(FrameRegs &regs);
 

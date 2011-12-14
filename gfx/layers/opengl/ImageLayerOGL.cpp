@@ -794,12 +794,10 @@ CairoImageOGL::SetData(const CairoImage::Data &aData)
   }
 #endif
 
-  InitTexture(gl, tex, LOCAL_GL_RGBA, mSize);
-
   mLayerProgram =
     gl->UploadSurfaceToTexture(aData.mSurface,
                                nsIntRect(0,0, mSize.width, mSize.height),
-                               tex);
+                               tex, true);
 }
 
 void CairoImageOGL::SetTiling(bool aTiling)
@@ -885,7 +883,8 @@ ShadowImageLayerOGL::Swap(const SharedImage& aNewFront,
       nsRefPtr<gfxASurface> surf =
         ShadowLayerForwarder::OpenDescriptor(aNewFront.get_SurfaceDescriptor());
       gfxIntSize size = surf->GetSize();
-      if (mSize != size || !mTexImage) {
+      if (mSize != size || !mTexImage ||
+          mTexImage->GetContentType() != surf->GetContentType()) {
         Init(aNewFront);
       }
       // XXX this is always just ridiculously slow

@@ -46,6 +46,7 @@
 #include "mozilla/Preferences.h"
 
 using namespace mozilla;
+using namespace mozilla::widget;
 
 /******************************************************************/
 /* nsTextStore                                                    */
@@ -87,7 +88,7 @@ nsTextStore::~nsTextStore()
 
 bool
 nsTextStore::Create(nsWindow* aWindow,
-                    PRUint32 aIMEState)
+                    IMEState::Enabled aIMEEnabled)
 {
   if (!mDocumentMgr) {
     // Create document manager
@@ -100,7 +101,7 @@ nsTextStore::Create(nsWindow* aWindow,
                                      static_cast<ITextStoreACP*>(this),
                                      getter_AddRefs(mContext), &mEditCookie);
     if (SUCCEEDED(hr)) {
-      SetInputModeInternal(aIMEState);
+      SetInputContextInternal(aIMEEnabled);
       hr = mDocumentMgr->Push(mContext);
     }
     if (SUCCEEDED(hr)) {
@@ -1184,6 +1185,8 @@ nsTextStore::GetScreenExt(TsViewCookie vcView,
   nsresult rv = refWindow->GetClientBounds(boundRect);
   NS_ENSURE_SUCCESS(rv, E_FAIL);
 
+  boundRect.MoveTo(0, 0);
+
   // Clip frame rect to window rect
   boundRect.IntersectRect(event.mReply.mRect, boundRect);
   if (!boundRect.IsEmpty()) {
@@ -1477,7 +1480,7 @@ nsTextStore::OnEndComposition(ITfCompositionView* pComposition)
 nsresult
 nsTextStore::OnFocusChange(bool aFocus,
                            nsWindow* aWindow,
-                           PRUint32 aIMEEnabled)
+                           IMEState::Enabled aIMEEnabled)
 {
   // no change notifications if TSF is disabled
   if (!sTsfThreadMgr || !sTsfTextStore)
@@ -1630,14 +1633,14 @@ nsTextStore::GetIMEOpenState(void)
 }
 
 void
-nsTextStore::SetInputModeInternal(PRUint32 aState)
+nsTextStore::SetInputContextInternal(IMEState::Enabled aState)
 {
   PR_LOG(sTextStoreLog, PR_LOG_ALWAYS,
-         ("TSF: SetInputMode, state=%lu\n", aState));
+         ("TSF: SetInputContext, state=%ld\n", static_cast<PRInt32>(aState)));
 
   VARIANT variant;
   variant.vt = VT_I4;
-  variant.lVal = aState != nsIWidget::IME_STATUS_ENABLED;
+  variant.lVal = (aState != IMEState::ENABLED);
 
   // Set two contexts, the base context (mContext) and the top
   // if the top context is not the same as the base context

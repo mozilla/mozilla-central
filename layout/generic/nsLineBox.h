@@ -43,6 +43,8 @@
 #ifndef nsLineBox_h___
 #define nsLineBox_h___
 
+#include "mozilla/Attributes.h"
+
 #include "nsILineIterator.h"
 #include "nsIFrame.h"
 
@@ -486,14 +488,14 @@ public:
   // Call this only while in Reflow() for the block the line belongs
   // to, only between reflowing the line (or sliding it, if we skip
   // reflowing it) and the end of reflowing the block.
-  bool CachedIsEmpty() const;
+  bool CachedIsEmpty();
 
   void InvalidateCachedIsEmpty() {
     mFlags.mEmptyCacheValid = false;
   }
 
   // For debugging purposes
-  bool IsValidCachedIsEmpty() const {
+  bool IsValidCachedIsEmpty() {
     return mFlags.mEmptyCacheValid;
   }
 
@@ -514,8 +516,8 @@ public:
     PRUint32 mLineWrapped: 1;
     PRUint32 mInvalidateTextRuns : 1;
     PRUint32 mResizeReflowOptimizationDisabled: 1;  // default 0 = means that the opt potentially applies to this line. 1 = never skip reflowing this line for a resize reflow
-    mutable PRUint32 mEmptyCacheValid: 1;
-    mutable PRUint32 mEmptyCacheState: 1;
+    PRUint32 mEmptyCacheValid: 1;
+    PRUint32 mEmptyCacheState: 1;
     // mHasBullet indicates that this is an inline line whose block's
     // bullet is adjacent to this line and non-empty.
     PRUint32 mHasBullet : 1;
@@ -1566,7 +1568,7 @@ nsLineList_const_reverse_iterator::operator=(const nsLineList_const_reverse_iter
 
 //----------------------------------------------------------------------
 
-class NS_FINAL_CLASS nsLineIterator : public nsILineIterator
+class nsLineIterator MOZ_FINAL : public nsILineIterator
 {
 public:
   nsLineIterator();

@@ -64,12 +64,10 @@
 #include "nsIFormControl.h"
 #include "nsIComboboxControlFrame.h"
 #include "nsIScrollableFrame.h"
-#include "nsIDOMNSHTMLElement.h"
+#include "nsIDOMHTMLElement.h"
 #include "nsIDOMXULControlElement.h"
 #include "nsINameSpaceManager.h"
 #include "nsIBaseWindow.h"
-#include "nsIView.h"
-#include "nsIViewManager.h"
 #include "nsISelection.h"
 #include "nsFrameSelection.h"
 #include "nsIPrivateDOMEvent.h"
@@ -137,6 +135,7 @@
 
 #include "mozilla/Preferences.h"
 #include "mozilla/LookAndFeel.h"
+#include "sampler.h"
 
 #ifdef XP_MACOSX
 #import <ApplicationServices/ApplicationServices.h>
@@ -1030,8 +1029,7 @@ nsresult
 nsEventStateManager::PreHandleEvent(nsPresContext* aPresContext,
                                     nsEvent *aEvent,
                                     nsIFrame* aTargetFrame,
-                                    nsEventStatus* aStatus,
-                                    nsIView* aView)
+                                    nsEventStatus* aStatus)
 {
   NS_ENSURE_ARG_POINTER(aStatus);
   NS_ENSURE_ARG(aPresContext);
@@ -1442,10 +1440,7 @@ IsAccessKeyTarget(nsIContent* aContent, nsIFrame* aFrame, nsAString& aKey)
   if (aFrame->IsFocusable())
     return true;
 
-  if (!aFrame->GetStyleVisibility()->IsVisible())
-    return false;
-
-  if (!aFrame->AreAncestorViewsVisible())
+  if (!aFrame->IsVisibleConsideringAncestors())
     return false;
 
   // XUL controls can be activated.
@@ -1675,7 +1670,8 @@ nsEventStateManager::DispatchCrossProcessEvent(nsEvent* aEvent, nsIFrameLoader* 
 bool
 nsEventStateManager::IsRemoteTarget(nsIContent* target) {
   return target &&
-         target->Tag() == nsGkAtoms::browser &&
+         (target->Tag() == nsGkAtoms::browser ||
+          target->Tag() == nsGkAtoms::iframe) &&
          target->IsXUL() &&
          target->AttrValueIs(kNameSpaceID_None, nsGkAtoms::Remote,
                              nsGkAtoms::_true, eIgnoreCase);
@@ -2098,6 +2094,7 @@ nsEventStateManager::GenerateDragGesture(nsPresContext* aPresContext,
       if (!targetContent)
         return;
 
+      sLastDragOverFrame = nsnull;
       nsCOMPtr<nsIWidget> widget = mCurrentTarget->GetNearestWidget();
 
       // get the widget from the target frame
@@ -2222,7 +2219,7 @@ nsEventStateManager::DetermineDragTarget(nsPresContext* aPresContext,
   // found, just use the clicked node.
   if (!*aIsSelection) {
     while (dragContent) {
-      nsCOMPtr<nsIDOMNSHTMLElement> htmlElement = do_QueryInterface(dragContent);
+      nsCOMPtr<nsIDOMHTMLElement> htmlElement = do_QueryInterface(dragContent);
       if (htmlElement) {
         bool draggable = false;
         htmlElement->GetDraggable(&draggable);
@@ -2548,7 +2545,8 @@ GetScrollableLineHeight(nsIFrame* aTargetFrame)
 
   // Fall back to the font height of the target frame.
   nsRefPtr<nsFontMetrics> fm;
-  nsLayoutUtils::GetFontMetricsForFrame(aTargetFrame, getter_AddRefs(fm));
+  nsLayoutUtils::GetFontMetricsForFrame(aTargetFrame, getter_AddRefs(fm),
+    nsLayoutUtils::FontSizeInflationFor(aTargetFrame));
   NS_ASSERTION(fm, "FontMetrics is null!");
   if (fm)
     return fm->MaxHeight();
@@ -3030,8 +3028,7 @@ nsresult
 nsEventStateManager::PostHandleEvent(nsPresContext* aPresContext,
                                      nsEvent *aEvent,
                                      nsIFrame* aTargetFrame,
-                                     nsEventStatus* aStatus,
-                                     nsIView* aView)
+                                     nsEventStatus* aStatus)
 {
   NS_ENSURE_ARG(aPresContext);
   NS_ENSURE_ARG_POINTER(aStatus);
@@ -3424,6 +3421,7 @@ nsEventStateManager::PostHandleEvent(nsPresContext* aPresContext,
                                            targetContent, &status);
         }
       }
+      sLastDragOverFrame = nsnull;
       ClearGlobalActiveContent(this);
       break;
     }
@@ -3811,6 +3809,7 @@ nsEventStateManager::DispatchMouseEvent(nsGUIEvent* aEvent, PRUint32 aMessage,
                                         nsIContent* aTargetContent,
                                         nsIContent* aRelatedContent)
 {
+  SAMPLE_LABEL("Input", "DispatchMouseEvent");
   nsEventStatus status = nsEventStatus_eIgnore;
   nsMouseEvent event(NS_IS_TRUSTED_EVENT(aEvent), aMessage, aEvent->widget,
                      nsMouseEvent::eReal);
@@ -4447,12 +4446,22 @@ static nsIContent* FindCommonAncestor(nsIContent *aNode1, nsIContent *aNode2)
   return nsnull;
 }
 
+static Element*
+GetParentElement(Element* aElement)
+{
+  nsIContent* p = aElement->GetParent();
+  return (p && p->IsElement()) ? p->AsElement() : nsnull;
+}
+
 /* static */
 void
-nsEventStateManager::SetFullScreenState(Element* aElement,
-                                        bool aIsFullScreen)
+nsEventStateManager::SetFullScreenState(Element* aElement, bool aIsFullScreen)
 {
   DoStateChange(aElement, NS_EVENT_STATE_FULL_SCREEN, aIsFullScreen);
+  Element* ancestor = aElement;
+  while ((ancestor = GetParentElement(ancestor))) {
+    DoStateChange(ancestor, NS_EVENT_STATE_FULL_SCREEN_ANCESTOR, aIsFullScreen);
+  }
 }
 
 /* static */

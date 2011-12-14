@@ -329,7 +329,8 @@ GetJSObjectFromArray(JSContext* aCtx,
 class VisitedQuery : public AsyncStatementCallback
 {
 public:
-  static nsresult Start(nsIURI* aURI)
+  static nsresult Start(nsIURI* aURI,
+                        mozIVisitedStatusCallback* aCallback=nsnull)
   {
     NS_PRECONDITION(aURI, "Null URI");
 
@@ -346,7 +347,7 @@ public:
     nsNavHistory* navHistory = nsNavHistory::GetHistoryService();
     NS_ENSURE_STATE(navHistory);
     if (navHistory->hasEmbedVisit(aURI)) {
-      nsRefPtr<VisitedQuery> callback = new VisitedQuery(aURI, true);
+      nsRefPtr<VisitedQuery> callback = new VisitedQuery(aURI, aCallback, true);
       NS_ENSURE_TRUE(callback, NS_ERROR_OUT_OF_MEMORY);
       // As per IHistory contract, we must notify asynchronously.
       nsCOMPtr<nsIRunnable> event =
@@ -356,15 +357,16 @@ public:
       return NS_OK;
     }
 
-    mozIStorageAsyncStatement* stmt =
-      History::GetService()->GetIsVisitedStatement();
+    History* history = History::GetService();
+    NS_ENSURE_STATE(history);
+    mozIStorageAsyncStatement* stmt = history->GetIsVisitedStatement();
     NS_ENSURE_STATE(stmt);
 
     // Bind by index for performance.
     nsresult rv = URIBinder::Bind(stmt, 0, aURI);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    nsRefPtr<VisitedQuery> callback = new VisitedQuery(aURI);
+    nsRefPtr<VisitedQuery> callback = new VisitedQuery(aURI, aCallback);
     NS_ENSURE_TRUE(callback, NS_ERROR_OUT_OF_MEMORY);
 
     nsCOMPtr<mozIStoragePendingStatement> handle;
@@ -399,8 +401,16 @@ public:
 
   nsresult NotifyVisitedStatus()
   {
+    // If an external handling callback is provided, just notify through it.
+    if (mCallback) {
+      mCallback->IsVisited(mURI, mIsVisited);
+      return NS_OK;
+    }
+
     if (mIsVisited) {
-      History::GetService()->NotifyVisited(mURI);
+      History* history = History::GetService();
+      NS_ENSURE_STATE(history);
+      history->NotifyVisited(mURI);
     }
 
     nsCOMPtr<nsIObserverService> observerService =
@@ -422,13 +432,17 @@ public:
   }
 
 private:
-  VisitedQuery(nsIURI* aURI, bool aIsVisited=false)
+  VisitedQuery(nsIURI* aURI,
+               mozIVisitedStatusCallback *aCallback=nsnull,
+               bool aIsVisited=false)
   : mURI(aURI)
+  , mCallback(aCallback)
   , mIsVisited(aIsVisited)
   {
   }
 
   nsCOMPtr<nsIURI> mURI;
+  nsCOMPtr<mozIVisitedStatusCallback> mCallback;
   bool mIsVisited;
 };
 
@@ -477,7 +491,9 @@ public:
       NS_WARN_IF_FALSE(NS_SUCCEEDED(rv), "Could not notify observers");
     }
 
-    History::GetService()->NotifyVisited(uri);
+    History* history = History::GetService();
+    NS_ENSURE_STATE(history);
+    history->NotifyVisited(uri);
 
     return NS_OK;
   }
@@ -889,7 +905,7 @@ private:
     nsCOMPtr<mozIStorageStatement> stmt;
     // If we have a visitTime, we want information on that specific visit.
     if (_place.visitTime) {
-      stmt = mHistory->syncStatements.GetCachedStatement(
+      stmt = mHistory->GetStatement(
         "SELECT id, session, visit_date "
         "FROM moz_historyvisits "
         "WHERE place_id = (SELECT id FROM moz_places WHERE url = :page_url) "
@@ -906,7 +922,7 @@ private:
     }
     // Otherwise, we want information about the most recent visit.
     else {
-      stmt = mHistory->syncStatements.GetCachedStatement(
+      stmt = mHistory->GetStatement(
         "SELECT id, session, visit_date "
         "FROM moz_historyvisits "
         "WHERE place_id = (SELECT id FROM moz_places WHERE url = :page_url) "
@@ -995,7 +1011,7 @@ private:
     nsresult rv;
     nsCOMPtr<mozIStorageStatement> stmt;
     if (_place.placeId) {
-      stmt = mHistory->syncStatements.GetCachedStatement(
+      stmt = mHistory->GetStatement(
         "INSERT INTO moz_historyvisits "
           "(from_visit, place_id, visit_date, visit_type, session) "
         "VALUES (:from_visit, :page_id, :visit_date, :visit_type, :session) "
@@ -1005,7 +1021,7 @@ private:
       NS_ENSURE_SUCCESS(rv, rv);
     }
     else {
-      stmt = mHistory->syncStatements.GetCachedStatement(
+      stmt = mHistory->GetStatement(
         "INSERT INTO moz_historyvisits "
           "(from_visit, place_id, visit_date, visit_type, session) "
         "VALUES (:from_visit, (SELECT id FROM moz_places WHERE url = :page_url), :visit_date, :visit_type, :session) "
@@ -1054,7 +1070,7 @@ private:
     { // First, set our frecency to the proper value.
       nsCOMPtr<mozIStorageStatement> stmt;
       if (aPlace.placeId) {
-        stmt = mHistory->syncStatements.GetCachedStatement(
+        stmt = mHistory->GetStatement(
           "UPDATE moz_places "
           "SET frecency = CALCULATE_FRECENCY(:page_id) "
           "WHERE id = :page_id"
@@ -1064,7 +1080,7 @@ private:
         NS_ENSURE_SUCCESS(rv, rv);
       }
       else {
-        stmt = mHistory->syncStatements.GetCachedStatement(
+        stmt = mHistory->GetStatement(
           "UPDATE moz_places "
           "SET frecency = CALCULATE_FRECENCY(id) "
           "WHERE url = :page_url"
@@ -1083,7 +1099,7 @@ private:
       // nonzero.
       nsCOMPtr<mozIStorageStatement> stmt;
       if (aPlace.placeId) {
-        stmt = mHistory->syncStatements.GetCachedStatement(
+        stmt = mHistory->GetStatement(
           "UPDATE moz_places "
           "SET hidden = 0 "
           "WHERE id = :page_id AND frecency <> 0"
@@ -1093,7 +1109,7 @@ private:
         NS_ENSURE_SUCCESS(rv, rv);
       }
       else {
-        stmt = mHistory->syncStatements.GetCachedStatement(
+        stmt = mHistory->GetStatement(
           "UPDATE moz_places "
           "SET hidden = 0 "
           "WHERE url = :page_url AND frecency <> 0"
@@ -1187,7 +1203,7 @@ public:
 
     // Now we can update our database record.
     nsCOMPtr<mozIStorageStatement> stmt =
-      mHistory->syncStatements.GetCachedStatement(
+      mHistory->GetStatement(
         "UPDATE moz_places "
         "SET title = :page_title "
         "WHERE id = :page_id "
@@ -1285,12 +1301,15 @@ StoreAndNotifyEmbedVisit(VisitData& aPlace,
   (void)NS_DispatchToMainThread(event);
 }
 
+NS_MEMORY_REPORTER_MALLOC_SIZEOF_FUN(HistoryLinksHashtableMallocSizeOf,
+                                     "history-links-hashtable")
+
 PRInt64 GetHistoryObserversSize()
 {
   History* history = History::GetService();
   if (!history)
     return 0;
-  return sizeof(*history) + history->SizeOf();
+  return history->SizeOfIncludingThis(HistoryLinksHashtableMallocSizeOf);
 }
 
 NS_MEMORY_REPORTER_IMPLEMENT(HistoryService,
@@ -1309,8 +1328,7 @@ NS_MEMORY_REPORTER_IMPLEMENT(HistoryService,
 History* History::gService = NULL;
 
 History::History()
-  : syncStatements(mDBConn)
-  , mShuttingDown(false)
+  : mShuttingDown(false)
 {
   NS_ASSERTION(!gService, "Ruh-roh!  This service has already been created!");
   gService = this;
@@ -1400,10 +1418,10 @@ History::GetIsVisitedStatement()
 
   // Now we can create our cached statement.
   nsresult rv = mReadOnlyDBConn->CreateAsyncStatement(NS_LITERAL_CSTRING(
-    "SELECT h.id "
+    "SELECT 1 "
     "FROM moz_places h "
     "WHERE url = ?1 "
-      "AND EXISTS(SELECT id FROM moz_historyvisits WHERE place_id = h.id LIMIT 1) "
+      "AND last_visit_date NOTNULL "
   ),  getter_AddRefs(mIsVisitedStatement));
   NS_ENSURE_SUCCESS(rv, nsnull);
   return mIsVisitedStatement;
@@ -1415,7 +1433,7 @@ History::InsertPlace(const VisitData& aPlace)
   NS_PRECONDITION(aPlace.placeId == 0, "should not have a valid place id!");
   NS_PRECONDITION(!NS_IsMainThread(), "must be called off of the main thread!");
 
-  nsCOMPtr<mozIStorageStatement> stmt = syncStatements.GetCachedStatement(
+  nsCOMPtr<mozIStorageStatement> stmt = GetStatement(
       "INSERT INTO moz_places "
         "(url, title, rev_host, hidden, typed, guid) "
       "VALUES (:url, :title, :rev_host, :hidden, :typed, :guid) "
@@ -1461,7 +1479,7 @@ History::UpdatePlace(const VisitData& aPlace)
   NS_PRECONDITION(aPlace.placeId > 0, "must have a valid place id!");
   NS_PRECONDITION(!aPlace.guid.IsVoid(), "must have a guid!");
 
-  nsCOMPtr<mozIStorageStatement> stmt = syncStatements.GetCachedStatement(
+  nsCOMPtr<mozIStorageStatement> stmt = GetStatement(
       "UPDATE moz_places "
       "SET title = :title, "
           "hidden = :hidden, "
@@ -1503,7 +1521,7 @@ History::FetchPageInfo(VisitData& _place)
   NS_PRECONDITION(!_place.spec.IsEmpty(), "must have a non-empty spec!");
   NS_PRECONDITION(!NS_IsMainThread(), "must be called off of the main thread!");
 
-  nsCOMPtr<mozIStorageStatement> stmt = syncStatements.GetCachedStatement(
+  nsCOMPtr<mozIStorageStatement> stmt = GetStatement(
       "SELECT id, title, hidden, typed, guid "
       "FROM moz_places "
       "WHERE url = :page_url "
@@ -1581,9 +1599,10 @@ History::SizeOfEnumerator(KeyClass* aEntry, void* aArg)
 }
 
 PRInt64
-History::SizeOf()
+History::SizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOfThis)
 {
-  PRInt64 size = mObservers.SizeOf();
+  PRInt64 size = aMallocSizeOfThis(this, sizeof(History)) +
+                 mObservers.ShallowSizeOfExcludingThis(aMallocSizeOfThis);
   if (mObservers.IsInitialized()) {
     mObservers.EnumerateEntries(SizeOfEnumerator, &size);
   }
@@ -1621,17 +1640,11 @@ History::GetSingleton()
 mozIStorageConnection*
 History::GetDBConn()
 {
-  if (mDBConn) {
-    return mDBConn;
+  if (!mDB) {
+    mDB = Database::GetDatabase();
+    NS_ENSURE_TRUE(mDB, nsnull);
   }
-
-  nsNavHistory* navHistory = nsNavHistory::GetHistoryService();
-  NS_ENSURE_TRUE(navHistory, nsnull);
-
-  nsresult rv = navHistory->GetDBConnection(getter_AddRefs(mDBConn));
-  NS_ENSURE_SUCCESS(rv, nsnull);
-
-  return mDBConn;
+  return mDB->MainConn();
 }
 
 void
@@ -1640,15 +1653,6 @@ History::Shutdown()
   NS_ASSERTION(!mShuttingDown, "Shutdown was called more than once!");
 
   mShuttingDown = true;
-
-  // Clean up our statements and connection.
-  nsISupports* obj = static_cast<IHistory*>(this);
-  nsCOMPtr<nsIRunnable> event =
-    new FinalizeStatementCacheProxy<mozIStorageStatement>(syncStatements, obj);
-  nsCOMPtr<nsIEventTarget> target = do_GetInterface(mDBConn);
-  if (target) {
-    (void)target->Dispatch(event, NS_DISPATCH_NORMAL);
-  }
 
   if (mReadOnlyDBConn) {
     if (mIsVisitedStatement) {
@@ -2066,6 +2070,20 @@ History::UpdatePlaces(const jsval& aPlaceInfos,
     nsCOMPtr<nsIRunnable> event = new NotifyCompletion(aCallback);
     (void)backgroundThread->Dispatch(event, NS_DISPATCH_NORMAL);
   }
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+History::IsURIVisited(nsIURI* aURI,
+                      mozIVisitedStatusCallback* aCallback)
+{
+  NS_ENSURE_STATE(NS_IsMainThread());
+  NS_ENSURE_ARG(aURI);
+  NS_ENSURE_ARG(aCallback);
+
+  nsresult rv = VisitedQuery::Start(aURI, aCallback);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
 }

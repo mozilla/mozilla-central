@@ -94,6 +94,7 @@ EXPORTS = nsWindowsDllInterceptor.h
 else
 ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
 CMMSRCS = nsNativeAppSupportCocoa.mm
+EXPORTS = MacQuirks.h
 else
 ifeq ($(MOZ_WIDGET_TOOLKIT),os2)
 CPPSRCS += nsNativeAppSupportOS2.cpp
@@ -103,7 +104,6 @@ CPPSRCS += nsNativeAppSupportUnix.cpp
 else
 ifeq ($(MOZ_WIDGET_TOOLKIT),qt)
 MOCSRCS += moc_nsNativeAppSupportQt.cpp
-  $(NULL)
 CPPSRCS += $(MOCSRCS)
 CPPSRCS += nsNativeAppSupportQt.cpp
 CPPSRCS += nsQAppInstance.cpp
@@ -128,7 +128,7 @@ ifdef MOZ_X11
 CPPSRCS += nsX11ErrorHandler.cpp
 endif
 
-ifeq ($(OS_TARGET),Android)
+ifeq ($(MOZ_WIDGET_TOOLKIT),android)
 CPPSRCS += nsAndroidStartup.cpp
 DEFINES += -DANDROID_PACKAGE_NAME='"$(ANDROID_PACKAGE_NAME)"'
 endif
@@ -200,6 +200,11 @@ LOCAL_INCLUDES += \
   -I$(topsrcdir)/config \
   $(NULL)
 
+ifdef MOZ_APP_STATIC_INI
+LOCAL_INCLUDES += -I$(DEPTH)/build
+DEFINES += -DMOZ_APP_STATIC_INI
+endif
+
 CXXFLAGS += $(TK_CFLAGS) $(MOZ_DBUS_CFLAGS) $(MOZ_DBUS_GLIB_CFLAGS)
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),gtk2)
@@ -251,7 +256,19 @@ GRE_BUILDID := $(shell cat $(DEPTH)/config/buildid)
  
 DEFINES += -DGRE_MILESTONE=$(GRE_MILESTONE) -DGRE_BUILDID=$(GRE_BUILDID)
 
+ifdef MOZILLA_OFFICIAL
+DEFINES += -DMOZILLA_OFFICIAL
+endif
+
+DEFINES += -DAPP_VERSION=$(MOZ_APP_VERSION)
+
+DEFINES += -DAPP_ID=$(MOZ_APP_ID)
+
 $(srcdir)/nsAppRunner.cpp: $(DEPTH)/config/buildid $(topsrcdir)/config/milestone.txt
+
+ifeq ($(OS_TARGET),Android)
+nsAndroidStartup.o: $(DEPTH)/config/buildid $(topsrcdir)/config/milestone.txt
+endif
 
 platform.ini: FORCE
 	$(PYTHON) $(srcdir)/make-platformini.py --buildid=$(shell cat $(DEPTH)/config/buildid) $(INIARGS) $(topsrcdir)/config/milestone.txt > $@

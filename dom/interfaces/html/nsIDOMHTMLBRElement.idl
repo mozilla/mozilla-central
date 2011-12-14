@@ -50,7 +50,7 @@
  * http://www.whatwg.org/specs/web-apps/current-work/
  */
 
-[scriptable, uuid(0a8c99ef-e3e0-493d-8be7-1b1d4a26c629)]
+[scriptable, uuid(7eefd466-7c4d-499a-a076-e33204e69dc3)]
 interface nsIDOMHTMLBRElement : nsIDOMHTMLElement
 {
            attribute DOMString        clear;

@@ -112,13 +112,11 @@ PuppetWidget::Create(nsIWidget        *aParent,
                      const nsIntRect  &aRect,
                      EVENT_CALLBACK   aHandleEventFunction,
                      nsDeviceContext *aContext,
-                     nsIToolkit       *aToolkit,
                      nsWidgetInitData *aInitData)
 {
   NS_ABORT_IF_FALSE(!aNativeParent, "got a non-Puppet native parent");
 
-  BaseCreate(nsnull, aRect, aHandleEventFunction, aContext,
-             aToolkit, aInitData);
+  BaseCreate(nsnull, aRect, aHandleEventFunction, aContext, aInitData);
 
   mBounds = aRect;
   mEnabled = true;
@@ -151,7 +149,6 @@ already_AddRefed<nsIWidget>
 PuppetWidget::CreateChild(const nsIntRect  &aRect,
                           EVENT_CALLBACK   aHandleEventFunction,
                           nsDeviceContext *aContext,
-                          nsIToolkit       *aToolkit,
                           nsWidgetInitData *aInitData,
                           bool             aForceUseIWidgetParent)
 {
@@ -160,8 +157,7 @@ PuppetWidget::CreateChild(const nsIntRect  &aRect,
   return ((widget &&
            NS_SUCCEEDED(widget->Create(isPopup ? nsnull: this, nsnull, aRect,
                                        aHandleEventFunction,
-                                       aContext, aToolkit,
-                                       aInitData))) ?
+                                       aContext, aInitData))) ?
           widget.forget() : nsnull);
 }
 
@@ -403,41 +399,33 @@ PuppetWidget::CancelComposition()
   return IMEEndComposition(true);
 }
 
-NS_IMETHODIMP
-PuppetWidget::SetIMEOpenState(bool aState)
+NS_IMETHODIMP_(void)
+PuppetWidget::SetInputContext(const InputContext& aContext,
+                              const InputContextAction& aAction)
 {
-  if (mTabChild &&
-      mTabChild->SendSetIMEOpenState(aState))
-    return NS_OK;
-  return NS_ERROR_FAILURE;
+  if (!mTabChild) {
+    return;
+  }
+  mTabChild->SendSetInputContext(
+    static_cast<PRInt32>(aContext.mIMEState.mEnabled),
+    static_cast<PRInt32>(aContext.mIMEState.mOpen),
+    aContext.mHTMLInputType,
+    aContext.mActionHint,
+    static_cast<PRInt32>(aAction.mCause),
+    static_cast<PRInt32>(aAction.mFocusChange));
 }
 
-NS_IMETHODIMP
-PuppetWidget::SetInputMode(const IMEContext& aContext)
+NS_IMETHODIMP_(InputContext)
+PuppetWidget::GetInputContext()
 {
-  if (mTabChild &&
-      mTabChild->SendSetInputMode(aContext.mStatus, aContext.mHTMLInputType,
-                                  aContext.mActionHint, aContext.mReason))
-    return NS_OK;
-  return NS_ERROR_FAILURE;
-}
-
-NS_IMETHODIMP
-PuppetWidget::GetIMEOpenState(bool *aState)
-{
-  if (mTabChild &&
-      mTabChild->SendGetIMEOpenState(aState))
-    return NS_OK;
-  return NS_ERROR_FAILURE;
-}
-
-NS_IMETHODIMP
-PuppetWidget::GetInputMode(IMEContext& aContext)
-{
-  if (mTabChild &&
-      mTabChild->SendGetIMEEnabled(&aContext.mStatus))
-    return NS_OK;
-  return NS_ERROR_FAILURE;
+  InputContext context;
+  if (mTabChild) {
+    PRInt32 enabled, open;
+    mTabChild->SendGetInputContext(&enabled, &open);
+    context.mIMEState.mEnabled = static_cast<IMEState::Enabled>(enabled);
+    context.mIMEState.mOpen = static_cast<IMEState::Open>(open);
+  }
+  return context;
 }
 
 NS_IMETHODIMP

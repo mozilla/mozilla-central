@@ -4,12 +4,18 @@
 
 // This file tests that dbs are using 32k pagesize
 
+const kExpectedPageSize = 32768; // 32K
+const kExpectedCacheSize = 128; // (4MiB / 32KiB)
+
 function check_size(db)
 {
   var stmt = db.createStatement("PRAGMA page_size");
   stmt.executeStep();
-  const expected_block_size = 32768; // 32K
-  do_check_eq(stmt.getInt32(0), expected_block_size);
+  do_check_eq(stmt.getInt32(0), kExpectedPageSize);
+  stmt.finalize();
+  stmt = db.createStatement("PRAGMA cache_size");
+  stmt.executeStep();
+  do_check_eq(stmt.getInt32(0), kExpectedCacheSize);
   stmt.finalize();
 }
 
@@ -23,7 +29,7 @@ function new_file(name)
 
 function run_test()
 {
-  check_size(getDatabase(new_file("shared32k.sqlite")));
-  check_size(getService().openUnsharedDatabase(new_file("unshared32k.sqlite")));
+  check_size(getDatabase(new_file("shared32k")));
+  check_size(getService().openUnsharedDatabase(new_file("unshared32k")));
 }
 

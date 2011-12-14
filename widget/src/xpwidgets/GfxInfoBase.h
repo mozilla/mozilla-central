@@ -47,6 +47,7 @@
 #include "GfxDriverInfo.h"
 #include "nsTArray.h"
 #include "nsString.h"
+#include "GfxInfoCollector.h"
 
 namespace mozilla {
 namespace widget {  
@@ -75,6 +76,7 @@ public:
 
   NS_SCRIPTABLE NS_IMETHOD GetFailures(PRUint32 *failureCount NS_OUTPARAM, char ***failures NS_OUTPARAM);
   NS_IMETHOD_(void) LogFailure(const nsACString &failure);
+  NS_SCRIPTABLE NS_IMETHOD GetInfo(JSContext*, jsval*);
 
   // Initialization function. If you override this, you must call this class's
   // version of Init first.
@@ -85,14 +87,23 @@ public:
   // NS_GENERIC_FACTORY_CONSTRUCTOR_INIT require it be nsresult return.
   virtual nsresult Init();
   
+  // Gets the driver info table. Used by GfxInfoBase to check for general cases
+  // (while subclasses check for more specific ones).
+  virtual const GfxDriverInfo* GetGfxDriverInfo() = 0;
+
   // only useful on X11
   NS_IMETHOD_(void) GetData() { }
+
+  static void AddCollector(GfxInfoCollectorBase* collector);
+  static void RemoveCollector(GfxInfoCollectorBase* collector);
+
 
 protected:
 
   virtual nsresult GetFeatureStatusImpl(PRInt32 aFeature, PRInt32* aStatus,
                                         nsAString& aSuggestedDriverVersion,
-                                        GfxDriverInfo* aDriverInfo = nsnull) = 0;
+                                        GfxDriverInfo* aDriverInfo = nsnull,
+                                        OperatingSystem* aOS = nsnull);
 
 private:
 

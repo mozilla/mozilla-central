@@ -40,7 +40,7 @@
 #include "nsDOMClassInfoID.h"
 
 #define DEFINE_UNWRAP_CAST(_interface, _base, _bit)                           \
-NS_SPECIALIZE_TEMPLATE                                                        \
+template <>                                                                   \
 inline JSBool                                                                 \
 xpc_qsUnwrapThis<_interface>(JSContext *cx,                                   \
                              JSObject *obj,                                   \
@@ -55,13 +55,14 @@ xpc_qsUnwrapThis<_interface>(JSContext *cx,                                   \
     nsISupports *native = castNativeFromWrapper(cx, obj, callee, _bit,        \
                                                 pThisRef, pThisVal, lccx,     \
                                                 &rv);                         \
+    *ppThis = NULL;  /* avoids uninitialized warnings in callers */           \
     if (failureFatal && !native)                                              \
         return xpc_qsThrow(cx, rv);                                           \
     *ppThis = static_cast<_interface*>(static_cast<_base*>(native));          \
-    return JS_TRUE;                                                           \
+    return true;                                                              \
 }                                                                             \
                                                                               \
-NS_SPECIALIZE_TEMPLATE                                                        \
+template <>                                                                   \
 inline nsresult                                                               \
 xpc_qsUnwrapArg<_interface>(JSContext *cx,                                    \
                             jsval v,                                          \
@@ -97,13 +98,13 @@ castToElement(nsIContent *content, jsval val, nsGenericElement **ppInterface,
               jsval *pVal)
 {
     if (!content->IsElement())
-        return JS_FALSE;
+        return false;
     *ppInterface = static_cast<nsGenericElement*>(content->AsElement());
     *pVal = val;
-    return JS_TRUE;
+    return true;
 }
 
-NS_SPECIALIZE_TEMPLATE
+template <>
 inline JSBool
 xpc_qsUnwrapThis<nsGenericElement>(JSContext *cx,
                                    JSObject *obj,
@@ -127,14 +128,14 @@ xpc_qsUnwrapThis<nsGenericElement>(JSContext *cx,
     }
 
     if (!failureFatal && (!ok || !content)) {
-      ok = JS_TRUE;
+      ok = true;
       *ppThis = nsnull;
     }
 
     return ok;
 }
 
-NS_SPECIALIZE_TEMPLATE
+template <>
 inline nsresult
 xpc_qsUnwrapArg<nsGenericElement>(JSContext *cx,
                                   jsval v,

@@ -15,20 +15,15 @@
       const name = window.location.pathname;
       const description = "My Test Database";
 
-      let request = mozIndexedDB.open(name, description);
+      let request = mozIndexedDB.open(name, 1, description);
       request.onerror = errorHandler;
-      request.onsuccess = grabEventAndContinueHandler;
+      request.onupgradeneeded = grabEventAndContinueHandler;
       let event = yield;
 
       let db = event.target.result;
       db.addEventListener("error", function(event) {
         event.preventDefault();
       }, false);
-
-      request = db.setVersion("1");
-      request.onerror = errorHandler;
-      request.onsuccess = grabEventAndContinueHandler;
-      let event = yield;
 
       let objectStore = db.createObjectStore("foo", { autoIncrement: true });
 
@@ -66,18 +61,18 @@
 
       try {
         objectStore.put({});
-        ok(false, "put with no key should throw!");
+        ok(true, "put with no key should not throw with autoIncrement!");
       }
       catch (e) {
-        ok(true, "put with no key threw");
+        ok(false, "put with no key threw with autoIncrement");
       }
 
       try {
         objectStore.put({});
-        ok(false, "put with no key should throw!");
+        ok(true, "put with no key should not throw with autoIncrement!");
       }
       catch (e) {
-        ok(true, "put with no key threw");
+        ok(false, "put with no key threw with autoIncrement");
       }
 
       try {
@@ -252,18 +247,18 @@
 
       try {
         objectStore.put({});
-        ok(false, "put with no key should throw!");
+        ok(true, "put with no key should not throw with autoIncrement!");
       }
       catch (e) {
-        ok(true, "put with no key threw");
+        ok(false, "put with no key threw with autoIncrement");
       }
 
       try {
         objectStore.put({});
-        ok(false, "put with no key should throw!");
+        ok(true, "put with no key should not throw with autoIncrement!");
       }
       catch (e) {
-        ok(true, "put with no key threw");
+        ok(false, "put with no key threw with autoIncrement");
       }
 
       try {

@@ -100,7 +100,6 @@ public:
     mOwner = aOwner;
     mScriptContext = aScriptContext;
   }
-  virtual ~nsXMLHttpRequestUpload();
   NS_DECL_ISUPPORTS_INHERITED
   NS_FORWARD_NSIXMLHTTPREQUESTEVENTTARGET(nsXHREventTarget::)
   NS_FORWARD_NSIDOMEVENTTARGET(nsXHREventTarget::)
@@ -123,6 +122,7 @@ class nsXMLHttpRequest : public nsXHREventTarget,
                          public nsIJSNativeInitializer,
                          public nsITimerCallback
 {
+  friend class nsXHRParseEndListener;
 public:
   nsXMLHttpRequest();
   virtual ~nsXMLHttpRequest();
@@ -217,7 +217,7 @@ protected:
                 PRUint32 *writeCount);
   nsresult CreateResponseParsedJSON(JSContext* aCx);
   nsresult CreateResponseArrayBuffer(JSContext* aCx);
-  void CreateResponseBlob(nsIRequest *request);
+  bool CreateResponseBlob(nsIRequest *request);
   // Change the state of the object with this. The broadcast argument
   // determines if the onreadystatechange listener should be called.
   nsresult ChangeState(PRUint32 aState, bool aBroadcast = true);
@@ -234,6 +234,8 @@ protected:
   already_AddRefed<nsIHttpChannel> GetCurrentHttpChannel();
 
   bool IsSystemXHR();
+
+  void ChangeStateToDone();
 
   /**
    * Check if aChannel is ok for a cross-site request by making sure no
@@ -347,6 +349,9 @@ protected:
   bool mTimerIsActive;
   bool mProgressEventWasDelayed;
   bool mLoadLengthComputable;
+  bool mIsHtml;
+  bool mWarnAboutMultipartHtml;
+  bool mWarnAboutSyncHtml;
   PRUint64 mLoadTotal; // 0 if not known.
   PRUint64 mLoadTransferred;
   nsCOMPtr<nsITimer> mProgressNotifier;
@@ -430,6 +435,26 @@ protected:
   nsCOMPtr<nsPIDOMWindow> mWindow;
   PRUint64 mCurProgress;
   PRUint64 mMaxProgress;
+};
+
+class nsXHRParseEndListener : public nsIDOMEventListener
+{
+public:
+  NS_DECL_ISUPPORTS
+  NS_IMETHOD HandleEvent(nsIDOMEvent *event)
+  {
+    nsCOMPtr<nsIXMLHttpRequest> xhr = do_QueryReferent(mXHR);
+    if (xhr) {
+      static_cast<nsXMLHttpRequest*>(xhr.get())->ChangeStateToDone();
+    }
+    mXHR = nsnull;
+    return NS_OK;
+  }
+  nsXHRParseEndListener(nsIXMLHttpRequest* aXHR)
+    : mXHR(do_GetWeakReference(aXHR)) {}
+  virtual ~nsXHRParseEndListener() {}
+private:
+  nsWeakPtr mXHR;
 };
 
 #endif

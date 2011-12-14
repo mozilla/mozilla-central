@@ -74,15 +74,13 @@ public:
                     nsNativeWidget    aNativeParent,
                     const nsIntRect&  aRect,
                     EVENT_CALLBACK    aHandleEventFunction,
-                    nsDeviceContext* aContext,
-                    nsIToolkit*       aToolkit = nsnull,
+                    nsDeviceContext*  aContext,
                     nsWidgetInitData* aInitData = nsnull);
 
   virtual already_AddRefed<nsIWidget>
   CreateChild(const nsIntRect  &aRect,
               EVENT_CALLBACK   aHandleEventFunction,
-              nsDeviceContext *aContext,
-              nsIToolkit       *aToolkit = nsnull,
+              nsDeviceContext  *aContext,
               nsWidgetInitData *aInitData = nsnull,
               bool             aForceUseIWidgetParent = false);
 
@@ -152,7 +150,7 @@ public:
 
   NS_IMETHOD DispatchEvent(nsGUIEvent* event, nsEventStatus& aStatus);
 
-  NS_IMETHOD CaptureRollupEvents(nsIRollupListener* aListener, nsIMenuRollup* aMenuRollup,
+  NS_IMETHOD CaptureRollupEvents(nsIRollupListener* aListener,
                                  bool aDoCapture, bool aConsumeRollupEvent)
   { return NS_ERROR_UNEXPECTED; }
 
@@ -170,10 +168,9 @@ public:
   virtual gfxASurface*      GetThebesSurface();
 
   NS_IMETHOD ResetInputState();
-  NS_IMETHOD SetIMEOpenState(bool aState);
-  NS_IMETHOD GetIMEOpenState(bool *aState);
-  NS_IMETHOD SetInputMode(const IMEContext& aContext);
-  NS_IMETHOD GetInputMode(IMEContext& aContext);
+  NS_IMETHOD_(void) SetInputContext(const InputContext& aContext,
+                                    const InputContextAction& aAction);
+  NS_IMETHOD_(InputContext) GetInputContext();
   NS_IMETHOD CancelComposition();
   NS_IMETHOD OnIMEFocusChange(bool aFocus);
   NS_IMETHOD OnIMETextChange(PRUint32 aOffset, PRUint32 aEnd,

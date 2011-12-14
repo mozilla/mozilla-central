@@ -404,6 +404,12 @@ public:
   //////////////////////////////////////////////////////////////////////////////
   // Downcasting and types
 
+  inline bool IsAbbreviation() const
+  {
+    return mContent->IsHTML() &&
+      (mContent->Tag() == nsGkAtoms::abbr || mContent->Tag() == nsGkAtoms::acronym);
+  }
+
   inline bool IsApplication() const { return mFlags & eApplicationAccessible; }
 
   bool IsAutoComplete() const { return mFlags & eAutoCompleteAccessible; }
@@ -417,6 +423,8 @@ public:
 
   inline bool IsHyperText() const { return mFlags & eHyperTextAccessible; }
   nsHyperTextAccessible* AsHyperText();
+
+  inline bool IsHTMLFileInput() const { return mFlags & eHTMLFileInputAccessible; }
 
   inline bool IsHTMLListItem() const { return mFlags & eHTMLListItemAccessible; }
   nsHTMLLIAccessible* AsHTMLListItem();
@@ -581,6 +589,11 @@ public:
   virtual nsAccessible* CurrentItem();
 
   /**
+   * Set the current item of the widget.
+   */
+  virtual void SetCurrentItem(nsAccessible* aItem);
+
+  /**
    * Return container widget this accessible belongs to.
    */
   virtual nsAccessible* ContainerWidget() const;
@@ -639,12 +652,13 @@ protected:
     eComboboxAccessible = 1 << 5,
     eDocAccessible = 1 << 6,
     eHyperTextAccessible = 1 << 7,
-    eHTMLListItemAccessible = 1 << 8,
-    eListControlAccessible = 1 << 9,
-    eMenuButtonAccessible = 1 << 10,
-    eMenuPopupAccessible = 1 << 11,
-    eRootAccessible = 1 << 12,
-    eTextLeafAccessible = 1 << 13
+    eHTMLFileInputAccessible = 1 << 8,
+    eHTMLListItemAccessible = 1 << 9,
+    eListControlAccessible = 1 << 10,
+    eMenuButtonAccessible = 1 << 11,
+    eMenuPopupAccessible = 1 << 12,
+    eRootAccessible = 1 << 13,
+    eTextLeafAccessible = 1 << 14
   };
 
   //////////////////////////////////////////////////////////////////////////////

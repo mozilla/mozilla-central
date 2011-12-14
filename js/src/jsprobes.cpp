@@ -36,6 +36,7 @@
 #ifdef MOZ_ETW
 #include "jswin.h"
 #include <evntprov.h>
+#include <sys/types.h>
 
 /* Generated from ETWProvider.man */
 #include "ETWProvider.h"
@@ -49,11 +50,11 @@
 #include "jsfun.h"
 #include "jsinterp.h"
 #include "jsobj.h"
+#include "jsprobes.h"
 #include "jsscript.h"
 #include "jsstr.h"
 
-#include "jsprobes.h"
-#include <sys/types.h>
+#include "jsobjinlines.h"
 
 #define TYPEOF(cx,v)    (JSVAL_IS_NULL(v) ? JSTYPE_NULL : JS_TypeOfValue(cx,v))
 
@@ -233,7 +234,7 @@ FunctionClassname(const JSFunction *fun)
 {
     if (!fun || fun->isInterpreted())
         return Probes::nullName;
-    if (!(fun->flags & JSFUN_TRCINFO) && fun->getConstructorClass())
+    if (fun->getConstructorClass())
         return fun->getConstructorClass()->name;
     return Probes::nullName;
 }

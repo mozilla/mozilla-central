@@ -345,8 +345,8 @@ class NunboxAssembler : public JSC::MacroAssembler
         loadPtr(payloadOf(privAddr), to);
     }
 
-    void loadObjPrivate(RegisterID base, RegisterID to) {
-        Address priv(base, offsetof(JSObject, privateData));
+    void loadObjPrivate(RegisterID base, RegisterID to, uint32 nfixed) {
+        Address priv(base, JSObject::getPrivateDataOffset(nfixed));
         loadPtr(priv, to);
     }
 
@@ -400,6 +400,14 @@ class NunboxAssembler : public JSC::MacroAssembler
 
     Jump testObject(Condition cond, Address address) {
         return branch32(cond, tagOf(address), ImmTag(JSVAL_TAG_OBJECT));
+    }
+
+    Jump testGCThing(RegisterID reg) {
+        return branch32(AboveOrEqual, reg, ImmTag(JSVAL_LOWER_INCL_TAG_OF_GCTHING_SET));
+    }
+
+    Jump testGCThing(Address address) {
+        return branch32(AboveOrEqual, tagOf(address), ImmTag(JSVAL_LOWER_INCL_TAG_OF_GCTHING_SET));
     }
 
     Jump testDouble(Condition cond, RegisterID reg) {

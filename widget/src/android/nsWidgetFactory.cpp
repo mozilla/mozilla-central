@@ -41,7 +41,7 @@
 #include "nsCOMPtr.h"
 #include "nsWidgetsCID.h"
 #include "nsAppShell.h"
-#include "nsToolkit.h"
+#include "AndroidBridge.h"
 
 #include "nsWindow.h"
 #include "nsLookAndFeel.h"
@@ -61,7 +61,6 @@
 #include "nsFilePickerProxy.h"
 #include "nsXULAppAPI.h"
 
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsToolkit)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsWindow)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsScreenManagerAndroid)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsIdleServiceAndroid)
@@ -73,6 +72,7 @@ NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsPrintSession, Init)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsDeviceContextSpecAndroid)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsHTMLFormatConverter)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsIMEPicker)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsAndroidBridge)
 
 #include "GfxInfo.h"
 namespace mozilla {
@@ -100,7 +100,6 @@ nsFilePickerConstructor(nsISupports *aOuter, REFNSIID aIID,
   return picker->QueryInterface(aIID, aResult);
 }
 
-NS_DEFINE_NAMED_CID(NS_TOOLKIT_CID);
 NS_DEFINE_NAMED_CID(NS_APPSHELL_CID);
 NS_DEFINE_NAMED_CID(NS_WINDOW_CID);
 NS_DEFINE_NAMED_CID(NS_CHILD_CID);
@@ -116,12 +115,12 @@ NS_DEFINE_NAMED_CID(NS_FILEPICKER_CID);
 NS_DEFINE_NAMED_CID(NS_HTMLFORMATCONVERTER_CID);
 NS_DEFINE_NAMED_CID(NS_IMEPICKER_CID);
 NS_DEFINE_NAMED_CID(NS_GFXINFO_CID);
+NS_DEFINE_NAMED_CID(NS_ANDROIDBRIDGE_CID);
 
 static const mozilla::Module::CIDEntry kWidgetCIDs[] = {
   { &kNS_WINDOW_CID, false, NULL, nsWindowConstructor },
   { &kNS_CHILD_CID, false, NULL, nsWindowConstructor },
   { &kNS_APPSHELL_CID, false, NULL, nsAppShellConstructor },
-  { &kNS_TOOLKIT_CID, false, NULL, nsToolkitConstructor },
   { &kNS_SCREENMANAGER_CID, false, NULL, nsScreenManagerAndroidConstructor },
   { &kNS_IDLE_SERVICE_CID, false, NULL, nsIdleServiceAndroidConstructor },
   { &kNS_TRANSFERABLE_CID, false, NULL, nsTransferableConstructor },
@@ -134,6 +133,7 @@ static const mozilla::Module::CIDEntry kWidgetCIDs[] = {
   { &kNS_HTMLFORMATCONVERTER_CID, false, NULL, nsHTMLFormatConverterConstructor },
   { &kNS_IMEPICKER_CID, false, NULL, nsIMEPickerConstructor },
   { &kNS_GFXINFO_CID, false, NULL, mozilla::widget::GfxInfoConstructor },
+  { &kNS_ANDROIDBRIDGE_CID, false, NULL, nsAndroidBridgeConstructor },
   { NULL }
 };
 
@@ -141,7 +141,6 @@ static const mozilla::Module::ContractIDEntry kWidgetContracts[] = {
   { "@mozilla.org/widgets/window/android;1", &kNS_WINDOW_CID },
   { "@mozilla.org/widgets/child_window/android;1", &kNS_CHILD_CID },
   { "@mozilla.org/widget/appshell/android;1", &kNS_APPSHELL_CID },
-  { "@mozilla.org/widget/toolkit/android;1", &kNS_TOOLKIT_CID },
   { "@mozilla.org/gfx/screenmanager;1", &kNS_SCREENMANAGER_CID },
   { "@mozilla.org/widget/idleservice;1", &kNS_IDLE_SERVICE_CID },
   { "@mozilla.org/widget/transferable;1", &kNS_TRANSFERABLE_CID },
@@ -154,6 +153,7 @@ static const mozilla::Module::ContractIDEntry kWidgetContracts[] = {
   { "@mozilla.org/widget/htmlformatconverter;1", &kNS_HTMLFORMATCONVERTER_CID },
   { "@mozilla.org/imepicker;1", &kNS_IMEPICKER_CID },
   { "@mozilla.org/gfx/info;1", &kNS_GFXINFO_CID },
+  { "@mozilla.org/android/bridge;1", &kNS_ANDROIDBRIDGE_CID },
   { NULL }
 };
 

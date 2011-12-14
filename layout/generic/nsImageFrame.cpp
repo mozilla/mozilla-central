@@ -205,15 +205,21 @@ nsImageFrame::CreateAccessible()
 #endif
 
 void
+nsImageFrame::DisconnectMap()
+{
+  if (mImageMap) {
+    mImageMap->Destroy();
+    NS_RELEASE(mImageMap);
+  }
+}
+
+void
 nsImageFrame::DestroyFrom(nsIFrame* aDestructRoot)
 {
   // Tell our image map, if there is one, to clean up
   // This causes the nsImageMap to unregister itself as
   // a DOM listener.
-  if (mImageMap) {
-    mImageMap->Destroy();
-    NS_RELEASE(mImageMap);
-  }
+  DisconnectMap();
 
   // set the frame to null so we don't send messages to a dead object.
   if (mListener) {
@@ -224,6 +230,10 @@ nsImageFrame::DestroyFrom(nsIFrame* aDestructRoot)
       // JS. See bug 604262.
       nsCxPusher pusher;
       pusher.PushNull();
+
+      // Notify our image loading content that we are going away so it can
+      // deregister with our refresh driver.
+      imageLoader->FrameDestroyed(this);
 
       imageLoader->RemoveObserver(mListener);
     }
@@ -269,6 +279,10 @@ nsImageFrame::Init(nsIContent*      aContent,
   
   if (!gIconLoad)
     LoadIcons(aPresContext);
+
+  // We have a PresContext now, so we need to notify the image content node
+  // that it can register images.
+  imageLoader->FrameCreated(this);
 
   // Give image loads associated with an image frame a small priority boost!
   nsCOMPtr<imgIRequest> currentRequest;
@@ -607,7 +621,6 @@ nsImageFrame::OnDataAvailable(imgIRequest *aRequest,
          r.x, r.y, r.width, r.height);
 #endif
 
-  mImageContainer = nsnull;
   Invalidate(r);
   
   return NS_OK;
@@ -687,7 +700,6 @@ nsImageFrame::FrameChanged(imgIContainer *aContainer,
 
   // Update border+content to account for image change
   Invalidate(r);
-  mImageContainer = nsnull;
   return NS_OK;
 }
 
@@ -974,7 +986,8 @@ nsImageFrame::DisplayAltText(nsPresContext*      aPresContext,
   // Set font and color
   aRenderingContext.SetColor(GetStyleColor()->mColor);
   nsRefPtr<nsFontMetrics> fm;
-  nsLayoutUtils::GetFontMetricsForFrame(this, getter_AddRefs(fm));
+  nsLayoutUtils::GetFontMetricsForFrame(this, getter_AddRefs(fm),
+    nsLayoutUtils::FontSizeInflationFor(this));
   aRenderingContext.SetFont(fm);
 
   // Format the text to display within the formatting rect
@@ -1205,7 +1218,10 @@ nsDisplayImage::GetImage()
 nsRefPtr<ImageContainer>
 nsDisplayImage::GetContainer(LayerManager* aManager)
 {
-  return static_cast<nsImageFrame*>(mFrame)->GetContainer(aManager, mImage);
+  ImageContainer* container;
+  nsresult rv = mImage->GetImageContainer(aManager, &container);
+  NS_ENSURE_SUCCESS(rv, NULL);
+  return container;
 }
 
 void
@@ -1213,7 +1229,7 @@ nsDisplayImage::ConfigureLayer(ImageLayer* aLayer)
 {
   aLayer->SetFilter(nsLayoutUtils::GetGraphicsFilterForFrame(mFrame));
   
-  PRInt32 factor = nsPresContext::AppUnitsPerCSSPixel();
+  PRInt32 factor = mFrame->PresContext()->AppUnitsPerDevPixel();
   nsImageFrame* imageFrame = static_cast<nsImageFrame*>(mFrame);
 
   nsRect dest = imageFrame->GetInnerArea() + ToReferenceFrame();
@@ -1232,41 +1248,6 @@ nsDisplayImage::ConfigureLayer(ImageLayer* aLayer)
   aLayer->SetTransform(gfx3DMatrix::From2D(transform));
 
   aLayer->SetVisibleRegion(nsIntRect(0, 0, imageWidth, imageHeight));
-}
-
-nsRefPtr<ImageContainer>
-nsImageFrame::GetContainer(LayerManager* aManager, imgIContainer* aImage)
-{
-  if (mImageContainer && mImageContainer->Manager() == aManager) {
-    return mImageContainer;
-  }
-
-  if (aImage->GetType() != imgIContainer::TYPE_RASTER) {
-    return nsnull;
-  }
-  
-  CairoImage::Data cairoData;
-  nsRefPtr<gfxASurface> imageSurface;
-  aImage->GetFrame(imgIContainer::FRAME_CURRENT,
-                   imgIContainer::FLAG_SYNC_DECODE,
-                   getter_AddRefs(imageSurface));
-  cairoData.mSurface = imageSurface;
-  aImage->GetWidth(&cairoData.mSize.width);
-  aImage->GetHeight(&cairoData.mSize.height);
-
-  mImageContainer = aManager->CreateImageContainer();
-  NS_ASSERTION(mImageContainer, "Failed to create ImageContainer!");
-  
-  // Now create a CairoImage to display the surface.
-  Image::Format cairoFormat = Image::CAIRO_SURFACE;
-  nsRefPtr<Image> image = mImageContainer->CreateImage(&cairoFormat, 1);
-  NS_ASSERTION(image, "Failed to create Image");
-
-  NS_ASSERTION(image->GetFormat() == cairoFormat, "Wrong format");
-  static_cast<CairoImage*>(image.get())->SetData(cairoData);
-  mImageContainer->SetCurrentImage(image);
-
-  return mImageContainer;
 }
 
 void
@@ -1551,12 +1532,9 @@ nsImageFrame::GetContentForEvent(nsEvent* aEvent,
     nsIntPoint p;
     TranslateEventCoords(
       nsLayoutUtils::GetEventCoordinatesRelativeTo(aEvent, this), p);
-    bool inside = false;
-    nsCOMPtr<nsIContent> area;
-    inside = map->IsInside(p.x, p.y, getter_AddRefs(area));
-    if (inside && area) {
-      *aContent = area;
-      NS_ADDREF(*aContent);
+    nsCOMPtr<nsIContent> area = map->GetArea(p.x, p.y);
+    if (area) {
+      area.forget(aContent);
       return NS_OK;
     }
   }
@@ -1590,8 +1568,7 @@ nsImageFrame::HandleEvent(nsPresContext* aPresContext,
       // (in case we deal with a case of both client-side and
       // sever-side on the same image - it happens!)
       if (nsnull != map) {
-        nsCOMPtr<nsIContent> area;
-        inside = map->IsInside(p.x, p.y, getter_AddRefs(area));
+        inside = !!map->GetArea(p.x, p.y);
       }
 
       if (!inside && isServerMap) {
@@ -1638,8 +1615,8 @@ nsImageFrame::GetCursor(const nsPoint& aPoint,
   if (nsnull != map) {
     nsIntPoint p;
     TranslateEventCoords(aPoint, p);
-    nsCOMPtr<nsIContent> area;
-    if (map->IsInside(p.x, p.y, getter_AddRefs(area))) {
+    nsCOMPtr<nsIContent> area = map->GetArea(p.x, p.y);
+    if (area) {
       // Use the cursor from the style of the *area* element.
       // XXX Using the image as the parent style context isn't
       // technically correct, but it's probably the right thing to do
@@ -1980,6 +1957,12 @@ NS_IMETHODIMP
 nsImageFrame::IconLoad::OnStopDecode(imgIRequest *aRequest,
                                      nsresult status,
                                      const PRUnichar *statusArg)
+{
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsImageFrame::IconLoad::OnImageIsAnimated(imgIRequest *aRequest)
 {
   return NS_OK;
 }

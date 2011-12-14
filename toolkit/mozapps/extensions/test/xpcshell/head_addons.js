@@ -8,6 +8,11 @@ const AM_Ci = Components.interfaces;
 const XULAPPINFO_CONTRACTID = "@mozilla.org/xre/app-info;1";
 const XULAPPINFO_CID = Components.ID("{c763b610-9d49-455a-bbd2-ede71682a1ac}");
 
+const PREF_EM_CHECK_UPDATE_SECURITY   = "extensions.checkUpdateSecurity";
+const PREF_EM_STRICT_COMPATIBILITY    = "extensions.strictCompatibility";
+const PREF_EM_MIN_COMPAT_APP_VERSION      = "extensions.minCompatibleAppVersion";
+const PREF_EM_MIN_COMPAT_PLATFORM_VERSION = "extensions.minCompatiblePlatformVersion";
+
 Components.utils.import("resource://gre/modules/AddonManager.jsm");
 Components.utils.import("resource://gre/modules/AddonRepository.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
@@ -239,6 +244,12 @@ function do_check_addon(aActualAddon, aExpectedAddon, aProperties) {
         do_check_eq(actualValue.getTime(), expectedValue.getTime());
         break;
 
+      case "compatibilityOverrides":
+        do_check_eq(actualValue.length, expectedValue.length);
+        for (let i = 0; i < actualValue.length; i++)
+          do_check_compatibilityoverride(actualValue[i], expectedValue[i]);
+        break;
+
       default:
         if (actualValue !== expectedValue)
           do_throw("Failed for " + aProperty + " for add-on " + aExpectedAddon.id +
@@ -278,6 +289,24 @@ function do_check_screenshot(aActual, aExpected) {
   do_check_eq(aActual.thumbnailWidth, aExpected.thumbnailWidth);
   do_check_eq(aActual.thumbnailHeight, aExpected.thumbnailHeight);
   do_check_eq(aActual.caption, aExpected.caption);
+}
+
+/**
+ * Check that the actual compatibility override is the same as the expected
+ * compatibility override.
+ *
+ * @param  aAction
+ *         The actual compatibility override to check.
+ * @param  aExpected
+ *         The expected compatibility override to check against.
+ */
+function do_check_compatibilityoverride(aActual, aExpected) {
+  do_check_eq(aActual.type, aExpected.type);
+  do_check_eq(aActual.minVersion, aExpected.minVersion);
+  do_check_eq(aActual.maxVersion, aExpected.maxVersion);
+  do_check_eq(aActual.appID, aExpected.appID);
+  do_check_eq(aActual.appMinVersion, aExpected.appMinVersion);
+  do_check_eq(aActual.appMaxVersion, aExpected.appMaxVersion);
 }
 
 /**
@@ -444,12 +473,8 @@ function check_startup_changes(aType, aIds) {
   var ids = aIds.slice(0);
   ids.sort();
   var changes = AddonManager.getStartupChanges(aType);
+  changes = changes.filter(function(aEl) /@tests.mozilla.org$/.test(aEl));
   changes.sort();
-
-  // Remove the default theme if it is in the list
-  var pos = changes.indexOf("{972ce4c6-7e08-4474-a285-3208198ce6fd}");
-  if (pos != -1)
-    changes.splice(pos, 1);
 
   do_check_eq(JSON.stringify(ids), JSON.stringify(changes));
 }
@@ -494,7 +519,7 @@ function createInstallRDF(aData) {
 
   ["id", "version", "type", "internalName", "updateURL", "updateKey",
    "optionsURL", "optionsType", "aboutURL", "iconURL", "icon64URL",
-   "skinnable", "bootstrap"].forEach(function(aProp) {
+   "skinnable", "bootstrap", "strictCompatibility"].forEach(function(aProp) {
     if (aProp in aData)
       rdf += "<em:" + aProp + ">" + escapeXML(aData[aProp]) + "</em:" + aProp + ">\n";
   });
@@ -841,7 +866,11 @@ const InstallListener = {
   },
 
   onInstallCancelled: function(install) {
-    do_check_eq(install.state, AddonManager.STATE_CANCELLED);
+    // If the install was cancelled by a listener returning false from
+    // onInstallStarted, then the state will revert to STATE_DOWNLOADED.
+    let possibleStates = [AddonManager.STATE_CANCELLED,
+                          AddonManager.STATE_DOWNLOADED];
+    do_check_true(possibleStates.indexOf(install.state) != -1);
     do_check_eq(install.error, 0);
     do_check_eq("onInstallCancelled", getExpectedInstall(install.addon));
     return check_test_completed(arguments);
@@ -1103,6 +1132,13 @@ Services.prefs.setCharPref("extensions.blocklist.url", "http://127.0.0.1/blockli
 // By default ignore bundled add-ons
 Services.prefs.setBoolPref("extensions.installDistroAddons", false);
 
+// By default use strict compatibility
+Services.prefs.setBoolPref("extensions.strictCompatibility", true);
+
+// By default, set min compatible versions to 0
+Services.prefs.setCharPref(PREF_EM_MIN_COMPAT_APP_VERSION, "0");
+Services.prefs.setCharPref(PREF_EM_MIN_COMPAT_PLATFORM_VERSION, "0");
+
 // Register a temporary directory for the tests.
 const gTmpD = gProfD.clone();
 gTmpD.append("temp");
@@ -1146,4 +1182,12 @@ do_register_cleanup(function() {
   do_check_false(testDir.exists());
 
   shutdownManager();
+
+  // Clear commonly set prefs.
+  try {
+    Services.prefs.clearUserPref(PREF_EM_CHECK_UPDATE_SECURITY);
+  } catch (e) {}
+  try {
+    Services.prefs.clearUserPref(PREF_EM_STRICT_COMPATIBILITY);
+  } catch (e) {}
 });

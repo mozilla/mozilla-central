@@ -131,6 +131,8 @@ public:
       GetScaledFontForFont(gfxFont *aFont);
     virtual already_AddRefed<gfxASurface>
       GetThebesSurfaceForDrawTarget(mozilla::gfx::DrawTarget *aTarget);
+    
+    virtual bool SupportsAzure(mozilla::gfx::BackendType& aBackend);
 
     enum RenderMode {
         /* Use GDI and windows surfaces */

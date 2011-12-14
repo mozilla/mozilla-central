@@ -152,6 +152,7 @@
 #include "nsContentErrors.h"
 #include "mozilla/TimeStamp.h"
 #include "mozilla/Telemetry.h"
+#include "mozilla/Preferences.h"
 
 #if defined(XP_WIN)
 #include "nsIWindowMediator.h"
@@ -230,6 +231,12 @@ PRLogModuleInfo* nsPluginLogging::gPluginLog = nsnull;
 
 #define BRAND_PROPERTIES_URL "chrome://branding/locale/brand.properties"
 #define PLUGIN_PROPERTIES_URL "chrome://global/locale/downloadProgress.properties"
+
+// #defines for plugin cache and prefs
+#define NS_PREF_MAX_NUM_CACHED_INSTANCES "browser.plugins.max_num_cached_plugins"
+// Raise this from '10' to '50' to work around a bug in Apple's current Java
+// plugins on OS X Lion and SnowLeopard.  See bug 705931.
+#define DEFAULT_NUMBER_OF_STOPPED_INSTANCES 50
 
 #ifdef CALL_SAFETY_ON
 // By default we run OOPP, so we don't want to cover up crashes.
@@ -650,9 +657,6 @@ nsresult nsPluginHost::GetURLWithHeaders(nsNPAPIPluginInstance* pluginInst,
                                          PRUint32 getHeadersLength,
                                          const char* getHeaders)
 {
-  nsAutoString string;
-  string.AssignWithConversion(url);
-
   // we can only send a stream back to the plugin (as specified by a
   // null target) if we also have a nsIPluginStreamListener to talk to
   if (!target && !streamListener)
@@ -677,7 +681,8 @@ nsresult nsPluginHost::GetURLWithHeaders(nsNPAPIPluginInstance* pluginInst,
   }
 
   if (streamListener)
-    rv = NewPluginURLStream(string, pluginInst, streamListener, nsnull,
+    rv = NewPluginURLStream(NS_ConvertUTF8toUTF16(url), pluginInst,
+                            streamListener, nsnull,
                             getHeaders, getHeadersLength);
 
   return rv;
@@ -696,10 +701,7 @@ nsresult nsPluginHost::PostURL(nsISupports* pluginInst,
                                     PRUint32 postHeadersLength,
                                     const char* postHeaders)
 {
-  nsAutoString string;
   nsresult rv;
-
-  string.AssignWithConversion(url);
 
   // we can only send a stream back to the plugin (as specified
   // by a null target) if we also have a nsIPluginStreamListener
@@ -771,7 +773,8 @@ nsresult nsPluginHost::PostURL(nsISupports* pluginInst,
   // if we don't have a target, just create a stream.  This does
   // NS_OpenURI()!
   if (streamListener)
-    rv = NewPluginURLStream(string, instance, streamListener,
+    rv = NewPluginURLStream(NS_ConvertUTF8toUTF16(url), instance,
+                            streamListener,
                             postStream, postHeaders, postHeadersLength);
 
   return rv;
@@ -1330,9 +1333,17 @@ nsPluginHost::TrySetUpPluginInstance(const char *aMimeType,
 nsresult
 nsPluginHost::IsPluginEnabledForType(const char* aMimeType)
 {
+  // If plugins.click_to_play is false, plugins should always play
+  return IsPluginEnabledForType(aMimeType,
+                                !Preferences::GetBool("plugins.click_to_play", false));
+}
+
+nsresult
+nsPluginHost::IsPluginEnabledForType(const char* aMimeType, bool aShouldPlay)
+{
   nsPluginTag *plugin = FindPluginForType(aMimeType, true);
   if (plugin)
-    return NS_OK;
+    return aShouldPlay ? NS_OK : NS_ERROR_PLUGIN_CLICKTOPLAY;
 
   // Pass false as the second arg so we can return NS_ERROR_PLUGIN_DISABLED
   // for disabled plug-ins.
@@ -1347,7 +1358,7 @@ nsPluginHost::IsPluginEnabledForType(const char* aMimeType)
       return NS_ERROR_PLUGIN_DISABLED;
   }
 
-  return NS_OK;
+  return aShouldPlay ? NS_OK : NS_ERROR_PLUGIN_CLICKTOPLAY;
 }
 
 // check comma delimitered extensions
@@ -1376,11 +1387,23 @@ static int CompareExtensions(const char *aExtensionList, const char *aExtension)
 }
 
 nsresult
+nsPluginHost::IsPluginEnabledForExtension(const char* aExtension, const char* &aMimeType)
+{
+  // If plugins.click_to_play is false, plugins should always play
+  return IsPluginEnabledForExtension(aExtension, aMimeType,
+                                     !Preferences::GetBool("plugins.click_to_play", false));
+}
+
+nsresult
 nsPluginHost::IsPluginEnabledForExtension(const char* aExtension,
-                                          const char* &aMimeType)
+                                          const char* &aMimeType,
+                                          bool aShouldPlay)
 {
   nsPluginTag *plugin = FindPluginEnabledForExtension(aExtension, aMimeType);
-  return plugin ? NS_OK : NS_ERROR_FAILURE;
+  if (plugin)
+    return aShouldPlay ? NS_OK : NS_ERROR_PLUGIN_CLICKTOPLAY;
+
+  return NS_ERROR_FAILURE;
 }
 
 class DOMMimeTypeImpl : public nsIDOMMimeType {
@@ -2252,11 +2275,6 @@ nsresult nsPluginHost::ScanPluginsDirectoryList(nsISimpleEnumerator *dirEnum,
 
 nsresult nsPluginHost::LoadPlugins()
 {
-#ifdef ANDROID
-  if (XRE_GetProcessType() == GeckoProcessType_Content) {
-    return NS_OK;
-  }
-#endif
   // do not do anything if it is already done
   // use ReloadPlugins() to enforce loading
   if (mPluginsLoaded)
@@ -3204,13 +3222,34 @@ nsPluginHost::StopPluginInstance(nsNPAPIPluginInstance* aInstance)
     return NS_OK;
   }
 
-  nsPluginTag* pluginTag = TagForPlugin(aInstance->GetPlugin());
-
   aInstance->Stop();
-  aInstance->Destroy();
-  mInstances.RemoveElement(aInstance);
 
-  OnPluginInstanceDestroyed(pluginTag);
+  // if the instance does not want to be 'cached' just remove it
+  bool doCache = aInstance->ShouldCache();
+  if (doCache) {
+    // try to get the max cached instances from a pref or use default
+    PRUint32 cachedInstanceLimit;
+    nsresult rv = NS_ERROR_FAILURE;
+    if (mPrefService)
+      rv = mPrefService->GetIntPref(NS_PREF_MAX_NUM_CACHED_INSTANCES, (int*)&cachedInstanceLimit);
+    if (NS_FAILED(rv))
+      cachedInstanceLimit = DEFAULT_NUMBER_OF_STOPPED_INSTANCES;
+    
+    if (StoppedInstanceCount() >= cachedInstanceLimit) {
+      nsNPAPIPluginInstance *oldestInstance = FindOldestStoppedInstance();
+      if (oldestInstance) {
+        nsPluginTag* pluginTag = TagForPlugin(oldestInstance->GetPlugin());
+        oldestInstance->Destroy();
+        mInstances.RemoveElement(oldestInstance);
+        OnPluginInstanceDestroyed(pluginTag);
+      }
+    }
+  } else {
+    nsPluginTag* pluginTag = TagForPlugin(aInstance->GetPlugin());
+    aInstance->Destroy();
+    mInstances.RemoveElement(aInstance);
+    OnPluginInstanceDestroyed(pluginTag);
+  }
 
   return NS_OK;
 }
@@ -3934,6 +3973,38 @@ nsPluginHost::FindInstance(const char *mimetype)
   }
 
   return nsnull;
+}
+
+nsNPAPIPluginInstance*
+nsPluginHost::FindOldestStoppedInstance()
+{
+  nsNPAPIPluginInstance *oldestInstance = nsnull;
+  TimeStamp oldestTime = TimeStamp::Now();
+  for (PRUint32 i = 0; i < mInstances.Length(); i++) {
+    nsNPAPIPluginInstance *instance = mInstances[i];
+    if (instance->IsRunning())
+      continue;
+
+    TimeStamp time = instance->StopTime();
+    if (time < oldestTime) {
+      oldestTime = time;
+      oldestInstance = instance;
+    }
+  }
+
+  return oldestInstance;
+}
+
+PRUint32
+nsPluginHost::StoppedInstanceCount()
+{
+  PRUint32 stoppedCount = 0;
+  for (PRUint32 i = 0; i < mInstances.Length(); i++) {
+    nsNPAPIPluginInstance *instance = mInstances[i];
+    if (!instance->IsRunning())
+      stoppedCount++;
+  }
+  return stoppedCount;
 }
 
 nsTArray< nsRefPtr<nsNPAPIPluginInstance> >*

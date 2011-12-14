@@ -41,6 +41,8 @@
 
 #include "nsIFile.h"
 #include "nsIObserverService.h"
+#include "nsIScriptObjectPrincipal.h"
+#include "nsIScriptSecurityManager.h"
 #include "nsISHEntry.h"
 #include "nsISimpleEnumerator.h"
 #include "nsITimer.h"
@@ -54,6 +56,7 @@
 #include "nsXPCOMPrivate.h"
 
 #include "AsyncConnectionHelper.h"
+#include "CheckQuotaHelper.h"
 #include "IDBDatabase.h"
 #include "IDBEvents.h"
 #include "IDBFactory.h"
@@ -75,7 +78,7 @@
 #define PREF_INDEXEDDB_QUOTA "dom.indexedDB.warningQuota"
 
 // A bad TLS index number.
-#define BAD_TLS_INDEX (PRUintn)-1
+#define BAD_TLS_INDEX (PRUintn)-1 
 
 USING_INDEXEDDB_NAMESPACE
 using namespace mozilla::services;
@@ -87,8 +90,6 @@ PRInt32 gShutdown = 0;
 
 // Does not hold a reference.
 IndexedDatabaseManager* gInstance = nsnull;
-
-PRUintn gCurrentDatabaseIndex = BAD_TLS_INDEX;
 
 PRInt32 gIndexedDBQuotaMB = DEFAULT_QUOTA_MB;
 
@@ -104,13 +105,7 @@ public:
                 nsISupports* aUserData,
                 PRInt64* _retval)
   {
-    NS_ASSERTION(gCurrentDatabaseIndex != BAD_TLS_INDEX,
-                 "This should be impossible!");
-
-    IDBDatabase* database =
-      static_cast<IDBDatabase*>(PR_GetThreadPrivate(gCurrentDatabaseIndex));
-
-    if (database && database->IsQuotaDisabled()) {
+    if (IndexedDatabaseManager::QuotaIsLifted()) {
       *_retval = 0;
       return NS_OK;
     }
@@ -143,128 +138,11 @@ EnumerateToTArray(const nsACString& aKey,
   return PL_DHASH_NEXT;
 }
 
-// Responsible for calling IDBDatabase.setVersion after a pending version change
-// transaction has completed.
-class DelayedSetVersion : public nsRunnable
-{
-public:
-  DelayedSetVersion(IDBDatabase* aDatabase,
-                    IDBVersionChangeRequest* aRequest,
-                    const nsAString& aVersion,
-                    AsyncConnectionHelper* aHelper)
-  : mDatabase(aDatabase),
-    mRequest(aRequest),
-    mVersion(aVersion),
-    mHelper(aHelper)
-  { }
-
-  NS_IMETHOD Run()
-  {
-    NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
-
-    IndexedDatabaseManager* mgr = IndexedDatabaseManager::Get();
-    NS_ASSERTION(mgr, "This should never be null!");
-
-    nsresult rv = mgr->SetDatabaseVersion(mDatabase, mRequest, mVersion,
-                                          mHelper);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    return NS_OK;
-  }
-
-private:
-  nsRefPtr<IDBDatabase> mDatabase;
-  nsRefPtr<IDBVersionChangeRequest> mRequest;
-  nsString mVersion;
-  nsRefPtr<AsyncConnectionHelper> mHelper;
-};
-
-// Responsible for firing "versionchange" events at all live and non-closed
-// databases, and for firing a "blocked" event at the requesting database if any
-// databases fail to close.
-class VersionChangeEventsRunnable : public nsRunnable
-{
-public:
-  VersionChangeEventsRunnable(
-                            IDBDatabase* aRequestingDatabase,
-                            IDBVersionChangeRequest* aRequest,
-                            nsTArray<nsRefPtr<IDBDatabase> >& aWaitingDatabases,
-                            const nsAString& aVersion)
-  : mRequestingDatabase(aRequestingDatabase),
-    mRequest(aRequest),
-    mVersion(aVersion)
-  {
-    NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
-    NS_ASSERTION(aRequestingDatabase, "Null pointer!");
-    NS_ASSERTION(aRequest, "Null pointer!");
-
-    if (!mWaitingDatabases.SwapElements(aWaitingDatabases)) {
-      NS_ERROR("This should never fail!");
-    }
-  }
-
-  NS_IMETHOD Run()
-  {
-    NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
-
-    // Fire version change events at all of the databases that are not already
-    // closed. Also kick bfcached documents out of bfcache.
-    for (PRUint32 index = 0; index < mWaitingDatabases.Length(); index++) {
-      nsRefPtr<IDBDatabase>& database = mWaitingDatabases[index];
-
-      if (database->IsClosed()) {
-        continue;
-      }
-
-      // First check if the document the IDBDatabase is part of is bfcached
-      nsCOMPtr<nsIDocument> ownerDoc = database->GetOwnerDocument();
-      nsISHEntry* shEntry;
-      if (ownerDoc && (shEntry = ownerDoc->GetBFCacheEntry())) {
-        nsCOMPtr<nsISHEntryInternal> sheInternal = do_QueryInterface(shEntry);
-        if (sheInternal) {
-          sheInternal->RemoveFromBFCacheSync();
-        }
-        NS_ASSERTION(database->IsClosed(),
-                     "Kicking doc out of bfcache should have closed database");
-        continue;
-      }
-
-      // Otherwise fire a versionchange event.
-      nsCOMPtr<nsIDOMEvent> event(IDBVersionChangeEvent::Create(mVersion));
-      NS_ENSURE_TRUE(event, NS_ERROR_FAILURE);
-
-      bool dummy;
-      database->DispatchEvent(event, &dummy);
-    }
-
-    // Now check to see if any didn't close. If there are some running still
-    // then fire the blocked event.
-    for (PRUint32 index = 0; index < mWaitingDatabases.Length(); index++) {
-      if (!mWaitingDatabases[index]->IsClosed()) {
-        nsCOMPtr<nsIDOMEvent> event =
-          IDBVersionChangeEvent::CreateBlocked(mVersion);
-        NS_ENSURE_TRUE(event, NS_ERROR_FAILURE);
-
-        bool dummy;
-        mRequest->DispatchEvent(event, &dummy);
-
-        break;
-      }
-    }
-
-    return NS_OK;
-  }
-
-private:
-  nsRefPtr<IDBDatabase> mRequestingDatabase;
-  nsRefPtr<IDBVersionChangeRequest> mRequest;
-  nsTArray<nsRefPtr<IDBDatabase> > mWaitingDatabases;
-  nsString mVersion;
-};
-
 } // anonymous namespace
 
 IndexedDatabaseManager::IndexedDatabaseManager()
+: mCurrentWindowIndex(BAD_TLS_INDEX),
+  mQuotaHelperMutex("IndexedDatabaseManager.mQuotaHelperMutex")
 {
   NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
   NS_ASSERTION(!gInstance, "More than one instance!");
@@ -291,27 +169,28 @@ IndexedDatabaseManager::GetOrCreate()
   nsRefPtr<IndexedDatabaseManager> instance(gInstance);
 
   if (!instance) {
-    // We need a thread-local to hold our current database.
-    if (gCurrentDatabaseIndex == BAD_TLS_INDEX) {
-      if (PR_NewThreadPrivateIndex(&gCurrentDatabaseIndex, nsnull) !=
-          PR_SUCCESS) {
-        NS_ERROR("PR_NewThreadPrivateIndex failed!");
-        gCurrentDatabaseIndex = BAD_TLS_INDEX;
-        return nsnull;
-      }
-
-      if (NS_FAILED(Preferences::AddIntVarCache(&gIndexedDBQuotaMB,
-                                                PREF_INDEXEDDB_QUOTA,
-                                                DEFAULT_QUOTA_MB))) {
-        NS_WARNING("Unable to respond to quota pref changes!");
-        gIndexedDBQuotaMB = DEFAULT_QUOTA_MB;
-      }
+    if (NS_FAILED(Preferences::AddIntVarCache(&gIndexedDBQuotaMB,
+                                              PREF_INDEXEDDB_QUOTA,
+                                              DEFAULT_QUOTA_MB))) {
+      NS_WARNING("Unable to respond to quota pref changes!");
+      gIndexedDBQuotaMB = DEFAULT_QUOTA_MB;
     }
 
     instance = new IndexedDatabaseManager();
 
-    if (!instance->mLiveDatabases.Init()) {
+    if (!instance->mLiveDatabases.Init() ||
+        !instance->mQuotaHelperHash.Init()) {
       NS_WARNING("Out of memory!");
+      return nsnull;
+    }
+
+    // We need a thread-local to hold the current window.
+    NS_ASSERTION(instance->mCurrentWindowIndex == BAD_TLS_INDEX, "Huh?");
+
+    if (PR_NewThreadPrivateIndex(&instance->mCurrentWindowIndex, nsnull) !=
+        PR_SUCCESS) {
+      NS_ERROR("PR_NewThreadPrivateIndex failed, IndexedDB disabled");
+      instance->mCurrentWindowIndex = BAD_TLS_INDEX;
       return nsnull;
     }
 
@@ -417,20 +296,6 @@ IndexedDatabaseManager::UnregisterDatabase(IDBDatabase* aDatabase)
 }
 
 void
-IndexedDatabaseManager::OnOriginClearComplete(OriginClearRunnable* aRunnable)
-{
-  NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
-  NS_ASSERTION(aRunnable, "Null pointer!");
-  NS_ASSERTION(!aRunnable->mThread, "Thread should be null!");
-  NS_ASSERTION(aRunnable->mDelayedRunnables.IsEmpty(),
-               "Delayed runnables should have been dispatched already!");
-
-  if (!mOriginClearRunnables.RemoveElement(aRunnable)) {
-    NS_ERROR("Don't know anything about this runnable!");
-  }
-}
-
-void
 IndexedDatabaseManager::OnUsageCheckComplete(AsyncUsageRunnable* aRunnable)
 {
   NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
@@ -443,64 +308,136 @@ IndexedDatabaseManager::OnUsageCheckComplete(AsyncUsageRunnable* aRunnable)
   }
 }
 
-void
-IndexedDatabaseManager::OnSetVersionRunnableComplete(
-                                                  SetVersionRunnable* aRunnable)
-{
-  NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
-  NS_ASSERTION(aRunnable, "Null pointer!");
-  NS_ASSERTION(aRunnable->mDelayedRunnables.IsEmpty(),
-               "Delayed runnables should have been dispatched already!");
-
-  // Remove this runnable from the list. This will allow other databases to
-  // begin to request version changes.
-  if (!mSetVersionRunnables.RemoveElement(aRunnable)) {
-    NS_ERROR("Don't know anything about this runnable!");
-  }
-}
-
 nsresult
-IndexedDatabaseManager::WaitForOpenAllowed(const nsAString& aName,
-                                           const nsACString& aOrigin,
+IndexedDatabaseManager::WaitForOpenAllowed(const nsACString& aOrigin,
+                                           nsIAtom* aId,
                                            nsIRunnable* aRunnable)
 {
   NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
-  NS_ASSERTION(!aName.IsEmpty(), "Empty name!");
   NS_ASSERTION(!aOrigin.IsEmpty(), "Empty origin!");
   NS_ASSERTION(aRunnable, "Null pointer!");
 
-  // See if we're currently clearing database files for this origin. If so then
-  // queue the runnable for later dispatch after we're done clearing.
-  PRUint32 count = mOriginClearRunnables.Length();
+  nsAutoPtr<SynchronizedOp> op(new SynchronizedOp(aOrigin, aId));
+
+  // See if this runnable needs to wait.
+  bool delayed = false;
+  for (PRUint32 index = mSynchronizedOps.Length(); index > 0; index--) {
+    nsAutoPtr<SynchronizedOp>& existingOp = mSynchronizedOps[index - 1];
+    if (op->MustWaitFor(*existingOp)) {
+      existingOp->DelayRunnable(aRunnable);
+      delayed = true;
+      break;
+    }
+  }
+
+  // Otherwise, dispatch it immediately.
+  if (!delayed) {
+    nsresult rv = NS_DispatchToCurrentThread(aRunnable);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  // Adding this to the synchronized ops list will block any additional
+  // ops from proceeding until this one is done.
+  mSynchronizedOps.AppendElement(op.forget());
+
+  return NS_OK;
+}
+
+void
+IndexedDatabaseManager::AllowNextSynchronizedOp(const nsACString& aOrigin,
+                                                nsIAtom* aId)
+{
+  NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
+  NS_ASSERTION(!aOrigin.IsEmpty(), "Empty origin!");
+
+  PRUint32 count = mSynchronizedOps.Length();
   for (PRUint32 index = 0; index < count; index++) {
-    nsRefPtr<OriginClearRunnable>& data = mOriginClearRunnables[index];
-    if (data->mOrigin == aOrigin) {
-      nsCOMPtr<nsIRunnable>* newPtr =
-        data->mDelayedRunnables.AppendElement(aRunnable);
-      NS_ENSURE_TRUE(newPtr, NS_ERROR_OUT_OF_MEMORY);
+    nsAutoPtr<SynchronizedOp>& op = mSynchronizedOps[index];
+    if (op->mOrigin.Equals(aOrigin)) {
+      if (op->mId == aId) {
+        NS_ASSERTION(op->mDatabases.IsEmpty(), "How did this happen?");
 
-      return NS_OK;
+        op->DispatchDelayedRunnables();
+
+        mSynchronizedOps.RemoveElementAt(index);
+        return;
+      }
+
+      // If one or the other is for an origin clear, we should have matched
+      // solely on origin.
+      NS_ASSERTION(op->mId && aId, "Why didn't we match earlier?");
     }
   }
 
-  // Check to see if we're currently doing a SetVersion transaction for this
-  // database. If so then we delay this runnable for later.
-  for (PRUint32 index = 0; index < mSetVersionRunnables.Length(); index++) {
-    nsRefPtr<SetVersionRunnable>& runnable = mSetVersionRunnables[index];
-    if (runnable->mRequestingDatabase->Name() == aName &&
-        runnable->mRequestingDatabase->Origin() == aOrigin) {
-      nsCOMPtr<nsIRunnable>* newPtr =
-        runnable->mDelayedRunnables.AppendElement(aRunnable);
-      NS_ENSURE_TRUE(newPtr, NS_ERROR_OUT_OF_MEMORY);
+  NS_NOTREACHED("Why didn't we find a SynchronizedOp?");
+}
 
-      return NS_OK;
+nsresult
+IndexedDatabaseManager::AcquireExclusiveAccess(const nsACString& aOrigin, 
+                                               IDBDatabase* aDatabase,
+                                               AsyncConnectionHelper* aHelper,
+                                               WaitingOnDatabasesCallback aCallback,
+                                               void* aClosure)
+{
+  NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
+  NS_ASSERTION(aHelper, "Why are you talking to me?");
+
+  // Find the right SynchronizedOp.
+  SynchronizedOp* op = nsnull;
+  PRUint32 count = mSynchronizedOps.Length();
+  for (PRUint32 index = 0; index < count; index++) {
+    SynchronizedOp* currentop = mSynchronizedOps[index].get();
+    if (currentop->mOrigin.Equals(aOrigin)) {
+      if (!currentop->mId ||
+          (aDatabase && currentop->mId == aDatabase->Id())) {
+        // We've found the right one.
+        NS_ASSERTION(!currentop->mHelper,
+                     "SynchronizedOp already has a helper?!?");
+        op = currentop;
+        break;
+      }
     }
   }
 
-  // We aren't currently clearing databases for this origin and we're not
-  // running a SetVersion transaction for this database so dispatch the runnable
-  // immediately.
-  return NS_DispatchToCurrentThread(aRunnable);
+  NS_ASSERTION(op, "We didn't find a SynchronizedOp?");
+
+  nsTArray<IDBDatabase*>* array;
+  mLiveDatabases.Get(aOrigin, &array);
+
+  // We need to wait for the databases to go away.
+  // Hold on to all database objects that represent the same database file
+  // (except the one that is requesting this version change).
+  nsTArray<nsRefPtr<IDBDatabase> > liveDatabases;
+
+  if (array) {
+    PRUint32 count = array->Length();
+    for (PRUint32 index = 0; index < count; index++) {
+      IDBDatabase*& database = array->ElementAt(index);
+      if (!database->IsClosed() &&
+          (!aDatabase ||
+           (aDatabase &&
+            database != aDatabase &&
+            database->Id() == aDatabase->Id()))) {
+        liveDatabases.AppendElement(database);
+      }
+    }
+  }
+
+  if (liveDatabases.IsEmpty()) {
+    IndexedDatabaseManager::DispatchHelper(aHelper);
+    return NS_OK;
+  }
+
+  NS_ASSERTION(op->mDatabases.IsEmpty(), "How do we already have databases here?");
+  op->mDatabases.AppendElements(liveDatabases);
+  op->mHelper = aHelper;
+
+  // Give our callback the databases so it can decide what to do with them.
+  aCallback(liveDatabases, aClosure);
+
+  NS_ASSERTION(liveDatabases.IsEmpty(),
+               "Should have done something with the array!");
+  return NS_OK;
 }
 
 // static
@@ -508,105 +445,6 @@ bool
 IndexedDatabaseManager::IsShuttingDown()
 {
   return !!gShutdown;
-}
-
-nsresult
-IndexedDatabaseManager::SetDatabaseVersion(IDBDatabase* aDatabase,
-                                           IDBVersionChangeRequest* aRequest,
-                                           const nsAString& aVersion,
-                                           AsyncConnectionHelper* aHelper)
-{
-  NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
-  NS_ASSERTION(aDatabase, "Null pointer!");
-  NS_ASSERTION(aHelper, "Null pointer!");
-
-  nsresult rv;
-
-  // See if another database has already asked to change the version.
-  for (PRUint32 index = 0; index < mSetVersionRunnables.Length(); index++) {
-    nsRefPtr<SetVersionRunnable>& runnable = mSetVersionRunnables[index];
-    if (runnable->mRequestingDatabase->Id() == aDatabase->Id()) {
-      if (runnable->mRequestingDatabase == aDatabase) {
-        // Same database, just queue this call to run after the current
-        // SetVersion transaction completes.
-        nsRefPtr<DelayedSetVersion> delayed =
-          new DelayedSetVersion(aDatabase, aRequest, aVersion, aHelper);
-        if (!runnable->mDelayedRunnables.AppendElement(delayed)) {
-          NS_WARNING("Out of memory!");
-          return NS_ERROR_OUT_OF_MEMORY;
-        }
-        return NS_OK;
-      }
-
-      // Different database, we can't let this one succeed.
-      aHelper->SetError(NS_ERROR_DOM_INDEXEDDB_DEADLOCK_ERR);
-
-      rv = NS_DispatchToCurrentThread(aHelper);
-      NS_ENSURE_SUCCESS(rv, rv);
-
-      return NS_OK;
-    }
-  }
-
-  // Grab all live databases for the same origin.
-  nsTArray<IDBDatabase*>* array;
-  if (!mLiveDatabases.Get(aDatabase->Origin(), &array)) {
-    NS_ERROR("Must have some alive if we've got a live argument!");
-  }
-
-  // Hold on to all database objects that represent the same database file
-  // (except the one that is requesting this version change).
-  nsTArray<nsRefPtr<IDBDatabase> > liveDatabases;
-
-  for (PRUint32 index = 0; index < array->Length(); index++) {
-    IDBDatabase*& database = array->ElementAt(index);
-    if (database != aDatabase &&
-        database->Id() == aDatabase->Id() &&
-        !database->IsClosed() &&
-        !liveDatabases.AppendElement(database)) {
-      NS_WARNING("Out of memory?");
-      return NS_ERROR_OUT_OF_MEMORY;
-    }
-  }
-
-  // Adding an element to this array here will keep other databases from
-  // requesting a version change.
-  nsRefPtr<SetVersionRunnable> runnable =
-    new SetVersionRunnable(aDatabase, liveDatabases);
-  if (!mSetVersionRunnables.AppendElement(runnable)) {
-    NS_WARNING("Out of memory!");
-    return NS_ERROR_OUT_OF_MEMORY;
-  }
-
-  NS_ASSERTION(liveDatabases.IsEmpty(), "Should have swapped!");
-
-  // When all databases are closed we want to dispatch the SetVersion
-  // transaction to the transaction pool.
-  runnable->mHelper = aHelper;
-
-  if (runnable->mDatabases.IsEmpty()) {
-    // There are no other databases that need to be closed. Go ahead and run
-    // the transaction now.
-    RunSetVersionTransaction(aDatabase);
-  }
-  else {
-    // Otherwise we need to wait for all the other databases to complete.
-    // Schedule a version change events runnable .
-    nsTArray<nsRefPtr<IDBDatabase> > waitingDatabases;
-    if (!waitingDatabases.AppendElements(runnable->mDatabases)) {
-      NS_WARNING("Out of memory!");
-      return NS_ERROR_OUT_OF_MEMORY;
-    }
-
-    nsRefPtr<VersionChangeEventsRunnable> eventsRunnable =
-      new VersionChangeEventsRunnable(aDatabase, aRequest, waitingDatabases,
-                                      aVersion);
-
-    rv = NS_DispatchToCurrentThread(eventsRunnable);
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
-
-  return NS_OK;
 }
 
 void
@@ -665,78 +503,66 @@ IndexedDatabaseManager::OnDatabaseClosed(IDBDatabase* aDatabase)
   NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
   NS_ASSERTION(aDatabase, "Null pointer!");
 
-  // Check through the list of SetVersionRunnables we have amassed to see if
-  // this database is part of a SetVersion callback.
-  for (PRUint32 index = 0; index < mSetVersionRunnables.Length(); index++) {
-    nsRefPtr<SetVersionRunnable>& runnable = mSetVersionRunnables[index];
+  // Check through the list of SynchronizedOps to see if any are waiting for
+  // this database to close before proceeding.
+  PRUint32 count = mSynchronizedOps.Length();
+  for (PRUint32 index = 0; index < count; index++) {
+    nsAutoPtr<SynchronizedOp>& op = mSynchronizedOps[index];
 
-    if (runnable->mRequestingDatabase->Id() == aDatabase->Id()) {
-      // This is the SetVersionRunnable for the given database file. Remove the
-      // database from the list of databases that need to be closed. Since we
-      // use this hook for SetVersion requests that don't actually need to wait
-      // for other databases the mDatabases array may be empty.
-      if (!runnable->mDatabases.IsEmpty() &&
-          !runnable->mDatabases.RemoveElement(aDatabase)) {
-        NS_ERROR("Didn't have this database in our list!");
+    if (op->mOrigin == aDatabase->Origin() &&
+        (op->mId == aDatabase->Id() || !op->mId)) {
+      // This database is in the scope of this SynchronizedOp.  Remove it
+      // from the list if necessary.
+      if (op->mDatabases.RemoveElement(aDatabase)) {
+        // Now set up the helper if there are no more live databases.
+        NS_ASSERTION(op->mHelper, "How did we get rid of the helper before "
+                     "removing the last database?");
+        if (op->mDatabases.IsEmpty()) {
+          // At this point, all databases are closed, so no new transactions
+          // can be started.  There may, however, still be outstanding
+          // transactions that have not completed.  We need to wait for those
+          // before we dispatch the helper.
+
+          TransactionThreadPool* pool = TransactionThreadPool::GetOrCreate();
+          if (!pool) {
+            NS_ERROR("IndexedDB is totally broken.");
+            return;
+          }
+
+          nsRefPtr<WaitForTransactionsToFinishRunnable> waitRunnable =
+            new WaitForTransactionsToFinishRunnable(op);
+
+          nsAutoTArray<nsRefPtr<IDBDatabase>, 1> array;
+          array.AppendElement(aDatabase);
+
+          // Use the WaitForTransactionsToFinishRunnable as the callback.
+          if (!pool->WaitForAllDatabasesToComplete(array, waitRunnable)) {
+            NS_WARNING("Failed to wait for transaction to complete!");
+          }
+        }
+        break;
       }
-
-      // Now run the helper if there are no more live databases.
-      if (runnable->mHelper && runnable->mDatabases.IsEmpty()) {
-        // Don't hold the callback alive longer than necessary.
-        nsRefPtr<AsyncConnectionHelper> helper;
-        helper.swap(runnable->mHelper);
-
-        if (NS_FAILED(helper->DispatchToTransactionPool())) {
-          NS_WARNING("Failed to dispatch to thread pool!");
-        }
-
-        // Now wait for the transaction to complete. Completing the transaction
-        // will be our cue to remove the SetVersionRunnable from our list and
-        // therefore allow other SetVersion requests to begin.
-        TransactionThreadPool* pool = TransactionThreadPool::Get();
-        NS_ASSERTION(pool, "This should never be null!");
-
-        // All other databases should be closed, so we only need to wait on this
-        // one.
-        nsAutoTArray<nsRefPtr<IDBDatabase>, 1> array;
-        if (!array.AppendElement(aDatabase)) {
-          NS_ERROR("This should never fail!");
-        }
-
-        // Use the SetVersionRunnable as the callback.
-        if (!pool->WaitForAllDatabasesToComplete(array, runnable)) {
-          NS_WARNING("Failed to wait for transaction to complete!");
-        }
-      }
-      break;
     }
   }
 }
 
-// static
-bool
-IndexedDatabaseManager::SetCurrentDatabase(IDBDatabase* aDatabase)
+void
+IndexedDatabaseManager::SetCurrentWindowInternal(nsPIDOMWindow* aWindow)
 {
-  NS_ASSERTION(gCurrentDatabaseIndex != BAD_TLS_INDEX,
-               "This should have been set already!");
-
+  if (aWindow) {
 #ifdef DEBUG
-  if (aDatabase) {
-    NS_ASSERTION(!PR_GetThreadPrivate(gCurrentDatabaseIndex),
-                 "Someone forgot to unset gCurrentDatabaseIndex!");
+    NS_ASSERTION(!PR_GetThreadPrivate(mCurrentWindowIndex),
+                 "Somebody forgot to clear the current window!");
+#endif
+    PR_SetThreadPrivate(mCurrentWindowIndex, aWindow);
   }
   else {
-    NS_ASSERTION(PR_GetThreadPrivate(gCurrentDatabaseIndex),
-                 "Someone forgot to set gCurrentDatabaseIndex!");
-  }
+#ifdef DEBUG
+    NS_ASSERTION(PR_GetThreadPrivate(mCurrentWindowIndex),
+               "Somebody forgot to clear the current window!");
 #endif
-
-  if (PR_SetThreadPrivate(gCurrentDatabaseIndex, aDatabase) != PR_SUCCESS) {
-    NS_WARNING("Failed to set gCurrentDatabaseIndex!");
-    return false;
+    PR_SetThreadPrivate(mCurrentWindowIndex, nsnull);
   }
-
-  return true;
 }
 
 // static
@@ -827,6 +653,141 @@ IndexedDatabaseManager::EnsureQuotaManagementForDirectory(nsIFile* aDirectory)
   return rv;
 }
 
+bool
+IndexedDatabaseManager::QuotaIsLiftedInternal()
+{
+  nsPIDOMWindow* window = nsnull;
+  nsRefPtr<CheckQuotaHelper> helper = nsnull;
+  bool createdHelper = false;
+
+  window =
+    static_cast<nsPIDOMWindow*>(PR_GetThreadPrivate(mCurrentWindowIndex));
+
+  // Once IDB is supported outside of Windows this should become an early
+  // return true.
+  NS_ASSERTION(window, "Why don't we have a Window here?");
+
+  // Hold the lock from here on.
+  MutexAutoLock autoLock(mQuotaHelperMutex);
+
+  mQuotaHelperHash.Get(window, getter_AddRefs(helper));
+
+  if (!helper) {
+    helper = new CheckQuotaHelper(window, mQuotaHelperMutex);
+    createdHelper = true;
+
+    bool result = mQuotaHelperHash.Put(window, helper);
+    NS_ENSURE_TRUE(result, result);
+
+    // Unlock while calling out to XPCOM
+    {
+      MutexAutoUnlock autoUnlock(mQuotaHelperMutex);
+
+      nsresult rv = NS_DispatchToMainThread(helper);
+      NS_ENSURE_SUCCESS(rv, false);
+    }
+
+    // Relocked.  If any other threads hit the quota limit on the same Window,
+    // they are using the helper we created here and are now blocking in
+    // PromptAndReturnQuotaDisabled.
+  }
+
+  bool result = helper->PromptAndReturnQuotaIsDisabled();
+
+  // If this thread created the helper and added it to the hash, this thread
+  // must remove it.
+  if (createdHelper) {
+    mQuotaHelperHash.Remove(window);
+  }
+
+  return result;
+}
+
+void
+IndexedDatabaseManager::CancelPromptsForWindowInternal(nsPIDOMWindow* aWindow)
+{
+  NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
+
+  nsRefPtr<CheckQuotaHelper> helper;
+
+  MutexAutoLock autoLock(mQuotaHelperMutex);
+
+  mQuotaHelperHash.Get(aWindow, getter_AddRefs(helper));
+
+  if (helper) {
+    helper->Cancel();
+  }
+}
+
+// static
+nsresult
+IndexedDatabaseManager::GetASCIIOriginFromWindow(nsPIDOMWindow* aWindow,
+                                                 nsCString& aASCIIOrigin)
+{
+  NS_ASSERTION(NS_IsMainThread(),
+               "We're about to touch a window off the main thread!");
+
+  nsCOMPtr<nsIScriptObjectPrincipal> sop = do_QueryInterface(aWindow);
+  NS_ENSURE_TRUE(sop, NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR);
+
+  nsCOMPtr<nsIPrincipal> principal = sop->GetPrincipal();
+  NS_ENSURE_TRUE(principal, NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR);
+
+  if (nsContentUtils::IsSystemPrincipal(principal)) {
+    aASCIIOrigin.AssignLiteral("chrome");
+  }
+  else {
+    nsresult rv = nsContentUtils::GetASCIIOrigin(principal, aASCIIOrigin);
+    NS_ENSURE_SUCCESS(rv, NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR);
+
+    if (aASCIIOrigin.EqualsLiteral("null")) {
+      NS_WARNING("IndexedDB databases not allowed for this principal!");
+      return NS_ERROR_DOM_INDEXEDDB_UNKNOWN_ERR;
+    }
+  }
+
+  return NS_OK;
+}
+
+// static
+nsresult
+IndexedDatabaseManager::DispatchHelper(AsyncConnectionHelper* aHelper)
+{
+  nsresult rv = NS_OK;
+
+  // If the helper has a transaction, dispatch it to the transaction
+  // threadpool.
+  if (aHelper->HasTransaction()) {
+    rv = aHelper->DispatchToTransactionPool();
+  }
+  else {
+    // Otherwise, dispatch it to the IO thread.
+    IndexedDatabaseManager* manager = IndexedDatabaseManager::Get();
+    NS_ASSERTION(manager, "We should definitely have a manager here");
+
+    rv = aHelper->Dispatch(manager->IOThread());
+  }
+
+  NS_ENSURE_SUCCESS(rv, rv);
+  return rv;
+}
+
+bool
+IndexedDatabaseManager::IsClearOriginPending(const nsACString& origin)
+{
+  // Iterate through our SynchronizedOps to see if we have an entry that matches
+  // this origin and has no id.
+  PRUint32 count = mSynchronizedOps.Length();
+  for (PRUint32 index = 0; index < count; index++) {
+    nsAutoPtr<SynchronizedOp>& op = mSynchronizedOps[index];
+    if (op->mOrigin.Equals(origin) && !op->mId) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 NS_IMPL_ISUPPORTS2(IndexedDatabaseManager, nsIIndexedDatabaseManager,
                                            nsIObserver)
 
@@ -862,12 +823,10 @@ IndexedDatabaseManager::GetUsageForURI(
 
   // See if we're currently clearing the databases for this origin. If so then
   // we pretend that we've already deleted everything.
-  for (PRUint32 index = 0; index < mOriginClearRunnables.Length(); index++) {
-    if (mOriginClearRunnables[index]->mOrigin == origin) {
-      rv = NS_DispatchToCurrentThread(runnable);
-      NS_ENSURE_SUCCESS(rv, rv);
-      return NS_OK;
-    }
+  if (IsClearOriginPending(origin)) {
+    rv = NS_DispatchToCurrentThread(runnable);
+    NS_ENSURE_SUCCESS(rv, rv);
+    return NS_OK;
   }
 
   // Otherwise dispatch to the IO thread to actually compute the usage.
@@ -921,15 +880,20 @@ IndexedDatabaseManager::ClearDatabasesForURI(nsIURI* aURI)
     return NS_OK;
   }
 
-  // If we're already clearing out files for this origin then return
+  // If there is a pending or running clear operation for this origin, return
   // immediately.
-  PRUint32 clearDataCount = mOriginClearRunnables.Length();
-  for (PRUint32 index = 0; index < clearDataCount; index++) {
-    if (mOriginClearRunnables[index]->mOrigin == origin) {
-      return NS_OK;
-    }
+  if (IsClearOriginPending(origin)) {
+    return NS_OK;
   }
 
+  // Queue up the origin clear runnable.
+  nsRefPtr<OriginClearRunnable> runnable =
+    new OriginClearRunnable(origin, mIOThread);
+
+  rv = WaitForOpenAllowed(origin, nsnull, runnable);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Give the runnable some help by invalidating any databases in the way.
   // We need to grab references to any live databases here to prevent them from
   // dying while we invalidate them.
   nsTArray<nsRefPtr<IDBDatabase> > liveDatabases;
@@ -937,25 +901,7 @@ IndexedDatabaseManager::ClearDatabasesForURI(nsIURI* aURI)
   // Grab all live databases for this origin.
   nsTArray<IDBDatabase*>* array;
   if (mLiveDatabases.Get(origin, &array)) {
-    if (!liveDatabases.AppendElements(*array)) {
-      NS_WARNING("Out of memory?");
-      return NS_ERROR_OUT_OF_MEMORY;
-    }
-  }
-
-  nsRefPtr<OriginClearRunnable> runnable =
-    new OriginClearRunnable(origin, mIOThread);
-
-  // Make a new entry for this origin in mOriginClearRunnables.
-  nsRefPtr<OriginClearRunnable>* newRunnable =
-    mOriginClearRunnables.AppendElement(runnable);
-  NS_ENSURE_TRUE(newRunnable, NS_ERROR_OUT_OF_MEMORY);
-
-  if (liveDatabases.IsEmpty()) {
-    rv = runnable->Run();
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    return NS_OK;
+    liveDatabases.AppendElements(*array);
   }
 
   // Invalidate all the live databases first.
@@ -963,16 +909,8 @@ IndexedDatabaseManager::ClearDatabasesForURI(nsIURI* aURI)
     liveDatabases[index]->Invalidate();
   }
 
-  // Now set up our callback so that we know when they have finished.
-  TransactionThreadPool* pool = TransactionThreadPool::GetOrCreate();
-  NS_ENSURE_TRUE(pool, NS_ERROR_FAILURE);
-
-  if (!pool->WaitForAllDatabasesToComplete(liveDatabases, runnable)) {
-    NS_WARNING("Can't wait on databases!");
-    return NS_ERROR_FAILURE;
-  }
-
-  NS_ASSERTION(liveDatabases.IsEmpty(), "Should have swapped!");
+  // After everything has been invalidated the helper should be dispatched to
+  // the end of the event queue.
 
   return NS_OK;
 }
@@ -1049,7 +987,7 @@ NS_IMETHODIMP
 IndexedDatabaseManager::OriginClearRunnable::Run()
 {
   if (NS_IsMainThread()) {
-    // On the first time on the main thread we simply dispatch to the IO thread.
+    // On the first time on the main thread we dispatch to the IO thread.
     if (mFirstCallback) {
       NS_ASSERTION(mThread, "Should have a thread here!");
 
@@ -1069,19 +1007,11 @@ IndexedDatabaseManager::OriginClearRunnable::Run()
 
     NS_ASSERTION(!mThread, "Should have been cleared already!");
 
-    // Dispatch any queued runnables that we collected while we were waiting.
-    for (PRUint32 index = 0; index < mDelayedRunnables.Length(); index++) {
-      if (NS_FAILED(NS_DispatchToCurrentThread(mDelayedRunnables[index]))) {
-        NS_WARNING("Failed to dispatch delayed runnable!");
-      }
-    }
-    mDelayedRunnables.Clear();
-
     // Tell the IndexedDatabaseManager that we're done.
     IndexedDatabaseManager* mgr = IndexedDatabaseManager::Get();
-    if (mgr) {
-      mgr->OnOriginClearComplete(this);
-    }
+    NS_ASSERTION(mgr, "This should never fail!");
+
+    mgr->AllowNextSynchronizedOp(mOrigin, nsnull);
 
     return NS_OK;
   }
@@ -1229,46 +1159,91 @@ IndexedDatabaseManager::AsyncUsageRunnable::Run()
   return NS_OK;
 }
 
-IndexedDatabaseManager::SetVersionRunnable::SetVersionRunnable(
-                                   IDBDatabase* aDatabase,
-                                   nsTArray<nsRefPtr<IDBDatabase> >& aDatabases)
-: mRequestingDatabase(aDatabase)
-{
-  NS_ASSERTION(aDatabase, "Null database!");
-  if (!mDatabases.SwapElements(aDatabases)) {
-    NS_ERROR("This should never fail!");
-  }
-}
-
-IndexedDatabaseManager::SetVersionRunnable::~SetVersionRunnable()
-{
-}
-
-NS_IMPL_ISUPPORTS1(IndexedDatabaseManager::SetVersionRunnable, nsIRunnable)
+NS_IMPL_THREADSAFE_ISUPPORTS1(IndexedDatabaseManager::WaitForTransactionsToFinishRunnable,
+                              nsIRunnable)
 
 NS_IMETHODIMP
-IndexedDatabaseManager::SetVersionRunnable::Run()
+IndexedDatabaseManager::WaitForTransactionsToFinishRunnable::Run()
 {
   NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
-  NS_ASSERTION(!mHelper, "Should have been cleared already!");
+  NS_ASSERTION(mOp && mOp->mHelper, "What?");
 
-  // Dispatch any queued runnables that we picked up while waiting for the
-  // SetVersion transaction to complete.
-  for (PRUint32 index = 0; index < mDelayedRunnables.Length(); index++) {
-    if (NS_FAILED(NS_DispatchToCurrentThread(mDelayedRunnables[index]))) {
-      NS_WARNING("Failed to dispatch delayed runnable!");
-    }
-  }
+  // Don't hold the callback alive longer than necessary.
+  nsRefPtr<AsyncConnectionHelper> helper;
+  helper.swap(mOp->mHelper);
 
-  // No need to hold these alive any longer.
-  mDelayedRunnables.Clear();
+  mOp = nsnull;
 
-  IndexedDatabaseManager* mgr = IndexedDatabaseManager::Get();
-  NS_ASSERTION(mgr, "This should never be null!");
+  IndexedDatabaseManager::DispatchHelper(helper);
 
-  // Let the IndexedDatabaseManager know that the SetVersion transaction has
-  // completed.
-  mgr->OnSetVersionRunnableComplete(this);
+  // The helper is responsible for calling
+  // IndexedDatabaseManager::AllowNextSynchronizedOp.
 
   return NS_OK;
+}
+
+
+IndexedDatabaseManager::SynchronizedOp::SynchronizedOp(const nsACString& aOrigin,
+                                                       nsIAtom* aId)
+: mOrigin(aOrigin), mId(aId)
+{
+  NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
+  MOZ_COUNT_CTOR(IndexedDatabaseManager::SynchronizedOp);
+}
+
+IndexedDatabaseManager::SynchronizedOp::~SynchronizedOp()
+{
+  NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
+  MOZ_COUNT_DTOR(IndexedDatabaseManager::SynchronizedOp);
+}
+
+bool
+IndexedDatabaseManager::SynchronizedOp::MustWaitFor(const SynchronizedOp& aRhs)
+  const
+{
+  NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
+
+  // If the origins don't match, the second can proceed.
+  if (!aRhs.mOrigin.Equals(mOrigin)) {
+    return false;
+  }
+
+  // If the origins and the ids match, the second must wait.
+  if (aRhs.mId == mId) {
+    return true;
+  }
+
+  // Waiting is required if either one corresponds to an origin clearing
+  // (a null Id).
+  if (!aRhs.mId || !mId) {
+    return true;
+  }
+
+  // Otherwise, things for the same origin but different databases can proceed
+  // independently.
+  return false;
+}
+
+void
+IndexedDatabaseManager::SynchronizedOp::DelayRunnable(nsIRunnable* aRunnable)
+{
+  NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
+  NS_ASSERTION(mDelayedRunnables.IsEmpty() || !mId,
+               "Only ClearOrigin operations can delay multiple runnables!");
+
+  mDelayedRunnables.AppendElement(aRunnable);
+}
+
+void
+IndexedDatabaseManager::SynchronizedOp::DispatchDelayedRunnables()
+{
+  NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
+  NS_ASSERTION(!mHelper, "Any helper should be gone by now!");
+
+  PRUint32 count = mDelayedRunnables.Length();
+  for (PRUint32 index = 0; index < count; index++) {
+    NS_DispatchToCurrentThread(mDelayedRunnables[index]);
+  }
+
+  mDelayedRunnables.Clear();
 }

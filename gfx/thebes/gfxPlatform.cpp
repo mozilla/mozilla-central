@@ -66,6 +66,9 @@
 #include "gfxUserFontSet.h"
 #include "gfxUnicodeProperties.h"
 #include "harfbuzz/hb-unicode.h"
+#ifdef MOZ_GRAPHITE
+#include "gfxGraphiteShaper.h"
+#endif
 
 #include "nsUnicodeRange.h"
 #include "nsServiceManagerUtils.h"
@@ -150,6 +153,10 @@ SRGBOverrideObserver::Observe(nsISupports *aSubject,
 #define GFX_PREF_HARFBUZZ_SCRIPTS "gfx.font_rendering.harfbuzz.scripts"
 #define HARFBUZZ_SCRIPTS_DEFAULT  gfxUnicodeProperties::SHAPING_DEFAULT
 
+#ifdef MOZ_GRAPHITE
+#define GFX_PREF_GRAPHITE_SHAPING "gfx.font_rendering.graphite.enabled"
+#endif
+
 static const char* kObservedPrefs[] = {
     "gfx.downloadable_fonts.",
     "gfx.font_rendering.",
@@ -220,10 +227,14 @@ static const char *gPrefLangNames[] = {
 };
 
 gfxPlatform::gfxPlatform()
+  : mAzureBackendCollector(this, &gfxPlatform::GetAzureBackendInfo)
 {
     mUseHarfBuzzScripts = UNINITIALIZED_VALUE;
     mAllowDownloadableFonts = UNINITIALIZED_VALUE;
     mDownloadableFontsSanitize = UNINITIALIZED_VALUE;
+#ifdef MOZ_GRAPHITE
+    mGraphiteShapingEnabled = UNINITIALIZED_VALUE;
+#endif
 }
 
 gfxPlatform*
@@ -336,6 +347,9 @@ gfxPlatform::Shutdown()
     gfxTextRunWordCache::Shutdown();
     gfxFontCache::Shutdown();
     gfxFontGroup::Shutdown();
+#ifdef MOZ_GRAPHITE
+    gfxGraphiteShaper::Shutdown();
+#endif
 #if defined(XP_MACOSX) || defined(XP_WIN) // temporary, until this is implemented on others
     gfxPlatformFontList::Shutdown();
 #endif
@@ -479,6 +493,24 @@ gfxPlatform::GetSourceSurfaceForSurface(DrawTarget *aTarget, gfxASurface *aSurfa
       ctx->Paint();
     }
 
+    gfxImageFormat cairoFormat = imgSurface->Format();
+    switch(cairoFormat) {
+      case gfxASurface::ImageFormatARGB32:
+        format = FORMAT_B8G8R8A8;
+        break;
+      case gfxASurface::ImageFormatRGB24:
+        format = FORMAT_B8G8R8X8;
+        break;
+      case gfxASurface::ImageFormatA8:
+        format = FORMAT_A8;
+        break;
+      case gfxASurface::ImageFormatRGB16_565:
+        format = FORMAT_R5G6B5;
+        break;
+      default:
+        NS_RUNTIMEABORT("Invalid surface format!");
+    }
+
     srcBuffer = aTarget->CreateSourceSurfaceFromData(imgSurface->Data(),
                                                      IntSize(imgSurface->GetSize().width, imgSurface->GetSize().height),
                                                      imgSurface->Stride(),
@@ -497,11 +529,42 @@ gfxPlatform::GetScaledFontForFont(gfxFont *aFont)
   return NULL;
 }
 
+cairo_user_data_key_t kDrawSourceSurface;
+static void
+DataSourceSurfaceDestroy(void *dataSourceSurface)
+{
+      static_cast<DataSourceSurface*>(dataSourceSurface)->Release();
+}
+
 already_AddRefed<gfxASurface>
 gfxPlatform::GetThebesSurfaceForDrawTarget(DrawTarget *aTarget)
 {
-  // Don't know how to do this outside of Windows with D2D yet.
-  return NULL;
+  RefPtr<SourceSurface> source = aTarget->Snapshot();
+  RefPtr<DataSourceSurface> data = source->GetDataSurface();
+
+  if (!data) {
+    return NULL;
+  }
+
+  IntSize size = data->GetSize();
+  gfxASurface::gfxImageFormat format = gfxASurface::FormatFromContent(ContentForFormat(data->GetFormat()));
+  
+  nsRefPtr<gfxImageSurface> image =
+    new gfxImageSurface(data->GetData(), gfxIntSize(size.width, size.height),
+                        data->Stride(), format);
+
+  image->SetData(&kDrawSourceSurface, data.forget().drop(), DataSourceSurfaceDestroy);
+  return image.forget();
+}
+
+RefPtr<DrawTarget>
+gfxPlatform::CreateOffscreenDrawTarget(const IntSize& aSize, SurfaceFormat aFormat)
+{
+  BackendType backend;
+  if (!SupportsAzure(backend)) {
+    return NULL;
+  }
+  return Factory::CreateDrawTarget(backend, aSize, aFormat); 
 }
 
 nsresult
@@ -539,6 +602,19 @@ gfxPlatform::SanitizeDownloadedFonts()
 
     return mDownloadableFontsSanitize;
 }
+
+#ifdef MOZ_GRAPHITE
+bool
+gfxPlatform::UseGraphiteShaping()
+{
+    if (mGraphiteShapingEnabled == UNINITIALIZED_VALUE) {
+        mGraphiteShapingEnabled =
+            Preferences::GetBool(GFX_PREF_GRAPHITE_SHAPING, false);
+    }
+
+    return mGraphiteShapingEnabled;
+}
+#endif
 
 bool
 gfxPlatform::UseHarfBuzzForScript(PRInt32 aScriptCode)
@@ -1279,6 +1355,12 @@ gfxPlatform::FontsPrefsChanged(const char *aPref)
         mAllowDownloadableFonts = UNINITIALIZED_VALUE;
     } else if (!strcmp(GFX_DOWNLOADABLE_FONTS_SANITIZE, aPref)) {
         mDownloadableFontsSanitize = UNINITIALIZED_VALUE;
+#ifdef MOZ_GRAPHITE
+    } else if (!strcmp(GFX_PREF_GRAPHITE_SHAPING, aPref)) {
+        mGraphiteShapingEnabled = UNINITIALIZED_VALUE;
+        gfxTextRunWordCache::Flush();
+        gfxFontCache::GetCache()->AgeAllGenerations();
+#endif
     } else if (!strcmp(GFX_PREF_HARFBUZZ_SCRIPTS, aPref)) {
         mUseHarfBuzzScripts = UNINITIALIZED_VALUE;
         gfxTextRunWordCache::Flush();

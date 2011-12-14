@@ -54,6 +54,7 @@
 #include "jsobj.h"
 #include "jsstr.h"
 
+#include "vm/BooleanObject-inl.h"
 #include "vm/GlobalObject.h"
 
 #include "jsinferinlines.h"
@@ -75,8 +76,6 @@ Class js::BooleanClass = {
 };
 
 #if JS_HAS_TOSOURCE
-#include "jsprf.h"
-
 static JSBool
 bool_toSource(JSContext *cx, uintN argc, Value *vp)
 {
@@ -86,9 +85,11 @@ bool_toSource(JSContext *cx, uintN argc, Value *vp)
     if (!BoxedPrimitiveMethodGuard(cx, args, bool_toSource, &b, &ok))
         return ok;
 
-    char buf[32];
-    JS_snprintf(buf, sizeof buf, "(new Boolean(%s))", JS_BOOLEAN_STR(b));
-    JSString *str = JS_NewStringCopyZ(cx, buf);
+    StringBuffer sb(cx);
+    if (!sb.append("(new Boolean(") || !BooleanToStringBuffer(cx, b, sb) || !sb.append("))"))
+        return false;
+
+    JSString *str = sb.finishString();
     if (!str)
         return false;
     args.rval().setString(str);
@@ -134,17 +135,15 @@ static JSFunctionSpec boolean_methods[] = {
 static JSBool
 Boolean(JSContext *cx, uintN argc, Value *vp)
 {
-    Value *argv = vp + 2;
-    bool b = argc != 0 ? js_ValueToBoolean(argv[0]) : false;
+    CallArgs args = CallArgsFromVp(argc, vp);
+
+    bool b = args.length() != 0 ? js_ValueToBoolean(args[0]) : false;
 
     if (IsConstructing(vp)) {
-        JSObject *obj = NewBuiltinClassInstance(cx, &BooleanClass);
-        if (!obj)
-            return false;
-        obj->setPrimitiveThis(BooleanValue(b));
-        vp->setObject(*obj);
+        JSObject *obj = BooleanObject::create(cx, b);
+        args.rval().setObject(*obj);
     } else {
-        vp->setBoolean(b);
+        args.rval().setBoolean(b);
     }
     return true;
 }
@@ -205,14 +204,14 @@ BooleanGetPrimitiveValueSlow(JSContext *cx, JSObject &obj, Value *vp)
      * its [[Class]] is "Boolean". Boolean.prototype.valueOf is specified to
      * return the [[PrimitiveValue]] internal property, so call that instead.
      */
-    InvokeArgsGuard args;
-    if (!cx->stack.pushInvokeArgs(cx, 0, &args))
+    InvokeArgsGuard ag;
+    if (!cx->stack.pushInvokeArgs(cx, 0, &ag))
         return false;
-    args.calleev().setUndefined();
-    args.thisv().setObject(obj);
-    if (!GetProxyHandler(&obj)->nativeCall(cx, &obj, &BooleanClass, bool_valueOf, args))
+    ag.calleev().setUndefined();
+    ag.thisv().setObject(obj);
+    if (!GetProxyHandler(&obj)->nativeCall(cx, &obj, &BooleanClass, bool_valueOf, ag))
         return false;
-    *vp = args.rval();
+    *vp = ag.rval();
     return true;
 }
 

@@ -101,6 +101,7 @@ public:
     bool           SendSecureXSiteReferrer() { return mSendSecureXSiteReferrer; }
     PRUint8        RedirectionLimit()        { return mRedirectionLimit; }
     PRUint16       IdleTimeout()             { return mIdleTimeout; }
+    PRUint16       SpdyTimeout()             { return mSpdyTimeout; }
     PRUint16       MaxRequestAttempts()      { return mMaxRequestAttempts; }
     const char    *DefaultSocketType()       { return mDefaultSocketType.get(); /* ok to return null */ }
     nsIIDNService *IDNConverter()            { return mIDNConverter; }
@@ -108,8 +109,13 @@ public:
     PRUint8        GetQoSBits()              { return mQoSBits; }
     PRUint16       GetIdleSynTimeout()       { return mIdleSynTimeout; }
     bool           FastFallbackToIPv4()      { return mFastFallbackToIPv4; }
+    PRUint32       MaxSocketCount();
 
     bool           IsPersistentHttpsCachingEnabled() { return mEnablePersistentHttpsCaching; }
+
+    bool           IsSpdyEnabled() { return mEnableSpdy; }
+    bool           CoalesceSpdy() { return mCoalesceSpdy; }
+    bool           UseAlternateProtocol() { return mUseAlternateProtocol; }
 
     bool           PromptTempRedirect()      { return mPromptTempRedirect; }
 
@@ -263,6 +269,7 @@ private:
     bool mFastFallbackToIPv4;
 
     PRUint16 mIdleTimeout;
+    PRUint16 mSpdyTimeout;
     PRUint16 mMaxRequestAttempts;
     PRUint16 mMaxRequestDelay;
     PRUint16 mIdleSynTimeout;
@@ -330,6 +337,11 @@ private:
 
     // For broadcasting the preference to not be tracked
     bool           mDoNotTrackEnabled;
+    
+    // Try to use SPDY features instead of HTTP/1.1 over SSL
+    bool           mEnableSpdy;
+    bool           mCoalesceSpdy;
+    bool           mUseAlternateProtocol;
 };
 
 //-----------------------------------------------------------------------------

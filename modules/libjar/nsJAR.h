@@ -133,7 +133,7 @@ class nsJAR : public nsIZipReader
     //-- Private data members
     nsCOMPtr<nsIFile>        mZipFile;        // The zip/jar file on disk
     nsCString                mOuterZipEntry;  // The entry in the zip this zip is reading from
-    nsAutoPtr<nsZipArchive>  mZip;            // The underlying zip archive
+    nsRefPtr<nsZipArchive>   mZip;            // The underlying zip archive
     nsObjectHashtable        mManifestData;   // Stores metadata for each entry
     bool                     mParsedManifest; // True if manifest has been parsed
     nsCOMPtr<nsIPrincipal>   mPrincipal;      // The entity which signed this file
@@ -146,7 +146,7 @@ class nsJAR : public nsIZipReader
     bool                     mOpened;
 
     nsresult ParseManifest();
-    void     ReportError(const char* aFilename, PRInt16 errorCode);
+    void     ReportError(const nsACString &aFilename, PRInt16 errorCode);
     nsresult LoadEntry(const nsACString &aFilename, char** aBuf, 
                        PRUint32* aBufLen = nsnull);
     PRInt32  ReadLine(const char** src); 
@@ -156,9 +156,6 @@ class nsJAR : public nsIZipReader
 
     nsresult CalculateDigest(const char* aInBuf, PRUint32 aInBufLen,
                              nsCString& digest);
-
-    //-- Debugging
-    void DumpMetadata(const char* aMessage);
 };
 
 /**

@@ -294,10 +294,8 @@ class nsParser : public nsIParser,
   
     /**
      * Get the nsIStreamListener for this parser
-     * @param aDTD out param that will contain the result
-     * @return NS_OK if successful
      */
-    NS_IMETHOD GetStreamListener(nsIStreamListener** aListener);
+    virtual nsIStreamListener* GetStreamListener();
 
     /** 
      * Detects the existence of a META tag with charset information in 
@@ -343,7 +341,7 @@ class nsParser : public nsIParser,
     /**
      * No-op.
      */
-    virtual void MarkAsNotScriptCreated();
+    virtual void MarkAsNotScriptCreated(const char* aCommand);
 
     /**
      * Always false.

@@ -53,6 +53,13 @@ namespace js {
  * String builder that eagerly checks for over-allocation past the maximum
  * string length.
  *
+ * Any operation which would exceed the maximum string length causes an
+ * exception report on the context and results in a failed return value.
+ *
+ * Well-sized extractions (which waste no more than 1/4 of their char
+ * buffer space) are guaranteed for strings built by this interface.
+ * See |extractWellSized|.
+ *
  * Note: over-allocation is not checked for when using the infallible
  * |replaceRawBuffer|, so the implementation of |finishString| also must check
  * for over-allocation.
@@ -77,7 +84,7 @@ class StringBuffer
     bool append(const jschar *chars, size_t len);
     bool append(const jschar *begin, const jschar *end);
     bool append(JSString *str);
-    bool append(JSAtom *atom);
+    bool append(JSLinearString *str);
     bool appendN(const jschar c, size_t n);
     bool appendInflated(const char *cstr, size_t len);
 
@@ -173,19 +180,14 @@ StringBuffer::append(JSString *str)
     JSLinearString *linear = str->ensureLinear(context());
     if (!linear)
         return false;
-    size_t strLen = linear->length();
-    if (!checkLength(cb.length() + strLen))
-        return false;
-    return cb.append(linear->chars(), strLen);
+    return append(linear);
 }
 
 inline bool
-StringBuffer::append(JSAtom *atom)
+StringBuffer::append(JSLinearString *str)
 {
-    size_t strLen = atom->length();
-    if (!checkLength(cb.length() + strLen))
-        return false;
-    return cb.append(atom->chars(), strLen);
+    JS::Anchor<JSString *> anch(str);
+    return cb.append(str->chars(), str->length());
 }
 
 inline bool

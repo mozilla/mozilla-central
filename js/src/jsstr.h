@@ -139,26 +139,26 @@ extern const char *
 js_ValueToPrintable(JSContext *cx, const js::Value &,
                     JSAutoByteString *bytes, bool asSource = false);
 
-/*
- * Convert a value to a string, returning null after reporting an error,
- * otherwise returning a new string reference.
- */
-extern JSString *
-js_ValueToString(JSContext *cx, const js::Value &v);
-
 namespace js {
 
 /*
- * Most code that calls js_ValueToString knows the value is (probably) not a
- * string, so it does not make sense to put this inline fast path into
- * js_ValueToString.
+ * Convert a non-string value to a string, returning null after reporting an
+ * error, otherwise returning a new string reference.
+ */
+extern JSString *
+ToStringSlow(JSContext *cx, const Value &v);
+
+/*
+ * Convert the given value to a string.  This method includes an inline
+ * fast-path for the case where the value is already a string; if the value is
+ * known not to be a string, use ToStringSlow instead.
  */
 static JS_ALWAYS_INLINE JSString *
-ValueToString_TestForStringInline(JSContext *cx, const Value &v)
+ToString(JSContext *cx, const js::Value &v)
 {
     if (v.isString())
         return v.toString();
-    return js_ValueToString(cx, v);
+    return ToStringSlow(cx, v);
 }
 
 /*
@@ -204,7 +204,7 @@ CompareStrings(JSContext *cx, JSString *str1, JSString *str2, int32 *result);
 extern bool
 StringEqualsAscii(JSLinearString *str, const char *asciiBytes);
 
-} /* namespacejs */
+} /* namespace js */
 
 extern size_t
 js_strlen(const jschar *s);
@@ -275,16 +275,17 @@ DeflateStringToUTF8Buffer(JSContext *cx, const jschar *chars,
                           size_t charsLength, char *bytes, size_t *length,
                           FlationCoding fc = NormalEncoding);
 
-} /* namespace js */
-
 /*
  * The String.prototype.replace fast-native entry point is exported for joined
  * function optimization in js{interp,tracer}.cpp.
  */
-namespace js {
 extern JSBool
 str_replace(JSContext *cx, uintN argc, js::Value *vp);
-}
+
+extern JSBool
+str_fromCharCode(JSContext *cx, uintN argc, Value *vp);
+
+} /* namespace js */
 
 extern JSBool
 js_str_toString(JSContext *cx, uintN argc, js::Value *vp);

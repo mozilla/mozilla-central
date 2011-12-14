@@ -274,8 +274,8 @@ class PunboxAssembler : public JSC::MacroAssembler
         lshiftPtr(Imm32(1), to);
     }
 
-    void loadObjPrivate(RegisterID base, RegisterID to) {
-        Address priv(base, offsetof(JSObject, privateData));
+    void loadObjPrivate(RegisterID base, RegisterID to, uint32 nfixed) {
+        Address priv(base, JSObject::getPrivateDataOffset(nfixed));
         loadPtr(priv, to);
     }
 
@@ -336,6 +336,16 @@ class PunboxAssembler : public JSC::MacroAssembler
     Jump testObject(Condition cond, Address address) {
         loadValue(address, Registers::ValueReg);
         return testObject(cond, Registers::ValueReg);
+    }
+
+    Jump testGCThing(RegisterID reg) {
+        return branchPtr(AboveOrEqual, reg, ImmTag(JSVAL_LOWER_INCL_SHIFTED_TAG_OF_GCTHING_SET));
+    }
+
+    Jump testGCThing(Address address) {
+        loadValue(address, Registers::ValueReg);
+        return branchPtr(AboveOrEqual, Registers::ValueReg,
+                         ImmTag(JSVAL_LOWER_INCL_SHIFTED_TAG_OF_GCTHING_SET));
     }
 
     Jump testDouble(Condition cond, RegisterID reg) {

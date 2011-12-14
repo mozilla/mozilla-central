@@ -166,12 +166,9 @@ static const PRUint8 gsRGBToLinearRGBMap[256] = {
 239, 242, 244, 246, 248, 250, 253, 255
 };
 
-#ifdef MOZ_SMIL
 static bool gSMILEnabled;
 static const char SMIL_PREF_STR[] = "svg.smil.enabled";
-#endif // MOZ_SMIL
 
-#ifdef MOZ_SMIL
 static int
 SMILPrefChanged(const char *aPref, void *aClosure)
 {
@@ -195,7 +192,6 @@ NS_SMILEnabled()
 
   return gSMILEnabled;
 }
-#endif // MOZ_SMIL
 
 nsSVGSVGElement*
 nsSVGUtils::GetOuterSVGElement(nsSVGElement *aSVGElement)
@@ -465,21 +461,18 @@ nsSVGUtils::GetCTM(nsSVGElement *aElement, bool aScreenCTM)
   nsSVGElement *element = aElement;
   nsIContent *ancestor = aElement->GetFlattenedTreeParent();
 
-  while (ancestor && ancestor->GetNameSpaceID() == kNameSpaceID_SVG &&
+  while (ancestor && ancestor->IsSVG() &&
                      ancestor->Tag() != nsGkAtoms::foreignObject) {
-    // ignore unknown XML elements in the SVG namespace
-    if (ancestor->IsNodeOfType(nsINode::eSVG)) {
-      element = static_cast<nsSVGElement*>(ancestor);
-      matrix *= element->PrependLocalTransformTo(gfxMatrix()); // i.e. *A*ppend
-      if (!aScreenCTM && EstablishesViewport(element)) {
-        if (!element->NodeInfo()->Equals(nsGkAtoms::svg, kNameSpaceID_SVG) &&
-            !element->NodeInfo()->Equals(nsGkAtoms::symbol, kNameSpaceID_SVG)) {
-          NS_ERROR("New (SVG > 1.1) SVG viewport establishing element?");
-          return gfxMatrix(0.0, 0.0, 0.0, 0.0, 0.0, 0.0); // singular
-        }
-        // XXX spec seems to say x,y translation should be undone for IsInnerSVG
-        return matrix;
+    element = static_cast<nsSVGElement*>(ancestor);
+    matrix *= element->PrependLocalTransformTo(gfxMatrix()); // i.e. *A*ppend
+    if (!aScreenCTM && EstablishesViewport(element)) {
+      if (!element->NodeInfo()->Equals(nsGkAtoms::svg, kNameSpaceID_SVG) &&
+          !element->NodeInfo()->Equals(nsGkAtoms::symbol, kNameSpaceID_SVG)) {
+        NS_ERROR("New (SVG > 1.1) SVG viewport establishing element?");
+        return gfxMatrix(0.0, 0.0, 0.0, 0.0, 0.0, 0.0); // singular
       }
+      // XXX spec seems to say x,y translation should be undone for IsInnerSVG
+      return matrix;
     }
     ancestor = ancestor->GetFlattenedTreeParent();
   }
@@ -1143,10 +1136,10 @@ gfxIntSize
 nsSVGUtils::ConvertToSurfaceSize(const gfxSize& aSize,
                                  bool *aResultOverflows)
 {
-  gfxIntSize surfaceSize(ClampToInt(aSize.width), ClampToInt(aSize.height));
+  gfxIntSize surfaceSize(ClampToInt(ceil(aSize.width)), ClampToInt(ceil(aSize.height)));
 
-  *aResultOverflows = surfaceSize.width != NS_round(aSize.width) ||
-    surfaceSize.height != NS_round(aSize.height);
+  *aResultOverflows = surfaceSize.width != ceil(aSize.width) ||
+    surfaceSize.height != ceil(aSize.height);
 
   if (!gfxASurface::CheckSurfaceSize(surfaceSize)) {
     surfaceSize.width = NS_MIN(NS_SVG_OFFSCREEN_MAX_DIMENSION,

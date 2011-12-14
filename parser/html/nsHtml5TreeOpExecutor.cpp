@@ -345,18 +345,16 @@ nsHtml5TreeOpExecutor::UpdateStyleSheet(nsIContent* aElement)
     nsAutoString relVal;
     aElement->GetAttr(kNameSpaceID_None, nsGkAtoms::rel, relVal);
     if (!relVal.IsEmpty()) {
-      // XXX seems overkill to generate this string array
-      nsAutoTArray<nsString, 4> linkTypes;
-      nsStyleLinkElement::ParseLinkTypes(relVal, linkTypes);
-      bool hasPrefetch = linkTypes.Contains(NS_LITERAL_STRING("prefetch"));
-      if (hasPrefetch || linkTypes.Contains(NS_LITERAL_STRING("next"))) {
+      PRUint32 linkTypes = nsStyleLinkElement::ParseLinkTypes(relVal);
+      bool hasPrefetch = linkTypes & PREFETCH;
+      if (hasPrefetch || (linkTypes & NEXT)) {
         nsAutoString hrefVal;
         aElement->GetAttr(kNameSpaceID_None, nsGkAtoms::href, hrefVal);
         if (!hrefVal.IsEmpty()) {
           PrefetchHref(hrefVal, aElement, hasPrefetch);
         }
       }
-      if (linkTypes.Contains(NS_LITERAL_STRING("dns-prefetch"))) {
+      if (linkTypes & DNS_PREFETCH) {
         nsAutoString hrefVal;
         aElement->GetAttr(kNameSpaceID_None, nsGkAtoms::href, hrefVal);
         if (!hrefVal.IsEmpty()) {
@@ -737,20 +735,16 @@ nsHtml5TreeOpExecutor::RunScript(nsIContent* aScriptElement)
     return;
   }
   
+  if (mPreventScriptExecution) {
+    sele->PreventExecution();
+  }
   if (mFragmentMode) {
-    if (mPreventScriptExecution) {
-      sele->PreventExecution();
-    }
     return;
   }
 
   if (sele->GetScriptDeferred() || sele->GetScriptAsync()) {
-    #ifdef DEBUG
-    nsresult rv = 
-    #endif
-    aScriptElement->DoneAddingChildren(true); // scripts ignore the argument
-    NS_ASSERTION(rv != NS_ERROR_HTMLPARSER_BLOCK, 
-                 "Defer or async script tried to block.");
+    DebugOnly<bool> block = sele->AttemptToExecute();
+    NS_ASSERTION(!block, "Defer or async script tried to block.");
     return;
   }
   
@@ -767,13 +761,12 @@ nsHtml5TreeOpExecutor::RunScript(nsIContent* aScriptElement)
 
   // Copied from nsXMLContentSink
   // Now tell the script that it's ready to go. This may execute the script
-  // or return NS_ERROR_HTMLPARSER_BLOCK. Or neither if the script doesn't
-  // need executing.
-  nsresult rv = aScriptElement->DoneAddingChildren(true);
+  // or return true, or neither if the script doesn't need executing.
+  bool block = sele->AttemptToExecute();
 
   // If the act of insertion evaluated the script, we're fine.
   // Else, block the parser till the script has loaded.
-  if (rv == NS_ERROR_HTMLPARSER_BLOCK) {
+  if (block) {
     mScriptElements.AppendObject(sele);
     if (mParser) {
       mParser->BlockParser();
@@ -891,6 +884,26 @@ void
 nsHtml5TreeOpExecutor::InitializeDocWriteParserState(nsAHtml5TreeBuilderState* aState, PRInt32 aLine)
 {
   GetParser()->InitializeDocWriteParserState(aState, aLine);
+}
+
+nsIURI*
+nsHtml5TreeOpExecutor::GetViewSourceBaseURI()
+{
+  if (!mViewSourceBaseURI) {
+    nsCOMPtr<nsIURI> orig = mDocument->GetOriginalURI();
+    bool isViewSource;
+    orig->SchemeIs("view-source", &isViewSource);
+    if (isViewSource) {
+      nsCOMPtr<nsINestedURI> nested = do_QueryInterface(orig);
+      NS_ASSERTION(nested, "URI with scheme view-source didn't QI to nested!");
+      nested->GetInnerURI(getter_AddRefs(mViewSourceBaseURI));
+    } else {
+      // Fail gracefully if the base URL isn't a view-source: URL.
+      // Not sure if this can ever happen.
+      mViewSourceBaseURI = orig;
+    }
+  }
+  return mViewSourceBaseURI;
 }
 
 // Speculative loading

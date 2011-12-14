@@ -234,6 +234,10 @@ body[dir=rtl] #searchSubmit:active {
   cursor: pointer;
 }
 
+#snippets:empty {
+  visibility: hidden;
+}
+
 @media all and (max-width: 470px) {
   #snippets { width: 65% }
 }
@@ -363,6 +367,14 @@ body[dir=rtl] #restorePreviousSession::before {
   width: 100%;
   text-align: center;
   bottom: 2%;
+}
+
+#syncLinksContainer {
+  padding-top: 1em;
+}
+
+.sync-link {
+  padding: 1em;
 }
 
 @media all and (max-height: 370px) {

@@ -212,10 +212,10 @@ nsSimplePageSequenceFrame::Reflow(nsPresContext*          aPresContext,
 
     // sanity check the values. three inches are sometimes needed
     PRInt32 inchInTwips = NS_INCHES_TO_INT_TWIPS(3.0);
-    edgeTwips.top = NS_MIN(NS_MAX(edgeTwips.top, 0), inchInTwips);
-    edgeTwips.bottom = NS_MIN(NS_MAX(edgeTwips.bottom, 0), inchInTwips);
-    edgeTwips.left = NS_MIN(NS_MAX(edgeTwips.left, 0), inchInTwips);
-    edgeTwips.right = NS_MIN(NS_MAX(edgeTwips.right, 0), inchInTwips);
+    edgeTwips.top    = clamped(edgeTwips.top,    0, inchInTwips);
+    edgeTwips.bottom = clamped(edgeTwips.bottom, 0, inchInTwips);
+    edgeTwips.left   = clamped(edgeTwips.left,   0, inchInTwips);
+    edgeTwips.right  = clamped(edgeTwips.right,  0, inchInTwips);
 
     mPageData->mEdgePaperMargin =
       aPresContext->CSSTwipsToAppUnits(edgeTwips + unwriteableTwips);
@@ -460,6 +460,7 @@ nsSimplePageSequenceFrame::StartPrint(nsPresContext*   aPresContext,
 
   aPrintSettings->GetStartPageRange(&mFromPageNum);
   aPrintSettings->GetEndPageRange(&mToPageNum);
+  aPrintSettings->GetPageRanges(mPageRanges);
 
   mDoingPageRange = nsIPrintSettings::kRangeSpecifiedPageRange == mPrintRangeType ||
                     nsIPrintSettings::kRangeSelection == mPrintRangeType;
@@ -556,6 +557,21 @@ nsSimplePageSequenceFrame::PrintNextPage()
       mPageNum++;
       mCurrentPageFrame = nsnull;
       return NS_OK;
+    } else {
+      PRInt32 length = mPageRanges.Length();
+    
+      // Page ranges are pairs (start, end)
+      if (length && (length % 2 == 0)) {
+        mPrintThisPage = false;
+      
+        PRInt32 i;
+        for (i = 0; i < length; i += 2) {          
+          if (mPageRanges[i] <= mPageNum && mPageNum <= mPageRanges[i+1]) {
+            mPrintThisPage = true;
+            break;
+          }
+        }
+      }
     }
   }
 

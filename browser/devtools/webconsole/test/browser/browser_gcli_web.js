@@ -54,21 +54,28 @@ var Node = Components.interfaces.nsIDOMNode;
  * http://opensource.org/licenses/BSD-3-Clause
  */
 
-define('gclitest/index', ['require', 'exports', 'module' , 'gcli/index', 'test/examiner', 'gclitest/testTokenize', 'gclitest/testSplit', 'gclitest/testCli', 'gclitest/testHistory', 'gclitest/testRequire'], function(require, exports, module) {
+define('gclitest/suite', ['require', 'exports', 'module' , 'gcli/index', 'test/examiner', 'gclitest/testTokenize', 'gclitest/testSplit', 'gclitest/testCli', 'gclitest/testExec', 'gclitest/testKeyboard', 'gclitest/testHistory', 'gclitest/testRequire', 'gclitest/testJs'], function(require, exports, module) {
 
   // We need to make sure GCLI is initialized before we begin testing it
   require('gcli/index');
 
   var examiner = require('test/examiner');
 
+  // It's tempting to want to unify these strings and make addSuite() do the
+  // call to require(), however that breaks the build system which looks for
+  // the strings passed to require
   examiner.addSuite('gclitest/testTokenize', require('gclitest/testTokenize'));
   examiner.addSuite('gclitest/testSplit', require('gclitest/testSplit'));
   examiner.addSuite('gclitest/testCli', require('gclitest/testCli'));
+  examiner.addSuite('gclitest/testExec', require('gclitest/testExec'));
+  examiner.addSuite('gclitest/testKeyboard', require('gclitest/testKeyboard'));
   examiner.addSuite('gclitest/testHistory', require('gclitest/testHistory'));
-
   examiner.addSuite('gclitest/testRequire', require('gclitest/testRequire'));
+  examiner.addSuite('gclitest/testJs', require('gclitest/testJs'));
 
   examiner.run();
+  console.log('Completed test suite');
+  // examiner.log();
 
 });
 /*
@@ -162,6 +169,19 @@ examiner.toRemote = function() {
       return examiner.suites[suiteName].toRemote();
     }.bind(this))
   };
+};
+
+/**
+ * Output a test summary to console.log
+ */
+examiner.log = function() {
+  var remote = this.toRemote();
+  remote.suites.forEach(function(suite) {
+    console.log(suite.name);
+    suite.tests.forEach(function(test) {
+      console.log('- ' + test.name, test.status.name, test.message || '');
+    });
+  });
 };
 
 /**
@@ -296,7 +316,9 @@ Test.prototype.run = function() {
     this.status = stati.fail;
     this.messages.push('' + ex);
     console.error(ex);
-    console.trace();
+    if (ex.stack) {
+      console.error(ex.stack);
+    }
   }
 
   if (this.status === stati.executing) {
@@ -698,11 +720,12 @@ exports.testJavascript = function() {
  * http://opensource.org/licenses/BSD-3-Clause
  */
 
-define('gclitest/commands', ['require', 'exports', 'module' , 'gcli/canon', 'gcli/types/basic', 'gcli/types'], function(require, exports, module) {
+define('gclitest/commands', ['require', 'exports', 'module' , 'gcli/canon', 'gcli/util', 'gcli/types/basic', 'gcli/types'], function(require, exports, module) {
 var commands = exports;
 
 
 var canon = require('gcli/canon');
+var util = require('gcli/util');
 
 var SelectionType = require('gcli/types/basic').SelectionType;
 var DeferredType = require('gcli/types/basic').DeferredType;
@@ -720,6 +743,10 @@ commands.setup = function() {
 
   canon.addCommand(commands.tsv);
   canon.addCommand(commands.tsr);
+  canon.addCommand(commands.tse);
+  canon.addCommand(commands.tsj);
+  canon.addCommand(commands.tsb);
+  canon.addCommand(commands.tss);
   canon.addCommand(commands.tsu);
   canon.addCommand(commands.tsn);
   canon.addCommand(commands.tsnDif);
@@ -729,11 +756,16 @@ commands.setup = function() {
   canon.addCommand(commands.tsnExtend);
   canon.addCommand(commands.tselarr);
   canon.addCommand(commands.tsm);
+  canon.addCommand(commands.tsg);
 };
 
 commands.shutdown = function() {
   canon.removeCommand(commands.tsv);
   canon.removeCommand(commands.tsr);
+  canon.removeCommand(commands.tse);
+  canon.removeCommand(commands.tsj);
+  canon.removeCommand(commands.tsb);
+  canon.removeCommand(commands.tss);
   canon.removeCommand(commands.tsu);
   canon.removeCommand(commands.tsn);
   canon.removeCommand(commands.tsnDif);
@@ -743,14 +775,15 @@ commands.shutdown = function() {
   canon.removeCommand(commands.tsnExtend);
   canon.removeCommand(commands.tselarr);
   canon.removeCommand(commands.tsm);
+  canon.removeCommand(commands.tsg);
 
   types.deregisterType(commands.optionType);
   types.deregisterType(commands.optionValue);
 };
 
 
-commands.option1 = { };
-commands.option2 = { };
+commands.option1 = { type: types.getType('string') };
+commands.option2 = { type: types.getType('number') };
 
 commands.optionType = new SelectionType({
   name: 'optionType',
@@ -784,25 +817,62 @@ commands.optionValue = new DeferredType({
   }
 });
 
+commands.commandExec = util.createEvent('commands.commandExec');
+
+function createExec(name) {
+  return function(args, context) {
+    var data = {
+      command: commands[name],
+      args: args,
+      context: context
+    };
+    commands.commandExec(data);
+    return data;
+  };
+}
+
 commands.tsv = {
   name: 'tsv',
   params: [
     { name: 'optionType', type: 'optionType' },
     { name: 'optionValue', type: 'optionValue' }
   ],
-  exec: function(args, context) { }
+  exec: createExec('tsv')
 };
 
 commands.tsr = {
   name: 'tsr',
   params: [ { name: 'text', type: 'string' } ],
-  exec: function(args, context) { }
+  exec: createExec('tsr')
+};
+
+commands.tse = {
+  name: 'tse',
+  params: [ { name: 'node', type: 'node' } ],
+  exec: createExec('tse')
+};
+
+commands.tsj = {
+  name: 'tsj',
+  params: [ { name: 'javascript', type: 'javascript' } ],
+  exec: createExec('tsj')
+};
+
+commands.tsb = {
+  name: 'tsb',
+  params: [ { name: 'toggle', type: 'boolean' } ],
+  exec: createExec('tsb')
+};
+
+commands.tss = {
+  name: 'tss',
+  exec: createExec('tss')
 };
 
 commands.tsu = {
   name: 'tsu',
-  params: [ { name: 'num', type: 'number' } ],
-  exec: function(args, context) { }
+  params: [ { name: 'num', type: { name: 'number', max: 10, min: -5, step: 3 } } ],
+  exec: createExec('tsu')
 };
 
 commands.tsn = {
@@ -812,31 +882,31 @@ commands.tsn = {
 commands.tsnDif = {
   name: 'tsn dif',
   params: [ { name: 'text', type: 'string' } ],
-  exec: function(text) { }
+  exec: createExec('tsnDif')
 };
 
 commands.tsnExt = {
   name: 'tsn ext',
   params: [ { name: 'text', type: 'string' } ],
-  exec: function(text) { }
+  exec: createExec('tsnExt')
 };
 
 commands.tsnExte = {
   name: 'tsn exte',
   params: [ { name: 'text', type: 'string' } ],
-  exec: function(text) { }
+  exec: createExec('')
 };
 
 commands.tsnExten = {
   name: 'tsn exten',
   params: [ { name: 'text', type: 'string' } ],
-  exec: function(text) { }
+  exec: createExec('tsnExte')
 };
 
 commands.tsnExtend = {
   name: 'tsn extend',
   params: [ { name: 'text', type: 'string' } ],
-  exec: function(text) { }
+  exec: createExec('tsnExtend')
 };
 
 commands.tselarr = {
@@ -845,7 +915,7 @@ commands.tselarr = {
     { name: 'num', type: { name: 'selection', data: [ '1', '2', '3' ] } },
     { name: 'arr', type: { name: 'array', subtype: 'string' } },
   ],
-  exec: function(args, context) {}
+  exec: createExec('tselarr')
 };
 
 commands.tsm = {
@@ -857,7 +927,31 @@ commands.tsm = {
     { name: 'txt', type: 'string' },
     { name: 'num', type: { name: 'number', max: 42, min: 0 } },
   ],
-  exec: function(args, context) {}
+  exec: createExec('tsm')
+};
+
+commands.tsg = {
+  name: 'tsg',
+  hidden: true,
+  description: 'a param group test',
+  params: [
+    { name: 'solo', type: { name: 'selection', data: [ 'aaa', 'bbb', 'ccc' ] } },
+    {
+      group: 'First',
+      params: [
+        { name: 'txt1', type: 'string', defaultValue: null },
+        { name: 'boolean1', type: 'boolean' }
+      ]
+    },
+    {
+      group: 'Second',
+      params: [
+        { name: 'txt2', type: 'string', defaultValue: 'd' },
+        { name: 'num2', type: { name: 'number', defaultValue: 42 } }
+      ]
+    }
+  ],
+  exec: createExec('tsg')
 };
 
 
@@ -908,7 +1002,7 @@ function update(input) {
 
   status = requ.getStatus();
   assignC = requ.getAssignmentAt(input.cursor.start);
-  statuses = requ.getInputStatusMarkup().map(function(s) {
+  statuses = requ.getInputStatusMarkup(input.cursor.start).map(function(s) {
     return s.toString()[0];
   }).join('');
 
@@ -931,19 +1025,19 @@ function verifyPredictionsContains(name, predictions) {
 
 exports.testBlank = function() {
   update({ typed: '', cursor: { start: 0, end: 0 } });
-  test.is(   '', statuses);
+  test.is(        '', statuses);
   test.is(Status.ERROR, status);
   test.is(-1, assignC.paramIndex);
   test.is(null, requ.commandAssignment.getValue());
 
   update({ typed: ' ', cursor: { start: 1, end: 1 } });
-  test.is(   'V', statuses);
+  test.is(        'V', statuses);
   test.is(Status.ERROR, status);
   test.is(-1, assignC.paramIndex);
   test.is(null, requ.commandAssignment.getValue());
 
   update({ typed: ' ', cursor: { start: 0, end: 0 } });
-  test.is(   'V', statuses);
+  test.is(        'V', statuses);
   test.is(Status.ERROR, status);
   test.is(-1, assignC.paramIndex);
   test.is(null, requ.commandAssignment.getValue());
@@ -951,7 +1045,7 @@ exports.testBlank = function() {
 
 exports.testIncompleteMultiMatch = function() {
   update({ typed: 't', cursor: { start: 1, end: 1 } });
-  test.is(   'I', statuses);
+  test.is(        'I', statuses);
   test.is(Status.ERROR, status);
   test.is(-1, assignC.paramIndex);
   test.ok(assignC.getPredictions().length > 0);
@@ -963,7 +1057,7 @@ exports.testIncompleteMultiMatch = function() {
 
 exports.testIncompleteSingleMatch = function() {
   update({ typed: 'tselar', cursor: { start: 6, end: 6 } });
-  test.is(   'IIIIII', statuses);
+  test.is(        'IIIIII', statuses);
   test.is(Status.ERROR, status);
   test.is(-1, assignC.paramIndex);
   test.is(1, assignC.getPredictions().length);
@@ -973,25 +1067,25 @@ exports.testIncompleteSingleMatch = function() {
 
 exports.testTsv = function() {
   update({ typed: 'tsv', cursor: { start: 3, end: 3 } });
-  test.is(   'VVV', statuses);
+  test.is(        'VVV', statuses);
   test.is(Status.ERROR, status);
   test.is(-1, assignC.paramIndex);
   test.is('tsv', requ.commandAssignment.getValue().name);
 
   update({ typed: 'tsv ', cursor: { start: 4, end: 4 } });
-  test.is(   'VVVV', statuses);
+  test.is(        'VVVV', statuses);
   test.is(Status.ERROR, status);
   test.is(0, assignC.paramIndex);
   test.is('tsv', requ.commandAssignment.getValue().name);
 
   update({ typed: 'tsv ', cursor: { start: 2, end: 2 } });
-  test.is(   'VVVV', statuses);
+  test.is(        'VVVV', statuses);
   test.is(Status.ERROR, status);
   test.is(-1, assignC.paramIndex);
   test.is('tsv', requ.commandAssignment.getValue().name);
 
   update({ typed: 'tsv o', cursor: { start: 5, end: 5 } });
-  test.is(   'VVVVI', statuses);
+  test.is(        'VVVVI', statuses);
   test.is(Status.ERROR, status);
   test.is(0, assignC.paramIndex);
   test.is(2, assignC.getPredictions().length);
@@ -1002,7 +1096,7 @@ exports.testTsv = function() {
   test.is(null, assign1.getValue());
 
   update({ typed: 'tsv option', cursor: { start: 10, end: 10 } });
-  test.is(   'VVVVIIIIII', statuses);
+  test.is(        'VVVVIIIIII', statuses);
   test.is(Status.ERROR, status);
   test.is(0, assignC.paramIndex);
   test.is(2, assignC.getPredictions().length);
@@ -1013,7 +1107,7 @@ exports.testTsv = function() {
   test.is(null, assign1.getValue());
 
   update({ typed: 'tsv option', cursor: { start: 1, end: 1 } });
-  test.is(   'VVVVEEEEEE', statuses);
+  test.is(        'VVVVEEEEEE', statuses);
   test.is(Status.ERROR, status);
   test.is(-1, assignC.paramIndex);
   test.is('tsv', requ.commandAssignment.getValue().name);
@@ -1021,7 +1115,7 @@ exports.testTsv = function() {
   test.is(null, assign1.getValue());
 
   update({ typed: 'tsv option ', cursor: { start: 11, end: 11 } });
-  test.is(   'VVVVEEEEEEV', statuses);
+  test.is(        'VVVVEEEEEEV', statuses);
   test.is(Status.ERROR, status);
   test.is(1, assignC.paramIndex);
   test.is(0, assignC.getPredictions().length);
@@ -1030,7 +1124,7 @@ exports.testTsv = function() {
   test.is(null, assign1.getValue());
 
   update({ typed: 'tsv option1', cursor: { start: 11, end: 11 } });
-  test.is(   'VVVVVVVVVVV', statuses);
+  test.is(        'VVVVVVVVVVV', statuses);
   test.is(Status.ERROR, status);
   test.is('tsv', requ.commandAssignment.getValue().name);
   test.is('option1', assign1.getArg().text);
@@ -1038,7 +1132,7 @@ exports.testTsv = function() {
   test.is(0, assignC.paramIndex);
 
   update({ typed: 'tsv option1 ', cursor: { start: 12, end: 12 } });
-  test.is(   'VVVVVVVVVVVV', statuses);
+  test.is(        'VVVVVVVVVVVV', statuses);
   test.is(Status.ERROR, status);
   test.is('tsv', requ.commandAssignment.getValue().name);
   test.is('option1', assign1.getArg().text);
@@ -1046,7 +1140,7 @@ exports.testTsv = function() {
   test.is(1, assignC.paramIndex);
 
   update({ typed: 'tsv option1 6', cursor: { start: 13, end: 13 } });
-  test.is(   'VVVVVVVVVVVVV', statuses);
+  test.is(        'VVVVVVVVVVVVV', statuses);
   test.is(Status.VALID, status);
   test.is('tsv', requ.commandAssignment.getValue().name);
   test.is('option1', assign1.getArg().text);
@@ -1057,7 +1151,7 @@ exports.testTsv = function() {
   test.is(1, assignC.paramIndex);
 
   update({ typed: 'tsv option2 6', cursor: { start: 13, end: 13 } });
-  test.is(   'VVVVVVVVVVVVE', statuses);
+  test.is(        'VVVVVVVVVVVVE', statuses);
   test.is(Status.ERROR, status);
   test.is('tsv', requ.commandAssignment.getValue().name);
   test.is('option2', assign1.getArg().text);
@@ -1069,26 +1163,26 @@ exports.testTsv = function() {
 
 exports.testInvalid = function() {
   update({ typed: 'fred', cursor: { start: 4, end: 4 } });
-  test.is(   'EEEE', statuses);
+  test.is(        'EEEE', statuses);
   test.is('fred', requ.commandAssignment.getArg().text);
   test.is('', requ._unassigned.getArg().text);
   test.is(-1, assignC.paramIndex);
 
   update({ typed: 'fred ', cursor: { start: 5, end: 5 } });
-  test.is(   'EEEEV', statuses);
+  test.is(        'EEEEV', statuses);
   test.is('fred', requ.commandAssignment.getArg().text);
   test.is('', requ._unassigned.getArg().text);
   test.is(-1, assignC.paramIndex);
 
   update({ typed: 'fred one', cursor: { start: 8, end: 8 } });
-  test.is(   'EEEEVEEE', statuses);
+  test.is(        'EEEEVEEE', statuses);
   test.is('fred', requ.commandAssignment.getArg().text);
   test.is('one', requ._unassigned.getArg().text);
 };
 
 exports.testSingleString = function() {
   update({ typed: 'tsr', cursor: { start: 3, end: 3 } });
-  test.is(   'VVV', statuses);
+  test.is(        'VVV', statuses);
   test.is(Status.ERROR, status);
   test.is('tsr', requ.commandAssignment.getValue().name);
   //test.is(undefined, assign1.getArg());
@@ -1096,7 +1190,7 @@ exports.testSingleString = function() {
   test.is(undefined, assign2);
 
   update({ typed: 'tsr ', cursor: { start: 4, end: 4 } });
-  test.is(   'VVVV', statuses);
+  test.is(        'VVVV', statuses);
   test.is(Status.ERROR, status);
   test.is('tsr', requ.commandAssignment.getValue().name);
   //test.is(undefined, assign1.getArg());
@@ -1104,21 +1198,21 @@ exports.testSingleString = function() {
   test.is(undefined, assign2);
 
   update({ typed: 'tsr h', cursor: { start: 5, end: 5 } });
-  test.is(   'VVVVV', statuses);
+  test.is(        'VVVVV', statuses);
   test.is(Status.VALID, status);
   test.is('tsr', requ.commandAssignment.getValue().name);
   test.is('h', assign1.getArg().text);
   test.is('h', assign1.getValue());
 
   update({ typed: 'tsr "h h"', cursor: { start: 9, end: 9 } });
-  test.is(   'VVVVVVVVV', statuses);
+  test.is(        'VVVVVVVVV', statuses);
   test.is(Status.VALID, status);
   test.is('tsr', requ.commandAssignment.getValue().name);
   test.is('h h', assign1.getArg().text);
   test.is('h h', assign1.getValue());
 
   update({ typed: 'tsr h h h', cursor: { start: 9, end: 9 } });
-  test.is(   'VVVVVVVVV', statuses);
+  test.is(        'VVVVVVVVV', statuses);
   test.is('tsr', requ.commandAssignment.getValue().name);
   test.is('h h h', assign1.getArg().text);
   test.is('h h h', assign1.getValue());
@@ -1128,21 +1222,21 @@ exports.testSingleString = function() {
 
 exports.testSingleNumber = function() {
   update({ typed: 'tsu', cursor: { start: 3, end: 3 } });
-  test.is(   'VVV', statuses);
+  test.is(        'VVV', statuses);
   test.is(Status.ERROR, status);
   test.is('tsu', requ.commandAssignment.getValue().name);
   //test.is(undefined, assign1.getArg());
   test.is(null, assign1.getValue());
 
   update({ typed: 'tsu ', cursor: { start: 4, end: 4 } });
-  test.is(   'VVVV', statuses);
+  test.is(        'VVVV', statuses);
   test.is(Status.ERROR, status);
   test.is('tsu', requ.commandAssignment.getValue().name);
   //test.is(undefined, assign1.getArg());
   test.is(null, assign1.getValue());
 
   update({ typed: 'tsu 1', cursor: { start: 5, end: 5 } });
-  test.is(   'VVVVV', statuses);
+  test.is(        'VVVVV', statuses);
   test.is(Status.VALID, status);
   test.is('tsu', requ.commandAssignment.getValue().name);
   test.is('1', assign1.getArg().text);
@@ -1150,7 +1244,7 @@ exports.testSingleNumber = function() {
   test.is('number', typeof assign1.getValue());
 
   update({ typed: 'tsu x', cursor: { start: 5, end: 5 } });
-  test.is(   'VVVVE', statuses);
+  test.is(        'VVVVE', statuses);
   test.is(Status.ERROR, status);
   test.is('tsu', requ.commandAssignment.getValue().name);
   test.is('x', assign1.getArg().text);
@@ -1159,52 +1253,324 @@ exports.testSingleNumber = function() {
 
 exports.testNestedCommand = function() {
   update({ typed: 'tsn', cursor: { start: 3, end: 3 } });
-  test.is(   'III', statuses);
+  test.is(        'III', statuses);
   test.is(Status.ERROR, status);
   test.is('tsn', requ.commandAssignment.getValue().name);
   test.is(undefined, assign1);
 
   update({ typed: 'tsn ', cursor: { start: 4, end: 4 } });
-  test.is(   'IIIV', statuses);
+  test.is(        'IIIV', statuses);
   test.is(Status.ERROR, status);
   test.is('tsn', requ.commandAssignment.getValue().name);
   test.is(undefined, assign1);
 
   update({ typed: 'tsn x', cursor: { start: 5, end: 5 } });
-  test.is(   'EEEVE', statuses);
+  test.is(        'EEEVE', statuses);
   test.is(Status.ERROR, status);
   test.is('tsn x', requ.commandAssignment.getArg().text);
   test.is(undefined, assign1);
 
   update({ typed: 'tsn dif', cursor: { start: 7, end: 7 } });
-  test.is(   'VVVVVVV', statuses);
+  test.is(        'VVVVVVV', statuses);
   test.is(Status.ERROR, status);
   test.is('tsn dif', requ.commandAssignment.getValue().name);
   //test.is(undefined, assign1.getArg());
   //test.is(undefined, assign1.getValue());
 
   update({ typed: 'tsn dif ', cursor: { start: 8, end: 8 } });
-  test.is(   'VVVVVVVV', statuses);
+  test.is(        'VVVVVVVV', statuses);
   test.is(Status.ERROR, status);
   test.is('tsn dif', requ.commandAssignment.getValue().name);
   //test.is(undefined, assign1.getArg());
   //test.is(undefined, assign1.getValue());
 
   update({ typed: 'tsn dif x', cursor: { start: 9, end: 9 } });
-  test.is(   'VVVVVVVVV', statuses);
+  test.is(        'VVVVVVVVV', statuses);
   test.is(Status.VALID, status);
   test.is('tsn dif', requ.commandAssignment.getValue().name);
   test.is('x', assign1.getArg().text);
   test.is('x', assign1.getValue());
 
   update({ typed: 'tsn ext', cursor: { start: 7, end: 7 } });
-  test.is(   'VVVVVVV', statuses);
+  test.is(        'VVVVVVV', statuses);
   test.is(Status.ERROR, status);
   test.is('tsn ext', requ.commandAssignment.getValue().name);
   //test.is(undefined, assign1.getArg());
   //test.is(undefined, assign1.getValue());
 };
 
+
+});
+/*
+ * Copyright 2009-2011 Mozilla Foundation and contributors
+ * Licensed under the New BSD license. See LICENSE.txt or:
+ * http://opensource.org/licenses/BSD-3-Clause
+ */
+
+define('gclitest/testExec', ['require', 'exports', 'module' , 'gcli/cli', 'gcli/types', 'gcli/canon', 'gclitest/commands', 'gcli/types/node', 'test/assert'], function(require, exports, module) {
+
+
+var Requisition = require('gcli/cli').Requisition;
+var Status = require('gcli/types').Status;
+var canon = require('gcli/canon');
+var commands = require('gclitest/commands');
+var nodetype = require('gcli/types/node');
+
+var test = require('test/assert');
+
+var actualExec;
+var actualOutput;
+
+exports.setup = function() {
+  commands.setup();
+  commands.commandExec.add(onCommandExec);
+  canon.commandOutputManager.addListener(onCommandOutput);
+};
+
+exports.shutdown = function() {
+  commands.shutdown();
+  commands.commandExec.remove(onCommandExec);
+  canon.commandOutputManager.removeListener(onCommandOutput);
+};
+
+function onCommandExec(ev) {
+  actualExec = ev;
+}
+
+function onCommandOutput(ev) {
+  actualOutput = ev.output;
+}
+
+function exec(command, expectedArgs) {
+  var environment = {};
+
+  var requisition = new Requisition(environment);
+  var reply = requisition.exec({ typed: command });
+
+  test.is(command.indexOf(actualExec.command.name), 0, 'Command name: ' + command);
+
+  if (reply !== true) {
+    test.ok(false, 'reply = false for command: ' + command);
+  }
+
+  if (expectedArgs == null) {
+    test.ok(false, 'expectedArgs == null for ' + command);
+    return;
+  }
+  if (actualExec.args == null) {
+    test.ok(false, 'actualExec.args == null for ' + command);
+    return;
+  }
+
+  test.is(Object.keys(expectedArgs).length, Object.keys(actualExec.args).length,
+          'Arg count: ' + command);
+  Object.keys(expectedArgs).forEach(function(arg) {
+    var expectedArg = expectedArgs[arg];
+    var actualArg = actualExec.args[arg];
+
+    if (Array.isArray(expectedArg)) {
+      if (!Array.isArray(actualArg)) {
+        test.ok(false, 'actual is not an array. ' + command + '/' + arg);
+        return;
+      }
+
+      test.is(expectedArg.length, actualArg.length,
+              'Array length: ' + command + '/' + arg);
+      for (var i = 0; i < expectedArg.length; i++) {
+        test.is(expectedArg[i], actualArg[i],
+                'Member: "' + command + '/' + arg + '/' + i);
+      }
+    }
+    else {
+      test.is(expectedArg, actualArg, 'Command: "' + command + '" arg: ' + arg);
+    }
+  });
+
+  test.is(environment, actualExec.context.environment, 'Environment');
+
+  test.is(false, actualOutput.error, 'output error is false');
+  test.is(command, actualOutput.typed, 'command is typed');
+  test.ok(typeof actualOutput.canonical === 'string', 'canonical exists');
+
+  test.is(actualExec.args, actualOutput.args, 'actualExec.args is actualOutput.args');
+}
+
+
+exports.testExec = function() {
+  exec('tss', {});
+
+  // Bug 707008 - GCLI defered types don't work properly
+  // exec('tsv option1 10', { optionType: commands.option1, optionValue: '10' });
+  // exec('tsv option2 10', { optionType: commands.option1, optionValue: 10 });
+
+  exec('tsr fred', { text: 'fred' });
+  exec('tsr fred bloggs', { text: 'fred bloggs' });
+  exec('tsr "fred bloggs"', { text: 'fred bloggs' });
+
+  exec('tsb', { toggle: false });
+  exec('tsb --toggle', { toggle: true });
+
+  exec('tsu 10', { num: 10 });
+  exec('tsu --num 10', { num: 10 });
+
+  // Bug 704829 - Enable GCLI Javascript parameters
+  // The answer to this should be 2
+  exec('tsj { 1 + 1 }', { javascript: '1 + 1' });
+
+  var origDoc = nodetype.getDocument();
+  nodetype.setDocument(mockDoc);
+  exec('tse :root', { node: mockBody });
+  nodetype.setDocument(origDoc);
+
+  exec('tsn dif fred', { text: 'fred' });
+  exec('tsn exten fred', { text: 'fred' });
+  exec('tsn extend fred', { text: 'fred' });
+
+  exec('tselarr 1', { num: '1', arr: [ ] });
+  exec('tselarr 1 a', { num: '1', arr: [ 'a' ] });
+  exec('tselarr 1 a b', { num: '1', arr: [ 'a', 'b' ] });
+
+  exec('tsm a 10 10', { abc: 'a', txt: '10', num: 10 });
+
+  // Bug 707009 - GCLI doesn't always fill in default parameters properly
+  // exec('tsg a', { solo: 'a', txt1: null, boolean1: false, txt2: 'd', num2: 42 });
+};
+
+var mockBody = {
+  style: {}
+};
+
+var mockDoc = {
+  querySelectorAll: function(css) {
+    if (css === ':root') {
+      return {
+        length: 1,
+        item: function(i) {
+          return mockBody;
+        }
+      };
+    }
+    throw new Error('mockDoc.querySelectorAll(\'' + css + '\') error');
+  }
+};
+
+
+});
+/*
+ * Copyright 2009-2011 Mozilla Foundation and contributors
+ * Licensed under the New BSD license. See LICENSE.txt or:
+ * http://opensource.org/licenses/BSD-3-Clause
+ */
+
+define('gclitest/testKeyboard', ['require', 'exports', 'module' , 'gcli/cli', 'gcli/types', 'gcli/canon', 'gclitest/commands', 'gcli/types/node', 'test/assert'], function(require, exports, module) {
+
+
+var Requisition = require('gcli/cli').Requisition;
+var Status = require('gcli/types').Status;
+var canon = require('gcli/canon');
+var commands = require('gclitest/commands');
+var nodetype = require('gcli/types/node');
+
+var test = require('test/assert');
+
+
+exports.setup = function() {
+  commands.setup();
+};
+
+exports.shutdown = function() {
+  commands.shutdown();
+};
+
+var COMPLETES_TO = 'complete';
+var KEY_UPS_TO = 'keyup';
+var KEY_DOWNS_TO = 'keydown';
+
+function check(initial, action, after) {
+  var requisition = new Requisition();
+  requisition.update({
+    typed: initial,
+    cursor: { start: initial.length, end: initial.length }
+  });
+  var assignment = requisition.getAssignmentAt(initial.length);
+  switch (action) {
+    case COMPLETES_TO:
+      assignment.complete();
+      break;
+
+    case KEY_UPS_TO:
+      assignment.increment();
+      break;
+
+    case KEY_DOWNS_TO:
+      assignment.decrement();
+      break;
+  }
+
+  test.is(after, requisition.toString(), initial + ' + ' + action + ' -> ' + after);
+}
+
+exports.testComplete = function() {
+  check('tsela', COMPLETES_TO, 'tselarr ');
+  check('tsn di', COMPLETES_TO, 'tsn dif ');
+  check('tsg a', COMPLETES_TO, 'tsg aaa ');
+
+  check('{ wind', COMPLETES_TO, '{ window');
+  check('{ window.docum', COMPLETES_TO, '{ window.document');
+  check('{ window.document.titl', COMPLETES_TO, '{ window.document.title ');
+};
+
+exports.testIncrDecr = function() {
+  check('tsu -70', KEY_UPS_TO, 'tsu -5');
+  check('tsu -7', KEY_UPS_TO, 'tsu -5');
+  check('tsu -6', KEY_UPS_TO, 'tsu -5');
+  check('tsu -5', KEY_UPS_TO, 'tsu -3');
+  check('tsu -4', KEY_UPS_TO, 'tsu -3');
+  check('tsu -3', KEY_UPS_TO, 'tsu 0');
+  check('tsu -2', KEY_UPS_TO, 'tsu 0');
+  check('tsu -1', KEY_UPS_TO, 'tsu 0');
+  check('tsu 0', KEY_UPS_TO, 'tsu 3');
+  check('tsu 1', KEY_UPS_TO, 'tsu 3');
+  check('tsu 2', KEY_UPS_TO, 'tsu 3');
+  check('tsu 3', KEY_UPS_TO, 'tsu 6');
+  check('tsu 4', KEY_UPS_TO, 'tsu 6');
+  check('tsu 5', KEY_UPS_TO, 'tsu 6');
+  check('tsu 6', KEY_UPS_TO, 'tsu 9');
+  check('tsu 7', KEY_UPS_TO, 'tsu 9');
+  check('tsu 8', KEY_UPS_TO, 'tsu 9');
+  check('tsu 9', KEY_UPS_TO, 'tsu 10');
+  check('tsu 10', KEY_UPS_TO, 'tsu 10');
+  check('tsu 100', KEY_UPS_TO, 'tsu -5');
+
+  check('tsu -70', KEY_DOWNS_TO, 'tsu 10');
+  check('tsu -7', KEY_DOWNS_TO, 'tsu 10');
+  check('tsu -6', KEY_DOWNS_TO, 'tsu 10');
+  check('tsu -5', KEY_DOWNS_TO, 'tsu -5');
+  check('tsu -4', KEY_DOWNS_TO, 'tsu -5');
+  check('tsu -3', KEY_DOWNS_TO, 'tsu -5');
+  check('tsu -2', KEY_DOWNS_TO, 'tsu -3');
+  check('tsu -1', KEY_DOWNS_TO, 'tsu -3');
+  check('tsu 0', KEY_DOWNS_TO, 'tsu -3');
+  check('tsu 1', KEY_DOWNS_TO, 'tsu 0');
+  check('tsu 2', KEY_DOWNS_TO, 'tsu 0');
+  check('tsu 3', KEY_DOWNS_TO, 'tsu 0');
+  check('tsu 4', KEY_DOWNS_TO, 'tsu 3');
+  check('tsu 5', KEY_DOWNS_TO, 'tsu 3');
+  check('tsu 6', KEY_DOWNS_TO, 'tsu 3');
+  check('tsu 7', KEY_DOWNS_TO, 'tsu 6');
+  check('tsu 8', KEY_DOWNS_TO, 'tsu 6');
+  check('tsu 9', KEY_DOWNS_TO, 'tsu 6');
+  check('tsu 10', KEY_DOWNS_TO, 'tsu 9');
+  check('tsu 100', KEY_DOWNS_TO, 'tsu 10');
+
+  // Bug 707007 - GCLI increment and decrement operations cycle through
+  // selection options in the wrong order
+  check('tselarr 1', KEY_DOWNS_TO, 'tselarr 2');
+  check('tselarr 2', KEY_DOWNS_TO, 'tselarr 3');
+  check('tselarr 3', KEY_DOWNS_TO, 'tselarr 1');
+
+  check('tselarr 3', KEY_UPS_TO, 'tselarr 2');
+};
 
 });
 /*
@@ -1371,29 +1737,194 @@ define('gclitest/requirable', ['require', 'exports', 'module' ], function(requir
   exports.getStatus = function() { return status; };
 
 });
+/*
+ * Copyright 2009-2011 Mozilla Foundation and contributors
+ * Licensed under the New BSD license. See LICENSE.txt or:
+ * http://opensource.org/licenses/BSD-3-Clause
+ */
+
+define('gclitest/testJs', ['require', 'exports', 'module' , 'gcli/cli', 'gcli/types', 'gcli/types/javascript', 'test/assert'], function(require, exports, module) {
+
+
+var Requisition = require('gcli/cli').Requisition;
+var Status = require('gcli/types').Status;
+var javascript = require('gcli/types/javascript');
+
+var test = require('test/assert');
+
+var debug = false;
+var requ;
+
+var assign;
+var status;
+var statuses;
+var globalObject;
+
+exports.setup = function() {
+  globalObject = javascript.getGlobalObject();
+  Object.defineProperty(globalObject, 'donteval', {
+    get: function() {
+      test.ok(false, 'donteval should not be used');
+      return { cant: '', touch: '', 'this': '' };
+    },
+    enumerable: true,
+    configurable : true
+  });
+};
+
+exports.shutdown = function() {
+  delete globalObject.donteval;
+  globalObject = undefined;
+};
+
+function input(typed) {
+  if (!requ) {
+    requ = new Requisition();
+  }
+  var cursor = { start: typed.length, end: typed.length };
+  var input = { typed: typed, cursor: cursor };
+  requ.update(input);
+
+  if (debug) {
+    console.log('####### TEST: typed="' + typed +
+        '" cur=' + cursor.start +
+        ' cli=', requ);
+  }
+
+  status = requ.getStatus();
+  statuses = requ.getInputStatusMarkup(input.cursor.start).map(function(s) {
+    return s.toString()[0];
+  }).join('');
+
+  if (requ.commandAssignment.getValue()) {
+    assign = requ.getAssignment(0);
+  }
+  else {
+    assign = undefined;
+  }
+}
+
+function predictionsHas(name) {
+  return assign.getPredictions().some(function(prediction) {
+    return name === prediction.name;
+  }, this);
+}
+
+function check(expStatuses, expStatus, expAssign, expPredict) {
+  test.is('{', requ.commandAssignment.getValue().name, 'is exec');
+
+  test.is(expStatuses, statuses, 'unexpected status markup');
+  test.is(expStatus.toString(), status.toString(), 'unexpected status');
+  test.is(expAssign, assign.getValue(), 'unexpected assignment');
+
+  if (expPredict != null) {
+    var contains;
+    if (Array.isArray(expPredict)) {
+      expPredict.forEach(function(p) {
+        contains = predictionsHas(p);
+        test.ok(contains, 'missing prediction ' + p);
+      });
+    }
+    else if (typeof expPredict === 'number') {
+      contains = true;
+      test.is(assign.getPredictions().length, expPredict, 'prediction count');
+    }
+    else {
+      contains = predictionsHas(expPredict);
+      test.ok(contains, 'missing prediction ' + expPredict);
+    }
+
+    if (!contains) {
+      console.log('Predictions: ' + assign.getPredictions().map(function(p) {
+        return p.name;
+      }).join(', '));
+    }
+  }
+}
+
+exports.testBasic = function() {
+  input('{');
+  check('V', Status.ERROR, '');
+
+  input('{ ');
+  check('VV', Status.ERROR, '');
+
+  input('{ w');
+  check('VVI', Status.ERROR, 'w', 'window');
+
+  input('{ windo');
+  check('VVIIIII', Status.ERROR, 'windo', 'window');
+
+  input('{ window');
+  check('VVVVVVVV', Status.VALID, 'window', 0);
+
+  input('{ window.d');
+  check('VVIIIIIIII', Status.ERROR, 'window.d', 'window.document');
+
+  input('{ window.document.title');
+  check('VVVVVVVVVVVVVVVVVVVVVVV', Status.VALID, 'window.document.title', 0);
+
+  input('{ d');
+  check('VVI', Status.ERROR, 'd', 'document');
+
+  input('{ document.title');
+  check('VVVVVVVVVVVVVVVV', Status.VALID, 'document.title', 0);
+
+  test.ok('donteval' in globalObject, 'donteval exists');
+
+  input('{ don');
+  check('VVIII', Status.ERROR, 'don', 'donteval');
+
+  input('{ donteval');
+  check('VVVVVVVVVV', Status.VALID, 'donteval', 0);
+
+  /*
+  // This is a controversial test - technically we can tell that it's an error
+  // because 'donteval.' is a syntax error, however donteval is unsafe so we
+  // are playing safe by bailing out early. It's enough of a corner case that
+  // I don't think it warrants fixing
+  input('{ donteval.');
+  check('VVIIIIIIIII', Status.ERROR, 'donteval.', 0);
+  */
+
+  input('{ donteval.cant');
+  check('VVVVVVVVVVVVVVV', Status.VALID, 'donteval.cant', 0);
+
+  input('{ donteval.xxx');
+  check('VVVVVVVVVVVVVV', Status.VALID, 'donteval.xxx', 0);
+};
+
+
+});
 
 function undefine() {
-  delete define.modules['gclitest/index'];
+  delete define.modules['gclitest/suite'];
   delete define.modules['test/examiner'];
   delete define.modules['gclitest/testTokenize'];
   delete define.modules['test/assert'];
   delete define.modules['gclitest/testSplit'];
   delete define.modules['gclitest/commands'];
   delete define.modules['gclitest/testCli'];
+  delete define.modules['gclitest/testExec'];
+  delete define.modules['gclitest/testKeyboard'];
   delete define.modules['gclitest/testHistory'];
   delete define.modules['gclitest/testRequire'];
   delete define.modules['gclitest/requirable'];
+  delete define.modules['gclitest/testJs'];
 
-  delete define.globalDomain.modules['gclitest/index'];
+  delete define.globalDomain.modules['gclitest/suite'];
   delete define.globalDomain.modules['test/examiner'];
   delete define.globalDomain.modules['gclitest/testTokenize'];
   delete define.globalDomain.modules['test/assert'];
   delete define.globalDomain.modules['gclitest/testSplit'];
   delete define.globalDomain.modules['gclitest/commands'];
   delete define.globalDomain.modules['gclitest/testCli'];
+  delete define.globalDomain.modules['gclitest/testExec'];
+  delete define.globalDomain.modules['gclitest/testKeyboard'];
   delete define.globalDomain.modules['gclitest/testHistory'];
   delete define.globalDomain.modules['gclitest/testRequire'];
   delete define.globalDomain.modules['gclitest/requirable'];
+  delete define.globalDomain.modules['gclitest/testJs'];
 }
 
 registerCleanupFunction(function() {
@@ -1422,6 +1953,7 @@ function onLoad() {
   catch (ex) {
     failed = ex;
     console.error('Test Failure', ex);
+    ok(false, '' + ex);
   }
   finally {
     closeConsole();

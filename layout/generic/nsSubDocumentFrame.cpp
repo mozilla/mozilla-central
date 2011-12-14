@@ -107,7 +107,7 @@ GetDocumentFromView(nsIView* aView)
 {
   NS_PRECONDITION(aView, "");
 
-  nsIFrame* f = static_cast<nsIFrame*>(aView->GetClientData());
+  nsIFrame* f = aView->GetFrame();
   nsIPresShell* ps =  f ? f->PresContext()->PresShell() : nsnull;
   return ps ? ps->GetDocument() : nsnull;
 }
@@ -250,9 +250,7 @@ nsSubDocumentFrame::GetSubdocumentRootFrame()
   if (!mInnerView)
     return nsnull;
   nsIView* subdocView = mInnerView->GetFirstChild();
-  if (!subdocView)
-    return nsnull;
-  return static_cast<nsIFrame*>(subdocView->GetClientData());
+  return subdocView ? subdocView->GetFrame() : nsnull;
 }
 
 NS_IMETHODIMP
@@ -287,9 +285,7 @@ nsSubDocumentFrame::BuildDisplayList(nsDisplayListBuilder*   aBuilder,
 
   nsCOMPtr<nsIPresShell> presShell = nsnull;
 
-  nsIFrame* subdocRootFrame =
-    static_cast<nsIFrame*>(subdocView->GetClientData());
-
+  nsIFrame* subdocRootFrame = subdocView->GetFrame();
   if (subdocRootFrame) {
     presShell = subdocRootFrame->PresContext()->PresShell();
   }
@@ -303,7 +299,7 @@ nsSubDocumentFrame::BuildDisplayList(nsDisplayListBuilder*   aBuilder,
     nsIView* nextView = subdocView->GetNextSibling();
     nsIFrame* frame = nsnull;
     if (nextView) {
-      frame = static_cast<nsIFrame*>(nextView->GetClientData());
+      frame = nextView->GetFrame();
     }
     if (frame) {
       nsIPresShell* ps = frame->PresContext()->PresShell();
@@ -344,15 +340,8 @@ nsSubDocumentFrame::BuildDisplayList(nsDisplayListBuilder*   aBuilder,
     aBuilder->EnterPresShell(subdocRootFrame, dirty);
   }
 
-  // The subdocView's bounds are in appunits of the subdocument, so adjust
-  // them.
   nsRect subdocBoundsInParentUnits =
-    subdocView->GetBounds().ConvertAppUnitsRoundOut(subdocAPD, parentAPD);
-
-  // Get the bounds of subdocView relative to the reference frame.
-  subdocBoundsInParentUnits = subdocBoundsInParentUnits +
-                              mInnerView->GetPosition() +
-                              GetOffsetToCrossDoc(aBuilder->ReferenceFrame());
+    mInnerView->GetBounds() + GetOffsetToCrossDoc(aBuilder->ReferenceFrame());
 
   if (subdocRootFrame && NS_SUCCEEDED(rv)) {
     rv = subdocRootFrame->
@@ -366,10 +355,7 @@ nsSubDocumentFrame::BuildDisplayList(nsDisplayListBuilder*   aBuilder,
     // for the canvas background color item.
     nsRect bounds;
     if (subdocRootFrame) {
-      nsPoint offset = mInnerView->GetPosition() +
-                       GetOffsetToCrossDoc(aBuilder->ReferenceFrame());
-      offset = offset.ConvertAppUnits(parentAPD, subdocAPD);
-      bounds = subdocView->GetBounds() + offset;
+      bounds = subdocBoundsInParentUnits.ConvertAppUnitsRoundOut(parentAPD, subdocAPD);
     } else {
       bounds = subdocBoundsInParentUnits;
     }
@@ -415,18 +401,21 @@ nsSubDocumentFrame::BuildDisplayList(nsDisplayListBuilder*   aBuilder,
       childItems.AppendToTop(layerItem);
     }
 
-    nsDisplayList list;
-    // Clip children to the child root frame's rectangle
-    rv = list.AppendNewToTop(
+    if (ShouldClipSubdocument()) {
+      nsDisplayClip* item =
         new (aBuilder) nsDisplayClip(aBuilder, this, &childItems,
-                                     subdocBoundsInParentUnits));
+                                     subdocBoundsInParentUnits);
+      // Clip children to the child root frame's rectangle
+      childItems.AppendToTop(item);
+    }
 
     if (mIsInline) {
-      WrapReplacedContentForBorderRadius(aBuilder, &list, aLists);
+      WrapReplacedContentForBorderRadius(aBuilder, &childItems, aLists);
     } else {
-      aLists.Content()->AppendToTop(&list);
+      aLists.Content()->AppendToTop(&childItems);
     }
   }
+
   // delete childItems in case of OOM
   childItems.DeleteAll();
 
@@ -619,6 +608,14 @@ nsSubDocumentFrame::Reflow(nsPresContext*           aPresContext,
     nsIViewManager* vm = mInnerView->GetViewManager();
     vm->MoveViewTo(mInnerView, offset.x, offset.y);
     vm->ResizeView(mInnerView, nsRect(nsPoint(0, 0), innerSize), true);
+  }
+
+  aDesiredSize.SetOverflowAreasToDesiredBounds();
+  if (!ShouldClipSubdocument()) {
+    nsIFrame* subdocRootFrame = GetSubdocumentRootFrame();
+    if (subdocRootFrame) {
+      aDesiredSize.mOverflowAreas.UnionWith(subdocRootFrame->GetOverflowAreas() + offset);
+    }
   }
 
   // Determine if we need to repaint our border, background or outline

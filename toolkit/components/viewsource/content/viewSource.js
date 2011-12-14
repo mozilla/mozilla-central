@@ -467,13 +467,15 @@ function goToLine(line)
   // id attributes in the format <pre id="line123">, meaning that
   // the first line in the pre element is number 123.
   // Do binary search to find the pre element containing the line.
+  // However, in the plain text case, we have only one pre without an
+  // attribute, so assume it begins on line 1.
 
   var pre;
   for (var lbound = 0, ubound = viewsource.childNodes.length; ; ) {
     var middle = (lbound + ubound) >> 1;
     pre = viewsource.childNodes[middle];
 
-    var firstLine = parseInt(pre.id.substring(4));
+    var firstLine = pre.id ? parseInt(pre.id.substring(4)) : 1;
 
     if (lbound == ubound - 1) {
       break;
@@ -592,7 +594,9 @@ function findLocation(pre, line, node, offset, interlinePosition, result)
   // The source document is made up of a number of pre elements with
   // id attributes in the format <pre id="line123">, meaning that
   // the first line in the pre element is number 123.
-  var curLine = parseInt(pre.id.substring(4));
+  // However, in the plain text case, there is only one <pre> without an id,
+  // so assume line 1.
+  var curLine = pre.id ? parseInt(pre.id.substring(4)) : 1;
 
   // Walk through each of the text nodes and count newlines.
   var treewalker = window.content.document
@@ -771,3 +775,39 @@ function UpdateBackForwardCommands() {
   else
     forwardBroadcaster.setAttribute("disabled", "true");
 }
+
+// FIXME copied and modified from browser.js.
+// Deduplication is part of bug 480356.
+function FillInHTMLTooltip(tipElement)
+{
+  var retVal = false;
+  var titleText = null;
+  var direction = tipElement.ownerDocument.dir;
+
+  while (!titleText && tipElement) {
+    if (tipElement.nodeType == Node.ELEMENT_NODE) {
+      titleText = tipElement.getAttribute("title");
+      var defView = tipElement.ownerDocument.defaultView;
+      // XXX Work around bug 350679:
+      // "Tooltips can be fired in documents with no view".
+      if (!defView)
+        return retVal;
+      direction = defView.getComputedStyle(tipElement, "")
+        .getPropertyValue("direction");
+    }
+    tipElement = tipElement.parentNode;
+  }
+
+  var tipNode = document.getElementById("aHTMLTooltip");
+  tipNode.style.direction = direction;
+
+  if (titleText && /\S/.test(titleText)) {
+    // Make CRLF and CR render one line break each.  
+    titleText = titleText.replace(/\r\n/g, '\n');
+    titleText = titleText.replace(/\r/g, '\n');
+    tipNode.setAttribute("label", titleText);
+    retVal = true;
+  }
+  return retVal;
+}
+

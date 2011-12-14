@@ -84,6 +84,12 @@ class nsIRangeUtils;
 class nsILinkHandler;
 struct PropItem;
 
+namespace mozilla {
+namespace widget {
+struct IMEState;
+} // namespace widget
+} // namespace mozilla
+
 /**
  * The HTML editor implementation.<br>
  * Use to edit HTML document represented as a DOM tree. 
@@ -161,7 +167,7 @@ public:
   NS_DECL_NSIMUTATIONOBSERVER_CONTENTREMOVED
 
   /* ------------ nsIEditorIMESupport overrides ------------ */
-  NS_IMETHOD GetPreferredIMEState(PRUint32 *aState);
+  NS_IMETHOD GetPreferredIMEState(mozilla::widget::IMEState *aState);
 
   /* ------------ nsIHTMLEditor methods -------------- */
 
@@ -271,38 +277,6 @@ public:
 
   /* ------------ Block methods moved from nsEditor -------------- */
   static already_AddRefed<nsIDOMNode> GetBlockNodeParent(nsIDOMNode *aNode);
-  /** Determines the bounding nodes for the block section containing aNode.
-    * The calculation is based on some nodes intrinsically being block elements
-    * acording to HTML.  Style sheets are not considered in this calculation.
-    * <BR> tags separate block content sections.  So the HTML markup:
-    * <PRE>
-    *      <P>text1<BR>text2<B>text3</B></P>
-    * </PRE>
-    * contains two block content sections.  The first has the text node "text1"
-    * for both endpoints.  The second has "text2" as the left endpoint and
-    * "text3" as the right endpoint.
-    * Notice that offsets aren't required, only leaf nodes.  Offsets are implicit.
-    *
-    * @param aNode      the block content returned includes aNode
-    * @param aLeftNode  [OUT] the left endpoint of the block content containing aNode
-    * @param aRightNode [OUT] the right endpoint of the block content containing aNode
-    *
-    */
-  static nsresult GetBlockSection(nsIDOMNode  *aNode,
-                                  nsIDOMNode **aLeftNode, 
-                                  nsIDOMNode **aRightNode);
-
-  /** Compute the set of block sections in a given range.
-    * A block section is the set of (leftNode, rightNode) pairs given
-    * by GetBlockSection.  The set is computed by computing the 
-    * block section for every leaf node in the range and throwing 
-    * out duplicates.
-    *
-    * @param aRange     The range to compute block sections for.
-    * @param aSections  Allocated storage for the resulting set, stored as nsIDOMRanges.
-    */
-  static nsresult GetBlockSectionsForRange(nsIDOMRange      *aRange, 
-                                           nsCOMArray<nsIDOMRange>& aSections);
 
   static already_AddRefed<nsIDOMNode> NextNodeInBlock(nsIDOMNode *aNode, IterDirection aDir);
   nsresult IsNextCharWhitespace(nsIDOMNode *aParentNode, 
@@ -378,6 +352,7 @@ public:
                             PRInt32 *aInOutOffset,
                             nsIDOMDocument *aDoc);
   NS_IMETHOD_(bool) IsModifiableNode(nsIDOMNode *aNode);
+  virtual bool IsModifiableNode(nsINode *aNode);
 
   NS_IMETHOD SelectAll();
 
@@ -411,7 +386,7 @@ public:
   // aSelection is optional -- if null, we get current seletion
   nsresult CollapseSelectionToDeepestNonTableFirstChild(nsISelection *aSelection, nsIDOMNode *aNode);
 
-  virtual bool IsTextInDirtyFrameVisible(nsIDOMNode *aNode);
+  virtual bool IsTextInDirtyFrameVisible(nsIContent *aNode);
 
   nsresult IsVisTextNode( nsIDOMNode *aNode, 
                           bool *outIsEmptyNode, 
@@ -538,9 +513,8 @@ protected:
 
 // End of Table Editing utilities
   
-  NS_IMETHOD IsRootTag(nsString &aTag, bool &aIsTag);
-
   virtual bool IsBlockNode(nsIDOMNode *aNode);
+  virtual bool IsBlockNode(nsINode *aNode);
   
   static nsCOMPtr<nsIDOMNode> GetEnclosingTable(nsIDOMNode *aNode);
 

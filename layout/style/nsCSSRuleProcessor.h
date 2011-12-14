@@ -51,12 +51,14 @@
 #include "nsAutoPtr.h"
 #include "nsCSSRules.h"
 #include "nsRuleWalker.h"
+#include "nsEventStates.h"
 
 struct RuleCascadeData;
 struct nsCSSSelectorList;
 struct CascadeEnumData;
 struct TreeMatchContext;
 class nsCSSKeyframesRule;
+class nsCSSSelector;
 
 /**
  * The CSS style rule processor provides a mechanism for sibling style
@@ -136,15 +138,18 @@ public:
 
   virtual bool MediumFeaturesChanged(nsPresContext* aPresContext);
 
-  virtual PRInt64 SizeOf() const;
+  virtual NS_MUST_OVERRIDE size_t
+    SizeOfExcludingThis(nsMallocSizeOfFun mallocSizeOf) const MOZ_OVERRIDE;
+  virtual NS_MUST_OVERRIDE size_t
+    SizeOfIncludingThis(nsMallocSizeOfFun mallocSizeOf) const MOZ_OVERRIDE;
 
   // Append all the currently-active font face rules to aArray.  Return
   // true for success and false for failure.
   bool AppendFontFaceRules(nsPresContext* aPresContext,
-                             nsTArray<nsFontFaceRuleContainer>& aArray);
+                           nsTArray<nsFontFaceRuleContainer>& aArray);
 
   bool AppendKeyframesRules(nsPresContext* aPresContext,
-                              nsTArray<nsCSSKeyframesRule*>& aArray);
+                            nsTArray<nsCSSKeyframesRule*>& aArray);
 
 #ifdef DEBUG
   void AssertQuirksChangeOK() {
@@ -160,6 +165,16 @@ public:
     sWinThemeId = aId;
   }
 #endif
+
+  struct StateSelector {
+    StateSelector(nsEventStates aStates, nsCSSSelector* aSelector)
+      : mStates(aStates),
+        mSelector(aSelector)
+    {}
+
+    nsEventStates mStates;
+    nsCSSSelector* mSelector;
+  };
 
 private:
   static bool CascadeSheet(nsCSSStyleSheet* aSheet, CascadeEnumData* aData);

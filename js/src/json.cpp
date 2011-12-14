@@ -62,6 +62,7 @@
 #include "frontend/TokenStream.h"
 
 #include "jsatominlines.h"
+#include "jsboolinlines.h"
 #include "jsinferinlines.h"
 #include "jsobjinlines.h"
 #include "jsstrinlines.h"
@@ -91,7 +92,7 @@ js_json_parse(JSContext *cx, uintN argc, Value *vp)
     /* Step 1. */
     JSLinearString *linear;
     if (argc >= 1) {
-        JSString *str = js_ValueToString(cx, vp[2]);
+        JSString *str = ToString(cx, vp[2]);
         if (!str)
             return false;
         linear = str->ensureLinear(cx);
@@ -343,7 +344,6 @@ PreprocessValue(JSContext *cx, JSObject *holder, KeyType key, Value *vp, Stringi
                 return false;
         }
 
-        LeaveTrace(cx);
         InvokeArgsGuard args;
         if (!cx->stack.pushInvokeArgs(cx, 2, &args))
             return false;
@@ -367,7 +367,7 @@ PreprocessValue(JSContext *cx, JSObject *holder, KeyType key, Value *vp, Stringi
                 return false;
             vp->setNumber(d);
         } else if (ObjectClassIs(obj, ESClass_String, cx)) {
-            JSString *str = js_ValueToString(cx, *vp);
+            JSString *str = ToStringSlow(cx, *vp);
             if (!str)
                 return false;
             vp->setString(str);
@@ -716,7 +716,7 @@ js_Stringify(JSContext *cx, Value *vp, JSObject *replacer, Value space, StringBu
                 return false;
             space = NumberValue(d);
         } else if (ObjectClassIs(spaceObj, ESClass_String, cx)) {
-            JSString *str = js_ValueToString(cx, space);
+            JSString *str = ToStringSlow(cx, space);
             if (!str)
                 return false;
             space = StringValue(str);
@@ -791,10 +791,10 @@ Walk(JSContext *cx, JSObject *holder, jsid name, const Value &reviver, Value *vp
         JS_ASSERT(!obj->isProxy());
         if (obj->isArray()) {
             /* Step 2a(ii). */
-            jsuint length = obj->getArrayLength();
+            uint32 length = obj->getArrayLength();
 
             /* Step 2a(i), 2a(iii-iv). */
-            for (jsuint i = 0; i < length; i++) {
+            for (uint32 i = 0; i < length; i++) {
                 jsid id;
                 if (!IndexToId(cx, i, &id))
                     return false;
@@ -817,11 +817,11 @@ Walk(JSContext *cx, JSObject *holder, jsid name, const Value &reviver, Value *vp
                  */
                 if (newElement.isUndefined()) {
                     /* Step 2a(iii)(2). */
-                    JS_ALWAYS_TRUE(array_deleteProperty(cx, obj, id, &newElement, false));
+                    JS_ALWAYS_TRUE(array_deleteElement(cx, obj, i, &newElement, false));
                 } else {
                     /* Step 2a(iii)(3). */
-                    JS_ALWAYS_TRUE(array_defineProperty(cx, obj, id, &newElement, JS_PropertyStub,
-                                                        JS_StrictPropertyStub, JSPROP_ENUMERATE));
+                    JS_ALWAYS_TRUE(array_defineElement(cx, obj, i, &newElement, JS_PropertyStub,
+                                                       JS_StrictPropertyStub, JSPROP_ENUMERATE));
                 }
             }
         } else {
@@ -860,7 +860,6 @@ Walk(JSContext *cx, JSObject *holder, jsid name, const Value &reviver, Value *vp
     if (!key)
         return false;
 
-    LeaveTrace(cx);
     InvokeArgsGuard args;
     if (!cx->stack.pushInvokeArgs(cx, 2, &args))
         return false;
@@ -884,11 +883,8 @@ Revive(JSContext *cx, const Value &reviver, Value *vp)
     if (!obj)
         return false;
 
-    AutoObjectRooter tvr(cx, obj);
-    if (!obj->defineProperty(cx, ATOM_TO_JSID(cx->runtime->atomState.emptyAtom),
-                             *vp, NULL, NULL, JSPROP_ENUMERATE)) {
+    if (!obj->defineProperty(cx, cx->runtime->atomState.emptyAtom, *vp))
         return false;
-    }
 
     return Walk(cx, obj, ATOM_TO_JSID(cx->runtime->atomState.emptyAtom), reviver, vp);
 }
@@ -934,7 +930,7 @@ static JSFunctionSpec json_static_methods[] = {
 JSObject *
 js_InitJSONClass(JSContext *cx, JSObject *obj)
 {
-    JSObject *JSON = NewNonFunction<WithProto::Class>(cx, &JSONClass, NULL, obj);
+    JSObject *JSON = NewObjectWithClassProto(cx, &JSONClass, NULL, obj);
     if (!JSON || !JSON->setSingletonType(cx))
         return NULL;
 

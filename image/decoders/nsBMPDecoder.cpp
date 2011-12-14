@@ -63,7 +63,7 @@ PRLogModuleInfo *gBMPLog = PR_NewLogModule("BMPDecoder");
 #define LINE(row) ((mBIH.height < 0) ? (-mBIH.height - (row)) : ((row) - 1))
 #define PIXEL_OFFSET(row, col) (LINE(row) * mBIH.width + col)
 
-nsBMPDecoder::nsBMPDecoder(RasterImage *aImage, imgIDecoderObserver* aObserver)
+nsBMPDecoder::nsBMPDecoder(RasterImage &aImage, imgIDecoderObserver* aObserver)
  : Decoder(aImage, aObserver)
 {
   mColors = nsnull;
@@ -341,9 +341,9 @@ nsBMPDecoder::WriteInternal(const char* aBuffer, PRUint32 aCount)
         PRUint32 imageLength;
         if (mBIH.compression == BI_RLE8 || mBIH.compression == BI_RLE4 || 
             mBIH.compression == BI_ALPHABITFIELDS) {
-            rv = mImage->EnsureFrame(0, 0, 0, mBIH.width, real_height, 
-                                     gfxASurface::ImageFormatARGB32,
-                                     (PRUint8**)&mImageData, &imageLength);
+            rv = mImage.EnsureFrame(0, 0, 0, mBIH.width, real_height, 
+                                    gfxASurface::ImageFormatARGB32,
+                                    (PRUint8**)&mImageData, &imageLength);
         } else {
             // mRow is not used for RLE encoded images
             mRow = (PRUint8*)moz_malloc((mBIH.width * mBIH.bpp) / 8 + 4);
@@ -356,13 +356,13 @@ nsBMPDecoder::WriteInternal(const char* aBuffer, PRUint32 aCount)
             }
 
             if (mUseAlphaData) {
-              rv = mImage->EnsureFrame(0, 0, 0, mBIH.width, real_height, 
-                                       gfxASurface::ImageFormatARGB32,
-                                       (PRUint8**)&mImageData, &imageLength);
+              rv = mImage.EnsureFrame(0, 0, 0, mBIH.width, real_height, 
+                                      gfxASurface::ImageFormatARGB32,
+                                      (PRUint8**)&mImageData, &imageLength);
             } else {
-              rv = mImage->EnsureFrame(0, 0, 0, mBIH.width, real_height, 
-                                       gfxASurface::ImageFormatRGB24,
-                                       (PRUint8**)&mImageData, &imageLength);
+              rv = mImage.EnsureFrame(0, 0, 0, mBIH.width, real_height, 
+                                      gfxASurface::ImageFormatRGB24,
+                                      (PRUint8**)&mImageData, &imageLength);
             }
         }
         if (NS_FAILED(rv) || !mImageData) {
@@ -379,14 +379,17 @@ nsBMPDecoder::WriteInternal(const char* aBuffer, PRUint32 aCount)
         // Tell the superclass we're starting a frame
         PostFrameStart();
     }
-    PRUint8 bpc; // bytes per color
-    bpc = (mBFH.bihsize == OS2_BIH_LENGTH) ? 3 : 4; // OS/2 Bitmaps have no padding byte
-    if (mColors && (mPos >= mLOH && (mPos < (mLOH + mNumColors * bpc)))) {
-        // We will receive (mNumColors * bpc) bytes of color data
-        PRUint32 colorBytes = mPos - mLOH; // Number of bytes already received
-        PRUint8 colorNum = colorBytes / bpc; // Color which is currently received
-        PRUint8 at = colorBytes % bpc;
-        while (aCount && (mPos < (mLOH + mNumColors * bpc))) {
+
+    if (mColors && mPos >= mLOH) {
+      // OS/2 Bitmaps have no padding byte
+      PRUint8 bytesPerColor = (mBFH.bihsize == OS2_BIH_LENGTH) ? 3 : 4;
+      if (mPos < (mLOH + mNumColors * bytesPerColor)) {
+        // Number of bytes already received
+        PRUint32 colorBytes = mPos - mLOH; 
+        // Color which is currently received
+        PRUint8 colorNum = colorBytes / bytesPerColor;
+        PRUint8 at = colorBytes % bytesPerColor;
+        while (aCount && (mPos < (mLOH + mNumColors * bytesPerColor))) {
             switch (at) {
                 case 0:
                     mColors[colorNum].blue = *aBuffer;
@@ -396,15 +399,21 @@ nsBMPDecoder::WriteInternal(const char* aBuffer, PRUint32 aCount)
                     break;
                 case 2:
                     mColors[colorNum].red = *aBuffer;
-                    colorNum++;
+                    // If there is no padding byte, increment the color index
+                    // since we're done with the current color.
+                    if (bytesPerColor == 3)
+                      colorNum++;
                     break;
                 case 3:
-                    // This is a padding byte
+                    // This is a padding byte only in Windows BMPs. Increment
+                    // the color index since we're done with the current color.
+                    colorNum++;
                     break;
             }
             mPos++; aBuffer++; aCount--;
-            at = (at + 1) % bpc;
+            at = (at + 1) % bytesPerColor;
         }
+      }
     }
     else if (aCount && mBIH.compression == BI_BITFIELDS && mPos < (WIN_HEADER_LENGTH + BITFIELD_LENGTH)) {
         // If compression is used, this is a windows bitmap, hence we can

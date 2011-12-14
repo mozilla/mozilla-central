@@ -665,6 +665,11 @@ DispatchPings(nsIContent *content, nsIURI *referrer)
 static nsDOMPerformanceNavigationType
 ConvertLoadTypeToNavigationType(PRUint32 aLoadType)
 {
+  // Not initialized, assume it's normal load.
+  if (aLoadType == 0) {
+    aLoadType = LOAD_NORMAL;
+  }
+
   nsDOMPerformanceNavigationType result = nsIDOMPerformanceNavigation::TYPE_RESERVED;
   switch (aLoadType) {
     case LOAD_NORMAL:
@@ -1770,17 +1775,19 @@ nsDocShell::GetChromeEventHandler(nsIDOMEventTarget** aChromeEventHandler)
     return NS_OK;
 }
 
-/* [noscript] void setCurrentURI (in nsIURI uri); */
+/* void setCurrentURI (in nsIURI uri); */
 NS_IMETHODIMP
 nsDocShell::SetCurrentURI(nsIURI *aURI)
 {
-    SetCurrentURI(aURI, nsnull, true);
+    // Note that securityUI will set STATE_IS_INSECURE, even if
+    // the scheme of |aURI| is "https".
+    SetCurrentURI(aURI, nsnull, true, 0);
     return NS_OK;
 }
 
 bool
 nsDocShell::SetCurrentURI(nsIURI *aURI, nsIRequest *aRequest,
-                          bool aFireOnLocationChange)
+                          bool aFireOnLocationChange, PRUint32 aLocationFlags)
 {
 #ifdef PR_LOGGING
     if (gDocShellLeakLog && PR_LOG_TEST(gDocShellLeakLog, PR_LOG_DEBUG)) {
@@ -1824,7 +1831,7 @@ nsDocShell::SetCurrentURI(nsIURI *aURI, nsIRequest *aRequest,
     }
 
     if (aFireOnLocationChange) {
-        FireOnLocationChange(this, aRequest, aURI);
+        FireOnLocationChange(this, aRequest, aURI, aLocationFlags);
     }
     return !aFireOnLocationChange;
 }
@@ -3748,6 +3755,9 @@ nsDocShell::LoadURI(const PRUnichar * aURI,
         if (aLoadFlags & LOAD_FLAGS_ALLOW_THIRD_PARTY_FIXUP) {
           fixupFlags |= nsIURIFixup::FIXUP_FLAG_ALLOW_KEYWORD_LOOKUP;
         }
+        if (aLoadFlags & LOAD_FLAGS_URI_IS_UTF8) {
+          fixupFlags |= nsIURIFixup::FIXUP_FLAG_USE_UTF8;
+        }
         rv = sURIFixup->CreateFixupURI(uriString, fixupFlags,
                                        getter_AddRefs(uri));
     }
@@ -4126,10 +4136,10 @@ nsDocShell::LoadErrorPage(nsIURI *aURI, const PRUnichar *aURL,
     mFailedLoadType = mLoadType;
 
     if (mLSHE) {
-        // If we don't give mLSHE a new doc identifier here, when we go back or
-        // forward to another SHEntry with the same doc identifier, the error
-        // page will persist.
-        mLSHE->SetUniqueDocIdentifier();
+        // Abandon mLSHE's BFCache entry and create a new one.  This way, if
+        // we go back or forward to another SHEntry with the same doc
+        // identifier, the error page won't persist.
+        mLSHE->AbandonBFCacheEntry();
     }
 
     nsCAutoString url;
@@ -4402,10 +4412,10 @@ nsDocShell::LoadPage(nsISupports *aPageDescriptor, PRUint32 aDisplayType)
     nsresult rv = shEntryIn->Clone(getter_AddRefs(shEntry));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    // Give our cloned shEntry a new document identifier so this load is
-    // independent of all other loads.  (This is important, in particular,
-    // for bugs 582795 and 585298.)
-    rv = shEntry->SetUniqueDocIdentifier();
+    // Give our cloned shEntry a new bfcache entry so this load is independent
+    // of all other loads.  (This is important, in particular, for bugs 582795
+    // and 585298.)
+    rv = shEntry->AbandonBFCacheEntry();
     NS_ENSURE_SUCCESS(rv, rv);
 
     //
@@ -4821,8 +4831,11 @@ nsDocShell::GetVisibility(bool * aVisibility)
         nsIFrame* frame = shellContent ? shellContent->GetPrimaryFrame() : nsnull;
         bool isDocShellOffScreen = false;
         docShell->GetIsOffScreenBrowser(&isDocShellOffScreen);
-        if (frame && !frame->AreAncestorViewsVisible() && !isDocShellOffScreen)
+        if (frame &&
+            !frame->IsVisibleConsideringAncestors(nsIFrame::VISIBILITY_CROSS_CHROME_CONTENT_BOUNDARY) &&
+            !isDocShellOffScreen) {
             return NS_OK;
+        }
 
         treeItem = parentItem;
         treeItem->GetParent(getter_AddRefs(parentItem));
@@ -5866,16 +5879,11 @@ nsDocShell::OnStateChange(nsIWebProgress * aProgress, nsIRequest * aRequest,
         channel->GetURI(getter_AddRefs(uri));
         nsCAutoString aURI;
         uri->GetAsciiSpec(aURI);
-        // If load type is not set, this is not a 'normal' load.
-        // No need to collect timing.
-        if (mLoadType == 0) {
-          mTiming = nsnull;
-        }
-        else {
-          rv = MaybeInitTiming();
-        }
-        if (mTiming) {
-          mTiming->NotifyFetchStart(uri, ConvertLoadTypeToNavigationType(mLoadType));
+        if (this == aProgress){
+            rv = MaybeInitTiming();
+            if (mTiming) {
+                mTiming->NotifyFetchStart(uri, ConvertLoadTypeToNavigationType(mLoadType));
+            } 
         }
 
         nsCOMPtr<nsIWyciwygChannel>  wcwgChannel(do_QueryInterface(aRequest));
@@ -5922,7 +5930,7 @@ nsDocShell::OnStateChange(nsIWebProgress * aProgress, nsIRequest * aRequest,
                 // a new DOM here.
                 rv = AddToSessionHistory(uri, wcwgChannel, nsnull, false,
                                          getter_AddRefs(mLSHE));
-                SetCurrentURI(uri, aRequest, true);
+                SetCurrentURI(uri, aRequest, true, 0);
                 // Save history state of the previous page
                 rv = PersistLayoutHistoryState();
                 // We'll never get an Embed() for this load, so just go ahead
@@ -5978,8 +5986,8 @@ nsDocShell::OnStateChange(nsIWebProgress * aProgress, nsIRequest * aRequest,
 }
 
 NS_IMETHODIMP
-nsDocShell::OnLocationChange(nsIWebProgress * aProgress,
-                             nsIRequest * aRequest, nsIURI * aURI)
+nsDocShell::OnLocationChange(nsIWebProgress * aProgress, nsIRequest * aRequest,
+                             nsIURI * aURI, PRUint32 aFlags)
 {
     NS_NOTREACHED("notification excluded in AddProgressListener(...)");
     return NS_OK;
@@ -6509,7 +6517,7 @@ nsDocShell::CreateAboutBlankContentViewer(nsIPrincipal* aPrincipal,
         viewer->SetContainer(static_cast<nsIContentViewerContainer *>(this));
         Embed(viewer, "", 0);
 
-        SetCurrentURI(blankDoc->GetDocumentURI(), nsnull, true);
+        SetCurrentURI(blankDoc->GetDocumentURI(), nsnull, true, 0);
         rv = mIsBeingDestroyed ? NS_ERROR_NOT_AVAILABLE : NS_OK;
       }
     }
@@ -7160,7 +7168,7 @@ nsDocShell::RestoreFromHistory()
         // is still mLSHE or whether it's now mOSHE.
         nsCOMPtr<nsIURI> uri;
         origLSHE->GetURI(getter_AddRefs(uri));
-        SetCurrentURI(uri, document->GetChannel(), true);
+        SetCurrentURI(uri, document->GetChannel(), true, 0);
     }
 
     // This is the end of our CreateContentViewer() replacement.
@@ -7499,7 +7507,7 @@ nsDocShell::CreateContentViewer(const char *aContentType,
     }
 
     if (onLocationChangeNeeded) {
-      FireOnLocationChange(this, request, mCurrentURI);
+      FireOnLocationChange(this, request, mCurrentURI, 0);
     }
   
     return NS_OK;
@@ -8280,17 +8288,15 @@ nsDocShell::InternalLoad(nsIURI * aURI,
                                   NS_SUCCEEDED(splitRv2) &&
                                   curBeforeHash.Equals(newBeforeHash);
 
-        bool sameDocIdent = false;
+        // XXX rename
+        bool sameDocument = false;
         if (mOSHE && aSHEntry) {
             // We're doing a history load.
 
-            PRUint64 ourDocIdent, otherDocIdent;
-            mOSHE->GetDocIdentifier(&ourDocIdent);
-            aSHEntry->GetDocIdentifier(&otherDocIdent);
-            sameDocIdent = (ourDocIdent == otherDocIdent);
+            mOSHE->SharesDocumentWith(aSHEntry, &sameDocument);
 
 #ifdef DEBUG
-            if (sameDocIdent) {
+            if (sameDocument) {
                 nsCOMPtr<nsIInputStream> currentPostData;
                 mOSHE->GetPostData(getter_AddRefs(currentPostData));
                 NS_ASSERTION(currentPostData == aPostData,
@@ -8313,7 +8319,7 @@ nsDocShell::InternalLoad(nsIURI * aURI,
         // The restriction tha the SHEntries in (a) must be different ensures
         // that history.go(0) and the like trigger full refreshes, rather than
         // short-circuited loads.
-        bool doShortCircuitedLoad = (sameDocIdent && mOSHE != aSHEntry) ||
+        bool doShortCircuitedLoad = (sameDocument && mOSHE != aSHEntry) ||
                                       (!aSHEntry && aPostData == nsnull &&
                                        sameExceptHashes && !newHash.IsEmpty());
 
@@ -8361,10 +8367,14 @@ nsDocShell::InternalLoad(nsIURI * aURI,
             // Pass true for aCloneSHChildren, since we're not
             // changing documents here, so all of our subframes are
             // still relevant to the new session history entry.
+            //
+            // It also makes OnNewURI(...) set LOCATION_CHANGE_SAME_DOCUMENT
+            // flag on firing onLocationChange(...).
+            // Anyway, aCloneSHChildren param is simply reflecting
+            // doShortCircuitedLoad in this scope.
             OnNewURI(aURI, nsnull, owner, mLoadType, true, true, true);
 
             nsCOMPtr<nsIInputStream> postData;
-            PRUint64 docIdent = PRUint64(-1);
             nsCOMPtr<nsISupports> cacheKey;
 
             if (mOSHE) {
@@ -8378,8 +8388,13 @@ nsDocShell::InternalLoad(nsIURI * aURI,
                 // wouldn't want here.
                 if (aLoadType & LOAD_CMD_NORMAL) {
                     mOSHE->GetPostData(getter_AddRefs(postData));
-                    mOSHE->GetDocIdentifier(&docIdent);
                     mOSHE->GetCacheKey(getter_AddRefs(cacheKey));
+
+                    // Link our new SHEntry to the old SHEntry's back/forward
+                    // cache data, since the two SHEntries correspond to the
+                    // same document.
+                    if (mLSHE)
+                        mLSHE->AdoptBFCacheEntry(mOSHE);
                 }
             }
 
@@ -8399,11 +8414,6 @@ nsDocShell::InternalLoad(nsIURI * aURI,
                 // cache first
                 if (cacheKey)
                     mOSHE->SetCacheKey(cacheKey);
-
-                // Propagate our document identifier to the new mOSHE so that
-                // we'll know it's related by an anchor navigation or pushState.
-                if (docIdent != PRUint64(-1))
-                    mOSHE->SetDocIdentifier(docIdent);
             }
 
             /* restore previous position of scroller(s), if we're moving
@@ -8447,7 +8457,7 @@ nsDocShell::InternalLoad(nsIURI * aURI,
                 }
             }
 
-            if (sameDocIdent) {
+            if (sameDocument) {
                 // Set the doc's URI according to the new history entry's URI
                 nsCOMPtr<nsIURI> newURI;
                 mOSHE->GetURI(getter_AddRefs(newURI));
@@ -8464,10 +8474,10 @@ nsDocShell::InternalLoad(nsIURI * aURI,
             // Dispatch the popstate and hashchange events, as appropriate.
             nsCOMPtr<nsPIDOMWindow> window = do_QueryInterface(mScriptGlobal);
             if (window) {
-                // Need the doHashchange check here since sameDocIdent is
+                // Need the doHashchange check here since sameDocument is
                 // false if we're navigating to a new shentry (i.e. a aSHEntry
                 // is null), such as when clicking a <a href="#foo">.
-                if (sameDocIdent || doHashchange) {
+                if (sameDocument || doHashchange) {
                   window->DispatchSyncPopState();
                 }
 
@@ -9250,11 +9260,11 @@ nsDocShell::OnNewURI(nsIURI * aURI, nsIChannel * aChannel, nsISupports* aOwner,
             }
 
             // If the response status indicates an error, unlink this session
-            // history entry from any entries sharing its doc ident.
+            // history entry from any entries sharing its document.
             PRUint32 responseStatus;
             nsresult rv = httpChannel->GetResponseStatus(&responseStatus);
             if (mLSHE && NS_SUCCEEDED(rv) && responseStatus >= 400) {
-                mLSHE->SetUniqueDocIdentifier();
+                mLSHE->AbandonBFCacheEntry();
             }
         }
     }
@@ -9415,8 +9425,14 @@ nsDocShell::OnNewURI(nsIURI * aURI, nsIChannel * aChannel, nsISupports* aOwner,
 #endif
         }
     }
+
+    // aCloneSHChildren exactly means "we are not loading a new document".
+    PRUint32 locationFlags = aCloneSHChildren?
+                                 PRUint32(LOCATION_CHANGE_SAME_DOCUMENT) : 0;
+
     bool onLocationChangeNeeded = SetCurrentURI(aURI, aChannel,
-                                                  aFireOnLocationChange);
+                                                aFireOnLocationChange,
+                                                locationFlags);
     // Make sure to store the referrer from the channel, if any
     SetupReferrerFromChannel(aChannel);
     return onLocationChangeNeeded;
@@ -9483,9 +9499,9 @@ nsDocShell::AddState(nsIVariant *aData, const nsAString& aTitle,
     // It's important that this function not run arbitrary scripts after step 1
     // and before completing step 5.  For example, if a script called
     // history.back() before we completed step 5, bfcache might destroy an
-    // active content viewer.  Since EvictContentViewers at the end of step 5
-    // might run script, we can't just put a script blocker around the critical
-    // section.
+    // active content viewer.  Since EvictOutOfRangeContentViewers at the end of
+    // step 5 might run script, we can't just put a script blocker around the
+    // critical section.
     //
     // Note that we completely ignore the aTitle parameter.
 
@@ -9665,11 +9681,9 @@ nsDocShell::AddState(nsIVariant *aData, const nsAString& aTitle,
 
         NS_ENSURE_TRUE(newSHEntry, NS_ERROR_FAILURE);
 
-        // Set the new SHEntry's document identifier, if we can.
-        PRUint64 ourDocIdent;
-        NS_ENSURE_SUCCESS(oldOSHE->GetDocIdentifier(&ourDocIdent),
-                          NS_ERROR_FAILURE);
-        NS_ENSURE_SUCCESS(newSHEntry->SetDocIdentifier(ourDocIdent),
+        // Link the new SHEntry to the old SHEntry's BFCache entry, since the
+        // two entries correspond to the same document.
+        NS_ENSURE_SUCCESS(newSHEntry->AdoptBFCacheEntry(oldOSHE),
                           NS_ERROR_FAILURE);
 
         // Set the new SHEntry's title (bug 655273).
@@ -9715,7 +9729,7 @@ nsDocShell::AddState(nsIVariant *aData, const nsAString& aTitle,
         PRInt32 curIndex = -1;
         rv = rootSH->GetIndex(&curIndex);
         if (NS_SUCCEEDED(rv) && curIndex > -1) {
-            internalSH->EvictContentViewers(curIndex - 1, curIndex);
+            internalSH->EvictOutOfRangeContentViewers(curIndex);
         }
     }
 
@@ -9726,8 +9740,14 @@ nsDocShell::AddState(nsIVariant *aData, const nsAString& aTitle,
     // gets updated and the back button is enabled, but we only need to
     // explicitly call FireOnLocationChange if we're not calling SetCurrentURI,
     // since SetCurrentURI will call FireOnLocationChange for us.
+    //
+    // Both SetCurrentURI(...) and FireDummyOnLocationChange() pass
+    // nsnull for aRequest param to FireOnLocationChange(...). Such an update
+    // notification is allowed only when we know docshell is not loading a new
+    // document and it requires LOCATION_CHANGE_SAME_DOCUMENT flag. Otherwise,
+    // FireOnLocationChange(...) breaks security UI.
     if (!equalURIs) {
-        SetCurrentURI(newURI, nsnull, true);
+        SetCurrentURI(newURI, nsnull, true, LOCATION_CHANGE_SAME_DOCUMENT);
         document->SetDocumentURI(newURI);
 
         AddURIVisit(newURI, oldURI, oldURI, 0);

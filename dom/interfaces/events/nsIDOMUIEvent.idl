@@ -47,7 +47,7 @@
  * http://www.w3.org/TR/DOM-Level-2-Events/
  */
 
-[scriptable, uuid(4f3032d1-bdc5-4f37-bece-af8056d71c5c)]
+[scriptable, uuid(af3f130e-0c22-4613-a150-780a46c22e3a)]
 interface nsIDOMUIEvent : nsIDOMEvent
 {
   readonly attribute nsIDOMWindow       view;
@@ -72,4 +72,11 @@ interface nsIDOMUIEvent : nsIDOMEvent
            attribute boolean            cancelBubble;
 
   readonly attribute boolean            isChar;
+};
+
+[scriptable, uuid(610eb27e-9718-4acd-8ed1-7d1840bc6c7f)]
+interface nsIUIEventInit : nsIEventInit
+{
+  attribute nsIDOMWindow view;
+  attribute long         detail;
 };

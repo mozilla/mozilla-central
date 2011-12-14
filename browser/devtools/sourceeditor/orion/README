@@ -8,8 +8,11 @@ The Orion editor web site: http://www.eclipse.org/orion
 
 To upgrade Orion to a newer version see the UPGRADE file.
 
-Orion version: git clone from 2011-10-07
-               commit hash eedba6403b6dff4536bc0469d31126c3485deb56
+Orion version: git clone from 2011-12-09
+               commit hash d8a6dc01d9c561d6eb99f03b64c8c78ce785c59d
+  + patch for Eclipse Bug 366312 - right-clicking outside of the selection causes the caret to move
+    https://github.com/mihaisucan/orion.client/tree/bug-366312
+      see https://bugs.eclipse.org/bugs/show_bug.cgi?id=366312
 
 # License
 

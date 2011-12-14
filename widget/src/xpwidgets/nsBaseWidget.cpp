@@ -104,7 +104,6 @@ nsBaseWidget::nsBaseWidget()
 , mEventCallback(nsnull)
 , mViewCallback(nsnull)
 , mContext(nsnull)
-, mToolkit(nsnull)
 , mCursor(eCursor_standard)
 , mWindowType(eWindowType_child)
 , mBorderStyle(eBorderStyle_none)
@@ -150,7 +149,6 @@ nsBaseWidget::~nsBaseWidget()
   printf("WIDGETS- = %d\n", gNumWidgets);
 #endif
 
-  NS_IF_RELEASE(mToolkit);
   NS_IF_RELEASE(mContext);
   delete mOriginalBounds;
 }
@@ -165,42 +163,8 @@ void nsBaseWidget::BaseCreate(nsIWidget *aParent,
                               const nsIntRect &aRect,
                               EVENT_CALLBACK aHandleEventFunction,
                               nsDeviceContext *aContext,
-                              nsIToolkit *aToolkit,
                               nsWidgetInitData *aInitData)
 {
-  if (nsnull == mToolkit) {
-    if (nsnull != aToolkit) {
-      mToolkit = (nsIToolkit*)aToolkit;
-      NS_ADDREF(mToolkit);
-    }
-    else {
-      if (nsnull != aParent) {
-        mToolkit = aParent->GetToolkit();
-        NS_IF_ADDREF(mToolkit);
-      }
-      // it's some top level window with no toolkit passed in.
-      // Create a default toolkit with the current thread
-#if !defined(USE_TLS_FOR_TOOLKIT)
-      else {
-        static NS_DEFINE_CID(kToolkitCID, NS_TOOLKIT_CID);
-        
-        nsresult res;
-        res = CallCreateInstance(kToolkitCID, &mToolkit);
-        NS_ASSERTION(NS_SUCCEEDED(res), "Can not create a toolkit in nsBaseWidget::Create");
-        if (mToolkit)
-          mToolkit->Init(PR_GetCurrentThread());
-      }
-#else /* USE_TLS_FOR_TOOLKIT */
-      else {
-        nsresult rv;
-
-        rv = NS_GetCurrentToolkit(&mToolkit);
-      }
-#endif /* USE_TLS_FOR_TOOLKIT */
-    }
-    
-  }
-  
   // save the event callback function
   mEventCallback = aHandleEventFunction;
   
@@ -253,7 +217,6 @@ already_AddRefed<nsIWidget>
 nsBaseWidget::CreateChild(const nsIntRect  &aRect,
                           EVENT_CALLBACK   aHandleEventFunction,
                           nsDeviceContext *aContext,
-                          nsIToolkit       *aToolkit,
                           nsWidgetInitData *aInitData,
                           bool             aForceUseIWidgetParent)
 {
@@ -280,8 +243,7 @@ nsBaseWidget::CreateChild(const nsIntRect  &aRect,
   if (widget &&
       NS_SUCCEEDED(widget->Create(parent, nativeParent, aRect,
                                   aHandleEventFunction,
-                                  aContext, aToolkit,
-                                  aInitData))) {
+                                  aContext, aInitData))) {
     return widget.forget();
   }
 
@@ -322,15 +284,6 @@ NS_IMETHODIMP nsBaseWidget::SetAttachedViewPtr(ViewWrapper* aViewWrapper)
    mViewWrapperPtr = aViewWrapper;
    return NS_OK;
  }
-
-NS_METHOD nsBaseWidget::ResizeClient(PRInt32 aX,
-                                     PRInt32 aY,
-                                     PRInt32 aWidth,
-                                     PRInt32 aHeight,
-                                     bool aRepaint)
-{
-  return Resize(aX, aY, aWidth, aHeight, aRepaint);
-}
 
 //-------------------------------------------------------------------------
 //
@@ -905,17 +858,6 @@ BasicLayerManager* nsBaseWidget::CreateBasicLayerManager()
 
 //-------------------------------------------------------------------------
 //
-// Return the toolkit this widget was created on
-//
-//-------------------------------------------------------------------------
-nsIToolkit* nsBaseWidget::GetToolkit()
-{
-  return mToolkit;
-}
-
-
-//-------------------------------------------------------------------------
-//
 // Return the used device context
 //
 //-------------------------------------------------------------------------
@@ -944,14 +886,57 @@ gfxASurface *nsBaseWidget::GetThebesSurface()
 //-------------------------------------------------------------------------
 void nsBaseWidget::OnDestroy()
 {
-  // release references to device context, toolkit, and app shell
+  // release references to device context and app shell
   NS_IF_RELEASE(mContext);
-  NS_IF_RELEASE(mToolkit);
 }
 
 NS_METHOD nsBaseWidget::SetWindowClass(const nsAString& xulWinType)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_METHOD nsBaseWidget::MoveClient(PRInt32 aX, PRInt32 aY)
+{
+  nsIntPoint clientOffset(GetClientOffset());
+  aX -= clientOffset.x;
+  aY -= clientOffset.y;
+  return Move(aX, aY);
+}
+
+NS_METHOD nsBaseWidget::ResizeClient(PRInt32 aWidth,
+                                     PRInt32 aHeight,
+                                     bool aRepaint)
+{
+  NS_ASSERTION((aWidth >=0) , "Negative width passed to ResizeClient");
+  NS_ASSERTION((aHeight >=0), "Negative height passed to ResizeClient");
+
+  nsIntRect clientBounds;
+  GetClientBounds(clientBounds);
+  aWidth = mBounds.width + (aWidth - clientBounds.width);
+  aHeight = mBounds.height + (aHeight - clientBounds.height);
+
+  return Resize(aWidth, aHeight, aRepaint);
+}
+
+NS_METHOD nsBaseWidget::ResizeClient(PRInt32 aX,
+                                     PRInt32 aY,
+                                     PRInt32 aWidth,
+                                     PRInt32 aHeight,
+                                     bool aRepaint)
+{
+  NS_ASSERTION((aWidth >=0) , "Negative width passed to ResizeClient");
+  NS_ASSERTION((aHeight >=0), "Negative height passed to ResizeClient");
+
+  nsIntRect clientBounds;
+  GetClientBounds(clientBounds);
+  aWidth = mBounds.width + (aWidth - clientBounds.width);
+  aHeight = mBounds.height + (aHeight - clientBounds.height);
+
+  nsIntPoint clientOffset(GetClientOffset());
+  aX -= clientOffset.x;
+  aY -= clientOffset.y;
+
+  return Resize(aX, aY, aWidth, aHeight, aRepaint);
 }
 
 //-------------------------------------------------------------------------
@@ -1217,26 +1202,6 @@ nsBaseWidget::BeginMoveDrag(nsMouseEvent* aEvent)
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
-// For backwards compatibility only
-NS_IMETHODIMP
-nsBaseWidget::SetIMEEnabled(PRUint32 aState)
-{
-  IMEContext context;
-  context.mStatus = aState;
-  return SetInputMode(context);
-}
- 
-NS_IMETHODIMP
-nsBaseWidget::GetIMEEnabled(PRUint32* aState)
-{
-  IMEContext context;
-  nsresult rv = GetInputMode(context);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  *aState = context.mStatus;
-  return NS_OK;
-}
- 
 #ifdef DEBUG
 //////////////////////////////////////////////////////////////
 //
@@ -1256,7 +1221,7 @@ nsBaseWidget::debug_GuiEventToString(nsGUIEvent * aGuiEvent)
   nsAutoString eventName(NS_LITERAL_STRING("UNKNOWN"));
 
 #define _ASSIGN_eventName(_value,_name)\
-case _value: eventName.AssignWithConversion(_name) ; break
+case _value: eventName.AssignLiteral(_name) ; break
 
   switch(aGuiEvent->message)
   {
@@ -1312,7 +1277,7 @@ case _value: eventName.AssignWithConversion(_name) ; break
       
       sprintf(buf,"UNKNOWN: %d",aGuiEvent->message);
       
-      eventName.AssignWithConversion(buf);
+      CopyASCIItoUTF16(buf, eventName);
     }
     break;
   }
@@ -1460,7 +1425,7 @@ nsBaseWidget::debug_DumpEvent(FILE *                aFileOut,
   if (!debug_GetCachedBoolPref("nglayout.debug.event_dumping"))
     return;
 
-  nsCAutoString tempString; tempString.AssignWithConversion(debug_GuiEventToString(aGuiEvent).get());
+  NS_LossyConvertUTF16toASCII tempString(debug_GuiEventToString(aGuiEvent).get());
   
   fprintf(aFileOut,
           "%4d %-26s widget=%-8p name=%-12s id=%-8p refpt=%d,%d\n",

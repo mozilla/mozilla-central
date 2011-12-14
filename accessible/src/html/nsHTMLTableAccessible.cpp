@@ -124,6 +124,7 @@ nsHTMLTableCellAccessible::GetAttributesInternal(nsIPersistentProperties *aAttri
   nsresult rv = nsHyperTextAccessibleWrap::GetAttributesInternal(aAttributes);
   NS_ENSURE_SUCCESS(rv, rv);
 
+  // table-cell-index attribute
   nsCOMPtr<nsIAccessibleTable> tableAcc(GetTableAccessible());
   if (!tableAcc)
     return NS_OK;
@@ -139,6 +140,32 @@ nsHTMLTableCellAccessible::GetAttributesInternal(nsIPersistentProperties *aAttri
   nsAutoString stringIdx;
   stringIdx.AppendInt(idx);
   nsAccUtils::SetAccAttr(aAttributes, nsGkAtoms::tableCellIndex, stringIdx);
+
+  // abbr attribute
+
+  // Pick up object attribute from abbr DOM element (a child of the cell) or
+  // from abbr DOM attribute.
+  nsAutoString abbrText;
+  if (GetChildCount() == 1) {
+    nsAccessible* abbr = FirstChild();
+    if (abbr->IsAbbreviation()) {
+      nsTextEquivUtils::
+        AppendTextEquivFromTextContent(abbr->GetContent()->GetFirstChild(),
+                                       &abbrText);
+    }
+  }
+  if (abbrText.IsEmpty())
+    mContent->GetAttr(kNameSpaceID_None, nsGkAtoms::abbr, abbrText);
+
+  if (!abbrText.IsEmpty())
+    nsAccUtils::SetAccAttr(aAttributes, nsGkAtoms::abbr, abbrText);
+
+  // axis attribute
+  nsAutoString axisText;
+  mContent->GetAttr(kNameSpaceID_None, nsGkAtoms::axis, axisText);
+  if (!axisText.IsEmpty())
+    nsAccUtils::SetAccAttr(aAttributes, nsGkAtoms::axis, axisText);
+
   return NS_OK;
 }
 
@@ -379,28 +406,25 @@ nsHTMLTableHeaderCellAccessible::NativeRole()
 
   // Assume it's columnheader if there are headers in siblings, oterwise
   // rowheader.
-  nsIContent *parent = mContent->GetParent();
-  if (!parent) {
+  nsIContent* parentContent = mContent->GetParent();
+  if (!parentContent) {
     NS_ERROR("Deattached content on alive accessible?");
     return nsIAccessibleRole::ROLE_NOTHING;
   }
 
-  PRInt32 indexInParent = parent->IndexOf(mContent);
-
-  for (PRInt32 idx = indexInParent - 1; idx >= 0; idx--) {
-    nsIContent* sibling = parent->GetChildAt(idx);
-    if (sibling && sibling->IsElement()) {
-      if (nsCoreUtils::IsHTMLTableHeader(sibling))
+  for (nsIContent* siblingContent = mContent->GetPreviousSibling(); siblingContent;
+       siblingContent = siblingContent->GetPreviousSibling()) {
+    if (siblingContent->IsElement()) {
+      if (nsCoreUtils::IsHTMLTableHeader(siblingContent))
         return nsIAccessibleRole::ROLE_COLUMNHEADER;
       return nsIAccessibleRole::ROLE_ROWHEADER;
     }
   }
 
-  PRInt32 childCount = parent->GetChildCount();
-  for (PRInt32 idx = indexInParent + 1; idx < childCount; idx++) {
-    nsIContent* sibling = parent->GetChildAt(idx);
-    if (sibling && sibling->IsElement()) {
-      if (nsCoreUtils::IsHTMLTableHeader(sibling))
+  for (nsIContent* siblingContent = mContent->GetNextSibling(); siblingContent;
+       siblingContent = siblingContent->GetNextSibling()) {
+    if (siblingContent->IsElement()) {
+      if (nsCoreUtils::IsHTMLTableHeader(siblingContent))
         return nsIAccessibleRole::ROLE_COLUMNHEADER;
       return nsIAccessibleRole::ROLE_ROWHEADER;
     }
@@ -1386,6 +1410,9 @@ nsHTMLTableAccessible::IsProbablyForLayout(bool *aIsProbablyForLayout)
     // markup are left to deal with here.
     RETURN_LAYOUT_ANSWER(false, "Has role attribute, weak role, and role is table");
   }
+
+  if (mContent->Tag() != nsGkAtoms::table)
+    RETURN_LAYOUT_ANSWER(true, "table built by CSS display:table style");
 
   // Check if datatable attribute has "0" value.
   if (mContent->AttrValueIs(kNameSpaceID_None, nsGkAtoms::datatable,

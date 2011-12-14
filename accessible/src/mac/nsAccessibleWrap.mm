@@ -41,46 +41,49 @@
 
 #import "nsRoleMap.h"
 
-#import "mozAccessibleWrapper.h"
 #import "mozAccessible.h"
 #import "mozActionElements.h"
 #import "mozTextAccessible.h"
 
 nsAccessibleWrap::
   nsAccessibleWrap(nsIContent *aContent, nsIWeakReference *aShell) :
-  nsAccessible(aContent, aShell), mNativeWrapper(nsnull)
+  nsAccessible(aContent, aShell), mNativeObject(nil)
 {
 }
 
 nsAccessibleWrap::~nsAccessibleWrap()
 {
-  if (mNativeWrapper) {
-    delete mNativeWrapper;
-    mNativeWrapper = nsnull;
-  }
 }
 
 bool
 nsAccessibleWrap::Init () 
 {
+  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NIL;
+
   if (!nsAccessible::Init())
     return false;
 
-  if (!mNativeWrapper && !AncestorIsFlat()) {
+  if (!mNativeObject && !AncestorIsFlat()) {
     // Create our native object using the class type specified in GetNativeType().
-    mNativeWrapper = new AccessibleWrapper (this, GetNativeType());
-    if (!mNativeWrapper)
+    mNativeObject = [[GetNativeType() alloc] initWithAccessible:this];
+    if(!mNativeObject)
       return false;
   }
 
   return true;
+  
+  NS_OBJC_END_TRY_ABORT_BLOCK_RETURN(false);
 }
 
 NS_IMETHODIMP
 nsAccessibleWrap::GetNativeInterface (void **aOutInterface) 
 {
-  if (mNativeWrapper) {
-    *aOutInterface = (void**)mNativeWrapper->getNativeObject();
+  NS_ENSURE_ARG_POINTER(aOutInterface);
+
+  *aOutInterface = nsnull;
+  
+  if (mNativeObject) {
+    *aOutInterface = static_cast<void*>(mNativeObject);
     return NS_OK;
   }
   return NS_ERROR_FAILURE;
@@ -141,9 +144,10 @@ nsAccessibleWrap::GetNativeType ()
 void
 nsAccessibleWrap::Shutdown ()
 {
-  if (mNativeWrapper) {
-    delete mNativeWrapper;
-    mNativeWrapper = nsnull;
+  if (mNativeObject) {
+    [mNativeObject expire];
+    [mNativeObject release];
+    mNativeObject = nil;
   }
   
   nsAccessible::Shutdown();
@@ -201,49 +205,12 @@ nsAccessibleWrap::InvalidateChildren()
 {
   NS_OBJC_BEGIN_TRY_ABORT_BLOCK;
 
-  if (mNativeWrapper) {
-    mozAccessible *object = mNativeWrapper->getNativeObject();
-    [object invalidateChildren];
-  }
+  if (mNativeObject)
+    [mNativeObject invalidateChildren];
+
   nsAccessible::InvalidateChildren();
 
   NS_OBJC_END_TRY_ABORT_BLOCK;
-}
-
-PRInt32
-nsAccessibleWrap::GetUnignoredChildCount(bool aDeepCount)
-{
-  // if we're flat, we have no children.
-  if (nsAccUtils::MustPrune(this))
-    return 0;
-
-  PRInt32 resultChildCount = 0;
-
-  PRInt32 childCount = GetChildCount();
-  for (PRInt32 childIdx = 0; childIdx < childCount; childIdx++) {
-    nsAccessibleWrap *childAcc =
-      static_cast<nsAccessibleWrap*>(GetChildAt(childIdx));
-
-    // if the current child is not ignored, count it.
-    if (!childAcc->IsIgnored())
-      ++resultChildCount;
-
-    // if it's flat, we don't care to inspect its children.
-    if (nsAccUtils::MustPrune(childAcc))
-      continue;
-
-    if (aDeepCount) {
-      // recursively count the unignored children of our children since it's a deep count.
-      resultChildCount += childAcc->GetUnignoredChildCount(true);
-    } else {
-      // no deep counting, but if the child is ignored, we want to substitute it for its
-      // children.
-      if (childAcc->IsIgnored()) 
-        resultChildCount += childAcc->GetUnignoredChildCount(false);
-    }
-  } 
-  
-  return resultChildCount;
 }
 
 // if we for some reason have no native accessible, we should be skipped over (and traversed)
@@ -251,7 +218,11 @@ nsAccessibleWrap::GetUnignoredChildCount(bool aDeepCount)
 bool 
 nsAccessibleWrap::IsIgnored() 
 {
-  return (mNativeWrapper == nsnull) || mNativeWrapper->isIgnored();
+  NS_OBJC_BEGIN_TRY_ABORT_BLOCK_RETURN;
+  
+  return (mNativeObject == nil) || [mNativeObject accessibilityIsIgnored];
+  
+  NS_OBJC_END_TRY_ABORT_BLOCK_RETURN(false);
 }
 
 void

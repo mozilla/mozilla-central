@@ -976,12 +976,16 @@ public:
   bool MayHaveFixedBackgroundFrames() { return mMayHaveFixedBackgroundFrames; }
   void SetHasFixedBackgroundFrame() { mMayHaveFixedBackgroundFrames = true; }
 
-  PRUint32 EstimateMemoryUsed() {
-    PRUint32 result = 0;
-
-    result += sizeof(nsPresContext);
-
-    return result;
+  virtual NS_MUST_OVERRIDE size_t
+        SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf) const {
+    // XXX: lots of things hang off nsPresContext and should be included in
+    // this measurement.  Bug 671299 may add them.
+    return 0;
+  }
+  virtual NS_MUST_OVERRIDE size_t
+        SizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOf) const {
+    return aMallocSizeOf(this, sizeof(nsPresContext)) +
+           SizeOfExcludingThis(aMallocSizeOf);
   }
 
   bool IsRootContentDocument();
@@ -992,10 +996,8 @@ protected:
   NS_HIDDEN_(void) SysColorChangedInternal();
 
   NS_HIDDEN_(void) SetImgAnimations(nsIContent *aParent, PRUint16 aMode);
-#ifdef MOZ_SMIL
   NS_HIDDEN_(void) SetSMILAnimations(nsIDocument *aDoc, PRUint16 aNewMode,
                                      PRUint16 aOldMode);
-#endif // MOZ_SMIL
   NS_HIDDEN_(void) GetDocumentColorPreferences();
 
   NS_HIDDEN_(void) PreferenceChanged(const char* aPrefName);
@@ -1304,12 +1306,52 @@ public:
    */
   PRUint32 GetDOMGeneration() { return mDOMGeneration; }
 
-private:
+  /**
+   * Add a runnable that will get called before the next paint. They will get
+   * run eventually even if painting doesn't happen. They might run well before
+   * painting happens.
+   */
+  void AddWillPaintObserver(nsIRunnable* aRunnable);
+
+  /**
+   * Run all runnables that need to get called before the next paint.
+   */
+  void FlushWillPaintObservers();
+
+  virtual NS_MUST_OVERRIDE size_t
+        SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf) const MOZ_OVERRIDE {
+    // XXX: several things hang off an nsRootPresContext and should be included
+    // in this measurement.  Bug 671299 may do this.
+    return nsPresContext::SizeOfExcludingThis(aMallocSizeOf);
+  }
+  virtual NS_MUST_OVERRIDE size_t
+        SizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOf) const MOZ_OVERRIDE {
+    return aMallocSizeOf(this, sizeof(nsRootPresContext)) +
+           SizeOfExcludingThis(aMallocSizeOf);
+  }
+
+protected:
+  class RunWillPaintObservers : public nsRunnable {
+  public:
+    RunWillPaintObservers(nsRootPresContext* aPresContext) : mPresContext(aPresContext) {}
+    void Revoke() { mPresContext = nsnull; }
+    NS_IMETHOD Run()
+    {
+      if (mPresContext) {
+        mPresContext->FlushWillPaintObservers();
+      }
+      return NS_OK;
+    }
+    nsRootPresContext* mPresContext;
+  };
+
   nsCOMPtr<nsITimer> mNotifyDidPaintTimer;
   nsTHashtable<nsPtrHashKey<nsObjectFrame> > mRegisteredPlugins;
   // if mNeedsToUpdatePluginGeometry is set, then this is the frame to
   // use as the root of the subtree to search for plugin updates, or
   // null to use the root frame of this prescontext
+  nsTArray<nsCOMPtr<nsIRunnable> > mWillPaintObservers;
+  nsRevocableEventPtr<RunWillPaintObservers> mWillPaintFallbackEvent;
   nsIFrame* mUpdatePluginGeometryForFrame;
   PRUint32 mDOMGeneration;
   bool mNeedsToUpdatePluginGeometry;

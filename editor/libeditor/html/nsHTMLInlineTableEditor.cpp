@@ -36,13 +36,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsHTMLEditor.h"
-#include "nsIDOMNSHTMLElement.h"
+#include "nsIDOMHTMLElement.h"
 #include "nsIDOMEventTarget.h"
 #include "nsIPresShell.h"
 #include "nsIDocumentObserver.h"
 #include "nsIContent.h"
 #include "nsHTMLEditUtils.h"
 #include "nsReadableUtils.h"
+#include "mozilla/dom/Element.h"
 
 // Uncomment the following line if you want to disable
 // table deletion when the only column/row is removed
@@ -77,7 +78,7 @@ nsHTMLEditor::ShowInlineTableEditingUI(nsIDOMElement * aCell)
   }
 
   // the resizers and the shadow will be anonymous children of the body
-  nsIDOMElement *bodyElement = GetRoot();
+  nsCOMPtr<nsIDOMElement> bodyElement = do_QueryInterface(GetRoot());
   NS_ENSURE_TRUE(bodyElement, NS_ERROR_NULL_POINTER);
 
   CreateAnonymousElement(NS_LITERAL_STRING("a"), bodyElement,
@@ -130,10 +131,7 @@ nsHTMLEditor::HideInlineTableEditingUI()
   // UnbindFromTree.
 
   // get the root content node.
-
-  nsIDOMElement *bodyElement = GetRoot();
-
-  nsCOMPtr<nsIContent> bodyContent( do_QueryInterface(bodyElement) );
+  nsCOMPtr<nsIContent> bodyContent = GetRoot();
   NS_ENSURE_TRUE(bodyContent, NS_ERROR_FAILURE);
 
   DeleteRefToAnonymousNode(mAddColumnBeforeButton, bodyContent, ps);
@@ -232,15 +230,17 @@ nsHTMLEditor::RemoveMouseClickListener(nsIDOMElement * aElement)
 NS_IMETHODIMP
 nsHTMLEditor::RefreshInlineTableEditingUI()
 {
-  nsCOMPtr<nsIDOMNSHTMLElement> nsElement = do_QueryInterface(mInlineEditedCell);
-  if (!nsElement) {return NS_ERROR_NULL_POINTER; }
+  nsCOMPtr<nsIDOMHTMLElement> htmlElement = do_QueryInterface(mInlineEditedCell);
+  if (!htmlElement) {
+    return NS_ERROR_NULL_POINTER;
+  }
 
   PRInt32 xCell, yCell, wCell, hCell;
   GetElementOrigin(mInlineEditedCell, xCell, yCell);
 
-  nsresult res = nsElement->GetOffsetWidth(&wCell);
+  nsresult res = htmlElement->GetOffsetWidth(&wCell);
   NS_ENSURE_SUCCESS(res, res);
-  res = nsElement->GetOffsetHeight(&hCell);
+  res = htmlElement->GetOffsetHeight(&hCell);
   NS_ENSURE_SUCCESS(res, res);
 
   PRInt32 xHoriz = xCell + wCell/2;

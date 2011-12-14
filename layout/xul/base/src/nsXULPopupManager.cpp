@@ -137,9 +137,8 @@ void nsMenuChainItem::Detach(nsMenuChainItem** aRoot)
   }
 }
 
-NS_IMPL_ISUPPORTS4(nsXULPopupManager,
+NS_IMPL_ISUPPORTS3(nsXULPopupManager,
                    nsIDOMEventListener,
-                   nsIMenuRollup,
                    nsITimerCallback,
                    nsIObserver)
 
@@ -207,15 +206,14 @@ nsXULPopupManager::GetInstance()
   return sInstance;
 }
 
-NS_IMETHODIMP
-nsXULPopupManager::Rollup(PRUint32 aCount, nsIContent** aLastRolledUp)
+nsIContent*
+nsXULPopupManager::Rollup(PRUint32 aCount, bool aGetLastRolledUp)
 {
-  if (aLastRolledUp)
-    *aLastRolledUp = nsnull;
+  nsIContent* lastRolledUpPopup = nsnull;
 
   nsMenuChainItem* item = GetTopVisibleMenu();
   if (item) {
-    if (aLastRolledUp) {
+    if (aGetLastRolledUp) {
       // we need to get the popup that will be closed last, so that
       // widget can keep track of it so it doesn't reopen if a mouse
       // down event is going to processed.
@@ -227,7 +225,7 @@ nsXULPopupManager::Rollup(PRUint32 aCount, nsIContent** aLastRolledUp)
       nsMenuChainItem* first = item;
       while (first->GetParent())
         first = first->GetParent();
-      NS_ADDREF(*aLastRolledUp = first->Content());
+      lastRolledUpPopup = first->Content();
     }
 
     // if a number of popups to close has been specified, determine the last
@@ -245,35 +243,33 @@ nsXULPopupManager::Rollup(PRUint32 aCount, nsIContent** aLastRolledUp)
 
     HidePopup(item->Content(), true, true, false, lastPopup);
   }
-  return NS_OK;
+
+  return lastRolledUpPopup;
 }
 
 ////////////////////////////////////////////////////////////////////////
-NS_IMETHODIMP nsXULPopupManager::ShouldRollupOnMouseWheelEvent(bool *aShouldRollup) 
+bool nsXULPopupManager::ShouldRollupOnMouseWheelEvent()
 {
   // should rollup only for autocomplete widgets
   // XXXndeakin this should really be something the popup has more control over
 
-  *aShouldRollup = false;
   nsMenuChainItem* item = GetTopVisibleMenu();
   if (!item)
-    return NS_OK;
+    return false;
 
   nsIContent* content = item->Frame()->GetContent();
-  if (content) {
-    nsAutoString value;
-    content->GetAttr(kNameSpaceID_None, nsGkAtoms::type, value);
-    *aShouldRollup = StringBeginsWith(value, NS_LITERAL_STRING("autocomplete"));
-  }
+  if (!content)
+    return false;
 
-  return NS_OK;
+  nsAutoString value;
+  content->GetAttr(kNameSpaceID_None, nsGkAtoms::type, value);
+  return StringBeginsWith(value, NS_LITERAL_STRING("autocomplete"));
 }
 
 // a menu should not roll up if activated by a mouse activate message (eg. X-mouse)
-NS_IMETHODIMP nsXULPopupManager::ShouldRollupOnMouseActivate(bool *aShouldRollup) 
+bool nsXULPopupManager::ShouldRollupOnMouseActivate()
 {
-  *aShouldRollup = false;
-  return NS_OK;
+  return false;
 }
 
 PRUint32
@@ -287,8 +283,7 @@ nsXULPopupManager::GetSubmenuWidgetChain(nsTArray<nsIWidget*> *aWidgetChain)
   NS_ASSERTION(aWidgetChain, "null parameter");
   nsMenuChainItem* item = GetTopVisibleMenu();
   while (item) {
-    nsCOMPtr<nsIWidget> widget;
-    item->Frame()->GetWidget(getter_AddRefs(widget));
+    nsCOMPtr<nsIWidget> widget = item->Frame()->GetWidget();
     NS_ASSERTION(widget, "open popup has no widget");
     aWidgetChain->AppendElement(widget.get());
     // In the case when a menulist inside a panel is open, clicking in the
@@ -340,14 +335,13 @@ nsXULPopupManager::AdjustPopupsOnWindowChange(nsPIDOMWindow* aWindow)
 }
 
 static
-nsMenuPopupFrame* GetPopupToMoveOrResize(nsIView* aView)
+nsMenuPopupFrame* GetPopupToMoveOrResize(nsIFrame* aFrame)
 {
-  nsIFrame *frame = static_cast<nsIFrame *>(aView->GetClientData());
-  if (!frame || frame->GetType() != nsGkAtoms::menuPopupFrame)
+  if (!aFrame || aFrame->GetType() != nsGkAtoms::menuPopupFrame)
     return nsnull;
 
   // no point moving or resizing hidden popups
-  nsMenuPopupFrame* menuPopupFrame = static_cast<nsMenuPopupFrame *>(frame);
+  nsMenuPopupFrame* menuPopupFrame = static_cast<nsMenuPopupFrame *>(aFrame);
   if (menuPopupFrame->PopupState() != ePopupOpenAndVisible)
     return nsnull;
 
@@ -355,16 +349,18 @@ nsMenuPopupFrame* GetPopupToMoveOrResize(nsIView* aView)
 }
 
 void
-nsXULPopupManager::PopupMoved(nsIView* aView, nsIntPoint aPnt)
+nsXULPopupManager::PopupMoved(nsIFrame* aFrame, nsIntPoint aPnt)
 {
-  nsMenuPopupFrame* menuPopupFrame = GetPopupToMoveOrResize(aView);
+  nsMenuPopupFrame* menuPopupFrame = GetPopupToMoveOrResize(aFrame);
   if (!menuPopupFrame)
     return;
 
   // Don't do anything if the popup is already at the specified location. This
   // prevents recursive calls when a popup is positioned.
   nsIntPoint currentPnt = menuPopupFrame->ScreenPosition();
-  if (aPnt.x != currentPnt.x || aPnt.y != currentPnt.y) {
+  nsIWidget* widget = menuPopupFrame->GetWidget();
+  if ((aPnt.x != currentPnt.x || aPnt.y != currentPnt.y) || (widget &&
+      widget->GetClientOffset() != menuPopupFrame->GetLastClientOffset())) {
     // Update the popup's position using SetPopupPosition if the popup is
     // anchored and at the parent level as these maintain their position
     // relative to the parent window. Otherwise, just update the popup to
@@ -380,9 +376,9 @@ nsXULPopupManager::PopupMoved(nsIView* aView, nsIntPoint aPnt)
 }
 
 void
-nsXULPopupManager::PopupResized(nsIView* aView, nsIntSize aSize)
+nsXULPopupManager::PopupResized(nsIFrame* aFrame, nsIntSize aSize)
 {
-  nsMenuPopupFrame* menuPopupFrame = GetPopupToMoveOrResize(aView);
+  nsMenuPopupFrame* menuPopupFrame = GetPopupToMoveOrResize(aFrame);
   if (!menuPopupFrame)
     return;
 
@@ -1002,13 +998,10 @@ nsXULPopupManager::HidePopupCallback(nsIContent* aPopup,
 }
 
 void
-nsXULPopupManager::HidePopup(nsIView* aView)
+nsXULPopupManager::HidePopup(nsIFrame* aFrame)
 {
-  nsIFrame *frame = static_cast<nsIFrame *>(aView->GetClientData());
-  if (!frame || frame->GetType() != nsGkAtoms::menuPopupFrame)
-    return;
-
-  HidePopup(frame->GetContent(), false, true, false);
+  if (aFrame && aFrame->GetType() == nsGkAtoms::menuPopupFrame)
+    HidePopup(aFrame->GetContent(), false, true, false);
 }
 
 void
@@ -1472,8 +1465,7 @@ nsXULPopupManager::MayShowPopup(nsMenuPopupFrame* aPopup)
   }
 
   // if the popup was just rolled up, don't reopen it
-  nsCOMPtr<nsIWidget> widget;
-  aPopup->GetWidget(getter_AddRefs(widget));
+  nsCOMPtr<nsIWidget> widget = aPopup->GetWidget();
   if (widget && widget->GetLastRollup() == aPopup->GetContent())
       return false;
 
@@ -1620,17 +1612,15 @@ nsXULPopupManager::SetCaptureState(nsIContent* aOldPopup)
     return;
 
   if (mWidget) {
-    mWidget->CaptureRollupEvents(this, this, false, false);
+    mWidget->CaptureRollupEvents(this, false, false);
     mWidget = nsnull;
   }
 
   if (item) {
     nsMenuPopupFrame* popup = item->Frame();
-    nsCOMPtr<nsIWidget> widget;
-    popup->GetWidget(getter_AddRefs(widget));
+    nsCOMPtr<nsIWidget> widget = popup->GetWidget();
     if (widget) {
-      widget->CaptureRollupEvents(this, this, true,
-                                  popup->ConsumeOutsideClicks());
+      widget->CaptureRollupEvents(this, true, popup->ConsumeOutsideClicks());
       mWidget = widget;
       popup->AttachedDismissalListener();
     }
@@ -2182,7 +2172,7 @@ nsXULPopupManager::KeyDown(nsIDOMKeyEvent* aKeyEvent)
         // The access key just went down and no other
         // modifiers are already down.
         if (mPopups)
-          Rollup(nsnull, nsnull);
+          Rollup(0);
         else if (mActiveMenuBar)
           mActiveMenuBar->MenuClosed();
       }
@@ -2261,7 +2251,7 @@ nsXULPopupManager::KeyPress(nsIDOMKeyEvent* aKeyEvent)
   ) {
     // close popups or deactivate menubar when Tab or F10 are pressed
     if (item)
-      Rollup(nsnull, nsnull);
+      Rollup(0);
     else if (mActiveMenuBar)
       mActiveMenuBar->MenuClosed();
   }
@@ -2379,14 +2369,5 @@ nsXULMenuCommandEvent::Run()
   if (popup && mCloseMenuMode != CloseMenuMode_None)
     pm->HidePopup(popup, mCloseMenuMode == CloseMenuMode_Auto, true, false);
 
-  return NS_OK;
-}
-
-nsresult
-NS_NewXULPopupManager(nsISupports** aResult)
-{
-  nsXULPopupManager* pm = nsXULPopupManager::GetInstance();
-  NS_IF_ADDREF(pm);
-  *aResult = static_cast<nsIMenuRollup *>(pm);
   return NS_OK;
 }

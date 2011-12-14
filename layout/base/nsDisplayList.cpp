@@ -64,6 +64,8 @@
 #include "BasicLayers.h"
 #include "nsBoxFrame.h"
 #include "nsViewportFrame.h"
+#include "nsSVGEffects.h"
+#include "nsSVGClipPathFrame.h"
 
 using namespace mozilla;
 using namespace mozilla::layers;
@@ -620,6 +622,12 @@ void nsDisplayList::PaintForFrame(nsDisplayListBuilder* aBuilder,
                      root, mVisibleRect, mVisibleRect,
                      (usingDisplayport ? &displayport : nsnull), id,
                      containerParameters);
+  if (usingDisplayport &&
+      !(root->GetContentFlags() & Layer::CONTENT_OPAQUE)) {
+    // See bug 693938, attachment 567017
+    NS_WARNING("We don't support transparent content with displayports, force it to be opqaue");
+    root->SetContentFlags(Layer::CONTENT_OPAQUE);
+  }
 
   layerManager->SetRoot(root);
   aBuilder->LayerBuilder()->WillEndTransaction(layerManager);
@@ -1774,10 +1782,26 @@ nsDisplayOpacity::BuildLayer(nsDisplayListBuilder* aBuilder,
   return layer.forget();
 }
 
+/**
+ * This doesn't take into account layer scaling --- the layer may be
+ * rendered at a higher (or lower) resolution, affecting the retained layer
+ * size --- but this should be good enough.
+ */
+static bool
+IsItemTooSmallForActiveLayer(nsDisplayItem* aItem)
+{
+  nsIntRect visibleDevPixels = aItem->GetVisibleRect().ToOutsidePixels(
+          aItem->GetUnderlyingFrame()->PresContext()->AppUnitsPerDevPixel());
+  static const int MIN_ACTIVE_LAYER_SIZE_DEV_PIXELS = 16;
+  return visibleDevPixels.Size() <
+    nsIntSize(MIN_ACTIVE_LAYER_SIZE_DEV_PIXELS, MIN_ACTIVE_LAYER_SIZE_DEV_PIXELS);
+}
+
 nsDisplayItem::LayerState
 nsDisplayOpacity::GetLayerState(nsDisplayListBuilder* aBuilder,
                                 LayerManager* aManager) {
-  if (mFrame->AreLayersMarkedActive(nsChangeHint_UpdateOpacityLayer))
+  if (mFrame->AreLayersMarkedActive(nsChangeHint_UpdateOpacityLayer) &&
+      !IsItemTooSmallForActiveLayer(this))
     return LAYER_ACTIVE;
   nsIFrame* activeScrolledRoot =
     nsLayoutUtils::GetActiveScrolledRootFor(mFrame, nsnull);
@@ -2460,13 +2484,6 @@ gfxPoint3D GetDeltaToMozPerspectiveOrigin(const nsIFrame* aFrame,
       *coords[index] = NSAppUnitsToFloatPixels(coord.GetCoordValue(), aFactor);
     }
   }
-  
-  /**
-   * An offset of (0,0) results in the perspective-origin being at the centre of the element,
-   * so include a shift of the centre point to (0,0).
-   */
-  result.x -= NSAppUnitsToFloatPixels(boundingRect.width, aFactor)/2;
-  result.y -= NSAppUnitsToFloatPixels(boundingRect.height, aFactor)/2;
 
   return result;
 }
@@ -2529,7 +2546,10 @@ nsDisplayTransform::GetResultingTransformMatrix(const nsIFrame* aFrame,
     perspective._34 =
       -1.0 / NSAppUnitsToFloatPixels(parentDisp->mChildPerspective.GetCoordValue(),
                                      aFactor);
-    result = result * nsLayoutUtils::ChangeMatrixBasis(toPerspectiveOrigin, perspective);
+    /* At the point when perspective is applied, we have been translated to the transform origin.
+     * The translation to the perspective origin is the difference between these values.
+     */
+    result = result * nsLayoutUtils::ChangeMatrixBasis(toPerspectiveOrigin - toMozOrigin, perspective);
   }
 
   if (aFrame->Preserves3D() && nsLayoutUtils::Are3DTransformsEnabled()) {
@@ -2590,7 +2610,7 @@ already_AddRefed<Layer> nsDisplayTransform::BuildLayer(nsDisplayListBuilder *aBu
 
   // Add the preserve-3d flag for this layer, BuildContainerLayerFor clears all flags,
   // so we never need to explicitely unset this flag.
-  if (mFrame->Preserves3D()) {
+  if (mFrame->Preserves3D() || mFrame->Preserves3DChildren()) {
     container->SetContentFlags(container->GetContentFlags() | Layer::CONTENT_PRESERVE_3D);
   }
   return container.forget();
@@ -2599,7 +2619,10 @@ already_AddRefed<Layer> nsDisplayTransform::BuildLayer(nsDisplayListBuilder *aBu
 nsDisplayItem::LayerState
 nsDisplayTransform::GetLayerState(nsDisplayListBuilder* aBuilder,
                                   LayerManager* aManager) {
-  if (mFrame->AreLayersMarkedActive(nsChangeHint_UpdateTransformLayer))
+  // Here we check if the *post-transform* bounds of this item are big enough
+  // to justify an active layer.
+  if (mFrame->AreLayersMarkedActive(nsChangeHint_UpdateTransformLayer) &&
+      !IsItemTooSmallForActiveLayer(this))
     return LAYER_ACTIVE;
   if (!GetTransform(mFrame->PresContext()->AppUnitsPerDevPixel()).Is2D() || mFrame->Preserves3D())
     return LAYER_ACTIVE;
@@ -2978,19 +3001,43 @@ bool nsDisplaySVGEffects::TryMerge(nsDisplayListBuilder* aBuilder, nsDisplayItem
   return true;
 }
 
-nsDisplayForcePaintOnScroll::nsDisplayForcePaintOnScroll(
-    nsDisplayListBuilder* aBuilder, nsIFrame* aFrame)
-  : nsDisplayItem(aBuilder, aFrame) {
-  MOZ_COUNT_CTOR(nsDisplayForcePaintOnScroll);
-}
-
-#ifdef NS_BUILD_REFCNT_LOGGING
-nsDisplayForcePaintOnScroll::~nsDisplayForcePaintOnScroll() {
-  MOZ_COUNT_DTOR(nsDisplayForcePaintOnScroll);
+#ifdef MOZ_DUMP_PAINTING
+void
+nsDisplaySVGEffects::PrintEffects(FILE* aOutput)
+{
+  nsIFrame* firstFrame =
+    nsLayoutUtils::GetFirstContinuationOrSpecialSibling(mEffectsFrame);
+  nsSVGEffects::EffectProperties effectProperties =
+    nsSVGEffects::GetEffectProperties(firstFrame);
+  bool isOK = true;
+  nsSVGClipPathFrame *clipPathFrame = effectProperties.GetClipPathFrame(&isOK);
+  bool first = true;
+  fprintf(aOutput, " effects=(");
+  if (mEffectsFrame->GetStyleDisplay()->mOpacity != 1.0f) {
+    first = false;
+    fprintf(aOutput, "opacity(%f)", mEffectsFrame->GetStyleDisplay()->mOpacity);
+  }
+  if (clipPathFrame) {
+    if (!first) {
+      fprintf(aOutput, ", ");
+    }
+    fprintf(aOutput, "clip(%s)", clipPathFrame->IsTrivial() ? "trivial" : "non-trivial");
+    first = false;
+  }
+  if (effectProperties.GetFilterFrame(&isOK)) {
+    if (!first) {
+      fprintf(aOutput, ", ");
+    }
+    fprintf(aOutput, "filter");
+    first = false;
+  }
+  if (effectProperties.GetMaskFrame(&isOK)) {
+    if (!first) {
+      fprintf(aOutput, ", ");
+    }
+    fprintf(aOutput, "mask");
+  }
+  fprintf(aOutput, ")");
 }
 #endif
 
-bool nsDisplayForcePaintOnScroll::IsVaryingRelativeToMovingFrame(
-         nsDisplayListBuilder* aBuilder, nsIFrame* aFrame) {
-  return true;
-}

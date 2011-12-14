@@ -105,7 +105,7 @@ NS_NewDOMDocument(nsIDOMDocument** aInstancePtrResult,
                   nsIPrincipal* aPrincipal,
                   bool aLoadedAsData,
                   nsIScriptGlobalObject* aEventObject,
-                  bool aSVGDocument)
+                  DocumentFlavor aFlavor)
 {
   // Note: can't require that aDocumentURI/aBaseURI/aPrincipal be non-null,
   // since at least one caller (XMLHttpRequest) doesn't have decent args to
@@ -118,8 +118,11 @@ NS_NewDOMDocument(nsIDOMDocument** aInstancePtrResult,
   nsCOMPtr<nsIDocument> d;
   bool isHTML = false;
   bool isXHTML = false;
-  if (aSVGDocument) {
+  if (aFlavor == DocumentFlavorSVG) {
     rv = NS_NewSVGDocument(getter_AddRefs(d));
+  } else if (aFlavor == DocumentFlavorHTML) {
+    rv = NS_NewHTMLDocument(getter_AddRefs(d));
+    isHTML = true;
   } else if (aDoctype) {
     nsAutoString publicId, name;
     aDoctype->GetPublicId(publicId);
@@ -217,6 +220,27 @@ NS_NewXMLDocument(nsIDocument** aInstancePtrResult)
   *aInstancePtrResult = doc;
 
   return rv;
+}
+
+nsresult
+NS_NewXBLDocument(nsIDOMDocument** aInstancePtrResult,
+                  nsIURI* aDocumentURI,
+                  nsIURI* aBaseURI,
+                  nsIPrincipal* aPrincipal)
+{
+  nsresult rv = NS_NewDOMDocument(aInstancePtrResult,
+                                  NS_LITERAL_STRING("http://www.mozilla.org/xbl"),
+                                  NS_LITERAL_STRING("bindings"), nsnull,
+                                  aDocumentURI, aBaseURI, aPrincipal, false,
+                                  nsnull, DocumentFlavorLegacyGuess);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDocument> idoc = do_QueryInterface(*aInstancePtrResult);
+  nsDocument* doc = static_cast<nsDocument*>(idoc.get());
+  doc->SetLoadedAsInteractiveData(true);
+  doc->SetReadyStateInternal(nsIDocument::READYSTATE_COMPLETE);
+
+  return NS_OK;
 }
 
   // NOTE! nsDocument::operator new() zeroes out all members, so don't

@@ -187,7 +187,7 @@ class AlreadyIncRefed
     RefCountable *obj;
 
   public:
-    explicit AlreadyIncRefed(RefCountable *obj) : obj(obj) {}
+    explicit AlreadyIncRefed(RefCountable *obj = NULL) : obj(obj) {}
 
     bool null() const { return obj == NULL; }
     operator ConvertibleToBool() const { return (ConvertibleToBool)obj; }
@@ -205,7 +205,7 @@ class NeedsIncRef
     RefCountable *obj;
 
   public:
-    explicit NeedsIncRef(RefCountable *obj) : obj(obj) {}
+    explicit NeedsIncRef(RefCountable *obj = NULL) : obj(obj) {}
 
     bool null() const { return obj == NULL; }
     operator ConvertibleToBool() const { return (ConvertibleToBool)obj; }
@@ -378,18 +378,9 @@ inline __attribute__ ((unused)) void MUST_FLOW_THROUGH(const char *label) {}
 /* Avoid unused goto-label warnings. */
 # define MUST_FLOW_LABEL(label) goto label; label:
 
-inline JS_FORCES_STACK void VOUCH_DOES_NOT_REQUIRE_STACK() {}
-
-inline JS_FORCES_STACK void
-JS_ASSERT_NOT_ON_TRACE(JSContext *cx)
-{
-    JS_ASSERT(!JS_ON_TRACE(cx));
-}
 #else
 # define MUST_FLOW_THROUGH(label)            ((void) 0)
 # define MUST_FLOW_LABEL(label)
-# define VOUCH_DOES_NOT_REQUIRE_STACK()      ((void) 0)
-# define JS_ASSERT_NOT_ON_TRACE(cx)          JS_ASSERT(!JS_ON_TRACE(cx))
 #endif
 
 /* Crash diagnostics */
@@ -448,7 +439,5 @@ typedef size_t jsbitmap;
                                  ((jsbitmap)1<<((_bit)&(JS_BITS_PER_WORD-1))))
 #define JS_CLEAR_BIT(_map,_bit) ((_map)[(_bit)>>JS_BITS_PER_WORD_LOG2] &=     \
                                  ~((jsbitmap)1<<((_bit)&(JS_BITS_PER_WORD-1))))
-
-#define VOUCH_HAVE_STACK                    VOUCH_DOES_NOT_REQUIRE_STACK
 
 #endif /* jsutil_h___ */

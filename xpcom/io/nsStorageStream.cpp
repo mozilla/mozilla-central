@@ -123,11 +123,11 @@ nsStorageStream::GetOutputStream(PRInt32 aStartingOffset,
     // all the other segments in the buffer.  (It may have been realloc'ed
     // smaller in the Close() method.)
     if (mLastSegmentNum >= 0)
-        mSegmentedBuffer->ReallocLastSegment(mSegmentSize);
-
-    // Need to re-Seek, since realloc might have changed segment base pointer
-    rv = Seek(aStartingOffset);
-    if (NS_FAILED(rv)) return rv;
+        if (mSegmentedBuffer->ReallocLastSegment(mSegmentSize)) {
+            // Need to re-Seek, since realloc changed segment base pointer
+            rv = Seek(aStartingOffset);
+            if (NS_FAILED(rv)) return rv;
+        }
 
     NS_ADDREF(this);
     *aOutputStream = static_cast<nsIOutputStream*>(this);
@@ -238,7 +238,7 @@ nsStorageStream::WriteSegments(nsReadSegmentFun reader, void * closure, PRUint32
 NS_IMETHODIMP 
 nsStorageStream::IsNonBlocking(bool *aNonBlocking)
 {
-    *aNonBlocking = true;
+    *aNonBlocking = false;
     return NS_OK;
 }
 

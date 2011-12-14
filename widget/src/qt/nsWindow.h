@@ -128,14 +128,12 @@ public:
                               const nsIntRect  &aRect,
                               EVENT_CALLBACK   aHandleEventFunction,
                               nsDeviceContext *aContext,
-                              nsIToolkit       *aToolkit,
                               nsWidgetInitData *aInitData);
 
     virtual already_AddRefed<nsIWidget>
     CreateChild(const nsIntRect&  aRect,
                 EVENT_CALLBACK    aHandleEventFunction,
                 nsDeviceContext* aContext,
-                nsIToolkit*       aToolkit = nsnull,
                 nsWidgetInitData* aInitData = nsnull,
                 bool              aForceUseIWidgetParent = true);
 
@@ -188,7 +186,6 @@ public:
     NS_IMETHOD         EnableDragDrop(bool aEnable);
     NS_IMETHOD         CaptureMouse(bool aCapture);
     NS_IMETHOD         CaptureRollupEvents(nsIRollupListener *aListener,
-                                           nsIMenuRollup *aMenuRollup,
                                            bool aDoCapture,
                                            bool aConsumeRollupEvent);
 
@@ -197,8 +194,9 @@ public:
     NS_IMETHOD         GetAttention(PRInt32 aCycleCount);
     NS_IMETHOD         BeginResizeDrag   (nsGUIEvent* aEvent, PRInt32 aHorizontal, PRInt32 aVertical);
 
-    NS_IMETHODIMP      SetInputMode(const IMEContext& aContext);
-    NS_IMETHODIMP      GetInputMode(IMEContext& aContext);
+    NS_IMETHOD_(void) SetInputContext(const InputContext& aContext,
+                                      const InputContextAction& aAction);
+    NS_IMETHOD_(InputContext) GetInputContext();
 
     //
     // utility methods
@@ -253,7 +251,7 @@ protected:
     // leaving fullscreen
     nsSizeMode         mLastSizeMode;
 
-    IMEContext          mIMEContext;
+    InputContext mInputContext;
 
     /**
      * Event handlers (proxied from the actual qwidget).
@@ -348,7 +346,7 @@ private:
     MozQWidget*        createQWidget(MozQWidget* parent,
                                      nsNativeWidget nativeParent,
                                      nsWidgetInitData* aInitData);
-    void               SetSoftwareKeyboardState(bool aOpen);
+    void               SetSoftwareKeyboardState(bool aOpen, const InputContextAction& aAction);
 
     MozQWidget*        mWidget;
 

@@ -50,7 +50,11 @@ LIBXUL_LIBRARY = 1
 
 CPPSRCS = \
   nsAppStartup.cpp \
+  StartupTimeline.cpp \
   $(NULL)
+
+EXPORTS_NAMESPACES = mozilla
+EXPORTS_mozilla = StartupTimeline.h
 
 ifeq (os2,$(MOZ_WIDGET_TOOLKIT))
 CPPSRCS += nsUserInfoOS2.cpp
@@ -65,8 +69,6 @@ CPPSRCS += nsUserInfoUnix.cpp
 endif
 endif
 endif
-
-EXTRA_COMPONENTS = nsTryToClose.js nsTryToClose.manifest
 
 ifdef ENABLE_TESTS
 ifneq (mobile,$(MOZ_BUILD_APP))

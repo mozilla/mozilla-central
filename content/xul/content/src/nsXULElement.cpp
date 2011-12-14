@@ -656,14 +656,7 @@ nsXULElement::PerformAccesskey(bool aKeyCausesActivation,
     }
 
     nsIFrame* frame = content->GetPrimaryFrame();
-    if (!frame)
-        return;
-
-    const nsStyleVisibility* vis = frame->GetStyleVisibility();
-
-    if (vis->mVisible == NS_STYLE_VISIBILITY_COLLAPSE ||
-        vis->mVisible == NS_STYLE_VISIBILITY_HIDDEN ||
-        !frame->AreAncestorViewsVisible())
+    if (!frame || !frame->IsVisibleConsideringAncestors())
         return;
 
     nsXULElement* elm = FromContent(content);
@@ -734,7 +727,7 @@ nsScriptEventHandlerOwnerTearoff::GetCompiledEventHandler(
         mElement->FindPrototypeAttribute(kNameSpaceID_None, aName);
     if (attr) {
         XUL_PROTOTYPE_ATTRIBUTE_METER(gNumCacheHits);
-        aHandler.set(attr->mEventHandler);
+        aHandler.setObject(attr->mEventHandler);
     }
 
     return NS_OK;
@@ -822,7 +815,7 @@ nsScriptEventHandlerOwnerTearoff::CompileEventHandler(
 
             elem->mHoldsScriptObject = true;
         }
-        attr->mEventHandler = (void *)aHandler;
+        attr->mEventHandler = aHandler.getObject();
     }
 
     return NS_OK;
@@ -2574,7 +2567,7 @@ NS_IMPL_CYCLE_COLLECTION_TRACE_NATIVE_BEGIN(nsXULPrototypeNode)
         if (elem->mHoldsScriptObject) {
             PRUint32 i;
             for (i = 0; i < elem->mNumAttributes; ++i) {
-                void *handler = elem->mAttributes[i].mEventHandler;
+                JSObject* handler = elem->mAttributes[i].mEventHandler;
                 NS_IMPL_CYCLE_COLLECTION_TRACE_CALLBACK(elem->mScriptTypeID,
                                                         handler,
                                                         "mAttributes[i].mEventHandler")
@@ -3046,7 +3039,8 @@ nsXULPrototypeScript::DeserializeOutOfLine(nsIObjectInputStream* aInput,
 
             if (useXULCache) {
                 PRUint32 newLangID = nsIProgrammingLanguage::UNKNOWN;
-                void *newScriptObject = cache->GetScript(mSrcURI, &newLangID);
+                JSScript* newScriptObject =
+                    cache->GetScript(mSrcURI, &newLangID);
                 if (newScriptObject) {
                     // Things may blow here if we simply change the script
                     // language - other code may already have pre-fetched the
@@ -3147,7 +3141,6 @@ nsXULPrototypeScript::Compile(const PRUnichar* aText,
     nsScriptObjectHolder newScriptObject(context);
     rv = context->CompileScript(aText,
                                 aTextLength,
-                                nsnull,
                                 // Use the enclosing document's principal
                                 // XXX is this right? or should we use the
                                 // protodoc's?
@@ -3177,7 +3170,7 @@ nsXULPrototypeScript::UnlinkJSObjects()
 }
 
 void
-nsXULPrototypeScript::Set(void *aObject)
+nsXULPrototypeScript::Set(JSScript* aObject)
 {
     NS_ASSERTION(!mScriptObject.mObject, "Leaking script object.");
     if (!aObject) {

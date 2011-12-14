@@ -474,8 +474,6 @@ void imgFrame::Draw(gfxContext *aContext, gfxPattern::GraphicsFilter aFilter,
 nsresult imgFrame::Extract(const nsIntRect& aRegion, imgFrame** aResult)
 {
   nsAutoPtr<imgFrame> subImage(new imgFrame());
-  if (!subImage)
-    return NS_ERROR_OUT_OF_MEMORY;
 
   // The scaling problems described in bug 468496 are especially
   // likely to be visible for the sub-image, as at present the only
@@ -536,26 +534,6 @@ nsresult imgFrame::ImageUpdated(const nsIntRect &aUpdateRect)
     mQuartzSurface->Flush();
 #endif
   return NS_OK;
-}
-
-PRInt32 imgFrame::GetX() const
-{
-  return mOffset.x;
-}
-
-PRInt32 imgFrame::GetY() const
-{
-  return mOffset.y;
-}
-
-PRInt32 imgFrame::GetWidth() const
-{
-  return mSize.width;
-}
-
-PRInt32 imgFrame::GetHeight() const
-{
-  return mSize.height;
 }
 
 nsIntRect imgFrame::GetRect() const

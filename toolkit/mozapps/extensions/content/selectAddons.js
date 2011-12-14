@@ -38,6 +38,7 @@
 "use strict";
 
 Components.utils.import("resource://gre/modules/AddonManager.jsm");
+Components.utils.import("resource://gre/modules/AddonRepository.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 const Cc = Components.classes;
@@ -80,13 +81,7 @@ function isAddonDistroInstalled(aID) {
 }
 
 function orderForScope(aScope) {
-  switch (aScope) {
-  case AddonManager.SCOPE_PROFILE:
-  case AddonManager.SCOPE_APPLICATION:
-    return 1;
-  default:
-    return 0;
-  }
+  return aScope == AddonManager.SCOPE_PROFILE ? 1 : 0;
 }
 
 var gAddons = {};
@@ -130,17 +125,25 @@ var gChecking = {
       self._progress.max = aAddons.length;
       self._progress.mode = "determined";
 
-      aAddons.forEach(function(aAddon) {
-        // Ignore disabled themes
-        if (aAddon.type != "theme" || !aAddon.userDisabled) {
-          gAddons[aAddon.id] = {
-            addon: aAddon,
-            install: null,
-            wasActive: aAddon.isActive
-          }
-        }
+      // Ensure compatibility overrides are up to date before checking for
+      // individual addon updates.
+      let ids = [addon.id for each (addon in aAddons)];
+      AddonRepository.repopulateCache(ids, function() {
+        AddonManagerPrivate.updateAddonRepositoryData(function() {
 
-        aAddon.findUpdates(self, AddonManager.UPDATE_WHEN_NEW_APP_INSTALLED);
+          aAddons.forEach(function(aAddon) {
+            // Ignore disabled themes
+            if (aAddon.type != "theme" || !aAddon.userDisabled) {
+              gAddons[aAddon.id] = {
+                addon: aAddon,
+                install: null,
+                wasActive: aAddon.isActive
+              }
+            }
+
+            aAddon.findUpdates(self, AddonManager.UPDATE_WHEN_NEW_APP_INSTALLED);
+          });
+        });
       });
     });
   },

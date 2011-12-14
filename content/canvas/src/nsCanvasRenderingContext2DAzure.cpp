@@ -115,13 +115,11 @@
 #include "mozilla/ipc/DocumentRendererParent.h"
 
 #include "mozilla/gfx/2D.h"
+#include "mozilla/gfx/PathHelpers.h"
+#include "mozilla/Preferences.h"
 
 #ifdef XP_WIN
 #include "gfxWindowsPlatform.h"
-#endif
-
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
 #endif
 
 // windows.h (included by chromium code) defines this, in its infinite wisdom
@@ -440,6 +438,9 @@ public:
     STYLE_FILL,
     STYLE_MAX
   };
+  
+  nsresult LineTo(const Point& aPoint);
+  nsresult BezierTo(const Point& aCP1, const Point& aCP2, const Point& aCP3);
 
 protected:
   nsresult InitializeWithTarget(DrawTarget *surface, PRInt32 width, PRInt32 height);
@@ -988,15 +989,16 @@ PRUint8 (*nsCanvasRenderingContext2DAzure::sPremultiplyTable)[256] = nsnull;
 nsresult
 NS_NewCanvasRenderingContext2DAzure(nsIDOMCanvasRenderingContext2D** aResult)
 {
-#ifndef XP_WIN
-  return NS_ERROR_NOT_AVAILABLE;
-#else
-
-  if (gfxWindowsPlatform::GetPlatform()->GetRenderMode() !=
+#ifdef XP_WIN
+  if ((gfxWindowsPlatform::GetPlatform()->GetRenderMode() !=
       gfxWindowsPlatform::RENDER_DIRECT2D ||
-      !gfxWindowsPlatform::GetPlatform()->DWriteEnabled()) {
+      !gfxWindowsPlatform::GetPlatform()->DWriteEnabled()) &&
+      !Preferences::GetBool("gfx.canvas.azure.prefer-skia", false)) {
     return NS_ERROR_NOT_AVAILABLE;
   }
+#elif !defined(XP_MACOSX) && !defined(ANDROID)
+  return NS_ERROR_NOT_AVAILABLE;
+#endif
 
   nsRefPtr<nsIDOMCanvasRenderingContext2D> ctx = new nsCanvasRenderingContext2DAzure();
   if (!ctx)
@@ -1004,7 +1006,6 @@ NS_NewCanvasRenderingContext2DAzure(nsIDOMCanvasRenderingContext2D** aResult)
 
   *aResult = ctx.forget().get();
   return NS_OK;
-#endif
 }
 
 nsCanvasRenderingContext2DAzure::nsCanvasRenderingContext2DAzure()
@@ -1253,7 +1254,7 @@ nsCanvasRenderingContext2DAzure::SetDimensions(PRInt32 width, PRInt32 height)
     if (layerManager) {
       target = layerManager->CreateDrawTarget(size, format);
     } else {
-      target = Factory::CreateDrawTarget(BACKEND_DIRECT2D, size, format);
+      target = gfxPlatform::GetPlatform()->CreateOffscreenDrawTarget(size, format);
     }
   }
 
@@ -1264,7 +1265,10 @@ nsCanvasRenderingContext2DAzure::SetDimensions(PRInt32 width, PRInt32 height)
     }
 
     gCanvasAzureMemoryUsed += width * height * 4;
-    JS_updateMallocCounter(nsContentUtils::GetCurrentJSContext(), width * height * 4);
+    JSContext* context = nsContentUtils::GetCurrentJSContext();
+    if (context) {
+      JS_updateMallocCounter(context, width * height * 4);
+    }
   }
 
   return InitializeWithTarget(target, width, height);
@@ -1290,7 +1294,7 @@ nsCanvasRenderingContext2DAzure::InitializeWithTarget(DrawTarget *target, PRInt3
    */
   if (!target)
   {
-    mTarget = Factory::CreateDrawTarget(BACKEND_DIRECT2D, IntSize(1, 1), FORMAT_B8G8R8A8);
+    mTarget = gfxPlatform::GetPlatform()->CreateOffscreenDrawTarget(IntSize(1, 1), FORMAT_B8G8R8A8);
   } else {
     mValid = true;
   }
@@ -1885,7 +1889,8 @@ nsCanvasRenderingContext2DAzure::CreatePattern(nsIDOMHTMLElement *image,
                                                const nsAString& repeat,
                                                nsIDOMCanvasPattern **_retval)
 {
-  if (!image) {
+  nsCOMPtr<nsIContent> content = do_QueryInterface(image);
+  if (!content) {
     return NS_ERROR_DOM_TYPE_MISMATCH_ERR;
   }
 
@@ -1904,39 +1909,32 @@ nsCanvasRenderingContext2DAzure::CreatePattern(nsIDOMHTMLElement *image,
     return NS_ERROR_DOM_SYNTAX_ERR;
   }
 
-  nsCOMPtr<nsIContent> content = do_QueryInterface(image);
   nsHTMLCanvasElement* canvas = nsHTMLCanvasElement::FromContent(content);
-
   if (canvas) {
     nsIntSize size = canvas->GetSize();
     if (size.width == 0 || size.height == 0) {
       return NS_ERROR_DOM_INVALID_STATE_ERR;
     }
-  }
 
-  // Special case for Canvas, which could be an Azure canvas!
-  if (canvas) {
-    if (canvas->CountContexts() == 1) {
-      nsICanvasRenderingContextInternal *srcCanvas = canvas->GetContextAtIndex(0);
-
+    // Special case for Canvas, which could be an Azure canvas!
+    nsICanvasRenderingContextInternal *srcCanvas = canvas->GetContextAtIndex(0);
+    if (srcCanvas) {
       // This might not be an Azure canvas!
-      if (srcCanvas) {
-        RefPtr<SourceSurface> srcSurf = srcCanvas->GetSurfaceSnapshot();
+      RefPtr<SourceSurface> srcSurf = srcCanvas->GetSurfaceSnapshot();
 
-        nsRefPtr<nsCanvasPatternAzure> pat =
-          new nsCanvasPatternAzure(srcSurf, repeatMode, content->NodePrincipal(), canvas->IsWriteOnly(), false);
+      nsRefPtr<nsCanvasPatternAzure> pat =
+        new nsCanvasPatternAzure(srcSurf, repeatMode, content->NodePrincipal(), canvas->IsWriteOnly(), false);
 
-        *_retval = pat.forget().get();
-        return NS_OK;
-      }
+      *_retval = pat.forget().get();
+      return NS_OK;
     }
   }
 
   // The canvas spec says that createPattern should use the first frame
   // of animated images
   nsLayoutUtils::SurfaceFromElementResult res =
-    nsLayoutUtils::SurfaceFromElement(image, nsLayoutUtils::SFE_WANT_FIRST_FRAME |
-                                              nsLayoutUtils::SFE_WANT_NEW_SURFACE);
+    nsLayoutUtils::SurfaceFromElement(content->AsElement(),
+      nsLayoutUtils::SFE_WANT_FIRST_FRAME | nsLayoutUtils::SFE_WANT_NEW_SURFACE);
 
   if (!res.mSurface) {
     return NS_ERROR_NOT_AVAILABLE;
@@ -2312,10 +2310,16 @@ nsCanvasRenderingContext2DAzure::LineTo(float x, float y)
 
   EnsureWritablePath();
     
+  return LineTo(Point(x, y));;
+}
+  
+nsresult 
+nsCanvasRenderingContext2DAzure::LineTo(const Point& aPoint)
+{
   if (mPathBuilder) {
-    mPathBuilder->LineTo(Point(x, y));
+    mPathBuilder->LineTo(aPoint);
   } else {
-    mDSPathBuilder->LineTo(mTarget->GetTransform() * Point(x, y));
+    mDSPathBuilder->LineTo(mTarget->GetTransform() * aPoint);
   }
 
   return NS_OK;
@@ -2351,13 +2355,21 @@ nsCanvasRenderingContext2DAzure::BezierCurveTo(float cp1x, float cp1y,
 
   EnsureWritablePath();
 
+  return BezierTo(Point(cp1x, cp1y), Point(cp2x, cp2y), Point(x, y));
+}
+
+nsresult
+nsCanvasRenderingContext2DAzure::BezierTo(const Point& aCP1,
+                                          const Point& aCP2,
+                                          const Point& aCP3)
+{
   if (mPathBuilder) {
-    mPathBuilder->BezierTo(Point(cp1x, cp1y), Point(cp2x, cp2y), Point(x, y));
+    mPathBuilder->BezierTo(aCP1, aCP2, aCP3);
   } else {
     Matrix transform = mTarget->GetTransform();
-    mDSPathBuilder->BezierTo(transform * Point(cp1x, cp1y),
-                              transform * Point(cp2x, cp2y),
-                              transform * Point(x, y));
+    mDSPathBuilder->BezierTo(transform * aCP1,
+                              transform * aCP2,
+                              transform * aCP3);
   }
 
   return NS_OK;
@@ -2458,83 +2470,7 @@ nsCanvasRenderingContext2DAzure::Arc(float x, float y,
 
   EnsureWritablePath();
 
-  // We convert to Bezier curve here, since we need to be able to write in
-  // device space, but a transformed arc is no longer representable by an arc.
-
-  Point startPoint(x + cos(startAngle) * r, y + sin(startAngle) * r);
-
-  if (mPathBuilder) {
-    mPathBuilder->LineTo(startPoint);
-  } else {
-    mDSPathBuilder->LineTo(mTarget->GetTransform() * startPoint);
-  }
-
-  // Clockwise we always sweep from the smaller to the larger angle, ccw
-  // it's vice versa.
-  if (!ccw && (endAngle < startAngle)) {
-    Float correction = ceil((startAngle - endAngle) / (2.0f * M_PI));
-    endAngle += correction * 2.0f * M_PI;
-  } else if (ccw && (startAngle < endAngle)) {
-    Float correction = ceil((endAngle - startAngle) / (2.0f * M_PI));
-    startAngle += correction * 2.0f * M_PI;
-  }
-
-  // Sweeping more than 2 * pi is a full circle.
-  if (!ccw && (endAngle - startAngle > 2 * M_PI)) {
-    endAngle = startAngle + 2.0f * M_PI;
-  } else if (ccw && (startAngle - endAngle > 2.0f * M_PI)) {
-    endAngle = startAngle - 2.0f * M_PI;
-  }
-
-  // Calculate the total arc we're going to sweep.
-  Float arcSweepLeft = abs(endAngle - startAngle);
-
-  Float sweepDirection = ccw ? -1.0f : 1.0f;
-
-  Float currentStartAngle = startAngle;
-
-  while (arcSweepLeft > 0) {
-    // We guarantee here the current point is the start point of the next
-    // curve segment.
-    Float currentEndAngle;
-
-    if (arcSweepLeft > M_PI / 2.0f) {
-      currentEndAngle = currentStartAngle + M_PI / 2.0f * sweepDirection;
-    } else {
-      currentEndAngle = currentStartAngle + arcSweepLeft * sweepDirection;
-    }
-
-    Point currentStartPoint(x + cos(currentStartAngle) * r,
-                              y + sin(currentStartAngle) * r);
-    Point currentEndPoint(x + cos(currentEndAngle) * r,
-                            y + sin(currentEndAngle) * r);
-
-    // Calculate kappa constant for partial curve. The sign of angle in the
-    // tangent will actually ensure this is negative for a counter clockwise
-    // sweep, so changing signs later isn't needed.
-    Float kappa = (4.0f / 3.0f) * tan((currentEndAngle - currentStartAngle) / 4.0f) * r;
-
-    Point tangentStart(-sin(currentStartAngle), cos(currentStartAngle));
-    Point cp1 = currentStartPoint;
-    cp1 += tangentStart * kappa;
-
-    Point revTangentEnd(sin(currentEndAngle), -cos(currentEndAngle));
-    Point cp2 = currentEndPoint;
-    cp2 += revTangentEnd * kappa;
-
-    if (mPathBuilder) {
-      mPathBuilder->BezierTo(cp1, cp2, currentEndPoint);
-    } else {
-      mDSPathBuilder->BezierTo(mTarget->GetTransform() * cp1,
-                               mTarget->GetTransform() * cp2,
-                               mTarget->GetTransform() * currentEndPoint);
-    }
-
-    arcSweepLeft -= M_PI / 2.0f;
-    currentStartAngle = currentEndAngle;
-  }
-
-
+  ArcToBezier(this, Point(x, y), r, startAngle, endAngle, ccw);
   return NS_OK;
 }
 
@@ -3034,7 +2970,7 @@ struct NS_STACK_CLASS nsCanvasBidiProcessorAzure : public nsBidiPresUtils::BidiP
   virtual void DrawText(nscoord xOffset, nscoord width)
   {
     gfxPoint point = mPt;
-    point.x += xOffset * mAppUnitsPerDevPixel;
+    point.x += xOffset;
 
     // offset is given in terms of left side of string
     if (mTextRun->IsRightToLeft()) {
@@ -3628,7 +3564,8 @@ nsCanvasRenderingContext2DAzure::DrawImage(nsIDOMElement *imgElt, float a1,
                                            float a6, float a7, float a8,
                                            PRUint8 optional_argc)
 {
-  if (!imgElt) {
+  nsCOMPtr<nsIContent> content = do_QueryInterface(imgElt);
+  if (!content) {
     return NS_ERROR_DOM_TYPE_MISMATCH_ERR;
   }
 
@@ -3649,50 +3586,39 @@ nsCanvasRenderingContext2DAzure::DrawImage(nsIDOMElement *imgElt, float a1,
   double sx,sy,sw,sh;
   double dx,dy,dw,dh;
 
-  nsCOMPtr<nsIContent> content = do_QueryInterface(imgElt);
+  RefPtr<SourceSurface> srcSurf;
+  gfxIntSize imgSize;
+
   nsHTMLCanvasElement* canvas = nsHTMLCanvasElement::FromContent(content);
   if (canvas) {
     nsIntSize size = canvas->GetSize();
     if (size.width == 0 || size.height == 0) {
       return NS_ERROR_DOM_INVALID_STATE_ERR;
     }
-  }
-    
-  RefPtr<SourceSurface> srcSurf;
 
-  gfxIntSize imgSize;
-  nsRefPtr<gfxASurface> imgsurf =
-    CanvasImageCache::Lookup(imgElt, HTMLCanvasElement(), &imgSize);
-
-  if (imgsurf) {
-    srcSurf = gfxPlatform::GetPlatform()->GetSourceSurfaceForSurface(mTarget, imgsurf);
-  }
-
-  // We know an Azure canvas always has an HTMLCanvasElement!
-  if (canvas == HTMLCanvasElement()) {
-    // Self-copy.
-    srcSurf = mTarget->Snapshot();
-    imgSize = gfxIntSize(mWidth, mHeight);
-  }
-
-  // Special case for Canvas, which could be an Azure canvas!
-  if (canvas) {
-    if (canvas->CountContexts() == 1) {
-      nsICanvasRenderingContextInternal *srcCanvas = canvas->GetContextAtIndex(0);
-
+    // Special case for Canvas, which could be an Azure canvas!
+    nsICanvasRenderingContextInternal *srcCanvas = canvas->GetContextAtIndex(0);
+    if (srcCanvas == this) {
+      // Self-copy.
+      srcSurf = mTarget->Snapshot();
+      imgSize = gfxIntSize(mWidth, mHeight);
+    } else if (srcCanvas) {
       // This might not be an Azure canvas!
-      if (srcCanvas) {
-        srcSurf = srcCanvas->GetSurfaceSnapshot();
+      srcSurf = srcCanvas->GetSurfaceSnapshot();
 
-        if (srcSurf && mCanvasElement) {
-          // Do security check here.
-          CanvasUtils::DoDrawImageSecurityCheck(HTMLCanvasElement(),
-                                                content->NodePrincipal(), canvas->IsWriteOnly(),
-                                                false);
-
-          imgSize = gfxIntSize(srcSurf->GetSize().width, srcSurf->GetSize().height);
-        }
+      if (srcSurf && mCanvasElement) {
+        // Do security check here.
+        CanvasUtils::DoDrawImageSecurityCheck(HTMLCanvasElement(),
+                                              content->NodePrincipal(), canvas->IsWriteOnly(),
+                                              false);
+        imgSize = gfxIntSize(srcSurf->GetSize().width, srcSurf->GetSize().height);
       }
+    }
+  } else {
+    gfxASurface* imgsurf =
+      CanvasImageCache::Lookup(imgElt, HTMLCanvasElement(), &imgSize);
+    if (imgsurf) {
+      srcSurf = gfxPlatform::GetPlatform()->GetSourceSurfaceForSurface(mTarget, imgsurf);
     }
   }
 
@@ -3701,19 +3627,18 @@ nsCanvasRenderingContext2DAzure::DrawImage(nsIDOMElement *imgElt, float a1,
     // of animated images
     PRUint32 sfeFlags = nsLayoutUtils::SFE_WANT_FIRST_FRAME;
     nsLayoutUtils::SurfaceFromElementResult res =
-      nsLayoutUtils::SurfaceFromElement(imgElt, sfeFlags);
+      nsLayoutUtils::SurfaceFromElement(content->AsElement(), sfeFlags);
 
     if (!res.mSurface) {
       // Spec says to silently do nothing if the element is still loading.
       return res.mIsStillLoading ? NS_OK : NS_ERROR_NOT_AVAILABLE;
     }
 
-    // Ignore nsnull cairo surfaces! See bug 666312.
-    if (!res.mSurface->CairoSurface()) {
+    // Ignore cairo surfaces that are bad! See bug 666312.
+    if (res.mSurface->CairoStatus()) {
       return NS_OK;
     }
 
-    imgsurf = res.mSurface.forget();
     imgSize = res.mSize;
 
     if (mCanvasElement) {
@@ -3724,10 +3649,10 @@ nsCanvasRenderingContext2DAzure::DrawImage(nsIDOMElement *imgElt, float a1,
 
     if (res.mImageRequest) {
       CanvasImageCache::NotifyDrawImage(imgElt, HTMLCanvasElement(),
-                                        res.mImageRequest, imgsurf, imgSize);
+                                        res.mImageRequest, res.mSurface, imgSize);
     }
 
-    srcSurf = gfxPlatform::GetPlatform()->GetSourceSurfaceForSurface(mTarget, imgsurf);
+    srcSurf = gfxPlatform::GetPlatform()->GetSourceSurfaceForSurface(mTarget, res.mSurface);
   }
 
   if (optional_argc == 0) {

@@ -1,10 +1,13 @@
 DOM_SRCDIRS = \
   dom/base \
+  dom/battery \
+  dom/sms/src \
   dom/src/events \
   dom/src/storage \
   dom/src/offline \
   dom/src/geolocation \
   dom/src/notification \
+  dom/telephony \
   dom/workers \
   content/xbl/src \
   content/xul/document/src \

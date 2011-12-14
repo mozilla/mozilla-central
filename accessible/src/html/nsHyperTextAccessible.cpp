@@ -160,12 +160,8 @@ nsHyperTextAccessible::NativeRole()
 
   // Treat block frames as paragraphs
   nsIFrame *frame = GetFrame();
-  if (frame && frame->GetType() == nsGkAtoms::blockFrame &&
-      frame->GetContent()->Tag() != nsGkAtoms::input) {
-    // An html:input @type="file" is the only input that is exposed as a
-    // blockframe. It must be exposed as ROLE_TEXT_CONTAINER for JAWS.
+  if (frame && frame->GetType() == nsGkAtoms::blockFrame)
     return nsIAccessibleRole::ROLE_PARAGRAPH;
-  }
 
   return nsIAccessibleRole::ROLE_TEXT_CONTAINER; // In ATK this works
 }
@@ -2058,6 +2054,25 @@ nsHyperTextAccessible::ScrollSubstringToPoint(PRInt32 aStartIndex,
 
 ////////////////////////////////////////////////////////////////////////////////
 // nsAccessible public
+
+nsresult
+nsHyperTextAccessible::GetNameInternal(nsAString& aName)
+{
+  nsresult rv = nsAccessibleWrap::GetNameInternal(aName);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Get name from title attribute for HTML abbr and acronym elements making it
+  // a valid name from markup. Otherwise their name isn't picked up by recursive
+  // name computation algorithm. See NS_OK_NAME_FROM_TOOLTIP.
+  if (aName.IsEmpty() && IsAbbreviation()) {
+    nsAutoString name;
+    if (mContent->GetAttr(kNameSpaceID_None, nsGkAtoms::title, name)) {
+      name.CompressWhitespace();
+      aName = name;
+    }
+  }
+  return NS_OK;
+}
 
 void
 nsHyperTextAccessible::InvalidateChildren()

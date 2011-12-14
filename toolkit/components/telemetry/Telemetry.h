@@ -39,8 +39,9 @@
 #ifndef Telemetry_h__
 #define Telemetry_h__
 
+#include "mozilla/GuardObjects.h"
 #include "mozilla/TimeStamp.h"
-#include "mozilla/AutoRestore.h"
+#include "mozilla/StartupTimeline.h"
 
 namespace base {
   class Histogram;
@@ -83,8 +84,8 @@ base::Histogram* GetHistogramById(ID id);
 template<ID id>
 class AutoTimer {
 public:
-  AutoTimer(MOZILLA_GUARD_OBJECT_NOTIFIER_ONLY_PARAM)
-    : start(TimeStamp::Now())
+  AutoTimer(TimeStamp aStart = TimeStamp::Now() MOZILLA_GUARD_OBJECT_NOTIFIER_PARAM)
+     : start(aStart)
   {
     MOZILLA_GUARD_OBJECT_NOTIFIER_INIT;
   }
@@ -97,6 +98,24 @@ private:
   const TimeStamp start;
   MOZILLA_DECL_USE_GUARD_OBJECT_NOTIFIER
 };
+
+/**
+ * Records slow SQL statements for Telemetry reporting.
+ * For privacy reasons, only prepared statements are reported.
+ *
+ * @param statement - offending SQL statement to record
+ * @param dbName - DB filename; reporting is only done for whitelisted DBs
+ * @param delay - execution time in milliseconds
+ */
+void RecordSlowSQLStatement(const nsACString &statement,
+                            const nsACString &dbName,
+                            PRUint32 delay);
+
+/**
+ * Threshold for a statement to be considered slow, in milliseconds
+ */
+const PRUint32 kSlowStatementThreshold = 100;
+
 } // namespace Telemetry
 } // namespace mozilla
 #endif // Telemetry_h__

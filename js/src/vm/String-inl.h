@@ -44,22 +44,42 @@
 #include "String.h"
 
 #include "jscntxt.h"
+#include "jsgcmark.h"
+
 #include "jsgcinlines.h"
+
+inline void
+JSString::writeBarrierPre(JSString *str)
+{
+#ifdef JSGC_INCREMENTAL
+    if (!str)
+        return;
+
+    JSCompartment *comp = str->compartment();
+    if (comp->needsBarrier())
+        MarkStringUnbarriered(comp->barrierTracer(), str, "write barrier");
+#endif
+}
+
+inline void
+JSString::writeBarrierPost(JSString *str, void *addr)
+{
+}
+
+inline bool
+JSString::needWriteBarrierPre(JSCompartment *comp)
+{
+#ifdef JSGC_INCREMENTAL
+    return comp->needsBarrier();
+#else
+    return false;
+#endif
+}
 
 JS_ALWAYS_INLINE bool
 JSString::validateLength(JSContext *cx, size_t length)
 {
     if (JS_UNLIKELY(length > JSString::MAX_LENGTH)) {
-        if (JS_ON_TRACE(cx)) {
-            /*
-             * If we can't leave the trace, signal OOM condition, otherwise
-             * exit from trace before throwing.
-             */
-            if (!js::CanLeaveTrace(cx))
-                return NULL;
-
-            js::LeaveTrace(cx);
-        }
         js_ReportAllocationOverflow(cx);
         return false;
     }
@@ -332,7 +352,7 @@ js::StaticStrings::lookup(const jschar *chars, size_t length)
 }
 
 JS_ALWAYS_INLINE void
-JSString::finalize(JSContext *cx)
+JSString::finalize(JSContext *cx, bool background)
 {
     /* Shorts are in a different arena. */
     JS_ASSERT(!isShort());
@@ -357,23 +377,23 @@ JSFlatString::finalize(JSRuntime *rt)
 }
 
 inline void
-JSShortString::finalize(JSContext *cx)
+JSShortString::finalize(JSContext *cx, bool background)
 {
-    JS_ASSERT(isShort());
+    JS_ASSERT(JSString::isShort());
 }
 
 inline void
 JSAtom::finalize(JSRuntime *rt)
 {
-    JS_ASSERT(isAtom());
+    JS_ASSERT(JSString::isAtom());
     if (getAllocKind() == js::gc::FINALIZE_STRING)
-        asFlat().finalize(rt);
+        JSFlatString::finalize(rt);
     else
         JS_ASSERT(getAllocKind() == js::gc::FINALIZE_SHORT_STRING);
 }
 
 inline void
-JSExternalString::finalize(JSContext *cx)
+JSExternalString::finalize(JSContext *cx, bool background)
 {
     if (JSStringFinalizeOp finalizer = str_finalizers[externalType()])
         finalizer(cx, this);

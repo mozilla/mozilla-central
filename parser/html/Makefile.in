@@ -76,6 +76,7 @@ EXPORTS		= \
 		nsHtml5UTF16BufferHSupplement.h \
 		nsHtml5DependentUTF16Buffer.h \
 		nsHtml5OwningUTF16Buffer.h \
+		nsHtml5ViewSourceUtils.h \
 		$(NULL)
 
 CPPSRCS		= \
@@ -107,6 +108,8 @@ CPPSRCS		= \
 		nsHtml5Speculation.cpp \
 		nsHtml5SpeculativeLoad.cpp \
 		nsHtml5SVGLoadDispatcher.cpp \
+		nsHtml5Highlighter.cpp \
+		nsHtml5ViewSourceUtils.cpp \
 		$(NULL)
 
 FORCE_STATIC_LIB = 1

@@ -49,7 +49,6 @@
 #include "nsILocalFile.h"
 #include "nsIObserver.h"
 #include "nsIObserverService.h"
-#include "nsIPrefService.h"
 #include "nsIProfileChangeStatus.h"
 #include "nsISimpleEnumerator.h"
 #include "nsIToolkitChromeRegistry.h"
@@ -68,6 +67,7 @@
 #include "nsReadableUtils.h"
 #include "mozilla/Services.h"
 #include "mozilla/Omnijar.h"
+#include "mozilla/Preferences.h"
 
 #include <stdlib.h>
 
@@ -508,7 +508,7 @@ LoadExtensionDirectories(nsINIParser &parser,
 {
   nsresult rv;
   PRInt32 i = 0;
-  nsCOMPtr<nsIPrefServiceInternal> prefs =
+  nsCOMPtr<nsIPrefService> prefs =
     do_GetService("@mozilla.org/preferences-service;1");
   do {
     nsCAutoString buf("Extension");
@@ -531,7 +531,7 @@ LoadExtensionDirectories(nsINIParser &parser,
       XRE_AddJarManifestLocation(aType, dir);
       if (!prefs)
         continue;
-      prefs->ReadExtensionPrefs(dir);
+      mozilla::Preferences::ReadExtensionPrefs(dir);
     }
     else {
       aDirectories.AppendObject(dir);
@@ -1065,6 +1065,9 @@ nsXREDirProvider::GetUserDataDirectoryHome(nsILocalFile** aFile, bool aLocal)
     *strrchr(appDir, '\\') = '\0';
     rv = NS_NewNativeLocalFile(nsDependentCString(appDir), true, getter_AddRefs(localDir));
   }
+#elif defined(MOZ_WIDGET_GONK)
+  rv = NS_NewNativeLocalFile(NS_LITERAL_CSTRING("/data/b2g"), PR_TRUE,
+                             getter_AddRefs(localDir));
 #elif defined(XP_UNIX)
   const char* homeDir = getenv("HOME");
   if (!homeDir || !*homeDir)

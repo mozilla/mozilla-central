@@ -137,7 +137,7 @@ class nsHtml5Parser : public nsIParser,
     /**
      * Get the stream parser for this parser
      */
-    NS_IMETHOD GetStreamListener(nsIStreamListener** aListener);
+    virtual nsIStreamListener* GetStreamListener();
 
     /**
      * Don't call. For interface compat only.
@@ -167,7 +167,7 @@ class nsHtml5Parser : public nsIParser,
     /**
      * Set up request observer.
      *
-     * @param   aURL ignored (for interface compat only)
+     * @param   aURL used for View Source title
      * @param   aListener a listener to forward notifications to
      * @param   aKey the root context key (used for document.write)
      * @param   aMode ignored (for interface compat only)
@@ -182,7 +182,7 @@ class nsHtml5Parser : public nsIParser,
      *
      * @param   aSourceBuffer the argument of document.write (empty for .close())
      * @param   aKey a key unique to the script element that caused this call
-     * @param   aContentType ignored (for interface compat only)
+     * @param   aContentType "text/html" for HTML mode, else text/plain mode
      * @param   aLastCall true if .close() false if .write()
      * @param   aMode ignored (for interface compat only)
      */
@@ -246,8 +246,11 @@ class nsHtml5Parser : public nsIParser,
     /**
      * Marks the HTML5 parser as not a script-created parser: Prepares the 
      * parser to be able to read a stream.
+     *
+     * @param aCommand the parser command (Yeah, this is bad API design. Let's
+     * make this better when retiring nsIParser)
      */
-    virtual void MarkAsNotScriptCreated();
+    virtual void MarkAsNotScriptCreated(const char* aCommand);
 
     /**
      * True if this is a script-created HTML5 parser.
@@ -353,6 +356,8 @@ class nsHtml5Parser : public nsIParser,
      * True if document.close() has been called.
      */
     bool                          mDocumentClosed;
+
+    bool                          mInDocumentWrite;
 
     // Gecko integration
     void*                         mRootContextKey;

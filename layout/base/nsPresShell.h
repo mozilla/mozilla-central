@@ -60,7 +60,6 @@
 #define nsPresShell_h_
 
 #include "nsIPresShell.h"
-#include "nsIViewObserver.h"
 #include "nsStubDocumentObserver.h"
 #include "nsISelectionController.h"
 #include "nsIObserver.h"
@@ -135,14 +134,15 @@ public:
   void Push();
   void Pop();
 
-  PRUint32 Size() {
-    PRUint32 result = 0;
+  size_t SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf) const {
+    size_t n = 0;
     StackBlock *block = mBlocks;
     while (block) {
-      result += sizeof(StackBlock);
+      n += aMallocSizeOf(block, sizeof(StackBlock));
       block = block->mNext;
     }
-    return result;
+    n += aMallocSizeOf(mMarks, mMarkLength * sizeof(StackMark));
+    return n;
   }
 
 private:
@@ -169,7 +169,7 @@ private:
 class nsPresShellEventCB;
 class nsAutoCauseReflowNotifier;
 
-class PresShell : public nsIPresShell, public nsIViewObserver,
+class PresShell : public nsIPresShell,
                   public nsStubDocumentObserver,
                   public nsISelectionController, public nsIObserver,
                   public nsSupportsWeakReference
@@ -314,29 +314,25 @@ public:
 
   //nsIViewObserver interface
 
-  NS_IMETHOD Paint(nsIView* aViewToPaint,
-                   nsIWidget* aWidget,
-                   const nsRegion& aDirtyRegion,
-                   const nsIntRegion& aIntDirtyRegion,
-                   bool aPaintDefaultBackground,
-                   bool aWillSendDidPaint);
-  NS_IMETHOD HandleEvent(nsIView*        aView,
-                         nsGUIEvent*     aEvent,
-                         bool            aDontRetargetEvents,
-                         nsEventStatus*  aEventStatus);
+  virtual void Paint(nsIView* aViewToPaint, nsIWidget* aWidget,
+                     const nsRegion& aDirtyRegion, const nsIntRegion& aIntDirtyRegion,
+                     bool aPaintDefaultBackground, bool aWillSendDidPaint);
+  virtual nsresult HandleEvent(nsIFrame*       aFrame,
+                               nsGUIEvent*     aEvent,
+                               bool            aDontRetargetEvents,
+                               nsEventStatus*  aEventStatus);
   virtual NS_HIDDEN_(nsresult) HandleDOMEventWithTarget(nsIContent* aTargetContent,
                                                         nsEvent* aEvent,
                                                         nsEventStatus* aStatus);
   virtual NS_HIDDEN_(nsresult) HandleDOMEventWithTarget(nsIContent* aTargetContent,
                                                         nsIDOMEvent* aEvent,
                                                         nsEventStatus* aStatus);
-  NS_IMETHOD ResizeReflow(nsIView *aView, nscoord aWidth, nscoord aHeight);
-  NS_IMETHOD_(bool) ShouldIgnoreInvalidation();
-  NS_IMETHOD_(void) WillPaint(bool aWillSendDidPaint);
-  NS_IMETHOD_(void) DidPaint();
-  NS_IMETHOD_(void) DispatchSynthMouseMove(nsGUIEvent *aEvent,
-                                           bool aFlushOnHoverChange);
-  NS_IMETHOD_(void) ClearMouseCapture(nsIView* aView);
+  virtual bool ShouldIgnoreInvalidation();
+  virtual void WillPaint(bool aWillSendDidPaint);
+  virtual void DidPaint();
+  virtual void DispatchSynthMouseMove(nsGUIEvent *aEvent, bool aFlushOnHoverChange);
+  virtual void ClearMouseCaptureOnView(nsIView* aView);
+  virtual bool IsVisible();
 
   // caret handling
   virtual NS_HIDDEN_(already_AddRefed<nsCaret>) GetCaret() const;
@@ -604,14 +600,13 @@ protected:
     }
   }
 
-  nsresult HandleRetargetedEvent(nsEvent* aEvent, nsIView* aView,
-                                 nsEventStatus* aStatus, nsIContent* aTarget)
+  nsresult HandleRetargetedEvent(nsEvent* aEvent, nsEventStatus* aStatus, nsIContent* aTarget)
   {
     PushCurrentEventInfo(nsnull, nsnull);
     mCurrentEventContent = aTarget;
     nsresult rv = NS_OK;
     if (GetCurrentEventFrame()) {
-      rv = HandleEventInternal(aEvent, aView, aStatus);
+      rv = HandleEventInternal(aEvent, aStatus);
     }
     PopCurrentEventInfo();
     return rv;
@@ -800,10 +795,8 @@ protected:
 private:
   void PushCurrentEventInfo(nsIFrame* aFrame, nsIContent* aContent);
   void PopCurrentEventInfo();
-  nsresult HandleEventInternal(nsEvent* aEvent, nsIView* aView,
-                               nsEventStatus *aStatus);
-  nsresult HandlePositionedEvent(nsIView*       aView,
-                                 nsIFrame*      aTargetFrame,
+  nsresult HandleEventInternal(nsEvent* aEvent, nsEventStatus *aStatus);
+  nsresult HandlePositionedEvent(nsIFrame*      aTargetFrame,
                                  nsGUIEvent*    aEvent,
                                  nsEventStatus* aEventStatus);
   // This returns the focused DOM window under our top level window.
@@ -888,17 +881,17 @@ private:
 
 public:
 
-  PRUint32 EstimateMemoryUsed() {
-    PRUint32 result = 0;
+  size_t SizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOf) const {
+    size_t n = 0;
 
-    result += sizeof(PresShell);
-    result += mStackArena.Size();
-    result += mFrameArena.Size();
+    n += aMallocSizeOf(this, sizeof(PresShell));
+    n += mStackArena.SizeOfExcludingThis(aMallocSizeOf);
+    n += mFrameArena.SizeOfExcludingThis(aMallocSizeOf);
 
-    return result;
+    return n;
   }
 
-  PRUint64 ComputeTextRunMemoryUsed();
+  size_t SizeOfTextRuns(nsMallocSizeOfFun aMallocSizeOf);
 
   class MemoryReporter : public nsIMemoryMultiReporter
   {

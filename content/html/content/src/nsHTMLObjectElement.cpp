@@ -52,6 +52,7 @@
 #include "nsIObjectFrame.h"
 #include "nsNPAPIPluginInstance.h"
 #include "nsIConstraintValidation.h"
+#include "nsIWidget.h"
 
 using namespace mozilla;
 using namespace mozilla::dom;
@@ -79,7 +80,24 @@ public:
   NS_FORWARD_NSIDOMELEMENT(nsGenericHTMLFormElement::)
 
   // nsIDOMHTMLElement
-  NS_FORWARD_NSIDOMHTMLELEMENT(nsGenericHTMLFormElement::)
+  NS_FORWARD_NSIDOMHTMLELEMENT_BASIC(nsGenericHTMLFormElement::)
+  NS_SCRIPTABLE NS_IMETHOD Click() {
+    return nsGenericHTMLFormElement::Click();
+  }
+  NS_SCRIPTABLE NS_IMETHOD GetTabIndex(PRInt32* aTabIndex);
+  NS_SCRIPTABLE NS_IMETHOD SetTabIndex(PRInt32 aTabIndex);
+  NS_SCRIPTABLE NS_IMETHOD Focus() {
+    return nsGenericHTMLFormElement::Focus();
+  }
+  NS_SCRIPTABLE NS_IMETHOD GetDraggable(bool* aDraggable) {
+    return nsGenericHTMLFormElement::GetDraggable(aDraggable);
+  }
+  NS_SCRIPTABLE NS_IMETHOD GetInnerHTML(nsAString& aInnerHTML) {
+    return nsGenericHTMLFormElement::GetInnerHTML(aInnerHTML);
+  }
+  NS_SCRIPTABLE NS_IMETHOD SetInnerHTML(const nsAString& aInnerHTML) {
+    return nsGenericHTMLFormElement::SetInnerHTML(aInnerHTML);
+  }
 
   // nsIDOMHTMLObjectElement
   NS_DECL_NSIDOMHTMLOBJECTELEMENT
@@ -99,7 +117,7 @@ public:
                              bool aNotify);
 
   virtual bool IsHTMLFocusable(bool aWithMouse, bool *aIsFocusable, PRInt32 *aTabIndex);
-  virtual PRUint32 GetDesiredIMEState();
+  virtual IMEState GetDesiredIMEState();
 
   // Overriden nsIFormControl methods
   NS_IMETHOD_(PRUint32) GetType() const
@@ -112,7 +130,7 @@ public:
 
   virtual bool IsDisabled() const { return false; }
 
-  virtual nsresult DoneAddingChildren(bool aHaveNotified);
+  virtual void DoneAddingChildren(bool aHaveNotified);
   virtual bool IsDoneAddingChildren();
 
   virtual bool ParseAttribute(PRInt32 aNamespaceID,
@@ -183,7 +201,7 @@ nsHTMLObjectElement::IsDoneAddingChildren()
   return mIsDoneAddingChildren;
 }
 
-nsresult
+void
 nsHTMLObjectElement::DoneAddingChildren(bool aHaveNotified)
 {
   mIsDoneAddingChildren = true;
@@ -193,7 +211,6 @@ nsHTMLObjectElement::DoneAddingChildren(bool aHaveNotified)
   if (IsInDoc()) {
     StartObjectLoad(aHaveNotified);
   }
-  return NS_OK;
 }
 
 NS_IMPL_CYCLE_COLLECTION_CLASS(nsHTMLObjectElement)
@@ -360,11 +377,11 @@ nsHTMLObjectElement::IsHTMLFocusable(bool aWithMouse,
   return false;
 }
 
-PRUint32
+nsIContent::IMEState
 nsHTMLObjectElement::GetDesiredIMEState()
 {
   if (Type() == eType_Plugin) {
-    return nsIContent::IME_STATUS_PLUGIN;
+    return IMEState(IMEState::PLUGIN);
   }
    
   return nsGenericHTMLFormElement::GetDesiredIMEState();

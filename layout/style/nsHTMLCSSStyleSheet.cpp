@@ -81,7 +81,6 @@ nsHTMLCSSStyleSheet::RulesMatching(ElementRuleProcessorData* aData)
     aData->mRuleWalker->Forward(rule);
   }
 
-#ifdef MOZ_SMIL
   rule = element->GetSMILOverrideStyleRule();
   if (rule) {
     if (aData->mPresContext->IsProcessingRestyles() &&
@@ -98,7 +97,6 @@ nsHTMLCSSStyleSheet::RulesMatching(ElementRuleProcessorData* aData)
       aData->mRuleWalker->Forward(rule);
     }
   }
-#endif // MOZ_SMIL
 }
 
 /* virtual */ void
@@ -165,6 +163,18 @@ nsHTMLCSSStyleSheet::MediumFeaturesChanged(nsPresContext* aPresContext)
   return false;
 }
 
+/* virtual */ size_t
+nsHTMLCSSStyleSheet::SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf) const
+{
+  return 0;
+}
+
+/* virtual */ size_t
+nsHTMLCSSStyleSheet::SizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOf) const
+{
+  return aMallocSizeOf(this, sizeof(nsHTMLCSSStyleSheet)) +
+         SizeOfExcludingThis(aMallocSizeOf);
+}
 
 void
 nsHTMLCSSStyleSheet::Reset(nsIURI* aURL)

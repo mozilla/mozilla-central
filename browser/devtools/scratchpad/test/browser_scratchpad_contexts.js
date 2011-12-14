@@ -2,19 +2,14 @@
 /* Any copyright is dedicated to the Public Domain.
    http://creativecommons.org/publicdomain/zero/1.0/ */
 
-// Reference to the Scratchpad chrome window object.
-let gScratchpadWindow;
-
 function test()
 {
   waitForExplicitFinish();
 
   gBrowser.selectedTab = gBrowser.addTab();
-  gBrowser.selectedBrowser.addEventListener("load", function() {
-    gBrowser.selectedBrowser.removeEventListener("load", arguments.callee, true);
-
-    gScratchpadWindow = Scratchpad.openScratchpad();
-    gScratchpadWindow.addEventListener("load", runTests, false);
+  gBrowser.selectedBrowser.addEventListener("load", function onLoad() {
+    gBrowser.selectedBrowser.removeEventListener("load", onLoad, true);
+    openScratchpad(runTests);
   }, true);
 
   content.location = "data:text/html,test context switch in Scratchpad";
@@ -22,17 +17,15 @@ function test()
 
 function runTests()
 {
-  gScratchpadWindow.removeEventListener("load", arguments.callee, false);
-
   let sp = gScratchpadWindow.Scratchpad;
 
   let contentMenu = gScratchpadWindow.document.getElementById("sp-menu-content");
   let chromeMenu = gScratchpadWindow.document.getElementById("sp-menu-browser");
-  let statusbar = sp.statusbarStatus;
+  let notificationBox = sp.notificationBox;
 
   ok(contentMenu, "found #sp-menu-content");
   ok(chromeMenu, "found #sp-menu-browser");
-  ok(statusbar, "found Scratchpad.statusbarStatus");
+  ok(notificationBox, "found Scratchpad.notificationBox");
 
   sp.setContentContext();
 
@@ -42,11 +35,11 @@ function runTests()
   is(contentMenu.getAttribute("checked"), "true",
      "content menuitem is checked");
 
-  ok(!chromeMenu.hasAttribute("checked"),
+  isnot(chromeMenu.getAttribute("checked"), "true",
      "chrome menuitem is not checked");
 
-  is(statusbar.getAttribute("label"), contentMenu.getAttribute("label"),
-     "statusbar label is correct");
+  ok(!notificationBox.currentNotification,
+     "there is no notification in content context");
 
   sp.setText("window.foobarBug636725 = 'aloha';");
 
@@ -66,11 +59,11 @@ function runTests()
   is(chromeMenu.getAttribute("checked"), "true",
      "chrome menuitem is checked");
 
-  ok(!contentMenu.hasAttribute("checked"),
+  isnot(contentMenu.getAttribute("checked"), "true",
      "content menuitem is not checked");
 
-  is(statusbar.getAttribute("label"), chromeMenu.getAttribute("label"),
-     "statusbar label is correct");
+  ok(notificationBox.currentNotification,
+     "there is a notification in browser context");
 
   sp.setText("2'", 31, 33);
 
@@ -88,31 +81,31 @@ function runTests()
   ok(sp.getText(), "window.gBrowser",
      "setText() worked with no end for the replace range");
 
-  is(typeof sp.run()[1].addTab, "function",
+  is(typeof sp.run()[2].addTab, "function",
      "chrome context has access to chrome objects");
 
   // Check that the sandbox is cached.
 
   sp.setText("typeof foobarBug636725cache;");
-  is(sp.run()[1], "undefined", "global variable does not exist");
+  is(sp.run()[2], "undefined", "global variable does not exist");
 
   sp.setText("var foobarBug636725cache = 'foo';");
   sp.run();
 
   sp.setText("typeof foobarBug636725cache;");
-  is(sp.run()[1], "string",
+  is(sp.run()[2], "string",
      "global variable exists across two different executions");
 
   sp.resetContext();
 
-  is(sp.run()[1], "undefined",
+  is(sp.run()[2], "undefined",
      "global variable no longer exists after calling resetContext()");
 
   sp.setText("var foobarBug636725cache2 = 'foo';");
   sp.run();
 
   sp.setText("typeof foobarBug636725cache2;");
-  is(sp.run()[1], "string",
+  is(sp.run()[2], "string",
      "global variable exists across two different executions");
 
   sp.setContentContext();
@@ -120,11 +113,8 @@ function runTests()
   is(sp.executionContext, gScratchpadWindow.SCRATCHPAD_CONTEXT_CONTENT,
      "executionContext is content");
 
-  is(sp.run()[1], "undefined",
+  is(sp.run()[2], "undefined",
      "global variable no longer exists after changing the context");
 
-  gScratchpadWindow.close();
-  gScratchpadWindow = null;
-  gBrowser.removeCurrentTab();
   finish();
 }

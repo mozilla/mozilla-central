@@ -222,7 +222,8 @@ public:
   /**
    * Copies mItemFlags and mItemData to aVisitor and calls PostHandleEvent.
    */
-  nsresult PostHandleEvent(nsEventChainPostVisitor& aVisitor);
+  nsresult PostHandleEvent(nsEventChainPostVisitor& aVisitor,
+                           nsCxPusher* aPusher);
 
   static PRUint32 MaxEtciCount() { return sMaxEtciCount; }
 
@@ -282,8 +283,10 @@ nsEventTargetChainItem::PreHandleEvent(nsEventChainPreVisitor& aVisitor)
 }
 
 nsresult
-nsEventTargetChainItem::PostHandleEvent(nsEventChainPostVisitor& aVisitor)
+nsEventTargetChainItem::PostHandleEvent(nsEventChainPostVisitor& aVisitor,
+                                        nsCxPusher* aPusher)
 {
+  aPusher->Pop();
   aVisitor.mItemFlags = mItemFlags;
   aVisitor.mItemData = mItemData;
   mTarget->PostHandleEvent(aVisitor);
@@ -344,7 +347,7 @@ nsEventTargetChainItem::HandleEventTargetChain(nsEventChainPostVisitor& aVisitor
                       aPusher);
   }
   if (aFlags & NS_EVENT_FLAG_SYSTEM_EVENT) {
-    item->PostHandleEvent(aVisitor);
+    item->PostHandleEvent(aVisitor, aPusher);
   }
 
   // Bubble
@@ -367,7 +370,7 @@ nsEventTargetChainItem::HandleEventTargetChain(nsEventChainPostVisitor& aVisitor
                           aPusher);
       }
       if (aFlags & NS_EVENT_FLAG_SYSTEM_EVENT) {
-        item->PostHandleEvent(aVisitor);
+        item->PostHandleEvent(aVisitor, aPusher);
       }
     }
     item = item->mParent;
@@ -376,9 +379,9 @@ nsEventTargetChainItem::HandleEventTargetChain(nsEventChainPostVisitor& aVisitor
 
   if (!(aFlags & NS_EVENT_FLAG_SYSTEM_EVENT)) {
     // Dispatch to the system event group.  Make sure to clear the
-    // STOP_DISPATCH flag since this resets for each event group
-    // per DOM3 Events.
-    aVisitor.mEvent->flags &= ~NS_EVENT_FLAG_STOP_DISPATCH;
+    // STOP_DISPATCH flag since this resets for each event group.
+    aVisitor.mEvent->flags &=
+      ~(NS_EVENT_FLAG_STOP_DISPATCH | NS_EVENT_FLAG_STOP_DISPATCH_IMMEDIATELY);
 
     // Setting back the original target of the event.
     aVisitor.mEvent->target = aVisitor.mEvent->originalTarget;
@@ -386,6 +389,7 @@ nsEventTargetChainItem::HandleEventTargetChain(nsEventChainPostVisitor& aVisitor
     // Special handling if PresShell (or some other caller)
     // used a callback object.
     if (aCallback) {
+      aPusher->Pop();
       aCallback->HandleEvent(aVisitor);
     }
 
@@ -396,6 +400,11 @@ nsEventTargetChainItem::HandleEventTargetChain(nsEventChainPostVisitor& aVisitor
                            aCallback,
                            createdELMs != nsEventListenerManager::sCreatedCount,
                            aPusher);
+
+    // After dispatch, clear all the propagation flags so that
+    // system group listeners don't affect to the event.
+    aVisitor.mEvent->flags &=
+      ~(NS_EVENT_FLAG_STOP_DISPATCH | NS_EVENT_FLAG_STOP_DISPATCH_IMMEDIATELY);
   }
 
   return NS_OK;
@@ -787,10 +796,8 @@ nsEventDispatcher::CreateEvent(nsPresContext* aPresContext,
     case NS_SVGZOOM_EVENT:
       return NS_NewDOMSVGZoomEvent(aDOMEvent, aPresContext,
                                    static_cast<nsGUIEvent*>(aEvent));
-#ifdef MOZ_SMIL
     case NS_SMIL_TIME_EVENT:
       return NS_NewDOMTimeEvent(aDOMEvent, aPresContext, aEvent);
-#endif // MOZ_SMIL
 
     case NS_COMMAND_EVENT:
       return NS_NewDOMCommandEvent(aDOMEvent, aPresContext,
@@ -854,11 +861,9 @@ nsEventDispatcher::CreateEvent(nsPresContext* aPresContext,
   if (aEventType.LowerCaseEqualsLiteral("svgzoomevent") ||
       aEventType.LowerCaseEqualsLiteral("svgzoomevents"))
     return NS_NewDOMSVGZoomEvent(aDOMEvent, aPresContext, nsnull);
-#ifdef MOZ_SMIL
   if (aEventType.LowerCaseEqualsLiteral("timeevent") ||
       aEventType.LowerCaseEqualsLiteral("timeevents"))
     return NS_NewDOMTimeEvent(aDOMEvent, aPresContext, nsnull);
-#endif // MOZ_SMIL
   if (aEventType.LowerCaseEqualsLiteral("xulcommandevent") ||
       aEventType.LowerCaseEqualsLiteral("xulcommandevents"))
     return NS_NewDOMXULCommandEvent(aDOMEvent, aPresContext, nsnull);
@@ -903,6 +908,8 @@ nsEventDispatcher::CreateEvent(nsPresContext* aPresContext,
     return NS_NewDOMHashChangeEvent(aDOMEvent, aPresContext, nsnull);
   if (aEventType.LowerCaseEqualsLiteral("customevent"))
     return NS_NewDOMCustomEvent(aDOMEvent, aPresContext, nsnull);
+  if (aEventType.LowerCaseEqualsLiteral("mozsmsevent"))
+    return NS_NewDOMSmsEvent(aDOMEvent, aPresContext, nsnull);
 
   return NS_ERROR_DOM_NOT_SUPPORTED_ERR;
 }

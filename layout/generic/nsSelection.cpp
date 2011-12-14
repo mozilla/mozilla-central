@@ -41,6 +41,8 @@
  * Implementation of selection: nsISelection,nsISelectionPrivate and nsFrameSelection
  */
 
+#include "mozilla/Attributes.h"
+
 #include "nsCOMPtr.h"
 #include "nsWeakReference.h"
 #include "nsIFactory.h"
@@ -357,7 +359,7 @@ private:
 };
 
 // Stack-class to turn on/off selection batching for table selection
-class NS_STACK_CLASS NS_FINAL_CLASS nsSelectionBatcher
+class NS_STACK_CLASS nsSelectionBatcher MOZ_FINAL
 {
 private:
   nsCOMPtr<nsISelectionPrivate> mSelection;
@@ -3055,7 +3057,7 @@ nsIContent*
 nsFrameSelection::IsInSameTable(nsIContent  *aContent1,
                                 nsIContent  *aContent2) const
 {
-  if (!aContent1 || !aContent2) return false;
+  if (!aContent1 || !aContent2) return nsnull;
   
   nsIContent* tableNode1 = GetParentTable(aContent1);
   nsIContent* tableNode2 = GetParentTable(aContent2);

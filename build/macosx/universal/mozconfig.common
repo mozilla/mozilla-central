@@ -39,28 +39,20 @@ mk_add_options MOZ_UNIFY_BDATE=1
 mk_add_options MOZ_POSTFLIGHT_ALL+=build/macosx/universal/flight.mk
 
 # Note, the version (10) is used by libffi's configure.
-ac_add_app_options ppc  --target=powerpc-apple-darwin10
 ac_add_app_options i386 --target=i386-apple-darwin10
 ac_add_app_options x86_64 --target=x86_64-apple-darwin10
 
-ac_add_app_options ppc --with-macos-sdk=/Developer/SDKs/MacOSX10.5.sdk
 ac_add_app_options i386 --with-macos-sdk=/Developer/SDKs/MacOSX10.5.sdk
 ac_add_app_options x86_64 --with-macos-sdk=/Developer/SDKs/MacOSX10.6.sdk
+
+. $topsrcdir/build/macosx/common
 
 # $MOZ_BUILD_APP is only defined when sourced by configure.  That's not a
 # problem, because the variables it affects only need to be set for
 # configure.
 if test -n "$MOZ_BUILD_APP" ; then
-if test "$MOZ_BUILD_APP" = "i386" -o  "$MOZ_BUILD_APP" = "ppc" -o "$MOZ_BUILD_APP" = "x86_64"; then
+if test "$MOZ_BUILD_APP" = "i386" -o "$MOZ_BUILD_APP" = "x86_64"; then
   TARGET_CPU=$MOZ_BUILD_APP
-
-  if test -z "$CC" ; then
-     CC=gcc-4.2
-  fi
-
-  if test -z "$CXX" ; then
-     CXX=g++-4.2
-  fi
 
   # $HOST_CXX is presently unused.  $HOST_CC will only be used during a cross
   # compile.
@@ -68,9 +60,6 @@ if test "$MOZ_BUILD_APP" = "i386" -o  "$MOZ_BUILD_APP" = "ppc" -o "$MOZ_BUILD_AP
   HOST_CXX=$CXX
 
   NATIVE_CPU=`$topsrcdir/build/autoconf/config.guess | cut -f1 -d-`
-  if test "$NATIVE_CPU" = "powerpc" ; then
-    NATIVE_CPU=ppc
-  fi
 
   # It's not strictly necessary to specify -arch during native builds, but it
   # makes the merged about:buildconfig easier to follow, and it reduces

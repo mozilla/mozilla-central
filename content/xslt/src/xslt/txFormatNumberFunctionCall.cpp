@@ -96,7 +96,7 @@ txFormatNumberFunctionCall::evaluate(txIEvalContext* aContext,
         rv = mParams[2]->evaluateToString(aContext, formatQName);
         NS_ENSURE_SUCCESS(rv, rv);
 
-        rv = formatName.init(formatQName, mMappings, MB_FALSE);
+        rv = formatName.init(formatQName, mMappings, false);
         NS_ENSURE_SUCCESS(rv, rv);
     }
 
@@ -112,16 +112,16 @@ txFormatNumberFunctionCall::evaluate(txIEvalContext* aContext,
     }
 
     // Special cases
-    if (Double::isNaN(value)) {
+    if (txDouble::isNaN(value)) {
         return aContext->recycler()->getStringResult(format->mNaN, aResult);
     }
 
-    if (value == Double::POSITIVE_INFINITY) {
+    if (value == txDouble::POSITIVE_INFINITY) {
         return aContext->recycler()->getStringResult(format->mInfinity,
                                                      aResult);
     }
 
-    if (value == Double::NEGATIVE_INFINITY) {
+    if (value == txDouble::NEGATIVE_INFINITY) {
         nsAutoString res;
         res.Append(format->mMinusSign);
         res.Append(format->mInfinity);
@@ -139,11 +139,11 @@ txFormatNumberFunctionCall::evaluate(txIEvalContext* aContext,
 
     PRUint32 pos = 0;
     PRUint32 formatLen = formatStr.Length();
-    MBool inQuote;
+    bool inQuote;
 
     // Get right subexpression
-    inQuote = MB_FALSE;
-    if (Double::isNeg(value)) {
+    inQuote = false;
+    if (txDouble::isNeg(value)) {
         while (pos < formatLen &&
                (inQuote ||
                 formatStr.CharAt(pos) != format->mPatternSeparator)) {
@@ -162,7 +162,7 @@ txFormatNumberFunctionCall::evaluate(txIEvalContext* aContext,
 
     // Parse the format string
     FormatParseState pState = Prefix;
-    inQuote = MB_FALSE;
+    inQuote = false;
 
     PRUnichar c = 0;
     while (pos < formatLen && pState != Finished) {
@@ -327,8 +327,8 @@ txFormatNumberFunctionCall::evaluate(txIEvalContext* aContext,
                   (intDigits-1)/groupSize); // group separators
 
     PRInt32 i = bufIntDigits + maxFractionSize - 1;
-    MBool carry = (i+1 < buflen) && (buf[i+1] >= '5');
-    MBool hasFraction = MB_FALSE;
+    bool carry = (i+1 < buflen) && (buf[i+1] >= '5');
+    bool hasFraction = false;
 
     PRUint32 resPos = res.Length()-1;
 
@@ -348,7 +348,7 @@ txFormatNumberFunctionCall::evaluate(txIEvalContext* aContext,
         }
 
         if (hasFraction || digit != 0 || i < bufIntDigits+minFractionSize) {
-            hasFraction = MB_TRUE;
+            hasFraction = true;
             res.SetCharAt((PRUnichar)(digit + format->mZeroDigit),
                           resPos--);
         }
@@ -448,7 +448,7 @@ txDecimalFormat::txDecimalFormat() : mInfinity(NS_LITERAL_STRING("Infinity")),
     mPatternSeparator = ';';
 }
 
-MBool txDecimalFormat::isEqual(txDecimalFormat* other)
+bool txDecimalFormat::isEqual(txDecimalFormat* other)
 {
     return mDecimalSeparator == other->mDecimalSeparator &&
            mGroupingSeparator == other->mGroupingSeparator &&

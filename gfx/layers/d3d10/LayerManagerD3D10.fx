@@ -48,8 +48,8 @@ BlendState ComponentAlphaBlend
   SrcBlend = One;
   DestBlend = Inv_Src1_Color;
   BlendOp = Add;
-  SrcBlendAlpha = Src1_Alpha;
-  DestBlendAlpha = Inv_Src1_Alpha;
+  SrcBlendAlpha = One;
+  DestBlendAlpha = Inv_Src_Alpha;
   BlendOpAlpha = Add;
   RenderTargetWriteMask[0] = 0x0F; // All
 };
@@ -112,6 +112,7 @@ VS_OUTPUT LayerQuadVS(const VS_INPUT aVertex)
   outp.vPosition.y = position.y + aVertex.vPosition.y * size.y;
 
   outp.vPosition = mul(mLayerTransform, outp.vPosition);
+  outp.vPosition = outp.vPosition / outp.vPosition.w;
   outp.vPosition = outp.vPosition - vRenderTargetOffset;
   
   outp.vPosition = mul(mProjection, outp.vPosition);
@@ -172,7 +173,7 @@ PS_OUTPUT ComponentAlphaShader(const VS_OUTPUT aVertex) : SV_Target
 
   result.vSrc = tRGB.Sample(LayerTextureSamplerLinear, aVertex.vTexCoords);
   result.vAlpha = 1.0 - tRGBWhite.Sample(LayerTextureSamplerLinear, aVertex.vTexCoords) + result.vSrc;
-  result.vAlpha.a = result.vAlpha.g;
+  result.vSrc.a = result.vAlpha.g;
   result.vSrc *= fLayerOpacity;
   result.vAlpha *= fLayerOpacity;
   return result;

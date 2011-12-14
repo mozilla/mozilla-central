@@ -4,6 +4,7 @@
 function test()
 {
   waitForExplicitFinish();
+  ignoreAllUncaughtExceptions();
 
   let doc;
   let nodes;
@@ -24,9 +25,9 @@ function test()
   function setupInfobarTest()
   {
     nodes = [
-      {node: doc.querySelector("#top"), position: "bottom", tag: "DIV", id: "top", classes: "class1 class2"},
-      {node: doc.querySelector("#vertical"), position: "overlap", tag: "DIV", id: "vertical", classes: ""},
-      {node: doc.querySelector("#bottom"), position: "top", tag: "DIV", id: "bottom", classes: ""},
+      {node: doc.querySelector("#top"), position: "bottom", tag: "DIV", id: "#top", classes: ".class1 .class2"},
+      {node: doc.querySelector("#vertical"), position: "overlap", tag: "DIV", id: "#vertical", classes: ""},
+      {node: doc.querySelector("#bottom"), position: "top", tag: "DIV", id: "#bottom", classes: ""},
       {node: doc.querySelector("body"), position: "overlap", tag: "BODY", id: "", classes: ""},
     ]
 

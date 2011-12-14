@@ -95,11 +95,9 @@ using namespace QtMobility;
 #include "mozqorientationsensorfilter.h"
 #endif
 
-#include "nsToolkit.h"
 #include "nsIdleService.h"
 #include "nsRenderingContext.h"
 #include "nsIRollupListener.h"
-#include "nsIMenuRollup.h"
 #include "nsWidgetsCID.h"
 #include "nsQtKeyUtils.h"
 #include "mozilla/Services.h"
@@ -144,6 +142,7 @@ static Atom sPluginIMEAtom = nsnull;
 #define GLdouble_defined 1
 #include "Layers.h"
 #include "LayerManagerOGL.h"
+#include "nsFastStartupQt.h"
 
 // If embedding clients want to create widget without real parent window
 // then nsIBaseWindow->Init() should have parent argument equal to PARENTLESS_WIDGET
@@ -151,10 +150,12 @@ static Atom sPluginIMEAtom = nsnull;
 
 #include "nsShmImage.h"
 extern "C" {
+#define PIXMAN_DONT_DEFINE_STDINT
 #include "pixman.h"
 }
 
 using namespace mozilla;
+using namespace mozilla::widget;
 
 // imported in nsWidgetFactory.cpp
 bool gDisableNativeTheme = false;
@@ -183,7 +184,6 @@ static const int WHEEL_DELTA = 120;
 static bool gGlobalsInitialized = false;
 
 static nsIRollupListener*          gRollupListener;
-static nsIMenuRollup*              gMenuRollup;
 static nsWeakPtr                   gRollupWindow;
 static bool                        gConsumeRollupEvent;
 
@@ -423,10 +423,9 @@ nsWindow::Destroy(void)
     nsCOMPtr<nsIWidget> rollupWidget = do_QueryReferent(gRollupWindow);
     if (static_cast<nsIWidget *>(this) == rollupWidget.get()) {
         if (gRollupListener)
-            gRollupListener->Rollup(nsnull, nsnull);
+            gRollupListener->Rollup(0);
         gRollupWindow = nsnull;
         gRollupListener = nsnull;
-        NS_IF_RELEASE(gMenuRollup);
     }
 
     if (mLayerManager) {
@@ -824,8 +823,7 @@ nsWindow::GetNativeData(PRUint32 aDataType)
         break;
 
     case NS_NATIVE_GRAPHIC: {
-        NS_ASSERTION(nsnull != mToolkit, "NULL toolkit, unable to get a GC");
-        return (void *)static_cast<nsToolkit *>(mToolkit)->GetSharedGC();
+        return nsnull;
         break;
     }
 
@@ -940,7 +938,6 @@ nsWindow::CaptureMouse(bool aCapture)
 
 NS_IMETHODIMP
 nsWindow::CaptureRollupEvents(nsIRollupListener *aListener,
-                              nsIMenuRollup     *aMenuRollup,
                               bool               aDoCapture,
                               bool               aConsumeRollupEvent)
 {
@@ -952,14 +949,10 @@ nsWindow::CaptureRollupEvents(nsIRollupListener *aListener,
     if (aDoCapture) {
         gConsumeRollupEvent = aConsumeRollupEvent;
         gRollupListener = aListener;
-        NS_IF_RELEASE(gMenuRollup);
-        gMenuRollup = aMenuRollup;
-        NS_IF_ADDREF(aMenuRollup);
         gRollupWindow = do_GetWeakReference(static_cast<nsIWidget*>(this));
     }
     else {
         gRollupListener = nsnull;
-        NS_IF_RELEASE(gMenuRollup);
         gRollupWindow = nsnull;
     }
 
@@ -980,16 +973,16 @@ check_for_rollup(double aMouseX, double aMouseY,
         if (!is_mouse_in_window(currentPopup, aMouseX, aMouseY)) {
             bool rollup = true;
             if (aIsWheel) {
-                gRollupListener->ShouldRollupOnMouseWheelEvent(&rollup);
+                rollup = gRollupListener->ShouldRollupOnMouseWheelEvent();
                 retVal = true;
             }
             // if we're dealing with menus, we probably have submenus and
             // we don't want to rollup if the clickis in a parent menu of
             // the current submenu
             PRUint32 popupsToRollup = PR_UINT32_MAX;
-            if (gMenuRollup) {
+            if (gRollupListener) {
                 nsAutoTArray<nsIWidget*, 5> widgetChain;
-                PRUint32 sameTypeCount = gMenuRollup->GetSubmenuWidgetChain(&widgetChain);
+                PRUint32 sameTypeCount = gRollupListener->GetSubmenuWidgetChain(&widgetChain);
                 for (PRUint32 i=0; i<widgetChain.Length(); ++i) {
                     nsIWidget* widget =  widgetChain[i];
                     MozQWidget* currWindow =
@@ -1008,14 +1001,13 @@ check_for_rollup(double aMouseX, double aMouseY,
 
             // if we've determined that we should still rollup, do it.
             if (rollup) {
-                gRollupListener->Rollup(popupsToRollup, nsnull);
+                gRollupListener->Rollup(popupsToRollup);
                 retVal = true;
             }
         }
     } else {
         gRollupWindow = nsnull;
         gRollupListener = nsnull;
-        NS_IF_RELEASE(gMenuRollup);
     }
 
     return retVal;
@@ -1076,6 +1068,11 @@ nsWindow::DoPaint(QPainter* aPainter, const QStyleOptionGraphicsItem* aOption, Q
 
     nsEventStatus status;
     nsIntRect rect(r.x(), r.y(), r.width(), r.height());
+
+    nsFastStartup* startup = nsFastStartup::GetSingleton();
+    if (startup) {
+        startup->RemoveFakeLayout();
+    }
 
     if (GetLayerManager(nsnull)->GetBackendType() == LayerManager::LAYERS_OPENGL) {
         nsPaintEvent event(true, NS_PAINT, this);
@@ -2255,7 +2252,6 @@ nsWindow::Create(nsIWidget        *aParent,
                  const nsIntRect  &aRect,
                  EVENT_CALLBACK    aHandleEventFunction,
                  nsDeviceContext *aContext,
-                 nsIToolkit       *aToolkit,
                  nsWidgetInitData *aInitData)
 {
     // only set the base parent if we're not going to be a dialog or a
@@ -2273,8 +2269,7 @@ nsWindow::Create(nsIWidget        *aParent,
     }
 
     // initialize all the common bits of this class
-    BaseCreate(baseParent, aRect, aHandleEventFunction, aContext,
-               aToolkit, aInitData);
+    BaseCreate(baseParent, aRect, aHandleEventFunction, aContext, aInitData);
 
     // and do our common creation
     mParent = aParent;
@@ -2310,7 +2305,6 @@ already_AddRefed<nsIWidget>
 nsWindow::CreateChild(const nsIntRect&  aRect,
                       EVENT_CALLBACK    aHandleEventFunction,
                       nsDeviceContext* aContext,
-                      nsIToolkit*       aToolkit,
                       nsWidgetInitData* aInitData,
                       bool              /*aForceUseIWidgetParent*/)
 {
@@ -2318,7 +2312,6 @@ nsWindow::CreateChild(const nsIntRect&  aRect,
     return nsBaseWidget::CreateChild(aRect,
                                      aHandleEventFunction,
                                      aContext,
-                                     aToolkit,
                                      aInitData,
                                      true); // Force parent
 }
@@ -2690,21 +2683,20 @@ nsWindow::createQWidget(MozQWidget *parent,
     // create a QGraphicsView if this is a new toplevel window
 
     if (mIsTopLevel) {
-#if defined MOZ_ENABLE_MEEGOTOUCH
-        MozMGraphicsView* newView = new MozMGraphicsView(parentWidget);
-#else
-        MozQGraphicsView* newView = new MozQGraphicsView(parentWidget);
-#endif
+        QGraphicsView* newView =
+            nsFastStartup::GetStartupGraphicsView(parentWidget, widget);
 
-        newView->SetTopLevel(widget, parentWidget);
-        newView->setWindowFlags(flags);
         if (mWindowType == eWindowType_dialog) {
             newView->setWindowModality(Qt::WindowModal);
         }
 
 #ifdef MOZ_PLATFORM_MAEMO
         if (GetShouldAccelerate()) {
-            newView->setViewport(new QGLWidget());
+            // Only create new OGL widget if it is not yet installed
+            QGLWidget *glWidget = qobject_cast<QGLWidget*>(newView->viewport());
+            if (!glWidget) {
+                newView->setViewport(new QGLWidget());
+            }
         }
 #endif
 
@@ -3124,7 +3116,7 @@ nsWindow::OnDestroy(void)
 
     mOnDestroyCalled = true;
 
-    // release references to children, device context, toolkit + app shell
+    // release references to children and device context
     nsBaseWidget::OnDestroy();
 
     // let go of our parent
@@ -3224,23 +3216,26 @@ x11EventFilter(void* message, long* result)
 }
 #endif
 
-NS_IMETHODIMP
-nsWindow::SetInputMode(const IMEContext& aContext)
+NS_IMETHODIMP_(void)
+nsWindow::SetInputContext(const InputContext& aContext,
+                          const InputContextAction& aAction)
 {
-    NS_ENSURE_TRUE(mWidget, NS_ERROR_FAILURE);
+    NS_ENSURE_TRUE(mWidget, );
 
-    // SetSoftwareKeyboardState uses mIMEContext,
-    // so, before calling that, record aContext in mIMEContext.
-    mIMEContext = aContext;
+    // SetSoftwareKeyboardState uses mInputContext,
+    // so, before calling that, record aContext in mInputContext.
+    mInputContext = aContext;
 
 #if defined(MOZ_X11) && (MOZ_PLATFORM_MAEMO == 6)
     if (sPluginIMEAtom) {
         static QCoreApplication::EventFilter currentEventFilter = NULL;
-        if (mIMEContext.mStatus == nsIWidget::IME_STATUS_PLUGIN && currentEventFilter != x11EventFilter) {
+        if (mInputContext.mIMEState.mEnabled == IMEState::PLUGIN &&
+            currentEventFilter != x11EventFilter) {
             // Install event filter for listening Plugin IME state changes
             previousEventFilter = QCoreApplication::instance()->setEventFilter(x11EventFilter);
             currentEventFilter = x11EventFilter;
-        } else if (mIMEContext.mStatus != nsIWidget::IME_STATUS_PLUGIN && currentEventFilter == x11EventFilter) {
+        } else if (mInputContext.mIMEState.mEnabled != IMEState::PLUGIN &&
+                   currentEventFilter == x11EventFilter) {
             // Remove event filter
             QCoreApplication::instance()->setEventFilter(previousEventFilter);
             currentEventFilter = previousEventFilter;
@@ -3253,41 +3248,39 @@ nsWindow::SetInputMode(const IMEContext& aContext)
     }
 #endif
 
-    switch (mIMEContext.mStatus) {
-        case nsIWidget::IME_STATUS_ENABLED:
-        case nsIWidget::IME_STATUS_PASSWORD:
-        case nsIWidget::IME_STATUS_PLUGIN:
-            SetSoftwareKeyboardState(true);
+    switch (mInputContext.mIMEState.mEnabled) {
+        case IMEState::ENABLED:
+        case IMEState::PASSWORD:
+        case IMEState::PLUGIN:
+            SetSoftwareKeyboardState(true, aAction);
             break;
         default:
-            SetSoftwareKeyboardState(false);
+            SetSoftwareKeyboardState(false, aAction);
             break;
     }
-
-    return NS_OK;
 }
 
-NS_IMETHODIMP
-nsWindow::GetInputMode(IMEContext& aContext)
+NS_IMETHODIMP_(InputContext)
+nsWindow::GetInputContext()
 {
-    aContext = mIMEContext;
-    return NS_OK;
+    mInputContext.mIMEState.mOpen = IMEState::OPEN_STATE_NOT_SUPPORTED;
+    return mInputContext;
 }
 
 void
-nsWindow::SetSoftwareKeyboardState(bool aOpen)
+nsWindow::SetSoftwareKeyboardState(bool aOpen,
+                                   const InputContextAction& aAction)
 {
     if (aOpen) {
-        NS_ENSURE_TRUE(mIMEContext.mStatus != nsIWidget::IME_STATUS_DISABLED,);
+        NS_ENSURE_TRUE(mInputContext.mIMEState.mEnabled != IMEState::DISABLED,);
 
         // Ensure that opening the virtual keyboard is allowed for this specific
-        // IMEContext depending on the content.ime.strict.policy pref
-        if (mIMEContext.mStatus != nsIWidget::IME_STATUS_PLUGIN) {
-            if (Preferences::GetBool("content.ime.strict_policy", false) &&
-                !mIMEContext.FocusMovedByUser() &&
-                mIMEContext.FocusMovedInContentProcess()) {
-                return;
-            }
+        // InputContext depending on the content.ime.strict.policy pref
+        if (mInputContext.mIMEState.mEnabled != IMEState::PLUGIN &&
+            Preferences::GetBool("content.ime.strict_policy", false) &&
+            !aAction.ContentGotFocusByTrustedCause() &&
+            !aAction.UserMightRequestOpenVKB()) {
+            return;
         }
 #if defined(MOZ_X11) && (MOZ_PLATFORM_MAEMO == 6)
         // doen't open VKB if plugin did set closed state

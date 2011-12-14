@@ -43,6 +43,8 @@
 #ifndef nsTextFragment_h___
 #define nsTextFragment_h___
 
+#include "mozilla/Attributes.h"
+
 #include "nsString.h"
 #include "nsReadableUtils.h"
 #include "nsTraceRefcnt.h"
@@ -80,7 +82,7 @@ class nsCString;
  * This class does not have a virtual destructor therefore it is not
  * meant to be subclassed.
  */
-class NS_FINAL_CLASS nsTextFragment {
+class nsTextFragment MOZ_FINAL {
 public:
   static nsresult Init();
   static void Shutdown();
@@ -174,8 +176,7 @@ public:
     if (mState.mIs2b) {
       aString.Append(m2b, mState.mLength);
     } else {
-      AppendASCIItoUTF16(Substring(m1b, m1b + mState.mLength),
-                         aString);
+      AppendASCIItoUTF16(Substring(m1b, mState.mLength), aString);
     }
   }
 
@@ -188,7 +189,7 @@ public:
     if (mState.mIs2b) {
       aString.Append(m2b + aOffset, aLength);
     } else {
-      AppendASCIItoUTF16(Substring(m1b + aOffset, m1b + aOffset + aLength), aString);
+      AppendASCIItoUTF16(Substring(m1b + aOffset, aLength), aString);
     }
   }
 
@@ -229,7 +230,7 @@ public:
   PRInt64 SizeOf() const
   {
     PRInt64 size = sizeof(*this);
-    size += GetLength() * Is2b() ? sizeof(*m2b) : sizeof(*m1b);
+    size += GetLength() * (Is2b() ? sizeof(*m2b) : sizeof(*m1b));
     return size;
   }
 

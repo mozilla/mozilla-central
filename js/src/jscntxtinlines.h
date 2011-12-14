@@ -75,16 +75,6 @@ struct PreserveRegsGuard
 static inline GlobalObject *
 GetGlobalForScopeChain(JSContext *cx)
 {
-    /*
-     * This is essentially GetScopeChain(cx)->getGlobal(), but without
-     * falling off trace.
-     *
-     * This use of cx->fp, possibly on trace, is deliberate:
-     * cx->fp->scopeChain->getGlobal() returns the same object whether we're on
-     * trace or not, since we do not trace calls across global objects.
-     */
-    VOUCH_DOES_NOT_REQUIRE_STACK();
-
     if (cx->hasfp())
         return cx->fp()->scopeChain().getGlobal();
 
@@ -115,20 +105,43 @@ class AutoNamespaceArray : protected AutoGCRooter {
   public:
     friend void AutoGCRooter::trace(JSTracer *trc);
 
-    JSXMLArray array;
+    JSXMLArray<JSObject> array;
+};
+
+template <typename T>
+class AutoPtr
+{
+    JSContext *cx;
+    T *value;
+
+    AutoPtr(const AutoPtr &other) MOZ_DELETE;
+
+  public:
+    explicit AutoPtr(JSContext *cx) : cx(cx), value(NULL) {}
+    ~AutoPtr() {
+        cx->delete_<T>(value);
+    }
+
+    void operator=(T *ptr) { value = ptr; }
+
+    typedef void ***** ConvertibleToBool;
+    operator ConvertibleToBool() const { return (ConvertibleToBool) value; }
+
+    const T *operator->() const { return value; }
+    T *operator->() { return value; }
+
+    T *get() { return value; }
 };
 
 #ifdef DEBUG
 class CompartmentChecker
 {
-  private:
     JSContext *context;
     JSCompartment *compartment;
 
   public:
     explicit CompartmentChecker(JSContext *cx) : context(cx), compartment(cx->compartment) {
         check(cx->hasfp() ? JS_GetGlobalForScopeChain(cx) : cx->globalObject);
-        VOUCH_DOES_NOT_REQUIRE_STACK();
     }
 
     /*
@@ -208,13 +221,14 @@ class CompartmentChecker
     void check(JSScript *script) {
         if (script) {
             check(script->compartment());
-            if (script->u.object)
-                check(script->u.object);
+            if (!script->isCachedEval && script->globalObject)
+                check(script->globalObject);
         }
     }
 
     void check(StackFrame *fp) {
-        check(&fp->scopeChain());
+        if (fp)
+            check(&fp->scopeChain());
     }
 };
 
@@ -334,7 +348,7 @@ CallJSNativeConstructor(JSContext *cx, Native native, const CallArgs &args)
     JS_ASSERT_IF(native != FunctionProxyClass.construct &&
                  native != CallableObjectClass.construct &&
                  native != js::CallOrConstructBoundFunction &&
-                 (!callee.isFunction() || callee.getFunctionPrivate()->u.n.clasp != &ObjectClass),
+                 (!callee.isFunction() || callee.toFunction()->u.n.clasp != &ObjectClass),
                  !args.rval().isPrimitive() && callee != args.rval().toObject());
 
     return true;
@@ -373,38 +387,10 @@ CallSetter(JSContext *cx, JSObject *obj, jsid id, StrictPropertyOp op, uintN att
     return CallJSPropertyOpSetter(cx, op, obj, id, strict, vp);
 }
 
-#ifdef JS_TRACER
-/*
- * Reconstruct the JS stack and clear cx->tracecx. We must be currently in a
- * _FAIL builtin from trace on cx or another context on the same thread. The
- * machine code for the trace remains on the C stack when js_DeepBail returns.
- *
- * Implemented in jstracer.cpp.
- */
-JS_FORCES_STACK JS_FRIEND_API(void)
-DeepBail(JSContext *cx);
-#endif
-
-static JS_INLINE void
-LeaveTraceIfGlobalObject(JSContext *cx, JSObject *obj)
-{
-    if (!obj->getParent())
-        LeaveTrace(cx);
-}
-
-static JS_INLINE void
-LeaveTraceIfArgumentsObject(JSContext *cx, JSObject *obj)
-{
-    if (obj->isArguments())
-        LeaveTrace(cx);
-}
-
 static inline JSAtom **
 FrameAtomBase(JSContext *cx, js::StackFrame *fp)
 {
-    return fp->hasImacropc()
-           ? cx->runtime->atomState.commonAtomsStart()
-           : fp->script()->atoms;
+    return fp->script()->atoms;
 }
 
 }  /* namespace js */
@@ -500,12 +486,6 @@ JSContext::ensureGeneratorStackSpace()
     return ok;
 }
 
-inline js::RegExpStatics *
-JSContext::regExpStatics()
-{
-    return js::GetGlobalForScopeChain(this)->getRegExpStatics();
-}
-
 inline void
 JSContext::setPendingException(js::Value v) {
     this->throwing = true;
@@ -525,14 +505,10 @@ JSContext::ensureParseMapPool()
 /*
  * Get the current frame, first lazily instantiating stack frames if needed.
  * (Do not access cx->fp() directly except in JS_REQUIRES_STACK code.)
- *
- * LeaveTrace is defined in jstracer.cpp if JS_TRACER is defined.
  */
 static JS_FORCES_STACK JS_INLINE js::StackFrame *
 js_GetTopStackFrame(JSContext *cx, FrameExpandKind expand)
 {
-    js::LeaveTrace(cx);
-
 #ifdef JS_METHODJIT
     if (expand)
         js::mjit::ExpandInlineFrames(cx->compartment);

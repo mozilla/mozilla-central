@@ -83,7 +83,7 @@ function synthesizeDragWithDirection(aElement, aExpectedDragData, aDirection, aC
     }
 
     if (!aExpectedDragData.length)
-      ok(event.getPreventDefault(), "Drag has been canceled.");
+      ok(event.defaultPrevented, "Drag has been canceled.");
 
     event.preventDefault();
     event.stopPropagation();
@@ -260,10 +260,10 @@ var gTests = [
 function nextTest() {
   if (gTests.length) {
     var test = gTests.shift();
-    info("Start of test: " + test.desc);
-    test.run();
-
-    waitForFocus(nextTest);
+    waitForFocus(function() {
+      info("Start of test: " + test.desc);
+      test.run();
+    });
   }
   else {
     // Collapse the personal toolbar if needed.
@@ -283,6 +283,6 @@ function test() {
   if (wasCollapsed)
     setToolbarVisibility(toolbar, true);
 
-  waitForFocus(nextTest);
+  nextTest();
 }
 

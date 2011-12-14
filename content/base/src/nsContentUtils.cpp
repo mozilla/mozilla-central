@@ -90,7 +90,7 @@
 #include "nsIDOMHTMLDocument.h"
 #include "nsIDOMHTMLCollection.h"
 #include "nsIDOMHTMLFormElement.h"
-#include "nsIDOMNSHTMLElement.h"
+#include "nsIDOMHTMLElement.h"
 #include "nsIForm.h"
 #include "nsIFormControl.h"
 #include "nsGkAtoms.h"
@@ -178,6 +178,7 @@ static NS_DEFINE_CID(kXTFServiceCID, NS_XTFSERVICE_CID);
 #include "nsICategoryManager.h"
 #include "nsIViewManager.h"
 #include "nsEventStateManager.h"
+#include "nsIDOMHTMLInputElement.h"
 
 #ifdef IBMBIDI
 #include "nsIBidiKeyboard.h"
@@ -203,8 +204,7 @@ static NS_DEFINE_CID(kXTFServiceCID, NS_XTFSERVICE_CID);
 #include "nsDOMTouchEvent.h"
 #include "nsIScriptElement.h"
 #include "nsIContentViewer.h"
-
-#include "prdtoa.h"
+#include "nsIObjectLoadingContent.h"
 
 #include "mozilla/Preferences.h"
 
@@ -212,6 +212,7 @@ static NS_DEFINE_CID(kXTFServiceCID, NS_XTFSERVICE_CID);
 
 using namespace mozilla::dom;
 using namespace mozilla::layers;
+using namespace mozilla::widget;
 using namespace mozilla;
 
 const char kLoadAsData[] = "loadAsData";
@@ -529,7 +530,7 @@ nsContentUtils::InitializeEventTable() {
 #include "nsEventNameList.h"
 #undef WINDOW_ONLY_EVENT
 #undef EVENT
-    nsnull
+    { nsnull }
   };
 
   sAtomEventTable = new nsDataHashtable<nsISupportsHashKey, EventNameMapping>;
@@ -577,7 +578,7 @@ nsContentUtils::InitializeTouchEventTable()
 #include "nsEventNameList.h"
 #undef TOUCH_EVENT
 #undef EVENT
-      nsnull
+      { nsnull }
     };
     // Subtract one from the length because of the trailing null
     for (PRUint32 i = 0; i < ArrayLength(touchEventArray) - 1; ++i) {
@@ -648,6 +649,27 @@ nsContentUtils::Atob(const nsAString& aAsciiBase64String,
     return NS_ERROR_DOM_INVALID_CHARACTER_ERR;
   }
   return rv;
+}
+
+bool
+nsContentUtils::IsAutocompleteEnabled(nsIDOMHTMLInputElement* aInput)
+{
+  NS_PRECONDITION(aInput, "aInput should not be null!");
+
+  nsAutoString autocomplete;
+  aInput->GetAutocomplete(autocomplete);
+
+  if (autocomplete.IsEmpty()) {
+    nsCOMPtr<nsIDOMHTMLFormElement> form;
+    aInput->GetForm(getter_AddRefs(form));
+    if (!form) {
+      return true;
+    }
+
+    form->GetAutocomplete(autocomplete);
+  }
+
+  return autocomplete.EqualsLiteral("on");
 }
 
 /**
@@ -734,7 +756,7 @@ struct NormalizeNewlinesCharTraits<CharT*> {
 
 #else
 
-NS_SPECIALIZE_TEMPLATE
+template <>
 struct NormalizeNewlinesCharTraits<char*> {
   public:
     typedef char value_type;
@@ -749,7 +771,7 @@ struct NormalizeNewlinesCharTraits<char*> {
     char* mCharPtr;
 };
 
-NS_SPECIALIZE_TEMPLATE
+template <>
 struct NormalizeNewlinesCharTraits<PRUnichar*> {
   public:
     typedef PRUnichar value_type;
@@ -1452,6 +1474,13 @@ bool
 nsContentUtils::IsCallerTrustedForWrite()
 {
   return IsCallerTrustedForCapability("UniversalBrowserWrite");
+}
+
+bool
+nsContentUtils::IsImageSrcSetDisabled()
+{
+  return Preferences::GetBool("dom.disable_image_src_set") &&
+         !IsCallerChrome();
 }
 
 // static
@@ -2403,7 +2432,7 @@ nsContentUtils::GetStaticRequest(imgIRequest* aRequest)
 bool
 nsContentUtils::ContentIsDraggable(nsIContent* aContent)
 {
-  nsCOMPtr<nsIDOMNSHTMLElement> htmlElement = do_QueryInterface(aContent);
+  nsCOMPtr<nsIDOMHTMLElement> htmlElement = do_QueryInterface(aContent);
   if (htmlElement) {
     bool draggable = false;
     htmlElement->GetDraggable(&draggable);
@@ -2702,6 +2731,7 @@ static const char gPropertiesFiles[nsContentUtils::PropertiesFile_COUNT][56] = {
   "chrome://global/locale/layout/HtmlForm.properties",
   "chrome://global/locale/printing.properties",
   "chrome://global/locale/dom/dom.properties",
+  "chrome://global/locale/layout/htmlparser.properties",
   "chrome://global/locale/svg/svg.properties",
   "chrome://branding/locale/brand.properties",
   "chrome://global/locale/commonDialogs.properties"
@@ -3699,12 +3729,12 @@ nsContentUtils::CreateDocument(const nsAString& aNamespaceURI,
                                nsIURI* aDocumentURI, nsIURI* aBaseURI,
                                nsIPrincipal* aPrincipal,
                                nsIScriptGlobalObject* aEventObject,
-                               bool aSVGDocument,
+                               DocumentFlavor aFlavor,
                                nsIDOMDocument** aResult)
 {
   nsresult rv = NS_NewDOMDocument(aResult, aNamespaceURI, aQualifiedName,
                                   aDoctype, aDocumentURI, aBaseURI, aPrincipal,
-                                  true, aEventObject, aSVGDocument);
+                                  true, aEventObject, aFlavor);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIDocument> document = do_QueryInterface(*aResult);
@@ -3995,25 +4025,6 @@ nsContentUtils::DropJSObjects(void* aScriptObjectHolder)
     nsLayoutStatics::Release();
   }
   return rv;
-}
-
-/* static */
-PRUint32
-nsContentUtils::GetWidgetStatusFromIMEStatus(PRUint32 aState)
-{
-  switch (aState & nsIContent::IME_STATUS_MASK_ENABLED) {
-    case nsIContent::IME_STATUS_DISABLE:
-      return nsIWidget::IME_STATUS_DISABLED;
-    case nsIContent::IME_STATUS_ENABLE:
-      return nsIWidget::IME_STATUS_ENABLED;
-    case nsIContent::IME_STATUS_PASSWORD:
-      return nsIWidget::IME_STATUS_PASSWORD;
-    case nsIContent::IME_STATUS_PLUGIN:
-      return nsIWidget::IME_STATUS_PLUGIN;
-    default:
-      NS_ERROR("The given state doesn't have valid enable state");
-      return nsIWidget::IME_STATUS_ENABLED;
-  }
 }
 
 /* static */
@@ -5415,6 +5426,10 @@ public:
   {
   }
 
+  NS_IMETHOD_(void) NoteWeakMapping(void* map, void* key, void* val)
+  {
+  }
+
   bool mFound;
 
 private:
@@ -5435,10 +5450,15 @@ void
 nsContentUtils::CheckCCWrapperTraversal(nsISupports* aScriptObjectHolder,
                                         nsWrapperCache* aCache)
 {
+  JSObject* wrapper = aCache->GetWrapper();
+  if (!wrapper) {
+    return;
+  }
+
   nsXPCOMCycleCollectionParticipant* participant;
   CallQueryInterface(aScriptObjectHolder, &participant);
 
-  DebugWrapperTraversalCallback callback(aCache->GetWrapper());
+  DebugWrapperTraversalCallback callback(wrapper);
 
   participant->Traverse(aScriptObjectHolder, callback);
   NS_ASSERTION(callback.mFound,
@@ -5806,13 +5826,101 @@ nsContentUtils::IsFullScreenApiEnabled()
 
 bool nsContentUtils::IsRequestFullScreenAllowed()
 {
-  return !sTrustedFullScreenOnly || nsEventStateManager::IsHandlingUserInput();
+  return !sTrustedFullScreenOnly ||
+         nsEventStateManager::IsHandlingUserInput() ||
+         IsCallerChrome();
 }
 
 bool
 nsContentUtils::IsFullScreenKeyInputRestricted()
 {
   return sFullScreenKeyInputRestricted;
+}
+
+static void
+CheckForWindowedPlugins(nsIContent* aContent, void* aResult)
+{
+  if (!aContent->IsInDoc()) {
+    return;
+  }
+  nsCOMPtr<nsIObjectLoadingContent> olc(do_QueryInterface(aContent));
+  if (!olc) {
+    return;
+  }
+  nsRefPtr<nsNPAPIPluginInstance> plugin;
+  olc->GetPluginInstance(getter_AddRefs(plugin));
+  if (!plugin) {
+    return;
+  }
+  bool isWindowless = false;
+  nsresult res = plugin->IsWindowless(&isWindowless);
+  if (NS_SUCCEEDED(res) && !isWindowless) {
+    *static_cast<bool*>(aResult) = true;
+  }
+}
+
+static bool
+DocTreeContainsWindowedPlugins(nsIDocument* aDoc, void* aResult)
+{
+  if (!nsContentUtils::IsChromeDoc(aDoc)) {
+    aDoc->EnumerateFreezableElements(CheckForWindowedPlugins, aResult);
+  }
+  if (*static_cast<bool*>(aResult)) {
+    // Return false to stop iteration, we found a windowed plugin.
+    return false;
+  }
+  aDoc->EnumerateSubDocuments(DocTreeContainsWindowedPlugins, aResult);
+  // Return false to stop iteration if we found a windowed plugin in
+  // the sub documents.
+  return !*static_cast<bool*>(aResult);
+}
+
+/* static */
+bool
+nsContentUtils::HasPluginWithUncontrolledEventDispatch(nsIDocument* aDoc)
+{
+#ifdef XP_MACOSX
+  // We control dispatch to all mac plugins.
+  return false;
+#endif
+  bool result = false;
+  
+  // Find the top of the document's branch, the child of the chrome document.
+  nsIDocument* doc = aDoc;
+  nsIDocument* parent = nsnull;
+  while (doc && (parent = doc->GetParentDocument()) && !IsChromeDoc(parent)) {
+    doc = parent;
+  }
+
+  DocTreeContainsWindowedPlugins(doc, &result);
+  return result;
+}
+
+/* static */
+bool
+nsContentUtils::HasPluginWithUncontrolledEventDispatch(nsIContent* aContent)
+{
+#ifdef XP_MACOSX
+  // We control dispatch to all mac plugins.
+  return false;
+#endif
+  bool result = false;
+  CheckForWindowedPlugins(aContent, &result);
+  return result;
+}
+
+/* static */
+nsIDocument*
+nsContentUtils::GetRootDocument(nsIDocument* aDoc)
+{
+  if (!aDoc) {
+    return nsnull;
+  }
+  nsIDocument* doc = aDoc;
+  while (doc->GetParentDocument()) {
+    doc = doc->GetParentDocument();
+  }
+  return doc;
 }
 
 // static
@@ -5834,9 +5942,11 @@ nsContentUtils::TraceWrapper(nsWrapperCache* aCache, TraceCallback aCallback,
                              void *aClosure)
 {
   if (aCache->PreservingWrapper()) {
-    aCallback(nsIProgrammingLanguage::JAVASCRIPT,
-              aCache->GetWrapperPreserveColor(),
-              "Preserved wrapper", aClosure);
+    JSObject *wrapper = aCache->GetWrapperPreserveColor();
+    if (wrapper) {
+      aCallback(nsIProgrammingLanguage::JAVASCRIPT, wrapper,
+                "Preserved wrapper", aClosure);
+    }
   }
   else {
     JSObject *expando = aCache->GetExpandoObjectPreserveColor();

@@ -45,45 +45,6 @@
 
 /***************************************************************************/
 
-/*
- * Helper that clones JS Function objects along with both of its
- * reserved slots.
- */
-
-JSObject *
-xpc_CloneJSFunction(XPCCallContext &ccx, JSObject *funobj, JSObject *parent)
-{
-    JSObject *clone = JS_CloneFunctionObject(ccx, funobj, parent);
-    if (!clone)
-        return nsnull;
-
-    AUTO_MARK_JSVAL(ccx, OBJECT_TO_JSVAL(clone));
-
-    XPCWrappedNativeScope *scope =
-        XPCWrappedNativeScope::FindInJSObjectScope(ccx, parent);
-
-    if (!scope) {
-        return nsnull;
-    }
-
-    // Make sure to break the prototype chain to the function object
-    // we cloned to prevent its scope from leaking into the clones
-    // scope.
-    JS_SetPrototype(ccx, clone, scope->GetPrototypeJSFunction());
-
-    // Copy the reserved slots to the clone.
-    jsval ifaceVal, memberVal;
-    if (!JS_GetReservedSlot(ccx, funobj, 0, &ifaceVal) ||
-        !JS_GetReservedSlot(ccx, funobj, 1, &memberVal))
-        return nsnull;
-
-    if (!JS_SetReservedSlot(ccx, clone, 0, ifaceVal) ||
-        !JS_SetReservedSlot(ccx, clone, 1, memberVal))
-        return nsnull;
-
-    return clone;
-}
-
 // XPCNativeMember
 
 // static
@@ -94,13 +55,13 @@ XPCNativeMember::GetCallInfo(XPCCallContext& ccx,
                              XPCNativeMember**    pMember)
 {
     funobj = js::UnwrapObject(funobj);
-    jsval ifaceVal = js::GetReservedSlot(funobj, 0);
-    jsval memberVal = js::GetReservedSlot(funobj, 1);
+    jsval ifaceVal = js::GetFunctionNativeReserved(funobj, 0);
+    jsval memberVal = js::GetFunctionNativeReserved(funobj, 1);
 
     *pInterface = (XPCNativeInterface*) JSVAL_TO_PRIVATE(ifaceVal);
     *pMember = (XPCNativeMember*) JSVAL_TO_PRIVATE(memberVal);
 
-    return JS_TRUE;
+    return true;
 }
 
 JSBool
@@ -121,7 +82,7 @@ XPCNativeMember::Resolve(XPCCallContext& ccx, XPCNativeInterface* iface,
     if (IsConstant()) {
         const nsXPTConstant* constant;
         if (NS_FAILED(iface->GetInterfaceInfo()->GetConstant(mIndex, &constant)))
-            return JS_FALSE;
+            return false;
 
         const nsXPTCMiniVariant& mv = *constant->GetValue();
 
@@ -135,11 +96,11 @@ XPCNativeMember::Resolve(XPCCallContext& ccx, XPCNativeInterface* iface,
 
         if (!XPCConvert::NativeData2JS(ccx, &resultVal, &v.val, v.type,
                                        nsnull, nsnull))
-            return JS_FALSE;
+            return false;
 
         *vp = resultVal;
 
-        return JS_TRUE;
+        return true;
     }
     // else...
 
@@ -151,7 +112,7 @@ XPCNativeMember::Resolve(XPCCallContext& ccx, XPCNativeInterface* iface,
     if (IsMethod()) {
         const nsXPTMethodInfo* info;
         if (NS_FAILED(iface->GetInterfaceInfo()->GetMethodInfo(mIndex, &info)))
-            return JS_FALSE;
+            return false;
 
         // Note: ASSUMES that retval is last arg.
         argc = (intN) info->GetParamCount();
@@ -164,21 +125,20 @@ XPCNativeMember::Resolve(XPCCallContext& ccx, XPCNativeInterface* iface,
         callback = XPC_WN_GetterSetter;
     }
 
-    JSFunction *fun = JS_NewFunctionById(ccx, callback, argc, 0, parent, GetName());
+    JSFunction *fun = js::NewFunctionByIdWithReserved(ccx, callback, argc, 0, parent, GetName());
     if (!fun)
-        return JS_FALSE;
+        return false;
 
     JSObject* funobj = JS_GetFunctionObject(fun);
     if (!funobj)
-        return JS_FALSE;
+        return false;
 
-    if (!JS_SetReservedSlot(ccx, funobj, 0, PRIVATE_TO_JSVAL(iface))||
-        !JS_SetReservedSlot(ccx, funobj, 1, PRIVATE_TO_JSVAL(this)))
-        return JS_FALSE;
+    js::SetFunctionNativeReserved(funobj, 0, PRIVATE_TO_JSVAL(iface));
+    js::SetFunctionNativeReserved(funobj, 1, PRIVATE_TO_JSVAL(this));
 
     *vp = OBJECT_TO_JSVAL(funobj);
 
-    return JS_TRUE;
+    return true;
 }
 
 /***************************************************************************/
@@ -300,13 +260,13 @@ XPCNativeInterface::NewInstance(XPCCallContext& ccx,
     XPCNativeMember* members = nsnull;
 
     int i;
-    JSBool failed = JS_FALSE;
+    JSBool failed = false;
     PRUint16 constCount;
     PRUint16 methodCount;
     PRUint16 totalCount;
     PRUint16 realTotalCount = 0;
     XPCNativeMember* cur;
-    JSString*  str;
+    JSString* str = NULL;
     jsid name;
     jsid interfaceName;
 
@@ -349,7 +309,7 @@ XPCNativeInterface::NewInstance(XPCCallContext& ccx,
     for (i = 0; i < methodCount; i++) {
         const nsXPTMethodInfo* info;
         if (NS_FAILED(aInfo->GetMethodInfo(i, &info))) {
-            failed = JS_TRUE;
+            failed = true;
             break;
         }
 
@@ -363,7 +323,7 @@ XPCNativeInterface::NewInstance(XPCCallContext& ccx,
         str = JS_InternString(ccx, info->GetName());
         if (!str) {
             NS_ERROR("bad method name");
-            failed = JS_TRUE;
+            failed = true;
             break;
         }
         name = INTERNED_STRING_TO_JSID(ccx, str);
@@ -393,14 +353,14 @@ XPCNativeInterface::NewInstance(XPCCallContext& ccx,
         for (i = 0; i < constCount; i++) {
             const nsXPTConstant* constant;
             if (NS_FAILED(aInfo->GetConstant(i, &constant))) {
-                failed = JS_TRUE;
+                failed = true;
                 break;
             }
 
             str = JS_InternString(ccx, constant->GetName());
             if (!str) {
                 NS_ERROR("bad constant name");
-                failed = JS_TRUE;
+                failed = true;
                 break;
             }
             name = INTERNED_STRING_TO_JSID(ccx, str);
@@ -418,7 +378,7 @@ XPCNativeInterface::NewInstance(XPCCallContext& ccx,
         const char* bytes;
         if (NS_FAILED(aInfo->GetNameShared(&bytes)) || !bytes ||
             nsnull == (str = JS_InternString(ccx, bytes))) {
-            failed = JS_TRUE;
+            failed = true;
         }
         interfaceName = INTERNED_STRING_TO_JSID(ccx, str);
     }
@@ -454,6 +414,16 @@ XPCNativeInterface::DestroyInstance(XPCNativeInterface* inst)
 {
     inst->~XPCNativeInterface();
     delete [] (char*) inst;
+}
+
+size_t
+XPCNativeInterface::SizeOfIncludingThis(nsMallocSizeOfFun mallocSizeOf)
+{
+    size_t computedSize = sizeof(XPCNativeInterface);
+    if (mMemberCount > 1)
+        computedSize += (mMemberCount - 1) * sizeof(XPCNativeMember);
+
+    return mallocSizeOf(this, computedSize);
 }
 
 void
@@ -810,6 +780,16 @@ XPCNativeSet::DestroyInstance(XPCNativeSet* inst)
 {
     inst->~XPCNativeSet();
     delete [] (char*) inst;
+}
+
+size_t
+XPCNativeSet::SizeOfIncludingThis(nsMallocSizeOfFun mallocSizeOf)
+{
+    size_t computedSize = sizeof(XPCNativeSet);
+    if (mInterfaceCount > 1)
+        computedSize += (mInterfaceCount - 1) * sizeof(XPCNativeInterface *);
+
+    return mallocSizeOf(this, computedSize);
 }
 
 void

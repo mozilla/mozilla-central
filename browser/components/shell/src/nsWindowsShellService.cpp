@@ -262,6 +262,9 @@ nsWindowsShellService::ShortcutMaintenance()
 {
   nsresult rv;
 
+  // XXX App ids were updated to a constant install path hash,
+  // XXX this code can be removed after a few upgrade cycles.
+
   // Launch helper.exe so it can update the application user model ids on
   // shortcuts in the user's taskbar and start menu. This keeps older pinned
   // shortcuts grouped correctly after major updates. Note, we also do this
@@ -798,66 +801,6 @@ nsWindowsShellService::SetDesktopBackgroundColor(PRUint32 aColor)
   // Close the key we opened.
   ::RegCloseKey(key);
   return NS_OK;
-}
-
-NS_IMETHODIMP
-nsWindowsShellService::GetUnreadMailCount(PRUint32* aCount)
-{
-  *aCount = 0;
-
-  HKEY accountKey;
-  if (GetMailAccountKey(&accountKey)) {
-    DWORD type, unreadCount;
-    DWORD len = sizeof unreadCount;
-    DWORD res = ::RegQueryValueExW(accountKey, L"MessageCount", 0,
-                                   &type, (LPBYTE)&unreadCount, &len);
-    if (REG_SUCCEEDED(res))
-      *aCount = unreadCount;
-
-    // Close the key we opened.
-    ::RegCloseKey(accountKey);
-  }
-
-  return NS_OK;
-}
-
-bool
-nsWindowsShellService::GetMailAccountKey(HKEY* aResult)
-{
-  NS_NAMED_LITERAL_STRING(unread,
-    "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\UnreadMail\\");
-
-  HKEY mailKey;
-  DWORD res = ::RegOpenKeyExW(HKEY_CURRENT_USER, unread.get(), 0,
-                              KEY_ENUMERATE_SUB_KEYS, &mailKey);
-
-  PRInt32 i = 0;
-  do {
-    PRUnichar subkeyName[MAX_BUF];
-    DWORD len = sizeof subkeyName;
-    res = ::RegEnumKeyExW(mailKey, i++, subkeyName, &len, NULL, NULL,
-                          NULL, NULL);
-    if (REG_SUCCEEDED(res)) {
-      HKEY accountKey;
-      res = ::RegOpenKeyExW(mailKey, PromiseFlatString(subkeyName).get(),
-                            0, KEY_READ, &accountKey);
-      if (REG_SUCCEEDED(res)) {
-        *aResult = accountKey;
-    
-        // Close the key we opened.
-        ::RegCloseKey(mailKey);
-	 
-        return true;
-      }
-    }
-    else
-      break;
-  }
-  while (1);
-
-  // Close the key we opened.
-  ::RegCloseKey(mailKey);
-  return false;
 }
 
 NS_IMETHODIMP

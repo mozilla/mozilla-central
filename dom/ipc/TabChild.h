@@ -94,7 +94,6 @@ class TabChildGlobal : public nsDOMEventTargetWrapperCache,
 {
 public:
   TabChildGlobal(TabChild* aTabChild);
-  ~TabChildGlobal();
   NS_DECL_ISUPPORTS_INHERITED
   NS_DECL_CYCLE_COLLECTION_CLASS_INHERITED(TabChildGlobal, nsDOMEventTargetWrapperCache)
   NS_FORWARD_SAFE_NSIFRAMEMESSAGEMANAGER(mMessageManager)
@@ -255,6 +254,7 @@ public:
 
     nsIPrincipal* GetPrincipal() { return mPrincipal; }
 
+    void SetBackgroundColor(const nscolor& aColor);
 protected:
     NS_OVERRIDE
     virtual PRenderFrameChild* AllocPRenderFrame();
@@ -278,6 +278,7 @@ private:
     nsRefPtr<TabChildGlobal> mTabChildGlobal;
     PRUint32 mChromeFlags;
     nsIntRect mOuterRect;
+    nscolor mLastBackgroundColor;
 
     DISALLOW_EVIL_CONSTRUCTORS(TabChild);
 };
@@ -298,6 +299,14 @@ GetTabChildFrom(nsIPresShell* aPresShell)
     }
     nsCOMPtr<nsISupports> container = doc->GetContainer();
     nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(container));
+    return GetTabChildFrom(docShell);
+}
+
+inline TabChild*
+GetTabChildFrom(nsIDOMWindow* aWindow)
+{
+    nsCOMPtr<nsIWebNavigation> webNav = do_GetInterface(aWindow);
+    nsCOMPtr<nsIDocShell> docShell = do_QueryInterface(webNav);
     return GetTabChildFrom(docShell);
 }
 

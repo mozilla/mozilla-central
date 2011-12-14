@@ -73,7 +73,7 @@ FormAutoComplete.prototype = {
         // Preferences. Add observer so we get notified of changes.
         this._prefBranch = Services.prefs.getBranch("browser.formfill.");
         this._prefBranch.QueryInterface(Ci.nsIPrefBranch2);
-        this._prefBranch.addObserver("", this.observer, false);
+        this._prefBranch.addObserver("", this.observer, true);
         this.observer._self = this;
 
         this._debug            = this._prefBranch.getBoolPref("debug");
@@ -84,9 +84,9 @@ FormAutoComplete.prototype = {
         this._timeGroupingSize = this._prefBranch.getIntPref("timeGroupingSize") * 1000 * 1000;
         this._expireDays       = this._prefBranch.getIntPref("expire_days");
 
-        this._dbStmts = [];
+        this._dbStmts = {};
 
-        Services.obs.addObserver(this.observer, "xpcom-shutdown", false);
+        Services.obs.addObserver(this.observer, "profile-before-change", true);
     },
 
     observer : {
@@ -129,8 +129,11 @@ FormAutoComplete.prototype = {
                     default:
                         self.log("Oops! Pref not handled, change ignored.");
                 }
-            } else if (topic == "xpcom-shutdown") {
-                self._dbStmts = null;
+            } else if (topic == "profile-before-change") {
+                for each (let stmt in self._dbStmts) {
+                    stmt.finalize();
+                }
+                self._dbStmts = {};
                 self.__formHistory = null;
             }
         }
@@ -163,9 +166,7 @@ FormAutoComplete.prototype = {
      */
     autoCompleteSearch : function (aInputName, aUntrimmedSearchString, aField, aPreviousResult) {
         function sortBytotalScore (a, b) {
-            let x = a.totalScore;
-            let y = b.totalScore;
-            return ((x > y) ? -1 : ((x < y) ? 1 : 0));
+            return b.totalScore - a.totalScore;
         }
 
         if (!this._enabled)

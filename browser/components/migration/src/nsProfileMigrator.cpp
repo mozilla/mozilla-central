@@ -45,7 +45,7 @@
 #include "nsIProperties.h"
 #include "nsIServiceManager.h"
 #include "nsISupportsPrimitives.h"
-#include "nsISupportsArray.h"
+#include "nsIMutableArray.h"
 #include "nsIToolkitProfile.h"
 #include "nsIToolkitProfileService.h"
 #include "nsIWindowWatcher.h"
@@ -56,7 +56,6 @@
 #include "nsDirectoryServiceDefs.h"
 #include "nsServiceManagerUtils.h"
 
-#include "NSReg.h"
 #include "nsStringAPI.h"
 #include "nsUnicharUtils.h"
 #ifdef XP_WIN
@@ -68,18 +67,6 @@
 #endif
 
 #include "nsAutoPtr.h"
-
-#ifndef MAXPATHLEN
-#ifdef PATH_MAX
-#define MAXPATHLEN PATH_MAX
-#elif defined(_MAX_PATH)
-#define MAXPATHLEN _MAX_PATH
-#elif defined(CCHMAXPATH)
-#define MAXPATHLEN CCHMAXPATH
-#else
-#define MAXPATHLEN 1024
-#endif
-#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // nsIProfileMigrator
@@ -127,13 +114,12 @@ nsProfileMigrator::Migrate(nsIProfileStartup* aStartup)
   // By opening the Migration FE with a supplied bpm, it will automatically
   // migrate from it. 
   nsCOMPtr<nsIWindowWatcher> ww(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
-  nsCOMPtr<nsISupportsArray> params = 
-    do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
+  nsCOMPtr<nsIMutableArray> params = do_CreateInstance(NS_ARRAY_CONTRACTID);
   if (!ww || !params) return NS_ERROR_FAILURE;
 
-  params->AppendElement(cstr);
-  params->AppendElement(bpm);
-  params->AppendElement(aStartup);
+  params->AppendElement(cstr, false);
+  params->AppendElement(bpm, false);
+  params->AppendElement(aStartup, false);
 
   nsCOMPtr<nsIDOMWindow> migrateWizard;
   return ww->OpenWindow(nsnull, 
@@ -142,15 +128,6 @@ nsProfileMigrator::Migrate(nsIProfileStartup* aStartup)
                         MIGRATION_WIZARD_FE_FEATURES,
                         params,
                         getter_AddRefs(migrateWizard));
-}
-
-NS_IMETHODIMP
-nsProfileMigrator::Import()
-{
-  if (ImportRegistryProfiles(NS_LITERAL_CSTRING("Firefox")))
-    return NS_OK;
-
-  return NS_ERROR_FAILURE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -163,6 +140,7 @@ NS_IMPL_ISUPPORTS1(nsProfileMigrator, nsIProfileMigrator)
 #define INTERNAL_NAME_IEXPLORE        "iexplore"
 #define INTERNAL_NAME_MOZILLA_SUITE   "apprunner"
 #define INTERNAL_NAME_OPERA           "opera"
+#define INTERNAL_NAME_CHROME          "chrome"
 #endif
 
 nsresult
@@ -246,6 +224,10 @@ nsProfileMigrator::GetDefaultBrowserMigratorKey(nsACString& aKey,
     aKey = "opera";
     return NS_OK;
   }
+  else if (internalName.LowerCaseEqualsLiteral(INTERNAL_NAME_CHROME)) {
+    aKey = "chrome";
+    return NS_OK;
+  }
 
 #else
   bool exists = false;
@@ -262,115 +244,9 @@ nsProfileMigrator::GetDefaultBrowserMigratorKey(nsACString& aKey,
   CHECK_MIGRATOR("safari");
 #endif
   CHECK_MIGRATOR("opera");
+  CHECK_MIGRATOR("chrome");
 
 #undef CHECK_MIGRATOR
 #endif
   return NS_ERROR_FAILURE;
-}
-
-bool
-nsProfileMigrator::ImportRegistryProfiles(const nsACString& aAppName)
-{
-  nsresult rv;
-
-  nsCOMPtr<nsIToolkitProfileService> profileSvc
-    (do_GetService(NS_PROFILESERVICE_CONTRACTID));
-  NS_ENSURE_TRUE(profileSvc, false);
-
-  nsCOMPtr<nsIProperties> dirService
-    (do_GetService("@mozilla.org/file/directory_service;1"));
-  NS_ENSURE_TRUE(dirService, false);
-
-  nsCOMPtr<nsILocalFile> regFile;
-#ifdef XP_WIN
-  rv = dirService->Get(NS_WIN_APPDATA_DIR, NS_GET_IID(nsILocalFile),
-                       getter_AddRefs(regFile));
-  NS_ENSURE_SUCCESS(rv, false);
-  regFile->AppendNative(aAppName);
-  regFile->AppendNative(NS_LITERAL_CSTRING("registry.dat"));
-#elif defined(XP_MACOSX)
-  rv = dirService->Get(NS_MAC_USER_LIB_DIR, NS_GET_IID(nsILocalFile),
-                       getter_AddRefs(regFile));
-  NS_ENSURE_SUCCESS(rv, false);
-  regFile->AppendNative(aAppName);
-  regFile->AppendNative(NS_LITERAL_CSTRING("Application Registry"));
-#elif defined(XP_OS2)
-  rv = dirService->Get(NS_OS2_HOME_DIR, NS_GET_IID(nsILocalFile),
-                       getter_AddRefs(regFile));
-  NS_ENSURE_SUCCESS(rv, false);
-  regFile->AppendNative(aAppName);
-  regFile->AppendNative(NS_LITERAL_CSTRING("registry.dat"));
-#else
-  rv = dirService->Get(NS_UNIX_HOME_DIR, NS_GET_IID(nsILocalFile),
-                       getter_AddRefs(regFile));
-  NS_ENSURE_SUCCESS(rv, false);
-  nsCAutoString dotAppName;
-  ToLowerCase(aAppName, dotAppName);
-  dotAppName.Insert('.', 0);
-  
-  regFile->AppendNative(dotAppName);
-  regFile->AppendNative(NS_LITERAL_CSTRING("appreg"));
-#endif
-
-  nsCAutoString path;
-  rv = regFile->GetNativePath(path);
-  NS_ENSURE_SUCCESS(rv, false);
-
-  if (NR_StartupRegistry())
-    return false;
-
-  bool migrated = false;
-  HREG reg = nsnull;
-  RKEY profiles = 0;
-  REGENUM enumstate = 0;
-  char profileName[MAXREGNAMELEN];
-
-  if (NR_RegOpen(path.get(), &reg))
-    goto cleanup;
-
-  if (NR_RegGetKey(reg, ROOTKEY_COMMON, "Profiles", &profiles))
-    goto cleanup;
-
-  while (!NR_RegEnumSubkeys(reg, profiles, &enumstate,
-                            profileName, MAXREGNAMELEN, REGENUM_CHILDREN)) {
-#ifdef DEBUG_bsmedberg
-    printf("Found profile %s.\n", profileName);
-#endif
-
-    RKEY profile = 0;
-    if (NR_RegGetKey(reg, profiles, profileName, &profile)) {
-      NS_ERROR("Could not get the key that was enumerated.");
-      continue;
-    }
-
-    char profilePath[MAXPATHLEN];
-    if (NR_RegGetEntryString(reg, profile, "directory",
-                             profilePath, MAXPATHLEN))
-      continue;
-
-    nsCOMPtr<nsILocalFile> profileFile
-      (do_CreateInstance("@mozilla.org/file/local;1"));
-    if (!profileFile)
-      continue;
-
-#if defined (XP_MACOSX)
-    rv = profileFile->SetPersistentDescriptor(nsDependentCString(profilePath));
-#else
-    NS_ConvertUTF8toUTF16 widePath(profilePath);
-    rv = profileFile->InitWithPath(widePath);
-#endif
-    if (NS_FAILED(rv)) continue;
-
-    nsCOMPtr<nsIToolkitProfile> tprofile;
-    profileSvc->CreateProfile(profileFile, nsnull,
-                              nsDependentCString(profileName),
-                              getter_AddRefs(tprofile));
-    migrated = true;
-  }
-
-cleanup:
-  if (reg)
-    NR_RegClose(reg);
-  NR_ShutdownRegistry();
-  return migrated;
 }

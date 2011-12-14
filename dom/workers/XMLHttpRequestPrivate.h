@@ -111,13 +111,16 @@ public:
   Notify(JSContext* aCx, Status aStatus);
 
   bool
-  SetMultipart(JSContext* aCx, jsval *aVp);
+  SetMultipart(JSContext* aCx, jsval aOldVal, jsval *aVp);
 
   bool
-  SetMozBackgroundRequest(JSContext* aCx, jsval *aVp);
+  SetMozBackgroundRequest(JSContext* aCx, jsval aOldVal, jsval *aVp);
 
   bool
-  SetWithCredentials(JSContext* aCx, jsval *aVp);
+  SetWithCredentials(JSContext* aCx, jsval aOldVal, jsval *aVp);
+
+  bool
+  SetResponseType(JSContext* aCx, jsval aOldVal, jsval *aVp);
 
   bool
   Abort(JSContext* aCx);
@@ -152,7 +155,7 @@ private:
   RootJSObject(JSContext* aCx);
 
   bool
-  MaybeDispatchPrematureAbortEvents(JSContext* aCx, bool aFromOpen);
+  MaybeDispatchPrematureAbortEvents(JSContext* aCx);
 
   bool
   DispatchPrematureAbortEvent(JSContext* aCx, JSObject* aTarget,

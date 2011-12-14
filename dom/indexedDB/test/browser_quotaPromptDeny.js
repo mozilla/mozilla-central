@@ -4,7 +4,7 @@
  */
 
 // Make sure this is a unique origin or the tests will randomly fail!
-const testPageURL = "http://test2.example.org/browser/" +
+const testPageURL = "http://bug704464-2.example.com/browser/" +
   "dom/indexedDB/test/browser_quotaPrompt.html";
 const notificationID = "indexedDB-quota-prompt";
 
@@ -77,7 +77,7 @@ function test1()
   }, true);
 
   info("loading test page: " + testPageURL);
-  content.location = testPageURL;
+  content.location = testPageURL + "?v=5";
 }
 
 function test2()
@@ -145,5 +145,5 @@ function test2()
   }, true);
 
   info("loading test page: " + testPageURL);
-  content.location = testPageURL;
+  content.location = testPageURL + "?v=7";
 }

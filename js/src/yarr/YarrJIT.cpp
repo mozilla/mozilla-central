@@ -1205,8 +1205,10 @@ class YarrGenerator : private MacroAssembler {
                 // If we get here, the prior alternative matched - return success.
                 
                 // Adjust the stack pointer to remove the pattern's frame.
+#if !WTF_CPU_SPARC
                 if (m_pattern.m_body->m_callFrameSize)
                     addPtr(Imm32(m_pattern.m_body->m_callFrameSize * sizeof(void*)), stackPointerRegister);
+#endif
 
                 // Load appropriate values into the return register and the first output
                 // slot, and return. In the case of pattern with a fixed size, we will
@@ -1513,8 +1515,10 @@ class YarrGenerator : private MacroAssembler {
             }
 
             case OpMatchFailed:
+#if !WTF_CPU_SPARC
                 if (m_pattern.m_body->m_callFrameSize)
                     addPtr(Imm32(m_pattern.m_body->m_callFrameSize * sizeof(void*)), stackPointerRegister);
+#endif
                 move(TrustedImm32(-1), returnRegister);
                 generateReturn();
                 break;
@@ -1753,8 +1757,10 @@ class YarrGenerator : private MacroAssembler {
                 // run any matches, and need to return a failure state from JIT code.
                 matchFailed.link(this);
 
+#if !WTF_CPU_SPARC
                 if (m_pattern.m_body->m_callFrameSize)
                     addPtr(Imm32(m_pattern.m_body->m_callFrameSize * sizeof(void*)), stackPointerRegister);
+#endif
                 move(TrustedImm32(-1), returnRegister);
                 generateReturn();
                 break;
@@ -2083,6 +2089,22 @@ class YarrGenerator : private MacroAssembler {
                 alternativeEndOpCode = OpNestedAlternativeEnd;
             }
         } else if (term->parentheses.isTerminal) {
+            // Terminal groups are optimized on the assumption that matching will never
+            // backtrack into the terminal group. But this is false if there is more
+            // than one alternative and one of the alternatives can match empty. In that
+            // case, the empty match is counted as a failure, so we would need to backtrack.
+            // The backtracking code doesn't handle this case correctly, so we fall back
+            // to the interpreter.
+            Vector<PatternAlternative*>& alternatives = term->parentheses.disjunction->m_alternatives;
+            if (alternatives.size() != 1) {
+                for (unsigned i = 0; i < alternatives.size(); ++i) {
+                    if (alternatives[i]->m_minimumSize == 0) {
+                        m_shouldFallBack = true;
+                        return;
+                    }
+                }
+            }
+                        
             // Select the 'Terminal' nodes.
             parenthesesBeginOpCode = OpParenthesesSubpatternTerminalBegin;
             parenthesesEndOpCode = OpParenthesesSubpatternTerminalEnd;
@@ -2326,8 +2348,6 @@ class YarrGenerator : private MacroAssembler {
         push(SH4Registers::r13);
 #elif WTF_CPU_SPARC
         save(Imm32(-m_pattern.m_body->m_callFrameSize * sizeof(void*)));
-        // set m_callFrameSize to 0 avoid and stack movement later.
-        m_pattern.m_body->m_callFrameSize = 0;
 #elif WTF_CPU_MIPS
         // Do nothing.
 #endif
@@ -2377,8 +2397,10 @@ public:
         if (!m_pattern.m_body->m_hasFixedSize)
             store32(index, Address(output));
 
+#if !WTF_CPU_SPARC
         if (m_pattern.m_body->m_callFrameSize)
             subPtr(Imm32(m_pattern.m_body->m_callFrameSize * sizeof(void*)), stackPointerRegister);
+#endif
 
         // Compile the pattern to the internal 'YarrOp' representation.
         opCompileBody(m_pattern.m_body);

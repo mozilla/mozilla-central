@@ -45,9 +45,6 @@
 #include "gfxRect.h"
 #include "nsFont.h"
 
-// cairo doesn't support invert
-// #define GFX_HAS_INVERT
-
 // XXX fold this into nsStyleContext and group by nsStyleXXX struct
 
 // Indices into border/padding/margin arrays
@@ -235,9 +232,6 @@ static inline mozilla::css::Side operator++(mozilla::css::Side& side, int) {
 // See nsStyleColor
 #define NS_STYLE_COLOR_MOZ_USE_TEXT_COLOR 1
 #define NS_STYLE_COLOR_INHERIT_FROM_BODY  2  /* Can't come from CSS directly */
-#ifdef GFX_HAS_INVERT
-#define NS_STYLE_COLOR_INVERT             3
-#endif
 
 // See nsStyleColor
 #define NS_COLOR_CURRENTCOLOR                   -1
@@ -273,6 +267,12 @@ static inline mozilla::css::Side operator++(mozilla::css::Side& side, int) {
 #define NS_STYLE_BG_CLIP_BORDER           0
 #define NS_STYLE_BG_CLIP_PADDING          1
 #define NS_STYLE_BG_CLIP_CONTENT          2
+// A magic value that we use for our "pretend that background-clip is
+// 'padding' when we have a solid border" optimization.  This isn't
+// actually equal to NS_STYLE_BG_CLIP_PADDING because using that
+// causes antialiasing seams between the background and border.  This
+// is a backend-only value.
+#define NS_STYLE_BG_CLIP_MOZ_ALMOST_PADDING 127
 
 // See nsStyleBackground
 #define NS_STYLE_BG_INLINE_POLICY_EACH_BOX      0
@@ -712,6 +712,10 @@ static inline mozilla::css::Side operator++(mozilla::css::Side& side, int) {
 #define NS_STYLE_HYPHENS_NONE                   0
 #define NS_STYLE_HYPHENS_MANUAL                 1
 #define NS_STYLE_HYPHENS_AUTO                   2
+
+// See nsStyleText
+#define NS_STYLE_TEXT_SIZE_ADJUST_NONE          0
+#define NS_STYLE_TEXT_SIZE_ADJUST_AUTO          1
 
 // See nsStyleText
 #define NS_STYLE_LINE_HEIGHT_BLOCK_HEIGHT       0

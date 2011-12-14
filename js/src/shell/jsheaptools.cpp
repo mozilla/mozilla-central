@@ -14,7 +14,7 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is JavaScript shell workers.
+ * The Original Code is JavaScript heap tools.
  *
  * The Initial Developer of the Original Code is
  * Mozilla Corporation.
@@ -22,7 +22,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Jason Orendorff <jorendorff@mozilla.com>
+ *   Jim Blandy <jimb@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -50,6 +50,8 @@
 #include "jsprf.h"
 #include "jsutil.h"
 
+#include "jsobjinlines.h"
+
 using namespace js;
 
 #ifdef DEBUG
@@ -75,7 +77,16 @@ using namespace js;
  * at such objects.
  */
 
-/* A JSTracer that produces a map of the heap with edges reversed. */
+/*
+ * A JSTracer that produces a map of the heap with edges reversed. 
+ *
+ * HeapReversers must be allocated in a stack frame. (They contain an AutoArrayRooter,
+ * and those must be allocated and destroyed in a stack-like order.)
+ *
+ * HeapReversers keep all the roots they find in their traversal alive until
+ * they are destroyed. So you don't need to worry about nodes going away while
+ * you're using them.
+ */
 class HeapReverser : public JSTracer {
   public:
     struct Edge;
@@ -159,9 +170,8 @@ class HeapReverser : public JSTracer {
     Map map;
 
     /* Construct a HeapReverser for |context|'s heap. */
-    HeapReverser(JSContext *cx) : map(cx), work(cx), parent(NULL) {
-        context = cx;
-        callback = traverseEdgeWithThis;
+    HeapReverser(JSContext *cx) : map(cx), roots(cx), rooter(cx, 0, NULL), work(cx), parent(NULL) {
+        JS_TRACER_INIT(this, cx, traverseEdgeWithThis);
     }
 
     bool init() { return map.init(); }
@@ -170,6 +180,22 @@ class HeapReverser : public JSTracer {
     bool reverseHeap();
 
   private:    
+    /*
+     * Conservative scanning can, on a whim, decide that a root is no longer a
+     * root, and cause bits of our graph to disappear. The 'roots' vector holds
+     * all the roots we find alive, and 'rooter' keeps them alive until we're
+     * destroyed.
+     *
+     * Note that AutoArrayRooters must be constructed and destroyed in a
+     * stack-like order, so the same rule applies to this HeapReverser. The
+     * easiest way to satisfy this requirement is to only allocate HeapReversers
+     * as local variables in functions, or in types that themselves follow that
+     * rule. This is kind of dumb, but JSAPI doesn't provide any less restricted
+     * way to register arrays of roots.
+     */
+    Vector<jsval> roots;
+    AutoArrayRooter rooter;
+
     /*
      * Return the name of the most recent edge this JSTracer has traversed. The
      * result is allocated with malloc; if we run out of memory, raise an error
@@ -227,10 +253,27 @@ class HeapReverser : public JSTracer {
         HeapReverser *reverser = static_cast<HeapReverser *>(tracer);
         reverser->traversalStatus = reverser->traverseEdge(cell, kind);
     }
+
+    /* Return a jsval representing a node, if possible; otherwise, return JSVAL_VOID. */
+    jsval nodeToValue(void *cell, int kind) {
+        if (kind == JSTRACE_OBJECT) {
+            JSObject *object = static_cast<JSObject *>(cell);
+            return OBJECT_TO_JSVAL(object);
+        } else {
+            return JSVAL_VOID;
+        }
+    }
 };
 
 bool
 HeapReverser::traverseEdge(void *cell, JSGCTraceKind kind) {
+    /* If this is a root, make our own root for it as well. */
+    if (!parent) {
+        if (!roots.append(nodeToValue(cell, kind)))
+            return false;
+        rooter.changeArray(roots.begin(), roots.length());
+    }
+
     /* Capture this edge before the JSTracer members get overwritten. */
     char *edgeDescription = getEdgeDescription();
     if (!edgeDescription)
@@ -508,32 +551,7 @@ ReferenceFinder::findReferences(JSObject *target)
     return result;
 }
 
-/*
- * findReferences(thing)
- *
- * Walk the entire heap, looking for references to |thing|, and return a
- * "references object" describing what we found.
- *
- * Each property of the references object describes one kind of reference. The
- * property's name is the label supplied to MarkObject, JS_CALL_TRACER, or what
- * have you, prefixed with "edge: " to avoid collisions with system properties
- * (like "toString" and "__proto__"). The property's value is an array of things
- * that refer to |thing| via that kind of reference. Ordinary references from
- * one object to another are named after the property name (with the "edge: "
- * prefix).
- *
- * Garbage collection roots appear as references from 'null'. We use the name
- * given to the root (with the "edge: " prefix) as the name of the reference.
- *
- * Note that the references object does record references from objects that are
- * only reachable via |thing| itself, not just the references reachable
- * themselves from roots that keep |thing| from being collected. (We could make
- * this distinction if it is useful.)
- *
- * If any references are found by the conservative scanner, the references
- * object will have a property named "edge: machine stack"; the referrers will
- * be 'null', because they are roots.
- */
+/* See help(findReferences). */
 JSBool
 FindReferences(JSContext *cx, uintN argc, jsval *vp)
 {

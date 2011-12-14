@@ -62,6 +62,8 @@ import android.webkit.MimeTypeMap;
 import android.media.MediaScannerConnection;
 import android.media.MediaScannerConnection.MediaScannerConnectionClient;
 import android.provider.Settings;
+import android.view.accessibility.AccessibilityManager;
+import android.view.accessibility.AccessibilityEvent;
 
 import android.util.*;
 import android.net.Uri;
@@ -70,6 +72,9 @@ import android.net.NetworkInfo;
 
 import android.graphics.drawable.*;
 import android.graphics.Bitmap;
+
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 public class GeckoAppShell
 {
@@ -113,6 +118,10 @@ public class GeckoAppShell
     public static native void reportJavaCrash(String stack);
 
     public static native void processNextNativeEvent();
+
+    public static native void notifyBatteryChange(double aLevel, boolean aCharging, double aRemainingTime);
+
+    public static native void notifySmsReceived(String aSender, String aBody, long aTimestamp);
 
     // A looper thread, accessed by GeckoAppShell.getHandler
     private static class LooperThread extends Thread {
@@ -408,8 +417,6 @@ public class GeckoAppShell
         // and go
         GeckoAppShell.nativeRun(combinedArgs);
     }
-
-    private static GeckoEvent mLastDrawEvent;
 
     private static void sendPendingEventsToGecko() {
         try {
@@ -804,6 +811,18 @@ public class GeckoAppShell
             intent.setDataAndType(Uri.parse(aUriSpec), aMimeType);
         } else {
             Uri uri = Uri.parse(aUriSpec);
+            if ("vnd.youtube".equals(uri.getScheme())) {
+                // Special case youtube to fallback to our own player
+                String[] handlers = getHandlersForURL(aUriSpec, aAction);
+                if (handlers.length == 0) {
+                    intent = new Intent(VideoPlayer.VIDEO_ACTION);
+                    intent.setClassName(GeckoApp.mAppContext.getPackageName(),
+                                        "org.mozilla.gecko.VideoPlayer");
+                    intent.setData(uri);
+                    GeckoApp.mAppContext.startActivity(intent);
+                    return true;
+                }
+            }
             if ("sms".equals(uri.getScheme())) {
                 // Have a apecial handling for the SMS, as the message body
                 // is not extracted from the URI automatically
@@ -1039,6 +1058,22 @@ public class GeckoAppShell
             performHapticFeedback(aIsLongPress ?
                                   HapticFeedbackConstants.LONG_PRESS :
                                   HapticFeedbackConstants.VIRTUAL_KEY);
+    }
+
+    private static Vibrator vibrator() {
+        return (Vibrator) GeckoApp.surfaceView.getContext().getSystemService(Context.VIBRATOR_SERVICE);
+    }
+
+    public static void vibrate(long milliseconds) {
+        vibrator().vibrate(milliseconds);
+    }
+
+    public static void vibrate(long[] pattern, int repeat) {
+        vibrator().vibrate(pattern, repeat);
+    }
+
+    public static void cancelVibrate() {
+        vibrator().cancel();
     }
 
     public static void showInputMethodPicker() {
@@ -1341,6 +1376,13 @@ public class GeckoAppShell
             return true;
         }
     }
+
+    public static boolean getAccessibilityEnabled() {
+        AccessibilityManager accessibilityManager =
+            (AccessibilityManager) GeckoApp.mAppContext.getSystemService(Context.ACCESSIBILITY_SERVICE);
+        return accessibilityManager.isEnabled();
+    }
+
     public static void addPluginView(final View view,
                                      final double x, final double y,
                                      final double w, final double h) {
@@ -1355,10 +1397,7 @@ public class GeckoAppShell
                                                                                      (int)y);
 
                     if (GeckoApp.mainLayout.indexOfChild(view) == -1) {
-                        view.setWillNotDraw(false);
-                        if(view instanceof SurfaceView)
-                            ((SurfaceView)view).setZOrderOnTop(true);
-
+                        view.setWillNotDraw(true);
                         GeckoApp.mainLayout.addView(view, lp);
                     }
                     else
@@ -1412,16 +1451,9 @@ public class GeckoAppShell
         return null;
     }
 
-    static HashMap<SurfaceView, SurfaceLockInfo> sSufaceMap = new HashMap<SurfaceView, SurfaceLockInfo>();
-
-    public static void lockSurfaceANP()
+    public static SurfaceInfo getSurfaceInfo(SurfaceView sview)
     {
-         Log.i("GeckoAppShell", "other lockSurfaceANP");
-    }
-
-    public static org.mozilla.gecko.SurfaceLockInfo lockSurfaceANP(android.view.SurfaceView sview, int top, int left, int bottom, int right)
-    {
-        Log.i("GeckoAppShell", "real lockSurfaceANP " + sview + ", " + top + ",  " + left + ", " + bottom + ", " + right);
+        Log.i("GeckoAppShell", "getSurfaceInfo " + sview);
         if (sview == null)
             return null;
 
@@ -1435,80 +1467,28 @@ public class GeckoAppShell
         }
 
         int n = 0;
-        if (format == PixelFormat.RGB_565)
+        if (format == PixelFormat.RGB_565) {
             n = 2;
-        else if (format == PixelFormat.RGBA_8888)
+        } else if (format == PixelFormat.RGBA_8888) {
             n = 4;
-
-        if (n == 0)
+        } else {
+            Log.i("GeckoAppShell", "Unknown pixel format: " + format);
             return null;
-
-        SurfaceLockInfo info = sSufaceMap.get(sview);
-        if (info == null) {
-            info = new SurfaceLockInfo();
-            sSufaceMap.put(sview, info);
         }
 
-        Rect r = new Rect(left, top, right, bottom);
+        SurfaceInfo info = new SurfaceInfo();
 
-        info.canvas = sview.getHolder().lockCanvas(r);
-        int bufSizeRequired = info.canvas.getWidth() * info.canvas.getHeight() * n;
-        Log.i("GeckoAppShell", "lockSurfaceANP - bufSizeRequired: " + n + " " + info.canvas.getHeight() + " " + info.canvas.getWidth());
-
-        if (info.width != info.canvas.getWidth() || info.height != info.canvas.getHeight() || info.buffer == null || info.buffer.capacity() < bufSizeRequired) {
-            info.width = info.canvas.getWidth();
-            info.height = info.canvas.getHeight();
-
-            // XXX Bitmaps instead of ByteBuffer
-            info.buffer = ByteBuffer.allocateDirect(bufSizeRequired);  //leak
-            Log.i("GeckoAppShell", "!!!!!!!!!!!  lockSurfaceANP - Allocating buffer! " + bufSizeRequired);
-
-        }
-
-        info.canvas.drawColor(Color.WHITE, PorterDuff.Mode.CLEAR);
-
+        Rect r = sview.getHolder().getSurfaceFrame();
+        info.width = r.right;
+        info.height = r.bottom;
         info.format = format;
-        info.dirtyTop = top;
-        info.dirtyBottom = bottom;
-        info.dirtyLeft = left;
-        info.dirtyRight = right;
 
         return info;
     }
 
-    public static void unlockSurfaceANP(SurfaceView sview) {
-        SurfaceLockInfo info = sSufaceMap.get(sview);
-
-        int n = 0;
-        Bitmap.Config config;
-        if (info.format == PixelFormat.RGB_565) {
-            n = 2;
-            config = Bitmap.Config.RGB_565;
-        } else {
-            n = 4;
-            config = Bitmap.Config.ARGB_8888;
-        }
-
-        Log.i("GeckoAppShell", "unlockSurfaceANP: " + (info.width * info.height * n));
-
-        Bitmap bm = Bitmap.createBitmap(info.width, info.height, config);
-        bm.copyPixelsFromBuffer(info.buffer);
-        info.canvas.drawBitmap(bm, 0, 0, null);
-        sview.getHolder().unlockCanvasAndPost(info.canvas);
-    }
-
-    public static Class getSurfaceLockInfoClass() {
-        Log.i("GeckoAppShell", "class name: " + SurfaceLockInfo.class.getName());
-        return SurfaceLockInfo.class;
-    }
-
-    public static Method getSurfaceLockMethod() {
-        Method[] m = GeckoAppShell.class.getMethods();
-        for (int i = 0; i < m.length; i++) {
-            if (m[i].getName().equals("lockSurfaceANP"))
-                return m[i];
-        }
-        return null;
+    public static Class getSurfaceInfoClass() {
+        Log.i("GeckoAppShell", "class name: " + SurfaceInfo.class.getName());
+        return SurfaceInfo.class;
     }
 
     static native void executeNextRunnable();
@@ -1534,6 +1514,14 @@ public class GeckoAppShell
 
     static int[] initCamera(String aContentType, int aCamera, int aWidth, int aHeight) {
         Log.i("GeckoAppJava", "initCamera(" + aContentType + ", " + aWidth + "x" + aHeight + ") on thread " + Thread.currentThread().getId());
+
+        getMainHandler().post(new Runnable() {
+                public void run() {
+                    try {
+                        GeckoApp.mAppContext.enableCameraView();
+                    } catch (Exception e) {}
+                }
+            });
 
         // [0] = 0|1 (failure/success)
         // [1] = width
@@ -1622,11 +1610,102 @@ public class GeckoAppShell
 
     static synchronized void closeCamera() {
         Log.i("GeckoAppJava", "closeCamera() on thread " + Thread.currentThread().getId());
+        getMainHandler().post(new Runnable() {
+                public void run() {
+                    try {
+                        GeckoApp.mAppContext.disableCameraView();
+                    } catch (Exception e) {}
+                }
+            });
         if (sCamera != null) {
             sCamera.stopPreview();
             sCamera.release();
             sCamera = null;
             sCameraBuffer = null;
         }
+    }
+
+
+    static SynchronousQueue<Date> sTracerQueue = new SynchronousQueue<Date>();
+    public static void fireAndWaitForTracerEvent() {
+        getMainHandler().post(new Runnable() { 
+                public void run() {
+                    try {
+                        sTracerQueue.put(new Date());
+                    } catch(InterruptedException ie) {
+                        Log.w("GeckoAppShell", "exception firing tracer", ie);
+                    }
+                }
+        });
+        try {
+            sTracerQueue.take();
+        } catch(InterruptedException ie) {
+            Log.w("GeckoAppShell", "exception firing tracer", ie);
+        }
+    }
+
+    // unused
+    static void checkUriVisited(String uri) {}
+    // unused
+    static void markUriVisited(final String uri) {}
+
+    /*
+     * Battery API related methods.
+     */
+    public static void enableBatteryNotifications() {
+        GeckoBatteryManager.enableNotifications();
+    }
+
+    public static String handleGeckoMessage(String message) {
+        //        
+        //        {"gecko": {
+        //                "type": "value",
+        //                "event_specific": "value",
+        //                ....
+        try {
+            JSONObject json = new JSONObject(message);
+            final JSONObject geckoObject = json.getJSONObject("gecko");
+            String type = geckoObject.getString("type");
+            
+            if (type.equals("Gecko:Ready")) {
+                onAppShellReady();
+            }
+        } catch (Exception e) {
+            Log.i(LOG_FILE_NAME, "handleGeckoMessage throws " + e);
+        }
+
+        return "";
+    }
+
+    public static void disableBatteryNotifications() {
+        GeckoBatteryManager.disableNotifications();
+    }
+
+    public static double[] getCurrentBatteryInformation() {
+        return GeckoBatteryManager.getCurrentInformation();
+    }
+
+    /*
+     * WebSMS related methods.
+     */
+    public static int getNumberOfMessagesForText(String aText) {
+        return GeckoSmsManager.getNumberOfMessagesForText(aText);
+    }
+
+    public static void sendMessage(String aNumber, String aMessage) {
+        GeckoSmsManager.send(aNumber, aMessage);
+    }
+
+    public static boolean isTablet() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.GINGERBREAD) {
+            Configuration config = GeckoApp.mAppContext.getResources().getConfiguration();
+            // xlarge is defined by android as screens larger than 960dp x 720dp
+            // and should include most devices ~7in and up.
+            // http://developer.android.com/guide/practices/screens_support.html
+            if ((config.screenLayout & Configuration.SCREENLAYOUT_SIZE_MASK) >= Configuration.SCREENLAYOUT_SIZE_XLARGE) {
+                return true;
+            }
+        }
+        return false;
     }
 }

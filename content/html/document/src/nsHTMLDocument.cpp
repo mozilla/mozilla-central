@@ -141,6 +141,7 @@
 #include "prprf.h"
 #include "mozilla/dom/Element.h"
 #include "mozilla/Preferences.h"
+#include "nsMimeTypes.h"
 
 using namespace mozilla;
 using namespace mozilla::dom;
@@ -160,6 +161,8 @@ const PRInt32 kForward  = 0;
 const PRInt32 kBackward = 1;
 
 //#define DEBUG_charset
+
+#define NS_USE_NEW_PLAIN_TEXT 1
 
 static NS_DEFINE_CID(kCParserCID, NS_PARSER_CID);
 
@@ -576,7 +579,8 @@ nsHTMLDocument::StartAutodetection(nsIDocShell *aDocShell, nsACString& aCharset,
   if (mIsRegularHTML && 
       nsHtml5Module::sEnabled && 
       aCommand && 
-      !nsCRT::strcmp(aCommand, "view")) {
+      (!nsCRT::strcmp(aCommand, "view") ||
+       !nsCRT::strcmp(aCommand, "view-source"))) {
     return; // the HTML5 parser uses chardet directly
   }
   nsCOMPtr <nsIParserFilter> cdetflt;
@@ -649,16 +653,30 @@ nsHTMLDocument::StartDocumentLoad(const char* aCommand,
                                   bool aReset,
                                   nsIContentSink* aSink)
 {
-  bool loadAsHtml5 = nsHtml5Module::sEnabled;
+  nsCAutoString contentType;
+  aChannel->GetContentType(contentType);
+
+  bool viewSource = aCommand && !nsCRT::strcmp(aCommand, "view-source");
+  bool plainText = (contentType.EqualsLiteral(TEXT_PLAIN) ||
+    contentType.EqualsLiteral(TEXT_CSS) ||
+    contentType.EqualsLiteral(APPLICATION_JAVASCRIPT) ||
+    contentType.EqualsLiteral(APPLICATION_XJAVASCRIPT) ||
+    contentType.EqualsLiteral(TEXT_ECMASCRIPT) ||
+    contentType.EqualsLiteral(APPLICATION_ECMASCRIPT) ||
+    contentType.EqualsLiteral(TEXT_JAVASCRIPT));
+  bool loadAsHtml5 = nsHtml5Module::sEnabled || viewSource || plainText;
+  if (!NS_USE_NEW_PLAIN_TEXT && !viewSource) {
+    plainText = false;
+  }
+
+  NS_ASSERTION(!(plainText && aSink),
+               "Someone tries to load plain text into a custom sink.");
+
   if (aSink) {
     loadAsHtml5 = false;
   }
 
-  nsCAutoString contentType;
-  aChannel->GetContentType(contentType);
-
-  if (contentType.Equals("application/xhtml+xml") &&
-      (!aCommand || nsCRT::strcmp(aCommand, "view-source") != 0)) {
+  if (contentType.Equals("application/xhtml+xml") && !viewSource) {
     // We're parsing XHTML as XML, remember that.
 
     mIsRegularHTML = false;
@@ -672,15 +690,14 @@ nsHTMLDocument::StartDocumentLoad(const char* aCommand,
   }
 #endif
   
-  if (loadAsHtml5 && 
-      !(contentType.EqualsLiteral("text/html") && 
-        aCommand && 
-        !nsCRT::strcmp(aCommand, "view"))) {
+  if (loadAsHtml5 && !viewSource &&
+      (!(contentType.EqualsLiteral("text/html") || plainText) &&
+      aCommand && !nsCRT::strcmp(aCommand, "view"))) {
     loadAsHtml5 = false;
   }
   
   // TODO: Proper about:blank treatment is bug 543435
-  if (loadAsHtml5) {
+  if (loadAsHtml5 && aCommand && !nsCRT::strcmp(aCommand, "view")) {
     // mDocumentURI hasn't been set, yet, so get the URI from the channel
     nsCOMPtr<nsIURI> uri;
     aChannel->GetOriginalURI(getter_AddRefs(uri));
@@ -728,7 +745,17 @@ nsHTMLDocument::StartDocumentLoad(const char* aCommand,
   if (needsParser) {
     if (loadAsHtml5) {
       mParser = nsHtml5Module::NewHtml5Parser();
-      mParser->MarkAsNotScriptCreated();
+      if (plainText) {
+        if (viewSource) {
+          mParser->MarkAsNotScriptCreated("view-source-plain");
+        } else {
+          mParser->MarkAsNotScriptCreated("plain-text");
+        }
+      } else if (viewSource && !contentType.EqualsLiteral("text/html")) {
+        mParser->MarkAsNotScriptCreated("view-source-xml");
+      } else {
+        mParser->MarkAsNotScriptCreated(aCommand);
+      }
     } else {
       mParser = do_CreateInstance(kCParserCID, &rv);
       NS_ENSURE_SUCCESS(rv, rv);
@@ -745,9 +772,6 @@ nsHTMLDocument::StartDocumentLoad(const char* aCommand,
   // but if we get a null pointer, that's perfectly legal for parent
   // and parentContentViewer
   nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(aContainer));
-
-  // No support yet for docshell-less HTML
-  NS_ENSURE_TRUE(docShell || !IsHTML(), NS_ERROR_FAILURE);
 
   nsCOMPtr<nsIDocShellTreeItem> docShellAsItem(do_QueryInterface(docShell));
 
@@ -785,9 +809,6 @@ nsHTMLDocument::StartDocumentLoad(const char* aCommand,
     }
   }
 
-  nsCAutoString scheme;
-  uri->GetScheme(scheme);
-
   nsCAutoString urlSpec;
   uri->GetSpec(urlSpec);
 #ifdef DEBUG_charset
@@ -805,8 +826,9 @@ nsHTMLDocument::StartDocumentLoad(const char* aCommand,
 
   nsCOMPtr<nsIWyciwygChannel> wyciwygChannel;
   
-  if (!IsHTML()) {
-    charsetSource = kCharsetFromDocTypeDefault;
+  if (!IsHTML() || !docShell) { // no docshell for text/html XHR
+    charsetSource = IsHTML() ? kCharsetFromWeakDocTypeDefault
+                             : kCharsetFromDocTypeDefault;
     charset.AssignLiteral("UTF-8");
     TryChannelCharset(aChannel, charsetSource, charset);
     parserCharsetSource = charsetSource;
@@ -921,14 +943,14 @@ nsHTMLDocument::StartDocumentLoad(const char* aCommand,
                  "not nsICachingChannel");
     rv = cachingChan->SetCacheTokenCachedCharset(charset);
     NS_WARN_IF_FALSE(NS_SUCCEEDED(rv), "cannot SetMetaDataElement");
+    rv = NS_OK; // don't propagate error
   }
 
   // Set the parser as the stream listener for the document loader...
   if (mParser) {
-    rv = mParser->GetStreamListener(aDocListener);
-    if (NS_FAILED(rv)) {
-      return rv;
-    }
+    rv = NS_OK;
+    nsCOMPtr<nsIStreamListener> listener = mParser->GetStreamListener();
+    listener.forget(aDocListener);
 
 #ifdef DEBUG_charset
     printf(" charset = %s source %d\n",
@@ -1273,11 +1295,9 @@ nsHTMLDocument::GetURL(nsAString& aURL)
 }
 
 nsIContent*
-nsHTMLDocument::GetBody(nsresult *aResult)
+nsHTMLDocument::GetBody()
 {
   Element* body = GetBodyElement();
-
-  *aResult = NS_OK;
 
   if (body) {
     // There is a body element, return that as the body.
@@ -1297,10 +1317,9 @@ nsHTMLDocument::GetBody(nsIDOMHTMLElement** aBody)
 {
   *aBody = nsnull;
 
-  nsresult rv;
-  nsIContent *body = GetBody(&rv);
+  nsIContent *body = GetBody();
 
-  return body ? CallQueryInterface(body, aBody) : rv;
+  return body ? CallQueryInterface(body, aBody) : NS_OK;
 }
 
 NS_IMETHODIMP
@@ -1575,6 +1594,16 @@ nsHTMLDocument::Open(const nsAString& aContentTypeOrUrl,
     return NS_OK;
   }
 
+  // No calling document.open() without a script global object
+  if (!mScriptGlobalObject) {
+    return NS_OK;
+  }
+
+  nsPIDOMWindow* outer = GetWindow();
+  if (!outer || (GetInnerWindow() != outer->GetCurrentInnerWindow())) {
+    return NS_OK;
+  }
+
   // check whether we're in the middle of unload.  If so, ignore this call.
   nsCOMPtr<nsIDocShell> shell = do_QueryReferent(mDocumentContainer);
   if (!shell) {
@@ -1714,7 +1743,8 @@ nsHTMLDocument::Open(const nsAString& aContentTypeOrUrl,
 
     nsCOMPtr<nsIScriptGlobalObject> newScope(do_QueryReferent(mScopeObject));
     if (oldScope && newScope != oldScope) {
-      nsContentUtils::ReparentContentWrappersInScope(cx, oldScope, newScope);
+      rv = nsContentUtils::ReparentContentWrappersInScope(cx, oldScope, newScope);
+      NS_ENSURE_SUCCESS(rv, rv);
     }
   }
 
@@ -1923,6 +1953,8 @@ nsHTMLDocument::WriteCommon(JSContext *cx,
     if (NS_FAILED(rv) || !mParser) {
       return rv;
     }
+    NS_ABORT_IF_FALSE(!JS_IsExceptionPending(cx),
+                      "Open() succeeded but JS exception is pending");
   }
 
   static NS_NAMED_LITERAL_STRING(new_line, "\n");
@@ -2699,17 +2731,15 @@ nsHTMLDocument::GetDocumentAllResult(const nsAString& aID,
 }
 
 static void
-NotifyEditableStateChange(nsINode *aNode, nsIDocument *aDocument,
-                          bool aEditable)
+NotifyEditableStateChange(nsINode *aNode, nsIDocument *aDocument)
 {
   for (nsIContent* child = aNode->GetFirstChild();
        child;
        child = child->GetNextSibling()) {
-    if (child->HasFlag(NODE_IS_EDITABLE) != aEditable &&
-        child->IsElement()) {
+    if (child->IsElement()) {
       child->AsElement()->UpdateState(true);
     }
-    NotifyEditableStateChange(child, aDocument, aEditable);
+    NotifyEditableStateChange(child, aDocument);
   }
 }
 
@@ -2802,6 +2832,8 @@ nsHTMLDocument::EditingStateChanged()
 
   if (newState == eOff) {
     // Editing is being turned off.
+    nsAutoScriptBlocker scriptBlocker;
+    NotifyEditableStateChange(this, this);
     return TurnEditingOff();
   }
 
@@ -2958,7 +2990,7 @@ nsHTMLDocument::EditingStateChanged()
 
   if (updateState) {
     nsAutoScriptBlocker scriptBlocker;
-    NotifyEditableStateChange(this, this, designMode);
+    NotifyEditableStateChange(this, this);
   }
 
   // Resync the editor's spellcheck state.

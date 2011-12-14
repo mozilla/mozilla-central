@@ -208,8 +208,9 @@ class CallReceiver
         return argv_ - 1;
     }
 
-    void calleeHasBeenReset() const {
+    void setCallee(Value calleev) {
         clearUsedRval();
+        this->calleev() = calleev;
     }
 };
 
@@ -337,18 +338,17 @@ class StackFrame
         UNDERFLOW_ARGS     =     0x1000,  /* numActualArgs < numFormalArgs */
 
         /* Lazy frame initialization */
-        HAS_IMACRO_PC      =     0x2000,  /* frame has imacpc value available */
-        HAS_CALL_OBJ       =     0x4000,  /* frame has a callobj reachable from scopeChain_ */
-        HAS_ARGS_OBJ       =     0x8000,  /* frame has an argsobj in StackFrame::args */
-        HAS_HOOK_DATA      =    0x10000,  /* frame has hookData_ set */
-        HAS_ANNOTATION     =    0x20000,  /* frame has annotation_ set */
-        HAS_RVAL           =    0x40000,  /* frame has rval_ set */
-        HAS_SCOPECHAIN     =    0x80000,  /* frame has scopeChain_ set */
-        HAS_PREVPC         =   0x100000,  /* frame has prevpc_ and prevInline_ set */
+        HAS_CALL_OBJ       =     0x2000,  /* frame has a callobj reachable from scopeChain_ */
+        HAS_ARGS_OBJ       =     0x4000,  /* frame has an argsobj in StackFrame::args */
+        HAS_HOOK_DATA      =     0x8000,  /* frame has hookData_ set */
+        HAS_ANNOTATION     =    0x10000,  /* frame has annotation_ set */
+        HAS_RVAL           =    0x20000,  /* frame has rval_ set */
+        HAS_SCOPECHAIN     =    0x40000,  /* frame has scopeChain_ set */
+        HAS_PREVPC         =    0x80000,  /* frame has prevpc_ and prevInline_ set */
 
         /* Method JIT state */
-        DOWN_FRAMES_EXPANDED = 0x200000,  /* inlining in down frames has been expanded */
-        LOWERED_CALL_APPLY   = 0x400000   /* Pushed by a lowered call/apply */
+        DOWN_FRAMES_EXPANDED = 0x100000,  /* inlining in down frames has been expanded */
+        LOWERED_CALL_APPLY   = 0x200000   /* Pushed by a lowered call/apply */
     };
 
   private:
@@ -370,7 +370,6 @@ class StackFrame
     Value               rval_;          /* return value of the frame */
     jsbytecode          *prevpc_;       /* pc of previous frame*/
     JSInlinedSite       *prevInline_;   /* inlined site in previous frame */
-    jsbytecode          *imacropc_;     /* pc of macro caller */
     void                *hookData_;     /* closure returned by call hook */
     void                *annotation_;   /* perhaps remove with bug 546848 */
     JSRejoinState       rejoin_;        /* If rejoining into the interpreter
@@ -394,7 +393,7 @@ class StackFrame
      */
 
     /* Used for Invoke, Interpret, trace-jit LeaveTree, and method-jit stubs. */
-    void initCallFrame(JSContext *cx, JSObject &callee, JSFunction *fun,
+    void initCallFrame(JSContext *cx, JSFunction &callee,
                        JSScript *script, uint32 nactual, StackFrame::Flags flags);
 
     /* Used for SessionInvoke. */
@@ -610,7 +609,10 @@ class StackFrame
     /*
      * Function
      *
-     * All function frames have an associated interpreted JSFunction.
+     * All function frames have an associated interpreted JSFunction. The
+     * function returned by fun() and maybeFun() is not necessarily the
+     * original canonical function which the frame's script was compiled
+     * against. To get this function, use maybeScriptFunction().
      */
 
     JSFunction* fun() const {
@@ -620,6 +622,15 @@ class StackFrame
 
     JSFunction* maybeFun() const {
         return isFunctionFrame() ? fun() : NULL;
+    }
+
+    JSFunction* maybeScriptFunction() const {
+        if (!isFunctionFrame())
+            return NULL;
+        const StackFrame *fp = this;
+        while (fp->isEvalFrame())
+            fp = fp->prev();
+        return fp->script()->function();
     }
 
     /*
@@ -767,10 +778,7 @@ class StackFrame
      * only be changed to something that is equivalent to the current callee in
      * terms of numFormalArgs etc. Prefer overwriteCallee since it checks.
      */
-    void overwriteCallee(JSObject &newCallee) {
-        JS_ASSERT(callee().getFunctionPrivate() == newCallee.getFunctionPrivate());
-        mutableCalleev().setObject(newCallee);
-    }
+    inline void overwriteCallee(JSObject &newCallee);
 
     Value &mutableCalleev() const {
         JS_ASSERT(isFunctionFrame());
@@ -820,14 +828,7 @@ class StackFrame
      *   !fp->hasCall() && fp->scopeChain().isCall()
      */
 
-    JSObject &scopeChain() const {
-        JS_ASSERT_IF(!(flags_ & HAS_SCOPECHAIN), isFunctionFrame());
-        if (!(flags_ & HAS_SCOPECHAIN)) {
-            scopeChain_ = callee().getParent();
-            flags_ |= HAS_SCOPECHAIN;
-        }
-        return *scopeChain_;
-    }
+    inline JSObject &scopeChain() const;
 
     bool hasCallObj() const {
         bool ret = !!(flags_ & HAS_CALL_OBJ);
@@ -876,12 +877,7 @@ class StackFrame
      * variables object to collect and discard the script's global variables.
      */
 
-    JSObject &varObj() {
-        JSObject *obj = &scopeChain();
-        while (!obj->isVarObj())
-            obj = obj->getParent();
-        return *obj;
-    }
+    inline JSObject &varObj();
 
     /*
      * Frame compartment
@@ -890,42 +886,7 @@ class StackFrame
      * compartment when the frame was pushed.
      */
 
-    JSCompartment *compartment() const {
-        JS_ASSERT_IF(isScriptFrame(), scopeChain().compartment() == script()->compartment());
-        return scopeChain().compartment();
-    }
-
-    /*
-     * Imacropc
-     *
-     * A frame's IMacro pc is the bytecode address when an imacro started
-     * executing (guaranteed non-null). An imacro does not push a frame, so
-     * when the imacro finishes, the frame's IMacro pc becomes the current pc.
-     */
-
-    bool hasImacropc() const {
-        return flags_ & HAS_IMACRO_PC;
-    }
-
-    jsbytecode *imacropc() const {
-        JS_ASSERT(hasImacropc());
-        return imacropc_;
-    }
-
-    jsbytecode *maybeImacropc() const {
-        return hasImacropc() ? imacropc() : NULL;
-    }
-
-    void clearImacropc() {
-        flags_ &= ~HAS_IMACRO_PC;
-    }
-
-    void setImacropc(jsbytecode *pc) {
-        JS_ASSERT(pc);
-        JS_ASSERT(!(flags_ & HAS_IMACRO_PC));
-        imacropc_ = pc;
-        flags_ |= HAS_IMACRO_PC;
-    }
+    inline JSCompartment *compartment() const;
 
     /* Annotation (will be removed after bug 546848) */
 

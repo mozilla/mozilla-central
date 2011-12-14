@@ -41,6 +41,7 @@
 #ifndef mozilla_RefPtr_h_
 #define mozilla_RefPtr_h_
 
+#include "mozilla/Attributes.h"
 #include "mozilla/Util.h"
 
 /**
@@ -174,7 +175,7 @@ public:
     T* operator->() const { return ptr; }
     T& operator*() const { return *ptr; }
     template<typename U>
-    operator TemporaryRef<U>() { return forget(); }
+    operator TemporaryRef<U>() { return TemporaryRef<U>(ptr); }
 
 private:
     void assign(T* t) {
@@ -269,8 +270,8 @@ private:
     RefPtr<T>& refPtr;
     T* tmp;
 
-    OutParamRef();
-    OutParamRef& operator=(const OutParamRef&);
+    OutParamRef() MOZ_DELETE;
+    OutParamRef& operator=(const OutParamRef&) MOZ_DELETE;
 };
 
 /**

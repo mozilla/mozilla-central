@@ -88,6 +88,11 @@ namespace dom {
 
 class Link;
 
+// IID for the dom::Element interface
+#define NS_ELEMENT_IID      \
+{ 0xa1588efb, 0x5a84, 0x49cd, \
+  { 0x99, 0x1a, 0xac, 0x84, 0x9d, 0x92, 0x05, 0x0f } }
+
 class Element : public nsIContent
 {
 public:
@@ -97,6 +102,8 @@ public:
     mState(NS_EVENT_STATE_MOZ_READONLY)
   {}
 #endif // MOZILLA_INTERNAL_API
+
+  NS_DECLARE_STATIC_IID_ACCESSOR(NS_ELEMENT_IID)
 
   NS_DECL_AND_IMPL_DOM_MEMORY_REPORTER_SIZEOF(Element, nsIContent)
 
@@ -111,17 +118,6 @@ public:
   }
 
   /**
-   * Request an update of the link state for this element.  This will
-   * make sure that if the element is a link at all then either
-   * NS_EVENT_STATE_VISITED or NS_EVENT_STATE_UNVISITED is set in
-   * mState, and a history lookup kicked off if needed to find out
-   * whether the link is really visited.  This method will NOT send any
-   * state change notifications.  If you want them to happen for this
-   * call, you need to handle them yourself.
-   */
-  virtual void RequestLinkStateUpdate();
-
-  /**
    * Ask this element to update its state.  If aNotify is false, then
    * state change notifications will not be dispatched; in that
    * situation it is the caller's responsibility to dispatch them.
@@ -132,6 +128,20 @@ public:
    * removing it from the document).
    */
   void UpdateState(bool aNotify);
+  
+  /**
+   * Method to update mState with link state information.  This does not notify.
+   */
+  void UpdateLinkState(nsEventStates aState);
+
+  /**
+   * Returns true if this element is either a full-screen element or an
+   * ancestor of the full-screen element.
+   */
+  bool IsFullScreenAncestor() const {
+    return mState.HasAtLeastOneOfStates(NS_EVENT_STATE_FULL_SCREEN_ANCESTOR |
+                                        NS_EVENT_STATE_FULL_SCREEN);
+  }
 
 protected:
   /**
@@ -141,11 +151,6 @@ protected:
    * the possible bits that could be set here.
    */
   virtual nsEventStates IntrinsicState() const;
-
-  /**
-   * Method to update mState with link state information.  This does not notify.
-   */
-  void UpdateLinkState(nsEventStates aState);
 
   /**
    * Method to add state bits.  This should be called from subclass
@@ -197,6 +202,8 @@ private:
 
   nsEventStates mState;
 };
+
+NS_DEFINE_STATIC_IID_ACCESSOR(Element, NS_ELEMENT_IID)
 
 } // namespace dom
 } // namespace mozilla

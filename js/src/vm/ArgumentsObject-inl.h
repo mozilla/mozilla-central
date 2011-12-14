@@ -46,18 +46,18 @@
 namespace js {
 
 inline void
-ArgumentsObject::setInitialLength(uint32 length)
+ArgumentsObject::initInitialLength(uint32 length)
 {
-    JS_ASSERT(getSlot(INITIAL_LENGTH_SLOT).isUndefined());
-    setSlot(INITIAL_LENGTH_SLOT, Int32Value(length << PACKED_BITS_COUNT));
-    JS_ASSERT((getSlot(INITIAL_LENGTH_SLOT).toInt32() >> PACKED_BITS_COUNT) == int32(length));
+    JS_ASSERT(getFixedSlot(INITIAL_LENGTH_SLOT).isUndefined());
+    initFixedSlot(INITIAL_LENGTH_SLOT, Int32Value(length << PACKED_BITS_COUNT));
+    JS_ASSERT((getFixedSlot(INITIAL_LENGTH_SLOT).toInt32() >> PACKED_BITS_COUNT) == int32(length));
     JS_ASSERT(!hasOverriddenLength());
 }
 
 inline uint32
 ArgumentsObject::initialLength() const
 {
-    uint32 argc = uint32(getSlot(INITIAL_LENGTH_SLOT).toInt32()) >> PACKED_BITS_COUNT;
+    uint32 argc = uint32(getFixedSlot(INITIAL_LENGTH_SLOT).toInt32()) >> PACKED_BITS_COUNT;
     JS_ASSERT(argc <= StackSpace::ARGS_LENGTH_MAX);
     return argc;
 }
@@ -65,29 +65,28 @@ ArgumentsObject::initialLength() const
 inline void
 ArgumentsObject::markLengthOverridden()
 {
-    uint32 v = getSlot(INITIAL_LENGTH_SLOT).toInt32() | LENGTH_OVERRIDDEN_BIT;
-    setSlot(INITIAL_LENGTH_SLOT, Int32Value(v));
+    uint32 v = getFixedSlot(INITIAL_LENGTH_SLOT).toInt32() | LENGTH_OVERRIDDEN_BIT;
+    setFixedSlot(INITIAL_LENGTH_SLOT, Int32Value(v));
 }
 
 inline bool
 ArgumentsObject::hasOverriddenLength() const
 {
-    const js::Value &v = getSlot(INITIAL_LENGTH_SLOT);
+    const js::Value &v = getFixedSlot(INITIAL_LENGTH_SLOT);
     return v.toInt32() & LENGTH_OVERRIDDEN_BIT;
 }
 
 inline void
-ArgumentsObject::setCalleeAndData(JSObject &callee, ArgumentsData *data)
+ArgumentsObject::initData(ArgumentsData *data)
 {
-    JS_ASSERT(getSlot(DATA_SLOT).isUndefined());
-    setSlot(DATA_SLOT, PrivateValue(data));
-    data->callee.setObject(callee);
+    JS_ASSERT(getFixedSlot(DATA_SLOT).isUndefined());
+    initFixedSlot(DATA_SLOT, PrivateValue(data));
 }
 
 inline ArgumentsData *
 ArgumentsObject::data() const
 {
-    return reinterpret_cast<js::ArgumentsData *>(getSlot(DATA_SLOT).toPrivate());
+    return reinterpret_cast<js::ArgumentsData *>(getFixedSlot(DATA_SLOT).toPrivate());
 }
 
 inline const js::Value &
@@ -100,7 +99,7 @@ ArgumentsObject::element(uint32 i) const
 inline const js::Value *
 ArgumentsObject::elements() const
 {
-    return data()->slots;
+    return Valueify(data()->slots);
 }
 
 inline void
@@ -113,32 +112,13 @@ ArgumentsObject::setElement(uint32 i, const js::Value &v)
 inline js::StackFrame *
 ArgumentsObject::maybeStackFrame() const
 {
-    return reinterpret_cast<js::StackFrame *>(getPrivate());
+    return reinterpret_cast<js::StackFrame *>(getFixedSlot(STACK_FRAME_SLOT).toPrivate());
 }
 
 inline void
 ArgumentsObject::setStackFrame(StackFrame *frame)
 {
-    return setPrivate(frame);
-}
-
-#define JS_ARGUMENTS_OBJECT_ON_TRACE ((void *)0xa126)
-inline bool
-ArgumentsObject::onTrace() const
-{
-    return getPrivate() == JS_ARGUMENTS_OBJECT_ON_TRACE;
-}
-
-inline void
-ArgumentsObject::setOnTrace()
-{
-    return setPrivate(JS_ARGUMENTS_OBJECT_ON_TRACE);
-}
-
-inline void
-ArgumentsObject::clearOnTrace()
-{
-    return setPrivate(NULL);
+    setFixedSlot(STACK_FRAME_SLOT, PrivateValue(frame));
 }
 
 inline const js::Value &
@@ -150,7 +130,7 @@ NormalArgumentsObject::callee() const
 inline void
 NormalArgumentsObject::clearCallee()
 {
-    data()->callee = MagicValue(JS_ARGS_HOLE);
+    data()->callee.set(compartment(), MagicValue(JS_ARGS_HOLE));
 }
 
 } // namespace js

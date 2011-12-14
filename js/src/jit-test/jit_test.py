@@ -50,7 +50,6 @@ class Test:
         self.slow = False      # True means the test is slow-running
         self.allow_oom = False # True means that OOM is not considered a failure
         self.valgrind = False  # True means run under valgrind
-        self.tmflags = ''      # Value of TMFLAGS env var to pass
         self.error = ''        # Errors to expect and consider passing
 
     def copy(self):
@@ -59,7 +58,6 @@ class Test:
         t.slow = self.slow
         t.allow_oom = self.allow_oom
         t.valgrind = self.valgrind
-        t.tmflags = self.tmflags
         t.error = self.error
         return t
 
@@ -81,9 +79,7 @@ class Test:
                 name, _, value = part.partition(':')
                 if value:
                     value = value.strip()
-                    if name == 'TMFLAGS':
-                        test.tmflags = value
-                    elif name == 'error':
+                    if name == 'error':
                         test.error = value
                     else:
                         print('warning: unrecognized |jit-test| attribute %s'%part)
@@ -201,9 +197,6 @@ def run_cmd_avoid_stdio(cmdline, env, timeout):
     return read_and_unlink(stdoutPath), read_and_unlink(stderrPath), code
 
 def run_test(test, lib_dir, shell_args):
-    env = os.environ.copy()
-    if test.tmflags:
-        env['TMFLAGS'] = test.tmflags
     cmd = get_test_cmd(test.path, test.jitflags, lib_dir, shell_args)
 
     if (test.valgrind and
@@ -225,7 +218,7 @@ def run_test(test, lib_dir, shell_args):
         run = run_cmd_avoid_stdio
     else:
         run = run_cmd
-    out, err, code, timed_out = run(cmd, env, OPTIONS.timeout)
+    out, err, code, timed_out = run(cmd, os.environ, OPTIONS.timeout)
 
     if OPTIONS.show_output:
         sys.stdout.write(out)
@@ -267,11 +260,12 @@ def run_tests(tests, test_dir, lib_dir, shell_args):
     if not OPTIONS.hide_progress and not OPTIONS.show_cmd:
         try:
             from progressbar import ProgressBar
-            pb = ProgressBar('', len(tests), 16)
+            pb = ProgressBar('', len(tests), 24)
         except ImportError:
             pass
 
     failures = []
+    timeouts = 0
     complete = False
     doing = 'before starting'
     try:
@@ -282,6 +276,8 @@ def run_tests(tests, test_dir, lib_dir, shell_args):
 
             if not ok:
                 failures.append([ test, out, err, code, timed_out ])
+            if timed_out:
+                timeouts += 1
 
             if OPTIONS.tinderbox:
                 if ok:
@@ -297,7 +293,7 @@ def run_tests(tests, test_dir, lib_dir, shell_args):
 
             n = i + 1
             if pb:
-                pb.label = '[%4d|%4d|%4d]'%(n - len(failures), len(failures), n)
+                pb.label = '[%4d|%4d|%4d|%4d]'%(n - len(failures), len(failures), timeouts, n)
                 pb.update(n)
         complete = True
     except KeyboardInterrupt:
@@ -353,7 +349,7 @@ def parse_jitflags():
                  for flags in OPTIONS.jitflags.split(',') ]
     for flags in jitflags:
         for flag in flags:
-            if flag not in ('-j', '-m', '-a', '-p', '-d', '-n'):
+            if flag not in ('-m', '-a', '-p', '-d', '-n'):
                 print('Invalid jit flag: "%s"'%flag)
                 sys.exit(1)
     return jitflags
@@ -417,8 +413,8 @@ def main(argv):
                   help='Enable the |valgrind| flag, if valgrind is in $PATH.')
     op.add_option('--valgrind-all', dest='valgrind_all', action='store_true',
                   help='Run all tests with valgrind, if valgrind is in $PATH.')
-    op.add_option('--jitflags', dest='jitflags', default='mjp',
-                  help='Example: --jitflags=j,mj,mjp to run each test with -j, -m -j, -m -j -p [default=%default]')
+    op.add_option('--jitflags', dest='jitflags', default='m,mn',
+                  help='Example: --jitflags=m,mn to run each test with -m, -m -n [default=%default]')
     op.add_option('--avoid-stdio', dest='avoid_stdio', action='store_true',
                   help='Use js-shell file indirection instead of piping stdio.')
     op.add_option('--write-failure-output', dest='write_failure_output', action='store_true',

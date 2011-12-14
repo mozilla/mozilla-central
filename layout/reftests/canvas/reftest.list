@@ -38,6 +38,7 @@ asserts-if(cocoaWidget,0-2) == size-change-1.html size-change-1-ref.html
 == text-not-in-doc-test.html text-not-in-doc-ref.html
 
 == text-bidi-ltr-test.html text-bidi-ltr-ref.html
+!= text-bidi-ltr-test.html text-bidi-ltr-notref.html # for bug 698185
 == text-bidi-rtl-test.html text-bidi-rtl-ref.html
 
 fails-if(Android) != text-font-lang.html text-font-lang-notref.html
@@ -48,7 +49,7 @@ fails-if(Android) != text-font-lang.html text-font-lang-notref.html
 
 # gradient off-by-one, fails on windows and linux
 == linear-gradient-1a.html linear-gradient-1-ref.html
-fails-if(cocoaWidget) == linear-gradient-1b.html linear-gradient-1-ref.html
+fails-if(/Mac\x20OS\x20X\x2010\.[56]/.test(http.oscpu)) == linear-gradient-1b.html linear-gradient-1-ref.html
 
 == zero-dimensions.html zero-dimensions-ref.html
 
@@ -65,7 +66,7 @@ random-if(Android) == dash-1.html dash-1-ref.svg  # Bug 668412 (really is androi
 fails == ctm-singular-sanity.html data:text/html,<body>Pass  # Bug 612033
 == ctm-1.html ctm-1-ref.html
 
-fails-if(cocoaWidget) == 672646-alpha-radial-gradient.html 672646-alpha-radial-gradient-ref.html # Bug 673333
+fails-if(/Mac\x20OS\x20X\x2010\.[56]/.test(http.oscpu)) == 672646-alpha-radial-gradient.html 672646-alpha-radial-gradient-ref.html # Bug 673333
 == 674003-alpha-radial-gradient-superlum.html 674003-alpha-radial-gradient-superlum-ref.html
 
 != 693610-1.html 693610-1-notref.html # bug 693610: multiple glyph runs should not be overprinted

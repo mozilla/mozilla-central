@@ -1,5 +1,5 @@
 /* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
-/* vim: sw=2 ts=8 et ft=cpp : */
+/* vim: set sw=2 ts=8 et ft=cpp : */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -44,4 +44,5 @@
 #undef mozilla_Hal_h
 #define MOZ_HAL_NAMESPACE hal_sandbox
 #include "Hal.h"
+#include "mozilla/hal_sandbox/PHal.h"
 #undef MOZ_HAL_NAMESPACE

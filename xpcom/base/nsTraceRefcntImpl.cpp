@@ -50,6 +50,7 @@
 #include "nsCOMPtr.h"
 #include "nsCRT.h"
 #include <math.h>
+#include "nsStackWalkPrivate.h"
 #include "nsStackWalk.h"
 #include "nsString.h"
 
@@ -494,7 +495,7 @@ static PRIntn DumpSerialNumbers(PLHashEntry* aHashEntry, PRIntn aIndex, void* aC
 }
 
 
-NS_SPECIALIZE_TEMPLATE
+template <>
 class nsDefaultComparator <BloatEntry*, BloatEntry*> {
   public:
     bool Equals(BloatEntry* const& aA, BloatEntry* const& aB) const {
@@ -923,6 +924,8 @@ nsTraceRefcntImpl::DemangleSymbol(const char * aSymbol,
 EXPORT_XPCOM_API(void)
 NS_LogInit()
 {
+  // FIXME: This is called multiple times, we should probably not allow that.
+  StackWalkInitCriticalAddress();
 #ifdef NS_IMPL_REFCNT_LOGGING
   if (++gInitCount)
     nsTraceRefcntImpl::SetActivityIsLegal(true);

@@ -2,23 +2,19 @@
 /* Any copyright is dedicated to the Public Domain.
    http://creativecommons.org/publicdomain/zero/1.0/ */
 
-// Reference to the Scratchpad chrome window object.
-let gScratchpadWindow;
-
 function test()
 {
   waitForExplicitFinish();
 
   gBrowser.selectedTab = gBrowser.addTab();
-  gBrowser.selectedBrowser.addEventListener("load", function() {
-    gBrowser.selectedBrowser.removeEventListener("load", arguments.callee, true);
+  gBrowser.selectedBrowser.addEventListener("load", function onTabLoad() {
+    gBrowser.selectedBrowser.removeEventListener("load", onTabLoad, true);
 
     ok(window.Scratchpad, "Scratchpad variable exists");
 
     Services.prefs.setIntPref("devtools.editor.tabsize", 5);
 
-    gScratchpadWindow = Scratchpad.openScratchpad();
-    gScratchpadWindow.addEventListener("load", runTests, false);
+    openScratchpad(runTests);
   }, true);
 
   content.location = "data:text/html,Scratchpad test for the Tab key, bug 660560";
@@ -26,8 +22,6 @@ function test()
 
 function runTests()
 {
-  gScratchpadWindow.removeEventListener("load", arguments.callee, false);
-
   let sp = gScratchpadWindow.Scratchpad;
   ok(sp, "Scratchpad object exists in new window");
 
@@ -63,14 +57,12 @@ function runTests()
 
   Services.prefs.setIntPref("devtools.editor.tabsize", 6);
   Services.prefs.setBoolPref("devtools.editor.expandtab", false);
-  gScratchpadWindow = Scratchpad.openScratchpad();
-  gScratchpadWindow.addEventListener("load", runTests2, false);
+
+  openScratchpad(runTests2);
 }
 
 function runTests2()
 {
-  gScratchpadWindow.removeEventListener("load", arguments.callee, false);
-
   let sp = gScratchpadWindow.Scratchpad;
 
   sp.setText("window.foo;");
@@ -85,9 +77,5 @@ function runTests2()
   Services.prefs.clearUserPref("devtools.editor.tabsize");
   Services.prefs.clearUserPref("devtools.editor.expandtab");
 
-  gScratchpadWindow.close();
-  gScratchpadWindow = null;
-
-  gBrowser.removeCurrentTab();
   finish();
 }

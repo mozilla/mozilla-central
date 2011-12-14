@@ -578,14 +578,27 @@ typedef PLDHashOperator
 NS_COM_GLUE PRUint32
 PL_DHashTableEnumerate(PLDHashTable *table, PLDHashEnumerator etor, void *arg);
 
+typedef size_t
+(* PLDHashSizeOfEntryFun)(PLDHashEntryHdr *hdr, nsMallocSizeOfFun mallocSizeOf);
+
 /**
- * Get the hashtable's "shallow heap size" in bytes.  The size returned here
- * includes all the heap memory allocated by the hashtable itself.  It does not
- * include sizeof(*this) or heap memory allocated by the objects in the hash
- * table.
+ * Measure the size of the table's entry storage, and if |sizeOfEntry| is
+ * non-NULL, measure the size of things pointed to by entries.  Doesn't measure
+ * |ops| because it's often shared between tables, nor |data| because it's
+ * opaque.
  */
-NS_COM_GLUE PRUint64
-PL_DHashTableSizeOf(PLDHashTable *table);
+NS_COM_GLUE size_t
+PL_DHashTableSizeOfExcludingThis(const PLDHashTable *table,
+                                 PLDHashSizeOfEntryFun sizeOfEntry,
+                                 nsMallocSizeOfFun mallocSizeOf);
+
+/**
+ * Like PL_DHashTableSizeOfExcludingThis, but includes sizeof(*this).
+ */
+NS_COM_GLUE size_t
+PL_DHashTableSizeOfIncludingThis(const PLDHashTable *table,
+                                 PLDHashSizeOfEntryFun sizeOfEntry,
+                                 nsMallocSizeOfFun mallocSizeOf);
 
 #ifdef DEBUG
 /**

@@ -59,8 +59,9 @@
 #include "nsIPresShell.h"
 #include "nsPresContext.h"
 #include "nsEventStateManager.h"
+#include "mozilla/StartupTimeline.h"
+#include "sampler.h"
 
-PRTime gFirstPaintTimestamp = 0; // Timestamp of the first paint event
 /**
    XXX TODO XXX
 
@@ -158,7 +159,7 @@ nsViewManager::~nsViewManager()
     gViewManagers = nsnull;
   }
 
-  mObserver = nsnull;
+  mPresShell = nsnull;
 }
 
 NS_IMPL_ISUPPORTS1(nsViewManager, nsIViewManager)
@@ -257,15 +258,15 @@ void nsViewManager::DoSetWindowDimensions(nscoord aWidth, nscoord aHeight)
   if (!oldDim.IsEqualEdges(newDim)) {
     // Don't resize the widget. It is already being set elsewhere.
     mRootView->SetDimensions(newDim, true, false);
-    if (mObserver)
-      mObserver->ResizeReflow(mRootView, aWidth, aHeight);
+    if (mPresShell)
+      mPresShell->ResizeReflow(aWidth, aHeight);
   }
 }
 
 NS_IMETHODIMP nsViewManager::SetWindowDimensions(nscoord aWidth, nscoord aHeight)
 {
   if (mRootView) {
-    if (mRootView->IsEffectivelyVisible()) {
+    if (mRootView->IsEffectivelyVisible() && mPresShell && mPresShell->IsVisible()) {
       if (mDelayedResize != nsSize(NSCOORD_NONE, NSCOORD_NONE) &&
           mDelayedResize != nsSize(aWidth, aHeight)) {
         // We have a delayed resize; that now obsolete size may already have
@@ -292,9 +293,8 @@ NS_IMETHODIMP nsViewManager::FlushDelayedResize(bool aDoReflow)
     if (aDoReflow) {
       DoSetWindowDimensions(mDelayedResize.width, mDelayedResize.height);
       mDelayedResize.SizeTo(NSCOORD_NONE, NSCOORD_NONE);
-    } else if (mObserver) {
-      nsCOMPtr<nsIPresShell> shell = do_QueryInterface(mObserver);
-      nsPresContext* presContext = shell->GetPresContext();
+    } else if (mPresShell) {
+      nsPresContext* presContext = mPresShell->GetPresContext();
       if (presContext) {
         presContext->SetVisibleArea(nsRect(nsPoint(0, 0), mDelayedResize));
       }
@@ -353,8 +353,7 @@ nsIView* nsIViewManager::GetDisplayRootFor(nsIView* aView)
    rendering.
 */
 void nsViewManager::Refresh(nsView *aView, nsIWidget *aWidget,
-                            const nsIntRegion& aRegion,
-                            PRUint32 aUpdateFlags)
+                            const nsIntRegion& aRegion)
 {
   NS_ASSERTION(aView == nsView::GetViewFor(aWidget), "view widget mismatch");
   NS_ASSERTION(aView->GetViewManager() == this, "wrong view manager");
@@ -397,7 +396,7 @@ void nsViewManager::Refresh(nsView *aView, nsIWidget *aWidget,
     // Unset this flag first, since if aUpdateFlags includes NS_VMREFRESH_IMMEDIATE
     // we'll reenter this code from the UpdateAllViews call.
     RootViewManager()->mRecursiveRefreshPending = false;
-    UpdateAllViews(aUpdateFlags);
+    UpdateAllViews(0);
   }
 }
 
@@ -411,11 +410,10 @@ void nsViewManager::RenderViews(nsView *aView, nsIWidget *aWidget,
   NS_ASSERTION(GetDisplayRootFor(aView) == aView,
                "Widgets that we paint must all be display roots");
 
-  if (mObserver) {
-    mObserver->Paint(aView, aWidget, aRegion, aIntRegion,
-                     aPaintDefaultBackground, aWillSendDidPaint);
-    if (!gFirstPaintTimestamp)
-      gFirstPaintTimestamp = PR_Now();
+  if (mPresShell) {
+    mPresShell->Paint(aView, aWidget, aRegion, aIntRegion,
+                      aPaintDefaultBackground, aWillSendDidPaint);
+    mozilla::StartupTimeline::RecordOnce(mozilla::StartupTimeline::FIRST_PAINT);
   }
 }
 
@@ -604,8 +602,8 @@ static bool
 ShouldIgnoreInvalidation(nsViewManager* aVM)
 {
   while (aVM) {
-    nsIViewObserver* vo = aVM->GetViewObserver();
-    if (!vo || vo->ShouldIgnoreInvalidation()) {
+    nsIPresShell* shell = aVM->GetPresShell();
+    if (!shell || shell->ShouldIgnoreInvalidation()) {
       return true;
     }
     nsView* view = aVM->GetRootViewImpl()->GetParent();
@@ -710,6 +708,8 @@ NS_IMETHODIMP nsViewManager::DispatchEvent(nsGUIEvent *aEvent,
   NS_ASSERTION(!aView || static_cast<nsView*>(aView)->GetViewManager() == this,
                "wrong view manager");
 
+  SAMPLE_LABEL("event", "DispatchEvent");
+
   *aStatus = nsEventStatus_eIgnore;
 
   switch(aEvent->message)
@@ -737,7 +737,7 @@ NS_IMETHODIMP nsViewManager::DispatchEvent(nsGUIEvent *aEvent,
                 nsXULPopupManager* pm = nsXULPopupManager::GetInstance();
                 if (pm)
                   {
-                    pm->PopupResized(aView, nsIntSize(width, height));
+                    pm->PopupResized(aView->GetFrame(), nsIntSize(width, height));
                     *aStatus = nsEventStatus_eConsumeNoDefault;
                   }
               }
@@ -756,7 +756,7 @@ NS_IMETHODIMP nsViewManager::DispatchEvent(nsGUIEvent *aEvent,
             nsXULPopupManager* pm = nsXULPopupManager::GetInstance();
             if (pm)
               {
-                pm->PopupMoved(aView, aEvent->refPoint);
+                pm->PopupMoved(aView->GetFrame(), aEvent->refPoint);
                 *aStatus = nsEventStatus_eConsumeNoDefault;
               }
           }
@@ -765,15 +765,15 @@ NS_IMETHODIMP nsViewManager::DispatchEvent(nsGUIEvent *aEvent,
 
     case NS_DONESIZEMOVE:
       {
-        nsCOMPtr<nsIPresShell> shell = do_QueryInterface(mObserver);
-        if (shell) {
-          nsPresContext* presContext = shell->GetPresContext();
+        if (mPresShell) {
+          nsPresContext* presContext = mPresShell->GetPresContext();
           if (presContext) {
             nsEventStateManager::ClearGlobalActiveContent(nsnull);
           }
-    
-          mObserver->ClearMouseCapture(aView);
+
         }
+
+        nsIPresShell::ClearMouseCapture(nsnull);
       }
       break;
   
@@ -788,7 +788,7 @@ NS_IMETHODIMP nsViewManager::DispatchEvent(nsGUIEvent *aEvent,
           if (type == eWindowType_popup) {
             nsXULPopupManager* pm = nsXULPopupManager::GetInstance();
             if (pm) {
-              pm->HidePopup(aView);
+              pm->HidePopup(aView->GetFrame());
               *aStatus = nsEventStatus_eConsumeNoDefault;
             }
           }
@@ -828,7 +828,8 @@ NS_IMETHODIMP nsViewManager::DispatchEvent(nsGUIEvent *aEvent,
                       ? vm->mRootView->GetParent()->GetViewManager()
                       : nsnull) {
             if (vm->mDelayedResize != nsSize(NSCOORD_NONE, NSCOORD_NONE) &&
-                vm->mRootView->IsEffectivelyVisible()) {
+                vm->mRootView->IsEffectivelyVisible() &&
+                mPresShell && mPresShell->IsVisible()) {
               vm->FlushDelayedResize(true);
 
               // Paint later.
@@ -856,8 +857,7 @@ NS_IMETHODIMP nsViewManager::DispatchEvent(nsGUIEvent *aEvent,
 
             nsView* view = static_cast<nsView*>(aView);
             if (!transparentWindow) {
-              nsIViewObserver* observer = GetViewObserver();
-              if (observer) {
+              if (mPresShell) {
                 // Do an update view batch.  Make sure not to do it DEFERRED,
                 // since that would effectively delay any invalidates that are
                 // triggered by the WillPaint notification (they'd happen when
@@ -885,8 +885,7 @@ NS_IMETHODIMP nsViewManager::DispatchEvent(nsGUIEvent *aEvent,
             }
             
             if (view && aEvent->message == NS_PAINT) {
-              Refresh(view, event->widget,
-                      event->region, NS_VMREFRESH_DOUBLE_BUFFER);
+              Refresh(view, event->widget, event->region);
             }
           }
         } else if (aEvent->message == NS_PAINT) {
@@ -952,12 +951,12 @@ NS_IMETHODIMP nsViewManager::DispatchEvent(nsGUIEvent *aEvent,
 
     case NS_SYSCOLORCHANGED:
       {
-        // Hold a refcount to the observer. The continued existence of the observer will
-        // delay deletion of this view hierarchy should the event want to cause its
-        // destruction in, say, some JavaScript event handler.
-        nsCOMPtr<nsIViewObserver> obs = GetViewObserver();
-        if (obs) {
-          obs->HandleEvent(aView, aEvent, false, aStatus);
+        if (mPresShell) {
+          // Hold a refcount to the presshell. The continued existence of the observer will
+          // delay deletion of this view hierarchy should the event want to cause its
+          // destruction in, say, some JavaScript event handler.
+          nsCOMPtr<nsIPresShell> presShell = mPresShell;
+          presShell->HandleEvent(aView->GetFrame(), aEvent, false, aStatus);
         }
       }
       break; 
@@ -982,24 +981,43 @@ NS_IMETHODIMP nsViewManager::DispatchEvent(nsGUIEvent *aEvent,
         if (aEvent->message == NS_DEACTIVATE) {
           // if a window is deactivated, clear the mouse capture regardless
           // of what is capturing
-          nsIViewObserver* viewObserver = GetViewObserver();
-          if (viewObserver) {
-            viewObserver->ClearMouseCapture(nsnull);
+          nsIPresShell::ClearMouseCapture(nsnull);
+        }
+
+        // Find the view whose coordinates system we're in.
+        nsIView* view = aView;
+        bool dispatchUsingCoordinates = NS_IsEventUsingCoordinates(aEvent);
+        if (dispatchUsingCoordinates) {
+          // Will dispatch using coordinates. Pretty bogus but it's consistent
+          // with what presshell does.
+          view = GetDisplayRootFor(view);
+        }
+  
+        // If the view has no frame, look for a view that does.
+        nsIFrame* frame = view->GetFrame();
+        if (!frame &&
+            (dispatchUsingCoordinates || NS_IS_KEY_EVENT(aEvent) ||
+             NS_IS_IME_RELATED_EVENT(aEvent) ||
+             NS_IS_NON_RETARGETED_PLUGIN_EVENT(aEvent) ||
+             aEvent->message == NS_PLUGIN_ACTIVATE ||
+             aEvent->message == NS_PLUGIN_FOCUS)) {
+          while (view && !view->GetFrame()) {
+            view = view->GetParent();
+          }
+
+          if (view) {
+            frame = view->GetFrame();
           }
         }
 
-        //Find the view whose coordinates system we're in.
-        nsView* baseView = static_cast<nsView*>(aView);
-        nsView* view = baseView;
-
-        if (NS_IsEventUsingCoordinates(aEvent)) {
-          // will dispatch using coordinates. Pretty bogus but it's consistent
-          // with what presshell does.
-          view = static_cast<nsView*>(GetDisplayRootFor(baseView));
-        }
-
-        if (nsnull != view) {
-          *aStatus = HandleEvent(view, aEvent);
+        if (nsnull != frame) {
+          // Hold a refcount to the presshell. The continued existence of the
+          // presshell will delay deletion of this view hierarchy should the event
+          // want to cause its destruction in, say, some JavaScript event handler.
+          nsCOMPtr<nsIPresShell> shell = view->GetViewManager()->GetPresShell();
+          if (shell) {
+            shell->HandleEvent(frame, aEvent, false, aStatus);
+          }
         }
     
         break;
@@ -1007,24 +1025,6 @@ NS_IMETHODIMP nsViewManager::DispatchEvent(nsGUIEvent *aEvent,
     }
 
   return NS_OK;
-}
-
-nsEventStatus nsViewManager::HandleEvent(nsView* aView, nsGUIEvent* aEvent)
-{
-#if 0
-  printf(" %d %d %d %d (%d,%d) \n", this, event->widget, event->widgetSupports, 
-         event->message, event->point.x, event->point.y);
-#endif
-  // Hold a refcount to the observer. The continued existence of the observer will
-  // delay deletion of this view hierarchy should the event want to cause its
-  // destruction in, say, some JavaScript event handler.
-  nsCOMPtr<nsIViewObserver> obs = aView->GetViewManager()->GetViewObserver();
-  nsEventStatus status = nsEventStatus_eIgnore;
-  if (obs) {
-     obs->HandleEvent(aView, aEvent, false, &status);
-  }
-
-  return status;
 }
 
 // Recursively reparent widgets if necessary 
@@ -1570,9 +1570,9 @@ nsViewManager::CallWillPaintOnObservers(bool aWillSendDidPaint)
     if (vm->RootViewManager() == this) {
       // One of our kids.
       if (vm->mRootView && vm->mRootView->IsEffectivelyVisible()) {
-        nsCOMPtr<nsIViewObserver> obs = vm->GetViewObserver();
-        if (obs) {
-          obs->WillPaint(aWillSendDidPaint);
+        nsCOMPtr<nsIPresShell> shell = vm->GetPresShell();
+        if (shell) {
+          shell->WillPaint(aWillSendDidPaint);
           NS_ASSERTION(mUpdateBatchCnt == savedUpdateBatchCnt,
                        "Observer did not end view batch?");
         }
@@ -1592,9 +1592,9 @@ nsViewManager::CallDidPaintOnObservers()
     if (vm->RootViewManager() == this) {
       // One of our kids.
       if (vm->mRootView && vm->mRootView->IsEffectivelyVisible()) {
-        nsCOMPtr<nsIViewObserver> obs = vm->GetViewObserver();
-        if (obs) {
-          obs->DidPaint();
+        nsCOMPtr<nsIPresShell> shell = vm->GetPresShell();
+        if (shell) {
+          shell->DidPaint();
         }
       }
     }

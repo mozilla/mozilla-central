@@ -542,6 +542,42 @@ FrameState::tempRegForType(FrameEntry *fe)
     return reg;
 }
 
+inline void
+FrameState::loadTypeIntoReg(const FrameEntry *fe, RegisterID reg)
+{
+    if (fe->isCopy())
+        fe = fe->copyOf();
+
+    JS_ASSERT(!fe->type.isConstant());
+
+    if (fe->type.inRegister()) {
+        if (fe->type.reg() == reg)
+            return;
+        masm.move(fe->type.reg(), reg);
+        return;
+    }
+
+    masm.loadTypeTag(addressOf(fe), reg);
+}
+
+inline void
+FrameState::loadDataIntoReg(const FrameEntry *fe, RegisterID reg)
+{
+    if (fe->isCopy())
+        fe = fe->copyOf();
+
+    JS_ASSERT(!fe->data.isConstant());
+
+    if (fe->data.inRegister()) {
+        if (fe->data.reg() == reg)
+            return;
+        masm.move(fe->data.reg(), reg);
+        return;
+    }
+
+    masm.loadPayload(addressOf(fe), reg);
+}
+
 inline JSC::MacroAssembler::RegisterID
 FrameState::tempRegForData(FrameEntry *fe)
 {
@@ -879,16 +915,22 @@ FrameState::syncAndForgetFe(FrameEntry *fe, bool markSynced)
 }
 
 inline JSC::MacroAssembler::Address
-FrameState::loadNameAddress(const analyze::ScriptAnalysis::NameAccess &access)
+FrameState::loadNameAddress(const analyze::ScriptAnalysis::NameAccess &access, RegisterID reg)
 {
     JS_ASSERT(access.script && access.nesting);
 
-    RegisterID reg = allocReg();
-    Value **pbase = access.arg ? &access.nesting->argArray : &access.nesting->varArray;
+    const Value **pbase = access.arg ? &access.nesting->argArray : &access.nesting->varArray;
     masm.move(ImmPtr(pbase), reg);
     masm.loadPtr(Address(reg), reg);
 
     return Address(reg, access.index * sizeof(Value));
+}
+
+inline JSC::MacroAssembler::Address
+FrameState::loadNameAddress(const analyze::ScriptAnalysis::NameAccess &access)
+{
+    RegisterID reg = allocReg();
+    return loadNameAddress(access, reg);
 }
 
 inline void
@@ -1036,7 +1078,7 @@ FrameState::frameOffset(const FrameEntry *fe, ActiveFrame *a) const
     if (fe >= a->args)
         return StackFrame::offsetOfFormalArg(a->script->function(), uint32(fe - a->args));
     if (fe == a->this_)
-        return StackFrame::offsetOfThis(a->script->hasFunction ? a->script->function() : NULL);
+        return StackFrame::offsetOfThis(a->script->function());
     if (fe == a->callee_)
         return StackFrame::offsetOfCallee(a->script->function());
     JS_NOT_REACHED("Bad fe");
@@ -1143,6 +1185,14 @@ FrameState::testObject(Assembler::Condition cond, FrameEntry *fe)
 }
 
 inline JSC::MacroAssembler::Jump
+FrameState::testGCThing(FrameEntry *fe)
+{
+    if (shouldAvoidTypeRemat(fe))
+        return masm.testGCThing(addressOf(fe));
+    return masm.testGCThing(tempRegForType(fe));
+}
+
+inline JSC::MacroAssembler::Jump
 FrameState::testDouble(Assembler::Condition cond, FrameEntry *fe)
 {
     JS_ASSERT(cond == Assembler::Equal || cond == Assembler::NotEqual);
@@ -1219,7 +1269,7 @@ inline FrameEntry *
 FrameState::getCallee()
 {
     // Callee can only be used in function code, and it's always an object.
-    JS_ASSERT(a->script->hasFunction);
+    JS_ASSERT(a->script->function());
     FrameEntry *fe = a->callee_;
     if (!fe->isTracked()) {
         addToTracker(fe);

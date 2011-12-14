@@ -172,6 +172,12 @@ public:
    */
   Element* GetIdElement();
   /**
+   * Returns the list of all elements associated with this id.
+   */
+  const nsSmallVoidArray* GetIdElements() const {
+    return &mIdContentList;
+  }
+  /**
    * If this entry has a non-null image element set (using SetImageElement),
    * the image element will be returned, otherwise the same as GetIdElement().
    */
@@ -244,7 +250,7 @@ private:
   void FireChangeCallbacks(Element* aOldElement, Element* aNewElement,
                            bool aImageOnly = false);
 
-  // empty if there are no elementswith this ID.
+  // empty if there are no elements with this ID.
   // The elements are stored as weak pointers.
   nsSmallVoidArray mIdContentList;
   nsRefPtr<nsBaseContentList> mNameContentList;
@@ -588,10 +594,10 @@ public:
                                nsIPresShell** aInstancePtrResult);
   virtual void DeleteShell();
 
-  virtual nsresult SetSubDocumentFor(nsIContent *aContent,
+  virtual nsresult SetSubDocumentFor(Element* aContent,
                                      nsIDocument* aSubDoc);
-  virtual nsIDocument* GetSubDocumentFor(nsIContent *aContent) const;
-  virtual nsIContent* FindContentForSubDocument(nsIDocument *aDocument) const;
+  virtual nsIDocument* GetSubDocumentFor(nsIContent* aContent) const;
+  virtual Element* FindContentForSubDocument(nsIDocument *aDocument) const;
   virtual Element* GetRootElementInternal() const;
 
   /**
@@ -798,7 +804,6 @@ public:
 
   virtual nsresult CreateElem(const nsAString& aName, nsIAtom *aPrefix,
                               PRInt32 aNamespaceID,
-                              bool aDocumentDefaultType,
                               nsIContent **aResult);
 
   nsresult CreateElement(const nsAString& aTagName,
@@ -860,11 +865,9 @@ public:
 
   nsTArray<nsCString> mFileDataUris;
 
-#ifdef MOZ_SMIL
   // Returns our (lazily-initialized) animation controller.
   // If HasAnimationController is true, this is guaranteed to return non-null.
   nsSMILAnimationController* GetAnimationController();
-#endif // MOZ_SMIL
 
   void SetImagesNeedAnimating(bool aAnimating);
 
@@ -888,6 +891,10 @@ public:
   }
 
   void SetLoadedAsData(bool aLoadedAsData) { mLoadedAsData = aLoadedAsData; }
+  void SetLoadedAsInteractiveData(bool aLoadedAsInteractiveData)
+  {
+    mLoadedAsInteractiveData = aLoadedAsInteractiveData;
+  }
 
   nsresult CloneDocHelper(nsDocument* clone) const;
 
@@ -927,6 +934,7 @@ public:
                            const nsAString& aLocalName);
 
   virtual Element *GetElementById(const nsAString& aElementId);
+  virtual const nsSmallVoidArray* GetAllElementsForId(const nsAString& aElementId) const;
 
   virtual Element *LookupImageElement(const nsAString& aElementId);
 
@@ -941,12 +949,41 @@ public:
 
   virtual Element* FindImageMap(const nsAString& aNormalizedMapName);
 
-  virtual void ResetFullScreenElement();
+  virtual void NotifyAudioAvailableListener();
+
+  bool HasAudioAvailableListeners()
+  {
+    return mHasAudioAvailableListener;
+  }
+
   virtual Element* GetFullScreenElement();
-  virtual void RequestFullScreen(Element* aElement);
-  virtual void CancelFullScreen();
-  virtual void UpdateFullScreenStatus(bool aIsFullScreen);
+  virtual void AsyncRequestFullScreen(Element* aElement);
+  virtual void RestorePreviousFullScreenState();
   virtual bool IsFullScreenDoc();
+  static void ExitFullScreen();
+
+  // This is called asynchronously by nsIDocument::AsyncRequestFullScreen()
+  // to move document into full-screen mode if allowed. aWasCallerChrome
+  // should be true when nsIDocument::AsyncRequestFullScreen() was called
+  // by chrome code.
+  void RequestFullScreen(Element* aElement, bool aWasCallerChrome);
+
+  // Removes all elements from the full-screen stack, removing full-scren
+  // styles from the top element in the stack.
+  void ClearFullScreenStack();
+
+  // Pushes aElement onto the full-screen stack, and removes full-screen styles
+  // from the former full-screen stack top, and its ancestors, and applies the
+  // styles to aElement. aElement becomes the new "full-screen element".
+  bool FullScreenStackPush(Element* aElement);
+
+  // Remove the top element from the full-screen stack. Removes the full-screen
+  // styles from the former top element, and applies them to the new top
+  // element, if there is one.
+  void FullScreenStackPop();
+
+  // Returns the top element from the full-screen stack.
+  Element* FullScreenStackTop();
 
   // This method may fire a DOM event; if it does so it will happen
   // synchronously.
@@ -956,6 +993,15 @@ public:
 
 protected:
   friend class nsNodeUtils;
+
+  // Returns true if a request for DOM full-screen is currently enabled in
+  // this document. This returns true if there are no windowed plugins in this
+  // doc tree, and if the document is visible, and if the api is not
+  // disabled by pref. aIsCallerChrome must contain the return value of
+  // nsContentUtils::IsCallerChrome() from the context we're checking.
+  // If aLogFailure is true, an appropriate warning message is logged to the
+  // console, and a "mozfullscreenerror" event is dispatched to this document.
+  bool IsFullScreenEnabled(bool aIsCallerChrome, bool aLogFailure);
 
   /**
    * Check that aId is not empty and log a message to the console
@@ -1010,11 +1056,6 @@ protected:
   // Return whether all the presshells for this document are safe to flush
   bool IsSafeToFlush() const;
   
-  virtual PRInt32 GetDefaultNamespaceID() const
-  {
-    return kNameSpaceID_None;
-  }
-
   void DispatchPageTransition(nsIDOMEventTarget* aDispatchTarget,
                               const nsAString& aType,
                               bool aPersisted);
@@ -1072,6 +1113,22 @@ protected:
   // is a weak reference to avoid leaks due to circular references.
   nsWeakPtr mScopeObject;
 
+  // The document which requested (and was granted) full-screen. All ancestors
+  // of this document will also be full-screen.
+  static nsWeakPtr sFullScreenDoc;
+
+  // The root document of the doctree containing the document which requested
+  // full-screen. This root document will also be in full-screen state, as will
+  // all the descendents down to the document which requested full-screen. This
+  // reference allows us to reset full-screen state on all documents when a
+  // document is hidden/navigation occurs.
+  static nsWeakPtr sFullScreenRootDoc;
+
+  // Stack of full-screen elements. When we request full-screen we push the
+  // full-screen element onto this stack, and when we cancel full-screen we
+  // pop one off this stack, restoring the previous full-screen state
+  nsTArray<nsWeakPtr> mFullScreenStack;
+
   nsRefPtr<nsEventListenerManager> mListenerManager;
   nsCOMPtr<nsIDOMStyleSheetList> mDOMStyleSheets;
   nsRefPtr<nsDOMStyleSheetSetList> mStyleSheetSetList;
@@ -1090,9 +1147,6 @@ protected:
 
   // Recorded time of change to 'loading' state.
   mozilla::TimeStamp mLoadingTimeStamp;
-
-  // The current full-screen element of this document.
-  nsCOMPtr<Element> mFullScreenElement;
 
   // True if the document has been detached from its content viewer.
   bool mIsGoingAway:1;
@@ -1126,12 +1180,14 @@ protected:
   // Whether we currently require our images to animate
   bool mAnimatingImages:1;
 
+  // Whether some node in this document has a listener for the
+  // "mozaudioavailable" event.
+  bool mHasAudioAvailableListener:1;
+
   // Whether we are currently in full-screen mode, as per the DOM API.
   bool mIsFullScreen:1;
 
   PRUint8 mXMLDeclarationBits;
-
-  PRUint8 mDefaultElementType;
 
   nsInterfaceHashtable<nsVoidPtrHashKey, nsPIBoxObject> *mBoxObjectTable;
 

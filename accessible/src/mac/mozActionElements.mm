@@ -43,9 +43,6 @@
 
 using namespace mozilla::a11y;
 
-extern const NSString *kInstanceDescriptionAttribute; // NSAccessibilityDescriptionAttribute
-extern const NSString *kTopLevelUIElementAttribute;   // NSAccessibilityTopLevelUIElementAttribute
-
 enum CheckboxValue {
   // these constants correspond to the values in the OS
   kUnchecked = 0,
@@ -67,12 +64,12 @@ enum CheckboxValue {
                                                   NSAccessibilitySizeAttribute, // required
                                                   NSAccessibilityWindowAttribute, // required
                                                   NSAccessibilityPositionAttribute, // required
-                                                  kTopLevelUIElementAttribute, // required
+                                                  NSAccessibilityTopLevelUIElementAttribute, // required
                                                   NSAccessibilityHelpAttribute,
                                                   NSAccessibilityEnabledAttribute, // required
                                                   NSAccessibilityFocusedAttribute, // required
                                                   NSAccessibilityTitleAttribute, // required
-                                                  kInstanceDescriptionAttribute,
+                                                  NSAccessibilityDescriptionAttribute,
                                                   nil];
   }
   return attributes;
@@ -194,13 +191,13 @@ enum CheckboxValue {
                                                   NSAccessibilityRoleAttribute, // required
                                                   NSAccessibilitySizeAttribute, // required
                                                   NSAccessibilityWindowAttribute, // required
-                                                  kTopLevelUIElementAttribute, // required
+                                                  NSAccessibilityTopLevelUIElementAttribute, // required
                                                   NSAccessibilityHelpAttribute,
                                                   NSAccessibilityEnabledAttribute, // required
                                                   NSAccessibilityFocusedAttribute, // required
                                                   NSAccessibilityTitleAttribute, // required for popupmenus, and for menubuttons with a title
                                                   NSAccessibilityChildrenAttribute, // required
-                                                  kInstanceDescriptionAttribute, // required if it has no title attr
+                                                  NSAccessibilityDescriptionAttribute, // required if it has no title attr
                                                   nil];
   }
   return attributes;
@@ -226,9 +223,7 @@ enum CheckboxValue {
 
   if ([self isEnabled]) {
     return [NSArray arrayWithObjects:NSAccessibilityPressAction,
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
                                      NSAccessibilityShowMenuAction,
-#endif
                                      nil];
   }
   return nil;
@@ -240,10 +235,8 @@ enum CheckboxValue {
 {
   NS_OBJC_BEGIN_TRY_ABORT_BLOCK_NIL;
 
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= MAC_OS_X_VERSION_10_4
   if ([action isEqualToString:NSAccessibilityShowMenuAction])
     return @"show menu";
-#endif
   return [super accessibilityActionDescription:action];
 
   NS_OBJC_END_TRY_ABORT_BLOCK_NIL;

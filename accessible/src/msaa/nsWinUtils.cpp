@@ -40,11 +40,16 @@
 
 #include "nsWinUtils.h"
 
+#include "Compatibility.h"
 #include "nsIWinAccessNode.h"
 #include "nsRootAccessible.h"
 
+#include "mozilla/Preferences.h"
 #include "nsArrayUtils.h"
 #include "nsIDocShellTreeItem.h"
+
+using namespace mozilla;
+using namespace mozilla::a11y;
 
 // Window property used by ipc related code in identifying accessible
 // tab windows.
@@ -108,11 +113,14 @@ nsWinUtils::MaybeStartWindowEmulation()
 {
   // Register window class that'll be used for document accessibles associated
   // with tabs.
-  if (IsWindowEmulationFor(0)) {
+  if (Compatibility::IsJAWS() || Compatibility::IsWE() ||
+      Compatibility::IsDolphin() ||
+      Preferences::GetBool("browser.tabs.remote")) {
     RegisterNativeWindow(kClassNameTabContent);
     nsAccessNodeWrap::sHWNDCache.Init(4);
     return true;
   }
+
   return false;
 }
 
@@ -121,7 +129,7 @@ nsWinUtils::ShutdownWindowEmulation()
 {
   // Unregister window call that's used for document accessibles associated
   // with tabs.
-  if (IsWindowEmulationFor(0))
+  if (IsWindowEmulationStarted())
     ::UnregisterClassW(kClassNameTabContent, GetModuleHandle(NULL));
 }
 
@@ -180,18 +188,4 @@ nsWinUtils::HideNativeWindow(HWND aWnd)
   ::SetWindowPos(aWnd, NULL, 0, 0, 0, 0,
                  SWP_HIDEWINDOW | SWP_NOSIZE | SWP_NOMOVE |
                  SWP_NOZORDER | SWP_NOACTIVATE);
-}
-
-bool
-nsWinUtils::IsWindowEmulationFor(LPCWSTR kModuleHandle)
-{
-#ifdef MOZ_E10S_COMPAT
-  // Window emulation is always enabled in multiprocess Firefox.
-  return kModuleHandle ? ::GetModuleHandleW(kModuleHandle) : true;
-#else
-  return kModuleHandle ? ::GetModuleHandleW(kModuleHandle) :
-    ::GetModuleHandleW(kJAWSModuleHandle) ||
-    ::GetModuleHandleW(kWEModuleHandle)  ||
-    ::GetModuleHandleW(kDolphinModuleHandle);
-#endif
 }

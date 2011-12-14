@@ -580,7 +580,7 @@ FrameState::computeAllocation(jsbytecode *target)
         return NULL;
 
     if (a->analysis->getCode(target).exceptionEntry || a->analysis->getCode(target).switchTarget ||
-        JSOp(*target) == JSOP_TRAP) {
+        a->script->hasBreakpointsAt(target)) {
         /* State must be synced at exception and switch targets, and at traps. */
 #ifdef DEBUG
         if (IsJaegerSpewChannelActive(JSpew_Regalloc)) {
@@ -1265,13 +1265,13 @@ FrameState::assertValidRegisterState() const
 
 #if defined JS_NUNBOX32
 void
-FrameState::syncFancy(Assembler &masm, Registers avail, FrameEntry *resumeAt,
-                      FrameEntry *bottom) const
+FrameState::syncFancy(Assembler &masm, Registers avail, int trackerIndex) const
 {
-    reifier.reset(&masm, avail, resumeAt, bottom);
+    reifier.reset(&masm, avail, a->sp, entries);
 
-    for (FrameEntry *fe = resumeAt; fe >= bottom; fe--) {
-        if (!fe->isTracked())
+    for (; trackerIndex >= 0; trackerIndex--) {
+        FrameEntry *fe = tracker[trackerIndex];
+        if (fe >= a->sp)
             continue;
 
         reifier.sync(fe);
@@ -1325,12 +1325,11 @@ FrameState::sync(Assembler &masm, Uses uses) const
     Registers avail(freeRegs.freeMask & Registers::AvailRegs);
     Registers temp(Registers::TempAnyRegs);
 
-    FrameEntry *bottom = (cx->typeInferenceEnabled() || cx->compartment->debugMode())
-        ? entries
-        : a->sp - uses.nuses;
-
-    for (FrameEntry *fe = a->sp - 1; fe >= bottom; fe--) {
-        if (!fe->isTracked())
+    unsigned nentries = tracker.nentries;
+    for (int trackerIndex = nentries - 1; trackerIndex >= 0; trackerIndex--) {
+        JS_ASSERT(tracker.nentries == nentries);
+        FrameEntry *fe = tracker[trackerIndex];
+        if (fe >= a->sp)
             continue;
 
         if (fe->isType(JSVAL_TYPE_DOUBLE)) {
@@ -1343,9 +1342,9 @@ FrameState::sync(Assembler &masm, Uses uses) const
         FrameEntry *backing = fe;
 
         if (!fe->isCopy()) {
-            if (fe->data.inRegister())
+            if (fe->data.inRegister() && !regstate(fe->data.reg()).isPinned())
                 avail.putReg(fe->data.reg());
-            if (fe->type.inRegister())
+            if (fe->type.inRegister() && !regstate(fe->type.reg()).isPinned())
                 avail.putReg(fe->type.reg());
         } else {
             backing = fe->copyOf();
@@ -1379,7 +1378,7 @@ FrameState::sync(Assembler &masm, Uses uses) const
             /* Fall back to a slower sync algorithm if load required. */
             if ((!fe->type.synced() && backing->type.inMemory()) ||
                 (!fe->data.synced() && backing->data.inMemory())) {
-                syncFancy(masm, avail, fe, bottom);
+                syncFancy(masm, avail, trackerIndex);
                 return;
             }
 #endif
@@ -1458,19 +1457,13 @@ FrameState::syncAndKill(Registers kill, Uses uses, Uses ignore)
 #endif
     }
 
-    uint32 maxvisits = tracker.nentries;
 
-    FrameEntry *bottom = (cx->typeInferenceEnabled() || cx->compartment->debugMode())
-        ? entries
-        : a->sp - uses.nuses;
+    unsigned nentries = tracker.nentries;
+    for (int trackerIndex = nentries - 1; trackerIndex >= 0; trackerIndex--) {
+        JS_ASSERT(tracker.nentries == nentries);
+        FrameEntry *fe = tracker[trackerIndex];
 
-    for (FrameEntry *fe = a->sp - 1; fe >= bottom && maxvisits; fe--) {
-        if (!fe->isTracked())
-            continue;
-
-        maxvisits--;
-
-        if (deadEntry(fe, ignore.nuses))
+        if (fe >= a->sp || deadEntry(fe, ignore.nuses))
             continue;
 
         syncFe(fe);

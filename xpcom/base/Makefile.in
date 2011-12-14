@@ -49,7 +49,7 @@ GRE_MODULE	= 1
 MOZILLA_INTERNAL_API =1
 LIBXUL_LIBRARY = 1
 
-# TODO: we do this in crashreporter too, should be centralized
+# TODO: we do this in crashreporter and storage/src too, should be centralized
 ifeq ($(OS_ARCH),Linux)
 DEFINES += -DXP_LINUX
 endif
@@ -92,6 +92,7 @@ EXPORTS		= \
 		nsTraceRefcntImpl.h \
 		nsWeakPtr.h \
 		nsInterfaceRequestorAgg.h \
+		dmd.h \
 		$(NULL)
 
 EXPORTS_NAMESPACES = mozilla
@@ -153,8 +154,6 @@ endif
 # we don't want the shared lib, but we want to force the creation of a static lib.
 FORCE_STATIC_LIB = 1
 
-# Force use of PIC
-FORCE_USE_PIC	= 1
 
 include $(topsrcdir)/config/config.mk
 include $(topsrcdir)/ipc/chromium/chromium-config.mk

@@ -62,7 +62,7 @@
 #include "nsIDOMHTMLDocument.h"
 #include "nsIDOMHTMLFormElement.h"
 #include "nsIDOMNodeFilter.h"
-#include "nsIDOMNSHTMLElement.h"
+#include "nsIDOMHTMLElement.h"
 #include "nsIDOMTreeWalker.h"
 #include "nsIDOMXULButtonElement.h"
 #include "nsIDOMXULDocument.h"
@@ -654,7 +654,7 @@ nsAccessible::IsVisible(bool* aIsOffscreen)
   }
 
   // The frame intersects the viewport, but we need to check the parent view chain :(
-  bool isVisible = nsCoreUtils::CheckVisibilityInParentChain(frame);
+  bool isVisible = frame->IsVisibleConsideringAncestors(nsIFrame::VISIBILITY_CROSS_CHROME_CONTENT_BOUNDARY);
   if (isVisible && rectVisibility == nsRectVisibility_kVisible) {
     *aIsOffscreen = false;
   }
@@ -1066,7 +1066,6 @@ NS_IMETHODIMP nsAccessible::TakeSelection()
   return NS_ERROR_FAILURE;
 }
 
-/* void takeFocus (); */
 NS_IMETHODIMP
 nsAccessible::TakeFocus()
 {
@@ -1078,30 +1077,16 @@ nsAccessible::TakeFocus()
 
   nsIContent* focusContent = mContent;
 
-  // If the current element can't take real DOM focus and if it has an ID and
-  // an ancestor with an aria-activedescendant attribute present, then set DOM
-  // focus to that ancestor and set aria-activedescendant on the ancestor to
-  // the ID of the desired element.
+  // If the accessible focus is managed by container widget then focus the
+  // widget and set the accessible as its current item.
   if (!frame->IsFocusable()) {
-    nsAutoString id;
-    if (nsCoreUtils::GetID(mContent, id)) {
-
-      nsIContent* ancestorContent = mContent;
-      while ((ancestorContent = ancestorContent->GetParent()) &&
-             !ancestorContent->HasAttr(kNameSpaceID_None,
-                                       nsGkAtoms::aria_activedescendant));
-
-      if (ancestorContent) {
-        nsCOMPtr<nsIPresShell> presShell(do_QueryReferent(mWeakShell));
-        if (presShell) {
-          nsIFrame *frame = ancestorContent->GetPrimaryFrame();
-          if (frame && frame->IsFocusable()) {
-            focusContent = ancestorContent;
-            focusContent->SetAttr(kNameSpaceID_None,
-                                  nsGkAtoms::aria_activedescendant,
-                                  id, true);
-          }
-        }
+    nsAccessible* widget = ContainerWidget();
+    if (widget && widget->AreItemsOperable()) {
+      nsIContent* widgetElm = widget->GetContent();
+      nsIFrame* widgetFrame = widgetElm->GetPrimaryFrame();
+      if (widgetFrame && widgetFrame->IsFocusable()) {
+        focusContent = widgetElm;
+        widget->SetCurrentItem(this);
       }
     }
   }
@@ -1424,7 +1409,7 @@ nsAccessible::GetAttributesInternal(nsIPersistentProperties *aAttributes)
     nsAccUtils::SetAccAttr(aAttributes, nsGkAtoms::textIndent, value);
 
   // Expose draggable object attribute?
-  nsCOMPtr<nsIDOMNSHTMLElement> htmlElement = do_QueryInterface(mContent);
+  nsCOMPtr<nsIDOMHTMLElement> htmlElement = do_QueryInterface(mContent);
   if (htmlElement) {
     bool draggable = false;
     htmlElement->GetDraggable(&draggable);
@@ -1542,30 +1527,18 @@ nsAccessible::State()
 
   if (!(state & states::UNAVAILABLE)) {
     state |= states::ENABLED | states::SENSITIVE;
+
+    // If the object is a current item of container widget then mark it as
+    // ACTIVE. This allows screen reader virtual buffer modes to know which
+    // descendant is the current one that would get focus if the user navigates
+    // to the container widget.
+    nsAccessible* widget = ContainerWidget();
+    if (widget && widget->CurrentItem() == this)
+      state |= states::ACTIVE;
   }
 
   if ((state & states::COLLAPSED) || (state & states::EXPANDED))
     state |= states::EXPANDABLE;
-
-  if (mRoleMapEntry) {
-    // If an object has an ancestor with the activedescendant property
-    // pointing at it, we mark it as ACTIVE even if it's not currently focused.
-    // This allows screen reader virtual buffer modes to know which descendant
-    // is the current one that would get focus if the user navigates to the container widget.
-    nsAutoString id;
-    if (nsCoreUtils::GetID(mContent, id)) {
-      nsIContent *ancestorContent = mContent;
-      nsAutoString activeID;
-      while ((ancestorContent = ancestorContent->GetParent()) != nsnull) {
-        if (ancestorContent->GetAttr(kNameSpaceID_None, nsGkAtoms::aria_activedescendant, activeID)) {
-          if (id == activeID) {
-            state |= states::ACTIVE;
-          }
-          break;
-        }
-      }
-    }
-  }
 
   // For some reasons DOM node may have not a frame. We tract such accessibles
   // as invisible.
@@ -1601,11 +1574,7 @@ void
 nsAccessible::ApplyARIAState(PRUint64* aState)
 {
   // Test for universal states first
-  PRUint32 index = 0;
-  while (nsStateMapEntry::MapToStates(mContent, aState,
-                                      nsARIAMap::gWAIUnivStateMap[index])) {
-    ++ index;
-  }
+  *aState |= nsARIAMap::UniversalStatesFor(mContent);
 
   if (mRoleMapEntry) {
 
@@ -2953,21 +2922,36 @@ nsAccessible::CurrentItem()
   return nsnull;
 }
 
+void
+nsAccessible::SetCurrentItem(nsAccessible* aItem)
+{
+  nsIAtom* id = aItem->GetContent()->GetID();
+  if (id) {
+    nsAutoString idStr;
+    id->ToString(idStr);
+    mContent->SetAttr(kNameSpaceID_None,
+                      nsGkAtoms::aria_activedescendant, idStr, true);
+  }
+}
+
 nsAccessible*
 nsAccessible::ContainerWidget() const
 {
   nsIAtom* idAttribute = mContent->GetIDAttributeName();
   if (idAttribute) {
     if (mContent->HasAttr(kNameSpaceID_None, idAttribute)) {
-      nsAccessible* parent = Parent();
-      do {
+      for (nsAccessible* parent = Parent(); parent; parent = parent->Parent()) {
         nsIContent* parentContent = parent->GetContent();
         if (parentContent &&
             parentContent->HasAttr(kNameSpaceID_None,
                                    nsGkAtoms::aria_activedescendant)) {
           return parent;
         }
-      } while ((parent = parent->Parent()));
+
+        // Don't cross DOM document boundaries.
+        if (parent->IsDocumentNode())
+          break;
+      }
     }
   }
   return nsnull;

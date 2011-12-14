@@ -18,7 +18,7 @@
   margin-right: -22px; /* 1/2 of scrubber thumb width, for overhang. */
   position: relative; /* Trick to work around negative margin interfering with clicking on the button. */
 }
-.playButton[paused="true"] {
+.playButton[paused] {
   background: url(chrome://global/skin/media/playButton.png) no-repeat center;
 }
 
@@ -32,8 +32,24 @@
   min-width: 33px;
   border: none;
 }
-.muteButton[muted="true"] {
+.muteButton[muted] {
   background: url(chrome://global/skin/media/unmuteButton.png) no-repeat center;
+}
+
+.fullscreenButton {
+  background-color: transparent;
+  list-style-image: url("chrome://global/skin/media/fullscreenButton.png");
+  -moz-image-region: rect(0px, 16px, 16px, 0px);
+  -moz-appearance: none;
+  margin: 0;
+  padding: 0;
+  min-height: 28px;
+  min-width: 28px;
+  border: none;
+}
+
+.fullscreenButton[fullscreened] {
+  -moz-image-region: rect(0px, 32px, 16px, 16px);
 }
 
 .volumeStack {
@@ -67,7 +83,6 @@
   background-color: rgba(255,255,255,.5);
   border-radius: 4px 4px;
 }
-
 
 .durationBox {
   -moz-box-pack: center;
@@ -191,11 +206,16 @@
 }
 
 /* Statistics formatting */
+html|*.statsDiv {
+  position: relative;
+}
 html|td {
-  padding: 2px;
+  height: 1em;
+  max-height: 1em;
+  padding: 0 2px;
 }
 html|table {
-  font-family: Helvetica, Ariel, sans-serif;
+  font-family: Helvetica, Arial, sans-serif;
   font-size: 11px;
   color: white;
   text-shadow:
@@ -203,9 +223,11 @@ html|table {
     1px -1px 0 #000,
     -1px 1px 0 #000,
     1px 1px 0 #000;
-  width: 100%;
+  min-width: 100%;
   background: rgba(68,68,68,.7);
   table-layout: fixed;
+  border-collapse: collapse;
+  position: absolute;
 }
 
 /* CSS Transitions */
@@ -231,4 +253,18 @@ html|table {
 }
 .statusOverlay[fadeout] {
   opacity: 0;
+}
+
+/* Error description formatting */
+.errorLabel {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  color: #bbb;
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
+  padding: 0 10px;
+  text-align: center;
 }

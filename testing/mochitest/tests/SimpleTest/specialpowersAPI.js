@@ -42,6 +42,8 @@
 var Ci = Components.interfaces;
 var Cc = Components.classes;
 
+Components.utils.import("resource://mochikit/MockFilePicker.jsm");
+
 function SpecialPowersAPI() { 
   this._consoleListeners = [];
   this._encounteredCrashDumpFiles = [];
@@ -131,6 +133,10 @@ Observer.prototype = {
 };
 
 SpecialPowersAPI.prototype = {
+
+  get MockFilePicker() {
+    return MockFilePicker
+  },
 
   getDOMWindowUtils: function(aWindow) {
     if (aWindow == this.window && this.DOMWindowUtils != null)
@@ -681,6 +687,14 @@ SpecialPowersAPI.prototype = {
     cbHelperSvc.copyString(preExpectedVal);
   },
 
+  supportsSelectionClipboard: function() {
+    if (this._cb == null) {
+      this._cb = Components.classes["@mozilla.org/widget/clipboard;1"].
+                            getService(Components.interfaces.nsIClipboard);
+    }
+    return this._cb.supportsSelectionClipboard();
+  },
+
   snapshotWindow: function (win, withCaret) {
     var el = this.window.document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
     el.width = win.innerWidth;
@@ -722,6 +736,16 @@ SpecialPowersAPI.prototype = {
                                        contractID,
                                        registerFactory);
     return {'cid':cid, 'originalFactory':oldFactory};
+  },
+  
+  _getElement: function(aWindow, id) {
+    return ((typeof(id) == "string") ?
+        aWindow.document.getElementById(id) : id); 
+  },
+  
+  dispatchEvent: function(aWindow, target, event) {
+    var el = this._getElement(aWindow, target);
+    return el.dispatchEvent(event);
   },
 };
 

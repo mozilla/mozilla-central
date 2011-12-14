@@ -48,7 +48,7 @@ using namespace js::gc;
 inline HashNumber
 DefaultHasher<WatchKey>::hash(const Lookup &key)
 {
-    return DefaultHasher<JSObject *>::hash(key.object) ^ HashId(key.id);
+    return DefaultHasher<JSObject *>::hash(key.object.get()) ^ HashId(key.id.get());
 }
 
 class AutoEntryHolder {
@@ -84,7 +84,11 @@ WatchpointMap::watch(JSContext *cx, JSObject *obj, jsid id,
                      JSWatchPointHandler handler, JSObject *closure)
 {
     JS_ASSERT(id == js_CheckForStringIndex(id));
-    obj->setWatched(cx);
+    JS_ASSERT(JSID_IS_STRING(id) || JSID_IS_INT(id));
+
+    if (!obj->setWatched(cx))
+        return false;
+
     Watchpoint w;
     w.handler = handler;
     w.closure = closure;
@@ -145,8 +149,7 @@ WatchpointMap::triggerWatchpoint(JSContext *cx, JSObject *obj, jsid id, Value *v
     old.setUndefined();
     if (obj->isNative()) {
         if (const Shape *shape = obj->nativeLookup(cx, id)) {
-            uint32 slot = shape->slot;
-            if (obj->containsSlot(slot)) {
+            if (shape->hasSlot()) {
                 if (shape->isMethod()) {
                     /*
                      * The existing watched property is a method. Trip
@@ -154,7 +157,8 @@ WatchpointMap::triggerWatchpoint(JSContext *cx, JSObject *obj, jsid id, Value *v
                      * passing an uncloned function object to the
                      * handler.
                      */
-                    Value method = ObjectValue(shape->methodObject());
+                    old = UndefinedValue();
+                    Value method = ObjectValue(*obj->nativeGetMethod(shape));
                     if (!obj->methodReadBarrier(cx, *shape, &method))
                         return false;
                     shape = obj->nativeLookup(cx, id);
@@ -162,7 +166,7 @@ WatchpointMap::triggerWatchpoint(JSContext *cx, JSObject *obj, jsid id, Value *v
                     JS_ASSERT(!shape->isMethod());
                     old = method;
                 } else {
-                    old = obj->nativeGetSlot(slot);
+                    old = obj->nativeGetSlot(shape->slot());
                 }
             }
         }
@@ -175,16 +179,16 @@ WatchpointMap::triggerWatchpoint(JSContext *cx, JSObject *obj, jsid id, Value *v
 bool
 WatchpointMap::markAllIteratively(JSTracer *trc)
 {
-    JSRuntime *rt = trc->context->runtime;
+    JSRuntime *rt = trc->runtime;
     if (rt->gcCurrentCompartment) {
         WatchpointMap *wpmap = rt->gcCurrentCompartment->watchpointMap;
         return wpmap && wpmap->markIteratively(trc);
     }
 
     bool mutated = false;
-    for (JSCompartment **c = rt->compartments.begin(); c != rt->compartments.end(); ++c) {
-        if ((*c)->watchpointMap)
-            mutated |= (*c)->watchpointMap->markIteratively(trc);
+    for (CompartmentsIter c(rt); !c.done(); c.next()) {
+        if (c->watchpointMap)
+            mutated |= c->watchpointMap->markIteratively(trc);
     }
     return mutated;
 }
@@ -199,16 +203,16 @@ WatchpointMap::markIteratively(JSTracer *trc)
         bool objectIsLive = !IsAboutToBeFinalized(cx, e.key.object);
         if (objectIsLive || e.value.held) {
             if (!objectIsLive) {
-                MarkObject(trc, *e.key.object, "held Watchpoint object");
+                MarkObject(trc, e.key.object, "held Watchpoint object");
                 marked = true;
             }
 
-            jsid id = e.key.id;
+            const HeapId &id = e.key.id;
             JS_ASSERT(JSID_IS_STRING(id) || JSID_IS_INT(id));
             MarkId(trc, id, "WatchKey::id");
 
             if (e.value.closure && IsAboutToBeFinalized(cx, e.value.closure)) {
-                MarkObject(trc, *e.value.closure, "Watchpoint::closure");
+                MarkObject(trc, e.value.closure, "Watchpoint::closure");
                 marked = true;
             }
         }
@@ -224,8 +228,8 @@ WatchpointMap::sweepAll(JSContext *cx)
         if (WatchpointMap *wpmap = rt->gcCurrentCompartment->watchpointMap)
             wpmap->sweep(cx);
     } else {
-        for (JSCompartment **c = rt->compartments.begin(); c != rt->compartments.end(); ++c) {
-            if (WatchpointMap *wpmap = (*c)->watchpointMap)
+        for (CompartmentsIter c(rt); !c.done(); c.next()) {
+            if (WatchpointMap *wpmap = c->watchpointMap)
                 wpmap->sweep(cx);
         }
     }

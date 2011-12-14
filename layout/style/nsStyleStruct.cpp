@@ -1351,6 +1351,7 @@ nsStyleGradient::operator==(const nsStyleGradient& aOther) const
   if (mShape != aOther.mShape ||
       mSize != aOther.mSize ||
       mRepeating != aOther.mRepeating ||
+      mToCorner != aOther.mToCorner ||
       mBgPosX != aOther.mBgPosX ||
       mBgPosY != aOther.mBgPosY ||
       mAngle != aOther.mAngle)
@@ -1372,6 +1373,7 @@ nsStyleGradient::nsStyleGradient(void)
   : mShape(NS_STYLE_GRADIENT_SHAPE_LINEAR)
   , mSize(NS_STYLE_GRADIENT_SIZE_FARTHEST_CORNER)
   , mRepeating(false)
+  , mToCorner(false)
 {
 }
 
@@ -2078,9 +2080,10 @@ nsStyleDisplay::nsStyleDisplay()
   MOZ_COUNT_CTOR(nsStyleDisplay);
   mAppearance = NS_THEME_NONE;
   mDisplay = NS_STYLE_DISPLAY_INLINE;
-  mOriginalDisplay = NS_STYLE_DISPLAY_NONE;
+  mOriginalDisplay = mDisplay;
   mPosition = NS_STYLE_POSITION_STATIC;
   mFloats = NS_STYLE_FLOAT_NONE;
+  mOriginalFloats = mFloats;
   mBreakType = NS_STYLE_CLEAR_NONE;
   mBreakBefore = false;
   mBreakAfter = false;
@@ -2144,6 +2147,7 @@ nsStyleDisplay::nsStyleDisplay(const nsStyleDisplay& aSource)
   mAppearance = aSource.mAppearance;
   mDisplay = aSource.mDisplay;
   mOriginalDisplay = aSource.mOriginalDisplay;
+  mOriginalFloats = aSource.mOriginalFloats;
   mBinding = aSource.mBinding;
   mPosition = aSource.mPosition;
   mFloats = aSource.mFloats;
@@ -2796,6 +2800,7 @@ nsStyleText::nsStyleText(void)
   mWhiteSpace = NS_STYLE_WHITESPACE_NORMAL;
   mWordWrap = NS_STYLE_WORDWRAP_NORMAL;
   mHyphens = NS_STYLE_HYPHENS_MANUAL;
+  mTextSizeAdjust = NS_STYLE_TEXT_SIZE_ADJUST_AUTO;
 
   mLetterSpacing.SetNormalValue();
   mLineHeight.SetNormalValue();
@@ -2812,6 +2817,7 @@ nsStyleText::nsStyleText(const nsStyleText& aSource)
     mWhiteSpace(aSource.mWhiteSpace),
     mWordWrap(aSource.mWordWrap),
     mHyphens(aSource.mHyphens),
+    mTextSizeAdjust(aSource.mTextSizeAdjust),
     mTabSize(aSource.mTabSize),
     mLetterSpacing(aSource.mLetterSpacing),
     mLineHeight(aSource.mLineHeight),
@@ -2839,6 +2845,7 @@ nsChangeHint nsStyleText::CalcDifference(const nsStyleText& aOther) const
       (mWhiteSpace != aOther.mWhiteSpace) ||
       (mWordWrap != aOther.mWordWrap) ||
       (mHyphens != aOther.mHyphens) ||
+      (mTextSizeAdjust != aOther.mTextSizeAdjust) ||
       (mLetterSpacing != aOther.mLetterSpacing) ||
       (mLineHeight != aOther.mLineHeight) ||
       (mTextIndent != aOther.mTextIndent) ||

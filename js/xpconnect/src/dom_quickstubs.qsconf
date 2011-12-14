@@ -65,6 +65,7 @@ members = [
     'nsIDOMWindow.name',
     'nsIDOMWindow.parent',
     'nsIDOMWindow.top',
+    'nsIDOMWindow.self',
     # Several window properties are magically resolved, including
     # location, _content, navigator, document, and window itself.
     # These do not need quick stubs.
@@ -229,6 +230,7 @@ members = [
     'nsIDOMHTMLDocument.domain',
     'nsIDOMHTMLDocument.getSelection',
     'nsIDOMHTMLDocument.designMode',
+    'nsIDOMHTMLDocument.head',
     'nsIDOMHTMLElement.*',
     'nsIDOMHTMLFormElement.elements',
     'nsIDOMHTMLFormElement.name',
@@ -333,15 +335,6 @@ members = [
     'nsIDOMHTMLCanvasElement.height',
     'nsIDOMHTMLCanvasElement.getContext',
     'nsIDOMHTMLCanvasElement.toDataURL',
-    'nsIDOMNSHTMLElement.contentEditable',
-    'nsIDOMNSHTMLElement.isContentEditable',
-    'nsIDOMNSHTMLElement.offsetParent',
-    'nsIDOMNSHTMLElement.innerHTML',
-    'nsIDOMNSHTMLElement.offsetLeft',
-    'nsIDOMNSHTMLElement.offsetTop',
-    'nsIDOMNSHTMLElement.offsetHeight',
-    'nsIDOMNSHTMLElement.offsetWidth',
-    'nsIDOMNSHTMLElement.scrollIntoView',
     'nsIDOMHTMLOptionsCollection.selectedIndex',
     'nsIDOMHTMLOptionsCollection.add',
 
@@ -373,8 +366,6 @@ members = [
 
     # dom/interfaces/svg - None.
     'nsIDOMSVGStylable.*',
-
-    # dom/interfaces/threads - None.
 
     # dom/interfaces/traversal
     'nsIDOMNodeIterator.nextNode',
@@ -452,8 +443,8 @@ members = [
     'nsIIDBRequest.*',
     'nsIIDBTransaction.*',
     'nsIIDBFactory.*',
+    'nsIIDBOpenDBRequest.*',
     'nsIIDBVersionChangeEvent.*',
-    'nsIIDBVersionChangeRequest.*',
     'nsIIndexedDatabaseUsageCallback.*',
     'nsIIndexedDatabaseManager.*',
     ]
@@ -486,6 +477,7 @@ irregularFilenames = {
     'nsIWebGLUniformLocation': 'nsIDOMWebGLRenderingContext',
     'nsIWebGLExtension': 'nsIDOMWebGLRenderingContext',
     'nsIWebGLExtensionStandardDerivatives' : 'nsIDOMWebGLRenderingContext',
+    'nsIWebGLExtensionLoseContext' : 'nsIDOMWebGLRenderingContext',
 
     'nsIIndexedDatabaseUsageCallback': 'nsIIndexedDatabaseManager',
 
@@ -659,7 +651,13 @@ customMethodCalls = {
         },
     'nsIDOMHTMLDocument_GetBody': {
         'thisType': 'nsHTMLDocument',
-        'code': '    nsIContent *result = self->GetBody(&rv);'
+        'code': '    nsIContent *result = self->GetBody();',
+        'canFail': False
+        },
+    'nsIDOMHTMLDocument_GetHead': {
+        'thisType': 'nsHTMLDocument',
+        'code': '    nsIContent *result = self->GetHead();',
+        'canFail': False
         },
     'nsIDOMHTMLDocument_GetElementsByName': {
         'thisType': 'nsHTMLDocument',
@@ -835,9 +833,6 @@ customMethodCalls = {
         'arg0Type': 'nsINode',
         'code': '    bool result = self->Contains(arg0);',
         'canFail': False
-        },
-    'nsIDOMNSHTMLElement_': {
-        'thisType': 'nsGenericHTMLElement'
         },
     'nsIDOMHTMLElement_': {
         'thisType': 'nsGenericHTMLElement'

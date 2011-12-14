@@ -76,13 +76,15 @@ static fp_except_t oldmask = fpsetmask(~allmask);
 #include "nsTArray.h"
 #include "nsTextFragment.h"
 #include "nsReadableUtils.h"
-#include "mozilla/AutoRestore.h"
 #include "nsINode.h"
 #include "nsHashtable.h"
 #include "nsIDOMNode.h"
 #include "nsHtml5Parser.h"
 #include "nsIFragmentContentSink.h"
 #include "nsMathUtils.h"
+
+#include "mozilla/AutoRestore.h"
+#include "mozilla/GuardObjects.h"
 #include "mozilla/TimeStamp.h"
 
 struct nsNativeKeyEvent; // Don't include nsINativeKeyBindings.h here: it will force strange compilation error!
@@ -142,6 +144,7 @@ class nsAutoScriptBlockerSuppressNodeRemoved;
 struct nsIntMargin;
 class nsPIDOMWindow;
 class nsIDocumentLoaderFactory;
+class nsIDOMHTMLInputElement;
 
 namespace mozilla {
 
@@ -189,7 +192,6 @@ struct nsShortcutCandidate {
 class nsContentUtils
 {
   friend class nsAutoScriptBlockerSuppressNodeRemoved;
-  friend class mozilla::AutoRestore<bool>;
   typedef mozilla::dom::Element Element;
   typedef mozilla::TimeDuration TimeDuration;
 
@@ -234,6 +236,8 @@ public:
    * checks for UniversalXPConnect in addition to aCapability.
    */
   static bool     IsCallerTrustedForCapability(const char* aCapability);
+
+  static bool     IsImageSrcSetDisabled();
 
   /**
    * Returns the parent node of aChild crossing document boundaries.
@@ -757,6 +761,7 @@ public:
     eFORMS_PROPERTIES,
     ePRINTING_PROPERTIES,
     eDOM_PROPERTIES,
+    eHTMLPARSER_PROPERTIES,
     eSVG_PROPERTIES,
     eBRAND_PROPERTIES,
     eCOMMON_DIALOG_PROPERTIES,
@@ -1104,7 +1109,7 @@ public:
    * @param aPrincipal Prinicpal of the document. Must not be null.
    * @param aScriptObject The object from which the context for event handling
    *                      can be got.
-   * @param aSVGDocument Force SVG Document creation.
+   * @param aFlavor Select the kind of document to create.
    * @param aResult [out] The document that was created.
    */
   static nsresult CreateDocument(const nsAString& aNamespaceURI, 
@@ -1114,7 +1119,7 @@ public:
                                  nsIURI* aBaseURI,
                                  nsIPrincipal* aPrincipal,
                                  nsIScriptGlobalObject* aScriptObject,
-                                 bool aSVGDocument,
+                                 DocumentFlavor aFlavor,
                                  nsIDOMDocument** aResult);
 
   /**
@@ -1283,11 +1288,6 @@ public:
                              nsWrapperCache* aCache);
   static void TraceWrapper(nsWrapperCache* aCache, TraceCallback aCallback,
                            void *aClosure);
-
-  /**
-   * Convert nsIContent::IME_STATUS_* to nsIWidget::IME_STATUS_*
-   */
-  static PRUint32 GetWidgetStatusFromIMEStatus(PRUint32 aState);
 
   /*
    * Notify when the first XUL menu is opened and when the all XUL menus are
@@ -1717,6 +1717,28 @@ public:
   static bool IsFullScreenKeyInputRestricted();
 
   /**
+   * Returns true if the doc tree branch which contains aDoc contains any
+   * plugins which we don't control event dispatch for, i.e. do any plugins
+   * in the same tab as this document receive key events outside of our
+   * control? This always returns false on MacOSX.
+   */
+  static bool HasPluginWithUncontrolledEventDispatch(nsIDocument* aDoc);
+
+  /**
+   * Returns true if the content is in a document and contains a plugin
+   * which we don't control event dispatch for, i.e. do any plugins in this
+   * doc tree receive key events outside of our control? This always returns
+   * false on MacOSX.
+   */
+  static bool HasPluginWithUncontrolledEventDispatch(nsIContent* aContent);
+
+  /**
+   * Returns the root document in a document hierarchy. Normally this will
+   * be the chrome document.
+   */
+  static nsIDocument* GetRootDocument(nsIDocument* aDoc);
+
+  /**
    * Returns the time limit on handling user input before
    * nsEventStateManager::IsHandlingUserInput() stops returning true.
    * This enables us to detect long running user-generated event handlers.
@@ -1820,7 +1842,18 @@ public:
 
   static nsresult Atob(const nsAString& aAsciiString,
                        nsAString& aBinaryData);
-  
+
+  /**
+   * Returns whether the input element passed in parameter has the autocomplete
+   * functionnality enabled. It is taking into account the form owner.
+   * NOTE: the caller has to make sure autocomplete makes sense for the
+   * element's type.
+   *
+   * @param aInput the input element to check. NOTE: aInput can't be null.
+   * @return whether the input element has autocomplete enabled.
+   */
+  static bool IsAutocompleteEnabled(nsIDOMHTMLInputElement* aInput);
+
 private:
   static bool InitializeEventTable();
 

@@ -160,9 +160,6 @@ typedef PRUint64 nsFrameState;
 
 #define NS_FRAME_IN_REFLOW                          NS_FRAME_STATE_BIT(0)
 
-// This is only set during painting
-#define NS_FRAME_FORCE_DISPLAY_LIST_DESCEND_INTO    NS_FRAME_STATE_BIT(0)
-
 // This bit is set when a frame is created. After it has been reflowed
 // once (during the DidReflow with a finished state) the bit is
 // cleared.
@@ -290,8 +287,17 @@ typedef PRUint64 nsFrameState;
 // Frame can accept absolutely positioned children.
 #define NS_FRAME_HAS_ABSPOS_CHILDREN                NS_FRAME_STATE_BIT(37)
 
-// The lower 20 bits and upper 32 bits of the frame state are reserved
-// by this API.
+// A display item for this frame has been painted as part of a ThebesLayer.
+#define NS_FRAME_PAINTED_THEBES                     NS_FRAME_STATE_BIT(38)
+
+// Frame is or is a descendant of something with a fixed height, and
+// has no closer ancestor that is overflow:auto or overflow:scroll.
+#define NS_FRAME_IN_CONSTRAINED_HEIGHT              NS_FRAME_STATE_BIT(39)
+
+// This is only set during painting
+#define NS_FRAME_FORCE_DISPLAY_LIST_DESCEND_INTO    NS_FRAME_STATE_BIT(40)
+
+// Bits 0-19 and bits 32-59 of the frame state are reserved by this API.
 #define NS_FRAME_RESERVED                           ~NS_FRAME_IMPL_RESERVED
 
 // Box layout bits
@@ -576,6 +582,10 @@ protected:
   /**
    * Implements Destroy(). Do not call this directly except from within a
    * DestroyFrom() implementation.
+   *
+   * @note This will always be called, so it is not necessary to override
+   *       Destroy() in subclasses of nsFrame, just DestroyFrom().
+   *
    * @param  aDestructRoot is the root of the subtree being destroyed
    */
   virtual void DestroyFrom(nsIFrame* aDestructRoot) = 0;
@@ -1895,12 +1905,6 @@ public:
                                 nsIView** aView) const = 0;
 
   /**
-   * Returns true if and only if all views, from |GetClosestView| up to
-   * the top of the view hierarchy are visible.
-   */
-  virtual bool AreAncestorViewsVisible() const;
-
-  /**
    * Returns the nearest widget containing this frame. If this frame has a
    * view and the view has a widget, then this frame's widget is
    * returned, otherwise this frame's geometric parent is checked
@@ -2270,14 +2274,15 @@ public:
   /**
    * Store the overflow area in the frame's mOverflow.mVisualDeltas
    * fields or as a frame property in the frame manager so that it can
-   * be retrieved later without reflowing the frame.
+   * be retrieved later without reflowing the frame. Returns true if either of
+   * the overflow areas changed.
    */
-  void FinishAndStoreOverflow(nsOverflowAreas& aOverflowAreas,
+  bool FinishAndStoreOverflow(nsOverflowAreas& aOverflowAreas,
                               nsSize aNewSize);
 
-  void FinishAndStoreOverflow(nsHTMLReflowMetrics* aMetrics) {
-    FinishAndStoreOverflow(aMetrics->mOverflowAreas,
-                           nsSize(aMetrics->width, aMetrics->height));
+  bool FinishAndStoreOverflow(nsHTMLReflowMetrics* aMetrics) {
+    return FinishAndStoreOverflow(aMetrics->mOverflowAreas,
+                                  nsSize(aMetrics->width, aMetrics->height));
   }
 
   /**
@@ -2290,8 +2295,9 @@ public:
 
   /**
    * Removes any stored overflow rects (visual and scrollable) from the frame.
+   * Returns true if the overflow changed.
    */
-  void ClearOverflowRects();
+  bool ClearOverflowRects();
 
   /**
    * Determine whether borders should not be painted on certain sides of the
@@ -2753,6 +2759,23 @@ NS_PTR_TO_INT32(frame->Properties().Get(nsIFrame::EmbeddingLevelProperty()))
   // Child frame types override this function to select their own child list name
   virtual mozilla::layout::FrameChildListID GetAbsoluteListID() const { return kAbsoluteList; }
 
+  // Checks if we (or any of our descendents) have NS_FRAME_PAINTED_THEBES set, and
+  // clears this bit if so.
+  bool CheckAndClearPaintedState();
+
+  // CSS visibility just doesn't cut it because it doesn't inherit through
+  // documents. Also if this frame is in a hidden card of a deck then it isn't
+  // visible either and that isn't expressed using CSS visibility. Also if it
+  // is in a hidden view (there are a few cases left and they are hopefully
+  // going away soon).
+  // If the VISIBILITY_CROSS_CHROME_CONTENT_BOUNDARY flag is passed then we
+  // ignore the chrome/content boundary, otherwise we stop looking when we
+  // reach it.
+  enum {
+    VISIBILITY_CROSS_CHROME_CONTENT_BOUNDARY = 0x01
+  };
+  bool IsVisibleConsideringAncestors(PRUint32 aFlags = 0) const;
+
 protected:
   // Members
   nsRect           mRect;
@@ -2801,14 +2824,24 @@ protected:
   // If mOverflow.mType == NS_FRAME_OVERFLOW_LARGE, then the
   // delta values are not meaningful and the overflow area is stored
   // as a separate rect property.
+  struct VisualDeltas {
+    PRUint8 mLeft;
+    PRUint8 mTop;
+    PRUint8 mRight;
+    PRUint8 mBottom;
+    bool operator==(const VisualDeltas& aOther) const
+    {
+      return mLeft == aOther.mLeft && mTop == aOther.mTop &&
+             mRight == aOther.mRight && mBottom == aOther.mBottom;
+    }
+    bool operator!=(const VisualDeltas& aOther) const
+    {
+      return !(*this == aOther);
+    }
+  };
   union {
-    PRUint32  mType;
-    struct {
-      PRUint8 mLeft;
-      PRUint8 mTop;
-      PRUint8 mRight;
-      PRUint8 mBottom;
-    } mVisualDeltas;
+    PRUint32     mType;
+    VisualDeltas mVisualDeltas;
   } mOverflow;
 
   // Helpers
@@ -2923,7 +2956,10 @@ private:
                   mRect.height + mOverflow.mVisualDeltas.mBottom +
                                  mOverflow.mVisualDeltas.mTop);
   }
-  void SetOverflowAreas(const nsOverflowAreas& aOverflowAreas);
+  /**
+   * Returns true if any overflow changed.
+   */
+  bool SetOverflowAreas(const nsOverflowAreas& aOverflowAreas);
   nsPoint GetOffsetToCrossDoc(const nsIFrame* aOther, const PRInt32 aAPD) const;
 
 #ifdef NS_DEBUG

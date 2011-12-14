@@ -40,7 +40,7 @@
 
 """Print a C++ header file for the IDL files specified on the command line"""
 
-import sys, os.path, re, xpidl
+import sys, os.path, re, xpidl, itertools
 
 printdoccomments = False
 
@@ -328,16 +328,19 @@ def write_interface(iface, fd):
     if iface.namemap is None:
         raise Exception("Interface was not resolved.")
 
-    def write_const_decl(c):
-        printComments(fd, c.doccomments, '  ')
-
-        basetype = c.basetype
-        value = c.getValue()
-
-        fd.write("  enum { %(name)s = %(value)s%(signed)s };\n\n" % {
-                     'name': c.name,
-                     'value': value,
-                     'signed': (not basetype.signed) and 'U' or ''})
+    def write_const_decls(g):
+        fd.write("  enum {\n")
+        enums = []
+        for c in g:
+            printComments(fd, c.doccomments, '  ')
+            basetype = c.basetype
+            value = c.getValue()
+            enums.append("    %(name)s = %(value)s%(signed)s" % {
+                         'name': c.name,
+                         'value': value,
+                         'signed': (not basetype.signed) and 'U' or ''})
+        fd.write(",\n".join(enums))
+        fd.write("\n  };\n\n")
 
     def write_method_decl(m):
         printComments(fd, m.doccomments, '  ')
@@ -395,17 +398,20 @@ def write_interface(iface, fd):
     if iface.base:
         fd.write(" : public %s" % iface.base)
     fd.write(iface_prolog % names)
-    for member in iface.members:
-        if isinstance(member, xpidl.ConstMember):
-            write_const_decl(member)
-        elif isinstance(member, xpidl.Attribute):
-            write_attr_decl(member)
-        elif isinstance(member, xpidl.Method):
-            write_method_decl(member)
-        elif isinstance(member, xpidl.CDATA):
-            fd.write("  %s" % member.data)
+
+    for key, group in itertools.groupby(iface.members, key=type):
+        if key == xpidl.ConstMember:
+            write_const_decls(group) # iterator of all the consts
         else:
-            raise Exception("Unexpected interface member: %s" % member)
+            for member in group:
+                if key == xpidl.Attribute:
+                    write_attr_decl(member)
+                elif key == xpidl.Method:
+                    write_method_decl(member)
+                elif key == xpidl.CDATA:
+                    fd.write(" %s" % member.data)
+                else:
+                    raise Exception("Unexpected interface member: %s" % member)
 
     fd.write(iface_epilog % names)
 
@@ -486,19 +492,20 @@ if __name__ == '__main__':
     o.add_option('--regen', action='store_true', dest='regen', default=False,
                  help="Regenerate IDL Parser cache")
     options, args = o.parse_args()
-    file, = args
+    file = args[0] if args else None
 
     if options.cachedir is not None:
         if not os.path.isdir(options.cachedir):
             os.mkdir(options.cachedir)
         sys.path.append(options.cachedir)
 
+    # Instantiate the parser.
+    p = xpidl.IDLParser(outputdir=options.cachedir)
+
+    # The only thing special about a regen is that there are no input files.
     if options.regen:
         if options.cachedir is None:
-            print >>sys.stderr, "--regen requires --cachedir"
-            sys.exit(1)
-
-        p = xpidl.IDLParser(outputdir=options.cachedir, regen=True)
+            print >>sys.stderr, "--regen useless without --cachedir"
         sys.exit(0)
 
     if options.depfile is not None and options.outfile is None:
@@ -512,7 +519,6 @@ if __name__ == '__main__':
         outfd = sys.stdout
         closeoutfd = False
 
-    p = xpidl.IDLParser(outputdir=options.cachedir)
     idl = p.parse(open(file).read(), filename=file)
     idl.resolve(options.incdirs, p)
     print_header(idl, outfd, file)

@@ -119,11 +119,9 @@ DOMSVGPointList::~DOMSVGPointList()
 nsIDOMSVGPoint*
 DOMSVGPointList::GetItemWithoutAddRef(PRUint32 aIndex)
 {
-#ifdef MOZ_SMIL
   if (IsAnimValList()) {
     Element()->FlushAnimations();
   }
-#endif
   if (aIndex < Length()) {
     EnsureItemAt(aIndex);
     return mItems[aIndex];
@@ -177,18 +175,18 @@ DOMSVGPointList::InternalListWillChangeTo(const SVGPointList& aNewValue)
 bool
 DOMSVGPointList::AttrIsAnimating() const
 {
-  return const_cast<DOMSVGPointList*>(this)->InternalAList().IsAnimating();
+  return InternalAList().IsAnimating();
 }
 
 SVGPointList&
-DOMSVGPointList::InternalList()
+DOMSVGPointList::InternalList() const
 {
   SVGAnimatedPointList *alist = mElement->GetAnimatedPointList();
   return mIsAnimValList && alist->IsAnimating() ? *alist->mAnimVal : alist->mBaseVal;
 }
 
 SVGAnimatedPointList&
-DOMSVGPointList::InternalAList()
+DOMSVGPointList::InternalAList() const
 {
   NS_ABORT_IF_FALSE(mElement->GetAnimatedPointList(), "Internal error");
   return *mElement->GetAnimatedPointList();
@@ -200,11 +198,9 @@ DOMSVGPointList::InternalAList()
 NS_IMETHODIMP
 DOMSVGPointList::GetNumberOfItems(PRUint32 *aNumberOfItems)
 {
-#ifdef MOZ_SMIL
   if (IsAnimValList()) {
     Element()->FlushAnimations();
   }
-#endif
   *aNumberOfItems = Length();
   return NS_OK;
 }
@@ -234,11 +230,9 @@ DOMSVGPointList::Clear()
 
     InternalList().Clear();
     Element()->DidChangePointList(true);
-#ifdef MOZ_SMIL
     if (AttrIsAnimating()) {
       Element()->AnimationNeedsResample();
     }
-#endif
   }
   return NS_OK;
 }
@@ -327,11 +321,9 @@ DOMSVGPointList::InsertItemBefore(nsIDOMSVGPoint *aNewItem,
   UpdateListIndicesFromIndex(mItems, aIndex + 1);
 
   Element()->DidChangePointList(true);
-#ifdef MOZ_SMIL
   if (AttrIsAnimating()) {
     Element()->AnimationNeedsResample();
   }
-#endif
   *_retval = domItem.forget().get();
   return NS_OK;
 }
@@ -371,11 +363,9 @@ DOMSVGPointList::ReplaceItem(nsIDOMSVGPoint *aNewItem,
   domItem->InsertingIntoList(this, aIndex, IsAnimValList());
 
   Element()->DidChangePointList(true);
-#ifdef MOZ_SMIL
   if (AttrIsAnimating()) {
     Element()->AnimationNeedsResample();
   }
-#endif
   NS_ADDREF(*_retval = domItem.get());
   return NS_OK;
 }
@@ -412,11 +402,9 @@ DOMSVGPointList::RemoveItem(PRUint32 aIndex,
   UpdateListIndicesFromIndex(mItems, aIndex);
 
   Element()->DidChangePointList(true);
-#ifdef MOZ_SMIL
   if (AttrIsAnimating()) {
     Element()->AnimationNeedsResample();
   }
-#endif
   return NS_OK;
 }
 

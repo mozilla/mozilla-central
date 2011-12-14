@@ -219,6 +219,14 @@ nsAttrAndChildArray::InsertChildAt(nsIContent* aChild, PRUint32 aPos)
 void
 nsAttrAndChildArray::RemoveChildAt(PRUint32 aPos)
 {
+  // Just store the return value of TakeChildAt in an nsCOMPtr to
+  // trigger a release.
+  nsCOMPtr<nsIContent> child = TakeChildAt(aPos);
+}
+
+already_AddRefed<nsIContent>
+nsAttrAndChildArray::TakeChildAt(PRUint32 aPos)
+{
   NS_ASSERTION(aPos < ChildCount(), "out-of-bounds");
 
   PRUint32 childCount = ChildCount();
@@ -232,9 +240,10 @@ nsAttrAndChildArray::RemoveChildAt(PRUint32 aPos)
   }
   child->mPreviousSibling = child->mNextSibling = nsnull;
 
-  NS_RELEASE(child);
   memmove(pos, pos + 1, (childCount - aPos - 1) * sizeof(nsIContent*));
   SetChildCount(childCount - 1);
+
+  return child;
 }
 
 PRInt32
@@ -355,31 +364,6 @@ nsAttrAndChildArray::AttrAt(PRUint32 aPos) const
   }
 
   return &ATTRS(mImpl)[aPos - mapped].mValue;
-}
-
-nsresult
-nsAttrAndChildArray::SetAttr(nsIAtom* aLocalName, const nsAString& aValue)
-{
-  PRUint32 i, slotCount = AttrSlotCount();
-  for (i = 0; i < slotCount && AttrSlotIsTaken(i); ++i) {
-    if (ATTRS(mImpl)[i].mName.Equals(aLocalName)) {
-      ATTRS(mImpl)[i].mValue.SetTo(aValue);
-
-      return NS_OK;
-    }
-  }
-
-  NS_ENSURE_TRUE(slotCount < ATTRCHILD_ARRAY_MAX_ATTR_COUNT,
-                 NS_ERROR_FAILURE);
-
-  if (i == slotCount && !AddAttrSlot()) {
-    return NS_ERROR_OUT_OF_MEMORY;
-  }
-
-  new (&ATTRS(mImpl)[i].mName) nsAttrName(aLocalName);
-  new (&ATTRS(mImpl)[i].mValue) nsAttrValue(aValue);
-
-  return NS_OK;
 }
 
 nsresult

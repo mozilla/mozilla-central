@@ -45,24 +45,28 @@
 class nsIScriptObjectOwner;
 class nsIAtom;
 
-#define NS_IJSEVENTLISTENER_IID     \
-{ 0x468406d2, 0xf6aa, 0x404f, \
-  { 0x92, 0xa1, 0x53, 0xd1, 0x5f, 0x6e, 0x5e, 0x19 } }
+#define NS_IJSEVENTLISTENER_IID \
+{ 0x92f9212b, 0xa6aa, 0x4867, \
+  { 0x93, 0x8a, 0x56, 0xbe, 0x17, 0x67, 0x4f, 0xd4 } }
 
 // Implemented by script event listeners. Used to retrieve the
 // script object corresponding to the event target and the handler itself.
 // (Note this interface is now used to store script objects for all
 // script languages, so is no longer JS specific)
+//
+// Note, mTarget is a raw pointer and the owner of the nsIJSEventListener object
+// is expected to call Disconnect()!
 class nsIJSEventListener : public nsIDOMEventListener
 {
 public:
   NS_DECLARE_STATIC_IID_ACCESSOR(NS_IJSEVENTLISTENER_IID)
 
-  nsIJSEventListener(nsIScriptContext *aContext, void *aScopeObject,
-                     nsISupports *aTarget, void *aHandler)
-    : mContext(aContext), mScopeObject(aScopeObject),
-      mTarget(do_QueryInterface(aTarget)), mHandler(aHandler)
+  nsIJSEventListener(nsIScriptContext* aContext, JSObject* aScopeObject,
+                     nsISupports *aTarget, JSObject *aHandler)
+    : mContext(aContext), mScopeObject(aScopeObject), mHandler(aHandler)
   {
+    nsCOMPtr<nsISupports> base = do_QueryInterface(aTarget);
+    mTarget = base.get();
   }
 
   nsIScriptContext *GetEventContext() const
@@ -75,12 +79,17 @@ public:
     return mTarget;
   }
 
-  void *GetEventScope() const
+  void Disconnect()
+  {
+    mTarget = nsnull;
+  }
+
+  JSObject* GetEventScope() const
   {
     return mScopeObject;
   }
 
-  void *GetHandler() const
+  JSObject *GetHandler() const
   {
     return mHandler;
   }
@@ -88,25 +97,26 @@ public:
   // Set a handler for this event listener.  Must not be called if
   // there is already a handler!  The handler must already be bound to
   // the right target.
-  virtual void SetHandler(void *aHandler) = 0;
+  virtual void SetHandler(JSObject *aHandler) = 0;
 
   virtual PRInt64 SizeOf() const = 0;
 protected:
   virtual ~nsIJSEventListener()
   {
+    NS_ASSERTION(!mTarget, "Should have called Disconnect()!");
   }
   nsCOMPtr<nsIScriptContext> mContext;
-  void *mScopeObject;
-  nsCOMPtr<nsISupports> mTarget;
-  void *mHandler;
+  JSObject* mScopeObject;
+  nsISupports* mTarget;
+  JSObject *mHandler;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIJSEventListener, NS_IJSEVENTLISTENER_IID)
 
 /* factory function.  aHandler must already be bound to aTarget */
 nsresult NS_NewJSEventListener(nsIScriptContext *aContext,
-                               void *aScopeObject, nsISupports *aTarget,
-                               nsIAtom* aType, void *aHandler,
-                               nsIDOMEventListener **aReturn);
+                               JSObject* aScopeObject, nsISupports* aTarget,
+                               nsIAtom* aType, JSObject* aHandler,
+                               nsIJSEventListener **aReturn);
 
 #endif // nsIJSEventListener_h__

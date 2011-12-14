@@ -9,7 +9,7 @@ SHARED_LIBRARY_LIBS += \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libwebrtc_utility.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libaudio_coding_module.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libCNG.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/common_audio/libspl.a \
+	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/common_audio/libsignal_processing.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libG711.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libG722.a \
 	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libiLBC.a \

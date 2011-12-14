@@ -392,7 +392,7 @@ interface nsIXPCFunctionThisTranslator : nsISupports
     { 0xbd, 0xd6, 0x0, 0x0, 0x64, 0x65, 0x73, 0x74 } }
 %}
 
-[uuid(a995b541-d514-43f1-ac0e-f49746c0b063)]
+[uuid(07661008-5505-4784-a612-89f7dc2144da)]
 interface nsIXPConnect : nsISupports
 {
 %{ C++
@@ -735,7 +735,7 @@ interface nsIXPConnect : nsISupports
     /**
      * Trigger a JS garbage collection.
      */
-    void GarbageCollect();
+    void GarbageCollect(in boolean shrinkingGC);
 
     /**
      * Define quick stubs on the given object, @a proto.
@@ -795,5 +795,6 @@ interface nsIXPConnect : nsISupports
      * This method will turn debug mode on or off when the context 
      * stack reaches zero length.
      */
-    [noscript] void setDebugModeWhenPossible(in boolean mode);
+    [noscript] void setDebugModeWhenPossible(in boolean mode,
+                                             in boolean allowSyncDisable);
 };

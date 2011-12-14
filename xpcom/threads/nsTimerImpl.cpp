@@ -44,6 +44,7 @@
 #include "nsThreadManager.h"
 #include "nsThreadUtils.h"
 #include "prmem.h"
+#include "sampler.h"
 
 using mozilla::TimeDuration;
 using mozilla::TimeStamp;
@@ -222,6 +223,7 @@ nsresult nsTimerImpl::InitCommon(PRUint32 aType, PRUint32 aDelay)
   if (mArmed)
     gThread->RemoveTimer(this);
   mCanceled = false;
+  mTimeout = TimeStamp();
   mGeneration = PR_ATOMIC_INCREMENT(&gGenerator);
 
   mType = (PRUint8)aType;
@@ -374,6 +376,8 @@ void nsTimerImpl::Fire()
 {
   if (mCanceled)
     return;
+
+  SAMPLE_LABEL("Timer", "Fire");
 
   TimeStamp now = TimeStamp::Now();
 #ifdef DEBUG_TIMERS

@@ -57,6 +57,7 @@
 
 #include "nsStyleContext.h"
 #include "nsGkAtoms.h"
+#include "nsLayoutUtils.h"
 
 // Paint forcing
 #include "prenv.h"
@@ -67,17 +68,14 @@ nsImageLoader::nsImageLoader(nsIFrame *aFrame, PRUint32 aActions,
                              nsImageLoader *aNextLoader)
   : mFrame(aFrame),
     mActions(aActions),
-    mNextLoader(aNextLoader)
+    mNextLoader(aNextLoader),
+    mRequestRegistered(false)
 {
 }
 
 nsImageLoader::~nsImageLoader()
 {
-  mFrame = nsnull;
-
-  if (mRequest) {
-    mRequest->CancelAndForgetObserver(NS_ERROR_FAILURE);
-  }
+  Destroy();
 }
 
 /* static */ already_AddRefed<nsImageLoader>
@@ -105,6 +103,11 @@ nsImageLoader::Destroy()
     todestroy->Destroy();
   }
 
+  if (mRequest && mFrame) {
+    nsLayoutUtils::DeregisterImageRequest(mFrame->PresContext(), mRequest,
+                                          &mRequestRegistered);
+  }
+
   mFrame = nsnull;
 
   if (mRequest) {
@@ -127,16 +130,27 @@ nsImageLoader::Load(imgIRequest *aImage)
   if (!aImage)
     return NS_ERROR_FAILURE;
 
+  // Deregister mRequest from the refresh driver, since it is no longer
+  // going to be managed by this nsImageLoader.
+  nsPresContext* presContext = mFrame->PresContext();
+
+  nsLayoutUtils::DeregisterImageRequest(presContext, mRequest,
+                                        &mRequestRegistered);
+
   // Make sure to clone into a temporary, then set mRequest, since
   // cloning may notify and we don't want to trigger paints from this
   // code.
   nsCOMPtr<imgIRequest> newRequest;
   nsresult rv = aImage->Clone(this, getter_AddRefs(newRequest));
   mRequest.swap(newRequest);
+
+  if (mRequest) {
+    nsLayoutUtils::RegisterImageRequestIfAnimated(presContext, mRequest,
+                                                  &mRequestRegistered);
+  }
+
   return rv;
 }
-
-                    
 
 NS_IMETHODIMP nsImageLoader::OnStartContainer(imgIRequest *aRequest,
                                               imgIContainer *aImage)
@@ -171,6 +185,15 @@ NS_IMETHODIMP nsImageLoader::OnStopFrame(imgIRequest *aRequest,
   if (mActions & ACTION_REDRAW_ON_DECODE) {
     DoRedraw(nsnull);
   }
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsImageLoader::OnImageIsAnimated(imgIRequest *aRequest)
+{
+  // Register with the refresh driver now that we are aware that
+  // we are animated.
+  nsLayoutUtils::RegisterImageRequest(mFrame->PresContext(),
+                                      aRequest, &mRequestRegistered);
   return NS_OK;
 }
 

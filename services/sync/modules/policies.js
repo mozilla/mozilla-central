@@ -22,6 +22,7 @@
  *  Marina Samuel <msamuel@mozilla.com>
  *  Philipp von Weitershausen <philipp@weitershausen.de>
  *  Chenxia Liu <liuche@mozilla.com>
+ *  Richard Newman <rnewman@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -55,6 +56,12 @@ Cu.import("resource://services-sync/main.js");    // So we can get to Service fo
 let SyncScheduler = {
   _log: Log4Moz.repository.getLogger("Sync.SyncScheduler"),
 
+  _fatalLoginStatus: [LOGIN_FAILED_NO_USERNAME,
+                      LOGIN_FAILED_NO_PASSWORD,
+                      LOGIN_FAILED_NO_PASSPHRASE,
+                      LOGIN_FAILED_INVALID_PASSPHRASE,
+                      LOGIN_FAILED_LOGIN_REJECTED],
+
   /**
    * The nsITimer object that schedules the next sync. See scheduleNextSync().
    */
@@ -72,15 +79,25 @@ let SyncScheduler = {
     this.idle = false;
 
     this.hasIncomingItems = false;
-    this.numClients = 0;
 
-    this.nextSync = 0,
-    this.syncInterval = this.singleDeviceInterval;
-    this.syncThreshold = SINGLE_USER_THRESHOLD;
+    this.clearSyncTriggers();
   },
+
+  // nextSync is in milliseconds, but prefs can't hold that much
+  get nextSync() Svc.Prefs.get("nextSync", 0) * 1000,
+  set nextSync(value) Svc.Prefs.set("nextSync", Math.floor(value / 1000)),
+
+  get syncInterval() Svc.Prefs.get("syncInterval", this.singleDeviceInterval),
+  set syncInterval(value) Svc.Prefs.set("syncInterval", value),
+
+  get syncThreshold() Svc.Prefs.get("syncThreshold", SINGLE_USER_THRESHOLD),
+  set syncThreshold(value) Svc.Prefs.set("syncThreshold", value),
 
   get globalScore() Svc.Prefs.get("globalScore", 0),
   set globalScore(value) Svc.Prefs.set("globalScore", value),
+
+  get numClients() Svc.Prefs.get("numClients", 0),
+  set numClients(value) Svc.Prefs.set("numClients", value),
 
   init: function init() {
     this._log.level = Log4Moz.Level[Svc.Prefs.get("log.logger.service.main")];
@@ -103,10 +120,10 @@ let SyncScheduler = {
     if (Status.checkSetup() == STATUS_OK) {
       Svc.Idle.addIdleObserver(this, Svc.Prefs.get("scheduler.idleTime"));
     }
-
   },
 
   observe: function observe(subject, topic, data) {
+    this._log.trace("Handling " + topic);
     switch(topic) {
       case "weave:engine:score:updated":
         if (Status.login == LOGIN_SUCCEEDED) {
@@ -154,7 +171,7 @@ let SyncScheduler = {
         }
         break;
       case "weave:engine:sync:error":
-        // subject is the exception thrown by an engine's sync() method
+        // `subject` is the exception thrown by an engine's sync() method.
         let exception = subject;
         if (exception.status >= 500 && exception.status <= 504) {
           this.requiresBackoff = true;
@@ -163,12 +180,16 @@ let SyncScheduler = {
       case "weave:service:login:error":
         this.clearSyncTriggers();
 
-        // Try again later, just as if we threw an error... only without the
-        // error count.
         if (Status.login == MASTER_PASSWORD_LOCKED) {
+          // Try again later, just as if we threw an error... only without the
+          // error count.
           this._log.debug("Couldn't log in: master password is locked.");
           this._log.trace("Scheduling a sync at MASTER_PASSWORD_LOCKED_RETRY_INTERVAL");
           this.scheduleAtInterval(MASTER_PASSWORD_LOCKED_RETRY_INTERVAL);
+        } else if (this._fatalLoginStatus.indexOf(Status.login) == -1) {
+          // Not a fatal login error, just an intermittent network or server
+          // issue. Keep on syncin'.
+          this.checkSyncStatus();
         }
         break;
       case "weave:service:logout:finish":
@@ -357,25 +378,34 @@ let SyncScheduler = {
 
     // Ensure the interval is set to no less than the backoff.
     if (Status.backoffInterval && interval < Status.backoffInterval) {
+      this._log.trace("Requested interval " + interval +
+                      " ms is smaller than the backoff interval. " + 
+                      "Using backoff interval " +
+                      Status.backoffInterval + " ms instead.");
       interval = Status.backoffInterval;
     }
 
     if (this.nextSync != 0) {
-      // There's already a sync scheduled. Don't reschedule if that's already
-      // going to happen sooner than requested.
+      // There's already a sync scheduled. Don't reschedule if there's already
+      // a timer scheduled for sooner than requested.
       let currentInterval = this.nextSync - Date.now();
-      if (currentInterval < interval) {
+      this._log.trace("There's already a sync scheduled in " +
+                      currentInterval + " ms.");
+      if (currentInterval < interval && this.syncTimer) {
+        this._log.trace("Ignoring scheduling request for next sync in " +
+                        interval + " ms.");
         return;
       }
     }
 
-    // Start the sync right away if we're already late
+    // Start the sync right away if we're already late.
     if (interval <= 0) {
+      this._log.trace("Requested sync should happen right away.");
       this.syncIfMPUnlocked();
       return;
     }
 
-    this._log.trace("Next sync in " + Math.ceil(interval / 1000) + " sec.");
+    this._log.debug("Next sync in " + interval + " ms.");
     Utils.namedTimer(this.syncIfMPUnlocked, interval, this, "syncTimer");
 
     // Save the next sync time in-case sync is disabled (logout/offline/etc.)
@@ -389,12 +419,12 @@ let SyncScheduler = {
    */
   scheduleAtInterval: function scheduleAtInterval(minimumInterval) {
     let interval = Utils.calculateBackoff(this._syncErrors, MINIMUM_BACKOFF_INTERVAL);
-    if (minimumInterval)
+    if (minimumInterval) {
       interval = Math.max(minimumInterval, interval);
+    }
 
-    let d = new Date(Date.now() + interval);
-    this._log.config("Starting backoff, next sync at:" + d.toString());
-
+    this._log.debug("Starting client-initiated backoff. Next sync in " +
+                    interval + " ms.");
     this.scheduleNextSync(interval);
   },
 
@@ -414,7 +444,10 @@ let SyncScheduler = {
 
   autoConnect: function autoConnect() {
     if (Weave.Service._checkSetup() == STATUS_OK && !Weave.Service._checkSync()) {
-      Utils.nextTick(Weave.Service.sync, Weave.Service);
+      // Schedule a sync based on when a previous sync was scheduled.
+      // scheduleNextSync() will do the right thing if that time lies in
+      // the past.
+      this.scheduleNextSync(this.nextSync - Date.now());
     }
 
     // Once autoConnect is called we no longer need _autoTimer.
@@ -428,6 +461,7 @@ let SyncScheduler = {
    * Deal with sync errors appropriately
    */
   handleSyncError: function handleSyncError() {
+    this._log.trace("In handleSyncError. Error count: " + this._syncErrors);
     this._syncErrors++;
 
     // Do nothing on the first couple of failures, if we're not in
@@ -437,6 +471,8 @@ let SyncScheduler = {
         this.scheduleNextSync();
         return;
       }
+      this._log.debug("Sync error count has exceeded " +
+                      MAX_ERROR_COUNT_BEFORE_BACKOFF + "; enforcing backoff.");
       Status.enforceBackoff = true;
     }
 
@@ -448,7 +484,8 @@ let SyncScheduler = {
    * Remove any timers/observers that might trigger a sync
    */
   clearSyncTriggers: function clearSyncTriggers() {
-    this._log.debug("Clearing sync triggers.");
+    this._log.debug("Clearing sync triggers and the global score.");
+    this.globalScore = this.nextSync = 0;
 
     // Clear out any scheduled syncs
     if (this.syncTimer)
@@ -500,6 +537,7 @@ let ErrorHandler = {
   },
 
   observe: function observe(subject, topic, data) {
+    this._log.trace("Handling " + topic);
     switch(topic) {
       case "weave:engine:sync:applied":
         if (subject.newFailed) {
@@ -548,6 +586,19 @@ let ErrorHandler = {
         this.dontIgnoreErrors = false;
         break;
       case "weave:service:sync:finish":
+        this._log.trace("Status.service is " + Status.service);
+
+        // Check both of these status codes: in the event of a failure in one
+        // engine, Status.service will be SYNC_FAILED_PARTIAL despite
+        // Status.sync being SYNC_SUCCEEDED.
+        // *facepalm*
+        if (Status.sync    == SYNC_SUCCEEDED &&
+            Status.service == STATUS_OK) {
+          // Great. Let's clear our mid-sync 401 note.
+          this._log.trace("Clearing lastSyncReassigned.");
+          Svc.Prefs.reset("lastSyncReassigned");
+        }
+
         if (Status.service == SYNC_FAILED_PARTIAL) {
           this._log.debug("Some engines did not sync correctly.");
           this.resetFileLog(Svc.Prefs.get("log.appender.file.logOnError"),
@@ -569,7 +620,12 @@ let ErrorHandler = {
   },
 
   notifyOnNextTick: function notifyOnNextTick(topic) {
-    Utils.nextTick(function() Svc.Obs.notify(topic));
+    Utils.nextTick(function() {
+      this._log.trace("Notifying " + topic +
+                      ". Status.login is " + Status.login +
+                      ". Status.sync is " + Status.sync);
+      Svc.Obs.notify(topic);
+    }, this);
   },
 
   /**
@@ -689,6 +745,7 @@ let ErrorHandler = {
 
   shouldReportError: function shouldReportError() {
     if (Status.login == MASTER_PASSWORD_LOCKED) {
+      this._log.trace("shouldReportError: false (master password locked).");
       return false;
     }
 
@@ -700,7 +757,17 @@ let ErrorHandler = {
     if (lastSync && ((Date.now() - Date.parse(lastSync)) >
         Svc.Prefs.get("errorhandler.networkFailureReportTimeout") * 1000)) {
       Status.sync = PROLONGED_SYNC_FAILURE;
+      this._log.trace("shouldReportError: true (prolonged sync failure).");
       return true;
+    }
+ 
+    // We got a 401 mid-sync. Wait for the next sync before actually handling
+    // an error. This assumes that we'll get a 401 again on a login fetch in
+    // order to report the error.
+    if (!Weave.Service.clusterURL) {
+      this._log.trace("shouldReportError: false (no cluster URL; " +
+                      "possible node reassignment).");
+      return false;
     }
 
     return ([Status.login, Status.sync].indexOf(SERVER_MAINTENANCE) == -1 &&
@@ -721,7 +788,24 @@ let ErrorHandler = {
 
       case 401:
         Weave.Service.logout();
-        Status.login = LOGIN_FAILED_LOGIN_REJECTED;
+        this._log.info("Got 401 response; resetting clusterURL.");
+        Svc.Prefs.reset("clusterURL");
+
+        let delay = 0;
+        if (Svc.Prefs.get("lastSyncReassigned")) {
+          // We got a 401 in the middle of the previous sync, and we just got
+          // another. Login must have succeeded in order for us to get here, so
+          // the password should be correct.
+          // This is likely to be an intermittent server issue, so back off and
+          // give it time to recover.
+          this._log.warn("Last sync also failed for 401. Delaying next sync.");
+          delay = MINIMUM_BACKOFF_INTERVAL;
+        } else {
+          this._log.debug("New mid-sync 401 failure. Making a note.");
+          Svc.Prefs.set("lastSyncReassigned", true);
+        }
+        this._log.info("Attempting to schedule another sync.");
+        SyncScheduler.scheduleNextSync(delay);
         break;
 
       case 500:

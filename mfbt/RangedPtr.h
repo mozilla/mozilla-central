@@ -41,9 +41,8 @@
 #ifndef mozilla_RangedPtr_h_
 #define mozilla_RangedPtr_h_
 
+#include "mozilla/Attributes.h"
 #include "mozilla/Util.h"
-
-#ifdef __cplusplus
 
 namespace mozilla {
 
@@ -268,13 +267,11 @@ class RangedPtr
     }
 
   private:
-    RangedPtr();
-    T* operator&();
-    operator T*() const;
+    RangedPtr() MOZ_DELETE;
+    T* operator&() MOZ_DELETE;
+    operator T*() const MOZ_DELETE;
 };
 
 } /* namespace mozilla */
-
-#endif /* __cplusplus */
 
 #endif  /* mozilla_RangedPtr_h_ */

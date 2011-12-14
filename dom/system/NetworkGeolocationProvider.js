@@ -100,10 +100,10 @@ function WifiGeoPositionProvider() {
     gTestingEnabled = Services.prefs.getBoolPref("geo.wifi.testing");
   } catch (e) {}
 
-  wifiService = null;
-  timer = null;
-  hasSeenWiFi = false;
-  started = false;
+  this.wifiService = null;
+  this.timer = null;
+  this.hasSeenWiFi = false;
+  this.started = false;
 }
 
 WifiGeoPositionProvider.prototype = {
@@ -203,7 +203,7 @@ WifiGeoPositionProvider.prototype = {
 
     let accessToken = this.getAccessTokenForURL(providerUrlBase);
     if (accessToken !== "")
-      providerUrl = providerUrl + "&access_token="+access_token;
+      providerUrl = providerUrl + "&access_token="+accessToken;
 
     function sort(a, b) {
       return b.signal - a.signal;
@@ -217,7 +217,7 @@ WifiGeoPositionProvider.prototype = {
     };
 
     if (accessPoints) {
-        accessPoints.sort(sort).map(encode).join("");
+        providerUrl = providerUrl + accessPoints.sort(sort).map(encode).join("");
         // max length is 2k.  make sure we are under that
         let x = providerUrl.length - 2000;
         if (x >= 0) {

@@ -291,13 +291,19 @@ function run_abstract_class_tests()
   do_check_true(ctypes.CType.prototype.hasOwnProperty("toString"));
   do_check_true(ctypes.CType.prototype.hasOwnProperty("toSource"));
 
+  // Make sure we can access 'prototype' on a CTypeProto.
+  do_check_true(ctypes.CType.prototype.prototype === ctypes.CData.prototype);
+
   // Check that the shared properties and functions on ctypes.CType.prototype throw.
   do_check_throws(function() { ctypes.CType.prototype.name; }, Error);
   do_check_throws(function() { ctypes.CType.prototype.size; }, Error);
   do_check_throws(function() { ctypes.CType.prototype.ptr; }, Error);
   do_check_throws(function() { ctypes.CType.prototype.array(); }, Error);
-  do_check_throws(function() { ctypes.CType.prototype.toString(); }, Error);
-  do_check_throws(function() { ctypes.CType.prototype.toSource(); }, Error);
+
+  // toString and toSource are called by the web console during inspection,
+  // so we don't want them to throw.
+  do_check_eq(typeof ctypes.CType.prototype.toString(), 'string');
+  do_check_eq(typeof ctypes.CType.prototype.toSource(), 'string');
 
   // Test that ctypes.CData is an abstract constructor that throws.
   do_check_throws(function() { ctypes.CData(); }, Error);
@@ -331,8 +337,12 @@ function run_abstract_class_tests()
   do_check_throws(function() { ctypes.CData.prototype.value = null; }, Error);
   do_check_throws(function() { ctypes.CData.prototype.address(); }, Error);
   do_check_throws(function() { ctypes.CData.prototype.readString(); }, Error);
-  do_check_throws(function() { ctypes.CData.prototype.toString(); }, Error);
-  do_check_throws(function() { ctypes.CData.prototype.toSource(); }, Error);
+
+
+  // toString and toSource are called by the web console during inspection,
+  // so we don't want them to throw.
+  do_check_eq(ctypes.CData.prototype.toString(), '[CData proto object]');
+  do_check_eq(ctypes.CData.prototype.toSource(), '[CData proto object]');
 }
 
 function run_Int64_tests() {
@@ -799,8 +809,11 @@ function run_basic_class_tests(t)
   do_check_throws(function() { t.prototype.value = null; }, Error);
   do_check_throws(function() { t.prototype.address(); }, Error);
   do_check_throws(function() { t.prototype.readString(); }, Error);
-  do_check_throws(function() { t.prototype.toString(); }, Error);
-  do_check_throws(function() { t.prototype.toSource(); }, Error);
+
+  // toString and toSource are called by the web console during inspection,
+  // so we don't want them to throw.
+  do_check_eq(t.prototype.toString(), '[CData proto object]');
+  do_check_eq(t.prototype.toSource(), '[CData proto object]');
 
   // Test that an instance 'd' of 't' is a CData.
   let d = t();
@@ -1400,6 +1413,9 @@ function run_type_ctor_class_tests(c, t, t2, props, fns, instanceProps, instance
   for each (let p in specialProps)
     do_check_throws(function() { t.prototype[p]; }, Error);
 
+  // Make sure we can access 'prototype' on a CTypeProto.
+  do_check_true(Object.getPrototypeOf(c.prototype.prototype) === ctypes.CType.prototype.prototype);
+
   // Test that an instance 'd' of 't' is a CData.
   if (t.__proto__ != ctypes.FunctionType.prototype) {
     let d = t();
@@ -1700,7 +1716,7 @@ function ptrValue(p) {
 function run_PointerType_tests() {
   run_type_ctor_class_tests(ctypes.PointerType,
     ctypes.PointerType(ctypes.int32_t), ctypes.PointerType(ctypes.int64_t),
-    [ "targetType" ], [], [ "contents" ], [ "isNull" ], []);
+    [ "targetType" ], [], [ "contents" ], [ "isNull", "increment", "decrement" ], []);
 
   do_check_throws(function() { ctypes.PointerType(); }, Error);
   do_check_throws(function() { ctypes.PointerType(ctypes.int32_t, 5); }, Error);
@@ -1774,6 +1790,19 @@ function run_PointerType_tests() {
   do_check_true(n.isNull() === true);
   n = p.address();
   do_check_true(n.isNull() === false);
+
+  // Test 'increment'/'decrement'.
+  let g_t = ctypes.StructType("g_t", [{ a: ctypes.int32_t }, { b: ctypes.double }]);
+  let a_t = ctypes.ArrayType(g_t, 2);
+  let a = new a_t();
+  a[0] = g_t(1, 2);
+  a[1] = g_t(2, 4);
+  let a_p = a.addressOfElement(0).increment();
+  do_check_eq(a_p.contents.a, 2);
+  do_check_eq(a_p.contents.b, 4);
+  a_p = a_p.decrement();
+  do_check_eq(a_p.contents.a, 1);
+  do_check_eq(a_p.contents.b, 2);
 
   // Check that pointers to arrays of undefined or zero length are legal,
   // but that the former cannot be dereferenced.

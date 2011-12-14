@@ -1077,7 +1077,7 @@ nsMediaCache::PredictNextUseForIncomingData(nsMediaCacheStream* aStream)
       NS_MIN<PRInt64>(millisecondsAhead, PR_INT32_MAX));
 }
 
-enum StreamAction { NONE, SEEK, RESUME, SUSPEND };
+enum StreamAction { NONE, SEEK, SEEK_AND_RESUME, RESUME, SUSPEND };
 
 void
 nsMediaCache::Update()
@@ -1322,7 +1322,7 @@ nsMediaCache::Update()
         // because we don't want to think we have part of a block already
         // in mPartialBlockBuffer.
         stream->mChannelOffset = (desiredOffset/BLOCK_SIZE)*BLOCK_SIZE;
-        actions[i] = SEEK;
+        actions[i] = stream->mCacheSuspended ? SEEK_AND_RESUME : SEEK;
       } else if (enableReading && stream->mCacheSuspended) {
         actions[i] = RESUME;
       } else if (!enableReading && !stream->mCacheSuspended) {
@@ -1339,33 +1339,53 @@ nsMediaCache::Update()
   // other cache state. That's OK, they'll trigger new Update events and we'll
   // get back here and revise our decisions. The important thing here is that
   // performing these actions only depends on mChannelOffset and
-  // mCacheSuspended, which can only be written by the main thread (i.e., this
+  // the action, which can only be written by the main thread (i.e., this
   // thread), so we don't have races here.
+
+  // First, update the mCacheSuspended/mCacheEnded flags so that they're all correct
+  // when we fire our CacheClient commands below. Those commands can rely on these flags
+  // being set correctly for all streams.
   for (PRUint32 i = 0; i < mStreams.Length(); ++i) {
     nsMediaCacheStream* stream = mStreams[i];
-    nsresult rv = NS_OK;
     switch (actions[i]) {
     case SEEK:
-      LOG(PR_LOG_DEBUG, ("Stream %p CacheSeek to %lld (resume=%d)", stream,
-           (long long)stream->mChannelOffset, stream->mCacheSuspended));
-      rv = stream->mClient->CacheClientSeek(stream->mChannelOffset,
-                                            stream->mCacheSuspended);
+	case SEEK_AND_RESUME:
+      stream->mCacheSuspended = false;
+      stream->mChannelEnded = false;
+      break;
+    case RESUME:
       stream->mCacheSuspended = false;
       break;
+    case SUSPEND:
+      stream->mCacheSuspended = true;
+      break;
+    default:
+      break;
+    }
+    stream->mHasHadUpdate = true;
+  }
 
+  for (PRUint32 i = 0; i < mStreams.Length(); ++i) {
+    nsMediaCacheStream* stream = mStreams[i];
+    nsresult rv;
+    switch (actions[i]) {
+    case SEEK:
+	case SEEK_AND_RESUME:
+      LOG(PR_LOG_DEBUG, ("Stream %p CacheSeek to %lld (resume=%d)", stream,
+           (long long)stream->mChannelOffset, actions[i] == SEEK_AND_RESUME));
+      rv = stream->mClient->CacheClientSeek(stream->mChannelOffset,
+                                            actions[i] == SEEK_AND_RESUME);
+      break;
     case RESUME:
       LOG(PR_LOG_DEBUG, ("Stream %p Resumed", stream));
       rv = stream->mClient->CacheClientResume();
-      stream->mCacheSuspended = false;
       break;
-
     case SUSPEND:
       LOG(PR_LOG_DEBUG, ("Stream %p Suspended", stream));
       rv = stream->mClient->CacheClientSuspend();
-      stream->mCacheSuspended = true;
       break;
-
     default:
+      rv = NS_OK;
       break;
     }
 
@@ -1839,14 +1859,21 @@ nsMediaCacheStream::NotifyDataEnded(nsresult aStatus)
     mon.NotifyAll();
   }
 
-  nsMediaCache::ResourceStreamIterator iter(mResourceID);
-  while (nsMediaCacheStream* stream = iter.Next()) {
-    if (NS_SUCCEEDED(aStatus)) {
-      // We read the whole stream, so remember the true length
-      stream->mStreamLength = mChannelOffset;
+  if (!mDidNotifyDataEnded) {
+    nsMediaCache::ResourceStreamIterator iter(mResourceID);
+    while (nsMediaCacheStream* stream = iter.Next()) {
+      if (NS_SUCCEEDED(aStatus)) {
+        // We read the whole stream, so remember the true length
+        stream->mStreamLength = mChannelOffset;
+      }
+      NS_ASSERTION(!stream->mDidNotifyDataEnded, "Stream already ended!");
+      stream->mDidNotifyDataEnded = true;
+      stream->mNotifyDataEndedStatus = aStatus;
+      stream->mClient->CacheClientNotifyDataEnded(aStatus);
     }
-    stream->mClient->CacheClientNotifyDataEnded(aStatus);
   }
+
+  mChannelEnded = true;
 }
 
 nsMediaCacheStream::~nsMediaCacheStream()
@@ -1880,6 +1907,25 @@ nsMediaCacheStream::IsSeekable()
   return mIsSeekable;
 }
 
+bool
+nsMediaCacheStream::AreAllStreamsForResourceSuspended(nsMediaStream** aActiveStream)
+{
+  ReentrantMonitorAutoEnter mon(gMediaCache->GetReentrantMonitor());
+  nsMediaCache::ResourceStreamIterator iter(mResourceID);
+  while (nsMediaCacheStream* stream = iter.Next()) {
+    if (!stream->mCacheSuspended && !stream->mChannelEnded) {
+      if (aActiveStream) {
+        *aActiveStream = stream->mClient;
+      }
+      return false;
+	}
+  }
+  if (aActiveStream) {
+    *aActiveStream = nsnull;
+  }
+  return true;
+}
+
 void
 nsMediaCacheStream::Close()
 {
@@ -1891,6 +1937,14 @@ nsMediaCacheStream::Close()
   // it from CloseInternal since that gets called by Update() itself
   // sometimes, and we try to not to queue updates from Update().
   gMediaCache->QueueUpdate();
+}
+
+void
+nsMediaCacheStream::EnsureCacheUpdate()
+{
+  if (mHasHadUpdate)
+    return;
+  gMediaCache->Update();
 }
 
 void
@@ -2121,45 +2175,62 @@ nsMediaCacheStream::Read(char* aBuffer, PRUint32 aCount, PRUint32* aBytes)
     PRInt32 bytes;
     PRUint32 channelBlock = PRUint32(mChannelOffset/BLOCK_SIZE);
     PRInt32 cacheBlock = streamBlock < mBlocks.Length() ? mBlocks[streamBlock] : -1;
-    if (channelBlock == streamBlock && mStreamOffset < mChannelOffset) {
-      // We can just use the data in mPartialBlockBuffer. In fact we should
-      // use it rather than waiting for the block to fill and land in
-      // the cache.
-      bytes = NS_MIN<PRInt64>(size, mChannelOffset - mStreamOffset);
-      memcpy(aBuffer + count,
-        reinterpret_cast<char*>(mPartialBlockBuffer) + offsetInStreamBlock, bytes);
-      if (mCurrentMode == MODE_METADATA) {
-        mMetadataInPartialBlockBuffer = true;
-      }
-      gMediaCache->NoteBlockUsage(this, cacheBlock, mCurrentMode, TimeStamp::Now());
-    } else {
-      if (cacheBlock < 0) {
-        if (count > 0) {
-          // Some data has been read, so return what we've got instead of
-          // blocking
-          break;
-        }
+    if (cacheBlock < 0) {
+      // We don't have a complete cached block here.
 
-        // No data has been read yet, so block
-        mon.Wait();
-        if (mClosed) {
-          // We may have successfully read some data, but let's just throw
-          // that out.
-          return NS_ERROR_FAILURE;
-        }
-        continue;
-      }
-
-      gMediaCache->NoteBlockUsage(this, cacheBlock, mCurrentMode, TimeStamp::Now());
-
-      PRInt64 offset = cacheBlock*BLOCK_SIZE + offsetInStreamBlock;
-      nsresult rv = gMediaCache->ReadCacheFile(offset, aBuffer + count, size, &bytes);
-      if (NS_FAILED(rv)) {
-        if (count == 0)
-          return rv;
-        // If we did successfully read some data, may as well return it
+      if (count > 0) {
+        // Some data has been read, so return what we've got instead of
+        // blocking or trying to find a stream with a partial block.
         break;
       }
+
+      // See if the data is available in the partial cache block of any
+      // stream reading this resource. We need to do this in case there is
+      // another stream with this resource that has all the data to the end of
+      // the stream but the data doesn't end on a block boundary.
+      nsMediaCacheStream* streamWithPartialBlock = nsnull;
+      nsMediaCache::ResourceStreamIterator iter(mResourceID);
+      while (nsMediaCacheStream* stream = iter.Next()) {
+        if (PRUint32(stream->mChannelOffset/BLOCK_SIZE) == streamBlock &&
+            mStreamOffset < stream->mChannelOffset) {
+          streamWithPartialBlock = stream;
+          break;
+        }
+      }
+      if (streamWithPartialBlock) {
+        // We can just use the data in mPartialBlockBuffer. In fact we should
+        // use it rather than waiting for the block to fill and land in
+        // the cache.
+        bytes = NS_MIN<PRInt64>(size, streamWithPartialBlock->mChannelOffset - mStreamOffset);
+        memcpy(aBuffer,
+          reinterpret_cast<char*>(streamWithPartialBlock->mPartialBlockBuffer) + offsetInStreamBlock, bytes);
+        if (mCurrentMode == MODE_METADATA) {
+          streamWithPartialBlock->mMetadataInPartialBlockBuffer = true;
+        }
+        mStreamOffset += bytes;
+        count = bytes;
+        break;
+      }
+
+      // No data has been read yet, so block
+      mon.Wait();
+      if (mClosed) {
+        // We may have successfully read some data, but let's just throw
+        // that out.
+        return NS_ERROR_FAILURE;
+      }
+      continue;
+    }
+
+    gMediaCache->NoteBlockUsage(this, cacheBlock, mCurrentMode, TimeStamp::Now());
+
+    PRInt64 offset = cacheBlock*BLOCK_SIZE + offsetInStreamBlock;
+    nsresult rv = gMediaCache->ReadCacheFile(offset, aBuffer + count, size, &bytes);
+    if (NS_FAILED(rv)) {
+      if (count == 0)
+        return rv;
+      // If we did successfully read some data, may as well return it
+      break;
     }
     mStreamOffset += bytes;
     count += bytes;
@@ -2268,6 +2339,13 @@ nsMediaCacheStream::InitAsClone(nsMediaCacheStream* aOriginal)
   // Cloned streams are initially suspended, since there is no channel open
   // initially for a clone.
   mCacheSuspended = true;
+  mChannelEnded = true;
+
+  if (aOriginal->mDidNotifyDataEnded) {
+    mNotifyDataEndedStatus = aOriginal->mNotifyDataEndedStatus;
+    mDidNotifyDataEnded = true;
+    mClient->CacheClientNotifyDataEnded(mNotifyDataEndedStatus);
+  }
 
   for (PRUint32 i = 0; i < aOriginal->mBlocks.Length(); ++i) {
     PRInt32 cacheBlockIndex = aOriginal->mBlocks[i];

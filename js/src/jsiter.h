@@ -48,6 +48,7 @@
 #include "jspubtd.h"
 #include "jsversion.h"
 
+#include "gc/Barrier.h"
 #include "vm/Stack.h"
 
 /*
@@ -60,11 +61,11 @@
 namespace js {
 
 struct NativeIterator {
-    JSObject  *obj;
-    jsid      *props_array;
-    jsid      *props_cursor;
-    jsid      *props_end;
-    uint32    *shapes_array;
+    HeapPtrObject obj;
+    HeapId    *props_array;
+    HeapId    *props_cursor;
+    HeapId    *props_end;
+    const Shape **shapes_array;
     uint32    shapes_length;
     uint32    shapes_key;
     uint32    flags;
@@ -72,11 +73,11 @@ struct NativeIterator {
 
     bool isKeyIter() const { return (flags & JSITER_FOREACH) == 0; }
 
-    inline jsid *begin() const {
+    inline HeapId *begin() const {
         return props_array;
     }
 
-    inline jsid *end() const {
+    inline HeapId *end() const {
         return props_end;
     }
 
@@ -84,7 +85,7 @@ struct NativeIterator {
         return end() - begin();
     }
 
-    jsid *current() const {
+    HeapId *current() const {
         JS_ASSERT(props_cursor < props_end);
         return props_cursor;
     }
@@ -170,7 +171,7 @@ typedef enum JSGeneratorState {
 } JSGeneratorState;
 
 struct JSGenerator {
-    JSObject            *obj;
+    js::HeapPtrObject   obj;
     JSGeneratorState    state;
     js::FrameRegs       regs;
     JSObject            *enumerators;
@@ -221,16 +222,6 @@ js_LiveFrameIfGenerator(js::StackFrame *fp)
 }
 
 #endif
-
-namespace js {
-
-static inline bool
-IsStopIteration(const js::Value &v)
-{
-    return v.isObject() && v.toObject().isStopIteration();
-}
-
-}  /* namespace js */
 
 extern JSObject *
 js_InitIteratorClasses(JSContext *cx, JSObject *obj);

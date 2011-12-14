@@ -41,39 +41,31 @@
 #define ParseNode_inl_h__
 
 #include "frontend/ParseNode.h"
-#include "frontend/BytecodeGenerator.h"
+#include "frontend/BytecodeEmitter.h"
 #include "frontend/TokenStream.h"
 
-inline bool
-JSParseNode::isConstant()
-{
-    using namespace js;
+namespace js {
 
+inline bool
+ParseNode::isConstant()
+{
     switch (pn_type) {
-      case TOK_NUMBER:
-      case TOK_STRING:
+      case PNK_NUMBER:
+      case PNK_STRING:
+      case PNK_NULL:
+      case PNK_FALSE:
+      case PNK_TRUE:
         return true;
-      case TOK_PRIMARY:
-        switch (pn_op) {
-          case JSOP_NULL:
-          case JSOP_FALSE:
-          case JSOP_TRUE:
-            return true;
-          default:
-            return false;
-        }
-      case TOK_RB:
-      case TOK_RC:
+      case PNK_RB:
+      case PNK_RC:
         return isOp(JSOP_NEWINIT) && !(pn_xflags & PNX_NONCONST);
       default:
         return false;
     }
 }
 
-namespace js {
-
 inline void
-NameNode::initCommon(JSTreeContext *tc)
+NameNode::initCommon(TreeContext *tc)
 {
     pn_expr = NULL;
     pn_cookie.makeFree();

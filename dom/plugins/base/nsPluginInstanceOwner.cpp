@@ -118,7 +118,7 @@ static NS_DEFINE_CID(kAppShellCID, NS_APPSHELL_CID);
 #include "gfxXlibNativeRenderer.h"
 #endif
 
-#ifdef ANDROID
+#ifdef MOZ_WIDGET_ANDROID
 #include "ANPBase.h"
 #include "android_npapi.h"
 #include "AndroidBridge.h"
@@ -331,6 +331,11 @@ nsPluginInstanceOwner::nsPluginInstanceOwner()
 #endif
 
   mWaitingForPaint = false;
+
+#ifdef MOZ_WIDGET_ANDROID
+  mPluginViewAdded = false;
+  mLastPluginRect = gfxRect(0, 0, 0, 0);
+#endif
 }
 
 nsPluginInstanceOwner::~nsPluginInstanceOwner()
@@ -1233,12 +1238,9 @@ nsresult nsPluginInstanceOwner::EnsureCachedAttrParamArrays()
   // Set to the next slot to fill in name and value cache arrays.
   PRUint32 nextAttrParamIndex = 0;
 
-  // Potentially add WMODE attribute.
-  if (!wmodeType.IsEmpty()) {
-    mCachedAttrParamNames [nextAttrParamIndex] = ToNewUTF8String(NS_LITERAL_STRING("wmode"));
-    mCachedAttrParamValues[nextAttrParamIndex] = ToNewUTF8String(NS_ConvertUTF8toUTF16(wmodeType));
-    nextAttrParamIndex++;
-  }
+  // Whether or not we force the wmode below while traversing
+  // the name/value pairs.
+  bool wmodeSet = false;
 
   // Add attribute name/value pairs.
   for (PRInt32 index = start; index != end; index += increment) {
@@ -1252,7 +1254,25 @@ nsresult nsPluginInstanceOwner::EnsureCachedAttrParamArrays()
     FixUpURLS(name, value);
 
     mCachedAttrParamNames [nextAttrParamIndex] = ToNewUTF8String(name);
-    mCachedAttrParamValues[nextAttrParamIndex] = ToNewUTF8String(value);
+    if (!wmodeType.IsEmpty() && 
+        0 == PL_strcasecmp(mCachedAttrParamNames[nextAttrParamIndex], "wmode")) {
+      mCachedAttrParamValues[nextAttrParamIndex] = ToNewUTF8String(NS_ConvertUTF8toUTF16(wmodeType));
+
+      if (!wmodeSet) {
+        // We allocated space to add a wmode attr, but we don't need it now.
+        mNumCachedAttrs--;
+        wmodeSet = true;
+      }
+    } else {
+      mCachedAttrParamValues[nextAttrParamIndex] = ToNewUTF8String(value);
+    }
+    nextAttrParamIndex++;
+  }
+
+  // Potentially add WMODE attribute.
+  if (!wmodeType.IsEmpty() && !wmodeSet) {
+    mCachedAttrParamNames [nextAttrParamIndex] = ToNewUTF8String(NS_LITERAL_STRING("wmode"));
+    mCachedAttrParamValues[nextAttrParamIndex] = ToNewUTF8String(NS_ConvertUTF8toUTF16(wmodeType));
     nextAttrParamIndex++;
   }
 
@@ -1265,7 +1285,7 @@ nsresult nsPluginInstanceOwner::EnsureCachedAttrParamArrays()
 
   // Add PARAM and null separator.
   mCachedAttrParamNames [nextAttrParamIndex] = ToNewUTF8String(NS_LITERAL_STRING("PARAM"));
-#ifdef ANDROID
+#ifdef MOZ_WIDGET_ANDROID
   // Flash expects an empty string on android
   mCachedAttrParamValues[nextAttrParamIndex] = ToNewUTF8String(NS_LITERAL_STRING(""));
 #else
@@ -1444,14 +1464,14 @@ void nsPluginInstanceOwner::SetupCARefresh()
 }
 }
 
-void nsPluginInstanceOwner::RenderCoreAnimation(CGContextRef aCGContext, 
+void nsPluginInstanceOwner::RenderCoreAnimation(CGContextRef aCGContext,
                                                 int aWidth, int aHeight)
 {
   if (aWidth == 0 || aHeight == 0)
     return;
 
-  if (!mIOSurface || 
-      (mIOSurface->GetWidth() != (size_t)aWidth || 
+  if (!mIOSurface ||
+      (mIOSurface->GetWidth() != (size_t)aWidth ||
        mIOSurface->GetHeight() != (size_t)aHeight)) {
     mIOSurface = nsnull;
 
@@ -1480,7 +1500,9 @@ void nsPluginInstanceOwner::RenderCoreAnimation(CGContextRef aCGContext,
       return;
     }
 
-    mCARenderer.SetupRenderer(caLayer, aWidth, aHeight);
+    // We don't run Flash in-process so we can unconditionally disallow
+    // the offliner renderer.
+    mCARenderer.SetupRenderer(caLayer, aWidth, aHeight, DISALLOW_OFFLINE_RENDERER);
 
     // Setting up the CALayer requires resetting the painting otherwise we
     // get garbage for the first few frames.
@@ -1655,10 +1677,56 @@ void nsPluginInstanceOwner::ScrollPositionDidChange(nscoord aX, nscoord aY)
 #endif
 }
 
-#ifdef ANDROID
+#ifdef MOZ_WIDGET_ANDROID
+bool nsPluginInstanceOwner::AddPluginView(const gfxRect& aRect)
+{
+  AndroidBridge::AutoLocalJNIFrame frame(1);
+
+  void* javaSurface = mInstance->GetJavaSurface();
+  if (!javaSurface) {
+    mInstance->RequestJavaSurface();
+    return false;
+  }
+
+  if (aRect.IsEqualEdges(mLastPluginRect)) {
+    // Already added and in position, no work to do
+    return true;
+  }
+
+  JNIEnv* env = GetJNIForThread();
+  jclass cls = env->FindClass("org/mozilla/gecko/GeckoAppShell");
+  jmethodID method = env->GetStaticMethodID(cls,
+                                            "addPluginView",
+                                            "(Landroid/view/View;DDDD)V");
+
+  env->CallStaticVoidMethod(cls,
+                            method,
+                            javaSurface,
+                            aRect.x,
+                            aRect.y,
+                            aRect.width,
+                            aRect.height);
+
+  if (!mPluginViewAdded) {
+    ANPEvent event;
+    event.inSize = sizeof(ANPEvent);
+    event.eventType = kLifecycle_ANPEventType;
+    event.data.lifecycle.action = kOnScreen_ANPLifecycleAction;
+    mInstance->HandleEvent(&event, nsnull);
+
+    mPluginViewAdded = true;
+  }
+
+  return true;
+}
+
 void nsPluginInstanceOwner::RemovePluginView()
 {
-  if (mInstance && mObjectFrame) {
+  AndroidBridge::AutoLocalJNIFrame frame(1);
+
+  if (mInstance && mObjectFrame && mPluginViewAdded) {
+    mPluginViewAdded = false;
+
     void* surface = mInstance->GetJavaSurface();
     if (surface) {
       JNIEnv* env = GetJNIForThread();
@@ -1668,6 +1736,14 @@ void nsPluginInstanceOwner::RemovePluginView()
                                                   "removePluginView",
                                                   "(Landroid/view/View;)V");
         env->CallStaticVoidMethod(cls, method, surface);
+
+        {
+          ANPEvent event;
+          event.inSize = sizeof(ANPEvent);
+          event.eventType = kLifecycle_ANPEventType;
+          event.data.lifecycle.action = kOffScreen_ANPLifecycleAction;
+          mInstance->HandleEvent(&event, nsnull);
+        }
       }
     }
   }
@@ -1676,7 +1752,7 @@ void nsPluginInstanceOwner::RemovePluginView()
 
 nsresult nsPluginInstanceOwner::DispatchFocusToPlugin(nsIDOMEvent* aFocusEvent)
 {
-#ifdef ANDROID
+#ifdef MOZ_WIDGET_ANDROID
   {
     ANPEvent event;
     event.inSize = sizeof(ANPEvent);
@@ -2489,7 +2565,7 @@ nsEventStatus nsPluginInstanceOwner::ProcessEvent(const nsGUIEvent& anEvent)
     rv = nsEventStatus_eConsumeNoDefault;
 #endif
 
-#ifdef ANDROID
+#ifdef MOZ_WIDGET_ANDROID
   // this code supports windowless plugins
   {
     // The plugin needs focus to receive keyboard and touch events
@@ -2695,7 +2771,7 @@ nsPluginInstanceOwner::PrepareToStop(bool aDelayedStop)
   }
 #endif
 
-#ifdef ANDROID
+#ifdef MOZ_WIDGET_ANDROID
   RemovePluginView();
 #endif
 
@@ -2795,46 +2871,7 @@ void nsPluginInstanceOwner::Paint(const nsRect& aDirtyRect, HPS aHPS)
 }
 #endif
 
-#ifdef ANDROID
-
-class AndroidPaintEventRunnable : public nsRunnable
-{
-public:
-  AndroidPaintEventRunnable(void* aSurface, nsNPAPIPluginInstance* inst, const gfxRect& aFrameRect)
-    : mSurface(aSurface), mInstance(inst), mFrameRect(aFrameRect) {
-  }
-
-  ~AndroidPaintEventRunnable() {
-  }
-
-  NS_IMETHOD Run()
-  {
-    LOG("%p - AndroidPaintEventRunnable::Run\n", this);
-
-    if (!mInstance || !mSurface)
-      return NS_OK;
-
-    // This needs to happen on the gecko main thread.
-    JNIEnv* env = GetJNIForThread();
-    jclass cls = env->FindClass("org/mozilla/gecko/GeckoAppShell");
-    jmethodID method = env->GetStaticMethodID(cls,
-                                              "addPluginView",
-                                              "(Landroid/view/View;DDDD)V");
-    env->CallStaticVoidMethod(cls,
-                              method,
-                              mSurface,
-                              mFrameRect.x,
-                              mFrameRect.y,
-                              mFrameRect.width,
-                              mFrameRect.height);
-    return NS_OK;
-  }
-private:
-  void* mSurface;
-  nsCOMPtr<nsNPAPIPluginInstance> mInstance;
-  gfxRect mFrameRect;
-};
-
+#ifdef MOZ_WIDGET_ANDROID
 
 void nsPluginInstanceOwner::Paint(gfxContext* aContext,
                                   const gfxRect& aFrameRect,
@@ -2847,33 +2884,13 @@ void nsPluginInstanceOwner::Paint(gfxContext* aContext,
   mInstance->GetDrawingModel(&model);
 
   if (model == kSurface_ANPDrawingModel) {
-
-    {
-      ANPEvent event;
-      event.inSize = sizeof(ANPEvent);
-      event.eventType = kLifecycle_ANPEventType;
-      event.data.lifecycle.action = kOnScreen_ANPLifecycleAction;
-      mInstance->HandleEvent(&event, nsnull);
+    if (!AddPluginView(aFrameRect)) {
+      NPRect rect;
+      rect.left = rect.top = 0;
+      rect.right = aFrameRect.width;
+      rect.bottom = aFrameRect.height;
+      InvalidateRect(&rect);
     }
-
-    /*
-    gfxMatrix currentMatrix = aContext->CurrentMatrix();
-    gfxSize scale = currentMatrix.ScaleFactors(true);
-    printf_stderr("!!!!!!!! scale!!:  %f x %f\n", scale.width, scale.height);
-    */
-
-    JNIEnv* env = GetJNIForThread();
-    jclass cls = env->FindClass("org/mozilla/gecko/GeckoAppShell");
-    jmethodID method = env->GetStaticMethodID(cls,
-                                              "addPluginView",
-                                              "(Landroid/view/View;DDDD)V");
-    env->CallStaticVoidMethod(cls,
-                              method,
-                              mInstance->GetJavaSurface(),
-                              aFrameRect.x,
-                              aFrameRect.y,
-                              aFrameRect.width,
-                              aFrameRect.height);
     return;
   }
 
@@ -3293,7 +3310,12 @@ NS_IMETHODIMP nsPluginInstanceOwner::CreateWidget(void)
     if (!mWidget) {
       bool windowless = false;
       mInstance->IsWindowless(&windowless);
-
+      nsIDocument *doc = mContent ? mContent->OwnerDoc() : nsnull;
+#ifndef XP_MACOSX
+      if (!windowless && doc && doc->IsFullScreenDoc()) {
+        nsIDocument::ExitFullScreen(true);
+      }
+#endif
       // always create widgets in Twips, not pixels
       nsPresContext* context = mObjectFrame->PresContext();
       rv = mObjectFrame->CreateWidget(context->DevPixelsToAppUnits(mPluginWindow->width),
@@ -3564,26 +3586,10 @@ void nsPluginInstanceOwner::UpdateWindowPositionAndClipRect(bool aSetWindow)
   if (mPluginWindowVisible && mPluginDocumentActiveState) {
     mPluginWindow->clipRect.right = mPluginWindow->width;
     mPluginWindow->clipRect.bottom = mPluginWindow->height;
-#ifdef ANDROID
-    if (mInstance) {
-      ANPEvent event;
-      event.inSize = sizeof(ANPEvent);
-      event.eventType = kLifecycle_ANPEventType;
-      event.data.lifecycle.action = kOnScreen_ANPLifecycleAction;
-      mInstance->HandleEvent(&event, nsnull);
-    }
-#endif
   } else {
     mPluginWindow->clipRect.right = 0;
     mPluginWindow->clipRect.bottom = 0;
-#ifdef ANDROID
-    if (mInstance) {
-      ANPEvent event;
-      event.inSize = sizeof(ANPEvent);
-      event.eventType = kLifecycle_ANPEventType;
-      event.data.lifecycle.action = kOffScreen_ANPLifecycleAction;
-      mInstance->HandleEvent(&event, nsnull);
-    }
+#ifdef MOZ_WIDGET_ANDROID
     RemovePluginView();
 #endif
   }

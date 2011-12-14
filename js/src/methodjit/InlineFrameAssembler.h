@@ -90,7 +90,6 @@ class InlineFrameAssembler {
     {
         frameSize = ic.frameSize;
         funObjReg = ic.funObjReg;
-        tempRegs.takeReg(ic.funPtrReg);
         tempRegs.takeReg(funObjReg);
     }
 
@@ -137,7 +136,7 @@ class InlineFrameAssembler {
              * here to get the new frame pointer.
              */
             RegisterID newfp = tempRegs.takeAnyReg().reg();
-            masm.loadPtr(FrameAddress(offsetof(VMFrame, regs.sp)), newfp);
+            masm.loadPtr(FrameAddress(VMFrame::offsetOfRegsSp()), newfp);
 
             Address flagsAddr(newfp, StackFrame::offsetOfFlags());
             masm.store32(Imm32(flags), flagsAddr);

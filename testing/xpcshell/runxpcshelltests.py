@@ -162,10 +162,7 @@ class XPCShellTests(object):
     self.env["MOZ_CRASHREPORTER_NO_REPORT"] = "1"
     # Capturing backtraces is very slow on some platforms, and it's
     # disabled by automation.py too
-    if not (sys.platform == 'osx' or sys.platform == "darwin"):
-      # XXX automation.py has this odd special case; without it, bug
-      # 618052 seems to be exacerbated
-      self.env["NS_TRACE_MALLOC_DISABLE_STACKS"] = "1"
+    self.env["NS_TRACE_MALLOC_DISABLE_STACKS"] = "1"
 
     if sys.platform == 'win32':
       self.env["PATH"] = self.env["PATH"] + ";" + self.xrePath
@@ -222,7 +219,7 @@ class XPCShellTests(object):
     #   do_load_child_test_harness() in head.js
     if not self.appPath:
         self.appPath = self.xrePath
-    self.xpcsCmd = [self.xpcshell, '-g', self.xrePath, '-a', self.appPath, '-r', self.httpdManifest, '-j', '-s'] + \
+    self.xpcsCmd = [self.xpcshell, '-g', self.xrePath, '-a', self.appPath, '-r', self.httpdManifest, '-m', '-n', '-s'] + \
         ['-e', 'const _HTTPD_JS_PATH = "%s";' % self.httpdJSPath,
          '-e', 'const _HEAD_JS_PATH = "%s";' % self.headJSPath,
          '-f', os.path.join(self.testharnessdir, 'head.js')]
@@ -502,11 +499,15 @@ class XPCShellTests(object):
       # The test file will have to be loaded after the head files.
       cmdT = self.buildCmdTestFile(name)
 
+      args = self.xpcsRunArgs
+      if 'debug' in test:
+          args.insert(0, '-d')
+
       try:
         self.log.info("TEST-INFO | %s | running test ..." % name)
         startTime = time.time()
 
-        proc = self.launchProcess(cmdH + cmdT + self.xpcsRunArgs,
+        proc = self.launchProcess(cmdH + cmdT + args,
                     stdout=pStdout, stderr=pStderr, env=self.env, cwd=testdir)
 
         # Allow user to kill hung subprocess with SIGINT w/o killing this script

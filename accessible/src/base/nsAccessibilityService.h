@@ -83,12 +83,16 @@ public:
     CreateHTML4ButtonAccessible(nsIContent* aContent, nsIPresShell* aPresShell);
   virtual already_AddRefed<nsAccessible>
     CreateHTMLButtonAccessible(nsIContent* aContent, nsIPresShell* aPresShell);
+  already_AddRefed<nsAccessible>
+    CreateHTMLCanvasAccessible(nsIContent* aContent, nsIPresShell* aPresShell);
   virtual already_AddRefed<nsAccessible>
     CreateHTMLCaptionAccessible(nsIContent* aContent, nsIPresShell* aPresShell);
   virtual already_AddRefed<nsAccessible>
     CreateHTMLCheckboxAccessible(nsIContent* aContent, nsIPresShell* aPresShell);
   virtual already_AddRefed<nsAccessible>
     CreateHTMLComboboxAccessible(nsIContent* aContent, nsIPresShell* aPresShell);
+  already_AddRefed<nsAccessible>
+    CreateHTMLFileInputAccessible(nsIContent* aContent, nsIPresShell* aPresShell);
   virtual already_AddRefed<nsAccessible>
     CreateHTMLGroupboxAccessible(nsIContent* aContent, nsIPresShell* aPresShell);
   virtual already_AddRefed<nsAccessible>
@@ -420,7 +424,8 @@ static const char kRoleNames[][20] = {
   "flat equation",       //ROLE_FLAT_EQUATION
   "gridcell",            //ROLE_GRID_CELL
   "embedded object",     //ROLE_EMBEDDED_OBJECT
-  "note"                 //ROLE_NOTE
+  "note",                //ROLE_NOTE
+  "figure"               //ROLE_FIGURE
 };
 
 /**
@@ -473,7 +478,7 @@ static const char kEventTypeNames[][40] = {
   "document attributes changed",             // EVENT_DOCUMENT_ATTRIBUTES_CHANGED
   "document content changed",                // EVENT_DOCUMENT_CONTENT_CHANGED
   "property changed",                        // EVENT_PROPERTY_CHANGED
-  "selection changed",                       // EVENT_SELECTION_CHANGED
+  "page changed",                           // EVENT_PAGE_CHANGED
   "text attribute changed",                  // EVENT_TEXT_ATTRIBUTE_CHANGED
   "text caret moved",                        // EVENT_TEXT_CARET_MOVED
   "text changed",                            // EVENT_TEXT_CHANGED
@@ -514,7 +519,6 @@ static const char kEventTypeNames[][40] = {
   "hypertext changed",                       // EVENT_HYPERTEXT_CHANGED
   "hypertext links count changed",           // EVENT_HYPERTEXT_NLINKS_CHANGED
   "object attribute changed",                // EVENT_OBJECT_ATTRIBUTE_CHANGED
-  "page changed"                             // EVENT_PAGE_CHANGED
 };
 
 /**

@@ -45,7 +45,6 @@
 #include "nsGUIEvent.h"
 #include "nsIContent.h"
 #include "nsIRollupListener.h"
-#include "nsIMenuRollup.h"
 #include "nsIDOMEventListener.h"
 #include "nsPoint.h"
 #include "nsCOMPtr.h"
@@ -82,7 +81,6 @@ class nsMenuBarFrame;
 class nsMenuParent;
 class nsIDOMKeyEvent;
 class nsIDocShellTreeItem;
-class nsIView;
 
 // when a menu command is executed, the closemenu attribute may be used
 // to define how the menu should be closed up
@@ -302,7 +300,6 @@ private:
 };
 
 class nsXULPopupManager : public nsIDOMEventListener,
-                          public nsIMenuRollup,
                           public nsIRollupListener,
                           public nsITimerCallback,
                           public nsIObserver
@@ -319,12 +316,10 @@ public:
   NS_DECL_NSIDOMEVENTLISTENER
 
   // nsIRollupListener
-  NS_IMETHOD Rollup(PRUint32 aCount, nsIContent **aContent);
-  NS_IMETHOD ShouldRollupOnMouseWheelEvent(bool *aShould);
-  NS_IMETHOD ShouldRollupOnMouseActivate(bool *aShould);
-
+  virtual nsIContent* Rollup(PRUint32 aCount, bool aGetLastRolledUp = false);
+  virtual bool ShouldRollupOnMouseWheelEvent();
+  virtual bool ShouldRollupOnMouseActivate();
   virtual PRUint32 GetSubmenuWidgetChain(nsTArray<nsIWidget*> *aWidgetChain);
-  virtual void AdjustPopupsOnWindowChange(nsPIDOMWindow* aWindow);
 
   static nsXULPopupManager* sInstance;
 
@@ -335,6 +330,8 @@ public:
   // returns a weak reference to the popup manager instance, could return null
   // if a popup manager could not be allocated
   static nsXULPopupManager* GetInstance();
+
+  void AdjustPopupsOnWindowChange(nsPIDOMWindow* aWindow);
 
   // get the frame for a content node aContent if the frame's type
   // matches aFrameType. Otherwise, return null. If aShouldFlush is true,
@@ -480,9 +477,10 @@ public:
                  nsIContent* aLastPopup = nsnull);
 
   /**
-   * Hide the popup associated the view aView
+   * Hide the popup aFrame. This method is called by the view manager when the
+   * close button is pressed.
    */
-  void HidePopup(nsIView* aView);
+  void HidePopup(nsIFrame* aFrame);
 
   /**
    * Hide a popup after a short delay. This is used when rolling over menu items.
@@ -555,13 +553,13 @@ public:
    * Indicate that the popup associated with aView has been moved to the
    * specified screen coordiates.
    */
-  void PopupMoved(nsIView* aView, nsIntPoint aPoint);
+  void PopupMoved(nsIFrame* aFrame, nsIntPoint aPoint);
 
   /**
    * Indicate that the popup associated with aView has been resized to the
    * specified screen width and height.
    */
-  void PopupResized(nsIView* aView, nsIntSize ASize);
+  void PopupResized(nsIFrame* aFrame, nsIntSize ASize);
 
   /**
    * Called when a popup frame is destroyed. In this case, just remove the
@@ -789,8 +787,5 @@ protected:
   // popupshowing event
   nsCOMPtr<nsIContent> mOpeningPopup;
 };
-
-nsresult
-NS_NewXULPopupManager(nsISupports** aResult);
 
 #endif

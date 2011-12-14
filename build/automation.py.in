@@ -52,7 +52,6 @@ import sys
 import threading
 import tempfile
 import sqlite3
-import zipfile
 
 SCRIPT_DIR = os.path.abspath(os.path.realpath(os.path.dirname(sys.argv[0])))
 sys.path.insert(0, SCRIPT_DIR)
@@ -96,69 +95,6 @@ _log = logging.getLogger()
 handler = logging.StreamHandler(sys.stdout)
 _log.setLevel(logging.INFO)
 _log.addHandler(handler)
-
-
-class ZipFileReader(object):
-  """
-  Class to read zip files in Python 2.5 and later. Limited to only what we
-  actually use.
-  """
-
-  def __init__(self, filename):
-    self._zipfile = zipfile.ZipFile(filename, "r")
-
-  def __del__(self):
-    self._zipfile.close()
-
-  def _getnormalizedpath(self, path):
-    """
-    Gets a normalized path from 'path' (or the current working directory if
-    'path' is None). Also asserts that the path exists.
-    """
-    if path is None:
-      path = os.curdir
-    path = os.path.normpath(os.path.expanduser(path))
-    assert os.path.isdir(path)
-    return path
-
-  def _extractname(self, name, path):
-    """
-    Extracts a file with the given name from the zip file to the given path.
-    Also creates any directories needed along the way.
-    """
-    filename = os.path.normpath(os.path.join(path, name))
-    if name.endswith("/"):
-      os.makedirs(filename)
-    else:
-      path = os.path.split(filename)[0]
-      if not os.path.isdir(path):
-        os.makedirs(path)
-      with open(filename, "wb") as dest:
-        dest.write(self._zipfile.read(name))
-
-  def namelist(self):
-    return self._zipfile.namelist()
-
-  def read(self, name):
-    return self._zipfile.read(name)
-
-  def extract(self, name, path = None):
-    if hasattr(self._zipfile, "extract"):
-      return self._zipfile.extract(name, path)
-
-    # This will throw if name is not part of the zip file.
-    self._zipfile.getinfo(name)
-
-    self._extractname(name, self._getnormalizedpath(path))
-
-  def extractall(self, path = None):
-    if hasattr(self._zipfile, "extractall"):
-      return self._zipfile.extractall(path)
-
-    path = self._getnormalizedpath(path)
-
-    for name in self._zipfile.namelist():
-      self._extractname(name, path)
 
 
 #################
@@ -404,6 +340,7 @@ user_pref("browser.ui.layout.tablet", 0); // force tablet UI off
 user_pref("dom.allow_scripts_to_close_windows", true);
 user_pref("dom.disable_open_during_load", false);
 user_pref("dom.max_script_run_time", 0); // no slow script dialogs
+user_pref("hangmonitor.timeout", 0); // no hang monitor
 user_pref("dom.max_chrome_script_run_time", 0);
 user_pref("dom.popup_maximum", -1);
 user_pref("dom.send_after_paint_to_content", true);
@@ -418,10 +355,7 @@ user_pref("javascript.options.showInConsole", true);
 user_pref("devtools.errorconsole.enabled", true);
 user_pref("layout.debug.enable_data_xbl", true);
 user_pref("browser.EULA.override", true);
-user_pref("javascript.options.tracejit.content", true);
-user_pref("javascript.options.methodjit.content", true);
-user_pref("javascript.options.jitprofiling.content", true);
-user_pref("javascript.options.methodjit_always", false);
+user_pref("javascript.options.jit_hardening", true);
 user_pref("gfx.color_management.force_srgb", true);
 user_pref("network.manage-offline-status", false);
 user_pref("test.mousescroll", true);
@@ -432,7 +366,10 @@ user_pref("security.warn_viewing_mixed", false);
 user_pref("app.update.enabled", false);
 user_pref("browser.panorama.experienced_first_run", true); // Assume experienced
 user_pref("dom.w3c_touch_events.enabled", true);
-user_pref("toolkit.telemetry.prompted", true);
+user_pref("toolkit.telemetry.prompted", 2);
+// Existing tests assume there is no font size inflation.
+user_pref("font.size.inflation.emPerLine", 0);
+user_pref("font.size.inflation.minTwips", 0);
 
 // Only load extensions from the application and user profile
 // AddonManager.SCOPE_PROFILE + AddonManager.SCOPE_APPLICATION
@@ -588,6 +525,7 @@ user_pref("camino.use_system_proxy_settings", false); // Camino-only, harmless t
       if loc.scheme == "https" and "nocert" not in loc.options:
         customCertRE = re.compile("^cert=(?P<nickname>[0-9a-zA-Z_ ]+)")
         clientAuthRE = re.compile("^clientauth=(?P<clientauth>[a-z]+)")
+        redirRE      = re.compile("^redir=(?P<redirhost>[0-9a-zA-Z_ .]+)")
         for option in loc.options:
           match = customCertRE.match(option)
           if match:
@@ -600,6 +538,12 @@ user_pref("camino.use_system_proxy_settings", false); // Camino-only, harmless t
             clientauth = match.group("clientauth");
             sslTunnelConfig.write("clientauth:%s:%s:%s:%s\n" %
                       (loc.host, loc.port, self.sslPort, clientauth))
+
+          match = redirRE.match(option)
+          if match:
+            redirhost = match.group("redirhost")
+            sslTunnelConfig.write("redirhost:%s:%s:%s:%s\n" %
+                      (loc.host, loc.port, self.sslPort, redirhost))
 
     sslTunnelConfig.close()
 
@@ -658,12 +602,7 @@ user_pref("camino.use_system_proxy_settings", false); // Camino-only, harmless t
 
     env['GNOME_DISABLE_CRASH_DIALOG'] = '1'
     env['XRE_NO_WINDOWS_CRASH_DIALOG'] = '1'
-
-    # Don't do this for Mac since it makes the Mac OS X 10.5 (32-bit)
-    # trace-malloc leak test hang.  (It doesn't make the 10.6 (64-bit)
-    # leak test hang, though.)
-    if not self.IS_MAC:
-      env['NS_TRACE_MALLOC_DISABLE_STACKS'] = '1'
+    env['NS_TRACE_MALLOC_DISABLE_STACKS'] = '1'
     return env
 
   if IS_WIN32:
@@ -748,32 +687,56 @@ user_pref("camino.use_system_proxy_settings", false); // Camino-only, harmless t
     def killPid(self, pid):
       os.kill(pid, signal.SIGKILL)
 
-  if UNIXISH:
-    def dumpScreen(self, utilityPath):
-      self.haveDumpedScreen = True;
+  def dumpScreen(self, utilityPath):
+    self.haveDumpedScreen = True;
 
-      screentopng = os.path.join(utilityPath, "screentopng")
-      try:
-        dumper = self.Process([screentopng], bufsize=-1,
+    # Need to figure out what tool and whether it write to a file or stdout
+    if self.UNIXISH:
+      utility = [os.path.join(utilityPath, "screentopng")]
+      imgoutput = 'stdout'
+    elif self.IS_MAC:
+      utility = ['/usr/sbin/screencapture', '-C', '-x', '-t', 'png']
+      imgoutput = 'file'
+    elif self.IS_WIN32:
+      self.log.info("If you fixed bug 589668, you'd get a screenshot here")
+      return
+
+    # Run the capture correctly for the type of capture
+    try:
+      if imgoutput == 'file':
+        tmpfd, imgfilename = tempfile.mkstemp(prefix='mozilla-test-fail_')
+        os.close(tmpfd)
+        dumper = self.Process(utility + [imgfilename])
+      elif imgoutput == 'stdout':
+        dumper = self.Process(utility, bufsize=-1,
                               stdout=subprocess.PIPE, close_fds=True)
-      except OSError, err:
-        self.log.info("Failed to start %s for screenshot: %s",
-                      screentopng, err.strerror)
-        return
+    except OSError, err:
+      self.log.info("Failed to start %s for screenshot: %s",
+                    utility[0], err.strerror)
+      return
 
-      image = dumper.stdout.read()
-      status = dumper.wait()
-      if status != 0:
-        self.log.info("screentopng exited with code %d", status)
-        return
+    # Check whether the capture utility ran successfully
+    dumper_out, dumper_err = dumper.communicate()
+    if dumper.returncode != 0:
+      self.log.info("%s exited with code %d", utility, dumper.returncode)
+      return
 
-      import base64
-      encoded = base64.b64encode(image)
-      self.log.info("SCREENSHOT: data:image/png;base64,%s", encoded)
+    try:
+      if imgoutput == 'stdout':
+        image = dumper_out
+      elif imgoutput == 'file':
+        with open(imgfilename) as imgfile:
+          image = imgfile.read()
+    except IOError, err:
+        self.log.info("Failed to read image from %s", imgoutput)
+
+    import base64
+    encoded = base64.b64encode(image)
+    self.log.info("SCREENSHOT: data:image/png;base64,%s", encoded)
 
   def killAndGetStack(self, proc, utilityPath, debuggerInfo):
     """Kill the process, preferrably in a way that gets us a stack trace."""
-    if self.UNIXISH and not debuggerInfo and not self.haveDumpedScreen:
+    if not debuggerInfo and not self.haveDumpedScreen:
       self.dumpScreen(utilityPath)
 
     if self.CRASHREPORTER and not debuggerInfo:
@@ -829,7 +792,7 @@ user_pref("camino.use_system_proxy_settings", false); // Camino-only, harmless t
         if stackFixerFunction:
           line = stackFixerFunction(line)
         self.log.info(line.rstrip().decode("UTF-8", "ignore"))
-        if self.UNIXISH and not debuggerInfo and not self.haveDumpedScreen and "TEST-UNEXPECTED-FAIL" in line and "Test timed out" in line:
+        if not debuggerInfo and not self.haveDumpedScreen and "TEST-UNEXPECTED-FAIL" in line and "Test timed out" in line:
           self.dumpScreen(utilityPath)
 
         (line, didTimeout) = self.readWithTimeout(logsource, timeout)
@@ -1025,12 +988,12 @@ user_pref("camino.use_system_proxy_settings", false); // Camino-only, harmless t
 
     installRDFFilename = "install.rdf"
 
-    extensionsRootDir = os.path.join(profileDir, "extensions")
+    extensionsRootDir = os.path.join(profileDir, "extensions", "staged")
     if not os.path.isdir(extensionsRootDir):
-      os.mkdir(extensionsRootDir)
+      os.makedirs(extensionsRootDir)
 
     if os.path.isfile(extensionSource):
-      reader = ZipFileReader(extensionSource)
+      reader = automationutils.ZipFileReader(extensionSource)
 
       for filename in reader.namelist():
         # Sanity check the zip file.

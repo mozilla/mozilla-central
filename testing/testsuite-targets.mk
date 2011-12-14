@@ -41,8 +41,10 @@
 # replaces 'EXTRA_TEST_ARGS=--test-path=...'.
 ifdef TEST_PATH
 TEST_PATH_ARG := --test-path=$(TEST_PATH)
+PEPTEST_PATH_ARG := --test-path=$(TEST_PATH)
 else
 TEST_PATH_ARG :=
+PEPTEST_PATH_ARG := --test-path=_tests/peptest/tests/firefox/firefox_all.ini
 endif
 
 # include automation-build.mk to get the path to the binary
@@ -55,6 +57,10 @@ SYMBOLS_PATH := --symbols-path=$(DIST)/crashreporter-symbols
 MOCHITESTS := mochitest-plain mochitest-chrome mochitest-a11y mochitest-ipcplugins
 mochitest:: $(MOCHITESTS)
 
+ifndef TEST_PACKAGE_NAME
+TEST_PACKAGE_NAME := $(ANDROID_PACKAGE_NAME)
+endif
+
 RUN_MOCHITEST = \
 	rm -f ./$@.log && \
 	$(PYTHON) _tests/testing/mochitest/runtests.py --autorun --close-when-done \
@@ -65,7 +71,7 @@ RUN_MOCHITEST_REMOTE = \
 	rm -f ./$@.log && \
 	$(PYTHON) _tests/testing/mochitest/runtestsremote.py --autorun --close-when-done \
 	  --console-level=INFO --log-file=./$@.log --file-level=INFO $(DM_FLAGS) --dm_trans=$(DM_TRANS) \
-	  --app=$(ANDROID_PACKAGE_NAME) --deviceIP=${TEST_DEVICE} --xre-path=${MOZ_HOST_BIN} \
+	  --app=$(TEST_PACKAGE_NAME) --deviceIP=${TEST_DEVICE} --xre-path=${MOZ_HOST_BIN} \
 	  $(SYMBOLS_PATH) $(TEST_PATH_ARG) $(EXTRA_TEST_ARGS)
 
 ifndef NO_FAIL_ON_TEST_ERRORS
@@ -129,7 +135,7 @@ RUN_REFTEST = rm -f ./$@.log && $(PYTHON) _tests/reftest/runreftest.py \
 
 REMOTE_REFTEST = rm -f ./$@.log && $(PYTHON) _tests/reftest/remotereftest.py \
   --dm_trans=$(DM_TRANS) --ignore-window-size \
-  --app=$(ANDROID_PACKAGE_NAME) --deviceIP=${TEST_DEVICE} --xre-path=${MOZ_HOST_BIN} \
+  --app=$(TEST_PACKAGE_NAME) --deviceIP=${TEST_DEVICE} --xre-path=${MOZ_HOST_BIN} \
   $(SYMBOLS_PATH) $(EXTRA_TEST_ARGS) $(1) | tee ./$@.log
 
 ifeq ($(OS_ARCH),WINNT) #{
@@ -224,12 +230,22 @@ xpcshell-tests-remote:
           echo "please prepare your host with environment variables for TEST_DEVICE"; \
         fi
 
+# Runs peptest, for usage see: https://developer.mozilla.org/en/Peptest#Running_Tests
+RUN_PEPTEST = \
+	rm -f ./$@.log && \
+	$(PYTHON) _tests/peptest/runtests.py --binary=$(browser_path) $(PEPTEST_PATH_ARG) \
+	  --log-file=./$@.log $(SYMBOLS_PATH) $(EXTRA_TEST_ARGS)
+
+peptest:
+	$(RUN_PEPTEST)
+	$(CHECK_TEST_ERROR)
+
 # Package up the tests and test harnesses
 include $(topsrcdir)/toolkit/mozapps/installer/package-name.mk
 
 ifndef UNIVERSAL_BINARY
 PKG_STAGE = $(DIST)/test-package-stage
-package-tests: stage-mochitest stage-reftest stage-xpcshell stage-jstests stage-jetpack stage-firebug
+package-tests: stage-mochitest stage-reftest stage-xpcshell stage-jstests stage-jetpack stage-firebug stage-peptest stage-mozbase
 else
 # This staging area has been built for us by universal/flight.mk
 PKG_STAGE = $(DIST)/universal/test-package-stage
@@ -251,7 +267,7 @@ package-tests: stage-android
 endif
 
 make-stage-dir:
-	rm -rf $(PKG_STAGE) && $(NSINSTALL) -D $(PKG_STAGE) && $(NSINSTALL) -D $(PKG_STAGE)/bin && $(NSINSTALL) -D $(PKG_STAGE)/bin/components && $(NSINSTALL) -D $(PKG_STAGE)/certs && $(NSINSTALL) -D $(PKG_STAGE)/jetpack && $(NSINSTALL) -D $(PKG_STAGE)/firebug
+	rm -rf $(PKG_STAGE) && $(NSINSTALL) -D $(PKG_STAGE) && $(NSINSTALL) -D $(PKG_STAGE)/bin && $(NSINSTALL) -D $(PKG_STAGE)/bin/components && $(NSINSTALL) -D $(PKG_STAGE)/certs && $(NSINSTALL) -D $(PKG_STAGE)/jetpack && $(NSINSTALL) -D $(PKG_STAGE)/firebug && $(NSINSTALL) -D $(PKG_STAGE)/peptest && $(NSINSTALL) -D $(PKG_STAGE)/mozbase
 
 stage-mochitest: make-stage-dir
 	$(MAKE) -C $(DEPTH)/testing/mochitest stage-package
@@ -276,9 +292,16 @@ stage-jetpack: make-stage-dir
 
 stage-firebug: make-stage-dir
 	$(MAKE) -C $(DEPTH)/testing/firebug stage-package
+
+stage-peptest: make-stage-dir
+	$(MAKE) -C $(DEPTH)/testing/peptest stage-package
+
+stage-mozbase: make-stage-dir
+	$(MAKE) -C $(DEPTH)/testing/mozbase stage-package
 .PHONY: \
   mochitest mochitest-plain mochitest-chrome mochitest-a11y mochitest-ipcplugins \
   reftest crashtest \
   xpcshell-tests \
   jstestbrowser \
-  package-tests make-stage-dir stage-mochitest stage-reftest stage-xpcshell stage-jstests stage-android stage-jetpack stage-firebug
+  peptest \
+  package-tests make-stage-dir stage-mochitest stage-reftest stage-xpcshell stage-jstests stage-android stage-jetpack stage-firebug stage-peptest stage-mozbase

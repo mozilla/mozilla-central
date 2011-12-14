@@ -73,6 +73,13 @@ using mozilla::dom::StorageChild;
 #include "nsNetCID.h"
 #include "mozilla/Preferences.h"
 #include "nsThreadUtils.h"
+#include "mozilla/Telemetry.h"
+
+// calls FlushAndDeleteTemporaryTables(false)
+#define NS_DOMSTORAGE_FLUSH_TIMER_TOPIC "domstorage-flush-timer"
+
+// calls FlushAndDeleteTemporaryTables(true)
+#define NS_DOMSTORAGE_FLUSH_FORCE_TOPIC "domstorage-flush-force"
 
 using namespace mozilla;
 
@@ -253,9 +260,10 @@ nsDOMStorageManager::nsDOMStorageManager()
 {
 }
 
-NS_IMPL_ISUPPORTS2(nsDOMStorageManager,
+NS_IMPL_ISUPPORTS3(nsDOMStorageManager,
                    nsIDOMStorageManager,
-                   nsIObserver)
+                   nsIObserver,
+                   nsISupportsWeakReference)
 
 //static
 nsresult
@@ -281,16 +289,24 @@ nsDOMStorageManager::Initialize()
   if (!os)
     return NS_OK;
 
-  os->AddObserver(gStorageManager, "cookie-changed", false);
-  os->AddObserver(gStorageManager, "offline-app-removed", false);
-  os->AddObserver(gStorageManager, NS_PRIVATE_BROWSING_SWITCH_TOPIC, false);
-  os->AddObserver(gStorageManager, "profile-after-change", false);
-  os->AddObserver(gStorageManager, "perm-changed", false);
-  os->AddObserver(gStorageManager, "browser:purge-domain-data", false);
+  nsresult rv;
+  rv = os->AddObserver(gStorageManager, "cookie-changed", true);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = os->AddObserver(gStorageManager, "offline-app-removed", true);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = os->AddObserver(gStorageManager, NS_PRIVATE_BROWSING_SWITCH_TOPIC, true);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = os->AddObserver(gStorageManager, "profile-after-change", true);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = os->AddObserver(gStorageManager, "perm-changed", true);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = os->AddObserver(gStorageManager, "browser:purge-domain-data", true);
+  NS_ENSURE_SUCCESS(rv, rv);
   // Used for temporary table flushing
-  os->AddObserver(gStorageManager, "profile-before-change", false);
-  os->AddObserver(gStorageManager, NS_XPCOM_SHUTDOWN_OBSERVER_ID, false);
-  os->AddObserver(gStorageManager, NS_DOMSTORAGE_FLUSH_TIMER_OBSERVER, false);
+  rv = os->AddObserver(gStorageManager, "profile-before-change", true);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = os->AddObserver(gStorageManager, NS_DOMSTORAGE_FLUSH_TIMER_TOPIC, true);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
 }
@@ -312,6 +328,13 @@ nsDOMStorageManager::Shutdown()
   NS_IF_RELEASE(gStorageManager);
   gStorageManager = nsnull;
 
+  ShutdownDB();
+}
+
+//static
+void
+nsDOMStorageManager::ShutdownDB()
+{
   delete DOMStorageImpl::gStorageDB;
   DOMStorageImpl::gStorageDB = nsnull;
 }
@@ -440,7 +463,7 @@ nsDOMStorageManager::Observe(nsISupports *aSubject,
   } else if (!strcmp(aTopic, "timer-callback")) {
     nsCOMPtr<nsIObserverService> obsserv = mozilla::services::GetObserverService();
     if (obsserv)
-      obsserv->NotifyObservers(nsnull, NS_DOMSTORAGE_FLUSH_TIMER_OBSERVER, nsnull);
+      obsserv->NotifyObservers(nsnull, NS_DOMSTORAGE_FLUSH_TIMER_TOPIC, nsnull);
   } else if (!strcmp(aTopic, "browser:purge-domain-data")) {
     // Convert the domain name to the ACE format
     nsCAutoString aceDomain;
@@ -467,18 +490,28 @@ nsDOMStorageManager::Observe(nsISupports *aSubject,
     NS_ENSURE_SUCCESS(rv, rv);
 
     DOMStorageImpl::gStorageDB->RemoveOwner(aceDomain, true);
-  } else if (!strcmp(aTopic, "profile-before-change") || 
-             !strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID)) {
+  } else if (!strcmp(aTopic, "profile-before-change")) {
     if (DOMStorageImpl::gStorageDB) {
-      nsresult rv = DOMStorageImpl::gStorageDB->FlushAndDeleteTemporaryTables(true);
-      if (NS_FAILED(rv))
-        NS_WARNING("DOMStorage: temporary table commit failed");
+      DebugOnly<nsresult> rv =
+        DOMStorageImpl::gStorageDB->FlushAndDeleteTemporaryTables(true);
+      NS_WARN_IF_FALSE(NS_SUCCEEDED(rv),
+                       "DOMStorage: temporary table commit failed");
+      DOMStorageImpl::gStorageDB->Close();
+      nsDOMStorageManager::ShutdownDB();
     }
-  } else if (!strcmp(aTopic, NS_DOMSTORAGE_FLUSH_TIMER_OBSERVER)) {
+  } else if (!strcmp(aTopic, NS_DOMSTORAGE_FLUSH_TIMER_TOPIC)) {
     if (DOMStorageImpl::gStorageDB) {
-      nsresult rv = DOMStorageImpl::gStorageDB->FlushAndDeleteTemporaryTables(false);
-      if (NS_FAILED(rv))
-        NS_WARNING("DOMStorage: temporary table commit failed");
+      DebugOnly<nsresult> rv =
+        DOMStorageImpl::gStorageDB->FlushAndDeleteTemporaryTables(false);
+      NS_WARN_IF_FALSE(NS_SUCCEEDED(rv),
+                       "DOMStorage: temporary table commit failed");
+    }
+  } else if (!strcmp(aTopic, NS_DOMSTORAGE_FLUSH_FORCE_TOPIC)) {
+    if (DOMStorageImpl::gStorageDB) {
+      DebugOnly<nsresult> rv =
+        DOMStorageImpl::gStorageDB->FlushAndDeleteTemporaryTables(true);
+      NS_WARN_IF_FALSE(NS_SUCCEEDED(rv),
+                       "DOMStorage: temporary table commit failed");
     }
   }
 
@@ -1569,6 +1602,40 @@ nsDOMStorage::GetItem(const nsAString& aKey, nsAString &aData)
   return NS_OK;
 }
 
+static Telemetry::ID
+TelemetryIDForKey(nsPIDOMStorage::nsDOMStorageType type)
+{
+  switch (type) {
+  default:
+    MOZ_ASSERT(false);
+    // We need to return something to satisfy the compiler.
+    // Fallthrough.
+  case nsPIDOMStorage::GlobalStorage:
+    return Telemetry::GLOBALDOMSTORAGE_KEY_SIZE_BYTES;
+  case nsPIDOMStorage::LocalStorage:
+    return Telemetry::LOCALDOMSTORAGE_KEY_SIZE_BYTES;
+  case nsPIDOMStorage::SessionStorage:
+    return Telemetry::SESSIONDOMSTORAGE_KEY_SIZE_BYTES;
+  }
+}
+
+static Telemetry::ID
+TelemetryIDForValue(nsPIDOMStorage::nsDOMStorageType type)
+{
+  switch (type) {
+  default:
+    MOZ_ASSERT(false);
+    // We need to return something to satisfy the compiler.
+    // Fallthrough.
+  case nsPIDOMStorage::GlobalStorage:
+    return Telemetry::GLOBALDOMSTORAGE_VALUE_SIZE_BYTES;
+  case nsPIDOMStorage::LocalStorage:
+    return Telemetry::LOCALDOMSTORAGE_VALUE_SIZE_BYTES;
+  case nsPIDOMStorage::SessionStorage:
+    return Telemetry::SESSIONDOMSTORAGE_VALUE_SIZE_BYTES;
+  }
+}
+
 NS_IMETHODIMP
 nsDOMStorage::GetItem(const nsAString& aKey, nsIDOMStorageItem **aItem)
 {
@@ -1584,6 +1651,9 @@ nsDOMStorage::SetItem(const nsAString& aKey, const nsAString& aData)
 {
   if (!CacheStoragePermissions())
     return NS_ERROR_DOM_SECURITY_ERR;
+
+  Telemetry::Accumulate(TelemetryIDForKey(mStorageType), aKey.Length());
+  Telemetry::Accumulate(TelemetryIDForValue(mStorageType), aData.Length());
 
   nsString oldValue;
   nsresult rv = mStorageImpl->SetValue(IsCallerSecure(), aKey, aData, oldValue);

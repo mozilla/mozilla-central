@@ -52,7 +52,13 @@ EXTRA_PP_COMPONENTS = \
 		ConsoleAPI.manifest \
 		$(NULL)
 
+EXTRA_COMPONENTS = \
+	        Webapps.js \
+	        Webapps.manifest \
+		$(NULL)
+
 EXTRA_JS_MODULES = ConsoleAPIStorage.jsm \
+                Webapps.jsm \
 		$(NULL)
 
 XPIDLSRCS = \
@@ -122,6 +128,7 @@ CPPSRCS =			\
 	nsDOMNavigationTiming.cpp \
 	nsPerformance.cpp	\
 	nsDOMMemoryReporter.cpp \
+	Navigator.cpp \
 	$(NULL)
 
 include $(topsrcdir)/dom/dom-config.mk

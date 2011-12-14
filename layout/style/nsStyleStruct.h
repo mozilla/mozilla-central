@@ -158,6 +158,7 @@ public:
   PRUint8 mSize;   // NS_STYLE_GRADIENT_SIZE_*;
                    // not used (must be FARTHEST_CORNER) for linear shape
   bool mRepeating;
+  bool mToCorner;
 
   nsStyleCoord mBgPosX; // percent, coord, calc, none
   nsStyleCoord mBgPosY; // percent, coord, calc, none
@@ -1279,6 +1280,7 @@ struct nsStyleText {
   PRUint8 mWhiteSpace;                  // [inherited] see nsStyleConsts.h
   PRUint8 mWordWrap;                    // [inherited] see nsStyleConsts.h
   PRUint8 mHyphens;                     // [inherited] see nsStyleConsts.h
+  PRUint8 mTextSizeAdjust;              // [inherited] see nsStyleConsts.h
   PRInt32 mTabSize;                     // [inherited] see nsStyleConsts.h
 
   nsStyleCoord  mLetterSpacing;         // [inherited] coord, normal
@@ -1538,9 +1540,13 @@ struct nsStyleDisplay {
   float   mOpacity;             // [reset]
   PRUint8 mDisplay;             // [reset] see nsStyleConsts.h NS_STYLE_DISPLAY_*
   PRUint8 mOriginalDisplay;     // [reset] saved mDisplay for position:absolute/fixed
+                                //         and float:left/right; otherwise equal
+                                //         to mDisplay
   PRUint8 mAppearance;          // [reset]
   PRUint8 mPosition;            // [reset] see nsStyleConsts.h
   PRUint8 mFloats;              // [reset] see nsStyleConsts.h NS_STYLE_FLOAT_*
+  PRUint8 mOriginalFloats;      // [reset] saved mFloats for position:absolute/fixed;
+                                //         otherwise equal to mFloats
   PRUint8 mBreakType;           // [reset] see nsStyleConsts.h NS_STYLE_CLEAR_*
   bool mBreakBefore;    // [reset]
   bool mBreakAfter;     // [reset]

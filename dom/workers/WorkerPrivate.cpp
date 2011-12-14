@@ -538,6 +538,13 @@ struct MainThreadChromeWorkerStructuredCloneCallbacks
     AssertIsOnMainThread();
 
     JSObject* clone =
+      MainThreadWorkerStructuredCloneCallbacks::Read(aCx, aReader, aTag, aData,
+                                                     aClosure);
+    if (clone) {
+      return clone;
+    }
+
+    clone =
       ChromeWorkerStructuredCloneCallbacks::Read(aCx, aReader, aTag, aData,
                                                  aClosure);
     if (clone) {
@@ -554,14 +561,15 @@ struct MainThreadChromeWorkerStructuredCloneCallbacks
   {
     AssertIsOnMainThread();
 
-    JSBool ok =
-      ChromeWorkerStructuredCloneCallbacks::Write(aCx, aWriter, aObj, aClosure);
-    if (ok) {
-      return ok;
+    if (MainThreadWorkerStructuredCloneCallbacks::Write(aCx, aWriter, aObj,
+                                                        aClosure) ||
+        ChromeWorkerStructuredCloneCallbacks::Write(aCx, aWriter, aObj,
+                                                    aClosure) ||
+        NS_DOMWriteStructuredClone(aCx, aWriter, aObj, nsnull)) {
+      return true;
     }
 
-    JS_ClearPendingException(aCx);
-    return NS_DOMWriteStructuredClone(aCx, aWriter, aObj, nsnull);
+    return false;
   }
 
   static void
@@ -2082,69 +2090,62 @@ WorkerPrivateParent<Derived>::UpdateGCZeal(JSContext* aCx, PRUint8 aGCZeal)
 #endif
 
 template <class Derived>
-nsresult
+void
 WorkerPrivateParent<Derived>::SetBaseURI(nsIURI* aBaseURI)
 {
   AssertIsOnMainThread();
 
   mBaseURI = aBaseURI;
 
-  nsCOMPtr<nsIURL> url(do_QueryInterface(aBaseURI));
-  NS_ENSURE_TRUE(url, NS_ERROR_NO_INTERFACE);
+  if (NS_FAILED(aBaseURI->GetSpec(mLocationInfo.mHref))) {
+    mLocationInfo.mHref.Truncate();
+  }
 
-  nsresult rv = url->GetSpec(mLocationInfo.mHref);
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (NS_FAILED(aBaseURI->GetHost(mLocationInfo.mHostname))) {
+    mLocationInfo.mHostname.Truncate();
+  }
 
-  rv = url->GetHost(mLocationInfo.mHostname);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  rv = url->GetPath(mLocationInfo.mPathname);
-  NS_ENSURE_SUCCESS(rv, rv);
+  if (NS_FAILED(aBaseURI->GetPath(mLocationInfo.mPathname))) {
+    mLocationInfo.mPathname.Truncate();
+  }
 
   nsCString temp;
 
-  rv = url->GetQuery(temp);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if (!temp.IsEmpty()) {
+  nsCOMPtr<nsIURL> url(do_QueryInterface(aBaseURI));
+  if (url && NS_SUCCEEDED(url->GetQuery(temp)) && !temp.IsEmpty()) {
     mLocationInfo.mSearch.AssignLiteral("?");
     mLocationInfo.mSearch.Append(temp);
   }
 
-  rv = url->GetRef(temp);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if (!temp.IsEmpty()) {
-    nsAutoString unicodeRef;
-
+  if (NS_SUCCEEDED(aBaseURI->GetRef(temp)) && !temp.IsEmpty()) {
     nsCOMPtr<nsITextToSubURI> converter =
-      do_GetService(NS_ITEXTTOSUBURI_CONTRACTID, &rv);
-    if (NS_SUCCEEDED(rv)) {
+      do_GetService(NS_ITEXTTOSUBURI_CONTRACTID);
+    if (converter) {
       nsCString charset;
-      rv = url->GetOriginCharset(charset);
-      if (NS_SUCCEEDED(rv)) {
-        rv = converter->UnEscapeURIForUI(charset, temp, unicodeRef);
-        if (NS_SUCCEEDED(rv)) {
-          mLocationInfo.mHash.AssignLiteral("#");
-          mLocationInfo.mHash.Append(NS_ConvertUTF16toUTF8(unicodeRef));
-        }
+      nsAutoString unicodeRef;
+      if (NS_SUCCEEDED(aBaseURI->GetOriginCharset(charset)) &&
+          NS_SUCCEEDED(converter->UnEscapeURIForUI(charset, temp,
+                                                   unicodeRef))) {
+        mLocationInfo.mHash.AssignLiteral("#");
+        mLocationInfo.mHash.Append(NS_ConvertUTF16toUTF8(unicodeRef));
       }
     }
 
-    if (NS_FAILED(rv)) {
+    if (mLocationInfo.mHash.IsEmpty()) {
       mLocationInfo.mHash.AssignLiteral("#");
       mLocationInfo.mHash.Append(temp);
     }
   }
 
-  rv = url->GetScheme(mLocationInfo.mProtocol);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  mLocationInfo.mProtocol.AppendLiteral(":");
+  if (NS_SUCCEEDED(aBaseURI->GetScheme(mLocationInfo.mProtocol))) {
+    mLocationInfo.mProtocol.AppendLiteral(":");
+  }
+  else {
+    mLocationInfo.mProtocol.Truncate();
+  }
 
   PRInt32 port;
-  rv = url->GetPort(&port);
-  if (NS_SUCCEEDED(rv) && port != -1) {
+  if (NS_SUCCEEDED(aBaseURI->GetPort(&port)) && port != -1) {
     mLocationInfo.mPort.AppendInt(port);
 
     nsCAutoString host(mLocationInfo.mHostname);
@@ -2156,8 +2157,6 @@ WorkerPrivateParent<Derived>::SetBaseURI(nsIURI* aBaseURI)
   else {
     mLocationInfo.mHost.Assign(mLocationInfo.mHostname);
   }
-
-  return NS_OK;
 }
 
 template <class Derived>
@@ -3052,6 +3051,16 @@ WorkerPrivate::NotifyInternal(JSContext* aCx, Status aStatus)
     mStatus = aStatus;
   }
 
+  // Now that status > Running, no-one can create a new mCrossThreadDispatcher
+  // if we don't already have one.
+  if (mCrossThreadDispatcher) {
+    // Since we'll no longer process events, make sure we no longer allow
+    // anyone to post them.
+    // We have to do this without mMutex held, since our mutex must be
+    // acquired *after* mCrossThreadDispatcher's mutex when they're both held.
+    mCrossThreadDispatcher->Forget();
+  }
+
   NS_ASSERTION(previousStatus != Pending, "How is this possible?!");
 
   NS_ASSERTION(previousStatus >= Canceling || mKillTime.IsNull(),
@@ -3588,6 +3597,16 @@ WorkerPrivate::AssertIsOnWorkerThread() const
   }
 }
 #endif
+
+WorkerCrossThreadDispatcher*
+WorkerPrivate::GetCrossThreadDispatcher()
+{
+  mozilla::MutexAutoLock lock(mMutex);
+  if (!mCrossThreadDispatcher && mStatus <= Running) {
+    mCrossThreadDispatcher = new WorkerCrossThreadDispatcher(this);
+  }
+  return mCrossThreadDispatcher;
+}
 
 BEGIN_WORKERS_NAMESPACE
 

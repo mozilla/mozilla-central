@@ -48,7 +48,7 @@
  * http://www.w3.org/TR/DOM-Level-2-Events/
  */
 
-[scriptable, uuid(7e6cb6e1-d3ba-4e60-a6ff-96350187a1e3)]
+[scriptable, uuid(7f57aa45-6792-4d8b-ba5b-201533cf0b2f)]
 interface nsIDOMMouseEvent : nsIDOMUIEvent
 {
   readonly attribute long               screenX;
@@ -112,4 +112,20 @@ interface nsIDOMMouseEvent : nsIDOMUIEvent
                                        in nsIDOMEventTarget relatedTargetArg,
                                        in float pressure,
                                        in unsigned short inputSourceArg);
+};
+
+[scriptable, uuid(9495a977-5c9e-4b34-8d51-22bfd9b4fcf6)]
+interface nsIMouseEventInit : nsIUIEventInit
+{
+  attribute long screenX;
+  attribute long screenY;
+  attribute long clientX;
+  attribute long clientY;
+  attribute boolean ctrlKey;
+  attribute boolean shiftKey;
+  attribute boolean altKey;
+  attribute boolean metaKey;
+  attribute unsigned short button;
+  // attribute unsigned short buttons; is not supported yet.
+  attribute nsIDOMEventTarget relatedTarget;
 };

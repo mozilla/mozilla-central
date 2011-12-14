@@ -60,8 +60,6 @@ namespace ic {
 static const uint32 MAX_PIC_STUBS = 16;
 static const uint32 MAX_GETELEM_IC_STUBS = 17;
 
-void PurgePICs(JSContext *cx);
-
 enum LookupStatus {
     Lookup_Error = 0,
     Lookup_Uncacheable,
@@ -235,22 +233,22 @@ struct GetElementIC : public BasePolyIC {
     // This is only set if hasInlineTypeCheck() is true.
     unsigned inlineTypeGuard  : 8;
 
-    // Offset from the fast path to the inline clasp guard. This is always
+    // Offset from the fast path to the inline shape guard. This is always
     // set; if |id| is known to not be int32, then it's an unconditional
     // jump to the slow path.
-    unsigned inlineClaspGuard : 8;
+    unsigned inlineShapeGuard : 8;
 
     // This is usable if hasInlineTypeGuard() returns true, which implies
     // that a dense array fast path exists. The inline type guard serves as
     // the head of the chain of all string-based element stubs.
     bool inlineTypeGuardPatched : 1;
 
-    // This is always usable, and specifies whether the inline clasp guard
+    // This is always usable, and specifies whether the inline shape guard
     // has been patched. If hasInlineTypeGuard() is true, it guards against
     // a dense array, and guarantees the inline type guard has passed.
-    // Otherwise, there is no inline type guard, and the clasp guard is just
+    // Otherwise, there is no inline type guard, and the shape guard is just
     // an unconditional jump.
-    bool inlineClaspGuardPatched : 1;
+    bool inlineShapeGuardPatched : 1;
 
     ////////////////////////////////////////////
     // State for string-based property stubs. //
@@ -284,18 +282,18 @@ struct GetElementIC : public BasePolyIC {
     bool shouldPatchInlineTypeGuard() {
         return hasInlineTypeGuard() && !inlineTypeGuardPatched;
     }
-    bool shouldPatchUnconditionalClaspGuard() {
-        // The clasp guard is only unconditional if the type is known to not
+    bool shouldPatchUnconditionalShapeGuard() {
+        // The shape guard is only unconditional if the type is known to not
         // be an int32.
         if (idRemat.isTypeKnown() && idRemat.knownType() != JSVAL_TYPE_INT32)
-            return !inlineClaspGuardPatched;
+            return !inlineShapeGuardPatched;
         return false;
     }
 
     void reset() {
         BasePolyIC::reset();
         inlineTypeGuardPatched = false;
-        inlineClaspGuardPatched = false;
+        inlineShapeGuardPatched = false;
         typeRegHasBaseShape = false;
         hasLastStringStub = false;
     }
@@ -325,11 +323,11 @@ struct SetElementIC : public BaseIC {
     // Information on how to rematerialize |objReg|.
     int32 objRemat       : MIN_STATE_REMAT_BITS;
 
-    // Offset from the start of the fast path to the inline clasp guard.
-    unsigned inlineClaspGuard : 6;
+    // Offset from the start of the fast path to the inline shape guard.
+    unsigned inlineShapeGuard : 6;
 
-    // True if the clasp guard has been patched; false otherwise.
-    bool inlineClaspGuardPatched : 1;
+    // True if the shape guard has been patched; false otherwise.
+    bool inlineShapeGuardPatched : 1;
 
     // Offset from the start of the fast path to the inline hole guard.
     unsigned inlineHoleGuard : 8;
@@ -363,7 +361,7 @@ struct SetElementIC : public BaseIC {
         if (execPool != NULL)
             execPool->release();
         execPool = NULL;
-        inlineClaspGuardPatched = false;
+        inlineShapeGuardPatched = false;
         inlineHoleGuardPatched = false;
     }
     void purge(Repatcher &repatcher);
@@ -372,6 +370,7 @@ struct SetElementIC : public BaseIC {
     LookupStatus update(VMFrame &f, const Value &objval, const Value &idval);
     LookupStatus disable(JSContext *cx, const char *reason);
     LookupStatus error(JSContext *cx);
+    bool shouldUpdate(JSContext *cx);
 };
 
 struct PICInfo : public BasePolyIC {
@@ -491,12 +490,6 @@ struct PICInfo : public BasePolyIC {
         return !hasTypeCheck();
     }
 
-#if !defined JS_HAS_IC_LABELS
-    static GetPropLabels getPropLabels_;
-    static SetPropLabels setPropLabels_;
-    static BindNameLabels bindNameLabels_;
-    static ScopeNameLabels scopeNameLabels_;
-#else
     union {
         GetPropLabels getPropLabels_;
         SetPropLabels setPropLabels_;
@@ -519,7 +512,6 @@ struct PICInfo : public BasePolyIC {
         JS_ASSERT(kind == NAME || kind == CALLNAME || kind == XNAME);
         scopeNameLabels_ = labels;
     }
-#endif
 
     GetPropLabels &getPropLabels() {
         JS_ASSERT(isGet());
@@ -554,7 +546,6 @@ struct PICInfo : public BasePolyIC {
 };
 
 #ifdef JS_POLYIC
-void PurgePICs(JSContext *cx, JSScript *script);
 void JS_FASTCALL GetProp(VMFrame &f, ic::PICInfo *);
 void JS_FASTCALL GetPropNoCache(VMFrame &f, ic::PICInfo *);
 void JS_FASTCALL SetProp(VMFrame &f, ic::PICInfo *);

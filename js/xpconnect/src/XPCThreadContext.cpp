@@ -178,8 +178,8 @@ XPCJSContextStack::DEBUG_StackHasJSContext(JSContext*  aJSContext)
 {
     for (PRUint32 i = 0; i < mStack.Length(); i++)
         if (aJSContext == mStack[i].cx)
-            return JS_TRUE;
-    return JS_FALSE;
+            return true;
+    return false;
 }
 #endif
 
@@ -205,6 +205,11 @@ static JSClass global_class = {
     JS_EnumerateStub, SafeGlobalResolve, JS_ConvertStub, SafeFinalize,
     JSCLASS_NO_OPTIONAL_MEMBERS
 };
+
+// We just use the same reporter as the component loader
+// XXX #include angels cry.
+extern void
+mozJSLoaderErrorReporter(JSContext *cx, const char *message, JSErrorReport *rep);
 
 /* attribute JSContext safeJSContext; */
 NS_IMETHODIMP
@@ -237,6 +242,8 @@ XPCJSContextStack::GetSafeJSContext(JSContext * *aSafeJSContext)
             if (mSafeJSContext) {
                 // scoped JS Request
                 JSAutoRequest req(mSafeJSContext);
+
+                JS_SetErrorReporter(mSafeJSContext, mozJSLoaderErrorReporter);
 
                 // Because we can run off the main thread, we create an MT
                 // global object. Our principal is the unique key.
@@ -304,7 +311,7 @@ XPCPerThreadData::XPCPerThreadData()
         mResolvingWrapper(nsnull),
         mExceptionManager(nsnull),
         mException(nsnull),
-        mExceptionManagerNotAvailable(JS_FALSE),
+        mExceptionManagerNotAvailable(false),
         mAutoRoots(nsnull)
 #ifdef XPC_CHECK_WRAPPER_THREADSAFETY
       , mWrappedNativeThreadsafetyReportDepth(0)

@@ -96,7 +96,7 @@ JS_BEGIN_EXTERN_C
 /* Scalar typedefs. */
 typedef JSInt32   jsint;
 typedef JSUint32  jsuint;
-typedef float64   jsdouble;
+typedef double    jsdouble;
 typedef JSInt32   jsrefcount;   /* PRInt32 if JS_THREADSAFE, see jslock.h */
 
 #ifdef WIN32
@@ -201,6 +201,7 @@ typedef enum {
     JSTRACE_XML,
 #endif
     JSTRACE_SHAPE,
+    JSTRACE_BASE_SHAPE,
     JSTRACE_TYPE_OBJECT,
     JSTRACE_LAST = JSTRACE_TYPE_OBJECT
 } JSGCTraceKind;

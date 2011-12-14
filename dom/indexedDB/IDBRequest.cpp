@@ -41,7 +41,6 @@
 #include "IDBRequest.h"
 
 #include "nsIScriptContext.h"
-#include "nsIVariant.h"
 
 #include "nsComponentManagerUtils.h"
 #include "nsDOMClassInfoID.h"
@@ -77,10 +76,6 @@ IDBRequest::~IDBRequest()
     // call a subclass' implementation because mResultValRooted will be set to
     // false.
     UnrootResultVal();
-  }
-
-  if (mListenerManager) {
-    mListenerManager->Disconnect();
   }
 }
 
@@ -121,7 +116,7 @@ IDBRequest::Reset()
 }
 
 nsresult
-IDBRequest::SetDone(AsyncConnectionHelper* aHelper)
+IDBRequest::NotifyHelperCompleted(HelperBase* aHelper)
 {
   NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
   NS_ASSERTION(!mHaveResultOrErrorCode, "Already called!");
@@ -148,7 +143,7 @@ IDBRequest::SetDone(AsyncConnectionHelper* aHelper)
   JSContext* cx = mScriptContext->GetNativeContext();
   NS_ASSERTION(cx, "Failed to get a context!");
 
-  JSObject* global = static_cast<JSObject*>(mScriptContext->GetNativeGlobal());
+  JSObject* global = mScriptContext->GetNativeGlobal();
   NS_ASSERTION(global, "Failed to get global object!");
 
   JSAutoRequest ar(cx);
@@ -203,12 +198,10 @@ IDBRequest::GetReadyState(PRUint16* aReadyState)
 {
   NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
 
-  if (mHaveResultOrErrorCode) {
-    *aReadyState = nsIIDBRequest::DONE;
-  }
-  else {
-    *aReadyState = nsIIDBRequest::LOADING;
-  }
+  *aReadyState = mHaveResultOrErrorCode ?
+                 nsIIDBRequest::DONE :
+                 nsIIDBRequest::LOADING;
+
   return NS_OK;
 }
 
@@ -345,7 +338,7 @@ IDBRequest::PreHandleEvent(nsEventChainPreVisitor& aVisitor)
   return NS_OK;
 }
 
-IDBVersionChangeRequest::~IDBVersionChangeRequest()
+IDBOpenDBRequest::~IDBOpenDBRequest()
 {
   NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
 
@@ -355,11 +348,9 @@ IDBVersionChangeRequest::~IDBVersionChangeRequest()
 }
 
 // static
-already_AddRefed<IDBVersionChangeRequest>
-IDBVersionChangeRequest::Create(nsISupports* aSource,
-                                nsIScriptContext* aScriptContext,
-                                nsPIDOMWindow* aOwner,
-                                IDBTransaction* aTransaction)
+already_AddRefed<IDBOpenDBRequest>
+IDBOpenDBRequest::Create(nsIScriptContext* aScriptContext,
+                         nsPIDOMWindow* aOwner)
 {
   NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
 
@@ -368,10 +359,8 @@ IDBVersionChangeRequest::Create(nsISupports* aSource,
     return nsnull;
   }
 
-  nsRefPtr<IDBVersionChangeRequest> request(new IDBVersionChangeRequest());
+  nsRefPtr<IDBOpenDBRequest> request(new IDBOpenDBRequest());
 
-  request->mSource = aSource;
-  request->mTransaction = aTransaction;
   request->mScriptContext = aScriptContext;
   request->mOwner = aOwner;
 
@@ -379,52 +368,50 @@ IDBVersionChangeRequest::Create(nsISupports* aSource,
 }
 
 void
-IDBVersionChangeRequest::RootResultVal()
+IDBOpenDBRequest::SetTransaction(IDBTransaction* aTransaction)
+{
+  mTransaction = aTransaction;
+}
+
+void
+IDBOpenDBRequest::RootResultVal()
 {
   NS_ASSERTION(!mResultValRooted, "This should be false!");
-  NS_HOLD_JS_OBJECTS(this, IDBVersionChangeRequest);
+  NS_HOLD_JS_OBJECTS(this, IDBOpenDBRequest);
   mResultValRooted = true;
 }
 
 void
-IDBVersionChangeRequest::UnrootResultVal()
+IDBOpenDBRequest::UnrootResultVal()
 {
   NS_ASSERTION(mResultValRooted, "This should be true!");
-  NS_DROP_JS_OBJECTS(this, IDBVersionChangeRequest);
+  NS_DROP_JS_OBJECTS(this, IDBOpenDBRequest);
   mResultValRooted = false;
 }
 
-NS_IMETHODIMP
-IDBVersionChangeRequest::SetOnblocked(nsIDOMEventListener* aBlockedListener)
-{
-  return RemoveAddEventListener(NS_LITERAL_STRING(BLOCKED_EVT_STR),
-                                mOnBlockedListener, aBlockedListener);
-}
+NS_IMPL_EVENT_HANDLER(IDBOpenDBRequest, blocked)
+NS_IMPL_EVENT_HANDLER(IDBOpenDBRequest, upgradeneeded)
 
-NS_IMETHODIMP
-IDBVersionChangeRequest::GetOnblocked(nsIDOMEventListener** aBlockedListener)
-{
-  return GetInnerEventListener(mOnBlockedListener, aBlockedListener);
-}
+NS_IMPL_CYCLE_COLLECTION_CLASS(IDBOpenDBRequest)
 
-NS_IMPL_CYCLE_COLLECTION_CLASS(IDBVersionChangeRequest)
-
-NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(IDBVersionChangeRequest,
+NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(IDBOpenDBRequest,
                                                   IDBRequest)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mOnBlockedListener)
+  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mOnupgradeneededListener)
+  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mOnblockedListener)
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
-NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN_INHERITED(IDBVersionChangeRequest,
+NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN_INHERITED(IDBOpenDBRequest,
                                                 IDBRequest)
-  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mOnBlockedListener)
+  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mOnupgradeneededListener)
+  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mOnblockedListener)
 NS_IMPL_CYCLE_COLLECTION_UNLINK_END
 
-NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(IDBVersionChangeRequest)
-  NS_INTERFACE_MAP_ENTRY(nsIIDBVersionChangeRequest)
-  NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(IDBVersionChangeRequest)
+NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(IDBOpenDBRequest)
+  NS_INTERFACE_MAP_ENTRY(nsIIDBOpenDBRequest)
+  NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(IDBOpenDBRequest)
 NS_INTERFACE_MAP_END_INHERITING(IDBRequest)
 
-NS_IMPL_ADDREF_INHERITED(IDBVersionChangeRequest, IDBRequest)
-NS_IMPL_RELEASE_INHERITED(IDBVersionChangeRequest, IDBRequest)
+NS_IMPL_ADDREF_INHERITED(IDBOpenDBRequest, IDBRequest)
+NS_IMPL_RELEASE_INHERITED(IDBOpenDBRequest, IDBRequest)
 
-DOMCI_DATA(IDBVersionChangeRequest, IDBVersionChangeRequest)
+DOMCI_DATA(IDBOpenDBRequest, IDBOpenDBRequest)

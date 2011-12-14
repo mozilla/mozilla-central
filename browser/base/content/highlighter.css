@@ -12,10 +12,10 @@
   overflow: hidden;
 }
 
-#highlighter-veil-container:not([locked]) > .highlighter-veil,
-#highlighter-veil-container:not([locked]) > #highlighter-veil-middlebox,
-#highlighter-veil-container:not([locked]) > #highlighter-veil-middlebox > .highlighter-veil,
-#highlighter-veil-container:not([locked]) > #highlighter-veil-middlebox > #highlighter-veil-transparentbox {
+#highlighter-veil-container:not([disable-transitions]) > .highlighter-veil,
+#highlighter-veil-container:not([disable-transitions]) > #highlighter-veil-middlebox,
+#highlighter-veil-container:not([disable-transitions]) > #highlighter-veil-middlebox > .highlighter-veil,
+#highlighter-veil-container:not([disable-transitions]) > #highlighter-veil-middlebox > #highlighter-veil-transparentbox {
   -moz-transition-property: width, height;
   -moz-transition-duration: 0.1s;
   -moz-transition-timing-function: linear;
@@ -30,10 +30,17 @@
   -moz-box-direction: reverse;
 }
 
-#highlighter-close-button {
-  position: absolute;
-  pointer-events: auto;
-  z-index: 1;
+.inspector-breadcrumbs-button {
+  direction: ltr;
+}
+
+.inspector-resizer {
+  display: none;
+}
+
+#inspector-toolbar[treepanel-open] > vbox > #inspector-top-resizer,
+#inspector-toolbar[treepanel-open] > vbox > hbox > #inspector-end-resizer {
+  display: -moz-box;
 }
 
 /*
@@ -44,7 +51,7 @@
   position: absolute;
 }
 
-#highlighter-nodeinfobar-container:not([locked]) {
+#highlighter-nodeinfobar-container:not([disable-transitions]) {
   -moz-transition-property: top, left;
   -moz-transition-duration: 0.1s;
   -moz-transition-timing-function: linear;
@@ -54,6 +61,17 @@
   display: block;
   white-space: nowrap;
   direction: ltr;
+}
+
+#highlighter-nodeinfobar-container[locked] > #highlighter-nodeinfobar {
+  pointer-events: auto;
+}
+
+#highlighter-nodeinfobar-id,
+.highlighter-nodeinfobar-class,
+#highlighter-nodeinfobar-tagname {
+  -moz-user-select: text;
+  cursor: text;
 }
 
 .highlighter-nodeinfobar-arrow {
@@ -74,14 +92,6 @@
 
 #highlighter-nodeinfobar-id:empty {
   display: none;
-}
-
-#highlighter-nodeinfobar-id::before {
-  content: "#";
-}
-
-.highlighter-nodeinfobar-class::before {
-  content: ".";
 }
 
 #highlighter-nodeinfobar-tagname {

@@ -42,7 +42,6 @@
 
 #include "mozilla/dom/indexedDB/IndexedDatabase.h"
 #include "mozilla/dom/indexedDB/IDBTransaction.h"
-#include "mozilla/dom/indexedDB/Key.h"
 
 #include "nsIIDBObjectStore.h"
 #include "nsIIDBTransaction.h"
@@ -55,6 +54,7 @@ class nsPIDOMWindow;
 BEGIN_INDEXEDDB_NAMESPACE
 
 class AsyncConnectionHelper;
+class Key;
 
 struct ObjectStoreInfo;
 struct IndexInfo;
@@ -72,32 +72,17 @@ public:
   Create(IDBTransaction* aTransaction,
          const ObjectStoreInfo* aInfo);
 
-  static nsresult
-  GetKeyFromVariant(nsIVariant* aKeyVariant,
-                    Key& aKey);
+  static bool
+  IsValidKeyPath(JSContext* aCx, const nsAString& aKeyPath);
 
   static nsresult
-  GetKeyFromJSVal(jsval aKeyVal,
-                  JSContext* aCx,
-                  Key& aKey);
-
-  static nsresult
-  GetJSValFromKey(const Key& aKey,
-                  JSContext* aCx,
-                  jsval* aKeyVal);
-
-  static nsresult
-  GetKeyPathValueFromStructuredData(const PRUint8* aData,
-                                    PRUint32 aDataLength,
-                                    const nsAString& aKeyPath,
-                                    JSContext* aCx,
-                                    Key& aValue);
-
-  static nsresult
-  GetIndexUpdateInfo(ObjectStoreInfo* aObjectStoreInfo,
-                     JSContext* aCx,
-                     jsval aObject,
-                     nsTArray<IndexUpdateInfo>& aUpdateInfoArray);
+  AppendIndexUpdateInfo(PRInt64 aIndexID,
+                        const nsAString& aKeyPath,
+                        bool aUnique,
+                        bool aMultiEntry,
+                        JSContext* aCx,
+                        jsval aObject,
+                        nsTArray<IndexUpdateInfo>& aUpdateInfoArray);
 
   static nsresult
   UpdateIndexes(IDBTransaction* aTransaction,
@@ -156,6 +141,11 @@ public:
     return mKeyPath;
   }
 
+  const bool HasKeyPath() const
+  {
+    return !mKeyPath.IsVoid();
+  }
+
   IDBTransaction* Transaction()
   {
     return mTransaction;
@@ -194,7 +184,7 @@ private:
   nsString mName;
   nsString mKeyPath;
   bool mAutoIncrement;
-  PRUint32 mDatabaseId;
+  nsCOMPtr<nsIAtom> mDatabaseId;
   PRUint32 mStructuredCloneVersion;
 
   nsTArray<nsRefPtr<IDBIndex> > mCreatedIndexes;

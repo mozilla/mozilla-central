@@ -50,6 +50,9 @@
 #include "nsIMemoryReporter.h"
 #include "nsThreadUtils.h"
 #include "nsILocalFile.h"
+#include "mozilla/Telemetry.h"
+#include "mozilla/Mutex.h"
+#include "mozilla/CondVar.h"
 
 #include "mozIStorageAggregateFunction.h"
 #include "mozIStorageCompletionCallback.h"
@@ -71,6 +74,13 @@
 #include "prprf.h"
 
 #define MIN_AVAILABLE_BYTES_PER_CHUNKED_GROWTH 524288000 // 500 MiB
+
+// Maximum size of the pages cache per connection.  If the default cache_size
+// value evaluates to a larger size, it will be reduced to save memory.
+#define MAX_CACHE_SIZE_BYTES 4194304 // 4 MiB
+
+// Default maximum number of pages to allow in the connection pages cache.
+#define DEFAULT_CACHE_SIZE_PAGES 2000
 
 #ifdef PR_LOGGING
 PRLogModuleInfo* gStorageLog = nsnull;
@@ -271,6 +281,66 @@ aggregateFunctionFinalHelper(sqlite3_context *aCtx)
   }
 }
 
+/**
+ * This code is heavily based on the sample at:
+ *   http://www.sqlite.org/unlock_notify.html
+ */
+class UnlockNotification
+{
+public:
+  UnlockNotification()
+  : mMutex("UnlockNotification mMutex")
+  , mCondVar(mMutex, "UnlockNotification condVar")
+  , mSignaled(false)
+  {
+  }
+
+  void Wait()
+  {
+    MutexAutoLock lock(mMutex);
+    while (!mSignaled) {
+      (void)mCondVar.Wait();
+    }
+  }
+
+  void Signal()
+  {
+    MutexAutoLock lock(mMutex);
+    mSignaled = true;
+    (void)mCondVar.Notify();
+  }
+
+private:
+  Mutex mMutex;
+  CondVar mCondVar;
+  bool mSignaled;
+};
+
+void
+UnlockNotifyCallback(void **aArgs,
+                     int aArgsSize)
+{
+  for (int i = 0; i < aArgsSize; i++) {
+    UnlockNotification *notification =
+      static_cast<UnlockNotification *>(aArgs[i]);
+    notification->Signal();
+  }
+}
+
+int
+WaitForUnlockNotify(sqlite3* aDatabase)
+{
+  UnlockNotification notification;
+  int srv = ::sqlite3_unlock_notify(aDatabase, UnlockNotifyCallback,
+                                    &notification);
+  MOZ_ASSERT(srv == SQLITE_LOCKED || srv == SQLITE_OK);
+  if (srv == SQLITE_OK) {
+    notification.Wait();
+  }
+
+  return srv;
+}
+
 } // anonymous namespace
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -460,6 +530,7 @@ Connection::Connection(Service *aService,
 , mStorageService(aService)
 {
   mFunctions.Init();
+  mStorageService->registerConnection(this);
 }
 
 Connection::~Connection()
@@ -478,11 +549,34 @@ Connection::~Connection()
   }
 }
 
-NS_IMPL_THREADSAFE_ISUPPORTS2(
+NS_IMPL_THREADSAFE_ADDREF(Connection)
+NS_IMPL_THREADSAFE_QUERY_INTERFACE2(
   Connection,
   mozIStorageConnection,
   nsIInterfaceRequestor
 )
+
+// This is identical to what NS_IMPL_THREADSAFE_RELEASE provides, but with the
+// extra |1 == count| case.
+NS_IMETHODIMP_(nsrefcnt) Connection::Release(void)
+{
+  NS_PRECONDITION(0 != mRefCnt, "dup release");
+  nsrefcnt count = NS_AtomicDecrementRefcnt(mRefCnt);
+  NS_LOG_RELEASE(this, count, "Connection");
+  if (1 == count) {
+    // If the refcount is 1, the single reference must be from
+    // gService->mConnections (in class |Service|).  Which means we can
+    // unregister it safely.
+    mStorageService->unregisterConnection(this);
+  } else if (0 == count) {
+    mRefCnt = 1; /* stabilize */
+    /* enable this to find non-threadsafe destructors: */
+    /* NS_ASSERT_OWNINGTHREAD(Connection); */
+    delete (this);
+    return 0;
+  }
+  return count;
+}
 
 nsIEventTarget *
 Connection::getAsyncExecutionTarget()
@@ -548,14 +642,37 @@ Connection::initialize(nsIFile *aDatabaseFile,
   PR_LOG(gStorageLog, PR_LOG_NOTICE, ("Opening connection to '%s' (%p)",
                                       leafName.get(), this));
 #endif
-  // Switch db to preferred page size in case the user vacuums.
+
+  // Set page_size to the preferred default value.  This is effective only if
+  // the database has just been created, otherwise, if the database does not
+  // use WAL journal mode, a VACUUM operation will updated its page_size.
+  PRInt64 pageSize = DEFAULT_PAGE_SIZE;
+  nsCAutoString pageSizeQuery("PRAGMA page_size = ");
+  pageSizeQuery.AppendInt(pageSize);
+  rv = ExecuteSimpleSQL(pageSizeQuery);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // Get the current page_size, since it may differ from the specified value.
   sqlite3_stmt *stmt;
-  nsCAutoString pageSizeQuery(NS_LITERAL_CSTRING("PRAGMA page_size = "));
-  pageSizeQuery.AppendInt(DEFAULT_PAGE_SIZE);
-  srv = prepareStmt(mDBConn, pageSizeQuery, &stmt);
+  srv = prepareStatement(NS_LITERAL_CSTRING("PRAGMA page_size"), &stmt);
   if (srv == SQLITE_OK) {
-    (void)stepStmt(stmt);
+    if (SQLITE_ROW == stepStatement(stmt)) {
+      pageSize = ::sqlite3_column_int64(stmt, 0);
+    }
     (void)::sqlite3_finalize(stmt);
+  }
+
+  // Setting the cache_size forces the database open, verifying if it is valid
+  // or corrupt.  So this is executed regardless it being actually needed.
+  // The cache_size is calculated from the actual page_size, to save memory.
+  nsCAutoString cacheSizeQuery("PRAGMA cache_size = ");
+  cacheSizeQuery.AppendInt(NS_MIN(DEFAULT_CACHE_SIZE_PAGES,
+                                  PRInt32(MAX_CACHE_SIZE_BYTES / pageSize)));
+  srv = ::sqlite3_exec(mDBConn, cacheSizeQuery.get(), NULL, NULL, NULL);
+  if (srv != SQLITE_OK) {
+    ::sqlite3_close(mDBConn);
+    mDBConn = nsnull;
+    return convertResultCode(srv);
   }
 
   // Register our built-in SQL functions.
@@ -571,25 +688,6 @@ Connection::initialize(nsIFile *aDatabaseFile,
   if (srv != SQLITE_OK) {
     ::sqlite3_close(mDBConn);
     mDBConn = nsnull;
-    return convertResultCode(srv);
-  }
-
-  // Execute a dummy statement to force the db open, and to verify if it is
-  // valid or not.
-  srv = prepareStmt(mDBConn, NS_LITERAL_CSTRING("SELECT * FROM sqlite_master"),
-                    &stmt);
-  if (srv == SQLITE_OK) {
-    srv = stepStmt(stmt);
-
-    if (srv == SQLITE_DONE || srv == SQLITE_ROW)
-        srv = SQLITE_OK;
-    ::sqlite3_finalize(stmt);
-  }
-
-  if (srv != SQLITE_OK) {
-    ::sqlite3_close(mDBConn);
-    mDBConn = nsnull;
-
     return convertResultCode(srv);
   }
 
@@ -656,11 +754,11 @@ Connection::databaseElementExists(enum DatabaseElementType aElementType,
   query.Append("'");
 
   sqlite3_stmt *stmt;
-  int srv = prepareStmt(mDBConn, query, &stmt);
+  int srv = prepareStatement(query, &stmt);
   if (srv != SQLITE_OK)
     return convertResultCode(srv);
 
-  srv = stepStmt(stmt);
+  srv = stepStatement(stmt);
   // we just care about the return value from step
   (void)::sqlite3_finalize(stmt);
 
@@ -791,6 +889,90 @@ Connection::getFilename()
   return leafname;
 }
 
+int
+Connection::stepStatement(sqlite3_stmt *aStatement)
+{
+  bool checkedMainThread = false;
+  TimeStamp startTime = TimeStamp::Now();
+
+  (void)::sqlite3_extended_result_codes(mDBConn, 1);
+
+  int srv;
+  while ((srv = ::sqlite3_step(aStatement)) == SQLITE_LOCKED_SHAREDCACHE) {
+    if (!checkedMainThread) {
+      checkedMainThread = true;
+      if (::NS_IsMainThread()) {
+        NS_WARNING("We won't allow blocking on the main thread!");
+        break;
+      }
+    }
+
+    srv = WaitForUnlockNotify(mDBConn);
+    if (srv != SQLITE_OK) {
+      break;
+    }
+
+    ::sqlite3_reset(aStatement);
+  }
+
+  // Report very slow SQL statements to Telemetry
+  TimeDuration duration = TimeStamp::Now() - startTime;
+  if (duration.ToMilliseconds() >= Telemetry::kSlowStatementThreshold) {
+    nsDependentCString statementString(::sqlite3_sql(aStatement));
+    Telemetry::RecordSlowSQLStatement(statementString, getFilename(),
+                                      duration.ToMilliseconds());
+  }
+
+  (void)::sqlite3_extended_result_codes(mDBConn, 0);
+  // Drop off the extended result bits of the result code.
+  return srv & 0xFF;
+}
+
+int
+Connection::prepareStatement(const nsCString &aSQL,
+                             sqlite3_stmt **_stmt)
+{
+  bool checkedMainThread = false;
+
+  (void)::sqlite3_extended_result_codes(mDBConn, 1);
+
+  int srv;
+  while((srv = ::sqlite3_prepare_v2(mDBConn, aSQL.get(), -1, _stmt, NULL)) ==
+        SQLITE_LOCKED_SHAREDCACHE) {
+    if (!checkedMainThread) {
+      checkedMainThread = true;
+      if (::NS_IsMainThread()) {
+        NS_WARNING("We won't allow blocking on the main thread!");
+        break;
+      }
+    }
+
+    srv = WaitForUnlockNotify(mDBConn);
+    if (srv != SQLITE_OK) {
+      break;
+    }
+  }
+
+  if (srv != SQLITE_OK) {
+    nsCString warnMsg;
+    warnMsg.AppendLiteral("The SQL statement '");
+    warnMsg.Append(aSQL);
+    warnMsg.AppendLiteral("' could not be compiled due to an error: ");
+    warnMsg.Append(::sqlite3_errmsg(mDBConn));
+
+#ifdef DEBUG
+    NS_WARNING(warnMsg.get());
+#endif
+#ifdef PR_LOGGING
+    PR_LOG(gStorageLog, PR_LOG_ERROR, ("%s", warnMsg.get()));
+#endif
+  }
+
+  (void)::sqlite3_extended_result_codes(mDBConn, 0);
+  // Drop off the extended result bits of the result code.
+  return srv & 0xFF;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //// nsIInterfaceRequestor
 
@@ -881,6 +1063,36 @@ Connection::Clone(bool aReadOnly,
 
   nsresult rv = clone->initialize(mDatabaseFile);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  // Copy over pragmas from the original connection.
+  static const char * pragmas[] = {
+    "cache_size",
+    "temp_store",
+    "foreign_keys",
+    "journal_size_limit",
+    "synchronous",
+    "wal_autocheckpoint",
+  };
+  for (PRUint32 i = 0; i < ArrayLength(pragmas); ++i) {
+    // Read-only connections just need cache_size and temp_store pragmas.
+    if (aReadOnly && ::strcmp(pragmas[i], "cache_size") != 0 &&
+                     ::strcmp(pragmas[i], "temp_store") != 0) {
+      continue;
+    }
+
+    nsCAutoString pragmaQuery("PRAGMA ");
+    pragmaQuery.Append(pragmas[i]);
+    nsCOMPtr<mozIStorageStatement> stmt;
+    rv = CreateStatement(pragmaQuery, getter_AddRefs(stmt));
+    MOZ_ASSERT(NS_SUCCEEDED(rv));
+    bool hasResult = false;
+    if (stmt && NS_SUCCEEDED(stmt->ExecuteStep(&hasResult)) && hasResult) {
+      pragmaQuery.AppendLiteral(" = ");
+      pragmaQuery.AppendInt(stmt->AsInt32(0));
+      rv = clone->ExecuteSimpleSQL(pragmaQuery);
+      MOZ_ASSERT(NS_SUCCEEDED(rv));
+    }
+  }
 
   // Copy any functions that have been added to this connection.
   (void)mFunctions.EnumerateRead(copyFunctionEnumerator, clone);

@@ -86,7 +86,6 @@
 #include "nsIFrameTraversal.h"
 #include "nsLayoutCID.h"
 #include "nsStyleSheetService.h"
-#include "nsXULPopupManager.h"
 #include "nsFocusManager.h"
 #include "ThirdPartyUtil.h"
 #include "mozilla/Services.h"
@@ -129,6 +128,16 @@
 
 using mozilla::dom::indexedDB::IndexedDatabaseManager;
 
+#ifdef MOZ_B2G_RIL
+#include "RadioManager.h"
+using mozilla::dom::telephony::RadioManager;
+#include "nsITelephone.h"
+#endif
+#ifdef MOZ_WIDGET_GONK
+#include "AudioManager.h"
+using mozilla::dom::telephony::AudioManager;
+#endif
+
 // Editor stuff
 #include "nsEditorCID.h"
 #include "nsEditor.h"
@@ -148,7 +157,7 @@ using mozilla::dom::indexedDB::IndexedDatabaseManager;
 #include "nsNullPrincipal.h"
 #include "nsNetCID.h"
 #include "nsINodeInfo.h"
-#if defined(ANDROID) || defined(MOZ_PLATFORM_MAEMO)
+#if defined(MOZ_WIDGET_ANDROID) || defined(MOZ_PLATFORM_MAEMO)
 #include "nsHapticFeedback.h"
 #endif
 
@@ -277,13 +286,19 @@ static void Shutdown();
 #endif
 
 #include "nsGeolocation.h"
+#ifndef MOZ_WIDGET_GONK
 #if defined(XP_UNIX)    || \
     defined(_WINDOWS)   || \
     defined(machintosh) || \
     defined(android)
 #include "nsDeviceMotionSystem.h"
 #endif
+#endif
 #include "nsCSPService.h"
+#include "nsISmsService.h"
+#include "mozilla/dom/sms/SmsServiceFactory.h"
+
+using namespace mozilla::dom::sms;
 
 // Transformiix
 /* 5d5d92cd-6bf8-11d9-bf4a-000a95dc234c */
@@ -310,16 +325,47 @@ NS_GENERIC_FACTORY_SINGLETON_CONSTRUCTOR(nsDOMStorageManager,
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsChannelPolicy)
 NS_GENERIC_FACTORY_SINGLETON_CONSTRUCTOR(IndexedDatabaseManager,
                                          IndexedDatabaseManager::FactoryCreate)
+#ifdef MOZ_B2G_RIL
+NS_GENERIC_FACTORY_SINGLETON_CONSTRUCTOR(RadioManager, RadioManager::FactoryCreate)
+
+// The 'RadioManager' class controls the lifetime of the nsITelephonyWorker
+// object which is also an nsITelephone, so we don't want to register it
+// as a global service on app-startup. Instead, we'll (ab)use createInstance()
+// to always return the one singleton that 'RadioManager' holds on to.
+static nsresult
+RadioInterfaceConstructor(nsISupports *aOuter, REFNSIID aIID, void **aResult)
+{
+  if (NULL != aOuter) {
+    return NS_ERROR_NO_AGGREGATION;
+  }
+
+  nsCOMPtr<nsITelephone> inst = RadioManager::GetTelephone();
+  if (NULL == inst) {
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
+
+  *aResult = inst.get();
+  inst.forget();
+
+  return NS_OK;
+}
+#endif
+
+#ifdef MOZ_WIDGET_GONK
+NS_GENERIC_FACTORY_CONSTRUCTOR(AudioManager)
+#else
 #if defined(XP_UNIX)    || \
     defined(_WINDOWS)   || \
     defined(machintosh) || \
     defined(android)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsDeviceMotionSystem)
 #endif
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(ThirdPartyUtil, Init)
 #if defined(ANDROID) || defined(MOZ_PLATFORM_MAEMO)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsHapticFeedback)
 #endif
+#endif
+NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(ThirdPartyUtil, Init)
+NS_GENERIC_FACTORY_SINGLETON_CONSTRUCTOR(nsISmsService, SmsServiceFactory::Create)
 
 //-----------------------------------------------------------------------------
 
@@ -534,7 +580,6 @@ MAKE_CTOR(CreateXULSortService,           nsIXULSortService,           NS_NewXUL
 // NS_NewXULTreeBuilder
 MAKE_CTOR(CreateXULDocument,              nsIXULDocument,              NS_NewXULDocument)
 // NS_NewXULControllers
-MAKE_CTOR(CreateXULPopupManager,      nsISupports,      NS_NewXULPopupManager)
 #endif
 #ifdef MOZ_XTF
 MAKE_CTOR(CreateXTFService,               nsIXTFService,               NS_NewXTFService)
@@ -758,7 +803,6 @@ NS_DEFINE_NAMED_CID(NS_HTMLAUDIOELEMENT_CID);
 #endif
 NS_DEFINE_NAMED_CID(NS_CANVASRENDERINGCONTEXT2D_CID);
 NS_DEFINE_NAMED_CID(NS_CANVASRENDERINGCONTEXT2DTHEBES_CID);
-NS_DEFINE_NAMED_CID(NS_CANVASRENDERINGCONTEXT2DAZURE_CID);
 NS_DEFINE_NAMED_CID(NS_CANVASRENDERINGCONTEXTWEBGL_CID);
 NS_DEFINE_NAMED_CID(NS_TEXT_ENCODER_CID);
 NS_DEFINE_NAMED_CID(NS_HTMLCOPY_TEXT_ENCODER_CID);
@@ -776,7 +820,6 @@ NS_DEFINE_NAMED_CID(NS_XULCONTROLLERS_CID);
 NS_DEFINE_NAMED_CID(NS_XULSORTSERVICE_CID);
 NS_DEFINE_NAMED_CID(NS_XULTEMPLATEBUILDER_CID);
 NS_DEFINE_NAMED_CID(NS_XULTREEBUILDER_CID);
-NS_DEFINE_NAMED_CID(NS_XULPOPUPMANAGER_CID);
 NS_DEFINE_NAMED_CID(NS_XULDOCUMENT_CID);
 #endif
 #ifdef MOZ_XTF
@@ -813,7 +856,14 @@ NS_DEFINE_NAMED_CID(NS_DOMSTORAGE2_CID);
 NS_DEFINE_NAMED_CID(NS_DOMSTORAGEMANAGER_CID);
 NS_DEFINE_NAMED_CID(NS_DOMJSON_CID);
 NS_DEFINE_NAMED_CID(NS_TEXTEDITOR_CID);
-NS_DEFINE_NAMED_CID(INDEXEDDB_MANAGER_CID );
+NS_DEFINE_NAMED_CID(INDEXEDDB_MANAGER_CID);
+#ifdef MOZ_B2G_RIL
+NS_DEFINE_NAMED_CID(TELEPHONYRADIO_CID);
+NS_DEFINE_NAMED_CID(TELEPHONYRADIOINTERFACE_CID);
+#endif
+#ifdef MOZ_WIDGET_GONK
+NS_DEFINE_NAMED_CID(NS_AUDIOMANAGER_CID);
+#endif
 #ifdef ENABLE_EDITOR_API_LOG
 NS_DEFINE_NAMED_CID(NS_HTMLEDITOR_CID);
 #else
@@ -839,6 +889,7 @@ NS_DEFINE_NAMED_CID(NS_SECURITYNAMESET_CID);
 NS_DEFINE_NAMED_CID(THIRDPARTYUTIL_CID);
 NS_DEFINE_NAMED_CID(NS_STRUCTUREDCLONECONTAINER_CID);
 
+#ifndef MOZ_WIDGET_GONK
 #if defined(XP_UNIX)    || \
     defined(_WINDOWS)   || \
     defined(machintosh) || \
@@ -848,6 +899,8 @@ NS_DEFINE_NAMED_CID(NS_DEVICE_MOTION_CID);
 #if defined(ANDROID) || defined(MOZ_PLATFORM_MAEMO)
 NS_DEFINE_NAMED_CID(NS_HAPTICFEEDBACK_CID);
 #endif
+#endif
+NS_DEFINE_NAMED_CID(NS_SMSSERVICE_CID);
 
 static const mozilla::Module::CIDEntry kLayoutCIDs[] = {
   XPCONNECT_CIDENTRIES
@@ -909,7 +962,6 @@ static const mozilla::Module::CIDEntry kLayoutCIDs[] = {
   { &kNS_XULSORTSERVICE_CID, false, NULL, CreateXULSortService },
   { &kNS_XULTEMPLATEBUILDER_CID, false, NULL, NS_NewXULContentBuilder },
   { &kNS_XULTREEBUILDER_CID, false, NULL, NS_NewXULTreeBuilder },
-  { &kNS_XULPOPUPMANAGER_CID, false, NULL, CreateXULPopupManager },
   { &kNS_XULDOCUMENT_CID, false, NULL, CreateXULDocument },
 #endif
 #ifdef MOZ_XTF
@@ -947,6 +999,13 @@ static const mozilla::Module::CIDEntry kLayoutCIDs[] = {
   { &kNS_DOMJSON_CID, false, NULL, NS_NewJSON },
   { &kNS_TEXTEDITOR_CID, false, NULL, nsPlaintextEditorConstructor },
   { &kINDEXEDDB_MANAGER_CID, false, NULL, IndexedDatabaseManagerConstructor },
+#ifdef MOZ_B2G_RIL
+  { &kTELEPHONYRADIO_CID, true, NULL, RadioManagerConstructor },
+  { &kTELEPHONYRADIOINTERFACE_CID, true, NULL, RadioInterfaceConstructor },
+#endif
+#ifdef MOZ_WIDGET_GONK
+  { &kNS_AUDIOMANAGER_CID, true, NULL, AudioManagerConstructor },
+#endif
 #ifdef ENABLE_EDITOR_API_LOG
   { &kNS_HTMLEDITOR_CID, false, NULL, nsHTMLEditorLogConstructor },
 #else
@@ -969,6 +1028,7 @@ static const mozilla::Module::CIDEntry kLayoutCIDs[] = {
   { &kNS_SYSTEMPRINCIPAL_CID, false, NULL, nsSystemPrincipalConstructor },
   { &kNS_NULLPRINCIPAL_CID, false, NULL, nsNullPrincipalConstructor },
   { &kNS_SECURITYNAMESET_CID, false, NULL, nsSecurityNameSetConstructor },
+#ifndef MOZ_WIDGET_GONK
 #if defined(XP_UNIX)    || \
     defined(_WINDOWS)   || \
     defined(machintosh) || \
@@ -978,8 +1038,10 @@ static const mozilla::Module::CIDEntry kLayoutCIDs[] = {
 #if defined(ANDROID) || defined(MOZ_PLATFORM_MAEMO)
   { &kNS_HAPTICFEEDBACK_CID, false, NULL, nsHapticFeedbackConstructor },
 #endif
+#endif
   { &kTHIRDPARTYUTIL_CID, false, NULL, ThirdPartyUtilConstructor },
   { &kNS_STRUCTUREDCLONECONTAINER_CID, false, NULL, nsStructuredCloneContainerConstructor },
+  { &kNS_SMSSERVICE_CID, false, NULL, nsISmsServiceConstructor },
   { NULL }
 };
 
@@ -1044,7 +1106,6 @@ static const mozilla::Module::ContractIDEntry kLayoutContracts[] = {
   { "@mozilla.org/xul/xul-sort-service;1", &kNS_XULSORTSERVICE_CID },
   { "@mozilla.org/xul/xul-template-builder;1", &kNS_XULTEMPLATEBUILDER_CID },
   { "@mozilla.org/xul/xul-tree-builder;1", &kNS_XULTREEBUILDER_CID },
-  { "@mozilla.org/xul/xul-popup-manager;1", &kNS_XULPOPUPMANAGER_CID },
   { "@mozilla.org/xul/xul-document;1", &kNS_XULDOCUMENT_CID },
 #endif
 #ifdef MOZ_XTF
@@ -1074,6 +1135,13 @@ static const mozilla::Module::ContractIDEntry kLayoutContracts[] = {
   { "@mozilla.org/dom/json;1", &kNS_DOMJSON_CID },
   { "@mozilla.org/editor/texteditor;1", &kNS_TEXTEDITOR_CID },
   { INDEXEDDB_MANAGER_CONTRACTID, &kINDEXEDDB_MANAGER_CID },
+#ifdef MOZ_B2G_RIL  
+  { TELEPHONYRADIO_CONTRACTID, &kTELEPHONYRADIO_CID },
+  { TELEPHONYRADIOINTERFACE_CONTRACTID, &kTELEPHONYRADIOINTERFACE_CID },
+#endif
+#ifdef MOZ_WIDGET_GONK
+  { NS_AUDIOMANAGER_CONTRACTID, &kNS_AUDIOMANAGER_CID },
+#endif
 #ifdef ENABLE_EDITOR_API_LOG
   { "@mozilla.org/editor/htmleditor;1", &kNS_HTMLEDITOR_CID },
 #else
@@ -1097,6 +1165,7 @@ static const mozilla::Module::ContractIDEntry kLayoutContracts[] = {
   { NS_SYSTEMPRINCIPAL_CONTRACTID, &kNS_SYSTEMPRINCIPAL_CID },
   { NS_NULLPRINCIPAL_CONTRACTID, &kNS_NULLPRINCIPAL_CID },
   { NS_SECURITYNAMESET_CONTRACTID, &kNS_SECURITYNAMESET_CID },
+#ifndef MOZ_WIDGET_GONK
 #if defined(XP_UNIX)    || \
     defined(_WINDOWS)   || \
     defined(machintosh) || \
@@ -1106,8 +1175,10 @@ static const mozilla::Module::ContractIDEntry kLayoutContracts[] = {
 #if defined(ANDROID) || defined(MOZ_PLATFORM_MAEMO)
   { "@mozilla.org/widget/hapticfeedback;1", &kNS_HAPTICFEEDBACK_CID },
 #endif
+#endif
   { THIRDPARTYUTIL_CONTRACTID, &kTHIRDPARTYUTIL_CID },
   { NS_STRUCTUREDCLONECONTAINER_CONTRACTID, &kNS_STRUCTUREDCLONECONTAINER_CID },
+  { SMSSERVICE_CONTRACTID, &kNS_SMSSERVICE_CID },
   { NULL }
 };
 
@@ -1128,6 +1199,12 @@ static const mozilla::Module::CategoryEntry kLayoutCategories[] = {
   { JAVASCRIPT_GLOBAL_STATIC_NAMESET_CATEGORY, "PrivilegeManager", NS_SECURITYNAMESET_CONTRACTID },
   { "app-startup", "Script Security Manager", "service," NS_SCRIPTSECURITYMANAGER_CONTRACTID },
   CONTENTDLF_CATEGORIES
+
+  // This probably should be "app-startup" but we want our testing extension to
+  // be able to override the contractid so we wait until "profile-after-change"
+#ifdef MOZ_B2G_RIL
+  { "profile-after-change", "Telephony Radio", TELEPHONYRADIO_CONTRACTID },
+#endif
   { NULL }
 };
 

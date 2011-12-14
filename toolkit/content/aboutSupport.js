@@ -51,10 +51,10 @@ const ELLIPSIS = Services.prefs.getComplexValue("intl.ellipsis",
 // under the "accessibility.*" branch.
 const PREFS_WHITELIST = [
   "accessibility.",
+  "browser.display.",
   "browser.fixup.",
   "browser.history_expire_",
   "browser.link.open_newwindow",
-  "browser.mousewheel.",
   "browser.places.",
   "browser.startup.homepage",
   "browser.tabs.",
@@ -63,6 +63,7 @@ const PREFS_WHITELIST = [
   "extensions.checkCompatibility",
   "extensions.lastAppVersion",
   "font.",
+  "general.autoScroll",
   "general.useragent.",
   "gfx.",
   "html5.",
@@ -70,7 +71,9 @@ const PREFS_WHITELIST = [
   "javascript.",
   "keyword.",
   "layout.css.dpi",
+  "mousewheel.",
   "network.",
+  "permissions.default.image",
   "places.",
   "plugin.",
   "plugins.",
@@ -176,6 +179,14 @@ function populateGraphicsSection() {
         createElement("td", value),
       ]));
     }
+  }
+  
+  function pushLiteralInfoRow(table, name, value)
+  {
+    table.push(createParentElement("tr", [
+      createHeader(name),
+      createElement("td", value),
+    ]));
   }
 
   function errorMessageForFeature(feature) {
@@ -305,6 +316,15 @@ function populateGraphicsSection() {
     pushFeatureInfoRow(trGraphics, "webglRenderer", webglfeature, webglenabled, webglrenderer);
 
     appendChildren(graphics_tbody, trGraphics);
+    
+    // display registered graphics properties
+    let graphics_info_properties = document.getElementById("graphics-info-properties");
+    var info = gfxInfo.getInfo();
+    let trGraphicsProperties = [];
+    for (var property in info) {
+      pushLiteralInfoRow(trGraphicsProperties, property, info[property]);
+    }
+    appendChildren(graphics_info_properties, trGraphicsProperties);
    
     // display any failures that have occurred
     let graphics_failures_tbody = document.getElementById("graphics-failures-tbody");
@@ -314,6 +334,8 @@ function populateGraphicsSection() {
         ])
     );
     appendChildren(graphics_failures_tbody, trGraphicsFailures);
+
+
 
   } // end if (gfxInfo)
 
@@ -332,9 +354,9 @@ function populateGraphicsSection() {
     }
   }
 
-  let msg = acceleratedWindows + "/" + totalWindows;
+  let msg = acceleratedWindows;
   if (acceleratedWindows) {
-    msg += " " + mgrType;
+    msg += "/" + totalWindows + " " + mgrType;
   } else {
 #ifdef XP_WIN
     var feature = gfxInfo.FEATURE_DIRECT3D_9_LAYERS;

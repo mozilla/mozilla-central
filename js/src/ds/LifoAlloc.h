@@ -74,10 +74,10 @@ AlignPtr(void *orig)
 /* Header for a chunk of memory wrangled by the LifoAlloc. */
 class BumpChunk
 {
-    char        *bump;
-    char        *limit;
-    BumpChunk   *next_;
-    size_t      bumpSpaceSize;
+    char        *bump;          /* start of the available data */
+    char        *limit;         /* end of the data */
+    BumpChunk   *next_;         /* the next BumpChunk */
+    size_t      bumpSpaceSize;  /* size of the data area */
 
     char *headerBase() { return reinterpret_cast<char *>(this); }
     char *bumpBase() const { return limit - bumpSpaceSize; }
@@ -111,6 +111,9 @@ class BumpChunk
     void setNext(BumpChunk *succ) { next_ = succ; }
 
     size_t used() const { return bump - bumpBase(); }
+    size_t sizeOfIncludingThis(JSMallocSizeOfFun mallocSizeOf) {
+        return mallocSizeOf(this, limit - headerBase());
+    }
 
     void resetBump() {
         setBump(headerBase() + sizeof(BumpChunk));
@@ -290,6 +293,23 @@ class LifoAlloc
         return accum;
     }
 
+    /* Get the total size of the arena chunks (including unused space). */
+    size_t sizeOfExcludingThis(JSMallocSizeOfFun mallocSizeOf) const {
+        size_t accum = 0;
+        BumpChunk *it = first;
+        while (it) {
+            accum += it->sizeOfIncludingThis(mallocSizeOf);
+            it = it->next();
+        }
+        return accum;
+    }
+
+    /* Like sizeOfExcludingThis(), but includes the size of the LifoAlloc itself. */
+    size_t sizeOfIncludingThis(JSMallocSizeOfFun mallocSizeOf) const {
+        return mallocSizeOf(this, sizeof(LifoAlloc)) +
+               sizeOfExcludingThis(mallocSizeOf);
+    }
+
     /* Doesn't perform construction; useful for lazily-initialized POD types. */
     template <typename T>
     JS_ALWAYS_INLINE
@@ -305,7 +325,8 @@ class LifoAlloc
     void *reallocUnaligned(void *origPtr, size_t origSize, size_t incr);
 };
 
-class LifoAllocScope {
+class LifoAllocScope
+{
     LifoAlloc   *lifoAlloc;
     void        *mark;
     bool        shouldRelease;

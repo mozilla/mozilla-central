@@ -61,6 +61,7 @@
 #include "nsIScriptError.h"
 #include "nsDOMPopStateEvent.h"
 #include "mozilla/Preferences.h"
+#include "nsJSUtils.h"
 
 using namespace mozilla;
 
@@ -85,9 +86,7 @@ static const char* const sEventNames[] = {
   "offline", "online", "copy", "cut", "paste", "open", "message", "show",
   "SVGLoad", "SVGUnload", "SVGAbort", "SVGError", "SVGResize", "SVGScroll",
   "SVGZoom",
-#ifdef MOZ_SMIL
   "beginEvent", "endEvent", "repeatEvent",
-#endif // MOZ_SMIL
 #ifdef MOZ_MEDIA
   "loadstart", "progress", "suspend", "emptied", "stalled", "play", "pause",
   "loadedmetadata", "loadeddata", "waiting", "playing", "canplay",
@@ -95,9 +94,9 @@ static const char* const sEventNames[] = {
   "durationchange", "volumechange", "MozAudioAvailable",
 #endif // MOZ_MEDIA
   "MozAfterPaint",
-  "MozBeforePaint",
   "MozBeforeResize",
   "mozfullscreenchange",
+  "mozfullscreenerror",
   "MozSwipeGesture",
   "MozMagnifyGestureStart",
   "MozMagnifyGestureUpdate",
@@ -124,7 +123,6 @@ static char *sPopupAllowedEvents;
 
 nsDOMEvent::nsDOMEvent(nsPresContext* aPresContext, nsEvent* aEvent)
 {
-  mPresContext = aPresContext;
   mPrivateDataDuplicated = false;
 
   if (aEvent) {
@@ -161,6 +159,15 @@ nsDOMEvent::nsDOMEvent(nsPresContext* aPresContext, nsEvent* aEvent)
     mEvent->time = PR_Now();
   }
 
+  InitPresContextData(aPresContext);
+
+  NS_ASSERTION(mEvent->message != NS_PAINT, "Trying to create a DOM paint event!");
+}
+
+void
+nsDOMEvent::InitPresContextData(nsPresContext* aPresContext)
+{
+  mPresContext = aPresContext;
   // Get the explicit original target (if it's anonymous make it null)
   {
     nsCOMPtr<nsIContent> content = GetTargetFromFrame();
@@ -170,8 +177,6 @@ nsDOMEvent::nsDOMEvent(nsPresContext* aPresContext, nsEvent* aEvent)
       mExplicitOriginalTarget = nsnull;
     }
   }
-
-  NS_ASSERTION(mEvent->message != NS_PAINT, "Trying to create a DOM paint event!");
 }
 
 nsDOMEvent::~nsDOMEvent() 
@@ -192,6 +197,7 @@ NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsDOMEvent)
   NS_INTERFACE_MAP_ENTRY(nsIDOMEvent)
   NS_INTERFACE_MAP_ENTRY(nsIDOMNSEvent)
   NS_INTERFACE_MAP_ENTRY(nsIPrivateDOMEvent)
+  NS_INTERFACE_MAP_ENTRY(nsIJSNativeInitializer)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(Event)
 NS_INTERFACE_MAP_END
 
@@ -375,6 +381,67 @@ nsDOMEvent::SetTrusted(bool aTrusted)
 }
 
 NS_IMETHODIMP
+nsDOMEvent::Initialize(nsISupports* aOwner, JSContext* aCx, JSObject* aObj,
+                       PRUint32 aArgc, jsval* aArgv)
+{
+  NS_ENSURE_TRUE(aArgc >= 1, NS_ERROR_XPC_NOT_ENOUGH_ARGS);
+
+  bool trusted = false;
+  nsCOMPtr<nsPIDOMWindow> w = do_QueryInterface(aOwner);
+  if (w) {
+    nsCOMPtr<nsIDocument> d = do_QueryInterface(w->GetExtantDocument());
+    if (d) {
+      trusted = nsContentUtils::IsChromeDoc(d);
+      nsIPresShell* s = d->GetShell();
+      if (s) {
+        InitPresContextData(s->GetPresContext());
+      }
+    }
+  }
+
+  JSAutoRequest ar(aCx);
+  JSString* jsstr = JS_ValueToString(aCx, aArgv[0]);
+  if (!jsstr) {
+    return NS_ERROR_DOM_SYNTAX_ERR;
+  }
+
+  JS::Anchor<JSString*> deleteProtector(jsstr);
+
+  nsDependentJSString type;
+  NS_ENSURE_STATE(type.init(aCx, jsstr));
+  
+  nsCOMPtr<nsISupports> dict;
+  JSObject* obj = nsnull;
+  if (aArgc >= 2 && !JSVAL_IS_PRIMITIVE(aArgv[1])) {
+    obj = JSVAL_TO_OBJECT(aArgv[1]);
+    nsContentUtils::XPConnect()->WrapJS(aCx, obj,
+                                        EventInitIID(),
+                                        getter_AddRefs(dict));
+  }
+  nsresult rv = InitFromCtor(type, dict, aCx, obj);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  SetTrusted(trusted);
+  return NS_OK;
+}
+
+nsresult
+nsDOMEvent::InitFromCtor(const nsAString& aType, nsISupports* aDict,
+                         JSContext* aCx, JSObject* aObj)
+{
+  nsCOMPtr<nsIEventInit> eventInit = do_QueryInterface(aDict);
+  bool bubbles = false;
+  bool cancelable = false;
+  if (eventInit) {
+    nsresult rv = eventInit->GetBubbles(&bubbles);
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = eventInit->GetCancelable(&cancelable);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+  return InitEvent(aType, bubbles, cancelable);
+}
+
+NS_IMETHODIMP
 nsDOMEvent::GetEventPhase(PRUint16* aEventPhase)
 {
   // Note, remember to check that this works also
@@ -418,6 +485,14 @@ NS_IMETHODIMP
 nsDOMEvent::StopPropagation()
 {
   mEvent->flags |= NS_EVENT_FLAG_STOP_DISPATCH;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDOMEvent::StopImmediatePropagation()
+{
+  mEvent->flags |=
+    (NS_EVENT_FLAG_STOP_DISPATCH_IMMEDIATELY | NS_EVENT_FLAG_STOP_DISPATCH);
   return NS_OK;
 }
 
@@ -795,7 +870,6 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
       newEvent->eventStructType = NS_SVGZOOM_EVENT;
       break;
     }
-#ifdef MOZ_SMIL
     case NS_SMIL_TIME_EVENT:
     {
       newEvent = new nsUIEvent(false, msg, 0);
@@ -803,7 +877,6 @@ NS_METHOD nsDOMEvent::DuplicatePrivateData()
       newEvent->eventStructType = NS_SMIL_TIME_EVENT;
       break;
     }
-#endif // MOZ_SMIL
     case NS_SIMPLE_GESTURE_EVENT:
     {
       nsSimpleGestureEvent* oldSimpleGestureEvent = static_cast<nsSimpleGestureEvent*>(mEvent);
@@ -993,6 +1066,9 @@ nsDOMEvent::GetEventPopupControlState(nsEvent *aEvent)
       case NS_FORM_CHANGE :
         if (::PopupAllowedForEvent("change"))
           abuse = openControlled;
+        break;
+      case NS_XUL_COMMAND:
+        abuse = openControlled;
         break;
       }
     }
@@ -1286,14 +1362,12 @@ const char* nsDOMEvent::GetEventName(PRUint32 aEventType)
     return sEventNames[eDOMEvents_SVGScroll];
   case NS_SVG_ZOOM:
     return sEventNames[eDOMEvents_SVGZoom];
-#ifdef MOZ_SMIL
   case NS_SMIL_BEGIN:
     return sEventNames[eDOMEvents_beginEvent];
   case NS_SMIL_END:
     return sEventNames[eDOMEvents_endEvent];
   case NS_SMIL_REPEAT:
     return sEventNames[eDOMEvents_repeatEvent];
-#endif // MOZ_SMIL
 #ifdef MOZ_MEDIA
   case NS_LOADSTART:
     return sEventNames[eDOMEvents_loadstart];
@@ -1340,8 +1414,6 @@ const char* nsDOMEvent::GetEventName(PRUint32 aEventType)
 #endif
   case NS_AFTERPAINT:
     return sEventNames[eDOMEvents_afterpaint];
-  case NS_BEFOREPAINT:
-    return sEventNames[eDOMEvents_beforepaint];
   case NS_BEFORERESIZE_EVENT:
     return sEventNames[eDOMEvents_beforeresize];
   case NS_SIMPLE_GESTURE_SWIPE:
@@ -1384,6 +1456,8 @@ const char* nsDOMEvent::GetEventName(PRUint32 aEventType)
     return sEventNames[eDOMEvents_deviceorientation];
   case NS_FULLSCREENCHANGE:
     return sEventNames[eDOMEvents_mozfullscreenchange];
+  case NS_FULLSCREENERROR:
+    return sEventNames[eDOMEvents_mozfullscreenerror];
   default:
     break;
   }

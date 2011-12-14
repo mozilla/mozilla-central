@@ -50,6 +50,7 @@
 #include "nsIContentViewer.h"
 #include "nsCURILoader.h"
 #include "nsDocAccessible.h"
+#include "nsHTMLCanvasAccessible.h"
 #include "nsHTMLImageMapAccessible.h"
 #include "nsHTMLLinkAccessible.h"
 #include "nsHTMLSelectAccessible.h"
@@ -105,10 +106,8 @@
 #include "AtkSocketAccessible.h"
 #endif
 
-#ifndef DISABLE_XFORMS_HOOKS
 #include "nsXFormsFormControlsAccessible.h"
 #include "nsXFormsWidgetsAccessible.h"
-#endif
 
 #include "mozilla/FunctionTimer.h"
 #include "mozilla/dom/Element.h"
@@ -271,6 +270,26 @@ nsAccessibilityService::CreateHTMLComboboxAccessible(nsIContent* aContent,
 {
   nsCOMPtr<nsIWeakReference> weakShell(do_GetWeakReference(aPresShell));
   nsAccessible* accessible = new nsHTMLComboboxAccessible(aContent, weakShell);
+  NS_IF_ADDREF(accessible);
+  return accessible;
+}
+
+already_AddRefed<nsAccessible>
+nsAccessibilityService::CreateHTMLCanvasAccessible(nsIContent* aContent,
+                                                   nsIPresShell* aPresShell)
+{
+  nsCOMPtr<nsIWeakReference> weakShell(do_GetWeakReference(aPresShell));
+  nsAccessible* accessible = new nsHTMLCanvasAccessible(aContent, weakShell);
+  NS_IF_ADDREF(accessible);
+  return accessible;
+}
+
+already_AddRefed<nsAccessible>
+nsAccessibilityService::CreateHTMLFileInputAccessible(nsIContent* aContent,
+                                                      nsIPresShell* aPresShell)
+{
+  nsCOMPtr<nsIWeakReference> weakShell(do_GetWeakReference(aPresShell));
+  nsAccessible* accessible = new nsHTMLFileInputAccessible(aContent, weakShell);
   NS_IF_ADDREF(accessible);
   return accessible;
 }
@@ -1495,7 +1514,6 @@ nsAccessibilityService::CreateAccessibleByType(nsIContent* aContent,
 
 #endif // MOZ_XUL
 
-#ifndef DISABLE_XFORMS_HOOKS
     // XForms elements
     case nsIAccessibleProvider::XFormsContainer:
       accessible = new nsXFormsContainerAccessible(aContent, aWeakShell);
@@ -1573,8 +1591,6 @@ nsAccessibilityService::CreateAccessibleByType(nsIContent* aContent,
       accessible = new nsXFormsComboboxPopupWidgetAccessible(aContent, aWeakShell);
       break;
 
-#endif
-
     default:
       return nsnull;
   }
@@ -1589,7 +1605,20 @@ nsAccessibilityService::CreateHTMLAccessibleByMarkup(nsIFrame* aFrame,
                                                      nsIWeakReference* aWeakShell)
 {
   // This method assumes we're in an HTML namespace.
-  nsIAtom *tag = aContent->Tag();
+  nsIAtom* tag = aContent->Tag();
+  if (tag == nsGkAtoms::figcaption) {
+    nsAccessible* accessible =
+      new nsHTMLFigcaptionAccessible(aContent, aWeakShell);
+    NS_IF_ADDREF(accessible);
+    return accessible;
+  }
+
+  if (tag == nsGkAtoms::figure) {
+    nsAccessible* accessible = new nsHTMLFigureAccessible(aContent, aWeakShell);
+    NS_IF_ADDREF(accessible);
+    return accessible;
+  }
+
   if (tag == nsGkAtoms::legend) {
     nsAccessible* accessible = new nsHTMLLegendAccessible(aContent, aWeakShell);
     NS_IF_ADDREF(accessible);

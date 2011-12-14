@@ -212,6 +212,9 @@ public:
         mSymbolFont(false),
         mIgnoreGDEF(false),
         mWeight(500), mStretch(NS_FONT_STRETCH_NORMAL),
+#ifdef MOZ_GRAPHITE
+        mCheckedForGraphiteTables(false),
+#endif
         mHasCmapTable(false),
         mCmapInitialized(false),
         mUVSOffset(0), mUVSData(nsnull),
@@ -243,6 +246,16 @@ public:
     bool IgnoreGDEF() const { return mIgnoreGDEF; }
 
     virtual bool IsSymbolFont();
+
+#ifdef MOZ_GRAPHITE
+    inline bool HasGraphiteTables() {
+        if (!mCheckedForGraphiteTables) {
+            CheckForGraphiteTables();
+            mCheckedForGraphiteTables = true;
+        }
+        return mHasGraphiteTables;
+    }
+#endif
 
     inline bool HasCmapTable() {
         if (!mCmapInitialized) {
@@ -318,6 +331,10 @@ public:
     PRUint16         mWeight;
     PRInt16          mStretch;
 
+#ifdef MOZ_GRAPHITE
+    bool             mHasGraphiteTables;
+    bool             mCheckedForGraphiteTables;
+#endif
     bool             mHasCmapTable;
     bool             mCmapInitialized;
     gfxSparseBitSet  mCharacterMap;
@@ -345,6 +362,9 @@ protected:
         mSymbolFont(false),
         mIgnoreGDEF(false),
         mWeight(500), mStretch(NS_FONT_STRETCH_NORMAL),
+#ifdef MOZ_GRAPHITE
+        mCheckedForGraphiteTables(false),
+#endif
         mHasCmapTable(false),
         mCmapInitialized(false),
         mUVSOffset(0), mUVSData(nsnull),
@@ -357,6 +377,10 @@ protected:
         NS_NOTREACHED("oops, somebody didn't override CreateFontInstance");
         return nsnull;
     }
+
+#ifdef MOZ_GRAPHITE
+    virtual void CheckForGraphiteTables();
+#endif
 
     gfxFontFamily *mFamily;
 
@@ -1004,6 +1028,13 @@ public:
         return mFontEntry->HasCmapTable();
     }
 
+#ifdef MOZ_GRAPHITE
+    // check whether this is an sfnt we can potentially use with Graphite
+    bool FontCanSupportGraphite() {
+        return mFontEntry->HasGraphiteTables();
+    }
+#endif
+
     // Access to raw font table data (needed for Harfbuzz):
     // returns a pointer to data owned by the fontEntry or the OS,
     // which will remain valid until released.
@@ -1252,6 +1283,9 @@ protected:
     // of the text run being shaped
     nsAutoPtr<gfxFontShaper>   mPlatformShaper;
     nsAutoPtr<gfxFontShaper>   mHarfBuzzShaper;
+#ifdef MOZ_GRAPHITE
+    nsAutoPtr<gfxFontShaper>   mGraphiteShaper;
+#endif
 
     // Create a default platform text shaper for this font.
     // (TODO: This should become pure virtual once all font backends have
@@ -2048,16 +2082,20 @@ public:
 
     // return storage used by this run, for memory reporter;
     // nsTransformedTextRun needs to override this as it holds additional data
-    virtual PRUint64 ComputeSize();
+    virtual NS_MUST_OVERRIDE size_t
+        SizeOfExcludingThis(nsMallocSizeOfFun aMallocSizeOf);
+    virtual NS_MUST_OVERRIDE size_t
+        SizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOf);
 
-    void AccountForSize(PRUint64* aTotal)  {
+    // Get the size, if it hasn't already been gotten, marking as it goes.
+    size_t MaybeSizeOfIncludingThis(nsMallocSizeOfFun aMallocSizeOf)  {
         if (mFlags & gfxTextRunFactory::TEXT_RUN_SIZE_ACCOUNTED) {
-            return;
+            return 0;
         }
         mFlags |= gfxTextRunFactory::TEXT_RUN_SIZE_ACCOUNTED;
-        *aTotal += ComputeSize();
+        return SizeOfIncludingThis(aMallocSizeOf);
     }
-    void ClearSizeAccounted() {
+    void ResetSizeOfAccountingFlags() {
         mFlags &= ~gfxTextRunFactory::TEXT_RUN_SIZE_ACCOUNTED;
     }
 

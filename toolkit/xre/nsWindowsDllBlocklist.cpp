@@ -39,6 +39,9 @@
 #include <winternl.h>
 
 #include <stdio.h>
+#include <string.h>
+
+#include <map>
 
 #ifdef XRE_WANT_DLL_BLOCKLIST
 #define XRE_SetupDllBlocklist SetupDllBlocklist
@@ -129,7 +132,11 @@ static DllBlockInfo sWindowsDllBlocklist[] = {
 
   // Topcrash in Firefox 4 betas (bug 618899)
   {"accelerator.dll", MAKE_VERSION(3,2,1,6)},
-  
+
+  // Topcrash with Roboform in Firefox 8 (bug 699134)
+  {"rf-firefox.dll", MAKE_VERSION(7,6,1,0)},
+  {"roboform.dll", MAKE_VERSION(7,6,1,0)},
+
   // leave these two in always for tests
   { "mozdllblockingtest.dll", ALL_VERSIONS },
   { "mozdllblockingtest_versioned.dll", 0x0000000400000000ULL },
@@ -144,62 +151,67 @@ static DllBlockInfo sWindowsDllBlocklist[] = {
 // define this for very verbose dll load debug spew
 #undef DEBUG_very_verbose
 
+namespace {
+
 typedef NTSTATUS (NTAPI *LdrLoadDll_func) (PWCHAR filePath, PULONG flags, PUNICODE_STRING moduleFileName, PHANDLE handle);
 
 static LdrLoadDll_func stub_LdrLoadDll = 0;
 
-namespace {
+/**
+ * Some versions of Windows call LoadLibraryEx to get the version information
+ * for a DLL, which causes our patched LdrLoadDll implementation to re-enter
+ * itself and cause infinite recursion and a stack-exhaustion crash. We protect
+ * against reentrancy by allowing recursive loads of the same DLL.
+ *
+ * Note that we don't use __declspec(thread) because that doesn't work in DLLs
+ * loaded via LoadLibrary and there can be a limited number of TLS slots, so
+ * we roll our own.
+ */
+class ReentrancySentinel
+{
+public:
+  explicit ReentrancySentinel(const char* dllName)
+  {
+    DWORD currentThreadId = GetCurrentThreadId();
+    EnterCriticalSection(&sLock);
+    mPreviousDllName = (*sThreadMap)[currentThreadId];
 
-template <class T>
-struct RVAMap {
-  RVAMap(HANDLE map, unsigned offset) {
-    mMappedView = reinterpret_cast<T*>
-      (::MapViewOfFile(map, FILE_MAP_READ, 0, offset, sizeof(T)));
+    // If there is a DLL currently being loaded and it has the same name
+    // as the current attempt, we're re-entering.
+    mReentered = mPreviousDllName && !stricmp(mPreviousDllName, dllName);
+    (*sThreadMap)[currentThreadId] = dllName;
+    LeaveCriticalSection(&sLock);
   }
-  ~RVAMap() {
-    if (mMappedView) {
-      ::UnmapViewOfFile(mMappedView);
-    }
+    
+  ~ReentrancySentinel()
+  {
+    DWORD currentThreadId = GetCurrentThreadId();
+    EnterCriticalSection(&sLock);
+    (*sThreadMap)[currentThreadId] = mPreviousDllName;
+    LeaveCriticalSection(&sLock);
   }
-  operator const T*() const { return mMappedView; }
-  const T* operator->() const { return mMappedView; }
+
+  bool BailOut() const
+  {
+    return mReentered;
+  };
+    
+  static void InitializeStatics()
+  {
+    InitializeCriticalSection(&sLock);
+    sThreadMap = new std::map<DWORD, const char*>;
+  }
+
 private:
-  const T* mMappedView;
+  static CRITICAL_SECTION sLock;
+  static std::map<DWORD, const char*>* sThreadMap;
+
+  const char* mPreviousDllName;
+  bool mReentered;
 };
 
-void
-ForceASLR(const wchar_t* path)
-{
-  HANDLE file = ::CreateFileW(path, GENERIC_READ, FILE_SHARE_READ,
-                              NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL,
-                              NULL);
-  if (file != INVALID_HANDLE_VALUE) {
-    HANDLE map = ::CreateFileMappingW(file, NULL, PAGE_READONLY, 0, 0, NULL);
-    if (map) {
-      RVAMap<IMAGE_DOS_HEADER> peHeader(map, 0);
-      if (peHeader) {
-        RVAMap<IMAGE_NT_HEADERS> ntHeader(map, peHeader->e_lfanew);
-        if (ntHeader) {
-          // If we're dealing with a DLL which has code inside it, but does not have the
-          // ASLR bit set, allocate a page at its base address.
-          if (((ntHeader->OptionalHeader.DllCharacteristics & IMAGE_DLLCHARACTERISTICS_DYNAMIC_BASE) == 0) &&
-              (ntHeader->OptionalHeader.SizeOfCode > 0)) {
-            void* page = ::VirtualAlloc((LPVOID)ntHeader->OptionalHeader.ImageBase, 1,
-                                        MEM_RESERVE, PAGE_NOACCESS);
-            // Note that we will leak this page, but it's ok since it's just one page in
-            // the virtual address space, with no physical page backing it.
-
-            // We're done at this point!
-          }
-        }
-      }
-      ::CloseHandle(map);
-    }
-    ::CloseHandle(file);
-  }
-}
- 
-}
+CRITICAL_SECTION ReentrancySentinel::sLock;
+std::map<DWORD, const char*>* ReentrancySentinel::sThreadMap;
 
 static NTSTATUS NTAPI
 patched_LdrLoadDll (PWCHAR filePath, PULONG flags, PUNICODE_STRING moduleFileName, PHANDLE handle)
@@ -210,31 +222,8 @@ patched_LdrLoadDll (PWCHAR filePath, PULONG flags, PUNICODE_STRING moduleFileNam
   wchar_t *dll_part;
   DllBlockInfo *info;
 
-  // In Windows 8, the first parameter seems to be used for more than just the
-  // path name.  For example, its numerical value can be 1.  Passing a non-valid
-  // pointer to SearchPathW will cause a crash, so we need to check to see if we
-  // are handed a valid pointer, and otherwise just pass NULL to SearchPathW.
-  PWCHAR sanitizedFilePath = (intptr_t(filePath) < 1024) ? NULL : filePath;
-
   int len = moduleFileName->Length / 2;
   wchar_t *fname = moduleFileName->Buffer;
-
-  // figure out the length of the string that we need
-  DWORD pathlen = SearchPathW(sanitizedFilePath, fname, L".dll", 0, NULL, NULL);
-  if (pathlen == 0) {
-    // uh, we couldn't find the DLL at all, so...
-    printf_stderr("LdrLoadDll: Blocking load of '%s' (SearchPathW didn't find it?)\n", dllName);
-    return STATUS_DLL_NOT_FOUND;
-  }
-
-  nsAutoArrayPtr<wchar_t> full_fname(new wchar_t[pathlen+1]);
-  if (!full_fname) {
-    // couldn't allocate memory?
-    return STATUS_DLL_NOT_FOUND;
-  }
-
-  // now actually grab it
-  SearchPathW(sanitizedFilePath, fname, L".dll", pathlen+1, full_fname, NULL);
 
   // The filename isn't guaranteed to be null terminated, but in practice
   // it always will be; ensure that this is so, and bail if not.
@@ -311,6 +300,34 @@ patched_LdrLoadDll (PWCHAR filePath, PULONG flags, PUNICODE_STRING moduleFileNam
 #endif
 
     if (info->maxVersion != ALL_VERSIONS) {
+      ReentrancySentinel sentinel(dllName);
+      if (sentinel.BailOut()) {
+        goto continue_loading;
+      }
+
+      // In Windows 8, the first parameter seems to be used for more than just the
+      // path name.  For example, its numerical value can be 1.  Passing a non-valid
+      // pointer to SearchPathW will cause a crash, so we need to check to see if we
+      // are handed a valid pointer, and otherwise just pass NULL to SearchPathW.
+      PWCHAR sanitizedFilePath = (intptr_t(filePath) < 1024) ? NULL : filePath;
+
+      // figure out the length of the string that we need
+      DWORD pathlen = SearchPathW(sanitizedFilePath, fname, L".dll", 0, NULL, NULL);
+      if (pathlen == 0) {
+        // uh, we couldn't find the DLL at all, so...
+        printf_stderr("LdrLoadDll: Blocking load of '%s' (SearchPathW didn't find it?)\n", dllName);
+        return STATUS_DLL_NOT_FOUND;
+      }
+
+      wchar_t *full_fname = (wchar_t*) malloc(sizeof(wchar_t)*(pathlen+1));
+      if (!full_fname) {
+        // couldn't allocate memory?
+        return STATUS_DLL_NOT_FOUND;
+      }
+
+      // now actually grab it
+      SearchPathW(sanitizedFilePath, fname, L".dll", pathlen+1, full_fname, NULL);
+
       DWORD zero;
       DWORD infoSize = GetFileVersionInfoSizeW(full_fname, &zero);
 
@@ -334,6 +351,8 @@ patched_LdrLoadDll (PWCHAR filePath, PULONG flags, PUNICODE_STRING moduleFileNam
             load_ok = true;
         }
       }
+
+      free(full_fname);
     }
 
     if (!load_ok) {
@@ -349,17 +368,19 @@ continue_loading:
 
   NS_SetHasLoadedNewDLLs();
 
-  ForceASLR(full_fname);
-
   return stub_LdrLoadDll(filePath, flags, moduleFileName, handle);
 }
 
 WindowsDllInterceptor NtDllIntercept;
 
+} // anonymous namespace
+
 void
 XRE_SetupDllBlocklist()
 {
   NtDllIntercept.Init("ntdll.dll");
+
+  ReentrancySentinel::InitializeStatics();
 
   bool ok = NtDllIntercept.AddHook("LdrLoadDll", reinterpret_cast<intptr_t>(patched_LdrLoadDll), (void**) &stub_LdrLoadDll);
 

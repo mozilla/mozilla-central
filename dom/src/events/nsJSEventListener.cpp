@@ -73,10 +73,10 @@ static EventListenerCounter sEventListenerCounter;
  * nsJSEventListener implementation
  */
 nsJSEventListener::nsJSEventListener(nsIScriptContext *aContext,
-                                     void *aScopeObject,
+                                     JSObject* aScopeObject,
                                      nsISupports *aTarget,
                                      nsIAtom* aType,
-                                     void *aHandler)
+                                     JSObject *aHandler)
   : nsIJSEventListener(aContext, aScopeObject, aTarget, aHandler),
     mEventName(aType)
 {
@@ -103,7 +103,6 @@ nsJSEventListener::~nsJSEventListener()
 
 NS_IMPL_CYCLE_COLLECTION_CLASS(nsJSEventListener)
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsJSEventListener)
-  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mTarget)
   if (tmp->mContext) {
     if (tmp->mContext->GetScriptTypeID() == nsIProgrammingLanguage::JAVASCRIPT) {
       NS_DROP_JS_OBJECTS(tmp, nsJSEventListener);
@@ -117,7 +116,6 @@ NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsJSEventListener)
   }
 NS_IMPL_CYCLE_COLLECTION_UNLINK_END
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsJSEventListener)
-  NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mTarget)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mContext)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_SCRIPT_OBJECTS
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
@@ -256,7 +254,7 @@ nsJSEventListener::HandleEvent(nsIDOMEvent* aEvent)
 }
 
 /* virtual */ void
-nsJSEventListener::SetHandler(void *aHandler)
+nsJSEventListener::SetHandler(JSObject *aHandler)
 {
   // Technically we should drop the old mHandler and hold the new
   // one... except for JS this is a no-op, and we're really not
@@ -272,17 +270,14 @@ nsJSEventListener::SetHandler(void *aHandler)
  */
 
 nsresult
-NS_NewJSEventListener(nsIScriptContext *aContext, void *aScopeObject,
+NS_NewJSEventListener(nsIScriptContext* aContext, JSObject* aScopeObject,
                       nsISupports*aTarget, nsIAtom* aEventType,
-                      void *aHandler, nsIDOMEventListener ** aReturn)
+                      JSObject* aHandler, nsIJSEventListener** aReturn)
 {
   NS_ENSURE_ARG(aEventType);
   nsJSEventListener* it =
     new nsJSEventListener(aContext, aScopeObject, aTarget, aEventType,
                           aHandler);
-  if (!it) {
-    return NS_ERROR_OUT_OF_MEMORY;
-  }
   NS_ADDREF(*aReturn = it);
 
   return NS_OK;

@@ -2,8 +2,6 @@
 /* Any copyright is dedicated to the Public Domain.
    http://creativecommons.org/publicdomain/zero/1.0/ */
 
-// Reference to the Scratchpad chrome window object.
-let gScratchpadWindow;
 let tab1;
 let tab2;
 let sp;
@@ -14,15 +12,14 @@ function test()
 
   tab1 = gBrowser.addTab();
   gBrowser.selectedTab = tab1;
-  gBrowser.selectedBrowser.addEventListener("load", function() {
-    gBrowser.selectedBrowser.removeEventListener("load", arguments.callee, true);
+  gBrowser.selectedBrowser.addEventListener("load", function onLoad1() {
+    gBrowser.selectedBrowser.removeEventListener("load", onLoad1, true);
 
     tab2 = gBrowser.addTab();
     gBrowser.selectedTab = tab2;
-    gBrowser.selectedBrowser.addEventListener("load", function() {
-      gBrowser.selectedBrowser.removeEventListener("load", arguments.callee, true);
-      gScratchpadWindow = Scratchpad.openScratchpad();
-      gScratchpadWindow.addEventListener("load", runTests, false);
+    gBrowser.selectedBrowser.addEventListener("load", function onLoad2() {
+      gBrowser.selectedBrowser.removeEventListener("load", onLoad2, true);
+      openScratchpad(runTests);
     }, true);
     content.location = "data:text/html,test context switch in Scratchpad tab 2";
   }, true);
@@ -32,17 +29,15 @@ function test()
 
 function runTests()
 {
-  gScratchpadWindow.removeEventListener("load", runTests, true);
-
   sp = gScratchpadWindow.Scratchpad;
 
   let contentMenu = gScratchpadWindow.document.getElementById("sp-menu-content");
   let browserMenu = gScratchpadWindow.document.getElementById("sp-menu-browser");
-  let statusbar = sp.statusbarStatus;
+  let notificationBox = sp.notificationBox;
 
   ok(contentMenu, "found #sp-menu-content");
   ok(browserMenu, "found #sp-menu-browser");
-  ok(statusbar, "found Scratchpad.statusbarStatus");
+  ok(notificationBox, "found Scratchpad.notificationBox");
 
   sp.setContentContext();
 
@@ -52,11 +47,11 @@ function runTests()
   is(contentMenu.getAttribute("checked"), "true",
      "content menuitem is checked");
 
-  ok(!browserMenu.hasAttribute("checked"),
+  isnot(browserMenu.getAttribute("checked"), "true",
      "chrome menuitem is not checked");
 
-  is(statusbar.getAttribute("label"), contentMenu.getAttribute("label"),
-     "statusbar label is correct");
+  is(notificationBox.currentNotification, null,
+     "there is no notification currently shown for content context");
 
   sp.setText("window.foosbug653108 = 'aloha';");
 
@@ -97,14 +92,10 @@ function runTests3() {
   // Check that the sandbox is not cached.
 
   sp.setText("typeof foosbug653108;");
-  is(sp.run()[1], "undefined", "global variable does not exist");
+  is(sp.run()[2], "undefined", "global variable does not exist");
 
-  gScratchpadWindow.close();
-  gScratchpadWindow = null;
   tab1 = null;
   tab2 = null;
   sp = null;
-  gBrowser.removeCurrentTab();
-  gBrowser.removeCurrentTab();
   finish();
 }

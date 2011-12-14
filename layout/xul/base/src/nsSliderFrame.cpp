@@ -54,6 +54,7 @@
 #include "nsHTMLParts.h"
 #include "nsIPresShell.h"
 #include "nsCSSRendering.h"
+#include "nsEventListenerManager.h"
 #include "nsIDOMEventTarget.h"
 #include "nsIDOMMouseEvent.h"
 #include "nsIDocument.h"
@@ -406,7 +407,7 @@ nsSliderFrame::DoLayout(nsBoxLayoutState& aState)
   PRInt32 pageIncrement = GetPageIncrement(scrollbar);
 
   maxPos = NS_MAX(minPos, maxPos);
-  curPos = NS_MAX(minPos, NS_MIN(curPos, maxPos));
+  curPos = clamped(curPos, minPos, maxPos);
 
   nscoord& availableLength = IsHorizontal() ? clientRect.width : clientRect.height;
   nscoord& thumbLength = IsHorizontal() ? thumbSize.width : thumbSize.height;
@@ -687,7 +688,7 @@ nsSliderFrame::CurrentPositionChanged(nsPresContext* aPresContext,
   PRInt32 maxPos = GetMaxPosition(scrollbar);
 
   maxPos = NS_MAX(minPos, maxPos);
-  curPos = NS_MAX(minPos, NS_MIN(curPos, maxPos));
+  curPos = clamped(curPos, minPos, maxPos);
 
   // get the thumb's rect
   nsIFrame* thumbFrame = mFrames.FirstChild();
@@ -974,11 +975,12 @@ nsSliderFrame::AddListener()
   }
 
   nsIFrame* thumbFrame = mFrames.FirstChild();
-  if (thumbFrame) {
-    thumbFrame->GetContent()->
-      AddEventListener(NS_LITERAL_STRING("mousedown"), mMediator, false,
-                       false);
+  if (!thumbFrame) {
+    return;
   }
+  thumbFrame->GetContent()->
+    AddSystemEventListener(NS_LITERAL_STRING("mousedown"), mMediator,
+                           false, false);
 }
 
 void
@@ -991,7 +993,7 @@ nsSliderFrame::RemoveListener()
     return;
 
   thumbFrame->GetContent()->
-    RemoveEventListener(NS_LITERAL_STRING("mousedown"), mMediator, false);
+    RemoveSystemEventListener(NS_LITERAL_STRING("mousedown"), mMediator, false);
 }
 
 NS_IMETHODIMP

@@ -63,6 +63,7 @@ using nsMouseScrollEvent;
 using nsKeyEvent;
 using RemoteDOMEvent;
 using mozilla::WindowsHandle;
+using nscolor;
 
 namespace mozilla {
 namespace dom {
@@ -171,13 +172,14 @@ parent:
      */
     sync EndIMEComposition(bool cancel) returns (nsString composition);
 
-    sync GetIMEEnabled() returns (PRUint32 value);
+    sync GetInputContext() returns (PRInt32 IMEEnabled, PRInt32 IMEOpen);
 
-    SetInputMode(PRUint32 value, nsString type, nsString actionHint, PRUint32 reason);
-
-    sync GetIMEOpenState() returns (bool value);
-
-    SetIMEOpenState(bool value);
+    SetInputContext(PRInt32 IMEEnabled,
+                    PRInt32 IMEOpen,
+                    nsString type,
+                    nsString actionHint,
+                    PRInt32 cause,
+                    PRInt32 focusChange);
 
     /**
      * Gets the DPI of the screen corresponding to this browser.
@@ -190,6 +192,7 @@ parent:
     sync GetWidgetNativeData() returns (WindowsHandle value);
 
     SetCursor(PRUint32 value);
+    SetBackgroundColor(nscolor color);
 
     PContentPermissionRequest(nsCString aType, URI uri);
 

@@ -96,6 +96,8 @@ public:
 
   void MaybeLoadSVGImage();
 
+  bool IsImageSrcSetDisabled() const;
+
   virtual nsXPCClassInfo* GetClassInfo();
 protected:
   nsresult LoadSVGImage(bool aForce, bool aNotify);
@@ -103,7 +105,6 @@ protected:
   virtual LengthAttributesInfo GetLengthInfo();
   virtual SVGAnimatedPreserveAspectRatio *GetPreserveAspectRatio();
   virtual StringAttributesInfo GetStringInfo();
-  virtual void DidAnimateString(PRUint8 aAttrEnum);
 
   enum { X, Y, WIDTH, HEIGHT };
   nsSVGLength2 mLengthAttributes[4];

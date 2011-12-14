@@ -131,6 +131,8 @@ public:
                 ViewConfig aConfig = ViewConfig())
     : mViewportSize(0, 0)
     , mContentSize(0, 0)
+    , mParentScaleX(1.0)
+    , mParentScaleY(1.0)
     , mFrameLoader(aFrameLoader)
     , mScrollId(aScrollId)
     , mConfig(aConfig)
@@ -150,6 +152,8 @@ public:
 
   nsSize mViewportSize;
   nsSize mContentSize;
+  float mParentScaleX;
+  float mParentScaleY;
 
   nsFrameLoader* mFrameLoader;  // WEAK
 
@@ -283,6 +287,8 @@ public:
   mozilla::dom::Element* GetOwnerContent() { return mOwnerContent; }
   void SetOwnerContent(mozilla::dom::Element* aContent);
 
+  bool ShouldClipSubdocument() { return mClipSubdocument; }
+
 private:
 
   bool ShouldUseRemoteProcess();
@@ -334,7 +340,9 @@ private:
 
   bool mDelayRemoteDialogs : 1;
   bool mRemoteBrowserShown : 1;
-  bool mRemoteFrame;
+  bool mRemoteFrame : 1;
+  bool mClipSubdocument : 1;
+
   // XXX leaking
   nsCOMPtr<nsIObserver> mChildHost;
   RenderFrameParent* mCurrentRemoteFrame;

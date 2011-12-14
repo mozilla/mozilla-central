@@ -648,8 +648,9 @@ js_XDRAtom(JSXDRState *xdr, JSAtom **atomp)
         chars = stackChars;
     } else {
         /*
-         * This is very uncommon. Don't use the tempPool arena for this as
-         * most allocations here will be bigger than tempPool's arenasize.
+         * This is very uncommon. Don't use the tempLifoAlloc arena for this as
+         * most allocations here will be bigger than tempLifoAlloc's default
+         * chunk size.
          */
         chars = (jschar *) cx->malloc_(nchars * sizeof(jschar));
         if (!chars)
@@ -685,24 +686,42 @@ XDRScriptState::~XDRScriptState()
 }
 
 JS_PUBLIC_API(JSBool)
+JS_XDRFunctionObject(JSXDRState *xdr, JSObject **objp)
+{
+    XDRScriptState fstate(xdr);
+
+    if (xdr->mode == JSXDR_ENCODE) {
+        JSFunction* fun = (*objp)->toFunction();
+        fstate.filename = fun->script()->filename;
+    }
+
+    return js_XDRFunctionObject(xdr, objp);
+}
+
+JS_PUBLIC_API(JSBool)
 JS_XDRScript(JSXDRState *xdr, JSScript **scriptp)
 {
     JS_ASSERT(!xdr->state);
 
     JSScript *script;
     uint32 magic;
+    uint32 bytecodeVer;
     if (xdr->mode == JSXDR_DECODE) {
         script = NULL;
         *scriptp = NULL;
     } else {
         script = *scriptp;
         magic = JSXDR_MAGIC_SCRIPT_CURRENT;
+        bytecodeVer = JSXDR_BYTECODE_VERSION;
     }
 
     if (!JS_XDRUint32(xdr, &magic))
         return false;
+    if (!JS_XDRUint32(xdr, &bytecodeVer))
+        return false;
 
-    if (magic != JSXDR_MAGIC_SCRIPT_CURRENT) {
+    if (magic != JSXDR_MAGIC_SCRIPT_CURRENT ||
+        bytecodeVer != JSXDR_BYTECODE_VERSION) {
         /* We do not provide binary compatibility with older scripts. */
         JS_ReportErrorNumber(xdr->cx, js_GetErrorMessage, NULL, JSMSG_BAD_SCRIPT_MAGIC);
         return false;
@@ -722,10 +741,9 @@ JS_XDRScript(JSXDRState *xdr, JSScript **scriptp)
 
     if (xdr->mode == JSXDR_DECODE) {
         JS_ASSERT(!script->compileAndGo);
-        if (!js_NewScriptObject(xdr->cx, script))
-            return false;
+        script->globalObject = GetCurrentGlobal(xdr->cx);
         js_CallNewScriptHook(xdr->cx, script, NULL);
-        Debugger::onNewScript(xdr->cx, script, script->u.object, NULL);
+        Debugger::onNewScript(xdr->cx, script, NULL);
         *scriptp = script;
     }
 

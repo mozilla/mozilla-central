@@ -95,12 +95,14 @@ public:
   }
   nsresult InsertChildAt(nsIContent* aChild, PRUint32 aPos);
   void RemoveChildAt(PRUint32 aPos);
+  // Like RemoveChildAt but hands the reference to the child being
+  // removed back to the caller instead of just releasing it.
+  already_AddRefed<nsIContent> TakeChildAt(PRUint32 aPos);
   PRInt32 IndexOfChild(nsINode* aPossibleChild) const;
 
   PRUint32 AttrCount() const;
   const nsAttrValue* GetAttr(nsIAtom* aLocalName, PRInt32 aNamespaceID = kNameSpaceID_None) const;
   const nsAttrValue* AttrAt(PRUint32 aPos) const;
-  nsresult SetAttr(nsIAtom* aLocalName, const nsAString& aValue);
   nsresult SetAndTakeAttr(nsIAtom* aLocalName, nsAttrValue& aValue);
   nsresult SetAndTakeAttr(nsINodeInfo* aName, nsAttrValue& aValue);
 

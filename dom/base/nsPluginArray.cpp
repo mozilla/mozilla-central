@@ -38,7 +38,7 @@
 
 #include "nsPluginArray.h"
 #include "nsMimeTypeArray.h"
-#include "nsGlobalWindow.h"
+#include "Navigator.h"
 #include "nsIScriptGlobalObject.h"
 #include "nsIDOMNavigator.h"
 #include "nsIDOMMimeType.h"
@@ -50,15 +50,17 @@
 #include "nsContentUtils.h"
 #include "nsPluginHost.h"
 
-nsPluginArray::nsPluginArray(nsNavigator* navigator,
+using namespace mozilla;
+using namespace mozilla::dom;
+
+nsPluginArray::nsPluginArray(Navigator* navigator,
                              nsIDocShell *aDocShell)
+  : mNavigator(navigator),
+    mPluginHost(do_GetService(MOZ_PLUGIN_HOST_CONTRACTID)),
+    mPluginCount(0),
+    mPluginArray(nsnull),
+    mDocShell(do_GetWeakReference(aDocShell))
 {
-  nsresult rv;
-  mNavigator = navigator; // don't ADDREF here, needed for parent of script object.
-  mPluginHost = do_GetService(MOZ_PLUGIN_HOST_CONTRACTID, &rv);
-  mPluginCount = 0;
-  mPluginArray = nsnull;
-  mDocShell = aDocShell;
 }
 
 nsPluginArray::~nsPluginArray()
@@ -98,8 +100,10 @@ bool
 nsPluginArray::AllowPlugins()
 {
   bool allowPlugins = false;
-  if (mDocShell)
-    if (NS_FAILED(mDocShell->GetAllowPlugins(&allowPlugins)))
+  nsCOMPtr<nsIDocShell> docShell = do_QueryReferent(mDocShell);
+
+  if (docShell)
+    if (NS_FAILED(docShell->GetAllowPlugins(&allowPlugins)))
       allowPlugins = false;
 
   return allowPlugins;
@@ -191,12 +195,6 @@ nsPluginArray::GetPluginHost(nsIPluginHost** aPluginHost)
 }
 
 void
-nsPluginArray::SetDocShell(nsIDocShell *aDocShell)
-{
-  mDocShell = aDocShell;
-}
-
-void
 nsPluginArray::Invalidate()
 {
   mDocShell = nsnull;
@@ -229,7 +227,7 @@ nsPluginArray::Refresh(bool aReloadDocuments)
   if(pluginsNotChanged)
     return res;
 
-  nsCOMPtr<nsIWebNavigation> webNav = do_QueryInterface(mDocShell);
+  nsCOMPtr<nsIWebNavigation> webNav = do_QueryReferent(mDocShell);
 
   if (mPluginArray != nsnull) {
     for (PRUint32 i = 0; i < mPluginCount; i++) 

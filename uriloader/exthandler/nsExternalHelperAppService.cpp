@@ -147,7 +147,7 @@
 #include "nsIDocShellTreeItem.h"
 #include "ExternalHelperAppChild.h"
 
-#ifdef ANDROID
+#ifdef MOZ_WIDGET_ANDROID
 #include "AndroidBridge.h"
 #endif
 
@@ -485,7 +485,7 @@ static nsExtraMimeTypeEntry extraMimeEntries [] =
   { APPLICATION_XPINSTALL, "xpi", "XPInstall Install" },
   { APPLICATION_POSTSCRIPT, "ps,eps,ai", "Postscript File" },
   { APPLICATION_XJAVASCRIPT, "js", "Javascript Source File" },
-#ifdef ANDROID
+#ifdef MOZ_WIDGET_ANDROID
   { "application/vnd.android.package-archive", "apk", "Android Package" },
 #endif
   { IMAGE_ART, "art", "ART Image" },
@@ -1675,19 +1675,6 @@ NS_IMETHODIMP nsExternalAppHandler::OnStartRequest(nsIRequest *request, nsISuppo
     }
   }
 
-  // Now let's add the download to history
-  nsCOMPtr<nsIDownloadHistory> dh(do_GetService(NS_DOWNLOADHISTORY_CONTRACTID));
-  if (dh) {
-    nsCOMPtr<nsIURI> referrer;
-    if (aChannel)
-      NS_GetReferrerFromChannel(aChannel, getter_AddRefs(referrer));
-
-    nsCOMPtr<nsIURI> target;
-    NS_NewFileURI(getter_AddRefs(target), mFinalFileDestination);
-
-    dh->AddDownload(mSourceUrl, referrer, mTimeDownloadStarted, target);
-  }
-
   return NS_OK;
 }
 
@@ -1984,6 +1971,18 @@ nsresult nsExternalAppHandler::InitializeDownload(nsITransfer* aTransfer)
   rv = aTransfer->Init(mSourceUrl, target, EmptyString(),
                        mMimeInfo, mTimeDownloadStarted, lf, this);
   if (NS_FAILED(rv)) return rv;
+
+  // Now let's add the download to history
+  nsCOMPtr<nsIDownloadHistory> dh(do_GetService(NS_DOWNLOADHISTORY_CONTRACTID));
+  if (dh) {
+    nsCOMPtr<nsIURI> referrer;
+    if (mRequest) {
+      nsCOMPtr<nsIChannel> channel = do_QueryInterface(mRequest);
+      NS_GetReferrerFromChannel(channel, getter_AddRefs(referrer));
+    }
+
+    dh->AddDownload(mSourceUrl, referrer, mTimeDownloadStarted, target);
+  }
 
   return rv;
 }

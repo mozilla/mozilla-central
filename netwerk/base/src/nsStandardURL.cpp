@@ -67,7 +67,6 @@ nsICharsetConverterManager *nsStandardURL::gCharsetMgr = nsnull;
 bool nsStandardURL::gInitialized = false;
 bool nsStandardURL::gEscapeUTF8 = true;
 bool nsStandardURL::gAlwaysEncodeInUTF8 = true;
-bool nsStandardURL::gEncodeQueryInUTF8 = true;
 
 #if defined(PR_LOGGING)
 //
@@ -144,7 +143,6 @@ end:
 #define NS_NET_PREF_ESCAPEUTF8         "network.standard-url.escape-utf8"
 #define NS_NET_PREF_ENABLEIDN          "network.enableIDN"
 #define NS_NET_PREF_ALWAYSENCODEINUTF8 "network.standard-url.encode-utf8"
-#define NS_NET_PREF_ENCODEQUERYINUTF8  "network.standard-url.encode-query-utf8"
 
 NS_IMPL_ISUPPORTS1(nsStandardURL::nsPrefObserver, nsIObserver)
 
@@ -273,8 +271,7 @@ nsSegmentEncoder::InitUnicodeEncoder()
     GET_SEGMENT_ENCODER_INTERNAL(name, gAlwaysEncodeInUTF8)
 
 #define GET_QUERY_ENCODER(name) \
-    GET_SEGMENT_ENCODER_INTERNAL(name, gAlwaysEncodeInUTF8 && \
-                                 gEncodeQueryInUTF8)
+    GET_SEGMENT_ENCODER_INTERNAL(name, false)
 
 //----------------------------------------------------------------------------
 // nsStandardURL <public>
@@ -350,7 +347,6 @@ nsStandardURL::InitGlobalObjects()
         nsCOMPtr<nsIObserver> obs( new nsPrefObserver() );
         prefBranch->AddObserver(NS_NET_PREF_ESCAPEUTF8, obs.get(), false);
         prefBranch->AddObserver(NS_NET_PREF_ALWAYSENCODEINUTF8, obs.get(), false);
-        prefBranch->AddObserver(NS_NET_PREF_ENCODEQUERYINUTF8, obs.get(), false);
         prefBranch->AddObserver(NS_NET_PREF_ENABLEIDN, obs.get(), false);
 
         PrefsChanged(prefBranch, nsnull);
@@ -525,7 +521,7 @@ nsStandardURL::BuildNormalizedSpec(const char *spec)
 
     // the scheme is already ASCII
     if (mScheme.mLen > 0)
-        approxLen += mScheme.mLen + 3; // includes room for "://";
+        approxLen += mScheme.mLen + 3; // includes room for "://", which we insert always
 
     // encode URL segments; convert UTF-8 to origin charset and possibly escape.
     // results written to encXXX variables only if |spec| is not already in the
@@ -536,8 +532,9 @@ nsStandardURL::BuildNormalizedSpec(const char *spec)
         // Items using an extraLen of 1 don't add anything unless mLen > 0
         // Username@
         approxLen += encoder.EncodeSegmentCount(spec, mUsername,  esc_Username,      encUsername,  useEncUsername, 1);
-        // :Password
-        approxLen += encoder.EncodeSegmentCount(spec, mPassword,  esc_Password,      encPassword,  useEncPassword, 1);
+        // :password - we insert the ':' even if there's no actual password if "user:@" was in the spec
+        if (mPassword.mLen >= 0)
+            approxLen += 1 + encoder.EncodeSegmentCount(spec, mPassword,  esc_Password,      encPassword,  useEncPassword);
         // mHost is handled differently below due to encoding differences
         NS_ABORT_IF_FALSE(mPort > 0 || mPort == -1, "Invalid negative mPort");
         if (mPort != -1 && mPort != mDefaultPort)
@@ -567,6 +564,7 @@ nsStandardURL::BuildNormalizedSpec(const char *spec)
     // already point to a [ ] delimited IPv6 address literal.
     // However, perform Unicode normalization on it, as IDN does.
     mHostEncoding = eEncoding_ASCII;
+    // Note that we don't disallow URLs without a host - file:, etc
     if (mHost.mLen > 0) {
         const nsCSubstring& tempHost =
             Substring(spec + mHost.mPos, spec + mHost.mPos + mHost.mLen);
@@ -955,12 +953,6 @@ nsStandardURL::PrefsChanged(nsIPrefBranch *prefs, const char *pref)
         if (GOT_PREF(NS_NET_PREF_ALWAYSENCODEINUTF8, val))
             gAlwaysEncodeInUTF8 = val;
         LOG(("encode in UTF-8 %s\n", gAlwaysEncodeInUTF8 ? "enabled" : "disabled"));
-    }
-
-    if (PREF_CHANGED(NS_NET_PREF_ENCODEQUERYINUTF8)) {
-        if (GOT_PREF(NS_NET_PREF_ENCODEQUERYINUTF8, val))
-            gEncodeQueryInUTF8 = val;
-        LOG(("encode query in UTF-8 %s\n", gEncodeQueryInUTF8 ? "enabled" : "disabled"));
     }
 #undef PREF_CHANGED
 #undef GOT_PREF

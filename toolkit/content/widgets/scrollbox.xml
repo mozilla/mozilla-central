@@ -272,20 +272,22 @@
 
       <field name="_scrollAnim"><![CDATA[({
         scrollbox: this,
+        requestHandle: 0, /* 0 indicates there is no pending request */
         start: function scrollAnim_start(distance) {
           this.distance = distance;
           this.startPos = this.scrollbox.scrollPosition;
           this.duration = Math.min(1000, Math.round(50 * Math.sqrt(Math.abs(distance))));
           this.startTime = window.mozAnimationStartTime;
 
-          window.addEventListener("MozBeforePaint", this, false);
-          window.mozRequestAnimationFrame();
+          if (!this.requestHandle)
+            this.requestHandle = window.mozRequestAnimationFrame(this);
         },
         stop: function scrollAnim_stop() {
-          window.removeEventListener("MozBeforePaint", this, false);
+          window.mozCancelRequestAnimationFrame(this.requestHandle);
+          this.requestHandle = 0;
         },
-        handleEvent: function scrollAnim_handleEvent(event) {
-          const timePassed = event.timeStamp - this.startTime;
+        sample: function scrollAnim_handleEvent(timeStamp) {
+          const timePassed = timeStamp - this.startTime;
           const pos = timePassed >= this.duration ? 1 :
                       1 - Math.pow(1 - timePassed / this.duration, 4);
 
@@ -294,7 +296,7 @@
           if (pos == 1)
             this.scrollbox._stopSmoothScroll();
           else
-            window.mozRequestAnimationFrame();
+            window.mozRequestAnimationFrame(this);
         }
       })]]></field>
 
@@ -482,7 +484,8 @@
           let isVertical = event.axis == event.VERTICAL_AXIS;
 
           if (this._prevMouseScrolls.every(function(prev) prev == isVertical))
-            this.scrollByIndex(this._isRTLScrollbox ? -event.detail : event.detail);
+            this.scrollByIndex(isVertical && this._isRTLScrollbox ? -event.detail :
+                                                                    event.detail);
 
           if (this._prevMouseScrolls.length > 1)
             this._prevMouseScrolls.shift();
@@ -638,23 +641,25 @@
 
       <field name="_arrowScrollAnim"><![CDATA[({
         scrollbox: this,
+        requestHandle: 0, /* 0 indicates there is no pending request */
         start: function arrowSmoothScroll_start() {
           this.lastFrameTime = window.mozAnimationStartTime;
-          window.addEventListener("MozBeforePaint", this, false);
-          window.mozRequestAnimationFrame();
+          if (!this.requestHandle)
+            this.requestHandle = window.mozRequestAnimationFrame(this);
         },
         stop: function arrowSmoothScroll_stop() {
-          window.removeEventListener("MozBeforePaint", this, false);
+          window.mozCancelRequestAnimationFrame(this.requestHandle);
+          this.requestHandle = 0;
         },
-        handleEvent: function arrowSmoothScroll_handleEvent(event) {
+        sample: function arrowSmoothScroll_handleEvent(timeStamp) {
           const scrollIndex = this.scrollbox._scrollIndex;
-          const timePassed = event.timeStamp - this.lastFrameTime;
-          this.lastFrameTime = event.timeStamp;
+          const timePassed = timeStamp - this.lastFrameTime;
+          this.lastFrameTime = timeStamp;
           
           const scrollDelta = 0.5 * timePassed * scrollIndex;
           this.scrollbox.scrollPosition += scrollDelta;
 
-          window.mozRequestAnimationFrame();
+          window.mozRequestAnimationFrame(this);
         }
       })]]></field>
 

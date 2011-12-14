@@ -68,9 +68,14 @@
 #endif
 
 #ifdef XP_MACOSX
+#include "nsVersionComparator.h"
+#include "MacQuirks.h"
 #include "MacLaunchHelper.h"
 #include "MacApplicationDelegate.h"
 #include "MacAutoreleasePool.h"
+// these are needed for sysctl
+#include <sys/types.h>
+#include <sys/sysctl.h>
 #endif
 
 #ifdef XP_OS2
@@ -155,6 +160,7 @@ using mozilla::unused;
 
 #include "nsINIParser.h"
 #include "mozilla/Omnijar.h"
+#include "mozilla/StartupTimeline.h"
 
 #include <stdlib.h>
 
@@ -212,7 +218,7 @@ using mozilla::unused;
 
 #include "mozilla/FunctionTimer.h"
 
-#ifdef ANDROID
+#ifdef MOZ_WIDGET_ANDROID
 #include "AndroidBridge.h"
 #endif
 
@@ -1602,7 +1608,7 @@ static nsresult LaunchChild(nsINativeAppSupport* aNative,
 
   SaveToEnv("MOZ_LAUNCHED_CHILD=1");
 
-#if defined(ANDROID)
+#if defined(MOZ_WIDGET_ANDROID)
   mozilla::AndroidBridge::Bridge()->ScheduleRestart();
 #else
 #if defined(XP_MACOSX)
@@ -1653,7 +1659,7 @@ static nsresult LaunchChild(nsINativeAppSupport* aNative,
 #endif // XP_OS2 series
 #endif // WP_WIN
 #endif // WP_MACOSX
-#endif // ANDROID
+#endif // MOZ_WIDGET_ANDROID
 
   return NS_ERROR_LAUNCHED_CHILD_PROCESS;
 }
@@ -1885,35 +1891,6 @@ ShowProfileManager(nsIToolkitProfileService* aProfileSvc,
   return LaunchChild(aNative);
 }
 
-static nsresult
-ImportProfiles(nsIToolkitProfileService* aPService,
-               nsINativeAppSupport* aNative)
-{
-  nsresult rv;
-
-  SaveToEnv("XRE_IMPORT_PROFILES=1");
-
-  // try to import old-style profiles
-  { // scope XPCOM
-    ScopedXPCOMStartup xpcom;
-    rv = xpcom.Initialize();
-    if (NS_SUCCEEDED(rv)) {
-#ifdef XP_MACOSX
-      CommandLineServiceMac::SetupMacCommandLine(gRestartArgc, gRestartArgv, true);
-#endif
-
-      nsCOMPtr<nsIProfileMigrator> migrator
-        (do_GetService(NS_PROFILEMIGRATOR_CONTRACTID));
-      if (migrator) {
-        migrator->Import();
-      }
-    }
-  }
-
-  aPService->Flush();
-  return LaunchChild(aNative);
-}
-
 // Pick a profile. We need to end up with a profile lock.
 //
 // 1) check for -profile <path>
@@ -2064,12 +2041,6 @@ SelectProfile(nsIProfileLock* *aResult, nsINativeAppSupport* aNative,
   PRUint32 count;
   rv = profileSvc->GetProfileCount(&count);
   NS_ENSURE_SUCCESS(rv, rv);
-
-  if (gAppData->flags & NS_XRE_ENABLE_PROFILE_MIGRATOR) {
-    if (!count && !EnvHasValue("XRE_IMPORT_PROFILES")) {
-      return ImportProfiles(profileSvc, aNative);
-    }
-  }
 
   ar = CheckArg("p", false, &arg);
   if (ar == ARG_BAD) {
@@ -2436,39 +2407,6 @@ static PRFuncPtr FindFunction(const char* aName)
   return result;
 }
 
-static nsIWidget* GetMainWidget(nsIDOMWindow* aWindow)
-{
-  // get the native window for this instance
-  nsCOMPtr<nsPIDOMWindow> window(do_QueryInterface(aWindow));
-  NS_ENSURE_TRUE(window, nsnull);
-
-  nsCOMPtr<nsIBaseWindow> baseWindow
-    (do_QueryInterface(window->GetDocShell()));
-  NS_ENSURE_TRUE(baseWindow, nsnull);
-
-  nsCOMPtr<nsIWidget> mainWidget;
-  baseWindow->GetMainWidget(getter_AddRefs(mainWidget));
-  return mainWidget;
-}
-
-static nsGTKToolkit* GetGTKToolkit()
-{
-  nsCOMPtr<nsIAppShellService> svc = do_GetService(NS_APPSHELLSERVICE_CONTRACTID);
-  if (!svc)
-    return nsnull;
-  nsCOMPtr<nsIDOMWindow> window;
-  svc->GetHiddenDOMWindow(getter_AddRefs(window));
-  if (!window)
-    return nsnull;
-  nsIWidget* widget = GetMainWidget(window);
-  if (!widget)
-    return nsnull;
-  nsIToolkit* toolkit = widget->GetToolkit();
-  if (!toolkit)
-    return nsnull;
-  return static_cast<nsGTKToolkit*>(toolkit);
-}
-
 static void MOZ_gdk_display_close(GdkDisplay *display)
 {
   // XXX wallpaper for bug 417163: don't close the Display if we're using the
@@ -2568,7 +2506,7 @@ static void MOZ_gdk_display_close(GdkDisplay *display)
  * By defining the symbol here, we can avoid the wasted lookup and hopefully
  * improve startup performance.
  */
-NS_VISIBILITY_DEFAULT bool nspr_use_zone_allocator = false;
+NS_VISIBILITY_DEFAULT PRBool nspr_use_zone_allocator = PR_FALSE;
 
 #ifdef CAIRO_HAS_DWRITE_FONT
 
@@ -2632,20 +2570,22 @@ static DWORD InitDwriteBG(LPVOID lpdwThreadParam)
 }
 #endif
 
-PRTime gXRE_mainTimestamp = 0;
-
 #ifdef MOZ_X11
 #ifndef MOZ_PLATFORM_MAEMO
 bool fire_glxtest_process();
 #endif
 #endif
 
+#include "sampler.h"
+
 int
 XRE_main(int argc, char* argv[], const nsXREAppData* aAppData)
 {
   NS_TIME_FUNCTION;
+  SAMPLER_INIT();
+  SAMPLE_LABEL("Startup", "XRE_Main");
 
-  gXRE_mainTimestamp = PR_Now();
+  StartupTimeline::Record(StartupTimeline::MAIN);
 
   nsresult rv;
   ArgResult ar;
@@ -2653,6 +2593,10 @@ XRE_main(int argc, char* argv[], const nsXREAppData* aAppData)
 #ifdef DEBUG
   if (PR_GetEnv("XRE_MAIN_BREAK"))
     NS_BREAK();
+#endif
+
+#ifdef XP_MACOSX
+  TriggerQuirks();
 #endif
 
   // see bug 639842
@@ -2788,6 +2732,10 @@ XRE_main(int argc, char* argv[], const nsXREAppData* aAppData)
       return 2;
   }
 
+  if (!appData.directory) {
+    NS_IF_ADDREF(appData.directory = appData.xreDirectory);
+  }
+
   if (appData.size > offsetof(nsXREAppData, minVersion)) {
     if (!appData.minVersion) {
       Output(true, "Error: Gecko:MinVersion not specified in application.ini\n");
@@ -2833,12 +2781,19 @@ XRE_main(int argc, char* argv[], const nsXREAppData* aAppData)
     if (appData.name)
       CrashReporter::AnnotateCrashReport(NS_LITERAL_CSTRING("ProductName"),
                                          nsDependentCString(appData.name));
+    if (appData.ID)
+      CrashReporter::AnnotateCrashReport(NS_LITERAL_CSTRING("ProductID"),
+                                         nsDependentCString(appData.ID));
     if (appData.version)
       CrashReporter::AnnotateCrashReport(NS_LITERAL_CSTRING("Version"),
                                          nsDependentCString(appData.version));
     if (appData.buildID)
       CrashReporter::AnnotateCrashReport(NS_LITERAL_CSTRING("BuildID"),
                                          nsDependentCString(appData.buildID));
+
+    nsDependentCString releaseChannel(NS_STRINGIFY(MOZ_UPDATE_CHANNEL));
+    CrashReporter::AnnotateCrashReport(NS_LITERAL_CSTRING("ReleaseChannel"),
+                                       releaseChannel);
     CrashReporter::SetRestartArgs(argc, argv);
 
     // annotate other data (user id etc)
@@ -3482,7 +3437,6 @@ XRE_main(int argc, char* argv[], const nsXREAppData* aAppData)
         SaveToEnv("XRE_PROFILE_LOCAL_PATH=");
         SaveToEnv("XRE_PROFILE_NAME=");
         SaveToEnv("XRE_START_OFFLINE=");
-        SaveToEnv("XRE_IMPORT_PROFILES=");
         SaveToEnv("NO_EM_RESTART=");
         SaveToEnv("XUL_APP_FILE=");
         SaveToEnv("XRE_BINARY_PATH=");
@@ -3496,7 +3450,7 @@ XRE_main(int argc, char* argv[], const nsXREAppData* aAppData)
           NS_ENSURE_SUCCESS(rv, 1);
 
 #if defined(HAVE_DESKTOP_STARTUP_ID) && defined(MOZ_WIDGET_GTK2)
-          nsRefPtr<nsGTKToolkit> toolkit = GetGTKToolkit();
+          nsGTKToolkit* toolkit = nsGTKToolkit::GetToolkit();
           if (toolkit && !desktopStartupID.IsEmpty()) {
             toolkit->SetDesktopStartupID(desktopStartupID);
           }
@@ -3787,3 +3741,4 @@ SetupErrorHandling(const char* progname)
   fpsetmask(0);
 #endif
 }
+

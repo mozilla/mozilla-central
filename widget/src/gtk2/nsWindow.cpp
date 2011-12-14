@@ -51,7 +51,6 @@
 #include "nsWindow.h"
 #include "nsGTKToolkit.h"
 #include "nsIRollupListener.h"
-#include "nsIMenuRollup.h"
 #include "nsIDOMNode.h"
 
 #include "nsWidgetsCID.h"
@@ -100,7 +99,7 @@
 
 #include "mozilla/Preferences.h"
 #include "nsIPrefService.h"
-#include "nsIPrefBranch.h"
+#include "nsIGConfService.h"
 #include "nsIServiceManager.h"
 #include "nsIStringBundle.h"
 #include "nsGfxCIID.h"
@@ -116,13 +115,13 @@
 #include "stdlib.h"
 
 using namespace mozilla;
+using namespace mozilla::widget;
 
 static bool sAccessibilityChecked = false;
 /* static */
 bool nsWindow::sAccessibilityEnabled = false;
-static const char sSysPrefService [] = "@mozilla.org/system-preference-service;1";
 static const char sAccEnv [] = "GNOME_ACCESSIBILITY";
-static const char sAccessibilityKey [] = "config.use_system_prefs.accessibility";
+static const char sGconfAccessibilityKey[] = "/desktop/gnome/interface/accessibility";
 #endif
 
 /* For SetIcon */
@@ -141,6 +140,7 @@ static const char sAccessibilityKey [] = "config.use_system_prefs.accessibility"
 #include "nsAutoPtr.h"
 
 extern "C" {
+#define PIXMAN_DONT_DEFINE_STDINT
 #include "pixman.h"
 }
 #include "gfxPlatformGtk.h"
@@ -173,6 +173,7 @@ D_DEBUG_DOMAIN( ns_Window, "nsWindow", "nsWindow" );
 #endif
 
 using namespace mozilla;
+using namespace mozilla::widget;
 using mozilla::gl::GLContext;
 using mozilla::layers::LayerManagerOGL;
 
@@ -201,6 +202,8 @@ static void   key_event_to_context_menu_event(nsMouseEvent &aEvent,
 
 static int    is_parent_ungrab_enter(GdkEventCrossing *aEvent);
 static int    is_parent_grab_leave(GdkEventCrossing *aEvent);
+
+static void GetBrandName(nsXPIDLString& brandName);
 
 /* callbacks from widgets */
 #if defined(MOZ_WIDGET_GTK2)
@@ -332,7 +335,6 @@ static bool              gRaiseWindows         = true;
 static nsWindow         *gPluginFocusWindow    = NULL;
 
 static nsIRollupListener*          gRollupListener;
-static nsIMenuRollup*              gMenuRollup;
 static nsWeakPtr                   gRollupWindow;
 static bool                        gConsumeRollupEvent;
 
@@ -772,8 +774,7 @@ nsWindow::Destroy(void)
     nsCOMPtr<nsIWidget> rollupWidget = do_QueryReferent(gRollupWindow);
     if (static_cast<nsIWidget *>(this) == rollupWidget.get()) {
         if (gRollupListener)
-            gRollupListener->Rollup(nsnull, nsnull);
-        NS_IF_RELEASE(gMenuRollup);
+            gRollupListener->Rollup(0);
         gRollupWindow = nsnull;
         gRollupListener = nsnull;
     }
@@ -900,15 +901,17 @@ nsWindow::GetDPI()
 NS_IMETHODIMP
 nsWindow::SetParent(nsIWidget *aNewParent)
 {
-    if (mContainer || !mGdkWindow || !mParent) {
-        NS_NOTREACHED("nsWindow::SetParent - reparenting a non-child window");
+    if (mContainer || !mGdkWindow) {
+        NS_NOTREACHED("nsWindow::SetParent called illegally");
         return NS_ERROR_NOT_IMPLEMENTED;
     }
 
     NS_ASSERTION(!mTransientParent, "child widget with transient parent");
 
     nsCOMPtr<nsIWidget> kungFuDeathGrip = this;
-    mParent->RemoveChild(this);
+    if (mParent) {
+        mParent->RemoveChild(this);
+    }
 
     mParent = aNewParent;
 
@@ -1005,6 +1008,10 @@ nsWindow::ReparentNativeWidgetInternal(nsIWidget* aNewParent,
             NS_ABORT_IF_FALSE(!gdk_window_is_destroyed(aNewParentWindow),
                               "destroyed GdkWindow with widget");
             SetWidgetForHierarchy(mGdkWindow, aOldContainer, aNewContainer);
+
+            if (aOldContainer == gInvisibleContainer) {
+                CheckDestroyInvisibleContainer();
+            }
         }
 
         if (!mIsTopLevel) {
@@ -1407,13 +1414,10 @@ typedef void (* SetUserTimeFunc)(GdkWindow* aWindow, guint32 aTimestamp);
 static void
 SetUserTimeAndStartupIDForActivatedWindow(GtkWidget* aWindow)
 {
-    nsCOMPtr<nsIToolkit> toolkit;
-    NS_GetCurrentToolkit(getter_AddRefs(toolkit));
-    if (!toolkit)
+    nsGTKToolkit* GTKToolkit = nsGTKToolkit::GetToolkit();
+    if (!GTKToolkit)
         return;
 
-    nsGTKToolkit* GTKToolkit = static_cast<nsGTKToolkit*>
-                                          (static_cast<nsIToolkit*>(toolkit));
     nsCAutoString desktopStartupID;
     GTKToolkit->GetDesktopStartupID(&desktopStartupID);
     if (desktopStartupID.IsEmpty()) {
@@ -1574,6 +1578,57 @@ nsWindow::GetScreenBounds(nsIntRect &aRect)
     LOG(("GetScreenBounds %d,%d | %dx%d\n",
          aRect.x, aRect.y, aRect.width, aRect.height));
     return NS_OK;
+}
+
+NS_IMETHODIMP
+nsWindow::GetClientBounds(nsIntRect &aRect)
+{
+    // GetBounds returns a rect whose top left represents the top left of the
+    // outer bounds, but whose width/height represent the size of the inner
+    // bounds (which is messed up).
+    GetBounds(aRect);
+    aRect.MoveBy(GetClientOffset());
+
+    return NS_OK;
+}
+
+nsIntPoint
+nsWindow::GetClientOffset()
+{
+    if (!mIsTopLevel) {
+        return nsIntPoint(0, 0);
+    }
+
+    GdkAtom cardinal_atom = gdk_x11_xatom_to_atom(XA_CARDINAL);
+
+    GdkAtom type_returned;
+    int format_returned;
+    int length_returned;
+    long *frame_extents;
+
+    if (!mShell || !mShell->window ||
+        !gdk_property_get(mShell->window,
+                          gdk_atom_intern ("_NET_FRAME_EXTENTS", FALSE),
+                          cardinal_atom,
+                          0, // offset
+                          4*4, // length
+                          FALSE, // delete
+                          &type_returned,
+                          &format_returned,
+                          &length_returned,
+                          (guchar **) &frame_extents) ||
+        length_returned/sizeof(glong) != 4) {
+
+        return nsIntPoint(0, 0);
+    }
+
+    // data returned is in the order left, right, top, bottom
+    PRInt32 left = PRInt32(frame_extents[0]);
+    PRInt32 top = PRInt32(frame_extents[2]);
+
+    g_free(frame_extents);
+
+    return nsIntPoint(left, top);
 }
 
 NS_IMETHODIMP
@@ -1744,8 +1799,9 @@ nsWindow::GetNativeData(PRUint32 aDataType)
 
     case NS_NATIVE_GRAPHIC: {
 #if defined(MOZ_WIDGET_GTK2)
-        NS_ASSERTION(nsnull != mToolkit, "NULL toolkit, unable to get a GC");    
-        return (void *)static_cast<nsGTKToolkit *>(mToolkit)->GetSharedGC();
+        nsGTKToolkit* toolkit = nsGTKToolkit::GetToolkit();
+        NS_ASSERTION(nsnull != toolkit, "NULL toolkit, unable to get a GC");    
+        return toolkit->GetSharedGC();
 #else
         return nsnull;
 #endif
@@ -1792,38 +1848,62 @@ nsWindow::SetIcon(const nsAString& aIconSpec)
     if (!mShell)
         return NS_OK;
 
+    nsCAutoString iconName;
+    
+    if (aIconSpec.EqualsLiteral("default")) {
+        nsXPIDLString brandName;
+        GetBrandName(brandName);
+        AppendUTF16toUTF8(brandName, iconName);
+        ToLowerCase(iconName);
+    } else {
+        AppendUTF16toUTF8(aIconSpec, iconName);
+    }
+    
     nsCOMPtr<nsILocalFile> iconFile;
     nsCAutoString path;
-    nsTArray<nsCString> iconList;
 
-    // Look for icons with the following suffixes appended to the base name.
-    // The last two entries (for the old XPM format) will be ignored unless
-    // no icons are found using the other suffixes. XPM icons are depricated.
+    bool foundIcon = gtk_icon_theme_has_icon(gtk_icon_theme_get_default(),
+                                             iconName.get());
 
-    const char extensions[6][7] = { ".png", "16.png", "32.png", "48.png",
+    if (!foundIcon) {
+        // Look for icons with the following suffixes appended to the base name
+        // The last two entries (for the old XPM format) will be ignored unless
+        // no icons are found using other suffixes. XPM icons are deprecated.
+
+        const char extensions[6][7] = { ".png", "16.png", "32.png", "48.png",
                                     ".xpm", "16.xpm" };
 
-    for (PRUint32 i = 0; i < ArrayLength(extensions); i++) {
-        // Don't bother looking for XPM versions if we found a PNG.
-        if (i == ArrayLength(extensions) - 2 && iconList.Length())
-            break;
+        for (PRUint32 i = 0; i < ArrayLength(extensions); i++) {
+            // Don't bother looking for XPM versions if we found a PNG.
+            if (i == ArrayLength(extensions) - 2 && foundIcon)
+                break;
 
-        nsAutoString extension;
-        extension.AppendASCII(extensions[i]);
+            nsAutoString extension;
+            extension.AppendASCII(extensions[i]);
 
-        ResolveIconName(aIconSpec, extension, getter_AddRefs(iconFile));
-        if (iconFile) {
-            iconFile->GetNativePath(path);
-            iconList.AppendElement(path);
+            ResolveIconName(aIconSpec, extension, getter_AddRefs(iconFile));
+            if (iconFile) {
+                iconFile->GetNativePath(path);
+                GdkPixbuf *icon = gdk_pixbuf_new_from_file(path.get(), NULL);
+                if (icon){
+                    gtk_icon_theme_add_builtin_icon(iconName.get(),
+                                                    gdk_pixbuf_get_height(icon),
+                                                    icon);
+                    g_object_unref(icon);
+                    foundIcon = true;
+                }
+            }
         }
     }
 
     // leave the default icon intact if no matching icons were found
-    if (iconList.Length() == 0)
-        return NS_OK;
+    if (foundIcon) {
+        gtk_window_set_icon_name(GTK_WINDOW(mShell), iconName.get());
+    }
 
-    return SetWindowIconList(iconList);
+    return NS_OK;
 }
+
 
 nsIntPoint
 nsWindow::WidgetToScreenOffset()
@@ -1869,7 +1949,6 @@ nsWindow::CaptureMouse(bool aCapture)
 
 NS_IMETHODIMP
 nsWindow::CaptureRollupEvents(nsIRollupListener *aListener,
-                              nsIMenuRollup     *aMenuRollup,
                               bool               aDoCapture,
                               bool               aConsumeRollupEvent)
 {
@@ -1885,9 +1964,6 @@ nsWindow::CaptureRollupEvents(nsIRollupListener *aListener,
     if (aDoCapture) {
         gConsumeRollupEvent = aConsumeRollupEvent;
         gRollupListener = aListener;
-        NS_IF_RELEASE(gMenuRollup);
-        gMenuRollup = aMenuRollup;
-        NS_IF_ADDREF(aMenuRollup);
         gRollupWindow = do_GetWeakReference(static_cast<nsIWidget*>
                                                        (this));
         // real grab is only done when there is no dragging
@@ -1905,7 +1981,6 @@ nsWindow::CaptureRollupEvents(nsIRollupListener *aListener,
         // was not added to this widget.
         gtk_grab_remove(widget);
         gRollupListener = nsnull;
-        NS_IF_RELEASE(gMenuRollup);
         gRollupWindow = nsnull;
     }
 
@@ -2340,17 +2415,16 @@ nsWindow::OnConfigureEvent(GtkWidget *aWidget, GdkEventConfigure *aEvent)
     LOG(("configure event [%p] %d %d %d %d\n", (void *)this,
          aEvent->x, aEvent->y, aEvent->width, aEvent->height));
 
-    // mBounds.x/y are set to the window manager frame top-left when Move() or
-    // Resize()d from within Gecko, so comparing with the client window
-    // top-left is weird.  However, mBounds.x/y are set to client window
-    // position below, so this check avoids unwanted rollup on spurious
-    // configure events from Cygwin/X (bug 672103).
-    if (mBounds.x == aEvent->x &&
-        mBounds.y == aEvent->y)
-        return FALSE;
+    nsIntRect screenBounds;
+    GetScreenBounds(screenBounds);
 
     if (mWindowType == eWindowType_toplevel || mWindowType == eWindowType_dialog) {
-        check_for_rollup(aEvent->window, 0, 0, false, true);
+        // This check avoids unwanted rollup on spurious configure events from
+        // Cygwin/X (bug 672103).
+        if (mBounds.x != screenBounds.x ||
+            mBounds.y != screenBounds.y) {
+            check_for_rollup(aEvent->window, 0, 0, false, true);
+        }
     }
 
     // This event indicates that the window position may have changed.
@@ -2378,11 +2452,7 @@ nsWindow::OnConfigureEvent(GtkWidget *aWidget, GdkEventConfigure *aEvent)
         return FALSE;
     }
 
-    // This is wrong, but noautohide titlebar panels currently depend on it
-    // (bug 601545#c13).  mBounds.TopLeft() should refer to the
-    // window-manager frame top-left, but WidgetToScreenOffset() gives the
-    // client window origin.
-    mBounds.MoveTo(WidgetToScreenOffset());
+    mBounds.MoveTo(screenBounds.TopLeft());
 
     nsGUIEvent event(true, NS_MOVE, this);
 
@@ -3880,7 +3950,6 @@ nsWindow::Create(nsIWidget        *aParent,
                  const nsIntRect  &aRect,
                  EVENT_CALLBACK    aHandleEventFunction,
                  nsDeviceContext *aContext,
-                 nsIToolkit       *aToolkit,
                  nsWidgetInitData *aInitData)
 {
     // only set the base parent if we're going to be a dialog or a
@@ -3893,9 +3962,11 @@ nsWindow::Create(nsIWidget        *aParent,
 
     NS_ASSERTION(!mWindowGroup, "already have window group (leaking it)");
 
+    // Ensure that the toolkit is created.
+    nsGTKToolkit::GetToolkit();
+
     // initialize all the common bits of this class
-    BaseCreate(baseParent, aRect, aHandleEventFunction, aContext,
-               aToolkit, aInitData);
+    BaseCreate(baseParent, aRect, aHandleEventFunction, aContext, aInitData);
 
     // Do we need to listen for resizes?
     bool listenForResizes = false;;
@@ -4294,19 +4365,17 @@ nsWindow::Create(nsIWidget        *aParent,
         if (envValue) {
             sAccessibilityEnabled = atoi(envValue) != 0;
             LOG(("Accessibility Env %s=%s\n", sAccEnv, envValue));
-        }
-        //check gconf-2 setting
-        else {
-            nsCOMPtr<nsIPrefBranch> sysPrefService =
-                do_GetService(sSysPrefService, &rv);
-            if (NS_SUCCEEDED(rv) && sysPrefService) {
+        } else {
+            //check gconf-2 setting
+            nsCOMPtr<nsIGConfService> gconf =
+                do_GetService(NS_GCONFSERVICE_CONTRACTID, &rv); 
+            if (NS_SUCCEEDED(rv) && gconf) {
 
                 // do the work to get gconf setting.
                 // will be done soon later.
-                sysPrefService->GetBoolPref(sAccessibilityKey,
-                                            &sAccessibilityEnabled);
+                gconf->GetBool(NS_LITERAL_CSTRING(sGconfAccessibilityKey),
+                               &sAccessibilityEnabled);
             }
-
         }
     }
 #endif
@@ -5102,33 +5171,6 @@ nsWindow::SetupPluginPort(void)
     return (void *)window;
 }
 
-nsresult
-nsWindow::SetWindowIconList(const nsTArray<nsCString> &aIconList)
-{
-    GList *list = NULL;
-
-    for (PRUint32 i = 0; i < aIconList.Length(); ++i) {
-        const char *path = aIconList[i].get();
-        LOG(("window [%p] Loading icon from %s\n", (void *)this, path));
-
-        GdkPixbuf *icon = gdk_pixbuf_new_from_file(path, NULL);
-        if (!icon)
-            continue;
-
-        list = g_list_append(list, icon);
-    }
-
-    if (!list)
-        return NS_ERROR_FAILURE;
-
-    gtk_window_set_icon_list(GTK_WINDOW(mShell), list);
-
-    g_list_foreach(list, (GFunc) g_object_unref, NULL);
-    g_list_free(list);
-
-    return NS_OK;
-}
-
 void
 nsWindow::SetDefaultIcon(void)
 {
@@ -5358,16 +5400,16 @@ check_for_rollup(GdkWindow *aWindow, gdouble aMouseX, gdouble aMouseY,
         if (aAlwaysRollup || !is_mouse_in_window(currentPopup, aMouseX, aMouseY)) {
             bool rollup = true;
             if (aIsWheel) {
-                gRollupListener->ShouldRollupOnMouseWheelEvent(&rollup);
+                rollup = gRollupListener->ShouldRollupOnMouseWheelEvent();
                 retVal = true;
             }
             // if we're dealing with menus, we probably have submenus and
             // we don't want to rollup if the click is in a parent menu of
             // the current submenu
             PRUint32 popupsToRollup = PR_UINT32_MAX;
-            if (gMenuRollup && !aAlwaysRollup) {
+            if (!aAlwaysRollup) {
                 nsAutoTArray<nsIWidget*, 5> widgetChain;
-                PRUint32 sameTypeCount = gMenuRollup->GetSubmenuWidgetChain(&widgetChain);
+                PRUint32 sameTypeCount = gRollupListener->GetSubmenuWidgetChain(&widgetChain);
                 for (PRUint32 i=0; i<widgetChain.Length(); ++i) {
                     nsIWidget* widget = widgetChain[i];
                     GdkWindow* currWindow =
@@ -5391,7 +5433,7 @@ check_for_rollup(GdkWindow *aWindow, gdouble aMouseX, gdouble aMouseY,
 
             // if we've determined that we should still rollup, do it.
             if (rollup) {
-                gRollupListener->Rollup(popupsToRollup, nsnull);
+                gRollupListener->Rollup(popupsToRollup);
                 if (popupsToRollup == PR_UINT32_MAX) {
                     retVal = true;
                 }
@@ -5400,7 +5442,6 @@ check_for_rollup(GdkWindow *aWindow, gdouble aMouseX, gdouble aMouseY,
     } else {
         gRollupWindow = nsnull;
         gRollupListener = nsnull;
-        NS_IF_RELEASE(gMenuRollup);
     }
 
     return retVal;
@@ -5603,9 +5644,17 @@ get_gtk_cursor(nsCursor aCursor)
         break;
     }
 
-    // if by now we don't have a xcursor, this means we have to make a
-    // custom one
-    if (newType != 0xff) {
+    // If by now we don't have a xcursor, this means we have to make a custom
+    // one. First, we try creating a named cursor based on the hash of our
+    // custom bitmap, as libXcursor has some magic to convert bitmapped cursors
+    // to themed cursors
+    if (newType != 0xFF && GtkCursors[newType].hash) {
+        gdkcursor = gdk_cursor_new_from_name(gdk_display_get_default(),
+                                             GtkCursors[newType].hash);
+    }
+
+    // If we still don't have a xcursor, we now really create a bitmap cursor
+    if (newType != 0xff && !gdkcursor) {
         GdkPixbuf * cursor_pixbuf = gdk_pixbuf_new(GDK_COLORSPACE_RGB, TRUE, 8, 32, 32);
         if (!cursor_pixbuf)
             return NULL;
@@ -6575,20 +6624,27 @@ nsWindow::ResetInputState()
     return mIMModule ? mIMModule->ResetInputState(this) : NS_OK;
 }
 
-NS_IMETHODIMP
-nsWindow::SetInputMode(const IMEContext& aContext)
+NS_IMETHODIMP_(void)
+nsWindow::SetInputContext(const InputContext& aContext,
+                          const InputContextAction& aAction)
 {
-    return mIMModule ? mIMModule->SetInputMode(this, &aContext) : NS_OK;
+    if (!mIMModule) {
+        return;
+    }
+    mIMModule->SetInputContext(this, &aContext, &aAction);
 }
 
-NS_IMETHODIMP
-nsWindow::GetInputMode(IMEContext& aContext)
+NS_IMETHODIMP_(InputContext)
+nsWindow::GetInputContext()
 {
+  InputContext context;
   if (!mIMModule) {
-      aContext.mStatus = nsIWidget::IME_STATUS_DISABLED;
-      return NS_OK;
+      context.mIMEState.mEnabled = IMEState::DISABLED;
+      context.mIMEState.mOpen = IMEState::OPEN_STATE_NOT_SUPPORTED;
+  } else {
+      context = mIMModule->GetInputContext();
   }
-  return mIMModule->GetInputMode(&aContext);
+  return context;
 }
 
 NS_IMETHODIMP

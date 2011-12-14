@@ -61,14 +61,13 @@
 #include "nsGkAtoms.h"
 #include "nsAutoPtr.h"
 #include "nsPIDOMWindow.h"
-#ifdef MOZ_SMIL
 #include "nsSMILAnimationController.h"
-#endif // MOZ_SMIL
 #include "nsIScriptGlobalObject.h"
 #include "nsIDocumentEncoder.h"
-#include "nsIAnimationFrameListener.h"
+#include "nsIFrameRequestCallback.h"
 #include "nsEventStates.h"
 #include "nsIStructuredCloneContainer.h"
+#include "nsIBFCacheEntry.h"
 #include "nsDOMMemoryReporter.h"
 
 class nsIContent;
@@ -124,12 +123,20 @@ class Element;
 } // namespace dom
 } // namespace mozilla
 
-#define NS_IDOCUMENT_IID      \
-{ 0x4114a7c7, 0xb2f4, 0x4dea, \
- { 0xac, 0x78, 0x20, 0xab, 0xda, 0x6f, 0xb2, 0xaf } }
+#define NS_IDOCUMENT_IID \
+{ 0x283ec27d, 0x5b23, 0x49b2, \
+  { 0x94, 0xd9, 0x9, 0xb5, 0xdb, 0x45, 0x30, 0x73 } }
+
 
 // Flag for AddStyleSheet().
 #define NS_STYLESHEET_FROM_CATALOG                (1 << 0)
+
+// Enum for requesting a particular type of document when creating a doc
+enum DocumentFlavor {
+  DocumentFlavorLegacyGuess, // compat with old code until made HTML5-compliant
+  DocumentFlavorHTML, // HTMLDocument with HTMLness bit set to true
+  DocumentFlavorSVG // SVGDocument
+};
 
 // Document states
 
@@ -167,6 +174,7 @@ public:
       // &&-ed in, this is safe.
       mAllowDNSPrefetch(true),
       mIsBeingUsedAsImage(false),
+      mHasLinksToUpdate(false),
       mPartID(0)
   {
     SetInDocument();
@@ -479,11 +487,15 @@ public:
     return GetBFCacheEntry() ? nsnull : mPresShell;
   }
 
-  void SetBFCacheEntry(nsISHEntry* aSHEntry) {
-    mSHEntry = aSHEntry;
+  void SetBFCacheEntry(nsIBFCacheEntry* aEntry)
+  {
+    mBFCacheEntry = aEntry;
   }
 
-  nsISHEntry* GetBFCacheEntry() const { return mSHEntry; }
+  nsIBFCacheEntry* GetBFCacheEntry() const
+  {
+    return mBFCacheEntry;
+  }
 
   /**
    * Return the parent document of this document. Will return null
@@ -506,7 +518,7 @@ public:
   /**
    * Set the sub document for aContent to aSubDoc.
    */
-  virtual nsresult SetSubDocumentFor(nsIContent *aContent,
+  virtual nsresult SetSubDocumentFor(Element* aContent,
                                      nsIDocument* aSubDoc) = 0;
 
   /**
@@ -517,7 +529,7 @@ public:
   /**
    * Find the content node for which aDocument is a sub document.
    */
-  virtual nsIContent *FindContentForSubDocument(nsIDocument *aDocument) const = 0;
+  virtual Element* FindContentForSubDocument(nsIDocument* aDocument) const = 0;
 
   /**
    * Return the root element for this document.
@@ -732,41 +744,39 @@ public:
   virtual void RemoveFromNameTable(Element* aElement, nsIAtom* aName) = 0;
 
   /**
-   * Resets the current full-screen element to nsnull.
-   */
-  virtual void ResetFullScreenElement() = 0;
-
-  /**
-   * Returns the element which either is the full-screen element, or
-   * contains the full-screen element if a child of this document contains
-   * the fullscreen element.
+   * Returns the element which either requested DOM full-screen mode, or
+   * contains the element which requested DOM full-screen mode if the
+   * requestee is in a subdocument. Note this element must be *in*
+   * this document.
    */
   virtual Element* GetFullScreenElement() = 0;
 
   /**
-   * Requests that the document make aElement the full-screen element,
-   * and move into full-screen mode.
+   * Asynchronously requests that the document make aElement the full-screen
+   * element, and move into full-screen mode. The current full-screen element
+   * (if any) is pushed onto the full-screen element stack, and it can be
+   * returned to full-screen status by calling RestorePreviousFullScreenState().
    */
-  virtual void RequestFullScreen(Element* aElement) = 0;
+  virtual void AsyncRequestFullScreen(Element* aElement) = 0;
 
   /**
-   * Requests that the document, and all documents in its hierarchy exit
-   * from DOM full-screen mode.
+   * Restores the previous full-screen element to full-screen status. If there
+   * is no former full-screen element, this exits full-screen, moving the
+   * top-level browser window out of full-screen mode.
    */
-  virtual void CancelFullScreen() = 0;
-
-  /**
-   * Updates the full-screen status on this document, setting the full-screen
-   * mode to aIsFullScreen. This doesn't affect the window's full-screen mode,
-   * this updates the document's internal state which determines whether the
-   * document reports as being in full-screen mode.
-   */
-  virtual void UpdateFullScreenStatus(bool aIsFullScreen) = 0;
+  virtual void RestorePreviousFullScreenState() = 0;
 
   /**
    * Returns true if this document is in full-screen mode.
    */
   virtual bool IsFullScreenDoc() = 0;
+
+  /**
+   * Exits all documents from DOM full-screen mode, and moves the top-level
+   * browser window out of full-screen mode. If aRunAsync is true, this runs
+   * asynchronously.
+   */
+  static void ExitFullScreen(bool aRunAsync);
 
   //----------------------------------------------------------------------
 
@@ -908,13 +918,9 @@ public:
 
   /**
    * Create an element with the specified name, prefix and namespace ID.
-   * If aDocumentDefaultType is true we create an element of the default type
-   * for that document (currently XHTML in HTML documents and XUL in XUL
-   * documents), otherwise we use the type specified by the namespace ID.
    */
   virtual nsresult CreateElem(const nsAString& aName, nsIAtom *aPrefix,
                               PRInt32 aNamespaceID,
-                              bool aDocumentDefaultType,
                               nsIContent** aResult) = 0;
 
   /**
@@ -933,7 +939,10 @@ public:
    * Returns the default namespace ID used for elements created in this
    * document.
    */
-  virtual PRInt32 GetDefaultNamespaceID() const = 0;
+  PRInt32 GetDefaultNamespaceID() const
+  {
+    return mDefaultElementType;
+  }
 
   void DeleteAllProperties();
   void DeleteAllPropertiesFor(nsINode* aNode);
@@ -1334,7 +1343,6 @@ public:
   void EnumerateFreezableElements(FreezableElementEnumerator aEnumerator,
                                   void* aData);
 
-#ifdef MOZ_SMIL
   // Indicates whether mAnimationController has been (lazily) initialized.
   // If this returns true, we're promising that GetAnimationController()
   // will have a non-null return value.
@@ -1344,7 +1352,6 @@ public:
   // initialization, if this document supports animation and if
   // mAnimationController isn't yet initialized.
   virtual nsSMILAnimationController* GetAnimationController() = 0;
-#endif // MOZ_SMIL
 
   // Makes the images on this document capable of having their animation
   // active or suspended. An Image will animate as long as at least one of its
@@ -1501,10 +1508,17 @@ public:
   /**
    * This method is similar to GetElementById() from nsIDOMDocument but it
    * returns a mozilla::dom::Element instead of a nsIDOMElement.
-   * It prevents converting nsIDOMElement to mozill:dom::Element which is
+   * It prevents converting nsIDOMElement to mozilla::dom::Element which is
    * already converted from mozilla::dom::Element.
    */
   virtual Element* GetElementById(const nsAString& aElementId) = 0;
+
+  /**
+   * This method returns _all_ the elements in this document which
+   * have id aElementId, if there are any.  Otherwise it returns null.
+   * The entries of the nsSmallVoidArray are Element*
+   */
+  virtual const nsSmallVoidArray* GetAllElementsForId(const nsAString& aElementId) const = 0;
 
   /**
    * Lookup an image element using its associated ID, which is usually provided
@@ -1515,18 +1529,16 @@ public:
    */
   virtual Element* LookupImageElement(const nsAString& aElementId) = 0;
 
-  void ScheduleBeforePaintEvent(nsIAnimationFrameListener* aListener);
-  void BeforePaintEventFiring()
-  {
-    mHavePendingPaint = false;
-  }
+  nsresult ScheduleFrameRequestCallback(nsIFrameRequestCallback* aCallback,
+                                        PRInt32 *aHandle);
+  void CancelFrameRequestCallback(PRInt32 aHandle);
 
-  typedef nsTArray< nsCOMPtr<nsIAnimationFrameListener> > AnimationListenerList;
+  typedef nsTArray< nsCOMPtr<nsIFrameRequestCallback> > FrameRequestCallbackList;
   /**
-   * Put this documents animation frame listeners into the provided
+   * Put this document's frame request callbacks into the provided
    * list, and forget about them.
    */
-  void TakeAnimationFrameListeners(AnimationListenerList& aListeners);
+  void TakeFrameRequestCallbacks(FrameRequestCallbackList& aCallbacks);
 
   // This returns true when the document tree is being teared down.
   bool InUnlinkOrDeletion() { return mInUnlinkOrDeletion; }
@@ -1559,6 +1571,25 @@ public:
   virtual nsresult SetNavigationTiming(nsDOMNavigationTiming* aTiming) = 0;
 
   virtual Element* FindImageMap(const nsAString& aNormalizedMapName) = 0;
+
+  // Called to notify the document that a listener on the "mozaudioavailable"
+  // event has been added. Media elements in the document need to ensure they
+  // fire the event.
+  virtual void NotifyAudioAvailableListener() = 0;
+
+  // Returns true if the document has "mozaudioavailable" event listeners.
+  virtual bool HasAudioAvailableListeners() = 0;
+
+  // Add aLink to the set of links that need their status resolved. 
+  void RegisterPendingLinkUpdate(mozilla::dom::Link* aLink);
+  
+  // Remove aLink from the set of links that need their status resolved.
+  // This function must be called when links are removed from the document.
+  void UnregisterPendingLinkUpdate(mozilla::dom::Link* aElement);
+
+  // Update state on links in mLinksToUpdate.  This function must
+  // be called prior to selector matching.
+  void FlushPendingLinkUpdates();
 
 #define DEPRECATED_OPERATION(_op) e##_op,
   enum DeprecatedOperations {
@@ -1649,11 +1680,14 @@ protected:
   // These are non-owning pointers, the elements are responsible for removing
   // themselves when they go away.
   nsAutoPtr<nsTHashtable<nsPtrHashKey<nsIContent> > > mFreezableElements;
+  
+  // The set of all links that need their status resolved.  Links must add themselves
+  // to this set by calling RegisterPendingLinkUpdate when added to a document and must
+  // remove themselves by calling UnregisterPendingLinkUpdate when removed from a document.
+  nsTHashtable<nsPtrHashKey<mozilla::dom::Link> > mLinksToUpdate;
 
-#ifdef MOZ_SMIL
   // SMIL Animation Controller, lazily-initialized in GetAnimationController
   nsRefPtr<nsSMILAnimationController> mAnimationController;
-#endif // MOZ_SMIL
 
   // Table of element properties for this document.
   nsPropertyTable mPropertyTable;
@@ -1721,15 +1755,15 @@ protected:
   // True if document has ever had script handling object.
   bool mHasHadScriptHandlingObject;
 
-  // True if we're waiting for a before-paint event.
-  bool mHavePendingPaint;
-
   // True if we're an SVG document being used as an image.
   bool mIsBeingUsedAsImage;
 
   // True is this document is synthetic : stand alone image, video, audio
   // file, etc.
   bool mIsSyntheticDocument;
+
+  // True if this document has links whose state needs updating
+  bool mHasLinksToUpdate;
 
   // The document's script global object, the object from which the
   // document can get its script context and scope. This is the
@@ -1778,23 +1812,54 @@ protected:
    */
   PRUint32 mExternalScriptsBeingEvaluated;
 
+  /**
+   * The current frame request callback handle
+   */
+  PRInt32 mFrameRequestCallbackCounter;
+
   // Weak reference to mScriptGlobalObject QI:d to nsPIDOMWindow,
   // updated on every set of mSecriptGlobalObject.
   nsPIDOMWindow *mWindow;
 
   nsCOMPtr<nsIDocumentEncoder> mCachedEncoder;
 
-  AnimationListenerList mAnimationFrameListeners;
+  struct FrameRequest {
+    FrameRequest(nsIFrameRequestCallback* aCallback,
+                 PRInt32 aHandle) :
+      mCallback(aCallback),
+      mHandle(aHandle)
+    {}
 
-  // The session history entry in which we're currently bf-cached. Non-null
-  // if and only if we're currently in the bfcache.
-  nsISHEntry* mSHEntry;
+    // Conversion operator so that we can append these to a
+    // FrameRequestCallbackList
+    operator nsIFrameRequestCallback* const () const { return mCallback; }
+
+    // Comparator operators to allow RemoveElementSorted with an
+    // integer argument on arrays of FrameRequest
+    bool operator==(PRInt32 aHandle) const {
+      return mHandle == aHandle;
+    }
+    bool operator<(PRInt32 aHandle) const {
+      return mHandle < aHandle;
+    }
+    
+    nsCOMPtr<nsIFrameRequestCallback> mCallback;
+    PRInt32 mHandle;
+  };
+
+  nsTArray<FrameRequest> mFrameRequestCallbacks;
+
+  // This object allows us to evict ourself from the back/forward cache.  The
+  // pointer is non-null iff we're currently in the bfcache.
+  nsIBFCacheEntry *mBFCacheEntry;
 
   // Our base target.
   nsString mBaseTarget;
 
   nsCOMPtr<nsIStructuredCloneContainer> mStateObjectContainer;
   nsCOMPtr<nsIVariant> mStateObjectCached;
+
+  PRUint8 mDefaultElementType;
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(nsIDocument, NS_IDOCUMENT_IID)
@@ -1876,7 +1941,16 @@ NS_NewDOMDocument(nsIDOMDocument** aInstancePtrResult,
                   nsIPrincipal* aPrincipal,
                   bool aLoadedAsData,
                   nsIScriptGlobalObject* aEventObject,
-                  bool aSVGDocument);
+                  DocumentFlavor aFlavor);
+
+// This is used only for xbl documents created from the startup cache.
+// Non-cached documents are created in the same manner as xml documents.
+nsresult
+NS_NewXBLDocument(nsIDOMDocument** aInstancePtrResult,
+                  nsIURI* aDocumentURI,
+                  nsIURI* aBaseURI,
+                  nsIPrincipal* aPrincipal);
+
 nsresult
 NS_NewPluginDocument(nsIDocument** aInstancePtrResult);
 

@@ -76,17 +76,12 @@ typedef uintptr_t   jsatomid;
 
 /* Struct typedefs. */
 typedef struct JSArgumentFormatMap  JSArgumentFormatMap;
-typedef struct JSCodeGenerator      JSCodeGenerator;
 typedef struct JSGCThing            JSGCThing;
 typedef struct JSGenerator          JSGenerator;
 typedef struct JSNativeEnumerator   JSNativeEnumerator;
-typedef struct JSFunctionBox        JSFunctionBox;
-typedef struct JSObjectBox          JSObjectBox;
-typedef struct JSParseNode          JSParseNode;
 typedef struct JSProperty           JSProperty;
 typedef struct JSSharpObjectMap     JSSharpObjectMap;
 typedef struct JSThread             JSThread;
-typedef struct JSTreeContext        JSTreeContext;
 typedef struct JSTryNote            JSTryNote;
 
 /* Friend "Advanced API" typedefs. */
@@ -95,11 +90,8 @@ typedef struct JSCodeSpec           JSCodeSpec;
 typedef struct JSPrinter            JSPrinter;
 typedef struct JSStackHeader        JSStackHeader;
 typedef struct JSSubString          JSSubString;
-typedef struct JSNativeTraceInfo    JSNativeTraceInfo;
 typedef struct JSSpecializedNative  JSSpecializedNative;
 typedef struct JSXML                JSXML;
-typedef struct JSXMLArray           JSXMLArray;
-typedef struct JSXMLArrayCursor     JSXMLArrayCursor;
 
 /*
  * Template declarations.
@@ -120,7 +112,6 @@ class JSFixedString;
 class JSStaticAtom;
 class JSRope;
 class JSAtom;
-struct JSDefinition;
 class JSWrapper;
 
 namespace js {
@@ -129,16 +120,28 @@ struct ArgumentsData;
 struct Class;
 
 class RegExpObject;
-class RegExpPrivate;
+class RegExpMatcher;
+class RegExpObjectBuilder;
 class RegExpStatics;
 class MatchPairs;
 
+namespace detail {
+
+class RegExpPrivate;
+class RegExpPrivateCode;
+class RegExpPrivateCacheValue;
+
+} /* namespace detail */
+
 enum RegExpFlag
 {
-    IgnoreCaseFlag  = JS_BIT(0),
-    GlobalFlag      = JS_BIT(1),
-    MultilineFlag   = JS_BIT(2),
-    StickyFlag      = JS_BIT(3)
+    IgnoreCaseFlag  = 0x01,
+    GlobalFlag      = 0x02,
+    MultilineFlag   = 0x04,
+    StickyFlag      = 0x08,
+
+    NoFlags         = 0x00,
+    AllFlags        = 0x0f
 };
 
 enum RegExpExecType
@@ -152,8 +155,6 @@ class ExecuteArgsGuard;
 class InvokeFrameGuard;
 class InvokeArgsGuard;
 class StringBuffer;
-class TraceRecorder;
-struct TraceMonitor;
 
 class FrameRegs;
 class StackFrame;
@@ -164,12 +165,17 @@ class FrameRegsIter;
 class CallReceiver;
 class CallArgs;
 
-struct Compiler;
+struct BytecodeEmitter;
+struct Definition;
+struct FunctionBox;
+struct ObjectBox;
+struct ParseNode;
 struct Parser;
 class TokenStream;
 struct Token;
 struct TokenPos;
 struct TokenPtr;
+struct TreeContext;
 class UpvarCookie;
 
 class Proxy;
@@ -211,24 +217,39 @@ class LifoAlloc;
 class PropertyCache;
 struct PropertyCacheEntry;
 
+class BaseShape;
+class UnownedBaseShape;
 struct Shape;
 struct EmptyShape;
+class ShapeKindArray;
 class Bindings;
 
 class MultiDeclRange;
 class ParseMapPool;
 class DefnOrHeader;
-typedef InlineMap<JSAtom *, JSDefinition *, 24> AtomDefnMap;
+typedef InlineMap<JSAtom *, Definition *, 24> AtomDefnMap;
 typedef InlineMap<JSAtom *, jsatomid, 24> AtomIndexMap;
 typedef InlineMap<JSAtom *, DefnOrHeader, 24> AtomDOHMap;
 typedef Vector<UpvarCookie, 8> UpvarCookies;
 
 class Breakpoint;
 class BreakpointSite;
-typedef HashMap<jsbytecode *, BreakpointSite *, DefaultHasher<jsbytecode *>, RuntimeAllocPolicy>
-    BreakpointSiteMap;
 class Debugger;
 class WatchpointMap;
+
+typedef HashMap<JSAtom *,
+                detail::RegExpPrivateCacheValue,
+                DefaultHasher<JSAtom *>,
+                RuntimeAllocPolicy>
+    RegExpPrivateCache;
+
+/*
+ * Env is the type of what ES5 calls "lexical environments" (runtime
+ * activations of lexical scopes). This is currently just JSObject, and is
+ * implemented by Call, Block, With, and DeclEnv objects, among others--but
+ * environments and objects are really two different concepts.
+ */
+typedef JSObject Env;
 
 typedef JSNative             Native;
 typedef JSPropertyOp         PropertyOp;
@@ -256,6 +277,18 @@ struct TypeCompartment;
 } /* namespace types */
 
 } /* namespace js */
+
+namespace JSC {
+
+class ExecutableAllocator;
+
+} /* namespace JSC */
+
+namespace WTF {
+
+class BumpPointerAllocator;
+
+} /* namespace WTF */
 
 } /* export "C++" */
 

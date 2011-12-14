@@ -363,7 +363,12 @@ SanitizeOpenTypeData(const PRUint8* aData, PRUint32 aLength,
     // limit output/expansion to 256MB
     ExpandingMemoryStream output(aIsCompressed ? aLength * 2 : aLength,
                                  1024 * 1024 * 256);
-    if (ots::Process(&output, aData, aLength)) {
+#ifdef MOZ_GRAPHITE
+#define PRESERVE_GRAPHITE true
+#else
+#define PRESERVE_GRAPHITE false
+#endif
+    if (ots::Process(&output, aData, aLength, PRESERVE_GRAPHITE)) {
         aSaneLength = output.Tell();
         return static_cast<PRUint8*>(output.forget());
     } else {
@@ -579,11 +584,10 @@ gfxUserFontSet::OnLoadComplete(gfxProxyFontEntry *aProxy,
     }
 
     // error occurred, load next src
-    LoadStatus status;
+    (void)LoadNext(aProxy);
 
-    status = LoadNext(aProxy);
-
-    // Even if loading failed, we need to bump the font-set generation
+    // We ignore the status returned by LoadNext();
+    // even if loading failed, we need to bump the font-set generation
     // and return true in order to trigger reflow, so that fallback
     // will be used where the text was "masked" by the pending download
     IncrementGeneration();

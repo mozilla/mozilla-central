@@ -286,7 +286,7 @@ nsRange::CharacterDataChanged(nsIDocument* aDocument,
       NS_ASSERTION(aInfo->mDetails->mType ==
                    CharacterDataChangeInfo::Details::eSplit,
                    "only a split can start before the end");
-      NS_ASSERTION(static_cast<PRUint32>(mStartOffset) <= aInfo->mChangeEnd,
+      NS_ASSERTION(static_cast<PRUint32>(mStartOffset) <= aInfo->mChangeEnd + 1,
                    "mStartOffset is beyond the end of this node");
       newStartOffset = static_cast<PRUint32>(mStartOffset) - aInfo->mChangeStart;
       newStartNode = aInfo->mDetails->mNextSibling;
@@ -313,7 +313,7 @@ nsRange::CharacterDataChanged(nsIDocument* aDocument,
       NS_ASSERTION(aInfo->mDetails->mType ==
                    CharacterDataChangeInfo::Details::eSplit,
                    "only a split can start before the end");
-      NS_ASSERTION(static_cast<PRUint32>(mEndOffset) <= aInfo->mChangeEnd,
+      NS_ASSERTION(static_cast<PRUint32>(mEndOffset) <= aInfo->mChangeEnd + 1,
                    "mEndOffset is beyond the end of this node");
       newEndOffset = static_cast<PRUint32>(mEndOffset) - aInfo->mChangeStart;
       newEndNode = aInfo->mDetails->mNextSibling;
@@ -2167,9 +2167,9 @@ static nsresult GetPartialTextRect(nsLayoutUtils::RectCallback* aCallback,
         continue;
 
       // overlapping with the offset we want
-      f->EnsureTextRun();
-      NS_ENSURE_TRUE(f->GetTextRun(), NS_ERROR_OUT_OF_MEMORY);
-      bool rtl = f->GetTextRun()->IsRightToLeft();
+      f->EnsureTextRun(nsTextFrame::eInflated);
+      NS_ENSURE_TRUE(f->GetTextRun(nsTextFrame::eInflated), NS_ERROR_OUT_OF_MEMORY);
+      bool rtl = f->GetTextRun(nsTextFrame::eInflated)->IsRightToLeft();
       nsRect r(f->GetOffsetTo(relativeTo), f->GetSize());
       if (fstart < aStartOffset) {
         // aStartOffset is within this frame

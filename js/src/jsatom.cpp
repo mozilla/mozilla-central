@@ -389,7 +389,7 @@ js_FinishCommonAtoms(JSContext *cx)
 void
 js_TraceAtomState(JSTracer *trc)
 {
-    JSRuntime *rt = trc->context->runtime;
+    JSRuntime *rt = trc->runtime;
     JSAtomState *state = &rt->atomState;
 
 #ifdef DEBUG
@@ -399,7 +399,7 @@ js_TraceAtomState(JSTracer *trc)
     if (rt->gcKeepAtoms) {
         for (AtomSet::Range r = state->atoms.all(); !r.empty(); r.popFront()) {
             JS_SET_TRACING_INDEX(trc, "locked_atom", number++);
-            MarkString(trc, r.front().asPtr());
+            MarkAtom(trc, r.front().asPtr());
         }
     } else {
         for (AtomSet::Range r = state->atoms.all(); !r.empty(); r.popFront()) {
@@ -408,7 +408,7 @@ js_TraceAtomState(JSTracer *trc)
                 continue;
 
             JS_SET_TRACING_INDEX(trc, "interned_atom", number++);
-            MarkString(trc, entry.asPtr());
+            MarkAtom(trc, entry.asPtr());
         }
     }
 }
@@ -497,7 +497,7 @@ AtomizeInline(JSContext *cx, const jschar **pchars, size_t length,
 
     /*
      * We have to relookup the key as the last ditch GC invoked from the
-     * string allocation or OOM handling may unlock the atomsCompartment.
+     * string allocation or OOM handling unlocks the atomsCompartment.
      *
      * N.B. this avoids recomputing the hash but still has a potential
      * (# collisions * # chars) comparison cost in the case of a hash

@@ -80,6 +80,9 @@ PRLogModuleInfo* gAudioStreamLog = nsnull;
 
 static const PRUint32 FAKE_BUFFER_SIZE = 176400;
 
+// Number of milliseconds per second.
+static const PRInt64 MS_PER_S = 1000;
+
 class nsNativeAudioStream : public nsAudioStream
 {
  public:
@@ -118,6 +121,7 @@ class nsNativeAudioStream : public nsAudioStream
 
 };
 
+#if defined(REMOTE_AUDIO)
 class nsRemotedAudioStream : public nsAudioStream
 {
  public:
@@ -310,6 +314,7 @@ class AudioShutdownEvent : public nsRunnable
 
   nsRefPtr<AudioChild> mAudioChild;
 };
+#endif
 
 static mozilla::Mutex* gVolumeScaleLock = nsnull;
 
@@ -611,6 +616,7 @@ PRInt32 nsNativeAudioStream::GetMinWriteSize()
   return static_cast<PRInt32>(size / mChannels / sizeof(short));
 }
 
+#if defined(REMOTE_AUDIO)
 nsRemotedAudioStream::nsRemotedAudioStream()
  : mAudioChild(nsnull),
    mFormat(FORMAT_S16_LE),
@@ -752,9 +758,9 @@ nsRemotedAudioStream::GetPositionInFrames()
     return 0;
 
   PRInt64 time = mAudioChild->GetLastKnownPositionTimestamp();
-  PRInt64 result = position + (mRate * (PR_IntervalNow() - time) / USECS_PER_S);
+  PRInt64 dt = PR_IntervalToMilliseconds(PR_IntervalNow() - time);
 
-  return result;
+  return position + (mRate * dt / MS_PER_S);
 }
 
 bool
@@ -762,3 +768,5 @@ nsRemotedAudioStream::IsPaused()
 {
   return mPaused;
 }
+#endif
+

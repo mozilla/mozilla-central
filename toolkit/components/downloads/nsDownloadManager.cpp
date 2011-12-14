@@ -46,6 +46,7 @@
 
 #include "mozIStorageService.h"
 #include "nsIAlertsService.h"
+#include "nsIClassInfoImpl.h"
 #include "nsIDOMWindow.h"
 #include "nsIDownloadHistory.h"
 #include "nsIDownloadManagerUI.h"
@@ -82,7 +83,7 @@
 #include <CoreFoundation/CoreFoundation.h>
 #endif
 
-#ifdef ANDROID
+#ifdef MOZ_WIDGET_ANDROID
 #include "AndroidBridge.h"
 #endif
 
@@ -1177,7 +1178,7 @@ nsDownloadManager::GetDefaultDownloadsDirectory(nsILocalFile **aResult)
     rv = dirService->Get(NS_UNIX_XDG_DOCUMENTS_DIR,
                          NS_GET_IID(nsILocalFile),
                          getter_AddRefs(downloadDir));
-#elif defined(ANDROID)
+#elif defined(MOZ_WIDGET_ANDROID)
     // Android doesn't have a $HOME directory, and by default we only have
     // write access to /data/data/org.mozilla.{$APP} and /sdcard
     char* downloadDirPath = getenv("DOWNLOADS_DIRECTORY");
@@ -2130,8 +2131,14 @@ nsDownloadManager::ConfirmCancelDownloads(PRInt32 aCount,
 ////////////////////////////////////////////////////////////////////////////////
 //// nsDownload
 
-NS_IMPL_ISUPPORTS4(nsDownload, nsIDownload, nsITransfer, nsIWebProgressListener,
-                   nsIWebProgressListener2)
+NS_IMPL_CLASSINFO(nsDownload, NULL, 0, NS_DOWNLOAD_CID)
+NS_IMPL_ISUPPORTS4_CI(
+    nsDownload
+  , nsIDownload
+  , nsITransfer
+  , nsIWebProgressListener
+  , nsIWebProgressListener2
+)
 
 nsDownload::nsDownload() : mDownloadState(nsIDownloadManager::DOWNLOAD_NOTSTARTED),
                            mID(0),
@@ -2247,7 +2254,7 @@ nsDownload::SetState(DownloadState aState)
         }
       }
 
-#if defined(XP_WIN) || defined(XP_MACOSX) || defined(ANDROID)
+#if defined(XP_WIN) || defined(XP_MACOSX) || defined(MOZ_WIDGET_ANDROID)
       nsCOMPtr<nsIFileURL> fileURL = do_QueryInterface(mTarget);
       nsCOMPtr<nsIFile> file;
       nsAutoString path;
@@ -2281,7 +2288,7 @@ nsDownload::SetState(DownloadState aState)
                                                observedObject, NULL, TRUE);
         ::CFRelease(observedObject);
 #endif
-#ifdef ANDROID
+#ifdef MOZ_WIDGET_ANDROID
         nsCOMPtr<nsIMIMEInfo> mimeInfo;
         nsCAutoString contentType;
         GetMIMEInfo(getter_AddRefs(mimeInfo));
@@ -2399,6 +2406,11 @@ nsDownload::OnProgressChange64(nsIWebProgress *aWebProgress,
     if (resumableChannel)
       (void)resumableChannel->GetEntityID(mEntityID);
 
+    // Before we update the state and dispatch state notifications, we want to
+    // ensure that we have the correct state for this download with regards to
+    // its percent completion and size.
+    SetProgressBytes(0, aMaxTotalProgress);
+
     // Update the state and the database
     rv = SetState(nsIDownloadManager::DOWNLOAD_DOWNLOADING);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -2470,7 +2482,8 @@ nsDownload::OnProgressChange(nsIWebProgress *aWebProgress,
 
 NS_IMETHODIMP
 nsDownload::OnLocationChange(nsIWebProgress *aWebProgress,
-                             nsIRequest *aRequest, nsIURI *aLocation)
+                             nsIRequest *aRequest, nsIURI *aLocation,
+                             PRUint32 aFlags)
 {
   return NS_OK;
 }

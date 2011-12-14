@@ -135,7 +135,8 @@ public:
                                     nsWrapperCache **aCache,
                                     nsresult *aResult);
 
-  nsIContent *GetBody(nsresult *aResult);
+  nsIContent *GetBody();
+  Element *GetHead() { return GetHeadElement(); }
   already_AddRefed<nsContentList> GetElementsByName(const nsAString & aName)
   {
     return NS_GetFuncStringContentList(this, MatchNameAttribute, nsnull,
@@ -236,11 +237,6 @@ protected:
   bool IsEditingOnAfterFlush();
 
   void *GenerateParserKey(void);
-
-  virtual PRInt32 GetDefaultNamespaceID() const
-  {
-    return kNameSpaceID_XHTML;
-  }
 
   nsCOMPtr<nsIDOMHTMLCollection> mImages;
   nsCOMPtr<nsIDOMHTMLCollection> mApplets;

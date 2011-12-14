@@ -144,6 +144,39 @@ struct nsTArray_SafeElementAtHelper<E*, Derived>
   }
 };
 
+// E is the base type that the smart pointer is templated over; the
+// smart pointer can act as E*.
+template <class E, class Derived>
+struct nsTArray_SafeElementAtSmartPtrHelper
+{
+  typedef E*       elem_type;
+  typedef PRUint32 index_type;
+
+  elem_type SafeElementAt(index_type i) {
+    return static_cast<Derived*> (this)->SafeElementAt(i, nsnull);
+  }
+
+  const elem_type SafeElementAt(index_type i) const {
+    return static_cast<const Derived*> (this)->SafeElementAt(i, nsnull);
+  }
+};
+
+template <class T> class nsCOMPtr;
+
+template <class E, class Derived>
+struct nsTArray_SafeElementAtHelper<nsCOMPtr<E>, Derived> :
+  public nsTArray_SafeElementAtSmartPtrHelper<E, Derived>
+{
+};
+
+template <class T> class nsRefPtr;
+
+template <class E, class Derived>
+struct nsTArray_SafeElementAtHelper<nsRefPtr<E>, Derived> :
+  public nsTArray_SafeElementAtSmartPtrHelper<E, Derived>
+{
+};
+
 //
 // This class serves as a base class for nsTArray.  It shouldn't be used
 // directly.  It holds common implementation code that does not depend on the
@@ -377,14 +410,15 @@ public:
 //   class Comparator {
 //     public:
 //       /** @return True if the elements are equals; false otherwise. */
-//       bool Equals(const elem_type& a, const elem_type& b) const;
+//       bool Equals(const elem_type& a, const Item& b) const;
 //
 //       /** @return True if (a < b); false otherwise. */
-//       bool LessThan(const elem_type& a, const elem_type& b) const;
+//       bool LessThan(const elem_type& a, const Item& b) const;
 //   };
 //
 // The Equals method is used for searching, and the LessThan method is used
-// for sorting.
+// for sorting.  The |Item| type above can be arbitrary, but must match the
+// Item type passed to the sort or search function.
 //
 // The Alloc template parameter can be used to choose between
 // "fallible" and "infallible" nsTArray (if available), defaulting to
@@ -408,6 +442,7 @@ public:
   typedef nsTArray_SafeElementAtHelper<E, self_type> safeelementat_helper_type;
 
   using safeelementat_helper_type::SafeElementAt;
+  using base_type::EmptyHdr;
 
   // A special value that is used to indicate an invalid or unknown index
   // into the array.
@@ -481,10 +516,13 @@ public:
   }
 
   // @return The amount of memory taken used by this nsTArray, not including
-  // sizeof(this)
+  // sizeof(*this).
   size_t SizeOf() const {
-    return this->UsesAutoArrayBuffer() ?
-      0 : this->Capacity() * sizeof(elem_type) + sizeof(*this->Hdr());
+    if (this->UsesAutoArrayBuffer() || Hdr() == EmptyHdr())
+      return 0;
+    size_t usable = moz_malloc_usable_size(this->Hdr());
+    return usable ? usable : 
+      this->Capacity() * sizeof(elem_type) + sizeof(*this->Hdr());
   }
 
   //

@@ -19,10 +19,27 @@ var gProvider;
 var gServer;
 var gAddonInstalled = false;
 
+var channel = "default";
+try {
+  channel = Services.prefs.getCharPref("app.update.channel");
+}
+catch (e) { }
+if (channel != "aurora" &&
+    channel != "beta" &&
+    channel != "release") {
+  var version = "nightly";
+}
+else {
+  version = Services.appinfo.version.replace(/^([^\.]+\.[0-9]+[a-z]*).*/gi, "$1");
+}
+
+const COMPATIBILITY_PREF = "extensions.checkCompatibility." + version;
+
 function test() {
   requestLongerTimeout(2);
   // Turn on searching for this test
   Services.prefs.setIntPref(PREF_SEARCH_MAXRESULTS, 15);
+  Services.prefs.setBoolPref(PREF_STRICT_COMPAT, true);
 
   waitForExplicitFinish();
 
@@ -588,6 +605,44 @@ add_test(function() {
     });
   });
 });
+
+// Tests that incompatible add-ons are shown with a warning if compatibility checking is disabled
+add_test(function() {
+  Services.prefs.setBoolPref(COMPATIBILITY_PREF, false);
+  search("incompatible", false, function() {
+    var item = get_addon_item("remote5");
+    is_element_visible(item, "Incompatible addon should be visible");
+    is(item.getAttribute("notification"), "warning", "Compatibility warning should be shown");
+
+    var item = get_addon_item("remote6");
+    is(item, null, "Addon incompatible with the product should not be visible");
+
+    Services.prefs.clearUserPref(COMPATIBILITY_PREF);
+    run_next_test();
+  });
+});
+
+// Tests that compatible-by-default addons are shown if strict compatibility checking is disabled
+add_test(function() {
+  restart_manager(gManagerWindow, null, function(aWindow) {
+    gManagerWindow = aWindow;
+    gCategoryUtilities = new CategoryUtilities(gManagerWindow);
+
+    Services.prefs.setBoolPref(PREF_STRICT_COMPAT, false);
+    search("incompatible", false, function() {
+      var item = get_addon_item("remote5");
+      is_element_visible(item, "Incompatible addon should be visible");
+      isnot(item.getAttribute("notification"), "warning", "Compatibility warning should not be shown");
+  
+      var item = get_addon_item("remote6");
+      is(item, null, "Addon incompatible with the product should not be visible");
+  
+      Services.prefs.setBoolPref(PREF_STRICT_COMPAT, true);
+      run_next_test();
+    });
+  });
+});
+
 
 // Tests that restarting the manager doesn't change search results
 add_test(function() {

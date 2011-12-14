@@ -49,8 +49,12 @@
 #include <gtk/gtk.h>
 #endif
 
-#ifdef ANDROID
+#ifdef MOZ_WIDGET_ANDROID
 #include "AndroidBridge.h"
+
+extern "C" {
+extern int android_sdk_version;
+}
 #endif
 
 using namespace mozilla;
@@ -174,7 +178,7 @@ nsSystemInfo::Init()
     }
 #endif
 
-#ifdef ANDROID
+#ifdef MOZ_WIDGET_ANDROID
     if (mozilla::AndroidBridge::Bridge()) {
         nsAutoString str;
         if (mozilla::AndroidBridge::Bridge()->GetStaticStringField("android/os/Build", "MODEL", str))
@@ -184,6 +188,7 @@ nsSystemInfo::Init()
         PRInt32 version;
         if (!mozilla::AndroidBridge::Bridge()->GetStaticIntField("android/os/Build$VERSION", "SDK_INT", &version))
             version = 0;
+        android_sdk_version = version;
         if (version >= 8 && mozilla::AndroidBridge::Bridge()->GetStaticStringField("android/os/Build", "HARDWARE", str))
             SetPropertyAsAString(NS_LITERAL_STRING("hardware"), str);
         SetPropertyAsAString(NS_LITERAL_STRING("shellName"), NS_LITERAL_STRING("Android"));
@@ -192,11 +197,11 @@ nsSystemInfo::Init()
                 str.Append(NS_LITERAL_STRING(" ("));
                 str.AppendInt(version);
                 str.Append(NS_LITERAL_STRING(")"));
-            }   
+            }
             SetPropertyAsAString(NS_LITERAL_STRING("shellVersion"), str);
         }
-                
-        
+        bool isTablet = mozilla::AndroidBridge::Bridge()->IsTablet();
+        SetPropertyAsBool(NS_LITERAL_STRING("isTablet"), isTablet);
     }
 #endif
     return NS_OK;

@@ -198,60 +198,75 @@
         <stack flex="1">
             <vbox flex="1" class="statusOverlay" hidden="true">
                 <box class="statusIcon"/>
+                <label class="errorLabel" anonid="errorAborted">&error.aborted;</label>
+                <label class="errorLabel" anonid="errorNetwork">&error.network;</label>
+                <label class="errorLabel" anonid="errorDecode">&error.decode;</label>
+                <label class="errorLabel" anonid="errorSrcNotSupported">&error.srcNotSupported;</label>
+                <label class="errorLabel" anonid="errorNoSource">&error.noSource;</label>
+                <label class="errorLabel" anonid="errorGeneric">&error.generic;</label>
             </vbox>
 
             <vbox class="statsOverlay" hidden="true">
-                <html:table class="statsTable" xmlns="http://www.w3.org/1999/xhtml">
-                    <tr>
-                        <td class="statLabel">&stats.media;</td>
-                        <td colspan="3" class="statValue filename"><span class="statFilename"/></td>
-                    </tr>
-                    <tr>
-                        <td class="statLabel">&stats.size;</td>
-                        <td colspan="3" class="statValue size"><span class="statSize"/></td>
-                    </tr>
-                    <tr style="height: 1em;"/>
+                <html:div class="statsDiv" xmlns="http://www.w3.org/1999/xhtml">
+                    <table class="statsTable">
+                        <tr>
+                            <td class="statLabel">&stats.media;</td>
+                            <td class="statValue filename"><span class="statFilename"/></td>
+                        </tr>
+                        <tr>
+                            <td class="statLabel">&stats.size;</td>
+                            <td class="statValue size"><span class="statSize"/></td>
+                        </tr>
+                        <tr style="height: 1em;"/>
 
-                    <tr>
-                        <td class="statLabel">&stats.activity;</td> <td class="statValue activity">
-                          <span class="statActivity">
-                            <span class="statActivityPaused">&stats.activityPaused;</span>
-                            <span class="statActivityPlaying">&stats.activityPlaying;</span>
-                            <span class="statActivityEnded">&stats.activityEnded;</span>
-                            <span class="statActivitySeeking">&stats.activitySeeking;</span>
-                          </span>
-                        </td>
-                        <td class="statLabel">&stats.volume;</td> <td class="statValue"><span class="statVolume"/></td>
-                    </tr>
-                    <tr>
-                        <!-- Localization note: readyState is a HTML5 API MediaElement-specific attribute and should not be localized. -->
-                        <td class="statLabel">readyState</td> <td class="statValue"><span class="statReadyState"/></td>
-                        <td class="statLabel">&stats.channels;</td> <td class="statValue"><span class="statChannels"/></td>
-                    </tr>
-                    <tr>
-                      <!-- Localization note: networkState is a HTML5 API MediaElement-specific attribute and should not be localized. -->
-                      <td class="statLabel">networkState</td> <td class="statValue"><span class="statNetState"/></td>
-                        <td class="statLabel">&stats.sampleRate;</td> <td class="statValue"><span class="statSampleRate"/></td>
-                    </tr>
-                    <tr style="height: 1em;"/>
+                        <tr>
+                            <td class="statLabel">&stats.activity;</td>
+                            <td class="statValue activity">
+                              <span class="statActivity">
+                                <span class="statActivityPaused">&stats.activityPaused;</span>
+                                <span class="statActivityPlaying">&stats.activityPlaying;</span>
+                                <span class="statActivityEnded">&stats.activityEnded;</span>
+                                <span class="statActivitySeeking">&stats.activitySeeking;</span>
+                              </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="statLabel">&stats.volume;</td> <td class="statValue"><span class="statVolume"/></td>
+                        </tr>
+                        <tr>
+                            <!-- Localization note: readyState is a HTML5 API MediaElement-specific attribute and should not be localized. -->
+                            <td class="statLabel">readyState</td> <td class="statValue"><span class="statReadyState"/></td>
+                        </tr>
+                        <tr>
+                            <td class="statLabel">&stats.channels;</td> <td class="statValue"><span class="statChannels"/></td>
+                        </tr>
+                        <tr>
+                          <!-- Localization note: networkState is a HTML5 API MediaElement-specific attribute and should not be localized. -->
+                          <td class="statLabel">networkState</td> <td class="statValue"><span class="statNetState"/></td>
+                        </tr>
+                        <tr>
+                          <td class="statLabel">&stats.sampleRate;</td> <td class="statValue"><span class="statSampleRate"/></td>
+                        </tr>
+                        <tr style="height: 1em;"/>
 
-                    <tr>
-                        <td class="statLabel">&stats.framesParsed;</td> <td class="statValue"><span class="statFramesParsed"/></td>
-                        <td class="statLabel"></td> <td class="statValue"></td>
-                    </tr>
-                    <tr>
-                        <td class="statLabel">&stats.framesDecoded;</td> <td class="statValue"><span class="statFramesDecoded"/></td>
-                        <td class="statLabel"></td> <td class="statValue"></td>
-                    </tr>
-                    <tr>
-                        <td class="statLabel">&stats.framesPresented;</td> <td class="statValue"><span class="statFramesPresented"/></td>
-                        <td class="statLabel"></td> <td class="statValue"></td>
-                    </tr>
-                    <tr>
-                        <td class="statLabel">&stats.framesPainted;</td> <td class="statValue"><span class="statFramesPainted"/></td>
-                        <td class="statLabel"></td> <td class="statValue"></td>
-                    </tr>
-                </html:table>
+                        <tr>
+                            <td class="statLabel">&stats.framesParsed;</td>
+                            <td class="statValue"><span class="statFramesParsed"/></td>
+                        </tr>
+                        <tr>
+                            <td class="statLabel">&stats.framesDecoded;</td>
+                            <td class="statValue"><span class="statFramesDecoded"/></td>
+                        </tr>
+                        <tr>
+                            <td class="statLabel">&stats.framesPresented;</td>
+                            <td class="statValue"><span class="statFramesPresented"/></td>
+                        </tr>
+                        <tr>
+                            <td class="statLabel">&stats.framesPainted;</td>
+                            <td class="statValue"><span class="statFramesPainted"/></td>
+                        </tr>
+                    </table>
+                </html:div>
             </vbox>
 
             <vbox class="controlsOverlay">
@@ -277,6 +292,9 @@
                         <box class="volumeBackgroundBar"/>
                         <scale class="volumeControl" orient="vertical" dir="reverse" movetoclick="true"/>
                     </stack>
+                    <button class="fullscreenButton"
+                            enterfullscreenlabel="&fullscreenButton.enterfullscreenlabel;"
+                            exitfullscreenlabel="&fullscreenButton.exitfullscreenlabel;"/>
                 </hbox>
             </vbox>
         </stack>
@@ -311,6 +329,7 @@
                 statusOverlay  : null,
                 controlsSpacer : null,
                 stats          : {},
+                fullscreenButton : null,
 
                 randomID : 0,
                 videoEvents : ["play", "pause", "ended", "volumechange", "loadeddata",
@@ -338,6 +357,11 @@
                          this.video.networkState == this.video.NETWORK_LOADING))
                         show = true;
 
+                    // Explicitly hide the status fader if this
+                    // is audio only until bug 619421 is fixed.
+                    if (this.isAudioOnly)
+                        show = false;
+
                     this.log("Status overlay: seeking=" + this.video.seeking +
                              " error=" + this.video.error + " readyState=" + this.video.readyState +
                              " paused=" + this.video.paused + " ended=" + this.video.ended +
@@ -359,6 +383,8 @@
 
                     this.setPlayButtonState(this.video.paused);
                     this.setMuteButtonState(this.video.muted);
+
+                    this.setFullscreenButtonState();
 
                     var volume = this.video.muted ? 0 : Math.round(this.video.volume * 100);
                     this.volumeControl.value = volume;
@@ -392,8 +418,9 @@
                         this.bufferBar.setAttribute("value", 0);
 
                     // Set the current status icon.
-                    if (this.video.error || this.video.networkState == this.video.NETWORK_NO_SOURCE) {
+                    if (this.hasError()) {
                         this.statusIcon.setAttribute("type", "error");
+                        this.updateErrorText();
                         this.setupStatusFader(true);
                     } else {
                         this.statusIcon.setAttribute("type", "throbber");
@@ -406,6 +433,7 @@
                     this._playButtonWidth = this.playButton.clientWidth;
                     this._durationLabelWidth = this.durationLabel.clientWidth;
                     this._muteButtonWidth = this.muteButton.clientWidth;
+                    this._fullscreenButtonWidth = this.fullscreenButton.clientWidth;
                     this._controlBarHeight = this.controlBar.clientHeight;
                     if (controlBarWasHidden)
                       this.controlBar.setAttribute("hidden", "true");
@@ -431,7 +459,7 @@
 
                     // If the video hits an error, suppress controls if it
                     // hasn't managed to do anything else yet.
-                    if (!this.firstFrameShown && (this.video.error || this.video.networkState == this.video.NETWORK_NO_SOURCE))
+                    if (!this.firstFrameShown && this.hasError())
                         enabled = false;
 
                     return enabled;
@@ -468,6 +496,7 @@
                             // exactly at the end when the video finishes.
                             this.showPosition(Math.round(this.video.currentTime * 1000),
                                               Math.round(this.video.duration * 1000));
+                            this.startFadeIn(this.controlBar);
                             this.setupStatusFader();
                             break;
                         case "volumechange":
@@ -492,6 +521,8 @@
                             break;
                         case "loadstart":
                             this.maxCurrentTimeSeen = 0;
+                            this.controlsSpacer.removeAttribute("aria-label");
+                            this.statusOverlay.removeAttribute("error");
                             this.statusIcon.setAttribute("type", "throbber");
                             this.isAudioOnly = (this.video instanceof HTMLAudioElement);
                             this.setPlayButtonState(true);
@@ -564,8 +595,9 @@
                             // 2. The video's networkState is NETWORK_NO_SOURCE. This means we we're
                             //    loading from child source elements, but we were unable to select
                             //    any of the child elements for playback during resource selection.
-                            if (this.video.error || this.video.networkState == this.video.NETWORK_NO_SOURCE) {
+                            if (this.hasError()) {
                               this.statusIcon.setAttribute("type", "error");
+                              this.updateErrorText();
                               this.setupStatusFader(true);
                               // If video hasn't shown anything yet, disable the controls.
                               if (!this.firstFrameShown)
@@ -582,11 +614,52 @@
                         clearInterval(this.statsInterval);
                         this.statsInterval = null;
                     }
-                    for each (var event in this.videoEvents)
+                    for each (let event in this.videoEvents)
                         this.video.removeEventListener(event, this, false);
                     this.video.removeEventListener("media-showStatistics", this._handleCustomEventsBound, false);
                     delete this._handleCustomEventsBound;
+                    this.video.ownerDocument.removeEventListener("mozfullscreenchange", this._setFullscreenButtonStateBound, false);
+                    delete this._setFullscreenButtonStateBound;
                     this.log("--- videocontrols terminated ---");
+                },
+
+                hasError : function () {
+                    return (this.video.error != null || this.video.networkState == this.video.NETWORK_NO_SOURCE);
+                },
+
+                updateErrorText : function () {
+                    let error;
+                    let v = this.video;
+                    // It is possible to have both v.networkState == NETWORK_NO_SOURCE
+                    // as well as v.error being non-null. In this case, we will show
+                    // the v.error.code instead of the v.networkState error.
+                    if (v.error) {
+                        switch (v.error.code) {
+                          case v.error.MEDIA_ERR_ABORTED:
+                              error = "errorAborted";
+                              break;
+                          case v.error.MEDIA_ERR_NETWORK:
+                              error = "errorNetwork";
+                              break;
+                          case v.error.MEDIA_ERR_DECODE:
+                              error = "errorDecode";
+                              break;
+                          case v.error.MEDIA_ERR_SRC_NOT_SUPPORTED:
+                              error = "errorSrcNotSupported";
+                              break;
+                          default:
+                              error = "errorGeneric";
+                              break;
+                         }
+                    } else if (v.networkState == v.NETWORK_NO_SOURCE) {
+                        error = "errorNoSource";
+                    } else {
+                        return; // No error found.
+                    }
+
+                    let label = document.getAnonymousElementByAttribute(this.videocontrols, "anonid", error);
+                    this.controlsSpacer.setAttribute("aria-label", label.textContent);
+                    this.statusOverlay.setAttribute("error", error);
                 },
 
                 formatTime : function(aTime) {
@@ -715,10 +788,42 @@
                     this.startFade(this.volumeStack, isMouseOver);
                 },
 
+                _hideControlsTimeout : 0,
+                _hideControlsFn : function () {
+                    if (!Utils.scrubber.isDragging)
+                        Utils.startFade(Utils.controlBar, false);
+                },
+                HIDE_CONTROLS_TIMEOUT_MS : 2000,
+                onMouseMove : function (event) {
+                    // If the controls are static, don't change anything.
+                    if (!this.dynamicControls)
+                        return;
+
+                    clearTimeout(this._hideControlsTimeout);
+
+                    // Suppress fading out the controls until the video has rendered
+                    // its first frame. But since autoplay videos start off with no
+                    // controls, let them fade-out so the controls don't get stuck on.
+                    if (!this.firstFrameShown &&
+                        !(this.video.autoplay && this.video.mozAutoplayEnabled))
+                        return;
+
+                    this.startFade(this.controlBar, true);
+                    // Only hide the controls if the mouse cursor is not left on top of
+                    // the control bar. We only need to check the Y position of the cursor
+                    // since the controls span the width of the video and are always located
+                    // at the bottom of the video.
+                    if (event.clientY < this.controlBar.getBoundingClientRect().top) {
+                        this._hideControlsTimeout = setTimeout(this._hideControlsFn, this.HIDE_CONTROLS_TIMEOUT_MS);
+                    }
+                },
+
                 onMouseInOut : function (event) {
                     // If the controls are static, don't change anything.
                     if (!this.dynamicControls)
                         return;
+
+                    clearTimeout(this._hideControlsTimeout);
 
                     // Ignore events caused by transitions between child nodes.
                     // Note that the videocontrols element is the same
@@ -737,10 +842,13 @@
                         !(this.video.autoplay && this.video.mozAutoplayEnabled))
                         return;
 
-                    if (!isMouseOver)
+                    if (!isMouseOver) {
                         this.adjustControlSize();
 
-                    this.startFade(this.controlBar, isMouseOver);
+                        // Setting a timer here to handle the case where the mouse leaves
+                        // the video from hovering over the controls.
+                        this._hideControlsTimeout = setTimeout(this._hideControlsFn, this.HIDE_CONTROLS_TIMEOUT_MS);
+                    }
                 },
 
                 startFadeIn : function (element, immediate) {
@@ -752,11 +860,15 @@
                 },
 
                 startFade : function (element, fadeIn, immediate) {
-                    // Bug 493523, the scrubber doesn't call valueChanged while hidden,
-                    // so our dependent state (eg, timestamp in the thumb) will be stale.
-                    // As a workaround, update it manually when it first becomes unhidden.
-                    if (element.className == "controlBar" && fadeIn && element.hidden)
-                        this.scrubber.valueChanged("curpos", this.video.currentTime * 1000, false);
+                    if (element.className == "controlBar" && fadeIn) {
+                        clearTimeout(this._hideControlsTimeout);
+
+                        // Bug 493523, the scrubber doesn't call valueChanged while hidden,
+                        // so our dependent state (eg, timestamp in the thumb) will be stale.
+                        // As a workaround, update it manually when it first becomes unhidden.
+                        if (element.hidden)
+                            this.scrubber.valueChanged("curpos", this.video.currentTime * 1000, false);
+                    }
 
                     if (immediate)
                         element.setAttribute("immediate", true);
@@ -811,8 +923,37 @@
                     // controlling volume.
                 },
 
+                isVideoInFullScreen : function () {
+                    return document.mozFullScreenElement != null;
+                },
+
+                toggleFullscreen : function () {
+                    this.isVideoInFullScreen() ?
+                        document.mozCancelFullScreen() :
+                        this.video.mozRequestFullScreen();
+                },
+
+                setFullscreenButtonState : function () {
+                    if (this.isAudioOnly || !document.mozFullScreenEnabled) {
+                        this.fullscreenButton.hidden = true;
+                        return;
+                    }
+
+                    var attrName = this.isVideoInFullScreen() ? "exitfullscreenlabel" : "enterfullscreenlabel";
+                    var value = this.fullscreenButton.getAttribute(attrName);
+                    this.fullscreenButton.setAttribute("aria-label", value);
+
+                    if (this.isVideoInFullScreen())
+                        this.fullscreenButton.setAttribute("fullscreened", "true");
+                    else
+                        this.fullscreenButton.removeAttribute("fullscreened");
+                },
+
                 setPlayButtonState : function(aPaused) {
-                  this.playButton.setAttribute("paused", aPaused);
+                  if (aPaused)
+                      this.playButton.setAttribute("paused", "true");
+                  else
+                      this.playButton.removeAttribute("paused");
 
                   var attrName = aPaused ? "playlabel" : "pauselabel";
                   var value = this.playButton.getAttribute(attrName);
@@ -820,7 +961,10 @@
                 },
 
                 setMuteButtonState : function(aMuted) {
-                  this.muteButton.setAttribute("muted", aMuted);
+                  if (aMuted)
+                      this.muteButton.setAttribute("muted", "true");
+                  else
+                      this.muteButton.removeAttribute("muted");
 
                   var attrName = aMuted ? "unmutelabel" : "mutelabel";
                   var value = this.muteButton.getAttribute(attrName);
@@ -867,7 +1011,7 @@
                     let srcIdx = srcParts.length - 1;
                     if (src.lastIndexOf('/') == src.length - 1)
                         srcIdx--;
-                    s.filename.textContent = srcParts[srcIdx];
+                    s.filename.textContent = decodeURI(srcParts[srcIdx]);
 
                     let size = v.videoWidth + "x" + v.videoHeight;
                     if (this._getComputedPropertyValueAsInt(this.video, "width") != v.videoWidth || this._getComputedPropertyValueAsInt(this.video, "height") != v.videoHeight)
@@ -1014,7 +1158,8 @@
                                 this.video.currentTime = 0;
                                 break;
                             case "end": /* Seek to end */
-                                this.video.currentTime = (this.video.duration || this.maxCurrentTimeSeen / 1000);
+                                if (this.video.currentTime != this.video.duration)
+                                    this.video.currentTime = (this.video.duration || this.maxCurrentTimeSeen / 1000);
                                 break;
                             default:
                                 return;
@@ -1044,6 +1189,7 @@
                 _playButtonWidth : 0,
                 _durationLabelWidth : 0,
                 _muteButtonWidth : 0,
+                _fullscreenButtonWidth : 0,
                 _controlBarHeight : 0,
                 adjustControlSize : function adjustControlSize() {
                     if (this.isAudioOnly)
@@ -1058,7 +1204,8 @@
                     let minWidthAllControls = this._playButtonWidth +
                                               minScrubberWidth +
                                               this._durationLabelWidth +
-                                              this._muteButtonWidth;
+                                              this._muteButtonWidth +
+                                              this._fullscreenButtonWidth;
                     let minHeightForControlBar = this._controlBarHeight;
                     let minWidthOnlyPlayPause = this._playButtonWidth + this._muteButtonWidth;
 
@@ -1092,6 +1239,7 @@
                     this.statusOverlay = document.getAnonymousElementByAttribute(binding, "class", "statusOverlay");
                     this.statsOverlay  = document.getAnonymousElementByAttribute(binding, "class", "statsOverlay");
                     this.controlsSpacer = document.getAnonymousElementByAttribute(binding, "class", "controlsSpacer");
+                    this.fullscreenButton = document.getAnonymousElementByAttribute(binding, "class", "fullscreenButton");
 
                     this.statsTable       = document.getAnonymousElementByAttribute(binding, "class", "statsTable");
                     this.stats.filename   = document.getAnonymousElementByAttribute(binding, "class", "statFilename");
@@ -1125,13 +1273,14 @@
                     // Use the handleEvent() callback for all media events.
                     // The "error" event listener must capture, so that it can trap error events
                     // from the <source> children, which don't bubble.
-                    for each (var event in this.videoEvents)
+                    for each (let event in this.videoEvents)
                         this.video.addEventListener(event, this, (event == "error") ? true : false);
 
                     var self = this;
                     this.muteButton.addEventListener("command", function() { self.toggleMute(); }, false);
                     this.playButton.addEventListener("command", function() { self.togglePause(); }, false);
-                    this.controlsSpacer.addEventListener("click", function(e) { if (e.button == 0) { self.togglePause(); } }, false);
+                    this.controlsSpacer.addEventListener("click", function(e) { if (e.button == 0 && !self.hasError()) { self.togglePause(); } }, false);
+                    this.fullscreenButton.addEventListener("command", function() { self.toggleFullscreen(); }, false );
                     if (!this.isAudioOnly) {
                       this.muteButton.addEventListener("mouseover",  function(e) { self.onVolumeMouseInOut(e); }, false);
                       this.muteButton.addEventListener("mouseout",   function(e) { self.onVolumeMouseInOut(e); }, false);
@@ -1140,6 +1289,8 @@
                     }
 
                     this.videocontrols.addEventListener("transitionend", function(e) { self.onTransitionEnd(e); }, false);
+                    this._setFullscreenButtonStateBound = this.setFullscreenButtonState.bind(this);
+                    this.video.ownerDocument.addEventListener("mozfullscreenchange", this._setFullscreenButtonStateBound, false);
 
                     // Make the <video> element keyboard accessible.
                     this.video.setAttribute("tabindex", 0);
@@ -1162,6 +1313,10 @@
         <handler event="mouseout">
             if (!this.isTouchControl)
                 this.Utils.onMouseInOut(event);
+        </handler>
+        <handler event="mousemove">
+            if (!this.isTouchControl)
+                this.Utils.onMouseMove(event);
         </handler>
     </handlers>
   </binding>
@@ -1201,6 +1356,9 @@
                         <label class="positionLabel" role="presentation"/>
                         <label class="durationLabel" role="presentation"/>
                     </vbox>
+                    <button class="fullscreenButton"
+                            enterfullscreenlabel="&fullscreenButton.enterfullscreenlabel;"
+                            exitfullscreenlabel="&fullscreenButton.exitfullscreenlabel;"/>
                 </vbox>
             </vbox>
         </stack>

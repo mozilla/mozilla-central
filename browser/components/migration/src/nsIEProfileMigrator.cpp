@@ -65,7 +65,6 @@
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
 #include "nsISimpleEnumerator.h"
-#include "nsISupportsArray.h"
 #include "nsIProfileMigrator.h"
 #include "nsIBrowserProfileMigrator.h"
 #include "nsIObserverService.h"
@@ -486,7 +485,7 @@ nsIEProfileMigrator::GetSourceHasMultipleProfiles(bool* aResult)
 }
 
 NS_IMETHODIMP
-nsIEProfileMigrator::GetSourceProfiles(nsISupportsArray** aResult)
+nsIEProfileMigrator::GetSourceProfiles(nsIArray** aResult)
 {
   *aResult = nsnull;
   return NS_OK;
@@ -1339,8 +1338,8 @@ nsIEProfileMigrator::CopyFavorites(bool aReplace)
     do_GetService(NS_NAVBOOKMARKSSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  bool batchAction = aReplace ? BATCH_ACTION_BOOKMARKS_REPLACE
-                                : BATCH_ACTION_BOOKMARKS;
+  PRUint8 batchAction = aReplace ? BATCH_ACTION_BOOKMARKS_REPLACE
+                                 : BATCH_ACTION_BOOKMARKS;
   nsCOMPtr<nsISupportsPRUint8> supports =
     do_CreateInstance(NS_SUPPORTS_PRUINT8_CONTRACTID);
   NS_ENSURE_TRUE(supports, NS_ERROR_OUT_OF_MEMORY);

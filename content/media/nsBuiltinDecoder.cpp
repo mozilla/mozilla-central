@@ -377,7 +377,7 @@ double nsBuiltinDecoder::GetCurrentTime()
   return mCurrentTime;
 }
 
-nsMediaStream* nsBuiltinDecoder::GetCurrentStream()
+nsMediaStream* nsBuiltinDecoder::GetStream()
 {
   return mStream;
 }
@@ -397,14 +397,9 @@ void nsBuiltinDecoder::AudioAvailable(float* aFrameBuffer,
   // to HTMLMediaElement::NotifyAudioAvailable().
   nsAutoArrayPtr<float> frameBuffer(aFrameBuffer);
   NS_ASSERTION(NS_IsMainThread(), "Should be on main thread.");
-  if (mShuttingDown) {
+  if (mShuttingDown || !mElement) {
     return;
   }
-
-  if (!mElement || !mElement->MayHaveAudioAvailableEventListener()) {
-    return;
-  }
-
   mElement->NotifyAudioAvailable(frameBuffer.forget(), aFrameBufferLength, aTime);
 }
 
@@ -456,6 +451,9 @@ void nsBuiltinDecoder::MetadataLoaded(PRUint32 aChannels,
     mElement->FirstFrameLoaded(resourceIsLoaded);
   }
 
+  // This can run cache callbacks.
+  mStream->EnsureCacheUpToDate();
+
   // The element can run javascript via events
   // before reaching here, so only change the
   // state if we're still set to the original
@@ -472,6 +470,10 @@ void nsBuiltinDecoder::MetadataLoaded(PRUint32 aChannels,
   if (resourceIsLoaded) {
     ResourceLoaded();
   }
+
+  // Run NotifySuspendedStatusChanged now to give us a chance to notice
+  // that autoplay should run.
+  NotifySuspendedStatusChanged();
 }
 
 void nsBuiltinDecoder::ResourceLoaded()
@@ -642,7 +644,11 @@ void nsBuiltinDecoder::NotifySuspendedStatusChanged()
   NS_ASSERTION(NS_IsMainThread(), "Should be on main thread.");
   if (!mStream)
     return;
-  if (mStream->IsSuspendedByCache() && mElement) {
+  nsMediaStream* activeStream;
+  bool suspended = mStream->IsSuspendedByCache(&activeStream);
+  
+  printf("*** nsBuiltinDecoder::NotifySuspendedStatusChanged(%p), suspended=%d, active-stream=%p\n", this, suspended, activeStream);
+  if (suspended && mElement) {
     // if this is an autoplay element, we need to kick off its autoplaying
     // now so we consume data and hopefully free up cache space
     mElement->NotifyAutoplayDataReady();
@@ -1005,6 +1011,16 @@ void nsBuiltinDecoder::UpdatePlaybackOffset(PRInt64 aOffset)
   mPlaybackPosition = NS_MAX(aOffset, mPlaybackPosition);
 }
 
-bool nsBuiltinDecoder::OnStateMachineThread() const {
+bool nsBuiltinDecoder::OnStateMachineThread() const
+{
   return IsCurrentThread(nsBuiltinDecoderStateMachine::GetStateMachineThread());
+}
+
+void nsBuiltinDecoder::NotifyAudioAvailableListener()
+{
+  NS_ASSERTION(NS_IsMainThread(), "Should be on main thread.");
+  if (mDecoderStateMachine) {
+    ReentrantMonitorAutoEnter mon(mReentrantMonitor);
+    mDecoderStateMachine->NotifyAudioAvailableListener();
+  }
 }

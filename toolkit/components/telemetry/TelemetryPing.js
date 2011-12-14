@@ -18,6 +18,7 @@
  *
  * Contributor(s):
  *   Taras Glek <tglek@mozilla.com>
+ *   Vladan Djeric <vdjeric@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,6 +41,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://gre/modules/LightweightThemeManager.jsm");
 
 // When modifying the payload in incompatible ways, please bump this version number
 const PAYLOAD_VERSION = 1;
@@ -75,110 +77,17 @@ function getLocale() {
          getSelectedLocale('global');
 }
 
-XPCOMUtils.defineLazyGetter(this, "Telemetry", function () {
-  return Cc["@mozilla.org/base/telemetry;1"].getService(Ci.nsITelemetry);
-});
-
-/**
- * Returns a set of histograms that can be converted into JSON
- * @return a snapshot of the histograms of form:
- *  { histogram_name: {range:[minvalue,maxvalue], bucket_count:<number of buckets>,
- *    histogram_type: <0 for exponential, 1 for linear>, bucketX:countX, ....} ...}
- * where bucket[XY], count[XY] are positive integers.
- */
-function getHistograms() {
-  let hls = Telemetry.histogramSnapshots;
-  let ret = {};
-
-  for (let key in hls) {
-    let hgram = hls[key];
-    if (!hgram.static)
-      continue;
-
-    let r = hgram.ranges;
-    let c = hgram.counts;
-    let retgram = {
-      range: [r[1], r[r.length - 1]],
-      bucket_count: r.length,
-      histogram_type: hgram.histogram_type,
-      values: {},
-      sum: hgram.sum
-    };
-    let first = true;
-    let last = 0;
-
-    for (let i = 0; i < c.length; i++) {
-      let value = c[i];
-      if (!value)
-        continue;
-
-      // add a lower bound
-      if (i && first) {
-        first = false;
-        retgram.values[r[i - 1]] = 0;
-      }
-      first = false;
-      last = i + 1;
-      retgram.values[r[i]] = value;
-    }
-
-    // add an upper bound
-    if (last && last < c.length)
-      retgram.values[r[last]] = 0;
-    ret[key] = retgram;
-  }
-  return ret;
-}
+XPCOMUtils.defineLazyServiceGetter(this, "Telemetry",
+                                   "@mozilla.org/base/telemetry;1",
+                                   "nsITelemetry");
+XPCOMUtils.defineLazyServiceGetter(this, "idleService",
+                                   "@mozilla.org/widget/idleservice;1",
+                                   "nsIIdleService");
 
 function generateUUID() {
   let str = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator).generateUUID().toString();
   // strip {}
   return str.substring(1, str.length - 1);
-}
-
-/**
- * Gets metadata about the platform the application is running on. This
- * should remain consistent across multiple telemetry pings.
- * 
- * @param  reason
- *         The reason for the telemetry ping, this will be included in the
- *         returned metadata,
- * @return The metadata as a JS object
- */
-function getMetadata(reason) {
-  let ai = Services.appinfo;
-  let ret = {
-    reason: reason,
-    OS: ai.OS,
-    appID: ai.ID,
-    appVersion: ai.version,
-    appName: ai.name,
-    appBuildID: ai.appBuildID,
-    platformBuildID: ai.platformBuildID,
-    locale: getLocale(),
-  };
-
-  // sysinfo fields is not always available, get what we can.
-  let sysInfo = Cc["@mozilla.org/system-info;1"].getService(Ci.nsIPropertyBag2);
-  let fields = ["cpucount", "memsize", "arch", "version", "device", "manufacturer", "hardware",
-                "hasMMX", "hasSSE", "hasSSE2", "hasSSE3",
-                "hasSSSE3", "hasSSE4A", "hasSSE4_1", "hasSSE4_2",
-                "hasEDSP", "hasARMv6", "hasNEON"];
-  for each (let field in fields) {
-    let value;
-    try {
-      value = sysInfo.getProperty(field);
-    } catch (e) {
-      continue
-    }
-    if (field == "memsize") {
-      // Send RAM size in megabytes. Rounding because sysinfo doesn't
-      // always provide RAM in multiples of 1024.
-      value = Math.round(value / 1024 / 1024)
-    }
-    ret[field] = value
-  }
-  return ret;
 }
 
 /**
@@ -188,8 +97,7 @@ function getMetadata(reason) {
  * @return simple measurements as a dictionary.
  */
 function getSimpleMeasurements() {
-  let si = Cc["@mozilla.org/toolkit/app-startup;1"].
-           getService(Ci.nsIAppStartup).getStartupInfo();
+  let si = Services.startup.getStartupInfo();
 
   var ret = {
     // uptime in minutes
@@ -203,6 +111,7 @@ function getSimpleMeasurements() {
       ret[field] = si[field] - si.process
     }
   }
+  ret.startupInterrupted = new Number(Services.startup.interrupted);
 
   ret.js = Cc["@mozilla.org/js/xpc/XPConnect;1"]
            .getService(Ci.nsIJSEngineTelemetryStats)
@@ -217,6 +126,63 @@ TelemetryPing.prototype = {
   _histograms: {},
   _initialized: false,
   _prevValues: {},
+  _sqliteOverhead: {},
+
+  /**
+   * Returns a set of histograms that can be converted into JSON
+   * @return a snapshot of the histograms of form:
+   *  { histogram_name: {range:[minvalue,maxvalue], bucket_count:<number of buckets>,
+   *    histogram_type: <0 for exponential, 1 for linear>, bucketX:countX, ....} ...}
+   * where bucket[XY], count[XY] are positive integers.
+   */
+  getHistograms: function getHistograms() {
+    let hls = Telemetry.histogramSnapshots;
+    let ret = {};
+
+    // bug 701583: report sqlite overhead on startup
+    for (let key in this._sqliteOverhead) {
+      hls[key] = this._sqliteOverhead[key];
+    }
+
+    for (let key in hls) {
+      let hgram = hls[key];
+      if (!hgram.static)
+        continue;
+
+      let r = hgram.ranges;
+      let c = hgram.counts;
+      let retgram = {
+        range: [r[1], r[r.length - 1]],
+        bucket_count: r.length,
+        histogram_type: hgram.histogram_type,
+        values: {},
+        sum: hgram.sum
+      };
+      let first = true;
+      let last = 0;
+
+      for (let i = 0; i < c.length; i++) {
+        let value = c[i];
+        if (!value)
+          continue;
+
+        // add a lower bound
+        if (i && first) {
+          first = false;
+          retgram.values[r[i - 1]] = 0;
+        }
+        first = false;
+        last = i + 1;
+        retgram.values[r[i]] = value;
+      }
+
+      // add an upper bound
+      if (last && last < c.length)
+        retgram.values[r[last]] = 0;
+      ret[key] = retgram;
+    }
+    return ret;
+  },
 
   addValue: function addValue(name, id, val) {
     let h = this._histograms[name];
@@ -225,6 +191,57 @@ TelemetryPing.prototype = {
       this._histograms[name] = h;
     }
     h.add(val);
+  },
+
+  /**
+   * Descriptive metadata
+   * 
+   * @param  reason
+   *         The reason for the telemetry ping, this will be included in the
+   *         returned metadata,
+   * @return The metadata as a JS object
+   */
+  getMetadata: function getMetadata(reason) {
+    let ai = Services.appinfo;
+    let ret = {
+      reason: reason,
+      OS: ai.OS,
+      appID: ai.ID,
+      appVersion: ai.version,
+      appName: ai.name,
+      appBuildID: ai.appBuildID,
+      platformBuildID: ai.platformBuildID,
+    };
+
+    // sysinfo fields are not always available, get what we can.
+    let sysInfo = Cc["@mozilla.org/system-info;1"].getService(Ci.nsIPropertyBag2);
+    let fields = ["cpucount", "memsize", "arch", "version", "device", "manufacturer", "hardware",
+                  "hasMMX", "hasSSE", "hasSSE2", "hasSSE3",
+                  "hasSSSE3", "hasSSE4A", "hasSSE4_1", "hasSSE4_2",
+                  "hasEDSP", "hasARMv6", "hasNEON"];
+    for each (let field in fields) {
+      let value;
+      try {
+        value = sysInfo.getProperty(field);
+      } catch (e) {
+        continue
+      }
+      if (field == "memsize") {
+        // Send RAM size in megabytes. Rounding because sysinfo doesn't
+        // always provide RAM in multiples of 1024.
+        value = Math.round(value / 1024 / 1024)
+      }
+      ret[field] = value
+    }
+
+    let theme = LightweightThemeManager.currentTheme;
+    if (theme)
+      ret.persona = theme.id;
+
+    if (this._addons)
+      ret.addons = this._addons;
+
+    return ret;
   },
 
   /**
@@ -285,6 +302,18 @@ TelemetryPing.prototype = {
     }
   },
   
+  /** 
+   * Make a copy of sqlite histograms on startup
+   */
+  gatherStartupSqlite: function gatherStartupSqlite() {
+    let hls = Telemetry.histogramSnapshots;
+    let sqlite_re = /SQLITE/;
+    for (let key in hls) {
+      if (sqlite_re.test(key))
+        this._sqliteOverhead["STARTUP_" + key] = hls[key];
+    }
+  },
+
   /**
    * Send data to the server. Record success/send-time in histograms
    */
@@ -293,10 +322,12 @@ TelemetryPing.prototype = {
     this.gatherMemory();
     let payload = {
       ver: PAYLOAD_VERSION,
-      info: getMetadata(reason),
+      info: this.getMetadata(reason),
       simpleMeasurements: getSimpleMeasurements(),
-      histograms: getHistograms()
+      histograms: this.getHistograms(),
+      slowSQL: Telemetry.slowSQL
     };
+
     let isTestPing = (reason == "test-ping");
     // Generate a unique id once per session so the server can cope with duplicate submissions.
     // Use a deterministic url for testing.
@@ -346,7 +377,7 @@ TelemetryPing.prototype = {
     Services.obs.removeObserver(this, "idle-daily");
     Services.obs.removeObserver(this, "cycle-collector-begin");
     if (this._isIdleObserver) {
-      idle.removeIdleObserver(this, IDLE_TIMEOUT_SECONDS);
+      idleService.removeIdleObserver(this, IDLE_TIMEOUT_SECONDS);
       this._isIdleObserver = false;
     }
   },
@@ -370,6 +401,7 @@ TelemetryPing.prototype = {
     }
     Services.obs.addObserver(this, "private-browsing", false);
     Services.obs.addObserver(this, "profile-before-change", false);
+    Services.obs.addObserver(this, "sessionstore-windows-restored", false);
 
     // Delay full telemetry initialization to give the browser time to
     // run various late initializers. Otherwise our gathered memory
@@ -390,6 +422,7 @@ TelemetryPing.prototype = {
    */
   uninstall: function uninstall() {
     this.detachObservers()
+    Services.obs.removeObserver(this, "sessionstore-windows-restored");
     Services.obs.removeObserver(this, "profile-before-change");
     Services.obs.removeObserver(this, "private-browsing");
   },
@@ -402,6 +435,9 @@ TelemetryPing.prototype = {
     var server = this._server;
 
     switch (aTopic) {
+    case "Add-ons":
+      this._addons = aData;
+      break;
     case "profile-after-change":
       this.setup();
       break;
@@ -424,6 +460,9 @@ TelemetryPing.prototype = {
         this.attachObservers()
       }
       break;
+    case "sessionstore-windows-restored":
+      this.gatherStartupSqlite();
+      break;
     case "idle-daily":
       // Enqueue to main-thread, otherwise components may be inited by the
       // idle-daily category and miss the gather-telemetry notification.
@@ -431,7 +470,7 @@ TelemetryPing.prototype = {
         // Notify that data should be gathered now, since ping will happen soon.
         Services.obs.notifyObservers(null, "gather-telemetry", null);
         // The ping happens at the first idle of length IDLE_TIMEOUT_SECONDS.
-        idle.addIdleObserver(this, IDLE_TIMEOUT_SECONDS);
+        idleService.addIdleObserver(this, IDLE_TIMEOUT_SECONDS);
         this._isIdleObserver = true;
       }).bind(this), Ci.nsIThread.DISPATCH_NORMAL);
       break;
@@ -440,7 +479,7 @@ TelemetryPing.prototype = {
       // fall through
     case "idle":
       if (this._isIdleObserver) {
-        idle.removeIdleObserver(this, IDLE_TIMEOUT_SECONDS);
+        idleService.removeIdleObserver(this, IDLE_TIMEOUT_SECONDS);
         this._isIdleObserver = false;
       }
       this.send(aTopic == "idle" ? "idle-daily" : aTopic, server);

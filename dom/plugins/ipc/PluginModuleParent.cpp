@@ -116,7 +116,11 @@ PluginModuleParent::LoadModule(const char* aFilePath)
     TimeoutChanged(kChildTimeoutPref, parent);
 
 #ifdef MOZ_CRASHREPORTER
-    CrashReporterParent::CreateCrashReporter(parent.get());
+    // If this fails, we're having IPC troubles, and we're doomed anyways.
+    if (!CrashReporterParent::CreateCrashReporter(parent.get())) {
+        parent->mShutdown = true;
+        return nsnull;
+    }
 #endif
 
     return parent.forget();
@@ -731,7 +735,7 @@ PluginModuleParent::EndUpdateBackground(NPP instance,
     return i->EndUpdateBackground(aCtx, aRect);
 }
 
-#if defined(XP_UNIX) && !defined(XP_MACOSX)
+#if defined(XP_UNIX) && !defined(XP_MACOSX) && !defined(MOZ_WIDGET_GONK)
 nsresult
 PluginModuleParent::NP_Initialize(NPNetscapeFuncs* bFuncs, NPPluginFuncs* pFuncs, NPError* error)
 {

@@ -153,7 +153,7 @@ interface ScheduledGCCallback : nsISupports
 /**
 * interface of Components.utils
 */
-[scriptable, uuid(11785c1f-346f-475c-950e-fe1bacce70f1)]
+[scriptable, uuid(1fbd5d17-707f-4874-9635-59ad2438caf0)]
 interface nsIXPCComponents_Utils : nsISupports
 {
 
@@ -288,7 +288,8 @@ interface nsIXPCComponents_Utils : nsISupports
      * @param obj The JavaScript object whose global is to be gotten.
      * @return the corresponding global.
      */
-    void /* JSObject */ getGlobalForObject(/* in JSObject obj */);
+    [implicit_jscontext]
+    jsval getGlobalForObject(in jsval obj);
 
     /*
      * To be called from JS only.
@@ -306,6 +307,41 @@ interface nsIXPCComponents_Utils : nsISupports
      */
     [implicit_jscontext]
     void makeObjectPropsNormal(in jsval vobj);
+
+    /*
+     * To be called from JS only.
+     *
+     * These are the set of JSContext options that privileged script
+     * is allowed to control for the purposes of testing.  These
+     * options should be kept in sync with what's controllable in the
+     * jsshell and by setting prefs in nsJSEnvironment.
+     *
+     * NB: Assume that getting any of these attributes is relatively
+     * cheap, but setting any of them is relatively expensive.
+     */
+    [implicit_jscontext]
+    attribute boolean strict;
+
+    [implicit_jscontext]
+    attribute boolean werror;
+
+    [implicit_jscontext]
+    attribute boolean atline;
+
+    [implicit_jscontext]
+    attribute boolean xml;
+
+    [implicit_jscontext]
+    attribute boolean relimit;
+
+    [implicit_jscontext]
+    attribute boolean methodjit;
+
+    [implicit_jscontext]
+    attribute boolean methodjit_always;
+
+    [implicit_jscontext]
+    void setGCZeal(in long zeal);
 };
 
 /**
