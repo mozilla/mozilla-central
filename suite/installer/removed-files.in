@@ -139,6 +139,7 @@ components/sigonviewer.xpt
 components/@DLL_PREFIX@srchsvc@DLL_SUFFIX@
 components/@DLL_PREFIX@suitetypeaheadfind@DLL_SUFFIX@
 components/suitetypeaheadfind.xpt
+components/uconvd.dll
 components/@DLL_PREFIX@ucvmath@DLL_SUFFIX@
 components/urlwidgt.xpt
 components/util.xpt

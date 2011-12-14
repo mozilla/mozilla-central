@@ -84,6 +84,7 @@ components/signonviewer.xpt
 components/thunderbird.xpt
 components/@DLL_PREFIX@spellchecker@DLL_SUFFIX@
 components/spellchk.dll
+components/uconvd.dll
 components/@DLL_PREFIX@wallet@DLL_SUFFIX@
 components/wallet.xpt
 components/walleteditor.xpt
