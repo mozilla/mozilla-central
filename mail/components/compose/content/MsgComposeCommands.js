@@ -2897,8 +2897,10 @@ function AttachFile()
       return;
     let file;
     let attachments = [];
+
     for (file in fixIterator(fp.files, Components.interfaces.nsILocalFile))
       attachments.push(FileToAttachment(file));
+
     AddAttachments(attachments);
     SetLastAttachDirectory(file);
   }
@@ -2972,9 +2974,10 @@ function AddAttachments(aAttachments)
     // For local file urls, we are better off using the full file url because
     // moz-icon will actually resolve the file url and get the right icon from
     // the file url. All other urls, we should try to extract the file name from
-    // them. This fixes issues were an icon wasn't showing up if you dragged a
+    // them. This fixes issues where an icon wasn't showing up if you dragged a
     // web url that had a query or reference string after the file name and for
-    // mailnews urls were the filename is hidden in the url as a &filename= part.
+    // mailnews urls where the filename is hidden in the url as a &filename=
+    // part.
     var url = gIOService.newURI(attachment.url, null, null);
     if (url instanceof Components.interfaces.nsIURL &&
         url.fileName && !url.schemeIs("file"))
@@ -3636,8 +3639,10 @@ var envelopeDragObserver = {
                                        .createInstance(Components.interfaces.nsIMsgAttachment);
             attachment.url = rawData;
             attachment.name = prettyName;
+
             if (size !== undefined)
               attachment.size = size;
+
             attachments.push(attachment);
           }
         }
