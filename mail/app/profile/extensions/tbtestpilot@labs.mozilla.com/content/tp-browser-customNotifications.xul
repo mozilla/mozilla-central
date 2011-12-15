@@ -55,7 +55,7 @@
 </menu>
 
 // XXX Thunderbird uses the toolbar rather than the status panel.
-<toolbar id="mail-bar3">
+<toolbar id="mail-toolbox">
   <panel id="pilot-notification-popup" hidden="true" noautofocus="true"
     level="parent" position="after_start">
     <vbox class="pilot-notification-popup-container">
