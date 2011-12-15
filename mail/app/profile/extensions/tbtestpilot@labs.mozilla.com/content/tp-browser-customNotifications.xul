@@ -54,15 +54,8 @@
   </menupopup>
 </menu>
 
-<statusbar id="status-bar">
-  <statusbarpanel id="pilot-notifications-button"
-                  class="statusbarpanel-iconic"
-                  insertbefore="security-button"
-                  onmousedown="
-                    event.preventDefault();
-                    TestPilotMenuUtils.onMenuButtonMouseDown();"
-                  image="chrome://testpilot/skin/testpilot_16x16.png"/>
-
+// XXX Thunderbird uses the toolbar rather than the status panel.
+<toolbar id="mail-bar3">
   <panel id="pilot-notification-popup" hidden="true" noautofocus="true"
     level="parent" position="after_start">
     <vbox class="pilot-notification-popup-container">
@@ -89,5 +82,5 @@
       </hbox>
     </vbox>
   </panel>
-</statusbar>
+</toolbar>
 </overlay>

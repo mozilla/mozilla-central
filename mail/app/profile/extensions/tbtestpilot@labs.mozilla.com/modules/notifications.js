@@ -102,7 +102,10 @@ CustomNotificationManager.prototype = {
       anchor = doc.getElementById("feedback-menu-button");
       popup.setAttribute("class", "tail-up");
     } else {
-      anchor = doc.getElementById("pilot-notifications-button");
+      // XXX Thunderbird doesn't have the pilot-notifications-button, so we anchor
+      // to the toolbar instead
+      // anchor = doc.getElementById("pilot-notifications-button");
+      anchor = doc.getElementById("mail-bar3");
       popup.setAttribute("class", "tail-down");
     }
     let textLabel = doc.getElementById("pilot-notification-text");
@@ -186,7 +189,8 @@ CustomNotificationManager.prototype = {
     // Show the popup:
     popup.hidden = false;
     popup.setAttribute("open", "true");
-    popup.openPopup( anchor, "after_end");
+    // XXX Thunderbird needs after_start for now.
+    popup.openPopup( anchor, "after_start");//"after_end");
   },
 
   hideNotification: function TP_OldNotfn_hideNotification(window) {

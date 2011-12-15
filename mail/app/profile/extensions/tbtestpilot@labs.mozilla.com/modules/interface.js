@@ -153,9 +153,12 @@ var TestPilotUIBuilder = {
   },
 
   channelUsesFeedback: function() {
+    // Thunderbird ships on all channels, so just return false.
+    return false;
+    
     // Beta and aurora channels use feedback interface; nightly and release channels don't.
-    let channel = this._prefDefaultBranch.getCharPref(UPDATE_CHANNEL_PREF);
-    return (channel == "beta") || (channel == "betatest") || (channel == "aurora");
+//    let channel = this._prefDefaultBranch.getCharPref(UPDATE_CHANNEL_PREF);
+//    return (channel == "beta") || (channel == "betatest") || (channel == "aurora");
   },
 
   hasDoorhangerNotifications: function() {

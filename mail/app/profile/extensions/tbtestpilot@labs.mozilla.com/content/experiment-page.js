@@ -202,15 +202,24 @@ var stringBundle;
   }
 
   function openLink(url) {
-    // open the link in the chromeless window
-    let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                       .getService(Components.interfaces.nsIWindowMediator);
-    let recentWindow = wm.getMostRecentWindow("navigator:browser");
+    const THUNDERBIRD_APP_ID = "{3550f703-e582-4d05-9a08-453d09bdfdc6}";
 
-    if (recentWindow) {
-      recentWindow.TestPilotWindowUtils.openInTab(url);
-    } else {
-      window.open(url);
+    if (Application.id == THUNDERBIRD_APP_ID) {
+      Components.classes["@mozilla.org/messenger;1"]
+                .createInstance(Components.interfaces.nsIMessenger)
+                .launchExternalURL(url);
+    }
+    else {
+      // open the link in the chromeless window
+      let wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                         .getService(Components.interfaces.nsIWindowMediator);
+      let recentWindow = wm.getMostRecentWindow("navigator:browser");
+
+      if (recentWindow) {
+        recentWindow.TestPilotWindowUtils.openInTab(url);
+      } else {
+        window.open(url);
+      } 
     }
   }
 
