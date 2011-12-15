@@ -45,6 +45,7 @@ Components.utils.import("resource:///modules/attachmentChecker.js");
 
 Components.utils.import("resource:///modules/MailUtils.js");
 Components.utils.import("resource:///modules/errUtils.js");
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm")
 
@@ -1669,13 +1670,7 @@ function ComposeStartup(recycled, aParams)
       var subjectValue = msgCompFields.subject;
       GetMsgSubjectElement().value = subjectValue;
 
-      var attachments = msgCompFields.attachments;
-      if (attachments.hasMoreElements())
-        UpdateAttachmentBucket(true);
-
-      while (attachments.hasMoreElements()) {
-        AddUrlAttachment(attachments.getNext().QueryInterface(Components.interfaces.nsIMsgAttachment));
-      }
+      AddAttachments(msgCompFields.attachments);
     }
 
     var event = document.createEvent('Events');
@@ -2898,87 +2893,128 @@ function AttachFile()
   fp.appendFilters(nsIFilePicker.filterAll);
   if (fp.show() == nsIFilePicker.returnOK)
   {
-    let attachments = fp.files;
-    if (!attachments || !attachments.hasMoreElements())
+    if (!fp.files)
       return;
     let file;
-    do {
-      file = attachments.getNext().QueryInterface(Components.interfaces.nsILocalFile);
-      AddFileAttachment(file);
-    } while (attachments.hasMoreElements())
+    let attachments = [];
+    for (file in fixIterator(fp.files, Components.interfaces.nsILocalFile))
+      attachments.push(FileToAttachment(file));
+    AddAttachments(attachments);
     SetLastAttachDirectory(file);
   }
 }
+
 /**
- * Add a file object as attachment. This is mostly just a helper function to
- * wrap a file into an nsIMsgAttachment object with it's URL set.
- * @param file the nsIFile object to add as attachment
+ * Convert an nsILocalFile instance into an nsIMsgAttachment.
+ *
+ * @param file the nsILocalFile
+ * @return an attachment pointing to the file
  */
-function AddFileAttachment(file)
+function FileToAttachment(file)
 {
-  var fileHandler = Components.classes["@mozilla.org/network/io-service;1"]
+  let fileHandler = Components.classes["@mozilla.org/network/io-service;1"]
                               .getService(Components.interfaces.nsIIOService)
                               .getProtocolHandler("file")
                               .QueryInterface(Components.interfaces.nsIFileProtocolHandler);
-  var attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
+  let attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
                              .createInstance(Components.interfaces.nsIMsgAttachment);
 
   attachment.url = fileHandler.getURLSpecFromFile(file);
   attachment.size = file.fileSize;
-  AddUrlAttachment(attachment);
+  return attachment;
 }
 
 /**
- * Add an attachment object as attachment. The attachment URL must be set.
+ * Add a list of attachment objects as attachments. The attachment URLs must be
+ * set.
+ *
+ * @param aAttachments an iterable list of nsIMsgAttachment objects to add as
+ *        attachments. Anything iterable with fixIterator is accepted.
+ */
+function AddAttachments(aAttachments)
+{
+  let bucket = document.getElementById("attachmentBucket");
+  let addedAttachments = Components.classes["@mozilla.org/array;1"]
+                                   .createInstance(Components.interfaces.nsIMutableArray);
+
+  for (let attachment in fixIterator(aAttachments,
+                                     Components.interfaces.nsIMsgAttachment)) {
+    if (!(attachment && attachment.url) ||
+        DuplicateFileAlreadyAttached(attachment.url))
+      continue;
+
+    if (!attachment.name)
+      attachment.name = gMsgCompose.AttachmentPrettyName(attachment.url, null);
+
+    // For security reasons, don't allow *-message:// uris to leak out.
+    // We don't want to reveal the .slt path (for mailbox://), or the username
+    // or hostname.
+    if (/^mailbox-message:|^imap-message:|^news-message:/i.test(attachment.name))
+      attachment.name = getComposeBundle().getString("messageAttachmentSafeName");
+    // Don't allow file or mail/news protocol uris to leak out either.
+    else if (/^file:|^mailbox:|^imap:|^s?news:/i.test(attachment.name))
+      attachment.name = getComposeBundle().getString("partAttachmentSafeName");
+
+    let item = bucket.appendItem(attachment);
+    addedAttachments.appendElement(attachment, false);
+
+    if (attachment.size != -1)
+      gAttachmentsSize += attachment.size;
+
+    try {
+      item.setAttribute("tooltiptext", decodeURI(attachment.url));
+    }
+    catch(e) {
+      item.setAttribute("tooltiptext", attachment.url);
+    }
+    item.addEventListener("command", OpenSelectedAttachment, false);
+
+    // For local file urls, we are better off using the full file url because
+    // moz-icon will actually resolve the file url and get the right icon from
+    // the file url. All other urls, we should try to extract the file name from
+    // them. This fixes issues were an icon wasn't showing up if you dragged a
+    // web url that had a query or reference string after the file name and for
+    // mailnews urls were the filename is hidden in the url as a &filename= part.
+    var url = gIOService.newURI(attachment.url, null, null);
+    if (url instanceof Components.interfaces.nsIURL &&
+        url.fileName && !url.schemeIs("file"))
+      item.setAttribute("image", "moz-icon://" + url.fileName);
+    else
+      item.setAttribute("image", "moz-icon:" + attachment.url);
+
+    CheckForAttachmentNotification(null);
+  }
+
+  if (addedAttachments.length) {
+    gContentChanged = true;
+
+    UpdateAttachmentBucket(true);
+    Services.obs.notifyObservers(addedAttachments, "mail:attachmentsAdded",
+                                 null);
+  }
+}
+
+/**
+ * Add a file object as attachment. This is mostly just a helper function to
+ * wrap a file into an nsIMsgAttachment object with it's URL set. Note: this
+ * function is DEPRECATED. Use AddAttachments and FileToAttachment instead.
+ *
+ * @param file the nsIFile object to add as attachment
+ */
+function AddFileAttachment(file)
+{
+  AddAttachments([FileToAttachment(file)]);
+}
+
+/**
+ * Add an attachment object as attachment. The attachment URL must be set. Note:
+ * this function is DEPRECATED. Use AddAttachments instead.
+ *
  * @param attachment the nsIMsgAttachment object to add as attachment
  */
 function AddUrlAttachment(attachment)
 {
-  if (!(attachment && attachment.url) ||
-      DuplicateFileAlreadyAttached(attachment.url))
-    return;
-
-  if (!attachment.name)
-    attachment.name = gMsgCompose.AttachmentPrettyName(attachment.url, null);
-
-  // For security reasons, don't allow *-message:// uris to leak out.
-  // We don't want to reveal the .slt path (for mailbox://), or the username
-  // or hostname.
-  if (/^mailbox-message:|^imap-message:|^news-message:/i.test(attachment.name))
-    attachment.name = getComposeBundle().getString("messageAttachmentSafeName");
-  // Don't allow file or mail/news protocol uris to leak out either.
-  else if (/^file:|^mailbox:|^imap:|^s?news:/i.test(attachment.name))
-    attachment.name = getComposeBundle().getString("partAttachmentSafeName");
-
-  var bucket = document.getElementById("attachmentBucket");
-  var item = bucket.appendItem(attachment);
-  if (attachment.size != -1)
-    gAttachmentsSize += attachment.size;
-
-  try {
-    item.setAttribute("tooltiptext", decodeURI(attachment.url));
-  }
-  catch(e) {
-    item.setAttribute("tooltiptext", attachment.url);
-  }
-  item.addEventListener("command", OpenSelectedAttachment, false);
-
-  // For local file urls, we are better off using the full file url because
-  // moz-icon will actually resolve the file url and get the right icon from
-  // the file url. All other urls, we should try to extract the file name from
-  // them. This fixes issues were an icon wasn't showing up if you dragged a
-  // web url that had a query or reference string after the file name and for
-  // mailnews urls were the filename is hidden in the url as a &filename= part.
-  var url = gIOService.newURI(attachment.url, null, null);
-  if (url instanceof Components.interfaces.nsIURL &&
-      url.fileName && !url.schemeIs("file"))
-    item.setAttribute("image", "moz-icon://" + url.fileName);
-  else
-    item.setAttribute("image", "moz-icon:" + attachment.url);
-
-  UpdateAttachmentBucket(true);
-  gContentChanged = true;
-  CheckForAttachmentNotification(null);
+  AddAttachments([attachment]);
 }
 
 function SelectAllAttachments()
@@ -3018,7 +3054,7 @@ function AttachPage()
         var attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
                                    .createInstance(Components.interfaces.nsIMsgAttachment);
         attachment.url = result.value;
-        AddUrlAttachment(attachment);
+        AddAttachments([attachment]);
       }
    }
 }
@@ -3059,14 +3095,22 @@ function Attachments2CompFields(compFields)
 
 function RemoveAllAttachments()
 {
-  var child;
-  var bucket = document.getElementById("attachmentBucket");
+  let bucket = document.getElementById("attachmentBucket");
+  let removedAttachments = Components.classes["@mozilla.org/array;1"]
+                                     .createInstance(Components.interfaces.nsIMutableArray);
+
   while (bucket.getRowCount())
   {
-    child = bucket.removeItemAt(bucket.getRowCount() - 1);
-    // Let's release the attachment object hold by the node else it won't go away until the window is destroyed
+    let child = bucket.removeItemAt(bucket.getRowCount() - 1);
+
+    removedAttachments.appendElement(child.attachment, false);
+    // Let's release the attachment object hold by the node else it won't go
+    // away until the window is destroyed
     child.attachment = null;
   }
+
+  Services.obs.notifyObservers(removedAttachments, "mail:attachmentsRemoved",
+                               null);
 
   UpdateAttachmentBucket(false);
   CheckForAttachmentNotification(null);
@@ -3100,6 +3144,9 @@ function RemoveSelectedAttachment()
   var child;
   var bucket = document.getElementById("attachmentBucket");
   if (bucket.selectedItems.length > 0) {
+    let removedAttachments = Components.classes["@mozilla.org/array;1"]
+                                       .createInstance(Components.interfaces.nsIMutableArray);
+
     for (let i = bucket.selectedCount - 1; i >= 0; i--)
     {
       child = bucket.removeItemAt(bucket.getIndexOfItem(bucket.getSelectedItem(i)));
@@ -3108,10 +3155,16 @@ function RemoveSelectedAttachment()
         gAttachmentsSize -= child.attachment.size;
         UpdateAttachmentBucket(true);
       }
-      // Let's release the attachment object held by the node else it won't go away until the window is destroyed
+
+      removedAttachments.appendElement(child.attachment, false);
+      // Let's release the attachment object held by the node else it won't go
+      // away until the window is destroyed
       child.attachment = null;
     }
+
     gContentChanged = true;
+    Services.obs.notifyObservers(removedAttachments, "mail:attachmentsRemoved",
+                                 null);
   }
   CheckForAttachmentNotification(null);
 }
@@ -3137,7 +3190,10 @@ function RenameSelectedAttachment()
 
     item.attachment.name = attachmentName.value;
     item.setAttribute("name", attachmentName.value);
+
     gContentChanged = true;
+    Services.obs.notifyObservers(item.attachment, "mail:attachmentRenamed",
+                                 null);
   }
 }
 
@@ -3515,6 +3571,7 @@ var envelopeDragObserver = {
       var errorTitle;
       var attachment;
       var errorMsg;
+      var attachments = [];
 
       for (let i = 0; i < dataListLength; i++)
       {
@@ -3554,41 +3611,34 @@ var envelopeDragObserver = {
               size = parseInt(pieces[2]);
           }
 
-          if (DuplicateFileAlreadyAttached(rawData))
-          {
-            dump("Skipping file "+rawData+"; already attached!\n");
-          }
-          else
-          {
-            var isValid = true;
-            if (item.flavour.contentType == "text/x-moz-url") {
-              // if this is a url (or selected text)
-              // see if it's a valid url by checking
-              // if we can extract a scheme
-              // using the ioservice
-              //
-              // also skip mailto:, since it doesn't make sense
-              // to attach and send mailto urls
-              try {
-                var scheme = gIOService.extractScheme(rawData);
-                // don't attach mailto: urls
-                if (scheme == "mailto")
-                  isValid = false;
-              }
-              catch (ex) {
+          var isValid = true;
+          if (item.flavour.contentType == "text/x-moz-url") {
+            // if this is a url (or selected text)
+            // see if it's a valid url by checking
+            // if we can extract a scheme
+            // using the ioservice
+            //
+            // also skip mailto:, since it doesn't make sense
+            // to attach and send mailto urls
+            try {
+              var scheme = gIOService.extractScheme(rawData);
+              // don't attach mailto: urls
+              if (scheme == "mailto")
                 isValid = false;
-              }
             }
+            catch (ex) {
+              isValid = false;
+            }
+          }
 
-            if (isValid) {
-              attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
-                                     .createInstance(Components.interfaces.nsIMsgAttachment);
-              attachment.url = rawData;
-              attachment.name = prettyName;
-              if (size !== undefined)
-                attachment.size = size;
-              AddUrlAttachment(attachment);
-            }
+          if (isValid) {
+            let attachment = Components.classes["@mozilla.org/messengercompose/attachment;1"]
+                                       .createInstance(Components.interfaces.nsIMsgAttachment);
+            attachment.url = rawData;
+            attachment.name = prettyName;
+            if (size !== undefined)
+              attachment.size = size;
+            attachments.push(attachment);
           }
         }
         else if (item.flavour.contentType == "text/x-moz-address")
@@ -3598,6 +3648,9 @@ var envelopeDragObserver = {
             DropRecipient(aEvent.target, rawData);
         }
       }
+
+      if (attachments.length)
+        AddAttachments(attachments);
     },
 
   onDragOver: function (aEvent, aFlavour, aDragSession)
@@ -4004,4 +4057,3 @@ function getPref(aPrefName, aIsComplex) {
       return null;
   }
 }
-
