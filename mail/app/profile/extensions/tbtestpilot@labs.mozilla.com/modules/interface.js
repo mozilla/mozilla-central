@@ -79,12 +79,6 @@ var TestPilotUIBuilder = {
       .getService(Ci.nsIXULAppInfo).version;
   },
 
-  get _appID() {
-    delete this._appID;
-    return this._appID = Cc["@mozilla.org/xre/app-info;1"]
-      .getService(Ci.nsIXULAppInfo).ID;
-  },
-
   buildTestPilotInterface: function(window) {
     // Don't need Feedback button: remove it
     let feedbackButton = window.document.getElementById("feedback-menu-button");
@@ -114,8 +108,10 @@ var TestPilotUIBuilder = {
      * again  (don't want to put it back in after user explicitly takes it out-
      * bug 577243 )*/
 
+    Cu.import("resource://testpilot/modules/setup.js");
+
     let mainToolbar;
-    if (this._appID == THUNDERBIRD_APP_ID)
+    if (TestPilotSetup._appID == THUNDERBIRD_APP_ID)
       mainToolbar = window.document.getElementById("mail-bar3");
     else
       mainToolbar = window.document.getElementById("nav-bar");
@@ -144,7 +140,7 @@ var TestPilotUIBuilder = {
     this._prefDefaultBranch.setIntPref(POPUP_CHECK_INTERVAL, 600000);
 
     // Change the happy/sad labels if necessary
-    if (this._appID == THUNDERBIRD_APP_ID) {
+    if (TestPilotSetup._appID == THUNDERBIRD_APP_ID) {
       let happy = window.document.getElementById("feedback-menu-happy-button");
       let sad = window.document.getElementById("feedback-menu-sad-button");
       happy.setAttribute("label", happy.getAttribute("thunderbirdLabel"));
@@ -164,7 +160,9 @@ var TestPilotUIBuilder = {
   hasDoorhangerNotifications: function() {
     // Thunderbird doesn't use the add-on bar (it uses the plain old status
     // bar), and so the doorhanger UI doesn't quite work.
-    if (this._appID == THUNDERBIRD_APP_ID)
+    Cu.import("resource://testpilot/modules/setup.js");
+
+    if (TestPilotSetup._appID == THUNDERBIRD_APP_ID)
       return false;
 
     try {
@@ -178,10 +176,12 @@ var TestPilotUIBuilder = {
 
   buildCorrectInterface: function(window) {
     /* Apply no overlay to Fennec: */
-    if (this._appID == FENNEC_APP_ID) {
+    Cu.import("resource://testpilot/modules/setup.js");
+
+    if (TestPilotSetup._appID == FENNEC_APP_ID) {
       return;
     }
-    else if (this._appID == THUNDERBIRD_APP_ID) {
+    else if (TestPilotSetup._appID == THUNDERBIRD_APP_ID) {
       // TODO: do something special here, probably
     }
     else {
@@ -221,9 +221,10 @@ var TestPilotUIBuilder = {
     let ntfnModule = {};
     Cu.import("resource://testpilot/modules/notifications.js", ntfnModule);
     Components.utils.import("resource://gre/modules/Services.jsm");
+    Cu.import("resource://testpilot/modules/setup.js");
 
-    Services.console.logStringMessage("appID is " + this._appID);
-    if (this._appID == FENNEC_APP_ID) {
+    Services.console.logStringMessage("appID is " + TestPilotSetup._appID);
+    if (TestPilotSetup._appID == FENNEC_APP_ID) {
       Services.console.logStringMessage("making Android Notfn Manager..");
       return new ntfnModule.AndroidNotificationManager();
     }

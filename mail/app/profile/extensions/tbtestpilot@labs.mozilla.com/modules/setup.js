@@ -59,6 +59,8 @@ const UPDATE_CHANNEL_PREF = "app.update.channel";
 const LOG_FILE_NAME = "TestPilotErrorLog.log";
 const RANDOM_DEPLOY_PREFIX = "extensions.testpilot.deploymentRandomizer";
 
+const THUNDERBIRD_APP_ID = "{3550f703-e582-4d05-9a08-453d09bdfdc6}";
+
 Cu.import("resource://testpilot/modules/interface.js");
 
 let TestPilotSetup = {
@@ -181,6 +183,12 @@ let TestPilotSetup = {
     return this.__notifier;
   },
 
+  get _appID() {
+    delete this._appID;
+    return this._appID = Components.classes["@mozilla.org/xre/app-info;1"]
+        .getService(Components.interfaces.nsIXULAppInfo).ID;
+  },
+
   globalStartup: function TPS__doGlobalSetup() {
     // Only ever run this stuff ONCE, on the first window restore.
     // Should get called by the Test Pilot component.
@@ -227,7 +235,8 @@ let TestPilotSetup = {
         /* Show first run page (in front window) only the first time after install;
          * Don't show first run page in Feedback UI version. */
         if (!self._prefs.prefHasUserValue(VERSION_PREF) &&
-           (!TestPilotUIBuilder.channelUsesFeedback())) {
+            (!TestPilotUIBuilder.channelUsesFeedback())
+            && self._shouldOpenTabs()) {
             self._prefs.setCharPref(VERSION_PREF, self.version);
             let browser = self._getFrontBrowserWindow().getBrowser();
             let url = self._prefs.getCharPref(FIRST_RUN_PREF);
@@ -635,6 +644,12 @@ let TestPilotSetup = {
       logger.warn("Error in requirements check " +  e);
     }
     return true;
+  },
+
+  _shouldOpenTabs: function TPS__shouldOpenTabs() {
+    // For Thunderbird, we don't want the Test Pilot tab spawning, since
+    // we're bundling Test Pilot in the release.
+    return !(this._appID == THUNDERBIRD_APP_ID);
   },
 
   checkForTasks: function TPS_checkForTasks(callback) {

@@ -44,12 +44,6 @@ var TestPilotWindowUtils;
   const THUNDERBIRD_APP_ID = "{3550f703-e582-4d05-9a08-453d09bdfdc6}";
 
   TestPilotWindowUtils = {
-    get _appID() {
-      delete this._appID;
-      return this._appID = Components.classes["@mozilla.org/xre/app-info;1"]
-        .getService(Components.interfaces.nsIXULAppInfo).ID;
-    },
-
     openAllStudiesWindow: function() {
       // If the window is not already open, open it; but if it is open,
       // focus it instead.
@@ -68,14 +62,16 @@ var TestPilotWindowUtils;
     },
 
     openAllStudies: function() {
-      if (this._appID == FENNEC_APP_ID) { // Fennec only
+      Components.utils.import("resource://testpilot/modules/setup.js");
+      if (TestPilotSetup._appID == FENNEC_APP_ID) { // Fennec only
         // BrowserUI.newTab will focus on the content area of the new tab
         BrowserUI.newTab("chrome://testpilot/content/all-studies.html", Browser.selectedTab);
       }
     },
 
     openInTab: function(url) {
-      if (this._appID == FENNEC_APP_ID) {
+      Components.utils.import("resource://testpilot/modules/setup.js");
+      if (TestPilotSetup._appID == FENNEC_APP_ID) {
         // see if url already open in a tab:
         let browserList = Browser.browsers;
         for (let i = 0; i < browserList.length; i++) {
@@ -88,7 +84,7 @@ var TestPilotWindowUtils;
         // if not, open it:
         Browser.addTab(url, true); // true means bring it to front
       }
-      else if (this._appID == THUNDERBIRD_APP_ID) {
+      else if (TestPilotSetup._appID == THUNDERBIRD_APP_ID) {
         openContentTab(url);
       }
       else {
@@ -126,7 +122,8 @@ var TestPilotWindowUtils;
     },
 
     getCurrentTabUrl: function() {
-      if (this._appID == THUNDERBIRD_APP_ID) {
+      Components.utils.import("resource://testpilot/modules/setup.js");
+      if (TestPilotSetup._appID == THUNDERBIRD_APP_ID) {
         return null; // TODO: not sure what to do here
       }
       else {
