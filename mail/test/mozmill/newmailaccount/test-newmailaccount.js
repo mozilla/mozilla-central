@@ -803,16 +803,24 @@ function test_can_pref_off_account_provisioner() {
   // First, we'll disable the account provisioner.
   Services.prefs.setBoolPref("mail.provider.enabled", false);
 
-  let fileMenuitem = mc.eid("menu_File");
-  let newMenuitem = mc.eid("menu_New");
-  let fileMenuPopup = mc.eid("menu_FilePopup");
+  // We'll use the Mozmill Menu API to grab the main menu...
+  let mailMenuBar = mc.getMenu("#mail-menubar");
+  let newMenuPopup = mc.eid("menu_NewPopup");
   let newMailAccountMenuitem = mc.eid("newMailAccountMenuItem");
+
+  // First, we do some hackery to allow the "New" menupopup to respond to
+  // events...
+  let oldAllowEvents = newMenuPopup.getNode().allowevents;
+  newMenuPopup.getNode().allowevents = true;
+
+  // And then call open on the menu.  This doesn't actually open the menu
+  // on screen, but it simulates the act, and dynamically generated or
+  // modified menuitems react accordingly.  Simulating this helps us sidestep
+  // weird platform issues.
+  mailMenuBar.open();
 
   // Next, we'll ensure that the "Get a new mail account"
   // menuitem is no longer available
-  mc.click(fileMenuitem);
-  mc.click(newMenuitem);
-
   mc.waitFor(function() {
     return mc.eid("newCreateEmailAccountMenuItem").getNode().hidden;
   }, "Timed out waiting for the Account Provisioner menuitem to be hidden");
@@ -823,24 +831,22 @@ function test_can_pref_off_account_provisioner() {
 
   // Ensure that the existing email account wizard opened.
   let wizard = wait_for_new_window("mail:autoconfig");
+
+  // And make sure the Get a New Account button is hidden.
   assert_true(wizard.eid("provisioner_button").getNode().hidden);
 
+  // Alright, close the Wizard.
   plan_for_window_close(wizard);
   close_window(wizard);
   wait_for_window_close();
 
-  // We have to make sure the File menu popup is closed, or else we get weird
-  // behaviour on Linux
-  close_popup(mc, fileMenuPopup);
-
-  // Ok, now pref it back on
+  // Ok, now pref the Account Provisioner back on
   Services.prefs.setBoolPref("mail.provider.enabled", true);
 
-  // Next, we'll ensure that the "Get a new mail account"
-  // menuitem is available
-  mc.click(fileMenuitem);
-  mc.click(newMenuitem);
+  // Re-open the menu to repopulate it.
+  mailMenuBar.open();
 
+  // Make sure that the "Get a new mail account" menuitem is NOT hidden.
   mc.waitFor(function() {
     return !mc.eid("newCreateEmailAccountMenuItem").getNode().hidden;
   }, "Timed out waiting for the Account Provisioner menuitem to appear");
@@ -851,8 +857,16 @@ function test_can_pref_off_account_provisioner() {
 
   // Ensure that the existing email account wizard opened.
   let wizard = wait_for_new_window("mail:autoconfig");
+
+  // Make sure that the button to open the Account Provisioner dialog is
+  // NOT hidden.
   assert_false(wizard.eid("provisioner_button").getNode().hidden);
+
+  // Alright, close up.
   close_window(wizard);
+
+  // And finally restore the menu to the way it was.
+  newMenuPopup.getNode().allowevents = oldAllowEvents;
 }
 
 // We cannot control menus via Mozmill in OSX, so we'll skip this test.
