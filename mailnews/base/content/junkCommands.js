@@ -273,8 +273,9 @@ MessageClassifier.prototype =
           percentDone = Math.round(this.mProcessedMessages * 100 / this.mTotalMessages);
         var percentStr = percentDone + "%";
         window.MsgStatusFeedback.showStatusString(
-            gMessengerBundle.getFormattedString("junkAnalysisPercentComplete",
-                                                [percentStr]));
+            document.getElementById("bundle_messenger")
+            .getFormattedString("junkAnalysisPercentComplete",
+            [percentStr]));
       }
 
       var junkService = Components.classes["@mozilla.org/messenger/filter-plugin;1?name=bayesianfilter"]
@@ -284,7 +285,8 @@ MessageClassifier.prototype =
     else
     {
       window.MsgStatusFeedback.showStatusString(
-          gMessengerBundle.getString("processingJunkMessages"));
+          document.getElementById("bundle_messenger")
+          .getString("processingJunkMessages"));
       performActionsOnJunkMsgs(this.mFolder, this.mJunkMsgHdrs, this.mGoodMsgHdrs);
       window.MsgStatusFeedback.showStatusString("");
     }
