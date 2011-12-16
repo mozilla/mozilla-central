@@ -68,12 +68,22 @@
   <script type="application/javascript" src="chrome://messenger/content/addressbook/abContactsPanel.js"/>
 
   <menupopup id="cardProperties">
-    <menuitem label="&deleteAddrBookCard.label;" oncommand="AbDelete();"/>
-    <menuitem label="&addrBookCardProperties.label;" oncommand="AbEditSelectedCard();"/>
+    <menuitem label="&deleteAddrBookCard.label;"
+              accesskey="&deleteAddrBookCard.accesskey;"
+              oncommand="AbDelete();"/>
+    <menuitem label="&addrBookCardProperties.label;"
+              accesskey="&addrBookCardProperties.accesskey;"
+              oncommand="AbEditSelectedCard();"/>
     <menuseparator/>
-    <menuitem label="&addtoToFieldMenu.label;" oncommand="addSelectedAddresses('addr_to');"/>
-    <menuitem label="&addtoCcFieldMenu.label;" oncommand="addSelectedAddresses('addr_cc');"/>
-    <menuitem label="&addtoBccFieldMenu.label;" oncommand="addSelectedAddresses('addr_bcc');"/>
+    <menuitem label="&addtoToFieldMenu.label;"
+              accesskey="&addtoToFieldMenu.accesskey;"
+              oncommand="addSelectedAddresses('addr_to');"/>
+    <menuitem label="&addtoCcFieldMenu.label;"
+              accesskey="&addtoCcFieldMenu.accesskey;"
+              oncommand="addSelectedAddresses('addr_cc');"/>
+    <menuitem label="&addtoBccFieldMenu.label;"
+              accesskey="&addtoBccFieldMenu.accesskey;"
+              oncommand="addSelectedAddresses('addr_bcc');"/>
   </menupopup>
 
   <vbox id="results_box" flex="1">

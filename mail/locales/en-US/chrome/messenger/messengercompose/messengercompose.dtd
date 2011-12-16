@@ -218,7 +218,7 @@
 <!ENTITY subject.accesskey "S">
 <!-- LOCALIZATION NOTE attachments.accesskey This access key should correspond
      to the strings in attachmentCount in composeMsgs.properties -->
-<!ENTITY attachments.accesskey "c">
+<!ENTITY attachments.accesskey "m">
 
 <!-- Format Toolbar, imported from editorAppShell.xul -->
 <!ENTITY SmileButton.tooltip "Insert a smiley face">

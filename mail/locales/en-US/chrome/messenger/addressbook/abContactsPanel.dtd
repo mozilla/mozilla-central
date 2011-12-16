@@ -5,14 +5,19 @@
 <!ENTITY SearchNameOrEmail.label            "Name or Email">
 
 <!ENTITY deleteAddrBookCard.label           "Delete">
+<!ENTITY deleteAddrBookCard.accesskey       "D">
 <!ENTITY addrBookCardProperties.label       "Properties">
+<!ENTITY addrBookCardProperties.accesskey   "P">
 <!ENTITY addtoToFieldMenu.label             "Add to To field">
+<!ENTITY addtoToFieldMenu.accesskey         "A">
 <!ENTITY addtoCcFieldMenu.label             "Add to Cc field">
+<!ENTITY addtoCcFieldMenu.accesskey         "C">
 <!ENTITY addtoBccFieldMenu.label            "Add to Bcc field">
+<!ENTITY addtoBccFieldMenu.accesskey        "B">
 
 <!ENTITY toButton.label                     "Add to To:">
 <!ENTITY toButton.accesskey                 "A">
 <!ENTITY ccButton.label                     "Add to Cc:">
-<!ENTITY ccButton.accesskey                 "d">
+<!ENTITY ccButton.accesskey                 "C">
 <!ENTITY bccButton.label                    "Add to Bcc:">
 <!ENTITY bccButton.accesskey                "B">
