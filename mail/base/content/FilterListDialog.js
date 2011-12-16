@@ -589,7 +589,7 @@ function onFilterListKeyPress(event)
   {
     let list = document.getElementById("filterList");
     for each (var item in list.selectedItems)
-      toggleFilter(item, list.getIndexOfItem(item));
+      toggleFilter(item._filter, list.getIndexOfItem(item));
   }
   else switch (event.keyCode)
   {
