@@ -41,7 +41,7 @@
 #include "mimeleaf.h"
 
 /* The MimeInlineImage class implements those MIME image types which can be
-   displayed inline (currently image/gif, image/jpeg, and image/xbm.)
+   displayed inline.
  */
 
 typedef struct MimeInlineImageClass MimeInlineImageClass;
