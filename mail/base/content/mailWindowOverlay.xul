@@ -875,8 +875,8 @@
               accesskey="&folderContextOpenNewTab.accesskey;"
               oncommand="FolderPaneContextMenuNewTab(event);"/>
     <menuitem id="folderPaneContext-searchMessages"
-              label="&folderContextSearchMessages.label;"
-              accesskey="&folderContextSearchMessages.accesskey;"
+              label="&folderContextSearchForMessages.label;"
+              accesskey="&folderContextSearchForMessages.accesskey;"
               oncommand="gFolderTreeController.searchMessages();"/>
     <menuitem id="folderPaneContext-subscribe"
               label="&folderContextSubscribe.label;"
