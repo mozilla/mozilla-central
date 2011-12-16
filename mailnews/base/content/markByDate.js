@@ -119,27 +119,46 @@ function markInDatabase( lower, upper )
 
   // the headers which are going to be marked
   var headers = Components.classes["@mozilla.org/array;1"].createInstance( Components.interfaces.nsIMutableArray );
+  var searchSession = Components.classes["@mozilla.org/messenger/searchSession;1"].createInstance( Components.interfaces.nsIMsgSearchSession );
+  var searchTerms = Components.classes["@mozilla.org/array;1"].createInstance( Components.interfaces.nsIMutableArray );
+  searchSession.addScopeTerm( Components.interfaces.nsMsgSearchScope.offlineMail, messageFolder );
 
-  // create an enumerator for all messages in the database
-  var enumerator = messageDatabase.EnumerateMessages();
-  if ( enumerator )
+  const nsMsgSearchAttrib = Components.interfaces.nsMsgSearchAttrib;
+  const nsMsgSearchOp = Components.interfaces.nsMsgSearchOp;
+
+  var searchTerm = searchSession.createTerm();
+  searchTerm.attrib = nsMsgSearchAttrib.Date;
+  searchTerm.op = nsMsgSearchOp.IsBefore;
+  var value = searchTerm.value;
+  value.attrib = nsMsgSearchAttrib.Date;
+  value.date = upper;
+  searchTerm.value = value;
+  searchTerms.appendElement( searchTerm, false );
+
+  if ( lower )
   {
-    while ( enumerator.hasMoreElements() )
-    {
-      var header = enumerator.getNext();
-      if ( header instanceof Components.interfaces.nsIMsgDBHdr )
-      {
-        if ( !header.isRead ) // don't do anything until really necessary
-        {
-           var messageDate = header.date;
+    searchTerm = searchSession.createTerm();
+    searchTerm.booleanAnd = true;
+    searchTerm.attrib = nsMsgSearchAttrib.Date;
+    searchTerm.op = nsMsgSearchOp.IsAfter;
+    value = searchTerm.value;
+    value.attrib = nsMsgSearchAttrib.Date;
+    value.date = lower;
+    searchTerm.value = value;
+    searchTerms.appendElement( searchTerm, false );
+  }
 
-           if ( ( lower <= messageDate ) && ( messageDate < upper ) )
-             headers.appendElement( header, false );
-        }
-      }
-      else
-        dump("markByDate::markInDatabase: unexpected: the database gave us a header which is no nsIMsgDBHdr!\n" );
+  var filterEnumerator = messageDatabase.getFilterEnumerator( searchTerms );
+  
+  if ( filterEnumerator )
+  {
+    var keepGoing;
+    var numMatches = {};
+    do
+    {
+      keepGoing = messageDatabase.nextMatchingHdrs(filterEnumerator, 0, 0, headers, numMatches);
     }
+    while ( keepGoing );
   }
 
   if ( headers.length )
