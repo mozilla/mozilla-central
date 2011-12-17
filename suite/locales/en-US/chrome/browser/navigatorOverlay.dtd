@@ -84,7 +84,7 @@
 
 <!-- Tools Menu -->
 <!ENTITY searchInternetCmd.label "Search the Web">
-<!ENTITY searchInternetCmd.accesskey "S">
+<!ENTITY searchInternetCmd.accesskey "b">
 <!ENTITY searchInternet.commandKey "s">
 <!ENTITY translateMenu.label "Translate Page">
 <!ENTITY translateMenu.accesskey "T">

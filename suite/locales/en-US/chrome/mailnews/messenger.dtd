@@ -407,7 +407,7 @@
 <!ENTITY searchMailCmd.accesskey "M">
 <!ENTITY searchMailCmd.key "s">
 <!ENTITY searchAddressesCmd.label "Search Addresses…">
-<!ENTITY searchAddressesCmd.accesskey "S">
+<!ENTITY searchAddressesCmd.accesskey "c">
 <!ENTITY filtersCmd.label "Message Filters…">
 <!ENTITY filtersCmd.accesskey "F">
 <!ENTITY filtersApply.label "Run Filters on Folder">
