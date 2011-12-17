@@ -51,12 +51,6 @@ include $(OBJDIR)/config/autoconf.mk
 
 DIST = $(OBJDIR)/mozilla/dist
 
-ifdef MOZ_DEBUG
-DBGTAG = Debug
-else
-DBGTAG =
-endif
-
 ifdef LIBXUL_SDK # {
 APP_CONTENTS = Contents/Frameworks/XUL.framework
 else # } {
@@ -64,7 +58,7 @@ APP_CONTENTS = Contents/MacOS
 endif # } LIBXUL_SDK
 
 MOZ_PKG_APPNAME = $(MOZ_APP_NAME)
-APPNAME = $(MOZ_APP_DISPLAYNAME)$(DBGTAG).app
+APPNAME = $(MOZ_MACBUNDLE_NAME)
 INSTALLER_DIR = $(MOZ_BUILD_APP)/installer
 BUILDCONFIG_BASE = $(APP_CONTENTS)/chrome
 

@@ -297,28 +297,28 @@ ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 AB := $(firstword $(subst -, ,$(AB_CD)))
 
 ifdef MOZ_DEBUG
-APP_NAME = $(MOZ_APP_DISPLAYNAME)Debug
+MAC_APP_NAME = $(MOZ_APP_DISPLAYNAME)Debug
 else
-APP_NAME = $(MOZ_APP_DISPLAYNAME)
+MAC_APP_NAME = $(MOZ_APP_DISPLAYNAME)
 endif
 
 libs:: $(PROGRAM)
-	mkdir -p $(DIST)/$(APP_NAME).app/Contents/MacOS
-	rsync -a --exclude CVS --exclude "*.in" $(srcdir)/macbuild/Contents $(DIST)/$(APP_NAME).app --exclude English.lproj
-	mkdir -p $(DIST)/$(APP_NAME).app/Contents/Resources/$(AB).lproj
-	rsync -a --exclude CVS --exclude "*.in" $(srcdir)/macbuild/Contents/Resources/English.lproj/ $(DIST)/$(APP_NAME).app/Contents/Resources/$(AB).lproj
-	sed -e "s/\@MOZ_APP_NAME\@/$(MOZ_APP_NAME)/" -e "s/\@MOZ_APP_DISPLAYNAME\@/$(MOZ_APP_DISPLAYNAME)/" -e "s/\@MOZ_APP_VERSION\@/$(MOZ_APP_VERSION)/" $(srcdir)/macbuild/Contents/Info.plist.in > $(DIST)/$(APP_NAME).app/Contents/Info.plist
-	sed -e "s/\@MOZ_APP_NAME\@/$(MOZ_APP_NAME)/" -e "s/\@MOZ_APP_DISPLAYNAME\@/$(MOZ_APP_DISPLAYNAME)/" -e "s/\@MOZ_APP_VERSION\@/$(MOZ_APP_VERSION)/" $(srcdir)/macbuild/Contents/Resources/English.lproj/InfoPlist.strings.in | iconv -f UTF-8 -t UTF-16 > $(DIST)/$(APP_NAME).app/Contents/Resources/$(AB).lproj/InfoPlist.strings
-	rsync -a $(DIST)/bin/ $(DIST)/$(APP_NAME).app/Contents/MacOS
-	rm -f $(DIST)/$(APP_NAME).app/Contents/MacOS/$(PROGRAM)
-	rsync -aL $(PROGRAM) $(DIST)/$(APP_NAME).app/Contents/MacOS
-	cp -RL $(DIST)/branding/icons/*.icns $(DIST)/$(APP_NAME).app/Contents/Resources/
-	printf APPLMOZZ > $(DIST)/$(APP_NAME).app/Contents/PkgInfo
+	mkdir -p $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/MacOS
+	rsync -a --exclude CVS --exclude "*.in" $(srcdir)/macbuild/Contents $(DIST)/$(MOZ_MACBUNDLE_NAME) --exclude English.lproj
+	mkdir -p $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/Resources/$(AB).lproj
+	rsync -a --exclude CVS --exclude "*.in" $(srcdir)/macbuild/Contents/Resources/English.lproj/ $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/Resources/$(AB).lproj
+	sed -e "s/\@MAC_APP_NAME\@/$(MAC_APP_NAME)/" -e "s/\@MOZ_APP_DISPLAYNAME\@/$(MOZ_APP_DISPLAYNAME)/" -e "s/\@MOZ_APP_VERSION\@/$(MOZ_APP_VERSION)/" $(srcdir)/macbuild/Contents/Info.plist.in > $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/Info.plist
+	sed -e "s/\@MAC_APP_NAME\@/$(MAC_APP_NAME)/" -e "s/\@MOZ_APP_DISPLAYNAME\@/$(MOZ_APP_DISPLAYNAME)/" -e "s/\@MOZ_APP_VERSION\@/$(MOZ_APP_VERSION)/" $(srcdir)/macbuild/Contents/Resources/English.lproj/InfoPlist.strings.in | iconv -f UTF-8 -t UTF-16 > $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/Resources/$(AB).lproj/InfoPlist.strings
+	rsync -a $(DIST)/bin/ $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/MacOS
+	rm -f $(DIST)/$(MAC_APP_NAME)/Contents/MacOS/$(PROGRAM)
+	rsync -aL $(PROGRAM) $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/MacOS
+	cp -RL $(DIST)/branding/icons/*.icns $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/Resources/
+	printf APPLMOZZ > $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/PkgInfo
 #       remove CVS dirs from packaged app
-	find $(DIST)/$(APP_NAME).app -type d -name "CVS" -prune -exec rm -rf {} \;
+	find $(DIST)/$(MOZ_MACBUNDLE_NAME) -type d -name "CVS" -prune -exec rm -rf {} \;
 
 clean clobber::
-	rm -rf $(DIST)/$(APP_NAME).app
+	rm -rf $(DIST)/$(MOZ_MACBUNDLE_NAME)
 endif
 
 # Anything below the above ifdef won't be included in mac builds. So be very

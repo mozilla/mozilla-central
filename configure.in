@@ -6905,6 +6905,26 @@ AC_SUBST(MOZ_POST_DSO_LIB_COMMAND)
 AC_SUBST(MOZ_POST_PROGRAM_COMMAND)
 AC_SUBST(MOZ_TIMELINE)
 
+dnl ========================================================
+dnl = Mac bundle name prefix
+dnl ========================================================
+MOZ_ARG_WITH_STRING(macbundlename-prefix,
+[  --with-macbundlename-prefix=prefix
+                          Prefix for MOZ_MACBUNDLE_NAME],
+[ MOZ_MACBUNDLE_NAME_PREFIX="$withval"])
+
+MOZ_MACBUNDLE_NAME=`echo $MOZ_APP_DISPLAYNAME | tr -d ' '`
+if test "$MOZ_MACBUNDLE_NAME_PREFIX"; then
+  MOZ_MACBUNDLE_NAME="${MOZ_MACBUNDLE_NAME_PREFIX}${MOZ_MACBUNDLE_NAME}"
+fi
+
+if test "$MOZ_DEBUG"; then
+  MOZ_MACBUNDLE_NAME=${MOZ_MACBUNDLE_NAME}Debug.app
+else
+  MOZ_MACBUNDLE_NAME=${MOZ_MACBUNDLE_NAME}.app
+fi
+AC_SUBST(MOZ_MACBUNDLE_NAME)
+
 AC_SUBST(MOZ_APP_NAME)
 AC_SUBST(MOZ_APP_DISPLAYNAME)
 AC_SUBST(MOZ_APP_VERSION)

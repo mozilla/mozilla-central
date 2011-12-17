@@ -7,7 +7,7 @@
 	<key>CFBundleExecutable</key>
 	<string>@MOZ_APP_NAME@-bin</string>
 	<key>CFBundleIdentifier</key>
-	<string>org.mozilla.@MOZ_APP_NAME@</string>
+	<string>org.mozilla.@MAC_APP_NAME@</string>
 	<key>CFBundleVersion</key>
 	<string>@MOZ_APP_VERSION@</string>
 	<key>CFBundleDevelopmentRegion</key>
@@ -23,7 +23,7 @@
 	<key>CFBundleShortVersionString</key>
 	<string>@MOZ_APP_VERSION@</string>
 	<key>CFBundleGetInfoString</key>
-	<string>@MOZ_APP_DISPLAYNAME@ @MOZ_APP_VERSION@</string>
+	<string>@MAC_APP_NAME@ @MOZ_APP_VERSION@</string>
 	<key>NSAppleScriptEnabled</key>
 	<true/>
 	<key>CGDisableCoalescedUpdates</key>

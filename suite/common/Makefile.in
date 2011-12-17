@@ -60,5 +60,6 @@ CHROME_DEPS += $(abs_srcdir)/app-license.html
 # chrome://global/content/license.html (about:license)
 DEFINES += -DAPP_EULA_BLOCK=$(abs_srcdir)/app-license.html \
            -DMOZ_APP_VERSION=$(MOZ_APP_VERSION) \
+           -DMOZ_MACBUNDLE_NAME=$(MOZ_MACBUNDLE_NAME) \
            $(NULL)
 
