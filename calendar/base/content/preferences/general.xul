@@ -70,6 +70,9 @@
             <preference id="calendar.alarms.defaultsnoozelength"
                         name="calendar.alarms.defaultsnoozelength"
                         type="int"/>
+            <preference id="calendar.view.useSystemColors"
+                        name="calendar.view.useSystemColors"
+                        type="bool"/>
         </preferences>
 
         <groupbox>
@@ -118,5 +121,18 @@
             </hbox>
 
         </groupbox>
+
+#ifndef XP_MACOSX
+        <groupbox>
+            <caption label="&pref.accessibility.label;"/>
+            <hbox align="center">
+                <checkbox id="systemColors" pack="end"
+                          label="&pref.systemcolors.label;"
+                          accesskey="&pref.systemcolors.accesskey;"
+                          preference="calendar.view.useSystemColors"/>
+            </hbox>
+        </groupbox>
+#endif
+
     </vbox>
 </overlay>

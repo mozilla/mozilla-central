@@ -68,6 +68,9 @@ function commonInitCalendar() {
     // Set up the category colors
     categoryManagement.initCategories();
 
+    // Set up window pref observers
+    calendarWindowPrefs.init();
+
     // Check if the system colors should be used
     if (cal.getPrefSafe("calendar.view.useSystemColors", false)) {
         document.documentElement.setAttribute("systemcolors", "true");
@@ -92,6 +95,9 @@ function commonFinishCalendar() {
 
     // Clean up the category colors
     categoryManagement.cleanupCategories();
+
+    // Clean up window pref observers
+    calendarWindowPrefs.cleanup();
 }
 
 /**
@@ -104,4 +110,38 @@ function onCalendarViewResize(aEvent) {
     let event = document.createEvent('Events');
     event.initEvent(currentView().type + "viewresized", true, false);
     document.getElementById("calendarviewBroadcaster").dispatchEvent(event);
+}
+
+/**
+ * Handler for observing preferences that are relevant for each window separately.
+ */
+var calendarWindowPrefs = {
+
+    /** nsISupports QueryInterface */
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.nsIObserver]),
+
+    /** Initialize the preference observers */
+    init: function() {
+        Services.prefs.addObserver("calendar.view.useSystemColors", this, false);
+    },
+
+    /**  Cleanup the preference observers */
+    cleanup: function() {
+        Services.prefs.removeObserver("calendar.view.useSystemColors", this);
+    },
+
+    /**
+     * Observer function called when a pref has changed
+     *
+     * @see nsIObserver
+     */
+    observe: function (aSubject, aTopic, aData) {
+        if (aTopic == "nsPref:changed") {
+            switch (aData) {
+                case "calendar.view.useSystemColors":
+                    setElementValue(document.documentElement, cal.getPrefSafe(aData, false) && "true", "systemcolors");
+                    break;
+            }
+        }
+    }
 }
