@@ -397,6 +397,10 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetPreviousSibling(nsIDOMNode * *aPrevio
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetPreviousElementSibling(nsIDOMElement **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
 
 // readonly attribute nsIDOMNode nextSibling
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetNextSibling(nsIDOMNode * *aNextSibling)
@@ -404,6 +408,11 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::GetNextSibling(nsIDOMNode * *aNextSiblin
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+// readonly attribute nsIDOMNode nextSibling
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetNextElementSibling(nsIDOMElement * *aNextSibling)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
 
 // readonly attribute nsIDOMNamedNodeMap attributes
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetAttributes(nsIDOMNamedNodeMap * *aAttributes)
@@ -1130,6 +1139,111 @@ NS_IMETHODIMP nsEudoraHTMLImageElement::SetUserData(const nsAString & key, nsIVa
 }
 
 NS_IMETHODIMP nsEudoraHTMLImageElement::GetUserData(const nsAString & key, nsIVariant **_retval NS_OUTPARAM)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetClientTop(PRInt32 *aClientTop)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetClassList(nsIDOMDOMTokenList **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetScrollTop(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetScrollTop(PRInt32 aScrollTop)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetScrollWidth(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetScrollHeight(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetScrollLeft(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetScrollLeft(PRInt32 aScollLeft)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetClientWidth(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetClientLeft(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetElementsByClassName(const nsAString &aClasses, nsIDOMNodeList **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetChildElements(nsIDOMNodeList **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetChildElementCount(PRUint32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::ReleaseCapture()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::SetCapture(bool aRetargetToElement)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetClientRects(nsIDOMClientRectList **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetClientHeight(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetFirstElementChild(nsIDOMElement **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetLastElementChild(nsIDOMElement **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::GetBoundingClientRect(nsIDOMClientRect **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsEudoraHTMLImageElement::MozMatchesSelector(const nsAString &aSelector, bool *aResult)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }

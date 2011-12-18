@@ -131,8 +131,19 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::GetPreviousSibling(nsIDOMNode * *aPrevi
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetPreviousElementSibling(nsIDOMElement **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
 // readonly attribute nsIDOMNode nextSibling
 NS_IMETHODIMP nsOutlookHTMLImageElement::GetNextSibling(nsIDOMNode * *aNextSibling)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+// readonly attribute nsIDOMNode nextSibling
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetNextElementSibling(nsIDOMElement * *aNextSibling)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
@@ -828,3 +839,107 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::GetUserData(const nsAString & key, nsIV
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetClientTop(PRInt32 *aClientTop)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetClassList(nsIDOMDOMTokenList **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetScrollTop(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetScrollTop(PRInt32 aScrollTop)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetScrollWidth(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetScrollHeight(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetScrollLeft(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetScrollLeft(PRInt32 aScollLeft)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetClientWidth(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetClientLeft(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetElementsByClassName(const nsAString &aClasses, nsIDOMNodeList **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetChildElements(nsIDOMNodeList **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetChildElementCount(PRUint32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::ReleaseCapture()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::SetCapture(bool aRetargetToElement)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetClientRects(nsIDOMClientRectList **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetClientHeight(PRInt32 *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetFirstElementChild(nsIDOMElement **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetLastElementChild(nsIDOMElement **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::GetBoundingClientRect(nsIDOMClientRect **aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP nsOutlookHTMLImageElement::MozMatchesSelector(const nsAString &aSelector, bool *aResult)
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
