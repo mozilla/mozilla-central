@@ -117,18 +117,15 @@ minimonth {
 .minimonth-day {
   color: #2E4E73;
   text-align: center;
-  border-top: 1px solid #FFFFFF;
-  border-bottom: 1px solid #F0F0F0;
-  border-left: 1px solid transparent;
-  border-right: 1px solid transparent;
-  background-color: #F0F0F0;
+  border: 1px solid #FFFFFF;
+  background-color: #FFFFFF;
   min-height: 16px;
 }
 
 .minimonth-day[othermonth="true"] {
   color: #b2b2b2;
-  background-color: #FFFFFF;
-  border: 1px solid #FFFFFF;
+  background-color: #F0F0F0;
+  border: 1px solid #F0F0F0;
 }
 
 .minimonth-day[today="true"] {

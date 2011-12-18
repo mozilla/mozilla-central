@@ -67,6 +67,11 @@ function commonInitCalendar() {
 
     // Set up the category colors
     categoryManagement.initCategories();
+
+    // Check if the system colors should be used
+    if (cal.getPrefSafe("calendar.view.useSystemColors", false)) {
+        document.documentElement.setAttribute("systemcolors", "true");
+    }
 }
 
 /**

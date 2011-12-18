@@ -23,6 +23,7 @@
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Christian Jansen <christian.jansen@sun.com>
  *   Berend Cornelius <berend.cornelius@sun.com>
+ *   Richard Marti <richard.marti@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -44,9 +45,18 @@ minimonth {
   padding: 4px;
 }
 
+window[systemcolors] minimonth {
+  background-color: -moz-field;
+}
+
 .minimonth-month-box {
   background-color: #F5F5F6;
   border: 1px dotted #C0C0C0;
+}
+
+window[systemcolors] .minimonth-month-box {
+  background-color: -moz-Dialog;
+  border-color: ThreeDShadow;
 }
 
 .minimonth-month-name {
@@ -117,23 +127,37 @@ minimonth {
 .minimonth-day {
   color: #2E4E73;
   text-align: center;
-  border-top: 1px solid #FFFFFF;
-  border-bottom: 1px solid #F0F0F0;
-  border-left: 1px solid transparent;
-  border-right: 1px solid transparent;
-  background-color: #F0F0F0;
+  border: 1px solid #FFFFFF;
+  background-color: #FFFFFF;
   min-height: 16px;
+}
+
+window[systemcolors] .minimonth-day {
+  color: WindowText;
+  border: 1px solid Window;
+  background-color: -moz-field;
 }
 
 .minimonth-day[othermonth="true"] {
   color: #b2b2b2;
-  background-color: #FFFFFF;
-  border: 1px solid #FFFFFF;
+  background-color: #F0F0F0;
+  border: 1px solid #F0F0F0;
+}
+
+window[systemcolors] .minimonth-day[othermonth="true"] {
+  color: GrayText;
+  background-color: ButtonFace;
+  border: 1px solid transparent;
 }
 
 .minimonth-day[today="true"] {
   background-color: #dfeaf4;
   border: 1px solid #67ACD8;
+}
+
+window[systemcolors] .minimonth-day[today="true"] {
+  background-color: -moz-field;
+  border: 1px solid Highlight;
 }
 
 .minimonth-day[selected="true"] {
@@ -147,6 +171,13 @@ minimonth {
   border: 1px solid #67ACD8;
  }
 
+window[systemcolors] .minimonth-day[selected="true"],
+window[systemcolors] .minimonth-day[selected="true"][today="true"] {
+  background-color: Highlight;
+  color: HighlightText;
+  border: 1px solid ButtonFace;
+}
+
 .minimonth-day[busy] {
   font-weight: bold;
 }
@@ -159,6 +190,14 @@ minimonth {
 .minimonth-day:active[interactive] {
   background-color: Highlight;
   color: HighlightText;
+}
+
+window[systemcolors] .minimonth-day:hover[interactive],
+window[systemcolors] .minimonth-day:active[interactive] {
+  cursor: pointer;
+  color: HighlightText;
+  background-color: Highlight;
+  background-clip: padding-box;
 }
 
 .minimonth-list {
