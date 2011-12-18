@@ -803,7 +803,7 @@ tab[calview] > .tab-middle {
 .view-header {
     font-weight: normal;
     font-size: 14px;
-    color: #2E4E73;
+    color: ButtonText;
     padding-top: 5px;
     margin-top: 3px;
 }
@@ -848,7 +848,7 @@ tab[calview] > .tab-middle {
     -moz-margin-start: 2px;
     -moz-margin-end: 2px;
     margin-bottom: 0px;
-    color: #2E4E73;
+    color: ButtonText;
     font-size: 14px;
 }
 

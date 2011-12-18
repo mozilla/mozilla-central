@@ -28,6 +28,7 @@
  *   Berend Cornelius <berend.cornelius@sun.com>
  *   Christian Jansen <christian.jansen@sun.com>
  *   Gianfranco Balza <bv1578@gmail.com>
+ *   Richard Marti <mozilla@paenglab.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -98,12 +99,24 @@ calendar-event-column {
     background-color: #FFFFFF;
 }
 
+window[systemcolors] calendar-event-column {
+    background-color: -moz-Field;
+}
+
 calendar-event-column[orient="horizontal"] {
     border-top: 1px solid #D2D2D2;
 }
 
+window[systemcolors] calendar-event-column[orient="horizontal"] {
+    border-top: 1px solid ThreeDShadow;
+}
+
 calendar-event-column[orient="vertical"] {
     border-left: 1px solid #D2D2D2;
+}
+
+window[systemcolors] calendar-event-column[orient="vertical"] {
+    border-left: 1px solid ThreeDShadow;
 }
 
 calendar-event-column[orient="horizontal"][relation="today"] {
@@ -113,6 +126,11 @@ calendar-event-column[orient="horizontal"][relation="today"] {
     position: relative;
 }
 
+window[systemcolors] calendar-event-column[orient="horizontal"][relation="today"] {
+    border-top: 1px solid Highlight;
+    border-bottom: 1px solid Highlight;
+}
+
 calendar-event-column[orient="vertical"][relation="today"] {
     border-left: 1px solid #67ACD8;
     border-right: 1px solid #67ACD8;
@@ -120,9 +138,19 @@ calendar-event-column[orient="vertical"][relation="today"] {
     position: relative;
 }
 
+window[systemcolors] calendar-event-column[orient="vertical"][relation="today"] {
+    border-left: 1px solid Highlight;
+    border-right: 1px solid Highlight;
+}
+
 calendar-header-container {
     background-color: #FFFFFF;
     border-left: 1px solid #D2D2D2;
+}
+
+window[systemcolors] calendar-header-container {
+    background-color: -moz-Field;
+    border-left: 1px solid ThreeDShadow;
 }
 
 calendar-header-container[rotated] {
@@ -148,11 +176,28 @@ calendar-day-label[orient][relation="today"] {
     background-color: #E1F0FD;
 }
 
+window[systemcolors] calendar-header-container[relation="today"],
+window[systemcolors] .calendar-event-column-linebox[relation="today"],
+window[systemcolors] calendar-day-label[orient][relation="today"] {
+    background-color: -moz-Field;
+}
+
+window[systemcolors] calendar-header-container[weekend="true"],
+window[systemcolors] .calendar-event-column-linebox[weekend="true"],
+window[systemcolors] .calendar-event-column-linebox[off-time="true"] {
+    background-color: rgba(0, 0, 0, .1);
+}
+
 calendar-header-container[relation="today"] {
     border-left: 1px solid #7FB9EE;
     border-right: 1px solid #7FB9EE;
     -moz-margin-end: -1px;
     position: relative;
+}
+
+window[systemcolors] calendar-header-container[relation="today"] {
+    border-left: 1px solid Highlight;
+    border-right: 1px solid Highlight;
 }
 
 calendar-header-container[relation="today"][rotated="true"] {
@@ -161,6 +206,12 @@ calendar-header-container[relation="today"][rotated="true"] {
     border-right: 1px solid #D2D2D2;
     margin-top: -1px;
     position: relative;
+}
+
+window[systemcolors] calendar-header-container[relation="today"][rotated="true"] {
+    border-top: 1px solid Highlight;
+    border-bottom: 1px solid Highlight !important;
+    border-right: 1px solid ThreeDShadow;
 }
 
 calendar-header-container[selected="true"],
@@ -177,9 +228,24 @@ calendar-header-container[weekend="true"][relation="today"],
     background-color: #D7E8F8;
 }
 
+window[systemcolors] calendar-header-container[selected="true"],
+window[systemcolors] .calendar-event-column-linebox[selected="true"],
+window[systemcolors] calendar-header-container[weekend="true"][relation="today"],
+window[systemcolors] .calendar-event-column-linebox[weekend="true"][relation="today"],
+window[systemcolors] .calendar-event-column-linebox[off-time="true"][relation="today"],
+window[systemcolors] calendar-header-container[weekend="true"][selected="true"],
+window[systemcolors] .calendar-event-column-linebox[weekend="true"][selected="true"],
+window[systemcolors] .calendar-event-column-linebox[off-time="true"][selected="true"] {
+    background-color: ButtonFace;
+}
+
 .multiday-view-header-day-box[orient="vertical"] .calendar-event-column-header {
     border-bottom: 1px solid #D2D2D2;
     min-width: 100px;
+}
+
+window[systemcolors] .multiday-view-header-day-box[orient="vertical"] .calendar-event-column-header {
+    border-bottom: 1px solid ThreeDShadow;
 }
 
 calendar-header-container[weekend="true"][selected="true"],
@@ -195,16 +261,32 @@ calendar-header-container[weekend="true"][selected="true"],
     border-right: 1px solid #D2D2D2;
 }
 
+window[systemcolors] .calendar-event-column-linebox[orient="horizontal"] {
+    border-right: 1px solid ThreeDShadow;
+}
+
 .calendar-event-column-linebox[orient="vertical"] {
     border-bottom: 1px solid #D2D2D2;
+}
+
+window[systemcolors] .calendar-event-column-linebox[orient="vertical"] {
+    border-bottom: 1px solid ThreeDShadow;
 }
 
 .calendar-event-column-linebox[orient="horizontal"][relation="today"]:last-child {
     border-right: 1px solid #67ACD8;
 }
 
+window[systemcolors] .calendar-event-column-linebox[orient="horizontal"][relation="today"]:last-child {
+    border-right: 1px solid Highlight;
+}
+
 .calendar-event-column-linebox[orient="vertical"][relation="today"]:last-child {
     border-bottom: 1px solid #67ACD8;
+}
+
+window[systemcolors] .calendar-event-column-linebox[orient="vertical"][relation="today"]:last-child {
+    border-bottom: 1px solid Highlight;
 }
 
 /* Make sure we extend the bold line separating scrollable and non-scrollable
@@ -215,14 +297,30 @@ calendar-header-container[weekend="true"][selected="true"],
     -moz-border-right-colors: #FFFFFF #D2D2D2;
 }
 
+window[systemcolors] .multiday-view-header-time-spacer[orient="horizontal"] {
+    border-bottom: 2px solid ThreeDShadow;
+    border-right: 2px solid ThreeDShadow;
+    -moz-border-right-colors: -moz-Field ThreeDShadow;
+}
+
 .multiday-view-header-time-spacer[orient="vertical"] {
     border-right: 2px solid #D2D2D2;
     -moz-border-right-colors: #D2D2D2 #D2D2D2;
 }
 
+window[systemcolors] .multiday-view-header-time-spacer[orient="vertical"] {
+    border-right: 2px solid ThreeDShadow;
+    -moz-border-right-colors: -moz-Field ThreeDShadow;
+}
+
 .multiday-view-label-box[orient="horizontal"] > .multiday-view-label-time-spacer {
     border-right: 2px solid #D2D2D2;
     -moz-border-right-colors: #FFFFFF #D2D2D2;
+}
+
+window[systemcolors] .multiday-view-label-box[orient="horizontal"] > .multiday-view-label-time-spacer {
+    border-right: 2px solid ThreeDShadow;
+    -moz-border-right-colors: -moz-Field ThreeDShadow;
 }
 
 .multiday-view-header-day-box[orient="horizontal"] {
@@ -233,8 +331,17 @@ calendar-header-container[weekend="true"][selected="true"],
     max-height: 120px;
 }
 
+window[systemcolors] .multiday-view-header-day-box[orient="horizontal"] {
+    border-right: 1px solid ThreeDShadow;
+    border-bottom: 2px solid ThreeDShadow;
+}
+
 .multiday-view-header-day-box[orient="horizontal"][todaylastinview="true"] {
     border-right: 1px solid #67ACD8;
+}
+
+window[systemcolors] .multiday-view-header-day-box[orient="horizontal"][todaylastinview="true"] {
+    border-right: 1px solid Highlight;
 }
 
 /* Make sure the box for day-labels appears to end before the scrollbar. */
@@ -243,8 +350,17 @@ calendar-header-container[weekend="true"][selected="true"],
     border-right: 1px solid #D2D2D2;
 }
 
+window[systemcolors] .multiday-view-label-day-box[orient="horizontal"] {
+    border-top: 1px solid ThreeDShadow;
+    border-right: 1px solid ThreeDShadow;
+}
+
 .multiday-view-label-day-box[orient="vertical"] {
     border-top: 1px solid #D2D2D2;
+}
+
+window[systemcolors] .multiday-view-header-day-box[orient="vertical"] {
+    border-top: 1px solid ThreeDShadow;
 }
 
 .multiday-view-header-day-box[orient="vertical"] {
@@ -252,10 +368,20 @@ calendar-header-container[weekend="true"][selected="true"],
     border-right: 2px solid #D2D2D2;
 }
 
+window[systemcolors] .multiday-view-header-day-box[orient="vertical"] {
+    border-top: 1px solid ThreeDShadow;
+    border-right: 2px solid ThreeDShadow;
+}
+
 /* Make sure to have a border between the edge of the views and the scrollbar. */
 .multiday-view-day-box {
     border-right: 1px solid #D2D2D2;
     border-bottom: 1px solid #D2D2D2;
+}
+
+window[systemcolors] .multiday-view-day-box {
+    border-right: 1px solid ThreeDShadow;
+    border-bottom: 1px solid ThreeDShadow;
 }
 
 .fgdragbox {
@@ -268,6 +394,11 @@ calendar-header-container[weekend="true"][selected="true"],
     background-image: -moz-linear-gradient(top, #fe4b22, #feb822);
     border: 5px #ffffff;
     opacity: 0.5;
+}
+
+window[systemcolors] .fgdragbox[dragging="true"] {
+    background-image: -moz-linear-gradient(top, Highlight, Highlight);
+    border: 5px -moz-Field;
 }
 
 .fgdragcontainer {
@@ -288,6 +419,10 @@ calendar-header-container[weekend="true"][selected="true"],
     font-weight: bold;
     text-align: center;
     overflow: hidden;
+}
+
+window[systemcolors] .fgdragbox-label {
+	color: GrayText;
 }
 
 .calendar-event-box-container {
@@ -385,6 +520,12 @@ calendar-time-bar[orient="horizontal"] {
     overflow: hidden;
 }
 
+window[systemcolors] .calendar-time-bar-box-odd,
+window[systemcolors] .calendar-time-bar-box-even {
+    color: GrayText;
+    background-color: -moz-Field;
+}
+
 .calendar-time-bar-box-odd[off-time="true"] ,
 .calendar-time-bar-box-even[off-time="true"] {
     background-color: #F0F0F0;
@@ -392,11 +533,23 @@ calendar-time-bar[orient="horizontal"] {
     -moz-border-right-colors:  #FFFFFF #D2D2D2;
 }
 
+window[systemcolors] .calendar-time-bar-box-odd[off-time="true"] ,
+window[systemcolors] .calendar-time-bar-box-even[off-time="true"] {
+    background-color: rgba(0, 0, 0, .1);
+    border-right: 2px solid ThreeDShadow;
+    -moz-border-right-colors: -moz-Field ThreeDShadow;
+}
+
 .calendar-time-bar-box-odd[orient="horizontal"],
 .calendar-time-bar-box-even[orient="horizontal"] {
     border-right: 1px solid #D2D2D2;
     border-top: 1px solid #D2D2D2;
+}
 
+window[systemcolors] .calendar-time-bar-box-odd[orient="horizontal"],
+window[systemcolors] .calendar-time-bar-box-even[orient="horizontal"] {
+    border-right: 1px solid ThreeDShadow;
+    border-top: 1px solid ThreeDShadow;
 }
 
 .calendar-time-bar-box-odd[orient="vertical"],
@@ -406,11 +559,21 @@ calendar-time-bar[orient="horizontal"] {
     -moz-border-right-colors:  #FFFFFF #D2D2D2;
 }
 
+window[systemcolors] .calendar-time-bar-box-odd[orient="vertical"],
+window[systemcolors] .calendar-time-bar-box-even[orient="vertical"] {
+    border-right: 2px solid ThreeDShadow;
+    -moz-border-right-colors: -moz-Field ThreeDShadow;
+}
+
 /** End time bar **/
 
 calendar-multiday-view {
     background-color: #FFFFFF;
     padding: 0px;
+}
+
+window[systemcolors] calendar-multiday-view {
+    background-color: -moz-Field;
 }
 
 calendar-multiday-view[hidden="true"] {
@@ -425,18 +588,36 @@ calendar-day-label {
     border-bottom: 1px solid #D2D2D2;
 }
 
+window[systemcolors] calendar-day-label {
+    color: WindowText;
+    background-color: -moz-Field;
+    background-image: -moz-linear-gradient(transparent, transparent 48%, rgba(0, 0, 0, 0.02) 52%, rgba(0, 0, 0, 0.1));
+    border-left: 1px solid ThreeDShadow;
+    border-bottom: 1px solid ThreeDShadow;
+}
+
 calendar-day-label[selected="true"] {
     background-color: #FFFABC !important;
 }
 
+window[systemcolors] calendar-day-label[selected="true"] {
+    color: HighlightText;
+    background-color: Highlight !important;
+}
+
 calendar-day-label[orient="vertical"] {
-    background-image: none;
+    background-image: none !important;
     min-width: 100px;
 }
 
 calendar-day-label[orient="vertical"][relation="today"],
 calendar-day-label[orient="vertical"][relation="today1day"] {
-    background-color: #D2E3F3 !important;
+    background-color: #D2E3F3;
+}
+
+window[systemcolors] calendar-day-label[orient="vertical"][relation="today"],
+window[systemcolors] calendar-day-label[orient="vertical"][relation="today1day"] {
+    background-color: ButtonFace;
 }
 
 calendar-day-label[relation="today"],
@@ -445,6 +626,12 @@ calendar-day-label[relation="today1day"] {
     -moz-margin-end: -1px;
     margin-top: -1px;
     position: relative;
+}
+
+window[systemcolors] calendar-day-label[relation="today"],
+window[systemcolors] calendar-day-label[relation="today1day"] {
+    background-color: ButtonFace;
+    border: 1px solid Highlight;
 }
 
 .calendar-day-label-name {
@@ -473,10 +660,19 @@ calendar-multiweek-view {
     border-right: 1px solid #D2D2D2;
 }
 
+window[systemcolors] .calendar-month-view-grid-row {
+    border-right: 1px solid ThreeDShadow;
+}
+
 calendar-month-day-box {
     border:none !important;
     border-left: 1px solid #D2D2D2 !important;
     border-bottom: 1px solid #D2D2D2 !important;
+}
+
+window[systemcolors] calendar-month-day-box {
+    border-left: 1px solid ThreeDShadow !important;
+    border-bottom: 1px solid ThreeDShadow !important;
 }
 
 .calendar-month-day-box-items-box {
@@ -487,28 +683,67 @@ calendar-month-day-box {
 .calendar-month-day-box-current-month {
     background-color: #FFFFFF;
 }
+
+window[systemcolors] .calendar-month-day-box-current-month {
+    background-color: -moz-Field;
+}
+
 .calendar-month-day-box-current-month .calendar-month-day-box-date-label {
     background-color: #F7F7F7;
 }
+
+window[systemcolors] .calendar-month-day-box-current-month .calendar-month-day-box-date-label {
+    background-color: -moz-Field;
+}
+
 .calendar-month-day-box-day-off {
     background-color: #F7FFE3;
 }
+
+window[systemcolors] .calendar-month-day-box-day-off {
+    background-color: rgba(0, 0, 0, .1);
+}
+
 .calendar-month-day-box-day-off .calendar-month-day-box-date-label {
     background-color: #EAF7CA;
 }
+
+window[systemcolors] .calendar-month-day-box-day-off .calendar-month-day-box-date-label {
+    background-color: rgba(0, 0, 0, .1);
+}
+
 .calendar-month-day-box-other-month {
     background-color: #F3F3F3;
 }
+
+window[systemcolors] .calendar-month-day-box-other-month {
+    background-color: ButtonFace;
+}
+
 .calendar-month-day-box-other-month .calendar-month-day-box-date-label {
     background-color: #E8E8E8;
+}
+
+window[systemcolors] .calendar-month-day-box-other-month .calendar-month-day-box-date-label {
+    color: GrayText;
+    background-color: ButtonFace;
 }
 
 .calendar-month-day-box-other-month.calendar-month-day-box-day-off {
     background-color: #E8E8E8;
 }
 
+window[systemcolors] .calendar-month-day-box-other-month.calendar-month-day-box-day-off {
+    background-color: ButtonFace;
+}
+
 .calendar-month-day-box-other-month.calendar-month-day-box-day-off .calendar-month-day-box-date-label {
     background-color: #DDDDDD;
+}
+
+window[systemcolors] .calendar-month-day-box-other-month.calendar-month-day-box-day-off .calendar-month-day-box-date-label {
+    color: GrayText;
+    background-color: ButtonFace;
 }
 
 .calendar-month-day-box-current-month[relation="today"],
@@ -521,9 +756,20 @@ calendar-month-day-box {
     position: relative;
 }
 
+window[systemcolors] .calendar-month-day-box-current-month[relation="today"],
+window[systemcolors] .calendar-month-day-box-day-off[relation="today"],
+window[systemcolors] .calendar-month-day-box-other-month[relation="today"] {
+    background-color: -moz-Field;
+    border: 1px solid Highlight !important;
+}
+
 .calendar-month-day-box-date-label[relation="today"] {
     background-color: #D2E3F3;
     font-weight: bold;
+}
+
+window[systemcolors] .calendar-month-day-box-date-label[relation="today"] {
+    color: Highlight;
 }
 
 .calendar-month-day-box-current-month[selected="true"],
@@ -532,12 +778,34 @@ calendar-month-day-box {
     background-color: #FFFCD8;
 }
 
+window[systemcolors] .calendar-month-day-box-current-month[selected="true"] {
+    background-color: -moz-Field;
+}
+
+window[systemcolors] .calendar-month-day-box-day-off[selected="true"] {
+    background-color: rgba(0, 0, 0, .1);
+}
+
+window[systemcolors] .calendar-month-day-box-other-month[selected="true"] {
+    background-color: ThreeDLightShadow;
+}
+
 .calendar-month-day-box-date-label[selected="true"] {
     background-color: #F2EDB2;
 }
 
+window[systemcolors] .calendar-month-day-box-date-label[selected="true"] {
+    color: HighlightText;
+    background-color: Highlight;
+}
+
 .calendar-month-day-box-date-label[relation="today"][selected="true"] {
     background-color: #D2E3F3;
+}
+
+window[systemcolors] .calendar-month-day-box-date-label[relation="today"][selected="true"] {
+    color: HighlightText;
+    background-color: Highlight;
 }
 
 .calendar-month-day-box-date-label {
@@ -548,6 +816,11 @@ calendar-month-day-box {
     padding-top: 1px;
     -moz-padding-end: 2px;
     padding-bottom: 1px;
+}
+
+window[systemcolors] .calendar-month-day-box-date-label {
+    color: WindowText;
+    background-image: -moz-linear-gradient(rgba(0, 0, 0, .05), rgba(0, 0, 0, .05));
 }
 
 calendar-month-day-box-item {
@@ -575,12 +848,21 @@ calendar-month-day-box-item {
     border-top: 1px solid #D2D2D2;
 }
 
+window[systemcolors] .labeldaybox-container {
+    border-right: 1px solid ThreeDShadow;
+    border-top: 1px solid ThreeDShadow;
+}
+
 .dropshadow {
     height: 1.2em;
     margin: 1px;
     padding: 0px 1px;
     background-color: #FFA47D;
     -moz-box-shadow: 1px 1px 3px rgba(68, 35, 0, 0.7) inset;
+}
+
+window[systemcolors] .dropshadow {
+    background-color: Highlight !important;
 }
 
 calendar-event-gripbar {
@@ -746,16 +1028,16 @@ agenda-richlist-item[status="CANCELLED"] .agenda-container-box {
 }
 
 #view-deck {
-    background-color: white;
+    background-color: -moz-Field;
     border: solid ThreeDShadow;
     border-width: 0 0 0 1px;
 }
 
 tab[calview] {
     -moz-appearance: none;
-    background-color: #CCCCCC;
-    color: #2E4E73;
-    border: 1px solid #BDBDBD;
+    background-color: rgba(0, 0, 0, .1);
+    color: ButtonText;
+    border: 1px solid ThreeDShadow;
     border-top-left-radius: 4px;
     border-top-right-radius: 4px;  
     border-bottom-left-radius: 0px;
@@ -767,13 +1049,13 @@ tab[calview] {
 
 tab[calview][selected="true"],
 tab[calview][selected="true"]:hover {
-    background-color: #FFFFFF;
+    background-color: -moz-Field;
     margin-bottom: 0px;
     border-bottom: none;
 }
 
 tab[calview]:hover {
-    background-color: #F6F6F6;    
+    background-color: ButtonHighlight;    
 }
 
 tab[calview] > .tab-middle {
@@ -783,7 +1065,7 @@ tab[calview] > .tab-middle {
 .view-header {
     font-weight: normal;
     font-size: 14px;
-    color: #2E4E73;
+    color: ButtonText;
 }
 
 .view-header[type="end"] {
@@ -799,19 +1081,19 @@ tab[calview] > .tab-middle {
 .navigation-inner-box {
     -moz-padding-start: 6px;
     -moz-padding-end: 6px;
-    border-bottom: 1px solid #D2D2D2;
+    border-bottom: 1px solid ThreeDShadow;
     padding-bottom: 1px;
 }
 
 .navigation-bottombox {
     min-height: 4px;
     max-height: 4px;
-    background-color: white;
+    background-color: -moz-Field;
 }
 
 .navigation-spacer-box {
     min-width: 4px;
-    border-bottom: 1px solid #D2D2D2;
+    border-bottom: 1px solid ThreeDShadow;
 }
 
 .view-navigation-button {
@@ -828,7 +1110,7 @@ tab[calview] > .tab-middle {
     -moz-margin-start: 2px;
     -moz-margin-end: 2px;
     padding-top: 0px !important; /* a workaround to center the label vertically on Windows */
-    color: #2E4E73;
+    color: ButtonText;
     font-size: 14px;
 }
 
