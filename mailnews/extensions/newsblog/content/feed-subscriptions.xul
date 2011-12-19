@@ -50,7 +50,7 @@
 #else
         style="width: 30em; height: 25em;"
 #endif
-        persist="width height"
+        persist="width height screenX screenY sizemode"
         onload="gFeedSubscriptionsWindow.init();"
         onunload="return gFeedSubscriptionsWindow.uninit();"
         windowtype="Mail:News-BlogSubscriptions"
