@@ -40,14 +40,12 @@
 @import "chrome://global/skin/";
 
 #main-window {
-  border: none !important;
-  -moz-appearance: none !important;
   width: 600px !important;
   height: 530px !important;
 }
 
 windowdragbox {
-  height: 36px;
+  min-height: 20px;
   -moz-appearance: -moz-mac-unified-toolbar;
   -moz-box-align: center;
 }
@@ -60,11 +58,19 @@ windowdragbox {
 
 #tabs {
   padding: 1px;
-  margin: 5px 0 9px;
-  -moz-appearance: none;
-  background-color: rgba(0, 0, 0, 0.55);
-  border-radius: 3px;
-  box-shadow: 0 1px rgba(255, 255, 255, 0.4);
+  margin: 3px 0 8px;
+}
+
+tab {
+  -moz-appearance: toolbarbutton;
+  -moz-box-orient: vertical;
+  text-shadow: 0 1px rgba(255, 255, 255, 0.4);
+  margin: 0;
+}
+
+tab[selected=true] {
+  color: #FFFFFF;
+  text-shadow: 0 1px rgba(0, 0, 0, 0.4);
 }
 
 .tab-middle {
@@ -77,62 +83,6 @@ windowdragbox {
 
 #mainDeck {
   -moz-appearance: none;
-}
-
-tab {
-  -moz-appearance: none;
-  -moz-box-orient: vertical;
-  font: menu;
-  text-shadow: 0 1px rgba(255, 255, 255, 0.4);
-  margin: 0;
-  padding: 0 4px;
-  border: none;
-  border-left: 1px solid rgba(0, 0, 0, 0.8);
-  background: -moz-linear-gradient(top, #FFF, #ADADAD) repeat-x;
-}
-
-tab:active:hover {
-  background: #B5B5B5;
-  box-shadow: inset rgba(0, 0, 0, 0.3) 0 -6px 10px, inset #000 0 1px 3px, inset rgba(0, 0, 0, 0.2) 0 1px 3px;
-}
-
-tab[selected=true] {
-  color: #FFF !important;
-  text-shadow:  0 1px rgba(0, 0, 0, 0.4);
-  background: #606060;
-  box-shadow: inset #2A2A2A 0 3px 3.5px;
-}
-
-tab[selected=true]:active:hover {
-  background-color: #4E4E4E;
-  box-shadow: inset #1c1c1c 0 3px 3.5px;
-}
-
-#tabs:-moz-window-inactive {
-  background-color: rgba(0, 0, 0, 0.25);
-}
-
-tab:-moz-window-inactive {
-  border-color: rgba(0, 0, 0, 0.4);
-  background-image: -moz-linear-gradient(top, #FFF, #CCC);
-}
-
-tab[selected=true]:-moz-window-inactive {
-  background: #8E8E8E;
-  box-shadow: inset rgba(0, 0, 0, 0.5) 0 3px 3.5px;
-}
-
-#tabs:-moz-locale-dir(ltr) > :first-child,
-#tabs:-moz-locale-dir(rtl) > :last-child {
-  border-top-left-radius: 2px;
-  border-bottom-left-radius: 2px;
-   border-left: none !important;
-}
-
-#tabs:-moz-locale-dir(ltr) > :last-child,
-#tabs:-moz-locale-dir(rtl) > :first-child {
-  border-top-right-radius: 2px;
-  border-bottom-right-radius: 2px;
 }
 
 /* Misc */
