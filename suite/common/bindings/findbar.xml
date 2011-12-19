@@ -111,7 +111,7 @@
         <parameter name="aEvent"/>
         <body><![CDATA[
           if (!this._useTypeAheadFindFindbar || aEvent.ctrlKey ||
-              aEvent.altKey || aEvent.metaKey || aEvent.getPreventDefault())
+              aEvent.altKey || aEvent.metaKey || aEvent.defaultPrevented)
             return false;
 
           var win = document.commandDispatcher.focusedWindow;

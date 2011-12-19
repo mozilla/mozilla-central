@@ -171,7 +171,7 @@ typeAheadFind.prototype = {
       return this.processKey(aEvent);
 
     // Check whether we want to start a new find.
-    if (aEvent.getPreventDefault())
+    if (aEvent.defaultPrevented)
       return true;
 
     // We don't want to start a find on a control character.

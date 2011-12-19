@@ -97,7 +97,7 @@
   // should always return true for click to go through
   function contentAreaClick(event) 
   {
-    if (!event.isTrusted || event.getPreventDefault()) {
+    if (!event.isTrusted || event.defaultPrevented) {
       return true;
     }
 
