@@ -1609,7 +1609,10 @@ calDavCalendar.prototype = {
             if (supportedComponentsXml.C::comp.length() > 0) {
                 thisCalendar.mSupportedItemTypes.length = 0;
                 for each (let sc in supportedComponentsXml.C::comp) {
-                    let comp = sc.@name.toString();
+                    // accept name attribute from all namespaces to workaround Cosmo bug
+                    // see bug 605378 comment 6
+                    let comp = sc.@*::name.toString();
+
                     if (thisCalendar.mGenerallySupportedItemTypes.indexOf(comp) >= 0) {
                         cal.LOG("Adding supported item: " + comp + " for calendar: " + thisCalendar.name);
                         thisCalendar.mSupportedItemTypes.push(comp);
