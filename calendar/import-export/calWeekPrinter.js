@@ -274,7 +274,7 @@ calWeekPrinter.prototype = {
             }
 
             let style = 'font-size: 11px; background-color: ' + calColor + ';';
-            style += ' color: ' + cal.getContrastingTextColor(calColor);
+            style += ' color: ' + cal.getContrastingTextColor(calColor) + ';';
             if (catColor) {
                 style += ' border: solid ' + catColor + ' 2px;';
             }
