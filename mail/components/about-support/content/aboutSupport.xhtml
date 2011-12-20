@@ -141,14 +141,10 @@
             <td>
               <div id="profile-dir-button-box" class="data-public">
                 <button onclick="openProfileDirectory()">
-#ifdef XP_WIN
-                  &aboutSupport.showWin.label;
-#else
 #ifdef XP_MACOSX
                   &aboutSupport.showMac.label;
 #else
-                  &aboutSupport.showDir.label;
-#endif
+                  &aboutSupport.show.label;
 #endif
                 </button>
               </div>
