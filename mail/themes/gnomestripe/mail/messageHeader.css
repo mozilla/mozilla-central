@@ -300,15 +300,6 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
   list-style-image: url("chrome://messenger/skin/icons/button-delete.svg");
 }
 
-.inline-toolbar toolbarpaletteitem toolbarseparator,
-.inline-toolbar toolbarseparator {
-  height: 26px;
-}
-
-.inline-toolbar toolbarspacer {
-  height: 20px;
-}
-
 window[inlinetoolbox] #wrapper-spring {
   display: none;
 }

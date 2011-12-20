@@ -41,6 +41,10 @@
 
 <?xml-stylesheet href="chrome://messenger/skin/mailWindow1.css" type="text/css"?>
 <?xml-stylesheet href="chrome://gloda/content/glodacomplete.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/content/tabmail.css" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/tabmail.css" type="text/css"?>
+
+
 
 
 <?xul-overlay href="chrome://communicator/content/utilityOverlay.xul"?>
@@ -62,6 +66,8 @@
 %customizeToolbarDTD;
 <!ENTITY % textcontextDTD SYSTEM "chrome://global/locale/textcontext.dtd">
 %textcontextDTD;
+<!ENTITY % tabMailDTD SYSTEM "chrome://messenger/locale/tabmail.dtd" >
+%tabMailDTD;
 ]>
 
 <!--
@@ -243,31 +249,102 @@
 
 <menupopup id="messageIdContext"/>
 
+<!-- We want to be able to do the following:
+
+     1)  Open the tabContextMenu by right-clicking on individual tab selectors
+     2)  Open the mail-toolbox customize context menu when right-clicking on
+         the empty space of the tab selector.
+
+     In order to do that, we make the tabContextMenu available in the main
+     document, and refer to it via the context attributes of each newly spawned
+     tab selector.  We also make the context attribute of the tab strip default
+     to the mail-toolbox customization popup.
+
+     So, when right-clicking on a tab, the tabContextMenu opens up, and stops
+     the click event from propagating - but when the strip is right-clicked
+     outside of any tabs, the mail-toolbox context menu opens, as desired.
+-->
+
+<menupopup id="tabContextMenu"
+               onpopupshowing="return document.getElementById('tabmail').onTabContextMenuShowing(document.popupNode);">
+  <menuitem label="&moveToNewWindow.label;"
+                accesskey="&moveToNewWindow.accesskey;"
+                anonid="openTabInWindow"
+                oncommand="document.getElementById('tabmail').replaceTabWithWindow(document.popupNode);"/>
+  <menuseparator />
+  <menuitem label="&closeOtherTabsCmd2.label;"
+                accesskey="&closeOtherTabsCmd2.accesskey;"
+                anonid="closeOtherTabs"
+                oncommand="document.getElementById('tabmail').closeOtherTabs(document.popupNode);"/>
+  <menuseparator />
+  <menu label="&recentlyClosedTabsCmd.label;"
+            accesskey="&recentlyClosedTabsCmd.accesskey;"
+            anonid="recentlyClosedTabs" >
+    <menupopup onpopupshowing="return InitRecentlyClosedTabsPopup(this);" />
+  </menu>
+  <menuitem label="&closeTabCmd2.label;"
+                accesskey="&closeTabCmd2.accesskey;"
+                anonid="closeTab"
+                oncommand="document.getElementById('tabmail').closeTab(document.popupNode);"/>
+</menupopup>
+
+<tooltip id="tabmail-tabs-tooltip" onpopupshowing="document.getElementById('tabmail').createTooltip(event);"/>
 <tooltip id="folderpopup" class="folderSummaryPopup"/>
 
 <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
+<tooltip id="tabmail-tabs-tooltip" onpopupshowing="document.getElementById('tabmail').createTooltip(event);"/>
 
-  <toolbox id="mail-toolbox" class="toolbox-top">
+  <!-- navigation-toolbox is augmented by mailWindowOverlay.xul -->
+  <toolbox id="navigation-toolbox" class="toolbox-top" labelalign="end" defaultlabelalign="end">
+
+    <toolbar id="tabs-toolbar" class="toolbar-primary">
+
+      <tabs flex="1"
+            id="tabcontainer"
+            align="end"
+            setfocus="false"
+            onclick="document.getElementById('tabmail').onTabClick(event);"
+            class="tabmail-tabs"
+            tooltip="tabmail-tabs-tooltip"
+            alltabsbutton="alltabs-button"
+            collapsetoolbar="tabs-toolbar"
+            tabtoolbar="tabbar-toolbar">
+            <tab selected="true" validate="never" type="folder"
+                 maxwidth="250" width="0" minwidth="100" flex="100"
+                 class="tabmail-tab" crop="end"/>
+      </tabs>
+
+      <!-- Use of this element for extensions is deprecated! Current
+           extensions should add to #mail-toolbox and add a toolbar item to
+           #tabbar-toolbar below. -->
+      <hbox id="tabmail-buttons"/>
+
+      <toolbar id="tabbar-toolbar" toolboxid="mail-toolbox"
+               context="toolbar-context-menu"
+               customizable="true"
+               mode="icons" defaultmode="icons" lockmode="true"
+               iconsize="small" defaulticonsize="small" lockiconsize="true"
+               defaultset="qfb-show-filter-bar"/>
+
+      <toolbarbutton class="tabs-alltabs-button"
+                     id="alltabs-button"
+                     type="menu"
+                     tooltiptext="&listAllTabs.label;">
+        <menupopup class="tabs-alltabs-popup"
+                   id="alltabs-popup" position="after_end"
+                   tabcontainer="tabcontainer"/>
+      </toolbarbutton>
+    </toolbar>
+
   </toolbox>
+
   <!-- XXX This extension point (tabmail-container) is only temporary!
        Horizontal space shouldn't be wasted if it isn't absolutely critical.
        A mechanism for adding sidebar panes will be added in bug 476154. -->
   <hbox id="tabmail-container" flex="1">
-    <tabmail id="tabmail" flex="1" panelcontainer="tabpanelcontainer">
-      <hbox>
-        <!-- Use of this element for extensions is deprecated! Current
-             extensions should add to #mail-toolbox and add a toolbar item to
-             #tabbar-toolbar below. -->
-        <hbox id="tabmail-buttons"/>
-
-        <toolbar id="tabbar-toolbar" toolboxid="mail-toolbox"
-                 context="toolbar-context-menu"
-                 customizable="true"
-                 mode="icons" defaultmode="icons" lockmode="true"
-                 iconsize="small" defaulticonsize="small" lockiconsize="true"
-                 defaultset="qfb-show-filter-bar"/>
-      </hbox>
+    <tabmail id="tabmail" flex="1" panelcontainer="tabpanelcontainer" tabcontainer="tabcontainer">
       <tabpanels id="tabpanelcontainer" flex="1" class="plain" selectedIndex="0">
+
         <!-- mailContent is the container used for the "wide" layout. Normally,
              all it contains is the "messengerBox" box.  However, in "wide" mode
              the message pane and its splitter transplant themselves into the box
@@ -275,6 +352,9 @@
              the folder pane next to the thread view, with the message pane/reader
              beneath both of them. -->
         <box id="mailContent" orient="vertical" flex="1">
+          <!-- mail-toolbox is provided by mailWindowOverlay.xul -->
+          <toolbox id="mail-toolbox" />
+
           <box id="messengerBox" orient="horizontal" flex="1" minheight="100" height="100" persist="height">
             <vbox id="folderPaneBox" minwidth="125" width="200" persist="width">
               <label id="folderColumnLabel" hidden="true" value="&folderColumn.label;"/>

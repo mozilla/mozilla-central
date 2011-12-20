@@ -38,6 +38,14 @@
  * Tabmail Tabs
  */
 
+#tabs-toolbar {
+  padding: 0;
+}
+
+#tabpanelcontainer:-moz-lwtheme {
+  color: inherit;
+}
+
 .tabmail-tabs:not(:-moz-lwtheme) {
   -moz-appearance: menubar;
 }
@@ -56,6 +64,7 @@
 
 tabpanels {
   -moz-appearance: none;
+  background-color: transparent;
 }
 
 /**
@@ -87,12 +96,12 @@ tabpanels {
                     hsla(0, 0%, 100%, .2) 2px, hsla(0, 0%, 75%, .2) 50%);
 }
  
- .tabmail-tab[selected="true"] {
+.tabmail-tab[selected="true"] {
   color: -moz-DialogText;
   font-weight: bold;
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, .8),
-                    rgba(255, 255, 255, .5) 2px, rgba(255, 255, 255, .3) 20%,
-                    rgba(255, 255, 255, 0) 80%),
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.8) 1px,
+                    rgba(255, 255, 255, 0.5) 3px,
+                    rgba(255, 255, 255, 0.3) 32%),
                     -moz-linear-gradient(-moz-dialog, -moz-dialog);
 }
 
@@ -150,10 +159,6 @@ tabpanels {
   list-style-image: url(moz-icon://stock/gtk-find?size=menu);
 }
 
-.tabs-bottom {
-  border-bottom: 1px solid threedshadow;
-}
-
 .tabmail-tab > .tab-image-middle > .tab-text {
   /* tabmail-tab focus ring */
   border: 1px dotted transparent;
@@ -167,7 +172,7 @@ tabpanels {
 /* Tab drag and drop */
 .tab-drop-indicator {
   list-style-image: url(chrome://messenger/skin/icons/tabDragIndicator.png);
-  margin-top: -11px;
+  margin-bottom: -11px;
 }
 
 /* In-tab close button */
@@ -256,4 +261,32 @@ tabpanels {
 
 .alltabs-item > .menu-iconic-left {
   visibility: visible !important;
+}
+
+/* Content Tabs */
+
+.contentTabToolbox {
+  -moz-appearance: none;
+  height: 0px;
+  border: 0;
+}
+
+.contentTabInstance[disablechrome] .contentTabToolbox {
+  display: none;
+}
+
+.contentTabToolbox:not(:-moz-lwtheme) {
+  border-bottom: 1px solid rgb(105, 105, 105);
+}
+
+.contentTabToolbox:-moz-lwtheme {
+  height: 1px;
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5) 50%);
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.contentTabToolbar {
+  height: 0px;
+  min-height: 0px;
+  padding: 0;
 }

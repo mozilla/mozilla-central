@@ -294,53 +294,7 @@
       <stylesheet src="chrome://messenger/skin/tabmail.css"/>
     </resources>
     <content>
-      <xul:tabbox anonid="tabbox" flex="1" eventnode="document" xbl:inherits="handleCtrlPageUpDown"
-                  onselect="if (!('updateCurrentTab' in this.parentNode) || event.target.localName != 'tabs')
-                            return; this.parentNode.updateCurrentTab();">
-        <xul:hbox class="tabmail-strip" collapsed="false" tooltip="_child" context="_child"
-                  anonid="strip">
-          <xul:tooltip onpopupshowing="return CreateToolbarTooltip(document, event);"/>
-          <xul:menupopup anonid="tabContextMenu"
-                onpopupshowing="
-                  var tabmail = document.getElementById('tabmail');
-                  return tabmail.onTabContextMenuShowing(document.popupNode);">
-            
-            <xul:menuitem label="&moveToNewWindow.label;" 
-                          accesskey="&moveToNewWindow.accesskey;"
-                          anonid="openTabInWindow"
-                          oncommand="document.getElementById('tabmail').replaceTabWithWindow(document.popupNode);"/>
-                                     
-            <xul:menuseparator />
-            
-            <xul:menuitem label="&closeOtherTabsCmd2.label;" 
-                          accesskey="&closeOtherTabsCmd2.accesskey;"
-                          anonid="closeOtherTabs"
-                          oncommand="document.getElementById('tabmail').closeOtherTabs(document.popupNode);"/>
-                                                 
-            <xul:menuseparator />
-            
-            <xul:menu label="&recentlyClosedTabsCmd.label;"
-                      accesskey="&recentlyClosedTabsCmd.accesskey;"
-                      anonid="recentlyClosedTabs" >
-              <xul:menupopup onpopupshowing="return InitRecentlyClosedTabsPopup(this);" />
-            </xul:menu>
-                                                                         
-            <xul:menuitem label="&closeTabCmd2.label;" 
-                          accesskey="&closeTabCmd2.accesskey;"
-                          anonid="closeTab"
-                          oncommand="document.getElementById('tabmail').closeTab(document.popupNode);"/>
-                                                                          
-          </xul:menupopup>
-          <xul:tabs class="tabmail-tabs" flex="1"
-                    anonid="tabcontainer"
-                    setfocus="false"
-                    onclick="this.parentNode.parentNode.parentNode.onTabClick(event);">
-            <xul:tab selected="true" validate="never" type="folder"
-                     maxwidth="250" width="0" minwidth="100" flex="100"
-                     class="tabmail-tab" crop="end"/>
-            <children/>
-          </xul:tabs>
-        </xul:hbox>
+      <xul:tabbox anonid="tabbox" class="tabmail-tabbox" flex="1" eventnode="document" xbl:inherits="handleCtrlPageUpDown">
         <!-- Remember, user of this binding, you need to provide tabpanels!  -->
         <children includes="tabpanels"/>
       </xul:tabbox>
@@ -375,11 +329,8 @@
       <field name="tabInfo" readonly="true">
         new Array()
       </field>
-      <field name="tabStrip" readonly="true">
-        document.getAnonymousElementByAttribute(this, "anonid", "strip");
-      </field>
       <field name="tabContainer" readonly="true">
-        document.getAnonymousElementByAttribute(this, "anonid", "tabcontainer");
+        document.getElementById(this.getAttribute("tabcontainer"));
       </field>
       <field name="panelContainer" readonly="true">
         document.getElementById(this.getAttribute("panelcontainer"));
@@ -389,7 +340,23 @@
       </field>
       <field name="recentlyClosedTabs" readonly="true">
         new Array();
-      </field>      
+      </field>
+      <method name="createTooltip">
+        <parameter name="event"/>
+        <body><![CDATA[
+          event.stopPropagation();
+          var tab = document.tooltipNode;
+          if (tab.localName != "tab" || this.tabContainer.draggedTab) {
+            event.preventDefault();
+            return;
+          }
+          event.target.setAttribute("label", tab.mOverCloseButton ?
+                                             tab.getAttribute("closetabtext") :
+                                             tab.getAttribute("label"));
+
+          ]]>
+        </body>
+      </method>
       <method name="registerTabType">
         <parameter name="aTabType"/>
         <body><![CDATA[
@@ -405,7 +372,6 @@
             if (modeDetails.isDefault)
               this.defaultTabMode = modeDetails;
           }
-          
           aTabType.panel = document.getElementById(aTabType.panelId);
         ]]></body>
       </method>
@@ -447,7 +413,7 @@
             tabNode = this.tabContainer.childNodes[iTab];
             tab = this.tabInfo[iTab];
           }
-          else if (aTabIndexNodeOrInfo.tagName == "tab") {
+          else if (aTabIndexNodeOrInfo.tagName && aTabIndexNodeOrInfo.tagName == "tab") {
             tabNode = aTabIndexNodeOrInfo;
             iTab = this.tabContainer.getIndexOfItem(tabNode);
             tab = this.tabInfo[iTab];
@@ -527,7 +493,8 @@
             // we need to save the state before it gets corrupted
             this.saveCurrentTabState();
 
-          let tab = {mode: tabMode, busy: false, canClose: true, _ext: {}};
+          let tab = {mode: tabMode, busy: false, canClose: true,
+                     thinking: false, _ext: {}};
           tabMode.tabs.push(tab);
 
           var t = document.createElementNS(
@@ -542,8 +509,8 @@
           t.setAttribute("validate", "never");
           t.className = "tabmail-tab";
           this.tabContainer.appendChild(t);
-          if (this.tabContainer.collapsed) {
-            this.tabContainer.collapsed = false;
+          if (this.tabContainer.mCollapseToolbar.collapsed) {
+            this.tabContainer.mCollapseToolbar.collapsed = false;
             this.tabContainer.adjustTabstrip();
           }
 
@@ -764,7 +731,7 @@
             }
             if (this.tabContainer.childNodes.length == 1 &&
                 this.tabContainer.mAutoHide)
-              this.tabContainer.collapsed = true;
+              this.tabContainer.mCollapseToolbar.collapsed = true;
           ]]>
         </body>
       </method>
@@ -846,7 +813,7 @@
           if (!tab)
             return -1;
                      
-          // remove the entries form tabInfo, tabMode and tabStrip
+          // remove the entries form tabInfo, tabMode and the tabContainer
           this.tabInfo.splice(oldIdx, 1);
           tab.mode.tabs.splice(tab.mode.tabs.indexOf(tab), 1);
           this.tabContainer.removeChild(aTab);
@@ -856,7 +823,7 @@
           if (oldIdx < aIndex)
             aIndex --;
                        
-          // Read it into tabInfo and tabStrip.
+          // Read it into tabInfo and the tabContainer
           this.tabInfo.splice(aIndex, 0, tab);
           this.tabContainer.insertBefore(aTab, this.tabContainer.childNodes[aIndex]);
           
@@ -1315,44 +1282,44 @@
             if (aTabNode.localName != "tab")
               return false;
 
+            let tabContextMenu = document.getElementById("tabContextMenu");
+
             let tab = this._getTabContextForTabbyThing(aTabNode, true) [1];
-             
+
             // by default "close other tabs" is disabled...
-            document
-              .getAnonymousElementByAttribute(this, "anonid", "closeOtherTabs")
-              .setAttribute("disabled","true")
-                          
+            tabContextMenu
+              .querySelector('[anonid="closeOtherTabs"]')
+              .setAttribute("disabled","true");
+
             // ... except if we find at least one other tab that can be closed.
             for (let i = 0; i < this.tabInfo.length; i++) {
-            
               if (this.tabInfo[i].canClose && this.tabInfo[i] != tab) {
-              
-                document
-                  .getAnonymousElementByAttribute(this,"anonid", "closeOtherTabs")
-                  .setAttribute("disabled","false")
-                  
+                tabContextMenu
+                  .querySelector('[anonid="closeOtherTabs"]')
+                  .setAttribute("disabled", "false");
                 break;
               }
             }
-            
-            document
-              .getAnonymousElementByAttribute(this, "anonid", "closeTab")
-              .setAttribute("disabled", tab.canClose ? "false" : "true");       
-            
+
+
+            tabContextMenu
+              .querySelector('[anonid="closeTab"]')
+              .setAttribute("disabled", tab.canClose ? "false" : "true");
+
             // enable "Open in new Window" iff tab is closable and...
             // ... it can persist its state. Other wise it would get destroyed...
             // ... while moving it to a new window.
-            document
-              .getAnonymousElementByAttribute(this, "anonid", "openTabInWindow")
-              .setAttribute("disabled", 
-                  (tab.canClose && this.persistTab(tab)) ? "false" : "true")
+            tabContextMenu
+              .querySelector('[anonid="openTabInWindow"]')
+              .setAttribute("disabled",
+                            (tab.canClose && this.persistTab(tab)) ? "false" : "true");
 
             // If the tab history is empty, disable "Undo Close Tab"
-            document
-              .getAnonymousElementByAttribute(this, "anonid", "recentlyClosedTabs")
+            tabContextMenu
+              .querySelector('[anonid="recentlyClosedTabs"]')
               .setAttribute("disabled",
-                  (this.recentlyClosedTabs.length) ? "false" : "true");
-                          
+                            (this.recentlyClosedTabs.length) ? "false" : "true");
+
             return true;
           ]]>
         </body>
@@ -1487,7 +1454,7 @@
 
   <binding id="tabmail-tab" display="xul:box"
            extends="chrome://global/content/bindings/tabbox.xml#tab">
-    <content closetabtext="&closeTab.label;">
+    <content closetabtext="&closeTab.label;" context="tabContextMenu">
       <xul:hbox class="tab-image-left" xbl:inherits="selected"/>
       <xul:hbox class="tab-image-middle box-inherit" align="center"
                 xbl:inherits="dir,pack,orient,selected" flex="1">
@@ -1524,6 +1491,14 @@
       ]]>
       </handler>
     </handlers>
+  </binding>
+
+  <binding id="tabmail-tabbox"
+           extends="chrome://global/content/bindings/tabbox.xml#tabbox">
+    <implementation>
+      <property name="tabs" readonly="true"
+                onget="return document.getBindingParent(this).tabContainer;"/>
+    </implementation>
   </binding>
 
   <binding id="tabmail-arrowscrollbox" extends="chrome://global/content/bindings/scrollbox.xml#arrowscrollbox-clicktoscroll">
@@ -1606,10 +1581,9 @@
 
     </handlers>
   </binding>
-
   <binding id="tabmail-tabs"
            extends="chrome://global/content/bindings/tabbox.xml#tabs">
-    <content>
+    <content context="toolbar-context-menu">
       <xul:stack flex="1" class="tabs-stack">
         <xul:vbox>
           <xul:spacer flex="1"/>
@@ -1617,7 +1591,7 @@
         </xul:vbox>
         <xul:vbox>
           <xul:hbox>
-            <xul:hbox align="start">
+            <xul:hbox align="end">
               <xul:image class="tab-drop-indicator" anonid="tab-drop-indicator" collapsed="true"/>
             </xul:hbox>
             <xul:stack>
@@ -1631,19 +1605,6 @@
               <children includes="tab"/>
             </xul:arrowscrollbox>
             <children/>
-            <xul:stack align="center" pack="end">
-              <xul:hbox class="tabs-alltabs-box" anonid="alltabs-box" flex="1"/>
-              <xul:hbox class="tabs-alltabs-box-animate"
-                        anonid="alltabs-box-animate"
-                        flex="1"/>
-              <xul:toolbarbutton class="tabs-alltabs-button"
-                                 anonid="alltabs-button"
-                                 type="menu"
-                                 tooltipstring="&listAllTabs.label;">
-                <xul:menupopup class="tabs-alltabs-popup"
-                               anonid="alltabs-popup" position="after_end"/>
-              </xul:toolbarbutton>
-            </xul:stack>
             <xul:hbox class="tabs-closebutton-box"
                       anonid="tabstrip-closebutton"
                       align="center" pack="end">
@@ -1684,7 +1645,7 @@
           }
 
           if (this.mAutoHide)
-            this.collapsed = true;
+            this.mCollapseToolbar.collapsed = true;
 
           this.firstChild.minWidth = this.mTabMinWidth;
           this.firstChild.maxWidth = this.mTabMaxWidth;
@@ -1726,6 +1687,10 @@
         document.getElementById("tabmail");
       </field>
 
+      <field name="tabbox" readonly="true">
+        document.getAnonymousElementByAttribute(this, "anonid", "tabbox");
+      </field>
+
       <field name="mTabstripWidth">0</field>
 
       <field name="mTabstrip">
@@ -1736,9 +1701,17 @@
         document.getAnonymousElementByAttribute(this, "anonid", "tabstrip-closebutton");
       </field>
 
-      <field name="_prefObserver">({
+      <field name="mToolbar">
+        document.getElementById(this.getAttribute("tabtoolbar"));
+      </field>
+
+      <field name="mCollapseToolbar">
+        document.getElementById(this.getAttribute("collapsetoolbar"));
+      </field>
+
+     <field name="_prefObserver">({
         tabbox: this,
-  
+
         observe: function(subject, topic, data)
         {
           if (topic == "nsPref:changed") {
@@ -1778,13 +1751,13 @@
       <field name="mTabMaxWidth">250</field>
       <field name="mTabClipWidth">140</field>
       <field name="mCloseButtons">1</field>
-
       <field name="_mAutoHide">false</field>
+
       <property name="mAutoHide" onget="return this._mAutoHide;">
         <setter><![CDATA[
           if (val != this._mAutoHide) {
             if (this.childNodes.length == 1)
-              this.collapsed = val;
+              this.mCollapseToolbar.collapsed = val;
             this._mAutoHide = val;
           }
           return val;
@@ -1867,8 +1840,7 @@
       </method>
 
       <field name="mAllTabsPopup">
-        document.getAnonymousElementByAttribute(this, 
-                                                "anonid", "alltabs-popup");
+        this.mAllTabsButton.menu;
       </field>
 
       <field name="mAllTabsBoxAnimate">
@@ -1882,8 +1854,7 @@
       </field>
 
       <field name="mAllTabsButton">
-        document.getAnonymousElementByAttribute(this, 
-                                                "anonid", "alltabs-button");
+        document.getElementById(this.getAttribute("alltabsbutton"));
       </field>
 
       <field name="_animateTimer">null</field>
@@ -2004,16 +1975,14 @@
       </method>        
     </implementation>
     <handlers>
-      <handler event="TabSelect" action="this._handleTabSelect();"/>
-      <handler event="mouseover"><![CDATA[
-        if (event.originalTarget == this.mAllTabsButton) {
-          this.mAllTabsButton
-              .setAttribute("tooltiptext",
-                            this.mAllTabsButton.getAttribute("tooltipstring"));
-        }
-        else
-          this.mAllTabsButton.removeAttribute("tooltiptext");
+      <handler event="select"><![CDATA[
+          if (!('updateCurrentTab' in this.tabmail) ||
+              event.target.localName != 'tabs')
+            return;
+
+          this.tabmail.updateCurrentTab();
       ]]></handler>
+      <handler event="TabSelect" action="this._handleTabSelect();"/>
       <handler event="dragstart"><![CDATA[          
         let draggedTab = this._getDragTargetTab(event);
         
@@ -2024,6 +1993,7 @@
         
         if (!tab || !tab.canClose)
           return;
+
                                           
         let dt = event.dataTransfer;
         
@@ -2075,14 +2045,32 @@
       ]]></handler>
       <handler event="dragover"><![CDATA[
         let dt = event.dataTransfer;
-        
+
         if (dt.mozItemCount == 0)
           return;
-                
+
+        if (dt.mozGetDataAt("text/toolbarwrapper-id/messengerWindow", 0)
+            != null) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          // Dispatch event to the toolbar
+          let evt = document.createEvent("DragEvents");
+          evt.initDragEvent("dragover", true, true, window, 0, 0, 0, 0, 0,
+                            false, false, false, false, 0, null,
+                            event.dataTransfer);
+
+          if (this.mToolbar.firstChild)
+            this.mToolbar.firstChild.dispatchEvent(evt);
+          else
+            this.mToolbar.dispatchEvent(evt);
+
+          return;
+        }
+
         // Bug 516247:
         // incase the user is dragging something else than a tab, and
         // keeps hovering over a tab, we assume he wants to switch to this tab. 
-        
         if ((dt.mozTypesAt(0)[0] != "application/x-moz-tabmail-tab")
             && (dt.mozTypesAt(0)[1] != "application/x-moz-tabmail-json"))  {
           
@@ -2209,6 +2197,30 @@
         if (dt.mozItemCount != 1)
           return;
         
+
+        /* If we're dragging a toolbar button, let's prepend the tabs toolbar
+         * with that button, and then bail out.
+         */
+        let buttonId = dt.mozGetDataAt("text/toolbarwrapper-id/messengerWindow", 0);
+
+        if (buttonId != null) {
+          event.preventDefault();
+          event.stopPropagation();
+
+          let evt = document.createEvent("DragEvents");
+          evt.initDragEvent("drop", true, true, window, 0, 0, 0, 0, 0,
+                            false, false, false, false, 0, null,
+                            event.dataTransfer);
+
+          if (this.mToolbar.firstChild)
+            this.mToolbar.firstChild.dispatchEvent(evt);
+          else
+            this.mToolbar.dispatchEvent(evt);
+
+          return;
+        }
+
+
         let draggedTab = dt.mozGetDataAt("application/x-moz-tabmail-tab",0);
         
         if (!draggedTab)
@@ -2308,14 +2320,7 @@
       ]]></handler>      
     </handlers>
   </binding>
-  
-  <!-- alltabs-popup binding
-       This binding relies on the structure of the tabbrowser binding.
-       Therefore it should only be used as a child of the tabs element.
-       This binding is exposed as a pseudo-public-API so themes can customize
-       the tabbar appearance without having to be scriptable
-       (see globalBindings.xml in Pinstripe for example).
-  -->
+
   <binding id="tabmail-alltabs-popup"
            extends="chrome://global/content/bindings/popup.xml#popup">
     <implementation implements="nsIDOMEventListener">
@@ -2341,7 +2346,8 @@
       <method name="_menuItemOnCommand">
         <parameter name="aEvent"/>
         <body><![CDATA[
-          var tabcontainer = document.getBindingParent(this);
+          var tabcontainer = document.getElementById('tabmail')
+                                     .tabContainer;
           tabcontainer.selectedItem = aEvent.target.tab;
         ]]></body>
       </method>
@@ -2404,7 +2410,7 @@
 
       <method name="_updateTabsVisibilityStatus">
         <body><![CDATA[
-          var tabContainer = document.getBindingParent(this);
+          var tabContainer = document.getElementById('tabmail').tabContainer;
           // We don't want menu item decoration unless there is overflow.
           if (tabContainer.getAttribute("overflow") != "true")
             return;
@@ -2457,12 +2463,12 @@
       <handler event="popupshowing">
       <![CDATA[
         // set up the menu popup
-        var tabcontainer = document.getBindingParent(this);
+        let tabmail = document.getElementById('tabmail');
+        var tabcontainer = tabmail.tabContainer;
         var tabs = tabcontainer.childNodes;
 
         // Listen for changes in the tab bar.
-        var tabbrowser = document.getBindingParent(tabcontainer);
-        tabbrowser.addEventListener("TabOpen", this, false);
+        tabmail.addEventListener("TabOpen", this, false);
         tabcontainer.mTabstrip.addEventListener("scroll", this, false);
 
         // if an animation is in progress and the user
@@ -2486,18 +2492,17 @@
           menuItem.tab.mCorrespondingMenuitem = null;
           this.removeChild(menuItem);
         }
-        var tabcontainer = document.getBindingParent(this);
+        var tabcontainer = document.getElementById('tabmail').tabContainer;
         tabcontainer.mTabstrip.removeEventListener("scroll", this, false);
-        document.getBindingParent(tabcontainer).removeEventListener("TabOpen", this, false);
+        tabcontainer.tabmail.removeEventListener("TabOpen", this, false);
       ]]></handler>
     </handlers>
   </binding>
   <!-- close-tab-button binding
-       This binding relies on the structure of the tabbrowser binding.
+       This binding relies on the structure of the tabmail-tabs binding.
        Therefore it should only be used as a child of the tab or the tabs
-       element (in both cases, when they are anonymous nodes of <tabbrowser>).
-       This binding is exposed as a pseudo-public-API so themes can customize
-       the tabbar appearance without having to be scriptable
+       element.  This binding is exposed as a pseudo-public-API so themes
+       can customize the tabbar appearance without having to be scriptable
        (see globalBindings.xml in Pinstripe for example).
   -->
   <binding id="tabmail-close-tab-button"
@@ -2506,7 +2511,7 @@
       <handler event="click" button="0"><![CDATA[
         var bindingParent = document.getBindingParent(this);
         if (bindingParent) {
-          var tabbedBrowser = document.getBindingParent(bindingParent);
+          var tabbedBrowser = document.getElementById('tabmail');
           if (bindingParent.localName == "tab") {
             /* The only sequence in which a second click event (i.e. dblclik)
              * can be dispatched on an in-tab close button is when it is shown

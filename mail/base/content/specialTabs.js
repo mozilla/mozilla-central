@@ -280,6 +280,7 @@ const kTelemetryEnabled     = "toolkit.telemetry.enabled";
 const kTelemetryServerOwner = "toolkit.telemetry.server_owner";
 
 var contentTabBaseType = {
+  inContentWhitelist: ['about:addons'],
   shouldSwitchTo: function onSwitchTo({contentPage: aContentPage}) {
     let tabmail = document.getElementById("tabmail");
     let tabInfo = tabmail.tabInfo;
@@ -326,6 +327,31 @@ var contentTabBaseType = {
 
   getBrowser: function getBrowser(aTab) {
     return aTab.browser;
+  },
+
+  hideChromeForLocation: function hideChromeForLocation(aLocation) {
+    return this.inContentWhitelist.indexOf(aLocation) != -1;
+  },
+
+  /* _setUpLoadListener attaches a load listener to the tab browser that
+   * checks the loaded URL to see if it matches the inContentWhitelist.
+   * If so, then we apply the disablechrome attribute to the contentTab
+   * container.
+   */
+  _setUpLoadListener: function setUpLoadListener(aTab) {
+    let self = this;
+
+    function onLoad(aEvent) {
+      let doc = aEvent.originalTarget;
+      if (self.hideChromeForLocation(doc.defaultView.location.href)) {
+        aTab.root.setAttribute("disablechrome", "true");
+      } else {
+        doc.documentElement.removeAttribute("disablechrome");
+      }
+    }
+
+    aTab.loadListener = onLoad;
+    aTab.browser.addEventListener("load", aTab.loadListener, true);
   },
 
   // Internal function used to set up the title listener on a content tab.
@@ -564,9 +590,11 @@ var specialTabs = {
       clone.setAttribute("collapsed", false);
 
       aTab.panel.appendChild(clone);
+      aTab.root = clone;
 
       // Start setting up the browser.
       aTab.browser = aTab.panel.getElementsByTagName("browser")[0];
+      aTab.toolbar = aTab.panel.getElementsByClassName("contentTabToolbar")[0];
 
       // As we're opening this tab, showTab may not get called, so set
       // the type according to if we're opening in background or not.
@@ -597,8 +625,10 @@ var specialTabs = {
       aTab.reloadEnabled = false;
 
       // Now set up the listeners.
+      this._setUpLoadListener(aTab);
       this._setUpTitleListener(aTab);
       this._setUpCloseWindowListener(aTab);
+
       if ("onLoad" in aArgs) {
         aTab.browser.addEventListener("load", function _contentTab_onLoad (event) {
           aArgs.onLoad(event, aTab.browser);
@@ -1018,6 +1048,7 @@ var specialTabs = {
         && !docShell.contentViewer.permitUnload());
     },
     closeTab: function onTabClosed(aTab) {
+      aTab.browser.removeEventListener("load", aTab.loadListener, true);
       aTab.browser.removeEventListener("DOMTitleChanged",
                                        aTab.titleListener, true);
       aTab.browser.removeEventListener("DOMWindowClose",

@@ -40,6 +40,7 @@ menuitem.menuitem-iconic > .menu-iconic-left {
 
 #menubar-items {
   -moz-box-orient: vertical; /* for flex hack */
+  margin-bottom: 1px;
 }
 
 #menubar-items > menubar {
@@ -140,8 +141,8 @@ sidebarheader .toolbarbutton-text:not([value]) {
 }
 
 #tabmail-buttons > toolbarbutton {
-  margin-top: 2px;
-  margin-bottom: 4px;
+  margin-top: 1px;
+  margin-bottom: 1px;
 }
 
 treechildren::-moz-tree-cell-text {

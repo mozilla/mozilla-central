@@ -260,51 +260,66 @@ function MailToolboxCustomizeDone(aEvent, customizePopupId)
   }
 }
 
-function onViewToolbarCommand(aEvent, toolboxId)
+function onViewToolbarsPopupShowing(aEvent, toolboxIds)
 {
-  var toolbox = document.getElementById(toolboxId);
-  var index = aEvent.originalTarget.getAttribute("toolbarindex");
-  var toolbar = toolbox.childNodes[index];
+  if (!Array.isArray(toolboxIds))
+    toolboxIds = [toolboxIds];
 
-  var hidingAttribute = toolbar.getAttribute("type") == "menubar" ?
-                        "autohide" : "collapsed";
-
-  toolbar.setAttribute(hidingAttribute,
-                       aEvent.originalTarget.getAttribute("checked") != "true");
-  document.persist(toolbar.id, hidingAttribute);
-}
-
-function onViewToolbarsPopupShowing(aEvent, toolboxId)
-{
-  var popup = aEvent.target;
+  let popup = aEvent.target;
 
   // Empty the menu
-  for (var i = popup.childNodes.length-1; i >= 0; --i) {
-    var deadItem = popup.childNodes[i];
-    if (deadItem.hasAttribute("toolbarindex"))
+  for (let i = popup.childNodes.length - 1; i >= 0; --i) {
+    let deadItem = popup.childNodes[i];
+
+    // Remove all of the nodes with the iscollapsible
+    // attribute.
+    if (deadItem.hasAttribute("iscollapsible"))
       popup.removeChild(deadItem);
   }
 
-  var firstMenuItem = popup.firstChild;
+  // We'll insert the menuitems before the first item in the list.
+  let firstMenuItem = popup.firstChild;
 
-  var toolbox = document.getElementById(toolboxId);
-  for (var i = 0; i < toolbox.childNodes.length; ++i) {
-    var toolbar = toolbox.childNodes[i];
-    var toolbarName = toolbar.getAttribute("toolbarname");
-    if (toolbarName) {
-      let menuItem = document.createElement("menuitem");
-      let hidingAttribute = toolbar.getAttribute("type") == "menubar" ?
-                            "autohide" : "collapsed";
-      menuItem.setAttribute("toolbarindex", i);
-      menuItem.setAttribute("type", "checkbox");
-      menuItem.setAttribute("label", toolbarName);
-      menuItem.setAttribute("accesskey", toolbar.getAttribute("accesskey"));
-      menuItem.setAttribute("checked", toolbar.getAttribute(hidingAttribute) != "true");
-      popup.insertBefore(menuItem, firstMenuItem);
-      menuItem.addEventListener("command",
-        function(aEvent) { onViewToolbarCommand(aEvent, toolboxId); }, false);
+  for (let [, toolboxId] in Iterator(toolboxIds)) {
+    let toolbox = document.getElementById(toolboxId);
+
+    // We'll consider either childnodes that have a toolbarname attribute,
+    // or externalToolbars.
+    let childToolbars = Array.slice(toolbox
+                                    .getElementsByAttribute("toolbarname",
+                                                            "*"));
+    let potentialToolbars = childToolbars.concat(toolbox.externalToolbars);
+
+    for (let [, toolbarElement] in Iterator(potentialToolbars)) {
+
+      // We have to bind to toolbar because Javascript doesn't do fresh
+      // let-bindings per Iteration.
+      let toolbar = toolbarElement;
+
+      let toolbarName = toolbar.getAttribute("toolbarname");
+      if (toolbarName) {
+        let menuItem = document.createElement("menuitem");
+        let hidingAttribute = toolbar.getAttribute("type") == "menubar" ?
+                              "autohide" : "collapsed";
+        menuItem.setAttribute("type", "checkbox");
+        // Mark this menuitem with an iscollapsible attribute, so we
+        // know we can wipe it out later on.
+        menuItem.setAttribute("iscollapsible", true);
+        menuItem.setAttribute("label", toolbarName);
+        menuItem.setAttribute("accesskey", toolbar.getAttribute("accesskey"));
+        menuItem.setAttribute("checked",
+                              toolbar.getAttribute(hidingAttribute) != "true");
+        popup.insertBefore(menuItem, firstMenuItem);
+
+        let onMenuItemCommand = function(aEvent) {
+          let hidden = aEvent.originalTarget.getAttribute("checked") != "true";
+          toolbar.setAttribute(hidingAttribute, hidden);
+          document.persist(toolbar.id, hidingAttribute);
+        }
+
+        menuItem.addEventListener("command", onMenuItemCommand, false);
+      }
     }
-    toolbar = toolbar.nextSibling;
   }
 }
 

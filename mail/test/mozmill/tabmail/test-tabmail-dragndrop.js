@@ -137,7 +137,8 @@ function test_tab_reorder_tabbar(){
   let tab1 = mc.tabmail.tabContainer.childNodes[1];
   let tab3 = mc.tabmail.tabContainer.childNodes[3];
 
-  let dt = synthesize_drag_start(mc.window, tab1, mc.tabmail);
+  let dt = synthesize_drag_start(mc.window, tab1, mc.tabmail.tabContainer);
+  assert_true(dt, "Drag target was undefined");
 
   // Drop it onto the third tab ...
   synthesize_drag_over(mc.window, tab3, dt);
@@ -152,8 +153,8 @@ function test_tab_reorder_tabbar(){
   assert_number_of_tabs_open(5);
 
   // ... we should find tab1 at the third position...
-  assert_true(tab1 == mc.tabmail.tabContainer.childNodes[3],
-              "Moving tab1 failed");
+  assert_equals(tab1, mc.tabmail.tabContainer.childNodes[3],
+                "Moving tab1 failed");
   switch_tab(3);
   assert_selected_and_displayed(msgHdrsInFolder[0]);
 
@@ -225,7 +226,7 @@ function test_tab_reorder_window(){
   let tabB = mc2.tabmail.tabContainer.childNodes[0];
   assert_true(tabB, "No movable Tab");
 
-  let dt = synthesize_drag_start(mc.window,tabA,mc.tabmail);
+  let dt = synthesize_drag_start(mc.window, tabA, mc.tabmail.tabContainer);
 
   synthesize_drag_over(mc2.window, tabB,dt);
 
@@ -274,7 +275,7 @@ function test_tab_reorder_detach(){
   let dropContent = mc.e("tabpanelcontainer");
   let box = dropContent.boxObject;
 
-  let dt = synthesize_drag_start(mc.window, tab1, mc.tabmail);
+  let dt = synthesize_drag_start(mc.window, tab1, mc.tabmail.tabContainer);
 
   synthesize_drag_over(mc.window, dropContent, dt);
 
@@ -339,26 +340,24 @@ function test_tab_undo() {
 }
 
 function _synthesizeRecentlyClosedMenu()
-{                  
+{
   mc.rightClick(new elib.Elem(mc.tabmail.tabContainer.childNodes[1]));
-  
-  wait_for_popup_to_open(
-    mc.window.document.getAnonymousElementByAttribute(
-      mc.tabmail,"anonid","tabContextMenu"));
-      
-  let menu = mc.window.document.getAnonymousElementByAttribute(
-                   mc.tabmail,"anonid","recentlyClosedTabs");      
 
-  EventUtils.synthesizeMouse(menu,5, 5, {},mc.window);
-  wait_for_popup_to_open(menu.menupopup);
-  
-  return menu;
+  let tabContextMenu = mc.window.document.getElementById("tabContextMenu");
+  wait_for_popup_to_open(tabContextMenu);
+
+  let recentlyClosedTabs = tabContextMenu
+                           .querySelector('[anonid="recentlyClosedTabs"]');
+
+  EventUtils.synthesizeMouse(recentlyClosedTabs, 5, 5, {}, mc.window);
+  wait_for_popup_to_open(recentlyClosedTabs.menupopup);
+
+  return recentlyClosedTabs;
 }
 
 function _teardownRecentlyClosedMenu()
-{  
-  let menu = mc.window.document.getAnonymousElementByAttribute(
-            mc.tabmail,"anonid","tabContextMenu")  
+{
+  let menu = mc.window.document.getElementById("tabContextMenu");
   close_popup(mc,new elib.Elem(menu));
 }
 

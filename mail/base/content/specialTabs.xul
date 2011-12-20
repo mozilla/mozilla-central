@@ -45,7 +45,11 @@
   </popupset>
 
   <vbox id="contentTab" collapsed="true">
-    <vbox flex="1">
+    <vbox flex="1" class="contentTabInstance">
+      <toolbox id="dummycontenttoolbox" class="contentTabToolbox">
+        <toolbar id="dummycontenttoolbar" class="contentTabToolbar">
+        </toolbar>
+      </toolbox>
       <notificationbox flex="1">
         <browser id="dummycontentbrowser" type="content-targetable" flex="1"
                  disablehistory="true" autocompletepopup="PopupAutoComplete"
@@ -56,7 +60,10 @@
   </vbox>
 
   <vbox id="chromeTab" collapsed="true">
-    <vbox flex="1">
+    <vbox flex="1" class="chromeTabInstance">
+      <toolbox id="dummycontenttoolbox" class="contentTabToolbox">
+        <toolbar id="dummycontenttoolbar" class="contentTabToolbar"></toolbar>
+      </toolbox>
       <notificationbox flex="1">
         <browser id="dummychromebrowser" flex="1"
                  disablesecurity="true" disablehistory="true"

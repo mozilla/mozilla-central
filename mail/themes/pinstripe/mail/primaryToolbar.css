@@ -46,15 +46,39 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
-/* Inactive window state */
-#mail-toolbox > toolbar:-moz-window-inactive > toolbar {
-  border-top-color: rgba(255,255,255,0.45);
-  border-bottom-color: rgba(0,0,0,0.35);
-  background-color: -moz-mac-chrome-inactive;
+/* ::::: Mail Toolbars and Menubars ::::: */
+
+.mail-toolbox {
+  -moz-appearance: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.57);
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.32), rgba(255, 255, 255, 0) 19px);
 }
 
-#mail-bar3 {
-  padding: 0 4px;
+.mail-toolbox:not(:-moz-lwtheme) {
+  background-color: -moz-mac-chrome-active;
+}
+
+.mail-toolbox:not(:-moz-lwtheme):-moz-window-inactive {
+  background-color: -moz-mac-chrome-inactive;
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 19px);
+}
+
+/* Inactive window state */
+.mail-toolbox:-moz-window-inactive {
+  -moz-appearance: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.32);
+}
+
+.mail-toolbox:-moz-lwtheme {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.mail-bar3 {
+  padding: 4px 4px 0;
+}
+
+.mail-toolbox > toolbar {
+  -moz-appearance: none;
 }
 
 /* ::::: primary toolbar buttons ::::: */
@@ -104,9 +128,16 @@ toolbox[labelalign="end"] toolbarpaletteitem
   -moz-box-orient: horizontal !important;
 }
 
-toolbar[mode="text"] .toolbarbutton-1 > .toolbarbutton-text,
-toolbar[mode="text"] .toolbarbutton-menubutton-button > .toolbarbutton-text {
+toolbar[mode="text"] > .toolbarbutton-1 > .toolbarbutton-text,
+toolbar[mode="text"] > .toolbarbutton-menubutton-button > .toolbarbutton-text {
   margin: 5px 4px 3px;
+}
+
+#tabbar-toolbar > .toolbarbutton-1 {
+  margin-top: 1px;
+  margin-bottom: 1px;
+  padding-top: 0;
+  padding-bottom: 0;
 }
 
 #button-getmsg {
@@ -759,7 +790,3 @@ toolbar[iconsize="small"] #button-archive[disabled] {
   padding-bottom: 0px;
 }
 
-toolbar:-moz-lwtheme {
-  -moz-appearance: none !important;
-  background: none !important;
-}

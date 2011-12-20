@@ -52,23 +52,28 @@
 
   <!--We want to enable browser history, and at least the Go menu-->
   <browser id="dummycontentbrowser" type="content" disablehistory="false"/>
-  <tabmail id="tabmail">
+  <hbox id="tabmail-container">
     <vbox id="webSearchTab" collapsed="true">
-      <hbox flex="1">
-        <vbox class="navbar">
-          <vbox class="navbuttons">
-            <toolbarbutton class="back" command="cmd_goBackSearch"/>
-            <toolbarbutton class="forward" command="cmd_goForwardSearch"/>
+      <vbox flex="1">
+        <toolbox id="dummycontenttoolbox" class="contentTabToolbox">
+          <toolbar id="dummycontenttoolbar" class="contentTabToolbar"></toolbar>
+        </toolbox>
+        <hbox flex="1">
+          <vbox class="navbar">
+            <vbox class="navbuttons">
+              <toolbarbutton class="back" command="cmd_goBackSearch"/>
+              <toolbarbutton class="forward" command="cmd_goForwardSearch"/>
+            </vbox>
+            <arrowscrollbox class="engines" orient="vertical"
+                            flex="1"/>
+            <button class="defaultButton" type="checkbox"/>
           </vbox>
-          <arrowscrollbox class="engines" orient="vertical"
-                          flex="1"/>
-          <button class="defaultButton" type="checkbox"/>
-        </vbox>
-        <browser id="dummycontentbrowser" type="content-targetable" flex="1"
-                 disablehistory="true" autocompletepopup="PopupAutoComplete"
-                 context="mailContext"/>
-        <findbar browserid="dummycontentbrowser"/>
-      </hbox>
+          <browser id="dummycontentbrowser" type="content-targetable" flex="1"
+                   disablehistory="true" autocompletepopup="PopupAutoComplete"
+                   context="mailContext"/>
+          <findbar browserid="dummycontentbrowser"/>
+        </hbox>
+      </vbox>
     </vbox>
-  </tabmail>
+  </hbox>
 </overlay>

@@ -597,7 +597,7 @@
           </toolbarbutton>
         </toolbaritem>
       </toolbarpalette>
-      <toolbar id="attachment-view-toolbar" class="inline-toolbar" align="start"
+      <toolbar id="attachment-view-toolbar" class="inline-toolbar"
                customizable="true" mode="full"
                context="attachment-toolbar-context-menu"
                defaulticonsize="small" defaultmode="full"

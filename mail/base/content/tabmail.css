@@ -43,6 +43,10 @@
   -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-tab");
 }
 
+.tabmail-tabbox {
+  -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-tabbox");
+}
+
 .tabmail-arrowscrollbox {
   -moz-binding: url("chrome://messenger/content/tabmail.xml#tabmail-arrowscrollbox");
 }

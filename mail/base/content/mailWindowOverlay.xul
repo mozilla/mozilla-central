@@ -950,18 +950,20 @@
               accesskey="&customizeToolbar.accesskey;"/>
   </menupopup>
 
-<toolbox id="mail-toolbox"
-         class="toolbox-top"
-         mode="full"
-         defaultmode="full"
-#ifdef XP_MACOSX
-         iconsize="small"
-         defaulticonsize="small"
-#endif
-         labelalign="end"
-         defaultlabelalign="end">
+<!-- The reason we put the menubar inside a toolbox is due to the labelalign and
+     defaultlabelalign attributes that the toolbars might expect from their
+     parent toolboxes.  This lets us control how toolbar buttons appear in the
+     toolbars by default.
+
+     We also put the toolbars inside a toolbox named "navigation-toolbox" to
+     leverage overlays, since we currently have several windows (3pane,
+     message reader, compose, address book) that take advantage of these
+     toolbars.
+-->
+<toolbox id="navigation-toolbox" class="toolbox-top">
   <!-- Menu -->
   <toolbar type="menubar" id="mail-toolbar-menubar2" class="chromeclass-menubar" customizable="true"
+           toolboxid="mail-toolbox"
 #ifdef XP_MACOSX
            defaultset="menubar-items"
 #else
@@ -971,7 +973,8 @@
           toolbarname="&menubarCmd.label;"
           accesskey="&menubarCmd.accesskey;"
 #endif
-          context="toolbar-context-menu" mode="icons">
+          context="toolbar-context-menu" mode="icons"
+          insertbefore="tabs-toolbar">
     <toolbaritem id="menubar-items" align="center">
       <menubar id="mail-menubar" style="border:0px;padding:0px;margin:0px;-moz-appearance:none">
         <!-- File -->
@@ -1699,6 +1702,18 @@
       </menubar>
     </toolbaritem>
   </toolbar>
+</toolbox>
+
+<toolbox id="mail-toolbox"
+         class="mail-toolbox"
+         mode="full"
+         defaultmode="full"
+#ifdef XP_MACOSX
+         iconsize="small"
+         defaulticonsize="small"
+#endif
+         labelalign="end"
+         defaultlabelalign="end">
 
   <toolbarpalette id="MailToolbarPalette">
     <toolbarbutton id="button-getmsg"
@@ -1838,7 +1853,7 @@
                         label="&undeleteButton.label;"
                         tooltiptext="&undeleteButton.tooltip;"
                         observes="button_delete"
-                        oncommand="goDoCommand('button_delete')"/>
+                        oncommand="goDoCommand('cmd_delete')"/>
       </deck>
     </toolbaritem>
 #ifdef XP_MACOSX
@@ -1945,7 +1960,9 @@
        of mail-bar in order to force the new default items to show up for users who customized their toolbar
        in earlier versions. Bumping the id means users will have to re-customize their toolbar!
   -->
-  <toolbar id="mail-bar3" class="toolbar-primary chromeclass-toolbar"
+
+  <toolbar id="mail-bar3"
+           class="inline-toolbar chromeclass-toolbar"
            toolbarname="&showMessengerToolbarCmd.label;"
            accesskey="&showMessengerToolbarCmd.accesskey;"
            fullscreentoolbar="true" mode="full"
@@ -1958,6 +1975,7 @@
            defaultset="button-getmsg,button-newmsg,button-address,separator,button-tag,spring,gloda-search">
 #endif
   </toolbar>
+
   <toolbarset id="customToolbars" context="toolbar-context-menu"/>
 </toolbox>
 

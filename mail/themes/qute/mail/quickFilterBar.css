@@ -8,21 +8,13 @@
   min-width: 34px;
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 336px 16px 320px);
-  margin: 2px 2px 4px;
+  margin: 1px 2px;
   padding: 3px 4px;
-}
-
-#qfb-show-filter-bar:hover {
-  -moz-image-region: rect(16px 336px 32px 320px);
 }
 
 toolbar[iconsize="large"] #qfb-show-filter-bar {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 504px 24px 480px);
-}
-
-toolbar[iconsize="large"] #qfb-show-filter-bar:hover {
-  -moz-image-region: rect(24px 504px 48px 480px);
 }
 
 #qfb-show-filter-bar > .toolbarbutton-icon {

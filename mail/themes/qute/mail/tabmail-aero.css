@@ -35,22 +35,20 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+.tabmail-arrowscrollbox {
+  margin-bottom: -1px;
+}
+
 /**
 * Tabmail Tabs
 */
 
-.tabmail-tabs:not(:-moz-lwtheme) {
-  padding-top: 0px;
-  background-image: -moz-linear-gradient(transparent, transparent 10%,
-                    rgba(0, 0, 0, .03) 50%, rgba(0, 0, 0, .1) 90%,
-                    rgba(0, 0, 0, .2));
-  background-color: -moz-Dialog;
-  -moz-padding-start: 0px;
-}
-
 @media all and (-moz-windows-default-theme) {
-  .tabmail-tabs:not(:-moz-lwtheme) {
+  .tabmail-tabs {
     padding: 0 3px;
+  }
+
+  .tabmail-tabs:not(:-moz-lwtheme) {
     background-color: rgb(227, 237, 246);
   }
 }
@@ -65,47 +63,38 @@
 
 .tabmail-tab {
   -moz-appearance: none;
-  background: -moz-linear-gradient(left, transparent, transparent 1px,
-              rgba(50%, 50%, 50%, .1) 1px, rgba(50%, 50% , 50%, .1));
-  background-position: -5px -2px;
+  background: -moz-linear-gradient(bottom, rgba(10%, 10%, 10%, .4) 1px,
+              transparent 1px), -moz-linear-gradient(transparent,
+              hsla(0, 0%, 45%, .1) 1px, hsla(0, 0%, 32%, .2) 80%,
+              hsla(0, 0%, 0%, .2)),
+              -moz-linear-gradient(-moz-dialog, -moz-dialog);
+  background-origin: border-box;
+  background-position: 1px 2px;
+  background-size: -moz-calc(100% - 2px) -moz-calc(100% - 2px);
   background-repeat: no-repeat;
-  background-size: -moz-calc(100% + 11px) -moz-calc(100% + 7px);
-  margin: 3px 0 0;
+  margin: 0;
   padding: 0;
-  -moz-border-image: url(chrome://messenger/skin/icons/tab.png) 4 5 3 6 /
-                     4px 5px 3px 6px repeat stretch;
-  height: 22px;
-  border-radius: 10px 8px 0 0;
+  -moz-border-image: url(chrome://messenger/skin/icons/tab.png) 4 3 0 /
+                     4px 3px 0 repeat stretch;
+  height: 26px;
+  border-radius: 0;
 }
 
 .tabmail-tab:hover {
-  background-image: -moz-linear-gradient(left, transparent, transparent 1px,
-                    rgba(255, 255, 255, .4) 1px, rgba(255, 255, 255, .4));
+  background-image: -moz-linear-gradient(bottom, rgba(10%, 10%, 10%, .4) 1px,
+                    transparent 1px), -moz-linear-gradient(hsla(0, 0%, 100%, .3) 1px,
+                    hsla(0, 0%, 75%, .2) 80%, hsla(0, 0%, 60%, .2)),
+                    -moz-linear-gradient(-moz-dialog, -moz-dialog);
 }
 
-.tabmail-tab:-moz-lwtheme-brighttext:not([selected="true"]) {
-  background-image: -moz-linear-gradient(left, transparent, transparent 1px,
-                    rgba(40%, 40%, 40%, .6) 1px, rgba(40%, 40%, 40%, .6));
-}
-
-.tabmail-tab:-moz-lwtheme-brighttext:not([selected="true"]):hover {
-  background-image: -moz-linear-gradient(left, transparent, transparent 1px,
-                    rgba(60%, 60%, 60%, .6) 1px, rgba(60%, 60%, 60%, .6));
-}
-
-.tabmail-tab:-moz-lwtheme-darktext:not([selected="true"]) {
-  background-image: -moz-linear-gradient(left, transparent, transparent 1px,
-                    rgba(255, 255, 255, .4) 1px, rgba(255, 255, 255, .4));
-}
-
-.tabmail-tab:-moz-lwtheme-darktext:not([selected="true"]):hover {
-  background-image: -moz-linear-gradient(left, transparent, transparent 1px,
-                    rgba(255, 255, 255, .6) 1px, rgba(255, 255, 255, .6));
+.tabmail-tab:-moz-lwtheme {
+  color: inherit;
 }
 
 .tabmail-tab[selected="true"]:-moz-lwtheme {
-  background-image: -moz-linear-gradient(left, transparent, transparent 1px,
-                    rgba(255, 255, 255, .5) 1px, rgba(255, 255, 255, .5));
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, .7),
+                    rgba(255, 255, 255, .5) 50%);
+  background-color: rgba(255, 255, 255, 0.3);
 }
 
 .tabmail-tab[selected="true"]:not(:-moz-lwtheme) {
@@ -120,6 +109,7 @@
                     rgba(255, 255, 255, .4) 1px, rgba(255, 255, 255, .4));
   text-shadow: none;
   color: black;
+  background-size: -moz-calc(100% - 2px) -moz-calc(100% - 3px) !important;
 }
 
 .tabmail-tab:not(:-moz-lwtheme):not([selected="true"]):hover  {
@@ -127,12 +117,46 @@
                     rgba(255, 255, 255, .6) 1px, rgba(255, 255, 255, .6));
 }
 
-@media all and (-moz-windows-compositor) {
+.tabmail-tab:-moz-lwtheme-brighttext:not([selected="true"]) {
+  background-image: -moz-linear-gradient(hsla(0, 0%, 40%, .6),
+                    hsla(0, 0%, 30%, .6) 80%);
+}
+
+.tabmail-tab:-moz-lwtheme-brighttext:not([selected="true"]):hover {
+  background-image: -moz-linear-gradient(hsla(0, 0%, 60%, .6),
+                    hsla(0, 0%, 45%, .6) 80%);
+}
+
+.tabmail-tab:-moz-lwtheme-darktext:not([selected="true"]) {
+  background-image: -moz-linear-gradient(hsla(0, 0%, 60%, .5),
+                    hsla(0, 0%, 45%, .5) 80%);
+}
+
+.tabmail-tab:-moz-lwtheme-darktext:not([selected="true"]):hover {
+  background-image: -moz-linear-gradient(hsla(0, 0%, 80%, .5),
+                    hsla(0, 0%, 60%, .5) 80%);
+}
+
+@media all and (-moz-windows-default-theme) {
+  .tabmail-tab:not(:-moz-lwtheme) {
+    background-image: -moz-linear-gradient(bottom, rgba(10%, 10%, 10%, .4) 1px,
+                      transparent 1px), -moz-linear-gradient(transparent,
+                      hsla(0, 0%, 45%, .1) 1px, hsla(0, 0%, 32%, .2) 80%,
+                      hsla(0, 0%, 0%, .2)),
+                      -moz-linear-gradient(hsl(214, 44%, 87%), hsl(214, 44%, 87%));
+  }
+
   .tabmail-tab:not(:-moz-lwtheme):not([selected="true"]):hover {
-    background-image: -moz-linear-gradient(bottom, rgba(10%,10%,10%,.4) 1px,
-                      transparent 1px), -moz-linear-gradient(hsla(0,0%,100%,.3)
-                      1px, hsla(0,0%,75%,.2) 80%, hsla(0,0%,60%,.2)),
-                      -moz-linear-gradient(hsl(214,44%,87%), hsl(214,44%,87%));
+    background-image: -moz-linear-gradient(bottom, transparent 1px, transparent),
+                      -moz-linear-gradient(hsla(0, 0%, 100%, .3) 1px,
+                                           hsla(0, 0%, 75%, .2) 80%,
+                                           hsla(0, 0%, 60%, .2)),
+                      -moz-linear-gradient(hsl(214, 44%, 87%), hsl(214, 44%, 87%));
+  }
+
+  .tabmail-tab[selected="true"]:not(:-moz-lwtheme) {
+    background-image: -moz-linear-gradient(white, rgba(255, 255, 255, .5) 50%),
+                      -moz-linear-gradient(hsl(214, 44%, 87%), hsl(214, 44%, 87%));
   }
 }
 
@@ -154,61 +178,18 @@
   opacity: 1.0 !important;
 }
 
-.tabmail-tab:-moz-lwtheme-brighttext,
-.tabmail-arrowscrollbox > .scrollbutton-up:-moz-lwtheme-brighttext,
-.tabmail-arrowscrollbox > .scrollbutton-down:-moz-lwtheme-brighttext,
-.tabs-alltabs-button:-moz-lwtheme-brighttext {
-  background-color: rgba(0, 0, 0, .5);
-}
-
-.tabmail-tab:-moz-lwtheme-darktext,
-.tabmail-arrowscrollbox > .scrollbutton-up:-moz-lwtheme-darktext,
-.tabmail-arrowscrollbox > .scrollbutton-down:-moz-lwtheme-darktext,
-.tabs-alltabs-button:-moz-lwtheme-darktext {
-  background-color: rgba(255, 255, 255, .5);
-}
-
-.tabmail-tab:-moz-lwtheme:not([selected="true"]) {
-  opacity: .85;
-}
-
 .tabmail-tab:-moz-lwtheme[selected="true"] {
   text-shadow: none;
-}
-
-.tabmail-tabs:-moz-lwtheme {
-  padding-top: 1px;
 }
 
 @media all and (-moz-windows-compositor) {
   .tabmail-tabs:not(:-moz-lwtheme) {
     background: transparent;
   }
-
-  .tabmail-tabs {
-    margin-top: -3px;
-  }
-
-  .tabmail-tab:not(:-moz-lwtheme):not([selected="true"]) {
-    background-image: -moz-linear-gradient(hsl(214, 15%, 80%),
-                      hsl(214, 15%, 65%) 50%);
-    color: black;
-  }
-
-  .tabmail-tab[selected="true"]:not(:-moz-lwtheme) {
-    margin-bottom: -1px;
-    padding-bottom: 1px;
-  }
-
-  .tabs-bottom:not(:-moz-lwtheme) {
-    margin-right: -3px;
-    margin-left: -3px;
-    border-bottom: 1px solid ThreeDDarkShadow;
-  }
 }
 
 .tab-icon-image {
-  margin-top: 1px;
+  -moz-margin-start: 2px;
   -moz-margin-end: 3px;
   width: 16px;
   height: 16px;
@@ -221,6 +202,7 @@
 
 tabpanels {
   -moz-appearance: none;
+  background-color: transparent;
 }
 
 /* tabmail-tab focus ring */
@@ -235,7 +217,7 @@ tabpanels {
 /* Tab DnD indicator */
 .tab-drop-indicator {
   list-style-image: url(chrome://messenger/skin/icons/tabDragIndicator.png);
-  margin-top: -11px;
+  margin-bottom: -11px;
 }
 
 /**
@@ -243,7 +225,6 @@ tabpanels {
 */
 .tab-close-button > .toolbarbutton-icon {
   -moz-margin-end: 0px !important;
-  margin-top: 1px;
 }
 
 .tab-close-button,
@@ -260,15 +241,6 @@ tabpanels {
 
 .tabs-closebutton {
   padding: 0 2px !important;
-}
-
-.tabmail-tab:not([selected="true"]) > .tab-close-button {
-  height: 23px;
-  margin-bottom: 1px;
-}
-
-.tabmail-tab:not([selected="true"]) > .tab-close-button > .toolbarbutton-icon {
-  margin-top: 2px;
 }
 
 .tab-close-button:hover,
@@ -389,13 +361,16 @@ tabpanels {
 * Toolbarbuttons on tab bar
 */
 
+.tabs-alltabs-button,
 .tabmail-tabs toolbarbutton {
   -moz-appearance: none;
   border-style: none;
   padding: 0 3px;
-  margin-top: 3px;
 }
 
+.tabs-alltabs-button:hover,
+.tabs-alltabs-button[open],
+.tabs-alltabs-button:hover:active,
 .tabmail-tabs toolbarbutton[open],
 .tabmail-tabs toolbarbutton:hover:active,
 .tabmail-tabs toolbarbutton:not([disabled]):hover {
@@ -406,4 +381,30 @@ tabpanels {
   background-position: 1px -1px, 0 -1px, 100% -1px;
   background-size: -moz-calc(100% - 2px) 100%, 1px 100%, 1px 100%;
   background-repeat: no-repeat;
+}
+
+/* Content Tabs */
+.contentTabToolbox {
+  -moz-appearance: none;
+  height: 0px;
+  border: 0;
+}
+
+.contentTabInstance[disablechrome] .contentTabToolbox {
+  display: none;
+}
+
+.contentTabToolbox:not(:-moz-lwtheme) {
+  border-bottom: 1px solid rgb(105, 105, 105);
+}
+
+.contentTabToolbox:-moz-lwtheme {
+  height: 1px;
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5) 50%);
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.contentTabToolbar {
+  height: 0px;
+  min-height: 0px;
 }

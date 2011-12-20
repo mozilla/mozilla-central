@@ -46,6 +46,38 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+#navigation-toolbox #tabs-toolbar {
+  -moz-appearance: none;
+  border-bottom: 1px solid ThreeDShadow;
+}
+
+#navigation-toolbox #tabs-toolbar:-moz-lwtheme {
+  border-bottom-color: transparent;
+}
+
+#tabs-toolbar {
+  -moz-box-ordinal-group: 20;
+}
+
+#mail-toolbar-menubar2 {
+  -moz-box-ordinal-group: 10;
+}
+
+#mail-toolbox {
+  -moz-appearance: none;
+  border-top: none;
+  border-bottom: 1px solid threedshadow;
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5), rgba(255, 255, 255, .1) 19px);
+}
+
+#mail-toolbox > toolbar:-moz-lwtheme {
+  border-top: none;
+}
+
+#mail-bar3 {
+  padding: 1px 0;
+}
+
 /* ::::: primary toolbar buttons ::::: */
 
 .toolbarbutton-1 {
@@ -627,20 +659,21 @@ toolbar[iconsize="small"] #button-archive[disabled] {
 /* ::::: toolbar buttons on tabbar toolbar ::::: */
 
 #tabbar-toolbar .toolbarbutton-1 {
-  margin-top: 2px;
-  margin-bottom: 4px;
-  padding-bottom: 5px;
+  margin-top: 1px;
+  margin-bottom: 1px;
+  padding-top: 3px;
+  padding-bottom: 3px;
 }
 
 #tabbar-toolbar .toolbarbutton-1:hover:active:not([disabled]),
 #tabbar-toolbar .toolbarbutton-1[open="true"],
 #tabbar-toolbar .toolbarbutton-menubutton-button:hover:active:not([disabled]),
 #tabbar-toolbar .toolbarbutton-menubutton-button[open="true"] {
-  padding-bottom: 4px;
+  padding-bottom: 2px;
 }
 
 #tabbar-toolbar .toolbarbutton-1[checked="true"] {
-  padding-bottom: 4px !important;
+  padding-bottom: 2px !important;
 }
 
 #palette-box #qfb-show-filter-bar {

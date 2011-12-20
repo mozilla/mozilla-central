@@ -48,29 +48,57 @@
 
 /* :::: Toolbar :::: */
 
-#mail-toolbox {
+.mail-toolbox:not(:-moz-lwtheme),
+#navigation-toolbox:not(:-moz-lwtheme) {
   -moz-appearance: none;
   border-top: none;
+  background-color: -moz-Dialog;
+}
+
+.mail-toolbox {
+  border-bottom: 1px solid ThreeDShadow;
+}
+
+.mail-toolbox > toolbar {
+  -moz-margin-start: 0;
+  border-bottom: none;
+}
+
+.mail-toolbox > toolbar:not(:-moz-lwtheme),
+#navigation-toolbox > toolbar:not(:-moz-lwtheme) {
+  -moz-appearance: none;
+  border-style: none;
   background-color: transparent;
 }
 
-#mail-toolbox > toolbar:not(:-moz-lwtheme) {
-  -moz-appearance: none;
-  border-style: none;
-  background-color: -moz-Dialog;
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0),
-                    rgba(255, 255, 255, 0));
+#navigation-toolbox #tabs-toolbar:not(:-moz-lwtheme) {
+  border-bottom: 1px solid ThreeDDarkShadow;
+}
+
+#navigation-toolbox #tabs-toolbar:-moz-lwtheme {
+  border-bottom: 1px solid transparent;
+}
+
+.mail-toolbox:-moz-lwtheme {
+  background-color: rgba(255, 255, 255, 0.3) !important;
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5),
+                    rgba(255, 255, 255, 0) 28px) !important;
+}
+
+#mail-bar3 {
+  padding: 1px 0;
 }
 
 @media all and (-moz-windows-default-theme) {
-  #mail-toolbox > toolbar:not(:-moz-lwtheme) {
-    background-color: rgb(227, 237, 246);
+  .mail-toolbox:not(:-moz-lwtheme),
+  #navigation-toolbox:not(:-moz-lwtheme) {
+    background-color: rgb(207, 219, 236);
   }
 }
 
-#mail-toolbox > toolbar:first-child:not(:-moz-lwtheme) {
+.mail-toolbox:not(:-moz-lwtheme) {
   background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
-                    rgba(255, 255, 255, 0));
+                    rgba(255, 255, 255, 0) 28px);
 }
 
 /* ::::: primary toolbar buttons ::::: */
@@ -259,28 +287,30 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
     background: transparent;
   }
 
-  #mailContent:not(:-moz-lwtheme) {
-    border-top: 1px solid ThreeDShadow;
-  }
-
-  #mail-toolbox:not(:-moz-lwtheme),
-  #mail-toolbox > toolbar {
+  #navigation-toolbox:not(:-moz-lwtheme),
+  #tabs-toolbar {
     background: transparent !important;
     border-style: none;
   }
 
-  #mail-toolbox:not(:-moz-lwtheme) {
+  #mail-toolbox:not(:-moz-lwtheme),
+  #navigation-toolbox:not(:-moz-lwtheme) {
     color: black;
     text-shadow: 0 0 .7em white, 0 0 .7em white, 0 1px 0 rgba(255, 255, 255, .4);
   }
 
-  #menubar-items:not(:-moz-lwtheme) {
-    background-color: rgba(255, 255, 255, .5);
-    border-radius: 4px;
+  #mail-toolbar-menubar2 {
+    padding-bottom: 1px;
+	padding-top: 2px;
   }
 
-  menubar > menu:-moz-window-inactive {
-    color: MenuText;
+  #mail-toolbar-menubar2:-moz-lwtheme {
+    background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.5) 50%);
+    background-color: rgba(255, 255, 255, 0.3);
+  }
+
+  #navigation-toolbox > #mail-toolbar-menubar2:not(:-moz-lwtheme) {
+  background-color: rgb(233, 239, 245);
   }
 
   /* lesser transparency on Glass background */
@@ -302,11 +332,27 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   .toolbarbutton-menubutton-dropmarker[disabled="true"] {
     opacity: 1 !important;
   }
+
+  #tabs-toolbar {
+    -moz-box-ordinal-group: 10;
+  }
+
+  #mail-toolbar-menubar2 {
+    -moz-box-ordinal-group: 20;
+  }
 }
 
 @media not all and (-moz-windows-compositor) {
   #print-preview-toolbar:not(:-moz-lwtheme) {
     -moz-appearance: -moz-win-browsertabbar-toolbox;
+  }
+
+  #navigation-toolbox:not(:-moz-lwtheme) {
+  background-color: rgb(227, 237, 246);
+  }
+
+  .tabmail-tabs:not(:-moz-lwtheme) {
+  background-color: transparent !important;
   }
 }
 

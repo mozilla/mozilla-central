@@ -259,6 +259,12 @@ padding: 4px 0px;
     background-clip: padding-box;
   }
 
+  #messengerWindow[sizemode=normal] #mail-toolbar-menubar2 {
+    border-right: 1px solid rgba(10%, 10%, 10%, .4);
+    border-left: 1px solid rgba(10%, 10%, 10%, .4);
+    background-clip: padding-box;
+  }
+
   #messengerWindow[sizemode=normal] statusbar {
     -moz-appearance: none;
     margin-top: -1px;

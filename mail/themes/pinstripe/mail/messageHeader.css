@@ -445,15 +445,6 @@ toolbarpaletteitem > #hdrReplyToSenderButton {
   -moz-image-region: rect(0px, 80px, 16px, 64px);
 }
 
-.inline-toolbar toolbarpaletteitem toolbarseparator,
-.inline-toolbar toolbarseparator {
-  height: 26px;
-}
-
-.inline-toolbar toolbarspacer {
-  height: 20px;
-}
-
 window[inlinetoolbox] #wrapper-spring {
   display: none;
 }

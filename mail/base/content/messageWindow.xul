@@ -162,8 +162,11 @@
   <menupopup id="copyUrlPopup"/>
   <menupopup id="toolbar-context-menu"/>
 
-  <toolbox id="mail-toolbox" class="toolbox-top">
-  </toolbox>
+  <!-- navigation-toolbox is provided by mailWindowOverlay.xul -->
+  <toolbox id="navigation-toolbox" class="toolbox-top" />
+
+  <!-- mail-toolbox is provided by mailWindowOverlay.xul -->
+  <toolbox id="mail-toolbox" />
 
   <tooltip id="aHTMLTooltip" onpopupshowing="return FillInHTMLTooltip(document.tooltipNode);"/>
 
