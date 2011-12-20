@@ -400,13 +400,15 @@ nsresult nsFolderCompactState::StartCompacting()
 nsresult
 nsFolderCompactState::FinishCompact()
 {
-    // All okay time to finish up the compact process
-  nsresult rv = NS_OK;
-  nsCOMPtr<nsILocalFile> path;
-  nsCOMPtr<nsIDBFolderInfo> folderInfo; 
+  if (!m_folder)
+    return NS_ERROR_NOT_INITIALIZED;
 
-    // get leaf name and database name of the folder
-  rv = m_folder->GetFilePath(getter_AddRefs(path));
+  // All okay time to finish up the compact process
+  nsCOMPtr<nsILocalFile> path;
+  nsCOMPtr<nsIDBFolderInfo> folderInfo;
+
+  // get leaf name and database name of the folder
+  nsresult rv = m_folder->GetFilePath(getter_AddRefs(path));
   nsCOMPtr <nsILocalFile> folderPath = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr <nsILocalFile> summaryFile;
@@ -415,7 +417,7 @@ nsFolderCompactState::FinishCompact()
   // as the original mailbox, so resolve symlinks.
   folderPath->SetFollowLinks(PR_TRUE);
   GetSummaryFileLocation(folderPath, getter_AddRefs(summaryFile));
-  
+
   nsCString leafName;
   summaryFile->GetNativeLeafName(leafName);
   nsCAutoString dbName(leafName);
@@ -608,43 +610,36 @@ NS_IMETHODIMP
 nsFolderCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt,
                                     nsresult status)
 {
-  nsresult rv = status;
   nsCOMPtr<nsIMsgDBHdr> msgHdr;
   nsCOMPtr<nsIMsgDBHdr> newMsgHdr;
-
-  if (NS_FAILED(rv)) goto done;
-  EndCopy(nsnull, status);
-  if (m_curIndex >= m_size)
+  if (NS_FAILED(status))
   {
-    msgHdr = nsnull;
-    newMsgHdr = nsnull;
-    // no more to copy finish it up
-    FinishCompact();
-    Release(); // kill self
+    m_status = status; // set the m_status to status so the destructor can remove the
+                       // temp folder and database
+    m_folder->NotifyCompactCompleted();
+    ReleaseFolderLock();
   }
   else
   {
-    // in case we're not getting an error, we still need to pretend we did get an error,
-    // because the compact did not successfully complete.
-    if (NS_SUCCEEDED(status))
+    EndCopy(nsnull, status);
+    if (m_curIndex >= m_size)
     {
+      msgHdr = nsnull;
+      newMsgHdr = nsnull;
+      // no more to copy finish it up
+      FinishCompact();
+    }
+    else
+    {
+      // in case we're not getting an error, we still need to pretend we did get an error,
+      // because the compact did not successfully complete.
       m_folder->NotifyCompactCompleted();
       CleanupTempFilesAfterError();
       ReleaseFolderLock();
-      Release();
     }
   }
-
-done:
-  if (NS_FAILED(rv)) {
-    m_status = rv; // set the status to rv so the destructor can remove the
-                   // temp folder and database
-    m_folder->NotifyCompactCompleted();
-    ReleaseFolderLock();
-    Release(); // kill self
-    return rv;
-  }
-  return rv;
+  Release(); // kill self
+  return status;
 }
 
 NS_IMETHODIMP

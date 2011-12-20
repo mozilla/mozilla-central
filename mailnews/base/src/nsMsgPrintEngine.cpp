@@ -332,6 +332,8 @@ nsMsgPrintEngine::ShowWindow(bool aShow)
 NS_IMETHODIMP
 nsMsgPrintEngine::AddPrintURI(const PRUnichar *aMsgURI)
 {
+  NS_ENSURE_ARG_POINTER(aMsgURI);
+
   mURIArray.AppendElement(nsDependentString(aMsgURI));
   return NS_OK;
 }
