@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Philipp Kewisch <mozilla@kewis.ch>
+ *   Matthew Mecca <matthew.mecca@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -131,6 +132,26 @@ function run_test() {
                ["20020402T114500Z", "20020403T114500Z"],
                true /* ignore next occ check, bug 455490 */);
 
+    test_recur(createEventFromIcalString("BEGIN:VCALENDAR\nBEGIN:VEVENT\n" +
+                                         "DESCRIPTION:Repeat Daily on weekdays with UNTIL\n" +
+                                         "RRULE:FREQ=DAILY;UNTIL=20111217T220000Z;BYDAY=MO,TU,WE,TH,FR\n" +
+                                         "DTSTART:20111212T220000Z\n" +
+                                         "DTEND:20111212T230000Z\n" +
+                                         "END:VEVENT\nEND:VCALENDAR\n"),
+               ["20111212T220000Z", "20111213T220000Z", "20111214T220000Z", "20111215T220000Z",
+                "20111216T220000Z"],
+               false);
+
+    test_recur(createEventFromIcalString("BEGIN:VCALENDAR\nBEGIN:VEVENT\n" +
+                                         "DESCRIPTION:Repeat Daily on weekdays with UNTIL and exception\n" +
+                                         "RRULE:FREQ=DAILY;UNTIL=20111217T220000Z;BYDAY=MO,TU,WE,TH,FR\n" +
+                                         "EXDATE:20111214T220000Z\n" +
+                                         "DTSTART:20111212T220000Z\n" +
+                                         "DTEND:20111212T230000Z\n" +
+                                         "END:VEVENT\nEND:VCALENDAR\n"),
+               ["20111212T220000Z", "20111213T220000Z", "20111215T220000Z", "20111216T220000Z"],
+               false);
+
     var item = makeEvent("DESCRIPTION:occurrence on day 1 moved between the occurrences " +
                                      "on days 2 and 3\n" +
                          "RRULE:FREQ=DAILY;COUNT=3\n" +
@@ -174,15 +195,15 @@ function run_test() {
 function test_recur(event, expected, ignoreNextOccCheck) {
     dump("Checking '" + event.getProperty("DESCRIPTION") + "'\n");
     // Get recurrence dates
-    var start = createDate(1990, 0, 1);
-    var end = createDate(2010, 0, 1);
-    var recdates = event.recurrenceInfo.getOccurrenceDates(start, end, 0, {});
-    var occurrences = event.recurrenceInfo.getOccurrences(start, end, 0, {});
+    let start = createDate(1990, 0, 1);
+    let end = createDate(2020, 0, 1);
+    let recdates = event.recurrenceInfo.getOccurrenceDates(start, end, 0, {});
+    let occurrences = event.recurrenceInfo.getOccurrences(start, end, 0, {});
 
     // Check number of items
     do_check_eq(recdates.length, expected.length);
 
-    for (var i = 0; i < expected.length; i++) {
+    for (let i = 0; i < expected.length; i++) {
         // Check each date
         do_check_eq(recdates[i].icalString, expected[i]);
 
@@ -194,7 +215,7 @@ function test_recur(event, expected, ignoreNextOccCheck) {
         }
 
         // Make sure getNextOccurrence works correctly
-        var nextOcc = event.recurrenceInfo.getNextOccurrence(recdates[i]);
+        let nextOcc = event.recurrenceInfo.getNextOccurrence(recdates[i]);
         if (expected.length > i + 1) {
             do_check_neq(nextOcc, null);
             do_check_eq(nextOcc.startDate.icalString, expected[i + 1]);
@@ -203,13 +224,31 @@ function test_recur(event, expected, ignoreNextOccCheck) {
         }
 
         // Make sure getPreviousOccurrence works correctly
-        var prevOcc = event.recurrenceInfo.getPreviousOccurrence(recdates[i]);
+        let prevOcc = event.recurrenceInfo.getPreviousOccurrence(recdates[i]);
         if (i > 0) {
             do_check_neq(prevOcc, null);
             do_check_eq(prevOcc.startDate.icalString, expected[i - 1]);
         } else {
             do_check_eq(prevOcc, null);
         }
+    }
+
+    //  Make sure recurrenceInfo.clone works correctly
+    test_clone(event);
+}
+
+function test_clone(event) {
+    let oldRecurItems = event.recurrenceInfo.getRecurrenceItems({});
+    let cloned = event.recurrenceInfo.clone();
+    let newRecurItems = cloned.getRecurrenceItems({});
+
+    // Check number of recurrence items
+    do_check_eq(oldRecurItems.length, newRecurItems.length);
+
+    for (let i = 0; i < oldRecurItems.length; i++) {
+        // Check if recurrence item cloned correctly
+        do_check_eq(oldRecurItems[i].icalProperty.icalString,
+                    newRecurItems[i].icalProperty.icalString);
     }
 }
 
