@@ -100,8 +100,8 @@ function FillHistoryMenu(aParent, aMenu)
         case "go":
           var startHistory = document.getElementById("startHistorySeparator");
           var endHistory = document.getElementById("endHistorySeparator");
+          var syncMenuItem = document.getElementById("sync-tabs-menuitem");
           startHistory.hidden = (count == 0);
-          endHistory.hidden = (endHistory == aParent.lastChild);
           end = count > MAX_HISTORY_MENU_ITEMS ? count - MAX_HISTORY_MENU_ITEMS : 0;
           for (j = count - 1; j >= end; j--)
             {
@@ -110,6 +110,7 @@ function FillHistoryMenu(aParent, aMenu)
                 createRadioMenuItem(aParent, endHistory, j, entry.title, j == index);
             }
           toggleTabsFromOtherComputers();
+          endHistory.hidden = (endHistory == aParent.lastChild || syncMenuItem.hidden);
           break;
       }
     return true;

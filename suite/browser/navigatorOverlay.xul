@@ -445,6 +445,11 @@
                      onpopupshowing="event.stopPropagation(); updateRecentWindows(this);"
                      oncommand="undoCloseWindow(event.target.value);"/>
         </menu>
+        <menuitem id="historyRestoreLastSession"
+                  label="&historyRestoreLastSession.label;"
+                  accesskey="&historyRestoreLastSession.accesskey;"
+                  oncommand="restoreLastSession();"
+                  disabled="true"/>
         <menuseparator/>
         <menuitem id="menu_showAllHistory"
                   label="&historyCmd.label;"
@@ -453,11 +458,6 @@
                   key="key_gotoHistory"/>
         <menuseparator id="startHistorySeparator" hidden="true"/>
         <menuseparator id="endHistorySeparator" hidden="true"/>
-        <menuitem id="historyRestoreLastSession"
-                  label="&historyRestoreLastSession.label;"
-                  accesskey="&historyRestoreLastSession.accesskey;"
-                  oncommand="restoreLastSession();"
-                  disabled="true"/>
         <menuitem id="sync-tabs-menuitem"
                   label="&syncTabsMenu.label;"
                   oncommand="BrowserOpenSyncTabs();"
