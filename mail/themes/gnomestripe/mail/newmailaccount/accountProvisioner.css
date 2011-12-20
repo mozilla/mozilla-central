@@ -64,9 +64,8 @@ button {
   font-weight: bold;
   font: 1em sans-serif;
   padding: 0 10px;
-  height: 32px;
+  min-height: 32px;
   text-shadow: 1px 1px 0 rgba(255, 255, 255, 0.75);
-  white-space: nowrap;
 }
 
 input[type="submit"]:hover,
@@ -513,11 +512,12 @@ input[type="submit"].search {
   margin-right: 10px;
 }
 
-/* HackHackHack*/
-
 #existing .tinyheader button {
   font-size: 12px;
   font-weight: normal;
   margin-left: 7px;
   margin-right: 8px;
+  display: inline;
+  width: 260px;
+  vertical-align: top;
 }
