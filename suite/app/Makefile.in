@@ -307,8 +307,8 @@ libs:: $(PROGRAM)
 	rsync -a --exclude CVS --exclude "*.in" $(srcdir)/macbuild/Contents $(DIST)/$(MOZ_MACBUNDLE_NAME) --exclude English.lproj
 	mkdir -p $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/Resources/$(AB).lproj
 	rsync -a --exclude CVS --exclude "*.in" $(srcdir)/macbuild/Contents/Resources/English.lproj/ $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/Resources/$(AB).lproj
-	sed -e "s/\@MAC_APP_NAME\@/$(MAC_APP_NAME)/" -e "s/\@MOZ_APP_DISPLAYNAME\@/$(MOZ_APP_DISPLAYNAME)/" -e "s/\@MOZ_APP_VERSION\@/$(MOZ_APP_VERSION)/" $(srcdir)/macbuild/Contents/Info.plist.in > $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/Info.plist
-	sed -e "s/\@MAC_APP_NAME\@/$(MAC_APP_NAME)/" -e "s/\@MOZ_APP_DISPLAYNAME\@/$(MOZ_APP_DISPLAYNAME)/" -e "s/\@MOZ_APP_VERSION\@/$(MOZ_APP_VERSION)/" $(srcdir)/macbuild/Contents/Resources/English.lproj/InfoPlist.strings.in | iconv -f UTF-8 -t UTF-16 > $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/Resources/$(AB).lproj/InfoPlist.strings
+	sed -e "s/\@MOZ_APP_NAME\@/$(MOZ_APP_NAME)/" -e "s/\@MAC_APP_NAME\@/$(MAC_APP_NAME)/" -e "s/\@MOZ_APP_DISPLAYNAME\@/$(MOZ_APP_DISPLAYNAME)/" -e "s/\@MOZ_APP_VERSION\@/$(MOZ_APP_VERSION)/" $(srcdir)/macbuild/Contents/Info.plist.in > $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/Info.plist
+	sed -e "s/\@MOZ_APP_NAME\@/$(MOZ_APP_NAME)/" -e "s/\@MAC_APP_NAME\@/$(MAC_APP_NAME)/" -e "s/\@MOZ_APP_DISPLAYNAME\@/$(MOZ_APP_DISPLAYNAME)/" -e "s/\@MOZ_APP_VERSION\@/$(MOZ_APP_VERSION)/" $(srcdir)/macbuild/Contents/Resources/English.lproj/InfoPlist.strings.in | iconv -f UTF-8 -t UTF-16 > $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/Resources/$(AB).lproj/InfoPlist.strings
 	rsync -a $(DIST)/bin/ $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/MacOS
 	rm -f $(DIST)/$(MAC_APP_NAME)/Contents/MacOS/$(PROGRAM)
 	rsync -aL $(PROGRAM) $(DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/MacOS
