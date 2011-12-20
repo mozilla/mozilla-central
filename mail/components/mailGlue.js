@@ -43,6 +43,8 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/AddonManager.jsm");
+Cu.import("resource:///modules/distribution.js");
+
 
 /**
  * Glue code that should be executed before any windows are opened. Any
@@ -85,6 +87,8 @@ MailGlue.prototype = {
   },
 
   _onProfileStartup: function MailGlue__onProfileStartup() {
+    TBDistCustomizer.applyPrefDefaults();
+
     // check if we're in safe mode
     if (Services.appinfo.inSafeMode) {
       Services.ww.openWindow(null, "chrome://messenger/content/safeMode.xul", 
