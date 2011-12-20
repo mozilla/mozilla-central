@@ -126,6 +126,11 @@ function changeContextMenuForTask(aEvent) {
         document.getElementById("calendar_new_todo_todaypane_command").setAttribute("disabled", "true");
     }
 
+    // make sure the paste menu item is enabled
+    if (calendarController2.isCommandEnabled("cmd_paste")) {
+        document.getElementById("cmd_paste").removeAttribute("disabled");
+    }
+
     // make sure the filter menu is enabled
     document.getElementById("task-context-menu-filter-todaypane").removeAttribute("disabled");
     applyAttributeToMenuChildren(document.getElementById("task-context-menu-filter-todaypane-popup"),

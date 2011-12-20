@@ -22,6 +22,7 @@
  *   Joey Minta <jminta@gmail.com>
  *   Philipp Kewisch <mozilla@kewis.ch>
  *   Martin Schroeder <mschroeder@mozilla.x-home.org>
+ *   Matthew Mecca <matthew.mecca@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -73,10 +74,8 @@ function canPaste() {
  * deletes the events on success
  */
 function cutToClipboard() {
-    let calendarItemArray = currentView().getSelectedItems({});
-
-    if (copyToClipboard(calendarItemArray)) {
-        deleteSelectedEvents();
+    if (copyToClipboard()) {
+        deleteSelectedItems();
     }
 }
 
@@ -91,10 +90,11 @@ function cutToClipboard() {
  */
 function copyToClipboard(calendarItemArray) {
     if (!calendarItemArray) {
-        calendarItemArray = currentView().getSelectedItems({});
+        calendarItemArray = getSelectedItems();
     }
 
     if (!calendarItemArray.length) {
+        cal.LOG("[calendar-clipboard] No items to copy.");
         return false;
     }
 
@@ -207,14 +207,17 @@ function pasteFromClipboard() {
             }
             let firstDate = currentView().selectedDay;
 
-            // Timezones and DT/DST time may differ between the earliest item
-            // and the selected day. Determine the offset between the
-            // earliestDate in local time and the selected day in whole days.
-            earliestDate = earliestDate.getInTimezone(calendarDefaultTimezone());
-            earliestDate.isDate = true;
-            let offset = firstDate.subtractDate(earliestDate);
-            let deltaDST = firstDate.timezoneOffset - earliestDate.timezoneOffset;
-            offset.inSeconds += deltaDST;
+            let offset = null;
+            if (earliestDate) {
+                // Timezones and DT/DST time may differ between the earliest item
+                // and the selected day. Determine the offset between the
+                // earliestDate in local time and the selected day in whole days.
+                earliestDate = earliestDate.getInTimezone(calendarDefaultTimezone());
+                earliestDate.isDate = true;
+                offset = firstDate.subtractDate(earliestDate);
+                let deltaDST = firstDate.timezoneOffset - earliestDate.timezoneOffset;
+                offset.inSeconds += deltaDST;
+            }
 
             startBatchTransaction();
             for each (let item in items) {
@@ -222,7 +225,9 @@ function pasteFromClipboard() {
                 // Set new UID to allow multiple paste actions of the same
                 // clipboard content.
                 newItem.id = cal.getUUID();
-                cal.shiftItem(newItem, offset);
+                if (offset) {
+                    cal.shiftItem(newItem, offset);
+                }
                 doTransaction('add', newItem, destCal, null, null);
             }
             endBatchTransaction();

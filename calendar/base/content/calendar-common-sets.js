@@ -914,3 +914,25 @@ function selectAllItems() {
     selectAllEvents();
   }
 }
+
+/**
+ * Returns the selected items, based on which mode we are currently in and what task tree is focused
+ */
+function getSelectedItems() {
+    if (calendarController.todo_tasktree_focused) {
+        return getSelectedTasks();
+    }
+
+    return currentView().getSelectedItems({});
+}
+
+/**
+ * Deletes the selected items, based on which mode we are currently in and what task tree is focused
+ */
+function deleteSelectedItems() {
+    if (calendarController.todo_tasktree_focused) {
+        deleteToDoCommand();
+    } else if (calendarController.isInMode("calendar")) {
+        deleteSelectedEvents();
+    }
+}
