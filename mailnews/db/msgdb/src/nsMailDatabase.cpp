@@ -447,7 +447,7 @@ NS_IMETHODIMP nsMailDatabase::GetSummaryValid(bool *aResult)
       if (gTimeStampLeeway == 0)
         *aResult = folderDate == actualFolderTimeStamp;
       else
-        *aResult = PR_ABS((PRInt32) (actualFolderTimeStamp - folderDate)) <= gTimeStampLeeway;
+        *aResult = NS_ABS((PRInt32) (actualFolderTimeStamp - folderDate)) <= gTimeStampLeeway;
 #ifndef PUTUP_ALERT_ON_INVALID_DB
     }
   }

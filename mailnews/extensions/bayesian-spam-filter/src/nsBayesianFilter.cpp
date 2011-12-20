@@ -1643,7 +1643,7 @@ void nsBayesianFilter::classifyMessage(
 
         double n = proCount + antiCount;
         prob =  (0.225 + n * prob) / (.45 + n);
-        double distance = PR_ABS(prob - 0.5);
+        double distance = NS_ABS(prob - 0.5);
         if (distance >= .1)
         {
           nsresult rv = setAnalysis(token, traitIndex, distance, prob);
