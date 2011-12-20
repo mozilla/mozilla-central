@@ -2200,8 +2200,10 @@ let gFolderTreeController = {
       throw new Error("Can't delete folder: " + folder.name);
 
     if (folder.flags & nsMsgFolderFlags.Virtual) {
-      let confirmation = bundle.getString("confirmSavedSearchDeleteMessage");
-      let title = bundle.getString("confirmSavedSearchTitle");
+      let confirmation = document.getElementById("bundle_messenger")
+                                 .getString("confirmSavedSearchDeleteMessage");
+      let title = document.getElementById("bundle_messenger")
+                          .getString("confirmSavedSearchTitle");
       let IPS = Components.interfaces.nsIPromptService;
       if (Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
             .getService(IPS)
