@@ -105,7 +105,8 @@ NS_IMPL_GETSET(nsMsgFilterList, LoggingEnabled, bool, m_loggingEnabled)
 
 NS_IMETHODIMP nsMsgFilterList::GetFolder(nsIMsgFolder **aFolder)
 {
-  NS_ENSURE_ARG(aFolder);
+  NS_ENSURE_ARG_POINTER(aFolder);
+
   *aFolder = m_folder;
   NS_IF_ADDREF(*aFolder);
   return NS_OK;
@@ -376,6 +377,7 @@ NS_IMETHODIMP
 nsMsgFilterList::GetDefaultFile(nsILocalFile **aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
+
     NS_IF_ADDREF(*aResult = m_defaultFile);
     return NS_OK;
 }
@@ -758,6 +760,8 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
 // ALL means match all messages.
 NS_IMETHODIMP nsMsgFilterList::ParseCondition(nsIMsgFilter *aFilter, const char *aCondition)
 {
+  NS_ENSURE_ARG_POINTER(aFilter);
+
   bool    done = false;
   nsresult  err = NS_OK;
   const char *curPtr = aCondition;
@@ -960,33 +964,33 @@ nsresult nsMsgFilterList::GetFilterCount(PRUint32 *pCount)
 
 nsresult nsMsgFilterList::GetMsgFilterAt(PRUint32 filterIndex, nsMsgFilter **filter)
 {
+  NS_ENSURE_ARG_POINTER(filter);
+
   PRUint32      filterCount;
   m_filters->Count(&filterCount);
-  if (! (filterCount >= filterIndex))
-    return NS_ERROR_INVALID_ARG;
-  if (filter == nsnull)
-    return NS_ERROR_NULL_POINTER;
+  NS_ENSURE_ARG(! (filterCount >= filterIndex));
   *filter = (nsMsgFilter *) m_filters->ElementAt(filterIndex);
   return NS_OK;
 }
 
 nsresult nsMsgFilterList::GetFilterAt(PRUint32 filterIndex, nsIMsgFilter **filter)
 {
-    NS_ENSURE_ARG_POINTER(filter);
+  NS_ENSURE_ARG_POINTER(filter);
 
   PRUint32      filterCount;
   m_filters->Count(&filterCount);
     NS_ENSURE_ARG(filterCount >= filterIndex);
 
   return m_filters->QueryElementAt(filterIndex, NS_GET_IID(nsIMsgFilter),
-                                     (void **)filter);
+                                   (void **)filter);
 }
 
 nsresult
 nsMsgFilterList::GetFilterNamed(const nsAString &aName, nsIMsgFilter **aResult)
 {
-    nsresult rv;
     NS_ENSURE_ARG_POINTER(aResult);
+
+    nsresult rv;
     PRUint32 count=0;
     m_filters->Count(&count);
 
@@ -1028,7 +1032,7 @@ nsresult nsMsgFilterList::RemoveFilterAt(PRUint32 filterIndex)
 nsresult
 nsMsgFilterList::RemoveFilter(nsIMsgFilter *aFilter)
 {
-    return m_filters->RemoveElement(static_cast<nsISupports*>(aFilter));
+  return m_filters->RemoveElement(static_cast<nsISupports*>(aFilter));
 }
 
 nsresult nsMsgFilterList::InsertFilterAt(PRUint32 filterIndex, nsIMsgFilter *aFilter)
@@ -1077,16 +1081,13 @@ nsresult nsMsgFilterList::MoveFilterAt(PRUint32 filterIndex,
 nsresult nsMsgFilterList::MoveFilter(nsIMsgFilter *aFilter,
                                      nsMsgFilterMotionValue motion)
 {
-    nsresult rv;
+  PRInt32 filterIndex;
+  nsresult rv = m_filters->GetIndexOf(static_cast<nsISupports*>(aFilter),
+                           &filterIndex);
+  NS_ENSURE_SUCCESS(rv, rv);
+  NS_ENSURE_ARG_MIN(filterIndex,0);
 
-    PRInt32 filterIndex;
-    rv = m_filters->GetIndexOf(static_cast<nsISupports*>(aFilter),
-                               &filterIndex);
-    NS_ENSURE_SUCCESS(rv, rv);
-    NS_ENSURE_ARG(filterIndex >= 0);
-
-
-    return MoveFilterAt(filterIndex, motion);
+  return MoveFilterAt(filterIndex, motion);
 }
 
 nsresult
@@ -1100,13 +1101,13 @@ nsMsgFilterList::GetVersion(PRInt16 *aResult)
 NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFolderUri, const nsACString &newFolderUri, bool caseInsensitive, bool *found)
 {
   NS_ENSURE_ARG_POINTER(found);
-  nsresult rv = NS_OK;
+
   PRUint32 numFilters;
-  rv = m_filters->Count(&numFilters);
+  nsresult rv = m_filters->Count(&numFilters);
   NS_ENSURE_SUCCESS(rv,rv);
   nsCOMPtr <nsIMsgFilter> filter;
   nsCString folderUri;
-  *found = PR_FALSE;
+  *found = false;
   for (PRUint32 index = 0; index < numFilters; index++)
   {
     filter = do_QueryElementAt(m_filters, index, &rv);
@@ -1132,26 +1133,26 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFo
       {
         rv = filterAction->GetTargetFolderUri(folderUri);
         if (NS_SUCCEEDED(rv) && !folderUri.IsEmpty())
-           if (caseInsensitive)
+        {
+          if (caseInsensitive)
           {
-             if (folderUri.Equals(oldFolderUri, nsCaseInsensitiveCStringComparator())) //local
-            {
-              if (!newFolderUri.IsEmpty())  //if we just want to match the uri's, newFolderUri will be null
-                rv = filterAction->SetTargetFolderUri(newFolderUri);
-              NS_ENSURE_SUCCESS(rv,rv);
-              *found = PR_TRUE;
-            }
+            if (folderUri.Equals(oldFolderUri, nsCaseInsensitiveCStringComparator())) //local
+              *found = true;
           }
           else
           {
             if (folderUri.Equals(oldFolderUri))  //imap
+              *found = true;
+          }
+          if (*found)
+          { //if we just want to match the uri's, newFolderUri will be null
+            if (!newFolderUri.IsEmpty()) 
             {
-              if (!newFolderUri.IsEmpty()) //if we just want to match the uri's, newFolderUri will be null
-                rv = filterAction->SetTargetFolderUri(newFolderUri);
+              rv = filterAction->SetTargetFolderUri(newFolderUri);
               NS_ENSURE_SUCCESS(rv,rv);
-              *found = PR_TRUE;
             }
           }
+        }
         break;  //we allow only one move action per filter
       }
     }
@@ -1163,7 +1164,9 @@ NS_IMETHODIMP nsMsgFilterList::MatchOrChangeFilterTarget(const nsACString &oldFo
 // don't support in 6.x
 NS_IMETHODIMP nsMsgFilterList::GetShouldDownloadAllHeaders(bool *aResult)
 {
-  *aResult = PR_FALSE;
+  NS_ENSURE_ARG_POINTER(aResult);
+
+  *aResult = false;
   return NS_OK;
 }
 

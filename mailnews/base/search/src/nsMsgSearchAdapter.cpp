@@ -325,6 +325,9 @@ nsMsgSearchAdapter::GetSearchCharsets(nsAString &srcCharset, nsAString &dstChars
 
 nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool reallyDredd, const PRUnichar *srcCharset, const PRUnichar *destCharset, char **ppOutTerm)
 {
+  NS_ENSURE_ARG_POINTER(term);
+  NS_ENSURE_ARG_POINTER(ppOutTerm);
+
   nsresult err = NS_OK;
   bool useNot = false;
   bool useQuotes = false;
@@ -338,8 +341,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
   nsCOMPtr <nsIMsgSearchValue> searchValue;
   nsresult rv = term->GetValue(getter_AddRefs(searchValue));
 
-  if (NS_FAILED(rv))
-    return rv;
+  NS_ENSURE_SUCCESS(rv,rv);
 
   nsMsgSearchOpValue op;
   term->GetOp(&op);
@@ -894,6 +896,9 @@ nsresult
 nsMsgSearchValidityTable::GetAvailableAttributes(PRUint32 *length,
                                                  nsMsgSearchAttribValue **aResult)
 {
+    NS_ENSURE_ARG_POINTER(length);
+    NS_ENSURE_ARG_POINTER(aResult);
+
     // count first
     PRUint32 totalAttributes=0;
     PRInt32 i, j;
@@ -932,6 +937,9 @@ nsMsgSearchValidityTable::GetAvailableOperators(nsMsgSearchAttribValue aAttribut
                                                 PRUint32 *aLength,
                                                 nsMsgSearchOpValue **aResult)
 {
+    NS_ENSURE_ARG_POINTER(aLength);
+    NS_ENSURE_ARG_POINTER(aResult);
+
     nsMsgSearchAttribValue attr;
     if (aAttribute == nsMsgSearchAttrib::Default)
       attr = m_defaultAttrib;

@@ -285,6 +285,7 @@ NS_IMETHODIMP nsMsgFilter::AppendTerm(nsIMsgSearchTerm * aTerm)
 NS_IMETHODIMP
 nsMsgFilter::CreateTerm(nsIMsgSearchTerm **aResult)
 {
+    NS_ENSURE_ARG_POINTER(aResult);
     nsMsgSearchTerm *term = new nsMsgSearchTerm;
     NS_ENSURE_TRUE(term, NS_ERROR_OUT_OF_MEMORY);
 
@@ -335,7 +336,8 @@ nsMsgFilter::GetSortedActionList(nsISupportsArray *actionList)
   for (PRUint32 index = 0; index < numActions; ++index)
   {
     nsCOMPtr<nsIMsgRuleAction> action;
-    rv = m_actionList->QueryElementAt(index, NS_GET_IID(nsIMsgRuleAction), (void **)getter_AddRefs(action));
+    rv = m_actionList->QueryElementAt(index, NS_GET_IID(nsIMsgRuleAction),
+                                      (void **)getter_AddRefs(action));
     if (!action)
       continue;
 
@@ -400,6 +402,7 @@ nsMsgFilter::GetSortedActionList(nsISupportsArray *actionList)
 NS_IMETHODIMP
 nsMsgFilter::AppendAction(nsIMsgRuleAction *aAction)
 {
+  NS_ENSURE_ARG_POINTER(aAction);
   return m_actionList->AppendElement(static_cast<nsISupports*>(aAction));
 }
 
@@ -408,12 +411,14 @@ nsMsgFilter::GetActionAt(PRInt32 aIndex, nsIMsgRuleAction **aAction)
 {
   NS_ENSURE_ARG_POINTER(aAction);
   return m_actionList->QueryElementAt(aIndex, NS_GET_IID(nsIMsgRuleAction),
-                                       (void **) aAction);
+                                      (void **) aAction);
 }
 
 NS_IMETHODIMP
 nsMsgFilter::GetActionList(nsISupportsArray **actionList)
 {
+  NS_ENSURE_ARG_POINTER(actionList);
+
   NS_IF_ADDREF(*actionList = m_actionList);
   return NS_OK;
 }
@@ -431,10 +436,9 @@ NS_IMETHODIMP nsMsgFilter::GetTerm(PRInt32 termIndex,
                                    bool *booleanAnd, /* true if AND is the boolean operator. false if OR is the boolean operator */
                                    nsACString &arbitraryHeader) /* arbitrary header specified by user.ignore unless attrib = attribOtherHeader */
 {
-  nsresult rv;
   nsCOMPtr<nsIMsgSearchTerm> term;
-  rv = m_termList->QueryElementAt(termIndex, NS_GET_IID(nsIMsgSearchTerm),
-                                    (void **)getter_AddRefs(term));
+  nsresult rv = m_termList->QueryElementAt(termIndex, NS_GET_IID(nsIMsgSearchTerm),
+                                           (void **)getter_AddRefs(term));
   if (NS_SUCCEEDED(rv) && term)
   {
     if(attrib)
@@ -490,6 +494,9 @@ NS_IMETHODIMP nsMsgFilter::GetScope(nsIMsgSearchScopeTerm **aResult)
 
 NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBHdr *aMsgHdr)
 {
+    NS_ENSURE_ARG_POINTER(aFilterAction);
+    NS_ENSURE_ARG_POINTER(aMsgHdr);
+
     NS_ENSURE_TRUE(m_filterList, NS_OK);
     nsCOMPtr <nsIOutputStream> logStream;
     nsresult rv = m_filterList->GetLogStream(getter_AddRefs(logStream));
@@ -804,7 +811,8 @@ nsresult nsMsgFilter::SaveRule(nsIOutputStream *aStream)
   for (PRUint32 index =0; index < numActions; index++)
   {
     nsCOMPtr<nsIMsgRuleAction> action;
-    err = m_actionList->QueryElementAt(index, NS_GET_IID(nsIMsgRuleAction), (void **)getter_AddRefs(action));
+    err = m_actionList->QueryElementAt(index, NS_GET_IID(nsIMsgRuleAction),
+                                       (void **)getter_AddRefs(action));
     if (!action)
       continue;
 
