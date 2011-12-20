@@ -138,11 +138,11 @@
 }
 
 @media all and (-moz-windows-default-theme) {
-  .tabmail-tab:not(:-moz-lwtheme) {
-    background-image: -moz-linear-gradient(bottom, rgba(10%, 10%, 10%, .4) 1px,
-                      transparent 1px), -moz-linear-gradient(transparent,
-                      hsla(0, 0%, 45%, .1) 1px, hsla(0, 0%, 32%, .2) 80%,
-                      hsla(0, 0%, 0%, .2)),
+  .tabmail-tab:not(:-moz-lwtheme):not([selected="true"]) {
+    background-image: -moz-linear-gradient(bottom, transparent 1px, transparent),
+                      -moz-linear-gradient(transparent, hsla(0, 0%, 45%, .1) 1px,
+                                           hsla(0, 0%, 32%, .2) 80%,
+                                           hsla(0, 0%, 0%, .2)),
                       -moz-linear-gradient(hsl(214, 44%, 87%), hsl(214, 44%, 87%));
   }
 
