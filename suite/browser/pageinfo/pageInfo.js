@@ -278,6 +278,7 @@ function onLoadPageInfo()
   gBundle = document.getElementById("pageinfobundle");
   var strNames = ["unknown", "notSet", "mediaImg", "mediaBGImg",
                   "mediaObject", "mediaEmbed", "mediaLink", "mediaInput",
+                  "mediaVideo", "mediaAudio",
                   "formTitle", "formUntitled", "formDefaultTarget",
                   "formChecked", "formUnchecked", "formPassword", "linkAnchor",
                   "linkArea", "linkSubmission", "linkSubmit", "linkRel",
@@ -608,6 +609,10 @@ function grabAll(elem)
              (elem.hasAttribute("alt")) ? elem.alt : gStrings.notSet, elem, false);
   else if (elem instanceof HTMLAreaElement)
     gLinkView.addRow([elem.alt, elem.href, gStrings.linkArea, elem.target]);
+  else if (elem instanceof HTMLVideoElement)
+    addImage(elem.currentSrc, gStrings.mediaVideo, "", elem, false);
+  else if (elem instanceof HTMLAudioElement)
+    addImage(elem.currentSrc, gStrings.mediaAudio, "", elem, false);
   else if (elem instanceof HTMLLinkElement)
   {
     if (elem.rel)
@@ -926,6 +931,7 @@ function makePreview(row)
   var url = gImageView.getCellText(row, col);
   // image-bg
   var isBG = gImageView.data[row][COL_IMAGE_BG];
+  var isAudio = false;
 
   setItemValue("imageurltext", url);
 
@@ -1052,8 +1058,8 @@ function makePreview(row)
   if (/^data:/.test(url) && isImageType)
     isProtocolAllowed = true;
 
-  var newImage = new Image();
-  newImage.setAttribute("id", "thepreviewimage");
+  var newImage = new Image;
+  newImage.id = "thepreviewimage";
   var physWidth = 0, physHeight = 0;
   var width = 0, height = 0;
 
@@ -1092,6 +1098,28 @@ function makePreview(row)
     document.getElementById("theimagecontainer").collapsed = false
     document.getElementById("brokenimagecontainer").collapsed = true;
   }
+  else if (item instanceof HTMLVideoElement && isProtocolAllowed) {
+    newImage = document.createElementNS("http://www.w3.org/1999/xhtml", "video");
+    newImage.id = "thepreviewimage";
+    newImage.mozLoadFrom(item);
+    newImage.controls = true;
+    width = physWidth = item.videoWidth;
+    height = physHeight = item.videoHeight;
+
+    document.getElementById("theimagecontainer").collapsed = false
+    document.getElementById("brokenimagecontainer").collapsed = true;
+  }
+  else if (item instanceof HTMLAudioElement && isProtocolAllowed) {
+    newImage = new Audio;
+    newImage.id = "thepreviewimage";
+    newImage.src = url;
+    newImage.controls = true;
+    newImage.preload = "metadata";
+    isAudio = true;
+
+    document.getElementById("theimagecontainer").collapsed = false
+    document.getElementById("brokenimagecontainer").collapsed = true;
+  }
   else {
     // fallback image for protocols not allowed (e.g., data: or javascript:)
     // or elements not [yet] handled (e.g., object, embed).
@@ -1100,7 +1128,7 @@ function makePreview(row)
   }
 
   var imageSize = "";
-  if (url)
+  if (url && !isAudio)
     imageSize = gBundle.getFormattedString("mediaSize",
                                            [formatNumber(width),
                                             formatNumber(height)]);
