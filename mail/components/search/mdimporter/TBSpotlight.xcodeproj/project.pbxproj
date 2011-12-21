@@ -116,7 +116,7 @@
 			);
 			dependencies = (
 			);
-			name = Thunderbird;
+			name = thunderbird;
 			productInstallPath = /Library/Spotlight;
 			productName = TBSpotlight;
 			productReference = 8D576316048677EA00EA77CD /* Thunderbird.mdimporter */;
@@ -204,7 +204,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = /Library/Spotlight;
 				LIBRARY_STYLE = Bundle;
-				PRODUCT_NAME = Thunderbird;
+				PRODUCT_NAME = thunderbird;
 				WRAPPER_EXTENSION = mdimporter;
 				ZERO_LINK = YES;
 			};
@@ -223,7 +223,7 @@
 				INFOPLIST_FILE = Info.plist;
 				INSTALL_PATH = /Library/Spotlight;
 				LIBRARY_STYLE = Bundle;
-				PRODUCT_NAME = Thunderbird;
+				PRODUCT_NAME = thunderbird;
 				WRAPPER_EXTENSION = mdimporter;
 			};
 			name = Release;

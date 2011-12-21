@@ -343,6 +343,7 @@ res/html/gopher-text.gif
 res/html/gopher-unknown.gif
 @DLL_PREFIX@sqlite3@DLL_SUFFIX@
 #ifdef XP_MACOSX
+  ../Library/Spotlight/Thunderbird.mdimporter/Contents/MacOS/Thunderbird
   Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/Info.plist
   Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/MacOS/Thunderbird
   Thunderbird.app/Contents/Library/Spotlight/Thunderbird.mdimporter/Contents/Resources/schema.xml

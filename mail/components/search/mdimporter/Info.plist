@@ -20,7 +20,7 @@
 		</dict>
 	</array>
 	<key>CFBundleExecutable</key>
-	<string>Thunderbird</string>
+	<string>thunderbird</string>
 	<key>CFBundleIconFile</key>
 	<string>thunderbird</string>
 	<key>CFBundleIdentifier</key>

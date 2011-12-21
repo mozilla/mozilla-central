@@ -75,7 +75,7 @@ export::
 endif
 
 libs::
-	$(PBBUILD) $(PROJECT_ARG) -target Thunderbird -configuration Release $(PBBUILD_ARG)
+	$(PBBUILD) $(PROJECT_ARG) -target thunderbird -configuration Release $(PBBUILD_ARG)
 	mkdir -p $(DIST)/package
 	$(INSTALL) "$(XCODE_PRODUCT_DIR)/Thunderbird.mdimporter" $(DIST)/package
 
