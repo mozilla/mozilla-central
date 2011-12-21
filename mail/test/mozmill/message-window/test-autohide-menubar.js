@@ -72,7 +72,7 @@ function setupModule(module) {
 function set_autohide_menubar(controller, elem, hide) {
   let contextMenu = controller.getMenu("#toolbar-context-menu");
   contextMenu.open(new elib.Elem(elem));
-  let menuitem = contextMenu.getItem("menuitem[toolbarindex='0']");
+  let menuitem = contextMenu.getItem('menuitem[toolbarid="' + elem.id + '"]');
   if (menuitem.getNode().hasAttribute("checked") == hide) {
     // XXX Hack around the fact that calling click doesn't toggle the checked
     // state (bug 670829, bug 670830).

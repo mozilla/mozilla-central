@@ -305,6 +305,7 @@ function onViewToolbarsPopupShowing(aEvent, toolboxIds)
         // Mark this menuitem with an iscollapsible attribute, so we
         // know we can wipe it out later on.
         menuItem.setAttribute("iscollapsible", true);
+        menuItem.setAttribute("toolbarid", toolbar.id);
         menuItem.setAttribute("label", toolbarName);
         menuItem.setAttribute("accesskey", toolbar.getAttribute("accesskey"));
         menuItem.setAttribute("checked",
