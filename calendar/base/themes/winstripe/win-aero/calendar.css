@@ -35,27 +35,27 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#task-actions-category {
-    list-style-image: url(chrome://calendar/skin/tasks-actions-aero.png);
-    -moz-image-region: rect(0 18px 18px 0);
+#task-actions-toolbar > #task-actions-category {
+  list-style-image: url(chrome://calendar/skin/tasks-actions-aero.png);
+  -moz-image-region: rect(0 18px 18px 0);
 }
 
-#task-actions-markcompleted {
-    list-style-image: url(chrome://calendar/skin/tasks-actions-aero.png);
-    -moz-image-region: rect(0 34px 18px 18px);
+#task-actions-toolbar > #task-actions-markcompleted {
+  list-style-image: url(chrome://calendar/skin/tasks-actions-aero.png);
+  -moz-image-region: rect(0 34px 18px 18px);
 }
 
-#task-actions-priority {
-    list-style-image: url(chrome://calendar/skin/tasks-actions-aero.png);
-    -moz-image-region: rect(0 52px 18px 34px);
+#task-actions-toolbar > #task-actions-priority {
+  list-style-image: url(chrome://calendar/skin/tasks-actions-aero.png);
+  -moz-image-region: rect(0 52px 18px 34px);
 }
 
-#calendar-delete-task-button {
-    list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
-    -moz-image-region: rect(0 144px 18px 126px);
+#task-actions-toolbar > #calendar-delete-task-button {
+  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
+  -moz-image-region: rect(0 144px 18px 126px);
 }
 
-#calendar-add-task-button {
+#task-actions-toolbar > #calendar-add-task-button {
   list-style-image: url(chrome://calendar/skin/toolbar-small-aero.png);
 }
 
@@ -91,11 +91,13 @@
   }
 
   #unifinder-search-results-tree > treechildren::-moz-tree-row,
-  #calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-row {
-    border-bottom: 2px solid transparent;
+  #calendar-task-box
+      #calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-row {
+    border-bottom: 1px solid transparent;
   }
 
-  #calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-cell {
+  #calendar-task-box
+      #calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-cell {
     border-right: 1px solid transparent;
   }
 }
@@ -164,8 +166,8 @@
 }
 
 #today-pane-splitter,
-#calendar-view-splitter,
-#calendar-task-view-splitter {
+#calendar-view-box #calendar-view-splitter,
+#calendar-task-box #calendar-task-view-splitter {
   border: none;
   border-bottom: 1px solid #A9B7C9;
   min-height: 0;
@@ -176,8 +178,13 @@
   z-index: 10;
 }
 
+#calendar-nav-control,
+#calendar-task-details-container {
+  border-top-width: 0 !important;
+}
+
 #today-pane-panel {
-  -moz-border-start-width: 0;
+  -moz-border-start-width: 0 !important;
 }
 
 @media all and (-moz-windows-compositor) {
@@ -216,7 +223,7 @@
 #event-toolbar {
   -moz-appearance: none;
   border-style: none;
-  background-color: transparent;
+  background-color: transparent
 }
 
 #event-toolbar[iconsize="small"] .toolbarbutton-1 .toolbarbutton-icon {

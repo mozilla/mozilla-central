@@ -46,7 +46,7 @@
 .tabmail-tab[type="tasks"],
 #lightning-button-calendar,
 #lightning-button-tasks {
-  list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png);
+  list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png) !important;
 }
 
 #lightning-button-calendar,
@@ -68,8 +68,8 @@
   margin: 1px;
 }
 
-#newMsgButton-calendar-menuitem,
-#newMsgButton-task-menuitem,
-#calendar-status-todaypane-button > stack > .toolbarbutton-icon-begin {
+#button-newmsg #newMsgButton-calendar-menuitem,
+#button-newmsg #newMsgButton-task-menuitem,
+#calendar-show-todaypane-panel > #calendar-status-todaypane-button > stack > .toolbarbutton-icon-begin {
   list-style-image: url(chrome://calendar/skin/toolbar-small-aero.png);
 }
