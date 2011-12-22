@@ -109,7 +109,7 @@ interface nsISmtpUrl : nsISupports {
   const PRInt32 DEFAULT_SMTPS_PORT = 465;
 };
 
-[scriptable, uuid(ef796f57-7128-4fc6-9002-6cba9eb19e73)]
+[scriptable, uuid(87c36c23-4bc2-4992-b338-69f88f6ed0a1)]
 interface nsIMailtoUrl : nsISupports {
   /**
    * mailto: parse specific getters
@@ -123,21 +123,21 @@ interface nsIMailtoUrl : nsISupports {
    * These items are in one function as we only ever get them from the one
    * place and all at the same time.
    */
-  void GetMessageContents(out ACString aToPart, out ACString aCcPart,
-                          out ACString aBccPart, out ACString aSubjectPart,
-                          out ACString aBodyPart, out ACString aHtmlPart,
+  void getMessageContents(out AUTF8String aToPart, out AUTF8String aCcPart,
+                          out AUTF8String aBccPart, out AUTF8String aSubjectPart,
+                          out AUTF8String aBodyPart, out AUTF8String aHtmlPart,
                           out ACString aReferencePart,
-                          out ACString aNewsgroupPart,
+                          out AUTF8String aNewsgroupPart,
                           out MSG_ComposeFormat aFormat);
 
   /**
    * These attributes are available should mailnews or extensions want them
    * but aren't used by standard in mailnews.
    */
-  readonly attribute ACString fromPart;
-  readonly attribute ACString followUpToPart;
-  readonly attribute ACString organizationPart;
-  readonly attribute ACString replyToPart;
-  readonly attribute ACString priorityPart;
-  readonly attribute ACString newsHostPart;
+  readonly attribute AUTF8String fromPart;
+  readonly attribute AUTF8String followUpToPart;
+  readonly attribute AUTF8String organizationPart;
+  readonly attribute AUTF8String replyToPart;
+  readonly attribute AUTF8String priorityPart;
+  readonly attribute AUTF8String newsHostPart;
 };

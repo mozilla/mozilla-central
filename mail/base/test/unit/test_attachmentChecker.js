@@ -63,20 +63,12 @@ function assert_equal(aA, aB, aWhy)
                                  unescape(encodeURIComponent(aB)) + ").");
 };
 
-function utf8_decode(s)
-{
-  return decodeURIComponent(escape(s));
-};
-
 /*
  * TESTS
  */
 
 function test_GetAttachmentKeywords(desc, mailData, keywords, expected)
 {
-  mailData = utf8_decode(mailData);
-  keywords = utf8_decode(keywords);
-  expected = utf8_decode(expected);
   let result = GetAttachmentKeywords(mailData, keywords);
   assert_equal(result, expected, desc + " not equal!");
 }

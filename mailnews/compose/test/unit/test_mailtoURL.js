@@ -15,7 +15,7 @@ function run_test() {
 
     var to = {}, cc = {}, bcc = {}, subject = {}, body = {}, html = {},
         reference = {}, newsgroup = {}, composeformat = {};
-    uri.GetMessageContents(to, cc, bcc, subject, body, html, reference,
+    uri.getMessageContents(to, cc, bcc, subject, body, html, reference,
                            newsgroup, composeformat);
     do_check_eq(aTest.to, to.value);
     do_check_eq(aTest.cc, cc.value);
@@ -43,8 +43,8 @@ function run_test() {
   let clonedUrl = uriToClone.clone().QueryInterface(Components.interfaces.nsIMailtoUrl);
   var to = {}, cc = {}, bcc = {}, subject = {}, body = {}, html = {},
       reference = {}, newsgroup = {}, composeformat = {};
-  clonedUrl.GetMessageContents(to, cc, bcc, subject, body, html, reference,
-                         newsgroup, composeformat);
+  clonedUrl.getMessageContents(to, cc, bcc, subject, body, html, reference,
+                               newsgroup, composeformat);
   do_check_eq(to.value, tests[0].to);
 };
 
@@ -754,5 +754,25 @@ const tests = [
     replyto: "",
     priority: "",
     newshost: ""
-  }
+  },
+  {
+    url: "mailto:%CE%B1?cc=%CE%B2&bcc=%CE%B3&subject=%CE%B4&body=%CE%B5" +
+         "&html-body=%CE%BE&newsgroups=%CE%B6&from=%CE%B7&followup-to=%CE%B8" +
+         "&organization=%CE%B9&reply-to=%CE%BA&priority=%CE%BB&newshost=%CE%BC",
+    to: "α",
+    cc: "β",
+    bcc: "γ",
+    subject: "δ",
+    body: "ε",
+    html: "ξ",
+    reference: "", // we expect this field to be ASCII-only
+    newsgroup: "ζ",
+    composeformat: COMPOSE_HTML,
+    from: "η",
+    followupto: "θ",
+    organization: "ι",
+    replyto: "κ",
+    priority: "λ",
+    newshost: "μ"
+  },
 ];
