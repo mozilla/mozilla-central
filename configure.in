@@ -4525,7 +4525,6 @@ MOZ_OFFICIAL_BRANDING=
 MOZ_CALENDAR=
 MOZ_FEEDS=1
 MOZ_INSTALLER=1
-MOZ_IPC=1
 MOZ_JSDEBUGGER=1
 MOZ_LDAP_XPCOM=
 MOZ_MORK=
@@ -5105,20 +5104,6 @@ MOZ_ARG_DISABLE_BOOL(jsd,
 [  --disable-jsd           Disable JavaScript debug library],
     MOZ_JSDEBUGGER=,
     MOZ_JSDEBUGGER=1)
-
-dnl ========================================================
-dnl = Disable IPC support for tabs and plugins
-dnl ========================================================
-MOZ_ARG_DISABLE_BOOL(ipc,
-[  --disable-ipc           Disable IPC supports for tabs and plugins],
-    MOZ_IPC=,
-    MOZ_IPC=1)
-
-if test -n "$MOZ_IPC"; then
-    AC_DEFINE(MOZ_IPC)
-fi
-
-AC_SUBST(MOZ_IPC)
 
 dnl ========================================================
 dnl = Disable plugin support
