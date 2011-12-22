@@ -355,7 +355,8 @@ function runTest(testNum) {
                           "context-copyvideourl",       true,
                           "---",                        null,
                           "context-savevideo",          true,
-                          "context-sendvideo",          true]);
+                          "context-sendvideo",          true,
+                          "context-video-saveimage",    true]);
         closeContextMenu();
         openContextMenuFor(video_bad); // Invoke context menu for next test.
         break;
@@ -373,7 +374,8 @@ function runTest(testNum) {
                           "context-copyvideourl",       true,
                           "---",                        null,
                           "context-savevideo",          true,
-                          "context-sendvideo",          true]);
+                          "context-sendvideo",          true,
+                          "context-video-saveimage",    false]);
         closeContextMenu();
         openContextMenuFor(video_bad2); // Invoke context menu for next test.
         break;
@@ -391,7 +393,8 @@ function runTest(testNum) {
                           "context-copyvideourl",       false,
                           "---",                        null,
                           "context-savevideo",          false,
-                          "context-sendvideo",          false]);
+                          "context-sendvideo",          false,
+                          "context-video-saveimage",    false]);
         closeContextMenu();
         openContextMenuFor(iframe); // Invoke context menu for next test.
         break;
