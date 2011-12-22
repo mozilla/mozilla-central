@@ -130,7 +130,8 @@
 </menupopup>
 
 <menupopup id="copyUrlPopup">
-  <menuitem label="&copyLinkCmd.label;" accesskey="&copyLinkCmd.accesskey;" oncommand="CopyWebsiteAddress(document.popupNode)"/>
+  <menuitem label="&copyLinkCmd.label;" accesskey="&copyLinkCmd.accesskey;" oncommand="CopyWebsiteAddress(document.popupNode);"/>
+  <menuitem label="&bookmarkLinkCmd.label;" accesskey="&bookmarkLinkCmd.accesskey;" oncommand="BookmarkWebsite(document.popupNode);"/>
 </menupopup>
 
 <hbox id="msgHeaderView" keywordrelated="true" originalclass="none" persist="state">

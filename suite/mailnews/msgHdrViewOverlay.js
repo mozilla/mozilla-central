@@ -1699,6 +1699,24 @@ function CopyWebsiteAddress(websiteAddressNode)
   }
 }
 
+function BookmarkWebsite(aWebsiteAddressNode)
+{
+  if (aWebsiteAddressNode)
+  {
+    let websiteAddress = aWebsiteAddressNode.getAttribute("value");
+
+    if (currentHeaderData && "content-base" in currentHeaderData)
+    {
+      let url = currentHeaderData["content-base"].headerValue;
+      if (url != websiteAddress)
+        return;
+
+      let title = currentHeaderData["subject"].headerValue;
+      PlacesUIUtils.showMinimalAddBookmarkUI(makeURI(url), title);
+    }
+  }
+}
+
 var attachmentAreaDNDObserver = {
   onDragStart: function (aEvent, aAttachmentData, aDragAction)
   {
