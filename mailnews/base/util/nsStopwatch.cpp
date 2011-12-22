@@ -139,7 +139,6 @@ double nsStopwatch::GetCPUTime()
   times(&cpt);
   return (double)(cpt.tms_utime+cpt.tms_stime) / gTicks;
 #elif defined(WIN32)
-
   FILETIME    ftCreate,       // when the process was created
               ftExit;         // when the process exited
 
@@ -161,6 +160,11 @@ double nsStopwatch::GetCPUTime()
 #ifdef MOZILLA_INTERNAL_API
   if (!ret)
     NS_ERROR(nsPrintfCString("GetProcessTimes() failed, error=0x%lx.", GetLastError()).get());
+#else
+  if (!ret) {
+    // nsPrintfCString() is unavailable to report GetLastError().
+    NS_ERROR("GetProcessTimes() failed.");
+  }
 #endif
 #endif
 
