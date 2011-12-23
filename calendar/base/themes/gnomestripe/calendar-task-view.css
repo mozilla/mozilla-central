@@ -85,14 +85,16 @@
 
 .task-details-name {
     text-align: right;
-    color: #888a85; /* lower contrast */
+    color: windowtext;
+    opacity: 0.5; /* lower contrast */
     background-color: transparent;
     border: none;
 }
 
 #calendar-task-details-grid > rows > .item-date-row > .headline {
     font-weight: normal;
-    color: #888a85; /* lower contrast */
+    color: windowtext;
+    opacity: 0.5; /* lower contrast */
 }
 
 #calendar-task-details-attachment-row {
