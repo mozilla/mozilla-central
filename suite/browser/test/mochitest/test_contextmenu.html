@@ -28,6 +28,10 @@ function openContextMenuFor(element, shiftkey) {
     // Context menu should be closed before we open it again.
     is(contextMenu.state, "closed", "checking if popup is closed");
 
+    if (lastElement)
+      lastElement.blur();
+    element.focus();
+    lastElement = element;
     var eventDetails = { type : "contextmenu", button : 2, shiftKey : shiftkey };
     synthesizeMouse(element, 2, 2, eventDetails, element.ownerDocument.defaultView);
 }
@@ -304,7 +308,7 @@ function runTest(testNum) {
                           "context-paste",       null, // ignore clipboard state
                           "context-delete",      false,
                           "---",                 null,
-                          "context-selectall",   true,
+                          "context-selectall",   false,
                           "---",                 null,
                           "spell-check-enabled", true]);
         closeContextMenu()
@@ -677,7 +681,7 @@ function runTest(testNum) {
 
 
 var testNum = 1;
-var subwindow, chromeWin, contextMenu;
+var subwindow, chromeWin, contextMenu, lastElement;
 var text, link, mailto, input, img, img_link, img_mailto, canvas, video_ok,
     video_bad, video_bad2, iframe, textarea, contenteditable, inputspell,
     pagemenu;
@@ -700,6 +704,8 @@ function startTest() {
       SimpleTest.executeSoon(startTest);
       return;
     }
+
+    lastElement = null;
 
     text       = subwindow.document.getElementById("test-text");
     link       = subwindow.document.getElementById("test-link");
