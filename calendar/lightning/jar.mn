@@ -55,8 +55,6 @@ lightning.jar:
     skin/lightning/suite-accountCentral.css                (themes/common/suite-accountCentral.css)
     skin/lightning/mode-switch-icons.png                   (themes/common/images/mode-switch-icons.png)
 #ifdef XP_WIN
-% style chrome://lightning/content/messenger-overlay-sidebar.xul chrome://lightning/skin/lightning-aero.css os=WINNT osversion>=6
-    skin/lightning/lightning-aero.css                      (themes/winstripe/lightning-aero.css)
     skin/lightning/mode-switch-icons-aero.png              (themes/winstripe/images/mode-switch-icons-aero.png)
 #endif
 
