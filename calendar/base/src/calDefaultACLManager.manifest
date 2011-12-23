@@ -1,0 +1,2 @@
+component {7463258c-6ef3-40a2-89a9-bb349596e927} calDefaultACLManager.js
+contract @mozilla.org/calendar/acl-manager;1?type=default {7463258c-6ef3-40a2-89a9-bb349596e927}

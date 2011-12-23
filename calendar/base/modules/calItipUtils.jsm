@@ -181,14 +181,18 @@ cal.itip = {
         }
         cal.LOG("iTIP method: " + imipMethod);
 
-        let writableCalendars = cal.getCalendarManager().getCalendars({}).filter(cal.itip.isSchedulingCalendar);
+        function isWritableCalendar(aCalendar) {
+            /* TODO: missing ACL check for existing items (require callback API) */
+            return (cal.itip.isSchedulingCalendar(aCalendar)
+                    && cal.userCanAddItemsToCalendar(aCalendar));
+        }
+        let writableCalendars = cal.getCalendarManager().getCalendars({}).filter(isWritableCalendar);
         if (writableCalendars.length > 0) {
             let compCal = Components.classes["@mozilla.org/calendar/calendar;1?type=composite"]
                                     .createInstance(Components.interfaces.calICompositeCalendar);
             writableCalendars.forEach(compCal.addCalendar, compCal);
             itipItem.targetCalendar = compCal;
         }
-
     },
 
     /**
@@ -439,7 +443,7 @@ cal.itip = {
             case "CANCEL":
                 needsCalendar = false;
                 break;
-            default: 
+            default:
                 needsCalendar = true;
                 break;
         }
@@ -480,7 +484,7 @@ cal.itip = {
             }
 
             if (targetCalendar) {
-              aItipItem.targetCalendar = targetCalendar;
+                aItipItem.targetCalendar = targetCalendar;
             }
         }
 
@@ -588,6 +592,17 @@ cal.itip = {
                                 aItem.calendar.isInvitation(aItem))
                                ? aItem.calendar.getInvitedAttendee(aItem) : null);
         if (invitedAttendee) { // actually is an invitation copy, fix attendee list to send REPLY
+            /* We check if the attendee id matches one of of the
+             * userAddresses. If they aren't equal, it means that
+             * someone is accepting invitations on behalf of an other user. */
+            if (aItem.calendar.aclEntry) {
+                let userAddresses = aItem.calendar.aclEntry.getUserAddresses({});
+                if (userAddresses.length > 0
+                    && !cal.attendeeMatchesAddresses(invitedAttendee, userAddresses)) {
+                    invitedAttendee.setProperty("SENT-BY", userAddresses[0]);
+                }
+            }
+
             if (aItem.organizer) {
                 let origInvitedAttendee = (aOriginalItem && aOriginalItem.getAttendeeById(invitedAttendee.id));
 

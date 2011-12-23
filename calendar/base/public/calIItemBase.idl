@@ -44,6 +44,7 @@ interface nsIVariant;
 
 interface nsIPropertyBag;
 
+interface calIItemACLEntry;
 interface calIAlarm;
 interface calIAttachment;
 interface calIAttendee;
@@ -94,6 +95,11 @@ interface calIItemBase : nsISupports
    * @return        true if both ids match, false otherwise
    */
   boolean hasSameIds(in calIItemBase aItem);
+
+  /**
+   * Returns the acl entry associated to the item.
+   */
+  readonly attribute calIItemACLEntry aclEntry;
 
   //
   // the generation number of this item

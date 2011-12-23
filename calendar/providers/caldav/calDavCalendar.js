@@ -85,6 +85,7 @@ function calDavCalendar() {
     // By default, support both events and todos.
     this.mGenerallySupportedItemTypes = ["VEVENT", "VTODO"];
     this.mSupportedItemTypes = this.mGenerallySupportedItemTypes.slice(0);
+    this.mACLProperties = {};
 }
 
 // some shorthand
@@ -449,6 +450,10 @@ calDavCalendar.prototype = {
     },
 
     getProperty: function caldav_getProperty(aName) {
+        if (aName in this.mACLProperties) {
+            return this.mACLProperties[aName];
+        }
+
         switch (aName) {
             case "organizerId":
                 if (this.calendarUserAddress) {
@@ -1245,7 +1250,37 @@ calDavCalendar.prototype = {
         }
     },
 
+    fillACLProperties: function caldav_fillACLProperties() {
+        this.mACLProperties["organizerId"] = this.calendarUserAddress;
+        if (this.mACLEntry && this.mACLEntry.hasAccessControl) {
+            let ownerIdentities = this.mACLEntry.getOwnerIdentities({});
+            if (ownerIdentities.length > 0) {
+                let identity = ownerIdentities[0];
+                this.mACLProperties["organizerId"] = identity.email;
+                this.mACLProperties["organizerCN"] = identity.fullName;
+                this.mACLProperties["imip.identity"] = identity;
+            }
+        }
+    },
+
     safeRefresh: function caldav_safeRefresh(aChangeLogListener) {
+        if (!this.mACLEntry) {
+            let thisCalendar = this;
+            let opListener = {
+                onGetResult: function(calendar, status, itemType, detail, count, items) {
+                    ASSERT(false, "unexpected!");
+                },
+                onOperationComplete: function(opCalendar, opStatus, opType, opId, opDetail) {
+                    thisCalendar.mACLEntry = opDetail;
+                    thisCalendar.fillACLProperties();
+                    thisCalendar.safeRefresh(aChangeLogListener);
+                }
+            };
+
+            this.aclManager.getCalendarEntry(this, opListener);
+            return;
+        }
+
         this.ensureTargetCalendar();
 
         if (this.mAuthScheme == "Digest") {
@@ -2040,6 +2075,11 @@ calDavCalendar.prototype = {
             this.saveCalendarProperties();
             this.mCheckedServerInfo = true;
             this.setProperty("currentStatus", Components.results.NS_OK);
+
+            // try to reread the ACLs
+            if (this.mACLEntry) {
+                this.mACLEntry.refresh();
+            }
 
             if (this.isCached) {
                 this.safeRefresh(aChangeLogListener);

@@ -75,6 +75,8 @@ calItemBase.prototype = {
     mRelations: null,
     mCategories: null,
 
+    mACLEntry: null,
+
     /**
      * Initialize the base item's attributes. Can be called from inheriting
      * objects in their constructor.
@@ -97,6 +99,22 @@ calItemBase.prototype = {
     /**
      * @see calIItemBase
      */
+    get aclEntry() {
+        let aclEntry = this.mACLEntry;
+        let aclManager = (this.calendar && this.calendar.superCalendar.aclManager);
+
+        if (!aclEntry && aclManager) {
+            this.mACLEntry = aclManager.getItemEntry(this);
+            aclEntry = this.mACLEntry;
+        }
+
+        if (!aclEntry && this.parentItem != this) {
+            // No ACL entry on this item, check the parent
+            aclEntry = this.parentItem.aclEntry;
+        }
+
+        return aclEntry;
+    },
 
     // readonly attribute AUTF8String hashId;
     get hashId() {
@@ -265,6 +283,7 @@ calItemBase.prototype = {
      */
     cloneItemBaseInto: function cIB_cloneItemBaseInto(m, aNewParent) {
         m.mImmutable = false;
+        m.mACLEntry = this.mACLEntry;
         m.mIsProxy = this.mIsProxy;
         m.mParentItem = (calTryWrappedJSObject(aNewParent) || this.mParentItem);
         m.mHashId = this.mHashId;
@@ -526,8 +545,7 @@ calItemBase.prototype = {
         if (this.mAttendees) {
             countObj.value = this.mAttendees.length;
             return this.mAttendees.concat([]); // clone
-        }
-        else {
+        } else {
             countObj.value = 0;
             return [];
         }
@@ -1093,17 +1111,19 @@ makeMemberAttr(calItemBase, "mProperties", null, "properties");
 function makeMemberAttr(ctor, varname, dflt, attr, asProperty) {
     // XXX handle defaults!
     var getter = function () {
-        if (asProperty)
+        if (asProperty) {
             return this.getProperty(varname);
-        else
+        } else {
             return (varname in this ? this[varname] : undefined);
+        }
     };
     var setter = function (v) {
         this.modify();
-        if (asProperty)
+        if (asProperty) {
             return this.setProperty(varname, v);
-        else
+        } else {
             return (this[varname] = v);
+        }
     };
     ctor.prototype.__defineGetter__(attr, getter);
     ctor.prototype.__defineSetter__(attr, setter);

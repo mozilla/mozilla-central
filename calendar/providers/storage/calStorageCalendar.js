@@ -1036,8 +1036,7 @@ calStorageCalendar.prototype = {
                 let newOfflineJournalFlag = cICL.OFFLINE_FLAG_MODIFIED_RECORD;
                 if (oldOfflineJournalFlag == cICL.OFFLINE_FLAG_CREATED_RECORD || oldOfflineJournalFlag == cICL.OFFLINE_FLAG_DELETED_RECORD) {
                     // Do nothing since a flag of "created" or "deleted" exists
-                }
-                else {
+                } else {
                     this_.setOfflineJournalFlag(aItem, newOfflineJournalFlag);
                 }
                 this_.notifyOperationComplete(aListener,
@@ -1062,8 +1061,7 @@ calStorageCalendar.prototype = {
                     // Delete item if flag is c
                     if (oldOfflineJournalFlag == cICL.OFFLINE_FLAG_CREATED_RECORD) {
                         this_.deleteItemById(aItem.id);
-                    }
-                    else if (oldOfflineJournalFlag == cICL.OFFLINE_FLAG_MODIFIED_RECORD) {
+                    } else if (oldOfflineJournalFlag == cICL.OFFLINE_FLAG_MODIFIED_RECORD) {
                         this_.setOfflineJournalFlag(aItem, cICL.OFFLINE_FLAG_DELETED_RECORD);
                     }
                 } else {
@@ -1659,9 +1657,9 @@ calStorageCalendar.prototype = {
 
         if (flags & CAL_ITEM_FLAG.HAS_ATTENDEES) {
             var selectItem = null;
-            if (item.recurrenceId == null)
+            if (item.recurrenceId == null) {
                 selectItem = this.mSelectAttendeesForItem;
-            else {
+            } else {
                 selectItem = this.mSelectAttendeesForItemWithRecurrenceId;
                 this.setDateParamHelper(selectItem.params, "recurrence_id", item.recurrenceId);
             }
@@ -1688,9 +1686,9 @@ calStorageCalendar.prototype = {
         var row;
         if (flags & CAL_ITEM_FLAG.HAS_PROPERTIES) {
             var selectItem = null;
-            if (item.recurrenceId == null)
+            if (item.recurrenceId == null) {
                 selectItem = this.mSelectPropertiesForItem;
-            else {
+            } else {
                 selectItem = this.mSelectPropertiesForItemWithRecurrenceId;
                 this.setDateParamHelper(selectItem.params, "recurrence_id", item.recurrenceId);
             }
@@ -1764,10 +1762,11 @@ calStorageCalendar.prototype = {
                             } catch (exc) {
                             }
                         } else {
-                            if (row.end_date)
+                            if (row.end_date) {
                                 ritem.untilDate = newDateTime(row.end_date, "UTC");
-                            else
+                            } else {
                                 ritem.untilDate = null;
+                            }
                         }
                         try {
                             ritem.interval = row.interval;
@@ -2311,10 +2310,11 @@ calStorageCalendar.prototype = {
                     } else if (calInstanceOf(ritem, Components.interfaces.calIRecurrenceRule)) {
                         ap.recur_type = ritem.type;
 
-                        if (ritem.isByCount)
+                        if (ritem.isByCount) {
                             ap.count = ritem.count;
-                        else
+                        } else {
                             ap.end_date = ritem.untilDate ? ritem.untilDate.nativeTime : null;
+                        }
 
                         ap.interval = ritem.interval;
 

@@ -556,6 +556,7 @@ cal.ProviderBase.prototype = {
 
     mID: null,
     mUri: null,
+    mACLEntry: null,
     mObservers: null,
     mProperties: null,
 
@@ -617,6 +618,21 @@ cal.ProviderBase.prototype = {
     },
     set name(aValue) {
         return this.setProperty("name", aValue);
+    },
+
+    // readonly attribute calICalendarACLManager aclManager;
+    get aclManager() {
+        const defaultACLProviderClass = "@mozilla.org/calendar/acl-manager;1?type=default";
+        let providerClass = this.getProperty("aclManagerClass");
+        if (!providerClass || !Components.classes[providerClass]) {
+            providerClass = defaultACLProviderClass;
+        }
+        return Components.classes[providerClass].getService(Components.interfaces.calICalendarACLManager);
+    },
+
+    // readonly attribute calICalendarACLEntry aclEntry;
+    get aclEntry() {
+        return this.mACLEntry;
     },
 
     // attribute calICalendar superCalendar;
@@ -833,20 +849,64 @@ cal.ProviderBase.prototype = {
 
     // calISchedulingSupport: Implementation corresponding to our iTIP/iMIP support
     isInvitation: function cPB_isInvitation(aItem) {
-        let id = this.getProperty("organizerId");
-        if (id) {
-            let org = aItem.organizer;
-            if (!org || (org.id.toLowerCase() == id.toLowerCase())) {
+        if (!this.mACLEntry || !this.mACLEntry.hasAccessControl) {
+            // No ACL support - fallback to the old method
+            let id = this.getProperty("organizerId");
+            if (id) {
+                let org = aItem.organizer;
+                if (!org || (org.id.toLowerCase() == id.toLowerCase())) {
+                    return false;
+                }
+                return (aItem.getAttendeeById(id) != null);
+            }
+            return false;
+        }
+
+        let org = aItem.organizer;
+        if (!org) {
+            // HACK
+            // if we don't have an organizer, this is perhaps because it's an exception
+            // to a recurring event. We check the parent item.
+            if (aItem.parentItem) {
+                org = aItem.parentItem.organizer;
+                if (!org) return false;
+            } else {
                 return false;
             }
-            return (aItem.getAttendeeById(id) != null);
         }
+
+        // We check if :
+        // - the organizer of the event is NOT within the owner's identities of this calendar
+        // - if the one of the owner's identities of this calendar is in the attendees
+        let ownerIdentities = this.mACLEntry.getOwnerIdentities({});
+        for (let i = 0; i < ownerIdentities.length; i++) {
+            let identity = "mailto:" + ownerIdentities[i].email.toLowerCase();
+            if (org.id.toLowerCase() == identity)
+                return false;
+
+            if (aItem.getAttendeeById(identity) != null)
+                return true;
+        }
+
         return false;
     },
 
     getInvitedAttendee: function cPB_getInvitedAttendee(aItem) {
         let id = this.getProperty("organizerId");
-        return (id ? aItem.getAttendeeById(id) : null);
+        let attendee = (id ? aItem.getAttendeeById(id) : null);
+
+        if (!attendee && this.mACLEntry && this.mACLEntry.hasAccessControl) {
+            let ownerIdentities = this.mACLEntry.getOwnerIdentities({});
+            if (ownerIdentities.length > 0) {
+                let identity;
+                for (let i = 0; !attendee && i < ownerIdentities.length; i++) {
+                    identity = "mailto:" + ownerIdentities[i].email.toLowerCase();
+                    attendee = aItem.getAttendeeById(identity);
+                }
+            }
+        }
+
+        return attendee;
     },
 
     canNotify: function cPB_canNotify(aMethod, aItem) {

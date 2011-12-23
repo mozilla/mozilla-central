@@ -315,6 +315,8 @@ function appendCalendarItems(aItem, aCalendarMenuParent, aCalendarToUse, aOnComm
         if (calendar.id == calendarToUse.id ||
             (calendar &&
              isCalendarWritable(calendar) &&
+             (userCanAddItemsToCalendar(calendar) ||
+              (calendar == aItem.calendar && userCanModifyItem(aItem))) &&
              isItemSupported(aItem, calendar))) {
             let menuitem = addMenuItem(aCalendarMenuParent, calendar.name, calendar.name);
             menuitem.calendar = calendar;

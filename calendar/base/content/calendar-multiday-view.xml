@@ -1723,8 +1723,10 @@
         <parameter name="aMouseY"/>
         <parameter name="aSnapInt"/>
         <body><![CDATA[
-          if (!isCalendarWritable(aOccurrence.calendar) ||
-              aOccurrence.calendar.getProperty("capabilities.events.supported") === false) {
+          if (!isCalendarWritable(aOccurrence.calendar)
+              || !userCanModifyItem(aOccurrence)
+              || (aOccurrence.calendar instanceof Components.interfaces.calISchedulingSupport && aOccurrence.calendar.isInvitation(aOccurrence))
+              || aOccurrence.calendar.getProperty("capabilities.events.supported") === false) {
               return;
           }
 

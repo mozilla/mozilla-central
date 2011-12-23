@@ -1925,6 +1925,12 @@ function updateCalendar() {
 
     gIsReadOnly = calendar.readOnly;
 
+    // We might have to change the organizer, let's see
+    if (window.organizer) {
+      window.organizer.id = calendar.getProperty("organizerId");
+      window.organizer.commonName = calendar.getProperty("organizerCN");
+    }
+
     if (!canNotifyAttendees(calendar, item) && calendar.getProperty("imip.identity")) {
         enableElement("notify-attendees-checkbox");
     } else {
@@ -2227,7 +2233,7 @@ function updateToDoStatus(status, passedInCompletedDate) {
           enableElement("percent-complete-textbox");
           enableElement("percent-complete-label");
           // if there isn't a completedDate, set it to the previous value
-          if (!completedDate) { 
+          if (!completedDate) {
               completedDate = oldCompletedDate;
           }
           break;
@@ -2293,6 +2299,19 @@ function saveItem() {
         }
     }
 
+    // We check if the organizerID is different from our
+    // calendar-user-address-set. The organzerID is the owner of the calendar.
+    // If it's different, that is because someone is acting on behalf of
+    // the organizer.
+    if (item.organizer && item.calendar.aclEntry) {
+        let userAddresses = item.calendar.aclEntry.getUserAddresses({});
+        if (userAddresses.length > 0
+            && !cal.attendeeMatchesAddresses(item.organizer, userAddresses)) {
+            let organizer = item.organizer.clone();
+            organizer.setProperty("SENT-BY", userAddresses[0]);
+            item.organizer = organizer;
+        }
+    }
     return item;
 }
 
@@ -2413,7 +2432,7 @@ function onCommandDeleteItem() {
             let newItem = window.calendarItem.parentItem.clone();
             newItem.recurrenceInfo.removeOccurrenceAt(window.calendarItem.recurrenceId);
 
-            window.opener.doTransaction("modify", newItem, newItem.calendar, 
+            window.opener.doTransaction("modify", newItem, newItem.calendar,
                                         window.calendarItem.parentItem, deleteListener);
         } else {
             window.opener.doTransaction("delete", window.calendarItem, window.calendarItem.calendar,

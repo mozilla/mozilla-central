@@ -38,6 +38,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource:///modules/iteratorUtils.jsm");
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 /**
@@ -82,10 +83,13 @@ function ltnInitMailIdentitiesRow() {
     }
 
     addMenuItem(menuPopup, ltnGetString("lightning", "imipNoIdentity"), "none");
-    var identities = getAccountManager().allIdentities;
-    for (var i = 0; i <  identities.Count(); ++i) {
-        var identity = identities.GetElementAt(i)
-                                 .QueryInterface(Components.interfaces.nsIMsgIdentity);
+    let identities;
+    if (gCalendar && gCalendar.aclEntry && gCalendar.aclEntry.hasAccessControl) {
+        identities = gCalendar.aclEntry.getOwnerIdentities({});
+    } else {
+        identities = cal.getAccountManager().allIdentities;
+    }
+    for each (let identity in fixIterator(identities, Components.interfaces.nsIMsgIdentity)) {
         addMenuItem(menuPopup, identity.identityName, identity.key);
     }
     try {

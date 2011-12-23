@@ -300,6 +300,73 @@ function isCalendarWritable(aCalendar) {
 }
 
 /**
+ * Check if the specified calendar is writable from an ACL point of view.
+ *
+ * @param aCalendar     The calendar to check
+ * @return              True if the calendar is writable
+ */
+function userCanAddItemsToCalendar(aCalendar) {
+    let aclEntry = aCalendar.aclEntry;
+    return (!aclEntry || !aclEntry.hasAccessControl || aclEntry.userIsOwner || aclEntry.userCanAddItems);
+}
+
+/**
+ * Check if the user can delete items from the specified calendar, from an ACL point of view.
+ *
+ * @param aCalendar     The calendar to check
+ * @return              True if the calendar is writable
+ */
+function userCanDeleteItemsFromCalendar(aCalendar) {
+    let aclEntry = aCalendar.aclEntry;
+    return (!aclEntry || !aclEntry.hasAccessControl || aclEntry.userIsOwner || aclEntry.userCanDeleteItems);
+}
+
+/**
+ * Check if the user can fully modify the specified item, from an ACL point of view.
+ * Note to be confused with the right to respond to an invitation, which is
+ * handled instead by userCanRespondToInvitation.
+ *
+ * @param aItem         The calendar item to check
+ * @return              True if the item is modifiable
+ */
+function userCanModifyItem(aItem) {
+    let aclEntry = aItem.aclEntry;
+    return (!aclEntry || !aclEntry.calendarEntry.hasAccessControl || aclEntry.calendarEntry.userIsOwner || aclEntry.userCanModify);
+}
+
+/**
+ * Check if the attendee object matches one of the addresses in the list. This
+ * is useful to determine whether the current user acts as a delegate.
+ *
+ * @param aAttendee     The reference attendee object
+ * @param addresses     The list of addresses
+ * @return              True if there is a match
+ */
+function attendeeMatchesAddresses(anAttendee, addresses) {
+    let attId = anAttendee.id.toLowerCase();
+    for each (let address in addresses) {
+        if (attId == address.toLowerCase()) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Check if the user can fully modify the specified item, from an ACL point of view.
+ * Note to be confused with the right to respond to an invitation, which is
+ * handled instead by userCanRespondToInvitation.
+ *
+ * @param aItem         The calendar item to check
+ * @return              True if the item is modifiable
+ */
+function userCanRespondToInvitation(aItem) {
+    let aclEntry = aItem.aclEntry;
+    return userCanModifyItem(aItem) || aclEntry.userCanRespond;
+}
+
+/**
  * Opens the Create Calendar wizard
  *
  * @param aCallback  a function to be performed after calendar creation

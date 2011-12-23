@@ -241,6 +241,12 @@ var compositeObserver = {
         // Update commands to disallow deleting the last calendar and only
         // allowing reload remote calendars when there are remote calendars.
         document.commandDispatcher.updateCommands("calendar_commands");
+    },
+
+    onDefaultCalendarChanged: function cO_onDefaultCalendarChanged(aNewCalendar) {
+        // A new default calendar may mean that the new calendar has different
+        // ACLs. Make sure the commands are updated.
+        document.commandDispatcher.updateCommands("calendar_commands");
     }
 };
 

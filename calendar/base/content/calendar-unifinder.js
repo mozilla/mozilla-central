@@ -661,6 +661,8 @@ var unifinderTreeView = {
         // If no items were passed, get the selected items from the view.
         aItemArray = aItemArray || currentView().getSelectedItems({});
 
+        calendarUpdateDeleteCommand(aItemArray);
+
         /**
          * The following is a brutal hack, caused by
          * http://lxr.mozilla.org/mozilla1.0/source/layout/xul/base/src/tree/src/nsTreeSelection.cpp#555

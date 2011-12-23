@@ -35,6 +35,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var CalendarDeleteCommandEnabled = false;
+var CalendarNewItemsCommandEnabled = false;
+
 /**
  * Command controller to execute calendar specific commands
  * @see nsICommandController
@@ -131,19 +134,19 @@ var calendarController = {
         switch (aCommand) {
             case "calendar_new_event_command":
             case "calendar_new_event_context_command":
-                return this.writable && this.calendars_support_events;
+                return CalendarNewItemsCommandEnabled && this.writable && this.calendars_support_events;
             case "calendar_modify_focused_item_command":
                 return this.item_selected;
             case "calendar_modify_event_command":
                 return this.item_selected;
             case "calendar_delete_focused_item_command":
-                return this.selected_items_writable;
+                return CalendarDeleteCommandEnabled && this.selected_items_writable;
             case "calendar_delete_event_command":
-                return this.selected_items_writable;
+                return CalendarDeleteCommandEnabled && this.selected_items_writable;
             case "calendar_new_todo_command":
             case "calendar_new_todo_context_command":
             case "calendar_new_todo_todaypane_command":
-                return this.writable && this.calendars_support_tasks;
+                return CalendarNewItemsCommandEnabled && this.writable && this.calendars_support_tasks;
             case "calendar_modify_todo_command":
             case "calendar_modify_todo_todaypane_command":
                  return this.todo_items_selected;
@@ -155,6 +158,8 @@ var calendarController = {
             case "calendar_task_filter_command":
                 return true;
             case "calendar_delete_todo_command":
+                if (!CalendarDeleteCommandEnabled)
+                    return false;
             case "calendar_toggle_completed_command":
             case "calendar_percentComplete-0_command":
             case "calendar_percentComplete-25_command":
@@ -461,11 +466,14 @@ var calendarController = {
                 return isSunbird() || (gCurrentMode && gCurrentMode == "calendar");
             case "task":
                 return !isSunbird() && (gCurrentMode && gCurrentMode == "task");
-       }
+        }
+        return false;
     },
 
     onSelectionChanged: function cC_onSelectionChanged(aEvent) {
         var selectedItems = aEvent.detail;
+
+        calendarUpdateDeleteCommand(selectedItems);
         calendarController.item_selected = selectedItems && (selectedItems.length > 0);
 
         let selLength = (selectedItems === undefined ? 0 : selectedItems.length);
@@ -934,5 +942,49 @@ function deleteSelectedItems() {
         deleteToDoCommand();
     } else if (calendarController.isInMode("calendar")) {
         deleteSelectedEvents();
+    }
+}
+
+function calendarUpdateNewItemsCommand() {
+    let oldValue = CalendarNewItemsCommandEnabled;
+
+    let commands = ["calendar_new_event_command",
+                    "calendar_new_event_context_command",
+                    "calendar_new_todo_command",
+                    "calendar_new_todo_context_command",
+                    "calendar_new_todo_todaypane_command"];
+
+    CalendarNewItemsCommandEnabled = false;
+    let cal = getSelectedCalendar();
+    if (cal && isCalendarWritable(cal) && userCanAddItemsToCalendar(cal)) {
+        CalendarNewItemsCommandEnabled = true;
+    }
+
+    if (CalendarNewItemsCommandEnabled != oldValue) {
+        for (let i = 0; i < commands.length; i++) {
+            goUpdateCommand(commands[i]);
+        }
+    }
+}
+
+function calendarUpdateDeleteCommand(selectedItems) {
+    let oldValue = CalendarDeleteCommandEnabled;
+    CalendarDeleteCommandEnabled = (selectedItems.length > 0);
+
+    for each (let calendar in selectedItems) {
+        if (!userCanDeleteItemsFromCalendar(calendar)) {
+            CalendarDeleteCommandEnabled = false;
+        }
+    }
+
+    if (CalendarDeleteCommandEnabled != oldValue) {
+        let commands = ["calendar_delete_event_command",
+                        "calendar_delete_todo_command",
+                        "calendar_delete_focused_item_command",
+                        "button_delete",
+                        "cmd_delete"];
+        for each (let command in commands) {
+            goUpdateCommand(command);
+        }
     }
 }

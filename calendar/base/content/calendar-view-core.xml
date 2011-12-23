@@ -373,7 +373,9 @@
             return;
         }
         let item = this.occurrence;
-        if (!isCalendarWritable(item.calendar)) {
+        if (!isCalendarWritable(item.calendar)
+            || !userCanModifyItem(item)
+            || (item.calendar instanceof Components.interfaces.calISchedulingSupport && item.calendar.isInvitation(item))) {
             return;
         }
         if (!this.selected)

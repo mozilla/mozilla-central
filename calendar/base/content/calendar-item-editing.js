@@ -38,6 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://calendar/modules/calAlarmUtils.jsm");
+Components.utils.import("resource://calendar/modules/calUtils.jsm");
 
 /**
  * Takes a job and makes sure the dispose function on it is called. If there is
@@ -285,21 +286,43 @@ function openEventDialog(calendarItem, calendar, mode, callback, job, initialDat
     // Filter out calendars that don't support the given calendar item
     calendars = calendars.filter(isItemSupported);
 
-    if (mode == "new" && calendars.length < 1 &&
-        (!isCalendarWritable(calendar) || !isItemSupported(calendar))) {
-        // There are no writable calendars or no calendar supports the given
-        // item. Don't show the dialog.
-        disposeJob(job);
-        return;
-    } else if (mode == "new" &&
-               (!isCalendarWritable(calendar) || !isItemSupported(calendar))) {
-        // Pick the first calendar that supports the item and is writable
-        calendar = calendars[0];
-        if (calendarItem) {
-            // XXX The dialog currently uses the items calendar as a first
-            // choice. Since we are shortly before a release to keep regression
-            // risk low, explicitly set the item's calendar here.
-            calendarItem.calendar = calendars[0];
+    // Filter out calendar/items that we cannot write to/modify
+    if (mode == "new") {
+        calendars = calendars.filter(userCanAddItemsToCalendar);
+    } else { /* modify */
+        function calendarCanModifyItems(aCalendar) {
+            /* If the calendar is the item calendar, we check that the item
+             * can be modified. If the calendar is NOT the item calendar, we
+             * check that the user can remove items from that calendar and
+             * add items to the current one.
+             */
+            return (((calendarItem.calendar != aCalendar)
+                     && userCanDeleteItemsFromCalendar(calendarItem.calendar)
+                     && userCanAddItemsToCalendar(aCalendar))
+                    || ((calendarItem.calendar == aCalendar)
+                        && userCanModifyItem(calendarItem)));
+        }
+        calendars = calendars.filter(calendarCanModifyItems);
+    }
+
+    if (mode == "new"
+        && (!isCalendarWritable(calendar)
+            || !userCanAddItemsToCalendar(calendar)
+            || !isItemSupported(calendar))) {
+        if (calendars.length < 1) {
+            // There are no writable calendars or no calendar supports the given
+            // item. Don't show the dialog.
+            disposeJob(job);
+            return;
+        } else  {
+            // Pick the first calendar that supports the item and is writable
+            calendar = calendars[0];
+            if (calendarItem) {
+                // XXX The dialog currently uses the items calendar as a first
+                // choice. Since we are shortly before a release to keep
+                // regression risk low, explicitly set the item's calendar here.
+                calendarItem.calendar = calendars[0];
+            }
         }
     }
 
@@ -330,12 +353,16 @@ function openEventDialog(calendarItem, calendar, mode, callback, job, initialDat
     if (calInstanceOf(calendar, Components.interfaces.calISchedulingSupport)) {
         isInvitation = calendar.isInvitation(calendarItem);
     }
-
     // open the dialog modeless
-    var url = "chrome://calendar/content/calendar-event-dialog.xul";
-    if ((mode != "new" && isInvitation) || !isCalendarWritable(calendar)) {
+    let url;
+    if (isCalendarWritable(calendar)
+        && (mode == "new"
+            || (mode == "modify" && !isInvitation && userCanModifyItem((calendarItem))))) {
+        url = "chrome://calendar/content/calendar-event-dialog.xul";
+    } else {
         url = "chrome://calendar/content/calendar-summary-dialog.xul";
     }
+
     openDialog(url, "_blank", "chrome,titlebar,resizable", args);
 }
 

@@ -51,6 +51,8 @@ interface nsIVariant;
 interface nsISimpleEnumerator;
 
 // forward decls for this file
+interface calICalendarACLManager;
+interface calICalendarACLEntry;
 interface calIObserver;
 interface calIOperationListener;
 interface calIRange;
@@ -88,7 +90,18 @@ interface calICalendar : nsISupports
    * the extension's id, otherwise null.
    */
   readonly attribute AString providerID;
-  
+
+  /**
+   * Returns the acl manager for the calendar, based on the "aclManagerClass"
+   * property. If this property is not defined, the default manager is used
+   */
+  readonly attribute calICalendarACLManager aclManager;
+
+  /**
+   * Returns the acl entry associated to the calendar.
+   */
+  readonly attribute calICalendarACLEntry aclEntry;
+
   /**
    * Multiple calendar instances may be composited, logically acting as a
    * single calendar, e.g. for caching puorposing.

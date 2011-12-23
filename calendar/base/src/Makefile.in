@@ -74,6 +74,8 @@ EXTRA_COMPONENTS = \
     calItemModule.js \
     calTimezoneService.manifest \
     calTimezoneService.js \
+    calDefaultACLManager.js \
+    calDefaultACLManager.manifest \
     $(NULL)
 
 EXTRA_SCRIPTS = \

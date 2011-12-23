@@ -1,0 +1,121 @@
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Inverse Inc. code.
+ *
+ * The Initial Developers of the Original Code are
+ *   Wolfgang Sourdeau <wsourdeau@inverse.ca>
+ * Portions created by the Initial Developer are Copyright (C) 2011
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
+#include "nsISupports.idl"
+
+interface nsIMsgIdentity;
+interface nsIURI;
+
+interface calICalendar;
+interface calIItemBase;
+interface calIOperationListener;
+
+interface calIItemACLEntry;
+
+/**
+ */
+[scriptable, uuid(a64bd8a0-e9f0-4f64-928a-1c98861e4703)]
+interface calICalendarACLManager : nsISupports
+{
+    /* Gets the calICalendarACLEntry of the current user for the specified
+       calendar. */
+    void getCalendarEntry(in calICalendar aCalendar,
+                          in calIOperationListener aListener);
+
+    /* Gets the calIItemACLEntry of the current user for the specified
+       calendar item. Depending on the implementation, each item can have
+       different permissions based on specific attributes.
+       (TODO: should be made asynchronous one day) */
+    calIItemACLEntry getItemEntry(in calIItemBase aItem);
+};
+
+[scriptable, uuid(f3da7954-52a4-45a9-bd7d-96c518133d0c)]
+interface calICalendarACLEntry : nsISupports
+{
+    /* The calICalendarACLManager instance that generated this entry. */
+    readonly attribute calICalendarACLManager aclManager;
+
+    /* Whether the underlying calendar does have access control. */
+    readonly attribute boolean hasAccessControl;
+
+    /* Whether the user accessing the calendar is its owner. */
+    readonly attribute boolean userIsOwner;
+
+    /* Whether the user accessing the calendar can add items to it. */
+    readonly attribute boolean userCanAddItems;
+
+    /* Whether the user accessing the calendar can remove items from it. */
+    readonly attribute boolean userCanDeleteItems;
+
+    /* Returns the list of user ids matching the user accessing the
+       calendar. */
+    void getUserAddresses(out PRUint32 aCount,
+                          [array, size_is(aCount), retval] out AUTF8String aAddresses);
+
+    /* Returns the list of instantiated identities for the user accessing the
+       calendar. */
+    void getUserIdentities(out PRUint32 aCount,
+                           [array, size_is(aCount), retval] out nsIMsgIdentity aIdentities);
+    /* Returns the list of instantiated identities for the user representing
+       the calendar owner. */
+    void getOwnerIdentities(out PRUint32 aCount,
+                            [array, size_is(aCount), retval] out nsIMsgIdentity aIdentities);
+
+    /* Helper method that forces a cleanup of any cache and a reload of the
+       current entry.
+       (TODO: should be made asynchronous one day) */
+    void refresh();
+};
+
+[scriptable, uuid(4d0b7ced-8c57-4efa-87e7-8dd5b7481312)]
+interface calIItemACLEntry : nsISupports
+{
+    /* The parent calICalendarACLEntry instance. */
+    readonly attribute calICalendarACLEntry calendarEntry;
+
+    /* Whether the active user can fully modify the item. */
+    readonly attribute boolean userCanModify;
+
+    /* Whether the active user can respond to this item, if it is an invitation. */
+    readonly attribute boolean userCanRespond;
+
+    /* Whether the active user can view all the item properties. */
+    readonly attribute boolean userCanViewAll;
+
+    /* Whether the active user can only see when this item occurs without
+       knowing any details. */
+    readonly attribute boolean userCanViewDateAndTime;
+};
