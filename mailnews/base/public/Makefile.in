@@ -105,6 +105,7 @@ XPIDLSRCS	= \
 		nsIStopwatch.idl \
 		nsIMsgUserFeedbackListener.idl \
 		nsIMsgAsyncPrompter.idl \
+		nsIMsgPluggableStore.idl \
 		$(NULL)
 
 include $(topsrcdir)/config/rules.mk

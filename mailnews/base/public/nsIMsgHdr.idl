@@ -84,7 +84,11 @@ interface nsIMsgDBHdr : nsISupports
     attribute unsigned long messageSize;
     attribute unsigned long lineCount;
     attribute unsigned long statusOffset;
-    /// The offset into the local folder/offline store of the message.
+    /**
+     * The offset into the local folder/offline store of the message. This
+     * will be pluggable store-dependent, e.g., for mail dir it should
+     * always be 0.
+     */
     attribute unsigned long long messageOffset;
     attribute unsigned long offlineMessageSize;
     /* common headers */

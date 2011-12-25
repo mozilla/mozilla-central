@@ -107,18 +107,18 @@ function createMessage(folding, input) {
   msgCompose.initialize(params);
   var identity = getSmtpIdentity(null, gSmtpServer);
 
-  var rootFolder = gLocalIncomingServer.rootMsgFolder;
   gDraftFolder = null;
   // Make sure the drafts folder is empty
   try {
-    gDraftFolder = rootFolder.getChildNamed("Drafts");
+    gDraftFolder = gLocalRootFolder.getChildNamed("Drafts");
     // try to delete
-    rootFolder.propagateDelete(gDraftFolder, true, null);
-  } catch (e) {
+    gLocalRootFolder.propagateDelete(gDraftFolder, true, null);
+  } catch (ex) {
+      dump(ex + " didn't find drafts folder\n");
     // we don't have to remove the folder because it doen't exist yet
   }
   // Create a new, empty drafts folder
-  gDraftFolder = rootFolder.createLocalSubfolder("Drafts");
+  gDraftFolder = gLocalRootFolder.createLocalSubfolder("Drafts");
 
   var attachment = Cc["@mozilla.org/messengercompose/attachment;1"]
                      .createInstance(Ci.nsIMsgAttachment);
@@ -134,10 +134,10 @@ function createMessage(folding, input) {
 }
 
 function checkAttachment(expectedCD, expectedCT) {
-  var fileData = loadFileToString(gDraftFolder.filePath);
-  var pos = fileData.indexOf("Content-Disposition:");
+  let msgData = loadMessageToString(gDraftFolder, firstMsgHdr(gDraftFolder));
+  let pos = msgData.indexOf("Content-Disposition:");
   do_check_neq(pos, -1);
-  var contentDisposition = fileData.substr(pos);
+  let contentDisposition = msgData.substr(pos);
   pos = 0;
   do {
     pos = contentDisposition.indexOf("\n", pos);
@@ -147,15 +147,15 @@ function checkAttachment(expectedCD, expectedCT) {
   contentDisposition = contentDisposition.substr(0, pos);
   do_check_eq(contentDisposition, expectedCD);
 
-  pos = fileData.indexOf("Content-Type:"); // multipart
+  pos = msgData.indexOf("Content-Type:"); // multipart
   do_check_neq(pos, -1);
-  fileData = fileData.substr(pos + 13);
-  pos = fileData.indexOf("Content-Type:"); // body
+  msgData = msgData.substr(pos + 13);
+  pos = msgData.indexOf("Content-Type:"); // body
   do_check_neq(pos, -1);
-  fileData = fileData.substr(pos + 13);
-  pos = fileData.indexOf("Content-Type:"); // first attachment
+  msgData = msgData.substr(pos + 13);
+  pos = msgData.indexOf("Content-Type:"); // first attachment
   do_check_neq(pos, -1);
-  var contentType = fileData.substr(pos);
+  var contentType = msgData.substr(pos);
   pos = 0;
   do {
     pos = contentType.indexOf("\n", pos);

@@ -51,11 +51,13 @@
 
 class nsLocalUndoFolderListener;
 
-class nsLocalMoveCopyMsgTxn : public nsMsgTxn
+class nsLocalMoveCopyMsgTxn : public nsIFolderListener, public nsMsgTxn
 {
 public:
     nsLocalMoveCopyMsgTxn();
     virtual ~nsLocalMoveCopyMsgTxn();
+    NS_DECL_ISUPPORTS_INHERITED
+    NS_DECL_NSIFOLDERLISTENER
 
     // overloading nsITransaction methods
     NS_IMETHOD UndoTransaction(void);
@@ -70,12 +72,17 @@ public:
     nsresult GetSrcIsImap(bool *isImap);
     nsresult SetDstFolder(nsIMsgFolder* dstFolder);
     nsresult Init(nsIMsgFolder* srcFolder,
-          nsIMsgFolder* dstFolder,
-          bool isMove);
+                  nsIMsgFolder* dstFolder, bool isMove);
     nsresult UndoImapDeleteFlag(nsIMsgFolder* aFolder,
                                 nsTArray<nsMsgKey>& aKeyArray,
                                 bool deleteFlag);
     nsresult UndoTransactionInternal();
+    // If the store using this undo transaction can "undelete" a message,
+    // it will call this function on the transaction; This makes undo/redo
+    // easy because message keys don't change after undo/redo. Otherwise,
+    // we need to adjust the src or dst keys after every undo/redo action
+    // to note the new keys.
+    void SetCanUndelete(bool canUndelete) {m_canUndelete = canUndelete;}
 
 private:
     nsWeakPtr m_srcFolder;
@@ -85,7 +92,11 @@ private:
     nsTArray<nsMsgKey> m_dstKeyArray;
     bool m_isMove;
     bool m_srcIsImap4;
+    bool m_canUndelete;
     nsTArray<PRUint32> m_dstSizeArray;
+    bool m_undoing; // if false, re-doing
+    PRInt32 m_numHdrsCopied;
+    nsTArray<nsCString> m_copiedMsgIds;
     nsLocalUndoFolderListener *mUndoFolderListener;
 };
 

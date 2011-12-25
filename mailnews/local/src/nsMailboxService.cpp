@@ -348,7 +348,7 @@ NS_IMETHODIMP nsMailboxService::StreamHeaders(const char *aMessageURI,
     return NS_MSG_MESSAGE_NOT_FOUND;
 
   nsCOMPtr<nsIInputStream> inputStream;
-  PRUint64 messageOffset;
+  PRInt64 messageOffset;
   PRUint32 messageSize;
   rv = folder->GetOfflineFileStream(msgKey, &messageOffset, &messageSize, getter_AddRefs(inputStream));
   NS_ENSURE_SUCCESS(rv, rv);

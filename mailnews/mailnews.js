@@ -478,6 +478,10 @@ pref("mail.server.default.offline_download",true);
 // -1 means no limit, no purging of offline stores.
 pref("mail.server.default.autosync_max_age_days", -1);
 
+// This is the default store contractID for newly created servers.
+// We don't use mail.server.default because we want to ensure that the
+// store contract id is always written out to prefs.js
+pref("mail.serverDefaultStoreContractID", "@mozilla.org/msgstore/berkeleystore;1");
 // the probablilty threshold over which messages are classified as junk
 // this number is divided by 100 before it is used. The classifier can be fine tuned
 // by changing this pref. Typical values are .99, .95, .90, .5, etc.
@@ -792,13 +796,13 @@ pref("mailnews.mx_service_url", "https://live.mozillamessaging.com/dns/mx/");
 //                     copied to the new nsIMsgHdr when a message is copied.
 //                     Allows extensions to control preservation of properties.
 pref("mailnews.database.summary.dontPreserveOnCopy",
-  "account msgOffset threadParent msgThreadId statusOfset flags size numLines ProtoThreadFlags label gloda-id gloda-dirty");
+  "account msgOffset threadParent msgThreadId statusOfset flags size numLines ProtoThreadFlags label gloda-id gloda-dirty storeToken");
 
 // dontPreserveOnMove: a space separated list of properties that are not
 //                     copied to the new nsIMsgHdr when a message is moved.
 //                     Allows extensions to control preservation of properties.
 pref("mailnews.database.summary.dontPreserveOnMove",
-  "account msgOffset threadParent msgThreadId statusOfset flags size numLines ProtoThreadFlags label");
+  "account msgOffset threadParent msgThreadId statusOfset flags size numLines ProtoThreadFlags label storeToken");
 
 // -- Global Database (gloda) options
 // Should the indexer be enabled?

@@ -182,14 +182,6 @@ function run_test()
  * helper functions
  */
 
-// get the first message header found in a folder
-function firstMsgHdr(folder) {
-  let enumerator = folder.messages;
-  if (enumerator.hasMoreElements())
-    return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
-  return null;
-}
-
 // given a test file, return the file uri spec
 function specForFileName(aFileName)
 {

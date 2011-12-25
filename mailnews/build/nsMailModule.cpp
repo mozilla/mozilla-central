@@ -128,6 +128,8 @@
 #include "nsCidProtocolHandler.h"
 #include "nsRssIncomingServer.h"
 #include "nsRssService.h"
+#include "nsMsgBrkMBoxStore.h"
+#include "nsMsgMaildirStore.h"
 #include "nsMsgTagService.h"
 #include "nsMsgFolderNotificationService.h"
 #include "nsMailDirProvider.h"
@@ -648,6 +650,8 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMovemailIncomingServer)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMovemailService)
 #endif /* HAVE_MOVEMAIL */
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsNoIncomingServer)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgBrkMBoxStore)
+NS_GENERIC_FACTORY_CONSTRUCTOR(nsMsgMaildirStore)
 
 NS_DEFINE_NAMED_CID(NS_MAILBOXURL_CID);
 NS_DEFINE_NAMED_CID(NS_MAILBOXSERVICE_CID);
@@ -667,6 +671,8 @@ NS_DEFINE_NAMED_CID(NS_NOINCOMINGSERVER_CID);
 NS_DEFINE_NAMED_CID(NS_PARSEMAILMSGSTATE_CID);
 NS_DEFINE_NAMED_CID(NS_RSSSERVICE_CID);
 NS_DEFINE_NAMED_CID(NS_RSSINCOMINGSERVER_CID);
+NS_DEFINE_NAMED_CID(NS_BRKMBOXSTORE_CID);
+NS_DEFINE_NAMED_CID(NS_MAILDIRSTORE_CID);
 
 ////////////////////////////////////////////////////////////////////////////////
 // msgdb factories
@@ -955,6 +961,8 @@ const mozilla::Module::CIDEntry kMailNewsCIDs[] = {
   { &kNS_PARSEMAILMSGSTATE_CID, false, NULL, nsParseMailMessageStateConstructor },
   { &kNS_RSSSERVICE_CID, false, NULL, nsRssServiceConstructor },
   { &kNS_RSSINCOMINGSERVER_CID, false, NULL, nsRssIncomingServerConstructor },
+  { &kNS_BRKMBOXSTORE_CID, false, NULL, nsMsgBrkMBoxStoreConstructor },
+  { &kNS_MAILDIRSTORE_CID, false, NULL, nsMsgMaildirStoreConstructor },
   // msgdb Entries
   { &kNS_MAILDB_CID, false, NULL, nsMailDatabaseConstructor },
   { &kNS_NEWSDB_CID, false, NULL, nsNewsDatabaseConstructor },
@@ -1165,6 +1173,8 @@ const mozilla::Module::ContractIDEntry kMailNewsContracts[] = {
 #ifdef HAVE_MOVEMAIL
   { NS_MOVEMAILINCOMINGSERVER_CONTRACTID, &kNS_MOVEMAILINCOMINGSERVER_CID },
 #endif /* HAVE_MOVEMAIL */
+  { NS_BRKMBOXSTORE_CONTRACTID, &kNS_BRKMBOXSTORE_CID },
+  { NS_MAILDIRSTORE_CONTRACTID, &kNS_MAILDIRSTORE_CID },
   { NS_NOINCOMINGSERVER_CONTRACTID, &kNS_NOINCOMINGSERVER_CID },
   { NS_PARSEMAILMSGSTATE_CONTRACTID, &kNS_PARSEMAILMSGSTATE_CID },
   { NS_RSSSERVICE_CONTRACTID, &kNS_RSSSERVICE_CID },

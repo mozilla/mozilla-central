@@ -136,7 +136,7 @@ interface nsMsgDBCommitType
  * The contract ID for this component is
  * <tt>\@mozilla.org/msgDatabase/msgDBService;1</tt>.
  */
-[scriptable, uuid(6ddaeb28-0499-4be1-85f7-7a5d20f80256)]
+[scriptable, uuid(09f52152-a3b7-4b89-935d-4033cbaea7e0)]
 interface nsIMsgDBService : nsISupports
 {
   /**
@@ -221,6 +221,7 @@ interface nsIMsgDBService : nsISupports
    * method is needed.
    *
    * @param aFile           The file for which the database should be returned.
+   * @param aFolder         Folder the db corresponds to (may be null)
    * @param aCreate         Whether or not the file should be created.
    * @param aLeaveInvalidDB Whether or not the database should be deleted if it
    *                        is invalid.
@@ -232,6 +233,7 @@ interface nsIMsgDBService : nsISupports
    * @see nsIMsgDatabase::Open
    */
   nsIMsgDatabase openMailDBFromFile(in nsILocalFile aFile,
+                                    in nsIMsgFolder aFolder,
                                     in boolean aCreate,
                                     in boolean aLeaveInvalidDB);
   /**
@@ -266,26 +268,8 @@ interface nsIMsgDBService : nsISupports
   nsIMsgDatabase cachedDBForFolder(in nsIMsgFolder aFolder);
 };
 
-[scriptable, uuid(19719187-6a85-4807-aeb6-421115240ba1)]
+[scriptable, uuid(a3cd60ac-d279-4521-8880-2e7723315cba)]
 interface nsIMsgDatabase : nsIDBChangeAnnouncer {
-  /**
-   * Opens a database folder.
-   *
-   * @param aFolderName     The name of the folder to create.
-   * @param aCreate         Whether or not the file should be created.
-   * @param aLeaveInvalidDB Set to true if you do not want the database to be
-   *                        deleted if it is invalid.
-   * @exception NS_ERROR_FILE_TARGET_DOES_NOT_EXIST
-   *                        The file could not be created.
-   * @exception NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE
-   *                        The database is present (and was opened), but the
-   *                        summary file is out of date.
-   * @exception NS_MSG_ERROR_FOLDER_SUMMARY_MISSING
-   *                        The database is present (and was opened), but the
-   *                        summary file is missing.
-   */
-  void Open(in nsILocalFile aFolderName, in boolean aCreate,
-            in boolean aLeaveInvalidDB);
   void forceFolderDBClosed(in nsIMsgFolder aFolder);
   void Close(in boolean aForceCommit);
 
@@ -305,10 +289,15 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
   //Returns whether or not this database contains the given key
   boolean ContainsKey(in nsMsgKey key);
 
-   // Must call AddNewHdrToDB after creating. The idea is that you create
-  // a new header, fill in its properties, and then call AddNewHdrToDB.
-  // AddNewHdrToDB will send notifications to any listeners.
-  nsIMsgDBHdr CreateNewHdr(in nsMsgKey key);
+/**
+ * Must call AddNewHdrToDB after creating. The idea is that you create
+ * a new header, fill in its properties, and then call AddNewHdrToDB.
+ * AddNewHdrToDB will send notifications to any listeners.
+ *
+ * @param aKey msgKey for the new header. If aKey is nsMsgKey_None,
+ *             we will auto-assign a new key.
+ */
+  nsIMsgDBHdr CreateNewHdr(in nsMsgKey aKey);
 
   void AddNewHdrToDB(in nsIMsgDBHdr newHdr, in boolean notify);
 
@@ -550,10 +539,6 @@ interface nsIMsgDatabase : nsIDBChangeAnnouncer {
 
   // for msg hdr hash table allocation. controllable by caller to improve folder loading preformance.
   attribute unsigned long msgHdrCacheSize;
-
-  // this is used to cache the folder stream the db reads and write. It's also an
-  // nsIInputStream, and nsISeekable.
-  attribute nsIOutputStream folderStream;
 
   /**
    * The list of messages currently in the NEW state.

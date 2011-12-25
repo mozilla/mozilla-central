@@ -51,6 +51,7 @@
 #include "nsISpamSettings.h"
 #include "nsIMsgFilterPlugin.h"
 #include "nsDataHashtable.h"
+#include "nsIMsgPluggableStore.h"
 
 class nsIMsgFolderCache;
 class nsIMsgProtocolInfo;
@@ -88,7 +89,11 @@ protected:
   nsCOMPtr <nsIMsgFolder> m_rootFolder;
   nsCOMPtr <nsIMsgDownloadSettings> m_downloadSettings;
 
-  nsresult CreateLocalFolder(nsIFile *path, const nsACString& folderName);
+  // For local servers, where we put messages. For imap/pop3, where we store
+  // offline messages.
+  nsCOMPtr <nsIMsgPluggableStore> m_msgStore;
+
+  nsresult CreateLocalFolder(const nsAString& folderName);
   nsresult GetDeferredServers(nsIMsgIncomingServer *server, nsISupportsArray **_retval);
 
   nsresult CreateRootFolder();

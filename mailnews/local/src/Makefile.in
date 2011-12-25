@@ -61,6 +61,9 @@ CPPSRCS		= \
 		nsMailboxService.cpp \
 		nsPop3Service.cpp \
 		nsMailboxServer.cpp \
+		nsMsgBrkMBoxStore.cpp \
+		nsMsgLocalStoreUtils.cpp \
+		nsMsgMaildirStore.cpp \
 		nsPop3IncomingServer.cpp \
 		nsLocalUtils.cpp \
 		nsLocalUndoTxn.cpp \

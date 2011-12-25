@@ -105,7 +105,7 @@ public:
   nsCOMPtr<nsIMsgDatabase> m_backupMailDB;
 
   nsMailboxParseState   m_state;
-  PRUint64              m_position;
+  PRInt64              m_position;
   PRUint64              m_envelope_pos;
   PRUint64              m_headerstartpos;
 
@@ -174,6 +174,7 @@ public:
   nsMsgMailboxParser(nsIMsgFolder *);
   nsMsgMailboxParser();
   virtual ~nsMsgMailboxParser();
+  nsresult Init();
 
   bool    IsRunningUrl() { return m_urlInProgress;} // returns true if we are currently running a url and false otherwise...
   NS_DECL_ISUPPORTS_INHERITED
@@ -201,6 +202,7 @@ public:
 
   // Update the progress bar based on what we know.
   virtual void    UpdateProgressPercent ();
+  virtual void OnNewMessage(nsIMsgWindow *msgWindow);
 
 protected:
   nsCOMPtr<nsIMsgStatusFeedback> m_statusFeedback;
@@ -223,8 +225,8 @@ private:
   // to ::StopBinding and it is set whenever we call Load on a url
   bool      m_urlInProgress;
   nsWeakPtr m_folder;
-  void Init();
   void ReleaseFolderLock();
+  nsresult AcquireFolderLock();
 
 };
 
@@ -235,8 +237,12 @@ public:
   nsParseNewMailState();
   virtual ~nsParseNewMailState();
   NS_DECL_ISUPPORTS_INHERITED
+
+  NS_IMETHOD FinishHeader();
+
   nsresult Init(nsIMsgFolder *rootFolder, nsIMsgFolder *downloadFolder,
-                nsIInputStream *inboxFileStream, nsIMsgWindow *aMsgWindow);
+                nsIMsgWindow *aMsgWindow, nsIMsgDBHdr *aHdr,
+                nsIOutputStream *aOutputStream);
 
   virtual void  DoneParsingFolder(nsresult status);
 
@@ -249,12 +255,13 @@ public:
   void            GetMsgWindow(nsIMsgWindow **aMsgWindow);
   nsresult EndMsgDownload();
 
-  nsresult AppendMsgFromFile(nsIInputStream *fileStream, PRUint32 offset,
-                             PRUint32 length, nsILocalFile *destFile);
+  nsresult AppendMsgFromStream(nsIInputStream *fileStream, nsIMsgDBHdr *aHdr,
+                               PRUint32 length, nsIMsgFolder *destFolder);
 
   virtual void ApplyFilters(bool *pMoved, nsIMsgWindow *msgWindow,
                              PRUint32 msgOffset);
   nsresult    ApplyForwardAndReplyFilter(nsIMsgWindow *msgWindow);
+  virtual void OnNewMessage(nsIMsgWindow *msgWindow);
 
   // this keeps track of how many messages we downloaded that
   // aren't new - e.g., marked read, or moved to an other server.
@@ -275,16 +282,14 @@ protected:
   nsCOMPtr <nsIMsgFolder> m_rootFolder;
   nsCOMPtr <nsIMsgWindow> m_msgWindow;
   nsCOMPtr <nsIMsgFolder> m_downloadFolder;
+  nsCOMPtr<nsIOutputStream> m_outputStream;
   nsCOMArray <nsIMsgFolder> m_filterTargetFolders;
 
   nsRefPtr<nsImapMoveCoalescer> m_moveCoalescer;
 
   bool          m_msgMovedByFilter;
   bool          m_msgCopiedByFilter;
-  nsCOMPtr <nsIInputStream>  m_inboxFileStream;
-  nsCOMPtr <nsILocalFile>    m_inboxFile;
   bool          m_disableFilters;
-  bool          m_downloadingToTempFile;
   PRUint32      m_ibuffer_fp;
   char          *m_ibuffer;
   PRUint32      m_ibuffer_size;

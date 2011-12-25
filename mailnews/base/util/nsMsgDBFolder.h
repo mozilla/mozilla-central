@@ -47,6 +47,7 @@
 #include "nsCOMPtr.h"
 #include "nsStaticAtom.h"
 #include "nsIDBChangeListener.h"
+#include "nsIMsgPluggableStore.h"
 #include "nsIURL.h"
 #include "nsILocalFile.h"
 #include "nsWeakReference.h"
@@ -152,6 +153,8 @@ protected:
   nsresult GetFolderCacheElemFromFile(nsILocalFile *file, nsIMsgFolderCacheElement **cacheElement);
   nsresult AddDirectorySeparator(nsILocalFile *path);
   nsresult CheckIfFolderExists(const nsAString& newFolderName, nsIMsgFolder *parentFolder, nsIMsgWindow *msgWindow);
+
+  nsresult GetSummaryFile(nsILocalFile** aSummaryFile);
 
   // Returns true if: a) there is no need to prompt or b) the user is already
   // logged in or c) the user logged in successfully.

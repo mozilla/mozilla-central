@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -15,8 +15,8 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
+ * Mozilla Foundation.
+ * Portions created by the Initial Developer are Copyright (C) 2011
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -35,44 +35,48 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#include "nsISupports.idl"
+/**
+   Class for handling Berkeley Mailbox stores.
+*/
 
-interface nsIMsgDatabase;
-interface nsIMsgDBHdr;
-interface nsIOutputStream;
+#ifndef nsMsgBrkMboxStore_h__
+#define nsMsgBrkMboxStore_h__
 
-%{C++
-#include "nsIMsgDatabase.h"
-#include "nsIMsgHdr.h"
-%}
+#include "nsMsgLocalStoreUtils.h"
+#include "nsILocalFile.h"
+#include "nsInterfaceHashtable.h"
+#include "nsISeekableStream.h"
 
-typedef long nsMailboxParseState;
+class nsMsgBrkMBoxStore : public nsMsgLocalStoreUtils, nsIMsgPluggableStore
+{
+public:
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIMSGPLUGGABLESTORE
 
-[scriptable, uuid(abf6a8e2-955e-4952-a295-b71d45f770cf)]
-interface nsIMsgParseMailMsgState : nsISupports {
+  nsMsgBrkMBoxStore();
 
-    attribute unsigned long envelopePos;
-    void SetMailDB(in nsIMsgDatabase aDatabase);
-    /*
-     * Set a backup mail database, whose data will be read during parsing to
-     * attempt to recover message metadata
-     *
-     * @param aDatabase   the backup database
-     */
-    void SetBackupMailDB(in nsIMsgDatabase aDatabase);
-    void Clear();
+private:
+  ~nsMsgBrkMBoxStore();
 
-    void ParseAFolderLine(in string line, in unsigned long lineLength);
-    /// db header for message we're currently parsing
-    attribute nsIMsgDBHdr newMsgHdr;
-    void FinishHeader();
+protected:
+  nsresult AddSubFolders(nsIMsgFolder *parent, nsIFile *path, bool deep);
+  nsresult CreateDirectoryForFolder(nsILocalFile *path);
+  nsresult GetOutputStream(nsIArray *aHdrArray,
+                           nsCOMPtr<nsIOutputStream> &outputStream,
+                           nsCOMPtr<nsISeekableStream> &seekableStream,
+                           PRInt64 &restorePos);
+  void GetMailboxModProperties(nsIMsgFolder *aFolder,
+                               PRInt64 *aSize, PRUint32 *aDate);
+  void SetDBValid(nsIMsgDBHdr *aHdr);
+  // We don't want to keep re-opening an output stream when downloading
+  // multiple pop3 messages, or adjusting x-mozilla-status headers, so
+  // we cache output streams based on folder uri's. If the caller has closed
+  // the stream, we'll get a new one.
+  nsInterfaceHashtable<nsCStringHashKey, nsIOutputStream> m_outputStreams;
 
-    long GetAllHeaders(out string headers);
-    readonly attribute string headers;
-  attribute nsMailboxParseState state;
-    /* these are nsMailboxParseState */
-    const long ParseEnvelopeState=0;
-    const long ParseHeadersState=1;
-    const long ParseBodyState=2;
+#ifdef _DEBUG
+  nsCOMPtr<nsIMsgFolder> m_streamOutstandingFolder;
+#endif
 };
 
+#endif

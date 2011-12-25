@@ -60,12 +60,13 @@ interface nsIMsgIdentity;
 interface nsIArray;
 interface nsIMutableArray;
 interface nsISupportsArray;
+interface nsIMsgPluggableStore;
 
 typedef long nsMsgBiffState;
 
 // enumerated type for determining if a message has been replied to, forwarded, etc.
 typedef long nsMsgDispositionState;
-[scriptable, uuid(953b7bb1-6a3e-4a5b-841f-637ac68dee0e)]
+[scriptable, uuid(8b8c5bf8-82e3-4415-bcf3-6029ab4777c5)]
 interface nsIMsgFolder : nsISupports {
 
   const nsMsgBiffState nsMsgBiffState_NewMail = 0; // User has new mail waiting.
@@ -192,6 +193,16 @@ interface nsIMsgFolder : nsISupports {
                        in nsIMsgWindow msgWindow);
   void recursiveDelete(in boolean deleteStorage, in nsIMsgWindow msgWindow);
 
+  /**
+   * Create a subfolder of the current folder with the passed in name.
+   * For IMAP, this will be an async operation and the folder won't exist
+   * until it is created on the server.
+   *
+   * @param folderName name of the folder to create.
+   * @param msgWindow msgWindow to display status feedback in.
+   *
+   * @exception NS_MSG_FOLDER_EXISTS
+   */
   void createSubfolder(in AString folderName, in nsIMsgWindow msgWindow);
 
   /**
@@ -551,9 +562,28 @@ interface nsIMsgFolder : nsISupports {
    * @returns input stream to read the message from.
    */
   nsIInputStream getOfflineFileStream(in nsMsgKey aMsgKey,
-                                      out unsigned long long aOffset,
+                                      out long long aOffset,
                                       out unsigned long aSize);
-  readonly attribute nsIOutputStream offlineStoreOutputStream;
+
+  /**
+   * Get an offline store output stream for the passed message header.
+   *
+   * @param aHdr hdr of message to get outputstream for
+   * @returns An output stream to write to.
+   */
+  nsIOutputStream getOfflineStoreOutputStream(in nsIMsgDBHdr aHdr);
+
+  /**
+   * Get an input stream for the passed message header. The stream will
+   * be positioned at the start of the message.
+   *
+   * @param aHdr hdr of message to get the input stream for.
+   * @param[out] aReusable set to true if the stream can be re-used, in which
+                           case the caller might not want to close it.
+   * @returns an input stream to read the message from
+   */
+  nsIInputStream getMsgInputStream(in nsIMsgDBHdr aHdr, out boolean aReusable);
+
   readonly attribute nsIInputStream offlineStoreInputStream;
   void DownloadMessagesForOffline(in nsIArray messages,
                                   in nsIMsgWindow window);
@@ -815,4 +845,9 @@ interface nsIMsgFolder : nsISupports {
    */
   boolean getForcePropertyEmpty(in string propertyName);
 
+  /**
+   * Pluggable store for this folder. Currently, this will always be the same
+   * as the pluggable store for the server.
+   */
+  readonly attribute nsIMsgPluggableStore msgStore;
 };

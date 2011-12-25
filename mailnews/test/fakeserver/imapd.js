@@ -665,6 +665,7 @@ IMAP_RFC3501_handler.prototype = {
     this._nextAuthFunction = undefined; // should be in RFC2195_ext, but too lazy
   },
   onStartup : function () {
+    this._state = IMAP_STATE_NOT_AUTHED;
     return "* OK IMAP4rev1 Fakeserver started up";
   },
 

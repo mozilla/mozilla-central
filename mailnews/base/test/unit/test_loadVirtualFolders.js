@@ -41,6 +41,10 @@
 const am = Components.classes["@mozilla.org/messenger/account-manager;1"]
                      .getService(Components.interfaces.nsIMsgAccountManager);
 
+// As currently written, this test will only work with Berkeley store.
+Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
+                           "@mozilla.org/msgstore/berkeleystore;1");
+
 // main test
 
 function run_test()

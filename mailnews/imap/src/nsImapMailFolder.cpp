@@ -981,7 +981,8 @@ NS_IMETHODIMP nsImapMailFolder::CreateClientSubfolderInfo(const nsACString& fold
   //Now let's create the actual new folder
   rv = AddSubfolderWithPath(folderNameStr, dbFile, getter_AddRefs(child), PR_TRUE);
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = msgDBService->OpenMailDBFromFile(dbFile, PR_TRUE, PR_TRUE, (nsIMsgDatabase **) getter_AddRefs(unusedDB));
+  rv = msgDBService->OpenMailDBFromFile(dbFile, child, PR_TRUE, PR_TRUE,
+                                        getter_AddRefs(unusedDB));
   if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
     rv = NS_OK;
 
@@ -4541,12 +4542,6 @@ NS_IMETHODIMP nsImapMailFolder::DownloadMessagesForOffline(nsIArray *messages, n
     ThrowAlertMsg("operationFailedFolderBusy", window);
     return rv;
   }
-  rv = GetOfflineStoreOutputStream(getter_AddRefs(m_tempMessageStream));
-  if (NS_FAILED(rv))
-  {
-    ReleaseSemaphore(static_cast<nsIMsgFolder*>(this));
-    return rv;
-  }
   return imapService->DownloadMessagesForOffline(messageIds, this, this, window);
 }
 
@@ -4572,18 +4567,13 @@ NS_IMETHODIMP nsImapMailFolder::DownloadAllForOffline(nsIUrlListener *listener, 
       ThrowAlertMsg("operationFailedFolderBusy", msgWindow);
       return rv;
     }
-    rv = GetOfflineStoreOutputStream(getter_AddRefs(m_tempMessageStream));
-    if (NS_FAILED(rv))
-    {
-      ReleaseSemaphore(static_cast<nsIMsgFolder*>(this));
-      return rv;
-    }
     nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Selecting the folder with nsIImapUrl::shouldStoreMsgOffline true will
     // cause us to fetch any message bodies we don't have.
-    rv = imapService->SelectFolder(m_thread, this, listener, msgWindow,
+    m_urlListener = listener;
+    rv = imapService->SelectFolder(m_thread, this, this, msgWindow,
                                    getter_AddRefs(runningURI));
     if (NS_SUCCEEDED(rv))
     {
@@ -5189,23 +5179,27 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
   nsImapAction imapAction = nsIImapUrl::nsImapTest;
   m_urlRunning = PR_FALSE;
   m_updatingFolder = PR_FALSE;
+  nsCOMPtr<nsIMsgMailSession> session =
+    do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  if (aUrl)
+  {
   nsCOMPtr <nsIImapUrl> imapUrl = do_QueryInterface(aUrl, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   bool downloadingForOfflineUse;
   imapUrl->GetStoreResultsOffline(&downloadingForOfflineUse);
+    bool hasSemaphore = false;
+    // if we have the folder locked, clear it.
+    TestSemaphore(static_cast<nsIMsgFolder*>(this), &hasSemaphore);
+    if (hasSemaphore)
+      ReleaseSemaphore(static_cast<nsIMsgFolder*>(this));
   if (downloadingForOfflineUse)
   {
-    ReleaseSemaphore(static_cast<nsIMsgFolder*>(this));
     endedOfflineDownload = PR_TRUE;
     EndOfflineDownload();
   }
-  nsCOMPtr<nsIMsgMailSession> session = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-  if (aUrl)
-  {
     nsCOMPtr<nsIMsgWindow> msgWindow;
     nsCOMPtr<nsIMsgMailNewsUrl> mailUrl = do_QueryInterface(aUrl);
-    nsCOMPtr<nsIImapUrl> imapUrl = do_QueryInterface(aUrl);
     bool folderOpen = false;
     if (mailUrl)
       mailUrl->GetMsgWindow(getter_AddRefs(msgWindow));
@@ -5223,7 +5217,7 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
       imapUrl->GetImapAction(&imapAction);
       if (imapAction == nsIImapUrl::nsImapMsgFetch || imapAction == nsIImapUrl::nsImapMsgDownloadForOffline)
       {
-        ReleaseSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
+        ReleaseSemaphore(static_cast<nsIMsgFolder*>(this));
         if (!endedOfflineDownload)
           EndOfflineDownload();
       }
@@ -5559,8 +5553,9 @@ nsImapMailFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
   if (m_urlListener && (imapAction != nsIImapUrl::nsImapExpungeFolder ||
                         !m_compactingOfflineStore))
   {
-    m_urlListener->OnStopRunningUrl(aUrl, aExitCode);
+    nsCOMPtr<nsIUrlListener> saveListener = m_urlListener;
     m_urlListener = nsnull;
+    saveListener->OnStopRunningUrl(aUrl, aExitCode);
   }
   return rv;
 }
@@ -6808,6 +6803,10 @@ nsImapMailFolder::SetUrlState(nsIImapProtocol* aProtocol,
                               bool aSuspend,
                               nsresult statusCode)
 {
+  // If we have no path, then the folder has been shutdown, and there's
+  // no point in doing anything...
+  if (!mPath)
+    return NS_OK;
   if (!isRunning)
   {
     ProgressStatus(aProtocol, IMAP_DONE, nsnull);
@@ -6817,12 +6816,8 @@ nsImapMailFolder::SetUrlState(nsIImapProtocol* aProtocol,
     if (aProtocol)
     {
       EndOfflineDownload();
-      if (m_downloadingFolderForOfflineUse)
-      {
-        ReleaseSemaphore(static_cast<nsIMsgImapMailFolder*>(this));
         m_downloadingFolderForOfflineUse = PR_FALSE;
       }
-    }
     nsCOMPtr<nsIImapUrl> imapUrl(do_QueryInterface(aUrl));
     if (imapUrl)
     {
@@ -7021,6 +7016,7 @@ nsresult nsImapMailFolder::CopyOfflineMsgBody(nsIMsgFolder *srcFolder,
   }
   if (NS_SUCCEEDED(rv))
   {
+    outputStream->Flush();
     PRUint32 resultFlags;
     destHdr->OrFlags(nsMsgMessageFlags::Offline, &resultFlags);
     destHdr->SetOfflineMessageSize(messageSize);
@@ -7123,10 +7119,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
       nsCOMPtr <nsIInputStream> inputStream;
       nsCOMPtr<nsIOutputStream> outputStream;
       // only need the output stream if we got an input stream.
-      if (NS_SUCCEEDED(srcFolder->GetOfflineStoreInputStream(
-                                    getter_AddRefs(inputStream))) && !isLocked)
-        rv = GetOfflineStoreOutputStream(getter_AddRefs(outputStream));
-      NS_ENSURE_SUCCESS(rv, rv);
+      srcFolder->GetOfflineStoreInputStream(getter_AddRefs(inputStream));
 
       nsCString messageId;
       // put fake message in destination db, delete source if move
@@ -7142,7 +7135,7 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
           rv = message->GetMessageKey(&originalKey);
         else
         {
-          NS_ASSERTION(PR_FALSE, "bad msg in src array");
+          NS_ERROR("bad msg in src array");
           continue;
         }
         nsMsgKey msgKey;
@@ -7263,8 +7256,18 @@ nsresult nsImapMailFolder::CopyMessagesOffline(nsIMsgFolder* srcFolder,
             newMailHdr->SetUint32Property("pseudoHdr", 1);
 
             if (inputStream && hasMsgOffline && !isLocked)
+            {
+              rv = GetOfflineStoreOutputStream(newMailHdr,
+                                               getter_AddRefs(outputStream));
+              NS_ENSURE_SUCCESS(rv, rv);
+
               CopyOfflineMsgBody(srcFolder, newMailHdr, mailHdr, inputStream,
                                  outputStream);
+              nsCOMPtr<nsIMsgPluggableStore> offlineStore;
+              (void) GetMsgStore(getter_AddRefs(offlineStore));
+              if (offlineStore)
+                offlineStore->FinishNewMessage(outputStream, newMailHdr);
+            }
             else
               mDatabase->MarkOffline(fakeBase + sourceKeyIndex, PR_FALSE, nsnull);
 
@@ -7462,13 +7465,20 @@ void nsImapMailFolder::SetPendingAttributes(nsIArray* messages, bool aIsMove)
 
       PRUint32 messageSize;
       PRUint64 messageOffset;
+      nsCString storeToken;
       msgDBHdr->GetMessageOffset(&messageOffset);
       msgDBHdr->GetOfflineMessageSize(&messageSize);
+      msgDBHdr->GetStringProperty("storeToken", getter_Copies(storeToken));
       if (messageSize)
       {
-        mDatabase->SetUint32AttributeOnPendingHdr(msgDBHdr, "offlineMsgSize", messageSize);
-        mDatabase->SetUint64AttributeOnPendingHdr(msgDBHdr, "msgOffset", messageOffset);
-        mDatabase->SetUint32AttributeOnPendingHdr(msgDBHdr, "flags", nsMsgMessageFlags::Offline);
+        mDatabase->SetUint32AttributeOnPendingHdr(msgDBHdr, "offlineMsgSize",
+                                                  messageSize);
+        mDatabase->SetUint64AttributeOnPendingHdr(msgDBHdr, "msgOffset",
+                                                  messageOffset);
+        mDatabase->SetUint32AttributeOnPendingHdr(msgDBHdr, "flags",
+                                                  nsMsgMessageFlags::Offline);
+        mDatabase->SetAttributeOnPendingHdr(msgDBHdr, "storeToken",
+                                            storeToken.get());
       }
       nsMsgPriorityValue priority;
       msgDBHdr->GetPriority(&priority);
@@ -8260,8 +8270,11 @@ nsImapMailFolder::CopyFileToOfflineStore(nsILocalFile *srcFile, nsMsgKey msgKey)
       GetURI(destFolderUri);
       op->SetOperation(nsIMsgOfflineImapOperation::kMoveResult);
       op->SetDestinationFolderURI(destFolderUri.get());
+      nsCOMPtr<nsIMsgDBHdr> fakeHdr;
       nsCOMPtr<nsIOutputStream> offlineStore;
-      rv = GetOfflineStoreOutputStream(getter_AddRefs(offlineStore));
+      rv = mDatabase->CreateNewHdr(msgKey, getter_AddRefs(fakeHdr));
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = GetOfflineStoreOutputStream(fakeHdr, getter_AddRefs(offlineStore));
       SetFlag(nsMsgFolderFlags::OfflineEvents);
 
       if (NS_SUCCEEDED(rv) && offlineStore)
@@ -8293,8 +8306,7 @@ nsImapMailFolder::CopyFileToOfflineStore(nsILocalFile *srcFile, nsMsgKey msgKey)
           PRUint32 bytesWritten;
           rv = NS_OK;
           msgParser->SetState(nsIMsgParseMailMsgState::ParseHeadersState);
-          // set the env pos to fake key so the msg hdr will have that for a key
-          msgParser->SetEnvelopePos(msgKey);
+          msgParser->SetNewMsgHdr(fakeHdr);
           bool needMoreData = false;
           char * newLine = nsnull;
           PRUint32 numBytesInLine = 0;
@@ -8312,33 +8324,33 @@ nsImapMailFolder::CopyFileToOfflineStore(nsILocalFile *srcFile, nsMsgKey msgKey)
             }
           } while (newLine);
 
-          nsCOMPtr<nsIMsgDBHdr> fakeHdr;
           msgParser->FinishHeader();
-          msgParser->GetNewMsgHdr(getter_AddRefs(fakeHdr));
-          if (fakeHdr)
-          {
-            if (NS_SUCCEEDED(rv) && fakeHdr)
-            {
-              PRUint32 resultFlags;
-              fakeHdr->SetMessageOffset(curOfflineStorePos);
-              fakeHdr->OrFlags(nsMsgMessageFlags::Offline | nsMsgMessageFlags::Read, &resultFlags);
-              fakeHdr->SetOfflineMessageSize(fileSize);
-              fakeHdr->SetUint32Property("pseudoHdr", 1);
-              mDatabase->AddNewHdrToDB(fakeHdr, PR_TRUE /* notify */);
-              SetFlag(nsMsgFolderFlags::OfflineEvents);
-              messages->AppendElement(fakeHdr, PR_FALSE);
-              SetPendingAttributes(messages, PR_FALSE);
-              // Gloda needs this notification to index the fake message.
-              nsCOMPtr<nsIMsgFolderNotificationService>
-                notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
-              if (notifier)
-                notifier->NotifyMsgsClassified(messages, PR_FALSE, PR_FALSE);
-            }
-          }
+          PRUint32 resultFlags;
+          fakeHdr->SetMessageOffset(curOfflineStorePos);
+          char storeToken[100];
+          PR_snprintf(storeToken, sizeof(storeToken), "%lld", curOfflineStorePos);
+          fakeHdr->SetStringProperty("storeToken", storeToken);
+          fakeHdr->OrFlags(nsMsgMessageFlags::Offline | nsMsgMessageFlags::Read, &resultFlags);
+          fakeHdr->SetOfflineMessageSize(fileSize);
+          fakeHdr->SetUint32Property("pseudoHdr", 1);
+          mDatabase->AddNewHdrToDB(fakeHdr, true /* notify */);
+          SetFlag(nsMsgFolderFlags::OfflineEvents);
+          messages->AppendElement(fakeHdr, false);
+          SetPendingAttributes(messages, false);
+          // Gloda needs this notification to index the fake message.
+          nsCOMPtr<nsIMsgFolderNotificationService>
+            notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+          if (notifier)
+            notifier->NotifyMsgsClassified(messages, false, false);
           inputStream->Close();
           inputStream = nsnull;
           delete inputStreamBuffer;
+          nsCOMPtr<nsIMsgPluggableStore> msgStore;
+          GetMsgStore(getter_AddRefs(msgStore));
+          if (msgStore)
+            msgStore->FinishNewMessage(offlineStore, fakeHdr);
         }
+        offlineStore->Close();
       }
     }
   }
@@ -8669,7 +8681,8 @@ NS_IMETHODIMP nsImapMailFolder::RenameClient(nsIMsgWindow *msgWindow, nsIMsgFold
   NS_ENSURE_SUCCESS(rv,rv);
 
   // Use openMailDBFromFile() and not OpenFolderDB() here, since we don't use the DB.
-  rv = msgDBService->OpenMailDBFromFile(dbFile, PR_TRUE, PR_TRUE, (nsIMsgDatabase **) getter_AddRefs(unusedDB));
+  rv = msgDBService->OpenMailDBFromFile(dbFile, nsnull, PR_TRUE, PR_TRUE,
+                                        getter_AddRefs(unusedDB));
   if (NS_SUCCEEDED(rv) && unusedDB)
   {
     //need to set the folder name
@@ -9248,7 +9261,7 @@ NS_IMETHODIMP nsImapMailFolder::FetchMsgPreviewText(nsMsgKey *aKeysToFetch, PRUi
       msgHdr->GetMessageKey(&msgKey);
       if (msgFlags & nsMsgMessageFlags::Offline)
       {
-        PRUint64 messageOffset;
+        PRInt64 messageOffset;
         PRUint32 messageSize;
         GetOfflineFileStream(msgKey, &messageOffset, &messageSize, getter_AddRefs(inputStream));
         if (inputStream)

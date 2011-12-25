@@ -267,7 +267,10 @@ const gTestArray =
     gLocalFolder3 = gLocalFolder2.getChildNamed("folder3");
     deleteFolder(gLocalFolder2, gLocalFolder3); },
   function compactInbox() {
-    compactFolder(gLocalInboxFolder);
+    if (gLocalInboxFolder.msgStore.supportsCompaction)
+      compactFolder(gLocalInboxFolder);
+    else
+      doTest(++gTest);
   }
 ];
   // Folder structure should just be

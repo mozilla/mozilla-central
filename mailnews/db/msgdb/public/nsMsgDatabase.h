@@ -140,12 +140,30 @@ public:
   NS_DECL_NSIDBCHANGEANNOUNCER
   NS_DECL_NSIMSGDATABASE
 
+  /**
+   * Opens a database folder.
+   *
+   * @param aFolderName     The name of the folder to create.
+   * @param aCreate         Whether or not the file should be created.
+   * @param aLeaveInvalidDB Set to true if you do not want the database to be
+   *                        deleted if it is invalid.
+   * @exception NS_ERROR_FILE_TARGET_DOES_NOT_EXIST
+   *                        The file could not be created.
+   * @exception NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE
+   *                        The database is present (and was opened), but the
+   *                        summary file is out of date.
+   * @exception NS_MSG_ERROR_FOLDER_SUMMARY_MISSING
+   *                        The database is present (and was opened), but the
+   *                        summary file is missing.
+   */
+  virtual nsresult Open(nsILocalFile *aFolderName, bool aCreate,
+                        bool aLeaveInvalidDB);
   virtual nsresult IsHeaderRead(nsIMsgDBHdr *hdr, bool *pRead);
   virtual nsresult MarkHdrReadInDB(nsIMsgDBHdr *msgHdr, bool bRead,
                                nsIDBChangeListener *instigator);
   nsresult OpenInternal(nsILocalFile *aFolderName, bool aCreate,
                         bool aLeaveInvalidDB, bool sync);
-  nsresult CheckForErrors(nsresult err, nsILocalFile *summaryFile);
+  nsresult CheckForErrors(nsresult err, bool sync, nsILocalFile *summaryFile);
   virtual nsresult OpenMDB(const char *dbName, bool create, bool sync);
   virtual nsresult CloseMDB(bool commit);
   virtual nsresult CreateMsgHdr(nsIMdbRow* hdrRow, nsMsgKey key, nsIMsgDBHdr **result);
@@ -255,6 +273,11 @@ protected:
   {
 #ifdef DEBUG_David_Bienvenu
 //    NS_ASSERTION(GetDBCache()->Length() < 50, "50 or more open db's");
+#endif
+#ifdef DEBUG
+    nsCOMPtr<nsIMsgDatabase> msgDB = pMessageDB->m_folder ?
+                               dont_AddRef(FindInCache(pMessageDB->m_folder)) : nsnull;
+    NS_ASSERTION(!msgDB, "shouldn't have db in cache");
 #endif
     GetDBCache()->AppendElement(pMessageDB);
   }

@@ -42,6 +42,9 @@
  *
  */
 
+Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
+                           "@mozilla.org/msgstore/berkeleystore;1");
+
 load("../../../resources/POP3pump.js");
 
 // async support
@@ -156,11 +159,11 @@ function updateSubfolderAndTest2() {
   gFinishedRunningURL = 0;
   gSubfolder.updateFolderWithListener(null, urlListener);
   dl('wait for OnStopRunningURL');
-  do_timeout(100, checkResult);
+  do_timeout(1000, checkResult);
   yield false;
 
   // kill some time
-  do_timeout(200, async_driver);
+  do_timeout(1000, async_driver);
   yield false;
 
   //test

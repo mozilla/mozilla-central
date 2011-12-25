@@ -53,6 +53,7 @@
 #include "nsMsgDBCID.h"
 #include "nsIMsgFolder.h"
 #include "nsIMsgFolderCache.h"
+#include "nsIMsgPluggableStore.h"
 #include "nsIMsgFolderCacheElement.h"
 #include "nsIMsgWindow.h"
 #include "nsIMsgFilterService.h"
@@ -71,7 +72,6 @@
 #include "nsIInterfaceRequestorUtils.h"
 #include "nsILoginInfo.h"
 #include "nsILoginManager.h"
-
 #include "nsIMsgAccountManager.h"
 #include "nsIMsgMdnGenerator.h"
 #include "nsMsgFolderFlags.h"
@@ -372,17 +372,20 @@ nsMsgIncomingServer::GetServerURI(nsACString& aResult)
 }
 
 // helper routine to create local folder on disk, if it doesn't exist.
-// Path must already have a LeafName for this to work...
 nsresult
-nsMsgIncomingServer::CreateLocalFolder(nsIFile *path, const nsACString& folderName)
+nsMsgIncomingServer::CreateLocalFolder(const nsAString& folderName)
 {
-  (void) path->SetNativeLeafName(folderName);
-  bool exists;
-  nsresult rv = path->Exists(&exists);
+  nsCOMPtr<nsIMsgFolder> rootFolder;
+  nsresult rv = GetRootFolder(getter_AddRefs(rootFolder));
   NS_ENSURE_SUCCESS(rv, rv);
-  if (!exists)
-    rv = path->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
-  return rv;
+  nsCOMPtr<nsIMsgFolder> child;
+  rv = rootFolder->GetChildNamed(folderName, getter_AddRefs(child));
+  if (child)
+    return NS_OK;
+  nsCOMPtr<nsIMsgPluggableStore> msgStore;
+  rv = GetMsgStore(getter_AddRefs(msgStore));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return msgStore->CreateFolder(rootFolder, folderName, getter_AddRefs(child));
 }
 
 nsresult
@@ -966,6 +969,36 @@ nsMsgIncomingServer::GetLocalPath(nsILocalFile **aLocalPath)
   localPath.swap(*aLocalPath);
   return NS_OK;
 }
+
+NS_IMETHODIMP
+nsMsgIncomingServer::GetMsgStore(nsIMsgPluggableStore **aMsgStore)
+{
+  NS_ENSURE_ARG_POINTER(aMsgStore);
+  if (!m_msgStore)
+  {
+    nsCString storeContractID;
+    nsresult rv;
+    // We don't want there to be a default pref, I think, since
+    // we can't change the default. We may want no pref to mean
+    // berkeley store, and then set the store pref off of some sort
+    // of default when creating a server. But we need to make sure
+    // that we do always write a store pref.
+    GetCharValue("storeContractID", storeContractID);
+    if (storeContractID.IsEmpty())
+    {
+      storeContractID.Assign("@mozilla.org/msgstore/berkeleystore;1");
+      SetCharValue("storeContractID", storeContractID);
+    }
+    // Right now, we just have one pluggable store per server. If we want
+    // to support multiple, this pref could be a list of pluggable store
+    // contract id's.
+    m_msgStore = do_CreateInstance(storeContractID.get(), &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+  NS_IF_ADDREF(*aMsgStore = m_msgStore);
+  return NS_OK;
+}
+
 
 NS_IMETHODIMP
 nsMsgIncomingServer::SetLocalPath(nsILocalFile *aLocalPath)

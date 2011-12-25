@@ -71,6 +71,9 @@ const gTestArray =
     ++gCurTestNum;
     gPOP3Pump.run();
   },
+  function waitForCopyToFinish() {
+    do_timeout(1000, function() {++gCurTestNum; doTest();});
+  },
   function verifyFolders2() {
     do_check_eq(folderCount(gMoveFolder), 2);
     // the local inbox folder should now be empty, since the second
@@ -114,7 +117,8 @@ function run_test()
   if (!gLocalInboxFolder)
     loadLocalMailAccount();
 
-  gMoveFolder = gLocalIncomingServer.rootFolder.createLocalSubfolder("MoveFolder");
+  gMoveFolder = gLocalIncomingServer.rootMsgFolder
+                  .createLocalSubfolder("MoveFolder");
   const mailSession = Cc["@mozilla.org/messenger/services/session;1"]
                         .getService(Ci.nsIMsgMailSession);
 

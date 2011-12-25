@@ -1539,7 +1539,7 @@ NS_IMETHODIMP nsNntpService::StreamHeaders(const char *aMessageURI,
   folder->HasMsgOffline(key, &hasMsgOffline);
   if (hasMsgOffline)
   {
-    PRUint64 messageOffset;
+    PRInt64 messageOffset;
     PRUint32 messageSize;
     folder->GetOfflineFileStream(key, &messageOffset, &messageSize, getter_AddRefs(inputStream));
     if (inputStream)

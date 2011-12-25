@@ -11,6 +11,9 @@ load("../../../resources/alertTestUtils.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 load("../../../resources/messageGenerator.js");
 
+Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
+                           "@mozilla.org/msgstore/berkeleystore;1");
+
 var gLocalInboxSize;
 
 var gGotAlert = false;
@@ -66,7 +69,6 @@ function run_test()
 {
   loadLocalMailAccount();
 
-  let inboxFile = gLocalInboxFolder.filePath.clone();
   // put a single message in the Inbox.
   let messageGenerator = new MessageGenerator();
   let message = messageGenerator.makeMessage();
@@ -77,28 +79,34 @@ function run_test()
   // sparse. If it isn't, then bail out now, because in all probability it is
   // FAT32, which doesn't support file sizes greater than 4 GB.
   if ("@mozilla.org/windows-registry-key;1" in Cc &&
-      get_file_system(inboxFile) != "NTFS")
+      get_file_system(gLocalInboxFolder.filePath) != "NTFS")
   {
     dump("On Windows, this test only works on NTFS volumes.\n");
     endTest();
     return;
   }
-  if (inboxFile.diskSpaceAvailable < 0x1100000000)
+  if (gLocalInboxFolder.filePath.clone().diskSpaceAvailable < 0x110000000)
   {
     dump("this test needs >4 GB of free disk space.\n");
     endTest();
     return;
   }
+  let plugStore = gLocalInboxFolder.msgStore;
   do {
-    let nextOffset = gLocalInboxFolder.filePath.fileSize + kSparseBlockSize;
-    mark_file_region_sparse(inboxFile, gLocalInboxFolder.filePath.fileSize,
+    let inboxFile = gLocalInboxFolder.filePath.clone();
+    let nextOffset = inboxFile.fileSize + kSparseBlockSize;
+    mark_file_region_sparse(inboxFile, inboxFile.fileSize,
                             kSparseBlockSize);
-    let outputStream = gLocalInboxFolder.offlineStoreOutputStream
-      .QueryInterface(Ci.nsISeekableStream);
+    let reusable = new Object;
+    let newMsgHdr = new Object;
+    let outputStream = plugStore.getNewMsgOutputStream(gLocalInboxFolder,
+                                                       newMsgHdr, reusable).
+                         QueryInterface(Ci.nsISeekableStream);
     outputStream.seek(0, nextOffset);
     let mboxString = "\r\n" + message.toMboxString();
     outputStream.write(mboxString, mboxString.length);
     outputStream.close();
+    plugStore.finishNewMessage(outputStream, newMsgHdr);
   }
   while (gLocalInboxFolder.filePath.fileSize < 0x100000000)
 
@@ -117,6 +125,9 @@ function run_test()
                                 "", copyListener, dummyMsgWindow);
   } catch (ex) {
   }
+  // Force the db closed, so that getDatabaseWithReparse will notice
+  // that it's out of date.
+  gLocalInboxFolder.msgDatabase.ForceClosed();
   gLocalInboxFolder.msgDatabase = null;
   try {
     gLocalInboxFolder.getDatabaseWithReparse(ParseListener, dummyMsgWindow);
@@ -147,7 +158,7 @@ var ParseListener =
   OnStartRunningUrl: function (aUrl) {
   },
   OnStopRunningUrl: function (aUrl, aExitCode) {
-    // Check: message successfully copied.
+    // Check: reparse successful
     do_check_eq(aExitCode, 0);
     do_check_true(gLocalInboxFolder.msgDatabase.summaryValid);
     testCompact();

@@ -356,7 +356,8 @@ NS_IMETHODIMP nsMsgDBFolder::OpenBackupMsgDatabase()
       do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   rv = msgDBService->OpenMailDBFromFile(
-      backupDBDummyFolder, PR_FALSE, PR_TRUE, getter_AddRefs(mBackupDatabase));
+      backupDBDummyFolder, this, PR_FALSE, PR_TRUE,
+      getter_AddRefs(mBackupDatabase));
   // we add a listener so that we can close the db during OnAnnouncerGoingAway. There should
   // not be any other calls to the listener with the backup database
   if (NS_SUCCEEDED(rv) && mBackupDatabase)
@@ -751,6 +752,23 @@ NS_IMETHODIMP nsMsgDBFolder::DownloadAllForOffline(nsIUrlListener *listener, nsI
   return NS_OK;
 }
 
+NS_IMETHODIMP nsMsgDBFolder::GetMsgStore(nsIMsgPluggableStore **aStore)
+{
+  NS_ENSURE_ARG_POINTER(aStore);
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  nsresult rv = GetServer(getter_AddRefs(server));
+  NS_ENSURE_SUCCESS(rv, NS_MSG_INVALID_OR_MISSING_SERVER);
+  return server->GetMsgStore(aStore);
+}
+
+nsresult nsMsgDBFolder::GetSummaryFile(nsILocalFile** aSummaryFile)
+{
+  nsCOMPtr<nsIMsgPluggableStore> msgStore;
+  nsresult rv = GetMsgStore(getter_AddRefs(msgStore));
+  NS_ENSURE_SUCCESS(rv, rv);
+  return msgStore->GetSummaryFile(this, aSummaryFile);
+}
+
 NS_IMETHODIMP nsMsgDBFolder::GetOfflineStoreInputStream(nsIInputStream **stream)
 {
   nsCOMPtr <nsILocalFile> localStore;
@@ -781,39 +799,33 @@ bool nsMsgDBFolder::VerifyOfflineMessage(nsIMsgDBHdr *msgHdr, nsIInputStream *fi
   return PR_TRUE;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint64 *offset, PRUint32 *size, nsIInputStream **aFileStream)
+NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRInt64 *offset, PRUint32 *size, nsIInputStream **aFileStream)
 {
   NS_ENSURE_ARG(aFileStream);
 
   *offset = *size = 0;
 
-  nsCOMPtr <nsILocalFile> localStore;
-  nsresult rv = GetFilePath(getter_AddRefs(localStore));
+  nsresult rv = GetDatabase();
+  NS_ENSURE_SUCCESS(rv, NS_OK);
+  nsCOMPtr<nsIMsgDBHdr> hdr;
+  rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(hdr));
+  NS_ENSURE_TRUE(hdr, NS_OK);
   NS_ENSURE_SUCCESS(rv, rv);
-  if (localStore)
+  if (hdr)
+    hdr->GetOfflineMessageSize(size);
+
+  bool reusable;
+  rv = GetMsgInputStream(hdr, &reusable, aFileStream);
+  // check if offline store really has the correct offset into the offline
+  // store by reading the first few bytes. If it doesn't, clear the offline
+  // flag on the msg and return false, which will fall back to reading the message
+  // from the server.
+  // We'll also advance the offset past the envelope header and
+  // X-Mozilla-Status lines.
+  nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(*aFileStream);
+  if (seekableStream)
   {
-    rv = NS_NewLocalFileInputStream(aFileStream, localStore);
-    if (NS_SUCCEEDED(rv))
-    {
-      rv = GetDatabase();
-      NS_ENSURE_SUCCESS(rv, NS_OK);
-      nsCOMPtr<nsIMsgDBHdr> hdr;
-      rv = mDatabase->GetMsgHdrForKey(msgKey, getter_AddRefs(hdr));
-      if (hdr && NS_SUCCEEDED(rv))
-      {
-        hdr->GetMessageOffset(offset);
-        hdr->GetOfflineMessageSize(size);
-      }
-      // check if offline store really has the correct offset into the offline
-      // store by reading the first few bytes. If it doesn't, clear the offline
-      // flag on the msg and return false, which will fall back to reading the message
-      // from the server.
-      // We'll also advance the offset past the envelope header and
-      // X-Mozilla-Status lines.
-      nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(*aFileStream);
-      if (seekableStream)
-      {
-        rv = seekableStream->Seek(nsISeekableStream::NS_SEEK_CUR, *offset);
+    seekableStream->Tell(offset);
         char startOfMsg[200];
         PRUint32 bytesRead = 0;
         PRUint32 bytesToRead = sizeof(startOfMsg) - 1;
@@ -856,47 +868,51 @@ NS_IMETHODIMP nsMsgDBFolder::GetOfflineFileStream(nsMsgKey msgKey, PRUint64 *off
             rv = NS_ERROR_FAILURE;
           }
         }
-      }
-    }
     if (NS_FAILED(rv) && mDatabase)
       mDatabase->MarkOffline(msgKey, PR_FALSE, nsnull);
   }
   return rv;
 }
 
-NS_IMETHODIMP nsMsgDBFolder::GetOfflineStoreOutputStream(nsIOutputStream **outputStream)
-{
-  NS_ENSURE_ARG_POINTER(outputStream);
-  nsresult rv = NS_ERROR_NULL_POINTER;
-    // the following code doesn't work for a host of reasons - the transfer offset
-    // is ignored for output streams. The buffering used by file channels does not work
-    // if transfer offsets are coerced to work, etc.
-#if 0
-    nsCOMPtr<nsIFileChannel> fileChannel = do_CreateInstance(NS_LOCALFILECHANNEL_CONTRACTID);
-    if (fileChannel)
-    {
-      nsCOMPtr <nsILocalFile> localStore;
-      rv = NS_NewLocalFile(nativePath, PR_TRUE, getter_AddRefs(localStore));
-      if (NS_SUCCEEDED(rv) && localStore)
+NS_IMETHODIMP
+nsMsgDBFolder::GetOfflineStoreOutputStream(nsIMsgDBHdr *aHdr,
+                                           nsIOutputStream **aOutputStream)
       {
-        rv = fileChannel->Init(localStore, PR_CREATE_FILE | PR_RDWR, 0);
-        if (NS_FAILED(rv))
-          return rv;
-        rv = fileChannel->Open(outputStream);
-        if (NS_FAILED(rv))
+  NS_ENSURE_ARG_POINTER(aOutputStream);
+  NS_ENSURE_ARG_POINTER(aHdr);
+
+  nsCOMPtr<nsIMsgPluggableStore> offlineStore;
+  nsresult rv = GetMsgStore(getter_AddRefs(offlineStore));
+  NS_ENSURE_SUCCESS(rv, rv);
+  bool reusable;
+  rv = offlineStore->GetNewMsgOutputStream(this, &aHdr, &reusable,
+                                           aOutputStream);
+  NS_ENSURE_SUCCESS(rv, rv);
           return rv;
       }
-    }
-#endif
-  nsCOMPtr <nsILocalFile> localPath;
-  rv = GetFilePath(getter_AddRefs(localPath));
-  NS_ENSURE_SUCCESS(rv, rv);
-  rv = MsgNewBufferedFileOutputStream(outputStream, localPath, PR_WRONLY | PR_CREATE_FILE, 00600);
-  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr <nsISeekableStream> seekable = do_QueryInterface(*outputStream);
-  if (seekable)
-    seekable->Seek(nsISeekableStream::NS_SEEK_END, 0);
+NS_IMETHODIMP
+nsMsgDBFolder::GetMsgInputStream(nsIMsgDBHdr *aMsgHdr, bool *aReusable,
+                              nsIInputStream **aInputStream)
+{
+  NS_ENSURE_ARG_POINTER(aMsgHdr);
+  NS_ENSURE_ARG_POINTER(aReusable);
+  NS_ENSURE_ARG_POINTER(aInputStream);
+  nsCOMPtr<nsIMsgPluggableStore> msgStore;
+  nsresult rv = GetMsgStore(getter_AddRefs(msgStore));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCString storeToken;
+  rv = aMsgHdr->GetStringProperty("storeToken", getter_Copies(storeToken));
+  NS_ENSURE_SUCCESS(rv, rv);
+  PRInt64 offset;
+  rv = msgStore->GetMsgInputStream(this, storeToken, &offset, aMsgHdr, aReusable,
+                                   aInputStream);
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsISeekableStream> seekableStream(do_QueryInterface(*aInputStream));
+  if (seekableStream)
+    rv = seekableStream->Seek(PR_SEEK_SET, offset);
+  NS_WARN_IF_FALSE(seekableStream || !offset,
+                   "non-zero offset w/ non-seekable stream");
   return rv;
 }
 
@@ -1500,6 +1516,7 @@ nsMsgDBFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
     bool updatingFolder = false;
     if (NS_SUCCEEDED(mailUrl->GetUpdatingFolder(&updatingFolder)) && updatingFolder)
       NotifyFolderEvent(mFolderLoadedAtom);
+
     // be sure to remove ourselves as a url listener
     mailUrl->UnRegisterListener(this);
   }
@@ -1641,10 +1658,9 @@ NS_IMETHODIMP nsMsgDBFolder::IsCommandEnabled(const nsACString& command, bool *r
 nsresult nsMsgDBFolder::WriteStartOfNewLocalMessage()
 {
   nsCAutoString result;
-  char *ct;
   PRUint32 writeCount;
   time_t now = time ((time_t*) 0);
-  ct = ctime(&now);
+  char *ct = ctime(&now);
   ct[24] = 0;
   result = "From - ";
   result += ct;
@@ -1652,24 +1668,12 @@ nsresult nsMsgDBFolder::WriteStartOfNewLocalMessage()
   m_bytesAddedToLocalMsg = result.Length();
 
   nsCOMPtr <nsISeekableStream> seekable;
-  PRInt64 curStorePos;
 
   if (m_offlineHeader)
     seekable = do_QueryInterface(m_tempMessageStream);
 
-  if (seekable)
-  {
-    seekable->Tell(&curStorePos);
-    m_offlineHeader->SetMessageOffset(curStorePos);
-  }
   m_tempMessageStream->Write(result.get(), result.Length(),
                              &writeCount);
-  if (seekable)
-  {
-    m_tempMessageStream->Flush();
-    seekable->Tell(&curStorePos);
-    m_offlineHeader->SetStatusOffset((PRUint32) curStorePos);
-  }
 
   NS_NAMED_LITERAL_CSTRING(MozillaStatus, "X-Mozilla-Status: 0001" MSG_LINEBREAK);
   m_tempMessageStream->Write(MozillaStatus.get(), MozillaStatus.Length(),
@@ -1683,9 +1687,6 @@ nsresult nsMsgDBFolder::WriteStartOfNewLocalMessage()
 
 nsresult nsMsgDBFolder::StartNewOfflineMessage()
 {
-  nsresult rv = NS_OK;
-  if (!m_tempMessageStream)
-  {
     bool isLocked;
     GetLocked(&isLocked);
     bool hasSemaphore = false;
@@ -1699,17 +1700,10 @@ nsresult nsMsgDBFolder::StartNewOfflineMessage()
         return NS_MSG_FOLDER_BUSY;
       }
     }
-    rv = GetOfflineStoreOutputStream(getter_AddRefs(m_tempMessageStream));
+  nsresult rv = GetOfflineStoreOutputStream(m_offlineHeader,
+                                     getter_AddRefs(m_tempMessageStream));
     if (NS_SUCCEEDED(rv) && !hasSemaphore)
       AcquireSemaphore(static_cast<nsIMsgFolder*>(this));
-  }
-  else
-  {
-    nsCOMPtr <nsISeekableStream> seekable;
-    seekable = do_QueryInterface(m_tempMessageStream);
-    if (seekable)
-      seekable->Seek(PR_SEEK_END, 0);
-  }
   if (NS_SUCCEEDED(rv))
     WriteStartOfNewLocalMessage();
   m_numOfflineMsgLines = 0;
@@ -1781,7 +1775,17 @@ nsresult nsMsgDBFolder::EndNewOfflineMessage()
                    "offline message doesn't start with From ");
 #endif
   }
+  nsCOMPtr<nsIMsgPluggableStore> msgStore;
+  GetMsgStore(getter_AddRefs(msgStore));
+  if (msgStore)
+    msgStore->FinishNewMessage(m_tempMessageStream, m_offlineHeader);
+
   m_offlineHeader = nsnull;
+  if (m_tempMessageStream)
+  {
+    m_tempMessageStream->Close();
+    m_tempMessageStream = nsnull;
+  }
   return NS_OK;
 }
 
@@ -1837,6 +1841,13 @@ nsresult nsMsgDBFolder::HandleAutoCompactEvent(nsIMsgWindow *aWindow)
       PRInt32 localExpungedBytes = 0;
       do
       {
+        nsCOMPtr<nsIMsgPluggableStore> msgStore;
+        rv = server->GetMsgStore(getter_AddRefs(msgStore));
+        NS_ENSURE_SUCCESS(rv, rv);
+        bool supportsCompaction;
+        msgStore->GetSupportsCompaction(&supportsCompaction);
+        if (!supportsCompaction)
+          continue;
         nsCOMPtr<nsIMsgFolder> rootFolder;
         rv = server->GetRootFolder(getter_AddRefs(rootFolder));
         if(NS_SUCCEEDED(rv) && rootFolder)
@@ -1881,9 +1892,9 @@ nsresult nsMsgDBFolder::HandleAutoCompactEvent(nsIMsgWindow *aWindow)
             }
           }
         }
-        server = do_QueryElementAt(allServers, ++serverIndex);
+        server = do_QueryElementAt(allServers, serverIndex);
       }
-      while (serverIndex < numServers);
+      while (++serverIndex < numServers);
       totalExpungedBytes = localExpungedBytes + offlineExpungedBytes;
       PRInt32 purgeThreshold;
       rv = GetPurgeThreshold(&purgeThreshold);
@@ -1974,9 +1985,8 @@ nsMsgDBFolder::AutoCompact(nsIMsgWindow *aWindow)
   nsresult rv = GetPromptPurgeThreshold(&prompt);
   NS_ENSURE_SUCCESS(rv, rv);
   PRTime timeNow = PR_Now();   //time in microseconds
-  PRTime timeAfterOneHourOfLastPurgeCheck;
-  LL_ADD(timeAfterOneHourOfLastPurgeCheck, gtimeOfLastPurgeCheck, oneHour);
-  if (LL_CMP(timeAfterOneHourOfLastPurgeCheck, <, timeNow) && prompt)
+  PRTime timeAfterOneHourOfLastPurgeCheck = gtimeOfLastPurgeCheck + oneHour;
+  if (timeAfterOneHourOfLastPurgeCheck < timeNow && prompt)
   {
     gtimeOfLastPurgeCheck = timeNow;
     nsCOMPtr<nsIRunnable> event = new AutoCompactEvent(aWindow, this);
@@ -3406,6 +3416,14 @@ nsMsgDBFolder::GetCanCompact(bool *aResult)
   // servers cannot be compacted --> 4.x
   // virtual search folders cannot be compacted
   *aResult = !isServer && !(mFlags & nsMsgFolderFlags::Virtual);
+  // Check if the store supports compaction
+  if (*aResult)
+  {
+    nsCOMPtr<nsIMsgPluggableStore> msgStore;
+    GetMsgStore(getter_AddRefs(msgStore));
+    if (msgStore)
+      msgStore->GetSupportsCompaction(aResult);
+  }
   return NS_OK;
 }
 
@@ -3753,11 +3771,6 @@ NS_IMETHODIMP nsMsgDBFolder::AddSubfolder(const nsAString& name,
   if (NS_FAILED(rv))
     return rv;
 
-  nsCOMPtr <nsILocalFile> path;
-  // we just need to do this for the parent folder, i.e., "this".
-  rv = CreateDirectoryForFolder(getter_AddRefs(path));
-  NS_ENSURE_SUCCESS(rv, rv);
-
   folder->GetFlags((PRUint32 *)&flags);
   flags |= nsMsgFolderFlags::Mail;
   folder->SetParent(this);
@@ -3778,16 +3791,6 @@ NS_IMETHODIMP nsMsgDBFolder::AddSubfolder(const nsAString& name,
     else if (name.LowerCaseEqualsLiteral("unsent messages") ||
       name.LowerCaseEqualsLiteral("outbox"))
       flags |= nsMsgFolderFlags::Queue;
-#if 0
-    // the logic for this has been moved into
-    // SetFlagsOnDefaultMailboxes()
-    else if(name.EqualsIgnoreCase(NS_LITERAL_STRING("Sent"), nsCaseInsensitiveStringComparator()))
-      folder->SetFlag(nsMsgFolderFlags::SentMail);
-    else if(name.EqualsIgnoreCase(NS_LITERAL_STRING("Drafts"), nsCaseInsensitiveStringComparator()))
-      folder->SetFlag(nsMsgFolderFlags::Drafts);
-    else if(name.EqualsIgnoreCase(NS_LITERAL_STRING("Templates"), nsCaseInsensitiveStringComparator()))
-      folder->SetFlag(nsMsgFolderFlags::Templates);
-#endif
   }
 
   folder->SetFlags(flags);

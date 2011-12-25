@@ -115,7 +115,8 @@ var addIdentitiesAndFolder = function() {
 
   var server = acctMgr.createIncomingServer("nobody",
                                             "Test Local Folders", "pop3");
-  testFolder = server.rootFolder.addSubfolder("Test Folder");
+  let localRoot = server.rootFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  testFolder = localRoot.createLocalSubfolder("Test Folder");
 
   var account = acctMgr.createAccount();
   account.incomingServer = server;

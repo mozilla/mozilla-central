@@ -70,15 +70,15 @@ msl.prototype = {
     do_check_eq(aStatus, 0);
     try {
       // Now do a comparison of what is in the sent mail folder
-      var fileData = loadFileToString(sentFolder.filePath);
+      let msgData = loadMessageToString(sentFolder, firstMsgHdr(sentFolder));
 
       // Skip the headers etc that mailnews adds
-      var pos = fileData.indexOf("From:");
+      var pos = msgData.indexOf("From:");
       do_check_neq(pos, -1);
 
-      fileData = fileData.substr(pos);
+      msgData = msgData.substr(pos);
 
-      do_check_eq(originalData, fileData);
+      do_check_eq(originalData, msgData);
     } catch (e) {
       do_throw(e);
     } finally {

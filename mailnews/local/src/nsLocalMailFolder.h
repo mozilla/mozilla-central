@@ -66,6 +66,7 @@ struct nsLocalMailCopyState
   virtual ~nsLocalMailCopyState();
   
   nsCOMPtr <nsIOutputStream> m_fileStream;
+  nsCOMPtr<nsIMsgPluggableStore> m_msgStore;
   nsCOMPtr<nsISupports> m_srcSupport;
   /// Source nsIMsgDBHdr instances.
   nsCOMPtr<nsIArray> m_messages;
@@ -102,7 +103,7 @@ struct nsLocalMailCopyState
   bool m_notifyFolderLoaded;
   bool m_wholeMsgInStream;
   nsCString    m_newMsgKeywords;
-  nsCOMPtr <nsIMsgDBHdr> newHdr;
+  nsCOMPtr <nsIMsgDBHdr> m_newHdr;
 };
 
 struct nsLocalFolderScanState
@@ -110,14 +111,14 @@ struct nsLocalFolderScanState
   nsLocalFolderScanState();
   ~nsLocalFolderScanState();
 
-  nsCOMPtr<nsILocalFile> m_localFile;
-  nsCOMPtr<nsIFileInputStream> m_fileStream;
   nsCOMPtr<nsIInputStream> m_inputStream;
   nsCOMPtr<nsISeekableStream> m_seekableStream;
-  nsCOMPtr<nsILineInputStream> m_fileLineStream;
+  nsCOMPtr<nsIMsgPluggableStore> m_msgStore;
   nsCString m_header;
   nsCString m_accountKey;
   const char *m_uidl; // memory is owned by m_header
+  // false if we need a new input stream for each message
+  bool m_streamReusable;
 };
 
 class nsMsgLocalMailFolder : public nsMsgDBFolder,
@@ -147,7 +148,6 @@ public:
   NS_IMETHOD UpdateFolder(nsIMsgWindow *aWindow);
 
   NS_IMETHOD CreateSubfolder(const nsAString& folderName ,nsIMsgWindow *msgWindow);
-  NS_IMETHOD AddSubfolder(const nsAString& folderName, nsIMsgFolder** newFolder);
 
   NS_IMETHOD Compact(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow);
   NS_IMETHOD CompactAll(nsIUrlListener *aListener, nsIMsgWindow *aMsgWindow, bool aCompactOfflineAlso);
@@ -186,6 +186,8 @@ public:
                              const nsACString &aNewMsgKeywords,
                              nsIMsgWindow *msgWindow,
                              nsIMsgCopyServiceListener* listener);
+  NS_IMETHOD MarkMessagesRead(nsIArray *aMessages, bool aMarkRead);
+  NS_IMETHOD MarkMessagesFlagged(nsIArray *aMessages, bool aMarkFlagged);
   NS_IMETHOD GetNewMessages(nsIMsgWindow *aWindow, nsIUrlListener *aListener);
   NS_IMETHOD NotifyCompactCompleted();
   NS_IMETHOD Shutdown(bool shutdownChildren);
@@ -252,11 +254,15 @@ protected:
   virtual void GetIncomingServerType(nsCString& serverType);
   nsresult InitCopyState(nsISupports* aSupport, nsIArray* messages,
                          bool isMove, nsIMsgCopyServiceListener* listener, nsIMsgWindow *msgWindow, bool isMoveFolder, bool allowUndo);
+  nsresult InitCopyMsgHdrAndFileStream();
   // preserve message metadata when moving or copying messages
   void CopyPropertiesToMsgHdr(nsIMsgDBHdr *destHdr, nsIMsgDBHdr *srcHdr, bool isMove);
   virtual nsresult CreateBaseMessageURI(const nsACString& aURI);
   nsresult ChangeKeywordForMessages(nsIArray *aMessages, const nsACString& aKeyword, bool add);
   bool GetDeleteFromServerOnMove();
+  void CopyHdrPropertiesWithSkipList(nsIMsgDBHdr *destHdr,
+                                     nsIMsgDBHdr *srcHdr,
+                                     const nsCString &skipList);
 
 protected:
   nsLocalMailCopyState *mCopyState; //We only allow one of these at a time

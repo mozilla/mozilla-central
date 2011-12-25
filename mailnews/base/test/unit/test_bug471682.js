@@ -51,6 +51,12 @@ var gSubfolder = gLocalInboxFolder.createLocalSubfolder("subfolder");
 
 function run_test()
 {
+  // make sure we're using berkeley mailbox format here since this test
+  // assumes berkeley mailbox format.
+  if (Services.prefs.getCharPref("mail.serverDefaultStoreContractID") !=
+      "@mozilla.org/msgstore/berkeleystore;1")
+    return;
+
   do_test_pending();
   // step 1: copy a message into the local inbox
   copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
@@ -67,11 +73,13 @@ var step2 =
   OnProgress: function(aProgress, aProgressMax) {},
   SetMessageKey: function(aKey)
   {
+    dump("in set message key\n");
     gHdr = gLocalInboxFolder.GetMessageHeader(aKey);
   },
   SetMessageId: function(aMessageId) {},
   OnStopCopy: function(aStatus)
   {
+    do_check_neq(gHdr, null);
     // copy the message into the subfolder
     var messages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
     messages.appendElement(gHdr, false);

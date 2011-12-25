@@ -175,10 +175,6 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 // it was queued after failed. We send an OnStopRunningUrl with this error code 
 // so the listeners can know that we didn't run the url.
 #define NS_MSG_ERROR_URL_ABORTED NS_MSG_GENERATE_FAILURE(27)
-/* ducarroz: error codes for message compose are defined into compose\src\nsMsgComposeStringBundle.h.
-             Message compose use the same error code space than other mailnews modules. To avoid any
-             conflict, I reserve values between 12500 and 12999 for it.
-*/
 #define NS_MSG_CUSTOM_HEADERS_OVERFLOW NS_MSG_GENERATE_FAILURE(28) //when num of custom headers exceeds 50
 #define NS_MSG_INVALID_CUSTOM_HEADER NS_MSG_GENERATE_FAILURE(29) //when custom header has invalid characters (as per rfc 2822) 
 
@@ -193,6 +189,13 @@ NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_MAILNEWS, value)
 // The imap server returned NO or BAD for an IMAP command
 #define NS_MSG_ERROR_IMAP_COMMAND_FAILED NS_MSG_GENERATE_FAILURE(33)
 
+#define NS_MSG_ERROR_INVALID_FOLDER_NAME NS_MSG_GENERATE_FAILURE(34)
+
+/* Error codes for message compose are defined in
+   compose\src\nsMsgComposeStringBundle.h. Message compose use the same error
+   code space as other mailnews modules. To avoid any conflict, values between
+   12500 and 12999 are reserved.
+*/
 #define NS_MSGCOMP_ERROR_BEGIN 12500
 /* NS_ERROR_NNTP_NO_CROSS_POSTING lives here, and not in nsMsgComposeStringBundle.h, because it is used in news and compose. */
 #define NS_ERROR_NNTP_NO_CROSS_POSTING NS_MSG_GENERATE_FAILURE(12554)

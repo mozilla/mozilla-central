@@ -1067,7 +1067,10 @@ let gFolderTreeView = {
   {
     let newFolder;
     try {
-      newFolder = parentFolder.addSubfolder(newName);
+      if (parentFolder instanceof(Components.interfaces.nsIMsgLocalMailFolder))
+        newFolder = parentFolder.createLocalSubfolder(newName);
+      else
+        newFolder = parentFolder.addSubfolder(newName);
       newFolder.setFlag(nsMsgFolderFlags.Virtual);
       // provide a way to make the top level folder just a container, not
       // a search folder

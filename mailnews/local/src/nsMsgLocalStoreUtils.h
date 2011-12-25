@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- */
+/* -*- Mode: C++; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -15,8 +15,8 @@
  * The Original Code is mozilla.org code.
  *
  * The Initial Developer of the Original Code is
- * Netscape Communications Corporation.
- * Portions created by the Initial Developer are Copyright (C) 1998
+ * Mozilla Foundation.
+ * Portions created by the Initial Developer are Copyright (C) 2011
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
@@ -34,45 +34,45 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
+#ifndef nsMsgLocalStoreUtils_h__
+#define nsMsgLocalStoreUtils_h__
 
-#include "nsISupports.idl"
-
-interface nsIMsgDatabase;
-interface nsIMsgDBHdr;
-interface nsIOutputStream;
-
-%{C++
-#include "nsIMsgDatabase.h"
+#include "msgCore.h"
+#include "nsIMsgPluggableStore.h"
+#include "nsStringGlue.h"
+#include "nsReadLine.h"
+#include "nsISeekableStream.h"
 #include "nsIMsgHdr.h"
-%}
+#include "nsMsgLocalFolderHdrs.h"
+#include "nsMailHeaders.h"
+#include "nsMsgUtils.h"
+#include "nsIOutputStream.h"
+#include "nsMsgMessageFlags.h"
 
-typedef long nsMailboxParseState;
+/**
+ * Utility Class for handling local mail stores. Berkeley Mailbox
+ * and MailDir stores inherit from this class to share some code.
+*/
 
-[scriptable, uuid(abf6a8e2-955e-4952-a295-b71d45f770cf)]
-interface nsIMsgParseMailMsgState : nsISupports {
+class nsMsgLocalStoreUtils
+{
+public:
+  nsMsgLocalStoreUtils();
 
-    attribute unsigned long envelopePos;
-    void SetMailDB(in nsIMsgDatabase aDatabase);
-    /*
-     * Set a backup mail database, whose data will be read during parsing to
-     * attempt to recover message metadata
-     *
-     * @param aDatabase   the backup database
-     */
-    void SetBackupMailDB(in nsIMsgDatabase aDatabase);
-    void Clear();
+  static nsresult AddDirectorySeparator(nsILocalFile *path);
+  static bool nsShouldIgnoreFile(nsAString& name);
+  static void ChangeKeywordsHelper(nsIMsgDBHdr *message,
+                            PRUint64 desiredOffset,
+                            nsLineBuffer<char> *lineBuffer,
+                            nsTArray<nsCString> &keywordArray,
+                            bool aAdd,
+                            nsIOutputStream *outputStream,
+                            nsISeekableStream *seekableStream,
+                            nsIInputStream *inputStream);
 
-    void ParseAFolderLine(in string line, in unsigned long lineLength);
-    /// db header for message we're currently parsing
-    attribute nsIMsgDBHdr newMsgHdr;
-    void FinishHeader();
-
-    long GetAllHeaders(out string headers);
-    readonly attribute string headers;
-  attribute nsMailboxParseState state;
-    /* these are nsMailboxParseState */
-    const long ParseEnvelopeState=0;
-    const long ParseHeadersState=1;
-    const long ParseBodyState=2;
+  nsresult UpdateFolderFlag(nsIMsgDBHdr *mailHdr, bool bSet,
+                            nsMsgMessageFlagType flag,
+                            nsIOutputStream *fileStream);
 };
 
+#endif

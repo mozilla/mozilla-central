@@ -73,6 +73,7 @@
 #include "nsAutoPtr.h"
 #include "nsIStringBundle.h"
 #include "nsLocalStrings.h"
+#include "nsIMsgPluggableStore.h"
 
 #include "prlog.h"
 #if defined(PR_LOGGING)
@@ -418,25 +419,9 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
   if (!lineInputStream)
     return rv;
 
-  nsCOMPtr<nsILocalFile> mailDirectory;
-  rv = in_server->GetLocalPath(getter_AddRefs(mailDirectory));
-  NS_ENSURE_SUCCESS(rv, rv);
-  mailDirectory->AppendNative(NS_LITERAL_CSTRING("Inbox"));
-
-  nsCOMPtr <nsIOutputStream> outputStream;
-  rv = MsgGetFileStream(mailDirectory, getter_AddRefs(outputStream));
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr <nsIInputStream> inputStream = do_QueryInterface(outputStream);
-  nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(outputStream);
-  seekableStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
   nsCOMPtr<nsIMsgFolder> serverFolder;
   nsCOMPtr<nsIMsgFolder> inbox;
   nsCOMPtr<nsIMsgFolder> rootMsgFolder;
-
-  // create a new mail parser
-  nsRefPtr<nsParseNewMailState> newMailParser = new nsParseNewMailState;
-  if (newMailParser == nsnull)
-    return NS_ERROR_OUT_OF_MEMORY;
 
   rv = in_server->GetRootFolder(getter_AddRefs(serverFolder));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -446,9 +431,24 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
     return rv;
   rv = rootMsgFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox,
                                          getter_AddRefs(inbox));
+
   NS_ENSURE_TRUE(inbox, NS_ERROR_FAILURE);
+  nsCOMPtr <nsIOutputStream> outputStream;
+  nsCOMPtr<nsIMsgPluggableStore> msgStore;
+  rv = in_server->GetMsgStore(getter_AddRefs(msgStore));
+  NS_ENSURE_SUCCESS(rv, rv);
+  bool reusable;
+  nsCOMPtr<nsIMsgDBHdr> newHdr;
+  msgStore->GetNewMsgOutputStream(inbox, getter_AddRefs(newHdr),
+                                  &reusable, getter_AddRefs(outputStream));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr <nsIInputStream> inputStream = do_QueryInterface(outputStream);
+  // create a new mail parser
+  nsRefPtr<nsParseNewMailState> newMailParser = new nsParseNewMailState;
+  NS_ENSURE_TRUE(newMailParser, NS_ERROR_OUT_OF_MEMORY);
+
   rv = newMailParser->Init(serverFolder, inbox,
-                           inputStream, nsnull);
+                           nsnull, newHdr, outputStream);
   NS_ENSURE_SUCCESS(rv, rv);
 
   in_server->SetServerBusy(PR_TRUE);
@@ -498,7 +498,7 @@ nsMovemailService::GetNewMail(nsIMsgWindow *aMsgWindow,
 
   outputStream->Flush();
   newMailParser->OnStopRequest(nsnull, nsnull, NS_OK);
-  newMailParser->SetDBFolderStream(nsnull); // stream is going away
+  msgStore->FinishNewMessage(outputStream, newHdr);
   outputStream->Close();
 
   // Truncate the spool file

@@ -102,16 +102,15 @@ function OnStopCopy(aStatus) {
     do_check_eq(msgSendLater.hasUnsentMessages(identity), true);
 
     // Now do a comparison of what is in the sent mail folder
-    var fileData = loadFileToString(folder.filePath);
-
+    let msgData = loadMessageToString(folder, firstMsgHdr(folder));
     // Skip the headers etc that mailnews adds
-    var pos = fileData.indexOf("From:");
+    var pos = msgData.indexOf("From:");
     do_check_neq(pos, -1);
 
-    fileData = fileData.substr(pos);
+    msgData = msgData.substr(pos);
 
     // Check the data is matching.
-    do_check_eq(originalData, fileData);
+    do_check_eq(originalData, msgData);
 
     sendMessageLater();
   } catch (e) {

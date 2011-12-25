@@ -55,6 +55,7 @@ function readFromXML(clientConfigXML)
   if (typeof(clientConfigXML) != "xml" ||
       !("emailProvider" in clientConfigXML))
   {
+    dump("client config xml = " + clientConfigXML + "\n");
     var stringBundle = getStringBundle(
         "chrome://messenger/locale/accountCreationModel.properties");
     throw stringBundle.GetStringFromName("no_emailProvider.error");

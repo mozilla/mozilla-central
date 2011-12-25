@@ -92,12 +92,9 @@ nsPop3Sink::nsPop3Sink()
     m_senderAuthed = PR_FALSE;
     m_outputBuffer = nsnull;
     m_outputBufferSize = 0;
-    m_newMailParser = nsnull;
-#ifdef DEBUG
-    m_fileCounter = 0;
-#endif
     m_popServer = nsnull;
     m_outFileStream = nsnull;
+    m_uidlDownload = PR_FALSE;
     m_buildMessageUri = PR_FALSE;
     if (!POP3LOGMODULE)
       POP3LOGMODULE = PR_NewLogModule("POP3");
@@ -111,7 +108,6 @@ nsPop3Sink::~nsPop3Sink()
     NS_IF_RELEASE(m_popServer);
     PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("Calling ReleaseFolderLock from ~nsPop3Sink"));
     ReleaseFolderLock();
-    NS_IF_RELEASE(m_newMailParser);
 }
 
 nsresult
@@ -151,7 +147,8 @@ nsresult
 nsPop3Sink::GetMailAccountURL(char* *urlString)
 {
   NS_ASSERTION(urlString, "null getter in getMailAccountURL");
-  if (!urlString) return NS_ERROR_NULL_POINTER;
+  if (!urlString)
+    return NS_ERROR_NULL_POINTER;
 
   *urlString = strdup(m_accountUrl);
   return NS_OK;
@@ -172,20 +169,19 @@ partialRecord::~partialRecord()
 // matches the current Account, then look for the Uidl and save
 // this message for later processing.
 nsresult
-nsPop3Sink::FindPartialMessages(nsILocalFile *folderFile)
+nsPop3Sink::FindPartialMessages()
 {
-  nsresult rv;
-
   nsCOMPtr<nsISimpleEnumerator> messages;
   bool hasMore = false;
   bool isOpen = false;
   nsLocalFolderScanState folderScanState;
+  nsCOMPtr<nsIMsgDatabase> db;
   nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(m_folder);
-
-  if (!localFolder)
+  m_folder->GetMsgDatabase(getter_AddRefs(db));
+  if (!localFolder || !db)
     return NS_ERROR_FAILURE;  // we need it to grub thru the folder
 
-  rv = m_newMailParser->m_mailDB->EnumerateMessages(getter_AddRefs(messages));
+  nsresult rv = db->EnumerateMessages(getter_AddRefs(messages));
   if (messages)
     messages->HasMoreElements(&hasMore);
   while(hasMore && NS_SUCCEEDED(rv))
@@ -200,7 +196,6 @@ nsPop3Sink::FindPartialMessages(nsILocalFile *folderFile)
       // Open the various streams we need to seek and read from the mailbox
       if (!isOpen)
       {
-        folderScanState.m_localFile = folderFile;
         rv = localFolder->GetFolderScanState(&folderScanState);
         if (NS_SUCCEEDED(rv))
           isOpen = PR_TRUE;
@@ -228,7 +223,7 @@ nsPop3Sink::FindPartialMessages(nsILocalFile *folderFile)
     messages->HasMoreElements(&hasMore);
   }
   if (isOpen)
-    folderScanState.m_fileStream->Close();
+    folderScanState.m_inputStream->Close();
   return rv;
 }
 
@@ -267,15 +262,13 @@ nsPop3Sink::CheckPartialMessages(nsIPop3Protocol *protocol)
 nsresult
 nsPop3Sink::BeginMailDelivery(bool uidlDownload, nsIMsgWindow *aMsgWindow, bool* aBool)
 {
-#ifdef DEBUG
-  m_fileCounter++;
-#endif
-
   nsresult rv;
 
   nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_popServer);
   if (!server)
     return NS_ERROR_UNEXPECTED;
+
+  m_window = aMsgWindow;
 
   nsCOMPtr <nsIMsgAccountManager> acctMgr = do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   nsCOMPtr <nsIMsgAccount> account;
@@ -297,99 +290,9 @@ nsPop3Sink::BeginMailDelivery(bool uidlDownload, nsIMsgWindow *aMsgWindow, bool*
     PR_LOG(POP3LOGMODULE, PR_LOG_MAX, ("BeginMailDelivery folder locked"));
     return NS_MSG_FOLDER_BUSY;
   }
-
-  nsCOMPtr<nsILocalFile> path;
-
-  m_folder->GetFilePath(getter_AddRefs(path));
-  nsCOMPtr <nsIInputStream> inboxInputStream;
-
-  nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
-  if (pPrefBranch)
-     pPrefBranch->GetBoolPref("mailnews.downloadToTempFile", &m_downloadingToTempFile);
-
-  if (m_downloadingToTempFile)
-  {
-    // need to create an nsIOFileStream from a temp file...
-    nsCOMPtr<nsIFile> tmpDownloadFile;
-    rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
-                                         "newmsg",
-                                         getter_AddRefs(tmpDownloadFile));
-
-    NS_ASSERTION(NS_SUCCEEDED(rv),"writing tmp pop3 download file: failed to append filename");
-    if (NS_FAILED(rv))
-      return rv;
-
-    rv = tmpDownloadFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);  //need a unique tmp file to prevent dataloss in multiuser environment
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    m_tmpDownloadFile = do_QueryInterface(tmpDownloadFile, &rv);
-    if (NS_SUCCEEDED(rv))
-    {
-      rv = MsgGetFileStream(m_tmpDownloadFile, getter_AddRefs(m_outFileStream));
-      NS_ENSURE_SUCCESS(rv, rv);
-    }
-    rv = MsgGetFileStream(path, getter_AddRefs(m_inboxOutputStream));
-    NS_ENSURE_SUCCESS(rv, rv);
-    inboxInputStream = do_QueryInterface(m_inboxOutputStream);
-  }
-  else
-  {
-    rv = MsgGetFileStream(path, getter_AddRefs(m_outFileStream));
-    NS_ENSURE_SUCCESS(rv, rv);
-    inboxInputStream = do_QueryInterface(m_outFileStream);
-  }
-  // The following (!m_outFileStream etc) was added to make sure that we don't write somewhere
-  // where for some reason or another we can't write to and lose the messages
-  // See bug 62480
-  if (!m_outFileStream)
-      return NS_ERROR_OUT_OF_MEMORY;
-
-  nsCOMPtr <nsISeekableStream> seekableOutStream = do_QueryInterface(m_outFileStream);
-  seekableOutStream->Seek(nsISeekableStream::NS_SEEK_END, 0);
-
-  // create a new mail parser
-  m_newMailParser = new nsParseNewMailState;
-  NS_IF_ADDREF(m_newMailParser);
-  if (m_newMailParser == nsnull)
-    return NS_ERROR_OUT_OF_MEMORY;
-
-  m_folder->GetNumNewMessages(PR_FALSE, &m_numNewMessagesInFolder);
-  nsCOMPtr <nsIMsgFolder> serverFolder;
-  rv = GetServerFolder(getter_AddRefs(serverFolder));
-  if (NS_FAILED(rv)) return rv;
-
-  rv = m_newMailParser->Init(serverFolder, m_folder,
-                             inboxInputStream, aMsgWindow);
-  // If we failed to initialize the parser, then just don't use it!!!
-  // We can still continue without one.
-
-  if (NS_FAILED(rv))
-  {
-    NS_IF_RELEASE(m_newMailParser);
-    rv = NS_OK;
-  }
-  else
-  {
-    // Share the inbox fileStream so that moz-status-line flags can be set in the Inbox
-    m_newMailParser->SetDBFolderStream(m_outFileStream);
-    if (m_downloadingToTempFile)
-    {
-      // Tell the parser to use the offset that will be in the dest folder,
-      // not the temp folder, so that the msg hdr will start off with
-      // the correct mdb oid
-      PRInt64 fileSize;
-      path->GetFileSize(&fileSize);
-      m_newMailParser->SetEnvelopePos((PRUint32) fileSize);
-    }
-  }
-  if (m_newMailParser)
-  {
-    if (uidlDownload)
-      m_newMailParser->DisableFilters();
-    else
-      FindPartialMessages(path);
-  }
-
+  m_uidlDownload = uidlDownload;
+  if (!uidlDownload)
+    FindPartialMessages();
 
 #ifdef DEBUG
   printf("Begin mail message delivery.\n");
@@ -412,7 +315,6 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
     if (m_outFileStream)
       m_outFileStream->Flush();  // try this.
     m_newMailParser->OnStopRequest(nsnull, nsnull, NS_OK);
-    m_newMailParser->SetDBFolderStream(nsnull); // stream is going away
     m_newMailParser->EndMsgDownload();
   }
   if (m_outFileStream)
@@ -544,8 +446,7 @@ nsPop3Sink::AbortMailDelivery(nsIPop3Protocol *protocol)
 {
   CheckPartialMessages(protocol);
 
-  if (m_newMailParser)
-    m_newMailParser->SetDBFolderStream(nsnull); //stream is going away
+  // ### PS TODO - discard any new message?
 
   if (m_outFileStream)
   {
@@ -590,17 +491,112 @@ nsPop3Sink::IncorporateBegin(const char* uidlString,
     if (uidlString)
         printf("uidl string: %s\n", uidlString);
 #endif
+  nsCOMPtr<nsILocalFile> path;
+
+  m_folder->GetFilePath(getter_AddRefs(path));
+
+  nsresult rv;
+  nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  if (pPrefBranch)
+  {
+    nsCOMPtr<nsIMsgIncomingServer> server;
+    m_folder->GetServer(getter_AddRefs(server));
+    nsCString plugStoreContract;
+    server->GetCharValue("storeContractID", plugStoreContract);
+    // Maildir doesn't care about quaranting, but other stores besides berkeley
+    // mailbox might. We should probably make this an attribute on the pluggable
+    // store, though.
+    if (plugStoreContract.Equals(
+          NS_LITERAL_CSTRING("@mozilla.org/msgstore/berkeleystore;1")))
+      pPrefBranch->GetBoolPref("mailnews.downloadToTempFile", &m_downloadingToTempFile);
+  }
+
+  nsCOMPtr<nsIMsgDBHdr> newHdr;
+
+  nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_popServer);
+  if (!server)
+    return NS_ERROR_UNEXPECTED;
+
+  if (m_downloadingToTempFile)
+  {
+    // need to create an nsIOFileStream from a temp file...
+    nsCOMPtr<nsIFile> tmpDownloadFile;
+    rv = GetSpecialDirectoryWithFileName(NS_OS_TEMP_DIR,
+                                         "newmsg",
+                                         getter_AddRefs(tmpDownloadFile));
+
+    NS_ASSERTION(NS_SUCCEEDED(rv),
+                 "writing tmp pop3 download file: failed to append filename");
+    if (NS_FAILED(rv))
+      return rv;
+
+    //need a unique tmp file to prevent dataloss in multiuser environment
+    rv = tmpDownloadFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    m_tmpDownloadFile = do_QueryInterface(tmpDownloadFile, &rv);
+    if (NS_SUCCEEDED(rv))
+    {
+      rv = MsgGetFileStream(m_tmpDownloadFile, getter_AddRefs(m_outFileStream));
+      NS_ENSURE_SUCCESS(rv, rv);
+    }
+  }
+  else
+  {
+    rv = server->GetMsgStore(getter_AddRefs(m_msgStore));
+    bool reusable;
+    NS_ENSURE_SUCCESS(rv, rv);
+    m_msgStore->GetNewMsgOutputStream(m_folder, getter_AddRefs(newHdr),
+                                      &reusable, getter_AddRefs(m_outFileStream));
+  }
+  // The following (!m_outFileStream etc) was added to make sure that we don't
+  // write somewhere where for some reason or another we can't write to and
+  // lose the messages. See bug 62480
+  if (!m_outFileStream)
+      return NS_ERROR_OUT_OF_MEMORY;
+
+  nsCOMPtr<nsISeekableStream> seekableOutStream = do_QueryInterface(m_outFileStream);
+
+  // create a new mail parser
+  m_newMailParser = new nsParseNewMailState;
+  NS_ENSURE_TRUE(m_newMailParser, NS_ERROR_OUT_OF_MEMORY);
+  if (m_uidlDownload)
+    m_newMailParser->DisableFilters();
+
+  m_folder->GetNumNewMessages(PR_FALSE, &m_numNewMessagesInFolder);
+  nsCOMPtr <nsIMsgFolder> serverFolder;
+  rv = GetServerFolder(getter_AddRefs(serverFolder));
+  if (NS_FAILED(rv)) return rv;
+
+  rv = m_newMailParser->Init(serverFolder, m_folder,
+                             m_window, newHdr, m_outFileStream);
+  // If we failed to initialize the parser, then just don't use it!!!
+  // We can still continue without one.
+
+  if (NS_FAILED(rv))
+  {
+    m_newMailParser = nsnull;
+    rv = NS_OK;
+  }
+  else
+  {
+    if (m_downloadingToTempFile)
+    {
+      // Tell the parser to use the offset that will be in the dest folder,
+      // not the temp folder, so that the msg hdr will start off with
+      // the correct mdb oid
+      PRInt64 fileSize;
+      path->GetFileSize(&fileSize);
+      m_newMailParser->SetEnvelopePos((PRUint32) fileSize);
+    }
+  }
     if (closure)
         *closure = (void*) this;
-    nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(m_outFileStream);
-    PRInt64 filePos;
-    seekableStream->Tell(&filePos);
-    m_msgOffset = (PRUint32) filePos;
 
     char *dummyEnvelope = GetDummyEnvelope();
 
-    nsresult rv = WriteLineToMailbox(dummyEnvelope);
-    if (NS_FAILED(rv)) return rv;
+  rv = WriteLineToMailbox(dummyEnvelope);
+  NS_ENSURE_SUCCESS(rv, rv);
     // write out account-key before UIDL so the code that looks for
     // UIDL will find the account first and know it can stop looking
     // once it finds the UIDL line.
@@ -869,15 +865,9 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
       NS_ENSURE_SUCCESS(rv, HandleTempDownloadFailed(aMsgWindow));
       if (m_outFileStream)
       {
-        nsCOMPtr<nsILocalFile> path;
-
-        PRInt64 folderSize, tmpDownloadFileSize;
-        m_folder->GetFilePath(getter_AddRefs(path));
-        path->GetFileSize(&folderSize);
-        PRUint32 newMsgPos = (PRUint32) folderSize;
+        PRInt64 tmpDownloadFileSize;
         PRUint32 msgSize;
         hdr->GetMessageSize(&msgSize);
-        hdr->SetMessageKey(newMsgPos);
         // we need to clone because nsLocalFileUnix caches its stat result,
         // so it doesn't realize the file has changed size.
         nsCOMPtr <nsIFile> tmpClone;
@@ -888,14 +878,13 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
         if (msgSize > tmpDownloadFileSize)
           rv = NS_MSG_ERROR_WRITING_MAIL_FOLDER;
         else
-          rv = m_newMailParser->AppendMsgFromFile(inboxInputStream, 0, msgSize, path);
+          rv = m_newMailParser->AppendMsgFromStream(inboxInputStream, hdr,
+                                                    msgSize, m_folder);
         if (NS_FAILED(rv))
           return HandleTempDownloadFailed(aMsgWindow);
 
         m_outFileStream->Close(); // close so we can truncate.
         m_tmpDownloadFile->SetFileSize(0);
-        rv = MsgReopenFileStream(m_tmpDownloadFile, inboxInputStream);
-        NS_ENSURE_SUCCESS(rv, rv);
       }
       else
       {
@@ -903,7 +892,10 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
         // need to give an error here.
       }
     }
-
+    else
+    {
+      m_msgStore->FinishNewMessage(m_outFileStream, hdr);
+    }
     m_newMailParser->PublishMsgHeader(aMsgWindow);
     // run any reply/forward filter after we've finished with the
     // temp quarantine file, and/or moved the message to another folder.
@@ -928,26 +920,11 @@ nsPop3Sink::IncorporateComplete(nsIMsgWindow *aMsgWindow, PRInt32 aSize)
 NS_IMETHODIMP
 nsPop3Sink::IncorporateAbort(bool uidlDownload)
 {
-  nsresult rv;
-  rv = m_outFileStream->Close();   //need to close so that the file can be truncated.
+  nsresult rv = m_outFileStream->Close();
   NS_ENSURE_SUCCESS(rv,rv);
-  if (m_msgOffset >= 0 && !m_downloadingToTempFile)
-  {
-     nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_popServer);
-     NS_ASSERTION(server, "Could not get the pop server !!");
-     nsCOMPtr<nsILocalFile> mailDirectory;
-     if (uidlDownload)
-        m_folder->GetFilePath(getter_AddRefs(mailDirectory));
-     else
-     {
-       rv = server->GetLocalPath(getter_AddRefs(mailDirectory));
-       NS_ENSURE_SUCCESS(rv,rv);
-       rv = mailDirectory->AppendRelativePath(NS_LITERAL_STRING("Inbox"));
-       NS_ENSURE_SUCCESS(rv,rv);
-     }
-     rv = mailDirectory->SetFileSize(m_msgOffset);
-     NS_ENSURE_SUCCESS(rv,rv);
-  }
+  if (!m_downloadingToTempFile && m_msgStore)
+      m_msgStore->DiscardNewMessage(m_outFileStream,
+                                    m_newMailParser->m_newMsgHdr);
 #ifdef DEBUG
     printf("Incorporate message abort.\n");
 #endif

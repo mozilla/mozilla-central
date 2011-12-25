@@ -76,6 +76,7 @@
 #include "nsIMsgTagService.h"
 #include "nsMsgMessageFlags.h"
 #include "nsIMsgFilterService.h"
+#include "nsIMsgPluggableStore.h"
 #include "nsAbBaseCID.h"
 #include "nsIAbManager.h"
 
@@ -1897,25 +1898,9 @@ nsMsgSearchScopeTerm::GetInputStream(nsIMsgDBHdr *aMsgHdr,
   NS_ENSURE_ARG_POINTER(aInputStream);
   NS_ENSURE_ARG_POINTER(aMsgHdr);
   NS_ENSURE_TRUE(m_folder, NS_ERROR_NULL_POINTER);
-  nsresult rv;
-  if (!m_inputStream)
-  {
-    nsCOMPtr<nsILocalFile> localFile;
-    rv = m_folder->GetFilePath(getter_AddRefs(localFile));
-    NS_ENSURE_SUCCESS(rv, rv);
-    nsCOMPtr<nsIFileInputStream> fileStream = do_CreateInstance(NS_LOCALFILEINPUTSTREAM_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    rv = fileStream->Init(localFile,  PR_RDONLY, 0664, PR_FALSE);  //just have to read the messages
-    m_inputStream = do_QueryInterface(fileStream);
-  }
-  PRUint64 offset;
-  aMsgHdr->GetMessageOffset(&offset);
-  nsCOMPtr<nsISeekableStream> seekableStream(do_QueryInterface(m_inputStream));
-  if (seekableStream)
-    rv = seekableStream->Seek(PR_SEEK_SET, offset);
-  NS_WARN_IF_FALSE(!seekableStream && offset,
-                   "non-zero offset w/ non-seekable stream");
+  bool reusable;
+  nsresult rv = m_folder->GetMsgInputStream(aMsgHdr, &reusable,
+                                            getter_AddRefs(m_inputStream));
   NS_ENSURE_SUCCESS(rv, rv);
   NS_IF_ADDREF(*aInputStream = m_inputStream);
   return rv;

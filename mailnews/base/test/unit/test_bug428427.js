@@ -43,10 +43,6 @@ const tagService = Cc["@mozilla.org/messenger/tagservice;1"]
 const dbviewContractId = "@mozilla.org/messenger/msgdbview;1?type=" + "quicksearch";
 const dbView = Cc[dbviewContractId].createInstance(Ci.nsIMsgDBView);
 const bugmail1 = do_get_file("../../../data/bugmail1");
-// I'm only loading msgDBService to help load symbols for debugging
-//const msgDBService = Cc["@mozilla.org/msgDatabase/msgDBService;1"]
-//                     .getService(Ci.nsIMsgDBService);
-                     
 // main test
 
 // the headers for the test messages. All messages are identical, but
@@ -88,8 +84,11 @@ var copyListener =
     if (--messageCount)
       copyService.CopyFileMessage(bugmail1, gLocalInboxFolder, null, false, 0,
                                   "", copyListener, null);
-    else
+    else {
+      try {
       setupVirtualFolder();
+      } catch (ex) {dump(ex);}
+    }
   }
 };
 
@@ -124,10 +123,10 @@ function setupVirtualFolder()
   var searchTerm = makeSearchTerm(gLocalInboxFolder, tag1, 
     Ci.nsMsgSearchAttrib.Keywords, Ci.nsMsgSearchOp.Contains);
     
+  dump("creating virtual folder\n");
   var rootFolder = gLocalIncomingServer.rootMsgFolder;
   virtualFolder = CreateVirtualFolder("VfTest", rootFolder, gLocalInboxFolder.URI, searchTerm, false);
   var count= new Object;
-  
   // Setup search session. Execution continues with testVirtualFolder()
   // after search is done.
   
@@ -136,6 +135,7 @@ function setupVirtualFolder()
   searchSession.addScopeTerm(Ci.nsMsgSearchScope.offlineMail, gLocalInboxFolder);
   searchSession.appendTerm(searchTerm, false);
   searchSession.registerListener(searchListener);
+  dump("starting search of vf\n");
   searchSession.search(null);
 }
 
@@ -145,12 +145,13 @@ var searchListener =
 { 
   onNewSearch: function() 
   {
+    dump("in onnewsearch\n");
     numTotalMessages = 0;
     numUnreadMessages = 0;
   },
   onSearchHit: function(dbHdr, folder)
   {
-    //print("Search hit, isRead is " + dbHdr.isRead);
+    print("Search hit, isRead is " + dbHdr.isRead);
     numTotalMessages++;
     if (!dbHdr.isRead)
       numUnreadMessages++;
@@ -221,9 +222,9 @@ function CreateVirtualFolder(newName, parentFolder, searchFolderURIs, searchTerm
   dbFolderInfo.setCharProperty("searchStr", searchTermString);
   dbFolderInfo.setCharProperty("searchFolderUri", searchFolderURIs);
   dbFolderInfo.setBooleanProperty("searchOnline", searchOnline);
-  vfdb.summaryValid = true;
+  // This fails because the folder doesn't exist - why were we doing it?
+//  vfdb.summaryValid = true;
   vfdb.Close(true);
-  
   // use acctMgr to setup the virtual folder listener
   var acctMgr = Cc["@mozilla.org/messenger/account-manager;1"]
                   .getService(Ci.nsIMsgAccountManager);

@@ -87,11 +87,12 @@ function test_setup_virtual_folder_and_compact() {
       this.compactDone = true;
     }
   };
-  otherFolder.compactAll(urlListener, null, false);
+  if (otherFolder.msgStore.supportsCompaction) {
+    otherFolder.compactAll(urlListener, null, false);
 
-  mc.waitFor(function () urlListener.compactDone,
-             "Timeout waiting for compact to complete", 10000, 100);
-
+    mc.waitFor(function () urlListener.compactDone,
+               "Timeout waiting for compact to complete", 10000, 100);
+  }
   // Let the event queue clear.
   mc.sleep(0);
   // Check view is still valid

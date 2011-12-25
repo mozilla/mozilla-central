@@ -48,11 +48,13 @@ var copyListener2 =
   SetMessageId: function(aMessageId) {},
   OnStopCopy: function(aStatus)
   {
+    try {
     gLocalInboxFolder.fetchMsgPreviewText(hdrs, hdrs.length, false, null);
     do_check_eq(gLocalInboxFolder.GetMessageHeader(hdrs[0]).getStringProperty('preview'),
                 bugmail10_preview);
     do_check_eq(gLocalInboxFolder.GetMessageHeader(hdrs[1]).getStringProperty('preview'),
                 bugmail11_preview);
+    } catch(ex) {dump(ex); do_throw(e) }
     do_test_finished();
   }
 };

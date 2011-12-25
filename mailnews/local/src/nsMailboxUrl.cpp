@@ -221,7 +221,8 @@ nsresult nsMailboxUrl::GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr)
     nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
 
     if (msgDBService)
-      rv = msgDBService->OpenMailDBFromFile(m_filePath, PR_FALSE, PR_FALSE, (nsIMsgDatabase **) getter_AddRefs(mailDB));
+      rv = msgDBService->OpenMailDBFromFile(m_filePath, nsnull, PR_FALSE,
+                                            PR_FALSE, getter_AddRefs(mailDB));
     if (NS_SUCCEEDED(rv) && mailDB) // did we get a db back?
       rv = mailDB->GetMsgHdrForKey(msgKey, aMsgHdr);
     else

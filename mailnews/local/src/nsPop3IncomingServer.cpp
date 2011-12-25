@@ -477,15 +477,9 @@ nsPop3IncomingServer::SetFlagsOnDefaultMailboxes()
 
 NS_IMETHODIMP nsPop3IncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
 {
-  NS_ENSURE_ARG_POINTER(aPath);
-  nsCOMPtr <nsIFile> path;
-  nsresult rv = aPath->Clone(getter_AddRefs(path));
+  nsresult rv = CreateLocalFolder(NS_LITERAL_STRING("Inbox"));
   NS_ENSURE_SUCCESS(rv, rv);
-
-  (void) path->AppendNative(NS_LITERAL_CSTRING("Inbox"));
-  rv = CreateLocalFolder(path, NS_LITERAL_CSTRING("Inbox"));
-  NS_ENSURE_SUCCESS(rv, rv);
-  return CreateLocalFolder(path, NS_LITERAL_CSTRING("Trash"));
+  return CreateLocalFolder(NS_LITERAL_STRING("Trash"));
 }
 
 // override this so we can say that deferred accounts can't have messages

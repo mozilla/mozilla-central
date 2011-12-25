@@ -63,6 +63,7 @@
 #include "nsIMsgStatusFeedback.h"
 #include "nsMsgBaseCID.h"
 #include "nsIMsgFolderNotificationService.h"
+#include "nsIMsgPluggableStore.h"
 #include "nsMsgFolderCompactor.h"
 
 //////////////////////////////////////////////////////////////////////////////
@@ -135,23 +136,17 @@ nsFolderCompactState::InitDB(nsIMsgDatabase *db)
   m_size = m_keyArray->m_keys.Length();
 
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
-  if (msgDBService) 
-  {
-    nsresult folderOpen = msgDBService->OpenMailDBFromFile(m_file, PR_TRUE,
-                                     PR_FALSE,
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = msgDBService->OpenMailDBFromFile(m_file, m_folder, PR_TRUE, PR_FALSE,
                                      getter_AddRefs(m_db));
 
-    if(NS_FAILED(folderOpen) &&
-       folderOpen == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE || 
-       folderOpen == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING )
-    {
+  if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE ||
+      rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
       // if it's out of date then reopen with upgrade.
-      rv = msgDBService->OpenMailDBFromFile(m_file,
-                               PR_TRUE, PR_TRUE,
+    return msgDBService->OpenMailDBFromFile(m_file,
+                                            m_folder, PR_TRUE, PR_TRUE,
                                getter_AddRefs(m_db));
-    }
-  }
-  return rv;
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsFolderCompactState::CompactFolders(nsIArray *aArrayOfFoldersToCompact,
@@ -264,7 +259,6 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, bool aOfflineStore,
    {
      m_folder->NotifyCompactCompleted();
      m_folder->ThrowAlertMsg("compactFolderDeniedLock", m_window);
-     m_db = nsnull;
      CleanupTempFilesAfterError();
      if (m_compactAll)
        return CompactNextFolder();
@@ -369,7 +363,14 @@ NS_IMETHODIMP nsFolderCompactState::OnStopRunningUrl(nsIURI *url, nsresult statu
 
 nsresult nsFolderCompactState::StartCompacting()
 {
-  nsresult rv = NS_OK;
+  nsCOMPtr<nsIMsgPluggableStore> msgStore;
+  nsCOMPtr<nsIMsgIncomingServer> server;
+  
+  nsresult rv = m_folder->GetServer(getter_AddRefs(server));
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = server->GetMsgStore(getter_AddRefs(msgStore));
+  NS_ENSURE_SUCCESS(rv, rv);
+  
   // Notify that compaction is beginning.  We do this even if there are no
   // messages to be copied because the summary database still gets blown away
   // which is still pretty interesting.  (And we like consistency.)
@@ -434,7 +435,6 @@ nsFolderCompactState::FinishCompact()
   // Close it so we can rename the .msf file.
   if (m_db)
   {
-    m_db->SetSummaryValid(PR_TRUE);
     m_db->ForceClosed();
     m_db = nsnull;
   }
@@ -493,11 +493,16 @@ nsFolderCompactState::FinishCompact()
   NS_ASSERTION(NS_SUCCEEDED(rv),"folder lock not released successfully");
   if (msfRenameSucceeded && folderRenameSucceeded)
   {
+    nsCOMPtr<nsIMsgDBService> msgDBService =
+      do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = msgDBService->OpenFolderDB(m_folder, PR_TRUE, getter_AddRefs(m_db));
+    m_db->SetSummaryValid(PR_TRUE);
     m_folder->SetDBTransferInfo(transferInfo);
 
-    nsCOMPtr <nsIDBFolderInfo> dbFolderInfo;
+    nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
 
-    m_folder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(m_db));
+    m_db->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
 
     // since we're transferring info from the old db, we need to reset the expunged bytes,
     // and set the summary valid again.
@@ -973,6 +978,9 @@ nsOfflineStoreCompactState::OnStopRequest(nsIRequest *request, nsISupports *ctxt
     if (NS_SUCCEEDED(status))
     {
       msgHdr->SetMessageOffset(m_startOfNewMsg);
+      char storeToken[100];
+      PR_snprintf(storeToken, sizeof(storeToken), "%lld", m_startOfNewMsg);
+      msgHdr->SetStringProperty("storeToken", storeToken);
       msgHdr->SetOfflineMessageSize(m_offlineMsgSize);
     }
     else
@@ -1123,6 +1131,10 @@ nsFolderCompactState::EndCopy(nsISupports *url, nsresult aStatus)
     if ( m_statusOffset != 0)
       newMsgHdr->SetStatusOffset(m_statusOffset);
       
+    char storeToken[100];
+    PR_snprintf(storeToken, sizeof(storeToken), "%lld", m_startOfNewMsg);
+    newMsgHdr->SetStringProperty("storeToken", storeToken);
+
     PRUint32 msgSize;
     (void) newMsgHdr->GetMessageSize(&msgSize);
     if (m_addedHeaderSize)

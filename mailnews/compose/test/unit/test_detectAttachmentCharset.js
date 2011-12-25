@@ -77,10 +77,48 @@ function createMessage(attachmentPath)
 
 function checkAttachment(charset)
 {
-  var fileData = loadFileToString(gDraftFolder.filePath);
-  var pos = fileData.indexOf("Content-Type: text/plain; charset=" + charset + ";");
+  var msgData = getContentFromMessage(firstMsgHdr(gDraftFolder));
+  var pos = msgData.indexOf("Content-Type: text/plain; charset=" + charset + ";");
   do_check_neq(pos, -1);
   do_timeout(0, function() {doTest(++gCurTestNum);});
+}
+
+// get the first message header found in a folder
+function firstMsgHdr(folder)
+{
+  let enumerator = folder.msgDatabase.EnumerateMessages();
+  if (enumerator.hasMoreElements())
+    return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+  return null;
+}
+
+/*
+ * Get the full message content from a local folder.
+ *
+ * aMsgHdr: nsIMsgDBHdr object whose text body will be read
+ *          returns: string with full message contents
+ */
+function getContentFromMessage(aMsgHdr)
+{
+  const MAX_MESSAGE_LENGTH = 65536;
+  let msgFolder = aMsgHdr.folder;
+  let msgUri = msgFolder.getUriForMsg(aMsgHdr);
+
+  let messenger = Cc["@mozilla.org/messenger;1"]
+                    .createInstance(Ci.nsIMessenger);
+  let streamListener = Cc["@mozilla.org/network/sync-stream-listener;1"]
+                         .createInstance(Ci.nsISyncStreamListener);
+  messenger.messageServiceFromURI(msgUri).streamMessage(msgUri,
+                                                        streamListener,
+                                                        null,
+                                                        null,
+                                                        false,
+                                                        "",
+                                                        false);
+  let sis = Cc["@mozilla.org/scriptableinputstream;1"]
+              .createInstance(Ci.nsIScriptableInputStream);
+  sis.init(streamListener.inputStream);
+  return sis.read(MAX_MESSAGE_LENGTH);
 }
 
 const gTestArray =

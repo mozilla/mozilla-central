@@ -210,13 +210,14 @@ function getContentFromMessage(aMsgHdr) {
                     .createInstance(Ci.nsIMessenger);
   let streamListener = Cc["@mozilla.org/network/sync-stream-listener;1"]
                          .createInstance(Ci.nsISyncStreamListener);
+  // pass true for aLocalOnly since message should be in offline store.
   messenger.messageServiceFromURI(msgUri).streamMessage(msgUri,
                                                         streamListener,
                                                         null,
                                                         null,
                                                         false,
                                                         "",
-                                                        false);
+                                                        true);
   let sis = Cc["@mozilla.org/scriptableinputstream;1"]
               .createInstance(Ci.nsIScriptableInputStream);
   sis.init(streamListener.inputStream);

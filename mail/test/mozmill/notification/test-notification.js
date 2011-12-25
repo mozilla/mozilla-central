@@ -150,7 +150,8 @@ function setupModule(module) {
 
   // Create the target folders
   gFolder = create_folder("My Folder");
-  gFolder2 = server.rootFolder.addSubfolder("Another Folder");
+  let localRoot = server.rootFolder.QueryInterface(Ci.nsIMsgLocalMailFolder);
+  gFolder2 = localRoot.createLocalSubfolder("Another Folder");
 
   var account = MailServices.accounts.createAccount();
   account.incomingServer = server;

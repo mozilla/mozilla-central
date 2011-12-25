@@ -55,8 +55,6 @@ public:
   virtual nsresult AdjustExpungedBytesOnDelete(nsIMsgDBHdr *msgHdr);
 
   NS_IMETHOD    ForceClosed();
-  NS_IMETHOD    SetFolderStream(nsIOutputStream *aFileStream);
-  NS_IMETHOD    GetFolderStream(nsIOutputStream **aFileStream);
   NS_IMETHOD    AddNewHdrToDB(nsIMsgDBHdr *newHdr, bool notify);
   NS_IMETHOD    SetAttributeOnPendingHdr(nsIMsgDBHdr *pendingHdr, const char *property,
                                   const char *propertyVal);
@@ -73,7 +71,6 @@ protected:
   // IMAP does not set local file flags, override does nothing
   virtual void UpdateFolderFlag(nsIMsgDBHdr *msgHdr, bool bSet,
                                 nsMsgMessageFlagType flag, nsIOutputStream **ppFileStream);
-  virtual bool SetHdrFlag(nsIMsgDBHdr *msgHdr, bool bSet, nsMsgMessageFlagType flag);
 
   nsresult      GetRowForPendingHdr(nsIMsgDBHdr *pendingHdr, nsIMdbRow **row);
   nsresult     GetAllPendingHdrsTable();

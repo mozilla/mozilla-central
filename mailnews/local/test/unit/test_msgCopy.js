@@ -66,14 +66,19 @@ var copyListener =
   OnProgress: function(aProgress, aProgressMax) {},
   SetMessageKey: function(aKey)
   {
-    hdrs.push(gLocalInboxFolder.GetMessageHeader(aKey));
+    try {
+      hdrs.push(aKey);
+    } catch (ex) {dump(ex);}
   },
   SetMessageId: function(aMessageId) {},
   OnStopCopy: function(aStatus)
   {
+    try {
     var copiedMessage = gLocalInboxFolder.GetMessageHeader(hdrs[0]);
     do_check_eq(copiedMessage.getStringProperty("keywords"), tag1);
     hdrs = null;
+    }
+    catch (ex) {dump(ex);}
     do_test_finished();
   }
 };

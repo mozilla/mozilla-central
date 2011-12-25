@@ -180,8 +180,8 @@ NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
   rv = path->AppendNative(NS_LITERAL_CSTRING("Trash"));
   bool isDeferredTo;
   if (NS_SUCCEEDED(GetIsDeferredTo(&isDeferredTo)) && isDeferredTo)
-    CreateLocalFolder(path, NS_LITERAL_CSTRING("Inbox"));
-  CreateLocalFolder(path, NS_LITERAL_CSTRING("Trash"));
+    CreateLocalFolder(NS_LITERAL_STRING("Inbox"));
+  CreateLocalFolder(NS_LITERAL_STRING("Trash"));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // copy the default templates into the Templates folder
@@ -192,7 +192,7 @@ NS_IMETHODIMP nsNoIncomingServer::CreateDefaultMailboxes(nsIFile *aPath)
   rv = CopyDefaultMessages("Templates", parent);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  (void ) CreateLocalFolder(path, NS_LITERAL_CSTRING("Unsent Messages"));
+  (void ) CreateLocalFolder(NS_LITERAL_STRING("Unsent Messages"));
   return NS_OK;
 }
 

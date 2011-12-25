@@ -72,6 +72,7 @@ var UrlListener =
     // Check for ok status.
     do_check_eq(rc, 0);
 
+    dump("in on stop running url\n");
     if (!gDownloadedOnce) {
       gDownloadedOnce = true;
       gIMAPInbox.downloadAllForOffline(UrlListener, null);

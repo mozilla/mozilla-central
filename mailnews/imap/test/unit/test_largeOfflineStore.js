@@ -6,6 +6,9 @@
 
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
 
+Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
+                           "@mozilla.org/msgstore/berkeleystore;1");
+
 const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
                        .getService(Ci.nsIMsgMessageService);
 
@@ -92,8 +95,10 @@ function run_test()
   let rootFolder = gIMAPIncomingServer.rootFolder;
 
   gIMAPInbox = rootFolder.getFolderWithFlags(Ci.nsMsgFolderFlags.Inbox);
-  let outputStream = gIMAPInbox.offlineStoreOutputStream
+  let outputStream = Cc["@mozilla.org/network/file-output-stream;1"].
+                       createInstance(Ci.nsIFileOutputStream)
                                .QueryInterface(Ci.nsISeekableStream);
+  outputStream.init(gIMAPInbox.filePath, -1, -1, 0);
   // seek to 15 bytes past 4GB.
   outputStream.seek(0, 0x10000000f);
   outputStream.write("from\r\n", 6);

@@ -52,6 +52,7 @@ interface nsIUrlListener;
 interface nsIMsgDBHdr;
 interface nsILocalFile;
 interface nsIURI;
+interface nsIMsgPluggableStore;
 
 /*
  * Interface for incoming mail/news host
@@ -59,7 +60,7 @@ interface nsIURI;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(67bcc06e-88d5-4441-a987-b7590d9ce04a)]
+[scriptable, uuid(ad2637ee-6dac-4fc3-a1da-19394f66cbc2)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -165,6 +166,9 @@ interface nsIMsgIncomingServer : nsISupports {
 
   /* the on-disk path to message storage for this server */
   attribute nsILocalFile localPath;
+
+  /// message store to use for the folders under this server.
+  readonly attribute nsIMsgPluggableStore msgStore;
 
   /* the RDF URI for the root mail folder */
   readonly attribute ACString serverURI;

@@ -92,13 +92,6 @@ NS_IMETHODIMP nsImapMailDatabase::DeleteMessages(PRUint32 aNumKeys, nsMsgKey* ns
   return nsMsgDatabase::DeleteMessages(aNumKeys, nsMsgKeys, instigator);
 }
 
-// We override this so we won't try to change the x-mozilla-status flags
-// in the offline store.
-bool nsImapMailDatabase::SetHdrFlag(nsIMsgDBHdr *msgHdr, bool bSet, nsMsgMessageFlagType flag)
-{
-  return nsMsgDatabase::SetHdrFlag(msgHdr, bSet, flag);
-}
-
 // override so nsMailDatabase methods that deal with m_folderStream are *not* called
 NS_IMETHODIMP nsImapMailDatabase::StartBatch()
 {
@@ -127,17 +120,6 @@ NS_IMETHODIMP nsImapMailDatabase::ForceClosed()
 {
   m_mdbAllPendingHdrsTable = nsnull;
   return nsMailDatabase::ForceClosed();
-}
-
-NS_IMETHODIMP nsImapMailDatabase::GetFolderStream(nsIOutputStream **aFileStream)
-{
-  return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP nsImapMailDatabase::SetFolderStream(nsIOutputStream *aFileStream)
-{
-  NS_ERROR("Trying to set folderStream, not implemented");
-  return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 nsresult nsImapMailDatabase::GetAllPendingHdrsTable()

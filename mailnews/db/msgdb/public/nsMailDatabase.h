@@ -53,15 +53,13 @@ class nsMailDatabase : public nsMsgDatabase
 public:
   nsMailDatabase();
   virtual ~nsMailDatabase();
-  NS_IMETHOD  Open(nsILocalFile *aFolderName, bool create, bool upgrading);
   NS_IMETHOD  ForceClosed();
   NS_IMETHOD DeleteMessages(PRUint32 aNumKeys, nsMsgKey* nsMsgKeys, nsIDBChangeListener *instigator);
 
   NS_IMETHOD StartBatch();
   NS_IMETHOD EndBatch();
 
-  static  nsresult        SetFolderInfoValid(nsILocalFile *folderFile, int num, int numunread);
-  nsresult                GetFolderName(nsString &folderName);
+  nsresult  Open(nsILocalFile *aSummaryFile, bool create, bool upgrading);
   virtual nsMailDatabase  *GetMailDB() {return this;}
 
   virtual PRUint32  GetCurVersion() {return kMsgDBVersion;}
@@ -76,9 +74,6 @@ public:
   NS_IMETHOD    ListAllOfflineOpIds(nsTArray<nsMsgKey> *offlineOpIds);
   NS_IMETHOD    ListAllOfflineDeletes(nsTArray<nsMsgKey> *offlineDeletes);
 
-  NS_IMETHOD SetFolderStream(nsIOutputStream *aFileStream);
-  NS_IMETHOD GetFolderStream(nsIOutputStream **aFileStream);
-
   friend class nsMsgOfflineOpEnumerator;
 protected:
 
@@ -91,18 +86,11 @@ protected:
   mdb_token       m_offlineOpsRowScopeToken;
   mdb_token       m_offlineOpsTableKindToken;
 
-  virtual bool    SetHdrFlag(nsIMsgDBHdr *, bool bSet, nsMsgMessageFlagType flag);
-  virtual void    UpdateFolderFlag(nsIMsgDBHdr *msgHdr, bool bSet, 
-                                   nsMsgMessageFlagType flag, nsIOutputStream **ppFileStream);
   virtual void    SetReparse(bool reparse);
   
 protected:
-  virtual void    GetGlobalPrefs();
   
   bool            m_reparse;
-  nsCOMPtr <nsILocalFile> m_folderFile;
-  nsCOMPtr <nsIOutputStream> m_folderStream; 	/* this is a cache for loops which want file left open */
-  bool            m_ownFolderStream; //if we are the owner of m_folderStream
 };
 
 #endif

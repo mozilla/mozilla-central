@@ -70,6 +70,7 @@ function test_load_folder_with_invalidDB() {
   folder.msgDatabase.summaryValid = false;
   folder.msgDatabase.ForceClosed();
   folder.msgDatabase = null;
+  dump("entering invalidmsf folder\n");
   be_in_folder(folder);
 
   assert_messages_in_view(setA);

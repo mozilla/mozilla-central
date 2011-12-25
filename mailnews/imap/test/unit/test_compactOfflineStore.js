@@ -4,6 +4,9 @@
  * and returns success.
  */
 
+Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
+                           "@mozilla.org/msgstore/berkeleystore;1");
+
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
 
 const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]

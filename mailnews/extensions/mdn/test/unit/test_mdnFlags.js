@@ -49,7 +49,7 @@ function run_test()
 
   var msgWindow = {};
  
-  var msgHdr = gLocalInboxFolder.GetMessageHeader(0);
+  var msgHdr = firstMsgHdr(gLocalInboxFolder);
 
   // Everything looks good so far, let's generate the MDN response.
   var mdnGenerator = Components.classes["@mozilla.org/messenger-mdn/generator;1"]

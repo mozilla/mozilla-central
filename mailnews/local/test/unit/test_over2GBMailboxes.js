@@ -2,6 +2,9 @@
 
 /* Test of accessing over 2GB local folder */
 
+Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
+                           "@mozilla.org/msgstore/berkeleystore;1");
+
 load("../../../resources/messageGenerator.js");
 const bugmail10 = do_get_file("../../../data/bugmail10");
 
@@ -16,7 +19,8 @@ function run_test()
   gLocalTrashFolder = gLocalIncomingServer.rootMsgFolder.getChildNamed("Trash");
   gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"].getService(Ci.nsIMsgCopyService);
 
-  var freeDiskSpace = gLocalInboxFolder.filePath.diskSpaceAvailable;
+  let inboxFile = gLocalInboxFolder.filePath.clone();
+  var freeDiskSpace = inboxFile.diskSpaceAvailable;
   if (freeDiskSpace < 0x100000000) {
     dump("not enough free disk space: " + freeDiskSpace + "\n");
     do_test_finished();
@@ -28,8 +32,10 @@ function run_test()
   do_test_pending();
 
   // extend local folder to over 2GB
-  let outputStream = gLocalInboxFolder.offlineStoreOutputStream
+  let outputStream = Cc["@mozilla.org/network/file-output-stream;1"].
+                       createInstance(Ci.nsIFileOutputStream)
                                .QueryInterface(Ci.nsISeekableStream);
+  outputStream.init(inboxFile, -1, -1, 0);
   // seek past 2GB.
   outputStream.seek(0, 0x80000010);
   outputStream.write(" ", 1);

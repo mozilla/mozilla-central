@@ -439,7 +439,14 @@ nsMsgAccountManager::CreateIncomingServer(const nsACString&  username,
     key.AppendInt(i++);
     m_incomingServers.Get(key, getter_AddRefs(server));
   } while (server);
-  return createKeyedServer(key, username, hostname, type, _retval);
+  rv = createKeyedServer(key, username, hostname, type, _retval);
+  if (*_retval)
+  {
+    nsCString defaultStore;
+    m_prefs->GetCharPref("mail.serverDefaultStoreContractID", getter_Copies(defaultStore));
+    (*_retval)->SetCharValue("storeContractID", defaultStore);
+  }
+  return rv;
 }
 
 NS_IMETHODIMP
@@ -3085,7 +3092,10 @@ NS_IMETHODIMP nsMsgAccountManager::LoadVirtualFolders()
                 nsCOMPtr <nsIMsgFolder> childFolder;
                 nsCOMPtr <nsIMsgDatabase> db;
                 // force db to get created.
-                virtualFolder->GetMsgDatabase(getter_AddRefs(db));
+                virtualFolder->SetParent(parentFolder);
+                rv = virtualFolder->GetMsgDatabase(getter_AddRefs(db));
+                if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
+                  msgDBService->CreateNewDB(virtualFolder, getter_AddRefs(db));
                 if (db)
                   rv = db->GetDBFolderInfo(getter_AddRefs(dbFolderInfo));
                 else

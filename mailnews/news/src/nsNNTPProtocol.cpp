@@ -806,7 +806,7 @@ bool nsNNTPProtocol::ReadFromLocalCache()
     {
     // we want to create a file channel and read the msg from there.
       nsCOMPtr<nsIInputStream> fileStream;
-      PRUint64 offset=0;
+      PRInt64 offset=0;
       PRUint32 size=0;
       rv = folder->GetOfflineFileStream(m_key, &offset, &size, getter_AddRefs(fileStream));
 

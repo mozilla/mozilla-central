@@ -57,6 +57,7 @@ load("../../../resources/IMAPpump.js");
 setupIMAPPump();
 
 var gGotAlert = false;
+var gGotMsgAdded = false;
 
 var dummyDocShell =
 {
@@ -76,6 +77,7 @@ var dummyDocShell =
 function alert(aDialogTitle, aText) {
   do_check_eq(aText.indexOf("Connection to server Mail for  timed out."), 0);
   gGotAlert = true;
+  async_driver();
 }
 
 // Dummy message window so we can do the move as an offline operation.
@@ -165,8 +167,9 @@ function moveMessageToTargetFolder()
 
 function waitForOfflinePlayback()
 {
-  // Offline playback starts 500MS after the offline op is run, so
-  // let's wait a second.
+  // just wait for the alert about timed out connection.
+  yield false;
+  // then, wait for a second so we don't get our next url aborted.
   do_timeout(1000, async_driver);
   yield false;
 }
@@ -213,7 +216,9 @@ mfnListener =
 
   msgAdded: function msgAdded(aMsg)
   {
-    async_driver();
+    if (!gGotMsgAdded)
+      async_driver();
+    gGotMsgAdded = true;
   },
 
 };
@@ -229,16 +234,4 @@ function run_test()
         nsIMFNService.msgAdded;
   MFNService.addListener(mfnListener, flags);
   async_run_tests(tests);
-}
-
-/*
- * helper functions
- */
-
-// get the first message header found in a folder
-function firstMsgHdr(folder) {
-  let enumerator = folder.messages;
-  if (enumerator.hasMoreElements())
-    return enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
-  return null;
 }

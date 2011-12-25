@@ -100,6 +100,7 @@
 #include "nsThreadUtils.h"
 #include "nsNetUtil.h"
 #include "nsMsgMessageFlags.h"
+#include "nsIMsgPluggableStore.h"
 
 #define PREF_MAIL_ROOT_IMAP "mail.root.imap"            // old - for backward compatibility only
 #define PREF_MAIL_ROOT_IMAP_REL "mail.root.imap-rel"
@@ -1270,7 +1271,7 @@ NS_IMETHODIMP nsImapService::StreamHeaders(const char *aMessageURI,
     folder->HasMsgOffline(key, &hasMsgOffline);
     if (hasMsgOffline)
     {
-      PRUint64 messageOffset;
+      PRInt64 messageOffset;
       PRUint32 messageSize;
       folder->GetOfflineFileStream(key, &messageOffset, &messageSize, getter_AddRefs(inputStream));
       if (inputStream)
@@ -2096,7 +2097,16 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
       op->SetOperation(nsIMsgOfflineImapOperation::kAppendDraft); // ### do we care if it's a template?
       op->SetDestinationFolderURI(destFolderUri.get());
       nsCOMPtr <nsIOutputStream> offlineStore;
-      rv = aDstFolder->GetOfflineStoreOutputStream(getter_AddRefs(offlineStore));
+      nsCOMPtr<nsIMsgPluggableStore> msgStore;
+      nsCOMPtr<nsIMsgIncomingServer> dstServer;
+      nsCOMPtr<nsIMsgDBHdr> newMsgHdr;
+
+      aDstFolder->GetServer(getter_AddRefs(dstServer));
+      rv = dstServer->GetMsgStore(getter_AddRefs(msgStore));
+      NS_ENSURE_SUCCESS(rv, rv);
+      bool reusable;
+      msgStore->GetNewMsgOutputStream(aDstFolder, getter_AddRefs(newMsgHdr),
+                                      &reusable, getter_AddRefs(offlineStore));
 
       if (NS_SUCCEEDED(rv) && offlineStore)
       {
@@ -2106,7 +2116,7 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
           seekable->Tell(&curOfflineStorePos);
         else
         {
-          NS_ASSERTION(PR_FALSE, "needs to be a random store!");
+          NS_ERROR("needs to be a random store!");
           return NS_ERROR_FAILURE;
         }
 
@@ -2130,6 +2140,7 @@ nsresult nsImapService::OfflineAppendFromFile(nsIFile *aFile,
           rv = NS_OK;
 //        rv = inputStream->Read(inputBuffer, inputBufferSize, &bytesRead);
 //        if (NS_SUCCEEDED(rv) && bytesRead > 0)
+          msgParser->SetNewMsgHdr(newMsgHdr);
           msgParser->SetState(nsIMsgParseMailMsgState::ParseHeadersState);
           // set the env pos to fake key so the msg hdr will have that for a key
           msgParser->SetEnvelopePos(fakeKey);

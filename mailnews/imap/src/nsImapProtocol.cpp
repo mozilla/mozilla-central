@@ -5987,6 +5987,7 @@ void nsImapProtocol::UploadMessageFromFile (nsIFile* file,
     dataBuffer = (char*) PR_CALLOC(COPY_BUFFER_SIZE+1);
     if (!dataBuffer) goto done;
     rv = file->GetFileSize(&fileSize);
+    NS_ASSERTION(fileSize, "got empty file in UploadMessageFromFile");
     if (NS_FAILED(rv) || !fileSize) goto done;
     nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(file);
     rv = NS_NewLocalFileInputStream(getter_AddRefs(fileInputStream), localFile);
@@ -9181,7 +9182,7 @@ bool nsImapMockChannel::ReadFromLocalCache()
       nsCOMPtr<nsIInputStream> fileStream;
       nsMsgKey msgKey = strtoul(messageIdString.get(), nsnull, 10);
       PRUint32 size;
-      PRUint64 offset;
+      PRInt64 offset;
       rv = folder->GetOfflineFileStream(msgKey, &offset, &size, getter_AddRefs(fileStream));
       // get the file channel from the folder, somehow (through the message or
       // folder sink?) We also need to set the transfer offset to the message offset

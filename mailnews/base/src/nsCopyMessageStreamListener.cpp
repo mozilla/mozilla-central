@@ -146,43 +146,36 @@ NS_IMETHODIMP nsCopyMessageStreamListener::OnStartRequest(nsIRequest * request, 
 
 NS_IMETHODIMP nsCopyMessageStreamListener::EndCopy(nsISupports *url, nsresult aStatus)
 {
-	nsresult rv = NS_OK;
-	nsCOMPtr<nsIURI> uri = do_QueryInterface(url, &rv);
+  nsresult rv;
+  nsCOMPtr<nsIURI> uri = do_QueryInterface(url, &rv);
 
-	if (NS_FAILED(rv)) return rv;
-	bool copySucceeded = (aStatus == NS_BINDING_SUCCEEDED);
-	rv = mDestination->EndCopy(copySucceeded);
-	//If this is a move and we finished the copy, delete the old message.
-	if(NS_SUCCEEDED(rv))
-	{
-		bool moveMessage = false;
+  NS_ENSURE_SUCCESS(rv, rv);
+  bool copySucceeded = (aStatus == NS_BINDING_SUCCEEDED);
+  rv = mDestination->EndCopy(copySucceeded);
+  //If this is a move and we finished the copy, delete the old message.
+  bool moveMessage = false;
 
-		nsCOMPtr<nsIMsgMailNewsUrl> mailURL(do_QueryInterface(uri));
-		if(mailURL)
-			rv = mailURL->IsUrlType(nsIMsgMailNewsUrl::eMove, &moveMessage);
+  nsCOMPtr<nsIMsgMailNewsUrl> mailURL(do_QueryInterface(uri));
+  if (mailURL)
+    rv = mailURL->IsUrlType(nsIMsgMailNewsUrl::eMove, &moveMessage);
 
-		if(NS_FAILED(rv))
-			moveMessage = PR_FALSE;
+  if (NS_FAILED(rv))
+    moveMessage = false;
 
-		// OK, this is wrong if we're moving to an imap folder, for example. This really says that
-		// we were able to pull the message from the source, NOT that we were able to
-		// put it in the destination!
-		if(moveMessage)
-		{
-			// don't do this if we're moving to an imap folder - that's handled elsewhere.
-			nsCOMPtr <nsIMsgImapMailFolder> destImap = do_QueryInterface(mDestination);
-			if (!destImap)
-			{
-        // if the destination is a local folder, it will handle the delete from the source in EndMove
-//				rv = DeleteMessage(uri, mSrcFolder);
-//				if(NS_SUCCEEDED(rv))
-					rv = mDestination->EndMove(copySucceeded);
-			}
-		}
-	}
-	//Even if the above actions failed we probably still want to return NS_OK.  There should probably
-	//be some error dialog if either the copy or delete failed.
-	return NS_OK;
+  // OK, this is wrong if we're moving to an imap folder, for example. This really says that
+  // we were able to pull the message from the source, NOT that we were able to
+  // put it in the destination!
+  if (moveMessage)
+  {
+    // don't do this if we're moving to an imap folder - that's handled elsewhere.
+    nsCOMPtr<nsIMsgImapMailFolder> destImap = do_QueryInterface(mDestination);
+      // if the destination is a local folder, it will handle the delete from the source in EndMove
+    if (!destImap)
+      rv = mDestination->EndMove(copySucceeded);
+  }
+  // Even if the above actions failed we probably still want to return NS_OK.
+  // There should probably be some error dialog if either the copy or delete failed.
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsCopyMessageStreamListener::OnStopRequest(nsIRequest* request, nsISupports *ctxt, nsresult aStatus)

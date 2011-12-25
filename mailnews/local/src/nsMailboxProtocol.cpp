@@ -68,6 +68,8 @@ PRLogModuleInfo *MAILBOX;
 #include "nsMsgUtils.h"
 #include "nsIMsgWindow.h"
 #include "nsIMimeHeaders.h"
+#include "nsIMsgPluggableStore.h"
+#include "nsISeekableStream.h"
 
 #include "nsIMsgMdnGenerator.h"
 
@@ -196,7 +198,52 @@ nsresult nsMailboxProtocol::Initialize(nsIURI * aURL)
           mProgressEventSink = nsnull;
         }
         else
+        {
+          nsCOMPtr<nsIMsgIncomingServer> server;
+          nsCOMPtr<nsIMsgDBHdr> msgHdr;
+          nsCOMPtr<nsIMsgFolder> folder;
+          nsCOMPtr<nsIMsgMessageUrl> msgUrl = do_QueryInterface(m_runningUrl, &rv);
+          NS_ENSURE_SUCCESS(rv,rv);
+          rv = msgUrl->GetMessageHeader(getter_AddRefs(msgHdr));
+          if (msgHdr)
+          {
+            msgHdr->GetFolder(getter_AddRefs(folder));
+            if (folder)
+              folder->GetServer(getter_AddRefs(server));
+          }
+          if (server)
+          {
+            nsCOMPtr<nsIMsgPluggableStore> msgStore;
+            rv = server->GetMsgStore(getter_AddRefs(msgStore));
+            NS_ENSURE_SUCCESS(rv, rv);
+
+            if (NS_SUCCEEDED(rv) && msgHdr)
+            {
+              nsCOMPtr<nsIInputStream> stream;
+              PRInt64 offset = 0;
+              bool reusable = false;
+
+              rv = folder->GetMsgInputStream(msgHdr, &reusable, getter_AddRefs(stream));
+              NS_ENSURE_SUCCESS(rv, rv);
+              nsCOMPtr<nsISeekableStream> seekableStream(do_QueryInterface(stream, &rv));
+              NS_ENSURE_SUCCESS(rv, rv);
+              seekableStream->Tell(&offset);
+              // create input stream transport
+              nsCOMPtr<nsIStreamTransportService> sts =
+                  do_GetService(NS_STREAMTRANSPORTSERVICE_CONTRACTID, &rv);
+              if (NS_FAILED(rv)) return rv;
+              m_readCount = aMsgSize;
+              rv = sts->CreateInputTransport(stream, offset,
+                                             PRInt64(aMsgSize), PR_TRUE,
+                                             getter_AddRefs(m_transport));
+
+              m_socketIsOpen = PR_FALSE;
+             
+            }
+          }
+          else // must be a .eml file
           rv = OpenFileSocket(aURL, (PRUint32) aMsgKey, aMsgSize);
+        }
         NS_ASSERTION(NS_SUCCEEDED(rv), "oops....i messed something up");
       }
     }

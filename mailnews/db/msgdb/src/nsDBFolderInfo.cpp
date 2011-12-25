@@ -308,17 +308,13 @@ nsresult nsDBFolderInfo::AddToNewMDB()
     folderInfoTableOID.mOid_Id = 1;
     folderInfoTableOID.mOid_Scope = m_rowScopeToken;
 
-    //		m_mdbTable->BecomeContent(m_mdb->GetEnv(), &folderInfoTableOID);
-
     // create the singleton row for the dbFolderInfo.
     err  = store->NewRowWithOid(m_mdb->GetEnv(),
       &gDBFolderInfoOID, &m_mdbRow);
 
     // add the row to the singleton table.
     if (m_mdbRow && NS_SUCCEEDED(err))
-    {
       err = m_mdbTable->AddRow(m_mdb->GetEnv(), m_mdbRow);
-    }
 
     ret = err;	// what are we going to do about mdb_err's?
   }

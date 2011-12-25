@@ -3039,28 +3039,6 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
 
       switch (command)
       {
-      case nsMsgViewCommandType::markMessagesRead:
-        rv = msgHdr->MarkRead(PR_TRUE);
-        break;
-      case nsMsgViewCommandType::markMessagesUnread:
-        rv = msgHdr->MarkRead(PR_FALSE);
-        break;
-      case nsMsgViewCommandType::toggleMessageRead:
-        {
-          PRUint32 msgFlags;
-          msgHdr->GetFlags(&msgFlags);
-          msgHdr->MarkRead(!(msgFlags & nsMsgMessageFlags::Read));
-        }
-        break;
-      case nsMsgViewCommandType::unflagMessages:
-      case nsMsgViewCommandType::flagMessages:
-        {
-          nsCOMPtr<nsIMsgDatabase> db;
-          rv = GetDBForHeader(msgHdr, getter_AddRefs(db));
-          NS_ENSURE_SUCCESS(rv, rv);
-          db->MarkMarked(msgKey, (command == nsMsgViewCommandType::flagMessages), nsnull);
-        }
-        break;
       case nsMsgViewCommandType::junk:
         mNumMessagesRemainingInBatch++;
         mJunkHdrs->AppendElement(msgHdr, PR_FALSE);
@@ -3073,14 +3051,46 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
         rv = SetMsgHdrJunkStatus(junkPlugin.get(), msgHdr,
                                  nsIJunkMailPlugin::GOOD);
         break;
+      case nsMsgViewCommandType::toggleMessageRead:
       case nsMsgViewCommandType::undeleteMsg:
-        break; // this is completely handled in the imap code below.
+      case nsMsgViewCommandType::markMessagesRead:
+      case nsMsgViewCommandType::markMessagesUnread:
+      case nsMsgViewCommandType::unflagMessages:
+      case nsMsgViewCommandType::flagMessages:
+        break; // this is completely handled in the code below.
       default:
-        NS_ASSERTION(PR_FALSE, "unhandled command");
+        NS_ERROR("unhandled command");
         break;
       }
     }
 
+    switch (command)
+    {
+      case nsMsgViewCommandType::toggleMessageRead:
+      {
+        nsCOMPtr<nsIMsgDBHdr> msgHdr = do_QueryElementAt(messages, 0);
+        if (!msgHdr)
+          break;
+        PRUint32 msgFlags;
+        msgHdr->GetFlags(&msgFlags);
+        folder->MarkMessagesRead(messages,
+                                 !(msgFlags & nsMsgMessageFlags::Read));
+      }
+        break;
+      case nsMsgViewCommandType::markMessagesRead:
+      case nsMsgViewCommandType::markMessagesUnread:
+        folder->MarkMessagesRead(messages,
+                                 command == nsMsgViewCommandType::markMessagesRead);
+        break;
+      case nsMsgViewCommandType::unflagMessages:
+      case nsMsgViewCommandType::flagMessages:
+        folder->MarkMessagesFlagged(messages,
+                                    command == nsMsgViewCommandType::flagMessages);
+        break;
+      default:
+        break;
+
+    }
     // Provide junk-related batch notifications
     if ((command == nsMsgViewCommandType::junk) &&
         (command == nsMsgViewCommandType::unjunk)) {
@@ -3104,25 +3114,8 @@ nsMsgDBView::ApplyCommandToIndices(nsMsgViewCommandTypeValue command, nsMsgViewI
     switch (command)
     {
     case nsMsgViewCommandType::markThreadRead:
-    case nsMsgViewCommandType::markMessagesRead:
       flags |= kImapMsgSeenFlag;
       addFlags = PR_TRUE;
-      break;
-    case nsMsgViewCommandType::markMessagesUnread:
-      flags |= kImapMsgSeenFlag;
-      addFlags = PR_FALSE;
-      break;
-    case nsMsgViewCommandType::toggleMessageRead:
-      flags |= kImapMsgSeenFlag;
-      addFlags = m_flags[indices[0]] & nsMsgMessageFlags::Read;
-      break;
-    case nsMsgViewCommandType::flagMessages:
-      flags |= kImapMsgFlaggedFlag;
-      addFlags = PR_TRUE;
-      break;
-    case nsMsgViewCommandType::unflagMessages:
-      flags |= kImapMsgFlaggedFlag;
-      addFlags = PR_FALSE;
       break;
     case nsMsgViewCommandType::undeleteMsg:
       flags = kImapMsgDeletedFlag;

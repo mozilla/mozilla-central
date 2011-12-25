@@ -1,6 +1,7 @@
 /*
  * Test indexing support for local messages.
  */
+
 load("base_index_messages.js");
 
 /**
