@@ -1,5 +1,6 @@
 From: from@invalid.com
 To: to@invalid.com
+Message-ID: <abc@def.org>
 cc: dupemail@test.com
 Subject: test mail
 
