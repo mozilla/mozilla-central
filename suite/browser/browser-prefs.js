@@ -780,13 +780,19 @@ pref("browser.rights.override", true);
 #endif
 
 // The sync engines to use.
-pref("services.sync.registerEngines", "Bookmarks,Form,History,Password,Prefs,Tab");
+pref("services.sync.registerEngines", "Bookmarks,Form,History,Password,Prefs,Tab,Addons");
 // Preferences to be synced by default
 pref("services.sync.prefs.sync.accessibility.blockautorefresh", true);
 pref("services.sync.prefs.sync.accessibility.browsewithcaret", true);
 pref("services.sync.prefs.sync.accessibility.typeaheadfind.autostart", true);
 pref("services.sync.prefs.sync.accessibility.typeaheadfind.linksonly", true);
 pref("services.sync.prefs.sync.accessibility.typeaheadfind.usefindbar", true);
+pref("services.sync.prefs.sync.addons.ignoreUserEnabledChanges", true);
+// The addons prefs related to repository verification are intentionally
+// not synced for security reasons. If a system is compromised, a user
+// could weaken the pref locally, install an add-on from an untrusted
+// source, and this would propagate automatically to other,
+// uncompromised Sync-connected devices.
 pref("services.sync.prefs.sync.app.update.mode", true);
 pref("services.sync.prefs.sync.browser.download.manager.behavior", true);
 pref("services.sync.prefs.sync.browser.download.manager.closeWhenDone", true);

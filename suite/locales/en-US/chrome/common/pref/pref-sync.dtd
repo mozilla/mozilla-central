@@ -15,7 +15,7 @@
 
 <!-- Manage Account -->
 <!ENTITY manageAccount.label          "Manage Account">
-<!ENTITY manageAccount.accesskey      "A">
+<!ENTITY manageAccount.accesskey      "M">
 <!ENTITY viewQuota.label              "View Quota">
 <!ENTITY viewQuota.accesskey          "V">
 <!ENTITY changePassword.label         "Change Password">
@@ -34,6 +34,8 @@
 <!ENTITY syncComputerName.accesskey   "N">
 
 <!ENTITY syncMy2.label              "Sync My:">
+<!ENTITY engine.addons.label        "Add-ons">
+<!ENTITY engine.addons.accesskey    "A">
 <!ENTITY engine.bookmarks.label     "Bookmarks">
 <!ENTITY engine.bookmarks.accesskey "B">
 <!ENTITY engine.tabs.label          "Tabs">

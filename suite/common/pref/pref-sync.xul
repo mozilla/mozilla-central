@@ -57,6 +57,7 @@
             onpaneload="gSyncPane.init();">
 
     <preferences>
+      <preference id="engine.addons"    name="services.sync.engine.addons"    type="bool"/>
       <preference id="engine.bookmarks" name="services.sync.engine.bookmarks" type="bool"/>
       <preference id="engine.history"   name="services.sync.engine.history"   type="bool"/>
       <preference id="engine.passwords" name="services.sync.engine.passwords" type="bool"/>
@@ -119,6 +120,10 @@
             <vbox>
               <label value="&syncMy2.label;"/>
               <listbox id="syncEnginesList" flex="1">
+                <listitem type="checkbox"
+                          label="&engine.addons.label;"
+                          accesskey="&engine.addons.accesskey;"
+                          preference="engine.addons"/>
                 <listitem type="checkbox"
                           label="&engine.bookmarks.label;"
                           accesskey="&engine.bookmarks.accesskey;"
