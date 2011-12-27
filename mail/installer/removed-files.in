@@ -358,6 +358,7 @@ uninstall/uninstall.exe
 .autoreg
 component.reg
 @DLL_PREFIX@jemalloc@DLL_SUFFIX@
+@DLL_PREFIX@mozutils@DLL_SUFFIX@
 #ifdef XP_WIN
   mozcrt19.dll
   mozcpp19.dll

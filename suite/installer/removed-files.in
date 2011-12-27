@@ -281,6 +281,7 @@ modules/searchSpec.js
 #endif
 @DLL_PREFIX@mozz@DLL_SUFFIX@
 @DLL_PREFIX@jemalloc@DLL_SUFFIX@
+@DLL_PREFIX@mozutils@DLL_SUFFIX@
 #ifdef XP_WIN
   mozcpp19.dll
   mozcrt19.dll
