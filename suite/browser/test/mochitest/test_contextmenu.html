@@ -24,16 +24,25 @@ netscape.security.PrivilegeManager.enablePrivilege('UniversalXPConnect');
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 
-function openContextMenuFor(element, shiftkey) {
+function openContextMenuFor(element, shiftkey, shouldWaitForFocus) {
     // Context menu should be closed before we open it again.
     is(contextMenu.state, "closed", "checking if popup is closed");
 
     if (lastElement)
       lastElement.blur();
     element.focus();
-    lastElement = element;
-    var eventDetails = { type : "contextmenu", button : 2, shiftKey : shiftkey };
-    synthesizeMouse(element, 2, 2, eventDetails, element.ownerDocument.defaultView);
+
+    // Some elements need time to focus and spellcheck before any tests are
+    // run on them.
+    function actuallyOpenContextMenuFor() {
+      lastElement = element;
+      var eventDetails = { type : "contextmenu", button : 2, shiftKey : shiftkey };
+      synthesizeMouse(element, 2, 2, eventDetails, element.ownerDocument.defaultView);
+    }
+    if (shouldWaitForFocus)
+      SimpleTest.executeSoon(actuallyOpenContextMenuFor);
+    else
+      actuallyOpenContextMenuFor();
 }
 
 function closeContextMenu() {
@@ -498,7 +507,7 @@ function runTest(testNum) {
                                "context-viewframesource",   true,
                                "context-viewframeinfo",     true], null]);
         closeContextMenu();
-        openContextMenuFor(textarea); // Invoke context menu for next test.
+        openContextMenuFor(textarea, false, true); // Invoke context menu for next test, but wait for the spellcheck.
         break;
 
     case 14:
