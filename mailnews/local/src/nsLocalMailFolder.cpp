@@ -986,7 +986,7 @@ NS_IMETHODIMP nsMsgLocalMailFolder::Rename(const nsAString& aNewName, nsIMsgWind
         parentFolder->NotifyItemAdded(newFolder);
       }
       SetFilePath(nsnull); // forget our path, since this folder object renamed itself
-    nsCOMPtr<nsIAtom> folderRenameAtom = do_GetAtom("RenameCompleted");
+      nsCOMPtr<nsIAtom> folderRenameAtom = MsgGetAtom("RenameCompleted");
       newFolder->NotifyFolderEvent(folderRenameAtom);
 
       nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
