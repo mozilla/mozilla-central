@@ -11,8 +11,6 @@ Browser context menu subtest.
 <a id="test-mailto" href="mailto:codemonkey@mozilla.com">Mail the monkey!</a><br>
 <input id="test-input"><br>
 <img id="test-image" src="ctxmenu-image.png">
-<a href="http://mozilla.com"><img id="test-image-link" alt="Click the monkey!" src="ctxmenu-image.png"></a>
-<a href="mailto:codemonkey@mozilla.com"><img id="test-image-mailto" alt="Mail the monkey!" src="ctxmenu-image.png"></a><br>
 <canvas id="test-canvas" width="100" height="100" style="background-color: blue"></canvas>
 <video controls id="test-video-ok"  src="video.ogg" width="100" height="100" style="background-color: green"></video>
 <video controls id="test-video-bad" src="bogus.duh" width="100" height="100" style="background-color: orange"></video>
@@ -58,6 +56,10 @@ Browser context menu subtest.
     <menuitem></menuitem>
   </menu>
 </div>
+
+<!-- SeaMonkey specific elements -->
+<a href="http://mozilla.com"><img id="test-image-link" alt="Click the monkey!" src="ctxmenu-image.png"></a>
+<a href="mailto:codemonkey@mozilla.com"><img id="test-image-mailto" alt="Mail the monkey!" src="ctxmenu-image.png"></a><br>
 
 </body>
 </html>
