@@ -968,7 +968,7 @@ nsresult nsMsgFilterList::GetMsgFilterAt(PRUint32 filterIndex, nsMsgFilter **fil
 
   PRUint32      filterCount;
   m_filters->Count(&filterCount);
-  NS_ENSURE_ARG(! (filterCount >= filterIndex));
+  NS_ENSURE_ARG(filterCount > filterIndex);
   *filter = (nsMsgFilter *) m_filters->ElementAt(filterIndex);
   return NS_OK;
 }
