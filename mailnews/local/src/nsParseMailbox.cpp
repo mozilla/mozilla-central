@@ -2525,14 +2525,16 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
   if (!localFolder)
     return NS_MSG_POP_FILTER_TARGET_ERROR;
 
-  rv = localFolder->GetDatabaseWOReparse(getter_AddRefs(destMailDB));
-  NS_ASSERTION(destMailDB, "failed to open mail db parsing folder");
-  nsCOMPtr<nsIMsgDBHdr> newHdr;
   // don't force upgrade in place - open the db here before we start writing to the
   // destination file because XP_Stat can return file size including bytes written...
+  rv = localFolder->GetDatabaseWOReparse(getter_AddRefs(destMailDB));
+  NS_WARN_IF_FALSE(destMailDB && NS_SUCCEEDED(rv),
+                   "failed to open mail db parsing folder");
+  nsCOMPtr<nsIMsgDBHdr> newHdr;
 
-  destMailDB->CopyHdrFromExistingHdr(nsMsgKey_None, mailHdr, PR_TRUE,
-                                     getter_AddRefs(newHdr));
+  if (destMailDB)
+    destMailDB->CopyHdrFromExistingHdr(nsMsgKey_None, mailHdr, true,
+                                       getter_AddRefs(newHdr));
   PRUint32 messageLength;
   mailHdr->GetMessageSize(&messageLength);
   rv = AppendMsgFromStream(inputStream, newHdr, messageLength,
