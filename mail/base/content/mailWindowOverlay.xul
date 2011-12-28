@@ -1853,7 +1853,7 @@
                         label="&undeleteButton.label;"
                         tooltiptext="&undeleteButton.tooltip;"
                         observes="button_delete"
-                        oncommand="goDoCommand('cmd_delete')"/>
+                        oncommand="goDoCommand('button_delete')"/>
       </deck>
     </toolbaritem>
 #ifdef XP_MACOSX
