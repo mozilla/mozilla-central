@@ -54,9 +54,22 @@
 /* ..... message header borders ..... */
 
 @media all and (-moz-windows-compositor) {
+  #messengerWindow[sizemode=normal]  #navigation-toolbox {
+    border-top: 1px solid rgba(10%, 10%, 10%, .4);
+    border-left: 1px solid rgba(10%, 10%, 10%, .4);
+    border-right: 1px solid rgba(10%, 10%, 10%, .4);
+    background-clip: padding-box !important;
+  }
+
+  #messengerWindow[sizemode=normal] #mail-toolbox,
   #messengerWindow[sizemode=normal] #messagepanebox {
     border: 1px solid rgba(10%, 10%, 10%, .4);
+    border-top: none;
     background-clip: padding-box;
+  }
+
+  #messengerWindow[sizemode=normal]  #mail-toolbox {
+    border-bottom-color: ThreeDShadow;
   }
 
   #messengerWindow[sizemode=normal] statusbar {
