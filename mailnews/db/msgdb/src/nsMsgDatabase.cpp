@@ -4029,7 +4029,8 @@ PRUint32 nsMsgDatabase::GetCurVersion()
 NS_IMETHODIMP nsMsgDatabase::SetSummaryValid(bool valid /* = true */)
 {
   // setting the version to 0 ought to make it pretty invalid.
-  m_dbFolderInfo->SetVersion(valid ? GetCurVersion() : 0);
+  if (m_dbFolderInfo)
+    m_dbFolderInfo->SetVersion(valid ? GetCurVersion() : 0);
 
   // for default db (and news), there's no nothing to set to make it it valid
   return NS_OK;
