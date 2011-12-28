@@ -51,6 +51,10 @@
   background-color: -moz-dialog;
 }
 
+#mail-toolbox {
+  -moz-appearance: toolbox;
+}
+
 /* ::::: message header borders ::::: */
 
 .main-header-area {

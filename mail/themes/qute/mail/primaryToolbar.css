@@ -63,14 +63,15 @@
   -moz-box-ordinal-group: 10;
 }
 
-#mail-toolbox {
+.mail-toolbox {
   -moz-appearance: none;
   border-top: none;
   border-bottom: 1px solid threedshadow;
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5), rgba(255, 255, 255, .1) 19px);
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
+                    rgba(255, 255, 255, .1) 19px) !important;
 }
 
-#mail-toolbox > toolbar:-moz-lwtheme {
+.mail-toolbox > toolbar:-moz-lwtheme {
   border-top: none;
 }
 

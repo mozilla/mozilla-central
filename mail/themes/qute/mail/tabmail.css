@@ -133,10 +133,6 @@
   list-style-image: url("chrome://global/skin/icons/Search-glass.png");
 }
 
-.tabmail-tab[selected="true"] {
-  font-weight: bold;
-}
-
 .tabmail-tab[selected="true"] > .tab-image-middle > .tab-text {
   opacity: 1.0 !important;
 }
@@ -153,10 +149,6 @@
 .tabs-alltabs-button:-moz-lwtheme-darktext,
 .tabs-closebutton:-moz-lwtheme-darktext {
   background-color: rgba(255,255,255,.5);
-}
-
-.tabmail-tab:-moz-lwtheme[selected="true"] {
-  text-shadow: none;
 }
 
 .tabmail-tabs:-moz-lwtheme {
