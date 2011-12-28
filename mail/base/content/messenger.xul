@@ -342,6 +342,10 @@
        Horizontal space shouldn't be wasted if it isn't absolutely critical.
        A mechanism for adding sidebar panes will be added in bug 476154. -->
   <hbox id="tabmail-container" flex="1">
+    <!-- Beware!  Do NOT use overlays to append nodes directly to tabmail (children
+         of tabmail is OK though).  This will break Ctrl-tab switching because
+         the XBL binding will choke when it finds a child of tabmail that is
+         not a tabpanels node. -->
     <tabmail id="tabmail" flex="1" panelcontainer="tabpanelcontainer" tabcontainer="tabcontainer">
       <tabpanels id="tabpanelcontainer" flex="1" class="plain" selectedIndex="0">
 
