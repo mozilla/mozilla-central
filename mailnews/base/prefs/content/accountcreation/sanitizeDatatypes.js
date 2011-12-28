@@ -187,9 +187,8 @@ var sanitize =
         return allowedValue;
     }
     // value is bad
-    var e = new MalformedException("allowed_value.error", unchecked);
     if (typeof(defaultValue) == "undefined")
-      throw e;
+      throw new MalformedException("allowed_value.error", unchecked);
     return defaultValue;
   },
 
@@ -218,9 +217,8 @@ var sanitize =
         return mapping[inputValue];
     }
     // value is bad
-    var e = new MalformedException("allowed_value.error", unchecked);
     if (typeof(defaultValue) == "undefined")
-      throw e;
+      throw new MalformedException("allowed_value.error", unchecked);
     return defaultValue;
   }
 };
