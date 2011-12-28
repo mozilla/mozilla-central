@@ -178,10 +178,6 @@
   opacity: 1.0 !important;
 }
 
-.tabmail-tab:-moz-lwtheme[selected="true"] {
-  text-shadow: none;
-}
-
 @media all and (-moz-windows-compositor) {
   .tabmail-tabs:not(:-moz-lwtheme) {
     background: transparent;
