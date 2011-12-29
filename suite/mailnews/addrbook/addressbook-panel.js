@@ -98,10 +98,10 @@ function AbPanelAdd(addrtype)
     var address = GenerateAddressFromCard(cards[i]);
     if (address)
       top.awAddRecipient(addrtype, address);
-    else if (gPromptService)
-      gPromptService.alert(window,
-                           gAddressBookBundle.getString("emptyEmailAddCardTitle"),
-                           gAddressBookBundle.getString("emptyEmailAddCard"));
+    else
+      Services.prompt.alert(window,
+                            gAddressBookBundle.getString("emptyEmailAddCardTitle"),
+                            gAddressBookBundle.getString("emptyEmailAddCard"));
   }
 }
 
