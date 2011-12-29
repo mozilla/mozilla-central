@@ -50,6 +50,7 @@
 #today-pane-panel {
   background-color: -moz-Dialog;
   color: -moz-DialogText;
+  border-bottom: 1px solid ThreeDShadow;
 }
 
 #today-pane-panel:-moz-lwtheme {

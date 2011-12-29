@@ -145,9 +145,10 @@ radio[pane=paneLightning] {
 }
 
 
-/* Lightning sidebar background in calendar and task mode */
+/* Lightning sidebar in calendar and task mode */
 #ltnSidebar {
-  background-color: -moz-field;  
+  background-color: -moz-field;
+  border-bottom: 1px solid ThreeDShadow;
 }
 
 /* Write button */
