@@ -644,27 +644,13 @@ calDateTime::Compare(calIDateTime * aOther, PRInt32 * aResult)
  * nsIXPCScriptable impl
  */
 
-/* readonly attribute string className; */
-NS_IMETHODIMP
-calDateTime::GetClassName(char ** aClassName)
-{
-    NS_ENSURE_ARG_POINTER(aClassName);
-    *aClassName = static_cast<char *>(nsMemory::Clone(CAL_STRLEN_ARGS("calDateTime") +1));
-    CAL_ENSURE_MEMORY(*aClassName);
-    return NS_OK;
-}
-
-/* readonly attribute PRUint32 scriptableFlags; */
-NS_IMETHODIMP
-calDateTime::GetScriptableFlags(PRUint32 * aScriptableFlags)
-{
-    NS_ENSURE_ARG_POINTER(aScriptableFlags);
-    *aScriptableFlags = nsIXPCScriptable::WANT_GETPROPERTY |
-                        nsIXPCScriptable::WANT_SETPROPERTY |
-                        nsIXPCScriptable::WANT_NEWRESOLVE |
-                        nsIXPCScriptable::ALLOW_PROP_MODS_DURING_RESOLVE;
-    return NS_OK;
-}
+#define XPC_MAP_CLASSNAME calDateTime
+#define XPC_MAP_QUOTED_CLASSNAME "calDateTime"
+#define XPC_MAP_WANT_GETPROPERTY
+#define XPC_MAP_WANT_SETPROPERTY
+#define XPC_MAP_WANT_NEWRESOLVE
+#define XPC_MAP_FLAGS nsIXPCScriptable::ALLOW_PROP_MODS_DURING_RESOLVE
+#include "xpc_map_end.h"
 
 /* bool getProperty (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in jsid id, in JSValPtr vp); */
 NS_IMETHODIMP
@@ -750,66 +736,6 @@ calDateTime::SetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
     return NS_OK;
 }
 
-/* void preCreate (in nsISupports nativeObj, in JSContextPtr cx, in JSObjectPtr globalObj, out JSObjectPtr parentObj); */
-NS_IMETHODIMP
-calDateTime::PreCreate(nsISupports *nativeObj, JSContext * cx,
-                       JSObject * globalObj, JSObject * *parentObj)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* void create (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj); */
-NS_IMETHODIMP
-calDateTime::Create(nsIXPConnectWrappedNative *wrapper, JSContext * cx, JSObject * obj)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* void postCreate (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj); */
-NS_IMETHODIMP
-calDateTime::PostCreate(nsIXPConnectWrappedNative *wrapper, JSContext * cx, JSObject * obj)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-NS_IMETHODIMP
-calDateTime::PostCreatePrototype(JSContext * cx, JSObject * proto)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* bool addProperty (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in jsid id, in JSValPtr vp); */
-NS_IMETHODIMP
-calDateTime::AddProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
-                         JSObject * obj, jsid id, jsval * vp, bool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* bool delProperty (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in jsid id, in JSValPtr vp); */
-NS_IMETHODIMP
-calDateTime::DelProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
-                         JSObject * obj, jsid id, jsval * vp, bool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* bool enumerate (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj); */
-NS_IMETHODIMP
-calDateTime::Enumerate(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
-                       JSObject * obj, bool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* bool newEnumerate (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in PRUint32 enum_op, in JSValPtr statep, out JSID idp); */
-NS_IMETHODIMP
-calDateTime::NewEnumerate(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
-                          JSObject * obj, PRUint32 enum_op, jsval * statep, jsid *idp, bool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
 /* bool newResolve (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in jsid id, in PRUint32 flags, out JSObjectPtr objp); */
 NS_IMETHODIMP
 calDateTime::NewResolve(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
@@ -838,74 +764,4 @@ calDateTime::NewResolve(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
 
     *_retval = PR_TRUE;
     return NS_OK;
-}
-
-/* bool convert (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in PRUint32 type, in JSValPtr vp); */
-NS_IMETHODIMP
-calDateTime::Convert(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
-                     JSObject * obj, PRUint32 type, jsval * vp, bool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* void finalize (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj); */
-NS_IMETHODIMP
-calDateTime::Finalize(nsIXPConnectWrappedNative *wrapper, JSContext * cx, JSObject * obj)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* bool checkAccess (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in jsid id, in PRUint32 mode, in JSValPtr vp); */
-NS_IMETHODIMP
-calDateTime::CheckAccess(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
-                         JSObject * obj, jsid id, PRUint32 mode, jsval * vp, bool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* bool call (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in PRUint32 argc, in JSValPtr argv, in JSValPtr vp); */
-NS_IMETHODIMP
-calDateTime::Call(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
-                  JSObject * obj, PRUint32 argc, jsval * argv, jsval * vp, bool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* bool construct (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in PRUint32 argc, in JSValPtr argv, in JSValPtr vp); */
-NS_IMETHODIMP
-calDateTime::Construct(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
-                       JSObject * obj, PRUint32 argc, jsval * argv, jsval * vp, bool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* bool hasInstance (in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in JSVal val, out bool bp); */
-NS_IMETHODIMP
-calDateTime::HasInstance(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
-                         JSObject * obj, const jsval &val, bool *bp, bool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* void trace (in nsIXPConnectWrappedNative wrapper, in JSTracePtr trc, in JSObjectPtr obj); */
-NS_IMETHODIMP
-calDateTime::Trace(nsIXPConnectWrappedNative *wrapper, JSTracer *trc, JSObject *obj)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* bool equality(in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj, in JSVal val); */
-NS_IMETHODIMP
-calDateTime::Equality(nsIXPConnectWrappedNative *wrapper, JSContext *cx,
-                      JSObject *obj, const jsval &val, bool *_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
-}
-
-/* JSObjectPtr outerObject(in nsIXPConnectWrappedNative wrapper, in JSContextPtr cx, in JSObjectPtr obj); */
-NS_IMETHODIMP
-calDateTime::OuterObject(nsIXPConnectWrappedNative *wrapper, JSContext *cx,
-                         JSObject *obj, JSObject **_retval)
-{
-    return NS_ERROR_NOT_IMPLEMENTED;
 }
