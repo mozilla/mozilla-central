@@ -73,9 +73,10 @@
   background-size: -moz-calc(100% - 2px) -moz-calc(100% - 2px);
   background-repeat: no-repeat;
   margin: 0;
-  padding: 0;
-  -moz-border-image: url(chrome://messenger/skin/icons/tab.png) 4 3 0 /
-                     4px 3px 0 repeat stretch;
+  padding: 2px 0 3px;
+  border-width: 4px 3px 0;
+  border-style: solid;
+  -moz-border-image: url(icons/tab.png) 4 3 0 fill repeat stretch;
   height: 26px;
   border-radius: 0;
 }
@@ -187,6 +188,7 @@
 .tab-icon-image {
   -moz-margin-start: 2px;
   -moz-margin-end: 3px;
+  margin-bottom: 1px;
   width: 16px;
   height: 16px;
 }

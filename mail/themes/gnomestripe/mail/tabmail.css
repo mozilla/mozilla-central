@@ -81,8 +81,9 @@ tabpanels {
   background-size: -moz-calc(100% + 11px) -moz-calc(100% + 7px);
   margin: 0;
   padding: 0;
-  -moz-border-image: url(chrome://messenger/skin/icons/tab.png) 4 5 3 6 /
-                     4px 5px 3px 6px repeat stretch;
+  border-width: 4px 5px 3px 6px;
+  border-style: solid;
+  -moz-border-image: url(icons/tab.png) 4 5 3 6 fill repeat stretch;
   border-radius: 10px 8px 0 0;
   min-height: 25px; /* reserve space for the sometimes hidden close button */
 }

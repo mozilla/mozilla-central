@@ -43,7 +43,7 @@
 .tab-throbber {
   width: 16px;
   height: 16px;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 .tabmail-tab {
@@ -79,16 +79,16 @@
   background-repeat: no-repeat;
   background-size: -moz-calc(100% + 11px) -moz-calc(100% + 11px);
   margin: 0;
-  padding: 0;
-  -moz-border-image: url(chrome://messenger/skin/tabs/tab-normal-active.png) 4 5 3 6 /
-                     4px 5px 3px 6px repeat stretch;
+  padding: 0 0 1px;
+  border-width: 4px 5px 3px 6px;
+  border-style: solid;
+  -moz-border-image: url(tabs/tab-normal-active.png) 4 5 3 6 fill repeat stretch;
   border-radius: 4px 4px 0 0;
   min-height: 23px;
 }
 
 .tabmail-tab[selected="true"] {
-  -moz-border-image: url(chrome://messenger/skin/tabs/tab.png) 4 5 3 6 /
-                     4px 5px 3px 6px repeat stretch;
+  -moz-border-image: url(tabs/tab.png) 4 5 3 6 fill repeat stretch;
 }
 
 .tabmail-tab[selected="true"]:not(:-moz-lwtheme) {
@@ -105,8 +105,7 @@
 }
 
 .tabmail-tab:not([selected="true"]):hover {
-  -moz-border-image: url(chrome://messenger/skin/tabs/tab-hover-active.png) 4 5 3 6 /
-                     4px 5px 3px 6px repeat stretch;
+  -moz-border-image: url(tabs/tab-hover-active.png) 4 5 3 6 fill repeat stretch;
 }
 
 .tabmail-tab:-moz-lwtheme:not([selected="true"]):not(:hover) > .tab-text {
