@@ -2304,11 +2304,11 @@ NS_IMETHODIMP nsMsgLocalMailFolder::EndCopy(bool aCopySucceeded)
         {
           newHdr = mCopyState->m_newHdr;
           CopyHdrPropertiesWithSkipList(newHdr, mCopyState->m_message,
-                                        NS_LITERAL_CSTRING("storeToken"));
+                                        NS_LITERAL_CSTRING("storeToken msgOffset"));
 //          UpdateNewMsgHdr(mCopyState->m_message, newHdr);
           // We need to copy more than just what UpdateNewMsgHdr does. In fact,
           // I think we want to copy almost every property other than
-          // storeToken.
+          // storeToken and msgOffset.
           mCopyState->m_destDB->AddNewHdrToDB(newHdr, PR_TRUE);
         }
         else
