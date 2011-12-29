@@ -110,10 +110,6 @@
     border-right: 1px solid ThreeDHighlight;
 }
 
-#calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-cell {
-    border-right: 1px dotted #AAA;
-}
-
 #calendar-task-tree-detail {
     border: 1px solid ThreeDShadow;
     margin: 3px;

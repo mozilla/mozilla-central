@@ -48,10 +48,6 @@
  * ***** END LICENSE BLOCK **** */
 
 /* only format Unifinder lists */
-#unifinder-search-results-tree > treechildren::-moz-tree-row {
-    border-bottom: 1px dotted #AAA;
-}
-
 #unifinder-search-results-tree > treechildren::-moz-tree-cell-text(highpriority) {
    font-weight: bold;
 }

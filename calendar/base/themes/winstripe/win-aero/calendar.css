@@ -89,17 +89,6 @@
     background-color: #f8f8f8;
     border-bottom: none;
   }
-
-  #unifinder-search-results-tree > treechildren::-moz-tree-row,
-  #calendar-task-box
-      #calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-row {
-    border-bottom: 1px solid transparent;
-  }
-
-  #calendar-task-box
-      #calendar-task-tree > .calendar-task-tree > treechildren::-moz-tree-cell {
-    border-right: 1px solid transparent;
-  }
 }
 
 #calsidebar_splitter {
