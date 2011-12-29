@@ -454,10 +454,81 @@ function runTest(testNum) {
                                "context-viewframesource",   true,
                                "context-viewframeinfo",     true], null]);
         closeContextMenu();
-        openContextMenuFor(textarea, false, true); // Invoke context menu for next test, but wait for the spellcheck.
+        openContextMenuFor(video_in_iframe); // Invoke context menu for next test.
         break;
 
     case 12:
+        // Context menu for a video in an iframe
+        checkContextMenu(["popupwindow-reject",         true,
+                          "---",                        null,
+                          "context-media-play",         true,
+                          "context-media-mute",         true,
+                          "context-media-hidecontrols", true,
+                          "context-video-showstats",    true,
+                          "context-video-fullscreen",   true,
+                          "---",                        null,
+                          "context-viewvideo",          true,
+                          "context-copyvideourl",       true,
+                          "---",                        null,
+                          "context-savevideo",          true,
+                          "context-sendvideo",          true,
+                          "context-video-saveimage",    true,
+                          "---",                        null,
+                          "frame",                      null,
+                              ["context-showonlythisframe", true,
+                               "context-openframeintab",    true,
+                               "context-openframe",         true,
+                               "---",                       null,
+                               "context-reloadframe",       true,
+                               "---",                       null,
+                               "context-bookmarkframe",     true,
+                               "context-saveframe",         true,
+                               "context-sendframe",         true,
+                               "---",                       null,
+                               "context-viewframesource",   true,
+                               "context-viewframeinfo",     true], null]);
+        closeContextMenu();
+        openContextMenuFor(image_in_iframe); // Invoke context menu for next test.
+        break;
+
+    case 13:
+        // Context menu for an image in an iframe
+        checkContextMenu(["popupwindow-reject",   true,
+                          "---",                  null,
+                          "context-reloadimage",  true,
+                          "context-viewimage",    true,
+                          "context-blockimage",   true,
+                          "context-copyimage",    true,
+                          "---",                  null,
+                          "context-saveimage",    true,
+                          "context-sendimage",    true,
+                         ].concat(
+                         ("@mozilla.org/suite/shell-service;1" in Components.classes) ?
+                         ["context-setWallpaper", true] : [])
+                          .concat(
+                         ["---",                  null,
+                          "context-sendpage",     true,
+                          "---",                  null,
+                          "context-metadata",     true,
+                          "---",                  null,
+                          "frame",                null,
+                              ["context-showonlythisframe", true,
+                               "context-openframeintab",    true,
+                               "context-openframe",         true,
+                               "---",                       null,
+                               "context-reloadframe",       true,
+                               "---",                       null,
+                               "context-bookmarkframe",     true,
+                               "context-saveframe",         true,
+                               "context-sendframe",         true,
+                               "---",                       null,
+                               "context-viewframesource",   true,
+                               "context-viewframeinfo",     true], null]));
+        closeContextMenu();
+        openContextMenuFor(textarea, false, true); // Invoke context menu for next test, but wait for the spellcheck.
+        break;
+
+    case 14:
         // Context menu for textarea
         checkContextMenu(["popupwindow-reject",  true,
                           "---",                 null,
@@ -486,7 +557,7 @@ function runTest(testNum) {
         openContextMenuFor(contenteditable); // Invoke context menu for next test.
         break;
 
-    case 13:
+    case 15:
         // Context menu for contenteditable
         checkContextMenu(["popupwindow-reject",  true,
                           "---",                 null,
@@ -515,7 +586,7 @@ function runTest(testNum) {
         openContextMenuFor(inputspell); // Invoke context menu for next test.
         break;
 
-    case 14:
+    case 16:
         // Context menu for spell-check input
         checkContextMenu(["popupwindow-reject",  true,
                           "---",                 null,
@@ -544,13 +615,13 @@ function runTest(testNum) {
         openContextMenuFor(link); // Invoke context menu for next test.
         break;
 
-    case 15:
+    case 17:
         executeCopyCommand("cmd_copyLink", "http://mozilla.com/");
         closeContextMenu();
         openContextMenuFor(pagemenu); // Invoke context menu for next test.
         break;
 
-    case 16:
+    case 18:
         // Context menu for element with assigned content context menu
         checkContextMenu(["+Plain item",          {type: "", icon: "", checked: false, disabled: false},
                           "+Disabled item",       {type: "", icon: "", checked: false, disabled: true},
@@ -594,7 +665,7 @@ function runTest(testNum) {
         openContextMenuFor(pagemenu, true); // Invoke context menu for next test.
         break;
 
-    case 17:
+    case 19:
         // Context menu for element with assigned content context menu
         // The shift key should bypass content context menu processing
         checkContextMenu(["popupwindow-reject",   true,
@@ -619,7 +690,7 @@ function runTest(testNum) {
         openContextMenuFor(img_link); // Invoke context menu for next test.
         break;
 
-    case 18:
+    case 20:
         // Context menu for an image with a link
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -648,7 +719,7 @@ function runTest(testNum) {
         openContextMenuFor(img_mailto); // Invoke context menu for next test.
         break;
 
-    case 19:
+    case 21:
         // Context menu for an image with a mailto: link
         checkContextMenu(["popupwindow-reject",   true,
                           "---",                  null,
@@ -695,7 +766,7 @@ function runTest(testNum) {
 var testNum = 1;
 var subwindow, chromeWin, contextMenu, lastElement;
 var text, link, mailto, input, img, canvas, video_ok, video_bad, video_bad2,
-    iframe, textarea, contenteditable, inputspell, pagemenu;
+    iframe, video_in_iframe, image_in_iframe, textarea, contenteditable, inputspell, pagemenu;
 
 // SeaMonkey specific variables.
 var img_link, img_mailto;
@@ -731,6 +802,10 @@ function startTest() {
     video_bad  = subwindow.document.getElementById("test-video-bad");
     video_bad2 = subwindow.document.getElementById("test-video-bad2");
     iframe     = subwindow.document.getElementById("test-iframe");
+    video_in_iframe = subwindow.document.getElementById("test-video-in-iframe").contentDocument.getElementsByTagName("video")[0];
+    // Ensure that contextmenu has 'context-media-play' item when check runs.
+    video_in_iframe.pause();
+    image_in_iframe = subwindow.document.getElementById("test-image-in-iframe").contentDocument.getElementsByTagName("img")[0];
     textarea   = subwindow.document.getElementById("test-textarea");
     contenteditable = subwindow.document.getElementById("test-contenteditable");
     inputspell = subwindow.document.getElementById("test-input-spellcheck");
