@@ -2959,11 +2959,11 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
   fields->GetNeedToCheckCharset(&needToCheckCharset);
   mCompFields->SetNeedToCheckCharset(needToCheckCharset);
 
-  // Check the fields for legitimacy...
-  //
   if ( m_deliver_mode != nsMsgSaveAsDraft && m_deliver_mode != nsMsgSaveAsTemplate )
   {
-    rv = mime_sanity_check_fields (mCompFields->GetFrom(), mCompFields->GetReplyTo(),
+    // Check the fields for legitimacy...
+    return mime_sanity_check_fields (
+                    mCompFields->GetFrom(), mCompFields->GetReplyTo(),
                     mCompFields->GetTo(), mCompFields->GetCc(),
                     mCompFields->GetBcc(), mCompFields->GetFcc(),
                     mCompFields->GetNewsgroups(), mCompFields->GetFollowupTo(),
@@ -2971,8 +2971,7 @@ nsMsgComposeAndSend::InitCompositionFields(nsMsgCompFields *fields,
                     mCompFields->GetOrganization(),
                     mCompFields->GetOtherRandomHeaders());
   }
-
-  return rv;
+  return NS_OK;
 }
 
 // Add default headers to outgoing messages see Bug #61520
@@ -4214,8 +4213,6 @@ nsMsgComposeAndSend::CreateAndSendMessage(
               )
 {
   nsresult      rv;
-
-
   /* First thing to do is to reset the send errors report */
   mSendReport->Reset();
   mSendReport->SetDeliveryMode(mode);

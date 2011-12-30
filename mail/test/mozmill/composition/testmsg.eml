@@ -1,0 +1,16 @@
+Return-Path: <homer@example.com>
+Received: from smtp.example.com (smtpu [10.0.0.52])
+	 by storage (Cyrus v2.3.7-Invoca-RPM-2.3.7-1.1) with LMTPA;
+	 Mon, 26 Dec 2011 20:49:16 +0200
+Message-ID: <4EF8C1A5.1060708@example.com>
+Date: Mon, 26 Dec 2011 20:49:09 +0200
+From: Homer <homer@example.com>
+MIME-Version: 1.0
+To: Marge <marge@example.com>
+Subject: why
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
+
+Because they're stupid, that's why. That's why everybody does everything!
+
+ -Homer

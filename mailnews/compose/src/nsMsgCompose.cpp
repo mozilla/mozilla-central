@@ -1599,33 +1599,27 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
 
   mDeleteDraft = (type == nsIMsgCompType::Draft);
   nsCAutoString msgUri(originalMsgURI);
-  // check if we're dealing with an opened .eml file msg
   bool fileUrl = StringBeginsWith(msgUri, NS_LITERAL_CSTRING("file:"));
-  if (fileUrl)
+  PRInt32 typeIndex = msgUri.Find("?type=application/x-message-display");
+  if (typeIndex != kNotFound)
   {
     // strip out ?type=application/x-message-display because it confuses libmime
-    PRInt32 typeIndex = msgUri.Find("?type=application/x-message-display");
-    if (typeIndex != kNotFound)
+    msgUri.Cut(typeIndex, sizeof("?type=application/x-message-display") - 1);
+    if (fileUrl) // we're dealing with an .eml file msg
     {
-      msgUri.Cut(typeIndex, sizeof("?type=application/x-message-display") - 1);
       // we also need to replace the next '&' with '?'
       if (msgUri.CharAt(typeIndex) == '&')
         msgUri.SetCharAt('?', typeIndex);
-      originalMsgURI = msgUri.get();
     }
-  }
-  else // check if we're dealing with a displayed message/rfc822 attachment
-  {
-    PRInt32 typeIndex = msgUri.Find("&type=application/x-message-display");
-    if (typeIndex != kNotFound)
+    else // we're dealing with a message/rfc822 attachment
     {
-      msgUri.Cut(typeIndex, sizeof("&type=application/x-message-display") - 1);
       // nsURLFetcher will check for "realtype=message/rfc822" and will set the
       // content type to message/rfc822 in the forwarded message.
       msgUri.Append("&realtype=message/rfc822");
-      originalMsgURI = msgUri.get();
     }
+    originalMsgURI = msgUri.get();
   }
+
   if (compFields)
   {
     NS_IF_RELEASE(m_compFields);
