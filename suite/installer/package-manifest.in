@@ -175,6 +175,7 @@
 #ifdef MOZ_SMIL
 @BINPATH@/components/dom_smil.xpt
 #endif
+@BINPATH@/components/dom_sms.xpt
 @BINPATH@/components/dom_storage.xpt
 @BINPATH@/components/dom_stylesheets.xpt
 @BINPATH@/components/dom_svg.xpt
