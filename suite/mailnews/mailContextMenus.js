@@ -480,11 +480,19 @@ function CopyEmailAddress(emailAddressNode)
 // show the message id in the context menu
 function FillMessageIdContextMenu(messageIdNode)
 {
-  if (messageIdNode)
-  {
-    document.getElementById("messageIdContext-messageIdTarget")
-            .setAttribute("label", messageIdNode.getAttribute("messageid"));
-  }
+  var msgId = messageIdNode.getAttribute("messageid");
+  document.getElementById("messageIdContext-messageIdTarget")
+          .setAttribute("label", msgId);
+
+  // We don't want to show "Open Message For ID" for the same message
+  // we're viewing.
+  var currentMsgId = "<" + gFolderDisplay.selectedMessage.messageId + ">";
+  document.getElementById("messageIdContext-openMessageForMsgId")
+          .hidden = (currentMsgId == msgId);
+
+  // We don't want to show "Open Browser With Message-ID" for non-nntp messages.
+  document.getElementById("messageIdContext-openBrowserWithMsgId")
+          .hidden = !gFolderDisplay.selectedMessageIsNews;
 }
 
 function GetMessageIdFromNode(messageIdNode, cleanMessageId)

@@ -62,14 +62,17 @@
   <menuseparator id="messageIdContext-separator"/>
   <menuitem id="messageIdContext-openMessageForMsgId"
             label="&OpenMessageForMsgId.label;"
+            accesskey="&OpenMessageForMsgId.accesskey;"
             oncommand="var messageId = GetMessageIdFromNode(document.popupNode, true);
                        OpenMessageForMessageId(messageId)"/>
   <menuitem id="messageIdContext-openBrowserWithMsgId"
             label="&OpenBrowserWithMsgId.label;"
+            accesskey="&OpenBrowserWithMsgId.accesskey;"
             oncommand="var messageId = GetMessageIdFromNode(document.popupNode, true);
                        OpenBrowserWithMessageId(messageId)"/>
   <menuitem id="messageIdContext-copyMessageId"
             label="&CopyMessageId.label;"
+            accesskey="&CopyMessageId.accesskey;"
             oncommand="var messageId = GetMessageIdFromNode(document.popupNode, false);
                        CopyMessageId(messageId);"/>
 </menupopup>

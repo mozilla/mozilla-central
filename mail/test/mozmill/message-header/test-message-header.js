@@ -210,6 +210,51 @@ function test_clicking_star_opens_inline_contact_editor()
 }
 
 /**
+ * Ensure that the specified element is visible/hidden
+ *
+ * @param id the id of the element to check
+ * @param visible true if the element should be visible, false otherwise
+ */
+function assert_shown(id, visible) {
+   if (mc.e(id).hidden == visible)
+    throw new Error('"' + id + '" should be ' +
+                    (visible ? "visible" : "hidden"));
+}
+
+/**
+ * Test that clicking references context menu works properly.
+ */
+function test_msg_id_context_menu() {
+  let prefBranch = Cc["@mozilla.org/preferences-service;1"]
+    .getService(Ci.nsIPrefService).getBranch(null);
+  prefBranch.setBoolPref("mailnews.headers.showReferences", true);
+
+  // Add a new message
+  let msg = create_message({
+    clobberHeaders: {
+      "References": "<4880C986@example.com> <4880CAB2@example.com> <4880CC76@example.com>"
+    }});
+  add_message_to_folder(folder, msg);
+  be_in_folder(folder);
+
+  // Open the latest message.
+  let curMessage = select_click_row(-1);
+
+  // Right click to show the context menu.
+  mc.rightClick(mc.aid("expandedreferencesBox", {tagName: "mail-messageid"}));
+  wait_for_popup_to_open(mc.e("messageIdContext"));
+
+  // Ensure Open Message For ID is shown... and that Open Browser With Message-ID
+  // isn't shown.
+  assert_shown("messageIdContext-openMessageForMsgId", true);
+  assert_shown("messageIdContext-openBrowserWithMsgId", false);
+
+  close_popup(mc, mc.eid("messageIdContext"));
+
+  prefBranch.setBoolPref("mailnews.headers.showReferences", false);
+}
+
+/**
  * Test that if a contact belongs to a mailing list within their
  * address book, then the inline contact editor will not allow
  * the user to change what address book the contact belongs to.

@@ -111,12 +111,15 @@ function FillMessageIdContextMenu(messageIdNode)
   document.getElementById("messageIdContext-messageIdTarget")
           .setAttribute("label", msgId);
 
-  // We don't want to show "open message for id" for the same message we're
-  // viewing.
+  // We don't want to show "Open Message For ID" for the same message
+  // we're viewing.
   var currentMsgId = "<" + gFolderDisplay.selectedMessage.messageId + ">";
   document.getElementById("messageIdContext-openMessageForMsgId")
-          .setAttribute("hidden", (currentMsgId == msgId));
+          .hidden = (currentMsgId == msgId);
 
+  // We don't want to show "Open Browser With Message-ID" for non-nntp messages.
+  document.getElementById("messageIdContext-openBrowserWithMsgId")
+          .hidden = !gFolderDisplay.selectedMessageIsNews;
 }
 
 function CopyMessageId(messageId)
