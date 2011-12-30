@@ -44,7 +44,7 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/AddonManager.jsm");
 Cu.import("resource:///modules/distribution.js");
-
+Cu.import("resource:///modules/mailMigrator.js");
 
 /**
  * Glue code that should be executed before any windows are opened. Any
@@ -88,6 +88,9 @@ MailGlue.prototype = {
 
   _onProfileStartup: function MailGlue__onProfileStartup() {
     TBDistCustomizer.applyPrefDefaults();
+
+    // handle any migration work that has to happen at profile startup
+    MailMigrator.migrateAtProfileStartup();
 
     // check if we're in safe mode
     if (Services.appinfo.inSafeMode) {

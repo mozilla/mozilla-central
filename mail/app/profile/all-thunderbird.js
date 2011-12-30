@@ -233,6 +233,11 @@ pref("mailnews.headers.show_n_lines_before_more", 1);
 // Thunderbird wants to show the migration assistant on upgrade by default.
 pref("mail.ui.show.migration.on.upgrade", true);
 
+// We want to keep track of what items are appropriate in
+// localstore.rdf.  We use versioning to scrub out the things
+// that have become obsolete.
+pref("mail.ui-rdf.version", 0);
+
 /////////////////////////////////////////////////////////////////
 // Overrides of the core mailnews.js prefs
 /////////////////////////////////////////////////////////////////

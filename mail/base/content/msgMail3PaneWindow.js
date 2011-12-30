@@ -447,7 +447,7 @@ function LoadPostAccountWizard()
   MigrateFolderViews();
   MigrateOpenMessageBehavior();
   Components.utils.import("resource:///modules/mailMigrator.js");
-  MailMigrator.migrateMail();
+  MailMigrator.migratePostAccountWizard();
 
   accountManager.setSpecialFolders();
   try {

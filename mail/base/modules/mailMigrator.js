@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Siddharth Agarwal <sid.bugzilla@gmail.com>
+ *   Mike Conley <mconley@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -49,6 +50,7 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
 
 var MailMigrator = {
   /**
@@ -125,11 +127,103 @@ var MailMigrator = {
   },
 
   /**
-   * Migrate whatever is defined in this module.
+   * Determine if the UI has been upgraded in a way that requires us to reset
+   * some user configuration.  If so, performs the resets.
    */
-  migrateMail: function MailMigrator_migrateMail() {
+  _migrateUI: function MailMigrator__migrateUI() {
+    // The code for this was ported from
+    // mozilla/browser/components/nsBrowserGlue.js
+    const UI_VERSION = 1;
+    const MESSENGER_DOCURL = "chrome://messenger/content/messenger.xul#";
+    const UI_VERSION_PREF = "mail.ui-rdf.version";
+    let currentUIVersion = 0;
+
+    try {
+      currentUIVersion = Services.prefs.getIntPref(UI_VERSION_PREF);
+    } catch(ex) {}
+
+    if (currentUIVersion >= UI_VERSION)
+      return;
+
+    this._rdf = Cc["@mozilla.org/rdf/rdf-service;1"].getService(Ci.nsIRDFService);
+    this._dataSource = this._rdf.GetDataSource("rdf:local-store");
+    let dirty = false;
+
+    if (currentUIVersion < 1) {
+      // We want to remove old settings that collapse the folderPaneBox
+      let fpbResource = this._rdf.GetResource(MESSENGER_DOCURL + "folderPaneBox");
+      let collapsedResource = this._rdf.GetResource("collapsed");
+      let collapsed = this._getPersist(fpbResource, collapsedResource);
+
+      if (collapsed !== null) {
+        // We want to override this, and set it to false.  We should really be
+        // ignoring this persist attribute, anyhow.
+        dirty = true;
+        this._unAssert(fpbResource, collapsedResource);
+      }
+    }
+
+    if (dirty)
+      this._dataSource.QueryInterface(Ci.nsIRDFRemoteDataSource).Flush();
+
+    delete this._rdf;
+    delete this._dataSource;
+
+    // Update the migration version.
+    Services.prefs.setIntPref(UI_VERSION_PREF, UI_VERSION);
+  },
+
+  /**
+   * Perform any migration work that needs to occur after the Account Wizard
+   * has had a chance to appear.
+   */
+  migratePostAccountWizard: function MailMigrator_migratePostAccountWizard() {
     this.migrateToClearTypeFonts();
-  }
+  },
+
+  /**
+   * Perform any migration work that needs to occur once the user profile has
+   * been loaded.
+   */
+  migrateAtProfileStartup: function MailMigrator_migrateAtProfileStartup() {
+    this._migrateUI();
+  },
+
+  /**
+   * A helper function to get the property for a resource in the
+   * localstore.rdf file.  This function should only be called by _migrateUI.
+   *
+   * @param aSource the resource to get the property from
+   * @param aProperty the property to get the value from
+   */
+  _getPersist: function MailMigrator__getPersist(aSource, aProperty) {
+    // The code for this was ported from
+    // mozilla/browser/components/nsBrowserGlue.js.
+
+    let target = this._dataSource.GetTarget(aSource, aProperty, true);
+    if (target instanceof Ci.nsIRDFLiteral)
+      return target.Value;
+    return null;
+  },
+
+  /**
+   * A helper function to unassert a property from a resource.  This function
+   * should only be called by _migrateUI.
+   *
+   * @param aSource the resource to remove the property from
+   * @param aProperty the property to be removed
+   */
+  _unAssert: function MailMigrator__unAssert(aSource, aProperty) {
+    try {
+      let oldTarget = this._dataSource.GetTarget(aSource, aProperty, true);
+      if (oldTarget)
+        this._dataSource.Unassert(aSource, aProperty, oldTarget);
+    }
+    catch(e) {
+      // If something's gone wrong here, report it in the Error Console.
+      Cu.reportError(e);
+    }
+  },
 };
 
 XPCOMUtils.defineLazyServiceGetter(MailMigrator, "_prefBranch",
