@@ -158,6 +158,7 @@
 @BINPATH@/components/directory.xpt
 @BINPATH@/components/docshell.xpt
 @BINPATH@/components/dom.xpt
+@BINPATH@/components/dom_apps.xpt
 @BINPATH@/components/dom_base.xpt
 @BINPATH@/components/dom_battery.xpt
 @BINPATH@/components/dom_canvas.xpt
@@ -336,6 +337,7 @@
 @BINPATH@/components/nsAboutLife.js
 @BINPATH@/components/nsAboutRights.js
 @BINPATH@/components/nsAboutSessionRestore.js
+@BINPATH@/components/nsAboutSyncTabs.js
 @BINPATH@/components/nsBadCertHandler.js
 @BINPATH@/components/nsBadCertHandler.manifest
 @BINPATH@/components/nsBlocklistService.js
@@ -406,14 +408,15 @@
 @BINPATH@/components/smileApplication.manifest
 @BINPATH@/components/storage-Legacy.js
 @BINPATH@/components/storage-mozStorage.js
+@BINPATH@/components/SyncComponents.manifest
 @BINPATH@/components/TelemetryPing.js
 @BINPATH@/components/TelemetryPing.manifest
 @BINPATH@/components/txEXSLTRegExFunctions.js
 @BINPATH@/components/txEXSLTRegExFunctions.manifest
-@BINPATH@/components/WebContentConverter.js
-@BINPATH@/components/nsAboutSyncTabs.js
-@BINPATH@/components/SyncComponents.manifest
 @BINPATH@/components/Weave.js
+@BINPATH@/components/Webapps.js
+@BINPATH@/components/Webapps.manifest
+@BINPATH@/components/WebContentConverter.js
 
 ; Modules
 @BINPATH@/modules/*
