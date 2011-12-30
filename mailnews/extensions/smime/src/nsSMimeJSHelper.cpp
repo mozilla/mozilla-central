@@ -92,7 +92,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
   nsCOMPtr<nsIX509CertDB> certdb = do_GetService(NS_X509CERTDB_CONTRACTID);
 
   *count = mailbox_count;
-  *canEncrypt = PR_FALSE;
+  *canEncrypt = false;
   rv = NS_OK;
 
   if (mailbox_count)
@@ -144,7 +144,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
         nsDependentCString email(walk);
         *iEA = ToNewUnicode(NS_ConvertUTF8toUTF16(walk));
         if (!*iEA) {
-          memory_failure = PR_TRUE;
+          memory_failure = true;
           continue;
         }
 
@@ -164,7 +164,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
               cert->VerifyForUsage(nsIX509Cert::CERT_USAGE_EmailRecipient, &verification_result)))
           {
             *iCV = nsIX509Cert::NOT_VERIFIED_UNKNOWN;
-            found_blocker = PR_TRUE;
+            found_blocker = true;
           }
           else
           {
@@ -172,7 +172,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
 
             if (verification_result != nsIX509Cert::VERIFIED_OK)
             {
-              found_blocker = PR_TRUE;
+              found_blocker = true;
             }
           }
 
@@ -186,7 +186,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
             {
               *iCII = ToNewUnicode(id);
               if (!*iCII) {
-                memory_failure = PR_TRUE;
+                memory_failure = true;
                 continue;
               }
             }
@@ -195,7 +195,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
             {
               *iCEI = ToNewUnicode(ed);
               if (!*iCEI) {
-                memory_failure = PR_TRUE;
+                memory_failure = true;
                 continue;
               }
             }
@@ -203,7 +203,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
         }
         else
         {
-          found_blocker = PR_TRUE;
+          found_blocker = true;
         }
       }
 
@@ -218,7 +218,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetRecipientCertsInfo(
       else {
         if (mailbox_count > 0 && !found_blocker)
         {
-          *canEncrypt = PR_TRUE;
+          *canEncrypt = true;
         }
 
         *emailAddresses = outEA;
@@ -292,7 +292,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
         i < mailbox_count;
         ++i, walk += strlen(walk) + 1)
     {
-      haveCert[i] = PR_FALSE;
+      haveCert[i] = false;
 
       nsDependentCString email(walk);
       nsCString email_lowercase;
@@ -309,7 +309,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
             &&
             nsIX509Cert::VERIFIED_OK == verification_result)
         {
-          haveCert[i] = PR_TRUE;
+          haveCert[i] = true;
         }
       }
 
@@ -348,7 +348,7 @@ NS_IMETHODIMP nsSMimeJSHelper::GetNoCertAddresses(
           else {
             *iEA = ToNewUnicode(NS_ConvertUTF8toUTF16(walk));
             if (!*iEA) {
-              memory_failure = PR_TRUE;
+              memory_failure = true;
             }
           }
           ++iEA;

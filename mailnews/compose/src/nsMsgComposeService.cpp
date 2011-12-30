@@ -155,7 +155,7 @@ nsMsgComposeService::nsMsgComposeService()
 {
 
 // Defaulting the value of mLogComposePerformance to FALSE to prevent logging.
-  mLogComposePerformance = PR_FALSE;
+  mLogComposePerformance = false;
 #ifdef MSGCOMP_TRACE_PERFORMANCE
   if (!MsgComposeLogModule)
       MsgComposeLogModule = PR_NewLogModule("msgcompose");
@@ -194,14 +194,14 @@ nsresult nsMsgComposeService::Init()
   nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
   if (NS_SUCCEEDED(rv))
   {
-    rv = observerService->AddObserver(this, "quit-application", PR_TRUE);
-    rv = observerService->AddObserver(this, "profile-do-change", PR_TRUE);
+    rv = observerService->AddObserver(this, "quit-application", true);
+    rv = observerService->AddObserver(this, "profile-do-change", true);
   }
 
   // Register some pref observer
   nsCOMPtr<nsIPrefBranch2> pbi = do_GetService(NS_PREFSERVICE_CONTRACTID);
   if (pbi)
-    rv = pbi->AddObserver(PREF_MAIL_COMPOSE_MAXRECYCLEDWINDOWS, this, PR_TRUE);
+    rv = pbi->AddObserver(PREF_MAIL_COMPOSE_MAXRECYCLEDWINDOWS, this, true);
 
   mOpenComposeWindows.Init();
   Reset();
@@ -259,7 +259,7 @@ nsMsgComposeService::OpenComposeWindowWithParams(const char *chrome,
 #ifdef MSGCOMP_TRACE_PERFORMANCE
   if(mLogComposePerformance)
   {
-    TimeStamp("Start opening the window", PR_TRUE);
+    TimeStamp("Start opening the window", true);
   }
 #endif
 
@@ -295,7 +295,7 @@ nsMsgComposeService::OpenComposeWindowWithParams(const char *chrome,
              clear the cache entry if everything goes well
           */
           nsCOMPtr<nsIDOMWindow> domWindow(mCachedWindows[i].window);
-          rv = ShowCachedComposeWindow(domWindow, PR_TRUE);
+          rv = ShowCachedComposeWindow(domWindow, true);
           if (NS_SUCCEEDED(rv))
           {
             mCachedWindows[i].listener->OnReopen(params);
@@ -388,14 +388,14 @@ nsMsgComposeService::DetermineComposeHTML(nsIMsgIdentity *aIdentity, MSG_Compose
 {
   NS_ENSURE_ARG_POINTER(aComposeHTML);
 
-  *aComposeHTML = PR_TRUE;
+  *aComposeHTML = true;
   switch (aFormat)
   {
     case nsIMsgCompFormat::HTML:
-      *aComposeHTML = PR_TRUE;
+      *aComposeHTML = true;
       break;
     case nsIMsgCompFormat::PlainText:
-      *aComposeHTML = PR_FALSE;
+      *aComposeHTML = false;
       break;
 
     default:
@@ -457,7 +457,7 @@ nsMsgComposeService::GetOrigWindowSelection(MSG_ComposeType type, nsIMsgWindow *
 
   nsCOMPtr<nsIDocShellTreeItem> childAsItem;
   rv = rootDocShellAsNode->FindChildWithName(NS_LITERAL_STRING("messagepane").get(),
-                                             PR_TRUE, PR_FALSE, nsnull, nsnull, getter_AddRefs(childAsItem));
+                                             true, false, nsnull, nsnull, getter_AddRefs(childAsItem));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIDocShell> docShell(do_QueryInterface(childAsItem, &rv));
@@ -630,7 +630,7 @@ nsMsgComposeService::OpenComposeWindow(const char *msgComposeWindowURL, nsIMsgDB
         if (type != nsIMsgCompType::NewsPost) {
           char buff[256];
           sprintf(buff, "Start opening the window, message size = %d", GetMessageSizeFromURI(originalMsgURI));
-          TimeStamp(buff, PR_TRUE);
+          TimeStamp(buff, true);
         }
 #endif
       }//end if(mLogComposePerformance)
@@ -715,13 +715,13 @@ NS_IMETHODIMP nsMsgComposeService::GetParamsForMailto(nsIURI * aURI, nsIMsgCompo
             sanSink->Initialize(&sanitizedBody, 0, NS_ConvertASCIItoUTF16(allowedTags));
 
             parser->SetContentSink(sink);
-            rv = parser->Parse(rawBody, 0, NS_LITERAL_CSTRING("text/html"), PR_TRUE);
+            rv = parser->Parse(rawBody, 0, NS_LITERAL_CSTRING("text/html"), true);
             if (NS_FAILED(rv))
             {
               // Something went horribly wrong with parsing for html format
-              // in the body.  Set composeHTMLFormat to PR_FALSE so we show the
+              // in the body.  Set composeHTMLFormat to false so we show the
               // plain text mail compose.
-              composeHTMLFormat = PR_FALSE;
+              composeHTMLFormat = false;
             }
           }
         }
@@ -862,11 +862,11 @@ nsMsgComposeService::IsCachedWindow(nsIDOMWindow *aCachedWindow, bool *aIsCached
   for (i = 0; i < mMaxRecycledWindows; i ++)
     if (mCachedWindows[i].window.get() == aCachedWindow)
     {
-      *aIsCachedWindow = PR_TRUE;
+      *aIsCachedWindow = true;
       return NS_OK;
     }
 
- *aIsCachedWindow = PR_FALSE;
+ *aIsCachedWindow = false;
   return NS_OK;
 }
 
@@ -886,7 +886,7 @@ nsMsgComposeService::CacheWindow(nsIDOMWindow *aWindow, bool aComposeHTML, nsIMs
   {
     if (!mCachedWindows[i].window)
     {
-      rv = ShowCachedComposeWindow(aWindow, PR_FALSE);
+      rv = ShowCachedComposeWindow(aWindow, false);
       if (NS_SUCCEEDED(rv))
         mCachedWindows[i].Initialize(aWindow, aListener, aComposeHTML);
 
@@ -914,7 +914,7 @@ nsMsgComposeService::CacheWindow(nsIDOMWindow *aWindow, bool aComposeHTML, nsIMs
     CloseHiddenCachedWindow(mCachedWindows[oppositeTypeId].window);
     mCachedWindows[oppositeTypeId].Clear();
 
-    rv = ShowCachedComposeWindow(aWindow, PR_FALSE);
+    rv = ShowCachedComposeWindow(aWindow, false);
     if (NS_SUCCEEDED(rv))
       mCachedWindows[oppositeTypeId].Initialize(aWindow, aListener, aComposeHTML);
 
@@ -951,7 +951,7 @@ NS_IMPL_ISUPPORTS3(nsMsgTemplateReplyHelper,
 
 nsMsgTemplateReplyHelper::nsMsgTemplateReplyHelper()
 {
-  mInMsgBody = PR_FALSE;
+  mInMsgBody = false;
   memset(mLastBlockChars, 0, sizeof(mLastBlockChars));
 }
 
@@ -1178,7 +1178,7 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
   {
     // ### probably want to return a specific error and
     // have the calling code disable the filter.
-    NS_ASSERTION(PR_FALSE, "failed to get msg hdr");
+    NS_ASSERTION(false, "failed to get msg hdr");
     return NS_ERROR_FAILURE;
   }
   // we need to convert the template uri, which is of the form
@@ -1192,8 +1192,8 @@ NS_IMETHODIMP nsMsgComposeService::ReplyWithTemplate(nsIMsgDBHdr *aMsgHdr, const
 
   rv = msgService->StreamMessage(templateMsgHdrUri.get(), listenerSupports,
                                  aMsgWindow, helper,
-                                 PR_FALSE, // convert data
-                                 EmptyCString(), PR_FALSE, nsnull);
+                                 false, // convert data
+                                 EmptyCString(), false, nsnull);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgFolder> folder;
@@ -1253,8 +1253,8 @@ nsMsgComposeService::ForwardMessage(const nsAString &forwardTo,
                                       nsMimeOutput::nsMimeMessageDraftOrTemplate,
                                       identity,
                                       msgUri.get(), aMsgHdr,
-                                      PR_TRUE, forwardTo,
-                                      PR_FALSE, aMsgWindow);
+                                      true, forwardTo,
+                                      false, aMsgWindow);
 
   nsCOMPtr<nsIDOMWindow> parentWindow;
   if (aMsgWindow)
@@ -1591,7 +1591,7 @@ nsMsgComposeService::RunMessageThroughMimeDraft(
   mimeConverter->SetForwardInline(aForwardInline);
   if (!aForwardTo.IsEmpty())
   {
-    mimeConverter->SetForwardInlineFilter(PR_TRUE);
+    mimeConverter->SetForwardInlineFilter(true);
     mimeConverter->SetForwardToAddress(aForwardTo);
   }
   mimeConverter->SetOverrideComposeFormat(aOverrideComposeFormat);
@@ -1662,7 +1662,7 @@ nsMsgComposeService::Handle(nsICommandLine* aCmdLine)
   nsAutoString uristr;
   bool composeShouldHandle = true;
 
-  rv = aCmdLine->FindFlag(NS_LITERAL_STRING("compose"), PR_FALSE, &found);
+  rv = aCmdLine->FindFlag(NS_LITERAL_STRING("compose"), false, &found);
   NS_ENSURE_SUCCESS(rv, rv);
 
 #ifndef MOZ_SUITE
@@ -1670,10 +1670,10 @@ nsMsgComposeService::Handle(nsICommandLine* aCmdLine)
   // instead of -compose.
   if (found == -1)
   {
-    rv = aCmdLine->FindFlag(NS_LITERAL_STRING("url"), PR_FALSE, &found);
+    rv = aCmdLine->FindFlag(NS_LITERAL_STRING("url"), false, &found);
     // we don't want to consume the argument for -url unless we're sure it is a mailto url and we'll
     // figure that out shortly.
-    composeShouldHandle = PR_FALSE;
+    composeShouldHandle = false;
   }
 #endif
 
@@ -1697,7 +1697,7 @@ nsMsgComposeService::Handle(nsICommandLine* aCmdLine)
         StringBeginsWith(uristr, NS_LITERAL_STRING("format=")) ||
         StringBeginsWith(uristr, NS_LITERAL_STRING("body="))  ||
         StringBeginsWith(uristr, NS_LITERAL_STRING("attachment="))) {
-      composeShouldHandle = PR_TRUE; // the -url argument looks like mailto
+      composeShouldHandle = true; // the -url argument looks like mailto
       end++;
       // mailto: URIs are frequently passed with spaces in them. They should be
       // escaped with %20, but we hack around broken clients. See bug 231032.
@@ -1731,7 +1731,7 @@ nsMsgComposeService::Handle(nsICommandLine* aCmdLine)
     wwatch->OpenWindow(nsnull, DEFAULT_CHROME, "_blank",
                        "chrome,dialog=no,all", arg, getter_AddRefs(opened));
 
-    aCmdLine->SetPreventDefault(PR_TRUE);
+    aCmdLine->SetPreventDefault(true);
   }
   return NS_OK;
 }

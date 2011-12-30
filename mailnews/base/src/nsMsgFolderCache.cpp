@@ -116,7 +116,7 @@ nsresult nsMsgFolderCache::InitNewDB()
     // create the unique table for the dbFolderInfo.
     mdb_err mdberr;
     mdberr = (nsresult) store->NewTable(GetEnv(), m_folderRowScopeToken,
-    m_folderTableKindToken, PR_FALSE, nsnull, &m_mdbAllFoldersTable);
+    m_folderTableKindToken, false, nsnull, &m_mdbAllFoldersTable);
   }
   return err;
 }
@@ -135,7 +135,7 @@ nsresult nsMsgFolderCache::InitExistingDB()
     if (NS_SUCCEEDED(err) && rowCursor)
     {
       // iterate over the table rows and create nsMsgFolderCacheElements for each.
-      while (PR_TRUE)
+      while (true)
       {
         nsresult rv;
         nsIMdbRow* hdrRow;
@@ -174,7 +174,7 @@ nsresult nsMsgFolderCache::OpenMDB(const nsACString& dbName, bool exists)
       mdb_bool dbFrozen = mdbBool_kFalse; // not readonly, we want modifiable
 
       if (m_mdbEnv)
-        m_mdbEnv->SetAutoClear(PR_TRUE);
+        m_mdbEnv->SetAutoClear(true);
       if (exists)
       {
         mdbOpenPolicy inOpenPolicy;
@@ -209,14 +209,14 @@ nsresult nsMsgFolderCache::OpenMDB(const nsACString& dbName, bool exists)
       {
         mdb_count outTotal;    // total somethings to do in operation
         mdb_count outCurrent;  // subportion of total completed so far
-        mdb_bool outDone = PR_FALSE;      // is operation finished?
+        mdb_bool outDone = false;      // is operation finished?
         mdb_bool outBroken;     // is operation irreparably dead and broken?
         do
         {
           ret = thumb->DoMore(m_mdbEnv, &outTotal, &outCurrent, &outDone, &outBroken);
           if (ret != 0)
           {// mork isn't really doing NS errors yet.
-            outDone = PR_TRUE;
+            outDone = true;
             break;
           }
         }
@@ -279,8 +279,8 @@ NS_IMETHODIMP nsMsgFolderCache::Init(nsIFile *aFile)
   {
     if (m_mdbStore)
       m_mdbStore->Release();
-    aFile->Remove(PR_FALSE);
-    rv = OpenMDB(dbPath, PR_FALSE);
+    aFile->Remove(false);
+    rv = OpenMDB(dbPath, false);
   }
   return rv;
 }
@@ -341,7 +341,7 @@ NS_IMETHODIMP nsMsgFolderCache::Clear()
 
 NS_IMETHODIMP nsMsgFolderCache::Close()
 {
-  return Commit(PR_TRUE);
+  return Commit(true);
 }
 
 NS_IMETHODIMP nsMsgFolderCache::Commit(bool compress)
@@ -360,8 +360,8 @@ NS_IMETHODIMP nsMsgFolderCache::Commit(bool compress)
   {
     mdb_count outTotal = 0;    // total somethings to do in operation
     mdb_count outCurrent = 0;  // subportion of total completed so far
-    mdb_bool outDone = PR_FALSE;      // is operation finished?
-    mdb_bool outBroken = PR_FALSE;     // is operation irreparably dead and broken?
+    mdb_bool outDone = false;      // is operation finished?
+    mdb_bool outBroken = false;     // is operation irreparably dead and broken?
     while (!outDone && !outBroken && NS_SUCCEEDED(ret))
       ret = commitThumb->DoMore(GetEnv(), &outTotal, &outCurrent, &outDone, &outBroken);
     NS_IF_RELEASE(commitThumb);

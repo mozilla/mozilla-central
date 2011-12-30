@@ -164,8 +164,8 @@ static bool intlmime_only_ascii_str(const char *s)
 {
   for(; *s; s++)
     if(*s & 0x80)
-      return PR_FALSE;
-  return PR_TRUE;
+      return false;
+  return true;
 }
 
 
@@ -501,7 +501,7 @@ RFC822AddressList * construct_addresslist(char *s)
     else if (*s == '<' || *s == '>') {
       if (!quoted && !comment) {
         if (*s == '<') {
-          angle_addr = PR_TRUE;
+          angle_addr = true;
           addrspec = s;
           if (displayname) {
             char *e = s - 1, tmp;
@@ -517,7 +517,7 @@ RFC822AddressList * construct_addresslist(char *s)
         }
         else {
           char tmp;
-          angle_addr = PR_FALSE;
+          angle_addr = false;
           tmp = *(s+1);
           *(s+1) = '\0';
           PR_FREEIF(list->addrspec);

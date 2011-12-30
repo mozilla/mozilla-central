@@ -96,13 +96,13 @@ static void
 MimeLeaf_finalize (MimeObject *object)
 {
   MimeLeaf *leaf = (MimeLeaf *)object;
-  object->clazz->parse_eof (object, PR_FALSE);
+  object->clazz->parse_eof (object, false);
 
   /* Free the decoder data, if it's still around.  It was probably freed
    in MimeLeaf_parse_eof(), but just in case... */
   if (leaf->decoder_data)
   {
-    MimeDecoderDestroy(leaf->decoder_data, PR_TRUE);
+    MimeDecoderDestroy(leaf->decoder_data, true);
     leaf->decoder_data = 0;
   }
 
@@ -202,7 +202,7 @@ MimeLeaf_close_decoder (MimeObject *obj)
 
   if (leaf->decoder_data)
   {
-      int status = MimeDecoderDestroy(leaf->decoder_data, PR_FALSE);
+      int status = MimeDecoderDestroy(leaf->decoder_data, false);
       leaf->decoder_data = 0;
       return status;
   }
@@ -236,5 +236,5 @@ MimeLeaf_parse_eof (MimeObject *obj, bool abort_p)
 static bool
 MimeLeaf_displayable_inline_p (MimeObjectClass *clazz, MimeHeaders *hdrs)
 {
-  return PR_TRUE;
+  return true;
 }

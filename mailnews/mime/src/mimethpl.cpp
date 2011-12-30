@@ -137,7 +137,7 @@ MimeInlineTextHTMLAsPlaintext_parse_eof (MimeObject *obj, bool abort_p)
   // Second part of the flush hack. Pretend obj wasn't closed yet, so that our super class
   // gets a chance to write the closing.
   bool save_closed_p = obj->closed_p;
-  obj->closed_p = PR_FALSE;
+  obj->closed_p = false;
   status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_eof(obj, abort_p);
   // Restore closed_p.
   obj->closed_p = save_closed_p;
@@ -153,7 +153,7 @@ MimeInlineTextHTMLAsPlaintext_finalize (MimeObject *obj)
   {
     // If there's content in the buffer, make sure that we output it.
     // don't care about return codes
-    obj->clazz->parse_eof(obj, PR_FALSE);
+    obj->clazz->parse_eof(obj, false);
 
     delete textHTMLPlain->complete_buffer;
     textHTMLPlain->complete_buffer = NULL;

@@ -106,11 +106,11 @@ public:
   // aEndOfLinetoken -- The delimiter string to be used for determining the end of line. This 
   //              allows us to parse platform specific end of line endings by making it
   //            a parameter.
-  // aAllocateNewLines -- PR_TRUE if you want calls to ReadNextLine to allocate new memory for the line. 
+  // aAllocateNewLines -- true if you want calls to ReadNextLine to allocate new memory for the line. 
   //            if false, the char * returned is just a ptr into the buffer. Subsequent calls to
   //            ReadNextLine will alter the data so your ptr only has a life time of a per call.
-  // aEatCRLFs  -- PR_TRUE if you don't want to see the CRLFs on the lines returned by ReadNextLine. 
-  //         PR_FALSE if you do want to see them.
+  // aEatCRLFs  -- true if you don't want to see the CRLFs on the lines returned by ReadNextLine. 
+  //         false if you do want to see them.
   // aLineToken -- Specify the line token to look for, by default is LF ('\n') which cover as well CRLF. If
   //            lines are terminated with a CR only, you need to set aLineToken to CR ('\r')
   nsMsgLineStreamBuffer(PRUint32 aBufferSize, bool aAllocateNewLines, 

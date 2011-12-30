@@ -70,7 +70,7 @@ and change the POP3_QUIT_RESPONSE state to flush the newly committed deletes. */
 /*
  * Cannot have the following line uncommented. It is defined.
  * #ifdef POP_ALWAYS_USE_UIDL_FOR_DUPLICATES will always be evaluated
- * as PR_TRUE.
+ * as true.
  *
 #define POP_ALWAYS_USE_UIDL_FOR_DUPLICATES 0
  *

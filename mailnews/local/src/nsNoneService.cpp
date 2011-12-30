@@ -116,7 +116,7 @@ NS_IMETHODIMP
 nsNoneService::GetRequiresUsername(bool *aRequiresUsername)
 {
   NS_ENSURE_ARG_POINTER(aRequiresUsername);
-  *aRequiresUsername = PR_TRUE;
+  *aRequiresUsername = true;
   return NS_OK;
 }
 
@@ -124,7 +124,7 @@ NS_IMETHODIMP
 nsNoneService::GetPreflightPrettyNameWithEmailAddress(bool *aPreflightPrettyNameWithEmailAddress)
 {
   NS_ENSURE_ARG_POINTER(aPreflightPrettyNameWithEmailAddress);
-  *aPreflightPrettyNameWithEmailAddress = PR_TRUE;
+  *aPreflightPrettyNameWithEmailAddress = true;
   return NS_OK;
 }
 
@@ -132,7 +132,7 @@ NS_IMETHODIMP
 nsNoneService::GetCanLoginAtStartUp(bool *aCanLoginAtStartUp)
 {
   NS_ENSURE_ARG_POINTER(aCanLoginAtStartUp);
-  *aCanLoginAtStartUp = PR_FALSE;
+  *aCanLoginAtStartUp = false;
   return NS_OK;
 }
 
@@ -140,7 +140,7 @@ NS_IMETHODIMP
 nsNoneService::GetCanDelete(bool *aCanDelete)
 {
   NS_ENSURE_ARG_POINTER(aCanDelete);
-  *aCanDelete = PR_FALSE;
+  *aCanDelete = false;
   return NS_OK;
 }  
 
@@ -148,7 +148,7 @@ NS_IMETHODIMP
 nsNoneService::GetCanDuplicate(bool *aCanDuplicate)
 {
   NS_ENSURE_ARG_POINTER(aCanDuplicate);
-  *aCanDuplicate = PR_FALSE;
+  *aCanDuplicate = false;
   return NS_OK;
 }  
 
@@ -156,7 +156,7 @@ NS_IMETHODIMP
 nsNoneService::GetCanGetMessages(bool *aCanGetMessages)
 {
     NS_ENSURE_ARG_POINTER(aCanGetMessages);
-    *aCanGetMessages = PR_FALSE;
+    *aCanGetMessages = false;
     return NS_OK;
 }  
 
@@ -164,7 +164,7 @@ NS_IMETHODIMP
 nsNoneService::GetCanGetIncomingMessages(bool *aCanGetIncomingMessages)
 {
     NS_ENSURE_ARG_POINTER(aCanGetIncomingMessages);
-    *aCanGetIncomingMessages = PR_FALSE;
+    *aCanGetIncomingMessages = false;
     return NS_OK;
 } 
 
@@ -173,7 +173,7 @@ nsNoneService::GetDefaultDoBiff(bool *aDoBiff)
 {
     NS_ENSURE_ARG_POINTER(aDoBiff);
     // by default, don't do biff for "none" servers
-    *aDoBiff = PR_FALSE;    
+    *aDoBiff = false;    
     return NS_OK;
 }
 
@@ -189,6 +189,6 @@ NS_IMETHODIMP
 nsNoneService::GetShowComposeMsgLink(bool *showComposeMsgLink)
 {
     NS_ENSURE_ARG_POINTER(showComposeMsgLink);
-    *showComposeMsgLink = PR_FALSE;    
+    *showComposeMsgLink = false;    
     return NS_OK;
 }

@@ -84,16 +84,16 @@ typedef struct {
 
 #define  kExtraUserFields  10
 AddrImportField    extraUserFields[kExtraUserFields] = {
-  {PR_TRUE, PR_COMMENT, "description:"},
-  {PR_FALSE, PR_BUSINESS_TELEPHONE_NUMBER, "telephonenumber:"},
-  {PR_FALSE, PR_HOME_TELEPHONE_NUMBER, "homephone:"},
-  {PR_FALSE, PR_COMPANY_NAME, "o:"},
-  {PR_FALSE, PR_TITLE, "title:"},
-  {PR_FALSE, PR_BUSINESS_FAX_NUMBER, "facsimiletelephonenumber:"},
-  {PR_FALSE, PR_LOCALITY, "locality:"},
-  {PR_FALSE, PR_STATE_OR_PROVINCE, "st:"},
-  {PR_TRUE, PR_STREET_ADDRESS, "streetaddress:"},
-  {PR_FALSE, PR_POSTAL_CODE, "postalcode:"}
+  {true, PR_COMMENT, "description:"},
+  {false, PR_BUSINESS_TELEPHONE_NUMBER, "telephonenumber:"},
+  {false, PR_HOME_TELEPHONE_NUMBER, "homephone:"},
+  {false, PR_COMPANY_NAME, "o:"},
+  {false, PR_TITLE, "title:"},
+  {false, PR_BUSINESS_FAX_NUMBER, "facsimiletelephonenumber:"},
+  {false, PR_LOCALITY, "locality:"},
+  {false, PR_STATE_OR_PROVINCE, "st:"},
+  {true, PR_STREET_ADDRESS, "streetaddress:"},
+  {false, PR_POSTAL_CODE, "postalcode:"}
 };
 
 #define  kWhitespace  " \t\b\r\n"
@@ -117,7 +117,7 @@ CWAB::CWAB(nsILocalFile *file)
     m_pUniBuff = NULL;
   m_uniBuffLen = 0;
 
-  m_bInitialized = PR_FALSE;
+  m_bInitialized = false;
   m_lpAdrBook = NULL;
   m_lpWABObject = NULL;
   m_hinstWAB = NULL;
@@ -622,7 +622,7 @@ void CWAB::GetValueString( LPSPropValue pVal, nsString& val)
         break;
     }
 
-  val.Trim( kWhitespace, PR_TRUE, PR_TRUE);
+  val.Trim( kWhitespace, true, true);
 }
 
 

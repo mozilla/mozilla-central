@@ -207,7 +207,7 @@ MimeEncrypted_parse_eof (MimeObject *obj, bool abort_p)
    */
   if (enc->decoder_data)
   {
-    int status = MimeDecoderDestroy(enc->decoder_data, PR_FALSE);
+    int status = MimeDecoderDestroy(enc->decoder_data, false);
     enc->decoder_data = 0;
     if (status < 0) return status;
   }
@@ -225,7 +225,7 @@ MimeEncrypted_parse_eof (MimeObject *obj, bool abort_p)
     obj->ibuffer_fp = 0;
     if (status < 0)
     {
-      obj->closed_p = PR_TRUE;
+      obj->closed_p = true;
       return status;
     }
   }
@@ -294,7 +294,7 @@ MimeEncrypted_cleanup (MimeObject *obj, bool finalizing_p)
    Free the decoder data, if it's still around. */
   if (enc->decoder_data)
   {
-    MimeDecoderDestroy(enc->decoder_data, PR_TRUE);
+    MimeDecoderDestroy(enc->decoder_data, true);
     enc->decoder_data = 0;
   }
 
@@ -309,7 +309,7 @@ MimeEncrypted_cleanup (MimeObject *obj, bool finalizing_p)
 static void
 MimeEncrypted_finalize (MimeObject *obj)
 {
-  MimeEncrypted_cleanup (obj, PR_TRUE);
+  MimeEncrypted_cleanup (obj, true);
   ((MimeObjectClass*)&MIME_SUPERCLASS)->finalize (obj);
 }
 
@@ -336,7 +336,7 @@ MimeHandleDecryptedOutput (const char *buf, PRInt32 buf_size,
   /* Is it truly safe to use ibuffer here?  I think so... */
   return mime_LineBuffer (buf, buf_size,
              &obj->ibuffer, &obj->ibuffer_size, &obj->ibuffer_fp,
-             PR_TRUE,
+             true,
              ((int (*) (char *, PRInt32, void *))
               /* This cast is to turn void into MimeObject */
               MimeHandleDecryptedOutputLine),
@@ -360,7 +360,7 @@ MimeHandleDecryptedOutputLine (char *line, PRInt32 length, MimeObject *obj)
     obj->options &&
     !obj->options->write_html_p &&
     obj->options->output_fn)
-  return MimeObject_write(obj, line, length, PR_TRUE);
+  return MimeObject_write(obj, line, length, true);
 
   /* If we already have a child object in the buffer, then we're done parsing
    headers, and all subsequent lines get passed to the inferior object
@@ -449,7 +449,7 @@ MimeEncrypted_emit_buffered_child(MimeObject *obj)
     obj->options->headers != MimeHeadersCitation &&
     obj->options->write_html_p &&
     obj->options->output_fn)
-    // && !mime_crypto_object_p(enc->hdrs, PR_TRUE)) // XXX fix later XXX //
+    // && !mime_crypto_object_p(enc->hdrs, true)) // XXX fix later XXX //
   {
     char *html;
 #if 0 // XXX Fix this later XXX //
@@ -457,7 +457,7 @@ MimeEncrypted_emit_buffered_child(MimeObject *obj)
           (enc->crypto_closure));
     if (!html) return -1; /* MK_OUT_OF_MEMORY? */
 
-    status = MimeObject_write(obj, html, strlen(html), PR_FALSE);
+    status = MimeObject_write(obj, html, strlen(html), false);
     PR_FREEIF(html);
     if (status < 0) return status;
 #endif
@@ -479,10 +479,10 @@ MimeEncrypted_emit_buffered_child(MimeObject *obj)
       html = obj->options->generate_post_header_html_fn(NULL,
                           obj->options->html_closure,
                               outer_headers);
-      obj->options->state->post_header_html_run_p = PR_TRUE;
+      obj->options->state->post_header_html_run_p = true;
       if (html)
       {
-        status = MimeObject_write(obj, html, strlen(html), PR_FALSE);
+        status = MimeObject_write(obj, html, strlen(html), false);
         PR_FREEIF(html);
         if (status < 0) return status;
       }
@@ -504,13 +504,13 @@ MimeEncrypted_emit_buffered_child(MimeObject *obj)
   }
 
   if (enc->hdrs)
-  ct = MimeHeaders_get (enc->hdrs, HEADER_CONTENT_TYPE, PR_TRUE, PR_FALSE);
+  ct = MimeHeaders_get (enc->hdrs, HEADER_CONTENT_TYPE, true, false);
   body = mime_create((ct ? ct : TEXT_PLAIN), enc->hdrs, obj->options);
 
 #ifdef MIME_DRAFTS
   if (obj->options->decompose_file_p) {
   if (mime_typep (body, (MimeObjectClass*) &mimeMultipartClass) )
-    obj->options->is_multipart_msg = PR_TRUE;
+    obj->options->is_multipart_msg = true;
   else if (obj->options->decompose_file_init_fn)
     obj->options->decompose_file_init_fn(obj->options->stream_closure,
                        enc->hdrs);
@@ -539,16 +539,16 @@ MimeEncrypted_emit_buffered_child(MimeObject *obj)
   if (!body->output_p &&
     (obj->output_p ||
      (obj->parent && obj->parent->output_p)))
-  body->output_p = PR_TRUE;
+  body->output_p = true;
 
   /* If the body is being written raw (not as HTML) then make sure to
    write its headers as well. */
   if (body->output_p && obj->output_p && !obj->options->write_html_p)
   {
-    status = MimeObject_write(body, "", 0, PR_FALSE);  /* initialize */
+    status = MimeObject_write(body, "", 0, false);  /* initialize */
     if (status < 0) return status;
     status = MimeHeaders_write_raw_headers(body->headers, obj->options,
-                       PR_FALSE);
+                       false);
     if (status < 0) return status;
   }
 
@@ -575,10 +575,10 @@ MimeEncrypted_emit_buffered_child(MimeObject *obj)
 
   /* The child has been fully processed.  Close it off.
    */
-  status = body->clazz->parse_eof(body, PR_FALSE);
+  status = body->clazz->parse_eof(body, false);
   if (status < 0) return status;
 
-  status = body->clazz->parse_end(body, PR_FALSE);
+  status = body->clazz->parse_end(body, false);
   if (status < 0) return status;
 
 #ifdef MIME_DRAFTS
@@ -590,7 +590,7 @@ MimeEncrypted_emit_buffered_child(MimeObject *obj)
   status = MimeObject_write_separator(obj);
   if (status < 0) return status;
 
-  MimeEncrypted_cleanup (obj, PR_FALSE);
+  MimeEncrypted_cleanup (obj, false);
 
   return 0;
 }

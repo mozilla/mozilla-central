@@ -140,7 +140,7 @@ MimeUntypedText_parse_line (const char *line, PRInt32 length, MimeObject *obj)
     obj->options &&
     !obj->options->write_html_p &&
     obj->options->output_fn)
-  return MimeObject_write(obj, line, length, PR_TRUE);
+  return MimeObject_write(obj, line, length, true);
 
 
   /* Open a new sub-part if this line demands it.
@@ -157,7 +157,7 @@ MimeUntypedText_parse_line (const char *line, PRInt32 length, MimeObject *obj)
     PR_FREEIF(name);
     PR_FREEIF(type);
     if (status < 0) return status;
-    begin_line_p = PR_TRUE;
+    begin_line_p = true;
   }
 
   else if (line[0] == '=' &&
@@ -172,7 +172,7 @@ MimeUntypedText_parse_line (const char *line, PRInt32 length, MimeObject *obj)
     PR_FREEIF(name);
     PR_FREEIF(type);
     if (status < 0) return status;
-    begin_line_p = PR_TRUE;
+    begin_line_p = true;
   }
 
   else if (line[0] == '(' && line[1] == 'T' &&
@@ -184,7 +184,7 @@ MimeUntypedText_parse_line (const char *line, PRInt32 length, MimeObject *obj)
                        APPLICATION_BINHEX, NULL,
                        NULL, NULL);
     if (status < 0) return status;
-    begin_line_p = PR_TRUE;
+    begin_line_p = true;
   }
 
   /* Open a text/plain sub-part if there is no sub-part open.
@@ -253,7 +253,7 @@ MimeUntypedText_close_subpart (MimeObject *obj)
 
   if (uty->open_subpart)
   {
-    status = uty->open_subpart->clazz->parse_eof(uty->open_subpart, PR_FALSE);
+    status = uty->open_subpart->clazz->parse_eof(uty->open_subpart, false);
     uty->open_subpart = 0;
 
     PR_ASSERT(uty->open_hdrs);
@@ -270,7 +270,7 @@ MimeUntypedText_close_subpart (MimeObject *obj)
      have separators before and after them.)
      */
     if (obj->options && obj->options->state)
-    obj->options->state->separator_suppressed_p = PR_TRUE;
+    obj->options->state->separator_suppressed_p = true;
   }
 
   PR_ASSERT(!uty->open_hdrs);
@@ -371,12 +371,12 @@ MimeUntypedText_open_subpart (MimeObject *obj,
   bool horrid_kludge = (obj->options && obj->options->state &&
                obj->options->state->first_part_written_p);
   if (horrid_kludge)
-    obj->options->state->first_part_written_p = PR_FALSE;
+    obj->options->state->first_part_written_p = false;
 
   uty->open_subpart = mime_create(type, uty->open_hdrs, obj->options);
 
   if (horrid_kludge)
-    obj->options->state->first_part_written_p = PR_TRUE;
+    obj->options->state->first_part_written_p = true;
 
   if (!uty->open_subpart)
     {
@@ -430,29 +430,29 @@ MimeUntypedText_uu_begin_line_p(const char *line, PRInt32 length,
   if (type_ret) *type_ret = 0;
   if (name_ret) *name_ret = 0;
 
-  if (strncmp (line, "begin ", 6)) return PR_FALSE;
+  if (strncmp (line, "begin ", 6)) return false;
   /* ...then three or four octal digits. */
   s = line + 6;
-  if (*s < '0' || *s > '7') return PR_FALSE;
+  if (*s < '0' || *s > '7') return false;
   s++;
-  if (*s < '0' || *s > '7') return PR_FALSE;
+  if (*s < '0' || *s > '7') return false;
   s++;
-  if (*s < '0' || *s > '7') return PR_FALSE;
+  if (*s < '0' || *s > '7') return false;
   s++;
   if (*s == ' ')
   s++;
   else
   {
-    if (*s < '0' || *s > '7') return PR_FALSE;
+    if (*s < '0' || *s > '7') return false;
     s++;
-    if (*s != ' ') return PR_FALSE;
+    if (*s != ' ') return false;
   }
 
   while (IS_SPACE(*s))
   s++;
 
   name = (char *) PR_MALLOC(((line+length)-s) + 1);
-  if (!name) return PR_FALSE; /* grr... */
+  if (!name) return false; /* grr... */
   memcpy(name, s, (line+length)-s);
   name[(line+length)-s] = 0;
 
@@ -477,7 +477,7 @@ MimeUntypedText_uu_begin_line_p(const char *line, PRInt32 length,
   else
   PR_FREEIF(type);
 
-  return PR_TRUE;
+  return true;
 }
 
 static bool
@@ -527,7 +527,7 @@ MimeUntypedText_yenc_begin_line_p(const char *line, PRInt32 length,
 
   /* we don't support yenc V2 neither multipart yencode,
      therefore the second parameter should always be "line="*/
-  if (length < 13 || strncmp (line, "=ybegin line=", 13)) return PR_FALSE;
+  if (length < 13 || strncmp (line, "=ybegin line=", 13)) return false;
 
   /* ...then couple digits. */
   for (s = line + 13; s < endofline; s ++)
@@ -535,7 +535,7 @@ MimeUntypedText_yenc_begin_line_p(const char *line, PRInt32 length,
       break;
 
   /* ...next, look for <space>size= */
-  if ((endofline - s) < 6 || strncmp (s, " size=", 6)) return PR_FALSE;
+  if ((endofline - s) < 6 || strncmp (s, " size=", 6)) return false;
 
   /* ...then couple digits. */
   for (s += 6; s < endofline; s ++)
@@ -543,12 +543,12 @@ MimeUntypedText_yenc_begin_line_p(const char *line, PRInt32 length,
       break;
 
    /* ...next, look for <space>name= */
-  if ((endofline - s) < 6 || strncmp (s, " name=", 6)) return PR_FALSE;
+  if ((endofline - s) < 6 || strncmp (s, " name=", 6)) return false;
 
   /* anything left is the file name */
   s += 6;
   name = (char *) PR_MALLOC((endofline-s) + 1);
-  if (!name) return PR_FALSE; /* grr... */
+  if (!name) return false; /* grr... */
   memcpy(name, s, endofline-s);
   name[endofline-s] = 0;
 
@@ -573,15 +573,15 @@ MimeUntypedText_yenc_begin_line_p(const char *line, PRInt32 length,
   else
   PR_FREEIF(type);
 
-  return PR_TRUE;
+  return true;
 }
 
 static bool
 MimeUntypedText_yenc_end_line_p(const char *line, PRInt32 length)
 {
-  if (length < 11 || strncmp (line, "=yend size=", 11)) return PR_FALSE;
+  if (length < 11 || strncmp (line, "=yend size=", 11)) return false;
 
-  return PR_TRUE;
+  return true;
 }
 
 
@@ -593,18 +593,18 @@ MimeUntypedText_binhex_begin_line_p(const char *line, PRInt32 length,
                   MimeDisplayOptions *opt)
 {
   if (length <= BINHEX_MAGIC_LEN)
-  return PR_FALSE;
+  return false;
 
   while(length > 0 && IS_SPACE(line[length-1]))
   length--;
 
   if (length != BINHEX_MAGIC_LEN)
-  return PR_FALSE;
+  return false;
 
   if (!strncmp(line, BINHEX_MAGIC, BINHEX_MAGIC_LEN))
-  return PR_TRUE;
+  return true;
   else
-  return PR_FALSE;
+  return false;
 }
 
 static bool
@@ -614,7 +614,7 @@ MimeUntypedText_binhex_end_line_p(const char *line, PRInt32 length)
   if (length > 0 && line[length-1] == '\r') length--;
 
   if (length != 0 && length != 64)
-  return PR_TRUE;
+  return true;
   else
-  return PR_FALSE;
+  return false;
 }

@@ -98,7 +98,7 @@ nsMimeXmlEmitter::WriteXMLHeader(const char *msgID)
   UtilityWrite(newValue);
   UtilityWrite("\">");
 
-  mXMLHeaderStarted = PR_TRUE;
+  mXMLHeaderStarted = true;
   PR_FREEIF(newValue);
   return NS_OK;
 }

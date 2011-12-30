@@ -79,7 +79,7 @@ NS_INTERFACE_MAP_END_THREADSAFE
 
 CopyListener::CopyListener(void)
 {
-  mCopyInProgress = PR_FALSE;
+  mCopyInProgress = false;
 }
 
 CopyListener::~CopyListener(void)
@@ -147,7 +147,7 @@ CopyListener::OnStopCopy(nsresult aStatus)
   {
       PR_CEnterMonitor(this);
       PR_CNotifyAll(this);
-      mCopyInProgress = PR_FALSE;
+      mCopyInProgress = false;
       PR_CExitMonitor(this);
   }
   if (mComposeAndSend)
@@ -214,7 +214,7 @@ nsMsgCopy::StartCopyOperation(nsIMsgIdentity       *aUserIdentity,
       aMode == nsIMsgSend::nsMsgDeliverBackground)
   {
     rv = GetUnsentMessagesFolder(aUserIdentity, getter_AddRefs(dstFolder), &waitForUrl);
-    isDraft = PR_FALSE;
+    isDraft = false;
     if (!dstFolder || NS_FAILED(rv)) {
       return NS_MSG_UNABLE_TO_SEND_LATER;
     }
@@ -222,21 +222,21 @@ nsMsgCopy::StartCopyOperation(nsIMsgIdentity       *aUserIdentity,
   else if (aMode == nsIMsgSend::nsMsgSaveAsDraft)    // SaveAsDraft (Drafts)
   {
     rv = GetDraftsFolder(aUserIdentity, getter_AddRefs(dstFolder), &waitForUrl);
-    isDraft = PR_TRUE;
+    isDraft = true;
     if (!dstFolder || NS_FAILED(rv))
       return NS_MSG_UNABLE_TO_SAVE_DRAFT;
   }
   else if (aMode == nsIMsgSend::nsMsgSaveAsTemplate) // SaveAsTemplate (Templates)
   {
     rv = GetTemplatesFolder(aUserIdentity, getter_AddRefs(dstFolder), &waitForUrl);
-    isDraft = PR_FALSE;
+    isDraft = false;
     if (!dstFolder || NS_FAILED(rv))
 	    return NS_MSG_UNABLE_TO_SAVE_TEMPLATE;
   }
   else // SaveInSentFolder (Sent) -  nsMsgDeliverNow or nsMsgSendUnsent
   {
     rv = GetSentFolder(aUserIdentity, getter_AddRefs(dstFolder), &waitForUrl);
-    isDraft = PR_FALSE;
+    isDraft = false;
     if (!dstFolder || NS_FAILED(rv))
       return NS_MSG_COULDNT_OPEN_FCC_FOLDER;
   }
@@ -302,7 +302,7 @@ nsMsgCopy::DoCopy(nsIFile *aDiskFile, nsIMsgFolder *dstFolder,
         {
           // set the following only when we were in the middle of shutdown
           // process
-            copyListener->mCopyInProgress = PR_TRUE;
+            copyListener->mCopyInProgress = true;
             thread = do_GetCurrentThread();
         }
     }
@@ -417,7 +417,7 @@ nsMsgCopy::CreateIfMissing(nsIMsgFolder **folder, bool *waitForUrl)
         {
           (*folder)->CreateStorageIfMissing(this);
           if (isImapFolder)
-            *waitForUrl = PR_TRUE;
+            *waitForUrl = true;
 
           ret = NS_OK;
         }

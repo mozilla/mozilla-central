@@ -58,7 +58,7 @@ NS_IMPL_ISUPPORTS1(nsAbLDIFService, nsIAbLDIFService)
 
 nsAbLDIFService::nsAbLDIFService()
 {
-  mStoreLocAsHome = PR_FALSE;
+  mStoreLocAsHome = false;
   mLFCount = 0;
   mCRCount = 0;
 }
@@ -126,7 +126,7 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
       while (NS_SUCCEEDED(GetLdifStringRecord(buf, len, startPos)))
       {
         if (mLdifLine.Find("groupOfNames") == -1)
-          AddLdifRowToDatabase(aDb, PR_FALSE);
+          AddLdifRowToDatabase(aDb, false);
         else
         {
           //keep file position for mailing list
@@ -143,7 +143,7 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
   }
   //last row
   if (!mLdifLine.IsEmpty() && mLdifLine.Find("groupOfNames") == -1)
-    AddLdifRowToDatabase(aDb, PR_FALSE); 
+    AddLdifRowToDatabase(aDb, false); 
 
   // mail Lists
   PRInt32 i, pos;
@@ -173,7 +173,7 @@ NS_IMETHODIMP nsAbLDIFService::ImportLDIFFile(nsIAddrDatabase *aDb, nsIFile *aSr
         {
           if (mLdifLine.Find("groupOfNames") != -1)
           {
-            AddLdifRowToDatabase(aDb, PR_TRUE);
+            AddLdifRowToDatabase(aDb, true);
             if (NS_SUCCEEDED(seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, 0)))
               break;
           }
@@ -800,7 +800,7 @@ NS_IMETHODIMP nsAbLDIFService::IsLDIFFile(nsIFile *pSrc, bool *_retval)
   NS_ENSURE_ARG_POINTER(pSrc);
   NS_ENSURE_ARG_POINTER(_retval);
 
-  *_retval = PR_FALSE;
+  *_retval = false;
 
   nsresult rv = NS_OK;
 
@@ -834,7 +834,7 @@ NS_IMETHODIMP nsAbLDIFService::IsLDIFFile(nsIFile *pSrc, bool *_retval)
       if (!lineLen && gotLDIF)
       {
         recCount++;
-        gotLDIF = PR_FALSE;
+        gotLDIF = false;
       }
                    
       if (lineLen && (*pChar != ' ') && (*pChar != 9))
@@ -860,7 +860,7 @@ NS_IMETHODIMP nsAbLDIFService::IsLDIFFile(nsIFile *pSrc, bool *_retval)
             if (!PL_strcasecmp( sLDIFFields[i], field))
             {
               ldifFields++;
-              gotLDIF = PR_TRUE;
+              gotLDIF = true;
               break;
             }
             i++;
@@ -883,7 +883,7 @@ NS_IMETHODIMP nsAbLDIFService::IsLDIFFile(nsIFile *pSrc, bool *_retval)
   // If the average field number >= 3 then it's a good ldif file.
   if (ldifFields >= 3)
   {
-    *_retval = PR_TRUE;
+    *_retval = true;
   }
 
   return rv;

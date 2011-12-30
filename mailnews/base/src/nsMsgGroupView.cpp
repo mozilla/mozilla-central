@@ -54,7 +54,7 @@
 
 nsMsgGroupView::nsMsgGroupView()
 {
-  m_dayChanged = PR_FALSE;
+  m_dayChanged = false;
   m_lastCurExplodedTime.tm_mday = 0;
   m_groupsTable.Init();
 }
@@ -88,7 +88,7 @@ void nsMsgGroupView::InternalClose()
   bool rcvDate = false;
 
   if (m_sortType == nsMsgViewSortType::byReceived)
-    rcvDate = PR_TRUE;
+    rcvDate = true;
   if (m_db &&
       ((m_sortType == nsMsgViewSortType::byDate) ||
        (m_sortType == nsMsgViewSortType::byReceived)))
@@ -126,7 +126,7 @@ NS_IMETHODIMP nsMsgGroupView::Close()
   return nsMsgDBView::Close();
 }
 
-// Set rcvDate to PR_TRUE to get the Received: date instead of the Date: date.
+// Set rcvDate to true to get the Received: date instead of the Date: date.
 nsresult nsMsgGroupView::GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAgeBucket, bool rcvDate)
 {
   NS_ENSURE_ARG_POINTER(aMsgHdr);
@@ -152,7 +152,7 @@ nsresult nsMsgGroupView::GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAge
 
   if (m_lastCurExplodedTime.tm_mday &&
      m_lastCurExplodedTime.tm_mday != currentExplodedTime.tm_mday)
-    m_dayChanged = PR_TRUE; // this will cause us to rebuild the view.
+    m_dayChanged = true; // this will cause us to rebuild the view.
 
   m_lastCurExplodedTime = currentExplodedTime;
   if (currentExplodedTime.tm_year == explodedMsgTime.tm_year &&
@@ -183,7 +183,7 @@ nsresult nsMsgGroupView::GetAgeBucketValue(nsIMsgDBHdr *aMsgHdr, PRUint32 * aAge
       LL_MUL( microSecondsPerDay,   secondsPerDay,      microSecondsPerSecond );
       LL_MUL( microSecondsPer6Days, microSecondsPerDay, 6 );
       LL_MUL( microSecondsPer13Days, microSecondsPerDay, 13 );
-      bGotConstants = PR_TRUE;
+      bGotConstants = true;
     }
 
     // setting the time variables to local time
@@ -280,7 +280,7 @@ nsresult nsMsgGroupView::HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey)
       }
       break;
     case nsMsgViewSortType::byReceived:
-      rcvDate = PR_TRUE;
+      rcvDate = true;
     case nsMsgViewSortType::byDate:
     {
       PRUint32 ageBucket;
@@ -299,7 +299,7 @@ nsresult nsMsgGroupView::HashHdr(nsIMsgDBHdr *msgHdr, nsString& aHashKey)
       }
     }
     default:
-      NS_ASSERTION(PR_FALSE, "no hash key for this type");
+      NS_ASSERTION(false, "no hash key for this type");
       rv = NS_ERROR_FAILURE;
   }
   return rv;
@@ -335,14 +335,14 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, bool *pNew
   {
     // find the view index of the root node of the thread in the view
     viewIndexOfThread = GetIndexOfFirstDisplayedKeyInThread(foundThread,
-                                                            PR_TRUE);
+                                                            true);
     if (viewIndexOfThread == nsMsgViewIndex_None)
     {
       // Something is wrong with the group table. Remove the old group and
       // insert a new one.
       m_groupsTable.Remove(hashKey);
       foundThread = nsnull;
-      *pNewThread = newThread = PR_TRUE;
+      *pNewThread = newThread = true;
     }
   }
   // If the thread does not already exist, create one
@@ -353,7 +353,7 @@ nsMsgGroupThread *nsMsgGroupView::AddHdrToThread(nsIMsgDBHdr *msgHdr, bool *pNew
     m_groupsTable.Put(hashKey, msgThread);
     if (GroupViewUsesDummyRow())
     {
-      foundThread->m_dummy = PR_TRUE;
+      foundThread->m_dummy = true;
       msgFlags |=  MSG_VIEW_FLAG_DUMMY | MSG_VIEW_FLAG_HASCHILDREN;
     }
 
@@ -534,7 +534,7 @@ nsresult nsMsgGroupView::RebuildView(nsMsgViewFlagsTypeValue newFlags)
   if (NS_SUCCEEDED(GetMessageEnumerator(getter_AddRefs(headers))))
   {
     PRInt32 count;
-    m_dayChanged = PR_FALSE;
+    m_dayChanged = false;
     nsAutoTArray<nsMsgKey, 1> preservedSelection;
     nsMsgKey curSelectedKey;
     SaveAndClearSelection(&curSelectedKey, preservedSelection);
@@ -550,9 +550,9 @@ nsresult nsMsgGroupView::RebuildView(nsMsgViewFlagsTypeValue newFlags)
     // this needs to happen after we remove all the keys, since RowCountChanged() will call our GetRowCount()
     if (mTree)
       mTree->RowCountChanged(0, -oldSize);
-    SetSuppressChangeNotifications(PR_TRUE);
+    SetSuppressChangeNotifications(true);
     nsresult rv = OpenWithHdrs(headers, m_sortType, m_sortOrder, newFlags, &count);
-    SetSuppressChangeNotifications(PR_FALSE);
+    SetSuppressChangeNotifications(false);
     if (mTree)
       mTree->RowCountChanged(0, GetSize());
 
@@ -706,7 +706,7 @@ NS_IMETHODIMP nsMsgGroupView::OnHdrDeleted(nsIMsgDBHdr *aHdrDeleted, nsMsgKey aP
   nsresult rv = GetThreadContainingMsgHdr(aHdrDeleted, getter_AddRefs(thread));
   NS_ENSURE_SUCCESS(rv, rv);
   nsMsgViewIndex viewIndexOfThread = GetIndexOfFirstDisplayedKeyInThread(
-                                       thread, PR_TRUE); // yes to dummy node
+                                       thread, true); // yes to dummy node
   thread->RemoveChildHdr(aHdrDeleted, nsnull);
 
   nsMsgGroupThread *groupThread = static_cast<nsMsgGroupThread *>((nsIMsgThread *) thread);
@@ -797,7 +797,7 @@ NS_IMETHODIMP nsMsgGroupView::CellTextForColumn(PRInt32 aRow,
       switch (m_sortType)
       {
         case nsMsgViewSortType::byReceived:
-          rcvDate = PR_TRUE;
+          rcvDate = true;
         case nsMsgViewSortType::byDate:
         {
           PRUint32 ageBucket = 0;
@@ -830,7 +830,7 @@ NS_IMETHODIMP nsMsgGroupView::CellTextForColumn(PRInt32 aRow,
             aValue.Assign(m_kOldMailString);
             break;
           default:
-            NS_ASSERTION(PR_FALSE, "bad age thread");
+            NS_ASSERTION(false, "bad age thread");
             break;
           }
           break;
@@ -895,7 +895,7 @@ NS_IMETHODIMP nsMsgGroupView::CellTextForColumn(PRInt32 aRow,
         }
 
         default:
-          NS_ASSERTION(PR_FALSE, "we don't sort by group for this type");
+          NS_ASSERTION(false, "we don't sort by group for this type");
           break;
       }
 

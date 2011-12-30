@@ -58,7 +58,7 @@ NS_IMPL_ISUPPORTS_INHERITED2(nsMovemailIncomingServer,
 
 nsMovemailIncomingServer::nsMovemailIncomingServer()
 {    
-    m_canHaveFilters = PR_TRUE;
+    m_canHaveFilters = true;
 }
 
 nsMovemailIncomingServer::~nsMovemailIncomingServer()
@@ -69,7 +69,7 @@ NS_IMETHODIMP
 nsMovemailIncomingServer::GetIsSecureServer(bool *aIsSecureServer)
 {
     NS_ENSURE_ARG_POINTER(aIsSecureServer);
-    *aIsSecureServer = PR_FALSE;
+    *aIsSecureServer = false;
     return NS_OK;
 }
 
@@ -91,7 +91,7 @@ nsMovemailIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
          if (!inbox) return NS_ERROR_FAILURE;
     }
 
-    SetPerformingBiff(PR_TRUE);
+    SetPerformingBiff(true);
     urlListener = do_QueryInterface(inbox);
 
     bool downloadOnBiff = false;
@@ -124,7 +124,7 @@ nsMovemailIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
               }
               if (NS_SUCCEEDED(rv))
               {
-                 rv = localInbox->SetCheckForNewMessagesAfterParsing(PR_TRUE);
+                 rv = localInbox->SetCheckForNewMessagesAfterParsing(true);
               }
            }
        }
@@ -249,7 +249,7 @@ NS_IMETHODIMP
 nsMovemailIncomingServer::GetDownloadMessagesAtStartup(bool *getMessagesAtStartup)
 {
     NS_ENSURE_ARG_POINTER(getMessagesAtStartup);
-    *getMessagesAtStartup = PR_TRUE;
+    *getMessagesAtStartup = true;
     return NS_OK;
 }
 
@@ -257,7 +257,7 @@ NS_IMETHODIMP
 nsMovemailIncomingServer::GetCanBeDefaultServer(bool *aCanBeDefaultServer)
 {
   NS_ENSURE_ARG_POINTER(aCanBeDefaultServer);
-  *aCanBeDefaultServer = PR_TRUE;
+  *aCanBeDefaultServer = true;
   return NS_OK;
 }
 
@@ -265,7 +265,7 @@ NS_IMETHODIMP
 nsMovemailIncomingServer::GetCanSearchMessages(bool *canSearchMessages)
 {
     NS_ENSURE_ARG_POINTER(canSearchMessages);
-    *canSearchMessages = PR_TRUE;
+    *canSearchMessages = true;
     return NS_OK;
 }
 
@@ -273,7 +273,7 @@ NS_IMETHODIMP
 nsMovemailIncomingServer::GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff)
 {
     NS_ENSURE_ARG_POINTER(aServerRequiresPasswordForBiff);
-    *aServerRequiresPasswordForBiff = PR_FALSE;
+    *aServerRequiresPasswordForBiff = false;
     return NS_OK;
 }
 

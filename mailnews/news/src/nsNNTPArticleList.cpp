@@ -53,7 +53,7 @@ nsNNTPArticleList::~nsNNTPArticleList()
 {
   if (m_newsDB) {
     m_newsDB->Commit(nsMsgDBCommitType::kSessionCommit);
-    m_newsDB->Close(PR_TRUE);
+    m_newsDB->Close(true);
     m_newsDB = nsnull;
   }
 

@@ -200,8 +200,8 @@ nsMessengerOSXIntegration::nsMessengerOSXIntegration()
   mTotalUnreadMessagesAtom = MsgGetAtom("TotalUnreadMessages");
   mUnreadTotal = 0;
   mNewTotal = 0;
-  mOnlyCountInboxes = PR_TRUE;
-  mDoneInitialCount = PR_FALSE;
+  mOnlyCountInboxes = true;
+  mDoneInitialCount = false;
 }
 
 nsMessengerOSXIntegration::~nsMessengerOSXIntegration()
@@ -228,8 +228,8 @@ nsMessengerOSXIntegration::Init()
   nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
   if (NS_SUCCEEDED(rv))
   {
-    observerService->AddObserver(this, "before-growl-registration", PR_FALSE);
-    observerService->AddObserver(this, "mail-startup-done", PR_FALSE);
+    observerService->AddObserver(this, "before-growl-registration", false);
+    observerService->AddObserver(this, "mail-startup-done", false);
   }
 
   nsCOMPtr<nsIMsgMailSession> mailSession = do_GetService(NS_MSGMAILSESSION_CONTRACTID, &rv);
@@ -294,7 +294,7 @@ nsMessengerOSXIntegration::Observe(nsISupports* aSubject, const char* aTopic, co
       {
         nsString growlNotification;
         bundle->GetStringFromName(NS_LITERAL_STRING("growlNotification").get(), getter_Copies(growlNotification));
-        notifications->AddNotification(growlNotification, PR_TRUE);
+        notifications->AddNotification(growlNotification, true);
       }
     }
   }
@@ -425,7 +425,7 @@ nsMessengerOSXIntegration::ShowAlertMessage(const nsAString& aAlertTitle,
         rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(kNewMailAlertIcon),
                                                   aAlertTitle,
                                                   aAlertText,
-                                                  PR_TRUE,
+                                                  true,
                                                   NS_ConvertASCIItoUTF16(aFolderURI),
                                                   this,
                                                   growlNotification);
@@ -470,13 +470,13 @@ nsMessengerOSXIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aFolder,
       nsCString folderUri;
       GetFirstFolderWithNewMail(aFolder, folderUri);
       nsCOMPtr<nsIMsgFolder> childFolder;
-      nsresult rv = aFolder->GetChildWithURI(folderUri, PR_TRUE, PR_TRUE,
+      nsresult rv = aFolder->GetChildWithURI(folderUri, true, true,
                                              getter_AddRefs(childFolder));
       if (NS_FAILED(rv) || !childFolder)
         return NS_ERROR_FAILURE;
 
       PRInt32 numNewMessages = 0;
-      childFolder->GetNumNewMessages(PR_TRUE, &numNewMessages);
+      childFolder->GetNumNewMessages(true, &numNewMessages);
       FillToolTipInfo(childFolder, numNewMessages);
 
       mNewTotal += numNewMessages;
@@ -737,7 +737,7 @@ nsMessengerOSXIntegration::GetNewMailAuthors(nsIMsgFolder* aFolder,
           nsCOMPtr<nsISupportsPRBool> notify =
             do_CreateInstance(NS_SUPPORTS_PRBOOL_CONTRACTID);
 
-          notify->SetData(PR_TRUE);
+          notify->SetData(true);
           os->NotifyObservers(notify, "newmail-notification-requested",
                               PromiseFlatString(author).get());
 
@@ -746,7 +746,7 @@ nsMessengerOSXIntegration::GetNewMailAuthors(nsIMsgFolder* aFolder,
 
           // Don't add unwanted or duplicate names
           if (includeSender &&
-              aAuthors.Find(name.get(), PR_TRUE) == -1)
+              aAuthors.Find(name.get(), true) == -1)
           {
             if (displayed > 0)
               aAuthors.Append(listSeparator);
@@ -791,7 +791,7 @@ nsMessengerOSXIntegration::GetFirstFolderWithNewMail(nsIMsgFolder* aFolder, nsCS
           if (msgFolder)
           {
             numNewMessages = 0;
-            msgFolder->GetNumNewMessages(PR_FALSE, &numNewMessages);
+            msgFolder->GetNumNewMessages(false, &numNewMessages);
             if (numNewMessages)
               break; // kick out of the while loop
             more = enumerator->Next();
@@ -813,7 +813,7 @@ nsMessengerOSXIntegration::InitUnreadCount()
   // If we were forced to do a count early with an update, don't do it again on mail startup.
   if (mDoneInitialCount)
     return;
-  mDoneInitialCount = PR_TRUE;
+  mDoneInitialCount = true;
   if (!MsgDockCountsLogModule)
     MsgDockCountsLogModule = PR_NewLogModule("DockCounts");
   // We either count just inboxes, or all folders
@@ -858,7 +858,7 @@ nsMessengerOSXIntegration::InitUnreadCount()
       rootFolder->GetFolderWithFlags(nsMsgFolderFlags::Inbox, getter_AddRefs(inboxFolder));
       if (inboxFolder)
       {
-        GetTotalUnread(inboxFolder, PR_FALSE, &numUnread);
+        GetTotalUnread(inboxFolder, false, &numUnread);
         nsCString folderURI;
         inboxFolder->GetURI(folderURI);
         PR_LOG(MsgDockCountsLogModule, PR_LOG_ALWAYS,
@@ -867,7 +867,7 @@ nsMessengerOSXIntegration::InitUnreadCount()
     }
     else
     {
-      GetTotalUnread(rootFolder, PR_TRUE, &numUnread);
+      GetTotalUnread(rootFolder, true, &numUnread);
       nsCString folderURI;
       rootFolder->GetURI(folderURI);
       PR_LOG(MsgDockCountsLogModule, PR_LOG_ALWAYS,
@@ -897,7 +897,7 @@ nsMessengerOSXIntegration::ConfirmShouldCount(nsIMsgFolder* aFolder, bool* aCoun
   rv = server->GetType(type);
   if (NS_FAILED(rv) || (type.EqualsLiteral("rss") || type.EqualsLiteral("nntp")))
   {
-    defaultValue = PR_FALSE;
+    defaultValue = false;
     return NS_OK;
   }
 
@@ -916,7 +916,7 @@ nsMessengerOSXIntegration::ConfirmShouldCount(nsIMsgFolder* aFolder, bool* aCoun
       (flags & nsMsgFolderFlags::Queue)   ||
       (flags & nsMsgFolderFlags::Virtual) ||
       (flags & nsMsgFolderFlags::Junk))
-    defaultValue = PR_FALSE;
+    defaultValue = false;
 
   rv = shouldCount->SetData(defaultValue);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -947,7 +947,7 @@ nsMessengerOSXIntegration::GetTotalUnread(nsIMsgFolder* aFolder, bool deep, PRIn
     return NS_OK;
 
   PRInt32 total = 0;
-  rv = aFolder->GetNumUnread(PR_FALSE, &total);
+  rv = aFolder->GetNumUnread(false, &total);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Use zero instead of -1 (don't know) or other special nums.
@@ -981,7 +981,7 @@ nsMessengerOSXIntegration::GetTotalUnread(nsIMsgFolder* aFolder, bool deep, PRIn
           if (NS_SUCCEEDED(rv) && childFolder)
           {
             PRInt32 childFolderCount = 0;
-            rv = GetTotalUnread(childFolder, PR_TRUE, &childFolderCount);
+            rv = GetTotalUnread(childFolder, true, &childFolderCount);
             if (NS_FAILED(rv))
               continue;
 

@@ -57,7 +57,7 @@ nsImapMoveCoalescer::nsImapMoveCoalescer(nsIMsgFolder *sourceFolder, nsIMsgWindo
 {
   m_sourceFolder = sourceFolder; 
   m_msgWindow = msgWindow;
-  m_hasPendingMoves = PR_FALSE;
+  m_hasPendingMoves = false;
 }
 
 nsImapMoveCoalescer::~nsImapMoveCoalescer()
@@ -66,7 +66,7 @@ nsImapMoveCoalescer::~nsImapMoveCoalescer()
 
 nsresult nsImapMoveCoalescer::AddMove(nsIMsgFolder *folder, nsMsgKey key)
 {
-  m_hasPendingMoves = PR_TRUE;
+  m_hasPendingMoves = true;
   PRInt32 folderIndex = m_destFolders.IndexOf(folder);
   nsTArray<nsMsgKey> *keysToAdd = nsnull;
 
@@ -94,7 +94,7 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(bool doNewMailNotification /* = fals
     return NS_OK;
 
   nsresult rv = NS_OK;
-  m_hasPendingMoves = PR_FALSE;
+  m_hasPendingMoves = false;
   m_doNewMailNotification = doNewMailNotification;
   m_outstandingMoves = 0;
 
@@ -118,7 +118,7 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(bool doNewMailNotification /* = fals
       rv = m_sourceFolder->GetMessageHeader(keysToAdd.ElementAt(keyIndex), getter_AddRefs(mailHdr));
       if (NS_SUCCEEDED(rv) && mailHdr)
       {
-        messages->AppendElement(mailHdr, PR_FALSE);
+        messages->AppendElement(mailHdr, false);
         bool isRead = false;
         mailHdr->GetIsRead(&isRead);
         if (!isRead)
@@ -131,11 +131,11 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(bool doNewMailNotification /* = fals
     {
       destFolder->SetNumNewMessages(numNewMessages);
       if (numNewMessages > 0)
-        destFolder->SetHasNewMessages(PR_TRUE);
+        destFolder->SetHasNewMessages(true);
     }
     // adjust the new message count on the source folder
     PRInt32 oldNewMessageCount = 0;
-    m_sourceFolder->GetNumNewMessages(PR_FALSE, &oldNewMessageCount);
+    m_sourceFolder->GetNumNewMessages(false, &oldNewMessageCount);
     if (oldNewMessageCount >= numKeysToAdd)
       oldNewMessageCount -= numKeysToAdd;
     else
@@ -157,8 +157,8 @@ nsresult nsImapMoveCoalescer::PlaybackMoves(bool doNewMailNotification /* = fals
         if (copyListener)
           listener = do_QueryInterface(copyListener);
       }
-      rv = copySvc->CopyMessages(m_sourceFolder, messages, destFolder, PR_TRUE,
-                                 listener, m_msgWindow, PR_FALSE /*allowUndo*/);
+      rv = copySvc->CopyMessages(m_sourceFolder, messages, destFolder, true,
+                                 listener, m_msgWindow, false /*allowUndo*/);
       if (NS_SUCCEEDED(rv))
         m_outstandingMoves++;
     }

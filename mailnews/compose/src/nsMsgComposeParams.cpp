@@ -41,7 +41,7 @@
 nsMsgComposeParams::nsMsgComposeParams() :
   mType(nsIMsgCompType::New),
   mFormat(nsIMsgCompFormat::Default),
-  mBodyIsLink(PR_FALSE)
+  mBodyIsLink(false)
 {
 }
 

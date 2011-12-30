@@ -214,7 +214,7 @@ bool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, bool bRead)
     {
       // give the base class a chance to update m_flags.
       nsMsgDatabase::SetHdrReadFlag(msgHdr, bRead);
-      return PR_FALSE;
+      return false;
     }
     else {
       nsMsgKey messageKey;
@@ -222,10 +222,10 @@ bool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, bool bRead)
       // give the base class a chance to update m_flags.
       nsMsgDatabase::SetHdrReadFlag(msgHdr, bRead);
       rv = msgHdr->GetMessageKey(&messageKey);
-      if (NS_FAILED(rv)) return PR_FALSE;
+      if (NS_FAILED(rv)) return false;
 
       NS_ASSERTION(m_readSet, "m_readSet is null");
-      if (!m_readSet) return PR_FALSE;
+      if (!m_readSet) return false;
 
       if (!bRead) {
 #ifdef DEBUG_NEWS_DATABASE
@@ -233,10 +233,10 @@ bool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, bool bRead)
 #endif
 
         rv = m_readSet->Remove(messageKey);
-        if (NS_FAILED(rv)) return PR_FALSE;
+        if (NS_FAILED(rv)) return false;
 
         rv = NotifyReadChanged(nsnull);
-        if (NS_FAILED(rv)) return PR_FALSE;
+        if (NS_FAILED(rv)) return false;
       }
       else {
 #ifdef DEBUG_NEWS_DATABASE
@@ -244,13 +244,13 @@ bool nsNewsDatabase::SetHdrReadFlag(nsIMsgDBHdr *msgHdr, bool bRead)
 #endif
 
         rv = m_readSet->Add(messageKey);
-        if (NS_FAILED(rv)) return PR_FALSE;
+        if (NS_FAILED(rv)) return false;
 
         rv = NotifyReadChanged(nsnull);
-        if (NS_FAILED(rv)) return PR_FALSE;
+        if (NS_FAILED(rv)) return false;
       }
     }
-    return PR_TRUE;
+    return true;
 }
 
 NS_IMETHODIMP nsNewsDatabase::MarkAllRead(PRUint32 *aNumMarked,
@@ -316,7 +316,7 @@ nsresult nsNewsDatabase::SyncWithReadSet()
       if (readInNewsrc!=isReadInDB)
       {
         MarkHdrRead(header, readInNewsrc, nsnull);
-        changed = PR_TRUE;
+        changed = true;
       }
   }
 
@@ -325,13 +325,13 @@ nsresult nsNewsDatabase::SyncWithReadSet()
   rv = m_dbFolderInfo->GetNumMessages(&oldMessages);
   if (NS_SUCCEEDED(rv) && oldMessages!=numMessages)
   {
-      changed = PR_TRUE;
+      changed = true;
       m_dbFolderInfo->ChangeNumMessages(numMessages-oldMessages);
   }
   rv = m_dbFolderInfo->GetNumUnreadMessages(&oldUnreadMessages);
   if (NS_SUCCEEDED(rv) && oldUnreadMessages!=numUnreadMessages)
   {
-      changed = PR_TRUE;
+      changed = true;
       m_dbFolderInfo->ChangeNumUnreadMessages(numUnreadMessages-oldUnreadMessages);
   }
 

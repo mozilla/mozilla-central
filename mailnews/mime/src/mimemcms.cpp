@@ -120,11 +120,11 @@ typedef struct MimeMultCMSdata
   MimeMultCMSdata()
   :hash_type(0),
   sender_addr(nsnull),
-  decoding_failed(PR_FALSE),
+  decoding_failed(false),
   item_data(nsnull),
   self(nsnull),
-  parent_is_encrypted_p(PR_FALSE),
-  parent_holds_stamp_p(PR_FALSE)
+  parent_is_encrypted_p(false),
+  parent_holds_stamp_p(false)
   {
   }
 
@@ -172,7 +172,7 @@ MimeMultCMS_init (MimeObject *obj)
   PRInt16 hash_type;
   nsresult rv;
 
-  ct = MimeHeaders_get (hdrs, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
+  ct = MimeHeaders_get (hdrs, HEADER_CONTENT_TYPE, false, false);
   if (!ct) return 0; /* #### bogus message?  out of memory? */
   micalg = MimeHeaders_get_parameter (ct, PARAM_MICALG, NULL, NULL);
   PR_Free(ct);
@@ -324,7 +324,7 @@ MimeMultCMS_data_eof (void *crypto_closure, bool abort_p)
   }
 
   nsCAutoString hashString;
-  data->data_hash_context->Finish(PR_FALSE, hashString);
+  data->data_hash_context->Finish(false, hashString);
   PR_SetError(0, 0);
 
   data->item_len  = hashString.Length();
@@ -358,7 +358,7 @@ MimeMultCMS_sig_init (void *crypto_closure,
     return -1;
   }
 
-  ct = MimeHeaders_get (signature_hdrs, HEADER_CONTENT_TYPE, PR_TRUE, PR_FALSE);
+  ct = MimeHeaders_get (signature_hdrs, HEADER_CONTENT_TYPE, true, false);
 
   /* Verify that the signature object is of the right type. */
   if (!ct || /* is not a signature type */

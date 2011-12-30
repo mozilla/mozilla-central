@@ -266,7 +266,7 @@ nsresult NS_MsgGetPriorityValueString(
       outValueString.AssignLiteral("0");
       break;
     default:
-      NS_ASSERTION(PR_FALSE, "invalid priority value");
+      NS_ASSERTION(false, "invalid priority value");
   }
 
   return NS_OK;
@@ -299,7 +299,7 @@ nsresult NS_MsgGetUntranslatedPriorityName(
       outName.AssignLiteral("None");
       break;
     default:
-      NS_ASSERTION(PR_FALSE, "invalid priority value");
+      NS_ASSERTION(false, "invalid priority value");
   }
 
   return NS_OK;
@@ -603,7 +603,7 @@ nsresult NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
 #endif
       NS_MsgHashIfNecessary(pathPiece);
       path += pathPiece;
-      haveFirst=PR_TRUE;
+      haveFirst=true;
     }
     // look for the next slash
     startSlashPos = endSlashPos + 1;
@@ -630,7 +630,7 @@ bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubje
   PRUint32 L;
   bool result = false;
   NS_ASSERTION(stringP, "bad null param");
-  if (!stringP) return PR_FALSE;
+  if (!stringP) return false;
 
   // get localizedRe pref
   nsresult rv;
@@ -657,7 +657,7 @@ bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubje
     mimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID, &rv);
     if (NS_SUCCEEDED(rv))
       rv = mimeConverter->DecodeMimeHeaderToCharPtr(
-        *stringP, nsnull, PR_FALSE, PR_TRUE, getter_Copies(decodedString));
+        *stringP, nsnull, false, true, getter_Copies(decodedString));
   }
 
   s = !decodedString.IsEmpty() ? decodedString.get() : *stringP;
@@ -686,7 +686,7 @@ bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubje
       if (s[tokenLength] == ':')
       {
         s = s + tokenLength + 1; /* Skip over "Re:" */
-        result = PR_TRUE;        /* Yes, we stripped it. */
+        result = true;        /* Yes, we stripped it. */
         goto AGAIN;              /* Skip whitespace and try again. */
       }
       else if (s[tokenLength] == '[' || s[tokenLength] == '(')
@@ -702,7 +702,7 @@ bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubje
         if ((s2[0] == ']' || s2[0] == ')') && s2[1] == ':')
         {
           s = s2 + 2;       /* Skip over "]:" */
-          result = PR_TRUE; /* Yes, we stripped it. */
+          result = true; /* Yes, we stripped it. */
           goto AGAIN;       /* Skip whitespace and try again. */
         }
       }
@@ -728,7 +728,7 @@ bool NS_MsgStripRE(const char **stringP, PRUint32 *lengthP, char **modifiedSubje
           char charset[nsIMimeConverter::MAX_CHARSET_NAME_LENGTH] = "";
           if (nsIMimeConverter::MAX_CHARSET_NAME_LENGTH >= (p2 - p1))
             strncpy(charset, p1, p2 - p1);
-          rv = mimeConverter->EncodeMimePartIIStr_UTF8(nsDependentCString(s), PR_FALSE, charset,
+          rv = mimeConverter->EncodeMimePartIIStr_UTF8(nsDependentCString(s), false, charset,
             sizeof("Subject:"), nsIMimeConverter::MIME_ENCODED_WORD_SIZE,
             modifiedSubject);
           if (NS_SUCCEEDED(rv))
@@ -861,7 +861,7 @@ bool IsAFromSpaceLine(char *start, const char *end)
     start++;
   // If the leading '>'s are followed by an 'F' then we have a possible case here.
   if ( (*start == 'F') && (end-start > 4) && !strncmp(start, "From ", 5) )
-    rv = PR_TRUE;
+    rv = true;
   return rv;
 }
 
@@ -919,11 +919,11 @@ nsresult IsRFC822HeaderFieldName(const char *aHdr, bool *aResult)
     char c = aHdr[i];
     if ( c < '!' || c == ':' || c > '~')
     {
-      *aResult = PR_FALSE;
+      *aResult = false;
       return NS_OK;
     }
   }
-  *aResult = PR_TRUE;
+  *aResult = true;
   return NS_OK;
 }
 
@@ -1030,7 +1030,7 @@ GetOrCreateFolder(const nsACString &aURI, nsIUrlListener *aListener)
 nsresult IsRSSArticle(nsIURI * aMsgURI, bool *aIsRSSArticle)
 {
   nsresult rv;
-  *aIsRSSArticle = PR_FALSE;
+  *aIsRSSArticle = false;
 
   nsCOMPtr<nsIMsgMessageUrl> msgUrl = do_QueryInterface(aMsgURI, &rv);
   if (NS_FAILED(rv)) return rv;
@@ -1061,7 +1061,7 @@ nsresult IsRSSArticle(nsIURI * aMsgURI, bool *aIsRSSArticle)
     rssServer = do_QueryInterface(server);
 
     if (rssServer)
-      *aIsRSSArticle = PR_TRUE;
+      *aIsRSSArticle = true;
   }
 
   return rv;
@@ -1093,7 +1093,7 @@ nsresult MSGCramMD5(const char *text, PRInt32 text_len, const char *key, PRInt32
     rv = hasher->Update((const PRUint8*) key, key_len);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = hasher->Finish(PR_FALSE, hash);
+    rv = hasher->Finish(false, hash);
     NS_ENSURE_SUCCESS(rv, rv);
 
     key = hash.get();
@@ -1130,7 +1130,7 @@ nsresult MSGCramMD5(const char *text, PRInt32 text_len, const char *key, PRInt32
   rv = hasher->Init(nsICryptoHash::MD5); /* init context for 1st pass */
   rv = hasher->Update((const PRUint8*)innerPad, 64);       /* start with inner pad */
   rv = hasher->Update((const PRUint8*)text, text_len);     /* then text of datagram */
-  rv = hasher->Finish(PR_FALSE, result);   /* finish up 1st pass */
+  rv = hasher->Finish(false, result);   /* finish up 1st pass */
 
   /*
    * perform outer MD5
@@ -1138,7 +1138,7 @@ nsresult MSGCramMD5(const char *text, PRInt32 text_len, const char *key, PRInt32
   hasher->Init(nsICryptoHash::MD5);       /* init context for 2nd pass */
   rv = hasher->Update((const PRUint8*)outerPad, 64);    /* start with outer pad */
   rv = hasher->Update((const PRUint8*)result.get(), 16);/* then results of 1st hash */
-  rv = hasher->Finish(PR_FALSE, result);    /* finish up 2nd pass */
+  rv = hasher->Finish(false, result);    /* finish up 2nd pass */
 
   if (result.Length() != DIGEST_LENGTH)
     return NS_ERROR_UNEXPECTED;
@@ -1168,7 +1168,7 @@ nsresult MSGApopMD5(const char *text, PRInt32 text_len, const char *password, PR
   rv = hasher->Update((const PRUint8*) password, password_len);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = hasher->Finish(PR_FALSE, result);
+  rv = hasher->Finish(false, result);
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (result.Length() != DIGEST_LENGTH)
@@ -1189,7 +1189,7 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
     *aFile = nsnull;
     NS_ENSURE_ARG(relPrefName);
     NS_ENSURE_ARG(absPrefName);
-    gotRelPref = PR_FALSE;
+    gotRelPref = false;
 
     nsCOMPtr<nsIPrefBranch> mainBranch;
     if (!prefBranch) {
@@ -1210,7 +1210,7 @@ NS_MSG_BASE nsresult NS_GetPersistentFile(const char *relPrefName,
         relFilePref->GetFile(getter_AddRefs(localFile));
         NS_ASSERTION(localFile, "An nsIRelativeFilePref has no file.");
         if (localFile)
-          gotRelPref = PR_TRUE;
+          gotRelPref = true;
     }
 
     // If not, get the old absolute
@@ -1428,7 +1428,7 @@ bool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aSta
 //                       bool aIgnoreCase=false,
 //                       PRInt32 aOffset=0,
 //                       PRInt32 aCount=-1 ) const;
-#define FIND_KEYWORD(keywords,keyword,offset) ((keywords).Find((keyword), PR_FALSE, (offset)))
+#define FIND_KEYWORD(keywords,keyword,offset) ((keywords).Find((keyword), false, (offset)))
 #else
 // nsAString::Find(const self_type& aStr,
 //                 PRUint32 aOffset,
@@ -1452,13 +1452,13 @@ bool MsgFindKeyword(const nsCString &keyword, nsCString &keywords, PRInt32 *aSta
         (matchEnd == end || *matchEnd == ' '))
     {
       *aLength = kKeywordLen;
-      return PR_TRUE;
+      return true;
     }
     *aStartOfKeyword = FIND_KEYWORD(keywords, keyword, *aStartOfKeyword + kKeywordLen);
   }
 
   *aLength = 0;
-  return PR_FALSE;
+  return false;
 #undef FIND_KEYWORD
 }
 
@@ -1494,7 +1494,7 @@ bool MsgHostDomainIsTrusted(nsCString &host, nsCString &trustedMailDomains)
         // that the hostname begins with a dot.
         if (hostLen == domainLen || *hostTail == '.' || *(hostTail - 1) == '.')
         {
-          domainIsTrusted = PR_TRUE;
+          domainIsTrusted = true;
           break;
         }
       }
@@ -1549,33 +1549,33 @@ NS_MSG_BASE bool MsgIsUTF8(const nsACString& aString)
         continue;
 
       if ( c <= 0xC1 ) // [80-BF] where not expected, [C0-C1] for overlong.
-        return PR_FALSE;
+        return false;
       else if ((c & 0xE0) == 0xC0) 
         state = 1;
       else if ((c & 0xF0) == 0xE0) {
         state = 2;
         if ( c == 0xE0 ) { // to exclude E0[80-9F][80-BF] 
-          overlong = PR_TRUE;
+          overlong = true;
           olupper = 0x9F;
         } else if ( c == 0xED ) { // ED[A0-BF][80-BF] : surrogate codepoint
-          surrogate = PR_TRUE;
+          surrogate = true;
           slower = 0xA0;
         } else if ( c == 0xEF ) // EF BF [BE-BF] : non-character
-          nonchar = PR_TRUE;
+          nonchar = true;
       } else if ( c <= 0xF4 ) { // XXX replace /w UTF8traits::is4byte when it's updated to exclude [F5-F7].(bug 199090)
         state = 3;
-        nonchar = PR_TRUE;
+        nonchar = true;
         if ( c == 0xF0 ) { // to exclude F0[80-8F][80-BF]{2}
-          overlong = PR_TRUE;
+          overlong = true;
           olupper = 0x8F;
         }
         else if ( c == 0xF4 ) { // to exclude F4[90-BF][80-BF] 
           // actually not surrogates but codepoints beyond 0x10FFFF
-          surrogate = PR_TRUE;
+          surrogate = true;
           slower = 0x90;
         }
       } else
-        return PR_FALSE; // Not UTF-8 string
+        return false; // Not UTF-8 string
     }
     
     while (ptr < done_reading && state) {
@@ -1586,12 +1586,12 @@ NS_MSG_BASE bool MsgIsUTF8(const nsACString& aString)
       if ( nonchar &&  ( !state &&  c < 0xBE ||
            state == 1 && c != 0xBF  ||
            state == 2 && 0x0F != (0x0F & c) ))
-        nonchar = PR_FALSE;
+        nonchar = false;
 
       if ((c & 0xC0) != 0x80 || overlong && c <= olupper ||
            surrogate && slower <= c || nonchar && !state )
-        return PR_FALSE; // Not UTF-8 string
-      overlong = surrogate = PR_FALSE;
+        return false; // Not UTF-8 string
+      overlong = surrogate = false;
     }
   }
   return !state; // state != 0 at the end indicates an invalid UTF-8 seq. 
@@ -2011,7 +2011,7 @@ NS_MSG_BASE nsresult MsgGetHeadersFromKeys(nsIMsgDatabase *aDB, const nsTArray<n
       rv = aDB->GetMsgHdrForKey(key, getter_AddRefs(msgHdr));
       NS_ENSURE_SUCCESS(rv, rv);
 
-      aHeaders->AppendElement(msgHdr, PR_FALSE);
+      aHeaders->AppendElement(msgHdr, false);
     }
   }
 
@@ -2028,7 +2028,7 @@ bool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset, PRUint32 m
       bufferOffset++;
       if (buffer[bufferOffset- 1] == '\r' && buffer[bufferOffset] == '\n')
         bufferOffset++;
-      result = PR_TRUE;
+      result = true;
       break;
     }
   }
@@ -2205,7 +2205,7 @@ MsgStreamMsgHeaders(nsIInputStream *aInputStream, nsIStreamListener *aConsumer)
   nsCAutoString msgHeaders;
   nsCAutoString curLine;
 
-  bool more = PR_TRUE;
+  bool more = true;
 
   // We want to NS_ReadLine until we get to a blank line (the end of the headers)
   while (more)

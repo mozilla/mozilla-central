@@ -101,10 +101,10 @@
 
 
 nsNNTPNewsgroupList::nsNNTPNewsgroupList()
-  : m_finishingXover(PR_FALSE),
-  m_getOldMessages(PR_FALSE),
-  m_promptedAlready(PR_FALSE),
-  m_downloadAll(PR_FALSE),
+  : m_finishingXover(false),
+  m_getOldMessages(false),
+  m_promptedAlready(false),
+  m_downloadAll(false),
   m_maxArticles(0),
   m_lastPercent(-1),
   m_lastProcessedNumber(0),
@@ -202,7 +202,7 @@ nsNNTPNewsgroupList::CleanUp()
             if (!containsKey)
             {
               m_set->Add(firstUnreadStart);
-              foundMissingArticle = PR_TRUE;
+              foundMissingArticle = true;
             }
             firstUnreadStart++;
           }
@@ -224,7 +224,7 @@ nsNNTPNewsgroupList::CleanUp()
       }
     }
     m_newsDB->Commit(nsMsgDBCommitType::kSessionCommit);
-    m_newsDB->Close(PR_TRUE);
+    m_newsDB->Close(true);
     m_newsDB = nsnull;
   }
 
@@ -377,7 +377,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
   {
     bool notifyMaxExceededOn = true;
     rv = nntpServer->GetNotifyOn(&notifyMaxExceededOn);
-    if (NS_FAILED(rv)) notifyMaxExceededOn = PR_TRUE;
+    if (NS_FAILED(rv)) notifyMaxExceededOn = true;
 
     // if the preference to notify when downloading more than x headers is not on,
     // and we're downloading new headers, set maxextra to a very large number.
@@ -394,7 +394,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
     {
       if (!m_getOldMessages && !m_promptedAlready && notifyMaxExceededOn)
       {
-        m_downloadAll = PR_FALSE;
+        m_downloadAll = false;
         nsCOMPtr<nsINewsDownloadDialogArgs> args = do_CreateInstance("@mozilla.org/messenger/newsdownloaddialogargs;1", &rv);
         if (NS_FAILED(rv)) return rv;
         NS_ENSURE_SUCCESS(rv,rv);
@@ -451,7 +451,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
             bool markOldRead = false;
 
             rv = nntpServer->GetMarkOldRead(&markOldRead);
-            if (NS_FAILED(rv)) markOldRead = PR_FALSE;
+            if (NS_FAILED(rv)) markOldRead = false;
 
             if (markOldRead && m_set)
               m_set->AddRange(*first, *last - maxextra);
@@ -460,7 +460,7 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
         }
         else
           *first = *last = 0;
-        m_promptedAlready = PR_TRUE;
+        m_promptedAlready = true;
       }
       else if (m_promptedAlready && !m_downloadAll)
         *first = *last - m_maxArticles + 1;
@@ -593,7 +593,7 @@ nsNNTPNewsgroupList::ParseLine(char *line, PRUint32 * message_number)
   if (line) {
     dateStr = line;
     PRTime date;
-    PRStatus status = PR_ParseTimeString (line, PR_FALSE, &date);
+    PRStatus status = PR_ParseTimeString (line, false, &date);
     if (PR_SUCCESS == status) {
       rv = newMsgHdr->SetDate(date); /* date */
       if (NS_FAILED(rv))
@@ -654,7 +654,7 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
   NS_ENSURE_TRUE(m_newsDB, NS_ERROR_UNEXPECTED);
 
   // you can't move news messages, so applyMore is always true
-  *aApplyMore = PR_TRUE;
+  *aApplyMore = true;
 
   nsCOMPtr<nsISupportsArray> filterActionList;
   nsresult rv = NS_NewISupportsArray(getter_AddRefs(filterActionList));
@@ -685,7 +685,7 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
       switch (actionType)
       {
       case nsMsgFilterAction::Delete:
-        m_addHdrToDB = PR_FALSE;
+        m_addHdrToDB = false;
         break;
       case nsMsgFilterAction::MarkRead:
         m_newsDB->MarkHdrRead(m_newMsgHdr, true, nsnull);
@@ -709,7 +709,7 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
         }
         break;
       case nsMsgFilterAction::MarkFlagged:
-        m_newMsgHdr->MarkFlagged(PR_TRUE);
+        m_newMsgHdr->MarkFlagged(true);
         break;
       case nsMsgFilterAction::ChangePriority:
         {
@@ -723,7 +723,7 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
         nsCString keyword;
         filterAction->GetStrValue(keyword);
         nsCOMPtr<nsIMutableArray> messageArray(do_CreateInstance(NS_ARRAY_CONTRACTID));
-        messageArray->AppendElement(m_newMsgHdr, PR_FALSE);
+        messageArray->AppendElement(m_newMsgHdr, false);
         nsCOMPtr <nsIMsgFolder> folder = do_QueryInterface(m_newsFolder, &rv);
         if (folder)
           folder->AddKeywordsToMessages(messageArray, keyword);
@@ -742,7 +742,7 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
       case nsMsgFilterAction::StopExecution:
       {
         // don't apply any more filters
-        *aApplyMore = PR_FALSE;
+        *aApplyMore = false;
       }
       break;
 
@@ -758,7 +758,7 @@ NS_IMETHODIMP nsNNTPNewsgroupList::ApplyFilterHit(nsIMsgFilter *aFilter, nsIMsgW
         nsCOMPtr<nsIMutableArray> messageArray(
             do_CreateInstance(NS_ARRAY_CONTRACTID, &rv));
         NS_ENSURE_TRUE(messageArray, rv);
-        messageArray->AppendElement(m_newMsgHdr, PR_FALSE);
+        messageArray->AppendElement(m_newMsgHdr, false);
 
         customAction->Apply(messageArray, value, nsnull,
                             nsMsgFilterType::NewsRule, aMsgWindow);
@@ -849,7 +849,7 @@ nsNNTPNewsgroupList::ProcessXOVERLINE(const char *line, PRUint32 *status)
     PRTime elapsedTime = PR_Now() - m_lastStatusUpdate;
 
     if (elapsedTime > MIN_STATUS_UPDATE_INTERVAL || lastIndex == totIndex)
-      UpdateStatus(PR_FALSE, numDownloaded, totalToDownload);
+      UpdateStatus(false, numDownloaded, totalToDownload);
   }
   return NS_OK;
 }
@@ -897,7 +897,7 @@ nsNNTPNewsgroupList::FinishXOVERLINE(int status, int *newstatus)
     // calls which happen when the fe selects a message as a result of getting EndingUpdate,
     // which interrupts this url right before it was going to finish and causes FinishXOver
     // to get called again.
-    m_finishingXover = PR_TRUE;
+    m_finishingXover = true;
 
     // XXX is this correct?
     m_runningURL = nsnull;
@@ -981,7 +981,7 @@ nsNNTPNewsgroupList::ProcessXHDRLine(const nsACString &line)
   PRTime elapsedTime = PR_Now() - m_lastStatusUpdate;
 
   if (elapsedTime > MIN_STATUS_UPDATE_INTERVAL)
-    UpdateStatus(PR_TRUE, numDownloaded, totalToDownload);
+    UpdateStatus(true, numDownloaded, totalToDownload);
   return rv;
 }
 
@@ -1002,7 +1002,7 @@ nsNNTPNewsgroupList::InitHEAD(PRInt32 number)
     PRTime elapsedTime = PR_Now() - m_lastStatusUpdate;
 
     if (elapsedTime > MIN_STATUS_UPDATE_INTERVAL || lastIndex == totIndex)
-      UpdateStatus(PR_FALSE, numDownloaded, totalToDownload);
+      UpdateStatus(false, numDownloaded, totalToDownload);
   }
 
   if (number >= 0)
@@ -1079,7 +1079,7 @@ nsNNTPNewsgroupList::AddHeader(const char *header, const char *value)
   else if (PL_strcmp(header, "date") == 0)
   {
     PRTime date;
-    PRStatus status = PR_ParseTimeString (value, PR_FALSE, &date);
+    PRStatus status = PR_ParseTimeString (value, false, &date);
     if (PR_SUCCESS == status)
       rv = m_newMsgHdr->SetDate(date);
   }
@@ -1158,7 +1158,7 @@ nsNNTPNewsgroupList::CallFilters()
     m_newMsgHdr = m_newHeaders[i];
     if (!filterCount && !serverFilterCount)
     {
-      m_newsDB->AddNewHdrToDB(m_newMsgHdr, PR_TRUE);
+      m_newsDB->AddNewHdrToDB(m_newMsgHdr, true);
 
       if (notifier)
         notifier->NotifyMsgAdded(m_newMsgHdr);
@@ -1170,7 +1170,7 @@ nsNNTPNewsgroupList::CallFilters()
 
       continue;
     }
-    m_addHdrToDB = PR_TRUE;
+    m_addHdrToDB = true;
 
     // build up a "headers" for filter code
     nsCString subject, author, date;
@@ -1228,7 +1228,7 @@ nsNNTPNewsgroupList::CallFilters()
 
     if (m_addHdrToDB)
     {
-      m_newsDB->AddNewHdrToDB(m_newMsgHdr, PR_TRUE);
+      m_newsDB->AddNewHdrToDB(m_newMsgHdr, true);
       if (notifier)
         notifier->NotifyMsgAdded(m_newMsgHdr);
       // mark the header as not yet reported classified

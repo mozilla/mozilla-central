@@ -260,9 +260,9 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
     m_prefAuthMethods = 0;
     m_failedAuthMethods = 0;
     m_currentAuthMethod = 0;
-    m_usernamePrompted = PR_FALSE;
+    m_usernamePrompted = false;
     m_prefSocketType = nsMsgSocketType::trySTARTTLS;
-    m_tlsInitiated = PR_FALSE;
+    m_tlsInitiated = false;
 
     m_urlErrorState = NS_ERROR_FAILURE;
 
@@ -285,7 +285,7 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
     m_responseCode = 0;
     m_previousResponseCode = 0;
     m_continuationResponse = -1;
-    m_tlsEnabled = PR_FALSE;
+    m_tlsEnabled = false;
     m_addressCopy = nsnull;
     m_addresses = nsnull;
     m_addressesLeft = 0;
@@ -294,7 +294,7 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
     m_totalAmountWritten = 0;
 #endif /* UNREADY_CODE */
 
-    m_sendDone = PR_FALSE;
+    m_sendDone = false;
 
     m_sizelimit = 0;
     m_totalMessageSize = 0;
@@ -306,7 +306,7 @@ void nsSmtpProtocol::Initialize(nsIURI * aURL)
     m_originalContentLength = 0;
     m_totalAmountRead = 0;
 
-    m_lineStreamBuffer = new nsMsgLineStreamBuffer(OUTPUT_BUFFER_SIZE, PR_TRUE);
+    m_lineStreamBuffer = new nsMsgLineStreamBuffer(OUTPUT_BUFFER_SIZE, true);
     // ** may want to consider caching the server capability to save lots of
     // round trip communication between the client and server
     PRInt32 authMethod = 0;
@@ -840,14 +840,14 @@ PRInt32 nsSmtpProtocol::SendTLSResponse()
       {
           m_nextState = SMTP_EXTN_LOGIN_RESPONSE;
           m_nextStateAfterResponse = SMTP_EXTN_LOGIN_RESPONSE;
-          m_tlsEnabled = PR_TRUE;
+          m_tlsEnabled = true;
           m_flags = 0; // resetting the flags
           return rv;
       }
   }
 
   ClearFlag(SMTP_EHLO_STARTTLS_ENABLED);
-  m_tlsInitiated = PR_FALSE;
+  m_tlsInitiated = false;
   m_nextState = SMTP_AUTH_PROCESS_STATE;
 
   return rv;
@@ -982,7 +982,7 @@ PRInt32 nsSmtpProtocol::ProcessAuth()
 
                 status = SendData(url, buffer.get());
 
-                m_tlsInitiated = PR_TRUE;
+                m_tlsInitiated = true;
 
                 m_nextState = SMTP_RESPONSE;
                 m_nextStateAfterResponse = SMTP_TLS_RESPONSE;
@@ -1301,7 +1301,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
   if (username.IsEmpty())
   {
     rv = GetUsernamePassword(username, password);
-    m_usernamePrompted = PR_TRUE;
+    m_usernamePrompted = true;
     if (username.IsEmpty() || password.IsEmpty())
       return NS_ERROR_SMTP_PASSWORD_UNDEFINED;
   }
@@ -1358,7 +1358,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
     return (NS_ERROR_COMMUNICATIONS_ERROR);
 
   nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-  status = SendData(url, buffer, PR_TRUE);
+  status = SendData(url, buffer, true);
   m_nextState = SMTP_RESPONSE;
   m_nextStateAfterResponse = SMTP_AUTH_LOGIN_RESPONSE;
   SetFlag(SMTP_PAUSE_FOR_READ);
@@ -1448,7 +1448,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
       return NS_ERROR_COMMUNICATIONS_ERROR;
 
     nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-    status = SendData(url, buffer, PR_TRUE);
+    status = SendData(url, buffer, true);
     m_nextState = SMTP_RESPONSE;
     m_nextStateAfterResponse = SMTP_AUTH_LOGIN_RESPONSE;
     SetFlag(SMTP_PAUSE_FOR_READ);
@@ -1720,7 +1720,7 @@ PRInt32 nsSmtpProtocol::SendMessageResponse()
 
 PRInt32 nsSmtpProtocol::SendQuit()
 {
-  m_sendDone = PR_TRUE;
+  m_sendDone = true;
   nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
   SendData(url, "QUIT"CRLF); // send a quit command to close the connection with the server.
   m_nextState = SMTP_RESPONSE;
@@ -1751,9 +1751,9 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
     nsCOMPtr <nsIMsgMailNewsUrl> aMsgUrl = do_QueryInterface(aURL);
     if (aMsgUrl)
     {
-      aMsgUrl->SetUrlState(PR_TRUE, NS_OK);
+      aMsgUrl->SetUrlState(true, NS_OK);
       // set the url as a url currently being run...
-      aMsgUrl->SetUrlState(PR_FALSE /* we aren't running the url */,
+      aMsgUrl->SetUrlState(false /* we aren't running the url */,
                            NS_ERROR_SMTP_AUTH_FAILURE);
     }
     return NS_ERROR_BUT_DONT_SHOW_ALERT;
@@ -1936,7 +1936,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
       case SMTP_DONE:
         {
           nsCOMPtr <nsIMsgMailNewsUrl> mailNewsUrl = do_QueryInterface(m_runningURL);
-          mailNewsUrl->SetUrlState(PR_FALSE, NS_OK);
+          mailNewsUrl->SetUrlState(false, NS_OK);
         }
 
         m_nextState = SMTP_FREE;
@@ -1946,7 +1946,7 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
         {
           nsCOMPtr <nsIMsgMailNewsUrl> mailNewsUrl = do_QueryInterface(m_runningURL);
           // propagate the right error code
-          mailNewsUrl->SetUrlState(PR_FALSE, m_urlErrorState);
+          mailNewsUrl->SetUrlState(false, m_urlErrorState);
         }
 
         m_nextState = SMTP_FREE;

@@ -58,8 +58,8 @@ nsAbLDAPProcessReplicationData::nsAbLDAPProcessReplicationData() :
   mState(kIdle),
   mProtocol(-1),
   mCount(0),
-  mDBOpen(PR_FALSE),
-  mInitialized(PR_FALSE)
+  mDBOpen(false),
+  mInitialized(false)
 {
 }
 
@@ -67,7 +67,7 @@ nsAbLDAPProcessReplicationData::~nsAbLDAPProcessReplicationData()
 {
   /* destructor code */
   if(mDBOpen && mReplicationDB)
-      mReplicationDB->Close(PR_FALSE);
+      mReplicationDB->Close(false);
 }
 
 NS_IMETHODIMP nsAbLDAPProcessReplicationData::Init(
@@ -107,7 +107,7 @@ NS_IMETHODIMP nsAbLDAPProcessReplicationData::Init(
     return rv;
   }
 
-  mInitialized = PR_TRUE;
+  mInitialized = true;
 
   return rv;
 }
@@ -136,7 +136,7 @@ NS_IMETHODIMP nsAbLDAPProcessReplicationData::OnLDAPMessage(nsILDAPMessage *aMes
   PRInt32 messageType;
   nsresult rv = aMessage->GetType(&messageType);
   if (NS_FAILED(rv)) {
-    Done(PR_FALSE);
+    Done(false);
     return rv;
   }
 
@@ -178,11 +178,11 @@ NS_IMETHODIMP nsAbLDAPProcessReplicationData::Abort()
   if (mReplicationDB && mDBOpen) {
     // force close since we need to delete the file.
     mReplicationDB->ForceClosed();
-    mDBOpen = PR_FALSE;
+    mDBOpen = false;
 
     // delete the unsaved replication file
     if (mReplicationFile) {
-      rv = mReplicationFile->Remove(PR_FALSE);
+      rv = mReplicationFile->Remove(false);
       if (NS_SUCCEEDED(rv) && mDirectory) {
         nsCAutoString fileName;
         rv = mDirectory->GetReplicationFileName(fileName);
@@ -193,7 +193,7 @@ NS_IMETHODIMP nsAbLDAPProcessReplicationData::Abort()
     }
   }
 
-  Done(PR_FALSE);
+  Done(false);
 
   return rv;
 }
@@ -203,7 +203,7 @@ nsresult nsAbLDAPProcessReplicationData::DoTask()
   if (!mInitialized)
     return NS_ERROR_NOT_INITIALIZED;
 
-  nsresult rv = OpenABForReplicatedDir(PR_TRUE);
+  nsresult rv = OpenABForReplicatedDir(true);
   if (NS_FAILED(rv))
     // do not call done here since it is called by OpenABForReplicationDir
     return rv;
@@ -242,7 +242,7 @@ nsresult nsAbLDAPProcessReplicationData::DoTask()
 
   if (mListener && NS_SUCCEEDED(rv))
     mListener->OnStateChange(nsnull, nsnull,
-                             nsIWebProgressListener::STATE_START, PR_TRUE);
+                             nsIWebProgressListener::STATE_START, true);
 
   return mOperation->SearchExt(dn, scope, urlFilter, attributes, 0, 0);
 }
@@ -250,7 +250,7 @@ nsresult nsAbLDAPProcessReplicationData::DoTask()
 void nsAbLDAPProcessReplicationData::InitFailed(bool aCancelled)
 {
   // Just call Done() which will ensure everything is tidied up nicely.
-  Done(PR_FALSE);
+  Done(false);
 }
 
 nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(nsILDAPMessage *aMessage)
@@ -284,7 +284,7 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(nsILDAPMessage *aMess
         return NS_OK;
     }
 
-    rv = mReplicationDB->CreateNewCardAndAddToDB(newCard, PR_FALSE, nsnull);
+    rv = mReplicationDB->CreateNewCardAndAddToDB(newCard, false, nsnull);
     if(NS_FAILED(rv)) {
         Abort();
         return rv;
@@ -298,7 +298,7 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchEntry(nsILDAPMessage *aMess
         newCard->SetPropertyAsAUTF8String("_DN", authDN);
     }
 
-    rv = mReplicationDB->EditCard(newCard, PR_FALSE, nsnull);
+    rv = mReplicationDB->EditCard(newCard, false, nsnull);
     if(NS_FAILED(rv)) {
         Abort();
         return rv;
@@ -335,15 +335,15 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchResult(nsILDAPMessage *aMes
     if(NS_SUCCEEDED(rv)) {
         // We are done with the LDAP search for all entries.
         if(errorCode == nsILDAPErrors::SUCCESS || errorCode == nsILDAPErrors::SIZELIMIT_EXCEEDED) {
-            Done(PR_TRUE);
+            Done(true);
             if(mReplicationDB && mDBOpen) {
-                rv = mReplicationDB->Close(PR_TRUE);
+                rv = mReplicationDB->Close(true);
                 NS_ASSERTION(NS_SUCCEEDED(rv), "Replication DB Close on Success failed");
-                mDBOpen = PR_FALSE;
+                mDBOpen = false;
                 // once we have saved the new replication file, delete the backup file
                 if(mBackupReplicationFile)
                 {
-                    rv = mBackupReplicationFile->Remove(PR_FALSE);
+                    rv = mBackupReplicationFile->Remove(false);
                     NS_ASSERTION(NS_SUCCEEDED(rv), "Replication BackupFile Remove on Success failed");
                 }
             }
@@ -357,10 +357,10 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchResult(nsILDAPMessage *aMes
         // should we commit anyway ??? whatever is returned is not lost then !!
         rv = mReplicationDB->ForceClosed(); // force close since we need to delete the file.
         NS_ASSERTION(NS_SUCCEEDED(rv), "Replication DB ForceClosed on Failure failed");
-        mDBOpen = PR_FALSE;
+        mDBOpen = false;
         // if error result is returned remove the replicated file
         if(mReplicationFile) {
-            rv = mReplicationFile->Remove(PR_FALSE);
+            rv = mReplicationFile->Remove(false);
             NS_ASSERTION(NS_SUCCEEDED(rv), "Replication File Remove on Failure failed");
             if(NS_SUCCEEDED(rv)) {
                 // now put back the backed up replicated file
@@ -376,7 +376,7 @@ nsresult nsAbLDAPProcessReplicationData::OnLDAPSearchResult(nsILDAPMessage *aMes
                 }
             }
         }
-        Done(PR_FALSE);
+        Done(false);
     }
 
     return NS_OK;
@@ -390,14 +390,14 @@ nsresult nsAbLDAPProcessReplicationData::OpenABForReplicatedDir(bool aCreate)
   nsresult rv = mDirectory->GetReplicationFile(getter_AddRefs(mReplicationFile));
   if (NS_FAILED(rv))
   {
-     Done(PR_FALSE);
+     Done(false);
      return NS_ERROR_FAILURE;
   }
 
   nsCString fileName;
   rv = mReplicationFile->GetNativeLeafName(fileName);
   if (NS_FAILED(rv)) {
-    Done(PR_FALSE);
+    Done(false);
     return rv;
   }
 
@@ -415,29 +415,29 @@ nsresult nsAbLDAPProcessReplicationData::OpenABForReplicatedDir(bool aCreate)
         nsCOMPtr<nsIFile> clone;
         rv = mReplicationFile->Clone(getter_AddRefs(clone));
         if(NS_FAILED(rv))  {
-            Done(PR_FALSE);
+            Done(false);
             return rv;
         }
         mBackupReplicationFile = do_QueryInterface(clone, &rv);
         if(NS_FAILED(rv))  {
-            Done(PR_FALSE);
+            Done(false);
             return rv;
         }
         rv = mBackupReplicationFile->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 0777);
         if(NS_FAILED(rv))  {
-            Done(PR_FALSE);
+            Done(false);
             return rv;
         }
         nsAutoString backupFileLeafName;
         rv = mBackupReplicationFile->GetLeafName(backupFileLeafName);
         if(NS_FAILED(rv))  {
-            Done(PR_FALSE);
+            Done(false);
             return rv;
         }
         // remove the newly created unique backup file so that move and copy succeeds.
-        rv = mBackupReplicationFile->Remove(PR_FALSE);
+        rv = mBackupReplicationFile->Remove(false);
         if(NS_FAILED(rv))  {
-            Done(PR_FALSE);
+            Done(false);
             return rv;
         }
 
@@ -466,7 +466,7 @@ nsresult nsAbLDAPProcessReplicationData::OpenABForReplicatedDir(bool aCreate)
                 mBackupReplicationFile->SetLeafName(backupFileLeafName);
         }
         if(NS_FAILED(rv))  {
-            Done(PR_FALSE);
+            Done(false);
             return rv;
         }
     }
@@ -475,20 +475,20 @@ nsresult nsAbLDAPProcessReplicationData::OpenABForReplicatedDir(bool aCreate)
              do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
     if(NS_FAILED(rv)) {
         if (mBackupReplicationFile)
-            mBackupReplicationFile->Remove(PR_FALSE);
-        Done(PR_FALSE);
+            mBackupReplicationFile->Remove(false);
+        Done(false);
         return rv;
     }
     
-    rv = addrDBFactory->Open(mReplicationFile, aCreate, PR_TRUE, getter_AddRefs(mReplicationDB));
+    rv = addrDBFactory->Open(mReplicationFile, aCreate, true, getter_AddRefs(mReplicationDB));
     if(NS_FAILED(rv)) {
-        Done(PR_FALSE);
+        Done(false);
         if (mBackupReplicationFile)
-            mBackupReplicationFile->Remove(PR_FALSE);
+            mBackupReplicationFile->Remove(false);
         return rv;
     }
 
-    mDBOpen = PR_TRUE;  // replication DB is now Open
+    mDBOpen = true;  // replication DB is now Open
     return rv;
 }
 
@@ -514,6 +514,6 @@ nsresult nsAbLDAPProcessReplicationData::DeleteCard(nsString & aDn)
 {
     nsCOMPtr<nsIAbCard> cardToDelete;
     mReplicationDB->GetCardFromAttribute(nsnull, "_DN", NS_ConvertUTF16toUTF8(aDn),
-                                         PR_FALSE, getter_AddRefs(cardToDelete));
-    return mReplicationDB->DeleteCard(cardToDelete, PR_FALSE, nsnull);
+                                         false, getter_AddRefs(cardToDelete));
+    return mReplicationDB->DeleteCard(cardToDelete, false, nsnull);
 }

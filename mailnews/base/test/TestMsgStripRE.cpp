@@ -112,16 +112,16 @@ int main(int argc, char** argv)
   // run our tests 
   struct testInfo testInfoStructs[] = {
     {"SV: =?ISO-8859-1?Q?=C6blegr=F8d?=", "=?ISO-8859-1?Q?=C6blegr=F8d?=",
-     PR_TRUE},
+     true},
     {"=?ISO-8859-1?Q?SV=3A=C6blegr=F8d?=", "=?ISO-8859-1?Q?=C6blegr=F8d?=",
-     PR_TRUE},
+     true},
 
      // Note that in the next two tests, the only ISO-8859-1 chars are in the
      // localizedRe piece, so once they've been stripped, the re-encoding process 
      // simply writes out ASCII rather than an ISO-8859-1 encoded string with
      // no actual ISO-8859-1 special characters, which seems reasonable.
-    {"=?ISO-8859-1?Q?=C6=D8=C5=3A_Foo_bar?=", "Foo bar", PR_TRUE},
-    {"=?ISO-8859-1?Q?=C6=D8=C5=3AFoo_bar?=", "Foo bar", PR_TRUE}
+    {"=?ISO-8859-1?Q?=C6=D8=C5=3A_Foo_bar?=", "Foo bar", true},
+    {"=?ISO-8859-1?Q?=C6=D8=C5=3AFoo_bar?=", "Foo bar", true}
   };
 
   bool allTestsPassed = true;

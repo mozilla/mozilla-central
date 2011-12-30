@@ -264,7 +264,7 @@ morkRowCellCursor::SeekCell( // same as SetRow() followed by MakeCell()
   mdb_column* outColumn, // column for this particular cell
   nsIMdbCell** acqCell)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 // } ----- end cell seeking methods -----
@@ -316,7 +316,7 @@ morkRowCellCursor::PickNextCell( // get next cell in row within filter set
 // cols, since this might imply a potential excessive consumption of time
 // over many cursor calls when looking for column and filter intersection.
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 

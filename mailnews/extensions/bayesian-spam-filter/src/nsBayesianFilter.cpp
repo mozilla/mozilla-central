@@ -325,7 +325,7 @@ Tokenizer::Tokenizer() :
   TokenHash(sizeof(Token)),
   mBodyDelimiters(kBayesianFilterTokenDelimiters),
   mHeaderDelimiters(kBayesianFilterTokenDelimiters),
-  mCustomHeaderTokenization(PR_FALSE),
+  mCustomHeaderTokenization(false),
   mMaxLengthForToken(kMaxLengthForToken)
 {
   nsresult rv;
@@ -344,7 +344,7 @@ Tokenizer::Tokenizer() :
    */
   rv = prefBranch->GetBoolPref("iframe_to_div", &mIframeToDiv);
   if (NS_FAILED(rv))
-    mIframeToDiv = PR_FALSE;
+    mIframeToDiv = false;
 
   /*
    * the list of delimiters used to tokenize the message and body
@@ -413,7 +413,7 @@ Tokenizer::Tokenizer() :
 
   if (NS_SUCCEEDED(rv))
   {
-    mCustomHeaderTokenization = PR_TRUE;
+    mCustomHeaderTokenization = true;
     for (PRUint32 i = 0; i < count; i++)
     {
       nsCString value;
@@ -425,7 +425,7 @@ Tokenizer::Tokenizer() :
       }
       mEnabledHeaders.AppendElement(headers[i]);
       if (value.EqualsLiteral("standard"))
-        value.SetIsVoid(PR_TRUE); // Void means use default delimiter
+        value.SetIsVoid(true); // Void means use default delimiter
       else if (value.EqualsLiteral("full"))
         value.Truncate(); // Empty means add full header
       else
@@ -468,9 +468,9 @@ static bool isDecimalNumber(const char* word)
     char c;
     while ((c = *p++)) {
         if (!isdigit((unsigned char) c))
-            return PR_FALSE;
+            return false;
     }
-    return PR_TRUE;
+    return true;
 }
 
 static bool isASCII(const char* word)
@@ -479,9 +479,9 @@ static bool isASCII(const char* word)
     unsigned char c;
     while ((c = *p++)) {
         if (c > 127)
-            return PR_FALSE;
+            return false;
     }
-    return PR_TRUE;
+    return true;
 }
 
 inline bool isUpperCase(char c) { return ('A' <= c) && (c <= 'Z'); }
@@ -573,15 +573,15 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
         {
           if (mEnabledHeadersDelimiters[i].IsVoid())
             // tokenize with standard delimiters for all headers
-            addTokenForHeader(headerName.get(), headerValue, PR_TRUE);
+            addTokenForHeader(headerName.get(), headerValue, true);
           else if (mEnabledHeadersDelimiters[i].IsEmpty())
             // do not break the header into tokens
             addTokenForHeader(headerName.get(), headerValue);
           else
             // use the delimiter in mEnabledHeadersDelimiters
-            addTokenForHeader(headerName.get(), headerValue, PR_TRUE,
+            addTokenForHeader(headerName.get(), headerValue, true,
                               mEnabledHeadersDelimiters[i].get());
-          headerProcessed = PR_TRUE;
+          headerProcessed = true;
           break; // we found the header, no need to look for more custom values
         }
 
@@ -589,7 +589,7 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
       {
         if (headerName.Equals(mDisabledHeaders[i]))
         {
-          headerProcessed = PR_TRUE;
+          headerProcessed = true;
           break;
         }
       }
@@ -637,7 +637,7 @@ void Tokenizer::tokenizeHeaders(nsIUTF8StringEnumerator * aHeaderNames, nsIUTF8S
         if (headerName.Equals("subject"))
         {
           // we want to tokenize the subject
-          addTokenForHeader(headerName.get(), headerValue, PR_TRUE);
+          addTokenForHeader(headerName.get(), headerValue, true);
         }
 
         // important: leave out sender field. Too strong of an indicator
@@ -761,18 +761,18 @@ static bool isJapanese(const char* word)
   // it is japanese chunk if it contains any hiragana or katakana.
   while((c = *p++))
     if( IS_JAPANESE_SPECIFIC(c))
-      return PR_TRUE;
+      return true;
 
-  return PR_FALSE;
+  return false;
 }
 
 static bool isFWNumeral(const PRUnichar* p1, const PRUnichar* p2)
 {
   for(;p1<p2;p1++)
     if(!IS_JA_FWNUMERAL(*p1))
-      return PR_FALSE;
+      return false;
 
-  return PR_TRUE;
+  return true;
 }
 
 // The japanese tokenizer was added as part of Bug #277354
@@ -827,7 +827,7 @@ nsresult Tokenizer::stripHTML(const nsAString& inString, nsAString& outString)
 
   parser->SetContentSink(sink);
 
-  return parser->Parse(inString, 0, NS_LITERAL_CSTRING("text/html"), PR_TRUE);
+  return parser->Parse(inString, 0, NS_LITERAL_CSTRING("text/html"), true);
 }
 
 void Tokenizer::tokenize(const char* aText)
@@ -898,7 +898,7 @@ void Tokenizer::tokenize(const char* aText)
             PRInt32 len = uword.Length(), pos = 0, begin, end;
             bool gotUnit;
             while (pos < len) {
-                rv = mScanner->Next(utext, len, pos, PR_TRUE, &begin, &end, &gotUnit);
+                rv = mScanner->Next(utext, len, pos, true, &begin, &end, &gotUnit);
                 if (NS_SUCCEEDED(rv) && gotUnit) {
                     NS_ConvertUTF16toUTF8 utfUnit(utext + begin, end - begin);
                     add(utfUnit.get());
@@ -928,13 +928,13 @@ void Tokenizer::UnescapeCString(nsCString& aCString)
     if (!inEscape)
     {
       if (*readIter == '\\')
-        inEscape = PR_TRUE;
+        inEscape = true;
       else
         *(writeIter++) = *readIter;
     }
     else
     {
-      inEscape = PR_FALSE;
+      inEscape = false;
       switch (*readIter)
       {
         case '\\':
@@ -1027,7 +1027,7 @@ const PRUint32 kBufferSize = 16384;
 TokenStreamListener::TokenStreamListener(TokenAnalyzer* analyzer)
     :   mAnalyzer(analyzer),
         mBuffer(NULL), mBufferSize(kBufferSize), mLeftOverCount(0),
-        mSetAttachmentFlag(PR_FALSE)
+        mSetAttachmentFlag(false)
 {
 }
 
@@ -1229,7 +1229,7 @@ NS_IMPL_ISUPPORTS5(nsBayesianFilter, nsIMsgFilterPlugin,
                    nsIObserver)
 
 nsBayesianFilter::nsBayesianFilter()
-    :   mTrainingDataDirty(PR_FALSE)
+    :   mTrainingDataDirty(false)
 {
     if (!BayesianFilterLogModule)
       BayesianFilterLogModule = PR_NewLogModule("BayesianFilter");
@@ -1290,7 +1290,7 @@ nsresult nsBayesianFilter::Init()
   nsCOMPtr<nsIObserverService> observerService =
            do_GetService("@mozilla.org/observer-service;1", &rv);
   if (NS_SUCCEEDED(rv))
-    observerService->AddObserver(this, "profile-before-change", PR_TRUE);
+    observerService->AddObserver(this, "profile-before-change", true);
   return NS_OK;
 }
 
@@ -1302,7 +1302,7 @@ nsBayesianFilter::TimerCallback(nsITimer* aTimer, void* aClosure)
 
     nsBayesianFilter *filter = static_cast<nsBayesianFilter *>(aClosure);
     filter->mCorpus.writeTrainingData(filter->mMaximumTokenCount);
-    filter->mTrainingDataDirty = PR_FALSE;
+    filter->mTrainingDataDirty = false;
 }
 
 nsBayesianFilter::~nsBayesianFilter()
@@ -1434,8 +1434,8 @@ nsresult nsBayesianFilter::tokenizeMessage(const char* aMessageURI, nsIMsgWindow
 
     aAnalyzer->setSource(aMessageURI);
     return msgService->StreamMessage(aMessageURI, aAnalyzer->mTokenListener,
-                                     aMsgWindow, nsnull, PR_TRUE /* convert data */,
-                                     NS_LITERAL_CSTRING("filter"), PR_FALSE, nsnull);
+                                     aMsgWindow, nsnull, true /* convert data */,
+                                     NS_LITERAL_CSTRING("filter"), false, nsnull);
 }
 
 // a TraitAnalysis is the per-token representation of the statistical
@@ -1800,9 +1800,9 @@ void nsBayesianFilter::classifyMessage(
         // see bug #194238
 
         if (listener && !mCorpus.getMessageCount(kGoodTrait))
-          isJunk = PR_TRUE;
+          isJunk = true;
         else if (listener && !mCorpus.getMessageCount(kJunkTrait))
-          isJunk = PR_FALSE;
+          isJunk = false;
 
         if (listener)
           listener->OnMessageClassified(messageURI, isJunk ?
@@ -1864,7 +1864,7 @@ NS_IMETHODIMP nsBayesianFilter::Shutdown()
 {
   if (mTrainingDataDirty)
     mCorpus.writeTrainingData(mMaximumTokenCount);
-  mTrainingDataDirty = PR_FALSE;
+  mTrainingDataDirty = false;
 
   return NS_OK;
 }
@@ -1873,7 +1873,7 @@ NS_IMETHODIMP nsBayesianFilter::Shutdown()
 NS_IMETHODIMP nsBayesianFilter::GetShouldDownloadAllHeaders(bool *aShouldDownloadAllHeaders)
 {
     // bayesian filters work on the whole msg body currently.
-    *aShouldDownloadAllHeaders = PR_FALSE;
+    *aShouldDownloadAllHeaders = false;
     return NS_OK;
 }
 
@@ -2105,7 +2105,7 @@ void nsBayesianFilter::observeMessage(
       {
         mCorpus.setMessageCount(trait, messageCount - 1);
         mCorpus.forgetTokens(tokens, trait, 1);
-        mTrainingDataDirty = PR_TRUE;
+        mTrainingDataDirty = true;
       }
     }
 
@@ -2117,7 +2117,7 @@ void nsBayesianFilter::observeMessage(
       PRUint32 trait = newClassifications.ElementAt(index);
       mCorpus.setMessageCount(trait, mCorpus.getMessageCount(trait) + 1);
       mCorpus.rememberTokens(tokens, trait, 1);
-      mTrainingDataDirty = PR_TRUE;
+      mTrainingDataDirty = true;
 
       if (aJunkListener)
       {
@@ -2381,7 +2381,7 @@ bool CorpusStore::writeTokens(FILE* stream, bool shrink, PRUint32 aTraitId)
   }
 
   if (writeUInt32(stream, newTokenCount) != 1)
-    return PR_FALSE;
+    return false;
 
   if (newTokenCount > 0)
   {
@@ -2395,15 +2395,15 @@ bool CorpusStore::writeTokens(FILE* stream, bool shrink, PRUint32 aTraitId)
       if (!wordCount)
         continue; // Don't output zero count words
       if (writeUInt32(stream, wordCount) != 1)
-        return PR_FALSE;
+        return false;
       PRUint32 tokenLength = strlen(token->mWord);
       if (writeUInt32(stream, tokenLength) != 1)
-        return PR_FALSE;
+        return false;
       if (fwrite(token->mWord, tokenLength, 1, stream) != 1)
-        return PR_FALSE;
+        return false;
     }
   }
-  return PR_TRUE;
+  return true;
 }
 
 bool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize,
@@ -2411,15 +2411,15 @@ bool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize,
 {
     PRUint32 tokenCount;
     if (readUInt32(stream, &tokenCount) != 1)
-        return PR_FALSE;
+        return false;
 
     PRInt64 fpos = ftell(stream);
     if (fpos < 0)
-        return PR_FALSE;
+        return false;
 
     PRUint32 bufferSize = 4096;
     char* buffer = new char[bufferSize];
-    if (!buffer) return PR_FALSE;
+    if (!buffer) return false;
 
     for (PRUint32 i = 0; i < tokenCount; ++i) {
         PRUint32 count;
@@ -2431,17 +2431,17 @@ bool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize,
         fpos += 8;
         if (fpos + size > fileSize) {
             delete[] buffer;
-            return PR_FALSE;
+            return false;
         }
         if (size >= bufferSize) {
             delete[] buffer;
             while (size >= bufferSize) {
                 bufferSize *= 2;
                 if (bufferSize == 0)
-                    return PR_FALSE;
+                    return false;
             }
             buffer = new char[bufferSize];
-            if (!buffer) return PR_FALSE;
+            if (!buffer) return false;
         }
         if (fread(buffer, size, 1, stream) != 1)
             break;
@@ -2455,7 +2455,7 @@ bool CorpusStore::readTokens(FILE* stream, PRInt64 fileSize,
 
     delete[] buffer;
 
-    return PR_TRUE;
+    return true;
 }
 
 nsresult CorpusStore::getTrainingFile(nsILocalFile ** aTrainingFile)
@@ -2528,7 +2528,7 @@ void CorpusStore::writeTrainingData(PRUint32 aMaximumTokenCount)
     NS_WARNING("failed to write training data.");
     fclose(stream);
     // delete the training data file, since it is potentially corrupt.
-    mTrainingFile->Remove(PR_FALSE);
+    mTrainingFile->Remove(false);
   }
   else
   {
@@ -2580,7 +2580,7 @@ void CorpusStore::writeTrainingData(PRUint32 aMaximumTokenCount)
   {
     NS_WARNING("failed to write trait data.");
     // delete the trait data file, since it is probably corrupt.
-    mTraitFile->Remove(PR_FALSE);
+    mTraitFile->Remove(false);
   }
 
   if (shrink)
@@ -2631,8 +2631,8 @@ void CorpusStore::readTrainingData()
         (memcmp(cookie, kMagicCookie, sizeof(cookie)) == 0) &&
         (readUInt32(stream, &goodMessageCount) == 1) &&
         (readUInt32(stream, &junkMessageCount) == 1) &&
-         readTokens(stream, fileSize, kGoodTrait, PR_TRUE) &&
-         readTokens(stream, fileSize, kJunkTrait, PR_TRUE))) {
+         readTokens(stream, fileSize, kGoodTrait, true) &&
+         readTokens(stream, fileSize, kJunkTrait, true))) {
       NS_WARNING("failed to read training data.");
       PR_LOG(BayesianFilterLogModule, PR_LOG_ERROR, ("failed to read training data."));
   }
@@ -2656,7 +2656,7 @@ void CorpusStore::readTrainingData()
   if (NS_FAILED(rv) || !exists)
     return;
 
-  rv = UpdateData(mTraitFile, PR_TRUE, 0, nsnull, nsnull);
+  rv = UpdateData(mTraitFile, true, 0, nsnull, nsnull);
 
   if (NS_FAILED(rv))
   {
@@ -2677,9 +2677,9 @@ nsresult CorpusStore::resetTrainingData()
     mMessageCounts[index] = 0;
 
   if (mTrainingFile)
-    mTrainingFile->Remove(PR_FALSE);
+    mTrainingFile->Remove(false);
   if (mTraitFile)
-    mTraitFile->Remove(PR_FALSE);
+    mTraitFile->Remove(false);
   return NS_OK;
 }
 

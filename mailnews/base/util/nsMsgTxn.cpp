@@ -281,7 +281,7 @@ NS_IMETHODIMP nsMsgTxn::DoTransaction(void)
 NS_IMETHODIMP nsMsgTxn::GetIsTransient(bool *aIsTransient)
 {
   if (nsnull!=aIsTransient)
-    *aIsTransient = PR_FALSE;
+    *aIsTransient = false;
   else
     return NS_ERROR_NULL_POINTER;
   return NS_OK;

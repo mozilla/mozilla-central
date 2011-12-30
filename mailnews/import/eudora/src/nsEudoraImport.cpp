@@ -258,7 +258,7 @@ NS_IMETHODIMP nsEudoraImport::GetSupportsUpgrade( bool *pUpgrade)
   if (! pUpgrade)
     return NS_ERROR_NULL_POINTER;
 
-  *pUpgrade = PR_TRUE;
+  *pUpgrade = true;
   return( NS_OK);
 }
 
@@ -450,7 +450,7 @@ NS_IMETHODIMP ImportEudoraMailImpl::GetDefaultLocation( nsIFile **ppLoc, bool *f
 
   *ppLoc = nsnull;
   *found = m_eudora.FindMailFolder(ppLoc);
-  *userVerify = PR_TRUE;
+  *userVerify = true;
 
   return( NS_OK);
 }
@@ -536,7 +536,7 @@ NS_IMETHODIMP ImportEudoraMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pS
     IMPORT_LOG0( "*** Bad param passed to eudora mailbox import\n");
     nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_MAILBOX_BADPARAM, error);
     if (fatalError)
-      *fatalError = PR_TRUE;
+      *fatalError = true;
     SetLogs( success, error, pErrorLog, pSuccessLog);
     return NS_ERROR_NULL_POINTER;
   }
@@ -652,7 +652,7 @@ NS_IMETHODIMP ImportEudoraAddressImpl::GetAutoFind(PRUnichar **description, bool
     return NS_ERROR_NULL_POINTER;
 
   nsString  str;
-  *_retval = PR_FALSE;
+  *_retval = false;
   nsEudoraStringBundle::GetStringByID( EUDORAIMPORT_NICKNAMES_NAME, str);
   *description = ToNewUnicode(str);
 
@@ -670,7 +670,7 @@ NS_IMETHODIMP ImportEudoraAddressImpl::GetDefaultLocation(nsIFile **ppLoc, bool 
 
   *ppLoc = nsnull;
   *found = m_eudora.FindAddressFolder(ppLoc);
-  *userVerify = PR_TRUE;
+  *userVerify = true;
 
   return( NS_OK);
 }
@@ -733,7 +733,7 @@ ImportEudoraAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
     IMPORT_LOG0( "*** Bad param passed to eudora address import\n");
     nsEudoraStringBundle::GetStringByID(EUDORAIMPORT_ADDRESS_BADPARAM, error);
     if (fatalError)
-      *fatalError = PR_TRUE;
+      *fatalError = true;
     ImportEudoraMailImpl::SetLogs( success, error, pErrorLog, pSuccessLog);
       return NS_ERROR_NULL_POINTER;
   }

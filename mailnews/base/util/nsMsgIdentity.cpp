@@ -520,7 +520,7 @@ NS_IMETHODIMP nsMsgIdentity::GetBoolAttribute(const char *aName, bool *val)
   if (!mPrefBranch)
     return NS_ERROR_NOT_INITIALIZED;
 
-  *val = PR_FALSE;
+  *val = false;
 
   if (NS_FAILED(mPrefBranch->GetBoolPref(aName, val)))
     mDefPrefBranch->GetBoolPref(aName, val);

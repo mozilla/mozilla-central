@@ -122,7 +122,7 @@ static const AppendItem CUSTOM_ATTRS_ARRAY[] = {
 };
 
 nsAbCardProperty::nsAbCardProperty()
-  : m_IsMailList(PR_FALSE)
+  : m_IsMailList(false)
 {
   m_properties.Init();
 
@@ -131,7 +131,7 @@ nsAbCardProperty::nsAbCardProperty()
   SetPropertyAsUint32(kPopularityIndexProperty, 0);
   // Uninitialized...
   SetPropertyAsUint32(kLastModifiedDateProperty, 0);
-  SetPropertyAsBool(kAllowRemoteContentProperty, PR_FALSE);
+  SetPropertyAsBool(kAllowRemoteContentProperty, false);
 }
 
 nsAbCardProperty::~nsAbCardProperty(void)
@@ -410,21 +410,21 @@ NS_IMETHODIMP nsAbCardProperty::HasEmailAddress(const nsACString &aEmailAddress,
 {
   NS_ENSURE_ARG_POINTER(aResult);
 
-  *aResult = PR_FALSE;
+  *aResult = false;
 
   nsCString emailAddress;
   nsresult rv = GetPropertyAsAUTF8String(kPriEmailProperty, emailAddress);
   if (rv != NS_ERROR_NOT_AVAILABLE &&
       emailAddress.Equals(aEmailAddress, nsCaseInsensitiveCStringComparator()))
   {
-    *aResult = PR_TRUE;
+    *aResult = true;
     return NS_OK;
   }
 
   rv = GetPropertyAsAUTF8String(k2ndEmailProperty, emailAddress);
   if (rv != NS_ERROR_NOT_AVAILABLE &&
       emailAddress.Equals(aEmailAddress, nsCaseInsensitiveCStringComparator()))
-    *aResult = PR_TRUE;
+    *aResult = true;
 
   return NS_OK;
 }
@@ -501,7 +501,7 @@ NS_IMETHODIMP nsAbCardProperty::TranslateTo(const nsACString &type, nsACString &
 static VObject* myAddPropValue(VObject *o, const char *propName, const PRUnichar *propValue, bool *aCardHasData)
 {
     if (aCardHasData)
-        *aCardHasData = PR_TRUE;
+        *aCardHasData = true;
     return addPropValue(o, propName, NS_ConvertUTF16toUTF8(propValue).get());
 }
 
@@ -900,7 +900,7 @@ nsresult nsAbCardProperty::AppendSection(const AppendItem *aArray, PRInt16 aCoun
   for (i=0;i<aCount;i++) {
     rv = GetPropertyAsAString(aArray[i].mColumn, attrValue);
     if (NS_SUCCEEDED(rv) && !attrValue.IsEmpty())
-      sectionIsEmpty = PR_FALSE;
+      sectionIsEmpty = false;
   }
 
   if (!sectionIsEmpty && !aHeading.IsEmpty()) {

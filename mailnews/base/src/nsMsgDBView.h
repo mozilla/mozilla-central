@@ -308,7 +308,7 @@ protected:
   nsMsgKey  GetAt(nsMsgViewIndex index)
                   {return m_keys.SafeElementAt(index, nsMsgKey_None);}
   nsMsgViewIndex FindViewIndex(nsMsgKey  key)
-     {return FindKey(key, PR_FALSE);}
+     {return FindKey(key, false);}
   /**
    * Find the message header if it is visible in this view.  (Messages in
    *     threads/groups that are elided will not be

@@ -116,9 +116,9 @@ static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 ////////////////////////////////////////////////////////////////////////////////
 
 nsMsgNewsFolder::nsMsgNewsFolder(void) :
-     mExpungedBytes(0), mGettingNews(PR_FALSE),
-    mInitialized(PR_FALSE),
-    m_downloadMessageForOfflineUse(PR_FALSE), m_downloadingMultipleMessages(PR_FALSE),
+     mExpungedBytes(0), mGettingNews(false),
+    mInitialized(false),
+    m_downloadMessageForOfflineUse(false), m_downloadingMultipleMessages(false),
     mReadSet(nsnull)
 {
   MOZ_COUNT_CTOR(nsNewsFolder); // double count these for now.
@@ -264,7 +264,7 @@ nsMsgNewsFolder::GetSubFolders(nsISimpleEnumerator **aResult)
   {
     // do this first, so we make sure to do it, even on failure.
     // see bug #70494
-    mInitialized = PR_TRUE;
+    mInitialized = true;
 
     nsCOMPtr<nsILocalFile> path;
     nsresult rv = GetFilePath(getter_AddRefs(path));
@@ -276,7 +276,7 @@ nsMsgNewsFolder::GetSubFolders(nsISimpleEnumerator **aResult)
     // force ourselves to get initialized from cache
     // Don't care if it fails.  this will fail the first time after
     // migration, but we continue on.  see #66018
-    (void)UpdateSummaryTotals(PR_FALSE);
+    (void)UpdateSummaryTotals(false);
   }
 
   return aResult ? NS_NewArrayEnumerator(aResult, mSubFolders) : NS_ERROR_NULL_POINTER;
@@ -293,7 +293,7 @@ nsresult nsMsgNewsFolder::GetDatabase()
     NS_ENSURE_SUCCESS(rv,rv);
 
     // Get the database, blowing it away if it's out of date.
-    rv = msgDBService->OpenFolderDB(this, PR_FALSE, getter_AddRefs(mDatabase));
+    rv = msgDBService->OpenFolderDB(this, false, getter_AddRefs(mDatabase));
     if (NS_FAILED(rv))
       rv = msgDBService->CreateNewDB(this, getter_AddRefs(mDatabase));
     NS_ENSURE_SUCCESS(rv, rv);
@@ -309,7 +309,7 @@ nsresult nsMsgNewsFolder::GetDatabase()
     if (NS_FAILED(rv))
       return rv;
 
-    rv = UpdateSummaryTotals(PR_TRUE);
+    rv = UpdateSummaryTotals(true);
     if (NS_FAILED(rv))
       return rv;
   }
@@ -358,7 +358,7 @@ nsMsgNewsFolder::UpdateFolder(nsIMsgWindow *aWindow)
         nsCOMPtr<nsIMsgRetentionSettings> retentionSettings;
         nsresult rv = GetRetentionSettings(getter_AddRefs(retentionSettings));
         if (NS_SUCCEEDED(rv))
-          rv = mDatabase->ApplyRetentionSettings(retentionSettings, PR_FALSE);
+          rv = mDatabase->ApplyRetentionSettings(retentionSettings, false);
       }
       rv = AutoCompact(aWindow);
       NS_ENSURE_SUCCESS(rv,rv);
@@ -380,7 +380,7 @@ NS_IMETHODIMP
 nsMsgNewsFolder::GetCanSubscribe(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = PR_FALSE;
+  *aResult = false;
 
   bool isNewsServer = false;
   nsresult rv = GetIsServer(&isNewsServer);
@@ -396,7 +396,7 @@ nsMsgNewsFolder::GetCanFileMessages(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
   // you can't file messages into a news server or news group
-  *aResult = PR_FALSE;
+  *aResult = false;
   return NS_OK;
 }
 
@@ -404,7 +404,7 @@ NS_IMETHODIMP
 nsMsgNewsFolder::GetCanCreateSubfolders(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = PR_FALSE;
+  *aResult = false;
   // you can't create subfolders on a news server or a news group
   return NS_OK;
 }
@@ -413,7 +413,7 @@ NS_IMETHODIMP
 nsMsgNewsFolder::GetCanRename(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = PR_FALSE;
+  *aResult = false;
   // you can't rename a news server or a news group
   return NS_OK;
 }
@@ -422,7 +422,7 @@ NS_IMETHODIMP
 nsMsgNewsFolder::GetCanCompact(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = PR_FALSE;
+  *aResult = false;
   // you can't compact a news server or a news group
   return NS_OK;
 }
@@ -438,7 +438,7 @@ nsMsgNewsFolder::GetCanDeleteMessages(bool *aResult)
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Don't allow delete by default
-  *aResult = PR_FALSE;
+  *aResult = false;
   prefBranch->GetBoolPref("news.allow_delete_with_no_undo", aResult);
   return NS_OK;
 }
@@ -522,7 +522,7 @@ NS_IMETHODIMP nsMsgNewsFolder::CreateSubfolder(const nsAString& newsgroupName,
   rv = AddNewsgroup(NS_ConvertUTF16toUTF8(newsgroupName), EmptyCString(), getter_AddRefs(child));
 
   if (NS_SUCCEEDED(rv))
-    SetNewsrcHasChanged(PR_TRUE); // subscribe UI does this - but maybe we got here through auto-subscribe
+    SetNewsrcHasChanged(true); // subscribe UI does this - but maybe we got here through auto-subscribe
 
   if(NS_SUCCEEDED(rv) && child){
     nsCOMPtr <nsINntpIncomingServer> nntpServer;
@@ -565,7 +565,7 @@ NS_IMETHODIMP nsMsgNewsFolder::Delete()
       rv = folderPath->Exists(&exists);
 
       if (NS_SUCCEEDED(rv) && exists)
-        rv = folderPath->Remove(PR_FALSE);
+        rv = folderPath->Remove(false);
 
       if (NS_FAILED(rv))
         NS_WARNING("Failed to remove News Folder");
@@ -573,7 +573,7 @@ NS_IMETHODIMP nsMsgNewsFolder::Delete()
       rv = summaryPath->Exists(&exists);
 
       if (NS_SUCCEEDED(rv) && exists)
-        rv = summaryPath->Remove(PR_FALSE);
+        rv = summaryPath->Remove(false);
 
       if (NS_FAILED(rv))
         NS_WARNING("Failed to remove News Folder Summary File");
@@ -591,7 +591,7 @@ NS_IMETHODIMP nsMsgNewsFolder::Delete()
   rv = nntpServer->RemoveNewsgroup(name);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  return SetNewsrcHasChanged(PR_TRUE);
+  return SetNewsrcHasChanged(true);
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::Rename(const nsAString& newName, nsIMsgWindow *msgWindow)
@@ -736,7 +736,7 @@ nsMsgNewsFolder::UpdateSummaryFromNNTPInfo(PRInt32 oldest, PRInt32 youngest, PRI
     mReadSet->AddRange(1, oldest - 1);
     mReadSet->Output(getter_Copies(newSet));
     if (!oldSet.Equals(newSet))
-      newsrcHasChanged = PR_TRUE;
+      newsrcHasChanged = true;
   }
 
   /* Now search the newsrc line and figure out how many of these messages are marked as unread. */
@@ -821,7 +821,7 @@ nsMsgNewsFolder::DeleteMessages(nsIArray *messages, nsIMsgWindow *aMsgWindow,
   rv = GetDatabase();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = EnableNotifications(allMessageCountNotifications, PR_FALSE, PR_TRUE);
+  rv = EnableNotifications(allMessageCountNotifications, false, true);
   if (NS_SUCCEEDED(rv))
   {
     PRUint32 count = 0;
@@ -832,9 +832,9 @@ nsMsgNewsFolder::DeleteMessages(nsIArray *messages, nsIMsgWindow *aMsgWindow,
     {
       nsCOMPtr<nsIMsgDBHdr> msgHdr = do_QueryElementAt(messages, i, &rv);
       if (msgHdr)
-        rv = mDatabase->DeleteHeader(msgHdr, nsnull, PR_TRUE, PR_TRUE);
+        rv = mDatabase->DeleteHeader(msgHdr, nsnull, true, true);
     }
-    EnableNotifications(allMessageCountNotifications, PR_TRUE, PR_TRUE);
+    EnableNotifications(allMessageCountNotifications, true, true);
   }
  
   if (!isMove) 
@@ -892,12 +892,12 @@ NS_IMETHODIMP nsMsgNewsFolder::CancelMessage(nsIMsgDBHdr *msgHdr,
 
 NS_IMETHODIMP nsMsgNewsFolder::GetNewMessages(nsIMsgWindow *aMsgWindow, nsIUrlListener *aListener)
 {
-  return GetNewsMessages(aMsgWindow, PR_FALSE, aListener);
+  return GetNewsMessages(aMsgWindow, false, aListener);
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::GetNextNMessages(nsIMsgWindow *aMsgWindow)
 {
-  return GetNewsMessages(aMsgWindow, PR_TRUE, nsnull);
+  return GetNewsMessages(aMsgWindow, true, nsnull);
 }
 
 nsresult nsMsgNewsFolder::GetNewsMessages(nsIMsgWindow *aMsgWindow, bool aGetOld, nsIUrlListener *aUrlListener)
@@ -1018,7 +1018,7 @@ nsMsgNewsFolder::HandleNewsrcLine(const char * line, PRUint32 line_size)
   // 3746EF3F.6080309%40netscape.com:
   if (PL_strchr(line, '@') || PL_strstr(line, "%40"))
     // skipping, it contains @ or %40
-    subscribed = PR_FALSE;
+    subscribed = false;
 
   if (subscribed)
   {
@@ -1312,7 +1312,7 @@ NS_IMETHODIMP nsMsgNewsFolder::MoveFolder(nsIMsgFolder *aNewsgroupToMove, nsIMsg
   rv = GetNntpServer(getter_AddRefs(nntpServer));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = nntpServer->SetNewsrcHasChanged(PR_TRUE);
+  rv = nntpServer->SetNewsrcHasChanged(true);
   NS_ENSURE_SUCCESS(rv,rv);
 
   rv = nntpServer->WriteNewsrcFile();
@@ -1601,7 +1601,7 @@ nsMsgNewsFolder::GetOptionLines(nsACString& optionLines)
 NS_IMETHODIMP
 nsMsgNewsFolder::OnReadChanged(nsIDBChangeListener * aInstigator)
 {
-  return SetNewsrcHasChanged(PR_TRUE);
+  return SetNewsrcHasChanged(true);
 }
 
 NS_IMETHODIMP
@@ -1673,11 +1673,11 @@ NS_IMETHODIMP nsMsgNewsFolder::RemoveMessage(nsMsgKey key)
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIMutableArray> msgHdrs(do_CreateInstance(NS_ARRAY_CONTRACTID));
-    msgHdrs->AppendElement(msgHdr, PR_FALSE);
+    msgHdrs->AppendElement(msgHdr, false);
 
     notifier->NotifyMsgsDeleted(msgHdrs);
   }
-  return mDatabase->DeleteMessage(key, nsnull, PR_FALSE);
+  return mDatabase->DeleteMessage(key, nsnull, false);
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::RemoveMessages(nsTArray<nsMsgKey> &aMsgKeys)
@@ -1728,7 +1728,7 @@ NS_IMETHODIMP nsMsgNewsFolder::SetSaveArticleOffline(bool aBool)
 NS_IMETHODIMP nsMsgNewsFolder::DownloadAllForOffline(nsIUrlListener *listener, nsIMsgWindow *msgWindow)
 {
   nsTArray<nsMsgKey> srcKeyArray;
-  SetSaveArticleOffline(PR_TRUE);
+  SetSaveArticleOffline(true);
   nsresult rv;
 
   // build up message keys.
@@ -1759,14 +1759,14 @@ NS_IMETHODIMP nsMsgNewsFolder::DownloadAllForOffline(nsIUrlListener *listener, n
   DownloadNewsArticlesToOfflineStore *downloadState = new DownloadNewsArticlesToOfflineStore(msgWindow, mDatabase, this);
   if (!downloadState)
     return NS_ERROR_OUT_OF_MEMORY;
-  m_downloadingMultipleMessages = PR_TRUE;
+  m_downloadingMultipleMessages = true;
   return downloadState->DownloadArticles(msgWindow, this, &srcKeyArray);
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::DownloadMessagesForOffline(nsIArray *messages, nsIMsgWindow *window)
 {
   nsTArray<nsMsgKey> srcKeyArray;
-  SetSaveArticleOffline(PR_TRUE); // ### TODO need to clear this when we've finished
+  SetSaveArticleOffline(true); // ### TODO need to clear this when we've finished
   PRUint32 count = 0;
   PRUint32 i;
   nsresult rv = messages->GetLength(&count);
@@ -1785,7 +1785,7 @@ NS_IMETHODIMP nsMsgNewsFolder::DownloadMessagesForOffline(nsIArray *messages, ns
   DownloadNewsArticlesToOfflineStore *downloadState = new DownloadNewsArticlesToOfflineStore(window, mDatabase, this);
   if (!downloadState)
     return NS_ERROR_OUT_OF_MEMORY;
-  m_downloadingMultipleMessages = PR_TRUE;
+  m_downloadingMultipleMessages = true;
   return downloadState->DownloadArticles(window, this, &srcKeyArray);
 }
 
@@ -1864,7 +1864,7 @@ NS_IMETHODIMP nsMsgNewsFolder::Compact(nsIUrlListener *aListener, nsIMsgWindow *
 NS_IMETHODIMP
 nsMsgNewsFolder::ApplyRetentionSettings()
 {
-  return nsMsgDBFolder::ApplyRetentionSettings(PR_FALSE);
+  return nsMsgDBFolder::ApplyRetentionSettings(false);
 }
 
 NS_IMETHODIMP nsMsgNewsFolder::GetMessageIdForKey(nsMsgKey key, nsACString& result)
@@ -1910,7 +1910,7 @@ NS_IMETHODIMP nsMsgNewsFolder::Shutdown(bool shutdownChildren)
     mFilterList = nsnull;
   }
 
-  mInitialized = PR_FALSE;
+  mInitialized = false;
   if (mReadSet) {
     // the nsINewsDatabase holds a weak ref to the readset,
     // and we outlive the db, so it's safe to delete it here.
@@ -2011,6 +2011,6 @@ nsMsgNewsFolder::OnStopRunningUrl(nsIURI *aUrl, nsresult aExitCode)
     m_tempMessageStream->Close();
     m_tempMessageStream = nsnull;
   }
-  m_downloadingMultipleMessages = PR_FALSE;
+  m_downloadingMultipleMessages = false;
   return nsMsgDBFolder::OnStopRunningUrl(aUrl, aExitCode);
 }

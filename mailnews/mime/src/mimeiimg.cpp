@@ -124,11 +124,11 @@ MimeInlineImage_parse_begin (MimeObject *obj)
 
         if (no_part_url)
         {
-          image_url = mime_set_url_part(no_part_url, part, PR_TRUE);
+          image_url = mime_set_url_part(no_part_url, part, true);
           PR_Free(no_part_url);
         }
         else
-          image_url = mime_set_url_part(obj->options->url, part, PR_TRUE);
+          image_url = mime_set_url_part(obj->options->url, part, true);
 
     if (!image_url)
     {
@@ -167,7 +167,7 @@ MimeInlineImage_parse_begin (MimeObject *obj)
     html = obj->options->make_image_html(img->image_data);
     if (!html) return MIME_OUT_OF_MEMORY;
 
-    status = MimeObject_write(obj, html, strlen(html), PR_TRUE);
+    status = MimeObject_write(obj, html, strlen(html), true);
     PR_Free(html);
     if (status < 0) return status;
   }
@@ -198,7 +198,7 @@ MimeInlineImage_parse_eof (MimeObject *obj, bool abort_p)
 
   /* Force out any buffered data from the superclass (the base64 decoder.) */
   status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_eof(obj, abort_p);
-  if (status < 0) abort_p = PR_TRUE;
+  if (status < 0) abort_p = true;
 
   if (img->image_data)
   {
@@ -243,7 +243,7 @@ MimeInlineImage_parse_decoded_buffer (const char *buf, PRInt32 size, MimeObject 
       NS_ASSERTION(obj->options->state->first_data_written_p, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
     }
 
-    return MimeObject_write(obj, buf, size, PR_TRUE);
+    return MimeObject_write(obj, buf, size, true);
   }
 
 

@@ -202,8 +202,8 @@ NS_IMETHODIMP nsMsgRuleAction::GetCustomAction(nsIMsgFilterCustomAction **aCusto
 }
 
 nsMsgFilter::nsMsgFilter():
-    m_temporary(PR_FALSE),
-    m_unparseable(PR_FALSE),
+    m_temporary(false),
+    m_unparseable(false),
     m_filterList(nsnull),
     m_expressionTree(nsnull)
 {
@@ -266,7 +266,7 @@ NS_IMETHODIMP nsMsgFilter::AddTerm(
                                    nsMsgSearchOpValue op,         /* operator e.g. opContains           */
                                    nsIMsgSearchValue *value,        /* value e.g. "Dogbert"               */
                                   bool BooleanAND,       /* true if AND is the boolean operator.
-                                                            PR_FALSE if OR is the boolean operators */
+                                                            false if OR is the boolean operators */
                                   const nsACString & arbitraryHeader)  /* arbitrary header specified by user.
                                   ignored unless attrib = attribOtherHeader */
 {
@@ -758,7 +758,7 @@ nsresult nsMsgFilter::ConvertMoveOrCopyToFolderValue(nsIMsgRuleAction *filterAct
           rv = NS_MsgEscapeEncodeURLPath(unicodeStr, moveValue);
         }
         destFolderUri.Append(moveValue);
-        localMailRootMsgFolder->GetChildWithURI (destFolderUri, PR_TRUE, PR_FALSE /*caseInsensitive*/, getter_AddRefs(destIMsgFolder));
+        localMailRootMsgFolder->GetChildWithURI (destFolderUri, true, false /*caseInsensitive*/, getter_AddRefs(destIMsgFolder));
 
         if (destIMsgFolder)
         {
@@ -783,7 +783,7 @@ nsresult nsMsgFilter::SaveToTextFile(nsIOutputStream *aStream)
   {
     PRUint32 bytesWritten;
     //we need to trim leading whitespaces before filing out
-    m_unparsedBuffer.Trim(kWhitespace, PR_TRUE /*leadingCharacters*/, PR_FALSE /*trailingCharacters*/);
+    m_unparsedBuffer.Trim(kWhitespace, true /*leadingCharacters*/, false /*trailingCharacters*/);
     return aStream->Write(m_unparsedBuffer.get(), m_unparsedBuffer.Length(), &bytesWritten);
   }
   nsresult err = m_filterList->WriteWstrAttr(nsIMsgFilterList::attribName, m_filterName.get(), aStream);

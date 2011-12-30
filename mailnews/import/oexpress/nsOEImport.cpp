@@ -226,7 +226,7 @@ NS_IMETHODIMP nsOEImport::GetSupportsUpgrade( bool *pUpgrade)
   if (! pUpgrade)
     return NS_ERROR_NULL_POINTER;
 
-  *pUpgrade = PR_TRUE;
+  *pUpgrade = true;
   return( NS_OK);
 }
 
@@ -347,14 +347,14 @@ NS_IMETHODIMP ImportOEMailImpl::GetDefaultLocation( nsIFile **ppLoc, bool *found
     return rv;
 
   if (nsOEScanBoxes::FindMail(file)) {
-    *found = PR_TRUE;
+    *found = true;
     NS_IF_ADDREF(*ppLoc = file);
   }
   else {
-    *found = PR_FALSE;
+    *found = false;
     *ppLoc = nsnull;
   }
-  *userVerify = PR_TRUE;
+  *userVerify = true;
   return( NS_OK);
 }
 
@@ -435,7 +435,7 @@ NS_IMETHODIMP ImportOEMailImpl::ImportMailbox(nsIImportMailboxDescriptor *pSourc
   if (!pSource || !pDestination || !fatalError) {
     nsOEStringBundle::GetStringByID( OEIMPORT_MAILBOX_BADPARAM, error);
     if (fatalError)
-      *fatalError = PR_TRUE;
+      *fatalError = true;
     SetLogs( success, error, pErrorLog, pSuccessLog);
     return NS_ERROR_NULL_POINTER;
   }
@@ -529,7 +529,7 @@ NS_IMETHODIMP ImportOEAddressImpl::GetAutoFind(PRUnichar **description, bool *_r
   if (! description || !_retval)
     return NS_ERROR_NULL_POINTER;
 
-  *_retval = PR_TRUE;
+  *_retval = true;
   nsString str;
   str.Append(nsOEStringBundle::GetStringByID(OEIMPORT_AUTOFIND));
   *description = ToNewUnicode(str);
@@ -616,7 +616,7 @@ NS_IMETHODIMP ImportOEAddressImpl::ImportAddressBook(nsIImportABDescriptor *sour
   {
     nsOEStringBundle::GetStringByID( OEIMPORT_ADDRESS_BADPARAM, error);
     if (fatalError)
-      *fatalError = PR_TRUE;
+      *fatalError = true;
     ImportOEMailImpl::SetLogs( success, error, errorLog, successLog);
     return NS_ERROR_NULL_POINTER;
   }

@@ -103,7 +103,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
 
   // This is an infinite loop that is broken when we no longer find profiles
   // for profileID with IsRelative option.
-  for (unsigned int c = 0; PR_TRUE; ++c) {
+  for (unsigned int c = 0; true; ++c) {
     nsCAutoString profileID("Profile");
     profileID.AppendInt(c);
 
@@ -125,7 +125,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
     }
 
     nsCOMPtr<nsILocalFile> rootDir;
-    rv = NS_NewNativeLocalFile(EmptyCString(), PR_TRUE, getter_AddRefs(rootDir));
+    rv = NS_NewNativeLocalFile(EmptyCString(), true, getter_AddRefs(rootDir));
     NS_ENSURE_SUCCESS(rv, rv);
 
     rv = isRelative ? rootDir->SetRelativeDescriptor(aDataDir, filePath) :
@@ -137,13 +137,13 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
     rootDir->Exists(&exists);
 
     if (exists) {
-      aProfileLocations->AppendElement(rootDir, PR_FALSE);
+      aProfileLocations->AppendElement(rootDir, false);
 
       nsCOMPtr<nsISupportsString> profileNameString(
         do_CreateInstance("@mozilla.org/supports-string;1"));
 
       profileNameString->SetData(NS_ConvertUTF8toUTF16(buffer));
-      aProfileNames->AppendElement(profileNameString, PR_FALSE);
+      aProfileNames->AppendElement(profileNameString, false);
     }
   }
   return NS_OK;
@@ -152,7 +152,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
 #define GETPREF(xform, method, value) \
   nsresult rv = aBranch->method(xform->sourcePrefName, value); \
   if (NS_SUCCEEDED(rv)) \
-    xform->prefHasValue = PR_TRUE; \
+    xform->prefHasValue = true; \
   return rv;
 
 #define SETPREF(xform, method, value) \
@@ -227,7 +227,7 @@ nsNetscapeProfileMigratorBase::CopyFile(const nsAString& aSourceFileName, const 
   targetFile->Append(aTargetFileName);
   targetFile->Exists(&exists);
   if (exists)
-    targetFile->Remove(PR_FALSE);
+    targetFile->Remove(false);
 
   return sourceFile->CopyTo(mTargetProfile, aTargetFileName);
 }
@@ -447,7 +447,7 @@ nsNetscapeProfileMigratorBase::GetSourceHasMultipleProfiles(bool* aResult)
     *aResult = count > 1;
   }
   else
-    *aResult = PR_FALSE;
+    *aResult = false;
 
   return NS_OK;
 }
@@ -464,7 +464,7 @@ nsNetscapeProfileMigratorBase::GetSourceExists(bool* aResult)
     *aResult = count > 0;
   }
   else
-    *aResult = PR_FALSE;
+    *aResult = false;
 
   return NS_OK;
 }

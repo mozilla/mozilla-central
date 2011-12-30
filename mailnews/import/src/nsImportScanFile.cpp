@@ -42,8 +42,8 @@
 
 nsImportScanFile::nsImportScanFile()
 {
-  m_allocated = PR_FALSE;
-  m_eof = PR_FALSE;
+  m_allocated = false;
+  m_eof = false;
   m_pBuf = nsnull;
 }
 
@@ -96,7 +96,7 @@ bool nsImportScanFile::FillBufferFromFile( void)
   PRUint32 available;
   nsresult rv = m_pInputStream->Available( &available);
   if (NS_FAILED(rv))
-    return( PR_FALSE);
+    return( false);
 
   // Fill up a buffer and scan it
   ShiftBuffer();
@@ -112,13 +112,13 @@ bool nsImportScanFile::FillBufferFromFile( void)
   rv = m_pInputStream->Read(pBuf, (PRInt32) cnt, &read);
 
   if (NS_FAILED( rv))
-    return( PR_FALSE);
+    return( false);
   rv = m_pInputStream->Available( &available);
   if (NS_FAILED(rv))
-          m_eof = PR_TRUE;
+          m_eof = true;
 
   m_bytesInBuf += cnt;
-  return( PR_TRUE);
+  return( true);
 }
 
 bool nsImportScanFile::Scan( bool *pDone)
@@ -129,20 +129,20 @@ bool nsImportScanFile::Scan( bool *pDone)
         {
     if (m_pos < m_bytesInBuf)
       ScanBuffer( pDone);
-    *pDone = PR_TRUE;
-    return( PR_TRUE);
+    *pDone = true;
+    return( true);
   }
 
   // Fill up a buffer and scan it
   if (!FillBufferFromFile())
-    return( PR_FALSE);
+    return( false);
 
   return( ScanBuffer( pDone));
 }
 
 bool nsImportScanFile::ScanBuffer( bool *)
 {
-  return( PR_TRUE);
+  return( true);
 }
 
 
@@ -164,7 +164,7 @@ bool nsImportScanFileLines::ScanBuffer( bool *pDone)
       }
       m_pos = pos;
       if (pos < max)
-        m_needEol = PR_FALSE;
+        m_needEol = false;
       if (pos == max) // need more buffer for an end of line
         break;
     }
@@ -188,17 +188,17 @@ bool nsImportScanFileLines::ScanBuffer( bool *pDone)
     if ((pos == max) && !m_eof) {
       if (!m_pos) { // line too big for our buffer
         m_pos = pos;
-        m_needEol = PR_TRUE;
+        m_needEol = true;
       }
       break;
     }
 
     if (!ProcessLine( m_pBuf + startPos, pos - startPos, pDone)) {
-      return( PR_FALSE);
+      return( false);
     }
     m_pos = pos;
   }
 
-  return( PR_TRUE);
+  return( true);
 }
 

@@ -175,42 +175,42 @@ morkCursor::IsFrozenMdbObject(nsIMdbEnv* mev, mdb_bool* outIsReadonly)
 NS_IMETHODIMP
 morkCursor::GetCount(nsIMdbEnv* mev, mdb_count* outCount)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 morkCursor::GetSeed(nsIMdbEnv* mev, mdb_seed* outSeed)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 morkCursor::SetPos(nsIMdbEnv* mev, mdb_pos inPos)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 morkCursor::GetPos(nsIMdbEnv* mev, mdb_pos* outPos)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 morkCursor::SetDoFailOnSeedOutOfSync(nsIMdbEnv* mev, mdb_bool inFail)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP
 morkCursor::GetDoFailOnSeedOutOfSync(nsIMdbEnv* mev, mdb_bool* outFail)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 

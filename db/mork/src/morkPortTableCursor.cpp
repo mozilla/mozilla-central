@@ -351,7 +351,7 @@ morkPortTableCursor::NextTable(morkEnv* ev)
 NS_IMETHODIMP
 morkPortTableCursor::SetPort(nsIMdbEnv* mev, nsIMdbPort* ioPort)
 {
-  NS_ASSERTION(PR_FALSE,"not implemented");
+  NS_ASSERTION(false,"not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 

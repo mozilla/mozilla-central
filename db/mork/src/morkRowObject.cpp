@@ -202,7 +202,7 @@ NS_IMETHODIMP
 morkRowObject::BecomeContent(nsIMdbEnv* mev,
   const mdbOid* inOid)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
   // remember row->MaybeDirtySpaceStoreAndRow();
 }
@@ -213,7 +213,7 @@ NS_IMETHODIMP
 morkRowObject::DropActivity( // tell collection usage no longer expected
   nsIMdbEnv* mev)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 // } ----- end activity dropping methods -----

@@ -60,7 +60,7 @@ NS_INTERFACE_MAP_END
 nsSmtpServer::nsSmtpServer():
     mKey("")
 {
-    m_logonFailed = PR_FALSE;
+    m_logonFailed = false;
     getPrefs();
 }
 
@@ -547,7 +547,7 @@ nsSmtpServer::ForgetPassword()
   NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(count, logins);
 
   rv = SetPassword(EmptyCString());
-  m_logonFailed = PR_TRUE;
+  m_logonFailed = true;
   return rv;
 }
 

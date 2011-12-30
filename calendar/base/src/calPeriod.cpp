@@ -47,12 +47,12 @@ NS_IMPL_CLASSINFO(calPeriod, NULL, 0, CAL_PERIOD_CID)
 NS_IMPL_ISUPPORTS1_CI(calPeriod, calIPeriod)
 
 calPeriod::calPeriod()
-    : mImmutable(PR_FALSE)
+    : mImmutable(false)
 {
 }
 
 calPeriod::calPeriod(const calPeriod& cpt)
-    : mImmutable(PR_FALSE)
+    : mImmutable(false)
 {
     if (cpt.mStart)
         cpt.mStart->Clone(getter_AddRefs(mStart));
@@ -61,7 +61,7 @@ calPeriod::calPeriod(const calPeriod& cpt)
 }
 
 calPeriod::calPeriod(struct icalperiodtype const* aPeriodPtr)
-    : mImmutable(PR_FALSE)
+    : mImmutable(false)
 {
     FromIcalPeriod(aPeriodPtr);
 }
@@ -78,7 +78,7 @@ calPeriod::GetIsMutable(bool *aResult)
 NS_IMETHODIMP
 calPeriod::MakeImmutable()
 {
-    mImmutable = PR_TRUE;
+    mImmutable = true;
     return NS_OK;
 }
 

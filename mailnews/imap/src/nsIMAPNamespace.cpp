@@ -123,7 +123,7 @@ nsresult nsIMAPNamespaceList::InitFromString(const char *nameSpaceString, EIMAPN
 				char delimiter = '/';	// a guess
 				if (PL_strlen(thisns) >= 1)
 					delimiter = thisns[PL_strlen(thisns)-1];
-				nsIMAPNamespace *ns = new nsIMAPNamespace(nstype, thisns, delimiter, PR_TRUE);
+				nsIMAPNamespace *ns = new nsIMAPNamespace(nstype, thisns, delimiter, true);
 				if (ns)
 					AddNewNamespace(ns);
 				PR_FREEIF(thisns);
@@ -221,7 +221,7 @@ nsIMAPNamespace *nsIMAPNamespaceList::GetDefaultNamespaceOfType(EIMAPNamespaceTy
 
 nsIMAPNamespaceList::~nsIMAPNamespaceList()
 {
-	ClearNamespaces(PR_TRUE, PR_TRUE, PR_TRUE);
+	ClearNamespaces(true, true, true);
 }
 
 // ClearNamespaces removes and deletes the namespaces specified, and if there are no namespaces left,
@@ -503,7 +503,7 @@ nsIMAPNamespace* nsIMAPNamespaceList::GetNamespaceForFolder(const char *hostName
   }
   else
   {
-    NS_ASSERTION(PR_FALSE, "couldn't get converted folder name");
+    NS_ASSERTION(false, "couldn't get converted folder name");
   }
   
   return resultNamespace;
@@ -530,7 +530,7 @@ char *nsIMAPNamespaceList::GetFolderOwnerNameFromPath(nsIMAPNamespace *namespace
 {
   if (!namespaceForFolder || !canonicalFolderName)
   {
-    NS_ASSERTION(PR_FALSE,"null namespace or canonical folder name");
+    NS_ASSERTION(false,"null namespace or canonical folder name");
     return nsnull;
   }
   
@@ -559,7 +559,7 @@ char *nsIMAPNamespaceList::GetFolderOwnerNameFromPath(nsIMAPNamespace *namespace
   }
   else
   {
-    NS_ASSERTION(PR_FALSE, "couldn't allocate server folder name");
+    NS_ASSERTION(false, "couldn't allocate server folder name");
   }
   
   return rv;
@@ -581,7 +581,7 @@ bool nsIMAPNamespaceList::GetFolderIsNamespace(const char *hostName,
   const char *prefix = namespaceForFolder->GetPrefix();
   NS_ASSERTION(prefix, "namespace has no prefix");
   if (!prefix || !*prefix)	// empty namespace prefix
-    return PR_FALSE;
+    return false;
   
   char *convertedFolderName = AllocateServerFolderName(canonicalFolderName, delimiter);
   if (convertedFolderName)
@@ -602,7 +602,7 @@ bool nsIMAPNamespaceList::GetFolderIsNamespace(const char *hostName,
   }
   else
   {
-    NS_ASSERTION(PR_FALSE, "couldn't allocate server folder name");
+    NS_ASSERTION(false, "couldn't allocate server folder name");
   }
   
   return rv;
@@ -619,7 +619,7 @@ void nsIMAPNamespaceList::SuggestHierarchySeparatorForNamespace(nsIMAPNamespace 
 {
   NS_ASSERTION(namespaceForFolder, "need namespace");
   if (namespaceForFolder && !namespaceForFolder->GetIsDelimiterFilledIn())
-    namespaceForFolder->SetDelimiter(delimiterFromFolder, PR_FALSE);
+    namespaceForFolder->SetDelimiter(delimiterFromFolder, false);
 }
 
 
@@ -676,13 +676,13 @@ char *nsIMAPNamespaceList::GenerateFullFolderNameWithDefaultNamespace(const char
     }
     else
     {
-      NS_ASSERTION(PR_FALSE, "couldn't allocate server folder name");
+      NS_ASSERTION(false, "couldn't allocate server folder name");
     }
   }
   else
   {
     // Could not find other users namespace on the given host
-    NS_ASSERTION(PR_FALSE, "couldn't find namespace for given host");
+    NS_ASSERTION(false, "couldn't find namespace for given host");
   }
   return (fullFolderName);
 }

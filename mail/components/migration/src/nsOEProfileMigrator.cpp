@@ -51,7 +51,7 @@ NS_IMPL_ISUPPORTS2(nsOEProfileMigrator, nsIMailProfileMigrator, nsITimerCallback
 
 nsOEProfileMigrator::nsOEProfileMigrator()
 {
-  mProcessingMailFolders = PR_FALSE;
+  mProcessingMailFolders = false;
   // get the import service
   mImportModule = do_CreateInstance("@mozilla.org/import/import-oe;1");
 }
@@ -136,7 +136,7 @@ nsOEProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
 NS_IMETHODIMP
 nsOEProfileMigrator::GetSourceExists(bool* aResult)
 {
-  *aResult = PR_FALSE;
+  *aResult = false;
 
   nsCOMPtr<nsIImportSettings> importSettings;
   mImportModule->GetImportInterface(NS_IMPORT_SETTINGS_STR, getter_AddRefs(importSettings));
@@ -154,7 +154,7 @@ nsOEProfileMigrator::GetSourceExists(bool* aResult)
 NS_IMETHODIMP
 nsOEProfileMigrator::GetSourceHasMultipleProfiles(bool* aResult)
 {
-  *aResult = PR_FALSE;
+  *aResult = false;
   return NS_OK;
 }
 

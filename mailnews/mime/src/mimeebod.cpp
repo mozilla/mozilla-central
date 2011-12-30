@@ -129,7 +129,7 @@ MimeExternalBody_parse_line (const char *line, PRInt32 length, MimeObject *obj)
   if (obj->options &&
     !obj->options->write_html_p &&
     obj->options->output_fn)
-  return MimeObject_write(obj, line, length, PR_TRUE);
+  return MimeObject_write(obj, line, length, true);
 
 
   /* If we already have a `body' then we're done parsing headers, and all
@@ -300,7 +300,7 @@ MimeExternalBody_parse_eof (MimeObject *obj, bool abort_p)
     MimeDisplayOptions *newopt = obj->options;  /* copy it */
 
     char *ct = MimeHeaders_get(obj->headers, HEADER_CONTENT_TYPE,
-                               PR_FALSE, PR_FALSE);
+                               false, false);
     char *at, *lexp, *size, *perm;
     char *url, *dir, *mode, *name, *site, *svr, *subj;
     char *h = 0, *lname = 0, *lurl = 0, *body = 0;
@@ -323,7 +323,7 @@ MimeExternalBody_parse_eof (MimeObject *obj, bool abort_p)
 
     /* the *internal* content-type */
     ct = MimeHeaders_get(bod->hdrs, HEADER_CONTENT_TYPE,
-                         PR_TRUE, PR_FALSE);
+                         true, false);
 						 
     PRUint32 hlen = ((at ? strlen(at) : 0) +
                     (lexp ? strlen(lexp) : 0) +
@@ -402,10 +402,10 @@ MimeExternalBody_parse_eof (MimeObject *obj, bool abort_p)
     else
     {
       lname = MimeGetStringByID(MIME_MSG_DOCUMENT_INFO);
-      all_headers_p = PR_TRUE;
+      all_headers_p = true;
     }
 
-    all_headers_p = PR_TRUE;  /* #### just do this all the time? */
+    all_headers_p = true;  /* #### just do this all the time? */
 
     if (bod->body && all_headers_p)
     {
@@ -434,7 +434,7 @@ MimeExternalBody_parse_eof (MimeObject *obj, bool abort_p)
       }
     }
 
-    newopt->fancy_headers_p = PR_TRUE;
+    newopt->fancy_headers_p = true;
     newopt->headers = (all_headers_p ? MimeHeadersAll : MimeHeadersSome);
 
 FAIL:
@@ -476,9 +476,9 @@ MimeExternalBody_debug_print (MimeObject *obj, PRFileDesc *stream, PRInt32 depth
   char *addr = mime_part_address(obj);
 
   if (obj->headers)
-  ct = MimeHeaders_get (obj->headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
+  ct = MimeHeaders_get (obj->headers, HEADER_CONTENT_TYPE, false, false);
   if (bod->hdrs)
-  ct2 = MimeHeaders_get (bod->hdrs, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
+  ct2 = MimeHeaders_get (bod->hdrs, HEADER_CONTENT_TYPE, false, false);
 
   for (i=0; i < depth; i++)
   PR_Write(stream, "  ", 2);
@@ -507,7 +507,7 @@ static bool
 MimeExternalBody_displayable_inline_p (MimeObjectClass *clazz,
                      MimeHeaders *hdrs)
 {
-  char *ct = MimeHeaders_get (hdrs, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
+  char *ct = MimeHeaders_get (hdrs, HEADER_CONTENT_TYPE, false, false);
   char *at = MimeHeaders_get_parameter(ct, "access-type", NULL, NULL);
   bool inline_p = false;
 
@@ -518,7 +518,7 @@ MimeExternalBody_displayable_inline_p (MimeObjectClass *clazz,
        !PL_strcasecmp(at, "local-file") ||
        !PL_strcasecmp(at, "mail-server") ||
        !PL_strcasecmp(at, "url"))
-  inline_p = PR_TRUE;
+  inline_p = true;
 #ifdef XP_UNIX
   else if (!PL_strcasecmp(at, "afs"))   /* only if there is a /afs/ directory */
   {
@@ -532,7 +532,7 @@ MimeExternalBody_displayable_inline_p (MimeObjectClass *clazz,
     if  (!exists)
       return 0;
 
-    inline_p = PR_TRUE;
+    inline_p = true;
   }
 #endif /* XP_UNIX */
 

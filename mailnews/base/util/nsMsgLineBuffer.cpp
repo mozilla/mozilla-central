@@ -103,7 +103,7 @@ nsMsgLineBuffer::nsMsgLineBuffer(nsMsgLineBufferHandler *handler, bool convertNe
   MOZ_COUNT_CTOR(nsMsgLineBuffer);
   m_handler = handler;
   m_convertNewlinesP = convertNewlinesP;
-  m_lookingForCRLF = PR_TRUE;
+  m_lookingForCRLF = true;
 }
 
 nsMsgLineBuffer::~nsMsgLineBuffer()
@@ -211,7 +211,7 @@ PRInt32  nsMsgLineBuffer::BufferInput(const char *net_buffer, PRInt32 net_buffer
 
 PRInt32 nsMsgLineBuffer::HandleLine(char *line, PRUint32 line_length)
 {
-  NS_ASSERTION(PR_FALSE, "must override this method if you don't provide a handler");
+  NS_ASSERTION(false, "must override this method if you don't provide a handler");
   return 0;
 }
 
@@ -320,7 +320,7 @@ void nsMsgLineStreamBuffer::ClearBuffer()
 }
 
 // aInputStream - the input stream we want to read a line from
-// aPauseForMoreData is returned as PR_TRUE if the stream does not yet contain a line and we must wait for more
+// aPauseForMoreData is returned as true if the stream does not yet contain a line and we must wait for more
 // data to come into the stream.
 // Note to people wishing to modify this function: Be *VERY CAREFUL* this is a critical function used by all of
 // our mail protocols including imap, nntp, and pop. If you screw it up, you could break a lot of stuff.....
@@ -336,7 +336,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
   if (prv)
     *prv = NS_OK;
   // initialize out values
-  aPauseForMoreData = PR_FALSE;
+  aPauseForMoreData = false;
   aNumBytesInLine = 0;
   char * endOfLine = nsnull;
   char * startOfLine = m_dataBuffer+m_startPos;
@@ -434,7 +434,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
     if (!newLine)
     {
       aNumBytesInLine = 0;
-      aPauseForMoreData = PR_TRUE;
+      aPauseForMoreData = true;
       return nsnull;
     }
     
@@ -458,7 +458,7 @@ char * nsMsgLineStreamBuffer::ReadNextLine(nsIInputStream * aInputStream, PRUint
     return newLine;
   }
   
-  aPauseForMoreData = PR_TRUE;
+  aPauseForMoreData = true;
   return nsnull; // if we somehow got here. we don't have another line in the buffer yet...need to wait for more data...
 }
 

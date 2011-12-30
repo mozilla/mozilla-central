@@ -82,7 +82,7 @@ NS_IMPL_ISUPPORTS1(nsMailWinSearchHelper, nsIMailWinSearchHelper)
 
 NS_IMETHODIMP nsMailWinSearchHelper::GetFoldersInCrawlScope(bool* aResult)
 {
-  *aResult = PR_FALSE;
+  *aResult = false;
   NS_ENSURE_ARG_POINTER(mProfD);
 
   // If the service isn't present or running, we shouldn't proceed.
@@ -135,13 +135,13 @@ NS_IMETHODIMP nsMailWinSearchHelper::GetFoldersInCrawlScope(bool* aResult)
     if (!included)
       return NS_OK;
   }
-  *aResult = PR_TRUE;
+  *aResult = true;
   return NS_OK;
 }
 
 NS_IMETHODIMP nsMailWinSearchHelper::GetServiceRunning(bool* aResult)
 {
-  *aResult = PR_FALSE;
+  *aResult = false;
   SC_HANDLE hSCManager = OpenSCManager(nsnull, SERVICES_ACTIVE_DATABASE, SERVICE_QUERY_STATUS);
   if (!hSCManager)
     return NS_ERROR_FAILURE;
@@ -220,7 +220,7 @@ NS_IMETHODIMP nsMailWinSearchHelper::SetFANCIBit(nsIFile* aFile, bool aBit, bool
 NS_IMETHODIMP nsMailWinSearchHelper::GetIsFileAssociationSet(bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = PR_FALSE;
+  *aResult = false;
 
   // We'll use the Vista method here
   nsRefPtr<IApplicationAssociationRegistration> pAAR;

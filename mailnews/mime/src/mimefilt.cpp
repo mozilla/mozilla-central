@@ -228,11 +228,11 @@ test(FILE *in, FILE *out,
   MimeDisplayOptions *opt = new MimeDisplayOptions;
 //  memset(opt, 0, sizeof(*opt));
 
-  if (dexlate_p) html_p = PR_FALSE;
+  if (dexlate_p) html_p = false;
 
   opt->fancy_headers_p = fancy_headers_p;
   opt->headers = MimeHeadersSome;
-  opt->rot13_p = PR_FALSE;
+  opt->rot13_p = false;
 
   status = mime_parse_url_options(url, opt);
   if (status < 0)
@@ -247,7 +247,7 @@ test(FILE *in, FILE *out,
   opt->output_init_fn    = test_output_init_fn;
   opt->output_fn      = test_output_fn;
   opt->charset_conversion_fn= 0;
-  opt->rfc1522_conversion_p = PR_FALSE;
+  opt->rfc1522_conversion_p = false;
   opt->file_type_fn      = test_file_type;
   opt->stream_closure    = out;
 
@@ -292,9 +292,9 @@ test(FILE *in, FILE *out,
     }
   }
 
-  status = obj->class->parse_eof(obj, PR_FALSE);
+  status = obj->class->parse_eof(obj, false);
   if (status >= 0)
-  status = obj->class->parse_end(obj, PR_FALSE);
+  status = obj->class->parse_end(obj, false);
   if (status < 0)
   {
     mime_free(obj);
@@ -358,13 +358,13 @@ main (int argc, char **argv)
 
   cdb_handle = (CERTCertDBHandle *)  calloc(1, sizeof(*cdb_handle));
 
-  if (SECSuccess != CERT_OpenCertDB(cdb_handle, PR_FALSE, test_cdb_name_cb, NULL))
+  if (SECSuccess != CERT_OpenCertDB(cdb_handle, false, test_cdb_name_cb, NULL))
   CERT_OpenVolatileCertDB(cdb_handle);
   CERT_SetDefaultCertDB(cdb_handle);
 
   RNG_RNGInit();
 
-  kdb_handle = SECKEY_OpenKeyDB(PR_FALSE, test_kdb_name_cb, NULL);
+  kdb_handle = SECKEY_OpenKeyDB(false, test_kdb_name_cb, NULL);
   SECKEY_SetDefaultKeyDB(kdb_handle);
 
   PK11_SetPasswordFunc(test_passwd_prompt);
@@ -386,22 +386,22 @@ main (int argc, char **argv)
   if (url &&
     (PL_strstr(url, "?part=") ||
      PL_strstr(url, "&part=")))
-  html_p = PR_FALSE;
+  html_p = false;
 
   while (i < argc)
   {
     if (!strcmp(argv[i], "-fancy"))
-    fancy_p = PR_TRUE;
+    fancy_p = true;
     else if (!strcmp(argv[i], "-no-fancy"))
-    fancy_p = PR_FALSE;
+    fancy_p = false;
     else if (!strcmp(argv[i], "-html"))
-    html_p = PR_TRUE;
+    html_p = true;
     else if (!strcmp(argv[i], "-raw"))
-    html_p = PR_FALSE;
+    html_p = false;
     else if (!strcmp(argv[i], "-outline"))
-    outline_p = PR_TRUE;
+    outline_p = true;
     else if (!strcmp(argv[i], "-dexlate"))
-    dexlate_p = PR_TRUE;
+    dexlate_p = true;
     else
     {
       fprintf(stderr,
@@ -416,7 +416,7 @@ main (int argc, char **argv)
     i++;
   }
 
-  i = test(stdin, stdout, url, fancy_p, html_p, outline_p, dexlate_p, PR_TRUE);
+  i = test(stdin, stdout, url, fancy_p, html_p, outline_p, dexlate_p, true);
   fprintf(stdout, "\n");
   fflush(stdout);
 

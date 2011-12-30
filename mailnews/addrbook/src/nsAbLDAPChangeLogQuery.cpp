@@ -96,7 +96,7 @@ NS_IMETHODIMP nsAbLDAPChangeLogQuery::Init(const nsACString & aPrefName, nsIWebP
         return rv;
 
     // 'this' initialized
-    mInitialized = PR_TRUE;
+    mInitialized = true;
 
     return mDataProcessor->Init(this, aProgressListener);
 }

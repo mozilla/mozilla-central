@@ -109,8 +109,8 @@ nsMimeStringEnumerator::GetNext(nsACString& result)
  */
 nsMimeHtmlDisplayEmitter::nsMimeHtmlDisplayEmitter() : nsMimeBaseEmitter()
 {
-  mFirst = PR_TRUE;
-  mSkipAttachment = PR_FALSE;
+  mFirst = true;
+  mSkipAttachment = false;
 }
 
 nsMimeHtmlDisplayEmitter::~nsMimeHtmlDisplayEmitter(void)
@@ -128,9 +128,9 @@ bool nsMimeHtmlDisplayEmitter::BroadCastHeadersAndAttachments()
   nsCOMPtr<nsIMsgHeaderSink> headerSink;
   nsresult rv = GetHeaderSink(getter_AddRefs(headerSink));
   if (NS_SUCCEEDED(rv) && headerSink && mDocHeader)
-    return PR_TRUE;
+    return true;
   else
-    return PR_FALSE;
+    return false;
 }
 
 nsresult
@@ -280,7 +280,7 @@ NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders(const nsACString &name)
     return nsMimeBaseEmitter::WriteHTMLHeaders(name);
   }
   else
-    mFirstHeaders = PR_FALSE;
+    mFirstHeaders = false;
 
   bool bFromNewsgroups = false;
   for (PRInt32 j=0; j < mHeaderArray->Count(); j++)
@@ -291,7 +291,7 @@ NS_IMETHODIMP nsMimeHtmlDisplayEmitter::WriteHTMLHeaders(const nsACString &name)
 
     if (!PL_strcasecmp("Newsgroups", headerInfo->name))
     {
-      bFromNewsgroups = PR_TRUE;
+      bFromNewsgroups = true;
       break;
     }
   }
@@ -387,7 +387,7 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const nsACString &name,
                                  unicodeHeaderValue.get(), uriString.get(),
                                  aIsExternalAttachment);
 
-    mSkipAttachment = PR_FALSE;
+    mSkipAttachment = false;
   }
   else if (mFormat == nsMimeOutput::nsMimeMessagePrintOutput)
   {
@@ -398,7 +398,7 @@ nsMimeHtmlDisplayEmitter::StartAttachment(const nsACString &name,
   else
   {
     // If we don't need or cannot broadcast attachment info, just ignore it
-    mSkipAttachment = PR_TRUE;
+    mSkipAttachment = true;
     rv = NS_OK;
   }
 
@@ -415,7 +415,7 @@ nsMimeHtmlDisplayEmitter::StartAttachmentInBody(const nsACString &name,
                                                 const char *contentType,
                                                 const char *url)
 {
-  mSkipAttachment = PR_FALSE;
+  mSkipAttachment = false;
 
   if ( (contentType) &&
        ((!strcmp(contentType, APPLICATION_XPKCS7_MIME)) ||
@@ -425,7 +425,7 @@ nsMimeHtmlDisplayEmitter::StartAttachmentInBody(const nsACString &name,
         (!strcmp(contentType, TEXT_VCARD)))
      )
   {
-     mSkipAttachment = PR_TRUE;
+     mSkipAttachment = true;
      return NS_OK;
   }
 
@@ -464,7 +464,7 @@ nsMimeHtmlDisplayEmitter::StartAttachmentInBody(const nsACString &name,
   UtilityWrite(name);
   UtilityWrite("</td>");
 
-  mFirst = PR_FALSE;
+  mFirst = false;
   return NS_OK;
 }
 
@@ -496,7 +496,7 @@ nsMimeHtmlDisplayEmitter::AddAttachmentField(const char *field, const char *valu
 
     PRUint64 size = atoi(value);
     nsAutoString sizeString;
-    rv = FormatFileSize(size, PR_FALSE, sizeString);
+    rv = FormatFileSize(size, false, sizeString);
     UtilityWrite("<td class=\"mimeAttachmentSize\">");
     UtilityWrite(NS_ConvertUTF16toUTF8(sizeString).get());
     UtilityWrite("</td>");
@@ -511,7 +511,7 @@ nsMimeHtmlDisplayEmitter::EndAttachment()
   if (mSkipAttachment)
     return NS_OK;
 
-  mSkipAttachment = PR_FALSE; // reset it for next attachment round
+  mSkipAttachment = false; // reset it for next attachment round
 
   if (BroadCastHeadersAndAttachments())
     return NS_OK;

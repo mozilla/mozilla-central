@@ -100,7 +100,7 @@ NS_IMETHODIMP nsAbMDBDirFactory::GetDirectories(const nsAString &aDirName,
     nsCOMPtr<nsIAddrDatabase> addrDBFactory = do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = addrDBFactory->Open(dbPath, PR_TRUE, PR_TRUE, getter_AddRefs(listDatabase));
+    rv = addrDBFactory->Open(dbPath, true, true, getter_AddRefs(listDatabase));
   }
   NS_ENSURE_SUCCESS(rv, rv);
 

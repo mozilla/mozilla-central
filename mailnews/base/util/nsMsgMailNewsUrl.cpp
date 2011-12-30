@@ -61,11 +61,11 @@ nsMsgMailNewsUrl::nsMsgMailNewsUrl()
 {
   // nsIURI specific state
   m_errorMessage = nsnull;
-  m_runningUrl = PR_FALSE;
-  m_updatingFolder = PR_FALSE;
-  m_addContentToCache = PR_FALSE;
-  m_msgIsInLocalCache = PR_FALSE;
-  m_suppressErrorMsgs = PR_FALSE;
+  m_runningUrl = false;
+  m_updatingFolder = false;
+  m_addContentToCache = false;
+  m_msgIsInLocalCache = false;
+  m_suppressErrorMsgs = false;
   mMaxProgress = -1;
   m_baseURL = do_CreateInstance(NS_STANDARDURL_CONTRACTID);
 }
@@ -192,7 +192,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetServer(nsIMsgIncomingServer ** aIncomingServe
         if (NS_FAILED(rv)) return rv;
         
         nsCOMPtr<nsIMsgIncomingServer> server;
-        rv = accountManager->FindServerByURI(url, PR_FALSE,
+        rv = accountManager->FindServerByURI(url, false,
                                         aIncomingServer);
         if (!*aIncomingServer && scheme.EqualsLiteral("imap"))
         {
@@ -201,7 +201,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::GetServer(nsIMsgIncomingServer ** aIncomingServe
           // for imap urls, or we could make caching of servers work and
           // just set the server in the imap code for this case.
           url->SetUserPass(EmptyCString());
-          rv = accountManager->FindServerByURI(url, PR_FALSE,
+          rv = accountManager->FindServerByURI(url, false,
                                           aIncomingServer);
         }
     }
@@ -345,7 +345,7 @@ NS_IMETHODIMP nsMsgMailNewsUrl::IsUrlType(PRUint32 type, bool *isType)
 {
   //base class doesn't know about any specific types
   NS_ENSURE_ARG(isType);
-  *isType = PR_FALSE;
+  *isType = false;
   return NS_OK;
 
 }
@@ -821,7 +821,7 @@ NS_IMPL_ISUPPORTS2(nsMsgSaveAsListener,
 nsMsgSaveAsListener::nsMsgSaveAsListener(nsIFile *aFile, bool addDummyEnvelope)
 {
   m_outputFile = aFile;
-  m_writtenData = PR_FALSE;
+  m_writtenData = false;
   m_addDummyEnvelope = addDummyEnvelope;
   m_leftOver = 0;
 }
@@ -857,7 +857,7 @@ NS_IMETHODIMP nsMsgSaveAsListener::OnDataAvailable(nsIRequest* request,
   rv = inStream->Available(&available);
   if (!m_writtenData)
   {
-    m_writtenData = PR_TRUE;
+    m_writtenData = true;
     rv = SetupMsgWriteStream(m_outputFile, m_addDummyEnvelope);
     NS_ENSURE_SUCCESS(rv, rv);
   }
@@ -957,7 +957,7 @@ nsresult nsMsgSaveAsListener::SetupMsgWriteStream(nsIFile *aFile, bool addDummyE
   // have to close the stream before deleting the file, else data
   // would still be written happily into a now non-existing file.
   // (Windows doesn't care, btw, just unixoids do...)
-  aFile->Remove(PR_FALSE);
+  aFile->Remove(false);
 
   nsCOMPtr <nsILocalFile> localFile = do_QueryInterface(aFile);
   nsresult rv = MsgNewBufferedFileOutputStream(getter_AddRefs(m_outputStream),

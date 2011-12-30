@@ -100,7 +100,7 @@ nsAbAddressCollector::GetCardFromProperty(const char *aName,
 
     // Some implementations may return NS_ERROR_NOT_IMPLEMENTED here,
     // so just catch the value and continue.
-    if (NS_FAILED(directory->GetCardFromProperty(aName, aValue, PR_TRUE,
+    if (NS_FAILED(directory->GetCardFromProperty(aName, aValue, true,
                                                  &result)))
       continue;
 
@@ -148,7 +148,7 @@ nsAbAddressCollector::CollectAddress(const nsACString &aAddresses,
     curAddressPtr += curAddress.Length() + 1;
 
     nsCString unquotedName;
-    rv = pHeader->UnquotePhraseOrAddr(curNamePtr, PR_FALSE,
+    rv = pHeader->UnquotePhraseOrAddr(curNamePtr, false,
                                       getter_Copies(unquotedName));
     curNamePtr += strlen(curNamePtr) + 1;
     NS_ASSERTION(NS_SUCCEEDED(rv), "failed to unquote name");
@@ -162,7 +162,7 @@ nsAbAddressCollector::CollectAddress(const nsACString &aAddresses,
       continue;
 
     CollectSingleAddress(curAddress, unquotedName, aCreateCard, aSendFormat,
-                         PR_FALSE);
+                         false);
   }
 
   PR_FREEIF(addresses);
@@ -197,7 +197,7 @@ nsAbAddressCollector::CollectSingleAddress(const nsACString &aEmail,
       card = GetCardFromProperty(k2ndEmailProperty, aEmail,
                                  getter_AddRefs(originDirectory));
       if (card)
-        emailAddressIn2ndEmailColumn = PR_TRUE;
+        emailAddressIn2ndEmailColumn = true;
     }
   }
 
@@ -251,7 +251,7 @@ nsAbAddressCollector::CollectSingleAddress(const nsACString &aEmail,
       if (currentFormat == nsIAbPreferMailFormat::unknown &&
           NS_SUCCEEDED(card->SetPropertyAsUint32(kPreferMailFormatProperty,
                                                  aSendFormat)))
-        modifiedCard = PR_TRUE;
+        modifiedCard = true;
     }
 
     if (modifiedCard)
@@ -296,18 +296,18 @@ nsAbAddressCollector::SetNamesForCard(nsIAbCard *aSenderCard,
   bool modifiedCard = false;
 
   if (NS_SUCCEEDED(aSenderCard->SetDisplayName(NS_ConvertUTF8toUTF16(aFullName))))
-    modifiedCard = PR_TRUE;
+    modifiedCard = true;
 
   // Now split up the full name.
   SplitFullName(nsCString(aFullName), firstName, lastName);
 
   if (!firstName.IsEmpty() &&
       NS_SUCCEEDED(aSenderCard->SetFirstName(NS_ConvertUTF8toUTF16(firstName))))
-    modifiedCard = PR_TRUE;
+    modifiedCard = true;
 
   if (!lastName.IsEmpty() &&
       NS_SUCCEEDED(aSenderCard->SetLastName(NS_ConvertUTF8toUTF16(lastName))))
-    modifiedCard = PR_TRUE;
+    modifiedCard = true;
 
   if (modifiedCard)
     aSenderCard->SetPropertyAsBool("PreferDisplayName", false);
@@ -352,7 +352,7 @@ nsAbAddressCollector::Init(void)
                                                     &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = prefBranch->AddObserver(PREF_MAIL_COLLECT_ADDRESSBOOK, this, PR_FALSE);
+  rv = prefBranch->AddObserver(PREF_MAIL_COLLECT_ADDRESSBOOK, this, false);
   NS_ENSURE_SUCCESS(rv, rv);
 
   SetUpAbFromPrefs(prefBranch);

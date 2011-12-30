@@ -106,13 +106,13 @@ typedef struct MimeCMSdata
   MimeCMSdata()
   :output_fn(nsnull),
   output_closure(nsnull),
-  ci_is_encrypted(PR_FALSE),
+  ci_is_encrypted(false),
   sender_addr(nsnull),
-  decoding_failed(PR_FALSE),
+  decoding_failed(false),
   decoded_bytes(0),
   self(nsnull),
-  parent_is_encrypted_p(PR_FALSE),
-  parent_holds_stamp_p(PR_FALSE)
+  parent_is_encrypted_p(false),
+  parent_holds_stamp_p(false)
   {
   }
   
@@ -156,16 +156,16 @@ bool MimeEncryptedCMS_encrypted_p (MimeObject *obj)
 {
   bool encrypted;
 
-  if (!obj) return PR_FALSE;
+  if (!obj) return false;
   if (mime_typep(obj, (MimeObjectClass *) &mimeEncryptedCMSClass))
   {
     MimeEncrypted *enc = (MimeEncrypted *) obj;
     MimeCMSdata *data = (MimeCMSdata *) enc->crypto_closure;
-    if (!data || !data->content_info) return PR_FALSE;
+    if (!data || !data->content_info) return false;
                 data->content_info->ContentIsEncrypted(&encrypted);
           return encrypted;
   }
-  return PR_FALSE;
+  return false;
 }
 
 // extern MimeMessageClass mimeMessageClass;      /* gag */
@@ -216,7 +216,7 @@ bool MimeCMSHeadersAndCertsMatch(nsICMSMessage *content_info,
   /* If there is no addr in the cert at all, it can not match and we fail. */
   if (cert_addr.IsEmpty())
   {
-    match = PR_FALSE;
+    match = false;
   }
   else
   {
@@ -227,7 +227,7 @@ bool MimeCMSHeadersAndCertsMatch(nsICMSMessage *content_info,
         NS_ConvertASCIItoUTF16 ucs2From(from_addr);
         if (NS_FAILED(signerCert->ContainsEmailAddress(ucs2From, &foundFrom)))
         {
-          foundFrom = PR_FALSE;
+          foundFrom = false;
         }
       }
 
@@ -236,14 +236,14 @@ bool MimeCMSHeadersAndCertsMatch(nsICMSMessage *content_info,
         NS_ConvertASCIItoUTF16 ucs2Sender(sender_addr);
         if (NS_FAILED(signerCert->ContainsEmailAddress(ucs2Sender, &foundSender)))
         {
-          foundSender = PR_FALSE;
+          foundSender = false;
         }
       }
     }
 
     if (!foundSender && !foundFrom)
     {
-      match = PR_FALSE;
+      match = false;
     }
   }
 
@@ -411,7 +411,7 @@ int MIMEGetRelativeCryptoNestLevel(MimeObject *obj)
         }
       }
       if (!aAlreadyFoundTop && !strcmp(mime_part_address(walker), walker->options->part_to_load)) {
-        aAlreadyFoundTop = PR_TRUE;
+        aAlreadyFoundTop = true;
         aTopShownObject = walker;
       }
       if (!aAlreadyFoundTop && !walker->parent) {
@@ -427,7 +427,7 @@ int MIMEGetRelativeCryptoNestLevel(MimeObject *obj)
   if (!aTopShownObject) {
     // no sub part specified, top message is displayed, and
     // our crypto object is definitively a child of it
-    CryptoObjectIsChildOfTopShownObject = PR_TRUE;
+    CryptoObjectIsChildOfTopShownObject = true;
   }
 
   // if we are the child of the topmost message, aCryptoPartNestLevel == 1
@@ -440,7 +440,7 @@ int MIMEGetRelativeCryptoNestLevel(MimeObject *obj)
         ++aCryptoPartNestLevel;
       }
       if (aTopShownObject && walker->parent == aTopShownObject) {
-        CryptoObjectIsChildOfTopShownObject = PR_TRUE;
+        CryptoObjectIsChildOfTopShownObject = true;
       }
     }
   }
@@ -597,7 +597,7 @@ void MimeCMSGetFromSender(MimeObject *obj,
   char *s;
 
   /* Extract the name and address of the "From:" field. */
-  s = MimeHeaders_get(msg_headers, HEADER_FROM, PR_FALSE, PR_FALSE);
+  s = MimeHeaders_get(msg_headers, HEADER_FROM, false, false);
   if (s)
     {
     ParseRFC822Addresses(s, from_name, from_addr);
@@ -605,7 +605,7 @@ void MimeCMSGetFromSender(MimeObject *obj,
     }
 
   /* Extract the name and address of the "Sender:" field. */
-  s = MimeHeaders_get(msg_headers, HEADER_SENDER, PR_FALSE, PR_FALSE);
+  s = MimeHeaders_get(msg_headers, HEADER_SENDER, false, false);
   if (s)
     {
     ParseRFC822Addresses(s, sender_name, sender_addr);
@@ -698,7 +698,7 @@ MimeCMS_eof (void *crypto_closure, bool abort_p)
     // what we see is most likely encrypted, because if it were
     // signed only, we probably would have been able to decode it.
 
-    data->ci_is_encrypted = PR_TRUE;
+    data->ci_is_encrypted = true;
   }
   else
   {

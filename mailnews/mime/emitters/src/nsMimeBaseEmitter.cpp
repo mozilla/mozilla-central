@@ -84,7 +84,7 @@ NS_INTERFACE_MAP_END
 nsMimeBaseEmitter::nsMimeBaseEmitter()
 {
   // Initialize data output vars...
-  mFirstHeaders = PR_TRUE;
+  mFirstHeaders = true;
 
   mBufferMgr = nsnull;
   mTotalWritten = 0;
@@ -94,7 +94,7 @@ nsMimeBaseEmitter::nsMimeBaseEmitter()
   mOutListener = nsnull;
 
   // Display output control vars...
-  mDocHeader = PR_FALSE;
+  mDocHeader = false;
   m_stringBundle = nsnull;
   mURL = nsnull;
   mHeaderDisplayType = nsMimeHeaderDisplayTypes::NormalHeaders;
@@ -115,7 +115,7 @@ nsMimeBaseEmitter::nsMimeBaseEmitter()
 //  mCharset = "";
 
   // Init the body...
-  mBodyStarted = PR_FALSE;
+  mBodyStarted = false;
 //  mBody = "";
 
   // This is needed for conversion of I18N Strings...
@@ -726,10 +726,10 @@ nsMimeBaseEmitter::GenerateDateString(const char * dateString,
   dateFormatPrefs->GetBoolPref("original_date", &displayOriginalDate);
   // migrate old pref to date_senders_timezone
   if (displayOriginalDate && !displaySenderTimezone)
-    dateFormatPrefs->SetBoolPref("date_senders_timezone", PR_TRUE);
+    dateFormatPrefs->SetBoolPref("date_senders_timezone", true);
 
   PRExplodedTime explodedMsgTime;
-  rv = PR_ParseTimeStringToExplodedTime(dateString, PR_FALSE, &explodedMsgTime);
+  rv = PR_ParseTimeStringToExplodedTime(dateString, false, &explodedMsgTime);
   /**
    * To determine the date format to use, comparison of current and message
    * time has to be made. If displaying in local time, both timestamps have
@@ -850,7 +850,7 @@ nsMimeBaseEmitter::WriteHeaderFieldHTML(const char *field, const char *value)
 
     // we're going to need a converter to convert
     nsresult rv = mUnicodeConverter->DecodeMimeHeaderToCharPtr(
-      i18nValue, nsnull, PR_FALSE, PR_TRUE, getter_Copies(tValue));
+      i18nValue, nsnull, false, true, getter_Copies(tValue));
     if (NS_SUCCEEDED(rv) && !tValue.IsEmpty())
       newValue = MsgEscapeHTML(tValue.get());
     else
@@ -927,7 +927,7 @@ nsMimeBaseEmitter::WriteHeaderFieldHTMLPrefix(const nsACString &name)
     mHTMLHeaders.Append("</fieldset>");
   }
 
-  mFirstHeaders = PR_FALSE;
+  mFirstHeaders = false;
   return NS_OK;
 }
 

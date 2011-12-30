@@ -322,14 +322,14 @@ nsLDAPMessage::IterateAttrErrHandler(PRInt32 aLderrno, PRUint32 *aAttrCount,
 NS_IMETHODIMP
 nsLDAPMessage::GetAttributes(PRUint32 *aAttrCount, char** *aAttributes)
 {
-    return IterateAttributes(aAttrCount, aAttributes, PR_TRUE);
+    return IterateAttributes(aAttrCount, aAttributes, true);
 }
 
-// if getP is PR_TRUE, we get the attributes by recursing once
+// if getP is true, we get the attributes by recursing once
 // (without getP set) in order to fill in *attrCount, then allocate
 // and fill in the *aAttributes.  
 // 
-// if getP is PR_FALSE, just fill in *attrCount and return
+// if getP is false, just fill in *attrCount and return
 // 
 nsresult
 nsLDAPMessage::IterateAttributes(PRUint32 *aAttrCount, char** *aAttributes, 
@@ -349,7 +349,7 @@ nsLDAPMessage::IterateAttributes(PRUint32 *aAttrCount, char** *aAttributes,
         *aAttributes = 0;
         *aAttrCount = 0;
 
-        rv = IterateAttributes(aAttrCount, aAttributes, PR_FALSE);
+        rv = IterateAttributes(aAttrCount, aAttributes, false);
         if (NS_FAILED(rv))
             return rv;
 

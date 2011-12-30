@@ -159,7 +159,7 @@ nsresult nsAbQueryStringToExpression::ParseExpressions (
         rv = ParseExpression(index, getter_AddRefs (childExpression));
         NS_ENSURE_SUCCESS(rv, rv);
 
-        expressions->AppendElement(childExpression, PR_FALSE);
+        expressions->AppendElement(childExpression, false);
     }
 
     if (**index == 0)

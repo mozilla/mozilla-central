@@ -100,7 +100,7 @@ inline bool    ImportOutFile::WriteData( const PRUint8 * pSrc, PRUint32 len) {
       m_pos = m_bufSz;
     }
     if (!Flush())
-      return( PR_FALSE);
+      return( false);
   }
 
   if (len) {
@@ -108,17 +108,17 @@ inline bool    ImportOutFile::WriteData( const PRUint8 * pSrc, PRUint32 len) {
     m_pos += len;
   }
 
-  return( PR_TRUE);
+  return( true);
 }
 
 inline bool    ImportOutFile::WriteByte( PRUint8 byte) {
   if (m_pos == m_bufSz) {
     if (!Flush())
-      return( PR_FALSE);
+      return( false);
   }
   *(m_pBuf + m_pos) = byte;
   m_pos++;
-  return( PR_TRUE);
+  return( true);
 }
 
 #endif /* ImportOutFile_h__ */

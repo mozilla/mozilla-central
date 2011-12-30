@@ -42,7 +42,7 @@
 NS_IMPL_ISUPPORTS2(nsAbDirectoryQueryProxy, nsIAbDirectoryQueryProxy, nsIAbDirectoryQuery)
 
 nsAbDirectoryQueryProxy::nsAbDirectoryQueryProxy() :
-    mInitiated (PR_FALSE)
+    mInitiated (false)
 {
 }
 
@@ -58,7 +58,7 @@ NS_IMETHODIMP nsAbDirectoryQueryProxy::Initiate()
 
     mDirectoryQuery = new nsAbDirectoryQuery();
 
-    mInitiated = PR_TRUE;
+    mInitiated = true;
 
     return NS_OK;
 }

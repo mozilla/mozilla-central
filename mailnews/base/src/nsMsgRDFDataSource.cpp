@@ -48,8 +48,8 @@
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
 nsMsgRDFDataSource::nsMsgRDFDataSource():
-    m_shuttingDown(PR_FALSE),
-    mInitialized(PR_FALSE)
+    m_shuttingDown(false),
+    mInitialized(false)
 {
 }
 
@@ -72,12 +72,12 @@ nsMsgRDFDataSource::Init()
   /* Add an observer to XPCOM shutdown */
   nsCOMPtr<nsIObserverService> obs = do_GetService("@mozilla.org/observer-service;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = obs->AddObserver(static_cast<nsIObserver*>(this), NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_TRUE);
+  rv = obs->AddObserver(static_cast<nsIObserver*>(this), NS_XPCOM_SHUTDOWN_OBSERVER_ID, true);
   NS_ENSURE_SUCCESS(rv, rv);
 
   getRDFService();
 
-  mInitialized=PR_TRUE;
+  mInitialized=true;
   return rv;
 }
 
@@ -88,7 +88,7 @@ void nsMsgRDFDataSource::Cleanup()
   // release the window
   mWindow = nsnull;
 
-  mInitialized = PR_FALSE;
+  mInitialized = false;
 }
 
 NS_IMPL_CYCLE_COLLECTION_CLASS(nsMsgRDFDataSource)
@@ -196,7 +196,7 @@ nsMsgRDFDataSource::Move(nsIRDFResource *aOldSource,
 NS_IMETHODIMP
 nsMsgRDFDataSource::HasAssertion(nsIRDFResource *aSource, nsIRDFResource *aProperty, nsIRDFNode *aTarget, bool aTruthValue, bool *_retval)
 {
-    *_retval = PR_FALSE;
+    *_retval = false;
     return NS_OK;
 }
 
@@ -224,14 +224,14 @@ nsMsgRDFDataSource::RemoveObserver(nsIRDFObserver *aObserver)
 NS_IMETHODIMP
 nsMsgRDFDataSource::HasArcIn(nsIRDFNode *aNode, nsIRDFResource *aArc, bool *result)
 {
-  *result = PR_FALSE;
+  *result = false;
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsMsgRDFDataSource::HasArcOut(nsIRDFResource *aSource, nsIRDFResource *aArc, bool *result)
 {
-  *result = PR_FALSE;
+  *result = false;
   return NS_OK;
 }
 
@@ -302,7 +302,7 @@ NS_IMETHODIMP
 nsMsgRDFDataSource::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *someData )
 {
   if (!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID)) {
-    m_shuttingDown = PR_TRUE;
+    m_shuttingDown = true;
     Cleanup();
   }
   return NS_OK;
@@ -344,7 +344,7 @@ nsresult nsMsgRDFDataSource::NotifyPropertyChanged(nsIRDFResource *resource,
                                                    nsIRDFNode *oldNode /* = nsnull */)
 {
 
-  NotifyObservers(resource, propertyResource, newNode, oldNode, PR_FALSE, PR_TRUE);
+  NotifyObservers(resource, propertyResource, newNode, oldNode, false, true);
   return NS_OK;
 
 }
@@ -375,7 +375,7 @@ nsMsgRDFDataSource::assertEnumFunc(nsIRDFObserver *aObserver, void *aData)
                      note->subject,
                      note->property,
                      note->newObject);
-  return PR_TRUE;
+  return true;
 }
 
 bool
@@ -386,7 +386,7 @@ nsMsgRDFDataSource::unassertEnumFunc(nsIRDFObserver *aObserver, void *aData)
                        note->subject,
                        note->property,
                        note->newObject);
-  return PR_TRUE;
+  return true;
 }
 
 bool
@@ -397,7 +397,7 @@ nsMsgRDFDataSource::changeEnumFunc(nsIRDFObserver *aObserver, void *aData)
                      note->subject,
                      note->property,
                      note->oldObject, note->newObject);
-  return PR_TRUE;
+  return true;
 }
 nsresult
 nsMsgRDFDataSource::GetTransactionManager(nsISupportsArray *aSources, nsITransactionManager **aTransactionManager)

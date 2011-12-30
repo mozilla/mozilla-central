@@ -123,33 +123,33 @@ bool IsUTF8(const nsACString& aString)
         continue;
 
       if ( c <= 0xC1 ) // [80-BF] where not expected, [C0-C1] for overlong.
-        return PR_FALSE;
+        return false;
       else if ((c & 0xE0) == 0xC0)
         state = 1;
       else if ((c & 0xF0) == 0xE0) {
         state = 2;
         if ( c == 0xE0 ) { // to exclude E0[80-9F][80-BF]
-          overlong = PR_TRUE;
+          overlong = true;
           olupper = 0x9F;
         } else if ( c == 0xED ) { // ED[A0-BF][80-BF] : surrogate codepoint
-          surrogate = PR_TRUE;
+          surrogate = true;
           slower = 0xA0;
         } else if ( c == 0xEF ) // EF BF [BE-BF] : non-character
-          nonchar = PR_TRUE;
+          nonchar = true;
       } else if ( c <= 0xF4 ) { // XXX replace /w UTF8traits::is4byte when it's updated to exclude [F5-F7].(bug 199090)
         state = 3;
-        nonchar = PR_TRUE;
+        nonchar = true;
         if ( c == 0xF0 ) { // to exclude F0[80-8F][80-BF]{2}
-          overlong = PR_TRUE;
+          overlong = true;
           olupper = 0x8F;
         }
         else if ( c == 0xF4 ) { // to exclude F4[90-BF][80-BF]
           // actually not surrogates but codepoints beyond 0x10FFFF
-          surrogate = PR_TRUE;
+          surrogate = true;
           slower = 0x90;
         }
       } else
-        return PR_FALSE; // Not UTF-8 string
+        return false; // Not UTF-8 string
     }
 
     while (ptr < done_reading && state) {
@@ -160,12 +160,12 @@ bool IsUTF8(const nsACString& aString)
       if ( nonchar &&  ( !state &&  c < 0xBE ||
            state == 1 && c != 0xBF  ||
            state == 2 && 0x0F != (0x0F & c) ))
-        nonchar = PR_FALSE;
+        nonchar = false;
 
       if ((c & 0xC0) != 0x80 || overlong && c <= olupper ||
            surrogate && slower <= c || nonchar && !state )
-        return PR_FALSE; // Not UTF-8 string
-      overlong = surrogate = PR_FALSE;
+        return false; // Not UTF-8 string
+      overlong = surrogate = false;
     }
   }
   return !state; // state != 0 at the end indicates an invalid UTF-8 seq.

@@ -30,7 +30,7 @@ ErrorAccordingToNSPR()
 nsMsgFileStream::nsMsgFileStream() 
 {
   mFileDesc = nsnull;
-  mSeekedToEnd = PR_FALSE;
+  mSeekedToEnd = false;
 }
 
 nsMsgFileStream::~nsMsgFileStream()
@@ -137,7 +137,7 @@ NS_IMETHODIMP nsMsgFileStream::ReadSegments(nsWriteSegmentFun aWriter, void * aC
 /* boolean isNonBlocking (); */
 NS_IMETHODIMP nsMsgFileStream::IsNonBlocking(bool *aNonBlocking)
 {
-  *aNonBlocking = PR_FALSE;
+  *aNonBlocking = false;
   return NS_OK;
 }
 

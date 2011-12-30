@@ -62,15 +62,15 @@ nsMsgCompFields::nsMsgCompFields()
 
   m_body.Truncate();
 
-  m_attachVCard = PR_FALSE;
-  m_forcePlainText = PR_FALSE;
-  m_useMultipartAlternative = PR_FALSE;
-  m_returnReceipt = PR_FALSE;
+  m_attachVCard = false;
+  m_forcePlainText = false;
+  m_useMultipartAlternative = false;
+  m_returnReceipt = false;
   m_receiptHeaderType = nsIMsgMdnGenerator::eDntType;
-  m_DSN = PR_FALSE;
-  m_bodyIsAsciiOnly = PR_FALSE;
-  m_forceMsgEncoding = PR_FALSE;
-  m_needToCheckCharset = PR_TRUE;
+  m_DSN = false;
+  m_bodyIsAsciiOnly = false;
+  m_forceMsgEncoding = false;
+  m_needToCheckCharset = true;
 
   // Get the default charset from pref, use this as a mail charset.
   nsString charset;
@@ -610,7 +610,7 @@ nsMsgCompFields::SplitRecipients(const nsAString &aRecipients,
       {
         nsCString decodedName;
         converter->DecodeMimeHeaderToCharPtr(pNames, GetCharacterSet(),
-                                             PR_FALSE, PR_TRUE,
+                                             false, true,
                                              getter_Copies(decodedName));
         rv = parser->MakeFullAddressString((!decodedName.IsEmpty() ?
                                             decodedName.get() : pNames),
@@ -682,7 +682,7 @@ nsresult nsMsgCompFields::SplitRecipientsEx(const nsAString &recipients,
     {
       nsCString fullAddress;
       nsCString decodedName;
-      converter->DecodeMimeHeaderToCharPtr(pNames, GetCharacterSet(), PR_FALSE, PR_TRUE, 
+      converter->DecodeMimeHeaderToCharPtr(pNames, GetCharacterSet(), false, true, 
                                            getter_Copies(decodedName));
       rv = parser->MakeFullAddressString((!decodedName.IsEmpty() ? 
                                           decodedName.get() : pNames), 

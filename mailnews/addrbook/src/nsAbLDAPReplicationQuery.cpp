@@ -54,7 +54,7 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbLDAPReplicationQuery,
                               nsIAbLDAPReplicationQuery)
 
 nsAbLDAPReplicationQuery::nsAbLDAPReplicationQuery()
-    :  mInitialized(PR_FALSE)
+    :  mInitialized(false)
 {
 }
 
@@ -153,7 +153,7 @@ NS_IMETHODIMP nsAbLDAPReplicationQuery::Init(nsIAbLDAPDirectory *aDirectory,
     return rv;
 
   // 'this' initialized
-  mInitialized = PR_TRUE;
+  mInitialized = true;
 
   return mDataProcessor->Init(mDirectory, mConnection, mURL, this,
                               aProgressListener);

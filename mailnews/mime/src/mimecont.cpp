@@ -95,9 +95,9 @@ MimeContainer_finalize (MimeObject *object)
    in forward order (0-N) but are destroyed in backward order (N-0)
    */
   if (!object->closed_p)
-  object->clazz->parse_eof (object, PR_FALSE);
+  object->clazz->parse_eof (object, false);
   if (!object->parsed_p)
-  object->clazz->parse_end (object, PR_FALSE);
+  object->clazz->parse_end (object, false);
 
   if (cont->children)
   {
@@ -206,7 +206,7 @@ MimeContainer_add_child (MimeObject *parent, MimeObject *child)
 static bool
 MimeContainer_displayable_inline_p (MimeObjectClass *clazz, MimeHeaders *hdrs)
 {
-  return PR_TRUE;
+  return true;
 }
 
 

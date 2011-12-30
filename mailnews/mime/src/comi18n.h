@@ -55,8 +55,8 @@ extern "C" {
  *
  * @param header      [IN] A header to decode.
  * @param default_charset     [IN] Default charset to apply to ulabeled non-UTF-8 8bit data
- * @param override_charset    [IN] If PR_TRUE, default_charset used instead of any charset labeling other than UTF-8
- * @param eatContinuations    [IN] If PR_TRUE, unfold headers
+ * @param override_charset    [IN] If true, default_charset used instead of any charset labeling other than UTF-8
+ * @param eatContinuations    [IN] If true, unfold headers
  * @return            Decoded buffer (in C string) or return NULL if the header needs no conversion
  */
 extern "C" char *MIME_DecodeMimeHeader(const char *header, 

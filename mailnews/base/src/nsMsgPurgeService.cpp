@@ -74,7 +74,7 @@ void OnPurgeTimer(nsITimer *timer, void *aPurgeService)
 
 nsMsgPurgeService::nsMsgPurgeService()
 {
-  mHaveShutdown = PR_FALSE;
+  mHaveShutdown = false;
   mMinDelayBetweenPurges = 480;  // never purge a folder more than once every 8 hours (60 min/hour * 8 hours)
   mPurgeTimerInterval = 5;  // fire the purge timer every 5 minutes, starting 5 minutes after the service is created (when we load accounts)
 }
@@ -118,7 +118,7 @@ NS_IMETHODIMP nsMsgPurgeService::Init()
   // or startup, etc.
   SetupNextPurge();
 
-  mHaveShutdown = PR_FALSE;
+  mHaveShutdown = false;
   return NS_OK;
 }
 
@@ -130,7 +130,7 @@ NS_IMETHODIMP nsMsgPurgeService::Shutdown()
     mPurgeTimer = nsnull;
   }
 
-  mHaveShutdown = PR_TRUE;
+  mHaveShutdown = true;
   return NS_OK;
 }
 
@@ -231,7 +231,7 @@ nsresult nsMsgPurgeService::PerformPurge()
               if (!curFolderLastPurgeTimeString.IsEmpty())
               {
                 PRInt64 theTime;
-                PR_ParseTimeString(curFolderLastPurgeTimeString.get(), PR_FALSE, &theTime);
+                PR_ParseTimeString(curFolderLastPurgeTimeString.get(), false, &theTime);
                 curFolderLastPurgeTime = theTime;
               }
 
@@ -254,7 +254,7 @@ nsresult nsMsgPurgeService::PerformPurge()
               // check if more than 500 milliseconds have elapsed in this purge process
               if (PR_IntervalToMilliseconds(elapsedTime) > 500)
               {
-                keepApplyingRetentionSettings = PR_FALSE;
+                keepApplyingRetentionSettings = false;
                 break;
               }
             }
@@ -269,7 +269,7 @@ nsresult nsMsgPurgeService::PerformPurge()
 
         nsCOMPtr<nsIMsgProtocolInfo> protocolInfo =
           do_GetService(contractid.get(), &rv);
-        NS_ENSURE_SUCCESS(rv, PR_FALSE);
+        NS_ENSURE_SUCCESS(rv, false);
 
         nsCString realHostName;
         server->GetRealHostName(realHostName);
@@ -323,7 +323,7 @@ nsresult nsMsgPurgeService::PerformPurge()
         if (!curJunkFolderLastPurgeTimeString.IsEmpty())
         {
           PRInt64 theTime;
-          PR_ParseTimeString(curJunkFolderLastPurgeTimeString.get(), PR_FALSE, &theTime);
+          PR_ParseTimeString(curJunkFolderLastPurgeTimeString.get(), false, &theTime);
           curJunkFolderLastPurgeTime = theTime;
         }
 
@@ -434,7 +434,7 @@ nsresult nsMsgPurgeService::SearchFolderToPurge(nsIMsgFolder *folder, PRInt32 pu
       searchValue->SetAge((PRUint32) purgeInterval);
       searchTerm->SetValue(searchValue);
     }
-    searchTerm->SetBooleanAnd(PR_FALSE);
+    searchTerm->SetBooleanAnd(false);
     mSearchSession->AppendTerm(searchTerm);
   }
 
@@ -500,7 +500,7 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder 
 
   if (atoi(junkScoreStr.get()) == nsIJunkMailPlugin::IS_SPAM_SCORE) {
     PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("added message to delete"));
-    return mHdrsToDelete->AppendElement(aMsgHdr, PR_FALSE);
+    return mHdrsToDelete->AppendElement(aMsgHdr, false);
   }
   return NS_OK;
 }
@@ -518,7 +518,7 @@ NS_IMETHODIMP nsMsgPurgeService::OnSearchDone(nsresult status)
     if (count > 0) {
       PR_LOG(MsgPurgeLogModule, PR_LOG_ALWAYS, ("delete messages"));
       if (mSearchFolder)
-        rv = mSearchFolder->DeleteMessages(mHdrsToDelete, nsnull, PR_FALSE /*delete storage*/, PR_FALSE /*isMove*/, nsnull, PR_FALSE /*allowUndo*/);
+        rv = mSearchFolder->DeleteMessages(mHdrsToDelete, nsnull, false /*delete storage*/, false /*isMove*/, nsnull, false /*allowUndo*/);
     }
   }
   if (mHdrsToDelete)

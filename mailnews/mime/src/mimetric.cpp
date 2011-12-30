@@ -121,7 +121,7 @@ MimeRichtextConvert (const char *line, PRInt32 length,
     if (this_start >= line + length) /* blank line */
     {
       PL_strncpyz (*obufferP, "<BR>", *obuffer_sizeP);
-      return MimeObject_write(obj, *obufferP, strlen(*obufferP), PR_TRUE);
+      return MimeObject_write(obj, *obufferP, strlen(*obufferP), true);
     }
   }
 
@@ -344,7 +344,7 @@ MimeRichtextConvert (const char *line, PRInt32 length,
   }
   *out = 0;
 
-  return MimeObject_write(obj, *obufferP, out - *obufferP, PR_TRUE);
+  return MimeObject_write(obj, *obufferP, out - *obufferP, true);
 }
 
 
@@ -367,7 +367,7 @@ MimeInlineTextRichtext_parse_begin (MimeObject *obj)
   int status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_begin(obj);
   char s[] = "";
   if (status < 0) return status;
-  return MimeObject_write(obj, s, 0, PR_TRUE); /* force out any separators... */
+  return MimeObject_write(obj, s, 0, true); /* force out any separators... */
 }
 
 

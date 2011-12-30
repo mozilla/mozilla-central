@@ -62,7 +62,7 @@
 
 nsMailboxService::nsMailboxService()
 {
-    mPrintingOperation = PR_FALSE;
+    mPrintingOperation = false;
 }
 
 nsMailboxService::~nsMailboxService()
@@ -89,7 +89,7 @@ nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsILocalFile *
     MsgEscapeURL(mailboxPath,
                  nsINetUtil::ESCAPE_URL_MINIMAL | nsINetUtil::ESCAPE_URL_FORCED, buf);
     nsEscapeNativePath(buf);
-    url->SetUpdatingFolder(PR_TRUE);
+    url->SetUpdatingFolder(true);
     url->SetMsgWindow(aMsgWindow);
     nsCAutoString uriSpec("mailbox://");
     uriSpec.Append(buf);
@@ -268,7 +268,7 @@ nsresult nsMailboxService::FetchMessage(const char* aMessageURI,
       docShell->CreateLoadInfo(getter_AddRefs(loadInfo));
       loadInfo->SetLoadType(nsIDocShellLoadInfo::loadLink);
     }
-    rv = docShell->LoadURI(url, loadInfo, nsIWebNavigation::LOAD_FLAGS_NONE, PR_FALSE);
+    rv = docShell->LoadURI(url, loadInfo, nsIWebNavigation::LOAD_FLAGS_NONE, false);
   }
   else
     rv = RunMailboxUrl(url, aDisplayConsumer);
@@ -396,7 +396,7 @@ NS_IMETHODIMP nsMailboxService::OpenAttachment(const char *aContentType,
     // happier.
     docShell->CreateLoadInfo(getter_AddRefs(loadInfo));
     loadInfo->SetLoadType(nsIDocShellLoadInfo::loadLink);
-    return docShell->LoadURI(URL, loadInfo, nsIWebNavigation::LOAD_FLAGS_NONE, PR_FALSE);
+    return docShell->LoadURI(URL, loadInfo, nsIWebNavigation::LOAD_FLAGS_NONE, false);
   }
   return RunMailboxUrl(URL, aDisplayConsumer);
 
@@ -554,7 +554,7 @@ NS_IMETHODIMP nsMailboxService::AllowPort(PRInt32 port, const char *scheme, bool
 {
   NS_ENSURE_ARG_POINTER(_retval);
   // don't override anything.
-  *_retval = PR_FALSE;
+  *_retval = false;
   return NS_OK;
 }
 
@@ -644,10 +644,10 @@ nsresult nsMailboxService::DisplayMessageForPrinting(const char* aMessageURI,
                                                      nsIUrlListener * aUrlListener,
                                                      nsIURI ** aURL)
 {
-  mPrintingOperation = PR_TRUE;
+  mPrintingOperation = true;
   nsresult rv = FetchMessage(aMessageURI, aDisplayConsumer, aMsgWindow,aUrlListener, nsnull,
     nsIMailboxUrl::ActionFetchMessage, nsnull, aURL);
-  mPrintingOperation = PR_FALSE;
+  mPrintingOperation = false;
   return rv;
 }
 

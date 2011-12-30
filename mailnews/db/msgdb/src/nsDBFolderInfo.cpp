@@ -191,8 +191,8 @@ nsDBFolderInfo::nsDBFolderInfo(nsMsgDatabase *mdb)
   m_totalPendingMessages =0;
   m_unreadPendingMessages = 0;
 
-  m_mdbTokensInitialized = PR_FALSE;
-  m_charSetOverride = PR_FALSE;
+  m_mdbTokensInitialized = false;
+  m_charSetOverride = false;
 
   if (!gFolderCharsetObserver)
   {
@@ -232,15 +232,15 @@ nsDBFolderInfo::nsDBFolderInfo(nsMsgDatabase *mdb)
         NS_ADDREF(gFolderCharsetObserver);
         nsCOMPtr<nsIPrefBranch2> pbi = do_QueryInterface(prefBranch);
         if (pbi) {
-          rv = pbi->AddObserver(kMAILNEWS_VIEW_DEFAULT_CHARSET, gFolderCharsetObserver, PR_FALSE);
-          rv = pbi->AddObserver(kMAILNEWS_DEFAULT_CHARSET_OVERRIDE, gFolderCharsetObserver, PR_FALSE);
+          rv = pbi->AddObserver(kMAILNEWS_VIEW_DEFAULT_CHARSET, gFolderCharsetObserver, false);
+          rv = pbi->AddObserver(kMAILNEWS_DEFAULT_CHARSET_OVERRIDE, gFolderCharsetObserver, false);
         }
 
         // also register for shutdown
         nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
         if (NS_SUCCEEDED(rv))
         {
-          rv = observerService->AddObserver(gFolderCharsetObserver, NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_FALSE);
+          rv = observerService->AddObserver(gFolderCharsetObserver, NS_XPCOM_SHUTDOWN_OBSERVER_ID, false);
         }
       }
     }
@@ -301,7 +301,7 @@ nsresult nsDBFolderInfo::AddToNewMDB()
     nsIMdbStore *store = m_mdb->GetStore();
     // create the unique table for the dbFolderInfo.
     mdb_err err = store->NewTable(m_mdb->GetEnv(), m_rowScopeToken,
-      m_tableKindToken, PR_TRUE, nsnull, &m_mdbTable);
+      m_tableKindToken, true, nsnull, &m_mdbTable);
 
     // make sure the oid of the table is 1.
     struct mdbOid folderInfoTableOID;
@@ -387,7 +387,7 @@ nsresult nsDBFolderInfo::InitMDBInfo()
     store->StringToToken(env,  kUnreadPendingMessagesColumnName, &m_unreadPendingMessagesColumnToken);
     store->StringToToken(env,  kExpiredMarkColumnName, &m_expiredMarkColumnToken);
     store->StringToToken(env,  kVersionColumnName, &m_versionColumnToken);
-    m_mdbTokensInitialized  = PR_TRUE;
+    m_mdbTokensInitialized  = true;
   }
 
   return ret;
@@ -445,12 +445,12 @@ nsresult nsDBFolderInfo::AdjustHighWater(nsMsgKey highWater, bool force)
 
 NS_IMETHODIMP nsDBFolderInfo::SetHighWater(nsMsgKey highWater)
 {
-  return AdjustHighWater(highWater, PR_TRUE);
+  return AdjustHighWater(highWater, true);
 }
 
 NS_IMETHODIMP nsDBFolderInfo::OnKeyAdded(nsMsgKey aNewKey)
 {
-  return AdjustHighWater(aNewKey, PR_FALSE);
+  return AdjustHighWater(aNewKey, false);
 }
 
 NS_IMETHODIMP
@@ -552,7 +552,7 @@ NS_IMETHODIMP nsDBFolderInfo::ChangeNumUnreadMessages(PRInt32 delta)
   if (m_numUnreadMessages < 0)
   {
 #ifdef DEBUG_bienvenu1
-     NS_ASSERTION(PR_FALSE, "Hardcoded assertion");
+     NS_ASSERTION(false, "Hardcoded assertion");
 #endif
       m_numUnreadMessages = 0;
   }
@@ -566,7 +566,7 @@ NS_IMETHODIMP nsDBFolderInfo::ChangeNumMessages(PRInt32 delta)
   if (m_numMessages < 0)
   {
 #ifdef DEBUG_bienvenu
-    NS_ASSERTION(PR_FALSE, "num messages can't be < 0");
+    NS_ASSERTION(false, "num messages can't be < 0");
 #endif
     m_numMessages = 0;
   }

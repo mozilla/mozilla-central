@@ -155,7 +155,7 @@ NS_IMETHODIMP nsMsgFolderNotificationService::NotifyMsgsMoveCopyCompleted(
         nsMsgImapDeleteModel deleteModel;
         imapServer->GetDeleteModel(&deleteModel);
         if (deleteModel == nsMsgImapDeleteModels::IMAPDelete)
-          isReallyMove = PR_FALSE;
+          isReallyMove = false;
       }
     }
   }

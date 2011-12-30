@@ -325,7 +325,7 @@ morkFactory::MakeHeap(nsIMdbEnv* mev, nsIMdbHeap** acqHeap)
 NS_IMETHODIMP
 morkFactory::MakeCompare(nsIMdbEnv* mev, nsIMdbCompare** acqCompare)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 // } ----- end compare methods -----
@@ -335,7 +335,7 @@ NS_IMETHODIMP
 morkFactory::MakeRow(nsIMdbEnv* mev, nsIMdbHeap* ioHeap,
   nsIMdbRow** acqRow)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 // ioHeap can be nil, causing the heap associated with ev to be used
@@ -385,7 +385,7 @@ morkFactory::OpenFilePort(
   const mdbOpenPolicy* inOpenPolicy, // runtime policies for using db
   nsIMdbThumb** acqThumb)
 {
-  NS_ASSERTION(PR_FALSE, "this doesn't look implemented");
+  NS_ASSERTION(false, "this doesn't look implemented");
   MORK_USED_1(ioHeap);
   mdb_err outErr = 0;
   nsIMdbThumb* outThumb = 0;

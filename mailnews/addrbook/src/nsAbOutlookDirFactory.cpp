@@ -109,7 +109,7 @@ nsAbOutlookDirFactory::GetDirectories(const nsAString &aDirName,
 	nsCOMPtr<nsIAbDirectory> directory;
 	rv = abManager->GetDirectory(uri, getter_AddRefs(directory));
     NS_ENSURE_SUCCESS(rv, rv);
-    directories->AppendElement(directory, PR_FALSE);
+    directories->AppendElement(directory, false);
   }
   return NS_NewArrayEnumerator(aDirectories, directories);
 }

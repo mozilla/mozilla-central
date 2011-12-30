@@ -70,8 +70,8 @@ public:
 	// Generation
     // Generates an HTML representation of this part.  Returns content length generated, -1 if failed.
     virtual PRInt32 Generate(nsIMAPBodyShell *aShell, bool /*stream*/, bool /* prefetch */) { return -1; }
-    virtual void AdoptPartDataBuffer(char *buf);    // Adopts storage for part data buffer.  If NULL, sets isValid to PR_FALSE.
-    virtual void AdoptHeaderDataBuffer(char *buf);  // Adopts storage for header data buffer.  If NULL, sets isValid to PR_FALSE.
+    virtual void AdoptPartDataBuffer(char *buf);    // Adopts storage for part data buffer.  If NULL, sets isValid to false.
+    virtual void AdoptHeaderDataBuffer(char *buf);  // Adopts storage for header data buffer.  If NULL, sets isValid to false.
     virtual bool ShouldFetchInline(nsIMAPBodyShell *aShell) { return true; }  // returns true if this part should be fetched inline for generation.
     virtual bool PreflightCheckAllInline(nsIMAPBodyShell *aShell) { return true; }
 
@@ -80,7 +80,7 @@ public:
         virtual bool IsLastTextPart(const char *partNumberString) {return true;}
 
 protected:
-    // If stream is PR_FALSE, simply returns the content length that will be generated
+    // If stream is false, simply returns the content length that will be generated
     // the body of the part itself
     virtual PRInt32 GeneratePart(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
     // the MIME headers of the part
@@ -186,7 +186,7 @@ public:
 	virtual nsIMAPBodypartType	GetType();
     // Generates an HTML representation of this part.  Returns content length generated, -1 if failed.
     virtual PRInt32 Generate(nsIMAPBodyShell *aShell, bool stream, bool prefetch);
-    // returns PR_TRUE if this part should be fetched inline for generation.
+    // returns true if this part should be fetched inline for generation.
     virtual bool ShouldFetchInline(nsIMAPBodyShell *aShell);
     virtual bool PreflightCheckAllInline(nsIMAPBodyShell *aShell);
 private:
@@ -258,7 +258,7 @@ public:
   // headers correspond.  NULL indicates the top-level message
   void AdoptMessageHeaders(char *headers, const char *partNum);
   // Fills in buffer (and adopts storage) for MIME headers in appropriate object.
-  // If object can't be found, sets isValid to PR_FALSE.
+  // If object can't be found, sets isValid to false.
   void AdoptMimeHeader(const char *partNum, char *mimeHeader);
 
   // Generation
@@ -273,7 +273,7 @@ public:
   // Returns TRUE if the user has the pref "Show Attachments Inline" set.
   // Returns FALSE if the setting is "Show Attachments as Links"
   virtual bool GetShowAttachmentsInline();
-  // Returns PR_TRUE if all parts are inline, PR_FALSE otherwise. Does not generate anything.
+  // Returns true if all parts are inline, false otherwise. Does not generate anything.
   bool PreflightCheckAllInline();
 
   // Helpers
@@ -283,7 +283,7 @@ public:
   nsCString &GetUID() { return m_UID; }
   const char *GetFolderName() { return m_folderName; }
   char *GetGeneratingPart() { return m_generatingPart; }
-  // Returns PR_TRUE if this is in the process of being generated,
+  // Returns true if this is in the process of being generated,
   // so we don't re-enter
   bool IsBeingGenerated() { return m_isBeingGenerated; }
   bool IsShellCached() { return m_cached; }
@@ -307,7 +307,7 @@ protected:
   bool                            m_showAttachmentsInline; // Whether or not we should display attachment inline
   bool                            m_cached;                 // Whether or not this shell is cached
   bool                            m_generatingWholeMessage; // whether or not we are generating the whole (non-MPOD) message
-                                                          // Set to PR_FALSE if we are generating by parts
+                                                          // Set to false if we are generating by parts
   // under what conditions the content has been modified.
   // Either IMAP_CONTENT_MODIFIED_VIEW_INLINE or IMAP_CONTENT_MODIFIED_VIEW_AS_LINKS
   IMAP_ContentModifiedType        m_contentModified; 
@@ -342,8 +342,8 @@ public:
 protected:
   nsIMAPBodyShellCache();
   // Chooses an entry to eject;  deletes that entry;  and ejects it from the
-  // cache, clearing up a new space.  Returns PR_TRUE if it found an entry
-  // to eject, PR_FALSE otherwise.
+  // cache, clearing up a new space.  Returns true if it found an entry
+  // to eject, false otherwise.
   bool EjectEntry();
   PRUint32 GetSize() { return m_shellList->Count(); }
   PRUint32 GetMaxSize() { return 20; }

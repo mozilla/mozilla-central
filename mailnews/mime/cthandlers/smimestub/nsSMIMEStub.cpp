@@ -84,7 +84,7 @@ MIME_SMimeCreateContentTypeHandlerClass(const char *content_type,
     return NULL;
 
   clazz->superclass = (MimeObjectClass *)COM_GetmimeInlineTextClass();
-  initStruct->force_inline_display = PR_TRUE;
+  initStruct->force_inline_display = true;
   return clazz;
 }
 
@@ -146,7 +146,7 @@ MimeInlineTextSMIMEStub_parse_line(const char *line, PRInt32 length, MimeObject 
     return 0;
 
   if (!obj->options->write_html_p)
-    return COM_MimeObject_write(obj, line, length, PR_TRUE);
+    return COM_MimeObject_write(obj, line, length, true);
 
   return 0;
 }
@@ -173,7 +173,7 @@ MimeInlineTextSMIMEStub_parse_eof (MimeObject *obj, bool abort_p)
   if (status < 0)
     return status;
 
-  status = COM_MimeObject_write(obj, html, PL_strlen(html), PR_TRUE);
+  status = COM_MimeObject_write(obj, html, PL_strlen(html), true);
   PR_FREEIF(html);
   if (status < 0)
     return status;

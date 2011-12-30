@@ -72,15 +72,15 @@
 nsSpamSettings::nsSpamSettings()
 {
   mLevel = 0;
-  mMoveOnSpam = PR_FALSE;
+  mMoveOnSpam = false;
   mMoveTargetMode = nsISpamSettings::MOVE_TARGET_MODE_ACCOUNT;
-  mPurge = PR_FALSE;
+  mPurge = false;
   mPurgeInterval = 14; // 14 days
 
   mServerFilterTrustFlags = 0;
 
-  mUseWhiteList = PR_FALSE;
-  mUseServerFilter = PR_FALSE;
+  mUseWhiteList = false;
+  mUseServerFilter = false;
 
   nsresult rv = NS_GetSpecialDirectory(NS_APP_USER_PROFILE_50_DIR, getter_AddRefs(mLogFile));
   if (NS_SUCCEEDED(rv))
@@ -824,7 +824,7 @@ NS_IMETHODIMP nsSpamSettings::CheckWhiteList(nsIMsgDBHdr *aMsgHdr, bool *aResult
 {
   NS_ENSURE_ARG_POINTER(aMsgHdr);
   NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = PR_FALSE;  // default in case of error or no whitelisting
+  *aResult = false;  // default in case of error or no whitelisting
 
   if (!mUseWhiteList || (!mWhiteListDirArray.Count() &&
                           mTrustedMailDomains.IsEmpty()))
@@ -867,7 +867,7 @@ NS_IMETHODIMP nsSpamSettings::CheckWhiteList(nsIMsgDBHdr *aMsgHdr, bool *aResult
       if (!mTrustedMailDomains.IsEmpty() &&
           MsgHostDomainIsTrusted(domain, mTrustedMailDomains))
       {
-        *aResult = PR_TRUE;
+        *aResult = true;
         return NS_OK;
       }
 
@@ -900,7 +900,7 @@ NS_IMETHODIMP nsSpamSettings::CheckWhiteList(nsIMsgDBHdr *aMsgHdr, bool *aResult
     }
     if (cardForAddress)
     {
-      *aResult = PR_TRUE;
+      *aResult = true;
       return NS_OK;
     }
   }

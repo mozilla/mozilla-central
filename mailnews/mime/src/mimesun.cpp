@@ -134,7 +134,7 @@ MimeSunAttachment_create_child(MimeObject *obj)
 
   sun_data_type = (mult->hdrs
            ? MimeHeaders_get (mult->hdrs, HEADER_X_SUN_DATA_TYPE,
-                    PR_TRUE, PR_FALSE)
+                    true, false)
            : 0);
   if (sun_data_type)
   {
@@ -246,7 +246,7 @@ MimeSunAttachment_create_child(MimeObject *obj)
 
   sun_data_type = (mult->hdrs
            ? MimeHeaders_get (mult->hdrs, HEADER_X_SUN_ENCODING_INFO,
-                    PR_FALSE,PR_FALSE)
+                    false,false)
            : 0);
   sun_enc_info = sun_data_type;
 

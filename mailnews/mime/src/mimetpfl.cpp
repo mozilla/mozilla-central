@@ -92,7 +92,7 @@ MimeInlineTextPlainFlowed_parse_begin (MimeObject *obj)
   int status = ((MimeObjectClass*)&MIME_SUPERCLASS)->parse_begin(obj);
   if (status < 0) return status;
 
-  status =  MimeObject_write(obj, "", 0, PR_TRUE); /* force out any separators... */
+  status =  MimeObject_write(obj, "", 0, true); /* force out any separators... */
   if(status<0) return status;
 
   bool quoting = ( obj->options
@@ -120,15 +120,15 @@ MimeInlineTextPlainFlowed_parse_begin (MimeObject *obj)
   // Initialize data
 
   exdata->ownerobj = obj;
-  exdata->inflow = PR_FALSE;
+  exdata->inflow = false;
   exdata->quotelevel = 0;
-  exdata->isSig = PR_FALSE;
+  exdata->isSig = false;
 
   // check for DelSp=yes (RFC 3676)
 
   char *content_type_row =
     (obj->headers
-     ? MimeHeaders_get(obj->headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE)
+     ? MimeHeaders_get(obj->headers, HEADER_CONTENT_TYPE, false, false)
      : 0);
   char *content_type_delsp =
     (content_type_row
@@ -140,7 +140,7 @@ MimeInlineTextPlainFlowed_parse_begin (MimeObject *obj)
 
   // Get Prefs for viewing
 
-  exdata->fixedwidthfont = PR_FALSE;
+  exdata->fixedwidthfont = false;
   //  Quotes
   text->mQuotedSizeSetting = 0;   // mail.quoted_size
   text->mQuotedStyleSetting = 0;  // mail.quoted_style
@@ -208,7 +208,7 @@ MimeInlineTextPlainFlowed_parse_begin (MimeObject *obj)
       openingDiv += '\"';
     }
     openingDiv += ">";
-    status = MimeObject_write(obj, openingDiv.get(), openingDiv.Length(), PR_FALSE);
+    status = MimeObject_write(obj, openingDiv.get(), openingDiv.Length(), false);
     if (status < 0) return status;
   }
 
@@ -256,17 +256,17 @@ MimeInlineTextPlainFlowed_parse_eof (MimeObject *obj, bool abort_p)
   }
 
   for(; exdata->quotelevel > 0; exdata->quotelevel--) {
-    status = MimeObject_write(obj, "</blockquote>", 13, PR_FALSE);
+    status = MimeObject_write(obj, "</blockquote>", 13, false);
     if(status<0) goto EarlyOut;
   }
 
   if (exdata->isSig && !quoting) {
-    status = MimeObject_write(obj, "</div>", 6, PR_FALSE); // .moz-txt-sig
+    status = MimeObject_write(obj, "</div>", 6, false); // .moz-txt-sig
     if (status<0) goto EarlyOut;
   }
   if (!quoting) // HACK (see above)
   {
-    status = MimeObject_write(obj, "</div>", 6, PR_FALSE); // .moz-text-flowed
+    status = MimeObject_write(obj, "</div>", 6, false); // .moz-text-flowed
     if (status<0) goto EarlyOut;
   }
 
@@ -341,7 +341,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
        /* Ignore space stuffing, i.e. lines with just
           (quote marks and) a space count as empty */
   {
-    flowed = PR_TRUE;
+    flowed = true;
     sigSeparator = (index - (linep - line) + 1 == 3) && !strncmp(linep, "-- ", 3);
     if (((MimeInlineTextPlainFlowed *) obj)->delSp && ! sigSeparator)
        /* If line is flowed and DelSp=yes, logically
@@ -462,16 +462,16 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
       {
         preface += "--&nbsp;<br>";
       } else {
-        exdata->isSig = PR_TRUE;
+        exdata->isSig = true;
         preface += "<div class=\"moz-txt-sig\"><span class=\"moz-txt-tag\">"
                    "--&nbsp;<br></span>";
       }
     } else {
-      Line_convert_whitespace(lineResult, PR_FALSE /* Allow wraps */,
+      Line_convert_whitespace(lineResult, false /* Allow wraps */,
                               lineResult2);
     }
 
-    exdata->inflow=PR_TRUE;
+    exdata->inflow=true;
   } else {
     // Fixed paragraph.
     Line_convert_whitespace(lineResult,
@@ -480,12 +480,12 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
                                  a row into nbsp, otherwise all. */,
                             lineResult2);
     lineResult2.AppendLiteral("<br>");
-    exdata->inflow = PR_FALSE;
+    exdata->inflow = false;
   } // End Fixed line
 
   if (!(exdata->isSig && quoting))
   {
-    status = MimeObject_write(obj, preface.get(), preface.Length(), PR_TRUE);
+    status = MimeObject_write(obj, preface.get(), preface.Length(), true);
     if (status < 0) return status;
     nsCAutoString outString;
     if (obj->options->format_out != nsMimeOutput::nsMimeMessageSaveAs ||
@@ -496,7 +496,7 @@ MimeInlineTextPlainFlowed_parse_line (const char *aLine, PRInt32 length, MimeObj
       rv = nsMsgI18NConvertFromUnicode(mailCharset, lineResult2, outString);
       NS_ENSURE_SUCCESS(rv, -1);
     }
-    status = MimeObject_write(obj, outString.get(), outString.Length(), PR_TRUE);
+    status = MimeObject_write(obj, outString.get(), outString.Length(), true);
     return status;
   }
   else
@@ -530,7 +530,7 @@ static void Update_in_tag_info(bool *a_in_tag, /* IN/OUT */
       // We are in a quote. A quote is ended by the same
       // character that started it ('...' or "...")
       if(*a_quote_char == a_current_char) {
-        *a_in_quote_in_tag = PR_FALSE;
+        *a_in_quote_in_tag = false;
       }
     } else {
       // We are not currently in a quote, but we may enter
@@ -538,12 +538,12 @@ static void Update_in_tag_info(bool *a_in_tag, /* IN/OUT */
       switch(a_current_char) {
       case '"':
       case '\'':
-        *a_in_quote_in_tag = PR_TRUE;
+        *a_in_quote_in_tag = true;
         *a_quote_char = a_current_char;
         break;
       case '>':
         // Tag is ended
-        *a_in_tag = PR_FALSE;
+        *a_in_tag = false;
         break;
       default:
         // Do nothing
@@ -558,8 +558,8 @@ static void Update_in_tag_info(bool *a_in_tag, /* IN/OUT */
   // All normal occurrences of '<' should have been replaced
   // by &lt;
   if ('<' == a_current_char) {
-    *a_in_tag = PR_TRUE;
-    *a_in_quote_in_tag = PR_FALSE;
+    *a_in_tag = true;
+    *a_in_quote_in_tag = false;
   }
 }
 

@@ -83,7 +83,7 @@ nsSuiteDirectoryProvider::GetFile(const char *aKey,
   if (NS_SUCCEEDED(file->Exists(&exists)) && !exists)
     EnsureProfileFile(leafStr, parentDir, file);
 
-  *aPersist = PR_TRUE;
+  *aPersist = true;
   NS_IF_ADDREF(*aResult = file);
 
   return NS_OK;

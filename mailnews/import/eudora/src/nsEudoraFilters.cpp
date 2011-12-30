@@ -96,7 +96,7 @@ NS_IMETHODIMP nsEudoraFilters::AutoLocate(PRUnichar **aDescription, nsIFile **aL
   NS_ENSURE_ARG_POINTER(_retval);
 
   *aDescription = nsnull;
-  *_retval = PR_FALSE;
+  *_retval = false;
 
   nsresult rv;
   m_pLocation =  do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv);
@@ -128,7 +128,7 @@ NS_IMETHODIMP nsEudoraFilters::Import(PRUnichar **aError, bool *_retval)
   NS_ENSURE_ARG_POINTER(_retval);
   nsresult rv;
 
-  *_retval = PR_FALSE;
+  *_retval = false;
   *aError = nsnull;
 
   // Get the settings file if it doesn't exist
@@ -172,7 +172,7 @@ bool nsEudoraFilters::RealImport()
   if (NS_FAILED(rv))
   {
     IMPORT_LOG0( "*** Error initializing filter import process\n");
-    return PR_FALSE;
+    return false;
   }
 
   nsCOMPtr <nsIInputStream> inputStream;
@@ -181,14 +181,14 @@ bool nsEudoraFilters::RealImport()
   if (NS_FAILED(rv))
   {
     IMPORT_LOG0( "*** Error opening filters file for reading\n");
-    return PR_FALSE;
+    return false;
   }
 
   rv = LoadServers();
   if (NS_FAILED(rv))
   {
     IMPORT_LOG0( "*** Error loading servers with filters\n");
-    return PR_FALSE;
+    return false;
   }
 
   nsCOMPtr<nsILineInputStream> lineStream(do_QueryInterface(inputStream, &rv));
@@ -230,11 +230,11 @@ bool nsEudoraFilters::RealImport()
       {
         const char* cj = pLine + 12;
         if (!strcmp(cj, "and"))
-          m_isAnd = PR_TRUE;
+          m_isAnd = true;
         else if (!strcmp(cj, "unless"))
-          m_isUnless = PR_TRUE;
+          m_isUnless = true;
         else if (!strcmp(cj, "ignore"))
-          m_ignoreTerm = PR_TRUE;
+          m_ignoreTerm = true;
       }
       else if (!strncmp(pLine, "header ", 7))
         header = (pLine + 7);
@@ -249,12 +249,12 @@ bool nsEudoraFilters::RealImport()
           if (rv == NS_ERROR_INVALID_ARG)
           {
             rv = NS_OK;
-            m_termNotGroked = PR_TRUE;
+            m_termNotGroked = true;
           }
         }
       }
       else if (!strcmp(pLine, "incoming"))
-        m_isIncoming = PR_TRUE;
+        m_isIncoming = true;
       else if (!strncmp(pLine, "transfer ", 9) ||
                !strncmp(pLine, "copy ", 5))
       {
@@ -275,7 +275,7 @@ bool nsEudoraFilters::RealImport()
       }
       // Doing strncmp() here because Win Eudora puts a space after "stop" but Mac Eudora doesn't
       else if (!strncmp(pLine, "stop", 4))
-        m_hasStop = PR_TRUE;
+        m_hasStop = true;
       else if (!strncmp(pLine, "forward ", 8))
         rv = AddStringAction(nsMsgFilterAction::Forward, pLine + 8);
       else if (!strncmp(pLine, "reply ", 6))
@@ -358,7 +358,7 @@ bool nsEudoraFilters::RealImport()
   if (more)
   {
     IMPORT_LOG0( "*** Error reading the filters, didn't reach the end\n");
-    return PR_FALSE;
+    return false;
   }
 
   rv = SaveFilters();
@@ -520,7 +520,7 @@ nsresult nsEudoraFilters::CreateNewFilter(const char* pName)
     rv = filterList->CreateFilter(unicodeName, getter_AddRefs(newFilter));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = newFilter->SetEnabled(PR_FALSE);
+    rv = newFilter->SetEnabled(false);
     NS_ENSURE_SUCCESS(rv, rv);
 
     PRUint32 count;
@@ -533,14 +533,14 @@ nsresult nsEudoraFilters::CreateNewFilter(const char* pName)
     m_pFilterArray->AppendElement(newFilter);
   }
 
-  m_isAnd = PR_FALSE;
-  m_isUnless = PR_FALSE;
-  m_ignoreTerm = PR_FALSE;
-  m_isIncoming = PR_FALSE;
-  m_addedAction = PR_FALSE;
-  m_hasTransfer = PR_FALSE;
-  m_hasStop = PR_FALSE;
-  m_termNotGroked = PR_FALSE;
+  m_isAnd = false;
+  m_isUnless = false;
+  m_ignoreTerm = false;
+  m_isIncoming = false;
+  m_addedAction = false;
+  m_hasTransfer = false;
+  m_hasStop = false;
+  m_termNotGroked = false;
 
   return NS_OK;
 }
@@ -560,7 +560,7 @@ nsresult nsEudoraFilters::FinalizeFilter()
   // we disable the filter (gives the user a chance to add their own actions and enable).
   // Lastly, only enable if all terms were fully understood.
   if (m_isIncoming && m_addedAction && !m_termNotGroked)
-    rv = EnableFilter(PR_TRUE);
+    rv = EnableFilter(true);
 
   return rv;
 }
@@ -792,7 +792,7 @@ nsresult nsEudoraFilters::AddTerm(const char* pHeader, const char* pVerb, const 
       term = do_QueryElementAt(terms, 0, &rv);
       if (NS_SUCCEEDED(rv) && term)
       {
-        term->SetBooleanAnd(PR_TRUE);
+        term->SetBooleanAnd(true);
         term = nsnull;
       }
     }
@@ -882,7 +882,7 @@ nsresult nsEudoraFilters::AddAction(nsMsgRuleActionType actionType, PRInt32 junk
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  m_addedAction = PR_TRUE;
+  m_addedAction = true;
 
   return rv;
 }
@@ -918,7 +918,7 @@ nsresult nsEudoraFilters::AddMailboxAction(const char* pMailboxPath, bool isTran
   rv = AddAction(isTransfer? (nsMsgRuleActionType)nsMsgFilterAction::MoveToFolder : (nsMsgRuleActionType)nsMsgFilterAction::CopyToFolder, 0, 0, 0, nsnull, folderURI.get());
 
   if (NS_SUCCEEDED(rv) && isTransfer)
-    m_hasTransfer = PR_TRUE;
+    m_hasTransfer = true;
 
   return rv;
 }

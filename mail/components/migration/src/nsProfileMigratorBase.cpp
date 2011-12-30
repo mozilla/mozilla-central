@@ -49,7 +49,7 @@
 nsProfileMigratorBase::nsProfileMigratorBase()
 {
   mObserverService = do_GetService("@mozilla.org/observer-service;1");
-  mProcessingMailFolders = PR_FALSE;
+  mProcessingMailFolders = false;
 }
 
 nsProfileMigratorBase::~nsProfileMigratorBase()
@@ -138,7 +138,7 @@ nsresult nsProfileMigratorBase::ImportMailData(nsIImportModule * aImportModule)
 
   // by setting the migration flag, we force the import utility to install local folders from OE
   // directly into Local Folders and not as a subfolder
-  migrating->SetData(PR_TRUE);
+  migrating->SetData(true);
   mGenericImporter->SetData("migration", migrating);
 
   bool importResult;
@@ -146,7 +146,7 @@ nsresult nsProfileMigratorBase::ImportMailData(nsIImportModule * aImportModule)
   mGenericImporter->WantsProgress(&wantsProgress);
   rv = mGenericImporter->BeginImport(nsnull, nsnull, &importResult);
 
-  mProcessingMailFolders = PR_TRUE;
+  mProcessingMailFolders = true;
 
   if (wantsProgress)
     ContinueImport();

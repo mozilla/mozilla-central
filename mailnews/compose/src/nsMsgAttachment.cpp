@@ -43,7 +43,7 @@ NS_IMPL_ISUPPORTS1(nsMsgAttachment, nsIMsgAttachment)
 
 nsMsgAttachment::nsMsgAttachment()
 {
-  mTemporary = PR_FALSE;
+  mTemporary = false;
   mSize = -1;
 }
 
@@ -250,7 +250,7 @@ nsresult nsMsgAttachment::DeleteAttachment()
 
   // remove it if it's a valid file
   if (isAFile)
-	  rv = urlFile->Remove(PR_FALSE); 
+	  rv = urlFile->Remove(false); 
 
   return rv;
 }

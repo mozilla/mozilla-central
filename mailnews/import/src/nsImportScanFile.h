@@ -68,9 +68,9 @@ protected:
 
 class nsImportScanFileLines : public nsImportScanFile {
 public:
-  nsImportScanFileLines() {m_needEol = PR_FALSE;}
+  nsImportScanFileLines() {m_needEol = false;}
 
-  void  ResetLineScan( void) { m_needEol = PR_FALSE;}
+  void  ResetLineScan( void) { m_needEol = false;}
 
   virtual bool ProcessLine( PRUint8 * /* pLine */, PRUint32 /* len */, bool * /* pDone */ ) {return( true);}
 

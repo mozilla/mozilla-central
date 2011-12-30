@@ -179,9 +179,9 @@ public:
     if ((pos < max) && (*pChar == ch)) {
       pos++;
       pChar++;
-      return( PR_TRUE);
+      return( true);
     }
-    return( PR_FALSE);
+    return( false);
   }
 
   inline static PRInt32 strcmp( const char * pS1, const char * pS2) {

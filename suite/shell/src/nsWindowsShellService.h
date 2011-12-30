@@ -58,7 +58,7 @@ typedef struct {
 class nsWindowsShellService : public nsIWindowsShellService
 {
 public:
-  nsWindowsShellService() : mCheckedThisSessionClient(PR_FALSE) {};
+  nsWindowsShellService() : mCheckedThisSessionClient(false) {};
   ~nsWindowsShellService() {};
   NS_HIDDEN_(nsresult) Init();
 

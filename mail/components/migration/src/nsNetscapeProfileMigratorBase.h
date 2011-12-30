@@ -59,10 +59,10 @@ struct fileTransactionEntry {
 #define F(a) nsNetscapeProfileMigratorBase::a
 
 #define MAKEPREFTRANSFORM(pref, newpref, getmethod, setmethod) \
-  { pref, newpref, F(Get##getmethod), F(Set##setmethod), PR_FALSE, { -1 } }
+  { pref, newpref, F(Get##getmethod), F(Set##setmethod), false, { -1 } }
 
 #define MAKESAMETYPEPREFTRANSFORM(pref, method) \
-  { pref, 0, F(Get##method), F(Set##method), PR_FALSE, { -1 } }
+  { pref, 0, F(Get##method), F(Set##method), false, { -1 } }
 
 class nsNetscapeProfileMigratorBase : public nsIMailProfileMigrator,
                                       public nsITimerCallback

@@ -292,7 +292,7 @@ NS_IMETHODIMP nsMsgTagService::AddTag(const nsAString  &tag,
   // to normalize all keys to lower case (upper case looks ugly in prefs.js)
   ToLowerCase(key);
   nsCAutoString prefName(key);
-  while (PR_TRUE)
+  while (true)
   {
     nsAutoString tagValue;
     nsresult rv = GetTagForKey(prefName, tagValue);
@@ -300,7 +300,7 @@ NS_IMETHODIMP nsMsgTagService::AddTag(const nsAString  &tag,
       return AddTagForKey(prefName, tag, color, ordinal);
     prefName.Append('A');
   }
-  NS_ASSERTION(PR_FALSE, "can't get here");
+  NS_ASSERTION(false, "can't get here");
   return NS_ERROR_FAILURE;
 }
 
@@ -507,7 +507,7 @@ nsresult nsMsgTagService::MigrateLabelsToTags()
     return rv;
   else if (prefVersion == 1)
   {
-    gMigratingKeys = PR_TRUE;
+    gMigratingKeys = true;
   // need to convert the keys to lower case
     nsIMsgTag **tagArray;
     PRUint32 numTags;
@@ -526,7 +526,7 @@ nsresult nsMsgTagService::MigrateLabelsToTags()
       AddTagForKey(key, tagStr, color, ordinal);
     }
     NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(numTags, tagArray);
-    gMigratingKeys = PR_FALSE;
+    gMigratingKeys = false;
   }
   else 
   {

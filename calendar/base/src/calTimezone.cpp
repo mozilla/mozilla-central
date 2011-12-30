@@ -46,14 +46,14 @@ CAL_STRINGTYPE_ATTR_GETTER(calTimezone, nsACString, Tzid)
 NS_IMETHODIMP
 calTimezone::GetIsFloating(bool * _retval) {
     NS_ENSURE_ARG_POINTER(_retval);
-    *_retval = PR_FALSE;
+    *_retval = false;
     return NS_OK;
 }
 
 NS_IMETHODIMP
 calTimezone::GetIsUTC(bool * _retval) {
     NS_ENSURE_ARG_POINTER(_retval);
-    *_retval = PR_FALSE;
+    *_retval = false;
     return NS_OK;
 }
 
@@ -65,13 +65,13 @@ calTimezone::GetDisplayName(nsAString & _retval) {
 
 NS_IMETHODIMP
 calTimezone::GetLatitude(nsACString & _retval) {
-    _retval.SetIsVoid(PR_TRUE);
+    _retval.SetIsVoid(true);
     return NS_OK;
 }
 
 NS_IMETHODIMP
 calTimezone::GetLongitude(nsACString & _retval) {
-    _retval.SetIsVoid(PR_TRUE);
+    _retval.SetIsVoid(true);
     return NS_OK;
 }
 

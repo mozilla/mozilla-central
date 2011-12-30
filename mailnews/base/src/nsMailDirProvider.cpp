@@ -88,7 +88,7 @@ nsMailDirProvider::GetFile(const char *aKey, bool *aPersist,
   else if (!strcmp(aKey, NS_APP_NEWS_50_DIR))
     leafName = NEWS_DIR_50_NAME;
   else if (!strcmp(aKey, NS_APP_MESSENGER_FOLDER_CACHE_50_FILE)) {
-    isDirectory = PR_FALSE;
+    isDirectory = false;
     leafName = MSG_FOLDER_CACHE_DIR_50_NAME;
   }
   else
@@ -114,7 +114,7 @@ nsMailDirProvider::GetFile(const char *aKey, bool *aPersist,
   if (isDirectory && NS_SUCCEEDED(file->Exists(&exists)) && !exists)
     rv = EnsureDirectory(file);
 
-  *aPersist = PR_TRUE;
+  *aPersist = true;
   file.swap(*aResult);
 
   return rv;
@@ -167,7 +167,7 @@ NS_IMPL_ISUPPORTS1(nsMailDirProvider::AppendingEnumerator,
 NS_IMETHODIMP
 nsMailDirProvider::AppendingEnumerator::HasMoreElements(bool *aResult)
 {
-  *aResult = mNext || mNextWithLocale ? PR_TRUE : PR_FALSE;
+  *aResult = mNext || mNextWithLocale ? true : false;
   return NS_OK;
 }
 

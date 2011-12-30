@@ -179,7 +179,7 @@ nsMsgMIMESetConformToStandard (bool conform_p)
   * we set. For now, the headers preference is not accessible from UI.
   */
   if (conform_p)
-    mime_headers_use_quoted_printable_p = PR_TRUE;
+    mime_headers_use_quoted_printable_p = true;
   else {
     nsresult rv;
     nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
@@ -387,17 +387,17 @@ mime_generate_headers (nsMsgCompFields *fields,
       // nsIMsgMdnGenerator::eDntRrtType = both MDN DNT and RRT headers .
       if (receipt_header_type != nsIMsgMdnGenerator::eRrtType)
         ENCODE_AND_PUSH(
-	  "Disposition-Notification-To: ", PR_TRUE, pFrom, charset, usemime);
+	  "Disposition-Notification-To: ", true, pFrom, charset, usemime);
       if (receipt_header_type != nsIMsgMdnGenerator::eDntType)
         ENCODE_AND_PUSH(
-	  "Return-Receipt-To: ", PR_TRUE, pFrom, charset, usemime);
+	  "Return-Receipt-To: ", true, pFrom, charset, usemime);
     }
 
 #ifdef SUPPORT_X_TEMPLATE_NAME
     if (deliver_mode == MSG_SaveAsTemplate) {
       const char *pStr = fields->GetTemplateName();
       pStr = pStr ? pStr : "";
-      ENCODE_AND_PUSH("X-Template: ", PR_FALSE, pStr, charset, usemime);
+      ENCODE_AND_PUSH("X-Template: ", false, pStr, charset, usemime);
     }
 #endif /* SUPPORT_X_TEMPLATE_NAME */
   }
@@ -425,17 +425,17 @@ mime_generate_headers (nsMsgCompFields *fields,
 
   if (pFrom && *pFrom)
   {
-    ENCODE_AND_PUSH("From: ", PR_TRUE, pFrom, charset, usemime);
+    ENCODE_AND_PUSH("From: ", true, pFrom, charset, usemime);
   }
 
   if (pReplyTo && *pReplyTo)
   {
-    ENCODE_AND_PUSH("Reply-To: ", PR_TRUE, pReplyTo, charset, usemime);
+    ENCODE_AND_PUSH("Reply-To: ", true, pReplyTo, charset, usemime);
   }
 
   if (pOrg && *pOrg)
   {
-    ENCODE_AND_PUSH("Organization: ", PR_FALSE, pOrg, charset, usemime);
+    ENCODE_AND_PUSH("Organization: ", false, pOrg, charset, usemime);
   }
 
   // X-Mozilla-Draft-Info
@@ -549,8 +549,8 @@ mime_generate_headers (nsMsgCompFields *fields,
 
     // fixme:the newsgroups header had better be encoded as the server-side
     // character encoding, but this |charset| might be different from it.
-    ENCODE_AND_PUSH("Newsgroups: ", PR_FALSE, newsgroupsHeaderVal.get(),
-                    charset, PR_FALSE);
+    ENCODE_AND_PUSH("Newsgroups: ", false, newsgroupsHeaderVal.get(),
+                    charset, false);
 
     // If we are here, we are NOT going to send this now. (i.e. it is a Draft,
     // Send Later file, etc...). Because of that, we need to store what the user
@@ -568,7 +568,7 @@ mime_generate_headers (nsMsgCompFields *fields,
     }
 
     PR_FREEIF(duppedNewsGrp);
-    hasDisclosedRecipient = PR_TRUE;
+    hasDisclosedRecipient = true;
   }
 
   /* #### shamelessly duplicated from above */
@@ -602,18 +602,18 @@ mime_generate_headers (nsMsgCompFields *fields,
         PL_strcpy(ptr+1, ptr2);
     }
 
-    ENCODE_AND_PUSH("Followup-To: ", PR_FALSE, n2, charset, PR_FALSE);
+    ENCODE_AND_PUSH("Followup-To: ", false, n2, charset, false);
     PR_Free (duppedFollowup);
   }
 
   if (pTo && *pTo) {
-    ENCODE_AND_PUSH("To: ", PR_TRUE, pTo, charset, usemime);
-    hasDisclosedRecipient = PR_TRUE;
+    ENCODE_AND_PUSH("To: ", true, pTo, charset, usemime);
+    hasDisclosedRecipient = true;
   }
 
   if (pCc && *pCc) {
-    ENCODE_AND_PUSH("CC: ", PR_TRUE, pCc, charset, usemime);
-    hasDisclosedRecipient = PR_TRUE;
+    ENCODE_AND_PUSH("CC: ", true, pCc, charset, usemime);
+    hasDisclosedRecipient = true;
   }
 
   // If we don't have disclosed recipient (only Bcc), address the message to
@@ -653,7 +653,7 @@ mime_generate_headers (nsMsgCompFields *fields,
   }
 
   if (pSubject && *pSubject)
-    ENCODE_AND_PUSH("Subject: ", PR_FALSE, pSubject, charset, usemime);
+    ENCODE_AND_PUSH("Subject: ", false, pSubject, charset, usemime);
 
   // Skip no or empty priority.
   if (pPriority && *pPriority) 
@@ -744,7 +744,7 @@ GenerateGlobalRandomBytes(unsigned char *buf, PRInt32 len)
     PRInt32 aTime;
     LL_L2I(aTime, PR_Now());
     srand( (unsigned)aTime );
-    firstTime = PR_FALSE;
+    firstTime = false;
   }
 
   for( PRInt32 i = 0; i < len; i++ )
@@ -1077,7 +1077,7 @@ CONTENT_LOC_HACK:
       buf.Append("Content-Location: \"");
       s = base_url;
       col = 0;
-      useContentLocation = PR_TRUE;
+      useContentLocation = true;
       goto CONTENT_LOC_HACK;
     }
     /* rhp: this is to try to get around this fun problem with Content-Location */
@@ -1179,16 +1179,16 @@ RFC2231ParmFolding(const char *parmName, const nsCString& charset,
   nsCString dupParm;
 
   if (!NS_IsAscii(parmValue.get()) || is7bitCharset(charset)) {
-    needEscape = PR_TRUE;
+    needEscape = true;
     nsCAutoString nativeParmValue;
     ConvertFromUnicode(charset.get(), parmValue, nativeParmValue);
     MsgEscapeString(nativeParmValue, nsINetUtil::ESCAPE_ALL, dupParm);
   }
   else {
-    needEscape = PR_FALSE;
+    needEscape = false;
     dupParm.Adopt(
       msg_make_filename_qtext(NS_LossyConvertUTF16toASCII(parmValue).get(),
-                              PR_TRUE));
+                              true));
   }
 
   if (dupParm.IsEmpty())
@@ -1321,7 +1321,7 @@ LegacyParmFolding(const nsCString& aCharset,
 {
   bool usemime = nsMsgMIMEGetConformToStandard();
   char *encodedRealName =
-    nsMsgI18NEncodeMimePartIIStr(aFileName.get(), PR_FALSE, aCharset.get(),
+    nsMsgI18NEncodeMimePartIIStr(aFileName.get(), false, aCharset.get(),
                                  0, usemime);
 
   if (!encodedRealName || !*encodedRealName) {
@@ -1345,15 +1345,15 @@ bool
 mime_7bit_data_p (const char *string, PRUint32 size)
 {
   if ((!string) || (!*string))
-    return PR_TRUE;
+    return true;
 
   char *ptr = (char *)string;
   for (PRUint32 i=0; i<size; i++)
   {
     if ((unsigned char) ptr[i] > 0x7F)
-      return PR_FALSE;
+      return false;
   }
-  return PR_TRUE;
+  return true;
 }
 
 /* Strips whitespace, and expands newlines into newline-tab for use in
@@ -1437,19 +1437,19 @@ mime_fix_header_1 (const char *string, bool addr_p, bool news_p)
 char *
 mime_fix_header (const char *string)
 {
-  return mime_fix_header_1 (string, PR_FALSE, PR_FALSE);
+  return mime_fix_header_1 (string, false, false);
 }
 
 char *
 mime_fix_addr_header (const char *string)
 {
-  return mime_fix_header_1 (string, PR_TRUE, PR_FALSE);
+  return mime_fix_header_1 (string, true, false);
 }
 
 char *
 mime_fix_news_header (const char *string)
 {
-  return mime_fix_header_1 (string, PR_FALSE, PR_TRUE);
+  return mime_fix_header_1 (string, false, true);
 }
 
 bool
@@ -1458,7 +1458,7 @@ mime_type_requires_b64_p (const char *type)
   if (!type || !PL_strcasecmp (type, UNKNOWN_CONTENT_TYPE))
   /* Unknown types don't necessarily require encoding.  (Note that
      "unknown" and "application/octet-stream" aren't the same.) */
-  return PR_FALSE;
+  return false;
 
   else if (!PL_strncasecmp (type, "image/", 6) ||
        !PL_strncasecmp (type, "audio/", 6) ||
@@ -1530,14 +1530,14 @@ mime_type_requires_b64_p (const char *type)
     const char **s;
     for (s = app_and_image_types_which_are_really_text; *s; s++)
     if (!PL_strcasecmp (type, *s))
-      return PR_FALSE;
+      return false;
 
     /* All others must be assumed to be binary formats, and need Base64. */
-    return PR_TRUE;
+    return true;
   }
 
   else
-  return PR_FALSE;
+  return false;
 }
 
 //
@@ -1549,12 +1549,12 @@ mime_type_needs_charset (const char *type)
 {
   /* Only text types should have charset. */
   if (!type || !*type)
-    return PR_FALSE;
+    return false;
   else
     if (!PL_strncasecmp (type, "text", 4))
-      return PR_TRUE;
+      return true;
     else
-      return PR_FALSE;
+      return false;
 }
 
 /* Given a string, convert it to 'qtext' (quoted text) for RFC822 header purposes. */
@@ -1768,12 +1768,12 @@ nsMsgIsLocalFile(const char *url)
   {
 #ifdef XP_WIN
     if (PL_strncasecmp(url, "file:////", 9) == 0)
-      return PR_FALSE;
+      return false;
 #endif
-    return PR_TRUE;
+    return true;
   }
   else
-    return PR_FALSE;
+    return false;
 }
 
 char
@@ -2037,7 +2037,7 @@ ConvertBufToPlainText(nsString &aConBuf, bool formatflowed /* = false */)
 
     parser->SetContentSink(sink);
 
-    parser->Parse(aConBuf, 0, NS_LITERAL_CSTRING("text/html"), PR_TRUE);
+    parser->Parse(aConBuf, 0, NS_LITERAL_CSTRING("text/html"), true);
     //
     // Now if we get here, we need to get from ASCII text to
     // UTF-8 format or there is a problem downstream...
@@ -2067,20 +2067,20 @@ bool UseFormatFlowed(const char *charset)
 
   nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if (NS_FAILED(rv))
-    return PR_FALSE;
+    return false;
 
   rv = prefs->GetBoolPref("mailnews.send_plaintext_flowed", &sendFlowed);
   if (NS_SUCCEEDED(rv) && !sendFlowed)
-    return PR_FALSE;
+    return false;
 
   // If we shouldn't care about charset, then we are finished
   // checking and can go on using format=flowed
   if(!charset)
-    return PR_TRUE;
+    return true;
   rv = prefs->GetBoolPref("mailnews.disable_format_flowed_for_cjk",
                           &disableForCertainCharsets);
   if (NS_SUCCEEDED(rv) && !disableForCertainCharsets)
-    return PR_TRUE;
+    return true;
 
   // Just the check for charset left.
 

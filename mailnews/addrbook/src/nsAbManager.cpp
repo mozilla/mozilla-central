@@ -83,7 +83,7 @@ struct ExportAttributesTableStruct
 // see bugs bug #116692 and #118454
 #define MOZ_AB_OBJECTCLASS "mozillaAbPersonAlpha"
 
-// for now, the oder of the attributes with PR_TRUE for includeForPlainText
+// for now, the oder of the attributes with true for includeForPlainText
 // should be in the same order as they are in the import code
 // see importMsgProperties and nsImportStringBundle.
 // 
@@ -177,11 +177,11 @@ nsresult nsAbManager::Init()
     do_GetService("@mozilla.org/observer-service;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = observerService->AddObserver(this, "profile-do-change", PR_FALSE);
+  rv = observerService->AddObserver(this, "profile-do-change", false);
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID,
-                                    PR_FALSE);
+                                    false);
   NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
@@ -477,7 +477,7 @@ NS_IMETHODIMP nsAbManager::MailListNameExists(const PRUnichar *name, bool *exist
   nsresult rv;
   NS_ENSURE_ARG_POINTER(exist);
 
-  *exist = PR_FALSE;
+  *exist = false;
 
   // now get the top-level book
   nsCOMPtr<nsIAbDirectory> topDirectory;
@@ -587,7 +587,7 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
     bool isFile;
     rv = localFile->IsFile(&isFile);
     if (NS_SUCCEEDED(rv) && isFile) {
-      rv = localFile->Remove(PR_FALSE /* recursive delete */);
+      rv = localFile->Remove(false /* recursive delete */);
       NS_ENSURE_SUCCESS(rv, rv);
     }
   }
@@ -607,8 +607,8 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
     default:
     case LDIF_EXPORT_TYPE: // ldif
       // If filename does not have the correct ext, add one.
-      if ((MsgFind(fileName, LDIF_FILE_EXTENSION, PR_TRUE, fileName.Length() - strlen(LDIF_FILE_EXTENSION)) == -1) &&
-          (MsgFind(fileName, LDIF_FILE_EXTENSION2, PR_TRUE, fileName.Length() - strlen(LDIF_FILE_EXTENSION2)) == -1)) {
+      if ((MsgFind(fileName, LDIF_FILE_EXTENSION, true, fileName.Length() - strlen(LDIF_FILE_EXTENSION)) == -1) &&
+          (MsgFind(fileName, LDIF_FILE_EXTENSION2, true, fileName.Length() - strlen(LDIF_FILE_EXTENSION2)) == -1)) {
 
        // Add the extension and build a new localFile.
        fileName.AppendLiteral(LDIF_FILE_EXTENSION2);
@@ -619,7 +619,7 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
 
     case CSV_EXPORT_TYPE: // csv
       // If filename does not have the correct ext, add one.
-      if (MsgFind(fileName, CSV_FILE_EXTENSION, PR_TRUE, fileName.Length() - strlen(CSV_FILE_EXTENSION)) == -1) {
+      if (MsgFind(fileName, CSV_FILE_EXTENSION, true, fileName.Length() - strlen(CSV_FILE_EXTENSION)) == -1) {
 
        // Add the extension and build a new localFile.
        fileName.AppendLiteral(CSV_FILE_EXTENSION);
@@ -630,8 +630,8 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
 
     case TAB_EXPORT_TYPE: // tab & text
       // If filename does not have the correct ext, add one.
-      if ((MsgFind(fileName, TXT_FILE_EXTENSION, PR_TRUE, fileName.Length() - strlen(TXT_FILE_EXTENSION)) == -1) &&
-          (MsgFind(fileName, TAB_FILE_EXTENSION, PR_TRUE, fileName.Length() - strlen(TAB_FILE_EXTENSION)) == -1)) {
+      if ((MsgFind(fileName, TXT_FILE_EXTENSION, true, fileName.Length() - strlen(TXT_FILE_EXTENSION)) == -1) &&
+          (MsgFind(fileName, TAB_FILE_EXTENSION, true, fileName.Length() - strlen(TAB_FILE_EXTENSION)) == -1)) {
 
        // Add the extension and build a new localFile.
        fileName.AppendLiteral(TXT_FILE_EXTENSION);
@@ -746,7 +746,7 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
               bool needsQuotes = false;
               if(newValue.FindChar('"') != -1)
               {
-                needsQuotes = PR_TRUE;
+                needsQuotes = true;
                 
                 PRInt32 match = 0;
                 PRUint32 offset = 0;
@@ -762,12 +762,12 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
                 }
               }
               if (!needsQuotes && (newValue.FindChar(',') != -1 || newValue.FindChar('\x09') != -1))
-                needsQuotes = PR_TRUE;
+                needsQuotes = true;
 
               // Make sure we quote if containing CR/LF.
               if (newValue.FindChar('\r') != -1 ||
                   newValue.FindChar('\n') != -1)
-                  needsQuotes = PR_TRUE;
+                  needsQuotes = true;
 
               if (needsQuotes)
               {
@@ -1101,7 +1101,7 @@ bool nsAbManager::IsSafeLDIFString(const PRUnichar *aStr)
   if (aStr[0] == PRUnichar(' ') ||
       aStr[0] == PRUnichar(':') ||
       aStr[0] == PRUnichar('<'))
-    return PR_FALSE;
+    return false;
 
   PRUint32 i;
   PRUint32 len = NS_strlen(aStr);
@@ -1111,9 +1111,9 @@ bool nsAbManager::IsSafeLDIFString(const PRUnichar *aStr)
     if ((aStr[i] == PRUnichar('\n')) ||
         (aStr[i] == PRUnichar('\r')) ||
         (!NS_IsAscii(aStr[i])))
-      return PR_FALSE;
+      return false;
   }
-  return PR_TRUE;
+  return true;
 }
 
 nsresult nsAbManager::AppendProperty(const char *aProperty, const PRUnichar *aValue, nsACString &aResult)
@@ -1268,7 +1268,7 @@ nsAbManager::Handle(nsICommandLine* aCmdLine)
   nsresult rv;
   bool found;
 
-  rv = aCmdLine->HandleFlag(NS_LITERAL_STRING("addressbook"), PR_FALSE, &found);
+  rv = aCmdLine->HandleFlag(NS_LITERAL_STRING("addressbook"), false, &found);
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (!found)
@@ -1280,7 +1280,7 @@ nsAbManager::Handle(nsICommandLine* aCmdLine)
   nsCOMPtr<nsIDOMWindow> opened;
   wwatch->OpenWindow(nsnull, "chrome://messenger/content/addressbook/addressbook.xul",
                      "_blank", "chrome,extrachrome,menubar,resizable,scrollbars,status,toolbar", nsnull, getter_AddRefs(opened));
-  aCmdLine->SetPreventDefault(PR_TRUE);
+  aCmdLine->SetPreventDefault(true);
   return NS_OK;
 }
 

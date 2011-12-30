@@ -95,7 +95,7 @@ public:
 
     // parses the expression tree and all
     // expressions underneath this node to
-    // determine if the end result is PR_TRUE or PR_FALSE.
+    // determine if the end result is true or false.
   bool OfflineEvaluate(nsIMsgDBHdr *msgToMatch,
           const char *defaultCharset, nsIMsgSearchScopeTerm *scope,
           nsIMsgDatabase *db, const char *headers, PRUint32 headerSize,

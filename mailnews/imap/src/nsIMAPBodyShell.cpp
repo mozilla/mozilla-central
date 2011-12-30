@@ -76,11 +76,11 @@ nsIMAPBodyShell::nsIMAPBodyShell(nsImapProtocol *protocolConnection,
                                  nsIMAPBodypartMessage *message, PRUint32 UID,
                                  const char *folderName)
 {
-  m_isValid = PR_FALSE;
-  m_isBeingGenerated = PR_FALSE;
-  m_cached = PR_FALSE;
-  m_gotAttachmentPref = PR_FALSE;
-  m_generatingWholeMessage = PR_FALSE;
+  m_isValid = false;
+  m_isBeingGenerated = false;
+  m_cached = false;
+  m_gotAttachmentPref = false;
+  m_generatingWholeMessage = false;
   m_generatingPart = NULL;
   m_protocolConnection = protocolConnection;
   m_message = message;
@@ -123,7 +123,7 @@ bool nsIMAPBodyShell::GetShowAttachmentsInline()
   if (!m_gotAttachmentPref)
   {
     m_showAttachmentsInline = !m_protocolConnection || m_protocolConnection->GetShowAttachmentsInline();
-    m_gotAttachmentPref = PR_TRUE;
+    m_gotAttachmentPref = true;
   }
   
   return m_showAttachmentsInline;
@@ -148,7 +148,7 @@ void nsIMAPBodyShell::AdoptMessageHeaders(char *headers, const char *partNum)
     {
       messageObj->AdoptMessageHeaders(headers);
       if (!messageObj->GetIsValid())
-        SetIsValid(PR_FALSE);
+        SetIsValid(false);
     }
     else
     {
@@ -156,15 +156,15 @@ void nsIMAPBodyShell::AdoptMessageHeaders(char *headers, const char *partNum)
       // We looked up that part number, found an object, but it
       // wasn't of type message/rfc822.
       // Something's wrong.
-      NS_ASSERTION(PR_FALSE, "object not of type message rfc822");
+      NS_ASSERTION(false, "object not of type message rfc822");
     }
   }
   else
-    SetIsValid(PR_FALSE);
+    SetIsValid(false);
 }
 
 // Fills in buffer (and adopts storage) for MIME headers in appropriate object.
-// If object can't be found, sets isValid to PR_FALSE.
+// If object can't be found, sets isValid to false.
 void nsIMAPBodyShell::AdoptMimeHeader(const char *partNum, char *mimeHeader)
 {
   if (!GetIsValid())
@@ -178,11 +178,11 @@ void nsIMAPBodyShell::AdoptMimeHeader(const char *partNum, char *mimeHeader)
   {
     foundPart->AdoptHeaderDataBuffer(mimeHeader);
     if (!foundPart->GetIsValid())
-      SetIsValid(PR_FALSE);
+      SetIsValid(false);
   }
   else
   {
-    SetIsValid(PR_FALSE);
+    SetIsValid(false);
   }
 }
 
@@ -210,7 +210,7 @@ void nsIMAPBodyShell::FlushPrefetchQueue()
 
 // Requires that the shell is valid when called
 // Performs a preflight check on all message parts to see if they are all
-// inline.  Returns PR_TRUE if all parts are inline, PR_FALSE otherwise.
+// inline.  Returns true if all parts are inline, false otherwise.
 bool nsIMAPBodyShell::PreflightCheckAllInline()
 {
   bool rv = m_message->PreflightCheckAllInline(this);
@@ -238,7 +238,7 @@ bool nsIMAPBodyShell::PreflightCheckAllInline()
 
 PRInt32 nsIMAPBodyShell::Generate(char *partNum)
 {
-  m_isBeingGenerated = PR_TRUE;
+  m_isBeingGenerated = true;
   m_generatingPart = partNum;
   PRInt32 contentLength = 0;
   
@@ -248,8 +248,8 @@ PRInt32 nsIMAPBodyShell::Generate(char *partNum)
 #ifdef DEBUG_chrisf
     NS_ASSERTION(GetIsValid());
 #endif
-    m_generatingWholeMessage = PR_TRUE;
-    PRUint32 messageSize = m_protocolConnection->GetMessageSize(GetUID().get(), PR_TRUE);
+    m_generatingWholeMessage = true;
+    PRUint32 messageSize = m_protocolConnection->GetMessageSize(GetUID().get(), true);
     m_protocolConnection->SetContentModified(IMAP_CONTENT_NOT_MODIFIED);	// So that when we cache it, we know we have the whole message
     if (!DeathSignalReceived())
       m_protocolConnection->FallbackToFetchWholeMsg(GetUID(), messageSize);
@@ -259,12 +259,12 @@ PRInt32 nsIMAPBodyShell::Generate(char *partNum)
   {
     // We have a valid shell.
     bool streamCreated = false;
-    m_generatingWholeMessage = PR_FALSE;
+    m_generatingWholeMessage = false;
     
     ////// PASS 1 : PREFETCH ///////
     // First, prefetch any additional headers/data that we need
     if (!GetPseudoInterrupted())
-      m_message->Generate(this, PR_FALSE, PR_TRUE); // This queues up everything we need to prefetch
+      m_message->Generate(this, false, true); // This queues up everything we need to prefetch
     // Now, run a single pipelined prefetch  (neato!)
     FlushPrefetchQueue();
     
@@ -272,7 +272,7 @@ PRInt32 nsIMAPBodyShell::Generate(char *partNum)
     // Next, figure out the size from the parts that we're going to fill in,
     // plus all of the MIME headers, plus the message header itself
     if (!GetPseudoInterrupted())
-      contentLength = m_message->Generate(this, PR_FALSE, PR_FALSE);
+      contentLength = m_message->Generate(this, false, false);
     
     // Setup the stream
     if (!GetPseudoInterrupted() && !DeathSignalReceived())
@@ -287,14 +287,14 @@ PRInt32 nsIMAPBodyShell::Generate(char *partNum)
       }
       else
       {
-        streamCreated = PR_TRUE;
+        streamCreated = true;
       }
     }
     
     ////// PASS 3 : GENERATE ///////
     // Generate the message
     if (!GetPseudoInterrupted() && !DeathSignalReceived())
-      m_message->Generate(this, PR_TRUE, PR_FALSE);
+      m_message->Generate(this, true, false);
     
     // Close the stream here - normal.  If pseudointerrupted, the connection will abort the download stream
     if (!GetPseudoInterrupted() && !DeathSignalReceived())
@@ -306,7 +306,7 @@ PRInt32 nsIMAPBodyShell::Generate(char *partNum)
     
   }
   
-  m_isBeingGenerated = PR_FALSE;
+  m_isBeingGenerated = false;
   return contentLength;
 }
 
@@ -327,7 +327,7 @@ bool nsIMAPBodyShell::DeathSignalReceived()
 
 nsIMAPBodypart::nsIMAPBodypart(char *partNumber, nsIMAPBodypart *parentPart)
 {
-  SetIsValid(PR_TRUE);
+  SetIsValid(true);
   m_parentPart = parentPart;
   m_partNumberString = partNumber;	// storage adopted
   m_partData = NULL;
@@ -367,23 +367,23 @@ void nsIMAPBodypart::SetIsValid(bool valid)
   }
 }
 
-// Adopts storage for part data buffer.  If NULL, sets isValid to PR_FALSE.
+// Adopts storage for part data buffer.  If NULL, sets isValid to false.
 void nsIMAPBodypart::AdoptPartDataBuffer(char *buf)
 {
   m_partData = buf;
   if (!m_partData)
   {
-    SetIsValid(PR_FALSE);
+    SetIsValid(false);
   }
 }
 
-// Adopts storage for header data buffer.  If NULL, sets isValid to PR_FALSE.
+// Adopts storage for header data buffer.  If NULL, sets isValid to false.
 void nsIMAPBodypart::AdoptHeaderDataBuffer(char *buf)
 {
   m_headerData = buf;
   if (!m_headerData)
   {
-    SetIsValid(PR_FALSE);
+    SetIsValid(false);
   }
 }
 
@@ -409,12 +409,12 @@ void nsIMAPBodypart::PrefetchMIMEHeader()
 {
 if (!m_headerData && !m_shell->DeathSignalReceived())
 {
-m_shell->GetConnection()->FetchMessage(m_shell->GetUID(), kMIMEHeader, PR_TRUE, 0, 0, m_partNumberString);
+m_shell->GetConnection()->FetchMessage(m_shell->GetUID(), kMIMEHeader, true, 0, 0, m_partNumberString);
 // m_headerLength will be filled in when it is adopted from the parser
 }
 if (!m_headerData)
 {
-SetIsValid(PR_FALSE);
+SetIsValid(false);
 }
 }
 */
@@ -444,7 +444,7 @@ PRInt32 nsIMAPBodypart::GenerateMIMEHeader(nsIMAPBodyShell *aShell, bool stream,
         if (stream)
         {
           aShell->GetConnection()->Log("SHELL","GENERATE-XHeader",m_partNumberString);
-          aShell->GetConnection()->HandleMessageDownLoadLine(xPartHeader, PR_FALSE);
+          aShell->GetConnection()->HandleMessageDownLoadLine(xPartHeader, false);
         }
         mimeHeaderLength += PL_strlen(xPartHeader);
         PR_Free(xPartHeader);
@@ -455,14 +455,14 @@ PRInt32 nsIMAPBodypart::GenerateMIMEHeader(nsIMAPBodyShell *aShell, bool stream,
     if (stream)
     {
       aShell->GetConnection()->Log("SHELL","GENERATE-MIMEHeader",m_partNumberString);
-      aShell->GetConnection()->HandleMessageDownLoadLine(m_headerData, PR_FALSE);  // all one line?  Can we do that?
+      aShell->GetConnection()->HandleMessageDownLoadLine(m_headerData, false);  // all one line?  Can we do that?
     }
     
     return mimeHeaderLength;
   }
   else 
   {
-    SetIsValid(PR_FALSE);	// prefetch didn't adopt a MIME header
+    SetIsValid(false);	// prefetch didn't adopt a MIME header
     return 0;
   }
 }
@@ -477,7 +477,7 @@ PRInt32 nsIMAPBodypart::GeneratePart(nsIMAPBodyShell *aShell, bool stream, bool 
     if (stream)
     {
       aShell->GetConnection()->Log("SHELL","GENERATE-Part-Prefetched",m_partNumberString);
-      aShell->GetConnection()->HandleMessageDownLoadLine(m_partData, PR_FALSE);
+      aShell->GetConnection()->HandleMessageDownLoadLine(m_partData, false);
     }
     return PL_strlen(m_partData);
   }
@@ -489,7 +489,7 @@ PRInt32 nsIMAPBodypart::GeneratePart(nsIMAPBodyShell *aShell, bool stream, bool 
       bool fetchingSpecificPart = (generatingPart && !PL_strcmp(generatingPart, m_partNumberString));
       
       aShell->GetConnection()->Log("SHELL","GENERATE-Part-Inline",m_partNumberString);
-      aShell->GetConnection()->FetchTryChunking(aShell->GetUID(), kMIMEPart, PR_TRUE, m_partNumberString, m_partLength, !fetchingSpecificPart);
+      aShell->GetConnection()->FetchTryChunking(aShell->GetUID(), kMIMEPart, true, m_partNumberString, m_partLength, !fetchingSpecificPart);
     }
     return m_partLength;	// the part length has been filled in from the BODYSTRUCTURE response
   }
@@ -507,7 +507,7 @@ PRInt32 nsIMAPBodypart::GenerateBoundary(nsIMAPBodyShell *aShell, bool stream, b
       if (stream)
       {
         aShell->GetConnection()->Log("SHELL","GENERATE-Boundary",m_partNumberString);
-        aShell->GetConnection()->HandleMessageDownLoadLine(m_boundaryData, PR_FALSE);
+        aShell->GetConnection()->HandleMessageDownLoadLine(m_boundaryData, false);
       }
       return PL_strlen(m_boundaryData);
     }
@@ -519,7 +519,7 @@ PRInt32 nsIMAPBodypart::GenerateBoundary(nsIMAPBodyShell *aShell, bool stream, b
         if (stream)
         {
           aShell->GetConnection()->Log("SHELL","GENERATE-Boundary-Last",m_partNumberString);
-          aShell->GetConnection()->HandleMessageDownLoadLine(lastBoundaryData, PR_FALSE);
+          aShell->GetConnection()->HandleMessageDownLoadLine(lastBoundaryData, false);
         }
         PRInt32 rv = PL_strlen(lastBoundaryData);
         PR_Free(lastBoundaryData);
@@ -548,7 +548,7 @@ PRInt32 nsIMAPBodypart::GenerateEmptyFilling(nsIMAPBodyShell *aShell, bool strea
     if (stream)
     {
       aShell->GetConnection()->Log("SHELL","GENERATE-Filling",m_partNumberString);
-      aShell->GetConnection()->HandleMessageDownLoadLine(emptyString, PR_FALSE);
+      aShell->GetConnection()->HandleMessageDownLoadLine(emptyString, false);
     }
     return PL_strlen(emptyString);
   }
@@ -557,19 +557,19 @@ PRInt32 nsIMAPBodypart::GenerateEmptyFilling(nsIMAPBodyShell *aShell, bool strea
 }
 
 
-// Returns PR_TRUE if the prefs say that this content type should
+// Returns true if the prefs say that this content type should
 // explicitly be kept in when filling in the shell
 bool nsIMAPBodypart::ShouldExplicitlyFetchInline()
 {
-	 return PR_FALSE;
+	 return false;
 }
 
 
-// Returns PR_TRUE if the prefs say that this content type should
+// Returns true if the prefs say that this content type should
 // explicitly be left out when filling in the shell
 bool nsIMAPBodypart::ShouldExplicitlyNotFetchInline()
 {
-  return PR_FALSE;
+  return false;
 }
 
 
@@ -594,7 +594,7 @@ nsIMAPBodypartLeaf::nsIMAPBodypartLeaf(char *partNum,
   {
     m_contentType = PR_smprintf("%s/%s", m_bodyType, m_bodySubType);
   }
-  SetIsValid(PR_TRUE);
+  SetIsValid(true);
 }
 
 nsIMAPBodypartType nsIMAPBodypartLeaf::GetType()
@@ -618,7 +618,7 @@ PRInt32 nsIMAPBodypartLeaf::Generate(nsIMAPBodyShell *aShell, bool stream, bool 
     //nsIMAPBodypartMessage *parentMessage = m_parentPart ? m_parentPart->GetnsIMAPBodypartMessage() : NULL;
     
     // Stream out the MIME header of this part, if this isn't the only body part of a message
-    //if (parentMessage ? !parentMessage->GetIsTopLevelMessage() : PR_TRUE)
+    //if (parentMessage ? !parentMessage->GetIsTopLevelMessage() : true)
     if ((m_parentPart->GetType() != IMAP_BODY_MESSAGE_RFC822)
       && !aShell->GetPseudoInterrupted())
       len += GenerateMIMEHeader(aShell, stream, prefetch);
@@ -643,7 +643,7 @@ PRInt32 nsIMAPBodypartLeaf::Generate(nsIMAPBodyShell *aShell, bool stream, bool 
 
 
 
-// returns PR_TRUE if this part should be fetched inline for generation.
+// returns true if this part should be fetched inline for generation.
 bool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
 {
   char *generatingPart = aShell->GetGeneratingPart();
@@ -653,7 +653,7 @@ bool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
     if (!PL_strcmp(generatingPart, m_partNumberString))
     {
       // This is the part we're generating
-      return PR_TRUE;
+      return true;
     }
     else
     {
@@ -662,7 +662,7 @@ bool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
       // be inline as well.
       if ((m_parentPart->GetType() == IMAP_BODY_MESSAGE_RFC822) &&
         (!PL_strcmp(m_parentPart->GetPartNumberString(), generatingPart)))
-        return PR_TRUE;
+        return true;
       
       // The parent of this part is a multipart
       if (m_parentPart->GetType() == IMAP_BODY_MULTIPART)
@@ -678,7 +678,7 @@ bool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
           (!PL_strcmp(grandParent->GetPartNumberString(), generatingPart)) &&
           (m_partNumberString[PL_strlen(m_partNumberString)-1] == '1') &&
           !PL_strcasecmp(m_bodyType, "text"))
-          return PR_TRUE;	// we're downloading it inline
+          return true;	// we're downloading it inline
         
         
         // This is a child of a multipart/appledouble attachment,
@@ -686,13 +686,13 @@ bool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
         if (m_parentPart &&
           !PL_strcasecmp(m_parentPart->GetBodySubType(), "appledouble") &&
           !PL_strcmp(m_parentPart->GetPartNumberString(), generatingPart))
-          return PR_TRUE;	// we're downloading it inline
+          return true;	// we're downloading it inline
       }
       
       // Leave out all other leaves if this isn't the one
       // we're generating.
       // Maybe change later to check parents, etc.
-      return PR_FALSE;
+      return false;
     }
   }
   else
@@ -701,9 +701,9 @@ bool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
     // leaving out non-inline parts
     
     if (ShouldExplicitlyFetchInline())
-      return PR_TRUE;
+      return true;
     if (ShouldExplicitlyNotFetchInline())
-      return PR_FALSE;
+      return false;
     
     // If the parent is a message (this is the only body part of that
     // message), and that message should be inline, then its body
@@ -721,7 +721,7 @@ bool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
            !PL_strcasecmp(m_parentPart->GetBodySubType(), "mixed")) &&
           !PL_strcmp(m_partNumberString, "1") &&
           !PL_strcasecmp(m_bodyType, "text"))
-        return PR_TRUE;         // we're downloading it inline
+        return true;         // we're downloading it inline
 
       if ((!PL_strcasecmp(m_parentPart->GetBodySubType(), "alternative") ||
            (grandParentPart &&
@@ -729,7 +729,7 @@ bool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
           !PL_strcasecmp(m_bodyType, "text") &&
           ((!PL_strcasecmp(m_bodySubType, "plain") && mPreferPlainText) ||
            (!PL_strcasecmp(m_bodySubType, "html") && !mPreferPlainText)))
-        return PR_TRUE;
+        return true;
 
       // This is the first text part of a top-level multipart.
       // For instance, a message with multipart body, where the first
@@ -739,7 +739,7 @@ bool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
           !PL_strcmp(m_partNumberString + PL_strlen(m_partNumberString) - 2, ".1") && // this is the first text type on this level
           (!PL_strcmp(m_parentPart->GetPartNumberString(), "1") || !PL_strcmp(m_parentPart->GetPartNumberString(), "2")) && 
           !PL_strcasecmp(m_bodyType, "text"))
-        return PR_TRUE;
+        return true;
       // This is the first text part of a top-level multipart of the toplevelmessage
       // This 'assumes' the text body is first leaf. This is not required for valid email.
       // The only other way is to get content-disposition = attachment and exclude those text parts.
@@ -747,11 +747,11 @@ bool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
           !PL_strcasecmp(m_bodyType, "text") &&
           !PL_strcmp(m_parentPart->GetPartNumberString(), "0") &&
           !PL_strcmp(m_partNumberString, "1"))
-         return PR_TRUE;
+         return true;
 
       // we may have future problems needing tests here
 
-      return PR_FALSE;  // we can leave it on the server
+      return false;  // we can leave it on the server
     }
 #ifdef XP_MACOSX
     // If it is either applesingle, or a resource fork for appledouble
@@ -768,7 +768,7 @@ bool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
       }
       else	// it is applesingle
       {
-        return PR_FALSE;	// we can leave it on the server
+        return false;	// we can leave it on the server
       }
     }
 #endif // XP_MACOSX
@@ -777,12 +777,12 @@ bool nsIMAPBodypartLeaf::ShouldFetchInline(nsIMAPBodyShell *aShell)
     if (!PL_strcasecmp(m_bodyType, "APPLICATION") &&	// If it is of type "application"
       PL_strncasecmp(m_bodySubType, "x-pkcs7", 7)	// and it's not a signature (signatures are inline)
       )
-      return PR_FALSE;	// we can leave it on the server
+      return false;	// we can leave it on the server
     if (!PL_strcasecmp(m_bodyType, "AUDIO"))
-      return PR_FALSE;
+      return false;
     // Here's where we can add some more intelligence -- let's leave out
     // any other parts that we know we can't display inline.
-    return PR_TRUE;	// we're downloading it inline
+    return true;	// we're downloading it inline
   }
 }
 
@@ -798,7 +798,7 @@ bool nsIMAPBodypartMultipart::IsLastTextPart(const char *partNumberString)
       if (!PL_strcasecmp(part->GetBodyType(), "text"))
         return !PL_strcasecmp(part->GetPartNumberString(), partNumberString);
   }
-  return PR_FALSE;
+  return false;
 }
 
 bool nsIMAPBodypartLeaf::PreflightCheckAllInline(nsIMAPBodyShell *aShell)
@@ -829,7 +829,7 @@ nsIMAPBodypartMessage::nsIMAPBodypartMessage(char *partNum,
     m_partNumberString = PR_smprintf("0");
     if (!m_partNumberString)
     {
-      SetIsValid(PR_FALSE);
+      SetIsValid(false);
       return;
     }
   }
@@ -837,10 +837,10 @@ nsIMAPBodypartMessage::nsIMAPBodypartMessage(char *partNum,
   m_headers = new nsIMAPMessageHeaders(m_partNumberString, this);  // We always have a Headers object
   if (!m_headers || !m_headers->GetIsValid())
   {
-    SetIsValid(PR_FALSE);
+    SetIsValid(false);
     return;
   }
-  SetIsValid(PR_TRUE);
+  SetIsValid(true);
 }
 
 void nsIMAPBodypartMessage::SetBody(nsIMAPBodypart *body)
@@ -907,7 +907,7 @@ PRInt32 nsIMAPBodypartMessage::Generate(nsIMAPBodyShell *aShell, bool stream, bo
 bool nsIMAPBodypartMessage::ShouldFetchInline(nsIMAPBodyShell *aShell)
 {
   if (m_topLevelMessage)	// the main message should always be defined as "inline"
-    return PR_TRUE;
+    return true;
   
   char *generatingPart = aShell->GetGeneratingPart();
   if (generatingPart)
@@ -917,27 +917,27 @@ bool nsIMAPBodypartMessage::ShouldFetchInline(nsIMAPBodyShell *aShell)
     // because it is low cost (everything is cached)
     // and it gives the message its full MIME structure,
     // to avoid any potential mishap.
-    return PR_TRUE;
+    return true;
   }
   else
   {
     // Generating whole message
     
     if (ShouldExplicitlyFetchInline())
-      return PR_TRUE;
+      return true;
     if (ShouldExplicitlyNotFetchInline())
-      return PR_FALSE;
+      return false;
     
     
     // Message types are inline, by default.
-    return PR_TRUE;
+    return true;
   }
 }
 
 bool nsIMAPBodypartMessage::PreflightCheckAllInline(nsIMAPBodyShell *aShell)
 {
   if (!ShouldFetchInline(aShell))
-    return PR_FALSE;
+    return false;
   
   return m_body->PreflightCheckAllInline(aShell);
 }
@@ -952,7 +952,7 @@ void nsIMAPBodypartMessage::AdoptMessageHeaders(char *headers)
   // part data, and no header data.
   m_headers->AdoptPartDataBuffer(headers);
   if (!m_headers->GetIsValid())
-    SetIsValid(PR_FALSE);
+    SetIsValid(false);
 }
 
 // Finds the part with given part number
@@ -989,9 +989,9 @@ nsIMAPBodypart(partNum, parentPart)
   m_partList = new nsVoidArray();
   m_bodyType = NS_strdup("multipart");
   if (m_partList && m_parentPart && m_bodyType)
-    SetIsValid(PR_TRUE);
+    SetIsValid(true);
   else
-    SetIsValid(PR_FALSE);
+    SetIsValid(false);
 }
 
 nsIMAPBodypartType nsIMAPBodypartMultipart::GetType()
@@ -1045,12 +1045,12 @@ PRInt32 nsIMAPBodypartMultipart::Generate(nsIMAPBodyShell *aShell, bool stream, 
       for (int i = 0; i < m_partList->Count(); i++)
       {
         if (!aShell->GetPseudoInterrupted())
-          len += GenerateBoundary(aShell, stream, prefetch, PR_FALSE);
+          len += GenerateBoundary(aShell, stream, prefetch, false);
         if (!aShell->GetPseudoInterrupted())
           len += ((nsIMAPBodypart *)(m_partList->ElementAt(i)))->Generate(aShell, stream, prefetch);
       }
       if (!aShell->GetPseudoInterrupted())
-        len += GenerateBoundary(aShell, stream, prefetch, PR_TRUE);
+        len += GenerateBoundary(aShell, stream, prefetch, true);
     }
     else
     {
@@ -1074,19 +1074,19 @@ bool nsIMAPBodypartMultipart::ShouldFetchInline(nsIMAPBodyShell *aShell)
     // because it is low cost (everything is cached)
     // and it gives the message its full MIME structure,
     // to avoid any potential mishap.
-    return PR_TRUE;
+    return true;
   }
   else
   {
     // Generating whole message
     
     if (ShouldExplicitlyFetchInline())
-      return PR_TRUE;
+      return true;
     if (ShouldExplicitlyNotFetchInline())
-      return PR_FALSE;
+      return false;
 
     if (!PL_strcasecmp(m_bodySubType, "alternative"))
-      return PR_TRUE;
+      return true;
 
     nsIMAPBodypart *grandparentPart = m_parentPart->GetParentPart();
 
@@ -1094,20 +1094,20 @@ bool nsIMAPBodypartMultipart::ShouldFetchInline(nsIMAPBodyShell *aShell)
     // be fetched because mime will always display us.
     if (!PL_strcasecmp(m_parentPart->GetBodySubType(), "alternative") &&
         GetType() == IMAP_BODY_MULTIPART)
-      return PR_TRUE;
+      return true;
     // If "Show Attachments as Links" is on, and
     // the parent of this multipart is not a message,
     // then it's not inline.
     if (!(aShell->GetContentModified() == IMAP_CONTENT_MODIFIED_VIEW_INLINE) &&
       (m_parentPart->GetType() != IMAP_BODY_MESSAGE_RFC822) &&
       (m_parentPart->GetType() == IMAP_BODY_MULTIPART ?
-      (grandparentPart ? grandparentPart->GetType() != IMAP_BODY_MESSAGE_RFC822 : PR_TRUE)
-      : PR_TRUE))
-      return PR_FALSE;
+      (grandparentPart ? grandparentPart->GetType() != IMAP_BODY_MESSAGE_RFC822 : true)
+      : true))
+      return false;
     
     // multiparts are always inline (even multipart/appledouble)
     // (their children might not be, though)
-    return PR_TRUE;
+    return true;
   }
 }
 
@@ -1156,20 +1156,20 @@ nsIMAPBodypart(partNum, parentPart)
 {
   if (!partNum)
   {
-    SetIsValid(PR_FALSE);
+    SetIsValid(false);
     return;
   }
   m_partNumberString = NS_strdup(partNum);
   if (!m_partNumberString)
   {
-    SetIsValid(PR_FALSE);
+    SetIsValid(false);
     return;
   }
   if (!m_parentPart || !m_parentPart->GetnsIMAPBodypartMessage())
   {
     // Message headers created without a valid Message parent
-    NS_ASSERTION(PR_FALSE, "creating message headers with invalid message parent");
-    SetIsValid(PR_FALSE);
+    NS_ASSERTION(false, "creating message headers with invalid message parent");
+    SetIsValid(false);
   }
 }
 
@@ -1254,14 +1254,14 @@ nsIMAPBodyShellCache::~nsIMAPBodyShellCache()
 bool nsIMAPBodyShellCache::EjectEntry()
 {
   if (m_shellList->Count() < 1)
-    return PR_FALSE;
+    return false;
 
   nsIMAPBodyShell *removedShell = (nsIMAPBodyShell *) (m_shellList->ElementAt(0));
 
   m_shellList->RemoveElementAt(0);
   m_shellHash.Remove(removedShell->GetUID());
 
-  return PR_TRUE;
+  return true;
 }
 
 void nsIMAPBodyShellCache::Clear()
@@ -1275,7 +1275,7 @@ bool nsIMAPBodyShellCache::AddShellToCache(nsIMAPBodyShell *shell)
   // This has the side-effect of re-ordering the LRU list
   // to put this at the top, which is good, because it's what we want.
   if (FindShellForUID(shell->GetUID(), shell->GetFolderName(), shell->GetContentModified()))
-    return PR_TRUE;
+    return true;
 
   // OK, so it's not in the cache currently.
 
@@ -1294,7 +1294,7 @@ bool nsIMAPBodyShellCache::AddShellToCache(nsIMAPBodyShell *shell)
   m_shellList->AppendElement(shell);
 
   m_shellHash.Put(shell->GetUID(), shell);
-  shell->SetIsCached(PR_TRUE);
+  shell->SetIsCached(true);
 
   // while we're not over our size limit, eject entries
   bool rv = true;

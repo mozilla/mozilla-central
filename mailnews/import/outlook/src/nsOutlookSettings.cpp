@@ -113,7 +113,7 @@ NS_IMETHODIMP nsOutlookSettings::AutoLocate(PRUnichar **description, nsIFile **l
     return( NS_ERROR_NULL_POINTER);
 
   *description = nsOutlookStringBundle::GetStringByID( OUTLOOKIMPORT_NAME);
-  *_retval = PR_FALSE;
+  *_retval = false;
 
   if (location)
     *location = nsnull;
@@ -121,7 +121,7 @@ NS_IMETHODIMP nsOutlookSettings::AutoLocate(PRUnichar **description, nsIFile **l
   // look for the registry key for the accounts
   HKEY key = OutlookSettings::FindAccountsKey();
   if (key != nsnull) {
-    *_retval = PR_TRUE;
+    *_retval = true;
     ::RegCloseKey( key);
   }
 
@@ -138,11 +138,11 @@ NS_IMETHODIMP nsOutlookSettings::Import(nsIMsgAccount **localMailAccount, bool *
   NS_PRECONDITION( _retval != nsnull, "null ptr");
 
   if (OutlookSettings::DoImport( localMailAccount)) {
-    *_retval = PR_TRUE;
+    *_retval = true;
     IMPORT_LOG0( "Settings import appears successful\n");
   }
   else {
-    *_retval = PR_FALSE;
+    *_retval = false;
     IMPORT_LOG0( "Settings import returned FALSE\n");
   }
 
@@ -168,7 +168,7 @@ bool OutlookSettings::DoImport( nsIMsgAccount **ppAccount)
   HKEY  hKey = FindAccountsKey();
   if (hKey == nsnull) {
     IMPORT_LOG0( "*** Error finding Outlook registry account keys\n");
-    return( PR_FALSE);
+    return( false);
   }
 
   nsresult  rv;
@@ -177,7 +177,7 @@ bool OutlookSettings::DoImport( nsIMsgAccount **ppAccount)
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
     if (NS_FAILED(rv)) {
     IMPORT_LOG0( "*** Failed to create a account manager!\n");
-    return( PR_FALSE);
+    return( false);
   }
 
   HKEY    subKey = NULL;
@@ -296,7 +296,7 @@ bool OutlookSettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char 
   BYTE *pBytes;
   pBytes = nsOutlookRegUtil::GetValueBytes( hKey, "IMAP User Name");
   if (!pBytes)
-    return( PR_FALSE);
+    return( false);
 
   bool    result = false;
 
@@ -325,14 +325,14 @@ bool OutlookSettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char 
 
         // Fiddle with the identities
         SetIdentities( pMgr, account, hKey);
-        result = PR_TRUE;
+        result = true;
         if (ppAccount)
           account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
       }
     }
   }
   else
-    result = PR_TRUE;
+    result = true;
 
   nsOutlookRegUtil::FreeValueBytes( pBytes);
 
@@ -347,7 +347,7 @@ bool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char 
   BYTE *pBytes;
   pBytes = nsOutlookRegUtil::GetValueBytes( hKey, "POP3 User Name");
   if (!pBytes)
-    return( PR_FALSE);
+    return( false);
 
   bool result = false;
 
@@ -376,7 +376,7 @@ bool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char 
                 rv = pMgr->CreateLocalMailAccount();
                 if (NS_FAILED(rv)) {
                     IMPORT_LOG0( "*** Failed to create Local Folders!\n");
-                    return PR_FALSE;
+                    return false;
                 }
                 pMgr->GetLocalFoldersServer(getter_AddRefs(localFoldersServer));
             }
@@ -389,7 +389,7 @@ bool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char 
               nsCString localFoldersAcctKey;
               localFoldersAccount->GetKey(localFoldersAcctKey);
               pop3Server->SetDeferredToAccount(localFoldersAcctKey);
-              pop3Server->SetDeferGetNewMail(PR_TRUE);
+              pop3Server->SetDeferGetNewMail(true);
             }
         }
 
@@ -411,20 +411,20 @@ bool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char 
         BYTE *pLeaveOnServer = nsOutlookRegUtil::GetValueBytes( hKey, "Leave Mail On Server");
         if (pLeaveOnServer)
         {
-          pop3Server->SetLeaveMessagesOnServer(*pLeaveOnServer == 1 ? PR_TRUE : PR_FALSE);
+          pop3Server->SetLeaveMessagesOnServer(*pLeaveOnServer == 1 ? true : false);
           nsOutlookRegUtil::FreeValueBytes(pLeaveOnServer);
         }
 
         // Fiddle with the identities
         SetIdentities( pMgr, account, hKey);
-        result = PR_TRUE;
+        result = true;
         if (ppAccount)
           account->QueryInterface( NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
       }
     }
   }
   else
-    result = PR_TRUE;
+    result = true;
 
   nsOutlookRegUtil::FreeValueBytes( pBytes);
 
@@ -434,7 +434,7 @@ bool OutlookSettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char 
 bool OutlookSettings::IdentityMatches( nsIMsgIdentity *pIdent, const char *pName, const char *pServer, const char *pEmail, const char *pReply, const char *pUserName)
 {
   if (!pIdent)
-    return( PR_FALSE);
+    return( false);
 
   char *  pIName = nsnull;
   nsCString pIEmail;
@@ -456,9 +456,9 @@ bool OutlookSettings::IdentityMatches( nsIMsgIdentity *pIdent, const char *pName
 
   // for now, if it's the same server and reply to and email then it matches
   if (pReply && !pIReply.Equals(pReply, nsCaseInsensitiveCStringComparator()))
-    result = PR_FALSE;
+    result = false;
   if (pEmail && !pIEmail.Equals(pEmail, nsCaseInsensitiveCStringComparator()))
-    result = PR_FALSE;
+    result = false;
 
   return( result);
 }

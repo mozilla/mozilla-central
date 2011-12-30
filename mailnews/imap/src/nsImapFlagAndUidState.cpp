@@ -116,7 +116,7 @@ nsImapFlagAndUidState::nsImapFlagAndUidState(PRInt32 numberOfMessages)
 {
   fSupportedUserFlags = 0;
   fNumberDeleted = 0;
-  fPartialUIDFetch = PR_TRUE;
+  fPartialUIDFetch = true;
   m_customFlagsHash.Init(10);
 }
 
@@ -160,7 +160,7 @@ NS_IMETHODIMP nsImapFlagAndUidState::Reset()
   m_customFlagsHash.Clear();
   fUids.Clear();
   fFlags.Clear();
-  fPartialUIDFetch = PR_TRUE;
+  fPartialUIDFetch = true;
   PR_CExitMonitor(this);
   return NS_OK;
 }
@@ -252,12 +252,12 @@ bool nsImapFlagAndUidState::IsLastMessageUnseen()
   PRUint32 msgIndex = fUids.Length();
   
   if (msgIndex <= 0)
-    return PR_FALSE;
+    return false;
   msgIndex--;
   // if last message is deleted, it was probably filtered the last time around
   if (fUids[msgIndex] && (fFlags[msgIndex] & (kImapMsgSeenFlag | kImapMsgDeletedFlag)))
-    return PR_FALSE;
-  return PR_TRUE; 
+    return false;
+  return true; 
 }
 
 // find a message flag given a key with non-recursive binary search, since some folders

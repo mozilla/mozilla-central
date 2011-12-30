@@ -95,7 +95,7 @@ GatherLine(const char *line, PRInt32 length, MimeObject *obj)
     }
     
     if (!obj->options->write_html_p)
-        return MimeObject_write(obj, line, length, PR_TRUE);
+        return MimeObject_write(obj, line, length, true);
 
     ssobj->buffer->Append(line);
     return 0;
@@ -135,7 +135,7 @@ EndGather(MimeObject *obj, bool abort_p)
 
     // MimeObject_write wants a non-const string for some reason, but it doesn't mutate it
     status = MimeObject_write(obj, asHTML.get(),
-                              asHTML.Length(), PR_TRUE);
+                              asHTML.Length(), true);
     if (status < 0)
         return status;
     return 0;
@@ -218,7 +218,7 @@ nsSimpleMimeConverterStub::CreateContentTypeHandlerClass(const char *contentType
     if (!(*objClass)->superclass)
         return NS_ERROR_UNEXPECTED;;
 
-    initStruct->force_inline_display = PR_TRUE;
+    initStruct->force_inline_display = true;
     return NS_OK;;
 }
 

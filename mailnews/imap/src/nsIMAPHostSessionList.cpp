@@ -59,24 +59,24 @@ nsIMAPHostInfo::nsIMAPHostInfo(const char *serverKey,
   fCapabilityFlags = kCapabilityUndefined;
   fHierarchyDelimiters = NULL;
 #ifdef DEBUG_bienvenu1
-  fHaveWeEverDiscoveredFolders = PR_TRUE; // try this, see what bad happens - we'll need to
+  fHaveWeEverDiscoveredFolders = true; // try this, see what bad happens - we'll need to
   // figure out a way to make new accounts have it be false
 #else
-  fHaveWeEverDiscoveredFolders = PR_FALSE; // try this, see what bad happens
+  fHaveWeEverDiscoveredFolders = false; // try this, see what bad happens
 #endif
   fCanonicalOnlineSubDir = NULL;
   fNamespaceList = nsIMAPNamespaceList::CreatensIMAPNamespaceList();
-  fUsingSubscription = PR_TRUE;
+  fUsingSubscription = true;
   server->GetUsingSubscription(&fUsingSubscription);
-  fOnlineTrashFolderExists = PR_FALSE;
-  fShouldAlwaysListInbox = PR_TRUE;
+  fOnlineTrashFolderExists = false;
+  fShouldAlwaysListInbox = true;
   fShellCache = nsIMAPBodyShellCache::Create();
-  fPasswordVerifiedOnline = PR_FALSE;
-  fDeleteIsMoveToTrash = PR_TRUE;
-  fShowDeletedMessages = PR_FALSE;
-  fGotNamespaces = PR_FALSE;
-  fHaveAdminURL = PR_FALSE;
-  fNamespacesOverridable = PR_TRUE;
+  fPasswordVerifiedOnline = false;
+  fDeleteIsMoveToTrash = true;
+  fShowDeletedMessages = false;
+  fGotNamespaces = false;
+  fHaveAdminURL = false;
+  fNamespacesOverridable = true;
   server->GetOverrideNamespaces(&fNamespacesOverridable);
   fTempNamespaceList = nsIMAPNamespaceList::CreatensIMAPNamespaceList();
 }
@@ -114,8 +114,8 @@ nsresult nsIMAPHostSessionList::Init()
   nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
   if (NS_SUCCEEDED(rv))
   {
-    observerService->AddObserver(this, "profile-before-change", PR_TRUE);
-    observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_TRUE);
+    observerService->AddObserver(this, "profile-before-change", true);
+    observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, true);
   }
   return rv;
 }
@@ -235,7 +235,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::SetPasswordVerifiedOnline(const char *serve
   PR_EnterMonitor(gCachedHostInfoMonitor);
   nsIMAPHostInfo *host = FindHost(serverKey);
   if (host)
-    host->fPasswordVerifiedOnline = PR_TRUE;
+    host->fPasswordVerifiedOnline = true;
   PR_ExitMonitor(gCachedHostInfoMonitor);
   return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
 }
@@ -447,7 +447,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::SetNamespaceFromPrefForHost(const char *ser
           char delimiter = '/';	// a guess
           if (PL_strlen(thisns) >= 1)
             delimiter = thisns[PL_strlen(thisns)-1];
-          nsIMAPNamespace *ns = new nsIMAPNamespace(nstype, thisns, delimiter, PR_TRUE);
+          nsIMAPNamespace *ns = new nsIMAPNamespace(nstype, thisns, delimiter, true);
           if (ns)
             host->fNamespaceList->AddNewNamespace(ns);
           PR_FREEIF(thisns);
@@ -476,7 +476,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::ClearPrefsNamespacesForHost(const char *ser
   PR_EnterMonitor(gCachedHostInfoMonitor);
   nsIMAPHostInfo *host = FindHost(serverKey);
   if (host)
-    host->fNamespaceList->ClearNamespaces(PR_TRUE, PR_FALSE, PR_TRUE);
+    host->fNamespaceList->ClearNamespaces(true, false, true);
   PR_ExitMonitor(gCachedHostInfoMonitor);
   return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
 }
@@ -487,7 +487,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::ClearServerAdvertisedNamespacesForHost(cons
   PR_EnterMonitor(gCachedHostInfoMonitor);
   nsIMAPHostInfo *host = FindHost(serverKey);
   if (host)
-    host->fNamespaceList->ClearNamespaces(PR_FALSE, PR_TRUE, PR_TRUE);
+    host->fNamespaceList->ClearNamespaces(false, true, true);
   PR_ExitMonitor(gCachedHostInfoMonitor);
   return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
 }
@@ -555,7 +555,7 @@ nsresult nsIMAPHostSessionList::SetNamespacesPrefForHost(nsIImapIncomingServer *
   else if (type == kOtherUsersNamespace)
     aHost->SetOtherUsersNamespace(nsDependentCString(pref));
   else
-    NS_ASSERTION(PR_FALSE, "bogus namespace type");
+    NS_ASSERTION(false, "bogus namespace type");
   return NS_OK;
 
 }
@@ -576,7 +576,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::CommitNamespacesForHost(nsIImapIncomingServ
   nsIMAPHostInfo *host = FindHost(serverKey.get());
   if (host)
   {
-    host->fGotNamespaces = PR_TRUE;	// so we only issue NAMESPACE once per host per session.
+    host->fGotNamespaces = true;	// so we only issue NAMESPACE once per host per session.
     EIMAPNamespaceType type = kPersonalNamespace;
     for (int i = 1; i <= 3; i++)
     {
@@ -627,7 +627,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::CommitNamespacesForHost(nsIImapIncomingServ
       }
     }
     // clear, but don't delete the entries in, the temp namespace list
-    host->fTempNamespaceList->ClearNamespaces(PR_TRUE, PR_TRUE, PR_FALSE);
+    host->fTempNamespaceList->ClearNamespaces(true, true, false);
 
     // Now reset all of libmsg's namespace references.
     // Did I mention this needs to be running in the mozilla thread?
@@ -642,7 +642,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::FlushUncommittedNamespacesForHost(const cha
 	PR_EnterMonitor(gCachedHostInfoMonitor);
 	nsIMAPHostInfo *host = FindHost(serverKey);
 	if (host)
-		host->fTempNamespaceList->ClearNamespaces(PR_TRUE, PR_TRUE, PR_TRUE);
+		host->fTempNamespaceList->ClearNamespaces(true, true, true);
 	PR_ExitMonitor(gCachedHostInfoMonitor);
 	return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
 }
@@ -671,7 +671,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::GetOnlineInboxPathForHost(const char *serve
 
 NS_IMETHODIMP nsIMAPHostSessionList::GetShouldAlwaysListInboxForHost(const char* /*serverKey*/, bool &result)
 {
-	result = PR_TRUE;
+	result = true;
 
 	/*
 	PR_EnterMonitor(gCachedHostInfoMonitor);
@@ -701,7 +701,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::SetNamespaceHierarchyDelimiterFromMailboxFo
   {
     nsIMAPNamespace *ns = host->fNamespaceList->GetNamespaceForMailbox(boxName);
     if (ns && !ns->GetIsDelimiterFilledIn())
-      ns->SetDelimiter(delimiter, PR_TRUE);
+      ns->SetDelimiter(delimiter, true);
   }
   PR_ExitMonitor(gCachedHostInfoMonitor);
   return (host) ? NS_OK : NS_ERROR_ILLEGAL_VALUE ;
@@ -722,7 +722,7 @@ NS_IMETHODIMP nsIMAPHostSessionList::AddShellToCacheForHost(const char *serverKe
 		else
 		{
 			PR_ExitMonitor(gCachedHostInfoMonitor);
-			return PR_FALSE;
+			return false;
 		}
 	}
 	PR_ExitMonitor(gCachedHostInfoMonitor);

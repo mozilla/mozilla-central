@@ -146,14 +146,14 @@ NS_IMETHODIMP nsWMSettings::AutoLocate(PRUnichar **description,
     return NS_ERROR_NULL_POINTER;
 
   *description = nsWMStringBundle::GetStringByID(WMIMPORT_NAME);
-  *_retval = PR_FALSE;
+  *_retval = false;
 
   nsCOMPtr<nsIWindowsRegKey> key =
     do_CreateInstance("@mozilla.org/windows-registry-key;1");
   if (location)
     *location = nsnull;
   if (NS_SUCCEEDED(WMSettings::FindWMKey(key)))
-    *_retval = PR_TRUE;
+    *_retval = true;
 
   return NS_OK;
 }
@@ -169,11 +169,11 @@ NS_IMETHODIMP nsWMSettings::Import(nsIMsgAccount **localMailAccount,
   NS_PRECONDITION(_retval != nsnull, "null ptr");
 
   if (WMSettings::DoImport(localMailAccount)) {
-    *_retval = PR_TRUE;
+    *_retval = true;
     IMPORT_LOG0("Settings import appears successful\n");
   }
   else {
-    *_retval = PR_FALSE;
+    *_retval = false;
     IMPORT_LOG0("Settings import returned FALSE\n");
   }
 
@@ -202,23 +202,23 @@ bool WMSettings::getOEacctFiles(nsILocalFile* file,
   nsCOMPtr<nsISimpleEnumerator> entries;
   rv = file->GetDirectoryEntries(getter_AddRefs(entries));
   if (NS_FAILED(rv) || !entries)
-    return PR_FALSE;
+    return false;
 
   bool hasMore;
   while (NS_SUCCEEDED(entries->HasMoreElements(&hasMore)) && hasMore) {
     nsCOMPtr<nsISupports> sup;
     entries->GetNext(getter_AddRefs(sup));
     if (!sup)
-      return PR_FALSE;
+      return false;
     nsCOMPtr<nsILocalFile> fileX = do_QueryInterface(sup);
     if (!fileX)
-      return PR_FALSE;
+      return false;
     nsString name;
     if (NS_FAILED(fileX->GetLeafName(name)))
-      return PR_FALSE;
+      return false;
     bool isDir;
     if (NS_FAILED(fileX->IsDirectory(&isDir)))
-      return PR_FALSE;
+      return false;
     if (isDir) {
       getOEacctFiles(fileX, fileArray);
     }
@@ -227,7 +227,7 @@ bool WMSettings::getOEacctFiles(nsILocalFile* file,
         fileArray.AppendObject(fileX);
     }
   }
-  return PR_TRUE;
+  return true;
 }
 
 nsresult WMSettings::GetValueForTag(nsIDOMDocument *xmlDoc,
@@ -270,12 +270,12 @@ bool WMSettings::DoImport(nsIMsgAccount **ppAccount)
     do_CreateInstance("@mozilla.org/windows-registry-key;1");
   if (NS_FAILED(FindWMKey(key))) {
     IMPORT_LOG0("*** Error finding Windows Live Mail registry account keys\n");
-    return PR_FALSE;
+    return false;
   }
   // 'poll for messages' setting in WM is a global setting-Like OE
   // for all accounts dword ==0xffffffff for don't poll else 1/60000 = minutes
   checkNewMailTime = 30;
-  checkNewMail = PR_FALSE;
+  checkNewMail = false;
   nsCOMPtr<nsIWindowsRegKey> subKey;
   if (NS_SUCCEEDED(key->OpenChild(NS_LITERAL_STRING("mail"),
                                   nsIWindowsRegKey::ACCESS_QUERY_VALUE,
@@ -284,7 +284,7 @@ bool WMSettings::DoImport(nsIMsgAccount **ppAccount)
     rv = subKey->ReadIntValue(NS_LITERAL_STRING("Poll For Mail"), &dwordResult); // reg_dword
     subKey->Close();
     if (NS_SUCCEEDED(rv) && dwordResult != -1){
-      checkNewMail = PR_TRUE;
+      checkNewMail = true;
       checkNewMailTime = dwordResult / 60000;
     }
   }
@@ -301,26 +301,26 @@ bool WMSettings::DoImport(nsIMsgAccount **ppAccount)
   key->Close();  // Finished with windows registry key. We do not want to return before this closing
   if (NS_FAILED(rv) || storeRoot.IsEmpty()) {
     IMPORT_LOG0("*** Error finding Windows Live Mail Store Root\n");
-    return PR_FALSE;
+    return false;
   }
 
   nsCOMPtr<nsILocalFile> file(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
   if (!file) {
     IMPORT_LOG0("*** Failed to create an nsILocalFile!\n");
-    return PR_FALSE;
+    return false;
   }
   nsCOMPtr<nsIMsgAccountManager> accMgr =
            do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
   if (NS_FAILED(rv)) {
     IMPORT_LOG0("*** Failed to create an account manager!\n");
-    return PR_FALSE;
+    return false;
   }
 
   PRUint32 size = ::ExpandEnvironmentStringsW((LPCWSTR)storeRoot.get(), nsnull, 0);
   nsString expandedStoreRoot;
   expandedStoreRoot.SetLength(size - 1);
   if (expandedStoreRoot.Length() != size - 1)
-    return PR_FALSE;
+    return false;
   ::ExpandEnvironmentStringsW((LPCWSTR)storeRoot.get(),
                               (LPWSTR)expandedStoreRoot.BeginWriting(),
                               size);
@@ -328,12 +328,12 @@ bool WMSettings::DoImport(nsIMsgAccount **ppAccount)
 
   if (NS_FAILED(file->InitWithPath(storeRoot))) {
     IMPORT_LOG0("*** Failed get store root!\n");
-    return PR_FALSE;
+    return false;
   }
   nsCOMArray<nsILocalFile> fileArray;
   if (!getOEacctFiles(file, fileArray)) {
     IMPORT_LOG0("*** Failed to get OEacctFiles!\n");
-    return PR_FALSE;
+    return false;
   }
 
   // Loop through *.oeaccounts files looking for POP3 & IMAP & NNTP accounts
@@ -388,7 +388,7 @@ bool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
   nsAutoString userName, value;
   if (NS_FAILED(GetValueForTag(xmlDoc, NS_LITERAL_STRING("IMAP_User_Name"),
                                userName)))
-    return PR_FALSE;
+    return false;
   bool result = false;
   // I now have a user name/server name pair, find out if it already exists?
   nsCOMPtr<nsIMsgIncomingServer> in;
@@ -407,7 +407,7 @@ bool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
       if (!imapServer){
         IMPORT_LOG1("*** Failed to create nsIImapIncomingServer for %S!\n",
                     serverName.get());
-        return PR_FALSE;
+        return false;
       }
       GetValueForTag(xmlDoc, NS_LITERAL_STRING("IMAP_Root_Folder"), value);
       if (!value.IsEmpty())
@@ -446,8 +446,8 @@ bool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
                     "as the incoming server\n");
 
         // Fiddle with the identities
-        SetIdentities(pMgr, account, xmlDoc, userName, authMethod, PR_FALSE);
-        result = PR_TRUE;
+        SetIdentities(pMgr, account, xmlDoc, userName, authMethod, false);
+        result = true;
         if (ppAccount)
           account.forget(ppAccount);
       }
@@ -463,14 +463,14 @@ bool WMSettings::DoIMAPServer(nsIMsgAccountManager *pMgr,
                   "IMAP incoming server\n");
       // Fiddle with the identities
       in->GetAuthMethod(&authMethod);
-      SetIdentities(pMgr, account, xmlDoc, userName, authMethod, PR_FALSE);
-      result = PR_TRUE;
+      SetIdentities(pMgr, account, xmlDoc, userName, authMethod, false);
+      result = true;
       if (ppAccount)
         account.forget(ppAccount);
     }
   }
   else
-    result = PR_TRUE;
+    result = true;
   return result;
 }
 
@@ -487,7 +487,7 @@ bool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
   nsAutoString userName, value;
   if (NS_FAILED(GetValueForTag(xmlDoc, NS_LITERAL_STRING("POP3_User_Name"),
                                userName)))
-    return PR_FALSE;
+    return false;
   bool result = false;
   // I now have a user name/server name pair, find out if it already exists?
   nsCOMPtr<nsIMsgIncomingServer> in;
@@ -506,7 +506,7 @@ bool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
       if (!pop3Server){
         IMPORT_LOG1("*** Failed to create nsIPop3IncomingServer for %S!\n",
           serverName.get());
-        return PR_FALSE;
+        return false;
       }
 
       GetValueForTag(xmlDoc, NS_LITERAL_STRING("POP3_Secure_Connection"), value);
@@ -529,7 +529,7 @@ bool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
         // TB:1==ActMgr:Server:advanced:Include this server when getting new mail
         pop3Server->SetDeferGetNewMail(value.ToInteger(&errorCode, 16) == 0);
       else
-        pop3Server->SetDeferGetNewMail(PR_FALSE);
+        pop3Server->SetDeferGetNewMail(false);
       GetValueForTag(xmlDoc, NS_LITERAL_STRING("Leave_Mail_On_Server"), value);
       if (!value.IsEmpty())
         pop3Server->SetLeaveMessagesOnServer((bool)value.ToInteger(&errorCode, 16));
@@ -560,7 +560,7 @@ bool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
         rv = pMgr->CreateLocalMailAccount();
         if (NS_FAILED(rv)) {
           IMPORT_LOG0("*** Failed to create Local Folders!\n");
-          return PR_FALSE;
+          return false;
         }
         pMgr->GetLocalFoldersServer(getter_AddRefs(localFoldersServer));
       }
@@ -587,8 +587,8 @@ bool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
                     "server to the POP3 server.\n");
 
         // Fiddle with the identities
-        SetIdentities(pMgr, account, xmlDoc, userName, authMethod, PR_FALSE);
-        result = PR_TRUE;
+        SetIdentities(pMgr, account, xmlDoc, userName, authMethod, false);
+        result = true;
         if (ppAccount)
           account.forget(ppAccount);
       }
@@ -605,14 +605,14 @@ bool WMSettings::DoPOP3Server(nsIMsgAccountManager *pMgr,
       IMPORT_LOG0("Created identity and added to existing POP3 incoming server.\n");
       // Fiddle with the identities
       in->GetAuthMethod(&authMethod);
-      SetIdentities(pMgr, account, xmlDoc, userName, authMethod, PR_FALSE);
-      result = PR_TRUE;
+      SetIdentities(pMgr, account, xmlDoc, userName, authMethod, false);
+      result = true;
       if (ppAccount)
         account.forget(ppAccount);
     }
   }
   else
-    result = PR_TRUE;
+    result = true;
   return result;
 }
 
@@ -650,10 +650,10 @@ bool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
       if (!nntpServer) {
         IMPORT_LOG1("*** Failed to create nsINnntpIncomingServer for %S!\n",
           serverName.get());
-        return PR_FALSE;
+        return false;
       }
       if (!userName.IsEmpty()) {  // if username req'd then auth req'd
-        nntpServer->SetPushAuth(PR_TRUE);
+        nntpServer->SetPushAuth(true);
         in->SetUsername(NS_ConvertUTF16toUTF8(userName));
       }
 
@@ -687,8 +687,8 @@ bool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
                     "as the incoming server\n");
 
         // Fiddle with the identities
-        SetIdentities(pMgr, account, xmlDoc, userName, authMethod, PR_TRUE);
-        result = PR_TRUE;
+        SetIdentities(pMgr, account, xmlDoc, userName, authMethod, true);
+        result = true;
         if (ppAccount)
           account.forget(ppAccount);
       }
@@ -703,14 +703,14 @@ bool WMSettings::DoNNTPServer(nsIMsgAccountManager *pMgr,
                   "NNTP server as the incoming server\n");
       // Fiddle with the identities
       in->GetAuthMethod(&authMethod);
-      SetIdentities(pMgr, account, xmlDoc, userName, authMethod, PR_TRUE);
-      result = PR_TRUE;
+      SetIdentities(pMgr, account, xmlDoc, userName, authMethod, true);
+      result = true;
       if (ppAccount)
         account.forget(ppAccount);
     }
   }
   else
-    result = PR_TRUE;
+    result = true;
   return result;
 }
 

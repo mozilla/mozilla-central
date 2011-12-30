@@ -160,7 +160,7 @@ morkTableRowCursor::GetCount(nsIMdbEnv* mev, mdb_count* outCount)
 /*virtual*/ mdb_err
 morkTableRowCursor::GetSeed(nsIMdbEnv* mev, mdb_seed* outSeed)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 

@@ -168,14 +168,14 @@ NS_IMETHODIMP nsMsgSearchAdapter::GetEncoding (char **encoding)
 
 NS_IMETHODIMP nsMsgSearchAdapter::AddResultElement (nsIMsgDBHdr *pHeaders)
 {
-    NS_ASSERTION(PR_FALSE, "shouldn't call this base class impl");
+    NS_ASSERTION(false, "shouldn't call this base class impl");
     return NS_ERROR_FAILURE;
 }
 
 
 NS_IMETHODIMP nsMsgSearchAdapter::AddHit(nsMsgKey key)
 {
-  NS_ASSERTION(PR_FALSE, "shouldn't call this base class impl");
+  NS_ASSERTION(false, "shouldn't call this base class impl");
   return NS_ERROR_FAILURE;
 }
 
@@ -264,7 +264,7 @@ nsMsgSearchAdapter::GetSearchCharsets(nsAString &srcCharset, nsAString &dstChars
 
   if (m_defaultCharset.IsEmpty())
   {
-    m_forceAsciiSearch = PR_FALSE;  // set the default value in case of error
+    m_forceAsciiSearch = false;  // set the default value in case of error
     nsCOMPtr<nsIPrefBranch> prefs(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv))
     {
@@ -347,7 +347,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
   term->GetOp(&op);
 
   if (op == nsMsgSearchOp::DoesntContain || op == nsMsgSearchOp::Isnt)
-    useNot = PR_TRUE;
+    useNot = true;
 
   nsMsgSearchAttribValue attrib;
   term->GetAttrib(&attrib);
@@ -394,7 +394,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
         whichMnemonic = m_kImapSentOn;
         break;
       default:
-        NS_ASSERTION(PR_FALSE, "invalid search operator");
+        NS_ASSERTION(false, "invalid search operator");
         return NS_ERROR_INVALID_ARG;
       }
     }
@@ -409,7 +409,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
       whichMnemonic = m_kImapSizeSmaller;
       break;
     default:
-      NS_ASSERTION(PR_FALSE, "invalid search operator");
+      NS_ASSERTION(false, "invalid search operator");
       return NS_ERROR_INVALID_ARG;
     }
     break;
@@ -427,7 +427,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
         whichMnemonic = m_kImapSentOn;
         break;
       default:
-        NS_ASSERTION(PR_FALSE, "invalid search operator");
+        NS_ASSERTION(false, "invalid search operator");
         return NS_ERROR_INVALID_ARG;
       }
       break;
@@ -438,8 +438,8 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
       whichMnemonic = m_kImapKeyword;
       break;
     case nsMsgSearchAttrib::MsgStatus:
-      useNot = PR_FALSE; // bizarrely, NOT SEEN is wrong, but UNSEEN is right.
-      ignoreValue = PR_TRUE; // the mnemonic is all we need
+      useNot = false; // bizarrely, NOT SEEN is wrong, but UNSEEN is right.
+      ignoreValue = true; // the mnemonic is all we need
       PRUint32 status;
       searchValue->GetStatus(&status);
 
@@ -458,7 +458,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
         whichMnemonic = op == nsMsgSearchOp::Is ? m_kImapFlagged : m_kImapNotFlagged;
         break;
       default:
-        NS_ASSERTION(PR_FALSE, "invalid search operator");
+        NS_ASSERTION(false, "invalid search operator");
         return NS_ERROR_INVALID_ARG;
       }
       break;
@@ -479,7 +479,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
       }
       else
       {
-        NS_ASSERTION(PR_FALSE, "invalid search operator");
+        NS_ASSERTION(false, "invalid search operator");
         return NS_ERROR_INVALID_ARG;
       }
     }
@@ -563,7 +563,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
         searchTermValue.AppendInt(sizeValue);
 
         value = ToNewCString(searchTermValue);
-        valueWasAllocated = PR_TRUE;
+        valueWasAllocated = true;
       }
       else
 
@@ -616,7 +616,7 @@ nsresult nsMsgSearchAdapter::EncodeImapTerm (nsIMsgSearchTerm *term, bool really
         else
           value = strdup("");
         NS_Free(convertedValue);
-        valueWasAllocated = PR_TRUE;
+        valueWasAllocated = true;
 
       }
     }
@@ -826,9 +826,9 @@ nsMsgSearchValidityTable::nsMsgSearchValidityTable ()
   for (int i = 0; i < nsMsgSearchAttrib::kNumMsgSearchAttributes; i++)
     for (int j = 0; j < nsMsgSearchOp::kNumMsgSearchOperators; j++)
     {
-      SetAvailable (i, j, PR_FALSE);
-      SetEnabled (i, j, PR_FALSE);
-      SetValidButNotShown (i,j, PR_FALSE);
+      SetAvailable (i, j, false);
+      SetEnabled (i, j, false);
+      SetValidButNotShown (i,j, false);
     }
   m_numAvailAttribs = 0;   // # of attributes marked with at least one available operator
   // assume default is Subject, which it is for mail and news search
@@ -1109,7 +1109,7 @@ NS_IMETHODIMP nsMsgSearchValidityManager::GetTable (int whichTable, nsIMsgSearch
     *ppOutTable = m_localABAndTable;
     break;
   default:
-    NS_ASSERTION(PR_FALSE, "invalid table type");
+    NS_ASSERTION(false, "invalid table type");
     rv = NS_MSG_ERROR_INVALID_SEARCH_TERM;
   }
 
@@ -1263,7 +1263,7 @@ nsresult nsMsgSearchValidityManager::InitLdapTable()
   nsresult rv = NewTable(getter_AddRefs(m_ldapTable));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = SetUpABTable(m_ldapTable, PR_TRUE);
+  rv = SetUpABTable(m_ldapTable, true);
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;
 }
@@ -1275,7 +1275,7 @@ nsresult nsMsgSearchValidityManager::InitLdapAndTable()
   nsresult rv = NewTable(getter_AddRefs(m_ldapAndTable));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = SetUpABTable(m_ldapAndTable, PR_FALSE);
+  rv = SetUpABTable(m_ldapAndTable, false);
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;
 }
@@ -1287,7 +1287,7 @@ nsresult nsMsgSearchValidityManager::InitLocalABTable()
   nsresult rv = NewTable(getter_AddRefs(m_localABTable));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = SetUpABTable(m_localABTable, PR_TRUE);
+  rv = SetUpABTable(m_localABTable, true);
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;
 }
@@ -1299,7 +1299,7 @@ nsresult nsMsgSearchValidityManager::InitLocalABAndTable()
   nsresult rv = NewTable(getter_AddRefs(m_localABAndTable));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = SetUpABTable(m_localABAndTable, PR_FALSE);
+  rv = SetUpABTable(m_localABAndTable, false);
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;
 }

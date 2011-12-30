@@ -113,7 +113,7 @@ NS_MSG_BASE nsresult nsMsgI18NConvertFromUnicode(const char* aCharset,
                                                  const nsString& inString,
                                                  nsACString& outString,
                                                  bool aIsCharsetCanonical =
-                                                        PR_FALSE);
+                                                        false);
 /**
  * Convert from charset to unicode.
  *
@@ -126,7 +126,7 @@ NS_MSG_BASE nsresult nsMsgI18NConvertToUnicode(const char* aCharset,
                                                const nsCString& inString,
                                                nsAString& outString,
                                                bool aIsCharsetCanonical =
-                                                      PR_FALSE);
+                                                      false);
 /**
  * Parse for META charset.
  *
@@ -192,13 +192,13 @@ NS_MSG_BASE void nsMsgI18NConvertRawBytesToUTF8(const nsCString& inString,
 inline nsresult CopyUTF16toMUTF7(const nsString &aSrc, nsACString& aDest)
 {
     return nsMsgI18NConvertFromUnicode("x-imap4-modified-utf7", aSrc,
-                                       aDest, PR_TRUE);
+                                       aDest, true);
 }
 
 inline nsresult CopyMUTF7toUTF16(const nsCString& aSrc, nsAString& aDest)
 {
     return nsMsgI18NConvertToUnicode("x-imap4-modified-utf7", aSrc,
-                                     aDest, PR_TRUE);
+                                     aDest, true);
 }
 
 inline nsresult ConvertToUnicode(const char* charset,

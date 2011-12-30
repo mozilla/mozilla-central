@@ -147,7 +147,7 @@ class OutlookSendListener : public nsIMsgSendListener
 {
 public:
   OutlookSendListener() {
-    m_done = PR_FALSE;
+    m_done = false;
     m_location = nsnull;
   }
 
@@ -168,7 +168,7 @@ public:
   /* void OnStopSending (in string aMsgID, in nsresult aStatus, in wstring aMsg, in nsIFile returnFile); */
   NS_IMETHOD OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg,
                nsIFile *returnFile) {
-    m_done = PR_TRUE;
+    m_done = true;
     NS_IF_ADDREF(m_location = returnFile);
     return NS_OK;
   }
@@ -180,7 +180,7 @@ public:
   NS_IMETHOD OnGetDraftFolderURI(const char *aFolderURI) {return NS_OK;}
 
   static nsresult CreateSendListener( nsIMsgSendListener **ppListener);
-  void Reset() { m_done = PR_FALSE; NS_IF_RELEASE( m_location);}
+  void Reset() { m_done = false; NS_IF_RELEASE( m_location);}
 
 public:
   bool m_done;
@@ -280,7 +280,7 @@ nsresult nsOutlookCompose::CreateComponents( void)
       rv = CallCreateInstance( kMsgCompFieldsCID, &m_pMsgFields);
     if (NS_SUCCEEDED(rv) && m_pMsgFields) {
       // IMPORT_LOG0( "nsOutlookCompose - CreateComponents succeeded\n");
-      m_pMsgFields->SetForcePlainText( PR_FALSE);
+      m_pMsgFields->SetForcePlainText( false);
       return NS_OK;
     }
   }
@@ -499,7 +499,7 @@ nsresult nsOutlookCompose::ProcessMessage(nsMsgDeliverMode mode,
   nsresult rv = ComposeTheMessage(mode, msg, getter_AddRefs(compositionFile));
   NS_ENSURE_SUCCESS(rv, rv);
   rv = CopyComposedMessage(compositionFile, pDst, msg);
-  compositionFile->Remove(PR_FALSE);
+  compositionFile->Remove(false);
   if (NS_FAILED( rv)) {
     IMPORT_LOG0( "*** Error copying composed message to destination mailbox\n");
   }
@@ -632,7 +632,7 @@ void nsOutlookCompose::UnhackBody(nsCString& txt)
 
   hackedString.Assign(hackEndA);
   hackedString.Append(hackedPostfixA);
-  PRInt32 end = MsgFind(txt, hackedString, PR_FALSE, begin);
+  PRInt32 end = MsgFind(txt, hackedString, false, begin);
   if (end == kNotFound)
     return; // ?
   txt.Cut(end, hackedString.Length());

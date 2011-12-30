@@ -166,7 +166,7 @@ NS_IMETHODIMP nsWMImport::GetSupportsUpgrade( bool *pUpgrade)
   if (! pUpgrade)
     return NS_ERROR_NULL_POINTER;
 
-  *pUpgrade = PR_TRUE;
+  *pUpgrade = true;
   return( NS_OK);
 }
 

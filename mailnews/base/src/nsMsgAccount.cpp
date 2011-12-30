@@ -358,7 +358,7 @@ nsMsgAccount::AddIdentity(nsIMsgIdentity *identity)
         testKey.StripWhitespace();
 
         if (testKey.Equals(key))
-          foundIdentity = PR_TRUE;
+          foundIdentity = true;
 
         token = NS_strtok(",", &newStr);
       }

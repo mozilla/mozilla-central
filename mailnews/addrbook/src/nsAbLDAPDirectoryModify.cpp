@@ -116,15 +116,15 @@ nsAbModifyLDAPMessageListener::nsAbModifyLDAPMessageListener(
     mModification(modArray),
     mNewRDN(newRDN),
     mNewBaseDN(newBaseDN),
-    mFinished(PR_FALSE),
-    mCanceled(PR_FALSE),
-    mFlagRename(PR_FALSE),
+    mFinished(false),
+    mCanceled(false),
+    mFlagRename(false),
     mServerSearchControls(serverSearchControls),
     mClientSearchControls(clientSearchControls)
 {
   if (mType == nsILDAPModification::MOD_REPLACE &&
       !mNewRDN.IsEmpty() && !mNewBaseDN.IsEmpty())
-    mFlagRename = PR_TRUE;
+    mFlagRename = true;
 }
 
 nsAbModifyLDAPMessageListener::~nsAbModifyLDAPMessageListener ()
@@ -141,7 +141,7 @@ nsresult nsAbModifyLDAPMessageListener::Cancel ()
   if (mFinished || mCanceled)
     return NS_OK;
 
-  mCanceled = PR_TRUE;
+  mCanceled = true;
 
   return NS_OK;
 }
@@ -168,11 +168,11 @@ NS_IMETHODIMP nsAbModifyLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMess
     if ((messageType == nsILDAPMessage::RES_ADD) || 
         (messageType == nsILDAPMessage::RES_DELETE) ||
         (messageType == nsILDAPMessage::RES_MODIFY))
-      mFinished = PR_TRUE;
+      mFinished = true;
     else if (mCanceled)
     {
-      mFinished = PR_TRUE;
-      cancelOperation = PR_TRUE;
+      mFinished = true;
+      cancelOperation = true;
     }
   }
   // Leave lock
@@ -196,11 +196,11 @@ NS_IMETHODIMP nsAbModifyLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMess
       rv = OnLDAPMessageModifyResult(aMessage);
       break;
     case nsILDAPMessage::RES_MODDN:
-      mFlagRename = PR_FALSE;
+      mFlagRename = false;
       rv = OnLDAPMessageRenameResult(aMessage);
       if (NS_FAILED(rv)) 
         // Rename failed, so we stop here
-        mFinished = PR_TRUE;
+        mFinished = true;
       break;
     default:
       break;
@@ -214,7 +214,7 @@ NS_IMETHODIMP nsAbModifyLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMess
     // reset because we might re-use this listener...except don't do this
     // until the search is done, so we'll ignore results from a previous
     // search.
-    mCanceled = mFinished = PR_FALSE;
+    mCanceled = mFinished = false;
   }
 
   return rv;
@@ -230,7 +230,7 @@ void nsAbModifyLDAPMessageListener::InitFailed(bool aCancelled)
 nsresult nsAbModifyLDAPMessageListener::DoTask()
 {
   nsresult rv;
-  mCanceled = mFinished = PR_FALSE;
+  mCanceled = mFinished = false;
 
   mModifyOperation = do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -246,7 +246,7 @@ nsresult nsAbModifyLDAPMessageListener::DoTask()
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (mFlagRename)
-    return mModifyOperation->Rename(mCardDN, mNewRDN, mNewBaseDN, PR_TRUE);
+    return mModifyOperation->Rename(mCardDN, mNewRDN, mNewBaseDN, true);
 
   switch (mType)
   {

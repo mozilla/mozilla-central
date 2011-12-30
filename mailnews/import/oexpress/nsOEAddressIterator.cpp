@@ -241,7 +241,7 @@ nsresult nsOEAddressIterator::EnumList( const PRUnichar * pName, LPENTRYID pEid,
 
             m_database->AddListCardColumnsToRow(userCard, listRow, ++numListElems,
                                                 getter_AddRefs(newCard),
-                                                PR_TRUE, nsnull, nsnull);
+                                                true, nsnull, nsnull);
           }
     m_pWab->FreeProperty( pProp);
           m_pWab->ReleaseUser( pUser);
@@ -431,5 +431,5 @@ bool nsOEAddressIterator::BuildCard( const PRUnichar * pName, nsIMdbRow *newRow,
       NS_RELEASE( pFieldMap);
     }
   }
-  return( PR_TRUE);
+  return( true);
 }

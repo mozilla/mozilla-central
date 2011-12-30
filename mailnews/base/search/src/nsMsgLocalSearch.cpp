@@ -158,7 +158,7 @@ nsMsgSearchBoolExpression::leftToRightAddTerm(nsIMsgSearchTerm * newTerm, char *
 }
 
 
-// returns PR_TRUE or PR_FALSE depending on what the current expression evaluates to.
+// returns true or false depending on what the current expression evaluates to.
 bool nsMsgSearchBoolExpression::OfflineEvaluate(nsIMsgDBHdr *msgToMatch, const char *defaultCharset,
   nsIMsgSearchScopeTerm *scope, nsIMsgDatabase *db, const char *headers,
   PRUint32 headerSize, bool Filtering)
@@ -287,7 +287,7 @@ nsresult nsMsgSearchOfflineMail::OpenSummaryFile ()
     nsresult err = NS_OK;
     // do password protection of local cache thing.
 #ifdef DOING_FOLDER_CACHE_PASSWORDS
-    if (m_scope->m_folder && m_scope->m_folder->UserNeedsToAuthenticateForFolder(PR_FALSE) && m_scope->m_folder->GetMaster()->PromptForHostPassword(m_scope->m_frame->GetContext(), m_scope->m_folder) != 0)
+    if (m_scope->m_folder && m_scope->m_folder->UserNeedsToAuthenticateForFolder(false) && m_scope->m_folder->GetMaster()->PromptForHostPassword(m_scope->m_frame->GetContext(), m_scope->m_folder) != 0)
     {
         m_scope->m_frame->StopRunning();
         return SearchError_ScopeDone;
@@ -328,7 +328,7 @@ nsresult nsMsgSearchOfflineMail::OpenSummaryFile ()
             break;
         default:
         {
-          NS_ASSERTION(PR_FALSE, "unexpected error opening db");
+          NS_ASSERTION(false, "unexpected error opening db");
         }
     }
 
@@ -347,7 +347,7 @@ nsMsgSearchOfflineMail::MatchTermsForFilter(nsIMsgDBHdr *msgToMatch,
                                             nsMsgSearchBoolExpression ** aExpressionTree,
                                             bool *pResult)
 {
-    return MatchTerms(msgToMatch, termList, defaultCharset, scope, db, headers, headerSize, PR_TRUE, aExpressionTree, pResult);
+    return MatchTerms(msgToMatch, termList, defaultCharset, scope, db, headers, headerSize, true, aExpressionTree, pResult);
 }
 
 // static method which matches a header against a list of search terms.
@@ -361,7 +361,7 @@ nsMsgSearchOfflineMail::MatchTermsForSearch(nsIMsgDBHdr *msgToMatch,
                                             bool *pResult)
 {
 
-    return MatchTerms(msgToMatch, termList, defaultCharset, scope, db, nsnull, 0, PR_FALSE, aExpressionTree, pResult);
+    return MatchTerms(msgToMatch, termList, defaultCharset, scope, db, nsnull, 0, false, aExpressionTree, pResult);
 }
 
 nsresult nsMsgSearchOfflineMail::ConstructExpressionTree(nsISupportsArray * termList,
@@ -388,7 +388,7 @@ nsresult nsMsgSearchOfflineMail::ConstructExpressionTree(nsISupportsArray * term
       if (beginsGrouping)
       {
           //temporarily turn off the grouping for our recursive call
-          pTerm->SetBeginsGrouping(PR_FALSE);
+          pTerm->SetBeginsGrouping(false);
           nsMsgSearchBoolExpression * innerExpression = new nsMsgSearchBoolExpression();
 
           // the first search term in the grouping is the one that holds the operator for how this search term
@@ -404,7 +404,7 @@ nsresult nsMsgSearchOfflineMail::ConstructExpressionTree(nsISupportsArray * term
             &finalExpression->m_rightChild);
 
           // undo our damage
-          pTerm->SetBeginsGrouping(PR_TRUE);
+          pTerm->SetBeginsGrouping(true);
 
       }
       else
@@ -449,10 +449,10 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
     aTerm->GetMatchAll(&matchAll);
     if (matchAll)
     {
-      *pResult = PR_TRUE;
+      *pResult = true;
       return NS_OK;
     }
-    *pResult = PR_FALSE;
+    *pResult = false;
 
     nsMsgSearchAttribValue attrib;
     aTerm->GetAttrib(&attrib);
@@ -470,7 +470,7 @@ nsresult nsMsgSearchOfflineMail::ProcessSearchTerm(nsIMsgDBHdr *msgToMatch,
         break;
       case nsMsgSearchAttrib::Subject:
       {
-        msgToMatch->GetSubject(getter_Copies(matchString) /* , PR_TRUE */);
+        msgToMatch->GetSubject(getter_Copies(matchString) /* , true */);
         if (msgFlags & nsMsgMessageFlags::HasRe)
         {
           // Make sure we pass along the "Re: " part of the subject if this is a reply.
@@ -717,7 +717,7 @@ nsresult nsMsgSearchOfflineMail::MatchTerms(nsIMsgDBHdr *msgToMatch,
   *pResult = (*aExpressionTree)
     ?  (*aExpressionTree)->OfflineEvaluate(msgToMatch,
                  defaultCharset, scope, db, headers, headerSize, Filtering)
-    :PR_TRUE;  // vacuously true...
+    :true;  // vacuously true...
 
   return NS_OK;
 }
@@ -734,7 +734,7 @@ nsresult nsMsgSearchOfflineMail::Search (bool *aDone)
 
   const PRUint32 kTimeSliceInMS = 200;
 
-  *aDone = PR_FALSE;
+  *aDone = false;
   // Try to open the DB lazily. This will set up a parser if one is required
   if (!m_db)
     err = OpenSummaryFile ();
@@ -759,7 +759,7 @@ nsresult nsMsgSearchOfflineMail::Search (bool *aDone)
           msgDBHdr = do_QueryInterface(currentItem, &dbErr);
         }
         if (NS_FAILED(dbErr))
-          *aDone = PR_TRUE; //###phil dbErr is dropped on the floor. just note that we did have an error so we'll clean up later
+          *aDone = true; //###phil dbErr is dropped on the floor. just note that we did have an error so we'll clean up later
         else
         {
           bool match = false;
@@ -783,7 +783,7 @@ nsresult nsMsgSearchOfflineMail::Search (bool *aDone)
     }
   }
   else
-    *aDone = PR_TRUE; // we couldn't open up the DB. This is an unrecoverable error so mark the scope as done.
+    *aDone = true; // we couldn't open up the DB. This is an unrecoverable error so mark the scope as done.
 
   delete expressionTree;
 
@@ -801,7 +801,7 @@ void nsMsgSearchOfflineMail::CleanUpScope()
   if (m_db)
   {
     m_listContext = nsnull;
-    m_db->Close(PR_FALSE);
+    m_db->Close(false);
   }
   m_db = nsnull;
 
@@ -829,7 +829,7 @@ nsMsgSearchOfflineMail::Abort ()
 {
     // Let go of the DB when we're done with it so we don't kill the db cache
     if (m_db)
-        m_db->Close(PR_TRUE /* commit in case we downloaded new headers */);
+        m_db->Close(true /* commit in case we downloaded new headers */);
     m_db = nsnull;
     return nsMsgSearchAdapter::Abort ();
 }

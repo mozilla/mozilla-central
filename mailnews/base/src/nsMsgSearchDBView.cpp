@@ -64,7 +64,7 @@ static bool gReferenceOnlyThreading;
 nsMsgSearchDBView::nsMsgSearchDBView()
 {
   // don't try to display messages for the search pane.
-  mSuppressMsgDisplay = PR_TRUE;
+  mSuppressMsgDisplay = true;
   m_threadsTable.Init();
   m_hdrsTable.Init();
   m_totalMessagesInView = 0;
@@ -102,7 +102,7 @@ NS_IMETHODIMP nsMsgSearchDBView::Open(nsIMsgFolder *folder,
   prefBranch->GetBoolPref("mail.strict_threading", &gReferenceOnlyThreading);
 
   // our sort is automatically valid because we have no contents at this point!
-  m_sortValid = PR_TRUE;
+  m_sortValid = true;
 
     if (pCount)
       *pCount = 0;
@@ -384,7 +384,7 @@ bool nsMsgSearchDBView::InsertEmptyRows(nsMsgViewIndex viewIndex, PRInt32 numRow
 {
   for (PRInt32 i = 0; i < numRows; i++)
     if (!m_folders.InsertObjectAt(nsnull, viewIndex + i))
-      return PR_FALSE;
+      return false;
   return nsMsgDBView::InsertEmptyRows(viewIndex, numRows);
 }
 
@@ -433,7 +433,7 @@ nsresult nsMsgSearchDBView::GetDBForViewIndex(nsMsgViewIndex index, nsIMsgDataba
 nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *folder)
 {
   if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
-    return nsMsgGroupView::OnNewHeader(msgHdr, nsMsgKey_None, PR_TRUE);
+    return nsMsgGroupView::OnNewHeader(msgHdr, nsMsgKey_None, true);
   nsMsgKey msgKey;
   PRUint32 msgFlags;
   msgHdr->GetMessageKey(&msgKey);
@@ -471,7 +471,7 @@ nsresult nsMsgSearchDBView::AddHdrFromFolder(nsIMsgDBHdr *msgHdr, nsIMsgFolder *
     // getting the root header before we add the new header, and finding that.
     if (newThread || !viewThread->MsgCount())
     {
-      viewThread->AddHdr(msgHdr, PR_FALSE, posInThread,
+      viewThread->AddHdr(msgHdr, false, posInThread,
                          getter_AddRefs(parent));
       nsMsgViewIndex insertIndex = GetIndexForThread(msgHdr);
       NS_ASSERTION(insertIndex == m_levels.Length() || !m_levels[insertIndex],
@@ -586,7 +586,7 @@ void nsMsgSearchDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   bool updatesSuppressed = mSuppressChangeNotification;
   // Turn off tree notifications so that we don't reload the current message.
   if (!updatesSuppressed)
-    SetSuppressChangeNotifications(PR_TRUE);
+    SetSuppressChangeNotifications(true);
 
   nsCOMPtr<nsIMsgDBHdr> threadHdr;
   GetMsgHdrForViewIndex(threadIndex, getter_AddRefs(threadHdr));
@@ -661,7 +661,7 @@ void nsMsgSearchDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
     RestoreSelection(preservedKey, preservedSelection);
 
   if (!updatesSuppressed)
-    SetSuppressChangeNotifications(PR_FALSE);
+    SetSuppressChangeNotifications(false);
   nsMsgViewIndex lowIndex = threadIndex < newIndex ? threadIndex : newIndex;
   nsMsgViewIndex highIndex = lowIndex == threadIndex ? newIndex : threadIndex;
   NoteChange(lowIndex, highIndex - lowIndex + childCount + 1,
@@ -800,7 +800,7 @@ nsMsgSearchDBView::GetCommandStatus(nsMsgViewCommandTypeValue command, bool *sel
   if (command != nsMsgViewCommandType::runJunkControls)
     return nsMsgDBView::GetCommandStatus(command, selectable_p, selected_p);
 
-  *selectable_p = PR_FALSE;
+  *selectable_p = false;
   return NS_OK;
 }
 
@@ -903,9 +903,9 @@ nsresult nsMsgSearchDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex 
    nsresult rv = GetFoldersAndHdrsForSelection(indices, numIndices);
    NS_ENSURE_SUCCESS(rv, rv);
    if (mDeleteModel != nsMsgImapDeleteModels::MoveToTrash)
-     deleteStorage = PR_TRUE;
+     deleteStorage = true;
   if (mDeleteModel != nsMsgImapDeleteModels::IMAPDelete)
-    m_deletingRows = PR_TRUE;
+    m_deletingRows = true;
 
   // remember the deleted messages in case the user undoes the delete,
   // and we want to restore the hdr to the view, even if it no
@@ -924,7 +924,7 @@ nsresult nsMsgSearchDBView::DeleteMessages(nsIMsgWindow *window, nsMsgViewIndex 
   rv = deleteStorage ? ProcessRequestsInAllFolders(window)
                      : ProcessRequestsInOneFolder(window);
   if (NS_FAILED(rv))
-    m_deletingRows = PR_FALSE;
+    m_deletingRows = false;
   return rv;
 }
 
@@ -1030,7 +1030,7 @@ nsMsgSearchDBView::GetFoldersAndHdrsForSelection(nsMsgViewIndex *indices, PRInt3
         if (NS_SUCCEEDED(rv) && msgFolder && msgFolder == curFolder) 
         {
           nsCOMPtr<nsISupports> hdrSupports = do_QueryInterface(hdr);
-          msgHdrsForOneFolder->AppendElement(hdrSupports, PR_FALSE);
+          msgHdrsForOneFolder->AppendElement(hdrSupports, false);
         }
       }
     }
@@ -1111,7 +1111,7 @@ nsresult nsMsgSearchDBView::ProcessRequestsInOneFolder(nsIMsgWindow *window)
 
     // called for delete with trash, copy and move
     if (mCommand == nsMsgViewCommandType::deleteMsg)
-        curFolder->DeleteMessages(messageArray, window, PR_FALSE /* delete storage */, PR_FALSE /* is move*/, this, PR_TRUE /*allowUndo*/);
+        curFolder->DeleteMessages(messageArray, window, false /* delete storage */, false /* is move*/, this, true /*allowUndo*/);
     else 
     {
       NS_ASSERTION(!(curFolder == mDestFolder), "The source folder and the destination folder are the same");
@@ -1121,9 +1121,9 @@ nsresult nsMsgSearchDBView::ProcessRequestsInOneFolder(nsIMsgWindow *window)
          if (NS_SUCCEEDED(rv))
          {
            if (mCommand == nsMsgViewCommandType::moveMessages)
-             copyService->CopyMessages(curFolder, messageArray, mDestFolder, PR_TRUE /* isMove */, this, window, PR_TRUE /*allowUndo*/);
+             copyService->CopyMessages(curFolder, messageArray, mDestFolder, true /* isMove */, this, window, true /*allowUndo*/);
            else if (mCommand == nsMsgViewCommandType::copyMessages)
-             copyService->CopyMessages(curFolder, messageArray, mDestFolder, PR_FALSE /* isMove */, this, window, PR_TRUE /*allowUndo*/);
+             copyService->CopyMessages(curFolder, messageArray, mDestFolder, false /* isMove */, this, window, true /*allowUndo*/);
          }
       }
     }
@@ -1142,7 +1142,7 @@ nsresult nsMsgSearchDBView::ProcessRequestsInAllFolders(nsIMsgWindow *window)
            do_QueryElementAt(m_hdrsForEachFolder, folderIndex);
     NS_ASSERTION(messageArray, "messageArray is null");
 
-    curFolder->DeleteMessages(messageArray, window, PR_TRUE /* delete storage */, PR_FALSE /* is move*/, nsnull/*copyServListener*/, PR_FALSE /*allowUndo*/ );
+    curFolder->DeleteMessages(messageArray, window, true /* delete storage */, false /* is move*/, nsnull/*copyServListener*/, false /*allowUndo*/ );
   }
   return NS_OK;
 }

@@ -305,7 +305,7 @@ morkCellObject::CanUseCell(nsIMdbEnv* mev, mork_bool inMutable,
 NS_IMETHODIMP morkCellObject::SetBlob(nsIMdbEnv* /* mev */,
   nsIMdbBlob* /* ioBlob */)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 } // reads inBlob slots
 
@@ -314,7 +314,7 @@ NS_IMETHODIMP morkCellObject::SetBlob(nsIMdbEnv* /* mev */,
 NS_IMETHODIMP morkCellObject::ClearBlob( // make empty (so content has zero length)
   nsIMdbEnv*  /* mev */)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
   // remember row->MaybeDirtySpaceStoreAndRow();
 }
@@ -325,7 +325,7 @@ NS_IMETHODIMP morkCellObject::GetBlobFill(nsIMdbEnv* mev,
 // Same value that would be put into mYarn_Fill, if one called GetYarn()
 // with a yarn instance that had mYarn_Buf==nil and mYarn_Size==0.
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }  // size of blob 
 
@@ -403,7 +403,7 @@ NS_IMETHODIMP morkCellObject::AliasYarn(nsIMdbEnv* mev,
 // { ----- begin attribute methods -----
 NS_IMETHODIMP morkCellObject::SetColumn(nsIMdbEnv* mev, mdb_column inColumn)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
   // remember row->MaybeDirtySpaceStoreAndRow();
 } 
@@ -434,7 +434,7 @@ NS_IMETHODIMP morkCellObject::GetCellInfo(  // all cell metainfo except actual c
 // Checking all cell metainfo is a good way to avoid forcing a large cell
 // in to memory when you don't actually want to use the content.
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -521,7 +521,7 @@ NS_IMETHODIMP morkCellObject::GetAnyChild( // access table of specific attribute
   nsIMdbRow** acqRow, // child row (or null)
   nsIMdbTable** acqTable) // child table (or null)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -530,7 +530,7 @@ NS_IMETHODIMP morkCellObject::SetChildRow( // access table of specific attribute
   nsIMdbEnv* mev, // context
   nsIMdbRow* ioRow)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 } // inRow must be bound inside this same db port
 
@@ -538,7 +538,7 @@ NS_IMETHODIMP morkCellObject::GetChildRow( // access row of specific attribute
   nsIMdbEnv* mev, // context
   nsIMdbRow** acqRow) // acquire child row (or nil if no child)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -547,7 +547,7 @@ NS_IMETHODIMP morkCellObject::SetChildTable( // access table of specific attribu
   nsIMdbEnv* mev, // context
   nsIMdbTable* inTable) // table must be bound inside this same db port
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
   // remember row->MaybeDirtySpaceStoreAndRow();
 }
@@ -556,7 +556,7 @@ NS_IMETHODIMP morkCellObject::GetChildTable( // access table of specific attribu
   nsIMdbEnv* mev, // context
   nsIMdbTable** acqTable) // acquire child tabdle (or nil if no chil)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 // } ----- end children methods -----

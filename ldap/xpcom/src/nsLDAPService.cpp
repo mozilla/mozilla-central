@@ -65,8 +65,8 @@ static NS_DEFINE_CID(kLDAPOperationCID, NS_LDAPOPERATION_CID);
 //
 nsLDAPServiceEntry::nsLDAPServiceEntry()
     : mLeases(0),
-      mDelete(PR_FALSE),
-      mRebinding(PR_FALSE)
+      mDelete(false),
+      mRebinding(false)
 
 {
     mTimestamp = LL_Zero();
@@ -76,7 +76,7 @@ nsLDAPServiceEntry::nsLDAPServiceEntry()
 //
 bool nsLDAPServiceEntry::Init()
 {
-    return PR_TRUE;
+    return true;
 }
 
 // Set/Get the timestamp when this server was last used. We might have
@@ -102,11 +102,11 @@ void nsLDAPServiceEntry::IncrementLeases()
 bool nsLDAPServiceEntry::DecrementLeases()
 {
     if (!mLeases) {
-        return PR_FALSE;
+        return false;
     }
     mLeases--;
 
-    return PR_TRUE;
+    return true;
 }
 PRUint32 nsLDAPServiceEntry::GetLeases()
 {
@@ -125,11 +125,11 @@ already_AddRefed<nsILDAPServer> nsLDAPServiceEntry::GetServer()
 bool nsLDAPServiceEntry::SetServer(nsILDAPServer *aServer)
 {
     if (!aServer) {
-        return PR_FALSE;
+        return false;
     }
     mServer = aServer;
 
-    return PR_TRUE;
+    return true;
 }
 
 // Get/Set/Clear the nsLDAPConnection object for this entry.
@@ -205,9 +205,9 @@ void nsLDAPServiceEntry::SetRebinding(bool aState)
 //
 bool nsLDAPServiceEntry::DeleteEntry()
 {
-    mDelete = PR_TRUE;
+    mDelete = true;
 
-    return PR_TRUE;
+    return true;
 }
 // This is the end of the nsLDAPServiceEntry class
 
@@ -511,7 +511,7 @@ NS_IMETHODIMP nsLDAPService::ReconnectConnection(const PRUnichar *aKey,
 
         // Get a new connection
         //
-        entry->SetRebinding(PR_TRUE);
+        entry->SetRebinding(true);
     }
 
     rv = EstablishConnection(entry, aListener);
@@ -524,7 +524,7 @@ NS_IMETHODIMP nsLDAPService::ReconnectConnection(const PRUnichar *aKey,
         
         if (!entry->PushListener(static_cast<nsILDAPMessageListener *>
                                             (aListener))) {
-            entry->SetRebinding(PR_FALSE);
+            entry->SetRebinding(false);
             return NS_ERROR_FAILURE;
         }
     }
@@ -598,7 +598,7 @@ nsLDAPService::OnLDAPMessage(nsILDAPMessage *aMessage)
                 return NS_ERROR_FAILURE;
             }
 
-            entry->SetRebinding(PR_FALSE);
+            entry->SetRebinding(false);
             entry->SetMessage(aMessage);
 
             // Now process all the pending callbacks/listeners. We

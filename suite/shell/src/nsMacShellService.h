@@ -46,7 +46,7 @@
 class nsMacShellService : public nsIShellService
 {
 public:
-  nsMacShellService() : mCheckedThisSessionClient(PR_FALSE) {};
+  nsMacShellService() : mCheckedThisSessionClient(false) {};
   virtual ~nsMacShellService() {};
 
   NS_DECL_ISUPPORTS

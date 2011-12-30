@@ -159,7 +159,7 @@ NS_IMETHODIMP nsImportFieldMap::DefaultFieldMap(PRInt32 size)
     return( rv);
   for (PRInt32 i = 0; i < size; i++) {
     m_pFields[i] = i;
-    m_pActive[i] = PR_TRUE;
+    m_pActive[i] = true;
   }
 
   return( NS_OK);
@@ -574,7 +574,7 @@ nsresult nsImportFieldMap::Allocate( PRInt32 newSize)
   PRInt32  i;
   for (i = 0; i < sz; i++) {
     pData[i] = -1;
-    pActive[i] = PR_TRUE;
+    pActive[i] = true;
   }
   if (m_numFields) {
     for (i = 0; i < m_numFields; i++) {

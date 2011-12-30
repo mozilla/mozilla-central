@@ -52,8 +52,8 @@
 
 nsMsgQuickSearchDBView::nsMsgQuickSearchDBView()
 {
-  m_usingCachedHits = PR_FALSE;
-  m_cacheEmpty = PR_TRUE;
+  m_usingCachedHits = false;
+  m_cacheEmpty = true;
 }
 
 nsMsgQuickSearchDBView::~nsMsgQuickSearchDBView()
@@ -125,23 +125,23 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::DoCommand(nsMsgViewCommandTypeValue aComma
   if (aCommand == nsMsgViewCommandType::markAllRead)
   {
     nsresult rv = NS_OK;
-    m_folder->EnableNotifications(nsIMsgFolder::allMessageCountNotifications, PR_FALSE, PR_TRUE /*dbBatching*/);
+    m_folder->EnableNotifications(nsIMsgFolder::allMessageCountNotifications, false, true /*dbBatching*/);
 
     for (PRInt32 i=0;NS_SUCCEEDED(rv) && i < GetSize();i++)
     {
       nsCOMPtr<nsIMsgDBHdr> msgHdr;
       m_db->GetMsgHdrForKey(m_keys[i],getter_AddRefs(msgHdr)); 
-      rv = m_db->MarkHdrRead(msgHdr, PR_TRUE, nsnull);
+      rv = m_db->MarkHdrRead(msgHdr, true, nsnull);
     }
 
-    m_folder->EnableNotifications(nsIMsgFolder::allMessageCountNotifications, PR_TRUE, PR_TRUE /*dbBatching*/);
+    m_folder->EnableNotifications(nsIMsgFolder::allMessageCountNotifications, true, true /*dbBatching*/);
 
     nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(m_folder);
     if (NS_SUCCEEDED(rv) && imapFolder)
-      rv = imapFolder->StoreImapFlags(kImapMsgSeenFlag, PR_TRUE, m_keys.Elements(), 
+      rv = imapFolder->StoreImapFlags(kImapMsgSeenFlag, true, m_keys.Elements(), 
                                       m_keys.Length(), nsnull);
 
-    m_db->SetSummaryValid(PR_TRUE);
+    m_db->SetSummaryValid(true);
     return rv;
   }
   else
@@ -171,7 +171,7 @@ nsresult nsMsgQuickSearchDBView::AddHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex *res
   {
     nsMsgKey parentKey;
     msgHdr->GetThreadParent(&parentKey);
-    return nsMsgThreadedDBView::OnNewHeader(msgHdr, parentKey, PR_TRUE);
+    return nsMsgThreadedDBView::OnNewHeader(msgHdr, parentKey, true);
   }
   else
     return nsMsgDBView::AddHdr(msgHdr, resultIndex);
@@ -240,7 +240,7 @@ NS_IMETHODIMP nsMsgQuickSearchDBView::OnHdrFlagsChanged(nsIMsgDBHdr *aHdrChanged
             rv = m_viewFolder->GetDBFolderInfoAndDB(getter_AddRefs(dbFolderInfo), getter_AddRefs(virtDatabase));
             NS_ENSURE_SUCCESS(rv, rv);
             dbFolderInfo->ChangeNumUnreadMessages((aOldFlags & nsMsgMessageFlags::Read) ? 1 : -1);
-            m_viewFolder->UpdateSummaryTotals(PR_TRUE); // force update from db.
+            m_viewFolder->UpdateSummaryTotals(true); // force update from db.
             virtDatabase->Commit(nsMsgDBCommitType::kLargeCommit);
           }
         }
@@ -299,7 +299,7 @@ nsMsgQuickSearchDBView::OnHdrPropertyChanged(nsIMsgDBHdr *aHdrChanged, bool aPre
 NS_IMETHODIMP
 nsMsgQuickSearchDBView::GetSearchSession(nsIMsgSearchSession* *aSession)
 {
-  NS_ASSERTION(PR_FALSE, "GetSearchSession method is not implemented");
+  NS_ASSERTION(false, "GetSearchSession method is not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -324,7 +324,7 @@ nsMsgQuickSearchDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *folder)
   aMsgHdr->GetMessageKey(&key);
   // Is FindKey going to be expensive here? A lot of hits could make
   // it a little bit slow to search through the view for every hit.
-  if (m_cacheEmpty || FindKey(key, PR_FALSE) == nsMsgViewIndex_None)
+  if (m_cacheEmpty || FindKey(key, false) == nsMsgViewIndex_None)
     return AddHdr(aMsgHdr); 
   else
     return NS_OK;
@@ -388,7 +388,7 @@ nsMsgQuickSearchDBView::OnSearchDone(nsresult status)
   }
   if (m_sortType != nsMsgViewSortType::byThread)//we do not find levels for the results.
   {
-    m_sortValid = PR_FALSE;       //sort the results 
+    m_sortValid = false;       //sort the results 
     Sort(m_sortType, m_sortOrder);
   }
   if (m_viewFolder && (m_viewFolder != m_folder))
@@ -425,7 +425,7 @@ nsMsgQuickSearchDBView::OnNewSearch()
     {
       bool hasMore;
 
-      m_usingCachedHits = PR_TRUE;
+      m_usingCachedHits = true;
       cachedHits->HasMoreElements(&hasMore);
       m_cacheEmpty = !hasMore;
       if (mTree)
@@ -629,11 +629,11 @@ nsMsgQuickSearchDBView::ListCollapsedChildren(nsMsgViewIndex viewIndex,
       {
         // if this hdr is in the original view, add it to new view.
         if (m_origKeys.BinaryIndexOf(msgKey) != kNotFound)
-          messageArray->AppendElement(msgHdr, PR_FALSE);
+          messageArray->AppendElement(msgHdr, false);
       }
       else
       {
-        rootKeySkipped = PR_TRUE;
+        rootKeySkipped = true;
       }
     }
   }
@@ -688,7 +688,7 @@ nsresult nsMsgQuickSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, nsMsgV
       }
       else
       {
-        rootKeySkipped = PR_TRUE;
+        rootKeySkipped = true;
       }
     }
   }
@@ -823,7 +823,7 @@ nsresult nsMsgQuickSearchDBView::ExpansionDelta(nsMsgViewIndex index, PRInt32 *e
       }
       else
       {
-        rootKeySkipped = PR_TRUE;
+        rootKeySkipped = true;
       }
     }
   }

@@ -81,7 +81,7 @@ MimeHeaders_convert_header_value(MimeDisplayOptions *opt, nsCString &value,
   if (opt && opt->rfc1522_conversion_p)
   {
     converted = MIME_DecodeMimeHeader(value.get(), opt->default_charset,
-                                      opt->override_charset, PR_TRUE);
+                                      opt->override_charset, true);
 
     if (converted)
     {
@@ -105,7 +105,7 @@ MimeHeaders_new (void)
   if (!hdrs) return 0;
 
   memset(hdrs, 0, sizeof(*hdrs));
-  hdrs->done_p = PR_FALSE;
+  hdrs->done_p = false;
 
   return hdrs;
 }
@@ -150,7 +150,7 @@ MimeHeaders_parse_line (const char *buffer, PRInt32 size, MimeHeaders *hdrs)
   {
     /* If this is a blank line, we're done.
      */
-    hdrs->done_p = PR_TRUE;
+    hdrs->done_p = true;
     return MimeHeaders_build_heads_list(hdrs);
   }
 
@@ -352,7 +352,7 @@ MimeHeaders_get (MimeHeaders *hdrs, const char *header_name,
   if (!hdrs->done_p)
   {
     int status;
-    hdrs->done_p = PR_TRUE;
+    hdrs->done_p = true;
     status = MimeHeaders_build_heads_list(hdrs);
     if (status < 0) return 0;
   }
@@ -529,7 +529,7 @@ MimeHeaders_get_parameter (const char *header_value, const char *parm_name,
 }
 
 #define MimeHeaders_write(OPT,NAME,DATA,LENGTH) \
-    MimeOptions_write((OPT), (NAME), (DATA), (LENGTH), PR_TRUE);
+    MimeOptions_write((OPT), (NAME), (DATA), (LENGTH), true);
 
 
 #define MimeHeaders_grow_obuffer(hdrs, desired_size) \
@@ -558,7 +558,7 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, bool 
    */
   if (!hdrs->done_p)
   {
-    hdrs->done_p = PR_TRUE;
+    hdrs->done_p = true;
     status = MimeHeaders_build_heads_list(hdrs);
     if (status < 0) return 0;
   }
@@ -570,7 +570,7 @@ MimeHeaders_write_all_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt, bool 
       charset = PL_strdup(opt->default_charset);
     else
     {
-      char *contentType = MimeHeaders_get(hdrs, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
+      char *contentType = MimeHeaders_get(hdrs, HEADER_CONTENT_TYPE, false, false);
       if (contentType)
         charset = MimeHeaders_get_parameter(contentType, HEADER_PARM_CHARSET, nsnull, nsnull);
       PR_FREEIF(contentType);
@@ -704,7 +704,7 @@ mime_decode_filename(const char *name, const char *charset,
   nsCAutoString result;
   rv = mimehdrpar->DecodeParameter(nsDependentCString(name), charset,
                                    opt ? opt->default_charset : nsnull,
-                                   opt ? opt->override_charset : PR_FALSE,
+                                   opt ? opt->override_charset : false,
                                    result);
   return NS_SUCCEEDED(rv) ? PL_strdup(result.get()) : nsnull;
 }
@@ -721,7 +721,7 @@ MimeHeaders_get_name(MimeHeaders *hdrs, MimeDisplayOptions *opt)
   char *s = 0, *name = 0, *cvt = 0;
   char *charset = nsnull; // for RFC2231 support
 
-  s = MimeHeaders_get(hdrs, HEADER_CONTENT_DISPOSITION, PR_FALSE, PR_FALSE);
+  s = MimeHeaders_get(hdrs, HEADER_CONTENT_DISPOSITION, false, false);
   if (s)
   {
     name = MimeHeaders_get_parameter(s, HEADER_PARM_FILENAME, &charset, NULL);
@@ -730,7 +730,7 @@ MimeHeaders_get_name(MimeHeaders *hdrs, MimeDisplayOptions *opt)
 
   if (! name)
   {
-    s = MimeHeaders_get(hdrs, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
+    s = MimeHeaders_get(hdrs, HEADER_CONTENT_TYPE, false, false);
     if (s)
     {
       nsMemory::Free(charset);
@@ -741,10 +741,10 @@ MimeHeaders_get_name(MimeHeaders *hdrs, MimeDisplayOptions *opt)
   }
 
   if (! name)
-    name = MimeHeaders_get (hdrs, HEADER_CONTENT_NAME, PR_FALSE, PR_FALSE);
+    name = MimeHeaders_get (hdrs, HEADER_CONTENT_NAME, false, false);
 
   if (! name)
-    name = MimeHeaders_get (hdrs, HEADER_X_SUN_DATA_NAME, PR_FALSE, PR_FALSE);
+    name = MimeHeaders_get (hdrs, HEADER_X_SUN_DATA_NAME, false, false);
 
   if (name)
   {
@@ -836,7 +836,7 @@ MimeHeaders_write_raw_headers (MimeHeaders *hdrs, MimeDisplayOptions *opt,
 
   if (hdrs && !hdrs->done_p)
   {
-    hdrs->done_p = PR_TRUE;
+    hdrs->done_p = true;
     status = MimeHeaders_build_heads_list(hdrs);
     if (status < 0) return 0;
   }

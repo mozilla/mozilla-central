@@ -157,10 +157,10 @@ nsSeamonkeyProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
 
   MigrationData data[] = { { ToNewUnicode(FILE_NAME_PREFS),
                              nsIMailProfileMigrator::SETTINGS,
-                             PR_TRUE },
+                             true },
                            { ToNewUnicode(FILE_NAME_JUNKTRAINING),
                              nsIMailProfileMigrator::JUNKTRAINING,
-                             PR_TRUE },
+                             true },
                           };
 
   // Frees file name strings allocated above.

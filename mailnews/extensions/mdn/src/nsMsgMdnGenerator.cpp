@@ -114,10 +114,10 @@ nsMsgMdnGenerator::nsMsgMdnGenerator()
 {
     m_disposeType = eDisplayed;
     m_outputStream = nsnull;
-    m_reallySendMdn = PR_FALSE;
-    m_autoSend = PR_FALSE;
-    m_autoAction = PR_FALSE;
-    m_mdnEnabled = PR_FALSE;
+    m_reallySendMdn = false;
+    m_autoSend = false;
+    m_autoAction = false;
+    m_mdnEnabled = false;
     m_notInToCcOp = eNeverSendOp;
     m_outsideDomainOp = eNeverSendOp;
     m_otherOp = eNeverSendOp;
@@ -178,12 +178,12 @@ nsresult nsMsgMdnGenerator::StoreMDNSentFlag(nsIMsgFolder *folder,
     nsCOMPtr<nsIMsgDatabase> msgDB;
     nsresult rv = folder->GetMsgDatabase(getter_AddRefs(msgDB));
     NS_ENSURE_SUCCESS(rv, rv);
-    rv = msgDB->MarkMDNSent(key, PR_TRUE, nsnull);
+    rv = msgDB->MarkMDNSent(key, true, nsnull);
 
     nsCOMPtr<nsIMsgImapMailFolder> imapFolder = do_QueryInterface(folder);
     // Store the $MDNSent flag if the folder is an Imap Mail Folder
     if (imapFolder)
-      return imapFolder->StoreImapFlags(kImapMsgMDNSentFlag, PR_TRUE, &key, 1, nsnull);
+      return imapFolder->StoreImapFlags(kImapMsgMDNSentFlag, true, &key, 1, nsnull);
     return rv;
 }
 
@@ -195,7 +195,7 @@ nsresult nsMsgMdnGenerator::ClearMDNNeededFlag(nsIMsgFolder *folder,
   nsCOMPtr<nsIMsgDatabase> msgDB;
   nsresult rv = folder->GetMsgDatabase(getter_AddRefs(msgDB));
   NS_ENSURE_SUCCESS(rv, rv);
-  return msgDB->MarkMDNNeeded(key, PR_FALSE, nsnull);
+  return msgDB->MarkMDNNeeded(key, false, nsnull);
 }
 
 bool nsMsgMdnGenerator::ProcessSendMode()
@@ -214,7 +214,7 @@ bool nsMsgMdnGenerator::ProcessSendMode()
             return m_reallySendMdn;
 
         if (MailAddrMatch(m_email.get(), m_dntRrt.get())) // return address is self, don't send
-          return PR_FALSE;
+          return false;
 
         // *** fix me see Bug 132504 for more information
         // *** what if the message has been filtered to different account
@@ -222,7 +222,7 @@ bool nsMsgMdnGenerator::ProcessSendMode()
             miscState |= MDN_OUTSIDE_DOMAIN;
         if (NotInToOrCc())
             miscState |= MDN_NOT_IN_TO_CC;
-        m_reallySendMdn = PR_TRUE;
+        m_reallySendMdn = true;
         // *********
         // How are we gona deal with the auto forwarding issues? Some server
         // didn't bother to add addition header or modify existing header to
@@ -239,16 +239,16 @@ bool nsMsgMdnGenerator::ProcessSendMode()
             {
             default:
             case eNeverSendOp:
-                m_reallySendMdn = PR_FALSE;
+                m_reallySendMdn = false;
                 break;
             case eAutoSendOp:
-                m_autoSend = PR_TRUE;
+                m_autoSend = true;
                 break;
             case eAskMeOp:
-                m_autoSend = PR_FALSE;
+                m_autoSend = false;
                 break;
             case eDeniedOp:
-                m_autoSend = PR_TRUE;
+                m_autoSend = true;
                 m_disposeType = eDenied;
                 break;
             }
@@ -257,7 +257,7 @@ bool nsMsgMdnGenerator::ProcessSendMode()
         {
             if (m_outsideDomainOp != m_notInToCcOp)
             {
-                m_autoSend = PR_FALSE; // ambiguous; always ask user
+                m_autoSend = false; // ambiguous; always ask user
             }
             else
             {
@@ -265,13 +265,13 @@ bool nsMsgMdnGenerator::ProcessSendMode()
                 {
                 default:
                 case eNeverSendOp:
-                    m_reallySendMdn = PR_FALSE;
+                    m_reallySendMdn = false;
                     break;
                 case eAutoSendOp:
-                    m_autoSend = PR_TRUE;
+                    m_autoSend = true;
                     break;
                 case eAskMeOp:
-                    m_autoSend = PR_FALSE;
+                    m_autoSend = false;
                     break;
                 }
             }
@@ -282,13 +282,13 @@ bool nsMsgMdnGenerator::ProcessSendMode()
             {
             default:
             case eNeverSendOp:
-                m_reallySendMdn = PR_FALSE;
+                m_reallySendMdn = false;
                 break;
             case eAutoSendOp:
-                m_autoSend = PR_TRUE;
+                m_autoSend = true;
                 break;
             case eAskMeOp:
-                m_autoSend = PR_FALSE;
+                m_autoSend = false;
                 break;
             }
         }
@@ -298,13 +298,13 @@ bool nsMsgMdnGenerator::ProcessSendMode()
             {
             default:
             case eNeverSendOp:
-                m_reallySendMdn = PR_FALSE;
+                m_reallySendMdn = false;
                 break;
             case eAutoSendOp:
-                m_autoSend = PR_TRUE;
+                m_autoSend = true;
                 break;
             case eAskMeOp:
-                m_autoSend = PR_FALSE;
+                m_autoSend = false;
                 break;
             }
         }
@@ -324,7 +324,7 @@ bool nsMsgMdnGenerator::MailAddrMatch(const char *addr1, const char *addr2)
     const char *end1 = nsnull, *end2 = nsnull;
 
     if (!addr1 || !addr2)
-        return PR_FALSE;
+        return false;
 
     lt = strchr(addr1, '<');
     local1 = !lt ? addr1 : lt+1;
@@ -340,14 +340,14 @@ bool nsMsgMdnGenerator::MailAddrMatch(const char *addr1, const char *addr2)
     atSign2 = strchr(local2, '@');
     if (!atSign1 || !atSign2 // ill formed addr spec
         || (atSign1 - local1) != (atSign2 - local2))
-        isMatched = PR_FALSE;
+        isMatched = false;
     else if (strncmp(local1, local2, (atSign1-local1))) // case sensitive
         // compare for local part
-        isMatched = PR_FALSE;
+        isMatched = false;
     else if ((end1 - atSign1) != (end2 - atSign2) ||
              PL_strncasecmp(atSign1, atSign2, (end1-atSign1))) // case
         // insensitive compare for domain part
-        isMatched = PR_FALSE;
+        isMatched = false;
     return isMatched;
 }
 
@@ -359,20 +359,20 @@ bool nsMsgMdnGenerator::NotInToOrCc()
     nsCString cc;
 
     m_identity->GetReplyTo(reply_to);
-    m_headers->ExtractHeader(HEADER_TO, PR_TRUE, getter_Copies(to));
-    m_headers->ExtractHeader(HEADER_CC, PR_TRUE, getter_Copies(cc));
+    m_headers->ExtractHeader(HEADER_TO, true, getter_Copies(to));
+    m_headers->ExtractHeader(HEADER_CC, true, getter_Copies(cc));
 
   // start with a simple check
   if ((!to.IsEmpty() && PL_strcasestr(to.get(), m_email.get())) ||
       (!cc.IsEmpty() && PL_strcasestr(cc.get(), m_email.get()))) {
-      return PR_FALSE;
+      return false;
   }
 
   if ((!reply_to.IsEmpty() && !to.IsEmpty() && PL_strcasestr(to.get(), reply_to.get())) ||
       (!reply_to.IsEmpty() && !cc.IsEmpty() && PL_strcasestr(cc.get(), reply_to.get()))) {
-      return PR_FALSE;
+      return false;
   }
-  return PR_TRUE;
+  return true;
 }
 
 bool nsMsgMdnGenerator::ValidateReturnPath()
@@ -384,11 +384,11 @@ bool nsMsgMdnGenerator::ValidateReturnPath()
         return m_reallySendMdn;
 
     nsCString returnPath;
-    m_headers->ExtractHeader(HEADER_RETURN_PATH, PR_FALSE,
+    m_headers->ExtractHeader(HEADER_RETURN_PATH, false,
                              getter_Copies(returnPath));
     if (returnPath.IsEmpty())
     {
-      m_autoSend = PR_FALSE;
+      m_autoSend = false;
       return m_reallySendMdn;
     }
     m_autoSend = MailAddrMatch(returnPath.get(), m_dntRrt.get());
@@ -431,7 +431,7 @@ nsresult nsMsgMdnGenerator::CreateMdnMsg()
         m_outputStream->Close();
     }
     if (NS_FAILED(rv))
-        m_file->Remove(PR_FALSE);
+        m_file->Remove(false);
     else
         rv = SendMdnMsg();
 
@@ -506,7 +506,7 @@ nsresult nsMsgMdnGenerator::CreateFirstPart()
 
     convbuf = nsMsgI18NEncodeMimePartIIStr(
         (!fullAddress.IsEmpty()) ? fullAddress.get(): m_email.get(),
-        PR_TRUE, m_charset.get(), 0, conformToStandard);
+        true, m_charset.get(), 0, conformToStandard);
 
     parm = PR_smprintf("From: %s" CRLF, convbuf ? convbuf : m_email.get());
 
@@ -570,13 +570,13 @@ nsresult nsMsgMdnGenerator::CreateFirstPart()
 
     receipt_string.AppendLiteral(" - ");
 
-    char * encodedReceiptString = nsMsgI18NEncodeMimePartIIStr(NS_ConvertUTF16toUTF8(receipt_string).get(), PR_FALSE,
+    char * encodedReceiptString = nsMsgI18NEncodeMimePartIIStr(NS_ConvertUTF16toUTF8(receipt_string).get(), false,
                                                                "UTF-8", 0, conformToStandard);
 
     nsCString subject;
-    m_headers->ExtractHeader(HEADER_SUBJECT, PR_FALSE, getter_Copies(subject));
+    m_headers->ExtractHeader(HEADER_SUBJECT, false, getter_Copies(subject));
     convbuf = nsMsgI18NEncodeMimePartIIStr(subject.Length() ? subject.get() : "[no subject]",
-                                           PR_FALSE, m_charset.get(), 0, conformToStandard);
+                                           false, m_charset.get(), 0, conformToStandard);
     tmpBuffer = PR_smprintf("Subject: %s%s" CRLF,
                              encodedReceiptString,
                             (convbuf ? convbuf : (subject.Length() ? subject.get() :
@@ -586,7 +586,7 @@ nsresult nsMsgMdnGenerator::CreateFirstPart()
     PR_Free(convbuf);
     PR_Free(encodedReceiptString);
 
-    convbuf = nsMsgI18NEncodeMimePartIIStr(m_dntRrt.get(), PR_TRUE, m_charset.get(), 0, conformToStandard);
+    convbuf = nsMsgI18NEncodeMimePartIIStr(m_dntRrt.get(), true, m_charset.get(), 0, conformToStandard);
     tmpBuffer = PR_smprintf("To: %s" CRLF, convbuf ? convbuf :
                             m_dntRrt.get());
     PUSH_N_FREE_STRING(tmpBuffer);
@@ -595,7 +595,7 @@ nsresult nsMsgMdnGenerator::CreateFirstPart()
 
   // *** This is not in the spec. I am adding this so we could do
   // threading
-    m_headers->ExtractHeader(HEADER_MESSAGE_ID, PR_FALSE,
+    m_headers->ExtractHeader(HEADER_MESSAGE_ID, false,
                              getter_Copies(m_messageId));
 
     if (!m_messageId.IsEmpty())
@@ -728,7 +728,7 @@ nsresult nsMsgMdnGenerator::CreateSecondPart()
     }
 
     nsCString originalRecipient;
-    m_headers->ExtractHeader(HEADER_ORIGINAL_RECIPIENT, PR_FALSE,
+    m_headers->ExtractHeader(HEADER_ORIGINAL_RECIPIENT, false,
                              getter_Copies(originalRecipient));
 
     if (!originalRecipient.IsEmpty())
@@ -743,7 +743,7 @@ nsresult nsMsgMdnGenerator::CreateSecondPart()
       compUtils->GetMsgMimeConformToStandard(&conformToStandard);
 
     convbuf = nsMsgI18NEncodeMimePartIIStr(
-        m_email.get(), PR_TRUE, m_charset.get(), 0,
+        m_email.get(), true, m_charset.get(), 0,
         conformToStandard);
     tmpBuffer = PR_smprintf("Final-Recipient: rfc822;%s" CRLF, convbuf ?
                             convbuf : m_email.get());
@@ -894,7 +894,7 @@ nsresult nsMsgMdnGenerator::SendMdnMsg()
 
     nsCOMPtr<nsIRequest> aRequest;
     smtpService->SendMailMessage(m_file, m_dntRrt.get(), m_identity,
-                                     nsnull, this, nsnull, nsnull, PR_FALSE, nsnull,
+                                     nsnull, this, nsnull, nsnull, false, nsnull,
                                      getter_AddRefs(aRequest));
 
     return NS_OK;
@@ -922,7 +922,7 @@ nsresult nsMsgMdnGenerator::InitAndProcess(bool *needToAskUser)
           // check if this is a message delivered to the global inbox,
           // in which case we find the originating account's identity.
           nsCString accountKey;
-          m_headers->ExtractHeader(HEADER_X_MOZILLA_ACCOUNT_KEY, PR_FALSE,
+          m_headers->ExtractHeader(HEADER_X_MOZILLA_ACCOUNT_KEY, false,
                                getter_Copies(accountKey));
           nsCOMPtr <nsIMsgAccount> account;
           if (!accountKey.IsEmpty())
@@ -935,8 +935,8 @@ nsresult nsMsgMdnGenerator::InitAndProcess(bool *needToAskUser)
             // Find the correct identity based on the "To:" and "Cc:" header
             nsCString mailTo;
             nsCString mailCC;
-            m_headers->ExtractHeader(HEADER_TO, PR_TRUE, getter_Copies(mailTo));
-            m_headers->ExtractHeader(HEADER_CC, PR_TRUE, getter_Copies(mailCC));
+            m_headers->ExtractHeader(HEADER_TO, true, getter_Copies(mailTo));
+            m_headers->ExtractHeader(HEADER_CC, true, getter_Copies(mailCC));
             nsCOMPtr<nsISupportsArray> servIdentities;
             accountManager->GetIdentitiesForServer(m_server, getter_AddRefs(servIdentities));
             if (servIdentities)
@@ -1026,21 +1026,21 @@ nsresult nsMsgMdnGenerator::InitAndProcess(bool *needToAskUser)
     rv = m_folder->GetCharset(m_charset);
     if (m_mdnEnabled)
     {
-        m_headers->ExtractHeader(HEADER_DISPOSITION_NOTIFICATION_TO, PR_FALSE,
+        m_headers->ExtractHeader(HEADER_DISPOSITION_NOTIFICATION_TO, false,
                                  getter_Copies(m_dntRrt));
         if (m_dntRrt.IsEmpty())
-            m_headers->ExtractHeader(HEADER_RETURN_RECEIPT_TO, PR_FALSE,
+            m_headers->ExtractHeader(HEADER_RETURN_RECEIPT_TO, false,
                                      getter_Copies(m_dntRrt));
         if (!m_dntRrt.IsEmpty() && ProcessSendMode() && ValidateReturnPath())
         {
             if (!m_autoSend)
             {
-                *needToAskUser = PR_TRUE;
+                *needToAskUser = true;
                 rv = NS_OK;
             }
             else
             {
-                *needToAskUser = PR_FALSE;
+                *needToAskUser = false;
                 rv = UserAgreed();
             }
         }
@@ -1112,7 +1112,7 @@ NS_IMETHODIMP nsMsgMdnGenerator::OnStopRunningUrl(nsIURI *url,
 
     DEBUG_MDN("nsMsgMdnGenerator::OnStopRunningUrl");
     if (m_file)
-      m_file->Remove(PR_FALSE);
+      m_file->Remove(false);
 
     if (NS_SUCCEEDED(aExitCode))
       return NS_OK;

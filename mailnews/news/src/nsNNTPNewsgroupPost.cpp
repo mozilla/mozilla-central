@@ -57,7 +57,7 @@ nsNNTPNewsgroupPost::nsNNTPNewsgroupPost()
   m_body=nsnull;
   m_messageBuffer=nsnull;
 
-  m_isControl=PR_FALSE;
+  m_isControl=false;
 }
 
 nsNNTPNewsgroupPost::~nsNNTPNewsgroupPost()
@@ -96,7 +96,7 @@ AppendAndAlloc(char *string, const char *newSubstring, bool withComma)
 nsresult
 nsNNTPNewsgroupPost::AddNewsgroup(const char *newsgroup)
 {
-    m_header[IDX_HEADER_NEWSGROUPS]=AppendAndAlloc(m_header[IDX_HEADER_NEWSGROUPS], newsgroup, PR_TRUE);
+    m_header[IDX_HEADER_NEWSGROUPS]=AppendAndAlloc(m_header[IDX_HEADER_NEWSGROUPS], newsgroup, true);
     return NS_OK;
 }
 

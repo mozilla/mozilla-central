@@ -72,8 +72,8 @@ static const char* const sFeedProtocols[] = {
 };
 
 nsMailGNOMEIntegration::nsMailGNOMEIntegration(): 
-                          mCheckedThisSession(PR_FALSE),
-                          mAppIsInPath(PR_FALSE)
+                          mCheckedThisSession(false),
+                          mAppIsInPath(false)
 {}
 
 nsresult
@@ -117,32 +117,32 @@ nsMailGNOMEIntegration::GetAppPathFromLauncher()
 
   const char *launcher = PR_GetEnv("MOZ_APP_LAUNCHER");
   if (!launcher)
-    return PR_FALSE;
+    return false;
 
   if (g_path_is_absolute(launcher)) {
     mAppPath = launcher;
     tmp = g_path_get_basename(launcher);
     gchar *fullpath = g_find_program_in_path(tmp);
     if (fullpath && mAppPath.Equals(fullpath)) {
-      mAppIsInPath = PR_TRUE;
+      mAppIsInPath = true;
     }
     g_free(fullpath);
   } else {
     tmp = g_find_program_in_path(launcher);
     if (!tmp)
-      return PR_FALSE;
+      return false;
     mAppPath = tmp;
-    mAppIsInPath = PR_TRUE;
+    mAppIsInPath = true;
   }
 
   g_free(tmp);
-  return PR_TRUE;
+  return true;
 }
 
 NS_IMETHODIMP
 nsMailGNOMEIntegration::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool * aIsDefaultClient)
 {
-  *aIsDefaultClient = PR_TRUE;
+  *aIsDefaultClient = true;
   if (aApps & nsIShellService::MAIL)
     *aIsDefaultClient &= checkDefault(sMailProtocols, NS_ARRAY_LENGTH(sMailProtocols));
   if (aApps & nsIShellService::NEWS)
@@ -154,7 +154,7 @@ nsMailGNOMEIntegration::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool
   // checked this session (so that subsequent window opens don't show the 
   // default client dialog).
   if (aStartupCheck)
-    mCheckedThisSession = PR_TRUE;
+    mCheckedThisSession = true;
   return NS_OK;
 }
 
@@ -177,7 +177,7 @@ nsMailGNOMEIntegration::GetShouldCheckDefaultClient(bool* aResult)
 {
   if (mCheckedThisSession) 
   {
-    *aResult = PR_FALSE;
+    *aResult = false;
     return NS_OK;
   }
 
@@ -200,7 +200,7 @@ nsMailGNOMEIntegration::KeyMatchesAppName(const char *aKeyValue) const
     gchar *nativePath = g_filename_from_utf8(aKeyValue, -1, NULL, NULL, NULL);
     if (!nativePath) {
       NS_ERROR("Error converting path to filesystem encoding");
-      return PR_FALSE;
+      return false;
     }
 
     commandPath = g_find_program_in_path(nativePath);
@@ -210,7 +210,7 @@ nsMailGNOMEIntegration::KeyMatchesAppName(const char *aKeyValue) const
   }
 
   if (!commandPath)
-    return PR_FALSE;
+    return false;
 
   bool matches = mAppPath.Equals(commandPath);
   g_free(commandPath);
@@ -228,7 +228,7 @@ nsMailGNOMEIntegration::CheckHandlerMatchesAppName(const nsACString &handler) co
     command.Assign(argv[0]);
     g_strfreev(argv);
   } else {
-    return PR_FALSE;
+    return false;
   }
 
   return KeyMatchesAppName(command.get());
@@ -250,7 +250,7 @@ nsMailGNOMEIntegration::checkDefault(const char* const *aProtocols, unsigned int
       rv = gconf->GetAppForProtocol(nsDependentCString(aProtocols[i]),
                                     &enabled, handler);
       if (NS_SUCCEEDED(rv) && (!CheckHandlerMatchesAppName(handler) || !enabled)) {
-        return PR_FALSE;
+        return false;
       }
     }
 
@@ -260,16 +260,16 @@ nsMailGNOMEIntegration::checkDefault(const char* const *aProtocols, unsigned int
       rv = giovfs->GetAppForURIScheme(nsDependentCString(aProtocols[i]),
                                       getter_AddRefs(app));
       if (NS_FAILED(rv) || !app) {
-        return PR_FALSE;
+        return false;
       }
       rv = app->GetCommand(handler);
       if (NS_SUCCEEDED(rv) && !CheckHandlerMatchesAppName(handler)) {
-        return PR_FALSE;
+        return false;
       }
     }
   }
 
-  return PR_TRUE;
+  return true;
 }
 
 nsresult

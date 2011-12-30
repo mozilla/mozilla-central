@@ -51,7 +51,7 @@ NS_IMPL_ISUPPORTS_INHERITED0(nsAbMDBCard, nsAbCardProperty)
 NS_IMETHODIMP nsAbMDBCard::Equals(nsIAbCard *card, bool *result)
 {
   if (this == card) {
-    *result = PR_TRUE;
+    *result = true;
     return NS_OK;
   }
 
@@ -72,7 +72,7 @@ NS_IMETHODIMP nsAbMDBCard::Equals(nsIAbCard *card, bool *result)
   nsresult rv = card->GetPropertyAsUint32("DbRowID", &row);
   if (NS_FAILED(rv))
   {
-    *result = PR_FALSE;
+    *result = false;
     return NS_OK;
   }
 

@@ -169,7 +169,7 @@ STDMETHODIMP CMapiImp::Login(unsigned long aUIArg, LOGIN_PW_TYPE aLogin, LOGIN_P
 
     PR_LOG(MAPI, PR_LOG_DEBUG, ("CMapiImp::Login using flags %d\n", aFlags));
     if (aFlags & MAPI_NEW_SESSION)
-        bNewSession = PR_TRUE;
+        bNewSession = true;
 
     // Check For Profile Name
     if (aLogin != nsnull && aLogin[0] != '\0')
@@ -178,7 +178,7 @@ STDMETHODIMP CMapiImp::Login(unsigned long aUIArg, LOGIN_PW_TYPE aLogin, LOGIN_P
         {
             *aSessionId = MAPI_E_LOGIN_FAILURE;
             PR_LOG(MAPI, PR_LOG_DEBUG, ("CMapiImp::Login failed for username %s\n", aLogin));
-            NS_ASSERTION(PR_FALSE, "failed verifying user name");
+            NS_ASSERTION(false, "failed verifying user name");
             return hr;
         }
     }
@@ -380,7 +380,7 @@ LONG CMapiImp::InitContext(unsigned long session, MsgMapiListContext **listConte
     nsresult rv = GetDefaultInbox(getter_AddRefs(inboxFolder));
     if (NS_FAILED(rv))
     {
-      NS_ASSERTION(PR_FALSE, "in init context, no inbox");
+      NS_ASSERTION(false, "in init context, no inbox");
       return(MAPI_E_NO_MESSAGES);
     }
 
@@ -393,7 +393,7 @@ LONG CMapiImp::InitContext(unsigned long session, MsgMapiListContext **listConte
     {
       pMapiConfig->SetMapiListContext(session, NULL);
       delete *listContext;
-      NS_ASSERTION(PR_FALSE, "in init context, unable to open db");
+      NS_ASSERTION(false, "in init context, unable to open db");
       return MAPI_E_NO_MESSAGES;
     }
     else
@@ -416,20 +416,20 @@ STDMETHODIMP CMapiImp::FindNext(unsigned long aSession, unsigned long ulUIParam,
   nsMAPIConfiguration * pMapiConfig = nsMAPIConfiguration::GetMAPIConfiguration() ;
   if (!pMapiConfig) 
   {
-    NS_ASSERTION(PR_FALSE, "failed to get config in findnext");
+    NS_ASSERTION(false, "failed to get config in findnext");
     return NS_ERROR_FAILURE ;  // get the singelton obj
   }
   MsgMapiListContext *listContext;
   LONG ret = InitContext(aSession, &listContext);
   if (ret != SUCCESS_SUCCESS)
   {
-    NS_ASSERTION(PR_FALSE, "init context failed");
+    NS_ASSERTION(false, "init context failed");
     return ret;
   }
   NS_ASSERTION(listContext, "initContext returned null context");
   if (listContext)
   {
-//    NS_ASSERTION(PR_FALSE, "find next init context succeeded");
+//    NS_ASSERTION(false, "find next init context succeeded");
     nsMsgKey nextKey = listContext->GetNext();
     if (nextKey == nsMsgKey_None)
     {
@@ -456,14 +456,14 @@ STDMETHODIMP CMapiImp::ReadMail(unsigned long aSession, unsigned long ulUIParam,
   nsMsgKey msgKey = keyString.ToInteger(&irv);
   if (irv)
   {
-    NS_ASSERTION(PR_FALSE, "invalid lpszMessageID");
+    NS_ASSERTION(false, "invalid lpszMessageID");
     return MAPI_E_INVALID_MESSAGE;
   }
   MsgMapiListContext *listContext;
   LONG ret = InitContext(aSession, &listContext);
   if (ret != SUCCESS_SUCCESS)
   {
-    NS_ASSERTION(PR_FALSE, "init context failed in ReadMail");
+    NS_ASSERTION(false, "init context failed in ReadMail");
     return ret;
   }
   *lppMessage = listContext->GetMessage (msgKey, flFlags);
@@ -522,7 +522,7 @@ STDMETHODIMP CMapiImp::CleanUp()
 MsgMapiListContext::~MsgMapiListContext ()
 {
   if (m_db)
-    m_db->Close(PR_FALSE);
+    m_db->Close(false);
 }
 
 
@@ -669,7 +669,7 @@ lpnsMapiMessage MsgMapiListContext::GetMessage (nsMsgKey key, unsigned long flFl
       
     }
     if (! (flFlags & (MAPI_PEEK | MAPI_ENVELOPE_ONLY)))
-      m_db->MarkRead(key, PR_TRUE, nsnull);
+      m_db->MarkRead(key, true, nsnull);
   }
   return message;
 }
@@ -758,7 +758,7 @@ char *MsgMapiListContext::ConvertBodyToMapiFormat (nsIMsgDBHdr *hdr)
   nsCOMPtr<nsIFileInputStream> fileStream = do_CreateInstance(NS_LOCALFILEINPUTSTREAM_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, nsnull);
 
-  rv = fileStream->Init(localFile,  PR_RDONLY, 0664, PR_FALSE);  //just have to read the messages
+  rv = fileStream->Init(localFile,  PR_RDONLY, 0664, false);  //just have to read the messages
   inputStream = do_QueryInterface(fileStream);
 
   if (inputStream)

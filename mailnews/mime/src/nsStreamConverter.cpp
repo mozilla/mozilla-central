@@ -177,7 +177,7 @@ bridge_new_new_uri(void *bridgeStream, nsIURI *aURI, PRInt32 aOutputType)
           // check to see if we have a charset override...and if we do, set that field appropriately too...
           nsresult rv = i18nUrl->GetCharsetOverRide(getter_Copies(charset));
           if (NS_SUCCEEDED(rv) && !charset.IsEmpty() ) {
-            *override_charset = PR_TRUE;
+            *override_charset = true;
             *default_charset = ToNewCString(charset);
           }
           else
@@ -194,7 +194,7 @@ bridge_new_new_uri(void *bridgeStream, nsIURI *aURI, PRInt32 aOutputType)
             bool folderCharsetOverride;
             rv = i18nUrl->GetFolderCharsetOverride(&folderCharsetOverride);
             if (NS_SUCCEEDED(rv) && folderCharsetOverride)
-              *override_charset = PR_TRUE;
+              *override_charset = true;
 
             // notify the default to msgWindow (for the menu check mark)
             // do not set the default in case of nsMimeMessageDraftOrTemplate
@@ -226,7 +226,7 @@ bridge_new_new_uri(void *bridgeStream, nsIURI *aURI, PRInt32 aOutputType)
                 rv = pPrefBranch->GetBoolPref("mailnews.force_charset_override", &force_override);
                 if (NS_SUCCEEDED(rv) && force_override)
                 {
-                  *override_charset = PR_TRUE;
+                  *override_charset = true;
                 }
               }
             }
@@ -285,12 +285,12 @@ bridge_set_mime_stream_converter_listener(void *bridgeStream, nsIMimeStreamConve
       {
         if (listener)
         {
-          mdd->options->caller_need_root_headers = PR_TRUE;
+          mdd->options->caller_need_root_headers = true;
           mdd->options->decompose_headers_info_fn = mime_headers_callback;
         }
         else
         {
-          mdd->options->caller_need_root_headers = PR_FALSE;
+          mdd->options->caller_need_root_headers = false;
           mdd->options->decompose_headers_info_fn = nsnull;
         }
       }
@@ -303,12 +303,12 @@ bridge_set_mime_stream_converter_listener(void *bridgeStream, nsIMimeStreamConve
       {
         if (listener)
         {
-          msd->options->caller_need_root_headers = PR_TRUE;
+          msd->options->caller_need_root_headers = true;
           msd->options->decompose_headers_info_fn = mime_headers_callback;
         }
         else
         {
-          msd->options->caller_need_root_headers = PR_FALSE;
+          msd->options->caller_need_root_headers = false;
           msd->options->decompose_headers_info_fn = nsnull;
         }
       }
@@ -382,7 +382,7 @@ nsStreamConverter::DetermineOutputFormat(const char *aUrl, nsMimeOutputType *aNe
     // is added to any URL. It appears that this code has been orphaned off by a change
     // elsewhere and is no longer required. It will be removed in the future unless
     // someone complains.
-    NS_ABORT_IF_FALSE(PR_FALSE, "Is this code actually being used?");
+    NS_ABORT_IF_FALSE(false, "Is this code actually being used?");
 
     while (*format == ' ')
       ++format;
@@ -517,13 +517,13 @@ nsStreamConverter::InternalCleanup(void)
 nsStreamConverter::nsStreamConverter()
 {
   // Init member variables...
-  mWrapperOutput = PR_FALSE;
+  mWrapperOutput = false;
   mBridgeStream = nsnull;
   mOutputFormat = "text/html";
-  mAlreadyKnowOutputType = PR_FALSE;
-  mForwardInline = PR_FALSE;
-  mForwardInlineFilter = PR_FALSE;
-  mOverrideComposeFormat = PR_FALSE;
+  mAlreadyKnowOutputType = false;
+  mForwardInline = false;
+  mForwardInlineFilter = false;
+  mOverrideComposeFormat = false;
 
   mPendingRequest = nsnull;
   mPendingContext = nsnull;
@@ -563,14 +563,14 @@ NS_IMETHODIMP nsStreamConverter::Init(nsIURI *aURI, nsIStreamListener * aOutList
     nsCAutoString urlSpec;
     rv = aURI->GetSpec(urlSpec);
     DetermineOutputFormat(urlSpec.get(), &newType);
-    mAlreadyKnowOutputType = PR_TRUE;
+    mAlreadyKnowOutputType = true;
     mOutputType = newType;
   }
 
   switch (newType)
   {
     case nsMimeOutput::nsMimeMessageSplitDisplay:    // the wrapper HTML output to produce the split header/body display
-      mWrapperOutput = PR_TRUE;
+      mWrapperOutput = true;
       mOutputFormat = "text/html";
       break;
     case nsMimeOutput::nsMimeMessageHeaderDisplay:   // the split header/body display
@@ -663,7 +663,7 @@ NS_IMETHODIMP nsStreamConverter::Init(nsIURI *aURI, nsIStreamListener * aOutList
 
   // now we want to create a pipe which we'll use for converting the data...
   nsCOMPtr<nsIPipe> pipe = do_CreateInstance("@mozilla.org/pipe;1");
-  rv = pipe->Init(PR_TRUE, PR_TRUE, 4096, 8, nsnull);
+  rv = pipe->Init(true, true, 4096, 8, nsnull);
   
   // initialize our emitter
   if (NS_SUCCEEDED(rv) && mEmitter)
@@ -739,7 +739,7 @@ NS_IMETHODIMP nsStreamConverter::GetContentType(char **aOutputContentType)
 nsresult
 nsStreamConverter::SetMimeOutputType(nsMimeOutputType aType)
 {
-  mAlreadyKnowOutputType = PR_TRUE;
+  mAlreadyKnowOutputType = true;
   mOutputType = aType;
   if (mBridgeStream)
     bridge_set_output_type(mBridgeStream, aType);
@@ -1116,7 +1116,7 @@ nsStreamConverter::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresul
     mOutListener->OnStopRequest(request, ctxt, status);
 
 
-  mAlreadyKnowOutputType = PR_FALSE;
+  mAlreadyKnowOutputType = false;
 
   // since we are done converting data, lets close all the objects we own...
   // this helps us fix some circular ref counting problems we are running into...

@@ -55,7 +55,7 @@
 #include "nsCRTGlue.h"
 
 nsAbBSDirectory::nsAbBSDirectory()
-: mInitialized(PR_FALSE)
+: mInitialized(false)
 {
   mServers.Init(13);
 }
@@ -184,7 +184,7 @@ nsresult nsAbBSDirectory::EnsureInitialized()
       URI.Replace(kMDBDirectoryRootLen, URI.Length() - kMDBDirectoryRootLen, server->fileName);
       
     // Create the directories
-    rv = CreateDirectoriesFromFactory(URI, server, PR_FALSE /* notify */);
+    rv = CreateDirectoriesFromFactory(URI, server, false /* notify */);
 
     // If we failed, this could be because something has set a pref for us
     // which is now broke (e.g. no factory present). So just ignore this one
@@ -193,7 +193,7 @@ nsresult nsAbBSDirectory::EnsureInitialized()
       NS_WARNING("CreateDirectoriesFromFactory failed - Invalid factory?");
   }
     
-  mInitialized = PR_TRUE;
+  mInitialized = true;
   // sort directories by position...
   return NS_OK;
 }
@@ -238,7 +238,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateNewDirectory(const nsAString &aDirName,
 
   aResult.Assign(server->prefName);
 
-  rv = CreateDirectoriesFromFactory(URI, server, PR_TRUE /* notify */);
+  rv = CreateDirectoriesFromFactory(URI, server, true /* notify */);
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;
 }
@@ -258,7 +258,7 @@ NS_IMETHODIMP nsAbBSDirectory::CreateDirectoryByURI(const nsAString &aDisplayNam
                              PABDirectory, EmptyCString(), &server);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  rv = CreateDirectoriesFromFactory(aURI, server, PR_TRUE /* notify */);
+  rv = CreateDirectoriesFromFactory(aURI, server, true /* notify */);
   NS_ENSURE_SUCCESS(rv,rv);
 	return rv;
 }
@@ -354,7 +354,7 @@ NS_IMETHODIMP nsAbBSDirectory::UseForAutocomplete(const nsACString &aIdentityKey
   // For the "root" directory (kAllDirectoryRoot) always return true so that
   // we can search sub directories that may or may not be local.
   NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = PR_TRUE;
+  *aResult = true;
   return NS_OK;
 }
 

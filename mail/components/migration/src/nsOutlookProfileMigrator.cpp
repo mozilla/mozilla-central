@@ -47,7 +47,7 @@ NS_IMPL_ISUPPORTS2(nsOutlookProfileMigrator, nsIMailProfileMigrator, nsITimerCal
 
 nsOutlookProfileMigrator::nsOutlookProfileMigrator()
 {
-  mProcessingMailFolders = PR_FALSE;
+  mProcessingMailFolders = false;
   // get the import service
   mImportModule = do_CreateInstance("@mozilla.org/import/import-outlook;1");
 }
@@ -130,7 +130,7 @@ nsOutlookProfileMigrator::GetMigrateData(const PRUnichar* aProfile, bool aReplac
 NS_IMETHODIMP
 nsOutlookProfileMigrator::GetSourceExists(bool* aResult)
 {
-  *aResult = PR_FALSE;
+  *aResult = false;
 
   nsCOMPtr<nsIImportSettings> importSettings;
   mImportModule->GetImportInterface(NS_IMPORT_SETTINGS_STR, getter_AddRefs(importSettings));
@@ -148,7 +148,7 @@ nsOutlookProfileMigrator::GetSourceExists(bool* aResult)
 NS_IMETHODIMP
 nsOutlookProfileMigrator::GetSourceHasMultipleProfiles(bool* aResult)
 {
-  *aResult = PR_FALSE;
+  *aResult = false;
   return NS_OK;
 }
 

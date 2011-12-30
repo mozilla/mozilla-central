@@ -332,8 +332,8 @@ nsNNTPProtocol::nsNNTPProtocol(nsINntpIncomingServer *aServer, nsIURI *aURL,
   }
 
   m_runningURL = nsnull;
-  SetIsBusy(PR_FALSE);
-  m_fromCache = PR_FALSE;
+  SetIsBusy(false);
+  m_fromCache = false;
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) creating",this));
   PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) initializing, so unset m_currentGroup",this));
   m_currentGroup.Truncate();
@@ -404,7 +404,7 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
 
   m_runningURL = do_QueryInterface(m_url, &rv);
   if (NS_FAILED(rv)) return rv;
-  SetIsBusy(PR_TRUE);
+  SetIsBusy(true);
 
   nsCString group;
 
@@ -497,7 +497,7 @@ NS_IMETHODIMP nsNNTPProtocol::Initialize(nsIURI * aURL, nsIMsgWindow *aMsgWindow
   m_dataBufSize = OUTPUT_BUFFER_SIZE;
 
   if (!m_lineStreamBuffer)
-    m_lineStreamBuffer = new nsMsgLineStreamBuffer(OUTPUT_BUFFER_SIZE, PR_TRUE /* create new lines */);
+    m_lineStreamBuffer = new nsMsgLineStreamBuffer(OUTPUT_BUFFER_SIZE, true /* create new lines */);
 
   m_typeWanted = 0;
   m_responseCode = 0;
@@ -660,7 +660,7 @@ nsNntpCacheStreamListener::OnStopRequest(nsIRequest *request, nsISupports * aCtx
   mListener = nsnull;
   nsCOMPtr <nsINNTPProtocol> nntpProtocol = do_QueryInterface(mChannelToUse);
   if (nntpProtocol) {
-    rv = nntpProtocol->SetIsBusy(PR_FALSE);
+    rv = nntpProtocol->SetIsBusy(false);
     NS_ENSURE_SUCCESS(rv,rv);
   }
   mChannelToUse = nsnull;
@@ -821,7 +821,7 @@ bool nsNNTPProtocol::ReadFromLocalCache()
 
         nsNntpCacheStreamListener * cacheListener = new nsNntpCacheStreamListener();
         if (!cacheListener)
-          return PR_FALSE;
+          return false;
 
         NS_ADDREF(cacheListener);
         cacheListener->Init(m_channelListener, static_cast<nsIChannel *>(this), mailnewsUrl);
@@ -841,15 +841,15 @@ bool nsNNTPProtocol::ReadFromLocalCache()
           m_ContentType.Truncate();
           m_channelListener = nsnull;
           NNTP_LOG_NOTE("Loading message from offline storage");
-          return PR_TRUE;
+          return true;
         }
       }
       else
-        mailnewsUrl->SetMsgIsInLocalCache(PR_FALSE);
+        mailnewsUrl->SetMsgIsInLocalCache(false);
     }
   }
 
-  return PR_FALSE;
+  return false;
 }
 
 NS_IMETHODIMP
@@ -871,7 +871,7 @@ nsNNTPProtocol::OnCacheEntryAvailable(nsICacheEntryDescriptor *entry, nsCacheAcc
       PRUint32 size;
       entry->GetDataSize(&size);
       if (size == 0)
-        canRead = PR_FALSE;
+        canRead = false;
     }
 
     // if we have write access then insert a "stream T" into the flow so data
@@ -987,7 +987,7 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
   if (NS_FAILED(rv)) return rv;
   m_runningURL->GetNewsAction(&m_newsAction);
 
-  SetIsBusy(PR_TRUE);
+  SetIsBusy(true);
 
   rv = ParseURL(aURL, group, m_messageID);
   NS_ASSERTION(NS_SUCCEEDED(rv),"failed to parse news url");
@@ -1080,7 +1080,7 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
       if (confirmResult)
       {
          rv = m_nntpServer->SubscribeToNewsgroup(group);
-         containsGroup = PR_TRUE;
+         containsGroup = true;
       }
       else
       {
@@ -1096,7 +1096,7 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
         //
         // see bug http://bugzilla.mozilla.org/show_bug.cgi?id=108294
         if (m_runningURL)
-          FinishMemCacheEntry(PR_FALSE); // cleanup mem cache entry
+          FinishMemCacheEntry(false); // cleanup mem cache entry
 
         return CloseConnection();
       }
@@ -1502,7 +1502,7 @@ PRInt32 nsNNTPProtocol::SendListExtensionsResponse(nsIInputStream * inputStream,
     else
     {
       /* tell libmsg that it's ok to ask this news host for extensions */
-      m_nntpServer->SetSupportsExtensions(PR_TRUE);
+      m_nntpServer->SetSupportsExtensions(true);
       /* all extensions received */
       m_nextState = SEND_LIST_SEARCHES;
       ClearFlag(NNTP_PAUSE_FOR_READ);
@@ -1514,7 +1514,7 @@ PRInt32 nsNNTPProtocol::SendListExtensionsResponse(nsIInputStream * inputStream,
      * tell libmsg not to ask for any more extensions and move on to
      * the real NNTP command we were trying to do. */
 
-     m_nntpServer->SetSupportsExtensions(PR_FALSE);
+     m_nntpServer->SetSupportsExtensions(false);
      m_nextState = SEND_FIRST_NNTP_COMMAND;
   }
 
@@ -1574,7 +1574,7 @@ PRInt32 nsNNTPProtocol::SendListSearchesResponse(nsIInputStream * inputStream, P
         if (NS_FAILED(m_nntpServer->GetCharset(charset)) ||
             NS_FAILED(nsMsgI18NConvertToUnicode(charset.get(),
                                                 nsDependentCString(line),
-                                                lineUtf16, PR_TRUE)))
+                                                lineUtf16, true)))
             CopyUTF8toUTF16(nsDependentCString(line), lineUtf16);
 
     m_nntpServer->AddSearchableGroup(lineUtf16);
@@ -1969,7 +1969,7 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommandResponse()
                                  NS_ConvertUTF16toUTF8(group_name).get()));
       m_currentGroup.Truncate();
 
-      m_nntpServer->GroupNotFound(m_msgWindow, group_name, PR_TRUE /* opening */);
+      m_nntpServer->GroupNotFound(m_msgWindow, group_name, true /* opening */);
     }
 
     /* if the server returned a 400 error then it is an expected
@@ -1984,7 +1984,7 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommandResponse()
     bool savingArticleOffline = (m_channelListener == nsnull);
 
     if (m_runningURL)
-      FinishMemCacheEntry(PR_FALSE);  // cleanup mem cache entry
+      FinishMemCacheEntry(false);  // cleanup mem cache entry
 
     if (NS_SUCCEEDED(rv) && !group_name.IsEmpty() && !savingArticleOffline) {
       nsString titleStr;
@@ -2048,7 +2048,7 @@ PRInt32 nsNNTPProtocol::SendFirstNNTPCommandResponse()
       // call nsDocShell::Stop(STOP_NETWORK), which will eventually
       // call nsNNTPProtocol::Cancel(), which will close the socket.
       // we need to fix this, since the connection is still valid.
-      rv = m_msgWindow->DisplayHTMLInMessagePane(titleStr, errorHtml, PR_TRUE);
+      rv = m_msgWindow->DisplayHTMLInMessagePane(titleStr, errorHtml, true);
       NS_ENSURE_SUCCESS(rv,rv);
     }
     // let's take the opportunity of removing the hdr from the db so we don't try to download
@@ -2167,7 +2167,7 @@ PRInt32 nsNNTPProtocol::BeginArticle()
   if (m_channelListener) {
       nsresult rv;
       nsCOMPtr<nsIPipe> pipe = do_CreateInstance("@mozilla.org/pipe;1");
-      rv = pipe->Init(PR_FALSE, PR_FALSE, 4096, PR_UINT32_MAX, nsnull);
+      rv = pipe->Init(false, false, 4096, PR_UINT32_MAX, nsnull);
       NS_ASSERTION(NS_SUCCEEDED(rv), "failed to create pipe");
       // TODO: return on failure?
 
@@ -2188,7 +2188,7 @@ PRInt32 nsNNTPProtocol::DisplayArticle(nsIInputStream * inputStream, PRUint32 le
   if (m_channelListener)
   {
     nsresult rv = NS_OK;
-    char *line = m_lineStreamBuffer->ReadNextLine(inputStream, line_length, pauseForMoreData, &rv, PR_TRUE);
+    char *line = m_lineStreamBuffer->ReadNextLine(inputStream, line_length, pauseForMoreData, &rv, true);
     if (pauseForMoreData)
     {
       PRUint32 inlength = 0;
@@ -2248,7 +2248,7 @@ PRInt32 nsNNTPProtocol::ReadArticle(nsIInputStream * inputStream, PRUint32 lengt
     return DisplayArticle(inputStream, length);
 
 
-  char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData, nsnull, PR_TRUE);
+  char *line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData, nsnull, true);
   if (m_newsFolder && line)
   {
     const char *unescapedLine = line;
@@ -2540,7 +2540,7 @@ PRInt32 nsNNTPProtocol::AuthorizationResponse()
 
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
     if (mailnewsurl)
-      status = SendData(mailnewsurl, command, PR_TRUE);
+      status = SendData(mailnewsurl, command, true);
 
     PR_FREEIF(command);
 
@@ -2591,7 +2591,7 @@ PRInt32 nsNNTPProtocol::PasswordResponse()
     else
       m_nextState = SEND_FIRST_NNTP_COMMAND;
 #endif /* HAVE_NNTP_EXTENSIONS */
-    m_nntpServer->SetUserAuthenticated(PR_TRUE);
+    m_nntpServer->SetUserAuthenticated(true);
     return(0);
   }
   else
@@ -2741,11 +2741,11 @@ PRInt32 nsNNTPProtocol::ProcessNewsgroups(nsIInputStream * inputStream, PRUint32
     if (NS_SUCCEEDED(m_nntpServer->GetCharset(charset)) &&
         NS_SUCCEEDED(nsMsgI18NConvertToUnicode(charset.get(),
                                                nsDependentCString(line),
-                                               lineUtf16, PR_TRUE)))
+                                               lineUtf16, true)))
       m_nntpServer->SetGroupNeedsExtraInfo(NS_ConvertUTF16toUTF8(lineUtf16),
-                                           PR_TRUE);
+                                           true);
     else
-      m_nntpServer->SetGroupNeedsExtraInfo(nsDependentCString(line), PR_TRUE);
+      m_nntpServer->SetGroupNeedsExtraInfo(nsDependentCString(line), true);
   }
 
   PR_Free(lineToFree);
@@ -3022,7 +3022,7 @@ void nsNNTPProtocol::HandleAuthenticationFailure()
     // changed while the app is running, and
     // reprompt the user for the (potentially) new password.
     // So clear the userAuthenticated flag.
-    m_nntpServer->SetUserAuthenticated(PR_FALSE);
+    m_nntpServer->SetUserAuthenticated(false);
   }
 }
 
@@ -3626,13 +3626,13 @@ bool nsNNTPProtocol::CheckIfAuthor(nsISupports *aElement, void *data)
     if (!cancelInfo->from.IsEmpty()) {
         // already found a match, no need to go any further
         // keep going
-        return PR_TRUE;
+        return true;
     }
 
     nsCOMPtr<nsIMsgIdentity> identity = do_QueryInterface(aElement, &rv);
     if (NS_FAILED(rv)) {
         // keep going
-        return PR_TRUE;
+        return true;
     }
 
     if (identity) {
@@ -3644,7 +3644,7 @@ bool nsNNTPProtocol::CheckIfAuthor(nsISupports *aElement, void *data)
 
     if (NS_FAILED(rv)) {
         cancelInfo->from.Truncate();
-        return PR_TRUE;
+        return true;
     }
 
     nsCString us;
@@ -3658,11 +3658,11 @@ bool nsNNTPProtocol::CheckIfAuthor(nsISupports *aElement, void *data)
     if (NS_FAILED(rv1) || NS_FAILED(rv2) || !us.Equals(them, nsCaseInsensitiveCStringComparator())) {
         //no match.  don't set cancel email
         cancelInfo->from.Truncate();
-        return PR_TRUE;
+        return true;
     }
     else {
       // we have a match, stop.
-        return PR_FALSE;
+        return false;
     }
 }
 
@@ -3784,7 +3784,7 @@ reported here */
           m_nextState = NNTP_RESPONSE;
           m_nextStateAfterResponse = NNTP_SEND_POST_DATA_RESPONSE;
           SetFlag(NNTP_PAUSE_FOR_READ);
-          failure = PR_TRUE;
+          failure = true;
           goto FAIL;
       }
       else {
@@ -3811,14 +3811,14 @@ reported here */
   if (confirmCancelResult != 0) {
       // they cancelled the cancel
       status = MK_NNTP_NOT_CANCELLED;
-      failure = PR_TRUE;
+      failure = true;
       goto FAIL;
   }
 
   if (!subject || !body)
   {
     status = MK_OUT_OF_MEMORY;
-    failure = PR_TRUE;
+    failure = true;
     goto FAIL;
   }
 
@@ -3863,7 +3863,7 @@ reported here */
       nsCAutoString errorText;
       errorText.AppendInt(status);
       AlertError(MK_TCP_WRITE_ERROR, errorText.get());
-      failure = PR_TRUE;
+      failure = true;
       goto FAIL;
     }
 
@@ -4194,7 +4194,7 @@ PRInt32 nsNNTPProtocol::ListXActiveResponse(nsIInputStream * inputStream, PRUint
         initialized to false for new groups. And it's
         an expensive call.
         */
-        /* MSG_SetGroupNeedsExtraInfo(cd->host, line, PR_FALSE); */
+        /* MSG_SetGroupNeedsExtraInfo(cd->host, line, false); */
       }
     }
     else
@@ -4736,15 +4736,15 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       break;
     case NEWS_POST_DONE:
       NNTP_LOG_NOTE("NEWS_POST_DONE");
-      mailnewsurl->SetUrlState(PR_FALSE, NS_OK);
+      mailnewsurl->SetUrlState(false, NS_OK);
       m_nextState = NEWS_FREE;
       break;
     case NEWS_ERROR:
       NNTP_LOG_NOTE("NEWS_ERROR");
       if (m_responseCode == MK_NNTP_RESPONSE_ARTICLE_NOTFOUND || m_responseCode == MK_NNTP_RESPONSE_ARTICLE_NONEXIST)
-        mailnewsurl->SetUrlState(PR_FALSE, NS_MSG_NEWS_ARTICLE_NOT_FOUND);
+        mailnewsurl->SetUrlState(false, NS_MSG_NEWS_ARTICLE_NOT_FOUND);
       else
-        mailnewsurl->SetUrlState(PR_FALSE, NS_ERROR_FAILURE);
+        mailnewsurl->SetUrlState(false, NS_ERROR_FAILURE);
       m_nextState = NEWS_FREE;
       break;
     case NNTP_ERROR:
@@ -4755,7 +4755,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       * again.  But only if we didn't have any successful protocol
       * dialog at all.
       */
-      FinishMemCacheEntry(PR_FALSE);  // cleanup mem cache entry
+      FinishMemCacheEntry(false);  // cleanup mem cache entry
       if (m_responseCode != MK_NNTP_RESPONSE_ARTICLE_NOTFOUND && m_responseCode != MK_NNTP_RESPONSE_ARTICLE_NONEXIST)
         return CloseConnection();
     case NEWS_FREE:
@@ -4845,7 +4845,7 @@ nsresult nsNNTPProtocol::CleanupAfterRunningUrl()
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
     if (mailnewsurl)
     {
-      mailnewsurl->SetUrlState(PR_FALSE, NS_OK);
+      mailnewsurl->SetUrlState(false, NS_OK);
       mailnewsurl->SetMemCacheEntry(nsnull);
     }
   }
@@ -4869,7 +4869,7 @@ nsresult nsNNTPProtocol::CleanupAfterRunningUrl()
 
   // don't mark ourselves as not busy until we are done cleaning up the connection. it should be the
   // last thing we do.
-  SetIsBusy(PR_FALSE);
+  SetIsBusy(false);
 
   return NS_OK;
 }

@@ -80,9 +80,9 @@ class C2047Translator : public nsImportTranslator {
 public:
   virtual ~C2047Translator() {}
 
-  C2047Translator( const char *pCharset, PRUint32 headerLen) { m_charset = pCharset; m_startLen = headerLen; m_useQuotedPrintable = PR_FALSE;}
+  C2047Translator( const char *pCharset, PRUint32 headerLen) { m_charset = pCharset; m_startLen = headerLen; m_useQuotedPrintable = false;}
 
-  void  SetUseQuotedPrintable( void) { m_useQuotedPrintable = PR_TRUE;}
+  void  SetUseQuotedPrintable( void) { m_useQuotedPrintable = true;}
 
   virtual bool    ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed = nsnull);
   bool    ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed);

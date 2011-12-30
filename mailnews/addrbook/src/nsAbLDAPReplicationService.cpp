@@ -52,7 +52,7 @@
 NS_IMPL_ISUPPORTS1(nsAbLDAPReplicationService, nsIAbLDAPReplicationService)
 
 nsAbLDAPReplicationService::nsAbLDAPReplicationService() 
-    : mReplicating(PR_FALSE)
+    : mReplicating(false)
 {
 }
 
@@ -99,7 +99,7 @@ NS_IMETHODIMP nsAbLDAPReplicationService::StartReplication(nsIAbLDAPDirectory *a
       rv = mQuery->DoReplicationQuery();
       if (NS_SUCCEEDED(rv))
 	{
-	  mReplicating = PR_TRUE;
+	  mReplicating = true;
 	  return rv;
 	}
     }
@@ -108,7 +108,7 @@ NS_IMETHODIMP nsAbLDAPReplicationService::StartReplication(nsIAbLDAPDirectory *a
   if (progressListener && NS_FAILED(rv))
     progressListener->OnStateChange(nsnull, nsnull,
 				    nsIWebProgressListener::STATE_STOP,
-				    PR_FALSE);
+				    false);
 
   if (NS_FAILED(rv))
   {
@@ -134,14 +134,14 @@ NS_IMETHODIMP nsAbLDAPReplicationService::CancelReplication(nsIAbLDAPDirectory *
 
   // If query has been cancelled successfully
   if (NS_SUCCEEDED(rv))
-    Done(PR_FALSE);
+    Done(false);
 
   return rv;
 }
 
 NS_IMETHODIMP nsAbLDAPReplicationService::Done(bool aSuccess)
 {
-  mReplicating = PR_FALSE;
+  mReplicating = false;
   if (mQuery)
   {
     mQuery = nsnull;  // Release query obj

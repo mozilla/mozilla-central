@@ -95,26 +95,26 @@ bool nsOE5File::VerifyLocalMailFile( nsIFile *pFile)
   nsCOMPtr <nsIInputStream> inputStream;
 
   if (NS_FAILED(NS_NewLocalFileInputStream(getter_AddRefs(inputStream), pFile)))
-    return PR_FALSE;
+    return false;
 
   if (!ReadBytes( inputStream, sig, 0, kSignatureSize))
-    return PR_FALSE;
+    return false;
 
   bool    result = true;
 
   for (int i = 0; (i < kSignatureSize) && result; i++) {
     if (sig[i] != gSig[i])
-      result = PR_FALSE;
+      result = false;
   }
 
   char  storeName[14];
   if (!ReadBytes( inputStream, storeName, 0x24C1, 12))
-    result = PR_FALSE;
+    result = false;
 
   storeName[12] = 0;
 
   if (PL_strcasecmp( "LocalStore", storeName))
-    result = PR_FALSE;
+    result = false;
 
   return result;
 }
@@ -126,7 +126,7 @@ bool nsOE5File::IsLocalMailFile( nsIFile *pFile)
 
   rv = pFile->IsFile( &isFile);
   if (NS_FAILED( rv) || !isFile)
-    return( PR_FALSE);
+    return( false);
 
   bool result = VerifyLocalMailFile( pFile);
 
@@ -140,12 +140,12 @@ bool nsOE5File::ReadIndex( nsIInputStream *pInputStream, PRUint32 **ppIndex, PRU
 
   char    signature[4];
   if (!ReadBytes( pInputStream, signature, 0, 4))
-    return( PR_FALSE);
+    return( false);
 
   for (int i = 0; i < 4; i++) {
     if (signature[i] != gSig[i]) {
       IMPORT_LOG0( "*** Outlook 5.0 dbx file signature doesn't match\n");
-      return( PR_FALSE);
+      return( false);
     }
   }
 
@@ -153,7 +153,7 @@ bool nsOE5File::ReadIndex( nsIInputStream *pInputStream, PRUint32 **ppIndex, PRU
   PRUint32  indexStart = 0;
   if (!ReadBytes( pInputStream, &indexStart, offset, 4)) {
     IMPORT_LOG0( "*** Unable to read offset to index start\n");
-    return( PR_FALSE);
+    return( false);
   }
 
   PRUint32Array array;
@@ -169,11 +169,11 @@ bool nsOE5File::ReadIndex( nsIInputStream *pInputStream, PRUint32 **ppIndex, PRU
   if (array.count) {
     *pSize = array.count;
     *ppIndex = array.pIndex;
-    return( PR_TRUE);
+    return( true);
   }
 
   delete [] array.pIndex;
-  return( PR_FALSE);
+  return( false);
 }
 
 
@@ -493,7 +493,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString&
     else {
       // Error reading message, should this be logged???
       IMPORT_LOG2( "Error reading message from %s at 0x%lx\n", NS_LossyConvertUTF16toASCII(name.get()), pIndex[i]);
-      *pAbort = PR_TRUE;
+      *pAbort = true;
     }
   }
 
@@ -502,7 +502,7 @@ nsresult nsOE5File::ImportMailbox( PRUint32 *pBytesDone, bool *pAbort, nsString&
   delete [] pTime;
 
   if (NS_FAILED(rv))
-    *pAbort = PR_TRUE;
+    *pAbort = true;
 
   return( rv);
 }
@@ -625,11 +625,11 @@ bool nsOE5File::ReadBytes( nsIInputStream *stream, void *pBuffer, PRUint32 offse
   if (offset != kDontSeek) {
     rv = seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, offset);
     if (NS_FAILED( rv))
-      return( PR_FALSE);
+      return( false);
   }
 
   if (!bytes)
-    return( PR_TRUE);
+    return( true);
 
   PRUint32  cntRead;
   char *  pReadTo = (char *)pBuffer;

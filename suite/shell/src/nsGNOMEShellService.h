@@ -48,7 +48,7 @@ struct ProtocolAssociation;
 class nsGNOMEShellService : public nsIShellService
 {
 public:
-  nsGNOMEShellService() : mCheckedThisSessionClient(PR_FALSE) { }
+  nsGNOMEShellService() : mCheckedThisSessionClient(false) { }
 
   NS_DECL_ISUPPORTS
   NS_DECL_NSISHELLSERVICE

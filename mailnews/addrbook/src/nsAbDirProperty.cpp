@@ -53,10 +53,10 @@
 
 nsAbDirProperty::nsAbDirProperty(void)
   : m_LastModifiedDate(0),
-    mIsValidURI(PR_FALSE),
-    mIsQueryURI(PR_FALSE)
+    mIsValidURI(false),
+    mIsQueryURI(false)
 {
-	m_IsMailList = PR_FALSE;
+	m_IsMailList = false;
 }
 
 nsAbDirProperty::~nsAbDirProperty(void)
@@ -265,7 +265,7 @@ NS_IMETHODIMP nsAbDirProperty::SetAddressLists(nsIMutableArray * aAddressLists)
 
 NS_IMETHODIMP nsAbDirProperty::CopyMailList(nsIAbDirectory* srcList)
 {
-  SetIsMailList(PR_TRUE);
+  SetIsMailList(true);
 
   nsString str;
   srcList->GetDirName(str);
@@ -286,7 +286,7 @@ NS_IMETHODIMP nsAbDirProperty::GetIsQuery(bool *aResult)
   NS_ENSURE_ARG_POINTER(aResult);
   // Mailing lists are not queries by default, individual directory types
   // will override this.
-  *aResult = PR_FALSE;
+  *aResult = false;
   return NS_OK;
 }
 
@@ -295,14 +295,14 @@ nsAbDirProperty::Init(const char *aURI)
 {
   mURINoQuery = aURI;
   mURI = aURI;
-  mIsValidURI = PR_TRUE;
+  mIsValidURI = true;
 
   PRInt32 searchCharLocation = mURINoQuery.FindChar('?');
   if (searchCharLocation >= 0)
   {
     mQueryString = Substring(mURINoQuery, searchCharLocation + 1);
     mURINoQuery.SetLength(searchCharLocation);
-    mIsQueryURI = PR_TRUE;
+    mIsQueryURI = true;
   }
 
   return NS_OK;
@@ -391,21 +391,21 @@ NS_IMETHODIMP nsAbDirProperty::GetReadOnly(bool *aReadOnly)
   NS_ENSURE_ARG_POINTER(aReadOnly);
   // Default is that we are writable. Any implementation that is read-only must
   // override this method.
-  *aReadOnly = PR_FALSE;
+  *aReadOnly = false;
   return NS_OK;
 }
 
 NS_IMETHODIMP nsAbDirProperty::GetIsRemote(bool *aIsRemote)
 {
   NS_ENSURE_ARG_POINTER(aIsRemote);
-  *aIsRemote = PR_FALSE;
+  *aIsRemote = false;
   return NS_OK;
 }
 
 NS_IMETHODIMP nsAbDirProperty::GetIsSecure(bool *aIsSecure)
 {
   NS_ENSURE_ARG_POINTER(aIsSecure);
-  *aIsSecure = PR_FALSE;
+  *aIsSecure = false;
   return NS_OK;
 }
 

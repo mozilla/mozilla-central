@@ -74,7 +74,7 @@ NS_IMETHODIMP nsMessengerBootstrap::OpenMessengerWindowWithUri(const char *windo
   if (windowType && !strcmp(windowType, "mail:messageWindow"))
   {
     chromeUrl.Append("messageWindow.xul");
-    standAloneMsgWindow = PR_TRUE;
+    standAloneMsgWindow = true;
   }
   nsCOMPtr<nsISupportsArray> argsArray;
   nsresult rv = NS_NewISupportsArray(getter_AddRefs(argsArray));

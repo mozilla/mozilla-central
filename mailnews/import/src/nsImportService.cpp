@@ -90,7 +90,7 @@ nsImportService::nsImportService() : m_pModules( nsnull)
     IMPORTLOGMODULE = PR_NewLogModule("IMPORT");
   IMPORT_LOG0( "* nsImport Service Created\n");
 
-  m_didDiscovery = PR_FALSE;
+  m_didDiscovery = false;
   m_pDecoder = nsnull;
   m_pEncoder = nsnull;
 
@@ -120,7 +120,7 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(nsImportService, nsIImportService)
 
 NS_IMETHODIMP nsImportService::DiscoverModules( void)
 {
-  m_didDiscovery = PR_FALSE;
+  m_didDiscovery = false;
   return( DoDiscover());
 }
 
@@ -463,7 +463,7 @@ nsresult nsImportService::DoDiscover( void)
     rv = e->GetNext( getter_AddRefs( contractid));
   }
 
-  m_didDiscovery = PR_TRUE;
+  m_didDiscovery = true;
 
   return NS_OK;
 }
@@ -546,7 +546,7 @@ void ImportModuleDesc::ReleaseModule( void)
 bool ImportModuleDesc::SupportsThings( const char *pThings)
 {
   if (!pThings || !*pThings)
-    return PR_TRUE;
+    return true;
 
   nsCString thing(pThings);
   nsCString item;
@@ -558,7 +558,7 @@ bool ImportModuleDesc::SupportsThings( const char *pThings)
     item.Trim( kWhitespace);
     ToLowerCase(item);
     if (item.Length() && (m_supports.Find( item) == -1))
-      return PR_FALSE;
+      return false;
     thing = Substring(thing, idx + 1);
   }
   thing.Trim( kWhitespace);

@@ -65,7 +65,7 @@
 
 nsAbMDBDirectory::nsAbMDBDirectory(void):
      nsAbMDBDirProperty(),
-     mPerformingQuery(PR_FALSE)
+     mPerformingQuery(false)
 {
   mSearchCache.Init();
 }
@@ -88,7 +88,7 @@ NS_IMETHODIMP nsAbMDBDirectory::Init(const char *aUri)
   nsDependentCString uri(aUri);
 
   if (uri.Find("MailList") != -1)
-    m_IsMailList = PR_TRUE;
+    m_IsMailList = true;
 
   // Mailing lists don't have their own prefs.
   if (m_DirPrefId.IsEmpty() && !m_IsMailList)
@@ -193,7 +193,7 @@ nsresult nsAbMDBDirectory::RemoveCardFromAddressList(nsIAbCard* card)
     if (listDir)
     {
       // First remove the instance in the database
-      mDatabase->DeleteCardFromMailList(listDir, card, PR_FALSE);
+      mDatabase->DeleteCardFromMailList(listDir, card, false);
 
       // Now remove the instance in any lists we hold.
       nsCOMPtr<nsIMutableArray> pAddressLists;
@@ -394,7 +394,7 @@ NS_IMETHODIMP nsAbMDBDirectory::GetDatabase(nsIAddrDatabase **aResult)
     do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return addrDBFactory->Open(databaseFile, PR_FALSE /* no create */, PR_TRUE,
+  return addrDBFactory->Open(databaseFile, false /* no create */, true,
                            aResult);
 }
 
@@ -422,7 +422,7 @@ enumerateSearchCache(nsISupports *aKey, nsCOMPtr<nsIAbCard> &aData, void* aClosu
 {
   nsIMutableArray* array = static_cast<nsIMutableArray*>(aClosure);
 
-  array->AppendElement(aData, PR_FALSE);
+  array->AppendElement(aData, false);
   return PL_DHASH_NEXT;
 }
 
@@ -514,7 +514,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
 
         if (m_IsMailList)
         {
-          mDatabase->DeleteCardFromMailList(this, card, PR_TRUE);
+          mDatabase->DeleteCardFromMailList(this, card, true);
 
           PRUint32 cardTotal = 0;
           PRInt32 i;
@@ -535,7 +535,7 @@ NS_IMETHODIMP nsAbMDBDirectory::DeleteCards(nsIArray *aCards)
         }
         else
         {
-          mDatabase->DeleteCard(card, PR_TRUE, this);
+          mDatabase->DeleteCard(card, true, this);
           bool bIsMailList = false;
           card->GetIsMailList(&bIsMailList);
           if (bIsMailList)
@@ -653,10 +653,10 @@ NS_IMETHODIMP nsAbMDBDirectory::AddMailList(nsIAbDirectory *list, nsIAbDirectory
     dblist = do_QueryInterface(newlist, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
     
-    mDatabase->CreateMailListAndAddToDB(newlist, PR_TRUE, this);
+    mDatabase->CreateMailListAndAddToDB(newlist, true, this);
   }
   else
-    mDatabase->CreateMailListAndAddToDB(list, PR_TRUE, this);
+    mDatabase->CreateMailListAndAddToDB(list, true, this);
 
   mDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
 
@@ -696,9 +696,9 @@ NS_IMETHODIMP nsAbMDBDirectory::AddCard(nsIAbCard* card, nsIAbCard **addedCard)
     return NS_ERROR_FAILURE;
 
   if (m_IsMailList)
-    rv = mDatabase->CreateNewListCardAndAddToDB(this, m_dbRowID, card, PR_TRUE /* notify */);
+    rv = mDatabase->CreateNewListCardAndAddToDB(this, m_dbRowID, card, true /* notify */);
   else
-    rv = mDatabase->CreateNewCardAndAddToDB(card, PR_TRUE, this);
+    rv = mDatabase->CreateNewCardAndAddToDB(card, true, this);
   NS_ENSURE_SUCCESS(rv, rv);
 
   mDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
@@ -718,7 +718,7 @@ NS_IMETHODIMP nsAbMDBDirectory::ModifyCard(nsIAbCard *aModifiedCard)
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
-  rv = mDatabase->EditCard(aModifiedCard, PR_TRUE, this);
+  rv = mDatabase->EditCard(aModifiedCard, true, this);
   NS_ENSURE_SUCCESS(rv, rv);
   return mDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
 }
@@ -758,15 +758,15 @@ NS_IMETHODIMP nsAbMDBDirectory::DropCard(nsIAbCard* aCard, bool needToCopyCard)
       // contains the mailing list.
       mDatabase->FindRowByCard(newCard, getter_AddRefs(cardRow));
       if (!cardRow)
-        mDatabase->CreateNewCardAndAddToDB(newCard, PR_TRUE /* notify */, this);
+        mDatabase->CreateNewCardAndAddToDB(newCard, true /* notify */, this);
       else
         mDatabase->InitCardFromRow(newCard, cardRow);
     }
     // since we didn't copy the card, we don't have to notify that it was inserted
-    mDatabase->CreateNewListCardAndAddToDB(this, m_dbRowID, newCard, PR_FALSE /* notify */);
+    mDatabase->CreateNewListCardAndAddToDB(this, m_dbRowID, newCard, false /* notify */);
   }
   else {
-    mDatabase->CreateNewCardAndAddToDB(newCard, PR_TRUE /* notify */, this);
+    mDatabase->CreateNewCardAndAddToDB(newCard, true /* notify */, this);
   }
   mDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
   return NS_OK;
@@ -783,7 +783,7 @@ NS_IMETHODIMP nsAbMDBDirectory::EditMailListToDatabase(nsIAbCard *listCard)
   nsresult rv = GetAbDatabase();
   NS_ENSURE_SUCCESS(rv, rv);
 
-  mDatabase->EditMailList(this, listCard, PR_TRUE);
+  mDatabase->EditMailList(this, listCard, true);
   mDatabase->Commit(nsAddrDBCommitType::kLargeCommit);
 
   return NS_OK;
@@ -794,10 +794,10 @@ static bool ContainsDirectory(nsIAbDirectory *parent, nsIAbDirectory *directory)
   // If parent is a maillist, 'addressLists' contains AbCards.
   bool bIsMailList = false;
   nsresult rv = parent->GetIsMailList(&bIsMailList);
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, false);
 
   if (bIsMailList)
-    return PR_FALSE;
+    return false;
 
   nsCOMPtr<nsIMutableArray> pAddressLists;
   parent->GetAddressLists(getter_AddRefs(pAddressLists));
@@ -810,11 +810,11 @@ static bool ContainsDirectory(nsIAbDirectory *parent, nsIAbDirectory *directory)
       nsCOMPtr<nsIAbDirectory> pList(do_QueryElementAt(pAddressLists, i, &rv));
 
       if (directory == pList)
-          return PR_TRUE;
+          return true;
     }
   }
 
-  return PR_FALSE;
+  return false;
 }
 
 // nsIAddrDBListener methods
@@ -916,7 +916,7 @@ NS_IMETHODIMP nsAbMDBDirectory::StartSearch()
 
   nsresult rv;
 
-  mPerformingQuery = PR_TRUE;
+  mPerformingQuery = true;
   mSearchCache.Clear();
 
   nsCOMPtr<nsIAbDirectoryQueryArguments> arguments = do_CreateInstance(NS_ABDIRECTORYQUERYARGUMENTS_CONTRACTID,&rv);
@@ -935,7 +935,7 @@ NS_IMETHODIMP nsAbMDBDirectory::StartSearch()
   // if the current directory is a addressbook, searching both it
   // and the subdirectories (the mailing lists), will yield duplicate results
   // because every entry in a mailing list will be an entry in the parent addressbook
-  rv = arguments->SetQuerySubDirectories(PR_FALSE);
+  rv = arguments->SetQuerySubDirectories(false);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIAbManager> abManager =
@@ -987,7 +987,7 @@ NS_IMETHODIMP nsAbMDBDirectory::StopSearch()
 NS_IMETHODIMP nsAbMDBDirectory::OnSearchFinished(PRInt32 aResult,
                                                  const nsAString &aErrorMsg)
 {
-  mPerformingQuery = PR_FALSE;
+  mPerformingQuery = false;
   return NS_OK;
 }
 
@@ -1077,12 +1077,12 @@ NS_IMETHODIMP nsAbMDBDirectory::CardForEmailAddress(const nsACString &aEmailAddr
   ToLowerCase(lowerEmail);
 
   mDatabase->GetCardFromAttribute(this, kLowerPriEmailColumn, NS_ConvertUTF16toUTF8(lowerEmail),
-                                  PR_FALSE, aAbCard);
+                                  false, aAbCard);
   if (!*aAbCard)
     // We don't have a lower case second email column, so we have to search
     // case-sensitively here.
     mDatabase->GetCardFromAttribute(this, k2ndEmailProperty, aEmailAddress,
-                                    PR_TRUE, aAbCard);
+                                    true, aAbCard);
 
   return NS_OK;
 }

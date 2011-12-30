@@ -104,11 +104,11 @@ MimeObject_initialize (MimeObject *obj)
   /* Set up the content-type and encoding. */
   if (!obj->content_type && obj->headers)
   obj->content_type = MimeHeaders_get (obj->headers, HEADER_CONTENT_TYPE,
-                     PR_TRUE, PR_FALSE);
+                     true, false);
   if (!obj->encoding && obj->headers)
   obj->encoding = MimeHeaders_get (obj->headers,
                    HEADER_CONTENT_TRANSFER_ENCODING,
-                   PR_TRUE, PR_FALSE);
+                   true, false);
 
   /* Special case to normalize some types and encodings to a canonical form.
    (These are nonstandard types/encodings which have been seen to appear in
@@ -166,8 +166,8 @@ MimeObject_initialize (MimeObject *obj)
 static void
 MimeObject_finalize (MimeObject *obj)
 {
-  obj->clazz->parse_eof (obj, PR_FALSE);
-  obj->clazz->parse_end (obj, PR_FALSE);
+  obj->clazz->parse_eof (obj, false);
+  obj->clazz->parse_end (obj, false);
 
   if (obj->headers)
   {
@@ -205,7 +205,7 @@ MimeObject_parse_begin (MimeObject *obj)
     obj->options->state = new MimeParseStateObject;
     if (!obj->options->state) return MIME_OUT_OF_MEMORY;
     obj->options->state->root = obj;
-    obj->options->state->separator_suppressed_p = PR_TRUE; /* no first sep */
+    obj->options->state->separator_suppressed_p = true; /* no first sep */
     const char *delParts = PL_strcasestr(obj->options->url, "&del=");
     const char *detachLocations = PL_strcasestr(obj->options->url, "&detachTo=");
     if (delParts)
@@ -229,9 +229,9 @@ MimeObject_parse_begin (MimeObject *obj)
      || (obj->options->decompose_file_p && obj->options->decompose_file_output_fn &&
       mime_typep(obj, (MimeObjectClass*) &mimeMultipartClass))
     )
-    obj->output_p = PR_FALSE;
+    obj->output_p = false;
   else if (!obj->options->part_to_load)
-    obj->output_p = PR_TRUE;
+    obj->output_p = true;
   else
   {
     char *id = mime_part_address(obj);
@@ -268,7 +268,7 @@ MimeObject_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
 
   return mime_LineBuffer (buffer, size,
              &obj->ibuffer, &obj->ibuffer_size, &obj->ibuffer_fp,
-             PR_TRUE,
+             true,
              ((int (*) (char *, PRInt32, void *))
               /* This cast is to turn void into MimeObject */
               obj->clazz->parse_line),
@@ -300,12 +300,12 @@ MimeObject_parse_eof (MimeObject *obj, bool abort_p)
     obj->ibuffer_fp = 0;
     if (status < 0)
     {
-      obj->closed_p = PR_TRUE;
+      obj->closed_p = true;
       return status;
     }
   }
 
-  obj->closed_p = PR_TRUE;
+  obj->closed_p = true;
   return 0;
 }
 
@@ -326,7 +326,7 @@ MimeObject_parse_end (MimeObject *obj, bool abort_p)
   obj->obuffer_fp = 0;
   obj->obuffer_size = 0;
 
-  obj->parsed_p = PR_TRUE;
+  obj->parsed_p = true;
   return 0;
 }
 
@@ -334,7 +334,7 @@ static bool
 MimeObject_displayable_inline_p (MimeObjectClass *clazz, MimeHeaders *hdrs)
 {
   NS_ERROR("shouldn't call this method");
-  return PR_FALSE;
+  return false;
 }
 
 #if defined(DEBUG) && defined(XP_UNIX)

@@ -71,7 +71,7 @@ const char kDNSServiceContractId[] = "@mozilla.org/network/dns-service;1";
 //
 nsLDAPConnection::nsLDAPConnection()
     : mConnectionHandle(0),
-      mSSL(PR_FALSE),
+      mSSL(false),
       mVersion(nsILDAPConnection::VERSION3),
       mDNSRequest(0)
 {
@@ -118,7 +118,7 @@ nsLDAPConnection::Init(nsILDAPURL *aUrl, const nsACString &aBindName,
         do_GetService(NS_OBSERVERSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   // We have to abort all LDAP pending operation before shutdown.
-  obsServ->AddObserver(this, "profile-change-net-teardown", PR_TRUE);
+  obsServ->AddObserver(this, "profile-change-net-teardown", true);
 
   // Save various items that we'll use later
   mBindName.Assign(aBindName);
@@ -706,7 +706,7 @@ NS_IMETHODIMP nsLDAPConnectionRunnable::Run()
     case LDAP_RES_SEARCH_ENTRY:
     case LDAP_RES_SEARCH_REFERENCE:
       // XXX what should we do with LDAP_RES_SEARCH_EXTENDED
-      operationFinished = PR_FALSE;
+      operationFinished = false;
     default:
     {
       msg = new nsLDAPMessage;

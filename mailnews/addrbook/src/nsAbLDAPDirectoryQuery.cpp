@@ -131,9 +131,9 @@ nsAbQueryLDAPMessageListener::nsAbQueryLDAPMessageListener(
   mResultListener(resultListener),
   mQueryArguments(queryArguments),
   mResultLimit(resultLimit),
-  mFinished(PR_FALSE),
-  mCanceled(PR_FALSE),
-  mWaitingForPrevQueryToFinish(PR_FALSE),
+  mFinished(false),
+  mCanceled(false),
+  mWaitingForPrevQueryToFinish(false),
   mServerSearchControls(serverSearchControls),
   mClientSearchControls(clientSearchControls)
 {
@@ -154,9 +154,9 @@ nsresult nsAbQueryLDAPMessageListener::Cancel ()
     if (mFinished || mCanceled)
         return NS_OK;
 
-    mCanceled = PR_TRUE;
+    mCanceled = true;
     if (!mFinished)
-      mWaitingForPrevQueryToFinish = PR_TRUE;
+      mWaitingForPrevQueryToFinish = true;
 
     return NS_OK;
 }
@@ -180,11 +180,11 @@ NS_IMETHODIMP nsAbQueryLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMessa
       return NS_OK;
 
     if (messageType == nsILDAPMessage::RES_SEARCH_RESULT)
-      mFinished = PR_TRUE;
+      mFinished = true;
     else if (mCanceled)
     {
-      mFinished = PR_TRUE;
-      cancelOperation = PR_TRUE;
+      mFinished = true;
+      cancelOperation = true;
     }
   }
   // Leave lock
@@ -209,7 +209,7 @@ NS_IMETHODIMP nsAbQueryLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMessa
         rv = OnLDAPMessageSearchEntry(aMessage);
       break;
     case nsILDAPMessage::RES_SEARCH_RESULT:
-      mWaitingForPrevQueryToFinish = PR_FALSE;
+      mWaitingForPrevQueryToFinish = false;
       rv = OnLDAPMessageSearchResult(aMessage);
       NS_ENSURE_SUCCESS(rv, rv);
     default:
@@ -228,7 +228,7 @@ NS_IMETHODIMP nsAbQueryLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMessa
     // until the search is done, so we'll ignore results from a previous
     // search.
     if (messageType == nsILDAPMessage::RES_SEARCH_RESULT)
-      mCanceled = mFinished = PR_FALSE;
+      mCanceled = mFinished = false;
   }
 
   return rv;
@@ -237,7 +237,7 @@ NS_IMETHODIMP nsAbQueryLDAPMessageListener::OnLDAPMessage(nsILDAPMessage *aMessa
 nsresult nsAbQueryLDAPMessageListener::DoTask()
 {
   nsresult rv;
-  mCanceled = mFinished = PR_FALSE;
+  mCanceled = mFinished = false;
 
   mOperation = do_CreateInstance(NS_LDAPOPERATION_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -333,7 +333,7 @@ NS_IMPL_THREADSAFE_ISUPPORTS2(nsAbLDAPDirectoryQuery, nsIAbDirectoryQuery,
                               nsIAbDirectoryQueryResultListener)
 
 nsAbLDAPDirectoryQuery::nsAbLDAPDirectoryQuery() :
-    mInitialized(PR_FALSE)
+    mInitialized(false)
 {
 }
 
@@ -357,7 +357,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
   nsresult rv = StopQuery(0);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  mInitialized = PR_TRUE;
+  mInitialized = true;
 
   // Get the current directory as LDAP specific
   nsCOMPtr<nsIAbLDAPDirectory> directory(do_QueryInterface(aDirectory, &rv));
@@ -394,7 +394,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
     mCurrentLogin = login;
     mCurrentMechanism = saslMechanism;
     mCurrentProtocolVersion = protocolVersion;
-    redoConnection = PR_TRUE;
+    redoConnection = true;
   }
   else
   {
@@ -413,7 +413,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
       mCurrentLogin = login;
       mCurrentMechanism = saslMechanism;
       mCurrentProtocolVersion = protocolVersion;
-      redoConnection = PR_TRUE;
+      redoConnection = true;
     }
     else
     {
@@ -422,7 +422,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
           saslMechanism != mCurrentMechanism ||
           protocolVersion != mCurrentProtocolVersion)
       {
-        redoConnection = PR_TRUE;
+        redoConnection = true;
         mCurrentLogin = login;
         mCurrentMechanism = saslMechanism;
         mCurrentProtocolVersion = protocolVersion;
@@ -599,7 +599,7 @@ NS_IMETHODIMP nsAbLDAPDirectoryQuery::DoQuery(nsIAbDirectory *aDirectory,
 /* void stopQuery (in long contextID); */
 NS_IMETHODIMP nsAbLDAPDirectoryQuery::StopQuery(PRInt32 contextID)
 {
-  mInitialized = PR_TRUE;
+  mInitialized = true;
 
   if (!mListener)
     return NS_OK;

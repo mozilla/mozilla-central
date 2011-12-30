@@ -50,10 +50,10 @@ extern "C" bool
 EmitThisHeaderForPrefSetting(PRInt32 dispType, const char *header)
 {
   if (nsMimeHeaderDisplayTypes::AllHeaders == dispType)
-    return PR_TRUE;
+    return true;
 
   if ((!header) || (!*header))
-    return PR_FALSE;
+    return false;
 
   if (nsMimeHeaderDisplayTypes::MicroHeaders == dispType)
   {
@@ -62,9 +62,9 @@ EmitThisHeaderForPrefSetting(PRInt32 dispType, const char *header)
           (!strcmp(header, HEADER_FROM)) ||
           (!strcmp(header, HEADER_DATE))
        )
-      return PR_TRUE;
+      return true;
     else
-      return PR_FALSE;
+      return false;
   }
 
   if (nsMimeHeaderDisplayTypes::NormalHeaders == dispType)
@@ -89,11 +89,11 @@ EmitThisHeaderForPrefSetting(PRInt32 dispType, const char *header)
         (!strcmp(header, HEADER_REPLY_TO)) ||
         (!strcmp(header, HEADER_BCC))
        )
-       return PR_TRUE;
+       return true;
     else
-      return PR_FALSE;
+      return false;
   }
 
-  return PR_TRUE;
+  return true;
 }
 

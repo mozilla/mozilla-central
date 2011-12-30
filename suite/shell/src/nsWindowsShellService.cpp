@@ -480,7 +480,7 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
     nsresult rv = OpenKeyForReading(HKEY_CLASSES_ROOT, key.get(), &theKey);
     if (NS_FAILED(rv))
       // Key does not exist
-      return PR_FALSE;
+      return false;
 
     DWORD len = sizeof currValue;
     DWORD res = ::RegQueryValueExW(theKey, value.get(),
@@ -491,11 +491,11 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
         !dataLongPath.Equals(currValue, CaseInsensitiveCompare) &&
         !dataShortPath.Equals(currValue, CaseInsensitiveCompare)) {
       // Key wasn't set, or was set to something else (something else became the default client)
-      return PR_FALSE;
+      return false;
     }
   }
 
-  return PR_TRUE;
+  return true;
 }
 
 nsresult nsWindowsShellService::Init()
@@ -529,9 +529,9 @@ nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClie
                                 (void**)&pAAR);
   
   if (SUCCEEDED(hr)) {
-    BOOL isDefaultBrowser = PR_TRUE;
-    BOOL isDefaultMail    = PR_TRUE;
-    BOOL isDefaultNews    = PR_TRUE;
+    BOOL isDefaultBrowser = true;
+    BOOL isDefaultMail    = true;
+    BOOL isDefaultNews    = true;
     if (aApps & nsIShellService::BROWSER)
       pAAR->QueryAppIsDefaultAll(AL_EFFECTIVE, APP_REG_NAME, &isDefaultBrowser);
     if (aApps & nsIShellService::MAIL)
@@ -542,10 +542,10 @@ nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClie
     *aIsDefaultClient = isDefaultBrowser && isDefaultNews && isDefaultMail;
 
     pAAR->Release();
-    return PR_TRUE;
+    return true;
   }
 #endif  
-  return PR_FALSE;
+  return false;
 }
 
 NS_IMETHODIMP
@@ -555,9 +555,9 @@ nsWindowsShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool 
   // checked this session (so that subsequent window opens don't show the
   // default client dialog).
   if (aStartupCheck)
-    mCheckedThisSessionClient = PR_TRUE;
+    mCheckedThisSessionClient = true;
 
-  *aIsDefaultClient = PR_TRUE;
+  *aIsDefaultClient = true;
 
   // for each type, check if it is the default app
   // browser check needs to be at the top
@@ -643,7 +643,7 @@ NS_IMETHODIMP
 nsWindowsShellService::GetShouldCheckDefaultClient(bool* aResult)
 {
   if (mCheckedThisSessionClient) {
-    *aResult = PR_FALSE;
+    *aResult = false;
     return NS_OK;
   }
 
@@ -924,7 +924,7 @@ nsWindowsShellService::OpenApplicationWithURI(nsILocalFile* aApplication,
   
   const nsCString& spec = PromiseFlatCString(aURI);
   const char* specStr = spec.get();
-  return process->Run(PR_FALSE, &specStr, 1);
+  return process->Run(false, &specStr, 1);
 }
 
 NS_IMETHODIMP

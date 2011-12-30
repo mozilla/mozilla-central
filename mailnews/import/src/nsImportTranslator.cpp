@@ -77,14 +77,14 @@ bool CMHTranslator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOu
       (*pIn == '%')) {
       // needs to be encode as %hex val
       if (!pOutFile->WriteByte( '%'))
-        return( PR_FALSE);
+        return( false);
       ImportCharSet::ByteToHex( *pIn, hex);
       if (!pOutFile->WriteData( hex, 2))
-        return( PR_FALSE);
+        return( false);
     }
     else {
       if (!pOutFile->WriteByte( *pIn))
-        return( PR_FALSE);
+        return( false);
     }
     pIn++; inLen--;
   }
@@ -92,14 +92,14 @@ bool CMHTranslator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOu
   if (pProcessed)
     *pProcessed = inLen;
 
-  return( PR_TRUE);
+  return( true);
 }
 
 
 bool C2047Translator::ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
 {
   if (!inLen)
-    return( PR_TRUE);
+    return( true);
 
   int    maxLineLen = 64;
   int    curLineLen = m_startLen;
@@ -109,40 +109,40 @@ bool C2047Translator::ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, Impor
   while (inLen) {
     if (startLine) {
       if (!pOutFile->WriteStr( " =?"))
-        return( PR_FALSE);
+        return( false);
       if (!pOutFile->WriteStr( m_charset.get()))
-        return( PR_FALSE);
+        return( false);
       if (!pOutFile->WriteStr( "?q?"))
-        return( PR_FALSE);
+        return( false);
       curLineLen += (6 + m_charset.Length());
-      startLine = PR_FALSE;
+      startLine = false;
     }
 
     if (!ImportCharSet::IsUSAscii( *pIn) || ImportCharSet::Is822SpecialChar( *pIn) || ImportCharSet::Is822CtlChar( *pIn) ||
       (*pIn == ImportCharSet::cSpaceChar) || (*pIn == '?') || (*pIn == '=')) {
       // needs to be encode as =hex val
       if (!pOutFile->WriteByte( '='))
-        return( PR_FALSE);
+        return( false);
       ImportCharSet::ByteToHex( *pIn, hex);
       if (!pOutFile->WriteData( hex, 2))
-        return( PR_FALSE);
+        return( false);
       curLineLen += 3;
     }
     else {
       if (!pOutFile->WriteByte( *pIn))
-        return( PR_FALSE);
+        return( false);
       curLineLen++;
     }
     pIn++; inLen--;
     if (curLineLen > maxLineLen) {
       if (!pOutFile->WriteStr( "?="))
-        return( PR_FALSE);
+        return( false);
       if (inLen) {
         if (!pOutFile->WriteStr( "\x0D\x0A "))
-          return( PR_FALSE);
+          return( false);
       }
 
-      startLine = PR_TRUE;
+      startLine = true;
       curLineLen = 0;
     }
   }
@@ -150,13 +150,13 @@ bool C2047Translator::ConvertToFileQ( const PRUint8 * pIn, PRUint32 inLen, Impor
   if (!startLine) {
     // end the encoding!
     if (!pOutFile->WriteStr( "?="))
-      return( PR_FALSE);
+      return( false);
   }
 
   if (pProcessed)
     *pProcessed = inLen;
 
-  return( PR_TRUE);
+  return( true);
 }
 
 bool C2047Translator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, ImportOutFile *pOutFile, PRUint32 *pProcessed)
@@ -165,7 +165,7 @@ bool C2047Translator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, Import
     return( ConvertToFileQ( pIn, inLen, pOutFile, pProcessed));
 
   if (!inLen)
-    return( PR_TRUE);
+    return( true);
 
   int      maxLineLen = 64;
   int      curLineLen = m_startLen;
@@ -177,18 +177,18 @@ bool C2047Translator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, Import
     if (startLine) {
       if (!pOutFile->WriteStr( " =?")) {
         delete [] pEncoded;
-        return( PR_FALSE);
+        return( false);
       }
       if (!pOutFile->WriteStr( m_charset.get())) {
         delete [] pEncoded;
-        return( PR_FALSE);
+        return( false);
       }
       if (!pOutFile->WriteStr( "?b?")) {
         delete [] pEncoded;
-        return( PR_FALSE);
+        return( false);
       }
       curLineLen += (6 + m_charset.Length());
-      startLine = PR_FALSE;
+      startLine = false;
     }
     encodeMax = maxLineLen - curLineLen;
     encodeMax *= 3;
@@ -202,21 +202,21 @@ bool C2047Translator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, Import
 
     if (!pOutFile->WriteStr( (const char *)pEncoded)) {
       delete [] pEncoded;
-      return( PR_FALSE);
+      return( false);
     }
 
     pIn += encodeMax;
     inLen -= encodeMax;
-    startLine = PR_TRUE;
+    startLine = true;
     curLineLen = 0;
     if (!pOutFile->WriteStr( "?=")) {
       delete [] pEncoded;
-      return( PR_FALSE);
+      return( false);
     }
     if (inLen) {
       if (!pOutFile->WriteStr( "\x0D\x0A ")) {
         delete [] pEncoded;
-        return( PR_FALSE);
+        return( false);
       }
     }
   }
@@ -226,7 +226,7 @@ bool C2047Translator::ConvertToFile( const PRUint8 * pIn, PRUint32 inLen, Import
   if (pProcessed)
     *pProcessed = inLen;
 
-  return( PR_TRUE);
+  return( true);
 }
 
 

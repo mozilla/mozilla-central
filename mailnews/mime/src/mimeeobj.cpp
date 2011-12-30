@@ -144,7 +144,7 @@ MimeExternalObject_parse_begin (MimeObject *obj)
       else
       {
         // This is just a normal MIME part as usual.
-        id_url = mime_set_url_part(url, id, PR_TRUE);
+        id_url = mime_set_url_part(url, id, true);
       }
       if (!id_url)
       {
@@ -183,9 +183,9 @@ MimeExternalObject_parse_begin (MimeObject *obj)
     // headers.
     obj->options->state &&
     obj->options->state->root == obj->parent)
-    all_headers_p = PR_FALSE;
+    all_headers_p = false;
 
-    newopt.fancy_headers_p = PR_TRUE;
+    newopt.fancy_headers_p = true;
     newopt.headers = (all_headers_p ? MimeHeadersAll : MimeHeadersSome);
 
 /******
@@ -249,7 +249,7 @@ MimeExternalObject_parse_decoded_buffer (const char *buf, PRInt32 size,
                        obj->options->write_html_p))
     return 0;
   else
-    return MimeObject_write(obj, buf, size, PR_TRUE);
+    return MimeObject_write(obj, buf, size, true);
 }
 
 
@@ -264,5 +264,5 @@ static bool
 MimeExternalObject_displayable_inline_p (MimeObjectClass *clazz,
                      MimeHeaders *hdrs)
 {
-  return PR_FALSE;
+  return false;
 }

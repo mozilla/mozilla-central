@@ -150,7 +150,7 @@ NS_IMETHODIMP nsMsgFilterService::OpenFilterList(nsILocalFile *aFilterFile, nsIM
 
 NS_IMETHODIMP nsMsgFilterService::CloseFilterList(nsIMsgFilterList *filterList)
 {
-  //NS_ASSERTION(PR_FALSE,"CloseFilterList doesn't do anything yet");
+  //NS_ASSERTION(false,"CloseFilterList doesn't do anything yet");
   return NS_OK;
 }
 
@@ -201,7 +201,7 @@ nsresult nsMsgFilterService::BackUpFilterFile(nsILocalFile *aFilterFile, nsIMsgW
   bool exists;
   backupFile->Exists(&exists);
   if (exists)
-    backupFile->Remove(PR_FALSE);
+    backupFile->Remove(false);
 
   return aFilterFile->CopyToNative(localParentDir, NS_LITERAL_CSTRING("rulesbackup.dat"));
 }
@@ -423,7 +423,7 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::OnSearchHit(nsIMsgDBHdr *header, nsIMsgFo
   nsMsgKey msgKey;
   header->GetMessageKey(&msgKey);
   m_searchHits.AppendElement(msgKey);
-  m_searchHitHdrs->AppendElement(header, PR_FALSE);
+  m_searchHitHdrs->AppendElement(header, false);
   return NS_OK;
 }
 
@@ -452,7 +452,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
   bool applyMoreActions;
   if (!aApplyMore)
     aApplyMore = &applyMoreActions;
-  *aApplyMore = PR_TRUE;
+  *aApplyMore = true;
   if (m_curFilter && m_curFolder)
   {
     // we're going to log the filter actions before firing them because some actions are async
@@ -489,7 +489,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
         filterAction->GetTargetFolderUri(actionTargetFolderUri);
         if (actionTargetFolderUri.IsEmpty())
         {
-          NS_ASSERTION(PR_FALSE, "actionTargetFolderUri is empty");
+          NS_ASSERTION(false, "actionTargetFolderUri is empty");
           continue;
         }
       }
@@ -515,11 +515,11 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
         // and we rely on the listener getting called to continue the filter application.
         // This means we're going to end up firing off the delete, and then subsequently
         // issuing a search for the next filter, which will block until the delete finishes.
-        m_curFolder->DeleteMessages(m_searchHitHdrs, m_msgWindow, PR_FALSE, PR_FALSE, nsnull, PR_FALSE /*allow Undo*/ );
+        m_curFolder->DeleteMessages(m_searchHitHdrs, m_msgWindow, false, false, nsnull, false /*allow Undo*/ );
         for (PRUint32 i = 0; i < m_searchHits.Length(); i++)
           m_curFolder->OrProcessingFlags(m_searchHits[i], nsMsgProcessingFlags::FilterToMove);
         //if we are deleting then we couldn't care less about applying remaining filter actions
-        *aApplyMore = PR_FALSE;
+        *aApplyMore = false;
         break;
       case nsMsgFilterAction::MoveToFolder:
       case nsMsgFilterAction::CopyToFolder:
@@ -545,7 +545,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
             destIFolder->GetCanFileMessages(&canFileMessages);
           if (!parentFolder || !canFileMessages)
           {
-            m_curFilter->SetEnabled(PR_FALSE);
+            m_curFilter->SetEnabled(false);
             destIFolder->ThrowAlertMsg("filterDisabled",m_msgWindow);
             // we need to explicitly save the filter file.
             m_filters->SaveToDefaultFile();
@@ -563,7 +563,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
           {
             rv = copyService->CopyMessages(m_curFolder, m_searchHitHdrs,
                 destIFolder, actionType == nsMsgFilterAction::MoveToFolder,
-                this, m_msgWindow, PR_FALSE);
+                this, m_msgWindow, false);
             // We'll continue after a copy, but not after a move
             if (NS_SUCCEEDED(rv) && actionType == nsMsgFilterAction::CopyToFolder
                                  && actionIndex < numActions - 1)
@@ -580,7 +580,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
         }
         //we have already moved the hdrs so we can't apply more actions
         if (actionType == nsMsgFilterAction::MoveToFolder)
-          *aApplyMore = PR_FALSE;
+          *aApplyMore = false;
       }
         break;
       case nsMsgFilterAction::MarkRead:
@@ -593,7 +593,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
         m_curFolder->MarkMessagesRead(m_searchHitHdrs, false);
         break;
       case nsMsgFilterAction::MarkFlagged:
-        m_curFolder->MarkMessagesFlagged(m_searchHitHdrs, PR_TRUE);
+        m_curFolder->MarkMessagesFlagged(m_searchHitHdrs, true);
         break;
       case nsMsgFilterAction::KillThread:
       case nsMsgFilterAction::WatchThread:
@@ -611,9 +611,9 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
               {
                 msgThread->GetThreadKey(&threadKey);
                 if (actionType == nsMsgFilterAction::KillThread)
-                  m_curFolderDB->MarkThreadIgnored(msgThread, threadKey, PR_TRUE, nsnull);
+                  m_curFolderDB->MarkThreadIgnored(msgThread, threadKey, true, nsnull);
                 else
-                  m_curFolderDB->MarkThreadWatched(msgThread, threadKey, PR_TRUE, nsnull);
+                  m_curFolderDB->MarkThreadWatched(msgThread, threadKey, true, nsnull);
               }
             }
           }
@@ -626,7 +626,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
             nsCOMPtr <nsIMsgDBHdr> msgHdr;
             m_searchHitHdrs->QueryElementAt(msgIndex, NS_GET_IID(nsIMsgDBHdr), getter_AddRefs(msgHdr));
             if (msgHdr)
-              m_curFolderDB->MarkHeaderKilled(msgHdr, PR_TRUE, nsnull);
+              m_curFolderDB->MarkHeaderKilled(msgHdr, true, nsnull);
           }
         }
         break;
@@ -737,12 +737,12 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
                   if (!partialMsgs)
                     partialMsgs = do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
                   NS_ENSURE_SUCCESS(rv, rv);
-                  partialMsgs->AppendElement(msgHdr, PR_FALSE);
+                  partialMsgs->AppendElement(msgHdr, false);
                 }
               }
             }
             if (partialMsgs)
-              m_curFolder->DeleteMessages(partialMsgs, m_msgWindow, PR_TRUE, PR_FALSE, nsnull, PR_FALSE);
+              m_curFolder->DeleteMessages(partialMsgs, m_msgWindow, true, false, nsnull, false);
           }
         }
         break;
@@ -762,7 +762,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
                 PRUint32 flags = 0;
                 msgHdr->GetFlags(&flags);
                 if (flags & nsMsgMessageFlags::Partial)
-                  messages->AppendElement(msgHdr, PR_FALSE);
+                  messages->AppendElement(msgHdr, false);
               }
             }
             PRUint32 msgsToFetch;
@@ -776,7 +776,7 @@ nsresult nsMsgFilterAfterTheFact::ApplyFilter(bool *aApplyMore)
       case nsMsgFilterAction::StopExecution:
       {
         // don't apply any more filters
-        *aApplyMore = PR_FALSE;
+        *aApplyMore = false;
       }
       break;
 
@@ -820,7 +820,7 @@ NS_IMETHODIMP nsMsgFilterService::GetTempFilterList(nsIMsgFolder *aFolder, nsIMs
   NS_ENSURE_TRUE(filterList, NS_ERROR_OUT_OF_MEMORY);
   NS_ADDREF(*aFilterList = filterList);
   (*aFilterList)->SetFolder(aFolder);
-  filterList->m_temporaryList = PR_TRUE;
+  filterList->m_temporaryList = true;
   return NS_OK;
 }
 
@@ -1075,15 +1075,15 @@ NS_IMETHODIMP nsMsgFilterAfterTheFact::OnStopCopy(nsresult aStatus)
 bool nsMsgFilterAfterTheFact::ContinueExecutionPrompt()
 {
   if (!m_curFilter)
-    return PR_FALSE;
+    return false;
   nsCOMPtr<nsIStringBundle> bundle;
   nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID);
   if (!bundleService)
-    return PR_FALSE;
+    return false;
   bundleService->CreateBundle("chrome://messenger/locale/filter.properties",
                               getter_AddRefs(bundle));
   if (!bundle)
-    return PR_FALSE;
+    return false;
   nsString filterName;
   m_curFilter->GetFilterName(filterName);
   nsString formatString;
@@ -1095,7 +1095,7 @@ bool nsMsgFilterAfterTheFact::ContinueExecutionPrompt()
   nsresult rv = bundle->FormatStringFromName(NS_LITERAL_STRING("continueFilterExecution").get(),
                                              formatStrings, 1, getter_Copies(confirmText));
   if (NS_FAILED(rv))
-    return PR_FALSE;
+    return false;
   bool returnVal = false;
   (void) DisplayConfirmationPrompt(m_msgWindow, confirmText.get(), &returnVal);
   return returnVal;

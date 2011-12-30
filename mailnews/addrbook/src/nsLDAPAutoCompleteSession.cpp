@@ -1106,7 +1106,7 @@ nsLDAPAutoCompleteSession::IsMessageCurrent(nsILDAPMessage *aMessage,
 {
     // If there's no operation, this message must be stale (ie non-current).
     if ( !mOperation ) {
-        *aIsCurrent = PR_FALSE;
+        *aIsCurrent = false;
         return NS_OK;
     }
 

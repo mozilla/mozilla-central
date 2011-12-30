@@ -135,7 +135,7 @@ nsMsgCompressOStream::WriteSegments(nsReadSegmentFun reader, void * closure, PRU
 /* boolean isNonBlocking (); */
 NS_IMETHODIMP nsMsgCompressOStream::IsNonBlocking(bool *aNonBlocking)
 {
-  *aNonBlocking = PR_FALSE;
+  *aNonBlocking = false;
   return NS_OK;
 }
 

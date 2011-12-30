@@ -56,7 +56,7 @@ nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope,
   m_numLocalLines = numLines;
   PRUint32 flags;
   m_lineCountInBodyLines = NS_SUCCEEDED(msg->GetFlags(&flags)) ?
-    !(flags & nsMsgMessageFlags::Offline) : PR_TRUE;
+    !(flags & nsMsgMessageFlags::Offline) : true;
   // account for added x-mozilla-status lines, and envelope line.
   if (!m_lineCountInBodyLines)
     m_numLocalLines += 3;
@@ -67,7 +67,7 @@ nsMsgBodyHandler::nsMsgBodyHandler (nsIMsgSearchScopeTerm * scope,
   // case so we set them to NULL.
   m_headers = NULL;
   m_headersSize = 0;
-  m_Filtering = PR_FALSE; // make sure we set this before we call initialize...
+  m_Filtering = false; // make sure we set this before we call initialize...
   
   Initialize();  // common initialization stuff
   OpenLocalFolder();      
@@ -83,7 +83,7 @@ nsMsgBodyHandler::nsMsgBodyHandler(nsIMsgSearchScopeTerm * scope,
   m_numLocalLines = numLines;
   PRUint32 flags;
   m_lineCountInBodyLines = NS_SUCCEEDED(msg->GetFlags(&flags)) ?
-    !(flags & nsMsgMessageFlags::Offline) : PR_TRUE;
+    !(flags & nsMsgMessageFlags::Offline) : true;
   // account for added x-mozilla-status lines, and envelope line.
   if (!m_lineCountInBodyLines)
     m_numLocalLines += 3;
@@ -104,13 +104,13 @@ void nsMsgBodyHandler::Initialize()
 // common initialization code regardless of what body type we are handling...
 {
   // Default transformations for local message search and MAPI access
-  m_stripHeaders = PR_TRUE;
-  m_stripHtml = PR_TRUE;
-  m_partIsHtml = PR_FALSE;
-  m_base64part = PR_FALSE;
-  m_isMultipart = PR_FALSE;
-  m_partIsText = PR_TRUE; // default is text/plain
-  m_pastHeaders = PR_FALSE;
+  m_stripHeaders = true;
+  m_stripHtml = true;
+  m_partIsHtml = false;
+  m_base64part = false;
+  m_isMultipart = false;
+  m_partIsText = true; // default is text/plain
+  m_pastHeaders = false;
   m_headerBytesRead = 0;
 }
 
@@ -154,7 +154,7 @@ PRInt32 nsMsgBodyHandler::GetNextLine (nsCString &buf)
   if (!m_isMultipart && m_base64part)
   {
     Base64Decode(buf);
-    m_base64part = PR_FALSE;
+    m_base64part = false;
     // And reapply our transformations...
     outLength = ApplyTransformations(buf, buf.Length(), eatThisLine, buf);
   }
@@ -256,12 +256,12 @@ PRInt32 nsMsgBodyHandler::ApplyTransformations (const nsCString &line, PRInt32 l
                                                 bool &eatThisLine, nsCString &buf)
 {
   PRInt32 newLength = length;
-  eatThisLine = PR_FALSE;
+  eatThisLine = false;
   
   if (!m_pastHeaders)  // line is a line from the message headers
   {
     if (m_stripHeaders)
-      eatThisLine = PR_TRUE;
+      eatThisLine = true;
 
     // We have already grabbed all worthwhile information from the headers,
     // so there is no need to keep track of the current lines
@@ -285,26 +285,26 @@ PRInt32 nsMsgBodyHandler::ApplyTransformations (const nsCString &line, PRInt32 l
       if (!buf.Length())
       {
         NS_WARNING("Trying to transform an empty buffer");
-        eatThisLine = PR_TRUE;
+        eatThisLine = true;
       }
       else
       {
         ApplyTransformations(buf, buf.Length(), eatThisLine, buf);
         // Avoid spurious failures
-        eatThisLine = PR_FALSE;
+        eatThisLine = false;
       }
     }
     else
     {
       buf.Truncate();
-      eatThisLine = PR_TRUE; // We have no content...
+      eatThisLine = true; // We have no content...
     }
 
     // Reset all assumed headers
-    m_base64part = PR_FALSE;
-    m_pastHeaders = PR_FALSE;
-    m_partIsHtml = PR_FALSE;
-    m_partIsText = PR_TRUE;
+    m_base64part = false;
+    m_pastHeaders = false;
+    m_partIsHtml = false;
+    m_partIsText = true;
 
     return buf.Length();
   }
@@ -313,7 +313,7 @@ PRInt32 nsMsgBodyHandler::ApplyTransformations (const nsCString &line, PRInt32 l
   {
     // Ignore non-text parts
     buf.Truncate();
-    eatThisLine = PR_TRUE;
+    eatThisLine = true;
     return 0;
   }
 
@@ -321,7 +321,7 @@ PRInt32 nsMsgBodyHandler::ApplyTransformations (const nsCString &line, PRInt32 l
   {
     // We need to keep track of all lines to parse base64encoded...
     buf.Append(line.get());
-    eatThisLine = PR_TRUE;
+    eatThisLine = true;
     return buf.Length();
   }
     
@@ -349,12 +349,12 @@ void nsMsgBodyHandler::StripHtml (nsCString &pBufInOut)
     {
       if (!inTag)
         if (*pWalkInOut == '<')
-          inTag = PR_TRUE;
+          inTag = true;
         else
           *pWalk++ = *pWalkInOut;
         else
           if (*pWalkInOut == '>')
-            inTag = PR_FALSE;
+            inTag = false;
           pWalkInOut++;
     }
     *pWalk = 0; // null terminator
@@ -383,7 +383,7 @@ void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
   if (StringBeginsWith(lowerCaseLine, NS_LITERAL_CSTRING("content-type:")))
   {
     if (lowerCaseLine.Find("text/html", CaseInsensitiveCompare) != -1)
-      m_partIsHtml = PR_TRUE;
+      m_partIsHtml = true;
     // Strenuous edge case: a message/rfc822 is equivalent to the content type
     // of whatever the message is. Headers should be ignored here. Even more
     // strenuous are message/partial and message/external-body, where the first
@@ -402,12 +402,12 @@ void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
         // handle the first children, we are probably better off assuming that
         // this nested part is going to have text/* children. After all, the
         // biggest usage that I've seen is multipart/signed.
-        m_partIsText = PR_TRUE;
+        m_partIsText = true;
       }
-      m_isMultipart = PR_TRUE;
+      m_isMultipart = true;
     }
     else if (lowerCaseLine.Find("text/", CaseInsensitiveCompare) == -1)
-      m_partIsText = PR_FALSE; // We have disproved our assumption
+      m_partIsText = false; // We have disproved our assumption
   }
 
   // TODO: make this work for nested multiparts (requires some redesign)
@@ -429,7 +429,7 @@ void nsMsgBodyHandler::SniffPossibleMIMEHeader(nsCString &line)
   if (StringBeginsWith(lowerCaseLine,
                        NS_LITERAL_CSTRING("content-transfer-encoding:")) &&
       lowerCaseLine.Find("base64", CaseInsensitiveCompare) != kNotFound)
-    m_base64part = PR_TRUE;
+    m_base64part = true;
 }
 
 /**

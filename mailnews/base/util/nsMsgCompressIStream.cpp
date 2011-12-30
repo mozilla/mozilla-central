@@ -8,7 +8,7 @@
 nsMsgCompressIStream::nsMsgCompressIStream() :
   m_dataptr(nsnull),
   m_dataleft(0),
-  m_inflateAgain(PR_FALSE)
+  m_inflateAgain(false)
 {
 }
 
@@ -75,7 +75,7 @@ nsresult nsMsgCompressIStream::DoInflation()
   // If inflate returns Z_OK and with zero avail_out, it must be called 
   // again after making room in the output buffer because there might be
   // more output pending. 
-  m_inflateAgain = m_zstream.avail_out ? PR_FALSE : PR_TRUE;
+  m_inflateAgain = m_zstream.avail_out ? false : true;
 
   // set the pointer to the start of the buffer, and the count to how
   // based on how many bytes are left unconsumed.
@@ -217,7 +217,7 @@ NS_IMETHODIMP nsMsgCompressIStream::AsyncWait(nsIInputStreamCallback *callback, 
 /* boolean isNonBlocking (); */
 NS_IMETHODIMP nsMsgCompressIStream::IsNonBlocking(bool *aNonBlocking)
 {
-  *aNonBlocking = PR_FALSE;
+  *aNonBlocking = false;
   return NS_OK;
 }
 

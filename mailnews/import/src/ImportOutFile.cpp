@@ -58,7 +58,7 @@
 
 ImportOutFile::ImportOutFile()
 {
-  m_ownsFileAndBuffer = PR_FALSE;
+  m_ownsFileAndBuffer = false;
   m_pos = 0;
   m_pBuf = nsnull;
   m_bufSz = 0;
@@ -72,7 +72,7 @@ ImportOutFile::ImportOutFile( nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz)
   m_pTransBuf = nsnull;
   m_pTransOut = nsnull;
   m_pTrans = nsnull;
-  m_ownsFileAndBuffer = PR_FALSE;
+  m_ownsFileAndBuffer = false;
   InitOutFile( pFile, pBuf, sz);
 }
 
@@ -92,20 +92,20 @@ ImportOutFile::~ImportOutFile()
 bool ImportOutFile::Set8bitTranslator( nsImportTranslator *pTrans)
 {
   if (!Flush())
-    return( PR_FALSE);
+    return( false);
 
-  m_engaged = PR_FALSE;
+  m_engaged = false;
   m_pTrans = pTrans;
   m_supports8to7 = pTrans->Supports8bitEncoding();
 
 
-  return( PR_TRUE);
+  return( true);
 }
 
 bool ImportOutFile::End8bitTranslation( bool *pEngaged, nsCString& useCharset, nsCString& encoding)
 {
   if (!m_pTrans)
-    return( PR_FALSE);
+    return( false);
 
 
   bool bResult = Flush();
@@ -154,19 +154,19 @@ bool ImportOutFile::InitOutFile( nsIFile *pFile, PRUint32 bufSz)
       IMPORT_LOG0( "Couldn't create outfile\n");
       delete [] m_pBuf;
       m_pBuf = nsnull;
-      return( PR_FALSE);
+      return( false);
     }
   }
   m_pFile = pFile;
-  m_ownsFileAndBuffer = PR_TRUE;
+  m_ownsFileAndBuffer = true;
   m_pos = 0;
   m_bufSz = bufSz;
-  return( PR_TRUE);
+  return( true);
 }
 
 void ImportOutFile::InitOutFile( nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz)
 {
-  m_ownsFileAndBuffer = PR_FALSE;
+  m_ownsFileAndBuffer = false;
   m_pFile = pFile;
   m_pBuf = pBuf;
   m_bufSz = sz;
@@ -178,7 +178,7 @@ void ImportOutFile::InitOutFile( nsIFile *pFile, PRUint8 * pBuf, PRUint32 sz)
 bool ImportOutFile::Flush( void)
 {
   if (!m_pos)
-    return( PR_TRUE);
+    return( true);
 
   PRUint32  transLen;
   bool      duddleyDoWrite = false;
@@ -191,9 +191,9 @@ bool ImportOutFile::Flush( void)
       // the difference between the translated len and untranslated len
 
       if (!m_pTrans->ConvertToFile(  m_pBuf, m_pos, m_pTransOut, &transLen))
-        return( PR_FALSE);
+        return( false);
       if (!m_pTransOut->Flush())
-        return( PR_FALSE);
+        return( false);
       // now update our buffer...
       if (transLen < m_pos) {
         memcpy( m_pBuf, m_pBuf + transLen, m_pos - transLen);
@@ -202,7 +202,7 @@ bool ImportOutFile::Flush( void)
     }
     else if (m_engaged) {
       // does not actually support translation!
-      duddleyDoWrite = PR_TRUE;
+      duddleyDoWrite = true;
     }
     else {
       // should we engage?
@@ -215,7 +215,7 @@ bool ImportOutFile::Flush( void)
         len--;
       }
       if (len) {
-        m_engaged = PR_TRUE;
+        m_engaged = true;
         if (m_supports8to7) {
           // allocate our translation output buffer and file...
           m_pTransBuf = new PRUint8[m_bufSz];
@@ -223,25 +223,25 @@ bool ImportOutFile::Flush( void)
           return( Flush());
         }
         else
-          duddleyDoWrite = PR_TRUE;
+          duddleyDoWrite = true;
       }
       else {
-        duddleyDoWrite = PR_TRUE;
+        duddleyDoWrite = true;
       }
     }
   }
   else
-    duddleyDoWrite = PR_TRUE;
+    duddleyDoWrite = true;
 
   if (duddleyDoWrite) {
     PRUint32 written = 0;
     nsresult rv = m_outputStream->Write( (const char *)m_pBuf, (PRInt32)m_pos, &written);
     if (NS_FAILED( rv) || ((PRUint32)written != m_pos))
-      return( PR_FALSE);
+      return( false);
     m_pos = 0;
   }
 
-  return( PR_TRUE);
+  return( true);
 }
 
 bool ImportOutFile::WriteU8NullTerm( const PRUint8 * pSrc, bool includeNull)
@@ -249,7 +249,7 @@ bool ImportOutFile::WriteU8NullTerm( const PRUint8 * pSrc, bool includeNull)
   while (*pSrc) {
     if (m_pos >= m_bufSz) {
       if (!Flush())
-        return( PR_FALSE);
+        return( false);
     }
     *(m_pBuf + m_pos) = *pSrc;
     m_pos++;
@@ -258,19 +258,19 @@ bool ImportOutFile::WriteU8NullTerm( const PRUint8 * pSrc, bool includeNull)
   if (includeNull) {
     if (m_pos >= m_bufSz) {
       if (!Flush())
-        return( PR_FALSE);
+        return( false);
     }
     *(m_pBuf + m_pos) = 0;
     m_pos++;
   }
 
-  return( PR_TRUE);
+  return( true);
 }
 
 bool ImportOutFile::SetMarker( int markerID)
 {
   if (!Flush()) {
-    return( PR_FALSE);
+    return( false);
   }
 
   if (markerID < kMaxMarkers) {
@@ -281,17 +281,17 @@ bool ImportOutFile::SetMarker( int markerID)
                   m_outputStream->Flush();
                   nsresult rv;
                   nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(m_outputStream, &rv);
-                  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+                  NS_ENSURE_SUCCESS(rv, false);
       rv = seekStream->Tell( &pos);
       if (NS_FAILED( rv)) {
         IMPORT_LOG0( "*** Error, Tell failed on output stream\n");
-        return( PR_FALSE);
+        return( false);
       }
     }
     m_markers[markerID] = (PRUint32)pos + m_pos;
   }
 
-  return( PR_TRUE);
+  return( true);
 }
 
 void ImportOutFile::ClearMarker( int markerID)
@@ -303,30 +303,30 @@ void ImportOutFile::ClearMarker( int markerID)
 bool ImportOutFile::WriteStrAtMarker( int markerID, const char *pStr)
 {
   if (markerID >= kMaxMarkers)
-    return( PR_FALSE);
+    return( false);
 
   if (!Flush())
-    return( PR_FALSE);
+    return( false);
   PRInt64    pos;
         m_outputStream->Flush();
         nsresult rv;
         nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(m_outputStream, &rv);
-        NS_ENSURE_SUCCESS(rv, PR_FALSE);
+        NS_ENSURE_SUCCESS(rv, false);
   rv = seekStream->Tell( &pos);
   if (NS_FAILED( rv))
-    return( PR_FALSE);
+    return( false);
   rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, (PRInt32) m_markers[markerID]);
   if (NS_FAILED( rv))
-    return( PR_FALSE);
+    return( false);
   PRUint32 written;
   rv = m_outputStream->Write( pStr, strlen( pStr), &written);
   if (NS_FAILED( rv))
-    return( PR_FALSE);
+    return( false);
 
   rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, pos);
   if (NS_FAILED( rv))
-    return( PR_FALSE);
+    return( false);
 
-  return( PR_TRUE);
+  return( true);
 }
 

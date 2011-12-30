@@ -699,7 +699,7 @@ morkStore::CopyAtom(morkEnv* ev, const morkAtom* inAtom)
   {
     mdbYarn yarn;
     if ( inAtom->AliasYarn(&yarn) )
-      outAtom = this->YarnToAtom(ev, &yarn, PR_TRUE /* create */);
+      outAtom = this->YarnToAtom(ev, &yarn, true /* create */);
   }
   return outAtom;
 }
@@ -2065,7 +2065,7 @@ morkStore::RowScopeHasAssignedIds(nsIMdbEnv* mev,
   mdb_bool* outCallerAssigned, // nonzero if caller assigned specified
   mdb_bool* outStoreAssigned) // nonzero if store db assigned specified
 {
-  NS_ASSERTION(PR_FALSE, " not implemented");
+  NS_ASSERTION(false, " not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -2075,7 +2075,7 @@ morkStore::SetCallerAssignedIds(nsIMdbEnv* mev,
   mdb_bool* outCallerAssigned, // nonzero if caller assigned specified
   mdb_bool* outStoreAssigned) // nonzero if store db assigned specified
 {
-  NS_ASSERTION(PR_FALSE, " not implemented");
+  NS_ASSERTION(false, " not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -2085,7 +2085,7 @@ morkStore::SetStoreAssignedIds(nsIMdbEnv* mev,
   mdb_bool* outCallerAssigned, // nonzero if caller assigned specified
   mdb_bool* outStoreAssigned) // nonzero if store db assigned specified
 {
-  NS_ASSERTION(PR_FALSE, " not implemented");
+  NS_ASSERTION(false, " not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 // } ----- end row scope methods -----
@@ -2146,7 +2146,7 @@ morkStore::ImportContent( // import content from port
 // Call nsIMdbThumb::DoMore() until done, or until the thumb is broken, and
 // then the import will be finished.
 {
-  NS_ASSERTION(PR_FALSE, " not implemented");
+  NS_ASSERTION(false, " not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -2158,7 +2158,7 @@ morkStore::ImportFile( // import content from port
 // Call nsIMdbThumb::DoMore() until done, or until the thumb is broken, and
 // then the import will be finished.
 {
-  NS_ASSERTION(PR_FALSE, " not implemented");
+  NS_ASSERTION(false, " not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 // } ----- end inport/export methods -----

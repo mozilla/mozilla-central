@@ -77,19 +77,19 @@ nsImapUrl::nsImapUrl() : mLock("nsImapUrl.mLock")
   m_listOfMessageIds = nsnull;
   m_tokenPlaceHolder = nsnull;
   m_searchCriteriaString = nsnull;
-  m_idsAreUids = PR_FALSE;
-  m_mimePartSelectorDetected = PR_FALSE;
-  m_allowContentChange = PR_TRUE;  // assume we can do MPOD.
-  m_fetchPartsOnDemand = PR_FALSE; // but assume we're not doing it :-)
-  m_msgLoadingFromCache = PR_FALSE;
-  m_storeResultsOffline = PR_FALSE;
-  m_storeOfflineOnFallback = PR_FALSE;
-  m_localFetchOnly = PR_FALSE;
-  m_rerunningUrl = PR_FALSE;
-  m_moreHeadersToDownload = PR_FALSE;
-  m_externalLinkUrl = PR_TRUE; // we'll start this at true, and set it false in nsImapService::CreateStartOfImapUrl
+  m_idsAreUids = false;
+  m_mimePartSelectorDetected = false;
+  m_allowContentChange = true;  // assume we can do MPOD.
+  m_fetchPartsOnDemand = false; // but assume we're not doing it :-)
+  m_msgLoadingFromCache = false;
+  m_storeResultsOffline = false;
+  m_storeOfflineOnFallback = false;
+  m_localFetchOnly = false;
+  m_rerunningUrl = false;
+  m_moreHeadersToDownload = false;
+  m_externalLinkUrl = true; // we'll start this at true, and set it false in nsImapService::CreateStartOfImapUrl
   m_contentModified = IMAP_CONTENT_NOT_MODIFIED;
-  m_validUrl = PR_TRUE;  // assume the best.
+  m_validUrl = true;  // assume the best.
   m_flags = 0;
   m_extraStatus = ImapStatusNone;
   m_onlineSubDirSeparator = '/';
@@ -99,8 +99,8 @@ nsImapUrl::nsImapUrl() : mLock("nsImapUrl.mLock")
   m_file = nsnull;
   m_imapMailFolderSink = nsnull;
   m_imapMessageSink = nsnull;
-  m_addDummyEnvelope = PR_FALSE;
-  m_canonicalLineEnding = PR_FALSE;
+  m_addDummyEnvelope = false;
+  m_canonicalLineEnding = false;
 }
 
 nsImapUrl::~nsImapUrl()
@@ -243,7 +243,7 @@ NS_IMETHODIMP nsImapUrl::SetSpec(const nsACString &aSpec)
   nsresult rv = nsMsgMailNewsUrl::SetSpec(aSpec);
   if (NS_SUCCEEDED(rv))
   {
-    m_validUrl = PR_TRUE;  // assume the best.
+    m_validUrl = true;  // assume the best.
     rv = ParseUrl();
   }
   return rv;
@@ -459,7 +459,7 @@ void nsImapUrl::ParseImapPart(char *imapPartOfUrl)
 
   if (!m_urlidSubString)
   {
-    m_validUrl = PR_FALSE;
+    m_validUrl = false;
     return;
   }
 
@@ -756,7 +756,7 @@ void nsImapUrl::ParseImapPart(char *imapPartOfUrl)
     }
     else
     {
-      m_validUrl = PR_FALSE;
+      m_validUrl = false;
     }
   }
 }
@@ -1065,7 +1065,7 @@ NS_IMETHODIMP nsImapUrl::CreateServerDestinationFolderPathString(char **result)
   return (*result) ? rv : NS_ERROR_OUT_OF_MEMORY;
 }
 
-// for enabling or disabling mime parts on demand. Setting this to PR_TRUE says we
+// for enabling or disabling mime parts on demand. Setting this to true says we
 // can use mime parts on demand, if we chose.
 NS_IMETHODIMP nsImapUrl::SetAllowContentChange(bool allowContentChange)
 {
@@ -1301,7 +1301,7 @@ NS_IMETHODIMP nsImapUrl::IsUrlType(PRUint32 type, bool *isType)
         m_imapAction == nsIImapUrl::nsImapMsgFetchPeek);
       break;
     default:
-      *isType = PR_FALSE;
+      *isType = false;
   };
 
   return NS_OK;
@@ -1349,7 +1349,7 @@ void nsImapUrl::ParseFolderPath(char **resultingCanonicalPath)
 
   if (!resultPath)
   {
-    m_validUrl = PR_FALSE;
+    m_validUrl = false;
     return;
   }
   NS_ASSERTION(*resultingCanonicalPath == nsnull, "whoops, mem leak");
@@ -1374,7 +1374,7 @@ void nsImapUrl::ParseSearchCriteriaString()
 {
   if (m_tokenPlaceHolder)
   {
-    int quotedFlag = PR_FALSE;
+    int quotedFlag = false;
 
     //skip initial separator
     while (*m_tokenPlaceHolder == *IMAP_URL_TOKEN_SEPARATOR)
@@ -1409,7 +1409,7 @@ void nsImapUrl::ParseSearchCriteriaString()
   else
     m_searchCriteriaString = (char *)NULL;
   if (!m_searchCriteriaString)
-    m_validUrl = PR_FALSE;
+    m_validUrl = false;
 }
 
 
@@ -1417,7 +1417,7 @@ void nsImapUrl::ParseUidChoice()
 {
   char *uidChoiceString = m_tokenPlaceHolder ? NS_strtok(IMAP_URL_TOKEN_SEPARATOR, &m_tokenPlaceHolder) : (char *)NULL;
   if (!uidChoiceString)
-    m_validUrl = PR_FALSE;
+    m_validUrl = false;
   else
     m_idsAreUids = strcmp(uidChoiceString, "UID") == 0;
 }
@@ -1439,7 +1439,7 @@ void nsImapUrl::ParseListOfMessageIds()
 {
   m_listOfMessageIds = m_tokenPlaceHolder ? NS_strtok(IMAP_URL_TOKEN_SEPARATOR, &m_tokenPlaceHolder) : (char *)NULL;
   if (!m_listOfMessageIds)
-    m_validUrl = PR_FALSE;
+    m_validUrl = false;
   else
   {
     m_listOfMessageIds = strdup(m_listOfMessageIds);

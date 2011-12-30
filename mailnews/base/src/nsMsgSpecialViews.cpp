@@ -70,7 +70,7 @@ bool nsMsgThreadsWithUnreadDBView::WantsThisThread(nsIMsgThread *threadHdr)
     threadHdr->GetNumChildren(&numChildren);
     m_totalUnwantedMessagesInView += numChildren;
   }
-  return PR_FALSE;
+  return false;
 }
 
 nsresult nsMsgThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, bool ensureListed)
@@ -151,7 +151,7 @@ bool nsMsgWatchedThreadsWithUnreadDBView::WantsThisThread(nsIMsgThread *threadHd
     threadHdr->GetNumChildren(&numChildren);
     m_totalUnwantedMessagesInView += numChildren;
   }
-  return PR_FALSE;
+  return false;
 }
 
 nsresult nsMsgWatchedThreadsWithUnreadDBView::AddMsgToThreadNotInView(nsIMsgThread *threadHdr, nsIMsgDBHdr *msgHdr, bool ensureListed)

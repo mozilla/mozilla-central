@@ -56,7 +56,7 @@ NS_IMPL_CLASSINFO(calDuration, NULL, 0, CAL_DURATION_CID)
 NS_IMPL_ISUPPORTS1_CI(calDuration, calIDuration)
 
 calDuration::calDuration()
-    : mImmutable(PR_FALSE)
+    : mImmutable(false)
 {
     Reset();
 }
@@ -71,11 +71,11 @@ calDuration::calDuration(const calDuration& cdt)
     mDuration.seconds = cdt.mDuration.seconds;
 
     // copies are always mutable
-    mImmutable = PR_FALSE;
+    mImmutable = false;
 }
 
 calDuration::calDuration(const struct icaldurationtype * const aDurationPtr)
-    : mImmutable(PR_FALSE)
+    : mImmutable(false)
 {
     FromIcalDuration(aDurationPtr);
 }
@@ -92,7 +92,7 @@ calDuration::GetIsMutable(bool *aResult)
 NS_IMETHODIMP
 calDuration::MakeImmutable()
 {
-    mImmutable = PR_TRUE;
+    mImmutable = true;
     return NS_OK;
 }
 

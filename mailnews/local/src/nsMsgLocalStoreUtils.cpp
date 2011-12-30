@@ -60,14 +60,14 @@ nsMsgLocalStoreUtils::nsShouldIgnoreFile(nsAString& name)
   PRUnichar firstChar = name.First();
   if (firstChar == '.' || firstChar == '#' ||
       name.CharAt(name.Length() - 1) == '~')
-    return PR_TRUE;
+    return true;
 
   if (name.LowerCaseEqualsLiteral("msgfilterrules.dat") ||
       name.LowerCaseEqualsLiteral("rules.dat") ||
       name.LowerCaseEqualsLiteral("filterlog.html") ||
       name.LowerCaseEqualsLiteral("junklog.html") ||
       name.LowerCaseEqualsLiteral("rulesbackup.dat"))
-    return PR_TRUE;
+    return true;
 
   // don't add summary files to the list of folders;
   // don't add popstate files to the list either, or rules (sort.dat).
@@ -77,12 +77,12 @@ nsMsgLocalStoreUtils::nsShouldIgnoreFile(nsAString& name)
       name.LowerCaseEqualsLiteral("mailfilt.log") ||
       name.LowerCaseEqualsLiteral("filters.js") ||
       StringEndsWith(name, NS_LITERAL_STRING(".toc")))
-    return PR_TRUE;
+    return true;
 
   // ignore RSS data source files
   if (name.LowerCaseEqualsLiteral("feeds.rdf") ||
       name.LowerCaseEqualsLiteral("feeditems.rdf"))
-    return PR_TRUE;
+    return true;
 
   // The .mozmsgs dir is for spotlight support
     return (StringEndsWith(name, NS_LITERAL_STRING(".mozmsgs")) ||
@@ -150,7 +150,7 @@ nsMsgLocalStoreUtils::ChangeKeywordsHelper(nsIMsgDBHdr *message,
           break; // passed headers; no x-mozilla-keywords header; give up.
         if (StringBeginsWith(keywordHeaders,
                              NS_LITERAL_CSTRING(HEADER_X_MOZILLA_KEYWORDS)))
-          inKeywordHeader = PR_TRUE;
+          inKeywordHeader = true;
         else if (inKeywordHeader && (keywordHeaders.CharAt(0) == ' ' ||
                                      keywordHeaders.CharAt(0) == '\t'))
           ; // continuation header line
@@ -164,7 +164,7 @@ nsMsgLocalStoreUtils::ChangeKeywordsHelper(nsIMsgDBHdr *message,
         if (MsgFindKeyword(keywordArray[i], keywordHeaders, &startOffset,
                            &keywordLength))
         {
-          foundKeyword = PR_TRUE;
+          foundKeyword = true;
           if (!aAdd) // if we're removing, remove it, and break;
           {
             keywordHeaders.Cut(startOffset, keywordLength);
@@ -176,7 +176,7 @@ nsMsgLocalStoreUtils::ChangeKeywordsHelper(nsIMsgDBHdr *message,
           }
           offsetToAddKeyword = 0;
           // if adding and we already have the keyword, done
-          done = PR_TRUE;
+          done = true;
           break;
         }
         // argh, we need to check all the lines to see if we already have the
@@ -186,7 +186,7 @@ nsMsgLocalStoreUtils::ChangeKeywordsHelper(nsIMsgDBHdr *message,
         {
           nsCAutoString curKeywordHdr(keywordHeaders);
           // strip off line ending spaces.
-          curKeywordHdr.Trim(" ", PR_FALSE, PR_TRUE);
+          curKeywordHdr.Trim(" ", false, true);
           if (!offsetToAddKeyword && curKeywordHdr.Length() +
                 keywordToWrite.Length() < keywordHdrLength)
             offsetToAddKeyword = lineStartPos + curKeywordHdr.Length();

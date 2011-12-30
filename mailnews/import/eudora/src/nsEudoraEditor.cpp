@@ -145,15 +145,15 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
     PRInt32   startEmbeddedContentLine = startLastClosingTag;
     PRInt32   lenEmbeddedContentTag = strlen(sEudoraEmbeddedContentLines[i]);
 
-    while ( (startEmbeddedContentLine = m_body.Find(sEudoraEmbeddedContentLines[i], PR_TRUE, startEmbeddedContentLine+1)) != kNotFound )
+    while ( (startEmbeddedContentLine = m_body.Find(sEudoraEmbeddedContentLines[i], true, startEmbeddedContentLine+1)) != kNotFound )
     {
       // Found this translation of "Embedded Content" - remember that so that we don't
       // bother looking for any other translations.
-      foundEmbeddedContentLines = PR_TRUE;
+      foundEmbeddedContentLines = true;
 
       // Extract the file name from the embedded content line
       PRInt32   startFileName = startEmbeddedContentLine + lenEmbeddedContentTag;
-      PRInt32   endFileName = m_body.Find(":", PR_FALSE, startFileName);
+      PRInt32   endFileName = m_body.Find(":", false, startFileName);
 
       // Create the file spec for the embedded image
       embeddedFolderSpec->Clone(getter_AddRefs(embeddedImageSpec));
@@ -169,11 +169,11 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
 
       // Extract CID hash from the embedded content line
       PRInt32     cidHashValue;
-      PRInt32     startCIDHash = m_body.Find(",", PR_FALSE, endFileName);
+      PRInt32     startCIDHash = m_body.Find(",", false, endFileName);
       if (startCIDHash != kNotFound)
       {
         startCIDHash++;
-        PRInt32   endCIDHash = m_body.Find(",", PR_FALSE, startCIDHash);
+        PRInt32   endCIDHash = m_body.Find(",", false, startCIDHash);
 
         if (endCIDHash != kNotFound)
         {
@@ -209,7 +209,7 @@ nsresult nsEudoraEditor::GetEmbeddedObjects(nsISupportsArray ** aNodeList)
       // Append the embedded image node to the list
       (*aNodeList)->AppendElement(imageNode);
 
-      PRInt32   endEmbeddedContentLine = m_body.Find("\r\n", PR_TRUE, startEmbeddedContentLine+1);
+      PRInt32   endEmbeddedContentLine = m_body.Find("\r\n", true, startEmbeddedContentLine+1);
       if (endEmbeddedContentLine != kNotFound)
       {
         // We recognized the "Embedded Content" line correctly and found the associated image.
@@ -309,7 +309,7 @@ bool nsEudoraEditor::HasEmbeddedContent()
 
   for (PRInt32 i = 0; *sEudoraEmbeddedContentLines[i] != '\0'; i++)
   {
-    bHasEmbeddedContent = (m_body.Find(sEudoraEmbeddedContentLines[i], PR_TRUE, 0) != kNotFound);
+    bHasEmbeddedContent = (m_body.Find(sEudoraEmbeddedContentLines[i], true, 0) != kNotFound);
 
     if (bHasEmbeddedContent)
       break;

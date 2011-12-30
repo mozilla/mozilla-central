@@ -166,7 +166,7 @@ MapMultiValue(nsAbOSXCard *aCard, ABRecord *aOSXCard,
         SetStringProperty(aCard, stringValue, aMap.mPropertyName, aNotify,
                           aAbManager);
         
-        return PR_TRUE;
+        return true;
       }
     }
   }
@@ -174,7 +174,7 @@ MapMultiValue(nsAbOSXCard *aCard, ABRecord *aOSXCard,
   SetStringProperty(aCard, EmptyString(), aMap.mPropertyName, aNotify,
                     aAbManager);
   
-  return PR_FALSE;
+  return false;
 }
 
 nsresult
@@ -188,7 +188,7 @@ nsAbOSXCard::Init(const char *aUri)
 
   SetLocalId(nsDependentCString(aUri));
 
-  return Update(PR_FALSE);
+  return Update(false);
 }
 
 nsresult
@@ -218,7 +218,7 @@ nsAbOSXCard::Update(bool aNotify)
   }
 
   if ([card isKindOfClass:[ABGroup class]]) {
-    m_IsMailList = PR_TRUE;
+    m_IsMailList = true;
     m_MailListURI.AssignLiteral(NS_ABOSXDIRECTORY_URI_PREFIX);
     m_MailListURI.Append(uid);
     MapStringProperty(this, card, kABGroupNameProperty, "DisplayName", aNotify,
@@ -241,9 +241,9 @@ nsAbOSXCard::Update(bool aNotify)
       if (MapMultiValue(this, card, propertyMap, aNotify,
                         abManager) && propertyMap.mOSXProperty == kABAddressProperty) {
         if (propertyMap.mOSXLabel == kABAddressHomeLabel) 
-          foundHome = PR_TRUE;
+          foundHome = true;
         else
-          foundWork = PR_TRUE;
+          foundWork = true;
       }
     }
     else {

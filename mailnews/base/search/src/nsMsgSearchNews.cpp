@@ -150,7 +150,7 @@ char *nsMsgSearchNews::EncodeTerm (nsIMsgSearchTerm *term)
     term->GetArbitraryHeader(header);
     if (header.IsEmpty())
     {
-      NS_ASSERTION(PR_FALSE,"malformed search"); // malformed search term?
+      NS_ASSERTION(false,"malformed search"); // malformed search term?
       return nsnull;
     }
     attribEncoding = header.get();
@@ -166,22 +166,22 @@ char *nsMsgSearchNews::EncodeTerm (nsIMsgSearchTerm *term)
   switch (op)
   {
   case nsMsgSearchOp::Contains:
-    leadingStar = PR_TRUE;
-    trailingStar = PR_TRUE;
+    leadingStar = true;
+    trailingStar = true;
     overhead += 2;
     break;
   case nsMsgSearchOp::Is:
     break;
   case nsMsgSearchOp::BeginsWith:
-    trailingStar = PR_TRUE;
+    trailingStar = true;
     overhead++;
     break;
   case nsMsgSearchOp::EndsWith:
-    leadingStar = PR_TRUE;
+    leadingStar = true;
     overhead++;
     break;
   default:
-    NS_ASSERTION(PR_FALSE,"malformed search"); // malformed search term?
+    NS_ASSERTION(false,"malformed search"); // malformed search term?
     return nsnull;
   }
 

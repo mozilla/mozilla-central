@@ -100,7 +100,7 @@ NS_IMETHODIMP nsMsgProcessReport::SetMessage(const PRUnichar * aMessage)
 /* void Reset (); */
 NS_IMETHODIMP nsMsgProcessReport::Reset()
 {
-  mProceeded = PR_FALSE;
+  mProceeded = false;
   mError = NS_OK;
   mMessage.Truncate();
 
@@ -140,7 +140,7 @@ NS_IMETHODIMP nsMsgSendReport::SetCurrentProcess(PRInt32 aCurrentProcess)
 
   mCurrentProcess = aCurrentProcess;
   if (mProcessReport[mCurrentProcess])
-    mProcessReport[mCurrentProcess]->SetProceeded(PR_TRUE);
+    mProcessReport[mCurrentProcess]->SetProceeded(true);
 
   return NS_OK;
 }
@@ -168,7 +168,7 @@ NS_IMETHODIMP nsMsgSendReport::Reset()
 
   mCurrentProcess = 0;
   mDeliveryMode = 0;
-  mAlreadyDisplayReport = PR_FALSE;
+  mAlreadyDisplayReport = false;
 
   return NS_OK;
 }
@@ -268,7 +268,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOn
   if (NS_FAILED(rv))
   {
     //TODO need to display a generic hardcoded message
-    mAlreadyDisplayReport = PR_TRUE;
+    mAlreadyDisplayReport = true;
     return NS_OK;  
   }
 
@@ -307,7 +307,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOn
     // In that case, we must not show an alert ourself.
     if (currError == NS_ERROR_BUT_DONT_SHOW_ALERT)
     {
-      mAlreadyDisplayReport = PR_TRUE;
+      mAlreadyDisplayReport = true;
       return NS_OK;
     }
 
@@ -319,11 +319,11 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOn
     {
       case process_BuildMessage :
         preStrId = NS_ERROR_SEND_FAILED;
-        askToGoBackToCompose = PR_FALSE;
+        askToGoBackToCompose = false;
         break;
       case process_NNTP :
         preStrId = NS_ERROR_SEND_FAILED;
-        askToGoBackToCompose = PR_FALSE;
+        askToGoBackToCompose = false;
         break;
       case process_SMTP :
         bool nntpProceeded;
@@ -332,7 +332,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOn
           preStrId = NS_ERROR_SEND_FAILED_BUT_NNTP_OK;
         else
           preStrId = NS_ERROR_SEND_FAILED;
-        askToGoBackToCompose = PR_FALSE;
+        askToGoBackToCompose = false;
         break;
       case process_Copy:
         preStrId = NS_MSG_FAILED_COPY_OPERATION;
@@ -428,7 +428,7 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOn
     nsMsgDisplayMessageByString(prompt, dialogMessage.get(), dialogTitle.get());
   }
 
-  mAlreadyDisplayReport = PR_TRUE;
+  mAlreadyDisplayReport = true;
   return NS_OK;
 }
 

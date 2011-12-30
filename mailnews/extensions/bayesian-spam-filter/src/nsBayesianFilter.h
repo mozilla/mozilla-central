@@ -293,7 +293,7 @@ public:
      *                    [count]
      *                    [length of word]word
      *
-     * @param aIsAdd      should the data be added, or removed? PR_TRUE if adding,
+     * @param aIsAdd      should the data be added, or removed? true if adding,
      *                    else removing.
      *
      * @param aRemapCount number of items in the parallel arrays aFromTraits,

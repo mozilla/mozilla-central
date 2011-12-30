@@ -61,7 +61,7 @@ void nsMsgGroupThread::Init()
   m_numUnreadChildren = 0;	
   m_flags = 0;
   m_newestMsgDate = 0;
-  m_dummy = PR_FALSE;
+  m_dummy = false;
 }
 
 nsMsgGroupThread::~nsMsgGroupThread()
@@ -98,13 +98,13 @@ NS_IMETHODIMP nsMsgGroupThread::SetFlags(PRUint32 aFlags)
 
 NS_IMETHODIMP nsMsgGroupThread::SetSubject(const nsACString& aSubject)
 {
-  NS_ASSERTION(PR_FALSE, "shouldn't call this");
+  NS_ASSERTION(false, "shouldn't call this");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsMsgGroupThread::GetSubject(nsACString& result)
 {
-  NS_ASSERTION(PR_FALSE, "shouldn't call this");
+  NS_ASSERTION(false, "shouldn't call this");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -151,7 +151,7 @@ nsMsgViewIndex nsMsgGroupThread::FindMsgHdr(nsIMsgDBHdr *hdr)
 NS_IMETHODIMP nsMsgGroupThread::AddChild(nsIMsgDBHdr *child, nsIMsgDBHdr *inReplyTo, bool threadInThread, 
                                     nsIDBChangeAnnouncer *announcer)
 {
-  NS_ASSERTION(PR_FALSE, "shouldn't call this");
+  NS_ASSERTION(false, "shouldn't call this");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -383,13 +383,13 @@ protected:
 
 nsMsgGroupThreadEnumerator::nsMsgGroupThreadEnumerator(nsMsgGroupThread *thread, nsMsgKey startKey,
                                              nsMsgGroupThreadEnumeratorFilter filter, void* closure)
-                                             : mDone(PR_FALSE),
-                                             mFilter(filter), mClosure(closure), mFoundChildren(PR_FALSE)
+                                             : mDone(false),
+                                             mFilter(filter), mClosure(closure), mFoundChildren(false)
 {
   mThreadParentKey = startKey;
   mChildIndex = 0;
   mThread = thread;
-  mNeedToPrefetch = PR_TRUE;
+  mNeedToPrefetch = true;
   mFirstMsgKey = nsMsgKey_None;
   
   nsresult rv = mThread->GetRootHdr(nsnull, getter_AddRefs(mResultHdr));
@@ -425,7 +425,7 @@ nsMsgGroupThreadEnumerator::nsMsgGroupThreadEnumerator(nsMsgGroupThread *thread,
         
       }
       else
-        NS_ASSERTION(PR_FALSE, "couldn't get child from thread");
+        NS_ASSERTION(false, "couldn't get child from thread");
     }
   }
   
@@ -462,7 +462,7 @@ NS_IMPL_ISUPPORTS1(nsMsgGroupThreadEnumerator, nsISimpleEnumerator)
 PRInt32 nsMsgGroupThreadEnumerator::MsgKeyFirstChildIndex(nsMsgKey inMsgKey)
 {
   //	if (msgKey != mThreadParentKey)
-  //		mDone = PR_TRUE;
+  //		mDone = true;
   // look through rest of thread looking for a child of this message.
   // If the inMsgKey is the first message in the thread, then all children
   // without parents are considered to be children of inMsgKey.
@@ -512,7 +512,7 @@ NS_IMETHODIMP nsMsgGroupThreadEnumerator::GetNext(nsISupports **aItem)
   {
     *aItem = mResultHdr;
     NS_ADDREF(*aItem);
-    mNeedToPrefetch = PR_TRUE;
+    mNeedToPrefetch = true;
   }
   return rv;
 }
@@ -557,7 +557,7 @@ nsresult nsMsgGroupThreadEnumerator::Prefetch()
         mResultHdr = nsnull;
       }
       else
-        NS_ASSERTION(PR_FALSE, "better be able to get child");
+        NS_ASSERTION(false, "better be able to get child");
     }
     if (!mResultHdr && mThreadParentKey == mFirstMsgKey && !mFoundChildren && numChildren > 1)
     {
@@ -566,17 +566,17 @@ nsresult nsMsgGroupThreadEnumerator::Prefetch()
   }
   if (!mResultHdr) 
   {
-    mDone = PR_TRUE;
+    mDone = true;
     return NS_ERROR_FAILURE;
   }
   if (NS_FAILED(rv)) 
   {
-    mDone = PR_TRUE;
+    mDone = true;
     return rv;
   }
   else
-    mNeedToPrefetch = PR_FALSE;
-  mFoundChildren = PR_TRUE;
+    mNeedToPrefetch = false;
+  mFoundChildren = true;
 
 #ifdef DEBUG_bienvenu1
 	nsMsgKey debugMsgKey;
@@ -830,7 +830,7 @@ NS_IMETHODIMP nsMsgXFGroupThread::GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **aR
 
 NS_IMETHODIMP nsMsgXFGroupThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult)
 {
-  NS_ASSERTION(PR_FALSE, "shouldn't call this");
+  NS_ASSERTION(false, "shouldn't call this");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -864,7 +864,7 @@ nsMsgViewIndex nsMsgXFGroupThread::FindMsgHdr(nsIMsgDBHdr *hdr)
   nsCOMPtr<nsIMsgFolder> folder;
   hdr->GetFolder(getter_AddRefs(folder));
   PRUint32 index = 0;
-  while (PR_TRUE) {
+  while (true) {
     index = m_keys.IndexOf(msgKey, index);
     if (index == -1 || m_folders[index] == folder)
       break;

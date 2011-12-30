@@ -85,13 +85,13 @@ NS_IMETHODIMP nsMsgXFViewThread::SetFlags(PRUint32 aFlags)
 
 NS_IMETHODIMP nsMsgXFViewThread::SetSubject(const nsACString& aSubject)
 {
-  NS_ASSERTION(PR_FALSE, "shouldn't call this");
+  NS_ASSERTION(false, "shouldn't call this");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsMsgXFViewThread::GetSubject(nsACString& result)
 {
-  NS_ASSERTION(PR_FALSE, "shouldn't call this");
+  NS_ASSERTION(false, "shouldn't call this");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -114,7 +114,7 @@ nsMsgXFViewThread::AddChild(nsIMsgDBHdr *aNewHdr, nsIMsgDBHdr *aInReplyTo,
                             bool aThreadInThread, nsIDBChangeAnnouncer *aAnnouncer)
 {
   PRUint32 whereInserted;
-  return AddHdr(aNewHdr, PR_FALSE, whereInserted, nsnull);
+  return AddHdr(aNewHdr, false, whereInserted, nsnull);
 }
 
 // Returns the parent of the newly added header. If reparentChildren
@@ -367,13 +367,13 @@ NS_IMETHODIMP nsMsgXFViewThread::GetRootHdr(PRInt32 *aResultIndex, nsIMsgDBHdr *
 
 NS_IMETHODIMP nsMsgXFViewThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult)
 {
-  NS_ASSERTION(PR_FALSE, "shouldn't call this");
+  NS_ASSERTION(false, "shouldn't call this");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
 NS_IMETHODIMP nsMsgXFViewThread::GetChild(nsMsgKey msgKey, nsIMsgDBHdr **aResult)
 {
-  NS_ASSERTION(PR_FALSE, "shouldn't call this");
+  NS_ASSERTION(false, "shouldn't call this");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -417,7 +417,7 @@ bool nsMsgXFViewThread::IsHdrParentOf(nsIMsgDBHdr *possibleParent,
     possibleChild->GetStringReference(referenceToCheck - 1, reference);
 
     if (reference.Equals(messageId))
-      return PR_TRUE;
+      return true;
     // if reference didn't match, check if this ref is for a non-existent
     // header. If it is, continue looking at ancestors.
     nsCOMPtr<nsIMsgDBHdr> refHdr;
@@ -426,7 +426,7 @@ bool nsMsgXFViewThread::IsHdrParentOf(nsIMsgDBHdr *possibleParent,
       break;
     referenceToCheck--;
   }
-  return PR_FALSE;
+  return false;
 }
 
 NS_IMETHODIMP nsMsgXFViewThread::GetNewestMsgDate(PRUint32 *aResult) 

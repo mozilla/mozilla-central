@@ -77,7 +77,7 @@ using namespace mozilla;
 
 nsAbLDAPDirectory::nsAbLDAPDirectory() :
   nsAbDirProperty(),
-  mPerformingQuery(PR_FALSE),
+  mPerformingQuery(false),
   mContext(0),
   mLock("nsAbLDAPDirectory.mLock")
 {
@@ -327,7 +327,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::StartSearch ()
     rv = arguments->SetExpression(expression);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = arguments->SetQuerySubDirectories(PR_TRUE);
+    rv = arguments->SetQuerySubDirectories(true);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // Get the max hits to return
@@ -361,7 +361,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::StartSearch ()
 
     // Enter lock
     MutexAutoLock lock(mLock);
-    mPerformingQuery = PR_TRUE;
+    mPerformingQuery = true;
     mCache.Clear();
 
     return rv;
@@ -377,7 +377,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::StopSearch ()
     MutexAutoLock lockGuard(mLock);
     if (!mPerformingQuery)
       return NS_OK;
-    mPerformingQuery = PR_FALSE;
+    mPerformingQuery = false;
   }
   // Exit lock
 
@@ -398,7 +398,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::OnSearchFinished(PRInt32 aResult, const nsAStri
   NS_ENSURE_SUCCESS(rv, rv);
 
   MutexAutoLock lock(mLock);
-  mPerformingQuery = PR_FALSE;
+  mPerformingQuery = false;
 
   return NS_OK;
 }
@@ -425,7 +425,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::OnSearchFoundCard(nsIAbCard* card)
 NS_IMETHODIMP nsAbLDAPDirectory::GetSupportsMailingLists(bool *aSupportsMailingsLists)
 {
   NS_ENSURE_ARG_POINTER(aSupportsMailingsLists);
-  *aSupportsMailingsLists = PR_FALSE;
+  *aSupportsMailingsLists = false;
   return NS_OK;
 }
 
@@ -433,11 +433,11 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetReadOnly(bool *aReadOnly)
 {
   NS_ENSURE_ARG_POINTER(aReadOnly);
 
-  *aReadOnly = PR_TRUE;
+  *aReadOnly = true;
 
 #ifdef MOZ_EXPERIMENTAL_WRITEABLE_LDAP
   bool readOnly;
-  nsresult rv = GetBoolValue("readonly", PR_FALSE, &readOnly);
+  nsresult rv = GetBoolValue("readonly", false, &readOnly);
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (readOnly)
@@ -453,7 +453,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetReadOnly(bool *aReadOnly)
   NS_ENSURE_SUCCESS(rv,rv);
 
   if (!offline)
-    *aReadOnly = PR_FALSE;
+    *aReadOnly = false;
 #endif
 
   return NS_OK;
@@ -462,7 +462,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetReadOnly(bool *aReadOnly)
 NS_IMETHODIMP nsAbLDAPDirectory::GetIsRemote(bool *aIsRemote)
 {
   NS_ENSURE_ARG_POINTER(aIsRemote);
-  *aIsRemote = PR_TRUE;
+  *aIsRemote = true;
   return NS_OK;
 }
 
@@ -485,7 +485,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::UseForAutocomplete(const nsACString &aIdentityK
   NS_ENSURE_ARG_POINTER(aResult);
 
   // Set this to false by default to make the code easier below.
-  *aResult = PR_FALSE;
+  *aResult = false;
 
   nsresult rv;
   bool offline = false;
@@ -732,7 +732,7 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetReplicationDatabase(nsIAddrDatabase **aResul
     do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return addrDBFactory->Open(databaseFile, PR_FALSE /* no create */, PR_TRUE,
+  return addrDBFactory->Open(databaseFile, false /* no create */, true,
                            aResult);
 }
 

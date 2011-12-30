@@ -81,17 +81,17 @@ nsURLFetcher::nsURLFetcher()
   mTotalWritten = 0;
   mBuffer = nsnull;
   mBufferSize = 0;
-  mStillRunning = PR_TRUE;
+  mStillRunning = true;
   mCallback = nsnull;
-  mOnStopRequestProcessed = PR_FALSE;
-  mIsFile=PR_FALSE;
+  mOnStopRequestProcessed = false;
+  mIsFile=false;
   nsURLFetcherStreamConsumer *consumer = new nsURLFetcherStreamConsumer(this);
   mConverter = do_QueryInterface(consumer);
 }
 
 nsURLFetcher::~nsURLFetcher()
 {
-  mStillRunning = PR_FALSE;
+  mStillRunning = false;
   
   PR_FREEIF(mBuffer);
   // Remove the DocShell as a listener of the old WebProgress...
@@ -123,7 +123,7 @@ nsURLFetcher::IsPreferred(const char * aContentType,
                                 bool * aCanHandleContent)
 
 {
-  return CanHandleContent(aContentType, PR_TRUE, aDesiredContentType,
+  return CanHandleContent(aContentType, true, aDesiredContentType,
                           aCanHandleContent);
 }
 
@@ -138,7 +138,7 @@ nsURLFetcher::CanHandleContent(const char * aContentType,
       *aDesiredContentType = strdup("text/html");
 
     // since we explicilty loaded the url, we always want to handle it!
-    *aCanHandleContent = PR_TRUE;
+    *aCanHandleContent = true;
   return NS_OK;
 } 
 
@@ -152,7 +152,7 @@ nsURLFetcher::DoContent(const char * aContentType,
   nsresult rv = NS_OK;
 
   if (aAbortProcess)
-    *aAbortProcess = PR_FALSE;
+    *aAbortProcess = false;
   QueryInterface(NS_GET_IID(nsIStreamListener), (void **) aContentHandler);
 
   /*
@@ -283,7 +283,7 @@ nsURLFetcher::OnStopRequest(nsIRequest *request, nsISupports * ctxt, nsresult aS
 
   if (mOnStopRequestProcessed)
     return NS_OK;
-  mOnStopRequestProcessed = PR_TRUE;
+  mOnStopRequestProcessed = true;
   
   /* first, call our converter or consumer */
   if (mConverter)
@@ -296,7 +296,7 @@ nsURLFetcher::OnStopRequest(nsIRequest *request, nsISupports * ctxt, nsresult aS
   //
   // Now complete the stream!
   //
-  mStillRunning = PR_FALSE;
+  mStillRunning = false;
 
   // time to close the output stream...
   if (mOutStream)
@@ -350,7 +350,7 @@ nsURLFetcher::FireURLRequest(nsIURI *aURL, nsILocalFile *localFile, nsIOutputStr
   aURL->SchemeIs("file", &mIsFile);
   
   // we're about to fire a new url request so make sure the on stop request flag is cleared...
-  mOnStopRequestProcessed = PR_FALSE;
+  mOnStopRequestProcessed = false;
 
   // let's try uri dispatching...
   nsCOMPtr<nsIURILoader> pURILoader (do_GetService(NS_URI_LOADER_CONTRACTID));
@@ -359,7 +359,7 @@ nsURLFetcher::FireURLRequest(nsIURI *aURL, nsILocalFile *localFile, nsIOutputStr
   nsCOMPtr<nsIChannel> channel;
   NS_ENSURE_SUCCESS(NS_NewChannel(getter_AddRefs(channel), aURL, nsnull, nsnull, this), NS_ERROR_FAILURE);
  
-  return pURILoader->OpenURI(channel, PR_FALSE, this);
+  return pURILoader->OpenURI(channel, false, this);
 }
 
 nsresult

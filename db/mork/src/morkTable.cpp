@@ -264,7 +264,7 @@ NS_IMETHODIMP
 morkTable::BecomeContent(nsIMdbEnv* mev,
   const mdbOid* inOid) // exchange content
 {
-  NS_ASSERTION(PR_FALSE, "not implemented"); 
+  NS_ASSERTION(false, "not implemented"); 
   return NS_ERROR_NOT_IMPLEMENTED;
   // remember table->MaybeDirtySpaceStoreAndTable();
 }
@@ -276,7 +276,7 @@ NS_IMETHODIMP
 morkTable::DropActivity( // tell collection usage no longer expected
   nsIMdbEnv* mev)
 {
-  NS_ASSERTION(PR_FALSE, "not implemented"); 
+  NS_ASSERTION(false, "not implemented"); 
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -569,7 +569,7 @@ morkTable::AddOid( // make sure the row with inOid is a table member
   nsIMdbEnv* mev, // context
   const mdbOid* inOid) // row to ensure membership in table
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -723,7 +723,7 @@ morkTable::FindRowMatches( // search variable number of sorted cols
   const mdbYarn* inPrefix, // content to find as prefix in row's column cell
   nsIMdbTableRowCursor** acqCursor) // set of matching rows
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
   
@@ -745,7 +745,7 @@ morkTable::GetSearchColumns( // query columns used by FindRowMatches()
   // Callers are expected to change this set of columns by calls to
   // nsIMdbTable::SearchColumnsHint() or SetSearchSorting(), or both.
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 // } ----- end searching methods -----
@@ -756,7 +756,7 @@ morkTable::SearchColumnsHint( // advise re future expected search cols
   nsIMdbEnv* mev, // context
   const mdbColumnSet* inColumnSet) // columns likely to be searched
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
   
@@ -765,7 +765,7 @@ morkTable::SortColumnsHint( // advise re future expected sort columns
   nsIMdbEnv* mev, // context
   const mdbColumnSet* inColumnSet) // columns for likely sort requests
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -810,7 +810,7 @@ morkTable::CanSortColumn( // query which column is currently used for sorting
   mdb_column inColumn, // column to query sorting potential
   mdb_bool* outCanSort) // whether the column can be sorted
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -820,7 +820,7 @@ morkTable::GetSorting( // view same table in particular sorting
   mdb_column inColumn, // requested new column for sorting table
   nsIMdbSorting** acqSorting) // acquire sorting for column
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -852,7 +852,7 @@ morkTable::SetSearchSorting( // use this sorting in FindRowMatches()
   // zero for inColumn when ioSorting is also provided, since then
   // inColumn is both redundant and ignored).
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -923,7 +923,7 @@ morkTable::AddIndex( // create a sorting index for column if possible
 // Call nsIMdbThumb::DoMore() until done, or until the thumb is broken, and
 // then the index addition will be finished.
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -935,7 +935,7 @@ morkTable::CutIndex( // stop supporting a specific column index
 // Call nsIMdbThumb::DoMore() until done, or until the thumb is broken, and
 // then the index removal will be finished.
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -945,7 +945,7 @@ morkTable::HasIndex( // query for current presence of a column index
   mdb_column inColumn, // the column to investigate
   mdb_bool* outHasIndex) // whether column has index for this column
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -954,7 +954,7 @@ morkTable::EnableIndexOnSort( // create an index for col on first sort
   nsIMdbEnv* mev, // context
   mdb_column inColumn) // the column to index if ever sorted
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -964,7 +964,7 @@ morkTable::QueryIndexOnSort( // check whether index on sort is enabled
   mdb_column inColumn, // the column to investigate
   mdb_bool* outIndexOnSort) // whether column has index-on-sort enabled
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -973,7 +973,7 @@ morkTable::DisableIndexOnSort( // prevent future index creation on sort
   nsIMdbEnv* mev, // context
   mdb_column inColumn) // the column to index if ever sorted
 {
-  NS_ASSERTION(PR_FALSE, "not implemented");
+  NS_ASSERTION(false, "not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 // } ----- end index methods -----

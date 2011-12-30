@@ -42,8 +42,8 @@ nsNewsDownloadDialogArgs::nsNewsDownloadDialogArgs()
 {
     mArticleCount = 0;
     mServerKey = "";
-    mHitOK = PR_FALSE;
-    mDownloadAll = PR_FALSE;
+    mHitOK = false;
+    mDownloadAll = false;
 }
 
 nsNewsDownloadDialogArgs::~nsNewsDownloadDialogArgs()

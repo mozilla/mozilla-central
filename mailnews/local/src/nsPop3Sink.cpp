@@ -82,20 +82,20 @@ NS_IMPL_THREADSAFE_ISUPPORTS1(nsPop3Sink, nsIPop3Sink)
 
 nsPop3Sink::nsPop3Sink()
 {
-    m_authed = PR_FALSE;
-    m_downloadingToTempFile = PR_FALSE;
+    m_authed = false;
+    m_downloadingToTempFile = false;
     m_accountUrl = nsnull;
     m_biffState = 0;
     m_numNewMessages = 0;
     m_numNewMessagesInFolder = 0;
     m_numMsgsDownloaded = 0;
-    m_senderAuthed = PR_FALSE;
+    m_senderAuthed = false;
     m_outputBuffer = nsnull;
     m_outputBufferSize = 0;
     m_popServer = nsnull;
     m_outFileStream = nsnull;
-    m_uidlDownload = PR_FALSE;
-    m_buildMessageUri = PR_FALSE;
+    m_uidlDownload = false;
+    m_buildMessageUri = false;
     if (!POP3LOGMODULE)
       POP3LOGMODULE = PR_NewLogModule("POP3");
 
@@ -198,7 +198,7 @@ nsPop3Sink::FindPartialMessages()
       {
         rv = localFolder->GetFolderScanState(&folderScanState);
         if (NS_SUCCEEDED(rv))
-          isOpen = PR_TRUE;
+          isOpen = true;
         else
           break;
       }
@@ -245,8 +245,8 @@ nsPop3Sink::CheckPartialMessages(nsIPop3Protocol *protocol)
     protocol->CheckMessage(partialMsg->m_uidl.get(), &found);
     if (!found && partialMsg->m_msgDBHdr)
     {
-      m_newMailParser->m_mailDB->DeleteHeader(partialMsg->m_msgDBHdr, nsnull, PR_FALSE, PR_TRUE);
-      deleted = PR_TRUE;
+      m_newMailParser->m_mailDB->DeleteHeader(partialMsg->m_msgDBHdr, nsnull, false, true);
+      deleted = true;
     }
     delete partialMsg;
   }
@@ -301,7 +301,7 @@ nsPop3Sink::BeginMailDelivery(bool uidlDownload, nsIMsgWindow *aMsgWindow, bool*
   NS_ENSURE_SUCCESS(rv, rv);
   pop3Service->NotifyDownloadStarted(m_folder);
   if (aBool)
-    *aBool = PR_TRUE;
+    *aBool = true;
   return NS_OK;
 }
 
@@ -329,7 +329,7 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
   }
 
   if (m_downloadingToTempFile)
-    m_tmpDownloadFile->Remove(PR_FALSE);
+    m_tmpDownloadFile->Remove(false);
 
   // tell the parser to mark the db valid *after* closing the mailbox.
   if (m_newMailParser)
@@ -346,7 +346,7 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
   // will go negative by the number of messages marked read or deleted,
   // so if we add that number to the number of msgs downloaded, that will give
   // us the number of actual new messages.
-  m_folder->GetNumNewMessages(PR_FALSE, &numNewMessagesInFolder);
+  m_folder->GetNumNewMessages(false, &numNewMessagesInFolder);
   m_numNewMessages -= (m_numNewMessagesInFolder  - numNewMessagesInFolder);
   m_folder->SetNumNewMessages(m_numNewMessages); // we'll adjust this for spam later
   if (!filtersRun && m_numNewMessages > 0)
@@ -355,9 +355,9 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
     m_folder->GetServer(getter_AddRefs(server));
     if (server)
     {
-      server->SetPerformingBiff(PR_TRUE);
+      server->SetPerformingBiff(true);
       m_folder->SetBiffState(m_biffState);
-      server->SetPerformingBiff(PR_FALSE);
+      server->SetPerformingBiff(false);
     }
   }
   // note that size on disk has possibly changed.
@@ -378,7 +378,7 @@ nsPop3Sink::EndMailDelivery(nsIPop3Protocol *protocol)
   // fix for bug #161999
   // we should update the summary totals for the folder (inbox)
   // in case it's not the open folder
-  m_folder->UpdateSummaryTotals(PR_TRUE);
+  m_folder->UpdateSummaryTotals(true);
 
   // check if the folder open in this window is not the current folder, and if it has new
   // message, in which case we need to try to run the filter plugin.
@@ -460,7 +460,7 @@ nsPop3Sink::AbortMailDelivery(nsIPop3Protocol *protocol)
   }
 
   if (m_downloadingToTempFile && m_tmpDownloadFile)
-    m_tmpDownloadFile->Remove(PR_FALSE);
+    m_tmpDownloadFile->Remove(false);
 
   /* tell the parser to mark the db valid *after* closing the mailbox.
   we have truncated the inbox, so berkeley mailbox and msf file are in sync*/
@@ -563,7 +563,7 @@ nsPop3Sink::IncorporateBegin(const char* uidlString,
   if (m_uidlDownload)
     m_newMailParser->DisableFilters();
 
-  m_folder->GetNumNewMessages(PR_FALSE, &m_numNewMessagesInFolder);
+  m_folder->GetNumNewMessages(false, &m_numNewMessagesInFolder);
   nsCOMPtr <nsIMsgFolder> serverFolder;
   rv = GetServerFolder(getter_AddRefs(serverFolder));
   if (NS_FAILED(rv)) return rv;

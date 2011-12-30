@@ -90,7 +90,7 @@ MimeMultipartAppleDouble_parse_begin (MimeObject *obj)
 #ifdef XP_MACOSX
   if (obj->options && obj->options->state)
   {
-//  obj->options->state->separator_suppressed_p = PR_TRUE;
+//  obj->options->state->separator_suppressed_p = true;
   goto done;
   }
   /*
@@ -129,7 +129,7 @@ MimeMultipartAppleDouble_parse_begin (MimeObject *obj)
       else
       {
       /* This is just a normal MIME part as usual. */
-      id_url = mime_set_url_part(url, id, PR_TRUE);
+      id_url = mime_set_url_part(url, id, true);
       }
       if (!id_url)
       {
@@ -166,9 +166,9 @@ MimeMultipartAppleDouble_parse_begin (MimeObject *obj)
       // headers.
       obj->options->state &&
       obj->options->state->root == obj->parent)
-    all_headers_p = PR_FALSE;
+    all_headers_p = false;
 
-    newopt.fancy_headers_p = PR_TRUE;
+    newopt.fancy_headers_p = true;
     newopt.headers = (all_headers_p ? MimeHeadersAll : MimeHeadersSome);
 
 //
@@ -210,12 +210,12 @@ MimeMultipartAppleDouble_output_child_p(MimeObject *obj, MimeObject *child)
   {
 #ifdef XP_MACOSX
     if (obj->output_p && obj->options && obj->options->write_html_p) //output HTML
-      return PR_FALSE;
+      return false;
 #else
     /* if we are not on a Macintosh, don't emitte the resources fork at all. */
-    return PR_FALSE;
+    return false;
 #endif
   }
 
-  return PR_TRUE;
+  return true;
 }

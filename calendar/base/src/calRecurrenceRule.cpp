@@ -55,9 +55,9 @@ NS_IMPL_CLASSINFO(calRecurrenceRule, NULL, 0, CAL_RECURRENCERULE_CID)
 NS_IMPL_ISUPPORTS2_CI(calRecurrenceRule, calIRecurrenceItem, calIRecurrenceRule)
 
 calRecurrenceRule::calRecurrenceRule()
-    : mImmutable(PR_FALSE),
-      mIsNegative(PR_FALSE),
-      mIsByCount(PR_FALSE)
+    : mImmutable(false),
+      mIsNegative(false),
+      mIsByCount(false)
 {
     icalrecurrencetype_clear(&mIcalRecur);
 }
@@ -73,7 +73,7 @@ calRecurrenceRule::GetIsMutable(bool *aResult)
 NS_IMETHODIMP
 calRecurrenceRule::MakeImmutable()
 {
-    mImmutable = PR_TRUE;
+    mImmutable = true;
     return NS_OK;
 }
 
@@ -118,9 +118,9 @@ calRecurrenceRule::GetIsFinite(bool *_retval)
     if ((mIsByCount && mIcalRecur.count == 0) ||
         (!mIsByCount && icaltime_is_null_time(mIcalRecur.until)))
     {
-        *_retval = PR_FALSE;
+        *_retval = false;
     } else {
-        *_retval = PR_TRUE;
+        *_retval = true;
     }
     return NS_OK;
 }
@@ -202,7 +202,7 @@ calRecurrenceRule::SetCount(PRInt32 aRecurCount)
 
     mIcalRecur.until = icaltime_null_time();
 
-    mIsByCount = PR_TRUE;
+    mIsByCount = true;
 
     return NS_OK;
 }
@@ -250,7 +250,7 @@ calRecurrenceRule::SetUntilDate(calIDateTime * aRecurEnd)
 
     mIcalRecur.count = 0;
 
-    mIsByCount = PR_FALSE;
+    mIsByCount = false;
 
     return NS_OK;
 }
@@ -554,9 +554,9 @@ calRecurrenceRule::SetIcalProperty(calIIcalProperty *aProp)
     nsresult rv = aProp->GetPropertyName(propname);
     NS_ENSURE_SUCCESS(rv, rv);
     if (propname.EqualsLiteral("RRULE"))
-        mIsNegative = PR_FALSE;
+        mIsNegative = false;
     else if (propname.EqualsLiteral("EXRULE"))
-        mIsNegative = PR_TRUE;
+        mIsNegative = true;
     else
         return NS_ERROR_INVALID_ARG;
 
@@ -578,9 +578,9 @@ calRecurrenceRule::SetIcalProperty(calIIcalProperty *aProp)
     //icaldtstrat = icalproperty_get_dtstart(prop);
 
     if (icalrecur.count != 0)
-        mIsByCount = PR_TRUE;
+        mIsByCount = true;
     else
-        mIsByCount = PR_FALSE;
+        mIsByCount = false;
 
     mIcalRecur = icalrecur;
 

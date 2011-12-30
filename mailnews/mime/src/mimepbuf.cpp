@@ -146,7 +146,7 @@ MimePartBufferReset (MimePartBufferData *data)
 
   if (data->file_buffer)
   {
-    data->file_buffer->Remove(PR_FALSE);
+    data->file_buffer->Remove(false);
     data->file_buffer = nsnull;
   }
 }

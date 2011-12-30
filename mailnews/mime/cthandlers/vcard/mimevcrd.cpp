@@ -87,7 +87,7 @@ MIME_VCardCreateContentTypeHandlerClass(const char *content_type,
     return NULL;
 
   clazz->superclass = (MimeObjectClass *)COM_GetmimeInlineTextClass();
-  initStruct->force_inline_display = PR_TRUE;
+  initStruct->force_inline_display = true;
   return clazz;
 }
 
@@ -122,7 +122,7 @@ MimeInlineTextVCard_parse_begin (MimeObject *obj)
   /* initialize vcard string to empty; */
   NS_MsgSACopy(&(clazz->vCardString), "");
 
-  obj->options->state->separator_suppressed_p = PR_TRUE;
+  obj->options->state->separator_suppressed_p = true;
   return 0;
 }
 
@@ -144,7 +144,7 @@ MimeInlineTextVCard_parse_line (const char *line, PRInt32 length, MimeObject *ob
   if (!obj->options || !obj->options->output_fn) return 0;
   if (!obj->options->write_html_p)
   {
-    return COM_MimeObject_write(obj, line, length, PR_TRUE);
+    return COM_MimeObject_write(obj, line, length, true);
   }
 
   linestring = (char *) PR_MALLOC (length + 1);
@@ -229,7 +229,7 @@ static int EndVCard (MimeObject *obj)
   /* Scribble HTML-ending stuff into the stream */
   char htmlFooters[32];
   PR_snprintf (htmlFooters, sizeof(htmlFooters), "</BODY>%s</HTML>%s", MSG_LINEBREAK, MSG_LINEBREAK);
-  status = COM_MimeObject_write(obj, htmlFooters, strlen(htmlFooters), PR_FALSE);
+  status = COM_MimeObject_write(obj, htmlFooters, strlen(htmlFooters), false);
 
   if (status < 0) return status;
 
@@ -245,7 +245,7 @@ static int BeginVCard (MimeObject *obj)
 
   s_unique++;
   PR_snprintf (htmlHeaders, sizeof(htmlHeaders), "<HTML>%s<BODY>%s", MSG_LINEBREAK, MSG_LINEBREAK);
-    status = COM_MimeObject_write(obj, htmlHeaders, strlen(htmlHeaders), PR_TRUE);
+    status = COM_MimeObject_write(obj, htmlHeaders, strlen(htmlHeaders), true);
 
   if (status < 0) return status;
 
@@ -279,7 +279,7 @@ static int GenerateVCardData(MimeObject * aMimeObj, VObject* aVcard)
   nsCAutoString vEscCard;
   int len = 0;
 
-  vCard.Adopt(vCardService->WriteMemoryVObjects(0, &len, aVcard, PR_FALSE));
+  vCard.Adopt(vCardService->WriteMemoryVObjects(0, &len, aVcard, false));
   MsgEscapeString(vCard, nsINetUtil::ESCAPE_XALPHAS, vEscCard);
 
   // first cell in the outer table row is a clickable image which brings up the rich address book UI for the vcard
@@ -300,7 +300,7 @@ static int GenerateVCardData(MimeObject * aMimeObj, VObject* aVcard)
   vCardOutput += "</tr> </table>";
 
   // now write out the vCard
-  return COM_MimeObject_write(aMimeObj, (char *) vCardOutput.get(), vCardOutput.Length(), PR_TRUE);
+  return COM_MimeObject_write(aMimeObj, (char *) vCardOutput.get(), vCardOutput.Length(), true);
 }
 
 

@@ -316,7 +316,7 @@ mime_decode_base64_buffer (MimeDecoderData *data,
       buffer = in;
       out = (char *) buffer;
 
-      leftover = PR_FALSE;
+      leftover = false;
     }
     else
     {
@@ -1037,7 +1037,7 @@ mime_encode_qp_buffer (MimeEncoderData *data, const char *buffer, PRInt32 size)
       /* Now write out the newline. */
       *out++ = '\r';
       *out++ = '\n';
-      white = PR_FALSE;
+      white = false;
 
       status = data->write_buffer (out_buffer, (out - out_buffer),
         data->closure);
@@ -1049,7 +1049,7 @@ mime_encode_qp_buffer (MimeEncoderData *data, const char *buffer, PRInt32 size)
         in++;
 
       out = out_buffer;
-      white = PR_FALSE;
+      white = false;
       data->current_column = 0;
     }
     else if (data->current_column == 0 && *in == '.')
@@ -1081,20 +1081,20 @@ mime_encode_qp_buffer (MimeEncoderData *data, const char *buffer, PRInt32 size)
          (*in >= 62 && *in <= 126) ||
                            (mb_p && (*in == 61 || *in == 127 || *in == 0x1B)))
     {
-      white = PR_FALSE;
+      white = false;
       *out++ = *in;
       data->current_column++;
     }
     else if (*in == ' ' || *in == '\t')    /* whitespace */
     {
-      white = PR_TRUE;
+      white = true;
       *out++ = *in;
       data->current_column++;
     }
     else                    /* print as =FF */
     {
 HEX:
-      white = PR_FALSE;
+      white = false;
                   *out++ = '=';
                   *out++ = hexdigits[*in >> 4];
                   *out++ = hexdigits[*in & 0xF];
@@ -1113,7 +1113,7 @@ HEX:
         data->closure);
       if (status < 0) return status;
       out = out_buffer;
-      white = PR_FALSE;
+      white = false;
       data->current_column = 0;
     }
   }

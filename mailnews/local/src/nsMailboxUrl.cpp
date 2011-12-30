@@ -77,8 +77,8 @@ nsMailboxUrl::nsMailboxUrl()
   m_messageKey = nsMsgKey_None;
   m_messageSize = 0;
   m_messageFile = nsnull;
-  m_addDummyEnvelope = PR_FALSE;
-  m_canonicalLineEnding = PR_FALSE;
+  m_addDummyEnvelope = false;
+  m_canonicalLineEnding = false;
   m_curMsgIndex = 0;
 }
 
@@ -221,8 +221,8 @@ nsresult nsMailboxUrl::GetMsgHdrForKey(nsMsgKey  msgKey, nsIMsgDBHdr ** aMsgHdr)
     nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
 
     if (msgDBService)
-      rv = msgDBService->OpenMailDBFromFile(m_filePath, nsnull, PR_FALSE,
-                                            PR_FALSE, getter_AddRefs(mailDB));
+      rv = msgDBService->OpenMailDBFromFile(m_filePath, nsnull, false,
+                                            false, getter_AddRefs(mailDB));
     if (NS_SUCCEEDED(rv) && mailDB) // did we get a db back?
       rv = mailDB->GetMsgHdrForKey(msgKey, aMsgHdr);
     else
@@ -325,7 +325,7 @@ NS_IMETHODIMP nsMailboxUrl::IsUrlType(PRUint32 type, bool *isType)
       *isType = (m_mailboxAction == nsIMailboxUrl::ActionFetchMessage);
       break;
     default:
-      *isType = PR_FALSE;
+      *isType = false;
   };
 
   return NS_OK;

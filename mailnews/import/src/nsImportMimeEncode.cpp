@@ -85,7 +85,7 @@ bool nsImportMimeEncode::SetUpEncode( void)
     m_pInputBuf = new PRUint8[kEncodeBufferSz];
   }
 
-  m_appleSingle = PR_FALSE;
+  m_appleSingle = false;
 
 #ifdef _MAC_IMPORT_CODE
   // First let's see just what kind of beast we have?
@@ -100,7 +100,7 @@ bool nsImportMimeEncode::SetUpEncode( void)
 #endif
 
   if (!InitEncodeScan( m_appleSingle, m_pMimeFile, m_fileName.get(), m_pInputBuf, kEncodeBufferSz)) {
-    return( PR_FALSE);
+    return( false);
   }
 
   m_state = kEncodeState;
@@ -160,10 +160,10 @@ bool nsImportMimeEncode::SetUpEncode( void)
 
 bool nsImportMimeEncode::DoWork( bool *pDone)
 {
-  *pDone = PR_FALSE;
+  *pDone = false;
   switch( m_state) {
   case kNoState:
-    return( PR_FALSE);
+    return( false);
     break;
   case kStartState:
     return( SetUpEncode());
@@ -171,21 +171,21 @@ bool nsImportMimeEncode::DoWork( bool *pDone)
   case kEncodeState:
     if (!Scan( pDone)) {
       CleanUp();
-      return( PR_FALSE);
+      return( false);
     }
     if (*pDone) {
-      *pDone = PR_FALSE;
+      *pDone = false;
       m_state = kDoneState;
     }
     break;
   case kDoneState:
     CleanUp();
     m_state = kNoState;
-    *pDone = PR_TRUE;
+    *pDone = true;
     break;
   }
 
-  return( PR_TRUE);
+  return( true);
 }
 
 static PRUint8 gBase64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
@@ -209,13 +209,13 @@ bool nsImportMimeEncode::ScanBuffer( bool *pDone)
     pChar++;
     byte[3] = gBase64[(*pChar) & 0x3F];
     if (!m_pOut->WriteData( byte, 4))
-      return( PR_FALSE);
+      return( false);
     pos += 3;
     pChar++;
     lineLen += 4;
     if (lineLen > 71) {
       if (!m_pOut->WriteEol())
-        return( PR_FALSE);
+        return( false);
       lineLen = 0;
     }
   }
@@ -247,9 +247,9 @@ bool nsImportMimeEncode::ScanBuffer( bool *pDone)
     }
 
     if (!m_pOut->WriteData( byte, 4))
-      return( PR_FALSE);
+      return( false);
     if (!m_pOut->WriteEol())
-      return( PR_FALSE);
+      return( false);
   }
   else if (m_eof) {
     /*
@@ -258,13 +258,13 @@ bool nsImportMimeEncode::ScanBuffer( bool *pDone)
       return( FALSE);
     */
     if (!m_pOut->WriteEol())
-      return( PR_FALSE);
+      return( false);
   }
 
   m_lineLen = (int) lineLen;
   m_pos = pos;
   m_bytesProcessed += (pos - start);
-  return( PR_TRUE);
+  return( true);
 }
 
 bool nsImportMimeEncode::TranslateFileName( nsCString& inFile, nsCString& outFile)
@@ -281,17 +281,17 @@ bool nsImportMimeEncode::TranslateFileName( nsCString& inFile, nsCString& outFil
   if (len) {
     // non US ascii!
     // assume this string needs translating...
-    if (!ImportTranslate::ConvertString( inFile, outFile, PR_TRUE)) {
+    if (!ImportTranslate::ConvertString( inFile, outFile, true)) {
       outFile = inFile;
-      return( PR_FALSE);
+      return( false);
     }
     else {
-      return( PR_TRUE);
+      return( true);
     }
   }
   else {
     outFile = inFile;
-    return( PR_FALSE);
+    return( false);
   }
 }
 

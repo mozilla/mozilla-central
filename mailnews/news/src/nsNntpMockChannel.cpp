@@ -90,7 +90,7 @@ NS_IMETHODIMP nsNntpMockChannel::IsPending(bool *result)
 {
   FORWARD_CALL(IsPending, result)
   // We haven't been loaded yet, so we're still pending.
-  *result = PR_TRUE;
+  *result = true;
   return NS_OK;
 }
 

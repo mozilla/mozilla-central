@@ -66,12 +66,12 @@ NS_IMPL_THREADSAFE_ISUPPORTS5(nsMsgOfflineManager,
                               nsIUrlListener)
 
 nsMsgOfflineManager::nsMsgOfflineManager() :
-  m_inProgress (PR_FALSE),
-  m_sendUnsentMessages(PR_FALSE),
-  m_downloadNews(PR_FALSE),
-  m_downloadMail(PR_FALSE),
-  m_playbackOfflineImapOps(PR_FALSE),
-  m_goOfflineWhenDone(PR_FALSE),
+  m_inProgress (false),
+  m_sendUnsentMessages(false),
+  m_downloadNews(false),
+  m_downloadMail(false),
+  m_playbackOfflineImapOps(false),
+  m_goOfflineWhenDone(false),
   m_curState(eNoState),
   m_curOperation(eNoOp)
 {
@@ -115,7 +115,7 @@ NS_IMETHODIMP nsMsgOfflineManager::SetInProgress(bool aInProgress)
 
 nsresult nsMsgOfflineManager::StopRunning(nsresult exitStatus)
 {
-  m_inProgress = PR_FALSE;
+  m_inProgress = false;
   return exitStatus;
 }
 
@@ -154,7 +154,7 @@ nsresult nsMsgOfflineManager::AdvanceToNextState(nsresult exitStatus)
       m_curState = eDone;
       return StopRunning(exitStatus);
       default:
-        NS_ASSERTION(PR_FALSE, "unhandled current state when going online");
+        NS_ASSERTION(false, "unhandled current state when going online");
     }
   }
   else if (m_curOperation == eDownloadingForOffline)
@@ -171,7 +171,7 @@ nsresult nsMsgOfflineManager::AdvanceToNextState(nsresult exitStatus)
       case eSendingUnsent:
         if (m_goOfflineWhenDone)
         {
-          SetOnlineState(PR_FALSE);
+          SetOnlineState(false);
         }
         break;
       case eDownloadingNews:
@@ -189,7 +189,7 @@ nsresult nsMsgOfflineManager::AdvanceToNextState(nsresult exitStatus)
           AdvanceToNextState(NS_OK);
         break;
       default:
-        NS_ASSERTION(PR_FALSE, "unhandled current state when downloading for offline");
+        NS_ASSERTION(false, "unhandled current state when downloading for offline");
     }
 
   }
@@ -243,7 +243,7 @@ nsresult nsMsgOfflineManager::SendUnsentMessages()
       if (outboxFolder)
       {
         PRInt32 numMessages;
-        outboxFolder->GetTotalMessages(PR_FALSE, &numMessages);
+        outboxFolder->GetTotalMessages(false, &numMessages);
         if (numMessages > 0)
         {
           identityToUse = thisIdentity;
@@ -329,7 +329,7 @@ NS_IMETHODIMP nsMsgOfflineManager::GoOnline(bool sendUnsentMessages, bool playba
   m_curOperation = eGoingOnline;
   m_curState = eNoState;
   SetWindow(aMsgWindow);
-  SetOnlineState(PR_TRUE);
+  SetOnlineState(true);
   if (!m_sendUnsentMessages && !playbackOfflineImapOperations)
     return NS_OK;
   else
@@ -350,7 +350,7 @@ NS_IMETHODIMP nsMsgOfflineManager::SynchronizeForOffline(bool downloadNews, bool
   if (!downloadNews && !downloadMail && !sendUnsentMessages)
   {
     if (goOfflineWhenDone)
-      return SetOnlineState(PR_FALSE);
+      return SetOnlineState(false);
   }
   else
     return AdvanceToNextState(NS_OK);

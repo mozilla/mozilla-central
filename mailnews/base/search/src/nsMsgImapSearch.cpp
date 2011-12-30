@@ -117,7 +117,7 @@ nsresult nsMsgSearchOnlineMail::Encode (nsCString& pEncoding,
   bool asciiOnly = true;
   // ### what's this mean in the NWO?????
   
-  if (PR_TRUE) // !(srcCharset & CODESET_MASK == STATEFUL || srcCharset & CODESET_MASK == WIDECHAR) )   //assume all single/multiple bytes charset has ascii as subset
+  if (true) // !(srcCharset & CODESET_MASK == STATEFUL || srcCharset & CODESET_MASK == WIDECHAR) )   //assume all single/multiple bytes charset has ascii as subset
   {
     PRUint32 termCount;
     searchTerms->Count(&termCount);
@@ -149,7 +149,7 @@ nsresult nsMsgSearchOnlineMail::Encode (nsCString& pEncoding,
     }
   }
   else
-    asciiOnly = PR_FALSE;
+    asciiOnly = false;
   
   nsAutoString usAsciiCharSet(NS_LITERAL_STRING("us-ascii"));
   // Get the optional CHARSET parameter, in case we need it.
@@ -159,7 +159,7 @@ nsresult nsMsgSearchOnlineMail::Encode (nsCString& pEncoding,
   // I just pass destCharset for both src and dest charset instead of removing srcCharst from the arguemnt.
   nsresult err = nsMsgSearchAdapter::EncodeImap (getter_Copies(imapTerms), searchTerms, 
     asciiOnly ?  usAsciiCharSet.get(): destCharset, 
-    asciiOnly ?  usAsciiCharSet.get(): destCharset, PR_FALSE);
+    asciiOnly ?  usAsciiCharSet.get(): destCharset, false);
   if (NS_SUCCEEDED(err))
   {
     pEncoding.Append("SEARCH");

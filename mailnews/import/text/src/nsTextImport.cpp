@@ -196,7 +196,7 @@ NS_IMETHODIMP nsTextImport::GetSupportsUpgrade( bool *pUpgrade)
   if (! pUpgrade)
     return NS_ERROR_NULL_POINTER;
 
-  *pUpgrade = PR_FALSE;
+  *pUpgrade = false;
   return NS_OK;
 }
 
@@ -249,7 +249,7 @@ nsresult ImportAddressImpl::Create(nsIImportAddressBooks** aImport,
 ImportAddressImpl::ImportAddressImpl(nsIStringBundle* aStringBundle) :
   m_notProxyBundle(aStringBundle)
 {
-  m_haveDelim = PR_FALSE;
+  m_haveDelim = false;
 }
 
 NS_IMPL_THREADSAFE_ISUPPORTS1(ImportAddressImpl, nsIImportAddressBooks)
@@ -263,7 +263,7 @@ NS_IMETHODIMP ImportAddressImpl::GetAutoFind(PRUnichar **addrDescription, bool *
     return NS_ERROR_NULL_POINTER;
 
   nsString str;
-  *_retval = PR_FALSE;
+  *_retval = false;
 
   if (!m_notProxyBundle)
     return NS_ERROR_FAILURE;
@@ -283,8 +283,8 @@ NS_IMETHODIMP ImportAddressImpl::GetDefaultLocation(nsIFile **ppLoc, bool *found
     return NS_ERROR_NULL_POINTER;
 
   *ppLoc = nsnull;
-  *found = PR_FALSE;
-  *userVerify = PR_TRUE;
+  *found = false;
+  *userVerify = true;
   return( NS_OK);
 }
 
@@ -316,7 +316,7 @@ NS_IMETHODIMP ImportAddressImpl::FindAddressBooks(nsIFile *pLoc, nsISupportsArra
     IMPORT_LOG0( "*** Error determining delimitter\n");
     return( rv);
   }
-  m_haveDelim = PR_TRUE;
+  m_haveDelim = true;
   m_delim = m_text.GetDelim();
 
   m_fileLoc = do_QueryInterface(pLoc);
@@ -437,7 +437,7 @@ ImportAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
     SetLogs(success, error, pErrorLog, pSuccessLog);
 
     if (fatalError)
-      *fatalError = PR_TRUE;
+      *fatalError = true;
 
     return NS_ERROR_NULL_POINTER;
   }
@@ -488,7 +488,7 @@ ImportAddressImpl::ImportAddressBook(nsIImportABDescriptor *pSource,
 
   if (isLDIF) {
     if (ldifService)
-      rv = ldifService->ImportLDIFFile(pDestination, inFile, PR_FALSE, &m_bytesImported);
+      rv = ldifService->ImportLDIFFile(pDestination, inFile, false, &m_bytesImported);
     else
       return NS_ERROR_FAILURE;
   }
@@ -524,7 +524,7 @@ NS_IMETHODIMP ImportAddressImpl::GetNeedsFieldMap(nsIFile *aLocation, bool *_ret
   NS_ENSURE_ARG_POINTER(_retval);
   NS_ENSURE_ARG_POINTER(aLocation);
 
-  *_retval = PR_TRUE;
+  *_retval = true;
   bool exists = false;
   bool isFile = false;
 
@@ -546,7 +546,7 @@ NS_IMETHODIMP ImportAddressImpl::GetNeedsFieldMap(nsIFile *aLocation, bool *_ret
   }
 
   if (isLDIF)
-    *_retval = PR_FALSE;
+    *_retval = false;
 
   return( NS_OK);
 }
@@ -590,7 +590,7 @@ NS_IMETHODIMP ImportAddressImpl::GetSampleData( PRInt32 index, bool *pFound, PRU
   if (!m_haveDelim) {
     rv = m_text.DetermineDelim(m_fileLoc);
     NS_ENSURE_SUCCESS(rv, rv);
-    m_haveDelim = PR_TRUE;
+    m_haveDelim = true;
     m_delim = m_text.GetDelim();
   }
 
@@ -599,7 +599,7 @@ NS_IMETHODIMP ImportAddressImpl::GetSampleData( PRInt32 index, bool *pFound, PRU
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (!fileExists) {
-    *pFound = PR_FALSE;
+    *pFound = false;
     *pStr = NS_strdup(&term);
     return NS_OK;
   }
@@ -624,12 +624,12 @@ NS_IMETHODIMP ImportAddressImpl::GetSampleData( PRInt32 index, bool *pFound, PRU
     }
 
     *pStr = ToNewUnicode(str);
-    *pFound = PR_TRUE;
+    *pFound = true;
 
     /* IMPORT_LOG1( "Sample data: %S\n", str.get()); */
   }
   else {
-    *pFound = PR_FALSE;
+    *pFound = false;
     *pStr = NS_strdup( &term);
   }
 
@@ -641,14 +641,14 @@ NS_IMETHODIMP ImportAddressImpl::SetSampleLocation(nsIFile *pLocation)
   NS_ENSURE_ARG_POINTER(pLocation);
 
   m_fileLoc = do_QueryInterface(pLocation);
-  m_haveDelim = PR_FALSE;
+  m_haveDelim = false;
   return NS_OK;
 }
 
 void ImportAddressImpl::ClearSampleFile( void)
 {
   m_fileLoc = nsnull;
-  m_haveDelim = PR_FALSE;
+  m_haveDelim = false;
 }
 
 NS_IMETHODIMP ImportAddressImpl::InitFieldMap(nsIImportFieldMap *fieldMap)
@@ -673,9 +673,9 @@ NS_IMETHODIMP ImportAddressImpl::InitFieldMap(nsIImportFieldMap *fieldMap)
           while (*pStr && (*pStr != '+') && (*pStr != '-'))
             pStr++;
           if (*pStr == '+')
-            active = PR_TRUE;
+            active = true;
           else if (*pStr == '-')
-            active = PR_FALSE;
+            active = false;
           else
             break;
           fNum = 0;
@@ -728,7 +728,7 @@ void ImportAddressImpl::SaveFieldMap( nsIImportFieldMap *pMap)
   pMap->GetMapSize( &size);
   for (long i = 0; i < size; i++) {
     index = i;
-    active = PR_FALSE;
+    active = false;
     pMap->GetFieldMap( i, &index);
     pMap->GetFieldActive( i, &active);
     if (active)
@@ -750,7 +750,7 @@ void ImportAddressImpl::SaveFieldMap( nsIImportFieldMap *pMap)
     rv = prefs->GetCharPref( "mailnews.import.text.fieldmap", getter_Copies(prefStr));
     if (NS_SUCCEEDED( rv)) {
       if (str.Equals(prefStr))
-        done = PR_TRUE;
+        done = true;
     }
     if (!done) {
       rv = prefs->SetCharPref( "mailnews.import.text.fieldmap", str.get());

@@ -61,13 +61,13 @@ extern "C" {
 
 NS_IMPL_ISUPPORTS1(nsMailMacIntegration, nsIShellService)
 
-nsMailMacIntegration::nsMailMacIntegration(): mCheckedThisSession(PR_FALSE)
+nsMailMacIntegration::nsMailMacIntegration(): mCheckedThisSession(false)
 {}
 
 NS_IMETHODIMP
 nsMailMacIntegration::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool * aIsDefaultClient)
 {
-  *aIsDefaultClient = PR_TRUE;
+  *aIsDefaultClient = true;
   if (aApps & nsIShellService::MAIL)
     *aIsDefaultClient &= isDefaultHandlerForProtocol(CFSTR("mailto"));
   if (aApps & nsIShellService::NEWS)
@@ -80,7 +80,7 @@ nsMailMacIntegration::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool *
   // default client dialog.
   
   if (aStartupCheck)
-    mCheckedThisSession = PR_TRUE;
+    mCheckedThisSession = true;
   return NS_OK;
 }
 
@@ -103,7 +103,7 @@ nsMailMacIntegration::GetShouldCheckDefaultClient(bool* aResult)
 {
   if (mCheckedThisSession) 
   {
-    *aResult = PR_FALSE;
+    *aResult = false;
     return NS_OK;
   }
 
@@ -161,7 +161,7 @@ nsMailMacIntegration::isDefaultHandlerForProtocol(CFStringRef aScheme)
       else {
         // If the bundle doesn't have an identifier in its info property list,
         // it's not our bundle.
-        isDefault = PR_FALSE;
+        isDefault = false;
       }
 
       ::CFRelease(defaultHandlerBundle);
@@ -172,7 +172,7 @@ nsMailMacIntegration::isDefaultHandlerForProtocol(CFStringRef aScheme)
   else {
     // If |_LSCopyDefaultSchemeHandlerURL| failed, there's no default
     // handler for the given protocol
-    isDefault = PR_FALSE;
+    isDefault = false;
   }
 
   ::CFRelease(tbirdID);

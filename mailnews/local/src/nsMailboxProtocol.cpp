@@ -110,7 +110,7 @@ nsresult nsMailboxProtocol::OpenMultipleMsgTransport(PRUint32 offset, PRInt32 si
 
   // XXX 64-bit
   rv = serv->CreateInputTransport(m_multipleMsgMoveCopyStream, PRInt64(offset),
-                                  PRInt64(size), PR_FALSE,
+                                  PRInt64(size), false,
                                   getter_AddRefs(m_transport));
 
   return rv;
@@ -133,11 +133,11 @@ nsresult nsMailboxProtocol::OpenFileSocketForReuse(nsIURI * aURL, PRUint32 aStar
 
   m_multipleMsgMoveCopyStream = do_QueryInterface(fileStream, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  fileStream->Init(file,  PR_RDONLY, 0664, PR_FALSE);  //just have to read the messages
+  fileStream->Init(file,  PR_RDONLY, 0664, false);  //just have to read the messages
 
   rv = OpenMultipleMsgTransport(aStartPosition, aReadCount);
 
-  m_socketIsOpen = PR_FALSE;
+  m_socketIsOpen = false;
   return rv;
 }
 
@@ -159,7 +159,7 @@ nsresult nsMailboxProtocol::Initialize(nsIURI * aURL)
       {
         mailnewsUrl->GetMsgWindow(getter_AddRefs(window));
         if (window)
-          window->SetStopped(PR_FALSE);
+          window->SetStopped(false);
       }
 
       if (m_mailboxAction == nsIMailboxUrl::ActionParseMailbox)
@@ -234,10 +234,10 @@ nsresult nsMailboxProtocol::Initialize(nsIURI * aURL)
               if (NS_FAILED(rv)) return rv;
               m_readCount = aMsgSize;
               rv = sts->CreateInputTransport(stream, offset,
-                                             PRInt64(aMsgSize), PR_TRUE,
+                                             PRInt64(aMsgSize), true,
                                              getter_AddRefs(m_transport));
 
-              m_socketIsOpen = PR_FALSE;
+              m_socketIsOpen = false;
              
             }
           }
@@ -249,7 +249,7 @@ nsresult nsMailboxProtocol::Initialize(nsIURI * aURL)
     }
   }
   
-  m_lineStreamBuffer = new nsMsgLineStreamBuffer(OUTPUT_BUFFER_SIZE, PR_TRUE);
+  m_lineStreamBuffer = new nsMsgLineStreamBuffer(OUTPUT_BUFFER_SIZE, true);
   
   m_nextState = MAILBOX_READ_FOLDER;
   m_initialState = MAILBOX_READ_FOLDER;
@@ -284,9 +284,9 @@ bool nsMailboxProtocol::RunningMultipleMsgUrl()
     PRUint32 numMoveCopyMsgs;
     nsresult rv = m_runningUrl->GetNumMoveCopyMsgs(&numMoveCopyMsgs);
     if (NS_SUCCEEDED(rv) && numMoveCopyMsgs > 1)
-      return PR_TRUE;
+      return true;
   }
-  return PR_FALSE;
+  return false;
 }
 
 // stop binding is a "notification" informing us that the stream associated with aURL is going away. 
@@ -389,7 +389,7 @@ NS_IMETHODIMP nsMailboxProtocol::OnStopRequest(nsIRequest *request, nsISupports 
                 NS_ASSERTION(NS_SUCCEEDED(rv), "AsyncRead failed");
                 if (m_loadGroup)
                   m_loadGroup->RemoveRequest(static_cast<nsIRequest *>(this), nsnull, aStatus);
-                m_socketIsOpen = PR_TRUE; // mark the channel as open
+                m_socketIsOpen = true; // mark the channel as open
                 return aStatus;
               }
             }
@@ -467,7 +467,7 @@ PRInt32 nsMailboxProtocol::SetupMessageExtraction()
         m_runningUrl->SetMessageSize(messageSize);
       }
       else
-        NS_ASSERTION(PR_FALSE, "couldn't get message header");
+        NS_ASSERTION(false, "couldn't get message header");
     }
   }
   return rv;
@@ -516,7 +516,7 @@ nsresult nsMailboxProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
         // when fetching a part, we need to insert a converter into the listener chain order to
         // force just the part out of the message. Our channel listener is the consumer we'll
         // pass in to AsyncConvertData.
-        convertData = PR_TRUE;
+        convertData = true;
         consumer = m_channelListener;
       }
       if (convertData)
@@ -740,7 +740,7 @@ nsresult nsMailboxProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * 
       {
         nsCOMPtr <nsIMsgMailNewsUrl> anotherUrl = do_QueryInterface(m_runningUrl);
         rv = m_nextState == MAILBOX_DONE ? NS_OK : NS_ERROR_FAILURE;
-        anotherUrl->SetUrlState(PR_FALSE, rv);
+        anotherUrl->SetUrlState(false, rv);
         m_nextState = MAILBOX_FREE;
       }
       break;

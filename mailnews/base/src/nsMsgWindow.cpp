@@ -79,8 +79,8 @@ NS_IMPL_THREADSAFE_ISUPPORTS3(nsMsgWindow,
 
 nsMsgWindow::nsMsgWindow()
 {
-  mCharsetOverride = PR_FALSE;
-  m_stopped = PR_FALSE;
+  mCharsetOverride = false;
+  m_stopped = false;
 }
 
 nsMsgWindow::~nsMsgWindow()
@@ -120,7 +120,7 @@ NS_IMETHODIMP nsMsgWindow::GetMessageWindowDocShell(nsIDocShell ** aDocShell)
       nsCOMPtr<nsIDocShellTreeItem> msgDocShellItem;
       if(rootAsNode)
          rootAsNode->FindChildWithName(NS_LITERAL_STRING("messagepane").get(),
-                                       PR_TRUE, PR_FALSE, nsnull, nsnull,
+                                       true, false, nsnull, nsnull,
                                        getter_AddRefs(msgDocShellItem));
       NS_ENSURE_TRUE(msgDocShellItem, NS_ERROR_FAILURE);
       docShell = do_QueryInterface(msgDocShellItem);
@@ -372,7 +372,7 @@ NS_IMETHODIMP nsMsgWindow::GetNotificationCallbacks(nsIInterfaceRequestor **aNot
 
 NS_IMETHODIMP nsMsgWindow::StopUrls()
 {
-  m_stopped = PR_TRUE;
+  m_stopped = true;
   nsCOMPtr<nsIWebNavigation> webnav(do_QueryReferent(mRootDocShellWeak));
   return webnav ? webnav->Stop(nsIWebNavigation::STOP_NETWORK) : NS_ERROR_FAILURE;
 }
@@ -419,7 +419,7 @@ nsMsgWindow::IsPreferred(const char * aContentType,
                          char ** aDesiredContentType,
                          bool * aCanHandleContent)
 {
-  *aCanHandleContent = PR_FALSE;
+  *aCanHandleContent = false;
   return NS_OK;
 }
 
@@ -440,7 +440,7 @@ NS_IMETHODIMP nsMsgWindow::CanHandleContent(const char * aContentType,
     return ctnListener->CanHandleContent(aContentType, aIsContentPreferred,
                                          aDesiredContentType, aCanHandleContent);
   else
-    *aCanHandleContent = PR_FALSE;
+    *aCanHandleContent = false;
   return NS_OK;
 }
 

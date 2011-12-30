@@ -62,7 +62,7 @@ NS_IMPL_ISUPPORTS2(nsStatusBarBiffManager, nsIStatusBarBiffManager, nsIFolderLis
 nsIAtom * nsStatusBarBiffManager::kBiffStateAtom = nsnull;
 
 nsStatusBarBiffManager::nsStatusBarBiffManager()
-: mInitialized(PR_FALSE), mCurrentBiffState(nsIMsgFolder::nsMsgBiffState_Unknown)
+: mInitialized(false), mCurrentBiffState(nsIMsgFolder::nsMsgBiffState_Unknown)
 {
 }
 
@@ -91,7 +91,7 @@ nsresult nsStatusBarBiffManager::Init()
   if(NS_SUCCEEDED(rv))
     mailSession->AddFolderListener(this, nsIFolderListener::intPropertyChanged);
 
-  mInitialized = PR_TRUE;
+  mInitialized = true;
   return NS_OK;
 }
 
@@ -136,7 +136,7 @@ nsresult nsStatusBarBiffManager::PlayBiffSound()
             if (NS_SUCCEEDED(rv) && soundFileExists) {
               rv = mSound->Play(soundURL);
               if (NS_SUCCEEDED(rv))
-                customSoundPlayed = PR_TRUE;
+                customSoundPlayed = true;
             }
           }
         }
@@ -147,7 +147,7 @@ nsresult nsStatusBarBiffManager::PlayBiffSound()
         NS_ConvertUTF8toUTF16 utf16SoundURLSpec(soundURLSpec);
         rv = mSound->PlaySystemSound(utf16SoundURLSpec);
         if (NS_SUCCEEDED(rv))
-          customSoundPlayed = PR_TRUE;
+          customSoundPlayed = true;
       }
     }
   }    

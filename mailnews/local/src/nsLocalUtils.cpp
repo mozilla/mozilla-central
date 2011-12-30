@@ -78,7 +78,7 @@ nsGetMailboxServer(const char *uriStr, nsIMsgIncomingServer** aResult)
   aUrl->SetScheme(NS_LITERAL_CSTRING("none"));
   // No unescaping of username or hostname done here.
   // The unescaping is done inside of FindServerByURI
-  rv = accountManager->FindServerByURI(aUrl, PR_FALSE,
+  rv = accountManager->FindServerByURI(aUrl, false,
                                   getter_AddRefs(none_server));
   if (NS_SUCCEEDED(rv)) {
     NS_ADDREF(*aResult = none_server);
@@ -88,7 +88,7 @@ nsGetMailboxServer(const char *uriStr, nsIMsgIncomingServer** aResult)
   // if that fails, look for the rss hosts matching the given hostname
   nsCOMPtr<nsIMsgIncomingServer> rss_server;
   aUrl->SetScheme(NS_LITERAL_CSTRING("rss"));
-  rv = accountManager->FindServerByURI(aUrl, PR_FALSE,
+  rv = accountManager->FindServerByURI(aUrl, false,
                                   getter_AddRefs(rss_server));
   if (NS_SUCCEEDED(rv))
   {
@@ -99,7 +99,7 @@ nsGetMailboxServer(const char *uriStr, nsIMsgIncomingServer** aResult)
   // find all movemail "servers" matching the given hostname
   nsCOMPtr<nsIMsgIncomingServer> movemail_server;
   aUrl->SetScheme(NS_LITERAL_CSTRING("movemail"));
-  rv = accountManager->FindServerByURI(aUrl, PR_FALSE,
+  rv = accountManager->FindServerByURI(aUrl, false,
                                   getter_AddRefs(movemail_server));
   if (NS_SUCCEEDED(rv)) {
     NS_ADDREF(*aResult = movemail_server);
@@ -112,7 +112,7 @@ nsGetMailboxServer(const char *uriStr, nsIMsgIncomingServer** aResult)
   if (NS_FAILED(rv)) 
   {
     aUrl->SetScheme(NS_LITERAL_CSTRING("pop3"));
-    rv = accountManager->FindServerByURI(aUrl, PR_FALSE,
+    rv = accountManager->FindServerByURI(aUrl, false,
                                     getter_AddRefs(server));
 
     // if we can't find a pop server, maybe it's a local message 
@@ -120,7 +120,7 @@ nsGetMailboxServer(const char *uriStr, nsIMsgIncomingServer** aResult)
     if (NS_FAILED(rv)) 
     {
       aUrl->SetScheme(NS_LITERAL_CSTRING("imap"));
-      rv = accountManager->FindServerByURI(aUrl, PR_FALSE,
+      rv = accountManager->FindServerByURI(aUrl, false,
                                     getter_AddRefs(server));
     }
   }

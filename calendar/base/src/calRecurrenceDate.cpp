@@ -60,8 +60,8 @@ NS_IMPL_CLASSINFO(calRecurrenceDate, NULL, 0, CAL_RECURRENCEDATE_CID)
 NS_IMPL_ISUPPORTS2_CI(calRecurrenceDate, calIRecurrenceItem, calIRecurrenceDate)
 
 calRecurrenceDate::calRecurrenceDate()
-    : mImmutable(PR_FALSE),
-      mIsNegative(PR_FALSE)
+    : mImmutable(false),
+      mIsNegative(false)
 {
 }
 
@@ -80,7 +80,7 @@ calRecurrenceDate::MakeImmutable()
     if (mImmutable)
         return NS_ERROR_FAILURE; // XXX another error code
 
-    mImmutable = PR_TRUE;
+    mImmutable = true;
     return NS_OK;
 }
 
@@ -126,7 +126,7 @@ NS_IMETHODIMP
 calRecurrenceDate::GetIsFinite(bool *_retval)
 {
     NS_ENSURE_ARG_POINTER(_retval);
-    *_retval = PR_TRUE;
+    *_retval = true;
     return NS_OK;
 }
 
@@ -226,7 +226,7 @@ calRecurrenceDate::SetIcalProperty(calIIcalProperty *aProp)
     if (NS_FAILED(rc))
         return rc;
     if (name.EqualsLiteral("RDATE")) {
-        mIsNegative = PR_FALSE;
+        mIsNegative = false;
         icalvalue * const value = icalproperty_get_value(aProp->GetIcalProperty());
         if (icalvalue_isa(value) == ICAL_PERIOD_VALUE) {
             icalperiodtype const period = icalvalue_get_period(value);
@@ -236,7 +236,7 @@ calRecurrenceDate::SetIcalProperty(calIIcalProperty *aProp)
             return NS_OK;
         }
     } else if (name.EqualsLiteral("EXDATE"))
-        mIsNegative = PR_TRUE;
+        mIsNegative = true;
     else
         return NS_ERROR_INVALID_ARG;
 

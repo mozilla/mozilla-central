@@ -59,7 +59,7 @@ nsAbLDAPListenerBase::nsAbLDAPListenerBase(nsILDAPURL* url,
                                            const nsACString &login,
                                            const PRInt32 timeOut) :
   mDirectoryUrl(url), mConnection(connection), mLogin(login),
-  mTimeOut(timeOut), mBound(PR_FALSE), mInitialized(PR_FALSE),
+  mTimeOut(timeOut), mBound(false), mInitialized(false),
   mLock("nsAbLDAPListenerBase.mLock")
 {
 }
@@ -76,7 +76,7 @@ nsresult nsAbLDAPListenerBase::Initiate()
   if (mInitialized)
     return NS_OK;
 
-  mInitialized = PR_TRUE;
+  mInitialized = true;
 
   return NS_OK;
 }
@@ -252,7 +252,7 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     }
     else if (!status)
     {
-      InitFailed(PR_TRUE);
+      InitFailed(true);
       return NS_OK;
     }
   }
@@ -376,6 +376,6 @@ nsresult nsAbLDAPListenerBase::OnLDAPMessageBind(nsILDAPMessage *aMessage)
     return NS_ERROR_GENERATE_FAILURE(NS_ERROR_MODULE_LDAP, errCode);
   }
 
-  mBound = PR_TRUE;
+  mBound = true;
   return DoTask();
 }

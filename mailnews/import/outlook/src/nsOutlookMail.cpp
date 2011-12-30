@@ -127,8 +127,8 @@ static MAPIFields  gMapiFields[] = {
 
 nsOutlookMail::nsOutlookMail()
 {
-  m_gotAddresses = PR_FALSE;
-  m_gotFolders = PR_FALSE;
+  m_gotAddresses = false;
+  m_gotFolders = false;
   m_haveMapi = CMapiApi::LoadMapi();
   m_lpMdb = NULL;
 }
@@ -155,7 +155,7 @@ nsresult nsOutlookMail::GetMailFolders( nsISupportsArray **pArray)
   if (NS_FAILED( rv))
     return( rv);
 
-  m_gotFolders = PR_TRUE;
+  m_gotFolders = true;
 
   m_folderList.ClearAll();
 
@@ -259,7 +259,7 @@ nsresult nsOutlookMail::GetAddressBooks( nsISupportsArray **pArray)
   if (NS_FAILED( rv))
     return( rv);
 
-  m_gotAddresses = PR_TRUE;
+  m_gotAddresses = true;
 
   m_addressList.ClearAll();
   m_mapi.Initialize();
@@ -370,7 +370,7 @@ nsresult nsOutlookMail::ImportMailbox( PRUint32 *pDoneSoFar, bool *pAbort, PRInt
 {
   if ((index < 0) || (index >= m_folderList.GetSize())) {
     IMPORT_LOG0( "*** Bad mailbox identifier, unable to import\n");
-    *pAbort = PR_TRUE;
+    *pAbort = true;
     return( NS_ERROR_FAILURE);
   }
 
@@ -704,7 +704,7 @@ nsresult nsOutlookMail::CreateList( const PRUnichar * pName,
         //add card list
         pDb->AddListCardColumnsToRow(userCard,
                                      newListRow,idx+1, getter_AddRefs(newCard),
-                                     PR_TRUE, nsnull, nsnull);
+                                     true, nsnull, nsnull);
       }
     }
   }
@@ -874,5 +874,5 @@ bool nsOutlookMail::BuildCard( const PRUnichar *pName, nsIAddrDatabase *pDb, nsI
     }
   }
 
-  return( PR_TRUE);
+  return( true);
 }

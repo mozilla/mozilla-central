@@ -126,7 +126,7 @@ int ap_encode_init( appledouble_encode_object *p_ap_encode_obj,
                     char                      *separator)
 {
   nsCOMPtr <nsILocalFile> myFile;
-  NS_NewNativeLocalFile(nsDependentCString(fname), PR_TRUE, getter_AddRefs(myFile));
+  NS_NewNativeLocalFile(nsDependentCString(fname), true, getter_AddRefs(myFile));
   bool exists;
   if (myFile && NS_SUCCEEDED(myFile->Exists(&exists)) && !exists)
     return -1;

@@ -114,7 +114,7 @@ nsresult nsSimpleZipper::AddToZip(nsIZipWriter *aZipWriter,
     currentPath.Append('/');
   
   // add the file or directory entry to the zip
-  nsresult rv = aZipWriter->AddEntryFile(currentPath, nsIZipWriter::COMPRESSION_DEFAULT, aFile, PR_FALSE);
+  nsresult rv = aZipWriter->AddEntryFile(currentPath, nsIZipWriter::COMPRESSION_DEFAULT, aFile, false);
   NS_ENSURE_SUCCESS(rv, rv);
   
   // if it's a directory, add all its contents too
@@ -143,14 +143,14 @@ nsresult nsSimpleZipper::AddToZip(nsIZipWriter *aZipWriter,
 nsMsgAttachmentHandler::nsMsgAttachmentHandler() :
   mRequest(nsnull),
   mCompFields(nsnull),   // Message composition fields for the sender
-  m_bogus_attachment(PR_FALSE),
-  m_done(PR_FALSE),
-  m_already_encoded_p(PR_FALSE),
-  m_decrypted_p(PR_FALSE),
-  mDeleteFile(PR_FALSE),
-  mMHTMLPart(PR_FALSE),
-  mPartUserOmissionOverride(PR_FALSE),
-  mMainBody(PR_FALSE),
+  m_bogus_attachment(false),
+  m_done(false),
+  m_already_encoded_p(false),
+  m_decrypted_p(false),
+  mDeleteFile(false),
+  mMHTMLPart(false),
+  mPartUserOmissionOverride(false),
+  mMainBody(false),
   mNodeIndex(-1),
   // For analyzing the attachment file...
   m_size(0),
@@ -161,11 +161,11 @@ nsMsgAttachmentHandler::nsMsgAttachmentHandler() :
   m_have_cr(0), 
   m_have_lf(0), 
   m_have_crlf(0),
-  m_prev_char_was_cr(PR_FALSE),
+  m_prev_char_was_cr(false),
   m_current_column(0),
   m_max_column(0),
   m_lines(0),
-  m_file_analyzed(PR_FALSE),
+  m_file_analyzed(false),
 
   // Mime
   m_encoder_data(nsnull)
@@ -175,7 +175,7 @@ nsMsgAttachmentHandler::nsMsgAttachmentHandler() :
 nsMsgAttachmentHandler::~nsMsgAttachmentHandler()
 {
   if (mTmpFile && mDeleteFile)
-    mTmpFile->Remove(PR_FALSE);
+    mTmpFile->Remove(false);
 
   if (mOutFile)
     mOutFile->Close();
@@ -188,7 +188,7 @@ nsMsgAttachmentHandler::CleanupTempFile()
 {
 #ifdef XP_MACOSX
   if (mEncodedWorkingFile) {
-    mEncodedWorkingFile->Remove(PR_FALSE);
+    mEncodedWorkingFile->Remove(false);
     mEncodedWorkingFile = nsnull;
   }
 #endif // XP_MACOSX
@@ -221,7 +221,7 @@ nsMsgAttachmentHandler::AnalyzeDataChunk(const char *chunk, PRInt32 length)
         if (m_prev_char_was_cr)
           m_have_cr = 1;
         else
-          m_prev_char_was_cr = PR_TRUE;
+          m_prev_char_was_cr = true;
       }
       else
       {
@@ -234,7 +234,7 @@ nsMsgAttachmentHandler::AnalyzeDataChunk(const char *chunk, PRInt32 length)
           }
           else
             m_have_cr = m_have_lf = 1;
-          m_prev_char_was_cr = PR_FALSE;
+          m_prev_char_was_cr = false;
         }
         else
           m_have_lf = 1;
@@ -281,7 +281,7 @@ nsMsgAttachmentHandler::AnalyzeSnarfedFile(void)
         m_have_cr = 1;
 
       inputFile->Close();
-      m_file_analyzed = PR_TRUE;
+      m_file_analyzed = true;
     }
   }
 }
@@ -316,7 +316,7 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
   always use base64 (so that we don't get confused by newline
   conversions.)
      */
-    needsB64 = PR_TRUE;
+    needsB64 = true;
   }
   else
   {
@@ -333,23 +333,23 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
     */
     if (mCompFields) {
       if (mCompFields->GetForceMsgEncoding())
-        force_p = PR_TRUE;
+        force_p = true;
     }
     else if (mime_delivery_state) {
       if (((nsMsgComposeAndSend *)mime_delivery_state)->mCompFields->GetForceMsgEncoding())
-        force_p = PR_TRUE;
+        force_p = true;
     }
 
     if (force_p || (m_max_column > 900))
-      encode_p = PR_TRUE;
+      encode_p = true;
     else if (UseQuotedPrintable() && m_unprintable_count)
-      encode_p = PR_TRUE;
+      encode_p = true;
 
       else if (m_null_count)  /* If there are nulls, we must always encode,
         because sendmail will blow up. */
-        encode_p = PR_TRUE;
+        encode_p = true;
       else
-        encode_p = PR_FALSE;
+        encode_p = false;
 
         /* MIME requires a special case that these types never be encoded.
       */
@@ -358,7 +358,7 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
          StringBeginsWith(m_type, NS_LITERAL_CSTRING("multipart"),
                           nsCaseInsensitiveCStringComparator()))
       {
-        encode_p = PR_FALSE;
+        encode_p = false;
         if (m_desiredType.LowerCaseEqualsLiteral(TEXT_PLAIN))
           m_desiredType.Truncate();
       }
@@ -374,7 +374,7 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
            m_type.LowerCaseEqualsLiteral(APPLICATION_DIRECTORY) || /* text/x-vcard synonym */
            m_type.LowerCaseEqualsLiteral(TEXT_CSS) ||
            m_type.LowerCaseEqualsLiteral(TEXT_JSSS)))
-        needsB64 = PR_TRUE;
+        needsB64 = true;
       else if (charset && nsMsgI18Nstateful_charset(charset))
         m_encoding = ENCODING_7BIT;
       else if (encode_p &&
@@ -383,7 +383,7 @@ nsMsgAttachmentHandler::PickEncoding(const char *charset, nsIMsgSend *mime_deliv
         then that seems like a good candidate for base64 instead of
         quoted-printable.
         */
-        needsB64 = PR_TRUE;
+        needsB64 = true;
       else if (encode_p)
         m_encoding = ENCODING_QUOTED_PRINTABLE;
       else if (m_highbit_count > 0)
@@ -510,7 +510,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
     rv = nsMsgCreateTempFile("nsmail.tmp", getter_AddRefs(tmpFile));
     NS_ENSURE_SUCCESS(rv, rv);
     mTmpFile = do_QueryInterface(tmpFile);
-    mDeleteFile = PR_TRUE;
+    mDeleteFile = true;
     mCompFields = compFields;
     m_type = MESSAGE_RFC822;
     m_overrideType = MESSAGE_RFC822;
@@ -531,7 +531,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
         {
           nsAutoString error_msg;
           nsMsgBuildMessageWithTmpFile(mTmpFile, error_msg);
-          sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
+          sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), false);
         }
       }
       rv =  NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
@@ -569,7 +569,7 @@ nsMsgAttachmentHandler::SnarfMsgAttachment(nsMsgCompFields *compFields)
       if (mimeConverter)
       {
         mimeConverter->SetMimeOutputType(nsMimeOutput::nsMimeMessageDecrypt);
-        mimeConverter->SetForwardInline(PR_FALSE);
+        mimeConverter->SetForwardInline(false);
         mimeConverter->SetIdentity(nsnull);
         mimeConverter->SetOriginalMsgURI(nsnull);
       }
@@ -608,7 +608,7 @@ done:
 
       if (mTmpFile)
       {
-        mTmpFile->Remove(PR_FALSE);
+        mTmpFile->Remove(false);
         mTmpFile = nsnull;
       }
   }
@@ -641,7 +641,7 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
   nsresult rv = nsMsgCreateTempFile("nsmail.tmp", getter_AddRefs(tmpFile));
   NS_ENSURE_SUCCESS(rv, rv);
   mTmpFile = do_QueryInterface(tmpFile);
-  mDeleteFile = PR_TRUE;
+  mDeleteFile = true;
 
   rv = MsgNewBufferedFileOutputStream(getter_AddRefs(mOutFile), mTmpFile, -1, 00600);
   if (NS_FAILED(rv) || !mOutFile)
@@ -654,10 +654,10 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
       {
         nsAutoString error_msg;
         nsMsgBuildMessageWithTmpFile(mTmpFile, error_msg);
-        sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
+        sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), false);
       }
     }
-    mTmpFile->Remove(PR_FALSE);
+    mTmpFile->Remove(false);
     mTmpFile = nsnull;
     return NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
   }
@@ -674,7 +674,7 @@ nsMsgAttachmentHandler::SnarfAttachment(nsMsgCompFields *compFields)
     MsgUnescapeString(filePath, 0, unescapedFilePath);
 
     nsCOMPtr<nsILocalFile> sourceFile;
-    NS_NewNativeLocalFile(unescapedFilePath, PR_TRUE, getter_AddRefs(sourceFile));
+    NS_NewNativeLocalFile(unescapedFilePath, true, getter_AddRefs(sourceFile));
     if (!sourceFile)
       return NS_ERROR_FAILURE;
       
@@ -755,13 +755,13 @@ nsMsgAttachmentHandler::ConvertToAppleEncoding(const nsCString &aFileURI,
 
   nsresult rv = aSourceFile->GetFileType(&type);
   if (NS_FAILED(rv))
-    return PR_FALSE;
+    return false;
   PR_snprintf(fileInfo, sizeof(fileInfo), "%X", type);
   m_xMacType = fileInfo;
 
   rv = aSourceFile->GetFileCreator(&creator);
   if (NS_FAILED(rv))
-    return PR_FALSE;
+    return false;
   PR_snprintf(fileInfo, sizeof(fileInfo), "%X", creator);
   m_xMacCreator = fileInfo;
 
@@ -1090,7 +1090,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     if (keepOnGoing)
     {
       status = 0;
-      m_bogus_attachment = PR_TRUE; //That will cause this attachment to be ignored.
+      m_bogus_attachment = true; //That will cause this attachment to be ignored.
     }
     else
     {
@@ -1104,7 +1104,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     }
   }
 
-  m_done = PR_TRUE;
+  m_done = true;
 
   //
   // Ok, now that we have the file here on disk, we need to see if there was
@@ -1135,12 +1135,12 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     //
     nsAutoString      conData;
 
-    if (NS_SUCCEEDED(LoadDataFromFile(mTmpFile, conData, PR_TRUE)))
+    if (NS_SUCCEEDED(LoadDataFromFile(mTmpFile, conData, true)))
     {
       if (NS_SUCCEEDED(ConvertBufToPlainText(conData, UseFormatFlowed(m_charset.get()))))
       {
         if (mDeleteFile)
-          mTmpFile->Remove(PR_FALSE);
+          mTmpFile->Remove(false);
 
         nsCOMPtr<nsIOutputStream> outputStream;
         nsresult rv = NS_NewLocalFileOutputStream(getter_AddRefs(outputStream), mTmpFile,  PR_WRONLY | PR_CREATE_FILE, 00600);
@@ -1210,10 +1210,10 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
         //
         if ( (!next->mURL) && (next->m_uri.IsEmpty()) )
         {
-          attachments[i].m_done = PR_TRUE;
+          attachments[i].m_done = true;
           m_mime_delivery_state->GetPendingAttachmentCount(&pendingAttachmentCount);
           m_mime_delivery_state->SetPendingAttachmentCount(pendingAttachmentCount - 1);
-          next->mPartUserOmissionOverride = PR_TRUE;
+          next->mPartUserOmissionOverride = true;
           next = nsnull;
           continue;
         }

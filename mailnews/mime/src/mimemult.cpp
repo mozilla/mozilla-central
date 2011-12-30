@@ -116,7 +116,7 @@ MimeMultipart_initialize (MimeObject *object)
   /* This is an abstract class; it shouldn't be directly instantiated. */
   PR_ASSERT(object->clazz != (MimeObjectClass *) &mimeMultipartClass);
 
-  ct = MimeHeaders_get (object->headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
+  ct = MimeHeaders_get (object->headers, HEADER_CONTENT_TYPE, false, false);
   mult->boundary = (ct
           ? MimeHeaders_get_parameter (ct, HEADER_PARM_BOUNDARY, NULL, NULL)
           : 0);
@@ -131,7 +131,7 @@ MimeMultipart_finalize (MimeObject *object)
 {
   MimeMultipart *mult = (MimeMultipart *) object;
 
-  object->clazz->parse_eof(object, PR_FALSE);
+  object->clazz->parse_eof(object, false);
 
   PR_FREEIF(mult->boundary);
   if (mult->hdrs)
@@ -143,7 +143,7 @@ MimeMultipart_finalize (MimeObject *object)
 int MimeWriteAString(MimeObject *obj, const nsACString &string)
 {
   const nsCString &flatString = PromiseFlatCString(string);
-  return MimeObject_write(obj, flatString.get(), flatString.Length(), PR_TRUE);
+  return MimeObject_write(obj, flatString.get(), flatString.Length(), true);
 }
 
 static int
@@ -167,7 +167,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
     !obj->options->write_html_p &&
     obj->options->output_fn
           && obj->options->format_out != nsMimeOutput::nsMimeMessageAttach)
-  return MimeObject_write(obj, line, length, PR_TRUE);
+  return MimeObject_write(obj, line, length, true);
 
   if (mult->state == MimeMultipartEpilogue)  /* already done */
     boundary = MimeMultipartBoundaryTypeNone;
@@ -205,14 +205,14 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
         nsCAutoString newPart(mime_part_address(obj));
         newPart.Append('.');
         newPart.AppendInt(container->nchildren + 1);
-        obj->options->state->strippingPart = PR_FALSE;
+        obj->options->state->strippingPart = false;
         // check if this is a sub-part of a part we're stripping.
         for (PRUint32 partIndex = 0; partIndex < obj->options->state->partsToStrip.Length(); partIndex++)
         {
           nsCString &curPartToStrip = obj->options->state->partsToStrip[partIndex];
           if (newPart.Find(curPartToStrip) == 0 && (newPart.Length() == curPartToStrip.Length() || newPart.CharAt(curPartToStrip.Length()) == '.'))
           {
-            obj->options->state->strippingPart = PR_TRUE;
+            obj->options->state->strippingPart = true;
             if (partIndex < obj->options->state->detachToFiles.Length())
               obj->options->state->detachedFilePath = obj->options->state->detachToFiles[partIndex];
             break;
@@ -231,7 +231,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
       if (endOfPart)
         MimeWriteAString(obj, NS_LITERAL_CSTRING(MSG_LINEBREAK));
 
-      status = MimeObject_write(obj, line, length, PR_TRUE);
+      status = MimeObject_write(obj, line, length, true);
     }
     return 0;
   }
@@ -263,14 +263,14 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
         if (obj->options && obj->options->state &&
             obj->options->state->strippingPart)
         {
-          stripping = PR_TRUE;
+          stripping = true;
           bool detachingPart = obj->options->state->detachedFilePath.Length() > 0;
 
           nsCAutoString fileName;
           fileName.Adopt(MimeHeaders_get_name(mult->hdrs, obj->options));
           if (detachingPart)
           {
-            char *contentType = MimeHeaders_get(mult->hdrs, "Content-Type", PR_FALSE, PR_FALSE);
+            char *contentType = MimeHeaders_get(mult->hdrs, "Content-Type", false, false);
             if (contentType)
             {
               MimeWriteAString(obj, NS_LITERAL_CSTRING("Content-Type: "));
@@ -308,7 +308,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
           MimeWriteAString(obj, nsDependentCString(timeBuffer));
           MimeWriteAString(obj, NS_LITERAL_CSTRING("\""MSG_LINEBREAK));
           MimeWriteAString(obj, NS_LITERAL_CSTRING(MSG_LINEBREAK"You deleted an attachment from this message. The original MIME headers for the attachment were:"MSG_LINEBREAK));
-          MimeHeaders_write_raw_headers(mult->hdrs, obj->options, PR_FALSE);
+          MimeHeaders_write_raw_headers(mult->hdrs, obj->options, false);
         }
         PRInt32 old_nchildren = container->nchildren;
         status = ((MimeMultipartClass *) obj->clazz)->create_child(obj);
@@ -329,7 +329,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
     case MimeMultipartPartFirstLine:
       /* Hand this line off to the sub-part. */
       status = (((MimeMultipartClass *) obj->clazz)->parse_child_line(obj,
-                                                  line, length, PR_TRUE));
+                                                  line, length, true));
       if (status < 0) return status;
       mult->state = MimeMultipartPartLine;
       break;
@@ -337,7 +337,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
     case MimeMultipartPartLine:
       /* Hand this line off to the sub-part. */
       status = (((MimeMultipartClass *) obj->clazz)->parse_child_line(obj,
-                  line, length, PR_FALSE));
+                  line, length, false));
       if (status < 0) return status;
       break;
 
@@ -350,7 +350,7 @@ MimeMultipart_parse_line (const char *line, PRInt32 length, MimeObject *obj)
       obj->options->format_out == nsMimeOutput::nsMimeMessageAttach &&
       (!(obj->options->state && obj->options->state->strippingPart) &&
       mult->state != MimeMultipartPartLine))
-      return MimeObject_write(obj, line, length, PR_FALSE);
+      return MimeObject_write(obj, line, length, false);
   return 0;
 }
 
@@ -363,7 +363,7 @@ void MimeMultipart_notify_emitter(MimeObject *obj)
     return;
 
   ct = MimeHeaders_get(obj->headers, HEADER_CONTENT_TYPE,
-                       PR_FALSE, PR_FALSE);
+                       false, false);
   if (obj->options->notify_nested_bodies) {
     mimeEmitterAddHeaderField(obj->options, HEADER_CONTENT_TYPE,
                               ct ? ct : TEXT_PLAIN);
@@ -408,7 +408,7 @@ MimeMultipart_check_boundary(MimeObject *obj, const char *line, PRInt32 length)
 
   /* This is a candidate line to be a boundary.  Check it out... */
   blen = strlen(mult->boundary);
-  term_p = PR_FALSE;
+  term_p = false;
 
   /* strip trailing whitespace (including the newline.) */
   while(length > 2 && IS_SPACE(line[length-1]))
@@ -419,7 +419,7 @@ MimeMultipart_check_boundary(MimeObject *obj, const char *line, PRInt32 length)
     line[length-1] == '-' &&
     line[length-2] == '-')
   {
-    term_p = PR_TRUE;
+    term_p = true;
   }
 
   //looks like we have a separator but first, we need to check it's not for one of the part's children.
@@ -457,7 +457,7 @@ MimeMultipart_create_child(MimeObject *obj)
   int           status;
   char *ct = (mult->hdrs
         ? MimeHeaders_get (mult->hdrs, HEADER_CONTENT_TYPE,
-                 PR_TRUE, PR_FALSE)
+                 true, false)
         : 0);
   const char *dct = (((MimeMultipartClass *) obj->clazz)->default_part_type);
   MimeObject *body = NULL;
@@ -544,7 +544,7 @@ MimeMultipart_output_child_p(MimeObject *obj, MimeObject *child)
 {
   /* We don't output a child if we're stripping it. */
   if (obj->options && obj->options->state && obj->options->state->strippingPart)
-    return PR_FALSE;
+    return false;
   /* if we are saving an apple double attachment, ignore the appledouble wrapper part */
   return (obj->options && obj->options->write_html_p) ||
           PL_strcasecmp(child->content_type, MULTIPART_APPLEDOUBLE);
@@ -577,9 +577,9 @@ MimeMultipart_close_child(MimeObject *object)
     if (kid && !kid->closed_p)
     {
       int status;
-      status = kid->clazz->parse_eof(kid, PR_FALSE);
+      status = kid->clazz->parse_eof(kid, false);
       if (status < 0) return status;
-      status = kid->clazz->parse_end(kid, PR_FALSE);
+      status = kid->clazz->parse_end(kid, false);
       if (status < 0) return status;
 
 #ifdef MIME_DRAFTS
@@ -712,7 +712,7 @@ MimeMultipart_parse_eof (MimeObject *obj, bool abort_p)
     obj->ibuffer_fp = 0;
     if (status < 0)
     {
-      obj->closed_p = PR_TRUE;
+      obj->closed_p = true;
       return status;
     }
   }

@@ -376,9 +376,9 @@ class MimeParseStateObject {
 public:
 
   MimeParseStateObject()
-      {root = 0; separator_queued_p = PR_FALSE; separator_suppressed_p = PR_FALSE;
-        first_part_written_p = PR_FALSE; post_header_html_run_p = PR_FALSE; first_data_written_p = PR_FALSE;
-        decrypted_p = PR_FALSE; strippingPart = PR_FALSE;
+      {root = 0; separator_queued_p = false; separator_suppressed_p = false;
+        first_part_written_p = false; post_header_html_run_p = false; first_data_written_p = false;
+        decrypted_p = false; strippingPart = false;
       }
   MimeObject *root;        /* The outermost parser object. */
 
@@ -419,7 +419,7 @@ extern int MimeObject_output_init(MimeObject *obj, const char *content_type);
 
 /* The `user_visible_p' argument says whether the output that has just been
    written will cause characters or images to show up on the screen, that
-   is, it should be PR_FALSE if the stuff being written is merely structural
+   is, it should be false if the stuff being written is merely structural
    HTML or whitespace ("<P>", "</TABLE>", etc.)  This information is used
    when making the decision of whether a separating <HR> is needed.
  */

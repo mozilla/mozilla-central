@@ -141,7 +141,7 @@ nsGNOMEShellService::OpenApplicationWithURI(nsILocalFile* aApplication, const ns
 
   const nsCString& spec = PromiseFlatCString(aURI);
   const char* specStr = spec.get();
-  return process->Run(PR_FALSE, &specStr, 1);
+  return process->Run(false, &specStr, 1);
 }
 
 NS_IMETHODIMP

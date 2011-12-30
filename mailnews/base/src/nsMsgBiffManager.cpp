@@ -71,8 +71,8 @@ void OnBiffTimer(nsITimer *timer, void *aBiffManager)
 
 nsMsgBiffManager::nsMsgBiffManager()
 {
-  mHaveShutdown = PR_FALSE;
-  mInited = PR_FALSE;
+  mHaveShutdown = false;
+  mInited = false;
 }
 
 nsMsgBiffManager::~nsMsgBiffManager()
@@ -98,7 +98,7 @@ NS_IMETHODIMP nsMsgBiffManager::Init()
   if (mInited)
     return NS_OK;
 
-  mInited = PR_TRUE;
+  mInited = true;
   nsresult rv;
 
   nsCOMPtr<nsIMsgAccountManager> accountManager = 
@@ -109,7 +109,7 @@ NS_IMETHODIMP nsMsgBiffManager::Init()
   // in turbo mode on profile change we don't need to do anything below this
   if (mHaveShutdown)
   {
-    mHaveShutdown = PR_FALSE;
+    mHaveShutdown = false;
     return NS_OK;
   }
 
@@ -124,8 +124,8 @@ NS_IMETHODIMP nsMsgBiffManager::Init()
            do_GetService("@mozilla.org/observer-service;1", &rv);
   if (NS_SUCCEEDED(rv))
   {
-    observerService->AddObserver(this, "sleep_notification", PR_TRUE);
-    observerService->AddObserver(this, "wake_notification", PR_TRUE);
+    observerService->AddObserver(this, "sleep_notification", true);
+    observerService->AddObserver(this, "wake_notification", true);
   }
   return NS_OK;
 }
@@ -144,8 +144,8 @@ NS_IMETHODIMP nsMsgBiffManager::Shutdown()
   if (NS_SUCCEEDED(rv))
     accountManager->RemoveIncomingServerListener(this);
 
-  mHaveShutdown = PR_TRUE;
-  mInited = PR_FALSE;
+  mHaveShutdown = true;
+  mInited = false;
   return NS_OK;
 }
 

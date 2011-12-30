@@ -100,12 +100,12 @@
 class nsCStringLowerCaseComparator
 {
 public:
-  PRBool Equals(const nsCString &a, const nsCString &b) const
+  bool Equals(const nsCString &a, const nsCString &b) const
   {
     return a.Equals(b, nsCaseInsensitiveCStringComparator());
   }
 
-  PRBool LessThan(const nsCString &a, const nsCString &b) const
+  bool LessThan(const nsCString &a, const nsCString &b) const
   {
     return Compare(a, b, nsCaseInsensitiveCStringComparator());
   }
@@ -125,17 +125,17 @@ NS_INTERFACE_MAP_END_INHERITING(nsMsgIncomingServer)
 
 nsNntpIncomingServer::nsNntpIncomingServer()
 {
-  mNewsrcHasChanged = PR_FALSE;
+  mNewsrcHasChanged = false;
 
-  mHostInfoLoaded = PR_FALSE;
-  mHostInfoHasChanged = PR_FALSE;
+  mHostInfoLoaded = false;
+  mHostInfoHasChanged = false;
   mVersion = INVALID_VERSION;
 
   mLastGroupDate = 0;
   mUniqueId = 0;
-  mHasSeenBeginGroups = PR_FALSE;
-  mPostingAllowed = PR_FALSE;
-  m_userAuthenticated = PR_FALSE;
+  mHasSeenBeginGroups = false;
+  mPostingAllowed = false;
+  m_userAuthenticated = false;
   mLastUpdatedTime = 0;
 
   // these atoms are used for subscribe search
@@ -143,7 +143,7 @@ nsNntpIncomingServer::nsNntpIncomingServer()
   mNntpAtom = MsgGetAtom("nntp");
 
   // we have server wide and per group filters
-  m_canHaveFilters = PR_TRUE;
+  m_canHaveFilters = true;
 
   SetupNewsrcSaveTimer();
 }
@@ -415,7 +415,7 @@ nsNntpIncomingServer::WriteNewsrcFile()
 
         newsrcStream->Close();
 
-        rv = SetNewsrcHasChanged(PR_FALSE);
+        rv = SetNewsrcHasChanged(false);
         if (NS_FAILED(rv)) return rv;
     }
 #ifdef DEBUG_NEWS
@@ -506,7 +506,7 @@ nsNntpIncomingServer::ConnectionTimeOut(nsINNTPProtocol* aConnection)
 #endif
       aConnection->CloseConnection();
       mConnectionCache.RemoveObject(aConnection);
-      retVal = PR_TRUE;
+      retVal = true;
     }
     return retVal;
 }
@@ -579,7 +579,7 @@ nsNntpIncomingServer::GetNntpConnection(nsIURI * aUri, nsIMsgWindow *aMsgWindow,
   if (connection)
   {
     NS_IF_ADDREF(*aNntpConnection = connection);
-    connection->SetIsCachedConnection(PR_TRUE);
+    connection->SetIsCachedConnection(true);
   }
   else if (cnt < maxConnections)
   {
@@ -741,7 +741,7 @@ nsNntpIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
 NS_IMETHODIMP nsNntpIncomingServer::GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff)
 {
   NS_ENSURE_ARG_POINTER(aServerRequiresPasswordForBiff);
-  *aServerRequiresPasswordForBiff = PR_FALSE;  // for news, biff is getting the unread counts
+  *aServerRequiresPasswordForBiff = false;  // for news, biff is getting the unread counts
   return NS_OK;
 }
 
@@ -811,9 +811,9 @@ writeGroupToHostInfoFile(nsCString &aElement, void *aData)
     NS_ASSERTION(stream, "no stream");
     if (!stream) {
         // stop, something is bad.
-        return PR_FALSE;
+        return false;
     }
-    return PR_TRUE;
+    return true;
 }
 
 void nsNntpIncomingServer::WriteLine(nsIOutputStream *stream, nsCString &str)
@@ -879,7 +879,7 @@ nsNntpIncomingServer::WriteHostInfoFile()
   }
 
   hostInfoStream->Close();
-  mHostInfoHasChanged = PR_FALSE;
+  mHostInfoHasChanged = false;
   return NS_OK;
 }
 
@@ -888,7 +888,7 @@ nsNntpIncomingServer::LoadHostInfoFile()
 {
   nsresult rv;
   // we haven't loaded it yet
-  mHostInfoLoaded = PR_FALSE;
+  mHostInfoLoaded = false;
 
   rv = GetLocalPath(getter_AddRefs(mHostInfoFile));
   if (NS_FAILED(rv)) return rv;
@@ -921,7 +921,7 @@ nsNntpIncomingServer::LoadHostInfoFile()
       continue;
     HandleLine(line.get(), line.Length());
   }
-  mHasSeenBeginGroups = PR_FALSE;
+  mHasSeenBeginGroups = false;
   fileStream->Close();
 
   return UpdateSubscribed();
@@ -972,13 +972,13 @@ nsNntpIncomingServer::StartPopulating(nsIMsgWindow *aMsgWindow, bool aForceToSer
   rv = SetDelimiter(NEWS_DELIMITER);
   if (NS_FAILED(rv)) return rv;
 
-  rv = SetShowFullName(PR_TRUE);
+  rv = SetShowFullName(true);
   if (NS_FAILED(rv)) return rv;
 
   nsCOMPtr<nsINntpService> nntpService = do_GetService(NS_NNTPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  mHostInfoLoaded = PR_FALSE;
+  mHostInfoLoaded = false;
   mVersion = INVALID_VERSION;
   mGroupsOnServer.Clear();
   mGetOnlyNew = aGetOnlyNew;
@@ -992,7 +992,7 @@ nsNntpIncomingServer::StartPopulating(nsIMsgWindow *aMsgWindow, bool aForceToSer
   if (aForceToServer || !mHostInfoLoaded || (mVersion != VALID_VERSION)) {
     // set these to true, so when we are done and we call WriteHostInfoFile()
     // we'll write out to hostinfo.dat
-  mHostInfoHasChanged = PR_TRUE;
+  mHostInfoHasChanged = true;
   mVersion = VALID_VERSION;
 
   mGroupsOnServer.Clear();
@@ -1034,7 +1034,7 @@ nsNntpIncomingServer::AddNewsgroupToList(const char *aName)
     }
 
     rv = AddTo(NS_ConvertUTF16toUTF8(newsgroupName),
-               PR_FALSE, PR_TRUE, PR_TRUE);
+               false, true, true);
     if (NS_FAILED(rv)) return rv;
     return NS_OK;
 }
@@ -1230,12 +1230,12 @@ nsNntpIncomingServer::Unsubscribe(const PRUnichar *aUnicharName)
   if (!newsgroupFolder)
     return NS_ERROR_FAILURE;
 
-  rv = serverFolder->PropagateDelete(newsgroupFolder, PR_TRUE /* delete storage */, nsnull);
+  rv = serverFolder->PropagateDelete(newsgroupFolder, true /* delete storage */, nsnull);
   if (NS_FAILED(rv))
     return rv;
 
   // since we've unsubscribed to a newsgroup, the newsrc needs to be written out
-  rv = SetNewsrcHasChanged(PR_TRUE);
+  rv = SetNewsrcHasChanged(true);
   if (NS_FAILED(rv))
     return rv;
 
@@ -1262,17 +1262,17 @@ nsNntpIncomingServer::HandleLine(const char* line, PRUint32 line_size)
 #ifdef DEBUG_jungshik
     NS_ASSERTION(MsgIsUTF8(nsDependentCString(line)), "newsrc line is not utf-8");
 #endif
-    nsresult rv = AddTo(nsDependentCString(line), PR_FALSE, PR_TRUE, PR_TRUE);
+    nsresult rv = AddTo(nsDependentCString(line), false, true, true);
     NS_ASSERTION(NS_SUCCEEDED(rv),"failed to add line");
     if (NS_SUCCEEDED(rv)) {
       // since we've seen one group, we can claim we've loaded the
       // hostinfo file
-      mHostInfoLoaded = PR_TRUE;
+      mHostInfoLoaded = true;
     }
   }
   else {
     if (PL_strncmp(line,"begingroups", 11) == 0) {
-      mHasSeenBeginGroups = PR_TRUE;
+      mHasSeenBeginGroups = true;
     }
     char*equalPos = (char *) PL_strchr(line, '=');
     if (equalPos) {
@@ -1391,7 +1391,7 @@ nsNntpIncomingServer::CommitSubscribeChanges()
 
     // we force the newrc to be dirty, so it will get written out when
     // we call WriteNewsrcFile()
-    rv = SetNewsrcHasChanged(PR_TRUE);
+    rv = SetNewsrcHasChanged(true);
     NS_ENSURE_SUCCESS(rv,rv);
     return WriteNewsrcFile();
 }
@@ -1471,7 +1471,7 @@ nsNntpIncomingServer::QueryExtension(const char *extension, bool *result)
 #ifdef DEBUG_seth
   printf("no extension support yet\n");
 #endif
-  *result = PR_FALSE;
+  *result = false;
   return NS_OK;
 }
 
@@ -1643,7 +1643,7 @@ NS_IMETHODIMP
 nsNntpIncomingServer::GetCanSearchMessages(bool *canSearchMessages)
 {
     NS_ENSURE_ARG_POINTER(canSearchMessages);
-    *canSearchMessages = PR_TRUE;
+    *canSearchMessages = true;
     return NS_OK;
 }
 
@@ -1673,7 +1673,7 @@ nsNntpIncomingServer::GetDefaultCopiesAndFoldersPrefsToServer(bool *aCopiesAndFo
      * They'll point to the ones on "Local Folders"
      */
 
-    *aCopiesAndFoldersOnServer = PR_FALSE;
+    *aCopiesAndFoldersOnServer = false;
     return NS_OK;
 }
 
@@ -1683,7 +1683,7 @@ nsNntpIncomingServer::GetCanCreateFoldersOnServer(bool *aCanCreateFoldersOnServe
     NS_ENSURE_ARG_POINTER(aCanCreateFoldersOnServer);
 
     // No folder creation on news servers. Return false.
-    *aCanCreateFoldersOnServer = PR_FALSE;
+    *aCanCreateFoldersOnServer = false;
     return NS_OK;
 }
 
@@ -1720,7 +1720,7 @@ nsNntpIncomingServer::SetSearchValue(const nsAString &searchValue)
 NS_IMETHODIMP
 nsNntpIncomingServer::GetSupportsSubscribeSearch(bool *retVal)
 {
-    *retVal = PR_TRUE;
+    *retVal = true;
     return NS_OK;
 }
 
@@ -1790,7 +1790,7 @@ nsNntpIncomingServer::GetColumnProperties(nsITreeColumn* col, nsISupportsArray *
 NS_IMETHODIMP
 nsNntpIncomingServer::IsContainer(PRInt32 index, bool *_retval)
 {
-    *_retval = PR_FALSE;
+    *_retval = false;
     return NS_OK;
 }
 
@@ -1809,7 +1809,7 @@ nsNntpIncomingServer::IsContainerEmpty(PRInt32 index, bool *_retval)
 NS_IMETHODIMP
 nsNntpIncomingServer::IsSeparator(PRInt32 index, bool *_retval)
 {
-    *_retval = PR_FALSE;
+    *_retval = false;
     return NS_OK;
 }
 
@@ -1970,14 +1970,14 @@ nsNntpIncomingServer::CycleCell(PRInt32 row, nsITreeColumn* col)
 NS_IMETHODIMP
 nsNntpIncomingServer::IsEditable(PRInt32 row, nsITreeColumn* col, bool *_retval)
 {
-    *_retval = PR_FALSE;
+    *_retval = false;
     return NS_OK;
 }
 
 NS_IMETHODIMP
 nsNntpIncomingServer::IsSelectable(PRInt32 row, nsITreeColumn* col, bool *_retval)
 {
-    *_retval = PR_FALSE;
+    *_retval = false;
     return NS_OK;
 }
 
@@ -2017,7 +2017,7 @@ nsNntpIncomingServer::GetCanFileMessagesOnServer(bool *aCanFileMessagesOnServer)
     NS_ENSURE_ARG_POINTER(aCanFileMessagesOnServer);
 
     // No folder creation on news servers. Return false.
-    *aCanFileMessagesOnServer = PR_FALSE;
+    *aCanFileMessagesOnServer = false;
     return NS_OK;
 }
 
@@ -2118,7 +2118,7 @@ nsNntpIncomingServer::OnUserOrHostNameChanged(const nsACString& oldName, const n
   NS_ENSURE_SUCCESS(rv, rv);
   rv = hostInfoFile->AppendNative(NS_LITERAL_CSTRING(HOSTINFO_FILE_NAME));
   NS_ENSURE_SUCCESS(rv, rv);
-  hostInfoFile->Remove(PR_FALSE);
+  hostInfoFile->Remove(false);
 
   // 3.Unsubscribe and then subscribe the existing groups to clean up the article numbers
   //   in the rc file (this is because the old and new servers may maintain different

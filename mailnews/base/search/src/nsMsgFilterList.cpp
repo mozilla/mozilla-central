@@ -76,9 +76,9 @@ nsMsgFilterList::nsMsgFilterList() :
     NS_NewISupportsArray(getter_AddRefs(m_filters));
   NS_ASSERTION(NS_SUCCEEDED(rv), "Fixme bug 180312: NS_NewISupportsArray() failed");
 
-  m_loggingEnabled = PR_FALSE;
-  m_startWritingToBuffer = PR_FALSE;
-  m_temporaryList = PR_FALSE;
+  m_loggingEnabled = false;
+  m_startWritingToBuffer = false;
+  m_temporaryList = false;
   m_curFilter = nsnull;
 }
 
@@ -150,7 +150,7 @@ nsresult nsMsgFilterList::TruncateLog()
   rv = GetLogFile(getter_AddRefs(file));
   NS_ENSURE_SUCCESS(rv,rv);
 
-  file->Remove(PR_FALSE);
+  file->Remove(false);
   rv = file->Create(nsIFile::NORMAL_FILE_TYPE, 0644);
   NS_ENSURE_SUCCESS(rv,rv);
   return rv;
@@ -161,7 +161,7 @@ NS_IMETHODIMP nsMsgFilterList::ClearLog()
   bool loggingEnabled = m_loggingEnabled;
 
   // disable logging while clearing
-  m_loggingEnabled = PR_FALSE;
+  m_loggingEnabled = false;
 
 #ifdef DEBUG
   nsresult rv =
@@ -499,7 +499,7 @@ nsresult nsMsgFilterList::LoadValue(nsCString &value, nsIInputStream *aStream)
   curChar = SkipWhitespace(aStream);
   if (curChar != '"')
   {
-    NS_ASSERTION(PR_FALSE, "expecting quote as start of value");
+    NS_ASSERTION(false, "expecting quote as start of value");
     return NS_MSG_FILTER_PARSE_ERROR;
   }
   curChar = ReadChar(aStream);
@@ -559,20 +559,20 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
     {
     case nsIMsgFilterList::attribNone:
       if (m_curFilter)
-        m_curFilter->SetUnparseable(PR_TRUE);
+        m_curFilter->SetUnparseable(true);
       break;
     case nsIMsgFilterList::attribVersion:
       m_fileVersion = value.ToInteger(&intToStringResult);
       if (NS_FAILED(intToStringResult))
       {
         attrib = nsIMsgFilterList::attribNone;
-        NS_ASSERTION(PR_FALSE, "error parsing filter file version");
+        NS_ASSERTION(false, "error parsing filter file version");
       }
       break;
     case nsIMsgFilterList::attribLogging:
       m_loggingEnabled = StrToBool(value);
       m_unparsedFilterBuffer.Truncate(); //we are going to buffer each filter as we read them, make sure no garbage is there
-      m_startWritingToBuffer = PR_TRUE; //filters begin now
+      m_startWritingToBuffer = true; //filters begin now
       break;
     case nsIMsgFilterList::attribName:  //every filter starts w/ a name
       {
@@ -589,7 +589,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
           if (unparseableFilter)
           {
             m_curFilter->SetUnparsedBuffer(m_unparsedFilterBuffer);
-            m_curFilter->SetEnabled(PR_FALSE); //disable the filter because we don't know how to apply it
+            m_curFilter->SetEnabled(false); //disable the filter because we don't know how to apply it
           }
           m_unparsedFilterBuffer = nextFilterPart;
         }
@@ -650,7 +650,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
       {
         nsMsgRuleActionType actionType = nsMsgFilter::GetActionForFilingStr(value);
         if (actionType == nsMsgFilterAction::None)
-          m_curFilter->SetUnparseable(PR_TRUE);
+          m_curFilter->SetUnparseable(true);
         else
         {
           err = m_curFilter->CreateAction(getter_AddRefs(currentFilterAction));
@@ -675,7 +675,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
           if (NS_SUCCEEDED(res))
             currentFilterAction->SetPriority(outPriority);
           else
-            NS_ASSERTION(PR_FALSE, "invalid priority in filter file");
+            NS_ASSERTION(false, "invalid priority in filter file");
         }
         else if (type == nsMsgFilterAction::Label)
         {
@@ -723,7 +723,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
         }
         err = ParseCondition(m_curFilter, value.get());
         if (err == NS_ERROR_INVALID_ARG)
-          err = m_curFilter->SetUnparseable(PR_TRUE);
+          err = m_curFilter->SetUnparseable(true);
         NS_ENSURE_SUCCESS(err, err);
       }
       break;
@@ -745,7 +745,7 @@ nsresult nsMsgFilterList::LoadTextFilters(nsIInputStream *aStream)
     if (unparseableFilter)
     {
       m_curFilter->SetUnparsedBuffer(m_unparsedFilterBuffer);
-      m_curFilter->SetEnabled(PR_FALSE);  //disable the filter because we don't know how to apply it
+      m_curFilter->SetEnabled(false);  //disable the filter because we don't know how to apply it
     }
   }
 
@@ -771,7 +771,7 @@ NS_IMETHODIMP nsMsgFilterList::ParseCondition(nsIMsgFilter *aFilter, const char 
 
     if (newTerm)
     {
-      newTerm->m_matchAll = PR_TRUE;
+      newTerm->m_matchAll = true;
       aFilter->AppendTerm(newTerm);
     }
     return (newTerm) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
@@ -784,7 +784,7 @@ NS_IMETHODIMP nsMsgFilterList::ParseCondition(nsIMsgFilter *aFilter, const char 
     const char *orTermPos = PL_strchr(curPtr, 'O');    // determine if an "OR" appears b4 the openParen...
     bool ANDTerm = true;
     if (orTermPos && orTermPos < openParen) // make sure OR term falls before the '('
-      ANDTerm = PR_FALSE;
+      ANDTerm = false;
 
     char *termDup = nsnull;
     if (openParen)
@@ -797,7 +797,7 @@ NS_IMETHODIMP nsMsgFilterList::ParseCondition(nsIMsgFilter *aFilter, const char 
           curPtr++;
         else if (*curPtr == ')' && !inQuote)
         {
-          foundEndTerm = PR_TRUE;
+          foundEndTerm = true;
           break;
         }
         else if (*curPtr == '"')

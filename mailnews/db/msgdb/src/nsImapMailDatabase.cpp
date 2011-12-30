@@ -64,7 +64,7 @@ NS_IMETHODIMP	nsImapMailDatabase::GetSummaryValid(bool *aResult)
     *aResult = (GetCurVersion() == version);
   }
   else
-      *aResult = PR_FALSE;
+      *aResult = false;
 
   return NS_OK;
 }

@@ -90,7 +90,7 @@ U32 Get2000Secs( void)
 
 nsImportEncodeScan::nsImportEncodeScan()
 {
-  m_isAppleSingle = PR_FALSE;
+  m_isAppleSingle = false;
   m_encodeScanState = 0;
   m_resourceForkSize = 0;
   m_dataForkSize = 0;
@@ -114,7 +114,7 @@ bool nsImportEncodeScan::InitEncodeScan( bool appleSingleEncode, nsIFile *fileLo
     if (!m_inputStream)
                 {
                   nsresult rv = NS_NewLocalFileInputStream(getter_AddRefs(m_inputStream), m_pInputFile);
-                  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+                  NS_ENSURE_SUCCESS(rv, false);
     }
 
     InitScan( m_inputStream, pBuf, sz);
@@ -127,7 +127,7 @@ bool nsImportEncodeScan::InitEncodeScan( bool appleSingleEncode, nsIFile *fileLo
   #endif
   }
 
-  return( PR_TRUE);
+  return( true);
 }
 
 void nsImportEncodeScan::CleanUpEncodeScan( void)
@@ -271,14 +271,14 @@ bool nsImportEncodeScan::AddEntries( void)
 
 
 #endif
-  return( PR_TRUE);
+  return( true);
 }
 
 bool nsImportEncodeScan::Scan( bool *pDone)
 {
   nsresult  rv;
 
-  *pDone = PR_FALSE;
+  *pDone = false;
   if (m_isAppleSingle) {
     // Stuff the buffer with things needed to encode the file...
     // then just allow UScanFile to handle each fork, but be careful
@@ -290,7 +290,7 @@ bool nsImportEncodeScan::Scan( bool *pDone)
         if (err != noErr)
           return( FALSE);
 #endif
-        m_eof = PR_FALSE;
+        m_eof = false;
         m_pos = 0;
         memcpy( m_pBuf, gAppleSingleHeader, kAppleSingleHeaderSize);
         m_bytesInBuf = kAppleSingleHeaderSize;
@@ -310,32 +310,32 @@ bool nsImportEncodeScan::Scan( bool *pDone)
       case kBeginDataFork: {
         if (!m_dataForkSize) {
           m_encodeScanState = kDoneWithFile;
-          return( PR_TRUE);
+          return( true);
         }
         // Initialize the scan of the data fork...
         if (!m_inputStream)
                                 {
                                   rv = NS_NewLocalFileInputStream(getter_AddRefs(m_inputStream), m_pInputFile);
-                                  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+                                  NS_ENSURE_SUCCESS(rv, false);
                                 }
         m_encodeScanState = kScanningDataFork;
-        return( PR_TRUE);
+        return( true);
       }
       break;
 
       case kScanningDataFork: {
         bool result = FillBufferFromFile();
         if (!result)
-          return( PR_FALSE);
+          return( false);
         if (m_eof) {
-          m_eof = PR_FALSE;
+          m_eof = false;
           result = ScanBuffer( pDone);
           if (!result)
-            return( PR_FALSE);
+            return( false);
           m_inputStream->Close();
                                         m_inputStream = nsnull;
           m_encodeScanState = kDoneWithFile;
-          return( PR_TRUE);
+          return( true);
         }
         else
           return( ScanBuffer( pDone));
@@ -345,16 +345,16 @@ bool nsImportEncodeScan::Scan( bool *pDone)
       case kScanningRsrcFork: {
         bool result = FillBufferFromFile();
         if (!result)
-          return( PR_FALSE);
+          return( false);
         if (m_eof) {
-          m_eof = PR_FALSE;
+          m_eof = false;
           result = ScanBuffer( pDone);
           if (!result)
-            return( PR_FALSE);
+            return( false);
           m_inputStream->Close();
                                         m_inputStream = nsnull;
           m_encodeScanState = kBeginDataFork;
-          return( PR_TRUE);
+          return( true);
         }
         else
           return( ScanBuffer( pDone));
@@ -364,7 +364,7 @@ bool nsImportEncodeScan::Scan( bool *pDone)
       case kBeginResourceFork: {
         if (!m_resourceForkSize) {
           m_encodeScanState = kBeginDataFork;
-          return( PR_TRUE);
+          return( true);
         }
         /*
         // FIXME: Open the resource fork on the Mac!!!
@@ -373,14 +373,14 @@ bool nsImportEncodeScan::Scan( bool *pDone)
           return( FALSE);
         */
         m_encodeScanState = kScanningRsrcFork;
-        return( PR_TRUE);
+        return( true);
       }
       break;
 
       case kAddEntries: {
         ShiftBuffer();
         if (!AddEntries())
-          return( PR_FALSE);
+          return( false);
         m_encodeScanState = kBeginResourceFork;
         return( ScanBuffer( pDone));
       }
@@ -388,11 +388,11 @@ bool nsImportEncodeScan::Scan( bool *pDone)
 
       case kDoneWithFile: {
         ShiftBuffer();
-        m_eof = PR_TRUE;
+        m_eof = true;
         if (!ScanBuffer( pDone))
-          return( PR_FALSE);
-        *pDone = PR_TRUE;
-        return( PR_TRUE);
+          return( false);
+        *pDone = true;
+        return( true);
       }
       break;
     }
@@ -401,6 +401,6 @@ bool nsImportEncodeScan::Scan( bool *pDone)
   else
     return( nsImportScanFile::Scan( pDone));
 
-  return( PR_FALSE);
+  return( false);
 }
 

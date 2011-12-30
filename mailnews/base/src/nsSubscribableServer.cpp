@@ -52,9 +52,9 @@ static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 nsSubscribableServer::nsSubscribableServer(void)
 {
     mDelimiter = '.';
-    mShowFullName = PR_TRUE;
+    mShowFullName = true;
     mTreeRoot = nsnull;
-    mStopped = PR_FALSE;
+    mStopped = false;
 }
 
 nsresult
@@ -127,8 +127,8 @@ nsSubscribableServer::SetAsSubscribed(const nsACString &path)
     NS_ASSERTION(node,"didn't find the node");
     if (!node) return NS_ERROR_FAILURE;
 
-    node->isSubscribable = PR_TRUE;
-    node->isSubscribed = PR_TRUE;
+    node->isSubscribable = true;
+    node->isSubscribed = true;
 
     rv = NotifyChange(node, kNC_Subscribed, node->isSubscribed);
     NS_ENSURE_SUCCESS(rv,rv);
@@ -179,7 +179,7 @@ nsSubscribableServer::SetState(const nsACString &aPath, bool aState,
 
     NS_ASSERTION(MsgIsUTF8(aPath), "aPath is not in UTF-8");
 
-    *aStateChanged = PR_FALSE;
+    *aStateChanged = false;
 
     SubscribeTreeNode *node = nsnull;
     rv = FindAndCreateNode(aPath, &node);
@@ -198,7 +198,7 @@ nsSubscribableServer::SetState(const nsACString &aPath, bool aState,
     }
     else {
         node->isSubscribed = aState;
-        *aStateChanged = PR_TRUE;
+        *aStateChanged = true;
         rv = NotifyChange(node, kNC_Subscribed, node->isSubscribed);
         NS_ENSURE_SUCCESS(rv,rv);
     }
@@ -257,7 +257,7 @@ nsSubscribableServer::NotifyAssert(SubscribeTreeNode *subjectNode, nsIRDFResourc
     rv = mRDFService->GetResource(objectUri, getter_AddRefs(object));
     NS_ENSURE_SUCCESS(rv,rv);
 
-    rv = Notify(subject, property, object, PR_TRUE, PR_FALSE);
+    rv = Notify(subject, property, object, true, false);
     NS_ENSURE_SUCCESS(rv,rv);
     return NS_OK;
 }
@@ -302,10 +302,10 @@ nsSubscribableServer::NotifyChange(SubscribeTreeNode *subjectNode, nsIRDFResourc
     NS_ENSURE_SUCCESS(rv,rv);
 
     if (value) {
-        rv = Notify(subject,property,kTrueLiteral,PR_FALSE,PR_TRUE);
+        rv = Notify(subject,property,kTrueLiteral,false,true);
     }
     else {
-        rv = Notify(subject,property,kFalseLiteral,PR_FALSE,PR_TRUE);
+        rv = Notify(subject,property,kFalseLiteral,false,true);
     }
 
     NS_ENSURE_SUCCESS(rv,rv);
@@ -368,14 +368,14 @@ nsSubscribableServer::GetSubscribeListener(nsISubscribeListener **aListener)
 NS_IMETHODIMP
 nsSubscribableServer::SubscribeCleanup()
 {
-	NS_ASSERTION(PR_FALSE,"override this.");
+	NS_ASSERTION(false,"override this.");
 	return NS_ERROR_FAILURE;
 }
 
 NS_IMETHODIMP
 nsSubscribableServer::StartPopulatingWithUri(nsIMsgWindow *aMsgWindow, bool aForceToServer, const char *uri)
 {
-    mStopped = PR_FALSE;
+    mStopped = false;
     return NS_OK;
 }
 
@@ -384,7 +384,7 @@ nsSubscribableServer::StartPopulating(nsIMsgWindow *aMsgWindow, bool aForceToSer
 {
     nsresult rv = NS_OK;
 
-    mStopped = PR_FALSE;
+    mStopped = false;
 
     rv = FreeSubtree(mTreeRoot);
     mTreeRoot = nsnull;
@@ -395,7 +395,7 @@ nsSubscribableServer::StartPopulating(nsIMsgWindow *aMsgWindow, bool aForceToSer
 NS_IMETHODIMP
 nsSubscribableServer::StopPopulating(nsIMsgWindow *aMsgWindow)
 {
-    mStopped = PR_TRUE;
+    mStopped = true;
     return NS_OK;
 }
 
@@ -403,21 +403,21 @@ nsSubscribableServer::StopPopulating(nsIMsgWindow *aMsgWindow)
 NS_IMETHODIMP
 nsSubscribableServer::UpdateSubscribed()
 {
-	NS_ASSERTION(PR_FALSE,"override this.");
+	NS_ASSERTION(false,"override this.");
 	return NS_ERROR_FAILURE;
 }
 
 NS_IMETHODIMP
 nsSubscribableServer::Subscribe(const PRUnichar *aName)
 {
-	NS_ASSERTION(PR_FALSE,"override this.");
+	NS_ASSERTION(false,"override this.");
 	return NS_ERROR_FAILURE;
 }
 
 NS_IMETHODIMP
 nsSubscribableServer::Unsubscribe(const PRUnichar *aName)
 {
-	NS_ASSERTION(PR_FALSE,"override this.");
+	NS_ASSERTION(false,"override this.");
 	return NS_ERROR_FAILURE;
 }
 
@@ -484,8 +484,8 @@ nsSubscribableServer::CreateNode(SubscribeTreeNode *parent, const char *name, Su
     (*result)->nextSibling = nsnull;
     (*result)->firstChild = nsnull;
     (*result)->lastChild = nsnull;
-    (*result)->isSubscribed = PR_FALSE;
-    (*result)->isSubscribable = PR_FALSE;
+    (*result)->isSubscribed = false;
+    (*result)->isSubscribable = false;
 #ifdef HAVE_SUBSCRIBE_DESCRIPTION
     (*result)->description = nsnull;
 #endif
@@ -662,7 +662,7 @@ nsSubscribableServer::HasChildren(const nsACString &aPath, bool *aHasChildren)
     NS_ASSERTION(aHasChildren, "no hasChildren");
     if (!aHasChildren) return NS_ERROR_NULL_POINTER;
 
-    *aHasChildren = PR_FALSE;
+    *aHasChildren = false;
 
     SubscribeTreeNode *node = nsnull;
     rv = FindAndCreateNode(aPath, &node);
@@ -682,7 +682,7 @@ nsSubscribableServer::IsSubscribed(const nsACString &aPath,
 {
     NS_ENSURE_ARG_POINTER(aIsSubscribed);
 
-    *aIsSubscribed = PR_FALSE;
+    *aIsSubscribed = false;
 
     SubscribeTreeNode *node = nsnull;
     nsresult rv = FindAndCreateNode(aPath, &node);
@@ -701,7 +701,7 @@ nsSubscribableServer::IsSubscribable(const nsACString &aPath,
 {
     NS_ENSURE_ARG_POINTER(aIsSubscribable);
 
-    *aIsSubscribable = PR_FALSE;
+    *aIsSubscribable = false;
 
     SubscribeTreeNode *node = nsnull;
     nsresult rv = FindAndCreateNode(aPath, &node);
@@ -818,7 +818,7 @@ nsSubscribableServer::GetChildren(const nsACString &aPath,
 NS_IMETHODIMP
 nsSubscribableServer::CommitSubscribeChanges()
 {
-    NS_ASSERTION(PR_FALSE,"override this.");
+    NS_ASSERTION(false,"override this.");
     return NS_ERROR_FAILURE;
 }
 

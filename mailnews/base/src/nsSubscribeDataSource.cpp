@@ -462,7 +462,7 @@ nsSubscribeDataSource::HasAssertion(nsIRDFResource *source,
 	if (! hasAssertion)
 		return NS_ERROR_NULL_POINTER;
 
-	*hasAssertion = PR_FALSE;
+	*hasAssertion = false;
 
   // we only have positive assertions in the subscribe data source.
 	if (!tv) return NS_OK;
@@ -473,7 +473,7 @@ nsSubscribeDataSource::HasAssertion(nsIRDFResource *source,
 
     rv = GetServerAndRelativePathFromResource(source, getter_AddRefs(server), getter_Copies(relativePath));
     if (NS_FAILED(rv) || !server) {
-        *hasAssertion = PR_FALSE;
+        *hasAssertion = false;
         return NS_OK;
     }
 
@@ -483,23 +483,23 @@ nsSubscribeDataSource::HasAssertion(nsIRDFResource *source,
     }
     else if (property == kNC_Name.get()) {
         // everything has a name
-        *hasAssertion = PR_TRUE;
+        *hasAssertion = true;
     }
     else if (property == kNC_LeafName.get()) {
         // everything has a leaf name
-        *hasAssertion = PR_TRUE;
+        *hasAssertion = true;
     }
     else if (property == kNC_Subscribed.get()) {
         // everything is subscribed or not
-        *hasAssertion = PR_TRUE;
+        *hasAssertion = true;
     }
     else if (property == kNC_Subscribable.get()) {
         // everything is subscribable or not
-        *hasAssertion = PR_TRUE;
+        *hasAssertion = true;
     }
     else if (property == kNC_ServerType.get()) {
         // everything has a server type
-        *hasAssertion = PR_TRUE;
+        *hasAssertion = true;
     }
     else {
         // do nothing
@@ -526,7 +526,7 @@ nsSubscribeDataSource::HasArcOut(nsIRDFResource *source, nsIRDFResource *aArc, b
     if (aArc == kNC_Child.get()) {
     rv = GetServerAndRelativePathFromResource(source, getter_AddRefs(server), getter_Copies(relativePath));
     if (NS_FAILED(rv) || !server) {
-	    *result = PR_FALSE;
+	    *result = false;
         return NS_OK;
     }
 
@@ -541,11 +541,11 @@ nsSubscribeDataSource::HasArcOut(nsIRDFResource *source, nsIRDFResource *aArc, b
              (aArc == kNC_LeafName.get()) ||
              (aArc == kNC_ServerType.get()) ||
              (aArc == kNC_Name.get())) {
-        *result = PR_TRUE;
+        *result = true;
         return NS_OK;
     }
 
-    *result = PR_FALSE;
+    *result = false;
     return NS_OK;
 }
 
@@ -651,7 +651,7 @@ nsSubscribeDataSource::GetHasObservers(bool *hasObservers)
     if (!hasObservers) return NS_ERROR_NULL_POINTER;
     
     if (!mObservers) {
-        *hasObservers = PR_FALSE;
+        *hasObservers = false;
         return NS_OK;
     }
     
@@ -710,7 +710,7 @@ nsSubscribeDataSource::EndUpdateBatch()
 NS_IMETHODIMP 
 nsSubscribeDataSource::GetSources(nsIRDFResource *aProperty, nsIRDFNode *aTarget, bool aTruthValue, nsISimpleEnumerator **_retval)
 {
-  NS_ASSERTION(PR_FALSE, "Not implemented");
+  NS_ASSERTION(false, "Not implemented");
   return NS_ERROR_NOT_IMPLEMENTED;
 }
 
@@ -746,7 +746,7 @@ nsSubscribeDataSource::changeEnumFunc(nsISupports *aElement, void *aData)
                      note->subject,
                      note->property,
                      nsnull, note->object);
-  return PR_TRUE;
+  return true;
 }
 
 bool
@@ -759,7 +759,7 @@ nsSubscribeDataSource::assertEnumFunc(nsISupports *aElement, void *aData)
                      note->subject,
                      note->property,
                      note->object);
-  return PR_TRUE;
+  return true;
 }
 
 bool
@@ -772,5 +772,5 @@ nsSubscribeDataSource::unassertEnumFunc(nsISupports *aElement, void *aData)
                        note->subject,
                        note->property,
                        note->object);
-  return PR_TRUE;
+  return true;
 }

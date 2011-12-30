@@ -116,11 +116,11 @@ NS_MsgCreatePathStringFromFolderURI(const char *aFolderURI,
  *
  * If mailnews.localizedRe is set, it will also remove localized "Re:" strings.
  *
- * @return PR_TRUE if it made a change (in which case the caller should look to
- *         modifiedSubject for the result) and PR_FALSE otherwise (in which
+ * @return true if it made a change (in which case the caller should look to
+ *         modifiedSubject for the result) and false otherwise (in which
  *         case the caller should look at stringp/length for the result) 
  *
- * @note In the case of a PR_TRUE return value, the string is not altered:
+ * @note In the case of a true return value, the string is not altered:
  *       the pointer to its head is merely advanced, and the length
  *       correspondingly decreased.
  * 
@@ -254,7 +254,7 @@ NS_MSG_BASE PRInt32 MsgFindCharInSet(const nsString &aString,
 
 
 // advances bufferOffset to the beginning of the next line, if we don't
-// get to maxBufferOffset first. Returns PR_FALSE if we didn't get to the
+// get to maxBufferOffset first. Returns false if we didn't get to the
 // next line.
 NS_MSG_BASE bool MsgAdvanceToNextLine(const char *buffer, PRUint32 &bufferOffset,
                                    PRUint32 maxBufferOffset);
@@ -318,10 +318,10 @@ NS_MSG_BASE nsresult MsgDetectCharsetFromFile(nsILocalFile *aFile, nsACString &a
 #include "nsEscape.h"
 
 /**
- * The internal API expects nsCaseInsensitiveC?StringComparator() and PR_TRUE.
+ * The internal API expects nsCaseInsensitiveC?StringComparator() and true.
  * Redefine CaseInsensitiveCompare so that Find works.
  */
-#define CaseInsensitiveCompare PR_TRUE
+#define CaseInsensitiveCompare true
 /**
  * The following methods are not exposed to the external API, but when we're
  * using the internal API we can simply redirect the calls appropriately.

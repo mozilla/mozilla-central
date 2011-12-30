@@ -160,7 +160,7 @@ bool nsMAPIConfiguration::UnRegisterSession(PRUint32 aSessionID)
           m_ProfileMap.Remove(pTemp->m_pProfileName);
         m_SessionMap.Remove(aSessionID);
         sessionCount--;
-        bResult = PR_TRUE;
+        bResult = true;
       }
     }
   }
@@ -172,7 +172,7 @@ bool nsMAPIConfiguration::UnRegisterSession(PRUint32 aSessionID)
 bool nsMAPIConfiguration::IsSessionValid(PRUint32 aSessionID)
 {
   if (aSessionID == 0)
-    return PR_FALSE;
+    return false;
   bool retValue = false;
   PR_Lock(m_Lock);
   retValue = m_SessionMap.Get(aSessionID, NULL);

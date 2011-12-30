@@ -56,7 +56,7 @@ NS_IMPL_ISUPPORTS2(nsEudoraProfileMigrator, nsIMailProfileMigrator, nsITimerCall
 
 nsEudoraProfileMigrator::nsEudoraProfileMigrator()
 {
-  mProcessingMailFolders = PR_FALSE;
+  mProcessingMailFolders = false;
   // get the import service
   mImportModule = do_CreateInstance("@mozilla.org/import/import-eudora;1");
 }
@@ -140,7 +140,7 @@ nsEudoraProfileMigrator::GetMigrateData(const PRUnichar* aProfile,
 NS_IMETHODIMP
 nsEudoraProfileMigrator::GetSourceExists(bool* aResult)
 {
-  *aResult = PR_FALSE;
+  *aResult = false;
 
   nsCOMPtr<nsIImportSettings> importSettings;
   mImportModule->GetImportInterface(NS_IMPORT_SETTINGS_STR, getter_AddRefs(importSettings));
@@ -158,7 +158,7 @@ nsEudoraProfileMigrator::GetSourceExists(bool* aResult)
 NS_IMETHODIMP
 nsEudoraProfileMigrator::GetSourceHasMultipleProfiles(bool* aResult)
 {
-  *aResult = PR_FALSE;
+  *aResult = false;
   return NS_OK;
 }
 

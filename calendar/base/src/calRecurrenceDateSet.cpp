@@ -55,9 +55,9 @@ NS_IMPL_CLASSINFO(calRecurrenceDateSet, NULL, 0, CAL_RECURRENCEDATESET_CID)
 NS_IMPL_ISUPPORTS2_CI(calRecurrenceDateSet, calIRecurrenceItem, calIRecurrenceDateSet)
 
 calRecurrenceDateSet::calRecurrenceDateSet()
-    : mImmutable(PR_FALSE),
-      mIsNegative(PR_FALSE),
-      mSorted(PR_FALSE)
+    : mImmutable(false),
+      mIsNegative(false),
+      mSorted(false)
 {
 }
 
@@ -76,7 +76,7 @@ calRecurrenceDateSet::MakeImmutable()
     if (mImmutable)
         return NS_ERROR_FAILURE; // XXX another error code
 
-    mImmutable = PR_TRUE;
+    mImmutable = true;
     return NS_OK;
 }
 
@@ -130,7 +130,7 @@ NS_IMETHODIMP
 calRecurrenceDateSet::GetIsFinite(bool *_retval)
 {
     NS_ENSURE_ARG_POINTER(_retval);
-    *_retval = PR_TRUE;
+    *_retval = true;
     return NS_OK;
 }
 
@@ -169,7 +169,7 @@ calRecurrenceDateSet::SetDates(PRUint32 aCount, calIDateTime **aDates)
         mDates.AppendObject(aDates[i]);
     }
 
-    mSorted = PR_FALSE;
+    mSorted = false;
 
     return NS_OK;
 }
@@ -181,7 +181,7 @@ calRecurrenceDateSet::AddDate(calIDateTime *aDate)
 
     mDates.AppendObject(aDate);
 
-    mSorted = PR_FALSE;
+    mSorted = false;
 
     return NS_OK;
 }
@@ -201,7 +201,7 @@ calRecurrenceDateSet::EnsureSorted()
 {
     if (!mSorted) {
         mDates.Sort(calDateTimeComparator, nsnull);
-        mSorted = PR_TRUE;
+        mSorted = true;
     }
 }
 

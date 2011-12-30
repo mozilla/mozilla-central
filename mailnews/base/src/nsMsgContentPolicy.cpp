@@ -79,8 +79,8 @@ NS_IMPL_ISUPPORTS4(nsMsgContentPolicy,
 
 nsMsgContentPolicy::nsMsgContentPolicy()
 {
-  mAllowPlugins = PR_FALSE;
-  mBlockRemoteImages = PR_TRUE;
+  mAllowPlugins = false;
+  mBlockRemoteImages = true;
 }
 
 nsMsgContentPolicy::~nsMsgContentPolicy()
@@ -103,8 +103,8 @@ nsresult nsMsgContentPolicy::Init()
   nsCOMPtr<nsIPrefBranch2> prefInternal = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  prefInternal->AddObserver(kBlockRemoteImages, this, PR_TRUE);
-  prefInternal->AddObserver(kAllowPlugins, this, PR_TRUE);
+  prefInternal->AddObserver(kBlockRemoteImages, this, true);
+  prefInternal->AddObserver(kAllowPlugins, this, true);
 
   prefInternal->GetBoolPref(kAllowPlugins, &mAllowPlugins);
   prefInternal->GetCharPref(kTrustedDomains, getter_Copies(mTrustedMailDomains));
@@ -121,28 +121,28 @@ bool
 nsMsgContentPolicy::ShouldAcceptRemoteContentForSender(nsIMsgDBHdr *aMsgHdr)
 {
   if (!aMsgHdr)
-    return PR_FALSE;
+    return false;
 
   // extract the e-mail address from the msg hdr
   nsCString author;
   nsresult rv = aMsgHdr->GetAuthor(getter_Copies(author));
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, false);
 
   nsCOMPtr<nsIMsgHeaderParser> headerParser =
     do_GetService("@mozilla.org/messenger/headerparser;1", &rv);
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, false);
 
   nsCString emailAddress; 
   rv = headerParser->ExtractHeaderAddressMailboxes(author, emailAddress);
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, false);
 
   nsCOMPtr<nsIAbManager> abManager = do_GetService("@mozilla.org/abmanager;1",
                                                    &rv);
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, false);
 
   nsCOMPtr<nsISimpleEnumerator> enumerator;
   rv = abManager->GetDirectories(getter_AddRefs(enumerator));
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, false);
 
   nsCOMPtr<nsISupports> supports;
   nsCOMPtr<nsIAbDirectory> directory;
@@ -153,20 +153,20 @@ nsMsgContentPolicy::ShouldAcceptRemoteContentForSender(nsIMsgDBHdr *aMsgHdr)
          !cardForAddress)
   {
     rv = enumerator->GetNext(getter_AddRefs(supports));
-    NS_ENSURE_SUCCESS(rv, PR_FALSE);
+    NS_ENSURE_SUCCESS(rv, false);
     directory = do_QueryInterface(supports);
     if (directory)
     {
       rv = directory->CardForEmailAddress(emailAddress, getter_AddRefs(cardForAddress));
       if (NS_FAILED(rv) && rv != NS_ERROR_NOT_IMPLEMENTED)
-        return PR_FALSE;
+        return false;
     }
   }
   
   // If we found a card from the sender, check if the remote content property
   // is set to allow.
   if (!cardForAddress)
-    return PR_FALSE;
+    return false;
 
   bool allowForSender;
   cardForAddress->GetPropertyAsBool(kAllowRemoteContentProperty,
@@ -353,7 +353,7 @@ bool
 nsMsgContentPolicy::IsSafeRequestingLocation(nsIURI *aRequestingLocation)
 {
   if (!aRequestingLocation)
-    return PR_FALSE;
+    return false;
 
   // if aRequestingLocation is chrome, resource about or file, allow
   // aContentLocation to load
@@ -366,23 +366,23 @@ nsMsgContentPolicy::IsSafeRequestingLocation(nsIURI *aRequestingLocation)
   rv |= aRequestingLocation->SchemeIs("resource", &isRes);
   rv |= aRequestingLocation->SchemeIs("file", &isFile);
 
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, false);
 
   if (isChrome || isRes || isFile)
-    return PR_TRUE;
+    return true;
 
   // Only allow about: to load anything if the requesting location is not the
   // special about:blank one.
   rv = aRequestingLocation->SchemeIs("about", &isAbout);
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, false);
 
   if (!isAbout)
-    return PR_FALSE;
+    return false;
 
 
   nsCString fullSpec;
   rv = aRequestingLocation->GetSpec(fullSpec);
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, false);
 
   return !fullSpec.EqualsLiteral("about:blank");
 }
@@ -396,7 +396,7 @@ nsMsgContentPolicy::IsExposedProtocol(nsIURI *aContentLocation)
 {
   nsCAutoString contentScheme;
   nsresult rv = aContentLocation->GetScheme(contentScheme);
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, false);
 
   // If you are changing this list, you may need to also consider changing the
   // list of network.protocol-handler.expose.* prefs in all-thunderbird.js.
@@ -409,7 +409,7 @@ nsMsgContentPolicy::IsExposedProtocol(nsIURI *aContentLocation)
       MsgLowerCaseEqualsLiteral(contentScheme, "pop") ||
       MsgLowerCaseEqualsLiteral(contentScheme, "mailbox") ||
       MsgLowerCaseEqualsLiteral(contentScheme, "about"))
-    return PR_TRUE;
+    return true;
 
   bool isData;
   bool isChrome;
@@ -418,7 +418,7 @@ nsMsgContentPolicy::IsExposedProtocol(nsIURI *aContentLocation)
   rv |= aContentLocation->SchemeIs("resource", &isRes);
   rv |= aContentLocation->SchemeIs("data", &isData);
 
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, false);
 
   return isChrome || isRes || isData;
 }
@@ -437,7 +437,7 @@ nsMsgContentPolicy::ShouldBlockUnexposedProtocol(nsIURI *aContentLocation)
   rv |= aContentLocation->SchemeIs("file", &isFile);
 
   // Error condition - we must return true so that we block.
-  NS_ENSURE_SUCCESS(rv, PR_TRUE);
+  NS_ENSURE_SUCCESS(rv, true);
 
   return !isHttp && !isHttps && !isFile;
 }
@@ -713,7 +713,7 @@ nsresult nsMsgContentPolicy::SetDisableItemsOnMailNewsUrlDocshells(
   }
 
   // For messages, we must always disable javascript...
-  rv = docShell->SetAllowJavascript(PR_FALSE);
+  rv = docShell->SetAllowJavascript(false);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // ...and we allow plugins according to the mail specific preference.
@@ -866,7 +866,7 @@ nsMsgContentPolicy::OnLocationChange(nsIWebProgress *aWebProgress,
 
   if (NS_SUCCEEDED(rv)) {
     // Disable javascript on message URLs.
-    rv = docShell->SetAllowJavascript(PR_FALSE);
+    rv = docShell->SetAllowJavascript(false);
     NS_ASSERTION(NS_SUCCEEDED(rv),
                  "Failed to set javascript disabled on docShell");
     // Also disable plugins if the preference requires it.
@@ -876,10 +876,10 @@ nsMsgContentPolicy::OnLocationChange(nsIWebProgress *aWebProgress,
   }
   else {
     // Disable javascript and plugins are allowed on non-message URLs.
-    rv = docShell->SetAllowJavascript(PR_TRUE);
+    rv = docShell->SetAllowJavascript(true);
     NS_ASSERTION(NS_SUCCEEDED(rv),
                  "Failed to set javascript allowed on docShell");
-    rv = docShell->SetAllowPlugins(PR_TRUE);
+    rv = docShell->SetAllowPlugins(true);
     NS_ASSERTION(NS_SUCCEEDED(rv),
                  "Failed to set plugins allowed on docShell");
   }

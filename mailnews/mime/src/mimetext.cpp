@@ -96,8 +96,8 @@ MimeInlineText_initialize (MimeObject *obj)
   /* This is an abstract class; it shouldn't be directly instantiated. */
   PR_ASSERT(obj->clazz != (MimeObjectClass *) &mimeInlineTextClass);
 
-  ((MimeInlineText *) obj)->initializeCharset = PR_FALSE;
-  ((MimeInlineText *) obj)->needUpdateMsgWinCharset = PR_FALSE;
+  ((MimeInlineText *) obj)->initializeCharset = false;
+  ((MimeInlineText *) obj)->needUpdateMsgWinCharset = false;
   return ((MimeObjectClass*)&MIME_SUPERCLASS)->initialize(obj);
 }
 
@@ -105,8 +105,8 @@ static int MimeInlineText_initializeCharset(MimeObject *obj)
 {
   MimeInlineText  *text = (MimeInlineText *) obj;
 
-  text->inputAutodetect = PR_FALSE;
-  text->charsetOverridable = PR_FALSE;
+  text->inputAutodetect = false;
+  text->charsetOverridable = false;
   
   /* Figure out an appropriate charset for this object.
   */
@@ -119,7 +119,7 @@ static int MimeInlineText_initializeCharset(MimeObject *obj)
     else
     {
       char *ct = MimeHeaders_get (obj->headers, HEADER_CONTENT_TYPE,
-                                  PR_FALSE, PR_FALSE);
+                                  false, false);
       if (ct)
       {
         text->charset = MimeHeaders_get_parameter (ct, "charset", NULL, NULL);
@@ -134,7 +134,7 @@ static int MimeInlineText_initializeCharset(MimeObject *obj)
          */
         text->charset = MimeHeaders_get (obj->headers,
                                           HEADER_X_SUN_CHARSET,
-                                          PR_FALSE, PR_FALSE);
+                                          false, false);
       }
 
       /* iMIP entities without an explicit charset parameter default to
@@ -152,7 +152,7 @@ static int MimeInlineText_initializeCharset(MimeObject *obj)
       {
         nsresult res;
         
-        text->charsetOverridable = PR_TRUE;
+        text->charsetOverridable = true;
 
         nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID, &res)); 
         if (NS_SUCCEEDED(res))
@@ -160,7 +160,7 @@ static int MimeInlineText_initializeCharset(MimeObject *obj)
           nsCOMPtr<nsIPrefLocalizedString> str;
           if (NS_SUCCEEDED(prefBranch->GetComplexValue("intl.charset.detector", NS_GET_IID(nsIPrefLocalizedString), getter_AddRefs(str)))) {
             //only if we can get autodetector name correctly, do we set this to true
-            text->inputAutodetect = PR_TRUE;
+            text->inputAutodetect = true;
           }
         }
         
@@ -190,13 +190,13 @@ static int MimeInlineText_initializeCharset(MimeObject *obj)
     text->lastLineInDam = 0;
     if (!text->lineDamBuffer || !text->lineDamPtrs)
     {
-      text->inputAutodetect = PR_FALSE;
+      text->inputAutodetect = false;
       PR_FREEIF(text->lineDamBuffer);
       PR_FREEIF(text->lineDamPtrs);
     }
   }
 
-  text->initializeCharset = PR_TRUE;
+  text->initializeCharset = true;
 
   return 0;
 }
@@ -206,8 +206,8 @@ MimeInlineText_finalize (MimeObject *obj)
 {
   MimeInlineText *text = (MimeInlineText *) obj;
 
-  obj->clazz->parse_eof (obj, PR_FALSE);
-  obj->clazz->parse_end (obj, PR_FALSE);
+  obj->clazz->parse_eof (obj, false);
+  obj->clazz->parse_end (obj, false);
 
   text->inputDecoder = nsnull;
   text->utf8Encoder = nsnull;
@@ -220,7 +220,7 @@ MimeInlineText_finalize (MimeObject *obj)
   if (text->inputAutodetect) {
     PR_FREEIF(text->lineDamBuffer);
     PR_FREEIF(text->lineDamPtrs);
-    text->inputAutodetect = PR_FALSE;
+    text->inputAutodetect = false;
   }
 
   ((MimeObjectClass*)&MIME_SUPERCLASS)->finalize (obj);
@@ -261,7 +261,7 @@ MimeInlineText_parse_eof (MimeObject *obj, bool abort_p)
       if (text->inputAutodetect)
         status = MimeInlineText_open_dam(nsnull, 0, obj);
 
-      obj->closed_p = PR_TRUE;
+      obj->closed_p = true;
       return status;
     }
   }
@@ -343,7 +343,7 @@ MimeInlineText_parse_decoded_buffer (const char *buf, PRInt32 size, MimeObject *
   /* If we're supposed to write this object, but aren't supposed to convert
    it to HTML, simply pass it through unaltered. */
   if (!obj->options->write_html_p && obj->options->format_out != nsMimeOutput::nsMimeMessageAttach)
-  return MimeObject_write(obj, buf, size, PR_TRUE);
+  return MimeObject_write(obj, buf, size, true);
 
   /* This is just like the parse_decoded_buffer method we inherit from the
    MimeLeaf class, except that we line-buffer to our own wrapper on the
@@ -351,7 +351,7 @@ MimeInlineText_parse_decoded_buffer (const char *buf, PRInt32 size, MimeObject *
    */
   return mime_LineBuffer (buf, size,
              &obj->ibuffer, &obj->ibuffer_size, &obj->ibuffer_fp,
-             PR_TRUE,
+             true,
              ((int (*) (char *, PRInt32, void *))
               /* This cast is to turn void into MimeObject */
               MimeInlineText_rotate_convert_and_parse_line),
@@ -498,7 +498,7 @@ MimeInlineText_open_dam(char *line, PRInt32 length, MimeObject *obj)
   PR_Free(text->lineDamBuffer);
   text->lineDamPtrs = nsnull;
   text->lineDamBuffer = nsnull;
-  text->inputAutodetect = PR_FALSE;
+  text->inputAutodetect = false;
 
   return status;
 }
@@ -529,7 +529,7 @@ MimeInlineText_rotate_convert_and_parse_line(char *line, PRInt32 length,
   if ( ( (obj->content_type) && (!PL_strcasecmp(obj->content_type, TEXT_VCARD)) ) ||
        (obj->options->format_out == nsMimeOutput::nsMimeMessageSaveAs)
        || obj->options->format_out == nsMimeOutput::nsMimeMessageAttach)
-    doConvert = PR_FALSE;
+    doConvert = false;
     
   // Only convert if the user prefs is false 
   if ( (obj->options && obj->options->charset_conversion_fn) &&

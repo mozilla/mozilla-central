@@ -60,7 +60,7 @@ NS_IMPL_ISUPPORTS_INHERITED3(nsRssIncomingServer,
 
 nsRssIncomingServer::nsRssIncomingServer()
 {
-  m_canHaveFilters = PR_TRUE;
+  m_canHaveFilters = true;
 
   if (gInstanceCount == 0)
   {
@@ -218,21 +218,21 @@ NS_IMETHODIMP nsRssIncomingServer::GetOfflineSupportLevel(PRInt32 *aSupportLevel
 NS_IMETHODIMP nsRssIncomingServer::GetSupportsDiskSpace(bool *aSupportsDiskSpace)
 {
   NS_ENSURE_ARG_POINTER(aSupportsDiskSpace);
-  *aSupportsDiskSpace = PR_TRUE;
+  *aSupportsDiskSpace = true;
   return NS_OK;
 }
 
 NS_IMETHODIMP nsRssIncomingServer::GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff)
 {
   NS_ENSURE_ARG_POINTER(aServerRequiresPasswordForBiff);
-  *aServerRequiresPasswordForBiff = PR_FALSE;  // for rss folders, we don't require a password
+  *aServerRequiresPasswordForBiff = false;  // for rss folders, we don't require a password
   return NS_OK;
 }
 
 NS_IMETHODIMP nsRssIncomingServer::GetCanSearchMessages(bool *canSearchMessages)
 {
   NS_ENSURE_ARG_POINTER(canSearchMessages);
-  *canSearchMessages = PR_TRUE;
+  *canSearchMessages = true;
   return NS_OK;
 }
 
@@ -268,22 +268,22 @@ NS_IMETHODIMP nsRssIncomingServer::MsgKeyChanged(nsMsgKey aOldKey,
 
 NS_IMETHODIMP nsRssIncomingServer::FolderAdded(nsIMsgFolder *aFolder)
 {
-  return FolderChanged(aFolder, PR_FALSE);
+  return FolderChanged(aFolder, false);
 }
 
 NS_IMETHODIMP nsRssIncomingServer::FolderDeleted(nsIMsgFolder *aFolder)
 {
-  return FolderChanged(aFolder, PR_TRUE);
+  return FolderChanged(aFolder, true);
 }
 
 NS_IMETHODIMP nsRssIncomingServer::FolderMoveCopyCompleted(bool aMove, nsIMsgFolder *aSrcFolder, nsIMsgFolder *aDestFolder)
 {
-  return FolderChanged(aSrcFolder, PR_FALSE);
+  return FolderChanged(aSrcFolder, false);
 }
 
 NS_IMETHODIMP nsRssIncomingServer::FolderRenamed(nsIMsgFolder *aOrigFolder, nsIMsgFolder *aNewFolder)
 {
-  return FolderChanged(aNewFolder, PR_FALSE);
+  return FolderChanged(aNewFolder, false);
 }
 
 NS_IMETHODIMP nsRssIncomingServer::ItemEvent(nsISupports *aItem, const nsACString &aEvent, nsISupports *aData)

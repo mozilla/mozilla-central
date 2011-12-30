@@ -99,21 +99,21 @@ NS_IMETHODIMP nsRssService::GetPreflightPrettyNameWithEmailAddress(bool *aPrefli
 NS_IMETHODIMP nsRssService::GetCanDelete(bool *aCanDelete)
 {
     NS_ENSURE_ARG_POINTER(aCanDelete);
-    *aCanDelete = PR_TRUE;
+    *aCanDelete = true;
     return NS_OK;
 }
 
 NS_IMETHODIMP nsRssService::GetCanLoginAtStartUp(bool *aCanLoginAtStartUp)
 {
     NS_ENSURE_ARG_POINTER(aCanLoginAtStartUp);
-    *aCanLoginAtStartUp = PR_TRUE;
+    *aCanLoginAtStartUp = true;
     return NS_OK;
 }
 
 NS_IMETHODIMP nsRssService::GetCanDuplicate(bool *aCanDuplicate)
 {
     NS_ENSURE_ARG_POINTER(aCanDuplicate);
-    *aCanDuplicate = PR_TRUE;
+    *aCanDuplicate = true;
     return NS_OK;
 }
 
@@ -126,14 +126,14 @@ NS_IMETHODIMP nsRssService::GetDefaultServerPort(bool isSecure, PRInt32 *_retval
 NS_IMETHODIMP nsRssService::GetCanGetMessages(bool *aCanGetMessages)
 {
     NS_ENSURE_ARG_POINTER(aCanGetMessages);
-    *aCanGetMessages = PR_TRUE;
+    *aCanGetMessages = true;
     return NS_OK;
 }
 
 NS_IMETHODIMP nsRssService::GetCanGetIncomingMessages(bool *aCanGetIncomingMessages)
 {
     NS_ENSURE_ARG_POINTER(aCanGetIncomingMessages);
-    *aCanGetIncomingMessages = PR_TRUE;
+    *aCanGetIncomingMessages = true;
     return NS_OK;
 }
 
@@ -141,13 +141,13 @@ NS_IMETHODIMP nsRssService::GetDefaultDoBiff(bool *aDefaultDoBiff)
 {
     NS_ENSURE_ARG_POINTER(aDefaultDoBiff);
     // by default, do biff for RSS feeds
-    *aDefaultDoBiff = PR_TRUE;    
+    *aDefaultDoBiff = true;    
     return NS_OK;
 }
 
 NS_IMETHODIMP nsRssService::GetShowComposeMsgLink(bool *aShowComposeMsgLink)
 {
     NS_ENSURE_ARG_POINTER(aShowComposeMsgLink);
-    *aShowComposeMsgLink = PR_FALSE;    
+    *aShowComposeMsgLink = false;    
     return NS_OK;
 }

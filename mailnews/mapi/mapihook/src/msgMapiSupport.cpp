@@ -69,10 +69,10 @@ nsMapiSupport::Observe(nsISupports *aSubject, const char *aTopic, const PRUnicha
     nsCOMPtr<nsIObserverService> observerService(do_GetService("@mozilla.org/observer-service;1", &rv));
     if (NS_FAILED(rv)) return rv;
  
-    rv = observerService->AddObserver(this,"profile-after-change", PR_FALSE);
+    rv = observerService->AddObserver(this,"profile-after-change", false);
     if (NS_FAILED(rv)) return rv;
 
-    rv = observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, PR_FALSE);
+    rv = observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, false);
     if (NS_FAILED(rv))  return rv;
 
     return rv;

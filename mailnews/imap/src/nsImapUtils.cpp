@@ -130,7 +130,7 @@ nsresult nsParseImapMessageURI(const char* uri, nsCString& folderURI, PRUint32 *
 
     if (part && keyEndSeparator != -1)
     {
-      PRInt32 partPos = MsgFind(uriStr, "part=", PR_FALSE, keyEndSeparator);
+      PRInt32 partPos = MsgFind(uriStr, "part=", false, keyEndSeparator);
       if (partPos != -1)
       {
         *part = ToNewCString(Substring(uriStr, keyEndSeparator));
@@ -176,10 +176,10 @@ nsImapMailboxSpec::nsImapMailboxSpec()
   
   mHierarchySeparator = '\0';
   
-  mFolderSelected = PR_FALSE;
-  mDiscoveredFromLsub = PR_FALSE;
+  mFolderSelected = false;
+  mDiscoveredFromLsub = false;
   
-  mOnlineVerified = PR_FALSE;
+  mOnlineVerified = false;
   mNamespaceForFolder = nsnull;
 }
 

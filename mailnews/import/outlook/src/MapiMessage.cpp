@@ -593,7 +593,7 @@ const char* CpToCharset(unsigned int cp)
 
 // We don't use nsMsgI18Ncheck_data_in_charset_range because it returns true
 // even if there's no such charset:
-// 1. result initialized by PR_TRUE and returned if, eg, GetUnicodeEncoderRaw fail
+// 1. result initialized by true and returned if, eg, GetUnicodeEncoderRaw fail
 // 2. it uses GetUnicodeEncoderRaw(), not GetUnicodeEncoder() (to normalize the
 //    charset string) (see nsMsgI18N.cpp)
 // This function returns true only if the unicode (utf-16) text can be
@@ -894,7 +894,7 @@ bool CMapiMessage::CopyMsgAttachToFile(LPATTACH lpAttach, /*out*/ nsILocalFile *
     rv = nsOutlookMail::ImportMessage(lpMsg, destOutputStream, nsIMsgSend::nsMsgSaveAsDraft);
 
   if (NS_FAILED(rv)) {
-    (*tmp_file)->Remove(PR_FALSE);
+    (*tmp_file)->Remove(false);
     (*tmp_file)->Release();
     *tmp_file = 0;
   }
@@ -954,7 +954,7 @@ bool CMapiMessage::CopyBinAttachToFile(LPATTACH lpAttach,
     lpAttachStream->Release();
   lpStreamFile->Release();
   if (!bResult)
-    _tmp_file->Remove(PR_FALSE);
+    _tmp_file->Remove(false);
   else
     CallQueryInterface(_tmp_file, tmp_file);
 
@@ -1158,7 +1158,7 @@ bool CMapiMessage::AddAttachment(DWORD aNum)
 void CMapiMessage::ClearAttachment(attach_data* data)
 {
   if (data->delete_file && data->tmp_file)
-    data->tmp_file->Remove(PR_FALSE);
+    data->tmp_file->Remove(false);
 
   if (data->type)
     NS_Free(data->type);
@@ -1222,7 +1222,7 @@ nsresult CMapiMessage::GetAttachments(nsIArray **aArray)
     a->SetEncoding(nsDependentCString((*it)->encoding));
     a->SetRealName(nsDependentCString((*it)->real_name));
     a->SetType(nsDependentCString((*it)->type));
-    attachments->AppendElement(a, PR_FALSE);
+    attachments->AppendElement(a, false);
   }
   return rv;
 }

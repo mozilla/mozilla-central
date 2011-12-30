@@ -90,7 +90,7 @@ NS_IMETHODIMP nsEudoraSettings::AutoLocate(PRUnichar **description, nsIFile **lo
     return( NS_ERROR_NULL_POINTER);
 
   *description = nsnull;
-  *_retval = PR_FALSE;
+  *_retval = false;
 
   nsresult  rv;
         m_pLocation =  do_CreateInstance (NS_LOCAL_FILE_CONTRACTID, &rv);
@@ -115,7 +115,7 @@ NS_IMETHODIMP nsEudoraSettings::Import(nsIMsgAccount **localMailAccount, bool *_
 {
   NS_PRECONDITION( _retval != nsnull, "null ptr");
 
-  *_retval = PR_FALSE;
+  *_retval = false;
 
   // Get the settings file if it doesn't exist
   if (!m_pLocation) {

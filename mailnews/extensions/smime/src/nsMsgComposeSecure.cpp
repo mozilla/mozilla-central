@@ -138,7 +138,7 @@ GenerateGlobalRandomBytes(unsigned char *buf, PRInt32 len)
     PRInt32 aTime;
     LL_L2I(aTime, PR_Now());
     srand( (unsigned)aTime );
-    firstTime = PR_FALSE;
+    firstTime = false;
   }
   
   for( PRInt32 i = 0; i < len; i++ )
@@ -170,7 +170,7 @@ char
 NS_IMPL_ISUPPORTS1(nsMsgSMIMEComposeFields, nsIMsgSMIMECompFields)
 
 nsMsgSMIMEComposeFields::nsMsgSMIMEComposeFields()
-:mSignMessage(PR_FALSE), mAlwaysEncryptMessage(PR_FALSE)
+:mSignMessage(false), mAlwaysEncryptMessage(false)
 {
 }
 
@@ -230,10 +230,10 @@ nsMsgComposeSecure::~nsMsgComposeSecure()
   }
 
   if (mSigEncoderData) {
-    MIME_EncoderDestroy (mSigEncoderData, PR_TRUE);
+    MIME_EncoderDestroy (mSigEncoderData, true);
   }
   if (mCryptoEncoderData) {
-    MIME_EncoderDestroy (mCryptoEncoderData, PR_TRUE);
+    MIME_EncoderDestroy (mCryptoEncoderData, true);
   }
 
   delete [] mBuffer;
@@ -246,14 +246,14 @@ NS_IMETHODIMP nsMsgComposeSecure::RequiresCryptoEncapsulation(nsIMsgIdentity * a
   NS_ENSURE_ARG_POINTER(aRequiresEncryptionWork);
 
   nsresult rv = NS_OK;
-  *aRequiresEncryptionWork = PR_FALSE;
+  *aRequiresEncryptionWork = false;
 
   bool alwaysEncryptMessages = false;
   bool signMessage = false;
   rv = ExtractEncryptionState(aIdentity, aCompFields, &signMessage, &alwaysEncryptMessages);
 
   if (alwaysEncryptMessages || signMessage)
-    *aRequiresEncryptionWork = PR_TRUE;
+    *aRequiresEncryptionWork = true;
 
   return NS_OK;
 }
@@ -291,15 +291,15 @@ SMIMEBundleFormatStringFromName(const PRUnichar *name,
 bool nsMsgComposeSecure::InitializeSMIMEBundle()
 {
   if (mSMIMEBundle)
-    return PR_TRUE;
+    return true;
 
   nsCOMPtr<nsIStringBundleService> bundleService =
     do_GetService(NS_STRINGBUNDLE_CONTRACTID);
   nsresult rv = bundleService->CreateBundle(SMIME_STRBUNDLE_URL,
                                             getter_AddRefs(mSMIMEBundle));
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, false);
 
-  return PR_TRUE;
+  return true;
 }
 
 void nsMsgComposeSecure::SetError(nsIMsgSendReport *sendReport, const PRUnichar *bundle_string)
@@ -310,7 +310,7 @@ void nsMsgComposeSecure::SetError(nsIMsgSendReport *sendReport, const PRUnichar 
   if (mErrorAlreadyReported)
     return;
 
-  mErrorAlreadyReported = PR_TRUE;
+  mErrorAlreadyReported = true;
   
   nsString errorString;
   nsresult res;
@@ -322,7 +322,7 @@ void nsMsgComposeSecure::SetError(nsIMsgSendReport *sendReport, const PRUnichar 
   {
     sendReport->SetMessage(nsIMsgSendReport::process_Current,
                            errorString.get(),
-                           PR_TRUE);
+                           true);
   }
 }
 
@@ -334,7 +334,7 @@ void nsMsgComposeSecure::SetErrorWithParam(nsIMsgSendReport *sendReport, const P
   if (mErrorAlreadyReported)
     return;
 
-  mErrorAlreadyReported = PR_TRUE;
+  mErrorAlreadyReported = true;
   
   nsString errorString;
   nsresult res;
@@ -352,7 +352,7 @@ void nsMsgComposeSecure::SetErrorWithParam(nsIMsgSendReport *sendReport, const P
   {
     sendReport->SetMessage(nsIMsgSendReport::process_Current,
                            errorString.get(),
-                           PR_TRUE);
+                           true);
   }
 }
 
@@ -383,7 +383,7 @@ nsresult nsMsgComposeSecure::ExtractEncryptionState(nsIMsgIdentity * aIdentity, 
   PRInt32 ep = 0;
   nsresult testrv = aIdentity->GetIntAttribute("encryptionpolicy", &ep);
   if (NS_FAILED(testrv)) {
-    *aEncrypt = PR_FALSE;
+    *aEncrypt = false;
   }
   else {
     *aEncrypt = (ep > 0);
@@ -392,7 +392,7 @@ nsresult nsMsgComposeSecure::ExtractEncryptionState(nsIMsgIdentity * aIdentity, 
   testrv = aIdentity->GetBoolAttribute("sign_mail", aSignMessage);
   if (NS_FAILED(testrv))
   {
-    *aSignMessage = PR_FALSE;
+    *aSignMessage = false;
   }
   return NS_OK;
 }
@@ -405,7 +405,7 @@ NS_IMETHODIMP nsMsgComposeSecure::BeginCryptoEncapsulation(nsIOutputStream * aSt
                                                            nsIMsgSendReport *sendReport,
                                                            bool aIsDraft)
 {
-  mErrorAlreadyReported = PR_FALSE;
+  mErrorAlreadyReported = false;
   nsresult rv = NS_OK;
 
   bool encryptMessages = false;
@@ -437,17 +437,17 @@ NS_IMETHODIMP nsMsgComposeSecure::BeginCryptoEncapsulation(nsIOutputStream * aSt
   switch (mCryptoState)
   {
   case mime_crypto_clear_signed:
-    rv = MimeInitMultipartSigned(PR_TRUE, sendReport);
+    rv = MimeInitMultipartSigned(true, sendReport);
     break;
   case mime_crypto_opaque_signed:
     PR_ASSERT(0);    /* #### no api for this yet */
     rv = NS_ERROR_NOT_IMPLEMENTED;
     break;
   case mime_crypto_signed_encrypted:
-    rv = MimeInitEncryption(PR_TRUE, sendReport);
+    rv = MimeInitEncryption(true, sendReport);
     break;
   case mime_crypto_encrypted:
-    rv = MimeInitEncryption(PR_FALSE, sendReport);
+    rv = MimeInitEncryption(false, sendReport);
     break;
   case mime_crypto_none:
     /* This can happen if mime_crypto_hack_certs() decided to turn off
@@ -471,17 +471,17 @@ NS_IMETHODIMP nsMsgComposeSecure::FinishCryptoEncapsulation(bool aAbort, nsIMsgS
   if (!aAbort) {
     switch (mCryptoState) {
     case mime_crypto_clear_signed:
-      rv = MimeFinishMultipartSigned (PR_TRUE, sendReport);
+      rv = MimeFinishMultipartSigned (true, sendReport);
       break;
     case mime_crypto_opaque_signed:
       PR_ASSERT(0);    /* #### no api for this yet */
       rv = NS_ERROR_FAILURE;
       break;
     case mime_crypto_signed_encrypted:
-      rv = MimeFinishEncryption (PR_TRUE, sendReport);
+      rv = MimeFinishEncryption (true, sendReport);
       break;
     case mime_crypto_encrypted:
-      rv = MimeFinishEncryption (PR_FALSE, sendReport);
+      rv = MimeFinishEncryption (false, sendReport);
       break;
     default:
       PR_ASSERT(0);
@@ -635,7 +635,7 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(bool aSign, nsIMsgSendReport *se
    the data to be encrypted, and initialize the sign-hashing code too.
    */
   if (aSign) {
-    rv = MimeInitMultipartSigned(PR_FALSE, sendReport);
+    rv = MimeInitMultipartSigned(false, sendReport);
     if (NS_FAILED(rv)) goto FAIL;
   }
 
@@ -675,7 +675,7 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendR
    */
 
   nsCAutoString hashString;
-  mDataHash->Finish(PR_FALSE, hashString);
+  mDataHash->Finish(false, hashString);
 
   mDataHash = 0;
 
@@ -763,7 +763,7 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendR
 
   /* Shut down the sig's base64 encoder.
    */
-  rv = MIME_EncoderDestroy(mSigEncoderData, PR_FALSE);
+  rv = MIME_EncoderDestroy(mSigEncoderData, false);
   mSigEncoderData = 0;
   if (NS_FAILED(rv)) {
     goto FAIL;
@@ -810,7 +810,7 @@ nsresult nsMsgComposeSecure::MimeFinishEncryption (bool aSign, nsIMsgSendReport 
   /* If this object is both encrypted and signed, close off the
    signature first (since it's inside.) */
   if (aSign) {
-    rv = MimeFinishMultipartSigned (PR_FALSE, sendReport);
+    rv = MimeFinishMultipartSigned (false, sendReport);
     if (NS_FAILED(rv)) {
       goto FAIL;
     }
@@ -846,7 +846,7 @@ nsresult nsMsgComposeSecure::MimeFinishEncryption (bool aSign, nsIMsgSendReport 
   }
 
   /* Shut down the base64 encoder. */
-  rv = MIME_EncoderDestroy(mCryptoEncoderData, PR_FALSE);
+  rv = MIME_EncoderDestroy(mCryptoEncoderData, false);
   mCryptoEncoderData = 0;
 
   PRUint32 n;
@@ -935,7 +935,7 @@ nsresult nsMsgComposeSecure::MimeCryptoHackCerts(const char *aRecipients,
             &&
             nsIX509Cert::VERIFIED_OK == verification_result)
         {
-          foundValidCert = PR_TRUE;
+          foundValidCert = true;
         }
       }
       
@@ -948,7 +948,7 @@ nsresult nsMsgComposeSecure::MimeCryptoHackCerts(const char *aRecipients,
       }
 
     /* #### see if recipient requests `signedData'.
-     if (...) no_clearsigning_p = PR_TRUE;
+     if (...) no_clearsigning_p = true;
      (This is the only reason we even bother looking up the certs
      of the recipients if we're sending a signed-but-not-encrypted
      message.)
@@ -957,17 +957,17 @@ nsresult nsMsgComposeSecure::MimeCryptoHackCerts(const char *aRecipients,
       bool isSame;
       if (NS_SUCCEEDED(cert->Equals(mSelfEncryptionCert, &isSame))
           && isSame) {
-        already_added_self_cert = PR_TRUE;
+        already_added_self_cert = true;
       }
 
-      mCerts->AppendElement(cert, PR_FALSE);
+      mCerts->AppendElement(cert, false);
       // To understand this loop, especially the "+= strlen +1", look at the documentation
       // of ParseHeaderAddresses. Basically, it returns a list of zero terminated strings.
       mailbox += strlen(mailbox) + 1;
     }
     
     if (!already_added_self_cert) {
-      mCerts->AppendElement(mSelfEncryptionCert, PR_FALSE);
+      mCerts->AppendElement(mSelfEncryptionCert, false);
     }
   }
 FAIL:

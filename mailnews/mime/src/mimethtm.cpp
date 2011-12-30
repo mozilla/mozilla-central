@@ -83,15 +83,15 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
     PRInt32 fontSize;         // default font size
     PRInt32 fontSizePercentage;   // size percentage
     nsCAutoString fontLang;       // langgroup of the font.
-    if (NS_SUCCEEDED(GetMailNewsFont(obj, PR_FALSE, &fontSize, &fontSizePercentage,fontLang)))
+    if (NS_SUCCEEDED(GetMailNewsFont(obj, false, &fontSize, &fontSizePercentage,fontLang)))
     {
       PR_snprintf(buf, 256, "<div class=\"moz-text-html\"  lang=\"%s\">",
                   fontLang.get());
-      status = MimeObject_write(obj, buf, strlen(buf), PR_TRUE);
+      status = MimeObject_write(obj, buf, strlen(buf), true);
     }
     else
     {
-      status = MimeObject_write(obj, "<div class=\"moz-text-html\">", 27, PR_TRUE);
+      status = MimeObject_write(obj, "<div class=\"moz-text-html\">", 27, true);
     }
     if(status<0) return status;
   }
@@ -109,12 +109,12 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
     obj->options->output_fn)
   {
     char *base_hdr = MimeHeaders_get (obj->headers, HEADER_CONTENT_BASE,
-      PR_FALSE, PR_FALSE);
+      false, false);
 
     /* rhp - for MHTML Spec changes!!! */
     if (!base_hdr)
     {
-      base_hdr = MimeHeaders_get (obj->headers, HEADER_CONTENT_LOCATION, PR_FALSE, PR_FALSE);
+      base_hdr = MimeHeaders_get (obj->headers, HEADER_CONTENT_LOCATION, false, false);
     }
     /* rhp - for MHTML Spec changes!!! */
 
@@ -149,7 +149,7 @@ MimeInlineTextHTML_parse_begin (MimeObject *obj)
 
         PR_Free(base_hdr);
 
-        status = MimeObject_write(obj, buf, strlen(buf), PR_FALSE);
+        status = MimeObject_write(obj, buf, strlen(buf), false);
         PR_Free(buf);
         if (status < 0) return status;
     }
@@ -201,9 +201,9 @@ MimeInlineTextHTML_parse_line (const char *line, PRInt32 length, MimeObject *obj
           // write out the data without the charset part...
           if (textHTML->charset)
           {
-            int err = MimeObject_write(obj, line, cp - line, PR_TRUE);
+            int err = MimeObject_write(obj, line, cp - line, true);
             if (err == 0)
-              err = MimeObject_write(obj, cp2, length - (int)(cp2 - line), PR_TRUE);
+              err = MimeObject_write(obj, cp2, length - (int)(cp2 - line), true);
 
             return err;
           }
@@ -214,7 +214,7 @@ MimeInlineTextHTML_parse_line (const char *line, PRInt32 length, MimeObject *obj
   }
 
   // Now, just write out the data...
-  return MimeObject_write(obj, line, length, PR_TRUE);
+  return MimeObject_write(obj, line, length, true);
 }
 
 static int
@@ -232,7 +232,7 @@ MimeInlineTextHTML_parse_eof (MimeObject *obj, bool abort_p)
 
   if (nsMimeOutput::nsMimeMessageBodyDisplay == obj->options->format_out ||
       nsMimeOutput::nsMimeMessagePrintOutput == obj->options->format_out)
-    status = MimeObject_write(obj, "</div>", 6, PR_FALSE);
+    status = MimeObject_write(obj, "</div>", 6, false);
 
   return 0;
 }

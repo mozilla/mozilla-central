@@ -64,13 +64,13 @@ NS_IMPL_CLASSINFO(calDateTime, NULL, 0, CAL_DATETIME_CID)
 NS_IMPL_ISUPPORTS2_CI(calDateTime, calIDateTime, nsIXPCScriptable)
 
 calDateTime::calDateTime()
-    : mImmutable(PR_FALSE)
+    : mImmutable(false)
 {
     Reset();
 }
 
 calDateTime::calDateTime(icaltimetype const* atimeptr, calITimezone *tz)
-    : mImmutable(PR_FALSE)
+    : mImmutable(false)
 {
     FromIcalTime(atimeptr, tz);
 }
@@ -86,7 +86,7 @@ calDateTime::GetIsMutable(bool *aResult)
 NS_IMETHODIMP
 calDateTime::MakeImmutable()
 {
-    mImmutable = PR_TRUE;
+    mImmutable = true;
     return NS_OK;
 }
 
@@ -119,7 +119,7 @@ calDateTime::ResetTo(PRInt16 year,
     mHour = hour;
     mMinute = minute;
     mSecond = second;
-    mIsDate = PR_FALSE;
+    mIsDate = false;
     mTimezone = tz;
     Normalize();
     return NS_OK;
@@ -137,10 +137,10 @@ calDateTime::Reset()
     mSecond = 0;
     mWeekday = 4;
     mYearday = 1;
-    mIsDate = PR_FALSE;
+    mIsDate = false;
     mTimezone = nsnull;
     mNativeTime = 0;
-    mIsValid = PR_TRUE;
+    mIsValid = true;
     return NS_OK;
 }
 
@@ -192,7 +192,7 @@ NS_IMETHODIMP
 calDateTime::SetNativeTime(PRTime aNativeTime)
 {
     icaltimetype icalt;
-    PRTimeToIcaltime(aNativeTime, PR_FALSE, icaltimezone_get_utc_timezone(), &icalt);
+    PRTimeToIcaltime(aNativeTime, false, icaltimezone_get_utc_timezone(), &icalt);
     FromIcalTime(&icalt, cal::UTC());
     return NS_OK;
 }
@@ -260,7 +260,7 @@ calDateTime::SetTimeInTimezone(PRTime aTime, calITimezone * aTimezone)
     NS_ENSURE_FALSE(mImmutable, NS_ERROR_OBJECT_IS_IMMUTABLE);
     NS_ENSURE_ARG_POINTER(aTimezone);
     icaltimetype icalt;
-    PRTimeToIcaltime(aTime, PR_FALSE, cal::getIcalTimezone(aTimezone), &icalt);
+    PRTimeToIcaltime(aTime, false, cal::getIcalTimezone(aTimezone), &icalt);
     FromIcalTime(&icalt, aTimezone);
     return NS_OK;
 }
@@ -488,9 +488,9 @@ void calDateTime::FromIcalTime(icaltimetype const* icalt, calITimezone * tz)
 {
     icaltimetype t = *icalt;
     mIsValid = (icaltime_is_null_time(t) ||
-                icaltime_is_valid_time(t) ? PR_TRUE : PR_FALSE);
+                icaltime_is_valid_time(t) ? true : false);
 
-    mIsDate = t.is_date ? PR_TRUE : PR_FALSE;
+    mIsDate = t.is_date ? true : false;
     if (mIsDate) {
         t.hour = 0;
         t.minute = 0;
@@ -684,12 +684,12 @@ calDateTime::GetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
             }
 
             *vp = OBJECT_TO_JSVAL(obj);
-            *_retval = PR_TRUE;
+            *_retval = true;
             return NS_SUCCESS_I_DID_SOMETHING;
         }
     }
 
-    *_retval = PR_TRUE;
+    *_retval = true;
     return NS_OK;
 }
 
@@ -712,7 +712,7 @@ calDateTime::SetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
             JSObject *dobj;
             if (!JSVAL_IS_OBJECT(*vp) ||
                 !js_DateIsValid(cx, (dobj = JSVAL_TO_OBJECT(*vp)))) {
-                mIsValid = PR_FALSE;
+                mIsValid = false;
             } else {
                 jsdouble utcMsec = js_DateGetMsecSinceEpoch(cx, dobj);
                 PRTime utcTime, thousands;
@@ -722,17 +722,17 @@ calDateTime::SetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
 
                 nsresult rv = SetNativeTime(utcTime);
                 if (NS_SUCCEEDED(rv)) {
-                    mIsValid = PR_TRUE;
+                    mIsValid = true;
                 } else {
-                    mIsValid = PR_FALSE;
+                    mIsValid = false;
                 }
             }
 
-            *_retval = PR_TRUE;
+            *_retval = true;
             return NS_SUCCESS_I_DID_SOMETHING;
         }
     }
-    *_retval = PR_TRUE;
+    *_retval = true;
     return NS_OK;
 }
 
@@ -762,6 +762,6 @@ calDateTime::NewResolve(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
         }
     }
 
-    *_retval = PR_TRUE;
+    *_retval = true;
     return NS_OK;
 }

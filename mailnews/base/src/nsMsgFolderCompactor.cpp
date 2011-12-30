@@ -78,13 +78,13 @@ nsFolderCompactState::nsFolderCompactState()
   m_size = 0;
   m_curIndex = -1;
   m_status = NS_OK;
-  m_compactAll = PR_FALSE;
-  m_compactOfflineAlso = PR_FALSE;
-  m_compactingOfflineFolders = PR_FALSE;
-  m_parsingFolder=PR_FALSE;
+  m_compactAll = false;
+  m_compactOfflineAlso = false;
+  m_compactingOfflineFolders = false;
+  m_parsingFolder=false;
   m_folderIndex = 0;
-  m_startOfMsg = PR_TRUE;
-  m_needStatusLine = PR_FALSE;
+  m_startOfMsg = true;
+  m_needStatusLine = false;
 }
 
 nsFolderCompactState::~nsFolderCompactState()
@@ -114,8 +114,8 @@ void nsFolderCompactState::CleanupTempFilesAfterError()
     m_db->ForceClosed();
   nsCOMPtr <nsILocalFile> summaryFile;
   GetSummaryFileLocation(m_file, getter_AddRefs(summaryFile)); 
-  m_file->Remove(PR_FALSE);
-  summaryFile->Remove(PR_FALSE);
+  m_file->Remove(false);
+  summaryFile->Remove(false);
 }
 
 nsresult nsFolderCompactState::BuildMessageURI(const char *baseURI, PRUint32 key, nsCString& uri)
@@ -137,14 +137,14 @@ nsFolderCompactState::InitDB(nsIMsgDatabase *db)
 
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = msgDBService->OpenMailDBFromFile(m_file, m_folder, PR_TRUE, PR_FALSE,
+  rv = msgDBService->OpenMailDBFromFile(m_file, m_folder, true, false,
                                      getter_AddRefs(m_db));
 
   if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE ||
       rv == NS_MSG_ERROR_FOLDER_SUMMARY_MISSING)
       // if it's out of date then reopen with upgrade.
     return msgDBService->OpenMailDBFromFile(m_file,
-                                            m_folder, PR_TRUE, PR_TRUE,
+                                            m_folder, true, true,
                                getter_AddRefs(m_db));
   return NS_OK;
 }
@@ -161,13 +161,13 @@ NS_IMETHODIMP nsFolderCompactState::CompactFolders(nsIArray *aArrayOfFoldersToCo
   else if (aOfflineFolderArray)
   {
     m_folderArray = aOfflineFolderArray;
-    m_compactingOfflineFolders = PR_TRUE;
+    m_compactingOfflineFolders = true;
     aOfflineFolderArray = nsnull;
   }
   if (!m_folderArray)
     return NS_OK;
  
-  m_compactAll = PR_TRUE;
+  m_compactAll = true;
   m_compactOfflineAlso = aOfflineFolderArray != nsnull;
   if (m_compactOfflineAlso)
     m_offlineFolderArray = aOfflineFolderArray;
@@ -214,7 +214,7 @@ nsFolderCompactState::Compact(nsIMsgFolder *folder, bool aOfflineStore,
            rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE)
        {
          m_folder = folder;  //will be used to compact
-         m_parsingFolder = PR_TRUE;
+         m_parsingFolder = true;
          rv = localFolder->ParseFolder(m_window, this);
        }
        return rv;
@@ -292,7 +292,7 @@ nsFolderCompactState::Init(nsIMsgFolder *folder, const char *baseMsgUri, nsIMsgD
   m_file->InitWithFile(path);
   // need to make sure the temp file goes in the same real directory
   // as the original file, so resolve sym links.
-  m_file->SetFollowLinks(PR_TRUE);
+  m_file->SetFollowLinks(true);
 
   m_file->SetNativeLeafName(NS_LITERAL_CSTRING("nstmp"));
   m_file->CreateUnique(nsIFile::NORMAL_FILE_TYPE, 00600);   //make sure we are not crunching existing nstmp file
@@ -340,7 +340,7 @@ NS_IMETHODIMP nsFolderCompactState::OnStopRunningUrl(nsIURI *url, nsresult statu
 {
   if (m_parsingFolder)
   {
-    m_parsingFolder = PR_FALSE;
+    m_parsingFolder = false;
     if (NS_SUCCEEDED(status))
       status = Compact(m_folder, m_compactingOfflineFolders, m_listener, m_window);
     else if (m_compactAll)
@@ -387,7 +387,7 @@ nsresult nsFolderCompactState::StartCompacting()
     AddRef();
     rv = m_messageService->CopyMessages(m_size, m_keyArray->m_keys.Elements(),
                                         m_folder, this,
-                                        PR_FALSE, nsnull, m_window,
+                                        false, nsnull, m_window,
                                         getter_AddRefs(notUsed));
   }
   else
@@ -416,7 +416,7 @@ nsFolderCompactState::FinishCompact()
   folderPath->InitWithFile(path);
   // need to make sure we put the .msf file in the same directory
   // as the original mailbox, so resolve symlinks.
-  folderPath->SetFollowLinks(PR_TRUE);
+  folderPath->SetFollowLinks(true);
   GetSummaryFileLocation(folderPath, getter_AddRefs(summaryFile));
 
   nsCString leafName;
@@ -461,12 +461,12 @@ nsFolderCompactState::FinishCompact()
   {
     bool summaryFileExists;
     // remove the old folder and database
-    rv = summaryFile->Remove(PR_FALSE);
+    rv = summaryFile->Remove(false);
     summaryFile->Exists(&summaryFileExists);
     if (NS_SUCCEEDED(rv) && !summaryFileExists)
     {
       bool folderPathExists;
-      rv = folderPath->Remove(PR_FALSE);
+      rv = folderPath->Remove(false);
       folderPath->Exists(&folderPathExists);
       if (NS_SUCCEEDED(rv) && !folderPathExists)
       {
@@ -476,7 +476,7 @@ nsFolderCompactState::FinishCompact()
         NS_ASSERTION(NS_SUCCEEDED(rv), "error renaming compacted folder");
         if (NS_SUCCEEDED(rv))
         {
-          folderRenameSucceeded = PR_TRUE;
+          folderRenameSucceeded = true;
           rv = newSummaryFile->MoveToNative((nsIFile *) nsnull, dbName);
           NS_ASSERTION(NS_SUCCEEDED(rv), "error renaming compacted folder's db");
           msfRenameSucceeded = NS_SUCCEEDED(rv);
@@ -486,9 +486,9 @@ nsFolderCompactState::FinishCompact()
     NS_ASSERTION(msfRenameSucceeded && folderRenameSucceeded, "rename failed in compact");
   }
   if (!folderRenameSucceeded)
-    m_file->Remove(PR_FALSE);
+    m_file->Remove(false);
   if (!msfRenameSucceeded)
-    newSummaryFile->Remove(PR_FALSE);
+    newSummaryFile->Remove(false);
   rv = ReleaseFolderLock();
   NS_ASSERTION(NS_SUCCEEDED(rv),"folder lock not released successfully");
   if (msfRenameSucceeded && folderRenameSucceeded)
@@ -496,8 +496,8 @@ nsFolderCompactState::FinishCompact()
     nsCOMPtr<nsIMsgDBService> msgDBService =
       do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    rv = msgDBService->OpenFolderDB(m_folder, PR_TRUE, getter_AddRefs(m_db));
-    m_db->SetSummaryValid(PR_TRUE);
+    rv = msgDBService->OpenFolderDB(m_folder, true, getter_AddRefs(m_db));
+    m_db->SetSummaryValid(true);
     m_folder->SetDBTransferInfo(transferInfo);
 
     nsCOMPtr<nsIDBFolderInfo> dbFolderInfo;
@@ -510,7 +510,7 @@ nsFolderCompactState::FinishCompact()
       dbFolderInfo->SetExpungedBytes(0);
   }
   if (m_db)
-    m_db->Close(PR_TRUE);
+    m_db->Close(true);
   m_db = nsnull;
 
   // Notify that compaction of the folder is completed.
@@ -579,7 +579,7 @@ nsFolderCompactState::CompactNextFolder()
       CompactCompleted(NS_OK);
       return rv;
     }
-    m_compactingOfflineFolders = PR_TRUE;
+    m_compactingOfflineFolders = true;
     nsCOMPtr<nsIMsgFolder> folder = do_QueryElementAt(m_folderArray,
                                                       m_folderIndex-1, &rv);
     if (NS_SUCCEEDED(rv) && folder)
@@ -679,19 +679,19 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
         (void) m_curSrcHdr->GetStatusOffset(&statusOffset);
         
         if (statusOffset == 0)
-          m_needStatusLine = PR_TRUE;
+          m_needStatusLine = true;
         // x-mozilla-status lines should be at the start of the headers, and the code
         // below assumes everything will fit in m_dataBuffer - if there's not
         // room, skip the keyword stuff.
         if (statusOffset > sizeof(m_dataBuffer) - 1024)
         {
-          checkForKeyword = PR_FALSE;
-          NS_ASSERTION(PR_FALSE, "status offset past end of read buffer size");
+          checkForKeyword = false;
+          NS_ASSERTION(false, "status offset past end of read buffer size");
           
         }
       }
     }
-    m_startOfMsg = PR_FALSE;
+    m_startOfMsg = false;
   }
   PRUint32 maxReadCount, readCount, writeCount;
   PRUint32 bytesWritten;
@@ -705,7 +705,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
     // if status offset is past the number of bytes we read, it's probably bogus,
     // and we shouldn't do any of the keyword stuff.
     if (statusOffset + X_MOZILLA_STATUS_LEN > readCount)
-      checkForKeyword = PR_FALSE;
+      checkForKeyword = false;
     
     if (NS_SUCCEEDED(rv))
     {
@@ -718,15 +718,15 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
           if (keywordHdr)
             m_curSrcHdr->GetUint32Property("growKeywords", &needToGrowKeywords);
           else
-            addKeywordHdr = PR_TRUE;
+            addKeywordHdr = true;
           m_curSrcHdr->GetStringProperty("keywords", getter_Copies(msgHdrKeywords));
         }
-        checkForKeyword = PR_FALSE;
+        checkForKeyword = false;
       }
       PRUint32 blockOffset = 0;
       if (m_needStatusLine)
       {
-        m_needStatusLine = PR_FALSE;
+        m_needStatusLine = false;
         // we need to parse out the "From " header, write it out, then 
         // write out the x-mozilla-status headers, and set the 
         // status offset of the dest hdr for later use 
@@ -747,13 +747,13 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
         }
         else
         {
-          NS_ASSERTION(PR_FALSE, "not an envelope");
+          NS_ASSERTION(false, "not an envelope");
           // try to mark the db as invalid so it will be reparsed.
           nsCOMPtr <nsIMsgDatabase> srcDB;
           m_folder->GetMsgDatabase(getter_AddRefs(srcDB));
           if (srcDB)
           {
-            srcDB->SetSummaryValid(PR_FALSE);
+            srcDB->SetSummaryValid(false);
             srcDB->ForceClosed();
           }
         }
@@ -799,7 +799,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
             m_addedHeaderSize += bytesWritten;
           }
         }
-        addKeywordHdr = PR_FALSE;
+        addKeywordHdr = false;
       }
       else if (needToGrowKeywords)
       {
@@ -835,7 +835,7 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
           if (nextBlankOffset == kNotFound)
           {
             nextBlankOffset = msgHdrKeywords.Length();
-            done = PR_TRUE;
+            done = true;
           }
           if (nextBlankOffset - curHdrLineStart > 90 || done)
           {
@@ -852,13 +852,13 @@ nsFolderCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ctxt,
         newKeywordSize += bytesWritten;
         m_addedHeaderSize += newKeywordSize - oldKeywordSize;
         m_curSrcHdr->SetUint32Property("growKeywords", 0);
-        needToGrowKeywords = PR_FALSE;
+        needToGrowKeywords = false;
         writeCount += blockOffset - preKeywordBlockOffset; // fudge writeCount
 
       }
       if (readCount <= blockOffset)
       {
-        NS_ASSERTION(PR_FALSE, "bad block offset");
+        NS_ASSERTION(false, "bad block offset");
         // not sure what to do to handle this.
       
       }
@@ -926,11 +926,11 @@ nsresult nsOfflineStoreCompactState::CopyNextMessage(bool &done)
     rv = BuildMessageURI(m_baseMessageUri.get(), m_keyArray->m_keys[m_curIndex],
                                   m_messageUri);
     NS_ENSURE_SUCCESS(rv, rv);
-    m_startOfMsg = PR_TRUE;
+    m_startOfMsg = true;
     nsCOMPtr<nsISupports> thisSupports;
     QueryInterface(NS_GET_IID(nsISupports), getter_AddRefs(thisSupports));
     rv = m_messageService->StreamMessage(m_messageUri.get(), thisSupports, m_window, nsnull,
-                                    PR_FALSE, EmptyCString(), PR_TRUE, nsnull);
+                                    false, EmptyCString(), true, nsnull);
     // if copy fails, we clear the offline flag on the source message.
     if (NS_FAILED(rv))
     {
@@ -1053,11 +1053,11 @@ nsOfflineStoreCompactState::FinishCompact()
   // this forces the m_folder to update mExpungedBytes from the db folder info.
   PRUint32 expungedBytes;
   m_folder->GetExpungedBytes(&expungedBytes);
-  m_folder->UpdateSummaryTotals(PR_TRUE);
-  m_db->SetSummaryValid(PR_TRUE);
+  m_folder->UpdateSummaryTotals(true);
+  m_db->SetSummaryValid(true);
 
     // remove the old folder 
-  path->Remove(PR_FALSE);
+  path->Remove(false);
 
     // rename the copied folder to be the original folder 
   m_file->MoveToNative((nsIFile *) nsnull, leafName);
@@ -1111,7 +1111,7 @@ nsFolderCompactState::EndCopy(nsISupports *url, nsresult aStatus)
 
   if (m_curIndex >= m_size)
   {
-    NS_ASSERTION(PR_FALSE, "m_curIndex out of bounds");
+    NS_ASSERTION(false, "m_curIndex out of bounds");
     return NS_OK;
   }
 
@@ -1123,7 +1123,7 @@ nsFolderCompactState::EndCopy(nsISupports *url, nsresult aStatus)
    * and assign the nsMsgKey some other way.
    */
   if (m_curSrcHdr)
-    m_db->CopyHdrFromExistingHdr((nsMsgKey) m_startOfNewMsg, m_curSrcHdr, PR_TRUE,
+    m_db->CopyHdrFromExistingHdr((nsMsgKey) m_startOfNewMsg, m_curSrcHdr, true,
                                getter_AddRefs(newMsgHdr));
   m_curSrcHdr = nsnull;
   if (newMsgHdr)
@@ -1148,7 +1148,7 @@ nsFolderCompactState::EndCopy(nsISupports *url, nsresult aStatus)
 //  m_db->Commit(nsMsgDBCommitType::kLargeCommit);  // no sense commiting until the end
     // advance to next message 
   m_curIndex ++;
-  m_startOfMsg = PR_TRUE;
+  m_startOfMsg = true;
   nsCOMPtr <nsIMsgStatusFeedback> statusFeedback;
   if (m_window)
   {
@@ -1211,7 +1211,7 @@ nsOfflineStoreCompactState::OnDataAvailable(nsIRequest *request, nsISupports *ct
     {
       if (m_startOfMsg)
       {
-        m_startOfMsg = PR_FALSE;
+        m_startOfMsg = false;
         // check if there's an envelope header; if not, write one.
         if (strncmp(m_dataBuffer, "From ", 5))
         {

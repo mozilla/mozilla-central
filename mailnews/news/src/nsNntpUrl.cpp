@@ -65,10 +65,10 @@ nsNntpUrl::nsNntpUrl()
 {
   m_newsgroupPost = nsnull;
   m_newsAction = nsINntpUrl::ActionUnknown;
-  m_addDummyEnvelope = PR_FALSE;
-  m_canonicalLineEnding = PR_FALSE;
+  m_addDummyEnvelope = false;
+  m_canonicalLineEnding = false;
   m_filePath = nsnull;
-  m_getOldMessages = PR_FALSE;
+  m_getOldMessages = false;
   m_key = nsMsgKey_None;
 }
 
@@ -431,7 +431,7 @@ NS_IMETHODIMP nsNntpUrl::IsUrlType(PRUint32 type, bool *isType)
       *isType = (m_newsAction == nsINntpUrl::ActionFetchArticle);
       break;
     default:
-      *isType = PR_FALSE;
+      *isType = false;
   };
 
   return NS_OK;

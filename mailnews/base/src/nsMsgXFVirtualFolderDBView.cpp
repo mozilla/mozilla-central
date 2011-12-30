@@ -54,9 +54,9 @@
 
 nsMsgXFVirtualFolderDBView::nsMsgXFVirtualFolderDBView()
 {
-  mSuppressMsgDisplay = PR_FALSE;
-  m_doingSearch = PR_FALSE;
-  m_doingQuickSearch = PR_FALSE;
+  mSuppressMsgDisplay = false;
+  m_doingSearch = false;
+  m_doingQuickSearch = false;
   m_totalMessagesInView = 0;
 }
 
@@ -161,7 +161,7 @@ nsresult nsMsgXFVirtualFolderDBView::OnNewHeader(nsIMsgDBHdr *newHdr, nsMsgKey a
       nsCOMPtr <nsIMsgFolder> folder;
       newHdr->GetFolder(getter_AddRefs(folder));
       bool saveDoingSearch = m_doingSearch;
-      m_doingSearch = PR_FALSE;
+      m_doingSearch = false;
       OnSearchHit(newHdr, folder);
       m_doingSearch = saveDoingSearch;
     }
@@ -265,7 +265,7 @@ void nsMsgXFVirtualFolderDBView::UpdateCacheAndViewForPrevSearchedFolders(nsIMsg
     // this new folder has cached hits.
     if (m_foldersSearchingOver[0] == curSearchFolder)
     {
-      m_curFolderHasCachedHits = PR_TRUE;
+      m_curFolderHasCachedHits = true;
       m_foldersSearchingOver.RemoveObjectAt(0);
       break;
     }
@@ -290,7 +290,7 @@ nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *aFol
 
   if (m_curFolderGettingHits != aFolder && m_doingSearch && !m_doingQuickSearch)
   {
-    m_curFolderHasCachedHits = PR_FALSE;
+    m_curFolderHasCachedHits = false;
     // since we've gotten a hit for a new folder, the searches for
     // any previous folders are done, so deal with stale cached hits
     // for those folders now.
@@ -309,7 +309,7 @@ nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *aFol
   if (!m_doingSearch || !m_curFolderHasCachedHits || !hdrInCache)
   {
     if (m_viewFlags & nsMsgViewFlagsType::kGroupBySort)
-      nsMsgGroupView::OnNewHeader(aMsgHdr, nsMsgKey_None, PR_TRUE);
+      nsMsgGroupView::OnNewHeader(aMsgHdr, nsMsgKey_None, true);
     else if (m_sortValid)
       InsertHdrFromFolder(aMsgHdr, aFolder);
     else
@@ -328,7 +328,7 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
   if (NS_SUCCEEDED(status) && !m_doingQuickSearch && status != NS_MSG_SEARCH_INTERRUPTED)
     UpdateCacheAndViewForPrevSearchedFolders(nsnull);
 
-  m_doingSearch = PR_FALSE;
+  m_doingSearch = false;
   //we want to set imap delete model once the search is over because setting next
   //message after deletion will happen before deleting the message and search scope
   //can change with every search.
@@ -369,7 +369,7 @@ nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
   if (!m_sortValid && m_sortType != nsMsgViewSortType::byThread && 
       !(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
   {
-    m_sortValid = PR_FALSE;       //sort the results
+    m_sortValid = false;       //sort the results
     Sort(m_sortType, m_sortOrder);
   }
   m_foldersSearchingOver.Clear();
@@ -384,7 +384,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
   PRInt32 oldSize = GetSize();
 
   RemovePendingDBListeners();
-  m_doingSearch = PR_TRUE;
+  m_doingSearch = true;
   m_totalMessagesInView = 0;
   m_folders.Clear();
   m_keys.Clear();
@@ -490,7 +490,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
 
   m_curFolderStartKeyIndex = 0;
   m_curFolderGettingHits = nsnull;
-  m_curFolderHasCachedHits = PR_FALSE;
+  m_curFolderHasCachedHits = false;
 
   // if we have cached hits, sort them.
   if (GetSize() > 0)
@@ -499,7 +499,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
     if (m_sortType != nsMsgViewSortType::byThread &&
       !(m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay))
     {
-      m_sortValid = PR_FALSE;       //sort the results
+      m_sortValid = false;       //sort the results
       Sort(m_sortType, m_sortOrder);
     }
   }

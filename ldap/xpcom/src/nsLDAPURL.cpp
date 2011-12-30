@@ -377,7 +377,7 @@ NS_IMETHODIMP nsLDAPURL::GetOriginCharset(nsACString &result)
 // (based on nsSimpleURI::Equals)
 NS_IMETHODIMP nsLDAPURL::Equals(nsIURI *other, bool *_retval)
 {
-  *_retval = PR_FALSE;
+  *_retval = false;
   if (other)
   {
     nsresult rv;
@@ -397,7 +397,7 @@ NS_IMETHODIMP nsLDAPURL::Equals(nsIURI *other, bool *_retval)
       NS_ENSURE_SUCCESS(rv, rv);
 
       if (thisSpec == otherSpec && mOptions == otherOptions)
-        *_retval = PR_TRUE;
+        *_retval = true;
     }
   }
   return NS_OK;

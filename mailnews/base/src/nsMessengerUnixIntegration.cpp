@@ -135,7 +135,7 @@ nsMessengerUnixIntegration::nsMessengerUnixIntegration()
 {
   mBiffStateAtom = MsgGetAtom("BiffState");
   mNewMailReceivedAtom = MsgGetAtom("NewMailReceived");
-  mAlertInProgress = PR_FALSE;
+  mAlertInProgress = false;
   mLastMRUTimes.Init();
   NS_NewISupportsArray(getter_AddRefs(mFoldersWithNewMail));
 }
@@ -191,10 +191,10 @@ nsMessengerUnixIntegration::BuildNotificationTitle(nsIMsgFolder *aFolder, nsIStr
   aFolder->GetPrettiestName(accountName);
 
   PRInt32 numNewMessages = 0;
-  aFolder->GetNumNewMessages(PR_TRUE, &numNewMessages);
+  aFolder->GetNumNewMessages(true, &numNewMessages);
 
   if (!numNewMessages)
-    return PR_FALSE;
+    return false;
 
   nsAutoString numNewMsgsText;
   numNewMsgsText.AppendInt(numNewMessages);
@@ -208,7 +208,7 @@ nsMessengerUnixIntegration::BuildNotificationTitle(nsIMsgFolder *aFolder, nsIStr
                                   NS_LITERAL_STRING("newMailNotification_message").get() :
                                   NS_LITERAL_STRING("newMailNotification_messages").get(),
                                 formatStrings, 2, getter_Copies(aTitle));
-  return PR_TRUE;
+  return true;
 }
 
 /* This comparator lets us sort an nsCOMArray of nsIMsgDBHdr's by
@@ -247,7 +247,7 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
 
   nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
   if (!prefBranch)
-    return PR_FALSE;
+    return false;
 
   prefBranch->GetBoolPref(SHOW_ALERT_PREVIEW, &showPreview);
   prefBranch->GetBoolPref(SHOW_ALERT_SENDER, &showSender);
@@ -256,13 +256,13 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
 
   nsCOMPtr<nsIMsgHeaderParser> parser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
   if (!parser)
-    return PR_FALSE;
+    return false;
 
   nsCOMPtr<nsIMsgFolder> folder;
   aHdr->GetFolder(getter_AddRefs(folder));
 
   if (!folder)
-    return PR_FALSE;
+    return false;
 
   nsCString msgURI;
   folder->GetUriForMsg(aHdr, msgURI);
@@ -272,15 +272,15 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
   PRUint32 msgURIIndex = mFetchingURIs.IndexOf(msgURI);
   if (msgURIIndex == -1)
   {
-    localOnly = PR_FALSE;
+    localOnly = false;
     mFetchingURIs.AppendElement(msgURI);
   } 
   else
-    localOnly = PR_TRUE;
+    localOnly = true;
 
   PRUint32 messageKey;
   if (NS_FAILED(aHdr->GetMessageKey(&messageKey)))
-    return PR_FALSE;
+    return false;
 
   bool asyncResult = false;
   nsresult rv = folder->FetchMsgPreviewText(&messageKey, 1,
@@ -290,7 +290,7 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
   // bail early.  We'll come back later when the async operation
   // finishes.
   if (NS_FAILED(rv) || asyncResult)
-    return PR_FALSE;
+    return false;
 
   // If we got here, that means that we've retrieved the message preview,
   // so we can stop tracking it with our mFetchingURIs array.
@@ -300,7 +300,7 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
   nsCString utf8previewString;
   if (showPreview &&
       NS_FAILED(aHdr->GetStringProperty("preview", getter_Copies(utf8previewString))))
-    return PR_FALSE;
+    return false;
 
   // need listener that mailbox is remote such as IMAP
   // to generate preview message
@@ -309,13 +309,13 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
 
   nsString subject;
   if (showSubject && NS_FAILED(aHdr->GetMime2DecodedSubject(subject)))
-    return PR_FALSE;
+    return false;
 
   nsString author;
   if (showSender)
   {
     if (NS_FAILED(aHdr->GetMime2DecodedAuthor(author)))
-      return PR_FALSE;
+      return false;
 
     PRUnichar **emails;
     PRUnichar **names;
@@ -325,7 +325,7 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
                   &emails,
                   &names,
                   &fullnames, &num)))
-      return PR_FALSE;
+      return false;
 
     if (num > 0)
     {
@@ -362,10 +362,10 @@ nsMessengerUnixIntegration::BuildNotificationBody(nsIMsgDBHdr *aHdr,
     alertBody.Append(StringHead(previewString, previewLength));
 
   if (alertBody.IsEmpty())
-    return PR_FALSE;
+    return false;
 
   aBody.Assign(alertBody);
-  return PR_TRUE;
+  return true;
 }
 #endif
 
@@ -386,11 +386,11 @@ nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTit
 #ifdef MOZ_THUNDERBIRD
     nsCOMPtr<nsIAlertsService> alertsService(do_GetService(NS_SYSTEMALERTSERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv)) {
-      mAlertInProgress = PR_TRUE;
+      mAlertInProgress = true;
       rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(NEW_MAIL_ALERT_ICON),
                                                 aAlertTitle,
                                                 aAlertText,
-                                                PR_FALSE,
+                                                false,
                                                 NS_ConvertASCIItoUTF16(aFolderURI),
                                                 this,
                                                 EmptyString());
@@ -398,17 +398,17 @@ nsresult nsMessengerUnixIntegration::ShowAlertMessage(const nsAString& aAlertTit
         return rv;
     }
     AlertFinished();
-    ShowNewAlertNotification(PR_FALSE);
+    ShowNewAlertNotification(false);
 
 #else
     nsCOMPtr<nsIAlertsService> alertsService (do_GetService(NS_ALERTSERVICE_CONTRACTID, &rv));
     if (NS_SUCCEEDED(rv))
     {
       rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(NEW_MAIL_ALERT_ICON), aAlertTitle,
-                                                aAlertText, PR_TRUE,
+                                                aAlertText, true,
                                                 NS_ConvertASCIItoUTF16(aFolderURI), this,
                                                 EmptyString());
-      mAlertInProgress = PR_TRUE;
+      mAlertInProgress = true;
     }
 #endif
   }
@@ -449,7 +449,7 @@ nsresult nsMessengerUnixIntegration::ShowNewAlertNotification(bool aUserInitiate
     NS_ENSURE_SUCCESS(rv, rv);
     ifptr->SetData(mFoldersWithNewMail);
     ifptr->SetDataIID(&NS_GET_IID(nsISupportsArray));
-    argsArray->AppendElement(ifptr, PR_FALSE);
+    argsArray->AppendElement(ifptr, false);
 
     // pass in the observer
     ifptr = do_CreateInstance(NS_SUPPORTS_INTERFACE_POINTER_CONTRACTID, &rv);
@@ -457,13 +457,13 @@ nsresult nsMessengerUnixIntegration::ShowNewAlertNotification(bool aUserInitiate
     nsCOMPtr <nsISupports> supports = do_QueryInterface(static_cast<nsIMessengerOSIntegration*>(this));
     ifptr->SetData(supports);
     ifptr->SetDataIID(&NS_GET_IID(nsIObserver));
-    argsArray->AppendElement(ifptr, PR_FALSE);
+    argsArray->AppendElement(ifptr, false);
 
     // pass in the animation flag
     nsCOMPtr<nsISupportsPRBool> scriptableUserInitiated (do_CreateInstance(NS_SUPPORTS_PRBOOL_CONTRACTID, &rv));
     NS_ENSURE_SUCCESS(rv, rv);
     scriptableUserInitiated->SetData(aUserInitiated);
-    argsArray->AppendElement(scriptableUserInitiated, PR_FALSE);
+    argsArray->AppendElement(scriptableUserInitiated, false);
 
     nsCOMPtr<nsIWindowWatcher> wwatch(do_GetService(NS_WINDOWWATCHER_CONTRACTID));
     nsCOMPtr<nsIDOMWindow> newWindow;
@@ -472,7 +472,7 @@ nsresult nsMessengerUnixIntegration::ShowNewAlertNotification(bool aUserInitiate
                             "chrome,dialog=yes,titlebar=no,popup=yes", argsArray,
                             getter_AddRefs(newWindow));
 
-    mAlertInProgress = PR_TRUE;
+    mAlertInProgress = true;
   }
 
   // if the user has turned off the mail alert, or openWindow generated an error,
@@ -486,7 +486,7 @@ nsresult nsMessengerUnixIntegration::ShowNewAlertNotification(bool aUserInitiate
 
 nsresult nsMessengerUnixIntegration::AlertFinished()
 {
-  mAlertInProgress = PR_FALSE;
+  mAlertInProgress = false;
   return NS_OK;
 }
 
@@ -528,7 +528,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
   {
     weakReference = do_QueryElementAt(mFoldersWithNewMail, i);
     folder = do_QueryReferent(weakReference);
-    folder->GetChildWithURI(folderUri, PR_TRUE, PR_TRUE,
+    folder->GetChildWithURI(folderUri, true, true,
                             getter_AddRefs(folderWithNewMail));
   }
 
@@ -625,7 +625,7 @@ void nsMessengerUnixIntegration::FillToolTipInfo()
     if (bundle)
     {
       PRInt32 numNewMessages = 0;
-      folder->GetNumNewMessages(PR_TRUE, &numNewMessages);
+      folder->GetNumNewMessages(true, &numNewMessages);
       nsAutoString numNewMsgsText;
       numNewMsgsText.AppendInt(numNewMessages);
 

@@ -66,7 +66,7 @@ enum UpdateOp {
 };
 
 nsAbLDAPProcessChangeLogData::nsAbLDAPProcessChangeLogData()
-: mUseChangeLog(PR_FALSE),
+: mUseChangeLog(false),
   mChangeLogEntriesCount(0),
   mEntriesAddedQueryCount(0)
 {
@@ -104,12 +104,12 @@ nsresult nsAbLDAPProcessChangeLogData::OnLDAPBind(nsILDAPMessage *aMessage)
 
     nsresult rv = aMessage->GetErrorCode(&errCode);
     if(NS_FAILED(rv)) {
-        Done(PR_FALSE);
+        Done(false);
         return rv;
     }
 
     if(errCode != nsILDAPErrors::SUCCESS) {
-        Done(PR_FALSE);
+        Done(false);
         return NS_ERROR_FAILURE;
     }
 
@@ -219,14 +219,14 @@ nsresult nsAbLDAPProcessChangeLogData::OnLDAPSearchResult(nsILDAPMessage *aMessa
                     break;
 
                 if (!fileExists || !fileSize)
-                    mUseChangeLog = PR_FALSE;
+                    mUseChangeLog = false;
 
                 // Open / create the AB here since it calls Done,
                 // just return from here.
                 if (mUseChangeLog)
-                   rv = OpenABForReplicatedDir(PR_FALSE);
+                   rv = OpenABForReplicatedDir(false);
                 else
-                   rv = OpenABForReplicatedDir(PR_TRUE);
+                   rv = OpenABForReplicatedDir(true);
                 if (NS_FAILED(rv))
                    return rv;
                 
@@ -375,11 +375,11 @@ nsresult nsAbLDAPProcessChangeLogData::ParseRootDSEEntry(nsILDAPMessage *aMessag
     if ((mRootDSEEntry.lastChangeNumber > 0) &&
         (lastChangeNumber < mRootDSEEntry.lastChangeNumber) &&
         (lastChangeNumber > mRootDSEEntry.firstChangeNumber))
-        mUseChangeLog = PR_TRUE;
+        mUseChangeLog = true;
 
     if (mRootDSEEntry.lastChangeNumber &&
         (lastChangeNumber == mRootDSEEntry.lastChangeNumber)) {
-        Done(PR_TRUE); // We are up to date no need to replicate, db not open yet so call Done
+        Done(true); // We are up to date no need to replicate, db not open yet so call Done
         return NS_OK;
     }
 
@@ -399,7 +399,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnSearchRootDSEDone()
            return rv;
         mState = kFindingChanges;
         if(mListener)
-            mListener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_START, PR_FALSE);
+            mListener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_START, false);
     }
     else {
         rv = mQuery->QueryAllEntries();
@@ -407,7 +407,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnSearchRootDSEDone()
            return rv;
         mState = kReplicatingAll;
         if(mListener)
-            mListener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_START, PR_TRUE);
+            mListener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_START, true);
     }
 
     rv = mDirectory->SetLastChangeNumber(mRootDSEEntry.lastChangeNumber);
@@ -516,16 +516,16 @@ nsresult nsAbLDAPProcessChangeLogData::OnFindingChangesDone()
         if(mReplicationDB && mDBOpen) {
             // Close the DB, no need to commit since we have not made
             // any changes yet to the DB.
-            rv = mReplicationDB->Close(PR_FALSE);
+            rv = mReplicationDB->Close(false);
             NS_ASSERTION(NS_SUCCEEDED(rv), "Replication DB Close(no commit) on Success failed");
-            mDBOpen = PR_FALSE;
+            mDBOpen = false;
             // Once are done with the replication file, delete the backup file
             if(mBackupReplicationFile) {
-                rv = mBackupReplicationFile->Remove(PR_FALSE);
+                rv = mBackupReplicationFile->Remove(false);
                 NS_ASSERTION(NS_SUCCEEDED(rv), "Replication BackupFile Remove on Success failed");
             }
         }
-        Done(PR_TRUE);
+        Done(true);
         return NS_OK;
     }
 
@@ -536,7 +536,7 @@ nsresult nsAbLDAPProcessChangeLogData::OnFindingChangesDone()
         return rv;
 
     if(mListener && NS_SUCCEEDED(rv))
-        mListener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_START, PR_TRUE);
+        mListener->OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_START, true);
 
     mState = kReplicatingChanges;
     return rv;
@@ -552,16 +552,16 @@ nsresult nsAbLDAPProcessChangeLogData::OnReplicatingChangeDone()
     if(!mEntriesAddedQueryCount)
     {
         if(mReplicationDB && mDBOpen) {
-            rv = mReplicationDB->Close(PR_TRUE); // Commit and close the DB
+            rv = mReplicationDB->Close(true); // Commit and close the DB
             NS_ASSERTION(NS_SUCCEEDED(rv), "Replication DB Close (commit) on Success failed");
-            mDBOpen = PR_FALSE;
+            mDBOpen = false;
         }
         // Once we done with the replication file, delete the backup file.
         if(mBackupReplicationFile) {
-            rv = mBackupReplicationFile->Remove(PR_FALSE);
+            rv = mBackupReplicationFile->Remove(false);
             NS_ASSERTION(NS_SUCCEEDED(rv), "Replication BackupFile Remove on Success failed");
         }
-        Done(PR_TRUE);  // All data is received
+        Done(true);  // All data is received
         return NS_OK;
     }
 

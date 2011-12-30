@@ -233,7 +233,7 @@ void nsMsgI18NTextFileCharset(nsACString& aCharset)
 char * nsMsgI18NEncodeMimePartIIStr(const char *header, bool structured, const char *charset, PRInt32 fieldnamelen, bool usemime) 
 {
   // No MIME, convert to the outgoing mail charset.
-  if (PR_FALSE == usemime) {
+  if (false == usemime) {
     nsCAutoString convertedStr;
     if (NS_SUCCEEDED(ConvertFromUnicode(charset, NS_ConvertUTF8toUTF16(header),
                                         convertedStr)))
@@ -279,7 +279,7 @@ bool nsMsgI18Nmultibyte_charset(const char *charset)
 bool nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar* inString, char **fallbackCharset)
 {
   if (!charset || !*charset || !inString || !*inString)
-    return PR_TRUE;
+    return true;
 
   nsresult res;
   bool result = true;
@@ -306,7 +306,7 @@ bool nsMsgI18Ncheck_data_in_charset_range(const char *charset, const PRUnichar* 
         dstLength = 512;
         res = encoder->Convert(currentSrcPtr, &srcLen, localBuff, &dstLength);
         if (NS_ERROR_UENC_NOMAPPING == res) {
-          result = PR_FALSE;
+          result = false;
           break;
         }
         else if (NS_FAILED(res) || (0 == dstLength))
@@ -349,7 +349,7 @@ nsMsgI18NParseMetaCharset(nsILocalFile* file)
   nsCOMPtr <nsIFileInputStream> fileStream = do_CreateInstance(NS_LOCALFILEINPUTSTREAM_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, charset);
   
-  rv = fileStream->Init(file, PR_RDONLY, 0664, PR_FALSE);
+  rv = fileStream->Init(file, PR_RDONLY, 0664, false);
   nsCOMPtr <nsILineInputStream> lineStream = do_QueryInterface(fileStream, &rv);
 
   nsCString curLine;
@@ -409,18 +409,18 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
 
   if (NS_IsAscii(inString)) {
     if (isAsciiOnly)
-      *isAsciiOnly = PR_TRUE;
+      *isAsciiOnly = true;
     *outString = ToNewCString(NS_LossyConvertUTF16toASCII(inString));
     return (nsnull != *outString) ? NS_OK : NS_ERROR_OUT_OF_MEMORY;
   }
   if (isAsciiOnly)
-    *isAsciiOnly = PR_FALSE;
+    *isAsciiOnly = false;
 
   bool bTEXT_HTML = false;
   nsresult res;
 
   if (!PL_strcasecmp(contentType, TEXT_HTML)) {
-    bTEXT_HTML = PR_TRUE;
+    bTEXT_HTML = true;
   }
   else if (PL_strcasecmp(contentType, TEXT_PLAIN)) {
     return NS_ERROR_ILLEGAL_VALUE;  // not supported type

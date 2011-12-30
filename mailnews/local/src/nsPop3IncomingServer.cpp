@@ -95,8 +95,8 @@ nsPop3IncomingServer::nsPop3IncomingServer()
   POP3_TOP_UNDEFINED |
   POP3_XTND_XLST_UNDEFINED;
 
-  m_canHaveFilters = PR_TRUE;
-  m_authenticated = PR_FALSE;
+  m_canHaveFilters = true;
+  m_authenticated = false;
 }
 
 nsPop3IncomingServer::~nsPop3IncomingServer()
@@ -211,8 +211,8 @@ NS_IMETHODIMP nsPop3IncomingServer::GetDeferredToAccount(nsACString& aRetVal)
                     localFoldersRoot->GetChildNamed(folderName,
                                                     getter_AddRefs(dest));
                     if (dest)
-                      dest->CopyMessages(subFolder, hdrsToCopy, PR_FALSE,
-                                         nsnull, nsnull, PR_FALSE,PR_FALSE);
+                      dest->CopyMessages(subFolder, hdrsToCopy, false,
+                                         nsnull, nsnull, false,false);
                     // Should we copy the folder if the dest doesn't exist?
                   }
                 }
@@ -390,7 +390,7 @@ nsresult nsPop3IncomingServer::GetInbox(nsIMsgWindow *msgWindow, nsIMsgFolder **
     if (NS_FAILED(rv))
     {
       (*inbox)->SetMsgDatabase(nsnull);
-      (void) localInbox->SetCheckForNewMessagesAfterParsing(PR_TRUE);
+      (void) localInbox->SetCheckForNewMessagesAfterParsing(true);
       // this will cause a reparse of the mail folder.
       localInbox->GetDatabaseWithReparse(nsnull, msgWindow, getter_AddRefs(db));
       rv = NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE;
@@ -419,7 +419,7 @@ NS_IMETHODIMP nsPop3IncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
   nsCOMPtr <nsIMsgIncomingServer> server;
   inbox->GetServer(getter_AddRefs(server));
 
-  server->SetPerformingBiff(PR_TRUE);
+  server->SetPerformingBiff(true);
 
   urlListener = do_QueryInterface(inbox);
 
@@ -444,7 +444,7 @@ NS_IMETHODIMP nsPop3IncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
         if (!isLocked)
           rv = localInbox->GetDatabaseWithReparse(urlListener, aMsgWindow, getter_AddRefs(db));
         if (NS_SUCCEEDED(rv))
-          rv = localInbox->SetCheckForNewMessagesAfterParsing(PR_TRUE);
+          rv = localInbox->SetCheckForNewMessagesAfterParsing(true);
       }
     }
   }
@@ -590,7 +590,7 @@ nsPop3IncomingServer::GetDownloadMessagesAtStartup(bool *getMessagesAtStartup)
   NS_ENSURE_ARG_POINTER(getMessagesAtStartup);
   // GetMessages is not automatically done for pop servers at startup.
   // We need to trigger that action. Return true.
-  *getMessagesAtStartup = PR_TRUE;
+  *getMessagesAtStartup = true;
   return NS_OK;
 }
 
@@ -598,7 +598,7 @@ NS_IMETHODIMP
 nsPop3IncomingServer::GetCanBeDefaultServer(bool *canBeDefaultServer)
 {
   NS_ENSURE_ARG_POINTER(canBeDefaultServer);
-  *canBeDefaultServer = PR_TRUE;
+  *canBeDefaultServer = true;
   return NS_OK;
 }
 

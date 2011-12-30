@@ -105,9 +105,9 @@ SetACookieNoHttp(nsICookieService *aCookieService, const char *aSpec, const char
     return rv;
 }
 
-// returns PR_TRUE if cookie(s) for the given host were found; else PR_FALSE.
+// returns true if cookie(s) for the given host were found; else false.
 // the cookie string is returned via aCookie.
-PRBool
+bool
 GetACookie(nsICookieService *aCookieService, const char *aSpec1, const char *aSpec2, char **aCookie)
 {
     nsCOMPtr<nsIURI> uri1, uri2;
@@ -128,9 +128,9 @@ GetACookie(nsICookieService *aCookieService, const char *aSpec1, const char *aSp
     return *aCookie != nsnull;
 }
 
-// returns PR_TRUE if cookie(s) for the given host were found; else PR_FALSE.
+// returns true if cookie(s) for the given host were found; else false.
 // the cookie string is returned via aCookie.
-PRBool
+bool
 GetACookieNoHttp(nsICookieService *aCookieService, const char *aSpec, char **aCookie)
 {
     nsCOMPtr<nsIURI> uri;
@@ -158,8 +158,8 @@ GetACookieNoHttp(nsICookieService *aCookieService, const char *aSpec, char **aCo
 
 // a simple helper function to improve readability:
 // takes one of the #defined rules above, and performs the appropriate test.
-// PR_TRUE means the test passed; PR_FALSE means the test failed.
-static inline PRBool
+// true means the test passed; false means the test failed.
+static inline bool
 CheckResult(const char *aLhs, PRUint32 aRule, const char *aRhs = nsnull)
 {
     switch (aRule) {
@@ -179,21 +179,21 @@ CheckResult(const char *aLhs, PRUint32 aRule, const char *aRhs = nsnull)
             return PL_strstr(aLhs, aRhs) == nsnull;
 
         default:
-            return PR_FALSE; // failure
+            return false; // failure
     }
 }
 
 // helper function that ensures the first aSize elements of aResult are
-// PR_TRUE (i.e. all tests succeeded). prints the result of the tests (if any
+// true (i.e. all tests succeeded). prints the result of the tests (if any
 // tests failed, it prints the zero-based index of each failed test).
-PRBool
-PrintResult(const PRBool aResult[], PRUint32 aSize)
+bool
+PrintResult(const bool aResult[], PRUint32 aSize)
 {
-    PRBool failed = PR_FALSE;
+    bool failed = false;
     sBuffer = PR_sprintf_append(sBuffer, "*** tests ");
     for (PRUint32 i = 0; i < aSize; ++i) {
         if (!aResult[i]) {
-            failed = PR_TRUE;
+            failed = true;
             sBuffer = PR_sprintf_append(sBuffer, "%d ", i);
         }
     }
@@ -212,10 +212,10 @@ InitPrefs(nsIPrefBranch *aPrefBranch)
     // we use the most restrictive set of prefs we can;
     // however, we don't test third party blocking here.
     aPrefBranch->SetIntPref(kCookiesPermissions, 0); // accept all
-    aPrefBranch->SetBoolPref(kCookiesLifetimeEnabled, PR_TRUE);
+    aPrefBranch->SetBoolPref(kCookiesLifetimeEnabled, true);
     aPrefBranch->SetIntPref(kCookiesLifetimeCurrentSession, 0);
     aPrefBranch->SetIntPref(kCookiesLifetimeDays, 1);
-    aPrefBranch->SetBoolPref(kCookiesAskPermission, PR_FALSE);
+    aPrefBranch->SetBoolPref(kCookiesAskPermission, false);
     // Set the base domain limit to 50 so we have a known value.
     aPrefBranch->SetIntPref(kCookiesMaxPerHost, 50);
 }
@@ -239,7 +239,7 @@ main(PRInt32 argc, char *argv[])
     if (test_common_init(&argc, &argv) != 0)
         return -1;
 
-    PRBool allTestsPassed = PR_TRUE;
+    bool allTestsPassed = true;
 
     ScopedXPCOM xpcom;
     if (NS_FAILED(xpcom.rv))
@@ -258,7 +258,7 @@ main(PRInt32 argc, char *argv[])
 
       InitPrefs(prefBranch);
 
-      PRBool rv[20];
+      bool rv[20];
       nsCString cookie;
 
       /* The basic idea behind these tests is the following:

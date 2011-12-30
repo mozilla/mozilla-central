@@ -282,7 +282,7 @@ nsresult nsWindowsShellService::Init()
 }
 
 nsWindowsShellService::nsWindowsShellService()
-:mCheckedThisSession(PR_FALSE)
+:mCheckedThisSession(false)
 {
 }
 
@@ -293,9 +293,9 @@ nsWindowsShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool 
   // checked this session (so that subsequent window opens don't show the
   // default client dialog).
   if (aStartupCheck)
-    mCheckedThisSession = PR_TRUE;
+    mCheckedThisSession = true;
 
-  *aIsDefaultClient = PR_TRUE;
+  *aIsDefaultClient = true;
 
   // for each type,
   if (aApps & nsIShellService::MAIL)
@@ -314,10 +314,10 @@ nsWindowsShellService::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool 
     if (*aIsDefaultClient)
       IsDefaultClientVista(nsIShellService::NEWS, aIsDefaultClient);
   }
-  // RSS / feed protocol shell integration is not working so return PR_TRUE
+  // RSS / feed protocol shell integration is not working so return true
   // until it is fixed (bug 445823).
   if (aApps & nsIShellService::RSS)
-    *aIsDefaultClient &= PR_TRUE;
+    *aIsDefaultClient &= true;
 //    *aIsDefaultClient &= TestForDefault(gFeedSettings, sizeof(gFeedSettings)/sizeof(SETTING));
 
   return NS_OK;
@@ -353,7 +353,7 @@ nsWindowsShellService::GetShouldCheckDefaultClient(bool* aResult)
 {
   if (mCheckedThisSession)
   {
-    *aResult = PR_FALSE;
+    *aResult = false;
     return NS_OK;
   }
 
@@ -392,7 +392,7 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
     if (NS_FAILED(rv))
     {
       // Key doesn't exist
-      isDefault = PR_FALSE;
+      isDefault = false;
       break;
     }
 
@@ -405,7 +405,7 @@ nsWindowsShellService::TestForDefault(SETTING aSettings[], PRInt32 aSize)
         !dataLongPath.Equals(currValue, nsCaseInsensitiveStringComparator()))
     {
       // Key wasn't set, or was set to something else (something else became the default client)
-      isDefault = PR_FALSE;
+      isDefault = false;
       break;
     }
   }  // for each registry key we want to look at
@@ -437,8 +437,8 @@ nsWindowsShellService::IsDefaultClientVista(PRUint16 aApps, bool* aIsDefaultClie
     *aIsDefaultClient = isDefaultNews && isDefaultMail;
 
     pAAR->Release();
-    return PR_TRUE;
+    return true;
   }
 #endif
-  return PR_FALSE;
+  return false;
 }

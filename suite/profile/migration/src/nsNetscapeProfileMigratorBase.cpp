@@ -99,7 +99,7 @@ nsNetscapeProfileMigratorBase::GetSourceExists(bool* aResult)
     *aResult = count > 0;
   }
   else
-    *aResult = PR_FALSE;
+    *aResult = false;
 
   return NS_OK;
 }
@@ -116,7 +116,7 @@ nsNetscapeProfileMigratorBase::GetSourceHasMultipleProfiles(bool* aResult)
     *aResult = count > 1;
   }
   else
-    *aResult = PR_FALSE;
+    *aResult = false;
 
   return NS_OK;
 }
@@ -275,7 +275,7 @@ nsNetscapeProfileMigratorBase::SetFile(PrefTransform* aTransform,
       // Okay it wasn't a URL spec so assume it is a localfile,
       // if this fails then just don't set anything.
       nsCOMPtr<nsILocalFile> localFile;
-      rv = NS_NewNativeLocalFile(fileURL, PR_FALSE, getter_AddRefs(localFile));
+      rv = NS_NewNativeLocalFile(fileURL, false, getter_AddRefs(localFile));
       if (NS_FAILED(rv))
         return NS_OK;  
       aFile = localFile;
@@ -377,7 +377,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
   bool isRelative;
 
   unsigned int c = 0;
-  for (c = 0; PR_TRUE; ++c) {
+  for (c = 0; true; ++c) {
     nsCAutoString profileID("Profile");
     profileID.AppendInt(c);
 
@@ -400,7 +400,7 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
     }
 
     nsCOMPtr<nsILocalFile> rootDir;
-    rv = NS_NewNativeLocalFile(EmptyCString(), PR_TRUE, getter_AddRefs(rootDir));
+    rv = NS_NewNativeLocalFile(EmptyCString(), true, getter_AddRefs(rootDir));
     NS_ENSURE_SUCCESS(rv, rv);
 
     if (isRelative)
@@ -414,13 +414,13 @@ nsNetscapeProfileMigratorBase::GetProfileDataFromProfilesIni(nsILocalFile* aData
     rootDir->Exists(&exists);
 
     if (exists) {
-      aProfileLocations->AppendElement(rootDir, PR_FALSE);
+      aProfileLocations->AppendElement(rootDir, false);
 
       nsCOMPtr<nsISupportsString> profileNameString(
         do_CreateInstance("@mozilla.org/supports-string;1"));
 
       profileNameString->SetData(NS_ConvertUTF8toUTF16(buffer));
-      aProfileNames->AppendElement(profileNameString, PR_FALSE);
+      aProfileNames->AppendElement(profileNameString, false);
     }
   }
   return NS_OK;
@@ -445,7 +445,7 @@ nsNetscapeProfileMigratorBase::CopyFile(const char* aSourceFileName,
   targetFile->AppendNative(nsDependentCString(aTargetFileName));
   targetFile->Exists(&exists);
   if (exists)
-    targetFile->Remove(PR_FALSE);
+    targetFile->Remove(false);
 
   return sourceFile->CopyToNative(mTargetProfile,
                                   nsDependentCString(aTargetFileName));
@@ -632,7 +632,7 @@ nsNetscapeProfileMigratorBase::GetFileValue(nsIPrefBranch* aPrefBranch, const ch
     if (!StringBeginsWith(prefValue, NS_LITERAL_CSTRING("[ProfD]")))
       return NS_ERROR_FILE_NOT_FOUND;
 
-    rv = NS_NewNativeLocalFile(EmptyCString(), PR_TRUE, getter_AddRefs(theFile));
+    rv = NS_NewNativeLocalFile(EmptyCString(), true, getter_AddRefs(theFile));
     if (NS_FAILED(rv))
       return rv;
 
@@ -662,7 +662,7 @@ nsNetscapeProfileMigratorBase::CopyCookies(bool aReplace)
     nsCOMPtr<nsIFile> targetFile;
     mTargetProfile->Clone(getter_AddRefs(targetFile));
     targetFile->AppendNative(NS_LITERAL_CSTRING(FILE_NAME_COOKIES_SQLITE));
-    targetFile->Remove(PR_FALSE);
+    targetFile->Remove(false);
 
     return CopyFile(FILE_NAME_COOKIES, FILE_NAME_COOKIES);
   }
@@ -722,7 +722,7 @@ nsNetscapeProfileMigratorBase::CopyUserSheet(const char* aFileName)
 
   targetUserContent->Exists(&exists);
   if (exists)
-    targetUserContent->Remove(PR_FALSE);
+    targetUserContent->Remove(false);
 
   return sourceUserContent->CopyToNative(targetChromeDir,
                                          nsDependentCString(aFileName));

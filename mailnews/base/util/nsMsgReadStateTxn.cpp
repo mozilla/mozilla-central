@@ -67,13 +67,13 @@ nsMsgReadStateTxn::Init(nsIMsgFolder *aParentFolder,
 NS_IMETHODIMP 
 nsMsgReadStateTxn::UndoTransaction()
 {
-  return MarkMessages(PR_FALSE);
+  return MarkMessages(false);
 }
 
 NS_IMETHODIMP 
 nsMsgReadStateTxn::RedoTransaction()
 {
-  return MarkMessages(PR_TRUE);
+  return MarkMessages(true);
 }
 
 NS_IMETHODIMP
@@ -90,7 +90,7 @@ nsMsgReadStateTxn::MarkMessages(bool aAsRead)
     rv = mParentFolder->GetMessageHeader(mMarkedMessages[i], 
                                          getter_AddRefs(curMsgHdr));
     if (NS_SUCCEEDED(rv) && curMsgHdr) {
-      messageArray->AppendElement(curMsgHdr, PR_FALSE);
+      messageArray->AppendElement(curMsgHdr, false);
     }
   }
 

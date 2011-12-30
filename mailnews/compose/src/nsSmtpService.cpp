@@ -96,7 +96,7 @@ NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
 nsresult NS_MsgLoadSmtpUrl(nsIURI * aUrl, nsISupports * aConsumer, nsIRequest ** aRequest);
 
 nsSmtpService::nsSmtpService() :
-    mSmtpServersLoaded(PR_FALSE)
+    mSmtpServersLoaded(false)
 {
 }
 
@@ -269,7 +269,7 @@ NS_IMETHODIMP nsSmtpService::VerifyLogon(nsISmtpServer *aServer,
 
   nsresult rv = NS_MsgBuildSmtpUrl(nsnull, aServer,
                           nsnull, nsnull, aUrlListener, nsnull,
-                          nsnull , getter_AddRefs(urlToRun), PR_FALSE);
+                          nsnull , getter_AddRefs(urlToRun), false);
   if (NS_SUCCEEDED(rv) && urlToRun)
   {
     nsCOMPtr<nsIMsgMailNewsUrl> url(do_QueryInterface(urlToRun, &rv));
@@ -302,7 +302,7 @@ NS_IMETHODIMP
 nsSmtpService::AllowPort(PRInt32 port, const char *scheme, bool *_retval)
 {
     // allow smtp to run on any port
-    *_retval = PR_TRUE;
+    *_retval = true;
     return NS_OK;
 }
 
@@ -353,7 +353,7 @@ NS_IMETHODIMP nsSmtpService::NewChannel(nsIURI *aURI, nsIChannel **_retval)
   nsCOMPtr<nsIAsyncInputStream> pipeIn;
   nsCOMPtr<nsIAsyncOutputStream> pipeOut;
   nsCOMPtr<nsIPipe> pipe = do_CreateInstance("@mozilla.org/pipe;1");
-  nsresult rv = pipe->Init(PR_FALSE, PR_FALSE, 0, 0, nsnull);
+  nsresult rv = pipe->Init(false, false, 0, 0, nsnull);
   if (NS_FAILED(rv)) 
     return rv;
   
@@ -456,7 +456,7 @@ nsSmtpService::loadSmtpServers()
 
   saveKeyList();
 
-  mSmtpServersLoaded = PR_TRUE;
+  mSmtpServersLoaded = true;
   return NS_OK;
 }
 
@@ -595,15 +595,15 @@ nsSmtpService::findServerByKey(nsISmtpServer *aServer, void *aData)
   nsCString key;
   nsresult rv = aServer->GetKey(getter_Copies(key));
   if (NS_FAILED(rv))
-    return PR_TRUE;
+    return true;
 
   if (key.Equals(entry->key)) 
   {
     entry->server = aServer;
-    return PR_FALSE;
+    return false;
   }
     
-  return PR_TRUE;
+  return true;
 }
 
 NS_IMETHODIMP
@@ -626,7 +626,7 @@ nsSmtpService::CreateSmtpServer(nsISmtpServer **aResult)
         entry.server = nsnull;
 
         mSmtpServers.EnumerateForwards(findServerByKey, (void *)&entry);
-        if (!entry.server) unique=PR_TRUE;
+        if (!entry.server) unique=true;
 
     } while (!unique);
 
@@ -643,7 +643,7 @@ nsSmtpService::GetServerByKey(const char* aKey, nsISmtpServer **aResult)
 
     if (!aKey || !*aKey)
     {
-      NS_ASSERTION(PR_FALSE, "bad key");
+      NS_ASSERTION(false, "bad key");
       return NS_ERROR_FAILURE;
     }
     findServerByKeyEntry entry;
@@ -712,12 +712,12 @@ nsSmtpService::findServerByHostname(nsISmtpServer *aServer, void *aData)
   nsCString hostname;
   nsresult rv = aServer->GetHostname(hostname);
   if (NS_FAILED(rv))
-    return PR_TRUE;
+    return true;
 
   nsCString username;
   rv = aServer->GetUsername(username);
   if (NS_FAILED(rv))
-    return PR_TRUE;
+    return true;
 
   bool checkHostname = !entry->hostname.IsEmpty();
   bool checkUsername = !entry->username.IsEmpty();
@@ -728,9 +728,9 @@ nsSmtpService::findServerByHostname(nsISmtpServer *aServer, void *aData)
         entry->username.Equals(username, nsCaseInsensitiveCStringComparator()))))
   {
     entry->server = aServer;
-    return PR_FALSE;        // stop when found
+    return false;        // stop when found
   }
-  return PR_TRUE;
+  return true;
 }
 
 NS_IMETHODIMP

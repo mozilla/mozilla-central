@@ -45,7 +45,7 @@
 NS_IMPL_ISUPPORTS1(nsLDAPControl, nsILDAPControl)
 
 nsLDAPControl::nsLDAPControl()
-  : mIsCritical(PR_FALSE)
+  : mIsCritical(false)
 {
 }
 

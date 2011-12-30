@@ -113,7 +113,7 @@ nsresult nsMsgQuoteListener::OnHeadersReady(nsIMimeHeaders * headers)
 //
 nsMsgQuote::nsMsgQuote()
 {
-  mQuoteHeaders = PR_FALSE;
+  mQuoteHeaders = false;
   mQuoteListener = nsnull;
 }
 

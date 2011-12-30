@@ -246,7 +246,7 @@ public:
 
   virtual void  DoneParsingFolder(nsresult status);
 
-  void DisableFilters() {m_disableFilters = PR_TRUE;}
+  void DisableFilters() {m_disableFilters = true;}
 
   NS_DECL_NSIMSGFILTERHITNOTIFY
 

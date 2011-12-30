@@ -127,7 +127,7 @@ NS_IMETHODIMP nsAbDirectoryQuerySimpleBooleanExpression::SetExpressions(nsIArray
 NS_IMPL_THREADSAFE_ISUPPORTS1(nsAbDirectoryQueryArguments, nsIAbDirectoryQueryArguments)
 
 nsAbDirectoryQueryArguments::nsAbDirectoryQueryArguments() :
-    mQuerySubDirectories(PR_TRUE)
+    mQuerySubDirectories(true)
 {
 }
 
@@ -485,7 +485,7 @@ nsresult nsAbDirectoryQuery::matchCardCondition(nsIAbCard* card,
     if (value.IsEmpty())
     {
       *matchFound = (conditionType == nsIAbBooleanConditionTypes::DoesNotExist) ?
-          PR_TRUE : PR_FALSE;
+          true : false;
       return NS_OK;
     }
 
@@ -497,7 +497,7 @@ nsresult nsAbDirectoryQuery::matchCardCondition(nsIAbCard* card,
     switch (conditionType)
     {
         case nsIAbBooleanConditionTypes::Exists:
-            *matchFound = PR_TRUE;
+            *matchFound = true;
             break;
         case nsIAbBooleanConditionTypes::Contains:
             *matchFound = CaseInsensitiveFindInReadable(matchValue, value);
@@ -525,10 +525,10 @@ nsresult nsAbDirectoryQuery::matchCardCondition(nsIAbCard* card,
             break;
         case nsIAbBooleanConditionTypes::SoundsLike:
         case nsIAbBooleanConditionTypes::RegExp:
-            *matchFound = PR_FALSE;
+            *matchFound = false;
             break;
         default:
-            *matchFound = PR_FALSE;
+            *matchFound = false;
     }
 
     return rv;

@@ -123,27 +123,27 @@ NS_IMETHODIMP nsOESettings::AutoLocate(PRUnichar **description, nsIFile **locati
     return( NS_ERROR_NULL_POINTER);
 
   *description = nsOEStringBundle::GetStringByID( OEIMPORT_NAME);
-  *_retval = PR_FALSE;
+  *_retval = false;
 
   if (location)
     *location = nsnull;
   HKEY  key;
   key = OESettings::Find50Key();
   if (key != nsnull) {
-    *_retval = PR_TRUE;
+    *_retval = true;
     ::RegCloseKey( key);
   }
   else {
     key = OESettings::Find40Key();
     if (key != nsnull) {
-      *_retval = PR_TRUE;
+      *_retval = true;
       ::RegCloseKey( key);
     }
   }
   if (*_retval) {
     key = OESettings::FindAccountsKey();
     if (key == nsnull) {
-      *_retval = PR_FALSE;
+      *_retval = false;
     }
     else {
       ::RegCloseKey( key);
@@ -163,11 +163,11 @@ NS_IMETHODIMP nsOESettings::Import(nsIMsgAccount **localMailAccount, bool *_retv
   NS_PRECONDITION( _retval != nsnull, "null ptr");
 
   if (OESettings::DoImport( localMailAccount)) {
-    *_retval = PR_TRUE;
+    *_retval = true;
     IMPORT_LOG0( "Settings import appears successful\n");
   }
   else {
-    *_retval = PR_FALSE;
+    *_retval = false;
     IMPORT_LOG0( "Settings import returned FALSE\n");
   }
 
@@ -236,7 +236,7 @@ bool OESettings::DoImport( nsIMsgAccount **ppAccount)
   HKEY  hKey = FindAccountsKey();
   if (hKey == nsnull) {
     IMPORT_LOG0( "*** Error finding Outlook Express registry account keys\n");
-    return( PR_FALSE);
+    return( false);
   }
 
   nsresult  rv;
@@ -246,7 +246,7 @@ bool OESettings::DoImport( nsIMsgAccount **ppAccount)
     if (NS_FAILED(rv)) {
     IMPORT_LOG0( "*** Failed to create a account manager!\n");
     ::RegCloseKey( hKey);
-    return( PR_FALSE);
+    return( false);
   }
 
   HKEY    subKey;
@@ -305,7 +305,7 @@ bool OESettings::DoImport( nsIMsgAccount **ppAccount)
   // above key not critical
 
   checkNewMailTime = 30;
-  checkNewMail = PR_FALSE;
+  checkNewMail = false;
   if (subKey){
     if (::RegOpenKeyEx(subKey, "Mail", 0, KEY_QUERY_VALUE,
                        &subSubKey) == ERROR_SUCCESS) {
@@ -314,7 +314,7 @@ bool OESettings::DoImport( nsIMsgAccount **ppAccount)
       ::RegCloseKey( subSubKey);
       if (pBytes) {
         if (*(PRInt32 *)pBytes != -1){
-          checkNewMail = PR_TRUE;
+          checkNewMail = true;
           checkNewMailTime = *(PRInt32 *)pBytes / 60000;
         }
         nsOERegUtil::FreeValueBytes( pBytes);
@@ -409,7 +409,7 @@ bool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
   char * pUserName;
   pUserName = (char *)nsOERegUtil::GetValueBytes(hKey, "IMAP User Name");
   if (!pUserName)
-    return( PR_FALSE);
+    return( false);
 
   bool result = false;
 
@@ -481,8 +481,8 @@ bool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
         IMPORT_LOG0("Created an account and set the IMAP server as the incoming server\n");
 
         // Fiddle with the identities
-        SetIdentities(pMgr, account, hKey, pUserName, authMethod, PR_FALSE);
-        result = PR_TRUE;
+        SetIdentities(pMgr, account, hKey, pUserName, authMethod, false);
+        result = true;
         if (ppAccount)
           account->QueryInterface(NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
       }
@@ -497,15 +497,15 @@ bool OESettings::DoIMAPServer( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
       IMPORT_LOG0("Created an identity and added to existing IMAP incoming server\n");
       // Fiddle with the identities
       in->GetAuthMethod(&authMethod);
-      SetIdentities(pMgr, account, hKey, pUserName, authMethod, PR_FALSE);
-      result = PR_TRUE;
+      SetIdentities(pMgr, account, hKey, pUserName, authMethod, false);
+      result = true;
       if (ppAccount)
         account->QueryInterface(NS_GET_IID(nsIMsgAccount),
                                  (void **)ppAccount);
     }
   }
   else
-    result = PR_TRUE;
+    result = true;
   nsOERegUtil::FreeValueBytes((BYTE *) pUserName);
   return( result);
 }
@@ -519,7 +519,7 @@ bool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
   char * pUserName;
   pUserName = (char *)nsOERegUtil::GetValueBytes( hKey, "POP3 User Name");
   if (!pUserName)
-    return( PR_FALSE);
+    return( false);
 
   bool result = false;
 
@@ -578,7 +578,7 @@ bool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
 
           if (NS_FAILED(pMgr->CreateLocalMailAccount())) {
             IMPORT_LOG0("*** Failed to create Local Folders!\n");
-            return PR_FALSE;
+            return false;
           }
 
           pMgr->GetLocalFoldersServer(getter_AddRefs(localFoldersServer));
@@ -603,7 +603,7 @@ bool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
           nsOERegUtil::FreeValueBytes(pBytesTemp);
         }
         else
-          pop3Server->SetDeferGetNewMail(PR_FALSE);
+          pop3Server->SetDeferGetNewMail(false);
         pBytesTemp = nsOERegUtil::GetValueBytes(hKey, "Leave Mail On Server");
         if (pBytesTemp)
         {
@@ -643,8 +643,8 @@ bool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
         IMPORT_LOG0("Created a new account and set the incoming server to the POP3 server.\n");
 
         // Fiddle with the identities
-        SetIdentities(pMgr, account, hKey, pUserName, authMethod, PR_FALSE);
-        result = PR_TRUE;
+        SetIdentities(pMgr, account, hKey, pUserName, authMethod, false);
+        result = true;
         if (ppAccount)
           account->QueryInterface(NS_GET_IID(nsIMsgAccount),
                                    (void **)ppAccount);
@@ -662,14 +662,14 @@ bool OESettings::DoPOP3Server( nsIMsgAccountManager *pMgr, HKEY hKey, char *pSer
       IMPORT_LOG0("Created identity and added to existing POP3 incoming server.\n");
       // Fiddle with the identities
       in->GetAuthMethod(&authMethod);
-      SetIdentities(pMgr, account, hKey, pUserName, authMethod, PR_FALSE);
-      result = PR_TRUE;
+      SetIdentities(pMgr, account, hKey, pUserName, authMethod, false);
+      result = true;
       if (ppAccount)
         account->QueryInterface(NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
     }
   }
   else
-    result = PR_TRUE;
+    result = true;
   nsOERegUtil::FreeValueBytes((BYTE *) pUserName);
   return result;
 }
@@ -708,7 +708,7 @@ bool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
       // do nntpincomingserver stuff
       nsCOMPtr<nsINntpIncomingServer> nntpServer = do_QueryInterface(in);
       if (nntpServer && pUserName && *pUserName) {
-        nntpServer->SetPushAuth(PR_TRUE);
+        nntpServer->SetPushAuth(true);
         in->SetUsername(nsDependentCString(pUserName));
       }
 
@@ -728,8 +728,8 @@ bool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
         IMPORT_LOG0("Created an account and set the NNTP server as the incoming server\n");
 
         // Fiddle with the identities
-        SetIdentities(pMgr, account, hKey, pUserName, 0, PR_TRUE);
-        result = PR_TRUE;
+        SetIdentities(pMgr, account, hKey, pUserName, 0, true);
+        result = true;
         if (ppAccount)
           account->QueryInterface(NS_GET_IID(nsIMsgAccount), (void **)ppAccount);
       }
@@ -742,15 +742,15 @@ bool OESettings::DoNNTPServer( nsIMsgAccountManager *pMgr, HKEY hKey,
     if (NS_SUCCEEDED( rv) && account) {
       IMPORT_LOG0("Using existing account and set the NNTP server as the incoming server\n");
       // Fiddle with the identities
-      SetIdentities(pMgr, account, hKey, pUserName, 0, PR_TRUE);
-      result = PR_TRUE;
+      SetIdentities(pMgr, account, hKey, pUserName, 0, true);
+      result = true;
       if (ppAccount)
         account->QueryInterface(NS_GET_IID(nsIMsgAccount),
                                  (void **)ppAccount);
     }
   }
   else
-    result = PR_TRUE;
+    result = true;
   nsOERegUtil::FreeValueBytes((BYTE *) pUserName);
   return result;
 }

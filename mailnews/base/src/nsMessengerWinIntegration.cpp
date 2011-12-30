@@ -213,7 +213,7 @@ static void CALLBACK delayedSingleClick(HWND msgWindow, UINT msg, INT_PTR idEven
     // we know we are dealing with the windows integration object
     nsMessengerWinIntegration * winIntegrationService = static_cast<nsMessengerWinIntegration*>
                                                                    (static_cast<nsIMessengerOSIntegration*>(integrationService.get()));
-    winIntegrationService->ShowNewAlertNotification(PR_TRUE, EmptyString(), EmptyString());
+    winIntegrationService->ShowNewAlertNotification(true, EmptyString(), EmptyString());
   }
 #endif
 }
@@ -280,14 +280,14 @@ nsMessengerWinIntegration::nsMessengerWinIntegration()
   mDefaultServerAtom = MsgGetAtom("DefaultServer");
   mTotalUnreadMessagesAtom = MsgGetAtom("TotalUnreadMessages");
 
-  mUnreadTimerActive = PR_FALSE;
-  mStoreUnreadCounts = PR_FALSE;
+  mUnreadTimerActive = false;
+  mStoreUnreadCounts = false;
 
   mBiffStateAtom = MsgGetAtom("BiffState");
-  mBiffIconVisible = PR_FALSE;
-  mSuppressBiffIcon = PR_FALSE;
-  mAlertInProgress = PR_FALSE;
-  mBiffIconInitialized = PR_FALSE;
+  mBiffIconVisible = false;
+  mSuppressBiffIcon = false;
+  mAlertInProgress = false;
+  mBiffIconInitialized = false;
   NS_NewISupportsArray(getter_AddRefs(mFoldersWithNewMail));
 }
 
@@ -324,7 +324,7 @@ nsMessengerWinIntegration::ResetCurrent()
   mCurrentUnreadCount = -1;
   mLastUnreadCountWrittenToRegistry = -1;
 
-  mDefaultAccountMightHaveAnInbox = PR_TRUE;
+  mDefaultAccountMightHaveAnInbox = true;
   return NS_OK;
 }
 
@@ -357,7 +357,7 @@ void nsMessengerWinIntegration::InitializeBiffStatusIcon()
   sBiffIconData.hWnd = (HWND) msgWindow;
   sBiffIconData.hIcon = ::LoadIcon( ::GetModuleHandle( NULL ), MAKEINTRESOURCE(IDI_MAILBIFF) );
 
-  mBiffIconInitialized = PR_TRUE;
+  mBiffIconInitialized = true;
 }
 
 nsresult
@@ -399,7 +399,7 @@ nsMessengerWinIntegration::Init()
   // if failed to get either of the process addresses, this is not XP platform
   // so we aren't storing unread counts
   if (mSHSetUnreadMailCount && mSHEnumerateUnreadMailAccounts)
-    mStoreUnreadCounts = PR_TRUE;
+    mStoreUnreadCounts = true;
 
   nsCOMPtr <nsIMsgAccountManager> accountManager =
     do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
@@ -501,10 +501,10 @@ nsresult nsMessengerWinIntegration::ShowAlertMessage(const nsString& aAlertTitle
     if (NS_SUCCEEDED(rv))
     {
       rv = alertsService->ShowAlertNotification(NS_LITERAL_STRING(NEW_MAIL_ALERT_ICON), aAlertTitle,
-                                                aAlertText, PR_TRUE,
+                                                aAlertText, true,
                                                 NS_ConvertASCIItoUTF16(aFolderURI), this,
                                                 EmptyString());
-      mAlertInProgress = PR_TRUE;
+      mAlertInProgress = true;
     }
   }
 
@@ -598,7 +598,7 @@ nsresult nsMessengerWinIntegration::ShowNewAlertNotification(bool aUserInitiated
                 "chrome,dialog=yes,titlebar=no,popup=yes", argsArray,
                  getter_AddRefs(newWindow));
 
-    mAlertInProgress = PR_TRUE;
+    mAlertInProgress = true;
   }
 
   // if the user has turned off the mail alert, or  openWindow generated an error,
@@ -624,10 +624,10 @@ nsresult nsMessengerWinIntegration::AlertFinished()
   if (showTrayIcon || sBiffIconData.szInfo[0])
   {
     GenericShellNotify(NIM_ADD);
-    mBiffIconVisible = PR_TRUE;
+    mBiffIconVisible = true;
   }
-  mSuppressBiffIcon = PR_FALSE;
-  mAlertInProgress = PR_FALSE;
+  mSuppressBiffIcon = false;
+  mAlertInProgress = false;
   return NS_OK;
 }
 
@@ -651,7 +651,7 @@ nsresult nsMessengerWinIntegration::AlertClicked()
   }
 #endif
   // make sure we don't insert the icon in the system tray since the user clicked on the alert.
-  mSuppressBiffIcon = PR_TRUE;
+  mSuppressBiffIcon = true;
   nsCString folderURI;
   GetFirstFolderWithNewMail(folderURI);
   openMailWindow(folderURI);
@@ -693,7 +693,7 @@ void nsMessengerWinIntegration::FillToolTipInfo()
       folder->GetPrettiestName(accountName);
 
       numNewMessages = 0;
-      folder->GetNumNewMessages(PR_TRUE, &numNewMessages);
+      folder->GetNumNewMessages(true, &numNewMessages);
       nsCOMPtr<nsIStringBundle> bundle;
       GetStringBundle(getter_AddRefs(bundle));
       if (bundle)
@@ -737,7 +737,7 @@ void nsMessengerWinIntegration::FillToolTipInfo()
 #ifndef MOZ_THUNDERBIRD
     ShowAlertMessage(accountName, animatedAlertText, EmptyCString());
 #else
-    ShowNewAlertNotification(PR_FALSE, accountName, animatedAlertText);
+    ShowNewAlertNotification(false, accountName, animatedAlertText);
 #endif
   }
   else
@@ -788,7 +788,7 @@ nsresult nsMessengerWinIntegration::GetFirstFolderWithNewMail(nsACString& aFolde
           if (msgFolder)
           {
             numNewMessages = 0;
-            msgFolder->GetNumNewMessages(PR_FALSE, &numNewMessages);
+            msgFolder->GetNumNewMessages(false, &numNewMessages);
             if (numNewMessages)
               break; // kick out of the while loop
             more = enumerator->Next();
@@ -903,13 +903,13 @@ nsMessengerWinIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom
       // added it to the system tray. This happens when the user reads a new message before
       // the animated alert has gone away.
       if (mAlertInProgress)
-        mSuppressBiffIcon = PR_TRUE;
+        mSuppressBiffIcon = true;
 
       if (indexInNewArray != -1)
         mFoldersWithNewMail->RemoveElementAt(indexInNewArray);
       if (mBiffIconVisible)
       {
-        mBiffIconVisible = PR_FALSE;
+        mBiffIconVisible = false;
         GenericShellNotify(NIM_DELETE);
       }
     }
@@ -952,7 +952,7 @@ nsMessengerWinIntegration::OnUnreadCountUpdateTimer(nsITimer *timer, void *osInt
 {
   nsMessengerWinIntegration *winIntegration = (nsMessengerWinIntegration*)osIntegration;
 
-  winIntegration->mUnreadTimerActive = PR_FALSE;
+  winIntegration->mUnreadTimerActive = false;
   nsresult rv = winIntegration->UpdateUnreadCount();
   NS_ASSERTION(NS_SUCCEEDED(rv), "updating unread count failed");
 }
@@ -1071,7 +1071,7 @@ nsMessengerWinIntegration::SetupInbox()
   if (NS_FAILED(rv)) {
     // this can happen if we launch mail on a new profile
     // we don't have a default account yet
-    mDefaultAccountMightHaveAnInbox = PR_FALSE;
+    mDefaultAccountMightHaveAnInbox = false;
     return NS_OK;
   }
 
@@ -1089,7 +1089,7 @@ nsMessengerWinIntegration::SetupInbox()
   // we only care about imap and pop3
   if (type.EqualsLiteral("imap") || type.EqualsLiteral("pop3")) {
     // imap and pop3 account should have an Inbox
-    mDefaultAccountMightHaveAnInbox = PR_TRUE;
+    mDefaultAccountMightHaveAnInbox = true;
 
     mEmailPrefix.Truncate();
 
@@ -1119,7 +1119,7 @@ nsMessengerWinIntegration::SetupInbox()
     rv = inboxFolder->GetURI(mInboxURI);
     NS_ENSURE_SUCCESS(rv,rv);
 
-    rv = inboxFolder->GetNumUnread(PR_FALSE, &mCurrentUnreadCount);
+    rv = inboxFolder->GetNumUnread(false, &mCurrentUnreadCount);
     NS_ENSURE_SUCCESS(rv,rv);
   }
   else {
@@ -1127,7 +1127,7 @@ nsMessengerWinIntegration::SetupInbox()
     // that we expect to have an inbox.  (local folders, news accounts)
     // set this flag to avoid calling SetupInbox() every time
     // the timer goes off.
-    mDefaultAccountMightHaveAnInbox = PR_FALSE;
+    mDefaultAccountMightHaveAnInbox = false;
   }
 
   return NS_OK;
@@ -1151,7 +1151,7 @@ nsresult
 nsMessengerWinIntegration::SetupUnreadCountUpdateTimer()
 {
   if (!mStoreUnreadCounts) return NS_OK; // don't do anything here if we aren't storing unread counts...
-  mUnreadTimerActive = PR_TRUE;
+  mUnreadTimerActive = true;
   if (mUnreadCountUpdateTimer)
     mUnreadCountUpdateTimer->Cancel();
   else

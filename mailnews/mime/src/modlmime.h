@@ -98,12 +98,12 @@ typedef struct MSG_AttachmentData MSG_AttachmentData;
    a newly-allocated string (which the caller must free.)  If the header
    is not present, or has no contents, NULL is returned.
 
-   If `strip_p' is PR_TRUE, then the data returned will be the first token
+   If `strip_p' is true, then the data returned will be the first token
    of the header; else it will be the full text of the header.  (This is
    useful for getting just "text/plain" from "text/plain; name=foo".)
 
-   If `all_p' is PR_FALSE, then the first header encountered is used, and
-   any subsequent headers of the same name are ignored.  If PR_TRUE, then
+   If `all_p' is false, then the first header encountered is used, and
+   any subsequent headers of the same name are ignored.  If true, then
    all headers of the same name are appended together (this is useful
    for gathering up all CC headers into one, for example.)
  */
@@ -199,7 +199,7 @@ public:
 
   bool decrypt_p;    /* Whether all traces of xlateion should be
                  eradicated -- this is only meaningful when
-                 write_html_p is PR_FALSE; we set this when
+                 write_html_p is false; we set this when
                  attaching a message for forwarding, since
                  forwarding someone else a message that wasn't
                  xlated for them doesn't work.  We have to
@@ -268,7 +268,7 @@ public:
                 char **output_ret, PRInt32 *output_size_ret,
                 void *stream_closure, nsIUnicodeDecoder *decoder, nsIUnicodeEncoder *encoder);
 
-  /* If PR_TRUE, perform both charset-conversion and decoding of
+  /* If true, perform both charset-conversion and decoding of
    MIME-2 header fields (using RFC-1522 encoding.)
    */
   bool rfc1522_conversion_p;

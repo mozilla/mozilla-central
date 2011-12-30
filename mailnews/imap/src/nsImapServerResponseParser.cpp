@@ -62,11 +62,11 @@ extern PRLogModuleInfo* IMAP;
 
 nsImapServerResponseParser::nsImapServerResponseParser(nsImapProtocol &imapProtocolConnection) 
                             : nsIMAPGenericParser(),
-    fReportingErrors(PR_TRUE),
-    fCurrentFolderReadOnly(PR_FALSE),
-    fCurrentLineContainedFlagInfo(PR_FALSE),
-    fFetchEverythingRFC822(PR_FALSE),
-    fServerIsNetscape3xServer(PR_FALSE),
+    fReportingErrors(true),
+    fCurrentFolderReadOnly(false),
+    fCurrentLineContainedFlagInfo(false),
+    fFetchEverythingRFC822(false),
+    fServerIsNetscape3xServer(false),
     fNumberOfUnseenMessages(0),
     fNumberOfExistingMessages(0),
     fNumberOfRecentMessages(0),
@@ -75,7 +75,7 @@ nsImapServerResponseParser::nsImapServerResponseParser(nsImapProtocol &imapProto
     fCurrentCommandTag(nsnull),
     fSelectedMailboxName(nsnull),
     fIMAPstate(kNonAuthenticated),
-    fLastChunk(PR_FALSE),
+    fLastChunk(false),
     fServerConnection(imapProtocolConnection),
     fHostSessionList(nsnull)
 {
@@ -87,8 +87,8 @@ nsImapServerResponseParser::nsImapServerResponseParser(nsImapProtocol &imapProto
   fSettablePermanentFlags = 0;
   fCapabilityFlag = kCapabilityUndefined; 
   fLastAlert = nsnull;
-  fDownloadingHeaders = PR_FALSE;
-  fGotPermanentFlags = PR_FALSE;
+  fDownloadingHeaders = false;
+  fGotPermanentFlags = false;
   fFolderUIDValidity = 0;
   fHighestModSeq = 0;
   fAuthChallenge = nsnull;
@@ -97,7 +97,7 @@ nsImapServerResponseParser::nsImapServerResponseParser(nsImapProtocol &imapProto
   fStatusNextUID = nsMsgKey_None;
   fStatusExistingMessages = 0;
   fReceivedHeaderOrSizeForUID = nsMsgKey_None;
-  fCondStoreEnabled = PR_FALSE;
+  fCondStoreEnabled = false;
 }
 
 nsImapServerResponseParser::~nsImapServerResponseParser()
@@ -121,14 +121,14 @@ bool nsImapServerResponseParser::LastCommandSuccessful()
     nsIMAPGenericParser::LastCommandSuccessful());
 }
 
-// returns PR_TRUE if things look ok to continue
+// returns true if things look ok to continue
 bool nsImapServerResponseParser::GetNextLineForParser(char **nextLine)
 {
   bool rv = true;
   *nextLine = fServerConnection.CreateNewLineFromSocket();
   if (fServerConnection.DeathSignalReceived() ||
       NS_FAILED(fServerConnection.GetConnectionStatus()))
-    rv = PR_FALSE;
+    rv = false;
   // we'd really like to try to silently reconnect, but we shouldn't put this
   // message up just in the interrupt case
   if (NS_FAILED(fServerConnection.GetConnectionStatus()) &&
@@ -169,7 +169,7 @@ void nsImapServerResponseParser::IncrementNumberOfTaggedResponsesExpected(const 
 
 void nsImapServerResponseParser::InitializeState()
 {
-  fCurrentCommandFailed = PR_FALSE;
+  fCurrentCommandFailed = false;
   fNumberOfRecentMessages = 0;
   fReceivedHeaderOrSizeForUID = nsMsgKey_None;
 }
@@ -187,11 +187,11 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *aCurrentCom
     *aCurrentCommand != '\n' && *aCurrentCommand != ' ', "Invailid command string");
   bool sendingIdleDone = !strcmp(aCurrentCommand, "DONE"CRLF);
   if (sendingIdleDone)
-    fWaitingForMoreClientInput = PR_FALSE;
+    fWaitingForMoreClientInput = false;
 
   // Reinitialize the parser
-  SetConnected(PR_TRUE);
-  SetSyntaxError(PR_FALSE);
+  SetConnected(true);
+  SetSyntaxError(false);
   
   // Reinitialize our state
   InitializeState();
@@ -247,7 +247,7 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *aCurrentCom
           if (ContinueParse())
           {
             if (!fAtEndOfLine)
-              SetSyntaxError(PR_TRUE);
+              SetSyntaxError(true);
             else if (!inIdle && !fCurrentCommandFailed && !aGreetingWithCapability)
               AdvanceToNextToken();
           }
@@ -283,7 +283,7 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *aCurrentCom
       // fWaitingForMoreClientInput so we don't lose that information....
       if (*fNextToken == '+' || inIdle)
       {
-        fWaitingForMoreClientInput = PR_TRUE;
+        fWaitingForMoreClientInput = true;
       }
       // if we aren't still waiting for more input....
       else if (!fWaitingForMoreClientInput && !aGreetingWithCapability)
@@ -307,7 +307,7 @@ void nsImapServerResponseParser::ParseIMAPServerResponse(const char *aCurrentCom
     }
   }
   else
-    SetConnected(PR_FALSE);
+    SetConnected(false);
 }
 
 void nsImapServerResponseParser::HandleMemoryFailure()
@@ -322,8 +322,8 @@ void nsImapServerResponseParser::HandleMemoryFailure()
 void nsImapServerResponseParser::PreProcessCommandToken(const char *commandToken,
                                                         const char *currentCommand)
 {
-  fCurrentCommandIsSingleMessageFetch = PR_FALSE;
-  fWaitingForMoreClientInput = PR_FALSE;
+  fCurrentCommandIsSingleMessageFetch = false;
+  fWaitingForMoreClientInput = false;
   
   if (!PL_strcasecmp(commandToken, "SEARCH"))
     fSearchResults->ResetSequence();
@@ -385,7 +385,7 @@ void nsImapServerResponseParser::PreProcessCommandToken(const char *commandToken
         char *uidStringToken = NS_strtok(WHITESPACE, &placeInTokenString);
         // , and : are uid delimiters
         if (!PL_strchr(uidStringToken, ',') && !PL_strchr(uidStringToken, ':'))
-          fCurrentCommandIsSingleMessageFetch = PR_TRUE;
+          fCurrentCommandIsSingleMessageFetch = true;
       }
     }
   }
@@ -445,7 +445,7 @@ void nsImapServerResponseParser::ProcessOkCommand(const char *commandToken)
     if (!fZeroLengthMessageUidString.IsEmpty())
     {
       // "Deleting zero length message");
-      fServerConnection.Store(fZeroLengthMessageUidString, "+Flags (\\Deleted)", PR_TRUE);
+      fServerConnection.Store(fZeroLengthMessageUidString, "+Flags (\\Deleted)", true);
       if (LastCommandSuccessful())
         fServerConnection.Expunge();
       
@@ -474,7 +474,7 @@ void nsImapServerResponseParser::ProcessOkCommand(const char *commandToken)
         // for the first time. Release it.
         if (!m_shell->IsShellCached())
           m_shell = nsnull;
-        navCon->PseudoInterrupt(PR_FALSE);
+        navCon->PseudoInterrupt(false);
       }
       else if (m_shell->GetIsValid())
       {
@@ -538,32 +538,32 @@ void nsImapServerResponseParser::response_data()
     {
     case 'O':   // OK
       if (NS_ToUpper(fNextToken[1]) == 'K')
-        resp_cond_state(PR_FALSE);
-      else SetSyntaxError(PR_TRUE);
+        resp_cond_state(false);
+      else SetSyntaxError(true);
       break;
     case 'N':   // NO
       if (NS_ToUpper(fNextToken[1]) == 'O')
-        resp_cond_state(PR_FALSE);
+        resp_cond_state(false);
       else if (!PL_strcasecmp(fNextToken, "NAMESPACE"))
         namespace_data();
-      else SetSyntaxError(PR_TRUE);
+      else SetSyntaxError(true);
       break;
     case 'B':   // BAD
       if (!PL_strcasecmp(fNextToken, "BAD"))
-        resp_cond_state(PR_FALSE);
+        resp_cond_state(false);
       else if (!PL_strcasecmp(fNextToken, "BYE"))
         resp_cond_bye();
-      else SetSyntaxError(PR_TRUE);
+      else SetSyntaxError(true);
       break;
     case 'F':
       if (!PL_strcasecmp(fNextToken, "FLAGS"))
         mailbox_data();
-      else SetSyntaxError(PR_TRUE);
+      else SetSyntaxError(true);
       break;
     case 'P':
       if (PL_strcasecmp(fNextToken, "PERMANENTFLAGS"))
         mailbox_data();
-      else SetSyntaxError(PR_TRUE);
+      else SetSyntaxError(true);
       break;
     case 'L':
       if (!PL_strcasecmp(fNextToken, "LIST") || !PL_strcasecmp(fNextToken, "LSUB"))
@@ -571,14 +571,14 @@ void nsImapServerResponseParser::response_data()
       else if (!PL_strcasecmp(fNextToken, "LANGUAGE"))
         language_data();
       else
-        SetSyntaxError(PR_TRUE);
+        SetSyntaxError(true);
       break;
     case 'M':
       if (!PL_strcasecmp(fNextToken, "MAILBOX"))
         mailbox_data();
       else if (!PL_strcasecmp(fNextToken, "MYRIGHTS"))
-        myrights_data(PR_FALSE);
-      else SetSyntaxError(PR_TRUE);
+        myrights_data(false);
+      else SetSyntaxError(true);
       break;
     case 'S':
       if (!PL_strcasecmp(fNextToken, "SEARCH"))
@@ -650,14 +650,14 @@ void nsImapServerResponseParser::response_data()
           else if (*fNextToken == ')')
             break;
           else if (!fAtEndOfLine)
-            SetSyntaxError(PR_TRUE);
+            SetSyntaxError(true);
         } 
-      } else SetSyntaxError(PR_TRUE);
+      } else SetSyntaxError(true);
       break;
     case 'C':
       if (!PL_strcasecmp(fNextToken, "CAPABILITY"))
         capability_data();
-      else SetSyntaxError(PR_TRUE);
+      else SetSyntaxError(true);
       break;
     case 'V':
       if (!PL_strcasecmp(fNextToken, "VERSION"))
@@ -666,7 +666,7 @@ void nsImapServerResponseParser::response_data()
         PR_FREEIF(fNetscapeServerVersionString);
         AdvanceToNextToken();
         if (! fNextToken) 
-          SetSyntaxError(PR_TRUE);
+          SetSyntaxError(true);
         else
         {
           fNetscapeServerVersionString = CreateAstring();
@@ -678,7 +678,7 @@ void nsImapServerResponseParser::response_data()
         }
         skip_to_CRLF();
       }
-      else SetSyntaxError(PR_TRUE);
+      else SetSyntaxError(true);
       break;
     case 'A':
       if (!PL_strcasecmp(fNextToken, "ACL"))
@@ -690,14 +690,14 @@ void nsImapServerResponseParser::response_data()
         fMailAccountUrl.Truncate();
         AdvanceToNextToken();
         if (! fNextToken) 
-          SetSyntaxError(PR_TRUE);
+          SetSyntaxError(true);
         else
         {
           fMailAccountUrl.Adopt(CreateAstring());
           AdvanceToNextToken();
         }
       } 
-      else SetSyntaxError(PR_TRUE);
+      else SetSyntaxError(true);
       break;
     case 'E':
       if (!PL_strcasecmp(fNextToken, "ENABLED"))
@@ -729,14 +729,14 @@ void nsImapServerResponseParser::response_data()
           fServerConnection.GetCurrentUrl()->SetCustomCommandResult(customCommandResponse);
         }
         else
-          SetSyntaxError(PR_TRUE);
+          SetSyntaxError(true);
       }
       break;
     case 'Q':
       if (!PL_strcasecmp(fNextToken, "QUOTAROOT")  || !PL_strcasecmp(fNextToken, "QUOTA"))
         quota_data();
       else
-        SetSyntaxError(PR_TRUE);
+        SetSyntaxError(true);
       break;
     case 'I':
       id_data();
@@ -745,7 +745,7 @@ void nsImapServerResponseParser::response_data()
       if (IsNumericString(fNextToken))
         numeric_mailbox_data();
       else
-        SetSyntaxError(PR_TRUE);
+        SetSyntaxError(true);
       break;
     }
     
@@ -765,7 +765,7 @@ void nsImapServerResponseParser::PostProcessEndOfLine()
   // also check and be sure that there was a UID in the current response
   if (fCurrentLineContainedFlagInfo && CurrentResponseUID())
   {
-    fCurrentLineContainedFlagInfo = PR_FALSE;
+    fCurrentLineContainedFlagInfo = false;
     fServerConnection.NotifyMessageFlags(fSavedFlagInfo, CurrentResponseUID(), fHighestModSeq);
   }
 }
@@ -805,13 +805,13 @@ void nsImapServerResponseParser::mailbox_data()
   {
     AdvanceToNextToken();
     if (ContinueParse())
-      mailbox_list(PR_FALSE);
+      mailbox_list(false);
   }
   else if (!PL_strcasecmp(fNextToken, "LSUB"))
   {
     AdvanceToNextToken();
     if (ContinueParse())
-      mailbox_list(PR_TRUE);
+      mailbox_list(true);
   }
   else if (!PL_strcasecmp(fNextToken, "MAILBOX"))
     skip_to_CRLF();
@@ -838,14 +838,14 @@ void nsImapServerResponseParser::mailbox_list(bool discoveredFromLsub)
     HandleMemoryFailure();
   else
   {
-    boxSpec->mFolderSelected = PR_FALSE;
+    boxSpec->mFolderSelected = false;
     boxSpec->mBoxFlags = kNoFlags;
     boxSpec->mAllocatedPathName.Truncate();
     boxSpec->mHostName.Truncate();
     boxSpec->mConnection = &fServerConnection;
     boxSpec->mFlagState = nsnull;
     boxSpec->mDiscoveredFromLsub = discoveredFromLsub;
-    boxSpec->mOnlineVerified = PR_TRUE;
+    boxSpec->mOnlineVerified = true;
     boxSpec->mBoxFlags &= ~kNameSpace;
     
     bool endOfFlags = false;
@@ -894,7 +894,7 @@ void nsImapServerResponseParser::mailbox_list(bool discoveredFromLsub)
       {
         // nsImapProtocol::DiscoverMailboxSpec() eventually frees the
         // boxSpec
-        needsToFreeBoxSpec = PR_FALSE;
+        needsToFreeBoxSpec = false;
         mailbox(boxSpec);
       }
     }
@@ -953,7 +953,7 @@ void nsImapServerResponseParser::mailbox(nsImapMailboxSpec *boxSpec)
     }
     
     //    	char *convertedName =
-    //            fServerConnection.CreateUtf7ConvertedString(boxname, PR_FALSE);
+    //            fServerConnection.CreateUtf7ConvertedString(boxname, false);
     //		PRUnichar *unicharName;
     //        unicharName = fServerConnection.CreatePRUnicharStringFromUTF7(boxname);
     //    	PL_strfree(boxname);
@@ -983,7 +983,7 @@ void nsImapServerResponseParser::mailbox(nsImapMailboxSpec *boxSpec)
     // if this was cancelled by the user,then we sure don't want to
     // send more mailboxes their way
     if (NS_FAILED(fServerConnection.GetConnectionStatus()))
-      SetConnected(PR_FALSE);
+      SetConnected(false);
   }
 }
 
@@ -1055,7 +1055,7 @@ void nsImapServerResponseParser::msg_fetch()
   
   // we have not seen a uid response or flags for this fetch, yet
   fCurrentResponseUID = 0;
-  fCurrentLineContainedFlagInfo = PR_FALSE;
+  fCurrentLineContainedFlagInfo = false;
   fSizeOfMostRecentMessage = 0;  
   // show any incremental progress, for instance, for header downloading
   fServerConnection.ShowProgress();
@@ -1133,11 +1133,11 @@ void nsImapServerResponseParser::msg_fetch()
               AdvanceToNextToken();
           }
           else
-            SetSyntaxError(PR_TRUE);
+            SetSyntaxError(true);
         }
         else
         {
-          SetSyntaxError(PR_TRUE);
+          SetSyntaxError(true);
         }
       }
     }
@@ -1158,22 +1158,22 @@ void nsImapServerResponseParser::msg_fetch()
       {
         // all of this message's headers
         AdvanceToNextToken();
-        fDownloadingHeaders = PR_TRUE;
+        fDownloadingHeaders = true;
         BeginMessageDownload(MESSAGE_RFC822); // initialize header parser
-        bNeedEndMessageDownload = PR_FALSE;
+        bNeedEndMessageDownload = false;
         if (ContinueParse())
           msg_fetch_headers(nsnull);
       }
       else if (!PL_strncasecmp(fNextToken, "BODY[HEADER.FIELDS",19))
       {
-        fDownloadingHeaders = PR_TRUE;
+        fDownloadingHeaders = true;
         BeginMessageDownload(MESSAGE_RFC822); // initialize header parser
         // specific message header fields
         while (ContinueParse() && fNextToken[strlen(fNextToken)-1] != ']')
           AdvanceToNextToken();
         if (ContinueParse())
         {
-          bNeedEndMessageDownload = PR_FALSE;
+          bNeedEndMessageDownload = false;
           AdvanceToNextToken();
           if (ContinueParse())
             msg_fetch_headers(nsnull);
@@ -1210,11 +1210,11 @@ void nsImapServerResponseParser::msg_fetch()
             }
           }
           else
-            SetSyntaxError(PR_TRUE);
+            SetSyntaxError(true);
         }
         else
         {
-          fDownloadingHeaders = PR_FALSE;
+          fDownloadingHeaders = false;
           
           bool chunk = false;
           PRInt32 origin = 0;
@@ -1230,7 +1230,7 @@ void nsImapServerResponseParser::msg_fetch()
               {
                 *closeBracket = 0;
                 origin = atoi(originString);
-                chunk = PR_TRUE;
+                chunk = true;
               }
               PR_Free(tokenCopy);
             }
@@ -1291,7 +1291,7 @@ void nsImapServerResponseParser::msg_fetch()
         PR_FREEIF(fXSenderInfo);
         AdvanceToNextToken();
         if (! fNextToken) 
-          SetSyntaxError(PR_TRUE);
+          SetSyntaxError(true);
         else
         {
           fXSenderInfo = CreateAstring(); 
@@ -1313,31 +1313,31 @@ void nsImapServerResponseParser::msg_fetch()
       }
       else if (!PL_strncasecmp(fNextToken, "BODY[", 5) && PL_strncasecmp(fNextToken, "BODY[]", 6))
       {
-        fDownloadingHeaders = PR_FALSE;
+        fDownloadingHeaders = false;
         // A specific MIME part, or MIME part header
         mime_data();
       }
       else if (!PL_strcasecmp(fNextToken, "ENVELOPE"))
       {
-        fDownloadingHeaders = PR_TRUE;
-        bNeedEndMessageDownload = PR_TRUE;
+        fDownloadingHeaders = true;
+        bNeedEndMessageDownload = true;
         BeginMessageDownload(MESSAGE_RFC822);
         envelope_data(); 
       }
       else if (!PL_strcasecmp(fNextToken, "INTERNALDATE"))
       {
-        fDownloadingHeaders = PR_TRUE; // we only request internal date while downloading headers
+        fDownloadingHeaders = true; // we only request internal date while downloading headers
         if (!bNeedEndMessageDownload)
           BeginMessageDownload(MESSAGE_RFC822);
-        bNeedEndMessageDownload = PR_TRUE;
+        bNeedEndMessageDownload = true;
         internal_date(); 
       }
       else if (!PL_strcasecmp(fNextToken, "XAOL-ENVELOPE"))
       {
-        fDownloadingHeaders = PR_TRUE;
+        fDownloadingHeaders = true;
         if (!bNeedEndMessageDownload)
           BeginMessageDownload(MESSAGE_RFC822);
-        bNeedEndMessageDownload = PR_TRUE;
+        bNeedEndMessageDownload = true;
         xaolenvelope_data();
       }
       else
@@ -1360,7 +1360,7 @@ void nsImapServerResponseParser::msg_fetch()
           break;
         }
         else
-          SetSyntaxError(PR_TRUE);
+          SetSyntaxError(true);
       }
       
         }
@@ -1377,7 +1377,7 @@ void nsImapServerResponseParser::msg_fetch()
           }
           
           if (fFetchingAllFlags)
-            fCurrentLineContainedFlagInfo = PR_FALSE;	// do not fire if in PostProcessEndOfLine          
+            fCurrentLineContainedFlagInfo = false;	// do not fire if in PostProcessEndOfLine          
           
           AdvanceToNextToken();	// eat the ')' ending token
 										// should be at end of line
@@ -1445,7 +1445,7 @@ void nsImapServerResponseParser::envelope_data()
       break;
     else if (*fNextToken == ')')
     {
-      SetSyntaxError(PR_TRUE); // envelope too short
+      SetSyntaxError(true); // envelope too short
       break;
     }
     else
@@ -1460,7 +1460,7 @@ void nsImapServerResponseParser::envelope_data()
         if (!strValue.IsEmpty())
           headerLine.Append(strValue);
         else
-          headerNonNil = PR_FALSE;
+          headerNonNil = false;
       }
       else
       {
@@ -1468,10 +1468,10 @@ void nsImapServerResponseParser::envelope_data()
         parse_address(address);
         headerLine += address;
         if (address.IsEmpty())
-          headerNonNil = PR_FALSE;
+          headerNonNil = false;
       }
       if (headerNonNil)
-        fServerConnection.HandleMessageDownLoadLine(headerLine.get(), PR_FALSE);
+        fServerConnection.HandleMessageDownLoadLine(headerLine.get(), false);
     }
     if (ContinueParse())
       AdvanceToNextToken();
@@ -1494,7 +1494,7 @@ void nsImapServerResponseParser::xaolenvelope_data()
     subject.Adopt(CreateNilString());
     nsCAutoString subjectLine("Subject: ");
     subjectLine += subject;
-    fServerConnection.HandleMessageDownLoadLine(subjectLine.get(), PR_FALSE);
+    fServerConnection.HandleMessageDownLoadLine(subjectLine.get(), false);
     fNextToken++; // eat the next '('
     if (ContinueParse())
     {
@@ -1510,14 +1510,14 @@ void nsImapServerResponseParser::xaolenvelope_data()
           nsCAutoString fakeFromLine(NS_LITERAL_CSTRING("From: "));
           fakeFromLine.Append(fServerConnection.GetImapUserName());
           fakeFromLine.Append(NS_LITERAL_CSTRING("@aol.com"));
-          fServerConnection.HandleMessageDownLoadLine(fakeFromLine.get(), PR_FALSE);
+          fServerConnection.HandleMessageDownLoadLine(fakeFromLine.get(), false);
         }
         else
         {
           fromLine.Append("From: ");
         }
         parse_address(fromLine);
-        fServerConnection.HandleMessageDownLoadLine(fromLine.get(), PR_FALSE);
+        fServerConnection.HandleMessageDownLoadLine(fromLine.get(), false);
         if (ContinueParse())
         {
           AdvanceToNextToken();	// ge attachment size
@@ -1526,7 +1526,7 @@ void nsImapServerResponseParser::xaolenvelope_data()
           {
             nsCAutoString attachmentLine("X-attachment-size: ");
             attachmentLine.AppendInt(attachmentSize);
-            fServerConnection.HandleMessageDownLoadLine(attachmentLine.get(), PR_FALSE);
+            fServerConnection.HandleMessageDownLoadLine(attachmentLine.get(), false);
           }
         }
         if (ContinueParse())
@@ -1537,7 +1537,7 @@ void nsImapServerResponseParser::xaolenvelope_data()
           {
             nsCAutoString imageLine("X-image-size: ");
             imageLine.AppendInt(imageSize);
-            fServerConnection.HandleMessageDownLoadLine(imageLine.get(), PR_FALSE);
+            fServerConnection.HandleMessageDownLoadLine(imageLine.get(), false);
           }
         }
         if (ContinueParse())
@@ -1563,7 +1563,7 @@ void nsImapServerResponseParser::parse_address(nsCAutoString &addressLine)
     if (!firstAddress)
       addressLine += ", ";
     
-    firstAddress = PR_FALSE;
+    firstAddress = false;
     char *personalName = CreateNilString();
     AdvanceToNextToken();
     char *atDomainList = CreateNilString();
@@ -1620,7 +1620,7 @@ void nsImapServerResponseParser::internal_date()
       dateLine += strValue;
       NS_Free(strValue);
     }
-    fServerConnection.HandleMessageDownLoadLine(dateLine.get(), PR_FALSE);
+    fServerConnection.HandleMessageDownLoadLine(dateLine.get(), false);
   }
   // advance the parser.
   AdvanceToNextToken();
@@ -1649,40 +1649,40 @@ void nsImapServerResponseParser::flags()
         if (!PL_strncasecmp(fNextToken, "\\Seen",5))
         {
           messageFlags |= kImapMsgSeenFlag;
-          knownFlag = PR_TRUE;
+          knownFlag = true;
         }
         break;
       case 'A':
         if (!PL_strncasecmp(fNextToken, "\\Answered",9))
         {
           messageFlags |= kImapMsgAnsweredFlag;
-          knownFlag = PR_TRUE;
+          knownFlag = true;
         }
         break;
       case 'F':
         if (!PL_strncasecmp(fNextToken, "\\Flagged",8))
         {
           messageFlags |= kImapMsgFlaggedFlag;
-          knownFlag = PR_TRUE;
+          knownFlag = true;
         }
         break;
       case 'D':
         if (!PL_strncasecmp(fNextToken, "\\Deleted",8))
         {
           messageFlags |= kImapMsgDeletedFlag;
-          knownFlag = PR_TRUE;
+          knownFlag = true;
         }
         else if (!PL_strncasecmp(fNextToken, "\\Draft",6))
         {
           messageFlags |= kImapMsgDraftFlag;
-          knownFlag = PR_TRUE;
+          knownFlag = true;
         }
         break;
       case 'R':
         if (!PL_strncasecmp(fNextToken, "\\Recent",7))
         {
           messageFlags |= kImapMsgRecentFlag;
-          knownFlag = PR_TRUE;
+          knownFlag = true;
         }
         break;
       default:
@@ -1698,7 +1698,7 @@ void nsImapServerResponseParser::flags()
           && !PL_strncasecmp(fNextToken, "$MDNSent",8))
         {
           messageFlags |= kImapMsgMDNSentFlag;
-          knownFlag = PR_TRUE;
+          knownFlag = true;
         }
         break;
       case 'F':
@@ -1707,7 +1707,7 @@ void nsImapServerResponseParser::flags()
           && !PL_strncasecmp(fNextToken, "$Forwarded",10))
         {
           messageFlags |= kImapMsgForwardedFlag;
-          knownFlag = PR_TRUE;
+          knownFlag = true;
         }
         break;
       default:
@@ -1740,7 +1740,7 @@ void nsImapServerResponseParser::flags()
     while(*fNextToken != ')')
       fNextToken++;
     
-    fCurrentLineContainedFlagInfo = PR_TRUE;	// handled in PostProcessEndOfLine
+    fCurrentLineContainedFlagInfo = true;	// handled in PostProcessEndOfLine
     fSavedFlagInfo = messageFlags;
 }
 
@@ -1756,7 +1756,7 @@ void nsImapServerResponseParser::resp_cond_state(bool isTagged)
   // Thus, we flag an error for a tagged NO response and for any BAD response.
   if (isTagged && !PL_strcasecmp(fNextToken, "NO") ||
     !PL_strcasecmp(fNextToken, "BAD"))
-    fCurrentCommandFailed = PR_TRUE;
+    fCurrentCommandFailed = true;
   
   AdvanceToNextToken();
   if (ContinueParse())
@@ -1908,16 +1908,16 @@ void nsImapServerResponseParser::resp_text_code()
       // they're not permanent, but at least we'll try to set them.
       if (!fSettablePermanentFlags)
         fSettablePermanentFlags = saveSettableFlags;
-      fGotPermanentFlags = PR_TRUE;
+      fGotPermanentFlags = true;
     }
     else if (!PL_strcasecmp(fNextToken,"READ-ONLY]"))
     {
-      fCurrentFolderReadOnly = PR_TRUE;
+      fCurrentFolderReadOnly = true;
       AdvanceToNextToken();
     }
     else if (!PL_strcasecmp(fNextToken,"READ-WRITE]"))
     {
-      fCurrentFolderReadOnly = PR_FALSE;
+      fCurrentFolderReadOnly = false;
       AdvanceToNextToken();
     }
     else if (!PL_strcasecmp(fNextToken,"TRYCREATE]"))
@@ -1997,14 +1997,14 @@ void nsImapServerResponseParser::resp_text_code()
       if (ContinueParse())
       {
         fHighestModSeq = ParseUint64Str(fNextToken); 
-        fUseModSeq = PR_TRUE;
+        fUseModSeq = true;
         AdvanceToNextToken();
       }
     }
     else if (!PL_strcasecmp(fNextToken, "NOMODSEQ]"))
     {
       fHighestModSeq = 0;
-      fUseModSeq = PR_FALSE;
+      fUseModSeq = false;
       skip_to_CRLF();
     }
     else if (!PL_strcasecmp(fNextToken, "CAPABILITY"))
@@ -2013,7 +2013,7 @@ void nsImapServerResponseParser::resp_text_code()
     }
     else if (!PL_strcasecmp(fNextToken, "MYRIGHTS"))
     {
-      myrights_data(PR_TRUE);      
+      myrights_data(true);      
     }
     else // just text
     {
@@ -2048,11 +2048,11 @@ void nsImapServerResponseParser::resp_text_code()
    AdvanceToNextToken();
    if (ContinueParse())
    {
-     resp_cond_state(PR_TRUE);
+     resp_cond_state(true);
      if (ContinueParse())
      {
        if (!fAtEndOfLine)
-         SetSyntaxError(PR_TRUE);
+         SetSyntaxError(true);
        else if (!fCurrentCommandFailed)
          ResetLexAnalyzer();
      }
@@ -2072,7 +2072,7 @@ void nsImapServerResponseParser::resp_text_code()
 // RFC3501:  resp-cond-bye = "BYE" SP resp-text
 void nsImapServerResponseParser::resp_cond_bye()
 {
-  SetConnected(PR_FALSE);
+  SetConnected(false);
   fIMAPstate = kNonAuthenticated;
 }
 
@@ -2087,7 +2087,7 @@ void nsImapServerResponseParser::msg_fetch_headers(const char *partNum)
   }
   else
   {
-    msg_fetch_content(PR_FALSE, 0, MESSAGE_RFC822);
+    msg_fetch_content(false, 0, MESSAGE_RFC822);
   }
 }
 
@@ -2104,7 +2104,7 @@ void nsImapServerResponseParser::msg_fetch_content(bool chunk, PRInt32 origin, c
   // DO do it if we are downloading a whole message as a result of
   // an invalid shell trying to generate.
   if ((!chunk || (origin == 0)) && !GetDownloadingHeaders() &&
-    (GetFillingInShell() ? m_shell->GetGeneratingWholeMessage() : PR_TRUE))
+    (GetFillingInShell() ? m_shell->GetGeneratingWholeMessage() : true))
   {
     if (NS_FAILED(BeginMessageDownload(content_type)))
       return;
@@ -2120,7 +2120,7 @@ void nsImapServerResponseParser::msg_fetch_content(bool chunk, PRInt32 origin, c
   else
     AdvanceToNextToken();	// eat "NIL"
   
-  if (fLastChunk && (GetFillingInShell() ? m_shell->GetGeneratingWholeMessage() : PR_TRUE))
+  if (fLastChunk && (GetFillingInShell() ? m_shell->GetGeneratingWholeMessage() : true))
   {
     // complete the message download
     if (ContinueParse())
@@ -2158,7 +2158,7 @@ bool nsImapServerResponseParser::msg_fetch_quoted(bool chunk, PRInt32 origin)
          char *q = CreateQuoted();
          if (q)
          {
-           fServerConnection.HandleMessageDownLoadLine(q, PR_FALSE, q);
+           fServerConnection.HandleMessageDownLoadLine(q, false, q);
            PR_Free(q);
          }
          
@@ -2180,7 +2180,7 @@ void nsImapServerResponseParser::msg_obsolete()
       msg_fetch();
   }
   else
-    SetSyntaxError(PR_TRUE);
+    SetSyntaxError(true);
   
 }
 
@@ -2333,7 +2333,7 @@ void nsImapServerResponseParser::enable_data()
     // eat each enable response;
      AdvanceToNextToken();
      if (!strcmp("CONDSTORE", fNextToken))
-       fCondStoreEnabled = PR_TRUE;
+       fCondStoreEnabled = true;
   } while (fNextToken && !fAtEndOfLine && ContinueParse());
   
 }
@@ -2358,7 +2358,7 @@ void nsImapServerResponseParser::authChallengeResponse_data()
 {
   AdvanceToNextToken();
   fAuthChallenge = strdup(fNextToken);
-  fWaitingForMoreClientInput = PR_TRUE; 
+  fWaitingForMoreClientInput = true; 
   
   skip_to_CRLF();
 }
@@ -2391,11 +2391,11 @@ void nsImapServerResponseParser::namespace_data()
 				fNextToken++;
 				if (fNextToken[0] != '"')
 				{
-					SetSyntaxError(PR_TRUE);
+					SetSyntaxError(true);
 				}
 				else
 				{
-					char *namespacePrefix = CreateQuoted(PR_FALSE);
+					char *namespacePrefix = CreateQuoted(false);
 
 					AdvanceToNextToken();
 					const char *quotedDelimiter = fNextToken;
@@ -2413,14 +2413,14 @@ void nsImapServerResponseParser::namespace_data()
 					else
 					{
 						// not quoted or NIL.
-						SetSyntaxError(PR_TRUE);
+						SetSyntaxError(true);
 					}
 					if (ContinueParse())
 					{
             // add code to parse the TRANSLATE attribute if it is present....
             // we'll also need to expand the name space code to take in the translated prefix name.
 
-						nsIMAPNamespace *newNamespace = new nsIMAPNamespace(namespaceType, namespacePrefix, namespaceDelimiter, PR_FALSE);
+						nsIMAPNamespace *newNamespace = new nsIMAPNamespace(namespaceType, namespacePrefix, namespaceDelimiter, false);
 						// add it to a temporary list in the host
 						if (newNamespace && fHostSessionList)
 							fHostSessionList->AddNewNamespaceForHost(
@@ -2431,7 +2431,7 @@ void nsImapServerResponseParser::namespace_data()
 						bool endOfThisNamespaceType = (fNextToken[0] == ')');
 						if (!endOfThisNamespaceType && fNextToken[0] != '(')	// no space between namespaces of the same type
 						{
-							SetSyntaxError(PR_TRUE);
+							SetSyntaxError(true);
 						}
 					}
 					PR_Free(namespacePrefix);
@@ -2440,7 +2440,7 @@ void nsImapServerResponseParser::namespace_data()
 		}
 		else
 		{
-			SetSyntaxError(PR_TRUE);
+			SetSyntaxError(true);
 		}
 		switch (namespaceType)
 		{
@@ -2462,7 +2462,7 @@ void nsImapServerResponseParser::namespace_data()
 		if (navCon)
 		{
 			navCon->CommitNamespacesForHostEvent();
-			namespacesCommitted = PR_TRUE;
+			namespacesCommitted = true;
 		}
 	}
 	skip_to_CRLF();
@@ -2522,7 +2522,7 @@ void nsImapServerResponseParser::myrights_data(bool unsolicited)
   }
   else
   {
-    SetSyntaxError(PR_TRUE);
+    SetSyntaxError(true);
   }
 }
 
@@ -2604,7 +2604,7 @@ void nsImapServerResponseParser::mime_header_data()
     }
     else
     {
-      SetSyntaxError(PR_TRUE);
+      SetSyntaxError(true);
     }
     PR_Free(partNumber);	// partNumber is not adopted by the body shell.
   }
@@ -2632,7 +2632,7 @@ void nsImapServerResponseParser::mime_part_data()
         *whereEnd = 0;
         whereStart++;
         origin = atoi(whereStart);
-        originFound = PR_TRUE;
+        originFound = true;
       }
     }
     PR_Free(checkOriginToken);
@@ -2655,7 +2655,7 @@ void nsImapServerResponseParser::bodystructure_data()
     // Turn the BODYSTRUCTURE response into a form that the nsIMAPBodypartMessage can be constructed from.
     // FIXME: Follow up on bug 384210 to investigate why the caller has to duplicate the two in-param strings.
     nsIMAPBodypartMessage *message =
-      new nsIMAPBodypartMessage(NULL, NULL, PR_TRUE, strdup("message"),
+      new nsIMAPBodypartMessage(NULL, NULL, true, strdup("message"),
                                 strdup("rfc822"),
                                 NULL, NULL, NULL, 0,
                                 fServerConnection.GetPreferPlainText());
@@ -2670,10 +2670,10 @@ void nsImapServerResponseParser::bodystructure_data()
     m_shell = new nsIMAPBodyShell(&fServerConnection, message, CurrentResponseUID(), GetSelectedMailboxName());
     // ignore syntax errors in parsing the body structure response. If there's an error
     // we'll just fall back to fetching the whole message.
-    SetSyntaxError(PR_FALSE);
+    SetSyntaxError(false);
   }
   else
-    SetSyntaxError(PR_TRUE);
+    SetSyntaxError(true);
 }
 
 // RFC3501:  body = "(" (body-type-1part / body-type-mpart) ")"
@@ -2684,7 +2684,7 @@ nsImapServerResponseParser::bodystructure_part(char *partNum, nsIMAPBodypart *pa
   // (Look at second character - if an open paren, then it is a container)
   if (*fNextToken != '(')
   {
-    NS_ASSERTION(PR_FALSE, "bodystructure_part must begin with '('");
+    NS_ASSERTION(false, "bodystructure_part must begin with '('");
     return NULL;
   }
   
@@ -2762,7 +2762,7 @@ nsImapServerResponseParser::bodystructure_leaf(char *partNum, nsIMAPBodypart *pa
   {
     char *bodySizeString = CreateAtom();
     if (!bodySizeString)
-      isValid = PR_FALSE;
+      isValid = false;
     else
     {
       partLength = atoi(bodySizeString);
@@ -2794,7 +2794,7 @@ nsImapServerResponseParser::bodystructure_leaf(char *partNum, nsIMAPBodypart *pa
     
     // This part is of type "message/rfc822"  (probably a forwarded message)
     nsIMAPBodypartMessage *message =
-      new nsIMAPBodypartMessage(partNum, parentPart, PR_FALSE,
+      new nsIMAPBodypartMessage(partNum, parentPart, false,
                                 bodyType, bodySubType, bodyID, bodyDescription,
                                 bodyEncoding, partLength,
                                 fServerConnection.GetPreferPlainText());
@@ -2809,13 +2809,13 @@ nsImapServerResponseParser::bodystructure_leaf(char *partNum, nsIMAPBodypart *pa
       skip_to_close_paren();
     }
     else
-      isValid = PR_FALSE;
+      isValid = false;
 
     // bodystructure
     if (isValid && ContinueParse())
     {
       if (*fNextToken != '(')
-        isValid = PR_FALSE;
+        isValid = false;
       else
       {
         char *bodyPartNum = PR_smprintf("%s.1", partNum);
@@ -2825,7 +2825,7 @@ nsImapServerResponseParser::bodystructure_leaf(char *partNum, nsIMAPBodypart *pa
           if (body)
             message->SetBody(body);
           else
-            isValid = PR_FALSE;
+            isValid = false;
         }
       }
     }
@@ -2869,14 +2869,14 @@ nsImapServerResponseParser::bodystructure_multipart(char *partNum, nsIMAPBodypar
       else // top-level
         childPartNum = PR_smprintf("%d", childCount);
       if (!childPartNum)
-        isValid = PR_FALSE;
+        isValid = false;
       else
       {
         nsIMAPBodypart *child = bodystructure_part(childPartNum, multipart);
         if (child)
           multipart->AppendPart(child);
         else
-          isValid = PR_FALSE;
+          isValid = false;
       }
     }
 
@@ -2927,7 +2927,7 @@ nsImapServerResponseParser::bodystructure_multipart(char *partNum, nsIMAPBodypar
     if (boundaryData)
       multipart->SetBoundaryData(boundaryData);
     else  
-      isValid = PR_FALSE;   // Actually, we should probably generate a boundary here.
+      isValid = false;   // Actually, we should probably generate a boundary here.
   }
 
   // always move to closing ')', even if part was not successfully read 
@@ -2986,7 +2986,7 @@ void nsImapServerResponseParser::quota_data()
               skip_to_CRLF();
             }
             else
-              SetSyntaxError(PR_TRUE);
+              SetSyntaxError(true);
 
             PR_Free(parengroup);
           }
@@ -2995,14 +2995,14 @@ void nsImapServerResponseParser::quota_data()
             skip_to_CRLF();
         }
         else
-          SetSyntaxError(PR_TRUE);
+          SetSyntaxError(true);
       }
       else
         HandleMemoryFailure();
     }
   }
   else
-    SetSyntaxError(PR_TRUE);
+    SetSyntaxError(true);
 }
 
 void nsImapServerResponseParser::id_data()
@@ -3032,7 +3032,7 @@ void	nsImapServerResponseParser::UseCachedShell(nsIMAPBodyShell *cachedShell)
 	if (m_shell && cachedShell)
 	{
 		PR_LOG(IMAP, PR_LOG_ALWAYS, ("PARSER: Shell Collision"));
-		NS_ASSERTION(PR_FALSE, "shell collision");
+		NS_ASSERTION(false, "shell collision");
 	}
 	m_shell = cachedShell;
 }
@@ -3051,7 +3051,7 @@ void nsImapServerResponseParser::ResetCapabilityFlag()
  literal         ::= "{" number "}" CRLF *CHAR8
                               ;; Number represents the number of CHAR8 octets
 */
-// returns PR_TRUE if this is the last chunk and we should close the stream
+// returns true if this is the last chunk and we should close the stream
 bool nsImapServerResponseParser::msg_fetch_literal(bool chunk, PRInt32 origin)
 {
   numberOfCharsInThisChunk = atoi(fNextToken + 1); // might be the whole message
@@ -3062,7 +3062,7 @@ bool nsImapServerResponseParser::msg_fetch_literal(bool chunk, PRInt32 origin)
   
   nsImapAction imapAction; 
   if (!fServerConnection.GetCurrentUrl())
-    return PR_TRUE;
+    return true;
   fServerConnection.GetCurrentUrl()->GetImapAction(&imapAction);
   if (!lastCRLFwasCRCRLF && 
     fServerConnection.GetIOTunnellingEnabled() && 
@@ -3145,7 +3145,7 @@ bool nsImapServerResponseParser::msg_fetch_literal(bool chunk, PRInt32 origin)
   }
   else
   {
-    lastCRLFwasCRCRLF = PR_FALSE;
+    lastCRLFwasCRCRLF = false;
   }
   return lastChunk;
 }
@@ -3198,11 +3198,11 @@ bool nsImapServerResponseParser::IsNumericString(const char *string)
   {
     if (! isdigit(string[i]))
     {
-      return PR_FALSE;
+      return false;
     }
   }
   
-  return PR_TRUE;
+  return true;
 }
 
 
@@ -3238,7 +3238,7 @@ nsImapMailboxSpec *nsImapServerResponseParser::CreateCurrentMailboxSpec(const ch
   returnSpec->mSupportedUserFlags = fSupportsUserDefinedFlags;
 
   returnSpec->mBoxFlags = kNoFlags;	// stub
-  returnSpec->mOnlineVerified = PR_FALSE;	// we're fabricating this.  The flags aren't verified.
+  returnSpec->mOnlineVerified = false;	// we're fabricating this.  The flags aren't verified.
   returnSpec->mAllocatedPathName.Assign(mailboxNameToConvert);
   returnSpec->mConnection = &fServerConnection;
   if (returnSpec->mConnection)
@@ -3277,7 +3277,7 @@ bool nsImapServerResponseParser::GetLastFetchChunkReceived()
 
 void nsImapServerResponseParser::ClearLastFetchChunkReceived()
 {
-  fLastChunk = PR_FALSE;
+  fLastChunk = false;
 }
 
 void nsImapServerResponseParser::SetHostSessionList(nsIImapHostSessionList*
@@ -3321,7 +3321,7 @@ nsresult nsImapServerResponseParser::BeginMessageDownload(const char *content_ty
   if (NS_FAILED(rv))
   {
     skip_to_CRLF();
-    fServerConnection.PseudoInterrupt(PR_TRUE);
+    fServerConnection.PseudoInterrupt(true);
     fServerConnection.AbortMessageDownLoad();
   }
   return rv;

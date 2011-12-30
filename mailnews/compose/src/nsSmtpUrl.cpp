@@ -231,7 +231,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                           m_toPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                           m_toPart.get(), "UTF-8", false, true,
                            &decodedString)) && decodedString)
         m_toPart.Adopt(decodedString);
     }
@@ -242,7 +242,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                           m_ccPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                           m_ccPart.get(), "UTF-8", false, true,
                            &decodedString)) && decodedString)
         m_ccPart.Adopt(decodedString);
     }
@@ -253,7 +253,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                           m_bccPart.get(),"UTF-8", PR_FALSE, PR_TRUE,
+                           m_bccPart.get(),"UTF-8", false, true,
                            &decodedString)) && decodedString)
         m_bccPart.Adopt(decodedString);
     }
@@ -264,7 +264,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                           m_subjectPart.get(),"UTF-8", PR_FALSE, PR_TRUE,
+                           m_subjectPart.get(),"UTF-8", false, true,
                            &decodedString)) && decodedString)
         m_subjectPart.Adopt(decodedString);
     }
@@ -275,7 +275,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_newsgroupPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         m_newsgroupPart.get(), "UTF-8", false, true,
                          &decodedString)) && decodedString)
         m_newsgroupPart.Adopt(decodedString);
     }
@@ -287,7 +287,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_referencePart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         m_referencePart.get(), "UTF-8", false, true,
                          &decodedString)) && decodedString)
         m_referencePart.Adopt(decodedString);
     }
@@ -302,7 +302,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_newsHostPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         m_newsHostPart.get(), "UTF-8", false, true,
                          &decodedString)) && decodedString)
         m_newsHostPart.Adopt(decodedString);
     }
@@ -313,7 +313,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_followUpToPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         m_followUpToPart.get(), "UTF-8", false, true,
                          &decodedString)) && decodedString)
         m_followUpToPart.Adopt(decodedString);
     }
@@ -324,7 +324,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_fromPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         m_fromPart.get(), "UTF-8", false, true,
                          &decodedString)) && decodedString)
         m_fromPart.Adopt(decodedString);
     }
@@ -335,7 +335,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_organizationPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         m_organizationPart.get(), "UTF-8", false, true,
                          &decodedString)) && decodedString)
         m_organizationPart.Adopt(decodedString);
     }
@@ -346,7 +346,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_replyToPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         m_replyToPart.get(), "UTF-8", false, true,
                          &decodedString)) && decodedString)
         m_replyToPart.Adopt(decodedString);
     }
@@ -357,7 +357,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         m_priorityPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         m_priorityPart.get(), "UTF-8", false, true,
                          &decodedString)) && decodedString)
         m_priorityPart.Adopt(decodedString);
     }
@@ -371,7 +371,7 @@ nsresult nsMailtoUrl::ParseMailtoUrl(char * searchPart)
     if (mimeConverter)
     {
       if (NS_SUCCEEDED(mimeConverter->DecodeMimeHeaderToCharPtr(
-                         inReplyToPart.get(), "UTF-8", PR_FALSE, PR_TRUE,
+                         inReplyToPart.get(), "UTF-8", false, true,
                          &decodedString)) && decodedString)
         inReplyToPart.Adopt(decodedString);
     }
@@ -737,9 +737,9 @@ nsSmtpUrl::nsSmtpUrl() : nsMsgMailNewsUrl()
 {
   // nsISmtpUrl specific state...
 
-  m_isPostMessage = PR_TRUE;
-  m_requestDSN = PR_FALSE;
-  m_verifyLogon = PR_FALSE;
+  m_isPostMessage = true;
+  m_requestDSN = false;
+  m_verifyLogon = false;
 }
  
 nsSmtpUrl::~nsSmtpUrl()

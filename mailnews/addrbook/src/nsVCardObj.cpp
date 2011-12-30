@@ -123,11 +123,11 @@ static bool needsQuotedPrintable (const char *s)
 
   while (*p) {
     if (*p & 0x80 || *p == '\015' || *p == '\012')
-      return PR_TRUE;
+      return true;
     p++;
   }
 
-  return PR_FALSE;
+  return false;
 }
 
 VObject* newVObject_(const char *id)
@@ -1016,13 +1016,13 @@ static void writeQPString(OFile *fp, const char *s)
           appendcOFile(fp,'=');
           appendcOFile(fp,'\n');
           appendcOFile(fp,'\t');
-          contWhite = PR_FALSE;
+          contWhite = false;
         }
 
         /* If its CRLF, swallow two chars instead of one. */
         if (*p == '\r' && *(p+1) == '\n')
           p++;
-        white = PR_FALSE;
+        white = false;
         current_column = 0;
       }
       else
@@ -1033,8 +1033,8 @@ static void writeQPString(OFile *fp, const char *s)
         {
           appendcOFile(fp,*p);
           current_column++;
-          white = PR_FALSE;
-          contWhite = PR_FALSE;
+          white = false;
+          contWhite = false;
         }
         else if (*p == ' ' || *p == '\t')   /* whitespace */
         {
@@ -1044,14 +1044,14 @@ static void writeQPString(OFile *fp, const char *s)
             appendcOFile(fp,hexdigits[*p >> 4]);
             appendcOFile(fp,hexdigits[*p & 0xF]);
             current_column += 3;
-            contWhite = PR_FALSE;
+            contWhite = false;
           }
           else
           {
             appendcOFile(fp,*p);
             current_column++;
           }
-          white = PR_TRUE;
+          white = true;
         }
         else                    /* print as =FF */
         {
@@ -1059,8 +1059,8 @@ static void writeQPString(OFile *fp, const char *s)
           appendcOFile(fp,hexdigits[*p >> 4]);
           appendcOFile(fp,hexdigits[*p & 0xF]);
           current_column += 3;
-          white = PR_FALSE;
-          contWhite = PR_FALSE;
+          white = false;
+          contWhite = false;
         }
 
         NS_ASSERTION(current_column <= 76, "1.10 <rhp@netscape.com> 06 Jan 2000 08:01"); /* Hard limit required by spec */
@@ -1072,10 +1072,10 @@ static void writeQPString(OFile *fp, const char *s)
           appendcOFile(fp,'\t');
           current_column = 0;
           if (white)
-            contWhite = PR_TRUE;
+            contWhite = true;
           else 
-            contWhite = PR_FALSE;
-          white = PR_FALSE;
+            contWhite = false;
+          white = false;
         }
       } 
       p++;

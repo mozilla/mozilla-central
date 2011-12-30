@@ -168,7 +168,7 @@ int main(int argc, char** argv)
     {70, kImapMsgSeenFlag, 2},
     {71, kImapMsgSeenFlag, 3}};
 
-  flagState->SetPartialUIDFetch(PR_FALSE);
+  flagState->SetPartialUIDFetch(false);
   numMsgs = sizeof(msgState3) / sizeof(msgState3[0]);
   for (PRInt32 i = 0; i < numMsgs; i++)
     flagState->AddUidFlagPair(msgState3[i].uid, msgState3[i].flag,
@@ -193,7 +193,7 @@ int main(int argc, char** argv)
     {71, kImapMsgSeenFlag, 3},
     {73, kImapMsgSeenFlag, 4}};
 
-  flagState->SetPartialUIDFetch(PR_FALSE);
+  flagState->SetPartialUIDFetch(false);
   numMsgs = sizeof(msgState4) / sizeof(msgState4[0]);
   for (PRInt32 i = 0; i < numMsgs; i++)
     flagState->AddUidFlagPair(msgState4[i].uid, msgState4[i].flag,

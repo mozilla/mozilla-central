@@ -106,14 +106,14 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
   char * result = nsnull;
   if (aAddress)
   {
-    result = MIME_DecodeMimeHeader(aAddress, NULL, PR_FALSE, PR_TRUE);
+    result = MIME_DecodeMimeHeader(aAddress, NULL, false, true);
     *aOutgoingEmailAddress = ToNewUnicode(NS_ConvertUTF8toUTF16(result ? result : aAddress));
     PR_FREEIF(result);
   }
 
   if (aName)
   {
-    result = MIME_DecodeMimeHeader(aName, NULL, PR_FALSE, PR_TRUE);
+    result = MIME_DecodeMimeHeader(aName, NULL, false, true);
     *aOutgoingName = ToNewUnicode(NS_ConvertUTF8toUTF16(result ? result : aName));
     PR_FREEIF(result);
   }
@@ -124,10 +124,10 @@ nsresult FillResultsArray(const char * aName, const char *aAddress, PRUnichar **
                                       getter_Copies(fullAddress));
   if (NS_SUCCEEDED(rv) && !fullAddress.IsEmpty())
   {
-    result = MIME_DecodeMimeHeader(fullAddress.get(), nsnull, PR_FALSE, PR_TRUE);
+    result = MIME_DecodeMimeHeader(fullAddress.get(), nsnull, false, true);
     if (result)
       fullAddress.Adopt(result);
-    aParser->UnquotePhraseOrAddr(fullAddress.get(), PR_TRUE, getter_Copies(unquotedAddress));
+    aParser->UnquotePhraseOrAddr(fullAddress.get(), true, getter_Copies(unquotedAddress));
     if (!unquotedAddress.IsEmpty())
       fullAddress = unquotedAddress;
     *aOutgoingFullName = ToNewUnicode(NS_ConvertUTF8toUTF16(fullAddress));
@@ -171,7 +171,7 @@ NS_IMETHODIMP nsMsgHeaderParser::ParseHeadersWithArray(const PRUnichar * aLine, 
     char * unquotedName = nsnull;
     while (index < numAddresses)
     {
-      if (NS_SUCCEEDED(UnquotePhraseOrAddr(currentName, PR_TRUE, &unquotedName)))
+      if (NS_SUCCEEDED(UnquotePhraseOrAddr(currentName, true, &unquotedName)))
         rv = FillResultsArray(unquotedName, currentAddress, &outgoingEmailAddresses[index], &outgoingNames[index], &outgoingFullNames[index], this);
       else
         rv = FillResultsArray(currentName, currentAddress, &outgoingEmailAddresses[index], &outgoingNames[index], &outgoingFullNames[index], this);
@@ -318,7 +318,7 @@ nsresult nsMsgHeaderParser::ReformatUnquotedAddresses (const PRUnichar *line, PR
           }
           else
           {
-            badInput = PR_TRUE;
+            badInput = true;
           }
           PR_Free(reformated);
         }
@@ -345,7 +345,7 @@ nsresult nsMsgHeaderParser::ReformatUnquotedAddresses (const PRUnichar *line, PR
     if ((PRInt32) strlen(reformated) < (endOutputPtr - writePtr))
       strncpy(writePtr, reformated, endOutputPtr - writePtr);
     else
-      badInput = PR_TRUE;
+      badInput = true;
     PR_Free(reformated);
   }
   else
@@ -580,12 +580,12 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
       else if (*line_end == ':' && !mailbox_start && paren_depth == 0)
       {
         // We're now in group format.
-        in_group = PR_TRUE;
+        in_group = true;
         COPY_CHAR(addr_out, line_end);
       }
       else if (*line_end == ';' && in_group && paren_depth == 0)
       {
-        in_group = PR_FALSE;
+        in_group = false;
         COPY_CHAR(addr_out, line_end);
         // We've got to the end of a group, therefore just continue with the loop
         // so that we avoid moving onto the next char at the end of this cycle of
@@ -754,7 +754,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
     if (quote_names_p && names)
     {
       int L = name_out - name_start - 1;
-      L = msg_quote_phrase_or_addr(name_start, L, PR_FALSE);
+      L = msg_quote_phrase_or_addr(name_start, L, false);
       name_out = name_start + L + 1;
     }
 #endif
@@ -762,7 +762,7 @@ static int msg_parse_Header_addresses (const char *line, char **names, char **ad
     if (quote_addrs_p && addresses)
     {
       int L = addr_out - addr_start - 1;
-      L = msg_quote_phrase_or_addr(addr_start, L, PR_TRUE);
+      L = msg_quote_phrase_or_addr(addr_start, L, true);
       addr_out = addr_start + L + 1;
     }
 
@@ -868,7 +868,7 @@ msg_quote_phrase_or_addr(char *address, PRInt32 length, bool addr_p)
        * any quotables we've seen are already inside quotes.
        */
       if (address[0] == '\"' && in > address + 2 && *(in - 1) == '\"' && *(in - 2) != '\\')
-        unquotable_count -= 2, quotable_count = 0, user_quote = PR_TRUE;
+        unquotable_count -= 2, quotable_count = 0, user_quote = true;
     }
 
         else if (*in == '\\')
@@ -936,7 +936,7 @@ msg_quote_phrase_or_addr(char *address, PRInt32 length, bool addr_p)
    * quote.
    */
   if (!atsign || (user_quote && quotable_count > 0))
-    quote_all = PR_TRUE, atsign = NULL;
+    quote_all = true, atsign = NULL;
 
     /* Add 2 to the length for the quotes, plus one for each character
      * which will need a backslash, plus one for a null terminator.
@@ -1082,12 +1082,12 @@ msg_unquote_phrase_or_addr(const char *line, bool preserveIntegrity, char **line
      */
     if (*lineptr == '\\')
     {
-      escaped = PR_TRUE;
+      escaped = true;
       lineptr++;
     }
     if (*lineptr == '\"' && !escaped)
       lineptr++;
-    escaped = PR_FALSE;
+    escaped = false;
 
     if (*lineptr)
     {
@@ -1252,8 +1252,8 @@ nsMsgHeaderParser::ExtractHeaderAddressName(const nsACString &aLine,
   char *name = 0;
   char *addr = 0;
   int status = msg_parse_Header_addresses(PromiseFlatCString(aLine).get(),
-                                          &name, &addr, PR_FALSE, PR_FALSE,
-                                          PR_TRUE);
+                                          &name, &addr, false, false,
+                                          true);
   if (status <= 0)
     return NS_ERROR_FAILURE;
 
@@ -1324,8 +1324,8 @@ msg_format_Header_addresses (const char *names, const char *addrs,
 
     PL_strncpy(aName, s1, name_maxlen);
     PL_strncpy(anAddr, s2, addr_maxlen);
-    len1 = msg_quote_phrase_or_addr(aName, strlen(s1), PR_FALSE);
-    len2 = msg_quote_phrase_or_addr(anAddr, strlen(s2), PR_TRUE);
+    len1 = msg_quote_phrase_or_addr(aName, strlen(s1), false);
+    len2 = msg_quote_phrase_or_addr(anAddr, strlen(s2), true);
 
     if (   wrap_lines_p && i > 0
         && (column + len1 + len2 + 3 + (((int)(i+1) < count) ? 2 : 0) > 76))
@@ -1385,7 +1385,7 @@ msg_reformat_Header_addresses(const char *line)
   int status = msg_parse_Header_addresses(line, &names, &addrs);
   if (status <= 0)
     return 0;
-  result = msg_format_Header_addresses(names, addrs, status, PR_TRUE);
+  result = msg_format_Header_addresses(names, addrs, status, true);
   PR_Free (names);
   PR_Free (addrs);
   return result;
@@ -1474,7 +1474,7 @@ msg_remove_duplicate_addresses(const nsACString &addrs,
     for (j = 0; j < count2; j++)
       if (!PL_strcasecmp (a_array1[i], a_array2[j]))
       {
-        found = PR_TRUE;
+        found = true;
         break;
       }
 
@@ -1482,7 +1482,7 @@ msg_remove_duplicate_addresses(const nsACString &addrs,
       for (j = 0; j < count3; j++)
         if (!PL_strcasecmp(a_array1[i], a_array3[j]))
         {
-          found = PR_TRUE;
+          found = true;
           break;
         }
 
@@ -1522,7 +1522,7 @@ msg_remove_duplicate_addresses(const nsACString &addrs,
     out += addedlen;
     *out++ = 0;
   }
-  result = msg_format_Header_addresses(s1, s2, count3, PR_FALSE);
+  result = msg_format_Header_addresses(s1, s2, count3, false);
 
  FAIL:
   FREEIF(a_array1);
@@ -1563,7 +1563,7 @@ msg_make_full_address(const char* name, const char* addr)
   if (nl > 0)
   {
     PL_strncpyz(buf, name, buflen);
-    L = msg_quote_phrase_or_addr(buf, nl, PR_FALSE);
+    L = msg_quote_phrase_or_addr(buf, nl, false);
     s = buf + L;
     slen = buflen - L;
     if ( slen > 2 ) {
@@ -1579,7 +1579,7 @@ msg_make_full_address(const char* name, const char* addr)
   }
 
   PL_strncpyz(s, addr, slen);
-  L = msg_quote_phrase_or_addr(s, al, PR_TRUE);
+  L = msg_quote_phrase_or_addr(s, al, true);
   s += L;
   if (nl > 0)
     *s++ = '>';

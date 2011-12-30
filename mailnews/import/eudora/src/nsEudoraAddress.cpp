@@ -501,7 +501,7 @@ bool CAliasData::Process( const char *pLine, PRInt32 len)
       max -= cnt;
       pStart = pLine;
       tCnt = 0;
-      endCollect = PR_TRUE;
+      endCollect = true;
     }
     else if (*pLine == '(') {
       if (tCnt && !endCollect) {
@@ -539,23 +539,23 @@ bool CAliasData::Process( const char *pLine, PRInt32 len)
   str.Trim( kWhitespace);
 
   if (!m_realName.IsEmpty() && !m_email.IsEmpty())
-    return( PR_TRUE);
+    return( true);
 
   // now we should have a string with any remaining non-delimitted text
   // we assume that the last token is the email
   // anything before that is realName
   if (!m_email.IsEmpty()) {
     m_realName = str;
-    return( PR_TRUE);
+    return( true);
   }
 
   tCnt = str.RFindChar( ' ');
   if (tCnt == -1) {
     if (!str.IsEmpty()) {
       m_email = str;
-      return( PR_TRUE);
+      return( true);
     }
-    return( PR_FALSE);
+    return( false);
   }
 
   m_email = Substring(str, tCnt + 1);
@@ -631,9 +631,9 @@ void nsEudoraAddress::ResolveEntries( nsCString& name, nsVoidArray& list,
             // Resolve all of it's entries!
             numResolved++;  // Track the number of entries resolved
 
-            // We pass in PR_TRUE for the 5th parameter so that we know that we're
+            // We pass in true for the 5th parameter so that we know that we're
             // calling ourselves recursively.
-            ResolveEntries( pEntry->m_name, pEntry->m_list, result, addResolvedEntries, PR_TRUE, numResolved);
+            ResolveEntries( pEntry->m_name, pEntry->m_list, result, addResolvedEntries, true, numResolved);
         }
         else if (addResolvedEntries || !wasResolved) {
             // This is either an ordinary entry (i.e. just contains the info) or we were told
@@ -672,13 +672,13 @@ void nsEudoraAddress::BuildABCards( PRUint32 *pBytes, nsIAddrDatabase *pDb)
     PRInt32   numResolved = 0;
     pEntry = (CAliasEntry *) m_alias.ElementAt( i);
 
-    // PR_FALSE for 4th parameter tells ResolveEntries not to add resolved entries (avoids
+    // false for 4th parameter tells ResolveEntries not to add resolved entries (avoids
     // duplicates as mailing lists are being resolved to other cards - the other cards that
     // are found have already been added and don't need to be added again).
     //
-    // PR_FALSE for 5th parameter tells ResolveEntries that we're calling it - it's not being
+    // false for 5th parameter tells ResolveEntries that we're calling it - it's not being
     // called recursively by itself.
-    ResolveEntries( pEntry->m_name, pEntry->m_list, emailList, PR_FALSE, PR_FALSE, numResolved);
+    ResolveEntries( pEntry->m_name, pEntry->m_list, emailList, false, false, numResolved);
 
     // Treat it as a group if there's more than one email address or if we
     // needed to resolve one or more aliases. We treat single aliases to
@@ -713,12 +713,12 @@ void nsEudoraAddress::BuildABCards( PRUint32 *pBytes, nsIAddrDatabase *pDb)
     PRInt32   numResolved = 0;
     pEntry = (CAliasEntry *) groupsArray.ElementAt(i);
 
-    // PR_FALSE for 4th parameter tells ResolveEntries to add resolved entries so that we
+    // false for 4th parameter tells ResolveEntries to add resolved entries so that we
     // can create the mailing list with references to all entries correctly.
     //
-    // PR_FALSE for 5th parameter tells ResolveEntries that we're calling it - it's not being
+    // false for 5th parameter tells ResolveEntries that we're calling it - it's not being
     // called recursively by itself.
-    ResolveEntries( pEntry->m_name, pEntry->m_list, emailList, PR_TRUE, PR_FALSE, numResolved);
+    ResolveEntries( pEntry->m_name, pEntry->m_list, emailList, true, false, numResolved);
     AddSingleList(pEntry, emailList, pDb);
     emailList.Clear();
   }
@@ -962,7 +962,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
       // specified and there is a home mobile number, so use that as the mobile number.
       ADD_FIELD_TO_DB_ROW(pDb, AddCellularNumber, newRow, mobile, uniStr);
 
-      isSecondaryMobileWorkNumber = PR_TRUE;
+      isSecondaryMobileWorkNumber = true;
     }
     else
     {
@@ -972,7 +972,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
 
       // Home mobile number (if any) is the secondary mobile number
       secondaryMobile = mobile;
-      isSecondaryMobileWorkNumber = PR_FALSE;
+      isSecondaryMobileWorkNumber = false;
     }
 
     if ( (primaryLocation.IsEmpty() || primaryLocation.LowerCaseEqualsLiteral("home")) &&
@@ -982,7 +982,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
       // specified and there is a home fax number, so use that as the fax number.
       ADD_FIELD_TO_DB_ROW(pDb, AddFaxNumber, newRow, fax, uniStr);
 
-      isSecondaryFaxWorkNumber = PR_TRUE;
+      isSecondaryFaxWorkNumber = true;
     }
     else
     {
@@ -992,7 +992,7 @@ void nsEudoraAddress::AddSingleCard( CAliasEntry *pEntry, nsVoidArray &emailList
 
       // Home fax number (if any) is the secondary fax number
       secondaryFax = fax;
-      isSecondaryFaxWorkNumber = PR_FALSE;
+      isSecondaryFaxWorkNumber = false;
     }
 
     ADD_FIELD_TO_DB_ROW(pDb, Add2ndEmail, newRow, additionalEmail, uniStr);

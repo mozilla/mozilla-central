@@ -50,7 +50,7 @@
 nsMsgThreadedDBView::nsMsgThreadedDBView()
 {
   /* member initializers and constructor code */
-  m_havePrevView = PR_FALSE;
+  m_havePrevView = false;
 }
 
 nsMsgThreadedDBView::~nsMsgThreadedDBView()
@@ -133,7 +133,7 @@ nsresult nsMsgThreadedDBView::InitThreadedView(PRInt32 *pCount)
   m_prevKeys.Clear();
   m_prevFlags.Clear();
   m_prevLevels.Clear();
-  m_havePrevView = PR_FALSE;
+  m_havePrevView = false;
   nsresult getSortrv = NS_OK; // ### TODO m_db->GetSortInfo(&sortType, &sortOrder);
   
   // list all the ids into m_keys.
@@ -195,7 +195,7 @@ nsresult nsMsgThreadedDBView::SortThreads(nsMsgViewSortTypeValue sortType, nsMsg
   m_sortType = nsMsgViewSortType::byNone; // sort from scratch
   nsMsgDBView::Sort(sortType, sortOrder);
   m_viewFlags |= nsMsgViewFlagsType::kThreadedDisplay;
-  SetSuppressChangeNotifications(PR_TRUE);
+  SetSuppressChangeNotifications(true);
   // Loop through the original array, for each thread that's expanded, find it in the new array
   // and expand the thread. We have to update MSG_VIEW_FLAG_HAS_CHILDREN because
   // we may be going from a flat sort, which doesn't maintain that flag,
@@ -230,7 +230,7 @@ nsresult nsMsgThreadedDBView::SortThreads(nsMsgViewSortTypeValue sortType, nsMsg
       }
     }
   }
-  SetSuppressChangeNotifications(PR_FALSE);
+  SetSuppressChangeNotifications(false);
 
   return NS_OK;
 }
@@ -324,7 +324,7 @@ NS_IMETHODIMP nsMsgThreadedDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgVi
         m_keys = m_prevKeys;
         m_flags = m_prevFlags;
         m_levels = m_prevLevels;
-        m_sortValid = PR_TRUE;
+        m_sortValid = true;
         
         // the sort may have changed the number of rows
         // before we restore the selection, tell the tree
@@ -373,7 +373,7 @@ NS_IMETHODIMP nsMsgThreadedDBView::Sort(nsMsgViewSortTypeValue sortType, nsMsgVi
         ExpandAll();
         //			m_idArray.RemoveAll();
         //			m_flags.Clear();
-        m_havePrevView = PR_TRUE;
+        m_havePrevView = true;
       }
     }
   }
@@ -540,7 +540,7 @@ void	nsMsgThreadedDBView::OnExtraFlagChanged(nsMsgViewIndex index, PRUint32 extr
   // so that reverse sort will pick it up.
   if (m_sortType == nsMsgViewSortType::byStatus || m_sortType == nsMsgViewSortType::byFlagged || 
     m_sortType == nsMsgViewSortType::byUnread || m_sortType == nsMsgViewSortType::byPriority)
-    m_sortValid = PR_FALSE;
+    m_sortValid = false;
 }
 
 void nsMsgThreadedDBView::OnHeaderAddedOrDeleted()
@@ -553,7 +553,7 @@ void nsMsgThreadedDBView::ClearPrevIdArray()
   m_prevKeys.Clear();
   m_prevLevels.Clear();
   m_prevFlags.Clear();
-  m_havePrevView = PR_FALSE;
+  m_havePrevView = false;
 }
 
 nsresult nsMsgThreadedDBView::InitSort(nsMsgViewSortTypeValue sortType, nsMsgViewSortOrderValue sortOrder)
@@ -712,7 +712,7 @@ NS_IMETHODIMP nsMsgThreadedDBView::OnParentChanged (nsMsgKey aKeyChanged, nsMsgK
 {
   // we need to adjust the level of the hdr whose parent changed, and invalidate that row,
   // iff we're in threaded mode.
-  if (PR_FALSE && m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
+  if (false && m_viewFlags & nsMsgViewFlagsType::kThreadedDisplay)
   {
     nsMsgViewIndex childIndex = FindViewIndex(aKeyChanged);
     if (childIndex != nsMsgViewIndex_None)
@@ -764,7 +764,7 @@ void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   // and where it ended up.
   bool changesDisabled = mSuppressChangeNotification;
   if (!changesDisabled)
-    SetSuppressChangeNotifications(PR_TRUE);
+    SetSuppressChangeNotifications(true);
 
   nsCOMPtr <nsIMsgDBHdr> threadHdr;
 
@@ -835,7 +835,7 @@ void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
     RestoreSelection(preservedKey, preservedSelection);
 
   if (!changesDisabled)
-    SetSuppressChangeNotifications(PR_FALSE);
+    SetSuppressChangeNotifications(false);
   nsMsgViewIndex lowIndex = threadIndex < newIndex ? threadIndex : newIndex;
   nsMsgViewIndex highIndex = lowIndex == threadIndex ? newIndex : threadIndex;
   NoteChange(lowIndex, highIndex - lowIndex + childCount + 1,
@@ -963,7 +963,7 @@ nsresult nsMsgThreadedDBView::RemoveByIndex(nsMsgViewIndex index)
       mIndicesToNoteChange.RemoveElement(index);
     }
     else
-      NS_ASSERTION(PR_FALSE, "couldn't find thread child");	
+      NS_ASSERTION(false, "couldn't find thread child");	
     NoteChange(index, 1, nsMsgViewNotificationCode::changed);	
   }
   else

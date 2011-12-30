@@ -71,7 +71,7 @@ nsresult nsMimeHeaders::ExtractHeader(const char *headerName, bool getAllOfThem,
   if (! mHeaders)
     return NS_ERROR_NOT_INITIALIZED;
 
-  *_retval = MimeHeaders_get(mHeaders, headerName, PR_FALSE, getAllOfThem);
+  *_retval = MimeHeaders_get(mHeaders, headerName, false, getAllOfThem);
   return NS_OK;
 }
 

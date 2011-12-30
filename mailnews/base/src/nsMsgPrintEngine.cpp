@@ -83,7 +83,7 @@ static const char* kPrintingPromptService = "@mozilla.org/embedcomp/printingprom
 /////////////////////////////////////////////////////////////////////////
 
 nsMsgPrintEngine::nsMsgPrintEngine() :
-  mIsDoingPrintPreview(PR_FALSE),
+  mIsDoingPrintPreview(false),
   mMsgInx(nsIMsgPrintEngine::MNAB_START)
 {
   mCurrentlyPrintingURI = -1;
@@ -275,8 +275,8 @@ nsMsgPrintEngine::SetWindow(nsIDOMWindow *aWin)
   NS_ENSURE_TRUE(rootAsNode, NS_ERROR_FAILURE);
 
   nsCOMPtr<nsIDocShellTreeItem> childItem;
-  rootAsNode->FindChildWithName(NS_LITERAL_STRING("content").get(), PR_TRUE,
-				PR_FALSE, nsnull, nsnull,
+  rootAsNode->FindChildWithName(NS_LITERAL_STRING("content").get(), true,
+				false, nsnull, nsnull,
 				getter_AddRefs(childItem));
 
   mDocShell = do_QueryInterface(childItem);
@@ -367,7 +367,7 @@ nsMsgPrintEngine::ShowProgressDialog(bool aIsForPrinting, bool& aDoNotify)
   // default to not notifying, that if something here goes wrong
   // or we aren't going to show the progress dialog we can straight into 
   // reflowing the doc for printing.
-  aDoNotify = PR_FALSE;
+  aDoNotify = false;
 
   // Assume we can't do progress and then see if we can
   bool showProgressDialog = false;

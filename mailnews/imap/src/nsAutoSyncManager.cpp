@@ -226,7 +226,7 @@ nsDefaultAutoSyncFolderStrategy::IsExcluded(nsIMsgFolder *aFolder, bool *aDecisi
     nsCOMPtr<nsIMsgFolder> parent;
     aFolder->GetParent(getter_AddRefs(parent));
     if (!parent)
-      *aDecision = PR_TRUE;
+      *aDecision = true;
   }
   return NS_OK;
 }
@@ -249,10 +249,10 @@ nsAutoSyncManager::nsAutoSyncManager()
   mGroupSize = kDefaultGroupSize;
 
   mIdleState = notIdle;
-  mStartupDone = PR_FALSE;
+  mStartupDone = false;
   mDownloadModel = dmChained;
   mUpdateState = completed;
-  mPaused = PR_FALSE;
+  mPaused = false;
 
   nsresult rv;
   mIdleService = do_GetService("@mozilla.org/widget/idleservice;1", &rv);
@@ -265,11 +265,11 @@ nsAutoSyncManager::nsAutoSyncManager()
 
   rv = observerService->AddObserver(this,
                                     NS_XPCOM_SHUTDOWN_OBSERVER_ID,
-                                    PR_FALSE);
-  observerService->AddObserver(this, kAppIdleNotification, PR_FALSE);
-  observerService->AddObserver(this, NS_IOSERVICE_OFFLINE_STATUS_TOPIC, PR_FALSE);
-  observerService->AddObserver(this, NS_IOSERVICE_GOING_OFFLINE_TOPIC, PR_FALSE);
-  observerService->AddObserver(this, kStartupDoneNotification, PR_FALSE);
+                                    false);
+  observerService->AddObserver(this, kAppIdleNotification, false);
+  observerService->AddObserver(this, NS_IOSERVICE_OFFLINE_STATUS_TOPIC, false);
+  observerService->AddObserver(this, NS_IOSERVICE_GOING_OFFLINE_TOPIC, false);
+  observerService->AddObserver(this, kStartupDoneNotification, false);
   gAutoSyncLog = PR_NewLogModule("ImapAutoSync");
 }
 
@@ -421,7 +421,7 @@ void nsAutoSyncManager::ChainFoldersInQ(const nsCOMArray<nsIAutoSyncState> &aQue
             state == nsAutoSyncState::stDownloadInProgress)
           needToBeReplacedWith = idx;
         else
-          chained = PR_TRUE;
+          chained = true;
           
         break;
       }
@@ -569,14 +569,14 @@ NS_IMETHODIMP nsAutoSyncManager::OnStopRunningUrl(nsIURI* aUrl, nsresult aExitCo
 NS_IMETHODIMP nsAutoSyncManager::Pause()
 {
   StopTimer();
-  mPaused = PR_TRUE;
+  mPaused = true;
   PR_LOG(gAutoSyncLog, PR_LOG_DEBUG, ("autosync paused\n"));
   return NS_OK;
 }
 
 NS_IMETHODIMP nsAutoSyncManager::Resume()
 {
-  mPaused = PR_FALSE;
+  mPaused = false;
   StartTimerIfNeeded();
   PR_LOG(gAutoSyncLog, PR_LOG_DEBUG, ("autosync resumed\n"));
   return NS_OK;
@@ -611,7 +611,7 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
   }
   else if (!PL_strcmp(aTopic, kStartupDoneNotification))
   {
-    mStartupDone = PR_TRUE; 
+    mStartupDone = true; 
   }
   else if (!PL_strcmp(aTopic, kAppIdleNotification))
   {
@@ -632,7 +632,7 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
        return NS_OK;
 
     SetIdleState(notIdle);
-    NOTIFY_LISTENERS(OnStateChanged, (PR_FALSE));
+    NOTIFY_LISTENERS(OnStateChanged, (false));
     return NS_OK;
   }
   else if (!PL_strcmp(aTopic, NS_IOSERVICE_OFFLINE_STATUS_TOPIC))
@@ -652,7 +652,7 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
     if (GetIdleState() != appIdle)
     {
       SetIdleState(notIdle);
-      NOTIFY_LISTENERS(OnStateChanged, (PR_FALSE));
+      NOTIFY_LISTENERS(OnStateChanged, (false));
     }
     return NS_OK;
   }
@@ -689,7 +689,7 @@ nsresult nsAutoSyncManager::StartIdleProcessing()
     return NS_OK;
     
   // notify listeners that auto-sync is running
-  NOTIFY_LISTENERS(OnStateChanged, (PR_TRUE));
+  NOTIFY_LISTENERS(OnStateChanged, (true));
     
   nsCOMArray<nsIAutoSyncState> chainedQ;
   nsCOMArray<nsIAutoSyncState> *queue = &mPriorityQ;
@@ -1416,7 +1416,7 @@ nsAutoSyncManager::OnFolderHasPendingMsgs(nsIAutoSyncState *aAutoSyncStateObj)
         bool isSentOrArchive;
         folder->IsSpecialFolder(nsMsgFolderFlags::SentMail|
                                 nsMsgFolderFlags::Archive,
-                                PR_TRUE, &isSentOrArchive);
+                                true, &isSentOrArchive);
         // Sent or archive folders go to the q front, the rest to the end.
         if (isSentOrArchive)
           mUpdateQ.InsertObjectAt(aAutoSyncStateObj, 0);

@@ -234,28 +234,28 @@ MimeMultipartAlternative_flush_children(MimeObject *obj,
   
   if (finished && have_displayable) {
     /* Case 2 */
-    do_flush = PR_TRUE;
-    do_display = PR_TRUE;
+    do_flush = true;
+    do_display = true;
   }
   else if (finished && ! have_displayable) {
     /* Case 3 */
-    do_flush = PR_TRUE;
-    do_display = PR_FALSE;
+    do_flush = true;
+    do_display = false;
   }
   else if (! finished && have_displayable && next_is_displayable) {
     /* Case 4 */
-    do_flush = PR_TRUE;
-    do_display = PR_FALSE;
+    do_flush = true;
+    do_display = false;
   }
   else if (! finished && have_displayable && ! next_is_displayable) {
     /* Case 5 */
-    do_flush = PR_FALSE;
-    do_display = PR_FALSE;
+    do_flush = false;
+    do_display = false;
   }
   else if (! finished && ! have_displayable) {
     /* Case 6 */
-    do_flush = PR_TRUE;
-    do_display = PR_FALSE;
+    do_flush = true;
+    do_display = false;
   }
   else {
     NS_ERROR("mimemalt.cpp: logic error in flush_children");
@@ -288,7 +288,7 @@ MimeMultipartAlternative_parse_eof (MimeObject *obj, bool abort_p)
   if (status < 0) return status;
 
 
-  status = MimeMultipartAlternative_flush_children(obj, PR_TRUE, PR_FALSE);
+  status = MimeMultipartAlternative_flush_children(obj, true, false);
   if (status < 0)
     return status;
 
@@ -307,7 +307,7 @@ MimeMultipartAlternative_create_child(MimeObject *obj)
   bool displayable =
     MimeMultipartAlternative_display_part_p (obj, mult->hdrs);
 
-  MimeMultipartAlternative_flush_children(obj, PR_FALSE, displayable);
+  MimeMultipartAlternative_flush_children(obj, false, displayable);
   
   mult->state = MimeMultipartPartFirstLine;
   PRInt32 i = malt->pending_parts++;
@@ -379,9 +379,9 @@ static bool
 MimeMultipartAlternative_display_part_p(MimeObject *self,
                     MimeHeaders *sub_hdrs)
 {
-  char *ct = MimeHeaders_get (sub_hdrs, HEADER_CONTENT_TYPE, PR_TRUE, PR_FALSE);
+  char *ct = MimeHeaders_get (sub_hdrs, HEADER_CONTENT_TYPE, true, false);
   if (!ct)
-    return PR_FALSE;
+    return false;
 
   /* RFC 1521 says:
      Receiving user agents should pick and display the last format
@@ -409,13 +409,13 @@ MimeMultipartAlternative_display_part_p(MimeObject *self,
      )
     // if the user prefers plaintext and this is the "rich" (e.g. HTML) part...
   {
-    return PR_FALSE;
+    return false;
   }
 
-  MimeObjectClass *clazz = mime_find_class (ct, sub_hdrs, self->options, PR_TRUE);
+  MimeObjectClass *clazz = mime_find_class (ct, sub_hdrs, self->options, true);
   bool result = (clazz
           ? clazz->displayable_inline_p(clazz, sub_hdrs)
-          : PR_FALSE);
+          : false);
   PR_FREEIF(ct);
   return result;
 }
@@ -429,7 +429,7 @@ MimeMultipartAlternative_display_cached_part(MimeObject *obj,
   int status;
 
   char *ct = (hdrs
-        ? MimeHeaders_get (hdrs, HEADER_CONTENT_TYPE, PR_TRUE, PR_FALSE)
+        ? MimeHeaders_get (hdrs, HEADER_CONTENT_TYPE, true, false)
         : 0);
   const char *dct = (((MimeMultipartClass *) obj->clazz)->default_part_type);
   MimeObject *body;
@@ -440,7 +440,7 @@ MimeMultipartAlternative_display_cached_part(MimeObject *obj,
   const char *uct = (ct && *ct) ? ct : (dct ? dct: TEXT_PLAIN);
 
   // We always want to display the cached part inline.
-  body = mime_create(uct, hdrs, obj->options, PR_TRUE);
+  body = mime_create(uct, hdrs, obj->options, true);
   PR_FREEIF(ct);
   if (!body) return MIME_OUT_OF_MEMORY;
   body->output_p = do_display;
@@ -524,9 +524,9 @@ MimeMultipartAlternative_display_cached_part(MimeObject *obj,
   if (status < 0) return status;
 
   /* Done parsing. */
-  status = body->clazz->parse_eof(body, PR_FALSE);
+  status = body->clazz->parse_eof(body, false);
   if (status < 0) return status;
-  status = body->clazz->parse_end(body, PR_FALSE);
+  status = body->clazz->parse_end(body, false);
   if (status < 0) return status;
 
 #ifdef MIME_DRAFTS

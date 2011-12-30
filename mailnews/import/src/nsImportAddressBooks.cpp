@@ -171,16 +171,16 @@ nsImportGenericAddressBooks::nsImportGenericAddressBooks()
   m_pSuccessLog = nsnull;
   m_pErrorLog = nsnull;
   m_totalSize = 0;
-  m_doImport = PR_FALSE;
+  m_doImport = false;
   m_pThreadData = nsnull;
   m_pDestinationUri = nsnull;
   m_pFieldMap = nsnull;
 
-  m_autoFind = PR_FALSE;
+  m_autoFind = false;
   m_description = nsnull;
-  m_gotLocation = PR_FALSE;
-  m_found = PR_FALSE;
-  m_userVerify = PR_FALSE;
+  m_gotLocation = false;
+  m_found = false;
+  m_userVerify = false;
 
   nsImportStringBundle::GetStringBundle(IMPORT_MSGS_URL, getter_AddRefs(m_stringBundle));
 }
@@ -402,10 +402,10 @@ void nsImportGenericAddressBooks::GetDefaultLocation( void)
     NS_Free( m_description);
   m_description = nsnull;
   m_pInterface->GetAutoFind( &m_description, &m_autoFind);
-  m_gotLocation = PR_TRUE;
+  m_gotLocation = true;
   if (m_autoFind) {
-    m_found = PR_TRUE;
-    m_userVerify = PR_FALSE;
+    m_found = true;
+    m_userVerify = false;
     return;
   }
 
@@ -483,12 +483,12 @@ NS_IMETHODIMP nsImportGenericAddressBooks::WantsProgress(bool *_retval)
       nsCOMPtr<nsIImportABDescriptor> book =
         do_QueryElementAt(m_pBooks, i);
       if (book) {
-        import = PR_FALSE;
+        import = false;
         size = 0;
         rv = book->GetImport( &import);
         if (import) {
           rv = book->GetSize( &size);
-          result = PR_TRUE;
+          result = true;
         }
         totalSize += size;
       }
@@ -581,7 +581,7 @@ already_AddRefed<nsIAddrDatabase> GetAddressBook(const PRUnichar *name,
             return nsnull;
 
           IMPORT_LOG0( "Opening the new address book\n");
-          rv = addrDBFactory->Open(dbPath, PR_TRUE, PR_TRUE,
+          rv = addrDBFactory->Open(dbPath, true, true,
                                    &pDatabase);
         }
       }
@@ -636,7 +636,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
   nsString  error;
 
   if (!m_doImport) {
-    *_retval = PR_TRUE;
+    *_retval = true;
     nsImportStringBundle::GetStringByID(IMPORT_NO_ADDRBOOKS, m_stringBundle,
                                         success);
     SetLogs( success, error, successLog, errorLog);
@@ -647,7 +647,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
     nsImportStringBundle::GetStringByID(IMPORT_ERROR_AB_NOTINITIALIZED,
                                         m_stringBundle, error);
     SetLogs( success, error, successLog, errorLog);
-    *_retval = PR_FALSE;
+    *_retval = false;
     return( NS_OK);
   }
 
@@ -658,7 +658,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
     nsImportStringBundle::GetStringByID(IMPORT_ERROR_AB_NOTINITIALIZED,
                                         m_stringBundle, error);
     SetLogs(success, error, successLog, errorLog);
-    *_retval = PR_FALSE;
+    *_retval = false;
     return NS_OK;
   }
 
@@ -702,7 +702,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
       {
         nsString name;
         book->GetPreferredName(name);
-        db = GetAddressBook(name.get(), PR_TRUE);
+        db = GetAddressBook(name.get(), true);
       }
       m_DBs.AppendObject(db);
     }
@@ -717,7 +717,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::BeginImport(nsISupportsString *succes
   ImportAddressThread(m_pThreadData);
   delete m_pThreadData;
   m_pThreadData = nsnull;
-  *_retval = PR_TRUE;
+  *_retval = true;
 
   return( NS_OK);
 }
@@ -728,10 +728,10 @@ NS_IMETHODIMP nsImportGenericAddressBooks::ContinueImport(bool *_retval)
     if (!_retval)
         return NS_ERROR_NULL_POINTER;
 
-  *_retval = PR_TRUE;
+  *_retval = true;
   if (m_pThreadData) {
     if (m_pThreadData->fatalError)
-      *_retval = PR_FALSE;
+      *_retval = false;
   }
 
   return( NS_OK);
@@ -778,7 +778,7 @@ NS_IMETHODIMP nsImportGenericAddressBooks::GetProgress(PRInt32 *_retval)
 NS_IMETHODIMP nsImportGenericAddressBooks::CancelImport(void)
 {
   if (m_pThreadData) {
-    m_pThreadData->abort = PR_TRUE;
+    m_pThreadData->abort = true;
     m_pThreadData = nsnull;
   }
 
@@ -788,10 +788,10 @@ NS_IMETHODIMP nsImportGenericAddressBooks::CancelImport(void)
 
 AddressThreadData::AddressThreadData()
 {
-  fatalError = PR_FALSE;
-  driverAlive = PR_TRUE;
-  threadAlive = PR_TRUE;
-  abort = PR_FALSE;
+  fatalError = false;
+  driverAlive = true;
+  threadAlive = true;
+  abort = false;
   currentTotal = 0;
   currentSize = 0;
   books = nsnull;
@@ -850,7 +850,7 @@ static void ImportAddressThread( void *stuff)
     nsCOMPtr<nsIImportABDescriptor> book =
       do_QueryElementAt(pData->books, i);
     if (book) {
-      import = PR_FALSE;
+      import = false;
       size = 0;
       rv = book->GetImport( &import);
       if (import)
@@ -907,10 +907,10 @@ static void ImportAddressThread( void *stuff)
         pData->currentTotal += size;
 
         if (db)
-          db->Close(PR_TRUE);
+          db->Close(true);
 
         if (fatalError) {
-          pData->fatalError = PR_TRUE;
+          pData->fatalError = true;
           break;
         }
       }

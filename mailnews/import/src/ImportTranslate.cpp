@@ -44,7 +44,7 @@ bool ImportTranslate::ConvertString( const nsCString& inStr, nsCString& outStr, 
 {
   if (inStr.IsEmpty()) {
     outStr = inStr;
-    return( PR_TRUE);
+    return( true);
   }
 
   nsImportTranslator *pTrans = GetTranslator();
@@ -99,7 +99,7 @@ bool ImportTranslate::ConvertString( const nsCString& inStr, nsCString& outStr, 
   outStr += (const char *)pBuf;
   delete [] pBuf;
 
-  return( PR_TRUE);
+  return( true);
 }
 
 

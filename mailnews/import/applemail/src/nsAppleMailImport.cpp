@@ -119,7 +119,7 @@ NS_IMETHODIMP nsAppleMailImportModule::GetSupports(char **aSupports)
 NS_IMETHODIMP nsAppleMailImportModule::GetSupportsUpgrade(bool *aUpgrade)
 {
   NS_ENSURE_ARG_POINTER(aUpgrade);
-  *aUpgrade = PR_FALSE;
+  *aUpgrade = false;
   return NS_OK;
 }
 
@@ -188,16 +188,16 @@ NS_IMETHODIMP nsAppleMailImportMail::GetDefaultLocation(nsIFile **aLocation, boo
   NS_ENSURE_ARG_POINTER(aUserVerify);
 
   *aLocation = nsnull;
-  *aFound = PR_FALSE;
-  *aUserVerify = PR_TRUE;
+  *aFound = false;
+  *aUserVerify = true;
 
   // try to find current user's top-level Mail folder
   nsCOMPtr<nsILocalFile> mailFolder(do_CreateInstance(NS_LOCAL_FILE_CONTRACTID));
   if (mailFolder) {
     nsresult rv = mailFolder->InitWithNativePath(NS_LITERAL_CSTRING(DEFAULT_MAIL_FOLDER));
     if (NS_SUCCEEDED(rv)) {
-      *aFound = PR_TRUE;
-      *aUserVerify = PR_FALSE;
+      *aFound = true;
+      *aUserVerify = false;
       CallQueryInterface(mailFolder, aLocation);
     }
   }
@@ -296,12 +296,12 @@ void nsAppleMailImportMail::FindAccountMailDirs(nsIFile *aRoot, nsISupportsArray
       if (StringBeginsWith(folderName, NS_LITERAL_STRING("POP-"))) {
         // cut off "POP-" prefix so we get a nice folder name
         folderName.Cut(0, 4);
-        isAccountFolder = PR_TRUE;
+        isAccountFolder = true;
       }
       else if (StringBeginsWith(folderName, NS_LITERAL_STRING("IMAP-"))) {
         // cut off "IMAP-" prefix so we get a nice folder name
         folderName.Cut(0, 5);
-        isAccountFolder = PR_TRUE;
+        isAccountFolder = true;
       }
 
       if (isAccountFolder) {

@@ -47,7 +47,7 @@
 #include "nsUnicharUtils.h"
 
 int      CMapiApi::m_clients = 0;
-BOOL    CMapiApi::m_initialized = PR_FALSE;
+BOOL    CMapiApi::m_initialized = false;
 nsVoidArray  *CMapiApi::m_pStores = NULL;
 LPMAPISESSION CMapiApi::m_lpSession = NULL;
 LPMDB    CMapiApi::m_lpMdb = NULL;

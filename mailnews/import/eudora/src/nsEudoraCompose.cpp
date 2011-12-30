@@ -127,7 +127,7 @@ class EudoraSendListener : public nsIMsgSendListener
 {
 public:
   EudoraSendListener() {
-    m_done = PR_FALSE;
+    m_done = false;
   }
 
   virtual ~EudoraSendListener() {}
@@ -147,7 +147,7 @@ public:
   /* void OnStopSending (in string aMsgID, in nsresult aStatus, in wstring aMsg, in nsIFile returnFile); */
   NS_IMETHOD OnStopSending(const char *aMsgID, nsresult aStatus, const PRUnichar *aMsg,
                nsIFile *returnFile) {
-    m_done = PR_TRUE;
+    m_done = true;
     m_location = returnFile;
     return NS_OK;
   }
@@ -160,7 +160,7 @@ public:
 
   static nsresult CreateSendListener( nsIMsgSendListener **ppListener);
 
-  void Reset() { m_done = PR_FALSE;  m_location = nsnull;}
+  void Reset() { m_done = false;  m_location = nsnull;}
 
 public:
   bool m_done;
@@ -203,7 +203,7 @@ nsEudoraCompose::nsEudoraCompose()
   else
     m_bodyLen = 0;
 
-  m_readHeaders.m_convertCRs = PR_TRUE;
+  m_readHeaders.m_convertCRs = true;
 }
 
 
@@ -231,13 +231,13 @@ nsresult nsEudoraCompose::CreateIdentity( void)
     s_pIdentity->SetIdentityName(name);
     s_pIdentity->SetEmail(NS_LITERAL_CSTRING("import@import.service"));
 
-    // SetDoFcc to PR_FALSE to save time when CreateAndSendMessage operates.
+    // SetDoFcc to false to save time when CreateAndSendMessage operates.
     // Profiling revealed that GetFolderURIFromUserPrefs was taking up a significant chunk
-    // of time during the operation of CreateAndSendMessage. By calling SetDoFcc(PR_FALSE),
+    // of time during the operation of CreateAndSendMessage. By calling SetDoFcc(false),
     // we skip Fcc handling code inside of InitCompositionFields (called indirectly during
     // CreateAndSendMessage operation). There's no point in any Fcc code firing since the
     // message will never actually be sent anyway.
-    s_pIdentity->SetDoFcc(PR_FALSE);
+    s_pIdentity->SetDoFcc(false);
   }
   return( rv);
 }
@@ -273,7 +273,7 @@ nsresult nsEudoraCompose::CreateComponents( void)
       rv = CallCreateInstance( kMsgCompFieldsCID, &m_pMsgFields);
     if (NS_SUCCEEDED(rv) && m_pMsgFields) {
       // IMPORT_LOG0( "nsOutlookCompose - CreateComponents succeeded\n");
-      m_pMsgFields->SetForcePlainText( PR_FALSE);
+      m_pMsgFields->SetForcePlainText( false);
       return( NS_OK);
     }
   }
@@ -461,7 +461,7 @@ void nsEudoraCompose::GetHeaderValue( const char *pData, PRInt32 dataLen, const 
 
 void nsEudoraCompose::ExtractCharset( nsString& str)
 {
-  PRInt32 idx = MsgFind(str, "charset=", PR_TRUE, 0);
+  PRInt32 idx = MsgFind(str, "charset=", true, 0);
   if (idx != -1) {
     str.Cut(0, idx + 8);
     idx = str.FindChar( ';');
@@ -523,7 +523,7 @@ nsresult nsEudoraCompose::GetLocalAttachments(nsIArray **aArray)
     // nsMsgNewURL(&url, "file://C:/boxster.jpg");
     // a[i].orig_url = url;
 
-    // NS_PRECONDITION( PR_FALSE, "Forced Break");
+    // NS_PRECONDITION( false, "Forced Break");
 
     pAttach = (ImportAttachment *) m_pAttachments->ElementAt( i);
     nsCOMPtr<nsILocalFile> tmpFile = do_QueryInterface(pAttach->pAttachment);
@@ -544,7 +544,7 @@ nsresult nsEudoraCompose::GetLocalAttachments(nsIArray **aArray)
     a->SetType(nsDependentCString(pAttach->mimeType));
     a->SetRealName(nsDependentCString(pAttach->description));
     a->SetEncoding(NS_LITERAL_CSTRING(ENCODING_BINARY));
-    attachments->AppendElement(a, PR_FALSE);
+    attachments->AppendElement(a, false);
   }
   return NS_OK;
 }
@@ -729,7 +729,7 @@ bool SimpleBufferTonyRCopiedOnce::SpecialMemCpy( PRInt32 offset, const char *pDa
   if (offset) {
     if ((m_pBuffer[offset - 1] == 0x0D) && (*pData != 0x0A)) {
       sz++;
-      if (!Grow( sz)) return( PR_FALSE);
+      if (!Grow( sz)) return( false);
       m_pBuffer[offset] = 0x0A;
       offset++;
       (*pWritten)++;
@@ -738,7 +738,7 @@ bool SimpleBufferTonyRCopiedOnce::SpecialMemCpy( PRInt32 offset, const char *pDa
   while (len > 0) {
     if ((*pData == 0x0D) && (*(pData + 1) != 0x0A)) {
       sz++;
-      if (!Grow( sz)) return( PR_FALSE);
+      if (!Grow( sz)) return( false);
       m_pBuffer[offset] = 0x0D;
       offset++;
       m_pBuffer[offset] = 0x0A;
@@ -752,7 +752,7 @@ bool SimpleBufferTonyRCopiedOnce::SpecialMemCpy( PRInt32 offset, const char *pDa
     len--;
   }
 
-  return( PR_TRUE);
+  return( true);
 }
 
 nsresult nsEudoraCompose::ReadHeaders( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& copy, SimpleBufferTonyRCopiedOnce& header)
@@ -969,10 +969,10 @@ bool nsEudoraCompose::IsReplaceHeader( const char *pHeader)
 {
   for (int i = 0; i < kMaxReplaceHeaders; i++) {
     if (!PL_strcasecmp( pHeader, gReplaceHeaders[i]))
-      return( PR_TRUE);
+      return( true);
   }
 
-  return( PR_FALSE);
+  return( false);
 }
 
 PRInt32 nsEudoraCompose::IsSpecialHeader( const char *pHeader)
@@ -1008,24 +1008,24 @@ nsresult nsEudoraCompose::WriteHeaders(nsIOutputStream *pDst, SimpleBufferTonyRC
   int i;
 
   for (i = 0; i < kMaxSpecialHeaders; i++)
-    specials[i] = PR_FALSE;
+    specials[i] = false;
 
   // m_pHeaders - contains headers from a Eudora msg.
   // newHeaders - contains headers from a mozilla msg (more headers here).
   do {
-    GetNthHeader( m_pHeaders, m_headerLen, n, header, val, PR_FALSE);
-    // GetNthHeader( newHeaders.m_pBuffer, newHeaders.m_writeOffset, n, header, val, PR_FALSE);
+    GetNthHeader( m_pHeaders, m_headerLen, n, header, val, false);
+    // GetNthHeader( newHeaders.m_pBuffer, newHeaders.m_writeOffset, n, header, val, false);
     if (!header.IsEmpty()) {
       if ((specialHeader = IsSpecialHeader( header.get())) != -1) {
         header.Append( ':');
-        GetHeaderValue( newHeaders.m_pBuffer, newHeaders.m_writeOffset - 1, header.get(), val, PR_FALSE);
+        GetHeaderValue( newHeaders.m_pBuffer, newHeaders.m_writeOffset - 1, header.get(), val, false);
         header.SetLength( header.Length() - 1);
-        specials[specialHeader] = PR_TRUE;
+        specials[specialHeader] = true;
       }
       else if (IsReplaceHeader( header.get())) {
         replaceVal.Truncate();
         header.Append( ':');
-        GetHeaderValue( newHeaders.m_pBuffer, newHeaders.m_writeOffset - 1, header.get(), replaceVal, PR_FALSE);
+        GetHeaderValue( newHeaders.m_pBuffer, newHeaders.m_writeOffset - 1, header.get(), replaceVal, false);
         header.SetLength( header.Length() - 1);
         if (!replaceVal.IsEmpty())
           val = replaceVal;
@@ -1033,7 +1033,7 @@ nsresult nsEudoraCompose::WriteHeaders(nsIOutputStream *pDst, SimpleBufferTonyRC
       if (!val.IsEmpty()) {
         // See if we're writing out a Date: header.
         if (header.LowerCaseEqualsLiteral("date"))
-          hasDateHeader = PR_TRUE;
+          hasDateHeader = true;
         rv = pDst->Write( header.get(), header.Length(), &written);
         if (NS_SUCCEEDED( rv))
           rv = pDst->Write( ": ", 2, &written);
@@ -1059,7 +1059,7 @@ nsresult nsEudoraCompose::WriteHeaders(nsIOutputStream *pDst, SimpleBufferTonyRC
     if (!specials[i]) {
       header = gSpecialHeaders[i];
       header.Append( ':');
-      GetHeaderValue( newHeaders.m_pBuffer, newHeaders.m_writeOffset - 1, header.get(), val, PR_FALSE);
+      GetHeaderValue( newHeaders.m_pBuffer, newHeaders.m_writeOffset - 1, header.get(), val, false);
       header.SetLength( header.Length() - 1);
       if (!val.IsEmpty()) {
         rv = pDst->Write( header.get(), header.Length(), &written);

@@ -314,7 +314,7 @@ nsresult nsMsgMailSession::GetTopmostMsgWindow(nsIMsgWindow* *aMsgWindow)
     // so we have to use the normal enumeration call here.
     rv = windowMediator->GetEnumerator(nsnull, getter_AddRefs(windowEnum));
 #else
-    rv = windowMediator->GetZOrderDOMWindowEnumerator(nsnull, PR_TRUE,
+    rv = windowMediator->GetZOrderDOMWindowEnumerator(nsnull, true,
                                                       getter_AddRefs(windowEnum));
 #endif
 
@@ -419,7 +419,7 @@ NS_IMETHODIMP nsMsgMailSession::IsFolderOpenInWindow(nsIMsgFolder *folder, bool 
 {
   if (!aResult)
     return NS_ERROR_NULL_POINTER;
-  *aResult = PR_FALSE;
+  *aResult = false;
   
   PRUint32 count = mWindows.Count();
   
@@ -429,7 +429,7 @@ NS_IMETHODIMP nsMsgMailSession::IsFolderOpenInWindow(nsIMsgFolder *folder, bool 
     mWindows[i]->GetOpenFolder(getter_AddRefs(openFolder));
     if (folder == openFolder.get())
     {
-      *aResult = PR_TRUE;
+      *aResult = true;
       break;
     }
   }
@@ -545,16 +545,16 @@ NS_IMPL_ISUPPORTS3(nsMsgShutdownService, nsIMsgShutdownService, nsIUrlListener, 
 
 nsMsgShutdownService::nsMsgShutdownService()
 : mQuitMode(nsIAppStartup::eAttemptQuit),
-  mProcessedShutdown(PR_FALSE),
-  mQuitForced(PR_FALSE),
-  mReadyToQuit(PR_FALSE)
+  mProcessedShutdown(false),
+  mQuitForced(false),
+  mReadyToQuit(false)
 {
   nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1");
   if (observerService)
   {
-    observerService->AddObserver(this, "quit-application-requested", PR_FALSE);
-    observerService->AddObserver(this, "quit-application-granted", PR_FALSE);
-    observerService->AddObserver(this, "quit-application", PR_FALSE);
+    observerService->AddObserver(this, "quit-application-requested", false);
+    observerService->AddObserver(this, "quit-application-granted", false);
+    observerService->AddObserver(this, "quit-application", false);
   }
 }
 
@@ -576,7 +576,7 @@ nsresult nsMsgShutdownService::ProcessNextTask()
   PRInt32 count = mShutdownTasks.Count();
   if (mTaskIndex < count)
   {
-    shutdownTasksDone = PR_FALSE;
+    shutdownTasksDone = false;
 
     nsCOMPtr<nsIMsgShutdownTask> curTask = mShutdownTasks[mTaskIndex];    
     nsString taskName;
@@ -614,7 +614,7 @@ void nsMsgShutdownService::AttemptShutdown()
   if (mQuitForced)
   {
     PR_CEnterMonitor(this);
-    mReadyToQuit = PR_TRUE;
+    mReadyToQuit = true;
     PR_CNotifyAll(this);
     PR_CExitMonitor(this);
   }
@@ -646,7 +646,7 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
   {
     // Quit application has been requested and granted, therefore we will shut
     // down. 
-    mProcessedShutdown = PR_TRUE;
+    mProcessedShutdown = true;
     return NS_OK;
   }
 
@@ -656,7 +656,7 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
     if (mProcessedShutdown)
       return NS_OK;
     else
-      mQuitForced = PR_TRUE;
+      mQuitForced = true;
   }
 
   nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1");
@@ -724,7 +724,7 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
     if (!mQuitForced)
     {
       nsCOMPtr<nsISupportsPRBool> stopShutdown = do_QueryInterface(aSubject);
-      stopShutdown->SetData(PR_TRUE);
+      stopShutdown->SetData(true);
 
       // If the attempted quit was a restart, be sure to restart the app once
       // the tasks have been run. This is usually the case when addons or
@@ -735,13 +735,13 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
 
     mMsgProgress->OpenProgressDialog(internalDomWin, topMsgWindow, 
                                      "chrome://messenger/content/shutdownWindow.xul", 
-                                     PR_FALSE, nsnull);
+                                     false, nsnull);
 
     if (mQuitForced)
     {
       nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
 
-      mReadyToQuit = PR_FALSE;
+      mReadyToQuit = false;
       while (!mReadyToQuit)
       {
         PR_CEnterMonitor(this);

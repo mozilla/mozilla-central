@@ -108,7 +108,7 @@ NS_IMETHODIMP
 nsAddbookProtocolHandler::AllowPort(PRInt32 port, const char *scheme, bool *_retval)
 {
     // don't override anything.  
-    *_retval = PR_FALSE;
+    *_retval = false;
     return NS_OK;
 }
 
@@ -164,7 +164,7 @@ nsAddbookProtocolHandler::NewChannel(nsIURI *aURI, nsIChannel **_retval)
       nsCOMPtr<nsIAsyncOutputStream> pipeOut;
       nsCOMPtr<nsIPipe> pipe = do_CreateInstance("@mozilla.org/pipe;1");
       
-      rv = pipe->Init(PR_FALSE, PR_FALSE, 0, 0, nsnull);
+      rv = pipe->Init(false, false, 0, 0, nsnull);
       NS_ENSURE_SUCCESS(rv, rv);
 
       pipe->GetInputStream(getter_AddRefs(pipeIn));

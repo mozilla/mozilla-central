@@ -745,7 +745,7 @@ NS_IMETHODIMP nsMsgHdr::SetThreadParent(nsMsgKey inKey)
 {
   m_threadParent = inKey;
   if (inKey == m_messageKey)
-    NS_ASSERTION(PR_FALSE, "can't be your own parent");
+    NS_ASSERTION(false, "can't be your own parent");
   SetUInt32Column(m_threadParent, m_mdb->m_threadParentColumnToken);
   m_initedValues |= THREAD_PARENT_INITED;
   return NS_OK;
@@ -875,7 +875,7 @@ const char *nsMsgHdr::GetNextReference(const char *startNextRef,
         break;
       case '<':
         firstMessageIdChar = ++ptr; // skip over the '<'
-        foundLessThan = PR_TRUE; // (flag to stop)
+        foundLessThan = true; // (flag to stop)
         // intentional fallthrough so whitespaceEndedAt will definitely have
         //  a non-NULL value, just in case the message-id is not valid (no '>')
         //  and the old-school support is desired.
@@ -918,7 +918,7 @@ bool nsMsgHdr::IsParentOf(nsIMsgDBHdr *possibleChild)
     possibleChild->GetStringReference(referenceToCheck - 1, reference);
 
     if (reference.Equals(messageId))
-      return PR_TRUE;
+      return true;
     // if reference didn't match, check if this ref is for a non-existent
     // header. If it is, continue looking at ancestors.
     nsCOMPtr <nsIMsgDBHdr> refHdr;
@@ -929,7 +929,7 @@ bool nsMsgHdr::IsParentOf(nsIMsgDBHdr *possibleChild)
       break;
     referenceToCheck--;
   }
-  return PR_FALSE;
+  return false;
 }
 
 bool nsMsgHdr::IsAncestorOf(nsIMsgDBHdr *possibleChild)
@@ -938,7 +938,7 @@ bool nsMsgHdr::IsAncestorOf(nsIMsgDBHdr *possibleChild)
   nsMsgHdr* curHdr = static_cast<nsMsgHdr*>(possibleChild);      // closed system, cast ok
   m_mdb->RowCellColumnToConstCharPtr(curHdr->GetMDBRow(), m_mdb->m_referencesColumnToken, &references);
   if (!references)
-    return PR_FALSE;
+    return false;
 
   nsCString messageId;
   // should put < > around message id to make strstr strictly match
@@ -1026,13 +1026,13 @@ bool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
       nsCOMPtr<nsIMsgThread> thread;
       (void) m_mdb->GetThreadContainingMsgHdr(this, getter_AddRefs(thread));
       if (!thread)
-        return PR_FALSE;
+        return false;
       ReparentInThread(thread);
       // Something's wrong, but the problem happened some time ago, so erroring
       // out now is probably not a good idea. Ergo, we'll pretend to be OK, show
       // the user the thread (err on the side of caution), and let the assertion
       // alert debuggers to a problem.
-      return PR_FALSE;
+      return false;
     }
     if (threadParent != nsMsgKey_None)
     {
@@ -1057,15 +1057,15 @@ bool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
             // attempt to reparent, and say the thread isn't killed,
             // erring on the side of safety.
             ReparentInThread(thread);
-            return PR_FALSE;
+            return false;
           }
         }
 
         if (!ancestorsToCheck)
         {
           // We think we have a parent, but we have no more ancestors to check
-          NS_ASSERTION(PR_FALSE, "cycle in parent relationship, please fix!");
-          return PR_FALSE;
+          NS_ASSERTION(false, "cycle in parent relationship, please fix!");
+          return false;
         }
         // closed system, cast ok
         nsMsgHdr* parent = static_cast<nsMsgHdr*>(parentHdr.get());
@@ -1079,7 +1079,7 @@ bool nsMsgHdr::IsAncestorKilled(PRUint32 ancestorsToCheck)
 NS_IMETHODIMP nsMsgHdr::GetIsKilled(bool *isKilled)
 {
   NS_ENSURE_ARG_POINTER(isKilled);
-  *isKilled = PR_FALSE;
+  *isKilled = false;
   nsCOMPtr<nsIMsgThread> thread;
   (void) m_mdb->GetThreadContainingMsgHdr(this, getter_AddRefs(thread));
   // if we can't find the thread, let's at least check one level; maybe
@@ -1123,7 +1123,7 @@ protected:
 };
 
 nsMsgPropertyEnumerator::nsMsgPropertyEnumerator(nsMsgHdr* aHdr)
-  :  mNextPrefetched(PR_FALSE),
+  :  mNextPrefetched(false),
      mNextColumn(NULL_MORK_COLUMN)
 {
   nsRefPtr<nsMsgDatabase> mdb;
@@ -1156,7 +1156,7 @@ NS_IMETHODIMP nsMsgPropertyEnumerator::GetNext(nsACString& aItem)
     return NS_ERROR_FAILURE; // call HasMore first
   if (!m_mdbStore || !m_mdbEnv)
     return NS_ERROR_NOT_INITIALIZED;
-  mNextPrefetched = PR_FALSE;
+  mNextPrefetched = false;
   char columnName[100];
   struct mdbYarn colYarn = {columnName, 0, sizeof(columnName), 0, 0, nsnull};
   // Get the column of the cell
@@ -1180,7 +1180,7 @@ void nsMsgPropertyEnumerator::PrefetchNext(void)
 {
   if (!mNextPrefetched && m_mdbEnv && mRowCellCursor)
   {
-    mNextPrefetched = PR_TRUE;
+    mNextPrefetched = true;
     nsCOMPtr<nsIMdbCell> cell;
     mRowCellCursor->NextCell(m_mdbEnv, getter_AddRefs(cell), &mNextColumn, nsnull);
     if (mNextColumn == NULL_MORK_COLUMN)

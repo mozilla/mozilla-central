@@ -73,21 +73,21 @@ nsMsgSendPart::nsMsgSendPart(nsIMsgSend* state, const char *part_charset)
   m_buffer = nsnull;
   m_type = nsnull;
   m_other = nsnull;
-  m_strip_sensitive_headers = PR_FALSE;
+  m_strip_sensitive_headers = false;
   m_encoder_data = nsnull;
   
-  m_firstBlock = PR_FALSE;
-  m_needIntlConversion = PR_FALSE;
+  m_firstBlock = false;
+  m_needIntlConversion = false;
   
-  m_mainpart = PR_FALSE;
-  m_just_hit_CR = PR_FALSE;
+  m_mainpart = false;
+  m_just_hit_CR = false;
 }
 
 
 nsMsgSendPart::~nsMsgSendPart()
 {
   if (m_encoder_data) {
-    MIME_EncoderDestroy(m_encoder_data, PR_FALSE);
+    MIME_EncoderDestroy(m_encoder_data, false);
     m_encoder_data = nsnull;
   }
   for (int i=0 ; i < m_numchildren; i++)
@@ -284,7 +284,7 @@ int nsMsgSendPart::PushBody(const char* buffer, PRInt32 length)
     
     for (; in < end; in++) {
       if (m_just_hit_CR) {
-        m_just_hit_CR = PR_FALSE;
+        m_just_hit_CR = false;
         if (*in == '\n') {
           // The last thing we wrote was a CRLF from hitting a CR.
           // So, we don't want to do anything from a following LF;
@@ -303,7 +303,7 @@ int nsMsgSendPart::PushBody(const char* buffer, PRInt32 length)
         out = buffer;
         
         if (*in == '\r') {
-          m_just_hit_CR = PR_TRUE;
+          m_just_hit_CR = true;
         }
         
         out = buffer;
@@ -389,7 +389,7 @@ divide_content_headers(const char *headers,
     {
       const char *head = tail;
       char **out;
-      while(PR_TRUE) {
+      while(true) {
       /* Loop until we reach a newline that is not followed by whitespace.
         */
         if (tail[0] == 0 ||
@@ -641,7 +641,7 @@ nsMsgSendPart::Write()
 
   PUSH(CRLF);         // A blank line, to mark the end of headers.
 
-  m_firstBlock = PR_TRUE;
+  m_firstBlock = true;
   /* only convert if we need to tag charset */
   m_needIntlConversion = mime_type_needs_charset(m_type);
   
@@ -664,7 +664,7 @@ nsMsgSendPart::Write()
       {
         nsAutoString error_msg;
         nsMsgBuildMessageWithTmpFile(m_file, error_msg);
-        sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
+        sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), false);
       }
       status = NS_MSG_UNABLE_TO_OPEN_TMP_FILE;
       goto FAIL;
@@ -707,7 +707,7 @@ nsMsgSendPart::Write()
           if (*line == ' ' || *line == '\t')
             continue;
           else
-            skipping = PR_FALSE;
+            skipping = false;
         }
                 
         if (!PL_strncasecmp(line, "From -", 6) ||
@@ -723,7 +723,7 @@ nsMsgSendPart::Write()
             !PL_strncasecmp(line, X_UIDL ":", X_UIDL_LEN+1) ||
             !PL_strncasecmp(line, "X-VM-", 5)) /* hi Kyle */
         {
-          skipping = PR_TRUE;
+          skipping = true;
           continue;
         }
         
@@ -751,7 +751,7 @@ nsMsgSendPart::Write()
         {
           nsAutoString error_msg;
           nsMsgBuildMessageWithFile(m_file, error_msg);
-          sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), PR_FALSE);
+          sendReport->SetMessage(nsIMsgSendReport::process_Current, error_msg.get(), false);
           status = NS_MSG_UNABLE_TO_OPEN_FILE;
           goto FAIL;
         }
@@ -766,7 +766,7 @@ nsMsgSendPart::Write()
   
   if (m_encoder_data) 
   {
-    status = MIME_EncoderDestroy(m_encoder_data, PR_FALSE);
+    status = MIME_EncoderDestroy(m_encoder_data, false);
     m_encoder_data = nsnull;
     needToWriteCRLFAfterEncodedBody = !m_parent;
     if (status < 0)
@@ -797,9 +797,9 @@ nsMsgSendPart::Write()
         goto FAIL;
 
       if (status == SKIP_EMPTY_PART)
-        writeSeparator = PR_FALSE;
+        writeSeparator = false;
       else
-        writeSeparator = PR_TRUE;
+        writeSeparator = true;
     }
 
     PUSH(CRLF);

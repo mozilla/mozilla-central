@@ -73,9 +73,9 @@
 
 NS_IMPL_ISUPPORTS4(nsAbView, nsIAbView, nsITreeView, nsIAbListener, nsIObserver)
 
-nsAbView::nsAbView() : mInitialized(PR_FALSE),
-                       mSuppressSelectionChange(PR_FALSE),
-                       mSuppressCountChange(PR_FALSE),
+nsAbView::nsAbView() : mInitialized(false),
+                       mSuppressSelectionChange(false),
+                       mSuppressCountChange(false),
                        mGeneratedNameFormat(0)
 {
   mMailListAtom = MsgGetAtom("MailList");
@@ -100,7 +100,7 @@ NS_IMETHODIMP nsAbView::ClearView()
   if (mInitialized)
   {
     nsresult rv;
-    mInitialized = PR_FALSE;
+    mInitialized = false;
     nsCOMPtr<nsIPrefBranch2> pbi(do_GetService(NS_PREFSERVICE_CONTRACTID,
                                                &rv));
     NS_ENSURE_SUCCESS(rv,rv);
@@ -162,7 +162,7 @@ nsresult nsAbView::Initialize()
   if (mInitialized)
     return NS_OK;
 
-  mInitialized = PR_TRUE;
+  mInitialized = true;
 
   nsresult rv;
   nsCOMPtr<nsIAbManager> abManager(do_GetService(NS_ABMANAGER_CONTRACTID, &rv));
@@ -174,7 +174,7 @@ nsresult nsAbView::Initialize()
   nsCOMPtr<nsIPrefBranch2> pbi(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = pbi->AddObserver(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, this, PR_FALSE);
+  rv = pbi->AddObserver(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, this, false);
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (!mABBundle)
@@ -362,7 +362,7 @@ NS_IMETHODIMP nsAbView::GetColumnProperties(nsITreeColumn* col, nsISupportsArray
 
 NS_IMETHODIMP nsAbView::IsContainer(PRInt32 index, bool *_retval)
 {
-    *_retval = PR_FALSE;
+    *_retval = false;
     return NS_OK;
 }
 
@@ -378,7 +378,7 @@ NS_IMETHODIMP nsAbView::IsContainerEmpty(PRInt32 index, bool *_retval)
 
 NS_IMETHODIMP nsAbView::IsSeparator(PRInt32 index, bool *_retval)
 {
-  *_retval = PR_FALSE;
+  *_retval = false;
   return NS_OK;
 }
 
@@ -444,7 +444,7 @@ nsresult nsAbView::GetCardValue(nsIAbCard *card, const PRUnichar *colID,
 
   if (colID[0] == PRUnichar('_') && colID[1] == PRUnichar('P'))
     // Use LN/FN order for the phonetic name
-    return card->GeneratePhoneticName(PR_TRUE, _retval);
+    return card->GeneratePhoneticName(true, _retval);
 
   nsresult rv = card->GetPropertyAsAString(NS_ConvertUTF16toUTF8(colID).get(), _retval);
   if (rv == NS_ERROR_NOT_AVAILABLE) {
@@ -812,7 +812,7 @@ NS_IMETHODIMP nsAbView::OnItemAdded(nsISupports *parentDir, nsISupports *item)
       NS_ENSURE_SUCCESS(rv,rv);
 
       PRInt32 index;
-      rv = AddCard(abcard, PR_FALSE /* select card */, &index);
+      rv = AddCard(abcard, false /* select card */, &index);
       NS_ENSURE_SUCCESS(rv,rv);
     }
   }
@@ -849,7 +849,7 @@ nsresult nsAbView::AddCard(AbCard *abcard, bool selectCardAfterAdding, PRInt32 *
   // Checking for mTree here works around core bug 399227
   if (selectCardAfterAdding && mTreeSelection && mTree) {
     mTreeSelection->SetCurrentIndex(*index);
-    mTreeSelection->RangedSelect(*index, *index, PR_FALSE /* augment */);
+    mTreeSelection->RangedSelect(*index, *index, false /* augment */);
   }
 
   if (mAbViewListener && !mSuppressCountChange) {
@@ -928,7 +928,7 @@ nsresult nsAbView::RemoveCardAndSelectNextCard(nsISupports *item)
         // Make sure it works if nothing selected
         mTreeSelection->GetCurrentIndex(&selectedIndex);
         if (index == selectedIndex)
-          selectNextCard = PR_TRUE;
+          selectNextCard = true;
       }
 
       rv = RemoveCardAt(index);
@@ -942,7 +942,7 @@ nsresult nsAbView::RemoveCardAndSelectNextCard(nsISupports *item)
           index = count -1;
         }
         mTreeSelection->SetCurrentIndex(index);
-        mTreeSelection->RangedSelect(index, index, PR_FALSE /* augment */);
+        mTreeSelection->RangedSelect(index, index, false /* augment */);
       }
     }
   }
@@ -1018,8 +1018,8 @@ NS_IMETHODIMP nsAbView::OnItemPropertyChanged(nsISupports *item, const char *pro
     NS_ENSURE_SUCCESS(rv,rv);
   }
   else {
-    mSuppressSelectionChange = PR_TRUE;
-    mSuppressCountChange = PR_TRUE;
+    mSuppressSelectionChange = true;
+    mSuppressCountChange = true;
 
     // Remove the old card.
     rv = RemoveCardAt(index);
@@ -1029,8 +1029,8 @@ NS_IMETHODIMP nsAbView::OnItemPropertyChanged(nsISupports *item, const char *pro
     rv = AddCard(newCard, cardWasSelected /* select card */, &index);
     NS_ASSERTION(NS_SUCCEEDED(rv), "add card failed\n");
 
-    mSuppressSelectionChange = PR_FALSE;
-    mSuppressCountChange = PR_FALSE;
+    mSuppressSelectionChange = false;
+    mSuppressCountChange = false;
 
     // Ensure restored selection is visible
     if (cardWasSelected && mTree) 
@@ -1090,7 +1090,7 @@ nsresult nsAbView::ReselectCards(nsIArray *aCards, nsIAbCard *aIndexCard)
     if (card) {
       PRInt32 index = FindIndexForCard(card);
       if (index != CARD_NOT_FOUND) {
-        mTreeSelection->RangedSelect(index, index, PR_TRUE /* augment */);
+        mTreeSelection->RangedSelect(index, index, true /* augment */);
       }
     }
   }
@@ -1154,7 +1154,7 @@ nsresult nsAbView::GetSelectedCards(nsCOMPtr<nsIMutableArray> &aSelectedCards)
         rv = GetCardFromRow(rangeIndex, getter_AddRefs(abCard));
         NS_ENSURE_SUCCESS(rv,rv);
         
-        rv = aSelectedCards->AppendElement(abCard, PR_FALSE);
+        rv = aSelectedCards->AppendElement(abCard, false);
         NS_ENSURE_SUCCESS(rv, rv);
       }
     }
@@ -1349,7 +1349,7 @@ NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsIArray **_retval)
         if (!primaryEmail.IsEmpty()) {
           nsCOMPtr<nsISupportsString> supportsEmail(do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID));
           supportsEmail->SetData(primaryEmail);
-          addresses->AppendElement(supportsEmail, PR_FALSE);
+          addresses->AppendElement(supportsEmail, false);
         }
       }
     }
@@ -1360,7 +1360,7 @@ NS_IMETHODIMP nsAbView::GetSelectedAddresses(nsIArray **_retval)
       if (!primaryEmail.IsEmpty()) {
         nsCOMPtr<nsISupportsString> supportsEmail(do_CreateInstance(NS_SUPPORTS_STRING_CONTRACTID));
         supportsEmail->SetData(primaryEmail);
-        addresses->AppendElement(supportsEmail, PR_FALSE);
+        addresses->AppendElement(supportsEmail, false);
       }
     }    
   }

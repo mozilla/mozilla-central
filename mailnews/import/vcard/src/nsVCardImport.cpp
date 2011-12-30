@@ -80,12 +80,12 @@ public:
   // TODO: support multiple vCard files in future - shouldn't be too hard,
   // since you just import each file in turn.
   NS_IMETHOD GetSupportsMultiple(bool *_retval)
-  { *_retval = PR_FALSE; return NS_OK;}
+  { *_retval = false; return NS_OK;}
 
   NS_IMETHOD GetAutoFind(PRUnichar **description, bool *_retval);
 
   NS_IMETHOD GetNeedsFieldMap(nsIFile *location, bool *_retval)
-  { *_retval = PR_FALSE; return NS_OK;}
+  { *_retval = false; return NS_OK;}
 
   NS_IMETHOD GetDefaultLocation(
       nsIFile **location, bool *found, bool *userVerify);
@@ -172,7 +172,7 @@ NS_IMETHODIMP nsVCardImport::GetSupports(char **supports)
 NS_IMETHODIMP nsVCardImport::GetSupportsUpgrade(bool *pUpgrade)
 {
   NS_ENSURE_ARG_POINTER(pUpgrade);
-  *pUpgrade = PR_TRUE;
+  *pUpgrade = true;
   return NS_OK;
 }
 
@@ -235,7 +235,7 @@ NS_IMETHODIMP ImportVCardAddressImpl::GetAutoFind(
   NS_ENSURE_ARG_POINTER(_retval);
 
   nsString str;
-  *_retval = PR_FALSE;
+  *_retval = false;
 
   if (!m_notProxyBundle)
     return NS_ERROR_FAILURE;
@@ -253,8 +253,8 @@ NS_IMETHODIMP ImportVCardAddressImpl::GetDefaultLocation(
   NS_ENSURE_ARG_POINTER(userVerify);
 
   *ppLoc = nsnull;
-  *found = PR_FALSE;
-  *userVerify = PR_TRUE;
+  *found = false;
+  *userVerify = true;
   return NS_OK;
 }
 

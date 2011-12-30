@@ -332,7 +332,7 @@ bool nsTextAddress::GetField( const char *pLine, PRInt32 maxLen, PRInt32 index, 
         return( result);
     }
 
-    result = PR_TRUE;
+    result = true;
 
     while ((len < maxLen) && ((*pChar == ' ') || (*pChar == tab))) {
         len++;
@@ -350,7 +350,7 @@ bool nsTextAddress::GetField( const char *pLine, PRInt32 maxLen, PRInt32 index, 
             len++;
             fLen++;
             if (((len + 1) < maxLen) && (*pChar == '"') && (*(pChar + 1) == '"')) {
-                quoted = PR_TRUE;
+                quoted = true;
                 len += 2;
                 pChar += 2;
                 fLen += 2;
@@ -469,7 +469,7 @@ nsresult nsTextAddress::ProcessLine( const char *pLine, PRInt32 len, nsString& e
     bool          active;
     rv = m_fieldMap->GetMapSize( &numFields);
     for (PRInt32 i = 0; (i < numFields) && NS_SUCCEEDED( rv); i++) {
-        active = PR_FALSE;
+        active = false;
         rv = m_fieldMap->GetFieldMap( i, &fieldNum);
         if (NS_SUCCEEDED( rv))
             rv = m_fieldMap->GetFieldActive( i, &active);

@@ -423,7 +423,7 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
 
         case PRUnichar('{'):
 
-            attrRequired = PR_TRUE;  // this attribute is required
+            attrRequired = true;  // this attribute is required
 
             /*FALLTHROUGH*/
 
@@ -467,7 +467,7 @@ nsAbLDAPAutoCompFormatter::ProcessFormat(const nsAString & aFormat,
             }
 
             attrName.Truncate();     // clear out for next pass
-            attrRequired = PR_FALSE; // reset to the default for the next pass
+            attrRequired = false; // reset to the default for the next pass
 
             break;
 

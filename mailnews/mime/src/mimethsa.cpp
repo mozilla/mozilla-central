@@ -100,7 +100,7 @@ printf(" B2\n");
      XXX Not sure, if that is correct, though. */
   char *content_type =
     (obj->headers
-     ? MimeHeaders_get(obj->headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE)
+     ? MimeHeaders_get(obj->headers, HEADER_CONTENT_TYPE, false, false)
      : 0);
   if (content_type)
   {
@@ -117,7 +117,7 @@ printf(" B2\n");
       int status = MimeObject_write(obj,
                                     charsetline.get(),
                                     charsetline.Length(),
-                                    PR_TRUE);
+                                    true);
       PR_Free(charset);
       if (status < 0)
         return status;
@@ -226,7 +226,7 @@ printf(" F1\n");
 
   if (textHTMLSan && textHTMLSan->complete_buffer)
   {
-    obj->clazz->parse_eof(obj, PR_FALSE);
+    obj->clazz->parse_eof(obj, false);
 #ifdef DEBUG_BenB
 printf(" F2\n");
 #endif

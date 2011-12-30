@@ -121,7 +121,7 @@ calIcalProperty::GetValue(nsACString &str)
             str.Truncate();
             // Set string to null, because we don't have a value
             // (which is something different then an empty value)
-            str.SetIsVoid(PR_TRUE);
+            str.SetIsVoid(true);
             return NS_OK;
         }
 
@@ -167,7 +167,7 @@ calIcalProperty::GetValueAsIcalString(nsACString &str)
             str.Truncate();
             // Set string to null, because we don't have a value
             // (which is something different then an empty value)
-            str.SetIsVoid(PR_TRUE);
+            str.SetIsVoid(true);
             return NS_OK;
         }
 
@@ -247,7 +247,7 @@ calIcalProperty::GetParameter(const nsACString &param, nsACString &value)
 
     if (!icalstr) {
         value.Truncate();
-        value.SetIsVoid(PR_TRUE);
+        value.SetIsVoid(true);
     } else {
         value.Assign(icalstr);
     }
@@ -329,7 +329,7 @@ FillParameterName(icalparameter *icalparam, nsACString &name)
         name.Assign(propname);
     } else {
         name.Truncate();
-        name.SetIsVoid(PR_TRUE);
+        name.SetIsVoid(true);
     }
 
     return NS_OK;
@@ -590,7 +590,7 @@ calIcalComponent::Get##Attrname(nsACString &str)                        \
         return rv;                                                      \
     if (val == -1) {                                                    \
         str.Truncate();                                                 \
-        str.SetIsVoid(PR_TRUE);                                         \
+        str.SetIsVoid(true);                                         \
     } else {                                                            \
         str.Assign(icalproperty_##lcname##_to_string((icalproperty_##lcname)val)); \
     }                                                                   \
@@ -686,7 +686,7 @@ nsresult calIcalComponent::GetStringProperty(icalproperty_kind kind, nsACString 
     icalproperty *prop = icalcomponent_get_first_property(mComponent, kind);
     if (!prop) {
         str.Truncate();
-        str.SetIsVoid(PR_TRUE);
+        str.SetIsVoid(true);
     } else {
         str.Assign(icalvalue_get_string(icalproperty_get_value(prop)));
     }
@@ -1088,7 +1088,7 @@ calIcalComponent::AddSubcomponent(calIIcalComponent *comp)
         if (!failed) {
             rv = vcal->AddTimezoneReference(timezones[i]);
             if (NS_FAILED(rv))
-                failed = PR_TRUE;
+                failed = true;
         }
 
         NS_RELEASE(timezones[i]);

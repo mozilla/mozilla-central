@@ -123,7 +123,7 @@ bool nsOEScanBoxes::Find50Mail( nsIFile *pWhere)
           bool    isDir = false;
           rv = pWhere->IsDirectory( &isDir);
           if (isDir && NS_SUCCEEDED( rv))
-            success = PR_TRUE;
+            success = true;
         }
         ::RegCloseKey( sKey);
       }
@@ -141,7 +141,7 @@ bool nsOEScanBoxes::FindMail( nsIFile *pWhere)
         nsCOMPtr <nsILocalFile> localWhere = do_QueryInterface(pWhere);
 
   if (Find50Mail( pWhere))
-    return( PR_TRUE);
+    return( true);
 
   if (::RegOpenKeyEx( HKEY_CURRENT_USER, "Software\\Microsoft\\Outlook Express", 0, KEY_QUERY_VALUE, &sKey) == ERROR_SUCCESS) {
     LPBYTE  pBytes = nsOERegUtil::GetValueBytes( sKey, "Store Root");
@@ -151,7 +151,7 @@ bool nsOEScanBoxes::FindMail( nsIFile *pWhere)
       bool    isDir = false;
       rv = pWhere->IsDirectory( &isDir);
       if (isDir && NS_SUCCEEDED( rv))
-        success = PR_TRUE;
+        success = true;
       delete [] pBytes;
     }
     ::RegCloseKey( sKey);
@@ -231,19 +231,19 @@ bool nsOEScanBoxes::FindMailBoxes( nsIFile* descFile)
 
   rv = descFile->IsFile( &isFile);
   if (NS_FAILED( rv) || !isFile)
-    return( PR_FALSE);
+    return( false);
 
         nsCOMPtr <nsIInputStream> descInputStream;
 
         rv = NS_NewLocalFileInputStream(getter_AddRefs(descInputStream), descFile);
   if (NS_FAILED( rv))
-    return( PR_FALSE);
+    return( false);
 
   IMPORT_LOG0( "Reading the folders.nch file\n");
 
   PRUint32    curRec;
   if (!ReadLong( descInputStream, curRec, 20)) {
-    return( PR_FALSE);
+    return( false);
   }
 
   // Now for each record
@@ -257,26 +257,26 @@ bool nsOEScanBoxes::FindMailBoxes( nsIFile* descFile)
 
   while (!done) {
 
-    if (!ReadLong( descInputStream, equal, curRec)) return( PR_FALSE);
+    if (!ReadLong( descInputStream, equal, curRec)) return( false);
     if (curRec != equal) {
       IMPORT_LOG1( "Record start invalid: %ld\n", curRec);
       break;
     }
-    if (!ReadLong( descInputStream, size, curRec + 4)) return( PR_FALSE);
-    if (!ReadLong( descInputStream, previous, curRec + 8)) return( PR_FALSE);
-    if (!ReadLong( descInputStream, next, curRec + 12)) return( PR_FALSE);
-    failed = PR_FALSE;
+    if (!ReadLong( descInputStream, size, curRec + 4)) return( false);
+    if (!ReadLong( descInputStream, previous, curRec + 8)) return( false);
+    if (!ReadLong( descInputStream, next, curRec + 12)) return( false);
+    failed = false;
     pEntry = new MailboxEntry;
-    if (!ReadLong( descInputStream, pEntry->index, curRec + 16)) failed = PR_TRUE;
-    if (!ReadString( descInputStream, pEntry->mailName, curRec + 20)) failed = PR_TRUE;
-    if (!ReadString( descInputStream, pEntry->fileName, curRec + 279)) failed = PR_TRUE;
-    if (!ReadLong( descInputStream, pEntry->parent, curRec + 539)) failed = PR_TRUE;
-    if (!ReadLong( descInputStream, pEntry->child, curRec + 543)) failed = PR_TRUE;
-    if (!ReadLong( descInputStream, pEntry->sibling, curRec + 547)) failed = PR_TRUE;
-    if (!ReadLong( descInputStream, pEntry->type, curRec + 551)) failed = PR_TRUE;
+    if (!ReadLong( descInputStream, pEntry->index, curRec + 16)) failed = true;
+    if (!ReadString( descInputStream, pEntry->mailName, curRec + 20)) failed = true;
+    if (!ReadString( descInputStream, pEntry->fileName, curRec + 279)) failed = true;
+    if (!ReadLong( descInputStream, pEntry->parent, curRec + 539)) failed = true;
+    if (!ReadLong( descInputStream, pEntry->child, curRec + 543)) failed = true;
+    if (!ReadLong( descInputStream, pEntry->sibling, curRec + 547)) failed = true;
+    if (!ReadLong( descInputStream, pEntry->type, curRec + 551)) failed = true;
     if (failed) {
       delete pEntry;
-      return( PR_FALSE);
+      return( false);
     }
 
     #ifdef _TRACE_MAILBOX_ENTRIES
@@ -294,7 +294,7 @@ bool nsOEScanBoxes::FindMailBoxes( nsIFile* descFile)
 
     curRec = next;
     if (!next)
-      done = PR_TRUE;
+      done = true;
   }
 
   MailboxEntry *pZero = GetIndexEntry( 0);
@@ -303,7 +303,7 @@ bool nsOEScanBoxes::FindMailBoxes( nsIFile* descFile)
 
   IMPORT_LOG1( "Read the folders.nch file, found %ld mailboxes\n", (long) m_entryArray.Count());
 
-  return( PR_TRUE);
+  return( true);
 }
 
 bool nsOEScanBoxes::Find50MailBoxes( nsIFile* descFile)
@@ -315,13 +315,13 @@ bool nsOEScanBoxes::Find50MailBoxes( nsIFile* descFile)
 
   rv = descFile->IsFile( &isFile);
   if (NS_FAILED( rv) || !isFile)
-    return( PR_FALSE);
+    return( false);
 
         nsCOMPtr <nsIInputStream> descInputStream;
 
         rv = NS_NewLocalFileInputStream(getter_AddRefs(descInputStream), descFile);
   if (NS_FAILED( rv))
-    return( PR_FALSE);
+    return( false);
 
   IMPORT_LOG0( "Reading the folders.dbx file\n");
 
@@ -329,7 +329,7 @@ bool nsOEScanBoxes::Find50MailBoxes( nsIFile* descFile)
   PRUint32    indexSize = 0;
   if (!nsOE5File::ReadIndex( descInputStream, &pIndex, &indexSize)) {
     IMPORT_LOG0( "*** NOT USING FOLDERS.DBX!!!\n");
-    return( PR_FALSE);
+    return( false);
   }
 
   PRUint32  marker;
@@ -430,7 +430,7 @@ bool nsOEScanBoxes::Find50MailBoxes( nsIFile* descFile)
         if (pEntry)
         {
           AddChildEntry( pEntry, localStoreId);
-          pEntry->processed =  PR_TRUE;
+          pEntry->processed =  true;
           // See if we have any child folders that need to be added/processed.
           ProcessPendingChildEntries(id, localStoreId, m_pendingChildArray);
           // Clean up the pending list.
@@ -461,9 +461,9 @@ bool nsOEScanBoxes::Find50MailBoxes( nsIFile* descFile)
   delete [] pIndex;
 
   if (m_entryArray.Count())
-    return( PR_TRUE);
+    return( true);
   else
-    return( PR_FALSE);
+    return( false);
 }
 
 nsOEScanBoxes::MailboxEntry *nsOEScanBoxes::NewMailboxEntry(PRUint32 id, PRUint32 parent, const char *prettyName, char *pFileName)
@@ -477,7 +477,7 @@ nsOEScanBoxes::MailboxEntry *nsOEScanBoxes::NewMailboxEntry(PRUint32 id, PRUint3
   pEntry->child = 0;
   pEntry->type = 0;
   pEntry->sibling = -1;
-  pEntry->processed =  PR_FALSE;
+  pEntry->processed =  false;
   NS_CopyNativeToUnicode(nsDependentCString(prettyName), pEntry->mailName);
   if (pFileName)
     pEntry->fileName = pFileName;
@@ -494,7 +494,7 @@ void nsOEScanBoxes::ProcessPendingChildEntries(PRUint32 parent, PRUint32 rootInd
     if ((!pEntry->processed) && (pEntry->parent == parent))
     {
       AddChildEntry(pEntry, rootIndex);
-      pEntry->processed =  PR_TRUE; // indicate it's been processed.
+      pEntry->processed =  true; // indicate it's been processed.
       // See if there are unprocessed child folders for this child in the
       // array as well (ie, both child and grand-child are on the list).
       ProcessPendingChildEntries(pEntry->index, rootIndex, childArray);
@@ -590,7 +590,7 @@ bool nsOEScanBoxes::Scan50MailboxDir( nsIFile * srcDir)
     nsCOMPtr<nsILocalFile> entry(do_QueryInterface(aSupport, &rv));
     directoryEnumerator->HasMoreElements(&hasMore);
 
-    isFile = PR_FALSE;
+    isFile = false;
     rv = entry->IsFile( &isFile);
     if (NS_SUCCEEDED( rv) && isFile) {
       pLeaf = nsnull;
@@ -618,10 +618,10 @@ bool nsOEScanBoxes::Scan50MailboxDir( nsIFile * srcDir)
   if (m_entryArray.Count() > 0) {
     pEntry = (MailboxEntry *)m_entryArray.ElementAt( m_entryArray.Count() - 1);
     pEntry->sibling = -1;
-    return( PR_TRUE);
+    return( true);
   }
 
-  return( PR_FALSE);
+  return( false);
 }
 
 
@@ -657,7 +657,7 @@ void nsOEScanBoxes::ScanMailboxDir( nsIFile * srcDir)
     nsCOMPtr<nsILocalFile> entry(do_QueryInterface(aSupport, &rv));
     directoryEnumerator->HasMoreElements(&hasMore);
 
-    isFile = PR_FALSE;
+    isFile = false;
     rv = entry->IsFile( &isFile);
     if (NS_SUCCEEDED( rv) && isFile)
     {
@@ -724,12 +724,12 @@ bool nsOEScanBoxes::GetMailboxList( nsIFile * root, nsISupportsArray **pArray)
   nsresult rv = NS_NewISupportsArray( pArray);
   if (NS_FAILED( rv)) {
     IMPORT_LOG0( "FAILED to allocate the nsISupportsArray\n");
-    return( PR_FALSE);
+    return( false);
   }
 
   BuildMailboxList( nsnull, root, 1, *pArray);
 
-  return( PR_TRUE);
+  return( true);
 }
 
 void nsOEScanBoxes::BuildMailboxList( MailboxEntry *pBox, nsIFile * root, PRInt32 depth, nsISupportsArray *pArray)
@@ -823,36 +823,36 @@ bool nsOEScanBoxes::ReadLong( nsIInputStream * stream, PRInt32& val, PRUint32 of
 {
   nsresult  rv;
         nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(stream, &rv);
-        NS_ENSURE_SUCCESS(rv, PR_FALSE);
+        NS_ENSURE_SUCCESS(rv, false);
   rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, offset);
   if (NS_FAILED( rv))
-    return( PR_FALSE);
+    return( false);
 
   PRUint32  cntRead;
   char * pReadTo = (char *)&val;
   rv = stream->Read(pReadTo, sizeof( val), &cntRead);
 
   if (NS_FAILED( rv) || (cntRead != sizeof( val)))
-    return( PR_FALSE);
-  return( PR_TRUE);
+    return( false);
+  return( true);
 }
 
 bool nsOEScanBoxes::ReadLong( nsIInputStream * stream, PRUint32& val, PRUint32 offset)
 {
   nsresult  rv;
         nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(stream, &rv);
-        NS_ENSURE_SUCCESS(rv, PR_FALSE);
+        NS_ENSURE_SUCCESS(rv, false);
   rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, offset);
   if (NS_FAILED( rv))
-    return( PR_FALSE);
+    return( false);
 
   PRUint32  cntRead;
   char * pReadTo = (char *)&val;
   rv = stream->Read(pReadTo, sizeof( val), &cntRead);
 
   if (NS_FAILED( rv) || (cntRead != sizeof( val)))
-    return( PR_FALSE);
-  return( PR_TRUE);
+    return( false);
+  return( true);
 }
 
 // It appears as though the strings for file name and mailbox
@@ -864,10 +864,10 @@ bool nsOEScanBoxes::ReadString( nsIInputStream * stream, nsString& str, PRUint32
 {
   nsresult rv;
   nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(stream, &rv);
-  NS_ENSURE_SUCCESS(rv, PR_FALSE);
+  NS_ENSURE_SUCCESS(rv, false);
   rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, offset);
   if (NS_FAILED( rv))
-    return( PR_FALSE);
+    return( false);
 
 
   PRUint32 cntRead;
@@ -876,20 +876,20 @@ bool nsOEScanBoxes::ReadString( nsIInputStream * stream, nsString& str, PRUint32
   rv = stream->Read( pReadTo, kOutlookExpressStringLength, &cntRead);
 
   if (NS_FAILED( rv) || (cntRead != kOutlookExpressStringLength))
-    return( PR_FALSE);
+    return( false);
   buffer[kOutlookExpressStringLength - 1] = 0;
   str.AssignASCII(buffer);
-  return( PR_TRUE);
+  return( true);
 }
 
 bool nsOEScanBoxes::ReadString( nsIInputStream * stream, nsCString& str, PRUint32 offset)
 {
   nsresult  rv;
         nsCOMPtr <nsISeekableStream> seekStream = do_QueryInterface(stream, &rv);
-        NS_ENSURE_SUCCESS(rv, PR_FALSE);
+        NS_ENSURE_SUCCESS(rv, false);
   rv = seekStream->Seek(nsISeekableStream::NS_SEEK_SET, offset);
   if (NS_FAILED( rv))
-    return( PR_FALSE);
+    return( false);
 
   PRUint32  cntRead;
   char  buffer[kOutlookExpressStringLength];
@@ -897,8 +897,8 @@ bool nsOEScanBoxes::ReadString( nsIInputStream * stream, nsCString& str, PRUint3
   rv = stream->Read( pReadTo, kOutlookExpressStringLength, &cntRead);
 
   if (NS_FAILED( rv) || (cntRead != kOutlookExpressStringLength))
-    return( PR_FALSE);
+    return( false);
   buffer[kOutlookExpressStringLength - 1] = 0;
   str = buffer;
-  return( PR_TRUE);
+  return( true);
 }

@@ -124,10 +124,10 @@ bool nsMsgKeySet::Grow()
   new_size = m_data_size * 2;
   new_data = (PRInt32 *) PR_REALLOC (m_data, sizeof (PRInt32) * new_size);
   if (! new_data)
-    return PR_FALSE;
+    return false;
   m_data_size = new_size;
   m_data = new_data;
-  return PR_TRUE;
+  return true;
 }
 
 
@@ -405,7 +405,7 @@ void nsMsgKeySet::SetLastMember(PRInt32 newHighWaterMark)
 {
   if (newHighWaterMark < GetLastMember())
   {
-    while (PR_TRUE)
+    while (true)
     {
       if (m_length > 1)
       {
@@ -489,7 +489,7 @@ nsMsgKeySet::GetFirstMember()
    decreasing) but will optimize the compression, for example, merging
    consecutive literals or ranges into one range.
 
-   Returns PR_TRUE if successful, PR_FALSE if there wasn't enough memory to
+   Returns true if successful, false if there wasn't enough memory to
    allocate scratch space.
 
    #### This should be changed to modify the buffer in place.
@@ -513,7 +513,7 @@ nsMsgKeySet::Optimize()
   output_size = input_size + 1;
   input_tail = m_data;
   output_data = (PRInt32 *) PR_Malloc (sizeof (PRInt32) * output_size);
-  if (!output_data) return PR_FALSE;
+  if (!output_data) return false;
 
   output_tail = output_data;
   input_end = input_tail + input_size;
@@ -545,7 +545,7 @@ nsMsgKeySet::Optimize()
     NS_ASSERTION(output_tail < output_end, "invalid end of output string");
     if (output_tail >= output_end) {
       PR_Free(output_data);
-      return PR_FALSE;
+      return false;
     }
 
     /* As long as this chunk is followed by consecutive chunks,
@@ -561,7 +561,7 @@ nsMsgKeySet::Optimize()
         output_tail++;
         output_tail [-2] = 0;
         output_tail [-1] = from;
-        range_p = PR_TRUE;
+        range_p = true;
       }
 
       if (*input_tail > 0) { /* literal */
@@ -602,7 +602,7 @@ nsMsgKeySet::Optimize()
 #ifdef NEWSRC_DOES_HOST_STUFF
   if (m_host) m_host->MarkDirty();
 #endif
-  return PR_TRUE;
+  return true;
 }
 
 
@@ -635,11 +635,11 @@ nsMsgKeySet::IsMember(PRInt32 number)
       PRInt32 to = from + (-(tail[0]));
       if (from > number) {
         /* This range begins after the number - we've passed it. */
-        value = PR_FALSE;
+        value = false;
         goto DONE;
       } else if (to >= number) {
         /* In range. */
-        value = PR_TRUE;
+        value = true;
         goto DONE;
       } else {
         tail += 2;
@@ -649,11 +649,11 @@ nsMsgKeySet::IsMember(PRInt32 number)
       /* it's a literal */
       if (*tail == number) {
         /* bang */
-        value = PR_TRUE;
+        value = true;
         goto DONE;
       } else if (*tail > number) {
         /* This literal is after the number - we've passed it. */
-        value = PR_FALSE;
+        value = false;
         goto DONE;
       } else {
         tail++;
@@ -988,7 +988,7 @@ nsMsgKeySet::AddRange(PRInt32 start, PRInt32 end)
       // No overlap, and we passed it.
       EMIT(start, end);
       EMIT(a, b);
-      didit = PR_TRUE;
+      didit = true;
       break;
     } else {
       // The ranges overlap.  Suck this range into our new range, and
@@ -1278,69 +1278,69 @@ nsMsgKeySet::test_adder (void)
 
   START("0-70,72-99,105,107,110-111,117-200");
 
-  FROB(205, PR_TRUE);
-  FROB(206, PR_TRUE);
-  FROB(207, PR_TRUE);
-  FROB(208, PR_TRUE);
-  FROB(208, PR_TRUE);
-  FROB(109, PR_TRUE);
-  FROB(72, PR_TRUE);
+  FROB(205, true);
+  FROB(206, true);
+  FROB(207, true);
+  FROB(208, true);
+  FROB(208, true);
+  FROB(109, true);
+  FROB(72, true);
 
-  FROB(205, PR_FALSE);
-  FROB(206, PR_FALSE);
-  FROB(207, PR_FALSE);
-  FROB(208, PR_FALSE);
-  FROB(208, PR_FALSE);
-  FROB(109, PR_FALSE);
-  FROB(72, PR_FALSE);
+  FROB(205, false);
+  FROB(206, false);
+  FROB(207, false);
+  FROB(208, false);
+  FROB(208, false);
+  FROB(109, false);
+  FROB(72, false);
 
-  FROB(72, PR_TRUE);
-  FROB(109, PR_TRUE);
-  FROB(208, PR_TRUE);
-  FROB(208, PR_TRUE);
-  FROB(207, PR_TRUE);
-  FROB(206, PR_TRUE);
-  FROB(205, PR_TRUE);
+  FROB(72, true);
+  FROB(109, true);
+  FROB(208, true);
+  FROB(208, true);
+  FROB(207, true);
+  FROB(206, true);
+  FROB(205, true);
 
-  FROB(205, PR_FALSE);
-  FROB(206, PR_FALSE);
-  FROB(207, PR_FALSE);
-  FROB(208, PR_FALSE);
-  FROB(208, PR_FALSE);
-  FROB(109, PR_FALSE);
-  FROB(72, PR_FALSE);
+  FROB(205, false);
+  FROB(206, false);
+  FROB(207, false);
+  FROB(208, false);
+  FROB(208, false);
+  FROB(109, false);
+  FROB(72, false);
 
-  FROB(100, PR_TRUE);
-  FROB(101, PR_TRUE);
-  FROB(102, PR_TRUE);
-  FROB(103, PR_TRUE);
-  FROB(106, PR_TRUE);
-  FROB(104, PR_TRUE);
-  FROB(109, PR_TRUE);
-  FROB(108, PR_TRUE);
+  FROB(100, true);
+  FROB(101, true);
+  FROB(102, true);
+  FROB(103, true);
+  FROB(106, true);
+  FROB(104, true);
+  FROB(109, true);
+  FROB(108, true);
   END();
 
-  START("1-6"); FROB(7, PR_FALSE); END();
-  START("1-6"); FROB(6, PR_FALSE); END();
-  START("1-6"); FROB(5, PR_FALSE); END();
-  START("1-6"); FROB(4, PR_FALSE); END();
-  START("1-6"); FROB(3, PR_FALSE); END();
-  START("1-6"); FROB(2, PR_FALSE); END();
-  START("1-6"); FROB(1, PR_FALSE); END();
-  START("1-6"); FROB(0, PR_FALSE); END();
+  START("1-6"); FROB(7, false); END();
+  START("1-6"); FROB(6, false); END();
+  START("1-6"); FROB(5, false); END();
+  START("1-6"); FROB(4, false); END();
+  START("1-6"); FROB(3, false); END();
+  START("1-6"); FROB(2, false); END();
+  START("1-6"); FROB(1, false); END();
+  START("1-6"); FROB(0, false); END();
 
-  START("1-3"); FROB(1, PR_FALSE); END();
-  START("1-3"); FROB(2, PR_FALSE); END();
-  START("1-3"); FROB(3, PR_FALSE); END();
+  START("1-3"); FROB(1, false); END();
+  START("1-3"); FROB(2, false); END();
+  START("1-3"); FROB(3, false); END();
 
-  START("1,3,5-7,9,10"); FROB(5, PR_FALSE); END();
-  START("1,3,5-7,9,10"); FROB(6, PR_FALSE); END();
-  START("1,3,5-7,9,10"); FROB(7, PR_FALSE); FROB(7, PR_TRUE); FROB(8, PR_TRUE);
-  FROB (4, PR_TRUE); FROB (2, PR_FALSE); FROB (2, PR_TRUE);
+  START("1,3,5-7,9,10"); FROB(5, false); END();
+  START("1,3,5-7,9,10"); FROB(6, false); END();
+  START("1,3,5-7,9,10"); FROB(7, false); FROB(7, true); FROB(8, true);
+  FROB (4, true); FROB (2, false); FROB (2, true);
 
-  FROB (4, PR_FALSE); FROB (5, PR_FALSE); FROB (6, PR_FALSE); FROB (7, PR_FALSE);
-  FROB (8, PR_FALSE); FROB (9, PR_FALSE); FROB (10, PR_FALSE); FROB (3, PR_FALSE);
-  FROB (2, PR_FALSE); FROB (1, PR_FALSE); FROB (1, PR_FALSE); FROB (0, PR_FALSE);
+  FROB (4, false); FROB (5, false); FROB (6, false); FROB (7, false);
+  FROB (8, false); FROB (9, false); FROB (10, false); FROB (3, false);
+  FROB (2, false); FROB (1, false); FROB (1, false); FROB (0, false);
   END();
 }
 
@@ -1537,8 +1537,8 @@ nsMsgKeySet::RunTests ()
 
   test_ranges();
 
-  test_member (PR_FALSE);
-  test_member (PR_TRUE);
+  test_member (false);
+  test_member (true);
 
   // test_newsrc ("/u/montulli/.newsrc");
   /* test_newsrc ("/u/jwz/.newsrc");*/

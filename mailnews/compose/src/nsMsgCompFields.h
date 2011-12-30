@@ -50,7 +50,7 @@
 struct nsMsgRecipient
 {
   nsMsgRecipient() : mPreferFormat(nsIAbPreferMailFormat::unknown),
-                     mProcessed(PR_FALSE) {}
+                     mProcessed(false) {}
 
   nsMsgRecipient(const nsMsgRecipient &other)
   {

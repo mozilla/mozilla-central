@@ -177,12 +177,12 @@ MimeMultipartRelated_initialize(MimeObject* obj)
 {
   MimeMultipartRelated* relobj = (MimeMultipartRelated*) obj;
   relobj->base_url = MimeHeaders_get(obj->headers, HEADER_CONTENT_BASE,
-                     PR_FALSE, PR_FALSE);
+                     false, false);
   /* rhp: need this for supporting Content-Location */
   if (!relobj->base_url)
   {
     relobj->base_url = MimeHeaders_get(obj->headers, HEADER_CONTENT_LOCATION,
-      PR_FALSE, PR_FALSE);
+      false, false);
   }
   /* rhp: need this for supporting Content-Location */
 
@@ -252,7 +252,7 @@ MimeMultipartRelated_finalize (MimeObject *obj)
 
   if (relobj->file_buffer)
   {
-    relobj->file_buffer->Remove(PR_FALSE);
+    relobj->file_buffer->Remove(false);
     relobj->file_buffer = nsnull;
   }
   
@@ -353,17 +353,17 @@ escape_for_mrel_subst(char *inURL)
 static bool
 MimeStartParamExists(MimeObject *obj, MimeObject* child)
 {
-  char *ct = MimeHeaders_get (obj->headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
+  char *ct = MimeHeaders_get (obj->headers, HEADER_CONTENT_TYPE, false, false);
   char *st = (ct
               ? MimeHeaders_get_parameter(ct, HEADER_PARM_START, NULL, NULL)
               : 0);
 
   PR_FREEIF(ct);
   if (!st)
-    return PR_FALSE;
+    return false;
 
   PR_FREEIF(st);
-  return PR_TRUE;
+  return true;
 }
 
 static bool
@@ -372,18 +372,18 @@ MimeThisIsStartPart(MimeObject *obj, MimeObject* child)
   bool rval = false;
   char *ct, *st, *cst;
 
-  ct = MimeHeaders_get (obj->headers, HEADER_CONTENT_TYPE, PR_FALSE, PR_FALSE);
+  ct = MimeHeaders_get (obj->headers, HEADER_CONTENT_TYPE, false, false);
   st = (ct
         ? MimeHeaders_get_parameter(ct, HEADER_PARM_START, NULL, NULL)
         : 0);
 
   PR_FREEIF(ct);
   if (!st)
-    return PR_FALSE;
+    return false;
 
-  cst = MimeHeaders_get(child->headers, HEADER_CONTENT_ID, PR_FALSE, PR_FALSE);
+  cst = MimeHeaders_get(child->headers, HEADER_CONTENT_ID, false, false);
   if (!cst)
-    rval = PR_FALSE;
+    rval = false;
   else
   {
     char *tmp = cst;
@@ -465,10 +465,10 @@ MimeMultipartRelated_output_child_p(MimeObject *obj, MimeObject* child)
        it represents and the part-URL to get it back. */
 
     char* location = MimeHeaders_get(child->headers, HEADER_CONTENT_LOCATION,
-                     PR_FALSE, PR_FALSE);
+                     false, false);
     if (!location) {
       char* tmp = MimeHeaders_get(child->headers, HEADER_CONTENT_ID,
-                    PR_FALSE, PR_FALSE);
+                    false, false);
       if (tmp) {
         char* tmp2 = tmp;
         if (*tmp2 == '<') {
@@ -487,7 +487,7 @@ MimeMultipartRelated_output_child_p(MimeObject *obj, MimeObject* child)
     if (location) {
       char *absolute;
       char *base_url = MimeHeaders_get(child->headers, HEADER_CONTENT_BASE,
-                       PR_FALSE, PR_FALSE);
+                       false, false);
       absolute = MakeAbsoluteURL(base_url ? base_url : relobj->base_url, location);
 
       PR_FREEIF(base_url);
@@ -522,11 +522,11 @@ MimeMultipartRelated_output_child_p(MimeObject *obj, MimeObject* child)
               no_part_url = mime_get_base_url(obj->options->url);
             if (no_part_url)
             {
-              part = mime_set_url_part(no_part_url, partnum.get(), PR_FALSE);
+              part = mime_set_url_part(no_part_url, partnum.get(), false);
               PR_Free(no_part_url);
             }
             else
-              part = mime_set_url_part(obj->options->url, partnum.get(), PR_FALSE);
+              part = mime_set_url_part(obj->options->url, partnum.get(), false);
           }
           if (part)
           {
@@ -552,7 +552,7 @@ MimeMultipartRelated_output_child_p(MimeObject *obj, MimeObject* child)
              */
             {
               char *tloc;
-              char *tmp = MimeHeaders_get(child->headers, HEADER_CONTENT_ID, PR_FALSE, PR_FALSE);
+              char *tmp = MimeHeaders_get(child->headers, HEADER_CONTENT_ID, false, false);
               if (tmp)
               {
                 char* tmp2 = tmp;
@@ -598,15 +598,15 @@ MimeMultipartRelated_output_child_p(MimeObject *obj, MimeObject* child)
   } else {
     /* Ah-hah!  We're the head object.  */
     char* base_url;
-    relobj->head_loaded = PR_TRUE;
+    relobj->head_loaded = true;
     relobj->headobj = child;
     relobj->buffered_hdrs = MimeHeaders_copy(child->headers);
     base_url = MimeHeaders_get(child->headers, HEADER_CONTENT_BASE,
-                   PR_FALSE, PR_FALSE);
+                   false, false);
     /* rhp: need this for supporting Content-Location */
     if (!base_url)
     {
-      base_url = MimeHeaders_get(child->headers, HEADER_CONTENT_LOCATION, PR_FALSE, PR_FALSE);
+      base_url = MimeHeaders_get(child->headers, HEADER_CONTENT_LOCATION, false, false);
     }
     /* rhp: need this for supporting Content-Location */
 
@@ -624,10 +624,10 @@ MimeMultipartRelated_output_child_p(MimeObject *obj, MimeObject* child)
 #endif /* MIME_DRAFTS */
     )
     {
-    return PR_TRUE;
+    return true;
     }
 
-  return PR_FALSE;      /* Don't actually parse this child; we'll handle
+  return false;      /* Don't actually parse this child; we'll handle
                  all that at eof time. */
 }
 
@@ -811,14 +811,14 @@ push_tag(MimeMultipartRelated* relobj, const char* buf, PRInt32 size)
 static bool accept_related_part(MimeMultipartRelated* relobj, MimeObject* part_obj)
 {
   if (!relobj || !part_obj)
-    return PR_FALSE;
+    return false;
 
   /* before accepting it as a valid related part, make sure we
      are able to display it inline as an embedded object. Else just ignore
      it, that will prevent any bad surprise... */
-  MimeObjectClass *clazz = mime_find_class (part_obj->content_type, part_obj->headers, part_obj->options, PR_FALSE);
-  if (clazz ? clazz->displayable_inline_p(clazz, part_obj->headers) : PR_FALSE)
-    return PR_TRUE;
+  MimeObjectClass *clazz = mime_find_class (part_obj->content_type, part_obj->headers, part_obj->options, false);
+  if (clazz ? clazz->displayable_inline_p(clazz, part_obj->headers) : false)
+    return true;
 
   /* ...but we always accept it if it's referenced by an anchor */
   return (relobj->curtag && relobj->curtag_length >= 3 &&
@@ -918,7 +918,7 @@ flush_tag(MimeMultipartRelated* relobj)
 
           /* don't show that object as attachment */
           if (value->m_obj)
-            value->m_obj->dontShowAsAttachment = PR_TRUE;
+            value->m_obj->dontShowAsAttachment = true;
         }
 
         /* Restore the character that we nulled. */
@@ -955,7 +955,7 @@ flush_tag(MimeMultipartRelated* relobj)
 
           /* don't show that object as attachment */
           if (value->m_obj)
-            value->m_obj->dontShowAsAttachment = PR_TRUE;
+            value->m_obj->dontShowAsAttachment = true;
         }
       }
       /* rhp - if we get here, we should still check against the hash table! */
@@ -1045,7 +1045,7 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, bool abort_p)
 
   ct = (relobj->buffered_hdrs
       ? MimeHeaders_get (relobj->buffered_hdrs, HEADER_CONTENT_TYPE,
-               PR_TRUE, PR_FALSE)
+               true, false)
       : 0);
   dct = (((MimeMultipartClass *) obj->clazz)->default_part_type);
 
@@ -1180,9 +1180,9 @@ MimeMultipartRelated_parse_eof (MimeObject *obj, bool abort_p)
   if (status < 0) goto FAIL;
 
   /* Done parsing. */
-  status = body->clazz->parse_eof(body, PR_FALSE);
+  status = body->clazz->parse_eof(body, false);
   if (status < 0) goto FAIL;
-  status = body->clazz->parse_end(body, PR_FALSE);
+  status = body->clazz->parse_end(body, false);
   if (status < 0) goto FAIL;
 
 FAIL:

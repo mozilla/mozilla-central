@@ -82,9 +82,9 @@ nsProfileMigrator::Migrate(nsIProfileStartup* aStartup)
   nsCOMPtr<nsIMutableArray> params (do_CreateInstance(NS_ARRAY_CONTRACTID));
   if (!ww || !params) return NS_ERROR_FAILURE;
 
-  params->AppendElement(cstr, PR_FALSE);
-  params->AppendElement(mailMigrator, PR_FALSE);
-  params->AppendElement(aStartup, PR_FALSE);
+  params->AppendElement(cstr, false);
+  params->AppendElement(mailMigrator, false);
+  params->AppendElement(aStartup, false);
 
   nsCOMPtr<nsIDOMWindow> migrateWizard;
   return ww->OpenWindow(nsnull,

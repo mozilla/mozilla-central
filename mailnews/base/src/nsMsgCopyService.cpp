@@ -56,14 +56,14 @@ static PRLogModuleInfo *gCopyServiceLog;
 // ******************** nsCopySource ******************
 //
 
-nsCopySource::nsCopySource() : m_processed(PR_FALSE)
+nsCopySource::nsCopySource() : m_processed(false)
 {
   MOZ_COUNT_CTOR(nsCopySource);
   m_messageArray = do_CreateInstance(NS_ARRAY_CONTRACTID);
 }
 
 nsCopySource::nsCopySource(nsIMsgFolder* srcFolder) :
-    m_processed(PR_FALSE)
+    m_processed(false)
 {
   MOZ_COUNT_CTOR(nsCopySource);
   m_messageArray = do_CreateInstance(NS_ARRAY_CONTRACTID);
@@ -77,7 +77,7 @@ nsCopySource::~nsCopySource()
 
 void nsCopySource::AddMessage(nsIMsgDBHdr* aMsg)
 {
-  m_messageArray->AppendElement(aMsg, PR_FALSE);
+  m_messageArray->AppendElement(aMsg, false);
 }
 
 // ************ nsCopyRequest *****************
@@ -85,8 +85,8 @@ void nsCopySource::AddMessage(nsIMsgDBHdr* aMsg)
 
 nsCopyRequest::nsCopyRequest() :
     m_requestType(nsCopyMessagesType),
-    m_isMoveOrDraftOrTemplate(PR_FALSE),
-    m_processed(PR_FALSE),
+    m_isMoveOrDraftOrTemplate(false),
+    m_processed(false),
     m_newMsgFlags(0)
 {
   MOZ_COUNT_CTOR(nsCopyRequest);
@@ -150,7 +150,7 @@ nsCopyRequest::AddNewCopySource(nsIMsgFolder* srcFolder)
   {
       m_copySourceArray.AppendElement(newSrc);
       if (srcFolder == m_dstFolder)
-        newSrc->m_processed = PR_TRUE;
+        newSrc->m_processed = true;
   }
   return newSrc;
 }
@@ -254,7 +254,7 @@ nsMsgCopyService::QueueRequest(nsCopyRequest* aRequest, bool *aCopyImmediately)
 {
   NS_ENSURE_ARG_POINTER(aRequest);
   NS_ENSURE_ARG_POINTER(aCopyImmediately);
-  *aCopyImmediately = PR_TRUE;
+  *aCopyImmediately = true;
   nsCopyRequest* copyRequest;
 
   PRUint32 cnt = m_copyRequests.Length();
@@ -268,13 +268,13 @@ nsMsgCopyService::QueueRequest(nsCopyRequest* aRequest, bool *aCopyImmediately)
       if (copyRequest->m_dstFolderName == aRequest->m_dstFolderName &&
           copyRequest->m_dstFolder.get() == aRequest->m_dstFolder.get())
       {
-        *aCopyImmediately = PR_FALSE;
+        *aCopyImmediately = false;
         break;
       }
     }
     else if (copyRequest->m_dstFolder.get() == aRequest->m_dstFolder.get())  //if dst are same and we already have a request, we cannot copy immediately
     {
-      *aCopyImmediately = PR_FALSE;
+      *aCopyImmediately = false;
       break;
     }
   }
@@ -335,7 +335,7 @@ nsMsgCopyService::DoNextCopy()
             goto found;
         }
         if (j >= scnt) // all processed set the value
-          copyRequest->m_processed = PR_TRUE;
+          copyRequest->m_processed = true;
       }
       if (copyRequest->m_processed) // keep track of folders actively getting copied to.
         activeTargets.AppendObject(copyRequest->m_dstFolder);
@@ -348,16 +348,16 @@ nsMsgCopyService::DoNextCopy()
           if (copyRequest->m_requestType == nsCopyMessagesType &&
               copySource)
           {
-              copySource->m_processed = PR_TRUE;
+              copySource->m_processed = true;
               rv = copyRequest->m_dstFolder->CopyMessages
                   (copySource->m_msgFolder, copySource->m_messageArray,
                    copyRequest->m_isMoveOrDraftOrTemplate,
-                   copyRequest->m_msgWindow, copyRequest->m_listener, PR_FALSE, copyRequest->m_allowUndo);   //isFolder operation PR_FALSE
+                   copyRequest->m_msgWindow, copyRequest->m_listener, false, copyRequest->m_allowUndo);   //isFolder operation false
 
           }
           else if (copyRequest->m_requestType == nsCopyFoldersType )
           {
-              copySource->m_processed = PR_TRUE;
+              copySource->m_processed = true;
               rv = copyRequest->m_dstFolder->CopyFolder
                   (copySource->m_msgFolder,
                    copyRequest->m_isMoveOrDraftOrTemplate,
@@ -382,9 +382,9 @@ nsMsgCopyService::DoNextCopy()
                 {
                     aMessage = do_QueryElementAt(copySource->m_messageArray,
                                                  0, &rv);
-                    copySource->m_processed = PR_TRUE;
+                    copySource->m_processed = true;
                 }
-                copyRequest->m_processed = PR_TRUE;
+                copyRequest->m_processed = true;
                 rv = copyRequest->m_dstFolder->CopyFileMessage
                     (aFile, aMessage,
                      copyRequest->m_isMoveOrDraftOrTemplate,
@@ -596,7 +596,7 @@ nsMsgCopyService::CopyFolders(nsIArray* folders,
   if (!copyRequest) return NS_ERROR_OUT_OF_MEMORY;
 
   rv = copyRequest->Init(nsCopyFoldersType, support, dstFolder,
-    isMove, 0 /* new msg flags, not used */ , EmptyCString(), listener, window, PR_FALSE);
+    isMove, 0 /* new msg flags, not used */ , EmptyCString(), listener, window, false);
   NS_ENSURE_SUCCESS(rv, rv);
 
   curFolder = do_QueryInterface(support, &rv);
@@ -644,7 +644,7 @@ nsMsgCopyService::CopyFileMessage(nsIFile* file,
   if (NS_FAILED(rv)) goto done;
 
   rv = copyRequest->Init(nsCopyFileMessageType, fileSupport, dstFolder,
-                         isDraft, aMsgFlags, aNewMsgKeywords, listener, window, PR_FALSE);
+                         isDraft, aMsgFlags, aNewMsgKeywords, listener, window, false);
   if (NS_FAILED(rv)) goto done;
 
   if (msgToReplace)
@@ -712,7 +712,7 @@ nsMsgCopyService::NotifyCompletion(nsISupports* aSupport,
       }
       // if all sources processed, mark the request as processed
       if (sourceIndex >= sourceCount)
-        copyRequest->m_processed = PR_TRUE;
+        copyRequest->m_processed = true;
       // if this request is done, or failed, clear it.
       if (copyRequest->m_processed || NS_FAILED(result))
       {

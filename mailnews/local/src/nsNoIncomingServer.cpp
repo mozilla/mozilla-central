@@ -225,7 +225,7 @@ NS_IMETHODIMP
 nsNoIncomingServer::GetCanSearchMessages(bool *canSearchMessages)
 {
   NS_ENSURE_ARG_POINTER(canSearchMessages);
-  *canSearchMessages = PR_TRUE;
+  *canSearchMessages = true;
   return NS_OK;
 }
 
@@ -233,7 +233,7 @@ NS_IMETHODIMP
 nsNoIncomingServer::GetServerRequiresPasswordForBiff(bool *aServerRequiresPasswordForBiff)
 {
   NS_ENSURE_ARG_POINTER(aServerRequiresPasswordForBiff);
-  *aServerRequiresPasswordForBiff = PR_FALSE;  // for local folders, we don't require a password
+  *aServerRequiresPasswordForBiff = false;  // for local folders, we don't require a password
   return NS_OK;
 }
 

@@ -55,8 +55,8 @@
 
 NS_IMPL_ISUPPORTS_INHERITED1(nsLocalMoveCopyMsgTxn, nsMsgTxn, nsIFolderListener)
 
-nsLocalMoveCopyMsgTxn::nsLocalMoveCopyMsgTxn()  : m_srcIsImap4(PR_FALSE),
-  m_canUndelete(PR_FALSE)
+nsLocalMoveCopyMsgTxn::nsLocalMoveCopyMsgTxn()  : m_srcIsImap4(false),
+  m_canUndelete(false)
 {
 }
 
@@ -79,7 +79,7 @@ nsLocalMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsIMsgFolder* dstFolder,
     rv = srcFolder->GetURI(protocolType);
     protocolType.SetLength(protocolType.FindChar(':'));
     if (MsgLowerCaseEqualsLiteral(protocolType, "imap"))
-      m_srcIsImap4 = PR_TRUE;
+      m_srcIsImap4 = true;
     return nsMsgTxn::Init();
 }
 nsresult 
@@ -168,14 +168,14 @@ nsLocalMoveCopyMsgTxn::UndoImapDeleteFlag(nsIMsgFolder* folder,
                                           urlListener, nsnull,
                                           msgIds,
                                           kImapMsgDeletedFlag,
-                                          PR_TRUE);
+                                          true);
       else
           rv = imapService->SubtractMessageFlags(thread,
                                                 folder,
                                            urlListener, nsnull,
                                            msgIds,
                                            kImapMsgDeletedFlag,
-                                           PR_TRUE);
+                                           true);
       if (NS_SUCCEEDED(rv) && m_msgWindow)
           folder->UpdateFolder(m_msgWindow);
     }
@@ -290,7 +290,7 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
         if (NS_SUCCEEDED(rv) && oldHdr)
         {
           rv = srcDB->CopyHdrFromExistingHdr(m_srcKeyArray[i],
-                                             oldHdr, PR_TRUE,
+                                             oldHdr, true,
                                              getter_AddRefs(newHdr));
           NS_ASSERTION(newHdr, 
                        "fatal ... cannot create new msg header\n");
@@ -298,9 +298,9 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
           {
             newHdr->SetStatusOffset(m_srcStatusOffsetArray[i]);
             srcDB->UndoDelete(newHdr);
-            srcMessages->AppendElement(newHdr, PR_FALSE);
+            srcMessages->AppendElement(newHdr, false);
             // (we want to keep these two lists in sync)
-            dstMessages->AppendElement(oldHdr, PR_FALSE);
+            dstMessages->AppendElement(oldHdr, false);
           }
         }
       }
@@ -312,7 +312,7 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
       {
         // Remember that we're actually moving things back from the destination
         //  to the source!
-        notifier->NotifyMsgsMoveCopyCompleted(PR_TRUE, dstMessages,
+        notifier->NotifyMsgsMoveCopyCompleted(true, dstMessages,
                                               srcFolder, srcMessages);
       }
 
@@ -335,21 +335,21 @@ nsLocalMoveCopyMsgTxn::UndoTransactionInternal()
         {
           nsCString messageId;
           dstHdr->GetMessageId(getter_Copies(messageId));
-          dstMessages->AppendElement(dstHdr, PR_FALSE);
+          dstMessages->AppendElement(dstHdr, false);
           m_copiedMsgIds.AppendElement(messageId);
         }
       }
       srcFolder->AddFolderListener(this);
-      m_undoing = PR_TRUE;
+      m_undoing = true;
       return srcFolder->CopyMessages(dstFolder, dstMessages,
-                                     PR_TRUE, nsnull, nsnull, PR_FALSE,
-                                     PR_FALSE);
+                                     true, nsnull, nsnull, false,
+                                     false);
     }
-    srcDB->SetSummaryValid(PR_TRUE);
+    srcDB->SetSummaryValid(true);
   }
 
   dstDB->DeleteMessages(m_dstKeyArray.Length(), m_dstKeyArray.Elements(), nsnull);
-  dstDB->SetSummaryValid(PR_TRUE);
+  dstDB->SetSummaryValid(true);
 
   return rv;
 }
@@ -389,12 +389,12 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
     if (NS_SUCCEEDED(rv) && oldHdr)
     {
       msgSupports =do_QueryInterface(oldHdr);
-      srcMessages->AppendElement(msgSupports, PR_FALSE);
+      srcMessages->AppendElement(msgSupports, false);
       
       if (m_canUndelete)
       {
       rv = dstDB->CopyHdrFromExistingHdr(m_dstKeyArray[i],
-                                         oldHdr, PR_TRUE,
+                                         oldHdr, true,
                                          getter_AddRefs(newHdr));
       NS_ASSERTION(newHdr, "fatal ... cannot get new msg header\n");
       if (NS_SUCCEEDED(rv) && newHdr)
@@ -406,7 +406,7 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
     }
   }
   }
-  dstDB->SetSummaryValid(PR_TRUE);
+  dstDB->SetSummaryValid(true);
 
   if (m_isMove)
   {
@@ -429,7 +429,7 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
         localFolder->MarkMsgsOnPop3Server(srcMessages, POP3_DELETE /*deleteMsgs*/);
 
       rv = srcDB->DeleteMessages(m_srcKeyArray.Length(), m_srcKeyArray.Elements(), nsnull);
-      srcDB->SetSummaryValid(PR_TRUE);
+      srcDB->SetSummaryValid(true);
     }
     else
     {
@@ -448,9 +448,9 @@ nsLocalMoveCopyMsgTxn::RedoTransaction()
         }
       }
       dstFolder->AddFolderListener(this);
-      m_undoing = PR_FALSE;
-      return dstFolder->CopyMessages(srcFolder, srcMessages, PR_TRUE, nsnull,
-                                     nsnull, PR_FALSE, PR_FALSE);
+      m_undoing = false;
+      return dstFolder->CopyMessages(srcFolder, srcMessages, true, nsnull,
+                                     nsnull, false, false);
     }
   }
 

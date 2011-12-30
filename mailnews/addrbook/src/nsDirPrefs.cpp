@@ -201,7 +201,7 @@ static nsresult DIR_GetDirServers()
 
       NS_ADDREF(prefObserver);
 
-      pbi->AddObserver(PREF_LDAP_SERVER_TREE_NAME, prefObserver, PR_TRUE);
+      pbi->AddObserver(PREF_LDAP_SERVER_TREE_NAME, prefObserver, true);
     }
   }
   return rv;
@@ -280,12 +280,12 @@ nsresult DIR_ContainsServer(DIR_Server* pServer, bool *hasDir)
       DIR_Server* server = (DIR_Server *)(dir_ServerList->ElementAt(i));
       if (server == pServer)
       {
-        *hasDir = PR_TRUE;
+        *hasDir = true;
         return NS_OK;
       }
     }
   }
-  *hasDir = PR_FALSE;
+  *hasDir = false;
   return NS_OK;
 }
 
@@ -348,7 +348,7 @@ static void DIR_InitServer(DIR_Server *server, DirectoryType dirType)
   memset(server, 0, sizeof(DIR_Server));
   server->position = kDefaultPosition;
   server->uri = nsnull;
-  server->savingServer = PR_FALSE;
+  server->savingServer = false;
   server->dirType = dirType;
 }
 
@@ -364,11 +364,11 @@ static void DIR_InitServer(DIR_Server *server, DirectoryType dirType)
  *   DIR_POS_DELETE - Deletes the given server from the list.  Note that this
  *                    does not cause the server structure to be freed.
  *
- * Returns PR_TRUE if the server list was re-sorted.
+ * Returns true if the server list was re-sorted.
  */
 static bool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, PRInt32 position)
  {
-   NS_ENSURE_TRUE(wholeList, PR_FALSE);
+   NS_ENSURE_TRUE(wholeList, false);
 
    PRInt32    i, count, num;
    bool       resort = false;
@@ -384,7 +384,7 @@ static bool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, PR
      {
        if  ((s = (DIR_Server *)wholeList->ElementAt(i)) != nsnull)
          if (s == server)
-           return PR_FALSE;
+           return false;
      }
      /* In general, if there are any servers already in the list, set the
      * position to the position of the last server plus one.  If there
@@ -411,7 +411,7 @@ static bool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, PR
        nsresult rv;
        nsCOMPtr<nsIPrefBranch> pPref(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
        if (NS_FAILED(rv))
-         return PR_FALSE;
+         return false;
 
        pPref->DeleteBranch(server->prefName);
 
@@ -434,7 +434,7 @@ static bool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, PR
        }
        else
        {
-         resort = PR_TRUE;
+         resort = true;
          wholeList->RemoveElement(server);
        }
      }
@@ -457,7 +457,7 @@ static bool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, PR
      {
        server->position = position;
        wholeList->AppendElement(server);
-       resort = PR_TRUE;
+       resort = true;
      }
      
        /* Don't re-sort if the server is already in the requested position.
@@ -467,7 +467,7 @@ static bool DIR_SetServerPosition(nsVoidArray *wholeList, DIR_Server *server, PR
        server->position = position;
        wholeList->RemoveElement(server);
        wholeList->AppendElement(server);
-       resort = PR_TRUE;
+       resort = true;
      }
      break;
         }
@@ -545,7 +545,7 @@ static bool dir_ValidateAndAddNewServer(nsVoidArray *wholeList, const char *full
             server->prefName = prefname;
             DIR_GetPrefsForOneServer(server);
             DIR_SetServerPosition(wholeList, server, server->position);
-            rc = PR_TRUE;
+            rc = true;
           }
           PR_FREEIF(t2);
         }
@@ -679,11 +679,11 @@ nsresult DIR_DeleteServerFromList(DIR_Server *server)
                do_GetService(NS_ADDRDATABASE_CONTRACTID, &rv);
 
       if (NS_SUCCEEDED(rv) && addrDBFactory)
-        rv = addrDBFactory->Open(dbPath, PR_FALSE, PR_TRUE, getter_AddRefs(database));
+        rv = addrDBFactory->Open(dbPath, false, true, getter_AddRefs(database));
       if (database)  /* database exists */
       {
         database->ForceClosed();
-        rv = dbPath->Remove(PR_FALSE);
+        rv = dbPath->Remove(false);
         NS_ENSURE_SUCCESS(rv, rv);
       }
     }
@@ -1066,7 +1066,7 @@ static char *dir_CreateServerPrefName (DIR_Server *server)
         char **children = nsnull;
     /* we need to verify that this pref string name is unique */
     prefName = PR_smprintf(PREF_LDAP_SERVER_TREE_NAME".%s", leafName);
-    isUnique = PR_FALSE;
+    isUnique = false;
     PRUint32 prefCount;
     nsresult rv = dir_GetChildList(NS_LITERAL_CSTRING(PREF_LDAP_SERVER_TREE_NAME "."),
                                    &prefCount, &children);
@@ -1074,11 +1074,11 @@ static char *dir_CreateServerPrefName (DIR_Server *server)
     {
       while (!isUnique && prefName)
       {
-        isUnique = PR_TRUE; /* now flip the logic and assume we are unique until we find a match */
+        isUnique = true; /* now flip the logic and assume we are unique until we find a match */
         for (PRUint32 i = 0; i < prefCount && isUnique; ++i)
         {
           if (!PL_strcasecmp(children[i], prefName)) /* are they the same branch? */
-            isUnique = PR_FALSE;
+            isUnique = false;
         }
         if (!isUnique) /* then try generating a new pref name and try again */
         {
@@ -1436,7 +1436,7 @@ void DIR_SavePrefsForOneServer(DIR_Server *server)
     server->prefName = dir_CreateServerPrefName(server);
   prefstring = server->prefName;
 
-  server->savingServer = PR_TRUE;
+  server->savingServer = true;
 
   DIR_SetIntPref (prefstring, "position", server->position, kDefaultPosition);
 
@@ -1449,7 +1449,7 @@ void DIR_SavePrefsForOneServer(DIR_Server *server)
   if (server->dirType != PABDirectory)
     DIR_SetStringPref(prefstring, "uri", server->uri, "");
 
-  server->savingServer = PR_FALSE;
+  server->savingServer = false;
 }
 
 static void DIR_SaveServerPreferences(nsVoidArray *wholeList)

@@ -83,44 +83,44 @@ public:
 class SimpleBufferTonyRCopiedOnce {
 public:
   SimpleBufferTonyRCopiedOnce() {m_pBuffer = nsnull; m_size = 0; m_growBy = 4096; m_writeOffset = 0;
-          m_bytesInBuf = 0; m_convertCRs = PR_FALSE;}
+          m_bytesInBuf = 0; m_convertCRs = false;}
   ~SimpleBufferTonyRCopiedOnce() { if (m_pBuffer) delete [] m_pBuffer;}
 
   bool Allocate( PRInt32 sz) {
     if (m_pBuffer) delete [] m_pBuffer;
     m_pBuffer = new char[sz];
-    if (m_pBuffer) { m_size = sz; return( PR_TRUE); }
-    else { m_size = 0; return( PR_FALSE);}
+    if (m_pBuffer) { m_size = sz; return( true); }
+    else { m_size = 0; return( false);}
   }
 
   bool Grow( PRInt32 newSize) { if (newSize > m_size) return( ReAllocate( newSize)); else return( true);}
   bool ReAllocate( PRInt32 newSize) {
-    if (newSize <= m_size) return( PR_TRUE);
+    if (newSize <= m_size) return( true);
     char *pOldBuffer = m_pBuffer;
     PRInt32  oldSize = m_size;
     m_pBuffer = nsnull;
     while (m_size < newSize) m_size += m_growBy;
     if (Allocate( m_size)) {
       if (pOldBuffer) { memcpy( m_pBuffer, pOldBuffer, oldSize); delete [] pOldBuffer;}
-      return( PR_TRUE);
+      return( true);
     }
-    else { m_pBuffer = pOldBuffer; m_size = oldSize; return( PR_FALSE);}
+    else { m_pBuffer = pOldBuffer; m_size = oldSize; return( false);}
   }
 
   bool Write( PRInt32 offset, const char *pData, PRInt32 len, PRInt32 *pWritten) {
     *pWritten = len;
-    if (!len) return( PR_TRUE);
-    if (!Grow( offset + len)) return( PR_FALSE);
+    if (!len) return( true);
+    if (!Grow( offset + len)) return( false);
     if (m_convertCRs)
       return( SpecialMemCpy( offset, pData, len, pWritten));
     memcpy( m_pBuffer + offset, pData, len);
-    return( PR_TRUE);
+    return( true);
   }
 
   bool Write( const char *pData, PRInt32 len) {
     PRInt32 written;
-    if (Write( m_writeOffset, pData, len, &written)) { m_writeOffset += written; return( PR_TRUE);}
-    else return( PR_FALSE);
+    if (Write( m_writeOffset, pData, len, &written)) { m_writeOffset += written; return( true);}
+    else return( false);
   }
 
   bool    SpecialMemCpy( PRInt32 offset, const char *pData, PRInt32 len, PRInt32 *pWritten);
@@ -161,7 +161,7 @@ private:
   void    GetHeaderValue( const char *pData, PRInt32 dataLen, const char *pHeader, nsString& val) {
     val.Truncate();
     nsCString  hVal;
-    GetHeaderValue( pData, dataLen, pHeader, hVal, PR_TRUE);
+    GetHeaderValue( pData, dataLen, pHeader, hVal, true);
     NS_CopyNativeToUnicode( hVal, val);
   }
   void    ExtractCharset( nsString& str);

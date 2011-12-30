@@ -68,7 +68,7 @@
 void
 morkCell::SetYarn(morkEnv* ev, const mdbYarn* inYarn, morkStore* ioStore)
 {
-  morkAtom* atom = ioStore->YarnToAtom(ev, inYarn, PR_TRUE /* create */);
+  morkAtom* atom = ioStore->YarnToAtom(ev, inYarn, true /* create */);
   if ( atom )
     this->SetAtom(ev, atom, ioStore->StorePool()); // refcounts atom
 }

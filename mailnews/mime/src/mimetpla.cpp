@@ -142,7 +142,7 @@ MimeInlineTextPlain_parse_begin (MimeObject *obj)
       // Get the prefs
 
       // Quoting
-      text->mBlockquoting = PR_TRUE; // mail.quoteasblock
+      text->mBlockquoting = true; // mail.quoteasblock
 
       // Viewing
       text->mQuotedSizeSetting = 0;   // mail.quoted_size
@@ -234,7 +234,7 @@ MimeInlineTextPlain_parse_begin (MimeObject *obj)
       status = MimeObject_write_separator(obj);
       if (status < 0) return status;
 
-      status = MimeObject_write(obj, openingDiv.get(), openingDiv.Length(), PR_TRUE);
+      status = MimeObject_write(obj, openingDiv.get(), openingDiv.Length(), true);
       if (status < 0) return status;
     }
   }
@@ -279,14 +279,14 @@ MimeInlineTextPlain_parse_eof (MimeObject *obj, bool abort_p)
       MimeInlineTextPlain *text = (MimeInlineTextPlain *) obj;
       if (text->mIsSig && !quoting)
       {
-        status = MimeObject_write(obj, "</div>", 6, PR_FALSE);  // .moz-txt-sig
+        status = MimeObject_write(obj, "</div>", 6, false);  // .moz-txt-sig
         if (status < 0) return status;
       }
-      status = MimeObject_write(obj, "</pre>", 6, PR_FALSE);
+      status = MimeObject_write(obj, "</pre>", 6, false);
       if (status < 0) return status;
       if (!quoting)
       {
-        status = MimeObject_write(obj, "</div>", 6, PR_FALSE);
+        status = MimeObject_write(obj, "</div>", 6, false);
                                         // .moz-text-plain
         if (status < 0) return status;
       }
@@ -436,7 +436,7 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
         && Substring(lineSourceStr, 0, 3).EqualsLiteral("-- ")
         && (lineSourceStr[3] == '\r' || lineSourceStr[3] == '\n') )
     {
-      text->mIsSig = PR_TRUE;
+      text->mIsSig = true;
       if (!quoting)
         prefaceResultStr += "<div class=\"moz-txt-sig\">";
     }
@@ -452,7 +452,7 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
 
     if (!(text->mIsSig && quoting))
     {
-      status = MimeObject_write(obj, prefaceResultStr.get(), prefaceResultStr.Length(), PR_TRUE);
+      status = MimeObject_write(obj, prefaceResultStr.get(), prefaceResultStr.Length(), true);
       if (status < 0) return status;
       nsCAutoString outString;
       if (obj->options->format_out != nsMimeOutput::nsMimeMessageSaveAs ||
@@ -465,7 +465,7 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
         NS_ENSURE_SUCCESS(rv, -1);
       }
 
-      status = MimeObject_write(obj, outString.get(), outString.Length(), PR_TRUE);
+      status = MimeObject_write(obj, outString.get(), outString.Length(), true);
     }
     else
     {
@@ -474,7 +474,7 @@ MimeInlineTextPlain_parse_line (const char *line, PRInt32 length, MimeObject *ob
   }
   else
   {
-    status = MimeObject_write(obj, line, length, PR_TRUE);
+    status = MimeObject_write(obj, line, length, true);
   }
 
   return status;

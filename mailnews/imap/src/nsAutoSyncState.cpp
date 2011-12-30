@@ -77,7 +77,7 @@ bool MsgStrategyComparatorAdaptor::Equals(const nsMsgKey& a, const nsMsgKey& b) 
       return (decision == nsAutoSyncStrategyDecisions::Same);
   }
   
-  return PR_FALSE;
+  return false;
 }
 
 /** @return True if (a < b); false otherwise. */
@@ -102,14 +102,14 @@ bool MsgStrategyComparatorAdaptor::LessThan(const nsMsgKey& a, const nsMsgKey& b
       return (decision == nsAutoSyncStrategyDecisions::Lower);
   }
   
-  return PR_FALSE;
+  return false;
 }
 
 nsAutoSyncState::nsAutoSyncState(nsImapMailFolder *aOwnerFolder, PRTime aLastSyncTime)
   : mSyncState(stCompletedIdle), mOffset(0U), mLastOffset(0U), mLastServerTotal(0),
     mLastServerRecent(0), mLastServerUnseen(0), mLastNextUID(0),
     mLastSyncTime(aLastSyncTime), mLastUpdateTime(0UL), mProcessPointer(0U),
-    mIsDownloadQChanged(PR_FALSE), mRetryCounter(0U)
+    mIsDownloadQChanged(false), mRetryCounter(0U)
 {
   mOwnerFolder = do_GetWeakReference(static_cast<nsIMsgImapMailFolder*>(aOwnerFolder));
 }
@@ -171,7 +171,7 @@ nsresult nsAutoSyncState::PlaceIntoDownloadQ(const nsTArray<nsMsgKey> &aMsgKeyLi
           
           if (NS_SUCCEEDED(rv) && !excluded)
           {
-            mIsDownloadQChanged = PR_TRUE;
+            mIsDownloadQChanged = true;
             mDownloadQ.AppendElement(aMsgKeyList[idx]);
           }
         }
@@ -268,7 +268,7 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
           : SortQueueBasedOnStrategy(mDownloadQ);
 
         if (NS_SUCCEEDED(rv))
-          mIsDownloadQChanged = PR_FALSE;
+          mIsDownloadQChanged = false;
       }
 
       nsCOMPtr<nsIAutoSyncManager> autoSyncMgr = do_GetService(NS_AUTOSYNCMANAGER_CONTRACTID, &rv);
@@ -323,7 +323,7 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
         if (!*aActualGroupSize && msgSize >= aSuggestedGroupSizeLimit) 
         {
           *aActualGroupSize = msgSize;
-          group->AppendElement(qhdr, PR_FALSE);
+          group->AppendElement(qhdr, false);
           idx++;
           break;
         }
@@ -331,7 +331,7 @@ NS_IMETHODIMP nsAutoSyncState::GetNextGroupOfMessages(PRUint32 aSuggestedGroupSi
           break;
         else
         {
-          group->AppendElement(qhdr, PR_FALSE);
+          group->AppendElement(qhdr, false);
           *aActualGroupSize += msgSize;
         }
       }// endfor
@@ -622,7 +622,7 @@ NS_IMETHODIMP nsAutoSyncState::ResetDownloadQ()
 NS_IMETHODIMP nsAutoSyncState::IsSibling(nsIAutoSyncState *aAnotherStateObj, bool *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  *aResult = PR_FALSE;
+  *aResult = false;
 
   nsresult rv;
   nsCOMPtr<nsIMsgFolder> folderA, folderB;

@@ -52,7 +52,7 @@ fCurrentLine(nsnull),
 fLineOfTokens(nsnull),
 fStartOfLineOfTokens(nsnull),
 fCurrentTokenPlaceHolder(nsnull),
-fAtEndOfLine(PR_FALSE),
+fAtEndOfLine(false),
 fParserState(stateOK)
 {
 }
@@ -65,7 +65,7 @@ nsIMAPGenericParser::~nsIMAPGenericParser()
 
 void nsIMAPGenericParser::HandleMemoryFailure()
 {
-  SetConnected(PR_FALSE);
+  SetConnected(false);
 }
 
 void nsIMAPGenericParser::ResetLexAnalyzer()
@@ -74,7 +74,7 @@ void nsIMAPGenericParser::ResetLexAnalyzer()
   PR_FREEIF( fStartOfLineOfTokens );
   
   fNextToken = fCurrentLine = fLineOfTokens = fStartOfLineOfTokens = fCurrentTokenPlaceHolder = nsnull;
-  fAtEndOfLine = PR_FALSE;
+  fAtEndOfLine = false;
 }
 
 bool nsIMAPGenericParser::LastCommandSuccessful()
@@ -167,7 +167,7 @@ void nsIMAPGenericParser::AdvanceToNextToken()
     fNextToken = NS_strtok(WHITESPACE, &fCurrentTokenPlaceHolder);
     if (!fNextToken)
     {
-      fAtEndOfLine = PR_TRUE;
+      fAtEndOfLine = true;
       fNextToken = CRLF;
     }
   }
@@ -181,11 +181,11 @@ void nsIMAPGenericParser::AdvanceToNextLine()
   bool ok = GetNextLineForParser(&fCurrentLine);
   if (!ok)
   {
-    SetConnected(PR_FALSE);
+    SetConnected(false);
     fStartOfLineOfTokens = nsnull;
     fLineOfTokens = nsnull;
     fCurrentTokenPlaceHolder = nsnull;
-    fAtEndOfLine = PR_TRUE;
+    fAtEndOfLine = true;
     fNextToken = CRLF;
   }
   else if (!fCurrentLine)
@@ -246,7 +246,7 @@ char *nsIMAPGenericParser::CreateAstring()
   else if (*fNextToken == '"')
     return CreateQuoted();		// quoted
   else
-    return CreateAtom(PR_TRUE); // atom
+    return CreateAtom(true); // atom
 }
 
 // Create an atom
@@ -278,7 +278,7 @@ char *nsIMAPGenericParser::CreateAtom(bool isAstring)
          && c != '\\' && c != '{' && (isAstring || c != ']'))
      c = *++last;
   if (rv == last) {
-     SetSyntaxError(PR_TRUE, "no atom characters found");
+     SetSyntaxError(true, "no atom characters found");
      PL_strfree(rv);
      return nsnull;
   }
@@ -331,7 +331,7 @@ char *nsIMAPGenericParser::CreateString()
   }
   else
   {
-    SetSyntaxError(PR_TRUE, "string does not start with '{' or '\"'");
+    SetSyntaxError(true, "string does not start with '{' or '\"'");
     return NULL;
   }
 }
@@ -356,7 +356,7 @@ char *nsIMAPGenericParser::CreateQuoted(bool /*skipToEnd*/)
   {
     if (!returnString.CharAt(charIndex))
     {
-      SetSyntaxError(PR_TRUE, "no closing '\"' found in quoted");
+      SetSyntaxError(true, "no closing '\"' found in quoted");
       return nsnull;
     }
     else if (returnString.CharAt(charIndex) == '\\')
@@ -507,7 +507,7 @@ char *nsIMAPGenericParser::CreateParenGroup()
   
   if (numOpenParens != 0 || !ContinueParse())
   {
-    SetSyntaxError(PR_TRUE, "closing ')' not found in paren group");
+    SetSyntaxError(true, "closing ')' not found in paren group");
     return nsnull;
   }
 

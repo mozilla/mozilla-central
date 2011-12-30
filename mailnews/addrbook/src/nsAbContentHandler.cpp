@@ -180,7 +180,7 @@ nsAbContentHandler::OnStreamComplete(nsIStreamLoader *aLoader,
     {
       PRInt32 len = 0;
       nsCString vCard;
-      vCard.Adopt(vCardService->WriteMemoryVObjects(0, &len, vObj, PR_FALSE));
+      vCard.Adopt(vCardService->WriteMemoryVObjects(0, &len, vObj, false));
 
       nsCOMPtr<nsIAbManager> ab =
         do_GetService(NS_ABMANAGER_CONTRACTID, &rv);

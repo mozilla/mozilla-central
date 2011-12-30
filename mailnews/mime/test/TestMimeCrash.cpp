@@ -36,7 +36,7 @@ do_test(const char *aBuffer, const PRUint32 aSize)
   rv = converter->EncoderWrite(encodeData, aBuffer, aSize, &written);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = converter->EncoderDestroy(encodeData, PR_FALSE);
+  rv = converter->EncoderDestroy(encodeData, false);
   return rv;
 }
 

@@ -124,7 +124,7 @@ bool CImportMailbox::ImportMailbox( PRUint32 *pDone, bool *pAbort, nsString& nam
     rv  = idxFile->InitWithFile(localInFile);
   if (NS_FAILED(rv)) {
     IMPORT_LOG0( "New file spec failed!\n");
-    return( PR_FALSE);
+    return( false);
   }
 
   if (GetIndexFile(idxFile)) {
@@ -134,7 +134,7 @@ bool CImportMailbox::ImportMailbox( PRUint32 *pDone, bool *pAbort, nsString& nam
     CIndexScanner *pIdxScanner = new CIndexScanner( name, idxFile, inFile, outFile);
     if (pIdxScanner->Initialize()) {
       if (pIdxScanner->DoWork( pAbort, pDone, pCount)) {
-        done = PR_TRUE;
+        done = true;
       }
       else {
         IMPORT_LOG0( "CIndexScanner::DoWork() failed\n");
@@ -157,7 +157,7 @@ bool CImportMailbox::ImportMailbox( PRUint32 *pDone, bool *pAbort, nsString& nam
   CMbxScanner *pMbx = new CMbxScanner( name, inFile, outFile);
   if (pMbx->Initialize()) {
     if (pMbx->DoWork( pAbort, pDone, pCount)) {
-      done = PR_TRUE;
+      done = true;
     }
     else {
       IMPORT_LOG0( "CMbxScanner::DoWork() failed\n");
@@ -176,10 +176,10 @@ bool CImportMailbox::GetIndexFile( nsIFile* file)
 {
   nsCString pLeaf;
   if (NS_FAILED( file->GetNativeLeafName(pLeaf)))
-    return( PR_FALSE);
+    return( false);
   PRInt32  len = pLeaf.Length();
   if (len < 5)
-    return( PR_FALSE);
+    return( false);
 
   pLeaf.Replace(len - 3, 3, NS_LITERAL_CSTRING("idx"));
 
@@ -211,7 +211,7 @@ CMbxScanner::CMbxScanner( nsString& name, nsIFile* mbxFile, nsIFile* dstFile)
   m_pInBuffer = nsnull;
   m_pOutBuffer = nsnull;
   m_bufSz = 0;
-  m_fatalError = PR_FALSE;
+  m_fatalError = false;
   m_didBytes = 0;
   m_mbxFileSize = 0;
   m_mbxOffset = 0;
@@ -238,22 +238,22 @@ bool CMbxScanner::Initialize( void)
   m_pInBuffer = new PRUint8[m_bufSz];
   m_pOutBuffer = new PRUint8[m_bufSz];
   if (!m_pInBuffer || !m_pOutBuffer) {
-    return( PR_FALSE);
+    return( false);
   }
 
   m_mbxFile->GetFileSize( &m_mbxFileSize);
   // open the mailbox file...
   if (NS_FAILED( NS_NewLocalFileInputStream(getter_AddRefs(m_mbxFileInputStream), m_mbxFile))) {
     CleanUp();
-    return( PR_FALSE);
+    return( false);
   }
 
   if (NS_FAILED(MsgNewBufferedFileOutputStream(getter_AddRefs(m_dstFileOutputStream), m_dstFile, -1, 0600))) {
     CleanUp();
-    return( PR_FALSE);
+    return( false);
   }
 
-  return( PR_TRUE);
+  return( true);
 }
 
 
@@ -270,7 +270,7 @@ bool CMbxScanner::DoWork( bool *pAbort, PRUint32 *pDone, PRUint32 *pCount)
     if (!WriteMailItem( 0, m_mbxOffset, 0, &msgSz)) {
       if (!WasErrorFatal())
         ReportReadError( m_mbxFile);
-      return( PR_FALSE);
+      return( false);
     }
     m_mbxOffset += msgSz;
     m_didBytes += msgSz;
@@ -283,7 +283,7 @@ bool CMbxScanner::DoWork( bool *pAbort, PRUint32 *pDone, PRUint32 *pCount)
 
   CleanUp();
 
-  return( PR_TRUE);
+  return( true);
 }
 
 
@@ -315,20 +315,20 @@ bool CMbxScanner::WriteMailItem( PRUint32 flags, PRUint32 offset, PRUint32 size,
 
   if (NS_FAILED( rv)) {
     IMPORT_LOG1( "Mbx seek error: 0x%lx\n", offset);
-    return( PR_FALSE);
+    return( false);
   }
   rv = m_mbxFileInputStream->Read( (char *) pChar, cnt, &cntRead);
   if (NS_FAILED( rv) || (cntRead != cnt)) {
     IMPORT_LOG1( "Mbx read error at: 0x%lx\n", offset);
-    return( PR_FALSE);
+    return( false);
   }
   if (values[0] != 0x7F007F00) {
     IMPORT_LOG2( "Mbx tag field doesn't match: 0x%lx, at offset: 0x%lx\n", values[0], offset);
-    return( PR_FALSE);
+    return( false);
   }
   if (size && (values[2] != size)) {
     IMPORT_LOG3( "Mbx size doesn't match idx, mbx: %ld, idx: %ld, at offset: 0x%lx\n", values[2], size, offset);
-    return( PR_FALSE);
+    return( false);
   }
 
   if (pTotalMsgSize != nsnull)
@@ -351,7 +351,7 @@ bool CMbxScanner::IsFromLineKey( PRUint8 * pBuf, PRUint32 max)
 bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
 {
   if (!numBytes)
-    return( PR_TRUE);
+    return( true);
 
   PRUint32  cnt;
   PRUint8   last[2] = {0, 0};
@@ -374,7 +374,7 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
     rv = m_mbxFileInputStream->Read( (char *) pChar, (PRInt32)cnt, &cntRead);
     if (NS_FAILED( rv) || (cntRead != (PRInt32)cnt)) {
       ReportReadError( m_mbxFile);
-      return( PR_FALSE);
+      return( false);
     }
     // Keep track of the last 2 bytes of the message for terminating EOL logic
     if (cnt < 2) {
@@ -402,7 +402,7 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
           // with a From separator line that is longer than our
           // file buffer!  In this bizarre case, just skip this message
           // since it is probably bogus anyway.
-          return( PR_TRUE);
+          return( true);
         }
 
       }
@@ -410,7 +410,7 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
       rv = m_dstFileOutputStream->Write( m_pFromLine, fromLen, &cntRead);
       if (NS_FAILED( rv) || (cntRead != fromLen)) {
         ReportWriteError( m_dstFile);
-        return( PR_FALSE);
+        return( false);
       }
       char statusLine[50];
       PRUint32 msgFlags = flags; // need to convert from OE flags to mozilla flags
@@ -423,9 +423,9 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
       }
       if (NS_FAILED( rv) || (cntRead != fromLen)) {
         ReportWriteError( m_dstFile);
-        return( PR_FALSE);
+        return( false);
       }
-      first = PR_FALSE;
+      first = false;
     }
 
     // Handle generic data, escape any lines that begin with "From "
@@ -450,7 +450,7 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
               rv = m_dstFileOutputStream->Write( ">", 1, &cntRead);
             if (NS_FAILED( rv) || (cntRead != 1)) {
               ReportWriteError( m_dstFile);
-              return( PR_FALSE);
+              return( false);
             }
             cnt -= 2;
             pIn += 2;
@@ -467,7 +467,7 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
     rv = m_dstFileOutputStream->Write( (const char *)pStart, (PRInt32)inIdx, &cntRead);
     if (NS_FAILED( rv) || (cntRead != (PRInt32)inIdx)) {
       ReportWriteError( m_dstFile);
-      return( PR_FALSE);
+      return( false);
     }
     if (cnt) {
       inIdx = cnt;
@@ -485,11 +485,11 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
   rv = m_dstFileOutputStream->Write( "\x0D\x0A", 2, &cntRead);
   if (NS_FAILED( rv) || (cntRead != 2)) {
     ReportWriteError( m_dstFile);
-    return( PR_FALSE);
+    return( false);
   }
   //  }
 
-  return( PR_TRUE);
+  return( true);
 }
 
 
@@ -509,16 +509,16 @@ CIndexScanner::~CIndexScanner()
 bool CIndexScanner::Initialize( void)
 {
   if (!CMbxScanner::Initialize())
-    return( PR_FALSE);
+    return( false);
 
 
   nsresult   rv = NS_NewLocalFileInputStream(getter_AddRefs(m_idxFileInputStream), m_idxFile);
   if (NS_FAILED( rv)) {
     CleanUp();
-    return( PR_FALSE);
+    return( false);
   }
 
-  return( PR_TRUE);
+  return( true);
 }
 
 bool CIndexScanner::ValidateIdxFile( void)
@@ -532,30 +532,30 @@ bool CIndexScanner::ValidateIdxFile( void)
   pReadTo = id;
   rv = m_idxFileInputStream->Read( (char *) pReadTo, cnt, &cntRead);
   if (NS_FAILED( rv) || (cntRead != cnt))
-    return( PR_FALSE);
+    return( false);
   if ((id[0] != 'J') || (id[1] != 'M') || (id[2] != 'F') || (id[3] != '9'))
-    return( PR_FALSE);
+    return( false);
   cnt = 4;
   PRUint32    subId;
   pReadTo = (PRInt8 *) &subId;
   rv = m_idxFileInputStream->Read((char *) pReadTo, cnt, &cntRead);
   if (NS_FAILED( rv) || (cntRead != cnt))
-    return( PR_FALSE);
+    return( false);
   if (subId != 0x00010004) {
     IMPORT_LOG1( "Idx file subid doesn't match: 0x%lx\n", subId);
-    return( PR_FALSE);
+    return( false);
   }
 
   pReadTo = (PRInt8 *) &m_numMessages;
   rv = m_idxFileInputStream->Read( (char *) pReadTo, cnt, &cntRead);
   if (NS_FAILED( rv) || (cntRead != cnt))
-    return( PR_FALSE);
+    return( false);
 
   IMPORT_LOG1( "Idx file num messages: %ld\n", m_numMessages);
 
   m_didBytes += 80;
   m_idxOffset = 80;
-  return( PR_TRUE);
+  return( true);
 }
 
 /*
@@ -587,15 +587,15 @@ bool CIndexScanner::GetMailItem( PRUint32 *pFlags, PRUint32 *pOffset, PRUint32 *
   nsCOMPtr <nsISeekableStream> seekableStream = do_QueryInterface(m_idxFileInputStream);
   rv = seekableStream->Seek(nsISeekableStream::NS_SEEK_SET, m_idxOffset);
   if (NS_FAILED( rv))
-    return( PR_FALSE);
+    return( false);
 
   rv = m_idxFileInputStream->Read( (char *) pReadTo, cnt, &cntRead);
   if (NS_FAILED( rv) || (cntRead != cnt))
-    return( PR_FALSE);
+    return( false);
 
   if (values[3] != m_idxOffset) {
     IMPORT_LOG2( "Self pointer invalid: m_idxOffset=0x%lx, self=0x%lx\n", m_idxOffset, values[3]);
-    return( PR_FALSE);
+    return( false);
   }
 
   // So... what do we have here???
@@ -622,7 +622,7 @@ bool CIndexScanner::GetMailItem( PRUint32 *pFlags, PRUint32 *pOffset, PRUint32 *
   *pFlags = values[0];
   *pOffset = values[5];
   *pSize = values[6];
-  return( PR_TRUE);
+  return( true);
 }
 
 #define  kOEDeletedFlag    0x0001
@@ -631,19 +631,19 @@ bool CIndexScanner::DoWork( bool *pAbort, PRUint32 *pDone, PRUint32 *pCount)
 {
   m_didBytes = 0;
   if (!ValidateIdxFile())
-    return( PR_FALSE);
+    return( false);
 
   bool    failed = false;
   while ((m_curItemIndex < m_numMessages) && !failed && !(*pAbort)) {
     PRUint32  flags, offset, size;
     if (!GetMailItem( &flags, &offset, &size)) {
       CleanUp();
-      return( PR_FALSE);
+      return( false);
     }
     m_curItemIndex++;
     if (!(flags & kOEDeletedFlag)) {
       if (!WriteMailItem( flags, offset, size))
-        failed = PR_TRUE;
+        failed = true;
       else {
         m_msgCount++;
       }

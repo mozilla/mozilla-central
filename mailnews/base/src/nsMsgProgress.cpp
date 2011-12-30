@@ -64,8 +64,8 @@ NS_INTERFACE_MAP_END_THREADSAFE
 
 nsMsgProgress::nsMsgProgress()
 {
-  m_closeProgress = PR_FALSE;
-  m_processCanceled = PR_FALSE;
+  m_closeProgress = false;
+  m_processCanceled = false;
   m_pendingStateFlags = -1;
   m_pendingStateValue = 0;
 }
@@ -123,7 +123,7 @@ NS_IMETHODIMP nsMsgProgress::OpenProgressDialog(nsIDOMWindow *parent,
 /* void closeProgressDialog (in boolean forceClose); */
 NS_IMETHODIMP nsMsgProgress::CloseProgressDialog(bool forceClose)
 {
-  m_closeProgress = PR_TRUE;
+  m_closeProgress = true;
   return OnStateChange(nsnull, nsnull, nsIWebProgressListener::STATE_STOP, forceClose ? NS_ERROR_FAILURE : NS_OK);
 }
 

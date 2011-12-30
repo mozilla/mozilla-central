@@ -217,14 +217,14 @@ nsresult nsEudoraMailbox::DeleteFile( nsIFile *pFile)
   bool      result;
   nsresult  rv = NS_OK;
 
-  result = PR_FALSE;
+  result = false;
   pFile->Exists( &result);
   if (result) {
-    result = PR_FALSE;
+    result = false;
     pFile->IsFile( &result);
     if (result) {
 #ifndef DONT_DELETE_EUDORA_TEMP_FILES
-        rv = pFile->Remove(PR_FALSE);
+        rv = pFile->Remove(false);
 #endif
     }
   }
@@ -262,7 +262,7 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, bool *pAbort, const P
   if (NS_SUCCEEDED( rv) && tocFile)
         {
     IMPORT_LOG0( "Reading euroda toc file: ");
-    DUMP_FILENAME( tocFile, PR_TRUE);
+    DUMP_FILENAME( tocFile, true);
 
                 rv = MsgNewBufferedFileOutputStream(getter_AddRefs(mailOutputStream), pDst);
                 NS_ENSURE_SUCCESS(rv, rv);
@@ -276,9 +276,9 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, bool *pAbort, const P
     // If we were able to import with the TOC, then we don't need to bother
     // importing without the TOC.
     if ( NS_SUCCEEDED(rv) ) {
-      importWithoutToc = PR_FALSE;
-      IMPORT_LOG0( "Imported mailbox: "); DUMP_FILENAME( pSrc, PR_FALSE);
-      IMPORT_LOG0( "  Using TOC: "); DUMP_FILENAME(tocFile, PR_TRUE);
+      importWithoutToc = false;
+      IMPORT_LOG0( "Imported mailbox: "); DUMP_FILENAME( pSrc, false);
+      IMPORT_LOG0( "  Using TOC: "); DUMP_FILENAME(tocFile, true);
     }
     else {
       IMPORT_LOG0( "*** Error importing with TOC - will import without TOC.\n");
@@ -301,8 +301,8 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, bool *pAbort, const P
     SimpleBufferTonyRCopiedOnce    body;
     SimpleBufferTonyRCopiedOnce    copy;
 
-    headers.m_convertCRs = PR_TRUE;
-    body.m_convertCRs = PR_TRUE;
+    headers.m_convertCRs = true;
+    body.m_convertCRs = true;
 
     copy.Allocate( kCopyBufferSize);
     readBuffer.Allocate( kMailReadBufferSize);
@@ -387,7 +387,7 @@ nsresult nsEudoraMailbox::ImportMailboxUsingTOC(
   readBuffer.Allocate(kMailReadBufferSize);
 
   IMPORT_LOG0( "Importing mailbox using TOC: ");
-  DUMP_FILENAME( tocFile, PR_TRUE);
+  DUMP_FILENAME( tocFile, true);
 
   nsCOMPtr <nsISeekableStream> tocSeekableStream = do_QueryInterface(tocInputStream);
   nsCOMPtr <nsISeekableStream> mailboxSeekableStream = do_QueryInterface(pInputStream);
@@ -439,7 +439,7 @@ nsresult nsEudoraMailbox::ImportMailboxUsingTOC(
     // Bail on all that we imported since we'll be importing everything
     // again using just the mailbox.
     IMPORT_LOG0( "*** Error importing mailbox using TOC: ");
-//    DUMP_FILENAME(pMail, PR_TRUE);
+//    DUMP_FILENAME(pMail, true);
 
     // Reset pBytes back to where it was before we imported this mailbox.
     // This will likely result in a funky progress bar which will move
@@ -517,12 +517,12 @@ nsresult nsEudoraMailbox::ReadTOCEntry(nsIInputStream *pToc, EudoraTOCEntry& toc
   {
     // If the high bit is set note that this message was manually junked
     // and unset the high bit.
-    tocEntry.m_bManuallyJunked = PR_TRUE;
+    tocEntry.m_bManuallyJunked = true;
     cJunkInfo &= 0x7F;
   }
   else
   {
-    tocEntry.m_bManuallyJunked = PR_FALSE;
+    tocEntry.m_bManuallyJunked = false;
   }
   tocEntry.m_ucJunkScore = cJunkInfo;
 
@@ -564,7 +564,7 @@ nsresult nsEudoraMailbox::ImportMessage(
 
     copy.Allocate( kCopyBufferSize);
 
-    /* IMPORT_LOG0( "Composed message in file: "); DUMP_FILENAME( compositionFile, PR_TRUE); */
+    /* IMPORT_LOG0( "Composed message in file: "); DUMP_FILENAME( compositionFile, true); */
     // copy the resulting file into the destination file!
     rv = compose.CopyComposedMessage( fromLine, compositionFile, pDst, copy);
     DeleteFile(compositionFile);
@@ -934,12 +934,12 @@ bool    nsEudoraMailbox::IsEudoraTag( const char *pChar, PRInt32 maxLen, bool &i
     if (maxLen >= tagLength && !strncmp( eudoraTag[idx], pChar, tagLength)) {
       insideEudoraTags = (pChar[1] != '/');
       bodyType = TagContentType[idx];
-      return PR_TRUE;
+      return true;
     }
     idx++;
   }
 
-  return PR_FALSE;
+  return false;
 }
 
   // Determine if this line meets Eudora standards for a separator line
@@ -1058,12 +1058,12 @@ PRInt32  nsEudoraMailbox::IsEudoraFromSeparator( const char *pChar, PRInt32 maxL
       else if ((tokLen == 6) && !PL_strncasecmp( pTok, "remote", 6)) {
         if (remote || from)
           return( -1);
-        remote = PR_TRUE;
+        remote = true;
       }
       else if ((tokLen == 4) && !PL_strncasecmp( pTok, "from", 4)) {
         if (!remote || from)
           return( -1);
-        from = PR_TRUE;
+        from = true;
       }
       else if ((tokLen == 4) && ((num > 1900) || !strncmp( pTok, "0000", 4))) {
         if (year)
@@ -1096,7 +1096,7 @@ PRInt32  nsEudoraMailbox::IsEudoraFromSeparator( const char *pChar, PRInt32 maxL
         if (result == tokLen) {
           if (tym)
             return( -1);
-          tym = PR_TRUE;
+          tym = true;
           // for future use, get the time value
           memcpy( tymStr, pTok, tokLen);
           if (tokLen == 5) {
@@ -1313,12 +1313,12 @@ bool nsEudoraMailbox::AddAttachment( nsCString& fileName)
   nsresult rv;
   nsCOMPtr <nsILocalFile>  pFile = do_CreateInstance(NS_LOCAL_FILE_CONTRACTID, &rv);
   if (NS_FAILED( rv))
-    return( PR_FALSE);
+    return( false);
 
   nsCString mimeType;
   nsCString attachmentName;
   if (NS_FAILED( GetAttachmentInfo( fileName.get(), pFile, mimeType, attachmentName)))
-    return( PR_FALSE);
+    return( false);
 
   ImportAttachment *a = new ImportAttachment;
   a->mimeType = ToNewCString(mimeType);
@@ -1327,7 +1327,7 @@ bool nsEudoraMailbox::AddAttachment( nsCString& fileName)
 
   m_attachments.AppendElement( a);
 
-  return( PR_TRUE);
+  return( true);
 }
 
 nsresult nsEudoraMailbox::FillMailBuffer( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& read)
