@@ -2558,30 +2558,29 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
   // now add the header to the destMailDB.
   if (NS_SUCCEEDED(rv) && destMailDB)
   {
-      PRUint32 newFlags;
-      newHdr->GetFlags(&newFlags);
+    PRUint32 newFlags;
+    newHdr->GetFlags(&newFlags);
     nsMsgKey msgKey;
     newHdr->GetMessageKey(&msgKey);
-      if (! (newFlags & nsMsgMessageFlags::Read))
+    if (! (newFlags & nsMsgMessageFlags::Read))
+    {
+      nsCString junkScoreStr;
+      (void) newHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
+      if (atoi(junkScoreStr.get()) == nsIJunkMailPlugin::IS_HAM_SCORE)
       {
-        nsCString junkScoreStr;
-        (void) newHdr->GetStringProperty("junkscore", getter_Copies(junkScoreStr));
-        if (atoi(junkScoreStr.get()) == nsIJunkMailPlugin::IS_HAM_SCORE)
-        {
-          newHdr->OrFlags(nsMsgMessageFlags::New, &newFlags);
+        newHdr->OrFlags(nsMsgMessageFlags::New, &newFlags);
         destMailDB->AddToNewList(msgKey);
-          movedMsgIsNew = PR_TRUE;
-        }
+        movedMsgIsNew = PR_TRUE;
       }
-      nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
-      if (notifier)
-        notifier->NotifyMsgAdded(newHdr);
-      // mark the header as not yet reported classified
-      destIFolder->OrProcessingFlags(
-      msgKey, nsMsgProcessingFlags::NotReportedClassified);
-      m_msgToForwardOrReply = newHdr;
     }
-      destMailDB = nsnull;
+    nsCOMPtr<nsIMsgFolderNotificationService> notifier(do_GetService(NS_MSGNOTIFICATIONSERVICE_CONTRACTID));
+    if (notifier)
+      notifier->NotifyMsgAdded(newHdr);
+    // mark the header as not yet reported classified
+    destIFolder->OrProcessingFlags(
+    msgKey, nsMsgProcessingFlags::NotReportedClassified);
+    m_msgToForwardOrReply = newHdr;
+  }
   if (movedMsgIsNew)
     destIFolder->SetHasNewMessages(PR_TRUE);
   if (m_filterTargetFolders.IndexOf(destIFolder) == -1)
@@ -2595,7 +2594,7 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
   if (destIFolder)
     destIFolder->SetFlag(nsMsgFolderFlags::GotNew);
 
-  if (destMailDB != nsnull)
+  if (destMailDB)
   {
     // update the folder size so we won't reparse.
     UpdateDBFolderInfo(destMailDB);
