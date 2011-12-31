@@ -2315,6 +2315,9 @@ let gFolderTreeController = {
    */
   newVirtualFolder: function ftc_newVFolder(aName, aSearchTerms, aParent) {
     let folder = aParent || gFolderTreeView.getSelectedFolders()[0];
+    if (!folder)
+      folder = GetDefaultAccountRootFolder();
+
     let name = folder.prettyName;
     if (aName)
       name += "-" + aName;
