@@ -747,36 +747,6 @@ function onPreviousSlot() {
 }
 
 /**
- * Handler function called to zoom out (minus button)
- */
-function onMinus() {
-    var timebar = document.getElementById("timebar");
-    var ratio = timebar.scroll;
-    ratio -= timebar.step;
-    if (ratio <= 0.0) {
-        ratio = 0.0;
-    }
-    var scrollbar = document.getElementById("horizontal-scrollbar");
-    var maxpos = scrollbar.getAttribute("maxpos");
-    scrollbar.setAttribute("curpos", ratio * maxpos);
-}
-
-/**
- * Handler function called to zoom in (plus button)
- */
-function onPlus() {
-    var timebar = document.getElementById("timebar");
-    var ratio = timebar.scroll;
-    ratio += timebar.step;
-    if (ratio >= 1.0) {
-        ratio = 1.0;
-    }
-    var scrollbar = document.getElementById("horizontal-scrollbar");
-    var maxpos = scrollbar.getAttribute("maxpos");
-    scrollbar.setAttribute("curpos", ratio * maxpos);
-}
-
-/**
  * Scrolls the time grid to a position where the time of the item in question is
  * visible.
  */

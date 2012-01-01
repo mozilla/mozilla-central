@@ -175,9 +175,6 @@
         </grid>
       </hbox>
       <hbox align="center">
-          <button label="&event.freebusy.minus;" oncommand="onMinus();"/>
-          <button label="&event.freebusy.plus;"  oncommand="onPlus();"/>
-          <spacer/>
           <label value="&event.organizer.label;"
                  collapsed="true"
                  disabled="true"
