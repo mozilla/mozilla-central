@@ -2300,9 +2300,6 @@ let gFolderTreeController = {
     for (let i = 0; i < folders.length; i++) {
       folders[i].compactAll(null, msgWindow, folders[i].server.type == "imap" ||
                                              folders[i].server.type == "nntp");
-      // Reset thread pane for non-imap folders.
-      if (gDBView && folders[i].server.type != "imap")
-        this._resetThreadPane();
     }
   },
 
