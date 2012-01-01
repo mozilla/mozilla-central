@@ -933,9 +933,13 @@ function  CreateVirtualFolder(newName, parentFolder, searchFolderURIs, searchTer
   // ### need to make sure view/folder doesn't exist.
   if (searchFolderURIs && (searchFolderURIs != "") && newName && (newName != "")) 
   {
+    var newFolder;
     try
     {
-      var newFolder = parentFolder.addSubfolder(newName);
+      if (parentFolder instanceof(Components.interfaces.nsIMsgLocalMailFolder))
+        newFolder = parentFolder.createLocalSubfolder(newName);
+      else
+        newFolder = parentFolder.addSubfolder(newName);
       newFolder.setFlag(Components.interfaces.nsMsgFolderFlags.Virtual);
       var vfdb = newFolder.msgDatabase;
       var searchTermString = getSearchTermString(searchTerms);
