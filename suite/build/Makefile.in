@@ -93,3 +93,6 @@ EXTRA_DSO_LDOPTS += \
 endif
 
 include $(topsrcdir)/config/rules.mk
+
+# Ensure that we don't embed a manifest referencing the CRT.
+EMBED_MANIFEST_AT =
