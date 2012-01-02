@@ -57,6 +57,7 @@
 #include "nsIPrefBranch.h"
 #include "nsIStringBundle.h"
 #include "nsDateTimeFormatCID.h"
+#include "mozilla/Services.h"
 
 #include "nsMailDirServiceDefs.h"
 #include "nsDirectoryServiceUtils.h"
@@ -709,8 +710,8 @@ NS_IMETHODIMP nsSpamSettings::LogJunkHit(nsIMsgDBHdr *aMsgHdr, bool aMoveMessage
 #endif
 
   nsCOMPtr<nsIStringBundleService> bundleService =
-    do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/filter.properties",

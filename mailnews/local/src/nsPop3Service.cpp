@@ -66,6 +66,7 @@
 #include "nsINetUtil.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
+#include "mozilla/Services.h"
 
 #define PREF_MAIL_ROOT_POP3 "mail.root.pop3"        // old - for backward compatibility only
 #define PREF_MAIL_ROOT_POP3_REL "mail.root.pop3-rel"
@@ -469,9 +470,10 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
 void nsPop3Service::AlertServerBusy(nsIMsgMailNewsUrl *url)
 {
   nsresult rv;
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-  NS_ENSURE_SUCCESS(rv, void(0));
-
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  if (!bundleService)
+    return void(0);
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, void(0));

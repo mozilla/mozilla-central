@@ -64,6 +64,7 @@
 #include "nsMsgUtils.h"
 #include "nsNetUtil.h"
 #include "nsIMsgDatabase.h"
+#include "mozilla/Services.h"
 
 #define MDN_NOT_IN_TO_CC          ((int) 0x0001)
 #define MDN_OUTSIDE_DOMAIN        ((int) 0x0002)
@@ -132,15 +133,14 @@ nsresult nsMsgMdnGenerator::FormatStringFromName(const PRUnichar *aName,
                                                  PRUnichar **aResultString)
 {
     DEBUG_MDN("nsMsgMdnGenerator::FormatStringFromName");
-    nsresult rv;
 
-    nsCOMPtr<nsIStringBundleService>
-        bundleService(do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv));
-    NS_ENSURE_SUCCESS(rv,rv);
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
     nsCOMPtr <nsIStringBundle> bundle;
-    rv = bundleService->CreateBundle(MDN_STRINGBUNDLE_URL,
-                                     getter_AddRefs(bundle));
+    nsresult rv = bundleService->CreateBundle(MDN_STRINGBUNDLE_URL,
+                                              getter_AddRefs(bundle));
     NS_ENSURE_SUCCESS(rv,rv);
 
     const PRUnichar *formatStrings[1] = { aString };
@@ -154,15 +154,14 @@ nsresult nsMsgMdnGenerator::GetStringFromName(const PRUnichar *aName,
                                                PRUnichar **aResultString)
 {
     DEBUG_MDN("nsMsgMdnGenerator::GetStringFromName");
-    nsresult rv;
 
-    nsCOMPtr<nsIStringBundleService>
-        bundleService(do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv));
-    NS_ENSURE_SUCCESS(rv,rv);
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
     nsCOMPtr <nsIStringBundle> bundle;
-    rv = bundleService->CreateBundle(MDN_STRINGBUNDLE_URL,
-                                     getter_AddRefs(bundle));
+    nsresult rv = bundleService->CreateBundle(MDN_STRINGBUNDLE_URL,
+                                              getter_AddRefs(bundle));
     NS_ENSURE_SUCCESS(rv,rv);
 
     rv = bundle->GetStringFromName(aName, aResultString);
@@ -1158,8 +1157,9 @@ NS_IMETHODIMP nsMsgMdnGenerator::OnStopRunningUrl(nsIURI *url,
     const PRUnichar *params[] = { hostStr.get() };
 
     nsCOMPtr<nsIStringBundle> bundle;
-    nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
     rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
     NS_ENSURE_SUCCESS(rv, rv);

@@ -62,6 +62,7 @@
 #include "nsIMsgFilterService.h"
 #include "nsMemory.h"
 #include "prmem.h"
+#include "mozilla/Services.h"
 
 static const char *kImapPrefix = "//imap:";
 static const char *kWhitespace = "\b\t\r\n ";
@@ -540,8 +541,8 @@ NS_IMETHODIMP nsMsgFilter::LogRuleHit(nsIMsgRuleAction *aFilterAction, nsIMsgDBH
 #endif
 
     nsCOMPtr<nsIStringBundleService> bundleService =
-      do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
     nsCOMPtr<nsIStringBundle> bundle;
     rv = bundleService->CreateBundle("chrome://messenger/locale/filter.properties",

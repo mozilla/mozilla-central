@@ -46,6 +46,7 @@
 #include "nsComposeStrings.h"
 #include "nsIStringBundle.h"
 #include "nsServiceManagerUtils.h"
+#include "mozilla/Services.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgProcessReport, nsIMsgProcessReport)
 
@@ -261,8 +262,9 @@ NS_IMETHODIMP nsMsgSendReport::DisplayReport(nsIPrompt *prompt, bool showErrorOn
   mProcessReport[mCurrentProcess]->GetMessage(getter_Copies(currMessage));
 
   nsresult rv; // don't step on currError.
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
   if (NS_FAILED(rv))

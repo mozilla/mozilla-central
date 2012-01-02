@@ -53,6 +53,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsMemory.h"
 #include "nsAlgorithm.h"
+#include "mozilla/Services.h"
 
 #define MK_MIME_ERROR_WRITING_FILE -1
 
@@ -294,7 +295,7 @@ bool nsMsgComposeSecure::InitializeSMIMEBundle()
     return true;
 
   nsCOMPtr<nsIStringBundleService> bundleService =
-    do_GetService(NS_STRINGBUNDLE_CONTRACTID);
+    mozilla::services::GetStringBundleService();
   nsresult rv = bundleService->CreateBundle(SMIME_STRBUNDLE_URL,
                                             getter_AddRefs(mSMIMEBundle));
   NS_ENSURE_SUCCESS(rv, false);
@@ -545,8 +546,8 @@ nsresult nsMsgComposeSecure::MimeInitEncryption(bool aSign, nsIMsgSendReport *se
 {
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleSvc =
-                  do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleSvc, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr<nsIStringBundle> sMIMEBundle;
   nsString mime_smime_enc_content_desc;
@@ -655,8 +656,8 @@ nsresult nsMsgComposeSecure::MimeFinishMultipartSigned (bool aOuter, nsIMsgSendR
 
   char * header = nsnull;
   nsCOMPtr<nsIStringBundleService> bundleSvc =
-                  do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleSvc, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr<nsIStringBundle> sMIMEBundle;
   nsString mime_smime_sig_content_desc;
@@ -1062,11 +1063,10 @@ make_multipart_signed_header_string(bool outer_p,
 {
   *header_return = 0;
   *boundary_return = mime_make_separator("ms");
-  nsresult rv;
 
   nsCOMPtr<nsIStringBundleService> bundleSvc =
-                  do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleSvc, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr<nsIStringBundle> sMIMEBundle;
   nsString crypto_multipart_blurb;

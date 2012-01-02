@@ -48,6 +48,7 @@
 #include "nsICategoryManager.h"
 #include "nsServiceManagerUtils.h"
 #include "nsDirectoryServiceUtils.h"
+#include "mozilla/Services.h"
 
 #define MAIL_DIR_50_NAME             "Mail"
 #define IMAP_MAIL_DIR_50_NAME        "ImapMail"
@@ -228,7 +229,8 @@ nsMailDirProvider::AppendingEnumerator::AppendingEnumerator
     (nsISimpleEnumerator* aBase) :
   mBase(aBase)
 {
-  nsCOMPtr<nsIXULChromeRegistry> packageRegistry = do_GetService("@mozilla.org/chrome/chrome-registry;1");
+  nsCOMPtr<nsIXULChromeRegistry> packageRegistry =
+    mozilla::services::GetXULChromeRegistryService();
   if (packageRegistry)
     packageRegistry->GetSelectedLocale(NS_LITERAL_CSTRING("global"), mLocale);
   // Initialize mNext to begin

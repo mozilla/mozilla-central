@@ -114,6 +114,7 @@
 #include "nsIMsgWindow.h"
 #include "nsITextToSubURI.h"
 #include "nsIAbManager.h"
+#include "mozilla/Services.h"
 
 static void GetReplyHeaderInfo(PRInt32* reply_header_type,
                                nsString& reply_header_locale,
@@ -2108,8 +2109,9 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
               if (subject.IsEmpty())
               {
                 nsresult rv;
-                nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-                NS_ENSURE_SUCCESS(rv, rv);
+                nsCOMPtr<nsIStringBundleService> bundleService =
+                  mozilla::services::GetStringBundleService();
+                NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
                 nsCOMPtr<nsIStringBundle> composeBundle;
                 rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties",
                                                  getter_AddRefs(composeBundle));
@@ -3906,8 +3908,9 @@ NS_IMETHODIMP nsMsgComposeSendListener::OnStateChange(nsIWebProgress *aWebProgre
         if (bCanceled)
         {
           nsresult rv;
-          nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-          NS_ENSURE_SUCCESS(rv, rv);
+          nsCOMPtr<nsIStringBundleService> bundleService =
+            mozilla::services::GetStringBundleService();
+          NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
           nsCOMPtr<nsIStringBundle> bundle;
           rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
           NS_ENSURE_SUCCESS(rv, rv);

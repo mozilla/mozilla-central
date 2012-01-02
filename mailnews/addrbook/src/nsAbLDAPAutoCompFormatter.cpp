@@ -50,6 +50,7 @@
 #include "nsMemory.h"
 #include "nsILDAPErrors.h"
 #include "nsMsgUtils.h"
+#include "mozilla/Services.h"
 
 #define LDAP_ERROR_BUNDLE "chrome://mozldap/locale/ldap.properties"
 #define LDAP_AUTOCOMPLETE_ERROR_BUNDLE "chrome://messenger/locale/addressbook/ldapAutoCompErrs.properties"
@@ -181,12 +182,12 @@ nsAbLDAPAutoCompFormatter::FormatException(PRInt32 aState,
     nsString errMsg, ldapErrMsg, alertMsg, ldapHint;
     nsString errCodeNum;
 
-    nsCOMPtr<nsIStringBundleService> stringBundleSvc(do_GetService(
-                                            NS_STRINGBUNDLE_CONTRACTID, &rv)); 
-    if (NS_FAILED(rv)) {
+    nsCOMPtr<nsIStringBundleService> stringBundleSvc =
+        mozilla::services::GetStringBundleService();
+    if (stringBundleSvc) {
         NS_ERROR("nsAbLDAPAutoCompleteFormatter::FormatException():"
                  " error getting string bundle service");
-        return rv;
+        return NS_ERROR_UNEXPECTED;
     }
 
     // get the string bundles relevant here: the main LDAP bundle,

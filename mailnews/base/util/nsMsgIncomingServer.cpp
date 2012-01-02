@@ -77,6 +77,7 @@
 #include "nsMsgFolderFlags.h"
 #include "nsMsgUtils.h"
 #include "nsAppDirectoryServiceDefs.h"
+#include "mozilla/Services.h"
 
 #define PORT_NOT_SET -1
 
@@ -1619,12 +1620,12 @@ NS_IMETHODIMP nsMsgIncomingServer::DisplayOfflineMsg(nsIMsgWindow *aMsgWindow)
 {
   NS_ENSURE_ARG_POINTER(aMsgWindow);
 
-  nsresult rv;
-  nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr<nsIStringBundle> bundle;
-  rv = bundleService->CreateBundle(BASE_MSGS_URL, getter_AddRefs(bundle));
+  nsresult rv = bundleService->CreateBundle(BASE_MSGS_URL, getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, rv);
   if (bundle)
   {

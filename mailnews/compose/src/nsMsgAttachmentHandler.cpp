@@ -65,6 +65,7 @@
 #include "nsComposeStrings.h"
 #include "nsIZipWriter.h"
 #include "nsIDirectoryEnumerator.h"
+#include "mozilla/Services.h"
 
 ///////////////////////////////////////////////////////////////////////////
 // Mac Specific Attachment Handling for AppleDouble Encoded Files
@@ -1056,8 +1057,9 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
     nsString     msg;
     PRUnichar         *printfString = nsnull;
     nsresult rv;
-    nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
     nsCOMPtr<nsIStringBundle> bundle;
     rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
     NS_ENSURE_SUCCESS(rv, rv);

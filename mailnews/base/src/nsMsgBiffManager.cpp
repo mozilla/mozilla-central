@@ -52,6 +52,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "nsMsgUtils.h"
+#include "mozilla/Services.h"
 
 #define PREF_BIFF_JITTER "mail.biff.add_interval_jitter"
 
@@ -83,10 +84,9 @@ nsMsgBiffManager::~nsMsgBiffManager()
   if (!mHaveShutdown)
     Shutdown();
 
-  nsresult rv;
   nsCOMPtr<nsIObserverService> observerService =
-       do_GetService("@mozilla.org/observer-service;1", &rv);
-  if (NS_SUCCEEDED(rv))
+    mozilla::services::GetObserverService();
+  if (observerService)
   {
     observerService->RemoveObserver(this, "wake_notification");
     observerService->RemoveObserver(this, "sleep_notification");
@@ -121,8 +121,8 @@ NS_IMETHODIMP nsMsgBiffManager::Init()
     MsgBiffLogModule = PR_NewLogModule("MsgBiff");
 
   nsCOMPtr<nsIObserverService> observerService =
-           do_GetService("@mozilla.org/observer-service;1", &rv);
-  if (NS_SUCCEEDED(rv))
+    mozilla::services::GetObserverService();
+  if (observerService)
   {
     observerService->AddObserver(this, "sleep_notification", true);
     observerService->AddObserver(this, "wake_notification", true);

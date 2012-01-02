@@ -55,6 +55,7 @@
 #include "nsINntpService.h"
 #include "nsIMsgStatusFeedback.h"
 #include "nsServiceManagerUtils.h"
+#include "mozilla/Services.h"
 
 static NS_DEFINE_CID(kMsgSendLaterCID, NS_MSGSENDLATER_CID); 
 
@@ -275,26 +276,22 @@ nsresult nsMsgOfflineManager::SendUnsentMessages()
 
 nsresult nsMsgOfflineManager::ShowStatus(const char *statusMsgName)
 {
-  nsresult res = NS_OK;
   if (!mStringBundle)
   {
-    static const char propertyURL[] = MESSENGER_STRING_URL;
-
     nsCOMPtr<nsIStringBundleService> sBundleService = 
-             do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res);
-    if (NS_SUCCEEDED(res) && (nsnull != sBundleService)) 
-    {
-      res = sBundleService->CreateBundle(propertyURL, getter_AddRefs(mStringBundle));
-    }
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(sBundleService, NS_ERROR_UNEXPECTED);
+    sBundleService->CreateBundle(MESSENGER_STRING_URL, getter_AddRefs(mStringBundle));
+    return NS_OK;
   }
-  if (mStringBundle)
-  {
-    nsString statusString;
-    res = mStringBundle->GetStringFromName(NS_ConvertASCIItoUTF16(statusMsgName).get(), getter_Copies(statusString));
 
-    if (NS_SUCCEEDED(res) && m_statusFeedback)
-      m_statusFeedback->ShowStatusString(statusString);
-  }
+  nsString statusString;
+  nsresult res = mStringBundle->GetStringFromName(NS_ConvertASCIItoUTF16(statusMsgName).get(),
+						  getter_Copies(statusString));
+
+  if (NS_SUCCEEDED(res) && m_statusFeedback)
+    m_statusFeedback->ShowStatusString(statusString);
+
   return res;
 }
 
@@ -359,13 +356,10 @@ NS_IMETHODIMP nsMsgOfflineManager::SynchronizeForOffline(bool downloadNews, bool
 
 nsresult nsMsgOfflineManager::SetOnlineState(bool online)
 {
-  nsresult rv;
-  nsCOMPtr<nsIIOService> netService(do_GetService(NS_IOSERVICE_CONTRACTID, &rv));
-  if (NS_SUCCEEDED(rv) && netService)
-  {
-    rv = netService->SetOffline(!online);
-  }
-  return rv;
+  nsCOMPtr<nsIIOService> netService =
+    mozilla::services::GetIOService();
+  NS_ENSURE_TRUE(netService, NS_ERROR_UNEXPECTED);
+  return netService->SetOffline(!online);
 }
 
   // nsIUrlListener methods

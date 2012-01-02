@@ -54,6 +54,7 @@
 #include "nsIIOService.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
+#include "mozilla/Services.h"
 
 NS_IMPL_ISUPPORTS1(nsDefaultAutoSyncMsgStrategy, nsIAutoSyncMsgStrategy)
 
@@ -261,7 +262,7 @@ nsAutoSyncManager::nsAutoSyncManager()
 
   // Observe xpcom-shutdown event and app-idle changes
   nsCOMPtr<nsIObserverService> observerService =
-         do_GetService("@mozilla.org/observer-service;1", &rv);
+    mozilla::services::GetObserverService();
 
   rv = observerService->AddObserver(this,
                                     NS_XPCOM_SHUTDOWN_OBSERVER_ID,
@@ -587,7 +588,7 @@ NS_IMETHODIMP nsAutoSyncManager::Observe(nsISupports*, const char *aTopic, const
   if (!PL_strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
   {
     nsCOMPtr<nsIObserverService> observerService =
-      do_GetService("@mozilla.org/observer-service;1");
+      mozilla::services::GetObserverService();
     if (observerService)
     {
       observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);

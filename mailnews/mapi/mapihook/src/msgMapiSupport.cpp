@@ -39,6 +39,7 @@
 #include "nsISupports.h"
 
 #include "mozilla/ModuleUtils.h"
+#include "mozilla/Services.h"
 #include "nsIObserverService.h"
 #include "nsIAppStartupNotifier.h"
 #include "nsIServiceManager.h"
@@ -66,8 +67,9 @@ nsMapiSupport::Observe(nsISupports *aSubject, const char *aTopic, const PRUnicha
     if (!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
         return ShutdownMAPISupport();
 
-    nsCOMPtr<nsIObserverService> observerService(do_GetService("@mozilla.org/observer-service;1", &rv));
-    if (NS_FAILED(rv)) return rv;
+    nsCOMPtr<nsIObserverService> observerService =
+      mozilla::services::GetObserverService();
+    NS_ENSURE_TRUE(observerService, NS_ERROR_UNEXPECTED);
  
     rv = observerService->AddObserver(this,"profile-after-change", false);
     if (NS_FAILED(rv)) return rv;

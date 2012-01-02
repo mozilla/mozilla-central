@@ -51,6 +51,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsMemory.h"
+#include "mozilla/Services.h"
 
 using namespace mozilla;
 
@@ -109,13 +110,13 @@ NS_IMETHODIMP nsAbLDAPListenerBase::OnLDAPInit(nsILDAPConnection *aConn, nsresul
     // get the string bundle service
     //
     nsCOMPtr<nsIStringBundleService> stringBundleSvc = 
-      do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    if (NS_FAILED(rv))
+      mozilla::services::GetStringBundleService();
+    if (!stringBundleSvc)
     {
       NS_ERROR("nsAbLDAPListenerBase::OnLDAPInit():"
                " error getting string bundle service");
       InitFailed();
-      return rv;
+      return NS_ERROR_UNEXPECTED;
     }
 
     // get the LDAP string bundle

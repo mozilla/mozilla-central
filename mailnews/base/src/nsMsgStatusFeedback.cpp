@@ -53,6 +53,7 @@
 #include "nsIMsgHdr.h"
 #include "nsIMsgFolder.h"
 #include "nsServiceManagerUtils.h"
+#include "mozilla/Services.h"
 
 #define MSGFEEDBACK_TIMER_INTERVAL 500
 
@@ -63,9 +64,9 @@ nsMsgStatusFeedback::nsMsgStatusFeedback() :
 
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleService =
-    do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+    mozilla::services::GetStringBundleService();
 
-  if (NS_SUCCEEDED(rv))
+  if (bundleService)
     bundleService->CreateBundle("chrome://messenger/locale/messenger.properties",
                                 getter_AddRefs(mBundle));
 
@@ -306,8 +307,9 @@ NS_IMETHODIMP nsMsgStatusFeedback::OnStatus(nsIRequest *request, nsISupports* ct
                                             nsresult aStatus, const PRUnichar* aStatusArg)
 {
   nsresult rv;
-  nsCOMPtr<nsIStringBundleService> sbs = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundleService> sbs =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(sbs, NS_ERROR_UNEXPECTED);
   nsString str;
   rv = sbs->FormatStatusMessage(aStatus, aStatusArg, getter_Copies(str));
   NS_ENSURE_SUCCESS(rv, rv);

@@ -110,6 +110,7 @@
 #include "nsMsgUtils.h"
 #include "nsIArray.h"
 #include "nsArrayUtils.h"
+#include "mozilla/Services.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -2129,8 +2130,9 @@ nsMsgComposeAndSend::AddCompFieldLocalAttachments()
             m_attachments[newLoc].mTmpFile =nsnull;
           }
           nsresult rv;
-          nsCOMPtr<nsIIOService> ioService = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
-          NS_ENSURE_SUCCESS(rv, rv);
+          nsCOMPtr<nsIIOService> ioService =
+            mozilla::services::GetIOService();
+          NS_ENSURE_TRUE(ioService, NS_ERROR_UNEXPECTED);
           nsCOMPtr <nsIURI> uri;
           rv = ioService->NewURI(url, nsnull, nsnull, getter_AddRefs(uri));
           NS_ENSURE_SUCCESS(rv, rv);
@@ -3215,8 +3217,9 @@ nsMsgComposeAndSend::Init(
   nsString msg;
   if (!mComposeBundle)
   {
-    nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
     nsCOMPtr<nsIStringBundle> bundle;
     rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(mComposeBundle));
     NS_ENSURE_SUCCESS(rv, rv);
@@ -4016,8 +4019,9 @@ nsMsgComposeAndSend::NotifyListenerOnStopCopy(nsresult aStatus)
   {
     bool retry = false;
     nsresult rv;
-    nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
     nsCOMPtr<nsIStringBundle> bundle;
     rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
     NS_ENSURE_SUCCESS(rv, rv);

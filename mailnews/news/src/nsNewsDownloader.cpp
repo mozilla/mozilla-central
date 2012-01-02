@@ -56,6 +56,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsMsgUtils.h"
+#include "mozilla/Services.h"
 
 // This file contains the news article download state machine.
 
@@ -215,8 +216,9 @@ bool nsNewsDownloader::GetNextHdrToRetrieve()
 
     m_lastProgressTime = nowMS;
     nsCOMPtr <nsIMsgNewsFolder> newsFolder = do_QueryInterface(m_folder);
-    nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, false);
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, false);
     nsCOMPtr<nsIStringBundle> bundle;
     rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
     NS_ENSURE_SUCCESS(rv, false);

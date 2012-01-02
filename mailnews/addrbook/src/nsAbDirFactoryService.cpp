@@ -49,6 +49,7 @@
 #include "nsAbBaseCID.h"
 #include "nsAbDirFactoryService.h"
 #include "nsIAbDirFactory.h"
+#include "mozilla/Services.h"
 
 NS_IMPL_ISUPPORTS1(nsAbDirFactoryService, nsIAbDirFactoryService)
 
@@ -70,8 +71,9 @@ nsAbDirFactoryService::GetDirFactory(const nsACString &aURI,
   nsresult rv;
 
   // Obtain the network IO service
-  nsCOMPtr<nsIIOService> nsService(do_GetService(NS_IOSERVICE_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsCOMPtr<nsIIOService> nsService =
+    mozilla::services::GetIOService();
+  NS_ENSURE_TRUE(nsService, NS_ERROR_UNEXPECTED);
     
   // Extract the scheme
   nsCAutoString scheme;

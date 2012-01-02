@@ -61,6 +61,7 @@
 #include "nsCOMArray.h"
 #include "nsArrayEnumerator.h"
 #include "prmem.h"
+#include "mozilla/Services.h"
 
 #define PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST "mail.addr_book.lastnamefirst"
 
@@ -724,8 +725,9 @@ nsresult nsAbCardProperty::ConvertToBase64EncodedXML(nsACString &result)
 
   // Get Address Book string and set it as title of XML document
   nsCOMPtr<nsIStringBundle> bundle;
-  nsCOMPtr<nsIStringBundleService> stringBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  if (NS_SUCCEEDED(rv)) {
+  nsCOMPtr<nsIStringBundleService> stringBundleService =
+    mozilla::services::GetStringBundleService();
+  if (stringBundleService) {
     rv = stringBundleService->CreateBundle(sAddrbookProperties, getter_AddRefs(bundle));
     if (NS_SUCCEEDED(rv)) {
       nsString addrBook;
@@ -761,8 +763,9 @@ nsresult nsAbCardProperty::ConvertToXMLPrintData(nsAString &aXMLSubstr)
   rv = prefBranch->GetIntPref(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, &generatedNameFormat);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIStringBundleService> stringBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsCOMPtr<nsIStringBundleService> stringBundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(stringBundleService, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr<nsIStringBundle> bundle;
   rv = stringBundleService->CreateBundle(sAddrbookProperties, getter_AddRefs(bundle));
@@ -1091,8 +1094,8 @@ NS_IMETHODIMP nsAbCardProperty::GenerateName(PRInt32 aGenerateFormat,
     nsCOMPtr<nsIStringBundle> bundle(aBundle);
     if (!bundle) {
       nsCOMPtr<nsIStringBundleService> stringBundleService =
-        do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv); 
-      NS_ENSURE_SUCCESS(rv, rv);
+        mozilla::services::GetStringBundleService();
+      NS_ENSURE_TRUE(stringBundleService, NS_ERROR_UNEXPECTED);
         
       rv = stringBundleService->CreateBundle(sAddrbookProperties,
                                              getter_AddRefs(bundle));

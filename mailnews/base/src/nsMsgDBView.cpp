@@ -83,6 +83,7 @@
 #include "nsIAbManager.h"
 #include "nsIAbDirectory.h"
 #include "nsIAbCard.h"
+#include "mozilla/Services.h"
 
 nsrefcnt nsMsgDBView::gInstanceCount  = 0;
 
@@ -314,14 +315,15 @@ nsresult nsMsgDBView::InitLabelStrings()
 // helper function used to fetch strings from the messenger string bundle
 PRUnichar * nsMsgDBView::GetString(const PRUnichar *aStringName)
 {
-  nsresult    res = NS_OK;
+  nsresult    res = NS_ERROR_UNEXPECTED;
   PRUnichar   *ptrv = nsnull;
 
   if (!mMessengerStringBundle)
   {
     static const char propertyURL[] = MESSENGER_STRING_URL;
-    nsCOMPtr<nsIStringBundleService> sBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res);
-    if (NS_SUCCEEDED(res) && sBundleService)
+    nsCOMPtr<nsIStringBundleService> sBundleService =
+      mozilla::services::GetStringBundleService();
+    if (sBundleService)
       res = sBundleService->CreateBundle(propertyURL, getter_AddRefs(mMessengerStringBundle));
   }
 

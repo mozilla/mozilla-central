@@ -70,6 +70,7 @@
 #include "nsIMsgAccountManager.h"
 #include "nsMsgBaseCID.h"
 #include "nsMsgUtils.h"
+#include "mozilla/Services.h"
 
 #define kDefaultMaxHits 100
 
@@ -147,8 +148,9 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetChildCards(nsISimpleEnumerator** result)
     
     // when offline, we need to get the child cards for the local, replicated mdb directory 
     bool offline;
-    nsCOMPtr <nsIIOService> ioService = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv,rv);
+    nsCOMPtr <nsIIOService> ioService =
+      mozilla::services::GetIOService();
+    NS_ENSURE_TRUE(ioService, NS_ERROR_UNEXPECTED);
     rv = ioService->GetOffline(&offline);
     NS_ENSURE_SUCCESS(rv,rv);
     
@@ -249,8 +251,9 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetLDAPURL(nsILDAPURL** aResult)
       URI.Replace(0, kLDAPDirectoryRootLen, NS_LITERAL_CSTRING("ldap://"));
   }
 
-  nsCOMPtr<nsIIOService> ioService(do_GetService(NS_IOSERVICE_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIIOService> ioService =
+    mozilla::services::GetIOService();
+  NS_ENSURE_TRUE(ioService, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr<nsIURI> result;
   rv = ioService->NewURI(URI, nsnull, nsnull, getter_AddRefs(result));
@@ -446,8 +449,8 @@ NS_IMETHODIMP nsAbLDAPDirectory::GetReadOnly(bool *aReadOnly)
   // when online, we'll allow writing as well
   bool offline;
   nsCOMPtr <nsIIOService> ioService =
-    do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
+    mozilla::services::GetIOService();
+  NS_ENSURE_TRUE(ioService, NS_ERROR_UNEXPECTED);
 
   rv = ioService->GetOffline(&offline);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -490,8 +493,8 @@ NS_IMETHODIMP nsAbLDAPDirectory::UseForAutocomplete(const nsACString &aIdentityK
   nsresult rv;
   bool offline = false;
   nsCOMPtr <nsIIOService> ioService =
-    do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    mozilla::services::GetIOService();
+  NS_ENSURE_TRUE(ioService, NS_ERROR_UNEXPECTED);
 
   rv = ioService->GetOffline(&offline);
   NS_ENSURE_SUCCESS(rv, rv);

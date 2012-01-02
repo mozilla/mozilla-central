@@ -58,6 +58,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsArrayEnumerator.h"
 #include "nsMsgUtils.h"
+#include "mozilla/Services.h"
 
 // turn this on to see useful output
 #undef DEBUG_amds
@@ -358,8 +359,8 @@ nsMsgAccountManagerDataSource::GetTarget(nsIRDFResource *source,
         // allow for the accountmanager to be dynamically extended.
 
         nsCOMPtr<nsIStringBundleService> strBundleService =
-          do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-        NS_ENSURE_SUCCESS(rv,rv);
+          mozilla::services::GetStringBundleService();
+        NS_ENSURE_TRUE(strBundleService, NS_ERROR_UNEXPECTED);
 
         const char *sourceValue;
         rv = source->GetValueConst(&sourceValue);
@@ -1157,11 +1158,9 @@ nsMsgAccountManagerDataSource::getStringBundle()
 {
   if (mStringBundle) return NS_OK;
 
-  nsresult rv;
-
   nsCOMPtr<nsIStringBundleService> strBundleService =
-      do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  if (NS_FAILED(rv)) return rv;
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(strBundleService, NS_ERROR_UNEXPECTED);
 
   return strBundleService->CreateBundle("chrome://messenger/locale/prefs.properties",
                                       getter_AddRefs(mStringBundle));

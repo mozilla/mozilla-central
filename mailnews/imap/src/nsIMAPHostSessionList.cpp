@@ -47,6 +47,7 @@
 #include "nsIObserverService.h"
 #include "nsServiceManagerUtils.h"
 #include "nsMsgUtils.h"
+#include "mozilla/Services.h"
 
 nsIMAPHostInfo::nsIMAPHostInfo(const char *serverKey,
                                nsIImapIncomingServer *server)
@@ -110,30 +111,26 @@ nsIMAPHostSessionList::~nsIMAPHostSessionList()
 
 nsresult nsIMAPHostSessionList::Init()
 {
-  nsresult rv;
-  nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
-  if (NS_SUCCEEDED(rv))
-  {
-    observerService->AddObserver(this, "profile-before-change", true);
-    observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, true);
-  }
-  return rv;
+  nsCOMPtr<nsIObserverService> observerService =
+    mozilla::services::GetObserverService();
+  NS_ENSURE_TRUE(observerService, NS_ERROR_UNEXPECTED);
+  observerService->AddObserver(this, "profile-before-change", true);
+  observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, true);
+  return NS_OK;
 }
 
 
 NS_IMETHODIMP nsIMAPHostSessionList::Observe(nsISupports *aSubject, const char *aTopic, const PRUnichar *someData)
 {
-  nsresult rv;
   if (!strcmp(aTopic, "profile-before-change"))
     ResetAll();
   else if (!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
   {
-    nsCOMPtr<nsIObserverService> observerService =  do_GetService("@mozilla.org/observer-service;1", &rv);
-    if (NS_SUCCEEDED(rv))
-    {
-      observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
-      observerService->RemoveObserver(this, "profile-before-change");
-    }
+    nsCOMPtr<nsIObserverService> observerService =
+      mozilla::services::GetObserverService();
+    NS_ENSURE_TRUE(observerService, NS_ERROR_UNEXPECTED);
+    observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
+    observerService->RemoveObserver(this, "profile-before-change");
   }
   return NS_OK;
 }

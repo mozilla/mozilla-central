@@ -229,15 +229,15 @@ nsMsgFilterService::GetFilterStringBundle(nsIStringBundle **aBundle)
 {
   NS_ENSURE_ARG_POINTER(aBundle);
 
-  nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleService =
-         do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+         mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
   nsCOMPtr<nsIStringBundle> bundle;
-  if (bundleService && NS_SUCCEEDED(rv))
+  if (bundleService)
     bundleService->CreateBundle("chrome://messenger/locale/filter.properties",
                                  getter_AddRefs(bundle));
   NS_IF_ADDREF(*aBundle = bundle);
-  return rv;
+  return NS_OK;
 }
 
 nsresult
@@ -1077,7 +1077,8 @@ bool nsMsgFilterAfterTheFact::ContinueExecutionPrompt()
   if (!m_curFilter)
     return false;
   nsCOMPtr<nsIStringBundle> bundle;
-  nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID);
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
   if (!bundleService)
     return false;
   bundleService->CreateBundle("chrome://messenger/locale/filter.properties",

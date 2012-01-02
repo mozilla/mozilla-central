@@ -62,6 +62,7 @@
 #include "nsIObserverService.h"
 #include "nsIMsgLocalMailFolder.h"
 #include "nsIMsgDatabase.h"
+#include "mozilla/Services.h"
 
 // Consts for checking and sending mail in milliseconds
 
@@ -134,8 +135,8 @@ nsMsgSendLater::Init()
 
   // We need to know when we're shutting down.
   nsCOMPtr<nsIObserverService> observerService =
-    do_GetService("@mozilla.org/observer-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    mozilla::services::GetObserverService();
+  NS_ENSURE_TRUE(observerService, NS_ERROR_UNEXPECTED);
 
   rv = observerService->AddObserver(this, "xpcom-shutdown", false);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -200,8 +201,8 @@ nsMsgSendLater::Observe(nsISupports *aSubject, const char* aTopic,
 
     // Now remove ourselves from the observer service as well.
     nsCOMPtr<nsIObserverService> observerService =
-      do_GetService("@mozilla.org/observer-service;1", &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+      mozilla::services::GetObserverService();
+    NS_ENSURE_TRUE(observerService, NS_ERROR_UNEXPECTED);
 
     rv = observerService->RemoveObserver(this, "xpcom-shutdown");
     NS_ENSURE_SUCCESS(rv, rv);

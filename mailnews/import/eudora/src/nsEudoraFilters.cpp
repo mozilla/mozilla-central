@@ -52,6 +52,7 @@
 #include "nsIMsgFilterList.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIStringBundle.h"
+#include "mozilla/Services.h"
 
 #include "nsEudoraFilters.h"
 #include "nsEudoraStringBundle.h"
@@ -389,20 +390,19 @@ nsresult nsEudoraFilters::Init()
 
   // Get the name of the folder where one-off imported mail is placed
   nsAutoString folderName(NS_LITERAL_STRING("Eudora Import"));
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService(
-                                     NS_STRINGBUNDLE_CONTRACTID, &rv));
+  nsCOMPtr<nsIStringBundleService> bundleService = 
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
+
+  nsCOMPtr<nsIStringBundle> bundle;
+  rv = bundleService->CreateBundle("chrome://messenger/locale/importMsgs.properties",
+                                   getter_AddRefs(bundle));
   if (NS_SUCCEEDED(rv))
   {
-    nsCOMPtr<nsIStringBundle> bundle;
-    rv = bundleService->CreateBundle("chrome://messenger/locale/importMsgs.properties",
-                                     getter_AddRefs(bundle));
-    if (NS_SUCCEEDED(rv))
-    {
-      nsAutoString Eudora(NS_LITERAL_STRING("Eudora"));
-      const PRUnichar *moduleName[] = { Eudora.get() };
-      rv = bundle->FormatStringFromName(NS_LITERAL_STRING("ImportModuleFolderName").get(),
-                                        moduleName, 1, getter_Copies(folderName));
-    }
+    nsAutoString Eudora(NS_LITERAL_STRING("Eudora"));
+    const PRUnichar *moduleName[] = { Eudora.get() };
+    rv = bundle->FormatStringFromName(NS_LITERAL_STRING("ImportModuleFolderName").get(),
+                                      moduleName, 1, getter_Copies(folderName));
   }
   localRootFolder->GetChildNamed(folderName, getter_AddRefs(m_pMailboxesRoot));
   if (!m_pMailboxesRoot)

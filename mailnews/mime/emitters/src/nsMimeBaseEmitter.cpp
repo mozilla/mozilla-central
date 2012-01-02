@@ -66,6 +66,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsMsgUtils.h"
 #include "nsTextFormatter.h"
+#include "mozilla/Services.h"
 
 static PRLogModuleInfo * gMimeEmitterLogModule = nsnull;
 
@@ -244,8 +245,8 @@ nsMimeBaseEmitter::MimeGetStringByName(const char *aHeaderName)
     static const char propertyURL[] = MIME_HEADER_URL;
 
     nsCOMPtr<nsIStringBundleService> sBundleService =
-             do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res);
-    if (NS_SUCCEEDED(res) && (nsnull != sBundleService))
+      mozilla::services::GetStringBundleService();
+    if (sBundleService)
     {
       res = sBundleService->CreateBundle(propertyURL, getter_AddRefs(m_headerStringBundle));
     }
@@ -283,8 +284,8 @@ nsMimeBaseEmitter::MimeGetStringByID(PRInt32 aID)
     static const char propertyURL[] = MIME_URL;
 
     nsCOMPtr<nsIStringBundleService> sBundleService =
-                            do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res);
-    if (NS_SUCCEEDED(res))
+      mozilla::services::GetStringBundleService();
+    if (sBundleService)
       res = sBundleService->CreateBundle(propertyURL, getter_AddRefs(m_stringBundle));
   }
 

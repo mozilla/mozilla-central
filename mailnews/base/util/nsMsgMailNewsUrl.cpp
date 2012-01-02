@@ -56,6 +56,7 @@
 #include "prmem.h"
 #include <time.h>
 #include "nsMsgUtils.h"
+#include "mozilla/Services.h"
 
 nsMsgMailNewsUrl::nsMsgMailNewsUrl()
 {
@@ -570,8 +571,9 @@ NS_IMETHODIMP nsMsgMailNewsUrl::Clone(nsIURI **_retval)
 {
   nsresult rv;
   nsCAutoString urlSpec;
-  nsCOMPtr<nsIIOService> ioService = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIIOService> ioService =
+    mozilla::services::GetIOService();
+  NS_ENSURE_TRUE(ioService, NS_ERROR_UNEXPECTED);
   rv = GetSpec(urlSpec);
   NS_ENSURE_SUCCESS(rv, rv);
   rv = ioService->NewURI(urlSpec, nsnull, nsnull, _retval);
@@ -600,8 +602,9 @@ NS_IMETHODIMP nsMsgMailNewsUrl::Resolve(const nsACString &relativePath, nsACStri
   else
   {
     // if relativePath is a complete url with it's own scheme then allow it...
-    nsCOMPtr<nsIIOService> ioService = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIIOService> ioService =
+      mozilla::services::GetIOService();
+    NS_ENSURE_TRUE(ioService, NS_ERROR_UNEXPECTED);
     nsCAutoString scheme;
 
     rv = ioService->ExtractScheme(relativePath, scheme);

@@ -66,6 +66,7 @@
 #include "nsILineInputStream.h"
 #include "nsIMsgIncomingServer.h"
 #include "nsAlgorithm.h"
+#include "mozilla/Services.h"
 
 using namespace mozilla;
 
@@ -1570,8 +1571,8 @@ PRUnichar *FormatStringWithHostNameByID(PRInt32 stringID, nsIMsgMailNewsUrl *msg
   nsresult rv;
 
   nsCOMPtr<nsIStringBundleService> sBundleService =
-          do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, nsnull);
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(sBundleService, nsnull);
 
   nsCOMPtr<nsIStringBundle> sBundle;
   rv = sBundleService->CreateBundle(MSGS_URL, getter_AddRefs(sBundle));

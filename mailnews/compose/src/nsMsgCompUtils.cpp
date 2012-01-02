@@ -63,6 +63,7 @@
 #include "nsMemory.h"
 #include "nsCRTGlue.h"
 #include <ctype.h>
+#include "mozilla/Services.h"
 
 NS_IMPL_ISUPPORTS1(nsMsgCompUtils, nsIMsgCompUtils)
 
@@ -629,8 +630,9 @@ mime_generate_headers (nsMsgCompFields *fields,
       const char* pBcc = fields->GetBcc(); //Do not free me!
       if (pBcc && *pBcc)
       {
-        nsCOMPtr<nsIStringBundleService> stringService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-        if (NS_SUCCEEDED(rv))
+        nsCOMPtr<nsIStringBundleService> stringService =
+          mozilla::services::GetStringBundleService();
+        if (stringService)
         {
           nsCOMPtr<nsIStringBundle> composeStringBundle;
           rv = stringService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(composeStringBundle));
@@ -1739,19 +1741,18 @@ nsMsgNewURL(nsIURI** aInstancePtrResult, const char * aSpec)
   nsresult rv = NS_OK;
   if (nsnull == aInstancePtrResult)
     return NS_ERROR_NULL_POINTER;
-  nsCOMPtr<nsIIOService> pNetService(do_GetService(NS_IOSERVICE_CONTRACTID, &rv));
-  if (NS_SUCCEEDED(rv) && pNetService)
+  nsCOMPtr<nsIIOService> pNetService =
+    mozilla::services::GetIOService();
+  NS_ENSURE_TRUE(pNetService, NS_ERROR_UNEXPECTED);
+  if (PL_strstr(aSpec, "://") == nsnull && strncmp(aSpec, "data:", 5))
   {
-    if (PL_strstr(aSpec, "://") == nsnull && strncmp(aSpec, "data:", 5))
-    {
-      //XXXjag Temporary fix for bug 139362 until the real problem(bug 70083) get fixed
-      nsCAutoString uri(NS_LITERAL_CSTRING("http://"));
-      uri.Append(aSpec);
-      rv = pNetService->NewURI(uri, nsnull, nsnull, aInstancePtrResult);
-    }
-    else
-      rv = pNetService->NewURI(nsDependentCString(aSpec), nsnull, nsnull, aInstancePtrResult);
+    //XXXjag Temporary fix for bug 139362 until the real problem(bug 70083) get fixed
+    nsCAutoString uri(NS_LITERAL_CSTRING("http://"));
+    uri.Append(aSpec);
+    rv = pNetService->NewURI(uri, nsnull, nsnull, aInstancePtrResult);
   }
+  else
+    rv = pNetService->NewURI(nsDependentCString(aSpec), nsnull, nsnull, aInstancePtrResult);
   return rv;
 }
 

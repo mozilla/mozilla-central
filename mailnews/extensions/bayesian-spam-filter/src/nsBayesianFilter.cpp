@@ -89,6 +89,7 @@
 #include <math.h>
 #include <prmem.h>
 #include "nsIMsgTraitService.h"
+#include "mozilla/Services.h"
 
 static PRLogModuleInfo *BayesianFilterLogModule = nsnull;
 
@@ -1286,10 +1287,9 @@ nsBayesianFilter::nsBayesianFilter()
 
 nsresult nsBayesianFilter::Init()
 {
-  nsresult rv;
   nsCOMPtr<nsIObserverService> observerService =
-           do_GetService("@mozilla.org/observer-service;1", &rv);
-  if (NS_SUCCEEDED(rv))
+    mozilla::services::GetObserverService();
+  if (observerService)
     observerService->AddObserver(this, "profile-before-change", true);
   return NS_OK;
 }

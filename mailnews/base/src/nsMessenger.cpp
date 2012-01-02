@@ -57,6 +57,7 @@
 #endif
 #include "nsNativeCharsetUtils.h"
 #include "nsIMutableArray.h"
+#include "mozilla/Services.h"
 
 // necko
 #include "nsMimeTypes.h"
@@ -1984,17 +1985,15 @@ nsSaveMsgListener::OnDataAvailable(nsIRequest* request,
 nsresult
 nsMessenger::InitStringBundle()
 {
-  nsresult res = NS_OK;
-  if (!mStringBundle)
-  {
-    const char propertyURL[] = MESSENGER_STRING_URL;
-    nsCOMPtr<nsIStringBundleService> sBundleService =
-             do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res);
-    if (NS_SUCCEEDED(res) && (nsnull != sBundleService))
-      res = sBundleService->CreateBundle(propertyURL,
-                                               getter_AddRefs(mStringBundle));
-  }
-  return res;
+  if (mStringBundle)
+    return NS_OK;
+
+  const char propertyURL[] = MESSENGER_STRING_URL;
+  nsCOMPtr<nsIStringBundleService> sBundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(sBundleService, NS_ERROR_UNEXPECTED);
+  return sBundleService->CreateBundle(propertyURL,
+                                      getter_AddRefs(mStringBundle));
 }
 
 void

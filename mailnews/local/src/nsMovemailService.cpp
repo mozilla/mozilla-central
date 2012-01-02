@@ -74,6 +74,7 @@
 #include "nsIStringBundle.h"
 #include "nsLocalStrings.h"
 #include "nsIMsgPluggableStore.h"
+#include "mozilla/Services.h"
 
 #include "prlog.h"
 #if defined(PR_LOGGING)
@@ -138,8 +139,9 @@ nsMovemailService::Error(PRInt32 errorCode,
   if (NS_FAILED(rv))
     return;
 
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-  if (NS_FAILED(rv))
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  if (!bundleService)
     return;
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(bundle));

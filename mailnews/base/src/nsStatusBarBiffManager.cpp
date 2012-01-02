@@ -54,6 +54,7 @@
 #include "nsIFileURL.h"
 #include "nsIFile.h"
 #include "nsMsgUtils.h"
+#include "mozilla/Services.h"
 
 // QueryInterface, AddRef, and Release
 //
@@ -198,8 +199,8 @@ nsStatusBarBiffManager::OnItemIntPropertyChanged(nsIMsgFolder *item, nsIAtom *pr
     mCurrentBiffState = newValue;
 
     // don't care if notification fails
-    nsCOMPtr<nsIObserverService>
-      observerService(do_GetService("@mozilla.org/observer-service;1"));
+    nsCOMPtr<nsIObserverService> observerService =
+      mozilla::services::GetObserverService();
       
     if (observerService)
       observerService->NotifyObservers(this, "mail:biff-state-changed", nsnull);

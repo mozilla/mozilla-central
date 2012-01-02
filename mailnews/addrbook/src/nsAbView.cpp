@@ -60,6 +60,7 @@
 #include "nsArrayUtils.h"
 #include "nsIAddrDatabase.h" // for kPriEmailColumn
 #include "nsMsgUtils.h"
+#include "mozilla/Services.h"
 
 #define CARD_NOT_FOUND -1
 #define ALL_ROWS -1
@@ -180,8 +181,8 @@ nsresult nsAbView::Initialize()
   if (!mABBundle)
   {
     nsCOMPtr<nsIStringBundleService> stringBundleService =
-      do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv); 
-    NS_ENSURE_SUCCESS(rv, rv);
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(stringBundleService, NS_ERROR_UNEXPECTED);
 
     rv = stringBundleService->CreateBundle("chrome://messenger/locale/addressbook/addressBook.properties", getter_AddRefs(mABBundle));
     NS_ENSURE_SUCCESS(rv, rv);
@@ -1197,8 +1198,9 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
     nsString str;
     pls->ToString(getter_Copies(str));
     displayNameLastnamefirst = str.EqualsLiteral("true");
-    nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
     rv = bundleService->CreateBundle("chrome://messenger/locale/addressbook/addressBook.properties", 
                                      getter_AddRefs(bundle));

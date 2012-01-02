@@ -84,6 +84,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
 #include "nsCRTGlue.h"
+#include "mozilla/Services.h"
 
 using namespace mozilla;
 
@@ -1977,15 +1978,13 @@ NS_IMETHODIMP  nsImapIncomingServer::FEAlertFromServer(const nsACString& aString
 
 nsresult nsImapIncomingServer::GetStringBundle()
 {
-  nsresult res;
-  if (!m_stringBundle)
-  {
-    static const char propertyURL[] = IMAP_MSGS_URL;
-    nsCOMPtr<nsIStringBundleService> sBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res);
-    if (NS_SUCCEEDED(res) && (nsnull != sBundleService))
-      res = sBundleService->CreateBundle(propertyURL, getter_AddRefs(m_stringBundle));
-  }
-  return (m_stringBundle) ? NS_OK : res;
+  if (m_stringBundle)
+    return NS_OK;
+
+  nsCOMPtr<nsIStringBundleService> sBundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(sBundleService, NS_ERROR_UNEXPECTED);
+  return sBundleService->CreateBundle(IMAP_MSGS_URL, getter_AddRefs(m_stringBundle));
 }
 
 NS_IMETHODIMP

@@ -95,6 +95,7 @@
 #include "nsIMsgFilterCustomAction.h"
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
+#include "mozilla/Services.h"
 
 // update status on header download once per second
 #define MIN_STATUS_UPDATE_INTERVAL PRTime(PR_USEC_PER_SEC)
@@ -338,8 +339,9 @@ nsNNTPNewsgroupList::GetRangeOfArtsToDownload(nsIMsgWindow *aMsgWindow,
 
   if (m_knownArts.set->IsMember(last_possible)) {
     nsString statusString;
-    nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
     nsCOMPtr<nsIStringBundle> bundle;
     rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
@@ -910,8 +912,9 @@ nsNNTPNewsgroupList::FinishXOVERLINE(int status, int *newstatus)
       lastStr.AppendInt(m_lastMsgNumber - m_firstMsgNumber + 1);
 
       nsString statusString;
-      nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-      NS_ENSURE_SUCCESS(rv, rv);
+      nsCOMPtr<nsIStringBundleService> bundleService =
+        mozilla::services::GetStringBundleService();
+      NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
       nsCOMPtr<nsIStringBundle> bundle;
       rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
@@ -1295,8 +1298,9 @@ nsNNTPNewsgroupList::UpdateStatus(bool filtering, PRInt32 numDLed, PRInt32 totTo
       return;
 
   nsString statusString;
-  nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  if (!NS_SUCCEEDED(rv))
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  if (!bundleService)
     return;
 
   nsCOMPtr<nsIStringBundle> bundle;

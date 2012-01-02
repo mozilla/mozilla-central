@@ -84,6 +84,7 @@
 #include "nsCOMArray.h"
 #include "nsIMutableArray.h"
 #include "nsMemory.h"
+#include "mozilla/Services.h"
 
 #define ALERT_CHROME_URL "chrome://messenger/content/newmailalert.xul"
 #define NEW_MAIL_ALERT_ICON "chrome://messenger/skin/icons/new-mail-alert.png"
@@ -173,14 +174,15 @@ nsMessengerUnixIntegration::OnItemRemoved(nsIMsgFolder *, nsISupports *)
 
 nsresult nsMessengerUnixIntegration::GetStringBundle(nsIStringBundle **aBundle)
 {
-  nsresult rv = NS_OK;
   NS_ENSURE_ARG_POINTER(aBundle);
-  nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
   nsCOMPtr<nsIStringBundle> bundle;
-  if (bundleService && NS_SUCCEEDED(rv))
-    bundleService->CreateBundle("chrome://messenger/locale/messenger.properties", getter_AddRefs(bundle));
+  bundleService->CreateBundle("chrome://messenger/locale/messenger.properties",
+                              getter_AddRefs(bundle));
   bundle.swap(*aBundle);
-  return rv;
+  return NS_OK;
 }
 
 #ifdef MOZ_THUNDERBIRD

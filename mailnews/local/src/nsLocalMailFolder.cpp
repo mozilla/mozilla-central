@@ -110,6 +110,7 @@
 #include "nsArrayUtils.h"
 #include "nsIMsgTraitService.h"
 #include "nsIStringEnumerator.h"
+#include "mozilla/Services.h"
 
 //////////////////////////////////////////////////////////////////////////////
 // nsLocal
@@ -878,8 +879,9 @@ nsresult nsMsgLocalMailFolder::ConfirmFolderDeletion(nsIMsgWindow *aMsgWindow,
     pPrefBranch->GetBoolPref("mailnews.confirm.moveFoldersToTrash", &confirmDeletion);
     if (confirmDeletion)
     {
-      nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-      NS_ENSURE_SUCCESS(rv, rv);
+      nsCOMPtr<nsIStringBundleService> bundleService =
+        mozilla::services::GetStringBundleService();
+      NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
       nsCOMPtr<nsIStringBundle> bundle;
       rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(bundle));
       NS_ENSURE_SUCCESS(rv, rv);
@@ -3195,8 +3197,9 @@ nsresult nsMsgLocalMailFolder::DisplayMoveCopyStatusMsg()
 
     if (!mCopyState->m_stringBundle)
     {
-      nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-      NS_ENSURE_SUCCESS(rv, rv);
+      nsCOMPtr<nsIStringBundleService> bundleService =
+        mozilla::services::GetStringBundleService();
+      NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
       rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(mCopyState->m_stringBundle));
       NS_ENSURE_SUCCESS(rv, rv);
     }

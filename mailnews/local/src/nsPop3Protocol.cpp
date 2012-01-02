@@ -80,6 +80,7 @@
 #include "nsIInterfaceRequestor.h"
 #include "nsMsgMessageFlags.h"
 #include "nsMsgBaseCID.h"
+#include "mozilla/Services.h"
 
 #define EXTRA_SAFETY_SPACE 3096
 
@@ -600,8 +601,9 @@ nsresult nsPop3Protocol::Initialize(nsIURI * aURL)
   if(!m_lineStreamBuffer)
     return NS_ERROR_OUT_OF_MEMORY;
 
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
   return bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(mLocalBundle));
 }
 

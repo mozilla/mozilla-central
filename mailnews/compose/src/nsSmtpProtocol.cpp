@@ -80,7 +80,7 @@
 #include "nsMsgCompUtils.h"
 #include "nsIMsgWindow.h"
 #include "MailNewsTypes2.h" // for nsMsgSocketType and nsMsgAuthMethod
-
+#include "mozilla/Services.h"
 
 #ifndef XP_UNIX
 #include <stdarg.h>
@@ -108,7 +108,6 @@ nsresult nsExplainErrorDetails(nsISmtpUrl * aSmtpUrl, int code, ...)
 {
   NS_ENSURE_ARG(aSmtpUrl);
 
-  nsresult rv = NS_OK;
   va_list args;
 
   nsCOMPtr<nsIPrompt> dialog;
@@ -117,10 +116,11 @@ nsresult nsExplainErrorDetails(nsISmtpUrl * aSmtpUrl, int code, ...)
 
   PRUnichar *  msg;
   nsString eMsg;
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
   nsCOMPtr<nsIStringBundle> bundle;
-  rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
+  nsresult rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, rv);
 
   va_start (args, code);
@@ -451,11 +451,11 @@ void nsSmtpProtocol::UpdateStatus(PRInt32 aStatusID)
 {
   if (m_statusFeedback)
   {
-    nsresult rv;
-    nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-    if (NS_FAILED(rv)) return;
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    if (!bundleService) return;
     nsCOMPtr<nsIStringBundle> bundle;
-    rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
+    nsresult rv = bundleService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(bundle));
     if (NS_FAILED(rv)) return;
     nsString msg;
     bundle->GetStringFromID(aStatusID, getter_Copies(msg));
@@ -2042,12 +2042,12 @@ nsSmtpProtocol::GetPassword(nsCString &aPassword)
 nsresult
 nsSmtpProtocol::PromptForPassword(nsISmtpServer *aSmtpServer, nsISmtpUrl *aSmtpUrl, const PRUnichar **formatStrings, nsACString &aPassword)
 {
-  nsresult rv;
-  nsCOMPtr<nsIStringBundleService> stringService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsCOMPtr<nsIStringBundleService> stringService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(stringService, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr<nsIStringBundle> composeStringBundle;
-  rv = stringService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(composeStringBundle));
+  nsresult rv = stringService->CreateBundle("chrome://messenger/locale/messengercompose/composeMsgs.properties", getter_AddRefs(composeStringBundle));
   NS_ENSURE_SUCCESS(rv,rv);
 
   nsString passwordPromptString;

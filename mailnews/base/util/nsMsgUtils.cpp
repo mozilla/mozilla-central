@@ -104,6 +104,7 @@
 #include "nsIContentSink.h"
 #include "nsICharsetConverterManager.h"
 #include "nsIDocumentEncoder.h"
+#include "mozilla/Services.h"
 
 static NS_DEFINE_CID(kCParserCID, NS_PARSER_CID);
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
@@ -517,8 +518,8 @@ nsresult FormatFileSize(PRUint64 size, bool useKB, nsAString &formattedSize)
   nsresult rv;
 
   nsCOMPtr<nsIStringBundleService> bundleSvc =
-    do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleSvc, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleSvc->CreateBundle("chrome://messenger/locale/messenger.properties",
@@ -821,11 +822,11 @@ nsresult NS_MsgDecodeUnescapeURLPath(const nsACString& aPath,
 
 bool WeAreOffline()
 {
-  nsresult rv = NS_OK;
   bool offline = false;
 
-  nsCOMPtr <nsIIOService> ioService = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
-  if (NS_SUCCEEDED(rv) && ioService)
+  nsCOMPtr <nsIIOService> ioService =
+    mozilla::services::GetIOService();
+  if (ioService)
     ioService->GetOffline(&offline);
 
   return offline;
@@ -2094,8 +2095,8 @@ NS_MSG_BASE nsresult MsgPromptLoginFailed(nsIMsgWindow *aMsgWindow,
   }
 
   nsCOMPtr<nsIStringBundleService> bundleSvc =
-    do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleSvc, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleSvc->CreateBundle("chrome://messenger/locale/messenger.properties",

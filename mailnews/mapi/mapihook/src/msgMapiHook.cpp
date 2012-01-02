@@ -79,6 +79,7 @@
 #include "msgMapiMain.h"
 #include "nsThreadUtils.h"
 #include "nsNetUtil.h"
+#include "mozilla/Services.h"
 
 #include "nsEmbedCID.h"
 
@@ -165,8 +166,9 @@ bool nsMapiHook::DisplayLoginDialog(bool aLogin, PRUnichar **aUsername,
   nsCOMPtr<nsIPromptService> dlgService(do_GetService(NS_PROMPTSERVICE_CONTRACTID, &rv));
   if (NS_SUCCEEDED(rv) && dlgService)
   {
-    nsCOMPtr<nsIStringBundleService> bundleService(do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv));
-    if (NS_FAILED(rv) || !bundleService) return false;
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    if (!bundleService) return false;
 
     nsCOMPtr<nsIStringBundle> bundle;
     rv = bundleService->CreateBundle(MAPI_PROPERTIES_CHROME, getter_AddRefs(bundle));
@@ -283,8 +285,9 @@ nsMapiHook::IsBlindSendAllowed()
       return true; // Everything is okay.
 
   nsresult rv;
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv));
-  if (NS_FAILED(rv) || !bundleService) return false;
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  if (!bundleService) return false;
 
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle(MAPI_PROPERTIES_CHROME, getter_AddRefs(bundle));

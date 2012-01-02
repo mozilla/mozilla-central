@@ -71,6 +71,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsIIOService.h"
 #include "nsAbQueryStringToExpression.h"
+#include "mozilla/Services.h"
 
 struct ExportAttributesTableStruct
 {
@@ -172,12 +173,11 @@ nsresult nsAbManager::Init()
 {
   NS_ENSURE_TRUE(NS_IsMainThread(), NS_ERROR_FAILURE);
 
-  nsresult rv;
   nsCOMPtr<nsIObserverService> observerService =
-    do_GetService("@mozilla.org/observer-service;1", &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    mozilla::services::GetObserverService();
+  NS_ENSURE_TRUE(observerService, NS_ERROR_UNEXPECTED);
 
-  rv = observerService->AddObserver(this, "profile-do-change", false);
+  nsresult rv = observerService->AddObserver(this, "profile-do-change", false);
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID,
@@ -206,12 +206,11 @@ NS_IMETHODIMP nsAbManager::Observe(nsISupports *aSubject, const char *aTopic,
   {
     DIR_ShutDown();
 
-    nsresult rv;
     nsCOMPtr<nsIObserverService> observerService =
-      do_GetService("@mozilla.org/observer-service;1", &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+      mozilla::services::GetObserverService();
+    NS_ENSURE_TRUE(observerService, NS_ERROR_UNEXPECTED);
 
-    rv = observerService->RemoveObserver(this, "profile-do-change");
+    nsresult rv = observerService->RemoveObserver(this, "profile-do-change");
     NS_ENSURE_SUCCESS(rv, rv);
 
     rv = observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
@@ -540,8 +539,9 @@ NS_IMETHODIMP nsAbManager::ExportAddressBook(nsIDOMWindow *aParentWin, nsIAbDire
   nsCOMPtr<nsIFilePicker> filePicker = do_CreateInstance("@mozilla.org/filepicker;1", &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/addressbook/addressBook.properties", getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -666,8 +666,9 @@ nsAbManager::ExportDirectoryToDelimitedText(nsIAbDirectory *aDirectory, const ch
   PRUint32 writeCount;
   PRUint32 length;
 
-  nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/importMsgs.properties", getter_AddRefs(bundle));

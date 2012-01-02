@@ -64,6 +64,7 @@
 #include "nsIPrefBranch.h"
 #include "nsThreadUtils.h"
 #include "nsAutoPtr.h"
+#include "mozilla/Services.h"
 
 // Interfaces Needed
 #include "nsIBaseWindow.h"
@@ -599,7 +600,6 @@ nsMsgPrintEngine::SetStatusMessage(const nsString& aMsgString)
 void
 nsMsgPrintEngine::GetString(const PRUnichar *aStringName, nsString& outStr)
 {
-  nsresult    res = NS_OK;
   outStr.Truncate();
 
   if (!mStringBundle)
@@ -607,13 +607,13 @@ nsMsgPrintEngine::GetString(const PRUnichar *aStringName, nsString& outStr)
     static const char propertyURL[] = MESSENGER_STRING_URL;
 
     nsCOMPtr<nsIStringBundleService> sBundleService = 
-             do_GetService(NS_STRINGBUNDLE_CONTRACTID, &res); 
-    if (NS_SUCCEEDED(res) && (nsnull != sBundleService)) 
-      res = sBundleService->CreateBundle(propertyURL, getter_AddRefs(mStringBundle));
+      mozilla::services::GetStringBundleService();
+    if (sBundleService)
+      sBundleService->CreateBundle(propertyURL, getter_AddRefs(mStringBundle));
   }
 
   if (mStringBundle)
-    res = mStringBundle->GetStringFromName(aStringName, getter_Copies(outStr));
+    mStringBundle->GetStringFromName(aStringName, getter_Copies(outStr));
   return;
 }
 

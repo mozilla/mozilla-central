@@ -66,6 +66,7 @@
 #include "nsNetUtil.h"
 #include "nsISimpleEnumerator.h"
 #include "nsMsgUtils.h"
+#include "mozilla/Services.h"
 
 #define INVALID_VERSION         0
 #define VALID_VERSION           2
@@ -1598,8 +1599,9 @@ nsNntpIncomingServer::GroupNotFound(nsIMsgWindow *aMsgWindow,
     NS_ENSURE_SUCCESS(rv,rv);
   }
 
-  nsCOMPtr <nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID,&rv);
-  NS_ENSURE_SUCCESS(rv,rv);
+  nsCOMPtr <nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr <nsIStringBundle> bundle;
   rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));

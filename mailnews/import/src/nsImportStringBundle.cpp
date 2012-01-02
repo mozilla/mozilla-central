@@ -43,6 +43,7 @@
 #include "nsIURI.h"
 #include "nsServiceManagerUtils.h"
 #include "nsComponentManagerUtils.h"
+#include "mozilla/Services.h"
 
 nsresult nsImportStringBundle::GetStringBundle(const char *aPropertyURL,
                                                nsIStringBundle **aBundle)
@@ -50,10 +51,9 @@ nsresult nsImportStringBundle::GetStringBundle(const char *aPropertyURL,
   nsresult rv;
 
   nsCOMPtr<nsIStringBundleService> sBundleService =
-           do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  if (NS_SUCCEEDED(rv) && (nsnull != sBundleService)) {
-    rv = sBundleService->CreateBundle(aPropertyURL, aBundle);
-  }
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(sBundleService, NS_ERROR_UNEXPECTED);
+  rv = sBundleService->CreateBundle(aPropertyURL, aBundle);
 
   return rv;
 }

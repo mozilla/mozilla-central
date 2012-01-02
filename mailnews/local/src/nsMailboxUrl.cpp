@@ -64,7 +64,7 @@
 #include "nsMsgBaseCID.h"
 #include "nsIMsgAccountManager.h"
 #include "nsMsgUtils.h"
-
+#include "mozilla/Services.h"
 
 // helper function for parsing the search field of a url
 char * extractAttributeValue(const char * searchString, const char * attributeName);
@@ -383,8 +383,9 @@ nsresult nsMailboxUrl::ParseUrl()
     nsCString fileUri("file://");
     fileUri.Append(m_file);
     nsresult rv;
-    nsCOMPtr<nsIIOService> ioService = do_GetService(NS_IOSERVICE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIIOService> ioService =
+      mozilla::services::GetIOService();
+    NS_ENSURE_TRUE(ioService, NS_ERROR_UNEXPECTED);
     nsCOMPtr <nsIURI> uri;
     rv = ioService->NewURI(fileUri, nsnull, nsnull, getter_AddRefs(uri));
     NS_ENSURE_SUCCESS(rv, rv);

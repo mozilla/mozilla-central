@@ -73,6 +73,7 @@
 #include "plstr.h"
 #include "MailNewsTypes.h"
 #include "nsThreadUtils.h"
+#include "mozilla/Services.h"
 
 #define IMPORT_MSGS_URL       "chrome://messenger/locale/importMsgs.properties"
 
@@ -943,9 +944,9 @@ bool nsImportGenericMail::CreateFolder( nsIMsgFolder **ppFolder)
   *ppFolder = nsnull;
 
   nsCOMPtr<nsIStringBundle> bundle;
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService(
-                                     NS_STRINGBUNDLE_CONTRACTID, &rv));
-  if (NS_FAILED(rv) || !bundleService)
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  if (!bundleService)
       return false;
   rv = bundleService->CreateBundle(IMPORT_MSGS_URL, getter_AddRefs(bundle));
   if (NS_FAILED(rv))

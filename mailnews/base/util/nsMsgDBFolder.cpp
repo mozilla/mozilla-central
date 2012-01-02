@@ -103,6 +103,7 @@
 #include "nsMsgUtils.h"
 #include "nsIMsgFilterService.h"
 #include "nsDirectoryServiceUtils.h"
+#include "mozilla/Services.h"
 
 static PRTime gtimeOfLastPurgeCheck;    //variable to know when to check for purge_threshhold
 
@@ -2911,8 +2912,8 @@ nsMsgDBFolder::initializeStrings()
 {
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleService =
-      do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/messenger.properties",
                                    getter_AddRefs(bundle));
@@ -5160,15 +5161,14 @@ nsresult
 nsMsgDBFolder::GetBaseStringBundle(nsIStringBundle **aBundle)
 {
   NS_ENSURE_ARG_POINTER(aBundle);
-  nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleService =
-         do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
   nsCOMPtr<nsIStringBundle> bundle;
-  if (bundleService && NS_SUCCEEDED(rv))
-    bundleService->CreateBundle("chrome://messenger/locale/messenger.properties",
+  bundleService->CreateBundle("chrome://messenger/locale/messenger.properties",
                                  getter_AddRefs(bundle));
   bundle.swap(*aBundle);
-  return rv;
+  return NS_OK;
 }
 
 nsresult //Do not use this routine if you have to call it very often because it creates a new bundle each time

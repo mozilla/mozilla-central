@@ -75,6 +75,7 @@
 #include "nsServiceManagerUtils.h"
 #include "nsIPop3Service.h"
 #include "nsMsgLocalCID.h"
+#include "mozilla/Services.h"
 
 extern PRLogModuleInfo *POP3LOGMODULE;
 
@@ -761,8 +762,9 @@ nsresult nsPop3Sink::WriteLineToMailbox(const char *buffer)
 nsresult nsPop3Sink::HandleTempDownloadFailed(nsIMsgWindow *msgWindow)
 {
   nsresult rv;
-  nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(bundle));
   NS_ENSURE_SUCCESS(rv, rv);

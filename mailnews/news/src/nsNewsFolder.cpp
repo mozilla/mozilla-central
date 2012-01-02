@@ -97,6 +97,7 @@
 #include "nsIPromptService.h"
 #include "nsEmbedCID.h"
 #include "nsIDOMWindow.h"
+#include "mozilla/Services.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -1475,8 +1476,9 @@ nsMsgNewsFolder::GetGroupUsernameWithUI(const nsAString& aPromptMessage,
 
     bool saveUsername = false;
 
-    nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
     nsCOMPtr<nsIStringBundle> bundle;
     rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));

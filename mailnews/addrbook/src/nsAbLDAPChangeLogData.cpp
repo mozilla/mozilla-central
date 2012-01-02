@@ -55,6 +55,7 @@
 #include "plstr.h"
 #include "nsILDAPErrors.h"
 #include "prmem.h"
+#include "mozilla/Services.h"
 
 // Defined here since to be used
 // only locally to this file.
@@ -286,9 +287,9 @@ nsresult nsAbLDAPProcessChangeLogData::GetAuthData()
     if (NS_FAILED(rv)) 
         return rv;
 
-    nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    if (NS_FAILED (rv)) 
-        return rv ;
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
     nsCOMPtr<nsIStringBundle> bundle;
     rv = bundleService->CreateBundle("chrome://messenger/locale/addressbook/addressBook.properties", getter_AddRefs(bundle));
     if (NS_FAILED (rv)) 

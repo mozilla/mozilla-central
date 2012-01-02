@@ -70,6 +70,7 @@
 #include "prlog.h"
 #include "prerror.h"
 #include "nsStringGlue.h"
+#include "mozilla/Services.h"
 
 #include "prprf.h"
 
@@ -1055,7 +1056,8 @@ nsresult nsNNTPProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer)
 
       nsString statusString, confirmText;
       nsCOMPtr<nsIStringBundle> bundle;
-      nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID);
+      nsCOMPtr<nsIStringBundleService> bundleService =
+        mozilla::services::GetStringBundleService();
 
       // to handle non-ASCII newsgroup names, we store them internally
       // as escaped. decode and unescape the newsgroup name so we'll
@@ -2867,8 +2869,9 @@ PRInt32 nsNNTPProtocol::ReadNewsList(nsIInputStream * inputStream, PRUint32 leng
 
       nsString statusString;
 
-      nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-      NS_ENSURE_SUCCESS(rv, rv);
+      nsCOMPtr<nsIStringBundleService> bundleService =
+        mozilla::services::GetStringBundleService();
+      NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
       nsCOMPtr<nsIStringBundle> bundle;
       rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(bundle));
@@ -3456,8 +3459,9 @@ nsresult nsNNTPProtocol::GetNewsStringByID(PRInt32 stringID, PRUnichar **aString
 
   if (!m_stringBundle)
   {
-    nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
     rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(m_stringBundle));
     NS_ENSURE_SUCCESS(rv, rv);
@@ -3490,8 +3494,9 @@ nsresult nsNNTPProtocol::GetNewsStringByName(const char *aName, PRUnichar **aStr
   nsAutoString resultString(NS_LITERAL_STRING("???"));
   if (!m_stringBundle)
   {
-    nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+    nsCOMPtr<nsIStringBundleService> bundleService =
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
     rv = bundleService->CreateBundle(NEWS_MSGS_URL, getter_AddRefs(m_stringBundle));
     NS_ENSURE_SUCCESS(rv, rv);
@@ -3697,7 +3702,7 @@ PRInt32 nsNNTPProtocol::DoCancel()
    m_cancelNewsgroups, "null ptr");
 
   nsCOMPtr<nsIStringBundleService> bundleService =
-    do_GetService(NS_STRINGBUNDLE_CONTRACTID);
+    mozilla::services::GetStringBundleService();
   NS_ENSURE_TRUE(bundleService, NS_ERROR_OUT_OF_MEMORY);
 
   nsCOMPtr<nsIStringBundle> brandBundle;

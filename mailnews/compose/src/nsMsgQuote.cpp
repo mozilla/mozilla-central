@@ -56,6 +56,7 @@
 #include "nsMsgCompCID.h"
 #include "nsMsgCompose.h"
 #include "nsMsgMailNewsUrl.h"
+#include "mozilla/Services.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgQuoteListener)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgQuoteListener)
@@ -218,8 +219,9 @@ nsMsgQuote::QuoteMessage(const char *msgURI, bool quoteHeaders,
 
   // now we want to create a necko channel for this url and we want to open it
   mQuoteChannel = nsnull;
-  nsCOMPtr<nsIIOService> netService(do_GetService(NS_IOSERVICE_CONTRACTID, &rv));
-  if (NS_FAILED(rv)) return rv;
+  nsCOMPtr<nsIIOService> netService =
+    mozilla::services::GetIOService();
+  NS_ENSURE_TRUE(netService, NS_ERROR_UNEXPECTED);
   rv = netService->NewChannelFromURI(aURL, getter_AddRefs(mQuoteChannel));
   if (NS_FAILED(rv)) return rv;
   nsCOMPtr<nsISupports> ctxt = do_QueryInterface(aURL);

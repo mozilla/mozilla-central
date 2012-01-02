@@ -62,6 +62,7 @@
 #include "nsAutoPtr.h"
 #include "nsINetUtil.h"
 #include "nsMemory.h"
+#include "mozilla/Services.h"
 
 #define VIEW_ALL_HEADERS 2
 
@@ -437,8 +438,8 @@ nsMimeHtmlDisplayEmitter::StartAttachmentInBody(const nsACString &name,
       nsresult rv;
 
       nsCOMPtr<nsIStringBundleService> bundleSvc =
-        do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-      NS_ENSURE_SUCCESS(rv, rv);
+        mozilla::services::GetStringBundleService();
+      NS_ENSURE_TRUE(bundleSvc, NS_ERROR_UNEXPECTED);
 
       nsCOMPtr<nsIStringBundle> bundle;
       rv = bundleSvc->CreateBundle("chrome://messenger/locale/messenger.properties",

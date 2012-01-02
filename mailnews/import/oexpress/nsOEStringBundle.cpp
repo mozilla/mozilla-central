@@ -42,6 +42,7 @@
 #include "nsOEStringBundle.h"
 #include "nsIServiceManager.h"
 #include "nsIURI.h"
+#include "mozilla/Services.h"
 
 #define OE_MSGS_URL       "chrome://messenger/locale/oeImportMsgs.properties"
 
@@ -52,15 +53,13 @@ nsIStringBundle *nsOEStringBundle::GetStringBundle( void)
   if (m_pBundle)
     return( m_pBundle);
 
-  nsresult      rv;
   char*        propertyURL = OE_MSGS_URL;
   nsIStringBundle*  sBundle = nsnull;
 
-
   nsCOMPtr<nsIStringBundleService> sBundleService =
-           do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  if (NS_SUCCEEDED(rv) && (nsnull != sBundleService)) {
-    rv = sBundleService->CreateBundle(propertyURL, &sBundle);
+    mozilla::services::GetStringBundleService();
+  if (sBundleService) {
+    sBundleService->CreateBundle(propertyURL, &sBundle);
   }
 
   m_pBundle = sBundle;

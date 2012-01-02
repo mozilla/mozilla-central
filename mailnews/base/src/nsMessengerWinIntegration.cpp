@@ -82,6 +82,7 @@
 #ifdef MOZ_THUNDERBIRD
 #include "mozilla/LookAndFeel.h"
 #endif
+#include "mozilla/Services.h"
 
 #include "nsToolkitCompsCID.h"
 #include <stdlib.h>
@@ -460,14 +461,15 @@ nsMessengerWinIntegration::OnItemRemoved(nsIMsgFolder *, nsISupports *)
 
 nsresult nsMessengerWinIntegration::GetStringBundle(nsIStringBundle **aBundle)
 {
-  nsresult rv = NS_OK;
   NS_ENSURE_ARG_POINTER(aBundle);
-  nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
   nsCOMPtr<nsIStringBundle> bundle;
-  if (bundleService && NS_SUCCEEDED(rv))
-    bundleService->CreateBundle("chrome://messenger/locale/messenger.properties", getter_AddRefs(bundle));
+  bundleService->CreateBundle("chrome://messenger/locale/messenger.properties",
+                              getter_AddRefs(bundle));
   NS_IF_ADDREF(*aBundle = bundle);
-  return rv;
+  return NS_OK;
 }
 
 #ifndef MOZ_THUNDERBIRD

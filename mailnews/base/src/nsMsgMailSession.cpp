@@ -60,6 +60,7 @@
 #include "nsComponentManagerUtils.h"
 #include "nsServiceManagerUtils.h"
 #include "nsIProperties.h"
+#include "mozilla/Services.h"
 
 NS_IMPL_THREADSAFE_ADDREF(nsMsgMailSession)
 NS_IMPL_THREADSAFE_RELEASE(nsMsgMailSession)
@@ -480,8 +481,8 @@ nsMsgMailSession::GetSelectedLocaleDataDir(nsIFile *defaultsDir)
 
   if (baseDirExists) {                                                        
     nsCOMPtr<nsIXULChromeRegistry> packageRegistry =
-      do_GetService("@mozilla.org/chrome/chrome-registry;1", &rv);
-    if (NS_SUCCEEDED(rv)) {                                                 
+      mozilla::services::GetXULChromeRegistryService();
+    if (packageRegistry) {                                                 
       nsCAutoString localeName;                                           
       rv = packageRegistry->GetSelectedLocale(NS_LITERAL_CSTRING("global-region"), localeName);
 
@@ -549,7 +550,8 @@ nsMsgShutdownService::nsMsgShutdownService()
   mQuitForced(false),
   mReadyToQuit(false)
 {
-  nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1");
+  nsCOMPtr<nsIObserverService> observerService =
+    mozilla::services::GetObserverService();
   if (observerService)
   {
     observerService->AddObserver(this, "quit-application-requested", false);
@@ -560,7 +562,8 @@ nsMsgShutdownService::nsMsgShutdownService()
 
 nsMsgShutdownService::~nsMsgShutdownService()
 {
-  nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1");
+  nsCOMPtr<nsIObserverService> observerService =
+    mozilla::services::GetObserverService();
   if (observerService)
   {  
     observerService->RemoveObserver(this, "quit-application-requested");
@@ -659,7 +662,8 @@ NS_IMETHODIMP nsMsgShutdownService::Observe(nsISupports *aSubject,
       mQuitForced = true;
   }
 
-  nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1");
+  nsCOMPtr<nsIObserverService> observerService =
+    mozilla::services::GetObserverService();
   NS_ENSURE_STATE(observerService);
   
   nsCOMPtr<nsISimpleEnumerator> listenerEnum;

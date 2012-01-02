@@ -88,6 +88,7 @@
 #include "nsUTF8Utils.h"
 #include "nsILineBreaker.h"
 #include "nsLWBrkCIID.h"
+#include "mozilla/Services.h"
 
 #ifdef MSGCOMP_TRACE_PERFORMANCE
 #include "prlog.h"
@@ -191,8 +192,9 @@ nsresult nsMsgComposeService::Init()
   // Register observers
 
   // Register for quit application and profile change, we will need to clear the cache.
-  nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
-  if (NS_SUCCEEDED(rv))
+  nsCOMPtr<nsIObserverService> observerService =
+    mozilla::services::GetObserverService();
+  if (observerService)
   {
     rv = observerService->AddObserver(this, "quit-application", true);
     rv = observerService->AddObserver(this, "profile-do-change", true);
@@ -1300,9 +1302,9 @@ nsresult nsMsgComposeService::ShowCachedComposeWindow(nsIDOMWindow *aComposeWind
 {
   nsresult rv = NS_OK;
 
-  nsCOMPtr<nsIObserverService> obs
-    (do_GetService("@mozilla.org/observer-service;1", &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIObserverService> obs =
+    mozilla::services::GetObserverService();
+  NS_ENSURE_TRUE(obs, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr <nsPIDOMWindow> window = do_QueryInterface(aComposeWindow, &rv);
 

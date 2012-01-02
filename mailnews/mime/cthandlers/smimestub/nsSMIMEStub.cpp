@@ -41,6 +41,7 @@
 #include "mimexpcom.h"
 #include "nsIStringBundle.h"
 #include "prmem.h"
+#include "mozilla/Services.h"
 
 #define SMIME_PROPERTIES_URL          "chrome://messenger/locale/smime.properties"
 #define SMIME_STR_NOT_SUPPORTED_ID    1000
@@ -48,7 +49,7 @@
 static char *SMimeGetStringByID(PRInt32 aMsgId)
 {
   nsCOMPtr<nsIStringBundleService> stringBundleService =
-    do_GetService(NS_STRINGBUNDLE_CONTRACTID);
+    mozilla::services::GetStringBundleService();
 
   nsCOMPtr<nsIStringBundle> stringBundle;
   stringBundleService->CreateBundle(SMIME_PROPERTIES_URL,

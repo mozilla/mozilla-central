@@ -46,6 +46,7 @@
 #include "nsDirectoryServiceUtils.h"
 #include "nsILocalFile.h"
 #include "nsComponentManagerUtils.h"
+#include "mozilla/Services.h"
 
 #define kDefaultViewPeopleIKnow "People I Know"
 #define kDefaultViewRecent "Recent Mail"
@@ -85,8 +86,9 @@ NS_IMETHODIMP nsMsgMailView::GetPrettyName(PRUnichar ** aMailViewName)
     nsresult rv = NS_OK;
     if (!mBundle)
     {
-        nsCOMPtr<nsIStringBundleService> bundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-        NS_ENSURE_SUCCESS(rv, rv);
+        nsCOMPtr<nsIStringBundleService> bundleService =
+          mozilla::services::GetStringBundleService();
+        NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
         bundleService->CreateBundle("chrome://messenger/locale/mailviews.properties",
                                     getter_AddRefs(mBundle));
     }

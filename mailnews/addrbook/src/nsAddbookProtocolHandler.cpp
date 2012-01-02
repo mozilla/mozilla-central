@@ -56,6 +56,7 @@
 #include "nsITreeView.h"
 #include "nsIStringBundle.h"
 #include "nsIServiceManager.h"
+#include "mozilla/Services.h"
 
 nsAddbookProtocolHandler::nsAddbookProtocolHandler()
 {
@@ -265,8 +266,9 @@ nsAddbookProtocolHandler::BuildDirectoryXML(nsIAbDirectory *aDirectory,
 
   // Get Address Book string and set it as title of XML document
   nsCOMPtr<nsIStringBundle> bundle;
-  nsCOMPtr<nsIStringBundleService> stringBundleService = do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv); 
-  if (NS_SUCCEEDED(rv)) {
+  nsCOMPtr<nsIStringBundleService> stringBundleService =
+    mozilla::services::GetStringBundleService();
+  if (stringBundleService) {
     rv = stringBundleService->CreateBundle("chrome://messenger/locale/addressbook/addressBook.properties", getter_AddRefs(bundle));
     if (NS_SUCCEEDED(rv)) {
       nsString addrBook;

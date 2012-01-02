@@ -95,6 +95,7 @@
 #include "nsIHTMLToTextSink.h"
 #include "mozISanitizingSerializer.h"
 // </for>
+#include "mozilla/Services.h"
 
 // <for functions="HTML2Plaintext,HTMLSantinize">
 static NS_DEFINE_CID(kParserCID, NS_PARSER_CID);
@@ -718,9 +719,9 @@ nsMimeNewURI(nsIURI** aInstancePtrResult, const char *aSpec, nsIURI *aBase)
   if (nsnull == aInstancePtrResult)
     return NS_ERROR_NULL_POINTER;
 
-  nsCOMPtr<nsIIOService> pService(do_GetService(NS_IOSERVICE_CONTRACTID, &res));
-  if (NS_FAILED(res))
-    return NS_ERROR_FACTORY_NOT_REGISTERED;
+  nsCOMPtr<nsIIOService> pService =
+    mozilla::services::GetIOService();
+  NS_ENSURE_TRUE(pService, NS_ERROR_FACTORY_NOT_REGISTERED);
 
   return pService->NewURI(nsDependentCString(aSpec), nsnull, aBase, aInstancePtrResult);
 }
@@ -2056,7 +2057,7 @@ char *
 MimeGetStringByID(PRInt32 stringID)
 {
   nsCOMPtr<nsIStringBundleService> stringBundleService =
-    do_GetService(NS_STRINGBUNDLE_CONTRACTID);
+    mozilla::services::GetStringBundleService();
 
   nsCOMPtr<nsIStringBundle> stringBundle;
   stringBundleService->CreateBundle(MIME_URL, getter_AddRefs(stringBundle));

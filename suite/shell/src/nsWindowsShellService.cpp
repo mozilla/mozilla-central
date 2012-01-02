@@ -65,6 +65,7 @@
 #include "nsISupportsPrimitives.h"
 #include <mbstring.h>
 #include "mozilla/ModuleUtils.h"
+#include "mozilla/Services.h"
 
 #ifdef MOZILLA_INTERNAL_API
 #define CaseInsensitiveCompare nsCaseInsensitiveStringComparator()
@@ -790,9 +791,9 @@ nsWindowsShellService::SetDesktopBackground(nsIDOMElement* aElement,
     return NS_ERROR_FAILURE;
 
   // get the file name from localized strings
-  nsCOMPtr<nsIStringBundleService>
-    bundleService(do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
   nsCOMPtr<nsIStringBundle> shellBundle;
   rv = bundleService->CreateBundle(SHELLSERVICE_PROPERTIES,

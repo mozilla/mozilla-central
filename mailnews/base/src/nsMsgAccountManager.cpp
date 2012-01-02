@@ -98,6 +98,7 @@
 #include "nsMsgMessageFlags.h"
 #include "nsIMsgFilterList.h"
 #include "nsDirectoryServiceUtils.h"
+#include "mozilla/Services.h"
 
 #define PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS "mail.accountmanager.accounts"
 #define PREF_MAIL_ACCOUNTMANAGER_DEFAULTACCOUNT "mail.accountmanager.defaultaccount"
@@ -188,16 +189,14 @@ nsMsgAccountManager::nsMsgAccountManager() :
 
 nsMsgAccountManager::~nsMsgAccountManager()
 {
-  nsresult rv;
-
   if(!m_haveShutdown)
   {
     Shutdown();
     //Don't remove from Observer service in Shutdown because Shutdown also gets called
     //from xpcom shutdown observer.  And we don't want to remove from the service in that case.
     nsCOMPtr<nsIObserverService> observerService =
-         do_GetService("@mozilla.org/observer-service;1", &rv);
-    if (NS_SUCCEEDED(rv))
+      mozilla::services::GetObserverService();
+    if (observerService)
     {
       observerService->RemoveObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID);
       observerService->RemoveObserver(this, "quit-application-granted");
@@ -223,8 +222,8 @@ nsresult nsMsgAccountManager::Init()
   rv = NS_NewISupportsArray(getter_AddRefs(mFolderListeners));
 
   nsCOMPtr<nsIObserverService> observerService =
-           do_GetService("@mozilla.org/observer-service;1", &rv);
-  if (NS_SUCCEEDED(rv))
+           mozilla::services::GetObserverService();
+  if (NS_SUCCEEDED(rv) && observerService)
   {
     observerService->AddObserver(this, NS_XPCOM_SHUTDOWN_OBSERVER_ID, true);
     observerService->AddObserver(this, "quit-application-granted" , true);
@@ -839,9 +838,9 @@ nsMsgAccountManager::notifyDefaultServerChange(nsIMsgAccount *aOldAccount,
   if (aOldAccount && aNewAccount)  //only notify if the user goes and changes default account
   {
     nsCOMPtr<nsIObserverService> observerService =
-      do_GetService("@mozilla.org/observer-service;1", &rv);
+      mozilla::services::GetObserverService();
 
-    if (NS_SUCCEEDED(rv))
+    if (observerService)
       observerService->NotifyObservers(nsnull,"mailDefaultAccountChanged",nsnull);
   }
 
@@ -2374,8 +2373,8 @@ nsresult nsMsgAccountManager::GetLocalFoldersPrettyName(nsString &localFoldersNa
   nsCOMPtr<nsIStringBundle> bundle;
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> sBundleService =
-    do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
+    mozilla::services::GetStringBundleService();
+  NS_ENSURE_TRUE(sBundleService, NS_ERROR_UNEXPECTED);
 
   if (sBundleService)
     rv = sBundleService->CreateBundle("chrome://messenger/locale/messenger.properties",

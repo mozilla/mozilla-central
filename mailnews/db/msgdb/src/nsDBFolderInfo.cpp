@@ -50,6 +50,7 @@
 #include "nsISupportsObsolete.h"
 #include "nsServiceManagerUtils.h"
 #include "nsImapCore.h"
+#include "mozilla/Services.h"
 
 static const char *kDBFolderInfoScope = "ns:msg:db:row:scope:dbfolderinfo:all";
 static const char *kDBFolderInfoTableKind = "ns:msg:db:table:kind:dbfolderinfo";
@@ -237,8 +238,9 @@ nsDBFolderInfo::nsDBFolderInfo(nsMsgDatabase *mdb)
         }
 
         // also register for shutdown
-        nsCOMPtr<nsIObserverService> observerService = do_GetService("@mozilla.org/observer-service;1", &rv);
-        if (NS_SUCCEEDED(rv))
+        nsCOMPtr<nsIObserverService> observerService =
+          mozilla::services::GetObserverService();
+        if (observerService)
         {
           rv = observerService->AddObserver(gFolderCharsetObserver, NS_XPCOM_SHUTDOWN_OBSERVER_ID, false);
         }

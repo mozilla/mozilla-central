@@ -52,6 +52,7 @@
 #include "nsEmbedCID.h"
 #include "nsMemory.h"
 #include "nsIStringBundle.h"
+#include "mozilla/Services.h"
 
 #include <glib.h>
 #include <limits.h>
@@ -301,8 +302,8 @@ nsMailGNOMEIntegration::MakeDefault(const char* const *aProtocols,
 
   if (giovfs) {
     nsCOMPtr<nsIStringBundleService> bundleService =
-      do_GetService(NS_STRINGBUNDLE_CONTRACTID, &rv);
-    NS_ENSURE_SUCCESS(rv, rv);
+      mozilla::services::GetStringBundleService();
+    NS_ENSURE_TRUE(bundleService, NS_ERROR_UNEXPECTED);
 
     nsCOMPtr<nsIStringBundle> brandBundle;
     rv = bundleService->CreateBundle(BRAND_PROPERTIES, getter_AddRefs(brandBundle));
