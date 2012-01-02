@@ -49,17 +49,6 @@ _ABS_SRCDIR := $(call core_abspath,$(topsrcdir))
 vpath %.xml @srcdir@/en-US/searchplugins
 vpath %.xml $(LOCALE_SRCDIR)/searchplugins
 
-ifdef LOCALE_MERGEDIR
-LOCALE_SEARCH_DIRS += $(LOCALE_MERGEDIR)/suite
-endif
-LOCALE_SEARCH_DIRS += $(LOCALE_SRCDIR)
-ifdef LOCALE_MERGEDIR
-LOCALE_SEARCH_DIRS += @srcdir@/en-US
-endif
-
-find_locale_file = $(firstword $(foreach dir, $(LOCALE_SEARCH_DIRS), \
-                      $(wildcard $(dir)/$(1))))
-
 SUBMAKEFILES += \
 	$(DEPTH)/$(MOZ_BRANDING_DIRECTORY)/Makefile \
 	$(NULL)
@@ -83,7 +72,7 @@ DEFINES += \
 	-DMOZ_PSM=$(MOZ_PSM) \
 	$(NULL)
 
-PREF_JS_EXPORTS = $(call find_locale_file,suite-l10n.js)
+PREF_JS_EXPORTS = $(call MERGE_FILE,suite-l10n.js)
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
 MOZ_PKG_MAC_DSSTORE=$(_ABS_DIST)/branding/dsstore
@@ -125,8 +114,8 @@ PROFILE_CHROME = userChrome-example.css userContent-example.css
 
 NO_JA_JP_MAC_AB_CD := $(if $(filter ja-JP-mac, $(AB_CD)),ja,$(AB_CD))
 
-BOOKMARKS_INC_FILE = $(call find_locale_file,profile/bookmarks.inc)
-BOOKMARKS_XTRA_FILE = $(call find_locale_file,profile/bookmarks.extra)
+BOOKMARKS_INC_FILE = $(call MERGE_FILE,profile/bookmarks.inc)
+BOOKMARKS_XTRA_FILE = $(call MERGE_FILE,profile/bookmarks.extra)
 
 # the #include in the .in file requires all to be in the same dir, sadly.
 %/defaults/profile/bookmarks.html: $(BOOKMARKS_INC_FILE) $(BOOKMARKS_XTRA_FILE) generic/profile/bookmarks.html.in 
@@ -139,7 +128,7 @@ BOOKMARKS_XTRA_FILE = $(call find_locale_file,profile/bookmarks.extra)
 	  profile/bookmarks.html.in \
 	  > $@
 
-PANELS_XTRA_FILE = $(call find_locale_file,profile/panels.extra)
+PANELS_XTRA_FILE = $(call MERGE_FILE,profile/panels.extra)
 
 # the #include in the .in file requires all to be in the same dir, sadly.
 %/defaults/profile/panels.rdf: $(PANELS_XTRA_FILE) generic/profile/panels.rdf.in
@@ -171,7 +160,7 @@ install:: $(addprefix generic/profile/,$(PROFILE_FILES))
 install:: $(addprefix $(LOCALE_SRCDIR)/profile/chrome/,$(PROFILE_CHROME))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/defaults/profile/chrome
 
-SEARCH_PLUGINS = $(shell cat $(call find_locale_file,searchplugins/list.txt))
+SEARCH_PLUGINS = $(shell cat $(call MERGE_FILE,searchplugins/list.txt))
 
 libs:: $(addsuffix .xml,$(SEARCH_PLUGINS))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/searchplugins
@@ -280,7 +269,7 @@ endif
 endif
 
 ifdef MOZ_CRASHREPORTER
-libs:: $(call find_locale_file,crashreporter/crashreporter-override.ini)
+libs:: $(call MERGE_FILE,crashreporter/crashreporter-override.ini)
 	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)
 endif
 
