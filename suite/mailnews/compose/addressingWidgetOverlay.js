@@ -50,20 +50,10 @@ var gMimeHeaderParser = null;
 /**
  * global variable inherited from MsgComposeCommands.js
  *
- 
- var sPrefs;
- var gPromptService;
  var gMsgCompose;
- 
  */
 
-var test_addresses_sequence = false;
-
-try {
-  if (sPrefs)
-    test_addresses_sequence = sPrefs.getBoolPref("mail.debug.test_addresses_sequence");
-}
-catch (ex) {}
+var test_addresses_sequence = getPref("mail.debug.test_addresses_sequence");
 
 function awGetMaxRecipients()
 {
@@ -828,7 +818,7 @@ function awRecipientErrorCommand(errItem, element)
 	specificErrString = "Internal error";
     }
 
-    gPromptService.alert(window, generalErrString, specificErrString);
+    Services.prompt.alert(window, generalErrString, specificErrString);
 }
 
 function awRecipientKeyPress(event, element)
