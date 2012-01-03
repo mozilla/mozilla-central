@@ -1714,7 +1714,7 @@ calDavCalendar.prototype = {
      * checkPrincipalsNameSpace
      * completeCheckServerInfo
      */
-    checkServerCaps: function caldav_checkServerCaps(aChangeLogListener, calHomeSetUrlTryCount) {
+    checkServerCaps: function caldav_checkServerCaps(aChangeLogListener, calHomeSetUrlRetry) {
         let homeSet = this.makeUri(null, this.mCalHomeSet);
         var thisCalendar = this;
 
@@ -1731,12 +1731,12 @@ calDavCalendar.prototype = {
                                          aResultLength, aResult) {
             let request = aLoader.request.QueryInterface(Components.interfaces.nsIHttpChannel);
             if (request.responseStatus != 200) {
-                if (calHomeSetUrlTryCount == 1 && request.responseStatus == 404) {
+                if (!calHomeSetUrlRetry && request.responseStatus == 404) {
                     // try again with calendar URL, see https://bugzilla.mozilla.org/show_bug.cgi?id=588799
                     cal.LOG("CalDAV: Calendar homeset was not found at parent url of calendar URL" +
                             " while querying options " + thisCalendar.name + ", will try calendar URL itself now");
                     thisCalendar.setCalHomeSet(false);
-                    thisCalendar.checkServerCaps(aChangeLogListener, (calHomeSetUrlTryCount || 0) + 1);
+                    thisCalendar.checkServerCaps(aChangeLogListener, true);
                 } else {
                     cal.LOG("CalDAV: Unexpected status " + request.responseStatus +
                             " while querying options " + thisCalendar.name);
