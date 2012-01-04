@@ -706,49 +706,54 @@ nsMsgBrkMBoxStore::GetNewMsgOutputStream(nsIMsgFolder *aFolder,
   if (!db && !*aNewMsgHdr)
     NS_WARNING("no db, and no message header");
   bool exists;
-  PRInt64 mboxSize = 0;
   mboxFile->Exists(&exists);
   if (!exists)
     mboxFile->Create(nsIFile::NORMAL_FILE_TYPE, 0600);
-  else
-    mboxFile->GetFileSize(&mboxSize);
+
+  nsCString URI;
+  aFolder->GetURI(URI);
+  nsresult rv;
+  nsCOMPtr<nsISeekableStream> seekable;
+  if (m_outputStreams.Get(URI, aResult))
+  {
+    seekable = do_QueryInterface(*aResult, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = seekable->Seek(nsISeekableStream::NS_SEEK_END, 0);
+    if (NS_FAILED(rv))
+    {
+      m_outputStreams.Remove(URI);
+      NS_RELEASE(*aResult);
+    }
+  }
+  if (!*aResult)
+  {
+    rv = MsgNewBufferedFileOutputStream(aResult, mboxFile,
+                                        PR_WRONLY | PR_CREATE_FILE, 00600);
+    NS_ASSERTION(NS_SUCCEEDED(rv), "failed opening offline store for output");
+    if (NS_FAILED(rv))
+      printf("failed opening offline store for %s\n", URI.get());
+    NS_ENSURE_SUCCESS(rv, rv);
+    seekable = do_QueryInterface(*aResult, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = seekable->Seek(nsISeekableStream::NS_SEEK_END, 0);
+    NS_ENSURE_SUCCESS(rv, rv);
+    m_outputStreams.Put(URI, *aResult);
+  }
+  PRInt64 filePos;
+  seekable->Tell(&filePos);
   if (db && !*aNewMsgHdr)
   {
     // if mbox is close to 4GB, auto-assign the msg key.
-    nsMsgKey key = mboxSize > 0xFFFFFF00 ? nsMsgKey_None : (nsMsgKey) mboxSize;
+    nsMsgKey key = filePos > 0xFFFFFF00 ? nsMsgKey_None : (nsMsgKey) filePos;
     db->CreateNewHdr(key, aNewMsgHdr);
   }
   if (*aNewMsgHdr)
   {
     char storeToken[100];
-    PR_snprintf(storeToken, sizeof(storeToken), "%lld", mboxSize);
-    (*aNewMsgHdr)->SetMessageOffset(mboxSize);
+    PR_snprintf(storeToken, sizeof(storeToken), "%lld", filePos);
+    (*aNewMsgHdr)->SetMessageOffset(filePos);
     (*aNewMsgHdr)->SetStringProperty("storeToken", storeToken);
   }
-  nsCString URI;
-  aFolder->GetURI(URI);
-  nsresult rv;
-  if (m_outputStreams.Get(URI, aResult))
-  {
-    nsCOMPtr<nsISeekableStream> seekable(do_QueryInterface(*aResult, &rv));
-    NS_ENSURE_SUCCESS(rv, rv);
-    rv = seekable->Seek(nsISeekableStream::NS_SEEK_END, 0);
-    if (NS_SUCCEEDED(rv))
-      return NS_OK;
-    m_outputStreams.Remove(URI);
-    NS_RELEASE(*aResult);
-  }
-  rv = MsgNewBufferedFileOutputStream(aResult, mboxFile,
-                                      PR_WRONLY | PR_CREATE_FILE, 00600);
-  NS_ASSERTION(NS_SUCCEEDED(rv), "failed opening offline store for output");
-  if (NS_FAILED(rv))
-    printf("failed opening offline store for %s\n", URI.get());
-  NS_ENSURE_SUCCESS(rv, rv);
-  nsCOMPtr<nsISeekableStream> seekable(do_QueryInterface(*aResult, &rv));
-  NS_ENSURE_SUCCESS(rv, rv);
-  rv = seekable->Seek(nsISeekableStream::NS_SEEK_END, 0);
-  NS_ENSURE_SUCCESS(rv, rv);
-  m_outputStreams.Put(URI, *aResult);
   return rv;
 }
 

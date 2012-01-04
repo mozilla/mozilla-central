@@ -20,8 +20,7 @@ var tests = [
   { title: "Get New Mail, One Message",
     messages: ["message1.eml"],
     transaction: [ "CAPA", "AUTH PLAIN", "STAT", "LIST",
-                   "UIDL", "XTND XLST Message-Id",
-                   "RETR 1", "DELE 1" ] }
+                   "UIDL", "RETR 1", "DELE 1" ] }
 ];
 
 var urlListener =

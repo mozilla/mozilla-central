@@ -6,6 +6,10 @@
 /* This file implements test POP3 servers
  */
 
+// Since we don't really need to worry about peristence, we can just
+// use a UIDL counter.
+var gUIDLCount = 1;
+
 function readFile(fileName) {
   var file = do_get_file("data/" + fileName, true); // allow nonexistent
   // also allow files from general locations
@@ -68,6 +72,7 @@ pop3Daemon.prototype = {
 
     for (var i = 0; i < this._messages.length; ++i) {
       this._messages[i].size = this._messages[i].fileData.length;
+      this._messages[i].uidl = "UIDL" + gUIDLCount++;
       this._totalMessageSize += this._messages[i].size;
     }
   },
@@ -151,6 +156,16 @@ POP3_RFC1939_handler.prototype = {
     result += ".";
     return result;
   },
+  UIDL: function (args) {
+    if (this._state != kStateTransaction)
+      return "-ERR invalid state";
+    let result = "+OK\r\n";
+    for (let i = 0; i < this._daemon._messages.length; ++i)
+      result += (i + 1) + " " + this._daemon._messages[i].uidl + "\r\n";
+
+    result += ".";
+    return result;
+  },
   RETR: function (args) {
     if (this._state != kStateTransaction)
       return "-ERR invalid state";
@@ -212,7 +227,7 @@ function POP3_RFC2449_handler(daemon) {
 POP3_RFC2449_handler.prototype = {
   __proto__ : POP3_RFC1939_handler.prototype, // inherit
 
-  kCapabilities: [], // the test may adapt this as necessary
+  kCapabilities: ["UIDL"], // the test may adapt this as necessary
 
   CAPA: function (args) {
     var capa = "+OK List of our wanna-be capabilities follows:\r\n";

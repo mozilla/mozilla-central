@@ -14,8 +14,7 @@ var thisTest;
 var tests = [
   { title: "Get New Mail, One Message",
     messages: [ "message2.eml", "message2.eml", "message3.eml" ],
-    transaction: [ "AUTH", "CAPA", "AUTH PLAIN", "STAT", "LIST",
-                   "UIDL", "XTND XLST Message-Id",
+    transaction: [ "AUTH", "CAPA", "AUTH PLAIN", "STAT", "LIST", "UIDL",
                    "RETR 1", "DELE 1", "RETR 2", "DELE 2", "RETR 3", "DELE 3" ] }
 ];
 
