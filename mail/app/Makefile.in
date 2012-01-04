@@ -79,7 +79,7 @@ PREF_JS_EXPORTS = \
     $(srcdir)/profile/channel-prefs.js \
     $(NULL)
 
-ifneq (,$(filter OS2 Darwin WINCE WINNT,$(OS_ARCH)))
+ifneq (,$(filter OS2 Darwin WINNT,$(OS_ARCH)))
 PROGRAM = $(MOZ_APP_NAME)$(BIN_SUFFIX)
 else
 PROGRAM = $(MOZ_APP_NAME)-bin$(BIN_SUFFIX)

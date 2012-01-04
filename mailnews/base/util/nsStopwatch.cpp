@@ -26,9 +26,7 @@
 
 NS_IMPL_ISUPPORTS1(nsStopwatch, nsIStopwatch)
 
-#ifdef WINCE
-#error "WINCE apparently does not provide the clock support we require."
-#elif defined(XP_UNIX) || defined(XP_OS2)
+#if defined(XP_UNIX) || defined(XP_OS2)
 /** the number of ticks per second */
 static double gTicks = 0;
 #define MICRO_SECONDS_TO_SECONDS_MULT static_cast<double>(1.0e-6)
