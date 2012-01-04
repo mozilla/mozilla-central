@@ -123,6 +123,8 @@ function run_test() {
   Services.prefs.setBoolPref("privacy.item.offlineApps", true);
 
   Services.prefs.setBoolPref("privacy.sanitize.sanitizeOnShutdown", true);
+  // Unlike Firefox, SeaMonkey still supports the confirmation dialog
+  // which is called from Sanitizer's init method checkSettings().
   Services.prefs.setBoolPref("privacy.sanitize.promptOnSanitize", false);
 
   print("Add visits.");
@@ -139,6 +141,11 @@ function run_test() {
     function (topic)
       Services.obs.addObserver(notificationsObserver, topic, false)
   );
+
+  // Simulate an exit so that Sanitizer's init method checkSettings() is called.
+  print("Simulate 'quit-application-granted' too for SeaMonkey.");
+  Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService).
+  notifyObservers(null, "quit-application-granted", null);
 
   shutdownPlaces();
 }
