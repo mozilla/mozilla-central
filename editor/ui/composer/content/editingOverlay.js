@@ -39,6 +39,177 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+var gUntitledString;
+
+function TextEditorOnLoad()
+{
+  var url = "about:blank";
+  // See if argument was passed.
+  if (window.arguments && window.arguments[0])
+  {
+    // Opened via window.openDialog with URL as argument.
+    url = window.arguments[0];
+  }
+  // Continue with normal startup.
+  EditorStartup(url);
+}
+
+function EditorOnLoad()
+{
+  var url = "about:blank";
+  var charset;
+  // See if argument was passed.
+  if (window.arguments)
+  {
+    if (window.arguments[0])
+    {
+      // Opened via window.openDialog with URL as argument.
+      url = window.arguments[0];
+    }
+
+    // get default character set if provided
+    if (window.arguments.length > 1 && window.arguments[1])
+    {
+      if (window.arguments[1].indexOf("charset=") != -1)
+      {
+        var arrayArgComponents = window.arguments[1].split("=");
+        if (arrayArgComponents)
+          charset = arrayArgComponents[1];
+      }
+    }
+  }
+
+  // XUL elements we use when switching from normal editor to edit source.
+  gContentWindowDeck = document.getElementById("ContentWindowDeck");
+  gFormatToolbar = document.getElementById("FormatToolbar");
+  gViewFormatToolbar = document.getElementById("viewFormatToolbar");
+
+  // Continue with normal startup.
+  EditorStartup(url, charset);
+
+  // Hide Highlight button if we are in an HTML editor with CSS mode off
+  // and tell the editor if a CR in a paragraph creates a new paragraph.
+  var cmd = document.getElementById("cmd_highlight");
+  if (cmd) {
+    if (!gPrefs.getBoolPref(kUseCssPref))
+      cmd.collapsed = true;
+  }
+
+  // Initialize our source text <editor>
+  try {
+    gSourceContentWindow = document.getElementById("content-source");
+    gSourceContentWindow.makeEditable("text", false);
+    gSourceTextEditor = gSourceContentWindow.getEditor(gSourceContentWindow.contentWindow);
+    gSourceTextEditor.QueryInterface(Components.interfaces.nsIPlaintextEditor);
+    gSourceTextEditor.enableUndo(false);
+    gSourceTextEditor.rootElement.style.fontFamily = "-moz-fixed";
+    gSourceTextEditor.rootElement.style.whiteSpace = "pre";
+    gSourceTextEditor.rootElement.style.margin = 0;
+    var controller = Components.classes["@mozilla.org/embedcomp/base-command-controller;1"]
+                               .createInstance(Components.interfaces.nsIControllerContext);
+    controller.init(null);
+    controller.setCommandContext(gSourceContentWindow);
+    gSourceContentWindow.contentWindow.controllers.insertControllerAt(0, controller);
+    var commandTable = controller.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+                                 .getInterface(Components.interfaces.nsIControllerCommandTable);
+    commandTable.registerCommand("cmd_find",        nsFindCommand);
+    commandTable.registerCommand("cmd_findNext",    nsFindAgainCommand);
+    commandTable.registerCommand("cmd_findPrev",    nsFindAgainCommand);
+  } catch (e) {
+    dump("makeEditable failed: "+e+"\n");
+  }
+}
+
+function EditorStartup(aUrl, aCharset)
+{
+  gUntitledString = GetFormattedString("untitledTitle", GetNextUntitledValue());
+
+  var ds = GetCurrentEditorElement().docShell;
+  ds.useErrorPages = false;
+  var root = ds.QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+               .rootTreeItem.QueryInterface(Components.interfaces.nsIDocShell);
+
+  root.QueryInterface(Components.interfaces.nsIDocShell).appType =
+    Components.interfaces.nsIDocShell.APP_TYPE_EDITOR;
+
+  // Set up our global prefs object.
+  GetPrefsService();
+
+  // EditorSharedStartup also used by Message Composer.
+  EditorSharedStartup();
+
+  // Commands specific to the Composer Application window,
+  //  (i.e., not embedded editors)
+  //  such as file-related commands, HTML Source editing, Edit Modes...
+  SetupComposerWindowCommands();
+
+  ShowHideToolbarButtons();
+  gEditorToolbarPrefListener = new nsPrefListener(kEditorToolbarPrefs);
+
+  gCSSPrefListener = new nsPrefListener(kUseCssPref);
+  gReturnInParagraphPrefListener = new nsPrefListener(kCRInParagraphsPref);
+  Services.obs.addObserver(EditorCanClose, "quit-application-requested", false);
+
+  // Get url for editor content and load it. The editor gets instantiated by
+  // the editingSession when the URL has finished loading.
+  try {
+    var contentViewer = GetCurrentEditorElement().docShell.contentViewer;
+    contentViewer.QueryInterface(Components.interfaces.nsIMarkupDocumentViewer);
+    contentViewer.defaultCharacterSet = aCharset;
+    contentViewer.forceCharacterSet = aCharset;
+  } catch (e) {}
+  EditorLoadUrl(aUrl);
+}
+
+function EditorShutdown()
+{
+  Services.obs.removeObserver(EditorCanClose, "quit-application-requested");
+
+  gEditorToolbarPrefListener.shutdown();
+  gCSSPrefListener.shutdown();
+  gReturnInParagraphPrefListener.shutdown();
+
+  try
+  {
+    var commandManager = GetCurrentCommandManager();
+    commandManager.removeCommandObserver(gEditorDocumentObserver,
+                                         "obs_documentCreated");
+    commandManager.removeCommandObserver(gEditorDocumentObserver,
+                                         "obs_documentWillBeDestroyed");
+    commandManager.removeCommandObserver(gEditorDocumentObserver,
+                                         "obs_documentLocationChanged");
+  } catch (e) { dump (e); }
+}
+
+// --------------------------- File menu ---------------------------
+
+// Check for changes to document and allow saving before closing
+// This is hooked up to the OS's window close widget (e.g., "X" for Windows)
+function EditorCanClose(aCancelQuit, aTopic, aData)
+{
+  if (aTopic == "quit-application-requested" &&
+      aCancelQuit instanceof Components.interfaces.nsISupportsPRBool &&
+      aCancelQuit.data)
+    return false;
+
+  // Returns FALSE only if user cancels save action
+
+  // "true" means allow "Don't Save" button
+  var canClose = CheckAndSaveDocument("cmd_close", true);
+
+  // This is our only hook into closing via the "X" in the caption
+  //   or "Quit" (or other paths?)
+  //   so we must shift association to another
+  //   editor or close any non-modal windows now
+  if (canClose && "InsertCharWindow" in window && window.InsertCharWindow)
+    SwitchInsertCharToAnotherEditorOrClose();
+
+  if (!canClose && aTopic == "quit-application-requested")
+    aCancelQuit.data = true;
+
+  return canClose;
+}
+
 function BuildRecentPagesMenu()
 {
   var editor = GetCurrentEditor();
