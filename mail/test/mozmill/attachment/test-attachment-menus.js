@@ -325,10 +325,21 @@ function check_toolbar_menu_states_multiple(expected) {
  */
 function check_menu_states_single(index, expected) {
   let attachmentList = mc.e("attachmentList");
-  let node = new elib.Elem(attachmentList.children[index]);
-  mc.click(node);
-  mc.rightClick(node);
-  wait_for_popup_to_open(mc.e("attachmentListContext"));
+  let node = attachmentList.getItemAtIndex(index);
+
+  // So this next bit is a little ugly. Attachment items themselves ignore
+  // mouse events, but the attachment name always responds to them, so that's
+  // what we want to interact with.  We drag out the attachment name
+  // by querying for it via getAnonymousElementByAttribute.
+  let clickable = mc.window
+                    .document
+                    .getAnonymousElementByAttribute(node, "class",
+                                                    "attachmentcell-name");
+
+  attachmentList.selectItem(node);
+  let menu = mc.getMenu("#attachmentItemContext");
+  menu.open(new elib.Elem(clickable));
+  wait_for_popup_to_open(mc.e("attachmentItemContext"));
 
   try {
     assert_shown("context-openAttachment",   true);
@@ -336,12 +347,6 @@ function check_menu_states_single(index, expected) {
     assert_shown("context-menu-separator",   true);
     assert_shown("context-detachAttachment", true);
     assert_shown("context-deleteAttachment", true);
-
-    assert_shown("context-openAllAttachments",   false);
-    assert_shown("context-saveAllAttachments",   false);
-    assert_shown("context-menu-separator-all",   false);
-    assert_shown("context-detachAllAttachments", false);
-    assert_shown("context-deleteAllAttachments", false);
 
     assert_enabled("context-openAttachment",   expected.open);
     assert_enabled("context-saveAttachment",   expected.save);
@@ -352,7 +357,7 @@ function check_menu_states_single(index, expected) {
     throw e;
   }
   finally {
-    close_popup(mc, mc.eid("attachmentListContext"));
+    menu.close();
   }
 }
 
@@ -366,12 +371,6 @@ function check_menu_states_all(expected) {
   wait_for_popup_to_open(mc.e("attachmentListContext"));
 
   try {
-    assert_shown("context-openAttachment",   false);
-    assert_shown("context-saveAttachment",   false);
-    assert_shown("context-menu-separator",   false);
-    assert_shown("context-detachAttachment", false);
-    assert_shown("context-deleteAttachment", false);
-
     assert_shown("context-openAllAttachments",   true);
     assert_shown("context-saveAllAttachments",   true);
     assert_shown("context-menu-separator-all",   true);

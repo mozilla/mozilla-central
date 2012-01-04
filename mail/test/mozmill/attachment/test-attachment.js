@@ -458,7 +458,7 @@ function test_attachments_compose_menu() {
   // Select 2 attachments, and focus the identity for the same purpose
   attachment.focus();
   cwc.click(new elib.Elem(attachment.children[1]));
-  EventUtils.synthesizeMouse(attachment.children[0], 0, 0,
+  EventUtils.synthesizeMouse(attachment.children[0], 5, 5,
                              {accelKey: true}, cwc.window);
   cwc.e("msgIdentity").focus();
   assert_equals(cwc.e("cmd_delete").getAttribute("label"), "Delete",
