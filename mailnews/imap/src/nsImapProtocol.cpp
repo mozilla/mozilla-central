@@ -1349,6 +1349,20 @@ nsImapProtocol::ImapThreadMainLoop()
 
     if (readyToRun && m_runningUrl)
     {
+      if (m_currentServerCommandTagNumber && m_transport)
+      {
+        bool isAlive;
+        rv = m_transport->IsAlive(&isAlive);
+        // if the transport is not alive, and we've ever sent a command with this connection, kill it.
+        // otherwise, we've probably just not finished setting it so don't kill it!
+        if (NS_FAILED(rv) || !isAlive)
+        {
+          // This says we never started running the url, which is the case.
+          m_runningUrl->SetRerunningUrl(false);
+          RetryUrl();
+          return;
+        }
+      }
       //
       // NOTE: Though we cleared m_nextUrlReadyToRun above, it may have been
       //       set by LoadImapUrl, which runs on the main thread.  Because of this,
@@ -2190,19 +2204,6 @@ NS_IMETHODIMP nsImapProtocol::CanHandleUrl(nsIImapUrl * aImapUrl,
   {
     // this connection might not be fully set up yet.
     return NS_ERROR_FAILURE;
-  }
-  else if (m_currentServerCommandTagNumber != 0)
-  {
-    bool isAlive;
-    rv = m_transport->IsAlive(&isAlive);
-    // if the transport is not alive, and we've ever sent a command with this connection, kill it.
-    // otherwise, we've probably just not finished setting it so don't kill it!
-    if (NS_FAILED(rv) || !isAlive)
-    {
-      MutexAutoUnlock unlock(mLock); // TellThreadToDie gets the lock
-      TellThreadToDie(false);
-      return NS_ERROR_FAILURE;
-    }
   }
   IsBusy(&isBusy, &isInboxConnection);
   bool inSelectedState = GetServerStateParser().GetIMAPstate() ==
