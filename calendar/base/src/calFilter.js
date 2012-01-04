@@ -155,8 +155,11 @@ calFilter.prototype = {
 
     // checks if the item contains the text of mTextFilterField
     textFilter: function cF_filterByText(aItem) {
+        if (!this.mTextFilterField) {
+            return true;
+        }
         filterByText.mTextFilterField = this.mTextFilterField;
-        var inIt = filterByText(aItem);
+        let inIt = filterByText(aItem);
         return inIt;
     },
 
@@ -208,9 +211,10 @@ calFilter.prototype = {
         return checkIfInRange(aItem, this.mStartDate, this.mEndDate);
     },
 
-    // checks if the item is between startDate and endDate and its properties
+    // checks if the item is between startDate and endDate, matches its properties, and
+    // contains the text of mTextFilterField if set
     isItemInFilters: function cF_isItemInFilters(aItem) {
-        return (this.isItemWithinRange(aItem) && this.propertyFilter(aItem));
+        return (this.isItemWithinRange(aItem) && this.propertyFilter(aItem) && this.textFilter(aItem));
     }
 };
 

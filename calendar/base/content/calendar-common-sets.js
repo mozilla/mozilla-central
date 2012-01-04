@@ -726,7 +726,8 @@ var calendarController2 = {
         "cmd_goBack": true,
         "cmd_fullZoomReduce": true,
         "cmd_fullZoomEnlarge": true,
-        "cmd_fullZoomReset": true
+        "cmd_fullZoomReset": true,
+        "cmd_showQuickFilterBar": true
     },
 
     // These functions can use the same from the calendar controller for now.
@@ -760,6 +761,8 @@ var calendarController2 = {
             case "cmd_properties":
             case "cmd_printpreview":
                 return false;
+            case "cmd_showQuickFilterBar":
+                return calendarController.isInMode("task");
             default:
                 return true;
         }
@@ -806,6 +809,9 @@ var calendarController2 = {
                 break;
             case "cmd_fullZoomReset":
                 currentView().zoomReset();
+                break;
+            case "cmd_showQuickFilterBar":
+                document.getElementById('task-text-filter-field').select();
                 break;
 
             case "button_delete":

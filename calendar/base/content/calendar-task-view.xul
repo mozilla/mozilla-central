@@ -61,16 +61,26 @@
     <vbox id="calendar-task-box" flex="1"
           onselect="taskDetailsView.onSelect(event);">
       <hbox id="task-addition-box" align="center">
-        <toolbarbutton id="calendar-add-task-button"
-                       label="&calendar.newtask.button.label;"
-                       tooltiptext="&calendar.newtask.button.tooltip;"
-                       observes="calendar_new_todo_command"/>
-        <textbox id="view-task-edit-field"
-                 flex="1"
-                 class="task-edit-field"
-                 onfocus="taskEdit.onFocus(event)"
-                 onblur="taskEdit.onBlur(event)"
-                 onkeypress="taskEdit.onKeyPress(event)"/>
+        <box align="center" flex="1">
+          <toolbarbutton id="calendar-add-task-button"
+                         label="&calendar.newtask.button.label;"
+                         tooltiptext="&calendar.newtask.button.tooltip;"
+                         observes="calendar_new_todo_command"/>
+          <textbox id="view-task-edit-field"
+                   flex="1"
+                   class="task-edit-field"
+                   onfocus="taskEdit.onFocus(event)"
+                   onblur="taskEdit.onBlur(event)"
+                   onkeypress="taskEdit.onKeyPress(event)"/>
+        </box>
+        <box align="center" flex="1">
+          <textbox id="task-text-filter-field" type="search" flex="1"
+                   placeholder=""
+                   emptytextbase="&calendar.task.text-filter.textbox.emptytext.base;"
+                   keyLabelNonMac="&calendar.task.text-filter.textbox.emptytext.keylabel.nonmac;"
+                   keyLabelMac="&calendar.task.text-filter.textbox.emptytext.keylabel.mac;"
+                   oncommand="taskViewUpdate();"/>
+        </box>
       </hbox>
       <vbox flex="1">
         <calendar-task-tree id="calendar-task-tree" flex="1"

@@ -251,6 +251,7 @@
       <field name="mStartDate">null</field>
       <field name="mEndDate">null</field>
       <field name="mDateRangeFilter">null</field>
+      <field name="mTextFilterField">null</field>
 
       <property name="currentIndex">
         <getter><![CDATA[
@@ -305,6 +306,17 @@
           return val;
         ]]></setter>
       </property>
+
+      <property name="textFilterField">
+        <getter><![CDATA[
+          return this.mTextFilterField;
+        ]]></getter>
+        <setter><![CDATA[
+          this.mTextFilterField = val;
+          return val;
+        ]]></setter>
+      </property>
+
       <method name="duration">
         <parameter name="aTask"/>
         <body><![CDATA[
@@ -1140,6 +1152,7 @@
       <method name="updateFilter">
         <parameter name="aFilter"/>
         <body><![CDATA[
+            this.mFilter.textFilterField = this.mTextFilterField;
             this.mFilter.propertyFilter = aFilter || this.mFilter.propertyFilter || "all";
             this.mDateRangeFilter = aFilter || this.mDateRangeFilter;
             if (this.mDateRangeFilter) {

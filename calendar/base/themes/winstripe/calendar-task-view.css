@@ -135,6 +135,14 @@
     color: GrayText;
 }
 
+#task-text-filter-field {
+    margin: 5px;
+}
+
+#task-text-filter-field .textbox-search-icons {
+    margin-bottom: -1px;
+}
+
 #calendar-task-details-title {
     font-weight: bold;
 }

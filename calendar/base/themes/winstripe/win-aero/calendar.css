@@ -65,6 +65,7 @@
 
 #unifinder-search-field,
 #view-task-edit-field,
+#task-text-filter-field,
 #unifinder-task-edit-field {
   -moz-appearance: none;
   background-clip: padding-box;
@@ -75,6 +76,7 @@
 @media all and (-moz-windows-default-theme) {
   #unifinder-search-field,
   #view-task-edit-field,
+  #task-text-filter-field,
   #unifinder-task-edit-field {
     border-color: rgba(0, 0, 0, .32);
   }
