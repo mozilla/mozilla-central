@@ -506,15 +506,18 @@ nsContextMenu.prototype = {
 
     // Check if we are in a synthetic document (stand alone image, video, etc.).
     this.inSyntheticDoc = this.target.ownerDocument.mozSyntheticDocument;
-    // See if the user clicked on an image.
+    // First, do checks for nodes that never have children.
     if (this.target.nodeType == Node.ELEMENT_NODE) {
+      // See if the user clicked on an image.
       if (this.target instanceof Components.interfaces.nsIImageLoadingContent &&
           this.target.currentURI) {
         this.onImage = true;
+
         var request =
           this.target.getRequest(Components.interfaces.nsIImageLoadingContent.CURRENT_REQUEST);
         if (request && (request.imageStatus & request.STATUS_SIZE_AVAILABLE))
           this.onLoadedImage = true;
+
         this.mediaURL = this.target.currentURI.spec;
 
         if (this.target.ownerDocument instanceof ImageDocument)
