@@ -11,16 +11,14 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is Mozilla code.
+# The Original Code is the Mozilla platform.
 #
-# The Initial Developer of the Original Code is the Mozilla Corporation.
-# Portions created by the Initial Developer are Copyright (C) 2011
+# The Initial Developer of the Original Code is
+# the Mozilla Foundation <http://www.mozilla.org/>.
+# Portions created by the Initial Developer are Copyright (C) 2009
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
-#  Ralph Giles <giles@mozilla.com>
-#  Fabrice Desré <fabrice@mozilla.com>
-#  Randell Jesup <rjesup@jesup.org>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,21 +34,19 @@
 #
 # ***** END LICENSE BLOCK *****
 
-DEPTH		= ../..
-topsrcdir	= @top_srcdir@
-srcdir          = @srcdir@
-VPATH           = @srcdir@
+ifndef INCLUDED_CONFIG_MK
+$(error Must include config.mk before this file.)
+endif
 
-include $(DEPTH)/config/autoconf.mk
-MODULE          = webrtc
-LIBRARY_NAME    = webrtc
-FORCE_STATIC_LIB= 1
-LIBXUL_LIBRARY = 1
+ifdef WEBRTC_CONFIG_INCLUDED
+$(error Must not include webrtc-config.mk twice.)
+endif
 
-DIRS += \
-	trunk\
-	$(NULL)
+WEBRTC_CONFIG_INCLUDED = 1
 
-DEFINES += -D_IMPL_NS_LAYOUT
+EXTRA_DEPS += $(topsrcdir)/media/webrtc/webrtc-config.mk
 
-include $(topsrcdir)/config/rules.mk
+LOCAL_INCLUDES += \
+  -I$(topsrcdir)/media/webrtc/trunk/src \
+  -I$(topsrcdir)/media/webrtc/trunk/third_party/libjingle/source \
+  $(NULL)
