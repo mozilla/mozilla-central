@@ -289,13 +289,13 @@
           // "this" is the textbox, not the popup
           if (this.mSearchInputTO)
             window.clearTimeout(this.mSearchInputTO);
-          this.mSearchInputTO = window.setTimeout(this.resultsPopup.mInputTimeout, this.timeout, this);
+          this.mSearchInputTO = window.setTimeout(this.popup.mInputTimeout, this.timeout, this);
         });
       ]]></field>
 
       <field name="mInputTimeout"><![CDATA[
         (function(me) {
-          me.resultsPopup.mSearchBox.searchValue = me.value;
+          me.popup.mSearchBox.searchValue = me.value;
           me.mSearchInputTO = 0;
         });
       ]]></field>
