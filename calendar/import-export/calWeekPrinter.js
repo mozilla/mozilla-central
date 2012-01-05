@@ -268,7 +268,7 @@ calWeekPrinter.prototype = {
             let catColor;
             for each (let cat in item.getCategories({})) {
                 try {
-                    catColor = pb2.getCharPref("calendar.category.color." + cat.toLowerCase());
+                    catColor = pb2.getCharPref("calendar.category.color." + formatStringForCSSRule(cat));
                     break; // take first matching
                 } catch (ex) {}
             }
