@@ -94,6 +94,10 @@
   #navigation-toolbox:not(:-moz-lwtheme) {
     background-color: rgb(207, 219, 236);
   }
+
+  #navigation-toolbox:not(:-moz-lwtheme) {
+  background-color: rgb(227, 237, 246);
+  }
 }
 
 .mail-toolbox:not(:-moz-lwtheme) {
@@ -345,10 +349,6 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 @media not all and (-moz-windows-compositor) {
   #print-preview-toolbar:not(:-moz-lwtheme) {
     -moz-appearance: -moz-win-browsertabbar-toolbox;
-  }
-
-  #navigation-toolbox:not(:-moz-lwtheme) {
-  background-color: rgb(227, 237, 246);
   }
 
   .tabmail-tabs:not(:-moz-lwtheme) {
