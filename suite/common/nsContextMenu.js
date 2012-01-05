@@ -215,11 +215,13 @@ nsContextMenu.prototype = {
     this.showItem("context-reloadimage", this.onImage);
 
     // View Image depends on whether an image was clicked on.
-    this.showItem("context-viewimage", this.onImage &&
-                  (!this.onStandaloneImage || this.inFrame) || this.onCanvas);
+    this.showItem("context-viewimage",
+                  (this.onImage && (!this.inSyntheticDoc || this.inFrame)) ||
+                  this.onCanvas);
 
-    this.showItem("context-viewvideo", this.onVideo && (this.inFrame ||
-                  this.mediaURL != this.target.ownerDocument.location.href));
+    // View video depends on not having a standalone video.
+    this.showItem("context-viewvideo", this.onVideo &&
+                                       (!this.inSyntheticDoc || this.inFrame));
     this.setItemAttr("context-viewvideo", "disabled", !this.mediaURL);
 
     // View background image depends on whether there is one.
@@ -449,6 +451,7 @@ nsContextMenu.prototype = {
     this.linkProtocol          = "";
     this.onMathML              = false;
     this.inFrame               = false;
+    this.inSyntheticDoc        = false;
     this.hasBGImage            = false;
     this.bgImageURL            = "";
     this.popupURL              = null;
@@ -500,6 +503,8 @@ nsContextMenu.prototype = {
       }
     }
 
+    // Check if we are in a synthetic document (stand alone image, video, etc.).
+    this.inSyntheticDoc = this.target.ownerDocument.mozSyntheticDocument;
     // See if the user clicked on an image.
     if (this.target.nodeType == Node.ELEMENT_NODE) {
       if (this.target instanceof Components.interfaces.nsIImageLoadingContent &&
