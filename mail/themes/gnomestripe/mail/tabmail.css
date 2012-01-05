@@ -99,7 +99,6 @@ tabpanels {
  
 .tabmail-tab[selected="true"] {
   color: -moz-DialogText;
-  font-weight: bold;
   background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.8) 1px,
                     rgba(255, 255, 255, 0.5) 3px,
                     rgba(255, 255, 255, 0.3) 32%),
