@@ -203,6 +203,7 @@ classic.jar:
   skin/classic/messenger/icons/mainwindow-dropdown-arrow-inverted.png  (mail/icons/mainwindow-dropdown-arrow-inverted.png)
   skin/classic/messenger/icons/tabDragIndicator.png           (mail/icons/tabDragIndicator.png)
   skin/classic/messenger/icons/tab.png                        (mail/icons/tab.png)
+  skin/classic/messenger/icons/loading.png                    (mail/icons/loading.png)
   skin/classic/messenger/accountcentral/read-messages.png     (mail/accountcentral/read-messages.png)
   skin/classic/messenger/accountcentral/write-message.png     (mail/accountcentral/write-message.png)
   skin/classic/messenger/accountcentral/create-account.png    (mail/accountcentral/create-account.png)
@@ -457,6 +458,7 @@ classic.jar:
   skin/classic/aero/messenger/icons/search-favorite.png            (mail/icons/search-favorite.png)
   skin/classic/aero/messenger/icons/xp-pin-grey.png                (mail/icons/xp-pin-grey.png)
   skin/classic/aero/messenger/icons/xp-pin-red.png                 (mail/icons/xp-pin-red.png)
+  skin/classic/aero/messenger/icons/loading.png                    (mail/icons/loading.png)
   skin/classic/aero/messenger/tagbg.png                            (mail/tagbg.png)
   skin/classic/aero/messenger/icons/download.png                   (mail/icons/download.png)
 % skin messenger-newsblog classic/1.0 %skin/classic/aero/messenger-newsblog/ os=WINNT osversion>=6

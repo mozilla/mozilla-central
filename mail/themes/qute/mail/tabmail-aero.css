@@ -163,7 +163,7 @@
 
 .tabmail-tab[busy],
 .tabmail-tab[thinking] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+  list-style-image: url("chrome://messenger/skin/icons/loading.png") !important;
   -moz-image-region: auto !important;
 }
 
@@ -181,6 +181,7 @@
   }
 }
 
+.tab-throbber,
 .tab-icon-image {
   -moz-margin-start: 2px;
   -moz-margin-end: 3px;
@@ -348,7 +349,7 @@ tabpanels {
 }
 
 .alltabs-item[busy] {
-  list-style-image: url("chrome://global/skin/icons/loading_16.png") !important;
+  list-style-image: url("chrome://messenger/skin/icons/loading.png") !important;
 }
 
 /**
