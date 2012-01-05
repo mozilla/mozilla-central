@@ -7217,7 +7217,7 @@ void nsImapProtocol::DiscoverMailboxList()
       {
         // static bool gHideUnusedNamespaces = true;
         // mscott -> WARNING!!! i where are we going to get this
-                // global variable for unusued name spaces from??? *wince*
+        // global variable for unused name spaces from???
         // dmb - we should get this from a per-host preference,
         // I'd say. But for now, just make it true;
         if (!gHideUnusedNamespaces && *prefix &&
