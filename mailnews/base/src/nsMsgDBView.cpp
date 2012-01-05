@@ -5064,6 +5064,13 @@ nsresult nsMsgDBView::CollapseByIndex(nsMsgViewIndex index, PRUint32 *pNumCollap
   NoteChange(index, 1, nsMsgViewNotificationCode::changed);
 
   PRInt32 numRemoved = -rowDelta; // don't count first header in thread
+  if (index + 1 + numRemoved > m_keys.Length())
+  {
+    NS_ERROR("trying to remove too many rows");
+    numRemoved -= (index + 1 + numRemoved) - m_keys.Length();
+    if (numRemoved <= 0)
+      return NS_MSG_MESSAGE_NOT_FOUND;
+  }
   NoteStartChange(index + 1, rowDelta, nsMsgViewNotificationCode::insertOrDelete);
   // start at first id after thread.
   RemoveRows(index + 1, numRemoved);
