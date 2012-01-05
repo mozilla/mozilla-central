@@ -38,6 +38,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 /**
  * Get this window's currently selected calendar.
@@ -83,7 +84,11 @@ function promptDeleteCalendar(aCalendar) {
 function loadCalendarManager() {
     // Set up the composite calendar in the calendar list widget.
     let tree = document.getElementById("calendar-list-tree-widget");
-    tree.compositeCalendar = getCompositeCalendar();
+    let compositeCalendar = getCompositeCalendar();
+    tree.compositeCalendar = compositeCalendar;
+
+    // Initialize our composite observer
+    compositeCalendar.addObserver(compositeObserver);
 
     // Create the home calendar if no calendar exists.
     let calendars = cal.getCalendarManager().getCalendars({});
@@ -122,7 +127,9 @@ function initHomeCalendar() {
  * Called to clean up the calendar manager for a window.
  */
 function unloadCalendarManager() {
-    getCompositeCalendar().setStatusObserver(null, null);
+    let compositeCalendar = getCompositeCalendar();
+    compositeCalendar.setStatusObserver(null, null);
+    compositeCalendar.removeObserver(compositeObserver);
 }
 
 /**
@@ -224,11 +231,21 @@ function ensureCalendarVisible(aCalendar) {
 }
 
 var compositeObserver = {
-    QueryInterface: function cO_QueryInterface(aIID) {
-        return cal.doQueryInterface(this,
-                                    calendarManagementCompositeObserver.prototype,
-                                    aIID,
-                                    [Components.interfaces.calICompositeObserver]);
+    QueryInterface: XPCOMUtils.generateQI([Components.interfaces.calIObserver,
+                                           Components.interfaces.calICompositeObserver]),
+
+    onStartBatch: function() {},
+    onEndBatch: function () {},
+    onAddItem: function() {},
+    onModifyItem: function() {},
+    onDeleteItem: function() {},
+    onError: function() {},
+    onPropertyChanged: function() {},
+    onPropertyDeleting: function() {},
+
+    onLoad: function() {
+        calendarUpdateNewItemsCommand();
+        document.commandDispatcher.updateCommands("calendar_commands");
     },
 
     onCalendarAdded: function cO_onCalendarAdded(aCalendar) {
@@ -246,6 +263,7 @@ var compositeObserver = {
     onDefaultCalendarChanged: function cO_onDefaultCalendarChanged(aNewCalendar) {
         // A new default calendar may mean that the new calendar has different
         // ACLs. Make sure the commands are updated.
+        calendarUpdateNewItemsCommand();
         document.commandDispatcher.updateCommands("calendar_commands");
     }
 };

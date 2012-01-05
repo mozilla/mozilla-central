@@ -977,9 +977,11 @@ function calendarUpdateDeleteCommand(selectedItems) {
     let oldValue = CalendarDeleteCommandEnabled;
     CalendarDeleteCommandEnabled = (selectedItems.length > 0);
 
-    for each (let calendar in selectedItems) {
-        if (!userCanDeleteItemsFromCalendar(calendar)) {
+    /* we must disable "delete" when at least one item cannot be deleted */
+    for each (let item in selectedItems) {
+        if (!userCanDeleteItemsFromCalendar(item.calendar)) {
             CalendarDeleteCommandEnabled = false;
+            break;
         }
     }
 
