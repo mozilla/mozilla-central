@@ -163,7 +163,7 @@ nsContextMenu.prototype = {
       this.setItemAttr("context-saveaudio", "disabled", !this.mediaURL);
 
     // Send media URL (but not for canvas, since it's a big data: URL)
-    this.showItem("context-sendimage", showSave);
+    this.showItem("context-sendimage", showSave && !this.onCanvas);
     this.showItem("context-sendvideo", this.onVideo);
     this.showItem("context-sendaudio", this.onAudio);
     if (this.onVideo)
@@ -214,7 +214,8 @@ nsContextMenu.prototype = {
 
     this.showItem("context-reloadimage", this.onImage);
 
-    // View Image depends on whether an image was clicked on.
+    // View image depends on having an image that's not standalone
+    // (or is in a frame), or a canvas.
     this.showItem("context-viewimage",
                   (this.onImage && (!this.inSyntheticDoc || this.inFrame)) ||
                   this.onCanvas);
