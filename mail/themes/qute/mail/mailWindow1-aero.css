@@ -284,7 +284,7 @@ padding: 4px 0px;
     background-color: rgba(136, 197, 213, .85);
   }
 
-  #viewPickerLabel:not(:-moz-lwtheme):not(:-moz-window-inactive) {
+  #tabbar-toolbar #viewPickerLabel:not(:-moz-lwtheme):not(:-moz-window-inactive) {
     -moz-margin-start: 4px;
     -moz-margin-end: 0;
     -moz-padding-start: 2px;
