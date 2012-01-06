@@ -468,6 +468,14 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(0px, 378px, 18px, 360px);
 }
 
+/* Force the folder location and mail view items to fit in the available width
+   in the Customize Toolbar dialog. */
+#palette-box #locationFolders,
+#palette-box #folder-location-container,
+#palette-box #viewPicker {
+  -moz-box-flex: 1;
+}
+
 /* ::::: message notification bar style rules ::::: */
 
 .msgNotificationBar {
