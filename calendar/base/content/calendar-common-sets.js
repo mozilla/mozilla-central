@@ -101,6 +101,10 @@ var calendarController = {
         "calendar_priority-1_command": true,
         "calendar_general-priority_command": true,
         "calendar_general-progress_command": true,
+        "calendar_general-postpone_command": true,
+        "calendar_postpone-1hour_command": true,
+        "calendar_postpone-1day_command": true,
+        "calendar_postpone-1week_command": true,
         "calendar_task_category_command": true,
 
         "calendar_attendance_command": true,
@@ -173,6 +177,10 @@ var calendarController = {
             case "calendar_task_category_command":
             case "calendar_general-progress_command":
             case "calendar_general-priority_command":
+            case "calendar_general-postpone_command":
+            case "calendar_postpone-1hour_command":
+            case "calendar_postpone-1day_command":
+            case "calendar_postpone-1week_command":
                 return (this.isCalendarInForeground() || this.todo_tasktree_focused) &&
                        this.writable &&
                        this.todo_items_selected &&

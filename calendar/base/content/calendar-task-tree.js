@@ -260,6 +260,32 @@ function contextChangeTaskPriority(aEvent, aPriority) {
 }
 
 /**
+ * Handler function to postpone the start and due dates of the selected tasks.
+ *
+ * @param aEvent      The DOM event that triggered this command.
+ * @param aDuration   The duration to postpone the dates.
+ */
+function contextPostponeTask(aEvent, aDuration) {
+    let duration = cal.createDuration(aDuration);
+    if (!duration) {
+        cal.LOG("[calendar-task-tree] Postpone Task - Invalid duration " + aDuration);
+    }
+
+    startBatchTransaction();
+    let tasks = getSelectedTasks(aEvent);
+
+    tasks.forEach(function(task) {
+        if (task.entryDate || task.dueDate) {
+            let newTask = task.clone();
+            cal.shiftItem(newTask, duration);
+            doTransaction('modify', newTask, newTask.calendar, task, null);
+        }
+    });
+
+    endBatchTransaction();
+}
+
+/**
  * Modifies the selected tasks with the event dialog
  *
  * @param aEvent        The DOM event that triggered this command.

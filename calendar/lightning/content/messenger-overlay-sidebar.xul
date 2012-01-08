@@ -30,6 +30,7 @@
    -   Michael Buettner <michael.buettner@sun.com>
    -   Berend Cornelius <berend.cornelius@sun.com>
    -   Martin Schroeder <mschroeder@mozilla.x-home.org>
+   -   Matthew Mecca <matthew.mecca@gmail.com>
    -
    - Alternatively, the contents of this file may be used under the terms of
    - either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -445,6 +446,25 @@
               command="calendar_general-progress_command"
               observes="calendar_general-progress_command">
           <menupopup type="task-progress"/>
+        </menu>
+        <menu id="ltnTaskActionsPostponeMenuitem"
+              label="&calendar.context.postpone.label;"
+              accesskey="&calendar.context.postpone.accesskey;"
+              observes="calendar_general-postpone_command">
+          <menupopup id="ltnTaskActionsPostponeMenuPopup">
+            <menuitem id="ltnTaskActionsPostponeMenu-1hour"
+                      label="&calendar.context.postpone.1hour.label;"
+                      accesskey="&calendar.context.postpone.1hour.accesskey;"
+                      observes="calendar_postpone-1hour_command"/>
+            <menuitem id="ltnTaskActionsPostponeMenu-1day"
+                      label="&calendar.context.postpone.1day.label;"
+                      accesskey="&calendar.context.postpone.1day.accesskey;"
+                      observes="calendar_postpone-1day_command"/>
+            <menuitem id="ltnTaskActionsPostponeMenu-1week"
+                      label="&calendar.context.postpone.1week.label;"
+                      accesskey="&calendar.context.postpone.1week.accesskey;"
+                      observes="calendar_postpone-1week_command"/>
+          </menupopup>
         </menu>
         <menuseparator id="ltnBeforeUnifinderSection" />
         <!-- menuitem has different schema just to match sunbird -->
