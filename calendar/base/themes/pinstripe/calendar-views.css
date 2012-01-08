@@ -560,7 +560,14 @@ calendar-month-day-box-item {
 .calendar-color-box {
     /* This rule should be adopted if the alarm image size is changed */
     min-height: 13px;
-    background-image: -moz-linear-gradient(top, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.01) 50%, rgba(0, 0, 0, 0.05))
+    background-image: -moz-linear-gradient(top, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.01) 50%, rgba(0, 0, 0, 0.05));
+    border: 1px solid transparent;
+    border-radius: 2px;
+}
+
+calendar-month-day-box calendar-month-day-box-item[allday="true"] .calendar-color-box {
+    border-color: rgba(0, 0, 0, 0.5);
+    -moz-box-shadow: inset -1px -1px 0 rgba(255, 255, 255, 0.7), inset 1px 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .calendar-month-day-box-item-label {
