@@ -398,7 +398,7 @@ calendar-time-bar[orient="horizontal"] {
 .calendar-time-bar-box-even[orient="horizontal"] {
     border-right: 1px solid #D2D2D2;
     border-top: 1px solid #D2D2D2;
-
+    -moz-border-right-colors: none;
 }
 
 .calendar-time-bar-box-odd[orient="vertical"],

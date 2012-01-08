@@ -359,7 +359,7 @@ window[systemcolors] .multiday-view-label-day-box[orient="horizontal"] {
     border-top: 1px solid #D2D2D2;
 }
 
-window[systemcolors] .multiday-view-header-day-box[orient="vertical"] {
+window[systemcolors] .multiday-view-label-day-box[orient="vertical"] {
     border-top: 1px solid ThreeDShadow;
 }
 
@@ -544,12 +544,14 @@ window[systemcolors] .calendar-time-bar-box-even[off-time="true"] {
 .calendar-time-bar-box-even[orient="horizontal"] {
     border-right: 1px solid #D2D2D2;
     border-top: 1px solid #D2D2D2;
+    -moz-border-right-colors: none;
 }
 
 window[systemcolors] .calendar-time-bar-box-odd[orient="horizontal"],
 window[systemcolors] .calendar-time-bar-box-even[orient="horizontal"] {
     border-right: 1px solid ThreeDShadow;
     border-top: 1px solid ThreeDShadow;
+    -moz-border-right-colors: none;
 }
 
 .calendar-time-bar-box-odd[orient="vertical"],
