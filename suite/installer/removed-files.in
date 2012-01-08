@@ -1026,6 +1026,7 @@ xpicleanup@BIN_SUFFIX@
   res/entityTables/htmlEntityVersions.properties
   res/entityTables/mathml20.properties
   res/entityTables/transliterate.properties
+  update.locale
 #else
   components/binary.manifest
   omni.jar
