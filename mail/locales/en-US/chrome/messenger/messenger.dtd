@@ -332,6 +332,7 @@ you can use these alternative items. Otherwise, their values should be empty.  -
 <!ENTITY thisFolder.label "This Folder">
 <!ENTITY thisFolder.accesskey "F">
 <!ENTITY goRecentlyClosedTabs.label "Recently Closed Tabs">
+<!ENTITY goRecentlyClosedTabs.accesskey "R">
 <!ENTITY startPageCmd.label "Mail Start Page">
 <!ENTITY startPageCmd.accesskey "S">
 

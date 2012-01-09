@@ -1433,7 +1433,8 @@
           <menuseparator id="goFolderSeparator"/>
           
           <menu id="goRecentlyClosedTabs"
-                label="&goRecentlyClosedTabs.label;">
+                label="&goRecentlyClosedTabs.label;"
+                accesskey="&goRecentlyClosedTabs.accesskey;">
             <menupopup id="menu_GoRecentlyClosedTabsPopup"
                        onpopupshowing="return InitRecentlyClosedTabsPopup(this)" />
           </menu>
