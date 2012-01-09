@@ -365,7 +365,7 @@ int VoEBaseImpl::Init(AudioDeviceModule* external_adm)
         }
     }
 
-    // Create and internal ADM if the user has not added and external
+    // Create an internal ADM if the user has not added an external
     // ADM implementation as input to Init().
     if (external_adm == NULL)
     {
@@ -478,13 +478,20 @@ int VoEBaseImpl::Init(AudioDeviceModule* external_adm)
         _engineStatistics.SetLastError(VE_SOUNDCARD_ERROR, kTraceWarning,
             "Init() failed to set mono/stereo playout mode");
     }
+
+    // TODO(andrew): These functions don't tell us whether stereo recording
+    // is truly available. We simply set the AudioProcessing input to stereo
+    // here, because we have to wait until receiving the first frame to
+    // determine the actual number of channels anyway.
+    //
+    // These functions may be changed; tracked here:
+    // http://code.google.com/p/webrtc/issues/detail?id=204
     _audioDevicePtr->StereoRecordingIsAvailable(&available);
     if (_audioDevicePtr->SetStereoRecording(available) != 0)
     {
         _engineStatistics.SetLastError(VE_SOUNDCARD_ERROR, kTraceWarning,
             "Init() failed to set mono/stereo recording mode");
     }
-    int recordingChannels = available ? 2 : 1;
 
     // APM initialization done after sound card since we need
     // to know if we support stereo recording or not.
@@ -501,9 +508,6 @@ int VoEBaseImpl::Init(AudioDeviceModule* external_adm)
                 "Init() failed to create the AP module");
             return -1;
         }
-        voe::Utility::TraceModuleVersion(VoEId(_instanceId, -1),
-                                         *_audioProcessingModulePtr);
-
         // Ensure that mixers in both directions has access to the created APM
         _transmitMixerPtr->SetAudioProcessingModule(_audioProcessingModulePtr);
         _outputMixerPtr->SetAudioProcessingModule(_audioProcessingModulePtr);
@@ -525,8 +529,11 @@ int VoEBaseImpl::Init(AudioDeviceModule* external_adm)
             return -1;
         }
 
-        // Assume mono sending until a send codec is set.
-        if (_audioProcessingModulePtr->set_num_channels(recordingChannels, 1) != 0)
+        // Assume mono output until a send codec is set, and stereo input until
+        // we receive the first captured frame. We set stereo input here to
+        // avoid triggering a possible error in SetSendCodec when a stereo
+        // codec is selected.
+        if (_audioProcessingModulePtr->set_num_channels(2, 1) != 0)
         {
             _engineStatistics.SetLastError(VE_SOUNDCARD_ERROR, kTraceError,
                 "Init() failed to set channels for the primary audio stream");
@@ -1240,13 +1247,12 @@ int VoEBaseImpl::GetVersion(char version[1024])
     len = AddExternalTransportBuild(versionPtr);
     if (len == -1)
     {
-        return -1;
+         return -1;
     }
     versionPtr += len;
     accLen += len;
     assert(accLen < kVoiceEngineVersionMaxMessageSize);
 #endif
-
 #ifdef WEBRTC_VOE_EXTERNAL_REC_AND_PLAYOUT
     len = AddExternalRecAndPlayoutBuild(versionPtr);
     if (len == -1)
@@ -1256,83 +1262,7 @@ int VoEBaseImpl::GetVersion(char version[1024])
     versionPtr += len;
     accLen += len;
     assert(accLen < kVoiceEngineVersionMaxMessageSize);
-#endif
-
-    len = AddADMVersion(versionPtr);
-    if (len == -1)
-    {
-        return -1;
-    }
-    versionPtr += len;
-    accLen += len;
-    assert(accLen < kVoiceEngineVersionMaxMessageSize);
-
-#ifndef WEBRTC_EXTERNAL_TRANSPORT
-    len = AddSocketModuleVersion(versionPtr);
-    if (len == -1)
-    {
-        return -1;
-    }
-    versionPtr += len;
-    accLen += len;
-    assert(accLen < kVoiceEngineVersionMaxMessageSize);
-#endif
-
-#ifdef WEBRTC_SRTP
-    len = AddSRTPModuleVersion(versionPtr);
-    if (len == -1)
-    {
-        return -1;
-    }
-    versionPtr += len;
-    accLen += len;
-    assert(accLen < kVoiceEngineVersionMaxMessageSize);
-#endif
-
-    len = AddRtpRtcpModuleVersion(versionPtr);
-    if (len == -1)
-    {
-        return -1;
-    }
-    versionPtr += len;
-    accLen += len;
-    assert(accLen < kVoiceEngineVersionMaxMessageSize);
-
-    len = AddConferenceMixerVersion(versionPtr);
-    if (len == -1)
-    {
-        return -1;
-    }
-    versionPtr += len;
-    accLen += len;
-    assert(accLen < kVoiceEngineVersionMaxMessageSize);
-
-    len = AddAudioProcessingModuleVersion(versionPtr);
-    if (len == -1)
-    {
-        return -1;
-    }
-    versionPtr += len;
-    accLen += len;
-    assert(accLen < kVoiceEngineVersionMaxMessageSize);
-
-    len = AddACMVersion(versionPtr);
-    if (len == -1)
-    {
-        return -1;
-    }
-    versionPtr += len;
-    accLen += len;
-    assert(accLen < kVoiceEngineVersionMaxMessageSize);
-
-    len = AddSPLIBVersion(versionPtr);
-    if (len == -1)
-    {
-        return -1;
-    }
-    versionPtr += len;
-    accLen += len;
-    assert(accLen < kVoiceEngineVersionMaxMessageSize);
+ #endif
 
     memcpy(version, versionBuf, accLen);
     version[accLen] = '\0';
@@ -1375,14 +1305,6 @@ WebRtc_Word32 VoEBaseImpl::AddVoEVersion(char* str) const
     return sprintf(str, "VoiceEngine 4.1.0\n");
 }
 
-WebRtc_Word32 VoEBaseImpl::AddSPLIBVersion(char* str) const
-{
-    char version[16];
-    unsigned int len(16);
-    WebRtcSpl_get_version(version, len);
-    return sprintf(str, "SPLIB\t%s\n", version);
-}
-
 #ifdef WEBRTC_EXTERNAL_TRANSPORT
 WebRtc_Word32 VoEBaseImpl::AddExternalTransportBuild(char* str) const
 {
@@ -1396,91 +1318,6 @@ WebRtc_Word32 VoEBaseImpl::AddExternalRecAndPlayoutBuild(char* str) const
     return sprintf(str, "External recording and playout build\n");
 }
 #endif
-
-WebRtc_Word32 VoEBaseImpl::AddModuleVersion(Module* module, char* str) const
-{
-    WebRtc_Word8 version[kVoiceEngineMaxModuleVersionSize];
-    WebRtc_UWord32 remainingBufferInBytes(kVoiceEngineMaxModuleVersionSize);
-    WebRtc_UWord32 position(0);
-    if (module->Version(version, remainingBufferInBytes, position) == 0)
-    {
-        return sprintf(str, "%s\n", version);
-    }
-    return -1;
-}
-
-WebRtc_Word32 VoEBaseImpl::AddADMVersion(char* str) const
-{
-    AudioDeviceModule* admPtr(_audioDevicePtr);
-    if (_audioDevicePtr == NULL)
-    {
-        admPtr = AudioDeviceModuleImpl::Create(-1);
-    }
-    admPtr->AddRef();
-    int len = AddModuleVersion(admPtr, str);
-    admPtr->Release();
-    return len;
-}
-
-int VoEBaseImpl::AddAudioProcessingModuleVersion(char* str) const
-{
-    AudioProcessing* vpmPtr(_audioProcessingModulePtr);
-    if (_audioProcessingModulePtr == NULL)
-    {
-        vpmPtr = AudioProcessing::Create(-1);
-    }
-    int len = AddModuleVersion(vpmPtr, str);
-    if (_audioProcessingModulePtr == NULL)
-    {
-        AudioProcessing::Destroy(vpmPtr);
-    }
-    return len;
-}
-
-WebRtc_Word32 VoEBaseImpl::AddACMVersion(char* str) const
-{
-    AudioCodingModule* acmPtr = AudioCodingModule::Create(-1);
-    int len = AddModuleVersion(acmPtr, str);
-    AudioCodingModule::Destroy(acmPtr);
-    return len;
-}
-
-WebRtc_Word32 VoEBaseImpl::AddConferenceMixerVersion(char* str) const
-{
-    AudioConferenceMixer* mixerPtr = AudioConferenceMixer::Create(-1);
-    int len = AddModuleVersion(mixerPtr, str);
-    delete mixerPtr;
-    return len;
-}
-
-#ifndef WEBRTC_EXTERNAL_TRANSPORT
-WebRtc_Word32 VoEBaseImpl::AddSocketModuleVersion(char* str) const
-{
-    WebRtc_UWord8 numSockThreads(1);
-    UdpTransport* socketPtr = UdpTransport::Create(-1, numSockThreads);
-    int len = AddModuleVersion(socketPtr, str);
-    UdpTransport::Destroy(socketPtr);
-    return len;
-}
-#endif
-
-#ifdef WEBRTC_SRTP
-WebRtc_Word32 VoEBaseImpl::AddSRTPModuleVersion(char* str) const
-{
-    SrtpModule* srtpPtr = SrtpModule::CreateSrtpModule(-1);
-    int len = AddModuleVersion(srtpPtr, str);
-    SrtpModule::DestroySrtpModule(srtpPtr);
-    return len;
-}
-#endif
-
-WebRtc_Word32 VoEBaseImpl::AddRtpRtcpModuleVersion(char* str) const
-{
-    RtpRtcp* rtpRtcpPtr = RtpRtcp::CreateRtpRtcp(-1, true);
-    int len = AddModuleVersion(rtpRtcpPtr, str);
-    RtpRtcp::DestroyRtpRtcp(rtpRtcpPtr);
-    return len;
-}
 
 int VoEBaseImpl::LastError()
 {

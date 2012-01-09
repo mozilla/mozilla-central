@@ -47,5 +47,3 @@ if sys.platform == 'darwin':
   test.built_file_must_exist('action_file', chdir='framework')
 
   test.pass_test()
-
-

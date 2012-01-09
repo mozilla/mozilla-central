@@ -54,6 +54,13 @@
 
 namespace talk_base {
 
+// From RFC 4572
+const char DIGEST_SHA_1[] = "sha-1";
+const char DIGEST_SHA_224[] = "sha-224";
+const char DIGEST_SHA_256[] = "sha-256";
+const char DIGEST_SHA_384[] = "sha-384";
+const char DIGEST_SHA_512[] = "sha-512";
+
 SSLCertificate* SSLCertificate::FromPEMString(const std::string& pem_string,
                                               int* pem_length) {
   return OpenSSLCertificate::FromPEMString(pem_string, pem_length);

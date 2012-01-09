@@ -35,7 +35,7 @@ namespace cricket {
 
 TCPPort::TCPPort(talk_base::Thread* thread,
                  talk_base::PacketSocketFactory* factory,
-                 talk_base::Network* network, uint32 ip,
+                 talk_base::Network* network, const talk_base::IPAddress& ip,
                  int min_port, int max_port, bool allow_listen)
     : Port(thread, LOCAL_PORT_TYPE, factory, network, ip, min_port, max_port),
       incoming_only_(false),
@@ -218,7 +218,7 @@ TCPConnection::TCPConnection(TCPPort* port, const Candidate& candidate,
     }
   } else {
     // Incoming connections should match the network address.
-    ASSERT(socket_->GetLocalAddress().ip() == port->ip_);
+    ASSERT(socket_->GetLocalAddress().ipaddr() == port->ip_);
   }
 
   if (socket_) {

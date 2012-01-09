@@ -24,8 +24,9 @@
  * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-#ifndef _jid_h_
-#define _jid_h_
+
+#ifndef TALK_XMPP_JID_H_
+#define TALK_XMPP_JID_H_
 
 #include <string>
 #include "talk/base/basictypes.h"
@@ -69,18 +70,21 @@ public:
       data_->Release();
     }
   }
-  
 
-  const std::string & node() const { return !data_ ? STR_EMPTY : data_->node_name_; }
-  // void set_node(const std::string & node_name);
-  const std::string & domain() const { return !data_ ? STR_EMPTY : data_->domain_name_; }
-  // void set_domain(const std::string & domain_name);
-  const std::string & resource() const { return !data_ ? STR_EMPTY : data_->resource_name_; }
-  // void set_resource(const std::string & res_name);
+  const std::string & node() const {
+    return !data_ ? EmptyStringRef() : data_->node_name_;
+  }
+  const std::string & domain() const {
+    return !data_ ? EmptyStringRef() : data_->domain_name_;
+  }
+  const std::string & resource() const {
+    return !data_ ? EmptyStringRef() : data_->resource_name_;
+  }
 
   std::string Str() const;
   Jid BareJid() const;
 
+  bool IsEmpty() const;
   bool IsValid() const;
   bool IsBare() const;
   bool IsFull() const;
@@ -92,46 +96,50 @@ public:
 
   bool operator<(const Jid & other) const { return Compare(other) < 0; };
   bool operator>(const Jid & other) const { return Compare(other) > 0; };
-  
+
   int Compare(const Jid & other) const;
 
-  // A quick and dirty hash.  Don't count on this producing a great 
+  // A quick and dirty hash.  Don't count on this producing a great
   // distribution.
   uint32 ComputeLameHash() const;
 
 private:
 
-  static std::string prepNode(const std::string str, 
-      std::string::const_iterator start, std::string::const_iterator end, 
+  static std::string prepNode(const std::string str,
+      std::string::const_iterator start, std::string::const_iterator end,
       bool *valid);
   static char prepNodeAscii(char ch, bool *valid);
-  static std::string prepResource(const std::string str, 
-      std::string::const_iterator start, std::string::const_iterator end, 
+  static std::string prepResource(const std::string str,
+      std::string::const_iterator start, std::string::const_iterator end,
       bool *valid);
   static char prepResourceAscii(char ch, bool *valid);
-  static std::string prepDomain(const std::string str, 
-      std::string::const_iterator start,  std::string::const_iterator end, 
+  static std::string prepDomain(const std::string str,
+      std::string::const_iterator start,  std::string::const_iterator end,
       bool *valid);
-  static void prepDomain(const std::string str, 
-      std::string::const_iterator start, std::string::const_iterator end, 
+  static void prepDomain(const std::string str,
+      std::string::const_iterator start, std::string::const_iterator end,
       std::string *buf, bool *valid);
-  static void prepDomainLabel(const std::string str, 
-      std::string::const_iterator start, std::string::const_iterator end, 
+  static void prepDomainLabel(const std::string str,
+      std::string::const_iterator start, std::string::const_iterator end,
       std::string *buf, bool *valid);
   static char prepDomainLabelAscii(char ch, bool *valid);
 
   class Data {
   public:
     Data() : refcount_(1) {}
-    Data(const std::string & node, const std::string &domain, const std::string & resource) :
-      node_name_(node),
-      domain_name_(domain),
-      resource_name_(resource),
-      refcount_(1) {}
+    Data(const std::string & node, const std::string &domain,
+         const std::string & resource)
+        : node_name_(node),
+          domain_name_(domain),
+          resource_name_(resource),
+          refcount_(1) {
+    }
     const std::string node_name_;
     const std::string domain_name_;
     const std::string resource_name_;
 
+    // TODO: ref-counter is not thread-safe here. Make it
+    // thread-safe or remove this optimization.
     void AddRef() { refcount_++; }
     void Release() { if (!--refcount_) delete this; }
   private:
@@ -143,6 +151,4 @@ private:
 
 }
 
-
-
-#endif
+#endif  // TALK_XMPP_JID_H_

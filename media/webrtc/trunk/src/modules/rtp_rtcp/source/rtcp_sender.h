@@ -84,6 +84,11 @@ public:
     WebRtc_Word32 SetREMBData(const WebRtc_UWord32 bitrate,
                               const WebRtc_UWord8 numberOfSSRC,
                               const WebRtc_UWord32* SSRC);
+
+    bool SetRemoteBitrateObserver(RtpRemoteBitrateObserver* observer);
+
+    void UpdateRemoteBitrateEstimate(unsigned int target_bitrate);
+
     /*
     *   TMMBR
     */
@@ -96,6 +101,13 @@ public:
 
     WebRtc_Word32 RequestTMMBR(const WebRtc_UWord32 estimatedBW,
                                const WebRtc_UWord32 packetOH);
+
+    /*
+    *   Extended jitter report
+    */
+    bool IJ() const;
+
+    WebRtc_Word32 SetIJStatus(const bool enable);
 
     /*
     *
@@ -146,6 +158,11 @@ private:
                         const WebRtc_UWord32 NTPfrac,
                         const RTCPReportBlock* received = NULL);
 
+    WebRtc_Word32 BuildExtendedJitterReport(
+        WebRtc_UWord8* rtcpbuffer,
+        WebRtc_UWord32& pos,
+        const WebRtc_UWord32 jitterTransmissionTimeOffset);
+
     WebRtc_Word32 BuildSDEC(WebRtc_UWord8* rtcpbuffer, WebRtc_UWord32& pos);
     WebRtc_Word32 BuildPLI(WebRtc_UWord8* rtcpbuffer, WebRtc_UWord32& pos);
     WebRtc_Word32 BuildREMB(WebRtc_UWord8* rtcpbuffer, WebRtc_UWord32& pos);
@@ -178,16 +195,17 @@ private:
 
     ModuleRtpRtcpImpl&      _rtpRtcp;
 
-    CriticalSectionWrapper& _criticalSectionTransport;
+    CriticalSectionWrapper* _criticalSectionTransport;
     Transport*              _cbTransport;
 
-    CriticalSectionWrapper& _criticalSectionRTCPSender;
+    CriticalSectionWrapper* _criticalSectionRTCPSender;
     bool                    _usingNack;
     bool                    _sending;
     bool                    _sendTMMBN;
     bool                    _REMB;
     bool                    _sendREMB;
     bool                    _TMMBR;
+    bool                    _IJ;
 
     WebRtc_UWord32        _nextTimeToSendRTCP;
 
@@ -218,6 +236,7 @@ private:
     WebRtc_UWord8       _sizeRembSSRC;
     WebRtc_UWord32*     _rembSSRC;
     WebRtc_UWord32      _rembBitrate;
+    RtpRemoteBitrateObserver* _bitrate_observer;
 
     TMMBRHelp           _tmmbrHelp;
     WebRtc_UWord32      _tmmbr_Send;

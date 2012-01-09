@@ -22,17 +22,28 @@
 #include "gtest/gtest.h"
 #include "thread_wrapper.h"
 #include "tick_util.h"
+#include "testsupport/fileutils.h"
 #include "trace.h"
 #include "utility.h"
+
+namespace webrtc {
 
 #define TEST_DURATION_SEC 600
 
 #define NUMBER_OF_SENDER_TESTS 6
 
 #define MAX_FILE_NAME_LENGTH_BYTE 500
-#define CHECK_THREAD_NULLITY(myThread, S) if(myThread != NULL){unsigned int i; (myThread)->Start(i);}else{throw S; exit(1);}
+#define CHECK_THREAD_NULLITY(myThread, S)                                      \
+    if(myThread != NULL)                                                       \
+    {                                                                          \
+        unsigned int i;                                                        \
+        (myThread)->Start(i);                                                  \
+    }                                                                          \
+    else                                                                       \
+    {                                                                          \
+      ADD_FAILURE() << S;                                                      \
+    }
 
-using namespace webrtc;
 
 void
 APITest::Wait(WebRtc_UWord32 waitLengthMs)
@@ -260,7 +271,8 @@ APITest::SetUp()
     _inFileA.Open(fileName, frequencyHz, "rb", true);
 
     //--- Output A
-    strcpy(fileName, "./src/modules/audio_coding/main/test/outA.pcm");
+    std::string outputFileA = webrtc::test::OutputPath() + "outA.pcm";
+    strcpy(fileName, outputFileA.c_str());
     printf("Enter output file at side A [%s]: ", fileName);
     PCMFile::ChooseFile(fileName, 499, &frequencyHz);
     _outFileA.Open(fileName, frequencyHz, "wb");
@@ -272,7 +284,8 @@ APITest::SetUp()
     _inFileB.Open(fileName, frequencyHz, "rb", true);
 
     //--- Output B
-    strcpy(fileName, "./src/modules/audio_coding/main/test/outB.pcm");
+    std::string outputFileB = webrtc::test::OutputPath() + "outB.pcm";
+    strcpy(fileName, outputFileB.c_str());
     printf("Enter output file at side B [%s]: ", fileName);
     PCMFile::ChooseFile(fileName, 499, &frequencyHz);
     _outFileB.Open(fileName, frequencyHz, "wb");
@@ -964,12 +977,17 @@ APITest::TestDelay(char side)
         fprintf(stdout, "\n\nJitter Statistics at Side %c\n", side);
         fprintf(stdout, "--------------------------------------\n");
         fprintf(stdout, "buffer-size............. %d\n", networkStat.currentBufferSize);    
-        fprintf(stdout, "Preferred buffer-size... %d\n", networkStat.preferredBufferSize);  
+        fprintf(stdout, "Preferred buffer-size... %d\n", networkStat.preferredBufferSize);
+        fprintf(stdout, "Peaky jitter mode........%d\n", networkStat.jitterPeaksFound);
         fprintf(stdout, "packet-size rate........ %d\n", networkStat.currentPacketLossRate);
         fprintf(stdout, "discard rate............ %d\n", networkStat.currentDiscardRate);   
         fprintf(stdout, "expand rate............. %d\n", networkStat.currentExpandRate);    
         fprintf(stdout, "Preemptive rate......... %d\n", networkStat.currentPreemptiveRate);
         fprintf(stdout, "Accelerate rate......... %d\n", networkStat.currentAccelerateRate);
+        fprintf(stdout, "Clock-drift............. %d\n", networkStat.clockDriftPPM);
+        fprintf(stdout, "Mean waiting time....... %d\n", networkStat.meanWaitingTimeMs);
+        fprintf(stdout, "Median waiting time..... %d\n", networkStat.medianWaitingTimeMs);
+        fprintf(stdout, "Max waiting time........ %d\n", networkStat.maxWaitingTimeMs);
     }
 
     CHECK_ERROR_MT(myACM->SetMinimumPlayoutDelay(*myMinDelay));
@@ -1545,3 +1563,6 @@ APITest::LookForDTMF(char side)
         _acmB->RegisterIncomingMessagesCallback(NULL);
     }
 }
+
+} // namespace webrtc
+

@@ -57,7 +57,7 @@ void AsyncResolver::OnWorkDone() {
   }
 }
 
-#if defined(WIN32) || defined(ANDROID)
+#if defined(WIN32) || defined(ANDROID) || defined(OPENBSD)
 static hostent* DeepCopyHostent(const hostent* ent) {
   // Get the total number of bytes we need to copy, and allocate our buffer.
   int num_aliases = 0, num_addrs = 0;
@@ -165,9 +165,16 @@ hostent* SafeGetHostByName(const char* hostname, int* herrno) {
   result = deep_copy;
 #endif
   *herrno = 0;
-#elif defined(OSX) || defined(IOS)
+#elif defined(OSX) || defined(IOS) || defined(FREEBSD)
   // Mac OS returns an object with everything allocated.
   result = getipnodebyname(hostname, AF_INET, AI_DEFAULT, herrno);
+#elif defined(OPENBSD)
+  hostent* ent = gethostbyname(hostname);
+  if (!ent) {
+    return NULL;
+  }
+  result = DeepCopyHostent(ent);
+  *herrno = 0;
 #else
 #error "I don't know how to do gethostbyname safely on your system."
 #endif
@@ -177,12 +184,28 @@ hostent* SafeGetHostByName(const char* hostname, int* herrno) {
 // This function should mirror the above function, and free any resources
 // allocated by the above.
 void FreeHostEnt(hostent* host) {
-#if defined(OSX) || defined(IOS)
+#if defined(OSX) || defined(IOS) || defined(FREEBSD)
   freehostent(host);
 #elif defined(WIN32) || defined(POSIX)
   free(host);
 #else
 #error "I don't know how to free a hostent on your system."
+#endif
+}
+
+const char* inet_ntop(int af, const void *src, char* dst, socklen_t size) {
+#ifdef WIN32
+  return win32_inet_ntop(af, src, dst, size);
+#else
+  return ::inet_ntop(af, src, dst, size);
+#endif
+}
+
+int inet_pton(int af, const char* src, void *dst) {
+#ifdef WIN32
+  return win32_inet_pton(af, src, dst);
+#else
+  return ::inet_pton(af, src, dst);
 #endif
 }
 

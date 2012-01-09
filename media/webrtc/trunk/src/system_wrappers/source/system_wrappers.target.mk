@@ -6,10 +6,13 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -55,10 +58,13 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -105,27 +111,27 @@ INCS_Release := -Isrc \
 OBJS := $(obj).target/$(TARGET)/src/system_wrappers/source/aligned_malloc.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/atomic32.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/condition_variable.o \
+	$(obj).target/$(TARGET)/src/system_wrappers/source/condition_variable_posix.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/cpu.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/cpu_info.o \
+	$(obj).target/$(TARGET)/src/system_wrappers/source/cpu_linux.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/cpu_features.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/critical_section.o \
+	$(obj).target/$(TARGET)/src/system_wrappers/source/critical_section_posix.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/data_log_c.o \
+	$(obj).target/$(TARGET)/src/system_wrappers/source/data_log_no_op.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/event.o \
+	$(obj).target/$(TARGET)/src/system_wrappers/source/event_posix.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/file_impl.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/list_no_stl.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/map.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/rw_lock.o \
+	$(obj).target/$(TARGET)/src/system_wrappers/source/rw_lock_posix.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/sort.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/thread.o \
-	$(obj).target/$(TARGET)/src/system_wrappers/source/trace_impl.o \
-	$(obj).target/$(TARGET)/src/system_wrappers/source/condition_variable_posix.o \
-	$(obj).target/$(TARGET)/src/system_wrappers/source/critical_section_posix.o \
-	$(obj).target/$(TARGET)/src/system_wrappers/source/event_posix.o \
-	$(obj).target/$(TARGET)/src/system_wrappers/source/rw_lock_posix.o \
 	$(obj).target/$(TARGET)/src/system_wrappers/source/thread_posix.o \
-	$(obj).target/$(TARGET)/src/system_wrappers/source/trace_posix.o \
-	$(obj).target/$(TARGET)/src/system_wrappers/source/data_log_dummy.o \
-	$(obj).target/$(TARGET)/src/system_wrappers/source/cpu_linux.o
+	$(obj).target/$(TARGET)/src/system_wrappers/source/trace_impl.o \
+	$(obj).target/$(TARGET)/src/system_wrappers/source/trace_posix.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
@@ -152,10 +158,12 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cc FORCE_DO_CMD
 # End of this set of suffix rules
 ### Rules for final target.
 LDFLAGS_Debug := -pthread \
-	-Wl,-z,noexecstack
+	-Wl,-z,noexecstack \
+	-fPIC
 
 LDFLAGS_Release := -pthread \
 	-Wl,-z,noexecstack \
+	-fPIC \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections

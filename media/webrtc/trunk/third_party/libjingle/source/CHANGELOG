@@ -1,5 +1,31 @@
 Libjingle
 
+0.6.6 - Dec 14, 2011
+  - Fix support for rtcp multiplexing (aka rtcp-mux).
+  - Add more support for FreeBSD and OpenBSD.
+  - Add more unit tests to session/phone.
+  - Add session/phone/mediarecorder.cc.
+  - Fixed httpportallocator tests.
+
+0.6.5 - Dec 8, 2011
+  - Add IPv6 support in SocketAddress.
+  - Change PeerConnectionFactory inteface.
+  - Bug fixes.
+
+0.6.4 - Nov 30, 2011
+  - Branch app/webrtc to app/webrtcv1.
+  - Add more base unit tests.
+  - Add xmllite unit tests.
+  - Refactoring and bug fixes
+
+0.6.3 - Oct 26, 2011
+  - Add media unit tests
+  - Improve OpenSSL support
+  - Add SSL unit tests
+  - Add DTLS support to SslStreamAdapter
+  - Add initial support for media processors
+  - Updated WebRTC voice and video engines
+
 0.6.2 - Oct 7, 2011
   - Increase the video rtp buffer.
   - Disable sound system for chromium build.

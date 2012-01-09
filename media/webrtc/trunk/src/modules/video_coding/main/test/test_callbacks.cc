@@ -12,8 +12,11 @@
 
 #include <cmath>
 
+#include "modules/video_coding/main/source/tick_time_base.h"
 #include "rtp_dump.h"
 #include "test_macros.h"
+
+namespace webrtc {
 
 /******************************
  *  VCMEncodeCompleteCallback
@@ -197,7 +200,9 @@ VCMDecodeCompleteCallback::DecodedBytes()
 }
 
 RTPSendCompleteCallback::RTPSendCompleteCallback(RtpRtcp* rtp,
+                                                 TickTimeBase* clock,
                                                  const char* filename):
+    _clock(clock),
     _sendCount(0),
     _rtp(rtp),
     _lossPct(0),
@@ -249,7 +254,7 @@ RTPSendCompleteCallback::SendPacket(int channel, const void *data, int len)
     bool transmitPacket = true;
     transmitPacket = PacketLoss();
 
-    WebRtc_UWord64 now = VCMTickTime::MillisecondTimestamp();
+    WebRtc_UWord64 now = _clock->MillisecondTimestamp();
     // Insert outgoing packet into list
     if (transmitPacket)
     {
@@ -436,17 +441,20 @@ VideoProtectionCallback::~VideoProtectionCallback()
 }
 
 WebRtc_Word32
-VideoProtectionCallback::ProtectionRequest(const WebRtc_UWord8 deltaFECRate,
-                                           const WebRtc_UWord8 keyFECRate,
-                                           const bool deltaUseUepProtection,
-                                           const bool keyUseUepProtection,
-                                           const bool nack)
+VideoProtectionCallback::ProtectionRequest(WebRtc_UWord8 deltaFECRate,
+                                           WebRtc_UWord8 keyFECRate,
+                                           bool deltaUseUepProtection,
+                                           bool keyUseUepProtection,
+                                           bool nack_enabled,
+                                           WebRtc_UWord32* sent_video_rate_bps,
+                                           WebRtc_UWord32* sent_nack_rate_bps,
+                                           WebRtc_UWord32* sent_fec_rate_bps)
 {
     _deltaFECRate = deltaFECRate;
     _keyFECRate = keyFECRate;
     _deltaUseUepProtection = deltaUseUepProtection;
     _keyUseUepProtection = keyUseUepProtection;
-    if (nack == true)
+    if (nack_enabled)
     {
         _nack = kNackRtcp;
     }
@@ -503,14 +511,13 @@ VideoProtectionCallback::FECKeyUepProtection()
 
 void
 RTPFeedbackCallback::OnNetworkChanged(const WebRtc_Word32 id,
-                                      const WebRtc_UWord16 bitrateTargetKbit,
+                                      const WebRtc_UWord32 bitrateBps,
                                       const WebRtc_UWord8 fractionLost,
-                                      const WebRtc_UWord16 roundTripTimeMs,
-                                      const WebRtc_UWord32 jitterMS,
-                                      const WebRtc_UWord16 bwEstimateKbitMin,
-                                      const WebRtc_UWord16 bwEstimateKbitMax)
+                                      const WebRtc_UWord16 roundTripTimeMs)
 {
 
-    _vcm->SetChannelParameters(bitrateTargetKbit, fractionLost,
+    _vcm->SetChannelParameters(bitrateBps / 1000, fractionLost,
                                (WebRtc_UWord8)roundTripTimeMs);
 }
+
+}  // namespace webrtc

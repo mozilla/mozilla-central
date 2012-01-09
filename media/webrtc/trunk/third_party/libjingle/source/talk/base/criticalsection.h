@@ -63,6 +63,13 @@ public:
     EnterCriticalSection(&crit_);
     TRACK_OWNER(thread_ = GetCurrentThreadId());
   }
+  bool TryEnter() {
+    if (TryEnterCriticalSection(&crit_) != FALSE) {
+      TRACK_OWNER(thread_ = GetCurrentThreadId());
+      return true;
+    }
+    return false;
+  }
   void Leave() {
     TRACK_OWNER(thread_ = 0);
     LeaveCriticalSection(&crit_);
@@ -95,6 +102,13 @@ public:
   void Enter() {
     pthread_mutex_lock(&mutex_);
     TRACK_OWNER(thread_ = pthread_self());
+  }
+  bool TryEnter() {
+    if (pthread_mutex_trylock(&mutex_) == 0) {
+      TRACK_OWNER(thread_ = pthread_self());
+      return true;
+    }
+    return false;
   }
   void Leave() {
     TRACK_OWNER(thread_ = 0);

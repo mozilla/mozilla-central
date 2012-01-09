@@ -191,6 +191,7 @@ class VoETraceWrapper {
     return webrtc::VoiceEngine::SetTraceCallback(callback);
   }
 };
-}
+
+}  // namespace cricket
 
 #endif  // TALK_SESSION_PHONE_WEBRTCVOE_H_

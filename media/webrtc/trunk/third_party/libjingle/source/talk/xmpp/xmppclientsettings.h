@@ -30,13 +30,14 @@
 
 #include "talk/p2p/base/port.h"
 #include "talk/base/cryptstring.h"
+#include "talk/xmpp/xmppengine.h"
 
 namespace buzz {
 
 class XmppUserSettings {
  public:
   XmppUserSettings()
-    : use_tls_(false), 
+    : use_tls_(buzz::TLS_DISABLED),
       allow_plain_(false) {
   }
 
@@ -45,8 +46,11 @@ class XmppUserSettings {
   void set_pass(const talk_base::CryptString & pass) { pass_ = pass; }
   void set_auth_cookie(const std::string & cookie) { auth_cookie_ = cookie; }
   void set_resource(const std::string & resource) { resource_ = resource; }
-  void set_use_tls(bool use_tls) { use_tls_ = use_tls; }
+  void set_use_tls(const TlsOptions use_tls) { use_tls_ = use_tls; }
   void set_allow_plain(bool f) { allow_plain_ = f; }
+  void set_test_server_domain(const std::string & test_server_domain) {
+    test_server_domain_ = test_server_domain;
+  }
   void set_token_service(const std::string & token_service) {
     token_service_ = token_service;
   }
@@ -56,8 +60,9 @@ class XmppUserSettings {
   const talk_base::CryptString & pass() const { return pass_; }
   const std::string & auth_cookie() const { return auth_cookie_; }
   const std::string & resource() const { return resource_; }
-  bool use_tls() const { return use_tls_; }
+  TlsOptions use_tls() const { return use_tls_; }
   bool allow_plain() const { return allow_plain_; }
+  const std::string & test_server_domain() const { return test_server_domain_; }
   const std::string & token_service() const { return token_service_; }
 
  private:
@@ -66,8 +71,9 @@ class XmppUserSettings {
   talk_base::CryptString pass_;
   std::string auth_cookie_;
   std::string resource_;
-  bool use_tls_;
+  TlsOptions use_tls_;
   bool allow_plain_;
+  std::string test_server_domain_;
   std::string token_service_;
 };
 
@@ -80,8 +86,8 @@ class XmppClientSettings : public XmppUserSettings {
       use_proxy_auth_(false) {
   }
 
-  void set_server(const talk_base::SocketAddress & server) { 
-      server_ = server; 
+  void set_server(const talk_base::SocketAddress & server) {
+      server_ = server;
   }
   void set_protocol(cricket::ProtocolType protocol) { protocol_ = protocol; }
   void set_proxy(talk_base::ProxyType f) { proxy_ = f; }

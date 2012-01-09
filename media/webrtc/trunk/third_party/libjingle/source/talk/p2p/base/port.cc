@@ -126,7 +126,7 @@ bool StringToProto(const char* value, ProtocolType* proto) {
 
 Port::Port(talk_base::Thread* thread, const std::string& type,
            talk_base::PacketSocketFactory* factory, talk_base::Network* network,
-           uint32 ip, int min_port, int max_port)
+           const talk_base::IPAddress& ip, int min_port, int max_port)
     : thread_(thread),
       factory_(factory),
       type_(type),
@@ -351,7 +351,7 @@ void Port::SendBindingResponse(StunMessage* request,
   StunAddressAttribute* addr_attr =
       StunAttribute::CreateAddress(STUN_ATTR_MAPPED_ADDRESS);
   addr_attr->SetPort(addr.port());
-  addr_attr->SetIP(addr.ip());
+  addr_attr->SetIP(addr.ipaddr());
   response.AddAttribute(addr_attr);
 
   // Send the response message.
@@ -528,11 +528,8 @@ Connection::~Connection() {
 }
 
 const Candidate& Connection::local_candidate() const {
-  if (local_candidate_index_ < port_->candidates().size())
-    return port_->candidates()[local_candidate_index_];
-  ASSERT(false);
-  static Candidate foo;
-  return foo;
+  ASSERT(local_candidate_index_ < port_->candidates().size());
+  return port_->candidates()[local_candidate_index_];
 }
 
 void Connection::set_read_state(ReadState value) {

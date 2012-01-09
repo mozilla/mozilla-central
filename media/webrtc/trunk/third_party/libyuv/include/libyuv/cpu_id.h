@@ -11,7 +11,10 @@
 #ifndef INCLUDE_LIBYUV_CPU_ID_H_
 #define INCLUDE_LIBYUV_CPU_ID_H_
 
+#ifdef __cplusplus
 namespace libyuv {
+extern "C" {
+#endif
 
 // These flags are only valid on x86 processors
 static const int kCpuHasSSE2 = 1;
@@ -26,7 +29,7 @@ static const int kCpuInitialized = 8;
 // Detect CPU has SSE2 etc.
 // test_flag parameter should be one of kCpuHas constants above
 // returns non-zero if instruction set is detected
-static inline int TestCpuFlag(int test_flag) {
+static __inline int TestCpuFlag(int test_flag) {
   extern int cpu_info_;
   extern int InitCpuFlags();
   return (cpu_info_ ? cpu_info_ : InitCpuFlags()) & test_flag;
@@ -38,6 +41,9 @@ static inline int TestCpuFlag(int test_flag) {
 // 0 to disable all cpu specific optimizations.
 void MaskCpuFlags(int enable_flags);
 
+#ifdef __cplusplus
+}  // extern "C"
 }  // namespace libyuv
+#endif
 
 #endif  // INCLUDE_LIBYUV_CPU_ID_H_

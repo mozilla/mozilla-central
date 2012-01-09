@@ -57,7 +57,7 @@
 #include "talk/base/logging.h"
 #include "talk/base/nethelpers.h"
 #include "talk/base/physicalsocketserver.h"
-#include "talk/base/time.h"
+#include "talk/base/timeutils.h"
 #include "talk/base/winping.h"
 #include "talk/base/win32socketinit.h"
 
@@ -1407,6 +1407,10 @@ bool PhysicalSocketServer::SetPosixSignalHandler(int signum,
     }
   }
   return true;
+}
+
+Dispatcher* PhysicalSocketServer::signal_dispatcher() {
+  return signal_dispatcher_.get();
 }
 
 bool PhysicalSocketServer::InstallSignal(int signum, void (*handler)(int)) {

@@ -25,8 +25,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _xmlparser_h_
-#define _xmlparser_h_
+#ifndef TALK_XMLLITE_XMLPARSER_H_
+#define TALK_XMLLITE_XMLPARSER_H_
 
 #include <string>
 
@@ -118,4 +118,4 @@ private:
 
 }
 
-#endif
+#endif  // TALK_XMLLITE_XMLPARSER_H_

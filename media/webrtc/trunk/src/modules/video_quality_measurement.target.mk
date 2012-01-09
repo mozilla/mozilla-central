@@ -6,10 +6,13 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -52,6 +55,8 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Isrc \
 	-I. \
 	-Itest \
+	-Isrc/modules/video_coding/main/interface \
+	-Isrc/modules/video_coding/codecs/interface \
 	-Isrc/modules/video_coding/codecs/vp8/main/interface \
 	-Isrc/common_video/interface \
 	-Isrc/modules/video_coding/codecs/interface \
@@ -62,10 +67,13 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -110,6 +118,8 @@ CFLAGS_CC_Release := -fno-rtti \
 INCS_Release := -Isrc \
 	-I. \
 	-Itest \
+	-Isrc/modules/video_coding/main/interface \
+	-Isrc/modules/video_coding/codecs/interface \
 	-Isrc/modules/video_coding/codecs/vp8/main/interface \
 	-Isrc/common_video/interface \
 	-Isrc/modules/video_coding/codecs/interface \
@@ -122,7 +132,7 @@ OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/codecs/tools/video_qual
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a
+$(OBJS): | $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/test/libmetrics.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/testing/gtest_prod.stamp $(obj).target/testing/libgmock.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -146,10 +156,12 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cc FORCE_DO_CMD
 # End of this set of suffix rules
 ### Rules for final target.
 LDFLAGS_Debug := -pthread \
-	-Wl,-z,noexecstack
+	-Wl,-z,noexecstack \
+	-fPIC
 
 LDFLAGS_Release := -pthread \
 	-Wl,-z,noexecstack \
+	-fPIC \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections
@@ -158,9 +170,9 @@ LIBS := -lrt
 
 $(builddir)/video_quality_measurement: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/video_quality_measurement: LIBS := $(LIBS)
-$(builddir)/video_quality_measurement: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a
+$(builddir)/video_quality_measurement: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/test/libmetrics.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a
 $(builddir)/video_quality_measurement: TOOLSET := $(TOOLSET)
-$(builddir)/video_quality_measurement: $(OBJS) $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a FORCE_DO_CMD
+$(builddir)/video_quality_measurement: $(OBJS) $(obj).target/src/modules/libvideo_codecs_test_framework.a $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/test/libmetrics.a $(obj).target/third_party/google-gflags/libgoogle-gflags.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/video_quality_measurement

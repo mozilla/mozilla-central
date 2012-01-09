@@ -19,9 +19,9 @@ RTPSenderAudio::RTPSenderAudio(const WebRtc_Word32 id, RtpRtcpClock* clock,
     _id(id),
     _clock(*clock),
     _rtpSender(rtpSender),
-    _audioFeedbackCritsect(*CriticalSectionWrapper::CreateCriticalSection()),
+    _audioFeedbackCritsect(CriticalSectionWrapper::CreateCriticalSection()),
     _audioFeedback(NULL),
-    _sendAudioCritsect(*CriticalSectionWrapper::CreateCriticalSection()),
+    _sendAudioCritsect(CriticalSectionWrapper::CreateCriticalSection()),
     _frequency(8000),
     _packetSizeSamples(160),
     _dtmfEventIsOn(false),
@@ -46,8 +46,8 @@ RTPSenderAudio::RTPSenderAudio(const WebRtc_Word32 id, RtpRtcpClock* clock,
 
 RTPSenderAudio::~RTPSenderAudio()
 {
-    delete &_sendAudioCritsect;
-    delete &_audioFeedbackCritsect;
+    delete _sendAudioCritsect;
+    delete _audioFeedbackCritsect;
 }
 
 WebRtc_Word32
@@ -296,7 +296,7 @@ RTPSenderAudio::SendAudio(const FrameType frameType,
     // A source MAY send events and coded audio packets for the same time
     // but we don't support it
     {
-        _sendAudioCritsect.Enter();
+        _sendAudioCritsect->Enter();
 
         if (_dtmfEventIsOn)
         {
@@ -307,7 +307,7 @@ RTPSenderAudio::SendAudio(const FrameType frameType,
                 if(_packetSizeSamples > (captureTimeStamp - _dtmfTimestampLastSent) )
                 {
                     // not time to send yet
-                    _sendAudioCritsect.Leave();
+                    _sendAudioCritsect->Leave();
                     return 0;
                 }
             }
@@ -333,7 +333,7 @@ RTPSenderAudio::SendAudio(const FrameType frameType,
                 _dtmfTimeLastSent = _clock.GetTimeInMS();
             }
             // don't hold the critsect while calling SendTelephoneEventPacket
-            _sendAudioCritsect.Leave();
+            _sendAudioCritsect->Leave();
             if(send)
             {
                 if(dtmfDurationSamples > 0xffff)
@@ -357,7 +357,7 @@ RTPSenderAudio::SendAudio(const FrameType frameType,
             }
             return(0);
         }
-        _sendAudioCritsect.Leave();
+        _sendAudioCritsect->Leave();
     }
     if(payloadSize == 0 || payloadData == NULL)
     {
@@ -527,7 +527,11 @@ RTPSenderAudio::SendAudio(const FrameType frameType,
 
     }   // end critical section
 
-    return _rtpSender->SendToNetwork(dataBuffer, payloadSize, (WebRtc_UWord16)rtpHeaderLength);
+    return _rtpSender->SendToNetwork(
+        dataBuffer,
+        payloadSize,
+        static_cast<WebRtc_UWord16>(rtpHeaderLength),
+        kAllowRetransmission);
 }
 
 
@@ -627,7 +631,7 @@ RTPSenderAudio::SendTelephoneEventPacket(const bool ended,
     }
     do
     {
-        _sendAudioCritsect.Enter();
+        _sendAudioCritsect->Enter();
 
         //Send DTMF data
         _rtpSender->BuildRTPheader(dtmfbuffer, _dtmfPayloadType, markerBit, dtmfTimeStamp);
@@ -661,8 +665,9 @@ RTPSenderAudio::SendTelephoneEventPacket(const bool ended,
         dtmfbuffer[13] = E|R|volume;
         ModuleRTPUtility::AssignUWord16ToBuffer(dtmfbuffer+14, duration);
 
-        _sendAudioCritsect.Leave();
-        retVal = _rtpSender->SendToNetwork(dtmfbuffer, 4, 12);
+        _sendAudioCritsect->Leave();
+        retVal = _rtpSender->SendToNetwork(dtmfbuffer, 4, 12,
+                                           kAllowRetransmission);
         sendCount--;
 
     }while (sendCount > 0 && retVal == 0);

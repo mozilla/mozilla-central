@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
 # Copyright (c) 2011 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
@@ -416,7 +415,12 @@ class ChromeTests(object):
     # summary list for long, but will be useful for someone reviewing this bot.
     return ret
 
-def _main(_):
+
+def main():
+  if not sys.platform.startswith(('linux', 'darwin')):
+    logging.error("AddressSanitizer works only on Linux and Mac OS "
+                  "at the moment.")
+    return 1
   parser = optparse.OptionParser("usage: %prog -b <dir> -t <test> "
                                  "[-t <test> ...]")
   parser.disable_interspersed_args()
@@ -456,12 +460,4 @@ def _main(_):
 
 
 if __name__ == "__main__":
-  if sys.platform.startswith('linux'):
-    ret = _main(sys.argv)
-  elif sys.platform.startswith('darwin'):
-    ret = _main(sys.argv)
-  else:
-    logging.error("AddressSanitizer works only on Linux and Mac OS "
-                  "at the moment.")
-    ret = 1
-  sys.exit(ret)
+  sys.exit(main())

@@ -12,26 +12,21 @@
 #define ACM_TEST_UTILITY_H
 
 #include "audio_coding_module.h"
+#include "gtest/gtest.h"
+
+namespace webrtc {
 
 //-----------------------------
 #define CHECK_ERROR(f)                                                                      \
     do {                                                                                    \
-        if(f < 0) {                                                                         \
-            char errString[500];                                                            \
-            sprintf(errString, "Error Calling API in file %s at line %d \n",                \
-                __FILE__, __LINE__);                                                        \
-            throw errString;                                                                \
-        }                                                                                   \
+        EXPECT_GE(f, 0) << "Error Calling API";                                             \
     }while(0)
 
 //-----------------------------
 #define CHECK_PROTECTED(f)                                                                  \
     do {                                                                                    \
         if(f >= 0) {                                                                        \
-            char errString[500];                                                            \
-            sprintf(errString, "Error Calling API in file %s at line %d \n",                \
-                __FILE__, __LINE__);                                                        \
-            throw errString;                                                                \
+            ADD_FAILURE() << "Error Calling API";                                           \
         }                                                                                   \
         else {                                                                              \
             printf("An expected error is caught.\n");                                       \
@@ -87,8 +82,6 @@
             p = NULL;                                                                       \
         }                                                                                   \
     } while(0)
-
-using namespace webrtc;
 
 class ACMTestTimer
 {
@@ -197,6 +190,6 @@ private:
     WebRtc_UWord32 _numFrameTypes[6];
 };
 
-
+} // namespace webrtc
 
 #endif // ACM_TEST_UTILITY_H

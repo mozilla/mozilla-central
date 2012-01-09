@@ -41,6 +41,8 @@
         'rtcp_sender.h',
         'rtcp_utility.cc',
         'rtcp_utility.h',
+        'rtp_header_extension.cc',
+        'rtp_header_extension.h',
         'rtp_receiver.cc',
         'rtp_receiver.h',
         'rtp_sender.cc',
@@ -82,6 +84,8 @@
         'video_codec_information.h',
         'rtp_format_vp8.cc',
         'rtp_format_vp8.h',
+        # Mocks
+        '../mocks/mock_rtp_rtcp.h',
       ], # source
     },
   ],

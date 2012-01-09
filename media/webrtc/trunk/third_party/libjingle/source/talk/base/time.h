@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2005, Google Inc.
+ * Copyright 2005 Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without 
  * modification, are permitted provided that the following conditions are met:
@@ -35,6 +35,15 @@
 #include "talk/base/basictypes.h"
 
 namespace talk_base {
+
+static const int64 kNumMillisecsPerSec = 1000;
+static const int64 kNumMicrosecsPerSec = 1000000;
+static const int64 kNumNanosecsPerSec = 1000000000;
+
+static const int64 kNumMicrosecsPerMillisec = kNumMicrosecsPerSec /
+    kNumMillisecsPerSec;
+static const int64 kNumNanosecsPerMillisec =  kNumNanosecsPerSec /
+    kNumMillisecsPerSec;
 
 typedef uint32 TimeStamp;
 

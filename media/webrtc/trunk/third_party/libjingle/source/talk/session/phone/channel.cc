@@ -133,14 +133,15 @@ bool BaseChannel::Init(TransportChannel* transport_channel,
   return true;
 }
 
+// Can be called from thread other than worker thread
 bool BaseChannel::Enable(bool enable) {
-  // Can be called from thread other than worker thread
   Send(enable ? MSG_ENABLE : MSG_DISABLE);
   return true;
 }
 
+// Can be called from thread other than worker thread
 bool BaseChannel::Mute(bool mute) {
-  // Can be called from thread other than worker thread
+  Clear(MSG_UNMUTE);  // Clear any penging auto-unmutes.
   Send(mute ? MSG_MUTE : MSG_UNMUTE);
   return true;
 }
@@ -148,6 +149,7 @@ bool BaseChannel::Mute(bool mute) {
 bool BaseChannel::RemoveStream(uint32 ssrc) {
   StreamMessageData data(ssrc, 0);
   Send(MSG_REMOVESTREAM, &data);
+  ssrc_filter()->RemoveStream(ssrc);
   return true;
 }
 
@@ -343,6 +345,14 @@ void BaseChannel::HandlePacket(bool rtcp, talk_base::Buffer* packet) {
     LOG(LS_ERROR) << "Dropping incoming " << content_name_ << " "
                   << PacketType(rtcp) << " packet: wrong size="
                   << packet->length();
+    return;
+  }
+
+  // If this channel is suppose to handle RTP data, that is determined by
+  // checking against ssrc filter. This is necessary to do it here to avoid
+  // double decryption.
+  if (ssrc_filter_.IsActive() &&
+      !ssrc_filter_.DemuxPacket(packet->data(), packet->length(), rtcp)) {
     return;
   }
 
@@ -549,6 +559,27 @@ bool BaseChannel::SetRtcpMux_w(bool enable, ContentAction action,
   return ret;
 }
 
+// TODO: Check all of the ssrcs in all of the streams in
+// the content, and not just the first one.
+bool BaseChannel::SetSsrcMux_w(bool enable,
+                               const MediaContentDescription* content,
+                               ContentAction action,
+                               ContentSource src) {
+  bool ret = true;
+  if (action == CA_OFFER) {
+    ret = ssrc_filter_.SetOffer(enable, src);
+    if (ret && src == CS_REMOTE) {  // if received offer with ssrc
+      ret = ssrc_filter_.AddStream(content->first_ssrc());
+    }
+  } else if (action == CA_ANSWER) {
+    ret = ssrc_filter_.SetAnswer(enable, src);
+    if (ret && src == CS_REMOTE && ssrc_filter_.IsActive()) {
+      ret = ssrc_filter_.AddStream(content->first_ssrc());
+    }
+  }
+  return ret;
+}
+
 void BaseChannel::OnMessage(talk_base::Message *pmsg) {
   switch (pmsg->message_id) {
     case MSG_ENABLE:
@@ -641,7 +672,9 @@ VoiceChannel::VoiceChannel(talk_base::Thread* thread,
                            bool rtcp)
     : BaseChannel(thread, media_engine, media_channel, session, content_name,
                   rtcp),
-      received_media_(false) {
+      received_media_(false),
+      mute_on_type_(false),
+      mute_on_type_timeout_(kTypingBlackoutPeriod) {
 }
 
 VoiceChannel::~VoiceChannel() {
@@ -668,6 +701,7 @@ bool VoiceChannel::Init() {
 bool VoiceChannel::AddStream(uint32 ssrc) {
   StreamMessageData data(ssrc, 0);
   Send(MSG_ADDSTREAM, &data);
+  ssrc_filter()->AddStream(ssrc);
   return true;
 }
 
@@ -806,25 +840,31 @@ bool VoiceChannel::SetLocalContent_w(const MediaContentDescription* content,
   ASSERT(audio != NULL);
 
   bool ret;
-  if (audio->ssrc_set()) {
-    media_channel()->SetSendSsrc(audio->ssrc());
-    LOG(LS_INFO) << "Set send ssrc for audio: " << audio->ssrc();
+  if (audio->has_ssrcs()) {
+    // TODO: Handle multiple streams and ssrcs here.
+    media_channel()->SetSendSsrc(audio->first_ssrc());
+    LOG(LS_INFO) << "Set send ssrc for audio: " << audio->first_ssrc();
   }
-  // set SRTP
+  // Set local SRTP parameters (what we will encrypt with).
   ret = SetSrtp_w(audio->cryptos(), action, CS_LOCAL);
-  // set RTCP mux
+  // Set local RTCP mux parameters.
   if (ret) {
     ret = SetRtcpMux_w(audio->rtcp_mux(), action, CS_LOCAL);
   }
-  // set payload type and config for voice codecs
+  // Set SSRC mux filter
+  if (ret) {
+    ret = SetSsrcMux_w(audio->has_ssrcs(), content, action, CS_LOCAL);
+  }
+  // Set local audio codecs (what we want to receive).
   if (ret) {
     ret = media_channel()->SetRecvCodecs(audio->codecs());
   }
-  // set header extensions
+  // Set local RTP header extensions.
   if (ret && audio->rtp_header_extensions_set()) {
     ret = media_channel()->SetRecvRtpHeaderExtensions(
         audio->rtp_header_extensions());
   }
+  // If everything worked, see if we can start receiving.
   if (ret) {
     set_has_local_content(true);
     ChangeState();
@@ -844,32 +884,41 @@ bool VoiceChannel::SetRemoteContent_w(const MediaContentDescription* content,
   ASSERT(audio != NULL);
 
   bool ret;
-  // set SRTP
+  // Set remote SRTP parameters (what the other side will encrypt with).
   ret = SetSrtp_w(audio->cryptos(), action, CS_REMOTE);
-  // set RTCP mux
+  // Set remote RTCP mux parameters.
   if (ret) {
     ret = SetRtcpMux_w(audio->rtcp_mux(), action, CS_REMOTE);
   }
-  // set codecs and payload types
+  // Set SSRC mux filter
+  if (ret) {
+    ret = SetSsrcMux_w(audio->has_ssrcs(), content, action, CS_REMOTE);
+  }
+
+  // Set remote video codecs (what the other side wants to receive).
   if (ret) {
     ret = media_channel()->SetSendCodecs(audio->codecs());
   }
-  // set header extensions
+  // Set remote RTP header extensions.
   if (ret && audio->rtp_header_extensions_set()) {
     ret = media_channel()->SetSendRtpHeaderExtensions(
         audio->rtp_header_extensions());
   }
 
+  // Tweak our audio processing settings, if needed.
   int audio_options = 0;
   if (audio->conference_mode()) {
     audio_options |= OPT_CONFERENCE;
+  }
+  if (audio->agc_minus_10db()) {
+    audio_options |= OPT_AGC_MINUS_10DB;
   }
   if (!media_channel()->SetOptions(audio_options)) {
     // Log an error on failure, but don't abort the call.
     LOG(LS_ERROR) << "Failed to set voice channel options";
   }
 
-  // update state
+  // If everything worked, see if we can start sending.
   if (ret) {
     set_has_remote_content(true);
     ChangeState();
@@ -963,7 +1012,6 @@ void VoiceChannel::OnMessage(talk_base::Message *pmsg) {
       delete data;
       break;
     }
-
     default:
       BaseChannel::OnMessage(pmsg);
       break;
@@ -987,9 +1035,14 @@ void VoiceChannel::OnAudioMonitorUpdate(AudioMonitor* monitor,
 }
 
 void VoiceChannel::OnVoiceChannelError(
-    uint32 ssrc, VoiceMediaChannel::Error error) {
-  VoiceChannelErrorMessageData *data = new VoiceChannelErrorMessageData(
-      ssrc, error);
+    uint32 ssrc, VoiceMediaChannel::Error err) {
+  if (err == VoiceMediaChannel::ERROR_REC_TYPING_NOISE_DETECTED &&
+      mute_on_type_ && !muted()) {
+    Mute(true);
+    PostDelayed(mute_on_type_timeout_, MSG_UNMUTE, NULL);
+  }
+  VoiceChannelErrorMessageData* data = new VoiceChannelErrorMessageData(
+      ssrc, err);
   signaling_thread()->Post(this, MSG_CHANNEL_ERROR, data);
 }
 
@@ -1036,6 +1089,8 @@ bool VideoChannel::Init() {
           rtcp_channel)) {
     return false;
   }
+  media_channel()->SignalScreencastWindowEvent.connect(
+      this, &VideoChannel::OnScreencastWindowEvent);
   media_channel()->SignalMediaError.connect(
       this, &VideoChannel::OnVideoChannelError);
   srtp_filter()->SignalSrtpError.connect(
@@ -1059,6 +1114,7 @@ VideoChannel::~VideoChannel() {
 bool VideoChannel::AddStream(uint32 ssrc, uint32 voice_ssrc) {
   StreamMessageData data(ssrc, voice_ssrc);
   Send(MSG_ADDSTREAM, &data);
+  ssrc_filter()->AddStream(ssrc);
   return true;
 }
 
@@ -1068,7 +1124,17 @@ bool VideoChannel::SetRenderer(uint32 ssrc, VideoRenderer* renderer) {
   return true;
 }
 
+bool VideoChannel::AddScreencast(uint32 ssrc, talk_base::WindowId id) {
+  ScreencastMessageData data(ssrc, id);
+  Send(MSG_ADDSCREENCAST, &data);
+  return true;
+}
 
+bool VideoChannel::RemoveScreencast(uint32 ssrc) {
+  ScreencastMessageData data(ssrc, 0);
+  Send(MSG_REMOVESCREENCAST, &data);
+  return true;
+}
 
 bool VideoChannel::SendIntraFrame() {
   Send(MSG_SENDINTRAFRAME);
@@ -1138,24 +1204,32 @@ bool VideoChannel::SetLocalContent_w(const MediaContentDescription* content,
   ASSERT(video != NULL);
 
   bool ret;
-  if (video->ssrc_set()) {
-    media_channel()->SetSendSsrc(video->ssrc());
-    LOG(LS_INFO) << "Set send ssrc for video: " << video->ssrc();
+  if (video->has_ssrcs()) {
+    // TODO: Handle multiple streams and ssrcs here.
+    media_channel()->SetSendSsrc(video->first_ssrc());
+    LOG(LS_INFO) << "Set send ssrc for video: " << video->first_ssrc();
   }
-  // set SRTP
+  // Set local SRTP parameters (what we will encrypt with).
   ret = SetSrtp_w(video->cryptos(), action, CS_LOCAL);
-  // set RTCP mux
+  // Set local RTCP mux parameters.
   if (ret) {
     ret = SetRtcpMux_w(video->rtcp_mux(), action, CS_LOCAL);
   }
-  // set payload types and config for receiving video
+  // Set SSRC mux filter
+  if (ret) {
+    ret = SetSsrcMux_w(video->has_ssrcs(), content, action, CS_LOCAL);
+  }
+
+  // Set local video codecs (what we want to receive).
   if (ret) {
     ret = media_channel()->SetRecvCodecs(video->codecs());
   }
+  // Set local RTP header extensions.
   if (ret && video->rtp_header_extensions_set()) {
     ret = media_channel()->SetRecvRtpHeaderExtensions(
         video->rtp_header_extensions());
   }
+  // If everything worked, see if we can start receiving.
   if (ret) {
     set_has_local_content(true);
     ChangeState();
@@ -1175,26 +1249,32 @@ bool VideoChannel::SetRemoteContent_w(const MediaContentDescription* content,
   ASSERT(video != NULL);
 
   bool ret;
-  // set SRTP
+  // Set remote SRTP parameters (what the other side will encrypt with).
   ret = SetSrtp_w(video->cryptos(), action, CS_REMOTE);
-  // set RTCP mux
+  // Set remote RTCP mux parameters.
   if (ret) {
     ret = SetRtcpMux_w(video->rtcp_mux(), action, CS_REMOTE);
   }
-  // Set video bandwidth parameters.
+  // Set SSRC mux filter
+  if (ret) {
+    ret = SetSsrcMux_w(video->has_ssrcs(), content, action, CS_REMOTE);
+  }
+  // Set remote video codecs (what the other side wants to receive).
+  if (ret) {
+    ret = media_channel()->SetSendCodecs(video->codecs());
+  }
+  // Set remote RTP header extensions.
+  if (ret && video->rtp_header_extensions_set()) {
+    ret = media_channel()->SetSendRtpHeaderExtensions(
+        video->rtp_header_extensions());
+  }
+  // Set bandwidth parameters (what the other side wants to get, default=auto)
   if (ret) {
     int bandwidth_bps = video->bandwidth();
     bool auto_bandwidth = (bandwidth_bps == kAutoBandwidth);
     ret = media_channel()->SetSendBandwidth(auto_bandwidth, bandwidth_bps);
   }
-  if (ret) {
-    ret = media_channel()->SetSendCodecs(video->codecs());
-  }
-  // set header extensions
-  if (ret && video->rtp_header_extensions_set()) {
-    ret = media_channel()->SetSendRtpHeaderExtensions(
-        video->rtp_header_extensions());
-  }
+  // If everything worked, see if we can start sending.
   if (ret) {
     set_has_remote_content(true);
     ChangeState();
@@ -1216,6 +1296,19 @@ void VideoChannel::SetRenderer_w(uint32 ssrc, VideoRenderer* renderer) {
   media_channel()->SetRenderer(ssrc, renderer);
 }
 
+void VideoChannel::AddScreencast_w(uint32 ssrc, talk_base::WindowId id) {
+  media_channel()->AddScreencast(ssrc, id);
+}
+
+void VideoChannel::RemoveScreencast_w(uint32 ssrc) {
+  media_channel()->RemoveScreencast(ssrc);
+}
+
+void VideoChannel::OnScreencastWindowEvent_s(uint32 ssrc,
+                                             talk_base::WindowEvent we) {
+  ASSERT(signaling_thread() == talk_base::Thread::Current());
+  SignalScreencastWindowEvent(ssrc, we);
+}
 
 void VideoChannel::OnMessage(talk_base::Message *pmsg) {
   switch (pmsg->message_id) {
@@ -1227,6 +1320,25 @@ void VideoChannel::OnMessage(talk_base::Message *pmsg) {
     case MSG_SETRENDERER: {
       RenderMessageData* data = static_cast<RenderMessageData*>(pmsg->pdata);
       SetRenderer_w(data->ssrc, data->renderer);
+      break;
+    }
+    case MSG_ADDSCREENCAST: {
+      ScreencastMessageData* data =
+          static_cast<ScreencastMessageData*>(pmsg->pdata);
+      AddScreencast_w(data->ssrc, data->window_id);
+      break;
+    }
+    case MSG_REMOVESCREENCAST: {
+      ScreencastMessageData* data =
+          static_cast<ScreencastMessageData*>(pmsg->pdata);
+      RemoveScreencast_w(data->ssrc);
+      break;
+    }
+    case MSG_SCREENCASTWINDOWEVENT: {
+      ScreencastEventData* data =
+          static_cast<ScreencastEventData*>(pmsg->pdata);
+      OnScreencastWindowEvent_s(data->ssrc, data->event);
+      delete data;
       break;
     }
     case MSG_SENDINTRAFRAME:
@@ -1265,6 +1377,11 @@ void VideoChannel::OnMediaMonitorUpdate(
   SignalMediaMonitor(this, info);
 }
 
+void VideoChannel::OnScreencastWindowEvent(uint32 ssrc,
+                                           talk_base::WindowEvent event) {
+  ScreencastEventData* pdata = new ScreencastEventData(ssrc, event);
+  signaling_thread()->Post(this, MSG_SCREENCASTWINDOWEVENT, pdata);
+}
 
 void VideoChannel::OnVideoChannelError(uint32 ssrc,
                                        VideoMediaChannel::Error error) {

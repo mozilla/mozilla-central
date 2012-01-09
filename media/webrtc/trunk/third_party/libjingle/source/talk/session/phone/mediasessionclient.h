@@ -98,11 +98,11 @@ class MediaSessionClient : public SessionClient, public sigslot::has_slots<> {
   }
 
   SessionDescription* CreateOffer(const CallOptions& options) {
-    return desc_factory_.CreateOffer(options);
+    return desc_factory_.CreateOffer(options, NULL);
   }
   SessionDescription* CreateAnswer(const SessionDescription* offer,
                                    const CallOptions& options) {
-    return desc_factory_.CreateAnswer(offer, options);
+    return desc_factory_.CreateAnswer(offer, options, NULL);
   }
 
   sigslot::signal2<Call *, Call *> SignalFocus;

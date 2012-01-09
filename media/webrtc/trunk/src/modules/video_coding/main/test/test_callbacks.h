@@ -24,16 +24,12 @@
 #include "module_common_types.h"
 #include "rtp_rtcp.h"
 #include "test_util.h"
-#include "tick_time.h"
 #include "trace.h"
 #include "video_coding.h"
-
-using namespace webrtc;
 
 namespace webrtc
 {
     class RtpDump;
-}
 
 // Send Side - Packetization callback - send an encoded frame to the VCMReceiver
 class VCMEncodeCompleteCallback: public VCMPacketizationCallback
@@ -160,7 +156,7 @@ class RTPSendCompleteCallback: public Transport
 {
 public:
     // Constructor input: (receive side) rtp module to send encoded data to
-    RTPSendCompleteCallback(RtpRtcp* rtp,
+    RTPSendCompleteCallback(RtpRtcp* rtp, TickTimeBase* clock,
                             const char* filename = NULL);
     virtual ~RTPSendCompleteCallback();
     // Send Packet to receive side RTP module
@@ -187,6 +183,7 @@ protected:
     // Random uniform loss model
     bool UnifomLoss(double lossPct);
 
+    TickTimeBase*           _clock;
     WebRtc_UWord32          _sendCount;
     RtpRtcp*                _rtp;
     double                  _lossPct;
@@ -238,12 +235,15 @@ class VideoProtectionCallback: public VCMProtectionCallback
 public:
     VideoProtectionCallback();
     virtual ~VideoProtectionCallback();
-    void RegisterRtpModule(RtpRtcp*  rtp){_rtp = rtp;}
-    WebRtc_Word32 ProtectionRequest(const WebRtc_UWord8 deltaFECRate,
-                                    const WebRtc_UWord8 keyFECRate,
-                                    const bool deltaUseUepProtection,
-                                    const bool keyUseUepProtection,
-                                    const bool nack);
+    void RegisterRtpModule(RtpRtcp* rtp) {_rtp = rtp;}
+    WebRtc_Word32 ProtectionRequest(WebRtc_UWord8 deltaFECRate,
+                                    WebRtc_UWord8 keyFECRate,
+                                    bool deltaUseUepProtection,
+                                    bool keyUseUepProtection,
+                                    bool nack_enabled,
+                                    WebRtc_UWord32* sent_video_rate_bps,
+                                    WebRtc_UWord32* sent_nack_rate_bps,
+                                    WebRtc_UWord32* sent_fec_rate_bps);
     enum NACKMethod   NACKMethod();
     WebRtc_UWord8     FECDeltaRate();
     WebRtc_UWord8     FECKeyRate();
@@ -259,23 +259,22 @@ private:
 };
 
 // Feed back from the RTP Module callback
-class RTPFeedbackCallback: public RtpVideoFeedback
-{
-public:
-    RTPFeedbackCallback(VideoCodingModule* vcm) {_vcm = vcm;};
-   void OnReceivedIntraFrameRequest(const WebRtc_Word32 id,
-                                    const WebRtc_UWord8 message = 0){};
+class RTPFeedbackCallback : public RtpVideoFeedback {
+ public:
+  RTPFeedbackCallback(VideoCodingModule* vcm) {_vcm = vcm;};
+  void OnReceivedIntraFrameRequest(const WebRtc_Word32 id,
+                                   const FrameType type,
+                                   const WebRtc_UWord8 streamIdx) {};
 
    void OnNetworkChanged(const WebRtc_Word32 id,
-                          const WebRtc_UWord16 bitrateTargetKbit,
-                          const WebRtc_UWord8 fractionLost,
-                          const WebRtc_UWord16 roundTripTimeMs,
-                          const WebRtc_UWord32 jitterMS,
-                          const WebRtc_UWord16 bwEstimateKbitMin,
-                          const WebRtc_UWord16 bwEstimateKbitMax);
-private:
-   VideoCodingModule* _vcm;
+                         const WebRtc_UWord32 bitrateBps,
+                         const WebRtc_UWord8 fractionLost,
+                         const WebRtc_UWord16 roundTripTimeMs);
+
+ private:
+  VideoCodingModule* _vcm;
 };
 
+}  // namespace webrtc
 
 #endif

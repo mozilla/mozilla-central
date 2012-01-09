@@ -747,6 +747,7 @@ bool OpenSSLAdapter::VerifyServerName(SSL* ssl, const char* host,
 
   X509_free(certificate);
 
+  // This should only ever be turned on for debugging and development.
   if (!ok && ignore_bad_cert) {
     LOG(LS_WARNING) << "TLS certificate check FAILED.  "
       << "Allowing connection anyway.";
@@ -840,6 +841,7 @@ OpenSSLAdapter::SSLVerifyCallback(int ok, X509_STORE_CTX* store) {
     }
   }
 
+  // Should only be used for debugging and development.
   if (!ok && stream->ignore_bad_cert()) {
     LOG(LS_WARNING) << "Ignoring cert error while verifying cert chain";
     ok = 1;

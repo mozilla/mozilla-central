@@ -96,7 +96,7 @@ void StunServer::OnBindingRequest(
     mapped_addr = StunAttribute::CreateAddress(STUN_ATTR_XOR_MAPPED_ADDRESS);
   }
   mapped_addr->SetPort(remote_addr.port());
-  mapped_addr->SetIP(remote_addr.ip());
+  mapped_addr->SetIP(remote_addr.ipaddr());
   response.AddAttribute(mapped_addr);
 
   // TODO: Add username and message-integrity.

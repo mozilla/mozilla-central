@@ -1,672 +1,195 @@
+# This file contains suppressions for the Dr.Memory tool, see
+# http://dev.chromium.org/developers/how-tos/using-drmemory
+#
+# This file contains suppressions for the DrMemroy reports happening
+# in the 'light' mode (a.k.a. drmemory_light) as well as in the 'full' mode.
+# Please use suppressions_full.txt for all the reports that can happen only
+# in the full mode (drmemory_full),
+
 ############################
 # Known reports on the third party we have no control over.
-UNINITIALIZED READ
-...
-*!deflate_*
-*!MOZ_Z_deflate
-
-# http://code.google.com/p/drmemory/issues/detail?id=406
-# TODO(timurrrr): check if these frames change when NT_SYMBOLS are present.
-LEAK
-ADVAPI32.dll!WmiOpenBlock
-ADVAPI32.dll!WmiOpenBlock
 
 # Reports from Sophos antivirus
 UNADDRESSABLE ACCESS
+name=Sophos UNADDR
 ...
 sophos*.dll!*
 
 UNINITIALIZED READ
+name=Sophos UNINIT
 ...
 sophos*.dll!*
 
 LEAK
+name=Sophos LEAK
 ...
 sophos*.dll!*
-
-# Leaks inside GoogleDesktop - it injects into our processes for some reason
-LEAK
-...
-GoogleDesktopNetwork3.DLL!DllUnregisterServer
-
-# They deliberately use uninit local var in sqlite random generator
-UNINITIALIZED READ
-*!randomByte
-*!sqlite3_randomness
 
 ############################
 # Suppress some false reports due to bugs in Dr.Memory like wrong analysis
 # assumptions or unhandled syscalls
 
-# http://code.google.com/p/drmemory/issues/detail?id=12
 # Please note: the following suppressions were written in the abscense of
 # private symbols so may need to be updated when we switch to auto-loading PDBs
-UNINITIALIZED READ
-ntdll.dll!Rtl*
-ntdll.dll!Rtl*
-ntdll.dll!RtlFindActivationContextSectionString
-
-UNINITIALIZED READ
-...
-SHELL32.dll!SHFileOperation*
-
-UNINITIALIZED READ
-...
-SHELL32.dll!SHGetFolderPath*
-
-LEAK
-...
-SHELL32.dll!SHGetFolderPath*
-
-UNINITIALIZED READ
-...
-SHELL32.dll!SHCreateDirectory*
 
 UNADDRESSABLE ACCESS
+name=http://code.google.com/p/drmemory/issues/detail?id=12 UNADDR
 ...
 SHELL32.dll!SHFileOperation*
-
-UNINITIALIZED READ
-...
-SHELL32.dll!ILLoadFromStream*
-
-UNINITIALIZED READ
-...
-SHELL32.dll!ILSaveToStream*
-
-LEAK
-...
-SHELL32.dll!SHFileOperation*
-
-UNINITIALIZED READ
-...
-SHELL32.dll!SHGetItemFromDataObject
-
-LEAK
-...
-SHELL32.dll!SHGetItemFromDataObject
-
-LEAK
-...
-ole32.dll!*
-SHELL32.dll!SHChangeNotifySuspendResume
-
-# http://code.google.com/p/drmemory/issues/detail?id=14
-UNINITIALIZED READ
-...
-*!CreateProcess*
-
-LEAK
-...
-*!CreateProcess*
-
-UNINITIALIZED READ
-...
-*!base::LaunchApp*
-
-# http://code.google.com/p/drmemory/issues/detail?id=17
-UNINITIALIZED READ
-...
-*!CreateWindow*
-
-POSSIBLE LEAK
-GDI32.dll!*
-GDI32.dll!CreateFontIndirectExW
-GDI32.dll!CreateFontIndirectW
-
-# http://code.google.com/p/drmemory/issues/detail?id=18
-UNINITIALIZED READ
-...
-*!CoInitialize*
-
-UNINITIALIZED READ
-...
-*!CoCreateInstance*
-
-UNINITIALIZED READ
-...
-*!CoUninitialize*
-
-UNINITIALIZED READ
-...
-UxTheme.dll!*
-
-# http://code.google.com/p/drmemory/issues/detail?id=40
-UNINITIALIZED READ
-...
-WINSPOOL.DRV!*
 
 UNADDRESSABLE ACCESS
+name=http://code.google.com/p/drmemory/issues/detail?id=40 UNADDR
 ...
 WINSPOOL.DRV!*
 
 INVALID HEAP ARGUMENT
+name=http://code.google.com/p/drmemory/issues/detail?id=40 INVALID HEAP
 ...
 WINSPOOL.DRV!*
 
-LEAK
-...
-WINSPOOL.DRV!*
-
-# http://code.google.com/p/drmemory/issues/detail?id=48
-UNINITIALIZED READ
-system call NtContinue
-*!*SetThreadName
-
-UNINITIALIZED READ
-system call NtContinue
-*!WTF::initializeCurrentThreadInternal
-
-# http://code.google.com/p/drmemory/issues/detail?id=52
-UNINITIALIZED READ
-...
-DBGHELP.dll!SymInitialize
-
-UNINITIALIZED READ
-...
-DBGHELP.dll!SymEnumSourceFiles
-
-UNINITIALIZED READ
-...
-msvcrt.dll!_RTDynamicCast
-
-# http://code.google.com/p/drmemory/issues/detail?id=53
-UNINITIALIZED READ
-ADVAPI32.dll!WmiMofEnumerateResourcesA
-ADVAPI32.dll!WmiMofEnumerateResourcesA
-ADVAPI32.dll!Sta*TraceW
-
-# http://code.google.com/p/drmemory/issues/detail?id=58
-UNINITIALIZED READ
-...
-*!_cfltcvt_l
-
-# http://code.google.com/p/drmemory/issues/detail?id=59
 UNADDRESSABLE ACCESS
+name=http://code.google.com/p/drmemory/issues/detail?id=59
 ...
 *!SetEnvironmentVariable*
 
-# http://code.google.com/p/drmemory/issues/detail?id=60
-UNINITIALIZED READ
-USP10.dll!*
-...
-USP10.dll!ScriptStringAnalyse
-
-LEAK
-IMM32.dll!ImmGetIMCCSize
-IMM32.dll!ImmLockClientImc
-IMM32.dll!ImmDisableIME
-IMM32.dll!ImmSetActiveContext
-USER32.dll!IMPSetIMEA
-
-# http://code.google.com/p/drmemory/issues/detail?id=65
-UNINITIALIZED READ
-...
-*!SystemFunction036
-
-UNINITIALIZED READ
-...
-*!talk_base::CreateRandomString
-
-# http://code.google.com/p/drmemory/issues/detail?id=68
-UNINITIALIZED READ
-...
-WS2_32.dll!*
-
-UNINITIALIZED READ
-...
-ADVAPI32.dll!SetSecurityDescriptorDacl
-
-UNINITIALIZED READ
+UNADDRESSABLE ACCESS
+name=http://code.google.com/p/drmemory/issues/detail?id=68 (UNADDR 1)
 ...
 MSWSOCK.dll!WSPStartup
 
 UNADDRESSABLE ACCESS
-...
-MSWSOCK.dll!WSPStartup
-
-UNINITIALIZED READ
+name=http://code.google.com/p/drmemory/issues/detail?id=68 (UNADDR 2)
 ...
 ntdll.dll!RtlValidateUnicodeString
-
-UNADDRESSABLE ACCESS
-...
-ntdll.dll!RtlValidateUnicodeString
-
-# http://code.google.com/p/drmemory/issues/detail?id=256
-LEAK
-*!_mtinit
-*!__tmainCRTStartup
-*!mainCRTStartup
-
-# http://code.google.com/p/drmemory/issues/detail?id=274
-POSSIBLE LEAK
-...
-GDI32.dll!CreateDCW
-
-LEAK
-...
-GDI32.dll!CreateDCW
-
-# http://code.google.com/p/drmemory/issues/detail?id=275
-LEAK
-...
-*!_getptd*
-
-# http://code.google.com/p/drmemory/issues/detail?id=276
-UNINITIALIZED READ
-...
-ntdll.dll!RtlConvertUlongToLargeInteger
-ntdll.dll!RtlConvertUlongToLargeInteger
-ntdll.dll!KiUserExceptionDispatcher
-
-# http://code.google.com/p/drmemory/issues/detail?id=305
-LEAK
-*!free
-*!free
-*!operator new
-...
-*!MiniDumpWriteDump
-
-# http://code.google.com/p/drmemory/issues/detail?id=346
-UNINITIALIZED READ
-...
-GDI32.dll!CloseEnhMetaFile
-
-UNINITIALIZED READ
-GDI32.dll!SetPolyFillMode
-GDI32.dll!CreateICW
-
-# http://code.google.com/p/drmemory/issues/detail?id=362
-UNINITIALIZED READ
-USER32.dll!UnregisterClass*
-
-# http://code.google.com/p/drmemory/issues/detail?id=382
-LEAK
-...
-ntdll.dll!CsrNewThread
-
-# http://code.google.com/p/drmemory/issues/detail?id=397
-UNINITIALIZED READ
-system call NtDeviceIoControlFile InputBuffer
-ADVAPI32.dll!ImpersonateAnonymousToken
-
-# http://code.google.com/p/drmemory/issues/detail?id=407
-UNINITIALIZED READ
-system call NtRequestWaitReplyPort
-RPCRT4.dll!I_RpcSendReceive
-RPCRT4.dll!NdrSendReceive
-
-UNINITIALIZED READ
-IMM32.dll!*
-ntdll.dll!LdrInitializeThunk
-ntdll.dll!LdrShutdownThread
-
-# http://code.google.com/p/drmemory/issues/detail?id=412
-UNINITIALIZED READ
-ADVAPI32.dll!RegDeleteValue*
-
-UNINITIALIZED READ
-...
-ADVAPI32.dll!Crypt*
-
-UNINITIALIZED READ
-...
-RPCRT4.dll!NdrClientCall2
-
-LEAK
-RSAENH.dll!DllUnregisterServer
-...
-ADVAPI32.dll!CryptAcquireContextA
-CRYPT32.dll!CryptEnumOIDFunction
-...
-CRYPT32.dll!CertFindCertificateInStore
-
-UNINITIALIZED READ
-...
-RSAENH.dll!CPGenRandom
-
-UNINITIALIZED READ
-...
-CRYPT??.dll!Crypt*
-
-UNINITIALIZED READ
-*!replace_memcmp
-...
-*!testing::internal::CmpHelperEQ*
-...
-*!SymmetricKeyTest_ImportGeneratedKey_Test::TestBody
-
-# http://code.google.com/p/drmemory/issues/detail?id=425
-UNINITIALIZED READ
-CLBCatQ.DLL!DestroyStgDatabase
-CLBCatQ.DLL!PostError
-CLBCatQ.DLL!PostError
-
-LEAK
-RPCRT4.dll!I_RpcBCacheFree
-RPCRT4.dll!I_RpcBCacheFree
-...
-RPCRT4.dll!NdrClientCall2
-
-UNINITIALIZED READ
-msdmo.dll!*
-msdmo.dll!*
-DEVENUM.DLL!*
-
-# http://code.google.com/p/drmemory/issues/detail?id=435
-UNINITIALIZED READ
-...
-ntdll.dll!RtlSetSecurityObject
-ntdll.dll!RtlNewSecurityObjectEx
-ADVAPI32.dll!CreatePrivateObjectSecurityEx
-NTMARTA.dll!AccRewriteSetNamedRights
-
-POSSIBLE LEAK
-WLDAP32.dll!Ordinal325
-...
-WLDAP32.dll!Ordinal325
-ntdll.dll!LdrInitializeThunk
-ntdll.dll!LdrFindResourceDirectory_U
-ntdll.dll!RtlValidateUnicodeString
-ntdll.dll!LdrLoadDll
-KERNEL32.dll!LoadLibraryExW
-
-# http://code.google.com/p/drmemory/issues/detail?id=438
-# mod+offs suppression because the symbolic makes no sense and changes
-# completely in the presence of WS2_32.dll symbols.
-LEAK
-<WS2_32.dll+0x260c>
-<WS2_32.dll+0x2b76>
-<WS2_32.dll+0x2c61>
-
-# http://code.google.com/p/drmemory/issues/detail?id=454
-UNINITIALIZED READ
-...
-WINMM.dll!wave*GetNumDevs
-
-LEAK
-...
-WINMM.dll!wave*GetNumDevs
-
-# http://code.google.com/p/drmemory/issues/detail?id=466
-LEAK
-ntdll.dll!RtlRunOnceBeginInitialize
-ntdll.dll!RtlInitializeCriticalSectionAndSpinCount
-
-# http://code.google.com/p/drmemory/issues/detail?id=471
-UNINITIALIZED READ
-*!media::AudioRendererAlgorithmOLA::Crossfade<unsigned char>
-*!media::AudioRendererAlgorithmOLA::FillBuffer
-*!media::AudioRendererAlgorithmOLATest_FillBuffer_*
-
-# http://code.google.com/p/drmemory/issues/detail?id=473
-UNINITIALIZED READ
-system call NtDeviceIoControlFile InputBuffer
-...
-iphlpapi.dll!GetAdaptersAddresses
-
-POSSIBLE LEAK
-ESENT.dll!*
-ESENT.dll!*
-ESENT.dll!*
-ntdll.dll!Ldr*Init*
-ntdll.dll!Ldr*
-ntdll.dll!*
-ntdll.dll!LdrLoadDll
-...
-iphlpapi.dll!GetPerAdapterInfo
-...
-iphlpapi.dll!GetAdaptersAddresses
-
-# http://code.google.com/p/drmemory/issues/detail?id=475
-LEAK
-...
-ADVAPI32.dll!CryptAcquireContextA
-...
-CRYPT32.dll!CryptMsgOpenToDecode
-...
-CRYPT32.dll!CryptQueryObject
-
-# http://code.google.com/p/drmemory/issues/detail?id=476
-LEAK
-...
-RPCRT4.dll!RpcBindingFromStringBindingW
-...
-NETAPI32.dll!DsRoleGetPrimaryDomainInformation
-...
-USERENV.dll!CreateEnvironmentBlock
-...
-CRYPT32.dll!CertOpenStore
-...
-CRYPT32.dll!CertCreateCertificateChainEngine
-
-LEAK
-KERNEL32.dll!LocalAlloc
-...
-CRYPT32.dll!CryptDecodeObjectEx
-...
-CRYPT32.dll!CertGetCRLContextProperty
-...
-CRYPT32.dll!CertGetCertificateChain
-
-# http://code.google.com/p/drmemory/issues/detail?id=511
-UNINITIALIZED READ
-RPCRT4.dll!*
-...
-RPCRT4.dll!UuidCreate
-ole32.dll!*
-
-UNINITIALIZED READ
-ole32.dll!*
-ole32.dll!*
-ole32.dll!StringFromGUID2
-
-# http://code.google.com/p/drmemory/issues/detail?id=512
-UNINITIALIZED READ
-...
-*!browser_sync::Cryptographer::PackBootstrapToken
-*!browser_sync::Cryptographer::GetBootstrapToken
-
-UNINITIALIZED READ
-...
-*!Encrypt*
-
-# http://code.google.com/p/drmemory/issues/detail?id=513
-UNINITIALIZED READ
-*!v8*
-
-UNINITIALIZED READ
-*!*
-*!v8*
-
-UNINITIALIZED READ
-<not in a module>
-...
-*!v8*
-
-# http://code.google.com/p/drmemory/issues/detail?id=546
-UNINITIALIZED READ
-...
-mscms.dll!*
-...
-GDI32.dll!*
-*!IconUtil::Create*HICON*
-
-# http://crbug.com/92152
-LEAK
-...
-USER32.dll!CreateWindowExW
-*!views::TooltipManagerWin::Init
-*!views::TooltipManagerWin::TooltipManagerWin
-
-# http://code.google.com/p/drmemory/issues/detail?id=567
-UNINITIALIZED READ
-dbghelp.dll!*
-...
-dbghelp.dll!StackWalk64
-
-LEAK
-*!*
-dbghelp.dll!*
-...
-dbghelp.dll!StackWalk64
-
-# http://code.google.com/p/drmemory/issues/detail?id=569
-# symbols w/o PDB make no sense, so sticking with mod+offs
-POSSIBLE LEAK
-<RPCRT4.dll+0x10636>
-<RPCRT4.dll+0x10610>
-...
-<RPCRT4.dll+0x3474?>
-<ntdll.dll+0x64fde>
-<ntdll.dll+0x447f3>
-
-# http://crbug.com/96433
-UNADDRESSABLE ACCESS
-ntdll.dll!*
-ntdll.dll!*
-ntdll.dll!*
-KERNELBASE.dll!LocalReAlloc
-CRYPT32.dll!*
-...
-CRYPT32.dll!CertControlStore
 
 ############################
 # TODO(timurrrr): investigate these
-UNINITIALIZED READ
+UNADDRESSABLE ACCESS
+name=TODO SHParseDisplayName
 ...
-*!win_util::GetLogonSessionOnlyDACL
-
-UNINITIALIZED READ
-...
-ntshrui.dll!IsPathSharedW
-
-UNINITIALIZED READ
-...
-*!NetApiBufferFree
-
-UNINITIALIZED READ
-...
-*!ShellExecute*
+*!SHParseDisplayName
 
 UNADDRESSABLE ACCESS
-...
-*!SHParseDisplayName
-
-UNINITIALIZED READ
-...
-*!SHParseDisplayName
-
-UNINITIALIZED READ
+name=TODO GetCanonicalPathInfo
 ...
 *!GetCanonicalPathInfo*
 
 UNADDRESSABLE ACCESS
-...
-*!GetCanonicalPathInfo*
-
-UNINITIALIZED READ
-...
-SHELL32.dll!Ordinal*
-
-UNADDRESSABLE ACCESS
+name=TODO CreateDC
 ...
 GDI32.dll!CreateDC*
 
-UNINITIALIZED READ
-...
-GDI32.dll!GetTextExtentPoint32*
-
 # This one looks interesting
 INVALID HEAP ARGUMENT
+name=TODO ExitProcess
 ...
 KERNEL32.dll!ExitProcess
 
-UNINITIALIZED READ
+INVALID HEAP ARGUMENT
+name=http://crbug.com/103365 (a)
+ppapi_tests.dll!*
 ...
-*!SyncSocketClientListener::OnMsgClassResponse
+ppapi_tests.dll!*
+*!base::internal::RunnableAdapter<*>::Run
 
-UNINITIALIZED READ
+INVALID HEAP ARGUMENT
+name=http://crbug.com/103365 (b)
+ppapi_tests.dll!*
 ...
-*!*NSPRInitSingleton*
-
-UNINITIALIZED READ
-*!NdrSimpleStructFree
-
-UNINITIALIZED READ
-ntdll.dll!RtlpNtOpenKey
-ntdll.dll!RtlMakeSelfRelativeSD
-ntdll.dll!RtlAbsoluteToSelfRelativeSD
-ADVAPI32.dll!MakeSelfRelativeSD
-
-UNINITIALIZED READ
+ppapi_tests.dll!*
+*!PP_RunCompletionCallback
 ...
-CRYPT32.dll!I_CertSyncStore
+*!base::internal::RunnableAdapter<*>::Run
+
+INVALID HEAP ARGUMENT
+name=http://crbug.com/107567 intentional mismatch in _DebugHeapDelete, no frame
+*!std::numpunct<*>::_Tidy
+*!std::numpunct<*>::~numpunct<*>
 
 ############################
 # Intentional errors in Chromium tests (ToolsSanityTests)
 LEAK
+name=sanity test 01 (memory leak)
 base_unittests.exe!operator new
 base_unittests.exe!operator new[]
 base_unittests.exe!base::ToolsSanityTest_MemoryLeak_Test::TestBody
 
+# "..." is needed due to http://code.google.com/p/drmemory/issues/detail?id=666
 UNADDRESSABLE ACCESS
+name=sanity test 02 (malloc/read left)
 base_unittests.exe!*ReadValueOutOfArrayBoundsLeft
-base_unittests.exe!*MakeSomeErrors
+...
 base_unittests.exe!base::ToolsSanityTest_AccessesToMallocMemory_Test::TestBody
 
 UNADDRESSABLE ACCESS
+name=sanity test 03 (malloc/read right)
 base_unittests.exe!*ReadValueOutOfArrayBoundsRight
 base_unittests.exe!*MakeSomeErrors
 base_unittests.exe!base::ToolsSanityTest_AccessesToMallocMemory_Test::TestBody
 
 UNADDRESSABLE ACCESS
+name=sanity test 04 (malloc/write left)
 base_unittests.exe!*WriteValueOutOfArrayBoundsLeft
 base_unittests.exe!*MakeSomeErrors
 base_unittests.exe!base::ToolsSanityTest_AccessesToMallocMemory_Test::TestBody
 
 UNADDRESSABLE ACCESS
+name=sanity test 05 (malloc/write right)
 base_unittests.exe!*WriteValueOutOfArrayBoundsRight
 base_unittests.exe!*MakeSomeErrors
 base_unittests.exe!base::ToolsSanityTest_AccessesToMallocMemory_Test::TestBody
 
-UNINITIALIZED READ
-base_unittests.exe!*ReadUninitializedValue
-base_unittests.exe!*MakeSomeErrors
-base_unittests.exe!base::ToolsSanityTest_AccessesToMallocMemory_Test::TestBody
-
-# Write after free
+# "..." is needed due to http://code.google.com/p/drmemory/issues/detail?id=666
 UNADDRESSABLE ACCESS
-base_unittests.exe!base::ToolsSanityTest_AccessesToMallocMemory_Test::TestBody
-
-UNADDRESSABLE ACCESS
+name=sanity test 06 (new/read left)
 base_unittests.exe!*ReadValueOutOfArrayBoundsLeft
-base_unittests.exe!*MakeSomeErrors
+...
 base_unittests.exe!base::ToolsSanityTest_AccessesToNewMemory_Test::TestBody
 
 UNADDRESSABLE ACCESS
+name=sanity test 07 (new/read right)
 base_unittests.exe!*ReadValueOutOfArrayBoundsRight
 base_unittests.exe!*MakeSomeErrors
 base_unittests.exe!base::ToolsSanityTest_AccessesToNewMemory_Test::TestBody
 
 UNADDRESSABLE ACCESS
+name=sanity test 08 (new/write left)
 base_unittests.exe!*WriteValueOutOfArrayBoundsLeft
 base_unittests.exe!*MakeSomeErrors
 base_unittests.exe!base::ToolsSanityTest_AccessesToNewMemory_Test::TestBody
 
 UNADDRESSABLE ACCESS
+name=sanity test 09 (new/write right)
 base_unittests.exe!*WriteValueOutOfArrayBoundsRight
 base_unittests.exe!*MakeSomeErrors
 base_unittests.exe!base::ToolsSanityTest_AccessesToNewMemory_Test::TestBody
 
-UNINITIALIZED READ
-base_unittests.exe!*ReadUninitializedValue
-base_unittests.exe!*MakeSomeErrors
+UNADDRESSABLE ACCESS
+name=sanity test 10 (write after free)
+base_unittests.exe!base::ToolsSanityTest_AccessesToMallocMemory_Test::TestBody
+
+UNADDRESSABLE ACCESS
+name=sanity test 11 (write after delete)
 base_unittests.exe!base::ToolsSanityTest_AccessesToNewMemory_Test::TestBody
 
-# Write after delete []
-UNADDRESSABLE ACCESS
+INVALID HEAP ARGUMENT
+name=sanity test 12 (array deleted without [])
+base_unittests.exe!base::ToolsSanityTest_ArrayDeletedWithoutBraces_Test::TestBody
+
+INVALID HEAP ARGUMENT
+name=sanity test 13 (single element deleted with [])
+base_unittests.exe!base::ToolsSanityTest_SingleElementDeletedWithBraces_Test::TestBody
+
+UNINITIALIZED READ
+name=sanity test 14 (malloc/read uninit)
+base_unittests.exe!*ReadUninitializedValue
+base_unittests.exe!*MakeSomeErrors
+base_unittests.exe!base::ToolsSanityTest_AccessesToMallocMemory_Test::TestBody
+
+UNINITIALIZED READ
+name=sanity test 15 (new/read uninit)
+base_unittests.exe!*ReadUninitializedValue
+base_unittests.exe!*MakeSomeErrors
 base_unittests.exe!base::ToolsSanityTest_AccessesToNewMemory_Test::TestBody
 
 UNADDRESSABLE ACCESS
@@ -686,202 +209,70 @@ name=NPAPITesterBase.NoHangIfInitCrashes deliberate crash
 # TODO(bruening): switch to annotation once have support for that
 npapi_test_plugin.dll!NPAPIClient::PluginClient::Initialize
 
-############################
-# Benign issues in Chromium
-
-# We deliberately leak different kinds of Histograms to avoid data races.
-LEAK
-...
-*!operator new*
-...
-*!*::*Histogram::FactoryGet
-
-# Deliberate LazyInstance leaks
-LEAK
-...
-*!*base::LeakyLazyInstanceTraits*::*
-...
-*!base::LazyInstance*::Pointer
-
 # Deliberate NULL deref to crash the child process
 UNADDRESSABLE ACCESS
+name=CrashingChildProcess deliberate crash
 *!CrashingChildProcess
 
 UNADDRESSABLE ACCESS
+name=::Crasher::Run deliberate crash
 *!`anonymous namespace'::Crasher::Run
 
-# http://crbug.com/79933
-LEAK
-...
-*!TestURLRequestContext::Init
-
-LEAK
-...
-*!TestURLRequestContext::TestURLRequestContext
-*!TestURLRequestContextGetter::GetURLRequestContext
-*!notifier::SingleLoginAttempt::SingleLoginAttempt
-*!notifier::Login::StartConnection
-*!sync_notifier::InvalidationNotifier::UpdateCredentials
-*!sync_notifier::NonBlockingInvalidationNotifier::Core::UpdateCredentials
-
-LEAK
-...
-*!TestURLRequestContext::TestURLRequestContext
-*!TestURLRequestContextGetter::GetURLRequestContext
-*!URLFetcher::Core::StartURLRequest
-
-# This test intentionally leaks an object and checks that it's never deleted
-LEAK
-...
-*!BrowserThreadTest_NotReleasedIfTargetThreadNonExistent_Test::TestBody
+############################
+# Benign issues in Chromium
 
 WARNING
-# http://code.google.com/p/chromium/issues/detail?id=72463
-name=Ci#72463: prefetches in generated MemCopy
+name=http://crbug.com/72463 - prefetches in generated MemCopy
 instruction=prefetch*
-<not in a module>                  
+<not in a module>
 chrome.dll!v8::internal::CopyChars*
 
 UNADDRESSABLE ACCESS
-# http://code.google.com/p/drmemory/issues/detail?id=582
-name=bizarre cl-generated read-beyond-TOS
+name=http://code.google.com/p/drmemory/issues/detail?id=582 bizarre cl-generated read-beyond-TOS
 instruction=mov    0xfffffffc(%esp) -> %eax
 chrome.dll!WebCore::RenderStyle::resetBorder*
+
+INVALID HEAP ARGUMENT
+name=http://crbug.com/101537
+*!scoped_ptr<_TOKEN_USER>*
+
+INVALID HEAP ARGUMENT
+name=http://crbug.com/101717 (1)
+*!scoped_ptr<_TOKEN_DEFAULT_DACL>*
+
+INVALID HEAP ARGUMENT
+name=http://crbug.com/101717 (2)
+*!sandbox::PolicyBase::~PolicyBase
+
+INVALID HEAP ARGUMENT
+name=http://crbug.com/101717 (3)
+*!scoped_ptr<_UNICODE_STRING>::~scoped_ptr<_UNICODE_STRING>
+*!sandbox::GetHandleName
+
+INVALID HEAP ARGUMENT
+name=http://crbug.com/101717 (4)
+*!scoped_ptr<_OBJECT_NAME_INFORMATION>::~scoped_ptr<_OBJECT_NAME_INFORMATION>
+*!sandbox::GetPathFromHandle
 
 ############################
 # Real issues in Chromium
 
-# http://crbug.com/32085
-LEAK
-...
-chrome.dll!NotificationRegistrar::Add
-
-# http://crbug.com/32623
-LEAK
-...
-*!ssl3_HandleHandshakeMessage
-*!ssl3_HandleHandshake
-*!ssl3_HandleRecord
-*!ssl3_GatherCompleteHandshake
-...
-*!SSL_ForceHandshake
-*!net::SSLServerSocketNSS::DoHandshake
-*!net::SSLServerSocketNSS::DoHandshakeLoop
-
-# http://crbug.com/57266 (1)
-UNINITIALIZED READ
-...
-*!remoting::EncoderVp8::Encode
-
-# http://crbug.com/57266 (2)
-UNINITIALIZED READ
-...
-*!vp8_*
-
-# http://crbug.com/70062
-LEAK
-*!PR_Calloc
-*!PR_NewLock
-...
-*!InitSessionCacheLocks
-*!initSessionCacheLocksLazily
-*!PR_CallOnce
-*!ssl_InitSessionCacheLocks
-*!lock_cache
-*!ssl_LookupSID
-*!ssl2_BeginClientHandshake
-*!ssl_Do1stHandshake
-*!SSL_ForceHandshake
-*!net::SSL*SocketNSS::DoHandshake
-*!net::SSL*SocketNSS::DoHandshakeLoop
-
-# http://crbug.com/74417
-LEAK
-*!operator new
-*!disk_cache::BackendImpl::CreateEntryImpl
-
-# http://crbug.com/74425
-LEAK
-*!operator new
-*!disk_cache::BackendImpl::NewEntry
-
-# http://crbug.com/75247
-LEAK
-...
-*!operator new
-*!AutofillDownloadTestHelper::AutofillDownloadTestHelper
-
-# http://crbug.com/78784
-LEAK
-*!generic_cpp_alloc
-*!operator new
-*!TestingProfile::CreateRequestContext
-*!*ProfileSyncService*::SetUp
-
-# http://crbug.com/78784
-LEAK
-...
-*!RenderWidgetHost::WasHidden
-
-LEAK
-...
-*!RenderWidgetHost::WasRestored
-
-# http://crbug.com/87612
-LEAK
-...
-*!SSL_ConfigSecureServer
-*!net::SSLServerSocketNSS::InitializeSSLOptions
-*!net::SSLServerSocketNSS::Handshake
-
-# http://crbug.com/88213
 UNADDRESSABLE ACCESS
+name=http://crbug.com/88213
 *!base::win::ObjectWatcher::StopWatching
 *!base::win::ObjectWatcher::WillDestroyCurrentMessageLoop
 *!MessageLoop::~MessageLoop
 
-# http://crbug.com/88640
-LEAK
-*!generic_cpp_alloc
-*!operator new
-*!ProfileImpl::InitRegisteredProtocolHandlers
-*!ProfileImpl::DoFinalInit
-*!ProfileImpl::OnPrefsLoaded
-
-# http://crbug.com/91465
-LEAK
-*!generic_cpp_alloc
-*!operator new
-*!browser_sync::internal::WeakHandleCore<browser_sync::JsBackend>::*
-*!browser_sync::WeakHandle<browser_sync::JsBackend>::*
-*!sync_api::SyncManager::SyncInternal::Init
-
-# http://crbug.com/91491
-LEAK
-...
-*!CrxUpdateService::ProcessPendingItems
-
-# http://crbug.com/92026
-UNINITIALIZED READ
-softokn3.dll!FC_GetFunctionList
-...
-softokn3.dll!NSC_ModuleDBFunc
-
-UNINITIALIZED READ
-freebl3.dll!FREEBL_GetVector
-...
-softokn3.dll!NSC_ModuleDBFunc
-
-# http://crbug.com/92166
-LEAK
-...
-*!operator new
-*!views::NativeWidgetWin::OnCreate
-
-# http://crbug.com/96010
 UNADDRESSABLE ACCESS
-...
-*!NotificationService::Notify
+name=http://crbug.com/96010
+*!TestingProfile::FinishInit
+*!TestingProfile::TestingProfile
+*!BrowserAboutHandlerTest_WillHandleBrowserAboutURL_Test::TestBody
+
+UNADDRESSABLE ACCESS
+name=http://crbug.com/106522
+npapi_test_plugin.dll!NPAPIClient::PluginTest::id
+npapi_test_plugin.dll!NPAPIClient::ExecuteGetJavascriptUrlTest::TimerProc
 
 # Empty line at EOF - workaround for
 # http://code.google.com/p/drmemory/issues/detail?id=41

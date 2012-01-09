@@ -328,9 +328,11 @@ void MacAsyncSocket::Initialize() {
   }
 
   if (res) {
-    // Add this socket to the run loop
-    source_ = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket_, 0);
+    // Add this socket to the run loop, at priority 1 so that it will be
+    // queued behind any pending signals.
+    source_ = CFSocketCreateRunLoopSource(kCFAllocatorDefault, socket_, 1);
     res = (source_ != NULL);
+    if (!res) errno = EINVAL;
   }
 
   if (res) {

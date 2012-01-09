@@ -25,8 +25,11 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "talk/xmpp/xmpplogintask.h"
+
 #include <string>
 #include <vector>
+
 #include "talk/base/base64.h"
 #include "talk/base/common.h"
 #include "talk/xmllite/xmlelement.h"
@@ -34,7 +37,6 @@
 #include "talk/xmpp/jid.h"
 #include "talk/xmpp/saslmechanism.h"
 #include "talk/xmpp/xmppengineimpl.h"
-#include "talk/xmpp/xmpplogintask.h"
 
 using talk_base::ConstantLabel;
 
@@ -56,10 +58,10 @@ const ConstantLabel XmppLoginTask::LOGINTASK_STATES[] = {
   LASTLABEL
 };
 #endif  // _DEBUG
-
 XmppLoginTask::XmppLoginTask(XmppEngineImpl * pctx) :
   pctx_(pctx),
   authNeeded_(true),
+  allowNonGoogleLogin_(true),
   state_(LOGINSTATE_INIT),
   pelStanza_(NULL),
   isStart_(false),
@@ -138,8 +140,14 @@ XmppLoginTask::Advance() {
         if (!HandleFeatures(element))
           return Failure(XmppEngine::ERROR_VERSION);
 
-        // Use TLS if forced, or if available
-        if (pctx_->tls_needed_ || GetFeature(QN_TLS_STARTTLS) != NULL) {
+        bool tls_present = (GetFeature(QN_TLS_STARTTLS) != NULL);
+        // Error if TLS required but not present.
+        if (pctx_->tls_option_ == buzz::TLS_REQUIRED && !tls_present) {
+          return Failure(XmppEngine::ERROR_TLS);
+        }
+        // Use TLS if required or enabled, and also available
+        if ((pctx_->tls_option_ == buzz::TLS_REQUIRED ||
+            pctx_->tls_option_ == buzz::TLS_ENABLED) && tls_present) {
           state_ = LOGINSTATE_TLS_INIT;
           continue;
         }
@@ -176,7 +184,7 @@ XmppLoginTask::Advance() {
         // to do so - see the implementation of XmppEngineImpl::StartTls and
         // XmppEngine::SetTlsServerDomain to see how you can use that feature
         pctx_->StartTls(pctx_->user_jid_.domain());
-        pctx_->tls_needed_ = false;
+        pctx_->tls_option_ = buzz::TLS_ENABLED;
         state_ = LOGINSTATE_INIT;
         continue;
       }
@@ -213,6 +221,16 @@ XmppLoginTask::Advance() {
         XmlElement * auth = sasl_mech_->StartSaslAuth();
         if (auth == NULL) {
           return Failure(XmppEngine::ERROR_AUTH);
+        }
+        if (allowNonGoogleLogin_) {
+          // Setting the following two attributes is required to support
+          // non-google ids.
+
+          // Allow login with non-google id accounts.
+          auth->SetAttr(QN_GOOGLE_ALLOW_NON_GOOGLE_ID_XMPP_LOGIN, "true");
+
+          // Allow login with either the non-google id or the friendly email.
+          auth->SetAttr(QN_GOOGLE_AUTH_CLIENT_USES_FULL_BIND_RESULT, "true");
         }
 
         pctx_->InternalSendStanza(auth);

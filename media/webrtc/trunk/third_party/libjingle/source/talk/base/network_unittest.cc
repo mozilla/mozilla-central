@@ -33,15 +33,10 @@ namespace talk_base {
 
 // A network that should not be ignored.
 static const Network kNetwork1("test1", "Test Network Adapter 1",
-                               0x12345678, 0x12345601);
+                               IPAddress(0x12345678));
 // A network that should be ignored (IP is 0.1.0.4).
 static const Network kNetwork2("test2", "Test Network Adapter 2",
-                               0x00010004, 0x01000000);
-// A network that should not be ignored (IP is valid, but gateway is 0.0.0.1).
-// Previously, we attempted to ignore networks with no default gateway,
-// but if an explicit route is set, no default gateway is needed.
-static const Network kNetwork3("test3", "Test Network Adapter 3",
-                               0x55667788, 0x01000000);
+                               IPAddress(0x00010004));
 
 class NetworkTest : public testing::Test, public sigslot::has_slots<>  {
  public:
@@ -63,6 +58,13 @@ class NetworkTest : public testing::Test, public sigslot::has_slots<>  {
     return BasicNetworkManager::IsIgnoredNetwork(network);
   }
 
+  NetworkManager::NetworkList GetNetworks(
+      const BasicNetworkManager& network_manager, bool include_ignored) {
+    NetworkManager::NetworkList list;
+    network_manager.CreateNetworks(include_ignored, &list);
+    return list;
+  }
+
  protected:
   bool callback_called_;
 };
@@ -71,8 +73,7 @@ class NetworkTest : public testing::Test, public sigslot::has_slots<>  {
 TEST_F(NetworkTest, TestNetworkConstruct) {
   EXPECT_EQ("test1", kNetwork1.name());
   EXPECT_EQ("Test Network Adapter 1", kNetwork1.description());
-  EXPECT_EQ(0x12345678U, kNetwork1.ip());
-  EXPECT_EQ(0x12345601U, kNetwork1.gateway_ip());
+  EXPECT_EQ(IPAddress(0x12345678U), kNetwork1.ip());
   EXPECT_FALSE(kNetwork1.ignored());
 }
 
@@ -80,7 +81,41 @@ TEST_F(NetworkTest, TestNetworkConstruct) {
 TEST_F(NetworkTest, TestNetworkIgnore) {
   EXPECT_FALSE(IsIgnoredNetwork(kNetwork1));
   EXPECT_TRUE(IsIgnoredNetwork(kNetwork2));
-  EXPECT_FALSE(IsIgnoredNetwork(kNetwork3));
+}
+
+TEST_F(NetworkTest, TestCreateNetworks) {
+  BasicNetworkManager manager;
+  NetworkManager::NetworkList result = GetNetworks(manager, true);
+  // We should be able to bind to any addresses we find.
+  // (Excluding IPv6 link-local for now, as we don't (yet) record scope ids.)
+  NetworkManager::NetworkList::iterator it;
+  for (it = result.begin();
+       it != result.end();
+       ++it) {
+    sockaddr_storage storage;
+    memset(&storage, 0, sizeof(storage));
+    IPAddress ip = (*it)->ip();
+    // This condition excludes FE80::/16, i.e. IPv6 link-local addresses. These
+    // require their scope id to be known. Remove when scope ids are supported.
+    if (!(ip.family() == AF_INET6 && IPIsPrivate(ip) && !IPIsLoopback(ip))) {
+      SocketAddress bindaddress(ip, 0);
+      // TODO: Make this use talk_base::AsyncSocket once it supports IPv6.
+      int fd = socket(ip.family(), SOCK_STREAM, IPPROTO_TCP);
+      if (fd > 0) {
+        size_t ipsize = bindaddress.ToSockAddrStorage(&storage);
+        EXPECT_GE(ipsize, 0U);
+        int success = ::bind(fd,
+                             reinterpret_cast<sockaddr*>(&storage),
+                             ipsize);
+        EXPECT_EQ(0, success);
+#ifdef WIN32
+        closesocket(fd);
+#else
+        close(fd);
+#endif
+      }
+    }
+  }
 }
 
 // Test that UpdateNetworks succeeds.

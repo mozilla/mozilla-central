@@ -43,7 +43,7 @@ class BasicPortAllocator : public PortAllocator {
  public:
   BasicPortAllocator(talk_base::NetworkManager* network_manager,
                      talk_base::PacketSocketFactory* socket_factory);
-  BasicPortAllocator(talk_base::NetworkManager* network_manager);
+  explicit BasicPortAllocator(talk_base::NetworkManager* network_manager);
   BasicPortAllocator(talk_base::NetworkManager* network_manager,
                      const talk_base::SocketAddress& stun_server,
                      const talk_base::SocketAddress& relay_server_udp,
@@ -130,7 +130,7 @@ class BasicPortAllocatorSession : public PortAllocatorSession,
 
   // Adds a port configuration that is now ready.  Once we have one for each
   // network (or a timeout occurs), we will start allocating ports.
-  void ConfigReady(PortConfiguration* config);
+  virtual void ConfigReady(PortConfiguration* config);
 
   // MessageHandler.  Can be overriden if message IDs do not conflict.
   virtual void OnMessage(talk_base::Message *message);

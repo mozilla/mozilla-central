@@ -45,6 +45,8 @@
 
 namespace cricket {
 
+struct StreamParams;
+
 // In a <notify> message, there are number of sources with names.
 // This represents one such named source.
 struct NamedSource {
@@ -57,7 +59,6 @@ struct NamedSource {
 
   std::string nick;
   std::string name;
-  std::string usage;
   uint32 ssrc;
   bool ssrc_set;
   bool removed;
@@ -123,18 +124,29 @@ struct StaticVideoView {
 
 typedef std::vector<StaticVideoView> StaticVideoViews;
 
-// Represents a whole <view> message, which contains many views.
+// Represents a whole view request message, which contains many views.
 struct ViewRequest {
   StaticVideoViews static_video_views;
 };
 
+// If the elems of a parent (usually <jingle>) constitute a view request.
+bool IsJingleViewRequest(const XmlElements& elems);
+
+// Parses a view request from jingle contents (<view>s).  If it
+// fails, returns false and fills an error message.
+bool ParseJingleViewRequest(const XmlElements& elems,
+                            ViewRequest* view_request,
+                            ParseError* error);
+
 // Serializes a view request to XML.  If it fails, returns false and
 // fills in an error message.
-bool WriteViewRequest(const std::string& content_name,
-                      const ViewRequest& view,
-                      XmlElements* elems,
-                      WriteError* error);
+bool WriteJingleViewRequest(const std::string& content_name,
+                            const ViewRequest& view,
+                            XmlElements* elems,
+                            WriteError* error);
 
+// TODO: Get rid of legacy source notify and replace with
+// description-info as soon as reflector is capable of sending it.
 bool IsSourcesNotify(const buzz::XmlElement* action_elem);
 
 // Parses a notify message from XML.  If it fails, returns false and
@@ -144,6 +156,19 @@ bool ParseSourcesNotify(const buzz::XmlElement* action_elem,
                         const SessionDescription* session_description,
                         MediaSources* sources,
                         ParseError* error);
+
+// If the given elem has <streams>.
+bool HasJingleStreams(const buzz::XmlElement* desc_elem);
+
+// Parses streams from a jingle <description>.  If it fails, returns
+// false and fills an error message.
+bool ParseJingleStreams(const buzz::XmlElement* desc_elem,
+                        std::vector<StreamParams>* streams,
+                        ParseError* error);
+
+// Write a <streams> element to the parent_elem.
+void WriteJingleStreams(const std::vector<StreamParams>& streams,
+                        buzz::XmlElement* parent_elem);
 
 }  // namespace cricket
 

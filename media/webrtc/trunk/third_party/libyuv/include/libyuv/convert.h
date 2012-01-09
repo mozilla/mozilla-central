@@ -14,13 +14,24 @@
 #include "libyuv/basic_types.h"
 #include "libyuv/rotate.h"
 
+#ifdef __cplusplus
 namespace libyuv {
+extern "C" {
+#endif
 
+// RGB24 is also known as 24BG and BGR3
 int I420ToRGB24(const uint8* src_y, int src_stride_y,
                 const uint8* src_u, int src_stride_u,
                 const uint8* src_v, int src_stride_v,
                 uint8* dst_frame, int dst_stride_frame,
                 int width, int height);
+
+// RAW is also known as RGB3
+int I420ToRAW(const uint8* src_y, int src_stride_y,
+              const uint8* src_u, int src_stride_u,
+              const uint8* src_v, int src_stride_v,
+              uint8* dst_frame, int dst_stride_frame,
+              int width, int height);
 
 int I420ToARGB4444(const uint8* src_y, int src_stride_y,
                    const uint8* src_u, int src_stride_u,
@@ -130,6 +141,17 @@ int ConvertToI420(const uint8* src_frame, size_t src_size,
                   RotationMode rotation,
                   uint32 format);
 
+// Convert I420 to specified format.
+int ConvertFromI420(const uint8* y, int y_stride,
+                    const uint8* u, int u_stride,
+                    const uint8* v, int v_stride,
+                    uint8* dst_sample, size_t dst_sample_size,
+                    int width, int height,
+                    uint32 format);
+
+#ifdef __cplusplus
+}  // extern "C"
 }  // namespace libyuv
+#endif
 
 #endif // INCLUDE_LIBYUV_CONVERT_H_

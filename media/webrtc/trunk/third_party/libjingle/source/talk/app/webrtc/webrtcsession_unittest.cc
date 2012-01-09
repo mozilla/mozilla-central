@@ -36,10 +36,10 @@
 #include "talk/base/fakenetwork.h"
 #include "talk/base/scoped_ptr.h"
 #include "talk/base/thread.h"
+#include "talk/p2p/base/fakesession.h"
 #include "talk/p2p/base/portallocator.h"
 #include "talk/p2p/base/sessiondescription.h"
 #include "talk/p2p/client/fakeportallocator.h"
-#include "talk/session/phone/fakesession.h"
 #include "talk/session/phone/mediasessionclient.h"
 
 class WebRtcSessionTest

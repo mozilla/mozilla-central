@@ -64,7 +64,9 @@ root_env = Environment(
     'FEATURE_ENABLE_VOICEMAIL',
     'FEATURE_ENABLE_PSTN',
     'HAVE_SRTP',
-  ]
+  ],
+  # Ensure the os environment is captured for any scripts we call out to
+  ENV = os.environ,
 )
 
 # This is where we set common environments
@@ -74,16 +76,13 @@ DeclareBit('build_platform_64bit', 'Platform of the build machine is 64-bit')
 if platform.architecture()[0] == "64bit":
   root_env.SetBits('build_platform_64bit')
 
-# This bit denotes that an env is for pure 64-bit builds. When set, all build
-# artifacts will be 64-bit. When unset, we will still produce some 64-bit
-# artifacts on 64-bit Linux via the legacy also64bit setting on our targets.
-# When the pure 64-bit build is considered stable, the also64bit setting will go
-# away.
+# This bit denotes that an env is for 64-bit builds. When set, all build
+# artifacts will be 64-bit. When unset, all build artifacts will be 32-bit.
 DeclareBit('host_platform_64bit', 'Platform of the host machine (where artifacts will execute) is 64-bit')
 
-def same_arch(env):
-  """Whether the host machine and build machine architectures match."""
-  return env.Bit('host_platform_64bit') == env.Bit('build_platform_64bit')
+def CrossBuilding(env):
+  return env.Bit('host_platform_64bit') != env.Bit('build_platform_64bit')
+root_env.AddMethod(CrossBuilding)
 
 DeclareBit('use_static_openssl', 'Build OpenSSL as a static library')
 
@@ -287,6 +286,13 @@ posix_env.Append(
     # Needed for a clean ABI and for link-time dead-code removal to work
     # properly.
     '-fvisibility=hidden',
+    # Generate debugging info in the DWARF2 format.
+    '-gdwarf-2',
+    # Generate maximal debugging information. (It is stripped from what we ship
+    # to users, so we want it for both dbg and opt.)
+    # Note that hammer automatically supplies "-g" for mac/linux dbg, so that
+    # flag must be filtered out of linux_dbg and mac_dbg envs below.
+    '-g3',
   ],
   CXXFLAGS = [
     '-Wno-non-virtual-dtor',
@@ -314,8 +320,6 @@ mac_env.Append(
     '-arch', 'i386',
     '-isysroot', '/Developer/SDKs/MacOSX10.5.sdk',
     '-fasm-blocks',
-    # Generate debugging info in the DWARF2 format.
-    '-gdwarf-2',
   ],
   LINKFLAGS = [
     '-Wl,-search_paths_first',
@@ -328,8 +332,7 @@ mac_env.Append(
     '-mmacosx-version-min=10.5',
     '-isysroot', '/Developer/SDKs/MacOSX10.5.sdk',
     '-m32',
-    '-dead-strip'
-    '-gdwarf-2',
+    '-dead_strip',
   ],
   FRAMEWORKS = [
     'CoreServices',
@@ -354,8 +357,13 @@ mac_dbg_env = mac_env.Clone(
 mac_dbg_env.Append(
   CCFLAGS = [
     '-O0',
-  ]
+  ],
+  CPPDEFINES = [
+    'DEBUG=1',
+  ],
 )
+# Remove -g set by hammer, which is not what we want (we have set -g3 above).
+mac_dbg_env.FilterOut(CCFLAGS = ['-g'])
 envs.append(mac_dbg_env)
 
 mac_opt_env = mac_env.Clone(
@@ -371,6 +379,7 @@ mac_opt_env.Append(
     # out.  Maybe it's a different version of gcc?
     '-Wno-unused-variable',
   ],
+  # Hammer automatically specifies -Os for mac opt.
 )
 envs.append(mac_opt_env)
 
@@ -392,11 +401,6 @@ linux_common_env.Append(
     # Needed for link-time dead-code removal to work properly.
     '-ffunction-sections',
     '-fdata-sections',
-    # Generate debugging info in the DWARF2 format.
-    '-gdwarf-2',
-    # Generate maximal debugging information. (It is stripped from what we ship
-    # to users, so we want it for both dbg and opt.)
-    '-g3',
   ],
   LINKFLAGS = [
     # Enable dead-code removal.
@@ -471,16 +475,24 @@ def gen_linux_x86(base_env, type_suffix, desc_suffix):
   linux_env.EnableFeatureWherePackagePresent('have_libpulse',
                                              'HAVE_LIBPULSE',
                                              'libpulse')
-  # Until the pure 64-bit build has had time to bake, we leave the funky mixed
-  # 32/64 build as the default.
-  #if same_arch(linux_env):
-  if not linux_env.Bit('host_platform_64bit'):
-    dbg_groups = ['default', 'all']
+
+  groups = ['all']
+  if not linux_env.CrossBuilding():
+    groups = groups + ['all-native']
+    # The native-arch dbg build is the default.
+    dbg_groups = groups + ['default']
+    native_desc = ', native '
+    # No suffix for native modes.
+    type_suffix = ''
   else:
-    dbg_groups = ['all']
+    groups = groups + ['all-cross']
+    dbg_groups = groups
+    native_desc = ', cross-built for '
+
   linux_dbg_env = linux_env.Clone(
     BUILD_TYPE = 'dbg' + type_suffix,
-    BUILD_TYPE_DESCRIPTION = 'Linux debug build' + desc_suffix,
+    BUILD_TYPE_DESCRIPTION = 'Linux debug build%s%s' % (native_desc,
+        desc_suffix),
     BUILD_GROUPS = dbg_groups,
     tools = ['target_debug'],
   )
@@ -490,8 +502,9 @@ def gen_linux_x86(base_env, type_suffix, desc_suffix):
 
   linux_opt_env = linux_env.Clone(
     BUILD_TYPE = 'opt' + type_suffix,
-    BUILD_TYPE_DESCRIPTION = 'Linux optimized build' + desc_suffix,
-    BUILD_GROUPS = ['all'],
+    BUILD_TYPE_DESCRIPTION = 'Linux optimized build%s%s' % (native_desc,
+        desc_suffix),
+    BUILD_GROUPS = groups,
     tools = ['target_optimized'],
   )
   # Remove -O2 set by hammer, which is not what we want.
@@ -499,8 +512,8 @@ def gen_linux_x86(base_env, type_suffix, desc_suffix):
   linux_opt_env.Append(CCFLAGS = ['-Os'])
   envs.append(linux_opt_env)
 
-gen_linux_x86(linux_x86_32_env, '', '')
-gen_linux_x86(linux_x86_64_env, '64', ' (64-bit)')
+gen_linux_x86(linux_x86_32_env, '32', '32-bit')
+gen_linux_x86(linux_x86_64_env, '64', '64-bit')
 
 
 

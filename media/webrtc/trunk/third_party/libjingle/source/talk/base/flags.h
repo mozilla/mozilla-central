@@ -25,6 +25,9 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+// Originally comes from shared/commandlineflags/flags.h
+
 // Flags are defined and declared using DEFINE_xxx and DECLARE_xxx macros,
 // where xxx is the flag type. Flags are referred to via FLAG_yyy,
 // where yyy is the flag name. For intialization and iteration of flags,

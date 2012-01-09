@@ -42,7 +42,7 @@
 #include "talk/base/base64.h"
 #include "talk/base/logging.h"
 #include "talk/base/scoped_ptr.h"
-#include "talk/base/time.h"
+#include "talk/base/timeutils.h"
 
 // Protect against max macro inclusion.
 #undef max
@@ -205,8 +205,8 @@ namespace {
 
 // This round about way of creating a global RNG is to safe-guard against
 // indeterminant static initialization order.
-scoped_ptr<RandomGenerator>& GetGlobalRng() {
-  static scoped_ptr<RandomGenerator> g_rng(new SecureRandomGenerator());
+RandomGenerator*& GetGlobalRng() {
+  static RandomGenerator* g_rng = new SecureRandomGenerator();
   return g_rng;
 }
 
@@ -218,9 +218,9 @@ RandomGenerator& Rng() {
 
 void SetRandomTestMode(bool test) {
   if (!test) {
-    GetGlobalRng().reset(new SecureRandomGenerator());
+    GetGlobalRng() = new SecureRandomGenerator();
   } else {
-    GetGlobalRng().reset(new TestRandomGenerator());
+    GetGlobalRng() = new TestRandomGenerator();
   }
 }
 

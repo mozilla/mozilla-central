@@ -6,10 +6,13 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -28,7 +31,6 @@ CFLAGS_Debug := -pthread \
 	-pipe \
 	-fPIC \
 	-fno-strict-aliasing \
-	-Wno-deprecated \
 	-Wno-format \
 	-Wno-unused-result \
 	-O0 \
@@ -40,7 +42,8 @@ CFLAGS_C_Debug :=
 # Flags passed to only C++ files.
 CFLAGS_CC_Debug := -fno-rtti \
 	-fno-threadsafe-statics \
-	-fvisibility-inlines-hidden
+	-fvisibility-inlines-hidden \
+	-Wno-deprecated
 
 INCS_Debug := 
 
@@ -48,10 +51,13 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -70,7 +76,6 @@ CFLAGS_Release := -pthread \
 	-pipe \
 	-fPIC \
 	-fno-strict-aliasing \
-	-Wno-deprecated \
 	-Wno-format \
 	-Wno-unused-result \
 	-O2 \
@@ -84,7 +89,8 @@ CFLAGS_C_Release :=
 # Flags passed to only C++ files.
 CFLAGS_CC_Release := -fno-rtti \
 	-fno-threadsafe-statics \
-	-fvisibility-inlines-hidden
+	-fvisibility-inlines-hidden \
+	-Wno-deprecated
 
 INCS_Release := 
 

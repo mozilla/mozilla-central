@@ -87,6 +87,22 @@ class OpenSSLCertificate : public SSLCertificate {
 
   virtual std::string ToPEMString() const;
 
+  // Compute the digest of the certificate given algorithm
+  virtual bool ComputeDigest(const std::string &algorithm,
+                             unsigned char *digest, std::size_t size,
+                             std::size_t *length) const;
+
+  // Compute the digest of a certificate as an X509 *
+  static bool ComputeDigest(const X509 *x509,
+                             const std::string &algorithm,
+                             unsigned char *digest,
+                             std::size_t size,
+                             std::size_t *length);
+
+  // Helper function to get the length of a digest
+  static bool GetDigestLength(const std::string &algorithm,
+                              std::size_t *length);
+
  private:
   explicit OpenSSLCertificate(X509* x509) : x509_(x509) {
     ASSERT(x509_ != NULL);
@@ -94,6 +110,10 @@ class OpenSSLCertificate : public SSLCertificate {
   void AddReference();
 
   X509* x509_;
+
+  // Helper function to look up a digest
+  static bool GetDigestEVP(const std::string &algorithm,
+                           const EVP_MD **md);
 
   DISALLOW_EVIL_CONSTRUCTORS(OpenSSLCertificate);
 };
@@ -131,6 +151,7 @@ class OpenSSLIdentity : public SSLIdentity {
 
   DISALLOW_EVIL_CONSTRUCTORS(OpenSSLIdentity);
 };
+
 
 }  // namespace talk_base
 

@@ -10,14 +10,17 @@
 
 #include "TestFEC.h"
 
+#include <cassert>
+#include <iostream>
+
 #include "audio_coding_module_typedefs.h"
 #include "common_types.h"
 #include "engine_configurations.h"
-
-#include <cassert>
-#include <iostream>
 #include "trace.h"
+#include "testsupport/fileutils.h"
 #include "utility.h"
+
+namespace webrtc {
 
 TestFEC::TestFEC(int testMode):
 _acmA(NULL),
@@ -27,8 +30,6 @@ _testCntr(0)
 {
     _testMode = testMode;
 }
-
-using namespace std;
 
 TestFEC::~TestFEC()
 {
@@ -55,7 +56,7 @@ void TestFEC::Perform()
     if(_testMode == 0)
     {
         printf("Running FEC Test");
-        WEBRTC_TRACE(webrtc::kTraceStateInfo, webrtc::kTraceAudioCoding, -1,
+        WEBRTC_TRACE(kTraceStateInfo, kTraceAudioCoding, -1,
                      "---------- TestFEC ----------");
     }
     char fileName[] = "./test/data/audio_coding/testfile32kHz.pcm";
@@ -527,7 +528,7 @@ WebRtc_Word16 TestFEC::RegisterSendCodec(char side, char* codecName, WebRtc_Word
             printf("Registering %s for side %c\n", codecName, side);
         }
     }
-    cout << flush;
+    std::cout << std::flush;
     AudioCodingModule* myACM;
     switch(side)
     {
@@ -599,15 +600,18 @@ void TestFEC::Run()
 
 void TestFEC::OpenOutFile(WebRtc_Word16 testNumber)
 {
-    char fileName[500] = "./src/modules/audio_coding/main/test/TestFEC_outFile_";
-    char cntrStr[10];
+    char fileName[500];
 
     if(_testMode == 0)
     {
-        sprintf(fileName, "./src/modules/audio_coding/main/test/TestFEC_autoFile_");
+        sprintf(fileName, "%s/TestFEC_autoFile_%02d.pcm",
+                webrtc::test::OutputPath().c_str(), testNumber);
     }
-    sprintf(cntrStr, "%02d.pcm", testNumber);
-    strcat(fileName, cntrStr);
+    else
+    {
+        sprintf(fileName, "%s/TestFEC_outFile_%02d.pcm",
+                webrtc::test::OutputPath().c_str(), testNumber);
+    }
     _outFileB.Open(fileName, 32000, "wb");
 }
 
@@ -619,3 +623,5 @@ void TestFEC::DisplaySendReceiveCodec()
     _acmB->ReceiveCodec(myCodecParam);
     printf("%s\n", myCodecParam.plname);
 }
+
+} // namespace webrtc

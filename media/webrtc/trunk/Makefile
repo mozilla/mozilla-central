@@ -252,8 +252,8 @@ $(if $(or $(command_changed),$(prereq_changed)),
 )
 endef
 
-# Declare "all" target first so it is the default, even though we don't have the
-# deps yet.
+# Declare the "all" target first so it is the default,
+# even though we don't have the deps yet.
 .PHONY: all
 all:
 
@@ -351,6 +351,16 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
                  $(join ^,All.target.mk)))),)
   include All.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,peerconnection/peerconnection_client.target.mk)))),)
+  include peerconnection/peerconnection_client.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,peerconnection/peerconnection_server.target.mk)))),)
+  include peerconnection/peerconnection_server.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -501,6 +511,11 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
                  $(join ^,src/modules/audio_coding_module_test.target.mk)))),)
   include src/modules/audio_coding_module_test.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/modules/audio_coding_unittests.target.mk)))),)
+  include src/modules/audio_coding_unittests.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -699,6 +714,11 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/modules/video_codecs_test_framework_integrationtests.target.mk)))),)
+  include src/modules/video_codecs_test_framework_integrationtests.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
                  $(join ^,src/modules/video_codecs_test_framework_unittests.target.mk)))),)
   include src/modules/video_codecs_test_framework_unittests.target.mk
 endif
@@ -789,6 +809,11 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/video_engine/video_engine_core_unittests.target.mk)))),)
+  include src/video_engine/video_engine_core_unittests.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
                  $(join ^,src/video_engine/vie_auto_test.target.mk)))),)
   include src/video_engine/vie_auto_test.target.mk
 endif
@@ -806,6 +831,21 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
                  $(join ^,src/voice_engine/voice_engine_core.target.mk)))),)
   include src/voice_engine/voice_engine_core.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,src/voice_engine/voice_engine_unittests.target.mk)))),)
+  include src/voice_engine/voice_engine_unittests.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,test/metrics.target.mk)))),)
+  include test/metrics.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,test/metrics_unittests.target.mk)))),)
+  include test/metrics_unittests.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -841,6 +881,21 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
                  $(join ^,testing/gtest_main.target.mk)))),)
   include testing/gtest_main.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,testing/gtest_prod.host.mk)))),)
+  include testing/gtest_prod.host.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,testing/gtest_prod.target.mk)))),)
+  include testing/gtest_prod.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,third_party/expat/expat.target.mk)))),)
+  include third_party/expat/expat.target.mk
 endif
 ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
     $(findstring $(join ^,$(prefix)),\
@@ -942,10 +997,30 @@ ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
                  $(join ^,third_party/yasm/yasm.host.mk)))),)
   include third_party/yasm/yasm.host.mk
 endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,third_party_mods/libjingle/jsoncpp.target.mk)))),)
+  include third_party_mods/libjingle/jsoncpp.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,third_party_mods/libjingle/libjingle.target.mk)))),)
+  include third_party_mods/libjingle/libjingle.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,third_party_mods/libjingle/libjingle_app.target.mk)))),)
+  include third_party_mods/libjingle/libjingle_app.target.mk
+endif
+ifeq ($(strip $(foreach prefix,$(NO_LOAD),\
+    $(findstring $(join ^,$(prefix)),\
+                 $(join ^,third_party_mods/libjingle/libjingle_p2p.target.mk)))),)
+  include third_party_mods/libjingle/libjingle_p2p.target.mk
+endif
 
 quiet_cmd_regen_makefile = ACTION Regenerating $@
 cmd_regen_makefile = ./build/gyp_chromium -fmake --ignore-environment "--toplevel-dir=." -Ibuild/common.gypi -I/home/jesup/src/mozilla/webrtc_import/media/webrtc/webrtc_update/trunk/src/supplement.gypi "--depth=." "-Goutput_dir=$(OBJDIR)/media/webrtc/out" webrtc.gyp
-Makefile: src/modules/udp_transport/source/udp_transport.gypi src/modules/video_processing/main/test/vpm_tests.gypi src/modules/video_coding/codecs/test/video_codecs_test_framework.gypi third_party/google-gflags/google-gflags.gyp src/common_audio/signal_processing/signal_processing.gypi src/common_audio/resampler/resampler.gypi src/modules/video_capture/main/source/video_capture.gypi src/build/common.gypi src/modules/audio_processing/apm_tests.gypi third_party/yasm/yasm.gyp src/modules/audio_conference_mixer/source/audio_conference_mixer.gypi src/modules/video_coding/codecs/i420/main/source/i420.gypi src/modules/audio_coding/codecs/g711/g711.gypi src/modules/rtp_rtcp/test/testFec/test_fec.gypi build/internal/release_impl.gypi src/supplement.gypi src/voice_engine/voice_engine.gyp third_party/yasm/yasm_compile.gypi src/common_video/jpeg/main/source/jpeg.gypi src/common_settings.gypi src/modules/video_coding/main/source/video_coding.gypi src/modules/video_processing/main/source/video_processing.gypi src/modules/audio_processing/utility/util.gypi src/modules/audio_coding/codecs/pcm16b/pcm16b.gypi src/modules/media_file/source/media_file.gypi src/modules/modules.gyp src/modules/video_coding/codecs/test_framework/test_framework.gypi build/internal/release_impl_official.gypi build/internal/release_defaults.gypi src/modules/audio_coding/codecs/iSAC/main/source/isac.gypi src/common_audio/vad/vad.gypi src/common_video/common_video.gyp src/video_engine/test/auto_test/vie_auto_test.gypi third_party/libvpx/libvpx_srcs_arm_neon.gypi third_party/libvpx/libvpx_srcs_arm.gypi src/build/protoc.gypi src/modules/rtp_rtcp/source/rtp_rtcp.gypi third_party/libvpx/libvpx.gyp testing/gmock.gyp test/test.gyp src/voice_engine/main/test/voice_engine_tests.gypi src/modules/audio_processing/aecm/aecm.gypi src/system_wrappers/source/system_wrappers.gyp src/modules/audio_coding/codecs/iSAC/isacfix_test.gypi src/modules/video_coding/main/source/video_coding_test.gypi src/voice_engine/main/source/voice_engine_core.gypi src/modules/audio_coding/codecs/ilbc/ilbc.gypi src/modules/video_render/main/source/video_render.gypi src/modules/video_coding/codecs/tools/video_codecs_tools.gypi build/release.gypi testing/gtest.gyp build/common.gypi src/modules/audio_processing/aec/aec.gypi src/modules/audio_coding/codecs/iSAC/isac_test.gypi src/modules/video_coding/codecs/vp8/main/source/vp8.gypi third_party/libyuv/libyuv.gyp third_party/libvpx/libvpx_srcs_x86_64.gypi src/modules/audio_coding/codecs/g722/g722.gypi src/video_engine/video_engine.gyp src/modules/rtp_rtcp/test/test_bwe/test_bwe.gypi src/common_audio/common_audio.gyp src/modules/audio_processing/agc/agc.gypi src/modules/audio_coding/neteq/neteq.gypi third_party/libjpeg_turbo/libjpeg.gyp third_party/libvpx/libvpx_srcs_x86.gypi src/modules/audio_coding/codecs/iSAC/fix/source/isacfix.gypi src/video_engine/video_engine_core.gypi src/video_engine/main/test/WindowsTest/windowstest.gypi src/modules/audio_device/main/source/audio_device.gypi src/modules/audio_coding/main/source/audio_coding_module.gypi third_party/protobuf/protobuf.gyp src/common_video/libyuv/libyuv.gypi src/modules/audio_processing/audio_processing.gypi src/modules/rtp_rtcp/source/rtp_rtcp_tests.gypi src/modules/audio_coding/codecs/cng/cng.gypi webrtc.gyp src/modules/utility/source/utility.gypi src/modules/audio_processing/ns/ns.gypi
+Makefile: src/modules/udp_transport/source/udp_transport.gypi src/modules/video_processing/main/test/vpm_tests.gypi src/modules/video_coding/codecs/test/video_codecs_test_framework.gypi third_party/google-gflags/google-gflags.gyp test/test.gyp src/common_audio/signal_processing/signal_processing.gypi src/common_audio/resampler/resampler.gypi src/modules/video_capture/main/source/video_capture.gypi src/build/common.gypi src/modules/audio_processing/apm_tests.gypi third_party_mods/libjingle/libjingle.gyp third_party/yasm/yasm.gyp src/modules/audio_conference_mixer/source/audio_conference_mixer.gypi src/modules/video_coding/codecs/i420/main/source/i420.gypi src/modules/audio_coding/codecs/g711/g711.gypi src/modules/rtp_rtcp/test/testFec/test_fec.gypi build/internal/release_impl.gypi src/supplement.gypi src/voice_engine/voice_engine.gyp build/use_skia_on_mac.gypi third_party/yasm/yasm_compile.gypi src/common_video/jpeg/main/source/jpeg.gypi src/common_settings.gypi src/modules/video_coding/main/source/video_coding.gypi src/modules/video_processing/main/source/video_processing.gypi src/modules/audio_processing/utility/util.gypi src/modules/audio_coding/codecs/pcm16b/pcm16b.gypi src/modules/media_file/source/media_file.gypi src/modules/modules.gyp src/modules/video_coding/codecs/test_framework/test_framework.gypi build/internal/release_impl_official.gypi build/internal/release_defaults.gypi src/modules/audio_coding/codecs/iSAC/main/source/isac.gypi src/common_audio/vad/vad.gypi src/common_video/common_video.gyp src/video_engine/test/auto_test/vie_auto_test.gypi third_party/libvpx/libvpx_srcs_arm_neon.gypi third_party/libvpx/libvpx_srcs_arm.gypi src/build/protoc.gypi src/modules/rtp_rtcp/source/rtp_rtcp.gypi third_party/libvpx/libvpx.gyp testing/gmock.gyp third_party/expat/expat.gyp src/voice_engine/main/test/voice_engine_tests.gypi src/modules/audio_processing/aecm/aecm.gypi src/system_wrappers/source/system_wrappers.gyp src/modules/audio_coding/codecs/iSAC/isacfix_test.gypi src/modules/video_coding/main/source/video_coding_test.gypi src/voice_engine/main/source/voice_engine_core.gypi src/modules/audio_coding/codecs/ilbc/ilbc.gypi src/modules/video_render/main/source/video_render.gypi src/modules/video_coding/codecs/tools/video_codecs_tools.gypi build/release.gypi test/metrics.gyp testing/gtest.gyp build/common.gypi src/modules/audio_processing/aec/aec.gypi src/modules/audio_coding/codecs/iSAC/isac_test.gypi third_party/libvpx/libvpx_srcs_x86.gypi src/modules/video_coding/codecs/vp8/main/source/vp8.gypi third_party/libyuv/libyuv.gyp third_party/libvpx/libvpx_srcs_x86_64.gypi src/modules/audio_coding/codecs/g722/g722.gypi src/video_engine/video_engine.gyp src/modules/rtp_rtcp/test/test_bwe/test_bwe.gypi src/common_audio/common_audio.gyp src/modules/audio_processing/agc/agc.gypi src/modules/audio_coding/neteq/neteq.gypi third_party/libjpeg_turbo/libjpeg.gyp peerconnection/peerconnection.gyp src/modules/audio_coding/codecs/iSAC/fix/source/isacfix.gypi src/video_engine/video_engine_core.gypi src/video_engine/main/test/WindowsTest/windowstest.gypi src/modules/audio_device/main/source/audio_device.gypi src/modules/audio_coding/main/source/audio_coding_module.gypi third_party/protobuf/protobuf.gyp src/common_video/libyuv/libyuv.gypi src/modules/audio_processing/audio_processing.gypi src/modules/rtp_rtcp/source/rtp_rtcp_tests.gypi src/modules/audio_coding/codecs/cng/cng.gypi webrtc.gyp src/modules/utility/source/utility.gypi src/modules/audio_processing/ns/ns.gypi
 	$(call do_cmd,regen_makefile)
 
 # "all" is a concatenation of the "all" targets from all the included

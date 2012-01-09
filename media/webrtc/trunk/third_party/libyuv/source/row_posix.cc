@@ -12,18 +12,27 @@
 
 #include "libyuv/basic_types.h"
 
+#ifdef __cplusplus
+namespace libyuv {
 extern "C" {
+#endif
+
+#ifdef __APPLE__
+#define CONST
+#else
+#define CONST static const
+#endif
 
 #ifdef HAS_ARGBTOUVROW_SSSE3
-vec8 kARGBToU = {
+CONST vec8 kARGBToU = {
   112, -74, -38, 0, 112, -74, -38, 0, 112, -74, -38, 0, 112, -74, -38, 0
 };
 
-vec8 kARGBToV = {
+CONST vec8 kARGBToV = {
   -18, -94, 112, 0, -18, -94, 112, 0, -18, -94, 112, 0, -18, -94, 112, 0
 };
 
-uvec8 kAddUV128 = {
+CONST uvec8 kAddUV128 = {
   128u, 128u, 128u, 128u, 128u, 128u, 128u, 128u,
   128u, 128u, 128u, 128u, 128u, 128u, 128u, 128u
 };
@@ -32,31 +41,31 @@ uvec8 kAddUV128 = {
 #ifdef HAS_ARGBTOYROW_SSSE3
 
 // Constant multiplication table for converting ARGB to I400.
-vec8 kARGBToY = {
+CONST vec8 kARGBToY = {
   13, 65, 33, 0, 13, 65, 33, 0, 13, 65, 33, 0, 13, 65, 33, 0
 };
 
-uvec8 kAddY16 = {
+CONST uvec8 kAddY16 = {
   16u, 16u, 16u, 16u, 16u, 16u, 16u, 16u, 16u, 16u, 16u, 16u, 16u, 16u, 16u, 16u
 };
 
 // Shuffle table for converting BG24 to ARGB.
-uvec8 kShuffleMaskBG24ToARGB = {
+CONST uvec8 kShuffleMaskBG24ToARGB = {
   0u, 1u, 2u, 12u, 3u, 4u, 5u, 13u, 6u, 7u, 8u, 14u, 9u, 10u, 11u, 15u
 };
 
 // Shuffle table for converting RAW to ARGB.
-uvec8 kShuffleMaskRAWToARGB = {
+CONST uvec8 kShuffleMaskRAWToARGB = {
   2u, 1u, 0u, 12u, 5u, 4u, 3u, 13u, 8u, 7u, 6u, 14u, 11u, 10u, 9u, 15u
 };
 
 // Shuffle table for converting ABGR to ARGB.
-uvec8 kShuffleMaskABGRToARGB = {
+CONST uvec8 kShuffleMaskABGRToARGB = {
   2u, 1u, 0u, 3u, 6u, 5u, 4u, 7u, 10u, 9u, 8u, 11u, 14u, 13u, 12u, 15u
 };
 
 // Shuffle table for converting BGRA to ARGB.
-uvec8 kShuffleMaskBGRAToARGB = {
+CONST uvec8 kShuffleMaskBGRAToARGB = {
   3u, 2u, 1u, 0u, 7u, 6u, 5u, 4u, 11u, 10u, 9u, 8u, 15u, 14u, 13u, 12u
 };
 
@@ -318,7 +327,6 @@ void ARGBToUVRow_SSSE3(const uint8* src_argb0, int src_stride_argb,
 }
 #endif
 
-
 #ifdef HAS_FASTCONVERTYUVTOARGBROW_SSSE3
 #define UB 127 /* min(63,static_cast<int8>(2.018 * 64)) */
 #define UG -25 /* static_cast<int8>(-0.391 * 64 - 0.5) */
@@ -350,7 +358,7 @@ struct {
   vec16 kUVBiasR;
   vec16 kYSub16;
   vec16 kYToRgb;
-} SIMD_ALIGNED(kYuvConstants) = {
+} CONST SIMD_ALIGNED(kYuvConstants) = {
   { UB, VB, UB, VB, UB, VB, UB, VB, UB, VB, UB, VB, UB, VB, UB, VB },
   { UG, VG, UG, VG, UG, VG, UG, VG, UG, VG, UG, VG, UG, VG, UG, VG },
   { UR, VR, UR, VR, UR, VR, UR, VR, UR, VR, UR, VR, UR, VR, UR, VR },
@@ -407,8 +415,8 @@ void OMITFP FastConvertYUVToARGBRow_SSSE3(const uint8* y_buf,  // rdi
     "punpcklbw   %%xmm5,%%xmm2                 \n"
     "movdqa      %%xmm0,%%xmm1                 \n"
     "punpcklwd   %%xmm2,%%xmm0                 \n"
-    "movdqa      %%xmm0,(%3)                   \n"
     "punpckhwd   %%xmm2,%%xmm1                 \n"
+    "movdqa      %%xmm0,(%3)                   \n"
     "movdqa      %%xmm1,0x10(%3)               \n"
     "lea         0x20(%3),%3                   \n"
     "sub         $0x8,%4                       \n"
@@ -443,8 +451,8 @@ void OMITFP FastConvertYUVToBGRARow_SSSE3(const uint8* y_buf,  // rdi
     "punpcklbw   %%xmm2,%%xmm5                 \n"
     "movdqa      %%xmm5,%%xmm0                 \n"
     "punpcklwd   %%xmm1,%%xmm5                 \n"
-    "movdqa      %%xmm5,(%3)                   \n"
     "punpckhwd   %%xmm1,%%xmm0                 \n"
+    "movdqa      %%xmm5,(%3)                   \n"
     "movdqa      %%xmm0,0x10(%3)               \n"
     "lea         0x20(%3),%3                   \n"
     "sub         $0x8,%4                       \n"
@@ -478,8 +486,8 @@ void OMITFP FastConvertYUVToABGRRow_SSSE3(const uint8* y_buf,  // rdi
     "punpcklbw   %%xmm5,%%xmm0                 \n"
     "movdqa      %%xmm2,%%xmm1                 \n"
     "punpcklwd   %%xmm0,%%xmm2                 \n"
-    "movdqa      %%xmm2,(%3)                   \n"
     "punpckhwd   %%xmm0,%%xmm1                 \n"
+    "movdqa      %%xmm2,(%3)                   \n"
     "movdqa      %%xmm1,0x10(%3)               \n"
     "lea         0x20(%3),%3                   \n"
     "sub         $0x8,%4                       \n"
@@ -556,47 +564,49 @@ void OMITFP FastConvertYUV444ToARGBRow_SSSE3(const uint8* y_buf,  // rdi
 #endif
 
 #ifdef HAS_FASTCONVERTYTOARGBROW_SSE2
+
 void FastConvertYToARGBRow_SSE2(const uint8* y_buf,  // rdi
                                 uint8* rgb_buf,      // rcx
                                 int width) {         // r8
   asm volatile (
-  "pcmpeqb     %%xmm5,%%xmm5                   \n"
-  "pslld       $0x18,%%xmm5                    \n"
-  "pxor        %%xmm4,%%xmm4                   \n"
-  "movdqa      %3,%%xmm3                       \n"
-  "movdqa      %4,%%xmm2                       \n"
+  "pcmpeqb     %%xmm4,%%xmm4                   \n"
+  "pslld       $0x18,%%xmm4                    \n"
+  "mov         $0x10001000,%%eax               \n"
+  "movd        %%eax,%%xmm3                    \n"
+  "pshufd      $0x0,%%xmm3,%%xmm3              \n"
+  "mov         $0x012a012a,%%eax               \n"
+  "movd        %%eax,%%xmm2                    \n"
+  "pshufd      $0x0,%%xmm2,%%xmm2              \n"
 
   "1:                                          \n"
-  // Step 1: Scale Y contribution to 8 G values. G = (y - 16) * 1.164
-  "movq        (%0),%%xmm0                     \n"
-  "lea         0x8(%0),%0                      \n"
-  "punpcklbw   %%xmm4,%%xmm0                   \n"
-  "psubsw      %%xmm3,%%xmm0                   \n"
-  "pmullw      %%xmm2,%%xmm0                   \n"
-  "psraw       $0x6,%%xmm0                     \n"
-  "packuswb    %%xmm0,%%xmm0                   \n"
+    // Step 1: Scale Y contribution to 8 G values. G = (y - 16) * 1.164
+    "movq        (%0),%%xmm0                   \n"
+    "lea         0x8(%0),%0                    \n"
+    "punpcklbw   %%xmm0,%%xmm0                 \n"
+    "psubusw     %%xmm3,%%xmm0                 \n"
+    "pmulhuw     %%xmm2,%%xmm0                 \n"
+    "packuswb    %%xmm0,%%xmm0                 \n"
 
-  // Step 2: Weave into ARGB
-  "punpcklbw   %%xmm0,%%xmm0                   \n"
-  "movdqa      %%xmm0,%%xmm1                   \n"
-  "punpcklwd   %%xmm0,%%xmm0                   \n"
-  "por         %%xmm5,%%xmm0                   \n"
-  "movdqa      %%xmm0,(%1)                     \n"
-  "punpckhwd   %%xmm1,%%xmm1                   \n"
-  "por         %%xmm5,%%xmm1                   \n"
-  "movdqa      %%xmm1,16(%1)                   \n"
-  "lea         32(%1),%1                       \n"
+    // Step 2: Weave into ARGB
+    "punpcklbw   %%xmm0,%%xmm0                 \n"
+    "movdqa      %%xmm0,%%xmm1                 \n"
+    "punpcklwd   %%xmm0,%%xmm0                 \n"
+    "punpckhwd   %%xmm1,%%xmm1                 \n"
+    "por         %%xmm4,%%xmm0                 \n"
+    "por         %%xmm4,%%xmm1                 \n"
+    "movdqa      %%xmm0,(%1)                   \n"
+    "movdqa      %%xmm1,16(%1)                 \n"
+    "lea         32(%1),%1                     \n"
 
-  "sub         $0x8,%2                         \n"
-  "ja          1b                              \n"
+    "sub         $0x8,%2                       \n"
+    "ja          1b                            \n"
   : "+r"(y_buf),    // %0
     "+r"(rgb_buf),  // %1
     "+rm"(width)    // %2
-  : "m"(kYuvConstants.kYSub16),  // %3
-    "m"(kYuvConstants.kYToRgb)   // %4
-  : "memory", "cc"
+  :
+  : "memory", "cc", "eax"
 #if defined(__SSE2__)
-    , "xmm0", "xmm1", "xmm2", "xmm3", "xmm4", "xmm5"
+    , "xmm0", "xmm1", "xmm2", "xmm3", "xmm4"
 #endif
   );
 }
@@ -637,7 +647,7 @@ void BGRAToUVRow_SSSE3(const uint8* src_argb, int src_stride_argb,
 #ifdef HAS_REVERSE_ROW_SSSE3
 
 // Shuffle table for reversing the bytes.
-static const uvec8 kShuffleReverse = {
+CONST uvec8 kShuffleReverse = {
   15u, 14u, 13u, 12u, 11u, 10u, 9u, 8u, 7u, 6u, 5u, 4u, 3u, 2u, 1u, 0u
 };
 
@@ -646,14 +656,14 @@ void ReverseRow_SSSE3(const uint8* src, uint8* dst, int width) {
   asm volatile (
   "movdqa     %3,%%xmm5                        \n"
   "lea        -0x10(%0,%2,1),%0                \n"
-"1:                                            \n"
-  "movdqa     (%0),%%xmm0                      \n"
-  "lea        -0x10(%0),%0                     \n"
-  "pshufb     %%xmm5,%%xmm0                    \n"
-  "movdqa     %%xmm0,(%1)                      \n"
-  "lea        0x10(%1),%1                      \n"
-  "sub        $0x10,%2                         \n"
-  "ja         1b                               \n"
+  "1:                                          \n"
+    "movdqa     (%0),%%xmm0                    \n"
+    "lea        -0x10(%0),%0                   \n"
+    "pshufb     %%xmm5,%%xmm0                  \n"
+    "movdqa     %%xmm0,(%1)                    \n"
+    "lea        0x10(%1),%1                    \n"
+    "sub        $0x10,%2                       \n"
+    "ja         1b                             \n"
   : "+r"(src),  // %0
     "+r"(dst),  // %1
     "+r"(temp_width)  // %2
@@ -666,4 +676,39 @@ void ReverseRow_SSSE3(const uint8* src, uint8* dst, int width) {
 }
 #endif
 
+#ifdef HAS_REVERSE_ROW_SSE2
+
+void ReverseRow_SSE2(const uint8* src, uint8* dst, int width) {
+  intptr_t temp_width = static_cast<intptr_t>(width);
+  asm volatile (
+  "lea        -0x10(%0,%2,1),%0                \n"
+  "1:                                          \n"
+    "movdqa     (%0),%%xmm0                    \n"
+    "lea        -0x10(%0),%0                   \n"
+    "movdqa     %%xmm0,%%xmm1                  \n"
+    "psllw      $0x8,%%xmm0                    \n"
+    "psrlw      $0x8,%%xmm1                    \n"
+    "por        %%xmm1,%%xmm0                  \n"
+    "pshuflw    $0x1b,%%xmm0,%%xmm0            \n"
+    "pshufhw    $0x1b,%%xmm0,%%xmm0            \n"
+    "pshufd     $0x4e,%%xmm0,%%xmm0            \n"
+    "movdqa     %%xmm0,(%1)                    \n"
+    "lea        0x10(%1),%1                    \n"
+    "sub        $0x10,%2                       \n"
+    "ja         1b                             \n"
+  : "+r"(src),  // %0
+    "+r"(dst),  // %1
+    "+r"(temp_width)  // %2
+  :
+  : "memory", "cc"
+#if defined(__SSE2__)
+    , "xmm0", "xmm1"
+#endif
+  );
+}
+#endif
+
+#ifdef __cplusplus
 }  // extern "C"
+}  // namespace libyuv
+#endif

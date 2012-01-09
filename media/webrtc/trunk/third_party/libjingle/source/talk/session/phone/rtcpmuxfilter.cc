@@ -35,9 +35,7 @@ RtcpMuxFilter::RtcpMuxFilter() : state_(ST_INIT), offer_enable_(false) {
 }
 
 bool RtcpMuxFilter::IsActive() const {
-  // We can receive muxed media prior to the accept, so we have to be able to
-  // deal with that.
-  return (state_ == ST_SENTOFFER || state_ == ST_ACTIVE);
+  return state_ == ST_ACTIVE;
 }
 
 bool RtcpMuxFilter::SetOffer(bool offer_enable, ContentSource source) {
@@ -81,7 +79,7 @@ bool RtcpMuxFilter::DemuxRtcp(const char* data, int len) {
   // http://tools.ietf.org/html/rfc5761.
   // Note that if we offer RTCP mux, we may receive muxed RTCP before we
   // receive the answer, so we operate in that state too.
-  if (!IsActive()) {
+  if (state_ != ST_SENTOFFER && state_ != ST_ACTIVE) {
     return false;
   }
 

@@ -30,6 +30,7 @@
 #include <vector>
 #include <set>
 #include "talk/base/common.h"
+#include "talk/xmllite/xmlconstants.h"
 #include "talk/xmllite/xmlelement.h"
 
 namespace buzz {

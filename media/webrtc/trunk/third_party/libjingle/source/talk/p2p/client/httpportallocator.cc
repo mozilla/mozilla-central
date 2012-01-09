@@ -27,6 +27,7 @@
 
 #include "talk/p2p/client/httpportallocator.h"
 
+#include <algorithm>
 #include <map>
 
 #include "talk/base/asynchttprequest.h"
@@ -89,14 +90,13 @@ void ParseMap(const std::string& string, StringMap& map) {
 
 namespace cricket {
 
-// HttpPortAllocator
+// HttpPortAllocatorBase
 
-const int HttpPortAllocator::kHostPort = 80;
-const int HttpPortAllocator::kNumRetries = 5;
+const int HttpPortAllocatorBase::kNumRetries = 5;
 
-const char HttpPortAllocator::kCreateSessionURL[] = "/create_session";
+const char HttpPortAllocatorBase::kCreateSessionURL[] = "/create_session";
 
-HttpPortAllocator::HttpPortAllocator(
+HttpPortAllocatorBase::HttpPortAllocatorBase(
     talk_base::NetworkManager* network_manager,
     talk_base::PacketSocketFactory* socket_factory,
     const std::string &user_agent)
@@ -106,7 +106,7 @@ HttpPortAllocator::HttpPortAllocator(
       talk_base::SocketAddress("stun.l.google.com", 19302));
 }
 
-HttpPortAllocator::HttpPortAllocator(
+HttpPortAllocatorBase::HttpPortAllocatorBase(
     talk_base::NetworkManager* network_manager,
     const std::string &user_agent)
     : BasicPortAllocator(network_manager), agent_(user_agent) {
@@ -115,19 +115,13 @@ HttpPortAllocator::HttpPortAllocator(
       talk_base::SocketAddress("stun.l.google.com", 19302));
 }
 
-HttpPortAllocator::~HttpPortAllocator() {
+HttpPortAllocatorBase::~HttpPortAllocatorBase() {
 }
 
-PortAllocatorSession *HttpPortAllocator::CreateSession(
-    const std::string& name, const std::string& session_type) {
-  return new HttpPortAllocatorSession(this, name, session_type, stun_hosts_,
-      relay_hosts_, relay_token_, agent_);
-}
+// HttpPortAllocatorSessionBase
 
-// HttpPortAllocatorSession
-
-HttpPortAllocatorSession::HttpPortAllocatorSession(
-    HttpPortAllocator* allocator, const std::string &name,
+HttpPortAllocatorSessionBase::HttpPortAllocatorSessionBase(
+    HttpPortAllocatorBase* allocator, const std::string &name,
     const std::string& session_type,
     const std::vector<talk_base::SocketAddress>& stun_hosts,
     const std::vector<std::string>& relay_hosts,
@@ -138,7 +132,9 @@ HttpPortAllocatorSession::HttpPortAllocatorSession(
       relay_token_(relay_token), agent_(user_agent), attempts_(0) {
 }
 
-void HttpPortAllocatorSession::GetPortConfigurations() {
+HttpPortAllocatorSessionBase::~HttpPortAllocatorSessionBase() {}
+
+void HttpPortAllocatorSessionBase::GetPortConfigurations() {
   // Creating relay sessions can take time and is done asynchronously.
   // Creating stun sessions could also take time and could be done aysnc also,
   // but for now is done here and added to the initial config.  Note any later
@@ -149,7 +145,7 @@ void HttpPortAllocatorSession::GetPortConfigurations() {
   TryCreateRelaySession();
 }
 
-void HttpPortAllocatorSession::TryCreateRelaySession() {
+void HttpPortAllocatorSessionBase::TryCreateRelaySession() {
   if (allocator()->flags() & PORTALLOCATOR_DISABLE_RELAY) {
     LOG(LS_VERBOSE) << "HttpPortAllocator: Relay ports disabled, skipping.";
     return;
@@ -174,52 +170,10 @@ void HttpPortAllocatorSession::TryCreateRelaySession() {
     LOG(LS_WARNING) << "No relay auth token found.";
   }
 
-  SendSessionRequest(host, HttpPortAllocator::kHostPort);
+  SendSessionRequest(host, talk_base::HTTP_SECURE_PORT);
 }
 
-void HttpPortAllocatorSession::SendSessionRequest(const std::string& host,
-                                                  int port) {
-  // Initiate an HTTP request to create a session through the chosen host.
-  talk_base::AsyncHttpRequest* request =
-      new talk_base::AsyncHttpRequest(agent_);
-  request->SignalWorkDone.connect(this,
-      &HttpPortAllocatorSession::OnRequestDone);
-
-  request->set_proxy(allocator()->proxy());
-  request->response().document.reset(new talk_base::MemoryStream);
-  request->request().verb = talk_base::HV_GET;
-  request->request().path = HttpPortAllocator::kCreateSessionURL;
-  request->request().addHeader("X-Talk-Google-Relay-Auth", relay_token_, true);
-  request->request().addHeader("X-Google-Relay-Auth", relay_token_, true);
-  request->request().addHeader("X-Session-Type", session_type(), true);
-  request->request().addHeader("X-Stream-Type", name(), true);
-  request->set_host(host);
-  request->set_port(port);
-  request->Start();
-  request->Release();
-}
-
-void HttpPortAllocatorSession::OnRequestDone(talk_base::SignalThread* data) {
-  talk_base::AsyncHttpRequest* request =
-      static_cast<talk_base::AsyncHttpRequest*>(data);
-  if (request->response().scode != 200) {
-    LOG(LS_WARNING) << "HTTPPortAllocator: request "
-                    << " received error " << request->response().scode;
-    TryCreateRelaySession();
-    return;
-  }
-  LOG(LS_INFO) << "HTTPPortAllocator: request succeeded";
-
-  talk_base::MemoryStream* stream =
-      static_cast<talk_base::MemoryStream*>(request->response().document.get());
-  stream->Rewind();
-  size_t length;
-  stream->GetSize(&length);
-  std::string resp = std::string(stream->GetBuffer(), length);
-  ReceiveSessionResponse(resp);
-}
-
-void HttpPortAllocatorSession::ReceiveSessionResponse(
+void HttpPortAllocatorSessionBase::ReceiveSessionResponse(
     const std::string& response) {
 
   StringMap map;
@@ -254,6 +208,102 @@ void HttpPortAllocatorSession::ReceiveSessionResponse(
   }
   config->AddRelay(ports, 0.0f);
   ConfigReady(config);
+}
+
+// HttpPortAllocator
+
+HttpPortAllocator::HttpPortAllocator(
+    talk_base::NetworkManager* network_manager,
+    talk_base::PacketSocketFactory* socket_factory,
+    const std::string &user_agent)
+    : HttpPortAllocatorBase(network_manager, socket_factory, user_agent) {
+}
+
+HttpPortAllocator::HttpPortAllocator(
+    talk_base::NetworkManager* network_manager,
+    const std::string &user_agent)
+    : HttpPortAllocatorBase(network_manager, user_agent) {
+}
+HttpPortAllocator::~HttpPortAllocator() {}
+
+PortAllocatorSession* HttpPortAllocator::CreateSession(
+    const std::string& name, const std::string& session_type) {
+  return new HttpPortAllocatorSession(this, name, session_type, stun_hosts(),
+      relay_hosts(), relay_token(), user_agent());
+}
+
+// HttpPortAllocatorSession
+
+HttpPortAllocatorSession::HttpPortAllocatorSession(
+    HttpPortAllocator* allocator,
+    const std::string& name,
+    const std::string& session_type,
+    const std::vector<talk_base::SocketAddress>& stun_hosts,
+    const std::vector<std::string>& relay_hosts,
+    const std::string& relay,
+    const std::string& agent)
+    : HttpPortAllocatorSessionBase(allocator, name, session_type, stun_hosts,
+                                   relay_hosts, relay, agent) {
+}
+
+HttpPortAllocatorSession::~HttpPortAllocatorSession() {
+  for (std::list<talk_base::AsyncHttpRequest*>::iterator it = requests_.begin();
+       it != requests_.end(); ++it) {
+    (*it)->Destroy(true);
+  }
+}
+
+void HttpPortAllocatorSession::SendSessionRequest(const std::string& host,
+                                                  int port) {
+  // Initiate an HTTP request to create a session through the chosen host.
+  talk_base::AsyncHttpRequest* request =
+      new talk_base::AsyncHttpRequest(user_agent());
+  request->SignalWorkDone.connect(this,
+      &HttpPortAllocatorSession::OnRequestDone);
+
+  request->set_secure(port == talk_base::HTTP_SECURE_PORT);
+  request->set_proxy(allocator()->proxy());
+  request->response().document.reset(new talk_base::MemoryStream);
+  request->request().verb = talk_base::HV_GET;
+  request->request().path = HttpPortAllocator::kCreateSessionURL;
+  request->request().addHeader("X-Talk-Google-Relay-Auth", relay_token(), true);
+  request->request().addHeader("X-Google-Relay-Auth", relay_token(), true);
+  request->request().addHeader("X-Session-Type", session_type(), true);
+  request->request().addHeader("X-Stream-Type", name(), true);
+  request->set_host(host);
+  request->set_port(port);
+  request->Start();
+  request->Release();
+  requests_.push_back(request);
+}
+
+void HttpPortAllocatorSession::OnRequestDone(talk_base::SignalThread* data) {
+  talk_base::AsyncHttpRequest* request =
+      static_cast<talk_base::AsyncHttpRequest*>(data);
+
+  // Remove the request from the list of active requests.
+  std::list<talk_base::AsyncHttpRequest*>::iterator it =
+      std::find(requests_.begin(), requests_.end(), request);
+  if (it != requests_.end()) {
+    requests_.erase(it);
+    return;
+  }
+
+  if (request->response().scode != 200) {
+    LOG(LS_WARNING) << "HTTPPortAllocator: request "
+                    << " received error " << request->response().scode;
+    TryCreateRelaySession();
+    return;
+  }
+  LOG(LS_INFO) << "HTTPPortAllocator: request succeeded";
+
+  talk_base::MemoryStream* stream =
+      static_cast<talk_base::MemoryStream*>(request->response().document.get());
+  stream->Rewind();
+  size_t length;
+  stream->GetSize(&length);
+  std::string resp = std::string(stream->GetBuffer(), length);
+  ReceiveSessionResponse(resp);
 }
 
 }  // namespace cricket

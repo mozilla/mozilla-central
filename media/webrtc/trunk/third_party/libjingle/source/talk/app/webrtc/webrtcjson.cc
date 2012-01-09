@@ -27,9 +27,15 @@
 
 #include "talk/app/webrtc/webrtcjson.h"
 
-#include <stdio.h>
-#include <string>
+#ifdef WEBRTC_RELATIVE_PATH
+#include "json/json.h"
+#else
+#include "third_party/jsoncpp/json.h"
+#endif
 
+// TODO: Remove webrtcsession.h once we can get size from signaling.
+// webrtcsession.h is for kDefaultVideoCodecWidth and kDefaultVideoCodecHeight.
+#include "talk/app/webrtc/webrtcsession.h"
 #include "talk/base/json.h"
 #include "talk/base/logging.h"
 #include "talk/base/stringutils.h"
@@ -39,6 +45,50 @@
 namespace webrtc {
 static const int kIceComponent = 1;
 static const int kIceFoundation = 1;
+
+static std::vector<Json::Value> ReadValues(const Json::Value& value,
+                                           const std::string& key);
+
+static bool BuildMediaMessage(
+    const cricket::ContentInfo& content_info,
+    const std::vector<cricket::Candidate>& candidates,
+    bool video,
+    Json::Value* value);
+
+static bool BuildRtpMapParams(
+    const cricket::ContentInfo& audio_offer,
+    bool video,
+    std::vector<Json::Value>* rtpmap);
+
+static bool BuildAttributes(const std::vector<cricket::Candidate>& candidates,
+                            bool video,
+                            std::vector<Json::Value>* jcandidates);
+
+static std::string Serialize(const Json::Value& value);
+static bool Deserialize(const std::string& message, Json::Value* value);
+
+static bool ParseRtcpMux(const Json::Value& value);
+static bool ParseAudioCodec(const Json::Value& value,
+                            cricket::AudioContentDescription* content);
+static bool ParseVideoCodec(const Json::Value& value,
+                            cricket::VideoContentDescription* content);
+static bool ParseIceCandidates(const Json::Value& value,
+                               std::vector<cricket::Candidate>* candidates);
+
+static Json::Value ReadValue(const Json::Value& value, const std::string& key);
+static std::string ReadString(const Json::Value& value, const std::string& key);
+static uint32 ReadUInt(const Json::Value& value, const std::string& key);
+
+static void Append(Json::Value* object, const std::string& key, bool value);
+static void Append(Json::Value* object, const std::string& key, int value);
+static void Append(Json::Value* object, const std::string& key,
+                   const std::string& value);
+static void Append(Json::Value* object, const std::string& key, uint32 value);
+static void Append(Json::Value* object, const std::string& key,
+                   const Json::Value& value);
+static void Append(Json::Value* object,
+                   const std::string& key,
+                   const std::vector<Json::Value>& values);
 
 bool GetJsonSignalingMessage(
     const cricket::SessionDescription* sdp,
@@ -288,6 +338,9 @@ bool ParseVideoCodec(const Json::Value& value,
     std::vector<std::string> tokens;
     talk_base::split(codec_info["codec"].asString(), '/', &tokens);
     codec.name = tokens[1];
+    // TODO: Remove once we can get size from signaling message.
+    codec.width = WebRtcSession::kDefaultVideoCodecWidth;
+    codec.height = WebRtcSession::kDefaultVideoCodecHeight;
     content->AddCodec(codec);
   }
   return true;
@@ -382,15 +435,7 @@ uint32 ReadUInt(const Json::Value& value, const std::string& key) {
   return value[key].asUInt();
 }
 
-double ReadDouble(const Json::Value& value, const std::string& key) {
-  return value[key].asDouble();
-}
-
 void Append(Json::Value* object, const std::string& key, bool value) {
-  (*object)[key] = Json::Value(value);
-}
-
-void Append(Json::Value* object, const std::string& key, char * value) {
   (*object)[key] = Json::Value(value);
 }
 

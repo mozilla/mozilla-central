@@ -36,6 +36,7 @@
 
 #include "talk/base/basictypes.h"
 #include "talk/base/bytebuffer.h"
+#include "talk/base/ipaddress.h"
 
 namespace cricket {
 
@@ -206,6 +207,7 @@ private:
 };
 
 // Implements STUN/TURN attributes that record an Internet address.
+// TODO: IPv6 support, and use the SocketAddress class.
 class StunAddressAttribute : public StunAttribute {
 public:
   explicit StunAddressAttribute(uint16 type);
@@ -214,10 +216,10 @@ public:
 
   StunAddressFamily family() const { return family_; }
   uint16 port() const { return port_; }
-  uint32 ip() const { return ip_; }
+  talk_base::IPAddress ipaddr() const { return ip_; }
 
   void SetFamily(StunAddressFamily family);
-  void SetIP(uint32 ip) { ip_ = ip; }
+  void SetIP(const talk_base::IPAddress& ip) { ip_ = ip; }
   void SetPort(uint16 port) { port_ = port; }
 
   virtual bool Read(talk_base::ByteBuffer* buf);
@@ -226,7 +228,7 @@ public:
 private:
   StunAddressFamily family_;
   uint16 port_;
-  uint32 ip_;
+  talk_base::IPAddress ip_;
 };
 
 // Implements STUN/TURN attributes that record an Internet address.

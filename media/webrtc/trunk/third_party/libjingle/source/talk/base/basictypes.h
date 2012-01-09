@@ -30,7 +30,7 @@
 
 #include <stddef.h>  // for NULL, size_t
 
-#ifndef WIN32
+#if !(defined(_MSC_VER) && (_MSC_VER < 1600))
 #include <stdint.h>  // for uintptr_t
 #endif
 
@@ -40,7 +40,7 @@
 
 #include "talk/base/constructormagic.h"
 
-#ifndef INT_TYPES_DEFINED
+#if !defined(INT_TYPES_DEFINED)
 #define INT_TYPES_DEFINED
 #ifdef COMPILER_MSVC
 typedef unsigned __int64 uint64;
@@ -53,17 +53,20 @@ typedef __int64 int64;
 #endif
 #define INT64_F "I64"
 #else  // COMPILER_MSVC
-#ifdef __LP64__
-#ifndef _UINT64_T
-typedef unsigned long uint64;
-#else
+// On Mac OS X, cssmconfig.h defines uint64 as uint64_t
+#if defined(OSX)
 typedef uint64_t uint64;
-#endif
-#ifndef _INT64_T
-typedef long int64;
-#else
 typedef int64_t int64;
+#ifndef INT64_C
+#define INT64_C(x) x ## L
 #endif
+#ifndef UINT64_C
+#define UINT64_C(x) x ## UL
+#endif
+#define INT64_F "l"
+#elif defined(__LP64__)
+typedef unsigned long uint64;
+typedef long int64;
 #ifndef INT64_C
 #define INT64_C(x) x ## L
 #endif
@@ -88,7 +91,7 @@ typedef int int32;
 typedef unsigned short uint16;
 typedef short int16;
 typedef unsigned char uint8;
-typedef char int8;
+typedef signed char int8;
 #endif  // INT_TYPES_DEFINED
 
 #ifdef WIN32
@@ -110,15 +113,10 @@ namespace talk_base {
 #define CPU_X86 1
 #endif
 
-#ifdef WIN32
-#define alignof(t) __alignof(t)
-#else  // !WIN32
-#define alignof(t) __alignof__(t)
-#endif  // !WIN32
-#define IS_ALIGNED(p, a) (0==(reinterpret_cast<uintptr_t>(p) & ((a)-1)))
 #define ALIGNP(p, t) \
   (reinterpret_cast<uint8*>(((reinterpret_cast<uintptr_t>(p) + \
   ((t)-1)) & ~((t)-1))))
+#define IS_ALIGNED(p, a) (!((uintptr_t)(p) & ((a) - 1)))
 
 #ifndef UNUSED
 #define UNUSED(x) Unused(static_cast<const void *>(&x))

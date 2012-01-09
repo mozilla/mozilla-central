@@ -25,21 +25,7 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// talk's config.h, generated from mac_config_dot_h for OSX, conflicts with the
-// one included by the libsrtp headers. Don't use it. Instead, we keep HAVE_SRTP
-// and LOGGING defined in config.h.
 #undef HAVE_CONFIG_H
-
-#ifdef OSX
-// TODO: For the XCode build, we force SRTP (b/2500074)
-#ifndef HAVE_SRTP
-//#define HAVE_SRTP 1
-#endif  // HAVE_SRTP
-// If LOGGING is not defined, define it to 1 (b/3245816)
-#ifndef LOGGING
-#define LOGGING 1
-#endif  // HAVE_SRTP
-#endif
 
 #include "talk/session/phone/srtpfilter.h"
 
@@ -48,7 +34,7 @@
 
 #include "talk/base/base64.h"
 #include "talk/base/logging.h"
-#include "talk/base/time.h"
+#include "talk/base/timeutils.h"
 #include "talk/session/phone/rtputils.h"
 
 // Enable this line to turn on SRTP debugging
@@ -514,6 +500,7 @@ void SrtpSession::HandleEventThunk(srtp_event_data_t* ev) {
 
 #else   // !HAVE_SRTP
 
+// On some systems, SRTP is not (yet) available.
 
 SrtpSession::SrtpSession() {
   LOG(WARNING) << "SRTP implementation is missing.";
@@ -628,6 +615,7 @@ void SrtpStat::HandleSrtpResult(const SrtpStat::FailureKey& key) {
 
 #else   // !HAVE_SRTP
 
+// On some systems, SRTP is not (yet) available.
 
 SrtpStat::SrtpStat()
     : signal_silent_time_(1000) {

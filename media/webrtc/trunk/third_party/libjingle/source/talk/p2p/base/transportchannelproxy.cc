@@ -34,15 +34,16 @@ namespace cricket {
 
 TransportChannelProxy::TransportChannelProxy(const std::string& name,
                                              const std::string& content_type)
-    : TransportChannel(name, content_type), impl_(NULL) {
+    : TransportChannel(name, content_type), impl_(NULL), owner_(false) {
 }
 
 TransportChannelProxy::~TransportChannelProxy() {
-  if (impl_)
+  if (owner_ && impl_)
     impl_->GetTransport()->DestroyChannel(impl_->name());
 }
 
-void TransportChannelProxy::SetImplementation(TransportChannelImpl* impl) {
+void TransportChannelProxy::SetImplementation(TransportChannelImpl* impl,
+                                              bool owner) {
   impl_ = impl;
   impl_->SignalReadableState.connect(
       this, &TransportChannelProxy::OnReadableState);
@@ -56,6 +57,7 @@ void TransportChannelProxy::SetImplementation(TransportChannelImpl* impl) {
     impl_->SetOption(it->first, it->second);
   }
   pending_options_.clear();
+  owner_ = owner;
 }
 
 int TransportChannelProxy::SendPacket(const char* data, size_t len) {

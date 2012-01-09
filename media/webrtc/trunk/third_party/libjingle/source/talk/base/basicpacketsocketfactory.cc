@@ -157,7 +157,8 @@ int BasicPacketSocketFactory::BindSocket(
   } else {
     // Otherwise, try to find a port in the provided range.
     for (int port = min_port; ret < 0 && port <= max_port; ++port) {
-      ret = socket->Bind(talk_base::SocketAddress(local_address.ip(), port));
+      ret = socket->Bind(talk_base::SocketAddress(local_address.ipaddr(),
+                                                  port));
     }
   }
   return ret;

@@ -13,8 +13,9 @@
 #include <string.h>
 #include <cassert>
 
-#include "module_common_types.h"
-#include "video_codec_interface.h"
+#include "modules/interface/module_common_types.h"
+#include "modules/video_coding/codecs/interface/video_codec_interface.h"
+#include "modules/video_coding/codecs/vp8/main/interface/vp8_common_types.h"
 
 #include "vpx/vpx_encoder.h"
 #include "vpx/vp8cx.h"
@@ -47,7 +48,7 @@ bool TemporalLayers::ConfigureBitrates(int bitrateKbit,
       cfg->ts_periodicity = temporal_ids_length_;
       // Split stream 60% 40%.
       // Bitrate API for VP8 is the agregated bitrate for all lower layers.
-      cfg->ts_target_bitrate[0] = bitrateKbit * 3 / 5;
+      cfg->ts_target_bitrate[0] = bitrateKbit * kVp8LayerRateAlloction[1][0];
       cfg->ts_target_bitrate[1] = bitrateKbit;
       cfg->ts_rate_decimator[0] = 2;
       cfg->ts_rate_decimator[1] = 1;
@@ -74,8 +75,8 @@ bool TemporalLayers::ConfigureBitrates(int bitrateKbit,
       cfg->ts_periodicity = temporal_ids_length_;
       // Split stream 40% 20% 40%.
       // Bitrate API for VP8 is the agregated bitrate for all lower layers.
-      cfg->ts_target_bitrate[0] = bitrateKbit * 2 / 5;
-      cfg->ts_target_bitrate[1] = bitrateKbit * 3 / 5;
+      cfg->ts_target_bitrate[0] = bitrateKbit * kVp8LayerRateAlloction[2][0];
+      cfg->ts_target_bitrate[1] = bitrateKbit * kVp8LayerRateAlloction[2][1];
       cfg->ts_target_bitrate[2] = bitrateKbit;
       cfg->ts_rate_decimator[0] = 4;
       cfg->ts_rate_decimator[1] = 2;
@@ -107,9 +108,9 @@ bool TemporalLayers::ConfigureBitrates(int bitrateKbit,
       // Bitrate API for VP8 is the agregated bitrate for all lower layers.
       cfg->ts_number_layers = 4;
       cfg->ts_periodicity = temporal_ids_length_;
-      cfg->ts_target_bitrate[0] = bitrateKbit / 4;
-      cfg->ts_target_bitrate[1] = bitrateKbit * 2 / 5;
-      cfg->ts_target_bitrate[2] = bitrateKbit * 3 / 5;
+      cfg->ts_target_bitrate[0] = bitrateKbit * kVp8LayerRateAlloction[3][0];
+      cfg->ts_target_bitrate[1] = bitrateKbit * kVp8LayerRateAlloction[3][1];
+      cfg->ts_target_bitrate[2] = bitrateKbit * kVp8LayerRateAlloction[3][2];
       cfg->ts_target_bitrate[3] = bitrateKbit;
       cfg->ts_rate_decimator[0] = 8;
       cfg->ts_rate_decimator[1] = 4;
@@ -160,7 +161,7 @@ int TemporalLayers::EncodeFlags() {
       break;
     case kTemporalUpdateGoldenWithoutDependency:
       flags |= VP8_EFLAG_NO_REF_GF;
-      // Deliberetely no break here.
+      // Deliberately no break here.
     case kTemporalUpdateGolden:
       flags |= VP8_EFLAG_NO_REF_ARF;
       flags |= VP8_EFLAG_NO_UPD_ARF;
@@ -168,7 +169,8 @@ int TemporalLayers::EncodeFlags() {
       break;
     case kTemporalUpdateAltrefWithoutDependency:
       flags |= VP8_EFLAG_NO_REF_ARF;
-      // Deliberetely no break here.
+      flags |= VP8_EFLAG_NO_REF_GF;
+      // Deliberately no break here.
     case kTemporalUpdateAltref:
       flags |= VP8_EFLAG_NO_UPD_GF;
       flags |= VP8_EFLAG_NO_UPD_LAST;
@@ -194,6 +196,18 @@ void TemporalLayers::PopulateCodecSpecific(bool key_frame,
   } else {
     vp8_info->temporalIdx = temporal_ids_[pattern_idx_ % temporal_ids_length_];
   }
+  TemporalReferences temporal_reference =
+      temporal_pattern_[pattern_idx_ % temporal_pattern_length_];
+
+  if (temporal_reference == kTemporalUpdateAltrefWithoutDependency ||
+      temporal_reference == kTemporalUpdateGoldenWithoutDependency ||
+      (temporal_reference == kTemporalUpdateNone &&
+      number_of_temporal_layers_ == 4)) {
+    vp8_info->layerSync = true;
+  } else {
+    vp8_info->layerSync = false;
+  }
+
   if (vp8_info->temporalIdx == 0) {
     tl0_pic_idx_++;
   }

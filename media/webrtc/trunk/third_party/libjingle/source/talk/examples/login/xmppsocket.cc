@@ -45,13 +45,13 @@
 #endif  // FEATURE_ENABLE_SSL
 #endif  // USE_SSLSTREAM
 
-XmppSocket::XmppSocket(bool tls) : tls_(tls) {
+XmppSocket::XmppSocket(buzz::TlsOptions tls) : tls_(tls) {
   talk_base::Thread* pth = talk_base::Thread::Current();
   talk_base::AsyncSocket* socket =
     pth->socketserver()->CreateAsyncSocket(SOCK_STREAM);
 #ifndef USE_SSLSTREAM
 #ifdef FEATURE_ENABLE_SSL
-  if (tls_) {
+  if (tls_ != buzz::TLS_DISABLED) {
     socket = talk_base::SSLAdapter::Create(socket);
   }
 #endif  // FEATURE_ENABLE_SSL
@@ -65,7 +65,7 @@ XmppSocket::XmppSocket(bool tls) : tls_(tls) {
   cricket_socket_ = socket;
   stream_ = new talk_base::SocketStream(cricket_socket_);
 #ifdef FEATURE_ENABLE_SSL
-  if (tls_)
+  if (tls_ != buzz::TLS_DISABLED)
     stream_ = talk_base::SSLStreamAdapter::Create(stream_);
 #endif  // FEATURE_ENABLE_SSL
   stream_->SignalEvent.connect(this, &XmppSocket::OnEvent);
@@ -226,7 +226,7 @@ bool XmppSocket::Close() {
 
 bool XmppSocket::StartTls(const std::string & domainname) {
 #if defined(FEATURE_ENABLE_SSL)
-  if (!tls_)
+  if (tls_ == buzz::TLS_DISABLED)
     return false;
 #ifndef USE_SSLSTREAM
   talk_base::SSLAdapter* ssl_adapter =

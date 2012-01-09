@@ -55,9 +55,9 @@ class RelayPort : public Port {
   // RelayPort doesn't yet do anything fancy in the ctor.
   static RelayPort* Create(
       talk_base::Thread* thread, talk_base::PacketSocketFactory* factory,
-      talk_base::Network* network, uint32 ip, int min_port, int max_port,
-      const std::string& username, const std::string& password,
-      const std::string& magic_cookie) {
+      talk_base::Network* network, const talk_base::IPAddress& ip,
+      int min_port, int max_port, const std::string& username,
+      const std::string& password, const std::string& magic_cookie) {
     return new RelayPort(thread, factory, network, ip, min_port, max_port,
                          username, password, magic_cookie);
   }
@@ -85,9 +85,9 @@ class RelayPort : public Port {
 
  protected:
   RelayPort(talk_base::Thread* thread, talk_base::PacketSocketFactory* factory,
-            talk_base::Network*, uint32 ip, int min_port, int max_port,
-            const std::string& username, const std::string& password,
-            const std::string& magic_cookie);
+            talk_base::Network*, const talk_base::IPAddress& ip,
+            int min_port, int max_port, const std::string& username,
+            const std::string& password, const std::string& magic_cookie);
   bool Init();
 
   void SetReady();

@@ -39,6 +39,13 @@ enum RTPAliveType
     kRtpAlive  = 2
 };
 
+enum RTPExtensionType
+{
+   kRtpExtensionNone,
+   kRtpExtensionTransmissionTimeOffset,
+   kRtpExtensionAudioLevel,
+};
+
 enum RTCPAppSubTypes
 {
     kAppSubtypeBwe     = 0x00
@@ -60,7 +67,8 @@ enum RTCPPacketType
     kRtcpApp            = 0x0800,
     kRtcpSli            = 0x4000,
     kRtcpRpsi           = 0x8000,
-    kRtcpRemb           = 0x10000
+    kRtcpRemb           = 0x10000,
+    kRtcpTransmissionTimeOffset = 0x20000
 };
 
 enum KeyFrameRequestMethod
@@ -80,6 +88,14 @@ enum NACKMethod
 {
     kNackOff      = 0,
     kNackRtcp     = 2
+};
+
+enum RetransmissionMode {
+  kRetransmitOff          = 0x0,
+  kRetransmitFECPackets   = 0x1,
+  kRetransmitBaseLayer    = 0x2,
+  kRetransmitHigherLayers = 0x4,
+  kRetransmitAllPackets   = 0xFF
 };
 
 struct RTCPSenderInfo
@@ -236,6 +252,16 @@ public:
 
 protected:
     virtual ~RtpRtcpClock() {}
+};
+
+// RtpReceiveBitrateUpdate is used to signal changes in bitrate estimates for
+// the incoming stream.
+class RtpRemoteBitrateObserver
+{
+public:
+    virtual void OnReceiveBitrateChanged(unsigned int ssrc,
+                                         unsigned int bitrate) = 0;
+    virtual ~RtpRemoteBitrateObserver() {}
 };
 
 } // namespace webrtc

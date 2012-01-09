@@ -26,10 +26,10 @@
  */
 
 // This module contains some basic debugging facilities.
+// Originally comes from shared/commandlineflags/checks.h
 
-
-#ifndef SHARED_COMMANDLINEFLAGS_CHECKS_H__
-#define SHARED_COMMANDLINEFLAGS_CHECKS_H__
+#ifndef TALK_BASE_CHECKS_H_
+#define TALK_BASE_CHECKS_H_
 
 #include <string.h>
 
@@ -41,4 +41,4 @@ void Fatal(const char* file, int line, const char* format, ...);
 #define UNREACHABLE()                                   \
   Fatal(__FILE__, __LINE__, "unreachable code")
 
-#endif  // SHARED_COMMANDLINEFLAGS_CHECKS_H__
+#endif  // TALK_BASE_CHECKS_H_

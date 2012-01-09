@@ -115,7 +115,7 @@ XmlElement* XmppTask::MakeIq(const std::string& type,
   XmlElement* result = new XmlElement(QN_IQ);
   if (!type.empty())
     result->AddAttr(QN_TYPE, type);
-  if (to != JID_EMPTY)
+  if (!to.IsEmpty())
     result->AddAttr(QN_TO, to.Str());
   if (!id.empty())
     result->AddAttr(QN_ID, id);
@@ -151,7 +151,7 @@ bool XmppTask::MatchStanzaFrom(const XmlElement* stanza,
     return true;
 
   // We address the server as "", check if we are doing so here.
-  if (to != JID_EMPTY)
+  if (!to.IsEmpty())
     return false;
 
   // It is legal for the server to identify itself with "domain" or

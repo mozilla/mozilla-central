@@ -28,6 +28,7 @@
 #ifndef TALK_P2P_BASE_SESSIONDESCRIPTION_H_
 #define TALK_P2P_BASE_SESSIONDESCRIPTION_H_
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -55,7 +56,28 @@ struct ContentInfo {
   const ContentDescription* description;
 };
 
+// This class provides a mechanism to aggregate different media contents into a
+// group. This group can also be shared with the peers in a pre-defined format.
+// GroupInfo should be populated only with the |content_name| of the
+// MediaDescription.
+class ContentGroup {
+ public:
+  explicit ContentGroup(const std::string& semantics) :
+      semantics_(semantics) {}
+  void AddContentName(const std::string& content_name);
+  bool RemoveContentName(const std::string& content_name);
+  bool HasContentName(const std::string& content_name) const;
+  const std::string* FirstContentName() const;
+  const std::string& semantics() const { return semantics_; }
+
+ private:
+  std::string semantics_;
+  std::set<std::string> content_types_;
+};
+
 typedef std::vector<ContentInfo> ContentInfos;
+typedef std::vector<ContentGroup> ContentGroups;
+
 const ContentInfo* FindContentInfoByName(
     const ContentInfos& contents, const std::string& name);
 const ContentInfo* FindContentInfoByType(
@@ -71,6 +93,7 @@ class SessionDescription {
       contents_(contents) {}
   const ContentInfo* GetContentByName(const std::string& name) const;
   const ContentInfo* FirstContentByType(const std::string& type) const;
+  const ContentInfo* FirstContent() const;
   // Takes ownership of ContentDescription*.
   void AddContent(const std::string& name,
                   const std::string& type,
@@ -84,9 +107,14 @@ class SessionDescription {
       delete content->description;
     }
   }
+  bool HasGroup(const std::string& name) const;
+  void AddGroup(const ContentGroup& group) { groups_.push_back(group); }
+  void RemoveGroupByName(const std::string& name);
+  const ContentGroup* GetGroupByName(const std::string& name) const;
 
  private:
   ContentInfos contents_;
+  ContentGroups groups_;
 };
 
 // Indicates whether a ContentDescription was an offer or an answer, as

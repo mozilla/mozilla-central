@@ -18,6 +18,7 @@
 namespace webrtc
 {
 
+class TickTimeBase;
 class VCMTimestampExtrapolator;
 
 class VCMTiming
@@ -25,7 +26,8 @@ class VCMTiming
 public:
     // The primary timing component should be passed
     // if this is the dual timing component.
-    VCMTiming(WebRtc_Word32 vcmId = 0,
+    VCMTiming(TickTimeBase* clock,
+              WebRtc_Word32 vcmId = 0,
               WebRtc_Word32 timingId = 0,
               VCMTiming* masterTiming = NULL);
     ~VCMTiming();
@@ -90,8 +92,9 @@ protected:
     WebRtc_UWord32 TargetDelayInternal() const;
 
 private:
-    CriticalSectionWrapper&          _critSect;
+    CriticalSectionWrapper*       _critSect;
     WebRtc_Word32                 _vcmId;
+    TickTimeBase*                 _clock;
     WebRtc_Word32                 _timingId;
     bool                          _master;
     VCMTimestampExtrapolator*     _tsExtrapolator;

@@ -41,6 +41,47 @@ void MacBaseSocketServer::UnregisterSocket(MacAsyncSocket* s) {
   ASSERT(found == 1);
 }
 
+bool MacBaseSocketServer::SetPosixSignalHandler(int signum,
+                                                void (*handler)(int)) {
+  Dispatcher* dispatcher = signal_dispatcher();
+  if (!PhysicalSocketServer::SetPosixSignalHandler(signum, handler)) {
+    return false;
+  }
+
+  // Only register the FD once, when the first custom handler is installed.
+  if (!dispatcher && (dispatcher = signal_dispatcher())) {
+    CFFileDescriptorContext ctx = { 0 };
+    ctx.info = this;
+
+    CFFileDescriptorRef desc = CFFileDescriptorCreate(
+        kCFAllocatorDefault,
+        dispatcher->GetDescriptor(),
+        false,
+        &MacBaseSocketServer::FileDescriptorCallback,
+        &ctx);
+    if (!desc) {
+      return false;
+    }
+
+    CFFileDescriptorEnableCallBacks(desc, kCFFileDescriptorReadCallBack);
+    CFRunLoopSourceRef ref =
+        CFFileDescriptorCreateRunLoopSource(kCFAllocatorDefault, desc, 0);
+
+    if (!ref) {
+      CFRelease(desc);
+      return false;
+    }
+
+    CFRunLoopAddSource(CFRunLoopGetCurrent(), ref, kCFRunLoopCommonModes);
+    CFRelease(desc);
+    CFRelease(ref);
+  }
+
+  return true;
+}
+
+// Used to disable socket events from waking our message queue when
+// process_io is false.  Does not disable signal event handling though.
 void MacBaseSocketServer::EnableSocketCallbacks(bool enable) {
   for (std::set<MacAsyncSocket*>::iterator it = sockets().begin();
        it != sockets().end(); ++it) {
@@ -51,6 +92,21 @@ void MacBaseSocketServer::EnableSocketCallbacks(bool enable) {
     }
   }
 }
+
+void MacBaseSocketServer::FileDescriptorCallback(CFFileDescriptorRef fd,
+                                                 CFOptionFlags flags,
+                                                 void* context) {
+  MacBaseSocketServer* this_ss =
+      reinterpret_cast<MacBaseSocketServer*>(context);
+  ASSERT(this_ss);
+  Dispatcher* signal_dispatcher = this_ss->signal_dispatcher();
+  ASSERT(signal_dispatcher);
+
+  signal_dispatcher->OnPreEvent(DE_READ);
+  signal_dispatcher->OnEvent(DE_READ, 0);
+  CFFileDescriptorEnableCallBacks(fd, kCFFileDescriptorReadCallBack);
+}
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // MacCFSocketServer
@@ -225,6 +281,9 @@ void MacCarbonSocketServer::WakeUp() {
 // MacCarbonAppSocketServer
 ///////////////////////////////////////////////////////////////////////////////
 
+// Carbon is deprecated for x64.  Switch to Cocoa
+#if !defined(__x86_64__)
+
 MacCarbonAppSocketServer::MacCarbonAppSocketServer()
     : event_queue_(GetCurrentEventQueue()) {
   // Install event handler
@@ -296,6 +355,7 @@ void MacCarbonAppSocketServer::WakeUp() {
   }
   ReleaseEvent(wake_up);
 }
+#endif
 
 ///////////////////////////////////////////////////////////////////////////////
 // MacNotificationsSocketServer

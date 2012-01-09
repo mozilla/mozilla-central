@@ -69,7 +69,6 @@ talk_base::Pathname GetTalkDirectory() {
   return path;
 }
 
-
 int main(int argc, char** argv) {
   testing::InitGoogleTest(&argc, argv);
   FlagList::SetFlagsFromCommandLine(&argc, argv, false);

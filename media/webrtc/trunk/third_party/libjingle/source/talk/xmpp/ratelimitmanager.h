@@ -28,7 +28,7 @@
 #ifndef _RATELIMITMANAGER_H_
 #define _RATELIMITMANAGER_H_
 
-#include "talk/base/time.h"
+#include "talk/base/timeutils.h"
 #include "talk/base/taskrunner.h"
 #include <map>
 

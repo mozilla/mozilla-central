@@ -187,9 +187,9 @@ const char RELAY_PORT_TYPE[] = "relay";
 
 RelayPort::RelayPort(
     talk_base::Thread* thread, talk_base::PacketSocketFactory* factory,
-    talk_base::Network* network, uint32 ip, int min_port, int max_port,
-    const std::string& username, const std::string& password,
-    const std::string& magic_cookie)
+    talk_base::Network* network, const talk_base::IPAddress& ip,
+    int min_port, int max_port, const std::string& username,
+    const std::string& password, const std::string& magic_cookie)
     : Port(thread, RELAY_PORT_TYPE, factory, network, ip, min_port, max_port),
       ready_(false),
       magic_cookie_(magic_cookie),
@@ -554,7 +554,7 @@ int RelayEntry::SendTo(const void* data, size_t size,
 
   StunAddressAttribute* addr_attr =
       StunAttribute::CreateAddress(STUN_ATTR_DESTINATION_ADDRESS);
-  addr_attr->SetIP(addr.ip());
+  addr_attr->SetIP(addr.ipaddr());
   addr_attr->SetPort(addr.port());
   request.AddAttribute(addr_attr);
 
@@ -702,7 +702,7 @@ void RelayEntry::OnReadPacket(talk_base::AsyncPacketSocket* socket,
     return;
   }
 
-  talk_base::SocketAddress remote_addr2(addr_attr->ip(), addr_attr->port());
+  talk_base::SocketAddress remote_addr2(addr_attr->ipaddr(), addr_attr->port());
 
   const StunByteStringAttribute* data_attr = msg.GetByteString(STUN_ATTR_DATA);
   if (!data_attr) {
@@ -764,7 +764,7 @@ void AllocateRequest::OnResponse(StunMessage* response) {
   } else if (addr_attr->family() != 1) {
     LOG(INFO) << "Mapped address has bad family";
   } else {
-    talk_base::SocketAddress addr(addr_attr->ip(), addr_attr->port());
+    talk_base::SocketAddress addr(addr_attr->ipaddr(), addr_attr->port());
     entry_->OnConnect(addr, connection_);
   }
 

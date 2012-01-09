@@ -71,6 +71,11 @@ class AsyncResolver : public SignalThread {
 hostent* SafeGetHostByName(const char* hostname, int* herrno);
 void FreeHostEnt(hostent* host);
 
+// talk_base namespaced wrappers for inet_ntop and inet_pton so we can avoid
+// the windows-native versions of these.
+const char* inet_ntop(int af, const void *src, char* dst, socklen_t size);
+int inet_pton(int af, const char* src, void *dst);
+
 }  // namespace talk_base
 
 #endif  // TALK_BASE_NETHELPERS_H_

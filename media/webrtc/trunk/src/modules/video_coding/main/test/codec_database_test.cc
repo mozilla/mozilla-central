@@ -104,11 +104,6 @@ CodecDataBaseTest::Perform(CmdArgs& args)
     /************************/
     VideoCodec sendCodec, receiveCodec;
     TEST(VideoCodingModule::NumberOfCodecs() > 0);
-    WebRtc_Word8 version[512];
-    WebRtc_UWord32 length = 512;
-    WebRtc_UWord32 position = 0;
-    TEST(_vcm->Version(version, length, position) == VCM_OK);
-    printf("%s", version);
     _vcm->InitializeReceiver();
     _vcm->InitializeSender();
     VCMDecodeCompleteCallback *_decodeCallback = new VCMDecodeCompleteCallback(_decodedFile);
@@ -368,8 +363,9 @@ CodecDataBaseTest::Perform(CmdArgs& args)
             _vcm->Decode();
             // Don't measure PSNR for I420 since it will be perfect.
             if (sendCodec.codecType != kVideoCodecI420) {
-                QualityMetricsResult psnr;
-                PsnrFromFiles(_inname.c_str(), _outname.c_str(), _width, _height, &psnr);
+                webrtc::test::QualityMetricsResult psnr;
+                I420PSNRFromFiles(_inname.c_str(), _outname.c_str(), _width,
+                                  _height, &psnr);
                 printf("\n @ %d KBPS:  ", sendCodec.startBitrate);
                 printf("PSNR from encoder-decoder send-receive control test"
                        "is %f\n\n", psnr.average);

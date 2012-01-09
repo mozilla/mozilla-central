@@ -31,25 +31,11 @@
 #include <string>
 #include <vector>
 
+#include "talk/base/scoped_ptr.h"
 #include "talk/base/sigslot.h"
 #include "talk/base/stringencode.h"
 
-#ifdef BUILD_WITH_CHROMIUM
-// The SoundSystem related code refers to some definitions that are not
-// available in chromium. (LS_VERBOSE, DISALLOW_ASSIGN etc.)
-// For now, disable the sound system code from devicemanager.h/cc.
-// TODO: Split the DeviceManager implemenations out of
-// devicemanager.h/cc so that we can exclude the DeviceManager impls from
-// libjingle build when they are not needed.
-#define NO_SOUND_SYSTEM
-#endif
-#if defined(LINUX) && !defined(NO_SOUND_SYSTEM)
-#include "talk/sound/soundsystemfactory.h"
-#endif
-
 namespace cricket {
-
-class DeviceWatcher;
 
 // Used to represent an audio or video capture or render device.
 struct Device {
@@ -93,6 +79,14 @@ class DeviceManagerInterface {
   static const char kDefaultDeviceName[];
 };
 
+class DeviceWatcher {
+ public:
+  explicit DeviceWatcher(DeviceManagerInterface* dm) {}
+  virtual ~DeviceWatcher() {}
+  virtual bool Start() { return true; }
+  virtual void Stop() {}
+};
+
 class DeviceManagerFactory {
  public:
   static DeviceManagerInterface* Create();
@@ -122,25 +116,28 @@ class DeviceManager : public DeviceManagerInterface {
   virtual bool GetVideoCaptureDevices(std::vector<Device>* devs);
   virtual bool GetVideoCaptureDevice(const std::string& name, Device* out);
 
+  // The exclusion_list MUST be a NULL terminated list.
+  static bool FilterDevices(std::vector<Device>* devices,
+      const char* const exclusion_list[]);
   bool initialized() const { return initialized_; }
-  void OnDevicesChange() { SignalDevicesChange(); }
 
  protected:
+  virtual bool GetAudioDevices(bool input, std::vector<Device>* devs);
   virtual bool GetAudioDevice(bool is_input, const std::string& name,
                               Device* out);
   virtual bool GetDefaultVideoCaptureDevice(Device* device);
 
- private:
-  bool GetAudioDevicesByPlatform(bool input, std::vector<Device>* devs);
+  void set_initialized(bool initialized) { initialized_ = initialized; }
 
+  void set_watcher(DeviceWatcher* watcher) { watcher_.reset(watcher); }
+  DeviceWatcher* watcher() { return watcher_.get(); }
+
+ private:
+  // The exclusion_list MUST be a NULL terminated list.
+  static bool ShouldDeviceBeIgnored(const std::string& device_name,
+      const char* const exclusion_list[]);
   bool initialized_;
-#ifdef WIN32
-  bool need_couninitialize_;
-#endif
-  DeviceWatcher* watcher_;
-#if defined(LINUX) && !defined(NO_SOUND_SYSTEM)
-  SoundSystemHandle sound_system_;
-#endif
+  talk_base::scoped_ptr<DeviceWatcher> watcher_;
 };
 
 }  // namespace cricket

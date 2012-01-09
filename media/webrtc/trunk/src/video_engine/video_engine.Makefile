@@ -3,4 +3,4 @@
 export builddir_name ?= trunk/src/video_engine/$(OBJDIR)/media/webrtc/out
 .PHONY: all
 all:
-	$(MAKE) -C ../.. video_engine_core vie_auto_test
+	$(MAKE) -C ../.. video_engine_core video_engine_core_unittests vie_auto_test

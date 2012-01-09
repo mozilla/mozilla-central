@@ -36,13 +36,13 @@
       }],
 
       # Define yasm_flags that pass into YASM.
-      [ 'OS=="linux" and target_arch=="ia32"', {
+      [ 'os_posix==1 and OS!="mac" and target_arch=="ia32"', {
         'yasm_flags': [
           '-felf32',
           '-m', 'x86',
         ],
       }],
-      [ 'OS=="linux" and target_arch=="x64"', {
+      [ 'os_posix==1 and OS!="mac" and target_arch=="x64"', {
         'yasm_flags': [
           '-DPIC',
           '-felf64',

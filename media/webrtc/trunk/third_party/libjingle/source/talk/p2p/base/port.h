@@ -77,7 +77,7 @@ class Port : public talk_base::MessageHandler, public sigslot::has_slots<> {
  public:
   Port(talk_base::Thread* thread, const std::string& type,
        talk_base::PacketSocketFactory* factory, talk_base::Network* network,
-       uint32 ip, int min_port, int max_port);
+       const talk_base::IPAddress& ip, int min_port, int max_port);
   virtual ~Port();
 
   // The thread on which this port performs its I/O.
@@ -241,7 +241,7 @@ class Port : public talk_base::MessageHandler, public sigslot::has_slots<> {
   talk_base::PacketSocketFactory* factory_;
   std::string type_;
   talk_base::Network* network_;
-  uint32 ip_;
+  talk_base::IPAddress ip_;
   int min_port_;
   int max_port_;
   uint32 generation_;

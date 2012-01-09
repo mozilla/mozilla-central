@@ -20,23 +20,17 @@ namespace webrtc {
 WebRtc_UWord32 UdpSocket2ManagerWindows::_numOfActiveManagers = 0;
 bool UdpSocket2ManagerWindows::_wsaInit = false;
 
-UdpSocket2ManagerWindows::UdpSocket2ManagerWindows(
-    const WebRtc_Word32 id,
-    WebRtc_UWord8& numOfWorkThreads)
-    : UdpSocketManager(id, numOfWorkThreads),
-      _id(id),
-      _stoped(false),
+UdpSocket2ManagerWindows::UdpSocket2ManagerWindows()
+    : UdpSocketManager(),
+      _id(-1),
+      _stopped(false),
       _init(false),
-      _pCrit(NULL),
+      _pCrit(CriticalSectionWrapper::CreateCriticalSection()),
       _ioCompletionHandle(NULL),
       _numActiveSockets(0),
-      _numOfWorkThreads(numOfWorkThreads)
+      _event(EventWrapper::Create())
 {
     _managerNumber = _numOfActiveManagers++;
-
-    WEBRTC_TRACE(kTraceDebug, kTraceTransport, _id,
-                 "UdpSocket2ManagerWindows(%d)::UdpSocket2ManagerWindows()",
-                 _managerNumber);
 
     if(_numOfActiveManagers == 1)
     {
@@ -47,7 +41,6 @@ UdpSocket2ManagerWindows::UdpSocket2ManagerWindows(
         //                 if a UdpSocket2ManagerWindows() created and destroyed
         //                 without being initialized.
     }
-    _event = EventWrapper::Create();
 }
 
 UdpSocket2ManagerWindows::~UdpSocket2ManagerWindows()
@@ -72,11 +65,9 @@ UdpSocket2ManagerWindows::~UdpSocket2ManagerWindows()
 
         // All threads are stopped. Safe to delete them.
         ListItem* pItem = NULL;
-        UdpSocket2WorkerWindows* pWorker;
         while((pItem = _workerThreadsList.First()) != NULL)
         {
-            pWorker = (UdpSocket2WorkerWindows*)pItem->GetItem();
-            delete pWorker;
+            delete static_cast<UdpSocket2WorkerWindows*>(pItem->GetItem());
             _workerThreadsList.PopFront();
         }
 
@@ -94,15 +85,28 @@ UdpSocket2ManagerWindows::~UdpSocket2ManagerWindows()
                 WSACleanup();
             }
         }
-        if(_pCrit)
-        {
-            delete _pCrit;
-        }
+    }
+    if(_pCrit)
+    {
+        delete _pCrit;
     }
     if(_event)
     {
         delete _event;
     }
+}
+
+bool UdpSocket2ManagerWindows::Init(WebRtc_Word32 id,
+                                    WebRtc_UWord8& numOfWorkThreads) {
+  CriticalSectionScoped cs(_pCrit);
+  if ((_id != -1) || (_numOfWorkThreads != 0)) {
+      assert(_id != -1);
+      assert(_numOfWorkThreads != 0);
+      return false;
+  }
+  _id = id;
+  _numOfWorkThreads = numOfWorkThreads;
+  return true;
 }
 
 WebRtc_Word32 UdpSocket2ManagerWindows::ChangeUniqueId(const WebRtc_Word32 id)
@@ -117,7 +121,7 @@ bool UdpSocket2ManagerWindows::Start()
                  "UdpSocket2ManagerWindows(%d)::Start()",_managerNumber);
     if(!_init)
     {
-        Init();
+        StartWorkerThreads();
     }
 
     if(!_init)
@@ -126,7 +130,7 @@ bool UdpSocket2ManagerWindows::Start()
     }
     _pCrit->Enter();
     // Start worker threads.
-    _stoped = false;
+    _stopped = false;
     WebRtc_Word32 i = 0;
     WebRtc_Word32 error = 0;
     ListItem* pItem = _workerThreadsList.First();
@@ -154,15 +158,10 @@ bool UdpSocket2ManagerWindows::Start()
     return true;
 }
 
-WebRtc_Word32 UdpSocket2ManagerWindows::Init()
+bool UdpSocket2ManagerWindows::StartWorkerThreads()
 {
     if(!_init)
     {
-        _pCrit = CriticalSectionWrapper::CreateCriticalSection();
-        if(_pCrit == NULL)
-        {
-            return -1;
-        }
         _pCrit->Enter();
 
         _ioCompletionHandle = CreateIoCompletionPort(INVALID_HANDLE_VALUE, NULL,
@@ -174,28 +173,23 @@ WebRtc_Word32 UdpSocket2ManagerWindows::Init()
                 kTraceError,
                 kTraceTransport,
                 _id,
-                "UdpSocket2ManagerWindows(%d)::Init()\
- _ioCompletioHandle == NULL: error:%d",
+                "UdpSocket2ManagerWindows(%d)::StartWorkerThreads()"
+                "_ioCompletioHandle == NULL: error:%d",
                 _managerNumber,error);
             _pCrit->Leave();
-            return -1;
+            return false;
         }
 
         // Create worker threads.
         WebRtc_UWord32 i = 0;
-        WebRtc_Word32 error = 0;
+        bool error = false;
         while(i < _numOfWorkThreads && !error)
         {
             UdpSocket2WorkerWindows* pWorker =
                 new UdpSocket2WorkerWindows(_ioCompletionHandle);
-            if(pWorker == NULL)
+            if(pWorker->Init() != 0)
             {
-                error = 1;
-                break;
-            }
-            if(pWorker->Init())
-            {
-                error = 1;
+                error = true;
                 delete pWorker;
                 break;
             }
@@ -208,20 +202,18 @@ WebRtc_Word32 UdpSocket2ManagerWindows::Init()
                 kTraceError,
                 kTraceTransport,
                 _id,
-                "UdpSocket2ManagerWindows(%d)::Init() error creating work\
- threads",
+                "UdpSocket2ManagerWindows(%d)::StartWorkerThreads() error "
+                "creating work threads",
                 _managerNumber);
             // Delete worker threads.
             ListItem* pItem = NULL;
-            UdpSocket2WorkerWindows* pWorker;
             while((pItem = _workerThreadsList.First()) != NULL)
             {
-                pWorker = (UdpSocket2WorkerWindows*)pItem->GetItem();
-                delete pWorker;
+                delete static_cast<UdpSocket2WorkerWindows*>(pItem->GetItem());
                 _workerThreadsList.PopFront();
             }
             _pCrit->Leave();
-            return -1;
+            return false;
         }
         if(_ioContextPool.Init())
         {
@@ -229,23 +221,23 @@ WebRtc_Word32 UdpSocket2ManagerWindows::Init()
                 kTraceError,
                 kTraceTransport,
                 _id,
-                "UdpSocket2ManagerWindows(%d)::Init() error initiating\
- _ioContextPool",
+                "UdpSocket2ManagerWindows(%d)::StartWorkerThreads() error "
+                "initiating _ioContextPool",
                 _managerNumber);
             _pCrit->Leave();
-            return -1;
+            return false;
         }
         _init = true;
         WEBRTC_TRACE(
             kTraceDebug,
             kTraceTransport,
             _id,
-            "UdpSocket2ManagerWindows::Init() %d number of work threads\
- created and init",
+            "UdpSocket2ManagerWindows::StartWorkerThreads %d number of work "
+            "threads created and initialized",
             _numOfWorkThreads);
         _pCrit->Leave();
     }
-    return 0;
+    return true;
 }
 
 bool UdpSocket2ManagerWindows::Stop()
@@ -258,7 +250,7 @@ bool UdpSocket2ManagerWindows::Stop()
         return false;
     }
     _pCrit->Enter();
-    _stoped = true;
+    _stopped = true;
     if(_numActiveSockets)
     {
         WEBRTC_TRACE(
@@ -276,6 +268,7 @@ bool UdpSocket2ManagerWindows::Stop()
     _pCrit->Leave();
     return result;
 }
+
 bool UdpSocket2ManagerWindows::StopWorkerThreads()
 {
     WebRtc_Word32 error = 0;
@@ -421,7 +414,7 @@ PerIoContext* UdpSocket2ManagerWindows::PopIoContext()
     }
 
     PerIoContext* pIoC = NULL;
-    if(!_stoped)
+    if(!_stopped)
     {
         pIoC = _ioContextPool.PopIoContext();
     }else

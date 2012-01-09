@@ -76,17 +76,25 @@ struct SessionError : WriteError {
 // initiate, and for speculatively connecting channels.  Previously, a
 // session had one ChannelMap and transport.  Now, with multiple
 // transports per session, we need multiple ChannelMaps as well.
+
+typedef std::map<std::string, TransportChannelProxy*> ChannelMap;
+
 class TransportProxy {
  public:
   TransportProxy(const std::string& content_name, Transport* transport)
       : content_name_(content_name),
         transport_(transport),
+        owner_(true),
         state_(STATE_INIT),
         sent_candidates_(false) {}
   ~TransportProxy();
 
   std::string content_name() const { return content_name_; }
   Transport* impl() const { return transport_; }
+  // TransportProxy can contain a pointer to Transport for which it's not the
+  // actual owner. In that case it shouldn't try to delete Transport object.
+  // TODO - Remove this hack when ref count support is available.
+  void SetImplementation(Transport* impl, bool owner);
   std::string type() const;
   bool negotiated() const { return state_ == STATE_NEGOTIATED; }
   const Candidates& sent_candidates() const { return sent_candidates_; }
@@ -102,6 +110,8 @@ class TransportProxy {
   void ClearUnsentCandidates() { unsent_candidates_.clear(); }
   void SpeculativelyConnectChannels();
   void CompleteNegotiation();
+  void CopyTransportProxyChannels(TransportProxy* proxy);
+  const ChannelMap& channels() { return channels_; }
 
  private:
   enum TransportState {
@@ -110,15 +120,15 @@ class TransportProxy {
     STATE_NEGOTIATED
   };
 
-  typedef std::map<std::string, TransportChannelProxy*> ChannelMap;
-
   TransportChannelProxy* GetProxy(const std::string& name);
+  void ReplaceImpl(TransportChannelProxy* channel_proxy, size_t index);
   TransportChannelImpl* GetOrCreateImpl(const std::string& name,
                                         const std::string& content_type);
   void SetProxyImpl(const std::string& name, TransportChannelProxy* proxy);
 
   std::string content_name_;
   Transport* transport_;
+  bool owner_;
   TransportState state_;
   ChannelMap channels_;
   Candidates sent_candidates_;
@@ -270,6 +280,7 @@ class BaseSession : public sigslot::has_slots<>,
   // Send when doing so.
   virtual void DestroyChannel(const std::string& content_name,
                               const std::string& channel_name);
+
  protected:
   const TransportMap& transport_proxies() const { return transports_; }
   // Get a TransportProxy by content_name or transport. NULL if not found.
@@ -283,6 +294,9 @@ class BaseSession : public sigslot::has_slots<>,
 
   void OnSignalingReady();
   void SpeculativelyConnectAllTransportChannels();
+  // This method will mux transport channels by content_name.
+  // First content is used for muxing.
+  bool MaybeEnableMuxingSupport();
 
   // Called when a transport requests signaling.
   virtual void OnTransportRequestSignaling(Transport* transport) {
@@ -325,10 +339,19 @@ class BaseSession : public sigslot::has_slots<>,
   virtual void OnMessage(talk_base::Message *pmsg);
 
  protected:
-// private:
   State state_;
   Error error_;
+
  private:
+  // This method will check GroupInfo in local and remote SessionDescriptions.
+  bool ContentsGrouped();
+  // This method will delete the Transport and TransportChannelImpl's and
+  // replace those with the selected Transport objects. Selection is done
+  // based on the content_name and in this case first MediaContent information
+  // is used for mux.
+  void SetSelectedProxy(const std::string& content_name,
+                        const ContentGroup* muxed_group);
+
   talk_base::Thread* signaling_thread_;
   talk_base::Thread* worker_thread_;
   PortAllocator* port_allocator_;
@@ -539,7 +562,7 @@ class Session : public BaseSession {
   bool OnTerminateMessage(const SessionMessage& msg, MessageError* error);
   bool OnTransportInfoMessage(const SessionMessage& msg, MessageError* error);
   bool OnTransportAcceptMessage(const SessionMessage& msg, MessageError* error);
-  bool OnUpdateMessage(const SessionMessage& msg, MessageError* error);
+  bool OnDescriptionInfoMessage(const SessionMessage& msg, MessageError* error);
   bool OnRedirectError(const SessionRedirect& redirect, SessionError* error);
 
   // Verifies that we are in the appropriate state to receive this message.

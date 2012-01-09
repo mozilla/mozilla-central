@@ -9,13 +9,14 @@
  */
 
 #include "video_capture_impl.h"
-#include "trace.h"
+
+#include "common_video/libyuv/include/libyuv.h"
 #include "critical_section_wrapper.h"
-#include "tick_util.h"
-#include "vplib_conversions.h"
-#include "video_capture_config.h"
 #include "module_common_types.h"
 #include "ref_count.h"
+#include "tick_util.h"
+#include "trace.h"
+#include "video_capture_config.h"
 
 #ifdef WEBRTC_ANDROID
 #include "video_capture_android.h" // Need inclusion here to set Java environment.
@@ -33,38 +34,6 @@ VideoCaptureModule* VideoCaptureImpl::Create(
         new RefCountImpl<VideoCaptureImpl>(id);
     externalCapture = implementation;
     return implementation;
-}
-
-WebRtc_Word32 VideoCaptureImpl::Version(WebRtc_Word8* version,
-                                              WebRtc_UWord32& remainingBufferInBytes,
-                                              WebRtc_UWord32& position) const
-{
-    WEBRTC_TRACE(webrtc::kTraceModuleCall, webrtc::kTraceVideoCapture, _id, "Version(bufferLength:%u)",
-               (unsigned int) remainingBufferInBytes);
-    return GetVersion(version, remainingBufferInBytes, position);
-}
-
-WebRtc_Word32 VideoCaptureImpl::GetVersion(WebRtc_Word8* version,
-                                                 WebRtc_UWord32& remainingBufferInBytes,
-                                                 WebRtc_UWord32& position)
-{
-    if (version == NULL)
-    {
-        WEBRTC_TRACE(webrtc::kTraceWarning, webrtc::kTraceVideoCapture, -1,
-                   "Invalid in argument to Version()");
-        return -1;
-    }
-    WebRtc_Word8 ourVersion[] = "VideoCaptureModule 1.1.0";
-    WebRtc_UWord32 ourLength = (WebRtc_UWord32) strlen(ourVersion);
-    if (remainingBufferInBytes < ourLength + 1)
-    {
-        return -1;
-    }
-    memcpy(version, ourVersion, ourLength);
-    version[ourLength] = '\0'; // null terminaion
-    remainingBufferInBytes -= (ourLength + 1);
-    position += (ourLength + 1);
-    return 0;
 }
 
 const WebRtc_UWord8* VideoCaptureImpl::CurrentDeviceName() const
@@ -304,7 +273,7 @@ WebRtc_Word32 VideoCaptureImpl::IncomingFrame(WebRtc_UWord8* videoFrame,
 
     if (frameInfo.codecType == kVideoCodecUnknown) // None encoded. Convert to I420.
     {
-        const VideoType commonVideoType = videocapturemodule::
+        const VideoType commonVideoType =
             RawVideoTypeToCommonVideoVideoType(frameInfo.rawType);
         int size = CalcBufferSize(commonVideoType, width, height);
         if (size != videoFrameLength)
@@ -325,11 +294,15 @@ WebRtc_Word32 VideoCaptureImpl::IncomingFrame(WebRtc_UWord8* videoFrame,
         }
 
         memset(_captureFrame.Buffer(), 0, _captureFrame.Size());
-        const WebRtc_Word32 conversionResult = ConvertToI420(commonVideoType, videoFrame,
-                                                             width, height,
-                                                             _captureFrame.Buffer(),
-                                                             _requestedCapability.interlaced,
-                                                             _rotateFrame);
+        int dstStride  = width;  // Keeping stride = width for I420 destination.
+        const int conversionResult = ConvertToI420(commonVideoType,
+                                                   videoFrame,
+                                                   0, 0,  // No cropping
+                                                   width, height,
+                                                   0,  // Ignored for non-JPG.
+                                                   width, height, dstStride,
+                                                   _rotateFrame,
+                                                   _captureFrame.Buffer());
         if (conversionResult < 0)
         {
             WEBRTC_TRACE(webrtc::kTraceError, webrtc::kTraceVideoCapture, _id,

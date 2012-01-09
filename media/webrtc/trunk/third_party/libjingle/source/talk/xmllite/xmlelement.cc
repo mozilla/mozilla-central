@@ -25,12 +25,14 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "talk/xmllite/xmlelement.h"
+
+#include <ostream>
+#include <sstream>
 #include <string>
 #include <vector>
-#include <sstream>
 
 #include "talk/base/common.h"
-#include "talk/xmllite/xmlelement.h"
 #include "talk/xmllite/qname.h"
 #include "talk/xmllite/xmlparser.h"
 #include "talk/xmllite/xmlbuilder.h"
@@ -38,10 +40,6 @@
 #include "talk/xmllite/xmlconstants.h"
 
 namespace buzz {
-
-const QName QN_EMPTY(true, STR_EMPTY, STR_EMPTY);
-const QName QN_XMLNS(true, STR_EMPTY, STR_XMLNS);
-
 
 XmlChild::~XmlChild() {
 }
@@ -157,7 +155,7 @@ XmlElement::BodyText() const {
     return pFirstChild_->AsText()->Text();
   }
 
-  return STR_EMPTY;
+  return EmptyStringRef();
 }
 
 void
@@ -178,7 +176,7 @@ const QName &
 XmlElement::FirstElementName() const {
   const XmlElement * element = FirstElement();
   if (element == NULL)
-    return QN_EMPTY;
+    return EmptyQNameRef();
   return element->Name();
 }
 
@@ -188,13 +186,33 @@ XmlElement::FirstAttr() {
 }
 
 const std::string &
+XmlElement::Attr(const StaticQName & name) const {
+  XmlAttr * pattr;
+  for (pattr = pFirstAttr_; pattr; pattr = pattr->pNextAttr_) {
+    if (pattr->name_ == name)
+      return pattr->value_;
+  }
+  return EmptyStringRef();
+}
+
+const std::string &
 XmlElement::Attr(const QName & name) const {
   XmlAttr * pattr;
   for (pattr = pFirstAttr_; pattr; pattr = pattr->pNextAttr_) {
     if (pattr->name_ == name)
       return pattr->value_;
   }
-  return STR_EMPTY;
+  return EmptyStringRef();
+}
+
+bool
+XmlElement::HasAttr(const StaticQName & name) const {
+  XmlAttr * pattr;
+  for (pattr = pFirstAttr_; pattr; pattr = pattr->pNextAttr_) {
+    if (pattr->name_ == name)
+      return true;
+  }
+  return false;
 }
 
 bool
@@ -302,7 +320,27 @@ XmlElement::FirstNamed(const QName & name) {
 }
 
 XmlElement *
+XmlElement::FirstNamed(const StaticQName & name) {
+  XmlChild * pChild;
+  for (pChild = pFirstChild_; pChild; pChild = pChild->pNextChild_) {
+    if (!pChild->IsText() && pChild->AsElement()->Name() == name)
+      return pChild->AsElement();
+  }
+  return NULL;
+}
+
+XmlElement *
 XmlElement::NextNamed(const QName & name) {
+  XmlChild * pChild;
+  for (pChild = pNextChild_; pChild; pChild = pChild->pNextChild_) {
+    if (!pChild->IsText() && pChild->AsElement()->Name() == name)
+      return pChild->AsElement();
+  }
+  return NULL;
+}
+
+XmlElement *
+XmlElement::NextNamed(const StaticQName & name) {
   XmlChild * pChild;
   for (pChild = pNextChild_; pChild; pChild = pChild->pNextChild_) {
     if (!pChild->IsText() && pChild->AsElement()->Name() == name)
@@ -328,7 +366,7 @@ XmlElement::TextNamed(const QName & name) const {
     if (!pChild->IsText() && pChild->AsElement()->Name() == name)
       return pChild->AsElement()->BodyText();
   }
-  return STR_EMPTY;
+  return EmptyStringRef();
 }
 
 void
@@ -483,7 +521,7 @@ XmlElement::ClearChildren() {
 std::string
 XmlElement::Str() const {
   std::stringstream ss;
-  Print(&ss, NULL, 0);
+  XmlPrinter::PrintXml(&ss, this);
   return ss.str();
 }
 
@@ -492,12 +530,6 @@ XmlElement::ForStr(const std::string & str) {
   XmlBuilder builder;
   XmlParser::ParseXml(&builder, str);
   return builder.CreateElement();
-}
-
-void
-XmlElement::Print(
-    std::ostream * pout, std::string xmlns[], int xmlnsCount) const {
-  XmlPrinter::PrintXml(pout, this, xmlns, xmlnsCount);
 }
 
 XmlElement::~XmlElement() {

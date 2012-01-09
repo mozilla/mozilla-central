@@ -10,13 +10,17 @@
 
 #include "TestAllCodecs.h"
 
+#include <cassert>
+#include <iostream>
+
 #include "audio_coding_module_typedefs.h"
 #include "common_types.h"
 #include "engine_configurations.h"
-#include <cassert>
-#include <iostream>
+#include "testsupport/fileutils.h"
 #include "trace.h"
 #include "utility.h"
+
+namespace webrtc {
 
 // Class for simulating packet handling
 TestPack::TestPack():
@@ -114,7 +118,6 @@ _counter(0)
     _testMode = testMode;
 }
 
-using namespace std;
 TestAllCodecs::~TestAllCodecs()
 {
     if(_acmA != NULL)
@@ -143,7 +146,7 @@ void TestAllCodecs::Perform()
     if(_testMode == 0)
     {
         printf("Running All Codecs Test");
-        WEBRTC_TRACE(webrtc::kTraceStateInfo, webrtc::kTraceAudioCoding, -1,
+        WEBRTC_TRACE(kTraceStateInfo, kTraceAudioCoding, -1,
                      "---------- TestAllCodecs ----------");
     }
 
@@ -837,11 +840,9 @@ void TestAllCodecs::Run(TestPack* channel)
 
 void TestAllCodecs::OpenOutFile(WebRtc_Word16 testNumber)
 {
-    char fileName[500] = "testallcodecs_out_";
-    char cntrStr[10];
-
-    sprintf(cntrStr, "%02d.pcm", testNumber);
-    strcat(fileName, cntrStr);
+    char fileName[500];
+    sprintf(fileName, "%s/testallcodecs_out_%02d.pcm",
+            webrtc::test::OutputPath().c_str(), testNumber);
     _outFileB.Open(fileName, 32000, "wb");
 }
 
@@ -853,4 +854,6 @@ void TestAllCodecs::DisplaySendReceiveCodec()
     _acmB->ReceiveCodec(myCodecParam);
     printf("%s\n", myCodecParam.plname);
 }
+
+} // namespace webrtc
 

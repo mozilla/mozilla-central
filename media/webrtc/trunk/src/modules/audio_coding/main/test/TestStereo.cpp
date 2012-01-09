@@ -10,14 +10,17 @@
 
 #include "TestStereo.h"
 
-#include "common_types.h"
-#include "audio_coding_module_typedefs.h"
-#include "engine_configurations.h"
-#include <iostream>
-#include "utility.h"
 #include <cassert>
-#include "trace.h"
+#include <iostream>
 
+#include "audio_coding_module_typedefs.h"
+#include "common_types.h"
+#include "engine_configurations.h"
+#include "testsupport/fileutils.h"
+#include "trace.h"
+#include "utility.h"
+
+namespace webrtc {
 
 // Class for simulating packet handling
 TestPackStereo::TestPackStereo():
@@ -167,7 +170,6 @@ _counter(0)
     _testMode = testMode;
 }
 
-using namespace std;
 TestStereo::~TestStereo()
 {
     if(_acmA != NULL)
@@ -195,7 +197,7 @@ void TestStereo::Perform()
      if(_testMode == 0)
       {
           printf("Running Stereo Test");
-          WEBRTC_TRACE(webrtc::kTraceStateInfo, webrtc::kTraceAudioCoding, -1,
+          WEBRTC_TRACE(kTraceStateInfo, kTraceAudioCoding, -1,
                        "---------- TestStereo ----------");
       }
 
@@ -528,12 +530,9 @@ void TestStereo::Run(TestPackStereo* channel)
 
 void TestStereo::OpenOutFile(WebRtc_Word16 testNumber)
 {
-    char fileName[500] = "./src/modules/audio_coding/main/test/teststereo_out_";
-    char cntrStr[10];
-
-    sprintf(cntrStr, "%02d.pcm", testNumber);
-    strcat(fileName, cntrStr);
-
+    char fileName[500];
+    sprintf(fileName, "%s/teststereo_out_%02d.pcm",
+            webrtc::test::OutputPath().c_str(), testNumber);
     _outFileB.Open(fileName, 32000, "wb");
 }
 
@@ -550,3 +549,4 @@ void TestStereo::DisplaySendReceiveCodec()
     }
 }
 
+} // namespace webrtc

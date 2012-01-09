@@ -46,8 +46,10 @@
 #include "talk/base/openssladapter.h"
 #include "talk/base/opensslidentity.h"
 #include "talk/base/stringutils.h"
+#include "talk/base/thread.h"
 
 namespace talk_base {
+
 
 //////////////////////////////////////////////////////////////////////
 // StreamBIO
@@ -166,7 +168,8 @@ OpenSSLStreamAdapter::OpenSSLStreamAdapter(StreamInterface* stream)
       role_(SSL_CLIENT),
       ssl_read_needs_write_(false), ssl_write_needs_read_(false),
       ssl_(NULL), ssl_ctx_(NULL),
-      custom_verification_succeeded_(false) {
+      custom_verification_succeeded_(false),
+      ssl_mode_(SSL_MODE_TLS) {
 }
 
 OpenSSLStreamAdapter::~OpenSSLStreamAdapter() {
@@ -178,15 +181,40 @@ void OpenSSLStreamAdapter::SetIdentity(SSLIdentity* identity) {
   identity_.reset(static_cast<OpenSSLIdentity*>(identity));
 }
 
-void OpenSSLStreamAdapter::SetServerRole() {
-  role_ = SSL_SERVER;
+void OpenSSLStreamAdapter::SetServerRole(SSLRole role) {
+  role_ = role;
 }
 
 void OpenSSLStreamAdapter::SetPeerCertificate(SSLCertificate* cert) {
   ASSERT(peer_certificate_.get() == NULL);
+  ASSERT(peer_certificate_digest_algorithm_.empty());
   ASSERT(ssl_server_name_.empty());
   peer_certificate_.reset(static_cast<OpenSSLCertificate*>(cert));
 }
+
+bool OpenSSLStreamAdapter::SetPeerCertificateDigest(const std::string
+                                                    &digest_alg,
+                                                    const unsigned char*
+                                                    digest_val,
+                                                    size_t digest_len) {
+  ASSERT(peer_certificate_.get() == NULL);
+  ASSERT(peer_certificate_digest_algorithm_.size() == 0);
+  ASSERT(ssl_server_name_.empty());
+  size_t expected_len;
+
+  if (!OpenSSLCertificate::GetDigestLength(digest_alg, &expected_len)) {
+    LOG(LS_WARNING) << "Unknown digest algorithm: " << digest_alg;
+    return false;
+  }
+  if (expected_len != digest_len)
+    return false;
+
+  peer_certificate_digest_value_.SetData(digest_val, digest_len);
+  peer_certificate_digest_algorithm_ = digest_alg;
+
+  return true;
+}
+
 
 int OpenSSLStreamAdapter::StartSSLWithServer(const char* server_name) {
   ASSERT(server_name != NULL && server_name[0] != '\0');
@@ -198,6 +226,11 @@ int OpenSSLStreamAdapter::StartSSLWithPeer() {
   ASSERT(ssl_server_name_.empty());
   // It is permitted to specify peer_certificate_ only later.
   return StartSSL();
+}
+
+void OpenSSLStreamAdapter::SetMode(SSLMode mode) {
+  ASSERT(state_ == SSL_NONE);
+  ssl_mode_ = mode;
 }
 
 //
@@ -238,7 +271,8 @@ StreamResult OpenSSLStreamAdapter::Write(const void* data, size_t data_len,
   ssl_write_needs_read_ = false;
 
   int code = SSL_write(ssl_, data, data_len);
-  switch (SSL_get_error(ssl_, code)) {
+  int ssl_error = SSL_get_error(ssl_, code);
+  switch (ssl_error) {
   case SSL_ERROR_NONE:
     LOG(LS_INFO) << " -- success";
     ASSERT(0 < code && static_cast<unsigned>(code) <= data_len);
@@ -255,7 +289,7 @@ StreamResult OpenSSLStreamAdapter::Write(const void* data, size_t data_len,
 
   case SSL_ERROR_ZERO_RETURN:
   default:
-    Error("SSL_write", (code ? code : -1), false);
+    Error("SSL_write", (ssl_error ? ssl_error : -1), false);
     if (error)
       *error = ssl_error_code_;
     return SR_ERROR;
@@ -298,12 +332,26 @@ StreamResult OpenSSLStreamAdapter::Read(void* data, size_t data_len,
   ssl_read_needs_write_ = false;
 
   int code = SSL_read(ssl_, data, data_len);
-  switch (SSL_get_error(ssl_, code)) {
+  int ssl_error = SSL_get_error(ssl_, code);
+  switch (ssl_error) {
     case SSL_ERROR_NONE:
       LOG(LS_INFO) << " -- success";
       ASSERT(0 < code && static_cast<unsigned>(code) <= data_len);
       if (read)
         *read = code;
+
+      if (ssl_mode_ == SSL_MODE_DTLS) {
+        // Enforce atomic reads -- this is a short read
+        unsigned int pending = SSL_pending(ssl_);
+
+        if (pending) {
+          LOG(LS_INFO) << " -- short DTLS read. flushing";
+          FlushInput(pending);
+          if (error)
+            *error = SSE_MSG_TRUNC;
+          return SR_ERROR;
+        }
+      }
       return SR_SUCCESS;
     case SSL_ERROR_WANT_READ:
       LOG(LS_INFO) << " -- error want read";
@@ -318,12 +366,33 @@ StreamResult OpenSSLStreamAdapter::Read(void* data, size_t data_len,
       break;
     default:
       LOG(LS_INFO) << " -- error " << code;
-      Error("SSL_read", (code ? code : -1), false);
+      Error("SSL_read", (ssl_error ? ssl_error : -1), false);
       if (error)
         *error = ssl_error_code_;
       return SR_ERROR;
   }
   // not reached
+}
+
+void OpenSSLStreamAdapter::FlushInput(unsigned int left) {
+  unsigned char buf[2048];
+
+  while (left) {
+    // This should always succeed
+    int toread = (sizeof(buf) < left) ? sizeof(buf) : left;
+    int code = SSL_read(ssl_, buf, toread);
+
+    int ssl_error = SSL_get_error(ssl_, code);
+    ASSERT(ssl_error == SSL_ERROR_NONE);
+
+    if (ssl_error != SSL_ERROR_NONE) {
+      LOG(LS_INFO) << " -- error " << code;
+      Error("SSL_read", (ssl_error ? ssl_error : -1), false);
+      return;
+    }
+    LOG(LS_INFO) << " -- flushed " << code << " bytes";
+    left -= code;
+  }
 }
 
 void OpenSSLStreamAdapter::Close() {
@@ -333,7 +402,7 @@ void OpenSSLStreamAdapter::Close() {
 }
 
 StreamState OpenSSLStreamAdapter::GetState() const {
-  switch(state_) {
+  switch (state_) {
     case SSL_WAIT:
     case SSL_CONNECTING:
       return SS_OPENING;
@@ -395,7 +464,7 @@ void OpenSSLStreamAdapter::OnEvent(StreamInterface* stream, int events,
     ASSERT(signal_error == 0);
     signal_error = err;
   }
-  if(events_to_signal)
+  if (events_to_signal)
     StreamAdapterInterface::OnEvent(stream, events_to_signal, signal_error);
 }
 
@@ -420,7 +489,9 @@ int OpenSSLStreamAdapter::BeginSSL() {
   ASSERT(state_ == SSL_CONNECTING);
   // The underlying stream has open. If we are in peer-to-peer mode
   // then a peer certificate must have been specified by now.
-  ASSERT(!ssl_server_name_.empty() || peer_certificate_.get() != NULL);
+  ASSERT(!ssl_server_name_.empty() ||
+         peer_certificate_.get() != NULL ||
+         !peer_certificate_digest_algorithm_.empty());
   LOG(LS_INFO) << "BeginSSL: "
                << (!ssl_server_name_.empty() ? ssl_server_name_ :
                                                "with peer");
@@ -458,14 +529,19 @@ int OpenSSLStreamAdapter::ContinueSSL() {
   LOG(LS_INFO) << "ContinueSSL";
   ASSERT(state_ == SSL_CONNECTING);
 
+  // Clear the DTLS timer
+  Thread::Current()->Clear(this, MSG_TIMEOUT);
+
   int code = (role_ == SSL_CLIENT) ? SSL_connect(ssl_) : SSL_accept(ssl_);
-  switch (SSL_get_error(ssl_, code)) {
+  int ssl_error;
+  switch (ssl_error = SSL_get_error(ssl_, code)) {
     case SSL_ERROR_NONE:
       LOG(LS_INFO) << " -- success";
 
       if (!SSLPostConnectionCheck(ssl_, ssl_server_name_.c_str(),
                                   peer_certificate_.get() != NULL
-                                  ? peer_certificate_->x509() : NULL)) {
+                                  ? peer_certificate_->x509() : NULL,
+                                  peer_certificate_digest_algorithm_)) {
         LOG(LS_ERROR) << "TLS post connection check failed";
         return -1;
       }
@@ -474,8 +550,17 @@ int OpenSSLStreamAdapter::ContinueSSL() {
       StreamAdapterInterface::OnEvent(stream(), SE_OPEN|SE_READ|SE_WRITE, 0);
       break;
 
-    case SSL_ERROR_WANT_READ:
-      LOG(LS_INFO) << " -- error want read";
+    case SSL_ERROR_WANT_READ:{
+        LOG(LS_INFO) << " -- error want read";
+#if defined(HAS_OPENSSL_1_0) && defined(LINUX)
+        struct timeval timeout;
+        if (DTLSv1_get_timeout(ssl_, &timeout)) {
+          int delay = timeout.tv_sec * 1000 + timeout.tv_usec/1000;
+
+          Thread::Current()->PostDelayed(delay, this, MSG_TIMEOUT, 0);
+        }
+#endif
+      }
       break;
 
     case SSL_ERROR_WANT_WRITE:
@@ -485,7 +570,7 @@ int OpenSSLStreamAdapter::ContinueSSL() {
     case SSL_ERROR_ZERO_RETURN:
     default:
       LOG(LS_INFO) << " -- error " << code;
-      return (code != 0) ? code : -1;
+      return (ssl_error != 0) ? ssl_error : -1;
   }
 
   return 0;
@@ -519,11 +604,37 @@ void OpenSSLStreamAdapter::Cleanup() {
   }
   identity_.reset();
   peer_certificate_.reset();
+
+  // Clear the DTLS timer
+  Thread::Current()->Clear(this, MSG_TIMEOUT);
+}
+
+
+void OpenSSLStreamAdapter::OnMessage(Message* msg) {
+  // Process our own messages and then pass others to the superclass
+  if (MSG_TIMEOUT == msg->message_id) {
+    LOG(LS_INFO) << "DTLS timeout expired";
+#if defined(HAS_OPENSSL_1_0) && defined(LINUX)
+    DTLSv1_handle_timeout(ssl_);
+#endif
+    ContinueSSL();
+  } else {
+    StreamInterface::OnMessage(msg);
+  }
 }
 
 SSL_CTX* OpenSSLStreamAdapter::SetupSSLContext() {
-  SSL_CTX* ctx = SSL_CTX_new(role_ == SSL_CLIENT ? TLSv1_client_method()
-                             : TLSv1_server_method());
+  SSL_CTX *ctx = NULL;
+
+#if defined(HAS_OPENSSL_1_0) && defined(LINUX)
+  if (role_ == SSL_CLIENT) {
+    ctx = SSL_CTX_new(ssl_mode_ == SSL_MODE_DTLS ?
+        DTLSv1_client_method() : TLSv1_client_method());
+  } else {
+    ctx = SSL_CTX_new(ssl_mode_ == SSL_MODE_DTLS ?
+        DTLSv1_server_method() : TLSv1_server_method());
+  }
+#endif
   if (ctx == NULL)
     return NULL;
 
@@ -534,7 +645,7 @@ SSL_CTX* OpenSSLStreamAdapter::SetupSSLContext() {
 
   if (peer_certificate_.get() == NULL) {  // traditional mode
     // Add the root cert to the SSL context
-    if(!OpenSSLAdapter::ConfigureTrustedRootCertificates(ctx)) {
+    if (!OpenSSLAdapter::ConfigureTrustedRootCertificates(ctx)) {
       SSL_CTX_free(ctx);
       return NULL;
     }
@@ -596,6 +707,29 @@ int OpenSSLStreamAdapter::SSLVerifyCallback(int ok, X509_STORE_CTX* store) {
       LOG(LS_INFO) << "Accepted self-signed peer certificate authority";
       ok = 1;
     }
+  } else if (!ok && !stream->peer_certificate_digest_algorithm_.empty()) {
+    X509* cert = X509_STORE_CTX_get_current_cert(store);
+    int err = X509_STORE_CTX_get_error(store);
+
+    // peer-to-peer mode: allow the certificate to be self-signed,
+    // assuming it matches the digest that was specified.
+    if (err == X509_V_ERR_DEPTH_ZERO_SELF_SIGNED_CERT) {
+      unsigned char digest[EVP_MAX_MD_SIZE];
+      std::size_t digest_length;
+
+      if (OpenSSLCertificate::
+         ComputeDigest(cert,
+                       stream->peer_certificate_digest_algorithm_,
+                       digest, sizeof(digest),
+                       &digest_length)) {
+        Buffer computed_digest(digest, digest_length);
+        if (computed_digest == stream->peer_certificate_digest_value_) {
+          LOG(LS_INFO) <<
+              "Accepted self-signed peer certificate authority";
+          ok = 1;
+        }
+      }
+    }
   } else if (!ok && OpenSSLAdapter::custom_verify_callback_) {
     // this applies only in traditional mode
     void* cert =
@@ -619,10 +753,12 @@ int OpenSSLStreamAdapter::SSLVerifyCallback(int ok, X509_STORE_CTX* store) {
 // sample in chapter 5
 bool OpenSSLStreamAdapter::SSLPostConnectionCheck(SSL* ssl,
                                                   const char* server_name,
-                                                  const X509* peer_cert) {
+                                                  const X509* peer_cert,
+                                                  const std::string
+                                                  &peer_digest) {
   ASSERT(server_name != NULL);
   bool ok;
-  if(server_name[0] != '\0') {  // traditional mode
+  if (server_name[0] != '\0') {  // traditional mode
     ok = OpenSSLAdapter::VerifyServerName(ssl, server_name, ignore_bad_cert());
 
     if (ok) {
@@ -630,7 +766,7 @@ bool OpenSSLStreamAdapter::SSLPostConnectionCheck(SSL* ssl,
             custom_verification_succeeded_);
     }
   } else {  // peer-to-peer mode
-    ASSERT(peer_cert != NULL);
+    ASSERT((peer_cert != NULL) || (!peer_digest.empty()));
     // no server name validation
     ok = true;
   }
@@ -644,6 +780,9 @@ bool OpenSSLStreamAdapter::SSLPostConnectionCheck(SSL* ssl,
 
   return ok;
 }
+
+
+
 
 }  // namespace talk_base
 
