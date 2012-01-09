@@ -5,19 +5,20 @@
 
 # This script will check out llvm and clang into third_party/llvm and build it.
 
+# Do NOT CHANGE this if you don't know what you're doing -- see
+# https://code.google.com/p/chromium/wiki/UpdatingClang
+# Reverting problematic clang rolls is safe, though.
+CLANG_REVISION=146361
+
 THIS_DIR="$(dirname "${0}")"
 LLVM_DIR="${THIS_DIR}/../../../third_party/llvm"
 LLVM_BUILD_DIR="${LLVM_DIR}/../llvm-build"
 CLANG_DIR="${LLVM_DIR}/tools/clang"
-DEPS_FILE="${THIS_DIR}/../../../DEPS"
-if [ -e "${THIS_DIR}/../../../chromium_deps/DEPS" ]; then
-  # For bare WebKit/chromium checkouts.
-  DEPS_FILE="${THIS_DIR}/../../../chromium_deps/DEPS"
-fi
+COMPILER_RT_DIR="${LLVM_DIR}/projects/compiler-rt"
 STAMP_FILE="${LLVM_BUILD_DIR}/cr_build_revision"
 
 # ${A:-a} returns $A if it's set, a else.
-LLVM_REPO_URL=${LLVM_URL:-http://llvm.org/svn/llvm-project}
+LLVM_REPO_URL=${LLVM_URL:-https://llvm.org/svn/llvm-project}
 
 # Die if any command dies.
 set -e
@@ -42,7 +43,7 @@ while [[ $# > 0 ]]; do
     --help)
       echo "usage: $0 [--force-local-build] [--mac-only] [--run-tests] "
       echo "--force-local-build: Don't try to download prebuilt binaries."
-      echo "--mac-only: Do nothing on non-Mac systems."
+      echo "--mac-only: Do initial download only on Mac systems."
       echo "--run-tests: Run tests after building. Only for local builds."
       exit 1
       ;;
@@ -50,15 +51,14 @@ while [[ $# > 0 ]]; do
   shift
 done
 
-if [[ -n "$mac_only" ]] && [[ "${OS}" != "Darwin" ]]; then
+# --mac-only prevents the initial download on non-mac systems, but if clang has
+# already been downloaded in the past, this script keeps it up to date even if
+# --mac-only is passed in and the system isn't a mac. People who don't like this
+# can just delete their third_party/llvm-build directory.
+if [[ -n "$mac_only" ]] && [[ "${OS}" != "Darwin" ]] &&
+    ! [[ -d "${LLVM_BUILD_DIR}" ]]; then
   exit 0
 fi
-
-# TODO(thakis): Remove this after Sept 29 2011. http://crbug.com/96722
-for rev in 138188 138417 139029 139473 139990; do
-  rm -f clang-$rev.tgz
-  rm -rf clang-$rev
-done
 
 # Xcode and clang don't get along when predictive compilation is enabled.
 # http://crbug.com/96315
@@ -85,11 +85,6 @@ if [[ "${OS}" = "Darwin" ]] && xcodebuild -version | grep -q 'Xcode 3.2' ; then
   fi
 fi
 
-
-# Since people need to run this script anyway to compile clang, let it check out
-# clang as well if it's not in DEPS, so that people don't have to change their
-# DEPS if they just want to give clang a try.
-CLANG_REVISION=$(grep 'clang_revision":' "${DEPS_FILE}" | egrep -o [[:digit:]]+)
 
 # Check if there's anything to be done, exit early if not.
 if [ -f "${STAMP_FILE}" ]; then
@@ -156,24 +151,20 @@ if [ -z "$force_local_build" ]; then
   fi
 fi
 
-if grep -q 'src/third_party/llvm":' "${DEPS_FILE}"; then
-  echo LLVM pulled in through DEPS, skipping LLVM update step
-else
-  echo Getting LLVM r"${CLANG_REVISION}" in "${LLVM_DIR}"
-  if ! svn co --force "${LLVM_REPO_URL}/llvm/trunk@${CLANG_REVISION}" \
-                      "${LLVM_DIR}"; then
-    echo Checkout failed, retrying
-    rm -rf "${LLVM_DIR}"
-    svn co --force "${LLVM_REPO_URL}/llvm/trunk@${CLANG_REVISION}" "${LLVM_DIR}"
-  fi
+echo Getting LLVM r"${CLANG_REVISION}" in "${LLVM_DIR}"
+if ! svn co --force "${LLVM_REPO_URL}/llvm/trunk@${CLANG_REVISION}" \
+                    "${LLVM_DIR}"; then
+  echo Checkout failed, retrying
+  rm -rf "${LLVM_DIR}"
+  svn co --force "${LLVM_REPO_URL}/llvm/trunk@${CLANG_REVISION}" "${LLVM_DIR}"
 fi
 
-if grep -q 'src/third_party/llvm/tools/clang":' "${DEPS_FILE}"; then
-  echo clang pulled in through DEPS, skipping clang update step
-else
-  echo Getting clang r"${CLANG_REVISION}" in "${CLANG_DIR}"
-  svn co --force "${LLVM_REPO_URL}/cfe/trunk@${CLANG_REVISION}" "${CLANG_DIR}"
-fi
+echo Getting clang r"${CLANG_REVISION}" in "${CLANG_DIR}"
+svn co --force "${LLVM_REPO_URL}/cfe/trunk@${CLANG_REVISION}" "${CLANG_DIR}"
+
+echo Getting compiler-rt r"${CLANG_REVISION}" in "${COMPILER_RT_DIR}"
+svn co --force "${LLVM_REPO_URL}/compiler-rt/trunk@${CLANG_REVISION}" \
+               "${COMPILER_RT_DIR}"
 
 # Echo all commands.
 set -x
@@ -217,6 +208,9 @@ make -j"${NUM_JOBS}" -C "${PLUGIN_BUILD_DIR}"
 if [[ -n "$run_tests" ]]; then
   # Run a few tests.
   "${PLUGIN_SRC_DIR}/tests/test.sh" "${LLVM_BUILD_DIR}/Release+Asserts"
+  cd "${LLVM_BUILD_DIR}"
+  make check-all
+  cd -
 fi
 
 # After everything is done, log success for this revision.

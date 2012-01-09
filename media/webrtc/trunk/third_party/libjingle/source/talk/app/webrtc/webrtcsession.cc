@@ -31,7 +31,6 @@
 #include <vector>
 
 #include "talk/base/common.h"
-#include "talk/base/json.h"
 #include "talk/base/scoped_ptr.h"
 #include "talk/p2p/base/constants.h"
 #include "talk/p2p/base/sessiondescription.h"
@@ -60,6 +59,10 @@ static const int kCallLostTimeout = 60 * 1000;
 
 static const char kVideoStream[] = "video_rtp";
 static const char kAudioStream[] = "rtp";
+
+static const int kDefaultVideoCodecId = 100;
+static const int kDefaultVideoCodecFramerate = 30;
+static const char kDefaultVideoCodecName[] = "VP8";
 
 WebRtcSession::WebRtcSession(const std::string& id,
                              bool incoming,
@@ -93,6 +96,12 @@ WebRtcSession::~WebRtcSession() {
 }
 
 bool WebRtcSession::Initiate() {
+  const cricket::VideoCodec default_codec(kDefaultVideoCodecId,
+      kDefaultVideoCodecName, kDefaultVideoCodecWidth, kDefaultVideoCodecHeight,
+      kDefaultVideoCodecFramerate, 0);
+  channel_manager_->SetDefaultVideoEncoderConfig(
+      cricket::VideoEncoderConfig(default_codec));
+
   if (signaling_thread_ == NULL)
     return false;
 
@@ -499,13 +508,17 @@ cricket::SessionDescription* WebRtcSession::CreateOffer() {
       options.has_audio = true;
     }
   }
-  return desc_factory_.CreateOffer(options);
+  // We didn't save the previous offer.
+  const cricket::SessionDescription* previous_offer = NULL;
+  return desc_factory_.CreateOffer(options, previous_offer);
 }
 
 cricket::SessionDescription* WebRtcSession::CreateAnswer(
     const cricket::SessionDescription* offer,
     const cricket::MediaSessionOptions& options) {
-  return desc_factory_.CreateAnswer(offer, options);
+  // We didn't save the previous answer.
+  const cricket::SessionDescription* previous_answer = NULL;
+  return desc_factory_.CreateAnswer(offer, options, previous_answer);
 }
 
 void WebRtcSession::SetError(Error error) {

@@ -95,13 +95,22 @@ Libjingle needs to be downloaded and patched
     copy talk\third_party\srtp\config.hw talk\third_party\srtp\crypto\include\config.h
 
 2.2 Build Libjingle under Linux or OS X
-  * First, make sure the SCONS_DIR environment variable is set correctly.
+  * On Linux, you need to install libssl-dev, libasound2-dev and gtk+2.0.
+  * Some optional new features in OpenSSL are only available in OpenSSL v1.0
+    and above. To build with new OpenSSL features, you need to add the
+    "HAS_OPENSSL_1_0" to the cppdefine under the
+    "talk.Library(env, name = jingle..." section in the "libjingle.scons" file.
+    Then download the OpenSSL v1.0 from the following URL:
+    http://www.openssl.org/source/openssl-1.0.0e.tar.gz
+    Unzip the downloaded package to the "third_party/openssl", such that it creates
+    the directory "third_party/openssl/include/", etc.
+  * To build Libjingle, first make sure the SCONS_DIR environment variable
+    is set correctly.
   * Second, run talk/third_party/expat-2.0.1/configure and
     talk/third_party/srtp/configure.
   * Third, go to the talk/ directory and run $path_to_swtoolkit/hammer.sh. Run
     $path_to_swtoolkit/hammer.sh --help for information on how to build for
     different modes.
-  * On Linux, you need to install libssl-dev, libasound2-dev and gtk+2.0.
 
 2.3 Build Libjingle under Windows
   * First, make sure the SCONS_DIR environment variable is set correctly and

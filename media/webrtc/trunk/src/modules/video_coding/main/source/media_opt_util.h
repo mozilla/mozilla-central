@@ -15,7 +15,6 @@
 #include "trace.h"
 #include "exp_filter.h"
 #include "internal_defines.h"
-#include "tick_time.h"
 #include "qm_select.h"
 
 #include <cmath>
@@ -46,7 +45,8 @@ struct VCMProtectionParameters
     VCMProtectionParameters() : rtt(0), lossPr(0.0f), bitRate(0.0f),
         packetsPerFrame(0.0f), packetsPerFrameKey(0.0f), frameRate(0.0f),
         keyFrameSize(0.0f), fecRateDelta(0), fecRateKey(0),
-        residualPacketLossFec(0.0f), codecWidth(0), codecHeight(0)
+        residualPacketLossFec(0.0f), codecWidth(0), codecHeight(0),
+        numLayers(1)
         {}
 
     int                 rtt;
@@ -61,6 +61,7 @@ struct VCMProtectionParameters
     float               residualPacketLossFec;
     WebRtc_UWord16      codecWidth;
     WebRtc_UWord16      codecHeight;
+    int                 numLayers;
 };
 
 
@@ -189,6 +190,8 @@ public:
     void UpdateProtectionFactorD(WebRtc_UWord8 protectionFactorD);
     // Update FEC with protectionFactorK
     void UpdateProtectionFactorK(WebRtc_UWord8 protectionFactorK);
+    // Compute the bits per frame. Account for temporal layers when applicable.
+    int BitsPerFrame(const VCMProtectionParameters* parameters);
 };
 
 
@@ -212,7 +215,7 @@ private:
 class VCMLossProtectionLogic
 {
 public:
-    VCMLossProtectionLogic();
+    VCMLossProtectionLogic(int64_t nowMs);
     ~VCMLossProtectionLogic();
 
     // Set the protection method to be used
@@ -251,7 +254,7 @@ public:
     // Input:
     //          - lossPr255        : The packet loss probability [0, 255],
     //                               reported by RTCP.
-    void UpdateLossPr(WebRtc_UWord8 lossPr255);
+    void UpdateLossPr(WebRtc_UWord8 lossPr255, int64_t nowMs);
 
     // Update the filtered packet loss.
     //
@@ -270,13 +273,13 @@ public:
     //
     // Input:
     //          - nPackets         : Number of packets in the latest sent frame.
-    void UpdatePacketsPerFrame(float nPackets);
+    void UpdatePacketsPerFrame(float nPackets, int64_t nowMs);
 
    // Update the number of packets per frame estimate, for key frames
     //
     // Input:
     //          - nPackets         : umber of packets in the latest sent frame.
-    void UpdatePacketsPerFrameKey(float nPackets);
+    void UpdatePacketsPerFrameKey(float nPackets, int64_t nowMs);
 
     // Update the keyFrameSize estimate
     //
@@ -296,6 +299,12 @@ public:
     //          - width        : The codec frame width.
     //          - height       : The codec frame height.
     void UpdateFrameSize(WebRtc_UWord16 width, WebRtc_UWord16 height);
+
+    // Update the number of active layers
+    //
+    // Input:
+    //          - numLayers    : Number of layers used.
+    void UpdateNumLayers(int numLayers);
 
     // The amount of packet loss to cover for with FEC.
     //
@@ -324,9 +333,9 @@ public:
     // Returns the filtered loss probability in the interval [0, 255].
     //
     // Return value                 : The filtered loss probability
-    WebRtc_UWord8 FilteredLoss() const;
+    WebRtc_UWord8 FilteredLoss(int64_t nowMs) const;
 
-    void Reset();
+    void Reset(int64_t nowMs);
 
     void Release();
 
@@ -355,6 +364,7 @@ private:
     WebRtc_UWord8             _boostRateKey;
     WebRtc_UWord16            _codecWidth;
     WebRtc_UWord16            _codecHeight;
+    int                       _numLayers;
 };
 
 } // namespace webrtc

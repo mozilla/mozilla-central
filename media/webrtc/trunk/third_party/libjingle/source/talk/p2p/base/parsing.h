@@ -112,6 +112,9 @@ bool SetXmlBody(buzz::XmlElement* elem, const T& val) {
 
 const buzz::XmlElement* GetXmlChild(const buzz::XmlElement* parent,
                                     const std::string& name);
+const buzz::XmlElement* GetXmlElement(const XmlElements& elems,
+                                      const buzz::QName& name);
+
 bool RequireXmlChild(const buzz::XmlElement* parent,
                      const std::string& name,
                      const buzz::XmlElement** child,
@@ -120,6 +123,9 @@ bool RequireXmlAttr(const buzz::XmlElement* elem,
                     const buzz::QName& name,
                     std::string* value,
                     ParseError* error);
+void AddXmlAttrIfNonEmpty(buzz::XmlElement* elem,
+                          const buzz::QName name,
+                          const std::string& value);
 void AddXmlChildren(buzz::XmlElement* parent,
                     const std::vector<buzz::XmlElement*>& children);
 void CopyXmlChildren(const buzz::XmlElement* source, buzz::XmlElement* dest);

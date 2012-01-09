@@ -14,7 +14,13 @@
 #include <string.h>
 
 #include "libyuv/cpu_id.h"
+#include "libyuv/planar_functions.h"  // For CopyPlane
 #include "row.h"
+
+#ifdef __cplusplus
+namespace libyuv {
+extern "C" {
+#endif
 
 #if defined(_MSC_VER)
 #define ALIGN16(var) __declspec(align(16)) var
@@ -22,13 +28,10 @@
 #define ALIGN16(var) var __attribute__((aligned(16)))
 #endif
 
-
 // Note: A Neon reference manual
 // http://infocenter.arm.com/help/index.jsp?topic=/com.arm.doc.dui0204j/CJAJIIGG.html
 // Note: Some SSE2 reference manuals
 // cpuvol1.pdf agner_instruction_tables.pdf 253666.pdf 253667.pdf
-
-namespace libyuv {
 
 // Set the following flag to true to revert to only
 // using the reference implementation ScalePlaneBox(), and
@@ -511,10 +514,29 @@ static void ScaleRowDown38_2_Int_NEON(const uint8* src_ptr, int src_stride,
     !defined(YUV_DISABLE_ASM)
 #if defined(_MSC_VER)
 #define TALIGN16(t, var) __declspec(align(16)) t _ ## var
-#elif defined(__APPLE__) && defined(__i386__)
+#elif (defined(__APPLE__) || defined(__MINGW32__) || defined(__CYGWIN__)) && \
+    defined(__i386__)
 #define TALIGN16(t, var) t var __attribute__((aligned(16)))
 #else
 #define TALIGN16(t, var) t _ ## var __attribute__((aligned(16)))
+#endif
+
+#if defined(__APPLE__) && defined(__i386__)
+#define DECLARE_FUNCTION(name)                                                 \
+    ".text                                     \n"                             \
+    ".private_extern _" #name "                \n"                             \
+    ".align 4,0x90                             \n"                             \
+"_" #name ":                                   \n"
+#elif (defined(__MINGW32__) || defined(__CYGWIN__)) && defined(__i386__)
+#define DECLARE_FUNCTION(name)                                                 \
+    ".text                                     \n"                             \
+    ".align 4,0x90                             \n"                             \
+"_" #name ":                                   \n"
+#else
+#define DECLARE_FUNCTION(name)                                                 \
+    ".text                                     \n"                             \
+    ".align 4,0x90                             \n"                             \
+#name ":                                       \n"
 #endif
 
 // Offsets for source bytes 0 to 9
@@ -1620,14 +1642,7 @@ static void ScaleRowDown8_SSE2(const uint8* src_ptr, int src_stride,
 extern "C" void ScaleRowDown8Int_SSE2(const uint8* src_ptr, int src_stride,
                                       uint8* dst_ptr, int dst_width);
   asm(
-    ".text                                     \n"
-#if defined(__APPLE__)
-    ".globl _ScaleRowDown8Int_SSE2             \n"
-"_ScaleRowDown8Int_SSE2:                       \n"
-#else
-    ".global ScaleRowDown8Int_SSE2             \n"
-"ScaleRowDown8Int_SSE2:                        \n"
-#endif
+    DECLARE_FUNCTION(ScaleRowDown8Int_SSE2)
     "pusha                                     \n"
     "mov    0x24(%esp),%esi                    \n"
     "mov    0x28(%esp),%ebx                    \n"
@@ -1691,14 +1706,7 @@ extern "C" void ScaleRowDown8Int_SSE2(const uint8* src_ptr, int src_stride,
 extern "C" void ScaleRowDown34_SSSE3(const uint8* src_ptr, int src_stride,
                                      uint8* dst_ptr, int dst_width);
   asm(
-    ".text                                     \n"
-#if defined(__APPLE__)
-    ".globl _ScaleRowDown34_SSSE3              \n"
-"_ScaleRowDown34_SSSE3:                        \n"
-#else
-    ".global ScaleRowDown34_SSSE3              \n"
-"ScaleRowDown34_SSSE3:                         \n"
-#endif
+    DECLARE_FUNCTION(ScaleRowDown34_SSSE3)
     "pusha                                     \n"
     "mov    0x24(%esp),%esi                    \n"
     "mov    0x2c(%esp),%edi                    \n"
@@ -1729,14 +1737,7 @@ extern "C" void ScaleRowDown34_SSSE3(const uint8* src_ptr, int src_stride,
 extern "C" void ScaleRowDown34_1_Int_SSSE3(const uint8* src_ptr, int src_stride,
                                            uint8* dst_ptr, int dst_width);
   asm(
-    ".text                                     \n"
-#if defined(__APPLE__)
-    ".globl _ScaleRowDown34_1_Int_SSSE3        \n"
-"_ScaleRowDown34_1_Int_SSSE3:                  \n"
-#else
-    ".global ScaleRowDown34_1_Int_SSSE3        \n"
-"ScaleRowDown34_1_Int_SSSE3:                   \n"
-#endif
+    DECLARE_FUNCTION(ScaleRowDown34_1_Int_SSSE3)
     "pusha                                     \n"
     "mov    0x24(%esp),%esi                    \n"
     "mov    0x28(%esp),%ebp                    \n"
@@ -1790,14 +1791,7 @@ extern "C" void ScaleRowDown34_1_Int_SSSE3(const uint8* src_ptr, int src_stride,
 extern "C" void ScaleRowDown34_0_Int_SSSE3(const uint8* src_ptr, int src_stride,
                                            uint8* dst_ptr, int dst_width);
   asm(
-    ".text                                     \n"
-#if defined(__APPLE__)
-    ".globl _ScaleRowDown34_0_Int_SSSE3        \n"
-"_ScaleRowDown34_0_Int_SSSE3:                  \n"
-#else
-    ".global ScaleRowDown34_0_Int_SSSE3        \n"
-"ScaleRowDown34_0_Int_SSSE3:                   \n"
-#endif
+    DECLARE_FUNCTION(ScaleRowDown34_0_Int_SSSE3)
     "pusha                                     \n"
     "mov    0x24(%esp),%esi                    \n"
     "mov    0x28(%esp),%ebp                    \n"
@@ -1854,14 +1848,7 @@ extern "C" void ScaleRowDown34_0_Int_SSSE3(const uint8* src_ptr, int src_stride,
 extern "C" void ScaleRowDown38_SSSE3(const uint8* src_ptr, int src_stride,
                                      uint8* dst_ptr, int dst_width);
   asm(
-    ".text                                     \n"
-#if defined(__APPLE__)
-    ".globl _ScaleRowDown38_SSSE3              \n"
-"_ScaleRowDown38_SSSE3:                        \n"
-#else
-    ".global ScaleRowDown38_SSSE3              \n"
-"ScaleRowDown38_SSSE3:                         \n"
-#endif
+    DECLARE_FUNCTION(ScaleRowDown38_SSSE3)
     "pusha                                     \n"
     "mov    0x24(%esp),%esi                    \n"
     "mov    0x28(%esp),%edx                    \n"
@@ -1890,14 +1877,7 @@ extern "C" void ScaleRowDown38_SSSE3(const uint8* src_ptr, int src_stride,
 extern "C" void ScaleRowDown38_3_Int_SSSE3(const uint8* src_ptr, int src_stride,
                                            uint8* dst_ptr, int dst_width);
   asm(
-    ".text                                     \n"
-#if defined(__APPLE__)
-    ".globl _ScaleRowDown38_3_Int_SSSE3        \n"
-"_ScaleRowDown38_3_Int_SSSE3:                  \n"
-#else
-    ".global ScaleRowDown38_3_Int_SSSE3        \n"
-"ScaleRowDown38_3_Int_SSSE3:                   \n"
-#endif
+    DECLARE_FUNCTION(ScaleRowDown38_3_Int_SSSE3)
     "pusha                                     \n"
     "mov    0x24(%esp),%esi                    \n"
     "mov    0x28(%esp),%edx                    \n"
@@ -1954,14 +1934,7 @@ extern "C" void ScaleRowDown38_3_Int_SSSE3(const uint8* src_ptr, int src_stride,
 extern "C" void ScaleRowDown38_2_Int_SSSE3(const uint8* src_ptr, int src_stride,
                                            uint8* dst_ptr, int dst_width);
   asm(
-    ".text                                     \n"
-#if defined(__APPLE__)
-    ".globl _ScaleRowDown38_2_Int_SSSE3        \n"
-"_ScaleRowDown38_2_Int_SSSE3:                  \n"
-#else
-    ".global ScaleRowDown38_2_Int_SSSE3        \n"
-"ScaleRowDown38_2_Int_SSSE3:                   \n"
-#endif
+    DECLARE_FUNCTION(ScaleRowDown38_2_Int_SSSE3)
     "pusha                                     \n"
     "mov    0x24(%esp),%esi                    \n"
     "mov    0x28(%esp),%edx                    \n"
@@ -2001,14 +1974,7 @@ extern "C" void ScaleAddRows_SSE2(const uint8* src_ptr, int src_stride,
                                   uint16* dst_ptr, int src_width,
                                   int src_height);
   asm(
-    ".text                                     \n"
-#if defined(__APPLE__)
-    ".globl _ScaleAddRows_SSE2                 \n"
-"_ScaleAddRows_SSE2:                           \n"
-#else
-    ".global ScaleAddRows_SSE2                 \n"
-"ScaleAddRows_SSE2:                            \n"
-#endif
+    DECLARE_FUNCTION(ScaleAddRows_SSE2)
     "pusha                                     \n"
     "mov    0x24(%esp),%esi                    \n"
     "mov    0x28(%esp),%edx                    \n"
@@ -2052,14 +2018,7 @@ extern "C" void ScaleFilterRows_SSE2(uint8* dst_ptr,
                                      const uint8* src_ptr, int src_stride,
                                      int dst_width, int source_y_fraction);
   asm(
-    ".text                                     \n"
-#if defined(__APPLE__)
-    ".globl _ScaleFilterRows_SSE2              \n"
-"_ScaleFilterRows_SSE2:                        \n"
-#else
-    ".global ScaleFilterRows_SSE2              \n"
-"ScaleFilterRows_SSE2:                         \n"
-#endif
+    DECLARE_FUNCTION(ScaleFilterRows_SSE2)
     "push   %esi                               \n"
     "push   %edi                               \n"
     "mov    0xc(%esp),%edi                     \n"
@@ -2147,14 +2106,7 @@ extern "C" void ScaleFilterRows_SSSE3(uint8* dst_ptr,
                                       const uint8* src_ptr, int src_stride,
                                       int dst_width, int source_y_fraction);
   asm(
-    ".text                                     \n"
-#if defined(__APPLE__)
-    ".globl _ScaleFilterRows_SSSE3             \n"
-"_ScaleFilterRows_SSSE3:                       \n"
-#else
-    ".global ScaleFilterRows_SSSE3             \n"
-"ScaleFilterRows_SSSE3:                        \n"
-#endif
+    DECLARE_FUNCTION(ScaleFilterRows_SSSE3)
     "push   %esi                               \n"
     "push   %edi                               \n"
     "mov    0xc(%esp),%edi                     \n"
@@ -3318,8 +3270,8 @@ static void ScalePlaneDown38(int src_width, int src_height,
   }
 }
 
-inline static uint32 SumBox(int iboxwidth, int iboxheight,
-                            int src_stride, const uint8* src_ptr) {
+static __inline uint32 SumBox(int iboxwidth, int iboxheight,
+                              int src_stride, const uint8* src_ptr) {
   assert(iboxwidth > 0);
   assert(iboxheight > 0);
   uint32 sum = 0u;
@@ -3345,7 +3297,7 @@ static void ScalePlaneBoxRow(int dst_width, int boxheight,
   }
 }
 
-inline static uint32 SumPixels(int iboxwidth, const uint16* src_ptr) {
+static __inline uint32 SumPixels(int iboxwidth, const uint16* src_ptr) {
   assert(iboxwidth > 0);
   uint32 sum = 0u;
   for (int x = 0; x < iboxwidth; ++x) {
@@ -3500,10 +3452,10 @@ static void ScalePlaneBilinearSimple(int src_width, int src_height,
  * Scale plane to/from any dimensions, with bilinear
  * interpolation.
  */
-static void ScalePlaneBilinear(int src_width, int src_height,
-                               int dst_width, int dst_height,
-                               int src_stride, int dst_stride,
-                               const uint8* src_ptr, uint8* dst_ptr) {
+void ScalePlaneBilinear(int src_width, int src_height,
+                        int dst_width, int dst_height,
+                        int src_stride, int dst_stride,
+                        const uint8* src_ptr, uint8* dst_ptr) {
   assert(dst_width > 0);
   assert(dst_height > 0);
   int dy = (src_height << 16) / dst_height;
@@ -3624,33 +3576,6 @@ static void ScalePlaneDown(int src_width, int src_height,
   }
 }
 
-/**
- * Copy plane, no scaling
- *
- * This simply copies the given plane without scaling.
- * The current implementation is ~115 times faster
- * compared to the reference implementation.
- *
- */
-static void CopyPlane(int src_width, int src_height,
-                      int dst_width, int dst_height,
-                      int src_stride, int dst_stride,
-                      const uint8* src_ptr, uint8* dst_ptr) {
-  if (src_stride == src_width && dst_stride == dst_width) {
-    // All contiguous, so can use REALLY fast path.
-    memcpy(dst_ptr, src_ptr, src_width * src_height);
-  } else {
-    // Not all contiguous; must copy scanlines individually
-    const uint8* src = src_ptr;
-    uint8* dst = dst_ptr;
-    for (int i = 0; i < src_height; ++i) {
-      memcpy(dst, src, src_width);
-      dst += dst_stride;
-      src += src_stride;
-    }
-  }
-}
-
 static void ScalePlane(const uint8* src, int src_stride,
                        int src_width, int src_height,
                        uint8* dst, int dst_stride,
@@ -3660,8 +3585,7 @@ static void ScalePlane(const uint8* src, int src_stride,
   // For example, all the 1/2 scalings will use ScalePlaneDown2()
   if (dst_width == src_width && dst_height == src_height) {
     // Straight copy.
-    CopyPlane(src_width, src_height, dst_width, dst_height, src_stride,
-              dst_stride, src, dst);
+    CopyPlane(src, src_stride, dst, dst_stride, dst_width, dst_height);
   } else if (dst_width <= src_width && dst_height <= src_height) {
     // Scale down.
     if (use_ref) {
@@ -3735,23 +3659,24 @@ int I420Scale(const uint8* src_y, int src_stride_y,
     src_stride_u = -src_stride_u;
     src_stride_v = -src_stride_v;
   }
-  int halfsrc_width = (src_width + 1) >> 1;
-  int halfsrc_height = (src_height + 1) >> 1;
-  int halfdst_width = (dst_width + 1) >> 1;
-  int halfoheight = (dst_height + 1) >> 1;
+  int src_halfwidth = (src_width + 1) >> 1;
+  int src_halfheight = (src_height + 1) >> 1;
+  int dst_halfwidth = (dst_width + 1) >> 1;
+  int dst_halfheight = (dst_height + 1) >> 1;
 
   ScalePlane(src_y, src_stride_y, src_width, src_height,
              dst_y, dst_stride_y, dst_width, dst_height,
              filtering, use_reference_impl_);
-  ScalePlane(src_u, src_stride_u, halfsrc_width, halfsrc_height,
-             dst_u, dst_stride_u, halfdst_width, halfoheight,
+  ScalePlane(src_u, src_stride_u, src_halfwidth, src_halfheight,
+             dst_u, dst_stride_u, dst_halfwidth, dst_halfheight,
              filtering, use_reference_impl_);
-  ScalePlane(src_v, src_stride_v, halfsrc_width, halfsrc_height,
-             dst_v, dst_stride_v, halfdst_width, halfoheight,
+  ScalePlane(src_v, src_stride_v, src_halfwidth, src_halfheight,
+             dst_v, dst_stride_v, dst_halfwidth, dst_halfheight,
              filtering, use_reference_impl_);
   return 0;
 }
 
+// Deprecated api
 int Scale(const uint8* src_y, const uint8* src_u, const uint8* src_v,
           int src_stride_y, int src_stride_u, int src_stride_v,
           int src_width, int src_height,
@@ -3774,49 +3699,54 @@ int Scale(const uint8* src_y, const uint8* src_u, const uint8* src_v,
     src_stride_u = -src_stride_u;
     src_stride_v = -src_stride_v;
   }
-  int halfsrc_width = (src_width + 1) >> 1;
-  int halfsrc_height = (src_height + 1) >> 1;
-  int halfdst_width = (dst_width + 1) >> 1;
-  int halfoheight = (dst_height + 1) >> 1;
+  int src_halfwidth = (src_width + 1) >> 1;
+  int src_halfheight = (src_height + 1) >> 1;
+  int dst_halfwidth = (dst_width + 1) >> 1;
+  int dst_halfheight = (dst_height + 1) >> 1;
   FilterMode filtering = interpolate ? kFilterBox : kFilterNone;
 
   ScalePlane(src_y, src_stride_y, src_width, src_height,
              dst_y, dst_stride_y, dst_width, dst_height,
              filtering, use_reference_impl_);
-  ScalePlane(src_u, src_stride_u, halfsrc_width, halfsrc_height,
-             dst_u, dst_stride_u, halfdst_width, halfoheight,
+  ScalePlane(src_u, src_stride_u, src_halfwidth, src_halfheight,
+             dst_u, dst_stride_u, dst_halfwidth, dst_halfheight,
              filtering, use_reference_impl_);
-  ScalePlane(src_v, src_stride_v, halfsrc_width, halfsrc_height,
-             dst_v, dst_stride_v, halfdst_width, halfoheight,
+  ScalePlane(src_v, src_stride_v, src_halfwidth, src_halfheight,
+             dst_v, dst_stride_v, dst_halfwidth, dst_halfheight,
              filtering, use_reference_impl_);
   return 0;
 }
 
-int Scale(const uint8* src, int src_width, int src_height,
-          uint8* dst, int dst_width, int dst_height, int ooffset,
-          bool interpolate) {
+// Deprecated api
+int ScaleOffset(const uint8* src, int src_width, int src_height,
+                uint8* dst, int dst_width, int dst_height, int dst_yoffset,
+                bool interpolate) {
   if (!src || src_width <= 0 || src_height <= 0 ||
-      !dst || dst_width <= 0 || dst_height <= 0 || ooffset < 0 ||
-      ooffset >= dst_height) {
+      !dst || dst_width <= 0 || dst_height <= 0 || dst_yoffset < 0 ||
+      dst_yoffset >= dst_height) {
     return -1;
   }
-  ooffset = ooffset & ~1;  // chroma requires offset to multiple of 2.
-  int halfsrc_width = (src_width + 1) >> 1;
-  int halfsrc_height = (src_height + 1) >> 1;
-  int halfdst_width = (dst_width + 1) >> 1;
-  int halfoheight = (dst_height + 1) >> 1;
-  int aheight = dst_height - ooffset * 2;  // actual output height
-  const uint8* const iyptr = src;
-  uint8* oyptr = dst + ooffset * dst_width;
-  const uint8* const iuptr = src + src_width * src_height;
-  uint8* ouptr = dst + dst_width * dst_height + (ooffset >> 1) * halfdst_width;
-  const uint8* const ivptr = src + src_width * src_height +
-                             halfsrc_width * halfsrc_height;
-  uint8* ovptr = dst + dst_width * dst_height + halfdst_width * halfoheight +
-                 (ooffset >> 1) * halfdst_width;
-  return Scale(iyptr, iuptr, ivptr, src_width, halfsrc_width, halfsrc_width,
-               src_width, src_height, oyptr, ouptr, ovptr, dst_width,
-               halfdst_width, halfdst_width, dst_width, aheight, interpolate);
+  dst_yoffset = dst_yoffset & ~1;  // chroma requires offset to multiple of 2.
+  int src_halfwidth = (src_width + 1) >> 1;
+  int src_halfheight = (src_height + 1) >> 1;
+  int dst_halfwidth = (dst_width + 1) >> 1;
+  int dst_halfheight = (dst_height + 1) >> 1;
+  int aheight = dst_height - dst_yoffset * 2;  // actual output height
+  const uint8* const src_y = src;
+  const uint8* const src_u = src + src_width * src_height;
+  const uint8* const src_v = src + src_width * src_height +
+                             src_halfwidth * src_halfheight;
+  uint8* dst_y = dst + dst_yoffset * dst_width;
+  uint8* dst_u = dst + dst_width * dst_height +
+                 (dst_yoffset >> 1) * dst_halfwidth;
+  uint8* dst_v = dst + dst_width * dst_height + dst_halfwidth * dst_halfheight +
+                 (dst_yoffset >> 1) * dst_halfwidth;
+  return Scale(src_y, src_u, src_v, src_width, src_halfwidth, src_halfwidth,
+               src_width, src_height, dst_y, dst_u, dst_v, dst_width,
+               dst_halfwidth, dst_halfwidth, dst_width, aheight, interpolate);
 }
 
+#ifdef __cplusplus
+}  // extern "C"
 }  // namespace libyuv
+#endif

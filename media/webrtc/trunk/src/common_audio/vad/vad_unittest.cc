@@ -8,28 +8,22 @@
  *  be found in the AUTHORS file in the root of the source tree.
  */
 
-#include <stddef.h> // size_t
+#include "vad_unittest.h"
+
 #include <stdlib.h>
 
 #include "gtest/gtest.h"
 #include "typedefs.h"
 #include "webrtc_vad.h"
 
-namespace webrtc {
-namespace {
-const int16_t kModes[] = { 0, 1, 2, 3 };
-const size_t kModesSize = sizeof(kModes) / sizeof(*kModes);
+VadTest::VadTest() {}
 
-// Rates we support.
-const int16_t kRates[] = { 8000, 16000, 32000 };
-const size_t kRatesSize = sizeof(kRates) / sizeof(*kRates);
-// Frame lengths we support.
-const int16_t kMaxFrameLength = 960;
-const int16_t kFrameLengths[] = { 80, 160, 240, 320, 480, 640, 960 };
-const size_t kFrameLengthsSize = sizeof(kFrameLengths) / sizeof(*kFrameLengths);
+void VadTest::SetUp() {}
+
+void VadTest::TearDown() {}
 
 // Returns true if the rate and frame length combination is valid.
-bool ValidRatesAndFrameLengths(int16_t rate, int16_t frame_length) {
+bool VadTest::ValidRatesAndFrameLengths(int16_t rate, int16_t frame_length) {
   if (rate == 8000) {
     if (frame_length == 80 || frame_length == 160 || frame_length == 240) {
       return true;
@@ -51,21 +45,7 @@ bool ValidRatesAndFrameLengths(int16_t rate, int16_t frame_length) {
   return false;
 }
 
-class VadTest : public ::testing::Test {
- protected:
-  VadTest();
-  virtual void SetUp();
-  virtual void TearDown();
-};
-
-VadTest::VadTest() {
-}
-
-void VadTest::SetUp() {
-}
-
-void VadTest::TearDown() {
-}
+namespace {
 
 TEST_F(VadTest, ApiTest) {
   // This API test runs through the APIs for all possible valid and invalid
@@ -155,4 +135,3 @@ TEST_F(VadTest, ApiTest) {
 // TODO(bjornv): Add a process test, run on file.
 
 }  // namespace
-}  // namespace webrtc

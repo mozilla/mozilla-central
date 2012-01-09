@@ -10,13 +10,16 @@
 
 #include "TestVADDTX.h"
 
-#include "common_types.h"
-#include "audio_coding_module_typedefs.h"
-#include "utility.h"
-#include "engine_configurations.h"
 #include <iostream>
-#include "trace.h"
 
+#include "audio_coding_module_typedefs.h"
+#include "common_types.h"
+#include "engine_configurations.h"
+#include "testsupport/fileutils.h"
+#include "trace.h"
+#include "utility.h"
+
+namespace webrtc {
 
 TestVADDTX::TestVADDTX(int testMode):
 _acmA(NULL),
@@ -29,7 +32,6 @@ _testResults(0)
    _testMode = testMode;
 }
 
-using namespace std;
 TestVADDTX::~TestVADDTX()
 {
     if(_acmA != NULL)
@@ -275,7 +277,7 @@ WebRtc_Word16 TestVADDTX::RegisterSendCodec(char side,
     {
         printf("Registering %s for side %c\n", codecName, side);
     }
-    cout << flush;
+    std::cout << std::flush;
     AudioCodingModule* myACM;
     switch(side)
     {
@@ -351,15 +353,17 @@ void TestVADDTX::Run()
 
 void TestVADDTX::OpenOutFile(WebRtc_Word16 testNumber)
 {
-    char fileName[500] = "./src/modules/audio_coding/main/test/testVADDTX_outFile_";
-    char cntrStr[10];
-
+    char fileName[500];
     if(_testMode == 0)
     {
-        sprintf(fileName, "./src/modules/audio_coding/main/test/testVADDTX_autoFile_");
+        sprintf(fileName, "%s/testVADDTX_autoFile_%02d.pcm",
+                webrtc::test::OutputPath().c_str(), testNumber);
     }
-    sprintf(cntrStr, "%02d.pcm", testNumber);
-    strcat(fileName, cntrStr);
+    else
+    {
+        sprintf(fileName, "%s/testVADDTX_outFile_%02d.pcm",
+                webrtc::test::OutputPath().c_str(), testNumber);
+    }
     _outFileB.Open(fileName, 16000, "wb");
 }
 
@@ -500,3 +504,5 @@ void ActivityMonitor::GetStatistics(WebRtc_UWord32* getCounter)
         getCounter[ii] = _counter[ii];
     }
 }
+
+} // namespace webrtc

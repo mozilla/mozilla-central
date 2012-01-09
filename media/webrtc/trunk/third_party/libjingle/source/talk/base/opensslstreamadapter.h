@@ -29,6 +29,7 @@
 #define TALK_BASE_OPENSSLSTREAMADAPTER_H__
 
 #include <string>
+#include "talk/base/buffer.h"
 #include "talk/base/sslstreamadapter.h"
 #include "talk/base/opensslidentity.h"
 
@@ -75,11 +76,17 @@ class OpenSSLStreamAdapter : public SSLStreamAdapter {
   virtual ~OpenSSLStreamAdapter();
 
   virtual void SetIdentity(SSLIdentity* identity);
-  virtual void SetServerRole();
+
+  // Default argument is for compatibility
+  virtual void SetServerRole(SSLRole role = SSL_SERVER);
   virtual void SetPeerCertificate(SSLCertificate* cert);
+  virtual bool SetPeerCertificateDigest(const std::string& digest_alg,
+                                        const unsigned char* digest_val,
+                                        size_t digest_len);
 
   virtual int StartSSLWithServer(const char* server_name);
   virtual int StartSSLWithPeer();
+  virtual void SetMode(SSLMode mode);
 
   virtual StreamResult Read(void* data, size_t data_len,
                             size_t* read, int* error);
@@ -102,9 +109,8 @@ class OpenSSLStreamAdapter : public SSLStreamAdapter {
     SSL_ERROR,  // some SSL error occurred, stream is closed
     SSL_CLOSED  // Clean close
   };
-  enum SSLRole {
-    SSL_CLIENT, SSL_SERVER
-  };
+
+  enum { MSG_TIMEOUT = MSG_MAX+1};
 
   // The following three methods return 0 on success and a negative
   // error code on failure. The error code may be from OpenSSL or -1
@@ -129,11 +135,18 @@ class OpenSSLStreamAdapter : public SSLStreamAdapter {
   void Error(const char* context, int err, bool signal);
   void Cleanup();
 
+  // Override MessageHandler
+  virtual void OnMessage(Message* msg);
+
+  // Flush the input buffers by reading left bytes (for DTLS)
+  void FlushInput(unsigned int left);
+
   // SSL library configuration
   SSL_CTX* SetupSSLContext();
   // SSL verification check
   bool SSLPostConnectionCheck(SSL* ssl, const char* server_name,
-                              const X509* peer_cert);
+                              const X509* peer_cert,
+                              const std::string& peer_digest);
   // SSL certification verification error handler, called back from
   // the openssl library. Returns an int interpreted as a boolean in
   // the C style: zero means verification failure, non-zero means
@@ -151,17 +164,25 @@ class OpenSSLStreamAdapter : public SSLStreamAdapter {
 
   SSL* ssl_;
   SSL_CTX* ssl_ctx_;
-  // in traditional mode, the server name that the server's certificate
-  // must specify. Empty in peer-to-peer mode.
+
   // Our key and certificate, mostly useful in peer-to-peer mode.
   scoped_ptr<OpenSSLIdentity> identity_;
+  // in traditional mode, the server name that the server's certificate
+  // must specify. Empty in peer-to-peer mode.
   std::string ssl_server_name_;
   // In peer-to-peer mode, the certificate that the peer must
   // present. Empty in traditional mode.
   scoped_ptr<OpenSSLCertificate> peer_certificate_;
+  // In peer-to-peer mode, the digest of the certificate that
+  // the peer must present.
+  Buffer peer_certificate_digest_value_;
+  std::string peer_certificate_digest_algorithm_;
 
   // OpenSSLAdapter::custom_verify_callback_ result
   bool custom_verification_succeeded_;
+
+  // Do DTLS or not
+  SSLMode ssl_mode_;
 };
 
 /////////////////////////////////////////////////////////////////////////////

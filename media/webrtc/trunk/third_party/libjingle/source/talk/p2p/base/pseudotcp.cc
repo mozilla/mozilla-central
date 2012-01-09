@@ -38,7 +38,7 @@
 #include "talk/base/logging.h"
 #include "talk/base/socket.h"
 #include "talk/base/stringutils.h"
-#include "talk/base/time.h"
+#include "talk/base/timeutils.h"
 
 // The following logging is for detailed (packet-level) analysis only.
 #define _DBG_NONE     0

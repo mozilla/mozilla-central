@@ -285,18 +285,18 @@ class FilesystemInterface {
 class Filesystem {
  public:
   static FilesystemInterface *default_filesystem() {
-    ASSERT(default_filesystem_.get() != NULL);
-    return default_filesystem_.get();
+    ASSERT(default_filesystem_ != NULL);
+    return default_filesystem_;
   }
 
   static void set_default_filesystem(FilesystemInterface *filesystem) {
-    default_filesystem_.reset(filesystem);
+    default_filesystem_ = filesystem;
   }
 
   static FilesystemInterface *swap_default_filesystem(
       FilesystemInterface *filesystem) {
-    FilesystemInterface *cur = default_filesystem_.release();
-    default_filesystem_.reset(filesystem);
+    FilesystemInterface *cur = default_filesystem_;
+    default_filesystem_ = filesystem;
     return cur;
   }
 
@@ -425,7 +425,7 @@ class Filesystem {
   }
 
  private:
-  static scoped_ptr<FilesystemInterface> default_filesystem_;
+  static FilesystemInterface* default_filesystem_;
 
   static FilesystemInterface *EnsureDefaultFilesystem();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Filesystem);
@@ -455,4 +455,3 @@ bool CreateUniqueFile(Pathname& path, bool create_empty);
 }  // namespace talk_base
 
 #endif  // TALK_BASE_FILEUTILS_H_
-

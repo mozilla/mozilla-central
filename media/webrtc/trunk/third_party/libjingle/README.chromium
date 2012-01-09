@@ -1,8 +1,11 @@
-Name: libjingle
+Name: Libjingle library. Used for p2p voice and video communication.
+Short Name: libjingle
 URL: http://code.google.com/p/libjingle/
 Version: 2.7.0
+Revision: 100
 License: BSD
 License File: source/COPYING
+Security Critical: yes
 
 Description:
   Libjingle provides xmpp support to the sync code, which
@@ -10,3 +13,5 @@ Description:
 
   Libjingle is distributed under a Berkeley-style license detailed in
   source/COPYING.
+
+Local Modifications:

@@ -21,7 +21,7 @@ LLVM_DIR="${THIS_DIR}"/../../../third_party/llvm
 IWYU_DIR="${LLVM_DIR}"/tools/clang/tools/include-what-you-use
 
 # Check out.
-svn co --force http://include-what-you-use.googlecode.com/svn/trunk/ \
+svn co --force https://include-what-you-use.googlecode.com/svn/trunk/ \
   "${IWYU_DIR}"
 
 # Build iwyu.

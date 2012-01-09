@@ -40,7 +40,9 @@
 #include "talk/session/phone/devicemanager.h"
 #include "talk/session/phone/mediachannel.h"
 #include "talk/session/phone/mediacommon.h"
+#include "talk/session/phone/videoprocessor.h"
 #include "talk/session/phone/videocommon.h"
+#include "talk/session/phone/voiceprocessor.h"
 
 namespace cricket {
 
@@ -58,7 +60,6 @@ class MediaEngineInterface {
     ECHO_CANCELLATION = 1 << 0,
     AUTO_GAIN_CONTROL = 1 << 1,
     NOISE_SUPPRESSION = 1 << 2,
-    TYPING_DETECTION = 1 << 3,
     DEFAULT_AUDIO_OPTIONS = ECHO_CANCELLATION | AUTO_GAIN_CONTROL
   };
   enum VideoOptions {
@@ -100,6 +101,9 @@ class MediaEngineInterface {
   virtual bool SetSoundDevices(const Device* in_device,
                                const Device* out_device) = 0;
   virtual bool SetVideoCaptureDevice(const Device* cam_device) = 0;
+  // Sets the externally provided video capturer. The ssrc is the ssrc of the
+  // (video) stream for which the video capturer should be set.
+  virtual bool SetVideoCapturer(VideoCapturer* capturer, uint32 ssrc) = 0;
 
   // Device configuration
   // Gets the current speaker volume, as a value between 0 and 255.
@@ -125,6 +129,16 @@ class MediaEngineInterface {
   // Logging control
   virtual void SetVoiceLogging(int min_sev, const char* filter) = 0;
   virtual void SetVideoLogging(int min_sev, const char* filter) = 0;
+
+  // media processors for effects
+  virtual bool RegisterVideoProcessor(VideoProcessor* video_processor) = 0;
+  virtual bool UnregisterVideoProcessor(VideoProcessor* video_processor) = 0;
+  virtual bool RegisterVoiceProcessor(uint32 ssrc,
+                                      VoiceProcessor* video_processor,
+                                      MediaProcessorDirection direction) = 0;
+  virtual bool UnregisterVoiceProcessor(uint32 ssrc,
+                                        VoiceProcessor* video_processor,
+                                        MediaProcessorDirection direction) = 0;
 
   sigslot::repeater2<VideoCapturer*, CaptureResult>
       SignalVideoCaptureResult;
@@ -189,6 +203,9 @@ class CompositeMediaEngine : public MediaEngineInterface {
   virtual bool SetVideoCaptureDevice(const Device* cam_device) {
     return video_.SetCaptureDevice(cam_device);
   }
+  virtual bool SetVideoCapturer(VideoCapturer* capturer, uint32 ssrc) {
+    return video_.SetVideoCapturer(capturer, ssrc);
+  }
 
   virtual bool GetOutputVolume(int* level) {
     return voice_.GetOutputVolume(level);
@@ -224,6 +241,23 @@ class CompositeMediaEngine : public MediaEngineInterface {
     return video_.SetLogging(min_sev, filter);
   }
 
+  virtual bool RegisterVideoProcessor(VideoProcessor* processor) {
+    return video_.RegisterProcessor(processor);
+  }
+  virtual bool UnregisterVideoProcessor(VideoProcessor* processor) {
+    return video_.UnregisterProcessor(processor);
+  }
+  virtual bool RegisterVoiceProcessor(uint32 ssrc,
+                                      VoiceProcessor* processor,
+                                      MediaProcessorDirection direction) {
+    return voice_.RegisterProcessor(ssrc, processor, direction);
+  }
+  virtual bool UnregisterVoiceProcessor(uint32 ssrc,
+                                        VoiceProcessor* processor,
+                                        MediaProcessorDirection direction) {
+    return voice_.UnregisterProcessor(ssrc, processor, direction);
+  }
+
  protected:
   VOICE voice_;
   VIDEO video_;
@@ -256,6 +290,12 @@ class NullVoiceEngine {
   bool SetLocalMonitor(bool enable) { return true; }
   const std::vector<AudioCodec>& codecs() { return codecs_; }
   void SetLogging(int min_sev, const char* filter) {}
+  bool RegisterProcessor(uint32 ssrc,
+                         VoiceProcessor* voice_processor,
+                         MediaProcessorDirection direction) { return true; }
+  bool UnregisterProcessor(uint32 ssrc,
+                           VoiceProcessor* voice_processor,
+                           MediaProcessorDirection direction) { return true; }
 
  private:
   std::vector<AudioCodec> codecs_;
@@ -282,6 +322,10 @@ class NullVideoEngine {
   CaptureResult SetCapture(bool capture) { return CR_SUCCESS;  }
   const std::vector<VideoCodec>& codecs() { return codecs_; }
   void SetLogging(int min_sev, const char* filter) {}
+  bool RegisterProcessor(VideoProcessor* video_processor) { return true; }
+  bool UnregisterProcessor(VideoProcessor* video_processor) { return true; }
+  bool SetVideoCapturer(VideoCapturer* capturer, uint32 ssrc) { return true; }
+
   sigslot::signal2<VideoCapturer*, CaptureResult> SignalCaptureResult;
  private:
   std::vector<VideoCodec> codecs_;

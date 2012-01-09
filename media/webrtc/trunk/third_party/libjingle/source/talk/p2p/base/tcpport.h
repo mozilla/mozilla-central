@@ -50,7 +50,8 @@ class TCPPort : public Port {
   static TCPPort* Create(talk_base::Thread* thread,
                          talk_base::PacketSocketFactory* factory,
                          talk_base::Network* network,
-                         uint32 ip, int min_port, int max_port,
+                         const talk_base::IPAddress& ip,
+                         int min_port, int max_port,
                          bool allow_listen) {
     TCPPort* port = new TCPPort(thread, factory, network,
                                 ip, min_port, max_port, allow_listen);
@@ -73,8 +74,8 @@ class TCPPort : public Port {
 
  protected:
   TCPPort(talk_base::Thread* thread, talk_base::PacketSocketFactory* factory,
-          talk_base::Network* network, uint32 ip, int min_port, int max_port,
-          bool allow_listen);
+          talk_base::Network* network, const talk_base::IPAddress& ip,
+          int min_port, int max_port, bool allow_listen);
   bool Init();
 
   // Handles sending using the local TCP socket.

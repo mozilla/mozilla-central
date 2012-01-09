@@ -34,7 +34,6 @@
 #include "critical_section_wrapper.h"
 #include "event_wrapper.h"
 #include "thread_wrapper.h"
-#include "testsupport/fileutils.h"
 
 #ifdef _TEST_NETEQ_STATS_
 #include "../../interface/voe_neteq_stats.h" // Not available in delivery folder
@@ -621,9 +620,7 @@ VoETestManager::VoETestManager()
       voe_rtp_rtcp_(0),
       voe_vsync_(0),
       voe_volume_control_(0),
-      voe_apm_(0),
-      resource_path_(),
-      audio_filename_()
+      voe_apm_(0)
 {
 }
 
@@ -641,18 +638,6 @@ bool VoETestManager::Init() {
       "should fail)!\n", __LINE__);
     return false;
   }
-
-#if defined(WEBRTC_ANDROID)
-  resource_path_ = "/sdcard/";
-#else
-  resource_path_ = webrtc::test::ProjectRootPath();
-  if (resource_path_ == webrtc::test::kCannotFindProjectRootDir) {
-    TEST_LOG("Failed to get project root directory\n");
-    return false;
-  }
-  resource_path_ += "test/data/voice_engine/";
-#endif
-  audio_filename_ = resource_path_ + "audio_long16.pcm";
 
   voice_engine_ = VoiceEngine::Create();
   if (!voice_engine_) {
@@ -897,72 +882,16 @@ int VoETestManager::ReleaseInterfaces() {
   return (releaseOK == true) ? 0 : -1;
 }
 
-int VoETestManager::TestTraceApi() {
-  // Test trace callbacks.
-  TEST_LOG("Enabling the trace callback => default trace messages "
-      "shall be printed... \n\n");
-  MyTraceCallback* callback = new MyTraceCallback();
-  VoiceEngine::SetTraceCallback(callback);
+int VoETestManager::SetUp() {
+  char char_buffer[1024];
 
-  // Test the remaining trace APIs.
-  TEST_MUSTPASS(VoiceEngine::SetTraceFile(GetFilename("webrtc_voe_trace.txt"),
-                                          true));
-  TEST_MUSTPASS(VoiceEngine::SetTraceFile(NULL));
-  TEST_MUSTPASS(VoiceEngine::SetTraceFile(GetFilename(
-      "webrtc_voe_trace.txt")));
-
-  VoiceEngine* extra = VoiceEngine::Create();
-  TEST_LOG("\nVerify that the VoE ID is now changed from 1 to 2\n\n");
-  TEST_MUSTPASS(VoiceEngine::SetTraceFile(NULL));
-  TEST_MUSTPASS(VoiceEngine::SetTraceFile(GetFilename(
-      "webrtc_voe_trace.txt")));
-  TEST_MUSTPASS(VoiceEngine::SetTraceFile(NULL));
-  VoiceEngine::Delete(extra);
-  SLEEP(10);
-  TEST_LOG("\nVerify that the VoE ID is now changed back to 1\n");
-  TEST_LOG("NOTE: Currently it will still be 2, this is OK\n\n");
-
-  // The API below shall be the first line in the stored trace file
-  // (verify after test).
-  TEST_MUSTPASS(VoiceEngine::SetTraceFile(GetFilename(
-      "webrtc_voe_trace.txt")));
-  VoiceEngine::SetTraceCallback(NULL);
-  delete callback;
-  TEST_LOG("\n...the trace callback is now disabled.\n\n");
-
-  return 0;
-}
-
-int VoETestManager::TestHardwareBeforeInitializing() {
-#ifdef _TEST_HARDWARE_
-  TEST_LOG("Set/Get audio device layer\n");
-  AudioLayers wantedLayer = TESTED_AUDIO_LAYER;
-  AudioLayers givenLayer;
-  TEST_MUSTPASS(voe_hardware_->SetAudioDeviceLayer(wantedLayer));
-  TEST_MUSTPASS(voe_hardware_->GetAudioDeviceLayer(givenLayer));
-  TEST_MUSTPASS(wantedLayer != givenLayer);   // Should be same before init
-#endif //_TEST_HARDWARE_
-  TEST_LOG("Init \n");
-#if defined BLACKFIN
-  TEST_MUSTPASS(voe_base_->Init(0,LINUX_AUDIO_OSS));
-#else
   TEST_MUSTPASS(voe_base_->Init());
-#endif
 
 #if defined(WEBRTC_ANDROID)
-  TEST_LOG("Setting loudspeaker status to false \n");
   TEST_MUSTPASS(voe_hardware_->SetLoudspeakerStatus(false));
 #endif
 
-#ifndef __INSURE__
-  TEST_LOG("Enabling the observer \n");
   TEST_MUSTPASS(voe_base_->RegisterVoiceEngineObserver(obs));
-#endif
-  return 0;
-}
-
-int VoETestManager::SetUp() {
-  char char_buffer[1024];
 
   TEST_LOG("Get version \n");
   TEST_MUSTPASS(voe_base_->GetVersion(char_buffer));
@@ -973,297 +902,7 @@ int VoETestManager::SetUp() {
   TEST_MUSTPASS(!(nChannels > 0));
   TEST_LOG("Max number of channels = %d \n", nChannels);
   TEST_MUSTPASS(voe_base_->CreateChannel());
-  return 0;
-}
 
-int VoETestManager::TestRtpRtcpBeforeStreaming() {
-#ifdef _TEST_RTP_RTCP_
-  TEST_LOG("\n\n+++ RTP/RTCP tests +++\n\n");
-
-  TEST_LOG("Set/Get RTCP and CName \n");
-  bool on;
-  // Should be on by default.
-  TEST_MUSTPASS(voe_rtp_rtcp_->GetRTCPStatus(0, on));
-  TEST_MUSTPASS(on != true);
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetRTCPStatus(0, false));
-  TEST_MUSTPASS(voe_rtp_rtcp_->GetRTCPStatus(0, on));
-  TEST_MUSTPASS(on != false);
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetRTCPStatus(0, true));
-  TEST_MUSTPASS(voe_rtp_rtcp_->GetRTCPStatus(0, on));
-  TEST_MUSTPASS(on != true);
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetRTCP_CNAME(0, "Niklas"));
-
-  TEST_LOG("Set/Get RTP Keepalive\n");
-  unsigned char pt;
-  int dt;
-  TEST_MUSTPASS(!voe_rtp_rtcp_->GetRTPKeepaliveStatus(-1, on, pt, dt));
-  // Should be off by default.
-  TEST_MUSTPASS(voe_rtp_rtcp_->GetRTPKeepaliveStatus(0, on, pt, dt));
-  TEST_MUSTPASS(on != false);
-  TEST_MUSTPASS(pt != 255);
-  TEST_MUSTPASS(dt != 0);
-
-  // Verify invalid input parameters.
-  TEST_MUSTPASS(!voe_rtp_rtcp_->SetRTPKeepaliveStatus(-1, true, 0, 15));
-  TEST_MUSTPASS(!voe_rtp_rtcp_->SetRTPKeepaliveStatus(0, true, -1, 15));
-  TEST_MUSTPASS(!voe_rtp_rtcp_->SetRTPKeepaliveStatus(0, true, 0, 61));
-  // Should still be off.
-  TEST_MUSTPASS(voe_rtp_rtcp_->GetRTPKeepaliveStatus(0, on, pt, dt));
-  TEST_MUSTPASS(!voe_rtp_rtcp_->SetRTPKeepaliveStatus(0, true, 0));
-  // Should fail since default 0 is used bu PCMU.
-  TEST_MUSTPASS(on != false);
-  // Try valid settings.
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetRTPKeepaliveStatus(0, true, 1));
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetRTPKeepaliveStatus(0, true, 1));
-  // Should be on now.
-  TEST_MUSTPASS(voe_rtp_rtcp_->GetRTPKeepaliveStatus(0, on, pt, dt));
-  TEST_MUSTPASS(on != true);TEST_MUSTPASS(pt != 1);TEST_MUSTPASS(dt != 15);
-  // Set the Keep alive payload to 60, and this payloadtype could not used
-  // by the codecs.
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetRTPKeepaliveStatus(0, true, 60, 3));
-  TEST_MUSTPASS(voe_rtp_rtcp_->GetRTPKeepaliveStatus(0, on, pt, dt));
-  TEST_MUSTPASS(on != true);TEST_MUSTPASS(pt != 60);TEST_MUSTPASS(dt != 3);
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetRTPKeepaliveStatus(0, false, 60));
-
-  TEST_LOG("Set and get SSRC \n");
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetLocalSSRC(0, 1234));
-  unsigned int send_ssrc = 0;
-  TEST_MUSTPASS(voe_rtp_rtcp_->GetLocalSSRC(0, send_ssrc));
-  TEST_MUSTPASS(1234 != send_ssrc);
-#else
-  TEST_LOG("\n\n+++ RTP/RTCP tests NOT ENABLED +++\n");
-#endif
-  return 0;
-}
-
-int VoETestManager::TestHardwareBeforeStreaming() {
-#ifdef _TEST_HARDWARE_
-  TEST_LOG("\n\n+++ Hardware tests +++\n\n");
-
-  AudioLayers wanted_layer = TESTED_AUDIO_LAYER;
-  AudioLayers given_layer;
-  TEST_LOG("Set/Get audio device layer\n");
-  TEST_MUSTPASS(-1 != voe_hardware_->SetAudioDeviceLayer(wanted_layer));
-  TEST_MUSTPASS(VE_ALREADY_INITED != voe_base_->LastError());
-  TEST_MUSTPASS(voe_hardware_->GetAudioDeviceLayer(given_layer));
-  switch (given_layer) {
-    case kAudioPlatformDefault:
-      // Already set above.
-      break;
-    case kAudioWindowsCore:
-      TEST_LOG("Running kAudioWindowsCore\n");
-      break;
-    case kAudioWindowsWave:
-      TEST_LOG("Running kAudioWindowsWave\n");
-      break;
-    case kAudioLinuxAlsa:
-      TEST_LOG("Running kAudioLinuxAlsa\n");
-      break;
-    case kAudioLinuxPulse:
-      TEST_LOG("Running kAudioLinuxPulse\n");
-      break;
-    default:
-      TEST_LOG("ERROR: Running unknown audio layer!!\n");
-      return -1;
-  }
-
-  int load_percent;
-#if defined(_WIN32)
-  TEST_LOG("CPU load \n");
-  TEST_MUSTPASS(voe_hardware_->GetCPULoad(load_percent));
-  TEST_LOG("GetCPULoad => %d%%\n", load_percent);
-#else
-  TEST_MUSTPASS(!voe_hardware_->GetCPULoad(load_percent));
-#endif
-#if !defined(MAC_IPHONE) & !defined(WEBRTC_ANDROID)
-  TEST_MUSTPASS(voe_hardware_->GetSystemCPULoad(load_percent));
-  TEST_LOG("GetSystemCPULoad => %d%%\n", load_percent);
-#endif
-
-#if !defined(MAC_IPHONE) && !defined(WEBRTC_ANDROID)
-  bool play_available = false;
-  bool recording_available = false;
-  TEST_LOG("Get device status \n");
-  TEST_MUSTPASS(voe_hardware_->GetPlayoutDeviceStatus(play_available));
-  TEST_MUSTPASS(voe_hardware_->GetRecordingDeviceStatus(recording_available));
-  TEST_MUSTPASS(!(recording_available && play_available));
-#endif
-  // Win, Mac and Linux sound device tests.
-#if (defined(WEBRTC_MAC) && !defined(MAC_IPHONE)) || defined(_WIN32) || \
-    (defined(WEBRTC_LINUX) && !defined(WEBRTC_ANDROID))
-
-  char device_name[128] = {0};
-  char guid_name[128] = {0};
-
-  TEST_LOG("Printing names of default sound devices \n");
-#if defined(_WIN32)
-  TEST_MUSTPASS(voe_hardware_->GetRecordingDeviceName(-1, device_name,
-                                                      guid_name));
-  TEST_LOG("Recording device= %s, guid=%s\n", device_name, guid_name);
-  TEST_MUSTPASS(voe_hardware_->GetPlayoutDeviceName(-1, device_name,
-                                                    guid_name));
-  TEST_LOG("Playout device= %s, guid=%s\n", device_name, guid_name);
-#else
-  TEST_MUSTPASS(voe_hardware_->GetRecordingDeviceName(0, device_name,
-                                                      guid_name));
-  TEST_LOG("Recording device= %s\n",device_name);
-  TEST_MUSTPASS(voe_hardware_->GetPlayoutDeviceName(0, device_name,
-                                                    guid_name));
-  TEST_LOG("Playout device= %s\n",device_name);
-#endif
-
-  // Check recording side.
-  // Extended Win32 enumeration tests: unique GUID outputs on Vista and up:
-  // Win XP and below : device_name is copied to guid_name.
-  // Win Vista and up : device_name is the friendly name and GUID is a unique
-  //                    identifier.
-  // Other            : guid_name is left unchanged.
-  int num_of_recording_devices = 0;
-  TEST_MUSTPASS(voe_hardware_->GetNumOfRecordingDevices(
-      num_of_recording_devices));
-  TEST_LOG("GetNumOfRecordingDevices = %d\n", num_of_recording_devices);
-  for (int i = 0; i < num_of_recording_devices; i++) {
-    TEST_MUSTPASS(voe_hardware_->GetRecordingDeviceName(i, device_name,
-                                                        guid_name));
-#if defined(_WIN32)
-    TEST_LOG("GetRecordingDeviceName(%d) => name=%s, guid=%s\n",
-             i, device_name, guid_name);
-#else
-    TEST_LOG("GetRecordingDeviceName(%d) => name=%s\n", i, device_name);
-#endif
-    TEST_MUSTPASS(voe_hardware_->SetRecordingDevice(i));
-  }
-
-  // Check playout side (the check is similar to the recording side).
-  int num_plays = 0;
-  TEST_MUSTPASS(voe_hardware_->GetNumOfPlayoutDevices(num_plays));
-  TEST_LOG("GetNumDevsPlayout = %d\n", num_plays);
-  for (int i = 0; i < num_plays; i++) {
-    TEST_MUSTPASS(voe_hardware_->GetPlayoutDeviceName(i, device_name,
-                                                      guid_name));
-#if defined(_WIN32)
-    TEST_LOG("GetPlayoutDeviceName(%d) => name=%s, guid=%s\n",
-             i, device_name, guid_name);
-#else
-    TEST_LOG("GetPlayoutDeviceName(%d) => name=%s\n", i, device_name);
-#endif
-    TEST_MUSTPASS(voe_hardware_->SetPlayoutDevice(i));
-  }
-
-#endif // #if (defined(WEBRTC_MAC) && !defined(MAC_IPHONE)) || (defined(_WI...&
-  TEST_LOG("Setting default sound devices \n");
-#ifdef _WIN32
-  TEST_MUSTPASS(voe_hardware_->SetRecordingDevice(-1));
-  TEST_MUSTPASS(voe_hardware_->SetPlayoutDevice(-1));
-#else
-#if !defined(MAC_IPHONE) && !defined(WEBRTC_ANDROID)
-  TEST_MUSTPASS(voe_hardware_->SetRecordingDevice(0));
-  TEST_MUSTPASS(voe_hardware_->SetPlayoutDevice(0));
-#endif
-#endif
-
-#ifdef MAC_IPHONE
-  // Reset sound device
-  TEST_LOG("Reset sound device \n");
-  TEST_MUSTPASS(voe_hardware_->ResetAudioDevice());
-#endif
-
-#else
-  TEST_LOG("\n\n+++ Hardware tests NOT ENABLED +++\n");
-#endif  // #ifdef _TEST_HARDWARE_
-  return 0;
-}
-
-int VoETestManager::TestCodecsBeforeStreaming() {
-  CodecInst codec_instance;
-  memset(&codec_instance, 0, sizeof(codec_instance));
-
-  // This testing must be done before we start playing.
-#ifdef _TEST_CODEC_
-  // Test that set and get payload type work.
-#if defined(WEBRTC_CODEC_ISAC)
-  TEST_LOG("Getting payload type for iSAC\n");
-  strcpy(codec_instance.plname, "niklas");
-  codec_instance.channels = 1;
-  codec_instance.plfreq = 16000;
-  codec_instance.pacsize = 480;
-  // Should fail since niklas is not a valid codec name.
-  TEST_MUSTPASS(!voe_codec_->GetRecPayloadType(0, codec_instance));
-  // Both iSAC and ISAC should work here.
-  strcpy(codec_instance.plname, "iSAC");
-  TEST_MUSTPASS(voe_codec_->GetRecPayloadType(0, codec_instance));
-  strcpy(codec_instance.plname, "ISAC");
-  TEST_MUSTPASS(voe_codec_->GetRecPayloadType(0,codec_instance));
-  int original_pltype = codec_instance.pltype;  // Default payload type is 103.
-  TEST_LOG("Setting payload type for iSAC to 127\n");
-  codec_instance.pltype = 123;
-  TEST_MUSTPASS(voe_codec_->SetRecPayloadType(0,codec_instance));
-  TEST_MUSTPASS(voe_codec_->GetRecPayloadType(0,codec_instance));
-  TEST_MUSTPASS(!(codec_instance.pltype==123));
-  TEST_LOG("Setting it back\n");
-  codec_instance.pltype = original_pltype;
-  TEST_MUSTPASS(voe_codec_->SetRecPayloadType(0,codec_instance));
-  TEST_MUSTPASS(voe_codec_->GetRecPayloadType(0,codec_instance));
-  TEST_MUSTPASS(!(codec_instance.pltype==original_pltype));
-  codec_instance.pltype = 123;
-  codec_instance.plfreq = 8000;
-  codec_instance.pacsize = 240;
-  codec_instance.rate = 13300;
-#ifdef WEBRTC_CODEC_ILBC
-  strcpy(codec_instance.plname, "iLBC");
-  TEST_MUSTPASS(voe_codec_->GetRecPayloadType(0,codec_instance));
-  original_pltype = codec_instance.pltype;
-  codec_instance.pltype = 123;
-  TEST_MUSTPASS(voe_codec_->SetRecPayloadType(0,codec_instance));
-  TEST_MUSTPASS(voe_codec_->GetRecPayloadType(0,codec_instance));
-  TEST_LOG("Setting it back\n");
-  codec_instance.pltype = original_pltype;
-  TEST_MUSTPASS(voe_codec_->SetRecPayloadType(0,codec_instance));
-  TEST_MUSTPASS(voe_codec_->GetRecPayloadType(0,codec_instance));
-  TEST_MUSTPASS(!(codec_instance.pltype==original_pltype));
-#endif // #ifdef WEBRTC_CODEC_ILBC
-#endif // #if defined(WEBRTC_CODEC_ISAC)
-#endif // #ifdef _TEST_CODEC_
-  return 0;
-}
-
-int VoETestManager::TestNetworkBeforeStreaming() {
-  ///////////////////////////////////////////////
-  // Network (test before streaming is activated)
-
-#ifdef _TEST_NETWORK_
-  TEST_LOG("\n\n+++ Network tests +++\n\n");
-
-#ifndef WEBRTC_EXTERNAL_TRANSPORT
-  int filter_port = -1;
-  int filter_port_rtcp = -1;
-  char src_ip[32] = "0.0.0.0";
-  char filter_ip[32] = "0.0.0.0";
-
-  TEST_LOG("GetSourceInfo \n");
-  int src_rtp_port = 1234;
-  int src_rtcp_port = 1235;
-  TEST_MUSTPASS(voe_network_->GetSourceInfo(0, src_rtp_port, src_rtcp_port,
-                                            src_ip));
-  TEST_MUSTPASS(0 != src_rtp_port);
-  TEST_MUSTPASS(0 != src_rtcp_port);
-  TEST_MUSTPASS(_stricmp(src_ip, ""));
-
-  TEST_LOG("GetSourceFilter \n");
-  TEST_MUSTPASS(voe_network_->GetSourceFilter(0, filter_port, filter_port_rtcp,
-                                      filter_ip));
-  TEST_MUSTPASS(0 != filter_port);
-  TEST_MUSTPASS(0 != filter_port_rtcp);
-  TEST_MUSTPASS(_stricmp(filter_ip, ""));
-
-  TEST_LOG("SetSourceFilter \n");
-  TEST_MUSTPASS(voe_network_->SetSourceFilter(0, src_rtp_port));
-#else
-  TEST_LOG("Skipping network tests - WEBRTC_EXTERNAL_TRANSPORT is defined \n");
-#endif // #ifndef WEBRTC_EXTERNAL_TRANSPORT
-#else
-  TEST_LOG("\n\n+++ Network tests NOT ENABLED +++\n");
-#endif
   return 0;
 }
 
@@ -1332,410 +971,23 @@ int VoETestManager::TestStartPlaying() {
   return 0;
 }
 
-int VoETestManager::TestHoldAndNetEq() {
-#ifdef _TEST_BASE_
-  TEST_LOG("Put channel on hold => should *not* hear audio \n");
-  // HOLD_SEND_AND_PLAY is the default mode.
-  TEST_MUSTPASS(voe_base_->SetOnHoldStatus(0, true));
-  SLEEP(2000);
-  TEST_LOG("Remove on hold => should hear audio again \n");
-  TEST_MUSTPASS(voe_base_->SetOnHoldStatus(0, false));
-  SLEEP(2000);
-  TEST_LOG("Put sending on hold => should *not* hear audio \n");
-  TEST_MUSTPASS(voe_base_->SetOnHoldStatus(0, true, kHoldSendOnly));
-  SLEEP(2000);
-  if (voe_file_) {
-    TEST_LOG("Start playing a file locally => "
-      "you should now hear this file being played out \n");
-    TEST_MUSTPASS(voe_file_->StartPlayingFileLocally(0, AudioFilename(),
-            true));
-    SLEEP(2000);
-  }
-  TEST_LOG("Put playing on hold => should *not* hear audio \n");
-  TEST_MUSTPASS(voe_base_->SetOnHoldStatus(0, true, kHoldPlayOnly));
-  SLEEP(2000);
-  TEST_LOG("Remove on hold => should hear audio again \n");
-  if (voe_file_) {
-    TEST_MUSTPASS(voe_file_->StopPlayingFileLocally(0));
-  }
-  TEST_MUSTPASS(voe_base_->SetOnHoldStatus(0, false));
-  SLEEP(2000);
-
-  NetEqModes mode;
-  TEST_MUSTPASS(voe_base_->GetNetEQPlayoutMode(0, mode));
-  TEST_MUSTPASS(mode != kNetEqDefault);
-  TEST_LOG("NetEQ DEFAULT playout mode enabled => should hear OK audio \n");
-  TEST_MUSTPASS(voe_base_->SetNetEQPlayoutMode(0, kNetEqDefault));
-  SLEEP(3000);
-  TEST_LOG("NetEQ STREAMING playout mode enabled => should hear OK audio \n");
-  TEST_MUSTPASS(voe_base_->SetNetEQPlayoutMode(0, kNetEqStreaming));
-  SLEEP(3000);
-  TEST_LOG("NetEQ FAX playout mode enabled => should hear OK audio \n");
-  TEST_MUSTPASS(voe_base_->SetNetEQPlayoutMode(0, kNetEqFax));
-  SLEEP(3000);
-  TEST_LOG("NetEQ default mode is restored \n");
-  TEST_MUSTPASS(voe_base_->SetNetEQPlayoutMode(0, kNetEqDefault));
-  TEST_MUSTPASS(voe_base_->GetNetEQPlayoutMode(0, mode));
-  TEST_MUSTPASS(mode != kNetEqDefault);
-  TEST_MUSTPASS(voe_base_->GetNetEQPlayoutMode(0, mode));
-  TEST_MUSTPASS(mode != kNetEqDefault);
-  TEST_LOG("NetEQ DEFAULT playout mode enabled => should hear OK audio \n");
-  TEST_MUSTPASS(voe_base_->SetNetEQPlayoutMode(0, kNetEqDefault));
-  SLEEP(3000);
-  TEST_LOG("NetEQ STREAMING playout mode enabled => should hear OK audio \n");
-  TEST_MUSTPASS(voe_base_->SetNetEQPlayoutMode(0, kNetEqStreaming));
-  SLEEP(3000);
-  TEST_LOG("NetEQ FAX playout mode enabled => should hear OK audio \n");
-  TEST_MUSTPASS(voe_base_->SetNetEQPlayoutMode(0, kNetEqFax));
-  SLEEP(3000);
-  TEST_LOG("NetEQ default mode is restored \n");
-  TEST_MUSTPASS(voe_base_->SetNetEQPlayoutMode(0, kNetEqDefault));
-  TEST_MUSTPASS(voe_base_->GetNetEQPlayoutMode(0, mode));
-  TEST_MUSTPASS(mode != kNetEqDefault);
-  TEST_MUSTPASS(voe_base_->GetNetEQPlayoutMode(0, mode));
-  TEST_MUSTPASS(mode != kNetEqDefault);
-  TEST_LOG("NetEQ DEFAULT playout mode enabled => should hear OK audio \n");
-  TEST_MUSTPASS(voe_base_->SetNetEQPlayoutMode(0, kNetEqDefault));
-  SLEEP(3000);
-  TEST_LOG("NetEQ STREAMING playout mode enabled => should hear OK audio \n");
-  TEST_MUSTPASS(voe_base_->SetNetEQPlayoutMode(0, kNetEqStreaming));
-  SLEEP(3000);
-  TEST_LOG("NetEQ FAX playout mode enabled => should hear OK audio \n");
-  TEST_MUSTPASS(voe_base_->SetNetEQPlayoutMode(0, kNetEqFax));
-  SLEEP(3000);
-  TEST_LOG("NetEQ default mode is restored \n");
-  TEST_MUSTPASS(voe_base_->SetNetEQPlayoutMode(0, kNetEqDefault));
-  TEST_MUSTPASS(voe_base_->GetNetEQPlayoutMode(0, mode));
-  TEST_MUSTPASS(mode != kNetEqDefault);
-
-  TEST_LOG("Scan all possible NetEQ BGN modes\n"); // skip listening test
-  enum NetEqBgnModes neteq_bgn_mode;
-  TEST_MUSTPASS(voe_base_->GetNetEQBGNMode(0, neteq_bgn_mode));
-  TEST_MUSTPASS(neteq_bgn_mode != kBgnOn);
-  TEST_MUSTPASS(voe_base_->SetNetEQBGNMode(0, kBgnOn));
-  TEST_MUSTPASS(voe_base_->GetNetEQBGNMode(0, neteq_bgn_mode));
-  TEST_MUSTPASS(neteq_bgn_mode != kBgnOn);
-  TEST_MUSTPASS(voe_base_->SetNetEQBGNMode(0, kBgnFade));
-  TEST_MUSTPASS(voe_base_->GetNetEQBGNMode(0, neteq_bgn_mode));
-  TEST_MUSTPASS(neteq_bgn_mode != kBgnFade);
-  TEST_MUSTPASS(voe_base_->SetNetEQBGNMode(0, kBgnOff));
-  TEST_MUSTPASS(voe_base_->GetNetEQBGNMode(0, neteq_bgn_mode));
-  TEST_MUSTPASS(neteq_bgn_mode != kBgnOff);
-#else
-  TEST_LOG("Skipping on hold and NetEQ playout tests -"
-      "Base tests are not enabled \n");
-#endif // #ifdef _TEST_BASE_
-  return 0;
-}
-
-int VoETestManager::TestCodecs() {
-
-#ifdef _TEST_CODEC_
-  CodecInst codec_instance;
-  memset(&codec_instance, 0, sizeof(codec_instance));
-
-  TEST_LOG("\n\n+++ Codec tests +++\n\n");
-
-  TEST_LOG("Checking default codec\n");
-  TEST_MUSTPASS(voe_codec_->GetSendCodec(0, codec_instance));
-  TEST_MUSTPASS(codec_instance.channels != 1);
-  TEST_MUSTPASS(codec_instance.pacsize != 160);
-  TEST_MUSTPASS(codec_instance.plfreq != 8000);
-  TEST_MUSTPASS(codec_instance.pltype != 0);
-  TEST_MUSTPASS(codec_instance.rate != 64000);
-  TEST_MUSTPASS(strcmp("PCMU", codec_instance.plname) != 0);
-
-  TEST_LOG("Looping through all codecs and packet sizes\n");
-  TEST_LOG("NOTE: For swb codecs, ensure that you speak in the mic\n");
-  int num_codecs = voe_codec_->NumOfCodecs();
-  for (int i = 0; i < num_codecs; i++) {
-    TEST_MUSTPASS(voe_codec_->GetCodec(i, codec_instance));
-
-    if (!((!_stricmp("CN", codec_instance.plname)) ||
-          (!_stricmp("telephone-event", codec_instance.plname) ||
-          (!_stricmp("red", codec_instance.plname))))) {
-      // If no default payload type is defined, we use 127 and also set
-      // receive payload type.
-      if (-1 == codec_instance.pltype) {
-        codec_instance.pltype = 127;
-        TEST_MUSTPASS(voe_base_->StopPlayout(0));
-        TEST_MUSTPASS(voe_base_->StopReceive(0));
-        TEST_MUSTPASS(voe_codec_->SetRecPayloadType(0, codec_instance));
-        TEST_MUSTPASS(voe_base_->StartReceive(0));
-        TEST_MUSTPASS(voe_base_->StartPlayout(0));
-      }
-      TEST_LOG("%s (pt=%d): default(%d) ", codec_instance.plname,
-               codec_instance.pltype, codec_instance.pacsize);
-      TEST_MUSTPASS(voe_codec_->SetSendCodec(0, codec_instance));
-      SLEEP(CODEC_TEST_TIME);
-      // special case for G.722.1:
-      if (!_stricmp("g7221", codec_instance.plname))
-      {
-        // Test 16 and 32 kHz.
-        for (int freq = 16000; freq <= 32000; freq += 16000) {
-          codec_instance.plfreq = freq;
-          // Test 16/24/32 and 24/32/48 kbit respectively.
-          int rate = (16000 == freq ? 16000 : 24000);
-          int maxRate = (16000 == freq ? 32000 : 40000);
-          // In fact 48, see below.
-          for (; rate <= maxRate; rate += 8000) {
-            rate = (40000 == rate ? 48000 : rate); // 40 -> 48
-            codec_instance.rate = rate;
-            // Test packet sizes.
-            TEST_LOG("\n%s (pt=%d, fs=%d, rate=%d): ", codec_instance.plname,
-                     codec_instance.pltype, codec_instance.plfreq,
-                     codec_instance.rate);
-            for (int packet_size = 80; packet_size < 1000; packet_size += 80) {
-              // Set codec, and receive payload type.
-              codec_instance.pacsize = packet_size;
-              if (-1 != voe_codec_->SetSendCodec(0, codec_instance)) {
-                TEST_MUSTPASS(voe_base_->StopPlayout(0));
-                TEST_MUSTPASS(voe_base_->StopReceive(0));
-                TEST_MUSTPASS(voe_codec_->SetRecPayloadType(0,
-                        codec_instance));
-                TEST_MUSTPASS(voe_base_->StartReceive(0));
-                TEST_MUSTPASS(voe_base_->StartPlayout(0));
-                TEST_LOG("%d ", packet_size);
-                fflush(NULL);
-                SLEEP(2 * CODEC_TEST_TIME);
-              }
-            }
-          }
-        }
-      } else {
-        for (int pacsize = 80; pacsize < 1000; pacsize += 80) {
-          // Set codec. From VoE 4.0, we need the specify the right rate.
-          if (!_stricmp("ilbc", codec_instance.plname)) {
-
-            if ((pacsize == 160) || (pacsize == 320)) {
-              codec_instance.rate = 15200;
-            } else {
-              codec_instance.rate = 13300;
-            }
-          }
-          codec_instance.pacsize = pacsize;
-          if (-1 != voe_codec_->SetSendCodec(0, codec_instance)) {
-            TEST_LOG("%d ", pacsize);
-            fflush(NULL);
-            SLEEP(CODEC_TEST_TIME);
-          }
-        }
-      }
-      TEST_LOG("\n");
-    }
-  }
-
-  TEST_MUSTPASS(voe_codec_->GetCodec(0, codec_instance));
-  TEST_LOG("Setting codec to first in list: %s \n", codec_instance.plname);
-  TEST_MUSTPASS(voe_codec_->SetSendCodec(0, codec_instance));
-
-  TEST_LOG("Voice Activity Detection calls\n");
-  TEST_LOG("Must be OFF by default\n");
-  bool vad_test = true;
-  VadModes vadMode = kVadAggressiveHigh;
-  bool disabled_dtx = true;
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(vad_test);
-  TEST_MUSTPASS(kVadConventional != vadMode);
-  TEST_MUSTPASS(!disabled_dtx);
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(vad_test);
-  TEST_MUSTPASS(kVadConventional != vadMode);
-  TEST_MUSTPASS(!disabled_dtx);
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(vad_test);
-  TEST_MUSTPASS(kVadConventional != vadMode);
-  TEST_MUSTPASS(!disabled_dtx);
-
-  TEST_LOG("Turn ON VAD\n");
-  TEST_MUSTPASS(voe_codec_->SetVADStatus(0, true));
-  TEST_LOG("Should be ON now\n");
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(!vad_test);
-  TEST_MUSTPASS(kVadConventional != vadMode);
-  TEST_MUSTPASS(disabled_dtx);
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(!vad_test);
-  TEST_MUSTPASS(kVadConventional != vadMode);
-  TEST_MUSTPASS(disabled_dtx);
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(!vad_test);
-  TEST_MUSTPASS(kVadConventional != vadMode);
-  TEST_MUSTPASS(disabled_dtx);
-
-  TEST_LOG("Testing Type settings\n");
-  TEST_MUSTPASS(voe_codec_->SetVADStatus(0, true, kVadAggressiveLow));
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(kVadAggressiveLow != vadMode);
-  TEST_MUSTPASS(voe_codec_->SetVADStatus(0, true, kVadAggressiveMid));
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(kVadAggressiveMid != vadMode);
-  TEST_MUSTPASS(voe_codec_->SetVADStatus(0, true, kVadAggressiveMid));
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(kVadAggressiveMid != vadMode);
-  TEST_MUSTPASS(voe_codec_->SetVADStatus(0, true, kVadAggressiveMid));
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(kVadAggressiveMid != vadMode);
-  TEST_MUSTPASS(voe_codec_->SetVADStatus(0, true, kVadAggressiveHigh, true));
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(kVadAggressiveHigh != vadMode);
-  TEST_MUSTPASS(voe_codec_->SetVADStatus(0, true, kVadAggressiveHigh, true));
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(kVadAggressiveHigh != vadMode);
-  TEST_MUSTPASS(voe_codec_->SetVADStatus(0, true, kVadAggressiveHigh, true));
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(kVadAggressiveHigh != vadMode);
-  TEST_MUSTPASS(!disabled_dtx);
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(kVadAggressiveHigh != vadMode);
-  TEST_MUSTPASS(!disabled_dtx);
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(kVadAggressiveHigh != vadMode);
-  TEST_MUSTPASS(!disabled_dtx);
-  TEST_MUSTPASS(voe_codec_->SetVADStatus(0, true, kVadConventional));
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(kVadConventional != vadMode);
-  TEST_MUSTPASS(disabled_dtx);
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(kVadConventional != vadMode);
-  TEST_MUSTPASS(disabled_dtx);
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(kVadConventional != vadMode);
-  TEST_MUSTPASS(disabled_dtx);
-
-  // VAD is always on when DTX is on, so we need to turn off DTX too.
-  TEST_LOG("Turn OFF VAD\n");
-  TEST_MUSTPASS(voe_codec_->SetVADStatus(0, false, kVadConventional, true));
-  TEST_LOG("Should be OFF now\n");
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(vad_test);
-  TEST_MUSTPASS(kVadConventional != vadMode);
-  TEST_MUSTPASS(!disabled_dtx);
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(vad_test);
-  TEST_MUSTPASS(kVadConventional != vadMode);
-  TEST_MUSTPASS(!disabled_dtx);
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(vad_test);
-  TEST_MUSTPASS(kVadConventional != vadMode);
-  TEST_MUSTPASS(!disabled_dtx);
-
-#if defined(WEBRTC_CODEC_ISAC)
-  TEST_LOG("Test extended iSAC APIs\n");
-  TEST_LOG("Start by selecting iSAC 30ms adaptive mode\n");
-  strcpy(codec_instance.plname, "isac");
-  codec_instance.pltype = 103;
-  codec_instance.plfreq = 16000;
-  codec_instance.channels = 1;
-  codec_instance.rate = -1;  // Adaptive rate.
-  codec_instance.pacsize = 480;
-  TEST_LOG("  testing SetISACInitTargetRate:\n");
-  TEST_MUSTPASS(voe_codec_->SetSendCodec(0, codec_instance));
-  TEST_MUSTPASS(!voe_codec_->SetISACInitTargetRate(0, 5000));
-  TEST_MUSTPASS(!voe_codec_->SetISACInitTargetRate(0, 33000));
-  TEST_MUSTPASS(voe_codec_->SetISACInitTargetRate(0, 32000));
-  TEST_LOG("Speak and ensure that iSAC sounds OK (target = 32kbps)...\n");
-  SLEEP(3000);
-  TEST_MUSTPASS(voe_codec_->SetISACInitTargetRate(0, 10000));
-  TEST_LOG("Speak and ensure that iSAC sounds OK (target = 10kbps)...\n");
-  SLEEP(3000);
-  TEST_MUSTPASS(voe_codec_->SetISACInitTargetRate(0, 10000, true));
-  TEST_MUSTPASS(voe_codec_->SetISACInitTargetRate(0, 10000, false));
-  TEST_MUSTPASS(voe_codec_->SetISACInitTargetRate(0, 0));
-  TEST_LOG("Speak and ensure that iSAC sounds OK (target = default)...\n");
-  SLEEP(3000);
-
-  TEST_LOG("  testing SetISACMaxPayloadSize:\n");
-  TEST_MUSTPASS(voe_base_->StopSend(0));
-  TEST_MUSTPASS(!voe_codec_->SetISACMaxPayloadSize(0, 50));
-  TEST_MUSTPASS(!voe_codec_->SetISACMaxPayloadSize(0, 650));
-  TEST_MUSTPASS(voe_codec_->SetISACMaxPayloadSize(0, 120));
-  TEST_MUSTPASS(voe_base_->StartSend(0));
-  TEST_LOG("Speak and ensure that iSAC sounds OK"
-    "(max payload size = 100 bytes)...\n");
-  SLEEP(3000);
-  TEST_MUSTPASS(voe_base_->StopSend(0));
-  TEST_MUSTPASS(voe_codec_->SetISACMaxPayloadSize(0, 400));
-  TEST_MUSTPASS(voe_base_->StartSend(0));
-
-  TEST_LOG("  testing SetISACMaxRate:\n");
-  TEST_MUSTPASS(voe_base_->StopSend(0));
-  TEST_MUSTPASS(!voe_codec_->SetISACMaxRate(0, 31900));
-  TEST_MUSTPASS(!voe_codec_->SetISACMaxRate(0, 53500));
-  TEST_MUSTPASS(voe_codec_->SetISACMaxRate(0, 32000));
-  TEST_MUSTPASS(voe_base_->StartSend(0));
-  TEST_LOG("Speak and ensure that iSAC sounds OK (max rate = 32 kbps)...\n");
-  SLEEP(3000);
-  TEST_MUSTPASS(voe_base_->StopSend(0));
-  TEST_MUSTPASS(voe_codec_->SetISACMaxRate(0, 53400)); // restore no limitation
-  TEST_MUSTPASS(voe_base_->StartSend(0));
-  if (voe_file_) {
-    TEST_LOG("==> Start playing a file as microphone again \n");
-    TEST_MUSTPASS(voe_file_->StartPlayingFileAsMicrophone(
-            0, AudioFilename(), true, true));
-  }
-#else
-  TEST_LOG("Skipping extended iSAC API tests - "
-      "WEBRTC_CODEC_ISAC not defined\n");
-#endif // #if defined(WEBRTC_CODEC_ISAC)
-  // Tests on AMR setencformat and setdecformat: the calls should fail.
-  TEST_MUSTPASS(!voe_codec_->SetAMREncFormat(0, kRfc3267BwEfficient));
-  TEST_MUSTPASS(!voe_codec_->SetAMRDecFormat(0, kRfc3267BwEfficient));
-  TEST_MUSTPASS(!voe_codec_->SetAMREncFormat(0, kRfc3267OctetAligned));
-  TEST_MUSTPASS(!voe_codec_->SetAMRDecFormat(0, kRfc3267OctetAligned));
-  TEST_MUSTPASS(!voe_codec_->SetAMREncFormat(0, kRfc3267FileStorage));
-  TEST_MUSTPASS(!voe_codec_->SetAMRDecFormat(0, kRfc3267FileStorage));
-
-  // Tests on AMRWB setencformat and setdecformat: the calls should fail.
-  TEST_MUSTPASS(!voe_codec_->SetAMRWbEncFormat(0, kRfc3267BwEfficient));
-  TEST_MUSTPASS(!voe_codec_->SetAMRWbDecFormat(0, kRfc3267BwEfficient));
-  TEST_MUSTPASS(!voe_codec_->SetAMRWbEncFormat(0, kRfc3267OctetAligned));
-  TEST_MUSTPASS(!voe_codec_->SetAMRWbDecFormat(0, kRfc3267OctetAligned));
-  TEST_MUSTPASS(!voe_codec_->SetAMRWbEncFormat(0, kRfc3267FileStorage));
-  TEST_MUSTPASS(!voe_codec_->SetAMRWbDecFormat(0, kRfc3267FileStorage));
-
-  TEST_LOG("Turn on VAD,G711 and set packet size to 30 ms:\n");
-  strcpy(codec_instance.plname, "pcmu");
-  codec_instance.pacsize = 160;
-  codec_instance.pltype = 0;
-  codec_instance.plfreq = 8000;
-  codec_instance.channels = 1;
-  codec_instance.rate = 64000;
-  TEST_MUSTPASS(voe_codec_->SetSendCodec(0, codec_instance));
-  // The test here is confusing, what are we expecting? VADtest = false?
-  TEST_MUSTPASS(voe_codec_->GetVADStatus(0, vad_test, vadMode, disabled_dtx));
-  TEST_MUSTPASS(vad_test);
-  TEST_MUSTPASS(voe_codec_->SetVADStatus(0, false, vadMode, true));
-
-  // Set back to preferred codec.
-  TEST_MUSTPASS(voe_codec_->GetCodec(0, codec_instance));
-  TEST_MUSTPASS(voe_codec_->SetSendCodec(0, codec_instance));
-
-#else
-  TEST_LOG("\n\n+++ Codec tests NOT ENABLED +++\n");
-#endif // #ifdef _TEST_CODEC_
-  return 0;
-}
-
 int VoETestManager::DoStandardTest() {
-  TEST_LOG("\n\n+++ Base tests +++\n\n");
+  // Ensure we have all input files:
+  TEST_MUSTPASS(!strcmp("", AudioFilename()));
 
-  if (TestTraceApi() != 0) return -1;
-  if (TestHardwareBeforeInitializing() != 0) return -1;
+  TEST_LOG("\n\n+++ Base tests +++\n\n");
 
   if (SetUp() != 0) return -1;
 
-  if (TestRtpRtcpBeforeStreaming() != 0) return -1;
-  if (TestHardwareBeforeStreaming() != 0) return -1;
-  if (TestCodecsBeforeStreaming() != 0) return -1;
-  if (TestNetworkBeforeStreaming() != 0) return -1;
+  // TODO(qhogpat): this gets verified way later - quite ugly. Make sure to
+  // put this into setup when rewriting the test that requires this.
+  TEST_MUSTPASS(voe_rtp_rtcp_->SetRTCP_CNAME(0, "Niklas"));
+  TEST_MUSTPASS(voe_rtp_rtcp_->SetLocalSSRC(0, 1234));
+  voe_network_->SetSourceFilter(0, 0);
 
   FakeExternalTransport channel0_transport(voe_network_);
   if (TestStartStreaming(channel0_transport) != 0) return -1;
-
   if (TestStartPlaying() != 0) return -1;
-  if (TestHoldAndNetEq() != 0) return -1;
-  if (TestCodecs() != 0) return -1;
 
   /////////////////////////
   // Start another channel
@@ -3538,6 +2790,16 @@ TEST_MUSTPASS(voe_codec_->SetSendCodec(0, ci));
            nStats.currentPreemptiveRate);
   TEST_LOG("    preferredBufferSize       = %hu \n",
            nStats.preferredBufferSize);
+  TEST_LOG("    jitterPeaksFound          = %i \n",
+           nStats.jitterPeaksFound);
+  TEST_LOG("    clockDriftPPM             = %i \n",
+           nStats.clockDriftPPM);
+  TEST_LOG("    meanWaitingTimeMs         = %i \n",
+           nStats.meanWaitingTimeMs);
+  TEST_LOG("    medianWaitingTimeMs       = %i \n",
+           nStats.medianWaitingTimeMs);
+  TEST_LOG("    maxWaitingTimeMs          = %i \n",
+           nStats.maxWaitingTimeMs);
 #else
   TEST_LOG("Skipping NetEQ statistics tests - "
       "WEBRTC_VOICE_ENGINE_NETEQ_STATS_API not defined \n");
@@ -4047,7 +3309,7 @@ unsigned int WINAPI mainTest::StartSend()
 
 } // namespace voetest
 
-int RunInManualMode() {
+int RunInManualMode(int argc, char** argv) {
   using namespace voetest;
 
   SubAPIManager apiMgr;
@@ -4096,6 +3358,15 @@ int RunInManualMode() {
       return 0;
   }
 
+  if (testType == Standard) {
+    TEST_LOG("\n\n+++ Running gtest-rewritten standard tests first +++\n\n");
+
+    // Run the automated tests too in standard mode since we are gradually
+    // rewriting the standard test to be automated. Running this will give
+    // the standard suite the same completeness.
+    RunInAutomatedMode(argc, argv);
+  }
+
   // Function that can be called from other entry functions.
   return runAutoTest(testType, extendedSel);
 }
@@ -4112,6 +3383,6 @@ int main(int argc, char** argv) {
     return RunInAutomatedMode(argc, argv);
   }
 
-  return RunInManualMode();
+  return RunInManualMode(argc, argv);
 }
 #endif //#if !defined(MAC_IPHONE)

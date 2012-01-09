@@ -31,6 +31,7 @@
 #include <string>
 
 #include "talk/base/basictypes.h"
+#include "talk/base/timeutils.h"
 
 namespace cricket {
 
@@ -61,7 +62,11 @@ inline std::string GetFourccName(uint32 fourcc) {
 enum FourCC {
   // Canonical fourcc codes used in our code.
   FOURCC_I420 = FOURCC('I', '4', '2', '0'),
+  FOURCC_I422 = FOURCC('I', '4', '2', '2'),
+  FOURCC_I444 = FOURCC('I', '4', '4', '4'),
   FOURCC_YV12 = FOURCC('Y', 'V', '1', '2'),
+  FOURCC_YV16 = FOURCC('Y', 'V', '1', '6'),
+  FOURCC_YV24 = FOURCC('Y', 'V', '2', '4'),
   FOURCC_YUY2 = FOURCC('Y', 'U', 'Y', '2'),
   FOURCC_UYVY = FOURCC('U', 'Y', 'V', 'Y'),
   FOURCC_M420 = FOURCC('M', '4', '2', '0'),
@@ -85,6 +90,8 @@ enum FourCC {
   // equivalents by CanonicalFourCC().
   FOURCC_IYUV = FOURCC('I', 'Y', 'U', 'V'),  // Alias for I420
   FOURCC_YU12 = FOURCC('Y', 'U', '1', '2'),  // Alias for I420
+  FOURCC_YU16 = FOURCC('Y', 'U', '1', '6'),  // Alias for I422
+  FOURCC_YU24 = FOURCC('Y', 'U', '2', '4'),  // Alias for I444
   FOURCC_YUYV = FOURCC('Y', 'U', 'Y', 'V'),  // Alias for YUY2
   FOURCC_YUVS = FOURCC('y', 'u', 'v', 's'),  // Alias for YUY2 on Mac
   FOURCC_HDYC = FOURCC('H', 'D', 'Y', 'C'),  // Alias for UYVY
@@ -106,10 +113,17 @@ uint32 CanonicalFourCC(uint32 fourcc);
 // Definition of VideoFormat.
 //////////////////////////////////////////////////////////////////////////////
 
-static const int64 kNumNanosecsPerSec = 1000000000;
+// VideoFormat with Plain Old Data for global variables
+struct VideoFormatPod {
+  int width;  // in number of pixels
+  int height;  // in number of pixels
+  int framerate;
+  uint32 fourcc;  // color space. FOURCC_ANY means that any color space is OK.
+};
 
 struct VideoFormat {
-  static const int64 kMinimumInterval = kNumNanosecsPerSec / 10000;  // 10k fps
+  static const int64 kMinimumInterval =
+      talk_base::kNumNanosecsPerSec / 10000;  // 10k fps
 
   VideoFormat() : width(0), height(0), interval(0), fourcc(0) {}
 
@@ -127,14 +141,21 @@ struct VideoFormat {
         fourcc(format.fourcc) {
   }
 
+  explicit VideoFormat(const VideoFormatPod& format)
+      : width(format.width),
+        height(format.height),
+        interval(FpsToInterval(format.framerate)),
+        fourcc(format.fourcc) {
+  }
+
   static int64 FpsToInterval(int fps) {
-    return fps ? kNumNanosecsPerSec / fps : kMinimumInterval;
+    return fps ? talk_base::kNumNanosecsPerSec / fps : kMinimumInterval;
   }
 
   static int IntervalToFps(int64 interval) {
     // Normalize the interval first.
     interval = talk_base::_max(interval, kMinimumInterval);
-    return static_cast<int>(kNumNanosecsPerSec / interval);
+    return static_cast<int>(talk_base::kNumNanosecsPerSec / interval);
   }
 
   bool operator==(const VideoFormat& format) const {

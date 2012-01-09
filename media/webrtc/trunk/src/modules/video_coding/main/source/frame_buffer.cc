@@ -59,13 +59,13 @@ VCMFrameBuffer::SetPreviousFrameLoss()
 WebRtc_Word32
 VCMFrameBuffer::GetLowSeqNum() const
 {
-    return _sessionInfo.GetLowSeqNum();
+    return _sessionInfo.LowSequenceNumber();
 }
 
 WebRtc_Word32
 VCMFrameBuffer::GetHighSeqNum() const
 {
-    return _sessionInfo.GetHighSeqNum();
+    return _sessionInfo.HighSequenceNumber();
 }
 
 int VCMFrameBuffer::PictureId() const {
@@ -76,14 +76,22 @@ int VCMFrameBuffer::TemporalId() const {
   return _sessionInfo.TemporalId();
 }
 
+bool VCMFrameBuffer::LayerSync() const {
+  return _sessionInfo.LayerSync();
+}
+
 int VCMFrameBuffer::Tl0PicId() const {
   return _sessionInfo.Tl0PicId();
+}
+
+bool VCMFrameBuffer::NonReference() const {
+  return _sessionInfo.NonReference();
 }
 
 bool
 VCMFrameBuffer::IsSessionComplete() const
 {
-    return _sessionInfo.IsSessionComplete();
+    return _sessionInfo.complete();
 }
 
 // Insert packet
@@ -94,7 +102,7 @@ VCMFrameBuffer::InsertPacket(const VCMPacket& packet, WebRtc_Word64 timeInMs,
     if (_state == kStateDecoding)
     {
         // Do not insert packet
-        return kIncomplete;
+        return kNoError;
     }
 
     // Sanity to check if the frame has been freed. (Too old for example)
@@ -119,11 +127,6 @@ VCMFrameBuffer::InsertPacket(const VCMPacket& packet, WebRtc_Word64 timeInMs,
     if (NULL == packet.dataPtr && packet.sizeBytes > 0)
     {
         return kSizeError;
-    }
-    if ((packet.frameType != kFrameEmpty) &&
-        (!_sessionInfo.HaveStartSeqNumber()))
-    {
-        _sessionInfo.SetStartSeqNumber(packet.seqNum);
     }
     if (packet.dataPtr != NULL)
     {
@@ -162,14 +165,14 @@ VCMFrameBuffer::InsertPacket(const VCMPacket& packet, WebRtc_Word64 timeInMs,
         {
             return kSizeError;
         }
-        _sessionInfo.UpdateDataPointers(_buffer, prevBuffer);
+        _sessionInfo.UpdateDataPointers(_buffer - prevBuffer);
     }
 
     CopyCodecSpecific(&packet.codecSpecificHeader);
 
-    WebRtc_Word64 retVal = _sessionInfo.InsertPacket(packet, _buffer,
-                                                     enableDecodableState,
-                                                     rttMS);
+    int retVal = _sessionInfo.InsertPacket(packet, _buffer,
+                                           enableDecodableState,
+                                           rttMS);
     if (retVal == -1)
     {
         return kSizeError;
@@ -183,9 +186,9 @@ VCMFrameBuffer::InsertPacket(const VCMPacket& packet, WebRtc_Word64 timeInMs,
 
     _latestPacketTimeMs = timeInMs;
 
-    if (_sessionInfo.IsSessionComplete()) {
+    if (_sessionInfo.complete()) {
       return kCompleteSession;
-    } else if (_sessionInfo.IsSessionDecodable()) {
+    } else if (_sessionInfo.decodable()) {
       SetState(kStateDecodable);
       return kDecodableSession;
     } else {
@@ -205,28 +208,19 @@ VCMFrameBuffer::LatestPacketTimeMs()
     return _latestPacketTimeMs;
 }
 
-// Zero out all entries in list up to and including the (first)
-// entry equal to _lowSeqNum
-WebRtc_Word32
-VCMFrameBuffer::ZeroOutSeqNum(WebRtc_Word32* list, WebRtc_Word32 num)
-{
-    if (_sessionInfo.ZeroOutSeqNum(list, num) != 0)
-    {
-       return -1;
-    }
-    return 0;
+// Build hard NACK list:Zero out all entries in list up to and including the
+// (first) entry equal to _lowSeqNum.
+int VCMFrameBuffer::BuildHardNackList(int* list, int num) {
+  if (_sessionInfo.BuildHardNackList(list, num) != 0) {
+   return -1;
+  }
+  return 0;
 }
 
-// Zero out all entries in list up to and including the (first) entry equal to
-// _lowSeqNum. Hybrid mode: 1. Don't NACK FEC packets 2. Make a smart decision
-// on whether to NACK or not
-
-WebRtc_Word32
-VCMFrameBuffer::ZeroOutSeqNumHybrid(WebRtc_Word32* list,
-                                    WebRtc_Word32 num,
-                                    WebRtc_UWord32 rttMs)
-{
-    return _sessionInfo.ZeroOutSeqNumHybrid(list, num, rttMs);
+// Build selective NACK list: Create a soft (selective) list of entries to zero
+// out up to and including the (first) entry equal to _lowSeqNum.
+int VCMFrameBuffer::BuildSoftNackList(int* list, int num, int rttMs) {
+  return _sessionInfo.BuildSoftNackList(list, num, rttMs);
 }
 
 void
@@ -268,11 +262,11 @@ VCMFrameBuffer::MakeSessionDecodable()
     WebRtc_UWord32 retVal;
 #ifdef INDEPENDENT_PARTITIONS
     if (_codec != kVideoCodecVP8) {
-        retVal = _sessionInfo.MakeDecodable(_buffer);
+        retVal = _sessionInfo.MakeDecodable();
         _length -= retVal;
     }
 #else
-    retVal = _sessionInfo.MakeDecodable(_buffer);
+    retVal = _sessionInfo.MakeDecodable();
     _length -= retVal;
 #endif
 }
@@ -346,7 +340,7 @@ VCMFrameBuffer::RestructureFrameInformation()
 {
     PrepareForDecode();
     _frameType = ConvertFrameType(_sessionInfo.FrameType());
-    _completeFrame = _sessionInfo.IsSessionComplete();
+    _completeFrame = _sessionInfo.complete();
     _missingFrame = _sessionInfo.PreviousFrameLoss();
 }
 
@@ -367,14 +361,14 @@ VCMFrameBuffer::ExtractFromStorage(const EncodedVideoData& frameFromStorage)
     {
         return VCM_MEMORY;
     }
-    _sessionInfo.UpdateDataPointers(_buffer, prevBuffer);
+    _sessionInfo.UpdateDataPointers(_buffer - prevBuffer);
     memcpy(_buffer, frameFromStorage.payloadData, frameFromStorage.payloadSize);
     _length = frameFromStorage.payloadSize;
     return VCM_OK;
 }
 
 int VCMFrameBuffer::NotDecodablePackets() const {
-  return _sessionInfo.NotDecodablePackets();
+  return _sessionInfo.packets_not_decodable();
 }
 
 // Set counted status (as counted by JB or not)
@@ -406,7 +400,7 @@ VCMFrameBuffer::GetState(WebRtc_UWord32& timeStamp) const
 bool
 VCMFrameBuffer::IsRetransmitted() const
 {
-    return _sessionInfo.IsRetransmitted();
+    return _sessionInfo.session_nack();
 }
 
 void
@@ -421,10 +415,10 @@ VCMFrameBuffer::PrepareForDecode()
     }
     else
     {
-        _length = _sessionInfo.PrepareForDecode(_buffer, _codec);
+        _length = _sessionInfo.PrepareForDecode(_buffer);
     }
 #else
-    _length = _sessionInfo.PrepareForDecode(_buffer, _codec);
+    _length = _sessionInfo.PrepareForDecode(_buffer);
 #endif
 }
 

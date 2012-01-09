@@ -151,3 +151,89 @@ def PlatformNames():
 def PutEnvAndLog(env_name, env_value):
   os.putenv(env_name, env_value)
   logging.info('export %s=%s', env_name, env_value)
+
+def BoringCallers(mangled, use_re_wildcards):
+  """Return a list of 'boring' function names (optinally mangled)
+  with */? wildcards (optionally .*/.).
+  Boring = we drop off the bottom of stack traces below such functions.
+  """
+
+  need_mangling = [
+    # Don't show our testing framework:
+    ("testing::Test::Run",     "_ZN7testing4Test3RunEv"),
+    ("testing::TestInfo::Run", "_ZN7testing8TestInfo3RunEv"),
+    ("testing::internal::Handle*ExceptionsInMethodIfSupported*",
+     "_ZN7testing8internal3?Handle*ExceptionsInMethodIfSupported*"),
+
+    # Depend on scheduling:
+    ("MessageLoop::Run",     "_ZN11MessageLoop3RunEv"),
+    ("MessageLoop::RunTask", "_ZN11MessageLoop7RunTask*"),
+    ("RunnableMethod*",      "_ZN14RunnableMethod*"),
+    ("RunnableFunction*",    "_ZN16RunnableFunction*"),
+    ("DispatchToMethod*",    "_Z*16DispatchToMethod*"),
+    ("base::internal::Invoker*::DoInvoke*",
+     "_ZN4base8internal8Invoker*DoInvoke*"),  # Invoker{1,2,3}
+    ("base::internal::RunnableAdapter*::Run*",
+     "_ZN4base8internal15RunnableAdapter*Run*"),
+  ]
+
+  ret = []
+  for pair in need_mangling:
+    ret.append(pair[1 if mangled else 0])
+
+  ret += [
+    # Also don't show the internals of libc/pthread.
+    "start_thread",
+    "main",
+    "BaseThreadInitThunk",
+  ]
+
+  if use_re_wildcards:
+    for i in range(0, len(ret)):
+      ret[i] = ret[i].replace('*', '.*').replace('?', '.')
+
+  return ret
+
+def NormalizeWindowsPath(path):
+  """If we're using Cygwin Python, turn the path into a Windows path.
+
+  Don't turn forward slashes into backslashes for easier copy-pasting and
+  escaping.
+
+  TODO(rnk): If we ever want to cut out the subprocess invocation, we can use
+  _winreg to get the root Cygwin directory from the registry key:
+  HKEY_LOCAL_MACHINE\SOFTWARE\Cygwin\setup\rootdir.
+  """
+  if sys.platform.startswith("cygwin"):
+    p = subprocess.Popen(["cygpath", "-m", path],
+                         stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE)
+    (out, err) = p.communicate()
+    if err:
+      logging.warning("WARNING: cygpath error: %s", err)
+    return out.strip()
+  else:
+    return path
+
+############################
+# Common output format code
+
+def PrintUsedSuppressionsList(suppcounts):
+  """ Prints out the list of used suppressions in a format common to all the
+      memory tools. If the list is empty, prints nothing and returns False,
+      otherwise True.
+
+      suppcounts: a dictionary of used suppression counts,
+                  Key -> name, Value -> count.
+  """
+  if not suppcounts:
+    return False
+
+  print "-----------------------------------------------------"
+  print "Suppressions used:"
+  print "  count name"
+  for (name, count) in sorted(suppcounts.items(), key=lambda (k,v): (v,k)):
+    print "%7d %s" % (count, name)
+  print "-----------------------------------------------------"
+  sys.stdout.flush()
+  return True

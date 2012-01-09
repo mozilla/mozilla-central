@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2011, Google Inc.
+ * Copyright 2004 Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -114,7 +114,7 @@ class VideoFrame {
   virtual void StretchToPlanes(uint8 *y, uint8 *u, uint8 *v,
                                int32 pitchY, int32 pitchU, int32 pitchV,
                                size_t width, size_t height,
-                               bool interpolate, bool crop) const = 0;
+                               bool interpolate, bool crop) const;
 
   // Writes the frame into the given frame buffer, stretched to the given width
   // and height, provided that it is of sufficient size. Returns the frame's
@@ -124,14 +124,14 @@ class VideoFrame {
   // nearest-point. The parameter "crop" controls whether to crop this frame to
   // the aspect ratio of the given dimensions before stretching.
   virtual size_t StretchToBuffer(size_t w, size_t h, uint8 *buffer, size_t size,
-                                 bool interpolate, bool crop) const = 0;
+                                 bool interpolate, bool crop) const;
 
   // Writes the frame into the target VideoFrame, stretched to the size of that
   // frame. The parameter "interpolate" controls whether to interpolate or just
   // take the nearest-point. The parameter "crop" controls whether to crop this
   // frame to the aspect ratio of the target frame before stretching.
   virtual void StretchToFrame(VideoFrame *target, bool interpolate,
-                              bool crop) const = 0;
+                              bool crop) const;
 
   // Stretches the frame to the given size, creating a new VideoFrame object to
   // hold it. The parameter "interpolate" controls whether to interpolate or

@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2011, Google Inc.
+ * Copyright 2011 Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -27,16 +27,18 @@
 
 #include "talk/session/phone/webrtcvideoframe.h"
 
+#include "libyuv/planar_functions.h"
 #include "talk/base/logging.h"
 #include "talk/session/phone/videocapturer.h"
 #include "talk/session/phone/videocommon.h"
-#ifdef WEBRTC_RELATIVE_PATH
-#include "common_video/vplib/main/interface/vplib.h"
-#else
-#include "third_party/webrtc/files/include/vplib.h"
-#endif
 
 namespace cricket {
+
+static const int kWatermarkWidth = 8;
+static const int kWatermarkHeight = 8;
+static const int kWatermarkOffsetFromLeft = 8;
+static const int kWatermarkOffsetFromBottom = 8;
+static const unsigned char kWatermarkMaxYValue = 64;
 
 WebRtcVideoFrame::WebRtcVideoFrame() {
 }
@@ -50,14 +52,37 @@ bool WebRtcVideoFrame::Init(uint32 format, int w, int h, int dw, int dh,
                             int64 elapsed_time, int64 time_stamp,
                             int rotation) {
   // WebRtcVideoFrame currently doesn't support color conversion or rotation.
-  if (format != FOURCC_I420 || dw != w || dh != h || rotation != 0) {
+  // TODO: Add horizontal cropping support.
+  if (format != FOURCC_I420 || dw != w || dh < 0 || dh > abs(h) ||
+      rotation != 0) {
     return false;
   }
 
-  uint8* buffer = new uint8[sample_size];
-  memcpy(buffer, sample, sample_size);
-  Attach(buffer, sample_size, w, h, pixel_width, pixel_height,
+  size_t desired_size = SizeOf(dw, dh);
+  uint8* buffer = new uint8[desired_size];
+  Attach(buffer, desired_size, dw, dh, pixel_width, pixel_height,
          elapsed_time, time_stamp, rotation);
+  if (dh == h) {
+    // Uncropped
+    memcpy(buffer, sample, desired_size);
+  } else {
+    // Cropped
+    // TODO: use I420Copy which supports horizontal crop and vertical
+    // flip.
+    int horiz_crop = ((w - dw) / 2) & ~1;
+    int vert_crop = ((abs(h) - dh) / 2) & ~1;
+    int y_crop_offset = w * vert_crop + horiz_crop;
+    int halfwidth = (w + 1) / 2;
+    int halfheight = (h + 1) / 2;
+    int uv_size = GetChromaSize();
+    int uv_crop_offset = (halfwidth * vert_crop + horiz_crop) / 2;
+    uint8* src_y = sample + y_crop_offset;
+    uint8* src_u = sample + w * h + uv_crop_offset;
+    uint8* src_v = sample + w * h + halfwidth * halfheight + uv_crop_offset;
+    memcpy(GetYPlane(), src_y, dw * dh);
+    memcpy(GetUPlane(), src_u, uv_size);
+    memcpy(GetVPlane(), src_v, uv_size);
+  }
   return true;
 }
 
@@ -71,14 +96,8 @@ bool WebRtcVideoFrame::Init(const CapturedFrame* frame, int dw, int dh) {
 bool WebRtcVideoFrame::InitToBlack(int w, int h,
                                    size_t pixel_width, size_t pixel_height,
                                    int64 elapsed_time, int64 time_stamp) {
-  size_t buffer_size = VideoFrame::SizeOf(w, h);
-  uint8* buffer = new uint8[buffer_size];
-  Attach(buffer, buffer_size, w, h, pixel_width, pixel_height,
-         elapsed_time, time_stamp, 0);
-  memset(GetYPlane(), 16, w * h);
-  memset(GetUPlane(), 128, w * h / 4);
-  memset(GetVPlane(), 128, w * h / 4);
-  return true;
+  CreateBuffer(w, h, pixel_width, pixel_height, elapsed_time, time_stamp);
+  return SetToBlack();
 }
 
 void WebRtcVideoFrame::Attach(uint8* buffer, size_t buffer_size, int w, int h,
@@ -95,7 +114,7 @@ void WebRtcVideoFrame::Attach(uint8* buffer, size_t buffer_size, int w, int h,
   pixel_width_ = pixel_width;
   pixel_height_ = pixel_height;
   elapsed_time_ = elapsed_time;
-  video_frame_.SetTimeStamp(static_cast<WebRtc_UWord32>(time_stamp));
+  time_stamp_ = time_stamp;
   rotation_ = rotation;
 }
 
@@ -123,15 +142,18 @@ const uint8* WebRtcVideoFrame::GetYPlane() const {
 
 const uint8* WebRtcVideoFrame::GetUPlane() const {
   WebRtc_UWord8* buffer = video_frame_.Buffer();
-  if (buffer)
+  if (buffer) {
     buffer += (video_frame_.Width() * video_frame_.Height());
+  }
   return buffer;
 }
 
 const uint8* WebRtcVideoFrame::GetVPlane() const {
   WebRtc_UWord8* buffer = video_frame_.Buffer();
-  if (buffer)
-    buffer += (video_frame_.Width() * video_frame_.Height() * 5 / 4);
+  if (buffer) {
+    int uv_size = GetChromaSize();
+    buffer += video_frame_.Width() * video_frame_.Height() + uv_size;
+  }
   return buffer;
 }
 
@@ -142,15 +164,18 @@ uint8* WebRtcVideoFrame::GetYPlane() {
 
 uint8* WebRtcVideoFrame::GetUPlane() {
   WebRtc_UWord8* buffer = video_frame_.Buffer();
-  if (buffer)
+  if (buffer) {
     buffer += (video_frame_.Width() * video_frame_.Height());
+  }
   return buffer;
 }
 
 uint8* WebRtcVideoFrame::GetVPlane() {
   WebRtc_UWord8* buffer = video_frame_.Buffer();
-  if (buffer)
-    buffer += (video_frame_.Width() * video_frame_.Height() * 5 / 4);
+  if (buffer) {
+    int uv_size = GetChromaSize();
+    buffer += video_frame_.Width() * video_frame_.Height() + uv_size;
+  }
   return buffer;
 }
 
@@ -166,7 +191,7 @@ VideoFrame* WebRtcVideoFrame::Copy() const {
   copy->Attach(new_buffer, new_buffer_size,
                video_frame_.Width(), video_frame_.Height(),
                pixel_width_, pixel_height_,
-               elapsed_time_, video_frame_.TimeStamp(), rotation_);
+               elapsed_time_, time_stamp_, rotation_);
   return copy;
 }
 
@@ -188,10 +213,11 @@ size_t WebRtcVideoFrame::CopyToBuffer(uint8* buffer, size_t size) const {
   return needed;
 }
 
+// TODO: Refactor into base class and share with lmi
 size_t WebRtcVideoFrame::ConvertToRgbBuffer(uint32 to_fourcc,
                                             uint8* buffer,
                                             size_t size,
-                                            size_t pitch_rgb) const {
+                                            size_t stride_rgb) const {
   if (!video_frame_.Buffer()) {
     return 0;
   }
@@ -200,79 +226,88 @@ size_t WebRtcVideoFrame::ConvertToRgbBuffer(uint32 to_fourcc,
   size_t height = video_frame_.Height();
   // See http://www.virtualdub.org/blog/pivot/entry.php?id=190 for a good
   // explanation of pitch and why this is the amount of space we need.
-  size_t needed = pitch_rgb * (height - 1) + 4 * width;
+  // TODO: increase to stride * height to allow padding to be used
+  // to overwrite for efficiency.
+  size_t needed = stride_rgb * (height - 1) + 4 * width;
 
   if (needed > size) {
     LOG(LS_WARNING) << "RGB buffer is not large enough";
-    return 0;
+    return needed;
   }
 
-  webrtc::VideoType to_type = webrtc::kUnknown;
+  // TODO: Use libyuv::ConvertFromI420
   switch (to_fourcc) {
     case FOURCC_ARGB:
-      to_type = webrtc::kARGB;
+      libyuv::I420ToARGB(
+          GetYPlane(), GetYPitch(),
+          GetUPlane(), GetUPitch(),
+          GetVPlane(), GetVPitch(),
+          buffer, stride_rgb, width, height);
       break;
+
+    case FOURCC_BGRA:
+      libyuv::I420ToBGRA(
+          GetYPlane(), GetYPitch(),
+          GetUPlane(), GetUPitch(),
+          GetVPlane(), GetVPitch(),
+          buffer, stride_rgb, width, height);
+      break;
+
+    case FOURCC_ABGR:
+      libyuv::I420ToABGR(
+          GetYPlane(), GetYPitch(),
+          GetUPlane(), GetUPitch(),
+          GetVPlane(), GetVPitch(),
+          buffer, stride_rgb, width, height);
+      break;
+
     default:
+      needed = 0;
       LOG(LS_WARNING) << "RGB type not supported: " << to_fourcc;
-      return 0;
-  }
-
-  if (to_type != webrtc::kUnknown) {
-    webrtc::ConvertFromI420(to_type, video_frame_.Buffer(),
-                            width, height, buffer);
-  }
-
-  return needed;
-}
-
-void WebRtcVideoFrame::StretchToPlanes(
-    uint8* y, uint8* u, uint8* v,
-    int32 dst_pitch_y, int32 dst_pitch_u, int32 dst_pitch_v,
-    size_t width, size_t height, bool interpolate, bool crop) const {
-  // TODO: Implement StretchToPlanes
-}
-
-size_t WebRtcVideoFrame::StretchToBuffer(size_t w, size_t h,
-                                         uint8* buffer, size_t size,
-                                         bool interpolate,
-                                         bool crop) const {
-  if (!video_frame_.Buffer()) {
-    return 0;
-  }
-
-  size_t needed = video_frame_.Length();
-
-  if (needed <= size) {
-    uint8* bufy = buffer;
-    uint8* bufu = bufy + w * h;
-    uint8* bufv = bufu + ((w + 1) >> 1) * ((h + 1) >> 1);
-    StretchToPlanes(bufy, bufu, bufv, w, (w + 1) >> 1, (w + 1) >> 1, w, h,
-                    interpolate, crop);
+      break;
   }
   return needed;
-}
-
-void WebRtcVideoFrame::StretchToFrame(VideoFrame* target,
-    bool interpolate, bool crop) const {
-  if (!target) return;
-
-  StretchToPlanes(target->GetYPlane(),
-                  target->GetUPlane(),
-                  target->GetVPlane(),
-                  target->GetYPitch(),
-                  target->GetUPitch(),
-                  target->GetVPitch(),
-                  target->GetWidth(),
-                  target->GetHeight(),
-                  interpolate, crop);
-  target->SetElapsedTime(GetElapsedTime());
-  target->SetTimeStamp(GetTimeStamp());
 }
 
 VideoFrame* WebRtcVideoFrame::Stretch(size_t w, size_t h,
-    bool interpolate, bool crop) const {
-  // TODO: implement
-  return NULL;
+    bool interpolate, bool vert_crop) const {
+  WebRtcVideoFrame* frame = new WebRtcVideoFrame();
+  frame->CreateBuffer(w, h, 1, 1, 0, 0);
+  StretchToFrame(frame, interpolate, vert_crop);
+
+  return frame;
+}
+
+void WebRtcVideoFrame::CreateBuffer(int w, int h,
+                                    size_t pixel_width, size_t pixel_height,
+                                    int64 elapsed_time, int64 time_stamp) {
+  size_t buffer_size = VideoFrame::SizeOf(w, h);
+  uint8* buffer = new uint8[buffer_size];
+  Attach(buffer, buffer_size, w, h, pixel_width, pixel_height,
+         elapsed_time, time_stamp, 0);
+}
+
+// Add a square watermark near the left-low corner. clamp Y.
+// Returns false on error.
+bool WebRtcVideoFrame::AddWatermark() {
+  size_t w = GetWidth();
+  size_t h = GetHeight();
+
+  if (w < kWatermarkWidth + kWatermarkOffsetFromLeft ||
+      h < kWatermarkHeight + kWatermarkOffsetFromBottom) {
+    return false;
+  }
+
+  uint8* buffer = GetYPlane();
+  for (size_t x = kWatermarkOffsetFromLeft;
+       x < kWatermarkOffsetFromLeft + kWatermarkWidth; ++x) {
+    for (size_t y = h - kWatermarkOffsetFromBottom - kWatermarkHeight;
+         y < h - kWatermarkOffsetFromBottom; ++y) {
+      buffer[y * w + x] = talk_base::_min(buffer[y * w + x],
+                                          kWatermarkMaxYValue);
+    }
+  }
+  return true;
 }
 
 }  // namespace cricket

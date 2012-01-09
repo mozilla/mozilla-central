@@ -36,7 +36,7 @@
 #include "talk/base/common.h"
 #include "talk/base/logging.h"
 #include "talk/base/stringutils.h"
-#include "talk/base/time.h"
+#include "talk/base/timeutils.h"
 
 #ifdef USE_COCOA_THREADING
 #if !defined(OSX) && !defined(IOS)

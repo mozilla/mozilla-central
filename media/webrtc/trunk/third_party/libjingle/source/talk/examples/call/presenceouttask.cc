@@ -39,7 +39,9 @@ PresenceOutTask::Send(const Status & s) {
   if (GetState() != STATE_INIT && GetState() != STATE_START)
     return XMPP_RETURN_BADSTATE;
 
-  QueueStanza(TranslateStatus(s));
+  XmlElement * presence = TranslateStatus(s);
+  QueueStanza(presence);
+  delete presence;
   return XMPP_RETURN_OK;
 }
 
@@ -51,6 +53,7 @@ PresenceOutTask::SendDirected(const Jid & j, const Status & s) {
   XmlElement * presence = TranslateStatus(s);
   presence->AddAttr(QN_TO, j.Str());
   QueueStanza(presence);
+  delete presence;
   return XMPP_RETURN_OK;
 }
 
@@ -63,6 +66,7 @@ XmppReturnStatus PresenceOutTask::SendProbe(const Jid & jid) {
   presence->AddAttr(QN_TYPE, "probe");
 
   QueueStanza(presence);
+  delete presence;
   return XMPP_RETURN_OK;
 }
 

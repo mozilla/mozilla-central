@@ -69,8 +69,9 @@ public:
   virtual bool Write(const char * data, size_t len) = 0;
   virtual bool Close() = 0;
 #if defined(FEATURE_ENABLE_SSL)
-  // We allow matching any passed domain.
-  // If both names are passed as empty, we do not require a match.
+  // We allow matching any passed domain.  This allows us to avoid
+  // handling the valuable certificates for logins into proxies.  If
+  // both names are passed as empty, we do not require a match.
   virtual bool StartTls(const std::string & domainname) = 0;
 #endif
 

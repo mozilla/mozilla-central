@@ -169,58 +169,11 @@ AudioConferenceMixerImpl::~AudioConferenceMixerImpl()
     assert(_audioFramePool == NULL);
 }
 
-WebRtc_Word32 AudioConferenceMixerImpl::Version(
-    WebRtc_Word8* version,
-    WebRtc_UWord32& remainingBufferInBytes,
-    WebRtc_UWord32& position) const
-{
-    WEBRTC_TRACE(
-        kTraceModuleCall,
-        kTraceAudioMixerServer,
-        _id,
-        "Version(version%s,remainingBufferLengthInBytes:%d,position:%d)",
-        (version==NULL) ? ":NULL" : "",
-        remainingBufferInBytes,position);
-    return GetVersion(version,remainingBufferInBytes,position);
-}
-
 WebRtc_Word32 AudioConferenceMixerImpl::ChangeUniqueId(const WebRtc_Word32 id)
 {
     WEBRTC_TRACE(kTraceModuleCall, kTraceAudioMixerServer, _id,
                  "ChangeUniqueId(new id:%d)", id);
     _id = id;
-    return 0;
-}
-
-WebRtc_Word32 AudioConferenceMixer::GetVersion(
-    WebRtc_Word8* version,
-    WebRtc_UWord32& remainingBufferInBytes,
-    WebRtc_UWord32& position)
-{
-    WEBRTC_TRACE(
-        kTraceModuleCall,
-        kTraceAudioMixerServer,
-        -1,
-        "Version(version%s,remainingBufferLengthInBytes:%d,position:%d)",
-        (version==NULL) ? "NULL" : "",
-        remainingBufferInBytes,
-        position);
-    if(version == NULL)
-    {
-        WEBRTC_TRACE(kTraceWarning, kTraceAudioMixerServer, -1,
-                     "Invalid in argument to GetVersion()");
-        return -1;
-    }
-    const char moduleVersion[] = VERSION_STRING;
-    if(remainingBufferInBytes < sizeof(moduleVersion))
-    {
-        WEBRTC_TRACE(kTraceWarning, kTraceAudioMixerServer, -1,
-                     "Too small buffer in GetVersion()");
-        return -1;
-    }
-    strncpy(version, moduleVersion, sizeof(moduleVersion));  // null termination
-    remainingBufferInBytes -= sizeof(moduleVersion);
-    position += sizeof(moduleVersion);
     return 0;
 }
 
@@ -230,7 +183,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::TimeUntilNextProcess()
     WEBRTC_TRACE(kTraceModuleCall, kTraceAudioMixerServer, _id,
                  "TimeUntilNextProcess()");
     WebRtc_Word32 timeUntilNextProcess = 0;
-    CriticalSectionScoped cs(*_crit);
+    CriticalSectionScoped cs(_crit.get());
     if(_timeScheduler.TimeToNextUpdate(timeUntilNextProcess) != 0)
     {
         WEBRTC_TRACE(kTraceError, kTraceAudioMixerServer, _id,
@@ -247,7 +200,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::Process()
     WebRtc_UWord32 remainingParticipantsAllowedToMix =
         kMaximumAmountOfMixedParticipants;
     {
-        CriticalSectionScoped cs(*_crit);
+        CriticalSectionScoped cs(_crit.get());
         assert(_processCalls == 0);
         _processCalls++;
 
@@ -260,7 +213,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::Process()
     ListWrapper additionalFramesList;
     MapWrapper mixedParticipantsMap;
     {
-        CriticalSectionScoped cs(*_cbCrit);
+        CriticalSectionScoped cs(_cbCrit.get());
 
         WebRtc_Word32 lowFreq = GetLowestMixingFrequency();
         // SILK can run in 12 kHz and 24 kHz. These frequencies are not
@@ -276,7 +229,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::Process()
         }
         if(lowFreq <= 0)
         {
-            CriticalSectionScoped cs(*_crit);
+            CriticalSectionScoped cs(_crit.get());
             _processCalls--;
             return 0;
         } else  {
@@ -303,7 +256,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::Process()
             default:
                 assert(false);
 
-                CriticalSectionScoped cs(*_crit);
+                CriticalSectionScoped cs(_crit.get());
                 _processCalls--;
                 return -1;
             }
@@ -348,7 +301,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::Process()
         // TODO(henrike): it might be better to decide the number of channels
         //                with an API instead of dynamically.
 
-        CriticalSectionScoped cs(*_crit);
+        CriticalSectionScoped cs(_crit.get());
         if (!SetNumLimiterChannels(numberOfChannels))
             retval = -1;
 
@@ -391,7 +344,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::Process()
     }
 
     {
-        CriticalSectionScoped cs(*_cbCrit);
+        CriticalSectionScoped cs(_cbCrit.get());
         if(_mixReceiver != NULL)
         {
             const AudioFrame** dummy = NULL;
@@ -424,7 +377,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::Process()
     ClearAudioFrameList(rampOutList);
     ClearAudioFrameList(additionalFramesList);
     {
-        CriticalSectionScoped cs(*_crit);
+        CriticalSectionScoped cs(_crit.get());
         _processCalls--;
     }
     return retval;
@@ -435,7 +388,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::RegisterMixedStreamCallback(
 {
     WEBRTC_TRACE(kTraceModuleCall, kTraceAudioMixerServer, _id,
                  "RegisterMixedStreamCallback(mixReceiver)");
-    CriticalSectionScoped cs(*_cbCrit);
+    CriticalSectionScoped cs(_cbCrit.get());
     if(_mixReceiver != NULL)
     {
         return -1;
@@ -448,7 +401,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::UnRegisterMixedStreamCallback()
 {
     WEBRTC_TRACE(kTraceModuleCall, kTraceAudioMixerServer, _id,
                  "UnRegisterMixedStreamCallback()");
-    CriticalSectionScoped cs(*_cbCrit);
+    CriticalSectionScoped cs(_cbCrit.get());
     if(_mixReceiver == NULL)
     {
         return -1;
@@ -460,7 +413,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::UnRegisterMixedStreamCallback()
 WebRtc_Word32 AudioConferenceMixerImpl::SetOutputFrequency(
     const Frequency frequency)
 {
-    CriticalSectionScoped cs(*_crit);
+    CriticalSectionScoped cs(_crit.get());
     const int error = _limiter->set_sample_rate_hz(frequency);
     if(error != _limiter->kNoError)
     {
@@ -478,7 +431,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::SetOutputFrequency(
 AudioConferenceMixer::Frequency
 AudioConferenceMixerImpl::OutputFrequency() const
 {
-    CriticalSectionScoped cs(*_crit);
+    CriticalSectionScoped cs(_crit.get());
     return _outputFrequency;
 }
 
@@ -520,7 +473,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::RegisterMixerStatusCallback(
         return -1;
     }
     {
-        CriticalSectionScoped cs(*_cbCrit);
+        CriticalSectionScoped cs(_cbCrit.get());
         if(_mixerStatusCallback != NULL)
         {
             WEBRTC_TRACE(kTraceWarning, kTraceAudioMixerServer, _id,
@@ -530,7 +483,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::RegisterMixerStatusCallback(
         _mixerStatusCallback = &mixerStatusCallback;
     }
     {
-        CriticalSectionScoped cs(*_crit);
+        CriticalSectionScoped cs(_crit.get());
         _amountOf10MsBetweenCallbacks  = amountOf10MsBetweenCallbacks;
         _amountOf10MsUntilNextCallback = 0;
         _mixerStatusCb                 = true;
@@ -543,7 +496,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::UnRegisterMixerStatusCallback()
     WEBRTC_TRACE(kTraceModuleCall, kTraceAudioMixerServer, _id,
                  "UnRegisterMixerStatusCallback()");
     {
-        CriticalSectionScoped cs(*_crit);
+        CriticalSectionScoped cs(_crit.get());
         if(!_mixerStatusCb)
         {
             WEBRTC_TRACE(kTraceWarning, kTraceAudioMixerServer, _id,
@@ -553,7 +506,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::UnRegisterMixerStatusCallback()
         _mixerStatusCb = false;
     }
     {
-        CriticalSectionScoped cs(*_cbCrit);
+        CriticalSectionScoped cs(_cbCrit.get());
         _mixerStatusCallback = NULL;
     }
     return 0;
@@ -574,7 +527,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::SetMixabilityStatus(
     }
     WebRtc_UWord32 amountOfMixableParticipants;
     {
-        CriticalSectionScoped cs(*_cbCrit);
+        CriticalSectionScoped cs(_cbCrit.get());
         const bool isMixed =
             IsParticipantInList(participant,_participantList);
         // API must be called with a new state.
@@ -607,7 +560,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::SetMixabilityStatus(
     // A MixerParticipant was added or removed. Make sure the scratch
     // buffer is updated if necessary.
     // Note: The scratch buffer may only be updated in Process().
-    CriticalSectionScoped cs(*_crit);
+    CriticalSectionScoped cs(_crit.get());
     _amountOfMixableParticipants = amountOfMixableParticipants;
     return 0;
 }
@@ -618,7 +571,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::MixabilityStatus(
 {
     WEBRTC_TRACE(kTraceModuleCall, kTraceAudioMixerServer, _id,
                  "MixabilityStatus(participant,mixable)");
-    CriticalSectionScoped cs(*_cbCrit);
+    CriticalSectionScoped cs(_cbCrit.get());
     mixable = IsParticipantInList(participant, _participantList);
     return 0;
 }
@@ -628,7 +581,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::AmountOfMixables(
 {
     WEBRTC_TRACE(kTraceModuleCall, kTraceAudioMixerServer, _id,
                  "AmountOfMixables(amountOfMixableParticipants)");
-    CriticalSectionScoped cs(*_crit);
+    CriticalSectionScoped cs(_crit.get());
     amountOfMixableParticipants = _amountOfMixableParticipants;
     return 0;
 }
@@ -639,7 +592,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::SetAnonymousMixabilityStatus(
     WEBRTC_TRACE(kTraceModuleCall, kTraceAudioMixerServer, _id,
                  "SetAnonymousMixabilityStatus(participant,anonymous:%s)",
                  anonymous ? "true" : "false");
-    CriticalSectionScoped cs(*_cbCrit);
+    CriticalSectionScoped cs(_cbCrit.get());
     if(IsParticipantInList(participant, _additionalParticipantList))
     {
         if(anonymous)
@@ -681,7 +634,7 @@ WebRtc_Word32 AudioConferenceMixerImpl::AnonymousMixabilityStatus(
 {
     WEBRTC_TRACE(kTraceModuleCall, kTraceAudioMixerServer, _id,
                  "AnonymousMixabilityStatus(participant,mixable)");
-    CriticalSectionScoped cs(*_cbCrit);
+    CriticalSectionScoped cs(_cbCrit.get());
     mixable = IsParticipantInList(participant,
                                   _additionalParticipantList);
     return 0;

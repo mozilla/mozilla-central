@@ -17,6 +17,7 @@
 #include "critical_section_wrapper.h"
 #include "receiver_fec.h"
 #include "rtp_rtcp_impl.h"
+#include "rtp_utility.h"
 
 namespace webrtc {
 WebRtc_UWord32 BitRateBPS(WebRtc_UWord16 x )
@@ -28,10 +29,10 @@ RTPReceiverVideo::RTPReceiverVideo(const WebRtc_Word32 id,
                                    ModuleRtpRtcpImpl* owner):
     _id(id),
     _rtpRtcp(*owner),
-    _criticalSectionFeedback(*CriticalSectionWrapper::CreateCriticalSection()),
+    _criticalSectionFeedback(CriticalSectionWrapper::CreateCriticalSection()),
     _cbVideoFeedback(NULL),
-    _criticalSectionReceiverVideo(*CriticalSectionWrapper::CreateCriticalSection()),
-
+    _criticalSectionReceiverVideo(
+        CriticalSectionWrapper::CreateCriticalSection()),
     _completeFrame(false),
     _packetStartTimeMs(0),
     _receivedBW(),
@@ -49,8 +50,8 @@ RTPReceiverVideo::RTPReceiverVideo(const WebRtc_Word32 id,
 
 RTPReceiverVideo::~RTPReceiverVideo()
 {
-    delete &_criticalSectionFeedback;
-    delete &_criticalSectionReceiverVideo;
+    delete _criticalSectionFeedback;
+    delete _criticalSectionReceiverVideo;
     delete _receiveFEC;
 }
 
@@ -228,9 +229,10 @@ RTPReceiverVideo::ParseVideoCodecSpecific(WebRtcRTPHeader* rtpHeader,
 {
     WebRtc_Word32 retVal = 0;
 
-    _criticalSectionReceiverVideo.Enter();
+    _criticalSectionReceiverVideo->Enter();
 
-    _videoBitRate.Update(payloadDataLength, nowMS);
+    _videoBitRate.Update(payloadDataLength + rtpHeader->header.paddingLength,
+                         nowMS);
 
     // Add headers, ideally we would like to include for instance
     // Ethernet header here as well.
@@ -242,48 +244,81 @@ RTPReceiverVideo::ParseVideoCodecSpecific(WebRtcRTPHeader* rtpHeader,
     {
         if(_receiveFEC == NULL)
         {
-            _criticalSectionReceiverVideo.Leave();
+            _criticalSectionReceiverVideo->Leave();
             return -1;
         }
-        if (rtpHeader->header.timestamp != TimeStamp())
-        {
-            // We have a new frame. Force a decode with the existing packets.
-            retVal = _receiveFEC->ProcessReceivedFEC(true);
-            _currentFecFrameDecoded = false;
-        }
-
+        bool oldPacket = false;
         bool FECpacket = false;
-        if(retVal != -1)
-        {
-            if (!_currentFecFrameDecoded)
-            {
-                retVal = _receiveFEC->AddReceivedFECPacket(rtpHeader, incomingRtpPacket, payloadDataLength, FECpacket);
+        bool wrapped = false;  // Not used; just for OldTimeStamp().
 
-                if (retVal != -1 && (FECpacket || rtpHeader->header.markerBit))
-                {
-                    // Only attempt a decode after receiving the last media packet.
-                    retVal = _receiveFEC->ProcessReceivedFEC(false);
-                }
-            }else
+        // Check for old packets.
+        if (ModuleRTPUtility::OldTimestamp(rtpHeader->header.timestamp,
+                                           TimeStamp(),
+                                           &wrapped))
+        {
+            // We have an old packet.
+            // FEC receiver holds a list of packets with current timestamp.
+            // Setting "oldPacket = true" will send old packets directly
+            // to the jitter buffer.
+            oldPacket = true;
+            retVal = _receiveFEC->AddReceivedFECPacket(rtpHeader,
+                                                       incomingRtpPacket,
+                                                       payloadDataLength,
+                                                       FECpacket,
+                                                       oldPacket);
+        }
+        else
+        {
+            // Check for future packets.
+            if (rtpHeader->header.timestamp != TimeStamp())
             {
-                _receiveFEC->AddReceivedFECInfo(rtpHeader,incomingRtpPacket, FECpacket);
+                // We have a packet from next frame.
+                // Force a decode with the existing packets.
+                retVal = _receiveFEC->ProcessReceivedFEC(true);
+                _currentFecFrameDecoded = false;
+            }
+            if(retVal != -1)
+            {
+                if (!_currentFecFrameDecoded)
+                {
+                    retVal = _receiveFEC->AddReceivedFECPacket(
+                        rtpHeader,
+                        incomingRtpPacket,
+                        payloadDataLength,
+                        FECpacket,
+                        oldPacket);
+
+                    if (retVal != -1 && (FECpacket ||
+                        rtpHeader->header.markerBit))
+                    {
+                        // Only attempt a decode after receiving the
+                        // last media packet or an FEC packet.
+                        retVal = _receiveFEC->ProcessReceivedFEC(false);
+                    }
+                }else
+                {
+                    _receiveFEC->AddReceivedFECInfo(rtpHeader,
+                                                    incomingRtpPacket,
+                                                    FECpacket);
+                }
             }
         }
-        _criticalSectionReceiverVideo.Leave();
+        _criticalSectionReceiverVideo->Leave();
 
-        if(retVal == 0 && FECpacket )
+        if(retVal == 0 && FECpacket)
         {
-            // callback with the received FEC packet, the normal packets are deliverd after parsing
-            // this contain the original RTP packet header but with empty payload and data length
+            // Callback with the received FEC packet.
+            // The normal packets are delivered after parsing.
+            // This contains the original RTP packet header but with
+            // empty payload and data length.
             rtpHeader->frameType = kFrameEmpty;
-            WebRtc_Word32 retVal = SetCodecType(videoType, rtpHeader);       //we need this for the routing
+            // We need this for the routing.
+            WebRtc_Word32 retVal = SetCodecType(videoType, rtpHeader);
             if(retVal != 0)
             {
                 return retVal;
             }
-            retVal =CallbackOfReceivedPayloadData(NULL,
-                                                  0,
-                                                  rtpHeader);
+            retVal = CallbackOfReceivedPayloadData(NULL, 0, rtpHeader);
         }
     }else
     {
@@ -296,18 +331,18 @@ RTPReceiverVideo::ParseVideoCodecSpecific(WebRtcRTPHeader* rtpHeader,
 
     // Update the remote rate control object and update the overuse
     // detector with the current rate control region.
-    _criticalSectionReceiverVideo.Enter();
+    _criticalSectionReceiverVideo->Enter();
     const RateControlInput input(_overUseDetector.State(),
                                  _videoBitRate.BitRate(nowMS),
                                  _overUseDetector.NoiseVar());
-    _criticalSectionReceiverVideo.Leave();
+    _criticalSectionReceiverVideo->Leave();
 
     // Call the callback outside critical section
     const RateControlRegion region = _rtpRtcp.OnOverUseStateUpdate(input);
 
-    _criticalSectionReceiverVideo.Enter();
+    _criticalSectionReceiverVideo->Enter();
     _overUseDetector.SetRateControlRegion(region);
-    _criticalSectionReceiverVideo.Leave();
+    _criticalSectionReceiverVideo->Leave();
 
     return retVal;
 }
@@ -356,7 +391,7 @@ RTPReceiverVideo::ReceiveRecoveredPacketCallback(WebRtcRTPHeader* rtpHeader,
                                                  const WebRtc_UWord8* payloadData,
                                                  const WebRtc_UWord16 payloadDataLength)
 {
-     _criticalSectionReceiverVideo.Enter();
+     _criticalSectionReceiverVideo->Enter();
 
     _currentFecFrameDecoded = true;
 
@@ -450,7 +485,7 @@ RTPReceiverVideo::ParseVideoCodecSpecificSwitch(WebRtcRTPHeader* rtpHeader,
         retVal = ReceiveMPEG4Codec(rtpHeader,payloadData, payloadDataLength);
         break;
     default:
-        _criticalSectionReceiverVideo.Leave();
+        _criticalSectionReceiverVideo->Leave();
         assert(((void)"ParseCodecSpecific videoType can not be unknown here!", false));
         return -1;
     }
@@ -470,7 +505,7 @@ RTPReceiverVideo::ReceiveH263Codec(WebRtcRTPHeader* rtpHeader,
     const bool success = rtpPayloadParser.Parse(parsedPacket);
 
     // from here down we only work on local data
-    _criticalSectionReceiverVideo.Leave();
+    _criticalSectionReceiverVideo->Leave();
 
     if (!success)
     {
@@ -498,17 +533,17 @@ RTPReceiverVideo::ReceiveH2631998Codec(WebRtcRTPHeader* rtpHeader,
     const bool success = rtpPayloadParser.Parse(parsedPacket);
     if (!success)
     {
-        _criticalSectionReceiverVideo.Leave();
+        _criticalSectionReceiverVideo->Leave();
         return -1;
     }
     if (IP_PACKET_SIZE < parsedPacket.info.H263.dataLength +
         (parsedPacket.info.H263.insert2byteStartCode ? 2 : 0))
     {
-        _criticalSectionReceiverVideo.Leave();
+        _criticalSectionReceiverVideo->Leave();
         return -1;
     }
     // from here down we only work on local data
-    _criticalSectionReceiverVideo.Leave();
+    _criticalSectionReceiverVideo->Leave();
 
     return ReceiveH263CodecCommon(parsedPacket, rtpHeader);
 }
@@ -590,11 +625,11 @@ RTPReceiverVideo::ReceiveMPEG4Codec(WebRtcRTPHeader* rtpHeader,
     const bool success = rtpPayloadParser.Parse(parsedPacket);
     if (!success)
     {
-        _criticalSectionReceiverVideo.Leave();
+        _criticalSectionReceiverVideo->Leave();
         return -1;
     }
     // from here down we only work on local data
-    _criticalSectionReceiverVideo.Leave();
+    _criticalSectionReceiverVideo->Leave();
 
     rtpHeader->frameType = (parsedPacket.frameType == ModuleRTPUtility::kIFrame) ? kVideoFrameKey : kVideoFrameDelta;
     rtpHeader->type.Video.isFirstPacket = parsedPacket.info.MPEG4.isFirstPacket;
@@ -613,16 +648,23 @@ RTPReceiverVideo::ReceiveVp8Codec(WebRtcRTPHeader* rtpHeader,
                                   const WebRtc_UWord8* payloadData,
                                   const WebRtc_UWord16 payloadDataLength)
 {
-    ModuleRTPUtility::RTPPayloadParser rtpPayloadParser(kRtpVp8Video,
-                                                        payloadData,
-                                                        payloadDataLength,
-                                                        _id);
-
+    bool success;
     ModuleRTPUtility::RTPPayload parsedPacket;
-    const bool success = rtpPayloadParser.Parse(parsedPacket);
-
+    if (payloadDataLength == 0)
+    {
+        success = true;
+        parsedPacket.info.VP8.dataLength = 0;
+    } else
+    {
+        ModuleRTPUtility::RTPPayloadParser rtpPayloadParser(kRtpVp8Video,
+                                                            payloadData,
+                                                            payloadDataLength,
+                                                           _id);
+ 
+        success = rtpPayloadParser.Parse(parsedPacket);
+    }
     // from here down we only work on local data
-    _criticalSectionReceiverVideo.Leave();
+    _criticalSectionReceiverVideo->Leave();
 
     if (!success)
     {
@@ -631,6 +673,12 @@ RTPReceiverVideo::ReceiveVp8Codec(WebRtcRTPHeader* rtpHeader,
     if (parsedPacket.info.VP8.dataLength == 0)
     {
         // we have an "empty" VP8 packet, it's ok, could be one way video
+        // Inform the jitter buffer about this packet.
+        rtpHeader->frameType = kFrameEmpty;
+        if (CallbackOfReceivedPayloadData(NULL, 0, rtpHeader) != 0)
+        {
+            return -1;
+        }
         return 0;
     }
     rtpHeader->frameType = (parsedPacket.frameType == ModuleRTPUtility::kIFrame) ? kVideoFrameKey : kVideoFrameDelta;
@@ -644,8 +692,13 @@ RTPReceiverVideo::ReceiveVp8Codec(WebRtcRTPHeader* rtpHeader,
                           kNoPictureId;
     toHeader->tl0PicIdx = fromHeader->hasTl0PicIdx ? fromHeader->tl0PicIdx :
                           kNoTl0PicIdx;
-    toHeader->temporalIdx = fromHeader->hasTID ? fromHeader->tID :
-                            kNoTemporalIdx;
+    if (fromHeader->hasTID) {
+      toHeader->temporalIdx = fromHeader->tID;
+      toHeader->layerSync = fromHeader->layerSync;
+    } else {
+      toHeader->temporalIdx = kNoTemporalIdx;
+      toHeader->layerSync = false;
+    }
     toHeader->keyIdx = fromHeader->hasKeyIdx ? fromHeader->keyIdx : kNoKeyIdx;
 
     toHeader->frameWidth = fromHeader->frameWidth;
@@ -676,7 +729,7 @@ RTPReceiverVideo::ReceiveGenericCodec(WebRtcRTPHeader* rtpHeader,
     {
         rtpHeader->type.Video.isFirstPacket = true;
     }
-    _criticalSectionReceiverVideo.Leave();
+    _criticalSectionReceiverVideo->Leave();
 
     if(CallbackOfReceivedPayloadData(payloadData, payloadDataLength, rtpHeader) != 0)
     {

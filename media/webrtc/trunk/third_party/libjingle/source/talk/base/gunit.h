@@ -109,21 +109,6 @@ class Pathname;
     } \
   } while (0);
 
-#ifdef __LP64__
-// When compiling in 64-bit mode we redefine the TEST and TEST_F macros to
-// append _64bit to all testsuite names to distinguish the test results from
-// those for the 32-bit cross-built binaries.
-#undef TEST
-#undef TEST_F
-// Copied and adjusted from google3/third_party/gtest/include/gtest/gtest.h
-#define TEST(test_case_name, test_name)\
-  GTEST_TEST_(test_case_name##_64bit, test_name, \
-              ::testing::Test, ::testing::internal::GetTestTypeId())
-#define TEST_F(test_fixture, test_name)\
-  GTEST_TEST_(test_fixture##_64bit, test_name, test_fixture, \
-              ::testing::internal::GetTypeId<test_fixture>())
-#endif
-
 talk_base::Pathname GetTalkDirectory();
 
 #endif  // TALK_BASE_GUNIT_H_

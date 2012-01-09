@@ -29,6 +29,7 @@
 
 #include <string>
 #include <vector>
+
 #include "talk/base/common.h"
 #include "talk/xmllite/xmlconstants.h"
 #include "talk/xmllite/xmlelement.h"
@@ -206,12 +207,7 @@ XmlParser::ParseContext::ParseContext(XmlParser *parser) :
 
 void
 XmlParser::ParseContext::StartNamespace(const char *prefix, const char *ns) {
-  xmlnsstack_.AddXmlns(
-    *prefix ? std::string(prefix) : STR_EMPTY,
-//    ns == NS_CLIENT ? NS_CLIENT :
-//    ns == NS_ROSTER ? NS_ROSTER :
-//    ns == NS_GR ? NS_GR :
-    std::string(ns));
+  xmlnsstack_.AddXmlns(*prefix ? prefix : STR_EMPTY, ns);
 }
 
 void
@@ -225,28 +221,25 @@ XmlParser::ParseContext::EndElement() {
 }
 
 QName
-XmlParser::ParseContext::ResolveQName(const char *qname, bool isAttr) {
+XmlParser::ParseContext::ResolveQName(const char* qname, bool isAttr) {
   const char *c;
   for (c = qname; *c; ++c) {
     if (*c == ':') {
-      const std::string * result;
-      result = xmlnsstack_.NsForPrefix(std::string(qname, c - qname));
-      if (result == NULL)
+      const std::pair<std::string, bool> result =
+          xmlnsstack_.NsForPrefix(std::string(qname, c - qname));
+      if (!result.second)
         return QN_EMPTY;
-      const char * localname = c + 1;
-      return QName(*result, localname);
+      return QName(result.first, c + 1);
     }
   }
-  if (isAttr) {
+  if (isAttr)
     return QName(STR_EMPTY, qname);
-  }
 
-  const std::string * result;
-  result = xmlnsstack_.NsForPrefix(STR_EMPTY);
-  if (result == NULL)
+  std::pair<std::string, bool> result = xmlnsstack_.NsForPrefix(STR_EMPTY);
+  if (!result.second)
     return QN_EMPTY;
 
-  return QName(*result, qname);
+  return QName(result.first, qname);
 }
 
 void

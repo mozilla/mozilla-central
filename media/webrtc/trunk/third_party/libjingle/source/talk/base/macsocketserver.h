@@ -31,6 +31,9 @@ class MacBaseSocketServer : public PhysicalSocketServer {
   void RegisterSocket(MacAsyncSocket* socket);
   void UnregisterSocket(MacAsyncSocket* socket);
 
+  // PhysicalSocketServer Overrides
+  virtual bool SetPosixSignalHandler(int signum, void (*handler)(int));
+
  protected:
   void EnableSocketCallbacks(bool enable);
   const std::set<MacAsyncSocket*>& sockets() {
@@ -38,6 +41,10 @@ class MacBaseSocketServer : public PhysicalSocketServer {
   }
 
  private:
+  static void FileDescriptorCallback(CFFileDescriptorRef ref,
+                                     CFOptionFlags flags,
+                                     void* context);
+
   std::set<MacAsyncSocket*> sockets_;
 };
 

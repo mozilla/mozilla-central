@@ -7,53 +7,41 @@
 # Set up some paths and re-direct the arguments to chrome_tests.py
 
 export THISDIR=`dirname $0`
-
-TOOL_OPTION=0
-# If --tool is omitted, default to --tool=memcheck
-NEEDS_VALGRIND=1
+ARGV_COPY="$@"
 
 # We need to set CHROME_VALGRIND iff using Memcheck or TSan-Valgrind:
 #   tools/valgrind/chrome_tests.sh --tool memcheck
 # or
 #   tools/valgrind/chrome_tests.sh --tool=memcheck
 # (same for "--tool=tsan")
-for flag in $@
+tool="memcheck"  # Default to memcheck.
+while (( "$#" ))
 do
-  if [ "$flag" == "--tool" ]
+  if [[ "$1" == "--tool" ]]
   then
-    # Need to check that the next argument is either "memcheck" or "tsan".
-    TOOL_OPTION=1
-    NEEDS_VALGRIND=0
-    continue
-  elif [ "$flag" == "--tool=tsan" ]
+    tool="$2"
+    shift
+  elif [[ "$1" =~ --tool=(.*) ]]
   then
-    NEEDS_VALGRIND=1
-    break
-  elif [ "$flag" == "--tool=memcheck" ]
-  then
-    NEEDS_VALGRIND=1
-    break
-  elif [ $(echo $flag | sed "s/=.*//") == "--tool" ]
-  then
-    # This is a non-Valgrind tool.
-    NEEDS_VALGRIND=0
-    break
+    tool="${BASH_REMATCH[1]}"
   fi
-  if [ "$TOOL_OPTION" == "1" ]
-  then
-    if [ "$flag" == "memcheck" ]
-    then
-      NEEDS_VALGRIND=1
-      break
-    elif [ "$flag" == "tsan" ]
-    then
-      NEEDS_VALGRIND=1
-      break
-    else
-      TOOL_OPTION=0
-    fi
-  fi
+  shift
 done
+
+NEEDS_VALGRIND=0
+NEEDS_DRMEMORY=0
+
+case "$tool" in
+  "memcheck")
+    NEEDS_VALGRIND=1
+    ;;
+  "tsan" | "tsan_rv")
+    NEEDS_VALGRIND=1
+    ;;
+  "drmemory" | "drmemory_light" | "drmemory_full")
+    NEEDS_DRMEMORY=1
+    ;;
+esac
 
 if [ "$NEEDS_VALGRIND" == "1" ]
 then
@@ -72,4 +60,25 @@ then
   export VALGRIND_LIB_INNER="$CHROME_VALGRIND/lib/valgrind"
 fi
 
-PYTHONPATH=$THISDIR/../python/google "$THISDIR/chrome_tests.py" "$@"
+if [ "$NEEDS_DRMEMORY" == "1" ]
+then
+  if [ -z "$DRMEMORY_COMMAND" ]
+  then
+    DRMEMORY_PATH="$THISDIR/../../third_party/drmemory"
+    DRMEMORY_SFX="$DRMEMORY_PATH/drmemory-windows-sfx.exe"
+    if [ ! -f "$DRMEMORY_SFX" ]
+    then
+      echo "Can't find Dr. Memory executables."
+      echo "See http://www.chromium.org/developers/how-tos/using-valgrind/dr-memory"
+      echo "for the instructions on how to get them."
+      exit 1
+    fi
+
+    chmod +x "$DRMEMORY_SFX"  # Cygwin won't run it without +x.
+    "$DRMEMORY_SFX" -o"$DRMEMORY_PATH/unpacked" -y
+    export DRMEMORY_COMMAND="$DRMEMORY_PATH/unpacked/bin/drmemory.exe"
+  fi
+fi
+
+PYTHONPATH=$THISDIR/../python/google python \
+           "$THISDIR/chrome_tests.py" $ARGV_COPY

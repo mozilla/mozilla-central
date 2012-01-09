@@ -111,6 +111,7 @@ const char* HANGOUT_COMMANDS =
 "  record     Starts recording (just signalling; not actually recording.)\n"
 "  unrecord   Stops recording (just signalling; not actually recording.)\n"
 "  rmute [nick] Remote mute another participant.\n"
+"  block [nick] Block another participant.\n"
 "  quit       Quits the application.\n"
 "";
 
@@ -171,6 +172,7 @@ void CallClient::ParseLine(const std::string& line) {
     if (command == "accept") {
       cricket::CallOptions options;
       options.video_bandwidth = GetInt(words, 1, cricket::kAutoBandwidth);
+      options.has_video = true;
       Accept(options);
     } else if (command == "reject") {
       Reject();
@@ -210,6 +212,11 @@ void CallClient::ParseLine(const std::string& line) {
       if (InMuc()) {
         const std::string& nick = words[1];
         hangout_pubsub_client_->RemoteMute(nick);
+      }
+    } else if ((command == "block") && (words.size() == 2)) {
+      if (InMuc()) {
+        const std::string& nick = words[1];
+        hangout_pubsub_client_->BlockMedia(nick);
       }
     } else if ((command == "dtmf") && (words.size() == 2)) {
       int ev = std::string("0123456789*#").find(words[1][0]);
@@ -452,6 +459,7 @@ void CallClient::OnSessionState(cricket::Call* call,
     }
     cricket::CallOptions options;
     if (auto_accept_) {
+      options.has_video = true;
       Accept(options);
     }
   } else if (state == cricket::Session::STATE_SENTINITIATE) {
@@ -673,6 +681,8 @@ void CallClient::PlaceCall(const buzz::Jid& jid,
         this, &CallClient::OnRecordingStateChange);
     hangout_pubsub_client_->SignalRemoteMute.connect(
         this, &CallClient::OnRemoteMuted);
+    hangout_pubsub_client_->SignalMediaBlock.connect(
+        this, &CallClient::OnMediaBlocked);
     hangout_pubsub_client_->SignalRequestError.connect(
         this, &CallClient::OnHangoutRequestError);
     hangout_pubsub_client_->SignalPublishAudioMuteError.connect(
@@ -709,7 +719,7 @@ void CallClient::OnRecordingStateChange(
     const std::string& nick, bool was_recording, bool is_recording) {
   if (!was_recording && is_recording) {
     console_->PrintLine("%s now recording.", nick.c_str());
-  } else if (was_recording && is_recording) {
+  } else if (was_recording && !is_recording) {
     console_->PrintLine("%s no longer recording.", nick.c_str());
   }
 }
@@ -724,6 +734,12 @@ void CallClient::OnRemoteMuted(const std::string& mutee_nick,
     console_->PrintLine("%s remote muted by %s.",
                         mutee_nick.c_str(), muter_nick.c_str());
   }
+}
+
+void CallClient::OnMediaBlocked(const std::string& blockee_nick,
+                                const std::string& blocker_nick) {
+  console_->PrintLine("%s blocked by %s.",
+                      blockee_nick.c_str(), blocker_nick.c_str());
 }
 
 void CallClient::OnHangoutRequestError(const std::string& node,
@@ -832,9 +848,8 @@ void CallClient::LookupAndJoinMuc(const std::string& room_name) {
     domain = room_name.substr(room_name.find("@") + 1);
   }
 
-  buzz::MucRoomLookupTask* lookup_query_task =
-      new buzz::MucRoomLookupTask(
-          xmpp_client_, buzz::JID_GOOGLE_MUC_LOOKUP, room, domain);
+  buzz::MucRoomLookupTask* lookup_query_task = new buzz::MucRoomLookupTask(
+      xmpp_client_, buzz::Jid(buzz::STR_GOOGLE_MUC_LOOKUP_JID), room, domain);
   lookup_query_task->SignalResult.connect(this,
       &CallClient::OnRoomLookupResponse);
   lookup_query_task->SignalError.connect(this,
@@ -984,20 +999,26 @@ void CallClient::OnMucStatusUpdate(const buzz::Jid& jid,
 }
 
 bool CallClient::InMuc() {
-  return FirstMucJid().IsValid();
+  const buzz::Jid* muc_jid = FirstMucJid();
+  if (!muc_jid) return false;
+  return muc_jid->IsValid();
 }
 
-const buzz::Jid& CallClient::FirstMucJid() {
-  return mucs_.begin()->first;
+const buzz::Jid* CallClient::FirstMucJid() {
+  if (mucs_.empty()) return NULL;
+  return &(mucs_.begin()->first);
 }
 
 void CallClient::LeaveMuc(const std::string& room) {
   buzz::Jid room_jid;
+  const buzz::Jid* muc_jid = FirstMucJid();
   if (room.length() > 0) {
     room_jid = buzz::Jid(room);
   } else if (mucs_.size() > 0) {
     // leave the first MUC if no JID specified
-    room_jid = FirstMucJid();
+    if (muc_jid) {
+      room_jid = *(muc_jid);
+    }
   }
 
   if (!room_jid.IsValid()) {

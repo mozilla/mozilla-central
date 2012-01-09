@@ -26,10 +26,10 @@ SDK_MD5SUM="d80d7530a46c665644ae76084a9a0dc4"
 #     Skins: WXGA (default)
 SDK_TARGET_ID=android-13
 
-# Using NDK r6b; The package is about 44M.
-NDK_FILE_NAME="android-ndk-r6b-linux-x86.tar.bz2"
+# Using NDK r7; The package is about 64M.
+NDK_FILE_NAME="android-ndk-r7-linux-x86.tar.bz2"
 NDK_DOWNLOAD_URL="http://dl.google.com/android/ndk/${NDK_FILE_NAME}"
-NDK_MD5SUM="309f35e49b64313cfb20ac428df4cec2"
+NDK_MD5SUM="bf15e6b47bf50824c4b96849bf003ca3"
 
 # The temporary directory used to store the downloaded file.
 TEMPDIR=$(mktemp -d)
@@ -102,8 +102,19 @@ if [[ ! $("${ANDROID_SDK_ROOT}/tools/android" list targets \
   # From current configuration, all android platforms will be installed.
   # This will take a little bit long time.
   echo "Install platform, platform-tool and tool ..."
-  "${ANDROID_SDK_ROOT}"/tools/android update sdk --no-ui \
-    --filter platform,platform-tool,tool
+
+  # This needs to be called twice.  The first time, "android" itself
+  # references
+  # https://dl-ssl.google.com/android/repository/addons_list.xml,
+  # which no longer exists.  On the second run, "android" (or one of
+  # it's config files) has been updated to now reference curl
+  # https://dl-ssl.google.com/android/repository/addons_list-1.xml,
+  # which contains what we need.
+  for try in 1 2 ; do
+    echo "==== SDK update $try"
+    "${ANDROID_SDK_ROOT}"/tools/android update sdk --no-ui \
+      --filter platform,platform-tool,tool
+  done
 fi
 
 # Create a Android Virtual Device named 'buildbot' with default hardware

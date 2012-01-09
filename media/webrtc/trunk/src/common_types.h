@@ -251,6 +251,8 @@ struct NetworkStatistics           // NETEQ statistics
     WebRtc_UWord16 currentBufferSize;
     // preferred (optimal) buffer size in ms
     WebRtc_UWord16 preferredBufferSize;
+    // adding extra delay due to "peaky jitter"
+    bool jitterPeaksFound;
     // loss rate (network + late) in percent (in Q14)
     WebRtc_UWord16 currentPacketLossRate;
     // late loss rate in percent (in Q14)
@@ -263,6 +265,14 @@ struct NetworkStatistics           // NETEQ statistics
     WebRtc_UWord16 currentPreemptiveRate;
     // fraction of data removed through acceleration (in Q14)
     WebRtc_UWord16 currentAccelerateRate;
+    // clock-drift in parts-per-million (negative or positive)
+    int32_t clockDriftPPM;
+    // average packet waiting time in the jitter buffer (ms)
+    int meanWaitingTimeMs;
+    // median packet waiting time in the jitter buffer (ms)
+    int medianWaitingTimeMs;
+    // max packet waiting time in the jitter buffer (ms)
+    int maxWaitingTimeMs;
 };
 
 typedef struct
@@ -427,6 +437,7 @@ enum RawVideoType
     kVideoMJPEG    = 10,
     kVideoNV12     = 11,
     kVideoNV21     = 12,
+    kVideoBGRA     = 13,
     kVideoUnknown  = 99
 };
 
@@ -463,6 +474,17 @@ enum VideoCodecProfile
     kProfileMain = 0x01
 };
 
+enum VP8ResilienceMode {
+  kResilienceOff,    // The stream produced by the encoder requires a
+                     // recovery frame (typically a key frame) to be
+                     // decodable after a packet loss.
+  kResilientStream,  // A stream produced by the encoder is resilient to
+                     // packet losses, but packets within a frame subsequent
+                     // to a loss can't be decoded.
+  kResilientFrames   // Same as kResilientStream but with added resilience
+                     // within a frame.
+};
+
 struct VideoCodecH264
 {
     H264Packetization          packetization;
@@ -483,6 +505,7 @@ struct VideoCodecVP8
     bool                 pictureLossIndicationOn;
     bool                 feedbackModeOn;
     VideoCodecComplexity complexity;
+    VP8ResilienceMode    resilience;
     unsigned char        numberOfTemporalLayers;
 };
 

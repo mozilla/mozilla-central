@@ -20,7 +20,7 @@
 #include "test_util.h"
 #include "video_coding.h"
 
-using namespace webrtc;
+namespace webrtc {
 
 class SendSharedState
 {
@@ -47,15 +47,15 @@ class TransportCallback:public RTPSendCompleteCallback
 {
  public:
     // constructor input: (receive side) rtp module to send encoded data to
-    TransportCallback(webrtc::RtpRtcp* rtp,
+    TransportCallback(webrtc::RtpRtcp* rtp, TickTimeBase* clock,
                       const char* filename = NULL);
-     virtual ~TransportCallback();
-     // Add packets to list
-     // Incorporate network conditions - delay and packet loss
-     // Actual transmission will occur on a separate thread
-     int SendPacket(int channel, const void *data, int len);
-     // Send to the receiver packets which are ready to be submitted
-     int TransportPackets();
+    virtual ~TransportCallback();
+    // Add packets to list
+    // Incorporate network conditions - delay and packet loss
+    // Actual transmission will occur on a separate thread
+    int SendPacket(int channel, const void *data, int len);
+    // Send to the receiver packets which are ready to be submitted
+    int TransportPackets();
 };
 
 class SharedRTPState
@@ -83,5 +83,6 @@ bool VCMProcessingThread(void* obj);
 bool VCMDecodeThread(void* obj);
 bool TransportThread(void *obj);
 
+}  // namespace webrtc
 
 #endif  // WEBRTC_MODULES_VIDEO_CODING_TEST_MT_TEST_COMMON_H_

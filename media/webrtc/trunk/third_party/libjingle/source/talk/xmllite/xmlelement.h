@@ -25,19 +25,16 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _xmlelement_h_
-#define _xmlelement_h_
+#ifndef TALK_XMLLITE_XMLELEMENT_H_
+#define TALK_XMLLITE_XMLELEMENT_H_
 
 #include <iosfwd>
 #include <string>
+
 #include "talk/base/scoped_ptr.h"
 #include "talk/xmllite/qname.h"
 
 namespace buzz {
-
-extern const QName QN_EMPTY;
-extern const QName QN_XMLNS;
-
 
 class XmlChild;
 class XmlText;
@@ -48,7 +45,6 @@ class XmlChild {
 friend class XmlElement;
 
 public:
-
   XmlChild * NextChild() { return pNextChild_; }
   const XmlChild * NextChild() const { return pNextChild_; }
 
@@ -156,9 +152,11 @@ public:
   const XmlAttr * FirstAttr() const
     { return const_cast<XmlElement *>(this)->FirstAttr(); }
 
-  //! Attr will return STR_EMPTY if the attribute isn't there:
-  //! use HasAttr to test presence of an attribute. 
-  const std::string & Attr(const QName & name) const;
+  // Attr will return STR_EMPTY if the attribute isn't there:
+  // use HasAttr to test presence of an attribute.
+  const std::string & Attr(const StaticQName& name) const;
+  const std::string & Attr(const QName& name) const;
+  bool HasAttr(const StaticQName & name) const;
   bool HasAttr(const QName & name) const;
   void SetAttr(const QName & name, const std::string & value);
   void ClearAttr(const QName & name);
@@ -183,9 +181,17 @@ public:
   const XmlElement * NextWithNamespace(const std::string & ns) const
     { return const_cast<XmlElement *>(this)->NextWithNamespace(ns); }
 
+  XmlElement * FirstNamed(const StaticQName & name);
+  const XmlElement * FirstNamed(const StaticQName & name) const
+    { return const_cast<XmlElement *>(this)->FirstNamed(name); }
+
   XmlElement * FirstNamed(const QName & name);
   const XmlElement * FirstNamed(const QName & name) const
     { return const_cast<XmlElement *>(this)->FirstNamed(name); }
+
+  XmlElement * NextNamed(const StaticQName & name);
+  const XmlElement * NextNamed(const StaticQName & name) const
+    { return const_cast<XmlElement *>(this)->NextNamed(name); }
 
   XmlElement * NextNamed(const QName & name);
   const XmlElement * NextNamed(const QName & name) const
@@ -217,8 +223,6 @@ public:
   static XmlElement * ForStr(const std::string & str);
   std::string Str() const;
 
-  void Print(std::ostream * pout, std::string xmlns[], int xmlnsCount) const;
-
   bool IsCDATA() const { return cdata_; }
 
 protected:
@@ -236,4 +240,5 @@ private:
 };
 
 }
-#endif
+
+#endif  // TALK_XMLLITE_XMLELEMENT_H_

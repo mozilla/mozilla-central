@@ -347,6 +347,7 @@ bool StunAddressAttribute::Read(ByteBuffer* buf) {
   uint8 family;
   // We don't expect IPv6 address here because IPv6 addresses would
   // not pass the attribute size check in StunAttribute::Create().
+  // TODO: Support IPv6 addresses.
   if (!buf->ReadUInt8(&family) || family != STUN_ADDRESS_IPV4) {
     return false;
   }
@@ -354,9 +355,10 @@ bool StunAddressAttribute::Read(ByteBuffer* buf) {
 
   if (!buf->ReadUInt16(&port_))
     return false;
-
-  if (!buf->ReadUInt32(&ip_))
+  uint32 ip;
+  if (!buf->ReadUInt32(&ip))
     return false;
+  SetIP(talk_base::IPAddress(ip));
 
   return true;
 }
@@ -368,7 +370,7 @@ void StunAddressAttribute::Write(ByteBuffer* buf) const {
   buf->WriteUInt8(0);
   buf->WriteUInt8(family_);
   buf->WriteUInt16(port_);
-  buf->WriteUInt32(ip_);
+  buf->WriteUInt32(ip_.v4AddressAsHostOrderInteger());
 }
 
 StunXorAddressAttribute::StunXorAddressAttribute(uint16 type)
@@ -380,7 +382,8 @@ bool StunXorAddressAttribute::Read(ByteBuffer* buf) {
     return false;
 
   SetPort(port() ^ (kStunMagicCookie >> 16));
-  SetIP(ip() ^ kStunMagicCookie);
+  uint32 ip = ipaddr().v4AddressAsHostOrderInteger();
+  SetIP(talk_base::IPAddress(ip ^ kStunMagicCookie));
 
   return true;
 }
@@ -392,7 +395,7 @@ void StunXorAddressAttribute::Write(ByteBuffer* buf) const {
   buf->WriteUInt8(0);
   buf->WriteUInt8(family());
   buf->WriteUInt16(port() ^ (kStunMagicCookie >> 16));
-  buf->WriteUInt32(ip() ^ kStunMagicCookie);
+  buf->WriteUInt32(ipaddr().v4AddressAsHostOrderInteger() ^ kStunMagicCookie);
 }
 
 StunUInt32Attribute::StunUInt32Attribute(uint16 type)

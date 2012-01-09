@@ -107,7 +107,7 @@ void AutoDetectProxy::OnMessage(Message *msg) {
                       proxy().address.hostname(),
                       sizeof address_hostname);
 
-    uint32 address_ip = proxy().address.ip();
+    IPAddress address_ip = proxy().address.ipaddr();
 
     uint16 address_port = proxy().address.port();
 

@@ -100,6 +100,7 @@
           'type': 'executable',
           'dependencies': [
             'audio_coding_module',
+            '<(webrtc_root)/../test/test.gyp:test_support_main',
             '<(webrtc_root)/../testing/gtest.gyp:gtest',
             '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
           ],
@@ -108,7 +109,6 @@
              '../test/APITest.cpp',
              '../test/Channel.cpp',
              '../test/EncodeDecodeTest.cpp',
-             '../test/EncodeToFileTest.cpp',
              '../test/iSACTest.cpp',
              '../test/PCMFile.cpp',
              '../test/RTPFile.cpp',
@@ -122,19 +122,22 @@
              '../test/TwoWayCommunication.cpp',
              '../test/utility.cpp',
           ],
-          'conditions': [
-            ['OS=="linux" or OS=="mac"', {
-              'cflags': [
-                '-fexceptions', # enable exceptions
-              ],
-            }],
-            ['OS=="mac"', {
-              'xcode_settings': {
-                'GCC_ENABLE_CPP_EXCEPTIONS': 'YES', # -fexceptions
-              }
-            }],
-          ],
         },
+        {
+          'target_name': 'audio_coding_unittests',
+          'type': 'executable',
+          'dependencies': [
+            'audio_coding_module',
+            'NetEq',
+            '<(webrtc_root)/common_audio/common_audio.gyp:vad',
+            '<(webrtc_root)/../testing/gtest.gyp:gtest',
+            '<(webrtc_root)/../test/test.gyp:test_support_main',
+            '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
+          ],
+          'sources': [
+             'acm_neteq_unittest.cc',
+          ],
+        }, # audio_coding_unittests
       ],
     }],
   ],

@@ -49,7 +49,8 @@ class StunPort : public Port {
   static StunPort* Create(talk_base::Thread* thread,
                           talk_base::PacketSocketFactory* factory,
                           talk_base::Network* network,
-                          uint32 ip, int min_port, int max_port,
+                          const talk_base::IPAddress& ip,
+                          int min_port, int max_port,
                           const talk_base::SocketAddress& server_addr) {
     StunPort* port = new StunPort(thread, factory, network,
                                   ip, min_port, max_port, server_addr);
@@ -88,7 +89,8 @@ class StunPort : public Port {
 
  protected:
   StunPort(talk_base::Thread* thread, talk_base::PacketSocketFactory* factory,
-           talk_base::Network* network, uint32 ip, int min_port, int max_port,
+           talk_base::Network* network, const talk_base::IPAddress& ip,
+           int min_port, int max_port,
            const talk_base::SocketAddress& server_addr);
   bool Init();
 

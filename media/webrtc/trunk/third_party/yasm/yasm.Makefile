@@ -3,4 +3,4 @@
 export builddir_name ?= trunk/third_party/yasm/$(OBJDIR)/media/webrtc/out
 .PHONY: all
 all:
-	$(MAKE) -C ../.. config_sources genmacro genperf_libs genversion genmodule genstring re2c genperf generate_files yasm
+	$(MAKE) -C ../.. config_sources genmodule genmacro genperf_libs genversion genstring re2c genperf generate_files yasm

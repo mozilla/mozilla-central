@@ -106,8 +106,9 @@ void CurrentSpeakerMonitor::OnAudioMonitor(Call* call, const AudioInfo& info) {
        state_it != ssrc_to_speaking_state_map_.end(); ++state_it) {
     bool is_previous_speaker = current_speaker_ssrc_ == state_it->first;
 
-    // This uses a state machine in order to gradually identify members as
-    // having started or stopped speaking.
+    // This uses a state machine in order to gradually identify
+    // members as having started or stopped speaking. Matches the
+    // algorithm used by the hangouts js code.
 
     std::map<uint32, int>::const_iterator level_it =
         active_ssrc_to_level_map.find(state_it->first);

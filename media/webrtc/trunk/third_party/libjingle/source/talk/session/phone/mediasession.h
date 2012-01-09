@@ -37,6 +37,7 @@
 #include "talk/session/phone/codec.h"
 #include "talk/session/phone/cryptoparams.h"
 #include "talk/session/phone/mediachannel.h"
+#include "talk/session/phone/streamparams.h"
 #include "talk/p2p/base/sessiondescription.h"
 
 namespace cricket {
@@ -45,6 +46,7 @@ class ChannelManager;
 typedef std::vector<AudioCodec> AudioCodecs;
 typedef std::vector<VideoCodec> VideoCodecs;
 typedef std::vector<CryptoParams> CryptoParamsVec;
+typedef std::vector<StreamParams> StreamParamsVec;
 
 // SEC_ENABLED and SEC_REQUIRED should only be used if the session
 // was negotiated over TLS, to protect the inline crypto material
@@ -64,6 +66,11 @@ enum SecureMediaPolicy {
   SEC_REQUIRED
 };
 
+enum MediaType {
+  MEDIA_TYPE_AUDIO,
+  MEDIA_TYPE_VIDEO
+};
+
 // Options to control how session descriptions are generated.
 const int kAutoBandwidth = -1;
 struct MediaSessionOptions {
@@ -71,41 +78,52 @@ struct MediaSessionOptions {
       has_audio(true),  // Audio enabled by default.
       has_video(false),
       is_muc(false),
+      rtcp_mux_enabled(true),
       video_bandwidth(kAutoBandwidth) {
   }
+
+  // Add a stream with MediaType type and id name.
+  // All streams with the same sync_label will get the same CNAME.
+  // All names must be unique.
+  void AddStream(MediaType type,
+                 const std::string& name,
+                 const std::string& sync_label);
+  void RemoveStream(MediaType type, const std::string& name);
 
   bool has_audio;
   bool has_video;
   bool is_muc;
+  bool rtcp_mux_enabled;
   // bps. -1 == auto.
   int video_bandwidth;
-};
 
-enum MediaType {
-  MEDIA_TYPE_AUDIO,
-  MEDIA_TYPE_VIDEO
+  struct Stream {
+    Stream(MediaType type,
+           const std::string& name,
+           const std::string& sync_label)
+        : type(type), name(name), sync_label(sync_label) {
+    }
+    MediaType type;
+    std::string name;
+    std::string sync_label;
+  };
+
+  typedef std::vector<Stream> Streams;
+  Streams streams;
 };
 
 // "content" (as used in XEP-0166) descriptions for voice and video.
 class MediaContentDescription : public ContentDescription {
  public:
   MediaContentDescription()
-      : ssrc_(0),
-        ssrc_set_(false),
-        rtcp_mux_(false),
+      : rtcp_mux_(false),
         bandwidth_(kAutoBandwidth),
         crypto_required_(false),
-        rtp_header_extensions_set_(false) {
+        rtp_header_extensions_set_(false),
+        multistream_(false) {
   }
 
   virtual MediaType type() const = 0;
-
-  uint32 ssrc() const { return ssrc_; }
-  bool ssrc_set() const { return ssrc_set_; }
-  void set_ssrc(uint32 ssrc) {
-    ssrc_ = ssrc;
-    ssrc_set_ = true;
-  }
 
   bool rtcp_mux() const { return rtcp_mux_; }
   void set_rtcp_mux(bool mux) { rtcp_mux_ = mux; }
@@ -141,16 +159,47 @@ class MediaContentDescription : public ContentDescription {
   bool rtp_header_extensions_set() const {
     return rtp_header_extensions_set_;
   }
+  // True iff the client supports multiple streams.
+  void set_multistream(bool multistream) { multistream_ = multistream; }
+  bool multistream() const { return multistream_;  }
+  const StreamParamsVec& streams() const {
+    return streams_;
+  }
+  // TODO: Remove this by giving mediamessage.cc access
+  // to MediaContentDescription
+  StreamParamsVec& mutable_streams() {
+    return streams_;
+  }
+  void AddStream(const StreamParams& stream) {
+    streams_.push_back(stream);
+  }
+  // Legacy streams have an ssrc, but nothing else.
+  void AddLegacyStream(uint32 ssrc) {
+    streams_.push_back(StreamParams::CreateLegacy(ssrc));
+  }
+
+  uint32 first_ssrc() const {
+    if (streams_.empty()) {
+      return 0;
+    }
+    return streams_[0].first_ssrc();
+  }
+  bool has_ssrcs() const {
+    if (streams_.empty()) {
+      return false;
+    }
+    return streams_[0].has_ssrcs();
+  }
 
  protected:
-  uint32 ssrc_;
-  bool ssrc_set_;
   bool rtcp_mux_;
   int bandwidth_;
   std::vector<CryptoParams> cryptos_;
   bool crypto_required_;
   std::vector<RtpHeaderExtension> rtp_header_extensions_;
   bool rtp_header_extensions_set_;
+  bool multistream_;
+  StreamParamsVec streams_;
 };
 
 template <class C>
@@ -175,6 +224,7 @@ class MediaContentDescriptionImpl : public MediaContentDescription {
 class AudioContentDescription : public MediaContentDescriptionImpl<AudioCodec> {
  public:
   AudioContentDescription() :
+      agc_minus_10db_(false),
       conference_mode_(false) {}
 
   virtual MediaType type() const { return MEDIA_TYPE_AUDIO; }
@@ -187,6 +237,13 @@ class AudioContentDescription : public MediaContentDescriptionImpl<AudioCodec> {
   const std::string &lang() const { return lang_; }
   void set_lang(const std::string &lang) { lang_ = lang; }
 
+  bool agc_minus_10db() const { return agc_minus_10db_; }
+  void set_agc_minus_10db(bool enable) {
+    agc_minus_10db_ = enable;
+  }
+
+ private:
+  bool agc_minus_10db_;
 
  private:
   bool conference_mode_;
@@ -216,9 +273,19 @@ class MediaSessionDescriptionFactory {
   SecureMediaPolicy secure() const { return secure_; }
   void set_secure(SecureMediaPolicy s) { secure_ = s; }
 
-  SessionDescription* CreateOffer(const MediaSessionOptions& options);
-  SessionDescription* CreateAnswer(const SessionDescription* offer,
-                                   const MediaSessionOptions& options);
+
+  SessionDescription* CreateOffer(
+      const MediaSessionOptions& options,
+      const SessionDescription* current_description);
+
+
+
+
+
+  SessionDescription* CreateAnswer(
+        const SessionDescription* offer,
+        const MediaSessionOptions& options,
+        const SessionDescription* current_description);
 
  private:
   AudioCodecs audio_codecs_;

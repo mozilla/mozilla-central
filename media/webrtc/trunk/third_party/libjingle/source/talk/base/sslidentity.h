@@ -34,6 +34,13 @@
 
 namespace talk_base {
 
+// Definitions for the digest algorithms
+extern const char DIGEST_SHA_1[];
+extern const char DIGEST_SHA_224[];
+extern const char DIGEST_SHA_256[];
+extern const char DIGEST_SHA_384[];
+extern const char DIGEST_SHA_512[];
+
 // Abstract interface overridden by SSL library specific
 // implementations.
 
@@ -61,6 +68,11 @@ class SSLCertificate {
 
   // Returns a PEM encoded string representation of the certificate.
   virtual std::string ToPEMString() const = 0;
+
+  // Compute the digest of the certificate given algorithm
+  virtual bool ComputeDigest(const std::string &algorithm,
+                             unsigned char *digest, std::size_t size,
+                             std::size_t *length) const = 0;
 };
 
 // Our identity in an SSL negotiation: a keypair and certificate (both

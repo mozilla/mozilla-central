@@ -38,11 +38,6 @@ public:
     // get Module ID
     WebRtc_Word32 Id()   {return _id;}
 
-    // Get Module version
-    WebRtc_Word32 Version(WebRtc_Word8* version,
-                        WebRtc_UWord32& remainingBufferInBytes,
-                        WebRtc_UWord32& position) const;
-
     virtual WebRtc_Word32 ChangeUniqueId(const WebRtc_Word32 id);
 
     // De-muxing functionality for
@@ -96,6 +91,14 @@ public:
 
     virtual WebRtc_Word32 DeRegisterReceivePayload(
         const WebRtc_Word8 payloadType);
+
+    // register RTP header extension
+    virtual WebRtc_Word32 RegisterReceiveRtpHeaderExtension(
+        const RTPExtensionType type,
+        const WebRtc_UWord8 id);
+
+    virtual WebRtc_Word32 DeregisterReceiveRtpHeaderExtension(
+        const RTPExtensionType type);
 
     // get the currently configured SSRC filter
     virtual WebRtc_Word32 SSRCFilter(WebRtc_UWord32& allowedSSRC) const;
@@ -165,6 +168,14 @@ public:
     virtual WebRtc_Word32 DeRegisterSendPayload(const WebRtc_Word8 payloadType);
 
     virtual WebRtc_Word8 SendPayloadType() const;
+
+    // register RTP header extension
+    virtual WebRtc_Word32 RegisterSendRtpHeaderExtension(
+        const RTPExtensionType type,
+        const WebRtc_UWord8 id);
+
+    virtual WebRtc_Word32 DeregisterSendRtpHeaderExtension(
+        const RTPExtensionType type);
 
     // get start timestamp
     virtual WebRtc_UWord32 StartTimestamp() const;
@@ -289,10 +300,12 @@ public:
                                           WebRtc_UWord32 *bytesReceived,
                                           WebRtc_UWord32 *packetsReceived) const;
 
-    virtual WebRtc_Word32 ReportBlockStatistics(WebRtc_UWord8 *fraction_lost,
-                                                WebRtc_UWord32 *cum_lost,
-                                                WebRtc_UWord32 *ext_max,
-                                                WebRtc_UWord32 *jitter);
+    virtual WebRtc_Word32 ReportBlockStatistics(
+        WebRtc_UWord8 *fraction_lost,
+        WebRtc_UWord32 *cum_lost,
+        WebRtc_UWord32 *ext_max,
+        WebRtc_UWord32 *jitter,
+        WebRtc_UWord32 *jitter_transmission_time_offset);
 
     // Get received RTCP report, sender info
     virtual WebRtc_Word32 RemoteRTCPStat( RTCPSenderInfo* senderInfo);
@@ -317,6 +330,15 @@ public:
     virtual WebRtc_Word32 SetREMBData(const WebRtc_UWord32 bitrate,
                                       const WebRtc_UWord8 numberOfSSRC,
                                       const WebRtc_UWord32* SSRC);
+
+    virtual bool SetRemoteBitrateObserver(RtpRemoteBitrateObserver* observer);
+    /*
+    *   (IJ) Extended jitter report.
+    */
+    virtual bool IJ() const;
+
+    virtual WebRtc_Word32 SetIJStatus(const bool enable);
+
     /*
     *   (TMMBR) Temporary Max Media Bit Rate
     */
@@ -353,6 +375,10 @@ public:
 
     // Turn negative acknowledgement requests on/off
     virtual WebRtc_Word32 SetNACKStatus(const NACKMethod method);
+
+    virtual int SelectiveRetransmissions() const;
+
+    virtual int SetSelectiveRetransmissions(uint8_t settings);
 
     // Send a Negative acknowledgement packet
     virtual WebRtc_Word32 SendNACK(const WebRtc_UWord16* nackList,
@@ -482,8 +508,7 @@ public:
     void OnPacketLossStatisticsUpdate(
         const WebRtc_UWord8 fractionLost,
         const WebRtc_UWord16 roundTripTime,
-        const WebRtc_UWord32 lastReceivedExtendedHighSeqNum,
-        bool triggerOnNetworkChanged);
+        const WebRtc_UWord32 lastReceivedExtendedHighSeqNum);
 
     void OnReceivedTMMBR();
 
@@ -536,7 +561,7 @@ protected:
     RtpRtcpClock&             _clock;
 private:
     void SendKeyFrame();
-    void ProcessDefaultModuleBandwidth(bool triggerOnNetworkChanged);
+    void ProcessDefaultModuleBandwidth();
 
     WebRtc_Word32             _id;
     const bool                _audio;
@@ -544,8 +569,8 @@ private:
     WebRtc_UWord32            _lastProcessTime;
     WebRtc_UWord16            _packetOverHead;
 
-    CriticalSectionWrapper&       _criticalSectionModulePtrs;
-    CriticalSectionWrapper&       _criticalSectionModulePtrsFeedback;
+    CriticalSectionWrapper*       _criticalSectionModulePtrs;
+    CriticalSectionWrapper*       _criticalSectionModulePtrsFeedback;
     ModuleRtpRtcpImpl*            _defaultModule;
     ModuleRtpRtcpImpl*            _audioModule;
     ModuleRtpRtcpImpl*            _videoModule;

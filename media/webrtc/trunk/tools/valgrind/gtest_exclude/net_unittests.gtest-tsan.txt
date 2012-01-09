@@ -20,8 +20,5 @@ HttpNetworkTransactionTest.KeepAliveConnectionEOF
 # Crashes silently, see http://crbug.com/76911
 URLRequestTest.FileTest
 
-# CHECK failure. http://crbug.com/88225
-DnsTransactionTest.FirstTimeoutTest
-
 # http://crbug.com/92439
 OriginBoundCertServiceTest.*

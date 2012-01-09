@@ -6,10 +6,13 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -48,7 +51,7 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Isrc \
 	-I. \
-	-Isrc/video_engine/main/interface \
+	-Isrc/video_engine/include \
 	-Isrc/common_video/interface \
 	-Isrc/modules/video_capture/main/interface \
 	-Isrc/modules/video_render/main/interface \
@@ -69,10 +72,13 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -113,7 +119,7 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Isrc \
 	-I. \
-	-Isrc/video_engine/main/interface \
+	-Isrc/video_engine/include \
 	-Isrc/common_video/interface \
 	-Isrc/modules/video_capture/main/interface \
 	-Isrc/modules/video_render/main/interface \
@@ -155,6 +161,7 @@ OBJS := $(obj).target/$(TARGET)/src/video_engine/vie_base_impl.o \
 	$(obj).target/$(TARGET)/src/video_engine/vie_manager_base.o \
 	$(obj).target/$(TARGET)/src/video_engine/vie_performance_monitor.o \
 	$(obj).target/$(TARGET)/src/video_engine/vie_receiver.o \
+	$(obj).target/$(TARGET)/src/video_engine/vie_remb.o \
 	$(obj).target/$(TARGET)/src/video_engine/vie_renderer.o \
 	$(obj).target/$(TARGET)/src/video_engine/vie_render_manager.o \
 	$(obj).target/$(TARGET)/src/video_engine/vie_sender.o \
@@ -185,10 +192,12 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cc FORCE_DO_CMD
 # End of this set of suffix rules
 ### Rules for final target.
 LDFLAGS_Debug := -pthread \
-	-Wl,-z,noexecstack
+	-Wl,-z,noexecstack \
+	-fPIC
 
 LDFLAGS_Release := -pthread \
 	-Wl,-z,noexecstack \
+	-fPIC \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections

@@ -37,14 +37,14 @@
 #include "modules/interface/module_common_types.h"
 #include "modules/video_capture/main/interface/video_capture.h"
 #include "modules/video_render/main/interface/video_render.h"
-#include "video_engine/main/interface/vie_base.h"
-#include "video_engine/main/interface/vie_capture.h"
-#include "video_engine/main/interface/vie_codec.h"
-#include "video_engine/main/interface/vie_errors.h"
-#include "video_engine/main/interface/vie_image_process.h"
-#include "video_engine/main/interface/vie_network.h"
-#include "video_engine/main/interface/vie_render.h"
-#include "video_engine/main/interface/vie_rtp_rtcp.h"
+#include "video_engine/include/vie_base.h"
+#include "video_engine/include/vie_capture.h"
+#include "video_engine/include/vie_codec.h"
+#include "video_engine/include/vie_errors.h"
+#include "video_engine/include/vie_image_process.h"
+#include "video_engine/include/vie_network.h"
+#include "video_engine/include/vie_render.h"
+#include "video_engine/include/vie_rtp_rtcp.h"
 #else
 #include "third_party/webrtc/files/include/common_types.h"
 #include "third_party/webrtc/files/include/module_common_types.h"
@@ -139,6 +139,23 @@ class ViEWrapper {
   scoped_vie_ptr<webrtc::ViERTP_RTCP> rtp_;
   scoped_vie_ptr<webrtc::ViEImageProcess> image_;
 };
-}
+
+// Adds indirection to static WebRtc functions, allowing them to be mocked.
+class ViETraceWrapper {
+ public:
+  virtual ~ViETraceWrapper() {}
+
+  virtual int SetTraceFilter(const unsigned int filter) {
+    return webrtc::VideoEngine::SetTraceFilter(filter);
+  }
+  virtual int SetTraceFile(const char* fileNameUTF8) {
+    return webrtc::VideoEngine::SetTraceFile(fileNameUTF8);
+  }
+  virtual int SetTraceCallback(webrtc::TraceCallback* callback) {
+    return webrtc::VideoEngine::SetTraceCallback(callback);
+  }
+};
+
+}  // namespace cricket
 
 #endif  // TALK_SESSION_PHONE_WEBRTCVIE_H_

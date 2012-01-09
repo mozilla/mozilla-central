@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2011, Google Inc.
+ * Copyright 2011 Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -46,6 +46,10 @@ class WebRtcVideoFrame : public VideoFrame {
   WebRtcVideoFrame();
   ~WebRtcVideoFrame();
 
+  // Creates a frame from a raw sample with FourCC "format" and size "w" x "h".
+  // "h" can be negative indicating a vertically flipped image.
+  // "dh" is destination height if cropping is desired and is always positive.
+  // Returns "true" if successful.
   bool Init(uint32 format, int w, int h, int dw, int dh,
             uint8* sample, size_t sample_size,
             size_t pixel_width, size_t pixel_height,
@@ -60,9 +64,10 @@ class WebRtcVideoFrame : public VideoFrame {
               size_t pixel_width, size_t pixel_height,
               int64 elapsed_time, int64 time_stamp, int rotation);
   void Detach(uint8** buffer, size_t* buffer_size);
+  bool AddWatermark();
+  webrtc::VideoFrame* frame() { return &video_frame_; }
 
-  bool HasImage() const { return video_frame_.Buffer() != NULL; }
-
+  // From base class VideoFrame.
   virtual size_t GetWidth() const;
   virtual size_t GetHeight() const;
   virtual const uint8* GetYPlane() const;
@@ -72,18 +77,18 @@ class WebRtcVideoFrame : public VideoFrame {
   virtual uint8* GetUPlane();
   virtual uint8* GetVPlane();
   virtual int32 GetYPitch() const { return video_frame_.Width(); }
-  virtual int32 GetUPitch() const { return video_frame_.Width() / 2; }
-  virtual int32 GetVPitch() const { return video_frame_.Width() / 2; }
+  virtual int32 GetUPitch() const { return (video_frame_.Width() + 1) / 2; }
+  virtual int32 GetVPitch() const { return (video_frame_.Width() + 1) / 2; }
 
   virtual size_t GetPixelWidth() const { return pixel_width_; }
   virtual size_t GetPixelHeight() const { return pixel_height_; }
   virtual int64 GetElapsedTime() const { return elapsed_time_; }
-  virtual int64 GetTimeStamp() const { return video_frame_.TimeStamp(); }
+  virtual int64 GetTimeStamp() const { return time_stamp_; }
   virtual void SetElapsedTime(int64 elapsed_time) {
     elapsed_time_ = elapsed_time;
   }
   virtual void SetTimeStamp(int64 time_stamp) {
-    video_frame_.SetTimeStamp(static_cast<WebRtc_UWord32>(time_stamp));
+    time_stamp_ = time_stamp;
   }
 
   virtual int GetRotation() const { return rotation_; }
@@ -93,22 +98,18 @@ class WebRtcVideoFrame : public VideoFrame {
   virtual size_t CopyToBuffer(uint8* buffer, size_t size) const;
   virtual size_t ConvertToRgbBuffer(uint32 to_fourcc, uint8* buffer,
                                     size_t size, size_t pitch_rgb) const;
-  virtual void StretchToPlanes(uint8* y, uint8* u, uint8* v,
-                               int32 pitchY, int32 pitchU, int32 pitchV,
-                               size_t width, size_t height,
-                               bool interpolate, bool crop) const;
-  virtual size_t StretchToBuffer(size_t w, size_t h, uint8* buffer, size_t size,
-                                 bool interpolate, bool crop) const;
-  virtual void StretchToFrame(VideoFrame* target, bool interpolate,
-                              bool crop) const;
   virtual VideoFrame* Stretch(size_t w, size_t h, bool interpolate,
-                              bool crop) const;
+                              bool vert_crop) const;
 
  private:
+  size_t GetChromaSize() const { return GetUPitch() * GetChromaHeight(); }
+  void CreateBuffer(int w, int h, size_t pixel_width, size_t pixel_height,
+                    int64 elapsed_time, int64 time_stamp);
   webrtc::VideoFrame video_frame_;
   size_t pixel_width_;
   size_t pixel_height_;
   int64 elapsed_time_;
+  int64 time_stamp_;
   int rotation_;
 };
 }  // namespace cricket

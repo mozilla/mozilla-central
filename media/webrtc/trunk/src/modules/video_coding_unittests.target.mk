@@ -6,10 +6,13 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -51,20 +54,24 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Isrc \
 	-I. \
 	-Isrc/modules/interface \
+	-Isrc/modules/video_coding/codecs/interface \
 	-Itest \
 	-Isrc/modules/video_coding/main/interface \
-	-Isrc/modules/video_coding/codecs/interface \
 	-Itesting/gtest/include \
+	-Itesting/gmock/include \
 	-Isrc/system_wrappers/interface
 
 DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -108,19 +115,22 @@ CFLAGS_CC_Release := -fno-rtti \
 INCS_Release := -Isrc \
 	-I. \
 	-Isrc/modules/interface \
+	-Isrc/modules/video_coding/codecs/interface \
 	-Itest \
 	-Isrc/modules/video_coding/main/interface \
-	-Isrc/modules/video_coding/codecs/interface \
 	-Itesting/gtest/include \
+	-Itesting/gmock/include \
 	-Isrc/system_wrappers/interface
 
-OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/main/source/session_info_unittest.o
+OBJS := $(obj).target/$(TARGET)/src/modules/video_coding/main/source/decoding_state_unittest.o \
+	$(obj).target/$(TARGET)/src/modules/video_coding/main/source/session_info_unittest.o \
+	$(obj).target/$(TARGET)/src/modules/video_coding/main/source/video_coding_robustness_unittest.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/test/libtest_support_main.a $(obj).target/testing/libgtest.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a
+$(OBJS): | $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/test/libtest_support_main.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/test/libtest_support.a $(obj).target/testing/gtest_prod.stamp
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -144,10 +154,12 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cc FORCE_DO_CMD
 # End of this set of suffix rules
 ### Rules for final target.
 LDFLAGS_Debug := -pthread \
-	-Wl,-z,noexecstack
+	-Wl,-z,noexecstack \
+	-fPIC
 
 LDFLAGS_Release := -pthread \
 	-Wl,-z,noexecstack \
+	-fPIC \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections
@@ -156,9 +168,9 @@ LIBS := -lrt
 
 $(builddir)/video_coding_unittests: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(builddir)/video_coding_unittests: LIBS := $(LIBS)
-$(builddir)/video_coding_unittests: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/test/libtest_support_main.a $(obj).target/testing/libgtest.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a
+$(builddir)/video_coding_unittests: LD_INPUTS := $(OBJS) $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/test/libtest_support_main.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/test/libtest_support.a
 $(builddir)/video_coding_unittests: TOOLSET := $(TOOLSET)
-$(builddir)/video_coding_unittests: $(OBJS) $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/test/libtest_support_main.a $(obj).target/testing/libgtest.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a FORCE_DO_CMD
+$(builddir)/video_coding_unittests: $(OBJS) $(obj).target/src/modules/libwebrtc_video_coding.a $(obj).target/test/libtest_support_main.a $(obj).target/testing/libgtest.a $(obj).target/testing/libgmock.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/src/modules/libwebrtc_i420.a $(obj).target/src/modules/libwebrtc_vp8.a $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/third_party/libvpx/libvpx.a $(obj).target/test/libtest_support.a FORCE_DO_CMD
 	$(call do_cmd,link)
 
 all_deps += $(builddir)/video_coding_unittests

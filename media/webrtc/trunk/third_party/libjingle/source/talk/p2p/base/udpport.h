@@ -48,7 +48,8 @@ class UDPPort : public Port {
   static UDPPort* Create(talk_base::Thread* thread,
                          talk_base::PacketSocketFactory* factory,
                          talk_base::Network* network,
-                         uint32 ip, int min_port, int max_port) {
+                         const talk_base::IPAddress& ip,
+                         int min_port, int max_port) {
     UDPPort* port = new UDPPort(thread, factory, network,
                                 ip, min_port, max_port);
     if (!port->Init()) {
@@ -68,7 +69,8 @@ class UDPPort : public Port {
 
  protected:
   UDPPort(talk_base::Thread* thread, talk_base::PacketSocketFactory* factory,
-          talk_base::Network* network, uint32 ip, int min_port, int max_port);
+          talk_base::Network* network, const talk_base::IPAddress& ip,
+          int min_port, int max_port);
   bool Init();
 
   // Handles sending using the local UDP socket.

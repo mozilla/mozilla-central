@@ -35,6 +35,8 @@ namespace cricket {
 const size_t kMinRtpPacketLen = 12;
 const size_t kMaxRtpPacketLen = 2048;
 const size_t kMinRtcpPacketLen = 4;
+const int kRtcpTypeSR = 200;  // PT of SR
+const int kRtcpTypeRR = 201;  // PT of RR
 
 bool GetRtpPayloadType(const void* data, size_t len, int* value);
 bool GetRtpSeqNum(const void* data, size_t len, int* value);
@@ -42,6 +44,7 @@ bool GetRtpTimestamp(const void* data, size_t len, uint32* value);
 bool GetRtpSsrc(const void* data, size_t len, uint32* value);
 bool GetRtpHeaderLen(const void* data, size_t len, size_t* value);
 bool GetRtcpType(const void* data, size_t len, int* value);
+bool GetRtcpSsrc(const void* data, size_t len, uint32* value);
 
 }  // namespace cricket
 

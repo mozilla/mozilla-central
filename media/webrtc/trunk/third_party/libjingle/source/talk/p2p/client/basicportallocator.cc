@@ -154,7 +154,7 @@ class AllocationSequence : public talk_base::MessageHandler {
 
   BasicPortAllocatorSession* session_;
   talk_base::Network* network_;
-  uint32 ip_;
+  talk_base::IPAddress ip_;
   PortConfiguration* config_;
   bool running_;
   int step_;

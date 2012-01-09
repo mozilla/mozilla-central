@@ -18,7 +18,7 @@
 #include <stdio.h>
 #include <queue>
 
-using namespace webrtc;
+namespace webrtc {
 
 class RTPStream
 {
@@ -79,7 +79,7 @@ class RTPFile : public RTPStream
 public:
     ~RTPFile(){}
     RTPFile() : _rtpFile(NULL),_rtpEOF(false) {}
-    void Open(char *outFilename, const char *mode);
+    void Open(const char *outFilename, const char *mode);
     void Close();
     void WriteHeader();
     void ReadHeader();
@@ -96,4 +96,5 @@ private:
     bool    _rtpEOF;
 };
 
+} // namespace webrtc
 #endif

@@ -39,6 +39,7 @@
 #include "talk/base/fileutils.h"  // for GetApplicationName()
 #include "talk/base/logging.h"
 #include "talk/base/worker.h"
+#include "talk/base/timeutils.h"
 #include "talk/sound/sounddevicelocator.h"
 #include "talk/sound/soundinputstreaminterface.h"
 #include "talk/sound/soundoutputstreaminterface.h"
@@ -98,8 +99,6 @@ static const int kLowCaptureLatencyMsecs = 10;
 // (750ms is libpulse's default value for the _total_ buffer size in the
 // kNoLatencyRequirements case.)
 static const int kCaptureBufferExtraMsecs = 750;
-
-static const int kMsecsPerSec = 1000;
 
 static void FillPlaybackBufferAttr(int latency,
                                    pa_buffer_attr *attr) {
@@ -909,7 +908,8 @@ class PulseAudioOutputStream :
     size_t bytes_per_sec = LATE(pa_bytes_per_second)(spec);
 
     int new_latency = configured_latency_ +
-        bytes_per_sec * kPlaybackLatencyIncrementMsecs / kMsecsPerSec;
+        bytes_per_sec * kPlaybackLatencyIncrementMsecs /
+        talk_base::kNumMicrosecsPerSec;
 
     pa_buffer_attr new_attr = {0};
     FillPlaybackBufferAttr(new_latency, &new_attr);
@@ -1468,7 +1468,8 @@ SoundOutputStreamInterface *PulseAudioSoundSystem::ConnectOutputStream(
     latency = talk_base::_max(
         latency,
         static_cast<int>(
-            bytes_per_sec * kPlaybackLatencyMinimumMsecs / kMsecsPerSec));
+            bytes_per_sec * kPlaybackLatencyMinimumMsecs /
+            talk_base::kNumMicrosecsPerSec));
     FillPlaybackBufferAttr(latency, &attr);
     pattr = &attr;
   }
@@ -1498,13 +1499,14 @@ SoundInputStreamInterface *PulseAudioSoundSystem::ConnectInputStream(
   if (latency != kNoLatencyRequirements) {
     size_t bytes_per_sec = LATE(pa_bytes_per_second)(&spec);
     if (latency == kLowLatency) {
-      latency = bytes_per_sec * kLowCaptureLatencyMsecs / kMsecsPerSec;
+      latency = bytes_per_sec * kLowCaptureLatencyMsecs /
+          talk_base::kNumMicrosecsPerSec;
     }
     // Note: fragsize specifies a maximum transfer size, not a minimum, so it is
     // not possible to force a high latency setting, only a low one.
     attr.fragsize = latency;
-    attr.maxlength = latency +
-        bytes_per_sec * kCaptureBufferExtraMsecs / kMsecsPerSec;
+    attr.maxlength = latency + bytes_per_sec * kCaptureBufferExtraMsecs /
+        talk_base::kNumMicrosecsPerSec;
     LOG(LS_VERBOSE) << "Configuring latency = " << attr.fragsize
                     << ", maxlength = " << attr.maxlength;
     pattr = &attr;

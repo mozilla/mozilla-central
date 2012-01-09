@@ -32,28 +32,31 @@
 #include <vector>
 #include <iosfwd>
 #include "talk/base/basictypes.h"
+#include "talk/base/ipaddress.h"
+
 #undef SetPort
 
 struct sockaddr_in;
+struct sockaddr_storage;
 
 namespace talk_base {
 
-// Records an IP address and port, which are 32 and 16 bit integers,
-// respectively, both in <b>host byte-order</b>.
+// Records an IP address and port.
 class SocketAddress {
  public:
   // Creates a nil address.
   SocketAddress();
 
-  // Creates the address with the given host and port.  If use_dns is true,
-  // the hostname will be immediately resolved to an IP (which may block for
-  // several seconds if DNS is not available).  Alternately, set use_dns to
-  // false, and then call Resolve() to complete resolution later, or use
-  // SetResolvedIP to set the IP explictly.
+  // Creates the address with the given host and port. Host may be a
+  // literal IP string or a hostname to be resolved later with ResolveIP().
   SocketAddress(const std::string& hostname, int port);
 
   // Creates the address with the given IP and port.
-  SocketAddress(uint32 ip, int port);
+  // IP is given as an integer in host byte order. V4 only, to be deprecated.
+  SocketAddress(uint32 ip_as_host_order_integer, int port);
+
+  // Creates the address with the given IP and port.
+  SocketAddress(const IPAddress& ip, int port);
 
   // Creates a copy of the given address.
   SocketAddress(const SocketAddress& addr);
@@ -70,8 +73,12 @@ class SocketAddress {
   // Replaces our address with the given one.
   SocketAddress& operator=(const SocketAddress& addr);
 
+  // Changes the IP of this address to the given one, and clears the hostname
+  // IP is given as an integer in host byte order. V4 only, to be deprecated..
+  void SetIP(uint32 ip_as_host_order_integer);
+
   // Changes the IP of this address to the given one, and clears the hostname.
-  void SetIP(uint32 ip);
+  void SetIP(const IPAddress& ip);
 
   // Changes the hostname of this address to the given one.
   // Does not resolve the address; use Resolve to do so.
@@ -79,41 +86,51 @@ class SocketAddress {
 
   // Sets the IP address while retaining the hostname.  Useful for bypassing
   // DNS for a pre-resolved IP.
-  void SetResolvedIP(uint32 ip);
+  // IP is given as an integer in host byte order. V4 only, to be deprecated.
+  void SetResolvedIP(uint32 ip_as_host_order_integer);
+
+  // Sets the IP address while retaining the hostname.  Useful for bypassing
+  // DNS for a pre-resolved IP.
+  void SetResolvedIP(const IPAddress& ip);
 
   // Changes the port of this address to the given one.
   void SetPort(int port);
 
-  // Returns the hostname
+  // Returns the hostname.
   const std::string& hostname() const { return hostname_; }
 
-  // Returns the IP address.
+  // Returns the IP address as a host byte order integer.
+  // Returns 0 for non-v4 addresses.
   uint32 ip() const;
+
+  IPAddress ipaddr() const;
 
   // Returns the port part of this address.
   uint16 port() const;
 
-  // Returns the IP address in dotted form.
+  // Returns the IP address (or hostname) in printable form.
   std::string IPAsString() const;
 
-  // Returns the port as a string
+  // Returns the port as a string.
   std::string PortAsString() const;
 
-  // Returns hostname:port
+  // Returns hostname:port or [hostname]:port.
   std::string ToString() const;
 
-  // Parses hostname:port
+  // Parses hostname:port and [hostname]:port.
   bool FromString(const std::string& str);
 
   friend std::ostream& operator<<(std::ostream& os, const SocketAddress& addr);
 
-  // Determines whether this represents a missing / any IP address.  Hostname
-  // and/or port may be set.
+  // Determines whether this represents a missing / any IP address.
+  // That is, 0.0.0.0 or ::.
+  // Hostname and/or port may be set.
   bool IsAnyIP() const;
   inline bool IsAny() const { return IsAnyIP(); }  // deprecated
 
-  // Determines whether the IP address refers to a loopback address, i.e. within
-  // the range 127.0.0.0/8.
+  // Determines whether the IP address refers to a loopback address.
+  // For v4 addresses this means the address is in the range 127.0.0.0/8.
+  // For v6 addresses this means the address is ::1.
   bool IsLoopbackIP() const;
 
   // Determines wither the IP address refers to any adapter on the local
@@ -121,7 +138,8 @@ class SocketAddress {
   bool IsLocalIP() const;
 
   // Determines whether the IP address is in one of the private ranges:
-  // 127.0.0.0/8 10.0.0.0/8 192.168.0.0/16 172.16.0.0/12.
+  // For v4: 127.0.0.0/8 10.0.0.0/8 192.168.0.0/16 172.16.0.0/12.
+  // For v6: FE80::/16 and ::1.
   bool IsPrivateIP() const;
 
   // Determines whether the hostname has been resolved to an IP.
@@ -131,6 +149,7 @@ class SocketAddress {
   // Attempt to resolve a hostname to IP address.
   // Returns false if resolution is required but failed, and sets error.
   // 'force' will cause re-resolution of hostname.
+  // TODO: Deprecate this function.
   bool ResolveIP(bool force = false, int* error = NULL);
 
   // Determines whether this address is identical to the given one.
@@ -151,40 +170,62 @@ class SocketAddress {
   // Hashes this address into a small number.
   size_t Hash() const;
 
-  // Returns the size of this address when written.
+  // Returns the size of this address when written (for STUN).
+  // TODO: Move STUN functions( Size_/Write_/Read_) out of this class.
   size_t Size_() const;
 
-  // Writes this address into the given buffer, according to RFC 3489.
+  // Writes this address into the given buffer, according to RFC 5389.
   bool Write_(char* buf, int len) const;
 
-  // Reads this address from the given buffer, according to RFC 3489.
+  // Reads this address from the given buffer, according to RFC 5389.
   bool Read_(const char* buf, int len);
 
   // Write this address to a sockaddr_in.
+  // If IPv6, will zero out the sockaddr_in and sets family to AF_UNSPEC.
   void ToSockAddr(sockaddr_in* saddr) const;
 
   // Read this address from a sockaddr_in.
   bool FromSockAddr(const sockaddr_in& saddr);
 
-  // Converts the IP address given in compact form into dotted form.
-  static std::string IPToString(uint32 ip);
+  // Read and write the address to/from a sockaddr_storage.
+  // Dual stack version always sets family to AF_INET6, and maps v4 addresses.
+  // The other version doesn't map, and outputs an AF_INET address for
+  // v4 or mapped addresses, and AF_INET6 addresses for others.
+  // Returns the size of the sockaddr_in or sockaddr_in6 structure that is
+  // written to the sockaddr_storage, or zero on failure.
+  size_t ToDualStackSockAddrStorage(sockaddr_storage* saddr) const;
+  size_t ToSockAddrStorage(sockaddr_storage* saddr) const;
+
+  // Converts the IP address given in 'compact form' into dotted form.
+  // IP is given as an integer in host byte order. V4 only, to be deprecated.
+  // TODO: Deprecate this.
+  static std::string IPToString(uint32 ip_as_host_order_integer);
 
   // Converts the IP address given in dotted form into compact form.
-  // Only dotted names (A.B.C.D) are resolved.
+  // Only dotted names (A.B.C.D) are  converted.
+  // Output integer is returned in host byte order.
+  // TODO: Deprecate, replace wth agnostic versions.
   static bool StringToIP(const std::string& str, uint32* ip);
-  static uint32 StringToIP(const std::string& str);  // deprecated
+  static uint32 StringToIP(const std::string& str);
 
-  // Get local machine's hostname
-  static std::string GetHostname();
+  // Converts the IP address given in printable form into an IPAddress.
+  static bool StringToIP(const std::string& str, IPAddress* ip);
 
-  // Get a list of the local machine's ip addresses
-  static bool GetLocalIPs(std::vector<uint32>& ips);
+  // Get a list of the local machine's ip addresses.
+  // TODO: Move to nethelpers or similar (doesn't belong in socketaddress).
+  static bool GetLocalIPs(std::vector<IPAddress>* ips);
 
  private:
+  // Get local machine's hostname.
+  static std::string GetHostname();
   std::string hostname_;
-  uint32 ip_;
+  IPAddress ip_;
   uint16 port_;
+  bool literal_;  // Indicates that 'hostname_' contains a literal IP string.
 };
+
+bool SocketAddressFromSockAddrStorage(const sockaddr_storage& saddr,
+                                      SocketAddress* out);
 
 }  // namespace talk_base
 

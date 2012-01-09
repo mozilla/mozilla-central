@@ -15,6 +15,7 @@
 #include <time.h>
 
 #include "../source/event.h"
+#include "modules/video_coding/main/source/tick_time_base.h"
 #include "test_callbacks.h"
 #include "test_macros.h"
 #include "testsupport/metrics/video_metrics.h"
@@ -24,20 +25,22 @@ using namespace webrtc;
 
 int qualityModeTest()
 {
-    // Don't run this test with debug time
-#if defined(TICK_TIME_DEBUG) || defined(EVENT_DEBUG)
+    // Don't run this test with debug events.
+#if defined(EVENT_DEBUG)
     return -1;
 #endif
-    VideoCodingModule* vcm = VideoCodingModule::Create(1);
-    QualityModesTest QMTest(vcm);
+    TickTimeBase clock;
+    VideoCodingModule* vcm = VideoCodingModule::Create(1, &clock);
+    QualityModesTest QMTest(vcm, &clock);
     QMTest.Perform();
     VideoCodingModule::Destroy(vcm);
     return 0;
 }
 
 
-QualityModesTest::QualityModesTest(VideoCodingModule *vcm):
-NormalTest(vcm),
+QualityModesTest::QualityModesTest(VideoCodingModule* vcm,
+                                   TickTimeBase* clock):
+NormalTest(vcm, clock),
 _vpm()
 {
     //
@@ -110,8 +113,9 @@ QualityModesTest::Print()
     double actualBitRate = ActualBitRate / 1000.0;
     double avgEncTime = _totalEncodeTime / _frameCnt;
     double avgDecTime = _totalDecodeTime / _frameCnt;
-    QualityMetricsResult psnr,ssim;
-    PsnrFromFiles(_inname.c_str(), _outname.c_str(), _nativeWidth, _nativeHeight, &psnr);
+    webrtc::test::QualityMetricsResult psnr,ssim;
+    I420PSNRFromFiles(_inname.c_str(), _outname.c_str(), _nativeWidth,
+                      _nativeHeight, &psnr);
     printf("Actual bitrate: %f kbps\n", actualBitRate);
     printf("Target bitrate: %f kbps\n", _bitRate);
     ( _log) << "Actual bitrate: " << actualBitRate<< " kbps\tTarget: " << _bitRate << " kbps" << std::endl;
@@ -125,7 +129,8 @@ QualityModesTest::Print()
     if (_flagSSIM == 1)
     {
         printf("***computing SSIM***\n");
-        SsimFromFiles(_inname.c_str(), _outname.c_str(), _nativeWidth, _nativeHeight, &ssim);
+        I420SSIMFromFiles(_inname.c_str(), _outname.c_str(), _nativeWidth,
+                          _nativeHeight, &ssim);
         printf("SSIM: %f \n", ssim.average);
     }
     (_log) << std::endl;

@@ -73,9 +73,9 @@ ActionType ToActionType(const std::string& type) {
   if (type == JINGLE_ACTION_TRANSPORT_ACCEPT)
     return ACTION_TRANSPORT_ACCEPT;
   if (type == JINGLE_ACTION_DESCRIPTION_INFO)
-    return ACTION_UPDATE;
+    return ACTION_DESCRIPTION_INFO;
   if (type == GINGLE_ACTION_UPDATE)
-    return ACTION_UPDATE;
+    return ACTION_DESCRIPTION_INFO;
 
   return ACTION_UNKNOWN;
 }
@@ -362,7 +362,7 @@ bool ParseJingleTransportInfos(const buzz::XmlElement* jingle,
 }
 
 buzz::XmlElement* NewTransportElement(const std::string& name) {
-  return new buzz::XmlElement(buzz::QName(true, name, LN_TRANSPORT), true);
+  return new buzz::XmlElement(buzz::QName(name, LN_TRANSPORT), true);
 }
 
 bool WriteCandidates(SignalingProtocol protocol,
@@ -678,6 +678,7 @@ bool ParseContentType(SignalingProtocol protocol,
 static bool ParseContentMessage(
     SignalingProtocol protocol,
     const buzz::XmlElement* action_elem,
+    bool expect_transports,
     const ContentParserMap& content_parsers,
     const TransportParserMap& trans_parsers,
     SessionInitiate* init,
@@ -688,7 +689,8 @@ static bool ParseContentMessage(
                                  &init->contents, error))
       return false;
 
-    if (!ParseGingleTransportInfos(action_elem, init->contents, trans_parsers,
+    if (expect_transports &&
+        !ParseGingleTransportInfos(action_elem, init->contents, trans_parsers,
                                    &init->transports, error))
       return false;
   } else {
@@ -696,7 +698,8 @@ static bool ParseContentMessage(
                                  &init->contents, error))
       return false;
 
-    if (!ParseJingleTransportInfos(action_elem, init->contents, trans_parsers,
+    if (expect_transports &&
+        !ParseJingleTransportInfos(action_elem, init->contents, trans_parsers,
                                    &init->transports, error))
       return false;
   }
@@ -735,7 +738,8 @@ bool ParseSessionInitiate(SignalingProtocol protocol,
                           const TransportParserMap& trans_parsers,
                           SessionInitiate* init,
                           ParseError* error) {
-  return ParseContentMessage(protocol, action_elem,
+  bool expect_transports = true;
+  return ParseContentMessage(protocol, action_elem, expect_transports,
                              content_parsers, trans_parsers,
                              init, error);
 }
@@ -759,7 +763,8 @@ bool ParseSessionAccept(SignalingProtocol protocol,
                         const TransportParserMap& transport_parsers,
                         SessionAccept* accept,
                         ParseError* error) {
-  return ParseContentMessage(protocol, action_elem,
+  bool expect_transports = true;
+  return ParseContentMessage(protocol, action_elem, expect_transports,
                              content_parsers, transport_parsers,
                              accept, error);
 }
@@ -807,13 +812,12 @@ void WriteSessionTerminate(SignalingProtocol protocol,
                            const SessionTerminate& term,
                            XmlElements* elems) {
   if (protocol == PROTOCOL_GINGLE) {
-    elems->push_back(new buzz::XmlElement(
-        buzz::QName(true, NS_GINGLE, term.reason)));
+    elems->push_back(new buzz::XmlElement(buzz::QName(NS_GINGLE, term.reason)));
   } else {
     if (!term.reason.empty()) {
       buzz::XmlElement* reason_elem = new buzz::XmlElement(QN_JINGLE_REASON);
       reason_elem->AddElement(new buzz::XmlElement(
-          buzz::QName(true, NS_JINGLE, term.reason)));
+          buzz::QName(NS_JINGLE, term.reason)));
       elems->push_back(reason_elem);
     }
   }
@@ -825,7 +829,8 @@ bool ParseDescriptionInfo(SignalingProtocol protocol,
                           const TransportParserMap& transport_parsers,
                           DescriptionInfo* description_info,
                           ParseError* error) {
-  return ParseContentMessage(protocol, action_elem,
+  bool expect_transports = false;
+  return ParseContentMessage(protocol, action_elem, expect_transports,
                              content_parsers, transport_parsers,
                              description_info, error);
 }

@@ -43,7 +43,7 @@
 #include "talk/base/task.h"
 #include "talk/base/taskrunner.h"
 #include "talk/base/thread.h"
-#include "talk/base/time.h"
+#include "talk/base/timeutils.h"
 
 namespace talk_base {
 

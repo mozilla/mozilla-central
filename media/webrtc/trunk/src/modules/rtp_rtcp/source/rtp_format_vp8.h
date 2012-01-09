@@ -46,6 +46,7 @@ class RtpFormatVp8 {
   RtpFormatVp8(const WebRtc_UWord8* payload_data,
                WebRtc_UWord32 payload_size,
                const RTPVideoHeaderVP8& hdr_info,
+               int max_payload_len,
                const RTPFragmentationHeader& fragmentation,
                VP8PacketizerMode mode);
 
@@ -53,7 +54,8 @@ class RtpFormatVp8 {
   // The payload_data must be exactly one encoded VP8 frame.
   RtpFormatVp8(const WebRtc_UWord8* payload_data,
                WebRtc_UWord32 payload_size,
-               const RTPVideoHeaderVP8& hdr_info);
+               const RTPVideoHeaderVP8& hdr_info,
+               int max_payload_len);
 
   // Get the next payload with VP8 payload header.
   // max_payload_len limits the sum length of payload and VP8 payload header.
@@ -64,8 +66,9 @@ class RtpFormatVp8 {
   // next packet). Returns the partition index from which the first payload
   // byte in the packet is taken, with the first partition having index 0;
   // returns negative on error.
-  int NextPacket(int max_payload_len, WebRtc_UWord8* buffer,
-                 int* bytes_to_send, bool* last_packet);
+  int NextPacket(WebRtc_UWord8* buffer,
+                 int* bytes_to_send,
+                 bool* last_packet);
 
  private:
   enum AggregationMode {
@@ -86,6 +89,7 @@ class RtpFormatVp8 {
   static const int kLBit        = 0x40;
   static const int kTBit        = 0x20;
   static const int kKBit        = 0x10;
+  static const int kYBit        = 0x20;
 
   // Calculate size of next chunk to send. Returns 0 if none can be sent.
   int CalcNextSize(int max_payload_len, int remaining_bytes,
@@ -114,7 +118,7 @@ class RtpFormatVp8 {
   int WriteTl0PicIdxFields(WebRtc_UWord8* x_field, WebRtc_UWord8* buffer,
                            int buffer_length, int* extension_length) const;
 
-  // Set the T and K bits in the x_field, and write TID and KeyIdx to the
+  // Set the T and K bits in the x_field, and write TID, Y and KeyIdx to the
   // appropriate position in buffer. The function returns 0 on success,
   // -1 otherwise.
   int WriteTIDAndKeyIdxFields(WebRtc_UWord8* x_field, WebRtc_UWord8* buffer,
@@ -154,6 +158,7 @@ class RtpFormatVp8 {
   bool separate_first_;
   const RTPVideoHeaderVP8 hdr_info_;
   int first_partition_in_packet_;
+  int max_payload_len_;
 };
 
 }  // namespace

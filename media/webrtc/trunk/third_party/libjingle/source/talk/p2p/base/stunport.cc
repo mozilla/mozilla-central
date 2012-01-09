@@ -66,7 +66,7 @@ class StunPortBindingRequest : public StunRequest {
     } else if (addr_attr->family() != 1) {
       LOG(LS_ERROR) << "Binding address has bad family";
     } else {
-      talk_base::SocketAddress addr(addr_attr->ip(), addr_attr->port());
+      talk_base::SocketAddress addr(addr_attr->ipaddr(), addr_attr->port());
       port_->AddAddress(addr, "udp", true);
     }
 
@@ -127,7 +127,7 @@ const char STUN_PORT_TYPE[] = "stun";
 StunPort::StunPort(talk_base::Thread* thread,
                    talk_base::PacketSocketFactory* factory,
                    talk_base::Network* network,
-                   uint32 ip, int min_port, int max_port,
+                   const talk_base::IPAddress& ip, int min_port, int max_port,
                    const talk_base::SocketAddress& server_addr)
     : Port(thread, STUN_PORT_TYPE, factory, network, ip, min_port, max_port),
       server_addr_(server_addr),

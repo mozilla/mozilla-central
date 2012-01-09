@@ -31,6 +31,7 @@
 #include "talk/base/thread.h"
 #include "talk/xmpp/xmppclientsettings.h"
 #include "talk/examples/login/xmppthread.h"
+#include "talk/xmpp/xmppengine.h"
 
 int main(int argc, char **argv) {
   std::cout << "Auth Cookie: ";
@@ -48,7 +49,7 @@ int main(int argc, char **argv) {
   buzz::XmppClientSettings xcs;
   xcs.set_user(username.c_str());
   xcs.set_host("gmail.com");
-  xcs.set_use_tls(false);
+  xcs.set_use_tls(buzz::TLS_DISABLED);
   xcs.set_auth_cookie(auth_cookie.c_str());
   xcs.set_server(talk_base::SocketAddress("talk.google.com", 5222));
   thread.Login(xcs);

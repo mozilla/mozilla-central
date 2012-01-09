@@ -154,15 +154,17 @@ time_t DirectoryIterator::FileModifyTime() const {
 #endif
 }
 
-scoped_ptr<FilesystemInterface> Filesystem::default_filesystem_;
+FilesystemInterface* Filesystem::default_filesystem_ = NULL;
+
 FilesystemInterface *Filesystem::EnsureDefaultFilesystem() {
-  if (!default_filesystem_.get())
+  if (!default_filesystem_) {
 #ifdef WIN32
-    default_filesystem_.reset(new Win32Filesystem());
+    default_filesystem_ = new Win32Filesystem();
 #else
-    default_filesystem_.reset(new UnixFilesystem());
+    default_filesystem_ = new UnixFilesystem();
 #endif
-    return default_filesystem_.get();
+  }
+  return default_filesystem_;
 }
 
 bool FilesystemInterface::CopyFolder(const Pathname &old_path,

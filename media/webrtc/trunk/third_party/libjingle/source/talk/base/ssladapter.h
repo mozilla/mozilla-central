@@ -25,8 +25,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TALK_BASE_SSLADAPTER_H__
-#define TALK_BASE_SSLADAPTER_H__
+#ifndef TALK_BASE_SSLADAPTER_H_
+#define TALK_BASE_SSLADAPTER_H_
 
 #include "talk/base/asyncsocket.h"
 
@@ -35,8 +35,8 @@ namespace talk_base {
 ///////////////////////////////////////////////////////////////////////////////
 
 class SSLAdapter : public AsyncSocketAdapter {
-public:
-  SSLAdapter(AsyncSocket* socket)
+ public:
+  explicit SSLAdapter(AsyncSocket* socket)
     : AsyncSocketAdapter(socket), ignore_bad_cert_(false) { }
 
   bool ignore_bad_cert() const { return ignore_bad_cert_; }
@@ -50,7 +50,7 @@ public:
   // Create the default SSL adapter for this platform
   static SSLAdapter* Create(AsyncSocket* socket);
 
-private:
+ private:
   // If true, the server certificate need not match the configured hostname.
   bool ignore_bad_cert_;
 };
@@ -73,4 +73,4 @@ bool CleanupSSL();
 
 }  // namespace talk_base
 
-#endif // TALK_BASE_SSLADAPTER_H__
+#endif  // TALK_BASE_SSLADAPTER_H_

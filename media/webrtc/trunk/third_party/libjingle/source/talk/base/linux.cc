@@ -135,8 +135,23 @@ bool ProcCpuInfo::GetNumPhysicalCpus(int* num) {
 bool ProcCpuInfo::GetCpuFamily(int* id) {
   int cpu_family = 0;
 
+#if defined(__arm__)
+  // On some ARM platforms, there is no 'cpu family' in '/proc/cpuinfo'. But
+  // there is 'CPU Architecture' which can be used as 'cpu family'.
+  // See http://en.wikipedia.org/wiki/ARM_architecture for a good list of
+  // ARM cpu families, architectures, and their mappings.
+  // There may be multiple sessions that aren't per-processor. We need to scan
+  // through each session until we find the first 'CPU architecture'.
+  size_t section_count = sections_.size();
+  for (size_t i = 0; i < section_count; ++i) {
+    if (GetSectionIntValue(i, "CPU architecture", &cpu_family)) {
+      // We returns the first one (if there are multiple entries).
+      break;
+    };
+  }
+#else
   GetSectionIntValue(0, "cpu family", &cpu_family);
-
+#endif
   if (id) {
     *id = cpu_family;
   }

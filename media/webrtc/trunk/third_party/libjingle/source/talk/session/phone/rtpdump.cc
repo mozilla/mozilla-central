@@ -33,7 +33,7 @@
 
 #include "talk/base/byteorder.h"
 #include "talk/base/logging.h"
-#include "talk/base/time.h"
+#include "talk/base/timeutils.h"
 #include "talk/session/phone/rtputils.h"
 
 namespace cricket {

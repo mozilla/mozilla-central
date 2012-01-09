@@ -180,7 +180,7 @@ WinPing::~WinPing() {
   }
 
   delete[] data_;
-  delete reply_;
+  delete[] reply_;
 }
 
 WinPing::PingResult WinPing::Ping(

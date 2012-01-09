@@ -44,15 +44,16 @@ namespace cricket {
 
 // XML elements and namespaces for XMPP stanzas used in content exchanges.
 
-const std::string NS_SECURE_TUNNEL("http://www.google.com/talk/securetunnel");
-const buzz::QName QN_SECURE_TUNNEL_DESCRIPTION(NS_SECURE_TUNNEL,
-                                               "description");
-const buzz::QName QN_SECURE_TUNNEL_TYPE(NS_SECURE_TUNNEL, "type");
-const buzz::QName QN_SECURE_TUNNEL_CLIENT_CERT(NS_SECURE_TUNNEL,
-                                               "client-cert");
-const buzz::QName QN_SECURE_TUNNEL_SERVER_CERT(NS_SECURE_TUNNEL,
-                                               "server-cert");
-const std::string CN_SECURE_TUNNEL("securetunnel");
+const char NS_SECURE_TUNNEL[] = "http://www.google.com/talk/securetunnel";
+const buzz::StaticQName QN_SECURE_TUNNEL_DESCRIPTION =
+    { NS_SECURE_TUNNEL, "description" };
+const buzz::StaticQName QN_SECURE_TUNNEL_TYPE =
+    { NS_SECURE_TUNNEL, "type" };
+const buzz::StaticQName QN_SECURE_TUNNEL_CLIENT_CERT =
+    { NS_SECURE_TUNNEL, "client-cert" };
+const buzz::StaticQName QN_SECURE_TUNNEL_SERVER_CERT =
+    { NS_SECURE_TUNNEL, "server-cert" };
+const char CN_SECURE_TUNNEL[] = "securetunnel";
 
 // SecureTunnelContentDescription
 

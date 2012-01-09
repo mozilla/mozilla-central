@@ -25,37 +25,30 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-// Because global constant initialization order is undefined
-// globals cannot depend on other objects to be instantiated.
-// This class creates string objects within static methods 
-// such that globals may refer to these constants by the
-// accessor function and they are guaranteed to be initialized.
-
-#ifndef TALK_XMLLITE_CONSTANTS_H_
-#define TALK_XMLLITE_CONSTANTS_H_
+#ifndef TALK_XMLLITE_XMLCONSTANTS_H_
+#define TALK_XMLLITE_XMLCONSTANTS_H_
 
 #include <string>
 
-#define STR_EMPTY    XmlConstants::str_empty()
-#define NS_XML       XmlConstants::ns_xml()
-#define NS_XMLNS     XmlConstants::ns_xmlns()
-#define STR_XMLNS    XmlConstants::str_xmlns()
-#define STR_XML      XmlConstants::str_xml()
-#define STR_VERSION  XmlConstants::str_version()
-#define STR_ENCODING XmlConstants::str_encoding()
+#include "talk/xmllite/qname.h"
+
 namespace buzz {
-	
-class XmlConstants {
- public:
-  static const std::string & str_empty();
-  static const std::string & ns_xml();
-  static const std::string & ns_xmlns();
-  static const std::string & str_xmlns();
-  static const std::string & str_xml();
-  static const std::string & str_version();
-  static const std::string & str_encoding();
-};
+
+extern const char STR_EMPTY[];
+extern const char NS_XML[];
+extern const char NS_XMLNS[];
+extern const char STR_XMLNS[];
+extern const char STR_XML[];
+extern const char STR_VERSION[];
+extern const char STR_ENCODING[];
+
+extern const StaticQName QN_EMPTY;
+extern const StaticQName QN_XMLNS;
+
+// Returns reference to an empty string.
+const std::string& EmptyStringRef();
+const QName& EmptyQNameRef();
 
 }
 
-#endif  // TALK_XMLLITE_CONSTANTS_H_
+#endif  // TALK_XMLLITE_XMLCONSTANTS_H_

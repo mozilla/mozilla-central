@@ -28,36 +28,39 @@
 #ifndef TALK_P2P_CLIENT_HTTPPORTALLOCATOR_H_
 #define TALK_P2P_CLIENT_HTTPPORTALLOCATOR_H_
 
+#include <list>
 #include <string>
 #include <vector>
 #include "talk/p2p/client/basicportallocator.h"
 
 namespace talk_base {
+class AsyncHttpRequest;
 class SignalThread;
 }
 
 namespace cricket {
 
-class HttpPortAllocator : public BasicPortAllocator {
+class HttpPortAllocatorBase : public BasicPortAllocator {
  public:
-  // Records the port on the hosts that will receive HTTP requests.
-  static const int kHostPort;
-
   // The number of HTTP requests we should attempt before giving up.
   static const int kNumRetries;
 
   // Records the URL that we will GET in order to create a session.
   static const char kCreateSessionURL[];
 
-  HttpPortAllocator(talk_base::NetworkManager* network_manager,
-                    const std::string& user_agent);
-  HttpPortAllocator(talk_base::NetworkManager* network_manager,
-                    talk_base::PacketSocketFactory* socket_factory,
-                    const std::string& user_agent);
-  virtual ~HttpPortAllocator();
+  HttpPortAllocatorBase(talk_base::NetworkManager* network_manager,
+                        const std::string& user_agent);
+  HttpPortAllocatorBase(talk_base::NetworkManager* network_manager,
+                        talk_base::PacketSocketFactory* socket_factory,
+                        const std::string& user_agent);
+  virtual ~HttpPortAllocatorBase();
 
-  virtual PortAllocatorSession* CreateSession(const std::string& name,
-                                              const std::string& session_type);
+  // CreateSession is defined in BasicPortAllocator but is
+  // redefined here as pure virtual.
+  virtual PortAllocatorSession* CreateSession(
+      const std::string& name,
+      const std::string& session_type) = 0;
+
   void SetStunHosts(const std::vector<talk_base::SocketAddress>& hosts) {
     if (!hosts.empty()) {
       stun_hosts_ = hosts;
@@ -95,7 +98,58 @@ class HttpPortAllocator : public BasicPortAllocator {
 
 class RequestData;
 
-class HttpPortAllocatorSession : public BasicPortAllocatorSession {
+class HttpPortAllocatorSessionBase : public BasicPortAllocatorSession {
+ public:
+  HttpPortAllocatorSessionBase(
+      HttpPortAllocatorBase* allocator,
+      const std::string& name,
+      const std::string& session_type,
+      const std::vector<talk_base::SocketAddress>& stun_hosts,
+      const std::vector<std::string>& relay_hosts,
+      const std::string& relay,
+      const std::string& agent);
+  virtual ~HttpPortAllocatorSessionBase();
+
+  const std::string& relay_token() const {
+    return relay_token_;
+  }
+
+  const std::string& user_agent() const {
+      return agent_;
+  }
+
+  virtual void SendSessionRequest(const std::string& host, int port) = 0;
+  virtual void ReceiveSessionResponse(const std::string& response);
+
+ protected:
+  virtual void GetPortConfigurations();
+  void TryCreateRelaySession();
+  virtual HttpPortAllocatorBase* allocator() {
+    return static_cast<HttpPortAllocatorBase*>(
+        BasicPortAllocatorSession::allocator());
+  }
+
+ private:
+  std::vector<std::string> relay_hosts_;
+  std::vector<talk_base::SocketAddress> stun_hosts_;
+  std::string relay_token_;
+  std::string agent_;
+  int attempts_;
+};
+
+class HttpPortAllocator : public HttpPortAllocatorBase {
+ public:
+  HttpPortAllocator(talk_base::NetworkManager* network_manager,
+                    const std::string& user_agent);
+  HttpPortAllocator(talk_base::NetworkManager* network_manager,
+                    talk_base::PacketSocketFactory* socket_factory,
+                    const std::string& user_agent);
+  virtual ~HttpPortAllocator();
+  virtual PortAllocatorSession* CreateSession(const std::string& name,
+                                              const std::string& session_type);
+};
+
+class HttpPortAllocatorSession : public HttpPortAllocatorSessionBase {
  public:
   HttpPortAllocatorSession(
       HttpPortAllocator* allocator,
@@ -105,31 +159,16 @@ class HttpPortAllocatorSession : public BasicPortAllocatorSession {
       const std::vector<std::string>& relay_hosts,
       const std::string& relay,
       const std::string& agent);
-  virtual ~HttpPortAllocatorSession() {}
+  virtual ~HttpPortAllocatorSession();
 
-  const std::string& relay_token() const {
-    return relay_token_;
-  }
   virtual void SendSessionRequest(const std::string& host, int port);
-  virtual void ReceiveSessionResponse(const std::string& response);
 
  protected:
-  virtual void GetPortConfigurations();
-  void TryCreateRelaySession();
+  // Protected for diagnostics.
+  virtual void OnRequestDone(talk_base::SignalThread* request);
 
  private:
-  virtual HttpPortAllocator* allocator() {
-    return static_cast<HttpPortAllocator*>(
-        BasicPortAllocatorSession::allocator());
-  }
-
-  void OnRequestDone(talk_base::SignalThread* request);
-
-  std::vector<std::string> relay_hosts_;
-  std::vector<talk_base::SocketAddress> stun_hosts_;
-  std::string relay_token_;
-  std::string agent_;
-  int attempts_;
+  std::list<talk_base::AsyncHttpRequest*> requests_;
 };
 
 }  // namespace cricket

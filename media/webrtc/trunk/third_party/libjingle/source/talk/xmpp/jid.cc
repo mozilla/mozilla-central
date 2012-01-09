@@ -2,26 +2,26 @@
  * libjingle
  * Copyright 2004--2005, Google Inc.
  *
- * Redistribution and use in source and binary forms, with or without 
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  1. Redistributions of source code must retain the above copyright notice, 
+ *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
  *  2. Redistributions in binary form must reproduce the above copyright notice,
  *     this list of conditions and the following disclaimer in the documentation
  *     and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products 
+ *  3. The name of the author may not be used to endorse or promote products
  *     derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
  * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
@@ -46,12 +46,12 @@ Jid::Jid(bool is_special, const std::string & special) {
 }
 
 Jid::Jid(const std::string & jid_string) {
-  if (jid_string == STR_EMPTY) {
+  if (jid_string.empty()) {
     data_ = NULL;
     return;
   }
 
-  // First find the slash and slice of that part
+  // First find the slash and slice off that part
   size_t slash = jid_string.find('/');
   std::string resource_name = (slash == std::string::npos ? STR_EMPTY :
                     jid_string.substr(slash + 1));
@@ -95,9 +95,9 @@ Jid::Jid(const std::string & jid_string) {
     data_ = NULL;
     return;
   }
-  
+
   bool valid_node;
-  std::string validated_node = prepNode(node_name, 
+  std::string validated_node = prepNode(node_name,
       node_name.begin(), node_name.end(), &valid_node);
   bool valid_domain;
   std::string validated_domain = prepDomain(domain_name,
@@ -123,7 +123,7 @@ Jid::Jid(const std::string & node_name,
   }
 
   bool valid_node;
-  std::string validated_node = prepNode(node_name, 
+  std::string validated_node = prepNode(node_name,
       node_name.begin(), node_name.end(), &valid_node);
   bool valid_domain;
   std::string validated_domain = prepDomain(domain_name,
@@ -159,13 +159,20 @@ std::string Jid::Str() const {
 }
 
 bool
+Jid::IsEmpty() const {
+  return data_ == NULL ||
+      (data_->node_name_.empty() && data_->domain_name_.empty() &&
+       data_->resource_name_.empty());
+}
+
+bool
 Jid::IsValid() const {
   return data_ != NULL && !data_->domain_name_.empty();
 }
 
 bool
 Jid::IsBare() const {
-  if (Compare(JID_EMPTY) == 0) {
+  if (IsEmpty()) {
     LOG(LS_VERBOSE) << "Warning: Calling IsBare() on the empty jid";
     return true;
   }
@@ -230,7 +237,7 @@ Jid::Compare(const Jid & other) const {
     return -1;
   if (other.data_ == NULL)
     return 1;
-  
+
   int compare_result;
   compare_result = data_->node_name_.compare(other.data_->node_name_);
   if (0 != compare_result)
@@ -273,7 +280,7 @@ uint32 Jid::ComputeLameHash() const {
 
 // Checks and normalizes the node part of a JID.
 std::string
-Jid::prepNode(const std::string str, std::string::const_iterator start, 
+Jid::prepNode(const std::string str, std::string::const_iterator start,
     std::string::const_iterator end, bool *valid) {
   *valid = false;
   std::string result;
@@ -330,7 +337,7 @@ Jid::prepNodeAscii(char ch, bool *valid) {
 
 // Checks and normalizes the resource part of a JID.
 std::string
-Jid::prepResource(const std::string str, std::string::const_iterator start, 
+Jid::prepResource(const std::string str, std::string::const_iterator start,
     std::string::const_iterator end, bool *valid) {
   *valid = false;
   std::string result;
@@ -373,8 +380,8 @@ Jid::prepResourceAscii(char ch, bool *valid) {
 }
 
 // Checks and normalizes the domain part of a JID.
-std::string 
-Jid::prepDomain(const std::string str, std::string::const_iterator start, 
+std::string
+Jid::prepDomain(const std::string str, std::string::const_iterator start,
     std::string::const_iterator end, bool *valid) {
   *valid = false;
   std::string result;
@@ -396,7 +403,7 @@ Jid::prepDomain(const std::string str, std::string::const_iterator start,
 
 // Checks and normalizes an IDNA domain.
 void
-Jid::prepDomain(const std::string str, std::string::const_iterator start, 
+Jid::prepDomain(const std::string str, std::string::const_iterator start,
     std::string::const_iterator end, std::string *buf, bool *valid) {
   *valid = false;
   std::string::const_iterator last = start;
@@ -424,7 +431,7 @@ Jid::prepDomain(const std::string str, std::string::const_iterator start,
 
 // Checks and normalizes a domain label.
 void
-Jid::prepDomainLabel(const std::string str, std::string::const_iterator start, 
+Jid::prepDomainLabel(const std::string str, std::string::const_iterator start,
     std::string::const_iterator end, std::string *buf, bool *valid) {
   *valid = false;
 

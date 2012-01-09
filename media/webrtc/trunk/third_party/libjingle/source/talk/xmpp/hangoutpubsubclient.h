@@ -47,14 +47,26 @@ class Jid;
 class XmlElement;
 class XmppTaskParentInterface;
 
+// To handle retracts correctly, we need to remember certain details
+// about an item.  We could just cache the entire XML element, but
+// that would take more memory and require re-parsing.
+struct StateItemInfo {
+  std::string published_nick;
+  std::string publisher_nick;
+};
+
 // Represents a PubSub state change.  Usually, the key is the nick,
-// but not always.  It's a per-state-type thing.
+// but not always.  It's a per-state-type thing.  Currently documented
+// at https://docs.google.com/a/google.com/document/d/
+// 1QyHu_ufyVdf0VICdfc_DtJbrOdrdIUm4eM73RZqnivI/edit?hl=en_US
 template <typename C>
 struct PubSubStateChange {
-  std::string key;
+  // The nick of the user changing the state.
+  std::string publisher_nick;
+  // The nick of the user whose state is changing.
+  std::string published_nick;
   C old_state;
   C new_state;
-  std::string publisher_nick;
 };
 
 template <typename C> class PubSubStateClient;
@@ -80,10 +92,12 @@ class HangoutPubSubClient : public sigslot::has_slots<> {
   sigslot::signal3<const std::string&, bool, bool> SignalAudioMuteStateChange;
   // Signal (nick, was_recording, is_recording)
   sigslot::signal3<const std::string&, bool, bool> SignalRecordingStateChange;
-  // Signal (muter_nick, mutee_nick, should_mute_locally)
+  // Signal (mutee_nick, muter_nick, should_mute_locally)
   sigslot::signal3<const std::string&,
                    const std::string&,
                    bool> SignalRemoteMute;
+  // Signal (blockee_nick, blocker_nick)
+  sigslot::signal2<const std::string&, const std::string&> SignalMediaBlock;
 
   // Signal (node, error stanza)
   sigslot::signal2<const std::string&, const XmlElement*> SignalRequestError;
@@ -98,6 +112,8 @@ class HangoutPubSubClient : public sigslot::has_slots<> {
       bool recording, std::string* task_id_out = NULL);
   void RemoteMute(
       const std::string& mutee_nick, std::string* task_id_out = NULL);
+  void BlockMedia(
+      const std::string& blockee_nick, std::string* task_id_out = NULL);
 
   // Signal task_id
   sigslot::signal1<const std::string&> SignalPublishAudioMuteResult;
@@ -106,6 +122,9 @@ class HangoutPubSubClient : public sigslot::has_slots<> {
   // Signal (task_id, mutee_nick)
   sigslot::signal2<const std::string&,
                    const std::string&> SignalRemoteMuteResult;
+  // Signal (task_id, blockee_nick)
+  sigslot::signal2<const std::string&,
+                   const std::string&> SignalMediaBlockResult;
 
   // Signal (task_id, error stanza)
   sigslot::signal2<const std::string&,
@@ -114,10 +133,17 @@ class HangoutPubSubClient : public sigslot::has_slots<> {
                    const XmlElement*> SignalPublishPresenterError;
   sigslot::signal2<const std::string&,
                    const XmlElement*> SignalPublishRecordingError;
+  sigslot::signal2<const std::string&,
+                   const XmlElement*> SignalPublishMediaBlockError;
   // Signal (task_id, mutee_nick, error stanza)
   sigslot::signal3<const std::string&,
                    const std::string&,
                    const XmlElement*> SignalRemoteMuteError;
+  // Signal (task_id, blockee_nick, error stanza)
+  sigslot::signal3<const std::string&,
+                   const std::string&,
+                   const XmlElement*> SignalMediaBlockError;
+
 
  private:
   void OnPresenterRequestError(PubSubClient* client,
@@ -143,6 +169,12 @@ class HangoutPubSubClient : public sigslot::has_slots<> {
   void OnRecordingPublishError(const std::string& task_id,
                                const XmlElement* item,
                                const XmlElement* stanza);
+  void OnMediaBlockStateChange(const PubSubStateChange<bool>& change);
+  void OnMediaBlockPublishResult(const std::string& task_id,
+                                 const XmlElement* item);
+  void OnMediaBlockPublishError(const std::string& task_id,
+                                const XmlElement* item,
+                                const XmlElement* stanza);
   Jid mucjid_;
   std::string nick_;
   talk_base::scoped_ptr<PubSubClient> media_client_;
@@ -150,6 +182,7 @@ class HangoutPubSubClient : public sigslot::has_slots<> {
   talk_base::scoped_ptr<PubSubStateClient<bool> > presenter_state_client_;
   talk_base::scoped_ptr<PubSubStateClient<bool> > audio_mute_state_client_;
   talk_base::scoped_ptr<PubSubStateClient<bool> > recording_state_client_;
+  talk_base::scoped_ptr<PubSubStateClient<bool> > media_block_state_client_;
 };
 
 }  // namespace buzz

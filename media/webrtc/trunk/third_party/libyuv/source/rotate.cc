@@ -15,7 +15,10 @@
 #include "rotate_priv.h"
 #include "row.h"
 
+#ifdef __cplusplus
 namespace libyuv {
+extern "C" {
+#endif
 
 #if (defined(_M_IX86) || defined(__x86_64__) || defined(__i386__)) && \
     !defined(YUV_DISABLE_ASM)
@@ -24,6 +27,24 @@ namespace libyuv {
 uvec8 kShuffleReverseUV = {
   14u, 12u, 10u, 8u, 6u, 4u, 2u, 0u, 15u, 13u, 11u, 9u, 7u, 5u, 3u, 1u
 };
+
+#if defined(__APPLE__) && defined(__i386__)
+#define DECLARE_FUNCTION(name)                                                 \
+    ".text                                     \n"                             \
+    ".private_extern _" #name "                \n"                             \
+    ".align 4,0x90                             \n"                             \
+"_" #name ":                                   \n"
+#elif (defined(__MINGW32__) || defined(__CYGWIN__)) && defined(__i386__)
+#define DECLARE_FUNCTION(name)                                                 \
+    ".text                                     \n"                             \
+    ".align 4,0x90                             \n"                             \
+"_" #name ":                                   \n"
+#else
+#define DECLARE_FUNCTION(name)                                                 \
+    ".text                                     \n"                             \
+    ".align 4,0x90                             \n"                             \
+#name ":                                       \n"
+#endif
 #endif
 
 typedef void (*reverse_uv_func)(const uint8*, uint8*, uint8*, int);
@@ -366,14 +387,7 @@ extern "C" void TransposeUVWx8_SSE2(const uint8* src, int src_stride,
                                     uint8* dst_b, int dst_stride_b,
                                     int w);
   asm (
-    ".text                                     \n"
-#if defined(__APPLE__)
-    ".globl _TransposeUVWx8_SSE2               \n"
-"_TransposeUVWx8_SSE2:                         \n"
-#else
-    ".global TransposeUVWx8_SSE2               \n"
-"TransposeUVWx8_SSE2:                          \n"
-#endif
+    DECLARE_FUNCTION(TransposeUVWx8_SSE2)
     "push   %ebx                               \n"
     "push   %esi                               \n"
     "push   %edi                               \n"
@@ -856,6 +870,14 @@ void RotatePlane180(const uint8* src, int src_stride,
     ReverseRow = ReverseRow_SSSE3;
   } else
 #endif
+#if defined(HAS_REVERSE_ROW_SSE2)
+  if (TestCpuFlag(kCpuHasSSE2) &&
+      IS_ALIGNED(width, 16) &&
+      IS_ALIGNED(src, 16) && IS_ALIGNED(src_stride, 16) &&
+      IS_ALIGNED(dst, 16) && IS_ALIGNED(dst_stride, 16)) {
+    ReverseRow = ReverseRow_SSE2;
+  } else
+#endif
   {
     ReverseRow = ReverseRow_C;
   }
@@ -1007,8 +1029,8 @@ __asm {
     lea       eax, [eax - 16]
     pshufb    xmm0, xmm5
     movlpd    qword ptr [edx], xmm0
-    lea       edx, [edx + 8]
     movhpd    qword ptr [edi], xmm0
+    lea       edx, [edx + 8]
     lea       edi, [edi + 8]
     sub       ecx, 8
     ja        convertloop
@@ -1032,8 +1054,8 @@ void ReverseRowUV_SSSE3(const uint8* src,
   "lea        -16(%0),%0                       \n"
   "pshufb     %%xmm5,%%xmm0                    \n"
   "movlpd     %%xmm0,(%1)                      \n"
-  "lea        8(%1),%1                         \n"
   "movhpd     %%xmm0,(%2)                      \n"
+  "lea        8(%1),%1                         \n"
   "lea        8(%2),%2                         \n"
   "sub        $8,%3                            \n"
   "ja         1b                               \n"
@@ -1194,7 +1216,8 @@ int NV12ToI420Rotate(const uint8* src_y, int src_stride_y,
   switch (mode) {
     case kRotate0:
       // copy frame
-      return NV12ToI420(src_y, src_uv, src_stride_y,
+      return NV12ToI420(src_y, src_stride_y,
+                        src_uv, src_stride_uv,
                         dst_y, dst_stride_y,
                         dst_u, dst_stride_u,
                         dst_v, dst_stride_v,
@@ -1232,4 +1255,7 @@ int NV12ToI420Rotate(const uint8* src_y, int src_stride_y,
   return -1;
 }
 
+#ifdef __cplusplus
+}  // extern "C"
 }  // namespace libyuv
+#endif

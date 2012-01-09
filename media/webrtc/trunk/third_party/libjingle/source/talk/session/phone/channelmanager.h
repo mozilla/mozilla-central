@@ -41,7 +41,9 @@
 namespace cricket {
 
 class Soundclip;
+class VideoProcessor;
 class VoiceChannel;
+class VoiceProcessor;
 
 // ChannelManager allows the MediaEngine to run on a separate thread, and takes
 // care of marshalling calls between threads. It also creates and keeps track of
@@ -83,10 +85,6 @@ class ChannelManager : public talk_base::MessageHandler,
   bool initialized() const { return initialized_; }
   // Starts up the media engine.
   bool Init();
-  // TODO: Remove this temporary API once Flute is updated.
-  bool Init(talk_base::Thread* thread) {
-    return set_worker_thread(thread) && Init();
-  }
   // Shuts down the media engine.
   void Terminate();
 
@@ -132,6 +130,9 @@ class ChannelManager : public talk_base::MessageHandler,
   bool monitoring() const { return monitoring_; }
   // Sets the local renderer where to renderer the local camera.
   bool SetLocalRenderer(VideoRenderer* renderer);
+  // Sets the externally provided video capturer. The ssrc is the ssrc of the
+  // (video) stream for which the video capturer should be set.
+  bool SetVideoCapturer(VideoCapturer* capturer, uint32 ssrc);
   // Starts and stops the local camera and renders it to the local renderer.
   CaptureResult SetVideoCapture(bool capture);
   bool capturing() const { return capturing_; }
@@ -139,6 +140,21 @@ class ChannelManager : public talk_base::MessageHandler,
   // Configures the logging output of the mediaengine(s).
   void SetVoiceLogging(int level, const char* filter);
   void SetVideoLogging(int level, const char* filter);
+
+  // The channel manager handles the Tx side for Video processing,
+  // as well as Tx and Rx side for Voice processing.
+  // (The Rx Video processing will go throug the simplerenderingmanager,
+  //  to be implemented).
+  bool RegisterVideoProcessor(uint32 ssrc,
+                              VideoProcessor* processor);
+  bool UnregisterVideoProcessor(uint32 ssrc,
+                                VideoProcessor* processor);
+  bool RegisterVoiceProcessor(uint32 ssrc,
+                              VoiceProcessor* processor,
+                              MediaProcessorDirection direction);
+  bool UnregisterVoiceProcessor(uint32 ssrc,
+                                VoiceProcessor* processor,
+                                MediaProcessorDirection direction);
 
   // The operations below occur on the main thread.
 
@@ -155,6 +171,7 @@ class ChannelManager : public talk_base::MessageHandler,
 
   void Construct();
   bool Send(uint32 id, talk_base::MessageData* pdata);
+  void Terminate_w();
   VoiceChannel* CreateVoiceChannel_w(
       BaseSession* session, const std::string& content_name, bool rtcp);
   void DestroyVoiceChannel_w(VoiceChannel* voice_channel);
@@ -172,14 +189,25 @@ class ChannelManager : public talk_base::MessageHandler,
   bool SetVideoOptions_w(const Device* cam_device);
   bool SetDefaultVideoEncoderConfig_w(const VideoEncoderConfig& config);
   bool SetLocalRenderer_w(VideoRenderer* renderer);
+  bool SetVideoCapturer_w(VideoCapturer* capturer, uint32 ssrc);
   CaptureResult SetVideoCapture_w(bool capture);
   void SetMediaLogging(bool video, int level, const char* filter);
   void SetMediaLogging_w(bool video, int level, const char* filter);
   void OnVideoCaptureResult(VideoCapturer* capturer,
                             CaptureResult result);
+  bool RegisterVideoProcessor_w(uint32 ssrc,
+                                VideoProcessor* processor);
+  bool UnregisterVideoProcessor_w(uint32 ssrc,
+                                  VideoProcessor* processor);
+  bool RegisterVoiceProcessor_w(uint32 ssrc,
+                                VoiceProcessor* processor,
+                                MediaProcessorDirection direction);
+  bool UnregisterVoiceProcessor_w(uint32 ssrc,
+                                  VoiceProcessor* processor,
+                                  MediaProcessorDirection direction);
+
   void OnMessage(talk_base::Message *message);
 
-  talk_base::CriticalSection crit_;
   talk_base::scoped_ptr<MediaEngineInterface> media_engine_;
   talk_base::scoped_ptr<DeviceManagerInterface> device_manager_;
   bool initialized_;

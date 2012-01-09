@@ -18,8 +18,16 @@
 if [ ! -d "${ANDROID_NDK_ROOT}" ]; then
   echo "ANDROID_NDK_ROOT must be set to the path of Android NDK, Revision 6b." \
     >& 2
-  echo "which could be downloaded from" >& 2
-  echo "http://developer.android.com/sdk/ndk/index.html" >& 2
+  echo "which could be installed by" >& 2
+  echo "<chromium_tree>/src/build/install-build-deps-android.sh" >& 2
+  return 1
+fi
+
+if [ ! -d "${ANDROID_SDK_ROOT}" ]; then
+  echo "ANDROID_SDK_ROOT must be set to the path of Android SDK, Android 3.2." \
+    >& 2
+  echo "which could be installed by" >& 2
+  echo "<chromium_tree>/src/build/install-build-deps-android.sh" >& 2
   return 1
 fi
 
@@ -38,6 +46,9 @@ case "${host_os}" in
 esac
 
 export ANDROID_TOOLCHAIN="${ANDROID_NDK_ROOT}/toolchains/arm-linux-androideabi-4.4.3/prebuilt/${toolchain_dir}/bin/"
+
+# Add Android SDK's platform-tools to system path.
+export PATH="${PATH}:${ANDROID_SDK_ROOT}/platform-tools/"
 
 if [ ! -d "${ANDROID_TOOLCHAIN}" ]; then
   echo "Can not find Android toolchain in ${ANDROID_TOOLCHAIN}." >& 2
@@ -64,7 +75,11 @@ make() {
       use_ccache_var=""
     fi
   fi
-  if [ -f "$PWD/build/android/envsetup.sh" ]; then
+  # Only cross-compile if the build is being done either from Chromium's src/
+  # directory, or through WebKit, in which case the WEBKIT_ANDROID_BUILD
+  # environment variable will be defined. WebKit uses a different directory.
+  if [ -f "$PWD/build/android/envsetup.sh" ] ||
+     [ -n "${WEBKIT_ANDROID_BUILD}" ]; then
     CC="${use_ccache_var}${CROSS_CC}" CXX="${use_ccache_var}${CROSS_CXX}" \
     LINK="${CROSS_LINK}" AR="${CROSS_AR}" RANLIB="${CROSS_RANLIB}" \
       command make $*
@@ -102,6 +117,7 @@ DEFINES+=" disable_nacl=1"
 DEFINES+=" remoting=0"
 DEFINES+=" p2p_apis=0"
 DEFINES+=" enable_touch_events=1"
+DEFINES+=" build_ffmpegsumo=0"
 # TODO(bulach): use "shared_libraries" once the transition from executable
 # is over.
 DEFINES+=" gtest_target_type=executable"
@@ -131,6 +147,9 @@ export GYP_DEFINES="${DEFINES}"
 
 # Use the "android" flavor of the Makefile generator for both Linux and OS X.
 export GYP_GENERATORS="make-android"
+
+# Use our All target as the default
+export GYP_GENERATOR_FLAGS="${GYP_GENERATOR_FLAGS} default_target=All"
 
 # We want to use our version of "all" targets.
 export CHROMIUM_GYP_FILE="${CHROME_SRC}/build/all_android.gyp"

@@ -35,7 +35,7 @@
 #include "talk/base/asyncudpsocket.h"
 #include "talk/base/socketaddresspair.h"
 #include "talk/base/thread.h"
-#include "talk/base/time.h"
+#include "talk/base/timeutils.h"
 #include "talk/p2p/base/port.h"
 #include "talk/p2p/base/stun.h"
 
