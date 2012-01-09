@@ -233,7 +233,9 @@ bool ProxyItemMatch(const Url<char>& url, char * item, size_t len) {
       m = 0;
     uint32 mask = (m == 0) ? 0 : (~0UL) << (32 - m);
     SocketAddress addr(url.host(), 0);
-    return !addr.IsUnresolved() && ((addr.ip() & mask) == (ip & mask));
+    // TODO: Support IPv6 proxyitems. This code block is IPv4 only anyway.
+    return !addr.IsUnresolved() &&
+        ((addr.ipaddr().v4AddressAsHostOrderInteger() & mask) == (ip & mask));
   }
 
   // .foo.com

@@ -10,7 +10,10 @@
 
 #include "row.h"
 
+#ifdef __cplusplus
+namespace libyuv {
 extern "C" {
+#endif
 
 #ifdef HAS_ARGBTOYROW_SSSE3
 
@@ -611,8 +614,8 @@ void FastConvertYUVToARGBRow_SSSE3(const uint8* y_buf,
     punpcklbw  xmm2, xmm5           // RA
     movdqa     xmm1, xmm0
     punpcklwd  xmm0, xmm2           // BGRA first 4 pixels
-    movdqa     [edx], xmm0
     punpckhwd  xmm1, xmm2           // BGRA next 4 pixels
+    movdqa     [edx], xmm0
     movdqa     [edx + 16], xmm1
     lea        edx,  [edx + 32]
 
@@ -651,8 +654,8 @@ void FastConvertYUVToBGRARow_SSSE3(const uint8* y_buf,
     punpcklbw  xmm5, xmm2           // AR
     movdqa     xmm0, xmm5
     punpcklwd  xmm5, xmm1           // BGRA first 4 pixels
-    movdqa     [edx], xmm5
     punpckhwd  xmm0, xmm1           // BGRA next 4 pixels
+    movdqa     [edx], xmm5
     movdqa     [edx + 16], xmm0
     lea        edx,  [edx + 32]
 
@@ -691,8 +694,8 @@ void FastConvertYUVToABGRRow_SSSE3(const uint8* y_buf,
     punpcklbw  xmm0, xmm5           // BA
     movdqa     xmm1, xmm2
     punpcklwd  xmm2, xmm0           // RGBA first 4 pixels
-    movdqa     [edx], xmm2
     punpckhwd  xmm1, xmm0           // RGBA next 4 pixels
+    movdqa     [edx], xmm2
     movdqa     [edx + 16], xmm1
     lea        edx,  [edx + 32]
 
@@ -777,33 +780,35 @@ void FastConvertYToARGBRow_SSE2(const uint8* y_buf,
                                 uint8* rgb_buf,
                                 int width) {
   __asm {
+    pcmpeqb    xmm4, xmm4           // generate mask 0xff000000
+    pslld      xmm4, 24
+    mov        eax,0x10001000
+    movd       xmm3,eax
+    pshufd     xmm3,xmm3,0
+    mov        eax,0x012a012a
+    movd       xmm2,eax
+    pshufd     xmm2,xmm2,0
     mov        eax, [esp + 4]       // Y
     mov        edx, [esp + 8]       // rgb
     mov        ecx, [esp + 12]      // width
-    pcmpeqb    xmm5, xmm5           // generate mask 0xff000000
-    pslld      xmm5, 24
-    pxor       xmm4, xmm4
-    movdqa     xmm3, kYSub16
-    movdqa     xmm2, kYToRgb
 
  convertloop:
     // Step 1: Scale Y contribution to 8 G values. G = (y - 16) * 1.164
     movq       xmm0, qword ptr [eax]
     lea        eax, [eax + 8]
-    punpcklbw  xmm0, xmm4
-    psubsw     xmm0, xmm3
-    pmullw     xmm0, xmm2
-    psraw      xmm0, 6
+    punpcklbw  xmm0, xmm0           // Y.Y
+    psubusw    xmm0, xmm3
+    pmulhuw    xmm0, xmm2
     packuswb   xmm0, xmm0           // G
 
     // Step 2: Weave into ARGB
     punpcklbw  xmm0, xmm0           // GG
     movdqa     xmm1, xmm0
     punpcklwd  xmm0, xmm0           // BGRA first 4 pixels
-    por        xmm0, xmm5
-    movdqa     [edx], xmm0
     punpckhwd  xmm1, xmm1           // BGRA next 4 pixels
-    por        xmm1, xmm5
+    por        xmm0, xmm4
+    por        xmm1, xmm4
+    movdqa     [edx], xmm0
     movdqa     [edx + 16], xmm1
     lea        edx,  [edx + 32]
 
@@ -844,7 +849,34 @@ __asm {
 }
 #endif
 
+#ifdef HAS_REVERSE_ROW_SSE2
+
+__declspec(naked)
+void ReverseRow_SSE2(const uint8* src, uint8* dst, int width) {
+__asm {
+    mov       eax, [esp + 4]   // src
+    mov       edx, [esp + 8]   // dst
+    mov       ecx, [esp + 12]  // width
+    lea       eax, [eax + ecx - 16]
+ convertloop:
+    movdqa    xmm0, [eax]
+    lea       eax, [eax - 16]
+    movdqa    xmm1, xmm0        // swap bytes
+    psllw     xmm0, 8
+    psrlw     xmm1, 8
+    por       xmm0, xmm1
+    pshuflw   xmm0, xmm0, 0x1b  // swap words
+    pshufhw   xmm0, xmm0, 0x1b
+    pshufd    xmm0, xmm0, 0x4e  // swap qwords
+    movdqa    [edx], xmm0
+    lea       edx, [edx + 16]
+    sub       ecx, 16
+    ja        convertloop
+    ret
+  }
+}
+#endif
+#ifdef __cplusplus
 }  // extern "C"
-
-
-
+}  // namespace libyuv
+#endif

@@ -151,7 +151,7 @@ bool Call::SendViewRequest(Session* session,
 
   XmlElements elems;
   WriteError error;
-  if (!WriteViewRequest(CN_VIDEO, view_request, &elems, &error)) {
+  if (!WriteJingleViewRequest(CN_VIDEO, view_request, &elems, &error)) {
     LOG(LS_ERROR) << "Couldn't write out view request: " << error.text;
     return false;
   }

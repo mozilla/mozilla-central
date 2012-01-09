@@ -9,11 +9,14 @@
  */
 
 
-#include "video_common.h"
+#include "libyuv/video_common.h"
 
 #include <sstream>
 
+#ifdef __cplusplus
 namespace libyuv {
+extern "C" {
+#endif
 
 #define ARRAY_SIZE(x) (static_cast<int>((sizeof(x)/sizeof(x[0]))))
 
@@ -47,4 +50,8 @@ uint32 CanonicalFourCC(uint32 fourcc) {
   return fourcc;
 }
 
+#ifdef __cplusplus
+}  // extern "C"
 }  // namespace libyuv
+#endif
+

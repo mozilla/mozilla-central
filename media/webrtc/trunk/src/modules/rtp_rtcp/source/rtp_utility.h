@@ -14,6 +14,7 @@
 #include <cstddef> // size_t, ptrdiff_t
 
 #include "typedefs.h"
+#include "rtp_header_extension.h"
 #include "rtp_rtcp_config.h"
 #include "rtp_rtcp_defines.h"
 
@@ -84,7 +85,16 @@ namespace ModuleRTPUtility
 
     WebRtc_UWord32 pow2(WebRtc_UWord8 exp);
 
-    bool StringCompare(const WebRtc_Word8* str1 , const WebRtc_Word8* str2, const WebRtc_UWord32 length);
+    // Returns true if |newTimestamp| is older than |existingTimestamp|.
+    // |wrapped| will be set to true if there has been a wraparound between the
+    // two timestamps.
+    bool OldTimestamp(uint32_t newTimestamp,
+                      uint32_t existingTimestamp,
+                      bool* wrapped);
+
+    bool StringCompare(const WebRtc_Word8* str1,
+                       const WebRtc_Word8* str2,
+                       const WebRtc_UWord32 length);
 
     void AssignUWord32ToBuffer(WebRtc_UWord8* dataBuffer, WebRtc_UWord32 value);
     void AssignUWord24ToBuffer(WebRtc_UWord8* dataBuffer, WebRtc_UWord32 value);
@@ -118,10 +128,21 @@ namespace ModuleRTPUtility
                         const WebRtc_UWord32 rtpDataLength);
         ~RTPHeaderParser();
 
-        bool RTCP( ) const;
-        bool Parse( WebRtcRTPHeader& parsedPacket) const;
+        bool RTCP() const;
+        bool Parse(WebRtcRTPHeader& parsedPacket,
+                   RtpHeaderExtensionMap* ptrExtensionMap = NULL) const;
 
     private:
+        void ParseOneByteExtensionHeader(
+            WebRtcRTPHeader& parsedPacket,
+            const RtpHeaderExtensionMap* ptrExtensionMap,
+            const WebRtc_UWord8* ptrRTPDataExtensionEnd,
+            const WebRtc_UWord8* ptr) const;
+
+        WebRtc_UWord8 ParsePaddingBytes(
+            const WebRtc_UWord8* ptrRTPDataExtensionEnd,
+            const WebRtc_UWord8* ptr) const;
+
         const WebRtc_UWord8* const _ptrRTPDataBegin;
         const WebRtc_UWord8* const _ptrRTPDataEnd;
     };
@@ -167,6 +188,7 @@ namespace ModuleRTPUtility
         int                  pictureID;
         int                  tl0PicIdx;
         int                  tID;
+        bool                 layerSync;
         int                  keyIdx;
         int                  frameWidth;
         int                  frameHeight;

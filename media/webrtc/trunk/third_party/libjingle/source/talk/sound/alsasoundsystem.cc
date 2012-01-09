@@ -31,6 +31,7 @@
 #include "talk/base/logging.h"
 #include "talk/base/scoped_ptr.h"
 #include "talk/base/stringutils.h"
+#include "talk/base/timeutils.h"
 #include "talk/base/worker.h"
 #include "talk/sound/sounddevicelocator.h"
 #include "talk/sound/soundinputstreaminterface.h"
@@ -58,9 +59,6 @@ static const int kMinimumLatencyUsecs = 20 * 1000;
 
 // The latency we'll use for kNoLatencyRequirements (chosen arbitrarily).
 static const int kDefaultLatencyUsecs = kMinimumLatencyUsecs * 2;
-
-static const int kUsecsPerSec = 1000000;
-static const int kUsecsPerMsec = 1000;
 
 // We translate newlines in ALSA device descriptions to hyphens.
 static const char kAlsaDescriptionSearch[] = "\n";
@@ -172,7 +170,7 @@ class AlsaStream {
       return 0;
     }
     // The delay is in frames. Convert to microseconds.
-    return delay * kUsecsPerSec / freq_;
+    return delay * talk_base::kNumMicrosecsPerSec / freq_;
   }
 
   // Used to recover from certain recoverable errors, principally buffer overrun
@@ -656,7 +654,7 @@ StreamInterface *AlsaSoundSystem::OpenDevice(
         int freq)) {
 
   if (!IsInitialized()) {
-    return false;
+    return NULL;
   }
 
   StreamInterface *stream;
@@ -686,7 +684,7 @@ StreamInterface *AlsaSoundSystem::OpenDevice(
   } else {
     // kLowLatency is 0, so we treat it the same as a request for zero latency.
     // Compute what the user asked for.
-    latency = kUsecsPerSec *
+    latency = talk_base::kNumMicrosecsPerSec *
         params.latency /
         params.freq /
         FrameSize(params);
@@ -721,7 +719,7 @@ StreamInterface *AlsaSoundSystem::OpenDevice(
       FrameSize(params),
       // We set the wait time to twice the requested latency, so that wait
       // timeouts should be rare.
-      2 * latency / kUsecsPerMsec,
+      2 * latency / talk_base::kNumMicrosecsPerMillisec,
       params.flags,
       params.freq);
   if (stream) {

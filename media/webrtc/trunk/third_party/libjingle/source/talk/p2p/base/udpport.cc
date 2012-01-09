@@ -38,7 +38,7 @@ const char LOCAL_PORT_TYPE[] = "local";
 UDPPort::UDPPort(talk_base::Thread* thread,
                  talk_base::PacketSocketFactory* factory,
                  talk_base::Network* network,
-                 uint32 ip, int min_port, int max_port)
+                 const talk_base::IPAddress& ip, int min_port, int max_port)
     : Port(thread, LOCAL_PORT_TYPE, factory, network, ip, min_port, max_port),
       socket_(NULL),
       error_(0) {

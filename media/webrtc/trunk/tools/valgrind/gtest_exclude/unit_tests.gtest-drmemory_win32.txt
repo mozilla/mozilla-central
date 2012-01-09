@@ -17,9 +17,8 @@ DownloadManagerTest.StartDownload
 # http://crbug.com/87887
 VideoCaptureHostTest.*
 
-# crashes on the bot with corresponding UNADDR reports
-# http://crbug.com/90980
-FirefoxImporterTest.Firefox3NSS3Decryptor
+# crashes due to use-after-free's, http://crbug.com/90980
+FirefoxImporterTest.Firefox*NSS3Decryptor
 
 # fails http://crbug.com/92144
 ServiceProcessStateTest.ForceShutdown

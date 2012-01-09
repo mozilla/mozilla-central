@@ -18,6 +18,17 @@ ErrorPageTest.DNSError_Basic
 ErrorPageTest.DNSError_GoBack1
 ErrorPageTest.DNSError_GoBack2
 
-# Tests timing out, see http://crbug.com/92717
-NewTabUIProcessPerTabTest.NavBeforeNTPCommits
-NewTabUITest.ChromeHangInNTP
+# Fail flakily only under TSan, see http://crbug.com/103020
+DOMStorageTest.LocalStorageLayoutTests
+DOMStorageTest.RootLayoutTests
+DOMStorageTest.SessionStorageLayoutTests
+
+# Flaky under TSan and natively, see http://crbug.com/103707
+NPAPITesterBase.GetJavaScriptURL
+NPAPITesterBase.NPObjectIdentity
+NPAPITesterBase.NPObjectProxy
+NPAPITesterBase.PluginThreadAsyncCall
+NPAPITesterBase.ScheduleTimer
+NPAPIVisiblePluginTester.DeletePluginInDeallocate
+NPAPIVisiblePluginTester.GetURLRequestFailWrite
+NPAPIVisiblePluginTester.PluginReferrerTest

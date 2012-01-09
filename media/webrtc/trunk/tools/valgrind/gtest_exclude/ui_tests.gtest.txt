@@ -66,17 +66,18 @@ NewTabUITest.UpdateUserPrefsVersion
 LayoutPluginTester.NPObjectReleasedOnDestruction
 LayoutPluginTester.NPObjectSetException
 
-# Fails on valgrind
-# http://crbug.com/61601
-GPUUITest.UITestCanLaunchWithOSMesa
-
 # This doesn't pass under valgrind, because the valgrind helper prevents us
 # from properly SIGTERMing the browser process.
 # See http://crbug.com/42105
-BrowserTest.PosixSessionEnd
+BrowserTest.SessionEnd
 
 # Fails flakily, http://crbug.com/70323
 AutomatedUITestBase.ShowBookmarkBar
+
+# Fail, see http://crbug.com/75250
+NewTabUITest.AboutHangInNTP
+NewTabUITest.ChromeHangInNTP
+NewTabUIProcessPerTabTest.NavBeforeNTPCommits
 
 # Video decoding under valgrind is really slow, see http://crbug.com/53825
 MediaTest.VideoBear*
@@ -103,7 +104,10 @@ FastShutdown.SlowTermination
 # Out-of-process PPAPI tests fail on buildbots http://crbug.com/89961
 OutOfProcessPPAPITest.Instance
 OutOfProcessPPAPITest.CursorControl
-OutOfProcessPPAPITest.PostMessage
+OutOfProcessPPAPITest.PostMessage*
+
+# NaCl ui_tests fail on buildbots http://crbug.com/104517
+PPAPINaClTest.*
 
 # Flakily times out, http://crbug.com/92527
 NamedInterfaceTest.BasicNamedInterface
@@ -128,3 +132,11 @@ OptionsUITest.LoadOptionsByURL
 
 # Flaky failure on Linux/ChromeOS, http://crbug.com/100031
 IFrameTest.InEmptyFrame
+
+# Fails consistently on ChromeOS, http://crbug.com/104938
+WidgetOwnershipTest.Ownership_ViewsNativeWidgetOwnsWidget
+WidgetOwnershipTest.Ownership_ViewsNativeWidgetOwnsWidget_NativeDestroy
+
+# Leaks in audio tests http://crbug.com/106036
+PPAPITest.Audio_*
+OutOfProcessPPAPITest.Audio_*

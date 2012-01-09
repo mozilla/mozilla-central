@@ -17,10 +17,10 @@
 
 #include "../source/event.h"
 #include "common_types.h"
+#include "modules/video_coding/main/source/mock/fake_tick_time.h"
 #include "test_callbacks.h"
 #include "test_macros.h"
 #include "test_util.h"
-#include "tick_time.h"
 #include "trace.h"
 #include "testsupport/metrics/video_metrics.h"
 
@@ -28,18 +28,19 @@ using namespace webrtc;
 
 int NormalTest::RunTest(CmdArgs& args)
 {
-    // Don't run this test with debug time
-#if defined(TICK_TIME_DEBUG) || defined(EVENT_DEBUG)
+#if defined(EVENT_DEBUG)
     printf("SIMULATION TIME\n");
+    FakeTickTime clock(0);
 #else
     printf("REAL-TIME\n");
+    TickTimeBase clock;
 #endif
     Trace::CreateTrace();
     Trace::SetTraceFile(
         (test::OutputPath() + "VCMNormalTestTrace.txt").c_str());
     Trace::SetLevelFilter(webrtc::kTraceAll);
-    VideoCodingModule* vcm = VideoCodingModule::Create(1);
-    NormalTest VCMNTest(vcm);
+    VideoCodingModule* vcm = VideoCodingModule::Create(1, &clock);
+    NormalTest VCMNTest(vcm, &clock);
     VCMNTest.Perform(args);
     VideoCodingModule::Destroy(vcm);
     Trace::ReturnTrace();
@@ -151,7 +152,8 @@ VCMNTEncodeCompleteCallback::SkipCnt()
 // Decoded Frame Callback Implementation
 VCMNTDecodeCompleCallback::~VCMNTDecodeCompleCallback()
 {
-    //
+  if (_decodedFile)
+    fclose(_decodedFile);
 }
  WebRtc_Word32
 VCMNTDecodeCompleCallback::FrameToRender(webrtc::VideoFrame& videoFrame)
@@ -181,8 +183,9 @@ VCMNTDecodeCompleCallback::DecodedBytes()
 
  //VCM Normal Test Class implementation
 
-NormalTest::NormalTest(VideoCodingModule* vcm)
+NormalTest::NormalTest(VideoCodingModule* vcm, TickTimeBase* clock)
 :
+_clock(clock),
 _vcm(vcm),
 _sumEncBytes(0),
 _timeStamp(0),
@@ -280,8 +283,8 @@ NormalTest::Perform(CmdArgs& args)
 
     while (feof(_sourceFile) == 0)
     {
-#if !(defined(TICK_TIME_DEBUG) || defined(EVENT_DEBUG))
-        WebRtc_Word64 processStartTime = VCMTickTime::MillisecondTimestamp();
+#if !defined(EVENT_DEBUG)
+        WebRtc_Word64 processStartTime = _clock->MillisecondTimestamp();
 #endif
         TEST(fread(tmpBuffer, 1, _lengthSourceFrame, _sourceFile) > 0 ||
              feof(_sourceFile));
@@ -313,13 +316,10 @@ NormalTest::Perform(CmdArgs& args)
             _vcm->Process();
         }
         WebRtc_UWord32 framePeriod = static_cast<WebRtc_UWord32>(1000.0f/static_cast<float>(_sendCodec.maxFramerate) + 0.5f);
-#if defined(TICK_TIME_DEBUG) || defined(EVENT_DEBUG)
-        for (unsigned int i=0; i < framePeriod; i++)
-        {
-            VCMTickTime::IncrementDebugClock();
-        }
+#if defined(EVENT_DEBUG)
+        static_cast<FakeTickTime*>(_clock)->IncrementDebugClock(framePeriod);
 #else
-        WebRtc_Word64 timeSpent = VCMTickTime::MillisecondTimestamp() - processStartTime;
+        WebRtc_Word64 timeSpent = _clock->MillisecondTimestamp() - processStartTime;
         if (timeSpent < framePeriod)
         {
             waitEvent->Wait(framePeriod - timeSpent);
@@ -367,9 +367,11 @@ NormalTest::Print()
     double actualBitRate = ActualBitRate / 1000.0;
     double avgEncTime = _totalEncodeTime / _frameCnt;
     double avgDecTime = _totalDecodeTime / _frameCnt;
-    QualityMetricsResult psnr, ssim;
-    PsnrFromFiles(_inname.c_str(), _outname.c_str(), _width, _height, &psnr);
-    SsimFromFiles(_inname.c_str(), _outname.c_str(), _width, _height, &ssim);
+    webrtc::test::QualityMetricsResult psnr, ssim;
+    I420PSNRFromFiles(_inname.c_str(), _outname.c_str(), _width, _height,
+                      &psnr);
+    I420SSIMFromFiles(_inname.c_str(), _outname.c_str(), _width, _height,
+                      &ssim);
     printf("Actual bitrate: %f kbps\n", actualBitRate);
     printf("Target bitrate: %f kbps\n", _bitRate);
     ( _log) << "Actual bitrate: " << actualBitRate<< " kbps\tTarget: " << _bitRate << " kbps" << std::endl;

@@ -1,9 +1,6 @@
-#!/usr/bin/python
 # Copyright (c) 2011 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
-# valgrind_test.py
 
 """Runs an exe through Valgrind and puts the intermediate files in a
 directory.
@@ -68,6 +65,8 @@ class BaseTool(object):
     self._parser.add_option("-t", "--timeout",
                       dest="timeout", metavar="TIMEOUT", default=10000,
                       help="timeout in seconds for the run (default 10000)")
+    self._parser.add_option("", "--build_dir",
+                            help="the location of the compiler output")
     self._parser.add_option("", "--source_dir",
                             help="path to top of source tree for this build"
                                  "(used to normalize source paths in baseline)")
@@ -390,18 +389,43 @@ class ValgrindTool(BaseTool):
     appropriately.
     """
     command = " ".join(proc)
+    # Add the PID of the browser wrapper to the logfile names so we can
+    # separate log files for different UI tests at the analyze stage.
     command = command.replace("%p", "$$.%p")
 
     (fd, indirect_fname) = tempfile.mkstemp(dir=self.log_dir,
                                             prefix="browser_wrapper.",
                                             text=True)
     f = os.fdopen(fd, "w")
-    f.write("#!/bin/sh\n")
-    f.write('echo "Started Valgrind wrapper for this test, PID=$$"\n')
-    # Add the PID of the browser wrapper to the logfile names so we can
-    # separate log files for different UI tests at the analyze stage.
-    f.write(command)
-    f.write(' "$@"\n')
+    f.write('#!/bin/bash\n'
+            'echo "Started Valgrind wrapper for this test, PID=$$"\n')
+
+    # Try to get the test case name by looking at the program arguments.
+    # i.e. Chromium ui_tests and friends pass --test-name arg.
+    f.write('DIR=`dirname $0`\n'
+            'FOUND_TESTNAME=0\n'
+            'TESTNAME_FILE=$DIR/testcase.$$.name\n'
+            'for arg in $@; do\n'
+            '  # TODO(timurrrr): this doesn\'t handle "--test-name Test.Name"\n'
+            '  if [[ "$arg" =~ --test-name=(.*) ]]; then\n'
+            '    echo ${BASH_REMATCH[1]} >$TESTNAME_FILE\n'
+            '    FOUND_TESTNAME=1\n'
+            '  fi\n'
+            'done\n\n')
+
+    f.write('if [ "$FOUND_TESTNAME" = "1" ]; then\n'
+            '    %s "$@"\n'
+            'else\n' % command)
+    # Webkit layout_tests print out the test URL as the first line of stdout.
+    f.write('    %s "$@" | tee $DIR/test.$$.stdout\n'
+            '    EXITCODE=$PIPESTATUS\n'  # $? holds the tee's exit code
+            '    head -n 1 $DIR/test.$$.stdout |\n'
+            '      grep URL |\n'
+            '      sed "s/^.*third_party\/WebKit\/LayoutTests\///" '
+                       '>$TESTNAME_FILE\n'
+            '    exit $EXITCODE\n'
+            'fi\n' % command)
+
     f.close()
     os.chmod(indirect_fname, stat.S_IRUSR|stat.S_IXUSR)
     return indirect_fname
@@ -411,7 +435,7 @@ class ValgrindTool(BaseTool):
                                "in the tool-specific subclass"
 
   def GetAnalyzeResults(self, check_sanity=False):
-    # Glob all the files in the "testing.tmp" directory
+    # Glob all the files in the log directory
     filenames = glob.glob(self.log_dir + "/" + self.ToolName() + ".*")
 
     # If we have browser wrapper, the logfiles are named as
@@ -423,21 +447,31 @@ class ValgrindTool(BaseTool):
     analyzer = self.CreateAnalyzer()
     if len(ppids) == 0:
       # Fast path - no browser wrapper was set.
-      return analyzer.Report(filenames, check_sanity)
+      return analyzer.Report(filenames, None, check_sanity)
 
     ret = 0
     for ppid in ppids:
+      testcase_name = None
+      try:
+        f = open(self.log_dir + ("/testcase.%d.name" % ppid))
+        testcase_name = f.read().strip()
+        f.close()
+      except IOError:
+        pass
       print "====================================================="
       print " Below is the report for valgrind wrapper PID=%d." % ppid
-      print " You can find the corresponding test"
-      print " by searching the above log for 'PID=%d'" % ppid
+      if testcase_name:
+        print " It was used while running the `%s` test." % testcase_name
+      else:
+        print " You can find the corresponding test"
+        print " by searching the above log for 'PID=%d'" % ppid
       sys.stdout.flush()
 
       ppid_filenames = [f for f in filenames \
                         if re.search("\.%d\.[0-9]+$" % ppid, f)]
       # check_sanity won't work with browser wrappers
       assert check_sanity == False
-      ret |= analyzer.Report(ppid_filenames)
+      ret |= analyzer.Report(ppid_filenames, testcase_name)
       print "====================================================="
       sys.stdout.flush()
 
@@ -446,6 +480,7 @@ class ValgrindTool(BaseTool):
       print "The Valgrind reports are grouped by test names."
       print "Each test has its PID printed in the log when the test was run"
       print "and at the beginning of its Valgrind report."
+      print "Hint: you can search for the reports by Ctrl+F -> `=#`"
       sys.stdout.flush()
 
     return ret
@@ -636,15 +671,10 @@ class ThreadSanitizerBase(object):
       ret += ["--show-pc=yes"]
     ret += ["--show-pid=no"]
 
-    # Don't show googletest frames in stacks.
-    # TODO(timurrrr): we should have an array of functions (since used by
-    # different tools in different formats and .join it
-    ret += ["--cut_stack_below=testing*Test*Run*"]
-    ret += ["--cut_stack_below=testing*Handle*ExceptionsInMethodIfSupported"]
-    ret += ["--cut_stack_below=MessageLoop*Run"]
-    ret += ["--cut_stack_below=RunnableMethod*"]
-    ret += ["--cut_stack_below=RunnableFunction*"]
-    ret += ["--cut_stack_below=DispatchToMethod*"]
+    boring_callers = common.BoringCallers(mangled=False, use_re_wildcards=False)
+    # TODO(timurrrr): In fact, we want "starting from .." instead of "below .."
+    for bc in boring_callers:
+      ret += ["--cut_stack_below=%s" % bc]
 
     return ret
 
@@ -705,7 +735,7 @@ class ThreadSanitizerWindows(ThreadSanitizerBase, PinTool):
   def Analyze(self, check_sanity=False):
     filenames = glob.glob(self.log_dir + "/tsan.*")
     analyzer = tsan_analyze.TsanAnalyzer(self._source_dir)
-    ret = analyzer.Report(filenames, check_sanity)
+    ret = analyzer.Report(filenames, None, check_sanity)
     if ret != 0:
       logging.info(self.INFO_MESSAGE)
     return ret
@@ -725,7 +755,7 @@ class DrMemory(BaseTool):
     self.RegisterOptionParserHook(DrMemory.ExtendOptionParser)
 
   def ToolName(self):
-    return "DrMemory"
+    return "drmemory"
 
   def ExtendOptionParser(self, parser):
     parser.add_option("", "--suppressions", default=[],
@@ -749,8 +779,6 @@ class DrMemory(BaseTool):
 
   def ToolCommand(self):
     """Get the tool command to run."""
-    tool_name = self.ToolName()
-
     # WINHEAP is what Dr. Memory supports as there are issues w/ both
     # jemalloc (http://code.google.com/p/drmemory/issues/detail?id=320) and
     # tcmalloc (http://code.google.com/p/drmemory/issues/detail?id=314)
@@ -800,10 +828,13 @@ class DrMemory(BaseTool):
         raise RuntimeError, "Configuring python children failed "
 
     suppression_count = 0
-    for suppression_file in self._options.suppressions:
+    supp_files = self._options.suppressions
+    if self.handle_uninits_and_leaks:
+      supp_files += [s.replace(".txt", "_full.txt") for s in supp_files]
+    for suppression_file in supp_files:
       if os.path.exists(suppression_file):
         suppression_count += 1
-        proc += ["-suppress", suppression_file]
+        proc += ["-suppress", common.NormalizeWindowsPath(suppression_file)]
 
     if not suppression_count:
       logging.warning("WARNING: NOT USING SUPPRESSIONS!")
@@ -817,21 +848,40 @@ class DrMemory(BaseTool):
     if self._options.use_debug:
       proc += ["-debug"]
 
-    proc += ["-logdir", self.log_dir]
-    proc += ["-batch", "-quiet", "-no_results_to_stderr"]
+    proc += ["-logdir", common.NormalizeWindowsPath(self.log_dir)]
+
+    if self._options.build_dir:
+      # The other case is only possible with -t cmdline.
+      # Anyways, if we omit -symcache_dir the -logdir's value is used which
+      # should be fine.
+      symcache_dir = os.path.join(self._options.build_dir, "drmemory.symcache")
+      if not os.path.exists(symcache_dir):
+        try:
+          os.mkdir(symcache_dir)
+        except OSError:
+          logging.warning("Can't create symcache dir?")
+      if os.path.exists(symcache_dir):
+        proc += ["-symcache_dir", common.NormalizeWindowsPath(symcache_dir)]
+
+    # Use -no_summary to suppress DrMemory's summary and init-time
+    # notifications.  We generate our own with drmemory_analyze.py.
+    proc += ["-batch", "-no_summary"]
+
+    # Un-comment to disable interleaved output.  Will also suppress error
+    # messages normally printed to stderr.
+    #proc += ["-quiet", "-no_results_to_stderr"]
 
     proc += ["-callstack_max_frames", "40"]
 
     # make callstacks easier to read
     proc += ["-callstack_srcfile_prefix",
              "build\\src,chromium\\src,crt_build\\self_x86"]
-    proc += ["-callstack_truncate_below",
-             "main,BaseThreadInitThunk,"+
-             "testing*Test*Run*,testing::internal::Handle*Exceptions*,"+
-             "MessageLoop::Run,"+
-             "RunnableMethod*,RunnableFunction*,DispatchToMethod*"]
     proc += ["-callstack_modname_hide",
              "*.exe,chrome.dll"]
+
+    boring_callers = common.BoringCallers(mangled=False, use_re_wildcards=False)
+    # TODO(timurrrr): In fact, we want "starting from .." instead of "below .."
+    proc += ["-callstack_truncate_below", ",".join(boring_callers)]
 
     if not self.handle_uninits_and_leaks:
       proc += ["-no_check_uninitialized", "-no_count_leaks"]
@@ -842,10 +892,14 @@ class DrMemory(BaseTool):
     proc += ["--"]
 
     if self._options.indirect:
-      self.CreateBrowserWrapper(" ".join(proc))
+      # TODO(timurrrr): reuse for TSan on Windows
+      wrapper_path = os.path.join(self._source_dir,
+                                  "tools", "valgrind", "browser_wrapper_win.py")
+      self.CreateBrowserWrapper(" ".join(["python", wrapper_path] + proc))
       proc = []
 
     # Note that self._args begins with the name of the exe to be run.
+    self._args[0] = common.NormalizeWindowsPath(self._args[0])
     proc += self._args
     return proc
 
@@ -853,11 +907,50 @@ class DrMemory(BaseTool):
     os.putenv("BROWSER_WRAPPER", command)
 
   def Analyze(self, check_sanity=False):
-    # Glob all the results files in the "testing.tmp" directory
-    filenames = glob.glob(self.log_dir + "/*/results.txt")
+    # Use one analyzer for all the log files to avoid printing duplicate reports
+    #
+    # TODO(timurrrr): unify this with Valgrind and other tools when we have
+    # http://code.google.com/p/drmemory/issues/detail?id=684
+    analyzer = drmemory_analyze.DrMemoryAnalyzer()
 
-    analyzer = drmemory_analyze.DrMemoryAnalyze(self._source_dir, filenames)
-    ret = analyzer.Report(check_sanity)
+    ret = 0
+    if not self._options.indirect:
+      filenames = glob.glob(self.log_dir + "/*/results.txt")
+
+      ret = analyzer.Report(filenames, None, check_sanity)
+    else:
+      testcases = glob.glob(self.log_dir + "/testcase.*.logs")
+      # If we have browser wrapper, the per-test logdirs are named as
+      # "testcase.wrapper_PID.name".
+      # Let's extract the list of wrapper_PIDs and name it ppids.
+      # NOTE: ppids may contain '_', i.e. they are not ints!
+      ppids = set([f.split(".")[-2] for f in testcases])
+
+      for ppid in ppids:
+        testcase_name = None
+        try:
+          f = open("%s/testcase.%s.name" % (self.log_dir, ppid))
+          testcase_name = f.read().strip()
+          f.close()
+        except IOError:
+          pass
+        print "====================================================="
+        print " Below is the report for drmemory wrapper PID=%s." % ppid
+        if testcase_name:
+          print " It was used while running the `%s` test." % testcase_name
+        else:
+          # TODO(timurrrr): hm, the PID line is suppressed on Windows...
+          print " You can find the corresponding test"
+          print " by searching the above log for 'PID=%s'" % ppid
+        sys.stdout.flush()
+        ppid_filenames = glob.glob("%s/testcase.%s.logs/*/results.txt" %
+                                   (self.log_dir, ppid))
+        ret |= analyzer.Report(ppid_filenames, testcase_name, False)
+        print "====================================================="
+        sys.stdout.flush()
+
+    logging.info("Please see http://dev.chromium.org/developers/how-tos/"
+                 "using-drmemory for the info on Dr. Memory")
     return ret
 
 
@@ -872,7 +965,7 @@ class ThreadSanitizerRV1Analyzer(tsan_analyze.TsanAnalyzer):
     super(ThreadSanitizerRV1Analyzer, self).__init__(source_dir, use_gdb)
     self.out = open(self.TMP_FILE, "w")
 
-  def Report(self, files, check_sanity=False):
+  def Report(self, files, testcase, check_sanity=False):
     reports = self.GetReports(files)
     for report in reports:
       print >>self.out, report
@@ -1014,6 +1107,7 @@ class Asan(EmbeddedTool):
     if common.IsMac():
       self._env["DYLD_NO_PIE"] = "1"
 
+
   def ToolName(self):
     return "asan"
 
@@ -1049,8 +1143,9 @@ class TsanGcc(EmbeddedTool):
       return False
     ld_library_paths = []
     for tail in "lib32", "lib64":
-      ld_library_paths.append(os.path.join(self._source_dir, "third_party",
-                                           "compiler-tsan", "gcc-4.5.3", tail))
+      ld_library_paths.append(
+          os.path.join(self._source_dir, "third_party",
+                       "compiler-tsan", "gcc-current", tail))
     # LD_LIBRARY_PATH will be overriden.
     self._env["LD_LIBRARY_PATH"] = ":".join(ld_library_paths)
 
@@ -1109,7 +1204,3 @@ class ToolFactory:
 
 def CreateTool(tool):
   return ToolFactory().Create(tool)
-
-if __name__ == '__main__':
-  logging.error(sys.argv[0] + " can not be run from command line")
-  sys.exit(1)

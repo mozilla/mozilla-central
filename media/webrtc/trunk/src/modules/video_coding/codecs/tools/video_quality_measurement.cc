@@ -18,11 +18,13 @@
 #define S_ISDIR(mode) (((mode) & S_IFMT) == S_IFDIR)
 #endif
 
+#include "common_types.h"
 #include "google/gflags.h"
 #include "modules/video_coding/codecs/test/packet_manipulator.h"
 #include "modules/video_coding/codecs/test/stats.h"
 #include "modules/video_coding/codecs/test/videoprocessor.h"
 #include "modules/video_coding/codecs/vp8/main/interface/vp8.h"
+#include "modules/video_coding/main/interface/video_coding.h"
 #include "system_wrappers/interface/trace.h"
 #include "testsupport/frame_reader.h"
 #include "testsupport/frame_writer.h"
@@ -63,6 +65,8 @@ DEFINE_int32(keyframe_interval, 0, "Forces a keyframe every Nth frame. "
              "0 means the encoder decides when to insert keyframes.  Note that "
              "the encoder may create a keyframe in other locations in addition "
              "to the interval that is set using this parameter.");
+DEFINE_int32(temporal_layers, 0, "The number of temporal layers to use "
+             "(VP8 specific codec setting). Must be 0-4.");
 DEFINE_int32(packet_size, 1500, "Simulated network packet size in bytes (MTU). "
              "Used for packet loss simulation.");
 DEFINE_int32(max_payload_size, 1440, "Max payload size in bytes for the "
@@ -87,8 +91,8 @@ DEFINE_bool(verbose, true, "Verbose mode. Prints a lot of debugging info. "
             "Suitable for tracking progress but not for capturing output. "
             "Disable with --noverbose flag.");
 
-// Custom log method that only prints if the verbose flag is given
-// Supports all the standard printf parameters and formatting (just forwarded)
+// Custom log method that only prints if the verbose flag is given.
+// Supports all the standard printf parameters and formatting (just forwarded).
 int Log(const char *format, ...) {
   int result = 0;
   if (FLAGS_verbose) {
@@ -100,7 +104,8 @@ int Log(const char *format, ...) {
   return result;
 }
 
-// Validates the arguments given as command line flags.
+// Validates the arguments given as command line flags and fills in the
+// TestConfig struct with all configurations needed for video processing.
 // Returns 0 if everything is OK, otherwise an exit code.
 int HandleCommandLineFlags(webrtc::test::TestConfig* config) {
   // Validate the mandatory flags:
@@ -111,7 +116,7 @@ int HandleCommandLineFlags(webrtc::test::TestConfig* config) {
   config->name = FLAGS_test_name;
   config->description = FLAGS_test_description;
 
-  // Verify the input file exists and is readable:
+  // Verify the input file exists and is readable.
   FILE* test_file;
   test_file = fopen(FLAGS_input_filename.c_str(), "rb");
   if (test_file == NULL) {
@@ -122,7 +127,7 @@ int HandleCommandLineFlags(webrtc::test::TestConfig* config) {
   fclose(test_file);
   config->input_filename = FLAGS_input_filename;
 
-  // Verify the output dir exists:
+  // Verify the output dir exists.
   struct stat dir_info;
   if (!(stat(FLAGS_output_dir.c_str(), &dir_info) == 0 &&
       S_ISDIR(dir_info.st_mode))) {
@@ -132,7 +137,7 @@ int HandleCommandLineFlags(webrtc::test::TestConfig* config) {
   }
   config->output_dir = FLAGS_output_dir;
 
-  // Manufacture an output filename if none was given:
+  // Manufacture an output filename if none was given.
   if (FLAGS_output_filename == "") {
     // Cut out the filename without extension from the given input file
     // (which may include a path)
@@ -146,7 +151,7 @@ int HandleCommandLineFlags(webrtc::test::TestConfig* config) {
                                     - startIndex) + "_out.yuv";
   }
 
-  // Verify output file can be written
+  // Verify output file can be written.
   if (FLAGS_output_dir == ".") {
     config->output_filename = FLAGS_output_filename;
   } else {
@@ -160,23 +165,37 @@ int HandleCommandLineFlags(webrtc::test::TestConfig* config) {
   }
   fclose(test_file);
 
-  // Check single core flag
+  // Check single core flag.
   config->use_single_core = FLAGS_use_single_core;
 
   // Seed our random function if that flag is enabled. This will force
-  // repeatable behaviour between runs
+  // repeatable behaviour between runs.
   if (!FLAGS_disable_fixed_random_seed) {
     srand(0);
   }
 
-  // Check the bit rate
+  // Get codec specific configuration.
+  webrtc::VideoCodingModule::Codec(webrtc::kVideoCodecVP8,
+                                   config->codec_settings);
+
+  // Check the temporal layers.
+  if (FLAGS_temporal_layers < 0 ||
+      FLAGS_temporal_layers > webrtc::kMaxTemporalStreams) {
+    fprintf(stderr, "Temporal layers number must be 0-4, was: %d\n",
+            FLAGS_temporal_layers);
+    return 13;
+  }
+  config->codec_settings->codecSpecific.VP8.numberOfTemporalLayers =
+      FLAGS_temporal_layers;
+
+  // Check the bit rate.
   if (FLAGS_bitrate <= 0) {
     fprintf(stderr, "Bit rate must be >0 kbps, was: %d\n", FLAGS_bitrate);
     return 5;
   }
-  config->codec_settings.startBitrate = FLAGS_bitrate;
+  config->codec_settings->startBitrate = FLAGS_bitrate;
 
-  // Check the keyframe interval
+  // Check the keyframe interval.
   if (FLAGS_keyframe_interval < 0) {
     fprintf(stderr, "Keyframe interval must be >=0, was: %d\n",
             FLAGS_keyframe_interval);
@@ -184,7 +203,7 @@ int HandleCommandLineFlags(webrtc::test::TestConfig* config) {
   }
   config->keyframe_interval = FLAGS_keyframe_interval;
 
-  // Check packet size and max payload size
+  // Check packet size and max payload size.
   if (FLAGS_packet_size <= 0) {
     fprintf(stderr, "Packet size must be >0 bytes, was: %d\n",
             FLAGS_packet_size);
@@ -205,14 +224,13 @@ int HandleCommandLineFlags(webrtc::test::TestConfig* config) {
     fprintf(stderr, "Width and height must be >0.");
     return 9;
   }
-  config->codec_settings.codecType = webrtc::kVideoCodecVP8;
-  config->codec_settings.width = FLAGS_width;
-  config->codec_settings.height = FLAGS_height;
-  config->codec_settings.maxFramerate = FLAGS_framerate;
+  config->codec_settings->width = FLAGS_width;
+  config->codec_settings->height = FLAGS_height;
+  config->codec_settings->maxFramerate = FLAGS_framerate;
 
-  // Calculate the size of each frame to read (according to YUV spec):
+  // Calculate the size of each frame to read (according to YUV spec).
   config->frame_length_in_bytes =
-      3 * config->codec_settings.width * config->codec_settings.height / 2;
+      3 * config->codec_settings->width * config->codec_settings->height / 2;
 
   // Check packet loss settings
   if (FLAGS_packet_loss_mode != "uniform" &&
@@ -247,29 +265,27 @@ int HandleCommandLineFlags(webrtc::test::TestConfig* config) {
 }
 
 void CalculateSsimVideoMetrics(webrtc::test::TestConfig* config,
-                               QualityMetricsResult* ssimResult) {
+                               webrtc::test::QualityMetricsResult* result) {
   Log("Calculating SSIM...\n");
-  SsimFromFiles(config->input_filename.c_str(), config->output_filename.c_str(),
-                config->codec_settings.width,
-                config->codec_settings.height, ssimResult);
-  Log("  Average: %3.2f\n", ssimResult->average);
-  Log("  Min    : %3.2f (frame %d)\n", ssimResult->min,
-      ssimResult->min_frame_number);
-  Log("  Max    : %3.2f (frame %d)\n", ssimResult->max,
-      ssimResult->max_frame_number);
+  I420SSIMFromFiles(config->input_filename.c_str(),
+                    config->output_filename.c_str(),
+                    config->codec_settings->width,
+                    config->codec_settings->height, result);
+  Log("  Average: %3.2f\n", result->average);
+  Log("  Min    : %3.2f (frame %d)\n", result->min, result->min_frame_number);
+  Log("  Max    : %3.2f (frame %d)\n", result->max, result->max_frame_number);
 }
 
 void CalculatePsnrVideoMetrics(webrtc::test::TestConfig* config,
-                                 QualityMetricsResult* psnrResult) {
+                               webrtc::test::QualityMetricsResult* result) {
   Log("Calculating PSNR...\n");
-  PsnrFromFiles(config->input_filename.c_str(), config->output_filename.c_str(),
-                    config->codec_settings.width,
-                    config->codec_settings.height, psnrResult);
-  Log("  Average: %3.2f\n", psnrResult->average);
-  Log("  Min    : %3.2f (frame %d)\n", psnrResult->min,
-      psnrResult->min_frame_number);
-  Log("  Max    : %3.2f (frame %d)\n", psnrResult->max,
-      psnrResult->max_frame_number);
+  I420PSNRFromFiles(config->input_filename.c_str(),
+                    config->output_filename.c_str(),
+                    config->codec_settings->width,
+                    config->codec_settings->height, result);
+  Log("  Average: %3.2f\n", result->average);
+  Log("  Min    : %3.2f (frame %d)\n", result->min, result->min_frame_number);
+  Log("  Max    : %3.2f (frame %d)\n", result->max, result->max_frame_number);
 }
 
 void PrintConfigurationSummary(const webrtc::test::TestConfig& config) {
@@ -294,8 +310,8 @@ void PrintConfigurationSummary(const webrtc::test::TestConfig& config) {
 }
 
 void PrintCsvOutput(const webrtc::test::Stats& stats,
-                    const QualityMetricsResult& ssimResult,
-                    const QualityMetricsResult& psnrResult) {
+                    const webrtc::test::QualityMetricsResult& ssim_result,
+                    const webrtc::test::QualityMetricsResult& psnr_result) {
   Log("\nCSV output (recommended to run with --noverbose to skip the "
               "above output)\n");
   printf("frame_number encoding_successful decoding_successful "
@@ -307,8 +323,8 @@ void PrintCsvOutput(const webrtc::test::Stats& stats,
 
   for (unsigned int i = 0; i < stats.stats_.size(); ++i) {
     const webrtc::test::FrameStatistic& f = stats.stats_[i];
-    const FrameResult& ssim = ssimResult.frames[i];
-    const FrameResult& psnr = psnrResult.frames[i];
+    const webrtc::test::FrameResult& ssim = ssim_result.frames[i];
+    const webrtc::test::FrameResult& psnr = psnr_result.frames[i];
     printf("%4d, %d, %d, %2d, %2d, %6d, %6d, %5d, %7d, %d, %2d, %2d, "
            "%5.3f, %5.2f\n",
            f.frame_number,
@@ -330,8 +346,8 @@ void PrintCsvOutput(const webrtc::test::Stats& stats,
 
 void PrintPythonOutput(const webrtc::test::TestConfig& config,
                        const webrtc::test::Stats& stats,
-                       const QualityMetricsResult& ssimResult,
-                       const QualityMetricsResult& psnrResult) {
+                       const webrtc::test::QualityMetricsResult& ssim_result,
+                       const webrtc::test::QualityMetricsResult& psnr_result) {
   Log("\nPython output (recommended to run with --noverbose to skip the "
                "above output)\n");
   printf("test_configuration = ["
@@ -370,10 +386,10 @@ void PrintPythonOutput(const webrtc::test::TestConfig& config,
          config.frame_length_in_bytes,
          config.use_single_core ? "True " : "False",
          config.keyframe_interval,
-         webrtc::test::VideoCodecTypeToStr(config.codec_settings.codecType),
-         config.codec_settings.width,
-         config.codec_settings.height,
-         config.codec_settings.startBitrate);
+         webrtc::test::VideoCodecTypeToStr(config.codec_settings->codecType),
+         config.codec_settings->width,
+         config.codec_settings->height,
+         config.codec_settings->startBitrate);
   printf("frame_data_types = {"
          "'frame_number': ('number', 'Frame number'),\n"
          "'encoding_successful': ('boolean', 'Encoding successful?'),\n"
@@ -394,8 +410,8 @@ void PrintPythonOutput(const webrtc::test::TestConfig& config,
   printf("frame_data = [");
   for (unsigned int i = 0; i < stats.stats_.size(); ++i) {
     const webrtc::test::FrameStatistic& f = stats.stats_[i];
-    const FrameResult& ssim = ssimResult.frames[i];
-    const FrameResult& psnr = psnrResult.frames[i];
+    const webrtc::test::FrameResult& ssim = ssim_result.frames[i];
+    const webrtc::test::FrameResult& psnr = psnr_result.frames[i];
     printf("{'frame_number': %d, "
            "'encoding_successful': %s, 'decoding_successful': %s, "
            "'encode_time': %d, 'decode_time': %d, "
@@ -433,9 +449,13 @@ int main(int argc, char* argv[]) {
 
   google::ParseCommandLineFlags(&argc, &argv, true);
 
+  // Create TestConfig and codec settings struct.
   webrtc::test::TestConfig config;
+  webrtc::VideoCodec codec_settings;
+  config.codec_settings = &codec_settings;
+
   int return_code = HandleCommandLineFlags(&config);
-  // Exit if an invalid argument is supplied:
+  // Exit if an invalid argument is supplied.
   if (return_code != 0) {
     return return_code;
   }
@@ -473,7 +493,7 @@ int main(int argc, char* argv[]) {
   Log("\n");
   Log("Processed %d frames\n", frame_number);
 
-  // Release encoder and decoder to make sure they have finished processing:
+  // Release encoder and decoder to make sure they have finished processing.
   encoder.Release();
   decoder.Release();
 
@@ -486,16 +506,16 @@ int main(int argc, char* argv[]) {
 
   stats.PrintSummary();
 
-  QualityMetricsResult ssimResult;
-  CalculateSsimVideoMetrics(&config, &ssimResult);
-  QualityMetricsResult psnrResult;
-  CalculatePsnrVideoMetrics(&config, &psnrResult);
+  webrtc::test::QualityMetricsResult ssim_result;
+  CalculateSsimVideoMetrics(&config, &ssim_result);
+  webrtc::test::QualityMetricsResult psnr_result;
+  CalculatePsnrVideoMetrics(&config, &psnr_result);
 
   if (FLAGS_csv) {
-    PrintCsvOutput(stats, ssimResult, psnrResult);
+    PrintCsvOutput(stats, ssim_result, psnr_result);
   }
   if (FLAGS_python) {
-    PrintPythonOutput(config, stats, ssimResult, psnrResult);
+    PrintPythonOutput(config, stats, ssim_result, psnr_result);
   }
   Log("Quality test finished!");
   return 0;

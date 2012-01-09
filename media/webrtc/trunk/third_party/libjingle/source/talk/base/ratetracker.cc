@@ -26,7 +26,7 @@
  */
 
 #include "talk/base/ratetracker.h"
-#include "talk/base/time.h"
+#include "talk/base/timeutils.h"
 
 namespace talk_base {
 

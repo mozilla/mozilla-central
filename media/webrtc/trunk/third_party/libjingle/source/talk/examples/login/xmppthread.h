@@ -25,13 +25,15 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _XMPPTHREAD_H_
-#define _XMPPTHREAD_H_
+#ifndef TALK_EXAMPLES_LOGIN_XMPPTHREAD_H_
+#define TALK_EXAMPLES_LOGIN_XMPPTHREAD_H_
 
-#include "talk/xmpp/xmppclientsettings.h"
 #include "talk/base/thread.h"
 #include "talk/examples/login/xmpppump.h"
 #include "talk/examples/login/xmppsocket.h"
+#include "talk/xmpp/xmppclientsettings.h"
+#include "talk/xmpp/xmppengine.h"
+
 
 class XmppThread:
     public talk_base::Thread, XmppPumpNotify, talk_base::MessageHandler {
@@ -53,4 +55,4 @@ private:
   void OnMessage(talk_base::Message* pmsg);
 };
 
-#endif // _XMPPTHREAD_H_
+#endif  // TALK_EXAMPLES_LOGIN_XMPPTHREAD_H_

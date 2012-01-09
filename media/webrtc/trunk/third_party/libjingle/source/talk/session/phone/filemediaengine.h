@@ -93,6 +93,9 @@ class FileMediaEngine : public MediaEngineInterface {
     return true;
   }
   virtual bool SetVideoCaptureDevice(const Device* cam_device) { return true; }
+  virtual bool SetVideoCapturer(VideoCapturer* /*capturer*/, uint32 /*ssrc*/) {
+    return true;
+  }
   virtual bool GetOutputVolume(int* level) { *level = 0; return true; }
   virtual bool SetOutputVolume(int level) { return true; }
   virtual int GetInputLevel() { return 0; }
@@ -110,6 +113,23 @@ class FileMediaEngine : public MediaEngineInterface {
   virtual bool FindVideoCodec(const VideoCodec& codec) { return true; }
   virtual void SetVoiceLogging(int min_sev, const char* filter) {}
   virtual void SetVideoLogging(int min_sev, const char* filter) {}
+
+  virtual bool RegisterVideoProcessor(VideoProcessor* processor) {
+    return true;
+  }
+  virtual bool UnregisterVideoProcessor(VideoProcessor* processor) {
+    return true;
+  }
+  virtual bool RegisterVoiceProcessor(uint32 ssrc,
+                                      VoiceProcessor* processor,
+                                      MediaProcessorDirection direction) {
+    return true;
+  }
+  virtual bool UnregisterVoiceProcessor(uint32 ssrc,
+                                        VoiceProcessor* processor,
+                                        MediaProcessorDirection direction) {
+    return true;
+  }
 
  private:
   std::string voice_input_filename_;
@@ -202,6 +222,10 @@ class FileVideoChannel : public VideoMediaChannel {
   virtual bool SetRenderer(uint32 ssrc, VideoRenderer* renderer) {
     return true;
   }
+  virtual bool AddScreencast(uint32 ssrc, talk_base::WindowId id) {
+    return true;
+  }
+  virtual bool RemoveScreencast(uint32 ssrc) { return true; }
   virtual bool GetStats(VideoMediaInfo* info) { return true; }
   virtual bool SendIntraFrame() { return false; }
   virtual bool RequestIntraFrame() { return false; }

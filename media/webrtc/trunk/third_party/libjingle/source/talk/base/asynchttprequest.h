@@ -55,6 +55,7 @@ class AsyncHttpRequest : public SignalThread {
   int start_delay() const { return start_delay_; }
   void set_start_delay(int delay) { start_delay_ = delay; }
 
+  const ProxyInfo& proxy() const { return proxy_; }
   void set_proxy(const ProxyInfo& proxy) {
     proxy_ = proxy;
   }

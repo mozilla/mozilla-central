@@ -34,6 +34,7 @@
 namespace cricket {
 
 static const int64 kMaxDistance = ~(static_cast<int64>(1) << 63);
+static const int64  kMinDesirableFps = static_cast<int64>(15);
 
 /////////////////////////////////////////////////////////////////////
 // Implementation of struct CapturedFrame
@@ -51,7 +52,7 @@ CapturedFrame::CapturedFrame()
       data(NULL) {
 }
 
-// TODO(fbarchard): Remove this function once lmimediaengine stops using it.
+// TODO: Remove this function once lmimediaengine stops using it.
 bool CapturedFrame::GetDataSize(uint32* size) const {
   if (!size || data_size == CapturedFrame::kUnknownDataSize) {
     return false;
@@ -94,7 +95,7 @@ bool VideoCapturer::GetBestCaptureFormat(const VideoFormat& desired,
   std::vector<VideoFormat>::const_iterator i;
   for (i = supported_formats_->begin(); i != supported_formats_->end(); ++i) {
     int64 distance = GetFormatDistance(format, *i);
-    // TODO(fbarchard): Reduce to LS_VERBOSE if/when camera capture is
+    // TODO: Reduce to LS_VERBOSE if/when camera capture is
     // relatively bug free.
     LOG(LS_INFO) << " Supported " << i->ToString()
                  << " distance " << distance;
@@ -155,10 +156,33 @@ int64 VideoCapturer::GetFormatDistance(const VideoFormat& desired,
   }
 
   // Check resolution and fps.
-  int desired_height = desired.height;
   int desired_width = desired.width;
-  int64 delta_w = supported.width - desired.width;
-  int64 delta_fps = VideoFormat::IntervalToFps(supported.interval) -
+  int desired_height = desired.height;
+#ifdef OSX
+  // QVGA on OSX is not well supported.  For 16x10, if 320x240 is used, it has
+  // 15x11 pixel aspect ratio on logitech B910/C260 and others.  ComputeCrop
+  // in mediaengine does not crop, so we keep 320x240, which magiccam on Mac
+  // can not display.  Some other viewers can display 320x240, but do not
+  // support pixel aspect ratio and appear distorted.
+  // This code below bumps the preferred resolution to VGA, maintaining aspect
+  // ratio. ie 320x200 -> 640x400.  VGA on logitech and most cameras is 1x1
+  // pixel aspect ratio.  The camera will capture 640x480, ComputeCrop will
+  // crop to 640x400, and the adapter will scale down to QVGA due to JUP view
+  // request.
+  static const int kMinWidth = 640;
+  if (desired_width > 0 && desired_width < kMinWidth) {
+    int new_desired_height = desired_height * kMinWidth / desired_width;
+    LOG(LS_VERBOSE) << " Changed desired from "
+                    << desired_width << "x" << desired_height
+                    << " To "
+                    << kMinWidth << "x" << new_desired_height;
+    desired_width = kMinWidth;
+    desired_height = new_desired_height;
+  }
+#endif
+  int64 delta_w = supported.width - desired_width;
+  int64 supported_fps = VideoFormat::IntervalToFps(supported.interval);
+  int64 delta_fps = supported_fps -
       VideoFormat::IntervalToFps(desired.interval);
   // Check height of supported height compared to height we would like it to be.
   int64 aspect_h = desired_width ?
@@ -172,7 +196,7 @@ int64 VideoCapturer::GetFormatDistance(const VideoFormat& desired,
   // strongly avoiding going down in resolution, similar to
   // the old method, but not completely ruling it out in extreme situations.
   // It also ignores framerate, which is often very low at high resolutions.
-  // TODO(fbarchard): Improve logic to use weighted factors.
+  // TODO: Improve logic to use weighted factors.
   static const int kDownPenalty = -3;
   if (delta_w < 0) {
     delta_w = delta_w * kDownPenalty;
@@ -185,6 +209,9 @@ int64 VideoCapturer::GetFormatDistance(const VideoFormat& desired,
     // Otherwise prefer higher resolution.
     distance |= static_cast<int64>(1) << 15;
     delta_fps = -delta_fps;
+    if (supported_fps <  kMinDesirableFps) {
+      distance |= kMaxDistance;
+    }
   }
 
   // 12 bits for width and height and 8 bits for fps and fourcc.

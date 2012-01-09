@@ -13,6 +13,7 @@
 
 #include "typedefs.h"
 #include "critical_section_wrapper.h"
+#include "decoding_state.h"
 #include "module_common_types.h"
 #include "video_coding_defines.h"
 #include "inter_frame_delay.h"
@@ -32,6 +33,7 @@ enum VCMNackMode
 };
 
 // forward declarations
+class TickTimeBase;
 class VCMFrameBuffer;
 class VCMPacket;
 class VCMEncodedFrame;
@@ -48,7 +50,8 @@ public:
 class VCMJitterBuffer
 {
 public:
-    VCMJitterBuffer(WebRtc_Word32 vcmId = -1,
+    VCMJitterBuffer(TickTimeBase* clock,
+                    WebRtc_Word32 vcmId = -1,
                     WebRtc_Word32 receiverId = -1,
                     bool master = true);
     virtual ~VCMJitterBuffer();
@@ -144,7 +147,6 @@ private:
     void ReleaseFrameInternal(VCMFrameBuffer* frame);
     // Flush and reset the jitter buffer. Call under critical section.
     void FlushInternal();
-    VCMFrameListItem* FindOldestSequenceNum() const;
 
     // Help functions for insert packet
     // Get empty frame, creates new (i.e. increases JB size) if necessary
@@ -161,7 +163,6 @@ private:
     VCMFrameListItem* FindOldestCompleteContinuousFrame(bool enableDecodable);
 
     void CleanUpOldFrames();
-    void CleanUpSizeZeroFrames();
 
     void VerifyAndSetPreviousFrameLost(VCMFrameBuffer& frame);
     bool IsPacketRetransmitted(const VCMPacket& packet) const;
@@ -187,15 +188,15 @@ private:
                                     const void* timestamp);
     static bool CompleteDecodableKeyFrameCriteria(VCMFrameBuffer* frame,
                                                   const void* notUsed);
-    bool ContinuousPictureId(int pictureId) const;
     // Decide whether should wait for NACK (mainly relevant for hybrid mode)
     bool WaitForNack();
 
     WebRtc_Word32                 _vcmId;
     WebRtc_Word32                 _receiverId;
+    TickTimeBase*                 _clock;
     // If we are running (have started) or not
     bool                          _running;
-    CriticalSectionWrapper&       _critSect;
+    CriticalSectionWrapper*       _critSect;
     bool                          _master;
     // Event to signal when we have a frame ready for decoder
     VCMEvent                      _frameEvent;
@@ -208,11 +209,7 @@ private:
     VCMFrameListTimestampOrderAsc _frameBuffersTSOrder;
 
     // timing
-    // Sequence number of last frame that was given to decoder
-    WebRtc_Word32           _lastDecodedSeqNum;
-    // Timestamp of last frame that was given to decoder
-    WebRtc_Word64           _lastDecodedTimeStamp;
-    int                     _lastDecodedPictureId;
+    VCMDecodingState       _lastDecodedState;
     WebRtc_UWord32          _packetsNotDecodable;
 
     // Statistics

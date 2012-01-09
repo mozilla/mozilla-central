@@ -19,10 +19,10 @@
 #include "jitter_estimate_test.h"
 #include "jitter_estimator.h"
 #include "media_opt_util.h"
+#include "modules/video_coding/main/source/tick_time_base.h"
 #include "packet.h"
 #include "test_util.h"
 #include "test_macros.h"
-#include "tick_time.h"
 
 using namespace webrtc;
 
@@ -92,10 +92,11 @@ int CheckOutFrame(VCMEncodedFrame* frameOut, unsigned int size, bool startCode)
 
 int JitterBufferTest(CmdArgs& args)
 {
-    // Don't run these tests with debug time
-#if defined(TICK_TIME_DEBUG) || defined(EVENT_DEBUG)
+    // Don't run these tests with debug event.
+#if defined(EVENT_DEBUG)
     return -1;
 #endif
+    TickTimeBase clock;
 
     // Start test
     WebRtc_UWord16 seqNum = 1234;
@@ -114,7 +115,7 @@ int JitterBufferTest(CmdArgs& args)
         packet.seqNum = seqNum;
         packet.payloadType = 126;
         seqNum++;
-        fb->InsertPacket(packet, VCMTickTime::MillisecondTimestamp(), false, 0);
+        fb->InsertPacket(packet, clock.MillisecondTimestamp(), false, 0);
         TEST(frameList.Insert(fb) == 0);
     }
     VCMFrameListItem* item = NULL;
@@ -135,7 +136,7 @@ int JitterBufferTest(CmdArgs& args)
 
     //printf("DONE timestamp ordered frame list\n");
 
-    VCMJitterBuffer jb;
+    VCMJitterBuffer jb(&clock);
 
     seqNum = 1234;
     timeStamp = 123*90;
@@ -1868,7 +1869,7 @@ int JitterBufferTest(CmdArgs& args)
         TEST(incomingFrameType == kVideoFrameDelta);
 
         loop++;
-    } while (loop < kMaxPacketsInJitterBuffer);
+    } while (loop < kMaxPacketsInSession);
 
     // Max number of packets inserted
 
@@ -1884,8 +1885,6 @@ int JitterBufferTest(CmdArgs& args)
     // Insert the packet -> frame recycled
     TEST(kSizeError == jb.InsertPacket(frameIn, packet));
 
-    // should fail
-    TEST(-1 == jb.GetNextTimeStamp(10, incomingFrameType, renderTimeMs));
     TEST(0 == jb.GetCompleteFrameForDecoding(10));
 
     //printf("DONE fill frame - packets > max number of packets\n");
@@ -2428,6 +2427,53 @@ int JitterBufferTest(CmdArgs& args)
     TEST(CheckOutFrame(frameOut, packet.sizeBytes, false) == 0);
 
     jb.Flush();
+
+    // Verify that a key frame is the next frame after the nack list gets full.
+    jb.SetNackMode(kNackInfinite, -1, -1);
+    seqNum += 1;
+    timeStamp += 33 * 90;
+    packet.seqNum = seqNum;
+    packet.timestamp = timeStamp;
+    packet.frameType = kVideoFrameKey;
+    packet.isFirstPacket = true;
+    packet.completeNALU = kNaluComplete;
+    packet.markerBit = true;
+    TEST(frameIn = jb.GetFrame(packet));
+    TEST(kFirstPacket == jb.InsertPacket(frameIn, packet));
+
+    TEST(jb.GetCompleteFrameForDecoding(0) != NULL);
+
+    seqNum += kNackHistoryLength + 1;
+    timeStamp += 33 * 90;
+    packet.seqNum = seqNum;
+    packet.timestamp = timeStamp;
+    packet.frameType = kVideoFrameDelta;
+    packet.isFirstPacket = true;
+    packet.completeNALU = kNaluComplete;
+    packet.markerBit = true;
+    TEST(frameIn = jb.GetFrame(packet));
+    TEST(kFirstPacket == jb.InsertPacket(frameIn, packet));
+
+    TEST(jb.GetCompleteFrameForDecoding(0) == NULL);
+
+    uint16_t nack_list_length = kNackHistoryLength;
+    uint16_t *nack_list;
+    nack_list = jb.GetNackList(nack_list_length, extended);
+    TEST(nack_list_length == 0xffff && nack_list == NULL);
+
+    seqNum += 1;
+    timeStamp += 33 * 90;
+    packet.seqNum = seqNum;
+    packet.timestamp = timeStamp;
+    packet.frameType = kVideoFrameDelta;
+    packet.isFirstPacket = true;
+    packet.completeNALU = kNaluComplete;
+    packet.markerBit = true;
+    TEST(frameIn = jb.GetFrame(packet));
+    TEST(kFirstPacket == jb.InsertPacket(frameIn, packet));
+
+    TEST(jb.GetCompleteFrameForDecoding(0) == NULL);
+    TEST(jb.GetFrameForDecoding() == NULL);
 
     jb.Stop();
 

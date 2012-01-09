@@ -6,10 +6,13 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -58,10 +61,13 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -108,14 +114,14 @@ INCS_Release := -Isrc \
 	-Itesting/gtest/include \
 	-Isrc/system_wrappers/interface
 
-OBJS := $(obj).target/$(TARGET)/src/common_video/libyuv/test/test_util.o \
-	$(obj).target/$(TARGET)/src/common_video/libyuv/test/unit_test.o
+OBJS := $(obj).target/$(TARGET)/src/common_video/libyuv/libyuv_unittest.o \
+	$(obj).target/$(TARGET)/src/common_video/libyuv/scaler_unittest.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
 
 # Make sure our dependencies are built before any of us.
-$(OBJS): | $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/testing/libgtest.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support_main.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a
+$(OBJS): | $(obj).target/src/common_video/libwebrtc_libyuv.a $(obj).target/testing/libgtest.a $(obj).target/src/system_wrappers/source/libsystem_wrappers.a $(obj).target/test/libtest_support_main.a $(obj).target/third_party/libyuv/libyuv.a $(obj).target/testing/gtest_prod.stamp $(obj).target/test/libtest_support.a $(obj).target/testing/libgmock.a
 
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
@@ -139,10 +145,12 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cc FORCE_DO_CMD
 # End of this set of suffix rules
 ### Rules for final target.
 LDFLAGS_Debug := -pthread \
-	-Wl,-z,noexecstack
+	-Wl,-z,noexecstack \
+	-fPIC
 
 LDFLAGS_Release := -pthread \
 	-Wl,-z,noexecstack \
+	-fPIC \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections

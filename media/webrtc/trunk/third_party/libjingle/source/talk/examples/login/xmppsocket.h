@@ -32,6 +32,7 @@
 #include "talk/base/bytebuffer.h"
 #include "talk/base/sigslot.h"
 #include "talk/xmpp/asyncsocket.h"
+#include "talk/xmpp/xmppengine.h"
 
 // The below define selects the SSLStreamAdapter implementation for
 // SSL, as opposed to the SSLAdapter socket adapter.
@@ -44,7 +45,7 @@ extern talk_base::AsyncSocket* cricket_socket_;
 
 class XmppSocket : public buzz::AsyncSocket, public sigslot::has_slots<> {
 public:
-  XmppSocket(bool tls);
+  XmppSocket(buzz::TlsOptions tls);
   ~XmppSocket();
 
   virtual buzz::AsyncSocket::State state();
@@ -75,7 +76,7 @@ private:
 #endif  // USE_SSLSTREAM
   buzz::AsyncSocket::State state_;
   talk_base::ByteBuffer buffer_;
-  bool tls_;
+  buzz::TlsOptions tls_;
 };
 
 #endif // _XMPPSOCKET_H_

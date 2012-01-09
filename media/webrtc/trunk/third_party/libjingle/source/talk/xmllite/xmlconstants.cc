@@ -25,41 +25,32 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "xmlconstants.h"
+#include "talk/xmllite/xmlconstants.h"
 
-using namespace buzz;
+namespace buzz {
 
-const std::string & XmlConstants::str_empty() {
-  static const std::string str_empty_;
-  return str_empty_;
+const char STR_EMPTY[] = "";
+const char NS_XML[] = "http://www.w3.org/XML/1998/namespace";
+const char NS_XMLNS[] = "http://www.w3.org/2000/xmlns/";
+const char STR_XMLNS[] = "xmlns";
+const char STR_XML[] = "xml";
+const char STR_VERSION[] = "version";
+const char STR_ENCODING[] = "encoding";
+
+const StaticQName QN_EMPTY = { STR_EMPTY, STR_EMPTY };
+const StaticQName QN_XMLNS = { STR_EMPTY, STR_XMLNS };
+
+// TODO: Local statics are not thread-safe. Remove the
+// following two functions if possible.
+const std::string& EmptyStringRef() {
+  static std::string result;
+  return result;
 }
 
-const std::string & XmlConstants::ns_xml() {
-  static const std::string ns_xml_("http://www.w3.org/XML/1998/namespace");
-  return ns_xml_;
+const QName& EmptyQNameRef() {
+  static QName result(QN_EMPTY);
+  return result;
 }
 
-const std::string & XmlConstants::ns_xmlns() {
-  static const std::string ns_xmlns_("http://www.w3.org/2000/xmlns/");
-  return ns_xmlns_;
-}
 
-const std::string & XmlConstants::str_xmlns() {
-  static const std::string str_xmlns_("xmlns");
-  return str_xmlns_;
-}
-
-const std::string & XmlConstants::str_xml() {
-  static const std::string str_xml_("xml");
-  return str_xml_;
-}
-
-const std::string & XmlConstants::str_version() {
-  static const std::string str_version_("version");
-  return str_version_;
-}
-
-const std::string & XmlConstants::str_encoding() {
-  static const std::string str_encoding_("encoding");
-  return str_encoding_;
 }

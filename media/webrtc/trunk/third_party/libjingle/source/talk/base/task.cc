@@ -197,22 +197,15 @@ void Task::Error() {
 }
 
 std::string Task::GetStateName(int state) const {
-  static const std::string STR_BLOCKED("BLOCKED");
-  static const std::string STR_INIT("INIT");
-  static const std::string STR_START("START");
-  static const std::string STR_DONE("DONE");
-  static const std::string STR_ERROR("ERROR");
-  static const std::string STR_RESPONSE("RESPONSE");
-  static const std::string STR_HUH("??");
   switch (state) {
-    case STATE_BLOCKED: return STR_BLOCKED;
-    case STATE_INIT: return STR_INIT;
-    case STATE_START: return STR_START;
-    case STATE_DONE: return STR_DONE;
-    case STATE_ERROR: return STR_ERROR;
-    case STATE_RESPONSE: return STR_RESPONSE;
+    case STATE_BLOCKED: return "BLOCKED";
+    case STATE_INIT: return "INIT";
+    case STATE_START: return "START";
+    case STATE_DONE: return "DONE";
+    case STATE_ERROR: return "ERROR";
+    case STATE_RESPONSE: return "RESPONSE";
   }
-  return STR_HUH;
+  return "??";
 }
 
 int Task::Process(int state) {

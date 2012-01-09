@@ -62,7 +62,7 @@ enum ActionType {
   ACTION_TRANSPORT_INFO,
   ACTION_TRANSPORT_ACCEPT,
 
-  ACTION_UPDATE,
+  ACTION_DESCRIPTION_INFO,
 };
 
 // Abstraction of a <jingle> element within an <iq> stanza, per XMPP

@@ -56,15 +56,14 @@ public:
       token_service_("") {}
 
   virtual std::string GetMechanismName() { return mechanism_; }
-    
+
   virtual XmlElement * StartSaslAuth() {
     // send initial request
     XmlElement * el = new XmlElement(QN_SASL_AUTH, true);
     el->AddAttr(QN_MECHANISM, mechanism_);
     if (!token_service_.empty()) {
-      el->AddAttr(
-          QName(true, "http://www.google.com/talk/protocol/auth", "service"),
-          token_service_);
+      el->AddAttr(QName("http://www.google.com/talk/protocol/auth", "service"),
+                  token_service_);
     }
 
     std::string credential;
@@ -75,7 +74,7 @@ public:
     el->AddText(Base64Encode(credential));
     return el;
   }
-  
+
 private:
   std::string mechanism_;
   std::string username_;

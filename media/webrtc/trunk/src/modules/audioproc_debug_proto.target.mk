@@ -14,7 +14,7 @@ $(obj)/gen/protoc_out/webrtc/audio_processing/debug.pb.cc $(obj)/gen/protoc_out/
 $(obj)/gen/protoc_out/webrtc/audio_processing/debug.pb.cc $(obj)/gen/protoc_out/webrtc/audio_processing/debug.pb.h: ;
 
 all_deps += $(builddir)/pyproto/webrtc/audio_processing/debug_pb2.py $(obj)/gen/protoc_out/webrtc/audio_processing/debug.pb.cc $(obj)/gen/protoc_out/webrtc/audio_processing/debug.pb.h
-cmd_audioproc_debug_proto_genproto_0 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd src/modules; mkdir -p $(obj)/gen/protoc_out/webrtc/audio_processing $(builddir)/pyproto/webrtc/audio_processing; "$(builddir)/protoc" "--proto_path=audio_processing" "audio_processing/debug$(suffix $<)" "--cpp_out=$(obj)/gen/protoc_out/webrtc/audio_processing" "--python_out=$(builddir)/pyproto/webrtc/audio_processing"
+cmd_audioproc_debug_proto_genproto_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd src/modules; mkdir -p $(obj)/gen/protoc_out/webrtc/audio_processing $(builddir)/pyproto/webrtc/audio_processing; "$(builddir)/protoc" "--proto_path=audio_processing" "audio_processing/debug$(suffix $<)" "--cpp_out=$(obj)/gen/protoc_out/webrtc/audio_processing" "--python_out=$(builddir)/pyproto/webrtc/audio_processing"
 quiet_cmd_audioproc_debug_proto_genproto_0 = RULE audioproc_debug_proto_genproto_0 $@
 
 rule_audioproc_debug_proto_genproto_outputs := $(builddir)/pyproto/webrtc/audio_processing/debug_pb2.py \
@@ -29,10 +29,13 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -80,10 +83,13 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -168,10 +174,12 @@ $(obj).target/src/modules/libaudioproc_debug_proto.a: | $(rule_audioproc_debug_p
 $(rule_audioproc_debug_proto_genproto_outputs): | $(builddir)/protoc
 
 LDFLAGS_Debug := -pthread \
-	-Wl,-z,noexecstack
+	-Wl,-z,noexecstack \
+	-fPIC
 
 LDFLAGS_Release := -pthread \
 	-Wl,-z,noexecstack \
+	-fPIC \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections

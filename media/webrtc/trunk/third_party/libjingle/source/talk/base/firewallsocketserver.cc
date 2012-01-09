@@ -177,11 +177,11 @@ bool FirewallSocketServer::Check(FirewallProtocol p,
     const Rule& r = rules_[i];
     if ((r.p != p) && (r.p != FP_ANY))
       continue;
-    if ((r.src.ip() != src.ip()) && !r.src.IsAny())
+    if ((r.src.ipaddr() != src.ipaddr()) && !r.src.IsAny())
       continue;
     if ((r.src.port() != src.port()) && (r.src.port() != 0))
       continue;
-    if ((r.dst.ip() != dst.ip()) && !r.dst.IsAny())
+    if ((r.dst.ipaddr() != dst.ipaddr()) && !r.dst.IsAny())
       continue;
     if ((r.dst.port() != dst.port()) && (r.dst.port() != 0))
       continue;

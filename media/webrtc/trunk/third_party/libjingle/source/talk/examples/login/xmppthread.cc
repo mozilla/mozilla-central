@@ -25,8 +25,9 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "talk/xmpp/xmppclientsettings.h"
 #include "talk/examples/login/xmppthread.h"
+
+#include "talk/xmpp/xmppclientsettings.h"
 #include "talk/examples/login/xmppauth.h"
 
 namespace {
@@ -70,7 +71,8 @@ void XmppThread::OnMessage(talk_base::Message* pmsg) {
   if (pmsg->message_id == MSG_LOGIN) {
     ASSERT(pmsg->pdata != NULL);
     LoginData* data = reinterpret_cast<LoginData*>(pmsg->pdata);
-    pump_->DoLogin(data->xcs, new XmppSocket(false), new XmppAuth());
+    pump_->DoLogin(data->xcs, new XmppSocket(buzz::TLS_DISABLED),
+        new XmppAuth());
     delete data;
   } else if (pmsg->message_id == MSG_DISCONNECT) {
     pump_->DoDisconnect();

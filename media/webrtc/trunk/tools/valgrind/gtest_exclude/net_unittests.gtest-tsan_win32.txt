@@ -32,3 +32,9 @@ X509CertificateTest.IntermediateCARequireExplicitPolicy
 # Time out, see http://crbug.com/68482
 SSLServerSocketTest.*
 X509CertificateTest.TestKnownRoot
+
+# See http://crbug.com/102330
+SSLClientSocketTest.*
+
+# See http://crbug.com/104805
+HostResolverImplTest.OnlyAbortExistingRequestsOnIPAddressChange

@@ -51,7 +51,7 @@ static const int kMaxLogLineSize = 1024 - 60;
 #include "talk/base/stream.h"
 #include "talk/base/stringencode.h"
 #include "talk/base/stringutils.h"
-#include "talk/base/time.h"
+#include "talk/base/timeutils.h"
 
 namespace talk_base {
 

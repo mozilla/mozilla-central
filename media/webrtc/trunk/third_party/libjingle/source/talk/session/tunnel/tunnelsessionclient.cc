@@ -39,10 +39,10 @@
 
 namespace cricket {
 
-const std::string NS_TUNNEL("http://www.google.com/talk/tunnel");
-const buzz::QName QN_TUNNEL_DESCRIPTION(NS_TUNNEL, "description");
-const buzz::QName QN_TUNNEL_TYPE(NS_TUNNEL, "type");
-const std::string CN_TUNNEL("tunnel");
+const char NS_TUNNEL[] = "http://www.google.com/talk/tunnel";
+const buzz::StaticQName QN_TUNNEL_DESCRIPTION = { NS_TUNNEL, "description" };
+const buzz::StaticQName QN_TUNNEL_TYPE = { NS_TUNNEL, "type" };
+const char CN_TUNNEL[] = "tunnel";
 
 enum {
   MSG_CLOCK = 1,

@@ -13,7 +13,7 @@
 
 #include <stddef.h>  // for NULL, size_t
 
-#ifndef WIN32
+#if !(defined(_MSC_VER) && (_MSC_VER < 1600))
 #include <stdint.h>  // for uintptr_t
 #endif
 
@@ -57,7 +57,7 @@ typedef int int32;
 typedef unsigned short uint16;
 typedef short int16;
 typedef unsigned char uint8;
-typedef char int8;
+typedef signed char int8;
 #endif  // INT_TYPES_DEFINED
 
 // Detect compiler is for x86 or x64.

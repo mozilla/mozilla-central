@@ -1,0 +1,739 @@
+# This file contains suppressions for the Dr.Memory tool, see
+# http://dev.chromium.org/developers/how-tos/using-drmemory
+#
+# This file should contain suppressions only for the reports happening
+# in the 'full' mode (drmemory_full).
+# For the reports that can happen in the light mode (a.k.a. drmemory_light),
+# please use suppressions.txt instead.
+
+############################
+# Known reports on the third party we have no control over.
+UNINITIALIZED READ
+name=deflate UNINIT
+...
+*!deflate_*
+*!MOZ_Z_deflate
+
+# TODO(timurrrr): check if these frames change when NT_SYMBOLS are present.
+LEAK
+name=http://code.google.com/p/drmemory/issues/detail?id=406
+ADVAPI32.dll!WmiOpenBlock
+ADVAPI32.dll!WmiOpenBlock
+
+# Leaks inside GoogleDesktop - it injects into our processes for some reason
+LEAK
+name=GoogleDesktop LEAK
+...
+GoogleDesktopNetwork3.DLL!DllUnregisterServer
+
+# They deliberately use uninit local var in sqlite random generator
+UNINITIALIZED READ
+name=sqlite3_randomness UNINIT
+*!randomByte
+*!sqlite3_randomness
+
+############################
+# Suppress some false reports due to bugs in Dr.Memory like wrong analysis
+# assumptions or unhandled syscalls
+
+# Please note: the following suppressions were written in the abscense of
+# private symbols so may need to be updated when we switch to auto-loading PDBs
+UNINITIALIZED READ
+name=http://code.google.com/p/drmemory/issues/detail?id=12 (1)
+ntdll.dll!Rtl*
+ntdll.dll!Rtl*
+ntdll.dll!RtlFindActivationContextSectionString
+
+UNINITIALIZED READ
+name=http://code.google.com/p/drmemory/issues/detail?id=12 (2)
+...
+SHELL32.dll!SHFileOperation*
+
+UNINITIALIZED READ
+name=http://code.google.com/p/drmemory/issues/detail?id=12 (3)
+...
+SHELL32.dll!SHGetFolderPath*
+
+LEAK
+name=http://code.google.com/p/drmemory/issues/detail?id=12 (4)
+...
+SHELL32.dll!SHGetFolderPath*
+
+UNINITIALIZED READ
+name=http://code.google.com/p/drmemory/issues/detail?id=12 (5)
+...
+SHELL32.dll!SHCreateDirectory*
+
+UNINITIALIZED READ
+name=http://code.google.com/p/drmemory/issues/detail?id=12 (6)
+...
+SHELL32.dll!ILLoadFromStream*
+
+UNINITIALIZED READ
+name=http://code.google.com/p/drmemory/issues/detail?id=12 (7)
+...
+SHELL32.dll!ILSaveToStream*
+
+LEAK
+name=http://code.google.com/p/drmemory/issues/detail?id=12 (8)
+...
+SHELL32.dll!SHFileOperation*
+
+UNINITIALIZED READ
+name=http://code.google.com/p/drmemory/issues/detail?id=12 (9)
+...
+SHELL32.dll!SHGetItemFromDataObject
+
+LEAK
+name=http://code.google.com/p/drmemory/issues/detail?id=12 (10)
+...
+SHELL32.dll!SHGetItemFromDataObject
+
+LEAK
+name=http://code.google.com/p/drmemory/issues/detail?id=12 (11)
+...
+ole32.dll!*
+SHELL32.dll!SHChangeNotifySuspendResume
+
+UNINITIALIZED READ
+name=http://code.google.com/p/drmemory/issues/detail?id=14 (1)
+...
+*!CreateProcess*
+
+LEAK
+name=http://code.google.com/p/drmemory/issues/detail?id=14 (2)
+...
+*!CreateProcess*
+
+UNINITIALIZED READ
+name=http://code.google.com/p/drmemory/issues/detail?id=14 (3)
+...
+*!base::LaunchApp*
+
+UNINITIALIZED READ
+name=http://code.google.com/p/drmemory/issues/detail?id=17 (1)
+...
+*!CreateWindow*
+
+POSSIBLE LEAK
+name=http://code.google.com/p/drmemory/issues/detail?id=17 (2)
+GDI32.dll!*
+GDI32.dll!CreateFontIndirectExW
+GDI32.dll!CreateFontIndirectW
+
+# TODO(timurrrr): I'm too lazy to add name= to all the suppressions below now.
+
+# http://code.google.com/p/drmemory/issues/detail?id=18
+UNINITIALIZED READ
+...
+*!CoInitialize*
+
+UNINITIALIZED READ
+...
+*!CoCreateInstance*
+
+UNINITIALIZED READ
+...
+*!CoUninitialize*
+
+UNINITIALIZED READ
+...
+UxTheme.dll!*
+
+# http://code.google.com/p/drmemory/issues/detail?id=40
+UNINITIALIZED READ
+...
+WINSPOOL.DRV!*
+
+LEAK
+...
+WINSPOOL.DRV!*
+
+# http://code.google.com/p/drmemory/issues/detail?id=48
+UNINITIALIZED READ
+system call NtContinue
+*!*SetThreadName
+
+UNINITIALIZED READ
+system call NtContinue
+*!WTF::initializeCurrentThreadInternal
+
+# http://code.google.com/p/drmemory/issues/detail?id=52
+UNINITIALIZED READ
+...
+DBGHELP.dll!SymInitialize
+
+UNINITIALIZED READ
+...
+DBGHELP.dll!SymEnumSourceFiles
+
+UNINITIALIZED READ
+...
+msvcrt.dll!_RTDynamicCast
+
+# http://code.google.com/p/drmemory/issues/detail?id=53
+UNINITIALIZED READ
+ADVAPI32.dll!WmiMofEnumerateResourcesA
+ADVAPI32.dll!WmiMofEnumerateResourcesA
+ADVAPI32.dll!Sta*TraceW
+
+# http://code.google.com/p/drmemory/issues/detail?id=58
+UNINITIALIZED READ
+...
+*!_cfltcvt_l
+
+# http://code.google.com/p/drmemory/issues/detail?id=60
+UNINITIALIZED READ
+USP10.dll!*
+...
+USP10.dll!ScriptStringAnalyse
+
+LEAK
+IMM32.dll!ImmGetIMCCSize
+IMM32.dll!ImmLockClientImc
+IMM32.dll!ImmDisableIME
+IMM32.dll!ImmSetActiveContext
+USER32.dll!IMPSetIMEA
+
+# http://code.google.com/p/drmemory/issues/detail?id=65
+UNINITIALIZED READ
+...
+*!SystemFunction036
+
+UNINITIALIZED READ
+...
+*!talk_base::CreateRandomString
+
+# http://code.google.com/p/drmemory/issues/detail?id=68
+UNINITIALIZED READ
+...
+WS2_32.dll!*
+
+UNINITIALIZED READ
+...
+ADVAPI32.dll!SetSecurityDescriptorDacl
+
+UNINITIALIZED READ
+...
+MSWSOCK.dll!WSPStartup
+
+UNINITIALIZED READ
+...
+ntdll.dll!RtlValidateUnicodeString
+
+# http://code.google.com/p/drmemory/issues/detail?id=256
+LEAK
+*!_mtinit
+*!__tmainCRTStartup
+*!mainCRTStartup
+
+# http://code.google.com/p/drmemory/issues/detail?id=274
+POSSIBLE LEAK
+...
+GDI32.dll!CreateDCW
+
+LEAK
+...
+GDI32.dll!CreateDCW
+
+# http://code.google.com/p/drmemory/issues/detail?id=275
+LEAK
+...
+*!_getptd*
+
+# http://code.google.com/p/drmemory/issues/detail?id=276
+UNINITIALIZED READ
+...
+ntdll.dll!RtlConvertUlongToLargeInteger
+ntdll.dll!RtlConvertUlongToLargeInteger
+ntdll.dll!KiUserExceptionDispatcher
+
+# http://code.google.com/p/drmemory/issues/detail?id=305
+LEAK
+*!free
+*!free
+*!operator new
+...
+*!MiniDumpWriteDump
+
+# http://code.google.com/p/drmemory/issues/detail?id=346
+UNINITIALIZED READ
+...
+GDI32.dll!CloseEnhMetaFile
+
+UNINITIALIZED READ
+GDI32.dll!SetPolyFillMode
+GDI32.dll!CreateICW
+
+# http://code.google.com/p/drmemory/issues/detail?id=362
+UNINITIALIZED READ
+USER32.dll!UnregisterClass*
+
+# http://code.google.com/p/drmemory/issues/detail?id=382
+LEAK
+...
+ntdll.dll!CsrNewThread
+
+# http://code.google.com/p/drmemory/issues/detail?id=397
+UNINITIALIZED READ
+system call NtDeviceIoControlFile InputBuffer
+ADVAPI32.dll!ImpersonateAnonymousToken
+
+# http://code.google.com/p/drmemory/issues/detail?id=407
+UNINITIALIZED READ
+system call NtRequestWaitReplyPort
+RPCRT4.dll!I_RpcSendReceive
+RPCRT4.dll!NdrSendReceive
+
+UNINITIALIZED READ
+IMM32.dll!*
+ntdll.dll!LdrInitializeThunk
+ntdll.dll!LdrShutdownThread
+
+# http://code.google.com/p/drmemory/issues/detail?id=412
+UNINITIALIZED READ
+ADVAPI32.dll!RegDeleteValue*
+
+UNINITIALIZED READ
+...
+ADVAPI32.dll!Crypt*
+
+UNINITIALIZED READ
+...
+RPCRT4.dll!NdrClientCall2
+
+LEAK
+RSAENH.dll!DllUnregisterServer
+...
+ADVAPI32.dll!CryptAcquireContextA
+CRYPT32.dll!CryptEnumOIDFunction
+...
+CRYPT32.dll!CertFindCertificateInStore
+
+UNINITIALIZED READ
+...
+RSAENH.dll!CPGenRandom
+
+UNINITIALIZED READ
+...
+CRYPT??.dll!Crypt*
+
+UNINITIALIZED READ
+*!replace_memcmp
+...
+*!testing::internal::CmpHelperEQ*
+...
+*!SymmetricKeyTest_ImportGeneratedKey_Test::TestBody
+
+# http://code.google.com/p/drmemory/issues/detail?id=425
+UNINITIALIZED READ
+CLBCatQ.DLL!DestroyStgDatabase
+CLBCatQ.DLL!PostError
+CLBCatQ.DLL!PostError
+
+LEAK
+RPCRT4.dll!I_RpcBCacheFree
+RPCRT4.dll!I_RpcBCacheFree
+...
+RPCRT4.dll!NdrClientCall2
+
+UNINITIALIZED READ
+msdmo.dll!*
+msdmo.dll!*
+DEVENUM.DLL!*
+
+# http://code.google.com/p/drmemory/issues/detail?id=435
+UNINITIALIZED READ
+...
+ntdll.dll!RtlSetSecurityObject
+ntdll.dll!RtlNewSecurityObjectEx
+ADVAPI32.dll!CreatePrivateObjectSecurityEx
+NTMARTA.dll!AccRewriteSetNamedRights
+
+POSSIBLE LEAK
+WLDAP32.dll!Ordinal325
+...
+WLDAP32.dll!Ordinal325
+ntdll.dll!LdrInitializeThunk
+ntdll.dll!LdrFindResourceDirectory_U
+ntdll.dll!RtlValidateUnicodeString
+ntdll.dll!LdrLoadDll
+KERNEL32.dll!LoadLibraryExW
+
+# http://code.google.com/p/drmemory/issues/detail?id=438
+# mod+offs suppression because the symbolic makes no sense and changes
+# completely in the presence of WS2_32.dll symbols.
+LEAK
+<WS2_32.dll+0x260c>
+<WS2_32.dll+0x2b76>
+<WS2_32.dll+0x2c61>
+
+# http://code.google.com/p/drmemory/issues/detail?id=454
+UNINITIALIZED READ
+...
+WINMM.dll!wave*GetNumDevs
+
+LEAK
+...
+WINMM.dll!wave*GetNumDevs
+
+# http://code.google.com/p/drmemory/issues/detail?id=466
+LEAK
+ntdll.dll!RtlRunOnceBeginInitialize
+ntdll.dll!RtlInitializeCriticalSectionAndSpinCount
+
+# http://code.google.com/p/drmemory/issues/detail?id=471
+UNINITIALIZED READ
+*!media::AudioRendererAlgorithmOLA::Crossfade<unsigned char>
+*!media::AudioRendererAlgorithmOLA::FillBuffer
+*!media::AudioRendererAlgorithmOLATest_FillBuffer_*
+
+# http://code.google.com/p/drmemory/issues/detail?id=473
+UNINITIALIZED READ
+system call NtDeviceIoControlFile InputBuffer
+...
+iphlpapi.dll!GetAdaptersAddresses
+
+POSSIBLE LEAK
+ESENT.dll!*
+ESENT.dll!*
+ESENT.dll!*
+ntdll.dll!Ldr*Init*
+ntdll.dll!Ldr*
+ntdll.dll!*
+ntdll.dll!LdrLoadDll
+...
+iphlpapi.dll!GetPerAdapterInfo
+...
+iphlpapi.dll!GetAdaptersAddresses
+
+# http://code.google.com/p/drmemory/issues/detail?id=475
+LEAK
+...
+ADVAPI32.dll!CryptAcquireContextA
+...
+CRYPT32.dll!CryptMsgOpenToDecode
+...
+CRYPT32.dll!CryptQueryObject
+
+# http://code.google.com/p/drmemory/issues/detail?id=476
+LEAK
+...
+RPCRT4.dll!RpcBindingFromStringBindingW
+...
+NETAPI32.dll!DsRoleGetPrimaryDomainInformation
+...
+USERENV.dll!CreateEnvironmentBlock
+...
+CRYPT32.dll!CertOpenStore
+...
+CRYPT32.dll!CertCreateCertificateChainEngine
+
+LEAK
+KERNEL32.dll!LocalAlloc
+...
+CRYPT32.dll!CryptDecodeObjectEx
+...
+CRYPT32.dll!CertGetCRLContextProperty
+...
+CRYPT32.dll!CertGetCertificateChain
+
+# http://code.google.com/p/drmemory/issues/detail?id=511
+UNINITIALIZED READ
+RPCRT4.dll!*
+...
+RPCRT4.dll!UuidCreate
+ole32.dll!*
+
+UNINITIALIZED READ
+ole32.dll!*
+ole32.dll!*
+ole32.dll!StringFromGUID2
+
+# http://code.google.com/p/drmemory/issues/detail?id=512
+UNINITIALIZED READ
+...
+*!browser_sync::Cryptographer::PackBootstrapToken
+*!browser_sync::Cryptographer::GetBootstrapToken
+
+UNINITIALIZED READ
+...
+*!Encrypt*
+
+# http://code.google.com/p/drmemory/issues/detail?id=513
+UNINITIALIZED READ
+*!v8*
+
+UNINITIALIZED READ
+*!*
+*!v8*
+
+UNINITIALIZED READ
+<not in a module>
+...
+*!v8*
+
+# http://code.google.com/p/drmemory/issues/detail?id=546
+UNINITIALIZED READ
+...
+mscms.dll!*
+...
+GDI32.dll!*
+*!IconUtil::Create*HICON*
+
+# http://crbug.com/92152
+LEAK
+...
+USER32.dll!CreateWindowExW
+*!views::TooltipManagerWin::Init
+*!views::TooltipManagerWin::TooltipManagerWin
+
+# http://code.google.com/p/drmemory/issues/detail?id=567
+UNINITIALIZED READ
+dbghelp.dll!*
+...
+dbghelp.dll!StackWalk64
+
+LEAK
+*!*
+dbghelp.dll!*
+...
+dbghelp.dll!StackWalk64
+
+# http://code.google.com/p/drmemory/issues/detail?id=569
+# symbols w/o PDB make no sense, so sticking with mod+offs
+POSSIBLE LEAK
+<RPCRT4.dll+0x10636>
+<RPCRT4.dll+0x10610>
+...
+<RPCRT4.dll+0x3474?>
+<ntdll.dll+0x64fde>
+<ntdll.dll+0x447f3>
+
+############################
+# TODO(timurrrr): investigate these
+UNINITIALIZED READ
+...
+*!win_util::GetLogonSessionOnlyDACL
+
+UNINITIALIZED READ
+...
+ntshrui.dll!IsPathSharedW
+
+UNINITIALIZED READ
+...
+*!NetApiBufferFree
+
+UNINITIALIZED READ
+...
+*!ShellExecute*
+
+UNINITIALIZED READ
+...
+*!SHParseDisplayName
+
+UNINITIALIZED READ
+...
+*!GetCanonicalPathInfo*
+
+UNINITIALIZED READ
+...
+SHELL32.dll!Ordinal*
+
+UNINITIALIZED READ
+...
+GDI32.dll!GetTextExtentPoint32*
+
+UNINITIALIZED READ
+...
+*!SyncSocketClientListener::OnMsgClassResponse
+
+UNINITIALIZED READ
+...
+*!*NSPRInitSingleton*
+
+UNINITIALIZED READ
+*!NdrSimpleStructFree
+
+UNINITIALIZED READ
+ntdll.dll!RtlpNtOpenKey
+ntdll.dll!RtlMakeSelfRelativeSD
+ntdll.dll!RtlAbsoluteToSelfRelativeSD
+ADVAPI32.dll!MakeSelfRelativeSD
+
+UNINITIALIZED READ
+...
+CRYPT32.dll!I_CertSyncStore
+
+# This test intentionally leaks an object and checks that it's never deleted
+LEAK
+...
+*!BrowserThreadTest_NotReleasedIfTargetThreadNonExistent_Test::TestBody
+
+############################
+# Benign issues in Chromium
+
+# We deliberately leak different kinds of Histograms to avoid data races.
+LEAK
+...
+*!operator new*
+...
+*!*::*Histogram::FactoryGet
+
+# Deliberate LazyInstance leaks
+LEAK
+...
+*!*base::LeakyLazyInstanceTraits*::*
+...
+*!base::LazyInstance*::Pointer
+
+LEAK
+name=http://crbug.com/79933 (1)
+...
+*!TestURLRequestContext::Init
+
+LEAK
+name=http://crbug.com/79933 (2)
+...
+*!TestURLRequestContext::TestURLRequestContext
+*!TestURLRequestContextGetter::GetURLRequestContext
+*!notifier::SingleLoginAttempt::SingleLoginAttempt
+*!notifier::Login::StartConnection
+*!sync_notifier::InvalidationNotifier::UpdateCredentials
+*!sync_notifier::NonBlockingInvalidationNotifier::Core::UpdateCredentials
+
+LEAK
+name=http://crbug.com/79933 (3)
+...
+*!TestURLRequestContext::TestURLRequestContext
+*!TestURLRequestContextGetter::GetURLRequestContext
+*!URLFetcher::Core::StartURLRequest
+
+############################
+# Real issues in Chromium
+
+LEAK
+name=http://crbug.com/32085
+...
+chrome.dll!NotificationRegistrar::Add
+
+LEAK
+name=http://crbug.com/32623
+...
+*!ssl3_HandleHandshakeMessage
+*!ssl3_HandleHandshake
+*!ssl3_HandleRecord
+*!ssl3_GatherCompleteHandshake
+...
+*!SSL_ForceHandshake
+*!net::SSLServerSocketNSS::DoHandshake
+*!net::SSLServerSocketNSS::DoHandshakeLoop
+
+UNINITIALIZED READ
+name=http://crbug.com/57266 (1)
+...
+*!remoting::EncoderVp8::Encode
+
+UNINITIALIZED READ
+name=http://crbug.com/57266 (2)
+...
+*!vp8_*
+
+LEAK
+name=http://crbug.com/70062
+*!PR_Calloc
+*!PR_NewLock
+...
+*!InitSessionCacheLocks
+*!initSessionCacheLocksLazily
+*!PR_CallOnce
+*!ssl_InitSessionCacheLocks
+*!lock_cache
+*!ssl_LookupSID
+*!ssl2_BeginClientHandshake
+*!ssl_Do1stHandshake
+*!SSL_ForceHandshake
+*!net::SSL*SocketNSS::DoHandshake
+*!net::SSL*SocketNSS::DoHandshakeLoop
+
+LEAK
+name=http://crbug.com/74417
+*!operator new
+*!disk_cache::BackendImpl::CreateEntryImpl
+
+LEAK
+name=http://crbug.com/74425
+*!operator new
+*!disk_cache::BackendImpl::NewEntry
+
+LEAK
+name=http://crbug.com/75247
+...
+*!operator new
+*!AutofillDownloadTestHelper::AutofillDownloadTestHelper
+
+LEAK
+name=http://crbug.com/78784
+*!generic_cpp_alloc
+*!operator new
+*!TestingProfile::CreateRequestContext
+*!*ProfileSyncService*::SetUp
+
+LEAK
+name=http://crbug.com/80550 (1)
+...
+*!RenderWidgetHost::WasHidden
+
+LEAK
+name=http://crbug.com/80550 (2)
+...
+*!RenderWidgetHost::WasRestored
+
+LEAK
+name=http://crbug.com/87612
+...
+*!SSL_ConfigSecureServer
+*!net::SSLServerSocketNSS::InitializeSSLOptions
+*!net::SSLServerSocketNSS::Handshake
+
+LEAK
+name=http://crbug.com/88640
+*!generic_cpp_alloc
+*!operator new
+*!ProfileImpl::InitRegisteredProtocolHandlers
+*!ProfileImpl::DoFinalInit
+*!ProfileImpl::OnPrefsLoaded
+
+LEAK
+name=http://crbug.com/91465
+*!generic_cpp_alloc
+*!operator new
+*!browser_sync::internal::WeakHandleCore<browser_sync::JsBackend>::*
+*!browser_sync::WeakHandle<browser_sync::JsBackend>::*
+*!sync_api::SyncManager::SyncInternal::Init
+
+LEAK
+name=http://crbug.com/91491
+...
+*!CrxUpdateService::ProcessPendingItems
+
+UNINITIALIZED READ
+name=http://crbug.com/92026 (1)
+softokn3.dll!FC_GetFunctionList
+...
+softokn3.dll!NSC_ModuleDBFunc
+
+UNINITIALIZED READ
+name=http://crbug.com/92026 (2)
+freebl3.dll!FREEBL_GetVector
+...
+softokn3.dll!NSC_ModuleDBFunc
+
+LEAK
+name=http://crbug.com/92166
+...
+*!operator new
+*!views::NativeWidgetWin::OnCreate
+
+# Empty line at EOF - workaround for
+# http://code.google.com/p/drmemory/issues/detail?id=41

@@ -12,7 +12,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jccolss2-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_0)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jccolss2-64.o
-cmd_libjpeg_assemble_0 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jccolss2-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jccolss2-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_0 = RULE libjpeg_assemble_0 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jcgrass2-64.o: obj := $(abs_obj)
@@ -24,7 +24,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jcgrass2-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_1)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jcgrass2-64.o
-cmd_libjpeg_assemble_1 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jcgrass2-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_1 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jcgrass2-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_1 = RULE libjpeg_assemble_1 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jcqnts2f-64.o: obj := $(abs_obj)
@@ -36,7 +36,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jcqnts2f-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_2)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jcqnts2f-64.o
-cmd_libjpeg_assemble_2 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jcqnts2f-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_2 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jcqnts2f-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_2 = RULE libjpeg_assemble_2 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jcqnts2i-64.o: obj := $(abs_obj)
@@ -48,7 +48,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jcqnts2i-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_3)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jcqnts2i-64.o
-cmd_libjpeg_assemble_3 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jcqnts2i-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_3 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jcqnts2i-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_3 = RULE libjpeg_assemble_3 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jcsamss2-64.o: obj := $(abs_obj)
@@ -60,7 +60,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jcsamss2-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_4)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jcsamss2-64.o
-cmd_libjpeg_assemble_4 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jcsamss2-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jcsamss2-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_4 = RULE libjpeg_assemble_4 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jdcolss2-64.o: obj := $(abs_obj)
@@ -72,7 +72,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jdcolss2-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_5)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jdcolss2-64.o
-cmd_libjpeg_assemble_5 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jdcolss2-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_5 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jdcolss2-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_5 = RULE libjpeg_assemble_5 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jdmerss2-64.o: obj := $(abs_obj)
@@ -84,7 +84,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jdmerss2-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_6)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jdmerss2-64.o
-cmd_libjpeg_assemble_6 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jdmerss2-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_6 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jdmerss2-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_6 = RULE libjpeg_assemble_6 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jdsamss2-64.o: obj := $(abs_obj)
@@ -96,7 +96,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jdsamss2-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_7)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jdsamss2-64.o
-cmd_libjpeg_assemble_7 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jdsamss2-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_7 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jdsamss2-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_7 = RULE libjpeg_assemble_7 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jfss2fst-64.o: obj := $(abs_obj)
@@ -108,7 +108,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jfss2fst-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_8)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jfss2fst-64.o
-cmd_libjpeg_assemble_8 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jfss2fst-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_8 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jfss2fst-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_8 = RULE libjpeg_assemble_8 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jfss2int-64.o: obj := $(abs_obj)
@@ -120,7 +120,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jfss2int-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_9)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jfss2int-64.o
-cmd_libjpeg_assemble_9 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jfss2int-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_9 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jfss2int-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_9 = RULE libjpeg_assemble_9 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jfsseflt-64.o: obj := $(abs_obj)
@@ -132,7 +132,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jfsseflt-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_10)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jfsseflt-64.o
-cmd_libjpeg_assemble_10 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jfsseflt-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_10 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jfsseflt-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_10 = RULE libjpeg_assemble_10 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jiss2flt-64.o: obj := $(abs_obj)
@@ -144,7 +144,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jiss2flt-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_11)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jiss2flt-64.o
-cmd_libjpeg_assemble_11 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jiss2flt-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_11 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jiss2flt-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_11 = RULE libjpeg_assemble_11 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jiss2fst-64.o: obj := $(abs_obj)
@@ -156,7 +156,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jiss2fst-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_12)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jiss2fst-64.o
-cmd_libjpeg_assemble_12 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jiss2fst-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_12 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jiss2fst-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_12 = RULE libjpeg_assemble_12 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jiss2int-64.o: obj := $(abs_obj)
@@ -168,7 +168,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jiss2int-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_13)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jiss2int-64.o
-cmd_libjpeg_assemble_13 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jiss2int-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_13 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jiss2int-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_13 = RULE libjpeg_assemble_13 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jiss2red-64.o: obj := $(abs_obj)
@@ -180,7 +180,7 @@ $(obj)/gen/third_party/libjpeg_turbo/jiss2red-64.o: third_party/libjpeg_turbo/si
 	$(call do_cmd,libjpeg_assemble_14)
 
 all_deps += $(obj)/gen/third_party/libjpeg_turbo/jiss2red-64.o
-cmd_libjpeg_assemble_14 = export LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jiss2red-64.o" "$(abspath $<)"
+cmd_libjpeg_assemble_14 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libjpeg_turbo; mkdir -p $(obj)/gen/third_party/libjpeg_turbo; "$(builddir)/yasm" -felf64 -D__x86_64__ -DELF -Ilinux/ -DRGBX_FILLER_0XFF -DSTRICT_MEMORY_ACCESS -Isimd/ -o "$(obj)/gen/third_party/libjpeg_turbo/jiss2red-64.o" "$(abspath $<)"
 quiet_cmd_libjpeg_assemble_14 = RULE libjpeg_assemble_14 $@
 
 rule_libjpeg_assemble_outputs := $(obj)/gen/third_party/libjpeg_turbo/jccolss2-64.o \
@@ -207,10 +207,13 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -231,7 +234,6 @@ CFLAGS_Debug := -pthread \
 	-pipe \
 	-fPIC \
 	-fno-strict-aliasing \
-	-Wno-deprecated \
 	-Wno-format \
 	-Wno-unused-result \
 	-O0 \
@@ -243,7 +245,8 @@ CFLAGS_C_Debug :=
 # Flags passed to only C++ files.
 CFLAGS_CC_Debug := -fno-rtti \
 	-fno-threadsafe-statics \
-	-fvisibility-inlines-hidden
+	-fvisibility-inlines-hidden \
+	-Wno-deprecated
 
 INCS_Debug := -Ithird_party/libjpeg_turbo
 
@@ -251,10 +254,13 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
+	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
+	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
 	'-DENABLE_INPUT_SPEECH' \
+	'-DENABLE_NOTIFICATIONS' \
 	'-DENABLE_GPU=1' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
@@ -275,7 +281,6 @@ CFLAGS_Release := -pthread \
 	-pipe \
 	-fPIC \
 	-fno-strict-aliasing \
-	-Wno-deprecated \
 	-Wno-format \
 	-Wno-unused-result \
 	-O2 \
@@ -289,7 +294,8 @@ CFLAGS_C_Release :=
 # Flags passed to only C++ files.
 CFLAGS_CC_Release := -fno-rtti \
 	-fno-threadsafe-statics \
-	-fvisibility-inlines-hidden
+	-fvisibility-inlines-hidden \
+	-Wno-deprecated
 
 INCS_Release := -Ithird_party/libjpeg_turbo
 
@@ -379,10 +385,12 @@ $(obj).target/third_party/libjpeg_turbo/libjpeg_turbo.a: | $(rule_libjpeg_assemb
 $(rule_libjpeg_assemble_outputs): | $(builddir)/yasm
 
 LDFLAGS_Debug := -pthread \
-	-Wl,-z,noexecstack
+	-Wl,-z,noexecstack \
+	-fPIC
 
 LDFLAGS_Release := -pthread \
 	-Wl,-z,noexecstack \
+	-fPIC \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections

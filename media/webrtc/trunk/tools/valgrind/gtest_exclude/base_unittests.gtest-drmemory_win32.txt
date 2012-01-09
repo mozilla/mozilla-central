@@ -5,3 +5,5 @@ EtwTrace*
 StatsTableTest.*
 ProcessUtilTest.EnableLFH
 ScopedNativeLibrary.Basic
+# TODO(zhaoqin) investigate the failures and enable it later, 106043
+ConditionVariableTest.LargeFastTaskTest

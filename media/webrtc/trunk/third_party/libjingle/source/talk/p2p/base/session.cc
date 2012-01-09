@@ -32,11 +32,11 @@
 #include "talk/base/scoped_ptr.h"
 #include "talk/xmpp/constants.h"
 #include "talk/xmpp/jid.h"
+#include "talk/p2p/base/p2ptransport.h"
+#include "talk/p2p/base/p2ptransportchannel.h"
 #include "talk/p2p/base/sessionclient.h"
 #include "talk/p2p/base/transport.h"
 #include "talk/p2p/base/transportchannelproxy.h"
-#include "talk/p2p/base/p2ptransport.h"
-#include "talk/p2p/base/p2ptransportchannel.h"
 
 #include "talk/p2p/base/constants.h"
 
@@ -64,11 +64,19 @@ TransportProxy::~TransportProxy() {
     iter->second->SignalDestroyed(iter->second);
     delete iter->second;
   }
-  delete transport_;
+  if (owner_)
+    delete transport_;
 }
 
 std::string TransportProxy::type() const {
   return transport_->type();
+}
+
+void TransportProxy::SetImplementation(Transport* impl, bool owner) {
+  if (owner_ && transport_)
+     delete transport_;
+  transport_ = impl;
+  owner_ = owner;
 }
 
 TransportChannel* TransportProxy::GetChannel(const std::string& name) {
@@ -156,7 +164,34 @@ void TransportProxy::SetProxyImpl(
     const std::string& name, TransportChannelProxy* proxy) {
   TransportChannelImpl* impl = GetOrCreateImpl(name, proxy->content_type());
   ASSERT(impl != NULL);
-  proxy->SetImplementation(impl);
+  proxy->SetImplementation(impl, true);
+}
+
+// This method will use TransportChannelImpls of and deletes what it owns.
+void TransportProxy::CopyTransportProxyChannels(TransportProxy* proxy) {
+  size_t index = 0;
+  for (ChannelMap::const_iterator iter = proxy->channels().begin();
+       iter != proxy->channels().end(); ++iter, ++index) {
+    ReplaceImpl(iter->second, index);
+  }
+}
+
+void TransportProxy::ReplaceImpl(TransportChannelProxy* channel,
+                                 size_t index) {
+  if (index < channels().size()) {
+    ChannelMap::const_iterator iter = channels().begin();
+    // Get handle the index which needs to be replaced.
+    for (size_t i = 0; i < index; ++i, ++iter);
+
+    TransportChannelProxy* target_channel = iter->second;
+    if (target_channel) {
+      // Deleting TransportChannelImpl before replacing it.
+      transport_->DestroyChannel(iter->first);
+      target_channel->SetImplementation(channel->impl(), false);
+    }
+  } else {
+    LOG(LS_WARNING) << "invalid TransportChannelProxy index to replace";
+  }
 }
 
 BaseSession::BaseSession(talk_base::Thread* signaling_thread,
@@ -323,6 +358,59 @@ void BaseSession::SpeculativelyConnectAllTransportChannels() {
   }
 }
 
+bool BaseSession::ContentsGrouped() {
+  // TODO - present implementation checks for groups present
+  // in SDP. It may be necessary to check content_names in groups of both
+  // local and remote descriptions. Assumption here is that when this method
+  // returns true, media contents can be muxed.
+  if (local_description()->HasGroup(GN_TOGETHER) &&
+      remote_description()->HasGroup(GN_TOGETHER)) {
+    return true;
+  }
+  return false;
+}
+
+bool BaseSession::MaybeEnableMuxingSupport() {
+  bool ret = true;
+  if (!ContentsGrouped()) {
+    LOG(LS_INFO) << "Contents are not grouped together cannot be muxed";
+  } else {
+    // Always use first content name from the group for muxing. Hence ordering
+    // of content names in SDP should match to the order in group.
+    const ContentGroup* muxed_content_group =
+        local_description()->GetGroupByName(GN_TOGETHER);
+    const std::string* content_name =
+        muxed_content_group->FirstContentName();
+    if (content_name) {
+      const ContentInfo* content =
+          local_description_->GetContentByName(*content_name);
+      ASSERT(content != NULL);
+      SetSelectedProxy(content->name, muxed_content_group);
+    }
+  }
+  return ret;
+}
+
+void BaseSession::SetSelectedProxy(const std::string& content_name,
+                                   const ContentGroup* muxed_group) {
+  TransportProxy* selected_proxy = GetTransportProxy(content_name);
+  if (selected_proxy) {
+    ASSERT(selected_proxy->negotiated());
+    for (TransportMap::iterator iter = transports_.begin();
+         iter != transports_.end(); ++iter) {
+      // If content is part of group, then try to replace the Proxy with
+      // the selected.
+      if (iter->first != content_name &&
+          muxed_group->HasContentName(iter->first)) {
+        TransportProxy* proxy = iter->second;
+        proxy->CopyTransportProxyChannels(selected_proxy);
+        // After replacing the TransportChannels, replace Transport
+        proxy->SetImplementation(selected_proxy->impl(), false);
+      }
+    }
+  }
+}
+
 void BaseSession::OnMessage(talk_base::Message *pmsg) {
   switch (pmsg->message_id) {
   case MSG_TIMEOUT:
@@ -414,6 +502,7 @@ bool Session::Accept(const SessionDescription* sdesc) {
     return false;
   }
 
+  MaybeEnableMuxingSupport();  // Enable transport channel mux if supported.
   SetState(Session::STATE_SENTACCEPT);
   return true;
 }
@@ -648,8 +737,8 @@ void Session::OnIncomingMessage(const SessionMessage& msg) {
     case ACTION_TRANSPORT_ACCEPT:
       valid = OnTransportAcceptMessage(msg, &error);
       break;
-    case ACTION_UPDATE:
-      valid = OnUpdateMessage(msg, &error);
+    case ACTION_DESCRIPTION_INFO:
+      valid = OnDescriptionInfoMessage(msg, &error);
       break;
     default:
       valid = BadMessage(buzz::QN_STANZA_BAD_REQUEST,
@@ -796,6 +885,7 @@ bool Session::OnAcceptMessage(const SessionMessage& msg, MessageError* error) {
   OnInitiateAcked();
 
   set_remote_description(new SessionDescription(accept.ClearContents()));
+  MaybeEnableMuxingSupport();  // Enable transport channel mux if supported.
   SetState(STATE_RECEIVEDACCEPT);
 
   // Users of Session may listen to state change and call Reject().
@@ -856,7 +946,7 @@ bool Session::OnTransportAcceptMessage(const SessionMessage& msg,
   return true;
 }
 
-bool Session::OnUpdateMessage(const SessionMessage& msg,
+bool Session::OnDescriptionInfoMessage(const SessionMessage& msg,
                               MessageError* error) {
   if (!CheckState(STATE_INPROGRESS, error))
     return false;
@@ -882,12 +972,14 @@ bool Session::OnUpdateMessage(const SessionMessage& msg,
   }
 
   // Merge the updates into the remote description.
+  // TODO: Merge streams instead of overwriting.
   for (it = updated_contents.begin(); it != updated_contents.end(); ++it) {
     LOG(LS_INFO) << "Updating content " << it->name;
     remote_description()->RemoveContentByName(it->name);
     remote_description()->AddContent(it->name, it->type, it->description);
   }
 
+  // TODO: Add an argument that shows what streams were changed.
   SignalRemoteDescriptionUpdate(this);
 
   return true;

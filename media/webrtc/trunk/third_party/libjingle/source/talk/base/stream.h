@@ -67,6 +67,10 @@ class Thread;
 
 class StreamInterface : public MessageHandler {
  public:
+  enum {
+    MSG_POST_EVENT = 0xF1F1, MSG_MAX = MSG_POST_EVENT
+  };
+
   virtual ~StreamInterface();
 
   virtual StreamState GetState() const = 0;

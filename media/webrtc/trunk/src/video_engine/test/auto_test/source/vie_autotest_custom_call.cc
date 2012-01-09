@@ -26,6 +26,7 @@
 #define DEFAULT_VIDEO_CODEC_WIDTH                       640
 #define DEFAULT_VIDEO_CODEC_HEIGHT                      480
 #define DEFAULT_VIDEO_CODEC_BITRATE                     300
+#define DEFAULT_VIDEO_CODEC_MIN_BITRATE                 100
 #define DEFAULT_VIDEO_CODEC_MAX_BITRATE                 1000
 #define DEFAULT_AUDIO_PORT                              11113
 #define DEFAULT_AUDIO_CODEC                             "ISAC"
@@ -33,6 +34,7 @@
 #define DEFAULT_OUTGOING_FILE_NAME                      "OutgoingFile.avi"
 #define DEFAULT_VIDEO_CODEC_MAX_FRAMERATE               30
 #define DEFAULT_VIDEO_PROTECTION_METHOD                 0
+#define DEFAULT_TEMPORAL_LAYER                          0
 
 enum StatisticsType {
   kSendStatistic,
@@ -110,6 +112,8 @@ void PrintVideoStreamInformation(webrtc::ViECodec* ptrViECodec,
 void PrintVideoCodec(webrtc::VideoCodec videoCodec);
 
 // The following are video functions.
+// TODO(amyfong): change to pointers as input arguments 
+// instead of references
 bool SetVideoPorts(int* txPort, int* rxPort);
 bool SetVideoCodecType(webrtc::ViECodec* ptrViECodec,
                        webrtc::VideoCodec& videoCodec);
@@ -119,10 +123,13 @@ bool SetVideoCodecSize(webrtc::ViECodec* ptrViECodec,
                        webrtc::VideoCodec& videoCodec);
 bool SetVideoCodecBitrate(webrtc::ViECodec* ptrViECodec,
                           webrtc::VideoCodec& videoCodec);
+bool SetVideoCodecMinBitrate(webrtc::ViECodec* ptrViECodec,
+                             webrtc::VideoCodec& videoCodec);
 bool SetVideoCodecMaxBitrate(webrtc::ViECodec* ptrViECodec,
                              webrtc::VideoCodec& videoCodec);
 bool SetVideoCodecMaxFramerate(webrtc::ViECodec* ptrViECodec,
                                webrtc::VideoCodec& videoCodec);
+bool SetVideoCodecTemporalLayer(webrtc::VideoCodec& videoCodec);
 int GetVideoProtection();
 bool SetVideoProtection(webrtc::ViECodec* ptrViECodec,
                         webrtc::ViERTP_RTCP* ptrViERtpRtcp,
@@ -244,7 +251,6 @@ int ViEAutoTest::ViECustomCall()
   bool isImageScaleEnabled = false;
   int protectionMethod = DEFAULT_VIDEO_PROTECTION_METHOD;
 
-
   while (!startCall) {
     // Get the IP address to use from call.
     memset(ipAddress, 0, kMaxIPLength);
@@ -265,8 +271,10 @@ int ViEAutoTest::ViECustomCall()
     SetVideoCodecType(ptrViECodec, videoSendCodec);
     SetVideoCodecSize(ptrViECodec, videoSendCodec);
     SetVideoCodecBitrate(ptrViECodec, videoSendCodec);
+    SetVideoCodecMinBitrate(ptrViECodec, videoSendCodec);
     SetVideoCodecMaxBitrate(ptrViECodec, videoSendCodec);
     SetVideoCodecMaxFramerate(ptrViECodec, videoSendCodec);
+    SetVideoCodecTemporalLayer(videoSendCodec);
 
     // Get the video protection method for the call.
     protectionMethod = GetVideoProtection();
@@ -572,8 +580,10 @@ int ViEAutoTest::ViECustomCall()
           SetVideoCodecType(ptrViECodec, videoSendCodec);
           SetVideoCodecSize(ptrViECodec, videoSendCodec);
           SetVideoCodecBitrate(ptrViECodec, videoSendCodec);
+          SetVideoCodecMinBitrate(ptrViECodec, videoSendCodec);
           SetVideoCodecMaxBitrate(ptrViECodec, videoSendCodec);
           SetVideoCodecMaxFramerate(ptrViECodec, videoSendCodec);
+          SetVideoCodecTemporalLayer(videoSendCodec);
           PrintCallInformation(ipAddress, deviceName,
                                uniqueId, videoSendCodec,
                                videoTxPort, videoRxPort,
@@ -1655,6 +1665,21 @@ bool SetVideoCodecMaxBitrate(webrtc::ViECodec* ptrViECodec,
   return true;
 }
 
+bool SetVideoCodecMinBitrate(webrtc::ViECodec* ptrViECodec,
+                             webrtc::VideoCodec& videoCodec) {
+  std::string str;
+  std::cout << std::endl;
+  std::cout << "Choose min bitrate (in fps). Press enter for default ("
+            << DEFAULT_VIDEO_CODEC_MIN_BITRATE << "):  ";
+  std::getline(std::cin, str);
+  char minBitRate = atoi(str.c_str());
+  videoCodec.minBitrate = DEFAULT_VIDEO_CODEC_MIN_BITRATE;
+  if (minBitRate != 0) {
+    videoCodec.minBitrate = minBitRate;
+  }
+  return true;
+}
+
 bool SetVideoCodecMaxFramerate(webrtc::ViECodec* ptrViECodec,
                                webrtc::VideoCodec& videoCodec) {
   std::string str;
@@ -1666,6 +1691,25 @@ bool SetVideoCodecMaxFramerate(webrtc::ViECodec* ptrViECodec,
   videoCodec.maxFramerate = DEFAULT_VIDEO_CODEC_MAX_FRAMERATE;
   if (maxFrameRate != 0) {
     videoCodec.maxFramerate = maxFrameRate;
+  }
+  return true;
+}
+
+bool SetVideoCodecTemporalLayer(webrtc::VideoCodec& videoCodec) {
+  if (videoCodec.codecType == webrtc::kVideoCodecVP8) {
+    std::string str;
+    std::cout << std::endl;
+    std::cout << "Choose number of temporal layers (1 to 4). "
+              << "Press enter for default (" 
+              << DEFAULT_TEMPORAL_LAYER << "):  ";
+    std::getline(std::cin, str);
+    char numTemporalLayers = atoi(str.c_str());
+    videoCodec.codecSpecific.VP8.numberOfTemporalLayers
+        = DEFAULT_TEMPORAL_LAYER;
+    if(numTemporalLayers != 0) {
+      videoCodec.codecSpecific.VP8.numberOfTemporalLayers
+          = numTemporalLayers;
+    }
   }
   return true;
 }
@@ -1983,8 +2027,15 @@ void PrintVideoCodec(webrtc::VideoCodec videoCodec) {
   std::cout << "\t\theight: " << videoCodec.height << std::endl;
   std::cout << "\t\tstartBitrate: " << videoCodec.startBitrate
             << std::endl;
+  std::cout << "\t\tminBitrate: " << videoCodec.minBitrate
+            << std::endl;
   std::cout << "\t\tmaxBitrate: " << videoCodec.maxBitrate
             << std::endl;
   std::cout << "\t\tmaxFramerate: " << (int)videoCodec.maxFramerate
             << std::endl;
+  if (videoCodec.codecType == webrtc::kVideoCodecVP8) {
+    std::cout << "\t\tVP8 Temporal Layer: "
+              << (int)videoCodec.codecSpecific.VP8.numberOfTemporalLayers
+              << std::endl;
+  }
 }

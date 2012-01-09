@@ -91,6 +91,18 @@ const buzz::XmlElement* GetXmlChild(const buzz::XmlElement* parent,
   return NULL;
 }
 
+const buzz::XmlElement* GetXmlElement(const XmlElements& elems,
+                                      const buzz::QName& name) {
+  for (XmlElements::const_iterator iter = elems.begin();
+       iter != elems.end(); ++iter) {
+    const buzz::XmlElement* elem = *iter;
+    if (elem->Name() == name) {
+      return elem;
+    }
+  }
+  return NULL;
+}
+
 bool RequireXmlChild(const buzz::XmlElement* parent,
                      const std::string& name,
                      const buzz::XmlElement** child,
@@ -117,6 +129,14 @@ bool RequireXmlAttr(const buzz::XmlElement* elem,
   } else {
     *value = elem->Attr(name);
     return true;
+  }
+}
+
+void AddXmlAttrIfNonEmpty(buzz::XmlElement* elem,
+                          const buzz::QName name,
+                          const std::string& value) {
+  if (!value.empty()) {
+    elem->AddAttr(name, value);
   }
 }
 

@@ -3,6 +3,7 @@
 :: Use of this source code is governed by a BSD-style license that can be
 :: found in the LICENSE file.
 
+:: TODO(timurrrr): batch files 'export' all the variables to the parent shell
 set THISDIR=%~dp0
 set TOOL_NAME="unknown"
 
@@ -16,22 +17,21 @@ set TOOL_NAME="unknown"
 
 :TOOLNAME_NOT_FOUND
 echo "Please specify a tool (tsan or drmemory) by using --tool flag"
-set %ERRORLEVEL% 1
-goto :EOF
+exit /B 1
 
 :TOOLNAME_FOUND
 SHIFT
 set TOOL_NAME=%1
 :: }}}
-if %TOOL_NAME% == drmemory       GOTO :SETUP_DRMEMORY
-if %TOOL_NAME% == drmemory_light GOTO :SETUP_DRMEMORY
-if %TOOL_NAME% == drmemory_full  GOTO :SETUP_DRMEMORY
-if %TOOL_NAME% == tsan     GOTO :SETUP_TSAN
-echo "Unknown tool: %TOOL_NAME%! Only tsan and drmemory are supported right now"
-set %ERRORLEVEL% 1
-goto :EOF
+if "%TOOL_NAME%" == "drmemory"       GOTO :SETUP_DRMEMORY
+if "%TOOL_NAME%" == "drmemory_light" GOTO :SETUP_DRMEMORY
+if "%TOOL_NAME%" == "drmemory_full"  GOTO :SETUP_DRMEMORY
+if "%TOOL_NAME%" == "tsan"     GOTO :SETUP_TSAN
+echo "Unknown tool: `%TOOL_NAME%`! Only tsan and drmemory are supported right now"
+exit /B 1
 
 :SETUP_DRMEMORY
+if NOT "%DRMEMORY_COMMAND%"=="" GOTO :RUN_TESTS
 :: Set up DRMEMORY_COMMAND to invoke Dr. Memory {{{1
 set DRMEMORY_PATH=%THISDIR%..\..\third_party\drmemory
 set DRMEMORY_SFX=%DRMEMORY_PATH%\drmemory-windows-sfx.exe
@@ -39,8 +39,7 @@ if EXIST %DRMEMORY_SFX% GOTO DRMEMORY_BINARY_OK
 echo "Can't find Dr. Memory executables."
 echo "See http://www.chromium.org/developers/how-tos/using-valgrind/dr-memory"
 echo "for the instructions on how to get them."
-set %ERRORLEVEL% 1
-goto :EOF
+exit /B 1
 
 :DRMEMORY_BINARY_OK
 %DRMEMORY_SFX% -o%DRMEMORY_PATH%\unpacked -y
@@ -56,8 +55,7 @@ if EXIST %TSAN_SFX% GOTO TSAN_BINARY_OK
 echo "Can't find ThreadSanitizer executables."
 echo "See http://www.chromium.org/developers/how-tos/using-valgrind/threadsanitizer/threadsanitizer-on-windows"
 echo "for the instructions on how to get them."
-set %ERRORLEVEL% 1
-goto :EOF
+exit /B 1
 
 :TSAN_BINARY_OK
 %TSAN_SFX% -o%TSAN_PATH%\unpacked -y

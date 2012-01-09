@@ -28,6 +28,8 @@
 #ifndef TALK_BASE_SSLSTREAMADAPTER_H__
 #define TALK_BASE_SSLSTREAMADAPTER_H__
 
+#include <string>
+
 #include "talk/base/stream.h"
 #include "talk/base/sslidentity.h"
 
@@ -46,6 +48,13 @@ namespace talk_base {
 // The SSL library requires initialization and cleanup. Static method
 // for doing this are in SSLAdapter. They should possibly be moved out
 // to a neutral class.
+
+
+enum SSLRole { SSL_CLIENT, SSL_SERVER };
+enum SSLMode { SSL_MODE_TLS, SSL_MODE_DTLS };
+
+// Errors for Read -- in the high range so no conflict with OpenSSL.
+enum { SSE_MSG_TRUNC = 0xff0001 };
 
 class SSLStreamAdapter : public StreamAdapterInterface {
  public:
@@ -70,7 +79,12 @@ class SSLStreamAdapter : public StreamAdapterInterface {
 
   // Call this to indicate that we are to play the server's role in
   // the peer-to-peer mode.
-  virtual void SetServerRole() = 0;
+  // The default argument is for backward compatibility
+  // TODO(ekr@rtfm.com): rename this SetRole to reflect its new function
+  virtual void SetServerRole(SSLRole role = SSL_SERVER) = 0;
+
+  // Do DTLS or TLS
+  virtual void SetMode(SSLMode mode) = 0;
 
   // The mode of operation is selected by calling either
   // StartSSLWithServer or StartSSLWithPeer.
@@ -95,7 +109,7 @@ class SSLStreamAdapter : public StreamAdapterInterface {
   // StartSSLWithPeer starts negotiation in the special peer-to-peer
   // mode.
   // Generally, SetIdentity() and possibly SetServerRole() should have
-  // been called before this. 
+  // been called before this.
   // SetPeerCertificate() must also be called. It may be called after
   // StartSSLWithPeer() but must be called before the underlying
   // stream opens.
@@ -111,6 +125,17 @@ class SSLStreamAdapter : public StreamAdapterInterface {
   // free it when appropriate. Should be called no more than once on a
   // given SSLStream instance.
   virtual void SetPeerCertificate(SSLCertificate* cert) = 0;
+
+  // Specify the digest of the certificate that our peer is expected to use in
+  // peer-to-peer mode. Only this certificate will be accepted during
+  // SSL verification. The certificate is assumed to have been
+  // obtained through some other secure channel (such as the XMPP
+  // channel). Unlike SetPeerCertificate(), this must specify the
+  // terminal certificate, not just a CA.
+  // SSLStream makes a copy of the digest value.
+  virtual bool SetPeerCertificateDigest(const std::string& digest_alg,
+                                        const unsigned char* digest_val,
+                                        size_t digest_len) = 0;
 
   // If true, the server certificate need not match the configured
   // server_name, and in fact missing certificate authority and other

@@ -25,6 +25,9 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif
 
 #ifdef HAVE_WEBRTC_VOICE
 
@@ -42,6 +45,7 @@
 #include "talk/base/logging.h"
 #include "talk/base/stringencode.h"
 #include "talk/base/stringutils.h"
+#include "talk/session/phone/voiceprocessor.h"
 #include "talk/session/phone/webrtcvoe.h"
 
 #ifdef WIN32
@@ -301,6 +305,10 @@ WebRtcVoiceEngine::~WebRtcVoiceEngine() {
     adm_sc_ = NULL;
   }
 
+  // Test to see if the media processor was deregistered properly
+  ASSERT(SignalRxMediaFrame.is_empty());
+  ASSERT(SignalTxMediaFrame.is_empty());
+
   tracing_->SetTraceCallback(NULL);
 }
 
@@ -437,6 +445,12 @@ bool WebRtcVoiceEngine::SetOptions(int options) {
   if (voe_wrapper_->processing()->SetEcStatus(aec) == -1) {
     LOG_RTCERR1(SetEcStatus, aec);
     return false;
+  }
+  if (aec) {
+    if (voe_wrapper_->processing()->SetEcMetricsStatus(true) == -1) {
+      LOG_RTCERR1(SetEcMetricsStatus, true);
+      return false;
+    }
   }
 
   if (voe_wrapper_->processing()->SetAgcStatus(agc) == -1) {
@@ -825,16 +839,17 @@ void WebRtcVoiceEngine::ApplyLogging(const std::string& log_filter) {
 
 // Ignore spammy trace messages, mostly from the stats API when we haven't
 // gotten RTCP info yet from the remote side.
-static bool ShouldIgnoreTrace(const std::string& trace) {
+bool WebRtcVoiceEngine::ShouldIgnoreTrace(const std::string& trace) {
   static const char* kTracesToIgnore[] = {
     "\tfailed to GetReportBlockInformation",
     "GetRecCodec() failed to get received codec",
-    "GetRemoteRTCPData() failed to measure statistics dueto lack of received RTP and/or RTCP packets",  // NOLINT
-    "GetRemoteRTCPData() failed to retrieve sender info for remoteside",
-    "GetRTPStatistics() failed to measure RTT since noRTP packets have been received yet",  // NOLINT
+    "GetReceivedRtcpStatistics: Could not get received RTP statistics",
+    "GetRemoteRTCPData() failed to measure statistics due to lack of received RTP and/or RTCP packets",  // NOLINT
+    "GetRemoteRTCPData() failed to retrieve sender info for remote side",
+    "GetRTPStatistics() failed to measure RTT since no RTP packets have been received yet",  // NOLINT
     "GetRTPStatistics() failed to read RTP statistics from the RTP/RTCP module",
-    "GetRTPStatistics() failed to retrieve RTT fromthe RTP/RTCP module",
-    "webrtc::RTCPReceiver::SenderInfoReceived No received SR",
+    "GetRTPStatistics() failed to retrieve RTT from the RTP/RTCP module",
+    "SenderInfoReceived No received SR",
     "StatisticsRTP() no statisitics availble",
     NULL
   };
@@ -865,7 +880,7 @@ void WebRtcVoiceEngine::Print(const webrtc::TraceLevel level,
     } else {
       std::string msg(trace + 71, length - 72);
       if (!ShouldIgnoreTrace(msg)) {
-        LOG_V(sev) << "WebRtc VoE:" << msg;
+        LOG_V(sev) << "WebRtc:" << msg;
       }
     }
   }
@@ -877,13 +892,13 @@ void WebRtcVoiceEngine::CallbackOnError(const int channel_num,
   WebRtcVoiceMediaChannel* channel = NULL;
   uint32 ssrc = 0;
   LOG(LS_WARNING) << "VoiceEngine error " << err_code << " reported on channel "
-               << channel_num << ".";
+                  << channel_num << ".";
   if (FindChannelAndSsrc(channel_num, &channel, &ssrc)) {
     ASSERT(channel != NULL);
     channel->OnError(ssrc, err_code);
   } else {
     LOG(LS_ERROR) << "VoiceEngine channel " << channel_num
-        << " could not be found in the channel list when error reported.";
+                  << " could not be found in channel list when error reported.";
   }
 }
 
@@ -903,6 +918,34 @@ bool WebRtcVoiceEngine::FindChannelAndSsrc(
     }
   }
 
+  return false;
+}
+
+// This method will search through the WebRtcVoiceMediaChannels and
+// obtain the voice engine's channel number.
+bool WebRtcVoiceEngine::FindChannelNumFromSsrc(
+    uint32 ssrc, MediaProcessorDirection direction, int* channel_num) {
+  ASSERT(channel_num != NULL);
+
+  *channel_num = -1;
+  // Find corresponding channel for ssrc.
+  for (ChannelList::const_iterator it = channels_.begin();
+      it != channels_.end(); ++it) {
+    ASSERT(*it != NULL);
+    uint32 local_ssrc;
+    if (voe()->rtp()->GetLocalSSRC((*it)->voe_channel(), local_ssrc) != -1) {
+      if (ssrc == local_ssrc) {
+        *channel_num = (*it)->voe_channel();
+      }
+    }
+    if (*channel_num == -1 && (direction & MPD_RX) != 0) {
+      *channel_num = (*it)->GetChannelNum(ssrc);
+    }
+    if (*channel_num != -1) {
+      return true;
+    }
+  }
+  LOG(LS_WARNING) << "FindChannelFromSsrc. No Channel Found for Ssrc: " << ssrc;
   return false;
 }
 
@@ -1013,6 +1056,130 @@ bool WebRtcVoiceEngine::SetAudioDeviceModule(webrtc::AudioDeviceModule* adm,
   return true;
 }
 
+bool WebRtcVoiceEngine::RegisterProcessor(
+    uint32 ssrc,
+    VoiceProcessor* voice_processor,
+    MediaProcessorDirection direction) {
+  bool register_with_webrtc = false;
+  int channel_id = -1;
+  bool success = false;
+  bool found_channel = FindChannelNumFromSsrc(ssrc, direction, &channel_id);
+  if (voice_processor == NULL || !found_channel) {
+    LOG(LS_WARNING) << "Media Processing Registration Failed. ssrc: " << ssrc
+        << " foundChannel: " << found_channel;
+    return false;
+  }
+  talk_base::CritScope cs(&signal_media_critical_);
+  webrtc::ProcessingTypes processing_type;
+  if (direction == MPD_RX) {
+    processing_type = webrtc::kPlaybackAllChannelsMixed;
+    if (SignalRxMediaFrame.is_empty()) {
+      register_with_webrtc = true;
+    }
+    SignalRxMediaFrame.connect(voice_processor,
+                               &VoiceProcessor::OnFrame);
+  } else {
+    processing_type = webrtc::kRecordingPerChannel;
+    if (SignalTxMediaFrame.is_empty()) {
+      register_with_webrtc = true;
+    }
+    SignalTxMediaFrame.connect(voice_processor,
+                               &VoiceProcessor::OnFrame);
+  }
+  if (register_with_webrtc) {
+    if (voe()->media()->
+        RegisterExternalMediaProcessing(channel_id,
+                                        processing_type,
+                                        *this) == -1) {
+      LOG_RTCERR2(RegisterExternalMediaProcessing,
+                  channel_id,
+                  processing_type);
+      success = false;
+    } else {
+      LOG(LS_INFO) << "Media Processing Registration Succeeded. channel:"
+                   << channel_id;
+      success = true;
+    }
+  } else {
+    // If we don't have to register with the engine, we just needed to
+    // connect a new processor, set success to true;
+    success = true;
+  }
+  return success;
+}
+
+bool WebRtcVoiceEngine::UnregisterProcessor(
+    uint32 ssrc,
+    VoiceProcessor* voice_processor,
+    MediaProcessorDirection direction) {
+  int channel_id = -1;
+  bool found_channel = FindChannelNumFromSsrc(ssrc, direction, &channel_id);
+  bool success = true;
+  if (voice_processor == NULL || !found_channel) {
+    LOG(LS_WARNING) << "Media Processing Deregistration Failed. ssrc: "
+                    << ssrc
+                    << " foundChannel: "
+                    << found_channel;
+    return false;
+  }
+  talk_base::CritScope cs(&signal_media_critical_);
+  if ((direction & MPD_RX) != 0) {
+    SignalRxMediaFrame.disconnect(voice_processor);
+    if (SignalRxMediaFrame.is_empty()) {
+      if (voe()->media()->DeRegisterExternalMediaProcessing(channel_id,
+          webrtc::kPlaybackAllChannelsMixed) != -1) {
+        LOG(LS_INFO) << "Media Processing DeRegistration Succeeded. channel:"
+                     << channel_id;
+      } else {
+        LOG_RTCERR2(DeRegisterExternalMediaProcessing,
+                    channel_id,
+                    webrtc::kPlaybackAllChannelsMixed);
+        success = false;
+      }
+    }
+  }
+  if ((direction & MPD_TX) != 0) {
+    SignalTxMediaFrame.disconnect(voice_processor);
+    if (SignalTxMediaFrame.is_empty()) {
+      if (voe()->media()->DeRegisterExternalMediaProcessing(channel_id,
+          webrtc::kRecordingPerChannel) != -1) {
+        LOG(LS_INFO) << "Media Processing DeRegistration Succeeded. channel:"
+                     << channel_id;
+      } else {
+        LOG_RTCERR2(DeRegisterExternalMediaProcessing,
+                    channel_id,
+                    webrtc::kRecordingPerChannel);
+        success = false;
+      }
+    }
+  }
+  return success;
+}
+
+// Implementing method from WebRtc VoEMediaProcess interface
+void WebRtcVoiceEngine::Process(const int channel,
+                                const webrtc::ProcessingTypes type,
+                                WebRtc_Word16 audio10ms[],
+                                const int length,
+                                const int sampling_freq,
+                                const bool is_stereo) {
+  uint32 ssrc;
+  WebRtcVoiceMediaChannel* media_channel;
+
+  if (FindChannelAndSsrc(channel, &media_channel, &ssrc)) {
+    talk_base::CritScope cs(&signal_media_critical_);
+    AudioFrame frame(audio10ms, length, sampling_freq, is_stereo);
+    if (type == webrtc::kPlaybackAllChannelsMixed) {
+      SignalRxMediaFrame(ssrc, &frame);
+    } else if (type == webrtc::kRecordingPerChannel) {
+      SignalTxMediaFrame(ssrc, &frame);
+    }
+  } else {
+    LOG(LS_WARNING) << "MediaProcess Callback invoked with unexpected channel: "
+                    << channel;
+  }
+}
+
 // WebRtcVoiceMediaChannel
 WebRtcVoiceMediaChannel::WebRtcVoiceMediaChannel(WebRtcVoiceEngine *engine)
     : WebRtcMediaChannel<VoiceMediaChannel, WebRtcVoiceEngine>(
@@ -1061,6 +1228,7 @@ WebRtcVoiceMediaChannel::~WebRtcVoiceMediaChannel() {
   while (!mux_channels_.empty()) {
     RemoveStream(mux_channels_.begin()->first);
   }
+
   // Delete the primary channel.
   if (engine()->voe()->base()->DeleteChannel(voe_channel()) == -1) {
     LOG_RTCERR1(DeleteChannel, voe_channel());
@@ -1210,6 +1378,7 @@ bool WebRtcVoiceMediaChannel::SetSendCodecs(
     return false;
   }
 
+  send_codec_.reset(new webrtc::CodecInst(send_codec));
   return true;
 }
 
@@ -1325,6 +1494,11 @@ bool WebRtcVoiceMediaChannel::ChangeSend(SendFlags send) {
     }
 #endif  // CHROMEOS
 
+    if ((channel_options_ & OPT_AGC_MINUS_10DB) && !agc_adjusted_) {
+      if (engine()->AdjustAgcLevel(kMinus10DbAdjustment)) {
+        agc_adjusted_ = true;
+      }
+    }
 
     // VoiceEngine resets sequence number when StopSend is called. This
     // sometimes causes libSRTP to complain about packets being
@@ -1538,7 +1712,7 @@ bool WebRtcVoiceMediaChannel::SetOutputScaling(
       channels.push_back(it->second);
     }
   } else {  // Collect only the channel of the specified ssrc.
-    int channel = GetChannel(ssrc);
+    int channel = GetChannelNum(ssrc);
     if (-1 == channel) {
       LOG(LS_WARNING) << "Cannot find channel for ssrc:" << ssrc;
       return false;
@@ -1579,7 +1753,7 @@ bool WebRtcVoiceMediaChannel::GetOutputScaling(
 
   talk_base::CritScope lock(&mux_channels_cs_);
   // Determine which channel based on ssrc.
-  int channel = (0 == ssrc) ? voe_channel() : GetChannel(ssrc);
+  int channel = (0 == ssrc) ? voe_channel() : GetChannelNum(ssrc);
   if (channel == -1) {
     LOG(LS_WARNING) << "Cannot find channel for ssrc:" << ssrc;
     return false;
@@ -1619,7 +1793,7 @@ bool WebRtcVoiceMediaChannel::PlayRingbackTone(uint32 ssrc,
   }
 
   // Determine which VoiceEngine channel to play on.
-  int channel = (ssrc == 0) ? voe_channel() : GetChannel(ssrc);
+  int channel = (ssrc == 0) ? voe_channel() : GetChannelNum(ssrc);
   if (channel == -1) {
     return false;
   }
@@ -1637,8 +1811,8 @@ bool WebRtcVoiceMediaChannel::PlayRingbackTone(uint32 ssrc,
     ringback_channels_.insert(channel);
     LOG(LS_INFO) << "Started ringback on channel " << channel;
   } else {
-    if (engine()->voe()->file()->StopPlayingFileLocally(channel)
-        == -1) {
+    if (engine()->voe()->file()->IsPlayingFileLocally(channel) == 1 &&
+        engine()->voe()->file()->StopPlayingFileLocally(channel) == -1) {
       LOG_RTCERR1(StopPlayingFileLocally, channel);
       return false;
     }
@@ -1675,7 +1849,7 @@ void WebRtcVoiceMediaChannel::OnPacketReceived(talk_base::Buffer* packet) {
   // Pick which channel to send this packet to. If this packet doesn't match
   // any multiplexed streams, just send it to the default channel. Otherwise,
   // send it to the specific decoder instance for that stream.
-  int which_channel = GetChannel(
+  int which_channel = GetChannelNum(
       ParseSsrc(packet->data(), packet->length(), false));
   if (which_channel == -1) {
     which_channel = voe_channel();
@@ -1703,7 +1877,7 @@ void WebRtcVoiceMediaChannel::OnPacketReceived(talk_base::Buffer* packet) {
 
 void WebRtcVoiceMediaChannel::OnRtcpReceived(talk_base::Buffer* packet) {
   // See above.
-  int which_channel = GetChannel(
+  int which_channel = GetChannelNum(
       ParseSsrc(packet->data(), packet->length(), true));
   if (which_channel == -1) {
     which_channel = voe_channel();
@@ -1752,7 +1926,6 @@ bool WebRtcVoiceMediaChannel::GetStats(VoiceMediaInfo* info) {
   // Fill in the sender info, based on what we know, and what the
   // remote side told us it got from its RTCP report.
   VoiceSenderInfo sinfo;
-  memset(&sinfo, 0, sizeof(sinfo));
 
   // Data we obtain locally.
   memset(&cs, 0, sizeof(cs));
@@ -1762,6 +1935,7 @@ bool WebRtcVoiceMediaChannel::GetStats(VoiceMediaInfo* info) {
   }
 
   sinfo.ssrc = ssrc;
+  sinfo.codec_name = send_codec_.get() ? send_codec_->plname : "";
   sinfo.bytes_sent = cs.bytesSent;
   sinfo.packets_sent = cs.packetsSent;
   // RTT isn't known until a RTCP report is received. Until then, VoiceEngine
@@ -1792,6 +1966,36 @@ bool WebRtcVoiceMediaChannel::GetStats(VoiceMediaInfo* info) {
   // Local speech level.
   sinfo.audio_level = (engine()->voe()->volume()->
       GetSpeechInputLevelFullRange(level) != -1) ? level : -1;
+
+  bool echo_metrics_on = false;
+  // These can take on valid negative values, so use the lowest possible level
+  // as default rather than -1.
+  sinfo.echo_return_loss = -100;
+  sinfo.echo_return_loss_enhancement = -100;
+  // These can also be negative, but in practice -1 is only used to signal
+  // insufficient data, since the resolution is limited to multiples of 4 ms.
+  sinfo.echo_delay_median_ms = -1;
+  sinfo.echo_delay_std_ms = -1;
+  if (engine()->voe()->processing()->GetEcMetricsStatus(echo_metrics_on) !=
+      -1 && echo_metrics_on) {
+
+    // TODO: we may want to use VoECallReport::GetEchoMetricsSummary
+    // here, but it appears to be unsuitable currently. Revisit after this is
+    // investigated: http://b/issue?id=5666755
+    int erl, erle, rerl, anlp;
+    if (engine()->voe()->processing()->GetEchoMetrics(erl, erle, rerl, anlp) !=
+        -1) {
+      sinfo.echo_return_loss = erl;
+      sinfo.echo_return_loss_enhancement = erle;
+    }
+
+    int median, std;
+    if (engine()->voe()->processing()->GetEcDelayMetrics(median, std) != -1) {
+      sinfo.echo_delay_median_ms = median;
+      sinfo.echo_delay_std_ms = std;
+    }
+  }
+
   info->senders.push_back(sinfo);
 
   // Build the list of receivers, one for each mux channel, or 1 in a 1:1 call.
@@ -1812,7 +2016,6 @@ bool WebRtcVoiceMediaChannel::GetStats(VoiceMediaInfo* info) {
         engine()->voe()->rtp()->GetRTCPStatistics(*it, cs) != -1 &&
         engine()->voe()->codec()->GetRecCodec(*it, codec) != -1) {
       VoiceReceiverInfo rinfo;
-      memset(&rinfo, 0, sizeof(rinfo));
       rinfo.ssrc = ssrc;
       rinfo.bytes_rcvd = cs.bytesReceived;
       rinfo.packets_rcvd = cs.packetsReceived;
@@ -1899,7 +2102,7 @@ int WebRtcVoiceMediaChannel::GetOutputLevel(int channel) {
   return (ret == 0) ? static_cast<int>(ulevel) : -1;
 }
 
-int WebRtcVoiceMediaChannel::GetChannel(uint32 ssrc) {
+int WebRtcVoiceMediaChannel::GetChannelNum(uint32 ssrc) {
   ChannelMap::iterator it = mux_channels_.find(ssrc);
   return (it != mux_channels_.end()) ? it->second : -1;
 }

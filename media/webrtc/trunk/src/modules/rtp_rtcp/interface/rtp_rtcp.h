@@ -50,17 +50,6 @@ public:
     static void DestroyRtpRtcp(RtpRtcp* module);
 
     /*
-    *   Returns version of the module and its components
-    *
-    *   version                 - buffer to which the version will be written
-    *   remainingBufferInBytes  - remaining number of WebRtc_Word8 in the version buffer
-    *   position                - position of the next empty WebRtc_Word8 in the version buffer
-    */
-    static WebRtc_Word32 GetVersion(WebRtc_Word8* version,
-                                  WebRtc_UWord32& remainingBufferInBytes,
-                                  WebRtc_UWord32& position);
-
-    /*
     *   Change the unique identifier of this object
     *
     *   id      - new unique identifier of this RTP/RTCP module object
@@ -207,7 +196,7 @@ public:
         WebRtc_Word8* plType) = 0;
 
     /*
-    *   Remove a registerd payload type from list of accepted payloads
+    *   Remove a registered payload type from list of accepted payloads
     *
     *   payloadType - payload type of codec
     *
@@ -215,6 +204,18 @@ public:
     */
     virtual WebRtc_Word32 DeRegisterReceivePayload(
         const WebRtc_Word8 payloadType) = 0;
+
+   /*
+    *   (De)register RTP header extension type and id.
+    *
+    *   return -1 on failure else 0
+    */
+    virtual WebRtc_Word32 RegisterReceiveRtpHeaderExtension(
+        const RTPExtensionType type,
+        const WebRtc_UWord8 id) = 0;
+
+    virtual WebRtc_Word32 DeregisterReceiveRtpHeaderExtension(
+        const RTPExtensionType type) = 0;
 
     /*
     *   Get last received remote timestamp
@@ -406,6 +407,18 @@ public:
     *   return -1 on failure else 0
     */
     virtual WebRtc_Word32 DeRegisterSendPayload(const WebRtc_Word8 payloadType) = 0;
+
+   /*
+    *   (De)register RTP header extension type and id.
+    *
+    *   return -1 on failure else 0
+    */
+    virtual WebRtc_Word32 RegisterSendRtpHeaderExtension(
+        const RTPExtensionType type,
+        const WebRtc_UWord8 id) = 0;
+
+    virtual WebRtc_Word32 DeregisterSendRtpHeaderExtension(
+        const RTPExtensionType type) = 0;
 
     /*
     *   get start timestamp
@@ -735,17 +748,30 @@ public:
     /*
     *  (REMB) Receiver Estimated Max Bitrate
     */
-    virtual bool REMB() const = 0;;
+    virtual bool REMB() const = 0;
 
     virtual WebRtc_Word32 SetREMBStatus(const bool enable) = 0;
 
     virtual WebRtc_Word32 SetREMBData(const WebRtc_UWord32 bitrate,
                                       const WebRtc_UWord8 numberOfSSRC,
                                       const WebRtc_UWord32* SSRC) = 0;
+
+    // Registers an observer to call when the estimate of the incoming channel
+    // changes.
+    virtual bool SetRemoteBitrateObserver(
+        RtpRemoteBitrateObserver* observer) = 0;
+
+    /*
+    *   (IJ) Extended jitter report.
+    */
+    virtual bool IJ() const = 0;
+
+    virtual WebRtc_Word32 SetIJStatus(const bool enable) = 0;
+
     /*
     *   (TMMBR) Temporary Max Media Bit Rate
     */
-    virtual bool TMMBR() const  = 0;
+    virtual bool TMMBR() const = 0;
 
     /*
     *
@@ -774,12 +800,32 @@ public:
     virtual WebRtc_Word32 SetNACKStatus(const NACKMethod method) = 0;
 
     /*
+     *  TODO(holmer): Propagate this API to VideoEngine.
+     *  Returns the currently configured selective retransmission settings.
+     */
+    virtual int SelectiveRetransmissions() const = 0;
+
+    /*
+     *  TODO(holmer): Propagate this API to VideoEngine.
+     *  Sets the selective retransmission settings, which will decide which
+     *  packets will be retransmitted if NACKed. Settings are constructed by
+     *  combining the constants in enum RetransmissionMode with bitwise OR.
+     *  All packets are retransmitted if kRetransmitAllPackets is set, while no
+     *  packets are retransmitted if kRetransmitOff is set.
+     *  By default all packets except FEC packets are retransmitted. For VP8
+     *  with temporal scalability only base layer packets are retransmitted.
+     *
+     *  Returns -1 on failure, otherwise 0.
+     */
+    virtual int SetSelectiveRetransmissions(uint8_t settings) = 0;
+
+    /*
     *   Send a Negative acknowledgement packet
     *
     *   return -1 on failure else 0
     */
     virtual WebRtc_Word32 SendNACK(const WebRtc_UWord16* nackList,
-                                 const WebRtc_UWord16 size) = 0;
+                                   const WebRtc_UWord16 size) = 0;
 
     /*
     *   Store the sent packets, needed to answer to a Negative acknowledgement requests

@@ -147,6 +147,7 @@ static X509* MakeCertificate(EVP_PKEY* pkey, const char* common_name) {
 static void LogSSLErrors(const std::string& prefix) {
   char error_buf[200];
   unsigned long err;
+
   while ((err = ERR_get_error())) {
     ERR_error_string_n(err, error_buf, sizeof(error_buf));
     LOG(LS_ERROR) << prefix << ": " << error_buf << "\n";
@@ -222,6 +223,74 @@ OpenSSLCertificate* OpenSSLCertificate::FromPEMString(
     return new OpenSSLCertificate(x509);
   else
     return NULL;
+}
+
+bool OpenSSLCertificate::GetDigestLength(const std::string &algorithm,
+                                         std::size_t *length) {
+  const EVP_MD *md;
+
+  if (!GetDigestEVP(algorithm, &md))
+    return false;
+
+  *length = EVP_MD_size(md);
+
+  return true;
+}
+
+bool OpenSSLCertificate::ComputeDigest(const std::string &algorithm,
+                                       unsigned char *digest,
+                                       std::size_t size,
+                                       std::size_t *length) const {
+  return ComputeDigest(x509_, algorithm, digest, size, length);
+}
+
+bool OpenSSLCertificate::ComputeDigest(const X509 *x509,
+                                       const std::string &algorithm,
+                                       unsigned char *digest,
+                                       std::size_t size,
+                                       std::size_t *length) {
+  const EVP_MD *md;
+  unsigned int n;
+
+  if (!GetDigestEVP(algorithm, &md))
+    return false;
+
+  if (size < static_cast<size_t>(EVP_MD_size(md)))
+    return false;
+
+  X509_digest(x509, md, digest, &n);
+
+  *length = n;
+
+  return true;
+}
+
+
+bool OpenSSLCertificate::GetDigestEVP(const std::string &algorithm,
+                                      const EVP_MD **mdp) {
+#if defined(HAS_OPENSSL_1_0) && defined(LINUX)
+  const EVP_MD *md;
+  if (algorithm == DIGEST_SHA_1) {
+    md = EVP_sha1();
+  } else if (algorithm == DIGEST_SHA_224) {
+    md = EVP_sha224();
+  } else if (algorithm == DIGEST_SHA_256) {
+    md = EVP_sha256();
+  } else if (algorithm == DIGEST_SHA_384) {
+    md = EVP_sha384();
+  } else if (algorithm == DIGEST_SHA_512) {
+    md = EVP_sha512();
+  } else {
+    return false;
+  }
+
+  // Can't happen
+  ASSERT(EVP_MD_size(md) >= 20);
+  *mdp = md;
+  return true;
+#else
+  return false;
+#endif
 }
 
 OpenSSLCertificate::~OpenSSLCertificate() {

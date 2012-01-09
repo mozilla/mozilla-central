@@ -25,8 +25,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _xmppengineimpl_h_
-#define _xmppengineimpl_h_
+#ifndef TALK_XMPP_XMPPENGINEIMPL_H_
+#define TALK_XMPP_XMPPENGINEIMPL_H_
 
 #include <sstream>
 #include <vector>
@@ -41,7 +41,6 @@ class XmppIqEntry;
 class SaslHandler;
 class SaslMechanism;
 
-
 //! The XMPP connection engine.
 //! This engine implements the client side of the 'core' XMPP protocol.
 //! To use it, register an XmppOutputHandler to handle socket output
@@ -51,7 +50,7 @@ class SaslMechanism;
 //! An application can listen for events and receive stanzas by
 //! registering an XmppStanzaHandler via AddStanzaHandler().
 class XmppEngineImpl : public XmppEngine {
-public:
+ public:
   XmppEngineImpl();
   virtual ~XmppEngineImpl();
 
@@ -61,7 +60,7 @@ public:
   virtual XmppReturnStatus SetOutputHandler(XmppOutputHandler *pxoh);
 
   //! Provides socket input to the engine
-  virtual XmppReturnStatus HandleInput(const char * bytes, size_t len);
+  virtual XmppReturnStatus HandleInput(const char* bytes, size_t len);
 
   //! Advises the engine that the socket has closed
   virtual XmppReturnStatus ConnectionClosed(int subcode);
@@ -69,26 +68,26 @@ public:
   // SESSION SETUP ---------------------------------------------------------
 
   //! Indicates the (bare) JID for the user to use.
-  virtual XmppReturnStatus SetUser(const Jid & jid);
+  virtual XmppReturnStatus SetUser(const Jid& jid);
 
   //! Get the login (bare) JID.
-  virtual const Jid & GetUser();
+  virtual const Jid& GetUser();
 
   //! Indicates the autentication to use.  Takes ownership of the object.
-  virtual XmppReturnStatus SetSaslHandler(SaslHandler * sasl_handler);
+  virtual XmppReturnStatus SetSaslHandler(SaslHandler* sasl_handler);
 
   //! Sets whether TLS will be used within the connection (default true).
-  virtual XmppReturnStatus SetUseTls(bool useTls);
+  virtual XmppReturnStatus SetTls(TlsOptions useTls);
 
   //! Sets an alternate domain from which we allows TLS certificates.
   //! This is for use in the case where a we want to allow a proxy to
   //! serve up its own certificate rather than one owned by the underlying
   //! domain.
-  virtual XmppReturnStatus SetTlsServer(const std::string & proxy_hostname,
-                                        const std::string & proxy_domain);
+  virtual XmppReturnStatus SetTlsServer(const std::string& proxy_hostname,
+                                        const std::string& proxy_domain);
 
   //! Gets whether TLS will be used within the connection.
-  virtual bool GetUseTls();
+  virtual TlsOptions GetTls();
 
   //! Sets the request resource name, if any (optional).
   //! Note that the resource name may be overridden by the server; after
@@ -96,10 +95,10 @@ public:
   virtual XmppReturnStatus SetRequestedResource(const std::string& resource);
 
   //! Gets the request resource name.
-  virtual const std::string & GetRequestedResource();
+  virtual const std::string& GetRequestedResource();
 
   //! Sets language
-  virtual void SetLanguage(const std::string & lang) {
+  virtual void SetLanguage(const std::string& lang) {
     lang_ = lang;
   }
 
@@ -131,7 +130,7 @@ public:
   //! The stream:error stanza, when the error is XmppEngine::ERROR_STREAM.
   //! Notice the stanza returned is owned by the XmppEngine and
   //! is deleted when the engine is destroyed.
-  virtual const XmlElement * GetStreamError() { return stream_error_.get(); }
+  virtual const XmlElement* GetStreamError() { return stream_error_.get(); }
 
   //! Closes down the connection.
   //! Sends CloseConnection to output, and disconnects and registered
@@ -151,14 +150,14 @@ public:
   virtual XmppReturnStatus RemoveStanzaHandler(XmppStanzaHandler* handler);
 
   //! Sends a stanza to the server.
-  virtual XmppReturnStatus SendStanza(const XmlElement * pelStanza);
+  virtual XmppReturnStatus SendStanza(const XmlElement* stanza);
 
   //! Sends raw text to the server
-  virtual XmppReturnStatus SendRaw(const std::string & text);
+  virtual XmppReturnStatus SendRaw(const std::string& text);
 
   //! Sends an iq to the server, and registers a callback for the result.
   //! Returns the cookie passed to the result handler.
-  virtual XmppReturnStatus SendIq(const XmlElement* pelStanza,
+  virtual XmppReturnStatus SendIq(const XmlElement* stanza,
                                   XmppIqHandler* iq_handler,
                                   XmppIqCookie* cookie);
 
@@ -170,55 +169,62 @@ public:
   //! Forms and sends an error in response to the given stanza.
   //! Swaps to and from, sets type to "error", and adds error information
   //! based on the passed code.  Text is optional and may be STR_EMPTY.
-  virtual XmppReturnStatus SendStanzaError(const XmlElement * pelOriginal,
+  virtual XmppReturnStatus SendStanzaError(const XmlElement* pelOriginal,
                                            XmppStanzaError code,
-                                           const std::string & text);
+                                           const std::string& text);
 
   //! The fullly bound JID.
   //! This JID is only valid after binding has succeeded.  If the value
   //! is JID_NULL, the binding has not succeeded.
-  virtual const Jid & FullJid() { return bound_jid_; }
+  virtual const Jid& FullJid() { return bound_jid_; }
 
   //! The next unused iq id for this connection.
   //! Call this when building iq stanzas, to ensure that each iq
   //! gets its own unique id.
   virtual std::string NextId();
 
-private:
+ private:
   friend class XmppLoginTask;
   friend class XmppIqEntry;
 
-  void IncomingStanza(const XmlElement *pelStanza);
-  void IncomingStart(const XmlElement *pelStanza);
+  void IncomingStanza(const XmlElement *stanza);
+  void IncomingStart(const XmlElement *stanza);
   void IncomingEnd(bool isError);
 
-  void InternalSendStart(const std::string & domainName);
-  void InternalSendStanza(const XmlElement * pelStanza);
-  std::string ChooseBestSaslMechanism(const std::vector<std::string> & mechanisms, bool encrypted);
-  SaslMechanism * GetSaslMechanism(const std::string & name);
-  void SignalBound(const Jid & fullJid);
-  void SignalStreamError(const XmlElement * pelStreamError);
+  void InternalSendStart(const std::string& domainName);
+  void InternalSendStanza(const XmlElement* stanza);
+  std::string ChooseBestSaslMechanism(
+      const std::vector<std::string>& mechanisms, bool encrypted);
+  SaslMechanism* GetSaslMechanism(const std::string& name);
+  void SignalBound(const Jid& fullJid);
+  void SignalStreamError(const XmlElement* streamError);
   void SignalError(Error errorCode, int subCode);
   bool HasError();
   void DeleteIqCookies();
-  bool HandleIqResponse(const XmlElement * element);
-  void StartTls(const std::string & domain);
+  bool HandleIqResponse(const XmlElement* element);
+  void StartTls(const std::string& domain);
   void RaiseReset() { raised_reset_ = true; }
 
   class StanzaParseHandler : public XmppStanzaParseHandler {
-  public:
-    StanzaParseHandler(XmppEngineImpl * outer) : outer_(outer) {}
+   public:
+    StanzaParseHandler(XmppEngineImpl* outer) : outer_(outer) {}
     virtual ~StanzaParseHandler() {}
-    virtual void StartStream(const XmlElement * pelStream)
-      { outer_->IncomingStart(pelStream); }
-    virtual void Stanza(const XmlElement * pelStanza)
-      { outer_->IncomingStanza(pelStanza); }
-    virtual void EndStream()
-      { outer_->IncomingEnd(false); }
-    virtual void XmlError()
-      { outer_->IncomingEnd(true); }
-  private:
-    XmppEngineImpl * const outer_;
+
+    virtual void StartStream(const XmlElement* stream) {
+      outer_->IncomingStart(stream);
+    }
+    virtual void Stanza(const XmlElement* stanza) {
+      outer_->IncomingStanza(stanza);
+    }
+    virtual void EndStream() {
+      outer_->IncomingEnd(false);
+    }
+    virtual void XmlError() {
+      outer_->IncomingEnd(true);
+    }
+
+   private:
+    XmppEngineImpl* const outer_;
   };
 
   class EnterExit {
@@ -235,16 +241,15 @@ private:
   friend class StanzaParseHandler;
   friend class EnterExit;
 
-  StanzaParseHandler stanzaParseHandler_;
-  XmppStanzaParser stanzaParser_;
-
+  StanzaParseHandler stanza_parse_handler_;
+  XmppStanzaParser stanza_parser_;
 
   // state
   int engine_entered_;
   Jid user_jid_;
   std::string password_;
   std::string requested_resource_;
-  bool tls_needed_;
+  TlsOptions tls_option_;
   std::string tls_server_hostname_;
   std::string tls_server_domain_;
   talk_base::scoped_ptr<XmppLoginTask> login_task_;
@@ -261,6 +266,8 @@ private:
   XmppOutputHandler* output_handler_;
   XmppSessionHandler* session_handler_;
 
+  XmlnsStack xmlns_stack_;
+
   typedef std::vector<XmppStanzaHandler*> StanzaHandlerVector;
   talk_base::scoped_ptr<StanzaHandlerVector> stanza_handlers_[HL_COUNT];
 
@@ -272,7 +279,6 @@ private:
   talk_base::scoped_ptr<std::stringstream> output_;
 };
 
-}
+}  // namespace buzz
 
-
-#endif
+#endif  // TALK_XMPP_XMPPENGINEIMPL_H_

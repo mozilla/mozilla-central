@@ -25,130 +25,125 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <ostream>
+#include "talk/xmllite/xmlprinter.h"
+
 #include <sstream>
 #include <string>
 #include <vector>
-#include "talk/xmllite/xmlelement.h"
-#include "talk/xmllite/xmlprinter.h"
-#include "talk/xmllite/xmlnsstack.h"
+
 #include "talk/xmllite/xmlconstants.h"
+#include "talk/xmllite/xmlelement.h"
+#include "talk/xmllite/xmlnsstack.h"
 
 namespace buzz {
 
 class XmlPrinterImpl {
 public:
-  XmlPrinterImpl(std::ostream * pout,
-    const std::string * const xmlns, int xmlnsCount);
-  void PrintElement(const XmlElement * element);
-  void PrintQuotedValue(const std::string & text);
-  void PrintBodyText(const std::string & text);
-  void PrintCDATAText(const std::string & text);
+  XmlPrinterImpl(std::ostream* pout, XmlnsStack* ns_stack);
+  void PrintElement(const XmlElement* element);
+  void PrintQuotedValue(const std::string& text);
+  void PrintBodyText(const std::string& text);
+  void PrintCDATAText(const std::string& text);
 
 private:
   std::ostream *pout_;
-  XmlnsStack xmlnsStack_;
+  XmlnsStack* ns_stack_;
 };
 
-void
-XmlPrinter::PrintXml(std::ostream * pout, const XmlElement * element) {
-  PrintXml(pout, element, NULL, 0);
+void XmlPrinter::PrintXml(std::ostream* pout, const XmlElement* element) {
+  XmlnsStack ns_stack;
+  PrintXml(pout, element, &ns_stack);
 }
 
-void
-XmlPrinter::PrintXml(std::ostream * pout, const XmlElement * element,
-    const std::string * const xmlns, int xmlnsCount) {
-  XmlPrinterImpl printer(pout, xmlns, xmlnsCount);
+void XmlPrinter::PrintXml(std::ostream* pout, const XmlElement* element,
+                          XmlnsStack* ns_stack) {
+  XmlPrinterImpl printer(pout, ns_stack);
   printer.PrintElement(element);
 }
 
-XmlPrinterImpl::XmlPrinterImpl(std::ostream * pout,
-    const std::string * const xmlns, int xmlnsCount) :
-  pout_(pout),
-  xmlnsStack_() {
-  int i;
-  for (i = 0; i < xmlnsCount; i += 2) {
-    xmlnsStack_.AddXmlns(xmlns[i], xmlns[i + 1]);
-  }
+XmlPrinterImpl::XmlPrinterImpl(std::ostream* pout, XmlnsStack* ns_stack)
+    : pout_(pout),
+      ns_stack_(ns_stack) {
 }
 
-void
-XmlPrinterImpl::PrintElement(const XmlElement * element) {
-  xmlnsStack_.PushFrame();
+void XmlPrinterImpl::PrintElement(const XmlElement* element) {
+  ns_stack_->PushFrame();
 
   // first go through attrs of pel to add xmlns definitions
-  const XmlAttr * pattr;
-  for (pattr = element->FirstAttr(); pattr; pattr = pattr->NextAttr()) {
-    if (pattr->Name() == QN_XMLNS)
-      xmlnsStack_.AddXmlns(STR_EMPTY, pattr->Value());
-    else if (pattr->Name().Namespace() == NS_XMLNS)
-      xmlnsStack_.AddXmlns(pattr->Name().LocalPart(),
-        pattr->Value());
+  const XmlAttr* attr;
+  for (attr = element->FirstAttr(); attr; attr = attr->NextAttr()) {
+    if (attr->Name() == QN_XMLNS) {
+      ns_stack_->AddXmlns(STR_EMPTY, attr->Value());
+    } else if (attr->Name().Namespace() == NS_XMLNS) {
+      ns_stack_->AddXmlns(attr->Name().LocalPart(),
+                          attr->Value());
+    }
   }
 
   // then go through qnames to make sure needed xmlns definitons are added
-  std::vector<std::string> newXmlns;
+  std::vector<std::string> new_ns;
   std::pair<std::string, bool> prefix;
-  prefix = xmlnsStack_.AddNewPrefix(element->Name().Namespace(), false);
+  prefix = ns_stack_->AddNewPrefix(element->Name().Namespace(), false);
   if (prefix.second) {
-    newXmlns.push_back(prefix.first);
-    newXmlns.push_back(element->Name().Namespace());
+    new_ns.push_back(prefix.first);
+    new_ns.push_back(element->Name().Namespace());
   }
 
-  for (pattr = element->FirstAttr(); pattr; pattr = pattr->NextAttr()) {
-    prefix = xmlnsStack_.AddNewPrefix(pattr->Name().Namespace(), true);
+  for (attr = element->FirstAttr(); attr; attr = attr->NextAttr()) {
+    prefix = ns_stack_->AddNewPrefix(attr->Name().Namespace(), true);
     if (prefix.second) {
-      newXmlns.push_back(prefix.first);
-      newXmlns.push_back(pattr->Name().Namespace());
+      new_ns.push_back(prefix.first);
+      new_ns.push_back(attr->Name().Namespace());
     }
   }
 
   // print the element name
-  *pout_ << '<' << xmlnsStack_.FormatQName(element->Name(), false);
+  *pout_ << '<' << ns_stack_->FormatQName(element->Name(), false);
 
   // and the attributes
-  for (pattr = element->FirstAttr(); pattr; pattr = pattr->NextAttr()) {
-    *pout_ << ' ' << xmlnsStack_.FormatQName(pattr->Name(), true) << "=\"";
-    PrintQuotedValue(pattr->Value());
+  for (attr = element->FirstAttr(); attr; attr = attr->NextAttr()) {
+    *pout_ << ' ' << ns_stack_->FormatQName(attr->Name(), true) << "=\"";
+    PrintQuotedValue(attr->Value());
     *pout_ << '"';
   }
 
   // and the extra xmlns declarations
-  std::vector<std::string>::iterator i(newXmlns.begin());
-  while (i < newXmlns.end()) {
-    if (*i == STR_EMPTY)
+  std::vector<std::string>::iterator i(new_ns.begin());
+  while (i < new_ns.end()) {
+    if (*i == STR_EMPTY) {
       *pout_ << " xmlns=\"" << *(i + 1) << '"';
-    else
+    } else {
       *pout_ << " xmlns:" << *i << "=\"" << *(i + 1) << '"';
+    }
     i += 2;
   }
 
   // now the children
-  const XmlChild * pchild = element->FirstChild();
+  const XmlChild* child = element->FirstChild();
 
-  if (pchild == NULL)
+  if (child == NULL)
     *pout_ << "/>";
   else {
     *pout_ << '>';
-    while (pchild) {
-      if (pchild->IsText()) {
+    while (child) {
+      if (child->IsText()) {
         if (element->IsCDATA()) {
-          PrintCDATAText(pchild->AsText()->Text());
+          PrintCDATAText(child->AsText()->Text());
         } else {
-          PrintBodyText(pchild->AsText()->Text());
+          PrintBodyText(child->AsText()->Text());
         }
-      } else
-        PrintElement(pchild->AsElement());
-      pchild = pchild->NextChild();
+      } else {
+        PrintElement(child->AsElement());
+      }
+      child = child->NextChild();
     }
-    *pout_ << "</" << xmlnsStack_.FormatQName(element->Name(), false) << '>';
+    *pout_ << "</" << ns_stack_->FormatQName(element->Name(), false) << '>';
   }
 
-  xmlnsStack_.PopFrame();
+  ns_stack_->PopFrame();
 }
 
-void
-XmlPrinterImpl::PrintQuotedValue(const std::string & text) {
+void XmlPrinterImpl::PrintQuotedValue(const std::string& text) {
   size_t safe = 0;
   for (;;) {
     size_t unsafe = text.find_first_of("<>&\"", safe);
@@ -169,8 +164,7 @@ XmlPrinterImpl::PrintQuotedValue(const std::string & text) {
   }
 }
 
-void
-XmlPrinterImpl::PrintBodyText(const std::string & text) {
+void XmlPrinterImpl::PrintBodyText(const std::string& text) {
   size_t safe = 0;
   for (;;) {
     size_t unsafe = text.find_first_of("<>&", safe);
@@ -190,9 +184,8 @@ XmlPrinterImpl::PrintBodyText(const std::string & text) {
   }
 }
 
-void
-XmlPrinterImpl::PrintCDATAText(const std::string & text) {
+void XmlPrinterImpl::PrintCDATAText(const std::string& text) {
   *pout_ << "<![CDATA[" << text << "]]>";
 }
 
-}
+}  // namespace buzz

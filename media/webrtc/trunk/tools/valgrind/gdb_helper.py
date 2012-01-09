@@ -1,9 +1,6 @@
-#!/usr/bin/python
-# Copyright (c) 2006-2009 The Chromium Authors. All rights reserved.
+# Copyright (c) 2011 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
-
-# gdb_helper.py
 
 ''' A bunch of helper functions for querying gdb.'''
 
@@ -74,12 +71,15 @@ class AddressTable(object):
     for binary in self._binaries.keys():
       if binary != '' and binary in self._load_addresses:
         load_address = self._load_addresses[binary]
-        addr = ResolveAddressesWithinABinary(binary, load_address, self._binaries[binary])
+        addr = ResolveAddressesWithinABinary(
+            binary, load_address, self._binaries[binary])
         self._translation[binary] = addr
     self._all_resolved = True
 
   def GetFileLine(self, binary, addr):
-    ''' Get the (filename, linenum) result of a previously-registered lookup request. '''
+    ''' Get the (filename, linenum) result of a previously-registered lookup
+    request.
+    '''
     if self._all_resolved:
       if binary in self._translation:
         if addr in self._translation[binary]:

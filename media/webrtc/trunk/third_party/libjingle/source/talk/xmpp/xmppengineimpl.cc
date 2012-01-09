@@ -2,89 +2,83 @@
  * libjingle
  * Copyright 2004--2005, Google Inc.
  *
- * Redistribution and use in source and binary forms, with or without 
+ * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  1. Redistributions of source code must retain the above copyright notice, 
+ *  1. Redistributions of source code must retain the above copyright notice,
  *     this list of conditions and the following disclaimer.
  *  2. Redistributions in binary form must reproduce the above copyright notice,
  *     this list of conditions and the following disclaimer in the documentation
  *     and/or other materials provided with the distribution.
- *  3. The name of the author may not be used to endorse or promote products 
+ *  3. The name of the author may not be used to endorse or promote products
  *     derived from this software without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
- * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+ * EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
  * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
  * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
  * OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
- * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
- * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#define TRACK_ARRAY_ALLOC_PROBLEM
-
-#include <vector>
-#include <sstream>
-#include <algorithm>
-#include "talk/xmllite/xmlelement.h"
-#include "talk/base/common.h"
 #include "talk/xmpp/xmppengineimpl.h"
-#include "talk/xmpp/xmpplogintask.h"
-#include "talk/xmpp/constants.h"
+
+#include <algorithm>
+#include <sstream>
+#include <vector>
+
+#include "talk/base/common.h"
+#include "talk/xmllite/xmlelement.h"
 #include "talk/xmllite/xmlprinter.h"
+#include "talk/xmpp/constants.h"
 #include "talk/xmpp/saslhandler.h"
+#include "talk/xmpp/xmpplogintask.h"
 
 namespace buzz {
 
-static const std::string XMPP_CLIENT_NAMESPACES[] = {
-  "stream", "http://etherx.jabber.org/streams",
-  "", "jabber:client",
-};
-
-static const size_t XMPP_CLIENT_NAMESPACES_LEN = 4;
-
-XmppEngine * XmppEngine::Create() {
+XmppEngine* XmppEngine::Create() {
   return new XmppEngineImpl();
 }
 
 
-XmppEngineImpl::XmppEngineImpl() :
-    stanzaParseHandler_(this),
-    stanzaParser_(&stanzaParseHandler_),
-    engine_entered_(0),
-    user_jid_(JID_EMPTY),
-    password_(),
-    requested_resource_(STR_EMPTY),
-    tls_needed_(true),
-    login_task_(new XmppLoginTask(this)),
-    next_id_(0),
-    bound_jid_(JID_EMPTY),
-    state_(STATE_START),
-    encrypted_(false),
-    error_code_(ERROR_NONE),
-    subcode_(0),
-    stream_error_(NULL),
-    raised_reset_(false),
-    output_handler_(NULL),
-    session_handler_(NULL),
-    iq_entries_(new IqEntryVector()),
-    sasl_handler_(NULL),
-    output_(new std::stringstream()) {
+XmppEngineImpl::XmppEngineImpl()
+    : stanza_parse_handler_(this),
+      stanza_parser_(&stanza_parse_handler_),
+      engine_entered_(0),
+      password_(),
+      requested_resource_(STR_EMPTY),
+      tls_option_(buzz::TLS_REQUIRED),
+      login_task_(new XmppLoginTask(this)),
+      next_id_(0),
+      state_(STATE_START),
+      encrypted_(false),
+      error_code_(ERROR_NONE),
+      subcode_(0),
+      stream_error_(NULL),
+      raised_reset_(false),
+      output_handler_(NULL),
+      session_handler_(NULL),
+      iq_entries_(new IqEntryVector()),
+      sasl_handler_(NULL),
+      output_(new std::stringstream()) {
   for (int i = 0; i < HL_COUNT; i+= 1) {
     stanza_handlers_[i].reset(new StanzaHandlerVector());
   }
+
+  xmlns_stack_.AddXmlns("stream", "http://etherx.jabber.org/streams");
+  xmlns_stack_.AddXmlns("", "jabber:client");
 }
 
 XmppEngineImpl::~XmppEngineImpl() {
   DeleteIqCookies();
 }
 
-XmppReturnStatus
-XmppEngineImpl::SetOutputHandler(XmppOutputHandler* output_handler) {
+XmppReturnStatus XmppEngineImpl::SetOutputHandler(
+    XmppOutputHandler* output_handler) {
   if (state_ != STATE_START)
     return XMPP_RETURN_BADSTATE;
 
@@ -93,8 +87,8 @@ XmppEngineImpl::SetOutputHandler(XmppOutputHandler* output_handler) {
   return XMPP_RETURN_OK;
 }
 
-XmppReturnStatus
-XmppEngineImpl::SetSessionHandler(XmppSessionHandler* session_handler) {
+XmppReturnStatus XmppEngineImpl::SetSessionHandler(
+    XmppSessionHandler* session_handler) {
   if (state_ != STATE_START)
     return XMPP_RETURN_BADSTATE;
 
@@ -103,21 +97,20 @@ XmppEngineImpl::SetSessionHandler(XmppSessionHandler* session_handler) {
   return XMPP_RETURN_OK;
 }
 
-XmppReturnStatus
-XmppEngineImpl::HandleInput(const char * bytes, size_t len) {
+XmppReturnStatus XmppEngineImpl::HandleInput(
+    const char* bytes, size_t len) {
   if (state_ < STATE_OPENING || state_ > STATE_OPEN)
     return XMPP_RETURN_BADSTATE;
 
   EnterExit ee(this);
 
   // TODO: The return value of the xml parser is not checked.
-  stanzaParser_.Parse(bytes, len, false);
+  stanza_parser_.Parse(bytes, len, false);
 
   return XMPP_RETURN_OK;
 }
 
-XmppReturnStatus
-XmppEngineImpl::ConnectionClosed(int subcode) {
+XmppReturnStatus XmppEngineImpl::ConnectionClosed(int subcode) {
   if (state_ != STATE_CLOSED) {
     EnterExit ee(this);
     // If told that connection closed and not already closed,
@@ -131,19 +124,16 @@ XmppEngineImpl::ConnectionClosed(int subcode) {
   return XMPP_RETURN_OK;
 }
 
-XmppReturnStatus
-XmppEngineImpl::SetUseTls(bool useTls) {
+XmppReturnStatus XmppEngineImpl::SetTls(TlsOptions useTls) {
   if (state_ != STATE_START)
     return XMPP_RETURN_BADSTATE;
-
-  tls_needed_ = useTls;
-
+  tls_option_ = useTls;
   return XMPP_RETURN_OK;
 }
 
-XmppReturnStatus
-XmppEngineImpl::SetTlsServer(const std::string & tls_server_hostname,
-                             const std::string & tls_server_domain) {
+XmppReturnStatus XmppEngineImpl::SetTlsServer(
+    const std::string& tls_server_hostname,
+    const std::string& tls_server_domain) {
   if (state_ != STATE_START)
     return XMPP_RETURN_BADSTATE;
 
@@ -153,13 +143,11 @@ XmppEngineImpl::SetTlsServer(const std::string & tls_server_hostname,
   return XMPP_RETURN_OK;
 }
 
-bool
-XmppEngineImpl::GetUseTls() {
-  return tls_needed_;
+TlsOptions XmppEngineImpl::GetTls() {
+  return tls_option_;
 }
 
-XmppReturnStatus
-XmppEngineImpl::SetUser(const Jid & jid) {
+XmppReturnStatus XmppEngineImpl::SetUser(const Jid& jid) {
   if (state_ != STATE_START)
     return XMPP_RETURN_BADSTATE;
 
@@ -168,13 +156,11 @@ XmppEngineImpl::SetUser(const Jid & jid) {
   return XMPP_RETURN_OK;
 }
 
-const Jid &
-XmppEngineImpl::GetUser() {
+const Jid& XmppEngineImpl::GetUser() {
   return user_jid_;
 }
 
-XmppReturnStatus
-XmppEngineImpl::SetSaslHandler(SaslHandler * sasl_handler) {
+XmppReturnStatus XmppEngineImpl::SetSaslHandler(SaslHandler* sasl_handler) {
   if (state_ != STATE_START)
     return XMPP_RETURN_BADSTATE;
 
@@ -182,8 +168,8 @@ XmppEngineImpl::SetSaslHandler(SaslHandler * sasl_handler) {
   return XMPP_RETURN_OK;
 }
 
-XmppReturnStatus
-XmppEngineImpl::SetRequestedResource(const std::string & resource) {
+XmppReturnStatus XmppEngineImpl::SetRequestedResource(
+    const std::string& resource) {
   if (state_ != STATE_START)
     return XMPP_RETURN_BADSTATE;
 
@@ -192,14 +178,13 @@ XmppEngineImpl::SetRequestedResource(const std::string & resource) {
   return XMPP_RETURN_OK;
 }
 
-const std::string &
-XmppEngineImpl::GetRequestedResource() {
+const std::string& XmppEngineImpl::GetRequestedResource() {
   return requested_resource_;
 }
 
-XmppReturnStatus
-XmppEngineImpl::AddStanzaHandler(XmppStanzaHandler * stanza_handler,
-                                 XmppEngine::HandlerLevel level) {
+XmppReturnStatus XmppEngineImpl::AddStanzaHandler(
+    XmppStanzaHandler* stanza_handler,
+    XmppEngine::HandlerLevel level) {
   if (state_ == STATE_CLOSED)
     return XMPP_RETURN_BADSTATE;
 
@@ -208,9 +193,8 @@ XmppEngineImpl::AddStanzaHandler(XmppStanzaHandler * stanza_handler,
   return XMPP_RETURN_OK;
 }
 
-XmppReturnStatus
-XmppEngineImpl::RemoveStanzaHandler(XmppStanzaHandler * stanza_handler) {
-
+XmppReturnStatus XmppEngineImpl::RemoveStanzaHandler(
+    XmppStanzaHandler* stanza_handler) {
   bool found = false;
 
   for (int level = 0; level < HL_COUNT; level += 1) {
@@ -225,15 +209,13 @@ XmppEngineImpl::RemoveStanzaHandler(XmppStanzaHandler * stanza_handler) {
     }
   }
 
-  if (!found) {
+  if (!found)
     return XMPP_RETURN_BADARGUMENT;
-  }
 
   return XMPP_RETURN_OK;
 }
 
-XmppReturnStatus
-XmppEngineImpl::Connect() {
+XmppReturnStatus XmppEngineImpl::Connect() {
   if (state_ != STATE_START)
     return XMPP_RETURN_BADSTATE;
 
@@ -250,8 +232,7 @@ XmppEngineImpl::Connect() {
   return XMPP_RETURN_OK;
 }
 
-XmppReturnStatus
-XmppEngineImpl::SendStanza(const XmlElement * element) {
+XmppReturnStatus XmppEngineImpl::SendStanza(const XmlElement* element) {
   if (state_ == STATE_CLOSED)
     return XMPP_RETURN_BADSTATE;
 
@@ -268,8 +249,7 @@ XmppEngineImpl::SendStanza(const XmlElement * element) {
   return XMPP_RETURN_OK;
 }
 
-XmppReturnStatus
-XmppEngineImpl::SendRaw(const std::string & text) {
+XmppReturnStatus XmppEngineImpl::SendRaw(const std::string& text) {
   if (state_ == STATE_CLOSED || login_task_.get())
     return XMPP_RETURN_BADSTATE;
 
@@ -280,16 +260,13 @@ XmppEngineImpl::SendRaw(const std::string & text) {
   return XMPP_RETURN_OK;
 }
 
-std::string
-XmppEngineImpl::NextId() {
+std::string XmppEngineImpl::NextId() {
   std::stringstream ss;
   ss << next_id_++;
   return ss.str();
 }
 
-XmppReturnStatus
-XmppEngineImpl::Disconnect() {
-
+XmppReturnStatus XmppEngineImpl::Disconnect() {
   if (state_ != STATE_CLOSED) {
     EnterExit ee(this);
     if (state_ == STATE_OPEN)
@@ -300,14 +277,13 @@ XmppEngineImpl::Disconnect() {
   return XMPP_RETURN_OK;
 }
 
-void
-XmppEngineImpl::IncomingStart(const XmlElement * pelStart) {
+void XmppEngineImpl::IncomingStart(const XmlElement* start) {
   if (HasError() || raised_reset_)
     return;
 
   if (login_task_.get()) {
     // start-stream should go to login task
-    login_task_->IncomingStanza(pelStart, true);
+    login_task_->IncomingStanza(start, true);
     if (login_task_->IsDone())
       login_task_.reset();
   }
@@ -317,8 +293,7 @@ XmppEngineImpl::IncomingStart(const XmlElement * pelStart) {
   }
 }
 
-void
-XmppEngineImpl::IncomingStanza(const XmlElement * stanza) {
+void XmppEngineImpl::IncomingStanza(const XmlElement* stanza) {
   if (HasError() || raised_reset_)
     return;
 
@@ -342,7 +317,7 @@ XmppEngineImpl::IncomingStanza(const XmlElement * stanza) {
     for (int level = HL_SINGLE; level <= HL_ALL; level += 1) {
       for (size_t i = 0; i < stanza_handlers_[level]->size(); i += 1) {
         if ((*stanza_handlers_[level])[i]->HandleStanza(stanza))
-          goto Handled;
+          return;
       }
     }
 
@@ -350,29 +325,24 @@ XmppEngineImpl::IncomingStanza(const XmlElement * stanza) {
     // Only do this for IQ stanzas as messages should probably just be dropped
     // and presence stanzas should certainly be dropped.
     std::string type = stanza->Attr(QN_TYPE);
-    if (stanza->Name() == QN_IQ && 
+    if (stanza->Name() == QN_IQ &&
         !(type == "error" || type == "result")) {
       SendStanzaError(stanza, XSE_FEATURE_NOT_IMPLEMENTED, STR_EMPTY);
     }
   }
-  Handled:
-    ; // handled - we're done
 }
 
-void
-XmppEngineImpl::IncomingEnd(bool isError) {
+void XmppEngineImpl::IncomingEnd(bool isError) {
   if (HasError() || raised_reset_)
     return;
 
   SignalError(isError ? ERROR_XML : ERROR_DOCUMENT_CLOSED, 0);
 }
 
-void
-XmppEngineImpl::InternalSendStart(const std::string & to) {
+void XmppEngineImpl::InternalSendStart(const std::string& to) {
   std::string hostname = tls_server_hostname_;
-  if (hostname.empty()) {
+  if (hostname.empty())
     hostname = to;
-  }
 
   // If not language is specified, the spec says use *
   std::string lang = lang_;
@@ -389,61 +359,56 @@ XmppEngineImpl::InternalSendStart(const std::string & to) {
            << "xmlns=\"jabber:client\">\r\n";
 }
 
-void
-XmppEngineImpl::InternalSendStanza(const XmlElement * element) {
+void XmppEngineImpl::InternalSendStanza(const XmlElement* element) {
   // It should really never be necessary to set a FROM attribute on a stanza.
   // It is implied by the bind on the stream and if you get it wrong
   // (by flipping from/to on a message?) the server will close the stream.
   ASSERT(!element->HasAttr(QN_FROM));
 
-  // TODO: consider caching the XmlPrinter
-  XmlPrinter::PrintXml(output_.get(), element,
-            XMPP_CLIENT_NAMESPACES, XMPP_CLIENT_NAMESPACES_LEN);
+  XmlPrinter::PrintXml(output_.get(), element, &xmlns_stack_);
 }
 
-std::string
-XmppEngineImpl::ChooseBestSaslMechanism(const std::vector<std::string> & mechanisms, bool encrypted) {
+std::string XmppEngineImpl::ChooseBestSaslMechanism(
+    const std::vector<std::string>& mechanisms, bool encrypted) {
   return sasl_handler_->ChooseBestSaslMechanism(mechanisms, encrypted);
 }
 
-SaslMechanism *
-XmppEngineImpl::GetSaslMechanism(const std::string & name) {
+SaslMechanism* XmppEngineImpl::GetSaslMechanism(const std::string& name) {
   return sasl_handler_->CreateSaslMechanism(name);
 }
 
-void
-XmppEngineImpl::SignalBound(const Jid & fullJid) {
+void XmppEngineImpl::SignalBound(const Jid& fullJid) {
   if (state_ == STATE_OPENING) {
     bound_jid_ = fullJid;
     state_ = STATE_OPEN;
   }
 }
 
-void
-XmppEngineImpl::SignalStreamError(const XmlElement * pelStreamError) {
+void XmppEngineImpl::SignalStreamError(const XmlElement* stream_error) {
   if (state_ != STATE_CLOSED) {
-    stream_error_.reset(new XmlElement(*pelStreamError));
+    stream_error_.reset(new XmlElement(*stream_error));
     SignalError(ERROR_STREAM, 0);
   }
 }
 
-void
-XmppEngineImpl::SignalError(Error errorCode, int subCode) {
+void XmppEngineImpl::SignalError(Error error_code, int sub_code) {
   if (state_ != STATE_CLOSED) {
-    error_code_ = errorCode;
-    subcode_ = subCode;
+    error_code_ = error_code;
+    subcode_ = sub_code;
     state_ = STATE_CLOSED;
   }
 }
 
-bool
-XmppEngineImpl::HasError() {
+bool XmppEngineImpl::HasError() {
   return error_code_ != ERROR_NONE;
 }
 
-void
-XmppEngineImpl::StartTls(const std::string & domain) {
+void XmppEngineImpl::StartTls(const std::string& domain) {
   if (output_handler_) {
+    // As substitute for the real (login jid's) domain, we permit
+    // verifying a tls_server_domain_ instead, if one was passed.
+    // This allows us to avoid running a proxy that needs to handle
+    // valuable certificates.
     output_handler_->StartTls(
       tls_server_domain_.empty() ? domain : tls_server_domain_);
     encrypted_ = true;
@@ -451,7 +416,7 @@ XmppEngineImpl::StartTls(const std::string & domain) {
 }
 
 XmppEngineImpl::EnterExit::EnterExit(XmppEngineImpl* engine)
-  : engine_(engine),
+    : engine_(engine),
   state_(engine->state_),
   error_(engine->error_code_) {
   engine->engine_entered_ += 1;
@@ -482,17 +447,17 @@ XmppEngineImpl::EnterExit::~EnterExit()  {
    return;
 
  if (engine->raised_reset_) {
-   engine->stanzaParser_.Reset();
+   engine->stanza_parser_.Reset();
    engine->raised_reset_ = false;
  }
 
  if (engine->session_handler_) {
    if (engine->state_ != state_)
      engine->session_handler_->OnStateChange(engine->state_);
-     // Note: Handling of OnStateChange(CLOSED) should allow for the
-     // deletion of the engine, so no members should be accessed
-     // after this line.
+   // Note: Handling of OnStateChange(CLOSED) should allow for the
+   // deletion of the engine, so no members should be accessed
+   // after this line.
  }
 }
 
-}
+}  // namespace buzz

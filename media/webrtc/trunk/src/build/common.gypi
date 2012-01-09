@@ -44,6 +44,10 @@
     # which can be easily parsed for offline processing.
     'enable_data_logging%': 0,
 
+    # Disable these to not build components which can be externally provided.
+    'build_libjpeg%': 1,
+    'build_libyuv%': 1,
+
     'conditions': [
       ['OS=="win"', {
         # TODO(andrew, perkj): does this need to be here?
@@ -103,10 +107,8 @@
     'conditions': [
       ['build_with_chromium==1', {
         'defines': [
-          # This turns off tracing in webrtc to reduce the noise from
-          # the Chrome memory bots. Down the line we will enable WebRTC
-          # tracing for Chromium and remove this.
-          'WEBRTC_NO_TRACE',
+          # Changes settings for Chromium build.
+          'WEBRTC_CHROMIUM_BUILD',
          ],
       }],
       ['OS=="linux"', {
@@ -140,11 +142,6 @@
     'target_conditions': [
       # TODO(andrew): This block disables some warnings from the chromium_code
       # configuration. Remove when possible.
-      ['OS=="mac"', {
-        'xcode_settings': {
-          'GCC_TREAT_WARNINGS_AS_ERRORS': 'NO',
-        },
-      }],
       ['OS=="win"', {
         'msvs_disabled_warnings': [4389], # Signed/unsigned mismatch.
         'msvs_settings': {
@@ -157,8 +154,3 @@
   }, # target_defaults
 }
 
-# Local Variables:
-# tab-width:2
-# indent-tabs-mode:nil
-# End:
-# vim: set expandtab tabstop=2 shiftwidth=2:

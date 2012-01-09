@@ -53,6 +53,29 @@ const ContentInfo* FindContentInfoByType(
   return NULL;
 }
 
+void ContentGroup::AddContentName(const std::string& content_name) {
+  content_types_.insert(content_name);
+}
+
+bool ContentGroup::RemoveContentName(const std::string& content_name) {
+  bool ret = false;
+  std::set<std::string>::iterator iter;
+  iter = content_types_.find(content_name);
+  if (iter != content_types_.end()) {
+    content_types_.erase(iter);
+    ret = true;
+  }
+  return ret;
+}
+
+bool ContentGroup::HasContentName(const std::string& content_name) const {
+  return (content_types_.find(content_name) != content_types_.end());
+}
+
+const std::string* ContentGroup::FirstContentName() const {
+  return (content_types_.begin() != content_types_.end()) ?
+      &(*content_types_.begin()) : NULL;
+}
 const ContentInfo* SessionDescription::GetContentByName(
     const std::string& name) const {
   return FindContentInfoByName(contents_, name);
@@ -61,6 +84,10 @@ const ContentInfo* SessionDescription::GetContentByName(
 const ContentInfo* SessionDescription::FirstContentByType(
     const std::string& type) const {
   return FindContentInfoByType(contents_, type);
+}
+
+const ContentInfo* SessionDescription::FirstContent() const {
+  return (contents_.empty()) ? NULL : &(*contents_.begin());
 }
 
 void SessionDescription::AddContent(const std::string& name,
@@ -80,6 +107,36 @@ bool SessionDescription::RemoveContentByName(const std::string& name) {
   }
 
   return false;
+}
+
+void SessionDescription::RemoveGroupByName(const std::string& name) {
+  for (ContentGroups::iterator iter = groups_.begin();
+       iter != groups_.end(); ++iter) {
+    if (iter->semantics() == name) {
+      groups_.erase(iter);
+    }
+  }
+}
+
+bool SessionDescription::HasGroup(const std::string& name) const {
+  for (ContentGroups::const_iterator iter = groups_.begin();
+       iter != groups_.end(); ++iter) {
+    if (iter->semantics() == name) {
+      return true;
+    }
+  }
+  return false;
+}
+
+const ContentGroup* SessionDescription::GetGroupByName(
+    const std::string& name) const {
+  for (ContentGroups::const_iterator iter = groups_.begin();
+       iter != groups_.end(); ++iter) {
+    if (iter->semantics() == name) {
+      return &(*iter);
+    }
+  }
+  return NULL;
 }
 
 }  // namespace cricket

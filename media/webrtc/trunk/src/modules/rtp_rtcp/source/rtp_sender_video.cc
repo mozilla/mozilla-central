@@ -30,11 +30,12 @@ RTPSenderVideo::RTPSenderVideo(const WebRtc_Word32 id,
                                RTPSenderInterface* rtpSender) :
     _id(id),
     _rtpSender(*rtpSender),
-    _sendVideoCritsect(*CriticalSectionWrapper::CreateCriticalSection()),
+    _sendVideoCritsect(CriticalSectionWrapper::CreateCriticalSection()),
 
     _videoType(kRtpNoVideo),
     _videoCodecInformation(NULL),
     _maxBitrate(0),
+    _retransmissionSettings(kRetransmitBaseLayer),
 
     // Generic FEC
     _fec(id),
@@ -63,7 +64,7 @@ RTPSenderVideo::~RTPSenderVideo()
     {
         delete _videoCodecInformation;
     }
-    delete &_sendVideoCritsect;
+    delete _sendVideoCritsect;
 }
 
 WebRtc_Word32
@@ -71,6 +72,7 @@ RTPSenderVideo::Init()
 {
     CriticalSectionScoped cs(_sendVideoCritsect);
 
+    _retransmissionSettings = kRetransmitBaseLayer;
     _fecEnabled = false;
     _payloadTypeRED = -1;
     _payloadTypeFEC = -1;
@@ -157,7 +159,8 @@ WebRtc_Word32
 RTPSenderVideo::SendVideoPacket(const FrameType frameType,
                                 const WebRtc_UWord8* dataBuffer,
                                 const WebRtc_UWord16 payloadLength,
-                                const WebRtc_UWord16 rtpHeaderLength)
+                                const WebRtc_UWord16 rtpHeaderLength,
+                                StorageType storage)
 {
     if(_fecEnabled)
     {
@@ -223,10 +226,6 @@ RTPSenderVideo::SendVideoPacket(const FrameType frameType,
                 RtpPacket* packetToSend =
                     static_cast<RtpPacket*>(item->GetItem());
 
-                item = _mediaPacketListFec.First();
-                ForwardErrorCorrection::Packet* mediaPacket =
-                  static_cast<ForwardErrorCorrection::Packet*>(item->GetItem());
-
                 // Copy RTP header
                 memcpy(newDataBuffer, packetToSend->pkt->data,
                        packetToSend->rtpHeaderLength);
@@ -254,21 +253,18 @@ RTPSenderVideo::SendVideoPacket(const FrameType frameType,
 
                 // Send normal packet with RED header
                 int packetSuccess = _rtpSender.SendToNetwork(
-                        newDataBuffer,
-                        packetToSend->pkt->length -
-                           packetToSend->rtpHeaderLength +
-                           REDForFECHeaderLength,
-                        packetToSend->rtpHeaderLength);
+                    newDataBuffer,
+                    packetToSend->pkt->length - packetToSend->rtpHeaderLength +
+                    REDForFECHeaderLength,
+                    packetToSend->rtpHeaderLength,
+                    storage);
 
                 retVal |= packetSuccess;
 
                 if (packetSuccess == 0)
                 {
-                    videoSent += mediaPacket->length;
-                    fecOverheadSent += (packetToSend->pkt->length -
-                        mediaPacket->length +
-                        packetToSend->rtpHeaderLength +
-                        REDForFECHeaderLength);
+                    videoSent += packetToSend->pkt->length +
+                        REDForFECHeaderLength;
                 }
 
                 delete packetToSend->pkt;
@@ -313,12 +309,18 @@ RTPSenderVideo::SendVideoPacket(const FrameType frameType,
                 // Invalid FEC packet
                 assert(packetToSend->length != 0);
 
+                StorageType storage = kDontRetransmit;
+                if (_retransmissionSettings & kRetransmitFECPackets) {
+                  storage = kAllowRetransmission;
+                }
+
                 // No marker bit on FEC packets, last media packet have the
                 // marker send FEC packet with RED header
                 int packetSuccess = _rtpSender.SendToNetwork(
                         newDataBuffer,
                         packetToSend->length + REDForFECHeaderLength,
-                        lastMediaRtpHeader.length);
+                        lastMediaRtpHeader.length,
+                        storage);
 
                 retVal |= packetSuccess;
 
@@ -335,7 +337,8 @@ RTPSenderVideo::SendVideoPacket(const FrameType frameType,
     }
     int retVal = _rtpSender.SendToNetwork(dataBuffer,
                                           payloadLength,
-                                          rtpHeaderLength);
+                                          rtpHeaderLength,
+                                          storage);
     if (retVal == 0)
     {
         _videoBitrate.Update(payloadLength + rtpHeaderLength);
@@ -358,7 +361,7 @@ RTPSenderVideo::SendRTPIntraRequest()
 
     ModuleRTPUtility::AssignUWord32ToBuffer(data+4, _rtpSender.SSRC());
 
-    return _rtpSender.SendToNetwork(data, 0, length);
+    return _rtpSender.SendToNetwork(data, 0, length, kAllowRetransmission);
 }
 
 WebRtc_Word32
@@ -436,6 +439,11 @@ RTPSenderVideo::SendVideo(const RtpVideoCodecTypes videoType,
     {
         _fecProtectionFactor = _codeRateKey;
         _fecUseUepProtection = _useUepProtectionKey;
+    } else if (videoType == kRtpVp8Video && rtpTypeHdr->VP8.temporalIdx > 0)
+    {
+        // In current version, we only apply FEC on the base layer.
+        _fecProtectionFactor = 0;
+        _fecUseUepProtection = false;
     } else
     {
         _fecProtectionFactor = _codeRateDelta;
@@ -532,58 +540,13 @@ RTPSenderVideo::SendGeneric(const WebRtc_Word8 payloadType,
         if(-1 == SendVideoPacket(kVideoFrameKey,
                                  dataBuffer,
                                  payloadBytesInPacket,
-                                 rtpHeaderLength))
+                                 rtpHeaderLength,
+                                 kAllowRetransmission))
         {
             return -1;
         }
     }
     return 0;
-}
-
-WebRtc_Word32
-RTPSenderVideo::SendPadData(const WebRtcRTPHeader* rtpHeader,
-                            const WebRtc_UWord32 bytes)
-{
-    const WebRtc_UWord16 rtpHeaderLength = _rtpSender.RTPHeaderLength();
-    WebRtc_UWord32 maxLength = _rtpSender.MaxPayloadLength() -
-        FECPacketOverhead() - rtpHeaderLength;
-    WebRtc_UWord8 dataBuffer[IP_PACKET_SIZE];
-
-    if(bytes<maxLength)
-    {
-        // For a small packet don't spend too much time
-        maxLength = bytes;
-    }
-
-    {
-        CriticalSectionScoped cs(_sendVideoCritsect);
-
-        // Send paded data
-        // Correct seq num, time stamp and payloadtype
-        // We reuse the last seq number
-        _rtpSender.BuildRTPheader(dataBuffer, rtpHeader->header.payloadType,
-                                  false, 0, false, false);
-
-        // Version 0 to be compatible with old ViE
-        dataBuffer[0] &= !0x80;
-
-        // Set relay SSRC
-        ModuleRTPUtility::AssignUWord32ToBuffer(dataBuffer+8,
-                                                rtpHeader->header.ssrc);
-        // Start at 12
-        WebRtc_Word32* data = (WebRtc_Word32*)&(dataBuffer[12]);
-
-        // Build data buffer
-        for(WebRtc_UWord32 j = 0; j < ((maxLength>>2)-4) && j < (bytes>>4); j++)
-        {
-            data[j] = rand();
-        }
-    }
-    // Min
-    WebRtc_UWord16 length = (WebRtc_UWord16)(bytes<maxLength?bytes:maxLength);
-
-    // Send the packet
-    return _rtpSender.SendToNetwork(dataBuffer, length, rtpHeaderLength, true);
 }
 
 WebRtc_Word32
@@ -659,7 +622,7 @@ RTPSenderVideo::SendMPEG4(const FrameType frameType,
         }while(payloadBytesToSend);
 
         if (-1 == SendVideoPacket(frameType, dataBuffer, payloadBytes,
-                                  rtpHeaderLength))
+                                  rtpHeaderLength, kAllowRetransmission))
         {
             return -1;
         }
@@ -927,7 +890,7 @@ RTPSenderVideo::SendH263(const FrameType frameType,
             if (-1 == SendVideoPacket(frameType,
                                       dataBuffer,
                                       payloadBytesInPacket + h263HeaderLength,
-                                      rtpHeaderLength))
+                                      rtpHeaderLength, kAllowRetransmission))
             {
                 return -1;
             }
@@ -1065,8 +1028,11 @@ RTPSenderVideo::SendH2631998(const FrameType frameType,
         memcpy(&dataBuffer[rtpHeaderLength + h2631998HeaderLength],
                data, payloadBytesInPacket);
 
-        if(-1 == SendVideoPacket(frameType, dataBuffer, payloadBytesInPacket +
-                                 h2631998HeaderLength, rtpHeaderLength))
+        if(-1 == SendVideoPacket(frameType,
+                                 dataBuffer,
+                                 payloadBytesInPacket + h2631998HeaderLength,
+                                 rtpHeaderLength,
+                                 kAllowRetransmission))
         {
             return -1;
         }
@@ -1243,7 +1209,8 @@ RTPSenderVideo::SendH263MBs(const FrameType frameType,
         if (-1 == SendVideoPacket(frameType,
                                   dataBuffer,
                                   payloadBytesInPacket + h263HeaderLength,
-                                  rtpHeaderLength))
+                                  rtpHeaderLength,
+                                  kAllowRetransmission))
         {
             return -1;
         }
@@ -1272,7 +1239,17 @@ RTPSenderVideo::SendVP8(const FrameType frameType,
 
     assert(rtpTypeHdr);
     RtpFormatVp8 packetizer(data, payloadBytesToSend, rtpTypeHdr->VP8,
-                            *fragmentation, kAggregate);
+                            maxPayloadLengthVP8, *fragmentation, kAggregate);
+
+    StorageType storage = kAllowRetransmission;
+    if (rtpTypeHdr->VP8.temporalIdx == 0 &&
+        !(_retransmissionSettings & kRetransmitBaseLayer)) {
+      storage = kDontRetransmit;
+    }
+    if (rtpTypeHdr->VP8.temporalIdx > 0 &&
+        !(_retransmissionSettings & kRetransmitHigherLayers)) {
+      storage = kDontRetransmit;
+    }
 
     bool last = false;
     _numberFirstPartition = 0;
@@ -1282,8 +1259,7 @@ RTPSenderVideo::SendVP8(const FrameType frameType,
         WebRtc_UWord8 dataBuffer[IP_PACKET_SIZE] = {0};
         int payloadBytesInPacket = 0;
         int packetStartPartition =
-            packetizer.NextPacket(maxPayloadLengthVP8,
-                                  &dataBuffer[rtpHeaderLength],
+            packetizer.NextPacket(&dataBuffer[rtpHeaderLength],
                                   &payloadBytesInPacket, &last);
         if (packetStartPartition == 0)
         {
@@ -1299,7 +1275,7 @@ RTPSenderVideo::SendVP8(const FrameType frameType,
         _rtpSender.BuildRTPheader(dataBuffer, payloadType, last,
             captureTimeStamp);
         if (-1 == SendVideoPacket(frameType, dataBuffer, payloadBytesInPacket,
-            rtpHeaderLength))
+            rtpHeaderLength, storage))
         {
           WEBRTC_TRACE(kTraceError, kTraceRtpRtcp, _id,
                        "RTPSenderVideo::SendVP8 failed to send packet number"
@@ -1320,6 +1296,15 @@ WebRtc_UWord32 RTPSenderVideo::VideoBitrateSent() const {
 
 WebRtc_UWord32 RTPSenderVideo::FecOverheadRate() const {
   return _fecOverheadRate.BitrateLast();
+}
+
+int RTPSenderVideo::SelectiveRetransmissions() const {
+  return _retransmissionSettings;
+}
+
+int RTPSenderVideo::SetSelectiveRetransmissions(uint8_t settings) {
+  _retransmissionSettings = settings;
+  return 0;
 }
 
 } // namespace webrtc

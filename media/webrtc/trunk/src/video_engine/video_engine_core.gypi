@@ -35,29 +35,29 @@
         '<(webrtc_root)/system_wrappers/source/system_wrappers.gyp:system_wrappers',
       ],
       'include_dirs': [
-        'main/interface',
+        'include',
         '../common_video/interface',
         '../modules/video_capture/main/interface',
         '../modules/video_render/main/interface',
       ],
       'direct_dependent_settings': {
         'include_dirs': [
-          'main/interface',
+          'include',
         ],
       },
       'sources': [
         # interface
-        'main/interface/vie_base.h',
-        'main/interface/vie_capture.h',
-        'main/interface/vie_codec.h',
-        'main/interface/vie_encryption.h',
-        'main/interface/vie_errors.h',
-        'main/interface/vie_external_codec.h',
-        'main/interface/vie_file.h',
-        'main/interface/vie_image_process.h',
-        'main/interface/vie_network.h',
-        'main/interface/vie_render.h',
-        'main/interface/vie_rtp_rtcp.h',
+        'include/vie_base.h',
+        'include/vie_capture.h',
+        'include/vie_codec.h',
+        'include/vie_encryption.h',
+        'include/vie_errors.h',
+        'include/vie_external_codec.h',
+        'include/vie_file.h',
+        'include/vie_image_process.h',
+        'include/vie_network.h',
+        'include/vie_render.h',
+        'include/vie_rtp_rtcp.h',
 
         # headers
         'vie_base_impl.h',
@@ -71,6 +71,7 @@
         'vie_impl.h',
         'vie_network_impl.h',
         'vie_ref_count.h',
+        'vie_remb.h',
         'vie_render_impl.h',
         'vie_rtp_rtcp_impl.h',
         'vie_shared_data.h',
@@ -117,13 +118,38 @@
         'vie_manager_base.cc',
         'vie_performance_monitor.cc',
         'vie_receiver.cc',
+        'vie_remb.cc',
         'vie_renderer.cc',
         'vie_render_manager.cc',
         'vie_sender.cc',
         'vie_sync_module.cc',
       ], # source
     },
-  ],
+  ], # targets
+  'conditions': [
+    ['build_with_chromium==0', {
+      'targets': [
+        {
+          'target_name': 'video_engine_core_unittests',
+          'type': 'executable',
+          'dependencies': [
+            'video_engine_core',
+            '<(webrtc_root)/../testing/gtest.gyp:gtest',
+            '<(webrtc_root)/../testing/gmock.gyp:gmock',
+            '<(webrtc_root)/../test/test.gyp:test_support_main',
+          ],
+          'include_dirs': [
+            '..',
+            '../modules/interface',
+            '../modules/rtp_rtcp/interface',
+          ],
+          'sources': [
+            'vie_remb_unittest.cc',
+          ],
+        },
+      ], # targets
+    }], # build_with_chromium
+  ], # conditions
 }
 
 # Local Variables:

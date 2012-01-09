@@ -25,10 +25,12 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef _logintask_h_
-#define _logintask_h_
+#ifndef TALK_XMPP_LOGINTASK_H_
+#define TALK_XMPP_LOGINTASK_H_
 
 #include <string>
+#include <vector>
+
 #include "talk/base/logging.h"
 #include "talk/base/scoped_ptr.h"
 #include "talk/xmpp/jid.h"
@@ -41,6 +43,7 @@ class XmppEngineImpl;
 class SaslMechanism;
 
 
+// TODO: Rename to LoginTask.
 class XmppLoginTask {
 
 public:
@@ -51,6 +54,8 @@ public:
     { return state_ == LOGINSTATE_DONE; }
   void IncomingStanza(const XmlElement * element, bool isStart);
   void OutgoingStanza(const XmlElement *element);
+  void set_allow_non_google_login(bool b)
+    { allowNonGoogleLogin_ = b; }
 
 private:
   enum LoginTaskState {
@@ -77,6 +82,7 @@ private:
 
   XmppEngineImpl * pctx_;
   bool authNeeded_;
+  bool allowNonGoogleLogin_;
   LoginTaskState state_;
   const XmlElement * pelStanza_;
   bool isStart_;
@@ -95,4 +101,4 @@ private:
 
 }
 
-#endif
+#endif  //  TALK_XMPP_LOGINTASK_H_

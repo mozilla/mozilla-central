@@ -127,7 +127,7 @@ class CallClient: public sigslot::has_slots<> {
   void LookupAndJoinMuc(const std::string& room_name);
   void InviteToMuc(const std::string& user, const std::string& room);
   bool InMuc();
-  const buzz::Jid& FirstMucJid();
+  const buzz::Jid* FirstMucJid();
   void LeaveMuc(const std::string& room);
   void SetNick(const std::string& muc_nick);
   void SetPortAllocatorFlags(uint32 flags) { portallocator_flags_ = flags; }
@@ -180,6 +180,8 @@ class CallClient: public sigslot::has_slots<> {
   void OnRemoteMuted(const std::string& mutee_nick,
                      const std::string& muter_nick,
                      bool should_mute_locally);
+  void OnMediaBlocked(const std::string& blockee_nick,
+                      const std::string& blocker_nick);
   void OnHangoutRequestError(const std::string& node,
                              const buzz::XmlElement* stanza);
   void OnHangoutPublishAudioMuteError(const std::string& task_id,

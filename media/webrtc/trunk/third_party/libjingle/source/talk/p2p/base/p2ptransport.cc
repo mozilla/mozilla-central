@@ -143,7 +143,7 @@ bool P2PTransportParser::VerifyUsernameFormat(const std::string& username,
   return true;
 }
 
-const buzz::QName& GetCandidateQName(SignalingProtocol protocol) {
+static const buzz::StaticQName& GetCandidateQName(SignalingProtocol protocol) {
   if (protocol == PROTOCOL_GINGLE) {
     return QN_GINGLE_CANDIDATE;
   } else {

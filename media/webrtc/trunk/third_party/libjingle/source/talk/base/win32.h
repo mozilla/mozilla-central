@@ -54,6 +54,9 @@ typedef struct _TOKEN_MANDATORY_LABEL {
 
 namespace talk_base {
 
+const char* win32_inet_ntop(int af, const void *src, char* dst, socklen_t size);
+int win32_inet_pton(int af, const char* src, void *dst);
+
 ///////////////////////////////////////////////////////////////////////////////
 
 inline std::wstring ToUtf16(const char* utf8, size_t len) {

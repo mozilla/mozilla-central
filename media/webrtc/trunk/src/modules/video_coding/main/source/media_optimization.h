@@ -24,6 +24,7 @@ namespace webrtc
 enum { kBitrateMaxFrameSamples = 60 };
 enum { kBitrateAverageWinMs    = 1000 };
 
+class TickTimeBase;
 class VCMContentMetricsProcessing;
 class VCMFrameDropper;
 
@@ -38,7 +39,7 @@ struct VCMEncodedFrameSample
 class VCMMediaOptimization
 {
 public:
-    VCMMediaOptimization(WebRtc_Word32 id);
+    VCMMediaOptimization(WebRtc_Word32 id, TickTimeBase* clock);
     ~VCMMediaOptimization(void);
     /*
     * Reset the Media Optimization module
@@ -65,7 +66,8 @@ public:
                                   WebRtc_UWord32 frameRate,
                                   WebRtc_UWord32 bitRate,
                                   WebRtc_UWord16 width,
-                                  WebRtc_UWord16 height);
+                                  WebRtc_UWord16 height,
+                                  int numTemporalLayers);
     /**
     * Enable protection method
     */
@@ -139,7 +141,10 @@ private:
     /*
      *  Update protection callback with protection settings
      */
-    WebRtc_UWord32 UpdateProtectionCallback(VCMProtectionMethod *selectedMethod);
+    int UpdateProtectionCallback(VCMProtectionMethod *selected_method,
+                                 uint32_t* total_video_rate_bps,
+                                 uint32_t* nack_overhead_rate_bps,
+                                 uint32_t* fec_overhead_rate_bps);
 
     void UpdateBitRateEstimate(WebRtc_Word64 encodedLength, WebRtc_Word64 nowMs);
     /*
@@ -159,7 +164,7 @@ private:
     enum { kFrameHistoryWinMs = 2000};
 
     WebRtc_Word32                     _id;
-
+    TickTimeBase*                     _clock;
     WebRtc_Word32                     _maxBitRate;
     VideoCodecType                    _sendCodecType;
     WebRtc_UWord16                    _codecWidth;
@@ -168,7 +173,6 @@ private:
 
     VCMFrameDropper*                  _frameDropper;
     VCMLossProtectionLogic*           _lossProtLogic;
-    WebRtc_UWord32                    _lossProtOverhead;
     WebRtc_UWord8                     _packetLossEnc;
     WebRtc_UWord8                     _fractionLost;
 
@@ -197,6 +201,7 @@ private:
 
     WebRtc_Word64                     _lastQMUpdateTime;
     WebRtc_Word64                     _lastChangeTime; // content/user triggered
+    int                               _numLayers;
 
 
 }; // end of VCMMediaOptimization class definition

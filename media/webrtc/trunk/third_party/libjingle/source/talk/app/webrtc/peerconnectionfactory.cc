@@ -35,22 +35,18 @@
 namespace webrtc {
 
 PeerConnectionFactory::PeerConnectionFactory(
-    cricket::PortAllocator* port_allocator,
     cricket::MediaEngineInterface* media_engine,
     cricket::DeviceManagerInterface* device_manager,
     talk_base::Thread* worker_thread)
     : initialized_(false),
-      port_allocator_(port_allocator),
       channel_manager_(new cricket::ChannelManager(media_engine,
                                                    device_manager,
                                                    worker_thread)) {
 }
 
 PeerConnectionFactory::PeerConnectionFactory(
-    cricket::PortAllocator* port_allocator,
     talk_base::Thread* worker_thread)
     : initialized_(false),
-      port_allocator_(port_allocator),
       channel_manager_(new cricket::ChannelManager(worker_thread)) {
 }
 
@@ -64,11 +60,12 @@ bool PeerConnectionFactory::Initialize() {
 }
 
 PeerConnection* PeerConnectionFactory::CreatePeerConnection(
+    cricket::PortAllocator* port_allocator,
     talk_base::Thread* signaling_thread) {
   PeerConnectionProxy* pc = NULL;
   if (initialized_) {
     pc =  new PeerConnectionProxy(
-        port_allocator_.get(), channel_manager_.get(), signaling_thread);
+        port_allocator, channel_manager_.get(), signaling_thread);
     if (!pc->Init()) {
       LOG(LERROR) << "Error in initializing PeerConnection";
       delete pc;

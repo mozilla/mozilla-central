@@ -40,8 +40,18 @@
 namespace buzz {
 
 namespace {
-const std::string kPresenting = "s";
-const std::string kNotPresenting = "o";
+const char kPresenting[] = "s";
+const char kNotPresenting[] = "o";
+const char kEmpty[] = "";
+
+const std::string GetPublisherNickFromPubSubItem(const XmlElement* item_elem) {
+  if (item_elem == NULL) {
+    return "";
+  }
+
+  return Jid(item_elem->Attr(QN_ATTR_PUBLISHER)).resource();
+}
+
 }  // namespace
 
 
@@ -49,8 +59,37 @@ const std::string kNotPresenting = "o";
 template <typename C>
 class PubSubStateSerializer {
  public:
+  virtual ~PubSubStateSerializer() {}
   virtual XmlElement* Write(const QName& state_name, const C& state) = 0;
   virtual C Parse(const XmlElement* state_elem) = 0;
+};
+
+// Knows how to create "keys" for states, which determines their
+// uniqueness.  Most states are per-nick, but block is
+// per-blocker-and-blockee.  This is independent of itemid, especially
+// in the case of presenter state.
+class PubSubStateKeySerializer {
+ public:
+  virtual ~PubSubStateKeySerializer() {}
+  virtual std::string GetKey(const std::string& publisher_nick,
+                             const std::string& published_nick) = 0;
+};
+
+class PublishedNickKeySerializer : public PubSubStateKeySerializer {
+ public:
+  virtual std::string GetKey(const std::string& publisher_nick,
+                             const std::string& published_nick) {
+    return published_nick;
+  }
+};
+
+class PublisherAndPublishedNicksKeySerializer
+    : public PubSubStateKeySerializer {
+ public:
+  virtual std::string GetKey(const std::string& publisher_nick,
+                             const std::string& published_nick) {
+    return publisher_nick + ":" + published_nick;
+  }
 };
 
 // A simple serialiazer where presence of item => true, lack of item
@@ -77,15 +116,19 @@ class BoolStateSerializer : public PubSubStateSerializer<bool> {
 template <typename C>
 class PubSubStateClient : public sigslot::has_slots<> {
  public:
-  // Gets ownership of the serializer, but not the client.
-  PubSubStateClient(PubSubClient* client,
+  // Gets ownership of the serializers, but not the client.
+  PubSubStateClient(const std::string& publisher_nick,
+                    PubSubClient* client,
                     const QName& state_name,
                     C default_state,
-                    PubSubStateSerializer<C>* serializer)
-      : client_(client),
+                    PubSubStateKeySerializer* key_serializer,
+                    PubSubStateSerializer<C>* state_serializer)
+      : publisher_nick_(publisher_nick),
+        client_(client),
         state_name_(state_name),
         default_state_(default_state) {
-    serializer_.reset(serializer);
+    key_serializer_.reset(key_serializer);
+    state_serializer_.reset(state_serializer);
     client_->SignalItems.connect(
         this, &PubSubStateClient<C>::OnItems);
     client_->SignalPublishResult.connect(
@@ -100,16 +143,16 @@ class PubSubStateClient : public sigslot::has_slots<> {
 
   virtual ~PubSubStateClient() {}
 
-  virtual void Publish(const std::string& key, const C& state,
+  virtual void Publish(const std::string& published_nick,
+                       const C& state,
                        std::string* task_id_out) {
-    const std::string& nick = key;
-
-    std::string itemid = state_name_.LocalPart() + ":" + nick;
+    std::string key = key_serializer_->GetKey(publisher_nick_, published_nick);
+    std::string itemid = state_name_.LocalPart() + ":" + key;
     if (StatesEqual(state, default_state_)) {
       client_->RetractItem(itemid, task_id_out);
     } else {
-      XmlElement* state_elem = serializer_->Write(state_name_, state);
-      state_elem->AddAttr(QN_NICK, nick);
+      XmlElement* state_elem = state_serializer_->Write(state_name_, state);
+      state_elem->AddAttr(QN_NICK, published_nick);
       client_->PublishItem(itemid, state_elem, task_id_out);
     }
   };
@@ -124,17 +167,18 @@ class PubSubStateClient : public sigslot::has_slots<> {
                    const XmlElement*> SignalPublishError;
 
  protected:
-  // return false if retracted item (no state given)
-  virtual bool ParseState(const PubSubItem& item,
-                          std::string* key_out,
-                          bool* state_out) {
+  // return false if retracted item (no info or state given)
+  virtual bool ParseStateItem(const PubSubItem& item,
+                              StateItemInfo* info_out,
+                              bool* state_out) {
     const XmlElement* state_elem = item.elem->FirstNamed(state_name_);
     if (state_elem == NULL) {
       return false;
     }
 
-    *key_out = state_elem->Attr(QN_NICK);
-    *state_out = serializer_->Parse(state_elem);
+    info_out->publisher_nick = GetPublisherNickFromPubSubItem(item.elem);
+    info_out->published_nick = state_elem->Attr(QN_NICK);
+    *state_out = state_serializer_->Parse(state_elem);
     return true;
   };
 
@@ -155,27 +199,30 @@ class PubSubStateClient : public sigslot::has_slots<> {
 
   void OnItem(const PubSubItem& item) {
     const std::string& itemid = item.itemid;
-
-    std::string key;
+    StateItemInfo info;
     C new_state;
-    bool retracted = !ParseState(item, &key, &new_state);
+
+    bool retracted = !ParseStateItem(item, &info, &new_state);
     if (retracted) {
-      bool known_itemid = (key_by_itemid_.find(itemid) != key_by_itemid_.end());
+      bool known_itemid =
+          (info_by_itemid_.find(itemid) != info_by_itemid_.end());
       if (!known_itemid) {
         // Nothing to retract, and nothing to publish.
         // Probably a different state type.
         return;
       } else {
-        key = key_by_itemid_[itemid];
-        key_by_itemid_.erase(itemid);
+        info = info_by_itemid_[itemid];
+        info_by_itemid_.erase(itemid);
         new_state = default_state_;
       }
     } else {
-      // TODO: Assert parsed key matches the known key when
-      // not retracted.  It shouldn't change!
-      key_by_itemid_[itemid] = key;
+      // TODO: Assert new key matches the known key. It
+      // shouldn't change!
+      info_by_itemid_[itemid] = info;
     }
 
+    std::string key = key_serializer_->GetKey(
+        info.publisher_nick, info.published_nick);
     bool has_old_state = (state_by_key_.find(key) != state_by_key_.end());
     const C& old_state = has_old_state ? state_by_key_[key] : default_state_;
     if ((retracted && !has_old_state) || StatesEqual(new_state, old_state)) {
@@ -191,11 +238,10 @@ class PubSubStateClient : public sigslot::has_slots<> {
     }
 
     PubSubStateChange<C> change;
-    change.key = key;
+    change.publisher_nick = info.publisher_nick;
+    change.published_nick = info.published_nick;
     change.old_state = old_state;
     change.new_state = new_state;
-    change.publisher_nick =
-        Jid(item.elem->Attr(QN_ATTR_PUBLISHER)).resource();
     SignalStateChange(change);
  }
 
@@ -231,33 +277,36 @@ class PubSubStateClient : public sigslot::has_slots<> {
     SignalPublishError(task_id, item, stanza);
   }
 
+  std::string publisher_nick_;
   PubSubClient* client_;
-  const QName& state_name_;
+  const QName state_name_;
   C default_state_;
-  talk_base::scoped_ptr<PubSubStateSerializer<C> > serializer_;
+  talk_base::scoped_ptr<PubSubStateKeySerializer> key_serializer_;
+  talk_base::scoped_ptr<PubSubStateSerializer<C> > state_serializer_;
   // key => state
   std::map<std::string, C> state_by_key_;
-  // itemid => key
-  std::map<std::string, std::string> key_by_itemid_;
+  // itemid => StateItemInfo
+  std::map<std::string, StateItemInfo> info_by_itemid_;
 };
 
 class PresenterStateClient : public PubSubStateClient<bool> {
  public:
-  PresenterStateClient(PubSubClient* client,
+  PresenterStateClient(const std::string& publisher_nick,
+                       PubSubClient* client,
                        const QName& state_name,
-                       bool default_state,
-                       PubSubStateSerializer<bool>* serializer = NULL)
-      : PubSubStateClient<bool>(client, state_name, default_state, serializer) {
+                       bool default_state)
+      : PubSubStateClient<bool>(
+          publisher_nick, client, state_name, default_state,
+          new PublishedNickKeySerializer(), NULL) {
   }
 
-  virtual void Publish(const std::string& key, const bool& state,
+  virtual void Publish(const std::string& published_nick,
+                       const bool& state,
                        std::string* task_id_out) {
-    const std::string& nick = key;
-
     XmlElement* presenter_elem = new XmlElement(QN_PRESENTER_PRESENTER, true);
     // There's a dummy value, not used, but required.
     presenter_elem->AddAttr(QN_JID, "dummy@value.net");
-    presenter_elem->AddAttr(QN_NICK, nick);
+    presenter_elem->AddAttr(QN_NICK, published_nick);
 
     XmlElement* presentation_item_elem =
         new XmlElement(QN_PRESENTER_PRESENTATION_ITEM, false);
@@ -267,7 +316,7 @@ class PresenterStateClient : public PubSubStateClient<bool> {
 
     // The Presenter state is kind of dumb in that it doesn't use
     // retracts.  It relies on setting the "type" to a special value.
-    std::string itemid = nick;
+    std::string itemid = published_nick;
     std::vector<XmlElement*> children;
     children.push_back(presenter_elem);
     children.push_back(presentation_item_elem);
@@ -275,9 +324,9 @@ class PresenterStateClient : public PubSubStateClient<bool> {
   }
 
  protected:
-  virtual bool ParseState(const PubSubItem& item,
-                          std::string* key_out,
-                          bool* state_out) {
+  virtual bool ParseStateItem(const PubSubItem& item,
+                              StateItemInfo* info_out,
+                              bool* state_out) {
     const XmlElement* presenter_elem =
         item.elem->FirstNamed(QN_PRESENTER_PRESENTER);
     const XmlElement* presentation_item_elem =
@@ -286,7 +335,8 @@ class PresenterStateClient : public PubSubStateClient<bool> {
       return false;
     }
 
-    *key_out = presenter_elem->Attr(QN_NICK);
+    info_out->publisher_nick = GetPublisherNickFromPubSubItem(item.elem);
+    info_out->published_nick = presenter_elem->Attr(QN_NICK);
     *state_out = (presentation_item_elem->Attr(
         QN_PRESENTER_PRESENTATION_TYPE) != kNotPresenting);
     return true;
@@ -307,7 +357,7 @@ HangoutPubSubClient::HangoutPubSubClient(XmppTaskParentInterface* parent,
       this, &HangoutPubSubClient::OnMediaRequestError);
 
   presenter_state_client_.reset(new PresenterStateClient(
-      presenter_client_.get(), QN_PRESENTER_PRESENTER, false));
+      nick_, presenter_client_.get(), QN_PRESENTER_PRESENTER, false));
   presenter_state_client_->SignalStateChange.connect(
       this, &HangoutPubSubClient::OnPresenterStateChange);
   presenter_state_client_->SignalPublishResult.connect(
@@ -316,8 +366,8 @@ HangoutPubSubClient::HangoutPubSubClient(XmppTaskParentInterface* parent,
       this, &HangoutPubSubClient::OnPresenterPublishError);
 
   audio_mute_state_client_.reset(new PubSubStateClient<bool>(
-      media_client_.get(), QN_GOOGLE_MUC_AUDIO_MUTE, false,
-      new BoolStateSerializer()));
+      nick_, media_client_.get(), QN_GOOGLE_MUC_AUDIO_MUTE, false,
+      new PublishedNickKeySerializer(), new BoolStateSerializer()));
   // Can't just repeat because we need to watch for remote mutes.
   audio_mute_state_client_->SignalStateChange.connect(
       this, &HangoutPubSubClient::OnAudioMuteStateChange);
@@ -327,14 +377,25 @@ HangoutPubSubClient::HangoutPubSubClient(XmppTaskParentInterface* parent,
       this, &HangoutPubSubClient::OnAudioMutePublishError);
 
   recording_state_client_.reset(new PubSubStateClient<bool>(
-      media_client_.get(), QN_GOOGLE_MUC_RECORDING, false,
-      new BoolStateSerializer()));
+      nick_, media_client_.get(), QN_GOOGLE_MUC_RECORDING, false,
+      new PublishedNickKeySerializer(), new BoolStateSerializer()));
   recording_state_client_->SignalStateChange.connect(
       this, &HangoutPubSubClient::OnRecordingStateChange);
   recording_state_client_->SignalPublishResult.connect(
       this, &HangoutPubSubClient::OnRecordingPublishResult);
   recording_state_client_->SignalPublishError.connect(
       this, &HangoutPubSubClient::OnRecordingPublishError);
+
+  media_block_state_client_.reset(new PubSubStateClient<bool>(
+      nick_, media_client_.get(), QN_GOOGLE_MUC_MEDIA_BLOCK, false,
+      new PublisherAndPublishedNicksKeySerializer(),
+      new BoolStateSerializer()));
+  media_block_state_client_->SignalStateChange.connect(
+      this, &HangoutPubSubClient::OnMediaBlockStateChange);
+  media_block_state_client_->SignalPublishResult.connect(
+      this, &HangoutPubSubClient::OnMediaBlockPublishResult);
+  media_block_state_client_->SignalPublishError.connect(
+      this, &HangoutPubSubClient::OnMediaBlockPublishError);
 }
 
 HangoutPubSubClient::~HangoutPubSubClient() {
@@ -376,10 +437,17 @@ void HangoutPubSubClient::RemoteMute(
   audio_mute_state_client_->Publish(mutee_nick, true, task_id_out);
 }
 
+// Block media is accomplished by setting another client's block
+// state, kind of like remote mute.
+void HangoutPubSubClient::BlockMedia(
+    const std::string& blockee_nick, std::string* task_id_out) {
+  media_block_state_client_->Publish(blockee_nick, true, task_id_out);
+}
+
 void HangoutPubSubClient::OnPresenterStateChange(
     const PubSubStateChange<bool>& change) {
-  const std::string& nick = change.key;
-  SignalPresenterStateChange(nick, change.old_state, change.new_state);
+  SignalPresenterStateChange(
+      change.published_nick, change.old_state, change.new_state);
 }
 
 void HangoutPubSubClient::OnPresenterPublishResult(
@@ -398,19 +466,17 @@ void HangoutPubSubClient::OnPresenterPublishError(
 // ourselves.  Note that we never remote un-mute, though.
 void HangoutPubSubClient::OnAudioMuteStateChange(
     const PubSubStateChange<bool>& change) {
-  const std::string& nick = change.key;
-
   bool was_muted = change.old_state;
   bool is_muted = change.new_state;
-  bool remote_action =
-      !change.publisher_nick.empty() && (change.publisher_nick != nick);
+  bool remote_action = (!change.publisher_nick.empty() &&
+                        (change.publisher_nick != change.published_nick));
   if (is_muted && remote_action) {
-    const std::string& mutee_nick = nick;
+    const std::string& mutee_nick = change.published_nick;
     const std::string& muter_nick = change.publisher_nick;
     bool should_mute_locally = (mutee_nick == nick_);
     SignalRemoteMute(mutee_nick, muter_nick, should_mute_locally);
   } else {
-    SignalAudioMuteStateChange(nick, was_muted, is_muted);
+    SignalAudioMuteStateChange(change.published_nick, was_muted, is_muted);
   }
 }
 
@@ -422,7 +488,18 @@ const std::string& GetAudioMuteNickFromItem(const XmlElement* item) {
       return audio_mute_state->Attr(QN_NICK);
     }
   }
-  return STR_EMPTY;
+  return EmptyStringRef();
+}
+
+const std::string GetBlockeeNickFromItem(const XmlElement* item) {
+  if (item != NULL) {
+    const XmlElement* media_block_state =
+        item->FirstNamed(QN_GOOGLE_MUC_MEDIA_BLOCK);
+    if (media_block_state != NULL) {
+      return media_block_state->Attr(QN_NICK);
+    }
+  }
+  return "";
 }
 
 void HangoutPubSubClient::OnAudioMutePublishResult(
@@ -448,8 +525,8 @@ void HangoutPubSubClient::OnAudioMutePublishError(
 
 void HangoutPubSubClient::OnRecordingStateChange(
     const PubSubStateChange<bool>& change) {
-  const std::string& nick = change.key;
-  SignalRecordingStateChange(nick, change.old_state, change.new_state);
+  SignalRecordingStateChange(
+      change.published_nick, change.old_state, change.new_state);
 }
 
 void HangoutPubSubClient::OnRecordingPublishResult(
@@ -461,6 +538,34 @@ void HangoutPubSubClient::OnRecordingPublishError(
     const std::string& task_id, const XmlElement* item,
     const XmlElement* stanza) {
   SignalPublishRecordingError(task_id, stanza);
+}
+
+void HangoutPubSubClient::OnMediaBlockStateChange(
+    const PubSubStateChange<bool>& change) {
+  const std::string& blockee_nick = change.published_nick;
+  const std::string& blocker_nick = change.publisher_nick;
+
+  bool was_blockee = change.old_state;
+  bool is_blockee = change.new_state;
+  if (!was_blockee && is_blockee) {
+    SignalMediaBlock(blockee_nick, blocker_nick);
+  }
+  // TODO: Should we bother signaling unblock? Currently
+  // it isn't allowed, but it might happen when a participant leaves
+  // the room and the item is retracted.
+}
+
+void HangoutPubSubClient::OnMediaBlockPublishResult(
+    const std::string& task_id, const XmlElement* item) {
+  const std::string& blockee_nick = GetBlockeeNickFromItem(item);
+  SignalMediaBlockResult(task_id, blockee_nick);
+}
+
+void HangoutPubSubClient::OnMediaBlockPublishError(
+    const std::string& task_id, const XmlElement* item,
+    const XmlElement* stanza) {
+  const std::string& blockee_nick = GetBlockeeNickFromItem(item);
+  SignalMediaBlockError(task_id, blockee_nick, stanza);
 }
 
 }  // namespace buzz

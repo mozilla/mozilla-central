@@ -20,8 +20,6 @@
 #include "video_coding.h"
 #include "video_source.h"
 
-using namespace std;
-
 // media optimization test
 // This test simulates a complete encode-decode cycle via the RTP module.
 // allows error resilience tests, packet loss tests, etc.
@@ -33,7 +31,8 @@ using namespace std;
 class MediaOptTest
 {
 public:
-    MediaOptTest(webrtc::VideoCodingModule* vcm);
+    MediaOptTest(webrtc::VideoCodingModule* vcm,
+                 webrtc::TickTimeBase* clock);
     ~MediaOptTest();
 
     static int RunTest(int testNum, CmdArgs& args);
@@ -53,6 +52,7 @@ private:
 
     webrtc::VideoCodingModule*       _vcm;
     webrtc::RtpRtcp*                 _rtp;
+    webrtc::TickTimeBase*            _clock;
     std::string                      _inname;
     std::string                      _outname;
     std::string                      _actualSourcename;
@@ -76,7 +76,7 @@ private:
     WebRtc_Word32                    _frameCnt;
     float                            _sumEncBytes;
     WebRtc_Word32                    _numFramesDropped;
-    string                           _codecName;
+    std::string                      _codecName;
     webrtc::VideoCodecType           _sendCodecType;
     WebRtc_Word32                    _numberOfCores;
 

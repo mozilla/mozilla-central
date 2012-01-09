@@ -103,7 +103,7 @@
             }],
             ['use_openssl==0 and use_system_ssl==0', {
               'dependencies': [
-                '../../net/third_party/nss/ssl.gyp:ssl',
+                '../../net/third_party/nss/ssl.gyp:libssl',
                 '../../third_party/zlib/zlib.gyp:zlib',
               ],
               'direct_dependent_settings': {
@@ -260,7 +260,7 @@
               '<!@(<(pkg-config) --libs-only-l gio-2.0)',
             ],
             'conditions': [
-              ['linux_link_gsettings==0', {
+              ['linux_link_gsettings==0 and OS=="linux"', {
                 'libraries': [
                   '-ldl',
                 ],
@@ -328,6 +328,27 @@
       ],
     },
     {
+      'target_name': 'xfixes',
+      'type': 'none',
+      'conditions': [
+        ['_toolset=="target"', {
+          'direct_dependent_settings': {
+            'cflags': [
+              '<!@(<(pkg-config) --cflags xfixes)',
+            ],
+          },
+          'link_settings': {
+            'ldflags': [
+              '<!@(<(pkg-config) --libs-only-L --libs-only-other xfixes)',
+            ],
+            'libraries': [
+              '<!@(<(pkg-config) --libs-only-l xfixes)',
+            ],
+          },
+        }],
+      ],
+    },
+    {
       'target_name': 'libgcrypt',
       'type': 'none',
       'conditions': [
@@ -387,11 +408,15 @@
                 ],
               },
             }, {
-              'link_settings': {
-                'libraries': [
-                  '-ldl',
-                ],
-              },
+              'conditions': [
+                ['OS=="linux"', {
+                 'link_settings': {
+                   'libraries': [
+                     '-ldl',
+                   ],
+                 },
+                }],
+              ],
             }],
           ],
         }],

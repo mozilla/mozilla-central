@@ -417,14 +417,6 @@ def MergeAndFilterByPlatform(env, params):
   return merged
 
 
-# Whether to enable extra 64-bit targets marked with the also64bit setting. Used
-# only for the legacy mixed 32/64 desktop Linux build.
-def EnableExtra64BitTargets(env):
-  return (env.Bit('linux') and env.Bit('build_platform_64bit') and
-          not env.Bit('host_platform_64bit')
-          )
-
-
 def MergeSettingsFromLibraryDependencies(env, params):
   if 'libs' in params:
     for lib in params['libs']:
@@ -522,13 +514,6 @@ def ExtendComponent(env, component, **kwargs):
     if values is not None:
       env.Prepend(**{var : values})
 
-  # workaround for pulse stripping link flag for unknown reason
-  if EnableExtra64BitTargets(env):
-    env['SHLINKCOM'] = ('$SHLINK -o $TARGET -m32 $SHLINKFLAGS $SOURCES '
-                        '$_LIBDIRFLAGS $_LIBFLAGS')
-    env['LINKCOM'] = ('$LINK -o $TARGET -m32 $LINKFLAGS $SOURCES '
-                      '$_LIBDIRFLAGS $_LIBFLAGS')
-
   # any other parameters are replaced without renaming
   for field, value in params.items():
     env.Replace(**{field : value})
@@ -555,36 +540,7 @@ def ExtendComponent(env, component, **kwargs):
 
   node = builder(name, srcs)
 
-  # make a parallel 64bit version if requested
-  if EnableExtra64BitTargets(env) and PopEntry(params, 'also64bit'):
-    env_64bit = env.Clone()
-    env_64bit.FilterOut(CCFLAGS = ['-m32'], LINKFLAGS = ['-m32'])
-    env_64bit.Prepend(CCFLAGS = ['-m64', '-fPIC'], LINKFLAGS = ['-m64'])
-    name_64bit = name + '64'
-    env_64bit.Replace(OBJSUFFIX = '64' + env_64bit['OBJSUFFIX'])
-    env_64bit.Replace(SHOBJSUFFIX = '64' + env_64bit['SHOBJSUFFIX'])
-    if ('ComponentProgram' == component or
-        ('ComponentLibrary' == component and
-         env_64bit['COMPONENT_STATIC'] == False)):
-      # link 64 bit versions of libraries
-      libs = []
-      for lib in env_64bit['LIBS']:
-        libparams = _GetLibParams(env, lib)
-        if libparams and 'also64bit' in libparams:
-          libs.append(lib + '64')
-        else:
-          libs.append(lib)
-      env_64bit.Replace(LIBS = libs)
-
-    env_64bit['SHLINKCOM'] = ('$SHLINK -o $TARGET -m64 $SHLINKFLAGS $SOURCES '
-                              '$_LIBDIRFLAGS $_LIBFLAGS')
-    env_64bit['LINKCOM'] = ('$LINK -o $TARGET -m64 $LINKFLAGS $SOURCES '
-                            '$_LIBDIRFLAGS $_LIBFLAGS')
-    builder = getattr(env_64bit, component)
-    nodes = [node, builder(name_64bit, srcs)]
-    return nodes
-
-  if signed:  # Note currently incompatible with 64Bit flag
+  if signed:
     # Get the name of the built binary, then get the name of the final signed
     # version from it.  We need the output path since we don't know the file
     # extension beforehand.

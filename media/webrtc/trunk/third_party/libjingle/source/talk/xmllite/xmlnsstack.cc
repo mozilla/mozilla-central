@@ -25,11 +25,13 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "talk/xmllite/xmlnsstack.h"
+
+#include <sstream>
 #include <string>
 #include <vector>
-#include <sstream>
+
 #include "talk/xmllite/xmlelement.h"
-#include "talk/xmllite/xmlnsstack.h"
 #include "talk/xmllite/xmlconstants.h"
 
 namespace buzz {
@@ -41,13 +43,11 @@ XmlnsStack::XmlnsStack() :
 
 XmlnsStack::~XmlnsStack() {}
 
-void
-XmlnsStack::PushFrame() {
+void XmlnsStack::PushFrame() {
   pxmlnsDepthStack_->push_back(pxmlnsStack_->size());
 }
 
-void
-XmlnsStack::PopFrame() {
+void XmlnsStack::PopFrame() {
   size_t prev_size = pxmlnsDepthStack_->back();
   pxmlnsDepthStack_->pop_back();
   if (prev_size < pxmlnsStack_->size()) {
@@ -56,42 +56,41 @@ XmlnsStack::PopFrame() {
   }
 }
 
-const std::string *
-XmlnsStack::NsForPrefix(const std::string & prefix) {
+std::pair<std::string, bool> XmlnsStack::NsForPrefix(
+    const std::string& prefix) {
   if (prefix.length() >= 3 &&
       (prefix[0] == 'x' || prefix[0] == 'X') &&
       (prefix[1] == 'm' || prefix[1] == 'M') &&
       (prefix[2] == 'l' || prefix[2] == 'L')) {
     if (prefix == "xml")
-      return &(NS_XML);
+      return std::make_pair(NS_XML, true);
     if (prefix == "xmlns")
-      return &(NS_XMLNS);
-    return NULL;
+      return std::make_pair(NS_XMLNS, true);
+    // Other names with xml prefix are illegal.
+    return std::make_pair(STR_EMPTY, false);
   }
 
   std::vector<std::string>::iterator pos;
   for (pos = pxmlnsStack_->end(); pos > pxmlnsStack_->begin(); ) {
     pos -= 2;
     if (*pos == prefix)
-      return &(*(pos + 1));
+      return std::make_pair(*(pos + 1), true);
   }
 
   if (prefix == STR_EMPTY)
-    return &(STR_EMPTY); // default namespace
+    return std::make_pair(STR_EMPTY, true);  // default namespace
 
-  return NULL; // none found
+  return std::make_pair(STR_EMPTY, false);  // none found
 }
 
-bool
-XmlnsStack::PrefixMatchesNs(const std::string & prefix, const std::string & ns) {
-  const std::string * match = NsForPrefix(prefix);
-  if (match == NULL)
-    return false;
-  return (*match == ns);
+bool XmlnsStack::PrefixMatchesNs(const std::string& prefix,
+                                 const std::string& ns) {
+  const std::pair<std::string, bool> match = NsForPrefix(prefix);
+  return match.second && (match.first == ns);
 }
 
-std::pair<std::string, bool>
-XmlnsStack::PrefixForNs(const std::string & ns, bool isattr) {
+std::pair<std::string, bool> XmlnsStack::PrefixForNs(const std::string& ns,
+                                                     bool isattr) {
   if (ns == NS_XML)
     return std::make_pair(std::string("xml"), true);
   if (ns == NS_XMLNS)
@@ -110,8 +109,7 @@ XmlnsStack::PrefixForNs(const std::string & ns, bool isattr) {
   return std::make_pair(STR_EMPTY, false); // none found
 }
 
-std::string
-XmlnsStack::FormatQName(const QName & name, bool isAttr) {
+std::string XmlnsStack::FormatQName(const QName& name, bool isAttr) {
   std::string prefix(PrefixForNs(name.Namespace(), isAttr).first);
   if (prefix == STR_EMPTY)
     return name.LocalPart();
@@ -119,14 +117,12 @@ XmlnsStack::FormatQName(const QName & name, bool isAttr) {
     return prefix + ':' + name.LocalPart();
 }
 
-void
-XmlnsStack::AddXmlns(const std::string & prefix, const std::string & ns) {
+void XmlnsStack::AddXmlns(const std::string & prefix, const std::string & ns) {
   pxmlnsStack_->push_back(prefix);
   pxmlnsStack_->push_back(ns);
 }
 
-void
-XmlnsStack::RemoveXmlns() {
+void XmlnsStack::RemoveXmlns() {
   pxmlnsStack_->pop_back();
   pxmlnsStack_->pop_back();
 }
@@ -173,16 +169,15 @@ static std::string SuggestPrefix(const std::string & ns) {
   return "ns";
 }
 
-
-std::pair<std::string, bool>
-XmlnsStack::AddNewPrefix(const std::string & ns, bool isAttr) {
+std::pair<std::string, bool> XmlnsStack::AddNewPrefix(const std::string& ns,
+                                                      bool isAttr) {
   if (PrefixForNs(ns, isAttr).second)
     return std::make_pair(STR_EMPTY, false);
 
   std::string base(SuggestPrefix(ns));
   std::string result(base);
   int i = 2;
-  while (NsForPrefix(result) != NULL) {
+  while (NsForPrefix(result).second) {
     std::stringstream ss;
     ss << base;
     ss << (i++);

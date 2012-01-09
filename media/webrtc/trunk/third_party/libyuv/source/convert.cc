@@ -23,11 +23,14 @@
 #include "libyuv/planar_functions.h"
 #include "libyuv/rotate.h"
 #include "row.h"
-#include "video_common.h"
+#include "libyuv/video_common.h"
 
+#ifdef __cplusplus
 namespace libyuv {
+extern "C" {
+#endif
 
-static inline uint8 Clip(int32 val) {
+static __inline uint8 Clip(int32 val) {
   if (val < 0) {
     return (uint8) 0;
   } else if (val > 255){
@@ -36,6 +39,7 @@ static inline uint8 Clip(int32 val) {
   return (uint8) val;
 }
 
+// TODO(fbarchard): rewrite with row functions
 int I420ToRGB24(const uint8* src_y, int src_stride_y,
                 const uint8* src_u, int src_stride_u,
                 const uint8* src_v, int src_stride_v,
@@ -44,11 +48,9 @@ int I420ToRGB24(const uint8* src_y, int src_stride_y,
   if (src_y == NULL || src_u == NULL || src_v == NULL || dst_frame == NULL) {
     return -1;
   }
-
-  // RGB orientation - bottom up
   // TODO(fbarchard): support inversion
-  uint8* out = dst_frame + dst_stride_frame * height - dst_stride_frame;
-  uint8* out2 = out - dst_stride_frame;
+  uint8* out = dst_frame;
+  uint8* out2 = out + dst_stride_frame;
   int h, w;
   int tmp_r, tmp_g, tmp_b;
   const uint8 *y1, *y2 ,*u, *v;
@@ -95,6 +97,77 @@ int I420ToRGB24(const uint8* src_y, int src_stride_y,
       u++;
       v++;
     }
+    y1 += 2 * src_stride_y - width;
+    y2 += 2 * src_stride_y - width;
+    u += src_stride_u - ((width + 1) >> 1);
+    v += src_stride_v - ((width + 1) >> 1);
+    out += dst_stride_frame;
+    out2 += dst_stride_frame;
+  }
+  return 0;
+}
+
+// same as RGB24 but r,g,b instead of b,g,r
+// TODO(fbarchard): rewrite with row functions
+int I420ToRAW(const uint8* src_y, int src_stride_y,
+              const uint8* src_u, int src_stride_u,
+              const uint8* src_v, int src_stride_v,
+              uint8* dst_frame, int dst_stride_frame,
+              int width, int height) {
+  if (src_y == NULL || src_u == NULL || src_v == NULL || dst_frame == NULL) {
+    return -1;
+  }
+
+  // RGB orientation - bottom up
+  // TODO(fbarchard): support inversion
+  uint8* out = dst_frame + dst_stride_frame * height - dst_stride_frame;
+  uint8* out2 = out - dst_stride_frame;
+  int h, w;
+  int tmp_r, tmp_g, tmp_b;
+  const uint8 *y1, *y2 ,*u, *v;
+  y1 = src_y;
+  y2 = y1 + src_stride_y;
+  u = src_u;
+  v = src_v;
+  for (h = ((height + 1) >> 1); h > 0; h--){
+    // 2 rows at a time, 2 y's at a time
+    for (w = 0; w < ((width + 1) >> 1); w++){
+      // Vertical and horizontal sub-sampling
+      tmp_r = (int32)((mapYc[y1[0]] + mapVcr[v[0]] + 128) >> 8);
+      tmp_g = (int32)((mapYc[y1[0]] + mapUcg[u[0]] + mapVcg[v[0]] + 128) >> 8);
+      tmp_b = (int32)((mapYc[y1[0]] + mapUcb[u[0]] + 128) >> 8);
+      out[0] = Clip(tmp_r);
+      out[1] = Clip(tmp_g);
+      out[2] = Clip(tmp_b);
+
+      tmp_r = (int32)((mapYc[y1[1]] + mapVcr[v[0]] + 128) >> 8);
+      tmp_g = (int32)((mapYc[y1[1]] + mapUcg[u[0]] + mapVcg[v[0]] + 128) >> 8);
+      tmp_b = (int32)((mapYc[y1[1]] + mapUcb[u[0]] + 128) >> 8);
+      out[3] = Clip(tmp_r);
+      out[4] = Clip(tmp_g);
+      out[5] = Clip(tmp_b);
+
+      tmp_r = (int32)((mapYc[y2[0]] + mapVcr[v[0]] + 128) >> 8);
+      tmp_g = (int32)((mapYc[y2[0]] + mapUcg[u[0]] + mapVcg[v[0]] + 128) >> 8);
+      tmp_b = (int32)((mapYc[y2[0]] + mapUcb[u[0]] + 128) >> 8);
+      out2[0] = Clip(tmp_r);
+      out2[1] = Clip(tmp_g);
+      out2[2] = Clip(tmp_b);
+
+      tmp_r = (int32)((mapYc[y2[1]] + mapVcr[v[0]] + 128) >> 8);
+      tmp_g = (int32)((mapYc[y2[1]] + mapUcg[u[0]] + mapVcg[v[0]] + 128) >> 8);
+      tmp_b = (int32)((mapYc[y2[1]] + mapUcb[u[0]] + 128) >> 8);
+      out2[3] = Clip(tmp_r);
+      out2[4] = Clip(tmp_g);
+      out2[5] = Clip(tmp_b);
+
+      out += 6;
+      out2 += 6;
+      y1 += 2;
+      y2 += 2;
+      u++;
+      v++;
+    }
     y1 += src_stride_y + src_stride_y - width;
     y2 += src_stride_y + src_stride_y - width;
     u += src_stride_u - ((width + 1) >> 1);
@@ -106,6 +179,7 @@ int I420ToRGB24(const uint8* src_y, int src_stride_y,
 }
 
 // Little Endian...
+// TODO(fbarchard): rewrite with row functions
 int I420ToARGB4444(const uint8* src_y, int src_stride_y,
                    const uint8* src_u, int src_stride_u,
                    const uint8* src_v, int src_stride_v,
@@ -172,7 +246,7 @@ int I420ToARGB4444(const uint8* src_y, int src_stride_y,
   return 0;
 }
 
-
+// TODO(fbarchard): rewrite with row functions
 int I420ToRGB565(const uint8* src_y, int src_stride_y,
                  const uint8* src_u, int src_stride_u,
                  const uint8* src_v, int src_stride_v,
@@ -251,7 +325,7 @@ int I420ToRGB565(const uint8* src_y, int src_stride_y,
   return 0;
 }
 
-
+// TODO(fbarchard): rewrite with row functions
 int I420ToARGB1555(const uint8* src_y, int src_stride_y,
                    const uint8* src_u, int src_stride_u,
                    const uint8* src_v, int src_stride_v,
@@ -974,6 +1048,9 @@ int RAWToI420(const uint8* src_frame, int src_stride_frame,
 // Convert camera sample to I420 with cropping, rotation and vertical flip.
 // src_width is used for source stride computation
 // src_height is used to compute location of planes, and indicate inversion
+// TODO(fbarchard): sample_size should be used to ensure the low levels do
+// not read outside the buffer provided.  It is measured in bytes and is the
+// size of the frame.  With MJPEG it is the compressed size of the frame.
 int ConvertToI420(const uint8* sample, size_t sample_size,
                   uint8* y, int y_stride,
                   uint8* u, int u_stride,
@@ -1063,6 +1140,15 @@ int ConvertToI420(const uint8* sample, size_t sample_size,
                      y, y_stride, u, u_stride, v, v_stride,
                      dst_width, inv_dst_height);
       break;
+    case FOURCC_I400:
+      src = sample + src_width * crop_y + crop_x;
+      I400ToI420(src, src_width,
+                 y, y_stride,
+                 u, u_stride,
+                 v, v_stride,
+                 dst_width, inv_dst_height);
+      break;
+
     // Biplanar formats
     case FOURCC_NV12:
       src = sample + (src_width * crop_y + crop_x);
@@ -1187,4 +1273,7 @@ int ConvertToI420(const uint8* sample, size_t sample_size,
   return 0;
 }
 
-} // namespace libyuv
+#ifdef __cplusplus
+}  // extern "C"
+}  // namespace libyuv
+#endif
