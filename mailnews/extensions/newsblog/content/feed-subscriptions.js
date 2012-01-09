@@ -955,28 +955,35 @@ var gFeedSubscriptionsWindow = {
       stream.close();
     }
 
+    var statusReport;
+    var feedsAdded = 0;
+
     // return if the user didn't give us an OPML file
     if(!opmlDom || !(opmlDom.documentElement.tagName == "opml"))
     {
-      promptService.alert(window, null, this.mBundle.getFormattedString("subscribe-errorInvalidOPMLFile", [rv.file.leafName]));
-      return;
+      statusReport = this.mBundle.getFormattedString("subscribe-OPMLImportInvalidFile", [rv.file.leafName]);
     }
-
-    var outlines = opmlDom.getElementsByTagName("body")[0].getElementsByTagName("outline");
-    var feedsAdded = false;
- 
-    for (var index = 0; index < outlines.length; index++)
-      if (this.importOutline(outlines[index]) && !feedsAdded)
-        feedsAdded = true;
-
-    if (!outlines.length || !feedsAdded)
+    else
     {
-      promptService.alert(window, null, this.mBundle.getFormattedString("subscribe-errorInvalidOPMLFile", [rv.file.leafName]));
-      return;
+      let outlines = opmlDom.getElementsByTagName("body")[0].getElementsByTagName("outline");
+      // try to import records if there are any
+      for (let index = 0; index < outlines.length; index++)
+      {
+        if (this.importOutline(outlines[index]) == 1)
+          feedsAdded++;
+      }
+
+      if (outlines.length > feedsAdded)
+        statusReport = this.mBundle.getFormattedString("subscribe-OPMLImportTotalFeeds", [feedsAdded, outlines.length]);
+      else
+        statusReport = this.mBundle.getFormattedString("subscribe-OPMLImportNewFeeds", [feedsAdded]);
     }
+
+    promptService.alert(window, null, statusReport);
 
     // add the new feeds to our view
-    refreshSubscriptionView();
+    if (feedsAdded)
+      refreshSubscriptionView();
   },
 
   importOutline: function(aOutline)
@@ -985,41 +992,39 @@ var gFeedSubscriptionsWindow = {
     // We still need to add support for grouped files.
     var newFeedUrl = aOutline.getAttribute("xmlUrl") ||
                      aOutline.getAttribute("url");
+    if (!newFeedUrl)
+      return -1;
 
     // Silently skip feeds that are already subscribed to.
-    if (newFeedUrl && !feedAlreadyExists(newFeedUrl, this.mRSSServer))
-    {
-      var feedName = aOutline.getAttribute("text") ||
-                     aOutline.getAttribute("title") ||
-                     aOutline.getAttribute("xmlUrl");
+    if (feedAlreadyExists(newFeedUrl, this.mRSSServer))
+      return 0;
 
-      var defaultQuickMode = this.mRSSServer.getBoolValue('quickMode');
-      var feedProperties = { feedName: feedName,
-                             feedLocation: newFeedUrl,
-                             serverURI: this.mRSSServer.serverURI,
-                             serverPrettyName: this.mRSSServer.prettyName,
-                             folderURI: "",
-                             quickMode: defaultQuickMode};
+    var feedName = aOutline.getAttribute("text") ||
+                   aOutline.getAttribute("title") ||
+                   aOutline.getAttribute("xmlUrl");
 
-      debug("importing feed: "+ feedProperties.feedName);
- 
-      var feed = this.storeFeed(feedProperties);
-      if (feed)
-      {
-        feed.title = feedProperties.feedName;
-        if (aOutline.hasAttribute("htmlUrl"))
-          feed.link = aOutline.getAttribute("htmlUrl");
+    var defaultQuickMode = this.mRSSServer.getBoolValue('quickMode');
+    var feedProperties = { feedName: feedName,
+                           feedLocation: newFeedUrl,
+                           serverURI: this.mRSSServer.serverURI,
+                           serverPrettyName: this.mRSSServer.prettyName,
+                           folderURI: "",
+                           quickMode: defaultQuickMode};
 
-        feed.createFolder();
-        updateFolderFeedUrl(feed.folder, feed.url, false);
- 
-        // addFeed adds the feed we have validated and downloaded to
-        // our datasource, it also flushes the subscription datasource.
-        addFeed(feed.url, feed.name, feed.folder);
-        return true;
-      }
-    }
-    return false;
+    debug("importing feed: "+ feedProperties.feedName);
+
+    var feed = this.storeFeed(feedProperties);
+    feed.title = feedProperties.feedName;
+    if (aOutline.hasAttribute("htmlUrl"))
+      feed.link = aOutline.getAttribute("htmlUrl");
+
+    feed.createFolder();
+    updateFolderFeedUrl(feed.folder, feed.url, false);
+
+    // addFeed adds the feed we have validated and downloaded to
+    // our datasource, it also flushes the subscription datasource.
+    addFeed(feed.url, feed.name, feed.folder);
+    return 1; // feed correctly added
   }
 };
 
