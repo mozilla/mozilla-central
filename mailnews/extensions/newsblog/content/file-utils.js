@@ -175,17 +175,18 @@ function pickSaveAs (title, typeList, defaultFile, defaultDir)
 {
     if (!defaultDir && "lastSaveAsDir" in futils)
         defaultDir = futils.lastSaveAsDir;
-    
-    var picker = futils.getPicker (defaultDir, typeList, 
+
+    var picker = futils.getPicker (defaultDir, typeList,
                                    {defaultString: defaultFile});
     picker.init (window, title ? title : futils.MSG_SAVE_AS,
                  Components.interfaces.nsIFilePicker.modeSave);
 
     var rv = picker.show();
-    
-    if (rv != PICK_CANCEL)
-        futils.lastSaveAsDir = picker.file.parent;
 
+    if (rv == PICK_CANCEL)
+        return {reason: rv};
+
+    futils.lastSaveAsDir = picker.file.parent;
     return {reason: rv, file: picker.file, picker: picker};
 }
 
@@ -193,17 +194,18 @@ function pickOpen (title, typeList, defaultFile, defaultDir)
 {
     if (!defaultDir && "lastOpenDir" in futils)
         defaultDir = futils.lastOpenDir;
-    
-    var picker = futils.getPicker (defaultDir, typeList, 
+
+    var picker = futils.getPicker (defaultDir, typeList,
                                    {defaultString: defaultFile});
     picker.init (window, title ? title : futils.MSG_OPEN,
                  Components.interfaces.nsIFilePicker.modeOpen);
 
     var rv = picker.show();
-    
-    if (rv != PICK_CANCEL)
-        futils.lastOpenDir = picker.file.parent;
 
+    if (rv == PICK_CANCEL)
+        return {reason: rv};
+
+    futils.lastOpenDir = picker.file.parent;
     return {reason: rv, file: picker.file, picker: picker};
 }
 
