@@ -256,40 +256,61 @@ function onNewFilter(emailAddress)
 
   window.openDialog("chrome://messenger/content/FilterEditor.xul", "FilterEditor", "chrome,modal,titlebar,resizable,centerscreen", args);
 
-  if ("refresh" in args && args.refresh)
+  if ("refresh" in args && args.refresh) {
     rebuildFilterList(gCurrentFilterList);
+
+    // the new filter is always added as first item on top. Select it.
+    let list = document.getElementById("filterList");
+    list.clearSelection();
+    list.addItemToSelection(list.childNodes[1]);
+    updateViewPosition(1);
+  }
 }
 
 function onDeleteFilter()
 {
-  var items = document.getElementById("filterList").selectedItems;
+  let list = document.getElementById("filterList");
+  let items = list.selectedItems;
   if (!items.length)
     return;
- 
-  var checkValue = {value:false};
-  var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
+
+  let checkValue = {value:false};
+  let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
                              .getService(Components.interfaces.nsIPrefService)
                              .getBranch(null);
-  var bundle = document.getElementById("bundle_filter");
-  var promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
+  let bundle = document.getElementById("bundle_filter");
+  let promptSvc = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                             .getService(Components.interfaces.nsIPromptService);
-  if ((prefBranch.getBoolPref("mailnews.filters.confirm_delete")) && 
+  if ((prefBranch.getBoolPref("mailnews.filters.confirm_delete")) &&
       (promptSvc.confirmEx(window, null,
                            bundle.getString("deleteFilterConfirmation"),
                            promptSvc.STD_YES_NO_BUTTONS,
-                           '', '', '', 
+                           '', '', '',
                            bundle.getString('dontWarnAboutDeleteCheckbox'),
                            checkValue)))
     return;
-    
-  if (checkValue.value) 
+
+  if (checkValue.value)
      prefBranch.setBoolPref("mailnews.filters.confirm_delete", false);
-     
+
+  // save filter position before the first selected one
+  let newSelection = items[0].previousElementSibling;
+  if (newSelection == list.childNodes[0])
+    newSelection = null;
+
   // must reverse the loop, as the items list shrinks when we delete
   for (let index = items.length - 1; index >= 0; --index) {
     let item = items[index];
     gCurrentFilterList.removeFilter(item._filter);
     document.getElementById("filterList").removeChild(item);
+  }
+
+  // select filter above previously selected if one existed, otherwise the first one
+  if (!newSelection && list.itemCount)
+    newSelection = list.childNodes[1];
+  if (newSelection) {
+    list.addItemToSelection(newSelection);
+    updateViewPosition(-1);
   }
 }
 
@@ -431,7 +452,14 @@ function rebuildFilterList(aFilterList)
     if (selectedNames.indexOf(filter.filterName) != -1)
       list.addItemToSelection(listitem);
   }
+  updateViewPosition(firstVisibleRowIndex);
+}
 
+function updateViewPosition(firstVisibleRowIndex)
+{
+  let list = document.getElementById("filterList");
+  if (firstVisibleRowIndex == -1)
+    firstVisibleRowIndex = list.getIndexOfFirstVisibleRow();
   // Restore to the extent possible the scroll position.
   if (firstVisibleRowIndex && list.itemCount)
     list.scrollToIndex(Math.min(firstVisibleRowIndex, list.itemCount - 1));
