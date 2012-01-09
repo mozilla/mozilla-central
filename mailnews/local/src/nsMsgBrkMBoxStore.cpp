@@ -554,6 +554,10 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::CopyFolder(nsIMsgFolder *aSrcFolder,
     // not an error
   }
 
+  nsCOMPtr<nsIMsgFolder> newMsgFolder;
+  rv = aDstFolder->AddSubfolder(safeFolderName, getter_AddRefs(newMsgFolder));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   // linux and mac are not good about maintaining the file stamp when copying
   // folders around. So if the source folder db is good, set the dest db as
   // good too.
@@ -566,15 +570,11 @@ NS_IMETHODIMP nsMsgBrkMBoxStore::CopyFolder(nsIMsgFolder *aSrcFolder,
     nsCOMPtr<nsIMsgDBService> msgDBService =
       do_GetService(NS_MSGDB_SERVICE_CONTRACTID, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
-    rv = msgDBService->OpenMailDBFromFile(newPath, aSrcFolder, false,
+    rv = msgDBService->OpenMailDBFromFile(newPath, newMsgFolder, false,
                                           true, getter_AddRefs(destDB));
     if (rv == NS_MSG_ERROR_FOLDER_SUMMARY_OUT_OF_DATE && destDB)
       destDB->SetSummaryValid(true);
   }
-  nsCOMPtr<nsIMsgFolder> newMsgFolder;
-  rv = aDstFolder->AddSubfolder(safeFolderName, getter_AddRefs(newMsgFolder));
-  NS_ENSURE_SUCCESS(rv, rv);
-
   newMsgFolder->SetPrettyName(folderName);
   PRUint32 flags;
   aSrcFolder->GetFlags(&flags);
