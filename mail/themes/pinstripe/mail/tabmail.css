@@ -107,6 +107,15 @@
   -moz-border-image: url(tabs/tab-hover-active.png) 4 5 3 6 fill repeat stretch;
 }
 
+/* preloading hack: the images used for tab borders need to be
+preloaded to avoid flickering the first time a non-selected tab is
+opened / hovered. */
+#tabs-toolbar::after {
+  content: '';
+  display: block;
+  background-image: url(tabs/tab-normal-active.png), url(tabs/tab-hover-active.png);
+}
+
 .tabmail-tab:-moz-lwtheme:not([selected="true"]):not(:hover) > .tab-text {
   opacity: .8;
 }
