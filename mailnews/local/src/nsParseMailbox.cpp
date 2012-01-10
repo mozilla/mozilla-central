@@ -2594,6 +2594,10 @@ nsresult nsParseNewMailState::MoveIncorporatedMessage(nsIMsgDBHdr *mailHdr,
   if (destIFolder)
     destIFolder->SetFlag(nsMsgFolderFlags::GotNew);
 
+  nsCOMPtr<nsIMsgPluggableStore> store;
+  rv = m_downloadFolder->GetMsgStore(getter_AddRefs(store));
+  if (store)
+    store->DiscardNewMessage(m_outputStream, mailHdr);
   if (destMailDB)
   {
     // update the folder size so we won't reparse.

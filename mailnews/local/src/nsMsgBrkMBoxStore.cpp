@@ -769,17 +769,12 @@ nsMsgBrkMBoxStore::DiscardNewMessage(nsIOutputStream *aOutputStream,
   PRUint64 hdrOffset;
   aNewHdr->GetMessageOffset(&hdrOffset);
   aOutputStream->Close();
-  if (hdrOffset != 0)
-  {
-    nsCOMPtr<nsILocalFile> mboxFile;
-    nsCOMPtr<nsIMsgFolder> folder;
-    nsresult rv = aNewHdr->GetFolder(getter_AddRefs(folder));
-    NS_ENSURE_SUCCESS(rv, rv);
-    folder->GetFilePath(getter_AddRefs(mboxFile));
-    rv = mboxFile->SetFileSize(hdrOffset);
-    NS_ENSURE_SUCCESS(rv, rv);
-  }
-  return NS_OK;
+  nsCOMPtr<nsILocalFile> mboxFile;
+  nsCOMPtr<nsIMsgFolder> folder;
+  nsresult rv = aNewHdr->GetFolder(getter_AddRefs(folder));
+  NS_ENSURE_SUCCESS(rv, rv);
+  folder->GetFilePath(getter_AddRefs(mboxFile));
+  return mboxFile->SetFileSize(hdrOffset);
 }
 
 NS_IMETHODIMP

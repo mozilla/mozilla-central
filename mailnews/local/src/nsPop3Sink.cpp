@@ -245,7 +245,8 @@ nsPop3Sink::CheckPartialMessages(nsIPop3Protocol *protocol)
     protocol->CheckMessage(partialMsg->m_uidl.get(), &found);
     if (!found && partialMsg->m_msgDBHdr)
     {
-      m_newMailParser->m_mailDB->DeleteHeader(partialMsg->m_msgDBHdr, nsnull, false, true);
+      if (m_newMailParser)
+        m_newMailParser->m_mailDB->DeleteHeader(partialMsg->m_msgDBHdr, nsnull, false, true);
       deleted = true;
     }
     delete partialMsg;
