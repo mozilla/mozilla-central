@@ -90,7 +90,7 @@ let QuickFilterBarMuxer = {
                         !aFolderDisplay.displayedFolder.isServer;
     let qfbButton = document.getElementById("qfb-show-filter-bar");
     if (qfbButton)
-      qfbButton.style.visibility = (appropriate ? "visible" : "hidden");
+      qfbButton.disabled = !appropriate;
 
     // The case in that previous aFolderDisplay is showing a normal folder is
     //  handled by onLoadingFolder. Here we handle the case where previous
@@ -476,7 +476,7 @@ let QuickFilterBarMuxer = {
     else { // this only happens for tabs we are not legal on
       let qfbButton = document.getElementById("qfb-show-filter-bar");
       if (qfbButton)
-        qfbButton.style.visibility = "hidden";
+        qfbButton.disabled = true;
     }
   },
 

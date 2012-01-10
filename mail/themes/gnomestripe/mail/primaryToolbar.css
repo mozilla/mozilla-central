@@ -461,7 +461,6 @@ toolbar[iconsize="small"] #button-archive[disabled] {
 /* ::::: end small primary toolbar buttons ::::: */
 
 #palette-box #qfb-show-filter-bar {
-  visibility: visible !important;
   list-style-image: url("moz-icon://stock/gtk-find?size=toolbar") !important;
 }
 
