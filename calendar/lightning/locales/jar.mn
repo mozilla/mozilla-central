@@ -3,4 +3,5 @@
 lightning-@AB_CD@.jar:
 % locale lightning @AB_CD@ %locale/@AB_CD@/lightning/
   locale/@AB_CD@/lightning/lightning.dtd         (%chrome/lightning/lightning.dtd)
+  locale/@AB_CD@/lightning/lightning-toolbar.dtd (%chrome/lightning/lightning-toolbar.dtd)
   locale/@AB_CD@/lightning/lightning.properties  (%chrome/lightning/lightning.properties)

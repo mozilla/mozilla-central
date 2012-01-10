@@ -91,6 +91,16 @@
     background-color: #f8f8f8;
     border-bottom: none;
   }
+
+  #today-pane-panel:-moz-lwtheme > sidebarheader {
+    background-color: rgba(255, 255, 255, 0.3);
+    background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5),
+                      rgba(255, 255, 255, 0) 28px);
+  }
+
+  sidebarheader > spacer {
+    min-height: 25px;
+  }
 }
 
 #calsidebar_splitter {
@@ -152,6 +162,10 @@
   border-left: 4px solid highlight;
 }
 
+#today-splitter:-moz-lwtheme {
+  background-image: none;
+}
+
 #today-splitter > grippy {
   display: none;
 }
@@ -185,13 +199,8 @@
     background-clip: padding-box;
   }
 
-  #today-pane-panel sidebarheader {
-    border-top: 1px solid rgba(10%, 10%, 10%, .4);
-  }
-
   #today-pane-panel .folderview-cycler {
     margin-top: -1px;
-    margin-bottom: -1px;
   }
 }
 

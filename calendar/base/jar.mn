@@ -172,11 +172,14 @@ calendar.jar:
 % skin calendar-windows classic/1.0 chrome/calendar/skin/calendar/win-aero/ os=WINNT osversion>=6
     skin/calendar/win-classic/calendar.css                 (themes/@THEME@/win-classic/calendar.css)
     skin/calendar/win-classic/lightning.css                (themes/@THEME@/win-classic/lightning.css)
+    skin/calendar/win-classic/lightning-toolbar.css        (themes/@THEME@/win-classic/lightning-toolbar.css)
     skin/calendar/win-aero/calendar.css                    (themes/@THEME@/win-aero/calendar.css)
     skin/calendar/win-aero/lightning.css                   (themes/@THEME@/win-aero/lightning.css)
+    skin/calendar/win-aero/lightning-toolbar.css           (themes/@THEME@/win-aero/lightning-toolbar.css)
     skin/calendar/calendar-event-dialog-toolbar-aero.png   (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-aero.png)
     skin/calendar/calendar-occurrence-prompt-aero.png      (themes/@THEME@/images/calendar-occurrence-prompt-aero.png)
     skin/calendar/tasks-actions-aero.png                   (themes/@THEME@/images/tasks-actions-aero.png)
+    skin/calendar/toolbar-aero.png                         (themes/@THEME@/images/toolbar-aero.png)
     skin/calendar/toolbar-large-aero.png                   (themes/@THEME@/images/toolbar-large-aero.png)
     skin/calendar/toolbar-small-aero.png                   (themes/@THEME@/images/toolbar-small-aero.png)
 #endif

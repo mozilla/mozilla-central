@@ -49,13 +49,20 @@
 
 #today-pane-panel {
   background-color: -moz-Dialog;
-  color: -moz-DialogText;
   border-left: 1px solid ThreeDShadow;
 }
 
 #today-pane-panel:-moz-lwtheme {
   background-color: transparent;
-  border-top: 1px solid ThreeDShadow;
+}
+
+#today-pane-panel > * {
+  color: -moz-DialogText;
+}
+
+#today-pane-panel:-moz-lwtheme > sidebarheader {
+  color: inherit;
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 19px);
 }
 
 #agenda-panel:-moz-lwtheme > vbox,
@@ -66,6 +73,7 @@
 
 #today-pane-panel:-moz-lwtheme > vbox {
   text-shadow: none;
+  background-color: -moz-Dialog;
 }
 
 #mini-day-image {

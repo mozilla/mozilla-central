@@ -60,28 +60,20 @@ radio[pane=paneLightning] {
 /* ::: new tab buttons ::: */
 #calendar-tab-button {
     list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
-    -moz-image-region: rect(0px 64px 16px 48px);
-}
-
-#calendar-tab-button:hover {
-    -moz-image-region: rect(16px 64px 32px 48px);
+    -moz-image-region: rect(0px 24px 24px 0px);
 }
 
 #calendar-tab-button[disabled] {
-    -moz-image-region: rect(32px 64px 48px 48px);
+    -moz-image-region: rect(48px 24px 72px 0px);
 }
 
 #task-tab-button {
     list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
-    -moz-image-region: rect(0px 80px 16px 64px);
-}
-
-#task-tab-button:hover {
-    -moz-image-region: rect(16px 80px 32px 64px);
+    -moz-image-region: rect(0px 48px 24px 24px);
 }
 
 #task-tab-button[disabled] {
-    -moz-image-region: rect(32px 80px 48px 64px);
+    -moz-image-region: rect(48px 48px 72px 24px);
 }
 
 /* ::: tab icons ::: */
@@ -215,10 +207,12 @@ radio[pane=paneLightning] {
 }
 
 #today-splitter {
-  border-left: 1px solid #8B8B8B;
+  -moz-border-start: 1px solid #8B8B8B;
+  -moz-margin-end: -2px;
+  position: relative;
 }
 
 #ltnSidebar {
-  border-right: 1px solid #8B8B8B;
+  -moz-border-end: 1px solid #8B8B8B;
   -moz-margin-end: -3px !important;
 }

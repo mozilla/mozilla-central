@@ -210,9 +210,20 @@ function ltnOnLoad(event) {
     document.getElementById("modeBroadcaster").setAttribute("checked", "true");
 
     let mailContextPopup = document.getElementById("mailContext");
-    if (mailContextPopup)
+    if (mailContextPopup) {
       mailContextPopup.addEventListener("popupshowing",
                                         gCalSetupMailContext.popup, false);
+    }
+
+    // Setup customizeDone handlers for our toolbars
+    let toolbox = document.getElementById("calendar-toolbox");
+    toolbox.customizeDone = function(aEvent) {
+        MailToolboxCustomizeDone(aEvent, "CustomizeCalendarToolbar");
+    };
+    let toolbox = document.getElementById("task-toolbox");
+    toolbox.customizeDone = function(aEvent) {
+        MailToolboxCustomizeDone(aEvent, "CustomizeTaskToolbar");
+    };
 
 }
 

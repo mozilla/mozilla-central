@@ -38,8 +38,13 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
-
+ 
 @import url(chrome://calendar-windows/skin/lightning.css);
+
+#calendarContent {
+    color: -moz-DialogText;
+    background-color: -moz-Dialog;
+}
 
 #calsidebar_splitter {
     border-right: none;
@@ -47,6 +52,12 @@
 
 #today-splitter {
     border-right: none;
+}
+
+#today-splitter:-moz-lwtheme {
+    background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5),
+                      rgba(255, 255, 255, 0) 19px, rgba(255, 255, 255, 0) 25px,
+                      ThreeDDarkShadow 25px, -moz-Dialog 26px);
 }
 
 /* Calendar list rules */

@@ -15,11 +15,11 @@
  *
  * The Initial Developer of the Original Code is
  *   Philipp Kewisch <mozilla@kewis.ch>
- * Portions created by the Initial Developer are Copyright (C) 2011
+ * Portions created by the Initial Developer are Copyright (C) 2010
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- * Richard Marti <mozilla@paenglab.ch>
+ *   Richard Marti <mozilla@paenglab.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,39 +35,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#newMsgButton-mail-menuitem {
-  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
-  -moz-image-region: rect(1px 35px 17px 19px) !important;
-}
+@import url(chrome://calendar-windows/skin/lightning-toolbar.css);
 
-#calendar-tab-button,
-#task-tab-button,
-.tabmail-tab[type="calendar"],
-.tabmail-tab[type="tasks"] {
-  list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png) !important;
-}
-
-#calendar-tab-button,
-#task-tab-button {
-  -moz-appearance: none;
-  border: none;
-}
-
-#calendar-tab-button:hover,
-#calendar-tab-button:hover:active,
-#task-tab-button:hover,
-#task-tab-button:hover:active {
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0),
-                    rgba(255, 255, 255, .5)),
-                    -moz-linear-gradient(transparent, rgba(0, 0, 0, .25) 30%),
-                    -moz-linear-gradient(transparent, rgba(0, 0, 0, .25) 30%);
-  background-position: 1px -1px, 0 -1px, 100% -1px;
-  background-size: -moz-calc(100% - 2px) 100%, 1px 100%, 1px 100%;
-  background-repeat: no-repeat;
-}
-
-#button-newmsg #newMsgButton-calendar-menuitem,
-#button-newmsg #newMsgButton-task-menuitem,
-#calendar-show-todaypane-panel > #calendar-status-todaypane-button > stack > .toolbarbutton-icon-begin {
-  list-style-image: url(chrome://calendar/skin/toolbar-small-aero.png);
+#calendar-toolbar2,
+#task-toolbar2 {
+  padding: 1px 0;
 }

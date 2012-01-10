@@ -19,6 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
+ *   Richard Marti <mozilla@paenglab.ch>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -36,43 +37,68 @@
 
 /* Lightning "Calendar" Toolbarbutton */
 #lightning-button-calendar {
-    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
-    -moz-image-region: rect(0px 24px 24px 0px);
-}
-#lightning-button-calendar:hover {
-    -moz-image-region: rect(24px 24px 48px 0px);
-}
-#lightning-button-calendar[disabled] {
-    -moz-image-region: rect(48px 24px 72px 0px);
-}
-toolbar[iconsize="small"] #lightning-button-calendar {
-    -moz-image-region: rect(0px 64px 16px 48px);
-}
-toolbar[iconsize="small"] #lightning-button-calendar:hover {
-    -moz-image-region: rect(16px 64px 32px 48px);
-}
-toolbar[iconsize="small"] #lightning-button-calendar[disabled] {
-    -moz-image-region: rect(32px 64px 48px 48px);
+  list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png);
+  -moz-image-region: rect(0 64px 16px 48px);
 }
 
 /* Lightning "Tasks" Toolbarbutton */
 #lightning-button-tasks {
-    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
-    -moz-image-region: rect(0px 48px 24px 24px);
-}
-#lightning-button-tasks:hover {
-    -moz-image-region: rect(24px 48px 48px 24px);
-}
-#lightning-button-tasks[disabled] {
-    -moz-image-region: rect(48px 48px 72px 24px);
+  list-style-image: url(chrome://lightning/skin/mode-switch-icons-aero.png);
+  -moz-image-region: rect(0 80px 16px 64px);
 }
 
-toolbar[iconsize="small"] #lightning-button-tasks {
-    -moz-image-region: rect(0px 80px 16px 64px);
+#lightning-button-calendar > .toolbarbutton-icon,
+#lightning-button-tasks > .toolbarbutton-icon {
+  width: 16px;
+  height: 16px;
+  margin: 1px;
 }
-toolbar[iconsize="small"] #lightning-button-tasks:hover {
-    -moz-image-region: rect(16px 80px 32px 64px);
+
+/* Toolbar buttons */
+
+.calbar-toolbarbutton-1 {
+  list-style-image: url(chrome://calendar/skin/toolbar-aero.png);
 }
-toolbar[iconsize="small"] #lightning-button-tasks[disabled] {
-    -moz-image-region: rect(32px 80px 48px 64px);
+
+.calbar-toolbarbutton-1 > .toolbarbutton-icon {
+  width: 18px !important;
+  height: 18px !important;
+  margin: 0 !important;
+}
+
+#calendar-synchronize-button,
+#task-synchronize-button {
+  -moz-image-region: rect(0px 18px 18px 0px);
+}
+
+#calendar-newevent-button,
+#task-newevent-button {
+  -moz-image-region: rect(0px 36px 18px 18px);
+}
+
+#calendar-newtask-button,
+#task-newtask-button {
+  -moz-image-region: rect(0px 72px 18px 54px);
+}
+
+#calendar-edit-button,
+#task-edit-button {
+  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
+  -moz-image-region: rect(0 36px 18px 18px);
+}
+
+#calendar-delete-button,
+#task-delete-button {
+  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
+  -moz-image-region: rect(0 144px 18px 126px);
+}
+
+#calendar-goto-today-button {
+  -moz-image-region: rect(0px 54px 18px 36px);
+}
+
+#calendar-print-button,
+#task-print-button {
+  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
+  -moz-image-region: rect(0px 180px 18px 162px);
 }

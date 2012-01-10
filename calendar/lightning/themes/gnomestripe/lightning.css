@@ -39,6 +39,11 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+#calendarContent {
+  color: -moz-DialogText;
+  background-color: -moz-Dialog;
+}
+
 #calsidebar_splitter,
 #today-splitter {
   -moz-appearance: none;
