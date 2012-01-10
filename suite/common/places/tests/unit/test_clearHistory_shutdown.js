@@ -144,10 +144,12 @@ function run_test() {
 
   // Simulate an exit so that Sanitizer's init method checkSettings() is called.
   print("Simulate 'quit-application-granted' too for SeaMonkey.");
-  Cc["@mozilla.org/observer-service;1"].getService(Ci.nsIObserverService).
-  notifyObservers(null, "quit-application-granted", null);
+  Services.obs.notifyObservers(null, "quit-application-granted", null);
 
   shutdownPlaces();
+
+  // Shutdown the download manager.
+  Services.obs.notifyObservers(null, "quit-application", null);
 }
 
 function getDistinctNotifications() {
