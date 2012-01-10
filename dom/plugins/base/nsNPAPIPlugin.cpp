@@ -92,6 +92,7 @@
 #include <Carbon/Carbon.h>
 #include <ApplicationServices/ApplicationServices.h>
 #include <OpenGL/OpenGL.h>
+#include "nsCocoaFeatures.h"
 #endif
 
 // needed for nppdf plugin
@@ -2267,13 +2268,13 @@ _getvalue(NPP npp, NPNVariable variable, void *result)
   }
 
    case NPNVsupportsCoreAnimationBool: {
-     *(NPBool*)result = true;
+     *(NPBool*)result = nsCocoaFeatures::SupportCoreAnimationPlugins();
 
      return NPERR_NO_ERROR;
    }
 
    case NPNVsupportsInvalidatingCoreAnimationBool: {
-     *(NPBool*)result = true;
+     *(NPBool*)result = nsCocoaFeatures::SupportCoreAnimationPlugins();
 
      return NPERR_NO_ERROR;
    }
