@@ -309,29 +309,12 @@
           this.mInPopup = false;
           this.kMinimonth.addEventListener("select", this.clickDate, false);
 
-          this.mUseReshowHack = true;
-#ifdef XP_MACOSX
-          // doesn't work on Mac: Sunbird works around in widget code, Lightning could not:
-          const kSUNBIRD_UID = "{718e30fb-e89b-41dd-9da7-e25a45638b28}";
-          var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                                  .getService(Components.interfaces.nsIXULAppInfo);
-          this.mUseReshowHack = (appInfo.ID == kSUNBIRD_UID);
-#endif
-          if (this.mUseReshowHack) {
-              this.kMinimonth.addEventListener("monthchange", this.reshowPopup, false);
-              this.kMinimonth.addEventListener("popuplisthidden", this.reshowPopup, false);
-          }
-          this.mIsReshowing = false;
         ]]>
       </constructor>
 
       <destructor>
         <![CDATA[
           this.kMinimonth.removeEventListener("select", this.clickDate, false);
-          if (this.mUseReshowHack) {
-              this.kMinimonth.removeEventListener("monthchange", this.reshowPopup, false);
-              this.kMinimonth.removeEventListener("popuplisthidden", this.reshowPopup, false);
-          }
         ]]>
       </destructor>
 
@@ -375,32 +358,11 @@
       <method name="onPopup">
         <body>
           <![CDATA[
-            // avoid reinitializing during reshow, for bugs 273914 & 278877 workaround
-            if (! this.mIsReshowing) { 
-              this.mInPopup = true;
-              this.kMinimonth.update( this.mValue );
-              this.mInPopup = false;
-              // select all to remove cursor since can't type while popped-up
-              this.select();
-            }
-          ]]>
-        </body>
-      </method>
-
-      <!-- Reshow hides and shows parent popup without reinitializing in onPopup 
-           to workaround bugs 273914 (update title) & 278877 (avoid freeze) -->
-      <method name="reshowPopup">
-        <parameter name="aEvent"/>
-        <body>
-          <![CDATA[
-          var datepicker = aEvent.target.parentNode.parentNode.kDatePicker;
-          datepicker.mIsReshowing = true;
-          try { 
-            aEvent.target.parentNode.hidePopup();
-            aEvent.target.parentNode.openPopup(aEvent.target);
-          } finally {
-            datepicker.mIsReshowing = false;
-          }
+            this.mInPopup = true;
+            this.kMinimonth.update( this.mValue );
+            this.mInPopup = false;
+            // select all to remove cursor since can't type while popped-up
+            this.select();
           ]]>
         </body>
       </method>
