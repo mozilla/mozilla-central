@@ -692,7 +692,7 @@ EmailConfigWizard.prototype =
     if (!this._realname || !this._email) {
       return;
     }
-    return this._foundConfig2(config);
+    this._foundConfig2(config);
   },
 
   // Continuation of foundConfig2() after custom fields.

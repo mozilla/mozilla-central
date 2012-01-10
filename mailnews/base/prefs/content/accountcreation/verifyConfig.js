@@ -78,8 +78,10 @@ function verifyConfig(config, alter, msgWindow, successCallback, errorCallback)
                                     config.incoming.hostname,
                                     sanitize.enum(config.incoming.type,
                                                   ["pop3", "imap", "nntp"]),
-                                    config.incoming.port))
-    return errorCallback("Incoming server exists");
+                                    config.incoming.port)) {
+    errorCallback("Incoming server exists");
+    return;
+  }
 
   // incoming server
   var inServer =
