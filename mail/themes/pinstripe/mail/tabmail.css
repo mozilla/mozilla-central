@@ -43,7 +43,6 @@
 .tab-throbber {
   width: 16px;
   height: 16px;
-  margin-bottom: 1px;
 }
 
 .tabmail-tab {
@@ -63,7 +62,7 @@
 }
 
 .tab-text {
-  margin-top: 3px !important;
+  margin-top: 0 !important;
   margin-bottom: 0 !important;
   font: message-box;
   font-weight: bold;
@@ -79,7 +78,7 @@
   background-repeat: no-repeat;
   background-size: -moz-calc(100% + 11px) -moz-calc(100% + 11px);
   margin: 0;
-  padding: 0 0 1px;
+  padding: 1px 0 0;
   border-width: 4px 5px 3px 6px;
   border-style: solid;
   -moz-border-image: url(tabs/tab-normal-active.png) 4 5 3 6 fill repeat stretch;
@@ -180,7 +179,6 @@ tabmail > tabbox > tabpanels {
 
 .tab-close-button > .toolbarbutton-icon {
   -moz-margin-end: 0px !important;
-  margin-top: 1px;
   padding: 0;
 }
 
@@ -190,7 +188,7 @@ tabmail > tabbox > tabpanels {
   -moz-image-region: rect(0, 16px, 16px, 0);
   border: none !important;
   padding: 0;
-  margin: 1px 0 0;
+  margin: 0;
   background: none;
   cursor: default;
 }
