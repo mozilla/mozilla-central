@@ -75,6 +75,12 @@ function commonInitCalendar() {
     if (cal.getPrefSafe("calendar.view.useSystemColors", false)) {
         document.documentElement.setAttribute("systemcolors", "true");
     }
+
+    // Ensure the new items commands state can be setup properly even when no
+    // calendar support refreshes (i.e. the "onLoad" notification)
+    if (!cal.getCalendarManager().getCalendars({}).some(function(x) x.canRefresh)) {
+        calendarUpdateNewItemsCommand();
+    }
 }
 
 /**
