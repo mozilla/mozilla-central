@@ -83,7 +83,7 @@ interface calICalendarACLEntry : nsISupports
     /* Returns the list of user ids matching the user accessing the
        calendar. */
     void getUserAddresses(out PRUint32 aCount,
-                          [array, size_is(aCount), retval] out AUTF8String aAddresses);
+                          [array, size_is(aCount), retval] out wstring aAddresses);
 
     /* Returns the list of instantiated identities for the user accessing the
        calendar. */
