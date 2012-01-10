@@ -95,8 +95,7 @@ protected:
                                 nsACString &urlSpec,
                                 char &hierarchyDelimiter);
 
-  nsresult GetImapConnectionAndLoadUrl(nsIEventTarget *aClientEventTarget, 
-                                       nsIImapUrl *aImapUrl,
+  nsresult GetImapConnectionAndLoadUrl(nsIImapUrl *aImapUrl,
                                        nsISupports *aConsumer,
                                        nsIURI **aURL);
 
@@ -111,24 +110,21 @@ protected:
                          const nsACString &messageIdentifierList,
                          const nsACString &mimePart);
 
-  nsresult FolderCommand(nsIEventTarget *clientEventTarget, 
-                         nsIMsgFolder *imapMailFolder,
+  nsresult FolderCommand(nsIMsgFolder *imapMailFolder,
                          nsIUrlListener *urlListener,
                          const char *aCommand,
                          nsImapAction imapAction,
                          nsIMsgWindow *msgWindow,
                          nsIURI **url);
 
-  nsresult ChangeFolderSubscription(nsIEventTarget *eventTarget, 
-                                    nsIMsgFolder *folder,
-                                    const nsAString &folderName, 
+  nsresult ChangeFolderSubscription(nsIMsgFolder *folder,
+                                    const nsAString &folderName,
                                     const char *aCommand,
                                     nsIUrlListener *urlListener,
                                     nsIURI **url);
 
-  nsresult DiddleFlags(nsIEventTarget *aClientEventTarget,
-                       nsIMsgFolder *aImapMailFolder, 
-                       nsIUrlListener *aUrlListener, 
+  nsresult DiddleFlags(nsIMsgFolder *aImapMailFolder,
+                       nsIUrlListener *aUrlListener,
                        nsIURI **aURL,
                        const nsACString &messageIdentifierList,
                        const char *howToDiddle,

@@ -155,7 +155,11 @@ function teardownIMAPPump()
 {
   gIMAPInbox = null;
   gIMAPServer.resetTest();
-  gIMAPIncomingServer.closeCachedConnections();
+  try {
+    gIMAPIncomingServer.closeCachedConnections();
+    let serverSink = gIMAPIncomingServer.QueryInterface(Ci.nsIImapServerSink);
+    serverSink.abortQueuedUrls();
+  } catch (ex) {dump(ex);}
   gIMAPServer.performTest();
   gIMAPServer.stop();
   let thread = gThreadManager.currentThread;

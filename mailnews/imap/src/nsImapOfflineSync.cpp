@@ -1048,33 +1048,14 @@ nsresult nsImapOfflineSync::ProcessNextOperation()
     {
       m_singleFolderToUpdate->ClearFlag(nsMsgFolderFlags::OfflineEvents);
       m_singleFolderToUpdate->UpdateFolder(m_window);
-      // do we have to do anything? Old code would do a start update...
+      nsCOMPtr<nsIMsgImapMailFolder> imapFolder(do_QueryInterface(m_singleFolderToUpdate));
+      if (imapFolder)
+      {
+        nsCOMPtr<nsIUrlListener> saveListener = m_listener;
+//        m_listener = nsnull;
+//        imapFolder->UpdateFolderWithListener(m_window, saveListener);
+      }
     }
-    else
-    {
-    }
-    
-    //		MSG_FolderIterator *updateFolderIterator = m_singleFolderToUpdate ? (MSG_FolderIterator *) 0 : m_folderIterator;
-    
-    
-    // we are done playing commands back, now queue up the sync with each imap folder
-    // If we're using the iterator, m_currentFolder will be set correctly
-    //			nsIMsgFolder * folder = m_singleFolderToUpdate ? m_singleFolderToUpdate : m_currentFolder;
-    //			while (folder)
-    //			{            
-    //				bool loadingFolder = m_workerPane->GetLoadingImapFolder() == folder;
-    //				if ((folder->GetType() == FOLDER_IMAPMAIL) && (deletedAllOfflineEventsInFolder == folder || (folder->GetFolderPrefFlags() & nsMsgFolderFlags::Offline)
-    //					|| loadingFolder) 
-    //					&& !(folder->GetFolderPrefFlags() & MSG_FOLDER_PREF_IMAPNOSELECT) )
-    //				{
-    //					bool lastChance = ((deletedAllOfflineEventsInFolder == folder) && m_singleFolderToUpdate) || loadingFolder;
-    // if deletedAllOfflineEventsInFolder == folder and we're only updating one folder, then we need to update newly selected folder
-    // I think this also means that we're really opening the folder...so we tell StartUpdate that we're loading a folder.
-    //					if (!updateFolderIterator || !(imapMail->GetFlags() & nsMsgFolderFlags::Inbox))		// avoid queueing the inbox twice
-    //						imapMail->StartUpdateOfNewlySelectedFolder(m_workerPane, lastChance, queue, nsnsnull, false, false);
-    //				}
-    //				folder= m_singleFolderToUpdate ? (MSG_FolderInfo *)nsnull : updateFolderIterator->Next();
-    //       }
   }
   // if we get here, then I *think* we're done. Not sure, though.
 #ifdef DEBUG_bienvenu

@@ -249,8 +249,7 @@ NS_IMETHODIMP nsMoveCoalescerCopyListener::OnStopCopy(nsresult aStatus)
         NS_ENSURE_SUCCESS(rv, rv);
         nsCOMPtr <nsIURI> url;
         nsCOMPtr <nsIUrlListener> listener = do_QueryInterface(m_coalescer);
-        nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
-        rv = imapService->SelectFolder(thread, m_destFolder, listener, nsnull, getter_AddRefs(url));
+        rv = imapService->SelectFolder(m_destFolder, listener, nsnull, getter_AddRefs(url));
       }
     }
     else // give junk filters a chance to run on new msgs in destination local folder

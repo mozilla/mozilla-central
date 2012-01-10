@@ -441,13 +441,12 @@ nsImapIncomingServer::SetIsAOLServer(bool aBool)
 }
 
 NS_IMETHODIMP
-nsImapIncomingServer::GetImapConnectionAndLoadUrl(nsIEventTarget * aClientEventTarget,
-                                                  nsIImapUrl* aImapUrl,
+nsImapIncomingServer::GetImapConnectionAndLoadUrl(nsIImapUrl* aImapUrl,
                                                   nsISupports* aConsumer)
 {
   nsCOMPtr<nsIImapProtocol> aProtocol;
 
-  nsresult rv = GetImapConnection(aClientEventTarget, aImapUrl, getter_AddRefs(aProtocol));
+  nsresult rv = GetImapConnection(aImapUrl, getter_AddRefs(aProtocol));
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(aImapUrl, &rv);
@@ -465,7 +464,7 @@ nsImapIncomingServer::GetImapConnectionAndLoadUrl(nsIEventTarget * aClientEventT
   }
   else
   {   // unable to get an imap connection to run the url; add to the url
-    // queue
+     // queue
     nsImapProtocol::LogImapUrl("queuing url", aImapUrl);
     PR_CEnterMonitor(this);
     m_urlQueue.AppendObject(aImapUrl);
@@ -511,7 +510,7 @@ nsImapIncomingServer::RetryUrl(nsIImapUrl *aImapUrl, nsIImapMockChannel *aChanne
   nsCOMPtr <nsIImapProtocol> protocolInstance;
   nsImapProtocol::LogImapUrl("creating protocol instance to retry queued url", aImapUrl);
   nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
-  rv = GetImapConnection(thread, aImapUrl, getter_AddRefs(protocolInstance));
+  rv = GetImapConnection(aImapUrl, getter_AddRefs(protocolInstance));
   if (NS_SUCCEEDED(rv) && protocolInstance)
   {
     nsCOMPtr<nsIURI> url = do_QueryInterface(aImapUrl, &rv);
@@ -531,6 +530,9 @@ nsImapIncomingServer::RetryUrl(nsIImapUrl *aImapUrl, nsIImapMockChannel *aChanne
 NS_IMETHODIMP
 nsImapIncomingServer::LoadNextQueuedUrl(nsIImapProtocol *aProtocol, bool *aResult)
 {
+  if (WeAreOffline())
+    return NS_MSG_ERROR_OFFLINE;
+
   nsresult rv = NS_OK;
   bool urlRun = false;
   bool keepGoing = true;
@@ -557,7 +559,7 @@ nsImapIncomingServer::LoadNextQueuedUrl(nsIImapProtocol *aProtocol, bool *aResul
         NS_IF_ADDREF(aConsumer);
 
         nsImapProtocol::LogImapUrl("creating protocol instance to play queued url", aImapUrl);
-        rv = GetImapConnection(nsnull, aImapUrl, getter_AddRefs(protocolInstance));
+        rv = GetImapConnection(aImapUrl, getter_AddRefs(protocolInstance));
         if (NS_SUCCEEDED(rv) && protocolInstance)
         {
           nsCOMPtr<nsIURI> url = do_QueryInterface(aImapUrl, &rv);
@@ -717,9 +719,8 @@ nsImapIncomingServer::ConnectionTimeOut(nsIImapProtocol* aConnection)
 }
 
 nsresult
-nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
-                                           nsIImapUrl * aImapUrl,
-                                           nsIImapProtocol ** aImapConnection)
+nsImapIncomingServer::GetImapConnection(nsIImapUrl * aImapUrl,
+                                        nsIImapProtocol ** aImapConnection)
 {
   nsresult rv = NS_OK;
   bool canRunUrlImmediately = false;
@@ -843,9 +844,9 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
   // (e.g., a folder delete or msg append) but we shouldn't create new connections
   // for these types of urls if we have a free connection. So we check the actual
   // required state here.
-  else if (cnt < maxConnections && aEventTarget
+  else if (cnt < maxConnections
       && (!freeConnection || requiredState == nsIImapUrl::nsImapSelectedState))
-    rv = CreateProtocolInstance(aEventTarget, aImapConnection);
+    rv = CreateProtocolInstance(aImapConnection);
   else if (freeConnection)
   {
     *aImapConnection = freeConnection;
@@ -863,8 +864,7 @@ nsImapIncomingServer::GetImapConnection(nsIEventTarget *aEventTarget,
 }
 
 nsresult
-nsImapIncomingServer::CreateProtocolInstance(nsIEventTarget *aEventTarget,
-                                             nsIImapProtocol ** aImapConnection)
+nsImapIncomingServer::CreateProtocolInstance(nsIImapProtocol ** aImapConnection)
 {
   // create a new connection and add it to the connection cache
   // we may need to flag the protocol connection as busy so we don't get
@@ -895,7 +895,7 @@ nsImapIncomingServer::CreateProtocolInstance(nsIEventTarget *aEventTarget,
     nsCOMPtr<nsIImapHostSessionList> hostSession =
       do_GetService(kCImapHostSessionListCID, &rv);
     if (NS_SUCCEEDED(rv))
-      rv = protocolInstance->Initialize(hostSession, this, aEventTarget);
+      rv = protocolInstance->Initialize(hostSession, this);
   }
 
   // take the protocol instance and add it to the connectionCache
@@ -996,7 +996,7 @@ nsImapIncomingServer::PerformExpand(nsIMsgWindow *aMsgWindow)
   nsCOMPtr<nsIImapService> imapService = do_GetService(NS_IMAPSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
-  rv = imapService->DiscoverAllFolders(thread, rootMsgFolder,
+  rv = imapService->DiscoverAllFolders(rootMsgFolder,
                                        this, aMsgWindow, nsnull);
   return rv;
 }
@@ -2570,9 +2570,9 @@ nsImapIncomingServer::SubscribeToFolder(const nsAString& aName, bool subscribe, 
   NS_ENSURE_SUCCESS(rv, rv);
 
   if (subscribe)
-    rv = imapService->SubscribeFolder(thread, msgFolder, unicodeName, nsnull, aUri);
+    rv = imapService->SubscribeFolder(msgFolder, unicodeName, nsnull, aUri);
   else
-    rv = imapService->UnsubscribeFolder(thread, msgFolder, unicodeName, nsnull, nsnull);
+    rv = imapService->UnsubscribeFolder(msgFolder, unicodeName, nsnull, nsnull);
   return rv;
 }
 

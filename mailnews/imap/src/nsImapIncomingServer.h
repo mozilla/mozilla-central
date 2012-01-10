@@ -50,7 +50,6 @@
 #include "nsCOMArray.h"
 #include "mozilla/Mutex.h"
 
-class nsIEventTarget;
 class nsIRDFService;
 
 /* get some implementation from nsMsgIncomingServer */
@@ -119,11 +118,9 @@ protected:
 
 private:
   nsresult SubscribeToFolder(const PRUnichar *aName, bool subscribe);
-  nsresult GetImapConnection (nsIEventTarget* aEventTarget,
-                                   nsIImapUrl* aImapUrl,
-                                   nsIImapProtocol** aImapConnection);
-  nsresult CreateProtocolInstance(nsIEventTarget *aEventTarget,
-                                           nsIImapProtocol ** aImapConnection);
+  nsresult GetImapConnection(nsIImapUrl* aImapUrl,
+                             nsIImapProtocol** aImapConnection);
+  nsresult CreateProtocolInstance(nsIImapProtocol ** aImapConnection);
   nsresult CreateHostSpecificPrefName(const char *prefPrefix, nsCAutoString &prefName);
 
   nsresult DoomUrlIfChannelHasError(nsIImapUrl *aImapUrl, bool *urlDoomed);

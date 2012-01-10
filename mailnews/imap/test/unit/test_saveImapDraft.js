@@ -44,6 +44,8 @@ load("../../../resources/logHelper.js");
 load("../../../resources/mailTestUtils.js");
 load("../../../resources/asyncTestUtils.js");
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 // IMAP pump
 load("../../../resources/IMAPpump.js");
 
@@ -100,12 +102,14 @@ function saveDraft()
 
 function updateDrafts()
 {
+  dump("updating drafts\n");
   gDraftsFolder.updateFolderWithListener(null, urlListener);
   yield false;
 }
 
 function checkResult()
 {
+  dump("checking result\n");
   do_check_eq(gDraftsFolder.getTotalMessages(false), 1);
   do_check_eq(gDraftsFolder.getNumUnread(false), 1);
   yield true;
@@ -119,6 +123,7 @@ function endTest()
 
 function run_test()
 {
+  Services.prefs.setBoolPref("mail.server.default.autosync_offline_stores", false);
   let server = gIMAPIncomingServer;
 
   // Add folder listeners that will capture async events
@@ -143,6 +148,7 @@ var urlListener = {
   },
   OnStopRunningUrl: function _OnStopRunningUrl(aUrl, aExitCode) {
     dl('OnStopRunningUrl');
+    dump("got on stop running url\n");
     async_driver();
   }
 };

@@ -43,7 +43,6 @@
 #include "nsIImapUrl.h"
 
 #include "nsMsgProtocol.h"
-#include "nsIEventTarget.h"
 #include "nsIStreamListener.h"
 #include "nsIAsyncOutputStream.h"
 #include "nsIAsyncInputStream.h"
@@ -375,7 +374,6 @@ private:
 
 
   // ******* Thread support *******
-  nsCOMPtr<nsIEventTarget> m_sinkEventTarget;
   nsCOMPtr<nsIThread>      m_iThread;
   PRThread     *m_thread;
   mozilla::ReentrantMonitor m_dataAvailableMonitor;   // used to notify the arrival of data from the server

@@ -40,7 +40,6 @@
 interface nsIUrlListener;
 interface nsIURI;
 interface nsIImapUrl;
-interface nsIEventTarget;
 interface nsIImapProtocol;
 interface nsIMsgFolder;
 interface nsIMsgWindow;
@@ -55,7 +54,7 @@ interface nsMsgImapDeleteModels
   const long DeleteNoTrash = 2; /* delete is shift delete - don't create or use trash */
 };
 
-[scriptable, uuid(d4f8f5c7-d413-4c11-b886-abed7f7265a6)]
+[scriptable, uuid(3f02221b-d556-48ef-8b4f-7e50bfe9813d)]
 interface nsIImapIncomingServer : nsISupports {
 
   attribute long maximumConnectionsNumber;
@@ -104,9 +103,8 @@ interface nsIImapIncomingServer : nsISupports {
   /// Max age of messages we will autosync to, or keep in offline store.
   attribute long autoSyncMaxAgeDays;
 
-  void GetImapConnectionAndLoadUrl(in nsIEventTarget aClientEventTarget,
-                                           in nsIImapUrl aImapUrl,
-                                           in nsISupports aConsumer);
+  void GetImapConnectionAndLoadUrl(in nsIImapUrl aImapUrl,
+                                   in nsISupports aConsumer);
 
   void RemoveConnection(in nsIImapProtocol aImapConnection);
   void ResetNamespaceReferences();

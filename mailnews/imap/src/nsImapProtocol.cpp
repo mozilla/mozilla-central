@@ -520,12 +520,13 @@ nsresult nsImapProtocol::Configure(PRInt32 TooFastTime, PRInt32 IdealTime,
 }
 
 
-nsresult nsImapProtocol::Initialize(nsIImapHostSessionList * aHostSessionList, nsIImapIncomingServer *aServer,
-                                    nsIEventTarget * aSinkEventTarget)
+NS_IMETHODIMP
+nsImapProtocol::Initialize(nsIImapHostSessionList * aHostSessionList,
+                           nsIImapIncomingServer *aServer)
 {
-  NS_PRECONDITION(aSinkEventTarget && aHostSessionList,
-             "oops...trying to initialize with a null sink event target!");
-  if (!aSinkEventTarget || !aHostSessionList || !aServer)
+  NS_PRECONDITION(aHostSessionList && aServer,
+     "oops...trying to initialize with a null host session list or server!");
+  if (!aHostSessionList || !aServer)
     return NS_ERROR_NULL_POINTER;
 
   nsresult rv = m_downloadLineCache->GrowBuffer(kDownLoadCacheSize);
@@ -540,7 +541,6 @@ nsresult nsImapProtocol::Initialize(nsIImapHostSessionList * aHostSessionList, n
   aServer->GetUseCompressDeflate(&m_useCompressDeflate);
   NS_ADDREF(m_flagState);
 
-  m_sinkEventTarget = aSinkEventTarget;
   m_hostSessionList = aHostSessionList; // no ref count...host session list has life time > connection
   m_parser.SetHostSessionList(aHostSessionList);
   m_parser.SetFlagState(m_flagState);
@@ -1059,7 +1059,6 @@ NS_IMETHODIMP nsImapProtocol::Run()
   if (m_imapProtocolSink)
     m_imapProtocolSink->CloseStreams();
 
-  m_sinkEventTarget = nsnull;
   m_imapMailFolderSink = nsnull;
   m_imapMessageSink = nsnull;
 
@@ -9151,9 +9150,8 @@ nsresult nsImapMockChannel::ReadFromImapConnection()
   nsCOMPtr<nsIImapIncomingServer> imapServer (do_QueryInterface(server, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
   // Assume AsyncRead is always called from the UI thread.....
-  return imapServer->GetImapConnectionAndLoadUrl(thread, imapUrl, nsnull);
+  return imapServer->GetImapConnectionAndLoadUrl(imapUrl, nsnull);
 }
 
 // for messages stored in our offline cache, we have special code to handle that...

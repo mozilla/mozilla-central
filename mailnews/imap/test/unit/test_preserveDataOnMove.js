@@ -167,6 +167,7 @@ mfnListener =
 
 function run_test()
 {
+  Services.prefs.setBoolPref("mail.server.default.autosync_offline_stores", false);
   // Add folder listeners that will capture async events
   const nsIMFNService = Ci.nsIMsgFolderNotificationService;
   var MFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]

@@ -195,9 +195,6 @@ function configure_message_injection(aInjectionConfig) {
     _messageInjectionSetup.notifyListeners("onRealFolderCreated",
                                            [mis.inboxFolder]);
 
-    mis.mainThread = Cc["@mozilla.org/thread-manager;1"]
-                       .getService()
-                       .mainThread;
     mis.imapService = Cc["@mozilla.org/messenger/imapservice;1"]
                         .getService(Ci.nsIImapService);
 
@@ -360,7 +357,6 @@ function make_empty_folder(aFolderName, aSpecialFlags) {
     // Tell the IMAP service to create the folder, adding a listener that
     //  hooks up the 'handle' URI -> actual folder mapping.
     mis.imapService.createFolder(
-      mis.mainThread,
       mis.rootFolder,
       aFolderName,
       new AsyncUrlListener(mis.rootFolder, function() {

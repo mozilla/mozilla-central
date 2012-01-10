@@ -141,6 +141,7 @@ mfnListener =
 
 function run_test()
 {
+  Services.prefs.setBoolPref("mail.server.default.autosync_offline_stores", false);
   async_run_tests(tests);
 }
 

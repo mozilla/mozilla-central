@@ -19,7 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   David Bienvenu <bienvenu@mozillamessaging.com>
+ *   David Bienvenu <bienvenu@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,12 +37,10 @@
 
 // This tests that we use IMAP move if the IMAP server supports it.
 
-var gMessages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
-var gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                .getService(Ci.nsIMsgCopyService);
-const ioService = Cc["@mozilla.org/network/io-service;1"]
-                     .getService(Ci.nsIIOService);
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 
+var gMessages = Cc["@mozilla.org/array;1"].createInstance(Ci.nsIMutableArray);
 
 load("../../../resources/logHelper.js");
 load("../../../resources/mailTestUtils.js");
@@ -64,11 +62,9 @@ var tests = [
 
 function startTest()
 {
+  Services.prefs.setBoolPref("mail.server.default.autosync_offline_stores", false);
   // Add folder listeners that will capture async events
-  const nsIMFNService = Ci.nsIMsgFolderNotificationService;
-  let MFNService = Cc["@mozilla.org/messenger/msgnotificationservice;1"]
-                     .getService(nsIMFNService);
-  MFNService.addListener(mfnListener, nsIMFNService.folderAdded);
+  MailServices.mfn.addListener(mfnListener, MailServices.mfn.folderAdded);
 
   gIMAPIncomingServer.rootFolder.createSubfolder("folder 1", null);
   yield false;
@@ -76,7 +72,7 @@ function startTest()
   let gMessageGenerator = new MessageGenerator();
   messages = messages.concat(gMessageGenerator.makeMessage());
   gSynthMessage = messages[0];
-  let dataUri = ioService.newURI("data:text/plain;base64," +
+  let dataUri = Services.io.newURI("data:text/plain;base64," +
                   btoa(messages[0].toMessageString()),
                   null, null);
   let imapMsg = new imapMessage(dataUri.spec, gIMAPMailbox.uidnext++, []);
@@ -93,7 +89,7 @@ function doMove() {
   let msg = gIMAPInbox.msgDatabase.GetMsgHdrForKey(gIMAPMailbox.uidnext - 1);
   gMessages.appendElement(msg, false);
   gIMAPServer._test = true;
-  gCopyService.CopyMessages(gIMAPInbox, gMessages, gFolder1, true,
+  MailServices.copy.CopyMessages(gIMAPInbox, gMessages, gFolder1, true,
                             asyncCopyListener, null, false);
   gIMAPServer.performTest("UID MOVE");
   yield false;

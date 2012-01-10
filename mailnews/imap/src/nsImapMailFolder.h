@@ -59,7 +59,6 @@
 #include "nsIImapMailFolderSink.h"
 #include "nsIImapServerSink.h"
 #include "nsIMsgFilterPlugin.h"
-#include "nsIEventTarget.h"
 #include "nsIThread.h"
 #include "nsDataHashtable.h"
 #include "nsIMutableArray.h"
@@ -484,7 +483,6 @@ protected:
   PRInt32 m_nextUID;
 
   PRInt32  m_nextMessageByteLength;
-  nsCOMPtr<nsIThread> m_thread;
   nsCOMPtr<nsIUrlListener> m_urlListener;
   bool m_urlRunning;
 

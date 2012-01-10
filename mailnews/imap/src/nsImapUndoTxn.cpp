@@ -60,8 +60,7 @@ nsImapMoveCopyMsgTxn::nsImapMoveCopyMsgTxn() :
 nsresult
 nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray, 
                            const char* srcMsgIdString, nsIMsgFolder* dstFolder,
-                           bool idsAreUids, bool isMove,
-                           nsIEventTarget* eventTarget)
+                           bool idsAreUids, bool isMove)
 {
   nsresult rv;
   m_srcHdrs = do_CreateInstance(NS_SUPPORTSARRAY_CONTRACTID);
@@ -70,7 +69,6 @@ nsImapMoveCopyMsgTxn::Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyAr
   m_isMove = isMove;
   m_srcFolder = do_GetWeakReference(srcFolder);
   m_dstFolder = do_GetWeakReference(dstFolder);
-  m_eventTarget = eventTarget;
   m_srcKeyArray = *srcKeyArray;
   m_dupKeyArray = *srcKeyArray;
   nsCString uri;
@@ -155,8 +153,7 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
 
       // ** make sure we are in the selected state; use lite select
       // folder so we won't hit performance hard
-      rv = imapService->LiteSelectFolder(m_eventTarget, srcFolder,
-        srcListener, nsnull, nsnull);
+      rv = imapService->LiteSelectFolder(srcFolder, srcListener, nsnull, nsnull);
       if (NS_FAILED(rv)) 
         return rv;
       bool deletedMsgs = true; //default is true unless imapDelete model
@@ -175,13 +172,13 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
           CheckForToggleDelete(srcFolder, m_srcKeyArray[0], &deletedMsgs);
 
         if (deletedMsgs)
-          rv = imapService->SubtractMessageFlags(m_eventTarget, srcFolder, 
+          rv = imapService->SubtractMessageFlags(srcFolder,
                                                  this, nsnull,
                                                  m_srcMsgIdString, 
                                                  kImapMsgDeletedFlag,
                                                  m_idsAreUids);
         else
-          rv = imapService->AddMessageFlags(m_eventTarget, srcFolder,
+          rv = imapService->AddMessageFlags(srcFolder,
                                             srcListener, nsnull,
                                             m_srcMsgIdString,
                                             kImapMsgDeletedFlag,
@@ -191,8 +188,8 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
 
         finishInOnStopRunningUrl = true;
         if (deleteModel != nsMsgImapDeleteModels::IMAPDelete)
-          rv = imapService->GetHeaders(m_eventTarget, srcFolder,
-                                srcListener, nsnull, m_srcMsgIdString, true);
+          rv = imapService->GetHeaders(srcFolder, srcListener, nsnull,
+                                       m_srcMsgIdString, true);
       }
     }
   }
@@ -208,10 +205,10 @@ nsImapMoveCopyMsgTxn::UndoTransaction(void)
     NS_ENSURE_SUCCESS(rv, rv);
     // ** make sure we are in the selected state; use lite select folder
     // so we won't potentially download a bunch of headers.
-    rv = imapService->LiteSelectFolder(m_eventTarget, dstFolder,
+    rv = imapService->LiteSelectFolder(dstFolder,
       dstListener, nsnull, nsnull);
     NS_ENSURE_SUCCESS(rv, rv);
-    rv = imapService->AddMessageFlags(m_eventTarget, dstFolder, dstListener,
+    rv = imapService->AddMessageFlags(dstFolder, dstListener,
                                       nsnull, m_dstMsgIdString, 
                                       kImapMsgDeletedFlag, m_idsAreUids);
   }
@@ -255,20 +252,19 @@ nsImapMoveCopyMsgTxn::RedoTransaction(void)
       
       // Make sure we are in the selected state; use lite select
       // folder so performance won't suffer.
-      rv = imapService->LiteSelectFolder(m_eventTarget, srcFolder,
-        srcListener, nsnull, nsnull);
+      rv = imapService->LiteSelectFolder(srcFolder, srcListener, nsnull, nsnull);
       NS_ENSURE_SUCCESS(rv, rv);
       if (deletedMsgs)
       {
-        rv = imapService->SubtractMessageFlags(m_eventTarget, srcFolder,
-                                                srcListener, nsnull,
-                                                m_srcMsgIdString,
-                                                kImapMsgDeletedFlag,
-                                                m_idsAreUids);
+        rv = imapService->SubtractMessageFlags(srcFolder,
+                                               srcListener, nsnull,
+                                               m_srcMsgIdString,
+                                               kImapMsgDeletedFlag,
+                                               m_idsAreUids);
       }
       else
       {
-        rv = imapService->AddMessageFlags(m_eventTarget, srcFolder,
+        rv = imapService->AddMessageFlags(srcFolder,
                                           srcListener, nsnull, m_srcMsgIdString,
                                           kImapMsgDeletedFlag, m_idsAreUids);
       }
@@ -285,11 +281,10 @@ nsImapMoveCopyMsgTxn::RedoTransaction(void)
     NS_ENSURE_SUCCESS(rv, rv);
     // ** make sure we are in the selected state; use lite select
     // folder so we won't hit performance hard
-    rv = imapService->LiteSelectFolder(m_eventTarget, dstFolder,
-      dstListener, nsnull, nsnull);
+    rv = imapService->LiteSelectFolder(dstFolder, dstListener, nsnull, nsnull);
     NS_ENSURE_SUCCESS(rv, rv);
-    rv = imapService->SubtractMessageFlags(m_eventTarget, dstFolder,
-                                           dstListener, nsnull, 
+    rv = imapService->SubtractMessageFlags(dstFolder,
+                                           dstListener, nsnull,
                                            m_dstMsgIdString,
                                            kImapMsgDeletedFlag,
                                            m_idsAreUids);
@@ -298,7 +293,7 @@ nsImapMoveCopyMsgTxn::RedoTransaction(void)
     rv = GetImapDeleteModel(dstFolder, &deleteModel);
     if (NS_FAILED(rv) || deleteModel == nsMsgImapDeleteModels::MoveToTrash)
     {
-      rv = imapService->GetHeaders(m_eventTarget, dstFolder, dstListener, 
+      rv = imapService->GetHeaders(dstFolder, dstListener, 
                                    nsnull, m_dstMsgIdString, true);
     }
   }
@@ -455,16 +450,15 @@ NS_IMETHODIMP nsImapMoveCopyMsgTxn::OnStopRunningUrl(nsIURI *aUrl, nsresult aExi
         // If subtracting the deleted flag didn't work, try
         // moving the message back from the target folder to the src folder
         if (!m_dstMsgIdString.IsEmpty())
-          imapService->OnlineMessageCopy(m_eventTarget,
-                                       dstFolder,
-                                       m_dstMsgIdString,
-                                       srcFolder,
-                                       true,
-                                       true,
-                                       nsnull, /* listener */
-                                       nsnull,
-                                       nsnull,
-                                       nsnull);
+          imapService->OnlineMessageCopy(dstFolder,
+                                         m_dstMsgIdString,
+                                         srcFolder,
+                                         true,
+                                         true,
+                                         nsnull, /* listener */
+                                         nsnull,
+                                         nsnull,
+                                         nsnull);
         else
         {
           // server doesn't support COPYUID, so we're going to update the dest
@@ -483,11 +477,10 @@ NS_IMETHODIMP nsImapMoveCopyMsgTxn::OnStopRunningUrl(nsIURI *aUrl, nsresult aExi
         NS_ENSURE_SUCCESS(rv, rv);
         // ** make sure we are in the selected state; use lite select folder
         // so we won't potentially download a bunch of headers.
-        rv = imapService->LiteSelectFolder(m_eventTarget, dstFolder,
-          dstListener, nsnull, nsnull);
+        rv = imapService->LiteSelectFolder(dstFolder, dstListener, nsnull, nsnull);
         NS_ENSURE_SUCCESS(rv, rv);
-        rv = imapService->AddMessageFlags(m_eventTarget, dstFolder, dstListener,
-                                          nsnull, m_dstMsgIdString, 
+        rv = imapService->AddMessageFlags(dstFolder, dstListener,
+                                          nsnull, m_dstMsgIdString,
                                           kImapMsgDeletedFlag, m_idsAreUids);
       }
     }
@@ -518,7 +511,7 @@ NS_IMETHODIMP nsImapMoveCopyMsgTxn::OnStopRunningUrl(nsIURI *aUrl, nsresult aExi
       {
         nsCAutoString uids;
         nsImapMailFolder::AllocateUidStringFromKeys(dstKeys.Elements(), dstKeys.Length(), uids);
-        rv = imapService->OnlineMessageCopy(m_eventTarget, dstFolder, uids, srcFolder,
+        rv = imapService->OnlineMessageCopy(dstFolder, uids, srcFolder,
                                             true, true, nsnull,
                                             nsnull, nsnull, nsnull);
       }
@@ -530,11 +523,10 @@ NS_IMETHODIMP nsImapMoveCopyMsgTxn::OnStopRunningUrl(nsIURI *aUrl, nsresult aExi
 nsImapOfflineTxn::nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
                                    const char *srcMsgIdString, nsIMsgFolder* dstFolder,
                                    bool isMove, nsOfflineImapOperationType opType,
-                                   nsIMsgDBHdr *srcHdr,
-                                   nsIEventTarget* eventTarget)
+                                   nsIMsgDBHdr *srcHdr)
 {
   Init(srcFolder, srcKeyArray, srcMsgIdString, dstFolder, true,
-       isMove, eventTarget);
+       isMove);
 
   m_opType = opType; 
   m_flags = 0;

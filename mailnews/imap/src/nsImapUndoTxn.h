@@ -43,7 +43,6 @@
 #include "nsIImapService.h"
 #include "nsIImapIncomingServer.h"
 #include "nsIUrlListener.h"
-#include "nsIEventTarget.h"
 #include "nsMsgTxn.h"
 #include "MailNewsTypes.h"
 #include "nsTArray.h"
@@ -58,8 +57,7 @@ public:
   nsImapMoveCopyMsgTxn();
   nsImapMoveCopyMsgTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
                        const char* srcMsgIdString, nsIMsgFolder* dstFolder,
-                       bool isMove, 
-                       nsIEventTarget *eventTarget);
+                       bool isMove);
   virtual ~nsImapMoveCopyMsgTxn();
 
   NS_DECL_ISUPPORTS_INHERITED
@@ -77,8 +75,7 @@ public:
   nsresult RedoMailboxDelete();
   nsresult Init(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
                 const char* srcMsgIdString, nsIMsgFolder* dstFolder,
-                bool idsAreUids, bool isMove, 
-                nsIEventTarget *eventTarget);
+                bool idsAreUids, bool isMove);
 
 protected:
 
@@ -90,7 +87,6 @@ protected:
   nsCString m_srcMsgIdString;
   nsWeakPtr m_dstFolder;
   nsCString m_dstMsgIdString;
-  nsCOMPtr<nsIEventTarget> m_eventTarget;
   bool m_idsAreUids;
   bool m_isMove;
   bool m_srcIsPop3;
@@ -106,12 +102,11 @@ class nsImapOfflineTxn : public nsImapMoveCopyMsgTxn
 {
 public:
   nsImapOfflineTxn(nsIMsgFolder* srcFolder, nsTArray<nsMsgKey>* srcKeyArray,
-                   const char* srcMsgIdString, 
+                   const char* srcMsgIdString,
                    nsIMsgFolder* dstFolder,
                    bool isMove,
                    nsOfflineImapOperationType opType,
-                   nsIMsgDBHdr *srcHdr,
-                   nsIEventTarget *eventTarge);
+                   nsIMsgDBHdr *srcHdr);
   virtual ~nsImapOfflineTxn();
 
   NS_IMETHOD UndoTransaction(void);

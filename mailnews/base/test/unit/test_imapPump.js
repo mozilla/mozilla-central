@@ -44,6 +44,8 @@ load("../../../resources/asyncTestUtils.js");
 // IMAP pump
 load("../../../resources/IMAPpump.js");
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 // Globals
 
 // Messages to load must have CRLF line endings, that is Windows style
@@ -78,6 +80,7 @@ function endTest()
 
 function run_test()
 {
+  Services.prefs.setBoolPref("mail.server.server1.autosync_offline_stores", false);
   async_run_tests(tests);
 }
 

@@ -41,14 +41,13 @@
 interface nsIUrlListener;
 interface nsIURI;
 interface nsIImapUrl;
-interface nsIEventTarget;
 interface nsIImapProtocol;
 interface nsIImapIncomingServer;
 interface nsIMsgFolder;
 interface nsIImapHostSessionList;
 interface nsIMsgWindow;
 
-[scriptable, uuid(1c3bbfa9-69f7-4716-8986-2dba10cefb09)]
+[scriptable, uuid(177f4140-37ad-4828-880c-42d4ee5d2015)]
 interface nsIImapProtocol : nsISupports {
   void LoadImapUrl(in nsIURI aUrl, in nsISupports aConsumer);
 
@@ -69,12 +68,11 @@ interface nsIImapProtocol : nsISupports {
                     out boolean hasToWait);
 
   /**
-   * Right now, initialize requires the event queue of the UI thread,
-   * or more importantly the event queue of the consumer of the imap
-   * protocol data. The protocol also needs a host session list.
+   * Initialize a protocol object.
+   * @param aHostSessionList host session list service
+   * @param aServer imap server the protocol object will be talking to
    */
-  void Initialize(in nsIImapHostSessionList aHostSessionList, in nsIImapIncomingServer aServer,
-                  in nsIEventTarget aSinkEventTarget);
+  void Initialize(in nsIImapHostSessionList aHostSessionList, in nsIImapIncomingServer aServer);
 
   void NotifyBodysToDownload(out unsigned long keys, in unsigned long count);
   // methods to get data from the imap parser flag state.

@@ -48,10 +48,8 @@ const gTestArray =
     do_check_false(rootFolder.containsChildNamed("Unsubscribed box"));
 
     let i18nChild = rootFolder.getChildNamed("I18N box\u00E1");
-    let uiThread =   Cc["@mozilla.org/thread-manager;1"]
-                        .getService(Ci.nsIThreadManager).mainThread;
 
-    gIMAPService.renameLeaf(uiThread, i18nChild, "test \u00E4", UrlListener, null);
+    gIMAPService.renameLeaf(i18nChild, "test \u00E4", UrlListener, null);
   },
   function checkRename() {
     do_check_true(rootFolder.containsChildNamed("test \u00E4"));

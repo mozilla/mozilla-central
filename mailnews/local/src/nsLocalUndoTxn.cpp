@@ -155,30 +155,25 @@ nsLocalMoveCopyMsgTxn::UndoImapDeleteFlag(nsIMsgFolder* folder,
           msgIds.Append(',');
       msgIds.AppendInt((PRInt32) keyArray[i]);
     }
-    nsCOMPtr<nsIThread> thread(do_GetCurrentThread());
-    if (thread)
-    {
-      // This is to make sure that we are in the selected state
-      // when executing the imap url; we don't want to load the
-      // folder so use lite select to do the trick
-      rv = imapService->LiteSelectFolder(thread, folder,
-                                         urlListener, nsnull, nsnull);
-      if (!deleteFlag)
-          rv =imapService->AddMessageFlags(thread, folder,
-                                          urlListener, nsnull,
-                                          msgIds,
-                                          kImapMsgDeletedFlag,
-                                          true);
-      else
-          rv = imapService->SubtractMessageFlags(thread,
-                                                folder,
-                                           urlListener, nsnull,
-                                           msgIds,
-                                           kImapMsgDeletedFlag,
-                                           true);
-      if (NS_SUCCEEDED(rv) && m_msgWindow)
-          folder->UpdateFolder(m_msgWindow);
-    }
+    // This is to make sure that we are in the selected state
+    // when executing the imap url; we don't want to load the
+    // folder so use lite select to do the trick
+    rv = imapService->LiteSelectFolder(folder,
+                                       urlListener, nsnull, nsnull);
+    if (!deleteFlag)
+        rv =imapService->AddMessageFlags(folder,
+                                         urlListener, nsnull,
+                                         msgIds,
+                                         kImapMsgDeletedFlag,
+                                         true);
+    else
+        rv = imapService->SubtractMessageFlags(folder,
+                                               urlListener, nsnull,
+                                               msgIds,
+                                               kImapMsgDeletedFlag,
+                                               true);
+    if (NS_SUCCEEDED(rv) && m_msgWindow)
+        folder->UpdateFolder(m_msgWindow);
     rv = NS_OK; // always return NS_OK to indicate that the src is imap
   }
   else
