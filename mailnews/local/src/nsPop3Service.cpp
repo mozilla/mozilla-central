@@ -539,21 +539,20 @@ nsPop3Service::GetDefaultLocalPath(nsILocalFile ** aResult)
     NS_ENSURE_ARG_POINTER(aResult);
     *aResult = nsnull;
 
-    nsresult rv;
     bool havePref;
     nsCOMPtr<nsILocalFile> localFile;
-    rv = NS_GetPersistentFile(PREF_MAIL_ROOT_POP3_REL,
-                              PREF_MAIL_ROOT_POP3,
-                              NS_APP_MAIL_50_DIR,
-                              havePref,
-                              getter_AddRefs(localFile));
-        if (NS_FAILED(rv)) return rv;
+    nsresult rv = NS_GetPersistentFile(PREF_MAIL_ROOT_POP3_REL,
+                                       PREF_MAIL_ROOT_POP3,
+                                       NS_APP_MAIL_50_DIR,
+                                       havePref,
+                                       getter_AddRefs(localFile));
+    NS_ENSURE_SUCCESS(rv, rv);
 
     bool exists;
     rv = localFile->Exists(&exists);
     if (NS_SUCCEEDED(rv) && !exists)
         rv = localFile->Create(nsIFile::DIRECTORY_TYPE, 0775);
-        if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
 
     if (!havePref || !exists) {
         rv = NS_SetPersistentFile(PREF_MAIL_ROOT_POP3_REL, PREF_MAIL_ROOT_POP3, localFile);
