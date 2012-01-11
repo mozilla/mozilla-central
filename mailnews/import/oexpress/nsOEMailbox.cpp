@@ -289,8 +289,10 @@ bool CMbxScanner::DoWork( bool *pAbort, PRUint32 *pDone, PRUint32 *pCount)
 
 void CMbxScanner::CleanUp( void)
 {
-  m_mbxFileInputStream->Close();
-  m_dstFileOutputStream->Close();
+  if (m_mbxFileInputStream)
+    m_mbxFileInputStream->Close();
+  if (m_dstFileOutputStream)
+    m_dstFileOutputStream->Close();
 
   delete [] m_pInBuffer;
   m_pInBuffer = nsnull;
