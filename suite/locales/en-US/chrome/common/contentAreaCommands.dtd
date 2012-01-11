@@ -53,11 +53,11 @@
 <!ENTITY viewBGImageCmd.accesskey     "w">
 <!ENTITY setWallpaperCmd.label        "Set As Wallpaper">
 <!ENTITY setWallpaperCmd.accesskey    "A">
-<!ENTITY bookmarkPageCmd.label        "Bookmark This Page">
+<!ENTITY bookmarkPageCmd.label        "Bookmark This Page…">
 <!ENTITY bookmarkPageCmd.accesskey    "m">
-<!ENTITY bookmarkLinkCmd.label        "Bookmark This Link">
+<!ENTITY bookmarkLinkCmd.label        "Bookmark This Link…">
 <!ENTITY bookmarkLinkCmd.accesskey    "B">
-<!ENTITY bookmarkFrameCmd.label       "Bookmark This Frame">
+<!ENTITY bookmarkFrameCmd.label       "Bookmark This Frame…">
 <!ENTITY bookmarkFrameCmd.accesskey   "m">
 <!ENTITY savePageAsCmd.label          "Save Page As…">
 <!ENTITY savePageCmd.label            "Save Page">

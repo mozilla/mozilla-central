@@ -40,7 +40,7 @@
 
 <!ENTITY bookmarkLinkCmd.label          "Bookmark This Link…">
 <!ENTITY bookmarkLinkCmd.accesskey      "B">
-<!ENTITY bookmarkLinksCmd.label         "Bookmark These Links">
+<!ENTITY bookmarkLinksCmd.label         "Bookmark These Links…">
 <!ENTITY bookmarkLinksCmd.accesskey     "B">
 
 <!ENTITY col.title.label                "Title">
