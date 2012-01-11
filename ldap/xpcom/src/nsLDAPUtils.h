@@ -38,7 +38,6 @@
 /* This module contains helper functions and macros for converting directory
    module to frozen linkage.
  */
-#include "nsIProxyObjectManager.h"
 #include "nsServiceManagerUtils.h"
 #include "nsStringGlue.h"
 #include <ctype.h>
