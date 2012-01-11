@@ -154,7 +154,7 @@ xpcshell-tests:
 	  --symbols-path=$(DIST)/crashreporter-symbols \
 	  --build-info-json=$(MOZDEPTH)/mozinfo.json \
 	  $(EXTRA_TEST_ARGS) \
-	  $(DIST)/bin/xpcshell \
+	  $(LIBXUL_DIST)/bin/xpcshell \
 	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(relativesrcdir)/$(dir))
 
 # Execute a single test, specified in $(SOLO_FILE), but don't automatically
@@ -169,7 +169,7 @@ check-interactive:
 	  --test-path=$(SOLO_FILE) \
 	  --profile-name=$(MOZ_APP_NAME) \
 	  --interactive \
-	  $(DIST)/bin/xpcshell \
+	  $(LIBXUL_DIST)/bin/xpcshell \
 	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(relativesrcdir)/$(dir))
 
 # Execute a single test, specified in $(SOLO_FILE)
@@ -183,7 +183,7 @@ check-one:
 	  --profile-name=$(MOZ_APP_NAME) \
 	  --verbose \
 	  $(EXTRA_TEST_ARGS) \
-	  $(DIST)/bin/xpcshell \
+	  $(LIBXUL_DIST)/bin/xpcshell \
 	  $(foreach dir,$(XPCSHELL_TESTS),$(testxpcobjdir)/$(relativesrcdir)/$(dir))
 
 endif # XPCSHELL_TESTS
