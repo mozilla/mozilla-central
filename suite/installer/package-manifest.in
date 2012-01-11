@@ -131,7 +131,7 @@
 @BINPATH@/components/accessibility.xpt
 #endif
 #ifdef XP_MACOSX
-@BINPATH@/components/libalerts_s.dylib
+@BINPATH@/components/libalerts.dylib
 #endif
 @BINPATH@/components/alerts.xpt
 @BINPATH@/components/appshell.xpt

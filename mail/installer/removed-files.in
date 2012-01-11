@@ -40,6 +40,9 @@ chrome/US.jar
 #endif
 components/accessibility-atk.xpt
 components/airbag.xpt
+#ifdef XP_MACOSX
+  components/libalerts_s.dylib
+#endif
 components/bookmarks.xpt
 components/downloadmanager.xpt
 components/compreg.dat

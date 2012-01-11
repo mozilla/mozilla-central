@@ -1132,12 +1132,12 @@ components/@DLL_PREFIX@windowds@DLL_SUFFIX@
 components/@DLL_PREFIX@xpautocomplete@DLL_SUFFIX@
 components/@DLL_PREFIX@zipwriter@DLL_SUFFIX@
 #ifdef XP_MACOSX
-components/libwidget_mac.dylib
-#endif
-#ifdef XP_WIN
-components/gkwidget.dll
-components/msgMapi.dll
-components/xppref32.dll
+  components/libalerts_s.dylib
+  components/libwidget_mac.dylib
+#elifdef XP_WIN
+  components/gkwidget.dll
+  components/msgMapi.dll
+  components/xppref32.dll
 #endif
 @DLL_PREFIX@gkgfx@DLL_SUFFIX@
 #ifdef UNIX_BUT_NOT_MAC

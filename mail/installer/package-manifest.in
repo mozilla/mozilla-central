@@ -426,7 +426,7 @@
 @BINPATH@/components/toolkitplaces.manifest
 @BINPATH@/components/toolkitsearch.manifest
 #ifdef XP_MACOSX
-@BINPATH@/components/libalerts_s.dylib
+@BINPATH@/components/libalerts.dylib
 #elifdef XP_UNIX
 @BINPATH@/components/toolkitremote.xpt
 @BINPATH@/mozilla-xremote-client
