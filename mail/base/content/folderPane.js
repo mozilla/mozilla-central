@@ -1,4 +1,3 @@
-/* -*- indent-tabs-mode: nil; js-indent-level: 2 -*- */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -193,7 +192,13 @@ let gFolderTreeView = {
 
         sstream.close();
         fstream.close();
-        this._persistOpenMap = JSON.parse(data);
+        try {
+          this._persistOpenMap = JSON.parse(data);
+        } catch (x) {
+          Components.utils.reportError(
+            document.getElementById("bundle_messenger")
+                    .getFormattedString("failedToReadFile", [aJSONFile, x]));
+        }
       }
     }
 
