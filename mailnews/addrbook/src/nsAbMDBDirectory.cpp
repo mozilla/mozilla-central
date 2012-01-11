@@ -1076,6 +1076,11 @@ NS_IMETHODIMP nsAbMDBDirectory::CardForEmailAddress(const nsACString &aEmailAddr
   NS_ConvertUTF8toUTF16 lowerEmail(aEmailAddress);
   ToLowerCase(lowerEmail);
 
+  // If lower email is empty, something went wrong somewhere, e.g. the conversion.
+  // Hence, don't go looking for a card with no email address. Something is wrong.
+  if (lowerEmail.IsEmpty())
+    return NS_ERROR_FAILURE;
+
   mDatabase->GetCardFromAttribute(this, kLowerPriEmailColumn, NS_ConvertUTF16toUTF8(lowerEmail),
                                   false, aAbCard);
   if (!*aAbCard)

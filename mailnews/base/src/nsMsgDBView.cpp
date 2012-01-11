@@ -131,9 +131,6 @@ nsDateFormatSelector  nsMsgDBView::m_dateFormatToday = kDateFormatNone;
 
 static const PRUint32 kMaxNumSortColumns = 2;
 
-static nsresult GetDisplayNameInAddressBook(const nsACString& emailAddress,
-                                            nsAString& displayName);
-
 static void GetCachedName(const nsCString& unparsedString,
                           PRInt32 displayVersion, nsACString& cachedName);
 
@@ -500,7 +497,8 @@ nsresult nsMsgDBView::FetchAuthor(nsIMsgDBHdr * aHdr, nsAString &aSenderString)
     }
   }
 
-  nsresult rv = aHdr->GetAuthor(getter_Copies(unparsedAuthor));
+  nsString decodedAuthor;
+  nsresult rv = aHdr->GetMime2DecodedAuthor(decodedAuthor);
 
   if (!mHeaderParser)
     mHeaderParser = do_GetService(NS_MAILNEWS_MIME_HEADER_PARSER_CONTRACTID);
@@ -510,8 +508,9 @@ nsresult nsMsgDBView::FetchAuthor(nsIMsgDBHdr * aHdr, nsAString &aSenderString)
     nsCString name,emailAddress;
     PRUint32 numAddresses;
 
-    rv = mHeaderParser->ParseHeaderAddresses(unparsedAuthor.get(),
-                getter_Copies(name),getter_Copies(emailAddress),&numAddresses);
+    rv = mHeaderParser->ParseHeaderAddresses(
+      NS_ConvertUTF16toUTF8(decodedAuthor).get(), getter_Copies(name),
+      getter_Copies(emailAddress), &numAddresses);
 
     if (NS_SUCCEEDED(rv) && showCondensedAddresses)
       GetDisplayNameInAddressBook(emailAddress,aSenderString);
@@ -551,7 +550,7 @@ nsresult nsMsgDBView::FetchAuthor(nsIMsgDBHdr * aHdr, nsAString &aSenderString)
 
   if (aSenderString.IsEmpty())
     // if we got here then just return the original string
-    CopyUTF8toUTF16(unparsedAuthor, aSenderString);
+    aSenderString = decodedAuthor;
 
   UpdateCachedName(aHdr, "sender_name", aSenderString);
 
