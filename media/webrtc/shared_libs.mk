@@ -1,48 +1,51 @@
 # shared libs for webrtc
 SHARED_LIBRARY_LIBS += \
         $(MKSHLIB_FORCE_ALL) \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/third_party_mods/libjingle/libjingle.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/third_party_mods/libjingle/libjingle_p2p.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/third_party_mods/libjingle/libjingle_app.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/third_party_mods/libjingle/libjsoncpp.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libvideo_capture_module.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libwebrtc_utility.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libaudio_coding_module.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libCNG.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/common_audio/libsignal_processing.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libG711.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libG722.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libiLBC.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libiSAC.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libiSACFix.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libPCM16B.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libNetEq.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/common_audio/libresampler.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/common_audio/libvad.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/system_wrappers/source/libsystem_wrappers.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libwebrtc_video_coding.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libwebrtc_i420.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libwebrtc_vp8.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/common_video/libwebrtc_libyuv.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libvideo_render_module.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/video_engine/libvideo_engine_core.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libmedia_file.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/librtp_rtcp.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libudp_transport.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libvideo_processing.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/voice_engine/libvoice_engine_core.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libaudio_conference_mixer.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libaudio_device.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libaudio_processing.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libaec.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libapm_util.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libaecm.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libagc.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libns.a \
-        $(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/modules/libaudioproc_debug_proto.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/third_party/protobuf/libprotobuf_lite.a \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/third_party/libyuv/libyuv.a \
+	$(call EXPAND_LIBNAME_PATH,jingle,$(DEPTH)/media/webrtc/trunk/third_party_mods/libjingle/libjingle_libjingle) \
+	$(call EXPAND_LIBNAME_PATH,jingle_p2p,$(DEPTH)/media/webrtc/trunk/third_party_mods/libjingle/libjingle_libjingle_p2p) \
+	$(call EXPAND_LIBNAME_PATH,jingle_app,$(DEPTH)/media/webrtc/trunk/third_party_mods/libjingle/libjingle_libjingle_app) \
+	$(call EXPAND_LIBNAME_PATH,jsoncpp,$(DEPTH)/media/webrtc/trunk/third_party_mods/libjingle/libjingle_jsoncpp) \
+	$(call EXPAND_LIBNAME_PATH,video_capture_module,$(DEPTH)/media/webrtc/trunk/src/modules/modules_video_capture_module) \
+	$(call EXPAND_LIBNAME_PATH,webrtc_utility,$(DEPTH)/media/webrtc/trunk/src/modules/modules_webrtc_utility) \
+	$(call EXPAND_LIBNAME_PATH,audio_coding_module,$(DEPTH)/media/webrtc/trunk/src/modules/modules_audio_coding_module) \
+	$(call EXPAND_LIBNAME_PATH,CNG,$(DEPTH)/media/webrtc/trunk/src/modules/modules_CNG) \
+	$(call EXPAND_LIBNAME_PATH,signal_processing,$(DEPTH)/media/webrtc/trunk/src/common_audio/common_audio_signal_processing) \
+	$(call EXPAND_LIBNAME_PATH,G711,$(DEPTH)/media/webrtc/trunk/src/modules/modules_G711) \
+	$(call EXPAND_LIBNAME_PATH,G722,$(DEPTH)/media/webrtc/trunk/src/modules/modules_G722) \
+	$(call EXPAND_LIBNAME_PATH,iLBC,$(DEPTH)/media/webrtc/trunk/src/modules/modules_iLBC) \
+	$(call EXPAND_LIBNAME_PATH,iSAC,$(DEPTH)/media/webrtc/trunk/src/modules/modules_iSAC) \
+	$(call EXPAND_LIBNAME_PATH,iSACFix,$(DEPTH)/media/webrtc/trunk/src/modules/modules_iSACFix) \
+	$(call EXPAND_LIBNAME_PATH,PCM16B,$(DEPTH)/media/webrtc/trunk/src/modules/modules_PCM16B) \
+	$(call EXPAND_LIBNAME_PATH,NetEq,$(DEPTH)/media/webrtc/trunk/src/modules/modules_NetEq) \
+	$(call EXPAND_LIBNAME_PATH,resampler,$(DEPTH)/media/webrtc/trunk/src/common_audio/common_audio_resampler) \
+	$(call EXPAND_LIBNAME_PATH,vad,$(DEPTH)/media/webrtc/trunk/src/common_audio/common_audio_vad) \
+	$(call EXPAND_LIBNAME_PATH,system_wrappers,$(DEPTH)/media/webrtc/trunk/src/system_wrappers/source/system_wrappers_system_wrappers) \
+	$(call EXPAND_LIBNAME_PATH,webrtc_video_coding,$(DEPTH)/media/webrtc/trunk/src/modules/modules_webrtc_video_coding) \
+	$(call EXPAND_LIBNAME_PATH,webrtc_i420,$(DEPTH)/media/webrtc/trunk/src/modules/modules_webrtc_i420) \
+	$(call EXPAND_LIBNAME_PATH,webrtc_vp8,$(DEPTH)/media/webrtc/trunk/src/modules/modules_webrtc_vp8) \
+	$(call EXPAND_LIBNAME_PATH,webrtc_libyuv,$(DEPTH)/media/webrtc/trunk/src/common_video/common_video_webrtc_libyuv) \
+	$(call EXPAND_LIBNAME_PATH,video_render_module,$(DEPTH)/media/webrtc/trunk/src/modules/modules_video_render_module) \
+	$(call EXPAND_LIBNAME_PATH,video_engine_core,$(DEPTH)/media/webrtc/trunk/src/video_engine/video_engine_video_engine_core) \
+	$(call EXPAND_LIBNAME_PATH,media_file,$(DEPTH)/media/webrtc/trunk/src/modules/modules_media_file) \
+	$(call EXPAND_LIBNAME_PATH,rtp_rtcp,$(DEPTH)/media/webrtc/trunk/src/modules/modules_rtp_rtcp) \
+	$(call EXPAND_LIBNAME_PATH,udp_transport,$(DEPTH)/media/webrtc/trunk/src/modules/modules_udp_transport) \
+	$(call EXPAND_LIBNAME_PATH,video_processing,$(DEPTH)/media/webrtc/trunk/src/modules/modules_video_processing) \
+	$(call EXPAND_LIBNAME_PATH,voice_engine_core,$(DEPTH)/media/webrtc/trunk/src/voice_engine/voice_engine_voice_engine_core) \
+	$(call EXPAND_LIBNAME_PATH,audio_conference_mixer,$(DEPTH)/media/webrtc/trunk/src/modules/modules_audio_conference_mixer) \
+	$(call EXPAND_LIBNAME_PATH,audio_device,$(DEPTH)/media/webrtc/trunk/src/modules/modules_audio_device) \
+	$(call EXPAND_LIBNAME_PATH,audio_processing,$(DEPTH)/media/webrtc/trunk/src/modules/modules_audio_processing) \
+	$(call EXPAND_LIBNAME_PATH,aec,$(DEPTH)/media/webrtc/trunk/src/modules/modules_aec) \
+	$(call EXPAND_LIBNAME_PATH,apm_util,$(DEPTH)/media/webrtc/trunk/src/modules/modules_apm_util) \
+	$(call EXPAND_LIBNAME_PATH,aecm,$(DEPTH)/media/webrtc/trunk/src/modules/modules_aecm) \
+	$(call EXPAND_LIBNAME_PATH,agc,$(DEPTH)/media/webrtc/trunk/src/modules/modules_agc) \
+	$(call EXPAND_LIBNAME_PATH,ns,$(DEPTH)/media/webrtc/trunk/src/modules/modules_ns) \
+	$(call EXPAND_LIBNAME_PATH,yuv,$(DEPTH)/media/webrtc/trunk/third_party/libyuv/libyuv_libyuv) \
         $(MKSHLIB_UNFORCE_ALL) \
-	$(DEPTH)/media/webrtc/trunk/out/out/Debug/obj.target/src/common_video/libwebrtc_jpeg.a \
-	-lexpat \
+	$(call EXPAND_LIBNAME_PATH,webrtc_jpeg,$(DEPTH)/media/webrtc/trunk/src/common_video/common_video_webrtc_jpeg) \
 	$(NULL)
+
+ifeq ($(OS_TARGET),WINNT)
+SHARED_LIBRARY_LIBS += $(call EXPAND_LIBNAME_PATH,expat,$(DEPTH)/media/webrtc/trunk/third_party/expat/expat_expat)
+else
+SHARED_LIBRARY_LIBS += -lexpat
+endif

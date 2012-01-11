@@ -27,6 +27,11 @@
               '-lexpat',
             ],
           },
+          'direct_dependent_settings': {
+            'include_dirs': [
+              'visibility_wrappers'
+            ],
+          }
         },
       ],
     }, {  # OS != linux

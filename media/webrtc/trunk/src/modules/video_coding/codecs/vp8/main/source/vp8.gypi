@@ -36,7 +36,7 @@
 #                 '<(webrtc_root)/../third_party/libvpx/libvpx.gyp:libvpx_include',
                ],
                'include_dirs': [
-                 '$(LIBVPX_INCLUDE)',
+                 '$(DIST)/include',
                ],
                'defines': [
                  # This must be updated to match mozilla's version of libvpx

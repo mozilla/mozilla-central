@@ -54,7 +54,7 @@
         # Path needed to build Direct Show base classes on Windows.
         # The code is included in the Windows SDK.
         'direct_show_base_classes':
-          'C:/Program Files/Microsoft SDKs/Windows/v7.1/Samples/multimedia/directshow/baseclasses/',
+          '<!(python <(DEPTH)/src/build/getsdksamplesdir.py)multimedia/directshow/baseclasses/',
       }],
       ['build_with_chromium==1', {
         # Exclude pulse audio on Chromium since its prerequisites don't require

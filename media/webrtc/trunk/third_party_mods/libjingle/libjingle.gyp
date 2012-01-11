@@ -392,6 +392,8 @@
         ['inside_chromium_build==0', {
           'sources': [ 
             '<(libjingle_orig)/source/talk/sound/automaticallychosensoundsystem.h', 
+            '<(libjingle_orig)/source/talk/sound/nullsoundsystem.cc', 
+            '<(libjingle_orig)/source/talk/sound/nullsoundsystem.h', 
             '<(libjingle_orig)/source/talk/sound/platformsoundsystem.cc', 
             '<(libjingle_orig)/source/talk/sound/platformsoundsystem.h', 
             '<(libjingle_orig)/source/talk/sound/platformsoundsystemfactory.cc', 

@@ -22,7 +22,7 @@
         '../interface',
         '../../../../../../',
 # added for mozilla for use_system_libjpeg
-        '$(builddir)/../../../../../../dist/include',
+        '$(DIST)/include',
       ],
       'direct_dependent_settings': {
         'include_dirs': [
