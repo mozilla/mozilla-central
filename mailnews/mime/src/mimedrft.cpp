@@ -1607,7 +1607,7 @@ mime_parse_stream_complete (nsMIMESession *stream)
   //
   if (bodyAsAttachment)
     mdd->messageBody->m_tmpFile = nsnull;
-  else if (mdd->messageBody->m_tmpFile)
+  else if (mdd->messageBody && mdd->messageBody->m_tmpFile)
     mdd->messageBody->m_tmpFile->Remove(false);
 
   delete mdd->messageBody;
