@@ -2089,11 +2089,6 @@ calDavCalendar.prototype = {
             this.mCheckedServerInfo = true;
             this.setProperty("currentStatus", Components.results.NS_OK);
 
-            // try to reread the ACLs
-            if (this.mACLEntry) {
-                this.mACLEntry.refresh();
-            }
-
             if (this.isCached) {
                 this.safeRefresh(aChangeLogListener);
             } else {
