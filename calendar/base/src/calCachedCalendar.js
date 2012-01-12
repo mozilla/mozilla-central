@@ -405,8 +405,7 @@ calCachedCalendar.prototype = {
                     this_.offlineCachedItems = {};
                     this_.offlineCachedItemFlags = {};
                 }
-                this_.playbackAddedItems(function() {this_.mCachedObserver.onLoad(this_.mCachedCalendar);});
-                emptyQueue(aStatus);
+                this_.playbackAddedItems(function() { emptyQueue(aStatus) });
             }
         };
 
@@ -662,10 +661,8 @@ calCachedCalendar.prototype = {
     refresh: function() {
         if (this.offline) {
             this.downstreamRefresh();
-        }
-        else {
+        } else {
             /* we first ensure that any remaining offline items are reconciled with the calendar server */
-            let this_ = this;
             if (this.supportsChangeLog) {
                 this.playbackAddedItems(this.downstreamRefresh.bind(this));
             } else {
