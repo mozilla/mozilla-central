@@ -85,6 +85,10 @@
   border-right: 4px solid highlight;
 }
 
+#today-splitter > grippy {
+  display: none;
+}
+
 /* Calendar list rules */
 #calendar-panel {
     padding-bottom: 5px;
