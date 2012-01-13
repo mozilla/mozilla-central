@@ -82,8 +82,6 @@ public:
   virtual ~nsNntpService();
 
 protected:
-  bool WeAreOffline();
-
   nsresult GetNntpServerByAccount(const char *aAccountKey, nsIMsgIncomingServer **aNntpServer);
   nsresult SetUpNntpUrlForPosting(const char *aAccountKey, char **newsUrlSpec);
   nsresult FindHostFromGroup(nsCString &host, nsCString &groupName);

@@ -1132,18 +1132,6 @@ nsNntpService::GetServerForUri(nsIURI *aUri, nsINntpIncomingServer **aServer)
   return NS_OK;
 }
 
-bool nsNntpService::WeAreOffline()
-{
-  nsresult rv = NS_OK;
-  bool offline = false;
-
-  nsCOMPtr<nsIIOService> netService(do_GetService(NS_IOSERVICE_CONTRACTID, &rv));
-  if (NS_SUCCEEDED(rv) && netService)
-    netService->GetOffline(&offline);
-
-  return offline;
-}
-
 nsresult
 nsNntpService::RunNewsUrl(nsIURI * aUri, nsIMsgWindow *aMsgWindow, nsISupports * aConsumer)
 {
