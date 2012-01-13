@@ -35,7 +35,8 @@ function run_test()
   let outputStream = Cc["@mozilla.org/network/file-output-stream;1"].
                        createInstance(Ci.nsIFileOutputStream)
                                .QueryInterface(Ci.nsISeekableStream);
-  outputStream.init(inboxFile, -1, -1, 0);
+  // Open in write-only mode, no truncate.
+  outputStream.init(inboxFile, 0x02, -1, 0);
   // seek past 2GB.
   outputStream.seek(0, 0x80000010);
   outputStream.write(" ", 1);

@@ -98,7 +98,8 @@ function run_test()
   let outputStream = Cc["@mozilla.org/network/file-output-stream;1"].
                        createInstance(Ci.nsIFileOutputStream)
                                .QueryInterface(Ci.nsISeekableStream);
-  outputStream.init(gIMAPInbox.filePath, -1, -1, 0);
+  // Open in write-only mode, no truncate.
+  outputStream.init(gIMAPInbox.filePath, 0x02, -1, 0);
   // seek to 15 bytes past 4GB.
   outputStream.seek(0, 0x10000000f);
   outputStream.write("from\r\n", 6);
