@@ -274,9 +274,6 @@
 @BINPATH@/components/toolkitsearch.manifest
 @BINPATH@/components/txmgr.xpt
 @BINPATH@/components/txtsvc.xpt
-#ifdef MOZ_USE_NATIVE_UCONV
-@BINPATH@/components/ucnative.xpt
-#endif
 @BINPATH@/components/uconv.xpt
 @BINPATH@/components/unicharutil.xpt
 @BINPATH@/components/update.xpt
