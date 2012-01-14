@@ -118,7 +118,7 @@ endif
 ####################################
 # Sanity checks
 
-ifneq (,$(filter MINGW%,$(shell uname -s)))
+ifneq (,$(findstring mingw,$(CONFIG_GUESS)))
 # check for CRLF line endings
 ifneq (0,$(shell $(PERL) -e 'binmode(STDIN); while (<STDIN>) { if (/\r/) { print "1"; exit } } print "0"' < $(TOPSRCDIR)/client.mk))
 $(error This source tree appears to have Windows-style line endings. To \
@@ -143,6 +143,13 @@ include $(TOPSRCDIR)/.mozconfig.mk
 
 ifndef MOZ_OBJDIR
   MOZ_OBJDIR = obj-$(CONFIG_GUESS)
+else
+# On Windows Pymake builds check MOZ_OBJDIR doesn't start with "/"
+  ifneq (,$(findstring mingw,$(CONFIG_GUESS)))
+  ifeq (1_a,$(.PYMAKE)_$(firstword a$(subst /, ,$(MOZ_OBJDIR))))
+  $(error For Windows Pymake builds, MOZ_OBJDIR must be a Windows [and not MSYS] style path.)
+  endif
+  endif
 endif
 
 ifdef MOZ_BUILD_PROJECTS
@@ -301,6 +308,10 @@ CONFIG_STATUS_DEPS := \
 	$(wildcard $(TOPSRCDIR)/ldap/sdks/c-sdk/configure) \
 	$(wildcard $(addsuffix confvars.sh,$(wildcard $(TOPSRCDIR)/*/))) \
 	$(NULL)
+
+CONFIGURE_ENV_ARGS += \
+  MAKE="$(MAKE)" \
+  $(NULL)
 
 # configure uses the program name to determine @srcdir@. Calling it without
 #   $(TOPSRCDIR) will set @srcdir@ to "."; otherwise, it is set to the full
