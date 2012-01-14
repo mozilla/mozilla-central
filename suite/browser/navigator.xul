@@ -210,11 +210,11 @@
     <toolbarset id="customToolbars" context="toolbar-context-menu"/>
 
     <toolbar id="PersonalToolbar"
-             accesskey="&personalbarCmd.accesskey;"
+             accesskey="&bookmarksToolbarCmd.accesskey;"
              class="chromeclass-directories"
              persist="collapsed"
-             grippytooltiptext="&personalToolbar.tooltip;"
-             toolbarname="&personalbarCmd.label;"
+             grippytooltiptext="&bookmarksToolbar.tooltip;"
+             toolbarname="&bookmarksToolbarCmd.label;"
              nowindowdrag="true"
              customizable="true"
              defaultset="home-button,separator,bookmarks-button,personal-bookmarks"
@@ -383,7 +383,7 @@
                 tooltiptext="&throbber.tooltip;"/>
       </toolbaritem>
 
-      <!-- "Bookmarks" button on personal toolbar -->
+      <!-- "Bookmarks" button on Bookmarks Toolbar -->
       <toolbarbutton type="menu" id="bookmarks-button"
                      class="bookmark-item" container="true"
                      label="&bookmarksButton.label;"
@@ -397,7 +397,7 @@
                    openInTabs="children"
                    oncommand="BookmarksEventHandler.onCommand(event);"
                    onclick="BookmarksEventHandler.onClick(event);"
-                   onpopupshowing="BookmarksMenuButton.onPopupShowing(event);
+                   onpopupshowing="BookmarksMenu.onPopupShowing(event, 'BMB_');
                                    BookmarksEventHandler.onPopupShowing(event);"
                    tooltip="bhTooltip" popupsinherittooltip="true">
           <menuitem command="Browser:AddBookmark"/>
@@ -414,7 +414,7 @@
           <menuseparator/>
           <menu id="BMB_bookmarksToolbarFolderMenu"
                 class="menu-iconic bookmark-item"
-                label="&personalbarCmd.label;"
+                label="&bookmarksToolbarCmd.label;"
                 container="true">
             <menupopup id="BMB_bookmarksToolbarFolderPopup"
                        placespopup="true"

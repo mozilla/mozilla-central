@@ -890,17 +890,17 @@ let PlacesToolbarHelper = {
 };
 
 
-// Handles the bookmarks menu button shown when the main menubar is hidden.
-let BookmarksMenuButton = {
-  _popupInitialized: false,
-  onPopupShowing: function BMB_onPopupShowing(event) {
-    if (!this._popupInitialized) {
+// Handles the bookmarks menu popup
+let BookmarksMenu = {
+  _popupInitialized: {},
+  onPopupShowing: function BM_onPopupShowing(aEvent, aPrefix) {
+    if (!(aPrefix in this._popupInitialized)) {
       // First popupshowing event, initialize immutable attributes.
-      this._popupInitialized = true;
+      this._popupInitialized[aPrefix] = true;
 
       // Need to set the label on Unsorted Bookmarks menu.
       let unsortedBookmarksElt =
-        document.getElementById("BMB_unsortedBookmarksFolderMenu");
+        document.getElementById(aPrefix + "unsortedBookmarksFolderMenu");
       unsortedBookmarksElt.label =
         PlacesUtils.getString("UnsortedBookmarksFolderTitle");
     }

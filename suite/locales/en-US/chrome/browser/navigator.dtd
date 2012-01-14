@@ -16,8 +16,8 @@
 
 <!ENTITY navbarCmd.label "Navigation Toolbar">
 <!ENTITY navbarCmd.accesskey "N">
-<!ENTITY personalbarCmd.label "Personal Toolbar">
-<!ENTITY personalbarCmd.accesskey "P">
+<!ENTITY bookmarksToolbarCmd.label     "Bookmarks Toolbar">
+<!ENTITY bookmarksToolbarCmd.accesskey "m">
 
 <!ENTITY closeWindow.label "Close Window">
 <!ENTITY closeWindow.accesskey "W">
@@ -29,7 +29,7 @@
 <!ENTITY feedsMenu.accesskey "S">
 
 <!ENTITY menuBar.tooltip                  "Menu Bar">
-<!ENTITY personalToolbar.tooltip          "Personal Toolbar">
+<!ENTITY bookmarksToolbar.tooltip         "Bookmarks Toolbar">
 <!ENTITY navigationToolbar.tooltip        "Navigation Toolbar">
 
 <!-- Toolbar items --> 

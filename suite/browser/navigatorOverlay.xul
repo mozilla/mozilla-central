@@ -262,13 +262,6 @@
     <broadcaster id="isImage"/>
   </broadcasterset>
          
-  <!-- bookmarks context menu -->
-  <popupset id="bookmarksPopupset">
-    <menupopup id="bookmarks-context-menu" 
-           onpopupshowing="return BookmarksMenu.createContextMenu(event);"
-           onpopuphidden ="BookmarksMenu.destroyContextMenu(event);"/>
-  </popupset>
-
   <!-- Menu -->
   <menubar id="main-menubar" class="chromeclass-menubar">
     <menu id="menu_File">
@@ -477,7 +470,8 @@
                  openInTabs="children"
                  oncommand="BookmarksEventHandler.onCommand(event);"
                  onclick="BookmarksEventHandler.onClick(event);"
-                 onpopupshowing="BookmarksEventHandler.onPopupShowing(event);"
+                 onpopupshowing="BookmarksMenu.onPopupShowing(event, '');
+                                 BookmarksEventHandler.onPopupShowing(event);"
                  tooltip="bhTooltip" popupsinherittooltip="true">
         <menuitem id="menu_bookmarkThisPage"
                   command="Browser:AddBookmark"
@@ -500,13 +494,22 @@
         <menuseparator/>
         <menu id="bookmarksToolbarFolderMenu"
               class="menu-iconic bookmark-item"
-              label="&personalbarCmd.label;"
+              label="&bookmarksToolbarCmd.label;"
               container="true">
           <menupopup id="bookmarksToolbarFolderPopup"
                      placespopup="true"
                      context="placesContext"
                      onpopupshowing="if (!this.parentNode._placesView)
                                        new PlacesMenu(event, 'place:folder=TOOLBAR');"/>
+        </menu>
+        <menu id="unsortedBookmarksFolderMenu"
+              class="menu-iconic bookmark-item"
+              container="true">
+          <menupopup id="unsortedBookmarksFolderPopup"
+                     placespopup="true"
+                     context="placesContext"
+                     onpopupshowing="if (!this.parentNode._placesView)
+                                       new PlacesMenu(event, 'place:folder=UNFILED_BOOKMARKS');"/>
         </menu>
         <menuseparator/>
       </menupopup>
