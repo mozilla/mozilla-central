@@ -49,7 +49,6 @@
 */
 
 var gInsertNewImage = true;
-var gInsertNewIMap = true;
 var gDoAltTextError = false;
 var gConstrainOn = false;
 // Note used in current version, but these are set correctly
@@ -237,7 +236,6 @@ function GetImageMap()
     } catch (e) {}
     if (mapCollection && mapCollection[0] != null)
     {
-      gInsertNewIMap = false;
       return mapCollection[0];
     }
   }
@@ -246,7 +244,6 @@ function GetImageMap()
     gCanRemoveImageMap = false;
   }
 
-  gInsertNewIMap = true;
   return null;
 }
 
@@ -417,9 +414,6 @@ function doOverallEnabling()
   SetElementEnabled(gDialog.OkButton, enabled);
   SetElementEnabledById("AdvancedEditButton1", enabled);
   SetElementEnabledById("imagemapLabel", enabled);
-
-  //TODO: Restore when Image Map editor is finished
-  //SetElementEnabledById("editImageMap", enabled);
   SetElementEnabledById("removeImageMap", gCanRemoveImageMap);
 }
 
@@ -475,20 +469,6 @@ function constrainProportions( srcID, destID )
   else
     destElement.value = Math.round( srcElement.value * gConstrainWidth / gConstrainHeight );
 */
-}
-
-function editImageMap()
-{
-  // Create an imagemap for image map editor
-  if (gInsertNewIMap)
-  {
-    try {
-      gImageMap = GetCurrentEditor().createElementWithDefaults("map");
-    } catch (e) {}
-  }
-
-  // Note: We no longer pass in a copy of the global ImageMap. ImageMap editor should create a copy and manage onOk and onCancel behavior
-  window.openDialog("chrome://editor/content/EdImageMap.xul", "_blank", "chrome,close,titlebar,modal", globalElement, gImageMap);
 }
 
 function removeImageMap()

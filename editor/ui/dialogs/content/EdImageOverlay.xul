@@ -283,15 +283,6 @@
       <groupbox>
         <caption id="imagemapLabel" label="&imagemapBox.label;"/>
         <hbox equalsize="always">
-
-<!-- Hide Image Map Editor. Not ready for prime time yet
-        <button
-          id      = "editImageMap"
-          oncommand = "editImageMap()"
-          tooltiptext="&editImageMapButton.tooltip;"
-          label   = "&editImageMapButton.label;"
-          flex    = "1"/>
--->
         <button
           id      = "removeImageMap"
           oncommand = "removeImageMap()"

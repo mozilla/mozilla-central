@@ -189,9 +189,7 @@ classic.jar:
   skin/classic/editor/icons/editoricons.png                             (editor/icons/editoricons.png)
   skin/classic/editor/icons/editoricons-small.png                       (editor/icons/editoricons-small.png)
 #endif
-  skin/classic/editor/EdImageMapPage.css                                (editor/EdImageMapPage.css)
   skin/classic/editor/EditorDialog.css                                  (editor/EditorDialog.css)
-  skin/classic/editor/EdImageMap.css                                    (editor/EdImageMap.css)
   skin/classic/editor/icons/editmode-html.gif                           (editor/icons/editmode-html.gif)
   skin/classic/editor/icons/editmode-normal.gif                         (editor/icons/editmode-normal.gif)
   skin/classic/editor/icons/editmode-preview.gif                        (editor/icons/editmode-preview.gif)

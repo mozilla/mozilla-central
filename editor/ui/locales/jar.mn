@@ -44,8 +44,6 @@
   locale/@AB_CD@/editor/EdLinkChecker.dtd                    (%chrome/dialogs/EdLinkChecker.dtd)
   locale/@AB_CD@/editor/EditorPageProperties.dtd             (%chrome/dialogs/EditorPageProperties.dtd)
   locale/@AB_CD@/editor/EditorSnapToGrid.dtd                 (%chrome/dialogs/EditorSnapToGrid.dtd)
-  locale/@AB_CD@/editor/EditorImageMap.dtd                   (%chrome/dialogs/EditorImageMap.dtd)
-  locale/@AB_CD@/editor/EditorImageMapHotSpot.dtd            (%chrome/dialogs/EditorImageMapHotSpot.dtd)
   locale/@AB_CD@/editor/EditConflict.dtd                     (%chrome/dialogs/EditConflict.dtd)
   locale/@AB_CD@/editor/EditorSaveAsCharset.dtd              (%chrome/dialogs/EditorSaveAsCharset.dtd)
   locale/@AB_CD@/editor/EditorPublish.dtd                    (%chrome/dialogs/EditorPublish.dtd)

@@ -154,8 +154,6 @@ modern.jar:
   skin/modern/communicator/sync/syncSetup.css                      (communicator/sync/syncSetup.css)
   skin/modern/communicator/sync/syncCommon.css                     (communicator/sync/syncCommon.css)
   skin/modern/communicator/sync/syncQuota.css                      (communicator/sync/syncQuota.css)
-  skin/modern/editor/EdImageMap.css                                (editor/EdImageMap.css)
-  skin/modern/editor/EdImageMapPage.css                            (editor/EdImageMapPage.css)
   skin/modern/editor/EditorDialog.css                              (editor/EditorDialog.css)
   skin/modern/editor/editor.css                                    (editor/editor.css)
   skin/modern/editor/editorModeToolbar.css                         (editor/editorModeToolbar.css)
