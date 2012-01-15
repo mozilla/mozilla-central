@@ -49,7 +49,8 @@
 #include "calIErrors.h"
 #include "calDuration.h"
 
-#include "jsdate.h"
+#include "jsapi.h"
+#include "jsfriendapi.h"
 #include "prprf.h"
 
 extern "C" {
@@ -678,9 +679,9 @@ calDateTime::GetProperty(nsIXPConnectWrappedNative *wrapper, JSContext * cx,
             JSObject *obj;
             bool b;
             if (NS_SUCCEEDED(mTimezone->GetIsFloating(&b)) && b) {
-                obj = js_NewDateObject(cx, mYear, mMonth, mDay, mHour, mMinute, mSecond);
+                obj = JS_NewDateObject(cx, mYear, mMonth, mDay, mHour, mMinute, mSecond);
             } else {
-                obj = js_NewDateObjectMsec(cx, msec);
+                obj = JS_NewDateObjectMsec(cx, msec);
             }
 
             *vp = OBJECT_TO_JSVAL(obj);
