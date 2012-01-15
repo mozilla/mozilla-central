@@ -34,8 +34,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#lightning-newCalendar-row > hbox > label[chromedir="rtl"] {
-  background: url(chrome://calendar/skin/cal-icon32.png) right no-repeat !important;
+#lightning-newCalendar-row > hbox > label:-moz-locale-dir(rtl) {
+  background-position: right !important;
 }
 
 #lightning-newCalendar-row > hbox > label {

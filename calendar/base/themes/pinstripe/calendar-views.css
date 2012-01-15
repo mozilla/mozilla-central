@@ -335,7 +335,7 @@ calendar-editable-item[selected="true"] .calendar-color-box {
     direction: ltr;
 }
 
-.multiday-view-label-day-box[chromedir="rtl"] {
+.multiday-view-label-day-box:-moz-locale-dir(rtl) {
     direction: rtl;
 }
 
