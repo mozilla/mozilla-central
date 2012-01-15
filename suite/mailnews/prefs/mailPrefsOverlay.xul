@@ -17,13 +17,17 @@
                 type="bool"/>
   </preferences>
   <preferences id="scripts_preferences">
+    <preference id="plugin.disable"
+                onchange="setDisableState('pluginAllowMailNews', !this.value);"/>
     <preference id="mailnews.message_display.allow.plugins"
                 name="mailnews.message_display.allow.plugins"
                 type="bool"/>
   </preferences>
   <!-- plugin toggle for mail/news -->
-  <groupbox id="pluginPreferences" hidden="false">
+  <groupbox id="pluginPreferences">
     <checkbox id="pluginAllowMailNews"
+              class="indent"
+              onsyncfrompreference="document.getElementById('scripts_pane').setDisableState(this.id, !document.getElementById('plugin.disable').value);"
               label="&enbPluginCheckMailNews.label;"
               accesskey="&enbPluginCheckMailNews.accesskey;"
               preference="mailnews.message_display.allow.plugins"/>

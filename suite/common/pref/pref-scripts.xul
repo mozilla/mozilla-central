@@ -65,6 +65,9 @@
       <preference id="dom.event.contextmenu.enabled"
                   name="dom.event.contextmenu.enabled"
                   type="bool"/>
+      <preference id="plugin.disable"
+                  name="plugin.disable"
+                  type="bool" inverted="true"/>
       <preference id="plugins.hide_infobar_for_missing_plugin"
                   name="plugins.hide_infobar_for_missing_plugin"
                   type="bool" inverted="true"/>
@@ -105,8 +108,13 @@
       </listbox>
     </groupbox>
 
-    <groupbox id="pluginPreferences" hidden="true">
+    <groupbox id="pluginPreferences">
       <caption label="&enablePlugin.label;"/>
+      <checkbox id="pluginForSuite"
+                label="&enablePluginForSuite.label;"
+                accesskey="&enablePluginForSuite.accesskey;"
+                preference="plugin.disable"/>
+
       <!-- mailnews will add its checkbox here using overlay (mailPrefsOverlay.xul).
       -->
     </groupbox>
