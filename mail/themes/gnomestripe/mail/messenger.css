@@ -102,6 +102,10 @@ toolbar:not(.inline-toolbar) toolbarbutton:not(:-moz-lwtheme) {
   color: MenuText;
 }
 
+toolbar:not(.inline-toolbar) toolbarbutton[disabled="true"]:not(:-moz-lwtheme) {
+  color: GrayText;
+}
+
 toolbarbutton:hover:not([disabled]):not(:-moz-lwtheme) .toolbarbutton-text {
   color: -moz-buttonhovertext;
 }
