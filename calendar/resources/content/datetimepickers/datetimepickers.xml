@@ -264,9 +264,6 @@
          could put kDatePicker property on the input element.
          [document.getAnonymousNodes(textBox) fails as of Moz1.7b]).
          So navigate parents to textbox in order to call parseTextBoxDate.
-         [Note: minimonth onmonthchange reshows parent popup to fix title 
-         month/year (bug 973914).  minimonth onpopuplisthidden reshows parent 
-         popup to avoid freeze (bug 278877).]
          [this comment is outside the <content> so it won't become a
          node that interferes with navigation to interior nodes.] -->
     <resources>
