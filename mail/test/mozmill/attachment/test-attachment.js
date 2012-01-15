@@ -445,8 +445,23 @@ function test_attachments_compose_menu() {
     let element = cwc.e(aId);
     element.focus();
 
-    if (!mc.mozmillModule.isWindows)
+    if (!mc.mozmillModule.isWindows) {
+      // First, call the window's default controller's function.
       cwc.window.defaultController.isCommandEnabled("cmd_delete");
+
+      // Walk up the DOM tree and call isCommandEnabled on the first controller
+      // that supports "cmd_delete".
+      while (element != cwc.window.document) {
+        for (let i = 0; i < element.controllers.getControllerCount(); i++) {
+          let currController = element.controllers.getControllerAt(i);
+          if (currController.supportsCommand("cmd_delete")) {
+            currController.isCommandEnabled("cmd_delete");
+            return;
+          }
+        }
+        element = element.parentNode;
+      }
+    }
   }
 
   // Click on a portion of the attachmentBucket that will focus it, but not

@@ -421,169 +421,262 @@ var progressListener = {
     }
 };
 
-var defaultController =
-{
-  supportsCommand: function(command)
-  {
-    switch (command)
-    {
-      //File Menu
-      case "cmd_attachFile":
-      case "cmd_attachPage":
-      case "cmd_close":
-      case "cmd_saveDefault":
-      case "cmd_saveAsFile":
-      case "cmd_saveAsDraft":
-      case "cmd_saveAsTemplate":
-      case "cmd_sendButton":
-      case "cmd_sendNow":
-      case "cmd_sendWithCheck":
-      case "cmd_sendLater":
-      case "cmd_printSetup":
-      case "cmd_print":
-      case "cmd_quit":
-
-      //Edit Menu
-      case "cmd_delete":
-      case "cmd_renameAttachment":
-      case "cmd_selectAll":
-      case "cmd_openAttachment":
-      case "cmd_account":
-
-      //View Menu
-      case "cmd_showFormatToolbar":
-
-      //Options Menu
-      case "cmd_outputFormat":
-      case "cmd_quoteMessage":
-        return true;
-
-      default:
-//        dump("##MsgCompose: command " + command + "no supported!\n");
-        return false;
-    }
-  },
-  isCommandEnabled: function(command)
-  {
-    var composeHTML = gMsgCompose && gMsgCompose.composeHTML;
-
-    switch (command)
-    {
-      //File Menu
-      case "cmd_attachFile":
-      case "cmd_attachPage":
-      case "cmd_close":
-      case "cmd_saveDefault":
-      case "cmd_saveAsFile":
-      case "cmd_saveAsDraft":
-      case "cmd_saveAsTemplate":
-      case "cmd_sendButton":
-      case "cmd_sendLater":
-      case "cmd_printSetup":
-      case "cmd_print":
-      case "cmd_sendWithCheck":
+var defaultController = {
+  commands: {
+    cmd_attachFile: {
+      isEnabled: function() {
         return !gWindowLocked;
-      case "cmd_sendNow":
-        return !(gWindowLocked || gIsOffline);
-      case "cmd_quit":
-        return true;
+      },
+      doCommand: function() {
+        AttachFile();
+      }
+    },
 
-      //Edit Menu
-      case "cmd_delete":
-        var numSelectedAttachments = MessageGetNumSelectedAttachments();
+    cmd_attachPage: {
+      isEnabled: function() {
+        return !gWindowLocked;
+      },
+      doCommand: function() {
+        AttachPage();
+      }
+    },
 
-        var cmdDelete = document.getElementById("cmd_delete");
-        var textValue = cmdDelete.getAttribute("valueDefault");
-        var accesskeyValue = cmdDelete.getAttribute("valueDefaultAccessKey");
+    cmd_close: {
+      isEnabled: function() {
+        return !gWindowLocked;
+      },
+      doCommand: function() {
+        DoCommandClose();
+      }
+    },
 
-        var hasAttachments = MessageHasAttachments();
-        if (hasAttachments) {
-          textValue = getComposeBundle().getString("removeAttachmentMsgs");
-          textValue = PluralForm.get(numSelectedAttachments, textValue);
-          accesskeyValue = cmdDelete.getAttribute("valueRemoveAttachmentAccessKey");
-        }
+    cmd_saveDefault: {
+      isEnabled: function() {
+        return !gWindowLocked;
+      },
+      doCommand: function() {
+        Save();
+      }
+    },
+
+    cmd_saveAsFile: {
+      isEnabled: function() {
+        return !gWindowLocked;
+      },
+      doCommand: function() {
+        SaveAsFile(true);
+      }
+    },
+
+    cmd_saveAsDraft: {
+      isEnabled: function() {
+        return !gWindowLocked;
+      },
+      doCommand: function() {
+        SaveAsDraft();
+      }
+    },
+
+    cmd_saveAsTemplate: {
+      isEnabled: function() {
+        return !gWindowLocked;
+      },
+      doCommand: function() {
+        SaveAsTemplate();
+      }
+    },
+
+    cmd_sendButton: {
+      isEnabled: function() {
+        return !gWindowLocked;
+      },
+      doCommand: function() {
+        if (gIOService && gIOService.offline)
+          SendMessageLater();
+        else
+          SendMessage();
+      }
+    },
+
+    cmd_sendNow: {
+      isEnabled: function() {
+        return !gWindowLocked && !gIsOffline;
+      },
+      doCommand: function() {
+        SendMessage();
+      }
+    },
+
+    cmd_sendLater: {
+      isEnabled: function() {
+        return !gWindowLocked;
+      },
+      doCommand: function() {
+        SendMessageLater();
+      }
+    },
+
+    cmd_sendWithCheck: {
+      isEnabled: function() {
+        return !gWindowLocked;
+      },
+      doCommand: function() {
+        SendMessageWithCheck();
+      }
+    },
+
+    cmd_printSetup: {
+      isEnabled: function() {
+        return !gWindowLocked;
+      },
+      doCommand: function() {
+        PrintUtils.showPageSetup();
+      }
+    },
+
+    cmd_print: {
+      isEnabled: function() {
+        return !gWindowLocked;
+      },
+      doCommand: function() {
+        DoCommandPrint();
+      }
+    },
+
+    cmd_delete: {
+      isEnabled: function() {
+        let cmdDelete = document.getElementById("cmd_delete");
+        let textValue = cmdDelete.getAttribute("valueDefault");
+        let accesskeyValue = cmdDelete.getAttribute("valueDefaultAccessKey");
 
         cmdDelete.setAttribute("label", textValue);
         cmdDelete.setAttribute("accesskey", accesskeyValue);
 
-        return hasAttachments ? numSelectedAttachments : 0;
-      case "cmd_selectAll":
-        return MessageHasAttachments();
-      case "cmd_openAttachment":
-        return MessageGetNumSelectedAttachments() == 1;
-      case "cmd_renameAttachment":
-        return MessageGetNumSelectedAttachments() == 1;
-      case "cmd_account":
-
-      //View Menu
-      case "cmd_showFormatToolbar":
-        return composeHTML;
-
-      //Options Menu
-      case "cmd_outputFormat":
-        return composeHTML;
-      case "cmd_quoteMessage":
-        var selectedURIs = GetSelectedMessages();
-        if (selectedURIs && selectedURIs.length > 0)
-          return true;
         return false;
+      },
+      doCommand: function() {
+      }
+    },
 
-      default:
-//        dump("##MsgCompose: command " + command + " disabled!\n");
-        return false;
-    }
+    cmd_account: {
+      isEnabled: function() {
+        return true;
+      },
+      doCommand: function() {
+        MsgAccountManager(null);
+      }
+    },
+
+    cmd_showFormatToolbar: {
+      isEnabled: function() {
+        return gMsgCompose && gMsgCompose.composeHTML;
+      },
+      doCommand: function() {
+        goToggleToolbar("FormatToolbar", "menu_showFormatToolbar");
+      }
+    },
+
+    cmd_quoteMessage: {
+      isEnabled: function() {
+        let selectedURIs = GetSelectedMessages();
+        return (selectedURIs && selectedURIs.length > 0)
+      },
+      doCommand: function() {
+        QuoteSelectedMessage();
+      }
+    },
   },
 
-  doCommand: function(command)
-  {
-    switch (command)
-    {
-      //File Menu
-      case "cmd_attachFile"         : if (defaultController.isCommandEnabled(command)) AttachFile();           break;
-      case "cmd_attachPage"         : AttachPage();           break;
-      case "cmd_close"              : DoCommandClose();       break;
-      case "cmd_saveDefault"        : Save();                 break;
-      case "cmd_saveAsFile"         : SaveAsFile(true);       break;
-      case "cmd_saveAsDraft"        : SaveAsDraft();          break;
-      case "cmd_saveAsTemplate"     : SaveAsTemplate();       break;
-      case "cmd_sendButton"         :
-        if (defaultController.isCommandEnabled(command))
-        {
-          if (gIOService && gIOService.offline)
-            SendMessageLater();
-          else
-            SendMessage();
-        }
-        break;
-      case "cmd_sendNow"            : if (defaultController.isCommandEnabled(command)) SendMessage();          break;
-      case "cmd_sendWithCheck"   : if (defaultController.isCommandEnabled(command)) SendMessageWithCheck();          break;
-      case "cmd_sendLater"          : if (defaultController.isCommandEnabled(command)) SendMessageLater();     break;
-      case "cmd_printSetup"         : PrintUtils.showPageSetup(); break;
-      case "cmd_print"              : DoCommandPrint(); break;
-
-      //Edit Menu
-      case "cmd_delete"             : if (MessageGetNumSelectedAttachments()) RemoveSelectedAttachment();         break;
-      case "cmd_renameAttachment"   : if (MessageGetNumSelectedAttachments() == 1) RenameSelectedAttachment(); break;
-      case "cmd_selectAll"          : if (MessageHasAttachments()) SelectAllAttachments();                     break;
-      case "cmd_openAttachment"     : if (MessageGetNumSelectedAttachments() == 1) OpenSelectedAttachment();          break;
-      case "cmd_account"            : MsgAccountManager(null); break;
-
-      //View Menu
-      case "cmd_showFormatToolbar"  : goToggleToolbar('FormatToolbar', 'menu_showFormatToolbar');   break;
-
-      //Options Menu
-      case "cmd_quoteMessage"       : if (defaultController.isCommandEnabled(command)) QuoteSelectedMessage();  break;
-      default:
-//        dump("##MsgCompose: don't know what to do with command " + command + "!\n");
-        return;
-    }
+  supportsCommand: function(aCommand) {
+    return (aCommand in this.commands);
   },
 
-  onEvent: function(event)
-  {
-//    dump("DefaultController:onEvent\n");
-  }
-}
+  isCommandEnabled: function(aCommand) {
+    if (!this.supportsCommand(aCommand))
+      return false;
+    return this.commands[aCommand].isEnabled();
+  },
+
+  doCommand: function(aCommand) {
+    if (!this.supportsCommand(aCommand))
+      return;
+    var cmd = this.commands[aCommand];
+    if (!cmd.isEnabled())
+      return;
+    cmd.doCommand();
+  },
+
+  onEvent: function(event) {},
+};
+
+var attachmentBucketController = {
+  commands: {
+    cmd_selectAll: {
+      isEnabled: function() {
+        return true;
+      },
+      doCommand: function() {
+        document.getElementById("attachmentBucket").selectAll();
+      }
+    },
+
+    cmd_delete: {
+      isEnabled: function() {
+        let selectedCount = MessageGetNumSelectedAttachments();
+        let cmdDelete = document.getElementById("cmd_delete");
+        let textValue = getComposeBundle().getString("removeAttachmentMsgs");
+        textValue = PluralForm.get(selectedCount, textValue);
+        let accesskeyValue = cmdDelete.getAttribute("valueRemoveAttachmentAccessKey");
+        cmdDelete.setAttribute("label", textValue);
+        cmdDelete.setAttribute("accesskey", accesskeyValue);
+
+        return selectedCount > 0;
+      },
+      doCommand: function() {
+        RemoveSelectedAttachment();
+      }
+    },
+
+    cmd_openAttachment: {
+      isEnabled: function() {
+        return MessageGetNumSelectedAttachments() == 1;
+      },
+      doCommand: function() {
+        OpenSelectedAttachment();
+      }
+    },
+
+    cmd_renameAttachment: {
+      isEnabled: function() {
+        return MessageGetNumSelectedAttachments() == 1;
+      },
+      doCommand: function() {
+        RenameSelectedAttachment();
+      }
+    },
+  },
+
+  supportsCommand: function(aCommand) {
+    return (aCommand in this.commands);
+  },
+
+  isCommandEnabled: function(aCommand) {
+    if (!this.supportsCommand(aCommand))
+      return false;
+    return this.commands[aCommand].isEnabled();
+  },
+
+  doCommand: function(aCommand) {
+    if (!this.supportsCommand(aCommand))
+      return;
+    var cmd = this.commands[aCommand];
+    if (!cmd.isEnabled())
+      return;
+    cmd.doCommand();
+  },
+
+  onEvent: function(event) {},
+};
 
 function goOpenNewMessage()
 {
@@ -628,7 +721,10 @@ function GetSelectedMessages()
 
 function SetupCommandUpdateHandlers()
 {
-  top.controllers.insertControllerAt(0, defaultController);
+  let attachmentBucket = document.getElementById("attachmentBucket");
+
+  top.controllers.appendController(defaultController);
+  attachmentBucket.controllers.appendController(attachmentBucketController);
 
   document.getElementById("optionsMenuPopup")
           .addEventListener("popupshowing", updateOptionItems, true);
@@ -636,9 +732,12 @@ function SetupCommandUpdateHandlers()
 
 function UnloadCommandUpdateHandlers()
 {
+  let attachmentBucket = document.getElementById("attachmentBucket");
+
   document.getElementById("optionsMenuPopup")
           .removeEventListener("popupshowing", updateOptionItems, true);
 
+  attachmentBucket.controllers.removeController(attachmentBucketController);
   top.controllers.removeController(defaultController);
 }
 
@@ -3009,22 +3108,6 @@ function AddFileAttachment(file)
 function AddUrlAttachment(attachment)
 {
   AddAttachments([attachment]);
-}
-
-function SelectAllAttachments()
-{
-  var bucketList = document.getElementById("attachmentBucket");
-  if (bucketList)
-    bucketList.selectAll();
-}
-
-function MessageHasAttachments()
-{
-  var bucketList = document.getElementById("attachmentBucket");
-  if (bucketList) {
-    return (bucketList && bucketList.getRowCount() && (bucketList == top.document.commandDispatcher.focusedElement));
-  }
-  return false;
 }
 
 function MessageGetNumSelectedAttachments()

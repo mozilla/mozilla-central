@@ -157,9 +157,9 @@
   <command id="cmd_paste" oncommand="goDoCommand('cmd_paste')" disabled="true"/>
   <command id="cmd_rewrap" oncommand="goDoCommand('cmd_rewrap')"/>
   <command id="cmd_delete" oncommand="goDoCommand('cmd_delete')" valueDefault="&deleteCmd.label;" valueDefaultAccessKey="&deleteCmd.accesskey;" valueRemoveAttachmentAccessKey="&removeAttachment.accesskey;" disabled="true"/>
-  <command id="cmd_renameAttachment" oncommand="goDoCommand('cmd_renameAttachment')" disabled="true"/>
   <command id="cmd_selectAll" oncommand="goDoCommand('cmd_selectAll')" disabled="true"/>
-  <command id="cmd_openAttachment" oncommand="goDoCommand('cmd_openAttachment')" disabled="true"/>  
+  <command id="cmd_openAttachment" oncommand="goDoCommand('cmd_openAttachment')" disabled="true"/>
+  <command id="cmd_renameAttachment" oncommand="goDoCommand('cmd_renameAttachment')" disabled="true"/>
   <command id="cmd_account" oncommand="goDoCommand('cmd_account')"/>
 
   <!-- View Menu -->
@@ -222,10 +222,11 @@
        modifiers="accel, shift" observes="cmd_pasteNoFormatting"/>
   <key id="key_rewrap" key="&editRewrapCmd.key;" command="cmd_rewrap" modifiers="accel"/>
 #ifdef XP_MACOSX
-  <key id="key_delete" keycode="VK_BACK"/>
-  <key id="key_delete2" keycode="VK_DELETE"/>
+  <key id="key_delete" keycode="VK_BACK" command="cmd_delete"/>
+  <key id="key_delete2" keycode="VK_DELETE" command="cmd_delete"/>
 #else
-  <key id="key_delete" keycode="VK_DELETE"/>
+  <key id="key_delete" keycode="VK_DELETE" command="cmd_delete"/>
+  <key id="key_renameAttachment" keycode="VK_F2" oncommand="goDoCommand('cmd_renameAttachment');"/>
 #endif
   <key id="key_selectAll" key="&selectAllCmd.key;" modifiers="accel"/>
   <key id="key_find" key="&findCmd.key;" command="cmd_find" modifiers="accel"/>
@@ -445,8 +446,13 @@
           <menuitem id="menu_pasteNoFormatting" command="cmd_pasteNoFormatting"
                     key="pastenoformattingkb"/>
           <menuitem id="menu_pasteQuote"/>
-          <menuitem id="menu_rewrap" label="&editRewrapCmd.label;" key="key_rewrap" accesskey="&editRewrapCmd.accesskey;" command="cmd_rewrap"/>
           <menuitem id="menu_delete" label="&deleteCmd.label;" key="key_delete" accesskey="&deleteCmd.accesskey;" command="cmd_delete"/>
+          <menuseparator/>
+          <menuitem id="menu_rewrap" label="&editRewrapCmd.label;" key="key_rewrap" accesskey="&editRewrapCmd.accesskey;" command="cmd_rewrap"/>
+          <menuitem id="menu_RenameAttachment"
+                    label="&renameAttachmentCmd.label;"
+                    accesskey="&renameAttachmentCmd.accesskey;"
+                    key="key_renameAttachment" command="cmd_renameAttachment"/>
           <menuseparator/>
           <menuitem id="menu_selectAll" label="&selectAllCmd.label;" key="key_selectAll" accesskey="&selectAllCmd.accesskey;" command="cmd_selectAll"/>
           <menuseparator/>
@@ -790,7 +796,6 @@
                           seltype="multiple" flex="1" height="0"
                           context="msgComposeAttachmentListContext"
                           itemcontext="msgComposeAttachmentItemContext"
-                          onkeypress="if (event.keyCode == 8 || event.keyCode == 46) RemoveSelectedAttachment();"
                           onclick="AttachmentBucketClicked(event);"
                           ondraggesture="nsDragAndDrop.startDrag(event, attachmentBucketDNDObserver);"/>
         </vbox>
