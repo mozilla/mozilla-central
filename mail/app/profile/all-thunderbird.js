@@ -106,14 +106,9 @@ pref("app.update.url.details", "http://www.mozillamessaging.com/%LOCALE%/%APP%/r
 // User-settable override to app.update.url for testing purposes.
 //pref("app.update.url.override", "");
 
-// Interval: Time before prompting the user again to restart to install the
-//           latest download (in seconds) default=1 day
-pref("app.update.nagTimer.restart", 86400);
-// Interval: When all registered timers should be checked (in milliseconds)
-//           default=10 minutes
-pref("app.update.timer", 600000);
-// Give the user x seconds to react before showing the big UI. default=12 hrs
-pref("app.update.promptWaitTime", 43200);
+// app.update.interval is in branding section
+// app.update.promptWaitTime is in branding section
+
 // Show the Update Checking/Ready UI when the user was idle for x seconds
 pref("app.update.idletime", 60);
 

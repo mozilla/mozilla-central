@@ -12,4 +12,7 @@ pref("app.update.interval", 28800);
 // background (in seconds)
 pref("app.update.download.backgroundInterval", 60);
 
+// Give the user x seconds to react before showing the big UI. default=24 hours
+pref("app.update.promptWaitTime", 86400);
+
 pref("app.vendorURL", "http://www.mozilla.org/projects/%APP%/");
