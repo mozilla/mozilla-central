@@ -42,7 +42,7 @@ interface calIDuration;
 interface calITimezone;
 [ptr] native icaltimetypeptr(struct icaltimetype);
 
-[scriptable, uuid(5678d4a3-2543-4ece-afbb-079292f2866e)]
+[scriptable, uuid(04139dff-a6f0-446d-9aec-2062df887ef2)]
 interface calIDateTime : nsISupports
 {
   /**
@@ -265,13 +265,12 @@ interface calIDateTime : nsISupports
    */
   attribute ACString icalString;
 
-  /* JS only:
-   * // Setting jsDate via a JavaScript Date object will set
-   * // the calIDateTime to the jsDate's time ***in UTC***.
-   * // There's no way for us to recover TZ info from a jsDate,
-   * // so we always pull it out as UTC, and force the calIDateTime's
-   * // timezone to UTC.
-   * attribute Date jsDate;
-   *
+  /**
+   * Setting jsDate via a JavaScript Date object will set
+   * the calIDateTime to the jsDate's time ***in UTC***.
+   * There's no way for us to recover TZ info from a jsDate,
+   * so we always pull it out as UTC, and force the calIDateTime's
+   * timezone to UTC.
    */
+  [implicit_jscontext] attribute jsval jsDate;
 };

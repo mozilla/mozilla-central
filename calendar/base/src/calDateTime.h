@@ -38,8 +38,6 @@
 #if !defined(INCLUDED_CALDATETIME_H)
 #define INCLUDED_CALDATETIME_H
 
-#include "jsapi.h"
-#include "nsIXPCScriptable.h"
 #include "calIDateTime.h"
 #include "calITimezoneProvider.h"
 #include "calUtils.h"
@@ -48,7 +46,6 @@ struct icaltimetype;
 typedef struct _icaltimezone icaltimezone;
 
 class calDateTime : public calIDateTime,
-                    public nsIXPCScriptable,
                     public cal::XpcomBase
 {
 public:
@@ -57,7 +54,6 @@ public:
 
     NS_DECL_ISUPPORTS
     NS_DECL_CALIDATETIME
-    NS_DECL_NSIXPCSCRIPTABLE
 
 protected:
     bool mImmutable;
