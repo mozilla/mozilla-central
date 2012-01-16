@@ -2525,7 +2525,7 @@ nsDummyMsgHeader.prototype =
   mProperties : new Array,
   getStringProperty : function(aProperty) {
     if (aProperty in this.mProperties)
-      return this.mProperties[property];
+      return this.mProperties[aProperty];
     return "";
   },
   setStringProperty : function(aProperty, aVal) {
