@@ -65,9 +65,6 @@
       <preference id="intl.charset.default"
                   name="intl.charset.default"
                   type="wstring"/>
-      <preference id="layout.spellcheckDefault"
-                  name="layout.spellcheckDefault"
-                  type="int"/>
     </preferences>
 
     <stringbundle id="acceptedBundle"
@@ -146,21 +143,5 @@
       </hbox>
     </groupbox>
 
-    <groupbox align="start">
-      <caption label="&spelling.label;"/>
-      <hbox align="center">
-        <label value="&checkSpelling.label;"
-               accesskey="&checkSpelling.accesskey;"
-               control="spellcheckDefault"/>
-        <menulist id="spellcheckDefault"
-                  preference="layout.spellcheckDefault">
-          <menupopup>
-            <menuitem value="0" label="&dontCheckSpelling.label;"/>
-            <menuitem value="1" label="&multilineCheckSpelling.label;"/>
-            <menuitem value="2" label="&alwaysCheckSpelling.label;"/>
-          </menupopup>
-        </menulist>
-      </hbox>
-    </groupbox>
   </prefpane>
 </overlay>

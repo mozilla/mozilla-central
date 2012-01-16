@@ -221,6 +221,8 @@ comm.jar:
    content/communicator/pref/pref-security.xul                      (pref/pref-security.xul)
    content/communicator/pref/pref-smartupdate.js                    (pref/pref-smartupdate.js)
    content/communicator/pref/pref-smartupdate.xul                   (pref/pref-smartupdate.xul)
+   content/communicator/pref/pref-spelling.js                       (pref/pref-spelling.js)
+   content/communicator/pref/pref-spelling.xul                      (pref/pref-spelling.xul)
    content/communicator/pref/pref-sync.js                           (pref/pref-sync.js)
    content/communicator/pref/pref-sync.xul                          (pref/pref-sync.xul)
    content/communicator/pref/pref-tabs.xul                          (pref/pref-tabs.xul)

@@ -181,6 +181,7 @@
   locale/@AB_CD@/communicator/pref/pref-search.dtd                          (%chrome/common/pref/pref-search.dtd)
   locale/@AB_CD@/communicator/pref/pref-security.dtd                        (%chrome/common/pref/pref-security.dtd)
   locale/@AB_CD@/communicator/pref/pref-smartupdate.dtd                     (%chrome/common/pref/pref-smartupdate.dtd)
+  locale/@AB_CD@/communicator/pref/pref-spelling.dtd                        (%chrome/common/pref/pref-spelling.dtd)
   locale/@AB_CD@/communicator/pref/pref-sync.dtd                            (%chrome/common/pref/pref-sync.dtd)
   locale/@AB_CD@/communicator/pref/pref-tabs.dtd                            (%chrome/common/pref/pref-tabs.dtd)
   locale/@AB_CD@/communicator-platform/mac/pref/platformPrefOverlay.dtd     (%chrome/common/pref/mac/platformPrefOverlay.dtd)

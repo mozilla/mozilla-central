@@ -58,15 +58,6 @@
 <!ENTITY wrapOutMsg.accesskey                 "W">
 <!ENTITY char.label                           "characters">
 
-<!ENTITY spellingHeader.label                 "Spelling">
-<!ENTITY spellCheck.label                     "Check spelling before sending">
-<!ENTITY spellCheck.accesskey                 "C">
-<!ENTITY spellCheckInline.label               "Check spelling as you type">
-<!ENTITY spellCheckInline.accesskey           "e">
-<!ENTITY languagePopup.label                  "Language:">
-<!ENTITY languagePopup.accessKey              "g">
-<!ENTITY moreDictionaries.label               "Download more dictionaries…">
-
 <!ENTITY defaultMessagesHeader.label          "Defaults for HTML Messages">
 <!ENTITY font.label                           "Font:">
 <!ENTITY font.accesskey                       "F">

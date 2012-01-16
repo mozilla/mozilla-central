@@ -75,16 +75,6 @@
       <preference id="mailnews.wraplength"
                   name="mailnews.wraplength"
                   type="int"/>
-      <preference id="mail.SpellCheckBeforeSend"
-                  name="mail.SpellCheckBeforeSend"
-                  type="bool"/>
-      <preference id="mail.spellcheck.inline"
-                  name="mail.spellcheck.inline"
-                  type="bool"/>
-      <preference id="spellchecker.dictionary"
-                  name="spellchecker.dictionary"
-                  type="string"
-                  onchange="SelectLanguage(event.target)"/>
       <preference id="msgcompose.font_face"
                   name="msgcompose.font_face"
                   type="string"/>
@@ -156,36 +146,6 @@
     </groupbox>
   
     <!-- Composing Mail -->
-    <groupbox id="spellingGroup" align="start">
-      <caption label="&spellingHeader.label;"/>
-      <vbox align="start">
-        <checkbox id="spellCheckBeforeSend"
-                  label="&spellCheck.label;"
-                  accesskey="&spellCheck.accesskey;"
-                  preference="mail.SpellCheckBeforeSend"/>
-        <checkbox id="inlineSpellCheck"
-                  label="&spellCheckInline.label;"
-                  accesskey="&spellCheckInline.accesskey;"
-                  preference="mail.spellcheck.inline"/>
-      </vbox>
-  
-      <separator class="thin"/>
-  
-      <hbox align="center" pack="start">
-        <label value="&languagePopup.label;"
-               accesskey="&languagePopup.accessKey;"
-               control="languageMenuList"/>
-        <menulist id="languageMenuList"
-                  preference="spellchecker.dictionary">
-          <menupopup onpopupshowing="InitLanguageMenu();">
-            <!-- dynamic content populated by JS -->
-            <menuseparator/>
-            <menuitem value="more-cmd" label="&moreDictionaries.label;"/>
-          </menupopup>
-        </menulist>
-        <spring flex="1"/>
-      </hbox>
-    </groupbox>
  
     <groupbox align="start">
       <caption label="&defaultMessagesHeader.label;"/>

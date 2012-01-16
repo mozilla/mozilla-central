@@ -1,0 +1,85 @@
+<?xml version="1.0"?>
+
+<!-- This Source Code Form is subject to the terms of the Mozilla Public
+   - License, v. 2.0. If a copy of the MPL was not distributed with this file,
+   - You can obtain one at http://mozilla.org/MPL/2.0/.  -->
+
+<!DOCTYPE overlay SYSTEM "chrome://communicator/locale/pref/pref-spelling.dtd">
+
+<overlay xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <prefpane id="spelling_pane"
+            label="&prefSpelling.title;"
+            script="chrome://communicator/content/pref/pref-spelling.js">
+
+    <stringbundle id="languageBundle"
+                  src="chrome://global/locale/languageNames.properties"/>
+    <stringbundle id="regionBundle"
+                  src="chrome://global/locale/regionNames.properties"/>
+
+    <preferences id="spelling_preferences">
+      <preference id="mail.SpellCheckBeforeSend"
+                  name="mail.SpellCheckBeforeSend"
+                  type="bool"/>
+      <preference id="mail.spellcheck.inline"
+                  name="mail.spellcheck.inline"
+                  type="bool"/>
+      <preference id="spellchecker.dictionary"
+                  name="spellchecker.dictionary"
+                  type="string"
+                  onchange="SelectLanguage(event.target)"/>
+      <preference id="layout.spellcheckDefault"
+                  name="layout.spellcheckDefault"
+                  type="int"/>
+    </preferences>
+
+    <label id="noSpellCheckLabel"
+           value="&noSpellCheckAvailable.label;"
+           hidden="true"/>
+
+    <groupbox id="generalSpelling" align="start">
+      <caption label="&generalSpelling.label;"/>
+      <hbox align="center" pack="start">
+        <label value="&languagePopup.label;"
+               accesskey="&languagePopup.accessKey;"
+               control="languageMenuList"/>
+        <menulist id="languageMenuList"
+                  preference="spellchecker.dictionary">
+          <menupopup onpopupshowing="InitLanguageMenu();">
+            <!-- dynamic content populated by JS -->
+            <menuseparator/>
+            <menuitem value="more-cmd" label="&moreDictionaries.label;"/>
+          </menupopup>
+        </menulist>
+        <spring flex="1"/>
+      </hbox>
+      <separator class="thin"/>
+      <hbox align="center">
+        <label value="&checkSpellingWhenTyping.label;"
+               accesskey="&checkSpellingWhenTyping.accesskey;"
+               control="spellcheckDefault"/>
+        <menulist id="spellcheckDefault"
+                  preference="layout.spellcheckDefault">
+          <menupopup>
+            <menuitem value="0" label="&dontCheckSpelling.label;"/>
+            <menuitem value="1" label="&multilineCheckSpelling.label;"/>
+            <menuitem value="2" label="&alwaysCheckSpelling.label;"/>
+          </menupopup>
+        </menulist>
+      </hbox>
+    </groupbox>
+
+    <groupbox id="mailSpelling" align="start">
+      <caption label="&spellForMailAndNews.label;"/>
+      <vbox align="start">
+        <checkbox id="spellCheckBeforeSend"
+                  label="&checkSpellingBeforeSend.label;"
+                  accesskey="&checkSpellingBeforeSend.accesskey;"
+                  preference="mail.SpellCheckBeforeSend"/>
+        <checkbox id="inlineSpellCheck"
+                  label="&spellCheckInline.label;"
+                  accesskey="&spellCheckInline.accesskey;"
+                  preference="mail.spellcheck.inline"/>
+      </vbox>
+     </groupbox>
+  </prefpane>
+</overlay>

@@ -100,6 +100,11 @@
                     prefpane="colors_pane"
                     helpTopic="appearance_pref_colors"
                     url="chrome://communicator/content/pref/pref-colors.xul"/>
+          <treeitem id="spellingItem"
+                    label="&spellingPane.label;"
+                    prefpane="spelling_pane"
+                    helpTopic="appearance_pref_spelling"
+                    url="chrome://communicator/content/pref/pref-spelling.xul"/>
         </treechildren>
       </treeitem>
 
