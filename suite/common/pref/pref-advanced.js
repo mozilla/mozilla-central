@@ -41,6 +41,7 @@ function Startup()
 {
   SysPrefCheck();
   ShellServiceCheck();
+  CrashReportsCheck();
 }
 
 /**
@@ -60,10 +61,7 @@ function ShellServiceCheck()
   const NS_SHELLSERVICE_CID = "@mozilla.org/suite/shell-service;1";
 
   if (NS_SHELLSERVICE_CID in Components.classes)
-  {
     document.getElementById("checkDefault").hidden = false;
-    CrashReportsCheck();
-  }
 }
 
 function CrashReportsCheck()
