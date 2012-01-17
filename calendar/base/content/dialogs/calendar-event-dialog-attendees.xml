@@ -610,125 +610,166 @@
       </method>
 
       <method name="_resolveListByName">
-          <parameter name="value"/>
-          <body><![CDATA[
-              let mailingListURI = null;
-              if (this.mHeaderParser) {
-                  let emailAddresses = {};
-                  let names = {};
-                  let fullNames = {};
-                  this.mHeaderParser.parseHeadersWithArray(value,
-                                                           emailAddresses,
-                                                           names,
-                                                           fullNames);
+        <parameter name="value"/>
+        <body><![CDATA[
+            if (this.mHeaderParser) {
+              let emailAddresses = {};
+              let names = {};
+              let fullNames = {};
+              this.mHeaderParser.parseHeadersWithArray(value,
+                                                       emailAddresses,
+                                                       names,
+                                                       fullNames);
 
-                  let abManager = Components.classes["@mozilla.org/abmanager;1"]
-                                            .getService(Components.interfaces.nsIAbManager);
-                  let allAddressBooks = abManager.directories;
-
-                  while (!mailingListURI && allAddressBooks.hasMoreElements()) {
-                      let abDir = null;
-                      try {
-                          abDir = allAddressBooks.getNext()
-                                                 .QueryInterface(Components.interfaces.nsIAbDirectory);
-                      } catch (ex) {
-                          cal.WARN ("[eventDialog] Error Encountered" + ex);
-                      }
-
-                      if (abDir != null) {
-                          let abCardsEnumerator = abDir.childCards;
-                          while (!mailingListURI && abCardsEnumerator.hasMoreElements()) {
-                              let abCard = null;
-                              try {
-                                  abCard = abCardsEnumerator.getNext().QueryInterface(Components.interfaces.nsIAbCard);
-                              } catch (ex) {
-                                  cal.WARN ("[eventDialog] Error Encountered" + ex);
-                              }
-
-                              if (abCard && abCard.isMailList && (abCard.displayName == names.value[0])) {
-                                  mailingListURI = abCard.mailListURI;
-                              }
-                          }
-                      }
-                  }
-              }
-              return mailingListURI;
-            ]]></body>
-      </method>
-
-      <method name="_getListEntries">
-          <parameter name="mailingListURI"/>
-          <body><![CDATA[
               let abManager = Components.classes["@mozilla.org/abmanager;1"]
                                         .getService(Components.interfaces.nsIAbManager);
 
-              let mailingList = abManager.getDirectory(mailingListURI);
-              let list = [];
+              let abDir=this._findListInAddrBooks(abManager, names.value[0]);
 
-              let error = false;
-              let continueSearch = true;
-              let abCardsEnumerator = mailingList.childCards;
-              while (abCardsEnumerator.hasMoreElements()) {
-                  let abCard = null;
+              return abDir;
+            }
+            return null;
+          ]]></body>
+    </method>
+
+    <method name="_findListInAddrBooks">
+        <parameter name="abManager"/>
+        <parameter name="entryname"/>
+        <body><![CDATA[
+            let allAddressBooks = abManager.directories;
+
+            while (allAddressBooks.hasMoreElements()) {
+              let abDir = null;
+              try {
+                abDir = allAddressBooks.getNext()
+                                  .QueryInterface(Components.interfaces.nsIAbDirectory);
+              } catch (ex) {
+                cal.WARN ("[eventDialog] Error Encountered" + ex);
+              }
+
+              if (abDir != null && abDir.supportsMailingLists) {
+
+                let childNodes = abDir.childNodes;
+                while (childNodes.hasMoreElements()) {
+                  let dir = null;
                   try {
-                      abCard = abCardsEnumerator.getNext().QueryInterface(Components.interfaces.nsIAbCard);
+                    dir = childNodes.getNext().QueryInterface(Components.interfaces.nsIAbDirectory);
                   } catch (ex) {
-                      cal.WARN ("[eventDialog] Error Encountered" + ex);
+                    cal.WARN ("[eventDialog] Error Encountered" + ex);
                   }
-                  if (abCard) {
-                      let thisId = abCard.primaryEmail;
-                      if (abCard.displayName.length > 0) {
-                          let rCn = abCard.displayName;
-                          if (rCn.indexOf(",") >= 0) {
-                              rCn = '"' + rCn + '"';
-                          }
-                          thisId = rCn + " <" + thisId + ">";
-                      }
-                      list.push(thisId);
+
+                  if (dir && dir.isMailList && (dir.dirName == entryname)) {
+                    return dir;
                   }
+                }
               }
-              return list;
-            ]]></body>
-      </method>
+            }
+            return null;
+        ]]></body>
+    </method>
 
-      <method name="_fillListItemWithEntry">
-          <parameter name="listitem"/>
-          <parameter name="entry"/>
-          <parameter name="rowNumber"/>
-          <body><![CDATA[
-              let newAttendee = this.createAttendee(entry);
-              let input = document.getAnonymousElementByAttribute(listitem, "anonid", "input");
-              input.removeAttribute("disabled");
-              input.setAttribute("id", "attendeeCol2#" + rowNumber);
+    <method name="_getListEntriesInt">
+        <parameter name="mailingList"/>
+        <parameter name="attendees"/>
+        <parameter name="allListsUri"/>
+        <body><![CDATA[
 
-              if (this.mLDAPSession && this.mSessionAdded) {
-                  input.syncSessions(document.getElementById('attendeeCol2#1'));
+            function in_list(aList, listid) {
+              for (var l=0;l<aList.length;l++){
+                if (aList[l]===listid) return true;
+              }
+              return false;
+            }
+
+            let abManager = Components.classes["@mozilla.org/abmanager;1"]
+                                      .getService(Components.interfaces.nsIAbManager);
+
+            let addressLists=mailingList.addressLists;
+            for (var i=0;i<addressLists.length;i++) {
+              let abCard=addressLists.queryElementAt(i, Components.interfaces.nsIAbCard);
+              let thisId = abCard.primaryEmail;
+              if (abCard.displayName.length > 0) {
+                  let rCn = abCard.displayName;
+                  if (rCn.indexOf(",") >= 0) {
+                      rCn = '"' + rCn + '"';
+                  }
+                  thisId = rCn + " <" + thisId + ">";
+              }
+              if (in_list(attendees, thisId)) continue;
+
+              if (abCard.displayName.length > 0) {
+                let ml=this._findListInAddrBooks(abManager, abCard.displayName);
+                if (null!=ml){
+                  if (in_list(allListsUri, ml.URI)) continue;
+                  allListsUri.push(ml.URI);
+
+                  this._getListEntriesInt(ml, attendees, allListsUri);
+
+                  continue;
+                }
               }
 
-              input.attendee = newAttendee;
-              input.value = entry;
-              input.setAttribute("value", entry);
-              input.setAttribute("dirty", "true");
-              if (input.getAttribute('focused') != '') {
-                  input.removeAttribute('focused');
-              }
+              attendees.push(thisId);
+            }
 
-              let icon = document.getAnonymousElementByAttribute(listitem, "anonid", "icon");
-              icon.removeAttribute("disabled");
-              icon.setAttribute("id", "attendeeCol1#" + rowNumber);
-              icon.setAttribute("class", "role-icon");
-              icon.setAttribute("role", newAttendee.role);
-            ]]></body>
-      </method>
+            return attendees;
+          ]]></body>
+    </method>
 
-      <method name="resolvePotentialList">
-          <parameter name="input"/>
-          <body><![CDATA[
-              let fieldValue = input.value;
-              if (input.id.length > 0 && fieldValue.length > 0) {
-                  let mailingListURI = this._resolveListByName(fieldValue);
-                  if (mailingListURI) {
-                      let entries = this._getListEntries(mailingListURI);
+    <method name="_getListEntries">
+        <parameter name="mailingList"/>
+        <body><![CDATA[
+
+            let attendees = [];
+            let allListsUri = [];
+
+            allListsUri.push(mailingList.URI);
+
+            this._getListEntriesInt(mailingList, attendees, allListsUri);
+
+            return attendees;
+
+          ]]></body>
+    </method>
+
+    <method name="_fillListItemWithEntry">
+        <parameter name="listitem"/>
+        <parameter name="entry"/>
+        <parameter name="rowNumber"/>
+        <body><![CDATA[
+            let newAttendee = this.createAttendee(entry);
+            let input = document.getAnonymousElementByAttribute(listitem, "anonid", "input");
+            input.removeAttribute("disabled");
+            input.setAttribute("id", "attendeeCol2#" + rowNumber);
+
+            if (this.mLDAPSession && this.mSessionAdded) {
+                input.syncSessions(document.getElementById('attendeeCol2#1'));
+            }
+
+            input.attendee = newAttendee;
+            input.value = entry;
+            input.setAttribute("value", entry);
+            input.setAttribute("dirty", "true");
+            if (input.getAttribute('focused') != '') {
+                input.removeAttribute('focused');
+            }
+
+            let icon = document.getAnonymousElementByAttribute(listitem, "anonid", "icon");
+            icon.removeAttribute("disabled");
+            icon.setAttribute("id", "attendeeCol1#" + rowNumber);
+            icon.setAttribute("class", "role-icon");
+            icon.setAttribute("role", newAttendee.role);
+          ]]></body>
+    </method>
+
+    <method name="resolvePotentialList">
+        <parameter name="input"/>
+        <body><![CDATA[
+            let fieldValue = input.value;
+            if (input.id.length > 0 && fieldValue.length > 0) {
+                let mailingList = this._resolveListByName(fieldValue);
+                if (mailingList) {
+                    let entries = this._getListEntries(mailingList);
                       if (entries.length > 0) {
                           let currentIndex = parseInt(input.id.substr(13));
                           let template = document.getAnonymousElementByAttribute(this, "anonid", "item");
