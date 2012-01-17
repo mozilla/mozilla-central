@@ -309,6 +309,17 @@ NS_MSG_BASE PRUint64 ParseUint64Str(const char *str);
  */
 NS_MSG_BASE nsresult MsgDetectCharsetFromFile(nsILocalFile *aFile, nsACString &aCharset);
 
+/*
+ * Converts a buffer to plain text. Some conversions may
+ * or may not work with certain end charsets which is why we
+ * need that as an argument to the function. If charset is
+ * unknown or deemed of no importance NULL could be passed.
+ * @param[in/out] aConBuf      Variable with the text to convert
+ * @param         formatFlowed Use format flowed?
+ * @param         formatOutput Reformat the output?
+ */
+NS_MSG_BASE nsresult ConvertBufToPlainText(nsString &aConBuf, bool formatFlowed, bool formatOutput);
+
 /**
  * The following definitons exist for compatibility between the internal and
  * external APIs. Where possible they just forward to the existing API.

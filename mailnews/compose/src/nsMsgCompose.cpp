@@ -2476,10 +2476,9 @@ QuotingOutputStreamListener::QuotingOutputStreamListener(const char * originalMs
 nsresult
 QuotingOutputStreamListener::ConvertToPlainText(bool formatflowed /* = false */)
 {
-  nsresult rv = ConvertBufToPlainText(mMsgBody, formatflowed);
-  if (NS_FAILED(rv))
-    return rv;
-  return ConvertBufToPlainText(mSignature, formatflowed);
+  nsresult rv = ConvertBufToPlainText(mMsgBody, formatflowed, true);
+  NS_ENSURE_SUCCESS (rv, rv);
+  return ConvertBufToPlainText(mSignature, formatflowed, true);
 }
 
 NS_IMETHODIMP QuotingOutputStreamListener::OnStartRequest(nsIRequest *request, nsISupports * /* ctxt */)
@@ -3958,14 +3957,12 @@ NS_IMETHODIMP nsMsgComposeSendListener::OnSecurityChange(nsIWebProgress *aWebPro
 nsresult
 nsMsgCompose::ConvertHTMLToText(nsILocalFile *aSigFile, nsString &aSigData)
 {
-  nsresult    rv;
-  nsAutoString    origBuf;
+  nsAutoString origBuf;
 
-  rv = LoadDataFromFile(aSigFile, origBuf);
-  if (NS_FAILED(rv))
-    return rv;
+  nsresult rv = LoadDataFromFile(aSigFile, origBuf);
+  NS_ENSURE_SUCCESS (rv, rv);
 
-  ConvertBufToPlainText(origBuf,false);
+  ConvertBufToPlainText(origBuf, false, true);
   aSigData = origBuf;
   return NS_OK;
 }
@@ -4253,7 +4250,7 @@ nsMsgCompose::ProcessSignature(nsIMsgIdentity *identity, bool aQuoted, nsString 
     if (!m_composeHTML)
     {
       if (htmlSig)
-        ConvertBufToPlainText(prefSigText, false);
+        ConvertBufToPlainText(prefSigText, false, true);
       sigData.Append(prefSigText);
     }
     else

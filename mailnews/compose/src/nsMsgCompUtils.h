@@ -154,11 +154,8 @@ char        *GenerateFileNameFromURI(nsIURI *aURL);
 // Folder calls...
 //
 void GetFolderURIFromUserPrefs(nsMsgDeliverMode   aMode, nsIMsgIdentity *identity, nsCString& uri);
-                                       
-// File calls...
-nsresult ConvertBufToPlainText(nsString &aConBuf, bool formatflowed = false);
 
-// Check if we should use format=flowed 
+// Check if we should use format=flowed
 bool UseFormatFlowed(const char *charset);
 
 

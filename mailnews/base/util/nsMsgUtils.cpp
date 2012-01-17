@@ -98,7 +98,14 @@
 #include "nsICharsetDetector.h"
 #include "nsILineInputStream.h"
 #include "nsIPlatformCharset.h"
+#include "nsIParser.h"
+#include "nsParserCIID.h"
+#include "nsIHTMLToTextSink.h"
+#include "nsIContentSink.h"
+#include "nsICharsetConverterManager.h"
+#include "nsIDocumentEncoder.h"
 
+static NS_DEFINE_CID(kCParserCID, NS_PARSER_CID);
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
 static NS_DEFINE_CID(kCNntpUrlCID, NS_NNTPURL_CID);
@@ -2336,6 +2343,62 @@ MsgDetectCharsetFromFile(nsILocalFile *aFile, nsACString &aCharset)
     // no sniffed or default charset, try UTF-8
     aCharset.AssignLiteral("UTF-8");
   }
+
+  return NS_OK;
+}
+
+/*
+ * Converts a buffer to plain text. Some conversions may
+ * or may not work with certain end charsets which is why we
+ * need that as an argument to the function. If charset is
+ * unknown or deemed of no importance NULL could be passed.
+ */
+NS_MSG_BASE nsresult
+ConvertBufToPlainText(nsString &aConBuf, bool formatFlowed /* = false */, bool formatOutput)
+{
+  if (aConBuf.IsEmpty())
+    return NS_OK;
+
+  nsresult rv;
+  nsCOMPtr<nsIParser> parser = do_CreateInstance(kCParserCID, &rv);
+  if (NS_FAILED(rv) || !parser)
+    return rv;
+
+  PRInt32 wrapWidth = 72;
+  nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
+
+  if (pPrefBranch)
+  {
+    pPrefBranch->GetIntPref("mailnews.wraplength", &wrapWidth);
+    // Let sanity reign!
+    if (wrapWidth == 0 || wrapWidth > 990)
+      wrapWidth = 990;
+    else if (wrapWidth < 10)
+      wrapWidth = 10;
+  }
+
+  PRUint32 converterFlags = 0;
+  if (formatOutput)
+    converterFlags = nsIDocumentEncoder::OutputFormatted;
+  if (formatFlowed)
+    converterFlags |= nsIDocumentEncoder::OutputFormatFlowed;
+
+  nsCOMPtr<nsIContentSink> sink = do_CreateInstance(NS_PLAINTEXTSINK_CONTRACTID);
+  NS_ENSURE_TRUE(sink, NS_ERROR_FAILURE);
+
+  nsCOMPtr<nsIHTMLToTextSink> textSink(do_QueryInterface(sink));
+  NS_ENSURE_TRUE(textSink, NS_ERROR_FAILURE);
+
+  nsAutoString convertedText;
+  textSink->Initialize(&convertedText, converterFlags, wrapWidth);
+
+  parser->SetContentSink(sink);
+
+  parser->Parse(aConBuf, 0, NS_LITERAL_CSTRING("text/html"), true);
+
+  // Now if we get here, we need to get from ASCII text to
+  // UTF-8 format or there is a problem downstream...
+  aConBuf = convertedText;
 
   return NS_OK;
 }

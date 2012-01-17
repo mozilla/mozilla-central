@@ -149,52 +149,8 @@ static NS_DEFINE_CID(kMsgSendLaterCID, NS_MSGSENDLATER_CID);
 //
 // Convert an nsString buffer to plain text...
 //
-#include "nsIParser.h"
-#include "nsParserCIID.h"
-#include "nsICharsetConverterManager.h"
-#include "nsIContentSink.h"
-#include "nsIHTMLToTextSink.h"
 #include "nsMsgUtils.h"
-
-static NS_DEFINE_CID(kCParserCID, NS_PARSER_CID);
-
-static nsresult
-ConvertBufToPlainText(nsString &aConBuf)
-{
-  if (aConBuf.IsEmpty())
-    return NS_OK;
-
-  nsresult rv;
-  nsCOMPtr<nsIParser> parser = do_CreateInstance(kCParserCID, &rv);
-  if (NS_SUCCEEDED(rv) && parser)
-  {
-    nsCOMPtr<nsIContentSink> sink;
-
-    sink = do_CreateInstance(NS_PLAINTEXTSINK_CONTRACTID);
-    NS_ENSURE_TRUE(sink, NS_ERROR_FAILURE);
-
-    nsCOMPtr<nsIHTMLToTextSink> textSink(do_QueryInterface(sink));
-    NS_ENSURE_TRUE(textSink, NS_ERROR_FAILURE);
-
-    nsAutoString convertedText;
-    textSink->Initialize(&convertedText, 0, 72);
-
-    parser->SetContentSink(sink);
-
-    parser->Parse(aConBuf, 0, NS_LITERAL_CSTRING("text/html"), true);
-
-    //
-    // Now if we get here, we need to get from ASCII text to
-    // UTF-8 format or there is a problem downstream...
-    //
-    if (NS_SUCCEEDED(rv))
-    {
-      aConBuf = convertedText;
-    }
-  }
-
-  return rv;
-}
+#include "nsIParser.h"
 
 static void ConvertAndSanitizeFileName(const char * displayName, nsString& aResult)
 {
@@ -1868,7 +1824,7 @@ nsSaveMsgListener::OnStopRequest(nsIRequest* request, nsISupports* aSupport,
     if (m_outputFormat == ePlainText)
     {
       NS_ConvertUTF8toUTF16 utf16Buffer(m_msgBuffer);
-      ConvertBufToPlainText(utf16Buffer);
+      ConvertBufToPlainText(utf16Buffer, false, false);
       rv = nsMsgI18NSaveAsCharset(TEXT_PLAIN, nsMsgI18NFileSystemCharset(),
                                   utf16Buffer.get(), &conBuf);
       if ( NS_SUCCEEDED(rv) && (conBuf) )

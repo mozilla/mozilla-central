@@ -1137,7 +1137,7 @@ nsMsgAttachmentHandler::UrlExit(nsresult status, const PRUnichar* aMsg)
 
     if (NS_SUCCEEDED(LoadDataFromFile(mTmpFile, conData, true)))
     {
-      if (NS_SUCCEEDED(ConvertBufToPlainText(conData, UseFormatFlowed(m_charset.get()))))
+      if (NS_SUCCEEDED(ConvertBufToPlainText(conData, UseFormatFlowed(m_charset.get()), true)))
       {
         if (mDeleteFile)
           mTmpFile->Remove(false);
