@@ -340,6 +340,14 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
     background-clip: padding-box;
   }
 
+  #msgcomposeWindow[sizemode=normal] #attachmentNotificationBox {
+    margin-top: -1px;
+    border-right: 1px solid rgba(10%, 10%, 10%, .4);
+    border-left: 1px solid rgba(10%, 10%, 10%, .4);
+    border-bottom: 1px solid rgba(10%, 10%, 10%, .4);
+    background-clip: padding-box;
+  }
+
   #msgcomposeWindow[sizemode=normal] statusbar {
     -moz-appearance: none;
     margin-top: -1px;
@@ -417,6 +425,11 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 }
 
 /* ::::: attachment reminder ::::: */
+
+#attachmentNotificationBox > notification > .notification-inner {
+  border: none;
+  border-top: 1px solid ThreeDShadow;
+}
 
 #attachmentNotificationBox > notification .messageImage {
   width: 18px;

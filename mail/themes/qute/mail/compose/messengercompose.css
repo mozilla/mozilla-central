@@ -343,6 +343,13 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 
 /* ::::: attachment reminder ::::: */
 
+#attachmentNotificationBox > notification > .notification-inner {
+  border-top: 1px solid ThreeDShadow;
+  border-right: 1px solid ThreeDHighlight;
+  border-left: 1px solid ThreeDShadow;
+  border-bottom: none;
+}
+
 #attachmentNotificationBox > notification .messageImage {
   width: 24px;
   height: 24px;
