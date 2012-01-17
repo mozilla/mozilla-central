@@ -567,6 +567,7 @@ modern.jar:
   skin/modern/mozapps/extensions/heart.png                         (mozapps/extensions/heart.png)
   skin/modern/mozapps/extensions/localeGeneric.png                 (mozapps/extensions/localeGeneric.png)
   skin/modern/mozapps/extensions/navigation.png                    (mozapps/extensions/navigation.png)
+  skin/modern/mozapps/extensions/newaddon.css                      (mozapps/extensions/newaddon.css)
   skin/modern/mozapps/extensions/rating-not-won.png                (mozapps/extensions/rating-not-won.png)
   skin/modern/mozapps/extensions/rating-won.png                    (mozapps/extensions/rating-won.png)
   skin/modern/mozapps/extensions/stripes-error.png                 (mozapps/extensions/stripes-error.png)
