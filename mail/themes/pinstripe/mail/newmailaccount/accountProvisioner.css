@@ -145,7 +145,7 @@ input[type="submit"][disabled="true"], input[type="submit"][disabled="true"]:hov
 }
 
 .otherLanguage,
-#otherLanguages {
+#otherLangDesc {
   display: none;
 }
 

@@ -1,0 +1,28 @@
+[{"id": "foo",
+  "label": "foo",
+  "paid": true,
+  "languages" : ["en-US"],
+  "api": "http://www.example.com/tbReg?first={firstname}&last={lastname}&email={email}",
+  "tos_url": "http://www.example.com/foo-tos",
+  "privacy_url": "http://www.example.com/foo-privacy",
+  "search_engine": "foo"
+ },
+ {"id": "bar",
+  "label": "bar",
+  "paid": false,
+  "languages" : ["en-US"],
+  "api": "http://localhost:43336/registration.html",
+  "tos_url": "http://www.example.com/bar-tos",
+  "privacy_url": "http://www.example.com/bar-privacy",
+  "search_engine": "bar"
+ },
+ {"id": "corrupt",
+  "label": "Corrupt Provider",
+  "paid": false,
+  "languages" : ["en-US"],
+  "api": "http://localhost:43336/registrationCorrupt.html",
+  "tos_url": "http://www.example.com/corrupt-tos",
+  "privacy_url": "http://www.example.com/corrupt-privacy"
+}
+
+]

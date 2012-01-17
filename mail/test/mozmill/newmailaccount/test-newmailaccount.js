@@ -300,6 +300,7 @@ function subtest_can_display_providers_in_other_languages(w) {
   wait_for_provider_list_loaded(w);
 
   // Check that the "Other languages" div is hidden
+  wait_for_element_visible(w, "otherLangDesc");
   let otherLanguages = w.window.$(".otherLanguage");
   assert_false(otherLanguages.is(":visible"));
   // Click on the "Other languages" div
@@ -871,3 +872,29 @@ function test_can_pref_off_account_provisioner() {
 
 // We cannot control menus via Mozmill in OSX, so we'll skip this test.
 test_can_pref_off_account_provisioner.EXCLUDED_PLATFORMS = ['darwin'];
+
+/**
+ * Tests that if we load a provider list that does not include providers in
+ * other languages, then the "show me providers in other languages" link is
+ * hidden.
+ */
+function test_other_lang_link_hides() {
+  let original = Services.prefs.getCharPref(kProviderListPref);
+  Services.prefs.setCharPref(kProviderListPref, url + "providerListNoOtherLangs");
+
+  plan_for_modal_dialog("AccountCreation",
+                        subtest_other_lang_link_hides);
+  open_provisioner_window();
+  wait_for_modal_dialog("AccountCreation");
+  Services.prefs.setCharPref(kProviderListPref, original);
+}
+
+/**
+ * Subtest for test_other_lang_link_hides that just waits for the provider list
+ * to be loaded, and then ensures that the "show me providers in other
+ * languages" link is not visible.
+ */
+function subtest_other_lang_link_hides(w) {
+  wait_for_provider_list_loaded(w);
+  wait_for_element_invisible(w, "otherLangDesc");
+}
