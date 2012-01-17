@@ -423,6 +423,13 @@ calStorageCalendar.prototype = {
         }
     },
 
+    prepareBatchTransaction: function cSC_prepareBatchTransaction() {
+        if (this.mBatchCount > 0 && !this.mDB.transactionInProgress) {
+            this.acquireTransaction();
+        }
+        return this.mBatchCount < 1;
+    },
+
     refresh: function cSC_refresh() {
         // no-op
     },
@@ -435,6 +442,8 @@ calStorageCalendar.prototype = {
 
     // void adoptItem( in calIItemBase aItem, in calIOperationListener aListener );
     adoptItem: function cSC_adoptItem(aItem, aListener) {
+        let transact = this.prepareBatchTransaction();
+
         if (this.readOnly) {
             this.notifyOperationComplete(aListener,
                                          Components.interfaces.calIErrors.CAL_IS_READONLY,
@@ -452,7 +461,7 @@ calStorageCalendar.prototype = {
             if (olditem) {
                 if (this.relaxedMode) {
                     // we possibly want to interact with the user before deleting
-                    this.deleteItemById(aItem.id);
+                    this.deleteItemById(aItem.id, transact);
                 } else {
                     this.notifyOperationComplete(aListener,
                                                  Components.interfaces.calIErrors.DUPLICATE_ID,
@@ -472,7 +481,7 @@ calStorageCalendar.prototype = {
         parentItem.calendar = this.superCalendar;
         parentItem.makeImmutable();
 
-        this.flushItem(parentItem, null);
+        this.flushItem(parentItem, null, transact);
 
         // notify the listener
         this.notifyOperationComplete(aListener,
@@ -503,7 +512,9 @@ calStorageCalendar.prototype = {
     },
 
     doModifyItem: function cSC_doModifyItem(aNewItem, aOldItem, aListener, offlineFlag) {
+        let transact = this.prepareBatchTransaction();
         let oldOfflineFlag = offlineFlag;
+
         if (this.readOnly) {
             this.notifyOperationComplete(aListener,
                                          Components.interfaces.calIErrors.CAL_IS_READONLY,
@@ -575,7 +586,7 @@ calStorageCalendar.prototype = {
         }
 
         modifiedItem.makeImmutable();
-        this.flushItem (modifiedItem, aOldItem);
+        this.flushItem (modifiedItem, aOldItem, transact);
         this.setOfflineJournalFlag(aNewItem, oldOfflineFlag);
 
         this.notifyOperationComplete(aListener,
@@ -591,6 +602,8 @@ calStorageCalendar.prototype = {
 
     // void deleteItem( in string id, in calIOperationListener aListener );
     deleteItem: function cSC_deleteItem(aItem, aListener) {
+        let transact = this.prepareBatchTransaction();
+
         if (this.readOnly) {
             this.notifyOperationComplete(aListener,
                                          Components.interfaces.calIErrors.CAL_IS_READONLY,
@@ -615,7 +628,7 @@ calStorageCalendar.prototype = {
             return;
         }
 
-        this.deleteItemById(aItem.id);
+        this.deleteItemById(aItem.id, transact);
 
         this.notifyOperationComplete(aListener,
                                      Components.results.NS_OK,
@@ -2054,18 +2067,18 @@ calStorageCalendar.prototype = {
         }
     },
 
-    flushItem: function cSC_flushItem(item, olditem) {
+    flushItem: function cSC_flushItem(item, olditem, transact) {
         ASSERT(!item.recurrenceId, "no parent item passed!", true);
 
         try {
-            this.deleteItemById(olditem ? olditem.id : item.id);
-            this.acquireTransaction();
+            this.deleteItemById(olditem ? olditem.id : item.id, transact);
+            if (transact) this.acquireTransaction();
             this.writeItem(item, olditem);
         } catch (e) {
-            this.releaseTransaction(e);
+            if (transact) this.releaseTransaction(e);
             throw e;
         }
-        this.releaseTransaction();
+        if (transact) this.releaseTransaction();
 
         this.cacheItem(item);
     },
@@ -2446,8 +2459,9 @@ calStorageCalendar.prototype = {
      *
      * @param aID           The id of the item to delete.
      */
-    deleteItemById: function cSC_deleteItemById(aID) {
-        this.acquireTransaction();
+    deleteItemById: function cSC_deleteItemById(aID, transact) {
+        if (transact) this.acquireTransaction();
+
         try {
             this.mDeleteAttendees(aID, this.id);
             this.mDeleteProperties(aID, this.id);
@@ -2460,7 +2474,7 @@ calStorageCalendar.prototype = {
             //this.mDeleteAllMetaData(aID, this.id);
             this.mDeleteAlarms(aID, this.id);
         } catch (e) {
-            this.releaseTransaction(e);
+            if (transact) this.releaseTransaction(e);
             throw e;
         }
         this.releaseTransaction();
@@ -2497,8 +2511,9 @@ calStorageCalendar.prototype = {
     //
 
     setMetaData: function cSC_setMetaData(id, value) {
-
+        this.prepareBatchTransaction();
         this.mDeleteMetaData(id, this.id);
+
         try {
             this.prepareStatement(this.mInsertMetaData);
             var sp = this.mInsertMetaData.params;
@@ -2519,6 +2534,7 @@ calStorageCalendar.prototype = {
     },
 
     deleteMetaData: function cSC_deleteMetaData(id) {
+        this.prepareBatchTransaction();
         this.mDeleteMetaData(id, this.id);
     },
 
@@ -2562,6 +2578,7 @@ calStorageCalendar.prototype = {
             query.reset();
         }
     },
+
     /**
      * Internal logging function that should be called on any database error,
      * it will log as much info as possible about the database context and
