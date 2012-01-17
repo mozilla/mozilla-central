@@ -83,7 +83,7 @@ tabpanels {
   border-radius: 2px 2px 0px 0px;
 }
 
-@media all and (-moz-windows-theme: aero) {
+@media (-moz-windows-theme: aero) {
   .scrollbutton-up,
   .scrollbutton-down {
     padding: 0px 2px;

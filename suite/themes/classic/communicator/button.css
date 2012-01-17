@@ -184,7 +184,7 @@ toolbar[labelalign="end"] .toolbarbutton-1 > hbox > vbox {
  * Not used in Firefox but used elsewhere,
  **/
 
-@media all and (-moz-windows-classic) {
+@media (-moz-windows-classic) {
 
   .toolbarbutton-menubutton-dropmarker {
     border: 1px solid;
