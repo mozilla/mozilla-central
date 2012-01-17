@@ -41,6 +41,7 @@
   -moz-border-right-colors: threeDShadow threeDHighlight;
   padding: 2px 0;
   -moz-box-align: center;
+  background-color: -moz-dialog;
 }
 
 .navbuttons {
