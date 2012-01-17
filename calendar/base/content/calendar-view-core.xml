@@ -284,14 +284,18 @@
             if (!this.calendarView) {
                 return;
             }
-            var items;
-            if (event.ctrlKey || event.metaKey) {
-                items = this.calendarView.mSelectedItems;
-                items.push(this.mOccurrence);
+            let items = this.calendarView.mSelectedItems.slice();
+            if (event.ctrlKey || event.metaKey) {    
+                if (this.selected) {
+                    let pos = items.indexOf(this.mOccurrence);
+                    items.splice(pos, 1);
+                } else {
+                    items.push(this.mOccurrence);
+                }
             } else {
                 items = [this.mOccurrence];
             }
-            this.calendarView.setSelectedItems(items.length, items);
+            this.calendarView.setSelectedItems(items.length, items, true);
         ]]></body>
       </method>
       <method name="stopEditing">
@@ -332,11 +336,13 @@
             return;
         }
 
-        // If the left button was used and the item is already selected start
+        // If the left button was used and the item is already selected
+        // and there are no multiple items selected start
         // the 'single click edit' timeout. Otherwise select the item too.
         // Also, check if the calendar is readOnly or we are offline.
 
-        if (this.selected && isCalendarWritable(this.mOccurrence.calendar)) {
+        if (this.selected && !(event.ctrlKey || event.metaKey) &&
+              isCalendarWritable(this.mOccurrence.calendar)) {
             var self = this;
             if (this.editingTimer) {
                 clearTimeout(this.editingTimer);

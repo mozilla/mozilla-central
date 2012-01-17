@@ -1950,8 +1950,10 @@
       ]]></handler>
 
       <handler event="click" button="0"><![CDATA[
-        this.calendarView.setSelectedItems(0, []);
-        this.focus();
+        if (!(event.ctrlKey || event.metaKey)) {
+          this.calendarView.setSelectedItems(0, []);
+          this.focus();
+        }
       ]]></handler>
 
       <handler event="click" button="2"><![CDATA[
@@ -2128,7 +2130,9 @@
         this.calendarView.selectedDay = this.mDate;
       ]]></handler>
       <handler event="click" button="0"><![CDATA[
-        this.calendarView.setSelectedItems(0, []);
+        if (!(event.ctrlKey || event.metaKey)) {
+          this.calendarView.setSelectedItems(0, []);
+        }
       ]]></handler>
       <handler event="click" button="2"><![CDATA[
         let newStart = this.calendarView.selectedDay.clone();

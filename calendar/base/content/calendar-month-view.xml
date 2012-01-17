@@ -360,7 +360,9 @@
         this.calendarView.controller.createNewEvent();
       ]]></handler>
       <handler event="click" button="0"><![CDATA[
-        this.calendarView.setSelectedItems(0, []);
+        if (!(event.ctrlKey || event.metaKey)) {
+          this.calendarView.setSelectedItems(0, []);
+        }
       ]]></handler>
       <handler event="DOMMouseScroll"><![CDATA[
         if (getParentNodeOrThisByAttribute(event.originalTarget, "anonid", "day-label") == null) {
