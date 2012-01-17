@@ -211,7 +211,7 @@ var WinTaskbarJumpList =
 
   /**
    * Startup, shutdown, and update
-   */ 
+   */
 
   startup: function WTBJL_startup() {
     // exit if this isn't win7 or higher.
@@ -220,7 +220,7 @@ var WinTaskbarJumpList =
 
     // Win shell shortcut maintenance. If we've gone through an update,
     // this will update any pinned taskbar shortcuts. Not specific to
-    // jump lists, but this was a convienent place to call it. 
+    // jump lists, but this was a convienent place to call it.
     try {
       // dev builds may not have helper.exe, ignore failures.
       this._shortcutMaintenance();
@@ -318,13 +318,13 @@ var WinTaskbarJumpList =
 
   /**
    * Taskbar api wrappers
-   */ 
+   */
 
   _startBuild: function WTBJL__startBuild() {
     var removedItems = Cc["@mozilla.org/array;1"].
                        createInstance(Ci.nsIMutableArray);
     this._builder.abortListBuild();
-    if (this._builder.initListBuild(removedItems)) { 
+    if (this._builder.initListBuild(removedItems)) {
       // Prior to building, delete removed items from history.
       this._clearHistory(removedItems);
       return true;
@@ -348,7 +348,7 @@ var WinTaskbarJumpList =
                                          task.args, task.iconIndex);
       items.appendElement(item, false);
     }, this);
-    
+
     if (items.length > 0)
       this._builder.addListToBuild(this._builder.JUMPLIST_CATEGORY_TASKS, items);
   },
@@ -532,7 +532,7 @@ var WinTaskbarJumpList =
 
   /**
    * Prefs utilities
-   */ 
+   */
 
   _refreshPrefs: function WTBJL__refreshPrefs() {
     this._enabled = _prefs.getBoolPref(PREF_TASKBAR_ENABLED);
@@ -544,7 +544,7 @@ var WinTaskbarJumpList =
 
   /**
    * Init and shutdown utilities
-   */ 
+   */
 
   _initTaskbar: function WTBJL__initTaskbar() {
     this._builder = _taskbarService.createJumpListBuilder();
@@ -562,7 +562,7 @@ var WinTaskbarJumpList =
     Services.obs.addObserver(this, "browser:purge-session-history", false);
     _prefs.addObserver("", this, false);
   },
- 
+
   _freeObs: function WTBJL__freeObs() {
     Services.obs.removeObserver(this, "profile-before-change");
     Services.obs.removeObserver(this, "browser:purge-session-history");
