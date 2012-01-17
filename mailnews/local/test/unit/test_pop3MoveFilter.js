@@ -10,7 +10,13 @@ load("../../../resources/POP3pump.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
-const gFiles = ["../../../data/bugmail1", "../../../data/bugmail2"];
+const gFiles = ["../../../data/bugmail10", "../../../data/bugmail11"];
+
+Services.prefs.setBoolPref("mail.server.default.leave_on_server", true);
+
+const bugmail10_preview = 'Do not reply to this email. You can add comments to this bug at https://bugzilla.mozilla.org/show_bug.cgi?id=436880 -- Configure bugmail: https://bugzilla.mozilla.org/userprefs.cgi?tab=email ------- You are receiving this mail because: -----';
+const bugmail11_preview = 'Bugzilla has received a request to create a user account using your email address (example@example.org). To confirm that you want to create an account using that email address, visit the following link: https://bugzilla.mozilla.org/token.cgi?t=xxx';
+
 var gMoveFolder;
 var gFilter; // the test filter
 var gFilterList;
@@ -55,7 +61,24 @@ const gTestArray =
     } catch (ex) {
       do_check_true(ex.result == Cr.NS_ERROR_NOT_INITIALIZED);
     }
-  }
+  },
+  function verifyMessages() {
+    let hdrs = [];
+    let keys = [];
+    let asyncResults = new Object;
+    let enumerator = gMoveFolder.msgDatabase.EnumerateMessages();
+    while (enumerator.hasMoreElements())
+    {
+      let hdr = enumerator.getNext().QueryInterface(Ci.nsIMsgDBHdr);
+      keys.push(hdr.messageKey);
+      hdrs.push(hdr);
+    }
+    gMoveFolder.fetchMsgPreviewText(keys, keys.length, false, null, asyncResults);
+    do_check_eq(hdrs[0].getStringProperty('preview'), bugmail10_preview);
+    do_check_eq(hdrs[1].getStringProperty('preview'), bugmail11_preview);
+    ++gCurTestNum;
+    doTest();
+  },
 ];
 
 var ParseListener =
