@@ -780,6 +780,7 @@
         <rdf:li> <rdf:Description ID="appearance_pref_content" nc:name="Content" nc:link="cs_nav_prefs_appearance.xhtml#content"/> </rdf:li>
         <rdf:li> <rdf:Description ID="appearance_pref_fonts" nc:name="Fonts" nc:link="cs_nav_prefs_appearance.xhtml#fonts"/> </rdf:li>
         <rdf:li> <rdf:Description ID="appearance_pref_colors" nc:name="Colors" nc:link="cs_nav_prefs_appearance.xhtml#colors"/> </rdf:li>
+        <rdf:li> <rdf:Description ID="appearance_pref_spelling" nc:name="Spelling" nc:link="cs_nav_prefs_appearance.xhtml#spelling"/> </rdf:li>
       </rdf:Seq>
     </nc:subheadings>
   </rdf:Description>
