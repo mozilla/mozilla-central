@@ -464,6 +464,96 @@
              customizable="true"
              defaultset="button-send,separator,button-address,button-attach,spellingButton,button-security,separator,button-save,spring,throbber-box"
              context="toolbar-context-menu">
+      <toolbarbutton id="button-send"
+                     class="toolbarbutton-1"
+                     label="&sendButton.label;"
+                     tooltiptext="&sendButton.tooltip;"
+                     now_label="&sendButton.label;"
+                     now_tooltiptext="&sendButton.tooltip;"
+                     later_label="&sendLaterCmd.label;"
+                     later_tooltiptext="&sendlaterButton.tooltip;"
+                     removable="true"
+                     command="cmd_sendButton">
+       <observes element="Communicator:WorkMode"
+                 attribute="offline"/>
+      </toolbarbutton>
+
+      <toolbarbutton id="button-address"
+                     class="toolbarbutton-1"
+                     label="&addressButton.label;"
+                     tooltiptext="&addressButton.tooltip;"
+                     removable="true"
+                     command="cmd_selectAddress"/>
+
+      <toolbarbutton id="button-attach"
+                     type="menu-button"
+                     class="toolbarbutton-1"
+                     label="&attachButton.label;"
+                     tooltiptext="&attachButton.tooltip;"
+                     removable="true"
+                     command="cmd_attachFile">
+        <menupopup id="button-attachPopup">
+          <menuitem id="button-attachFile"
+                    label="&attachFileCmd.label;"
+                    accesskey="&attachFileCmd.accesskey;"
+                    command="cmd_attachFile"/>
+          <menuitem id="button-attachPage"
+                    label="&attachPageCmd.label;"
+                    accesskey="&attachPageCmd.accesskey;"
+                    command="cmd_attachPage"/>
+          <menuseparator id="buttonAttachAfterPageSeparator"/>
+          <menuitem id="button-attachVCard"
+                    type="checkbox"
+                    label="&attachVCardCmd.label;"
+                    accesskey="&attachVCardCmd.accesskey;"
+                    command="cmd_attachVCard"/>
+        </menupopup>
+      </toolbarbutton>
+
+      <toolbarbutton id="spellingButton"
+                     type="menu-button"
+                     class="toolbarbutton-1"
+                     label="&spellingButton.label;"
+                     removable="true"
+                     command="cmd_spelling">
+        <!-- this popup gets dynamically generated -->
+        <menupopup id="languageMenuList"
+                   oncommand="ChangeLanguage(event);"
+                   onpopupshowing="OnShowDictionaryMenu(event.target);"/>
+      </toolbarbutton>
+
+      <toolbarbutton id="button-save"
+                     type="menu-button"
+                     class="toolbarbutton-1"
+                     label="&saveButton.label;"
+                     tooltiptext="&saveButton.tooltip;"
+                     removable="true"
+                     command="cmd_save">
+        <menupopup id="button-savePopup">
+          <menuitem id="button-saveAsFile"
+                    label="&saveAsFileCmd.label;"
+                    accesskey="&saveAsFileCmd.accesskey;"
+                    command="cmd_saveAsFile"/>
+          <menuseparator id="buttonSaveAfterFileSeparator"/>
+          <menuitem id="button-saveAsDraft"
+                    label="&saveAsDraftCmd.label;"
+                    accesskey="&saveAsDraftCmd.accesskey;"
+                    command="cmd_saveAsDraft"/>
+          <menuitem id="button-saveAsTemplate"
+                    label="&saveAsTemplateCmd.label;"
+                    accesskey="&saveAsTemplateCmd.accesskey;"
+                    command="cmd_saveAsTemplate"/>
+        </menupopup>
+      </toolbarbutton>
+
+      <toolbaritem id="throbber-box"
+                   removable="true"
+                   align="center">
+          <button id="navigator-throbber"
+                  oncommand="goClickThrobber('compose.throbber.url', event)"
+                  onclick="checkForMiddleClick(this, event);"
+                  tooltiptext="&throbber.tooltip;"/>
+      </toolbaritem>
     </toolbar>
 
     <toolbarset id="customToolbars" context="toolbar-context-menu"/>
@@ -541,90 +631,6 @@
     </toolbar>
 
     <toolbarpalette id="MsgComposeToolbarPalette">
-      <toolbarbutton id="button-send"
-                     class="toolbarbutton-1"
-                     label="&sendButton.label;"
-                     tooltiptext="&sendButton.tooltip;"
-                     now_label="&sendButton.label;"
-                     now_tooltiptext="&sendButton.tooltip;"
-                     later_label="&sendLaterCmd.label;"
-                     later_tooltiptext="&sendlaterButton.tooltip;"
-                     command="cmd_sendButton">
-       <observes element="Communicator:WorkMode"
-                 attribute="offline"/>
-      </toolbarbutton>
-
-      <toolbarbutton id="button-address"
-                     class="toolbarbutton-1"
-                     label="&addressButton.label;"
-                     tooltiptext="&addressButton.tooltip;"
-                     command="cmd_selectAddress"/>
-
-      <toolbarbutton id="button-attach"
-                     type="menu-button"
-                     class="toolbarbutton-1"
-                     label="&attachButton.label;"
-                     tooltiptext="&attachButton.tooltip;"
-                     command="cmd_attachFile">
-        <menupopup id="button-attachPopup">
-          <menuitem id="button-attachFile"
-                    label="&attachFileCmd.label;"
-                    accesskey="&attachFileCmd.accesskey;"
-                    command="cmd_attachFile"/>
-          <menuitem id="button-attachPage"
-                    label="&attachPageCmd.label;"
-                    accesskey="&attachPageCmd.accesskey;"
-                    command="cmd_attachPage"/>
-          <menuseparator id="buttonAttachAfterPageSeparator"/>
-          <menuitem id="button-attachVCard"
-                    type="checkbox"
-                    label="&attachVCardCmd.label;"
-                    accesskey="&attachVCardCmd.accesskey;"
-                    command="cmd_attachVCard"/>
-        </menupopup>
-      </toolbarbutton>
-
-      <toolbarbutton id="spellingButton"
-                     type="menu-button"
-                     class="toolbarbutton-1"
-                     label="&spellingButton.label;"
-                     command="cmd_spelling">
-        <!-- this popup gets dynamically generated -->
-        <menupopup id="languageMenuList"
-                   oncommand="ChangeLanguage(event);"
-                   onpopupshowing="OnShowDictionaryMenu(event.target);"/>
-      </toolbarbutton>
-
-      <toolbarbutton id="button-save"
-                     type="menu-button"
-                     class="toolbarbutton-1"
-                     label="&saveButton.label;"
-                     tooltiptext="&saveButton.tooltip;"
-                     command="cmd_save">
-        <menupopup id="button-savePopup">
-          <menuitem id="button-saveAsFile"
-                    label="&saveAsFileCmd.label;"
-                    accesskey="&saveAsFileCmd.accesskey;"
-                    command="cmd_saveAsFile"/>
-          <menuseparator id="buttonSaveAfterFileSeparator"/>
-          <menuitem id="button-saveAsDraft"
-                    label="&saveAsDraftCmd.label;"
-                    accesskey="&saveAsDraftCmd.accesskey;"
-                    command="cmd_saveAsDraft"/>
-          <menuitem id="button-saveAsTemplate"
-                    label="&saveAsTemplateCmd.label;"
-                    accesskey="&saveAsTemplateCmd.accesskey;"
-                    command="cmd_saveAsTemplate"/>
-        </menupopup>
-      </toolbarbutton>
-
-      <toolbaritem id="throbber-box"
-                   align="center">
-          <button id="navigator-throbber"
-                  oncommand="goClickThrobber('compose.throbber.url', event)"
-                  onclick="checkForMiddleClick(this, event);"
-                  tooltiptext="&throbber.tooltip;"/>
-      </toolbaritem>
     </toolbarpalette>
 
   </toolbox>
