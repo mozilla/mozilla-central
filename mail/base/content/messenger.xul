@@ -295,7 +295,7 @@
 <tooltip id="tabmail-tabs-tooltip" onpopupshowing="document.getElementById('tabmail').createTooltip(event);"/>
 
   <!-- navigation-toolbox is augmented by mailWindowOverlay.xul -->
-  <toolbox id="navigation-toolbox" class="toolbox-top" labelalign="end" defaultlabelalign="end">
+  <toolbox id="navigation-toolbox" class="toolbox-top">
 
     <toolbar id="tabs-toolbar" class="toolbar-primary">
 
