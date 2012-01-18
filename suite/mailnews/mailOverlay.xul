@@ -20,4 +20,8 @@
   <keyset id="tasksKeys">
     <key id="key_newMessage"   key="&newMessageCmd.key;" command="cmd_newMessage" modifiers="accel"/>
   </keyset>
+
+  <toolbarbutton id="print-button"
+                 label="&printButton.label;"
+                 tooltiptext="&printButton.tooltip;"/>
 </overlay>

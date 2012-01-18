@@ -131,6 +131,7 @@
   <command id="cmd_sendNow" oncommand="goDoCommand('cmd_sendNow')"/>
   <command id="cmd_sendWithCheck" oncommand="goDoCommand('cmd_sendWithCheck')"/>
   <command id="cmd_sendLater" oncommand="goDoCommand('cmd_sendLater')"/>
+  <command id="cmd_printpreview" disabled="true"/>
 
   <!-- Edit Menu -->
   <!--command id="cmd_pasteQuote"/  DO NOT INCLUDE THOSE COMMANDS ELSE THE EDIT MENU WILL BE BROKEN! -->
@@ -631,6 +632,7 @@
     </toolbar>
 
     <toolbarpalette id="MsgComposeToolbarPalette">
+      <toolbarbutton id="print-button"/>
     </toolbarpalette>
 
   </toolbox>

@@ -445,7 +445,6 @@
 <!ENTITY deleteButton.label "Delete">
 <!ENTITY undeleteButton.label "Undelete">
 <!ENTITY markButton.label "Mark">
-<!ENTITY printButton.label "Print">
 <!ENTITY stopButton.label "Stop">
 <!ENTITY junkButton.label "Junk">
 <!ENTITY notJunkButton.label "Not Junk">
@@ -469,7 +468,6 @@
 <!ENTITY deleteButton.tooltip "Delete selected message or folder">
 <!ENTITY undeleteButton.tooltip "Undelete selected message">
 <!ENTITY markButton.tooltip "Mark messages">
-<!ENTITY printButton.tooltip "Print this message">
 <!ENTITY stopButton.tooltip "Stop the current transfer">
 <!ENTITY throbber.tooltip "Go to the &vendorShortName; home page">
 <!ENTITY junkButton.tooltip "Mark the selected messages as junk">
