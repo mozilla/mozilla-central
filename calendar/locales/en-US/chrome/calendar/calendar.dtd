@@ -265,8 +265,8 @@
 <!ENTITY calendar.context.findcalendar.accesskey       "F" >
 <!ENTITY calendar.context.deleteserver.label           "Delete Calendar">
 <!ENTITY calendar.context.deleteserver.accesskey       "D">
-<!ENTITY calendar.context.reloadserver.label           "Reload Remote Calendars">
-<!ENTITY calendar.context.reloadserver.accesskey       "R">
+<!ENTITY calendar.context.synccalendars.label          "Synchronize Calendars">
+<!ENTITY calendar.context.synccalendars.accesskey      "S">
 <!ENTITY calendar.context.publish.label                "Publish Calendar…">
 <!ENTITY calendar.context.publish.accesskey            "b">
 <!ENTITY calendar.context.export.label                 "Export Calendar…">

@@ -106,7 +106,7 @@
   <key id="go_to_date_key"       keycode="VK_UP"                         observes="go_date_command"             modifiers="accel"/>
 
   <key id="import_key"           key="&calendar.import.key;"             observes="calendar_import_command"              modifiers="accel"/>
-  <key id="reload_server_key"    key="&calendar.reloadserver.key;"       observes="calendar_reload_remote_calendars"     modifiers="accel"/>
+  <key id="reload_server_key"    key="&calendar.synccalendars.key;"      observes="calendar_reload_remote_calendars"     modifiers="accel"/>
 
 # TODO L10N These keys need localization
   <key id="key_fullZoomReduce"   key="-"                                 observes="cmd_fullZoomReduce"          modifiers="accel"/>

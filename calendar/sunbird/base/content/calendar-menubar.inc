@@ -104,10 +104,10 @@
                      observes="calendar_publish_calendar_command"/>
            <menuseparator id="calendar-publish-sep"/>
 
-           <menuitem id="calendar-reloadserver-menu"
+           <menuitem id="calendar-synccalendars-menu"
                      key="reload_server_key"
-                     label="&calendar.reloadserver.label;"
-                     accesskey="&calendar.reloadserver.accesskey;"
+                     label="&calendar.synccalendars.label;"
+                     accesskey="&calendar.synccalendars.accesskey;"
                      observes="calendar_reload_remote_calendars"/>
            <menuseparator id="calendar-reload-sep"/>
 

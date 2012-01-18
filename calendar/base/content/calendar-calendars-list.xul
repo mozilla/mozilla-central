@@ -70,8 +70,8 @@
                 observes="calendar_publish_selected_calendar_command"/>
       <menuseparator id="list-calendars-context-export-menuseparator"/>
       <menuitem id="list-calendars-context-reload"
-                label="&calendar.context.reloadserver.label;"
-                accesskey="&calendar.context.reloadserver.accesskey;"
+                label="&calendar.context.synccalendars.label;"
+                accesskey="&calendar.context.synccalendars.accesskey;"
                 observes="calendar_reload_remote_calendars"/>
       <menuseparator id="list-calendars-context-reload-menuseparator"/>
       <menuitem id="list-calendars-context-edit"
