@@ -5398,19 +5398,6 @@ if test -n "$MOZ_CRASHREPORTER"; then
 fi
 
 dnl ========================================================
-dnl SMIL
-dnl ========================================================
-MOZ_SMIL=1
-MOZ_ARG_DISABLE_BOOL(smil,
-[  --disable-smil           Disable SMIL animation support],
-    MOZ_SMIL=,
-    MOZ_SMIL=1 )
-
-if test -n "$MOZ_SMIL"; then
-  AC_DEFINE(MOZ_SMIL)
-fi
-
-dnl ========================================================
 dnl Build Freetype in the tree
 dnl ========================================================
 MOZ_ARG_ENABLE_BOOL(tree-freetype,
@@ -6797,7 +6784,6 @@ AC_SUBST(MOZ_AUTH_EXTENSION)
 AC_SUBST(MOZ_PERMISSIONS)
 AC_SUBST(MOZ_XTF)
 AC_SUBST(MOZ_PREF_EXTENSIONS)
-AC_SUBST(MOZ_SMIL)
 AC_SUBST(MOZ_XSLT_STANDALONE)
 AC_SUBST(MOZ_JS_LIBS)
 AC_SUBST(MOZ_PSM)
