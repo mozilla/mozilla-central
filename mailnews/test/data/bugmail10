@@ -27,6 +27,7 @@ From: bugzilla-daemon@mozilla.org
 To: example@example.com
 Subject: [Bug 436880] IMAP itemDeleted and itemMoveCopyCompleted
  notifications quite broken
+Cc: invalid@example.com
 X-Bugzilla-Reason: AssignedTo Reporter
 X-Bugzilla-Type: newchanged
 X-Bugzilla-Watch-Reason: None
