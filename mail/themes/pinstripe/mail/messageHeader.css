@@ -459,11 +459,13 @@ window[inlinetoolbox] #wrapper-spring {
 }
 
 /* Only show the dummy smart reply button when customizing. */
-.inline-toolbox[doCustomization] #hdrSmartReplyButton > toolbarbutton {
+.inline-toolbox[doCustomization] #hdrSmartReplyButton > toolbarbutton,
+toolbarpaletteitem #hdrSmartReplyButton > toolbarbutton {
   display: none;
 }
 
-.inline-toolbox[doCustomization] #hdrDummyReplyButton {
+.inline-toolbox[doCustomization] #hdrDummyReplyButton,
+toolbarpaletteitem #hdrDummyReplyButton {
   display: -moz-box !important;
 }
 
