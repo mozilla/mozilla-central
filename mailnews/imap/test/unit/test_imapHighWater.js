@@ -161,6 +161,8 @@ function doMoves() {
   MailServices.copy.CopyMessages(gIMAPInbox, headers1, gFolder1, true,
                                  CopyListener, dummyMsgWindow, true);
   yield false;
+  gServer.performTest("UID COPY");
+
   gFolder1.msgDatabase.DeleteHeader(msgHdr, null, true, false);
   gIMAPInbox.updateFolderWithListener(null, UrlListener);
   yield false;
