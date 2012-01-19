@@ -599,6 +599,7 @@ cal.itip = {
                 let userAddresses = aItem.calendar.aclEntry.getUserAddresses({});
                 if (userAddresses.length > 0
                     && !cal.attendeeMatchesAddresses(invitedAttendee, userAddresses)) {
+                    invitedAttendee = invitedAttendee.clone();
                     invitedAttendee.setProperty("SENT-BY", userAddresses[0]);
                 }
             }
