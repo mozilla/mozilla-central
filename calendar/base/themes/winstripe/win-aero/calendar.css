@@ -253,7 +253,7 @@ toolbar[iconsize="small"] .cal-event-toolbarbutton {
   -moz-image-region: rect(0 72px 18px 54px) !important;
 }
 
-#button-delete {
+#button-delete.cal-event-toolbarbutton {
   -moz-image-region: rect(0 306px 18px 288px) !important;
 }
 
