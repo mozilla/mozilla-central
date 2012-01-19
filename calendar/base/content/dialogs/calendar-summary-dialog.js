@@ -247,6 +247,16 @@ function updateInvitationStatus() {
 function updateInvitation() {
   var statusElement = document.getElementById("item-participation");
   if (window.attendee) {
+      let item = window.arguments[0];
+      let aclEntry = item.calendar.aclEntry;
+      if (aclEntry) {
+          let userAddresses = aclEntry.getUserAddresses({});
+          if (userAddresses.length > 0
+              && !cal.attendeeMatchesAddresses(window.attendee, userAddresses)) {
+              window.attendee.setProperty("SENT-BY", userAddresses[0]);
+          }
+      }
+
       window.attendee.participationStatus = statusElement.value;
   }
 }
