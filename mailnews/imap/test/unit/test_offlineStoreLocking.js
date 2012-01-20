@@ -57,25 +57,6 @@ function alert(aDialogTitle, aText) {
   gGotAlert = true;
 }
 
-// Adds some messages directly to a mailbox (eg new mail)
-function addMessagesToServer(messages, mailbox)
-{
-  let ioService = Cc["@mozilla.org/network/io-service;1"]
-                    .getService(Ci.nsIIOService);
-  // For every message we have, we need to convert it to a file:/// URI
-  messages.forEach(function (message)
-  {
-    let URI = ioService.newFileURI(message.file).QueryInterface(Ci.nsIFileURL);
-    message.spec = URI.spec;
-  });
-
-  // Create the imapMessages and store them on the mailbox
-  messages.forEach(function (message)
-  {
-    mailbox.addMessage(new imapMessage(message.spec, mailbox.uidnext++, []));
-  });
-}
-
 function addGeneratedMessagesToServer(messages, mailbox)
 {
   let ioService = Cc["@mozilla.org/network/io-service;1"]
@@ -91,28 +72,6 @@ function addGeneratedMessagesToServer(messages, mailbox)
 }
 
 var gStreamedHdr = null;
-
-gStreamListener = {
-  QueryInterface : XPCOMUtils.generateQI([Ci.nsIStreamListener]),
-  _stream : null,
-  _data : null,
-  onStartRequest : function (aRequest, aContext) {
-    this._data = "";
-  },
-  onStopRequest : function (aRequest, aContext, aStatusCode) {
-    // Because we're streaming the message while compaction is going on,
-    // we should not have stored it for offline use.
-    do_check_false(gStreamedHdr.flags & Ci.nsMsgMessageFlags.Offline);
-    do_timeout(0, function(){doTest(++gCurTestNum)});
-  },
-  onDataAvailable : function (aRequest, aContext, aInputStream, aOff, aCount) {
-    if (this._stream == null) {
-      this._stream = Cc["@mozilla.org/scriptableinputstream;1"].createInstance(Ci.nsIScriptableInputStream);
-      this._stream.init(aInputStream);
-    }
-    this._data += this._stream.read(aCount);
-  },
-};
 
 function checkOfflineStore(prevOfflineStoreSize) {
   dump("checking offline store\n");
@@ -167,7 +126,9 @@ const gTestArray =
     // compaction are finished. dummyMsgWindow is required to make the backend
     // compact the offline store.
     gIMAPInbox.compact(UrlListener, dummyMsgWindow);
-    msgServ.streamMessage(msgURI, gStreamListener, null, null, false, "", false);
+    // Stream the message w/o a stream listener in an attempt to get the url
+    // started more quickly, while the compact is still going on.
+    msgServ.streamMessage(msgURI, null, null, UrlListener2, false, "", false);
     // We can't know which will finish first (compact or streaming), so we'll
     // have a dummy test. There's a chance that the stream won't start until
     // after the compact is finished, because the stream will get queued after
@@ -225,12 +186,6 @@ const gTestArray =
 
 function run_test()
 {
-  // XXX Disable on windows for now as it is failing there.
-  if ("@mozilla.org/windows-registry-key;1" in Cc) {
-    dump("Disabled on windows due to permanent failures\n");
-    return;
-  }
-
   // Add a listener.
   gIMAPDaemon = new imapDaemon();
   gServer = makeServer(gIMAPDaemon, "");
@@ -283,8 +238,12 @@ function run_test()
 
   let messageGenerator = new MessageGenerator();
   let messages = [];
+  let bodyString = "";
+  for (i = 0; i < 100; i++)
+    bodyString += "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890\r\n";
+
   for (let i = 0; i < 50; i++)
-    messages = messages.concat(messageGenerator.makeMessage());
+    messages = messages.concat(messageGenerator.makeMessage({body: {body: bodyString, contentType: "text/plain"}}));
 
   addGeneratedMessagesToServer(messages, gIMAPDaemon.getMailbox("INBOX"));
 
@@ -368,6 +327,21 @@ var UrlListener =
     // This can happen with a bunch of synchronous functions grouped together, and
     // can even cause tests to fail because they're still waiting for the listener
     // to return
+    do_timeout(0, function(){doTest(++gCurTestNum)});
+  }
+};
+
+var UrlListener2 = 
+{
+  OnStartRunningUrl: function(url) { },
+
+  OnStopRunningUrl: function (aUrl, aExitCode) {
+    // Check: message successfully copied.
+    do_check_eq(aExitCode, 0);
+    // Because we're streaming the message while compaction is going on,
+    // we should not have stored it for offline use.
+    dump("finished streaming " + gStreamedHdr.messageKey + "\n");
+    do_check_false(gStreamedHdr.flags & Ci.nsMsgMessageFlags.Offline);
     do_timeout(0, function(){doTest(++gCurTestNum)});
   }
 };
