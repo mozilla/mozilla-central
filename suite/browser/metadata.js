@@ -39,6 +39,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+const MathMLNS = "http://www.w3.org/1998/Math/MathML";
 const XLinkNS = "http://www.w3.org/1999/xlink";
 const XULNS = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const XMLNS = "http://www.w3.org/XML/1998/namespace";
@@ -234,11 +235,9 @@ function checkForLink(elem, htmllocalname)
     if ((htmllocalname === "a" && elem.href != "") ||
         htmllocalname === "area") {
 
-        setInfo("link-lang", convertLanguageCode(elem.getAttribute("hreflang")));
-        setInfo("link-url",  elem.href);
-        setInfo("link-type", elem.getAttribute("type"));
-        setInfo("link-rel",  elem.getAttribute("rel"));
-        setInfo("link-rev",  elem.getAttribute("rev"));
+        setLink(elem.href, elem.getAttribute("type"),
+                convertLanguageCode(elem.getAttribute("hreflang")),
+                elem.getAttribute("rel"), elem.getAttribute("rev"));
 
         var target = elem.target;
 
@@ -269,20 +268,15 @@ function checkForLink(elem, htmllocalname)
         
         onLink = true;
     }
+    else if (elem.namespaceURI == MathMLNS && elem.hasAttribute("href")) {
+        setLink(makeHrefAbsolute(elem.getAttribute("href"), elem));
 
+        setInfo("link-target", "");
+
+        onLink = true;
+    }
     else if (elem.getAttributeNS(XLinkNS, "href") != "") {
-        var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                  .getService(Components.interfaces.nsIIOService);
-        var url = elem.getAttributeNS(XLinkNS, "href");
-        try {
-            var baseURI = ioService.newURI(elem.baseURI, elem.ownerDocument.characterSet, null);
-            url = ioService.newURI(url, elem.ownerDocument.characterSet, baseURI).spec;
-        } catch (e) {}
-        setInfo("link-url", url);
-        setInfo("link-lang", "");
-        setInfo("link-type", "");
-        setInfo("link-rel", "");
-        setInfo("link-rev", "");
+        setLink(makeHrefAbsolute(elem.getAttributeNS(XLinkNS, "href"), elem));
 
         switch (elem.getAttributeNS(XLinkNS,"show")) {
         case "embed":
@@ -354,6 +348,19 @@ function checkForTitle(elem, htmllocalname)
         setInfo("misc-title", elem.title);
         onTitle = true;
     }    
+}
+
+/*
+ * Set five link properties at once.
+ * All parameters are optional.
+ */
+function setLink(url, lang, type, rel, rev)
+{
+    setInfo("link-url", url);
+    setInfo("link-type", type);
+    setInfo("link-lang", lang);
+    setInfo("link-rel", rel);
+    setInfo("link-rev", rev);
 }
 
 /*
@@ -552,4 +559,15 @@ function setAlt(elem) {
 function formatNumber(number)
 {
   return (+number).toLocaleString();  // coerce number to a numeric value before calling toLocaleString()
+}
+
+function makeHrefAbsolute(href, elem)
+{
+  Components.utils.import("resource://gre/modules/NetUtil.jsm");
+  try {
+    var baseURI = NetUtil.newURI(elem.baseURI, elem.ownerDocument.characterSet);
+    href = NetUtil.newURI(href, elem.ownerDocument.characterSet, baseURI).spec;
+  } catch (e) {
+  }
+  return href;
 }

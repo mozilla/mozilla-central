@@ -630,6 +630,7 @@ nsContextMenu.prototype = {
             ((elem instanceof HTMLAnchorElement && elem.href) ||
              elem instanceof HTMLAreaElement ||
              elem instanceof HTMLLinkElement ||
+             (elem.namespaceURI == NS_MathML && elem.hasAttribute("href")) ||
              elem.getAttributeNS("http://www.w3.org/1999/xlink", "type") == "simple")) {
           // Clicked on a link.
           this.onLink = true;
@@ -1219,7 +1220,12 @@ nsContextMenu.prototype = {
     if (this.link.href)
       return this.link.href;
 
-    var href = this.link.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+    var href;
+    if (this.link.namespaceURI == "http://www.w3.org/1998/Math/MathML")
+      href = this.link.getAttribute("href");
+
+    if (!href)
+      href = this.link.getAttributeNS("http://www.w3.org/1999/xlink", "href");
 
     if (!href || !href.match(/\S/)) {
       // Without this we try to save as the current doc,
@@ -1251,25 +1257,28 @@ nsContextMenu.prototype = {
   // Get text of link.
   linkText: function() {
     var text = gatherTextUnder(this.link);
-    if (!text || !text.match(/\S/)) {
-      text = this.link.getAttribute("title");
-      if (!text || !text.match(/\S/)) {
-        text = this.link.getAttribute("alt");
-        if (!text || !text.match(/\S/)) {
-          if (this.link.href) {
-            text = this.link.href;
-          }
-          else {
-            text = getAttributeNS("http://www.w3.org/1999/xlink", "href");
-            if (text && text.match(/\S/)) {
-              text = makeURLAbsolute(this.link.baseURI, text);
-            }
-          }
-        }
-      }
-    }
+    if (text && text.match(/\S/))
+      return text;
 
-    return text;
+    text = this.link.getAttribute("title");
+    if (text && text.match(/\S/))
+      return text;
+
+    text = this.link.getAttribute("alt");
+    if (text && text.match(/\S/))
+      return text;
+
+    if (this.link.href)
+      return this.link.href;
+
+    if (elem.namespaceURI == "http://www.w3.org/1998/Math/MathML")
+      text = elem.getAttribute("href");
+    if (!text || !text.match(/\S/))
+      text = elem.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+    if (text && text.match(/\S/))
+      return makeURLAbsolute(this.link.baseURI, text);
+
+    return null;
   },
 
   /**

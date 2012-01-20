@@ -966,11 +966,11 @@ function isElementVisible(aElement)
   return (bo.height > 0 && bo.width > 0);
 }
 
-function makeURLAbsolute(aBase, aUrl)
+function makeURLAbsolute(aBase, aUrl, aCharset)
 {
   // Construct nsIURL.
-  return Services.io.newURI(aUrl, null,
-                            Services.io.newURI(aBase, null, null)).spec;
+  return Services.io.newURI(aUrl, aCharset,
+                            Services.io.newURI(aBase, aCharset, null)).spec;
 }
 
 function openAsExternal(aURL)

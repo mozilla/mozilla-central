@@ -222,6 +222,7 @@ catch(e) {
 const nsIImageLoadingContent = Components.interfaces.nsIImageLoadingContent;
 
 // namespaces, don't need all of these yet...
+const MathMLNS = "http://www.w3.org/1998/Math/MathML";
 const XLinkNS  = "http://www.w3.org/1999/xlink";
 const XULNS    = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 const XMLNS    = "http://www.w3.org/XML/1998/namespace";
@@ -652,12 +653,19 @@ function grabAll(elem)
     addImage(elem.data, gStrings.mediaObject, getValueText(elem), elem, false);
   else if (elem instanceof HTMLEmbedElement)
     addImage(elem.src, gStrings.mediaEmbed, "", elem, false);
+  else if (elem.namespaceURI == MathMLNS && elem.hasAttribute("href"))
+  {
+    url = elem.getAttribute("href");
+    try {
+      url = makeURLAbsolute(elem.baseURI, url, elem.ownerDocument.characterSet);
+    } catch (e) {}
+    gLinkView.addRow([getValueText(elem), url, gStrings.linkX, ""]);
+  }
   else if (elem.hasAttributeNS(XLinkNS, "href"))
   {
     url = elem.getAttributeNS(XLinkNS, "href");
     try {
-      var baseURI = Services.io.newURI(elem.baseURI, elem.ownerDocument.characterSet, null);
-      url = Services.io.newURI(url, elem.ownerDocument.characterSet, baseURI).spec;
+      url = makeURLAbsolute(elem.baseURI, url, elem.ownerDocument.characterSet);
     } catch (e) {}
     // SVG images without an xlink:href attribute are ignored
     if (elem instanceof SVGImageElement)

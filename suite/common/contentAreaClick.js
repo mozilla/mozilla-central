@@ -52,41 +52,27 @@
   function hrefAndLinkNodeForClickEvent(event)
   {
     var href = "";
-    var linkNode = null;
     var isKeyCommand = (event.type == "command");
-    var target = isKeyCommand ? document.commandDispatcher.focusedElement : event.target;
+    var linkNode = isKeyCommand ? document.commandDispatcher.focusedElement
+                                : event.originalTarget;
 
-    if ( target instanceof HTMLAnchorElement ||
-         target instanceof HTMLAreaElement   ||
-         target instanceof HTMLLinkElement ) {
-      if (target.hasAttribute("href")) 
-        linkNode = target;
-    }
-    else {
-      linkNode = event.originalTarget;
-      while (linkNode && !(linkNode instanceof HTMLAnchorElement))
-        linkNode = linkNode.parentNode;
-      // <a> cannot be nested.  So if we find an anchor without an
-      // href, there is no useful <a> around the target
-      if (linkNode && !linkNode.hasAttribute("href"))
-        linkNode = null;
-    }
-
-    if (linkNode) {
-      href = linkNode.href;
-    } else {
-      // Try simple XLink
-      linkNode = target;
-      while (linkNode) {
-        if (linkNode.nodeType == Node.ELEMENT_NODE) {
-          href = linkNode.getAttributeNS("http://www.w3.org/1999/xlink", "href");
-          break;
-        }
-        linkNode = linkNode.parentNode;
+    while (linkNode && !href) {
+      if (linkNode instanceof HTMLAnchorElement ||
+          linkNode instanceof HTMLAreaElement ||
+          linkNode instanceof HTMLLinkElement) {
+        href = linkNode.href;
       }
-      if (href) {
+      // Try MathML href
+      else if (linkNode.namespaceURI = "http://www.w3.org/1998/Math") {
+        href = linkNode.getAttribute("href");
         href = makeURLAbsolute(linkNode.baseURI, href);
       }
+      // Try simple XLink
+      else if (linkNode.hasAttributeNS("http://www.w3.org/1999/xlink", "href")) {
+        href = linkNode.getAttributeNS("http://www.w3.org/1999/xlink", "href");
+        href = makeURLAbsolute(linkNode.baseURI, href);
+      }
+      linkNode = linkNode.parentNode;
     }
 
     return href ? {href: href, linkNode: linkNode} : null;
