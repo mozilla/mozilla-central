@@ -61,7 +61,7 @@
      -->
     <menupopup id="contentAreaContextMenu"
                pagemenu="start"
-               onpopupshowing="if (event.target != this) return true; gContextMenu = new nsContextMenu(this, gBrowser, event.shiftKey); return gContextMenu.shouldDisplay;"
+               onpopupshowing="if (event.target != this) return true; gContextMenu = new nsContextMenu(this, null, event.shiftKey); return gContextMenu.shouldDisplay;"
                onpopuphiding="if (event.target == this) gContextMenu = null;">
       <menuseparator id="page-menu-separator"/>
       <menuitem id="popupwindow-reject"
