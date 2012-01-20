@@ -42,10 +42,10 @@
 #include "WorkerScope.h"
 
 #include "jsapi.h"
-#include "jscntxt.h"
+#include "jsdbgapi.h"
 
 #include "nsTraceRefcnt.h"
-#include "xpcprivate.h"
+#include "xpcpublic.h"
 
 #include "ChromeWorkerScope.h"
 #include "Events.h"
@@ -61,6 +61,9 @@
 #include "Worker.h"
 #include "WorkerPrivate.h"
 #include "XMLHttpRequest.h"
+#ifdef ANDROID
+#include <android/log.h>
+#endif
 
 #include "WorkerInlines.h"
 
@@ -314,6 +317,11 @@ private:
       return false;
     }
 
+    if (JSVAL_IS_VOID(adaptor)) {
+      *aVp = JSVAL_NULL;
+      return true;
+    }
+
     JS_ASSERT(JSVAL_IS_OBJECT(adaptor));
 
     jsval listener = js::GetFunctionNativeReserved(JSVAL_TO_OBJECT(adaptor),
@@ -444,7 +452,7 @@ private:
       return false;
     }
 
-    uint32 id;
+    uint32_t id;
     if (!JS_ConvertArguments(aCx, aArgc, JS_ARGV(aCx, aVp), "u", &id)) {
       return false;
     }
@@ -486,7 +494,7 @@ private:
       return false;
     }
 
-    uint32 id;
+    uint32_t id;
     if (!JS_ConvertArguments(aCx, aArgc, JS_ARGV(aCx, aVp), "u", &id)) {
       return false;
     }
@@ -517,6 +525,9 @@ private:
         return false;
       }
 
+#ifdef ANDROID
+      __android_log_print(ANDROID_LOG_INFO, "Gecko", buffer.ptr());
+#endif
       fputs(buffer.ptr(), stderr);
       fflush(stderr);
     }
@@ -542,7 +553,7 @@ private:
     }
 
     jsval result;
-    if (!nsXPConnect::Base64Decode(aCx, string, &result)) {
+    if (!xpc::Base64Decode(aCx, string, &result)) {
       return false;
     }
 
@@ -568,7 +579,7 @@ private:
     }
 
     jsval result;
-    if (!nsXPConnect::Base64Encode(aCx, binary, &result)) {
+    if (!xpc::Base64Encode(aCx, binary, &result)) {
       return false;
     }
 
@@ -924,6 +935,13 @@ CreateDedicatedWorkerGlobalScope(JSContext* aCx)
   }
 
   return global;
+}
+
+bool
+ClassIsWorkerGlobalScope(JSClass* aClass)
+{
+  return WorkerGlobalScope::Class() == aClass ||
+         DedicatedWorkerGlobalScope::Class() == aClass;
 }
 
 END_WORKERS_NAMESPACE

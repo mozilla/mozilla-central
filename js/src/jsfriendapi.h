@@ -44,6 +44,8 @@
 #include "jspubtd.h"
 #include "jsprvtd.h"
 
+#include "mozilla/GuardObjects.h"
+
 JS_BEGIN_EXTERN_C
 
 extern JS_FRIEND_API(void)
@@ -67,11 +69,14 @@ JS_SplicePrototype(JSContext *cx, JSObject *obj, JSObject *proto);
 extern JS_FRIEND_API(JSObject *)
 JS_NewObjectWithUniqueType(JSContext *cx, JSClass *clasp, JSObject *proto, JSObject *parent);
 
-extern JS_FRIEND_API(uint32)
+extern JS_FRIEND_API(uint32_t)
 JS_ObjectCountDynamicSlots(JSObject *obj);
 
 extern JS_FRIEND_API(void)
 JS_ShrinkingGC(JSContext *cx);
+
+extern JS_FRIEND_API(void)
+JS_ShrinkGCBuffers(JSRuntime *rt);
 
 extern JS_FRIEND_API(size_t)
 JS_GetE4XObjectsCreated(JSContext *cx);
@@ -86,11 +91,12 @@ extern JS_FRIEND_API(JSBool)
 JS_NondeterministicGetWeakMapKeys(JSContext *cx, JSObject *obj, JSObject **ret);
 
 /*
- * Marks all the children of a shape except the parent, which avoids using
- * unbounded stack space. Returns the parent.
+ * Used by the cycle collector to trace through the shape and all
+ * shapes it reaches, marking all non-shape children found in the
+ * process. Uses bounded stack space.
  */
-extern JS_FRIEND_API(void *)
-JS_TraceShapeChildrenAcyclic(JSTracer *trc, void *shape);
+extern JS_FRIEND_API(void)
+JS_TraceShapeCycleCollectorChildren(JSTracer *trc, void *shape);
 
 enum {
     JS_TELEMETRY_GC_REASON,
@@ -102,7 +108,7 @@ enum {
 };
 
 typedef void
-(* JSAccumulateTelemetryDataCallback)(int id, JSUint32 sample);
+(* JSAccumulateTelemetryDataCallback)(int id, uint32_t sample);
 
 extern JS_FRIEND_API(void)
 JS_SetAccumulateTelemetryCallback(JSRuntime *rt, JSAccumulateTelemetryDataCallback callback);
@@ -112,25 +118,6 @@ typedef void
 
 extern JS_FRIEND_API(void)
 JS_SetGCFinishedCallback(JSRuntime *rt, JSGCFinishedCallback callback);
-
-/* Data for tracking analysis/inference memory usage. */
-typedef struct TypeInferenceMemoryStats
-{
-    int64 scripts;
-    int64 objects;
-    int64 tables;
-    int64 temporary;
-} TypeInferenceMemoryStats;
-
-extern JS_FRIEND_API(void)
-JS_GetTypeInferenceMemoryStats(JSContext *cx, JSCompartment *compartment,
-                               TypeInferenceMemoryStats *stats,
-                               JSMallocSizeOfFun mallocSizeOf);
-
-extern JS_FRIEND_API(void)
-JS_GetTypeInferenceObjectStats(/*TypeObject*/ void *object,
-                               TypeInferenceMemoryStats *stats,
-                               JSMallocSizeOfFun mallocSizeOf);
 
 extern JS_FRIEND_API(JSPrincipals *)
 JS_GetCompartmentPrincipals(JSCompartment *compartment);
@@ -149,6 +136,9 @@ JS_CloneObject(JSContext *cx, JSObject *obj, JSObject *proto, JSObject *parent);
 extern JS_FRIEND_API(JSBool)
 js_GetterOnlyPropertyStub(JSContext *cx, JSObject *obj, jsid id, JSBool strict, jsval *vp);
 
+JS_FRIEND_API(void)
+js_ReportOverRecursed(JSContext *maybecx);
+
 #ifdef __cplusplus
 
 extern JS_FRIEND_API(bool)
@@ -166,7 +156,12 @@ JS_END_EXTERN_C
 
 #ifdef __cplusplus
 
+struct PRLock;
+
 namespace js {
+
+typedef bool
+(* PreserveWrapperCallback)(JSContext *cx, JSObject *obj);
 
 #ifdef DEBUG
  /*
@@ -205,11 +200,11 @@ JS_FRIEND_API(JSBool) obj_defineGetter(JSContext *cx, uintN argc, js::Value *vp)
 JS_FRIEND_API(JSBool) obj_defineSetter(JSContext *cx, uintN argc, js::Value *vp);
 #endif
 
-extern JS_FRIEND_API(size_t)
-GetObjectDynamicSlotSize(JSObject *obj, JSMallocSizeOfFun mallocSizeOf);
+extern JS_FRIEND_API(bool)
+IsSystemCompartment(const JSCompartment *compartment);
 
-extern JS_FRIEND_API(size_t)
-GetCompartmentShapeTableSize(JSCompartment *c, JSMallocSizeOfFun mallocSizeOf);
+extern JS_FRIEND_API(bool)
+IsAtomsCompartmentFor(const JSContext *cx, const JSCompartment *c);
 
 /*
  * Check whether it is OK to assign an undeclared property with name
@@ -264,9 +259,9 @@ struct BaseShape {
 struct Shape {
     BaseShape   *base;
     jsid        _1;
-    uint32      slotInfo;
+    uint32_t    slotInfo;
 
-    static const uint32 FIXED_SLOTS_SHIFT = 27;
+    static const uint32_t FIXED_SLOTS_SHIFT = 27;
 };
 
 struct Object {
@@ -277,7 +272,7 @@ struct Object {
 
     size_t numFixedSlots() const { return shape->slotInfo >> Shape::FIXED_SLOTS_SHIFT; }
     Value *fixedSlots() const {
-        return (Value *)((jsuword) this + sizeof(shadow::Object));
+        return (Value *)(uintptr_t(this) + sizeof(shadow::Object));
     }
 
     js::Value &slotRef(size_t slot) const {
@@ -300,8 +295,8 @@ extern JS_FRIEND_DATA(js::Class) NamespaceClass;
 extern JS_FRIEND_DATA(js::Class) OuterWindowProxyClass;
 extern JS_FRIEND_DATA(js::Class) ObjectProxyClass;
 extern JS_FRIEND_DATA(js::Class) QNameClass;
-extern JS_FRIEND_DATA(js::Class) ScriptClass;
 extern JS_FRIEND_DATA(js::Class) XMLClass;
+extern JS_FRIEND_DATA(js::Class) ObjectClass;
 
 inline js::Class *
 GetObjectClass(const JSObject *obj)
@@ -316,17 +311,17 @@ GetObjectJSClass(const JSObject *obj)
 }
 
 JS_FRIEND_API(bool)
-IsScopeObject(const JSObject *obj);
+IsScopeObject(JSObject *obj);
 
 inline JSObject *
-GetObjectParent(const JSObject *obj)
+GetObjectParent(JSObject *obj)
 {
     JS_ASSERT(!IsScopeObject(obj));
-    return reinterpret_cast<const shadow::Object*>(obj)->shape->base->parent;
+    return reinterpret_cast<shadow::Object*>(obj)->shape->base->parent;
 }
 
 JS_FRIEND_API(JSObject *)
-GetObjectParentMaybeScope(const JSObject *obj);
+GetObjectParentMaybeScope(JSObject *obj);
 
 JS_FRIEND_API(JSObject *)
 GetGlobalForObjectCrossCompartment(JSObject *obj);
@@ -359,13 +354,13 @@ JS_FRIEND_API(void)
 SetFunctionNativeReserved(JSObject *fun, size_t which, const Value &val);
 
 inline JSObject *
-GetObjectProto(const JSObject *obj)
+GetObjectProto(JSObject *obj)
 {
     return reinterpret_cast<const shadow::Object*>(obj)->type->proto;
 }
 
 inline void *
-GetObjectPrivate(const JSObject *obj)
+GetObjectPrivate(JSObject *obj)
 {
     const shadow::Object *nobj = reinterpret_cast<const shadow::Object*>(obj);
     void **addr = reinterpret_cast<void**>(&nobj->fixedSlots()[nobj->numFixedSlots()]);
@@ -390,18 +385,18 @@ SetReservedSlot(JSObject *obj, size_t slot, const Value &value)
     reinterpret_cast<shadow::Object *>(obj)->slotRef(slot) = value;
 }
 
-JS_FRIEND_API(uint32)
-GetObjectSlotSpan(const JSObject *obj);
+JS_FRIEND_API(uint32_t)
+GetObjectSlotSpan(JSObject *obj);
 
 inline const Value &
-GetObjectSlot(const JSObject *obj, size_t slot)
+GetObjectSlot(JSObject *obj, size_t slot)
 {
     JS_ASSERT(slot < GetObjectSlotSpan(obj));
     return reinterpret_cast<const shadow::Object *>(obj)->slotRef(slot);
 }
 
 inline Shape *
-GetObjectShape(const JSObject *obj)
+GetObjectShape(JSObject *obj)
 {
     shadow::Shape *shape = reinterpret_cast<const shadow::Object*>(obj)->shape;
     return reinterpret_cast<Shape *>(shape);
@@ -425,6 +420,12 @@ GetPropertyNames(JSContext *cx, JSObject *obj, uintN flags, js::AutoIdVector *pr
 JS_FRIEND_API(bool)
 StringIsArrayIndex(JSLinearString *str, jsuint *indexp);
 
+JS_FRIEND_API(void)
+SetPreserveWrapperCallback(JSRuntime *rt, PreserveWrapperCallback callback);
+
+JS_FRIEND_API(bool)
+IsObjectInContextCompartment(const JSObject *obj, const JSContext *cx);
+
 /*
  * NB: these flag bits are encoded into the bytecode stream in the immediate
  * operand of JSOP_ITER, so don't change them without advancing jsxdrapi.h's
@@ -436,7 +437,178 @@ StringIsArrayIndex(JSLinearString *str, jsuint *indexp);
 #define JSITER_OWNONLY    0x8   /* iterate over obj's own properties only */
 #define JSITER_HIDDEN     0x10  /* also enumerate non-enumerable properties */
 
-} /* namespace js */
+JS_FRIEND_API(uintptr_t)
+GetContextStackLimit(const JSContext *cx);
+
+#define JS_CHECK_RECURSION(cx, onerror)                                         \
+    JS_BEGIN_MACRO                                                              \
+        int stackDummy_;                                                        \
+        if (!JS_CHECK_STACK_SIZE(js::GetContextStackLimit(cx), &stackDummy_)) { \
+            js_ReportOverRecursed(cx);                                          \
+            onerror;                                                            \
+        }                                                                       \
+    JS_END_MACRO
+
+JS_FRIEND_API(void)
+StartPCCountProfiling(JSContext *cx);
+
+JS_FRIEND_API(void)
+StopPCCountProfiling(JSContext *cx);
+
+JS_FRIEND_API(void)
+PurgePCCounts(JSContext *cx);
+
+JS_FRIEND_API(size_t)
+GetPCCountScriptCount(JSContext *cx);
+
+JS_FRIEND_API(JSString *)
+GetPCCountScriptSummary(JSContext *cx, size_t script);
+
+JS_FRIEND_API(JSString *)
+GetPCCountScriptContents(JSContext *cx, size_t script);
+
+#ifdef JS_THREADSAFE
+JS_FRIEND_API(JSThread *)
+GetContextThread(const JSContext *cx);
+
+JS_FRIEND_API(unsigned)
+GetContextOutstandingRequests(const JSContext *cx);
+
+JS_FRIEND_API(PRLock *)
+GetRuntimeGCLock(const JSRuntime *rt);
+
+class JS_FRIEND_API(AutoSkipConservativeScan)
+{
+  public:
+    AutoSkipConservativeScan(JSContext *cx MOZ_GUARD_OBJECT_NOTIFIER_PARAM);
+    ~AutoSkipConservativeScan();
+
+  private:
+    JSContext *context;
+    MOZ_DECL_USE_GUARD_OBJECT_NOTIFIER
+};
 #endif
+
+JS_FRIEND_API(JSCompartment *)
+GetContextCompartment(const JSContext *cx);
+
+JS_FRIEND_API(bool)
+HasUnrootedGlobal(const JSContext *cx);
+
+typedef void
+(* ActivityCallback)(void *arg, JSBool active);
+
+/*
+ * Sets a callback that is run whenever the runtime goes idle - the
+ * last active request ceases - and begins activity - when it was
+ * idle and a request begins. Note: The callback is called under the
+ * GC lock.
+ */
+JS_FRIEND_API(void)
+SetActivityCallback(JSRuntime *rt, ActivityCallback cb, void *arg);
+
+class JS_FRIEND_API(AutoLockGC)
+{
+  public:
+    explicit AutoLockGC(JSRuntime *rt = NULL
+                        MOZ_GUARD_OBJECT_NOTIFIER_PARAM)
+      : runtime(rt)
+    {
+        MOZ_GUARD_OBJECT_NOTIFIER_INIT;
+        if (rt)
+            LockGC(rt);
+    }
+
+    ~AutoLockGC()
+    {
+        if (runtime)
+            UnlockGC(runtime);
+    }
+
+    bool locked() const {
+        return !!runtime;
+    }
+    void lock(JSRuntime *rt);
+
+  private:
+    static void LockGC(JSRuntime *rt);
+    static void UnlockGC(JSRuntime *rt);
+
+    JSRuntime *runtime;
+    MOZ_DECL_USE_GUARD_OBJECT_NOTIFIER
+};
+
+extern JS_FRIEND_API(const JSStructuredCloneCallbacks *)
+GetContextStructuredCloneCallbacks(JSContext *cx);
+
+extern JS_FRIEND_API(JSVersion)
+VersionSetXML(JSVersion version, bool enable);
+
+extern JS_FRIEND_API(bool)
+CanCallContextDebugHandler(JSContext *cx);
+
+extern JS_FRIEND_API(JSTrapStatus)
+CallContextDebugHandler(JSContext *cx, JSScript *script, jsbytecode *bc, Value *rval);
+
+extern JS_FRIEND_API(bool)
+IsContextRunningJS(JSContext *cx);
+
+/* Must be called with GC lock taken. */
+extern JS_FRIEND_API(void)
+TriggerOperationCallbacksForActiveContexts(JSRuntime *rt);
+
+class SystemAllocPolicy;
+typedef Vector<JSCompartment*, 0, SystemAllocPolicy> CompartmentVector;
+extern JS_FRIEND_API(const CompartmentVector&)
+GetRuntimeCompartments(JSRuntime *rt);
+
+extern JS_FRIEND_API(size_t)
+SizeOfJSContext();
+
+} /* namespace js */
+
+/*
+ * If protoKey is not JSProto_Null, then clasp is ignored. If protoKey is
+ * JSProto_Null, clasp must non-null.
+ */
+extern JS_FRIEND_API(JSBool)
+js_GetClassPrototype(JSContext *cx, JSObject *scope, JSProtoKey protoKey,
+                     JSObject **protop, js::Class *clasp = NULL);
+
+#endif
+
+/* Implemented in jsdate.cpp. */
+
+/*
+ * Detect whether the internal date value is NaN.  (Because failure is
+ * out-of-band for js_DateGet*)
+ */
+extern JS_FRIEND_API(JSBool)
+js_DateIsValid(JSContext *cx, JSObject* obj);
+
+extern JS_FRIEND_API(double)
+js_DateGetMsecSinceEpoch(JSContext *cx, JSObject *obj);
+
+/* Implemented in jscntxt.cpp. */
+
+/*
+ * Report an exception, which is currently realized as a printf-style format
+ * string and its arguments.
+ */
+typedef enum JSErrNum {
+#define MSG_DEF(name, number, count, exception, format) \
+    name = number,
+#include "js.msg"
+#undef MSG_DEF
+    JSErr_Limit
+} JSErrNum;
+
+extern JS_FRIEND_API(const JSErrorFormatString *)
+js_GetErrorMessage(void *userRef, const char *locale, const uintN errorNumber);
+
+/* Implemented in jsclone.cpp. */
+
+extern JS_FRIEND_API(uint64_t)
+js_GetSCOffset(JSStructuredCloneWriter* writer);
 
 #endif /* jsfriendapi_h___ */

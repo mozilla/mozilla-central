@@ -37,13 +37,14 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "AccIterator.h"
-#include "States.h"
 #include "nsAccCache.h"
 #include "nsAccessibilityService.h"
 #include "nsAccTreeWalker.h"
 #include "nsAccUtils.h"
 #include "nsRootAccessible.h"
 #include "nsTextEquivUtils.h"
+#include "Role.h"
+#include "States.h"
 
 #include "nsIMutableArray.h"
 #include "nsICommandManager.h"
@@ -219,7 +220,7 @@ nsDocAccessible::GetName(nsAString& aName)
 }
 
 // nsAccessible public method
-PRUint32
+role
 nsDocAccessible::NativeRole()
 {
   nsCOMPtr<nsIDocShellTreeItem> docShellTreeItem =
@@ -232,23 +233,23 @@ nsDocAccessible::NativeRole()
     if (sameTypeRoot == docShellTreeItem) {
       // Root of content or chrome tree
       if (itemType == nsIDocShellTreeItem::typeChrome)
-        return nsIAccessibleRole::ROLE_CHROME_WINDOW;
+        return roles::CHROME_WINDOW;
 
       if (itemType == nsIDocShellTreeItem::typeContent) {
 #ifdef MOZ_XUL
         nsCOMPtr<nsIXULDocument> xulDoc(do_QueryInterface(mDocument));
         if (xulDoc)
-          return nsIAccessibleRole::ROLE_APPLICATION;
+          return roles::APPLICATION;
 #endif
-        return nsIAccessibleRole::ROLE_DOCUMENT;
+        return roles::DOCUMENT;
       }
     }
     else if (itemType == nsIDocShellTreeItem::typeContent) {
-      return nsIAccessibleRole::ROLE_DOCUMENT;
+      return roles::DOCUMENT;
     }
   }
 
-  return nsIAccessibleRole::ROLE_PANE; // Fall back;
+  return roles::PANE; // Fall back;
 }
 
 // nsAccessible public method
@@ -1278,13 +1279,18 @@ void*
 nsDocAccessible::GetNativeWindow() const
 {
   nsCOMPtr<nsIPresShell> shell(do_QueryReferent(mWeakShell));
+  if (!shell)
+    return nsnull;
+
   nsIViewManager* vm = shell->GetViewManager();
-  if (vm) {
-    nsCOMPtr<nsIWidget> widget;
-    vm->GetRootWidget(getter_AddRefs(widget));
-    if (widget)
-      return widget->GetNativeData(NS_NATIVE_WINDOW);
-  }
+  if (!vm)
+    return nsnull;
+
+  nsCOMPtr<nsIWidget> widget;
+  vm->GetRootWidget(getter_AddRefs(widget));
+  if (widget)
+    return widget->GetNativeData(NS_NATIVE_WINDOW);
+
   return nsnull;
 }
 
@@ -1565,14 +1571,14 @@ nsDocAccessible::AddDependentIDsFor(nsAccessible* aRelProvider,
 
     if (relAttr == nsGkAtoms::_for) {
       if (!aRelProvider->GetContent()->IsHTML() ||
-          aRelProvider->GetContent()->Tag() != nsGkAtoms::label &&
-          aRelProvider->GetContent()->Tag() != nsGkAtoms::output)
+          (aRelProvider->GetContent()->Tag() != nsGkAtoms::label &&
+           aRelProvider->GetContent()->Tag() != nsGkAtoms::output))
         continue;
 
     } else if (relAttr == nsGkAtoms::control) {
       if (!aRelProvider->GetContent()->IsXUL() ||
-          aRelProvider->GetContent()->Tag() != nsGkAtoms::label &&
-          aRelProvider->GetContent()->Tag() != nsGkAtoms::description)
+          (aRelProvider->GetContent()->Tag() != nsGkAtoms::label &&
+           aRelProvider->GetContent()->Tag() != nsGkAtoms::description))
         continue;
     }
 
@@ -1837,7 +1843,7 @@ nsDocAccessible::UpdateTree(nsAccessible* aContainer, nsIContent* aChildNode,
     // children of alert accessible to avoid this.
     nsAccessible* ancestor = aContainer;
     while (ancestor) {
-      if (ancestor->ARIARole() == nsIAccessibleRole::ROLE_ALERT) {
+      if (ancestor->ARIARole() == roles::ALERT) {
         FireDelayedAccessibleEvent(nsIAccessibleEvent::EVENT_ALERT,
                                    ancestor->GetNode());
         break;
@@ -1882,7 +1888,7 @@ nsDocAccessible::UpdateTreeInternal(nsAccessible* aChild, bool aIsInsert)
     // the changes before our processing and we may miss some menupopup
     // events. Now we just want to be consistent in content insertion/removal
     // handling.
-    if (aChild->ARIARole() == nsIAccessibleRole::ROLE_MENUPOPUP) {
+    if (aChild->ARIARole() == roles::MENUPOPUP) {
       nsRefPtr<AccEvent> event =
         new AccEvent(nsIAccessibleEvent::EVENT_MENUPOPUP_END, aChild);
 
@@ -1902,13 +1908,13 @@ nsDocAccessible::UpdateTreeInternal(nsAccessible* aChild, bool aIsInsert)
     FireDelayedAccessibleEvent(event);
 
   if (aIsInsert) {
-    PRUint32 ariaRole = aChild->ARIARole();
-    if (ariaRole == nsIAccessibleRole::ROLE_MENUPOPUP) {
+    roles::Role ariaRole = aChild->ARIARole();
+    if (ariaRole == roles::MENUPOPUP) {
       // Fire EVENT_MENUPOPUP_START if ARIA menu appears.
       FireDelayedAccessibleEvent(nsIAccessibleEvent::EVENT_MENUPOPUP_START,
                                  node, AccEvent::eRemoveDupes);
 
-    } else if (ariaRole == nsIAccessibleRole::ROLE_ALERT) {
+    } else if (ariaRole == roles::ALERT) {
       // Fire EVENT_ALERT if ARIA alert appears.
       updateFlags = eAlertAccessible;
       FireDelayedAccessibleEvent(nsIAccessibleEvent::EVENT_ALERT, node,

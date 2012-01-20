@@ -125,8 +125,6 @@ import sys
 
 # === Preliminaries
 
-MAX_TRACEABLE_NATIVE_ARGS = 8
-
 # --makedepend-output support.
 make_dependencies = []
 make_targets = []
@@ -389,6 +387,38 @@ def writeHeaderFile(filename, name):
 
 # === Generating the source file
 
+class StringTable:
+    def __init__(self):
+        self.current_index = 0;
+        self.table = {}
+        self.reverse_table = {}
+
+    def c_strlen(self, string):
+        return len(string) + 1
+
+    def stringIndex(self, string):
+        if string in self.table:
+            return self.table[string]
+        else:
+            result = self.current_index
+            self.table[string] = result
+            self.current_index += self.c_strlen(string)
+            return result
+
+    def writeDefinition(self, f, name):
+        entries = self.table.items()
+        entries.sort(key=lambda x:x[1])
+        # Avoid null-in-string warnings with GCC and potentially
+        # overlong string constants; write everything out the long way.
+        def explodeToCharArray(string):
+            return ", ".join(map(lambda x:"'%s'" % x, string))
+        f.write("static const char %s[] = {\n" % name)
+        for (string, offset) in entries[:-1]:
+            f.write("  /* %5d */ %s, '\\0',\n"
+                    % (offset, explodeToCharArray(string)))
+        f.write("  /* %5d */ %s, '\\0' };\n\n"
+                % (entries[-1][1], explodeToCharArray(entries[-1][0])))
+
 def substitute(template, vals):
     """ Simple replacement for string.Template, which isn't in Python 2.3. """
     def replacement(match):
@@ -398,30 +428,30 @@ def substitute(template, vals):
 # From JSData2Native.
 argumentUnboxingTemplates = {
     'octet':
-        "    uint32 ${name}_u32;\n"
+        "    uint32_t ${name}_u32;\n"
         "    if (!JS_ValueToECMAUint32(cx, ${argVal}, &${name}_u32))\n"
         "        return JS_FALSE;\n"
-        "    uint8 ${name} = (uint8) ${name}_u32;\n",
+        "    uint8_t ${name} = (uint8_t) ${name}_u32;\n",
 
     'short':
-        "    int32 ${name}_i32;\n"
+        "    int32_t ${name}_i32;\n"
         "    if (!JS_ValueToECMAInt32(cx, ${argVal}, &${name}_i32))\n"
         "        return JS_FALSE;\n"
-        "    int16 ${name} = (int16) ${name}_i32;\n",
+        "    int16_t ${name} = (int16_t) ${name}_i32;\n",
 
     'unsigned short':
-        "    uint32 ${name}_u32;\n"
+        "    uint32_t ${name}_u32;\n"
         "    if (!JS_ValueToECMAUint32(cx, ${argVal}, &${name}_u32))\n"
         "        return JS_FALSE;\n"
-        "    uint16 ${name} = (uint16) ${name}_u32;\n",
+        "    uint16_t ${name} = (uint16_t) ${name}_u32;\n",
 
     'long':
-        "    int32 ${name};\n"
+        "    int32_t ${name};\n"
         "    if (!JS_ValueToECMAInt32(cx, ${argVal}, &${name}))\n"
         "        return JS_FALSE;\n",
 
     'unsigned long':
-        "    uint32 ${name};\n"
+        "    uint32_t ${name};\n"
         "    if (!JS_ValueToECMAUint32(cx, ${argVal}, &${name}))\n"
         "        return JS_FALSE;\n",
 
@@ -633,25 +663,27 @@ resultConvTemplates = {
             "    return JS_TRUE;\n",
 
     'octet':
-        "    ${jsvalRef} = INT_TO_JSVAL((int32) result);\n"
+        "    ${jsvalRef} = INT_TO_JSVAL((int32_t) result);\n"
         "    return JS_TRUE;\n",
 
     'short':
-        "    ${jsvalRef} = INT_TO_JSVAL((int32) result);\n"
+        "    ${jsvalRef} = INT_TO_JSVAL((int32_t) result);\n"
         "    return JS_TRUE;\n",
 
     'long':
-        "    return xpc_qsInt32ToJsval(cx, result, ${jsvalPtr});\n",
+        "    ${jsvalRef} = INT_TO_JSVAL(result);\n"
+        "    return JS_TRUE;\n",
 
     'long long':
         "    return xpc_qsInt64ToJsval(cx, result, ${jsvalPtr});\n",
 
     'unsigned short':
-        "    ${jsvalRef} = INT_TO_JSVAL((int32) result);\n"
+        "    ${jsvalRef} = INT_TO_JSVAL((int32_t) result);\n"
         "    return JS_TRUE;\n",
 
     'unsigned long':
-        "    return xpc_qsUint32ToJsval(cx, result, ${jsvalPtr});\n",
+        "    ${jsvalRef} = UINT_TO_JSVAL(result);\n"
+        "    return JS_TRUE;\n",
 
     'unsigned long long':
         "    return xpc_qsUint64ToJsval(cx, result, ${jsvalPtr});\n",
@@ -667,10 +699,10 @@ resultConvTemplates = {
         "    return JS_TRUE;\n",
 
     '[astring]':
-        "    return xpc_qsStringToJsval(cx, result, ${jsvalPtr});\n",
+        "    return xpc::StringToJsval(cx, result, ${jsvalPtr});\n",
 
     '[domstring]':
-        "    return xpc_qsStringToJsval(cx, result, ${jsvalPtr});\n",
+        "    return xpc::StringToJsval(cx, result, ${jsvalPtr});\n",
 
     '[jsval]':
         # Here there's nothing to convert, because the result has already been
@@ -886,7 +918,7 @@ def writeQuickStub(f, customMethodCalls, member, stubName, isSetter=False):
         if isGetter:
             pthisval = 'vp'
         elif isSetter:
-            f.write("    js::AutoValueRooter tvr(cx);\n")
+            f.write("    JS::AutoValueRooter tvr(cx);\n")
             pthisval = 'tvr.jsval_addr()'
         else:
             pthisval = '&vp[1]' # as above, ok to overwrite vp[1]
@@ -1046,7 +1078,7 @@ def writeQuickStub(f, customMethodCalls, member, stubName, isSetter=False):
     if customMethodCall is not None:
         f.write(callTemplate)
 
-def writeAttrStubs(f, customMethodCalls, attr):
+def writeAttrStubs(f, customMethodCalls, stringtable, attr):
     cmc = customMethodCalls.get(attr.iface.name + "_" + header.methodNativeName(attr), None)
     custom = cmc and cmc.get('skipgen', False)
 
@@ -1062,11 +1094,11 @@ def writeAttrStubs(f, customMethodCalls, attr):
         if not custom:
             writeQuickStub(f, customMethodCalls, attr, setterName, isSetter=True)
 
-    ps = ('{"%s", %s, %s}'
-          % (attr.name, getterName, setterName))
+    ps = ('{%d, %s, %s}'
+          % (stringtable.stringIndex(attr.name), getterName, setterName))
     return ps
 
-def writeMethodStub(f, customMethodCalls, method):
+def writeMethodStub(f, customMethodCalls, stringtable, method):
     """ Write a method stub to `f`. Return an xpc_qsFunctionSpec initializer. """
 
     cmc = customMethodCalls.get(method.iface.name + "_" + header.methodNativeName(method), None)
@@ -1075,50 +1107,27 @@ def writeMethodStub(f, customMethodCalls, method):
     stubName = method.iface.name + '_' + header.methodNativeName(method)
     if not custom:
         writeQuickStub(f, customMethodCalls, method, stubName)
-    fs = '{"%s", %s, %d}' % (method.name, stubName, len(method.params))
+    fs = '{%d, %d, %s}' % (stringtable.stringIndex(method.name),
+                           len(method.params), stubName)
     return fs
 
-def writeTraceableStub(f, customMethodCalls, method):
-    """ Write a method stub to `f`. Return an xpc_qsTraceableSpec initializer. """
-
-    cmc = customMethodCalls.get(method.iface.name + "_" + header.methodNativeName(method), None)
-    custom = cmc and cmc.get('skipgen', False)
-
-    stubName = method.iface.name + '_' + header.methodNativeName(method)
-    if not custom:
-        writeTraceableQuickStub(f, customMethodCalls, method, stubName)
-    fs = '{"%s", %s, %d}' % (method.name,
-                             "JS_DATA_TO_FUNC_PTR(JSNative, &%s_trcinfo)" % stubName,
-                             len(method.params))
-    return fs
-
-def writeStubsForInterface(f, customMethodCalls, iface):
+def writeStubsForInterface(f, customMethodCalls, stringtable, iface):
     f.write("// === interface %s\n\n" % iface.name)
     propspecs = []
     funcspecs = []
     for member in iface.stubMembers:
         if member.kind == 'attribute':
-            ps = writeAttrStubs(f, customMethodCalls, member)
+            ps = writeAttrStubs(f, customMethodCalls, stringtable, member)
             propspecs.append(ps)
         elif member.kind == 'method':
-            fs = writeMethodStub(f, customMethodCalls, member)
+            fs = writeMethodStub(f, customMethodCalls, stringtable, member)
             funcspecs.append(fs)
         else:
             raise TypeError('expected attribute or method, not %r'
                             % member.__class__.__name__)
 
-    if propspecs:
-        f.write("static const xpc_qsPropertySpec %s_properties[] = {\n"
-                % iface.name)
-        for ps in propspecs:
-            f.write("    %s,\n" % ps)
-        f.write("    {nsnull}};\n")
-    if funcspecs:
-        f.write("static const xpc_qsFunctionSpec %s_functions[] = {\n" % iface.name)
-        for fs in funcspecs:
-            f.write("    %s,\n" % fs)
-        f.write("    {nsnull}};\n")
-    f.write('\n\n')
+    iface.propspecs = propspecs
+    iface.funcspecs = funcspecs
 
 def hashIID(iid):
     # See nsIDKey::HashCode in nsHashtable.h.
@@ -1151,8 +1160,31 @@ def writeResultXPCInterfacesArray(f, conf, resulttypes):
     if count > 0:
         f.write("\n\n")
 
-def writeDefiner(f, conf, interfaces):
+def writeSpecs(f, elementType, varname, spec_type, spec_indices, interfaces):
+    index = 0
+    f.write("static const %s %s[] = {\n" % (elementType, varname))
+    for iface in interfaces:
+        specs = getattr(iface, spec_type)
+        if specs:
+            spec_indices[iface.name] = index
+            f.write("    // %s (index %d)\n" % (iface.name,index))
+            for s in specs:
+                f.write("    %s,\n" % s)
+            index += len(specs)
+    f.write("};\n\n")
+
+def writeDefiner(f, conf, stringtable, interfaces):
     f.write("// === Definer\n\n")
+
+    # Write out the properties and functions
+    propspecs_indices = {}
+    funcspecs_indices = {}
+    prop_array_name = "all_properties"
+    func_array_name = "all_functions"
+    writeSpecs(f, "xpc_qsPropertySpec", prop_array_name,
+               "propspecs", propspecs_indices, interfaces)
+    writeSpecs(f, "xpc_qsFunctionSpec", func_array_name,
+               "funcspecs", funcspecs_indices, interfaces)
 
     # generate the static hash table
     loadFactor = 0.6
@@ -1178,7 +1210,7 @@ def writeDefiner(f, conf, interfaces):
                 arraySize += 1
 
     entries = ["    {{0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0}}, "
-               "nsnull, nsnull, XPC_QS_NULL_INDEX, XPC_QS_NULL_INDEX}"
+               "0, 0, 0, 0, XPC_QS_NULL_INDEX, XPC_QS_NULL_INDEX}"
                for i in range(arraySize)]
     for i, bucket in enumerate(buckets):
         for j, iface in enumerate(bucket):
@@ -1192,19 +1224,19 @@ def writeDefiner(f, conf, interfaces):
                         m4[4:6], m4[6:8], m4[8:10], m4[10:12]))
             iid = ('{0x%s, 0x%s, 0x%s, %s}' % (m0, m1, m2, m3arr))
 
-            # properties field
-            properties = "nsnull"
-            for member in iface.stubMembers:
-                if member.kind == 'attribute':
-                    properties = iface.name + "_properties"
-                    break
+            # properties fields
+            prop_index = 0
+            prop_n_entries = 0
+            if iface.propspecs:
+                prop_index = propspecs_indices[iface.name]
+                prop_n_entries = len(iface.propspecs)
 
-            # member field
-            functions = "nsnull"
-            for member in iface.stubMembers:
-                if member.kind == 'method':
-                    functions = iface.name + "_functions"
-                    break
+            # member fields
+            func_index = 0
+            func_n_entries = 0
+            if iface.funcspecs:
+                func_index = funcspecs_indices[iface.name]
+                func_n_entries = len(iface.funcspecs)
 
             # parentInterface field
             baseName = iface.base
@@ -1226,13 +1258,26 @@ def writeDefiner(f, conf, interfaces):
                 chain = str(k)
 
             # add entry
-            entry = "    {%s, %s, %s, %s, %s}" % (
-                iid, properties, functions, parentInterface, chain)
+            entry = "    /* %s */ {%s, %d, %d, %d, %d, %s, %s}" % (
+                iface.name, iid, prop_index, prop_n_entries,
+                func_index, func_n_entries, parentInterface, chain)
             entries[entryIndexes[iface.attributes.uuid]] = entry
 
     f.write("static const xpc_qsHashEntry tableData[] = {\n")
     f.write(",\n".join(entries))
     f.write("\n    };\n\n")
+    f.write("// Make sure our table indices aren't overflowed\n"
+            "PR_STATIC_ASSERT((sizeof(tableData) / sizeof(tableData[0])) < (1 << (8 * sizeof(tableData[0].parentInterface))));\n"
+            "PR_STATIC_ASSERT((sizeof(tableData) / sizeof(tableData[0])) < (1 << (8 * sizeof(tableData[0].chain))));\n\n")
+
+    # The string table for property and method names.
+    table_name = "stringtab"
+    stringtable.writeDefinition(f, table_name)
+    structNames = [prop_array_name, func_array_name]
+    for name in structNames:
+        f.write("PR_STATIC_ASSERT(sizeof(%s) < (1 << (8 * sizeof(%s[0].name_index))));\n"
+                % (table_name, name))
+    f.write("\n")
 
     # the definer function (entry point to this quick stubs file)
     f.write("JSBool %s_DefineQuickStubs(" % conf.name)
@@ -1240,14 +1285,14 @@ def writeDefiner(f, conf, interfaces):
             "const nsID **iids)\n"
             "{\n")
     f.write("    return xpc_qsDefineQuickStubs("
-            "cx, proto, flags, count, iids, %d, tableData);\n" % size)
+            "cx, proto, flags, count, iids, %d, tableData, %s, %s, %s);\n" % (
+            size, prop_array_name, func_array_name, table_name))
     f.write("}\n\n\n")
 
 
 stubTopTemplate = '''\
 /* THIS FILE IS AUTOGENERATED - DO NOT EDIT */
 #include "jsapi.h"
-#include "jscntxt.h"
 #include "qsWinUndefs.h"
 #include "prtypes.h"
 #include "nsID.h"
@@ -1310,9 +1355,10 @@ def writeStubFile(filename, headerFilename, conf, interfaces):
         writeResultXPCInterfacesArray(f, conf, frozenset(resulttypes))
         for customQS in conf.customQuickStubs:
             f.write('#include "%s"\n' % customQS)
+        stringtable = StringTable()
         for iface in interfaces:
-            writeStubsForInterface(f, conf.customMethodCalls, iface)
-        writeDefiner(f, conf, interfaces)
+            writeStubsForInterface(f, conf.customMethodCalls, stringtable, iface)
+        writeDefiner(f, conf, stringtable, interfaces)
     finally:
         f.close()
 

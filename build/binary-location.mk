@@ -40,7 +40,7 @@
 ifneq (,$(filter OS2 WINNT,$(OS_ARCH)))
 PROGRAM = $(MOZ_APP_NAME)$(BIN_SUFFIX)
 else
-ifeq ($(MOZ_BUILD_APP),mobile)
+ifeq ($(MOZ_BUILD_APP),mobile/xul)
 PROGRAM = $(MOZ_APP_NAME)$(BIN_SUFFIX)
 else
 PROGRAM = $(MOZ_APP_NAME)-bin$(BIN_SUFFIX)
@@ -53,11 +53,7 @@ ifeq ($(MOZ_BUILD_APP),camino)
 browser_path = $(TARGET_DIST)/Camino.app/Contents/MacOS/Camino
 else
 ifeq ($(OS_ARCH),Darwin)
-ifdef MOZ_DEBUG
-browser_path = $(TARGET_DIST)/$(MOZ_APP_DISPLAYNAME)Debug.app/Contents/MacOS/$(PROGRAM)
-else
-browser_path = $(TARGET_DIST)/$(MOZ_APP_DISPLAYNAME).app/Contents/MacOS/$(PROGRAM)
-endif
+browser_path = $(TARGET_DIST)/$(MOZ_MACBUNDLE_NAME)/Contents/MacOS/$(PROGRAM)
 else
 browser_path = $(TARGET_DIST)/bin/$(PROGRAM)
 endif

@@ -70,6 +70,9 @@ pref("zoom.minPercent", 20);
 pref("zoom.maxPercent", 400);
 pref("toolkit.zoomManager.zoomValues", ".2,.3,.5,.67,.8,.9,1,1.1,1.2,1.33,1.5,1.7,2,2.4,3,4");
 
+// Mobile will use faster, less durable mode.
+pref("toolkit.storage.synchronous", 0);
+
 // Device pixel to CSS px ratio, in percent. Set to -1 to calculate based on display density.
 pref("browser.viewport.scaleRatio", -1);
 pref("browser.viewport.desktopWidth", 980);
@@ -104,6 +107,9 @@ pref("browser.cache.offline.enable", true);
 pref("browser.cache.offline.capacity", 5120); // kilobytes
 pref("offline-apps.quota.max", 2048); // kilobytes
 pref("offline-apps.quota.warn", 1024); // kilobytes
+
+// cache compression turned off for now - see bug #715198
+pref("browser.cache.compression_level", 0);
 
 /* protocol warning prefs */
 pref("network.protocol-handler.warn-external.tel", false);
@@ -684,3 +690,6 @@ pref("dom.report_all_js_exceptions", true);
 pref("javascript.options.showInConsole", true);
 
 pref("full-screen-api.enabled", true);
+
+pref("direct-texture.force.enabled", false);
+pref("direct-texture.force.disabled", false);

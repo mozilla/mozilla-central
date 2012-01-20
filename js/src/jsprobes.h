@@ -48,11 +48,15 @@
 #include "jsscript.h"
 #include "jsobj.h"
 
+#ifdef JS_METHODJIT
+#include "methodjit/MethodJIT.h"
+#endif
+
 namespace js {
 
 namespace mjit {
 struct NativeAddressInfo;
-struct Compiler_ActiveFrame;
+struct JSActiveFrame;
 }
 
 namespace Probes {
@@ -230,12 +234,31 @@ enum JITReportGranularity {
  */
 class JITWatcher {
 public:
+    struct NativeRegion {
+        mjit::JSActiveFrame *frame;
+        JSScript *script;
+        size_t inlinedOffset;
+        jsbytecode *pc;
+        jsbytecode *endpc;
+        uintptr_t mainOffset;
+        uintptr_t stubOffset;
+        bool enter;
+    };
+
+    typedef Vector<NativeRegion, 0, RuntimeAllocPolicy> RegionVector;
+
     virtual JITReportGranularity granularityRequested() = 0;
 
 #ifdef JS_METHODJIT
+    static bool CollectNativeRegions(RegionVector &regions,
+                                     JSRuntime *rt,
+                                     mjit::JITChunk *jit,
+                                     mjit::JSActiveFrame *outerFrame,
+                                     mjit::JSActiveFrame **inlineFrames);
+
     virtual void registerMJITCode(JSContext *cx, js::mjit::JITScript *jscr,
-                                  JSScript *script, JSFunction *fun,
-                                  mjit::Compiler_ActiveFrame** inlineFrames,
+                                  mjit::JSActiveFrame *outerFrame,
+                                  mjit::JSActiveFrame **inlineFrames,
                                   void *mainCodeAddress, size_t mainCodeSize,
                                   void *stubCodeAddress, size_t stubCodeSize) = 0;
 
@@ -282,8 +305,8 @@ JITGranularityRequested();
  */
 void
 registerMJITCode(JSContext *cx, js::mjit::JITScript *jscr,
-                 JSScript *script, JSFunction *fun,
-                 mjit::Compiler_ActiveFrame** inlineFrames,
+                 mjit::JSActiveFrame *outerFrame,
+                 mjit::JSActiveFrame **inlineFrames,
                  void *mainCodeAddress, size_t mainCodeSize,
                  void *stubCodeAddress, size_t stubCodeSize);
 

@@ -96,7 +96,7 @@ struct Registers {
 
     /* General purpose registers. */
 
-    static const uint32 TotalRegisters = JSC::MacroAssembler::TotalRegisters;
+    static const uint32_t TotalRegisters = JSC::MacroAssembler::TotalRegisters;
 
     enum CallConvention {
         NormalCall,
@@ -122,6 +122,8 @@ struct Registers {
     static const RegisterID JSFrameReg = JSC::ARMRegisters::r10;
 #elif defined(JS_CPU_SPARC)
     static const RegisterID JSFrameReg = JSC::SparcRegisters::l0;
+#elif defined(JS_CPU_MIPS)
+    static const RegisterID JSFrameReg = JSC::MIPSRegisters::s0;
 #endif
 
 #if defined(JS_CPU_X86) || defined(JS_CPU_X64)
@@ -152,24 +154,30 @@ struct Registers {
     static const RegisterID ArgReg3 = JSC::SparcRegisters::o3;
     static const RegisterID ArgReg4 = JSC::SparcRegisters::o4;
     static const RegisterID ArgReg5 = JSC::SparcRegisters::o5;
+#elif JS_CPU_MIPS
+    static const RegisterID ReturnReg = JSC::MIPSRegisters::v0;
+    static const RegisterID ArgReg0 = JSC::MIPSRegisters::a0;
+    static const RegisterID ArgReg1 = JSC::MIPSRegisters::a1;
+    static const RegisterID ArgReg2 = JSC::MIPSRegisters::a2;
+    static const RegisterID ArgReg3 = JSC::MIPSRegisters::a3;
 #endif
 
     static const RegisterID StackPointer = JSC::MacroAssembler::stackPointerRegister;
 
-    static inline uint32 maskReg(RegisterID reg) {
+    static inline uint32_t maskReg(RegisterID reg) {
         return (1 << reg);
     }
 
-    static inline uint32 mask2Regs(RegisterID reg1, RegisterID reg2) {
+    static inline uint32_t mask2Regs(RegisterID reg1, RegisterID reg2) {
         return maskReg(reg1) | maskReg(reg2);
     }
 
-    static inline uint32 mask3Regs(RegisterID reg1, RegisterID reg2, RegisterID reg3) {
+    static inline uint32_t mask3Regs(RegisterID reg1, RegisterID reg2, RegisterID reg3) {
         return maskReg(reg1) | maskReg(reg2) | maskReg(reg3);
     }
 
 #if defined(JS_CPU_X86) || defined(JS_CPU_X64)
-    static const uint32 TempRegs =
+    static const uint32_t TempRegs =
           (1 << JSC::X86Registers::eax)
 # if defined(JS_CPU_X86)
         | (1 << JSC::X86Registers::ebx)
@@ -187,7 +195,7 @@ struct Registers {
         ;
 
 # if defined(JS_CPU_X64)
-    static const uint32 SavedRegs =
+    static const uint32_t SavedRegs =
         /* r11 is scratchRegister, used by JSC. */
           (1 << JSC::X86Registers::r12)
     // r13 is TypeMaskReg.
@@ -198,31 +206,31 @@ struct Registers {
         | (1 << JSC::X86Registers::edi)
 #  endif
 # else
-    static const uint32 SavedRegs =
+    static const uint32_t SavedRegs =
           (1 << JSC::X86Registers::esi)
         | (1 << JSC::X86Registers::edi)
 # endif
         ;
 
 # if defined(JS_CPU_X86)
-    static const uint32 SingleByteRegs = (TempRegs | SavedRegs) &
+    static const uint32_t SingleByteRegs = (TempRegs | SavedRegs) &
         ~((1 << JSC::X86Registers::esi) |
           (1 << JSC::X86Registers::edi) |
           (1 << JSC::X86Registers::ebp) |
           (1 << JSC::X86Registers::esp));
 # elif defined(JS_CPU_X64)
-    static const uint32 SingleByteRegs = TempRegs | SavedRegs;
+    static const uint32_t SingleByteRegs = TempRegs | SavedRegs;
 # endif
 
 #elif defined(JS_CPU_ARM)
-    static const uint32 TempRegs =
+    static const uint32_t TempRegs =
           (1 << JSC::ARMRegisters::r0)
         | (1 << JSC::ARMRegisters::r1)
         | (1 << JSC::ARMRegisters::r2);
     // r3 is reserved as a scratch register for the assembler.
     // r12 is IP, and is used for stub calls.
 
-    static const uint32 SavedRegs =
+    static const uint32_t SavedRegs =
           (1 << JSC::ARMRegisters::r4)
         | (1 << JSC::ARMRegisters::r5)
         | (1 << JSC::ARMRegisters::r6)
@@ -234,9 +242,9 @@ struct Registers {
     // r14 is LR and is used for return sequences.
     // r15 is PC (program counter).
 
-    static const uint32 SingleByteRegs = TempRegs | SavedRegs;
+    static const uint32_t SingleByteRegs = TempRegs | SavedRegs;
 #elif defined(JS_CPU_SPARC)
-    static const uint32 TempRegs =
+    static const uint32_t TempRegs =
           (1 << JSC::SparcRegisters::o0)
         | (1 << JSC::SparcRegisters::o1)
         | (1 << JSC::SparcRegisters::o2)
@@ -244,7 +252,7 @@ struct Registers {
         | (1 << JSC::SparcRegisters::o4)
         | (1 << JSC::SparcRegisters::o5);
 
-    static const uint32 SavedRegs =
+    static const uint32_t SavedRegs =
           (1 << JSC::SparcRegisters::l2)
         | (1 << JSC::SparcRegisters::l3)
         | (1 << JSC::SparcRegisters::l4)
@@ -252,25 +260,52 @@ struct Registers {
         | (1 << JSC::SparcRegisters::l6)
         | (1 << JSC::SparcRegisters::l7);
 
-    static const uint32 SingleByteRegs = TempRegs | SavedRegs;
+    static const uint32_t SingleByteRegs = TempRegs | SavedRegs;
+#elif defined(JS_CPU_MIPS)
+    static const uint32_t TempRegs =
+          (1 << JSC::MIPSRegisters::at)
+        | (1 << JSC::MIPSRegisters::v0)
+        | (1 << JSC::MIPSRegisters::v1)
+        | (1 << JSC::MIPSRegisters::a0)
+        | (1 << JSC::MIPSRegisters::a1)
+        | (1 << JSC::MIPSRegisters::a2)
+        | (1 << JSC::MIPSRegisters::a3)
+        | (1 << JSC::MIPSRegisters::t5)
+        | (1 << JSC::MIPSRegisters::t6)
+        | (1 << JSC::MIPSRegisters::t7);
+    /* t0-t4,t9 is reserved as a scratch register for the assembler.
+       We don't use t8 ($24), as we limit ourselves within $0 to $23 to
+       leave the bitmask for 8 FP registers. */
+
+    static const uint32_t SavedRegs =
+          (1 << JSC::MIPSRegisters::s1)
+        | (1 << JSC::MIPSRegisters::s2)
+        | (1 << JSC::MIPSRegisters::s3)
+        | (1 << JSC::MIPSRegisters::s4)
+        | (1 << JSC::MIPSRegisters::s5)
+        | (1 << JSC::MIPSRegisters::s6)
+        | (1 << JSC::MIPSRegisters::s7);
+    // s0 is reserved for JSFrameReg.
+
+    static const uint32_t SingleByteRegs = TempRegs | SavedRegs;
 #else
 # error "Unsupported platform"
 #endif
 
-    static const uint32 AvailRegs = SavedRegs | TempRegs;
+    static const uint32_t AvailRegs = SavedRegs | TempRegs;
 
     static bool isAvail(RegisterID reg) {
-        uint32 mask = maskReg(reg);
+        uint32_t mask = maskReg(reg);
         return bool(mask & AvailRegs);
     }
 
     static bool isSaved(RegisterID reg) {
-        uint32 mask = maskReg(reg);
+        uint32_t mask = maskReg(reg);
         JS_ASSERT(mask & AvailRegs);
         return bool(mask & SavedRegs);
     }
 
-    static inline uint32 numArgRegs(CallConvention convention) {
+    static inline uint32_t numArgRegs(CallConvention convention) {
 #if defined(JS_CPU_X86)
 # if defined(JS_NO_FASTCALL)
         return 0;
@@ -287,10 +322,12 @@ struct Registers {
         return 4;
 #elif defined(JS_CPU_SPARC)
         return 6;
+#elif defined(JS_CPU_MIPS)
+        return 4;
 #endif
     }
 
-    static inline bool regForArg(CallConvention conv, uint32 i, RegisterID *reg) {
+    static inline bool regForArg(CallConvention conv, uint32_t i, RegisterID *reg) {
 #if defined(JS_CPU_X86)
         static const RegisterID regs[] = {
             JSC::X86Registers::ecx,
@@ -337,6 +374,13 @@ struct Registers {
             JSC::SparcRegisters::o4,
             JSC::SparcRegisters::o5
         };
+#elif defined(JS_CPU_MIPS)
+        static const RegisterID regs[] = {
+            JSC::MIPSRegisters::a0,
+            JSC::MIPSRegisters::a1,
+            JSC::MIPSRegisters::a2,
+            JSC::MIPSRegisters::a3,
+        };
 #endif
         JS_ASSERT(numArgRegs(conv) == mozilla::ArrayLength(regs));
         if (i > mozilla::ArrayLength(regs))
@@ -352,13 +396,13 @@ struct Registers {
 #if defined(JS_CPU_X86) || defined(JS_CPU_X64)
 #ifdef _WIN64
     /* xmm0-xmm5 are scratch register on Win64 ABI */
-    static const uint32 TotalFPRegisters = 5;
+    static const uint32_t TotalFPRegisters = 5;
     static const FPRegisterID FPConversionTemp = JSC::X86Registers::xmm5;
 #else
-    static const uint32 TotalFPRegisters = 7;
+    static const uint32_t TotalFPRegisters = 7;
     static const FPRegisterID FPConversionTemp = JSC::X86Registers::xmm7;
 #endif
-    static const uint32 TempFPRegs = (
+    static const uint32_t TempFPRegs = (
           (1 << JSC::X86Registers::xmm0)
         | (1 << JSC::X86Registers::xmm1)
         | (1 << JSC::X86Registers::xmm2)
@@ -370,22 +414,35 @@ struct Registers {
 #endif
         ) << TotalRegisters;
 #elif defined(JS_CPU_ARM)
-    static const uint32 TotalFPRegisters = 3;
-    static const uint32 TempFPRegs = (
+    static const uint32_t TotalFPRegisters = 3;
+    static const uint32_t TempFPRegs = (
           (1 << JSC::ARMRegisters::d0)
         | (1 << JSC::ARMRegisters::d1)
         | (1 << JSC::ARMRegisters::d2)
         ) << TotalRegisters;
     static const FPRegisterID FPConversionTemp = JSC::ARMRegisters::d3;
 #elif defined(JS_CPU_SPARC)
-    static const uint32 TotalFPRegisters = 8;
-    static const uint32 TempFPRegs = (uint32)(
+    static const uint32_t TotalFPRegisters = 8;
+    static const uint32_t TempFPRegs = (uint32_t)(
           (1 << JSC::SparcRegisters::f0)
         | (1 << JSC::SparcRegisters::f2)
         | (1 << JSC::SparcRegisters::f4)
         | (1 << JSC::SparcRegisters::f6)
         ) << TotalRegisters;
     static const FPRegisterID FPConversionTemp = JSC::SparcRegisters::f8;
+#elif defined(JS_CPU_MIPS)
+    /* TotalRegisters is 24, so TotalFPRegisters can be 8 to have a 32-bit
+       bit mask.
+       Note that the O32 ABI can access only even FP registers. */
+    static const uint32_t TotalFPRegisters = 8;
+    static const uint32_t TempFPRegs = (uint32_t)(
+          (1 << JSC::MIPSRegisters::f0)
+        | (1 << JSC::MIPSRegisters::f2)
+        | (1 << JSC::MIPSRegisters::f4)
+        | (1 << JSC::MIPSRegisters::f6)
+        ) << TotalRegisters;
+    // f16 is reserved as a scratch register for the assembler.
+    static const FPRegisterID FPConversionTemp = JSC::MIPSRegisters::f18;
 #else
 # error "Unsupported platform"
 #endif
@@ -397,21 +454,23 @@ struct Registers {
     static const RegisterID ClobberInCall = JSC::ARMRegisters::r2;
 #elif defined(JS_CPU_SPARC)
     static const RegisterID ClobberInCall = JSC::SparcRegisters::l1;
+#elif defined(JS_CPU_MIPS)
+    static const RegisterID ClobberInCall = JSC::MIPSRegisters::at;
 #endif
 
-    static const uint32 AvailFPRegs = TempFPRegs;
+    static const uint32_t AvailFPRegs = TempFPRegs;
 
-    static inline uint32 maskReg(FPRegisterID reg) {
+    static inline uint32_t maskReg(FPRegisterID reg) {
         return (1 << reg) << TotalRegisters;
     }
 
     /* Common code. */
 
-    static const uint32 TotalAnyRegisters = TotalRegisters + TotalFPRegisters;
-    static const uint32 TempAnyRegs = TempRegs | TempFPRegs;
-    static const uint32 AvailAnyRegs = AvailRegs | AvailFPRegs;
+    static const uint32_t TotalAnyRegisters = TotalRegisters + TotalFPRegisters;
+    static const uint32_t TempAnyRegs = TempRegs | TempFPRegs;
+    static const uint32_t AvailAnyRegs = AvailRegs | AvailFPRegs;
 
-    static inline uint32 maskReg(AnyRegisterID reg) {
+    static inline uint32_t maskReg(AnyRegisterID reg) {
         return (1 << reg.reg_);
     }
 
@@ -437,7 +496,7 @@ struct Registers {
         return regs;
     }
 
-    Registers(uint32 freeMask)
+    Registers(uint32_t freeMask)
       : freeMask(freeMask)
     { }
 
@@ -451,7 +510,7 @@ struct Registers {
         return *this;
     }
 
-    bool empty(uint32 mask) const {
+    bool empty(uint32_t mask) const {
         return !(freeMask & mask);
     }
 
@@ -459,7 +518,7 @@ struct Registers {
         return !freeMask;
     }
 
-    AnyRegisterID peekReg(uint32 mask) {
+    AnyRegisterID peekReg(uint32_t mask) {
         JS_ASSERT(!empty(mask));
         unsigned ireg;
         JS_FLOOR_LOG2(ireg, freeMask & mask);
@@ -470,7 +529,7 @@ struct Registers {
         return peekReg(freeMask);
     }
 
-    AnyRegisterID takeAnyReg(uint32 mask) {
+    AnyRegisterID takeAnyReg(uint32_t mask) {
         AnyRegisterID reg = peekReg(mask);
         takeReg(reg);
         return reg;
@@ -484,11 +543,11 @@ struct Registers {
         return !!(freeMask & (1 << reg.reg_));
     }
 
-    bool hasRegInMask(uint32 mask) const {
+    bool hasRegInMask(uint32_t mask) const {
         return !!(freeMask & mask);
     }
 
-    bool hasAllRegs(uint32 mask) const {
+    bool hasAllRegs(uint32_t mask) const {
         return (freeMask & mask) == mask;
     }
 
@@ -514,7 +573,7 @@ struct Registers {
         return freeMask == other.freeMask;
     }
 
-    uint32 freeMask;
+    uint32_t freeMask;
 };
 
 static const JSC::MacroAssembler::RegisterID JSFrameReg = Registers::JSFrameReg;

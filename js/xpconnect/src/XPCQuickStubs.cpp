@@ -39,7 +39,8 @@
 #include "mozilla/Util.h"
 
 #include "jsapi.h"
-#include "jscntxt.h"  /* for error messages */
+#include "jsatom.h"
+#include "jsfriendapi.h"
 #include "nsCOMPtr.h"
 #include "xpcprivate.h"
 #include "XPCInlines.h"
@@ -187,20 +188,20 @@ GeneratePropertyOp(JSContext *cx, JSObject *obj, jsid id, uintN argc, Op pop)
     JSFunction *fun =
         js::NewFunctionByIdWithReserved(cx, PropertyOpForwarder<Op>, argc, 0, obj, id);
     if (!fun)
-        return false;
+        return nsnull;
 
     JSObject *funobj = JS_GetFunctionObject(fun);
 
-    js::AutoObjectRooter tvr(cx, funobj);
+    JS::AutoObjectRooter tvr(cx, funobj);
 
     // Unfortunately, we cannot guarantee that Op is aligned. Use a
     // second object to work around this.
     JSObject *ptrobj = JS_NewObject(cx, &PointerHolderClass, nsnull, funobj);
     if (!ptrobj)
-        return false;
+        return nsnull;
     Op *popp = new Op;
     if (!popp)
-        return false;
+        return nsnull;
     *popp = pop;
     JS_SetPrivate(cx, ptrobj, popp);
 
@@ -216,7 +217,7 @@ ReifyPropertyOps(JSContext *cx, JSObject *obj, jsid id, uintN orig_attrs,
 {
     // Generate both getter and setter and stash them in the prototype.
     jsval roots[2] = { JSVAL_NULL, JSVAL_NULL };
-    js::AutoArrayRooter tvr(cx, ArrayLength(roots), roots);
+    JS::AutoArrayRooter tvr(cx, ArrayLength(roots), roots);
 
     uintN attrs = JSPROP_SHARED | (orig_attrs & JSPROP_ENUMERATE);
     JSObject *getterobj;
@@ -388,7 +389,10 @@ SharedDefineSetter(JSContext *cx, uintN argc, jsval *vp)
 JSBool
 xpc_qsDefineQuickStubs(JSContext *cx, JSObject *proto, uintN flags,
                        PRUint32 ifacec, const nsIID **interfaces,
-                       PRUint32 tableSize, const xpc_qsHashEntry *table)
+                       PRUint32 tableSize, const xpc_qsHashEntry *table,
+                       const xpc_qsPropertySpec *propspecs,
+                       const xpc_qsFunctionSpec *funcspecs,
+                       const char *stringTable)
 {
     /*
      * Walk interfaces in reverse order to behave like XPConnect when a
@@ -399,7 +403,7 @@ xpc_qsDefineQuickStubs(JSContext *cx, JSObject *proto, uintN flags,
      * front of 'interfaces' overwrite those toward the back.
      */
     bool definedProperty = false;
-    for (uint32 i = ifacec; i-- != 0;) {
+    for (uint32_t i = ifacec; i-- != 0;) {
         const nsID &iid = *interfaces[i];
         const xpc_qsHashEntry *entry =
             LookupInterfaceOrAncestor(tableSize, table, iid);
@@ -407,26 +411,26 @@ xpc_qsDefineQuickStubs(JSContext *cx, JSObject *proto, uintN flags,
         if (entry) {
             for (;;) {
                 // Define quick stubs for attributes.
-                const xpc_qsPropertySpec *ps = entry->properties;
-                if (ps) {
-                    for (; ps->name; ps++) {
-                        definedProperty = true;
-                        if (!JS_DefineProperty(cx, proto, ps->name, JSVAL_VOID,
-                                               ps->getter, ps->setter,
-                                               flags | JSPROP_SHARED))
-                            return false;
-                    }
+                const xpc_qsPropertySpec *ps = propspecs + entry->prop_index;
+                const xpc_qsPropertySpec *ps_end = ps + entry->n_props;
+                for ( ; ps < ps_end; ++ps) {
+                    definedProperty = true;
+                    if (!JS_DefineProperty(cx, proto,
+                                           stringTable + ps->name_index,
+                                           JSVAL_VOID, ps->getter, ps->setter,
+                                           flags | JSPROP_SHARED)) 
+                        return false;
                 }
 
                 // Define quick stubs for methods.
-                const xpc_qsFunctionSpec *fs = entry->functions;
-                if (fs) {
-                    for (; fs->name; fs++) {
-                        if (!JS_DefineFunction(cx, proto, fs->name,
-                                               reinterpret_cast<JSNative>(fs->native),
-                                               fs->arity, flags))
-                            return false;
-                    }
+                const xpc_qsFunctionSpec *fs = funcspecs + entry->func_index;
+                const xpc_qsFunctionSpec *fs_end = fs + entry->n_funcs;
+                for ( ; fs < fs_end; ++fs) {
+                    if (!JS_DefineFunction(cx, proto,
+                                           stringTable + fs->name_index,
+                                           reinterpret_cast<JSNative>(fs->native),
+                                           fs->arity, flags))
+                        return false;
                 }
 
                 // Next.
@@ -1012,8 +1016,10 @@ xpc_qsJsvalToWcharStr(JSContext *cx, jsval v, jsval *pval, const PRUnichar **pst
     return true;
 }
 
-JSBool
-xpc_qsStringToJsval(JSContext *cx, nsString &str, jsval *rval)
+namespace xpc {
+
+bool
+StringToJsval(JSContext *cx, nsString &str, JS::Value *rval)
 {
     // From the T_DOMSTRING case in XPCConvert::NativeData2JS.
     if (str.IsVoid()) {
@@ -1033,6 +1039,8 @@ xpc_qsStringToJsval(JSContext *cx, nsString &str, jsval *rval)
     }
     return true;
 }
+
+} // namespace xpc
 
 JSBool
 xpc_qsStringToJsstring(JSContext *cx, nsString &str, JSString **rval)
@@ -1121,9 +1129,7 @@ xpc_qsAssertContextOK(JSContext *cx)
     XPCPerThreadData *thread = XPCPerThreadData::GetData(cx);
     XPCJSContextStack* stack = thread->GetJSContextStack();
 
-    JSContext* topJSContext = nsnull;
-    nsresult rv = stack->Peek(&topJSContext);
-    NS_ASSERTION(NS_SUCCEEDED(rv), "XPCJSContextStack::Peek failed");
+    JSContext *topJSContext = stack->Peek();
 
     // This is what we're actually trying to assert here.
     NS_ASSERTION(cx == topJSContext, "wrong context on XPCJSContextStack!");

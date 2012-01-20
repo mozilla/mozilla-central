@@ -1,5 +1,10 @@
 ; Package file for the Firefox build. 
 ;
+; Packaging manifest is used to copy files from dist/bin
+; to the staging directory.
+; Some other files are built in the staging directory directly,
+; so they will be implicitly packaged too.
+;
 ; File format:
 ;
 ; [] designates a toplevel component. Example: [xpcom]
@@ -14,7 +19,6 @@
 ; Mac bundle stuff
 @APPNAME@/Contents/Info.plist
 @APPNAME@/Contents/PkgInfo
-@APPNAME@/Contents/Plug-Ins/
 @APPNAME@/Contents/Resources/
 #endif
 
@@ -45,7 +49,7 @@
 @BINPATH@/@DLL_PREFIX@xpcom@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@nspr4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@mozalloc@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@mozutils@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@mozglue@DLL_SUFFIX@
 #ifdef XP_MACOSX
 @BINPATH@/XUL
 #else
@@ -58,6 +62,7 @@
 @BINPATH@/@MOZ_CHILD_PROCESS_NAME@
 #endif
 #ifdef XP_WIN32
+@BINPATH@/@DLL_PREFIX@gkmedias@DLL_SUFFIX@
 #if _MSC_VER == 1400
 @BINPATH@/Microsoft.VC80.CRT.manifest
 @BINPATH@/msvcm80.dll
@@ -134,10 +139,10 @@
 @BINPATH@/components/directory.xpt
 @BINPATH@/components/docshell.xpt
 @BINPATH@/components/dom.xpt
-@BINPATH@/components/dom_apps.xpt
 @BINPATH@/components/dom_base.xpt
 #ifdef MOZ_B2G_RIL
 @BINPATH@/components/dom_telephony.xpt
+@BINPATH@/components/dom_wifi.xpt
 @BINPATH@/components/dom_system_b2g.xpt
 #endif
 @BINPATH@/components/dom_battery.xpt
@@ -146,6 +151,7 @@
 @BINPATH@/components/dom_css.xpt
 @BINPATH@/components/dom_events.xpt
 @BINPATH@/components/dom_geolocation.xpt
+@BINPATH@/components/dom_network.xpt
 @BINPATH@/components/dom_notification.xpt
 @BINPATH@/components/dom_html.xpt
 @BINPATH@/components/dom_indexeddb.xpt
@@ -156,7 +162,6 @@
 @BINPATH@/components/dom_sms.xpt
 @BINPATH@/components/dom_storage.xpt
 @BINPATH@/components/dom_stylesheets.xpt
-@BINPATH@/components/dom_threads.xpt
 @BINPATH@/components/dom_traversal.xpt
 @BINPATH@/components/dom_xbl.xpt
 @BINPATH@/components/dom_xpath.xpt
@@ -182,7 +187,6 @@
 @BINPATH@/components/inspector.xpt
 @BINPATH@/components/intl.xpt
 @BINPATH@/components/jar.xpt
-@BINPATH@/components/jetpack.xpt
 @BINPATH@/components/jsdservice.xpt
 @BINPATH@/components/jsdebugger.xpt
 @BINPATH@/components/layout_base.xpt
@@ -218,7 +222,7 @@
 @BINPATH@/components/pref.xpt
 @BINPATH@/components/prefetch.xpt
 @BINPATH@/components/profile.xpt
-@BINPATH@/components/proxyObject.xpt
+@BINPATH@/components/profiler.xpt
 @BINPATH@/components/rdf.xpt
 @BINPATH@/components/satchel.xpt
 @BINPATH@/components/saxparser.xpt
@@ -367,11 +371,14 @@
 @BINPATH@/components/nsTelephonyWorker.js
 @BINPATH@/components/Telephony.manifest
 @BINPATH@/components/Telephony.js
+@BINPATH@/components/nsWifiWorker.js
+@BINPATH@/components/nsWifiWorker.manifest
 #endif
 @BINPATH@/components/BrowserProfileMigrators.manifest
 @BINPATH@/components/ChromeProfileMigrator.js
+@BINPATH@/components/FirefoxProfileMigrator.js
 #ifdef XP_MACOSX
-@BINPATH@/components/libalerts_s.dylib
+@BINPATH@/components/libalerts.dylib
 #endif
 #ifdef MOZ_ENABLE_DBUS
 @BINPATH@/components/@DLL_PREFIX@dbusservice@DLL_SUFFIX@
@@ -386,8 +393,6 @@
 #endif
 @BINPATH@/components/TelemetryPing.js
 @BINPATH@/components/TelemetryPing.manifest
-@BINPATH@/components/Webapps.js
-@BINPATH@/components/Webapps.manifest
 
 ; Modules
 @BINPATH@/modules/*
@@ -501,36 +506,29 @@
 
 ; [Personal Security Manager]
 ;
-@BINPATH@/@DLL_PREFIX@nssckbi@DLL_SUFFIX@
-@BINPATH@/components/pipboot.xpt
-@BINPATH@/components/pipnss.xpt
-@BINPATH@/components/pippki.xpt
+; NSS libraries are signed in the staging directory,
+; meaning their .chk files are created there directly.
+;
+@BINPATH@/@DLL_PREFIX@freebl3@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@nss3@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@nssckbi@DLL_SUFFIX@
+#ifndef NSS_DISABLE_DBM
+@BINPATH@/@DLL_PREFIX@nssdbm3@DLL_SUFFIX@
+#endif
 @BINPATH@/@DLL_PREFIX@nssutil3@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@smime3@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@softokn3@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@freebl3@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@ssl3@DLL_SUFFIX@
-#ifndef CROSS_COMPILE
-@BINPATH@/@DLL_PREFIX@freebl3.chk
-@BINPATH@/@DLL_PREFIX@softokn3.chk
-#endif
-#ifndef NSS_DISABLE_DBM
-@BINPATH@/@DLL_PREFIX@nssdbm3@DLL_SUFFIX@
-#ifndef CROSS_COMPILE
-@BINPATH@/@DLL_PREFIX@nssdbm3.chk
-#endif
-#endif
 @BINPATH@/chrome/pippki@JAREXT@
 @BINPATH@/chrome/pippki.manifest
+@BINPATH@/components/pipboot.xpt
+@BINPATH@/components/pipnss.xpt
+@BINPATH@/components/pippki.xpt
 
 ; for Solaris SPARC
 #ifdef SOLARIS
-bin/libfreebl_32fpu_3.chk
 bin/libfreebl_32fpu_3.so
-bin/libfreebl_32int_3.chk
 bin/libfreebl_32int_3.so
-bin/libfreebl_32int64_3.chk
 bin/libfreebl_32int64_3.so
 #endif
 
@@ -540,6 +538,13 @@ bin/libfreebl_32int64_3.so
 @BINPATH@/updater.app/
 #else
 @BINPATH@/updater@BIN_SUFFIX@
+#endif
+
+; [MaintenanceService]
+;
+#ifdef MOZ_MAINTENANCE_SERVICE
+@BINPATH@/maintenanceservice.exe
+@BINPATH@/maintenanceservice_installer.exe
 #endif
 
 ; [Crash Reporter]

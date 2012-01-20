@@ -67,7 +67,7 @@ pref("extensions.getAddons.maxResults", 15);
 pref("extensions.getAddons.get.url", "https://services.addons.mozilla.org/%LOCALE%/firefox/api/%API_VERSION%/search/guid:%IDS%?src=firefox&appOS=%OS%&appVersion=%VERSION%");
 pref("extensions.getAddons.search.browseURL", "https://addons.mozilla.org/%LOCALE%/firefox/search?q=%TERMS%");
 pref("extensions.getAddons.search.url", "https://services.addons.mozilla.org/%LOCALE%/firefox/api/%API_VERSION%/search/%TERMS%/all/%MAX_RESULTS%/%OS%/%VERSION%/%COMPATIBILITY_MODE%?src=firefox");
-pref("extensions.webservice.discoverURL", "https://services.addons.mozilla.org/%LOCALE%/firefox/discovery/pane/%VERSION%/%OS%");
+pref("extensions.webservice.discoverURL", "https://services.addons.mozilla.org/%LOCALE%/firefox/discovery/pane/%VERSION%/%OS%/%COMPATIBILITY_MODE%");
 
 // Blocklist preferences
 pref("extensions.blocklist.enabled", true);
@@ -80,6 +80,10 @@ pref("extensions.blocklist.detailsURL", "https://www.mozilla.com/%LOCALE%/blockl
 pref("extensions.blocklist.itemURL", "https://addons.mozilla.org/%LOCALE%/%APP%/blocked/%blockID%");
 
 pref("extensions.update.autoUpdateDefault", true);
+
+pref("extensions.hotfix.id", "firefox-hotfix@mozilla.org");
+pref("extensions.hotfix.cert.checkAttributes", true);
+pref("extensions.hotfix.certs.1.sha1Fingerprint", "F1:DB:F9:6A:7B:B8:04:FA:48:3C:16:95:C7:2F:17:C6:5B:C2:9F:45");
 
 // Disable add-ons installed into the shared user and shared system areas by
 // default. This does not include the application directory. See the SCOPE
@@ -196,6 +200,11 @@ pref("app.update.showInstalledUI", false);
 //     versions.
 pref("app.update.incompatible.mode", 0);
 
+// Whether or not to attempt using the service for updates.
+#ifdef MOZ_MAINTENANCE_SERVICE
+pref("app.update.service.enabled", true);
+#endif
+
 // Symmetric (can be overridden by individual extensions) update preferences.
 // e.g.
 //  extensions.{GUID}.update.enabled
@@ -228,7 +237,7 @@ pref("keyword.URL", "");
 pref("general.useragent.locale", "@AB_CD@");
 pref("general.skins.selectedSkin", "classic/1.0");
 
-pref("general.smoothScroll", false);
+pref("general.smoothScroll", true);
 #ifdef UNIX_BUT_NOT_MAC
 pref("general.autoScroll", false);
 #else
@@ -272,7 +281,7 @@ pref("browser.urlbar.doubleClickSelectsAll", true);
 #else
 pref("browser.urlbar.doubleClickSelectsAll", false);
 #endif
-pref("browser.urlbar.autoFill", false);
+pref("browser.urlbar.autoFill", true);
 // 0: Match anywhere (e.g., middle of words)
 // 1: Match on word boundaries and then try matching anywhere
 // 2: Match only on word boundaries (e.g., after / or .)
@@ -285,7 +294,7 @@ pref("browser.urlbar.maxRichResults", 12);
 // The amount of time (ms) to wait after the user has stopped typing
 // before starting to perform autocomplete.  50 is the default set in
 // autocomplete.xml.
-pref("browser.urlbar.delay", 50);
+pref("browser.urlbar.delay", 0);
 
 // The special characters below can be typed into the urlbar to either restrict
 // the search to visited history, bookmarked, tagged pages; or force a match on
@@ -389,6 +398,7 @@ pref("browser.tabs.loadDivertedInBackground", false);
 pref("browser.tabs.loadBookmarksInBackground", false);
 pref("browser.tabs.tabClipWidth", 140);
 pref("browser.tabs.animate", true);
+pref("browser.tabs.onTop", true);
 pref("browser.tabs.drawInTitlebar", true);
 
 // Where to show tab close buttons:
@@ -862,7 +872,7 @@ pref("browser.zoom.updateBackgroundTabs", true);
 pref("breakpad.reportURL", "http://crash-stats.mozilla.com/report/index/");
 
 // base URL for web-based support pages
-pref("app.support.baseURL", "http://support.mozilla.com/1/firefox/%VERSION%/%OS%/%LOCALE%/");
+pref("app.support.baseURL", "http://support.mozilla.org/1/firefox/%VERSION%/%OS%/%LOCALE%/");
 
 // Name of alternate about: page for certificate errors (when undefined, defaults to about:neterror)
 pref("security.alternate_certificate_error_page", "certerror");
@@ -927,12 +937,18 @@ pref("browser.taskbar.lists.refreshInSeconds", 120);
 
 #ifdef MOZ_SERVICES_SYNC
 // The sync engines to use.
-pref("services.sync.registerEngines", "Bookmarks,Form,History,Password,Prefs,Tab");
+pref("services.sync.registerEngines", "Bookmarks,Form,History,Password,Prefs,Tab,Addons");
 // Preferences to be synced by default
 pref("services.sync.prefs.sync.accessibility.blockautorefresh", true);
 pref("services.sync.prefs.sync.accessibility.browsewithcaret", true);
 pref("services.sync.prefs.sync.accessibility.typeaheadfind", true);
 pref("services.sync.prefs.sync.accessibility.typeaheadfind.linksonly", true);
+pref("services.sync.prefs.sync.addons.ignoreUserEnabledChanges", true);
+// The addons prefs related to repository verification are intentionally
+// not synced for security reasons. If a system is compromised, a user
+// could weaken the pref locally, install an add-on from an untrusted
+// source, and this would propagate automatically to other,
+// uncompromised Sync-connected devices.
 pref("services.sync.prefs.sync.app.update.mode", true);
 pref("services.sync.prefs.sync.browser.download.manager.closeWhenDone", true);
 pref("services.sync.prefs.sync.browser.download.manager.retention", true);
@@ -953,6 +969,7 @@ pref("services.sync.prefs.sync.browser.tabs.closeButtons", true);
 pref("services.sync.prefs.sync.browser.tabs.loadInBackground", true);
 pref("services.sync.prefs.sync.browser.tabs.warnOnClose", true);
 pref("services.sync.prefs.sync.browser.tabs.warnOnOpen", true);
+pref("services.sync.prefs.sync.browser.tabs.onTop", true);
 pref("services.sync.prefs.sync.browser.urlbar.autocomplete.enabled", true);
 pref("services.sync.prefs.sync.browser.urlbar.autoFill", true);
 pref("services.sync.prefs.sync.browser.urlbar.default.behavior", true);
@@ -1013,6 +1030,9 @@ pref("devtools.inspector.htmlHeight", 112);
 // Enable the style inspector
 pref("devtools.styleinspector.enabled", true);
 
+// Enable the Tilt inspector
+pref("devtools.tilt.enabled", true);
+
 // Enable the rules view
 pref("devtools.ruleview.enabled", true);
 
@@ -1026,7 +1046,7 @@ pref("devtools.styleeditor.enabled", true);
 pref("devtools.chrome.enabled", false);
 
 // Disable the GCLI enhanced command line.
-pref("devtools.gcli.enable", false);
+pref("devtools.gcli.enable", true);
 
 // The last Web Console height. This is initially 0 which means that the Web
 // Console will use the default height next time it shows.

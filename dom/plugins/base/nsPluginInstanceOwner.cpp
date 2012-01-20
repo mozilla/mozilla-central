@@ -96,8 +96,6 @@ using mozilla::DefaultXDisplay;
 #include "nsIScrollableFrame.h"
 
 #include "nsContentCID.h"
-static NS_DEFINE_CID(kRangeCID, NS_RANGE_CID);
-
 #include "nsWidgetsCID.h"
 static NS_DEFINE_CID(kAppShellCID, NS_APPSHELL_CID);
 
@@ -623,8 +621,7 @@ NS_IMETHODIMP nsPluginInstanceOwner::InvalidateRect(NPRect *invalidRect)
   if (mWidget) {
     mWidget->Invalidate(nsIntRect(invalidRect->left, invalidRect->top,
                                   invalidRect->right - invalidRect->left,
-                                  invalidRect->bottom - invalidRect->top),
-                        false);
+                                  invalidRect->bottom - invalidRect->top));
     return NS_OK;
   }
 #endif
@@ -656,12 +653,6 @@ NS_IMETHODIMP nsPluginInstanceOwner::InvalidateRegion(NPRegion invalidRegion)
 
 NS_IMETHODIMP nsPluginInstanceOwner::ForceRedraw()
 {
-  NS_ENSURE_TRUE(mObjectFrame, NS_ERROR_NULL_POINTER);
-  nsIView* view = mObjectFrame->GetView();
-  if (view) {
-    return view->GetViewManager()->Composite();
-  }
-
   return NS_OK;
 }
 
@@ -833,10 +824,7 @@ NS_IMETHODIMP nsPluginInstanceOwner::GetTagText(const char* *result)
     if (NS_FAILED(rv))
       return rv;
 
-    nsCOMPtr<nsIDOMRange> range(do_CreateInstance(kRangeCID,&rv));
-    if (NS_FAILED(rv))
-      return rv;
-
+    nsRefPtr<nsRange> range = new nsRange();
     rv = range->SelectNode(node);
     if (NS_FAILED(rv))
       return rv;
@@ -1695,6 +1683,28 @@ bool nsPluginInstanceOwner::AddPluginView(const gfxRect& aRect)
 
   JNIEnv* env = GetJNIForThread();
   jclass cls = env->FindClass("org/mozilla/gecko/GeckoAppShell");
+
+#ifdef MOZ_JAVA_COMPOSITOR
+  nsAutoString metadata;
+  nsCOMPtr<nsIAndroidDrawMetadataProvider> metadataProvider =
+      AndroidBridge::Bridge()->GetDrawMetadataProvider();
+  metadataProvider->GetDrawMetadata(metadata);
+
+  jstring jMetadata = env->NewString(nsPromiseFlatString(metadata).get(), metadata.Length());
+
+  jmethodID method = env->GetStaticMethodID(cls,
+                                            "addPluginView",
+                                            "(Landroid/view/View;IIIILjava/lang/String;)V");
+
+  env->CallStaticVoidMethod(cls,
+                            method,
+                            javaSurface,
+                            (int)aRect.x,
+                            (int)aRect.y,
+                            (int)aRect.width,
+                            (int)aRect.height,
+                            jMetadata);
+#else
   jmethodID method = env->GetStaticMethodID(cls,
                                             "addPluginView",
                                             "(Landroid/view/View;DDDD)V");
@@ -1706,6 +1716,7 @@ bool nsPluginInstanceOwner::AddPluginView(const gfxRect& aRect)
                             aRect.y,
                             aRect.width,
                             aRect.height);
+#endif
 
   if (!mPluginViewAdded) {
     ANPEvent event;
@@ -2263,7 +2274,7 @@ nsEventStatus nsPluginInstanceOwner::ProcessEvent(const nsGUIEvent& anEvent)
     if (pPluginEvent) {
       // Make event coordinates relative to our enclosing widget,
       // not the widget they were received on.
-      // See use of NPEvent in widget/src/windows/nsWindow.cpp
+      // See use of NPEvent in widget/windows/nsWindow.cpp
       // for why this assert should be safe
       NS_ASSERTION(anEvent.message == NS_MOUSE_BUTTON_DOWN ||
                    anEvent.message == NS_MOUSE_BUTTON_UP ||
@@ -2880,8 +2891,7 @@ void nsPluginInstanceOwner::Paint(gfxContext* aContext,
   if (!mInstance || !mObjectFrame)
     return;
 
-  PRInt32 model;
-  mInstance->GetDrawingModel(&model);
+  PRInt32 model = mInstance->GetANPDrawingModel();
 
   if (model == kSurface_ANPDrawingModel) {
     if (!AddPluginView(aFrameRect)) {
@@ -3311,11 +3321,6 @@ NS_IMETHODIMP nsPluginInstanceOwner::CreateWidget(void)
       bool windowless = false;
       mInstance->IsWindowless(&windowless);
       nsIDocument *doc = mContent ? mContent->OwnerDoc() : nsnull;
-#ifndef XP_MACOSX
-      if (!windowless && doc && doc->IsFullScreenDoc()) {
-        nsIDocument::ExitFullScreen(true);
-      }
-#endif
       // always create widgets in Twips, not pixels
       nsPresContext* context = mObjectFrame->PresContext();
       rv = mObjectFrame->CreateWidget(context->DevPixelsToAppUnits(mPluginWindow->width),

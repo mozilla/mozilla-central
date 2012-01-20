@@ -39,8 +39,9 @@
 #include "nsCoreUtils.h"
 #include "nsAccUtils.h"
 
-#include "States.h"
 #include "nsIAccessibleTypes.h"
+#include "Role.h"
+#include "States.h"
 
 #include "nsAccessibilityService.h"
 #include "nsARIAMap.h"
@@ -104,18 +105,17 @@ nsAccUtils::SetAccGroupAttrs(nsIPersistentProperties *aAttributes,
 PRInt32
 nsAccUtils::GetDefaultLevel(nsAccessible *aAccessible)
 {
-  PRUint32 role = aAccessible->Role();
+  roles::Role role = aAccessible->Role();
 
-  if (role == nsIAccessibleRole::ROLE_OUTLINEITEM)
+  if (role == roles::OUTLINEITEM)
     return 1;
 
-  if (role == nsIAccessibleRole::ROLE_ROW) {
+  if (role == roles::ROW) {
     nsAccessible* parent = aAccessible->Parent();
-    if (parent && parent->Role() == nsIAccessibleRole::ROLE_TREE_TABLE) {
-      // It is a row inside flatten treegrid. Group level is always 1 until it
-      // is overriden by aria-level attribute.
+    // It is a row inside flatten treegrid. Group level is always 1 until it
+    // is overriden by aria-level attribute.
+    if (parent && parent->Role() == roles::TREE_TABLE) 
       return 1;
-    }
   }
 
   return 0;
@@ -440,7 +440,8 @@ nsAccUtils::GetTextAccessibleFromSelection(nsISelection* aSelection)
     if (textAcc)
       return textAcc;
 
-  } while (accessible = accessible->Parent());
+    accessible = accessible->Parent();
+  } while (accessible);
 
   NS_NOTREACHED("We must reach document accessible implementing nsIAccessibleText!");
   return nsnull;
@@ -607,15 +608,12 @@ nsAccUtils::GetLiveAttrValue(PRUint32 aRule, nsAString& aValue)
 bool
 nsAccUtils::IsTextInterfaceSupportCorrect(nsAccessible *aAccessible)
 {
-  bool foundText = false;
-  
-  nsCOMPtr<nsIAccessibleDocument> accDoc = do_QueryObject(aAccessible);
-  if (accDoc) {
-    // Don't test for accessible docs, it makes us create accessibles too
-    // early and fire mutation events before we need to
+  // Don't test for accessible docs, it makes us create accessibles too
+  // early and fire mutation events before we need to
+  if (aAccessible->IsDoc())
     return true;
-  }
 
+  bool foundText = false;
   PRInt32 childCount = aAccessible->GetChildCount();
   for (PRint32 childIdx = 0; childIdx < childCount; childIdx++) {
     nsAccessible *child = GetChildAt(childIdx);

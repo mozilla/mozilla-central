@@ -41,12 +41,12 @@
 #define mozilla_dom_indexeddb_idbdatabase_h__
 
 #include "mozilla/dom/indexedDB/IndexedDatabase.h"
+#include "mozilla/dom/indexedDB/FileManager.h"
 
 #include "nsIIDBDatabase.h"
 
 #include "nsCycleCollectionParticipant.h"
 #include "nsDOMEventTargetHelper.h"
-#include "nsDOMLists.h"
 #include "nsIDocument.h"
 
 class nsIScriptContext;
@@ -78,7 +78,8 @@ public:
   Create(nsIScriptContext* aScriptContext,
          nsPIDOMWindow* aOwner,
          already_AddRefed<DatabaseInfo> aDatabaseInfo,
-         const nsACString& aASCIIOrigin);
+         const nsACString& aASCIIOrigin,
+         FileManager* aFileManager);
 
   // nsIDOMEventTarget
   virtual nsresult PostHandleEvent(nsEventChainPostVisitor& aVisitor);
@@ -105,19 +106,20 @@ public:
 
   nsIScriptContext* ScriptContext()
   {
-    NS_ASSERTION(mScriptContext, "This should never be null!");
     return mScriptContext;
   }
 
   nsPIDOMWindow* Owner()
   {
-    NS_ASSERTION(mOwner, "This should never be null!");
     return mOwner;
   }
 
   already_AddRefed<nsIDocument> GetOwnerDocument()
   {
-    NS_ASSERTION(mOwner, "This should never be null!");
+    if (!mOwner) {
+      return nsnull;
+    }
+
     nsCOMPtr<nsIDocument> doc = do_QueryInterface(mOwner->GetExtantDocument());
     return doc.forget();
   }
@@ -141,6 +143,11 @@ public:
   void EnterSetVersionTransaction();
   void ExitSetVersionTransaction();
 
+  FileManager* Manager() const
+  {
+    return mFileManager;
+  }
+
 private:
   IDBDatabase();
   ~IDBDatabase();
@@ -157,6 +164,8 @@ private:
   bool mRegistered;
   bool mClosed;
   bool mRunningVersionChange;
+
+  nsRefPtr<FileManager> mFileManager;
 
   // Only touched on the main thread.
   nsRefPtr<nsDOMEventListenerWrapper> mOnAbortListener;

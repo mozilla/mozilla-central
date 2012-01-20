@@ -37,6 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <stdlib.h>
+#include <signal.h>
 #include "thread_helper.h"
 #include "nscore.h"
 #include "mozilla/TimeStamp.h"
@@ -48,17 +49,30 @@ extern mozilla::tls::key pkey_stack;
 extern mozilla::tls::key pkey_ticker;
 extern bool stack_key_initialized;
 
-#define SAMPLER_INIT() mozilla_sampler_init();
-#define SAMPLER_DEINIT() mozilla_sampler_deinit();
-#define SAMPLER_START(entries, interval) mozilla_sampler_start(entries, interval);
-#define SAMPLER_STOP() mozilla_sampler_stop();
-#define SAMPLER_IS_ACTIVE() mozilla_sampler_is_active();
+#ifndef SAMPLE_FUNCTION_NAME
+# ifdef __GNUC__
+#  define SAMPLE_FUNCTION_NAME __FUNCTION__
+# elif defined(_MSC_VER)
+#  define SAMPLE_FUNCTION_NAME __FUNCTION__
+# else
+#  define SAMPLE_FUNCTION_NAME __func__  // defined in C99, supported in various C++ compilers. Just raw function name.
+# endif
+#endif
+
+#define SAMPLER_INIT() mozilla_sampler_init()
+#define SAMPLER_DEINIT() mozilla_sampler_deinit()
+#define SAMPLER_START(entries, interval, features, featureCount) mozilla_sampler_start(entries, interval, features, featureCount)
+#define SAMPLER_STOP() mozilla_sampler_stop()
+#define SAMPLER_IS_ACTIVE() mozilla_sampler_is_active()
 #define SAMPLER_RESPONSIVENESS(time) mozilla_sampler_responsiveness(time)
 #define SAMPLER_GET_RESPONSIVENESS() mozilla_sampler_get_responsiveness()
-#define SAMPLER_SAVE() mozilla_sampler_save();
-#define SAMPLER_GET_PROFILE() mozilla_sampler_get_profile();
-#define SAMPLE_LABEL(name_space, info) mozilla::SamplerStackFrameRAII only_one_sampleraii_per_scope(FULLFUNCTION, name_space "::" info);
-#define SAMPLE_MARKER(info) mozilla_sampler_add_marker(info);
+#define SAMPLER_SAVE() mozilla_sampler_save()
+#define SAMPLER_GET_PROFILE() mozilla_sampler_get_profile()
+#define SAMPLER_GET_FEATURES() mozilla_sampler_get_features()
+// we want the class and function name but can't easily get that using preprocessor macros
+// __func__ doesn't have the class name and __PRETTY_FUNCTION__ has the parameters
+#define SAMPLE_LABEL(name_space, info) mozilla::SamplerStackFrameRAII only_one_sampleraii_per_scope(name_space "::" info)
+#define SAMPLE_MARKER(info) mozilla_sampler_add_marker(info)
 
 /* we duplicate this code here to avoid header dependencies
  * which make it more difficult to include in other places */
@@ -89,9 +103,15 @@ LinuxKernelMemoryBarrierFunc pLinuxKernelMemoryBarrier __attribute__((weak)) =
 #elif defined(V8_HOST_ARCH_IA32) || defined(V8_HOST_ARCH_X64)
 # if defined(_MSC_VER)
    // MSVC2005 has a name collision bug caused when both <intrin.h> and <windows.h> are included together.
+#ifdef _INC_WINDOWS
 #  define _interlockedbittestandreset _interlockedbittestandreset_NAME_CHANGED_TO_AVOID_MSVS2005_ERROR
 #  define _interlockedbittestandset _interlockedbittestandset_NAME_CHANGED_TO_AVOID_MSVS2005_ERROR
 #  include <intrin.h>
+#else
+#  include <intrin.h>
+#  define _interlockedbittestandreset _interlockedbittestandreset_NAME_CHANGED_TO_AVOID_MSVS2005_ERROR
+#  define _interlockedbittestandset _interlockedbittestandset_NAME_CHANGED_TO_AVOID_MSVS2005_ERROR
+#endif
    // Even though MSVC2005 has the intrinsic _ReadWriteBarrier, it fails to link to it when it's
    // not explicitly declared.
 #  pragma intrinsic(_ReadWriteBarrier)
@@ -113,20 +133,22 @@ inline void* mozilla_sampler_call_enter(const char *aInfo);
 inline void  mozilla_sampler_call_exit(void* handle);
 inline void  mozilla_sampler_add_marker(const char *aInfo);
 
-void mozilla_sampler_start(int aEntries, int aInterval);
+void mozilla_sampler_start(int aEntries, int aInterval, const char** aFeatures, uint32_t aFeatureCount);
 void mozilla_sampler_stop();
 bool mozilla_sampler_is_active();
 void mozilla_sampler_responsiveness(TimeStamp time);
-const float* mozilla_sampler_get_responsiveness();
+const double* mozilla_sampler_get_responsiveness();
 void mozilla_sampler_save();
 char* mozilla_sampler_get_profile();
+const char** mozilla_sampler_get_features();
 void mozilla_sampler_init();
 
 namespace mozilla {
 
 class NS_STACK_CLASS SamplerStackFrameRAII {
 public:
-  SamplerStackFrameRAII(const char *aFuncName, const char *aInfo) {
+  // we only copy the strings at save time, so to take multiple parameters we'd need to copy them then.
+  SamplerStackFrameRAII(const char *aInfo) {
     mHandle = mozilla_sampler_call_enter(aInfo);
   }
   ~SamplerStackFrameRAII() {

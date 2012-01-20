@@ -123,6 +123,7 @@ TableRowsCollection::~TableRowsCollection()
 NS_IMPL_CYCLE_COLLECTION_CLASS(TableRowsCollection)
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(TableRowsCollection)
   NS_IMPL_CYCLE_COLLECTION_UNLINK_PRESERVED_WRAPPER
+  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mOrphanRows)
 NS_IMPL_CYCLE_COLLECTION_UNLINK_END
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(TableRowsCollection)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR_AMBIGUOUS(mOrphanRows,
@@ -344,6 +345,13 @@ nsHTMLTableElement::~nsHTMLTableElement()
 
 
 NS_IMPL_CYCLE_COLLECTION_CLASS(nsHTMLTableElement)
+NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN_INHERITED(nsHTMLTableElement, nsGenericHTMLElement)
+  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mTBodies)
+  if (tmp->mRows) {
+    tmp->mRows->ParentDestroyed();
+  }
+  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mRows)
+NS_IMPL_CYCLE_COLLECTION_UNLINK_END
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(nsHTMLTableElement,
                                                   nsGenericHTMLElement)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR_AMBIGUOUS(mTBodies,
@@ -728,12 +736,14 @@ nsHTMLTableElement::InsertRow(PRInt32 aIndex, nsIDOMHTMLElement** aValue)
       // is appended.
       if (aIndex == -1 || PRUint32(aIndex) == rowCount) {
         rv = parent->AppendChild(newRowNode, getter_AddRefs(retChild));
+        NS_ENSURE_SUCCESS(rv, rv);
       }
       else
       {
         // insert the new row before the reference row we found above
         rv = parent->InsertBefore(newRowNode, refRow,
                                   getter_AddRefs(retChild));
+        NS_ENSURE_SUCCESS(rv, rv);
       }
 
       if (retChild) {
@@ -770,6 +780,7 @@ nsHTMLTableElement::InsertRow(PRInt32 aIndex, nsIDOMHTMLElement** aValue)
 
       if (newRowGroup) {
         rv = AppendChildTo(newRowGroup, true);
+        NS_ENSURE_SUCCESS(rv, rv);
 
         rowGroup = do_QueryInterface(newRowGroup);
       }
@@ -1133,7 +1144,7 @@ nsHTMLTableElement::IsAttributeMapped(const nsIAtom* aAttribute) const
     sBackgroundAttributeMap,
   };
 
-  return FindAttributeDependence(aAttribute, map, ArrayLength(map));
+  return FindAttributeDependence(aAttribute, map);
 }
 
 nsMapRuleToAttributesFunc

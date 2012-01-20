@@ -267,10 +267,10 @@ struct FieldHashPolicy
   typedef JSFlatString* Key;
   typedef Key Lookup;
 
-  static uint32 hash(const Lookup &l) {
+  static uint32_t hash(const Lookup &l) {
     const jschar* s = l->chars();
     size_t n = l->length();
-    uint32 hash = 0;
+    uint32_t hash = 0;
     for (; n > 0; s++, n--)
       hash = hash * 33 + *s;
     return hash;
@@ -332,7 +332,7 @@ struct ClosureInfo
   void* errResult;       // Result that will be returned if the closure throws
   ffi_closure* closure;  // The C closure itself
 #ifdef DEBUG
-  jsword cxThread;       // The thread on which the context may be used
+  intptr_t cxThread;     // The thread on which the context may be used
 #endif
 
   // Anything conditionally freed in the destructor should be initialized to

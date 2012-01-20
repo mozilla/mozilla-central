@@ -41,10 +41,10 @@
 
 #include "nsContainerFrame.h"
 #include "nsISVGChildFrame.h"
+#include "nsSVGUtils.h"
 #include "nsRegion.h"
 #include "nsIPresShell.h"
-#include "gfxRect.h"
-#include "gfxMatrix.h"
+#include "mozilla/Attributes.h"
 
 class nsSVGOuterSVGFrame;
 
@@ -71,6 +71,8 @@ public:
                                nsIAtom*        aAttribute,
                                PRInt32         aModType);
 
+  virtual void DidSetStyleContext(nsStyleContext* aOldStyleContext) MOZ_OVERRIDE;
+
   virtual nsIFrame* GetContentInsertionFrame() {
     return GetFirstPrincipalChild()->GetContentInsertionFrame();
   }
@@ -91,7 +93,8 @@ public:
   /**
    * Foreign objects can return a transform matrix.
    */
-  virtual gfx3DMatrix GetTransformMatrix(nsIFrame **aOutAncestor);
+  virtual gfx3DMatrix GetTransformMatrix(nsIFrame* aAncestor,
+                                         nsIFrame **aOutAncestor);
 
   /**
    * Get the "type" of the frame
@@ -130,7 +133,9 @@ public:
   virtual gfxRect GetBBoxContribution(const gfxMatrix &aToBBoxUserspace,
                                       PRUint32 aFlags);
   NS_IMETHOD_(bool) IsDisplayContainer() { return true; }
-  NS_IMETHOD_(bool) HasValidCoveredRect() { return true; }
+  NS_IMETHOD_(bool) HasValidCoveredRect() {
+    return !(GetStateBits() & NS_STATE_SVG_NONDISPLAY_CHILD);
+  }
 
   gfxMatrix GetCanvasTM();
 

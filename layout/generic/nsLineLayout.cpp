@@ -52,7 +52,7 @@
 #include "nsBlockFrame.h"
 #include "nsInlineFrame.h"
 #include "nsStyleConsts.h"
-#include "nsHTMLContainerFrame.h"
+#include "nsContainerFrame.h"
 #include "nsFloatManager.h"
 #include "nsStyleContext.h"
 #include "nsPresContext.h"
@@ -113,7 +113,6 @@ nsLineLayout::nsLineLayout(nsPresContext* aPresContext,
 
   // Stash away some style data that we need
   mStyleText = aOuterReflowState->frame->GetStyleText();
-  mTextAlign = mStyleText->mTextAlign;
   mLineNumber = 0;
   mFlags = 0; // default all flags to false except those that follow here...
   mTotalPlacedFrames = 0;
@@ -999,7 +998,7 @@ nsLineLayout::ReflowFrame(nsIFrame* aFrame,
         // Remove all of the childs next-in-flows. Make sure that we ask
         // the right parent to do the removal (it's possible that the
         // parent is not this because we are executing pullup code)
-        nsHTMLContainerFrame* parent = static_cast<nsHTMLContainerFrame*>
+        nsContainerFrame* parent = static_cast<nsContainerFrame*>
                                                   (kidNextInFlow->GetParent());
         parent->DeleteNextInFlowChild(mPresContext, kidNextInFlow, true);
       }
@@ -1801,20 +1800,17 @@ nsLineLayout::VerticalAlignFrames(PerSpanData* psd)
 
     // Compute the logical height of the frame
     nscoord logicalHeight;
-    nscoord topLeading;
     PerSpanData* frameSpan = pfd->mSpan;
     if (frameSpan) {
       // For span frames the logical-height and top-leading was
       // pre-computed when the span was reflowed.
       logicalHeight = frameSpan->mLogicalHeight;
-      topLeading = frameSpan->mTopLeading;
     }
     else {
       // For other elements the logical height is the same as the
       // frames height plus its margins.
       logicalHeight = pfd->mBounds.height + pfd->mMargin.top +
         pfd->mMargin.bottom;
-      topLeading = 0;
     }
 
     // Get vertical-align property
@@ -2042,7 +2038,7 @@ nsLineLayout::VerticalAlignFrames(PerSpanData* psd)
                pfd->mAscent, pfd->mBounds.height,
                pfd->mBorderPadding.top, pfd->mBorderPadding.bottom,
                logicalHeight,
-               pfd->mSpan ? topLeading : 0,
+               frameSpan ? frameSpan->mTopLeading : 0,
                pfd->mBounds.y, minY, maxY);
 #endif
       }
@@ -2133,6 +2129,55 @@ nsLineLayout::VerticalAlignFrames(PerSpanData* psd)
 #endif
     nscoord goodMinY = spanFramePFD->mBorderPadding.top - psd->mTopLeading;
     nscoord goodMaxY = goodMinY + psd->mLogicalHeight;
+
+    // For cases like the one in bug 714519 (text-decoration placement
+    // or making nsLineLayout::IsZeroHeight() handle
+    // vertical-align:top/bottom on a descendant of the line that's not
+    // a child of it), we want to treat elements that are
+    // vertical-align: top or bottom somewhat like children for the
+    // purposes of this quirk.  To some extent, this is guessing, since
+    // they might end up being aligned anywhere.  However, we'll guess
+    // that they'll be placed aligned with the top or bottom of this
+    // frame (as though this frame is the only thing in the line).
+    // (Guessing isn't crazy, since all we're doing is reducing the
+    // scope of a quirk and making the behavior more standards-like.)
+    if (maxTopBoxHeight > maxY - minY) {
+      // Distribute maxTopBoxHeight to ascent (baselineY - minY), and
+      // then to descent (maxY - baselineY) by adjusting minY or maxY,
+      // but not to exceed goodMinY and goodMaxY.
+      nscoord distribute = maxTopBoxHeight - (maxY - minY);
+      nscoord ascentSpace = NS_MAX(minY - goodMinY, 0);
+      if (distribute > ascentSpace) {
+        distribute -= ascentSpace;
+        minY -= ascentSpace;
+        nscoord descentSpace = NS_MAX(goodMaxY - maxY, 0);
+        if (distribute > descentSpace) {
+          maxY += descentSpace;
+        } else {
+          maxY += distribute;
+        }
+      } else {
+        minY -= distribute;
+      }
+    }
+    if (maxBottomBoxHeight > maxY - minY) {
+      // Likewise, but preferring descent to ascent.
+      nscoord distribute = maxBottomBoxHeight - (maxY - minY);
+      nscoord descentSpace = NS_MAX(goodMaxY - maxY, 0);
+      if (distribute > descentSpace) {
+        distribute -= descentSpace;
+        maxY += descentSpace;
+        nscoord ascentSpace = NS_MAX(minY - goodMinY, 0);
+        if (distribute > ascentSpace) {
+          minY -= ascentSpace;
+        } else {
+          minY -= distribute;
+        }
+      } else {
+        maxY += distribute;
+      }
+    }
+
     if (minY > goodMinY) {
       nscoord adjust = minY - goodMinY; // positive
 
@@ -2447,8 +2492,12 @@ nsLineLayout::ApplyFrameJustification(PerSpanData* aPSD, FrameJustificationState
 
 void
 nsLineLayout::HorizontalAlignFrames(nsRect& aLineBounds,
-                                    bool aAllowJustify)
+                                    bool aIsLastLine)
 {
+  /**
+   * NOTE: aIsLastLine ain't necessarily so: it is correctly set by caller
+   * only in cases where the last line needs special handling.
+   */
   PerSpanData* psd = mRootSpan;
   NS_WARN_IF_FALSE(psd->mRightEdge != NS_UNCONSTRAINEDSIZE,
                    "have unconstrained width; this should only result from "
@@ -2464,29 +2513,44 @@ nsLineLayout::HorizontalAlignFrames(nsRect& aLineBounds,
   nscoord dx = 0;
 
   if (remainingWidth > 0) {
-    switch (mTextAlign) {
-      case NS_STYLE_TEXT_ALIGN_JUSTIFY:
-        // If this is not the last line then go ahead and justify the
-        // frames in the line.
-        if (aAllowJustify) {
-          PRInt32 numSpaces;
-          PRInt32 numLetters;
-            
-          ComputeJustificationWeights(psd, &numSpaces, &numLetters);
+    PRUint8 textAlign = mStyleText->mTextAlign;
 
-          if (numSpaces > 0) {
-            FrameJustificationState state =
-              { numSpaces, numLetters, remainingWidth, 0, 0, 0, 0, 0 };
-
-            // Apply the justification, and make sure to update our linebox
-            // width to account for it.
-            aLineBounds.width += ApplyFrameJustification(psd, &state);
-            remainingWidth = availWidth - aLineBounds.width;
-            break;
-          }
+    /* 
+     * 'text-align-last: auto' is equivalent to the value of the 'text-align'
+     * property except when 'text-align' is set to 'justify', in which case it
+     * is 'justify' when 'text-justify' is 'distribute' and 'start' otherwise.
+     *
+     * XXX: the code below will have to change when we implement text-justify
+     */
+    if (aIsLastLine) {
+      if (mStyleText->mTextAlignLast == NS_STYLE_TEXT_ALIGN_AUTO) {
+        if (textAlign == NS_STYLE_TEXT_ALIGN_JUSTIFY) {
+          textAlign = NS_STYLE_TEXT_ALIGN_DEFAULT;
         }
-        // Fall through to the default case if we were told not to
-        // justify anything or could not justify to fill the space.
+      } else {
+        textAlign = mStyleText->mTextAlignLast;
+      }
+    }
+
+    switch (textAlign) {
+      case NS_STYLE_TEXT_ALIGN_JUSTIFY:
+        PRInt32 numSpaces;
+        PRInt32 numLetters;
+            
+        ComputeJustificationWeights(psd, &numSpaces, &numLetters);
+
+        if (numSpaces > 0) {
+          FrameJustificationState state =
+            { numSpaces, numLetters, remainingWidth, 0, 0, 0, 0, 0 };
+
+          // Apply the justification, and make sure to update our linebox
+          // width to account for it.
+          aLineBounds.width += ApplyFrameJustification(psd, &state);
+          remainingWidth = availWidth - aLineBounds.width;
+          break;
+        }
+        // Fall through to the default case if we could not justify to fill
+        // the space.
 
       case NS_STYLE_TEXT_ALIGN_DEFAULT:
         if (NS_STYLE_DIRECTION_LTR == psd->mDirection) {

@@ -24,8 +24,6 @@
     COMPONENT(ATOMSERVICE, nsAtomServiceConstructor)
     COMPONENT(OBSERVERSERVICE, nsObserverService::Create)
 
-    COMPONENT(XPCOMPROXY, nsProxyObjectManager::Create)
-
     COMPONENT(TIMER, nsTimerImplConstructor)
 
 #define COMPONENT_SUPPORTS(TYPE, Type)                                         \
@@ -63,8 +61,6 @@
 
     COMPONENT(VARIANT, nsVariantConstructor)
     COMPONENT(INTERFACEINFOMANAGER_SERVICE, nsXPTIInterfaceInfoManagerGetSingleton)
-
-    COMPONENT(RECYCLINGALLOCATOR, nsRecyclingAllocatorImplConstructor)
 
     COMPONENT(HASH_PROPERTY_BAG, nsHashPropertyBagConstructor)
 

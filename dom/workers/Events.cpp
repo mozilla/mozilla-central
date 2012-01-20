@@ -42,7 +42,6 @@
 #include "Events.h"
 
 #include "jsapi.h"
-#include "jscntxt.h"
 #include "jsfriendapi.h"
 
 #include "nsTraceRefcnt.h"
@@ -455,7 +454,7 @@ class MessageEvent : public Event
   static JSFunctionSpec sFunctions[];
 
 protected:
-  uint64* mData;
+  uint64_t* mData;
   size_t mDataByteCount;
   nsTArray<nsCOMPtr<nsISupports> > mClonedObjects;
   bool mMainRuntime;
@@ -849,7 +848,7 @@ private:
 
     JSString* type, *message, *filename;
     JSBool bubbles, cancelable;
-    uint32 lineNumber;
+    uint32_t lineNumber;
     if (!JS_ConvertArguments(aCx, aArgc, JS_ARGV(aCx, aVp), "SbbSSu", &type,
                              &bubbles, &cancelable, &message, &filename,
                              &lineNumber)) {

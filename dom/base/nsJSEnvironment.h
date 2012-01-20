@@ -49,9 +49,6 @@
 class nsIXPConnectJSObjectHolder;
 class nsRootedJSValueArray;
 class nsScriptNameSpaceManager;
-namespace js {
-class AutoArrayRooter;
-}
 namespace mozilla {
 template <class> class Maybe;
 }
@@ -75,6 +72,7 @@ public:
   virtual nsresult EvaluateString(const nsAString& aScript,
                                   JSObject* aScopeObject,
                                   nsIPrincipal *principal,
+                                  nsIPrincipal *originPrincipal,
                                   const char *aURL,
                                   PRUint32 aLineNo,
                                   PRUint32 aVersion,
@@ -95,7 +93,7 @@ public:
                                  const char *aURL,
                                  PRUint32 aLineNo,
                                  PRUint32 aVersion,
-                                 nsScriptObjectHolder &aScriptObject);
+                                 nsScriptObjectHolder<JSScript>& aScriptObject);
   virtual nsresult ExecuteScript(JSScript* aScriptObject,
                                  JSObject* aScopeObject,
                                  nsAString* aRetValue,
@@ -107,14 +105,14 @@ public:
                                        const nsAString& aBody,
                                        const char *aURL, PRUint32 aLineNo,
                                        PRUint32 aVersion,
-                                       nsScriptObjectHolder &aHandler);
+                                       nsScriptObjectHolder<JSObject>& aHandler);
   virtual nsresult CallEventHandler(nsISupports* aTarget, JSObject* aScope,
                                     JSObject* aHandler,
                                     nsIArray *argv, nsIVariant **rv);
   virtual nsresult BindCompiledEventHandler(nsISupports *aTarget,
                                             JSObject *aScope,
                                             JSObject* aHandler,
-                                            nsScriptObjectHolder& aBoundHandler);
+                                            nsScriptObjectHolder<JSObject>& aBoundHandler);
   virtual nsresult CompileFunction(JSObject* aTarget,
                                    const nsACString& aName,
                                    PRUint32 aArgCount,
@@ -126,7 +124,6 @@ public:
                                    bool aShared,
                                    JSObject** aFunctionObject);
 
-  virtual void SetDefaultLanguageVersion(PRUint32 aVersion);
   virtual nsIScriptGlobalObject *GetGlobalObject();
   virtual JSContext* GetNativeContext();
   virtual JSObject* GetNativeGlobal();
@@ -169,7 +166,7 @@ public:
 
   virtual nsresult Serialize(nsIObjectOutputStream* aStream, JSScript* aScriptObject);
   virtual nsresult Deserialize(nsIObjectInputStream* aStream,
-                               nsScriptObjectHolder &aResult);
+                               nsScriptObjectHolder<JSScript>& aResult);
 
   virtual nsresult DropScriptObject(void *object);
   virtual nsresult HoldScriptObject(void *object);
@@ -183,10 +180,14 @@ public:
   static void LoadEnd();
 
   static void GarbageCollectNow(bool shrinkingGC = false);
+  static void ShrinkGCBuffersNow();
   static void CycleCollectNow(nsICycleCollectorListener *aListener = nsnull);
 
   static void PokeGC();
   static void KillGCTimer();
+
+  static void PokeShrinkGCBuffers();
+  static void KillShrinkGCBuffersTimer();
 
   static void PokeCC();
   static void MaybePokeCC();
@@ -358,13 +359,13 @@ nsresult NS_CreateJSRuntime(nsIScriptRuntime **aRuntime);
 void NS_ScriptErrorReporter(JSContext *cx, const char *message, JSErrorReport *report);
 
 JSObject* NS_DOMReadStructuredClone(JSContext* cx,
-                                    JSStructuredCloneReader* reader, uint32 tag,
-                                    uint32 data, void* closure);
+                                    JSStructuredCloneReader* reader, uint32_t tag,
+                                    uint32_t data, void* closure);
 
 JSBool NS_DOMWriteStructuredClone(JSContext* cx,
                                   JSStructuredCloneWriter* writer,
                                   JSObject* obj, void *closure);
 
-void NS_DOMStructuredCloneError(JSContext* cx, uint32 errorid);
+void NS_DOMStructuredCloneError(JSContext* cx, uint32_t errorid);
 
 #endif /* nsJSEnvironment_h */

@@ -161,7 +161,7 @@ CopyErrorReport(JSContext *cx, JSErrorReport *report)
     size_t i, argsArraySize, argsCopySize, argSize;
     size_t mallocSize;
     JSErrorReport *copy;
-    uint8 *cursor;
+    uint8_t *cursor;
 
 #define JS_CHARS_SIZE(jschars) ((js_strlen(jschars) + 1) * sizeof(jschar))
 
@@ -189,7 +189,7 @@ CopyErrorReport(JSContext *cx, JSErrorReport *report)
      */
     mallocSize = sizeof(JSErrorReport) + argsArraySize + argsCopySize +
                  ucmessageSize + uclinebufSize + linebufSize + filenameSize;
-    cursor = (uint8 *)cx->malloc_(mallocSize);
+    cursor = (uint8_t *)cx->malloc_(mallocSize);
     if (!cursor)
         return NULL;
 
@@ -203,22 +203,22 @@ CopyErrorReport(JSContext *cx, JSErrorReport *report)
         for (i = 0; report->messageArgs[i]; ++i) {
             copy->messageArgs[i] = (const jschar *)cursor;
             argSize = JS_CHARS_SIZE(report->messageArgs[i]);
-            memcpy(cursor, report->messageArgs[i], argSize);
+            js_memcpy(cursor, report->messageArgs[i], argSize);
             cursor += argSize;
         }
         copy->messageArgs[i] = NULL;
-        JS_ASSERT(cursor == (uint8 *)copy->messageArgs[0] + argsCopySize);
+        JS_ASSERT(cursor == (uint8_t *)copy->messageArgs[0] + argsCopySize);
     }
 
     if (report->ucmessage) {
         copy->ucmessage = (const jschar *)cursor;
-        memcpy(cursor, report->ucmessage, ucmessageSize);
+        js_memcpy(cursor, report->ucmessage, ucmessageSize);
         cursor += ucmessageSize;
     }
 
     if (report->uclinebuf) {
         copy->uclinebuf = (const jschar *)cursor;
-        memcpy(cursor, report->uclinebuf, uclinebufSize);
+        js_memcpy(cursor, report->uclinebuf, uclinebufSize);
         cursor += uclinebufSize;
         if (report->uctokenptr) {
             copy->uctokenptr = copy->uclinebuf + (report->uctokenptr -
@@ -228,7 +228,7 @@ CopyErrorReport(JSContext *cx, JSErrorReport *report)
 
     if (report->linebuf) {
         copy->linebuf = (const char *)cursor;
-        memcpy(cursor, report->linebuf, linebufSize);
+        js_memcpy(cursor, report->linebuf, linebufSize);
         cursor += linebufSize;
         if (report->tokenptr) {
             copy->tokenptr = copy->linebuf + (report->tokenptr -
@@ -238,9 +238,12 @@ CopyErrorReport(JSContext *cx, JSErrorReport *report)
 
     if (report->filename) {
         copy->filename = (const char *)cursor;
-        memcpy(cursor, report->filename, filenameSize);
+        js_memcpy(cursor, report->filename, filenameSize);
     }
-    JS_ASSERT(cursor + filenameSize == (uint8 *)copy + mallocSize);
+    JS_ASSERT(cursor + filenameSize == (uint8_t *)copy + mallocSize);
+
+    /* HOLD called by the destination error object. */
+    copy->originPrincipals = report->originPrincipals;
 
     /* Copy non-pointer members. */
     copy->lineno = report->lineno;
@@ -253,7 +256,7 @@ CopyErrorReport(JSContext *cx, JSErrorReport *report)
     return copy;
 }
 
-static jsval *
+static HeapValue *
 GetStackTraceValueBuffer(JSExnPrivate *priv)
 {
     /*
@@ -264,7 +267,7 @@ GetStackTraceValueBuffer(JSExnPrivate *priv)
      */
     JS_STATIC_ASSERT(sizeof(JSStackTraceElem) % sizeof(jsval) == 0);
 
-    return (jsval *)(priv->stackElems + priv->stackDepth);
+    return reinterpret_cast<HeapValue *>(priv->stackElems + priv->stackDepth);
 }
 
 struct SuppressErrorsGuard
@@ -293,6 +296,9 @@ struct AppendArg {
         return values.append(*vp);
     }
 };
+
+static void
+SetExnPrivate(JSContext *cx, JSObject *exnObject, JSExnPrivate *priv);
 
 static bool
 InitExnPrivate(JSContext *cx, JSObject *exnObject, JSString *message,
@@ -353,7 +359,7 @@ InitExnPrivate(JSContext *cx, JSObject *exnObject, JSString *message,
 
     size_t nbytes = offsetof(JSExnPrivate, stackElems) +
                     frames.length() * sizeof(JSStackTraceElem) +
-                    values.length() * sizeof(Value);
+                    values.length() * sizeof(HeapValue);
 
     JSExnPrivate *priv = (JSExnPrivate *)cx->malloc_(nbytes);
     if (!priv)
@@ -385,13 +391,14 @@ InitExnPrivate(JSContext *cx, JSObject *exnObject, JSString *message,
     priv->exnType = exnType;
 
     JSStackTraceElem *framesDest = priv->stackElems;
-    Value *valuesDest = reinterpret_cast<Value *>(framesDest + frames.length());
+    HeapValue *valuesDest = reinterpret_cast<HeapValue *>(framesDest + frames.length());
     JS_ASSERT(valuesDest == GetStackTraceValueBuffer(priv));
 
     PodCopy(framesDest, frames.begin(), frames.length());
-    PodCopy(valuesDest, values.begin(), values.length());
+    for (size_t i = 0; i < values.length(); ++i)
+        valuesDest[i].init(cx->compartment, values[i]);
 
-    exnObject->setPrivate(priv);
+    SetExnPrivate(cx, exnObject, priv);
     return true;
 }
 
@@ -408,7 +415,7 @@ exn_trace(JSTracer *trc, JSObject *obj)
     JSExnPrivate *priv;
     JSStackTraceElem *elem;
     size_t vcount, i;
-    jsval *vp, v;
+    HeapValue *vp;
 
     priv = GetExnPrivate(obj);
     if (priv) {
@@ -427,19 +434,34 @@ exn_trace(JSTracer *trc, JSObject *obj)
         }
         vp = GetStackTraceValueBuffer(priv);
         for (i = 0; i != vcount; ++i, ++vp) {
-            /* This value is read-only, so it's okay for it to be Unbarriered. */
-            v = *vp;
-            MarkValueUnbarriered(trc, v, "stack trace argument");
+            MarkValue(trc, *vp, "stack trace argument");
         }
     }
+}
+
+/* NB: An error object's private must be set through this function. */
+static void
+SetExnPrivate(JSContext *cx, JSObject *exnObject, JSExnPrivate *priv)
+{
+    JS_ASSERT(!exnObject->getPrivate());
+    JS_ASSERT(exnObject->isError());
+    if (JSErrorReport *report = priv->errorReport) {
+        if (JSPrincipals *prin = report->originPrincipals)
+            JSPRINCIPALS_HOLD(cx, prin);
+    }
+    exnObject->setPrivate(priv);
 }
 
 static void
 exn_finalize(JSContext *cx, JSObject *obj)
 {
     if (JSExnPrivate *priv = GetExnPrivate(obj)) {
-        if (JSErrorReport *report = priv->errorReport)
+        if (JSErrorReport *report = priv->errorReport) {
+            /* HOLD called by SetExnPrivate. */
+            if (JSPrincipals *prin = report->originPrincipals)
+                JSPRINCIPALS_DROP(cx, prin);
             cx->free_(report);
+        }
         cx->free_(priv);
     }
 }
@@ -582,7 +604,7 @@ StackTraceToString(JSContext *cx, JSExnPrivate *priv)
     jschar *stackbuf;
     size_t stacklen, stackmax;
     JSStackTraceElem *elem, *endElem;
-    jsval *values;
+    HeapValue *values;
     size_t i;
     JSString *str;
     const char *cp;
@@ -780,6 +802,7 @@ Exception(JSContext *cx, uintN argc, Value *vp)
 static JSBool
 exn_toString(JSContext *cx, uintN argc, Value *vp)
 {
+    JS_CHECK_RECURSION(cx, return false);
     CallArgs args = CallArgsFromVp(argc, vp);
 
     /* Step 2. */
@@ -858,6 +881,7 @@ exn_toString(JSContext *cx, uintN argc, Value *vp)
 static JSBool
 exn_toSource(JSContext *cx, uintN argc, Value *vp)
 {
+    JS_CHECK_RECURSION(cx, return false);
     CallArgs args = CallArgsFromVp(argc, vp);
 
     JSObject *obj = ToObject(cx, &args.thisv());
@@ -987,7 +1011,7 @@ InitErrorClass(JSContext *cx, GlobalObject *global, intN type, JSObject &proto)
                                                  JSFunction::ExtendedFinalizeKind);
     if (!ctor)
         return NULL;
-    ctor->setExtendedSlot(0, Int32Value(int32(type)));
+    ctor->setExtendedSlot(0, Int32Value(int32_t(type)));
 
     if (!LinkConstructorAndPrototype(cx, ctor, errorProto))
         return NULL;
@@ -1006,7 +1030,7 @@ js_InitExceptionClasses(JSContext *cx, JSObject *obj)
     JS_ASSERT(obj->isGlobal());
     JS_ASSERT(obj->isNative());
 
-    GlobalObject *global = obj->asGlobal();
+    GlobalObject *global = &obj->asGlobal();
 
     JSObject *objectProto;
     if (!js_GetClassPrototype(cx, global, JSProto_Object, &objectProto))
@@ -1263,9 +1287,9 @@ js_CopyErrorObject(JSContext *cx, JSObject *errobj, JSObject *scope)
     assertSameCompartment(cx, scope);
     JSExnPrivate *priv = GetExnPrivate(errobj);
 
-    uint32 stackDepth = priv->stackDepth;
+    uint32_t stackDepth = priv->stackDepth;
     size_t valueCount = 0;
-    for (uint32 i = 0; i < stackDepth; i++)
+    for (uint32_t i = 0; i < stackDepth; i++)
         valueCount += priv->stackElems[i].argc;
 
     size_t size = offsetof(JSExnPrivate, stackElems) +
@@ -1309,10 +1333,10 @@ js_CopyErrorObject(JSContext *cx, JSObject *errobj, JSObject *scope)
 
     // Create the Error object.
     JSObject *proto;
-    if (!js_GetClassPrototype(cx, scope->getGlobal(), GetExceptionProtoKey(copy->exnType), &proto))
+    if (!js_GetClassPrototype(cx, &scope->global(), GetExceptionProtoKey(copy->exnType), &proto))
         return NULL;
     JSObject *copyobj = NewObjectWithGivenProto(cx, &ErrorClass, proto, NULL);
-    copyobj->setPrivate(copy);
+    SetExnPrivate(cx, copyobj, copy);
     autoFree.p = NULL;
     return copyobj;
 }

@@ -85,9 +85,11 @@ public class LayerController {
 
     private boolean mForceRedraw;
 
-    /* NB: These must be powers of two due to the OpenGL ES 1.x restriction on NPOT textures. */
-    public static final int TILE_WIDTH = 1024;
-    public static final int TILE_HEIGHT = 2048;
+    /* The extra area on the sides of the page that we want to buffer to help with
+     * smooth, asynchronous scrolling. Depending on a device's support for NPOT
+     * textures, this may be rounded up to the nearest power of two.
+     */
+    public static final IntSize MIN_BUFFER = new IntSize(512, 1024);
 
     /* If the visible rect is within the danger zone (measured in pixels from each edge of a tile),
      * we start aggressively redrawing to minimize checkerboarding. */
@@ -165,22 +167,14 @@ public class LayerController {
      */
     public void setViewportSize(FloatSize size) {
         mViewportMetrics.setSize(size);
+        Log.d(LOGTAG, "setViewportSize: " + mViewportMetrics);
         setForceRedraw();
 
         if (mLayerClient != null)
             mLayerClient.viewportSizeChanged();
 
         notifyLayerClientOfGeometryChange();
-        mPanZoomController.geometryChanged(true);
-        mView.requestRender();
-    }
-
-    /** Scrolls the viewport to the given point. You must hold the monitor while calling this. */
-    public void scrollTo(PointF point) {
-        mViewportMetrics.setOrigin(point);
-        notifyLayerClientOfGeometryChange();
-        mPanZoomController.geometryChanged(false);
-        GeckoApp.mAppContext.repositionPluginViews(false);
+        mPanZoomController.abortAnimation();
         mView.requestRender();
     }
 
@@ -189,18 +183,9 @@ public class LayerController {
         PointF origin = mViewportMetrics.getOrigin();
         origin.offset(point.x, point.y);
         mViewportMetrics.setOrigin(origin);
+        Log.d(LOGTAG, "scrollBy: " + mViewportMetrics);
 
         notifyLayerClientOfGeometryChange();
-        mPanZoomController.geometryChanged(false);
-        GeckoApp.mAppContext.repositionPluginViews(false);
-        mView.requestRender();
-    }
-
-    /** Sets the current viewport. You must hold the monitor while calling this. */
-    public void setViewport(RectF viewport) {
-        mViewportMetrics.setViewport(viewport);
-        notifyLayerClientOfGeometryChange();
-        mPanZoomController.geometryChanged(false);
         GeckoApp.mAppContext.repositionPluginViews(false);
         mView.requestRender();
     }
@@ -211,10 +196,10 @@ public class LayerController {
             return;
 
         mViewportMetrics.setPageSize(size);
+        Log.d(LOGTAG, "setPageSize: " + mViewportMetrics);
 
         // Page size is owned by the LayerClient, so no need to notify it of
         // this change.
-        mPanZoomController.geometryChanged(false);
         mView.requestRender();
     }
 
@@ -226,13 +211,15 @@ public class LayerController {
      */
     public void setViewportMetrics(ViewportMetrics viewport) {
         mViewportMetrics = new ViewportMetrics(viewport);
-        GeckoApp.mAppContext.repositionPluginViews(false);
+        Log.d(LOGTAG, "setViewportMetrics: " + mViewportMetrics);
+        // this function may or may not be called on the UI thread,
+        // but repositionPluginViews must only be called on the UI thread.
+        GeckoApp.mAppContext.runOnUiThread(new Runnable() {
+            public void run() {
+                GeckoApp.mAppContext.repositionPluginViews(false);
+            }
+        });
         mView.requestRender();
-    }
-
-    /** Scales the viewport. You must hold the monitor while calling this. */
-    public void scaleTo(float zoomFactor) {
-        scaleWithFocus(zoomFactor, new PointF(0,0));
     }
 
     /**
@@ -241,21 +228,13 @@ public class LayerController {
      */
     public void scaleWithFocus(float zoomFactor, PointF focus) {
         mViewportMetrics.scaleTo(zoomFactor, focus);
+        Log.d(LOGTAG, "scaleWithFocus: " + mViewportMetrics + "; zf=" + zoomFactor);
 
         // We assume the zoom level will only be modified by the
         // PanZoomController, so no need to notify it of this change.
         notifyLayerClientOfGeometryChange();
         GeckoApp.mAppContext.repositionPluginViews(false);
         mView.requestRender();
-    }
-
-    /**
-     * Sets the viewport origin and scales in one operation. You must hold the monitor while
-     * calling this.
-     */
-    public void scaleWithOrigin(float zoomFactor, PointF origin) {
-        mViewportMetrics.setOrigin(origin);
-        scaleTo(zoomFactor);
     }
 
     public boolean post(Runnable action) { return mView.post(action); }
@@ -273,10 +252,15 @@ public class LayerController {
             mLayerClient.geometryChanged();
     }
 
-    /** Informs the pan/zoom controller that the viewport metrics changed. */
-    public void notifyPanZoomControllerOfGeometryChange(boolean abortAnimation) {
-        if (mPanZoomController != null)
-            mPanZoomController.geometryChanged(abortAnimation);
+    /** Aborts any pan/zoom animation that is currently in progress. */
+    public void abortPanZoomAnimation() {
+        if (mPanZoomController != null) {
+            mView.post(new Runnable() {
+                public void run() {
+                    mPanZoomController.abortAnimation();
+                }
+            });
+        }
     }
 
     /**
@@ -293,8 +277,12 @@ public class LayerController {
     }
 
     private RectF getTileRect() {
+        if (mRootLayer == null)
+            return new RectF();
+
         float x = mRootLayer.getOrigin().x, y = mRootLayer.getOrigin().y;
-        return new RectF(x, y, x + TILE_WIDTH, y + TILE_HEIGHT);
+        IntSize layerSize = mRootLayer.getSize();
+        return new RectF(x, y, x + layerSize.width, y + layerSize.height);
     }
 
     public RectF restrictToPageSize(RectF aRect) {

@@ -140,8 +140,9 @@ class LinkerHelper : public JSC::LinkBuffer
 #endif
     }
 
-    bool verifyRange(JITScript *jit) {
-        return verifyRange(JSC::JITCode(jit->code.m_code.executableAddress(), jit->code.m_size));
+    bool verifyRange(JITChunk *chunk) {
+        return verifyRange(JSC::JITCode(chunk->code.m_code.executableAddress(),
+                                        chunk->code.m_size));
     }
 
     JSC::ExecutablePool *init(JSContext *cx) {
@@ -188,8 +189,8 @@ class NativeStubLinker : public LinkerHelper
     typedef JSC::MacroAssembler::Jump FinalJump;
 #endif
 
-    NativeStubLinker(Assembler &masm, JITScript *jit, jsbytecode *pc, FinalJump done)
-        : LinkerHelper(masm, JSC::METHOD_CODE), jit(jit), pc(pc), done(done)
+    NativeStubLinker(Assembler &masm, JITChunk *chunk, jsbytecode *pc, FinalJump done)
+        : LinkerHelper(masm, JSC::METHOD_CODE), chunk(chunk), pc(pc), done(done)
     {}
 
     bool init(JSContext *cx);
@@ -203,14 +204,14 @@ class NativeStubLinker : public LinkerHelper
     }
 
   private:
-    JITScript *jit;
+    JITChunk *chunk;
     jsbytecode *pc;
     FinalJump done;
 };
 
 bool
 NativeStubEpilogue(VMFrame &f, Assembler &masm, NativeStubLinker::FinalJump *result,
-                   int32 initialFrameDepth, int32 vpOffset,
+                   int32_t initialFrameDepth, int32_t vpOffset,
                    MaybeRegisterID typeReg, MaybeRegisterID dataReg);
 
 /*

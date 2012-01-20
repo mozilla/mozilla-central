@@ -68,7 +68,8 @@ var gAdvancedPane = {
 #ifdef MOZ_CRASHREPORTER
     this.initSubmitCrashes();
 #endif
-    this.updateActualCacheSize();
+    this.updateActualCacheSize("disk");
+    this.updateActualCacheSize("offline");
   },
 
   /**
@@ -202,18 +203,22 @@ var gAdvancedPane = {
                                            "", null);
   },
  
-  // Retrieves the amount of space currently used by disk cache
-  updateActualCacheSize: function ()
+  // Retrieves the amount of space currently used by disk or offline cache
+  updateActualCacheSize: function (device)
   {
     var visitor = {
       visitDevice: function (deviceID, deviceInfo)
       {
-        if (deviceID == "disk") {
-          var actualSizeLabel = document.getElementById("actualCacheSize");
+        if (deviceID == device) {
+          var actualSizeLabel = document.getElementById(device == "disk" ?
+                                                        "actualDiskCacheSize" :
+                                                        "actualAppCacheSize");
           var sizeStrings = DownloadUtils.convertByteUnits(deviceInfo.totalSize);
           var prefStrBundle = document.getElementById("bundlePreferences");
-          var sizeStr = prefStrBundle.getFormattedString("actualCacheSize",
-                                                          sizeStrings);
+          var sizeStr = prefStrBundle.getFormattedString(device == "disk" ?
+                                                         "actualDiskCacheSize" :
+                                                         "actualAppCacheSize",
+                                                         sizeStrings);
           actualSizeLabel.value = sizeStr;
         }
         // Do not enumerate entries
@@ -226,6 +231,7 @@ var gAdvancedPane = {
         return false;
       }
     };
+
     var cacheService =
       Components.classes["@mozilla.org/network/cache-service;1"]
                 .getService(Components.interfaces.nsICacheService);
@@ -274,11 +280,23 @@ var gAdvancedPane = {
   clearCache: function ()
   {
     var cacheService = Components.classes["@mozilla.org/network/cache-service;1"]
-                         	       .getService(Components.interfaces.nsICacheService);
+                                 .getService(Components.interfaces.nsICacheService);
     try {
       cacheService.evictEntries(Components.interfaces.nsICache.STORE_ANYWHERE);
     } catch(ex) {}
-    this.updateActualCacheSize();
+    this.updateActualCacheSize("disk");
+  },
+
+  /**
+   * Clears the application cache.
+   */
+  clearOfflineAppCache: function ()
+  {
+    Components.utils.import("resource:///modules/offlineAppCache.jsm");
+    OfflineAppCacheHelper.clear();
+
+    this.updateActualCacheSize("offline");
+    this.updateOfflineApps();
   },
 
   readOfflineNotify: function()
@@ -432,6 +450,7 @@ var gAdvancedPane = {
 
     list.removeChild(item);
     gAdvancedPane.offlineAppSelected();
+    this.updateActualCacheSize("offline");
   },
 
   // UPDATE TAB
@@ -512,6 +531,25 @@ var gAdvancedPane = {
     // the warnIncompatible checkbox value is set by readAddonWarn
     warnIncompatible.disabled = radiogroup.disabled || modePref.locked ||
                                 !enabledPref.value || !autoPref.value;
+
+#ifdef MOZ_MAINTENANCE_SERVICE
+    // Check to see if the maintenance service is installed.
+    // If it is don't show the preference at all.
+    var installed;
+    try {
+      var wrk = Components.classes["@mozilla.org/windows-registry-key;1"]
+                .createInstance(Components.interfaces.nsIWindowsRegKey);
+      wrk.open(wrk.ROOT_KEY_LOCAL_MACHINE,
+               "SOFTWARE\\Mozilla\\MaintenanceService",
+               wrk.ACCESS_READ | wrk.WOW64_64);
+      installed = wrk.readIntValue("Installed");
+      wrk.close();
+    } catch(e) {
+    }
+    if (installed != 1) {
+      document.getElementById("useService").hidden = true;
+    }
+#endif
   },
 
   /**

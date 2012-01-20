@@ -100,6 +100,8 @@ EXPORTS_NAMESPACES = mozilla
 EXPORTS_mozilla = \
 	FunctionTimer.h \
 	MapsMemoryReporter.h \
+	ClearOnShutdown.h \
+	AvailableMemoryTracker.h \
 	$(NULL)
 
 ifeq (windows,$(MOZ_WIDGET_TOOLKIT))
@@ -107,11 +109,15 @@ CPPSRCS += nsCrashOnException.cpp
 endif
 
 ifeq ($(OS_ARCH),WINNT)
+
 ifdef MOZ_DEBUG
 CSRCS		+= pure_api.c
 EXPORTS		+= pure.h
 endif
-endif
+
+CPPSRCS += AvailableMemoryTracker.cpp
+
+endif #if OS_ARCH == WINNT
 
 SDK_XPIDLSRCS   = \
 		nsIDebug.idl               \
@@ -131,6 +137,12 @@ SDK_HEADERS     = \
 		nsAtomicRefcnt.h \
 		nsCycleCollector.h \
 		nsObjCExceptions.h \
+
+ifeq ($(OS_ARCH),WINNT)
+SDK_HEADERS += \
+		nsWindowsHelpers.h \
+		$(NULL)
+endif
 
 XPIDLSRCS	= \
 		nsIConsoleListener.idl \
@@ -165,4 +177,7 @@ ifneq (,$(filter gtk2,$(MOZ_WIDGET_TOOLKIT)))
 CXXFLAGS        += $(MOZ_GTK2_CFLAGS)
 endif
 
-LOCAL_INCLUDES += -I$(srcdir)/../build
+LOCAL_INCLUDES += \
+		-I$(srcdir)/../build \
+		-I$(topsrcdir)/xpcom/ds \
+		$(NULL)

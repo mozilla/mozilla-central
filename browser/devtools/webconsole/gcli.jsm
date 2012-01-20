@@ -3029,6 +3029,12 @@ JavascriptType.prototype.parse = function(arg) {
     return new Conversion(typed, arg, Status.ERROR, beginning.err);
   }
 
+  // If the current state is ParseState.COMPLEX, then we can't do completion.
+  // so bail out now
+  if (beginning.state === ParseState.COMPLEX) {
+    return new Conversion(typed, arg);
+  }
+
   // If the current state is not ParseState.NORMAL, then we are inside of a
   // string which means that no completion is possible.
   if (beginning.state !== ParseState.NORMAL) {
@@ -3068,7 +3074,7 @@ JavascriptType.prototype.parse = function(arg) {
         // It would be nice to be able to report this error in some way but
         // as it can happen just when someone types '{sessionStorage.', it
         // almost doesn't really count as an error, so we ignore it
-        return new Conversion(typed, arg, Status.INCOMPLETE, '');
+        return new Conversion(typed, arg, Status.VALID, '');
       }
     }
   }
@@ -3246,8 +3252,26 @@ function isVendorPrefixed(name) {
  * Constants used in return value of _findCompletionBeginning()
  */
 var ParseState = {
+  /**
+   * We have simple input like window.foo, without any punctuation that makes
+   * completion prediction be confusing or wrong
+   */
   NORMAL: 0,
+
+  /**
+   * The cursor is in some Javascript that makes completion hard to predict,
+   * like console.log(
+   */
+  COMPLEX: 1,
+
+  /**
+   * The cursor is inside single quotes (')
+   */
   QUOTE: 2,
+
+  /**
+   * The cursor is inside single quotes (")
+   */
   DQUOTE: 3
 };
 
@@ -3258,6 +3282,12 @@ var OPEN_CLOSE_BODY = {
   '[': ']',
   '(': ')'
 };
+
+/**
+ * How we distinguish between simple and complex JS input. We attempt
+ * completion against simple JS.
+ */
+var simpleChars = /[a-zA-Z0-9.]/;
 
 /**
  * Analyzes a given string to find the last statement that is interesting for
@@ -3277,8 +3307,13 @@ JavascriptType.prototype._findCompletionBeginning = function(text) {
   var state = ParseState.NORMAL;
   var start = 0;
   var c;
+  var complex = false;
+
   for (var i = 0; i < text.length; i++) {
     c = text[i];
+    if (!simpleChars.test(c)) {
+      complex = true;
+    }
 
     switch (state) {
       // Normal JS state.
@@ -3342,6 +3377,10 @@ JavascriptType.prototype._findCompletionBeginning = function(text) {
         }
         break;
     }
+  }
+
+  if (state === ParseState.NORMAL && complex) {
+    state = ParseState.COMPLEX;
   }
 
   return {
@@ -4338,7 +4377,6 @@ Requisition.prototype.toCanonicalString = function() {
   }, this);
 
   // Canonically, if we've opened with a { then we should have a } to close
-  var command = this.commandAssignment.getValue();
   if (cmd === '{') {
     if (this.getAssignment(0).getArg().suffix.indexOf('}') === -1) {
       line.push(' }');
@@ -5286,14 +5324,12 @@ define('gcli/ui/domtemplate', ['require', 'exports', 'module' ], function(requir
   exports.template = obj.template;
 
 });
-define("text!gcli/commands/help.css", [], void 0);
+define("text!gcli/commands/help.css", [], "");
+
 define("text!gcli/commands/help_intro.html", [], "\n" +
   "<h2>${l10n.introHeader}</h2>\n" +
   "\n" +
   "<p>\n" +
-  "  <a target=\"_blank\" href=\"https://developer.mozilla.org/AppLinks/WebConsoleHelp?locale=${lang}\">\n" +
-  "    ${l10n.introBody}\n" +
-  "  </a>\n" +
   "</p>\n" +
   "");
 
@@ -5374,24 +5410,25 @@ function Console(options) {
   this.focusManager.addMonitoredElement(this.gcliTerm.hintNode, 'gcliTerm');
 
   this.inputter = new Inputter({
-    document: options.contentDocument,
+    document: options.chromeDocument,
     requisition: options.requisition,
     inputElement: options.inputElement,
     completeElement: options.completeElement,
     completionPrompt: '',
     backgroundElement: options.backgroundElement,
-    focusManager: this.focusManager
+    focusManager: this.focusManager,
+    scratchpad: options.scratchpad
   });
 
   this.menu = new CommandMenu({
-    document: options.contentDocument,
+    document: options.chromeDocument,
     requisition: options.requisition,
     menuClass: 'gcliterm-menu'
   });
   this.hintElement.appendChild(this.menu.element);
 
   this.argFetcher = new ArgFetcher({
-    document: options.contentDocument,
+    document: options.chromeDocument,
     requisition: options.requisition,
     argFetcherClass: 'gcliterm-argfetcher'
   });
@@ -5469,6 +5506,57 @@ Console.prototype.resizer = function() {
       this.hintElement.style.borderBottomColor = 'white';
     }
   }
+
+  // We also try to make the max-width of any GCLI elements so they don't
+  // extend outside the scroll area.
+  var doc = this.hintElement.ownerDocument;
+
+  var outputNode = this.hintElement.parentNode.parentNode.children[1];
+  var outputs = outputNode.getElementsByClassName('gcliterm-msg-body');
+  var listItems = outputNode.getElementsByClassName('hud-msg-node');
+
+  // This is an top-side estimate. We could try to calculate it, maybe using
+  // something along these lines http://www.alexandre-gomes.com/?p=115 However
+  // experience has shown this to be hard to get to work reliably
+  // Also we don't need to be precise. If we use a number that is too big then
+  // the only down-side is too great a right margin
+  var scrollbarWidth = 20;
+
+  if (listItems.length > 0) {
+    var parentWidth = outputNode.getBoundingClientRect().width - scrollbarWidth;
+    var otherWidth;
+    var body;
+
+    for (var i = 0; i < listItems.length; ++i) {
+      var listItem = listItems[i];
+      // a.k.a 'var otherWidth = 132'
+      otherWidth = 0;
+      body = null;
+
+      for (var j = 0; j < listItem.children.length; j++) {
+        var child = listItem.children[j];
+
+        if (child.classList.contains('gcliterm-msg-body')) {
+          body = child.children[0];
+        }
+        else {
+          otherWidth += child.getBoundingClientRect().width;
+        }
+
+        var styles = doc.defaultView.getComputedStyle(child, null);
+        otherWidth += parseInt(styles.borderLeftWidth, 10) +
+                      parseInt(styles.borderRightWidth, 10) +
+                      parseInt(styles.paddingLeft, 10) +
+                      parseInt(styles.paddingRight, 10) +
+                      parseInt(styles.marginLeft, 10) +
+                      parseInt(styles.marginRight, 10);
+      }
+
+      if (body) {
+        body.style.width = (parentWidth - otherWidth) + 'px';
+      }
+    }
+  }
 };
 
 exports.Console = Console;
@@ -5480,12 +5568,13 @@ exports.Console = Console;
  * http://opensource.org/licenses/BSD-3-Clause
  */
 
-define('gcli/ui/inputter', ['require', 'exports', 'module' , 'gcli/util', 'gcli/types', 'gcli/history', 'text!gcli/ui/inputter.css'], function(require, exports, module) {
+define('gcli/ui/inputter', ['require', 'exports', 'module' , 'gcli/util', 'gcli/l10n', 'gcli/types', 'gcli/history', 'text!gcli/ui/inputter.css'], function(require, exports, module) {
 var cliView = exports;
 
 
 var KeyEvent = require('gcli/util').event.KeyEvent;
 var dom = require('gcli/util').dom;
+var l10n = require('gcli/l10n');
 
 var Status = require('gcli/types').Status;
 var History = require('gcli/history').History;
@@ -5498,6 +5587,7 @@ var inputterCss = require('text!gcli/ui/inputter.css');
  */
 function Inputter(options) {
   this.requisition = options.requisition;
+  this.scratchpad = options.scratchpad;
 
   // Suss out where the input element is
   this.element = options.inputElement || 'gcli-input';
@@ -5779,6 +5869,14 @@ Inputter.prototype.onKeyDown = function(ev) {
  * The main keyboard processing loop
  */
 Inputter.prototype.onKeyUp = function(ev) {
+  // Give the scratchpad (if enabled) a chance to activate
+  if (this.scratchpad && this.scratchpad.shouldActivate(ev)) {
+    if (this.scratchpad.activate(this.element.value)) {
+      this._setInputInternal('', true);
+    }
+    return;
+  }
+
   // RETURN does a special exec/highlight thing
   if (ev.keyCode === KeyEvent.DOM_VK_RETURN) {
     var worst = this.requisition.getStatus();
@@ -5877,6 +5975,11 @@ Inputter.prototype.getInputState = function() {
     console.log('fixing input.typed=""', input);
   }
 
+  // Workaround for a Bug 717268 (which is really a jsdom bug)
+  if (input.cursor.start == null) {
+    input.cursor.start = 0;
+  }
+
   return input;
 };
 
@@ -5900,6 +6003,7 @@ function Completer(options) {
   this.document = options.document || document;
   this.requisition = options.requisition;
   this.elementCreated = false;
+  this.scratchpad = options.scratchpad;
 
   this.element = options.completeElement || 'gcli-row-complete';
   if (typeof this.element === 'string') {
@@ -5993,6 +6097,11 @@ Completer.prototype.decorate = function(inputter) {
  * Ensure that the completion element is the same size and the inputter element
  */
 Completer.prototype.resizer = function() {
+  // Remove this when jsdom does getBoundingClientRect(). See Bug 717269
+  if (!this.inputter.element.getBoundingClientRect) {
+    return;
+  }
+
   var rect = this.inputter.element.getBoundingClientRect();
   // -4 to line up with 1px of padding and border, top and bottom
   var height = rect.bottom - rect.top - 4;
@@ -6037,9 +6146,10 @@ Completer.prototype.update = function(input) {
   // ${prefix}
   // <span class="gcli-in-ontab">${contents}</span>
   // <span class="gcli-in-closebrace" if="${unclosedJs}">}<span>
+  // <div class="gcli-in-scratchlink">${scratchLink}</div>
 
   var document = this.element.ownerDocument;
-  var prompt = document.createElement('span');
+  var prompt = dom.createElement(document, 'span');
   prompt.classList.add('gcli-prompt');
   prompt.appendChild(document.createTextNode(this.completionPrompt + ' '));
   this.element.appendChild(prompt);
@@ -6071,7 +6181,7 @@ Completer.prototype.update = function(input) {
       this.element.appendChild(document.createTextNode(prefix));
     }
 
-    var suffix = document.createElement('span');
+    var suffix = dom.createElement(document, 'span');
     suffix.classList.add('gcli-in-ontab');
     suffix.appendChild(document.createTextNode(contents));
     this.element.appendChild(suffix);
@@ -6080,13 +6190,23 @@ Completer.prototype.update = function(input) {
   // Add a grey '}' to the end of the command line when we've opened
   // with a { but haven't closed it
   var command = this.requisition.commandAssignment.getValue();
-  var unclosedJs = command && command.name === '{' &&
+  var isJsCommand = (command && command.name === '{');
+  var isUnclosedJs = isJsCommand &&
           this.requisition.getAssignment(0).getArg().suffix.indexOf('}') === -1;
-  if (unclosedJs) {
-    var close = document.createElement('span');
+  if (isUnclosedJs) {
+    var close = dom.createElement(document, 'span');
     close.classList.add('gcli-in-closebrace');
-    close.appendChild(document.createTextNode('}'));
+    close.appendChild(document.createTextNode(' }'));
     this.element.appendChild(close);
+  }
+
+  // Create a scratchpad link if it's a JS command and we have a function to
+  // actually perform the request
+  if (isJsCommand && this.scratchpad) {
+    var hint = dom.createElement(document, 'div');
+    hint.classList.add('gcli-in-scratchlink');
+    hint.appendChild(document.createTextNode(this.scratchpad.linkText));
+    this.element.appendChild(hint);
   }
 };
 
@@ -6111,7 +6231,7 @@ Completer.prototype.appendMarkupStatus = function(element, scores, input) {
         console.error('No state at i=' + i + '. scores.len=' + scores.length);
         state = Status.VALID;
       }
-      span = document.createElement('span');
+      span = dom.createElement(document, 'span');
       span.classList.add('gcli-in-' + state.toString().toLowerCase());
       lastStatus = scores[i];
     }
@@ -6200,7 +6320,8 @@ History.prototype.backward = function() {
 
 exports.History = History;
 
-});define("text!gcli/ui/inputter.css", [], void 0);
+});define("text!gcli/ui/inputter.css", [], "");
+
 /*
  * Copyright 2009-2011 Mozilla Foundation and contributors
  * Licensed under the New BSD license. See LICENSE.txt or:
@@ -7333,7 +7454,8 @@ exports.CommandMenu = CommandMenu;
 
 
 });
-define("text!gcli/ui/menu.css", [], void 0);
+define("text!gcli/ui/menu.css", [], "");
+
 define("text!gcli/ui/menu.html", [], "\n" +
   "<table class=\"gcli-menu-template\" aria-live=\"polite\">\n" +
   "  <tr class=\"gcli-menu-option\" foreach=\"item in ${items}\"\n" +
@@ -7347,7 +7469,8 @@ define("text!gcli/ui/menu.html", [], "\n" +
   "</table>\n" +
   "");
 
-define("text!gcli/ui/arg_fetch.css", [], void 0);
+define("text!gcli/ui/arg_fetch.css", [], "");
+
 define("text!gcli/ui/arg_fetch.html", [], "\n" +
   "<!--\n" +
   "Template for an Assignment.\n" +

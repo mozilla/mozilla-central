@@ -39,7 +39,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "base/basictypes.h"
-#include "jscntxt.h"
 
 #include "mozilla/jsipc/ContextWrapperChild.h"
 #include "mozilla/jsipc/ObjectWrapperChild.h"
@@ -456,7 +455,7 @@ ObjectWrapperChild::AnswerNewEnumerateInit(/* no in-parameters */
          proto = JS_GetPrototype(cx, proto))
     {
         AutoIdArray ids(cx, JS_Enumerate(cx, proto));
-        for (uint i = 0; i < ids.length(); ++i)
+        for (size_t i = 0; i < ids.length(); ++i)
             JS_DefinePropertyById(cx, state, ids[i], JSVAL_VOID,
                                   NULL, NULL, JSPROP_ENUMERATE | JSPROP_SHARED);
     }
@@ -467,7 +466,7 @@ ObjectWrapperChild::AnswerNewEnumerateInit(/* no in-parameters */
         if (!ids)
             return false;
         strIds = new InfallibleTArray<nsString>(ids.length());
-        for (uint i = 0; i < ids.length(); ++i)
+        for (size_t i = 0; i < ids.length(); ++i)
             if (!jsid_to_nsString(cx, ids[i], strIds->AppendElement())) {
                 delete strIds;
                 return false;

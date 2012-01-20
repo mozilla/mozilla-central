@@ -86,7 +86,11 @@ enum StmtType {
     STMT_LIMIT
 };
 
-#define STMT_TYPE_IN_RANGE(t,b,e) ((uint)((t) - (b)) <= (uintN)((e) - (b)))
+inline bool
+STMT_TYPE_IN_RANGE(uint16_t type, StmtType begin, StmtType end)
+{
+    return begin <= type && type <= end;
+}
 
 /*
  * A comment on the encoding of the js::StmtType enum and type-testing macros:
@@ -126,15 +130,15 @@ enum StmtType {
 #define STMT_IS_LOOP(stmt)      STMT_TYPE_IS_LOOP((stmt)->type)
 
 struct StmtInfo {
-    uint16          type;           /* statement type */
-    uint16          flags;          /* flags, see below */
-    uint32          blockid;        /* for simplified dominance computation */
+    uint16_t        type;           /* statement type */
+    uint16_t        flags;          /* flags, see below */
+    uint32_t        blockid;        /* for simplified dominance computation */
     ptrdiff_t       update;         /* loop update offset (top if none) */
     ptrdiff_t       breaks;         /* offset of last break in loop */
     ptrdiff_t       continues;      /* offset of last continue in loop */
     union {
         JSAtom      *label;         /* name of LABEL */
-        ObjectBox   *blockBox;      /* block scope object */
+        StaticBlockObject *blockObj;/* block scope object */
     };
     StmtInfo        *down;          /* info for enclosing statement */
     StmtInfo        *downScope;     /* next enclosing lexical scope */
@@ -284,18 +288,18 @@ struct StmtInfo {
 struct BytecodeEmitter;
 
 struct TreeContext {                /* tree context for semantic checks */
-    uint32          flags;          /* statement state flags, see above */
-    uint32          bodyid;         /* block number of program/function body */
-    uint32          blockidGen;     /* preincremented block number generator */
-    uint32          parenDepth;     /* nesting depth of parens that might turn out
+    uint32_t        flags;          /* statement state flags, see above */
+    uint32_t        bodyid;         /* block number of program/function body */
+    uint32_t        blockidGen;     /* preincremented block number generator */
+    uint32_t        parenDepth;     /* nesting depth of parens that might turn out
                                        to be generator expressions */
-    uint32          yieldCount;     /* number of |yield| tokens encountered at
+    uint32_t        yieldCount;     /* number of |yield| tokens encountered at
                                        non-zero depth in current paren tree */
-    uint32          argumentsCount; /* number of |arguments| references encountered
+    uint32_t        argumentsCount; /* number of |arguments| references encountered
                                        at non-zero depth in current paren tree */
     StmtInfo        *topStmt;       /* top of statement info stack */
     StmtInfo        *topScopeStmt;  /* top lexical scope statement */
-    ObjectBox       *blockChainBox; /* compile time block scope chain (NB: one
+    StaticBlockObject *blockChain;  /* compile block scope chain (NB: one
                                        deeper than the topScopeStmt/downScope
                                        chain when in head of let block/expr) */
     ParseNode       *blockNode;     /* parse node for a block with let declarations
@@ -347,6 +351,7 @@ struct TreeContext {                /* tree context for semantic checks */
 
     Bindings        bindings;       /* bindings in this code, including
                                        arguments if we're compiling a function */
+    Bindings::StackRoot bindingsRoot; /* root for stack allocated bindings. */
 
     void trace(JSTracer *trc);
 
@@ -371,10 +376,6 @@ struct TreeContext {                /* tree context for semantic checks */
     }
 
     uintN blockid() { return topStmt ? topStmt->blockid : bodyid; }
-
-    JSObject *blockChain() {
-        return blockChainBox ? blockChainBox->object : NULL;
-    }
 
     /*
      * True if we are at the topmost level of a entire script or function body.
@@ -486,69 +487,9 @@ bool
 SetStaticLevel(TreeContext *tc, uintN staticLevel);
 
 bool
-GenerateBlockId(TreeContext *tc, uint32& blockid);
+GenerateBlockId(TreeContext *tc, uint32_t &blockid);
 
 } /* namespace frontend */
-
-struct JumpTarget;
-
-/*
- * Span-dependent instructions are jumps whose span (from the jump bytecode to
- * the jump target) may require 2 or 4 bytes of immediate operand.
- */
-struct SpanDep {
-    ptrdiff_t       top;        /* offset of first bytecode in an opcode */
-    ptrdiff_t       offset;     /* offset - 1 within opcode of jump operand */
-    ptrdiff_t       before;     /* original offset - 1 of jump operand */
-    JumpTarget      *target;    /* tagged target pointer or backpatch delta */
-};
-
-/*
- * Jump targets are stored in an AVL tree, for O(log(n)) lookup with targets
- * sorted by offset from left to right, so that targets after a span-dependent
- * instruction whose jump offset operand must be extended can be found quickly
- * and adjusted upward (toward higher offsets).
- */
-struct JumpTarget {
-    ptrdiff_t       offset;     /* offset of span-dependent jump target */
-    int             balance;    /* AVL tree balance number */
-    JumpTarget      *kids[2];   /* left and right AVL tree child pointers */
-};
-
-#define JT_LEFT                 0
-#define JT_RIGHT                1
-#define JT_OTHER_DIR(dir)       (1 - (dir))
-#define JT_IMBALANCE(dir)       (((dir) << 1) - 1)
-#define JT_DIR(imbalance)       (((imbalance) + 1) >> 1)
-
-/*
- * Backpatch deltas are encoded in js::SpanDep::target if JT_TAG_BIT is clear,
- * so we can maintain backpatch chains when using span dependency records to
- * hold jump offsets that overflow 16 bits.
- */
-#define JT_TAG_BIT              ((jsword) 1)
-#define JT_UNTAG_SHIFT          1
-#define JT_SET_TAG(jt)          ((JumpTarget *)((jsword)(jt) | JT_TAG_BIT))
-#define JT_CLR_TAG(jt)          ((JumpTarget *)((jsword)(jt) & ~JT_TAG_BIT))
-#define JT_HAS_TAG(jt)          ((jsword)(jt) & JT_TAG_BIT)
-
-#define BITS_PER_PTRDIFF        (sizeof(ptrdiff_t) * JS_BITS_PER_BYTE)
-#define BITS_PER_BPDELTA        (BITS_PER_PTRDIFF - 1 - JT_UNTAG_SHIFT)
-#define BPDELTA_MAX             (((ptrdiff_t)1 << BITS_PER_BPDELTA) - 1)
-#define BPDELTA_TO_JT(bp)       ((JumpTarget *)((bp) << JT_UNTAG_SHIFT))
-#define JT_TO_BPDELTA(jt)       ((ptrdiff_t)((jsword)(jt) >> JT_UNTAG_SHIFT))
-
-#define SD_SET_TARGET(sd,jt)    ((sd)->target = JT_SET_TAG(jt))
-#define SD_GET_TARGET(sd)       (JS_ASSERT(JT_HAS_TAG((sd)->target)),         \
-                                 JT_CLR_TAG((sd)->target))
-#define SD_SET_BPDELTA(sd,bp)   ((sd)->target = BPDELTA_TO_JT(bp))
-#define SD_GET_BPDELTA(sd)      (JS_ASSERT(!JT_HAS_TAG((sd)->target)),        \
-                                 JT_TO_BPDELTA((sd)->target))
-
-/* Avoid asserting twice by expanding SD_GET_TARGET in the "then" clause. */
-#define SD_SPAN(sd,pivot)       (SD_GET_TARGET(sd)                            \
-                                 ? JT_CLR_TAG((sd)->target)->offset - (pivot) \
-                                 : 0)
 
 struct TryNode {
     JSTryNote       note;
@@ -556,7 +497,7 @@ struct TryNode {
 };
 
 struct CGObjectList {
-    uint32              length;     /* number of emitted so far objects */
+    uint32_t            length;     /* number of emitted so far objects */
     ObjectBox           *lastbox;   /* last emitted object */
 
     CGObjectList() : length(0), lastbox(NULL) {}
@@ -583,10 +524,10 @@ struct GlobalScope {
         JSAtom        *atom;        // If non-NULL, specifies the property name to add.
         FunctionBox   *funbox;      // If non-NULL, function value for the property.
                                     // This value is only set/used if atom is non-NULL.
-        uint32        knownSlot;    // If atom is NULL, this is the known shape slot.
+        uint32_t      knownSlot;    // If atom is NULL, this is the known shape slot.
 
         GlobalDef() { }
-        GlobalDef(uint32 knownSlot) : atom(NULL), knownSlot(knownSlot) { }
+        GlobalDef(uint32_t knownSlot) : atom(NULL), knownSlot(knownSlot) { }
         GlobalDef(JSAtom *atom, FunctionBox *box) : atom(atom), funbox(box) { }
     };
 
@@ -628,14 +569,6 @@ struct BytecodeEmitter : public TreeContext
     uintN           ntrynotes;      /* number of allocated so far try notes */
     TryNode         *lastTryNode;   /* the last allocated try node */
 
-    SpanDep         *spanDeps;      /* span dependent instruction records */
-    JumpTarget      *jumpTargets;   /* AVL tree of jump target offsets */
-    JumpTarget      *jtFreeList;    /* JT_LEFT-linked list of free structs */
-    uintN           numSpanDeps;    /* number of span dependencies */
-    uintN           numJumpTargets; /* number of jump targets */
-    ptrdiff_t       spanDepTodo;    /* offset from main.base of potentially
-                                       unoptimized spandeps */
-
     uintN           arrayCompDepth; /* stack depth of array in comprehension */
 
     uintN           emitLevel;      /* js::frontend::EmitTree recursion level */
@@ -661,11 +594,11 @@ struct BytecodeEmitter : public TreeContext
     OwnedAtomIndexMapPtr globalMap; /* per-script map of global name to globalUses vector */
 
     /* Vectors of pn_cookie slot values. */
-    typedef Vector<uint32, 8> SlotVector;
+    typedef Vector<uint32_t, 8> SlotVector;
     SlotVector      closedArgs;
     SlotVector      closedVars;
 
-    uint16          typesetCount;   /* Number of JOF_TYPESET opcodes generated */
+    uint16_t        typesetCount;   /* Number of JOF_TYPESET opcodes generated */
 
     BytecodeEmitter(Parser *parser, uintN lineno);
     bool init(JSContext *cx, TreeContext::InitBehavior ib = USED_AS_CODE_GENERATOR);
@@ -696,7 +629,7 @@ struct BytecodeEmitter : public TreeContext
      * If the global use can be cached, |cookie| will be set to |slot|.
      * Otherwise, |cookie| is set to the free cookie value.
      */
-    bool addGlobalUse(JSAtom *atom, uint32 slot, UpvarCookie *cookie);
+    bool addGlobalUse(JSAtom *atom, uint32_t slot, UpvarCookie *cookie);
 
     bool hasUpvarIndices() const {
         return upvarIndices.hasMap() && !upvarIndices->empty();
@@ -743,6 +676,8 @@ struct BytecodeEmitter : public TreeContext
         flags |= TCF_HAS_SINGLETONS;
         return true;
     }
+
+    bool needsImplicitThis();
 
     TokenStream *tokenStream() { return &parser->tokenStream; }
 
@@ -793,39 +728,10 @@ ptrdiff_t
 Emit3(JSContext *cx, BytecodeEmitter *bce, JSOp op, jsbytecode op1, jsbytecode op2);
 
 /*
- * Emit five bytecodes, an opcode with two 16-bit immediates.
- */
-ptrdiff_t
-Emit5(JSContext *cx, BytecodeEmitter *bce, JSOp op, uint16 op1, uint16 op2);
-
-/*
  * Emit (1 + extra) bytecodes, for N bytes of op and its immediate operand.
  */
 ptrdiff_t
 EmitN(JSContext *cx, BytecodeEmitter *bce, JSOp op, size_t extra);
-
-/*
- * Unsafe macro to call SetJumpOffset and return false if it does.
- */
-#define CHECK_AND_SET_JUMP_OFFSET_CUSTOM(cx,bce,pc,off,BAD_EXIT)              \
-    JS_BEGIN_MACRO                                                            \
-        if (!SetJumpOffset(cx, bce, pc, off)) {                               \
-            BAD_EXIT;                                                         \
-        }                                                                     \
-    JS_END_MACRO
-
-#define CHECK_AND_SET_JUMP_OFFSET(cx,bce,pc,off)                              \
-    CHECK_AND_SET_JUMP_OFFSET_CUSTOM(cx,bce,pc,off,return JS_FALSE)
-
-#define CHECK_AND_SET_JUMP_OFFSET_AT_CUSTOM(cx,bce,off,BAD_EXIT)              \
-    CHECK_AND_SET_JUMP_OFFSET_CUSTOM(cx, bce, (bce)->code(off),               \
-                                     bce->offset() - (off), BAD_EXIT)
-
-#define CHECK_AND_SET_JUMP_OFFSET_AT(cx,bce,off)                              \
-    CHECK_AND_SET_JUMP_OFFSET_AT_CUSTOM(cx, bce, off, return JS_FALSE)
-
-JSBool
-SetJumpOffset(JSContext *cx, BytecodeEmitter *bce, jsbytecode *pc, ptrdiff_t off);
 
 /*
  * Push the C-stack-allocated struct at stmt onto the stmtInfo stack.
@@ -839,7 +745,7 @@ PushStatement(TreeContext *tc, StmtInfo *stmt, StmtType type, ptrdiff_t top);
  * (if generating code), PopStatementBCE.
  */
 void
-PushBlockScope(TreeContext *tc, StmtInfo *stmt, ObjectBox *blockBox, ptrdiff_t top);
+PushBlockScope(TreeContext *tc, StmtInfo *stmt, StaticBlockObject &blockObj, ptrdiff_t top);
 
 /*
  * Pop tc->topStmt. If the top StmtInfo struct is not stack-allocated, it
@@ -904,11 +810,11 @@ EmitFunctionScript(JSContext *cx, BytecodeEmitter *bce, ParseNode *body);
 
 /*
  * Source notes generated along with bytecode for decompiling and debugging.
- * A source note is a uint8 with 5 bits of type and 3 of offset from the pc of
- * the previous note. If 3 bits of offset aren't enough, extended delta notes
- * (SRC_XDELTA) consisting of 2 set high order bits followed by 6 offset bits
- * are emitted before the next note. Some notes have operand offsets encoded
- * immediately after them, in note bytes or byte-triples.
+ * A source note is a uint8_t with 5 bits of type and 3 of offset from the pc
+ * of the previous note. If 3 bits of offset aren't enough, extended delta
+ * notes (SRC_XDELTA) consisting of 2 set high order bits followed by 6 offset
+ * bits are emitted before the next note. Some notes have operand offsets
+ * encoded immediately after them, in note bytes or byte-triples.
  *
  *                 Source Note               Extended Delta
  *              +7-6-5-4-3+2-1-0+           +7-6-5+4-3-2-1-0+
@@ -924,10 +830,8 @@ EmitFunctionScript(JSContext *cx, BytecodeEmitter *bce, ParseNode *body);
  * Note on adding new source notes: every pair of bytecodes (A, B) where A and
  * B have disjoint sets of source notes that could apply to each bytecode may
  * reuse the same note type value for two notes (snA, snB) that have the same
- * arity, offsetBias, and isSpanDep initializers in JSSrcNoteSpec. This is
- * why SRC_IF and SRC_INITPROP have the same value below. For bad historical
- * reasons, some bytecodes below that could be overlayed have not been, but
- * before using SRC_EXTENDED, consider compressing the existing note types.
+ * arity in JSSrcNoteSpec. This is why SRC_IF and SRC_INITPROP have the same
+ * value below.
  *
  * Don't forget to update JSXDR_BYTECODE_VERSION in jsxdrapi.h for all such
  * incompatible source note or other bytecode changes.
@@ -947,11 +851,11 @@ enum SrcNoteType {
     SRC_WHILE       = 4,        /* JSOP_GOTO to for or while loop condition
                                    from before loop, else JSOP_NOP at top of
                                    do-while loop */
-    SRC_LOOPHEAD    = 4,        /* For JSOP_LOOPHEAD; includes distance to loop end */
     SRC_CONTINUE    = 5,        /* JSOP_GOTO is a continue, not a break;
-                                   also used on JSOP_ENDINIT if extra comma
-                                   at end of array literal: [1,2,,];
-                                   JSOP_DUP continuing destructuring pattern */
+                                   JSOP_ENDINIT needs extra comma at end of
+                                   array literal: [1,2,,];
+                                   JSOP_DUP continuing destructuring pattern;
+                                   JSOP_POP at end of for-in */
     SRC_DECL        = 6,        /* type of a declaration (var, const, let*) */
     SRC_DESTRUCT    = 6,        /* JSOP_DUP starting a destructuring assignment
                                    operation, with SRC_DECL_* offset operand */
@@ -959,6 +863,8 @@ enum SrcNoteType {
                                    next POP, or from CONDSWITCH to first CASE
                                    opcode, etc. -- always a forward delta */
     SRC_GROUPASSIGN = 7,        /* SRC_DESTRUCT variant for [a, b] = [c, d] */
+    SRC_DESTRUCTLET = 7,        /* JSOP_DUP starting a destructuring let
+                                   operation, with offset to JSOP_ENTERLET0 */
     SRC_ASSIGNOP    = 8,        /* += or another assign-op follows */
     SRC_COND        = 9,        /* JSOP_IFEQ is from conditional ?: operator */
     SRC_BRACE       = 10,       /* mandatory brace, for scope or to avoid
@@ -977,18 +883,14 @@ enum SrcNoteType {
     SRC_SWITCHBREAK = 18,       /* JSOP_GOTO is a break in a switch */
     SRC_FUNCDEF     = 19,       /* JSOP_NOP for function f() with atomid */
     SRC_CATCH       = 20,       /* catch block has guard */
-    SRC_EXTENDED    = 21,       /* extended source note, 32-159, in next byte */
+                                /* 21 is unused */
     SRC_NEWLINE     = 22,       /* bytecode follows a source newline */
     SRC_SETLINE     = 23,       /* a file-absolute source line number note */
     SRC_XDELTA      = 24        /* 24-31 are for extended delta notes */
 };
 
 /*
- * Constants for the SRC_DECL source note. Note that span-dependent bytecode
- * selection means that any SRC_DECL offset greater than SRC_DECL_LET may need
- * to be adjusted, but these "offsets" are too small to span a span-dependent
- * instruction, so can be used to denote distinct declaration syntaxes to the
- * decompiler.
+ * Constants for the SRC_DECL source note.
  *
  * NB: the var_prefix array in jsopcode.c depends on these dense indexes from
  * SRC_DECL_VAR through SRC_DECL_LET.
@@ -1036,6 +938,8 @@ enum SrcNoteType {
  */
 #define SN_3BYTE_OFFSET_FLAG    0x80
 #define SN_3BYTE_OFFSET_MASK    0x7f
+
+#define SN_MAX_OFFSET ((size_t)((ptrdiff_t)SN_3BYTE_OFFSET_FLAG << 16) - 1)
 
 #define SN_LENGTH(sn)           ((js_SrcNoteSpec[SN_TYPE(sn)].arity == 0) ? 1 \
                                  : js_SrcNoteLength(sn))
@@ -1109,14 +1013,33 @@ BytecodeEmitter::countFinalSourceNotes()
     return cnt;
 }
 
+/*
+ * To avoid offending js_SrcNoteSpec[SRC_DECL].arity, pack the two data needed
+ * to decompile let into one ptrdiff_t:
+ *   offset: offset to the LEAVEBLOCK(EXPR) op (not including ENTER/LEAVE)
+ *   groupAssign: whether this was an optimized group assign ([x,y] = [a,b])
+ */
+inline ptrdiff_t PackLetData(size_t offset, bool groupAssign)
+{
+    JS_ASSERT(offset <= (size_t(-1) >> 1));
+    return ptrdiff_t(offset << 1) | ptrdiff_t(groupAssign);
+}
+
+inline size_t LetDataToOffset(ptrdiff_t w)
+{
+    return size_t(w) >> 1;
+}
+
+inline bool LetDataToGroupAssign(ptrdiff_t w)
+{
+    return size_t(w) & 1;
+}
+
 } /* namespace js */
 
 struct JSSrcNoteSpec {
     const char      *name;      /* name for disassembly/debugging output */
-    int8            arity;      /* number of offset operands */
-    uint8           offsetBias; /* bias of offset(s) from annotated pc */
-    int8            isSpanDep;  /* 1 or -1 if offsets could span extended ops,
-                                   0 otherwise; sign tells span direction */
+    int8_t          arity;      /* number of offset operands */
 };
 
 extern JS_FRIEND_DATA(JSSrcNoteSpec)  js_SrcNoteSpec[];

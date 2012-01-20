@@ -64,6 +64,8 @@
 
 #include "gfxCrashReporterUtils.h"
 
+#include "sampler.h"
+
 namespace mozilla {
 namespace layers {
 
@@ -119,6 +121,10 @@ LayerManagerOGL::CleanupResources()
 {
   if (!mGLContext)
     return;
+
+  if (mRoot) {
+    RootLayer()->CleanupResources();
+  }
 
   nsRefPtr<GLContext> ctx = mGLContext->GetSharedContext();
   if (!ctx) {
@@ -317,6 +323,12 @@ LayerManagerOGL::Initialize(nsRefPtr<GLContext> aContext)
      */
     if (!mGLContext->IsExtensionSupported(gl::GLContext::ARB_texture_rectangle))
       return false;
+  }
+
+  // If we're double-buffered, we don't need this fbo anymore.
+  if (mGLContext->IsDoubleBuffered()) {
+    mGLContext->fDeleteFramebuffers(1, &mBackBufferFBO);
+    mBackBufferFBO = 0;
   }
 
   // back to default framebuffer, to avoid confusion
@@ -748,6 +760,7 @@ LayerManagerOGL::BindAndDrawQuadWithTextureRect(LayerProgram *aProg,
 void
 LayerManagerOGL::Render()
 {
+  SAMPLE_LABEL("LayerManagerOGL", "Render");
   if (mDestroyed) {
     NS_WARNING("Call on destroyed layer manager");
     return;
@@ -819,6 +832,7 @@ LayerManagerOGL::Render()
 
   if (mGLContext->IsDoubleBuffered()) {
     mGLContext->SwapBuffers();
+    LayerManager::PostPresent();
     mGLContext->fBindBuffer(LOCAL_GL_ARRAY_BUFFER, 0);
     return;
   }
@@ -1169,6 +1183,12 @@ LayerManagerOGL::CreateFBOWithTexture(const nsIntRect& aRect, InitMode aInit,
     nsCAutoString msg;
     msg.Append("Framebuffer not complete -- error 0x");
     msg.AppendInt(result, 16);
+    msg.Append(", mFBOTextureTarget 0x");
+    msg.AppendInt(mFBOTextureTarget, 16);
+    msg.Append(", aRect.width ");
+    msg.AppendInt(aRect.width);
+    msg.Append(", aRect.height ");
+    msg.AppendInt(aRect.height);
     NS_RUNTIMEABORT(msg.get());
   }
 

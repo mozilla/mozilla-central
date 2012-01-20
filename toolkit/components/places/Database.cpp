@@ -102,6 +102,9 @@
 // Old Sync GUID annotation.
 #define SYNCGUID_ANNO NS_LITERAL_CSTRING("sync/guid")
 
+// Places string bundle, contains internationalized bookmark root names.
+#define PLACES_BUNDLE "chrome://places/locale/places.properties"
+
 using namespace mozilla;
 
 namespace mozilla {
@@ -230,7 +233,8 @@ SetJournalMode(nsCOMPtr<mozIStorageConnection>& aDBConn,
   }
 
   nsCOMPtr<mozIStorageStatement> statement;
-  nsCAutoString query("PRAGMA journal_mode = ");
+  nsCAutoString query(MOZ_STORAGE_UNIQUIFY_QUERY_STR
+		      "PRAGMA journal_mode = ");
   query.Append(journalMode);
   aDBConn->CreateStatement(query, getter_AddRefs(statement));
   NS_ENSURE_TRUE(statement, JOURNAL_DELETE);
@@ -256,6 +260,77 @@ SetJournalMode(nsCOMPtr<mozIStorageConnection>& aDBConn,
 
   return JOURNAL_DELETE;
 }
+
+nsresult
+CreateRoot(nsCOMPtr<mozIStorageConnection>& aDBConn,
+           const nsCString& aRootName,
+           const nsXPIDLString& titleString)
+{
+  MOZ_ASSERT(NS_IsMainThread());
+
+  // The position of the new item in its folder.
+  static PRInt32 itemPosition = 0;
+
+  // A single creation timestamp for all roots so that the root folder's
+  // last modification time isn't earlier than its childrens' creation time.
+  static PRTime timestamp = 0;
+  if (!timestamp)
+    timestamp = PR_Now();
+
+  // Create a new bookmark folder for the root.
+  nsCOMPtr<mozIStorageStatement> stmt;
+  nsresult rv = aDBConn->CreateStatement(NS_LITERAL_CSTRING(
+    "INSERT INTO moz_bookmarks "
+      "(type, position, title, dateAdded, lastModified, guid, parent) "
+    "VALUES (:item_type, :item_position, :item_title,"
+            ":date_added, :last_modified, GENERATE_GUID(),"
+            "IFNULL((SELECT id FROM moz_bookmarks WHERE parent = 0), 0))"
+  ), getter_AddRefs(stmt));
+  if (NS_FAILED(rv)) return rv;
+
+  rv = stmt->BindInt32ByName(NS_LITERAL_CSTRING("item_type"),
+                             nsINavBookmarksService::TYPE_FOLDER);
+  if (NS_FAILED(rv)) return rv;
+  rv = stmt->BindInt32ByName(NS_LITERAL_CSTRING("item_position"), itemPosition);
+  if (NS_FAILED(rv)) return rv;
+  rv = stmt->BindUTF8StringByName(NS_LITERAL_CSTRING("item_title"),
+                                  NS_ConvertUTF16toUTF8(titleString));
+  if (NS_FAILED(rv)) return rv;
+  rv = stmt->BindInt64ByName(NS_LITERAL_CSTRING("date_added"), timestamp);
+  if (NS_FAILED(rv)) return rv;
+  rv = stmt->BindInt64ByName(NS_LITERAL_CSTRING("last_modified"), timestamp);
+  if (NS_FAILED(rv)) return rv;
+  rv = stmt->Execute();
+  if (NS_FAILED(rv)) return rv;
+
+  // Create an entry in moz_bookmarks_roots to link the folder to the root.
+  nsCOMPtr<mozIStorageStatement> newRootStmt;
+  rv = aDBConn->CreateStatement(NS_LITERAL_CSTRING(
+    "INSERT INTO moz_bookmarks_roots (root_name, folder_id) "
+    "VALUES (:root_name, "
+              "(SELECT id from moz_bookmarks WHERE "
+              " position = :item_position AND "
+              " parent = IFNULL((SELECT MIN(folder_id) FROM moz_bookmarks_roots), 0)))"
+  ), getter_AddRefs(newRootStmt));
+  if (NS_FAILED(rv)) return rv;
+
+  rv = newRootStmt->BindUTF8StringByName(NS_LITERAL_CSTRING("root_name"),
+                                         aRootName);
+  if (NS_FAILED(rv)) return rv;
+  rv = newRootStmt->BindInt32ByName(NS_LITERAL_CSTRING("item_position"),
+                                    itemPosition);
+  if (NS_FAILED(rv)) return rv;
+  rv = newRootStmt->Execute();
+  if (NS_FAILED(rv)) return rv;
+
+  // The 'places' root is a folder containing the other roots.
+  // The first bookmark in a folder has position 0.
+  if (!aRootName.Equals("places"))
+    ++itemPosition;
+
+  return NS_OK;
+}
+
 
 } // Anonymous namespace
 
@@ -477,7 +552,7 @@ Database::InitSchema(bool* aDatabaseMigrated)
     // database file already existed with a different page size.
     nsCOMPtr<mozIStorageStatement> statement;
     nsresult rv = mMainConn->CreateStatement(NS_LITERAL_CSTRING(
-      "PRAGMA page_size"
+      MOZ_STORAGE_UNIQUIFY_QUERY_STR "PRAGMA page_size"
     ), getter_AddRefs(statement));
     NS_ENSURE_SUCCESS(rv, rv);
     bool hasResult = false;
@@ -489,7 +564,7 @@ Database::InitSchema(bool* aDatabaseMigrated)
 
   // Ensure that temp tables are held in memory, not on disk.
   nsresult rv = mMainConn->ExecuteSimpleSQL(NS_LITERAL_CSTRING(
-      "PRAGMA temp_store = MEMORY"));
+      MOZ_STORAGE_UNIQUIFY_QUERY_STR "PRAGMA temp_store = MEMORY"));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // Get the current database size. Due to chunked growth we have to use
@@ -519,7 +594,8 @@ Database::InitSchema(bool* aDatabaseMigrated)
   // Set the number of cached pages.
   // We don't use PRAGMA default_cache_size, since the database could be moved
   // among different devices and the value would adapt accordingly.
-  nsCAutoString cacheSizePragma("PRAGMA cache_size = ");
+  nsCAutoString cacheSizePragma(MOZ_STORAGE_UNIQUIFY_QUERY_STR
+				"PRAGMA cache_size = ");
   cacheSizePragma.AppendInt(cacheSize / mDBPageSize);
   rv = mMainConn->ExecuteSimpleSQL(cacheSizePragma);
   NS_ENSURE_SUCCESS(rv, rv);
@@ -654,9 +730,26 @@ Database::InitSchema(bool* aDatabaseMigrated)
         NS_ENSURE_SUCCESS(rv, rv);
       }
 
-      // Firefox 11 uses schema version 14.
+      if (currentSchemaVersion < 16) {
+        rv = MigrateV16Up();
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
+
+      // Firefox 11 uses schema version 16.
+
+      if (currentSchemaVersion < 17) {
+        rv = MigrateV17Up();
+        NS_ENSURE_SUCCESS(rv, rv);
+      }
+
+      // Firefox 12 uses schema version 17.
 
       // Schema Upgrades must add migration code here.
+
+      rv = UpdateBookmarkRootTitles();
+      // We don't want a broken localization to cause us to think
+      // the database is corrupt and needs to be replaced.
+      MOZ_ASSERT(NS_SUCCEEDED(rv));
     }
   }
   else {
@@ -692,6 +785,12 @@ Database::InitSchema(bool* aDatabaseMigrated)
 
     // moz_inputhistory.
     rv = mMainConn->ExecuteSimpleSQL(CREATE_MOZ_INPUTHISTORY);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // moz_hosts.
+    rv = mMainConn->ExecuteSimpleSQL(CREATE_MOZ_HOSTS);
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = mMainConn->ExecuteSimpleSQL(CREATE_IDX_MOZ_HOSTS_FRECENCYHOST);
     NS_ENSURE_SUCCESS(rv, rv);
 
     // moz_bookmarks.
@@ -733,6 +832,10 @@ Database::InitSchema(bool* aDatabaseMigrated)
     NS_ENSURE_SUCCESS(rv, rv);
     rv = mMainConn->ExecuteSimpleSQL(CREATE_IDX_MOZ_ITEMSANNOS_PLACEATTRIBUTE);
     NS_ENSURE_SUCCESS(rv, rv);
+
+    // Initialize the bookmark roots in the new DB.
+    rv = CreateBookmarkRoots();
+    NS_ENSURE_SUCCESS(rv, rv);
   }
 
   // Set the schema version to the current one.
@@ -753,6 +856,78 @@ Database::InitSchema(bool* aDatabaseMigrated)
 }
 
 nsresult
+Database::CreateBookmarkRoots()
+{
+  MOZ_ASSERT(NS_IsMainThread());
+
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    services::GetStringBundleService();
+  NS_ENSURE_STATE(bundleService);
+  nsCOMPtr<nsIStringBundle> bundle;
+  nsresult rv = bundleService->CreateBundle(PLACES_BUNDLE, getter_AddRefs(bundle));
+  if (NS_FAILED(rv)) return rv;
+
+  nsXPIDLString rootTitle;
+  // The first root's title is an empty string.
+  rv = CreateRoot(mMainConn, NS_LITERAL_CSTRING("places"), rootTitle);
+  if (NS_FAILED(rv)) return rv;
+
+  // Fetch the internationalized folder name from the string bundle.
+  rv = bundle->GetStringFromName(NS_LITERAL_STRING("BookmarksMenuFolderTitle").get(),
+                                 getter_Copies(rootTitle));
+  if (NS_FAILED(rv)) return rv;
+  rv = CreateRoot(mMainConn, NS_LITERAL_CSTRING("menu"), rootTitle);
+  if (NS_FAILED(rv)) return rv;
+
+  rv = bundle->GetStringFromName(NS_LITERAL_STRING("BookmarksToolbarFolderTitle").get(),
+                                 getter_Copies(rootTitle));
+  if (NS_FAILED(rv)) return rv;
+  rv = CreateRoot(mMainConn, NS_LITERAL_CSTRING("toolbar"), rootTitle);
+  if (NS_FAILED(rv)) return rv;
+
+  rv = bundle->GetStringFromName(NS_LITERAL_STRING("TagsFolderTitle").get(),
+                                 getter_Copies(rootTitle));
+  if (NS_FAILED(rv)) return rv;
+  rv = CreateRoot(mMainConn, NS_LITERAL_CSTRING("tags"), rootTitle);
+  if (NS_FAILED(rv)) return rv;
+
+  rv = bundle->GetStringFromName(NS_LITERAL_STRING("UnsortedBookmarksFolderTitle").get(),
+                                 getter_Copies(rootTitle));
+  if (NS_FAILED(rv)) return rv;
+  rv = CreateRoot(mMainConn, NS_LITERAL_CSTRING("unfiled"), rootTitle);
+  if (NS_FAILED(rv)) return rv;
+
+#if DEBUG
+  nsCOMPtr<mozIStorageStatement> stmt;
+  rv = mMainConn->CreateStatement(NS_LITERAL_CSTRING(
+    "SELECT "
+      "(SELECT COUNT(*) FROM moz_bookmarks), "
+      "(SELECT COUNT(*) FROM moz_bookmarks_roots), "
+      "(SELECT SUM(position) FROM moz_bookmarks WHERE "
+        "id IN (SELECT folder_id FROM moz_bookmarks_roots))"
+  ), getter_AddRefs(stmt));
+  if (NS_FAILED(rv)) return rv;
+
+  bool hasResult;
+  rv = stmt->ExecuteStep(&hasResult);
+  if (NS_FAILED(rv)) return rv;
+  MOZ_ASSERT(hasResult);
+  PRInt32 bookmarkCount = 0;
+  rv = stmt->GetInt32(0, &bookmarkCount);
+  if (NS_FAILED(rv)) return rv;
+  PRInt32 rootCount = 0;
+  rv = stmt->GetInt32(1, &rootCount);
+  if (NS_FAILED(rv)) return rv;
+  PRInt32 positionSum = 0;
+  rv = stmt->GetInt32(2, &positionSum);
+  if (NS_FAILED(rv)) return rv;
+  MOZ_ASSERT(bookmarkCount == 5 && rootCount == 5 && positionSum == 6);
+#endif
+
+  return NS_OK;
+}
+
+nsresult
 Database::InitFunctions()
 {
   MOZ_ASSERT(NS_IsMainThread());
@@ -764,6 +939,8 @@ Database::InitFunctions()
   rv = CalculateFrecencyFunction::create(mMainConn);
   NS_ENSURE_SUCCESS(rv, rv);
   rv = GenerateGUIDFunction::create(mMainConn);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = FixupURLFunction::create(mMainConn);
   NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
@@ -778,6 +955,72 @@ Database::InitTempTriggers()
   NS_ENSURE_SUCCESS(rv, rv);
   rv = mMainConn->ExecuteSimpleSQL(CREATE_HISTORYVISITS_AFTERDELETE_TRIGGER);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  // Add the triggers that update the moz_hosts table as necessary.
+  rv = mMainConn->ExecuteSimpleSQL(CREATE_PLACES_AFTERINSERT_TRIGGER);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = mMainConn->ExecuteSimpleSQL(CREATE_PLACES_AFTERDELETE_TRIGGER);
+  NS_ENSURE_SUCCESS(rv, rv);
+  rv = mMainConn->ExecuteSimpleSQL(CREATE_PLACES_AFTERUPDATE_TRIGGER);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return NS_OK;
+}
+
+nsresult
+Database::UpdateBookmarkRootTitles()
+{
+  MOZ_ASSERT(NS_IsMainThread());
+
+  nsCOMPtr<nsIStringBundleService> bundleService =
+    services::GetStringBundleService();
+  NS_ENSURE_STATE(bundleService);
+
+  nsCOMPtr<nsIStringBundle> bundle;
+  nsresult rv = bundleService->CreateBundle(PLACES_BUNDLE, getter_AddRefs(bundle));
+  if (NS_FAILED(rv)) return rv;
+
+  nsCOMPtr<mozIStorageAsyncStatement> stmt;
+  rv = mMainConn->CreateAsyncStatement(NS_LITERAL_CSTRING(
+    "UPDATE moz_bookmarks SET title = :new_title WHERE id = "
+      "(SELECT folder_id FROM moz_bookmarks_roots WHERE root_name = :root_name)"
+  ), getter_AddRefs(stmt));
+  if (NS_FAILED(rv)) return rv;
+
+  nsCOMPtr<mozIStorageBindingParamsArray> paramsArray;
+  rv = stmt->NewBindingParamsArray(getter_AddRefs(paramsArray));
+  if (NS_FAILED(rv)) return rv;
+
+  const char *rootNames[] = { "menu", "toolbar", "tags", "unfiled" };
+  const char *titleStringIDs[] = {
+    "BookmarksMenuFolderTitle", "BookmarksToolbarFolderTitle",
+    "TagsFolderTitle", "UnsortedBookmarksFolderTitle"
+  };
+
+  for (PRUint32 i = 0; i < ArrayLength(rootNames); ++i) {
+    nsXPIDLString title;
+    rv = bundle->GetStringFromName(NS_ConvertASCIItoUTF16(titleStringIDs[i]).get(),
+                                   getter_Copies(title));
+    if (NS_FAILED(rv)) return rv;
+
+    nsCOMPtr<mozIStorageBindingParams> params;
+    rv = paramsArray->NewBindingParams(getter_AddRefs(params));
+    if (NS_FAILED(rv)) return rv;
+    rv = params->BindUTF8StringByName(NS_LITERAL_CSTRING("root_name"),
+                                      nsDependentCString(rootNames[i]));
+    if (NS_FAILED(rv)) return rv;
+    rv = params->BindUTF8StringByName(NS_LITERAL_CSTRING("new_title"),
+                                      NS_ConvertUTF16toUTF8(title));
+    if (NS_FAILED(rv)) return rv;
+    rv = paramsArray->AddParams(params);
+    if (NS_FAILED(rv)) return rv;
+  }
+
+  rv = stmt->BindParameters(paramsArray);
+  if (NS_FAILED(rv)) return rv;
+  nsCOMPtr<mozIStoragePendingStatement> pendingStmt;
+  rv = stmt->ExecuteAsync(nsnull, getter_AddRefs(pendingStmt));
+  if (NS_FAILED(rv)) return rv;
 
   return NS_OK;
 }
@@ -1332,6 +1575,8 @@ Database::MigrateV13Up()
 nsresult
 Database::MigrateV14Up()
 {
+  MOZ_ASSERT(NS_IsMainThread());
+
   // For existing profiles, we may not have a moz_favicons.guid column.
   // Add it here. We want it to be unique, but ALTER TABLE doesn't allow
   // a uniqueness constraint, so the index must be created separately.
@@ -1347,17 +1592,18 @@ Database::MigrateV14Up()
     ));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    // Generate GUIDs for our existing favicons.
-    rv = mMainConn->ExecuteSimpleSQL(NS_LITERAL_CSTRING(
-      "UPDATE moz_favicons "
-      "SET guid = GENERATE_GUID()"
-    ));
-    NS_ENSURE_SUCCESS(rv, rv);
-
-    // And now we can make the column unique.
     rv = mMainConn->ExecuteSimpleSQL(CREATE_IDX_MOZ_FAVICONS_GUID);
     NS_ENSURE_SUCCESS(rv, rv);
   }
+
+  // Generate GUID for any favicon missing it.
+  rv = mMainConn->ExecuteSimpleSQL(NS_LITERAL_CSTRING(
+    "UPDATE moz_favicons "
+    "SET guid = GENERATE_GUID() "
+    "WHERE guid ISNULL "
+  ));
+  NS_ENSURE_SUCCESS(rv, rv);
+
   return NS_OK;
 }
 
@@ -1382,6 +1628,73 @@ Database::MigrateV15Up()
       "WHERE keyword_id = moz_keywords.id "
     ")"
   ));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return NS_OK;
+}
+
+nsresult
+Database::MigrateV16Up()
+{
+  MOZ_ASSERT(NS_IsMainThread());
+
+  // Due to Bug 715268 downgraded and then upgraded profiles may lack favicons
+  // guids, so fillup any missing ones.
+  nsresult rv = mMainConn->ExecuteSimpleSQL(NS_LITERAL_CSTRING(
+    "UPDATE moz_favicons "
+    "SET guid = GENERATE_GUID() "
+    "WHERE guid ISNULL "
+  ));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  return NS_OK;
+}
+
+nsresult
+Database::MigrateV17Up()
+{
+  MOZ_ASSERT(NS_IsMainThread());
+
+  bool tableExists = false;
+
+  nsresult rv = mMainConn->TableExists(NS_LITERAL_CSTRING("moz_hosts"), &tableExists);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (!tableExists) {
+    // For anyone who used in-development versions of this autocomplete,
+    // drop the old tables and its indexes.
+    rv = mMainConn->ExecuteSimpleSQL(NS_LITERAL_CSTRING(
+      "DROP INDEX IF EXISTS moz_hostnames_frecencyindex"
+    ));
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = mMainConn->ExecuteSimpleSQL(NS_LITERAL_CSTRING(
+      "DROP TABLE IF EXISTS moz_hostnames"
+    ));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // Add the moz_hosts table so we can get hostnames for URL autocomplete.
+    rv = mMainConn->ExecuteSimpleSQL(CREATE_MOZ_HOSTS);
+    NS_ENSURE_SUCCESS(rv, rv);
+    rv = mMainConn->ExecuteSimpleSQL(CREATE_IDX_MOZ_HOSTS_FRECENCYHOST);
+    NS_ENSURE_SUCCESS(rv, rv);
+  }
+
+  // Fill the moz_hosts table with all the domains in moz_places.
+  nsCOMPtr<mozIStorageAsyncStatement> fillHostsStmt;
+  rv = mMainConn->CreateAsyncStatement(NS_LITERAL_CSTRING(
+    "INSERT OR IGNORE INTO moz_hosts (host, frecency) "
+        "SELECT fixup_url(get_unreversed_host(h.rev_host)) AS host, "
+               "(SELECT MAX(frecency) FROM moz_places "
+                "WHERE rev_host = h.rev_host OR rev_host = h.rev_host || 'www.'"
+               ") AS frecency "
+        "FROM moz_places h "
+        "WHERE LENGTH(h.rev_host) > 1 "
+        "GROUP BY h.rev_host"
+  ), getter_AddRefs(fillHostsStmt));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<mozIStoragePendingStatement> ps;
+  rv = fillHostsStmt->ExecuteAsync(nsnull, getter_AddRefs(ps));
   NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
@@ -1419,7 +1732,7 @@ Database::Observe(nsISupports *aSubject,
                   const char *aTopic,
                   const PRUnichar *aData)
 {
-  NS_ASSERTION(NS_IsMainThread(), "This can only be called on the main thread");
+  MOZ_ASSERT(NS_IsMainThread());
  
   if (strcmp(aTopic, TOPIC_PROFILE_CHANGE_TEARDOWN) == 0) {
     // Tests simulating shutdown may cause multiple notifications.
@@ -1465,27 +1778,38 @@ Database::Observe(nsISupports *aSubject,
 
 #ifdef DEBUG
     { // Sanity check for missing guids.
+      bool haveNullGuids = false;
       nsCOMPtr<mozIStorageStatement> stmt;
+
       nsresult rv = mMainConn->CreateStatement(NS_LITERAL_CSTRING(
         "SELECT 1 "
         "FROM moz_places "
         "WHERE guid IS NULL "
-        "UNION ALL "
+      ), getter_AddRefs(stmt));
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = stmt->ExecuteStep(&haveNullGuids);
+      NS_ENSURE_SUCCESS(rv, rv);
+      MOZ_ASSERT(!haveNullGuids && "Found a page without a GUID!");
+
+      rv = mMainConn->CreateStatement(NS_LITERAL_CSTRING(
         "SELECT 1 "
         "FROM moz_bookmarks "
         "WHERE guid IS NULL "
-        "UNION ALL "
+      ), getter_AddRefs(stmt));
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = stmt->ExecuteStep(&haveNullGuids);
+      NS_ENSURE_SUCCESS(rv, rv);
+      MOZ_ASSERT(!haveNullGuids && "Found a bookmark without a GUID!");
+
+      rv = mMainConn->CreateStatement(NS_LITERAL_CSTRING(
         "SELECT 1 "
         "FROM moz_favicons "
         "WHERE guid IS NULL "
       ), getter_AddRefs(stmt));
       NS_ENSURE_SUCCESS(rv, rv);
-
-      bool haveNullGuids;
       rv = stmt->ExecuteStep(&haveNullGuids);
       NS_ENSURE_SUCCESS(rv, rv);
-      NS_ASSERTION(!haveNullGuids,
-                   "Someone added an entry without adding a GUID!");
+      MOZ_ASSERT(!haveNullGuids && "Found a favicon without a GUID!");
     }
 #endif
 

@@ -69,8 +69,9 @@
 #include "nsIMIMEService.h"
 #include "nsCExternalHandlerService.h"
 #include "nsIVariant.h"
-#include "xpcprivate.h"
-#include "XPCQuickStubs.h"
+#include "nsVariant.h"
+#include "nsIScriptError.h"
+#include "xpcpublic.h"
 #include "nsStringStream.h"
 #include "nsIStreamConverterService.h"
 #include "nsICachingChannel.h"
@@ -103,6 +104,7 @@
 #include "nsDOMFile.h"
 #include "nsIFileChannel.h"
 #include "mozilla/Telemetry.h"
+#include "sampler.h"
 
 using namespace mozilla;
 
@@ -449,14 +451,6 @@ nsXMLHttpRequest::~nsXMLHttpRequest()
   NS_ABORT_IF_FALSE(!(mState & XML_HTTP_REQUEST_SYNCLOOPING), "we rather crash than hang");
   mState &= ~XML_HTTP_REQUEST_SYNCLOOPING;
 
-  // This can happen if the XHR was only used by C++ (and so never created a JS
-  // wrapper) that also made an ArrayBuffer.
-  if (PreservingWrapper()) {
-    nsContentUtils::ReleaseWrapper(
-      static_cast<nsIDOMEventTarget*>(
-        static_cast<nsDOMEventTargetHelper*>(this)), this);
-  }
-
   nsLayoutStatics::Release();
 }
 
@@ -707,17 +701,10 @@ static void LogMessage(const char* aWarning, nsPIDOMWindow* aWindow)
   if (aWindow) {
     doc = do_QueryInterface(aWindow->GetExtantDocument());
   }
-  nsContentUtils::ReportToConsole(nsContentUtils::eDOM_PROPERTIES,
-                                  aWarning,
-                                  nsnull,
-                                  0,
-                                  nsnull, // Response URL not kept around
-                                  EmptyString(),
-                                  0,
-                                  0,
-                                  nsIScriptError::warningFlag,
-                                  "DOM",
-                                  doc);
+  nsContentUtils::ReportToConsole(nsIScriptError::warningFlag,
+                                  "DOM", doc,
+                                  nsContentUtils::eDOM_PROPERTIES,
+                                  aWarning);
 }
 
 /* readonly attribute nsIDOMDocument responseXML; */
@@ -937,29 +924,6 @@ nsXMLHttpRequest::CreateResponseParsedJSON(JSContext* aCx)
   return NS_OK;
 }
 
-nsresult
-nsXMLHttpRequest::CreateResponseArrayBuffer(JSContext *aCx)
-{
-  if (!aCx){
-    return NS_ERROR_FAILURE;
-  }
-
-  PRInt32 dataLen = mResponseBody.Length();
-  RootResultArrayBuffer();
-  mResultArrayBuffer = js_CreateArrayBuffer(aCx, dataLen);
-  if (!mResultArrayBuffer) {
-    return NS_ERROR_FAILURE;
-  }
-
-  if (dataLen > 0) {
-    JSObject *abuf = js::ArrayBuffer::getArrayBuffer(mResultArrayBuffer);
-    NS_ASSERTION(abuf, "What happened?");
-    memcpy(JS_GetArrayBufferData(abuf), mResponseBody.BeginReading(), dataLen);
-  }
-
-  return NS_OK;
-}
-
 /* attribute AString responseType; */
 NS_IMETHODIMP nsXMLHttpRequest::GetResponseType(nsAString& aResponseType)
 {
@@ -1066,7 +1030,7 @@ NS_IMETHODIMP nsXMLHttpRequest::GetResponse(JSContext *aCx, jsval *aResult)
       nsString str;
       rv = GetResponseText(str);
       if (NS_FAILED(rv)) return rv;
-      NS_ENSURE_TRUE(xpc_qsStringToJsval(aCx, str, aResult),
+      NS_ENSURE_TRUE(xpc::StringToJsval(aCx, str, aResult),
                      NS_ERROR_OUT_OF_MEMORY);
     }
     break;
@@ -1078,7 +1042,9 @@ NS_IMETHODIMP nsXMLHttpRequest::GetResponse(JSContext *aCx, jsval *aResult)
         (mResponseType == XML_HTTP_RESPONSE_TYPE_CHUNKED_ARRAYBUFFER &&
          mInLoadProgressEvent)) {
       if (!mResultArrayBuffer) {
-         rv = CreateResponseArrayBuffer(aCx);
+         RootResultArrayBuffer();
+         rv = nsContentUtils::CreateArrayBuffer(aCx, mResponseBody,
+                                                &mResultArrayBuffer);
          NS_ENSURE_SUCCESS(rv, rv);
       }
       *aResult = OBJECT_TO_JSVAL(mResultArrayBuffer);
@@ -1494,13 +1460,23 @@ nsXMLHttpRequest::CheckChannelForCrossSiteRequest(nsIChannel* aChannel)
     return NS_OK;
   }
 
+  // exempt data URIs from the same origin check.
+  nsCOMPtr<nsIURI> channelURI;
+  bool dataScheme = false;
+  if (NS_SUCCEEDED(NS_GetFinalChannelURI(aChannel,
+                                         getter_AddRefs(channelURI))) &&
+      NS_SUCCEEDED(channelURI->SchemeIs("data", &dataScheme)) &&
+      dataScheme) {
+    return NS_OK;
+  }
+
   // This is a cross-site request
   mState |= XML_HTTP_REQUEST_USE_XSITE_AC;
 
   // Check if we need to do a preflight request.
   nsCOMPtr<nsIHttpChannel> httpChannel = do_QueryInterface(aChannel);
   NS_ENSURE_TRUE(httpChannel, NS_ERROR_DOM_BAD_URI);
-    
+
   nsCAutoString method;
   httpChannel->GetRequestMethod(method);
   if (!mCORSUnsafeHeaders.IsEmpty() ||
@@ -2042,6 +2018,7 @@ nsXMLHttpRequest::OnStartRequest(nsIRequest *request, nsISupports *ctxt)
 NS_IMETHODIMP
 nsXMLHttpRequest::OnStopRequest(nsIRequest *request, nsISupports *ctxt, nsresult status)
 {
+  SAMPLE_LABEL("content", "nsXMLHttpRequest::OnStopRequest");
   if (!IsSameOrBaseChannel(request, mChannel)) {
     return NS_OK;
   }
@@ -2622,7 +2599,7 @@ nsXMLHttpRequest::Send(nsIVariant *aBody)
     // Always create a nsCORSListenerProxy here even if it's
     // a same-origin request right now, since it could be redirected.
     listener = new nsCORSListenerProxy(listener, mPrincipal, mChannel,
-                                       withCredentials, &rv);
+                                       withCredentials, true, &rv);
     NS_ENSURE_TRUE(listener, NS_ERROR_OUT_OF_MEMORY);
     NS_ENSURE_SUCCESS(rv, rv);
   }
@@ -2719,8 +2696,8 @@ nsXMLHttpRequest::Send(nsIVariant *aBody)
     // can run script that would try to restart this request, and that could end
     // up doing our AsyncOpen on a null channel if the reentered AsyncOpen fails.
     ChangeState(XML_HTTP_REQUEST_SENT);
-    if (!mUploadComplete &&
-        HasListenersFor(NS_LITERAL_STRING(UPLOADPROGRESS_STR)) ||
+    if ((!mUploadComplete &&
+         HasListenersFor(NS_LITERAL_STRING(UPLOADPROGRESS_STR))) ||
         (mUpload && mUpload->HasListenersFor(NS_LITERAL_STRING(PROGRESS_STR)))) {
       StartProgressEventTimer();
     }
@@ -2776,10 +2753,10 @@ nsXMLHttpRequest::SetRequestHeader(const nsACString& header,
   }
 
   // Prevent modification to certain HTTP headers (see bug 302263), unless
-  // the executing script has UniversalBrowserWrite permission.
+  // the executing script has UniversalXPConnect.
 
   bool privileged;
-  rv = IsCapabilityEnabled("UniversalBrowserWrite", &privileged);
+  rv = IsCapabilityEnabled("UniversalXPConnect", &privileged);
   if (NS_FAILED(rv))
     return NS_ERROR_FAILURE;
 

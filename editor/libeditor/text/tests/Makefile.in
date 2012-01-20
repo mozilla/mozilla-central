@@ -65,6 +65,7 @@ _TEST_FILES = \
 		test_bug645914.html \
 		test_bug681229.html \
 		test_bug692520.html \
+		test_bug717147.html \
 		$(NULL)
 
 # disables the key handling test on gtk2 because gtk2 overrides some key events
@@ -76,6 +77,7 @@ _TEST_FILES += \
 endif
 
 _CHROME_TEST_FILES = \
+		test_bug471319.html \
 		test_bug483651.html \
 		test_bug636465.xul \
 		$(NULL)

@@ -97,7 +97,7 @@ private:
  * reference loop between an ImageContainerOGL and its active image.
  */
 class RecycleBin {
-  THEBES_INLINE_DECL_THREADSAFE_REFCOUNTING(RecycleBin)
+  NS_INLINE_DECL_THREADSAFE_REFCOUNTING(RecycleBin)
 
   typedef mozilla::gl::GLContext GLContext;
 
@@ -180,6 +180,7 @@ public:
 
   virtual void RenderLayer(int aPreviousFrameBuffer,
                            const nsIntPoint& aOffset);
+  virtual void CleanupResources() {}
 };
 
 class THEBES_API PlanarYCbCrImageOGL : public PlanarYCbCrImage
@@ -265,6 +266,8 @@ public:
 
   virtual void RenderLayer(int aPreviousFrameBuffer,
                            const nsIntPoint& aOffset);
+
+  virtual void CleanupResources();
 
 private:
   bool Init(const SharedImage& aFront);

@@ -43,10 +43,9 @@
 
 #include "jsapi.h"
 #include "jsatom.h"
-#include "jscntxt.h"
+#include "jsfriendapi.h"
 #include "jstypedarray.h"
 #include "nsJSUtils.h"
-#include "xpcprivate.h"
 
 #include "Exceptions.h"
 #include "File.h"
@@ -211,8 +210,8 @@ private:
       return false;
     }
 
-    JSUint32 bufferLength = JS_GetArrayBufferByteLength(jsArrayBuffer);
-    uint8* arrayBuffer = JS_GetArrayBufferData(jsArrayBuffer);
+    uint32_t bufferLength = JS_GetArrayBufferByteLength(jsArrayBuffer);
+    uint8_t* arrayBuffer = JS_GetArrayBufferData(jsArrayBuffer);
 
     rv = fileReader->ReadAsArrayBuffer(blob, bufferLength, arrayBuffer);
     if (!EnsureSucceededOrThrow(aCx, rv)) {

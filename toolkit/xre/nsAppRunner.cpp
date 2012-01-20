@@ -69,7 +69,6 @@
 
 #ifdef XP_MACOSX
 #include "nsVersionComparator.h"
-#include "MacQuirks.h"
 #include "MacLaunchHelper.h"
 #include "MacApplicationDelegate.h"
 #include "MacAutoreleasePool.h"
@@ -764,7 +763,6 @@ nsXULAppInfo::GetWidgetToolkit(nsACString& aResult)
 SYNC_ENUMS(DEFAULT, Default)
 SYNC_ENUMS(PLUGIN, Plugin)
 SYNC_ENUMS(CONTENT, Content)
-SYNC_ENUMS(JETPACK, Jetpack)
 SYNC_ENUMS(IPDLUNITTEST, IPDLUnitTest)
 
 // .. and ensure that that is all of them:
@@ -2595,10 +2593,6 @@ XRE_main(int argc, char* argv[], const nsXREAppData* aAppData)
     NS_BREAK();
 #endif
 
-#ifdef XP_MACOSX
-  TriggerQuirks();
-#endif
-
   // see bug 639842
   // it's very important to fire this process BEFORE we set up error handling.
   // indeed, this process is expected to be crashy, and we don't want the user to see its crashes.
@@ -3137,6 +3131,25 @@ XRE_main(int argc, char* argv[], const nsXREAppData* aAppData)
     if (NS_FAILED(rv))
       updRoot = dirProvider.GetAppDir();
 
+    // If the MOZ_PROCESS_UPDATES environment variable already exists, then
+    // we are being called from the callback application.
+    if (EnvHasValue("MOZ_PROCESS_UPDATES")) {
+      // If the caller has asked us to log our arguments, do so.  This is used
+      // to make sure that the maintenance service successfully launches the
+      // callback application.
+      const char *logFile = nsnull;
+      if (ARG_FOUND == CheckArg("dump-args", false, &logFile)) {
+        FILE* logFP = fopen(logFile, "wb");
+        if (logFP) {
+          for (i = 1; i < gRestartArgc; ++i) {
+            fprintf(logFP, "%s\n", gRestartArgv[i]);
+          }
+          fclose(logFP);
+        }
+      }
+      return 0;
+    }
+
     // Support for processing an update and exiting. The MOZ_PROCESS_UPDATES
     // environment variable will be part of the updater's environment and the
     // application that is relaunched by the updater. When the application is
@@ -3511,9 +3524,8 @@ XRE_main(int argc, char* argv[], const nsXREAppData* aAppData)
         }
 
 #ifdef MOZ_INSTRUMENT_EVENT_LOOP
-        bool event_tracing_running = false;
-        if (PR_GetEnv("MOZ_INSTRUMENT_EVENT_LOOP")) {
-          event_tracing_running = mozilla::InitEventTracing();
+        if (PR_GetEnv("MOZ_INSTRUMENT_EVENT_LOOP") || SAMPLER_IS_ACTIVE()) {
+          mozilla::InitEventTracing();
         }
 #endif /* MOZ_INSTRUMENT_EVENT_LOOP */
 
@@ -3534,8 +3546,7 @@ XRE_main(int argc, char* argv[], const nsXREAppData* aAppData)
         NS_TIME_FUNCTION_MARK("appStartup->Run done");
 
 #ifdef MOZ_INSTRUMENT_EVENT_LOOP
-        if (event_tracing_running)
-          mozilla::ShutdownEventTracing();
+        mozilla::ShutdownEventTracing();
 #endif
 
         // Check for an application initiated restart.  This is one that

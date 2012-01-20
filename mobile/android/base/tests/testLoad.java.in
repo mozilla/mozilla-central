@@ -1,0 +1,13 @@
+#filter substitution
+package @ANDROID_PACKAGE_NAME@.tests;
+
+import @ANDROID_PACKAGE_NAME@.*;
+
+public class testLoad extends BaseTest {
+    private static final String URL = "http://mochi.test:8888/tests/robocop/robocop_blank_03.html";
+
+    public void testLoad() {
+        loadUrl(URL);
+        verifyUrl(URL);
+    }
+}

@@ -50,7 +50,6 @@
 #include "mozilla/Util.h"
 
 #include "jsapi.h"
-#include "jscntxt.h"
 #include "jsdbgapi.h"
 #include "jsfriendapi.h"
 #include "jsprf.h"
@@ -246,7 +245,7 @@ GetLocationProperty(JSContext *cx, JSObject *obj, jsid id, jsval *vp)
 
 #ifdef EDITLINE
 extern "C" {
-extern JS_EXPORT_API(char)     *readline(const char *prompt);
+extern JS_EXPORT_API(char *)   readline(const char *prompt);
 extern JS_EXPORT_API(void)     add_history(char *line);
 }
 #endif
@@ -489,8 +488,8 @@ Load(JSContext *cx, uintN argc, jsval *vp)
                            filename.ptr());
             return false;
         }
-        JSScript *script = JS_CompileFileHandleForPrincipals(cx, obj, filename.ptr(),
-                                                             file, gJSPrincipals);
+        JSScript *script = JS_CompileUTF8FileHandleForPrincipals(cx, obj, filename.ptr(),
+                                                                 file, gJSPrincipals);
         fclose(file);
         if (!script)
             return false;
@@ -535,7 +534,7 @@ Quit(JSContext *cx, uintN argc, jsval *vp)
 static JSBool
 DumpXPC(JSContext *cx, uintN argc, jsval *vp)
 {
-    int32 depth = 2;
+    int32_t depth = 2;
 
     if (argc > 0) {
         if (!JS_ValueToInt32(cx, JS_ARGV(cx, vp)[0], &depth))
@@ -544,7 +543,7 @@ DumpXPC(JSContext *cx, uintN argc, jsval *vp)
 
     nsCOMPtr<nsIXPConnect> xpc = do_GetService(nsIXPConnect::GetCID());
     if (xpc)
-        xpc->DebugDump((int16)depth);
+        xpc->DebugDump(int16_t(depth));
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return true;
 }
@@ -554,7 +553,7 @@ GC(JSContext *cx, uintN argc, jsval *vp)
 {
     JS_GC(cx);
 #ifdef JS_GCMETER
-    js_DumpGCStats(cx->runtime, stdout);
+    js_DumpGCStats(JS_GetRuntime(cx), stdout);
 #endif
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return true;
@@ -564,11 +563,11 @@ GC(JSContext *cx, uintN argc, jsval *vp)
 static JSBool
 GCZeal(JSContext *cx, uintN argc, jsval *vp)
 {
-    uint32 zeal;
+    uint32_t zeal;
     if (!JS_ValueToECMAUint32(cx, argc ? JS_ARGV(cx, vp)[0] : JSVAL_VOID, &zeal))
         return false;
 
-    JS_SetGCZeal(cx, (PRUint8)zeal, JS_DEFAULT_ZEAL_FREQ, false);
+    JS_SetGCZeal(cx, uint8_t(zeal), JS_DEFAULT_ZEAL_FREQ, false);
     JS_SET_RVAL(cx, vp, JSVAL_VOID);
     return true;
 }
@@ -620,7 +619,7 @@ DumpHeap(JSContext *cx, uintN argc, jsval *vp)
 
     vp = argv + 3;
     if (argc > 3 && *vp != JSVAL_NULL && *vp != JSVAL_VOID) {
-        uint32 depth;
+        uint32_t depth;
 
         if (!JS_ValueToECMAUint32(cx, *vp, &depth))
             return false;
@@ -723,7 +722,7 @@ GetChildGlobalObject(JSContext* cx,
  */
 static const struct JSOption {
     const char  *name;
-    uint32      flag;
+    uint32_t    flag;
 } js_options[] = {
     {"atline",          JSOPTION_ATLINE},
     {"relimit",         JSOPTION_RELIMIT},
@@ -732,7 +731,7 @@ static const struct JSOption {
     {"xml",             JSOPTION_XML},
 };
 
-static uint32
+static uint32_t
 MapContextOptionNameToFlag(JSContext* cx, const char* name)
 {
     for (size_t i = 0; i < ArrayLength(js_options); ++i) {
@@ -765,7 +764,7 @@ MapContextOptionNameToFlag(JSContext* cx, const char* name)
 static JSBool
 Options(JSContext *cx, uintN argc, jsval *vp)
 {
-    uint32 optset, flag;
+    uint32_t optset, flag;
     JSString *str;
     char *names;
     JSBool found;
@@ -994,10 +993,9 @@ typedef enum JSShellErrNum {
 #include "jsshell.msg"
 #undef MSG_DEF
     JSShellErr_Limit
-#undef MSGDEF
 } JSShellErrNum;
 
-JSErrorFormatString jsShell_ErrorFormatString[JSErr_Limit] = {
+JSErrorFormatString jsShell_ErrorFormatString[JSShellErr_Limit] = {
 #define MSG_DEF(name, number, count, exception, format) \
     { format, count } ,
 #include "jsshell.msg"
@@ -1007,10 +1005,10 @@ JSErrorFormatString jsShell_ErrorFormatString[JSErr_Limit] = {
 static const JSErrorFormatString *
 my_GetErrorMessage(void *userRef, const char *locale, const uintN errorNumber)
 {
-    if ((errorNumber > 0) && (errorNumber < JSShellErr_Limit))
-            return &jsShell_ErrorFormatString[errorNumber];
-        else
-            return NULL;
+    if (errorNumber == 0 || errorNumber >= JSShellErr_Limit)
+        return NULL;
+
+    return &jsShell_ErrorFormatString[errorNumber];
 }
 
 static void
@@ -1049,8 +1047,8 @@ ProcessFile(JSContext *cx, JSObject *obj, const char *filename, FILE *file,
         ungetc(ch, file);
         DoBeginRequest(cx);
 
-        script = JS_CompileFileHandleForPrincipals(cx, obj, filename, file,
-                                                   gJSPrincipals);
+        script = JS_CompileUTF8FileHandleForPrincipals(cx, obj, filename, file,
+                                                       gJSPrincipals);
 
         if (script && !compileOnly)
             (void)JS_ExecuteScript(cx, obj, script, &result);

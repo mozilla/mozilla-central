@@ -66,11 +66,12 @@ HISTOGRAM(CYCLE_COLLECTOR, 1, 10000, 50, EXPONENTIAL, "Time spent on one cycle c
 HISTOGRAM(CYCLE_COLLECTOR_VISITED_REF_COUNTED, 1, 300000, 50, EXPONENTIAL, "Number of ref counted objects visited by the cycle collector")
 HISTOGRAM(CYCLE_COLLECTOR_VISITED_GCED, 1, 300000, 50, EXPONENTIAL, "Number of JS objects visited by the cycle collector")
 HISTOGRAM(CYCLE_COLLECTOR_COLLECTED, 1, 100000, 50, EXPONENTIAL, "Number of objects collected by the cycle collector")
+HISTOGRAM_BOOLEAN(CYCLE_COLLECTOR_NEED_GC, "Needed garbage collection before cycle collection.")
 
 /**
  * GC telemetry
  */
-HISTOGRAM(GC_REASON, 0, 20, 20, LINEAR, "Reason (enum value) for initiating a GC")
+HISTOGRAM(GC_REASON, 1, 20, 20, LINEAR, "Reason (enum value) for initiating a GC")
 HISTOGRAM_BOOLEAN(GC_IS_COMPARTMENTAL, "Is it a compartmental GC?")
 HISTOGRAM_BOOLEAN(GC_IS_SHAPE_REGEN, "Is it a shape regenerating GC?")
 HISTOGRAM(GC_MS, 1, 10000, 50, EXPONENTIAL, "Time spent running JS GC (ms)")
@@ -89,7 +90,11 @@ HISTOGRAM(MEMORY_HEAP_ALLOCATED, 1024, 1024 * 1024, 50, EXPONENTIAL, "Heap memor
 HISTOGRAM(MEMORY_EXPLICIT, 1024, 1024 * 1024, 50, EXPONENTIAL, "Explicit memory allocations (KB)")
 #if defined(XP_MACOSX)
 HISTOGRAM(MEMORY_FREE_PURGED_PAGES_MS, 1, 1024, 10, EXPONENTIAL, "Time(ms) to purge MADV_FREE'd heap pages.")
+#elif defined(XP_WIN)
+HISTOGRAM(LOW_MEMORY_EVENTS_VIRTUAL, 1, 1024, 21, EXPONENTIAL, "Number of low-virtual-memory events fired since last ping")
+HISTOGRAM(LOW_MEMORY_EVENTS_PHYSICAL, 1, 1024, 21, EXPONENTIAL, "Number of low-physical-memory events fired since last ping")
 #endif
+
 #if defined(XP_WIN)
 HISTOGRAM(EARLY_GLUESTARTUP_READ_OPS, 1, 100, 12, LINEAR, "ProcessIoCounters.ReadOperationCount before glue startup")
 HISTOGRAM(EARLY_GLUESTARTUP_READ_TRANSFER, 1, 50 * 1024, 12, EXPONENTIAL, "ProcessIoCounters.ReadTransferCount before glue startup (KB)")
@@ -197,6 +202,12 @@ HISTOGRAM(CACHE_DISK_SEARCH, 1, 100, 100, LINEAR, "Time to search disk cache (ms
 HISTOGRAM(CACHE_OFFLINE_SEARCH, 1, 100, 100, LINEAR, "Time to search offline cache (ms)")
 HISTOGRAM(HTTP_DISK_CACHE_OVERHEAD, 1, 32000000, 100, EXPONENTIAL, "HTTP Disk cache memory overhead (bytes)")
 
+HISTOGRAM(DNS_LOOKUP_METHOD, 1, 7, 7, LINEAR, "DNS Lookup Type (hit, renewal, negative-hit, literal, overflow, network-first, network-shared)")
+HISTOGRAM(DNS_CLEANUP_AGE, 1, 1440, 50, EXPONENTIAL, "DNS Cache Entry Age at Removal Time (minutes)")
+HISTOGRAM(DNS_LOOKUP_TIME, 1, 60000, 50, EXPONENTIAL, "Time for a successful DNS OS resolution (msec)")
+HISTOGRAM(DNS_RENEWAL_TIME, 1, 60000, 50, EXPONENTIAL, "Time for a renewed DNS OS resolution (msec)")
+HISTOGRAM(DNS_FAILED_LOOKUP_TIME, 1, 60000, 50, EXPONENTIAL, "Time for an unsuccessful DNS OS resolution (msec)")
+
 HISTOGRAM(FIND_PLUGINS, 1, 3000, 10, EXPONENTIAL, "Time spent scanning filesystem for plugins (ms)")
 HISTOGRAM(CHECK_JAVA_ENABLED, 1, 3000, 10, EXPONENTIAL, "Time spent checking if Java is enabled (ms)")
 
@@ -242,6 +253,10 @@ HISTOGRAM(NETWORK_DISK_CACHE_DELETEDIR, 1, 10000, 10, EXPONENTIAL, "Time spent d
 HISTOGRAM(NETWORK_DISK_CACHE_DELETEDIR_SHUTDOWN, 1, 10000, 10, EXPONENTIAL, "Time spent during showdown stopping thread deleting old disk cache (ms)")
 HISTOGRAM(NETWORK_DISK_CACHE_SHUTDOWN, 1, 10000, 10, EXPONENTIAL, "Total Time spent (ms) during disk cache showdown")
 HISTOGRAM(NETWORK_DISK_CACHE_SHUTDOWN_CLEAR_PRIVATE, 1, 10000, 10, EXPONENTIAL, "Time spent (ms) during showdown deleting disk cache for 'clear private data' option")
+HISTOGRAM(NETWORK_DISK_CACHE_OUTPUT_STREAM_CLOSE, 1, 10000, 10, EXPONENTIAL, "Time spent in nsDiskCacheOutputStream::Close() on non-main thread (ms)")
+HISTOGRAM(NETWORK_DISK_CACHE_OUTPUT_STREAM_CLOSE_MAIN_THREAD, 1, 10000, 10, EXPONENTIAL, "Time spent in nsDiskCacheOutputStream::Close() on the main thread (ms)")
+HISTOGRAM(NETWORK_DISK_CACHE_OUTPUT_STREAM_CLOSE_INTERNAL, 1, 10000, 10, EXPONENTIAL, "Time spent in nsDiskCacheOutputStream::CloseInternal() on non-main thread (ms)")
+HISTOGRAM(NETWORK_DISK_CACHE_OUTPUT_STREAM_CLOSE_INTERNAL_MAIN_THREAD, 1, 10000, 10, EXPONENTIAL, "Time spent in nsDiskCacheOutputStream::CloseInternal on the main thread (ms)")
 
 /**
  * Url-Classifier telemetry
@@ -251,6 +266,7 @@ HISTOGRAM(URLCLASSIFIER_PS_FILELOAD_TIME, 1, 1000, 10, EXPONENTIAL, "Time spent 
 HISTOGRAM(URLCLASSIFIER_PS_FALLOCATE_TIME, 1, 1000, 10, EXPONENTIAL, "Time spent fallocating PrefixSet (ms)")
 HISTOGRAM(URLCLASSIFIER_PS_CONSTRUCT_TIME, 1, 5000, 15, EXPONENTIAL, "Time spent constructing PrefixSet from DB (ms)")
 HISTOGRAM(URLCLASSIFIER_PS_LOOKUP_TIME, 1, 500, 10, EXPONENTIAL, "Time spent per PrefixSet lookup (ms)")
+HISTOGRAM_BOOLEAN(URLCLASSIFIER_PS_OOM, "Did UrlClassifier run out of memory during PrefixSet construction?")
 #endif
 
 /**
@@ -273,28 +289,40 @@ HISTOGRAM(PLACES_AUTOCOMPLETE_1ST_RESULT_TIME_MS, 50, 500, 10, EXPONENTIAL, "PLA
 /**
  * Updater telemetry.
  */
-HISTOGRAM(UPDATE_STATUS, 0, 16004, 18, LINEAR, "Updater: the status of the latest update performed")
+HISTOGRAM(UPDATE_STATUS, 1, 16006, 27, LINEAR, "Updater: the status of the latest update performed")
 
 /**
  * Thunderbird-specific telemetry.
  */
-#ifdef MOZ_THUNDERBIRD
+// Disable this application-specific #ifdef ftb. (See bug 710562)
+// #ifdef MOZ_THUNDERBIRD
 HISTOGRAM(THUNDERBIRD_GLODA_SIZE_MB, 1, 1000, 40, LINEAR, "Gloda: size of global-messages-db.sqlite (MB)")
+// THUNDERBIRD_CONVERSATIONS_TIME_TO_2ND_GLODA_QUERY_MS is used by Thunderbird Conversations add-on.
+// https://addons.mozilla.org/en-US/thunderbird/addon/54035/
 HISTOGRAM(THUNDERBIRD_CONVERSATIONS_TIME_TO_2ND_GLODA_QUERY_MS, 1, 10000, 30, EXPONENTIAL, "Conversations: time between the moment we click and the second gloda query returns (ms)")
 HISTOGRAM(THUNDERBIRD_INDEXING_RATE_MSG_PER_S, 1, 100, 20, LINEAR, "Gloda: indexing rate (message/s)")
-#endif
+// #endif
 
 /**
  * Firefox-specific telemetry.
  */
-#ifdef MOZ_PHOENIX
-HISTOGRAM(FX_CONTEXT_SEARCH_AND_TAB_SELECT, 0, 1, 2, BOOLEAN, "Firefox: Background tab was selected within 5 seconds of searching from the context menu")
-#endif
+// Disable this application-specific #ifdef ftb. (See bug 710562)
+// #ifdef MOZ_PHOENIX
+HISTOGRAM(FX_TAB_ANIM_OPEN_MS, 1, 3000, 10, EXPONENTIAL, "Firefox: Time taken by the tab opening animation")
+HISTOGRAM(FX_TAB_ANIM_CLOSE_MS, 1, 3000, 10, EXPONENTIAL, "Firefox: Time taken by the tab closing animation")
+HISTOGRAM_BOOLEAN(FX_CONTEXT_SEARCH_AND_TAB_SELECT, "Firefox: Background tab was selected within 5 seconds of searching from the context menu")
+// #endif
 
 HISTOGRAM_BOOLEAN(INNERWINDOWS_WITH_MUTATION_LISTENERS, "Deleted or to-be-reused innerwindow which has had mutation event listeners.")
-HISTOGRAM(XUL_REFLOW_MS, 1, 3000, 10, EXPONENTIAL, "xul reflows")
+HISTOGRAM(XUL_REFLOW_MS, 1, 3000, 10, EXPONENTIAL, "XUL reflows (ms)")
+HISTOGRAM(HTML_REFLOW_MS, 1, 3000, 10, EXPONENTIAL, "HTML reflows (ms)")
 HISTOGRAM(XUL_INITIAL_FRAME_CONSTRUCTION, 1, 3000, 10, EXPONENTIAL, "initial xul frame construction")
 HISTOGRAM_BOOLEAN(XMLHTTPREQUEST_ASYNC_OR_SYNC, "Type of XMLHttpRequest, async or sync")
+
+/**
+ * DOM telemetry.
+ */
+HISTOGRAM(DOM_TIMERS_FIRED_PER_NATIVE_TIMEOUT, 1, 3000, 10, EXPONENTIAL, "DOM: Timer handlers called per native timer expiration")
 
 /**
  * DOM Storage telemetry.
@@ -313,5 +341,12 @@ DOMSTORAGE_KEY_VAL_SIZE(SESSION, "session")
 #undef DOMSTORAGE_KEY_VAL_SIZE
 #undef DOMSTORAGE_HISTOGRAM
 
+/**
+ * Telemetry telemetry.
+ */
+HISTOGRAM(RANGE_CHECKSUM_ERRORS, 1, 3000, 10, EXPONENTIAL, "Number of histograms with range checksum errors")
+HISTOGRAM(BUCKET_ORDER_ERRORS, 1, 3000, 10, EXPONENTIAL, "Number of histograms with bucket order errors")
+HISTOGRAM(TOTAL_COUNT_HIGH_ERRORS, 1, 3000, 10, EXPONENTIAL, "Number of histograms with total count high errors")
+HISTOGRAM(TOTAL_COUNT_LOW_ERRORS, 1, 3000, 10, EXPONENTIAL, "Number of histograms with total count low errors")
 
 #undef HISTOGRAM_BOOLEAN

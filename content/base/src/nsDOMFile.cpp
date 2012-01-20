@@ -60,7 +60,7 @@
 #include "nsNetCID.h"
 #include "nsNetUtil.h"
 #include "nsIUUIDGenerator.h"
-#include "nsFileDataProtocolHandler.h"
+#include "nsBlobProtocolHandler.h"
 #include "nsStringStream.h"
 #include "CheckedInt.h"
 #include "nsJSUtils.h"
@@ -70,6 +70,7 @@
 #include "prmem.h"
 
 using namespace mozilla;
+using namespace mozilla::dom;
 
 // XXXkhuey the input stream that we pass out of a DOMFile
 // can outlive the actual DOMFile object.  Thus, we must
@@ -165,12 +166,12 @@ nsDOMFileBase::GetMozFullPath(nsAString &aFileName)
 {
   NS_ASSERTION(mIsFile, "Should only be called on files");
 
-  // It is unsafe to call IsCallerTrustedForCapability on a non-main thread. If
+  // It is unsafe to call CallerHasUniversalXPConnect on a non-main thread. If
   // you hit the following assertion you need to figure out some other way to
   // determine privileges and call GetMozFullPathInternal.
   NS_ASSERTION(NS_IsMainThread(), "Wrong thread!");
 
-  if (nsContentUtils::IsCallerTrustedForCapability("UniversalFileRead")) {
+  if (nsContentUtils::CallerHasUniversalXPConnect()) {
     return GetMozFullPathInternal(aFileName);
   }
   aFileName.Truncate();
@@ -287,15 +288,85 @@ nsDOMFileBase::GetInternalUrl(nsIPrincipal* aPrincipal, nsAString& aURL)
   char chars[NSID_LENGTH];
   id.ToProvidedString(chars);
     
-  nsCString url = NS_LITERAL_CSTRING(FILEDATA_SCHEME ":") +
+  nsCString url = NS_LITERAL_CSTRING(BLOBURI_SCHEME ":") +
     Substring(chars + 1, chars + NSID_LENGTH - 2);
 
-  nsFileDataProtocolHandler::AddFileDataEntry(url, this,
+  nsBlobProtocolHandler::AddFileDataEntry(url, this,
                                               aPrincipal);
 
   CopyASCIItoUTF16(url, aURL);
   
   return NS_OK;
+}
+
+NS_IMETHODIMP_(PRInt64)
+nsDOMFileBase::GetFileId()
+{
+  PRInt64 id = -1;
+
+  if (IsStoredFile() && IsWholeFile()) {
+    if (!indexedDB::IndexedDatabaseManager::IsClosed()) {
+      indexedDB::IndexedDatabaseManager::FileMutex().Lock();
+    }
+
+    NS_ASSERTION(!mFileInfos.IsEmpty(),
+                 "A stored file must have at least one file info!");
+
+    nsRefPtr<indexedDB::FileInfo>& fileInfo = mFileInfos.ElementAt(0);
+    if (fileInfo) {
+      id =  fileInfo->Id();
+    }
+
+    if (!indexedDB::IndexedDatabaseManager::IsClosed()) {
+      indexedDB::IndexedDatabaseManager::FileMutex().Unlock();
+    }
+  }
+
+  return id;
+}
+
+NS_IMETHODIMP_(void)
+nsDOMFileBase::AddFileInfo(indexedDB::FileInfo* aFileInfo)
+{
+  if (indexedDB::IndexedDatabaseManager::IsClosed()) {
+    NS_ERROR("Shouldn't be called after shutdown!");
+    return;
+  }
+
+  nsRefPtr<indexedDB::FileInfo> fileInfo = aFileInfo;
+
+  MutexAutoLock lock(indexedDB::IndexedDatabaseManager::FileMutex());
+
+  NS_ASSERTION(!mFileInfos.Contains(aFileInfo),
+               "Adding the same file info agan?!");
+
+  nsRefPtr<indexedDB::FileInfo>* element = mFileInfos.AppendElement();
+  element->swap(fileInfo);
+}
+
+NS_IMETHODIMP_(indexedDB::FileInfo*)
+nsDOMFileBase::GetFileInfo(indexedDB::FileManager* aFileManager)
+{
+  if (indexedDB::IndexedDatabaseManager::IsClosed()) {
+    NS_ERROR("Shouldn't be called after shutdown!");
+    return nsnull;
+  }
+
+  // A slice created from a stored file must keep the file info alive.
+  // However, we don't support sharing of slices yet, so the slice must be
+  // copied again. That's why we have to ignore the first file info.
+  PRUint32 startIndex = IsStoredFile() && !IsWholeFile() ? 1 : 0;
+
+  MutexAutoLock lock(indexedDB::IndexedDatabaseManager::FileMutex());
+
+  for (PRUint32 i = startIndex; i < mFileInfos.Length(); i++) {
+    nsRefPtr<indexedDB::FileInfo>& fileInfo = mFileInfos.ElementAt(i);
+    if (fileInfo->Manager() == aFileManager) {
+      return fileInfo;
+    }
+  }
+
+  return nsnull;
 }
 
 NS_IMETHODIMP
@@ -588,8 +659,8 @@ nsDOMFileError::GetCode(PRUint16* aCode)
 
 nsDOMFileInternalUrlHolder::nsDOMFileInternalUrlHolder(nsIDOMBlob* aFile,
                                                        nsIPrincipal* aPrincipal
-                                                       MOZILLA_GUARD_OBJECT_NOTIFIER_PARAM_IN_IMPL) {
-  MOZILLA_GUARD_OBJECT_NOTIFIER_INIT;
+                                                       MOZ_GUARD_OBJECT_NOTIFIER_PARAM_IN_IMPL) {
+  MOZ_GUARD_OBJECT_NOTIFIER_INIT;
   aFile->GetInternalUrl(aPrincipal, mUrl);
 }
  
@@ -597,6 +668,6 @@ nsDOMFileInternalUrlHolder::~nsDOMFileInternalUrlHolder() {
   if (!mUrl.IsEmpty()) {
     nsCAutoString narrowUrl;
     CopyUTF16toUTF8(mUrl, narrowUrl);
-    nsFileDataProtocolHandler::RemoveFileDataEntry(narrowUrl);
+    nsBlobProtocolHandler::RemoveFileDataEntry(narrowUrl);
   }
 }

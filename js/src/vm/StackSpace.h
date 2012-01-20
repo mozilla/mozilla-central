@@ -55,7 +55,7 @@ class GeneratorFrameGuard;
 enum InitialFrameFlags {
     INITIAL_NONE           =          0,
     INITIAL_CONSTRUCT      =       0x80, /* == StackFrame::CONSTRUCTING, asserted in Stack.h */
-    INITIAL_LOWERED        =   0x200000  /* == StackFrame::LOWERED_CALL_APPLY, asserted in Stack.h */
+    INITIAL_LOWERED        =   0x800000  /* == StackFrame::LOWERED_CALL_APPLY, asserted in Stack.h */
 };
 
 enum ExecuteType {
@@ -217,7 +217,7 @@ class ContextStack
 
     inline StackFrame *
     getCallFrame(JSContext *cx, MaybeReportError report, const CallArgs &args,
-                 JSFunction *fun, JSScript *script, /*StackFrame::Flags*/ uint32 *pflags) const;
+                 JSFunction *fun, JSScript *script, /*StackFrame::Flags*/ uint32_t *pflags) const;
 
     /* Make pop* functions private since only called by guard classes. */
     void popSegment();

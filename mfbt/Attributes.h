@@ -38,7 +38,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/* Implementations of various C++ class and method modifier attributes. */
+/* Implementations of various class and method modifier attributes. */
 
 #ifndef mozilla_Attributes_h_
 #define mozilla_Attributes_h_
@@ -48,8 +48,37 @@
  * code that is (only currently) mfbt-incompatible.
  */
 
-#ifndef __cplusplus
-#error "mozilla/Attributes.h is only relevant to C++ code."
+/*
+ * MOZ_INLINE is a macro which expands to tell the compiler that the method
+ * decorated with it should be inlined.  This macro is usable from C and C++
+ * code, even though C89 does not support the |inline| keyword.  The compiler
+ * may ignore this directive if it chooses.
+ */
+#if defined(__cplusplus)
+#  define MOZ_INLINE            inline
+#elif defined(_MSC_VER)
+#  define MOZ_INLINE            __inline
+#elif defined(__GNUC__)
+#  define MOZ_INLINE            __inline__
+#else
+#  define MOZ_INLINE            inline
+#endif
+
+/*
+ * MOZ_ALWAYS_INLINE is a macro which expands to tell the compiler that the
+ * method decorated with it must be inlined, even if the compiler thinks
+ * otherwise.  This is only a (much) stronger version of the MOZ_INLINE hint:
+ * compilers are not guaranteed to respect it (although they're much more likely
+ * to do so).
+ */
+#if defined(DEBUG)
+#  define MOZ_ALWAYS_INLINE     MOZ_INLINE
+#elif defined(_MSC_VER)
+#  define MOZ_ALWAYS_INLINE     __forceinline
+#elif defined(__GNUC__)
+#  define MOZ_ALWAYS_INLINE     __attribute__((always_inline)) MOZ_INLINE
+#else
+#  define MOZ_ALWAYS_INLINE     MOZ_INLINE
 #endif
 
 /*
@@ -61,14 +90,26 @@
  * for forward compatibility.
  */
 #if defined(__clang__)
-#  if __clang_major__ >= 3
+   /*
+    * Per Clang documentation, "Note that marketing version numbers should not
+    * be used to check for language features, as different vendors use different
+    * numbering schemes. Instead, use the feature checking macros."
+    */
+#  ifndef __has_extension
+#    define __has_extension __has_feature /* compatibility, for older versions of clang */
+#  endif
+#  if __has_extension(cxx_deleted_functions)
 #    define MOZ_HAVE_CXX11_DELETE
+#  endif
+#  if __has_extension(cxx_override_control)
 #    define MOZ_HAVE_CXX11_OVERRIDE
 #    define MOZ_HAVE_CXX11_FINAL         final
-#  elif __clang_major__ == 2
-#    if __clang_minor__ >= 9
-#      define MOZ_HAVE_CXX11_DELETE
-#    endif
+#  endif
+#  if __has_attribute(noinline)
+#    define MOZ_HAVE_NEVER_INLINE        __attribute__((noinline))
+#  endif
+#  if __has_attribute(noreturn)
+#    define MOZ_HAVE_NORETURN            __attribute__((noreturn))
 #  endif
 #elif defined(__GNUC__)
 #  if defined(__GXX_EXPERIMENTAL_CXX0X__) || __cplusplus >= 201103L
@@ -95,13 +136,51 @@
 #      endif
 #    endif
 #  endif
+#  define MOZ_HAVE_NEVER_INLINE          __attribute__((noinline))
+#  define MOZ_HAVE_NORETURN              __attribute__((noreturn))
 #elif defined(_MSC_VER)
 #  if _MSC_VER >= 1400
 #    define MOZ_HAVE_CXX11_OVERRIDE
      /* MSVC currently spells "final" as "sealed". */
 #    define MOZ_HAVE_CXX11_FINAL         sealed
 #  endif
+#  define MOZ_HAVE_NEVER_INLINE          __declspec(noinline)
+#  define MOZ_HAVE_NORETURN              __declspec(noreturn)
 #endif
+
+/*
+ * MOZ_NEVER_INLINE is a macro which expands to tell the compiler that the
+ * method decorated with it must never be inlined, even if the compiler would
+ * otherwise choose to inline the method.  Compilers aren't absolutely
+ * guaranteed to support this, but most do.
+ */
+#if defined(MOZ_HAVE_NEVER_INLINE)
+#  define MOZ_NEVER_INLINE      MOZ_HAVE_NEVER_INLINE
+#else
+#  define MOZ_NEVER_INLINE      /* no support */
+#endif
+
+/*
+ * MOZ_NORETURN, specified at the start of a function declaration, indicates
+ * that the given function does not return.  (The function definition does not
+ * need to be annotated.)
+ *
+ *   MOZ_NORETURN void abort(const char* msg);
+ *
+ * This modifier permits the compiler to optimize code assuming a call to such a
+ * function will never return.  It also enables the compiler to avoid spurious
+ * warnings about not initializing variables, or about any other seemingly-dodgy
+ * operations performed after the function returns.
+ *
+ * This modifier does not affect the corresponding function's linking behavior.
+ */
+#if defined(MOZ_HAVE_NORETURN)
+#  define MOZ_NORETURN          MOZ_HAVE_NORETURN
+#else
+#  define MOZ_NORETURN          /* no support */
+#endif
+
+#ifdef __cplusplus
 
 /*
  * MOZ_DELETE, specified immediately prior to the ';' terminating an undefined-
@@ -240,5 +319,7 @@
 #else
 #  define MOZ_FINAL             /* no support */
 #endif
+
+#endif /* __cplusplus */
 
 #endif  /* mozilla_Attributes_h_ */

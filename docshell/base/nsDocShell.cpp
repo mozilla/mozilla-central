@@ -224,6 +224,7 @@
 
 #include "nsDOMNavigationTiming.h"
 #include "nsITimedChannel.h"
+#include "mozilla/StartupTimeline.h"
 
 static NS_DEFINE_CID(kDOMScriptObjectFactoryCID,
                      NS_DOM_SCRIPT_OBJECT_FACTORY_CID);
@@ -1224,6 +1225,11 @@ nsDocShell::LoadURI(nsIURI * aURI,
 
     NS_ENSURE_ARG(aURI);
 
+    if (!StartupTimeline::HasRecord(StartupTimeline::FIRST_LOAD_URI) &&
+        mItemType == typeContent && !NS_IsAboutBlank(aURI)) {
+        StartupTimeline::RecordOnce(StartupTimeline::FIRST_LOAD_URI);
+    }
+
     // Extract the info from the DocShellLoadInfo struct...
     if (aLoadInfo) {
         aLoadInfo->GetReferrer(getter_AddRefs(referrer));
@@ -1626,10 +1632,10 @@ nsDocShell::ValidateOrigin(nsIDocShellTreeItem* aOriginTreeItem,
     NS_ENSURE_SUCCESS(rv, false);
 
     if (subjectPrincipal) {
-        // We're called from JS, check if UniversalBrowserWrite is
+        // We're called from JS, check if UniversalXPConnect is
         // enabled.
         bool ubwEnabled = false;
-        rv = securityManager->IsCapabilityEnabled("UniversalBrowserWrite",
+        rv = securityManager->IsCapabilityEnabled("UniversalXPConnect",
                                                   &ubwEnabled);
         NS_ENSURE_SUCCESS(rv, false);
 
@@ -4518,7 +4524,7 @@ nsDocShell::Create()
         Preferences::AddStrongObserver(this, "browser.xul.error_pages.enabled");
     }
 
-    nsCOMPtr<nsIObserverService> serv = do_GetService(NS_OBSERVERSERVICE_CONTRACTID);
+    nsCOMPtr<nsIObserverService> serv = services::GetObserverService();
     if (serv) {
         const char* msg = mItemType == typeContent ?
             NS_WEBNAVIGATION_CREATE : NS_CHROME_WEBNAVIGATION_CREATE;
@@ -4535,8 +4541,7 @@ nsDocShell::Destroy()
                  "Unexpected item type in docshell");
 
     if (!mIsBeingDestroyed) {
-        nsCOMPtr<nsIObserverService> serv =
-            do_GetService(NS_OBSERVERSERVICE_CONTRACTID);
+        nsCOMPtr<nsIObserverService> serv = services::GetObserverService();
         if (serv) {
             const char* msg = mItemType == typeContent ?
                 NS_WEBNAVIGATION_DESTROY : NS_CHROME_WEBNAVIGATION_DESTROY;
@@ -4733,8 +4738,7 @@ nsDocShell::Repaint(bool aForce)
     nsIViewManager* viewManager = presShell->GetViewManager();
     NS_ENSURE_TRUE(viewManager, NS_ERROR_FAILURE);
 
-    // what about aForce ?
-    NS_ENSURE_SUCCESS(viewManager->UpdateAllViews(0), NS_ERROR_FAILURE);
+    NS_ENSURE_SUCCESS(viewManager->InvalidateAllViews(), NS_ERROR_FAILURE);
     return NS_OK;
 }
 
@@ -7325,7 +7329,7 @@ nsDocShell::RestoreFromHistory()
             // call Thaw. So we issue the invalidate here.
             newRootView = newVM->GetRootView();
             if (newRootView) {
-                newVM->UpdateView(newRootView, NS_VMREFRESH_NO_SYNC);
+                newVM->InvalidateView(newRootView);
             }
         }
     }
@@ -7785,7 +7789,7 @@ nsDocShell::CheckLoadingPermissions()
     NS_ENSURE_SUCCESS(rv, rv);
 
     bool ubwEnabled = false;
-    rv = securityManager->IsCapabilityEnabled("UniversalBrowserWrite",
+    rv = securityManager->IsCapabilityEnabled("UniversalXPConnect",
                                               &ubwEnabled);
     if (NS_FAILED(rv) || ubwEnabled) {
         return rv;

@@ -54,7 +54,9 @@
 #ifndef jstypes_h___
 #define jstypes_h___
 
-#include <stddef.h>
+#include "mozilla/Attributes.h"
+#include "mozilla/Util.h"
+
 #include "js-config.h"
 
 /***********************************************************************
@@ -78,63 +80,11 @@
 **
 ***********************************************************************/
 
-#define DEFINE_LOCAL_CLASS_OF_STATIC_FUNCTION(Name) class Name
-
-#if defined(WIN32) || defined(XP_OS2)
-
-/* These also work for __MWERKS__ */
-# define JS_EXTERN_API(__type)  extern __declspec(dllexport) __type
-# define JS_EXPORT_API(__type)  __declspec(dllexport) __type
-# define JS_EXTERN_DATA(__type) extern __declspec(dllexport) __type
-# define JS_EXPORT_DATA(__type) __declspec(dllexport) __type
-
-#else /* Unix */
-
-# ifdef HAVE_VISIBILITY_ATTRIBUTE
-#  define JS_EXTERNAL_VIS __attribute__((visibility ("default")))
-#  if defined(__GNUC__) && __GNUC__ <= 4 && __GNUC_MINOR__ < 5
-    /*
-     * GCC wrongly produces a warning when a type with hidden visibility
-     * (e.g. js::Value) is a member of a local class of a static function.
-     * This is apparently fixed with GCC 4.5 and above.  See:
-     *
-     *   http://gcc.gnu.org/bugzilla/show_bug.cgi?id=40145.
-     */
-#   undef  DEFINE_LOCAL_CLASS_OF_STATIC_FUNCTION
-#   define DEFINE_LOCAL_CLASS_OF_STATIC_FUNCTION(Name) class __attribute__((visibility ("hidden"))) Name
-#  endif
-# elif defined(__SUNPRO_C) || defined(__SUNPRO_CC)
-#  define JS_EXTERNAL_VIS __global
-# else
-#  define JS_EXTERNAL_VIS
-# endif
-
-# define JS_EXTERN_API(__type)  extern JS_EXTERNAL_VIS __type
-# define JS_EXPORT_API(__type)  JS_EXTERNAL_VIS __type
-# define JS_EXTERN_DATA(__type) extern JS_EXTERNAL_VIS __type
-# define JS_EXPORT_DATA(__type) JS_EXTERNAL_VIS __type
-
-#endif
-
-#ifdef _WIN32
-# if defined(__MWERKS__) || defined(__GNUC__)
-#  define JS_IMPORT_API(__x)    __x
-# else
-#  define JS_IMPORT_API(__x)    __declspec(dllimport) __x
-# endif
-#elif defined(XP_OS2)
-# define JS_IMPORT_API(__x)     __declspec(dllimport) __x
-#else
-# define JS_IMPORT_API(__x)     JS_EXPORT_API (__x)
-#endif
-
-#if defined(_WIN32) && !defined(__MWERKS__)
-# define JS_IMPORT_DATA(__x)      __declspec(dllimport) __x
-#elif defined(XP_OS2)
-# define JS_IMPORT_DATA(__x)      __declspec(dllimport) __x
-#else
-# define JS_IMPORT_DATA(__x)     JS_EXPORT_DATA (__x)
-#endif
+#define JS_EXTERN_API(type)  extern MOZ_EXPORT_API(type)
+#define JS_EXPORT_API(type)  MOZ_EXPORT_API(type)
+#define JS_EXPORT_DATA(type) MOZ_EXPORT_DATA(type)
+#define JS_IMPORT_API(type)  MOZ_IMPORT_API(type)
+#define JS_IMPORT_DATA(type) MOZ_IMPORT_DATA(type)
 
 /*
  * The linkage of JS API functions differs depending on whether the file is
@@ -143,20 +93,14 @@
  * should not. STATIC_JS_API is used to build JS as a static library.
  */
 #if defined(STATIC_JS_API)
-
-# define JS_PUBLIC_API(t)   t
-# define JS_PUBLIC_DATA(t)  t
-
+#  define JS_PUBLIC_API(t)   t
+#  define JS_PUBLIC_DATA(t)  t
 #elif defined(EXPORT_JS_API) || defined(STATIC_EXPORTABLE_JS_API)
-
-# define JS_PUBLIC_API(t)   JS_EXPORT_API(t)
-# define JS_PUBLIC_DATA(t)  JS_EXPORT_DATA(t)
-
+#  define JS_PUBLIC_API(t)   MOZ_EXPORT_API(t)
+#  define JS_PUBLIC_DATA(t)  MOZ_EXPORT_DATA(t)
 #else
-
-# define JS_PUBLIC_API(t)   JS_IMPORT_API(t)
-# define JS_PUBLIC_DATA(t)  JS_IMPORT_DATA(t)
-
+#  define JS_PUBLIC_API(t)   MOZ_IMPORT_API(t)
+#  define JS_PUBLIC_DATA(t)  MOZ_IMPORT_DATA(t)
 #endif
 
 #define JS_FRIEND_API(t)    JS_PUBLIC_API(t)
@@ -173,37 +117,15 @@
 #endif
 
 #ifndef JS_INLINE
-# if defined __cplusplus
-#  define JS_INLINE          inline
-# elif defined _MSC_VER
-#  define JS_INLINE          __inline
-# elif defined __GNUC__
-#  define JS_INLINE          __inline__
-# else
-#  define JS_INLINE          inline
-# endif
+#define JS_INLINE MOZ_INLINE
 #endif
 
 #ifndef JS_ALWAYS_INLINE
-# if defined DEBUG
-#  define JS_ALWAYS_INLINE   JS_INLINE
-# elif defined _MSC_VER
-#  define JS_ALWAYS_INLINE   __forceinline
-# elif defined __GNUC__
-#  define JS_ALWAYS_INLINE   __attribute__((always_inline)) JS_INLINE
-# else
-#  define JS_ALWAYS_INLINE   JS_INLINE
-# endif
+#define JS_ALWAYS_INLINE MOZ_ALWAYS_INLINE
 #endif
 
 #ifndef JS_NEVER_INLINE
-# if defined _MSC_VER
-#  define JS_NEVER_INLINE __declspec(noinline)
-# elif defined __GNUC__
-#  define JS_NEVER_INLINE __attribute__((noinline))
-# else
-#  define JS_NEVER_INLINE
-# endif
+#define JS_NEVER_INLINE MOZ_NEVER_INLINE
 #endif
 
 #ifndef JS_WARN_UNUSED_RESULT
@@ -212,25 +134,6 @@
 # else
 #  define JS_WARN_UNUSED_RESULT
 # endif
-#endif
-
-#ifdef NS_STATIC_CHECKING
-/*
- * Attributes for static analysis. Functions declared with JS_REQUIRES_STACK
- * always have a valid cx->fp and can access it freely.  Other functions can
- * access cx->fp only after calling a function that "forces" the stack
- * (i.e. lazily instantiates it as needed).
- */
-# define JS_REQUIRES_STACK   __attribute__((user("JS_REQUIRES_STACK")))
-# define JS_FORCES_STACK     __attribute__((user("JS_FORCES_STACK")))
-/*
- * Skip the JS_REQUIRES_STACK analysis within functions with this annotation.
- */
-# define JS_IGNORE_STACK     __attribute__((user("JS_IGNORE_STACK")))
-#else
-# define JS_REQUIRES_STACK
-# define JS_FORCES_STACK
-# define JS_IGNORE_STACK
 #endif
 
 /***********************************************************************
@@ -256,17 +159,8 @@
 ** DESCRIPTION:
 **      Macro shorthands for conditional C++ extern block delimiters.
 ***********************************************************************/
-#ifdef __cplusplus
-
-# define JS_BEGIN_EXTERN_C      extern "C" {
-# define JS_END_EXTERN_C        }
-
-#else
-
-# define JS_BEGIN_EXTERN_C
-# define JS_END_EXTERN_C
-
-#endif
+#define JS_BEGIN_EXTERN_C      MOZ_BEGIN_EXTERN_C
+#define JS_END_EXTERN_C        MOZ_END_EXTERN_C
 
 /***********************************************************************
 ** MACROS:      JS_BIT
@@ -274,7 +168,7 @@
 ** DESCRIPTION:
 ** Bit masking macros.  XXX n must be <= 31 to be portable
 ***********************************************************************/
-#define JS_BIT(n)       ((JSUint32)1 << (n))
+#define JS_BIT(n)       ((uint32_t)1 << (n))
 #define JS_BITMASK(n)   (JS_BIT(n) - 1)
 
 /***********************************************************************
@@ -323,8 +217,6 @@
 #endif
 
 
-#include "jsinttypes.h"
-
 JS_BEGIN_EXTERN_C
 
 /************************************************************************
@@ -341,29 +233,6 @@ typedef int JSIntn;
 typedef unsigned int JSUintn;
 
 /************************************************************************
-** TYPES:       JSSize
-** DESCRIPTION:
-**  A type for representing the size of objects.
-************************************************************************/
-typedef size_t JSSize;
-
-/************************************************************************
-** TYPES:       JSPtrDiff
-** DESCRIPTION:
-**  A type for pointer difference. Variables of this type are suitable
-**      for storing a pointer or pointer sutraction.
-************************************************************************/
-typedef ptrdiff_t JSPtrdiff;
-
-/************************************************************************
-** TYPES:       JSUptrdiff
-** DESCRIPTION:
-**  A type for pointer difference. Variables of this type are suitable
-**      for storing a pointer or pointer sutraction.
-************************************************************************/
-typedef JSUintPtr JSUptrdiff;
-
-/************************************************************************
 ** TYPES:       JSBool
 ** DESCRIPTION:
 **  Use JSBool for variables and parameter types. Use JS_FALSE and JS_TRUE
@@ -374,11 +243,6 @@ typedef JSUintPtr JSUptrdiff;
 typedef JSIntn JSBool;
 #define JS_TRUE (JSIntn)1
 #define JS_FALSE (JSIntn)0
-/*
-** Special: JS_NEITHER is used by the tracer to have tri-state booleans.
-** This should not be used in new code.
-*/
-#define JS_NEITHER (JSIntn)2
 
 /************************************************************************
 ** TYPES:       JSPackedBool
@@ -386,15 +250,7 @@ typedef JSIntn JSBool;
 **  Use JSPackedBool within structs where bitfields are not desireable
 **      but minimum and consistent overhead matters.
 ************************************************************************/
-typedef JSUint8 JSPackedBool;
-
-/*
-** A JSWord is an integer that is the same size as a void*
-*/
-typedef JSIntPtr JSWord;
-typedef JSUintPtr JSUword;
-
-#include "jsotypes.h"
+typedef uint8_t JSPackedBool;
 
 /***********************************************************************
 ** MACROS:      JS_LIKELY

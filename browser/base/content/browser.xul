@@ -37,6 +37,7 @@
 #   Patrick Walton <pcwalton@mozilla.com>
 #   David Dahl <ddahl@mozilla.com>
 #   Frank Yan <fyan@mozilla.com>
+#   Victor Porof <vporof@mozilla.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -54,6 +55,7 @@
 
 <?xml-stylesheet href="chrome://browser/content/browser.css" type="text/css"?>
 <?xml-stylesheet href="chrome://browser/content/places/places.css" type="text/css"?>
+<?xml-stylesheet href="chrome://browser/skin/devtools/common.css" type="text/css"?>
 <?xml-stylesheet href="chrome://browser/skin/devtools/webconsole.css" type="text/css"?>
 <?xml-stylesheet href="chrome://browser/skin/" type="text/css"?>
 
@@ -396,20 +398,20 @@
     <tooltip id="tabbrowser-tab-tooltip" onpopupshowing="gBrowser.createTooltip(event);"/>
 
     <tooltip id="back-button-tooltip">
-      <label value="&backButton.tooltip;"/>
+      <label class="tooltip-label" value="&backButton.tooltip;"/>
 #ifdef XP_MACOSX
-      <label value="&backForwardButtonMenuMac.tooltip;"/>
+      <label class="tooltip-label" value="&backForwardButtonMenuMac.tooltip;"/>
 #else
-      <label value="&backForwardButtonMenu.tooltip;"/>
+      <label class="tooltip-label" value="&backForwardButtonMenu.tooltip;"/>
 #endif
     </tooltip>
   
     <tooltip id="forward-button-tooltip">
-      <label value="&forwardButton.tooltip;"/>
+      <label class="tooltip-label" value="&forwardButton.tooltip;"/>
 #ifdef XP_MACOSX
-      <label value="&backForwardButtonMenuMac.tooltip;"/>
+      <label class="tooltip-label" value="&backForwardButtonMenuMac.tooltip;"/>
 #else
-      <label value="&backForwardButtonMenu.tooltip;"/>
+      <label class="tooltip-label" value="&backForwardButtonMenu.tooltip;"/>
 #endif
     </tooltip>
   </popupset>
@@ -442,9 +444,7 @@
 
   <toolbox id="navigator-toolbox"
            defaultmode="icons" mode="icons"
-           iconsize="large"
-           tabsontop="true"
-           persist="tabsontop">
+           iconsize="large">
     <!-- Menu -->
     <toolbar type="menubar" id="toolbar-menubar" class="chromeclass-menubar" customizable="true"
              defaultset="menubar-items"
@@ -502,7 +502,7 @@
         <textbox id="urlbar" flex="1"
                  placeholder="&urlbar.placeholder;"
                  type="autocomplete"
-                 autocompletesearch="history"
+                 autocompletesearch="urlinline history"
                  autocompletesearchparam="enable-actions"
                  autocompletepopup="PopupAutoCompleteRichResult"
                  completeselectedindex="true"
@@ -970,7 +970,9 @@
     <splitter id="devtools-side-splitter" hidden="true"/>
     <vbox id="devtools-sidebar-box" hidden="true"
           style="min-width: 18em; width: 22em; max-width: 42em;" persist="width">
-      <toolbar id="devtools-sidebar-toolbar" nowindowdrag="true"/>
+      <toolbar id="devtools-sidebar-toolbar"
+               class="devtools-toolbar"
+               nowindowdrag="true"/>
       <deck id="devtools-sidebar-deck" flex="1"/>
     </vbox>
     <vbox id="browser-border-end" hidden="true" layer="true"/>
@@ -986,6 +988,7 @@
 
   <vbox id="browser-bottombox" layer="true">
     <toolbar id="inspector-toolbar"
+             class="devtools-toolbar"
              nowindowdrag="true"
              hidden="true">
       <vbox flex="1">
@@ -1000,6 +1003,7 @@
                          tooltiptext="&inspectCloseButton.tooltiptext;"/>
 #endif
           <toolbarbutton id="inspector-inspect-toolbutton"
+                         class="devtools-toolbarbutton"
                          label="&inspectButton.label;"
                          accesskey="&inspectButton.accesskey;"
                          command="Inspector:Inspect"/>
@@ -1007,7 +1011,14 @@
                           flex="1" orient="horizontal"
                           clicktoscroll="true"/>
           <hbox id="inspector-tools">
+            <toolbarbutton id="inspector-3D-button"
+                           class="devtools-toolbarbutton"
+                           hidden="true"
+                           label="&inspect3DViewButton.label;"
+                           accesskey="&inspect3DViewButton.accesskey;"
+                           command="Inspector:Tilt"/>
             <toolbarbutton id="inspector-style-button"
+                           class="devtools-toolbarbutton"
                            label="&inspectStyleButton.label;"
                            accesskey="&inspectStyleButton.accesskey;"
                            command="Inspector:Sidebar"/>

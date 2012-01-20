@@ -3,7 +3,6 @@
 // found in the LICENSE file.
 
 #include <windows.h>
-#include "v8-support.h"
 #include "platform.h"
 #include <process.h>
 
@@ -34,6 +33,11 @@ class Sampler::PlatformData : public Malloced {
   HANDLE profiled_thread_;
 };
 
+uintptr_t
+Sampler::GetThreadHandle(Sampler::PlatformData* aData)
+{
+  return (uintptr_t) aData->profiled_thread();
+}
 
 class SamplerThread : public Thread {
  public:
@@ -76,6 +80,9 @@ class SamplerThread : public Thread {
 
     TickSample sample_obj;
     TickSample* sample = &sample_obj;
+
+    // Grab the timestamp before pausing the thread, to avoid deadlocks.
+    sample->timestamp = mozilla::TimeStamp::Now();
 
     static const DWORD kSuspendFailed = static_cast<DWORD>(-1);
     if (SuspendThread(profiled_thread) == kSuspendFailed)

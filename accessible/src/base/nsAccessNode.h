@@ -195,6 +195,12 @@ public:
    */
   virtual bool IsPrimaryForNode() const;
 
+  /**
+   * Return the string bundle
+   */
+  static nsIStringBundle* GetStringBundle()
+    { return gStringBundle; }
+
 protected:
     nsPresContext* GetPresContext();
 
@@ -214,6 +220,10 @@ protected:
     static bool gIsFormFillEnabled;
 
 private:
+  nsAccessNode();
+  nsAccessNode(const nsAccessNode&);
+  nsAccessNode& operator =(const nsAccessNode&);
+  
   static nsApplicationAccessible *gApplicationAccessible;
 };
 

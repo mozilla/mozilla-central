@@ -62,7 +62,8 @@ public:
   NS_IMETHOD OnStopDecode(imgIRequest *aRequest, nsresult status,
                           const PRUnichar *statusArg);
   // imgIContainerObserver (override nsStubImageDecoderObserver)
-  NS_IMETHOD FrameChanged(imgIContainer *aContainer,
+  NS_IMETHOD FrameChanged(imgIRequest *aRequest,
+                          imgIContainer *aContainer,
                           const nsIntRect *aDirtyRect);
   // imgIContainerObserver (override nsStubImageDecoderObserver)
   NS_IMETHOD OnStartContainer(imgIRequest *aRequest,
@@ -383,8 +384,7 @@ nsSVGImageFrame::PaintSVG(nsSVGRenderState *aContext,
       // Grab root node (w/ sanity-check to make sure it exists & is <svg>)
       nsSVGSVGElement* rootSVGElem =
         static_cast<nsSVGSVGElement*>(imgRootFrame->GetContent());
-      if (!rootSVGElem || rootSVGElem->GetNameSpaceID() != kNameSpaceID_SVG ||
-          rootSVGElem->Tag() != nsGkAtoms::svg) {
+      if (!rootSVGElem || !rootSVGElem->IsSVG(nsGkAtoms::svg)) {
         NS_ABORT_IF_FALSE(false, "missing or non-<svg> root node!!");
         return false;
       }
@@ -556,7 +556,8 @@ NS_IMETHODIMP nsSVGImageListener::OnStopDecode(imgIRequest *aRequest,
   return NS_OK;
 }
 
-NS_IMETHODIMP nsSVGImageListener::FrameChanged(imgIContainer *aContainer,
+NS_IMETHODIMP nsSVGImageListener::FrameChanged(imgIRequest *aRequest,
+                                               imgIContainer *aContainer,
                                                const nsIntRect *aDirtyRect)
 {
   if (!mFrame)

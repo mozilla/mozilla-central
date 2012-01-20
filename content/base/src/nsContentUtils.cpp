@@ -45,6 +45,7 @@
 
 #include "jsapi.h"
 #include "jsdbgapi.h"
+#include "jstypedarray.h"
 
 #include "nsJSUtils.h"
 #include "nsCOMPtr.h"
@@ -192,7 +193,7 @@ static NS_DEFINE_CID(kXTFServiceCID, NS_XTFSERVICE_CID);
 
 #include "mozAutoDocUpdate.h"
 #include "imgICache.h"
-#include "xpcprivate.h"
+#include "xpcprivate.h" // nsXPConnect
 #include "nsScriptSecurityManager.h"
 #include "nsIChannelPolicy.h"
 #include "nsChannelPolicy.h"
@@ -206,9 +207,12 @@ static NS_DEFINE_CID(kXTFServiceCID, NS_XTFSERVICE_CID);
 #include "nsIContentViewer.h"
 #include "nsIObjectLoadingContent.h"
 
+#include "mozilla/Base64.h"
 #include "mozilla/Preferences.h"
 
 #include "nsWrapperCacheInlines.h"
+#include "nsCharSeparatedTokenizer.h"
+#include "nsUnicharUtils.h"
 
 using namespace mozilla::dom;
 using namespace mozilla::layers;
@@ -632,7 +636,7 @@ nsContentUtils::Btoa(const nsAString& aBinaryData,
     return NS_ERROR_DOM_INVALID_CHARACTER_ERR;
   }
 
-  return nsXPConnect::Base64Encode(aBinaryData, aAsciiBase64String);
+  return Base64Encode(aBinaryData, aAsciiBase64String);
 }
 
 nsresult
@@ -644,7 +648,7 @@ nsContentUtils::Atob(const nsAString& aAsciiBase64String,
     return NS_ERROR_DOM_INVALID_CHARACTER_ERR;
   }
 
-  nsresult rv = nsXPConnect::Base64Decode(aAsciiBase64String, aBinaryData);
+  nsresult rv = Base64Decode(aAsciiBase64String, aBinaryData);
   if (NS_FAILED(rv) && rv == NS_ERROR_INVALID_ARG) {
     return NS_ERROR_DOM_INVALID_CHARACTER_ERR;
   }
@@ -670,6 +674,40 @@ nsContentUtils::IsAutocompleteEnabled(nsIDOMHTMLInputElement* aInput)
   }
 
   return autocomplete.EqualsLiteral("on");
+}
+
+bool
+nsContentUtils::URIIsChromeOrInPref(nsIURI *aURI, const char *aPref)
+{
+  if (!aURI) {
+    return false;
+  }
+
+  nsCAutoString scheme;
+  aURI->GetScheme(scheme);
+  if (scheme.EqualsLiteral("chrome")) {
+    return true;
+  }
+
+  nsCAutoString prePathUTF8;
+  aURI->GetPrePath(prePathUTF8);
+  NS_ConvertUTF8toUTF16 prePath(prePathUTF8);
+
+  const nsAdoptingString& whitelist = Preferences::GetString(aPref);
+
+  // This tokenizer also strips off whitespace around tokens, as desired.
+  nsCharSeparatedTokenizer tokenizer(whitelist, ',',
+    nsCharSeparatedTokenizerTemplate<>::SEPARATOR_OPTIONAL);
+
+  while (tokenizer.hasMoreTokens()) {
+    const nsSubstring& whitelistItem = tokenizer.nextToken();
+
+    if (whitelistItem.Equals(prePath, nsCaseInsensitiveStringComparator())) {
+      return true;
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -1146,16 +1184,9 @@ nsContentUtils::Shutdown()
 
 // static
 bool
-nsContentUtils::IsCallerTrustedForCapability(const char* aCapability)
+nsContentUtils::CallerHasUniversalXPConnect()
 {
-  // The secman really should handle UniversalXPConnect case, since that
-  // should include UniversalBrowserRead... doesn't right now, though.
   bool hasCap;
-  if (NS_FAILED(sSecurityManager->IsCapabilityEnabled(aCapability, &hasCap)))
-    return false;
-  if (hasCap)
-    return true;
-    
   if (NS_FAILED(sSecurityManager->IsCapabilityEnabled("UniversalXPConnect",
                                                       &hasCap)))
     return false;
@@ -1225,16 +1256,9 @@ nsContentUtils::CanCallerAccess(nsIPrincipal* aSubjectPrincipal,
     return true;
   }
 
-  // The subject doesn't subsume aPrincipal.  Allow access only if the subject
-  // has either "UniversalXPConnect" (if aPrincipal is system principal) or
-  // "UniversalBrowserRead" (in all other cases).
-  bool isSystem;
-  rv = sSecurityManager->IsSystemPrincipal(aPrincipal, &isSystem);
-  isSystem = NS_FAILED(rv) || isSystem;
-  const char* capability =
-    NS_FAILED(rv) || isSystem ? "UniversalXPConnect" : "UniversalBrowserRead";
-
-  return IsCallerTrustedForCapability(capability);
+  // The subject doesn't subsume aPrincipal. Allow access only if the subject
+  // has UniversalXPConnect.
+  return CallerHasUniversalXPConnect();
 }
 
 // static
@@ -1467,13 +1491,13 @@ nsContentUtils::IsCallerChrome()
 bool
 nsContentUtils::IsCallerTrustedForRead()
 {
-  return IsCallerTrustedForCapability("UniversalBrowserRead");
+  return CallerHasUniversalXPConnect();
 }
 
 bool
 nsContentUtils::IsCallerTrustedForWrite()
 {
-  return IsCallerTrustedForCapability("UniversalBrowserWrite");
+  return CallerHasUniversalXPConnect();
 }
 
 bool
@@ -2116,8 +2140,9 @@ nsContentUtils::SplitQName(const nsIContent* aNamespaceResolver,
     const PRUnichar* end;
     aQName.EndReading(end);
     nsAutoString nameSpace;
-    rv = aNamespaceResolver->LookupNamespaceURI(Substring(aQName.get(), colon),
-                                                nameSpace);
+    rv = aNamespaceResolver->LookupNamespaceURIInternal(Substring(aQName.get(),
+                                                                  colon),
+                                                        nameSpace);
     NS_ENSURE_SUCCESS(rv, rv);
 
     *aNamespace = NameSpaceManager()->GetNameSpaceID(nameSpace);
@@ -2785,21 +2810,29 @@ nsresult nsContentUtils::FormatLocalizedString(PropertiesFile aFile,
 }
 
 /* static */ nsresult
-nsContentUtils::ReportToConsole(PropertiesFile aFile,
+nsContentUtils::ReportToConsole(PRUint32 aErrorFlags,
+                                const char *aCategory,
+                                nsIDocument* aDocument,
+                                PropertiesFile aFile,
                                 const char *aMessageName,
                                 const PRUnichar **aParams,
                                 PRUint32 aParamsLength,
                                 nsIURI* aURI,
                                 const nsAFlatString& aSourceLine,
                                 PRUint32 aLineNumber,
-                                PRUint32 aColumnNumber,
-                                PRUint32 aErrorFlags,
-                                const char *aCategory,
-                                PRUint64 aInnerWindowId)
+                                PRUint32 aColumnNumber)
 {
   NS_ASSERTION((aParams && aParamsLength) || (!aParams && !aParamsLength),
                "Supply either both parameters and their number or no"
                "parameters and 0.");
+
+  PRUint64 innerWindowID = 0;
+  if (aDocument) {
+    if (!aURI) {
+      aURI = aDocument->GetDocumentURI();
+    }
+    innerWindowID = aDocument->InnerWindowID();
+  }
 
   nsresult rv;
   if (!sConsoleService) { // only need to bother null-checking here
@@ -2821,7 +2854,7 @@ nsContentUtils::ReportToConsole(PropertiesFile aFile,
   if (aURI)
     aURI->GetSpec(spec);
 
-  nsCOMPtr<nsIScriptError2> errorObject =
+  nsCOMPtr<nsIScriptError> errorObject =
       do_CreateInstance(NS_SCRIPTERROR_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -2830,38 +2863,10 @@ nsContentUtils::ReportToConsole(PropertiesFile aFile,
                                      aSourceLine.get(),
                                      aLineNumber, aColumnNumber,
                                      aErrorFlags, aCategory,
-                                     aInnerWindowId);
+                                     innerWindowID);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIScriptError> logError = do_QueryInterface(errorObject);
-  return sConsoleService->LogMessage(logError);
-}
-
-/* static */ nsresult
-nsContentUtils::ReportToConsole(PropertiesFile aFile,
-                                const char *aMessageName,
-                                const PRUnichar **aParams,
-                                PRUint32 aParamsLength,
-                                nsIURI* aURI,
-                                const nsAFlatString& aSourceLine,
-                                PRUint32 aLineNumber,
-                                PRUint32 aColumnNumber,
-                                PRUint32 aErrorFlags,
-                                const char *aCategory,
-                                nsIDocument* aDocument)
-{
-  nsIURI* uri = aURI;
-  PRUint64 innerWindowID = 0;
-  if (aDocument) {
-    if (!uri) {
-      uri = aDocument->GetDocumentURI();
-    }
-    innerWindowID = aDocument->InnerWindowID();
-  }
-
-  return ReportToConsole(aFile, aMessageName, aParams, aParamsLength, uri,
-                         aSourceLine, aLineNumber, aColumnNumber, aErrorFlags,
-                         aCategory, innerWindowID);
+  return sConsoleService->LogMessage(errorObject);
 }
 
 bool
@@ -4986,18 +4991,16 @@ nsContentUtils::GetASCIIOrigin(nsIURI* aURI, nsCString& aOrigin)
     rv = uri->GetScheme(scheme);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    aOrigin = scheme + NS_LITERAL_CSTRING("://") + host;
-
-    // If needed, append the port
-    PRInt32 port;
+    PRInt32 port = -1;
     uri->GetPort(&port);
-    if (port != -1) {
-      PRInt32 defaultPort = NS_GetDefaultPort(scheme.get());
-      if (port != defaultPort) {
-        aOrigin.Append(':');
-        aOrigin.AppendInt(port);
-      }
-    }
+    if (port != -1 && port == NS_GetDefaultPort(scheme.get()))
+      port = -1;
+
+    nsCString hostPort;
+    rv = NS_GenerateHostPort(host, port, hostPort);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    aOrigin = scheme + NS_LITERAL_CSTRING("://") + hostPort;
   }
   else {
     aOrigin.AssignLiteral("null");
@@ -5046,18 +5049,17 @@ nsContentUtils::GetUTFOrigin(nsIURI* aURI, nsString& aOrigin)
     rv = uri->GetScheme(scheme);
     NS_ENSURE_SUCCESS(rv, rv);
 
-    aOrigin = NS_ConvertUTF8toUTF16(scheme + NS_LITERAL_CSTRING("://") + host);
-
-    // If needed, append the port
-    PRInt32 port;
+    PRInt32 port = -1;
     uri->GetPort(&port);
-    if (port != -1) {
-      PRInt32 defaultPort = NS_GetDefaultPort(scheme.get());
-      if (port != defaultPort) {
-        aOrigin.Append(':');
-        aOrigin.AppendInt(port);
-      }
-    }
+    if (port != -1 && port == NS_GetDefaultPort(scheme.get()))
+      port = -1;
+
+    nsCString hostPort;
+    rv = NS_GenerateHostPort(host, port, hostPort);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    aOrigin = NS_ConvertUTF8toUTF16(
+      scheme + NS_LITERAL_CSTRING("://") + hostPort);
   }
   else {
     aOrigin.AssignLiteral("null");
@@ -5273,6 +5275,29 @@ nsContentUtils::WrapNative(JSContext *cx, JSObject *scope, nsISupports *native,
   }
 
   return rv;
+}
+
+nsresult
+nsContentUtils::CreateArrayBuffer(JSContext *aCx, const nsACString& aData,
+                                  JSObject** aResult)
+{
+  if (!aCx) {
+    return NS_ERROR_FAILURE;
+  }
+
+  PRInt32 dataLen = aData.Length();
+  *aResult = js_CreateArrayBuffer(aCx, dataLen);
+  if (!*aResult) {
+    return NS_ERROR_FAILURE;
+  }
+
+  if (dataLen > 0) {
+    JSObject *abuf = js::ArrayBuffer::getArrayBuffer(*aResult);
+    NS_ASSERTION(abuf, "What happened?");
+    memcpy(JS_GetArrayBufferData(abuf), aData.BeginReading(), dataLen);
+  }
+
+  return NS_OK;
 }
 
 void

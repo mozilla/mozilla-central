@@ -304,6 +304,16 @@ nsSocketInputStream::Available(PRUint32 *avail)
     // mistakenly try to re-enter this code.)
     PRInt32 n = PR_Available(fd);
 
+    // PSM does not implement PR_Available() so do a best approximation of it
+    // with MSG_PEEK
+    if ((n == -1) && (PR_GetError() == PR_NOT_IMPLEMENTED_ERROR)) {
+        char c;
+
+        n = PR_Recv(fd, &c, 1, PR_MSG_PEEK, 0);
+        SOCKET_LOG(("nsSocketInputStream::Available [this=%x] "
+                    "using PEEK backup n=%d]\n", this, n));
+    }
+
     nsresult rv;
     {
         MutexAutoLock lock(mTransport->mLock);
@@ -1715,12 +1725,11 @@ nsSocketTransport::OpenInputStream(PRUint32 flags,
         bool openBlocking =  (flags & OPEN_BLOCKING);
 
         net_ResolveSegmentParams(segsize, segcount);
-        nsIMemory *segalloc = net_GetSegmentAlloc(segsize);
 
         // create a pipe
         nsCOMPtr<nsIAsyncOutputStream> pipeOut;
         rv = NS_NewPipe2(getter_AddRefs(pipeIn), getter_AddRefs(pipeOut),
-                         !openBlocking, true, segsize, segcount, segalloc);
+                         !openBlocking, true, segsize, segcount);
         if (NS_FAILED(rv)) return rv;
 
         // async copy from socket to pipe
@@ -1762,12 +1771,11 @@ nsSocketTransport::OpenOutputStream(PRUint32 flags,
         bool openBlocking =  (flags & OPEN_BLOCKING);
 
         net_ResolveSegmentParams(segsize, segcount);
-        nsIMemory *segalloc = net_GetSegmentAlloc(segsize);
 
         // create a pipe
         nsCOMPtr<nsIAsyncInputStream> pipeIn;
         rv = NS_NewPipe2(getter_AddRefs(pipeIn), getter_AddRefs(pipeOut),
-                         true, !openBlocking, segsize, segcount, segalloc);
+                         true, !openBlocking, segsize, segcount);
         if (NS_FAILED(rv)) return rv;
 
         // async copy from socket to pipe

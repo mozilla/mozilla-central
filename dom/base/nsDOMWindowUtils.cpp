@@ -49,6 +49,8 @@
 #include "nsEventStateManager.h"
 #include "nsFrameManager.h"
 #include "nsRefreshDriver.h"
+#include "nsDOMTouchEvent.h"
+#include "nsIDOMTouchEvent.h"
 
 #include "nsIScrollableFrame.h"
 
@@ -60,6 +62,7 @@
 #include "nsGUIEvent.h"
 #include "nsIParser.h"
 #include "nsJSEnvironment.h"
+#include "nsJSUtils.h"
 
 #include "nsIViewManager.h"
 
@@ -83,6 +86,8 @@
 #include "nsIIOService.h"
 
 #include "mozilla/dom/Element.h"
+#include "mozilla/dom/indexedDB/FileInfo.h"
+#include "mozilla/dom/indexedDB/IndexedDatabaseManager.h"
 #include "sampler.h"
 
 using namespace mozilla::dom;
@@ -547,6 +552,79 @@ nsDOMWindowUtils::SendMouseScrollEvent(const nsAString& aType,
   return widget->DispatchEvent(&event, status);
 }
 
+
+NS_IMETHODIMP
+nsDOMWindowUtils::SendTouchEvent(const nsAString& aType,
+                                 PRUint32 *aIdentifiers,
+                                 PRInt32 *aXs,
+                                 PRInt32 *aYs,
+                                 PRUint32 *aRxs,
+                                 PRUint32 *aRys,
+                                 float *aRotationAngles,
+                                 float *aForces,
+                                 PRUint32 aCount,
+                                 PRInt32 aModifiers,
+                                 bool aIgnoreRootScrollFrame,
+                                 bool *aPreventDefault)
+{
+  if (!IsUniversalXPConnectCapable()) {
+    return NS_ERROR_DOM_SECURITY_ERR;
+  }
+
+  // get the widget to send the event to
+  nsPoint offset;
+  nsCOMPtr<nsIWidget> widget = GetWidget(&offset);
+  if (!widget) {
+    return NS_ERROR_NULL_POINTER;
+  }
+  PRInt32 msg;
+  if (aType.EqualsLiteral("touchstart")) {
+    msg = NS_TOUCH_START;
+  } else if (aType.EqualsLiteral("touchmove")) {
+    msg = NS_TOUCH_MOVE;
+  } else if (aType.EqualsLiteral("touchend")) {
+    msg = NS_TOUCH_END;
+  } else if (aType.EqualsLiteral("touchcancel")) {
+    msg = NS_TOUCH_CANCEL;
+  } else {
+    return NS_ERROR_UNEXPECTED;
+  }
+  nsTouchEvent event(true, msg, widget);
+  event.isShift = (aModifiers & nsIDOMNSEvent::SHIFT_MASK) ? true : false;
+  event.isControl = (aModifiers & nsIDOMNSEvent::CONTROL_MASK) ? true : false;
+  event.isAlt = (aModifiers & nsIDOMNSEvent::ALT_MASK) ? true : false;
+  event.isMeta = (aModifiers & nsIDOMNSEvent::META_MASK) ? true : false;
+  event.widget = widget;
+  event.time = PR_Now();
+
+  nsPresContext* presContext = GetPresContext();
+  if (!presContext) {
+    return NS_ERROR_FAILURE;
+  }
+  event.touches.SetCapacity(aCount);
+  PRInt32 appPerDev = presContext->AppUnitsPerDevPixel();
+  for (int i = 0; i < aCount; ++i) {
+    nsIntPoint pt(0, 0);
+    pt.x =
+      NSAppUnitsToIntPixels(nsPresContext::CSSPixelsToAppUnits(aXs[i]) + offset.x,
+                            appPerDev);
+    pt.y =
+      NSAppUnitsToIntPixels(nsPresContext::CSSPixelsToAppUnits(aYs[i]) + offset.y,
+                            appPerDev);
+    nsCOMPtr<nsIDOMTouch> t(new nsDOMTouch(aIdentifiers[i],
+                                           pt,
+                                           nsIntPoint(aRxs[i], aRys[i]),
+                                           aRotationAngles[i],
+                                           aForces[i]));
+    event.touches.AppendElement(t);
+  }
+
+  nsEventStatus status;
+  nsresult rv = widget->DispatchEvent(&event, status);
+  *aPreventDefault = (status == nsEventStatus_eConsumeNoDefault);
+  return rv;
+}
+
 NS_IMETHODIMP
 nsDOMWindowUtils::SendKeyEvent(const nsAString& aType,
                                PRInt32 aKeyCode,
@@ -755,27 +833,6 @@ nsDOMWindowUtils::CycleCollect(nsICycleCollectorListener *aListener)
 #endif
 
   nsJSContext::CycleCollectNow(aListener);
-  return NS_OK;
-}
-
-NS_IMETHODIMP
-nsDOMWindowUtils::ProcessUpdates()
-{
-  nsPresContext* presContext = GetPresContext();
-  if (!presContext)
-    return NS_ERROR_UNEXPECTED;
-
-  nsIPresShell* shell = presContext->GetPresShell();
-  if (!shell)
-    return NS_ERROR_UNEXPECTED;
-
-  nsIViewManager *viewManager = shell->GetViewManager();
-  if (!viewManager)
-    return NS_ERROR_UNEXPECTED;
-  
-  nsIViewManager::UpdateViewBatch batch;
-  batch.BeginUpdateViewBatch(viewManager);
-  batch.EndUpdateViewBatch(NS_VMREFRESH_IMMEDIATE);
   return NS_OK;
 }
 
@@ -1616,6 +1673,55 @@ nsDOMWindowUtils::GetLayerManagerType(nsAString& aType)
   return NS_OK;
 }
 
+NS_IMETHODIMP
+nsDOMWindowUtils::StartFrameTimeRecording()
+{
+  nsCOMPtr<nsIWidget> widget = GetWidget();
+  if (!widget)
+    return NS_ERROR_FAILURE;
+
+  LayerManager *mgr = widget->GetLayerManager();
+  if (!mgr)
+    return NS_ERROR_FAILURE;
+
+  mgr->StartFrameTimeRecording();
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDOMWindowUtils::StopFrameTimeRecording(PRUint32 *frameCount NS_OUTPARAM, float **frames NS_OUTPARAM)
+{
+  NS_ENSURE_ARG_POINTER(frameCount);
+  NS_ENSURE_ARG_POINTER(frames);
+
+  nsCOMPtr<nsIWidget> widget = GetWidget();
+  if (!widget)
+    return NS_ERROR_FAILURE;
+
+  LayerManager *mgr = widget->GetLayerManager();
+  if (!mgr)
+    return NS_ERROR_FAILURE;
+
+  nsTArray<float> frameTimes = mgr->StopFrameTimeRecording();
+
+  *frames = nsnull;
+  *frameCount = frameTimes.Length();
+
+  if (*frameCount != 0) {
+    *frames = (float*)nsMemory::Alloc(*frameCount * sizeof(float*));
+    if (!*frames)
+      return NS_ERROR_OUT_OF_MEMORY;
+
+    /* copy over the frame times into the array we just allocated */
+    for (PRUint32 i = 0; i < *frameCount; i++) {
+      (*frames)[i] = frameTimes[i];
+    }
+  }
+
+  return NS_OK;
+}
+
 static bool
 ComputeAnimationValue(nsCSSProperty aProperty,
                       Element* aElement,
@@ -1919,6 +2025,136 @@ nsDOMWindowUtils::CheckAndClearPaintedState(nsIDOMElement* aElement, bool* aResu
   }
 
   *aResult = frame->CheckAndClearPaintedState();
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDOMWindowUtils::GetFileId(nsIDOMBlob* aBlob, PRInt64* aResult)
+{
+  if (!IsUniversalXPConnectCapable()) {
+    return NS_ERROR_DOM_SECURITY_ERR;
+  }
+
+  *aResult = aBlob->GetFileId();
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDOMWindowUtils::GetFileReferences(const nsAString& aDatabaseName,
+                                    PRInt64 aId, PRInt32* aRefCnt,
+                                    PRInt32* aDBRefCnt, PRInt32* aSliceRefCnt,
+                                    bool* aResult)
+{
+  if (!IsUniversalXPConnectCapable()) {
+    return NS_ERROR_DOM_SECURITY_ERR;
+  }
+
+  NS_ENSURE_TRUE(mWindow, NS_ERROR_FAILURE);
+
+  nsCString origin;
+  nsresult rv = indexedDB::IndexedDatabaseManager::GetASCIIOriginFromWindow(
+    mWindow, origin);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsRefPtr<indexedDB::IndexedDatabaseManager> mgr =
+    indexedDB::IndexedDatabaseManager::Get();
+
+  if (mgr) {
+    nsRefPtr<indexedDB::FileManager> fileManager =
+      mgr->GetFileManager(origin, aDatabaseName);
+
+    if (fileManager) {
+      nsRefPtr<indexedDB::FileInfo> fileInfo = fileManager->GetFileInfo(aId);
+
+      if (fileInfo) {
+        fileInfo->GetReferences(aRefCnt, aDBRefCnt, aSliceRefCnt);
+
+        if (*aRefCnt != -1) {
+          // We added an extra temp ref, so account for that accordingly.
+          (*aRefCnt)--;
+        }
+
+        *aResult = true;
+        return NS_OK;
+      }
+    }
+  }
+
+  *aRefCnt = *aDBRefCnt = *aSliceRefCnt = -1;
+  *aResult = false;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDOMWindowUtils::StartPCCountProfiling(JSContext* cx)
+{
+  js::StartPCCountProfiling(cx);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDOMWindowUtils::StopPCCountProfiling(JSContext* cx)
+{
+  js::StopPCCountProfiling(cx);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDOMWindowUtils::PurgePCCounts(JSContext* cx)
+{
+  js::PurgePCCounts(cx);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDOMWindowUtils::GetPCCountScriptCount(JSContext* cx, PRInt32 *result)
+{
+  *result = js::GetPCCountScriptCount(cx);
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDOMWindowUtils::GetPCCountScriptSummary(PRInt32 script, JSContext* cx, nsAString& result)
+{
+  JSString *text = js::GetPCCountScriptSummary(cx, script);
+  if (!text)
+    return NS_ERROR_FAILURE;
+
+  nsDependentJSString str;
+  if (!str.init(cx, text))
+    return NS_ERROR_FAILURE;
+
+  result = str;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDOMWindowUtils::GetPCCountScriptContents(PRInt32 script, JSContext* cx, nsAString& result)
+{
+  JSString *text = js::GetPCCountScriptContents(cx, script);
+  if (!text)
+    return NS_ERROR_FAILURE;
+
+  nsDependentJSString str;
+  if (!str.init(cx, text))
+    return NS_ERROR_FAILURE;
+
+  result = str;
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsDOMWindowUtils::GetPaintingSuppressed(bool *aPaintingSuppressed)
+{
+  NS_ENSURE_TRUE(mWindow, NS_ERROR_FAILURE);
+  nsIDocShell *docShell = mWindow->GetDocShell();
+  NS_ENSURE_TRUE(docShell, NS_ERROR_FAILURE);
+
+  nsCOMPtr<nsIPresShell> presShell;
+  docShell->GetPresShell(getter_AddRefs(presShell));
+  NS_ENSURE_TRUE(presShell, NS_ERROR_FAILURE);
+
+  *aPaintingSuppressed = presShell->IsPaintingSuppressed();
   return NS_OK;
 }
 

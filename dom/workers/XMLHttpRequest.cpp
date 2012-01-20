@@ -39,7 +39,6 @@
 #include "XMLHttpRequest.h"
 
 #include "jsapi.h"
-#include "jscntxt.h"
 #include "jsfriendapi.h"
 
 #include "Exceptions.h"
@@ -929,5 +928,12 @@ UpdateXHRState(JSContext* aCx, JSObject* aObj, bool aIsUpload,
 }
 
 } // namespace xhr
+
+bool
+ClassIsXMLHttpRequest(JSClass* aClass)
+{
+  return XMLHttpRequest::Class() == aClass ||
+         XMLHttpRequestUpload::Class() == aClass;
+}
 
 END_WORKERS_NAMESPACE

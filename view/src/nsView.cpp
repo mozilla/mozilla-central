@@ -147,8 +147,7 @@ static ViewWrapper* GetWrapperFor(nsIWidget* aWidget)
 static nsEventStatus HandleEvent(nsGUIEvent *aEvent)
 {
 #if 0
-  printf(" %d %d %d (%d,%d) \n", aEvent->widget, aEvent->widgetSupports, 
-         aEvent->message, aEvent->point.x, aEvent->point.y);
+  printf(" %d %d %d (%d,%d) \n", aEvent->widget, aEvent->message);
 #endif
   nsEventStatus result = nsEventStatus_eIgnore;
   nsView *view = nsView::GetViewFor(aEvent->widget);
@@ -327,11 +326,13 @@ nsIView* nsIView::GetViewFor(nsIWidget* aWidget)
 
   ViewWrapper* wrapper = GetWrapperFor(aWidget);
 
-  if (!wrapper)
+  if (!wrapper) {
     wrapper = GetAttachedWrapperFor(aWidget);
+  }
 
-  if (wrapper)
+  if (wrapper) {
     return wrapper->GetView();
+  }
 
   return nsnull;
 }
@@ -351,7 +352,7 @@ void nsView::SetPosition(nscoord aX, nscoord aY)
   NS_ASSERTION(GetParent() || (aX == 0 && aY == 0),
                "Don't try to move the root widget to something non-zero");
 
-  ResetWidgetBounds(true, true, false);
+  ResetWidgetBounds(true, false);
 }
 
 void nsIView::SetInvalidationDimensions(const nsRect* aRect)
@@ -359,22 +360,23 @@ void nsIView::SetInvalidationDimensions(const nsRect* aRect)
   return Impl()->SetInvalidationDimensions(aRect);
 }
 
-void nsView::ResetWidgetBounds(bool aRecurse, bool aMoveOnly,
-                               bool aInvalidateChangedSize) {
+void nsView::ResetWidgetBounds(bool aRecurse, bool aForceSync)
+{
   if (mWindow) {
-    // If our view manager has refresh disabled, then do nothing; the view
-    // manager will set our position when refresh is reenabled.  Just let it
-    // know that it has pending updates.
-    if (!mViewManager->IsRefreshEnabled()) {
+    if (!aForceSync) {
+      // Don't change widget geometry synchronously, since that can
+      // cause synchronous painting.
       mViewManager->PostPendingUpdate();
-      return;
+    } else {
+      DoResetWidgetBounds(false, true);
     }
+    return;
+  }
 
-    DoResetWidgetBounds(aMoveOnly, aInvalidateChangedSize);
-  } else if (aRecurse) {
+  if (aRecurse) {
     // reposition any widgets under this view
     for (nsView* v = GetFirstChild(); v; v = v->GetNextSibling()) {
-      v->ResetWidgetBounds(true, aMoveOnly, aInvalidateChangedSize);
+      v->ResetWidgetBounds(true, aForceSync);
     }
   }
 }
@@ -492,7 +494,7 @@ void nsView::SetDimensions(const nsRect& aRect, bool aPaint, bool aResizeWidget)
   mDimBounds = dims;
 
   if (aResizeWidget) {
-    ResetWidgetBounds(false, false, aPaint);
+    ResetWidgetBounds(false, false);
   }
 }
 

@@ -59,7 +59,7 @@
 #include "imgILoader.h"
 #include "nsThreadUtils.h"
 #include "nsNetUtil.h"
-#include "nsPLDOMEvent.h"
+#include "nsAsyncDOMEvent.h"
 
 #include "nsIPresShell.h"
 #include "nsEventStates.h"
@@ -159,10 +159,11 @@ nsImageLoadingContent::~nsImageLoadingContent()
  * imgIContainerObserver impl
  */
 NS_IMETHODIMP
-nsImageLoadingContent::FrameChanged(imgIContainer* aContainer,
+nsImageLoadingContent::FrameChanged(imgIRequest* aRequest,
+                                    imgIContainer* aContainer,
                                     const nsIntRect* aDirtyRect)
 {
-  LOOP_OVER_OBSERVERS(FrameChanged(aContainer, aDirtyRect));
+  LOOP_OVER_OBSERVERS(FrameChanged(aRequest, aContainer, aDirtyRect));
   return NS_OK;
 }
             
@@ -969,8 +970,8 @@ nsImageLoadingContent::FireEvent(const nsAString& aEventType)
 
   nsCOMPtr<nsINode> thisNode = do_QueryInterface(this);
 
-  nsRefPtr<nsPLDOMEvent> event =
-    new nsLoadBlockingPLDOMEvent(thisNode, aEventType, false, false);
+  nsRefPtr<nsAsyncDOMEvent> event =
+    new nsLoadBlockingAsyncDOMEvent(thisNode, aEventType, false, false);
   event->PostDOMEvent();
   
   return NS_OK;

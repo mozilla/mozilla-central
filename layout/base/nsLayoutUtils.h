@@ -344,13 +344,6 @@ public:
                                             nsDisplayListBuilder* aBuilder);
 
   /**
-    * GetFrameFor returns the root frame for a view
-    * @param aView is the view to return the root frame for
-    * @return the root frame for the view
-    */
-  static nsIFrame* GetFrameFor(nsIView *aView) { return aView->GetFrame(); }
-
-  /**
     * GetScrollableFrameFor returns the scrollable frame for a scrolled frame
     */
   static nsIScrollableFrame* GetScrollableFrameFor(nsIFrame *aScrolledFrame);
@@ -430,6 +423,20 @@ public:
    * the event is not a GUI event).
    */
   static nsPoint GetEventCoordinatesRelativeTo(const nsEvent* aEvent,
+                                               nsIFrame* aFrame);
+
+  /**
+   * Get the coordinates of a given point relative to an event and a
+   * given frame.
+   * @param aEvent the event
+   * @param aPoint the point to get the coordinates relative to
+   * @param aFrame the frame to make coordinates relative to
+   * @return the point, or (NS_UNCONSTRAINEDSIZE, NS_UNCONSTRAINEDSIZE) if
+   * for some reason the coordinates for the mouse are not known (e.g.,
+   * the event is not a GUI event).
+   */
+  static nsPoint GetEventCoordinatesRelativeTo(const nsEvent* aEvent,
+                                               const nsIntPoint aPoint,
                                                nsIFrame* aFrame);
 
   /**
@@ -515,11 +522,28 @@ public:
                                    bool aShouldIgnoreSuppression = false,
                                    bool aIgnoreRootScrollFrame = false);
 
-  
+  /**
+   * Transform aRect relative to aAncestor down to the coordinate system of
+   * aFrame. Computes the bounding-box of the true quadrilateral.
+   */
+  static nsRect TransformAncestorRectToFrame(nsIFrame* aFrame,
+                                             const nsRect& aRect,
+                                             nsIFrame* aAncestor);
 
-  static nsRect TransformRectToBoundsInAncestor(nsIFrame* aFrame,
-                                                const nsRect& aRect,
-                                                nsIFrame* aStopAtAncestor);
+  /**
+   * Transform aRect relative to aFrame up to the coordinate system of
+   * aAncestor. Computes the bounding-box of the true quadrilateral.
+   */
+  static nsRect TransformFrameRectToAncestor(nsIFrame* aFrame,
+                                             const nsRect& aRect,
+                                             nsIFrame* aAncestor);
+
+
+  /**
+   * Gets the transform for aFrame relative to aAncestor. Pass null for aAncestor
+   * to go up to the root frame.
+   */
+  static gfx3DMatrix GetTransformToAncestor(nsIFrame *aFrame, nsIFrame *aAncestor);
 
   /**
    * Given a point in the global coordinate space, returns that point expressed
@@ -530,8 +554,8 @@ public:
    * @param aPoint The point, in the global space, to get in the frame-local space.
    * @return aPoint, expressed in aFrame's canonical coordinate space.
    */
-  static nsPoint InvertTransformsToRoot(nsIFrame* aFrame,
-                                        const nsPoint &aPt);
+  static nsPoint TransformRootPointToFrame(nsIFrame* aFrame,
+                                           const nsPoint &aPt);
 
   /**
    * Helper function that, given a rectangle and a matrix, returns the smallest
@@ -694,8 +718,8 @@ public:
   };
 
   struct RectAccumulator : public RectCallback {
-    nsRect       mResultRect;
-    nsRect       mFirstRect;
+    nsRect mResultRect;
+    nsRect mFirstRect;
     bool mSeenFirstRect;
 
     RectAccumulator();
@@ -713,6 +737,9 @@ public:
 
   static nsIFrame* GetContainingBlockForClientRect(nsIFrame* aFrame);
 
+  enum {
+    RECTS_ACCOUNT_FOR_TRANSFORMS = 0x01
+  };
   /**
    * Collect all CSS border-boxes associated with aFrame and its
    * continuations, "drilling down" through outer table frames and
@@ -721,15 +748,22 @@ public:
    * into account) and passed to the callback in frame-tree order.
    * If aFrame is null, no boxes are returned.
    * For SVG frames, returns one rectangle, the bounding box.
+   * If aFlags includes RECTS_ACCOUNT_FOR_TRANSFORMS, then when converting
+   * the boxes into aRelativeTo coordinates, transforms (including CSS
+   * and SVG transforms) are taken into account.
    */
   static void GetAllInFlowRects(nsIFrame* aFrame, nsIFrame* aRelativeTo,
-                                RectCallback* aCallback);
+                                RectCallback* aCallback, PRUint32 aFlags = 0);
 
   /**
    * Computes the union of all rects returned by GetAllInFlowRects. If
    * the union is empty, returns the first rect.
+   * If aFlags includes RECTS_ACCOUNT_FOR_TRANSFORMS, then when converting
+   * the boxes into aRelativeTo coordinates, transforms (including CSS
+   * and SVG transforms) are taken into account.
    */
-  static nsRect GetAllInFlowRectsUnion(nsIFrame* aFrame, nsIFrame* aRelativeTo);
+  static nsRect GetAllInFlowRectsUnion(nsIFrame* aFrame, nsIFrame* aRelativeTo,
+                                       PRUint32 aFlags = 0);
 
   enum {
     EXCLUDE_BLUR_SHADOWS = 0x01
@@ -1461,6 +1495,13 @@ public:
    * Checks if CSS 3D transforms are currently enabled.
    */
   static bool Are3DTransformsEnabled();
+
+  /**
+   * Unions the overflow areas of all non-popup children of aFrame with
+   * aOverflowAreas.
+   */
+  static void UnionChildOverflow(nsIFrame* aFrame,
+                                 nsOverflowAreas& aOverflowAreas);
 
   /**
    * Return whether this is a frame whose width is used when computing

@@ -21,6 +21,7 @@ const TESTROOT2 = "http://example.org/" + RELATIVE_DIR;
 const CHROMEROOT = pathParts.join("/") + "/";
 const PREF_DISCOVERURL = "extensions.webservice.discoverURL";
 const PREF_UPDATEURL = "extensions.update.url";
+const PREF_GETADDONS_CACHE_ENABLED = "extensions.getAddons.cache.enabled";
 
 const MANAGER_URI = "about:addons";
 const INSTALL_URI = "chrome://mozapps/content/xpinstall/xpinstallConfirm.xul";
@@ -28,30 +29,68 @@ const PREF_LOGGING_ENABLED = "extensions.logging.enabled";
 const PREF_SEARCH_MAXRESULTS = "extensions.getAddons.maxResults";
 const PREF_STRICT_COMPAT = "extensions.strictCompatibility";
 
+var PREF_CHECK_COMPATIBILITY;
+(function() {
+  var channel = "default";
+  try {
+    channel = Services.prefs.getCharPref("app.update.channel");
+  } catch (e) { }
+  if (channel != "aurora" &&
+    channel != "beta" &&
+    channel != "release") {
+    var version = "nightly";
+  } else {
+    version = Services.appinfo.version.replace(/^([^\.]+\.[0-9]+[a-z]*).*/gi, "$1");
+  }
+  PREF_CHECK_COMPATIBILITY = "extensions.checkCompatibility." + version;
+})();
+
 var gPendingTests = [];
 var gTestsRun = 0;
 var gTestStart = null;
 
 var gUseInContentUI = !gTestInWindow && ("switchToTabHavingURI" in window);
 
-var gDiscoveryURL = Services.prefs.getCharPref(PREF_DISCOVERURL);
-var gUpdateURL = Services.prefs.getCharPref(PREF_UPDATEURL);
+var gRestorePrefs = [{name: PREF_LOGGING_ENABLED},
+                     {name: "extensions.webservice.discoverURL"},
+                     {name: "extensions.update.url"},
+                     {name: "extensions.getAddons.get.url"},
+                     {name: "extensions.getAddons.search.browseURL"},
+                     {name: "extensions.getAddons.search.url"},
+                     {name: "extensions.getAddons.cache.enabled"},
+                     {name: PREF_SEARCH_MAXRESULTS},
+                     {name: PREF_STRICT_COMPAT},
+                     {name: PREF_CHECK_COMPATIBILITY}];
+
+gRestorePrefs.forEach(function(aPref) {
+  if (!Services.prefs.prefHasUserValue(aPref.name)) {
+    aPref.type = "clear";
+    return;
+  }
+  aPref.type = Services.prefs.getPrefType(aPref.name);
+  if (aPref.type == Services.prefs.PREF_BOOL)
+    aPref.value = Services.prefs.getBoolPref(aPref.name);
+  else if (aPref.type == Services.prefs.PREF_INT)
+    aPref.value = Services.prefs.getIntPref(aPref.name);
+  else if (aPref.type == Services.prefs.PREF_STRING)
+    aPref.value = Services.prefs.getCharPref(aPref.name);
+});
 
 // Turn logging on for all tests
 Services.prefs.setBoolPref(PREF_LOGGING_ENABLED, true);
-// Turn off remote results in searches
-Services.prefs.setIntPref(PREF_SEARCH_MAXRESULTS, 0);
-registerCleanupFunction(function() {
-  Services.prefs.clearUserPref(PREF_LOGGING_ENABLED);
-  try {
-    Services.prefs.clearUserPref(PREF_SEARCH_MAXRESULTS);
-  } catch (e) {}
-  try {
-    Services.prefs.clearUserPref(PREF_STRICT_COMPAT);
-  } catch (e) {}
 
-  Services.prefs.setCharPref(PREF_DISCOVERURL, gDiscoveryURL);
-  Services.prefs.setCharPref(PREF_UPDATEURL, gUpdateURL);
+registerCleanupFunction(function() {
+  // Restore prefs
+  gRestorePrefs.forEach(function(aPref) {
+    if (aPref.type == "clear")
+      Services.prefs.clearUserPref(aPref.name);
+    else if (aPref.type == Services.prefs.PREF_BOOL)
+      Services.prefs.setBoolPref(aPref.name, aPref.value);
+    else if (aPref.type == Services.prefs.PREF_INT)
+      Services.prefs.setIntPref(aPref.name, aPref.value);
+    else if (aPref.type == Services.prefs.PREF_STRING)
+      Services.prefs.setCharPref(aPref.name, aPref.value);
+  });
 
   // Throw an error if the add-ons manager window is open anywhere
   var windows = Services.wm.getEnumerator("Addons:Manager");

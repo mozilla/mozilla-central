@@ -51,15 +51,6 @@
 
 namespace js {
 
-extern JSObject *
-GetBlockChain(JSContext *cx, StackFrame *fp);
-
-extern JSObject *
-GetBlockChainFast(JSContext *cx, StackFrame *fp, JSOp op, size_t oplen);
-
-extern JSObject *
-GetScopeChain(JSContext *cx);
-
 /*
  * Refresh and return fp->scopeChain.  It may be stale if block scopes are
  * active but not yet reflected by objects in the scope chain.  If a block
@@ -67,11 +58,12 @@ GetScopeChain(JSContext *cx);
  * dynamically scoped construct, then compile-time block scope at fp->blocks
  * must reflect at runtime.
  */
-extern JSObject *
-GetScopeChain(JSContext *cx, StackFrame *fp);
 
 extern JSObject *
-GetScopeChainFast(JSContext *cx, StackFrame *fp, JSOp op, size_t oplen);
+GetScopeChain(JSContext *cx);
+
+extern JSObject *
+GetScopeChain(JSContext *cx, StackFrame *fp);
 
 /*
  * ScriptPrologue/ScriptEpilogue must be called in pairs. ScriptPrologue
@@ -188,7 +180,7 @@ InvokeGetterOrSetter(JSContext *cx, JSObject *obj, const Value &fval, uintN argc
  * InvokeConstructor* implement a function call from a constructor context
  * (e.g. 'new') handling the the creation of the new 'this' object.
  */
-extern JS_REQUIRES_STACK bool
+extern bool
 InvokeConstructorKernel(JSContext *cx, const CallArgs &args);
 
 /* See the InvokeArgsGuard overload of Invoke. */
@@ -204,14 +196,6 @@ InvokeConstructor(JSContext *cx, InvokeArgsGuard &args)
 /* See the fval overload of Invoke. */
 extern bool
 InvokeConstructor(JSContext *cx, const Value &fval, uintN argc, Value *argv, Value *rval);
-
-/*
- * InvokeConstructorWithGivenThis directly calls the constructor with the given
- * 'this'; the caller must choose the semantically correct 'this'.
- */
-extern JS_REQUIRES_STACK bool
-InvokeConstructorWithGivenThis(JSContext *cx, JSObject *thisobj, const Value &fval,
-                               uintN argc, Value *argv, Value *rval);
 
 /*
  * Executes a script with the given scopeChain/this. The 'type' indicates
@@ -231,24 +215,28 @@ Execute(JSContext *cx, JSScript *script, JSObject &scopeChain, Value *rval);
 enum InterpMode
 {
     JSINTERP_NORMAL    = 0, /* interpreter is running normally */
-    JSINTERP_RECORD    = 1, /* interpreter has been started to record/run traces */
-    JSINTERP_PROFILE   = 2, /* interpreter should profile a loop */
-    JSINTERP_REJOIN    = 3, /* as normal, but the frame has already started */
-    JSINTERP_SKIP_TRAP = 4  /* as REJOIN, but skip trap at first opcode */
+    JSINTERP_REJOIN    = 1, /* as normal, but the frame has already started */
+    JSINTERP_SKIP_TRAP = 2  /* as REJOIN, but skip trap at first opcode */
 };
 
 /*
  * Execute the caller-initialized frame for a user-defined script or function
  * pointed to by cx->fp until completion or error.
  */
-extern JS_REQUIRES_STACK JS_NEVER_INLINE bool
+extern JS_NEVER_INLINE bool
 Interpret(JSContext *cx, StackFrame *stopFp, InterpMode mode = JSINTERP_NORMAL);
 
-extern JS_REQUIRES_STACK bool
+extern bool
 RunScript(JSContext *cx, JSScript *script, StackFrame *fp);
 
 extern bool
 CheckRedeclaration(JSContext *cx, JSObject *obj, jsid id, uintN attrs);
+
+inline bool
+CheckRedeclaration(JSContext *cx, JSObject *obj, PropertyName *name, uintN attrs)
+{
+    return CheckRedeclaration(cx, obj, ATOM_TO_JSID(name), attrs);
+}
 
 extern bool
 StrictlyEqual(JSContext *cx, const Value &lval, const Value &rval, JSBool *equal);
@@ -331,14 +319,14 @@ class InterpreterFrames {
  * Unwind block and scope chains to match the given depth. The function sets
  * fp->sp on return to stackDepth.
  */
-extern bool
-UnwindScope(JSContext *cx, jsint stackDepth, JSBool normalUnwind);
+extern void
+UnwindScope(JSContext *cx, uint32_t stackDepth);
 
 extern bool
-OnUnknownMethod(JSContext *cx, js::Value *vp);
+OnUnknownMethod(JSContext *cx, JSObject *obj, Value idval, Value *vp);
 
 extern bool
-IsActiveWithOrBlock(JSContext *cx, JSObject &obj, int stackDepth);
+IsActiveWithOrBlock(JSContext *cx, JSObject &obj, uint32_t stackDepth);
 
 /************************************************************************/
 

@@ -5,9 +5,15 @@
 
 var testGenerator = testSteps();
 
+function executeSoon(aFun)
+{
+  SimpleTest.executeSoon(aFun);
+}
+
 function runTest()
 {
   allowIndexedDB();
+  allowUnlimitedQuota();
 
   SimpleTest.waitForExplicitFinish();
   testGenerator.next();
@@ -15,7 +21,8 @@ function runTest()
 
 function finishTest()
 {
-  disallowIndexedDB();
+  resetUnlimitedQuota();
+  resetIndexedDB();
 
   SimpleTest.executeSoon(function() {
     testGenerator.close();
@@ -43,6 +50,11 @@ function continueToNextStep()
   SimpleTest.executeSoon(function() {
     testGenerator.next();
   });
+}
+
+function continueToNextStepSync()
+{
+  testGenerator.next();
 }
 
 function errorHandler(event)
@@ -73,11 +85,42 @@ ExpectError.prototype = {
     is(event.type, "error", "Got an error event");
     is(this._code, event.target.errorCode, "Expected error was thrown.");
     event.preventDefault();
+    event.stopPropagation();
     grabEventAndContinueHandler(event);
   }
 };
 
-function addPermission(permission, url)
+function compareKeys(k1, k2) {
+  let t = typeof k1;
+  if (t != typeof k2)
+    return false;
+
+  if (t !== "object")
+    return k1 === k2;
+
+  if (k1 instanceof Date) {
+    return (k2 instanceof Date) &&
+      k1.getTime() === k2.getTime();
+  }
+
+  if (k1 instanceof Array) {
+    if (!(k2 instanceof Array) ||
+        k1.length != k2.length)
+      return false;
+    
+    for (let i = 0; i < k1.length; ++i) {
+      if (!compareKeys(k1[i], k2[i]))
+        return false;
+    }
+    
+    return true;
+  }
+
+  return false;
+}
+
+
+function addPermission(type, allow, url)
 {
   netscape.security.PrivilegeManager.enablePrivilege("UniversalXPConnect");
 
@@ -91,10 +134,17 @@ function addPermission(permission, url)
     uri = SpecialPowers.getDocumentURIObject(window.document);
   }
 
+  let permission;
+  if (allow) {
+    permission = Components.interfaces.nsIPermissionManager.ALLOW_ACTION;
+  }
+  else {
+    permission = Components.interfaces.nsIPermissionManager.DENY_ACTION;
+  }
+
   Components.classes["@mozilla.org/permissionmanager;1"]
             .getService(Components.interfaces.nsIPermissionManager)
-            .add(uri, permission,
-                 Components.interfaces.nsIPermissionManager.ALLOW_ACTION);
+            .add(uri, type, permission);
 }
 
 function removePermission(permission, url)
@@ -128,20 +178,25 @@ function setQuota(quota)
 
 function allowIndexedDB(url)
 {
-  addPermission("indexedDB", url);
+  addPermission("indexedDB", true, url);
 }
 
-function disallowIndexedDB(url)
+function resetIndexedDB(url)
 {
   removePermission("indexedDB", url);
 }
 
 function allowUnlimitedQuota(url)
 {
-  addPermission("indexedDB-unlimited", url);
+  addPermission("indexedDB-unlimited", true, url);
 }
 
-function disallowUnlimitedQuota(url)
+function denyUnlimitedQuota(url)
+{
+  addPermission("indexedDB-unlimited", false, url);
+}
+
+function resetUnlimitedQuota(url)
 {
   removePermission("indexedDB-unlimited", url);
 }

@@ -38,7 +38,6 @@
 package org.mozilla.gecko.db;
 
 import java.io.ByteArrayOutputStream;
-import java.util.Date;
 
 import org.mozilla.gecko.db.BrowserContract.Bookmarks;
 import org.mozilla.gecko.db.BrowserContract.History;
@@ -81,20 +80,22 @@ public class LocalBrowserDB implements BrowserDB.BrowserDBIface {
         return uri.buildUpon().appendQueryParameter(BrowserContract.PARAM_PROFILE, mProfile).build();
     }
 
-    public Cursor filter(ContentResolver cr, CharSequence constraint, int limit) {
+    public Cursor filter(ContentResolver cr, CharSequence constraint, int limit, CharSequence urlFilter) {
         Cursor c = cr.query(appendProfileAndLimit(History.CONTENT_URI, limit),
                             new String[] { History._ID,
                                            History.URL,
                                            History.TITLE,
                                            History.FAVICON,
                                            History.THUMBNAIL },
+                            (urlFilter != null ? "(" + History.URL + " NOT LIKE ? ) AND " : "" ) + 
                             "(" + History.URL + " LIKE ? OR " + History.TITLE + " LIKE ?)",
-                            new String[] {"%" + constraint.toString() + "%", "%" + constraint.toString() + "%"},
+                            urlFilter == null ? new String[] {"%" + constraint.toString() + "%", "%" + constraint.toString() + "%"} :
+                            new String[] {urlFilter.toString(), "%" + constraint.toString() + "%", "%" + constraint.toString() + "%"},
                             // ORDER BY is number of visits times a multiplier from 1 - 120 of how recently the site
                             // was accessed with a site accessed today getting 120 and a site accessed 119 or more
                             // days ago getting 1
                             History.VISITS + " * MAX(1, (" +
-                            History.DATE_LAST_VISITED + " - " + new Date().getTime() + ") / 86400000 + 120) DESC");
+                            History.DATE_LAST_VISITED + " - " + System.currentTimeMillis() + ") / 86400000 + 120) DESC");
 
         return new LocalDBCursor(c);
     }
@@ -174,6 +175,16 @@ public class LocalBrowserDB implements BrowserDB.BrowserDBIface {
     public void updateHistoryTitle(ContentResolver cr, String uri, String title) {
         ContentValues values = new ContentValues();
         values.put(History.TITLE, title);
+
+        cr.update(appendProfile(History.CONTENT_URI),
+                  values,
+                  History.URL + " = ?",
+                  new String[] { uri });
+    }
+
+    public void updateHistoryDate(ContentResolver cr, String uri, long date) {
+        ContentValues values = new ContentValues();
+        values.put(History.DATE_LAST_VISITED, date);
 
         cr.update(appendProfile(History.CONTENT_URI),
                   values,

@@ -49,10 +49,6 @@
 #include "nsGNOMEShellService.h"
 #endif
 
-#include "nsProfileMigrator.h"
-#if !defined(XP_OS2)
-#include "nsOperaProfileMigrator.h"
-#endif
 #if defined(XP_WIN) && !defined(__MINGW32__)
 #include "nsIEProfileMigrator.h"
 #elif defined(XP_MACOSX)
@@ -80,10 +76,6 @@ NS_GENERIC_FACTORY_CONSTRUCTOR(nsMacShellService)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsGNOMEShellService, Init)
 #endif
 
-#if !defined(XP_OS2)
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsOperaProfileMigrator)
-#endif
-NS_GENERIC_FACTORY_CONSTRUCTOR(nsProfileMigrator)
 #if defined(XP_WIN) && !defined(__MINGW32__)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsIEProfileMigrator)
 #elif defined(XP_MACOSX)
@@ -102,15 +94,11 @@ NS_DEFINE_NAMED_CID(NS_SHELLSERVICE_CID);
 #endif
 NS_DEFINE_NAMED_CID(NS_FEEDSNIFFER_CID);
 NS_DEFINE_NAMED_CID(NS_BROWSER_ABOUT_REDIRECTOR_CID);
-NS_DEFINE_NAMED_CID(NS_FIREFOX_PROFILEMIGRATOR_CID);
 #if defined(XP_WIN) && !defined(__MINGW32__)
 NS_DEFINE_NAMED_CID(NS_WINIEPROFILEMIGRATOR_CID);
 #elif defined(XP_MACOSX)
 NS_DEFINE_NAMED_CID(NS_SHELLSERVICE_CID);
 NS_DEFINE_NAMED_CID(NS_SAFARIPROFILEMIGRATOR_CID);
-#endif
-#if !defined(XP_OS2)
-NS_DEFINE_NAMED_CID(NS_OPERAPROFILEMIGRATOR_CID);
 #endif
 NS_DEFINE_NAMED_CID(NS_PRIVATE_BROWSING_SERVICE_WRAPPER_CID);
 
@@ -123,15 +111,11 @@ static const mozilla::Module::CIDEntry kBrowserCIDs[] = {
 #endif
     { &kNS_FEEDSNIFFER_CID, false, NULL, nsFeedSnifferConstructor },
     { &kNS_BROWSER_ABOUT_REDIRECTOR_CID, false, NULL, AboutRedirector::Create },
-    { &kNS_FIREFOX_PROFILEMIGRATOR_CID, false, NULL, nsProfileMigratorConstructor },
 #if defined(XP_WIN) && !defined(__MINGW32__)
     { &kNS_WINIEPROFILEMIGRATOR_CID, false, NULL, nsIEProfileMigratorConstructor },
 #elif defined(XP_MACOSX)
     { &kNS_SHELLSERVICE_CID, false, NULL, nsMacShellServiceConstructor },
     { &kNS_SAFARIPROFILEMIGRATOR_CID, false, NULL, nsSafariProfileMigratorConstructor },
-#endif
-#if !defined(XP_OS2)
-    { &kNS_OPERAPROFILEMIGRATOR_CID, false, NULL, nsOperaProfileMigratorConstructor },
 #endif
     { &kNS_PRIVATE_BROWSING_SERVICE_WRAPPER_CID, false, NULL, nsPrivateBrowsingServiceWrapperConstructor },
     { NULL }
@@ -160,15 +144,11 @@ static const mozilla::Module::ContractIDEntry kBrowserContracts[] = {
 #endif
     { NS_ABOUT_MODULE_CONTRACTID_PREFIX "home", &kNS_BROWSER_ABOUT_REDIRECTOR_CID },
     { NS_ABOUT_MODULE_CONTRACTID_PREFIX "permissions", &kNS_BROWSER_ABOUT_REDIRECTOR_CID },
-    { NS_PROFILEMIGRATOR_CONTRACTID, &kNS_FIREFOX_PROFILEMIGRATOR_CID },
 #if defined(XP_WIN) && !defined(__MINGW32__)
     { NS_BROWSERPROFILEMIGRATOR_CONTRACTID_PREFIX "ie", &kNS_WINIEPROFILEMIGRATOR_CID },
 #elif defined(XP_MACOSX)
     { NS_SHELLSERVICE_CONTRACTID, &kNS_SHELLSERVICE_CID },
     { NS_BROWSERPROFILEMIGRATOR_CONTRACTID_PREFIX "safari", &kNS_SAFARIPROFILEMIGRATOR_CID },
-#endif
-#if !defined(XP_OS2)
-    { NS_BROWSERPROFILEMIGRATOR_CONTRACTID_PREFIX "opera", &kNS_OPERAPROFILEMIGRATOR_CID },
 #endif
     { NS_PRIVATE_BROWSING_SERVICE_CONTRACTID, &kNS_PRIVATE_BROWSING_SERVICE_WRAPPER_CID },
     { NULL }

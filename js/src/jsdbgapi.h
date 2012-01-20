@@ -206,11 +206,11 @@ JS_FunctionHasLocalNames(JSContext *cx, JSFunction *fun);
  * to call JS_ReleaseFunctionLocalNameArray in a LIFO manner (wrt to any other
  * call that may use the temp pool.
  */
-extern JS_PUBLIC_API(jsuword *)
+extern JS_PUBLIC_API(uintptr_t *)
 JS_GetFunctionLocalNameArray(JSContext *cx, JSFunction *fun, void **markp);
 
 extern JS_PUBLIC_API(JSAtom *)
-JS_LocalNameToAtom(jsuword w);
+JS_LocalNameToAtom(uintptr_t w);
 
 extern JS_PUBLIC_API(JSString *)
 JS_AtomKey(JSAtom *atom);
@@ -226,6 +226,9 @@ JS_GetFunctionNative(JSContext *cx, JSFunction *fun);
 
 extern JS_PUBLIC_API(JSPrincipals *)
 JS_GetScriptPrincipals(JSContext *cx, JSScript *script);
+
+extern JS_PUBLIC_API(JSPrincipals *)
+JS_GetScriptOriginPrincipals(JSContext *cx, JSScript *script);
 
 /*
  * Stack Frame Iterator
@@ -254,9 +257,6 @@ JS_GetFrameAnnotation(JSContext *cx, JSStackFrame *fp);
 
 extern JS_PUBLIC_API(void)
 JS_SetFrameAnnotation(JSContext *cx, JSStackFrame *fp, void *annotation);
-
-extern JS_PUBLIC_API(void *)
-JS_GetFramePrincipalArray(JSContext *cx, JSStackFrame *fp);
 
 extern JS_PUBLIC_API(JSBool)
 JS_IsScriptFrame(JSContext *cx, JSStackFrame *fp);
@@ -389,9 +389,9 @@ JS_EvaluateInStackFrame(JSContext *cx, JSStackFrame *fp,
 typedef struct JSPropertyDesc {
     jsval           id;         /* primary id, atomized string, or int */
     jsval           value;      /* property value */
-    uint8           flags;      /* flags, see below */
-    uint8           spare;      /* unused */
-    uint16          slot;       /* argument/variable slot */
+    uint8_t         flags;      /* flags, see below */
+    uint8_t         spare;      /* unused */
+    uint16_t        slot;       /* argument/variable slot */
     jsval           alias;      /* alias id if JSPD_ALIAS flag */
 } JSPropertyDesc;
 
@@ -407,7 +407,7 @@ typedef struct JSPropertyDesc {
                                 /* throwing an exception */
 
 typedef struct JSPropertyDescArray {
-    uint32          length;     /* number of elements in array */
+    uint32_t        length;     /* number of elements in array */
     JSPropertyDesc  *array;     /* alloc'd by Get, freed by Put */
 } JSPropertyDescArray;
 

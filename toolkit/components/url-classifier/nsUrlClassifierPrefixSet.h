@@ -59,27 +59,18 @@ public:
   nsUrlClassifierPrefixSet();
   virtual ~nsUrlClassifierPrefixSet();
 
-  // Can send an empty Array to clean the tree
   NS_IMETHOD SetPrefixes(const PRUint32* aArray, PRUint32 aLength);
-  // Given prefixes must be in sorted order and bigger than
-  // anything currently in the Prefix Set
-  NS_IMETHOD AddPrefixes(const PRUint32* aArray, PRUint32 aLength);
-  // Does the PrefixSet contain this prefix? not thread-safe
-  NS_IMETHOD Contains(PRUint32 aPrefix, bool* aFound);
-  // Do a lookup in the PrefixSet
-  // if aReady is set, we will block until there are any entries
-  // if not set, we will return in aReady whether we were ready or not
   NS_IMETHOD Probe(PRUint32 aPrefix, PRUint32 aKey, bool* aReady, bool* aFound);
-  // Return the estimated size of the set on disk and in memory,
-  // in bytes
-  NS_IMETHOD SizeOfIncludingThis(PRUint32* aSize);
   NS_IMETHOD IsEmpty(bool * aEmpty);
   NS_IMETHOD LoadFromFile(nsIFile* aFile);
   NS_IMETHOD StoreToFile(nsIFile* aFile);
-  // Return a key that is used to randomize the collisions in the prefixes
   NS_IMETHOD GetKey(PRUint32* aKey);
 
   NS_DECL_ISUPPORTS
+
+  // Return the estimated size of the set on disk and in memory,
+  // in bytes
+  size_t SizeOfIncludingThis(nsMallocSizeOfFun mallocSizeOf);
 
 protected:
   static const PRUint32 DELTAS_LIMIT = 100;
@@ -90,6 +81,8 @@ protected:
   mozilla::CondVar mSetIsReady;
   nsRefPtr<nsPrefixSetReporter> mReporter;
 
+  nsresult Contains(PRUint32 aPrefix, bool* aFound);
+  nsresult MakePrefixSet(const PRUint32* aArray, PRUint32 aLength);
   PRUint32 BinSearch(PRUint32 start, PRUint32 end, PRUint32 target);
   nsresult LoadFromFd(mozilla::AutoFDClose & fileFd);
   nsresult StoreToFd(mozilla::AutoFDClose & fileFd);
@@ -101,12 +94,12 @@ protected:
   // key used to randomize hash collisions
   PRUint32 mRandomKey;
   // the prefix for each index.
-  nsTArray<PRUint32> mIndexPrefixes;
+  FallibleTArray<PRUint32> mIndexPrefixes;
   // the value corresponds to the beginning of the run
   // (an index in |_deltas|) for the index
-  nsTArray<PRUint32> mIndexStarts;
+  FallibleTArray<PRUint32> mIndexStarts;
   // array containing deltas from indices.
-  nsTArray<PRUint16> mDeltas;
+  FallibleTArray<PRUint16> mDeltas;
 
 };
 

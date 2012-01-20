@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Mihai Sucan <mihai.sucan@gmail.com> (original author)
+ *   Kenny Heaton <kennyheaton@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -43,6 +44,7 @@ const Ci = Components.interfaces;
 
 Cu.import("resource://gre/modules/Services.jsm");
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource:///modules/source-editor-ui.jsm");
 
 XPCOMUtils.defineLazyServiceGetter(this, "clipboardHelper",
                                    "@mozilla.org/widget/clipboardhelper;1",
@@ -83,6 +85,28 @@ const ORION_ANNOTATION_TYPES = {
   matchingBracket: "orion.annotation.matchingBracket",
 };
 
+/**
+ * Default key bindings in the Orion editor.
+ */
+const DEFAULT_KEYBINDINGS = [
+  {
+    action: "undo",
+    code: Ci.nsIDOMKeyEvent.DOM_VK_Z,
+    accel: true,
+  },
+  {
+    action: "redo",
+    code: Ci.nsIDOMKeyEvent.DOM_VK_Z,
+    accel: true,
+    shift: true,
+  },
+  {
+    action: "Unindent Lines",
+    code: Ci.nsIDOMKeyEvent.DOM_VK_TAB,
+    shift: true,
+  },
+];
+
 var EXPORTED_SYMBOLS = ["SourceEditor"];
 
 /**
@@ -103,6 +127,8 @@ function SourceEditor() {
     Services.prefs.getBoolPref(SourceEditor.PREFS.EXPAND_TAB);
 
   this._onOrionSelection = this._onOrionSelection.bind(this);
+
+  this.ui = new SourceEditorUI(this);
 }
 
 SourceEditor.prototype = {
@@ -119,6 +145,13 @@ SourceEditor.prototype = {
   _expandTab: null,
   _tabSize: null,
   _iframeWindow: null,
+
+  /**
+   * The Source Editor user interface manager.
+   * @type object
+   *       An instance of the SourceEditorUI.
+   */
+  ui: null,
 
   /**
    * The editor container element.
@@ -181,6 +214,7 @@ SourceEditor.prototype = {
     this.parentElement = aElement;
     this._config = aConfig;
     this._onReadyCallback = aCallback;
+    this.ui.init();
   },
 
   /**
@@ -249,14 +283,25 @@ SourceEditor.prototype = {
 
     this._dragAndDrop = new TextDND(this._view, this._undoStack);
 
-    this._view.setAction("tab", this._doTab.bind(this));
+    let actions = {
+      "undo": [this.undo, this],
+      "redo": [this.redo, this],
+      "tab": [this._doTab, this],
+      "Unindent Lines": [this._doUnindentLines, this],
+      "enter": [this._doEnter, this],
+      "Find...": [this.ui.find, this.ui],
+      "Find Next Occurrence": [this.ui.findNext, this.ui],
+      "Find Previous Occurrence": [this.ui.findPrevious, this.ui],
+      "Goto Line...": [this.ui.gotoLine, this.ui],
+    };
 
-    let shiftTabKey = new KeyBinding(Ci.nsIDOMKeyEvent.DOM_VK_TAB, false, true);
-    this._view.setAction("Unindent Lines", this._doUnindentLines.bind(this));
-    this._view.setKeyBinding(shiftTabKey, "Unindent Lines");
-    this._view.setAction("enter", this._doEnter.bind(this));
+    for (let name in actions) {
+      let action = actions[name];
+      this._view.setAction(name, action[0].bind(action[1]));
+    }
 
-    (config.keys || []).forEach(function(aKey) {
+    let keys = (config.keys || []).concat(DEFAULT_KEYBINDINGS);
+    keys.forEach(function(aKey) {
       let binding = new KeyBinding(aKey.code, aKey.accel, aKey.shift, aKey.alt);
       this._view.setKeyBinding(binding, aKey.action);
 
@@ -273,6 +318,7 @@ SourceEditor.prototype = {
    */
   _onOrionLoad: function SE__onOrionLoad()
   {
+    this.ui.onReady();
     if (this._onReadyCallback) {
       this._onReadyCallback(this);
       this._onReadyCallback = null;
@@ -529,6 +575,14 @@ SourceEditor.prototype = {
   canRedo: function SE_canRedo()
   {
     return this._undoStack.canRedo();
+  },
+
+  /**
+   * Reset the Undo stack
+   */
+  resetUndo: function SE_resetUndo()
+  {
+    this._undoStack.reset();
   },
 
   /**
@@ -852,6 +906,9 @@ SourceEditor.prototype = {
     this._onOrionSelection = null;
 
     this._view.destroy();
+    this.ui.destroy();
+    this.ui = null;
+
     this.parentElement.removeChild(this._iframe);
     this.parentElement = null;
     this._iframeWindow = null;
@@ -865,5 +922,6 @@ SourceEditor.prototype = {
     this._view = null;
     this._model = null;
     this._config = null;
+    this._lastFind = null;
   },
 };

@@ -155,8 +155,8 @@ struct DefaultHasher<jsid>
 #if JS_BYTES_PER_WORD == 4
 # define ATOM_HASH(atom)          ((JSHashNumber)(atom) >> 2)
 #elif JS_BYTES_PER_WORD == 8
-# define ATOM_HASH(atom)          (((JSHashNumber)(jsuword)(atom) >> 3) ^     \
-                                   (JSHashNumber)((jsuword)(atom) >> 32))
+# define ATOM_HASH(atom)          (((JSHashNumber)(uintptr_t)(atom) >> 3) ^   \
+                                   (JSHashNumber)((uintptr_t)(atom) >> 32))
 #else
 # error "Unsupported configuration"
 #endif
@@ -171,10 +171,10 @@ js_AtomToPrintableString(JSContext *cx, JSAtom *atom, JSAutoByteString *bytes);
 namespace js {
 
 /* Compute a hash function from chars/length. */
-inline uint32
+inline uint32_t
 HashChars(const jschar *chars, size_t length)
 {
-    uint32 h = 0;
+    uint32_t h = 0;
     for (; length; chars++, length--)
         h = JS_ROTATE_LEFT32(h, 4) ^ *chars;
     return h;

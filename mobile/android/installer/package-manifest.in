@@ -47,7 +47,7 @@
 @BINPATH@/@DLL_PREFIX@xpcom@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@nspr4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@mozalloc@DLL_SUFFIX@
-@BINPATH@/@DLL_PREFIX@mozutils@DLL_SUFFIX@
+@BINPATH@/@DLL_PREFIX@mozglue@DLL_SUFFIX@
 #ifdef XP_MACOSX
 @BINPATH@/XUL
 #else
@@ -84,7 +84,6 @@
 @BINPATH@/resources.arsc
 @BINPATH@/package-name.txt
 @BINPATH@/classes.dex
-@BINPATH@/@DLL_PREFIX@mozutils@DLL_SUFFIX@
 @BINPATH@/res/drawable
 @BINPATH@/res/drawable-hdpi
 @BINPATH@/res/layout
@@ -158,6 +157,7 @@
 @BINPATH@/components/dom_css.xpt
 @BINPATH@/components/dom_events.xpt
 @BINPATH@/components/dom_geolocation.xpt
+@BINPATH@/components/dom_network.xpt
 @BINPATH@/components/dom_notification.xpt
 @BINPATH@/components/dom_html.xpt
 @BINPATH@/components/dom_indexeddb.xpt
@@ -165,6 +165,7 @@
 @BINPATH@/components/dom_json.xpt
 @BINPATH@/components/dom_range.xpt
 @BINPATH@/components/dom_sidebar.xpt
+@BINPATH@/components/dom_sms.xpt
 @BINPATH@/components/dom_storage.xpt
 @BINPATH@/components/dom_stylesheets.xpt
 @BINPATH@/components/dom_threads.xpt
@@ -391,7 +392,7 @@
 @BINPATH@/components/nsFilePicker.js
 @BINPATH@/components/nsFilePicker.manifest
 #ifdef XP_MACOSX
-@BINPATH@/components/libalerts_s.dylib
+@BINPATH@/components/libalerts.dylib
 #endif
 #ifdef MOZ_ENABLE_DBUS
 @BINPATH@/components/@DLL_PREFIX@dbusservice@DLL_SUFFIX@
@@ -478,6 +479,8 @@
 @BINPATH@/res/EditorOverride.css
 @BINPATH@/res/contenteditable.css
 @BINPATH@/res/designmode.css
+@BINPATH@/res/TopLevelImageDocument.css
+@BINPATH@/res/TopLevelVideoDocument.css
 @BINPATH@/res/table-add-column-after-active.gif
 @BINPATH@/res/table-add-column-after-hover.gif
 @BINPATH@/res/table-add-column-after.gif
@@ -606,7 +609,7 @@ bin/components/@DLL_PREFIX@nkgnomevfs@DLL_SUFFIX@
 @BINPATH@/components/MobileComponents.manifest
 @BINPATH@/components/MobileComponents.xpt
 @BINPATH@/components/PromptService.js
-; disabled (bug 696203) @BINPATH@/components/SessionStore.js
+@BINPATH@/components/SessionStore.js
 @BINPATH@/components/Sidebar.js
 @BINPATH@/components/OpenWebapps.js
 #ifdef MOZ_SAFE_BROWSING

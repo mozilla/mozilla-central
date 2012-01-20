@@ -86,7 +86,7 @@ SDK           = $(SDK_PATH)$(PKG_BASENAME).sdk$(SDK_SUFFIX)
 ifndef LIBXUL_SDK
 JSSHELL_BINS  = \
   $(DIST)/bin/js$(BIN_SUFFIX) \
-  $(DIST)/bin/mozutils$(DLL_SUFFIX) \
+  $(DIST)/bin/mozglue$(DLL_SUFFIX) \
   $(NULL)
 ifndef MOZ_NATIVE_NSPR
 JSSHELL_BINS += $(DIST)/bin/$(LIB_PREFIX)nspr4$(DLL_SUFFIX)
@@ -265,17 +265,14 @@ include $(topsrcdir)/config/android-common.mk
 
 JARSIGNER ?= echo
 
-DIST_FILES = \
-  resources.arsc \
-  AndroidManifest.xml \
-  chrome \
-  components \
-  defaults \
-  modules \
-  hyphenation \
-  res \
-  lib \
-  lib.id \
+DIST_FILES =
+
+# Place the files in the order they are going to be opened by the linker
+ifdef MOZ_CRASHREPORTER
+DIST_FILES += lib.id
+endif
+
+DIST_FILES += \
   libmozalloc.so \
   libnspr4.so \
   libplc4.so \
@@ -290,6 +287,15 @@ DIST_FILES = \
   libnssckbi.so \
   libfreebl3.so \
   libsoftokn3.so \
+  resources.arsc \
+  AndroidManifest.xml \
+  chrome \
+  components \
+  defaults \
+  modules \
+  hyphenation \
+  res \
+  lib \
   extensions \
   application.ini \
   package-name.txt \
@@ -323,7 +329,7 @@ ABI_DIR = armeabi
 endif
 endif
 
-ifeq ($(MOZ_BUILD_APP),mobile/xul)
+ifneq (,$(filter mobile/xul b2g,$(MOZ_BUILD_APP)))
 GECKO_APP_AP_PATH = $(call core_abspath,$(DEPTH)/embedding/android)
 else
 GECKO_APP_AP_PATH = $(call core_abspath,$(DEPTH)/mobile/android/base)
@@ -335,7 +341,7 @@ INNER_MAKE_PACKAGE	= \
   cp $(GECKO_APP_AP_PATH)/gecko.ap_ $(_ABS_DIST) && \
   ( cd $(STAGEPATH)$(MOZ_PKG_DIR)$(_BINPATH) && \
     mkdir -p lib/$(ABI_DIR) && \
-    mv libmozutils.so $(MOZ_CHILD_PROCESS_NAME) lib/$(ABI_DIR) && \
+    mv libmozglue.so $(MOZ_CHILD_PROCESS_NAME) lib/$(ABI_DIR) && \
     rm -f lib.id && \
     for SOMELIB in *.so ; \
     do \
@@ -350,21 +356,19 @@ INNER_MAKE_PACKAGE	= \
   cp $(_ABS_DIST)/gecko.apk $(_ABS_DIST)/gecko-unsigned-unaligned.apk && \
   $(JARSIGNER) $(_ABS_DIST)/gecko.apk && \
   $(ZIPALIGN) -f -v 4 $(_ABS_DIST)/gecko.apk $(PACKAGE)
+
 INNER_UNMAKE_PACKAGE	= \
   mkdir $(MOZ_PKG_DIR) && \
-  cd $(MOZ_PKG_DIR) && \
+  pushd $(MOZ_PKG_DIR) && \
   $(UNZIP) $(UNPACKAGE) && \
-  mv lib/$(ABI_DIR)/libmozutils.so . && \
+  mv lib/$(ABI_DIR)/libmozglue.so . && \
   mv lib/$(ABI_DIR)/*plugin-container* $(MOZ_CHILD_PROCESS_NAME) && \
-  rm -rf lib/$(ABI_DIR)
+  rm -rf lib/$(ABI_DIR) && \
+  popd
 endif
 ifeq ($(MOZ_PKG_FORMAT),DMG)
 ifndef _APPNAME
-ifdef MOZ_DEBUG
-_APPNAME	= $(MOZ_APP_DISPLAYNAME)Debug.app
-else
-_APPNAME	= $(MOZ_APP_DISPLAYNAME).app
-endif
+_APPNAME = $(MOZ_MACBUNDLE_NAME)
 endif
 ifndef _BINPATH
 _BINPATH	= /$(_APPNAME)/Contents/MacOS
@@ -571,8 +575,8 @@ FREEBL_64FPU	= $(DIST)/$(STAGEPATH)$(MOZ_PKG_DIR)$(_BINPATH)/$(DLL_PREFIX)freebl
 FREEBL_64INT	= $(DIST)/$(STAGEPATH)$(MOZ_PKG_DIR)$(_BINPATH)/$(DLL_PREFIX)freebl_64int_3$(DLL_SUFFIX)
 
 SIGN_NSS	+= \
-  $(SIGN_CMD) $(SOFTOKN) && \
-  $(SIGN_CMD) $(NSSDBM) && \
+  if test -f $(SOFTOKN); then $(SIGN_CMD) $(SOFTOKN); fi && \
+  if test -f $(NSSDBM); then $(SIGN_CMD) $(NSSDBM); fi && \
   if test -f $(FREEBL); then $(SIGN_CMD) $(FREEBL); fi && \
   if test -f $(FREEBL_32FPU); then $(SIGN_CMD) $(FREEBL_32FPU); fi && \
   if test -f $(FREEBL_32INT); then $(SIGN_CMD) $(FREEBL_32INT); fi && \
@@ -581,7 +585,7 @@ SIGN_NSS	+= \
   if test -f $(FREEBL_64INT); then $(SIGN_CMD) $(FREEBL_64INT); fi;
 
 endif # MOZ_PSM
-endif # !CROSS_COMPILE
+endif # MOZ_CAN_RUN_PROGRAMS
 
 NO_PKG_FILES += \
 	core \
@@ -660,9 +664,15 @@ endif
 PKG_ARG = , "$(pkg)"
 
 # Define packager macro to work around make 3.81 backslash issue (bug #339933)
+
+# Controls whether missing file warnings should be fatal
+ifndef MOZ_PKG_FATAL_WARNINGS
+MOZ_PKG_FATAL_WARNINGS = 0
+endif
+
 define PACKAGER_COPY
 $(PERL) -I$(MOZILLA_DIR)/toolkit/mozapps/installer -e 'use Packager; \
-       Packager::Copy($1,$2,$3,$4,$5,$6,$7);'
+       Packager::Copy($1,$2,$3,$4,$5,$(MOZ_PKG_FATAL_WARNINGS),$6,$7);'
 endef
 
 installer-stage: stage-package
@@ -894,10 +904,10 @@ ESCAPE_SPACE = $(subst $(space),\$(space),$(1))
 
 # This variable defines which OpenSSL algorithm to use to 
 # generate checksums for files that we upload
-CHECKSUM_ALGORITHM = 'sha512'
+CHECKSUM_ALGORITHM_PARAM = -d sha512 -d md5 -d sha1
 
 # This variable defines where the checksum file will be located
-CHECKSUM_FILE = "$(DIST)/$(PKG_PATH)/$(PKG_BASENAME).checksums"
+CHECKSUM_FILE = "$(DIST)/$(PKG_PATH)/$(CHECKSUMS_FILE_BASENAME).checksums"
 CHECKSUM_FILES = $(CHECKSUM_FILE)
 
 UPLOAD_FILES= \
@@ -931,7 +941,7 @@ checksum:
 	mkdir -p `dirname $(CHECKSUM_FILE)`
 	@$(PYTHON) $(MOZILLA_DIR)/build/checksums.py \
 		-o $(CHECKSUM_FILE) \
-		-d $(CHECKSUM_ALGORITHM) \
+		$(CHECKSUM_ALGORITHM_PARAM) \
 		-s $(call QUOTED_WILDCARD,$(DIST)) \
 		$(UPLOAD_FILES)
 	@echo "CHECKSUM FILE START"

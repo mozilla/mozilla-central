@@ -53,7 +53,7 @@ class nsIArray;
 class nsIVariant;
 class nsIObjectInputStream;
 class nsIObjectOutputStream;
-class nsScriptObjectHolder;
+template<class> class nsScriptObjectHolder;
 class nsIScriptObjectPrincipal;
 
 typedef void (*nsScriptTerminationFunc)(nsISupports* aRef);
@@ -74,8 +74,8 @@ NS_DEFINE_STATIC_IID_ACCESSOR(nsIScriptContextPrincipal,
                               NS_ISCRIPTCONTEXTPRINCIPAL_IID)
 
 #define NS_ISCRIPTCONTEXT_IID \
-{ 0x39b3ea7c, 0xdc26, 0x4756, \
-  { 0xa0, 0x3c, 0x13, 0xa0, 0x42, 0x03, 0x07, 0x6a } }
+{ 0xf3840057, 0x4fe5, 0x4f92, \
+ { 0xa3, 0xb8, 0x27, 0xd7, 0x44, 0x6f, 0x72, 0x4d } }
 
 /* This MUST match JSVERSION_DEFAULT.  This version stuff if we don't
    know what language we have is a little silly... */
@@ -99,7 +99,9 @@ public:
    * @param aScript a string representing the script to be executed
    * @param aScopeObject a script object for the scope to execute in, or
    *                     nsnull to use a default scope
-   * @param aPrincipal the principal that produced the script
+   * @param aPrincipal the principal the script should be evaluated with
+   * @param aOriginPrincipal the principal the script originates from.  If null,
+   *                         aPrincipal is used.
    * @param aURL the URL or filename for error messages
    * @param aLineNo the starting line number of the script for error messages
    * @param aVersion the script language version to use when executing
@@ -115,6 +117,7 @@ public:
   virtual nsresult EvaluateString(const nsAString& aScript,
                                   JSObject* aScopeObject,
                                   nsIPrincipal *aPrincipal,
+                                  nsIPrincipal *aOriginPrincipal,
                                   const char *aURL,
                                   PRUint32 aLineNo,
                                   PRUint32 aVersion,
@@ -151,7 +154,7 @@ public:
                                  const char* aURL,
                                  PRUint32 aLineNo,
                                  PRUint32 aVersion,
-                                 nsScriptObjectHolder &aScriptObject) = 0;
+                                 nsScriptObjectHolder<JSScript>& aScriptObject) = 0;
 
   /**
    * Execute a precompiled script object.
@@ -206,7 +209,7 @@ public:
                                        const char* aURL,
                                        PRUint32 aLineNo,
                                        PRUint32 aVersion,
-                                       nsScriptObjectHolder &aHandler) = 0;
+                                       nsScriptObjectHolder<JSObject>& aHandler) = 0;
 
   /**
    * Call the function object with given args and return its boolean result,
@@ -248,7 +251,7 @@ public:
   virtual nsresult BindCompiledEventHandler(nsISupports* aTarget,
                                             JSObject* aScope,
                                             JSObject* aHandler,
-                                            nsScriptObjectHolder& aBoundHandler) = 0;
+                                            nsScriptObjectHolder<JSObject>& aBoundHandler) = 0;
 
   /**
    * Compile a function that isn't used as an event handler.
@@ -267,13 +270,6 @@ public:
                                    PRUint32 aVersion,
                                    bool aShared,
                                    JSObject** aFunctionObject) = 0;
-
-  /**
-   * Set the default scripting language version for this context, which must
-   * be a context specific to a particular scripting language.
-   *
-   **/
-  virtual void SetDefaultLanguageVersion(PRUint32 aVersion) = 0;
 
   /**
    * Return the global object.
@@ -380,7 +376,7 @@ public:
   /* Deserialize a script from a stream.
    */
   virtual nsresult Deserialize(nsIObjectInputStream* aStream,
-                               nsScriptObjectHolder &aResult) = 0;
+                               nsScriptObjectHolder<JSScript>& aResult) = 0;
 
   /**
    * JS only - this function need not be implemented by languages other

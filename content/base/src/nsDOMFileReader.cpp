@@ -74,13 +74,13 @@
 #include "nsCycleCollectionParticipant.h"
 #include "nsLayoutStatics.h"
 #include "nsIScriptObjectPrincipal.h"
-#include "nsFileDataProtocolHandler.h"
+#include "nsBlobProtocolHandler.h"
 #include "mozilla/Preferences.h"
-#include "xpcprivate.h"
 #include "xpcpublic.h"
-#include "XPCQuickStubs.h"
-#include "jstypedarray.h"
+#include "nsIScriptSecurityManager.h"
 #include "nsDOMJSUtils.h"
+
+#include "jstypedarray.h"
 
 using namespace mozilla;
 
@@ -247,7 +247,7 @@ nsDOMFileReader::GetResult(JSContext* aCx, jsval* aResult)
   }
  
   nsString tmpResult = mResult;
-  if (!xpc_qsStringToJsval(aCx, tmpResult, aResult)) {
+  if (!xpc::StringToJsval(aCx, tmpResult, aResult)) {
     return NS_ERROR_FAILURE;
   }
   return NS_OK;

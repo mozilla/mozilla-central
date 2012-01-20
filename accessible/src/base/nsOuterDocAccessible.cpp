@@ -38,9 +38,10 @@
 
 #include "nsOuterDocAccessible.h"
 
-#include "States.h"
 #include "nsAccUtils.h"
 #include "nsDocAccessible.h"
+#include "Role.h"
+#include "States.h"
 
 using namespace mozilla::a11y;
 
@@ -63,10 +64,10 @@ NS_IMPL_ISUPPORTS_INHERITED0(nsOuterDocAccessible,
 ////////////////////////////////////////////////////////////////////////////////
 // nsAccessible public (DON'T add methods here)
 
-PRUint32
+role
 nsOuterDocAccessible::NativeRole()
 {
-  return nsIAccessibleRole::ROLE_INTERNAL_FRAME;
+  return roles::INTERNAL_FRAME;
 }
 
 nsAccessible*
@@ -187,7 +188,7 @@ nsOuterDocAccessible::AppendChild(nsAccessible *aAccessible)
   if (mChildren.Length())
     mChildren[0]->Shutdown();
 
-  if (!nsAccessible::AppendChild(aAccessible))
+  if (!nsAccessibleWrap::AppendChild(aAccessible))
     return false;
 
   NS_LOG_ACCDOCCREATE("append document to outerdoc",
@@ -210,7 +211,7 @@ nsOuterDocAccessible::RemoveChild(nsAccessible *aAccessible)
                            child->GetDocumentNode(), child)
   NS_LOG_ACCDOCDESTROY_ACCADDRESS("outerdoc", this)
 
-  bool wasRemoved = nsAccessible::RemoveChild(child);
+  bool wasRemoved = nsAccessibleWrap::RemoveChild(child);
 
   NS_ASSERTION(!mChildren.Length(),
                "This child document of outerdoc accessible wasn't removed!");

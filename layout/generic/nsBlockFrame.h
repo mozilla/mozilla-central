@@ -44,7 +44,7 @@
 #ifndef nsBlockFrame_h___
 #define nsBlockFrame_h___
 
-#include "nsHTMLContainerFrame.h"
+#include "nsContainerFrame.h"
 #include "nsHTMLParts.h"
 #include "nsAbsoluteContainingBlock.h"
 #include "nsLineBox.h"
@@ -123,7 +123,7 @@ class nsIntervalSet;
 // (including <BR CLEAR="..."> frames)
 #define NS_BLOCK_HAS_CLEAR_CHILDREN         NS_FRAME_STATE_BIT(27)
 
-#define nsBlockFrameSuper nsHTMLContainerFrame
+#define nsBlockFrameSuper nsContainerFrame
 
 /*
  * Base class for block and inline frames.
@@ -330,7 +330,7 @@ public:
   
 protected:
   nsBlockFrame(nsStyleContext* aContext)
-    : nsHTMLContainerFrame(aContext)
+    : nsContainerFrame(aContext)
     , mMinWidth(NS_INTRINSIC_WIDTH_UNKNOWN)
     , mPrefWidth(NS_INTRINSIC_WIDTH_UNKNOWN)
   {
@@ -384,9 +384,10 @@ protected:
                                 nsHTMLReflowMetrics&     aMetrics,
                                 nscoord*                 aBottomEdgeOfChildren);
 
-  void ComputeOverflowAreas(const nsHTMLReflowState& aReflowState,
-                            nsHTMLReflowMetrics&     aMetrics,
-                            nscoord                  aBottomEdgeOfChildren);
+  void ComputeOverflowAreas(const nsRect&         aBounds,
+                            const nsStyleDisplay* aDisplay,
+                            nscoord               aBottomEdgeOfChildren,
+                            nsOverflowAreas&      aOverflowAreas);
 
   /** add the frames in aFrameList to this block after aPrevSibling
     * this block thinks in terms of lines, but the frame construction code
@@ -434,6 +435,8 @@ public:
   void ReparentFloats(nsIFrame* aFirstFrame,
                       nsBlockFrame* aOldParent, bool aFromOverflow,
                       bool aReparentSiblings);
+
+  virtual bool UpdateOverflow();
 
   /** Load all of aFrame's floats into the float manager iff aFrame is not a
    *  block formatting context. Handles all necessary float manager translations;
@@ -530,8 +533,8 @@ protected:
                          const nsLineList* aLineList = nsnull);
 
   // XXX where to go
-  bool ShouldJustifyLine(nsBlockReflowState& aState,
-                           line_iterator aLine);
+  bool IsLastLine(nsBlockReflowState& aState,
+                  line_iterator aLine);
 
   void DeleteLine(nsBlockReflowState& aState,
                   nsLineList::iterator aLine,

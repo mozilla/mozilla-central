@@ -143,7 +143,7 @@ FoldBinaryNumeric(JSContext *cx, JSOp op, ParseNode *pn1, ParseNode *pn2,
                   ParseNode *pn, TreeContext *tc)
 {
     jsdouble d, d2;
-    int32 i, j;
+    int32_t i, j;
 
     JS_ASSERT(pn1->isKind(PNK_NUMBER) && pn2->isKind(PNK_NUMBER));
     d = pn1->pn_dval;
@@ -243,7 +243,7 @@ FoldXMLConstants(JSContext *cx, ParseNode *pn, TreeContext *tc)
      * js_ConcatStrings.
      */
     ParseNode *pn2;
-    uint32 i, j;
+    uint32_t i, j;
     for (pn2 = pn1, i = j = 0; pn2; pn2 = pn2->pn_next, i++) {
         /* The parser already rejected end-tags with attributes. */
         JS_ASSERT(kind != PNK_XMLETAGO || i == 0);
@@ -273,11 +273,13 @@ FoldXMLConstants(JSContext *cx, ParseNode *pn, TreeContext *tc)
                 return JS_FALSE;
             break;
 
-          case PNK_XMLPI:
-            str = js_MakeXMLPIString(cx, pn2->pn_pitarget, pn2->pn_pidata);
+          case PNK_XMLPI: {
+            XMLProcessingInstruction &pi = pn2->asXMLProcessingInstruction();
+            str = js_MakeXMLPIString(cx, pi.target(), pi.data());
             if (!str)
                 return JS_FALSE;
             break;
+          }
 
           cantfold:
           default:
@@ -314,7 +316,6 @@ FoldXMLConstants(JSContext *cx, ParseNode *pn, TreeContext *tc)
 
         if (accum) {
             {
-                AutoStringRooter tvr(cx, accum);
                 str = ((kind == PNK_XMLSTAGO || kind == PNK_XMLPTAGC) && i != 0)
                       ? js_AddAttributePart(cx, i & 1, accum, str)
                       : js_ConcatStrings(cx, accum, str);
@@ -435,7 +436,7 @@ js::FoldConstants(JSContext *cx, ParseNode *pn, TreeContext *tc, bool inCond)
     switch (pn->getArity()) {
       case PN_FUNC:
       {
-        uint32 oldflags = tc->flags;
+        uint32_t oldflags = tc->flags;
         FunctionBox *oldlist = tc->functionList;
 
         tc->flags = pn->pn_funbox->tcflags;
@@ -556,7 +557,7 @@ js::FoldConstants(JSContext *cx, ParseNode *pn, TreeContext *tc, bool inCond)
             break;
         /* FALL THROUGH */
 
-      case PNK_HOOK:
+      case PNK_CONDITIONAL:
         /* Reduce 'if (C) T; else E' into T for true C, E for false. */
         switch (pn1->getKind()) {
           case PNK_NUMBER:
@@ -591,8 +592,8 @@ js::FoldConstants(JSContext *cx, ParseNode *pn, TreeContext *tc, bool inCond)
              * False condition and no else, or an empty then-statement was
              * moved up over pn.  Either way, make pn an empty block (not an
              * empty statement, which does not decompile, even when labeled).
-             * NB: pn must be a PNK_IF as PNK_HOOK can never have a null kid
-             * or an empty statement for a child.
+             * NB: pn must be a PNK_IF as PNK_CONDITIONAL can never have a null
+             * kid or an empty statement for a child.
              */
             pn->setKind(PNK_STATEMENTLIST);
             pn->setArity(PN_LIST);

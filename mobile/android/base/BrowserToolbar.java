@@ -46,7 +46,6 @@ import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
 import android.graphics.drawable.Drawable;
-import android.graphics.Typeface;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.view.animation.TranslateAnimation;
@@ -56,6 +55,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.TextSwitcher;
@@ -69,6 +69,7 @@ public class BrowserToolbar extends LinearLayout {
     public ImageButton mSiteSecurity;
     private AnimationDrawable mProgressSpinner;
     private TextSwitcher mTabsCount;
+    private ImageView mShadow;
 
     final private Context mContext;
     private Handler mHandler;
@@ -140,7 +141,7 @@ public class BrowserToolbar extends LinearLayout {
         });
         mTabs.setImageLevel(1);
 
-        mCounterColor = 0x99ffffff;
+        mCounterColor = 0xFFC7D1DB;
 
         mTabsCount = (TextSwitcher) findViewById(R.id.tabs_count);
         mTabsCount.removeAllViews();
@@ -148,10 +149,10 @@ public class BrowserToolbar extends LinearLayout {
             public View makeView() {
                 TextView text = new TextView(mContext);
                 text.setGravity(Gravity.CENTER);
-                text.setTextSize(16);
+                text.setTextSize(20);
                 text.setTextColor(mCounterColor);
-                text.setTypeface(text.getTypeface(), Typeface.BOLD);
-                return (View) text;
+                text.setShadowLayer(1.0f, 0f, 1.0f, Color.BLACK);
+                return text;
             }
         }); 
         mTabsCount.setText("0");
@@ -167,6 +168,8 @@ public class BrowserToolbar extends LinearLayout {
                 doStop();
             }
         });
+
+        mShadow = (ImageView) findViewById(R.id.shadow);
 
         mHandler = new Handler();
         mSlideUpIn = new TranslateAnimation(0, 0, 30, 0);
@@ -210,14 +213,17 @@ public class BrowserToolbar extends LinearLayout {
             mTabsCount.setOutAnimation(mSlideUpOut);
         }
 
-        if (count > 1)
-            mTabs.setImageLevel(count);
-        else
-            mTabs.setImageLevel(0);
-
-        mTabsCount.setVisibility(View.VISIBLE);
+        // Always update the count text even if we're not showing it,
+        // since it can appear in a future animation (e.g. 1 -> 2)
         mTabsCount.setText(String.valueOf(count));
         mCount = count;
+
+        if (count > 1) {
+            // Show tab count if it is greater than 1
+            mTabsCount.setVisibility(View.VISIBLE);
+            // Set image to more tabs dropdown "v"
+            mTabs.setImageLevel(count);
+        }
 
         mHandler.postDelayed(new Runnable() {
             public void run() {
@@ -227,13 +233,15 @@ public class BrowserToolbar extends LinearLayout {
 
         mHandler.postDelayed(new Runnable() {
             public void run() {
+                // This will only happen when we are animating from 2 -> 1.
+                // We're doing this here (as opposed to above) because we want
+                // the count to disappear _after_ the animation.
                 if (Tabs.getInstance().getCount() == 1) {
+                    // Set image to new tab button "+"
                     mTabs.setImageLevel(1);
                     mTabsCount.setVisibility(View.GONE);
-                    ((TextView) mTabsCount.getCurrentView()).setTextColor(mCounterColor);
-                } else {
-                    ((TextView) mTabsCount.getCurrentView()).setTextColor(mCounterColor);
                 }
+                ((TextView) mTabsCount.getCurrentView()).setTextColor(mCounterColor);
             }
         }, 2 * mDuration);
     }
@@ -255,7 +263,16 @@ public class BrowserToolbar extends LinearLayout {
         mSiteSecurity.setVisibility(visible ? View.GONE : View.VISIBLE);
     }
 
+    public void setShadowVisibility(boolean visible) {
+        mShadow.setVisibility(visible ? View.VISIBLE : View.GONE);
+    }
+
     public void setTitle(CharSequence title) {
+        Tab tab = Tabs.getInstance().getSelectedTab();
+        // Setting a null title for about:home will ensure we just see
+        // the "Enter Search or Address" placeholder text
+        if (tab != null && tab.getURL().equals("about:home"))
+            title = null;
         mAwesomeBar.setText(title);
     }
 
@@ -270,8 +287,10 @@ public class BrowserToolbar extends LinearLayout {
     }
     
     public void setSecurityMode(String mode) {
-        if (mode.equals("identified") || mode.equals("verified"))
+        if (mode.equals("identified"))
             mSiteSecurity.setImageLevel(1);
+        else if (mode.equals("verified"))
+            mSiteSecurity.setImageLevel(2);
         else
             mSiteSecurity.setImageLevel(0);
     }

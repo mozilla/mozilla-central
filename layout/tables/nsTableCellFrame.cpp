@@ -71,7 +71,7 @@ using namespace mozilla;
 
 
 nsTableCellFrame::nsTableCellFrame(nsStyleContext* aContext) :
-  nsHTMLContainerFrame(aContext)
+  nsContainerFrame(aContext)
 {
   mColIndex = 0;
   mPriorAvailWidth = 0;
@@ -106,7 +106,7 @@ nsTableCellFrame::Init(nsIContent*      aContent,
                        nsIFrame*        aPrevInFlow)
 {
   // Let the base class do its initialization
-  nsresult rv = nsHTMLContainerFrame::Init(aContent, aParent, aPrevInFlow);
+  nsresult rv = nsContainerFrame::Init(aContent, aParent, aPrevInFlow);
 
   if (aPrevInFlow) {
     // Set the column index
@@ -236,9 +236,7 @@ nsTableCellFrame::AttributeChanged(PRInt32         aNameSpaceID,
   }
   // let the table frame decide what to do
   nsTableFrame* tableFrame = nsTableFrame::GetTableFrame(this);
-  if (tableFrame) {
-    tableFrame->AttributeChangedFor(this, mContent, aAttribute);
-  }
+  tableFrame->AttributeChangedFor(this, mContent, aAttribute);
   return NS_OK;
 }
 
@@ -249,7 +247,6 @@ nsTableCellFrame::DidSetStyleContext(nsStyleContext* aOldStyleContext)
     return;
 
   nsTableFrame* tableFrame = nsTableFrame::GetTableFrame(this);
-
   if (tableFrame->IsBorderCollapse() &&
       tableFrame->BCRecalcNeeded(aOldStyleContext, GetStyleContext())) {
     PRInt32 colIndex, rowIndex;
@@ -318,8 +315,7 @@ void
 nsTableCellFrame::DecorateForSelection(nsRenderingContext& aRenderingContext,
                                        nsPoint aPt)
 {
-  NS_ASSERTION(GetStateBits() & NS_FRAME_SELECTED_CONTENT,
-               "Should only be called for selected cells");
+  NS_ASSERTION(IsSelected(), "Should only be called for selected cells");
   PRInt16 displaySelection;
   nsPresContext* presContext = PresContext();
   displaySelection = DisplaySelection(presContext);
@@ -444,7 +440,6 @@ nsTableCellFrame::BuildDisplayList(nsDisplayListBuilder*   aBuilder,
 
   DO_GLOBAL_REFLOW_COUNT_DSP("nsTableCellFrame");
   nsTableFrame* tableFrame = nsTableFrame::GetTableFrame(this);
-
   PRInt32 emptyCellStyle = GetContentEmpty() && !tableFrame->IsBorderCollapse() ?
                               GetStyleTableBorder()->mEmptyCells
                               : NS_STYLE_TABLE_EMPTY_CELLS_SHOW;
@@ -499,9 +494,7 @@ nsTableCellFrame::BuildDisplayList(nsDisplayListBuilder*   aBuilder,
     }
 
     // and display the selection border if we need to
-    bool isSelected =
-      (GetStateBits() & NS_FRAME_SELECTED_CONTENT) == NS_FRAME_SELECTED_CONTENT;
-    if (isSelected) {
+    if (IsSelected()) {
       nsresult rv = aLists.BorderBackground()->AppendNewToTop(new (aBuilder)
           nsDisplayGeneric(aBuilder, this, ::PaintTableCellSelection,
                            "TableCellSelection",
@@ -623,6 +616,18 @@ void nsTableCellFrame::VerticallyAlignChild(nscoord aMaxAscent)
                                                GetView(),
                                                desiredSize.VisualOverflow(), 0);
   }
+}
+
+bool
+nsTableCellFrame::UpdateOverflow()
+{
+  nsRect bounds(nsPoint(0,0), GetSize());
+  bounds.Inflate(GetBorderOverflow());
+  nsOverflowAreas overflowAreas(bounds, bounds);
+
+  nsLayoutUtils::UnionChildOverflow(this, overflowAreas);
+
+  return FinishAndStoreOverflow(overflowAreas, GetSize());
 }
 
 // Per CSS 2.1, we map 'sub', 'super', 'text-top', 'text-bottom',
@@ -749,7 +754,7 @@ nsTableCellFrame::GetPrefWidth(nsRenderingContext *aRenderingContext)
 nsTableCellFrame::IntrinsicWidthOffsets(nsRenderingContext* aRenderingContext)
 {
   IntrinsicWidthOffsetData result =
-    nsHTMLContainerFrame::IntrinsicWidthOffsets(aRenderingContext);
+    nsContainerFrame::IntrinsicWidthOffsets(aRenderingContext);
 
   result.hMargin = 0;
   result.hPctMargin = 0;
@@ -827,11 +832,6 @@ NS_METHOD nsTableCellFrame::Reflow(nsPresContext*           aPresContext,
   aStatus = NS_FRAME_COMPLETE;
   nsSize availSize(aReflowState.availableWidth, aReflowState.availableHeight);
 
-  /* It's the 'border-collapse' on the table that matters */
-  nsTableFrame* tableFrame = nsTableFrame::GetTableFrame(this);
-  if (!tableFrame)
-    ABORT1(NS_ERROR_NULL_POINTER);
-
   nsMargin borderPadding = aReflowState.mComputedPadding;
   nsMargin border;
   GetBorderWidth(border);
@@ -857,6 +857,7 @@ NS_METHOD nsTableCellFrame::Reflow(nsPresContext*           aPresContext,
   SetPriorAvailWidth(aReflowState.availableWidth);
   nsIFrame* firstKid = mFrames.FirstChild();
   NS_ASSERTION(firstKid, "Frame construction error, a table cell always has an inner cell frame");
+  nsTableFrame* tableFrame = nsTableFrame::GetTableFrame(this);
 
   if (aReflowState.mFlags.mSpecialHeightReflow) {
     const_cast<nsHTMLReflowState&>(aReflowState).SetComputedHeight(mRect.height - topInset - bottomInset);
@@ -990,7 +991,7 @@ NS_QUERYFRAME_HEAD(nsTableCellFrame)
   NS_QUERYFRAME_ENTRY(nsTableCellFrame)
   NS_QUERYFRAME_ENTRY(nsITableCellLayout)
   NS_QUERYFRAME_ENTRY(nsIPercentHeightObserver)
-NS_QUERYFRAME_TAIL_INHERITING(nsHTMLContainerFrame)
+NS_QUERYFRAME_TAIL_INHERITING(nsContainerFrame)
 
 #ifdef ACCESSIBILITY
 already_AddRefed<nsAccessible>

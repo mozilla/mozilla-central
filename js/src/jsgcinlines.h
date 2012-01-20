@@ -82,7 +82,7 @@ GetGCObjectKind(Class *clasp)
 {
     if (clasp == &FunctionClass)
         return JSFunction::FinalizeKind;
-    uint32 nslots = JSCLASS_RESERVED_SLOTS(clasp);
+    uint32_t nslots = JSCLASS_RESERVED_SLOTS(clasp);
     if (clasp->flags & JSCLASS_HAS_PRIVATE)
         nslots++;
     return GetGCObjectKind(nslots);
@@ -390,6 +390,8 @@ NewGCThing(JSContext *cx, js::gc::AllocKind kind, size_t thingSize)
     if (cx->runtime->needZealousGC())
         js::gc::RunDebugGC(cx);
 #endif
+
+    js::gc::MaybeCheckStackRoots(cx);
 
     JSCompartment *comp = cx->compartment;
     void *t = comp->arenas.allocateFromFreeList(kind, thingSize);

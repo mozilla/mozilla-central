@@ -199,8 +199,8 @@ typedef PRUint64 nsFrameState;
 // e.g., it is absolutely positioned or floated
 #define NS_FRAME_OUT_OF_FLOW                        NS_FRAME_STATE_BIT(8)
 
-// If this bit is set, then the frame reflects content that may be selected
-#define NS_FRAME_SELECTED_CONTENT                   NS_FRAME_STATE_BIT(9)
+// This bit is available for re-use.
+//#define NS_FRAME_SELECTED_CONTENT                   NS_FRAME_STATE_BIT(9)
 
 // If this bit is set, then the frame is dirty and needs to be reflowed.
 // This bit is set when the frame is first created.
@@ -261,6 +261,7 @@ typedef PRUint64 nsFrameState;
 
 // Bits 20-31 and 60-63 of the frame state are reserved for implementations.
 #define NS_FRAME_IMPL_RESERVED                      nsFrameState(0xF0000000FFF00000)
+#define NS_FRAME_RESERVED                           ~NS_FRAME_IMPL_RESERVED
 
 // This bit is set on floats whose parent does not contain their
 // placeholder.  This can happen for two reasons:  (1) the float was
@@ -296,9 +297,6 @@ typedef PRUint64 nsFrameState;
 
 // This is only set during painting
 #define NS_FRAME_FORCE_DISPLAY_LIST_DESCEND_INTO    NS_FRAME_STATE_BIT(40)
-
-// Bits 0-19 and bits 32-59 of the frame state are reserved by this API.
-#define NS_FRAME_RESERVED                           ~NS_FRAME_IMPL_RESERVED
 
 // Box layout bits
 #define NS_STATE_IS_HORIZONTAL                      NS_FRAME_STATE_BIT(22)
@@ -579,6 +577,12 @@ public:
   void Destroy() { DestroyFrom(this); }
 
 protected:
+  /**
+   * Return true if the frame is part of a Selection.
+   * Helper method to implement the public IsSelected() API.
+   */
+  virtual bool IsFrameSelected() const;
+
   /**
    * Implements Destroy(). Do not call this directly except from within a
    * DestroyFrom() implementation.
@@ -906,7 +910,8 @@ public:
 
   NS_DECLARE_FRAME_PROPERTY(OutlineInnerRectProperty, DestroyRect)
   NS_DECLARE_FRAME_PROPERTY(PreEffectsBBoxProperty, DestroyRect)
-  NS_DECLARE_FRAME_PROPERTY(PreTransformBBoxProperty, DestroyRect)
+  NS_DECLARE_FRAME_PROPERTY(PreTransformOverflowAreasProperty,
+                            DestroyOverflowAreas)
 
   // The initial overflow area passed to FinishAndStoreOverflow. This is only set
   // on frames that Preserve3D(), and when at least one of the overflow areas
@@ -1779,6 +1784,13 @@ public:
   // XXX Maybe these three should be a separate interface?
 
   /**
+   * Updates the overflow areas of the frame. This can be called if an
+   * overflow area of the frame's children has changed without reflowing.
+   * @return true if either of the overflow areas for this frame have changed.
+   */
+  virtual bool UpdateOverflow() = 0;
+
+  /**
    * Helper method used by block reflow to identify runs of text so
    * that proper word-breaking can be done.
    *
@@ -1928,17 +1940,20 @@ public:
   virtual nsIAtom* GetType() const = 0;
 
   /**
-   * Returns a transformation matrix that converts points in this frame's coordinate space
-   * to points in some ancestor frame's coordinate space.  The frame decides which ancestor
-   * it will use as a reference point.  If this frame has no ancestor, aOutAncestor will be
-   * set to null.
+   * Returns a transformation matrix that converts points in this frame's
+   * coordinate space to points in some ancestor frame's coordinate space.
+   * The frame decides which ancestor it will use as a reference point.
+   * If this frame has no ancestor, aOutAncestor will be set to null.
    *
-   * @param aOutAncestor [out] The ancestor frame the frame has chosen.  If this frame has no
-   *        ancestor, aOutAncestor will be nsnull.
-   * @return A gfxMatrix that converts points in this frame's coordinate space into
-   *         points in aOutAncestor's coordinate space.
+   * @param aStopAtAncestor don't look further than aStopAtAncestor. If null,
+   *   all ancestors (including across documents) will be traversed.
+   * @param aOutAncestor [out] The ancestor frame the frame has chosen.  If
+   *   this frame has no ancestor, *aOutAncestor will be set to null.
+   * @return A gfxMatrix that converts points in this frame's coordinate space
+   *   into points in aOutAncestor's coordinate space.
    */
-  virtual gfx3DMatrix GetTransformMatrix(nsIFrame **aOutAncestor);
+  virtual gfx3DMatrix GetTransformMatrix(nsIFrame* aStopAtAncestor,
+                                         nsIFrame **aOutAncestor);
 
   /**
    * Bit-flags to pass to IsFrameOfType()
@@ -2305,25 +2320,13 @@ public:
    */
   virtual PRIntn GetSkipSides() const { return 0; }
 
-  /** Selection related calls
+  /**
+   * @returns true if this frame is selected.
    */
-  /** 
-   *  Called to set the selection status of the frame.
-   *  
-   *  This must be called on the primary frame, but all continuations
-   *  will be affected the same way.
-   *
-   *  This sets or clears NS_FRAME_SELECTED_CONTENT for each frame in the
-   *  continuation chain, if the frames are currently selectable.
-   *  The frames are unconditionally invalidated, if this selection type
-   *  is supported at all.
-   *  @param aSelected is it selected?
-   *  @param aType the selection type of the selection that you are setting on the frame
-   */
-  virtual void SetSelected(bool          aSelected,
-                           SelectionType aType);
-
-  NS_IMETHOD  GetSelected(bool *aSelected) const = 0;
+  bool IsSelected() const {
+    return (GetContent() && GetContent()->IsSelectionDescendant()) ?
+      IsFrameSelected() : false;
+  }
 
   /**
    *  called to discover where this frame, or a parent frame has user-select style
@@ -2352,10 +2355,7 @@ public:
    * GetConstFrameSelection returns an object which methods are safe to use for
    * example in nsIFrame code.
    */
-  const nsFrameSelection* GetConstFrameSelection();
-
-  /** EndSelection related calls
-   */
+  const nsFrameSelection* GetConstFrameSelection() const;
 
   /**
    *  called to find the previous/next character, word, or line  returns the actual 
@@ -2612,7 +2612,7 @@ NS_PTR_TO_INT32(frame->Properties().Get(nsIFrame::EmbeddingLevelProperty()))
 
   virtual nscoord GetFlex(nsBoxLayoutState& aBoxLayoutState) = 0;
   virtual nscoord GetBoxAscent(nsBoxLayoutState& aBoxLayoutState) = 0;
-  virtual bool IsCollapsed(nsBoxLayoutState& aBoxLayoutState) = 0;
+  virtual bool IsCollapsed() = 0;
   // This does not alter the overflow area. If the caller is changing
   // the box size, the caller is responsible for updating the overflow
   // area. It's enough to just call Layout or SyncLayout on the

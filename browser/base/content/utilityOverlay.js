@@ -100,12 +100,7 @@ function openUILink( url, e, ignoreButton, ignoreAlt, allowKeywordFixup, postDat
  * Ctrl+Shift  new tab, in background
  * Alt         save
  *
- * You can swap Ctrl and Ctrl+shift by toggling the hidden pref
- * browser.tabs.loadBookmarksInBackground (not browser.tabs.loadInBackground, which
- * is for content area links).
- *
- * Middle-clicking is the same as Ctrl+clicking (it opens a new tab) and it is
- * subject to the shift modifier and pref in the same way.
+ * Middle-clicking is the same as Ctrl+clicking (it opens a new tab).
  *
  * Exceptions: 
  * - Alt is ignored for menu items selected using the keyboard so you don't accidentally save stuff.  
@@ -246,10 +241,10 @@ function openLinkIn(url, where, params) {
     return;
   }
 
-  let loadInBackground = aInBackground;
+  let loadInBackground = where == "current" ? false : aInBackground;
   if (loadInBackground == null) {
     loadInBackground = aFromChrome ?
-                         getBoolPref("browser.tabs.loadBookmarksInBackground") :
+                         false :
                          getBoolPref("browser.tabs.loadInBackground");
   }
 
@@ -303,6 +298,9 @@ function openLinkIn(url, where, params) {
     w.content.focus();
   else
     w.gBrowser.selectedBrowser.focus();
+
+  if (!loadInBackground && url == "about:blank")
+    w.focusAndSelectUrlBar();
 }
 
 // Used as an onclick handler for UI elements with link-like behavior.
@@ -368,13 +366,13 @@ function gatherTextUnder ( root )
       node = node.firstChild;
       depth++;
     } else {
-      // No children, try next sibling.
+      // No children, try next sibling (or parent next sibling).
+      while ( depth > 0 && !node.nextSibling ) {
+        node = node.parentNode;
+        depth--;
+      }
       if ( node.nextSibling ) {
         node = node.nextSibling;
-      } else {
-        // Last resort is our next oldest uncle/aunt.
-        node = node.parentNode.nextSibling;
-        depth--;
       }
     }
   }

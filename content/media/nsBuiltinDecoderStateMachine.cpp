@@ -45,7 +45,9 @@
 #include "mozilla/mozalloc.h"
 #include "VideoUtils.h"
 #include "nsTimeRanges.h"
+
 #include "mozilla/Preferences.h"
+#include "mozilla/StdInt.h"
 
 using namespace mozilla;
 using namespace mozilla::layers;
@@ -629,7 +631,6 @@ void nsBuiltinDecoderStateMachine::AudioLoop()
   LOG(PR_LOG_DEBUG, ("%p Begun audio thread/loop", mDecoder.get()));
   PRInt64 audioDuration = 0;
   PRInt64 audioStartTime = -1;
-  PRInt64 framesWritten = 0;
   PRUint32 channels, rate;
   double volume = -1;
   bool setVolume;
@@ -744,6 +745,7 @@ void nsBuiltinDecoderStateMachine::AudioLoop()
       break;
     }
 
+    PRInt64 framesWritten = 0;
     if (missingFrames > 0) {
       // The next audio chunk begins some time after the end of the last chunk
       // we pushed to the audio hardware. We must push silence into the audio
@@ -778,18 +780,22 @@ void nsBuiltinDecoderStateMachine::AudioLoop()
     bool seeking = false;
     {
       ReentrantMonitorAutoEnter mon(mDecoder->GetReentrantMonitor());
-      if (framesWritten < minWriteFrames) {
-        // We've not written minWriteFrames in the last write, the audio
-        // may not start playing. Write silence to ensure we've got enough
-        // written to start playback.
-        PRInt64 minToWrite = minWriteFrames - framesWritten;
-        if (minToWrite < PR_UINT32_MAX / channels) {
+      PRInt64 unplayedFrames = audioDuration % minWriteFrames;
+      if (minWriteFrames > 1 && unplayedFrames > 0) {
+        // Sound is written by libsydneyaudio to the hardware in blocks of
+        // frames of size minWriteFrames. So if the number of frames we've
+        // written isn't an exact multiple of minWriteFrames, we'll have
+        // left over audio data which hasn't yet been written to the hardware,
+        // and so that audio will not start playing. Write silence to ensure
+        // the last block gets pushed to hardware, so that playback starts.
+        PRInt64 framesToWrite = minWriteFrames - unplayedFrames;
+        if (framesToWrite < PR_UINT32_MAX / channels) {
           // Write silence manually rather than using PlaySilence(), so that
           // the AudioAPI doesn't get a copy of the audio frames.
-          PRUint32 numSamples = minToWrite * channels;
+          PRUint32 numSamples = framesToWrite * channels;
           nsAutoArrayPtr<AudioDataValue> buf(new AudioDataValue[numSamples]);
           memset(buf.get(), 0, numSamples * sizeof(AudioDataValue));
-          mAudioStream->Write(buf, minToWrite);
+          mAudioStream->Write(buf, framesToWrite);
         }
       }
 
@@ -1124,6 +1130,33 @@ void nsBuiltinDecoderStateMachine::ResetPlayback()
   mAudioCompleted = false;
 }
 
+void nsBuiltinDecoderStateMachine::NotifyDataArrived(const char* aBuffer,
+                                                     PRUint32 aLength,
+                                                     PRUint32 aOffset)
+{
+  NS_ASSERTION(NS_IsMainThread(), "Only call on main thread");
+  mReader->NotifyDataArrived(aBuffer, aLength, aOffset);
+
+  // While playing an unseekable stream of unknown duration, mEndTime is
+  // updated (in AdvanceFrame()) as we play. But if data is being downloaded
+  // faster than played, mEndTime won't reflect the end of playable data
+  // since we haven't played the frame at the end of buffered data. So update
+  // mEndTime here as new data is downloaded to prevent such a lag.
+  nsTimeRanges buffered;
+  if (mDecoder->IsInfinite() &&
+      NS_SUCCEEDED(mDecoder->GetBuffered(&buffered)))
+  {
+    PRUint32 length = 0;
+    buffered.GetLength(&length);
+    if (length) {
+      double end = 0;
+      buffered.End(length - 1, &end);
+      ReentrantMonitorAutoEnter mon(mDecoder->GetReentrantMonitor());
+      mEndTime = NS_MAX<PRInt64>(mEndTime, end * USECS_PER_S);
+    }
+  }
+}
+
 void nsBuiltinDecoderStateMachine::Seek(double aTime)
 {
   NS_ASSERTION(NS_IsMainThread(), "Should be on main thread.");
@@ -1135,7 +1168,7 @@ void nsBuiltinDecoderStateMachine::Seek(double aTime)
   NS_ASSERTION(mState >= DECODER_STATE_DECODING,
                "We should have loaded metadata");
   double t = aTime * static_cast<double>(USECS_PER_S);
-  if (t > PR_INT64_MAX) {
+  if (t > INT64_MAX) {
     // Prevent integer overflow.
     return;
   }
@@ -1505,7 +1538,11 @@ void nsBuiltinDecoderStateMachine::DecodeSeek()
   // if we need to seek again.
 
   nsCOMPtr<nsIRunnable> stopEvent;
-  if (GetMediaTime() == mEndTime) {
+  bool isLiveStream = mDecoder->GetStream()->GetLength() == -1;
+  if (GetMediaTime() == mEndTime && !isLiveStream) {
+    // Seeked to end of media, move to COMPLETED state. Note we don't do
+    // this if we're playing a live stream, since the end of media will advance
+    // once we download more data!
     LOG(PR_LOG_DEBUG, ("%p Changed state from SEEKING (to %lld) to COMPLETED",
                         mDecoder.get(), seekTime));
     stopEvent = NS_NewRunnableMethod(mDecoder, &nsBuiltinDecoder::SeekingStoppedAtEnd);

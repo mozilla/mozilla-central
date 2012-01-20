@@ -61,16 +61,18 @@ CPPSRCS		= \
 		nsTimerImpl.cpp \
 		TimerThread.cpp \
 		HangMonitor.cpp \
+		LazyIdleThread.cpp \
 		$(NULL)
 
 EXPORTS		= \
+		nsThread.h \
 		nsProcess.h \
 		nsEventQueue.h \
-		nsThreadUtilsInternal.h \
 		$(NULL)
 
 EXPORTS_mozilla = \
   HangMonitor.h \
+  LazyIdleThread.h \
   $(NULL)
 
 XPIDLSRCS	= \

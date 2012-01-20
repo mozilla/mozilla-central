@@ -36,7 +36,10 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "Hal.h"
+#include "HalImpl.h"
+#include "WindowIdentifier.h"
 #include "AndroidBridge.h"
+#include "mozilla/dom/network/Constants.h"
 
 using mozilla::hal::WindowIdentifier;
 
@@ -50,16 +53,28 @@ Vibrate(const nsTArray<uint32> &pattern, const WindowIdentifier &)
   // hal_sandbox::Vibrate, and hal_impl::Vibrate all must have the same
   // signature.
 
+  // Strangely enough, the Android Java API seems to treat vibrate([0]) as a
+  // nop.  But we want to treat vibrate([0]) like CancelVibrate!  (Note that we
+  // also need to treat vibrate([]) as a call to CancelVibrate.)
+  bool allZero = true;
+  for (uint32 i = 0; i < pattern.Length(); i++) {
+    if (pattern[i] != 0) {
+      allZero = false;
+      break;
+    }
+  }
+
+  if (allZero) {
+    hal_impl::CancelVibrate(WindowIdentifier());
+    return;
+  }
+
   AndroidBridge* b = AndroidBridge::Bridge();
   if (!b) {
     return;
   }
 
-  if (pattern.Length() == 0) {
-    b->CancelVibrate();
-  } else {
-    b->Vibrate(pattern);
-  }
+  b->Vibrate(pattern);
 }
 
 void
@@ -124,6 +139,39 @@ GetScreenBrightness()
 void
 SetScreenBrightness(double brightness)
 {}
+
+void
+EnableNetworkNotifications()
+{
+  AndroidBridge* bridge = AndroidBridge::Bridge();
+  if (!bridge) {
+    return;
+  }
+
+  bridge->EnableNetworkNotifications();
+}
+
+void
+DisableNetworkNotifications()
+{
+  AndroidBridge* bridge = AndroidBridge::Bridge();
+  if (!bridge) {
+    return;
+  }
+
+  bridge->DisableNetworkNotifications();
+}
+
+void
+GetCurrentNetworkInformation(hal::NetworkInformation* aNetworkInfo)
+{
+  AndroidBridge* bridge = AndroidBridge::Bridge();
+  if (!bridge) {
+    return;
+  }
+
+  bridge->GetCurrentNetworkInformation(aNetworkInfo);
+}
 
 } // hal_impl
 } // mozilla

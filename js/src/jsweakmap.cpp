@@ -86,6 +86,20 @@ WeakMapBase::traceAllMappings(WeakMapTracer *tracer)
         m->traceMappings(tracer);
 }
 
+void
+WeakMapBase::resetWeakMapList(JSRuntime *rt)
+{
+    JS_ASSERT(WeakMapNotInList != NULL);
+
+    WeakMapBase *m = rt->gcWeakMapList;
+    rt->gcWeakMapList = NULL;
+    while (m) {
+        WeakMapBase *n = m->next;
+        m->next = WeakMapNotInList;
+        m = n;
+    }
+}
+
 } /* namespace js */
 
 typedef WeakMap<HeapPtr<JSObject>, HeapValue> ObjectValueMap;
@@ -233,6 +247,15 @@ WeakMap_set(JSContext *cx, uintN argc, Value *vp)
 
     if (!map->put(key, value))
         goto out_of_memory;
+
+    // Preserve wrapped native keys to prevent wrapper optimization.
+    if (key->getClass()->ext.isWrappedNative) {
+        if (!cx->runtime->preserveWrapperCallback ||
+            !cx->runtime->preserveWrapperCallback(cx, key)) {
+            JS_ReportWarning(cx, "Failed to preserve wrapper of wrapped native weak map key.");
+        }
+    }
+
     args.rval().setUndefined();
     return true;
 
@@ -321,7 +344,7 @@ js_InitWeakMapClass(JSContext *cx, JSObject *obj)
 {
     JS_ASSERT(obj->isNative());
 
-    GlobalObject *global = obj->asGlobal();
+    GlobalObject *global = &obj->asGlobal();
 
     JSObject *weakMapProto = global->createBlankPrototype(cx, &WeakMapClass);
     if (!weakMapProto)

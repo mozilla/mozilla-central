@@ -97,7 +97,6 @@
 #include "gfxImageSurface.h"
 #include "gfxPlatform.h"
 #include "gfxFont.h"
-#include "gfxTextRunCache.h"
 #include "gfxBlur.h"
 #include "gfxUtils.h"
 
@@ -906,14 +905,11 @@ nsCanvasRenderingContext2D::SetStyleFromStringOrInterface(const nsAString& aStr,
     }
 
     nsContentUtils::ReportToConsole(
-        nsContentUtils::eDOM_PROPERTIES,
-        "UnexpectedCanvasVariantStyle",
-        nsnull, 0,
-        nsnull,
-        EmptyString(), 0, 0,
         nsIScriptError::warningFlag,
         "Canvas",
-        mCanvasElement ? HTMLCanvasElement()->OwnerDoc() : nsnull);
+        mCanvasElement ? HTMLCanvasElement()->OwnerDoc() : nsnull,
+        nsContentUtils::eDOM_PROPERTIES,
+        "UnexpectedCanvasVariantStyle");
 
     return NS_OK;
 }
@@ -2740,12 +2736,11 @@ struct NS_STACK_CLASS nsCanvasBidiProcessor : public nsBidiPresUtils::BidiProces
 {
     virtual void SetText(const PRUnichar* text, PRInt32 length, nsBidiDirection direction)
     {
-        mTextRun = gfxTextRunCache::MakeTextRun(text,
-                                                length,
-                                                mFontgrp,
-                                                mThebes,
-                                                mAppUnitsPerDevPixel,
-                                                direction==NSBIDI_RTL ? gfxTextRunFactory::TEXT_IS_RTL : 0);
+        mTextRun = mFontgrp->MakeTextRun(text,
+                                         length,
+                                         mThebes,
+                                         mAppUnitsPerDevPixel,
+                                         direction==NSBIDI_RTL ? gfxTextRunFactory::TEXT_IS_RTL : 0);
     }
 
     virtual nscoord GetWidth()
@@ -2814,7 +2809,7 @@ struct NS_STACK_CLASS nsCanvasBidiProcessor : public nsBidiPresUtils::BidiProces
     }
 
     // current text run
-    gfxTextRunCache::AutoTextRun mTextRun;
+    nsAutoPtr<gfxTextRun> mTextRun;
 
     // pointer to the context, may not be the canvas's context
     // if an intermediate surface is being used
@@ -3158,8 +3153,8 @@ nsCanvasRenderingContext2D::MakeTextRun(const PRUnichar* aText,
     gfxFontGroup* currentFontStyle = GetCurrentFontStyle();
     if (!currentFontStyle)
         return nsnull;
-    return gfxTextRunCache::MakeTextRun(aText, aLength, currentFontStyle,
-                                        mThebes, aAppUnitsPerDevUnit, aFlags);
+    return currentFontStyle->MakeTextRun(aText, aLength,
+                                         mThebes, aAppUnitsPerDevUnit, aFlags);
 }
 
 

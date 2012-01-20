@@ -43,13 +43,10 @@
 
 #include "jsapi.h"
 #include "jsatom.h"
-#include "jscntxt.h"
 #include "jsfriendapi.h"
 #include "nsCOMPtr.h"
 #include "nsJSUtils.h"
 #include "nsStringGlue.h"
-#include "xpcprivate.h"
-#include "XPCQuickStubs.h"
 
 #include "Exceptions.h"
 #include "WorkerInlines.h"
@@ -208,8 +205,8 @@ private:
 
     PRUint8 optionalArgc = aArgc;
     nsCOMPtr<nsIDOMBlob> rtnBlob;
-    if (NS_FAILED(blob->MozSlice(xpc_qsDoubleToUint64(start),
-                                 xpc_qsDoubleToUint64(end),
+    if (NS_FAILED(blob->MozSlice(static_cast<PRUint64>(start),
+                                 static_cast<PRUint64>(end),
                                  contentType, optionalArgc,
                                  getter_AddRefs(rtnBlob)))) {
       ThrowFileExceptionForCode(aCx, FILE_NOT_READABLE_ERR);

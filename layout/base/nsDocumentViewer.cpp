@@ -194,6 +194,8 @@ static const char sPrintOptionsContractID[]         = "@mozilla.org/gfx/printset
 //switch to page layout
 #include "nsGfxCIID.h"
 
+#include "nsObserverService.h"
+
 #include "mozilla/dom/Element.h"
 
 using namespace mozilla;
@@ -507,6 +509,18 @@ public:
   }
 
   nsCOMPtr<nsIDocument> mTop;
+};
+
+class nsDocumentShownDispatcher : public nsRunnable
+{
+public:
+  nsDocumentShownDispatcher(nsCOMPtr<nsIDocument> aDocument)
+  : mDocument(aDocument) {}
+
+  NS_IMETHOD Run();
+
+private:
+  nsCOMPtr<nsIDocument> mDocument;
 };
 
 
@@ -1554,9 +1568,8 @@ DocumentViewerImpl::Destroy()
           // The invalidate that removing this view causes is dropped because
           // the Freeze call above sets painting to be suppressed for our
           // document. So we do it ourselves and make it happen.
-          vm->UpdateViewNoSuppression(rootView,
-            rootView->GetBounds() - rootView->GetPosition(),
-            NS_VMREFRESH_NO_SYNC);
+          vm->InvalidateViewNoSuppression(rootView,
+            rootView->GetBounds() - rootView->GetPosition());
 
           nsIView *rootViewParent = rootView->GetParent();
           if (rootViewParent) {
@@ -2038,6 +2051,10 @@ DocumentViewerImpl::Show(void)
       mPresShell->UnsuppressPainting();
     }
   }
+
+  // Notify observers that a new page has been shown. (But not right now;
+  // running JS at this time is not safe.)
+  NS_DispatchToMainThread(new nsDocumentShownDispatcher(mDocument));
 
   return NS_OK;
 }
@@ -2809,8 +2826,6 @@ DocumentViewerImpl::SetTextZoom(float aTextZoom)
 
   mTextZoom = aTextZoom;
 
-  nsIViewManager::UpdateViewBatch batch(GetViewManager());
-      
   // Set the text zoom on all children of mContainer (even if our zoom didn't
   // change, our children's zoom may be different, though it would be unusual).
   // Do this first, in case kids are auto-sizing and post reflow commands on
@@ -2827,8 +2842,6 @@ DocumentViewerImpl::SetTextZoom(float aTextZoom)
   // And do the external resources
   mDocument->EnumerateExternalResources(SetExtResourceTextZoom, &ZoomInfo);
 
-  batch.EndUpdateViewBatch(NS_VMREFRESH_NO_SYNC);
-  
   return NS_OK;
 }
 
@@ -2850,8 +2863,6 @@ DocumentViewerImpl::SetMinFontSize(PRInt32 aMinFontSize)
 
   mMinFontSize = aMinFontSize;
 
-  nsIViewManager::UpdateViewBatch batch(GetViewManager());
-      
   // Set the min font on all children of mContainer (even if our min font didn't
   // change, our children's min font may be different, though it would be unusual).
   // Do this first, in case kids are auto-sizing and post reflow commands on
@@ -2868,8 +2879,6 @@ DocumentViewerImpl::SetMinFontSize(PRInt32 aMinFontSize)
   mDocument->EnumerateExternalResources(SetExtResourceMinFontSize,
                                         NS_INT32_TO_PTR(aMinFontSize));
 
-  batch.EndUpdateViewBatch(NS_VMREFRESH_NO_SYNC);
-  
   return NS_OK;
 }
 
@@ -2892,7 +2901,6 @@ DocumentViewerImpl::SetFullZoom(float aFullZoom)
     nsCOMPtr<nsIPresShell> shell = pc->GetPresShell();
     NS_ENSURE_TRUE(shell, NS_OK);
 
-    nsIViewManager::UpdateViewBatch batch(shell->GetViewManager());
     if (!mPrintPreviewZoomed) {
       mOriginalPrintPreviewScale = pc->GetPrintPreviewScale();
       mPrintPreviewZoomed = true;
@@ -2911,14 +2919,11 @@ DocumentViewerImpl::SetFullZoom(float aFullZoom)
       nsRect rect(nsPoint(0, 0), rootFrame->GetSize());
       rootFrame->Invalidate(rect);
     }
-    batch.EndUpdateViewBatch(NS_VMREFRESH_NO_SYNC);
     return NS_OK;
   }
 #endif
 
   mPageZoom = aFullZoom;
-
-  nsIViewManager::UpdateViewBatch batch(GetViewManager());
 
   struct ZoomInfo ZoomInfo = { aFullZoom };
   CallChildren(SetChildFullZoom, &ZoomInfo);
@@ -2930,8 +2935,6 @@ DocumentViewerImpl::SetFullZoom(float aFullZoom)
 
   // And do the external resources
   mDocument->EnumerateExternalResources(SetExtResourceFullZoom, &ZoomInfo);
-
-  batch.EndUpdateViewBatch(NS_VMREFRESH_NO_SYNC);
 
   return NS_OK;
 }
@@ -3771,13 +3774,9 @@ DocumentViewerImpl::PrintPreviewNavigate(PRInt16 aType, PRInt32 aPageNum)
 
   // Now, locate the current page we are on and
   // and the page of the page number
-  nscoord gap = 0;
   nsIFrame* pageFrame = seqFrame->GetFirstPrincipalChild();
   while (pageFrame != nsnull) {
     nsRect pageRect = pageFrame->GetRect();
-    if (pageNum == 1) {
-      gap = pageRect.y;
-    }
     if (pageRect.Contains(pageRect.x, pt.y)) {
       currentPage = pageFrame;
     }
@@ -4375,3 +4374,17 @@ DocumentViewerImpl::SetPrintPreviewPresentation(nsIViewManager* aViewManager,
   mPresContext = aPresContext;
   mPresShell = aPresShell;
 }
+
+// Fires the "document-shown" event so that interested parties (right now, the
+// mobile browser) are aware of it.
+NS_IMETHODIMP
+nsDocumentShownDispatcher::Run()
+{
+  nsCOMPtr<nsIObserverService> observerService =
+    mozilla::services::GetObserverService();
+  if (observerService) {
+    observerService->NotifyObservers(mDocument, "document-shown", NULL);
+  }
+  return NS_OK;
+}
+

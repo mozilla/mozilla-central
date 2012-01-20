@@ -106,11 +106,14 @@ template <class Type> class DefaultMarkPolicy;
 // provides default types for WeakMap's TracePolicy template parameter.
 template <class Key, class Value> class DefaultTracePolicy;
 
+// The value for the next pointer for maps not in the map list.
+static WeakMapBase * const WeakMapNotInList = reinterpret_cast<WeakMapBase *>(1);
+
 // Common base class for all WeakMap specializations. The collector uses this to call
 // their markIteratively and sweep methods.
 class WeakMapBase {
   public:
-    WeakMapBase(JSObject *memOf) : memberOf(memOf), next(NULL) { }
+    WeakMapBase(JSObject *memOf) : memberOf(memOf), next(WeakMapNotInList) { }
     virtual ~WeakMapBase() { }
 
     void trace(JSTracer *tracer) {
@@ -120,9 +123,14 @@ class WeakMapBase {
             // known-live WeakMaps to be scanned in the iterative marking phase, by
             // markAllIteratively.
             JS_ASSERT(!tracer->eagerlyTraceWeakMaps);
-            JSRuntime *rt = tracer->context->runtime;
-            next = rt->gcWeakMapList;
-            rt->gcWeakMapList = this;
+
+            // Add ourselves to the list if we are not already in the list. We can already
+            // be in the list if the weak map is marked more than once due delayed marking.
+            if (next == WeakMapNotInList) {
+                JSRuntime *rt = tracer->context->runtime;
+                next = rt->gcWeakMapList;
+                rt->gcWeakMapList = this;
+            }
         } else {
             // If we're not actually doing garbage collection, the keys won't be marked
             // nicely as needed by the true ephemeral marking algorithm --- custom tracers
@@ -148,6 +156,9 @@ class WeakMapBase {
     // Trace all delayed weak map bindings. Used by the cycle collector.
     static void traceAllMappings(WeakMapTracer *tracer);
 
+    // Remove everything from the live weak map list.
+    static void resetWeakMapList(JSRuntime *rt);
+
   protected:
     // Instance member functions called by the above. Instantiations of WeakMap override
     // these with definitions appropriate for their Key and Value types.
@@ -161,7 +172,10 @@ class WeakMapBase {
 
   private:
     // Link in a list of WeakMaps to mark iteratively and sweep in this garbage
-    // collection, headed by JSRuntime::gcWeakMapList.
+    // collection, headed by JSRuntime::gcWeakMapList. The last element of the list
+    // has NULL as its next. Maps not in the list have WeakMapNotInList as their
+    // next.  We must distinguish these cases to avoid creating infinite lists
+    // when a weak map gets traced twice due to delayed marking.
     WeakMapBase *next;
 };
 
@@ -203,13 +217,6 @@ class WeakMap : public HashMap<Key, Value, HashPolicy, RuntimeAllocPolicy>, publ
             /* If the entry is live, ensure its key and value are marked. */
             if (kp.isMarked(k)) {
                 markedAny |= vp.mark(v);
-            } else if (kp.overrideKeyMarking(k)) {
-                // We always mark wrapped natives. This will cause leaks.  Bug 680937
-                // will fix this so XPC wrapped natives are only marked during
-                // non-BLACK marking (ie grey marking).
-                kp.mark(k);
-                vp.mark(v);
-                markedAny = true;
             }
             JS_ASSERT_IF(kp.isMarked(k), vp.isMarked(v));
         }
@@ -263,7 +270,6 @@ class DefaultMarkPolicy<HeapValue> {
         js::gc::MarkValue(tracer, x, "WeakMap entry");
         return true;
     }
-    bool overrideKeyMarking(const HeapValue &k) { return false; }
 };
 
 template <>
@@ -280,13 +286,6 @@ class DefaultMarkPolicy<HeapPtrObject> {
             return false;
         js::gc::MarkObject(tracer, x, "WeakMap entry");
         return true;
-    }
-    bool overrideKeyMarking(const HeapPtrObject &k) {
-        // We only need to worry about extra marking of keys when
-        // we're doing a GC marking pass.
-        if (!IS_GC_MARKING_TRACER(tracer))
-            return false;
-        return k->getClass()->ext.isWrappedNative;
     }
 };
 
@@ -305,7 +304,6 @@ class DefaultMarkPolicy<HeapPtrScript> {
         js::gc::MarkScript(tracer, x, "WeakMap entry");
         return true;
     }
-    bool overrideKeyMarking(const HeapPtrScript &k) { return false; }
 };
 
 // Default trace policies

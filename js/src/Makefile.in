@@ -157,7 +157,7 @@ CPPSRCS		= \
 		jsxml.cpp \
 		prmjtime.cpp \
 		sharkctl.cpp \
-		CallObject.cpp \
+		ScopeObject.cpp \
 		Debugger.cpp \
 		GlobalObject.cpp \
 		Stack.cpp \
@@ -171,6 +171,7 @@ CPPSRCS		= \
 		SemanticAnalysis.cpp \
 		TokenStream.cpp \
 		LifoAlloc.cpp \
+		MemoryMetrics.cpp \
 		RegExpObject.cpp \
 		RegExpStatics.cpp \
 		RegExp.cpp \
@@ -192,10 +193,7 @@ INSTALLED_HEADERS = \
 		jsclass.h \
 		jsclist.h \
 		jsclone.h \
-		jscntxt.h \
 		jscompat.h \
-		jscrashreport.h \
-		jsdate.h \
 		jsdbgapi.h \
 		jsdhash.h \
 		jsfriendapi.h \
@@ -204,22 +202,16 @@ INSTALLED_HEADERS = \
 		jsgcchunk.h \
 		jsgcstats.h \
 		jshash.h \
-		jsinttypes.h \
 		jslock.h \
 		json.h \
 		jsopcode.tbl \
 		jsopcode.h \
-		jsotypes.h \
 		jsproxy.h \
 		jsprf.h \
-		jspropertycache.h \
-		jspropertytree.h \
 		jsproto.tbl \
 		jsprvtd.h \
 		jspubtd.h \
-		jsreflect.h \
 		jsstdint.h \
-		jsstr.h \
 		jstypedarray.h \
 		jstypes.h \
 		jsutil.h \
@@ -227,7 +219,6 @@ INSTALLED_HEADERS = \
 		jswrapper.h \
 		jsxdrapi.h \
 		jsval.h \
-		prmjtime.h \
 		$(NULL)
 
 ######################################################
@@ -238,12 +229,9 @@ EXPORTS_NAMESPACES += vm ds gc
 
 EXPORTS_vm = \
 		String.h \
-		StackSpace.h \
-		Unicode.h  \
 		$(NULL)
 
 EXPORTS_ds = \
-		LifoAlloc.h \
 		BitArray.h \
 		$(NULL)
 
@@ -265,32 +253,23 @@ VPATH		+= \
 
 EXPORTS_NAMESPACES += js
 
+# If you add a header here, add it to js/src/jsapi-tests/testIntTypesABI.cpp so
+# that we ensure we don't over-expose our internal integer typedefs.  Note that
+# LegacyIntTypes.h below is deliberately exempted from this requirement.
 EXPORTS_js = \
 		HashTable.h \
+		LegacyIntTypes.h \
+		MemoryMetrics.h \
 		TemplateLib.h \
 		Utility.h \
 		Vector.h \
 		$(NULL)
 
 ###############################################
-# BEGIN include sources for low-level code shared with Gecko
+# BEGIN include sources for low-level code shared with mfbt
 #
-VPATH		+= \
-		$(srcdir)/../../mfbt \
-		$(NULL)
-
-EXPORTS_NAMESPACES += mozilla
-
-EXPORTS_mozilla = \
-		Attributes.h	\
-		GuardObjects.h \
-		MSStdInt.h \
-		RangedPtr.h \
-		RefPtr.h \
-		StdInt.h \
-		Types.h	\
-		Util.h \
-		$(NULL)
+VPATH += $(srcdir)/../../mfbt
+include $(srcdir)/../../mfbt/exported_headers.mk
 
 ifdef ENABLE_METHODJIT
 
@@ -343,6 +322,9 @@ endif
 ifeq (sparc, $(findstring sparc,$(TARGET_CPU)))
 ASFILES +=	TrampolineSparc.s
 endif
+ifeq (mips, $(findstring mips,$(TARGET_CPU)))
+CPPSRCS +=	TrampolineMIPS.cpp
+endif
 #
 # END enclude sources for the method JIT
 #############################################
@@ -371,7 +353,7 @@ CPPSRCS += 	checks.cc \
 # For architectures without YARR JIT, PCRE is faster than the YARR
 # interpreter (bug 684559).
 
-ifeq (,$(filter arm% sparc %86 x86_64,$(TARGET_CPU)))
+ifeq (,$(filter arm% sparc %86 x86_64 mips%,$(TARGET_CPU)))
 
 VPATH +=        $(srcdir)/yarr/pcre \
 		$(NULL)
@@ -699,10 +681,6 @@ distclean::
 	cat unallmakefiles | $(XARGS) rm -f
 	$(RM) $(DIST_GARBAGE)
 
-# our build system doesn't handle subdir srcs very gracefully today
-export::
-	$(MKDIR) -p nanojit
-
 DEFINES		+= -DEXPORT_JS_API
 
 # mfbt is always packed with us, so if we're building a shared object,
@@ -728,6 +706,9 @@ endif
 ifdef JS_VERSION
 DEFINES		+= -DJS_VERSION=$(JS_VERSION)
 endif
+
+# We do not want to have obsolete NSPR functionality in threadsafe builds.
+DEFINES   += -DNO_NSPR_10_SUPPORT
 
 ifneq ($(findstring -L,$(NSPR_LIBS)),)
 NSPR_STATIC_PATH = $(subst -L,,$(findstring -L,$(NSPR_LIBS)))

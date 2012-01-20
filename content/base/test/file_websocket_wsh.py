@@ -2,6 +2,7 @@ from mod_pywebsocket import msgutil
 
 import time
 import sys
+import struct
 
 # see the list of tests in test_websocket.html
 
@@ -14,22 +15,19 @@ def web_socket_do_extra_handshake(request):
 
   if request.ws_protocol == "test-2.1":
     time.sleep(3)
-    pass
   elif request.ws_protocol == "test-9":
     time.sleep(3)
-    pass
   elif request.ws_protocol == "test-10":
     time.sleep(3)
-    pass
   elif request.ws_protocol == "test-19":
     raise ValueError('Aborting (test-19)')
   elif request.ws_protocol == "test-20" or request.ws_protocol == "test-17":
     time.sleep(3)
-    pass
   elif request.ws_protocol == "test-22":
     # The timeout is 5 seconds
     time.sleep(13)
-    pass
+  elif request.ws_protocol == "test-41b":
+    request.sts = "max-age=100"
   else:
     pass
 
@@ -72,7 +70,13 @@ def web_socket_transfer_data(request):
     msgutil.close_connection(request)
     msgutil.send_message(request, "server data")
   elif request.ws_protocol == "test-15":
-    msgutil.close_connection(request, True)
+    # DISABLED: close_connection hasn't supported 2nd 'abort' argument for a
+    # long time.  Passing extra arg was causing exception, which conveniently
+    # caused abort :) but as of pywebsocket v606 raising an exception here no
+    # longer aborts, and there's no obvious way to close TCP connection w/o
+    # sending websocket CLOSE.
+    raise RuntimeError("test-15 should be disabled for now")
+    #msgutil.close_connection(request, True)   # OBSOLETE 2nd arg
     return
   elif request.ws_protocol == "test-17" or request.ws_protocol == "test-21":
     time.sleep(2)
@@ -113,5 +117,25 @@ def web_socket_transfer_data(request):
                          msgutil.receive_message(request))
     msgutil.send_message(request, 
                          msgutil.receive_message(request))
+  elif request.ws_protocol == "test-44":
+    rcv = msgutil.receive_message(request)
+    # check we received correct binary msg
+    if len(rcv) == 3 \
+       and ord(rcv[0]) == 5 and ord(rcv[1]) == 0 and ord(rcv[2]) == 7:
+      # reply with binary msg 0x04
+      msgutil.send_message(request, struct.pack("cc", chr(0), chr(4)), True, True)
+    else:
+      msgutil.send_message(request, "incorrect binary msg received!")
+  elif request.ws_protocol == "test-45":
+    rcv = msgutil.receive_message(request)
+    # check we received correct binary msg
+    if rcv == "flob":
+      # send back same blob as binary msg
+      msgutil.send_message(request, rcv, True, True)
+    else:
+      msgutil.send_message(request, "incorrect binary msg received: '" + rcv + "'")
+  elif request.ws_protocol == "test-46":
+    msgutil.send_message(request, "client must drop this if close was called")
+
   while not request.client_terminated:
     msgutil.receive_message(request)

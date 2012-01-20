@@ -73,6 +73,7 @@ class FrameRegsIter;
 class AllFramesIter;
 
 class ArgumentsObject;
+class StaticBlockObject;
 
 #ifdef JS_METHODJIT
 typedef js::mjit::CallSite JSInlinedSite;
@@ -345,29 +346,31 @@ class StackFrame
         HAS_RVAL           =    0x20000,  /* frame has rval_ set */
         HAS_SCOPECHAIN     =    0x40000,  /* frame has scopeChain_ set */
         HAS_PREVPC         =    0x80000,  /* frame has prevpc_ and prevInline_ set */
+        HAS_BLOCKCHAIN     =   0x100000,  /* frame has blockChain_ set */
 
         /* Method JIT state */
-        DOWN_FRAMES_EXPANDED = 0x100000,  /* inlining in down frames has been expanded */
-        LOWERED_CALL_APPLY   = 0x200000   /* Pushed by a lowered call/apply */
+        DOWN_FRAMES_EXPANDED = 0x400000,  /* inlining in down frames has been expanded */
+        LOWERED_CALL_APPLY   = 0x800000   /* Pushed by a lowered call/apply */
     };
 
   private:
-    mutable uint32      flags_;         /* bits described by Flags */
+    mutable uint32_t    flags_;         /* bits described by Flags */
     union {                             /* describes what code is executing in a */
         JSScript        *script;        /*   global frame */
         JSFunction      *fun;           /*   function frame, pre GetScopeChain */
     } exec;
     union {                             /* describes the arguments of a function */
-        uintN           nactual;        /*   before js_GetArgsObject */
-        ArgumentsObject *obj;           /*   after js_GetArgsObject */
-        JSScript        *script;        /* eval has no args, but needs a script */
-    } args;
+        uintN           nactual;        /*   for non-eval frames */
+        JSScript        *evalScript;    /*   the script of an eval-in-function */
+    } u;
     mutable JSObject    *scopeChain_;   /* current scope chain */
     StackFrame          *prev_;         /* previous cx->regs->fp */
     void                *ncode_;        /* return address for method JIT */
 
     /* Lazily initialized */
     Value               rval_;          /* return value of the frame */
+    StaticBlockObject   *blockChain_;   /* innermost let block */
+    ArgumentsObject     *argsObj_;      /* if has HAS_ARGS_OBJ */
     jsbytecode          *prevpc_;       /* pc of previous frame*/
     JSInlinedSite       *prevInline_;   /* inlined site in previous frame */
     void                *hookData_;     /* closure returned by call hook */
@@ -394,14 +397,14 @@ class StackFrame
 
     /* Used for Invoke, Interpret, trace-jit LeaveTree, and method-jit stubs. */
     void initCallFrame(JSContext *cx, JSFunction &callee,
-                       JSScript *script, uint32 nactual, StackFrame::Flags flags);
+                       JSScript *script, uint32_t nactual, StackFrame::Flags flags);
 
     /* Used for SessionInvoke. */
     void resetCallFrame(JSScript *script);
 
     /* Called by jit stubs and serve as a specification for jit-code. */
     void initJitFrameCallerHalf(StackFrame *prev, StackFrame::Flags flags, void *ncode);
-    void initJitFrameEarlyPrologue(JSFunction *fun, uint32 nactual);
+    void initJitFrameEarlyPrologue(JSFunction *fun, uint32_t nactual);
     bool initJitFrameLatePrologue(JSContext *cx, Value **limit);
 
     /* Used for eval. */
@@ -575,13 +578,13 @@ class StackFrame
     JSScript *script() const {
         JS_ASSERT(isScriptFrame());
         return isFunctionFrame()
-               ? isEvalFrame() ? args.script : fun()->script()
+               ? isEvalFrame() ? u.evalScript : fun()->script()
                : exec.script;
     }
 
     JSScript *functionScript() const {
         JS_ASSERT(isFunctionFrame());
-        return isEvalFrame() ? args.script : fun()->script();
+        return isEvalFrame() ? u.evalScript : fun()->script();
     }
 
     JSScript *globalScript() const {
@@ -699,7 +702,7 @@ class StackFrame
     ArgumentsObject &argsObj() const {
         JS_ASSERT(hasArgsObj());
         JS_ASSERT(!isEvalFrame());
-        return *args.obj;
+        return *argsObj_;
     }
 
     ArgumentsObject *maybeArgsObj() const {
@@ -840,6 +843,26 @@ class StackFrame
     inline void setScopeChainNoCallObj(JSObject &obj);
     inline void setScopeChainWithOwnCallObj(CallObject &obj);
 
+    /* Block chain */
+
+    bool hasBlockChain() const {
+        return (flags_ & HAS_BLOCKCHAIN) && blockChain_;
+    }
+
+    StaticBlockObject *maybeBlockChain() {
+        return (flags_ & HAS_BLOCKCHAIN) ? blockChain_ : NULL;
+    }
+
+    StaticBlockObject &blockChain() const {
+        JS_ASSERT(hasBlockChain());
+        return *blockChain_;
+    }
+
+    void setBlockChain(StaticBlockObject *obj) {
+        flags_ |= HAS_BLOCKCHAIN;
+        blockChain_ = obj;
+    }
+
     /*
      * Prologue for function frames: make a call object for heavyweight
      * functions, and maintain type nesting invariants.
@@ -850,15 +873,15 @@ class StackFrame
      * Epilogue for function frames: put any args or call object for the frame
      * which may still be live, and maintain type nesting invariants. Note:
      * this does not mark the epilogue as having been completed, since the
-     * frame is about to be popped. Use markFunctionEpilogueDone for this.
+     * frame is about to be popped. Use updateEpilogueFlags for this.
      */
     inline void functionEpilogue();
 
     /*
-     * Mark any work needed in the function's epilogue as done. This call must
-     * be followed by a later functionEpilogue.
+     * If callObj() or argsObj() have already been put, update our flags
+     * accordingly. This call must be followed by a later functionEpilogue.
      */
-    inline void markFunctionEpilogueDone();
+    inline void updateEpilogueFlags();
 
     inline bool maintainNestingState() const;
 
@@ -1024,7 +1047,7 @@ class StackFrame
         JS_STATIC_ASSERT((int)INITIAL_NONE == 0);
         JS_STATIC_ASSERT((int)INITIAL_CONSTRUCT == (int)CONSTRUCTING);
         JS_STATIC_ASSERT((int)INITIAL_LOWERED == (int)LOWERED_CALL_APPLY);
-        uint32 mask = CONSTRUCTING | LOWERED_CALL_APPLY;
+        uint32_t mask = CONSTRUCTING | LOWERED_CALL_APPLY;
         JS_ASSERT((flags_ & mask) != mask);
         return InitialFrameFlags(flags_ & mask);
     }
@@ -1095,21 +1118,12 @@ class StackFrame
         return offsetof(StackFrame, exec);
     }
 
-    static size_t offsetOfArgs() {
-        return offsetof(StackFrame, args);
-    }    
-
-    void *addressOfArgs() {
-        return &args;
+    static size_t offsetOfNumActual() {
+        return offsetof(StackFrame, u.nactual);
     }
 
     static size_t offsetOfScopeChain() {
         return offsetof(StackFrame, scopeChain_);
-    }
-
-    JSObject **addressOfScopeChain() {
-        JS_ASSERT(flags_ & HAS_SCOPECHAIN);
-        return &scopeChain_;
     }
 
     static size_t offsetOfPrev() {
@@ -1118,6 +1132,10 @@ class StackFrame
 
     static size_t offsetOfReturnValue() {
         return offsetof(StackFrame, rval_);
+    }
+
+    static size_t offsetOfArgsObj() {
+        return offsetof(StackFrame, argsObj_);
     }
 
     static ptrdiff_t offsetOfNcode() {

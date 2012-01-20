@@ -104,9 +104,10 @@ NS_IMPL_RELEASE_INHERITED(nsSVGAltGlyphElement,nsSVGAltGlyphElementBase)
 DOMCI_NODE_DATA(SVGAltGlyphElement, nsSVGAltGlyphElement)
 
 NS_INTERFACE_TABLE_HEAD(nsSVGAltGlyphElement)
-  NS_NODE_INTERFACE_TABLE7(nsSVGAltGlyphElement, nsIDOMNode, nsIDOMElement,
+  NS_NODE_INTERFACE_TABLE8(nsSVGAltGlyphElement, nsIDOMNode, nsIDOMElement,
                            nsIDOMSVGElement, nsIDOMSVGAltGlyphElement,
                            nsIDOMSVGTextPositioningElement, nsIDOMSVGTextContentElement,
+                           nsIDOMSVGTests,
                            nsIDOMSVGURIReference)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(SVGAltGlyphElement)
 NS_INTERFACE_MAP_END_INHERITING(nsSVGAltGlyphElementBase)
@@ -177,7 +178,7 @@ nsSVGAltGlyphElement::IsAttributeMapped(const nsIAtom* name) const
     sTextContentElementsMap
   };
   
-  return FindAttributeDependence(name, map, ArrayLength(map)) ||
+  return FindAttributeDependence(name, map) ||
     nsSVGAltGlyphElementBase::IsAttributeMapped(name);
 }
 

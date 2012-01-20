@@ -80,13 +80,11 @@ SendJSWarning(nsIDocument* aDocument,
               const char* aWarningName,
               const PRUnichar** aWarningArgs, PRUint32 aWarningArgsLen)
 {
-  nsContentUtils::ReportToConsole(nsContentUtils::eFORMS_PROPERTIES,
+  nsContentUtils::ReportToConsole(nsIScriptError::warningFlag,
+                                  "HTML", aDocument,
+                                  nsContentUtils::eFORMS_PROPERTIES,
                                   aWarningName,
-                                  aWarningArgs, aWarningArgsLen,
-                                  nsnull,
-                                  EmptyString(), 0, 0,
-                                  nsIScriptError::warningFlag,
-                                  "HTML", aDocument);
+                                  aWarningArgs, aWarningArgsLen);
 }
 
 // --------------------------------------------------------------------------
@@ -724,6 +722,17 @@ nsEncodingFormSubmission::nsEncodingFormSubmission(const nsACString& aCharset,
   // MS IE/Opera). 
   if (StringBeginsWith(charset, NS_LITERAL_CSTRING("UTF-16"))) {
     charset.AssignLiteral("UTF-8");
+  }
+
+  if (!(charset.EqualsLiteral("UTF-8") || charset.EqualsLiteral("gb18030"))) {
+    nsAutoString charsetUtf16;
+    CopyUTF8toUTF16(charset, charsetUtf16);
+    const PRUnichar* charsetPtr = charsetUtf16.get();
+    SendJSWarning(aOriginatingElement ? aOriginatingElement->GetOwnerDocument()
+                                      : nsnull,
+                  "CannotEncodeAllUnicode",
+                  &charsetPtr,
+                  1);
   }
 
   mEncoder = do_CreateInstance(NS_SAVEASCHARSET_CONTRACTID);

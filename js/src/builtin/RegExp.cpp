@@ -61,7 +61,7 @@ class RegExpMatchBuilder
   public:
     RegExpMatchBuilder(JSContext *cx, JSObject *array) : cx(cx), array(array) {}
 
-    bool append(uint32 index, Value v) {
+    bool append(uint32_t index, Value v) {
         JS_ASSERT(!array->getOps()->getElement);
         return !!js_DefineElement(cx, array, index, &v, JS_PropertyStub, JS_StrictPropertyStub,
                                   JSPROP_ENUMERATE);
@@ -244,7 +244,7 @@ CompileRegExpObject(JSContext *cx, RegExpObjectBuilder &builder,
             return false;
         }
 
-        RegExpObject *reobj = builder.build(sourceObj.asRegExp());
+        RegExpObject *reobj = builder.build(&sourceObj.asRegExp());
         if (!reobj)
             return false;
         *rval = ObjectValue(*reobj);
@@ -300,7 +300,7 @@ regexp_compile(JSContext *cx, uintN argc, Value *vp)
     if (!obj)
         return ok;
 
-    RegExpObjectBuilder builder(cx, obj->asRegExp());
+    RegExpObjectBuilder builder(cx, &obj->asRegExp());
     return CompileRegExpObject(cx, builder, args.length(), args.array(), &args.rval());
 }
 
@@ -339,7 +339,7 @@ regexp_toString(JSContext *cx, uintN argc, Value *vp)
     if (!obj)
         return ok;
 
-    JSString *str = obj->asRegExp()->toString(cx);
+    JSString *str = obj->asRegExp().toString(cx);
     if (!str)
         return false;
 
@@ -415,11 +415,11 @@ DEFINE_STATIC_SETTER(static_multiline_setter,
                          return false;
                      res->setMultiline(cx, !!JSVAL_TO_BOOLEAN(*vp)))
 
-const uint8 REGEXP_STATIC_PROP_ATTRS    = JSPROP_PERMANENT | JSPROP_SHARED | JSPROP_ENUMERATE;
-const uint8 RO_REGEXP_STATIC_PROP_ATTRS = REGEXP_STATIC_PROP_ATTRS | JSPROP_READONLY;
+const uint8_t REGEXP_STATIC_PROP_ATTRS    = JSPROP_PERMANENT | JSPROP_SHARED | JSPROP_ENUMERATE;
+const uint8_t RO_REGEXP_STATIC_PROP_ATTRS = REGEXP_STATIC_PROP_ATTRS | JSPROP_READONLY;
 
-const uint8 HIDDEN_PROP_ATTRS = JSPROP_PERMANENT | JSPROP_SHARED;
-const uint8 RO_HIDDEN_PROP_ATTRS = HIDDEN_PROP_ATTRS | JSPROP_READONLY;
+const uint8_t HIDDEN_PROP_ATTRS = JSPROP_PERMANENT | JSPROP_SHARED;
+const uint8_t RO_HIDDEN_PROP_ATTRS = HIDDEN_PROP_ATTRS | JSPROP_READONLY;
 
 static JSPropertySpec regexp_static_props[] = {
     {"input",        0, REGEXP_STATIC_PROP_ATTRS,    static_input_getter, static_input_setter},
@@ -453,14 +453,14 @@ js_InitRegExpClass(JSContext *cx, JSObject *obj)
 {
     JS_ASSERT(obj->isNative());
 
-    GlobalObject *global = obj->asGlobal();
+    GlobalObject *global = &obj->asGlobal();
 
     JSObject *proto = global->createBlankPrototype(cx, &RegExpClass);
     if (!proto)
         return NULL;
     proto->setPrivate(NULL);
 
-    RegExpObject *reproto = proto->asRegExp();
+    RegExpObject *reproto = &proto->asRegExp();
     RegExpObjectBuilder builder(cx, reproto);
     if (!builder.build(cx->runtime->emptyString, RegExpFlag(0)))
         return NULL;
@@ -514,7 +514,7 @@ ExecuteRegExp(JSContext *cx, Native native, uintN argc, Value *vp)
     if (!obj)
         return ok;
 
-    RegExpObject *reobj = obj->asRegExp();
+    RegExpObject *reobj = &obj->asRegExp();
 
     RegExpMatcher matcher(cx);
     if (reobj->startsWithAtomizedGreedyStar()) {

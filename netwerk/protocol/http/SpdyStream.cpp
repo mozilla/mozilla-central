@@ -486,6 +486,8 @@ SpdyStream::TransmitFrame(const char *buf,
     LOG3(("Coalesce Transmit"));
     memcpy (mTxInlineFrame + mTxInlineFrameSize,
             buf, mTxStreamFrameSize);
+    if (countUsed)
+      *countUsed += mTxStreamFrameSize;
     mTxInlineFrameSize += mTxStreamFrameSize;
     mTxStreamFrameSent = 0;
     mTxStreamFrameSize = 0;
@@ -527,15 +529,15 @@ SpdyStream::TransmitFrame(const char *buf,
     LOG3(("SpdyStream::TransmitFrame for regular session=%p "
           "stream=%p result %x len=%d",
           mSession, this, rv, transmittedCount));
-    SpdySession::LogIO(mSession, this, "Writing from Transaction Buffer",
-                       buf + offset, transmittedCount);
-
     if (rv == NS_BASE_STREAM_WOULD_BLOCK)
       mBlockedOnWrite = 1;
 
     if (NS_FAILED(rv))     // this will include WOULD_BLOCK
       return rv;
     
+    SpdySession::LogIO(mSession, this, "Writing from Transaction Buffer",
+                       buf + offset, transmittedCount);
+
     if (mUpstreamState == SENDING_REQUEST_BODY) {
       mTransaction->OnTransportStatus(mSocketTransport,
                                       nsISocketTransport::STATUS_SENDING_TO,
@@ -754,8 +756,8 @@ SpdyStream::OnReadSegment(const char *buf,
     rv = ParseHttpRequestHeaders(buf, count, countRead);
     if (NS_FAILED(rv))
       return rv;
-    LOG3(("ParseHttpRequestHeaders %p used %d of %d.",
-          this, *countRead, count));
+    LOG3(("ParseHttpRequestHeaders %p used %d of %d. complete = %d",
+          this, *countRead, count, mSynFrameComplete));
     if (mSynFrameComplete) {
       NS_ABORT_IF_FALSE(mTxInlineFrameSize,
                         "OnReadSegment SynFrameComplete 0b");
@@ -776,15 +778,11 @@ SpdyStream::OnReadSegment(const char *buf,
     NS_ABORT_IF_FALSE(!mTxInlineFrameSent,
                       "OnReadSegment in generating_request_body with "
                       "frame in progress");
-    if (count < mChunkSize && count < mRequestBodyLen) {
-      LOG3(("SpdyStream %p id %x has %d to write out of a bodylen %d"
-            " with a chunk size of %d. Waiting for more.",
-            this, mStreamID, count, mChunkSize, mRequestBodyLen));
-      rv = NS_BASE_STREAM_WOULD_BLOCK;
-      break;
-    }
     
     dataLength = NS_MIN(count, mChunkSize);
+    LOG3(("SpdyStream %p id %x request len remaining %d, "
+          "count avail %d, chunk used %d",
+          this, mStreamID, mRequestBodyLen, count, dataLength));
     if (dataLength > mRequestBodyLen)
       return NS_ERROR_UNEXPECTED;
     mRequestBodyLen -= dataLength;

@@ -48,6 +48,8 @@
 #include "dombindings.h"
 #include "XPCMaps.h"
 
+#include "jsfriendapi.h"
+
 using namespace js;
 
 namespace xpc {
@@ -270,7 +272,7 @@ WrapperFactory::Rewrap(JSContext *cx, JSObject *obj, JSObject *wrappedProto, JSO
     NS_ASSERTION(JS_GET_CLASS(cx, obj) != &XrayUtils::HolderClass, "trying to wrap a holder");
 
     JSCompartment *origin = js::GetObjectCompartment(obj);
-    JSCompartment *target = cx->compartment;
+    JSCompartment *target = js::GetContextCompartment(cx);
     JSObject *xrayHolder = nsnull;
 
     Wrapper *wrapper;
@@ -437,7 +439,7 @@ WrapperFactory::WaiveXrayAndWrap(JSContext *cx, jsval *vp)
 
     JSObject *obj = js::UnwrapObject(JSVAL_TO_OBJECT(*vp));
     obj = GetCurrentOuter(cx, obj);
-    if (js::GetObjectCompartment(obj) == cx->compartment) {
+    if (js::IsObjectInContextCompartment(obj, cx)) {
         *vp = OBJECT_TO_JSVAL(obj);
         return true;
     }

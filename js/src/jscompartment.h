@@ -1,4 +1,4 @@
-/* -*- Mode: C++; tab-width: 8; indent-tabs-mode: nil; c-basic-offset: 4 -*-
+/* -*- Mode: C++; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*-
  *
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
@@ -39,6 +39,8 @@
 
 #ifndef jscompartment_h___
 #define jscompartment_h___
+
+#include "mozilla/Attributes.h"
 
 #include "jsclist.h"
 #include "jscntxt.h"
@@ -85,7 +87,7 @@ class NativeIterCache {
     /* Cached native iterators. */
     JSObject            *data[SIZE];
 
-    static size_t getIndex(uint32 key) {
+    static size_t getIndex(uint32_t key) {
         return size_t(key) % SIZE;
     }
 
@@ -103,11 +105,11 @@ class NativeIterCache {
         last = NULL;
     }
 
-    JSObject *get(uint32 key) const {
+    JSObject *get(uint32_t key) const {
         return data[getIndex(key)];
     }
 
-    void set(uint32 key, JSObject *iterobj) {
+    void set(uint32_t key, JSObject *iterobj) {
         data[getIndex(key)] = iterobj;
     }
 };
@@ -182,8 +184,8 @@ struct JS_FRIEND_API(JSCompartment) {
         return createBarrierTracer();
     }
 
-    uint32                       gcBytes;
-    uint32                       gcTriggerBytes;
+    size_t                       gcBytes;
+    size_t                       gcTriggerBytes;
     size_t                       gcLastBytes;
 
     bool                         hold;
@@ -233,7 +235,7 @@ struct JS_FRIEND_API(JSCompartment) {
 
     bool ensureJaegerCompartmentExists(JSContext *cx);
 
-    void sizeOfCode(size_t *method, size_t *regexp, size_t *unused) const;
+    size_t sizeOfMjitCode() const;
 #endif
 
     /*
@@ -308,7 +310,7 @@ struct JS_FRIEND_API(JSCompartment) {
     void purge(JSContext *cx);
 
     void setGCLastBytes(size_t lastBytes, JSGCInvocationKind gckind);
-    void reduceGCTriggerBytes(uint32 amount);
+    void reduceGCTriggerBytes(size_t amount);
 
     js::DtoaCache dtoaCache;
 
@@ -469,9 +471,8 @@ class AutoCompartment
     void leave();
 
   private:
-    // Prohibit copying.
-    AutoCompartment(const AutoCompartment &);
-    AutoCompartment & operator=(const AutoCompartment &);
+    AutoCompartment(const AutoCompartment &) MOZ_DELETE;
+    AutoCompartment & operator=(const AutoCompartment &) MOZ_DELETE;
 };
 
 /*

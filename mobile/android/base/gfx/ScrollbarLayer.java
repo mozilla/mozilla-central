@@ -82,7 +82,8 @@ public class ScrollbarLayer extends TileLayer {
         mVertical = vertical;
         mBuffer = buffer;
 
-        mBitmap = Bitmap.createBitmap(image.getWidth(), image.getHeight(), Bitmap.Config.ARGB_8888);
+        IntSize size = image.getSize();
+        mBitmap = Bitmap.createBitmap(size.width, size.height, Bitmap.Config.ARGB_8888);
         mCanvas = new Canvas(mBitmap);
     }
 
@@ -100,7 +101,7 @@ public class ScrollbarLayer extends TileLayer {
     public static ScrollbarLayer create(boolean vertical) {
         // just create an empty image for now, it will get drawn
         // on demand anyway
-        int imageSize = nextPowerOfTwo(BAR_SIZE);
+        int imageSize = IntSize.nextPowerOfTwo(BAR_SIZE);
         ByteBuffer buffer = GeckoAppShell.allocateDirectBuffer(imageSize * imageSize * 4);
         CairoImage image = new BufferedCairoImage(buffer, imageSize, imageSize, CairoImage.FORMAT_ARGB32);
         return new ScrollbarLayer(image, vertical, buffer);
@@ -151,7 +152,7 @@ public class ScrollbarLayer extends TileLayer {
         foregroundPaint.setAntiAlias(true);
         foregroundPaint.setStyle(Paint.Style.FILL);
         // use a (a,r,g,b) color of (127,0,0,0), and multiply the alpha by mOpacity for fading
-        foregroundPaint.setColor(Color.argb((int)Math.round(mOpacity * 127), 0, 0, 0));
+        foregroundPaint.setColor(Color.argb(Math.round(mOpacity * 127), 0, 0, 0));
 
         mCanvas.drawColor(Color.argb(0, 0, 0, 0), PorterDuff.Mode.CLEAR);
         mCanvas.drawCircle(CAP_RADIUS, CAP_RADIUS, CAP_RADIUS, foregroundPaint);
@@ -166,6 +167,7 @@ public class ScrollbarLayer extends TileLayer {
 
         try {
             GLES11.glEnable(GL10.GL_BLEND);
+            GLES11.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
 
             Rect rect = RectUtils.round(mVertical ? getVerticalRect(context) : getHorizontalRect(context));
             GLES11.glBindTexture(GL10.GL_TEXTURE_2D, getTextureID());

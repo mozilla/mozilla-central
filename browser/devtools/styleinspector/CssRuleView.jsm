@@ -13,7 +13,7 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is the Mozilla Inspector Module.
+ * The Original Code is the Mozilla CSS Rule View.
  *
  * The Initial Developer of the Original Code is
  * The Mozilla Foundation.
@@ -21,7 +21,8 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *   Dave Camp (dcamp@mozilla.com) (Original Author)
+ *   Dave Camp <dcamp@mozilla.com> (Original Author)
+ *   Rob Campbell <rcampbell@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -778,7 +779,16 @@ RuleEditor.prototype = {
       class: "ruleview-selector",
       textContent: this.rule.selectorText
     });
-    appendText(header, " {");
+
+    this.openBrace = createChild(header, "span", {
+      class: "ruleview-ruleopen",
+      tabindex: "0",
+      textContent: " {"
+    });
+
+    this.openBrace.addEventListener("click", function() {
+      this.newProperty();
+    }.bind(this), true);
 
     this.propertyList = createChild(code, "ul", {
       class: "ruleview-propertylist"
@@ -1132,7 +1142,8 @@ TextPropertyEditor.prototype = {
  *    {function} done:
  *       Called when input is committed or blurred.  Called with
  *       current value and a boolean telling the caller whether to
- *       commit the change.
+ *       commit the change.  This function is called after the editor
+ *       has been torn down.
  *    {string} advanceChars:
  *       If any characters in advanceChars are typed, focus will advance
  *       to the next element.
@@ -1260,7 +1271,7 @@ InplaceEditor.prototype = {
     // Replace spaces with non-breaking spaces.  Otherwise setting
     // the span's textContent will collapse spaces and the measurement
     // will be wrong.
-    this._measurement.textContent = this.input.value.replace(' ', '\u00a0', 'g');
+    this._measurement.textContent = this.input.value.replace(/ /g, '\u00a0');
 
     // We add a bit of padding to the end.  Should be enough to fit
     // any letter that could be typed, otherwise we'll scroll before
@@ -1276,11 +1287,11 @@ InplaceEditor.prototype = {
    */
   _onBlur: function InplaceEditor_onBlur(aEvent)
   {
-    if (this.done) {
-      this.done(this.cancelled ? this.initial : this.input.value.trim(),
-                !this.cancelled);
-    }
+    let val = this.input.value.trim();
     this._clear();
+    if (this.done) {
+      this.done(this.cancelled ? this.initial : val, !this.cancelled);
+    }
   },
 
   _onKeyPress: function InplaceEditor_onKeyPress(aEvent)

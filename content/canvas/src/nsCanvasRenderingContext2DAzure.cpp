@@ -94,7 +94,6 @@
 #include "gfxImageSurface.h"
 #include "gfxPlatform.h"
 #include "gfxFont.h"
-#include "gfxTextRunCache.h"
 #include "gfxBlur.h"
 #include "gfxUtils.h"
 
@@ -809,7 +808,7 @@ protected:
         if (state.patternStyles[aStyle]->mRepeat == nsCanvasPatternAzure::NOREPEAT) {
           mode = EXTEND_CLAMP;
         } else {
-          mode = EXTEND_WRAP;
+          mode = EXTEND_REPEAT;
         }
         mPattern = new (mSurfacePattern.addr())
           SurfacePattern(state.patternStyles[aStyle]->mSurface, mode);
@@ -1096,14 +1095,11 @@ nsCanvasRenderingContext2DAzure::SetStyleFromStringOrInterface(const nsAString& 
   }
 
   nsContentUtils::ReportToConsole(
-    nsContentUtils::eDOM_PROPERTIES,
-    "UnexpectedCanvasVariantStyle",
-    nsnull, 0,
-    nsnull,
-    EmptyString(), 0, 0,
     nsIScriptError::warningFlag,
     "Canvas",
-    mCanvasElement ? HTMLCanvasElement()->OwnerDoc() : nsnull);
+    mCanvasElement ? HTMLCanvasElement()->OwnerDoc() : nsnull,
+    nsContentUtils::eDOM_PROPERTIES,
+    "UnexpectedCanvasVariantStyle");
 
   return NS_OK;
 }
@@ -1169,6 +1165,11 @@ nsCanvasRenderingContext2DAzure::Redraw()
     return NS_OK;
   }
 
+  if (!mThebesSurface)
+    mThebesSurface =
+      gfxPlatform::GetPlatform()->GetThebesSurfaceForDrawTarget(mTarget);
+  mThebesSurface->MarkDirty();
+
   nsSVGEffects::InvalidateDirectRenderingObservers(HTMLCanvasElement());
 
   HTMLCanvasElement()->InvalidateCanvasContent(nsnull);
@@ -1196,9 +1197,14 @@ nsCanvasRenderingContext2DAzure::Redraw(const mgfx::Rect &r)
     return;
   }
 
+  if (!mThebesSurface)
+    mThebesSurface =
+      gfxPlatform::GetPlatform()->GetThebesSurfaceForDrawTarget(mTarget);
+  mThebesSurface->MarkDirty();
+
   nsSVGEffects::InvalidateDirectRenderingObservers(HTMLCanvasElement());
 
-  gfxRect tmpR = GFXRect(r);
+  gfxRect tmpR = ThebesRect(r);
   HTMLCanvasElement()->InvalidateCanvasContent(&tmpR);
 
   return;
@@ -1295,6 +1301,12 @@ nsCanvasRenderingContext2DAzure::InitializeWithTarget(DrawTarget *target, PRInt3
   if (!target)
   {
     mTarget = gfxPlatform::GetPlatform()->CreateOffscreenDrawTarget(IntSize(1, 1), FORMAT_B8G8R8A8);
+    if (!mTarget) {
+      // SupportsAzure() is controlled by the "gfx.canvas.azure.prefer-skia"
+      // pref so that may be the reason rather than an OOM.
+      mValid = false;
+      return NS_ERROR_OUT_OF_MEMORY;
+    }
   } else {
     mValid = true;
   }
@@ -2939,12 +2951,11 @@ struct NS_STACK_CLASS nsCanvasBidiProcessorAzure : public nsBidiPresUtils::BidiP
 
   virtual void SetText(const PRUnichar* text, PRInt32 length, nsBidiDirection direction)
   {
-    mTextRun = gfxTextRunCache::MakeTextRun(text,
-                                            length,
-                                            mFontgrp,
-                                            mThebes,
-                                            mAppUnitsPerDevPixel,
-                                            direction==NSBIDI_RTL ? gfxTextRunFactory::TEXT_IS_RTL : 0);
+    mTextRun = mFontgrp->MakeTextRun(text,
+                                     length,
+                                     mThebes,
+                                     mAppUnitsPerDevPixel,
+                                     direction==NSBIDI_RTL ? gfxTextRunFactory::TEXT_IS_RTL : 0);
   }
 
   virtual nscoord GetWidth()
@@ -3074,8 +3085,6 @@ struct NS_STACK_CLASS nsCanvasBidiProcessorAzure : public nsBidiPresUtils::BidiP
                       DrawOptions(mState->globalAlpha, mCtx->UsedOperation()));
       } else if (mOp == nsCanvasRenderingContext2DAzure::TEXT_DRAW_OPERATION_STROKE) {
         RefPtr<Path> path = scaledFont->GetPathForGlyphs(buffer, mCtx->mTarget);
-            
-        Matrix oldTransform = mCtx->mTarget->GetTransform();
 
         const ContextState& state = *mState;
         nsCanvasRenderingContext2DAzure::AdjustedTarget(mCtx)->
@@ -3093,7 +3102,7 @@ struct NS_STACK_CLASS nsCanvasBidiProcessorAzure : public nsBidiPresUtils::BidiP
   }
 
   // current text run
-  gfxTextRunCache::AutoTextRun mTextRun;
+  nsAutoPtr<gfxTextRun> mTextRun;
 
   // pointer to a screen reference context used to measure text and such
   nsRefPtr<gfxContext> mThebes;

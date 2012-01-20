@@ -303,7 +303,7 @@ nsSVGFE::IsAttributeMapped(const nsIAtom* name) const
     sFiltersMap
   };
   
-  return FindAttributeDependence(name, map, ArrayLength(map)) ||
+  return FindAttributeDependence(name, map) ||
     nsSVGFEBase::IsAttributeMapped(name);
 }
 
@@ -2800,7 +2800,7 @@ nsSVGFEFloodElement::IsAttributeMapped(const nsIAtom* name) const
     sFEFloodMap
   };
   
-  return FindAttributeDependence(name, map, ArrayLength(map)) ||
+  return FindAttributeDependence(name, map) ||
     nsSVGFEFloodElementBase::IsAttributeMapped(name);
 }
 
@@ -4870,7 +4870,7 @@ nsSVGFELightingElement::IsAttributeMapped(const nsIAtom* name) const
     sLightingEffectsMap
   };
 
-  return FindAttributeDependence(name, map, ArrayLength(map)) ||
+  return FindAttributeDependence(name, map) ||
     nsSVGFELightingElementBase::IsAttributeMapped(name);
 }
 
@@ -5546,7 +5546,7 @@ nsSVGFEImageElement::IsAttributeMapped(const nsIAtom* name) const
     sGraphicsMap
   };
   
-  return FindAttributeDependence(name, map, ArrayLength(map)) ||
+  return FindAttributeDependence(name, map) ||
     nsSVGFEImageElementBase::IsAttributeMapped(name);
 }
 
@@ -5742,11 +5742,12 @@ nsSVGFEImageElement::OnStopDecode(imgIRequest *aRequest,
 }
 
 NS_IMETHODIMP
-nsSVGFEImageElement::FrameChanged(imgIContainer *aContainer,
+nsSVGFEImageElement::FrameChanged(imgIRequest* aRequest,
+                                  imgIContainer *aContainer,
                                   const nsIntRect *aDirtyRect)
 {
   nsresult rv =
-    nsImageLoadingContent::FrameChanged(aContainer, aDirtyRect);
+    nsImageLoadingContent::FrameChanged(aRequest, aContainer, aDirtyRect);
   Invalidate();
   return rv;
 }

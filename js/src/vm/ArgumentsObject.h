@@ -141,20 +141,20 @@ struct ArgumentsData
  *     remove this oddity, but preserving it allows us to work with arguments
  *     objects of either kind more abstractly, so we keep it for now.
  */
-class ArgumentsObject : public ::JSObject
+class ArgumentsObject : public JSObject
 {
-    static const uint32 INITIAL_LENGTH_SLOT = 0;
-    static const uint32 DATA_SLOT = 1;
-    static const uint32 STACK_FRAME_SLOT = 2;
+    static const uint32_t INITIAL_LENGTH_SLOT = 0;
+    static const uint32_t DATA_SLOT = 1;
+    static const uint32_t STACK_FRAME_SLOT = 2;
 
   public:
-    static const uint32 RESERVED_SLOTS = 3;
+    static const uint32_t RESERVED_SLOTS = 3;
     static const gc::AllocKind FINALIZE_KIND = gc::FINALIZE_OBJECT4;
 
   private:
     /* Lower-order bit stolen from the length slot. */
-    static const uint32 LENGTH_OVERRIDDEN_BIT = 0x1;
-    static const uint32 PACKED_BITS_COUNT = 1;
+    static const uint32_t LENGTH_OVERRIDDEN_BIT = 0x1;
+    static const uint32_t PACKED_BITS_COUNT = 1;
 
     /*
      * Need access to DATA_SLOT, INITIAL_LENGTH_SLOT, LENGTH_OVERRIDDEN_BIT, and
@@ -165,20 +165,19 @@ class ArgumentsObject : public ::JSObject
     friend struct mjit::ic::GetElementIC;
 #endif
 
-    void initInitialLength(uint32 length);
+    void initInitialLength(uint32_t length);
 
     void initData(ArgumentsData *data);
 
   public:
     /* Create an arguments object for the given callee function and frame. */
-    static ArgumentsObject *create(JSContext *cx, uint32 argc, JSObject &callee,
-                                   StackFrame *fp);
+    static ArgumentsObject *create(JSContext *cx, uint32_t argc, JSObject &callee);
 
     /*
      * Return the initial length of the arguments.  This may differ from the
      * current value of arguments.length!
      */
-    inline uint32 initialLength() const;
+    inline uint32_t initialLength() const;
 
     /* True iff arguments.length has been assigned or its attributes changed. */
     inline bool hasOverriddenLength() const;
@@ -192,7 +191,7 @@ class ArgumentsObject : public ::JSObject
      *
      * NB: Returning false does not indicate error!
      */
-    inline bool getElement(uint32 i, js::Value *vp);
+    inline bool getElement(uint32_t i, js::Value *vp);
 
     /*
      * Attempt to speedily and efficiently get elements [start, start + count)
@@ -203,13 +202,13 @@ class ArgumentsObject : public ::JSObject
      *
      * NB: Returning false does not indicate error!
      */
-    inline bool getElements(uint32 start, uint32 count, js::Value *vp);
+    inline bool getElements(uint32_t start, uint32_t count, js::Value *vp);
 
     inline js::ArgumentsData *data() const;
 
-    inline const js::Value &element(uint32 i) const;
+    inline const js::Value &element(uint32_t i) const;
     inline const js::Value *elements() const;
-    inline void setElement(uint32 i, const js::Value &v);
+    inline void setElement(uint32_t i, const js::Value &v);
 
     /* The stack frame for this ArgumentsObject, if the frame is still active. */
     inline js::StackFrame *maybeStackFrame() const;
@@ -221,7 +220,7 @@ class NormalArgumentsObject : public ArgumentsObject
     friend bool JSObject::isNormalArguments() const;
     friend struct EmptyShape; // for EmptyShape::getEmptyArgumentsShape
     friend ArgumentsObject *
-    ArgumentsObject::create(JSContext *cx, uint32 argc, JSObject &callee, StackFrame *fp);
+    ArgumentsObject::create(JSContext *cx, uint32_t argc, JSObject &callee);
 
   public:
     /*
@@ -238,30 +237,30 @@ class StrictArgumentsObject : public ArgumentsObject
 {
     friend bool JSObject::isStrictArguments() const;
     friend ArgumentsObject *
-    ArgumentsObject::create(JSContext *cx, uint32 argc, JSObject &callee, StackFrame *fp);
+    ArgumentsObject::create(JSContext *cx, uint32_t argc, JSObject &callee);
 };
 
 } // namespace js
 
-js::NormalArgumentsObject *
+js::NormalArgumentsObject &
 JSObject::asNormalArguments()
 {
     JS_ASSERT(isNormalArguments());
-    return reinterpret_cast<js::NormalArgumentsObject *>(this);
+    return *reinterpret_cast<js::NormalArgumentsObject *>(this);
 }
 
-js::StrictArgumentsObject *
+js::StrictArgumentsObject &
 JSObject::asStrictArguments()
 {
     JS_ASSERT(isStrictArguments());
-    return reinterpret_cast<js::StrictArgumentsObject *>(this);
+    return *reinterpret_cast<js::StrictArgumentsObject *>(this);
 }
 
-js::ArgumentsObject *
+js::ArgumentsObject &
 JSObject::asArguments()
 {
     JS_ASSERT(isArguments());
-    return reinterpret_cast<js::ArgumentsObject *>(this);
+    return *reinterpret_cast<js::ArgumentsObject *>(this);
 }
 
 #endif /* ArgumentsObject_h___ */

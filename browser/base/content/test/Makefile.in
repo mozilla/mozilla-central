@@ -83,19 +83,20 @@ endif
 #   browser_sanitize-download-history.js is bug 432425
 #
 # browser_sanitizeDialog_treeView.js is disabled until the tree view is added
-# back to the clear recent history dialog (santize.xul), if it ever is (bug
+# back to the clear recent history dialog (sanitize.xul), if it ever is (bug
 # 480169)
 
 # browser_drag.js is disabled, as it needs to be updated for the new behavior from bug 320638.
 
+# browser_bug321000.js is disabled because newline handling is shaky (bug 592528)
+
 _BROWSER_FILES = \
+                 head.js \
                  browser_typeAheadFind.js \
                  browser_keywordSearch.js \
-                 browser_NetworkPrioritizer.js \
                  browser_allTabsPanel.js \
                  browser_alltabslistener.js \
                  browser_bug304198.js \
-                 browser_bug321000.js \
                  title_test.svg \
                  browser_bug329212.js \
                  browser_bug356571.js \
@@ -132,6 +133,7 @@ _BROWSER_FILES = \
                  browser_bug533232.js \
                  browser_bug537474.js \
                  browser_bug550565.js \
+                 browser_bug553455.js \
                  browser_bug555224.js \
                  browser_bug555767.js \
                  browser_bug556061.js \
@@ -144,6 +146,7 @@ _BROWSER_FILES = \
                  browser_bug567306.js \
                  browser_zbug569342.js \
                  browser_bug575561.js \
+                 browser_bug575830.js \
                  browser_bug577121.js \
                  browser_bug578534.js \
                  browser_bug579872.js \
@@ -155,6 +158,7 @@ _BROWSER_FILES = \
                  browser_bug585785.js \
                  browser_bug585830.js \
                  browser_bug590206.js \
+                 browser_bug592338.js \
                  browser_bug594131.js \
                  browser_bug595507.js \
                  browser_bug596687.js \
@@ -163,11 +167,13 @@ _BROWSER_FILES = \
                  browser_bug599325.js \
                  browser_bug609700.js \
                  browser_bug616836.js \
+                 browser_bug623155.js \
                  browser_bug623893.js \
                  browser_bug624734.js \
                  browser_bug647886.js \
                  browser_bug655584.js \
                  browser_bug664672.js \
+                 browser_bug710878.js \
                  browser_canonizeURL.js \
                  browser_findbarClose.js \
                  browser_keywordBookmarklets.js \
@@ -209,6 +215,7 @@ _BROWSER_FILES = \
                  browser_tabfocus.js \
                  browser_tabs_isActive.js \
                  browser_tabs_owner.js \
+                 browser_urlbarAutoFillTrimURLs.js \
                  browser_urlbarCopying.js \
                  browser_urlbarEnter.js \
                  browser_urlbarTrimURLs.js \
@@ -252,6 +259,7 @@ _BROWSER_FILES = \
                  browser_minimize.js \
 								 browser_aboutSyncProgress.js \
                  browser_middleMouse_inherit.js \
+                 redirect_bug623155.sjs \
                  $(NULL)
 
 ifneq (cocoa,$(MOZ_WIDGET_TOOLKIT))

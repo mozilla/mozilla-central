@@ -432,7 +432,7 @@ JS_FunctionHasLocalNames(JSContext *cx, JSFunction *fun)
     return fun->script()->bindings.hasLocalNames();
 }
 
-extern JS_PUBLIC_API(jsuword *)
+extern JS_PUBLIC_API(uintptr_t *)
 JS_GetFunctionLocalNameArray(JSContext *cx, JSFunction *fun, void **markp)
 {
     Vector<JSAtom *> localNames(cx);
@@ -442,18 +442,19 @@ JS_GetFunctionLocalNameArray(JSContext *cx, JSFunction *fun, void **markp)
     /* Munge data into the API this method implements.  Avert your eyes! */
     *markp = cx->tempLifoAlloc().mark();
 
-    jsuword *names = cx->tempLifoAlloc().newArray<jsuword>(localNames.length());
+    uintptr_t *names = cx->tempLifoAlloc().newArray<uintptr_t>(localNames.length());
     if (!names) {
         js_ReportOutOfMemory(cx);
         return NULL;
     }
 
-    memcpy(names, localNames.begin(), localNames.length() * sizeof(jsuword));
+    JS_ASSERT(sizeof(*names) == sizeof(*localNames.begin()));
+    js_memcpy(names, localNames.begin(), localNames.length() * sizeof(*names));
     return names;
 }
 
 extern JS_PUBLIC_API(JSAtom *)
-JS_LocalNameToAtom(jsuword w)
+JS_LocalNameToAtom(uintptr_t w)
 {
     return JS_LOCAL_NAME_TO_ATOM(w);
 }
@@ -486,6 +487,12 @@ JS_PUBLIC_API(JSPrincipals *)
 JS_GetScriptPrincipals(JSContext *cx, JSScript *script)
 {
     return script->principals;
+}
+
+JS_PUBLIC_API(JSPrincipals *)
+JS_GetScriptOriginPrincipals(JSContext *cx, JSScript *script)
+{
+    return script->originPrincipals;
 }
 
 /************************************************************************/
@@ -526,7 +533,7 @@ JS_GetFrameAnnotation(JSContext *cx, JSStackFrame *fpArg)
     if (fp->annotation() && fp->isScriptFrame()) {
         JSPrincipals *principals = fp->scopeChain().principals(cx);
 
-        if (principals && principals->globalPrivilegesEnabled(cx, principals)) {
+        if (principals) {
             /*
              * Give out an annotation only if privileges have not been revoked
              * or disabled globally.
@@ -542,17 +549,6 @@ JS_PUBLIC_API(void)
 JS_SetFrameAnnotation(JSContext *cx, JSStackFrame *fp, void *annotation)
 {
     Valueify(fp)->setAnnotation(annotation);
-}
-
-JS_PUBLIC_API(void *)
-JS_GetFramePrincipalArray(JSContext *cx, JSStackFrame *fp)
-{
-    JSPrincipals *principals;
-
-    principals = Valueify(fp)->scopeChain().principals(cx);
-    if (!principals)
-        return NULL;
-    return principals->getPrincipalArray(cx, principals);
 }
 
 JS_PUBLIC_API(JSBool)
@@ -641,7 +637,7 @@ JS_GetScriptFunction(JSContext *cx, JSScript *script)
 JS_PUBLIC_API(JSObject *)
 JS_GetParentOrScopeChain(JSContext *cx, JSObject *obj)
 {
-    return obj->scopeChain();
+    return obj->enclosingScope();
 }
 
 JS_PUBLIC_API(JSBool)
@@ -664,7 +660,6 @@ JS_GetValidFrameCalleeObject(JSContext *cx, JSStackFrame *fp, jsval *vp)
     if (!Valueify(fp)->getValidCalleeObject(cx, &v))
         return false;
     *vp = v.isObject() ? v : JSVAL_VOID;
-    *vp = v;
     return true;
 }
 
@@ -861,15 +856,6 @@ JS_GetPropertyDesc(JSContext *cx, JSObject *obj, JSScopeProperty *sprop,
     }
     pd->alias = JSVAL_VOID;
 
-    if (obj->containsSlot(shape->slot())) {
-        for (Shape::Range r = obj->lastProperty()->all(); !r.empty(); r.popFront()) {
-            const Shape &aprop = r.front();
-            if (&aprop != shape && aprop.slot() == shape->slot()) {
-                pd->alias = IdToJsval(aprop.propid());
-                break;
-            }
-        }
-    }
     return JS_TRUE;
 }
 
@@ -893,11 +879,11 @@ JS_GetPropertyDescArray(JSContext *cx, JSObject *obj, JSPropertyDescArray *pda)
         return JS_TRUE;
     }
 
-    uint32 n = obj->propertyCount();
+    uint32_t n = obj->propertyCount();
     JSPropertyDesc *pd = (JSPropertyDesc *) cx->malloc_(size_t(n) * sizeof(JSPropertyDesc));
     if (!pd)
         return JS_FALSE;
-    uint32 i = 0;
+    uint32_t i = 0;
     for (Shape::Range r = obj->lastProperty()->all(); !r.empty(); r.popFront()) {
         if (!js_AddRoot(cx, &pd[i].id, NULL))
             goto bad;
@@ -926,7 +912,7 @@ JS_PUBLIC_API(void)
 JS_PutPropertyDescArray(JSContext *cx, JSPropertyDescArray *pda)
 {
     JSPropertyDesc *pd;
-    uint32 i;
+    uint32_t i;
 
     pd = pda->array;
     for (i = 0; i < pda->length; i++) {
@@ -1490,36 +1476,18 @@ JS_DefineProfilingFunctions(JSContext *cx, JSObject *obj)
 
 #include <valgrind/callgrind.h>
 
-/*
- * Wrapper for callgrind macros to stop warnings coming from their expansions.
- */ 
-#if (__GNUC__ >= 5) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
-# define WRAP_CALLGRIND(call)                                                 \
-    JS_BEGIN_MACRO                                                            \
-        _Pragma("GCC diagnostic push")                                        \
-        _Pragma("GCC diagnostic ignored \"-Wunused-but-set-variable\"")       \
-        call;                                                                 \
-        _Pragma("GCC diagnostic pop")                                         \
-    JS_END_MACRO
-#else
-# define WRAP_CALLGRIND(call)                                                 \
-    JS_BEGIN_MACRO                                                            \
-        call;                                                                 \
-    JS_END_MACRO
-#endif
-
 JS_FRIEND_API(JSBool)
 js_StartCallgrind()
 {
-    WRAP_CALLGRIND(CALLGRIND_START_INSTRUMENTATION);
-    WRAP_CALLGRIND(CALLGRIND_ZERO_STATS);
+    JS_SILENCE_UNUSED_VALUE_IN_EXPR(CALLGRIND_START_INSTRUMENTATION);
+    JS_SILENCE_UNUSED_VALUE_IN_EXPR(CALLGRIND_ZERO_STATS);
     return true;
 }
 
 JS_FRIEND_API(JSBool)
 js_StopCallgrind()
 {
-    WRAP_CALLGRIND(CALLGRIND_STOP_INSTRUMENTATION);
+    JS_SILENCE_UNUSED_VALUE_IN_EXPR(CALLGRIND_STOP_INSTRUMENTATION);
     return true;
 }
 
@@ -1527,9 +1495,9 @@ JS_FRIEND_API(JSBool)
 js_DumpCallgrind(const char *outfile)
 {
     if (outfile) {
-        WRAP_CALLGRIND(CALLGRIND_DUMP_STATS_AT(outfile));
+        JS_SILENCE_UNUSED_VALUE_IN_EXPR(CALLGRIND_DUMP_STATS_AT(outfile));
     } else {
-        WRAP_CALLGRIND(CALLGRIND_DUMP_STATS);
+        JS_SILENCE_UNUSED_VALUE_IN_EXPR(CALLGRIND_DUMP_STATS);
     }
 
     return true;
@@ -1685,32 +1653,28 @@ DumpBytecodeScriptCallback(JSContext *cx, void *data, void *thing,
                            JSGCTraceKind traceKind, size_t thingSize)
 {
     JS_ASSERT(traceKind == JSTRACE_SCRIPT);
-    JS_ASSERT(!data);
     JSScript *script = static_cast<JSScript *>(thing);
-    JS_DumpBytecode(cx, script);
+    reinterpret_cast<Vector<JSScript *> *>(data)->append(script);
 }
 
 JS_PUBLIC_API(void)
 JS_DumpCompartmentBytecode(JSContext *cx)
 {
-    IterateCells(cx, cx->compartment, gc::FINALIZE_SCRIPT, NULL, DumpBytecodeScriptCallback);
-}
+    Vector<JSScript *> scripts(cx);
+    IterateCells(cx, cx->compartment, gc::FINALIZE_SCRIPT, &scripts, DumpBytecodeScriptCallback);
 
-static void
-DumpPCCountsScriptCallback(JSContext *cx, void *data, void *thing,
-                           JSGCTraceKind traceKind, size_t thingSize)
-{
-    JS_ASSERT(traceKind == JSTRACE_SCRIPT);
-    JS_ASSERT(!data);
-    JSScript *script = static_cast<JSScript *>(thing);
-    if (script->pcCounters)
-        JS_DumpPCCounts(cx, script);
+    for (size_t i = 0; i < scripts.length(); i++)
+        JS_DumpBytecode(cx, scripts[i]);
 }
 
 JS_PUBLIC_API(void)
 JS_DumpCompartmentPCCounts(JSContext *cx)
 {
-    IterateCells(cx, cx->compartment, gc::FINALIZE_SCRIPT, NULL, DumpPCCountsScriptCallback);
+    for (CellIter i(cx, cx->compartment, gc::FINALIZE_SCRIPT); !i.done(); i.next()) {
+        JSScript *script = i.get<JSScript>();
+        if (script->pcCounters)
+            JS_DumpPCCounts(cx, script);
+    }
 }
 
 JS_PUBLIC_API(JSObject *)

@@ -47,6 +47,7 @@ import android.graphics.Color;
 import android.graphics.LightingColorFilter;
 import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.provider.Browser;
 import android.util.AttributeSet;
 import android.util.Base64;
@@ -352,9 +353,13 @@ public class AwesomeBarTabs extends TabHost {
 
             if (delta < 0) {
                 return HistorySection.TODAY;
-            } else if (delta > 0 && delta < MS_PER_DAY) {
+            }
+
+            if (delta < MS_PER_DAY) {
                 return HistorySection.YESTERDAY;
-            } else if (delta > MS_PER_DAY && delta < MS_PER_WEEK) {
+            }
+
+            if (delta < MS_PER_WEEK) {
                 return HistorySection.WEEK;
             }
 
@@ -475,11 +480,14 @@ public class AwesomeBarTabs extends TabHost {
 
         private Drawable getDrawableFromDataURI(String dataURI) {
             String base64 = dataURI.substring(dataURI.indexOf(',') + 1);
-            byte[] bytes = Base64.decode(base64, Base64.DEFAULT);
-            ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
-            Drawable drawable = (Drawable) Drawable.createFromStream(stream, "src");
+            Drawable drawable = null;
             try {
+                byte[] bytes = Base64.decode(base64, Base64.DEFAULT);
+                ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
+                drawable = Drawable.createFromStream(stream, "src");
                 stream.close();
+            } catch (IllegalArgumentException e) {
+                Log.i(LOGTAG, "exception while decoding drawable: " + base64, e);
             } catch (IOException e) { }
             return drawable;
         }
@@ -503,7 +511,9 @@ public class AwesomeBarTabs extends TabHost {
 
             titleView.setText(name);
             urlView.setText(searchText);
-            faviconView.setImageDrawable(getDrawableFromDataURI(iconURI));
+            Drawable drawable = getDrawableFromDataURI(iconURI);
+            if (drawable != null)
+                faviconView.setImageDrawable(drawable);
         }
     };
 
@@ -617,7 +627,15 @@ public class AwesomeBarTabs extends TabHost {
         mAllPagesCursorAdapter.setFilterQueryProvider(new FilterQueryProvider() {
             public Cursor runQuery(CharSequence constraint) {
                 ContentResolver resolver = mContext.getContentResolver();
-                return BrowserDB.filter(resolver, constraint, MAX_RESULTS);
+                long start = SystemClock.uptimeMillis();
+
+                Cursor c = BrowserDB.filter(resolver, constraint, MAX_RESULTS);
+                c.getCount(); // ensure the query runs at least once
+
+                long end = SystemClock.uptimeMillis();
+                Log.i(LOGTAG, "Got cursor in " + (end - start) + "ms");
+
+                return c;
             }
         });
 

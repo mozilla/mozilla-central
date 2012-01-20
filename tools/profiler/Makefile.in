@@ -78,21 +78,27 @@ EXTRA_JS_MODULES = \
   Profiler.jsm \
   $(NULL)
 
-ifeq ($(OS_TARGET),Android)
+ifneq (,$(filter Android Linux,$(OS_TARGET)))
 
 DEFINES += -DMOZ_ENABLE_PROFILER_SPS
 
 CPPSRCS += \
+  shared-libraries-linux.cc \
   platform-linux.cc \
   TableTicker.cpp \
   $(NULL)
 endif
 ifeq ($(OS_TARGET),Darwin)
+# For now we use platform-linux.cc because we can't unwind
+# another thread on mac using backtrace(), the implementation
+# for platform-macosx.cc is in the hg history and should be
+# used when we can stackwalk using a thread handle.
 
 DEFINES += -DMOZ_ENABLE_PROFILER_SPS
 
 CPPSRCS += \
-  platform-macos.cc \
+  shared-libraries-macos.cc \
+  platform-linux.cc \
   TableTicker.cpp \
   $(NULL)
 endif
@@ -102,6 +108,7 @@ ifeq ($(OS_TARGET),WINNT)
 DEFINES += -DMOZ_ENABLE_PROFILER_SPS
 
 CPPSRCS += \
+  shared-libraries-win32.cc \
   platform-win32.cc \
   TableTicker.cpp \
   $(NULL)

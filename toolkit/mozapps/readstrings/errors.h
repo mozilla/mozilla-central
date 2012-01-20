@@ -40,7 +40,7 @@
 #define Errors_h__
 
 #define OK 0
-#define MEM_ERROR 1
+//#define MEM_ERROR 1  // Replaced with errors 10-16 (inclusive)
 // #define IO_ERROR 2  // Use READ_ERROR or WRITE_ERROR instead
 #define USAGE_ERROR 3
 #define CRC_ERROR 4
@@ -49,5 +49,20 @@
 #define WRITE_ERROR 7
 #define UNEXPECTED_ERROR 8
 #define ELEVATION_CANCELED 9
+#define READ_STRINGS_MEM_ERROR 10
+#define ARCHIVE_READER_MEM_ERROR 11
+#define BSPATCH_MEM_ERROR 12
+#define UPDATER_MEM_ERROR 13
+#define UPDATER_QUOTED_PATH_MEM_ERROR 14
+#define BAD_ACTION_ERROR 15
+#define STRING_CONVERSION_ERROR 16
+
+// The following error codes are only used by updater.exe
+// when a fallback key exists and XPCShell tests are being run.
+#define FALLBACKKEY_UNKNOWN_ERROR 100
+#define FALLBACKKEY_REGPATH_ERROR 101
+#define FALLBACKKEY_NOKEY_ERROR 102
+#define FALLBACKKEY_SERVICE_NO_STOP_ERROR 103
+#define FALLBACKKEY_LAUNCH_ERROR 104
 
 #endif  // Errors_h__

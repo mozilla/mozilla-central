@@ -63,6 +63,7 @@ class nsDiskCacheDevice;
 class nsMemoryCacheDevice;
 class nsOfflineCacheDevice;
 class nsCacheServiceAutoLock;
+class nsITimer;
 
 
 /******************************************************************************
@@ -123,6 +124,7 @@ public:
 
     static nsresult  ValidateEntry(nsCacheEntry * entry);
 
+    static PRInt32   CacheCompressionLevel();
 
     /**
      * Methods called by any cache classes
@@ -176,6 +178,8 @@ public:
 
     static void      SetMemoryCache();
 
+    static void      SetCacheCompressionLevel(PRInt32 level);
+
     static void      OnEnterExitPrivateBrowsing();
 
     // Starts smart cache size computation if disk device is available
@@ -193,6 +197,7 @@ private:
     friend class nsProcessRequestEvent;
     friend class nsSetSmartSizeEvent;
     friend class nsBlockOnCacheThreadEvent;
+    friend class nsSetDiskSmartSizeCallback;
 
     /**
      * Internal Methods
@@ -261,7 +266,7 @@ private:
     void LogCacheStatistics();
 #endif
 
-    nsresult         SetDiskSmartSize_Locked(bool checkPref);
+    nsresult         SetDiskSmartSize_Locked();
 
     /**
      *  Data Members
@@ -277,6 +282,7 @@ private:
     nsCOMPtr<nsIThread>             mCacheIOThread;
 
     nsTArray<nsISupports*>          mDoomedObjects;
+    nsCOMPtr<nsITimer>              mSmartSizeTimer;
     
     bool                            mInitialized;
     

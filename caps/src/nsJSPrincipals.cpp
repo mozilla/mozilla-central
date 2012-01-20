@@ -50,18 +50,6 @@
 #include "nsMemory.h"
 #include "nsStringBuffer.h"
 
-static void *
-nsGetPrincipalArray(JSContext *cx, JSPrincipals *prin)
-{
-    return nsnull;
-}
-
-static JSBool
-nsGlobalPrivilegesEnabled(JSContext *cx, JSPrincipals *jsprin)
-{
-    return JS_TRUE;
-}
-
 static JSBool
 nsJSPrincipalsSubsume(JSPrincipals *jsprin, JSPrincipals *other)
 {
@@ -110,7 +98,7 @@ nsTranscodeJSPrincipals(JSXDRState *xdr, JSPrincipals **jsprinp)
             reinterpret_cast<nsIObjectOutputStream*>(xdr->userdata);
 
         // Flush xdr'ed data to the underlying object output stream.
-        uint32 size;
+        uint32_t size;
         char *data = (char*) ::JS_XDRMemGetData(xdr, &size);
 
         rv = stream->Write32(size);
@@ -143,7 +131,7 @@ nsTranscodeJSPrincipals(JSXDRState *xdr, JSPrincipals **jsprinp)
                     rv = stream->ReadBytes(size, &data);
                 if (NS_SUCCEEDED(rv)) {
                     char *olddata;
-                    uint32 oldsize;
+                    uint32_t oldsize;
 
                     // Any decode-mode JSXDRState whose userdata points to an
                     // nsIObjectInputStream instance must use nsMemory to Alloc
@@ -192,8 +180,6 @@ nsJSPrincipals::Startup()
 nsJSPrincipals::nsJSPrincipals()
 {
     codebase = nsnull;
-    getPrincipalArray = nsGetPrincipalArray;
-    globalPrivilegesEnabled = nsGlobalPrivilegesEnabled;
     refcount = 0;
     destroy = nsDestroyJSPrincipals;
     subsume = nsJSPrincipalsSubsume;

@@ -1495,7 +1495,7 @@ public:
    * Register/Unregister a filedata uri as being "owned" by this document. 
    * I.e. that its lifetime is connected with this document. When the document
    * goes away it should "kill" the uri by calling
-   * nsFileDataProtocolHandler::RemoveFileDataEntry
+   * nsBlobProtocolHandler::RemoveFileDataEntry
    */
   virtual void RegisterFileDataUri(const nsACString& aUri) = 0;
   virtual void UnregisterFileDataUri(const nsACString& aUri) = 0;
@@ -1600,6 +1600,20 @@ public:
   void WarnOnceAbout(DeprecatedOperations aOperation);
 
   virtual void PostVisibilityUpdateEvent() = 0;
+
+  void SetNeedLayoutFlush() {
+    mNeedLayoutFlush = true;
+    if (mDisplayDocument) {
+      mDisplayDocument->SetNeedLayoutFlush();
+    }
+  }
+
+  void SetNeedStyleFlush() {
+    mNeedStyleFlush = true;
+    if (mDisplayDocument) {
+      mDisplayDocument->SetNeedStyleFlush();
+    }
+  }
 
 private:
   PRUint64 mWarnedAbout;
@@ -1764,6 +1778,12 @@ protected:
 
   // True if this document has links whose state needs updating
   bool mHasLinksToUpdate;
+
+  // True if a layout flush might not be a no-op
+  bool mNeedLayoutFlush;
+
+  // True if a style flush might not be a no-op
+  bool mNeedStyleFlush;
 
   // The document's script global object, the object from which the
   // document can get its script context and scope. This is the

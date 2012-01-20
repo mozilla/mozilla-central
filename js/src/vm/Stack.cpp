@@ -78,7 +78,7 @@ StackFrame::initExecuteFrame(JSScript *script, StackFrame *prev, FrameRegs *regs
      * script in the context of another frame and the frame type is determined
      * by the context.
      */
-    flags_ = type | HAS_SCOPECHAIN | HAS_PREVPC;
+    flags_ = type | HAS_SCOPECHAIN | HAS_BLOCKCHAIN | HAS_PREVPC;
     if (!(flags_ & GLOBAL))
         flags_ |= (prev->flags_ & (FUNCTION | GLOBAL));
 
@@ -88,13 +88,13 @@ StackFrame::initExecuteFrame(JSScript *script, StackFrame *prev, FrameRegs *regs
     if (isFunctionFrame()) {
         dstvp[0] = prev->calleev();
         exec = prev->exec;
-        args.script = script;
+        u.evalScript = script;
     } else {
         JS_ASSERT(isGlobalFrame());
         dstvp[0] = NullValue();
         exec.script = script;
 #ifdef DEBUG
-        args.script = (JSScript *)0xbad;
+        u.evalScript = (JSScript *)0xbad;
 #endif
     }
 
@@ -102,6 +102,7 @@ StackFrame::initExecuteFrame(JSScript *script, StackFrame *prev, FrameRegs *regs
     prev_ = prev;
     prevpc_ = regs ? regs->pc : (jsbytecode *)0xbad;
     prevInline_ = regs ? regs->inlined() : NULL;
+    blockChain_ = NULL;
 
 #ifdef DEBUG
     ncode_ = (void *)0xbad;
@@ -147,13 +148,12 @@ StackFrame::stealFrameAndSlots(Value *vp, StackFrame *otherfp,
      * js_LiveFrameToFloating comment in jsiter.h.
      */
     if (hasCallObj()) {
-        JSObject &obj = callObj();
-        obj.setPrivate(this);
+        CallObject &obj = callObj();
+        obj.setStackFrame(this);
         otherfp->flags_ &= ~HAS_CALL_OBJ;
         if (js_IsNamedLambda(fun())) {
-            JSObject *env = obj.internalScopeChain();
-            JS_ASSERT(env->isDeclEnv());
-            env->setPrivate(this);
+            DeclEnvObject &env = obj.enclosingScope().asDeclEnv();
+            env.setStackFrame(this);
         }
     }
     if (hasArgsObj()) {
@@ -234,26 +234,7 @@ StackSegment::contains(const CallArgsList *call) const
 
     /* NB: this depends on the continuity of segments in memory. */
     Value *vp = call->array();
-    bool ret = vp > slotsBegin() && vp <= calls_->array();
-
-    /*
-     * :XXX: Disabled. Including this check changes the asymptotic complexity
-     * of code which calls this function.
-     */
-#if 0
-#ifdef DEBUG
-    bool found = false;
-    for (CallArgsList *c = maybeCalls(); c->argv() > slotsBegin(); c = c->prev()) {
-        if (c == call) {
-            found = true;
-            break;
-        }
-    }
-    JS_ASSERT(found == ret);
-#endif
-#endif
-
-    return ret;
+    return vp > slotsBegin() && vp <= calls_->array();
 }
 
 StackFrame *
@@ -471,7 +452,7 @@ StackSpace::ensureSpaceSlow(JSContext *cx, MaybeReportError report, Value *from,
         } while (newCommit < request);
 
         /* The cast is safe because CAPACITY_BYTES is small. */
-        int32 size = static_cast<int32>(newCommit - commitEnd_) * sizeof(Value);
+        int32_t size = static_cast<int32_t>(newCommit - commitEnd_) * sizeof(Value);
 
         if (!VirtualAlloc(commitEnd_, size, MEM_COMMIT, PAGE_READWRITE)) {
             if (report)
@@ -588,7 +569,8 @@ ContextStack::ensureOnTop(JSContext *cx, MaybeReportError report, uintN nvars,
     if (FrameRegs *regs = cx->maybeRegs()) {
         JSFunction *fun = NULL;
         if (JSInlinedSite *site = regs->inlined()) {
-            fun = regs->fp()->jit()->inlineFrames()[site->inlineIndex].fun;
+            mjit::JITChunk *chunk = regs->fp()->jit()->chunk(regs->pc);
+            fun = chunk->inlineFrames()[site->inlineIndex].fun;
         } else {
             StackFrame *fp = regs->fp();
             if (fp->isFunctionFrame()) {
@@ -682,7 +664,7 @@ ContextStack::pushInvokeFrame(JSContext *cx, const CallArgs &args,
     JSFunction *fun = callee.toFunction();
     JSScript *script = fun->script();
 
-    /*StackFrame::Flags*/ uint32 flags = ToFrameFlags(initial);
+    /*StackFrame::Flags*/ uint32_t flags = ToFrameFlags(initial);
     StackFrame *fp = getCallFrame(cx, REPORT_ERROR, args, fun, script, &flags);
     if (!fp)
         return false;
@@ -757,7 +739,7 @@ ContextStack::pushDummyFrame(JSContext *cx, JSCompartment *dest, JSObject &scope
     uintN nvars = VALUES_PER_STACK_FRAME;
     Value *firstUnused = ensureOnTop(cx, REPORT_ERROR, nvars, CAN_EXTEND, &dfg->pushedSeg_, dest);
     if (!firstUnused)
-        return NULL;
+        return false;
 
     StackFrame *fp = reinterpret_cast<StackFrame *>(firstUnused);
     fp->initDummyFrame(cx, scopeChain);

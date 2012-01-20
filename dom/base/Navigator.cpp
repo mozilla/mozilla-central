@@ -71,6 +71,14 @@
 #include "BatteryManager.h"
 #include "SmsManager.h"
 #include "nsISmsService.h"
+#include "mozilla/Hal.h"
+#include "nsIWebNavigation.h"
+#include "mozilla/ClearOnShutdown.h"
+#include "Connection.h"
+
+#ifdef MOZ_B2G_RIL
+#include "TelephonyFactory.h"
+#endif
 
 // This should not be in the namespace.
 DOMCI_DATA(Navigator, mozilla::dom::Navigator)
@@ -79,7 +87,11 @@ namespace mozilla {
 namespace dom {
 
 static const char sJSStackContractID[] = "@mozilla.org/js/xpc/ContextStack;1";
-bool Navigator::sDoNotTrackEnabled = false;
+
+static bool sDoNotTrackEnabled = false;
+static bool sVibratorEnabled   = false;
+static PRUint32 sMaxVibrateMS  = 0;
+static PRUint32 sMaxVibrateListLen = 0;
 
 /* static */
 void
@@ -88,6 +100,12 @@ Navigator::Init()
   Preferences::AddBoolVarCache(&sDoNotTrackEnabled,
                                "privacy.donottrackheader.enabled",
                                false);
+  Preferences::AddBoolVarCache(&sVibratorEnabled,
+                               "dom.vibrator.enabled", true);
+  Preferences::AddUintVarCache(&sMaxVibrateMS,
+                               "dom.vibrator.max_vibrate_ms", 10000);
+  Preferences::AddUintVarCache(&sMaxVibrateListLen,
+                               "dom.vibrator.max_vibrate_list_len", 128);
 }
 
 Navigator::Navigator(nsPIDOMWindow* aWindow)
@@ -110,6 +128,10 @@ NS_INTERFACE_MAP_BEGIN(Navigator)
   NS_INTERFACE_MAP_ENTRY(nsIDOMMozNavigatorBattery)
   NS_INTERFACE_MAP_ENTRY(nsIDOMNavigatorDesktopNotification)
   NS_INTERFACE_MAP_ENTRY(nsIDOMMozNavigatorSms)
+#ifdef MOZ_B2G_RIL
+  NS_INTERFACE_MAP_ENTRY(nsIDOMNavigatorTelephony)
+#endif
+  NS_INTERFACE_MAP_ENTRY(nsIDOMMozNavigatorNetwork)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(Navigator)
 NS_INTERFACE_MAP_END
 
@@ -145,6 +167,17 @@ Navigator::Invalidate()
   if (mSmsManager) {
     mSmsManager->Shutdown();
     mSmsManager = nsnull;
+  }
+
+#ifdef MOZ_B2G_RIL
+  if (mTelephony) {
+    mTelephony = nsnull;
+  }
+#endif
+
+  if (mConnection) {
+    mConnection->Shutdown();
+    mConnection = nsnull;
   }
 }
 
@@ -527,6 +560,176 @@ Navigator::HasDesktopNotificationSupport()
   return Preferences::GetBool("notification.feature.enabled", false);
 }
 
+namespace {
+
+class VibrateWindowListener : public nsIDOMEventListener
+{
+public:
+  VibrateWindowListener(nsIDOMWindow *aWindow, nsIDOMDocument *aDocument)
+  {
+    mWindow = do_GetWeakReference(aWindow);
+    mDocument = do_GetWeakReference(aDocument);
+
+    nsCOMPtr<nsIDOMEventTarget> target = do_QueryInterface(aDocument);
+    NS_NAMED_LITERAL_STRING(visibilitychange, "mozvisibilitychange");
+    target->AddSystemEventListener(visibilitychange,
+                                   this, /* listener */
+                                   true, /* use capture */
+                                   false /* wants untrusted */);
+  }
+
+  virtual ~VibrateWindowListener()
+  {
+  }
+
+  void RemoveListener();
+
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIDOMEVENTLISTENER
+
+private:
+  nsWeakPtr mWindow;
+  nsWeakPtr mDocument;
+};
+
+NS_IMPL_ISUPPORTS1(VibrateWindowListener, nsIDOMEventListener)
+
+nsRefPtr<VibrateWindowListener> gVibrateWindowListener;
+
+NS_IMETHODIMP
+VibrateWindowListener::HandleEvent(nsIDOMEvent* aEvent)
+{
+  nsCOMPtr<nsIDOMEventTarget> target;
+  aEvent->GetTarget(getter_AddRefs(target));
+  nsCOMPtr<nsIDOMDocument> doc = do_QueryInterface(target);
+
+  bool hidden = true;
+  if (doc) {
+    doc->GetMozHidden(&hidden);
+  }
+
+  if (hidden) {
+    // It's important that we call CancelVibrate(), not Vibrate() with an
+    // empty list, because Vibrate() will fail if we're no longer focused, but
+    // CancelVibrate() will succeed, so long as nobody else has started a new
+    // vibration pattern.
+    nsCOMPtr<nsIDOMWindow> window = do_QueryReferent(mWindow);
+    hal::CancelVibrate(window);
+    RemoveListener();
+    gVibrateWindowListener = NULL;
+    // Careful: The line above might have deleted |this|!
+  }
+
+  return NS_OK;
+}
+
+void
+VibrateWindowListener::RemoveListener()
+{
+  nsCOMPtr<nsIDOMEventTarget> target = do_QueryReferent(mDocument);
+  if (!target) {
+    return;
+  }
+  NS_NAMED_LITERAL_STRING(visibilitychange, "mozvisibilitychange");
+  target->RemoveSystemEventListener(visibilitychange, this,
+                                    true /* use capture */);
+}
+
+/**
+ * Converts a jsval into a vibration duration, checking that the duration is in
+ * bounds (non-negative and not larger than sMaxVibrateMS).
+ *
+ * Returns true on success, false on failure.
+ */
+bool
+GetVibrationDurationFromJsval(const jsval& aJSVal, JSContext* cx,
+                              PRInt32 *aOut)
+{
+  return JS_ValueToInt32(cx, aJSVal, aOut) &&
+         *aOut >= 0 && static_cast<PRUint32>(*aOut) <= sMaxVibrateMS;
+}
+
+} // anonymous namespace
+
+NS_IMETHODIMP
+Navigator::MozVibrate(const jsval& aPattern, JSContext* cx)
+{
+  nsCOMPtr<nsPIDOMWindow> win = do_QueryReferent(mWindow);
+  NS_ENSURE_TRUE(win, NS_OK);
+
+  nsIDOMDocument* domDoc = win->GetExtantDocument();
+  NS_ENSURE_TRUE(domDoc, NS_ERROR_FAILURE);
+
+  bool hidden = true;
+  domDoc->GetMozHidden(&hidden);
+  if (hidden) {
+    // Hidden documents cannot start or stop a vibration.
+    return NS_OK;
+  }
+
+  nsAutoTArray<PRUint32, 8> pattern;
+
+  // null or undefined pattern is an error.
+  if (JSVAL_IS_NULL(aPattern) || JSVAL_IS_VOID(aPattern)) {
+    return NS_ERROR_DOM_NOT_SUPPORTED_ERR;
+  }
+
+  if (JSVAL_IS_PRIMITIVE(aPattern)) {
+    PRInt32 p;
+    if (GetVibrationDurationFromJsval(aPattern, cx, &p)) {
+      pattern.AppendElement(p);
+    }
+    else {
+      return NS_ERROR_DOM_NOT_SUPPORTED_ERR;
+    }
+  }
+  else {
+    JSObject *obj = JSVAL_TO_OBJECT(aPattern);
+    PRUint32 length;
+    if (!JS_GetArrayLength(cx, obj, &length) || length > sMaxVibrateListLen) {
+      return NS_ERROR_DOM_NOT_SUPPORTED_ERR;
+    }
+    pattern.SetLength(length);
+
+    for (PRUint32 i = 0; i < length; ++i) {
+      jsval v;
+      PRInt32 pv;
+      if (JS_GetElement(cx, obj, i, &v) &&
+          GetVibrationDurationFromJsval(v, cx, &pv)) {
+        pattern[i] = pv;
+      }
+      else {
+        return NS_ERROR_DOM_NOT_SUPPORTED_ERR;
+      }
+    }
+  }
+
+  // The spec says we check sVibratorEnabled after we've done the sanity
+  // checking on the pattern.
+  if (!sVibratorEnabled) {
+    return NS_OK;
+  }
+
+  // Add a listener to cancel the vibration if the document becomes hidden,
+  // and remove the old mozvisibility listener, if there was one.
+
+  if (!gVibrateWindowListener) {
+    // If gVibrateWindowListener is null, this is the first time we've vibrated,
+    // and we need to register a listener to clear gVibrateWindowListener on
+    // shutdown.
+    ClearOnShutdown(&gVibrateWindowListener);
+  }
+  else {
+    gVibrateWindowListener->RemoveListener();
+  }
+  gVibrateWindowListener = new VibrateWindowListener(win, domDoc);
+
+  nsCOMPtr<nsIDOMWindow> domWindow =
+    do_QueryInterface(static_cast<nsIDOMWindow*>(win));
+  hal::Vibrate(pattern, domWindow);
+  return NS_OK;
+}
+
 //*****************************************************************************
 //    Navigator::nsIDOMClientInformation
 //*****************************************************************************
@@ -798,13 +1001,17 @@ Navigator::IsSmsAllowed() const
 bool
 Navigator::IsSmsSupported() const
 {
-  nsCOMPtr<nsISmsService> smsService = do_GetService(SMSSERVICE_CONTRACTID);
+#ifdef MOZ_WEBSMS_BACKEND
+  nsCOMPtr<nsISmsService> smsService = do_GetService(SMS_SERVICE_CONTRACTID);
   NS_ENSURE_TRUE(smsService, false);
 
   bool result = false;
   smsService->HasSupport(&result);
 
   return result;
+#else
+  return false;
+#endif
 }
 
 NS_IMETHODIMP
@@ -835,6 +1042,61 @@ Navigator::GetMozSms(nsIDOMMozSmsManager** aSmsManager)
   return NS_OK;
 }
 
+#ifdef MOZ_B2G_RIL
+
+//*****************************************************************************
+//    nsNavigator::nsIDOMNavigatorTelephony
+//*****************************************************************************
+
+NS_IMETHODIMP
+Navigator::GetMozTelephony(nsIDOMTelephony** aTelephony)
+{
+  nsCOMPtr<nsIDOMTelephony> telephony = mTelephony;
+
+  if (!telephony) {
+    nsCOMPtr<nsPIDOMWindow> window = do_QueryReferent(mWindow);
+    NS_ENSURE_TRUE(window, NS_ERROR_FAILURE);
+
+    nsresult rv = NS_NewTelephony(window, getter_AddRefs(mTelephony));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    // mTelephony may be null here!
+    telephony = mTelephony;
+  }
+
+  telephony.forget(aTelephony);
+  return NS_OK;
+}
+
+#endif // MOZ_B2G_RIL
+
+//*****************************************************************************
+//    Navigator::nsIDOMNavigatorNetwork
+//*****************************************************************************
+
+NS_IMETHODIMP
+Navigator::GetMozConnection(nsIDOMMozConnection** aConnection)
+{
+  *aConnection = nsnull;
+
+  if (!mConnection) {
+    nsCOMPtr<nsPIDOMWindow> window = do_QueryReferent(mWindow);
+    NS_ENSURE_TRUE(window && window->GetDocShell(), NS_OK);
+
+    nsCOMPtr<nsIScriptGlobalObject> sgo = do_QueryInterface(window);
+    NS_ENSURE_TRUE(sgo, NS_OK);
+
+    nsIScriptContext* scx = sgo->GetContext();
+    NS_ENSURE_TRUE(scx, NS_OK);
+
+    mConnection = new network::Connection();
+    mConnection->Init(window, scx);
+  }
+
+  NS_ADDREF(*aConnection = mConnection);
+  return NS_OK;
+}
+
 PRInt64
 Navigator::SizeOf() const
 {
@@ -850,6 +1112,14 @@ Navigator::SizeOf() const
   size += mNotification ? sizeof(*mNotification.get()) : 0;
 
   return size;
+}
+
+void
+Navigator::SetWindow(nsPIDOMWindow *aInnerWindow)
+{
+  NS_ASSERTION(aInnerWindow->IsInnerWindow(),
+               "Navigator must get an inner window!");
+  mWindow = do_GetWeakReference(aInnerWindow);
 }
 
 } // namespace dom

@@ -73,7 +73,7 @@
   border-bottom: 1px solid rgba(50, 65, 92, 0.4);
 }
 
-@media all and (max-width: 600px) {
+@media (max-width: 600px) {
   .global-warning-text {
     display: none;
   }
@@ -239,7 +239,7 @@
 }
 
 /* Maximize the size of the viewport when the window is small */
-@media all and (max-width: 800px) {
+@media (max-width: 800px) {
   .category-name {
     display: none;
   }
@@ -787,9 +787,13 @@
   -moz-margin-start: 0;
 }
 
-#detail-icon {
+#detail-icon-container {
+  width: 64px;
   -moz-margin-end: 10px;
   margin-top: 6px;
+}
+
+#detail-icon {
   max-width: 64px;
   max-height: 64px;
 }

@@ -20,6 +20,7 @@
  *
  * Contributor(s):
  *   Mounir Lamouri <mounir.lamouri@mozilla.com> (Original Author)
+ *   Philipp von Weitershausen <philipp@weitershausen.de>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either of the GNU General Public License Version 2 or later (the "GPL"),
@@ -38,6 +39,7 @@
 #include "SmsMessage.h"
 #include "nsIDOMClassInfo.h"
 #include "jsapi.h" // For OBJECT_TO_JSVAL and JS_NewDateObjectMsec
+#include "jsfriendapi.h" // For js_DateGetMsecSinceEpoch
 #include "Constants.h"
 
 DOMCI_DATA(MozSmsMessage, mozilla::dom::sms::SmsMessage)
@@ -55,9 +57,67 @@ NS_INTERFACE_MAP_END
 NS_IMPL_ADDREF(SmsMessage)
 NS_IMPL_RELEASE(SmsMessage)
 
+SmsMessage::SmsMessage(PRInt32 aId, DeliveryState aDelivery,
+                       const nsString& aSender, const nsString& aReceiver,
+                       const nsString& aBody, PRUint64 aTimestamp)
+  : mData(aId, aDelivery, aSender, aReceiver, aBody, aTimestamp)
+{
+}
+
 SmsMessage::SmsMessage(const SmsMessageData& aData)
   : mData(aData)
 {
+}
+
+/* static */ nsresult
+SmsMessage::Create(PRInt32 aId,
+                   const nsAString& aDelivery,
+                   const nsAString& aSender,
+                   const nsAString& aReceiver,
+                   const nsAString& aBody,
+                   const jsval& aTimestamp,
+                   JSContext* aCx,
+                   nsIDOMMozSmsMessage** aMessage)
+{
+  *aMessage = nsnull;
+
+  // SmsMessageData exposes these as references, so we can simply assign
+  // to them.
+  SmsMessageData data;
+  data.id() = aId;
+  data.sender() = nsString(aSender);
+  data.receiver() = nsString(aReceiver);
+  data.body() = nsString(aBody);
+
+  if (aDelivery.Equals(DELIVERY_RECEIVED)) {
+    data.delivery() = eDeliveryState_Received;
+  } else if (aDelivery.Equals(DELIVERY_SENT)) {
+    data.delivery() = eDeliveryState_Sent;
+  } else {
+    return NS_ERROR_INVALID_ARG;
+  }
+
+  // We support both a Date object and a millisecond timestamp as a number.
+  if (aTimestamp.isObject()) {
+    JSObject& obj = aTimestamp.toObject();
+    if (!JS_ObjectIsDate(aCx, &obj)) {
+      return NS_ERROR_INVALID_ARG;
+    }
+    data.timestamp() = js_DateGetMsecSinceEpoch(aCx, &obj);
+  } else {
+    if (!aTimestamp.isNumber()) {
+      return NS_ERROR_INVALID_ARG;
+    }
+    jsdouble number = aTimestamp.toNumber();
+    if (static_cast<PRUint64>(number) != number) {
+      return NS_ERROR_INVALID_ARG;
+    }
+    data.timestamp() = static_cast<PRUint64>(number);
+  }
+
+  nsCOMPtr<nsIDOMMozSmsMessage> message = new SmsMessage(data);
+  message.swap(*aMessage);
+  return NS_OK;
 }
 
 const SmsMessageData&
@@ -78,14 +138,15 @@ SmsMessage::GetDelivery(nsAString& aDelivery)
 {
   switch (mData.delivery()) {
     case eDeliveryState_Received:
-      aDelivery.AssignLiteral("received");
+      aDelivery = DELIVERY_RECEIVED;
       break;
     case eDeliveryState_Sent:
-      aDelivery.AssignLiteral("sent");
+      aDelivery = DELIVERY_SENT;
       break;
     case eDeliveryState_Unknown:
+    case eDeliveryState_EndGuard:
     default:
-      NS_ASSERTION(true, "We shouldn't get an unknown delivery state!");
+      NS_ASSERTION(true, "We shouldn't get any other delivery state!");
       return NS_ERROR_UNEXPECTED;
   }
 

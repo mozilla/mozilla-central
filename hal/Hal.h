@@ -40,136 +40,27 @@
 #ifndef mozilla_Hal_h
 #define mozilla_Hal_h 1
 
+#include "mozilla/hal_sandbox/PHal.h"
 #include "base/basictypes.h"
 #include "mozilla/Types.h"
 #include "nsTArray.h"
-#include "nsCOMPtr.h"
-#include "nsIDOMWindow.h"
 #include "prlog.h"
 #include "mozilla/dom/battery/Types.h"
+#include "mozilla/dom/network/Types.h"
+
+/*
+ * Hal.h contains the public Hal API.
+ *
+ * By default, this file defines its functions in the hal namespace, but if
+ * MOZ_HAL_NAMESPACE is defined, we'll define our functions in that namespace.
+ *
+ * This is used by HalImpl.h and HalSandbox.h, which define copies of all the
+ * functions here in the hal_impl and hal_sandbox namespaces.
+ */
+
+class nsIDOMWindow;
 
 #ifndef MOZ_HAL_NAMESPACE
-
-namespace mozilla {
-namespace dom {
-class TabChild;
-class PBrowserChild;
-}
-}
-
-// Only include this hunk of code once, and include it before
-// HalImpl.h and HalSandbox.h.
-namespace mozilla {
-namespace hal {
-
-extern PRLogModuleInfo *sHalLog;
-#define HAL_LOG(msg) PR_LOG(sHalLog, PR_LOG_DEBUG, msg)
-
-/**
- * This class serves two purposes.
- *
- * First, this class wraps a pointer to a window.
- *
- * Second, WindowIdentifier lets us uniquely identify a window across
- * processes.  A window exposes an ID which is unique only within its
- * process.  Thus to identify a window, we need to know the ID of the
- * process which contains it.  But the scope of a process's ID is its
- * parent; that is, two processes with different parents might have
- * the same ID.
- *
- * So to identify a window, we need its ID plus the IDs of all the
- * processes in the path from the window's process to the root
- * process.  We throw in the IDs of the intermediate windows (a
- * content window is contained in a window at each level of the
- * process tree) for good measures.
- *
- * You can access this list of IDs by calling AsArray().
- */
-class WindowIdentifier
-{
-public:
-  /**
-   * Create an empty WindowIdentifier.  Calls to any of this object's
-   * public methods will assert -- an empty WindowIdentifier may be
-   * used only as a placeholder to code which promises not to touch
-   * the object.
-   */
-  WindowIdentifier();
-
-  /**
-   * Copy constructor.
-   */
-  WindowIdentifier(const WindowIdentifier& other);
-
-  /**
-   * Wrap the given window in a WindowIdentifier.  These two
-   * constructors automatically grab the window's ID and append it to
-   * the array of IDs.
-   *
-   * Note that these constructors allow an implicit conversion to a
-   * WindowIdentifier.
-   */
-  WindowIdentifier(nsIDOMWindow* window);
-  WindowIdentifier(nsCOMPtr<nsIDOMWindow> &window);
-
-  /**
-   * Create a new WindowIdentifier with the given id array and window.
-   * This automatically grabs the window's ID and appends it to the
-   * array.
-   */
-  WindowIdentifier(const nsTArray<uint64>& id, nsIDOMWindow* window);
-
-  /**
-   * Get the list of window and process IDs we contain.
-   */
-  typedef InfallibleTArray<uint64> IDArrayType;
-  const IDArrayType& AsArray() const;
-
-  /**
-   * Append the ID of the ContentChild singleton to our array of
-   * window/process IDs.
-   */
-  void AppendProcessID();
-
-  /**
-   * Does this WindowIdentifier identify both a window and the process
-   * containing that window?  If so, we say it has traveled through
-   * IPC.
-   */
-  bool HasTraveledThroughIPC() const;
-
-  /**
-   * Get the window this object wraps.
-   */
-  nsIDOMWindow* GetWindow() const;
-
-private:
-  /**
-   * Get the ID of the window object we wrap.
-   */
-  uint64 GetWindowID() const;
-
-  AutoInfallibleTArray<uint64, 3> mID;
-  nsCOMPtr<nsIDOMWindow> mWindow;
-  bool mIsEmpty;
-};
-
-} // namespace hal
-} // namespace mozilla
-
-// This goop plays some cpp tricks to ensure a uniform API across the
-// API entry point, "sandbox" implementations (for content processes),
-// and "impl" backends where the real work happens.  After this runs
-// through cpp, there will be three sets of identical APIs
-//   hal_impl:: --- the platform-specific implementation of an API.
-//   hal_sandbox:: --- forwards calls up to the parent process
-//   hal:: --- invokes sandboxed impl if in a sandboxed process,
-//             otherwise forwards to hal_impl
-//
-// External code should never invoke hal_impl:: or hal_sandbox:: code
-// directly.
-# include "HalImpl.h"
-# include "HalSandbox.h"
 # define MOZ_HAL_NAMESPACE hal
 # define MOZ_DEFINED_HAL_NAMESPACE 1
 #endif
@@ -177,10 +68,15 @@ private:
 namespace mozilla {
 
 namespace hal {
-class BatteryInformation;
+
+class WindowIdentifier;
+
+extern PRLogModuleInfo *sHalLog;
+#define HAL_LOG(msg) PR_LOG(mozilla::hal::sHalLog, PR_LOG_DEBUG, msg)
+
 } // namespace hal
 
-namespace MOZ_HAL_NAMESPACE /*hal*/ {
+namespace MOZ_HAL_NAMESPACE {
 
 /**
  * Turn the default vibrator device on/off per the pattern specified
@@ -194,10 +90,11 @@ namespace MOZ_HAL_NAMESPACE /*hal*/ {
  * from inactive windows and windows on inactive tabs do nothing.
  *
  * If you're calling hal::Vibrate from the outside world, pass an
- * nsIDOMWindow* or an nsCOMPtr<nsIDOMWindow>& in place of the
- * WindowIdentifier parameter.  It'll be converted to a WindowIdentifier
- * automatically.
+ * nsIDOMWindow* in place of the WindowIdentifier parameter.
+ * The method with WindowIdentifier will be called automatically.
  */
+void Vibrate(const nsTArray<uint32>& pattern,
+             nsIDOMWindow* aWindow);
 void Vibrate(const nsTArray<uint32>& pattern,
              const hal::WindowIdentifier &id);
 
@@ -209,11 +106,11 @@ void Vibrate(const nsTArray<uint32>& pattern,
  * cancellation request will go through even if the window is not
  * active.
  *
- * As with hal::Vibrate(), if you're calling hal::CancelVibrate from
- * the outside world, pass an nsIDOMWindow* or an
- * nsCOMPtr<nsIDOMWindow>&.  This will automatically be converted to a
- * WindowIdentifier object.
+ * As with hal::Vibrate(), if you're calling hal::CancelVibrate from the outside
+ * world, pass an nsIDOMWindow*. The method with WindowIdentifier will be called
+ * automatically.
  */
+void CancelVibrate(nsIDOMWindow* aWindow);
 void CancelVibrate(const hal::WindowIdentifier &id);
 
 /**
@@ -227,24 +124,6 @@ void RegisterBatteryObserver(BatteryObserver* aBatteryObserver);
  * @param aBatteryObserver The observer that should be removed.
  */
 void UnregisterBatteryObserver(BatteryObserver* aBatteryObserver);
-
-/**
- * Enables battery notifications from the backend.
- *
- * This method is semi-private in the sense of it is visible in the hal
- * namespace but should not be used. Calls to this method from the hal
- * namespace will produce a link error because it is not defined.
- */
-void EnableBatteryNotifications();
-
-/**
- * Disables battery notifications from the backend.
- *
- * This method is semi-private in the sense of it is visible in the hal
- * namespace but should not be used. Calls to this method from the hal
- * namespace will produce a link error because it is not defined.
- */
-void DisableBatteryNotifications();
 
 /**
  * Returns the current battery information.
@@ -289,6 +168,29 @@ double GetScreenBrightness();
  * GetScreenBrightness() may not be exactly x.
  */
 void SetScreenBrightness(double brightness);
+
+/**
+ * Inform the network backend there is a new network observer.
+ * @param aNetworkObserver The observer that should be added.
+ */
+void RegisterNetworkObserver(NetworkObserver* aNetworkObserver);
+
+/**
+ * Inform the network backend a network observer unregistered.
+ * @param aNetworkObserver The observer that should be removed.
+ */
+void UnregisterNetworkObserver(NetworkObserver* aNetworkObserver);
+
+/**
+ * Returns the current network information.
+ */
+void GetCurrentNetworkInformation(hal::NetworkInformation* aNetworkInfo);
+
+/**
+ * Notify of a change in the network state.
+ * @param aNetworkInfo The new network information.
+ */
+void NotifyNetworkChange(const hal::NetworkInformation& aNetworkInfo);
 
 } // namespace MOZ_HAL_NAMESPACE
 } // namespace mozilla

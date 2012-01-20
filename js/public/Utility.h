@@ -40,10 +40,12 @@
 #ifndef js_utility_h__
 #define js_utility_h__
 
+#include "mozilla/Assertions.h"
+
 #include <stdlib.h>
 #include <string.h>
 
-#include "mozilla/Util.h"
+#include "jstypes.h"
 
 #ifdef __cplusplus
 
@@ -71,57 +73,24 @@ JS_BEGIN_EXTERN_C
  */
 #define JS_FREE_PATTERN 0xDA
 
-/* JS_ASSERT */
+#define JS_ASSERT(expr)           MOZ_ASSERT(expr)
+#define JS_ASSERT_IF(cond, expr)  MOZ_ASSERT_IF(cond, expr)
+#define JS_NOT_REACHED(reason)    MOZ_NOT_REACHED(reason)
+#define JS_ALWAYS_TRUE(expr)      MOZ_ALWAYS_TRUE(expr)
+#define JS_ALWAYS_FALSE(expr)     MOZ_ALWAYS_FALSE(expr)
+
 #ifdef DEBUG
-# define JS_ASSERT(expr)                                                      \
-    ((expr) ? (void)0 : JS_Assert(#expr, __FILE__, __LINE__))
-# define JS_ASSERT_IF(cond, expr)                                             \
-    ((!(cond) || (expr)) ? (void)0 : JS_Assert(#expr, __FILE__, __LINE__))
-# define JS_NOT_REACHED(reason)                                               \
-    JS_Assert(reason, __FILE__, __LINE__)
-# define JS_ALWAYS_TRUE(expr) JS_ASSERT(expr)
-# define JS_ALWAYS_FALSE(expr) JS_ASSERT(!(expr))
 # ifdef JS_THREADSAFE
 #  define JS_THREADSAFE_ASSERT(expr) JS_ASSERT(expr)
 # else
 #  define JS_THREADSAFE_ASSERT(expr) ((void) 0)
 # endif
 #else
-# define JS_ASSERT(expr)         ((void) 0)
-# define JS_ASSERT_IF(cond,expr) ((void) 0)
-# define JS_NOT_REACHED(reason)
-# define JS_ALWAYS_TRUE(expr)    ((void) (expr))
-# define JS_ALWAYS_FALSE(expr)    ((void) (expr))
 # define JS_THREADSAFE_ASSERT(expr) ((void) 0)
 #endif
 
-/*
- * JS_STATIC_ASSERT
- *
- * A compile-time assert. "cond" must be a constant expression. The macro can
- * be used only in places where an "extern" declaration is allowed.
- */
-#ifdef __SUNPRO_CC
-/*
- * Sun Studio C++ compiler has a bug
- * "sizeof expression not accepted as size of array parameter"
- * It happens when js_static_assert() function is declared inside functions.
- * The bug number is 6688515. It is not public yet.
- * Therefore, for Sun Studio, declare js_static_assert as an array instead.
- */
-# define JS_STATIC_ASSERT(cond) extern char js_static_assert[(cond) ? 1 : -1]
-#else
-# ifdef __COUNTER__
-#  define JS_STATIC_ASSERT_GLUE1(x,y) x##y
-#  define JS_STATIC_ASSERT_GLUE(x,y) JS_STATIC_ASSERT_GLUE1(x,y)
-#  define JS_STATIC_ASSERT(cond)                                            \
-        typedef int JS_STATIC_ASSERT_GLUE(js_static_assert, __COUNTER__)[(cond) ? 1 : -1]
-# else
-#  define JS_STATIC_ASSERT(cond) extern void js_static_assert(int arg[(cond) ? 1 : -1])
-# endif
-#endif
-
-#define JS_STATIC_ASSERT_IF(cond, expr) JS_STATIC_ASSERT(!(cond) || (expr))
+#define JS_STATIC_ASSERT(cond)           MOZ_STATIC_ASSERT(cond, "JS_STATIC_ASSERT")
+#define JS_STATIC_ASSERT_IF(cond, expr)  MOZ_STATIC_ASSERT_IF(cond, expr, "JS_STATIC_ASSERT_IF")
 
 /*
  * Abort the process in a non-graceful manner. This will cause a core file,
@@ -141,8 +110,8 @@ extern JS_PUBLIC_API(void) JS_Abort(void);
  * In order to test OOM conditions, when the shell command-line option
  * |-A NUM| is passed, we fail continuously after the NUM'th allocation.
  */
-extern JS_PUBLIC_DATA(JSUint32) OOM_maxAllocations; /* set from shell/js.cpp */
-extern JS_PUBLIC_DATA(JSUint32) OOM_counter; /* data race, who cares. */
+extern JS_PUBLIC_DATA(uint32_t) OOM_maxAllocations; /* set from shell/js.cpp */
+extern JS_PUBLIC_DATA(uint32_t) OOM_counter; /* data race, who cares. */
 #  define JS_OOM_POSSIBLY_FAIL() \
     do \
     { \
@@ -274,7 +243,7 @@ __BitScanReverse64(unsigned __int64 val)
 #else
 # define JS_CEILING_LOG2(_log2,_n)                                            \
     JS_BEGIN_MACRO                                                            \
-        JSUint32 j_ = (JSUint32)(_n);                                         \
+        uint32_t j_ = (uint32_t)(_n);                                         \
         (_log2) = 0;                                                          \
         if ((j_) & ((j_)-1))                                                  \
             (_log2) += 1;                                                     \
@@ -310,7 +279,7 @@ __BitScanReverse64(unsigned __int64 val)
 #else
 # define JS_FLOOR_LOG2(_log2,_n)                                              \
     JS_BEGIN_MACRO                                                            \
-        JSUint32 j_ = (JSUint32)(_n);                                         \
+        uint32_t j_ = (uint32_t)(_n);                                         \
         (_log2) = 0;                                                          \
         if ((j_) >> 16)                                                       \
             (_log2) += 16, (j_) >>= 16;                                       \
@@ -525,7 +494,7 @@ JS_END_EXTERN_C
     template <class T>\
     QUALIFIERS T *array_new(size_t n) {\
         /* The length is stored just before the vector memory. */\
-        uint64 numBytes64 = uint64(JSMinAlignment) + uint64(sizeof(T)) * uint64(n);\
+        uint64_t numBytes64 = uint64_t(JSMinAlignment) + uint64_t(sizeof(T)) * uint64_t(n);\
         size_t numBytes = size_t(numBytes64);\
         if (numBytes64 != numBytes) {\
             JS_ASSERT(0);   /* we want to know if this happens in debug builds */\

@@ -118,7 +118,7 @@
 #include "mozilla/dom/Element.h"
 #include "nsHTMLFieldSetElement.h"
 #include "nsHTMLMenuElement.h"
-#include "nsPLDOMEvent.h"
+#include "nsAsyncDOMEvent.h"
 #include "nsIScriptError.h"
 
 #include "mozilla/Preferences.h"
@@ -503,7 +503,8 @@ nsGenericHTMLElement::GetOffsetRect(nsRect& aRect, nsIContent** aOffsetParent)
   nsIFrame* parent = frame->GetParent();
   nsPoint origin(0, 0);
 
-  if (parent && parent->GetType() == nsGkAtoms::tableOuterFrame) {
+  if (parent && parent->GetType() == nsGkAtoms::tableOuterFrame &&
+      frame->GetType() == nsGkAtoms::tableFrame) {
     origin = parent->GetPositionIgnoringScrolling();
     parent = parent->GetParent();
   }
@@ -1503,7 +1504,7 @@ nsGenericHTMLElement::IsAttributeMapped(const nsIAtom* aAttribute) const
     sCommonAttributeMap
   };
   
-  return FindAttributeDependence(aAttribute, map, ArrayLength(map));
+  return FindAttributeDependence(aAttribute, map);
 }
 
 nsMapRuleToAttributesFunc
@@ -1550,9 +1551,8 @@ nsGenericHTMLElement::GetPrimaryPresState(nsGenericHTMLElement* aContent,
 
   nsresult result = NS_OK;
 
-  nsCOMPtr<nsILayoutHistoryState> history;
   nsCAutoString key;
-  GetLayoutHistoryAndKey(aContent, false, getter_AddRefs(history), key);
+  nsCOMPtr<nsILayoutHistoryState> history = GetLayoutHistoryAndKey(aContent, false, key);
 
   if (history) {
     // Get the pres state for this key, if it doesn't exist, create one
@@ -1567,10 +1567,9 @@ nsGenericHTMLElement::GetPrimaryPresState(nsGenericHTMLElement* aContent,
 }
 
 
-nsresult
+already_AddRefed<nsILayoutHistoryState>
 nsGenericHTMLElement::GetLayoutHistoryAndKey(nsGenericHTMLElement* aContent,
                                              bool aRead,
-                                             nsILayoutHistoryState** aHistory,
                                              nsACString& aKey)
 {
   //
@@ -1578,20 +1577,19 @@ nsGenericHTMLElement::GetLayoutHistoryAndKey(nsGenericHTMLElement* aContent,
   //
   nsCOMPtr<nsIDocument> doc = aContent->GetDocument();
   if (!doc) {
-    return NS_OK;
+    return nsnull;
   }
 
   //
   // Get the history (don't bother with the key if the history is not there)
   //
-  *aHistory = doc->GetLayoutHistoryState().get();
-  if (!*aHistory) {
-    return NS_OK;
+  nsCOMPtr<nsILayoutHistoryState> history = doc->GetLayoutHistoryState();
+  if (!history) {
+    return nsnull;
   }
 
-  if (aRead && !(*aHistory)->HasStates()) {
-    NS_RELEASE(*aHistory);
-    return NS_OK;
+  if (aRead && !history->HasStates()) {
+    return nsnull;
   }
 
   //
@@ -1601,39 +1599,35 @@ nsGenericHTMLElement::GetLayoutHistoryAndKey(nsGenericHTMLElement* aContent,
                                                  nsIStatefulFrame::eNoID,
                                                  aKey);
   if (NS_FAILED(rv)) {
-    NS_RELEASE(*aHistory);
-    return rv;
+    return nsnull;
   }
 
   // If the state key is blank, this is anonymous content or for
   // whatever reason we are not supposed to save/restore state.
   if (aKey.IsEmpty()) {
-    NS_RELEASE(*aHistory);
-    return NS_OK;
+    return nsnull;
   }
 
   // Add something unique to content so layout doesn't muck us up
   aKey += "-C";
 
-  return rv;
+  return history.forget();
 }
 
 bool
 nsGenericHTMLElement::RestoreFormControlState(nsGenericHTMLElement* aContent,
                                               nsIFormControl* aControl)
 {
-  nsCOMPtr<nsILayoutHistoryState> history;
   nsCAutoString key;
-  nsresult rv = GetLayoutHistoryAndKey(aContent, true,
-                                       getter_AddRefs(history), key);
+  nsCOMPtr<nsILayoutHistoryState> history = GetLayoutHistoryAndKey(aContent, true, key);
   if (!history) {
     return false;
   }
 
   nsPresState *state;
   // Get the pres state for this key
-  rv = history->GetState(key, &state);
-  if (state) {
+  nsresult rv = history->GetState(key, &state);
+  if (NS_SUCCEEDED(rv) && state) {
     bool result = aControl->RestoreState(state);
     history->RemoveState(key);
     return result;
@@ -2559,6 +2553,7 @@ nsGenericHTMLElement::GetContextMenu(nsIDOMHTMLMenuElement** aContextMenu)
 //----------------------------------------------------------------------
 
 NS_IMPL_INT_ATTR(nsGenericHTMLFrameElement, TabIndex, tabindex)
+NS_IMPL_BOOL_ATTR(nsGenericHTMLFrameElement, MozBrowser, mozbrowser)
 
 nsGenericHTMLFormElement::nsGenericHTMLFormElement(already_AddRefed<nsINodeInfo> aNodeInfo)
   : nsGenericHTMLElement(aNodeInfo)
@@ -3227,8 +3222,9 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(nsGenericHTMLFrameElement,
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
 NS_INTERFACE_TABLE_HEAD(nsGenericHTMLFrameElement)
-  NS_INTERFACE_TABLE_INHERITED1(nsGenericHTMLFrameElement,
-                                nsIFrameLoaderOwner)
+  NS_INTERFACE_TABLE_INHERITED2(nsGenericHTMLFrameElement,
+                                nsIFrameLoaderOwner,
+                                nsIDOMMozBrowserFrameElement)
   NS_INTERFACE_TABLE_TO_MAP_SEGUE_CYCLE_COLLECTION(nsGenericHTMLFrameElement)
 NS_INTERFACE_MAP_END_INHERITING(nsGenericHTMLElement)
 
@@ -3435,6 +3431,108 @@ nsGenericHTMLFrameElement::SizeOf() const
   return size;
 }
 
+namespace {
+
+// GetContentStateCallbackRunnable is used by MozGetContentState to fire its callback
+// asynchronously.
+class GetContentStateCallbackRunnable : public nsRunnable
+{
+public:
+  GetContentStateCallbackRunnable(nsIDOMMozGetContentStateCallback *aCallback,
+                             nsIDOMEventTarget *aEventTarget,
+                             const nsAString &aResult)
+    : mCallback(aCallback)
+    , mEventTarget(aEventTarget)
+    , mResult(aResult)
+  {
+  }
+
+  NS_IMETHOD Run()
+  {
+    FireCallback();
+
+    // Break cycles.
+    mCallback = NULL;
+    mEventTarget = NULL;
+    return NS_OK;
+  }
+
+private:
+  void FireCallback()
+  {
+    nsCxPusher pusher;
+    if (!pusher.Push(mEventTarget)) {
+      return;
+    }
+
+    mCallback->Callback(mResult);
+  }
+
+  nsCOMPtr<nsIDOMMozGetContentStateCallback> mCallback;
+  nsCOMPtr<nsIDOMEventTarget> mEventTarget;
+  const nsString mResult;
+};
+
+} // anonymous namespace
+
+nsresult
+nsGenericHTMLFrameElement::BrowserFrameSecurityCheck()
+{
+  if (!Preferences::GetBool("dom.mozBrowserFramesEnabled")) {
+    return NS_ERROR_FAILURE;
+  }
+
+  bool browser;
+  GetMozBrowser(&browser);
+  if (!browser) {
+    return NS_ERROR_FAILURE;
+  }
+
+  nsIPrincipal *principal = NodePrincipal();
+  nsCOMPtr<nsIURI> principalURI;
+  principal->GetURI(getter_AddRefs(principalURI));
+  if (!nsContentUtils::URIIsChromeOrInPref(principalURI,
+                                           "dom.mozBrowserFramesWhitelist")) {
+    return NS_ERROR_DOM_SECURITY_ERR;
+  }
+
+  return NS_OK;
+}
+
+NS_IMETHODIMP
+nsGenericHTMLFrameElement::MozGetContentState(const nsAString &aProperty,
+                                              nsIDOMMozGetContentStateCallback *aCallback)
+{
+  nsresult rv = BrowserFrameSecurityCheck();
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  if (!aProperty.EqualsLiteral("location")) {
+    return NS_ERROR_FAILURE;
+  }
+
+  nsCOMPtr<nsIDOMWindow> contentWindow;
+  GetContentWindow(getter_AddRefs(contentWindow));
+  NS_ENSURE_TRUE(contentWindow, NS_ERROR_FAILURE);
+
+  nsCOMPtr<nsIDOMLocation> location;
+  rv = contentWindow->GetLocation(getter_AddRefs(location));
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsAutoString href;
+  rv = location->ToString(href);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIDOMEventTarget> eventTarget =
+    do_QueryInterface(nsContentUtils::GetWindowFromCaller());
+  NS_ENSURE_TRUE(eventTarget, NS_ERROR_FAILURE);
+
+  // Asynchronously fire the callback.
+  nsRefPtr<GetContentStateCallbackRunnable> runnable =
+    new GetContentStateCallbackRunnable(aCallback, eventTarget, href);
+  NS_DispatchToMainThread(runnable);
+  return NS_OK;
+}
+
 //----------------------------------------------------------------------
 
 nsresult
@@ -3470,17 +3568,15 @@ nsresult nsGenericHTMLElement::MozRequestFullScreen()
   // and it also makes it harder for bad guys' script to go full-screen and
   // spoof the browser chrome/window and phish logins etc.
   if (!nsContentUtils::IsRequestFullScreenAllowed()) {
-    nsContentUtils::ReportToConsole(nsContentUtils::eDOM_PROPERTIES,
-                                    "FullScreenDeniedNotInputDriven",
-                                    nsnull, 0, nsnull,
-                                    EmptyString(), 0, 0,
-                                    nsIScriptError::warningFlag,
-                                    "DOM", OwnerDoc());
-    nsRefPtr<nsPLDOMEvent> e =
-      new nsPLDOMEvent(OwnerDoc(),
-                       NS_LITERAL_STRING("mozfullscreenerror"),
-                       true,
-                       false);
+    nsContentUtils::ReportToConsole(nsIScriptError::warningFlag,
+                                    "DOM", OwnerDoc(),
+                                    nsContentUtils::eDOM_PROPERTIES,
+                                    "FullScreenDeniedNotInputDriven");
+    nsRefPtr<nsAsyncDOMEvent> e =
+      new nsAsyncDOMEvent(OwnerDoc(),
+                          NS_LITERAL_STRING("mozfullscreenerror"),
+                          true,
+                          false);
     e->PostDOMEvent();
     return NS_OK;
   }

@@ -90,6 +90,7 @@ public class LayerRenderer implements GLSurfaceView.Renderer {
     private final ScrollbarLayer mVertScrollLayer;
     private final FadeRunnable mFadeRunnable;
     private RenderContext mLastPageContext;
+    private int mMaxTextureSize;
 
     // Dropped frames display
     private int[] mFrameTimings;
@@ -122,12 +123,17 @@ public class LayerRenderer implements GLSurfaceView.Renderer {
     public void onSurfaceCreated(GL10 gl, EGLConfig config) {
         checkFrameRateMonitorEnabled();
 
-        gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-        gl.glClearDepthf(1.0f);             /* FIXME: Is this needed? */
         gl.glHint(GL10.GL_PERSPECTIVE_CORRECTION_HINT, GL10.GL_FASTEST);
-        gl.glShadeModel(GL10.GL_SMOOTH);    /* FIXME: Is this needed? */
         gl.glDisable(GL10.GL_DITHER);
         gl.glEnable(GL10.GL_TEXTURE_2D);
+
+        int maxTextureSizeResult[] = new int[1];
+        gl.glGetIntegerv(GL10.GL_MAX_TEXTURE_SIZE, maxTextureSizeResult, 0);
+        mMaxTextureSize = maxTextureSizeResult[0];
+    }
+
+    public int getMaxTextureSize() {
+        return mMaxTextureSize;
     }
 
     /**
@@ -140,6 +146,8 @@ public class LayerRenderer implements GLSurfaceView.Renderer {
 
         LayerController controller = mView.getController();
         RenderContext screenContext = createScreenContext();
+
+        boolean updated = true;
 
         synchronized (controller) {
             Layer rootLayer = controller.getRoot();
@@ -160,12 +168,12 @@ public class LayerRenderer implements GLSurfaceView.Renderer {
             mLastPageContext = pageContext;
 
             /* Update layers. */
-            if (rootLayer != null) rootLayer.update(gl);
-            mShadowLayer.update(gl);
-            mCheckerboardLayer.update(gl);
-            mFrameRateLayer.update(gl);
-            mVertScrollLayer.update(gl);
-            mHorizScrollLayer.update(gl);
+            if (rootLayer != null) updated &= rootLayer.update(gl, pageContext);
+            updated &= mShadowLayer.update(gl, pageContext);
+            updated &= mCheckerboardLayer.update(gl, screenContext);
+            updated &= mFrameRateLayer.update(gl, screenContext);
+            updated &= mVertScrollLayer.update(gl, pageContext);
+            updated &= mHorizScrollLayer.update(gl, pageContext);
 
             /* Draw the background. */
             gl.glClearColor(BACKGROUND_COLOR_R, BACKGROUND_COLOR_G, BACKGROUND_COLOR_B, 1.0f);
@@ -207,11 +215,16 @@ public class LayerRenderer implements GLSurfaceView.Renderer {
             updateDroppedFrames(frameStartTime);
             try {
                 gl.glEnable(GL10.GL_BLEND);
+                gl.glBlendFunc(GL10.GL_SRC_ALPHA, GL10.GL_ONE_MINUS_SRC_ALPHA);
                 mFrameRateLayer.draw(screenContext);
             } finally {
                 gl.glDisable(GL10.GL_BLEND);
             }
         }
+
+        // If a layer update requires further work, schedule another redraw
+        if (!updated)
+            mView.requestRender();
 
         PanningPerfAPI.recordFrameTime();
     }
@@ -284,7 +297,7 @@ public class LayerRenderer implements GLSurfaceView.Renderer {
         mDroppedFrames -= (mFrameTimings[mCurrentFrame] + 1) / MAX_FRAME_TIME;
         mDroppedFrames += (frameElapsedTime + 1) / MAX_FRAME_TIME;
 
-        mFrameTimings[mCurrentFrame] = (int)frameElapsedTime;
+        mFrameTimings[mCurrentFrame] = frameElapsedTime;
         mCurrentFrame = (mCurrentFrame + 1) % mFrameTimings.length;
 
         int averageTime = mFrameTimingsSum / mFrameTimings.length;
@@ -318,7 +331,7 @@ public class LayerRenderer implements GLSurfaceView.Renderer {
                 SharedPreferences preferences = context.getSharedPreferences("GeckoApp", 0);
                 mShowFrameRate = preferences.getBoolean("showFrameRate", false);
             }
-        }).run();
+        }).start();
     }
 
     class FadeRunnable implements Runnable {

@@ -509,16 +509,16 @@ js_math_pow(JSContext *cx, uintN argc, Value *vp)
     return JS_TRUE;
 }
 
-static const int64 RNG_MULTIPLIER = 0x5DEECE66DLL;
-static const int64 RNG_ADDEND = 0xBLL;
-static const int64 RNG_MASK = (1LL << 48) - 1;
+static const int64_t RNG_MULTIPLIER = 0x5DEECE66DLL;
+static const int64_t RNG_ADDEND = 0xBLL;
+static const int64_t RNG_MASK = (1LL << 48) - 1;
 static const jsdouble RNG_DSCALE = jsdouble(1LL << 53);
 
 /*
  * Math.random() support, lifted from java.util.Random.java.
  */
 static inline void
-random_setSeed(JSContext *cx, int64 seed)
+random_setSeed(JSContext *cx, int64_t seed)
 {
     cx->rngSeed = (seed ^ RNG_MULTIPLIER) & RNG_MASK;
 }
@@ -534,14 +534,14 @@ js_InitRandom(JSContext *cx)
      */
     random_setSeed(cx,
                    (PRMJ_Now() / 1000) ^
-                   int64(cx) ^
-                   int64(cx->link.next));
+                   int64_t(cx) ^
+                   int64_t(cx->link.next));
 }
 
-static inline uint64
+static inline uint64_t
 random_next(JSContext *cx, int bits)
 {
-    uint64 nextseed = cx->rngSeed * RNG_MULTIPLIER;
+    uint64_t nextseed = cx->rngSeed * RNG_MULTIPLIER;
     nextseed += RNG_ADDEND;
     nextseed &= RNG_MASK;
     cx->rngSeed = nextseed;
@@ -577,26 +577,39 @@ js_copysign(double x, double y)
 }
 #endif
 
-jsdouble
-js_math_round_impl(jsdouble x)
-{
-    return js_copysign(floor(x + 0.5), x);
-}
 
-JSBool
+JSBool /* ES5 15.8.2.15. */
 js_math_round(JSContext *cx, uintN argc, Value *vp)
 {
-    jsdouble x, z;
+    CallArgs args = CallArgsFromVp(argc, vp);
 
-    if (argc == 0) {
-        vp->setDouble(js_NaN);
-        return JS_TRUE;
+    if (args.length() == 0) {
+        args.rval().setDouble(js_NaN);
+        return true;
     }
-    if (!ToNumber(cx, vp[2], &x))
-        return JS_FALSE;
-    z = js_copysign(floor(x + 0.5), x);
-    vp->setNumber(z);
-    return JS_TRUE;
+
+    double x;
+    if (!ToNumber(cx, args[0], &x))
+        return false;
+
+    int32_t i;
+    if (JSDOUBLE_IS_INT32(x, &i)) { 
+        args.rval().setInt32(i);
+        return true;
+    }
+
+    jsdpun u;
+    u.d = x;
+
+    /* Some numbers are so big that adding 0.5 would give the wrong number */
+    int exponent = ((u.s.hi & JSDOUBLE_HI32_EXPMASK) >> JSDOUBLE_HI32_EXPSHIFT) - JSDOUBLE_EXPBIAS;
+    if (exponent >= 52) {
+        args.rval().setNumber(x);
+        return true;
+    }
+
+    args.rval().setNumber(js_copysign(floor(x + 0.5), x));
+    return true;
 }
 
 static JSBool

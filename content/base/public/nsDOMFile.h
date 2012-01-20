@@ -53,12 +53,12 @@
 #include "nsIXMLHttpRequest.h"
 #include "prmem.h"
 #include "nsAutoPtr.h"
+#include "mozilla/dom/indexedDB/FileInfo.h"
+#include "mozilla/dom/indexedDB/FileManager.h"
+#include "mozilla/dom/indexedDB/IndexedDatabaseManager.h"
 
 #include "mozilla/GuardObjects.h"
-
-#ifndef PR_UINT64_MAX
-#define PR_UINT64_MAX (~(PRUint64)(0))
-#endif
+#include "mozilla/StdInt.h"
 
 class nsIFile;
 class nsIInputStream;
@@ -72,6 +72,7 @@ class nsDOMFileBase : public nsIDOMFile,
                       public nsIMutable
 {
 public:
+  typedef mozilla::dom::indexedDB::FileInfo FileInfo;
 
   nsDOMFileBase(const nsAString& aName, const nsAString& aContentType,
                 PRUint64 aLength)
@@ -95,7 +96,7 @@ public:
     : mIsFile(false), mImmutable(false), mContentType(aContentType),
       mStart(aStart), mLength(aLength)
   {
-    NS_ASSERTION(aLength != PR_UINT64_MAX,
+    NS_ASSERTION(aLength != UINT64_MAX,
                  "Must know length when creating slice");
     // Ensure non-null mContentType by default
     mContentType.SetIsVoid(false);
@@ -116,7 +117,18 @@ public:
 protected:
   bool IsSizeUnknown()
   {
-    return mLength == PR_UINT64_MAX;
+    return mLength == UINT64_MAX;
+  }
+
+  virtual bool IsStoredFile()
+  {
+    return false;
+  }
+
+  virtual bool IsWholeFile()
+  {
+    NS_NOTREACHED("Should only be called on dom blobs backed by files!");
+    return false;
   }
 
   bool mIsFile;
@@ -126,6 +138,9 @@ protected:
 
   PRUint64 mStart;
   PRUint64 mLength;
+
+  // Protected by IndexedDatabaseManager::FileMutex()
+  nsTArray<nsRefPtr<FileInfo> > mFileInfos;
 };
 
 class nsDOMFileFile : public nsDOMFileBase,
@@ -134,8 +149,8 @@ class nsDOMFileFile : public nsDOMFileBase,
 public:
   // Create as a file
   nsDOMFileFile(nsIFile *aFile)
-    : nsDOMFileBase(EmptyString(), EmptyString(), PR_UINT64_MAX),
-      mFile(aFile), mWholeFile(true)
+    : nsDOMFileBase(EmptyString(), EmptyString(), UINT64_MAX),
+      mFile(aFile), mWholeFile(true), mStoredFile(false)
   {
     NS_ASSERTION(mFile, "must have file");
     // Lazily get the content type and size
@@ -146,17 +161,38 @@ public:
   // Create as a blob
   nsDOMFileFile(nsIFile *aFile, const nsAString& aContentType,
                 nsISupports *aCacheToken = nsnull)
-    : nsDOMFileBase(aContentType, PR_UINT64_MAX),
-      mFile(aFile), mWholeFile(true),
+    : nsDOMFileBase(aContentType, UINT64_MAX),
+      mFile(aFile), mWholeFile(true), mStoredFile(false),
       mCacheToken(aCacheToken)
   {
     NS_ASSERTION(mFile, "must have file");
   }
 
+  // Create as a stored file
+  nsDOMFileFile(const nsAString& aName, const nsAString& aContentType,
+                PRUint64 aLength, nsIFile* aFile,
+                FileInfo* aFileInfo)
+    : nsDOMFileBase(aName, aContentType, aLength),
+      mFile(aFile), mWholeFile(true), mStoredFile(true)
+  {
+    NS_ASSERTION(mFile, "must have file");
+    mFileInfos.AppendElement(aFileInfo);
+  }
+
+  // Create as a stored blob
+  nsDOMFileFile(const nsAString& aContentType, PRUint64 aLength,
+                nsIFile* aFile, FileInfo* aFileInfo)
+    : nsDOMFileBase(aContentType, aLength),
+      mFile(aFile), mWholeFile(true), mStoredFile(true)
+  {
+    NS_ASSERTION(mFile, "must have file");
+    mFileInfos.AppendElement(aFileInfo);
+  }
+
   // Create as a file to be later initialized
   nsDOMFileFile()
-    : nsDOMFileBase(EmptyString(), EmptyString(), PR_UINT64_MAX),
-      mWholeFile(true)
+    : nsDOMFileBase(EmptyString(), EmptyString(), UINT64_MAX),
+      mWholeFile(true), mStoredFile(false)
   {
     // Lazily get the content type and size
     mContentType.SetIsVoid(true);
@@ -188,17 +224,47 @@ protected:
                 const nsAString& aContentType)
     : nsDOMFileBase(aContentType, aOther->mStart + aStart, aLength),
       mFile(aOther->mFile), mWholeFile(false),
-      mCacheToken(aOther->mCacheToken)
+      mStoredFile(aOther->mStoredFile), mCacheToken(aOther->mCacheToken)
   {
     NS_ASSERTION(mFile, "must have file");
     mImmutable = aOther->mImmutable;
+
+    if (mStoredFile) {
+      FileInfo* fileInfo;
+
+      if (!mozilla::dom::indexedDB::IndexedDatabaseManager::IsClosed()) {
+        mozilla::dom::indexedDB::IndexedDatabaseManager::FileMutex().Lock();
+      }
+
+      NS_ASSERTION(!aOther->mFileInfos.IsEmpty(),
+                   "A stored file must have at least one file info!");
+
+      fileInfo = aOther->mFileInfos.ElementAt(0);
+
+      if (!mozilla::dom::indexedDB::IndexedDatabaseManager::IsClosed()) {
+        mozilla::dom::indexedDB::IndexedDatabaseManager::FileMutex().Unlock();
+      }
+
+      mFileInfos.AppendElement(fileInfo);
+    }
   }
   virtual already_AddRefed<nsIDOMBlob>
   CreateSlice(PRUint64 aStart, PRUint64 aLength,
               const nsAString& aContentType);
 
+  virtual bool IsStoredFile()
+  {
+    return mStoredFile;
+  }
+
+  virtual bool IsWholeFile()
+  {
+    return mWholeFile;
+  }
+
   nsCOMPtr<nsIFile> mFile;
   bool mWholeFile;
+  bool mStoredFile;
   nsCOMPtr<nsISupports> mCacheToken;
 };
 
@@ -312,11 +378,11 @@ private:
 class NS_STACK_CLASS nsDOMFileInternalUrlHolder {
 public:
   nsDOMFileInternalUrlHolder(nsIDOMBlob* aFile, nsIPrincipal* aPrincipal
-                             MOZILLA_GUARD_OBJECT_NOTIFIER_PARAM);
+                             MOZ_GUARD_OBJECT_NOTIFIER_PARAM);
   ~nsDOMFileInternalUrlHolder();
   nsAutoString mUrl;
 private:
-  MOZILLA_DECL_USE_GUARD_OBJECT_NOTIFIER
+  MOZ_DECL_USE_GUARD_OBJECT_NOTIFIER
 };
 
 #endif

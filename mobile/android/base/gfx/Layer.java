@@ -61,8 +61,11 @@ public abstract class Layer {
         mResolution = 1.0f;
     }
 
-    /** Updates the layer. */
-    public final void update(GL10 gl) {
+    /**
+     * Updates the layer. This returns false if there is still work to be done
+     * after this update.
+     */
+    public final boolean update(GL10 gl, RenderContext context) {
         if (mTransactionLock.isHeldByCurrentThread()) {
             throw new RuntimeException("draw() called while transaction lock held by this " +
                                        "thread?!");
@@ -70,15 +73,20 @@ public abstract class Layer {
 
         if (mTransactionLock.tryLock()) {
             try {
-                performUpdates(gl);
+                return performUpdates(gl, context);
             } finally {
                 mTransactionLock.unlock();
             }
         }
+
+        return false;
     }
 
     /** Subclasses override this function to draw the layer. */
     public abstract void draw(RenderContext context);
+
+    /** Subclasses override this function to provide access to the size of the layer. */
+    public abstract IntSize getSize();
 
     /** Given the intrinsic size of the layer, returns the pixel boundaries of the layer rect. */
     protected RectF getBounds(RenderContext context, FloatSize size) {
@@ -155,9 +163,10 @@ public abstract class Layer {
     /**
      * Subclasses may override this method to perform custom layer updates. This will be called
      * with the transaction lock held. Subclass implementations of this method must call the
-     * superclass implementation.
+     * superclass implementation. Returns false if there is still work to be done after this
+     * update is complete.
      */
-    protected void performUpdates(GL10 gl) {
+    protected boolean performUpdates(GL10 gl, RenderContext context) {
         if (mNewOrigin != null) {
             mOrigin = mNewOrigin;
             mNewOrigin = null;
@@ -166,20 +175,8 @@ public abstract class Layer {
             mResolution = mNewResolution;
             mNewResolution = 0.0f;
         }
-    }
 
-    /* Returns the power of two that is greater than or equal to value */
-    protected static int nextPowerOfTwo(int value) {
-        // code taken from http://acius2.blogspot.com/2007/11/calculating-next-power-of-2.html
-        if (0 == value--) {
-            return 1;
-        }
-        value = (value >> 1) | value;
-        value = (value >> 2) | value;
-        value = (value >> 4) | value;
-        value = (value >> 8) | value;
-        value = (value >> 16) | value;
-        return value + 1;
+        return true;
     }
 
     public static class RenderContext {

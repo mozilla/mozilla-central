@@ -180,7 +180,7 @@
 #include "nsAutoPtr.h"
 #include "nsContentUtils.h"
 #include "nsCSSProps.h"
-#include "nsFileDataProtocolHandler.h"
+#include "nsBlobProtocolHandler.h"
 #include "nsIDOMFile.h"
 #include "nsIDOMFileList.h"
 #include "nsIURIFixup.h"
@@ -687,7 +687,7 @@ nsDOMMozURLProperty::RevokeObjectURL(const nsAString& aURL)
   }
 
   nsIPrincipal* principal =
-    nsFileDataProtocolHandler::GetFileDataEntryPrincipal(asciiurl);
+    nsBlobProtocolHandler::GetFileDataEntryPrincipal(asciiurl);
   bool subsumes;
   if (principal && winPrincipal &&
       NS_SUCCEEDED(winPrincipal->Subsumes(principal, &subsumes)) &&
@@ -695,7 +695,7 @@ nsDOMMozURLProperty::RevokeObjectURL(const nsAString& aURL)
     if (mWindow->mDoc) {
       mWindow->mDoc->UnregisterFileDataUri(asciiurl);
     }
-    nsFileDataProtocolHandler::RemoveFileDataEntry(asciiurl);
+    nsBlobProtocolHandler::RemoveFileDataEntry(asciiurl);
   }
 
   return NS_OK;
@@ -1340,8 +1340,8 @@ nsGlobalWindow::FreeInnerObjects(bool aClearScope)
     // them ever even make it into the fast-back cache?
 
     mDummyJavaPluginOwner->Destroy();
-
     mDummyJavaPluginOwner = nsnull;
+    mDidInitJavaProperties = false;
   }
 
   CleanupCachedXBLHandlers(this);
@@ -1376,11 +1376,10 @@ NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION(nsGlobalWindow)
     foundInterface = static_cast<nsIDOMWindowInternal*>(this);
     if (!sWarnedAboutWindowInternal) {
       sWarnedAboutWindowInternal = true;
-      nsContentUtils::ReportToConsole(nsContentUtils::eDOM_PROPERTIES,
-                                      "nsIDOMWindowInternalWarning",
-                                      nsnull, 0, nsnull, EmptyString(), 0, 0,
-                                      nsIScriptError::warningFlag,
-                                      "Extensions", mWindowID);
+      nsContentUtils::ReportToConsole(nsIScriptError::warningFlag,
+                                      "Extensions", mDoc,
+                                      nsContentUtils::eDOM_PROPERTIES,
+                                      "nsIDOMWindowInternalWarning");
     }
   } else
   NS_INTERFACE_MAP_ENTRY(nsIScriptGlobalObject)
@@ -1405,8 +1404,9 @@ NS_IMPL_CYCLE_COLLECTING_RELEASE(nsGlobalWindow)
 
 
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN(nsGlobalWindow)
-  if (tmp->mDoc && nsCCUncollectableMarker::InGeneration(
-                     cb, tmp->mDoc->GetMarkedCCGeneration())) {
+  if ((tmp->mDoc && nsCCUncollectableMarker::InGeneration(
+                      cb, tmp->mDoc->GetMarkedCCGeneration())) ||
+      (nsCCUncollectableMarker::sGeneration && tmp->IsBlack())) {
     return NS_SUCCESS_INTERRUPTED_TRAVERSE;
   }
 
@@ -1481,6 +1481,7 @@ NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN(nsGlobalWindow)
   if (tmp->mDummyJavaPluginOwner) {
     tmp->mDummyJavaPluginOwner->Destroy();
     NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mDummyJavaPluginOwner)
+    tmp->mDidInitJavaProperties = false;
   }
 
   NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mFocusedNode)
@@ -1989,7 +1990,7 @@ nsGlobalWindow::SetNewDocument(nsIDocument* aDocument,
     if (aState) {
       newInnerWindow = wsh->GetInnerWindow();
       mInnerWindowHolder = wsh->GetInnerWindowHolder();
-      
+
       NS_ASSERTION(newInnerWindow, "Got a state without inner window");
     } else if (thisChrome) {
       newInnerWindow = new nsGlobalChromeWindow(this);
@@ -2039,6 +2040,15 @@ nsGlobalWindow::SetNewDocument(nsIDocument* aDocument,
       bool termFuncSet = false;
 
       if (oldDoc == aDocument) {
+        // Move the navigator from the old inner window to the new one since
+        // this is a document.write. This is safe from a same-origin point of
+        // view because document.write can only be used by the same origin.
+        newInnerWindow->mNavigator = currentInner->mNavigator;
+        currentInner->mNavigator = nsnull;
+        if (newInnerWindow->mNavigator) {
+          newInnerWindow->mNavigator->SetWindow(newInnerWindow);
+        }
+
         // Suspend the current context's request before Pop() resumes the old
         // context's request.
         JSAutoSuspendRequest asr(cx);
@@ -2225,6 +2235,16 @@ nsGlobalWindow::SetNewDocument(nsIDocument* aDocument,
 
         // XXXmarkh - tell other languages about this?
         ::JS_DeleteProperty(cx, currentInner->mJSObject, "document");
+
+        if (mDummyJavaPluginOwner) {
+          // Since we're reusing the inner window, tear down the
+          // dummy Java plugin we created for the old document in
+          // this window.
+          mDummyJavaPluginOwner->Destroy();
+          mDummyJavaPluginOwner = nsnull;
+
+          mDidInitJavaProperties = false;
+        }
       }
     } else {
       rv = newInnerWindow->InnerSetNewDocument(aDocument);
@@ -2594,7 +2614,7 @@ nsGlobalWindow::DialogOpenAttempted()
   topWindow = topWindow->GetCurrentInnerWindowInternal();
   if (!topWindow ||
       topWindow->mLastDialogQuitTime.IsNull() ||
-      nsContentUtils::IsCallerTrustedForCapability("UniversalXPConnect")) {
+      nsContentUtils::CallerHasUniversalXPConnect()) {
     return false;
   }
 
@@ -3885,6 +3905,7 @@ nsGlobalWindow::MozRequestAnimationFrame(nsIFrameRequestCallback* aCallback,
   }
 
   if (!aCallback) {
+    mDoc->WarnOnceAbout(nsIDocument::eMozBeforePaint);
     return NS_ERROR_XPC_BAD_CONVERT_JS;
   }
 
@@ -3894,7 +3915,13 @@ nsGlobalWindow::MozRequestAnimationFrame(nsIFrameRequestCallback* aCallback,
 NS_IMETHODIMP
 nsGlobalWindow::MozCancelRequestAnimationFrame(PRInt32 aHandle)
 {
-  FORWARD_TO_INNER(MozCancelRequestAnimationFrame, (aHandle),
+  return MozCancelAnimationFrame(aHandle);
+}
+
+NS_IMETHODIMP
+nsGlobalWindow::MozCancelAnimationFrame(PRInt32 aHandle)
+{
+  FORWARD_TO_INNER(MozCancelAnimationFrame, (aHandle),
                    NS_ERROR_NOT_INITIALIZED);
 
   if (!mDoc) {
@@ -5537,13 +5564,10 @@ static void
 ReportUseOfDeprecatedMethod(nsGlobalWindow* aWindow, const char* aWarning)
 {
   nsCOMPtr<nsIDocument> doc = do_QueryInterface(aWindow->GetExtantDocument());
-  nsContentUtils::ReportToConsole(nsContentUtils::eDOM_PROPERTIES,
-                                  aWarning,
-                                  nsnull, 0,
-                                  nsnull,
-                                  EmptyString(), 0, 0,
-                                  nsIScriptError::warningFlag,
-                                  "DOM Events", doc);
+  nsContentUtils::ReportToConsole(nsIScriptError::warningFlag,
+                                  "DOM Events", doc,
+                                  nsContentUtils::eDOM_PROPERTIES,
+                                  aWarning);
 }
 
 NS_IMETHODIMP
@@ -5974,7 +5998,7 @@ class PostMessageEvent : public nsRunnable
   private:
     nsRefPtr<nsGlobalWindow> mSource;
     nsString mCallerOrigin;
-    JSUint64* mMessage;
+    uint64_t* mMessage;
     size_t mMessageLen;
     nsRefPtr<nsGlobalWindow> mTargetWindow;
     nsCOMPtr<nsIURI> mProvidedOrigin;
@@ -6017,7 +6041,7 @@ PostMessageReadStructuredClone(JSContext* cx,
   }
 
   const JSStructuredCloneCallbacks* runtimeCallbacks =
-    cx->runtime->structuredCloneCallbacks;
+    js::GetContextStructuredCloneCallbacks(cx);
 
   if (runtimeCallbacks) {
     return runtimeCallbacks->read(cx, reader, tag, data, nsnull);
@@ -6057,7 +6081,7 @@ PostMessageWriteStructuredClone(JSContext* cx,
   }
 
   const JSStructuredCloneCallbacks* runtimeCallbacks =
-    cx->runtime->structuredCloneCallbacks;
+    js::GetContextStructuredCloneCallbacks(cx);
 
   if (runtimeCallbacks) {
     return runtimeCallbacks->write(cx, writer, obj, nsnull);
@@ -6395,13 +6419,10 @@ nsGlobalWindow::Close()
       // We're blocking the close operation
       // report localized error msg in JS console
       nsContentUtils::ReportToConsole(
-          nsContentUtils::eDOM_PROPERTIES,
-          "WindowCloseBlockedWarning",
-          nsnull, 0, // No params
-          nsnull,
-          EmptyString(), 0, 0, // No source, or column/line number
           nsIScriptError::warningFlag,
-          "DOM Window", mDoc);  // Better name for the category?
+          "DOM Window", mDoc,  // Better name for the category?
+          nsContentUtils::eDOM_PROPERTIES,
+          "WindowCloseBlockedWarning");
 
       return NS_OK;
     }
@@ -6750,7 +6771,7 @@ nsGlobalWindow::IsInModalState()
 void
 nsGlobalWindow::NotifyDOMWindowDestroyed(nsGlobalWindow* aWindow) {
   nsCOMPtr<nsIObserverService> observerService =
-    do_GetService(NS_OBSERVERSERVICE_CONTRACTID);
+    services::GetObserverService();
   if (observerService) {
     observerService->
       NotifyObservers(static_cast<nsIScriptGlobalObject*>(aWindow),
@@ -6799,7 +6820,7 @@ void
 nsGlobalWindow::NotifyDOMWindowFrozen(nsGlobalWindow* aWindow) {
   if (aWindow && aWindow->IsInnerWindow()) {
     nsCOMPtr<nsIObserverService> observerService =
-      do_GetService(NS_OBSERVERSERVICE_CONTRACTID);
+      services::GetObserverService();
     if (observerService) {
       observerService->
         NotifyObservers(static_cast<nsIScriptGlobalObject*>(aWindow),
@@ -6813,7 +6834,7 @@ void
 nsGlobalWindow::NotifyDOMWindowThawed(nsGlobalWindow* aWindow) {
   if (aWindow && aWindow->IsInnerWindow()) {
     nsCOMPtr<nsIObserverService> observerService =
-      do_GetService(NS_OBSERVERSERVICE_CONTRACTID);
+      services::GetObserverService();
     if (observerService) {
       observerService->
         NotifyObservers(static_cast<nsIScriptGlobalObject*>(aWindow),
@@ -6884,7 +6905,7 @@ nsGlobalWindow::GetCachedXBLPrototypeHandler(nsXBLPrototypeHandler* aKey)
 
 void
 nsGlobalWindow::CacheXBLPrototypeHandler(nsXBLPrototypeHandler* aKey,
-                                         nsScriptObjectHolder& aHandler)
+                                         nsScriptObjectHolder<JSObject>& aHandler)
 {
   if (!mCachedXBLPrototypeHandlers.IsInitialized() &&
       !mCachedXBLPrototypeHandlers.Init()) {
@@ -6912,7 +6933,7 @@ nsGlobalWindow::CacheXBLPrototypeHandler(nsXBLPrototypeHandler* aKey,
     }
   }
 
-  mCachedXBLPrototypeHandlers.Put(aKey, aHandler.getObject());
+  mCachedXBLPrototypeHandlers.Put(aKey, aHandler.get());
 }
 
 NS_IMETHODIMP
@@ -9170,6 +9191,8 @@ nsGlobalWindow::RunTimeout(nsTimeout *aTimeout)
   // the logic in ResetTimersForNonBackgroundWindow will need to change.
   mTimeoutInsertionPoint = &dummy_timeout;
 
+  Telemetry::AutoCounter<Telemetry::DOM_TIMERS_FIRED_PER_NATIVE_TIMEOUT> timeoutsRan;
+
   for (timeout = FirstTimeout();
        timeout != &dummy_timeout && !IsFrozen();
        timeout = nextTimeout) {
@@ -9221,6 +9244,7 @@ nsGlobalWindow::RunTimeout(nsTimeout *aTimeout)
     nsTimeout *last_running_timeout = mRunningTimeout;
     mRunningTimeout = timeout;
     timeout->mRunning = true;
+    ++timeoutsRan;
 
     // Push this timeout's popup control state, which should only be
     // eabled the first time a timeout fires that was created while
@@ -9247,7 +9271,7 @@ nsGlobalWindow::RunTimeout(nsTimeout *aTimeout)
     }
 
     nsCOMPtr<nsIScriptTimeoutHandler> handler(timeout->mScriptHandler);
-    JSObject* scriptObject = static_cast<JSObject*>(handler->GetScriptObject());
+    JSObject* scriptObject = handler->GetScriptObject();
     if (!scriptObject) {
       // Evaluate the timeout expression.
       const PRUnichar *script = handler->GetHandlerText();
@@ -9261,7 +9285,8 @@ nsGlobalWindow::RunTimeout(nsTimeout *aTimeout)
 
       bool is_undefined;
       scx->EvaluateString(nsDependentString(script), FastGetGlobalJSObject(),
-                          timeout->mPrincipal, filename, lineNo,
+                          timeout->mPrincipal, timeout->mPrincipal,
+                          filename, lineNo,
                           handler->GetScriptVersion(), nsnull,
                           &is_undefined);
     } else {

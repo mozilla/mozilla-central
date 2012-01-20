@@ -48,7 +48,6 @@
 #include "jsatom.h"
 #include "jsscript.h"
 #include "jsstr.h"
-#include "jsopcode.h"
 
 #include "gc/Barrier.h"
 
@@ -105,9 +104,9 @@ namespace js { class FunctionExtended; }
 
 struct JSFunction : public JSObject
 {
-    uint16          nargs;        /* maximum number of specified arguments,
+    uint16_t        nargs;        /* maximum number of specified arguments,
                                      reflected as f.length/f.arity */
-    uint16          flags;        /* flags, see JSFUN_* below and in jsapi.h */
+    uint16_t        flags;        /* flags, see JSFUN_* below and in jsapi.h */
     union U {
         struct Native {
             js::Native  native;   /* native method pointer or null */
@@ -116,8 +115,9 @@ struct JSFunction : public JSObject
         } n;
         struct Scripted {
             JSScript    *script_; /* interpreted bytecode descriptor or null;
-                                     use the setter! */
-            JSObject    *env;     /* environment for new activations */
+                                     use the accessor! */
+            JSObject    *env_;    /* environment for new activations;
+                                     use the accessor! */
         } i;
         void            *nativeOrScript;
     } u;
@@ -126,15 +126,15 @@ struct JSFunction : public JSObject
     bool optimizedClosure()  const { return kind() > JSFUN_INTERPRETED; }
     bool isInterpreted()     const { return kind() >= JSFUN_INTERPRETED; }
     bool isNative()          const { return !isInterpreted(); }
-    bool isConstructor()     const { return flags & JSFUN_CONSTRUCTOR; }
+    bool isNativeConstructor() const { return flags & JSFUN_CONSTRUCTOR; }
     bool isHeavyweight()     const { return JSFUN_HEAVYWEIGHT_TEST(flags); }
     bool isNullClosure()     const { return kind() == JSFUN_NULL_CLOSURE; }
     bool isFlatClosure()     const { return kind() == JSFUN_FLAT_CLOSURE; }
     bool isFunctionPrototype() const { return flags & JSFUN_PROTOTYPE; }
     bool isInterpretedConstructor() const { return isInterpreted() && !isFunctionPrototype(); }
 
-    uint16 kind()            const { return flags & JSFUN_KINDMASK; }
-    void setKind(uint16 k) {
+    uint16_t kind()          const { return flags & JSFUN_KINDMASK; }
+    void setKind(uint16_t k) {
         JS_ASSERT(!(k & ~JSFUN_KINDMASK));
         flags = (flags & ~JSFUN_KINDMASK) | k;
     }
@@ -142,16 +142,16 @@ struct JSFunction : public JSObject
     /* Returns the strictness of this function, which must be interpreted. */
     inline bool inStrictMode() const;
 
-    void setArgCount(uint16 nargs) {
+    void setArgCount(uint16_t nargs) {
         JS_ASSERT(this->nargs == 0);
         this->nargs = nargs;
     }
 
-    /* uint16 representation bounds number of call object dynamic slots. */
+    /* uint16_t representation bounds number of call object dynamic slots. */
     enum { MAX_ARGS_AND_VARS = 2 * ((1U << 16) - 1) };
 
-#define JS_LOCAL_NAME_TO_ATOM(nameWord)  ((JSAtom *) ((nameWord) & ~(jsuword) 1))
-#define JS_LOCAL_NAME_IS_CONST(nameWord) ((((nameWord) & (jsuword) 1)) != 0)
+#define JS_LOCAL_NAME_TO_ATOM(nameWord)  ((JSAtom *) ((nameWord) & ~uintptr_t(1)))
+#define JS_LOCAL_NAME_IS_CONST(nameWord) ((((nameWord) & uintptr_t(1))) != 0)
 
     bool mightEscape() const {
         return isInterpreted() && (isFlatClosure() || !script()->bindings.hasUpvars());
@@ -167,8 +167,9 @@ struct JSFunction : public JSObject
      */
     inline JSObject *environment() const;
     inline void setEnvironment(JSObject *obj);
+    inline void initEnvironment(JSObject *obj);
 
-    static inline size_t offsetOfEnvironment() { return offsetof(JSFunction, u.i.env); }
+    static inline size_t offsetOfEnvironment() { return offsetof(JSFunction, u.i.env_); }
 
     inline void setJoinable();
 
@@ -252,13 +253,13 @@ struct JSFunction : public JSObject
      * into a vector of js::Values referenced from here. This is a private
      * pointer but is set only at creation and does not need to be barriered.
      */
-    static const uint32 FLAT_CLOSURE_UPVARS_SLOT = 0;
+    static const uint32_t FLAT_CLOSURE_UPVARS_SLOT = 0;
 
     static inline size_t getFlatClosureUpvarsOffset();
 
-    inline js::Value getFlatClosureUpvar(uint32 i) const;
-    inline void setFlatClosureUpvar(uint32 i, const js::Value &v);
-    inline void initFlatClosureUpvar(uint32 i, const js::Value &v);
+    inline js::Value getFlatClosureUpvar(uint32_t i) const;
+    inline void setFlatClosureUpvar(uint32_t i, const js::Value &v);
+    inline void initFlatClosureUpvar(uint32_t i, const js::Value &v);
 
   private:
     inline bool hasFlatClosureUpvars() const;
@@ -269,10 +270,10 @@ struct JSFunction : public JSObject
     inline void finalizeUpvars();
 
     /* Slot holding associated method property, needed for foo.caller handling. */
-    static const uint32 METHOD_PROPERTY_SLOT = 0;
+    static const uint32_t METHOD_PROPERTY_SLOT = 0;
 
     /* For cloned methods, slot holding the object this was cloned as a property from. */
-    static const uint32 METHOD_OBJECT_SLOT = 1;
+    static const uint32_t METHOD_OBJECT_SLOT = 1;
 
     /* Whether this is a function cloned from a method. */
     inline bool isClonedMethod() const;
@@ -288,6 +289,14 @@ struct JSFunction : public JSObject
      */
     inline JSAtom *methodAtom() const;
     inline void setMethodAtom(JSAtom *atom);
+
+  private:
+    /* 
+     * These member functions are inherited from JSObject, but should never be applied to
+     * a value statically known to be a JSFunction.
+     */
+    inline JSFunction *toFunction() MOZ_DELETE;
+    inline const JSFunction *toFunction() const MOZ_DELETE;
 };
 
 inline JSFunction *
@@ -309,7 +318,7 @@ fun_toStringHelper(JSContext *cx, JSObject *obj, uintN indent);
 
 extern JSFunction *
 js_NewFunction(JSContext *cx, JSObject *funobj, JSNative native, uintN nargs,
-               uintN flags, JSObject *parent, JSAtom *atom,
+               uintN flags, js::HandleObject parent, JSAtom *atom,
                js::gc::AllocKind kind = JSFunction::FinalizeKind);
 
 extern JSFunction * JS_FASTCALL
@@ -320,10 +329,10 @@ extern JSFunction * JS_FASTCALL
 js_AllocFlatClosure(JSContext *cx, JSFunction *fun, JSObject *scopeChain);
 
 extern JSFunction *
-js_NewFlatClosure(JSContext *cx, JSFunction *fun, JSOp op, size_t oplen);
+js_NewFlatClosure(JSContext *cx, JSFunction *fun);
 
 extern JSFunction *
-js_DefineFunction(JSContext *cx, JSObject *obj, jsid id, JSNative native,
+js_DefineFunction(JSContext *cx, js::HandleObject obj, jsid id, JSNative native,
                   uintN nargs, uintN flags,
                   js::gc::AllocKind kind = JSFunction::FinalizeKind);
 

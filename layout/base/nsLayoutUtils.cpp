@@ -116,6 +116,8 @@
 #include "nsXULPopupManager.h"
 #endif
 
+#include "sampler.h"
+
 using namespace mozilla;
 using namespace mozilla::layers;
 using namespace mozilla::dom;
@@ -161,6 +163,29 @@ nsLayoutUtils::Are3DTransformsEnabled()
   }
 
   return s3DTransformsEnabled;
+}
+
+void
+nsLayoutUtils::UnionChildOverflow(nsIFrame* aFrame,
+                                  nsOverflowAreas& aOverflowAreas)
+{
+  // Iterate over all children except pop-ups.
+  const nsIFrame::ChildListIDs skip(nsIFrame::kPopupList |
+                                    nsIFrame::kSelectPopupList);
+  for (nsIFrame::ChildListIterator childLists(aFrame);
+       !childLists.IsDone(); childLists.Next()) {
+    if (skip.Contains(childLists.CurrentID())) {
+      continue;
+    }
+
+    nsFrameList children = childLists.CurrentList();
+    for (nsFrameList::Enumerator e(children); !e.AtEnd(); e.Next()) {
+      nsIFrame* child = e.get();
+      nsOverflowAreas childOverflow =
+        child->GetOverflowAreas() + child->GetPosition();
+      aOverflowAreas.UnionWith(childOverflow);
+    }
+  }
 }
 
 static void DestroyViewID(void* aObject, nsIAtom* aPropertyName,
@@ -933,13 +958,20 @@ nsLayoutUtils::GetEventCoordinatesRelativeTo(const nsEvent* aEvent, nsIFrame* aF
                   aEvent->eventStructType != NS_SIMPLE_GESTURE_EVENT &&
                   aEvent->eventStructType != NS_GESTURENOTIFY_EVENT &&
                   aEvent->eventStructType != NS_MOZTOUCH_EVENT &&
+#ifdef MOZ_TOUCH
+                  aEvent->eventStructType != NS_TOUCH_EVENT &&
+#endif
                   aEvent->eventStructType != NS_QUERY_CONTENT_EVENT))
     return nsPoint(NS_UNCONSTRAINEDSIZE, NS_UNCONSTRAINEDSIZE);
 
   const nsGUIEvent* GUIEvent = static_cast<const nsGUIEvent*>(aEvent);
+#ifdef MOZ_TOUCH
+  return GetEventCoordinatesRelativeTo(aEvent,
+                                       GUIEvent->refPoint,
+                                       aFrame);
+#else
   if (!GUIEvent->widget)
     return nsPoint(NS_UNCONSTRAINEDSIZE, NS_UNCONSTRAINEDSIZE);
-
   /* If we walk up the frame tree and discover that any of the frames are
    * transformed, we need to do extra work to convert from the global
    * space to the local space.
@@ -950,7 +982,6 @@ nsLayoutUtils::GetEventCoordinatesRelativeTo(const nsEvent* aEvent, nsIFrame* aF
   for (nsIFrame* f = aFrame; f; f = GetCrossDocParentFrame(f)) {
     if (f->IsTransformed())
       transformFound = true;
-
     rootFrame = f;
   }
 
@@ -975,12 +1006,74 @@ nsLayoutUtils::GetEventCoordinatesRelativeTo(const nsEvent* aEvent, nsIFrame* aF
    * out how to convert back to aFrame's coordinates and must use the CTM.
    */
   if (transformFound)
-    return InvertTransformsToRoot(aFrame, widgetToView);
+    return TransformRootPointToFrame(aFrame, widgetToView);
 
   /* Otherwise, all coordinate systems are translations of one another,
    * so we can just subtract out the different.
    */
   return widgetToView - aFrame->GetOffsetToCrossDoc(rootFrame);
+#endif
+}
+
+nsPoint
+nsLayoutUtils::GetEventCoordinatesRelativeTo(const nsEvent* aEvent,
+                                             const nsIntPoint aPoint,
+                                             nsIFrame* aFrame)
+{
+  if (!aFrame) {
+    return nsPoint(NS_UNCONSTRAINEDSIZE, NS_UNCONSTRAINEDSIZE);
+  }
+
+  const nsGUIEvent* GUIEvent = static_cast<const nsGUIEvent*>(aEvent);
+  nsIWidget* widget = GUIEvent->widget;
+  if (!widget) {
+    return nsPoint(NS_UNCONSTRAINEDSIZE, NS_UNCONSTRAINEDSIZE);
+  }
+
+  /* If we walk up the frame tree and discover that any of the frames are
+   * transformed, we need to do extra work to convert from the global
+   * space to the local space.
+   */
+  nsIFrame* rootFrame = aFrame;
+  bool transformFound = false;
+  for (nsIFrame* f = aFrame; f; f = GetCrossDocParentFrame(f)) {
+    if (f->IsTransformed()) {
+      transformFound = true;
+    }
+
+    rootFrame = f;
+  }
+
+  nsIView* rootView = rootFrame->GetView();
+  if (!rootView) {
+    return nsPoint(NS_UNCONSTRAINEDSIZE, NS_UNCONSTRAINEDSIZE);
+  }
+
+  nsPoint widgetToView = TranslateWidgetToView(rootFrame->PresContext(),
+                               widget, aPoint, rootView);
+
+  if (widgetToView == nsPoint(NS_UNCONSTRAINEDSIZE, NS_UNCONSTRAINEDSIZE)) {
+    return nsPoint(NS_UNCONSTRAINEDSIZE, NS_UNCONSTRAINEDSIZE);
+  }
+
+  // Convert from root document app units to app units of the document aFrame
+  // is in.
+  PRInt32 rootAPD = rootFrame->PresContext()->AppUnitsPerDevPixel();
+  PRInt32 localAPD = aFrame->PresContext()->AppUnitsPerDevPixel();
+  widgetToView = widgetToView.ConvertAppUnits(rootAPD, localAPD);
+
+  /* If we encountered a transform, we can't do simple arithmetic to figure
+   * out how to convert back to aFrame's coordinates and must use the CTM.
+   */
+  if (transformFound) {
+    return TransformRootPointToFrame(aFrame, widgetToView);
+  }
+
+  /* Otherwise, all coordinate systems are translations of one another,
+   * so we can just subtract out the different.
+   */
+  nsPoint offset = aFrame->GetOffsetToCrossDoc(rootFrame);
+  return widgetToView - offset;
 }
 
 nsIFrame*
@@ -1117,68 +1210,62 @@ nsLayoutUtils::MatrixTransformPoint(const nsPoint &aPoint,
                  NSFloatPixelsToAppUnits(float(image.y), aFactor));
 }
 
-static gfxPoint 
-InvertTransformsToAncestor(nsIFrame *aFrame,
-                           const gfxPoint &aPoint,
-                           nsIFrame *aStopAtAncestor = nsnull)
+gfx3DMatrix
+nsLayoutUtils::GetTransformToAncestor(nsIFrame *aFrame, nsIFrame *aAncestor)
 {
-  NS_PRECONDITION(aFrame, "Why are you inverting transforms when there is no frame?");
-
-  /* To invert everything to the root, we'll get the CTM, invert it, and use it to transform
-   * the point.
-   */
-  nsIFrame *parent = nsnull;
-  gfx3DMatrix ctm = aFrame->GetTransformMatrix(&parent);
-  gfxPoint result = aPoint;
-  
-  if (parent && parent != aStopAtAncestor) {
-      result = InvertTransformsToAncestor(parent, aPoint, aStopAtAncestor);
+  nsIFrame* parent;
+  gfx3DMatrix ctm = aFrame->GetTransformMatrix(aAncestor, &parent);
+  while (parent && parent != aAncestor) {
+    ctm = ctm * parent->GetTransformMatrix(aAncestor, &parent);
   }
+  return ctm;
+}
 
-  result = ctm.Inverse().ProjectPoint(result);
-  return result;
+static gfxPoint
+TransformGfxPointFromAncestor(nsIFrame *aFrame,
+                              const gfxPoint &aPoint,
+                              nsIFrame *aAncestor)
+{
+  gfx3DMatrix ctm = nsLayoutUtils::GetTransformToAncestor(aFrame, aAncestor);
+  return ctm.Inverse().ProjectPoint(aPoint);
 }
 
 static gfxRect
-InvertGfxRectToAncestor(nsIFrame *aFrame,
-                     const gfxRect &aRect,
-                     nsIFrame *aStopAtAncestor = nsnull)
+TransformGfxRectFromAncestor(nsIFrame *aFrame,
+                             const gfxRect &aRect,
+                             nsIFrame *aAncestor)
 {
-  NS_PRECONDITION(aFrame, "Why are you inverting transforms when there is no frame?");
+  gfx3DMatrix ctm = nsLayoutUtils::GetTransformToAncestor(aFrame, aAncestor);
+  return ctm.Inverse().ProjectRectBounds(aRect);
+}
 
-  /* To invert everything to the root, we'll get the CTM, invert it, and use it to transform
-   * the point.
-   */
-  nsIFrame *parent = nsnull;
-  gfx3DMatrix ctm = aFrame->GetTransformMatrix(&parent);
-  gfxRect result = aRect;
-  
-  if (parent && parent != aStopAtAncestor) {
-      result = InvertGfxRectToAncestor(parent, aRect, aStopAtAncestor);
-  }
-
-  result = ctm.Inverse().ProjectRectBounds(result);
-  return result;
+static gfxRect
+TransformGfxRectToAncestor(nsIFrame *aFrame,
+                           const gfxRect &aRect,
+                           nsIFrame *aAncestor)
+{
+  gfx3DMatrix ctm = nsLayoutUtils::GetTransformToAncestor(aFrame, aAncestor);
+  return ctm.ProjectRectBounds(aRect);
 }
 
 nsPoint
-nsLayoutUtils::InvertTransformsToRoot(nsIFrame *aFrame,
-                                      const nsPoint &aPoint)
+nsLayoutUtils::TransformRootPointToFrame(nsIFrame *aFrame,
+                                         const nsPoint &aPoint)
 {
     float factor = aFrame->PresContext()->AppUnitsPerDevPixel();
     gfxPoint result(NSAppUnitsToFloatPixels(aPoint.x, factor),
                     NSAppUnitsToFloatPixels(aPoint.y, factor));
     
-    result = InvertTransformsToAncestor(aFrame, result);
+    result = TransformGfxPointFromAncestor(aFrame, result, nsnull);
    
     return nsPoint(NSFloatPixelsToAppUnits(float(result.x), factor),
                    NSFloatPixelsToAppUnits(float(result.y), factor));
 }
 
 nsRect 
-nsLayoutUtils::TransformRectToBoundsInAncestor(nsIFrame* aFrame,
-                                               const nsRect &aRect,
-                                               nsIFrame* aStopAtAncestor)
+nsLayoutUtils::TransformAncestorRectToFrame(nsIFrame* aFrame,
+                                            const nsRect &aRect,
+                                            nsIFrame* aAncestor)
 {
     float factor = aFrame->PresContext()->AppUnitsPerDevPixel();
     gfxRect result(NSAppUnitsToFloatPixels(aRect.x, factor),
@@ -1186,12 +1273,31 @@ nsLayoutUtils::TransformRectToBoundsInAncestor(nsIFrame* aFrame,
                    NSAppUnitsToFloatPixels(aRect.width, factor),
                    NSAppUnitsToFloatPixels(aRect.height, factor));
 
-    result = InvertGfxRectToAncestor(aFrame, result, aStopAtAncestor);
+    result = TransformGfxRectFromAncestor(aFrame, result, aAncestor);
 
     return nsRect(NSFloatPixelsToAppUnits(float(result.x), factor),
                   NSFloatPixelsToAppUnits(float(result.y), factor),
                   NSFloatPixelsToAppUnits(float(result.width), factor),
                   NSFloatPixelsToAppUnits(float(result.height), factor));
+}
+
+nsRect
+nsLayoutUtils::TransformFrameRectToAncestor(nsIFrame* aFrame,
+                                            const nsRect& aRect,
+                                            nsIFrame* aAncestor)
+{
+  float factor = aFrame->PresContext()->AppUnitsPerDevPixel();
+  gfxRect result(NSAppUnitsToFloatPixels(aRect.x, factor),
+                 NSAppUnitsToFloatPixels(aRect.y, factor),
+                 NSAppUnitsToFloatPixels(aRect.width, factor),
+                 NSAppUnitsToFloatPixels(aRect.height, factor));
+
+  result = TransformGfxRectToAncestor(aFrame, result, aAncestor);
+
+  return nsRect(NSFloatPixelsToAppUnits(float(result.x), factor),
+                NSFloatPixelsToAppUnits(float(result.y), factor),
+                NSFloatPixelsToAppUnits(float(result.width), factor),
+                NSFloatPixelsToAppUnits(float(result.height), factor));
 }
 
 static nsIntPoint GetWidgetOffset(nsIWidget* aWidget, nsIWidget*& aRootWidget) {
@@ -1834,27 +1940,35 @@ nsLayoutUtils::GetAllInFlowBoxes(nsIFrame* aFrame, BoxCallback* aCallback)
 }
 
 struct BoxToBorderRect : public nsLayoutUtils::BoxCallback {
-  nsIFrame*                    mRelativeTo;
+  nsIFrame* mRelativeTo;
   nsLayoutUtils::RectCallback* mCallback;
+  PRUint32 mFlags;
 
-  BoxToBorderRect(nsIFrame* aRelativeTo, nsLayoutUtils::RectCallback* aCallback)
-    : mRelativeTo(aRelativeTo), mCallback(aCallback) {}
+  BoxToBorderRect(nsIFrame* aRelativeTo, nsLayoutUtils::RectCallback* aCallback,
+                  PRUint32 aFlags)
+    : mRelativeTo(aRelativeTo), mCallback(aCallback), mFlags(aFlags) {}
 
   virtual void AddBox(nsIFrame* aFrame) {
     nsRect r;
     nsIFrame* outer = nsSVGUtils::GetOuterSVGFrameAndCoveredRegion(aFrame, &r);
-    if (outer) {
-      mCallback->AddRect(r + outer->GetOffsetTo(mRelativeTo));
-    } else
-      mCallback->AddRect(nsRect(aFrame->GetOffsetTo(mRelativeTo), aFrame->GetSize()));
+    if (!outer) {
+      outer = aFrame;
+      r = nsRect(nsPoint(0, 0), aFrame->GetSize());
+    }
+    if (mFlags & nsLayoutUtils::RECTS_ACCOUNT_FOR_TRANSFORMS) {
+      r = nsLayoutUtils::TransformFrameRectToAncestor(outer, r, mRelativeTo);
+    } else {
+      r += outer->GetOffsetTo(mRelativeTo);
+    }
+    mCallback->AddRect(r);
   }
 };
 
 void
 nsLayoutUtils::GetAllInFlowRects(nsIFrame* aFrame, nsIFrame* aRelativeTo,
-                                 RectCallback* aCallback)
+                                 RectCallback* aCallback, PRUint32 aFlags)
 {
-  BoxToBorderRect converter(aRelativeTo, aCallback);
+  BoxToBorderRect converter(aRelativeTo, aCallback, aFlags);
   GetAllInFlowBoxes(aFrame, &converter);
 }
 
@@ -1880,19 +1994,14 @@ void nsLayoutUtils::RectListBuilder::AddRect(const nsRect& aRect) {
 
 nsIFrame* nsLayoutUtils::GetContainingBlockForClientRect(nsIFrame* aFrame)
 {
-  // get the nearest enclosing SVG foreign object frame or the root frame
-  while (aFrame->GetParent() &&
-         !aFrame->IsFrameOfType(nsIFrame::eSVGForeignObject)) {
-    aFrame = aFrame->GetParent();
-  }
-
-  return aFrame;
+  return aFrame->PresContext()->PresShell()->GetRootFrame();
 }
 
 nsRect
-nsLayoutUtils::GetAllInFlowRectsUnion(nsIFrame* aFrame, nsIFrame* aRelativeTo) {
+nsLayoutUtils::GetAllInFlowRectsUnion(nsIFrame* aFrame, nsIFrame* aRelativeTo,
+                                      PRUint32 aFlags) {
   RectAccumulator accumulator;
-  GetAllInFlowRects(aFrame, aRelativeTo, &accumulator);
+  GetAllInFlowRects(aFrame, aRelativeTo, &accumulator, aFlags);
   return accumulator.mResultRect.IsEmpty() ? accumulator.mFirstRect
           : accumulator.mResultRect;
 }
@@ -3614,6 +3723,7 @@ nsLayoutUtils::DrawBackgroundImage(nsRenderingContext* aRenderingContext,
                                    const nsRect&       aDirty,
                                    PRUint32            aImageFlags)
 {
+  SAMPLE_LABEL("layout", "nsLayoutUtils::DrawBackgroundImage");
   return DrawImageInternal(aRenderingContext, aImage, aGraphicsFilter,
                            aDest, aFill, aAnchor, aDirty,
                            aImageSize, aImageFlags);
@@ -3785,22 +3895,28 @@ nsLayoutUtils::GetFrameTransparency(nsIFrame* aBackgroundFrame,
   return eTransparencyOpaque;
 }
 
+static bool IsPopupFrame(nsIFrame* aFrame)
+{
+  // aFrame is a popup it's the list control frame dropdown for a combobox.
+  nsIAtom* frameType = aFrame->GetType();
+  if (frameType == nsGkAtoms::listControlFrame) {
+    nsListControlFrame* lcf = static_cast<nsListControlFrame*>(aFrame);
+    return lcf->IsInDropDownMode();
+  }
+
+  // ... or if it's a XUL menupopup frame.
+  return frameType == nsGkAtoms::menuPopupFrame;
+}
+
 /* static */ bool
 nsLayoutUtils::IsPopup(nsIFrame* aFrame)
 {
-  nsIAtom* frameType = aFrame->GetType();
-
-  // We're a popup if we're the list control frame dropdown for a combobox.
-  if (frameType == nsGkAtoms::listControlFrame) {
-    nsListControlFrame* listControlFrame = static_cast<nsListControlFrame*>(aFrame);
-
-    if (listControlFrame) {
-      return listControlFrame->IsInDropDownMode();
-    }
+  // Optimization: the frame can't possibly be a popup if it has no view.
+  if (!aFrame->HasView()) {
+    NS_ASSERTION(!IsPopupFrame(aFrame), "popup frame must have a view");
+    return false;
   }
-
-  // ... or if we're a XUL menupopup frame.
-  return (frameType == nsGkAtoms::menuPopupFrame);
+  return IsPopupFrame(aFrame);
 }
 
 /* static */ nsIFrame*
@@ -4111,11 +4227,8 @@ nsLayoutUtils::SurfaceFromElement(dom::Element* aElement,
   result.mSurface = gfxsurf;
   result.mSize = gfxIntSize(imgWidth, imgHeight);
   result.mPrincipal = principal.forget();
-  // SVG images could have <foreignObject> and/or <image> elements that load
-  // content from another domain.  For safety, they make the canvas write-only.
-  // XXXdholbert We could probably be more permissive here if we check that our
-  // helper SVG document has no elements that could load remote content.
-  result.mIsWriteOnly = (imgContainer->GetType() == imgIContainer::TYPE_VECTOR);
+  // no images, including SVG images, can load content from another domain.
+  result.mIsWriteOnly = false;
   result.mImageRequest = imgRequest.forget();
 
   return result;
@@ -4230,7 +4343,7 @@ nsLayoutUtils::GetFontFacesForFrames(nsIFrame* aFrame,
   while (aFrame) {
     nsIFrame::ChildListID childLists[] = { nsIFrame::kPrincipalList,
                                            nsIFrame::kPopupList };
-    for (int i = 0; i < ArrayLength(childLists); ++i) {
+    for (size_t i = 0; i < ArrayLength(childLists); ++i) {
       nsFrameList children(aFrame->GetChildList(childLists[i]));
       for (nsFrameList::Enumerator e(children); !e.AtEnd(); e.Next()) {
         nsIFrame* child = e.get();
@@ -4509,9 +4622,14 @@ MinimumFontSizeFor(nsPresContext* aPresContext, nscoord aContainerWidth)
   if (sFontSizeInflationEmPerLine == 0 && sFontSizeInflationMinTwips == 0) {
     return 0;
   }
+
+  // Clamp the container width to the device dimensions
+  nscoord iFrameWidth = aPresContext->GetVisibleArea().width;
+  nscoord effectiveContainerWidth = NS_MIN(iFrameWidth, aContainerWidth);
+
   nscoord byLine = 0, byInch = 0;
   if (sFontSizeInflationEmPerLine != 0) {
-    byLine = aContainerWidth / sFontSizeInflationEmPerLine;
+    byLine = effectiveContainerWidth / sFontSizeInflationEmPerLine;
   }
   if (sFontSizeInflationMinTwips != 0) {
     // REVIEW: Is this giving us app units and sizes *not* counting
@@ -4521,7 +4639,7 @@ MinimumFontSizeFor(nsPresContext* aPresContext, nscoord aContainerWidth)
     dx->GetClientRect(clientRect); // FIXME: GetClientRect looks expensive
     float deviceWidthInches =
       float(clientRect.width) / float(dx->AppUnitsPerPhysicalInch());
-    byInch = NSToCoordRound(aContainerWidth /
+    byInch = NSToCoordRound(effectiveContainerWidth /
                             (deviceWidthInches * 1440 /
                              sFontSizeInflationMinTwips ));
   }
@@ -4588,6 +4706,9 @@ nsLayoutUtils::IsContainerForFontSizeInflation(const nsIFrame *aFrame)
    * them, so they and their anonymous content should also not be a
    * container.
    *
+   * However, because we can't reliably compute sizes across XUL during
+   * reflow, any XUL frame with a XUL parent is always a container.
+   *
    * There are contexts where it would be nice if some blocks didn't
    * count as a container, so that, for example, an indented quotation
    * didn't end up with a smaller font size.  However, it's hard to
@@ -4595,9 +4716,12 @@ nsLayoutUtils::IsContainerForFontSizeInflation(const nsIFrame *aFrame)
    * thing to count as a container, so we don't try, and blocks are
    * always containers.
    */
-  bool isInline = aFrame->GetStyleDisplay()->mDisplay ==
-                    NS_STYLE_DISPLAY_INLINE ||
-                  aFrame->GetContent()->IsInNativeAnonymousSubtree();
+  bool isInline = (aFrame->GetStyleDisplay()->mDisplay ==
+                     NS_STYLE_DISPLAY_INLINE ||
+                   (aFrame->GetContent() &&
+                    aFrame->GetContent()->IsInNativeAnonymousSubtree())) &&
+                  !(aFrame->IsBoxFrame() && aFrame->GetParent() &&
+                    aFrame->GetParent()->IsBoxFrame());
   NS_ASSERTION(!aFrame->IsFrameOfType(nsIFrame::eLineParticipant) || isInline,
                "line participants must not be containers");
   NS_ASSERTION(aFrame->GetType() != nsGkAtoms::bulletFrame || isInline,
@@ -4626,10 +4750,26 @@ nsLayoutUtils::InflationMinFontSizeFor(const nsHTMLReflowState &aReflowState)
 #ifdef DEBUG
   {
     const nsHTMLReflowState *rs = &aReflowState;
-    const nsIFrame *f = aReflowState.frame;
+    nsIFrame *f = aReflowState.frame;
     for (; rs; rs = rs->parentReflowState, f = f->GetParent()) {
       NS_ABORT_IF_FALSE(rs->frame == f,
                         "reflow state parentage must match frame parentage");
+      nsIScrollableFrame *sf;
+      NS_ABORT_IF_FALSE(rs->parentReflowState ||
+                        IsContainerForFontSizeInflation(f) ||
+                        // OK if NS_FRAME_IN_REFLOW is not set on
+                        // (non-null) parent, since its ancestors have a
+                        // real size.  (Do we set NS_FRAME_IN_REFLOW
+                        // correctly for xul?)
+                        !(f->GetParent()->GetStateBits() &
+                          NS_FRAME_IN_REFLOW) ||
+                        // ugly exception, but ok because the
+                        // child is a container
+                        (f->GetType() == nsGkAtoms::scrollFrame &&
+                         (sf = do_QueryFrame(f)) &&
+                         (IsContainerForFontSizeInflation(
+                            sf->GetScrolledFrame()))),
+                        "must hit container at top of reflow state chain");
     }
   }
 #endif

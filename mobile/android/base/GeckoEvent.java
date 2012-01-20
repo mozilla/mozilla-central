@@ -1,4 +1,4 @@
-/* -*- Mode: Java; tab-width: 4; indent-tabs-mode: nil; -*-
+/* -*- Mode: Java; c-basic-offset: 4; tab-width: 4; indent-tabs-mode: nil; -*-
  * ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -37,6 +37,8 @@
 
 package org.mozilla.gecko;
 
+import org.mozilla.gecko.gfx.IntSize;
+import org.mozilla.gecko.gfx.ViewportMetrics;
 import android.os.*;
 import android.app.*;
 import android.view.*;
@@ -76,6 +78,10 @@ public class GeckoEvent {
     public static final int GECKO_EVENT_SYNC = 15;
     public static final int ACTIVITY_START = 17;
     public static final int BROADCAST = 19;
+    public static final int VIEWPORT = 20;
+    public static final int TILE_SIZE = 21;
+    public static final int VISTITED = 22;
+    public static final int NETWORK_CHANGED = 23;
 
     public static final int IME_COMPOSITION_END = 0;
     public static final int IME_COMPOSITION_BEGIN = 1;
@@ -112,6 +118,9 @@ public class GeckoEvent {
     public int mRangeForeColor, mRangeBackColor;
     public Location mLocation;
     public Address  mAddress;
+
+    public double mBandwidth;
+    public boolean mCanBeMetered;
 
     public int mNativeWindow;
 
@@ -226,10 +235,26 @@ public class GeckoEvent {
         mP1 = new Point(screenw, screenh);
     }
 
+    public GeckoEvent(int etype, IntSize size) {
+        if (etype != TILE_SIZE) {
+            mType = INVALID;
+            return;
+        }
+
+        mType = etype;
+        mP0 = new Point(size.width, size.height);
+    }
+
     public GeckoEvent(String subject, String data) {
         mType = BROADCAST;
         mCharacters = subject;
         mCharactersExtra = data;
+    }
+
+    public GeckoEvent(ViewportMetrics viewport) {
+        mType = VIEWPORT;
+        mCharacters = "Viewport:Change";
+        mCharactersExtra = viewport.toJSON();
     }
 
     public GeckoEvent(String uri) {
@@ -237,4 +262,14 @@ public class GeckoEvent {
         mCharacters = uri;
     }
 
+    public GeckoEvent(int type, String data) {
+        mType = type;
+        mCharacters = data;
+    }
+
+    public GeckoEvent(double bandwidth, boolean canBeMetered) {
+        mType = NETWORK_CHANGED;
+        mBandwidth = bandwidth;
+        mCanBeMetered = canBeMetered;
+    }
 }

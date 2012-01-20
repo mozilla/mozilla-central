@@ -118,6 +118,7 @@ public:
                               bool aCompileEventHandlers);
   virtual void UnbindFromTree(bool aDeep = true,
                               bool aNullParent = true);
+  virtual void DoneCreatingElement();
 
   /**
    * Call this to reevaluate whether we should start/stop due to our owner
@@ -353,6 +354,16 @@ public:
 
 protected:
   class MediaLoadListener;
+
+  /**
+   * Logs a warning message to the web console to report various failures.
+   * aMsg is the localized message identifier, aParams is the parameters to
+   * be substituted into the localized message, and aParamCount is the number
+   * of parameters in aParams.
+   */
+  void ReportLoadError(const char* aMsg,
+                       const PRUnichar** aParams = nsnull,
+                       PRUint32 aParamCount = 0);
 
   /**
    * Changes mHasPlayedOrSeeked to aValue. If mHasPlayedOrSeeked changes

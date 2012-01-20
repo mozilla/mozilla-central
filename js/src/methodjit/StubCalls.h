@@ -54,25 +54,25 @@ typedef enum JSTrapType {
 } JSTrapType;
 
 void JS_FASTCALL This(VMFrame &f);
-void JS_FASTCALL NewInitArray(VMFrame &f, uint32 count);
+void JS_FASTCALL NewInitArray(VMFrame &f, uint32_t count);
 void JS_FASTCALL NewInitObject(VMFrame &f, JSObject *base);
-void JS_FASTCALL Trap(VMFrame &f, uint32 trapTypes);
+void JS_FASTCALL Trap(VMFrame &f, uint32_t trapTypes);
 void JS_FASTCALL DebuggerStatement(VMFrame &f, jsbytecode *pc);
 void JS_FASTCALL Interrupt(VMFrame &f, jsbytecode *pc);
 void JS_FASTCALL RecompileForInline(VMFrame &f);
-void JS_FASTCALL InitElem(VMFrame &f, uint32 last);
-void JS_FASTCALL InitProp(VMFrame &f, JSAtom *atom);
-void JS_FASTCALL InitMethod(VMFrame &f, JSAtom *atom);
+void JS_FASTCALL InitElem(VMFrame &f, uint32_t last);
+void JS_FASTCALL InitProp(VMFrame &f, PropertyName *name);
+void JS_FASTCALL InitMethod(VMFrame &f, PropertyName *name);
 
 void JS_FASTCALL HitStackQuota(VMFrame &f);
-void * JS_FASTCALL FixupArity(VMFrame &f, uint32 argc);
-void * JS_FASTCALL CompileFunction(VMFrame &f, uint32 argc);
-void JS_FASTCALL SlowNew(VMFrame &f, uint32 argc);
-void JS_FASTCALL SlowCall(VMFrame &f, uint32 argc);
-void * JS_FASTCALL UncachedNew(VMFrame &f, uint32 argc);
-void * JS_FASTCALL UncachedCall(VMFrame &f, uint32 argc);
-void * JS_FASTCALL UncachedLoweredCall(VMFrame &f, uint32 argc);
-void JS_FASTCALL Eval(VMFrame &f, uint32 argc);
+void * JS_FASTCALL FixupArity(VMFrame &f, uint32_t argc);
+void * JS_FASTCALL CompileFunction(VMFrame &f, uint32_t argc);
+void JS_FASTCALL SlowNew(VMFrame &f, uint32_t argc);
+void JS_FASTCALL SlowCall(VMFrame &f, uint32_t argc);
+void * JS_FASTCALL UncachedNew(VMFrame &f, uint32_t argc);
+void * JS_FASTCALL UncachedCall(VMFrame &f, uint32_t argc);
+void * JS_FASTCALL UncachedLoweredCall(VMFrame &f, uint32_t argc);
+void JS_FASTCALL Eval(VMFrame &f, uint32_t argc);
 void JS_FASTCALL ScriptDebugPrologue(VMFrame &f);
 void JS_FASTCALL ScriptDebugEpilogue(VMFrame &f);
 void JS_FASTCALL ScriptProbeOnlyPrologue(VMFrame &f);
@@ -106,8 +106,8 @@ struct UncachedCallResult {
  * These functions either execute the function, return a native code
  * pointer that can be used to call the function, or throw.
  */
-void UncachedCallHelper(VMFrame &f, uint32 argc, bool lowered, UncachedCallResult *ucr);
-void UncachedNewHelper(VMFrame &f, uint32 argc, UncachedCallResult *ucr);
+void UncachedCallHelper(VMFrame &f, uint32_t argc, bool lowered, UncachedCallResult *ucr);
+void UncachedNewHelper(VMFrame &f, uint32_t argc, UncachedCallResult *ucr);
 
 void JS_FASTCALL CreateThis(VMFrame &f, JSObject *proto);
 void JS_FASTCALL Throw(VMFrame &f);
@@ -115,33 +115,26 @@ void JS_FASTCALL Throw(VMFrame &f);
 void * JS_FASTCALL LookupSwitch(VMFrame &f, jsbytecode *pc);
 void * JS_FASTCALL TableSwitch(VMFrame &f, jsbytecode *origPc);
 
-void JS_FASTCALL BindName(VMFrame &f);
-void JS_FASTCALL BindNameNoCache(VMFrame &f, JSAtom *atom);
+void JS_FASTCALL BindName(VMFrame &f, PropertyName *name);
 JSObject * JS_FASTCALL BindGlobalName(VMFrame &f);
-template<JSBool strict> void JS_FASTCALL SetName(VMFrame &f, JSAtom *atom);
-template<JSBool strict> void JS_FASTCALL SetPropNoCache(VMFrame &f, JSAtom *atom);
-template<JSBool strict> void JS_FASTCALL SetGlobalName(VMFrame &f, JSAtom *atom);
-template<JSBool strict> void JS_FASTCALL SetGlobalNameNoCache(VMFrame &f, JSAtom *atom);
+template<JSBool strict> void JS_FASTCALL SetName(VMFrame &f, PropertyName *name);
+template<JSBool strict> void JS_FASTCALL SetGlobalName(VMFrame &f, PropertyName *name);
 void JS_FASTCALL Name(VMFrame &f);
-void JS_FASTCALL GetProp(VMFrame &f);
-void JS_FASTCALL GetPropNoCache(VMFrame &f, JSAtom *atom);
+void JS_FASTCALL GetProp(VMFrame &f, PropertyName *name);
+void JS_FASTCALL GetPropNoCache(VMFrame &f, PropertyName *name);
 void JS_FASTCALL GetElem(VMFrame &f);
-void JS_FASTCALL CallElem(VMFrame &f);
 template<JSBool strict> void JS_FASTCALL SetElem(VMFrame &f);
 void JS_FASTCALL ToId(VMFrame &f);
-void JS_FASTCALL CallName(VMFrame &f);
-void JS_FASTCALL PushImplicitThisForGlobal(VMFrame &f);
-void JS_FASTCALL GetUpvar(VMFrame &f, uint32 index);
-void JS_FASTCALL GetGlobalName(VMFrame &f);
+void JS_FASTCALL ImplicitThis(VMFrame &f, PropertyName *name);
+void JS_FASTCALL GetUpvar(VMFrame &f, uint32_t index);
 
-void JS_FASTCALL CallProp(VMFrame &f, JSAtom *atom);
-template <JSBool strict> void JS_FASTCALL DelProp(VMFrame &f, JSAtom *atom);
+template <JSBool strict> void JS_FASTCALL DelProp(VMFrame &f, PropertyName *name);
 template <JSBool strict> void JS_FASTCALL DelElem(VMFrame &f);
-void JS_FASTCALL DelName(VMFrame &f, JSAtom *atom);
+void JS_FASTCALL DelName(VMFrame &f, PropertyName *name);
 JSBool JS_FASTCALL In(VMFrame &f);
 
-void JS_FASTCALL DefVarOrConst(VMFrame &f, JSAtom *atom);
-void JS_FASTCALL SetConst(VMFrame &f, JSAtom *atom);
+void JS_FASTCALL DefVarOrConst(VMFrame &f, PropertyName *name);
+void JS_FASTCALL SetConst(VMFrame &f, PropertyName *name);
 template<JSBool strict> void JS_FASTCALL DefFun(VMFrame &f, JSFunction *fun);
 JSObject * JS_FASTCALL DefLocalFun(VMFrame &f, JSFunction *fun);
 JSObject * JS_FASTCALL DefLocalFun_FC(VMFrame &f, JSFunction *fun);
@@ -154,7 +147,7 @@ JSObject * JS_FASTCALL LambdaJoinableForNull(VMFrame &f, JSFunction *fun);
 JSObject * JS_FASTCALL FlatLambda(VMFrame &f, JSFunction *fun);
 void JS_FASTCALL Arguments(VMFrame &f);
 void JS_FASTCALL EnterBlock(VMFrame &f, JSObject *obj);
-void JS_FASTCALL LeaveBlock(VMFrame &f, JSObject *blockChain);
+void JS_FASTCALL LeaveBlock(VMFrame &f);
 
 JSBool JS_FASTCALL LessThan(VMFrame &f);
 JSBool JS_FASTCALL LessEqual(VMFrame &f);
@@ -181,8 +174,8 @@ void JS_FASTCALL Not(VMFrame &f);
 void JS_FASTCALL StrictEq(VMFrame &f);
 void JS_FASTCALL StrictNe(VMFrame &f);
 
-void JS_FASTCALL Iter(VMFrame &f, uint32 flags);
-void JS_FASTCALL IterNext(VMFrame &f, int32 offset);
+void JS_FASTCALL Iter(VMFrame &f, uint32_t flags);
+void JS_FASTCALL IterNext(VMFrame &f, int32_t offset);
 JSBool JS_FASTCALL IterMore(VMFrame &f);
 void JS_FASTCALL EndIter(VMFrame &f);
 
@@ -195,11 +188,11 @@ void JS_FASTCALL FastInstanceOf(VMFrame &f);
  * Helper for triggering recompilation should a name read miss a type barrier,
  * produce undefined or -0.
  */
-void JS_FASTCALL TypeBarrierHelper(VMFrame &f, uint32 which);
+void JS_FASTCALL TypeBarrierHelper(VMFrame &f, uint32_t which);
 void JS_FASTCALL TypeBarrierReturn(VMFrame &f, Value *vp);
 void JS_FASTCALL NegZeroHelper(VMFrame &f);
 
-void JS_FASTCALL StubTypeHelper(VMFrame &f, int32 which);
+void JS_FASTCALL StubTypeHelper(VMFrame &f, int32_t which);
 
 void JS_FASTCALL CheckArgumentTypes(VMFrame &f);
 
@@ -211,7 +204,7 @@ void JS_FASTCALL MissedBoundsCheckEntry(VMFrame &f);
 void JS_FASTCALL MissedBoundsCheckHead(VMFrame &f);
 void * JS_FASTCALL InvariantFailure(VMFrame &f, void *repatchCode);
 
-template <bool strict> int32 JS_FASTCALL ConvertToTypedInt(JSContext *cx, Value *vp);
+template <bool strict> int32_t JS_FASTCALL ConvertToTypedInt(JSContext *cx, Value *vp);
 void JS_FASTCALL ConvertToTypedFloat(JSContext *cx, Value *vp);
 
 void JS_FASTCALL Exception(VMFrame &f);
@@ -222,13 +215,15 @@ void JS_FASTCALL FunctionFrameEpilogue(VMFrame &f);
 void JS_FASTCALL AnyFrameEpilogue(VMFrame &f);
 
 JSObject * JS_FASTCALL
-NewDenseUnallocatedArray(VMFrame &f, uint32 length);
+NewDenseUnallocatedArray(VMFrame &f, uint32_t length);
 
 void JS_FASTCALL ArrayConcatTwoArrays(VMFrame &f);
 void JS_FASTCALL ArrayShift(VMFrame &f);
 
 void JS_FASTCALL WriteBarrier(VMFrame &f, Value *addr);
 void JS_FASTCALL GCThingWriteBarrier(VMFrame &f, Value *addr);
+
+void JS_FASTCALL CrossChunkShim(VMFrame &f, void *edge);
 
 } /* namespace stubs */
 

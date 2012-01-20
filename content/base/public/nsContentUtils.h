@@ -82,6 +82,7 @@ static fp_except_t oldmask = fpsetmask(~allmask);
 #include "nsHtml5Parser.h"
 #include "nsIFragmentContentSink.h"
 #include "nsMathUtils.h"
+#include "nsCharSeparatedTokenizer.h"
 
 #include "mozilla/AutoRestore.h"
 #include "mozilla/GuardObjects.h"
@@ -232,10 +233,9 @@ public:
   static bool     IsCallerTrustedForWrite();
 
   /**
-   * Check whether a caller is trusted to have aCapability.  This also
-   * checks for UniversalXPConnect in addition to aCapability.
+   * Check whether a caller has UniversalXPConnect.
    */
-  static bool     IsCallerTrustedForCapability(const char* aCapability);
+  static bool     CallerHasUniversalXPConnect();
 
   static bool     IsImageSrcSetDisabled();
 
@@ -739,19 +739,22 @@ public:
 
   /**
    * Report a localized error message to the error console.
-   *   @param aFile Properties file containing localized message.
-   *   @param aMessageName Name of localized message.
-   *   @param aParams Parameters to be substituted into localized message.
-   *   @param aParamsLength Length of aParams.
-   *   @param aURI URI of resource containing error (may be null).
-   *   @param aSourceLine The text of the line that contains the error (may be
-              empty).
-   *   @param aLineNumber Line number within resource containing error.
-   *   @param aColumnNumber Column number within resource containing error.
    *   @param aErrorFlags See nsIScriptError.
    *   @param aCategory Name of module reporting error.
-   *   @param [aInnerWindowId=0] (Optional) The window ID of the inner window
-   *          the message originates from.
+   *   @param aDocument Reference to the document which triggered the message.
+   *   @param aFile Properties file containing localized message.
+   *   @param aMessageName Name of localized message.
+   *   @param [aParams=nsnull] (Optional) Parameters to be substituted into
+              localized message.
+   *   @param [aParamsLength=0] (Optional) Length of aParams.
+   *   @param [aURI=nsnull] (Optional) URI of resource containing error.
+   *   @param [aSourceLine=EmptyString()] (Optional) The text of the line that
+              contains the error (may be empty).
+   *   @param [aLineNumber=0] (Optional) Line number within resource
+              containing error.
+   *   @param [aColumnNumber=0] (Optional) Column number within resource
+              containing error.
+              If aURI is null, then aDocument->GetDocumentURI() is used.
    */
   enum PropertiesFile {
     eCSS_PROPERTIES,
@@ -767,45 +770,18 @@ public:
     eCOMMON_DIALOG_PROPERTIES,
     PropertiesFile_COUNT
   };
-  static nsresult ReportToConsole(PropertiesFile aFile,
-                                  const char *aMessageName,
-                                  const PRUnichar **aParams,
-                                  PRUint32 aParamsLength,
-                                  nsIURI* aURI,
-                                  const nsAFlatString& aSourceLine,
-                                  PRUint32 aLineNumber,
-                                  PRUint32 aColumnNumber,
-                                  PRUint32 aErrorFlags,
+  static nsresult ReportToConsole(PRUint32 aErrorFlags,
                                   const char *aCategory,
-                                  PRUint64 aInnerWindowId = 0);
-
-  /**
-   * Report a localized error message to the error console.
-   *   @param aFile Properties file containing localized message.
-   *   @param aMessageName Name of localized message.
-   *   @param aParams Parameters to be substituted into localized message.
-   *   @param aParamsLength Length of aParams.
-   *   @param aURI URI of resource containing error (may be null).
-   *   @param aSourceLine The text of the line that contains the error (may be
-              empty).
-   *   @param aLineNumber Line number within resource containing error.
-   *   @param aColumnNumber Column number within resource containing error.
-   *   @param aErrorFlags See nsIScriptError.
-   *   @param aCategory Name of module reporting error.
-   *   @param aDocument Reference to the document which triggered the message.
-              If aURI is null, then aDocument->GetDocumentURI() is used.
-   */
-  static nsresult ReportToConsole(PropertiesFile aFile,
+                                  nsIDocument* aDocument,
+                                  PropertiesFile aFile,
                                   const char *aMessageName,
-                                  const PRUnichar **aParams,
-                                  PRUint32 aParamsLength,
-                                  nsIURI* aURI,
-                                  const nsAFlatString& aSourceLine,
-                                  PRUint32 aLineNumber,
-                                  PRUint32 aColumnNumber,
-                                  PRUint32 aErrorFlags,
-                                  const char *aCategory,
-                                  nsIDocument* aDocument);
+                                  const PRUnichar **aParams = nsnull,
+                                  PRUint32 aParamsLength = 0,
+                                  nsIURI* aURI = nsnull,
+                                  const nsAFlatString& aSourceLine
+                                    = EmptyString(),
+                                  PRUint32 aLineNumber = 0,
+                                  PRUint32 aColumnNumber = 0);
 
   /**
    * Get the localized string named |aKey| in properties file |aFile|.
@@ -1626,6 +1602,12 @@ public:
                       aAllowWrapping);
   }
 
+  /**
+   * Creates an arraybuffer from a binary string.
+   */
+  static nsresult CreateArrayBuffer(JSContext *aCx, const nsACString& aData,
+                                    JSObject** aResult);
+
   static void StripNullChars(const nsAString& aInStr, nsAString& aOutStr);
 
   /**
@@ -1854,6 +1836,18 @@ public:
    */
   static bool IsAutocompleteEnabled(nsIDOMHTMLInputElement* aInput);
 
+  /**
+   * If the URI is chrome, return true unconditionarlly.
+   *
+   * Otherwise, get the contents of the given pref, and treat it as a
+   * comma-separated list of URIs.  Return true if the given URI's prepath is
+   * in the list, and false otherwise.
+   *
+   * Comparisons are case-insensitive, and whitespace between elements of the
+   * comma-separated list is ignored.
+   */
+  static bool URIIsChromeOrInPref(nsIURI *aURI, const char *aPref);
+
 private:
   static bool InitializeEventTable();
 
@@ -1961,6 +1955,9 @@ private:
   static nsString* sModifierSeparator;
 };
 
+typedef nsCharSeparatedTokenizerTemplate<nsContentUtils::IsHTMLWhitespace>
+                                                    HTMLSplitOnSpacesTokenizer;
+
 #define NS_HOLD_JS_OBJECTS(obj, clazz)                                         \
   nsContentUtils::HoldJSObjects(NS_CYCLE_COLLECTION_UPCAST(obj, clazz),        \
                                 &NS_CYCLE_COLLECTION_NAME(clazz))
@@ -2004,15 +2001,15 @@ private:
 
 class NS_STACK_CLASS nsAutoScriptBlocker {
 public:
-  nsAutoScriptBlocker(MOZILLA_GUARD_OBJECT_NOTIFIER_ONLY_PARAM) {
-    MOZILLA_GUARD_OBJECT_NOTIFIER_INIT;
+  nsAutoScriptBlocker(MOZ_GUARD_OBJECT_NOTIFIER_ONLY_PARAM) {
+    MOZ_GUARD_OBJECT_NOTIFIER_INIT;
     nsContentUtils::AddScriptBlocker();
   }
   ~nsAutoScriptBlocker() {
     nsContentUtils::RemoveScriptBlocker();
   }
 private:
-  MOZILLA_DECL_USE_GUARD_OBJECT_NOTIFIER
+  MOZ_DECL_USE_GUARD_OBJECT_NOTIFIER
 };
 
 class NS_STACK_CLASS nsAutoScriptBlockerSuppressNodeRemoved :
@@ -2183,6 +2180,23 @@ public:
 private:
   NS_ConvertUTF16toUTF8 mString;
   nsIMIMEHeaderParam*   mService;
+};
+
+class nsDocElementCreatedNotificationRunner : public nsRunnable
+{
+public:
+    nsDocElementCreatedNotificationRunner(nsIDocument* aDoc)
+        : mDoc(aDoc)
+    {
+    }
+
+    NS_IMETHOD Run()
+    {
+        nsContentSink::NotifyDocElementCreated(mDoc);
+        return NS_OK;
+    }
+
+    nsCOMPtr<nsIDocument> mDoc;
 };
 
 #endif /* nsContentUtils_h___ */

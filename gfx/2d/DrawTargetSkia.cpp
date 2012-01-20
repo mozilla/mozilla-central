@@ -37,7 +37,7 @@
 
 #include "DrawTargetSkia.h"
 #include "SourceSurfaceSkia.h"
-#include "ScaledFontSkia.h"
+#include "ScaledFontBase.h"
 #include "skia/SkDevice.h"
 #include "skia/SkTypeface.h"
 #include "skia/SkGradientShader.h"
@@ -49,23 +49,30 @@
 #include "skia/SkDashPathEffect.h"
 #include "Logging.h"
 #include "HelpersSkia.h"
-#include "gfxImageSurface.h"
 #include "Tools.h"
 #include <algorithm>
+
+#ifdef ANDROID
+# define USE_SOFT_CLIPPING false
+#else
+# define USE_SOFT_CLIPPING true
+#endif
 
 namespace mozilla {
 namespace gfx {
 
 SkColor ColorToSkColor(const Color &color, Float aAlpha)
 {
+  //XXX: do a better job converting to int
   return SkColorSetARGB(color.a*aAlpha*255.0, color.r*255.0, color.g*255.0, color.b*255.0);
 }
 
 class GradientStopsSkia : public GradientStops
 {
 public:
-  GradientStopsSkia(const std::vector<GradientStop>& aStops, uint32_t aNumStops)
+  GradientStopsSkia(const std::vector<GradientStop>& aStops, uint32_t aNumStops, ExtendMode aExtendMode)
     : mCount(aNumStops)
+    , mExtendMode(aExtendMode)
   {
     if (mCount == 0) {
       return;
@@ -102,6 +109,7 @@ public:
   std::vector<SkColor> mColors;
   std::vector<SkScalar> mPositions;
   int mCount;
+  ExtendMode mExtendMode;
 };
 
 SkXfermode::Mode
@@ -199,12 +207,89 @@ ExtendModeToTileMode(ExtendMode aMode)
   {
     case EXTEND_CLAMP:
       return SkShader::kClamp_TileMode;
-    case EXTEND_WRAP:
+    case EXTEND_REPEAT:
       return SkShader::kRepeat_TileMode;
-    case EXTEND_MIRROR:
+    case EXTEND_REFLECT:
       return SkShader::kMirror_TileMode;
   }
   return SkShader::kClamp_TileMode;
+}
+
+void SetPaintPattern(SkPaint& aPaint, const Pattern& aPattern, Float aAlpha = 1.0)
+{
+  switch (aPattern.GetType()) {
+    case PATTERN_COLOR: {
+      Color color = static_cast<const ColorPattern&>(aPattern).mColor;
+      aPaint.setColor(ColorToSkColor(color, aAlpha));
+      break;
+    }
+    case PATTERN_LINEAR_GRADIENT: {
+      const LinearGradientPattern& pat = static_cast<const LinearGradientPattern&>(aPattern);
+      GradientStopsSkia *stops = static_cast<GradientStopsSkia*>(pat.mStops.get());
+      SkShader::TileMode mode = ExtendModeToTileMode(stops->mExtendMode);
+
+      if (stops->mCount >= 2) {
+        SkPoint points[2];
+        points[0] = SkPoint::Make(SkFloatToScalar(pat.mBegin.x), SkFloatToScalar(pat.mBegin.y));
+        points[1] = SkPoint::Make(SkFloatToScalar(pat.mEnd.x), SkFloatToScalar(pat.mEnd.y));
+
+        SkShader* shader = SkGradientShader::CreateLinear(points, 
+                                                          &stops->mColors.front(), 
+                                                          &stops->mPositions.front(), 
+                                                          stops->mCount, 
+                                                          mode);
+        SkMatrix mat;
+        GfxMatrixToSkiaMatrix(pat.mMatrix, mat);
+        shader->setLocalMatrix(mat);
+        SkSafeUnref(aPaint.setShader(shader));
+      } else {
+        aPaint.setColor(SkColorSetARGB(0, 0, 0, 0));
+      }
+      break;
+    }
+    case PATTERN_RADIAL_GRADIENT: {
+      const RadialGradientPattern& pat = static_cast<const RadialGradientPattern&>(aPattern);
+      GradientStopsSkia *stops = static_cast<GradientStopsSkia*>(pat.mStops.get());
+      SkShader::TileMode mode = ExtendModeToTileMode(stops->mExtendMode);
+
+      if (stops->mCount >= 2) {
+        SkPoint points[2];
+        points[0] = SkPoint::Make(SkFloatToScalar(pat.mCenter1.x), SkFloatToScalar(pat.mCenter1.y));
+        points[1] = SkPoint::Make(SkFloatToScalar(pat.mCenter2.x), SkFloatToScalar(pat.mCenter2.y));
+
+        SkShader* shader = SkGradientShader::CreateTwoPointRadial(points[0], 
+                                                                  SkFloatToScalar(pat.mRadius1),
+                                                                  points[1], 
+                                                                  SkFloatToScalar(pat.mRadius2),
+                                                                  &stops->mColors.front(), 
+                                                                  &stops->mPositions.front(), 
+                                                                  stops->mCount, 
+                                                                  mode);
+        SkMatrix mat;
+        GfxMatrixToSkiaMatrix(pat.mMatrix, mat);
+        shader->setLocalMatrix(mat);
+        SkSafeUnref(aPaint.setShader(shader));
+      } else {
+        aPaint.setColor(SkColorSetARGB(0, 0, 0, 0));
+      }
+      break;
+    }
+    case PATTERN_SURFACE: {
+      const SurfacePattern& pat = static_cast<const SurfacePattern&>(aPattern);
+      const SkBitmap& bitmap = static_cast<SourceSurfaceSkia*>(pat.mSurface.get())->GetBitmap();
+
+      SkShader::TileMode mode = ExtendModeToTileMode(pat.mExtendMode);
+      SkShader* shader = SkShader::CreateBitmapShader(bitmap, mode, mode);
+      SkMatrix mat;
+      GfxMatrixToSkiaMatrix(pat.mMatrix, mat);
+      shader->setLocalMatrix(mat);
+      SkSafeUnref(aPaint.setShader(shader));
+      if (pat.mFilter == FILTER_POINT) {
+        aPaint.setFilterBitmap(false);
+      }
+      break;
+    }
+  }
 }
 
 struct AutoPaintSetup {
@@ -212,7 +297,7 @@ struct AutoPaintSetup {
     : mNeedsRestore(false), mAlpha(1.0)
   {
     Init(aCanvas, aOptions);
-    SetPattern(aPattern);
+    SetPaintPattern(mPaint, aPattern, mAlpha);
   }
 
   AutoPaintSetup(SkCanvas *aCanvas, const DrawOptions& aOptions)
@@ -258,60 +343,6 @@ struct AutoPaintSetup {
       mAlpha = aOptions.mAlpha;
     }
     mPaint.setFilterBitmap(true);
-  }
-
-  void SetPattern(const Pattern& aPattern)
-  {
-    if (aPattern.GetType() == PATTERN_COLOR) {
-      Color color = static_cast<const ColorPattern&>(aPattern).mColor;
-      mPaint.setColor(ColorToSkColor(color, mAlpha));
-    } else if (aPattern.GetType() == PATTERN_LINEAR_GRADIENT) {
-      const LinearGradientPattern& pat = static_cast<const LinearGradientPattern&>(aPattern);
-      GradientStopsSkia *stops = static_cast<GradientStopsSkia*>(pat.mStops.get());
-
-      if (stops->mCount >= 2) {
-        SkPoint points[2];
-        points[0] = SkPoint::Make(SkFloatToScalar(pat.mBegin.x), SkFloatToScalar(pat.mBegin.y));
-        points[1] = SkPoint::Make(SkFloatToScalar(pat.mEnd.x), SkFloatToScalar(pat.mEnd.y));
-
-        SkShader* shader = SkGradientShader::CreateLinear(points, 
-                                                          &stops->mColors.front(), 
-                                                          &stops->mPositions.front(), 
-                                                          stops->mCount, 
-                                                          SkShader::kClamp_TileMode);
-        SkSafeUnref(mPaint.setShader(shader));
-      } else {
-        mPaint.setColor(SkColorSetARGB(0, 0, 0, 0));
-      }
-    } else if (aPattern.GetType() == PATTERN_RADIAL_GRADIENT) {
-      const RadialGradientPattern& pat = static_cast<const RadialGradientPattern&>(aPattern);
-      GradientStopsSkia *stops = static_cast<GradientStopsSkia*>(pat.mStops.get());
-
-      if (stops->mCount >= 2) {
-        SkPoint points[2];
-        points[0] = SkPoint::Make(SkFloatToScalar(pat.mCenter1.x), SkFloatToScalar(pat.mCenter1.y));
-        points[1] = SkPoint::Make(SkFloatToScalar(pat.mCenter2.x), SkFloatToScalar(pat.mCenter2.y));
-
-        SkShader* shader = SkGradientShader::CreateTwoPointRadial(points[0], 
-                                                                  SkFloatToScalar(pat.mRadius1),
-                                                                  points[1], 
-                                                                  SkFloatToScalar(pat.mRadius2),
-                                                                  &stops->mColors.front(), 
-                                                                  &stops->mPositions.front(), 
-                                                                  stops->mCount, 
-                                                                  SkShader::kClamp_TileMode);
-        SkSafeUnref(mPaint.setShader(shader));
-      } else {
-        mPaint.setColor(SkColorSetARGB(0, 0, 0, 0));
-      }
-    } else {
-      const SurfacePattern& pat = static_cast<const SurfacePattern&>(aPattern);
-      const SkBitmap& bitmap = static_cast<SourceSurfaceSkia*>(pat.mSurface.get())->GetBitmap();
-
-      SkShader::TileMode mode = ExtendModeToTileMode(pat.mExtendMode);
-      SkShader* shader = SkShader::CreateBitmapShader(bitmap, mode, mode);
-      SkSafeUnref(mPaint.setShader(shader));
-    }
   }
 
   // TODO: Maybe add an operator overload to access this easier?
@@ -520,10 +551,10 @@ DrawTargetSkia::FillGlyphs(ScaledFont *aFont,
 
   MarkChanged();
 
-  ScaledFontSkia* skiaFont = static_cast<ScaledFontSkia*>(aFont);
+  ScaledFontBase* skiaFont = static_cast<ScaledFontBase*>(aFont);
 
   AutoPaintSetup paint(mCanvas.get(), aOptions, aPattern);
-  paint.mPaint.setTypeface(skiaFont->mTypeface);
+  paint.mPaint.setTypeface(skiaFont->GetSkTypeface());
   paint.mPaint.setTextSize(SkFloatToScalar(skiaFont->mSize));
   paint.mPaint.setTextEncoding(SkPaint::kGlyphID_TextEncoding);
   
@@ -539,6 +570,36 @@ DrawTargetSkia::FillGlyphs(ScaledFont *aFont,
   }
 
   mCanvas->drawPosText(&indices.front(), aBuffer.mNumGlyphs*2, &offsets.front(), paint.mPaint);
+}
+
+void
+DrawTargetSkia::Mask(const Pattern &aSource,
+                     const Pattern &aMask,
+                     const DrawOptions &aOptions)
+{
+  MarkChanged();
+  AutoPaintSetup paint(mCanvas.get(), aOptions, aSource);
+
+  SkPaint maskPaint;
+  SetPaintPattern(maskPaint, aMask);
+  
+  SkLayerRasterizer *raster = new SkLayerRasterizer();
+  raster->addLayer(maskPaint);
+  SkSafeUnref(paint.mPaint.setRasterizer(raster));
+
+  // Skia only uses the mask rasterizer when we are drawing a path/rect.
+  // Take our destination bounds and convert them into user space to use
+  // as the path to draw.
+  SkPath path;
+  path.addRect(SkRect::MakeWH(mSize.width, mSize.height));
+ 
+  Matrix temp = mTransform;
+  temp.Invert();
+  SkMatrix mat;
+  GfxMatrixToSkiaMatrix(temp, mat);
+  path.transform(mat);
+
+  mCanvas->drawPath(path, paint.mPaint);
 }
 
 TemporaryRef<SourceSurface>
@@ -624,6 +685,21 @@ DrawTargetSkia::Init(const IntSize &aSize, SurfaceFormat aFormat)
 }
 
 void
+DrawTargetSkia::Init(unsigned char* aData, const IntSize &aSize, int32_t aStride, SurfaceFormat aFormat)
+{
+  mBitmap.setConfig(GfxFormatToSkiaConfig(aFormat), aSize.width, aSize.height, aStride);
+  mBitmap.setPixels(aData);
+  
+  SkAutoTUnref<SkDevice> device(new SkDevice(mBitmap));
+  SkAutoTUnref<SkCanvas> canvas(new SkCanvas(device.get()));
+  mSize = aSize;
+
+  mDevice = device.get();
+  mCanvas = canvas.get();
+  mFormat = aFormat;
+}
+
+void
 DrawTargetSkia::SetTransform(const Matrix& aTransform)
 {
   SkMatrix mat;
@@ -645,7 +721,7 @@ DrawTargetSkia::ClearRect(const Rect &aRect)
   MarkChanged();
   SkPaint paint;
   mCanvas->save();
-  mCanvas->clipRect(RectToSkRect(aRect), SkRegion::kIntersect_Op);
+  mCanvas->clipRect(RectToSkRect(aRect), SkRegion::kIntersect_Op, USE_SOFT_CLIPPING);
   paint.setColor(SkColorSetARGB(0, 0, 0, 0));
   paint.setXfermodeMode(SkXfermode::kSrc_Mode);
   mCanvas->drawPaint(paint);
@@ -661,7 +737,16 @@ DrawTargetSkia::PushClip(const Path *aPath)
 
   const PathSkia *skiaPath = static_cast<const PathSkia*>(aPath);
   mCanvas->save(SkCanvas::kClip_SaveFlag);
-  mCanvas->clipPath(skiaPath->GetPath());
+  mCanvas->clipPath(skiaPath->GetPath(), SkRegion::kIntersect_Op, USE_SOFT_CLIPPING);
+}
+
+void
+DrawTargetSkia::PushClipRect(const Rect& aRect)
+{
+  SkRect rect = RectToSkRect(aRect);
+
+  mCanvas->save(SkCanvas::kClip_SaveFlag);
+  mCanvas->clipRect(rect, SkRegion::kIntersect_Op, USE_SOFT_CLIPPING);
 }
 
 void
@@ -671,7 +756,7 @@ DrawTargetSkia::PopClip()
 }
 
 TemporaryRef<GradientStops>
-DrawTargetSkia::CreateGradientStops(GradientStop *aStops, uint32_t aNumStops) const
+DrawTargetSkia::CreateGradientStops(GradientStop *aStops, uint32_t aNumStops, ExtendMode aExtendMode) const
 {
   std::vector<GradientStop> stops;
   stops.resize(aNumStops);
@@ -680,7 +765,7 @@ DrawTargetSkia::CreateGradientStops(GradientStop *aStops, uint32_t aNumStops) co
   }
   std::stable_sort(stops.begin(), stops.end());
   
-  return new GradientStopsSkia(stops, aNumStops);
+  return new GradientStopsSkia(stops, aNumStops, aExtendMode);
 }
 
 void

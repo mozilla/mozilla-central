@@ -74,7 +74,7 @@
 #include "nsContentUtils.h"
 #include "nsRefreshDriver.h"
 
-class nsIRange;
+class nsRange;
 class nsIDragService;
 class nsCSSStyleSheet;
 
@@ -330,6 +330,7 @@ public:
   virtual bool ShouldIgnoreInvalidation();
   virtual void WillPaint(bool aWillSendDidPaint);
   virtual void DidPaint();
+  virtual void ScheduleViewManagerFlush();
   virtual void DispatchSynthMouseMove(nsGUIEvent *aEvent, bool aFlushOnHoverChange);
   virtual void ClearMouseCaptureOnView(nsIView* aView);
   virtual bool IsVisible();
@@ -360,7 +361,7 @@ public:
   NS_IMETHOD PageMove(bool aForward, bool aExtend);
   NS_IMETHOD ScrollPage(bool aForward);
   NS_IMETHOD ScrollLine(bool aForward);
-  NS_IMETHOD ScrollHorizontal(bool aLeft);
+  NS_IMETHOD ScrollCharacter(bool aRight);
   NS_IMETHOD CompleteScroll(bool aForward);
   NS_IMETHOD CompleteMove(bool aForward, bool aExtend);
   NS_IMETHOD SelectAll();
@@ -458,6 +459,12 @@ protected:
   nsresult DidCauseReflow();
   friend class nsAutoCauseReflowNotifier;
 
+  bool TouchesAreEqual(nsIDOMTouch *aTouch1, nsIDOMTouch *aTouch2);
+  void DispatchTouchEvent(nsEvent *aEvent,
+                          nsEventStatus* aStatus,
+                          nsPresShellEventCB* aEventCB,
+                          bool aTouchIsNew);
+
   void     WillDoReflow();
   void     DidDoReflow(bool aInterruptible);
   // ProcessReflowCommands returns whether we processed all our dirty roots
@@ -548,7 +555,7 @@ protected:
   // the range
   nsRect ClipListToRange(nsDisplayListBuilder *aBuilder,
                          nsDisplayList* aList,
-                         nsIRange* aRange);
+                         nsRange* aRange);
 
   // create a RangePaintInfo for the range aRange containing the
   // display list needed to paint the range to a surface
@@ -852,17 +859,28 @@ private:
   // over our window or there is no last observed mouse location for some
   // reason.
   nsPoint mMouseLocation;
-  class nsSynthMouseMoveEvent : public nsRunnable {
+  class nsSynthMouseMoveEvent : public nsARefreshObserver {
   public:
     nsSynthMouseMoveEvent(PresShell* aPresShell, bool aFromScroll)
       : mPresShell(aPresShell), mFromScroll(aFromScroll) {
       NS_ASSERTION(mPresShell, "null parameter");
     }
-    void Revoke() { mPresShell = nsnull; }
-    NS_IMETHOD Run() {
+    ~nsSynthMouseMoveEvent() {
+      Revoke();
+    }
+
+    NS_INLINE_DECL_REFCOUNTING(nsSynthMouseMoveEvent)
+    
+    void Revoke() {
+      if (mPresShell) {
+        mPresShell->GetPresContext()->RefreshDriver()->
+          RemoveRefreshObserver(this, Flush_Display);
+        mPresShell = nsnull;
+      }
+    }
+    virtual void WillRefresh(mozilla::TimeStamp aTime) {
       if (mPresShell)
         mPresShell->ProcessSynthMouseMoveEvent(mFromScroll);
-      return NS_OK;
     }
   private:
     PresShell* mPresShell;

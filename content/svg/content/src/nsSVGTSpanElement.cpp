@@ -95,10 +95,11 @@ NS_IMPL_RELEASE_INHERITED(nsSVGTSpanElement,nsSVGTSpanElementBase)
 DOMCI_NODE_DATA(SVGTSpanElement, nsSVGTSpanElement)
 
 NS_INTERFACE_TABLE_HEAD(nsSVGTSpanElement)
-  NS_NODE_INTERFACE_TABLE6(nsSVGTSpanElement, nsIDOMNode, nsIDOMElement,
+  NS_NODE_INTERFACE_TABLE7(nsSVGTSpanElement, nsIDOMNode, nsIDOMElement,
                            nsIDOMSVGElement, nsIDOMSVGTSpanElement,
                            nsIDOMSVGTextPositioningElement,
-                           nsIDOMSVGTextContentElement)
+                           nsIDOMSVGTextContentElement,
+                           nsIDOMSVGTests)
   NS_DOM_INTERFACE_MAP_ENTRY_CLASSINFO(SVGTSpanElement)
 NS_INTERFACE_MAP_END_INHERITING(nsSVGTSpanElementBase)
 
@@ -138,7 +139,7 @@ nsSVGTSpanElement::IsAttributeMapped(const nsIAtom* name) const
     sTextContentElementsMap
   };
   
-  return FindAttributeDependence(name, map, ArrayLength(map)) ||
+  return FindAttributeDependence(name, map) ||
     nsSVGTSpanElementBase::IsAttributeMapped(name);
 }
 

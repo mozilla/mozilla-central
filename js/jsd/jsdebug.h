@@ -258,9 +258,9 @@ JSD_ClearAllProfileData(JSDContext* jsdc);
 
 
 extern JSD_PUBLIC_API(void)
-JSD_SetContextFlags (JSDContext* jsdc, uint32 flags);
+JSD_SetContextFlags (JSDContext* jsdc, uint32_t flags);
 
-extern JSD_PUBLIC_API(uint32)
+extern JSD_PUBLIC_API(uint32_t)
 JSD_GetContextFlags (JSDContext* jsdc);     
 
 /*
@@ -398,11 +398,11 @@ JSD_GetJSFunction(JSDContext* jsdc, JSDScript *script);
 */
 #define JSD_SCRIPT_DEBUG_BIT   0x02
 
-extern JSD_PUBLIC_API(uint32)
+extern JSD_PUBLIC_API(uint32_t)
 JSD_GetScriptFlags(JSDContext *jsdc, JSDScript* jsdscript);
 
 extern JSD_PUBLIC_API(void)
-JSD_SetScriptFlags(JSDContext *jsdc, JSDScript* jsdscript, uint32 flags);
+JSD_SetScriptFlags(JSDContext *jsdc, JSDScript* jsdscript, uint32_t flags);
 
 /*
 * Set the private data for this script, returns previous value
@@ -485,7 +485,7 @@ JSD_GetScriptHook(JSDContext* jsdc, JSD_ScriptHookProc* hook, void** callerdata)
 * code within the script (if any) after the given line.
 * This function can be used to set breakpoints -- see JSD_SetExecutionHook
 */
-extern JSD_PUBLIC_API(jsuword)
+extern JSD_PUBLIC_API(uintptr_t)
 JSD_GetClosestPC(JSDContext* jsdc, JSDScript* jsdscript, uintN line);
 
 /*
@@ -494,7 +494,7 @@ JSD_GetClosestPC(JSDContext* jsdc, JSDScript* jsdscript, uintN line);
 * the given pc.
 */
 extern JSD_PUBLIC_API(uintN)
-JSD_GetClosestLine(JSDContext* jsdc, JSDScript* jsdscript, jsuword pc);
+JSD_GetClosestLine(JSDContext* jsdc, JSDScript* jsdscript, uintptr_t pc);
 
 /*
  * Get a list of lines and the corresponding earliest PC for each (see
@@ -505,7 +505,7 @@ JSD_GetClosestLine(JSDContext* jsdc, JSDScript* jsdscript, jsuword pc);
 extern JSD_PUBLIC_API(JSBool)
 JSD_GetLinePCs(JSDContext* jsdc, JSDScript* jsdscript,
                uintN startLine, uintN maxLines,
-               uintN* count, uintN** lines, jsuword** pcs);
+               uintN* count, uintN** lines, uintptr_t** pcs);
 
 /* these are only used in cases where scripts are created outside of JS*/
 
@@ -780,7 +780,7 @@ typedef JSBool
 extern JSD_PUBLIC_API(JSBool)
 JSD_SetExecutionHook(JSDContext*           jsdc,
                      JSDScript*            jsdscript,
-                     jsuword               pc,
+                     uintptr_t             pc,
                      JSD_ExecutionHookProc hook,
                      void*                 callerdata);
 
@@ -790,7 +790,7 @@ JSD_SetExecutionHook(JSDContext*           jsdc,
 extern JSD_PUBLIC_API(JSBool)
 JSD_ClearExecutionHook(JSDContext*          jsdc,
                        JSDScript*           jsdscript,
-                       jsuword              pc);
+                       uintptr_t            pc);
 
 /*
 * Clear all the pc specific hooks for this script
@@ -939,7 +939,7 @@ JSD_GetScriptForStackFrame(JSDContext* jsdc,
 /*
 * Get the 'Program Counter' for the given call stack frame
 */
-extern JSD_PUBLIC_API(jsuword)
+extern JSD_PUBLIC_API(uintptr_t)
 JSD_GetPCForStackFrame(JSDContext* jsdc,
                        JSDThreadState* jsdthreadstate,
                        JSDStackFrameInfo* jsdframe);
@@ -1283,10 +1283,10 @@ extern JSD_PUBLIC_API(JSBool)
 JSD_GetValueBoolean(JSDContext* jsdc, JSDValue* jsdval);
 
 /*
-* Return int32 value (does NOT do conversion).
+* Return int32_t value (does NOT do conversion).
 * *** new for version 1.1 ****
 */
-extern JSD_PUBLIC_API(int32)
+extern JSD_PUBLIC_API(int32_t)
 JSD_GetValueInt(JSDContext* jsdc, JSDValue* jsdval);
 
 /*

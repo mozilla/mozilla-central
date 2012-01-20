@@ -137,9 +137,12 @@ nsWebMReader::nsWebMReader(nsBuiltinDecoder* aDecoder)
   mAudioStartUsec(-1),
   mAudioFrames(0),
   mHasVideo(false),
-  mHasAudio(false)
+  mHasAudio(false),
+  mForceStereoMode(0)
 {
   MOZ_COUNT_CTOR(nsWebMReader);
+
+  Preferences::GetInt("media.webm.force_stereo_mode", &mForceStereoMode);
 }
 
 nsWebMReader::~nsWebMReader()
@@ -161,7 +164,7 @@ nsWebMReader::~nsWebMReader()
 
 nsresult nsWebMReader::Init(nsBuiltinDecoderReader* aCloneDonor)
 {
-  if (vpx_codec_dec_init(&mVP8, &vpx_codec_vp8_dx_algo, NULL, 0)) {
+  if (vpx_codec_dec_init(&mVP8, vpx_codec_vp8_dx(), NULL, 0)) {
     return NS_ERROR_FAILURE;
   }
 
@@ -306,25 +309,21 @@ nsresult nsWebMReader::ReadMetadata(nsVideoInfo* aInfo)
         break;
       }
 
-      PRInt32 forceStereoMode;
-      if (NS_SUCCEEDED(Preferences::GetInt("media.webm.force_stereo_mode",
-                                           &forceStereoMode))) {
-        switch (forceStereoMode) {
-        case 1:
-          mInfo.mStereoMode = STEREO_MODE_LEFT_RIGHT;
-          break;
-        case 2:
-          mInfo.mStereoMode = STEREO_MODE_RIGHT_LEFT;
-          break;
-        case 3:
-          mInfo.mStereoMode = STEREO_MODE_TOP_BOTTOM;
-          break;
-        case 4:
-          mInfo.mStereoMode = STEREO_MODE_BOTTOM_TOP;
-          break;
-        default:
-          mInfo.mStereoMode = STEREO_MODE_MONO;
-        }
+      switch (mForceStereoMode) {
+      case 1:
+        mInfo.mStereoMode = STEREO_MODE_LEFT_RIGHT;
+        break;
+      case 2:
+        mInfo.mStereoMode = STEREO_MODE_RIGHT_LEFT;
+        break;
+      case 3:
+        mInfo.mStereoMode = STEREO_MODE_TOP_BOTTOM;
+        break;
+      case 4:
+        mInfo.mStereoMode = STEREO_MODE_BOTTOM_TOP;
+        break;
+      default:
+        mInfo.mStereoMode = STEREO_MODE_MONO;
       }
     }
     else if (!mHasAudio && type == NESTEGG_TRACK_AUDIO) {
@@ -669,7 +668,7 @@ bool nsWebMReader::DecodeVideoFrame(bool &aKeyframeSkip,
     vpx_codec_stream_info_t si;
     memset(&si, 0, sizeof(si));
     si.sz = sizeof(si);
-    vpx_codec_peek_stream_info(&vpx_codec_vp8_dx_algo, data, length, &si);
+    vpx_codec_peek_stream_info(vpx_codec_vp8_dx(), data, length, &si);
     if (aKeyframeSkip && (!si.is_kf || tstamp_usecs < aTimeThreshold)) {
       // Skipping to next keyframe...
       parsed++; // Assume 1 frame per chunk.

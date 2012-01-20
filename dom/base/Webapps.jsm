@@ -57,7 +57,7 @@ let DOMApplicationRegistry = {
   init: function() {
     this.mm = Cc["@mozilla.org/parentprocessmessagemanager;1"].getService(Ci.nsIFrameMessageManager);
     let messages = ["Webapps:Install", "Webapps:Uninstall",
-                    "Webapps:Enumerate", "Webapps:Launch"];
+                    "Webapps:Enumerate", "Webapps:EnumerateAll", "Webapps:Launch"];
 
     messages.forEach((function(msgName) {
       this.mm.addMessageListener(msgName, this);
@@ -70,6 +70,14 @@ let DOMApplicationRegistry = {
       return;
 
     this._loadJSONAsync(this.appsFile, (function(aData) { this.webapps = aData; }).bind(this));
+
+    try {
+      let hosts = Services.prefs.getCharPref("dom.mozApps.whitelist")
+      hosts.split(",").forEach(function(aHost) {
+        Services.perms.add(Services.io.newURI(aHost, null, null), "webapps-manage",
+                           Ci.nsIPermissionManager.ALLOW_ACTION);
+      });
+    } catch(e) { }
   },
 
   _loadJSONAsync: function(aFile, aCallback) {
@@ -125,10 +133,10 @@ let DOMApplicationRegistry = {
         Services.obs.notifyObservers(this, "webapps-launch", JSON.stringify(msg));
         break;
       case "Webapps:Enumerate":
-        if (hasPrivileges)
-          this.enumerateAll(msg)
-        else
-          this.enumerate(msg);
+        this.enumerate(msg);
+        break;
+      case "Webapps:EnumerateAll":
+        this.enumerateAll(msg);
         break;
     }
   },
@@ -148,7 +156,7 @@ let DOMApplicationRegistry = {
         aCallbak();
     });
   },
-  
+
   // clones a app object, without the manifest
   _cloneAppObject: function(aApp) {
     let clone = {
@@ -159,14 +167,14 @@ let DOMApplicationRegistry = {
     };
     return clone;
   },
-  
+
   denyInstall: function(aData) {
     this.mm.sendAsyncMessage("Webapps:Install:Return:KO", aData);
   },
-  
-  confirmInstall: function(aData) {
+
+  confirmInstall: function(aData, aFromSync) {
     let app = aData.app;
-    let id = this._appId(app.origin);
+    let id = app.syncId || this._appId(app.origin);
 
     // install an application again is considered as an update
     if (id) {
@@ -191,11 +199,14 @@ let DOMApplicationRegistry = {
     delete this.webapps[id].manifest;
     this.webapps[id].installTime = (new Date()).getTime()
 
-    this._writeFile(this.appsFile, JSON.stringify(this.webapps), (function() {
-      this.mm.sendAsyncMessage("Webapps:Install:Return:OK", aData);
-    }).bind(this));
+    
+    if (!aFromSync)
+      this._saveApps((function() {
+        this.mm.sendAsyncMessage("Webapps:Install:Return:OK", aData);
+        Services.obs.notifyObservers(this, "webapps-sync-install", id);
+      }).bind(this));
   },
- 
+
   _appId: function(aURI) {
     for (let id in this.webapps) {
       if (this.webapps[id].origin == aURI)
@@ -204,10 +215,22 @@ let DOMApplicationRegistry = {
     return null;
   },
 
+  _saveApps: function(aCallback) {
+    this._writeFile(this.appsFile, JSON.stringify(this.webapps), function() {
+      if (aCallback)
+        aCallback();
+    });
+  },
+
   /**
     * Asynchronously reads a list of manifests
     */
   _readManifests: function(aData, aFinalCallback, aIndex) {
+    if (!aData.length) {
+      aFinalCallback(aData);
+      return;
+    }
+
     let index = aIndex || 0;
     let id = aData[index].id;
     let file = FileUtils.getFile("ProfD", ["webapps", id, "manifest.json"], true);
@@ -219,26 +242,29 @@ let DOMApplicationRegistry = {
         this._readManifests(aData, aFinalCallback, index + 1);
     }).bind(this)); 
   },
- 
+
   uninstall: function(aData) {
     for (let id in this.webapps) {
       let app = this.webapps[id];
       if (app.origin == aData.origin) {
         delete this.webapps[id];
-        this._writeFile(this.appsFile, JSON.stringify(this.webapps));
         let dir = FileUtils.getDir("ProfD", ["webapps", id], true, true);
         try {
           dir.remove(true);
         } catch (e) {
         }
-        this.mm.sendAsyncMessage("Webapps:Uninstall:Return:OK", aData);
+        this._saveApps((function() {
+          this.mm.sendAsyncMessage("Webapps:Uninstall:Return:OK", aData);
+          Services.obs.notifyObservers(this, "webapps-sync-uninstall", id);
+        }).bind(this));
       }
     }
   },
-  
+
   enumerate: function(aData) {
     aData.apps = [];
     let tmp = [];
+    let selfId;
 
     let id = this._appId(aData.origin);
     // if it's an app, add itself to the result
@@ -246,12 +272,13 @@ let DOMApplicationRegistry = {
       let app = this._cloneAppObject(this.webapps[id]);
       aData.apps.push(app);
       tmp.push({ id: id });
+      selfId = id;
     }
 
     // check if it's a store.
     let isStore = false;
     for (id in this.webapps) {
-      let app = this._cloneAppObject(this.webapps[id]);
+      let app = this.webapps[id];
       if (app.installOrigin == aData.origin) {
         isStore = true;
         break;
@@ -261,6 +288,8 @@ let DOMApplicationRegistry = {
     // add all the apps from this store
     if (isStore) {
       for (id in this.webapps) {
+        if (id == selfId)
+          continue;
         let app = this._cloneAppObject(this.webapps[id]);
         if (app.installOrigin == aData.origin) {
           aData.apps.push(app);
@@ -302,7 +331,6 @@ let DOMApplicationRegistry = {
       return;
 
     let id = this._appId(aOrigin);
-
     if (!id) {
       aCallback(null);
       return;
@@ -311,7 +339,76 @@ let DOMApplicationRegistry = {
     this._readManifests([{ id: id }], function(aResult) {
       aCallback(aResult[0].manifest);
     });
-  }
+  },
+
+  /** added to support the sync engine */
+
+  getAppById: function(aId) {
+    if (!this.webapps[aId])
+      return null;
+
+    let app = this._cloneAppObject(this.webapps[aId]);
+    return app;
+  },
+  
+  itemExists: function(aId) {
+    return !!this.webapps[aId];
+  },
+
+  updateApps: function(aRecords, aCallback) {
+    for (let i = 0; i < aRecords.length; i++) {
+      let record = aRecords[i];
+      if (record.deleted) {
+        if (!this.webapps[record.id])
+          continue;
+        let origin = this.webapps[record.id].origin;
+        delete this.webapps[record.id];
+        let dir = FileUtils.getDir("ProfD", ["webapps", record.id], true, true);
+        try {
+          dir.remove(true);
+        } catch (e) {
+        }
+        this.mm.sendAsyncMessage("Webapps:Uninstall:Return:OK", { origin: origin });
+      } else {
+        if (!!this.webapps[record.id]) {
+          this.webapps[record.id] = record.value;
+          delete this.webapps[record.id].manifest;
+        }
+        else {
+          let data = { app: record.value };
+          this.confirmInstall(data, true);
+          this.mm.sendAsyncMessage("Webapps:Install:Return:OK", data);
+        }
+      }
+    }
+    this._saveApps(aCallback);
+  },
+
+  /*
+   * May be removed once sync API change
+   */
+  getAllIDs: function() {
+    let apps = {};
+    for (let id in this.webapps) {
+      // only sync http and https apps
+      if (this.webapps[id].origin.indexOf("http") == 0)
+        apps[id] = true;
+    }
+    return apps;
+  },
+
+  wipe: function(aCallback) {
+    let ids = this.getAllIDs();
+    for (let id in ids) {
+      delete this.webapps[id];
+      let dir = FileUtils.getDir("ProfD", ["webapps", id], true, true);
+      try {
+        dir.remove(true);
+      } catch (e) {
+      }
+    }
+    this._saveApps(aCallback);
+   }
 };
 
 /**

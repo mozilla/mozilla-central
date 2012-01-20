@@ -34,6 +34,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef MOZ_ETW
+
 #include "jswin.h"
 #include <evntprov.h>
 #include <sys/types.h>
@@ -53,6 +54,8 @@
 #include "jsprobes.h"
 #include "jsscript.h"
 #include "jsstr.h"
+
+#include "methodjit/Compiler.h"
 
 #include "jsobjinlines.h"
 
@@ -114,15 +117,114 @@ Probes::JITGranularityRequested()
 }
 
 #ifdef JS_METHODJIT
+/*
+ * Flatten the tree of inlined frames into a series of native code regions, one
+ * for each contiguous section of native code that belongs to a single
+ * ActiveFrame. (Note that some of these regions may be zero-length, for
+ * example if two ActiveFrames end at the same place.)
+ */
+typedef mjit::Compiler::ActiveFrame ActiveFrame;
+
+bool
+Probes::JITWatcher::CollectNativeRegions(RegionVector &regions,
+                                         JSRuntime *rt,
+                                         mjit::JITChunk *jit,
+                                         mjit::JSActiveFrame *outerFrame,
+                                         mjit::JSActiveFrame **inlineFrames)
+{
+    regions.resize(jit->nInlineFrames * 2 + 2);
+
+    mjit::JSActiveFrame **stack =
+        rt->array_new<mjit::JSActiveFrame*>(jit->nInlineFrames+2);
+    if (!stack)
+        return false;
+    uint32_t depth = 0;
+    uint32_t ip = 0;
+
+    stack[depth++] = NULL;
+    stack[depth++] = outerFrame;
+    regions[0].frame = outerFrame;
+    regions[0].script = outerFrame->script;
+    regions[0].pc = outerFrame->script->code;
+    regions[0].enter = true;
+    ip++;
+
+    for (uint32_t i = 0; i <= jit->nInlineFrames; i++) {
+        mjit::JSActiveFrame *frame = (i < jit->nInlineFrames) ? inlineFrames[i] : outerFrame;
+
+        // Not a down frame; pop the current frame, then pop until we reach
+        // this frame's parent, recording subframe ends as we go
+        while (stack[depth-1] != frame->parent) {
+            depth--;
+            JS_ASSERT(depth > 0);
+            // Pop up from regions[ip-1].frame to top of the stack: start a
+            // region in the destination frame and close off the source
+            // (origin) frame at the end of its script
+            mjit::JSActiveFrame *src = regions[ip-1].frame;
+            mjit::JSActiveFrame *dst = stack[depth-1];
+            JS_ASSERT_IF(!dst, i == jit->nInlineFrames);
+            regions[ip].frame = dst;
+            regions[ip].script = dst ? dst->script : NULL;
+            regions[ip].pc = src->parentPC + 1;
+            regions[ip-1].endpc = src->script->code + src->script->length;
+            regions[ip].enter = false;
+            ip++;
+        }
+
+        if (i < jit->nInlineFrames) {
+            // Push a frame (enter an inlined function). Start a region at the
+            // beginning of the new frame's script, and end the previous region
+            // at parentPC.
+            stack[depth++] = frame;
+
+            regions[ip].frame = frame;
+            regions[ip].script = frame->script;
+            regions[ip].pc = frame->script->code;
+            regions[ip-1].endpc = frame->parentPC;
+            regions[ip].enter = true;
+            ip++;
+        }
+    }
+
+    // Final region is always zero-length and not particularly useful
+    ip--;
+    regions.popBack();
+
+    mjit::JSActiveFrame *prev = NULL;
+    for (NativeRegion *iter = regions.begin(); iter != regions.end(); ++iter) {
+        mjit::JSActiveFrame *frame = iter->frame;
+        if (iter->enter) {
+            // Pushing down a frame, so region starts at the beginning of the
+            // (destination) frame
+            iter->mainOffset = frame->mainCodeStart;
+            iter->stubOffset = frame->stubCodeStart;
+        } else {
+            // Popping up a level, so region starts at the end of the (source) frame
+            iter->mainOffset = prev->mainCodeEnd;
+            iter->stubOffset = prev->stubCodeEnd;
+        }
+        prev = frame;
+    }
+
+    JS_ASSERT(ip == 2 * jit->nInlineFrames + 1);
+    rt->array_delete(stack);
+
+    // All of the stub code comes immediately after the main code
+    for (NativeRegion *iter = regions.begin(); iter != regions.end(); ++iter)
+        iter->stubOffset += outerFrame->mainCodeEnd;
+
+    return true;
+}
+
 void
 Probes::registerMJITCode(JSContext *cx, js::mjit::JITScript *jscr,
-                         JSScript *script, JSFunction *fun,
-                         js::mjit::Compiler_ActiveFrame **inlineFrames,
+                         js::mjit::JSActiveFrame *outerFrame,
+                         js::mjit::JSActiveFrame **inlineFrames,
                          void *mainCodeAddress, size_t mainCodeSize,
                          void *stubCodeAddress, size_t stubCodeSize)
 {
     for (JITWatcher **p = jitWatchers.begin(); p != jitWatchers.end(); ++p)
-        (*p)->registerMJITCode(cx, jscr, script, fun,
+        (*p)->registerMJITCode(cx, jscr, outerFrame,
                                inlineFrames,
                                mainCodeAddress, mainCodeSize,
                                stubCodeAddress, stubCodeSize);
@@ -341,7 +443,7 @@ Probes::ETWCreateObject(JSContext *cx, JSObject *obj)
     current_location(cx, &lineno, &script_filename);
 
     return EventWriteEvtObjectCreate(script_filename, lineno,
-                                     ObjectClassname(obj), reinterpret_cast<JSUint64>(obj),
+                                     ObjectClassname(obj), reinterpret_cast<uint64_t_t>(obj),
                                      obj ? obj->slotsAndStructSize() : 0) == ERROR_SUCCESS;
 }
 
@@ -349,7 +451,7 @@ bool
 Probes::ETWFinalizeObject(JSObject *obj)
 {
     return EventWriteEvtObjectFinalize(ObjectClassname(obj),
-                                       reinterpret_cast<JSUint64>(obj)) == ERROR_SUCCESS;
+                                       reinterpret_cast<uint64_t_t>(obj)) == ERROR_SUCCESS;
 }
 
 bool
@@ -360,7 +462,7 @@ Probes::ETWResizeObject(JSContext *cx, JSObject *obj, size_t oldSize, size_t new
     current_location(cx, &lineno, &script_filename);
 
     return EventWriteEvtObjectResize(script_filename, lineno,
-                                     ObjectClassname(obj), reinterpret_cast<JSUint64>(obj),
+                                     ObjectClassname(obj), reinterpret_cast<uint64_t_t>(obj),
                                      oldSize, newSize) == ERROR_SUCCESS;
 }
 
@@ -372,13 +474,15 @@ Probes::ETWCreateString(JSContext *cx, JSString *string, size_t length)
     current_location(cx, &lineno, &script_filename);
 
     return EventWriteEvtStringCreate(script_filename, lineno,
-                                     reinterpret_cast<JSUint64>(string), length) == ERROR_SUCCESS;
+                                     reinterpret_cast<uint64_t_t>(string), length) ==
+           ERROR_SUCCESS;
 }
 
 bool
 Probes::ETWFinalizeString(JSString *string)
 {
-    return EventWriteEvtStringFinalize(reinterpret_cast<JSUint64>(string), string->length()) == ERROR_SUCCESS;
+    return EventWriteEvtStringFinalize(reinterpret_cast<uint64_t>(string),
+                                       string->length()) == ERROR_SUCCESS;
 }
 
 bool
@@ -424,53 +528,54 @@ Probes::ETWCalloutEnd(JSContext *cx, JSFunction *fun)
 bool
 Probes::ETWAcquireMemory(JSContext *cx, void *address, size_t nbytes)
 {
-    return EventWriteEvtMemoryAcquire(reinterpret_cast<JSUint64>(cx->compartment),
-                                      reinterpret_cast<JSUint64>(address),
+    return EventWriteEvtMemoryAcquire(reinterpret_cast<uint64_t>(cx->compartment),
+                                      reinterpret_cast<uint64_t>(address),
                                       nbytes) == ERROR_SUCCESS;
 }
 
 bool
 Probes::ETWReleaseMemory(JSContext *cx, void *address, size_t nbytes)
 {
-    return EventWriteEvtMemoryRelease(reinterpret_cast<JSUint64>(cx->compartment),
-                                      reinterpret_cast<JSUint64>(address),
+    return EventWriteEvtMemoryRelease(reinterpret_cast<uint64_t>(cx->compartment),
+                                      reinterpret_cast<uint64_t>(address),
                                       nbytes) == ERROR_SUCCESS;
 }
 
 bool
 Probes::ETWGCStart(JSCompartment *compartment)
 {
-    return EventWriteEvtGCStart(reinterpret_cast<JSUint64>(compartment)) == ERROR_SUCCESS;
+    return EventWriteEvtGCStart(reinterpret_cast<uint64_t>(compartment)) == ERROR_SUCCESS;
 }
 
 bool
 Probes::ETWGCEnd(JSCompartment *compartment)
 {
-    return EventWriteEvtGCEnd(reinterpret_cast<JSUint64>(compartment)) == ERROR_SUCCESS;
+    return EventWriteEvtGCEnd(reinterpret_cast<uint64_t>(compartment)) == ERROR_SUCCESS;
 }
 
 bool
 Probes::ETWGCStartMarkPhase(JSCompartment *compartment)
 {
-    return EventWriteEvtGCStartMarkPhase(reinterpret_cast<JSUint64>(compartment)) == ERROR_SUCCESS;
+    return EventWriteEvtGCStartMarkPhase(reinterpret_cast<uint64_t>(compartment)) == ERROR_SUCCESS;
 }
 
 bool
 Probes::ETWGCEndMarkPhase(JSCompartment *compartment)
 {
-    return EventWriteEvtGCEndMarkPhase(reinterpret_cast<JSUint64>(compartment)) == ERROR_SUCCESS;
+    return EventWriteEvtGCEndMarkPhase(reinterpret_cast<uint64_t>(compartment)) == ERROR_SUCCESS;
 }
 
 bool
 Probes::ETWGCStartSweepPhase(JSCompartment *compartment)
 {
-    return EventWriteEvtGCStartSweepPhase(reinterpret_cast<JSUint64>(compartment)) == ERROR_SUCCESS;
+    return EventWriteEvtGCStartSweepPhase(reinterpret_cast<uint64_t>(compartment)) ==
+           ERROR_SUCCESS;
 }
 
 bool
 Probes::ETWGCEndSweepPhase(JSCompartment *compartment)
 {
-    return EventWriteEvtGCEndSweepPhase(reinterpret_cast<JSUint64>(compartment)) == ERROR_SUCCESS;
+    return EventWriteEvtGCEndSweepPhase(reinterpret_cast<uint64_t>(compartment)) == ERROR_SUCCESS;
 }
 
 bool
@@ -509,7 +614,7 @@ Probes::ETWStopExecution(JSContext *cx, JSScript *script)
 bool
 Probes::ETWResizeHeap(JSCompartment *compartment, size_t oldSize, size_t newSize)
 {
-    return EventWriteEvtHeapResize(reinterpret_cast<JSUint64>(compartment),
+    return EventWriteEvtHeapResize(reinterpret_cast<uint64_t>(compartment),
                                    oldSize, newSize) == ERROR_SUCCESS;
 }
 

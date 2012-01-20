@@ -685,7 +685,7 @@ nsHTMLTextAreaElement::IsAttributeMapped(const nsIAtom* aAttribute) const
     sCommonAttributeMap,
   };
 
-  return FindAttributeDependence(aAttribute, map, ArrayLength(map));
+  return FindAttributeDependence(aAttribute, map);
 }
 
 nsMapRuleToAttributesFunc
@@ -812,6 +812,12 @@ nsHTMLTextAreaElement::GetControllers(nsIControllers** aResult)
     NS_ENSURE_SUCCESS(rv, rv);
 
     nsCOMPtr<nsIController> controller = do_CreateInstance("@mozilla.org/editor/editorcontroller;1", &rv);
+    if (NS_FAILED(rv))
+      return rv;
+
+    mControllers->AppendController(controller);
+
+    controller = do_CreateInstance("@mozilla.org/editor/editingcontroller;1", &rv);
     if (NS_FAILED(rv))
       return rv;
 
@@ -1142,7 +1148,7 @@ nsHTMLTextAreaElement::IntrinsicState() const
       // error and never applies if novalidate is set on the form owner.
       if ((!mForm || !mForm->HasAttr(kNameSpaceID_None, nsGkAtoms::novalidate)) &&
           (GetValidityState(VALIDITY_STATE_CUSTOM_ERROR) ||
-           mCanShowInvalidUI && ShouldShowValidityUI())) {
+           (mCanShowInvalidUI && ShouldShowValidityUI()))) {
         state |= NS_EVENT_STATE_MOZ_UI_INVALID;
       }
     }

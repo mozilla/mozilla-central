@@ -229,8 +229,8 @@ mjit::Compiler::compileMathMinMaxInt(FrameEntry *arg1, FrameEntry *arg2, Assembl
 {
     /* Get this case out of the way */
     if (arg1->isConstant() && arg2->isConstant()) {
-        int32 a = arg1->getValue().toInt32();
-        int32 b = arg2->getValue().toInt32();
+        int32_t a = arg1->getValue().toInt32();
+        int32_t b = arg2->getValue().toInt32();
 
         frame.popn(4);
         if (cond == Assembler::LessThan)
@@ -639,7 +639,7 @@ mjit::Compiler::compileArrayConcat(types::TypeSet *thisTypes, types::TypeSet *ar
     if (thisTypes->getObjectCount() != 1)
         return Compile_InlineAbort;
     types::TypeObject *thisType = thisTypes->getTypeObject(0);
-    if (!thisType || thisType->proto->getGlobal() != globalObj)
+    if (!thisType || &thisType->proto->global() != globalObj)
         return Compile_InlineAbort;
 
     /*
@@ -722,12 +722,12 @@ mjit::Compiler::compileArrayConcat(types::TypeSet *thisTypes, types::TypeSet *ar
 }
 
 CompileStatus
-mjit::Compiler::compileArrayWithLength(uint32 argc)
+mjit::Compiler::compileArrayWithLength(uint32_t argc)
 {
     /* Match Array() or Array(n) for constant n. */
     JS_ASSERT(argc == 0 || argc == 1);
 
-    int32 length = 0;
+    int32_t length = 0;
     if (argc == 1) {
         FrameEntry *arg = frame.peek(-1);
         if (!arg->isConstant() || !arg->getValue().isInt32())
@@ -763,7 +763,7 @@ mjit::Compiler::compileArrayWithLength(uint32 argc)
 }
 
 CompileStatus
-mjit::Compiler::compileArrayWithArgs(uint32 argc)
+mjit::Compiler::compileArrayWithArgs(uint32_t argc)
 {
     /*
      * Match Array(x, y, z) with at least two arguments. Don't inline the case
@@ -798,7 +798,7 @@ mjit::Compiler::compileArrayWithArgs(uint32 argc)
                  Address(result, offset + ObjectElements::offsetOfInitializedLength()));
 
     for (unsigned i = 0; i < argc; i++) {
-        FrameEntry *arg = frame.peek(-(int)argc + i);
+        FrameEntry *arg = frame.peek(-(int32_t)argc + i);
         frame.storeTo(arg, Address(result, offset), /* popped = */ true);
         offset += sizeof(Value);
     }
@@ -816,7 +816,91 @@ mjit::Compiler::compileArrayWithArgs(uint32 argc)
 }
 
 CompileStatus
-mjit::Compiler::inlineNativeFunction(uint32 argc, bool callingNew)
+mjit::Compiler::compileParseInt(JSValueType argType, uint32_t argc)
+{
+    bool needStubCall = false;
+
+    if (argc > 1) {
+        FrameEntry *arg = frame.peek(-(int32_t)argc + 1);
+
+        if (!arg->isTypeKnown() || arg->getKnownType() != JSVAL_TYPE_INT32)
+            return Compile_InlineAbort;
+
+        if (arg->isConstant()) {
+            int32_t base = arg->getValue().toInt32();
+            if (base != 0 && base != 10)
+                return Compile_InlineAbort;
+        } else {
+            RegisterID baseReg = frame.tempRegForData(arg);
+            needStubCall = true;
+
+            Jump isTen = masm.branch32(Assembler::Equal, baseReg, Imm32(10));
+            Jump isNotZero = masm.branch32(Assembler::NotEqual, baseReg, Imm32(0));
+            stubcc.linkExit(isNotZero, Uses(2 + argc));
+
+            isTen.linkTo(masm.label(), &masm);
+        }
+    }
+
+    if (argType == JSVAL_TYPE_INT32) {
+        if (needStubCall) {
+            stubcc.leave();
+            stubcc.masm.move(Imm32(argc), Registers::ArgReg1);
+            OOL_STUBCALL(stubs::SlowCall, REJOIN_FALLTHROUGH);
+        }
+
+        /* 
+         * Stack looks like callee, this, arg1, arg2, argN.
+         * First pop all args other than arg1.
+         */
+        frame.popn(argc - 1);
+        /* "Shimmy" arg1 to the callee slot and pop this + arg1. */
+        frame.shimmy(2);
+
+        if (needStubCall) {
+            stubcc.rejoin(Changes(1));
+        }        
+    } else {
+        FrameEntry *arg = frame.peek(-(int32_t)argc);
+        FPRegisterID fpScratchReg = frame.allocFPReg();
+        FPRegisterID fpReg;
+        bool allocate;
+
+        DebugOnly<MaybeJump> notNumber = loadDouble(arg, &fpReg, &allocate);
+        JS_ASSERT(!((MaybeJump)notNumber).isSet());
+
+        masm.slowLoadConstantDouble(1, fpScratchReg);
+
+        /* Slow path for NaN and numbers < 1. */
+        Jump lessThanOneOrNan = masm.branchDouble(Assembler::DoubleLessThanOrUnordered, 
+                                                  fpReg, fpScratchReg);
+        stubcc.linkExit(lessThanOneOrNan, Uses(2 + argc));
+
+        frame.freeReg(fpScratchReg);
+
+        /* Truncate to integer, slow path if this overflows. */
+        RegisterID reg = frame.allocReg();
+        Jump overflow = masm.branchTruncateDoubleToInt32(fpReg, reg);
+        stubcc.linkExit(overflow, Uses(2 + argc));
+
+        if (allocate)
+            frame.freeReg(fpReg);
+
+        stubcc.leave();
+        stubcc.masm.move(Imm32(argc), Registers::ArgReg1);
+        OOL_STUBCALL(stubs::SlowCall, REJOIN_FALLTHROUGH);
+
+        frame.popn(2 + argc);
+        frame.pushTypedPayload(JSVAL_TYPE_INT32, reg);
+
+        stubcc.rejoin(Changes(1));
+    }
+
+    return Compile_Okay;   
+}
+
+CompileStatus
+mjit::Compiler::inlineNativeFunction(uint32_t argc, bool callingNew)
 {
     if (!cx->typeInferenceEnabled())
         return Compile_InlineAbort;
@@ -839,7 +923,7 @@ mjit::Compiler::inlineNativeFunction(uint32 argc, bool callingNew)
      * The callee must have the same parent as the script's global, otherwise
      * inference may not have accounted for any side effects correctly.
      */
-    if (!globalObj || globalObj != callee->getGlobal())
+    if (!globalObj || globalObj != &callee->global())
         return Compile_InlineAbort;
 
     Native native = callee->toFunction()->maybeNative();
@@ -869,6 +953,16 @@ mjit::Compiler::inlineNativeFunction(uint32 argc, bool callingNew)
     if (callingNew)
         return Compile_InlineAbort;
 
+    if (native == js::num_parseInt && argc >= 1) {
+        FrameEntry *arg = frame.peek(-(int32_t)argc);
+        JSValueType argType = arg->isTypeKnown() ? arg->getKnownType() : JSVAL_TYPE_UNKNOWN;
+
+        if ((argType == JSVAL_TYPE_DOUBLE || argType == JSVAL_TYPE_INT32) &&
+            type == JSVAL_TYPE_INT32) {
+            return compileParseInt(argType, argc);
+        }
+    }
+
     if (argc == 0) {
         if ((native == js::array_pop || native == js::array_shift) && thisType == JSVAL_TYPE_OBJECT) {
             /*
@@ -881,7 +975,7 @@ mjit::Compiler::inlineNativeFunction(uint32 argc, bool callingNew)
              */
             if (!thisTypes->hasObjectFlags(cx, types::OBJECT_FLAG_NON_DENSE_ARRAY |
                                            types::OBJECT_FLAG_ITERATED) &&
-                !arrayPrototypeHasIndexedProperty()) {
+                !types::ArrayPrototypeHasIndexedProperty(cx, outerScript)) {
                 bool packed = !thisTypes->hasObjectFlags(cx, types::OBJECT_FLAG_NON_PACKED_ARRAY);
                 return compileArrayPopShift(thisValue, packed, native == js::array_pop);
             }
@@ -909,6 +1003,7 @@ mjit::Compiler::inlineNativeFunction(uint32 argc, bool callingNew)
             return compileRound(arg, Round);
         }
         if (native == js_math_sqrt && type == JSVAL_TYPE_DOUBLE &&
+             masm.supportsFloatingPointSqrt() &&
             (argType == JSVAL_TYPE_INT32 || argType == JSVAL_TYPE_DOUBLE)) {
             return compileMathSqrt(arg);
         }
@@ -931,7 +1026,7 @@ mjit::Compiler::inlineNativeFunction(uint32 argc, bool callingNew)
              * generated by TypeConstraintCall during inference.
              */
             if (!thisTypes->hasObjectFlags(cx, types::OBJECT_FLAG_NON_DENSE_ARRAY) &&
-                !arrayPrototypeHasIndexedProperty()) {
+                !types::ArrayPrototypeHasIndexedProperty(cx, outerScript)) {
                 return compileArrayPush(thisValue, arg);
             }
         }
@@ -949,6 +1044,7 @@ mjit::Compiler::inlineNativeFunction(uint32 argc, bool callingNew)
         JSValueType arg2Type = arg2->isTypeKnown() ? arg2->getKnownType() : JSVAL_TYPE_UNKNOWN;
 
         if (native == js_math_pow && type == JSVAL_TYPE_DOUBLE &&
+             masm.supportsFloatingPointSqrt() &&
             (arg1Type == JSVAL_TYPE_DOUBLE || arg1Type == JSVAL_TYPE_INT32) &&
             arg2Type == JSVAL_TYPE_DOUBLE && arg2->isConstant())
         {

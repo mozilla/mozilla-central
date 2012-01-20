@@ -57,8 +57,8 @@ namespace mjit {
 namespace ic {
 
 /* Maximum number of stubs for a given callsite. */
-static const uint32 MAX_PIC_STUBS = 16;
-static const uint32 MAX_GETELEM_IC_STUBS = 17;
+static const uint32_t MAX_PIC_STUBS = 16;
+static const uint32_t MAX_GETELEM_IC_STUBS = 17;
 
 enum LookupStatus {
     Lookup_Error = 0,
@@ -84,7 +84,7 @@ struct BaseIC : public MacroAssemblerTypedefs {
     // Offset from start of stub to jump target of second shape guard as Nitro
     // asm data location. This is 0 if there is only one shape guard in the
     // last stub.
-    int32 secondShapeGuard;
+    int32_t secondShapeGuard;
 
     // Whether or not the callsite has been hit at least once.
     bool hit : 1;
@@ -97,7 +97,7 @@ struct BaseIC : public MacroAssemblerTypedefs {
     bool forcedTypeBarrier : 1;
 
     // Number of stubs generated.
-    uint32 stubsGenerated : 5;
+    uint32_t stubsGenerated : 5;
 
     // Opcode this was compiled for.
     JSOp op : 9;
@@ -111,8 +111,8 @@ struct BaseIC : public MacroAssemblerTypedefs {
     }
     bool shouldUpdate(JSContext *cx);
     void spew(JSContext *cx, const char *event, const char *reason);
-    LookupStatus disable(JSContext *cx, const char *reason, void *stub);
-    void updatePCCounters(JSContext *cx, Assembler &masm);
+    LookupStatus disable(VMFrame &f, const char *reason, void *stub);
+    void updatePCCounters(VMFrame &f, Assembler &masm);
     bool isCallOp();
 };
 
@@ -260,9 +260,9 @@ struct GetElementIC : public BasePolyIC {
     // These offsets are used for string-key dependent stubs, such as named
     // property accesses. They are separated from the int-key dependent stubs,
     // in order to guarantee that the id type needs only one guard per type.
-    int32 atomGuard : 8;          // optional, non-zero if present
-    int32 firstShapeGuard : 11;    // always set
-    int32 secondShapeGuard : 11;   // optional, non-zero if present
+    int32_t atomGuard : 8;          // optional, non-zero if present
+    int32_t firstShapeGuard : 11;    // always set
+    int32_t secondShapeGuard : 11;   // optional, non-zero if present
 
     bool hasLastStringStub : 1;
     JITCode lastStringStub;
@@ -299,10 +299,11 @@ struct GetElementIC : public BasePolyIC {
     }
     void purge(Repatcher &repatcher);
     LookupStatus update(VMFrame &f, JSObject *obj, const Value &v, jsid id, Value *vp);
-    LookupStatus attachGetProp(VMFrame &f, JSObject *obj, const Value &v, jsid id, Value *vp);
+    LookupStatus attachGetProp(VMFrame &f, JSObject *obj, const Value &v, PropertyName *name,
+                               Value *vp);
     LookupStatus attachArguments(VMFrame &f, JSObject *obj, const Value &v, jsid id, Value *vp);
     LookupStatus attachTypedArray(VMFrame &f, JSObject *obj, const Value &v, jsid id, Value *vp);
-    LookupStatus disable(JSContext *cx, const char *reason);
+    LookupStatus disable(VMFrame &f, const char *reason);
     LookupStatus error(JSContext *cx);
     bool shouldUpdate(JSContext *cx);
 };
@@ -321,7 +322,7 @@ struct SetElementIC : public BaseIC {
     RegisterID objReg    : 5;
 
     // Information on how to rematerialize |objReg|.
-    int32 objRemat       : MIN_STATE_REMAT_BITS;
+    int32_t objRemat       : MIN_STATE_REMAT_BITS;
 
     // Offset from the start of the fast path to the inline shape guard.
     unsigned inlineShapeGuard : 6;
@@ -340,14 +341,14 @@ struct SetElementIC : public BaseIC {
 
     // A bitmask of registers that are volatile and must be preserved across
     // stub calls inside the IC.
-    uint32 volatileMask;
+    uint32_t volatileMask;
 
     // If true, then keyValue contains a constant index value >= 0. Otherwise,
     // keyReg contains a dynamic integer index in any range.
     bool hasConstantKey : 1;
     union {
         RegisterID keyReg;
-        int32      keyValue;
+        int32_t    keyValue;
     };
 
     // Rematerialize information about the value being stored.
@@ -365,10 +366,10 @@ struct SetElementIC : public BaseIC {
         inlineHoleGuardPatched = false;
     }
     void purge(Repatcher &repatcher);
-    LookupStatus attachTypedArray(VMFrame &f, JSObject *obj, int32 key);
-    LookupStatus attachHoleStub(VMFrame &f, JSObject *obj, int32 key);
+    LookupStatus attachTypedArray(VMFrame &f, JSObject *obj, int32_t key);
+    LookupStatus attachHoleStub(VMFrame &f, JSObject *obj, int32_t key);
     LookupStatus update(VMFrame &f, const Value &objval, const Value &idval);
-    LookupStatus disable(JSContext *cx, const char *reason);
+    LookupStatus disable(VMFrame &f, const char *reason);
     LookupStatus error(JSContext *cx);
     bool shouldUpdate(JSContext *cx);
 };
@@ -383,13 +384,11 @@ struct PICInfo : public BasePolyIC {
 #endif
     {
         GET,        // JSOP_GETPROP
-        CALL,       // JSOP_CALLPROP
         SET,        // JSOP_SETPROP, JSOP_SETNAME
         SETMETHOD,  // JSOP_SETMETHOD
         NAME,       // JSOP_NAME
         BIND,       // JSOP_BINDNAME
-        XNAME,      // JSOP_GETXPROP
-        CALLNAME    // JSOP_CALLNAME
+        XNAME       // JSOP_GETXPROP
     };
 
     union {
@@ -398,7 +397,7 @@ struct PICInfo : public BasePolyIC {
             bool hasTypeCheck   : 1;  // type check and reg are present
 
             // Reverse offset from slowPathStart to the type check slow path.
-            int32 typeCheckOffset;
+            int32_t typeCheckOffset;
         } get;
         ValueRemat vr;
     } u;
@@ -427,9 +426,9 @@ struct PICInfo : public BasePolyIC {
 
     // Return a JITCode block corresponding to the code memory to attach a
     // new stub to.
-    JITCode lastCodeBlock(JITScript *jit) {
+    JITCode lastCodeBlock(JITChunk *chunk) {
         if (!stubsGenerated)
-            return JITCode(jit->code.m_code.executableAddress(), jit->code.m_size);
+            return JITCode(chunk->code.m_code.executableAddress(), chunk->code.m_size);
         return lastStubStart;
     }
 
@@ -457,7 +456,7 @@ struct PICInfo : public BasePolyIC {
     bool typeMonitored : 1;
 
     // Offset from start of fast path to initial shape guard.
-    uint32 shapeGuard;
+    uint32_t shapeGuard;
 
     // Possible types of the RHS, for monitored SETPROP PICs.
     types::TypeSet *rhsTypes;
@@ -466,13 +465,13 @@ struct PICInfo : public BasePolyIC {
         return kind == SET || kind == SETMETHOD;
     }
     inline bool isGet() const {
-        return kind == GET || kind == CALL;
+        return kind == GET;
     }
     inline bool isBind() const {
         return kind == BIND;
     }
     inline bool isScopeName() const {
-        return kind == NAME || kind == CALLNAME || kind == XNAME;
+        return kind == NAME || kind == XNAME;
     }
     inline RegisterID typeReg() {
         JS_ASSERT(isGet());
@@ -484,10 +483,6 @@ struct PICInfo : public BasePolyIC {
     }
     inline bool shapeNeedsRemat() {
         return !shapeRegHasBaseShape;
-    }
-    inline bool isFastCall() {
-        JS_ASSERT(kind == CALL);
-        return !hasTypeCheck();
     }
 
     union {
@@ -509,7 +504,7 @@ struct PICInfo : public BasePolyIC {
         bindNameLabels_ = labels;
     }
     void setLabels(const ic::ScopeNameLabels &labels) {
-        JS_ASSERT(kind == NAME || kind == CALLNAME || kind == XNAME);
+        JS_ASSERT(kind == NAME || kind == XNAME);
         scopeNameLabels_ = labels;
     }
 
@@ -526,7 +521,7 @@ struct PICInfo : public BasePolyIC {
         return bindNameLabels_;
     }
     ScopeNameLabels &scopeNameLabels() {
-        JS_ASSERT(kind == NAME || kind == CALLNAME || kind == XNAME);
+        JS_ASSERT(kind == NAME || kind == XNAME);
         return scopeNameLabels_;
     }
 
@@ -534,7 +529,7 @@ struct PICInfo : public BasePolyIC {
     jsbytecode *pc;
     
     // Index into the script's atom table.
-    JSAtom *atom;
+    PropertyName *name;
 
     // Reset the data members to the state of a fresh PIC before any patching
     // or stub generation was done.
@@ -549,13 +544,10 @@ struct PICInfo : public BasePolyIC {
 void JS_FASTCALL GetProp(VMFrame &f, ic::PICInfo *);
 void JS_FASTCALL GetPropNoCache(VMFrame &f, ic::PICInfo *);
 void JS_FASTCALL SetProp(VMFrame &f, ic::PICInfo *);
-void JS_FASTCALL CallProp(VMFrame &f, ic::PICInfo *);
 void JS_FASTCALL Name(VMFrame &f, ic::PICInfo *);
-void JS_FASTCALL CallName(VMFrame &f, ic::PICInfo *);
 void JS_FASTCALL XName(VMFrame &f, ic::PICInfo *);
 void JS_FASTCALL BindName(VMFrame &f, ic::PICInfo *);
 void JS_FASTCALL GetElement(VMFrame &f, ic::GetElementIC *);
-void JS_FASTCALL CallElement(VMFrame &f, ic::GetElementIC *);
 template <JSBool strict> void JS_FASTCALL SetElement(VMFrame &f, ic::SetElementIC *);
 #endif
 

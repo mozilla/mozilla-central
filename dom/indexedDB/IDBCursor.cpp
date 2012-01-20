@@ -39,7 +39,6 @@
 
 #include "IDBCursor.h"
 
-#include "jscntxt.h"
 #include "mozilla/storage.h"
 #include "nsComponentManagerUtils.h"
 #include "nsContentUtils.h"
@@ -49,7 +48,6 @@
 #include "nsThreadUtils.h"
 
 #include "AsyncConnectionHelper.h"
-#include "DatabaseInfo.h"
 #include "IDBEvents.h"
 #include "IDBIndex.h"
 #include "IDBObjectStore.h"
@@ -87,7 +85,7 @@ public:
 
   ~ContinueHelper()
   {
-    IDBObjectStore::ClearStructuredCloneBuffer(mCloneBuffer);
+    IDBObjectStore::ClearStructuredCloneBuffer(mCloneReadInfo.mCloneBuffer);
   }
 
   nsresult DoDatabaseWork(mozIStorageConnection* aConnection);
@@ -112,7 +110,7 @@ protected:
   PRInt32 mCount;
   Key mKey;
   Key mObjectKey;
-  JSAutoStructuredCloneBuffer mCloneBuffer;
+  StructuredCloneReadInfo mCloneReadInfo;
 };
 
 class ContinueObjectStoreHelper : public ContinueHelper
@@ -165,7 +163,7 @@ IDBCursor::Create(IDBRequest* aRequest,
                   const nsACString& aContinueQuery,
                   const nsACString& aContinueToQuery,
                   const Key& aKey,
-                  JSAutoStructuredCloneBuffer& aCloneBuffer)
+                  StructuredCloneReadInfo& aCloneReadInfo)
 {
   NS_ASSERTION(aObjectStore, "Null pointer!");
   NS_ASSERTION(!aKey.IsUnset(), "Bad key!");
@@ -178,7 +176,7 @@ IDBCursor::Create(IDBRequest* aRequest,
   cursor->mObjectStore = aObjectStore;
   cursor->mType = OBJECTSTORE;
   cursor->mKey = aKey;
-  cursor->mCloneBuffer.swap(aCloneBuffer);
+  cursor->mCloneReadInfo.Swap(aCloneReadInfo);
 
   return cursor.forget();
 }
@@ -224,7 +222,7 @@ IDBCursor::Create(IDBRequest* aRequest,
                   const nsACString& aContinueToQuery,
                   const Key& aKey,
                   const Key& aObjectKey,
-                  JSAutoStructuredCloneBuffer& aCloneBuffer)
+                  StructuredCloneReadInfo& aCloneReadInfo)
 {
   NS_ASSERTION(aIndex, "Null pointer!");
   NS_ASSERTION(!aKey.IsUnset(), "Bad key!");
@@ -240,7 +238,7 @@ IDBCursor::Create(IDBRequest* aRequest,
   cursor->mType = INDEXOBJECT;
   cursor->mKey = aKey;
   cursor->mObjectKey = aObjectKey;
-  cursor->mCloneBuffer.swap(aCloneBuffer);
+  cursor->mCloneReadInfo.Swap(aCloneReadInfo);
 
   return cursor.forget();
 }
@@ -300,7 +298,7 @@ IDBCursor::~IDBCursor()
   if (mRooted) {
     NS_DROP_JS_OBJECTS(this, IDBCursor);
   }
-  IDBObjectStore::ClearStructuredCloneBuffer(mCloneBuffer);
+  IDBObjectStore::ClearStructuredCloneBuffer(mCloneReadInfo.mCloneBuffer);
 }
 
 nsresult
@@ -529,12 +527,12 @@ IDBCursor::GetValue(JSContext* aCx,
       mRooted = true;
     }
 
-    if (!IDBObjectStore::DeserializeValue(aCx, mCloneBuffer, &mCachedValue)) {
+    if (!IDBObjectStore::DeserializeValue(aCx, mCloneReadInfo, &mCachedValue)) {
       mCachedValue = JSVAL_VOID;
       return NS_ERROR_DOM_DATA_CLONE_ERR;
     }
 
-    mCloneBuffer.clear();
+    mCloneReadInfo.mCloneBuffer.clear();
     mHaveCachedValue = true;
   }
 
@@ -762,8 +760,8 @@ ContinueHelper::GetSuccessResult(JSContext* aCx,
     mCursor->mObjectKey = mObjectKey;
     mCursor->mContinueToKey.Unset();
 
-    mCursor->mCloneBuffer.swap(mCloneBuffer);
-    mCloneBuffer.clear();
+    mCursor->mCloneReadInfo.Swap(mCloneReadInfo);
+    mCloneReadInfo.mCloneBuffer.clear();
 
     nsresult rv = WrapNative(aCx, mCursor, aVal);
     NS_ENSURE_SUCCESS(rv, rv);
@@ -811,8 +809,8 @@ ContinueObjectStoreHelper::GatherResultsFromStatement(
   nsresult rv = mKey.SetFromStatement(aStatement, 0);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = IDBObjectStore::GetStructuredCloneDataFromStatement(aStatement, 1,
-                                                           mCloneBuffer);
+  rv = IDBObjectStore::GetStructuredCloneReadInfoFromStatement(aStatement, 1, 2,
+    mDatabase->Manager(), mCloneReadInfo);
   NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
@@ -881,8 +879,8 @@ ContinueIndexObjectHelper::GatherResultsFromStatement(
   rv = mObjectKey.SetFromStatement(aStatement, 1);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = IDBObjectStore::GetStructuredCloneDataFromStatement(aStatement, 2,
-                                                           mCloneBuffer);
+  rv = IDBObjectStore::GetStructuredCloneReadInfoFromStatement(aStatement, 2, 3,
+    mDatabase->Manager(), mCloneReadInfo);
   NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;

@@ -72,18 +72,18 @@
 # undef NSPR_LOCK
 #endif
 
-#define Thin_GetWait(W) ((jsword)(W) & 0x1)
-#define Thin_SetWait(W) ((jsword)(W) | 0x1)
-#define Thin_RemoveWait(W) ((jsword)(W) & ~0x1)
+#define Thin_GetWait(W) ((intptr_t)(W) & 0x1)
+#define Thin_SetWait(W) ((intptr_t)(W) | 0x1)
+#define Thin_RemoveWait(W) ((intptr_t)(W) & ~0x1)
 
 typedef struct JSFatLock JSFatLock;
 
 typedef struct JSThinLock {
-    jsword      owner;
+    intptr_t    owner;
     JSFatLock   *fat;
 } JSThinLock;
 
-#define CX_THINLOCK_ID(cx)       ((jsword)(cx)->thread())
+#define CX_THINLOCK_ID(cx)       ((intptr_t)(cx)->thread())
 #define CURRENT_THREAD_IS_ME(me) (((JSThread *)me)->id == js_CurrentThreadId())
 
 typedef PRLock JSLock;
@@ -113,29 +113,12 @@ typedef PRLock JSLock;
 #define JS_LOCK(cx, tl)             js_Lock(cx, tl)
 #define JS_UNLOCK(cx, tl)           js_Unlock(cx, tl)
 
-#define JS_LOCK_RUNTIME(rt)         js_LockRuntime(rt)
-#define JS_UNLOCK_RUNTIME(rt)       js_UnlockRuntime(rt)
-
 extern void js_Lock(JSContext *cx, JSThinLock *tl);
 extern void js_Unlock(JSContext *cx, JSThinLock *tl);
-extern void js_LockRuntime(JSRuntime *rt);
-extern void js_UnlockRuntime(JSRuntime *rt);
 extern int js_SetupLocks(int,int);
 extern void js_CleanupLocks();
 extern void js_InitLock(JSThinLock *);
 extern void js_FinishLock(JSThinLock *);
-
-#ifdef DEBUG
-
-#define JS_IS_RUNTIME_LOCKED(rt)        js_IsRuntimeLocked(rt)
-
-extern JSBool js_IsRuntimeLocked(JSRuntime *rt);
-
-#else
-
-#define JS_IS_RUNTIME_LOCKED(rt)        0
-
-#endif /* DEBUG */
 
 #else  /* !JS_THREADSAFE */
 
@@ -144,7 +127,7 @@ extern JSBool js_IsRuntimeLocked(JSRuntime *rt);
 #define JS_ATOMIC_ADD(p,v)          (*(p) += (v))
 #define JS_ATOMIC_SET(p,v)          (*(p) = (v))
 
-#define js_CurrentThreadId()        0
+#define js_CurrentThreadId()        ((void*)NULL)
 #define JS_NEW_LOCK()               NULL
 #define JS_DESTROY_LOCK(l)          ((void)0)
 #define JS_ACQUIRE_LOCK(l)          ((void)0)
@@ -157,11 +140,6 @@ extern JSBool js_IsRuntimeLocked(JSRuntime *rt);
 #define JS_WAIT_CONDVAR(cv,to)      ((void)0)
 #define JS_NOTIFY_CONDVAR(cv)       ((void)0)
 #define JS_NOTIFY_ALL_CONDVAR(cv)   ((void)0)
-
-#define JS_LOCK_RUNTIME(rt)         ((void)0)
-#define JS_UNLOCK_RUNTIME(rt)       ((void)0)
-
-#define JS_IS_RUNTIME_LOCKED(rt)        1
 
 #endif /* !JS_THREADSAFE */
 
@@ -183,18 +161,18 @@ extern JSBool js_IsRuntimeLocked(JSRuntime *rt);
 #ifdef JS_THREADSAFE
 
 extern JSBool
-js_CompareAndSwap(volatile jsword *w, jsword ov, jsword nv);
+js_CompareAndSwap(volatile intptr_t *w, intptr_t ov, intptr_t nv);
 
 /* Atomically bitwise-or the mask into the word *w using compare and swap. */
 extern void
-js_AtomicSetMask(volatile jsword *w, jsword mask);
+js_AtomicSetMask(volatile intptr_t *w, intptr_t mask);
 
 /*
  * Atomically bitwise-and the complement of the mask into the word *w using
  * compare and swap.
  */
 extern void
-js_AtomicClearMask(volatile jsword *w, jsword mask);
+js_AtomicClearMask(volatile intptr_t *w, intptr_t mask);
 
 #define JS_ATOMIC_SET_MASK(w, mask) js_AtomicSetMask(w, mask)
 #define JS_ATOMIC_CLEAR_MASK(w, mask) js_AtomicClearMask(w, mask)
@@ -205,7 +183,7 @@ js_GetCPUCount();
 #else
 
 static inline JSBool
-js_CompareAndSwap(jsword *w, jsword ov, jsword nv)
+js_CompareAndSwap(intptr_t *w, intptr_t ov, intptr_t nv)
 {
     return (*w == ov) ? *w = nv, JS_TRUE : JS_FALSE;
 }
@@ -240,11 +218,11 @@ class AutoLock {
 #endif
 
 class AutoAtomicIncrement {
-    int32 *p;
+    int32_t *p;
     JS_DECL_USE_GUARD_OBJECT_NOTIFIER
 
   public:
-    AutoAtomicIncrement(int32 *p JS_GUARD_OBJECT_NOTIFIER_PARAM)
+    AutoAtomicIncrement(int32_t *p JS_GUARD_OBJECT_NOTIFIER_PARAM)
       : p(p) {
         JS_GUARD_OBJECT_NOTIFIER_INIT;
         JS_ATOMIC_INCREMENT(p);

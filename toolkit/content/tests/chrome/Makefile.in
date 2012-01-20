@@ -88,6 +88,7 @@ _TEST_FILES = 	findbar_window.xul \
 		test_autocomplete2.xul \
 		test_autocomplete3.xul \
 		test_autocomplete4.xul \
+		test_autocomplete_delayOnPaste.xul \
 		test_keys.xul \
 		window_keys.xul \
 		test_showcaret.xul \
@@ -144,6 +145,7 @@ _TEST_FILES +=  \
 		test_textbox_emptytext.xul \
 		test_textbox_number.xul \
 		test_textbox_search.xul \
+		test_textbox_dictionary.xul\
 		test_toolbar.xul \
 		xul_selectcontrol.js \
 		test_popupincontent.xul \

@@ -151,9 +151,6 @@
         false
 #endif
       </field>
-      <field name="mAddProgressListenerWasCalled">
-        false
-      </field>
       <field name="_browsers">
         null
       </field>
@@ -616,7 +613,8 @@
 
               if (topLevel) {
                 // The document loaded correctly, clear the value if we should
-                if (this.mBrowser.userTypedClear > 0)
+                if (this.mBrowser.userTypedClear > 0 ||
+                    (aRequest && !Components.isSuccessCode(aRequest.status)))
                   this.mBrowser.userTypedValue = null;
 
                 // Clear out the missing plugins list since it's related to the
@@ -1264,8 +1262,10 @@
               setTimeout(function (tabContainer) {
                 if (t.pinned)
                   tabContainer._handleNewTab(t);
-                else
+                else {
+                  t._animStartTime = Date.now();
                   t.setAttribute("fadein", "true");
+                }
               }, 0, this.tabContainer);
             }
 
@@ -1525,6 +1525,8 @@
               this._endRemoveTab(aTab);
               return;
             }
+
+            aTab._animStartTime = Date.now();
 
             this._blurTab(aTab);
             aTab.style.maxWidth = ""; // ensure that fade-out transition happens
@@ -1905,11 +1907,6 @@
                                            "called with a second argument, " +
                                            "which is not supported. See bug " +
                                            "608628.");
-            }
-
-            if (!this.mAddProgressListenerWasCalled) {
-              this.mAddProgressListenerWasCalled = true;
-              this.tabContainer.updateVisibility();
             }
 
             this.mProgressListeners.push(aListener);
@@ -2765,8 +2762,8 @@
           Services.prefs.addObserver("browser.tabs.", this._prefObserver, false);
           window.addEventListener("resize", this, false);
 
-          if (window.TabsInTitlebar)
-            TabsInTitlebar.allowedBy("tabs-visible", this.visible);
+          this.updateVisibility();
+          this._propagateVisibility();
         ]]>
       </constructor>
 
@@ -2834,16 +2831,27 @@
 
           this._container.collapsed = !val;
 
-          document.getElementById("menu_closeWindow").hidden = !val;
-          document.getElementById("menu_close").setAttribute("label",
-            this.tabbrowser.mStringBundle.getString(val ? "tabs.closeTab" : "tabs.close"));
-
-          if (window.TabsInTitlebar)
-            TabsInTitlebar.allowedBy("tabs-visible", val);
+          this._propagateVisibility();
 
           return val;
         ]]></setter>
       </property>
+
+      <method name="_propagateVisibility">
+        <body><![CDATA[
+          let visible = this.visible;
+
+          document.getElementById("menu_closeWindow").hidden = !visible;
+          document.getElementById("menu_close").setAttribute("label",
+            this.tabbrowser.mStringBundle.getString(visible ? "tabs.closeTab" : "tabs.close"));
+
+          goSetCommandEnabled("cmd_ToggleTabsOnTop", visible);
+
+          TabsOnTop.syncUI();
+
+          TabsInTitlebar.allowedBy("tabs-visible", visible);
+        ]]></body>
+      </method>
 
       <method name="updateVisibility">
         <body><![CDATA[
@@ -2922,7 +2930,6 @@
       <field name="_tabDefaultMaxWidth">NaN</field>
       <field name="_lastTabClosedByMouse">false</field>
       <field name="_hasTabTempMaxWidth">false</field>
-      <field name="_usingClosingTabsSpacer">false</field>
 
       <!-- Try to keep the active tab's close button under the mouse cursor -->
       <method name="_lockTabSizing">
@@ -2990,7 +2997,7 @@
         <body><![CDATA[
           let spacer = this._closingTabsSpacer;
           spacer.style.width = parseFloat(spacer.style.width) + pixels + "px";
-          this._usingClosingTabsSpacer = true;
+          this.setAttribute("using-closing-tabs-spacer", "true");
           this.tabbrowser.addEventListener("mousemove", this, false);
           window.addEventListener("mouseout", this, false);
         ]]></body>
@@ -3000,14 +3007,16 @@
         <body><![CDATA[
           this.tabbrowser.removeEventListener("mousemove", this, false);
           window.removeEventListener("mouseout", this, false);
+
           if (this._hasTabTempMaxWidth) {
             this._hasTabTempMaxWidth = false;
             let tabs = this.tabbrowser.visibleTabs;
             for (let i = 0; i < tabs.length; i++)
               tabs[i].style.maxWidth = "";
           }
-          if (this._usingClosingTabsSpacer) {
-            this._usingClosingTabsSpacer = false;
+
+          if (this.hasAttribute("using-closing-tabs-spacer")) {
+            this.removeAttribute("using-closing-tabs-spacer");
             this._closingTabsSpacer.style.width = 0;
           }
         ]]></body>
@@ -3256,6 +3265,14 @@
           return;
 
         var tab = event.target;
+
+        if (tab._animStartTime) {
+          Services.telemetry.getHistogramById(tab.closing ?
+                                              "FX_TAB_ANIM_CLOSE_MS" :
+                                              "FX_TAB_ANIM_OPEN_MS")
+                            .add(Date.now() - tab._animStartTime);
+          tab._animStartTime = 0;
+        }
 
         if (tab.getAttribute("fadein") == "true") {
           if (tab._fullyOpen)
@@ -3988,10 +4005,13 @@
     <implementation implements="nsIDOMEventListener">
       <constructor><![CDATA[
         window.addEventListener("findbaropen", this, false);
+        window.addEventListener("resize", this, false);
       ]]></constructor>
 
       <destructor><![CDATA[
         window.removeEventListener("findbaropen", this, false);
+        window.removeEventListener("resize", this, false);
+        MousePosTracker.removeListener(this);
       ]]></destructor>
 
       <property name="label">
@@ -4010,8 +4030,11 @@
           if (val) {
             this.setAttribute("label", val);
             this.removeAttribute("inactive");
+            this._calcMouseTargetRect();
+            MousePosTracker.addListener(this);
           } else {
             this.setAttribute("inactive", "true");
+            MousePosTracker.removeListener(this);
           }
 
           return val;
@@ -4021,12 +4044,56 @@
         </getter>
       </property>
 
+      <method name="getMouseTargetRect">
+        <body><![CDATA[
+          return this._mouseTargetRect;
+        ]]></body>
+      </method>
+
+      <method name="onMouseEnter">
+        <body>
+          this._mirror();
+        </body>
+      </method>
+
+      <method name="onMouseLeave">
+        <body>
+          this._mirror();
+        </body>
+      </method>
+
       <method name="handleEvent">
         <parameter name="event"/>
         <body><![CDATA[
-          if (event.type == "findbaropen" &&
-              this.label)
-            this.setAttribute("mirror", "true");
+          if (!this.label)
+            return;
+
+          switch (event.type) {
+            case "findbaropen":
+              this.setAttribute("mirror", "true");
+              this._calcMouseTargetRect();
+              break;
+            case "resize":
+              this._calcMouseTargetRect();
+              break;
+          }
+        ]]></body>
+      </method>
+
+      <method name="_calcMouseTargetRect">
+        <body><![CDATA[
+          let alignRight = (window.gFindBarInitialized && !window.gFindBar.hidden);
+
+          if (getComputedStyle(document.documentElement).direction == "rtl")
+            alighRight = !alignRight;
+
+          let rect = this.getBoundingClientRect();
+          this._mouseTargetRect = {
+            top:    rect.top,
+            bottom: rect.bottom,
+            left:   alignRight ? window.innerWidth - rect.width : 0,
+            right:  alignRight ? window.innerWidth : rect.width
+          };
         ]]></body>
       </method>
 
@@ -4039,11 +4106,6 @@
         </body>
       </method>
     </implementation>
-
-    <handlers>
-      <handler event="mouseover" action="this._mirror();"/>
-      <handler event="dragover" action="this._mirror();"/>
-    </handlers>
   </binding>
 
 </bindings>

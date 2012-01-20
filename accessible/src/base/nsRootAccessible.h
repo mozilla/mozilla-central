@@ -41,7 +41,6 @@
 #include "nsCaretAccessible.h"
 #include "nsDocAccessibleWrap.h"
 
-#include "nsIAccessibleDocument.h"
 #ifdef MOZ_XUL
 #include "nsXULTreeAccessible.h"
 #endif
@@ -84,7 +83,7 @@ public:
 
   // nsAccessible
   virtual Relation RelationByType(PRUint32 aType);
-  virtual PRUint32 NativeRole();
+  virtual mozilla::a11y::role NativeRole();
   virtual PRUint64 NativeState();
 
   // nsRootAccessible

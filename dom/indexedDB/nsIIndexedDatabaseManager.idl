@@ -41,17 +41,18 @@
 
 interface nsIURI;
 
-[scriptable, function, uuid(17675af5-0569-4f5b-987f-ff4bb60f73ee)]
+[scriptable, function, uuid(ef1795ec-7050-4658-b80f-0e48cbe1d64b)]
 interface nsIIndexedDatabaseUsageCallback : nsISupports
 {
   /**
    *
    */
   void onUsageResult(in nsIURI aURI,
-                     in unsigned long long aUsage);
+                     in unsigned long long aUsage,
+                     in unsigned long long aFileUsage);
 };
 
-[scriptable, builtinclass, uuid(415f5684-6c84-4a8b-b777-d01f5df778f2)]
+[scriptable, builtinclass, uuid(02256aa7-70d8-473f-bf3b-8cb35d28fd75)]
 interface nsIIndexedDatabaseManager : nsISupports
 {
   /**
@@ -87,4 +88,14 @@ interface nsIIndexedDatabaseManager : nsISupports
    *        The URI whose databases are to be cleared.
    */
   void clearDatabasesForURI(in nsIURI aURI);
+
+  /**
+   * Defines mozIndexedDB and IDBKeyrange with its static functions on 
+   * aObject and initializes DOM exception providers if needed.
+   *
+   * @param aObject
+   *        The object, mozIndexedDB and IDBKeyrange should be defined on.
+   */
+  [implicit_jscontext]
+  void initWindowless(in jsval aObject);
 };

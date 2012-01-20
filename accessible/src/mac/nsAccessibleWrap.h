@@ -61,41 +61,50 @@
 
 class nsAccessibleWrap : public nsAccessible
 {
-  public: // construction, destruction
-    nsAccessibleWrap(nsIContent *aContent, nsIWeakReference *aShell);
-    virtual ~nsAccessibleWrap();
+public: // construction, destruction
+  nsAccessibleWrap(nsIContent* aContent, nsIWeakReference* aShell);
+  virtual ~nsAccessibleWrap();
     
-    // creates the native accessible connected to this one.
-    virtual bool Init ();
-    
-    // get the native obj-c object (mozAccessible)
-    NS_IMETHOD GetNativeInterface (void **aOutAccessible);
-    
-    // the objective-c |Class| type that this accessible's native object
-    // should be instantied with.   used on runtime to determine the
-    // right type for this accessible's associated native object.
-    virtual Class GetNativeType ();
+  /**
+   * Get the native Obj-C object (mozAccessible).
+   */
+  NS_IMETHOD GetNativeInterface (void** aOutAccessible);
+  
+  /**
+   * The objective-c |Class| type that this accessible's native object
+   * should be instantied with.   used on runtime to determine the
+   * right type for this accessible's associated native object.
+   */
+  virtual Class GetNativeType ();
 
-    virtual void Shutdown ();
-    virtual void InvalidateChildren();
+  virtual void Shutdown ();
+  virtual void InvalidateChildren();
 
-    virtual nsresult HandleAccEvent(AccEvent* aEvent);
+  virtual bool AppendChild(nsAccessible* aAccessible);
+  virtual bool RemoveChild(nsAccessible* aAccessible);
 
-    // ignored means that the accessible might still have children, but is not displayed
-    // to the user. it also has no native accessible object represented for it.
-    bool IsIgnored();
-    
-    bool HasPopup () {
-      return (NativeState() & mozilla::a11y::states::HASPOPUP);
-    }
-    
-    // return this accessible's all children, adhering to "flat" accessibles by not returning their children.
-    void GetUnignoredChildren(nsTArray<nsRefPtr<nsAccessibleWrap> > &aChildrenArray);
-    virtual already_AddRefed<nsIAccessible> GetUnignoredParent();
-    
-  protected:
+  virtual nsresult HandleAccEvent(AccEvent* aEvent);
 
-    virtual nsresult FirePlatformEvent(AccEvent* aEvent);
+  /**
+   * Ignored means that the accessible might still have children, but is not
+   * displayed to the user. it also has no native accessible object represented
+   * for it.
+   */
+  bool IsIgnored();
+  
+  inline bool HasPopup () 
+    { return (NativeState() & mozilla::a11y::states::HASPOPUP); }
+  
+  /**
+   * Returns this accessible's all children, adhering to "flat" accessibles by 
+   * not returning their children.
+   */
+  void GetUnignoredChildren(nsTArray<nsRefPtr<nsAccessibleWrap> >& aChildrenArray);
+  virtual already_AddRefed<nsIAccessible> GetUnignoredParent();
+    
+protected:
+
+  virtual nsresult FirePlatformEvent(AccEvent* aEvent);
 
   /**
    * Return true if the parent doesn't have children to expose to AT.
@@ -103,13 +112,34 @@ class nsAccessibleWrap : public nsAccessible
   bool AncestorIsFlat();
 
   /**
-   * mozAccessible object. If we are in Objective-C, we use the actual Obj-C class.
+   * Get the native object. Create it if needed.
    */
 #if defined(__OBJC__)
+  mozAccessible* GetNativeObject();
+#else
+  id GetNativeObject();
+#endif
+
+private:
+
+  /**
+   * Our native object. Private because its creation is done lazily.
+   * Don't access it directly. Ever. Unless you are GetNativeObject() or 
+   * Shutdown()
+   */
+#if defined(__OBJC__)
+  // if we are in Objective-C, we use the actual Obj-C class.
   mozAccessible* mNativeObject;
 #else
-  id mNativeObject;  
+  id mNativeObject;
 #endif
+
+  /**
+   * We have created our native. This does not mean there is one.
+   * This can never go back to false.
+   * We need it because checking whether we need a native object cost time.
+   */
+  bool mNativeInited;  
 };
 
 // Define unsupported wrap classes here
