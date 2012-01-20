@@ -401,6 +401,30 @@ function onUpdateProgress()
   }
 }
 
+function handlePaste() {
+  let trans = Components.classes["@mozilla.org/widget/transferable;1"]
+                        .createInstance(Components.interfaces.nsITransferable);
+  let flavors = ["text/x-moz-url", "text/unicode"];
+  flavors.forEach(trans.addDataFlavor);
+
+  Services.clipboard.getData(trans, Services.clipboard.kGlobalClipboard);
+
+  // Getting the data or creating the nsIURI might fail
+  try {
+    let data = {};
+    trans.getAnyTransferData({}, data, {});
+    let [url, name] = data.value.QueryInterface(Components.interfaces
+                                .nsISupportsString).data.split("\n");
+
+    if (!url)
+      return;
+
+    let uri = Services.io.newURI(url, null, null);
+
+    saveURL(uri.spec, name || uri.spec, null, true, true);
+  } catch (ex) {}
+}
+
 var gDownloadObserver = {
   observe: function(aSubject, aTopic, aData) {
     switch (aTopic) {
@@ -432,6 +456,7 @@ var dlTreeController = {
       case "cmd_openReferrer":
       case "cmd_copyLocation":
       case "cmd_properties":
+      case "cmd_paste":
       case "cmd_selectAll":
       case "cmd_clearList":
         return true;
@@ -533,6 +558,8 @@ var dlTreeController = {
         return gDownloadTreeView.rowCount != selectionCount;
       case "cmd_clearList":
         return gDownloadTreeView.rowCount && gDownloadManager.canCleanUp;
+      case "cmd_paste":
+        return true;
       default:
         return false;
     }
@@ -650,6 +677,9 @@ var dlTreeController = {
         searchDownloads("");
         gDownloadTree.focus();
         break;
+      case "cmd_paste":
+        handlePaste();
+        break;
     }
   },
 
@@ -714,4 +744,4 @@ var gDownloadDNDObserver = {
     if (url)
       saveURL(url, name, null, true, true);
   }
-}
+};

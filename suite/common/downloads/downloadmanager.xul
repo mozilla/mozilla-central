@@ -134,6 +134,8 @@
     <!-- Edit Menu -->
     <key id="key_cut"/>
     <key id="key_copy"/>
+    <key id="key_paste"
+         command="cmd_paste"/>
     <key id="key_play"
          key=" "
          command="cmd_play"/>
