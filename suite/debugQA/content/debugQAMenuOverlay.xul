@@ -146,21 +146,6 @@
           </menupopup>
         </menu>
 
-        <menu label="XUL Test Suite">
-          <menupopup>
-            <menuitem label="#1 Stacks"
-                      oncommand="openTopWin('http://www.mozilla.org/projects/xul/tests/stacks.xul');"/>
-            <menuitem label="#2 Popups"
-                      oncommand="openTopWin('http://www.mozilla.org/projects/xul/tests/popups.xul');"/>
-            <menuitem label="#3 Descriptions and Labels"
-                      oncommand="openTopWin('http://www.mozilla.org/projects/xul/tests/label.xul');"/>
-            <menuitem label="#4 Dialog Buttons"
-                      oncommand="openTopWin('http://www.mozilla.org/projects/xul/tests/buttons.xul');"/>
-            <menuitem label="#5 Tabindex"
-                      oncommand="openTopWin('http://www.mozilla.org/projects/xul/tests/tabindex.xul');"/>
-          </menupopup>
-        </menu>
-
         <menuitem label="chofmann's Browser Buster"
                   oncommand="openTopWin('http://webtools.mozilla.org/buster/');"/>
         <menuitem label="Composer (with test page)"
