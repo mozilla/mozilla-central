@@ -885,7 +885,7 @@ GlodaAttachment.prototype = {
       let url = neckoURL.value.spec;
       let hasParamAlready = url.match(/\?[a-z]+=[^\/]+$/);
       let sep = hasParamAlready ? "&" : "?";
-      return url+sep+"part="+this._part+"&filename="+this._name;
+      return url+sep+"part="+this._part+"&filename="+encodeURIComponent(this._name);
     }
   },
   get isExternal() { return this._isExternal; },

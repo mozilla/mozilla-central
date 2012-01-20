@@ -87,6 +87,14 @@ var partEnriched = new SyntheticPartLeaf(
 var partAlternative = new SyntheticPartMultiAlternative([partText, partHtml]);
 var partMailingListFooter = new SyntheticPartLeaf("I am an annoying footer!");
 
+// We need to make sure a part that has content-disposition: attachment, even
+// though it doesn't have any filename, still is treated as an attachment.
+var tachNoFilename = {
+  body: "I like Bordeaux wine",
+  contentType: "text/plain",
+  disposition: "attachment",
+};
+
 // This is an external attachment, i.e. a mime part that basically says "go find
 // the attachment on disk, assuming it still exists, here's the path to the file
 // on disk". It turns out feed enclosures are presented in the exact same way,
@@ -483,6 +491,9 @@ var partTachNestedMessages = [
 
 var attMessagesParams = [
   {
+    attachments: [tachNoFilename],
+  },
+  {
     attachments: [tachExternal],
   },
   {
@@ -504,6 +515,10 @@ var attMessagesParams = [
 ];
 
 var expectedAttachmentsInfo = [
+  {
+    allAttachmentsContentTypes: ["text/plain"],
+    allUserAttachmentsContentTypes: ["text/plain"],
+  },
   {
     allAttachmentsContentTypes: ["image/png"],
     allUserAttachmentsContentTypes: ["image/png"],

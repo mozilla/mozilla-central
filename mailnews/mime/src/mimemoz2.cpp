@@ -376,6 +376,7 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
   tmp->m_realEncoding = object->encoding;
   tmp->m_isExternalAttachment = isExternalAttachment;
   tmp->m_size = attSize;
+  tmp->m_disposition.Adopt(MimeHeaders_get(object->headers, HEADER_CONTENT_DISPOSITION, true, false));
 
   char *part_addr = mime_imap_part_address(object);
   tmp->m_isDownloaded = !part_addr;
@@ -670,8 +671,15 @@ NotifyEmittersOfAttachmentList(MimeDisplayOptions     *opt,
 
   while (tmp->m_url)
   {
-    if (tmp->m_realName.IsEmpty() || (!tmp->m_hasFilename &&
-        (opt->html_as_p != 4 || opt->metadata_only)))
+    // The code below implements the following logic:
+    // - always display if Content-Disposition: attachment
+    // - IF there's no name at all (we don't know what to do with it then)!,
+    //   OR if the attachment doesn't have a "provided name" (it's a Part 1.2
+    //   thingy, then) and we're not asking for all body parts or only
+    //   interested in metadata, THEN skip
+    if (!tmp->m_disposition.Equals("attachment") &&
+        (tmp->m_realName.IsEmpty() || (!tmp->m_hasFilename &&
+        (opt->html_as_p != 4 || opt->metadata_only))))
     {
       ++i;
       ++tmp;

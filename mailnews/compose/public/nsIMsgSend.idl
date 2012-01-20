@@ -178,26 +178,31 @@ public:
   nsMsgAttachmentData();
   ~nsMsgAttachmentData();
 
-  nsCOMPtr<nsIURI> m_url; // The URL to attach.
+  nsCOMPtr<nsIURI> m_url;   // The URL to attach.
 
-  nsCString m_desiredType; // The type to which this document should be
-                          // converted.  Legal values are NULL, TEXT_PLAIN
-                          // and APPLICATION_POSTSCRIPT (which are macros
-                          // defined in net.h); other values are ignored.
+  nsCString m_desiredType;  // The type to which this document should be
+                            // converted.  Legal values are NULL, TEXT_PLAIN
+                            // and APPLICATION_POSTSCRIPT (which are macros
+                            // defined in net.h); other values are ignored.
 
-  nsCString m_realType;        // The type of the URL if known, otherwise NULL. For example, if 
-                          // you were attaching a temp file which was known to contain HTML data, 
-                          // you would pass in TEXT_HTML as the real_type, to override whatever type 
-                          // the name of the tmp file might otherwise indicate.
+  nsCString m_realType;     // The type of the URL if known, otherwise NULL. For example, if 
+                            // you were attaching a temp file which was known to contain HTML data, 
+                            // you would pass in TEXT_HTML as the real_type, to override whatever type 
+                            // the name of the tmp file might otherwise indicate.
 
-  nsCString m_realEncoding;    // Goes along with real_type 
+  nsCString m_realEncoding; // Goes along with real_type
 
-  nsCString m_realName;        // The original name of this document, which will eventually show up in the 
-                          // Content-Disposition header. For example, if you had copied a document to a 
-                          // tmp file, this would be the original, human-readable name of the document.
+  nsCString m_realName;     // The original name of this document, which will eventually show up in the 
+                            // Content-Disposition header. For example, if you had copied a document to a 
+                            // tmp file, this would be the original, human-readable name of the document.
 
-  nsCString m_description;      // If you put a string here, it will show up as the Content-Description header.  
-                          // This can be any explanatory text; it's not a file name.             
+  nsCString m_description;  // If you put a string here, it will show up as the Content-Description header.  
+                            // This can be any explanatory text; it's not a file name.             
+
+  nsCString m_disposition;  // The Content-Disposition header (if any). a
+                            // nsMsgAttachmentData can very well have
+                            // Content-Disposition: inline value, instead of
+                            // "attachment".
 
   // Mac-specific data that should show up as optional parameters
   // to the content-type header.
