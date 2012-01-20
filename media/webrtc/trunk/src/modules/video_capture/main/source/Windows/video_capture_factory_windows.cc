@@ -12,6 +12,9 @@
 #include "video_capture_windows.h"
 #include "trace.h"
 
+// Placate the DirectShow base classes
+HINSTANCE g_hInst = NULL;
+
 namespace webrtc
 {
 namespace videocapturemodule

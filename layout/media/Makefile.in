@@ -92,11 +92,6 @@ SHARED_LIBRARY_LIBS 	+= \
 
 ifdef MOZ_WEBRTC
 include $(topsrcdir)/media/webrtc/shared_libs.mk
-
-ifeq (WINNT,$(OS_TARGET))
-EXTRA_DSO_LDOPTS += -LIBPATH:"$(MOZ_DIRECTX_SDK_PATH)/lib/$(MOZ_DIRECTX_SDK_CPU_SUFFIX)"
-OS_LIBS += $(call EXPAND_LIBNAME,secur32 crypt32 iphlpapi strmiids dmoguids wmcodecdspuuid amstrmid msdmo)
-endif
 endif
 
 EXTRA_DSO_LDOPTS = $(MOZALLOC_LIB) $(NSPR_LIBS)
@@ -107,6 +102,14 @@ ifdef MOZ_NATIVE_ZLIB
 EXTRA_DSO_LDOPTS += $(ZLIB_LIBS)
 else
 EXTRA_DSO_LDOPTS += $(MOZ_ZLIB_LIBS)
+endif
+
+ifdef MOZ_WEBRTC
+EXTRA_DSO_LDOPTS += \
+  -LIBPATH:"$(MOZ_DIRECTX_SDK_PATH)/lib/$(MOZ_DIRECTX_SDK_CPU_SUFFIX)" \
+  $(JPEG_LIBS) \
+  $(NULL)
+OS_LIBS += $(call EXPAND_LIBNAME,secur32 crypt32 iphlpapi strmiids dmoguids wmcodecdspuuid amstrmid msdmo wininet)
 endif
 
 DEFFILE = symbols.def
