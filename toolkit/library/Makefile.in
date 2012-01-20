@@ -364,10 +364,6 @@ ifeq ($(MOZ_WIDGET_TOOLKIT),cocoa)
 OS_LIBS += -framework OpenGL -lcups
 endif
 
-ifdef MOZ_WEBRTC
-include $(topsrcdir)/media/webrtc/shared_libs.mk
-endif
-
 EXTRA_DSO_LDOPTS += \
   $(LIBS_DIR) \
   $(JPEG_LIBS) \
@@ -603,10 +599,11 @@ DEFINES += \
 
 ifeq ($(MOZ_WIDGET_TOOLKIT),windows)
 OS_LIBS += $(call EXPAND_LIBNAME,usp10 oleaut32)
+endif
 
 ifdef MOZ_WEBRTC
-EXTRA_DSO_LDOPTS += -LIBPATH:"$(MOZ_DIRECTX_SDK_PATH)/lib/$(MOZ_DIRECTX_SDK_CPU_SUFFIX)"
-OS_LIBS += $(call EXPAND_LIBNAME,secur32 crypt32 iphlpapi strmiids dmoguids wmcodecdspuuid amstrmid msdmo)
+ifeq ($(OS_TARGET),Linux)
+OS_LIBS += -lexpat
 endif
 endif
 
