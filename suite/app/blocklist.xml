@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1325894427000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1327073984000">
   <emItems>
       <emItem  blockID="i41" id="{99079a25-328f-4bd4-be04-00955acaa0a7}">
                         <versionRange  minVersion="0.1" maxVersion="4.3.1.00" severity="1">
@@ -27,6 +27,10 @@
                         <versionRange  minVersion="0.1" maxVersion="14.4.0" severity="1">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i53" id="{a3a5c777-f583-4fef-9380-ab4add1bc2a8}">
+                        <versionRange  minVersion="2.0.3" maxVersion="2.0.3">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i10" id="{8CE11043-9A15-4207-A565-0C94C42D590D}">
                         </emItem>
       <emItem  blockID="i18" id="msntoolbar@msn.com">
@@ -39,8 +43,10 @@
                         <versionRange  minVersion="0.1" maxVersion="4.3.1.00" severity="1">
                     </versionRange>
                   </emItem>
-      <emItem  blockID="i49" id="{ADFA33FD-16F5-4355-8504-DF4D664CFE63}">
-                        </emItem>
+      <emItem  blockID="i51" id="admin@youtubeplayer.com">
+                        <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i22" id="ShopperReports@ShopperReports.com">
                         <versionRange  minVersion="3.1.22.0" maxVersion="3.1.22.0">
                     </versionRange>
@@ -77,6 +83,10 @@
                   </emItem>
       <emItem  blockID="i7" id="{2224e955-00e9-4613-a844-ce69fccaae91}">
                         </emItem>
+      <emItem  blockID="i52" id="ff-ext@youtube">
+                        <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i21" id="support@update-firefox.com">
                         </emItem>
     </emItems>
