@@ -331,7 +331,7 @@ calMonthPrinter.prototype = {
                 let catColor;
                 for each (let cat in item.getCategories({})) {
                     try {
-                        catColor = pb2.getCharPref("calendar.category.color." + formatStringForCSSRule(cat));
+                        catColor = pb2.getCharPref("calendar.category.color." + cal.formatStringForCSSRule(cat));
                         break; // take first matching
                     } catch (ex) {}
                 }
