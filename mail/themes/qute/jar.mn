@@ -384,6 +384,8 @@ classic.jar:
   skin/classic/aero/messenger/icons/new-mail-alert.png             (mail/icons/new-mail-alert.png)
   skin/classic/aero/messenger/icons/readmail.png                   (mail/icons/readmail.png)
   skin/classic/aero/messenger/icons/mail-toolbar.png               (mail/icons/mail-toolbar-aero.png)
+  skin/classic/aero/messenger/icons/mail-toolbar-inverted.png      (mail/icons/mail-toolbar-aero-inverted.png)
+  skin/classic/aero/messenger/icons/arrow-dn-inverted.png          (mail/icons/arrow-dn-inverted.png)
   skin/classic/aero/messenger/icons/folder.png                     (mail/icons/folder-aero.png)
   skin/classic/aero/messenger/icons/message.png                    (mail/icons/message-aero.png)
   skin/classic/aero/messenger/icons/license.txt                    (mail/icons/license.txt)
