@@ -7,6 +7,9 @@
     <!-- Delete Key -->
     <key id="key_shiftDelete" keycode="VK_DELETE" modifiers="shift" command="cmd_shiftDelete"/>
 
+    <!-- Rename Attachment Key -->
+    <key id="key_renameAttachment" keycode="VK_F2" oncommand="goDoCommand('cmd_renameAttachment');"/>
+
     <!-- Reload Key -->
     <key id="key_reload" keycode="VK_F5" oncommand="ReloadMessage();"/>
 

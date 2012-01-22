@@ -58,6 +58,7 @@
 <?xul-overlay href="chrome://messenger/content/messengercompose/mailComposeOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/messengercompose/mailComposeExtrasOverlay.xul"?>
 <?xul-overlay href="chrome://messenger/content/mailOverlay.xul"?>
+<?xul-overlay href="chrome://messenger/content/platformMailnewsOverlay.xul"?>
 
 <!DOCTYPE window [
 <!ENTITY % messengercomposeDTD SYSTEM "chrome://messenger/locale/messengercompose/messengercompose.dtd" >
@@ -184,6 +185,9 @@
   <key keycode="VK_F6" oncommand="SwitchElementFocus(event);"/>
 </keyset>
 <keyset id="editorKeys"/>
+<keyset id="composeKeys">
+  <key id="key_renameAttachment"/>
+</keyset>
 
   <popupset id="contentAreaContextSet">
     <menupopup id="contentAreaContextMenu"/>

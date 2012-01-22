@@ -409,10 +409,6 @@ var defaultController =
       case "cmd_quit":
 
       //Edit Menu
-      case "cmd_delete":
-      case "cmd_renameAttachment":
-      case "cmd_selectAll":
-      case "cmd_openAttachment":
       case "cmd_account":
       case "cmd_preferences":
 
@@ -452,14 +448,6 @@ var defaultController =
         return true;
 
       //Edit Menu
-      case "cmd_delete":
-        return MessageGetNumSelectedAttachments() > 0;
-      case "cmd_renameAttachment":
-        return MessageGetNumSelectedAttachments() == 1;
-      case "cmd_selectAll":
-        return MessageHasAttachments();
-      case "cmd_openAttachment":
-        return MessageGetNumSelectedAttachments() == 1;
       case "cmd_account":
       case "cmd_preferences":
         return true;
@@ -508,10 +496,6 @@ var defaultController =
       case "cmd_print"              : PrintUtils.print(); break;
 
       //Edit Menu
-      case "cmd_delete"             : if (MessageGetNumSelectedAttachments() > 0) RemoveSelectedAttachment();  break;
-      case "cmd_renameAttachment"   : if (MessageGetNumSelectedAttachments() == 1) RenameSelectedAttachment(); break;
-      case "cmd_selectAll"          : if (MessageHasAttachments()) SelectAllAttachments();                     break;
-      case "cmd_openAttachment"     : if (MessageGetNumSelectedAttachments() == 1) OpenSelectedAttachment();   break;
       case "cmd_account"            : MsgAccountManager(null); break;
       case "cmd_preferences"        : DoCommandPreferences(); break;
 
@@ -526,7 +510,70 @@ var defaultController =
   onEvent: function(event)
   {
   }
-}
+};
+
+var gAttachmentBucketController =
+{
+  supportsCommand: function(aCommand)
+  {
+    switch (aCommand)
+    {
+      case "cmd_delete":
+      case "cmd_renameAttachment":
+      case "cmd_selectAll":
+      case "cmd_openAttachment":
+        return true;
+      default:
+        return false;
+    }
+  },
+
+  isCommandEnabled: function(aCommand)
+  {
+    switch (aCommand)
+    {
+      case "cmd_delete":
+        return MessageGetNumSelectedAttachments() > 0;
+      case "cmd_renameAttachment":
+        return MessageGetNumSelectedAttachments() == 1;
+      case "cmd_selectAll":
+        return MessageHasAttachments();
+      case "cmd_openAttachment":
+        return MessageGetNumSelectedAttachments() == 1;
+      default:
+        return false;
+    }
+  },
+
+  doCommand: function(aCommand)
+  {
+    switch (aCommand)
+    {
+      case "cmd_delete":
+        if (MessageGetNumSelectedAttachments() > 0)
+          RemoveSelectedAttachment();
+        break;
+      case "cmd_renameAttachment":
+        if (MessageGetNumSelectedAttachments() == 1)
+          RenameSelectedAttachment();
+        break;
+      case "cmd_selectAll":
+        if (MessageHasAttachments())
+          SelectAllAttachments();
+        break;
+      case "cmd_openAttachment":
+        if (MessageGetNumSelectedAttachments() == 1)
+          OpenSelectedAttachment();
+        break;
+      default:
+        return;
+    }
+  },
+
+  onEvent: function(event)
+  {
+  }
+};
 
 function QuoteSelectedMessage()
 {
@@ -550,7 +597,10 @@ function GetSelectedMessages()
 
 function SetupCommandUpdateHandlers()
 {
-  top.controllers.insertControllerAt(0, defaultController);
+  top.controllers.appendController(defaultController);
+
+  let attachmentBucket = document.getElementById("attachmentBucket");
+  attachmentBucket.controllers.appendController(gAttachmentBucketController);
 
   document.getElementById("optionsMenuPopup")
           .addEventListener("popupshowing", updateOptionItems, true);
@@ -562,6 +612,9 @@ function UnloadCommandUpdateHandlers()
           .removeEventListener("popupshowing", updateOptionItems, true);
 
   top.controllers.removeController(defaultController);
+
+  let attachmentBucket = document.getElementById("attachmentBucket");
+  attachmentBucket.controllers.removeController(gAttachmentBucketController);
 }
 
 function CommandUpdate_MsgCompose()
