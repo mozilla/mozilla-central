@@ -42,6 +42,10 @@
 #include <stdlib.h>
 #endif
 
+#ifdef XP_MACOSX
+#include "MacQuirks.h"
+#endif
+
 #include <stdio.h>
 #include <stdarg.h>
 
@@ -84,6 +88,10 @@ public:
 int main(int argc, char* argv[])
 {
   ScopedLogging log;
+  
+#ifdef XP_MACOSX
+  TriggerQuirks();
+#endif
 
   nsCOMPtr<nsILocalFile> appini;
   nsresult rv = XRE_GetBinaryPath(argv[0], getter_AddRefs(appini));
