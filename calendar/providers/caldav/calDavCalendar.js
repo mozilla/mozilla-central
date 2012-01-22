@@ -742,7 +742,7 @@ calDavCalendar.prototype = {
                 if (wasInboxItem && thisCalendar.mShouldPollInbox) {
                     thisCalendar.doDeleteItemOrUseCache(aNewItem, true, null, true, true, null);
                 }
-            } else if (status == 412) {
+            } else if (status == 412 || status == 409) {
                 thisCalendar.promptOverwrite(CALDAV_MODIFY_ITEM, aNewItem,
                                              aListener, aOldItem);
             } else if ((status >= 500 && status <= 510) && (useCache && thisCalendar.mOfflineStorage)) {
@@ -909,7 +909,7 @@ calDavCalendar.prototype = {
                     cal.LOG("CalDAV: Item deleted successfully from calendar" +
                             thisCalendar.name);
                 }
-            } else if (status == 412) {
+            } else if (status == 412 || status == 409) {
                 // item has either been modified or deleted by someone else
                 // check to see which
 
