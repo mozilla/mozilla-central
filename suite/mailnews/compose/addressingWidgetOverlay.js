@@ -369,7 +369,7 @@ function awAddRecipient(recipientType, address)
   if (row == top.MAX_RECIPIENTS)
   {
     awAppendNewRow(true);
-    awSetInputAndPopupValue(awGetInputElement(top.MAX_RECIPIENTS), "", awGetPopupElement(top.MAX_RECIPIENTS), "addr_to", top.MAX_RECIPIENTS);
+    awSetInputAndPopupValue(awGetInputElement(top.MAX_RECIPIENTS), "", awGetPopupElement(top.MAX_RECIPIENTS), recipientType, top.MAX_RECIPIENTS);
   }
 
   // add the recipient to our spell check ignore list
