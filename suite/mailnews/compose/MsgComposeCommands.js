@@ -2264,73 +2264,53 @@ function ClearIdentityListPopup(popup)
       popup.removeChild(popup.lastChild);
 }
 
-function compareAccountSortOrder(account1, account2)
-{
-  var ds = Components.classes["@mozilla.org/rdf/datasource;1?name=msgaccountmanager"]
-                     .getService(Components.interfaces.nsIRDFDataSource);
-  var sortValue1, sortValue2;
-
-  try {
-    var res1 = sRDF.GetResource(account1.incomingServer.serverURI);
-    sortValue1 = ds.GetTarget(res1, sNameProperty, true).QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
-  }
-  catch (ex) {
-    dump("XXX ex ");
-    if (account1 && account1.incomingServer && account1.incomingServer.serverURI)
-      dump(account1.incomingServer.serverURI + ",");
-    dump(ex + "\n");
-    sortValue1 = "";
-  }
-
-  try {
-    var res2 = sRDF.GetResource(account2.incomingServer.serverURI);
-    sortValue2 = ds.GetTarget(res2, sNameProperty, true).QueryInterface(Components.interfaces.nsIRDFLiteral).Value;
-  }
-  catch (ex) {
-    dump("XXX ex ");
-    if (account2 && account2.incomingServer && account2.incomingServer.serverURI)
-      dump(account2.incomingServer.serverURI + ",");
-    dump(ex + "\n");
-    sortValue2 = "";
-  }
-
-  if (sortValue1 < sortValue2)
-    return -1;
-  else if (sortValue1 > sortValue2)
-    return 1;
-  else
-    return 0;
-}
-
 function FillIdentityList(menulist)
 {
-  var accounts = queryISupportsArray(gAccountManager.accounts, Components.interfaces.nsIMsgAccount);
-  accounts.sort(compareAccountSortOrder);
+  var accounts = queryISupportsArray(gAccountManager.accounts,
+                                     Components.interfaces.nsIMsgAccount);
+  // Ugly hack to work around bug 41133. :-(
+  accounts = accounts.filter(function IsNonSuckyAccount(a) {return !!a.incomingServer;});
+  function SortAccounts(a, b)
+  {
+    if (a.key == gAccountManager.defaultAccount.key)
+      return -1;
+    if (b.key == gAccountManager.defaultAccount.key)
+      return 1;
+    var aIsNews = a.incomingServer.type == "nntp";
+    var bIsNews = b.incomingServer.type == "nntp";
+    if (aIsNews && !bIsNews)
+      return 1;
+    if (bIsNews && !aIsNews)
+      return -1;
 
-  for (let i in accounts) {
-    var server = accounts[i].incomingServer;
-    if (!server)
-       continue;
-    var identites = queryISupportsArray(accounts[i].identities, Components.interfaces.nsIMsgIdentity);
-    for (let j in identites) {
-      var identity = identites[j];
-      var item = menulist.appendItem(identity.identityName, identity.key, server.prettyName);
-      item.setAttribute("accountkey", accounts[i].key);
+    var aIsLocal = a.incomingServer.type == "none";
+    var bIsLocal = b.incomingServer.type == "none";
+    if (aIsLocal && !bIsLocal)
+      return 1;
+    if (bIsLocal && !aIsLocal)
+      return -1;
+    return 0;
+  }
+  accounts.sort(SortAccounts);
+
+  for each (let account in accounts)
+  {
+    let identites = queryISupportsArray(account.identities,
+                                        Components.interfaces.nsIMsgIdentity);
+    for each (let identity in identites)
+    {
+      let item = menulist.appendItem(identity.identityName, identity.key,
+                                     account.incomingServer.prettyName);
+      item.setAttribute("accountkey", account.key);
     }
   }
 }
 
 function getCurrentIdentity()
 {
-    // fill in Identity combobox
-    var identityList = GetMsgIdentityElement();
-
-    var identityKey = identityList.value;
-
-    //dump("Looking for identity " + identityKey + "\n");
-    var identity = gAccountManager.getIdentity(identityKey);
-
-    return identity;
+  // fill in Identity combobox
+  var identityKey = GetMsgIdentityElement().value;
+  return gAccountManager.getIdentity(identityKey);
 }
 
 function getCurrentAccountKey()
