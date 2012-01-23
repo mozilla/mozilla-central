@@ -3265,12 +3265,13 @@ function RenameSelectedAttachment()
     if (attachmentName.value == "")
       return; // name was not filled, bail out
 
+    let originalName = item.attachment.name;
     item.attachment.name = attachmentName.value;
     item.setAttribute("name", attachmentName.value);
 
     gContentChanged = true;
     Services.obs.notifyObservers(item.attachment, "mail:attachmentRenamed",
-                                 null);
+                                 originalName);
   }
 }
 

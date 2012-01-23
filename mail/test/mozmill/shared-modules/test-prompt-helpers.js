@@ -64,7 +64,8 @@ function installInto(module) {
 var gMockPromptService = {
   _registered: false,
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIPromptService]),
-  _willReturn: null,
+  _will_return: null,
+  _inout_value: null,
   _promptState: null,
   _origFactory: null,
   _promptCb: null,
@@ -103,6 +104,26 @@ var gMockPromptService = {
     return this._will_return;
   },
 
+  prompt: function(aParent, aDialogTitle, aText, aValue, aCheckMsg,
+                   aCheckState) {
+    this._promptState = {
+      method: "prompt",
+      parent: aParent,
+      dialogTitle: aDialogTitle,
+      text: aText,
+      value: aValue,
+      checkMsg: aCheckMsg,
+      checkState: aCheckState,
+    };
+
+    this.fireCb();
+
+    if (this._inout_value != null)
+      aValue.value = this._inout_value;
+
+    return this._will_return;
+  },
+
   // Other dialogs should probably be mocked here, including alert,
   // alertCheck, confirmCheck, etc.
   // See:  http://mxr.mozilla.org/mozilla-central/source/embedding/components/
@@ -113,6 +134,10 @@ var gMockPromptService = {
    */
   set returnValue(aReturn) {
     this._will_return = aReturn;
+  },
+
+  set inoutValue(aValue) {
+    this._inout_value = aValue;
   },
 
   set onPromptCallback(aCb) {
@@ -130,6 +155,7 @@ var gMockPromptService = {
     this._will_return = null;
     this._promptState = null;
     this._promptCb = null;
+    this._inout_value = null;
   },
 
   /* Returns the prompt state if one was observed since registering

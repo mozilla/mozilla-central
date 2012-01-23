@@ -75,7 +75,9 @@ function installInto(module) {
   module.open_compose_with_element_click = open_compose_with_element_click;
   module.close_compose_window = close_compose_window;
   module.wait_for_compose_window = wait_for_compose_window;
-  module.add_attachment = add_attachment;
+  module.create_msg_attachment = create_msg_attachment;
+  module.add_attachments = add_attachments;
+  module.add_attachment = add_attachments;
   module.delete_attachment = delete_attachment;
 }
 
@@ -248,12 +250,11 @@ function wait_for_compose_window(aController) {
 }
 
 /**
- * Add an attachment to the compose window
- * @param aComposeWindow the composition window in question
+ * Create and return an nsIMsgAttachment for the passed URL.
  * @param aUrl the URL for this attachment (either a file URL or a web URL)
  * @param aSize (optional) the file size of this attachment, in bytes
  */
-function add_attachment(aComposeWindow, aUrl, aSize) {
+function create_msg_attachment(aUrl, aSize) {
   let attachment = Cc["@mozilla.org/messengercompose/attachment;1"]
                      .createInstance(Ci.nsIMsgAttachment);
 
@@ -261,7 +262,29 @@ function add_attachment(aComposeWindow, aUrl, aSize) {
   if(aSize)
     attachment.size = aSize;
 
-  aComposeWindow.window.AddUrlAttachment(attachment);
+  return attachment;
+}
+
+/**
+ * Add an attachment to the compose window
+ * @param aComposeWindow the composition window in question
+ * @param aUrl the URL for this attachment (either a file URL or a web URL)
+ * @param aSize (optional) the file size of this attachment, in bytes
+ */
+function add_attachments(aComposeWindow, aUrls, aSizes) {
+  if (!Array.isArray(aUrls))
+    aUrls = [aUrls];
+
+  if (!Array.isArray(aSizes))
+    aSizes = [aSizes];
+
+  let attachments = [];
+
+  for (let [i, url] in Iterator(aUrls)) {
+    attachments.push(create_msg_attachment(url, aSizes[i]));
+  }
+
+  aComposeWindow.window.AddAttachments(attachments);
 }
 
 /**
