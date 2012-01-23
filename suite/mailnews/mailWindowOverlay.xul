@@ -170,6 +170,8 @@
    <command id="cmd_viewThreadsWithUnread" oncommand="goDoCommand('cmd_viewThreadsWithUnread')" disabled="true"/>
    <command id="cmd_viewWatchedThreadsWithUnread" oncommand="goDoCommand('cmd_viewWatchedThreadsWithUnread')" disabled="true"/>
    <command id="cmd_viewIgnoredThreads" oncommand="goDoCommand('cmd_viewIgnoredThreads')" disabled="true"/>
+   <!-- Needed to support the Lightning Task filter See Bug 316916 -->
+   <command id="cmd_showQuickFilterBar" oncommand="goDoCommand('cmd_showQuickFilterBar');"/>
    <commandset id="viewZoomCommands"/>
 </commandset>
 
@@ -431,6 +433,11 @@
        modifiers="accel"
        oncommand="focusElement(document.getElementById('searchInput'));"/>
 
+  <!-- Needed to support the Lightning Task filter See Bug 316916 -->
+  <key id="key_qfb_show"
+       key="&quickFilterBar.show.key2;"
+       modifiers="accel,shift"
+       command="cmd_showQuickFilterBar"/>
 </keyset>
 
   <menupopup id="folderPaneContext"
