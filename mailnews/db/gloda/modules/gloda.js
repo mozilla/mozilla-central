@@ -893,10 +893,12 @@ var Gloda = {
     //  the legwork.  The schema attribute is the gateway to this magical world
     //  of functionality.  Said door is officially unsupported.
     if (aNounDef.schema) {
-      if (aNounDef.schema.name)
-        aNounDef.tableName = "ext_" + aNounDef.schema.name;
-      else
-        aNounDef.tableName = "ext_" + aNounDef.name;
+      if (!aNounDef.tableName) {
+        if (aNounDef.schema.name)
+          aNounDef.tableName = "ext_" + aNounDef.schema.name;
+        else
+          aNounDef.tableName = "ext_" + aNounDef.name;
+      }
       // this creates the data table and binder and hooks everything up
       GlodaDatastore.createNounTable(aNounDef);
 
