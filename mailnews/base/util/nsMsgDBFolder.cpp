@@ -1844,6 +1844,8 @@ nsresult nsMsgDBFolder::HandleAutoCompactEvent(nsIMsgWindow *aWindow)
         nsCOMPtr<nsIMsgPluggableStore> msgStore;
         rv = server->GetMsgStore(getter_AddRefs(msgStore));
         NS_ENSURE_SUCCESS(rv, rv);
+        if (!msgStore)
+          continue;
         bool supportsCompaction;
         msgStore->GetSupportsCompaction(&supportsCompaction);
         if (!supportsCompaction)
