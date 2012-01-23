@@ -759,6 +759,11 @@ html[dir="rtl"] .message-attachment-icon {
   white-space: pre-wrap;
 }
 
+.message-body-fulltext-match {
+  background-color: rgb(187, 208, 231);
+  border-radius: 3px;
+}
+
 .message-recipients-group {
   -moz-margin-start: 0.5em;
   font-size: small;
