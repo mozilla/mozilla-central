@@ -245,7 +245,7 @@ let webSearchTabType = {
     switch (aEngine.name) {
       case "Google":
         return aPreUri.host == aPostUri.host &&
-               !/^\/url?/.test(aPostUri.path);
+               /^\/search\?/.test(aPostUri.path);
       case "Yahoo":
         return /search\.yahoo\.com$/.test(aPostUri.host) &&
                !/^\/r\//.test(aPostUri.path);
