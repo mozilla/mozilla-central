@@ -231,18 +231,7 @@ var TestPilotXulWindow = {
   },
 
   _init: function(aReload) {
-    let experiments;
-    let ready = false;
-
-    // Are we done loading tasks?
-    if (TestPilotSetup.startupComplete) {
-      experiments = TestPilotSetup.getAllTasks();
-      if (experiments.length > 0 ) {
-        ready = true;
-      }
-    }
-
-    if (!ready) {
+    if (!TestPilotSetup.startupComplete) {
       // If you opened the window before tasks are done loading, exit now
       // but try again in a few seconds.
       window.setTimeout(
@@ -272,6 +261,7 @@ var TestPilotXulWindow = {
       }
     }
 
+    let experiments = TestPilotSetup.getAllTasks();
     experiments = this._sortNewestFirst(experiments);
 
     for (let i = 0; i < experiments.length; i++) {

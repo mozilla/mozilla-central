@@ -128,7 +128,8 @@ function downloadFile(url, cb, lastModified) {
     console.info("Setting if-modified-since header to " + d.toGMTString());
   }
   //Use binary mode to download jars TODO find a better switch
-  if (url.indexOf(".jar") == url.length - 4) {
+  if (url.indexOf(".jar") == url.length - 4 ||
+      url.indexOf(".json") == url.length - 5) {
     console.info("Using binary mode to download jar file.");
     req.overrideMimeType('text/plain; charset=x-user-defined');
   }
