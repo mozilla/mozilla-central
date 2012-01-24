@@ -120,7 +120,8 @@
     <popupset id="calendar-popupset"/>
   </window>
 
-  <hbox id="tabmail-buttons">
+  <toolbar id="tabbar-toolbar"
+          defaultset="calendar-tab-button,task-tab-button,qfb-show-filter-bar">
     <toolbarbutton id="calendar-tab-button"
                    title="&lightning.toolbar.calendar.label;"
                    tooltiptext="&lightning.toolbar.calendar.tooltip;"
@@ -129,7 +130,7 @@
                    title="&lightning.toolbar.task.label;"
                    tooltiptext="&lightning.toolbar.task.tooltip;"
                    command="new_task_tab"/>
-  </hbox>
+  </toolbar>
 
   <tabpanels id="tabpanelcontainer">
     <vbox id="calendarTabPanel">
