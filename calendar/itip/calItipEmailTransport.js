@@ -115,8 +115,10 @@ calItipEmailTransport.prototype = {
             let aBody = "";
             switch (aItipItem.responseMethod) {
                 case 'REQUEST':
+                    let seq = item.getProperty("SEQUENCE");
+                    let subjectKey = (seq && seq > 0 ? "itipRequestUpdatedSubject" : "itipRequestSubject");
                     aSubject = cal.calGetString("lightning",
-                                                "itipRequestSubject",
+                                                subjectKey,
                                                 [summary],
                                                 "lightning");
                     aBody = cal.calGetString("lightning",
@@ -151,15 +153,28 @@ calItipEmailTransport.prototype = {
                     let name = att.toString();
 
                     // Generate proper body from my participation status
-                    aSubject = cal.calGetString("lightning",
-                                                "itipReplySubject",
-                                                [summary],
-                                                "lightning");
-                    aBody = cal.calGetString("lightning",
-                                             (myPartStat == "DECLINED") ? "itipReplyBodyDecline"
-                                                                        : "itipReplyBodyAccept",
-                                             [name],
-                                             "lightning");
+                    let subjectKey, bodyKey;
+                    switch (myPartStat) {
+                        case "ACCEPTED":
+                            subjectKey = "itipReplySubjectAccept";
+                            bodyKey = "itipReplyBodyAccept";
+                            break;
+                        case "TENTATIVE":
+                            subjectKey = "itipReplySubjectTentative";
+                            bodyKey = "itipReplyBodyAccept";
+                            break;
+                        case "DECLINED":
+                            subjectKey = "itipReplySubjectDecline";
+                            bodyKey = "itipReplyBodyDecline";
+                            break;
+                        default:
+                            subjectKey = "itipReplySubject";
+                            bodyKey = "itipReplyBodyAccept";
+                            break;
+                    }
+                    aSubject = cal.calGetString("lightning", subjectKey, [summary], "lightning");
+                    aBody = cal.calGetString("lightning", bodyKey, [name], "lightning");
+
                     break;
                 }
             }
