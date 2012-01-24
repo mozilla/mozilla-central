@@ -223,7 +223,7 @@ toolbarbutton[type="menu-button"][open="true"] >
   text-shadow: none;
 }
 
-.toolbarbutton-1[checked="true"]:not(:active):hover {
+.toolbarbutton-1:not([disabled="true"])[checked="true"]:not(:active):hover {
   background-color: rgba(90%, 90%, 90%, .4);
   -moz-transition: background-color .4s;
 }
@@ -254,7 +254,7 @@ toolbar[iconsize="small"] .toolbarbutton-1 > .toolbarbutton-icon {
     #button-goforward, #button-compact, #button-archive, #hdrArchiveButton,
     #hdrReplyButton, #hdrReplyToSenderButton, #hdrReplyAllButton,
     #hdrReplyOnlyButton, #hdrReplyListButton, #hdrForwardButton,
-    #hdrTrashButton, #hdrJunkButton
+    #hdrTrashButton, #hdrJunkButton, #qfb-show-filter-bar
     ) .toolbarbutton-icon {
   margin: 0 !important;
   width: auto !important;
@@ -492,7 +492,6 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 }
 
 #palette-box #qfb-show-filter-bar {
-  visibility: visible !important;
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px, 378px, 18px, 360px);
 }

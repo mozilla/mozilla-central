@@ -64,17 +64,20 @@
   <menupopup id="view_toolbars_popup">
     <!-- gets disabled but stays visible when not legal -->
     <menuitem id="view_toolbars_popup_quickFilterBar"
+              type="checkbox"
               insertbefore="viewMenuBeforeCustomizeMailToolbarsSeparator"
               label="&quickFilterBar.toggleBarVisibility.menu.label;"
               accesskey="&quickFilterBar.toggleBarVisibility.menu.accesskey;"
-              command="cmd_toggleQuickFilterBar"
-              observes="qfb-show-filter-bar"
-              />
+              command="cmd_toggleQuickFilterBar">
+      <observes element="qfb-show-filter-bar" attribute="checked"/>
+    </menuitem>
   </menupopup>
 
   <toolbarpalette id="MailToolbarPalette">
     <!-- gets hidden but keeps space allocation when not legal-->
-    <toolbarbutton id="qfb-show-filter-bar" type="checkbox"
+    <toolbarbutton id="qfb-show-filter-bar"
+                   class="toolbarbutton-1"
+                   type="checkbox"
                    label="&quickFilterBar.qfbShowFilterBar.label;"
                    command="cmd_toggleQuickFilterBar"
                    tooltiptext="&quickFilterBar.toggleBarVisibility.button.tooltip;"

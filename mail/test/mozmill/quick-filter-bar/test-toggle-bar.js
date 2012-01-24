@@ -65,12 +65,12 @@ function setupModule(module) {
 
 function test_filter_button_hidden_on_account_central() {
   be_in_folder(folder.rootFolder);
-  assert_quick_filter_button_visible(false);
+  assert_quick_filter_button_enabled(false);
 }
 
 function test_visible_by_default() {
   be_in_folder(folder);
-  assert_quick_filter_button_visible(true);
+  assert_quick_filter_button_enabled(true);
   assert_quick_filter_bar_visible(true);
 }
 

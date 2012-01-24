@@ -52,7 +52,7 @@ function setupModule(module) {
 }
 
 var EXPORT = [
-  'assert_quick_filter_button_visible',
+  'assert_quick_filter_button_enabled',
   'assert_quick_filter_bar_visible',
   'toggle_quick_filter_bar',
   'assert_constraints_expressed',
@@ -103,11 +103,10 @@ const nameToBarDomId = {
   attachments: "qfb-attachment",
 };
 
-function assert_quick_filter_button_visible(aVisible) {
-  if (mc.e("qfb-show-filter-bar").style.visibility !=
-      (aVisible ? "visible" : "hidden")) {
+function assert_quick_filter_button_enabled(aEnabled) {
+  if (mc.e("qfb-show-filter-bar").disabled == aEnabled) {
     throw new Error("Quick filter bar button should be " +
-                    (aVisible ? "visible" : "collapsed"));
+                    (aEnabled ? "enabled" : "disabled"));
   }
 }
 

@@ -3,13 +3,8 @@
 /* :::: Filter Tab Bar Button :::: */
 
 #qfb-show-filter-bar {
-  -moz-box-orient: vertical;
-  visibility: visible !important;
-  min-width: 34px;
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar-small.png");
   -moz-image-region: rect(0px 336px 16px 320px);
-  margin: 1px 2px;
-  padding: 3px 4px;
 }
 
 toolbar[iconsize="large"] #qfb-show-filter-bar {
@@ -17,21 +12,16 @@ toolbar[iconsize="large"] #qfb-show-filter-bar {
   -moz-image-region: rect(0px 504px 24px 480px);
 }
 
-#qfb-show-filter-bar > .toolbarbutton-icon {
-  -moz-margin-end: 0;
-  padding: 0 3px;
-}
-
-#qfb-show-filter-bar[style="visibility: hidden;"] {
-  -moz-appearance: none;
-  -moz-user-input: none;
+#qfb-show-filter-bar[disabled="true"] {
   -moz-image-region: rect(32px 336px 48px 320px);
-  border-width: 0;
-  background: none;
 }
 
-toolbar[iconsize="large"] #qfb-show-filter-bar[style="visibility: hidden;"] {
+toolbar[iconsize="large"] #qfb-show-filter-bar[disabled="true"] {
   -moz-image-region: rect(48px 504px 72px 480px);
+}
+
+#qfb-show-filter-bar > .toolbarbutton-icon {
+  padding: 0 3px;
 }
 
 /* ::::: QFB button on main toolbar ::::: */
