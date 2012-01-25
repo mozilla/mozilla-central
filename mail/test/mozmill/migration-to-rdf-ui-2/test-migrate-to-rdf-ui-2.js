@@ -40,7 +40,7 @@
  * property from the folderPaneBox, but that we still persist width.
  */
 
-let MODULE_NAME = "test-migrate-to-rdf-ui-1";
+let MODULE_NAME = "test-migrate-to-rdf-ui-2";
 let RELATIVE_ROOT = "../shared-modules";
 let MODULE_REQUIRES = ["folder-display-helpers", "migration-helpers"];
 
@@ -87,4 +87,19 @@ function test_width_persisted() {
   let fpbWidth = mc.e("folderPaneBox").width;
   assert_equals(EXPECTED_WIDTH, fpbWidth,
                 "The width of the folderPaneBox was not persisted.");
+}
+
+/**
+ * Test that the throbber in the main menu (or the mailbar on OSX) was removed.
+ */
+function test_throbber_removed() {
+  let currentSet;
+
+  if (mc.mozmillModule.isMac)
+    currentSet = mc.e("mail-bar3").getAttribute("currentset");
+  else
+    currentSet = mc.e("mail-toolbar-menubar2").getAttribute("currentset");
+
+  assert_equals(-1, currentSet.indexOf("throbber-box"),
+                "We found a throbber-box where we shouldn't have.");
 }

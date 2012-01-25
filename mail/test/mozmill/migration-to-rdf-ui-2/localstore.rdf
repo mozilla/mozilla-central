@@ -20,6 +20,16 @@
                    screenX="0"
                    screenY="0"
                    sizemode="normal" />
+  <RDF:Description RDF:about="chrome://messenger/content/messenger.xul#mail-toolbar-menubar2"
+                   mode="full"
+                   iconsize="large"
+                   currentset="menubar-items,spring,throbber-box" />
+  <RDF:Description RDF:about="chrome://messenger/content/messenger.xul#mail-bar3"
+                   collapsed="false"
+                   mode="full"
+                   iconsize="large"
+                   currentset="button-getmsg,button-newmsg,button-address,separator,button-tag,spring,gloda-search,throbber-box" />
+
   <RDF:Description RDF:about="chrome://messenger/content/messenger.xul">
     <NC:persist RDF:resource="chrome://messenger/content/messenger.xul#messengerWindow"/>
     <NC:persist RDF:resource="chrome://messenger/content/messenger.xul#messagepaneboxwrapper"/>

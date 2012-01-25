@@ -133,7 +133,7 @@ var MailMigrator = {
   _migrateUI: function MailMigrator__migrateUI() {
     // The code for this was ported from
     // mozilla/browser/components/nsBrowserGlue.js
-    const UI_VERSION = 1;
+    const UI_VERSION = 2;
     const MESSENGER_DOCURL = "chrome://messenger/content/messenger.xul#";
     const UI_VERSION_PREF = "mail.ui-rdf.version";
     let currentUIVersion = 0;
@@ -149,28 +149,63 @@ var MailMigrator = {
     this._dataSource = this._rdf.GetDataSource("rdf:local-store");
     let dirty = false;
 
-    if (currentUIVersion < 1) {
-      // We want to remove old settings that collapse the folderPaneBox
-      let fpbResource = this._rdf.GetResource(MESSENGER_DOCURL + "folderPaneBox");
-      let collapsedResource = this._rdf.GetResource("collapsed");
-      let collapsed = this._getPersist(fpbResource, collapsedResource);
+    try {
+      // Initially, we checked if currentUIVersion < 1, and stripped the
+      // persisted "collapsed" property from folderPaneBox if it wasn't.
+      // However, the inital implementation of migrateUI swallowed up
+      // exceptions, and bumped the value of UI_VERSION_PREF regardless.
+      // Now, instead, we fail to bump the UI_VERSION_PREF if something goes
+      // wrong, and we've moved the folderPaneBox operation into
+      // currentUIVersion < 2 just in case the operation failed for some of
+      // our users the first time.
+      if (currentUIVersion < 2) {
+        // We want to remove old settings that collapse the folderPaneBox
+        let fpbResource = this._rdf.GetResource(MESSENGER_DOCURL +
+                                                "folderPaneBox");
+        let collapsedResource = this._rdf.GetResource("collapsed");
+        let collapsed = this._getPersist(fpbResource, collapsedResource);
 
-      if (collapsed !== null) {
-        // We want to override this, and set it to false.  We should really be
-        // ignoring this persist attribute, anyhow.
-        dirty = true;
-        this._unAssert(fpbResource, collapsedResource);
+        if (collapsed !== null) {
+          // We want to override this, and set it to false.  We should really
+          // be ignoring this persist attribute, anyhow.
+          dirty = true;
+          this._unAssert(fpbResource, collapsedResource);
+        }
+
+        // We want to remove the throbber from the menubar on Linux and
+        // Windows, and from the mail-toolbar on OSX.
+        let currentSetResource = this._rdf.GetResource("currentset");
+        let barResource = null;
+
+        if (Services.appinfo.OS == "Darwin")
+          barResource = this._rdf.GetResource(MESSENGER_DOCURL + "mail-bar3");
+        else
+          barResource = this._rdf.GetResource(MESSENGER_DOCURL +
+                                              "mail-toolbar-menubar2");
+
+        if (barResource !== null) {
+          let currentSet = this._getPersist(barResource, currentSetResource);
+          if (currentSet &&
+              currentSet.indexOf("throbber-box") != -1) {
+            dirty = true;
+            currentSet = currentSet.replace(/(^|,)throbber-box($|,)/, "$1$2");
+            this._setPersist(barResource, currentSetResource, currentSet);
+          }
+        }
       }
+
+      // Update the migration version.
+      Services.prefs.setIntPref(UI_VERSION_PREF, UI_VERSION);
+
+    } catch(e) {
+      Cu.reportError("Migrating from UI version " + currentUIVersion + " to "
+                     + UI_VERSION + " failed. Will reattempt on next start.");
+    } finally {
+      if (dirty)
+        this._dataSource.QueryInterface(Ci.nsIRDFRemoteDataSource).Flush();
+      delete this._rdf;
+      delete this._dataSource;
     }
-
-    if (dirty)
-      this._dataSource.QueryInterface(Ci.nsIRDFRemoteDataSource).Flush();
-
-    delete this._rdf;
-    delete this._dataSource;
-
-    // Update the migration version.
-    Services.prefs.setIntPref(UI_VERSION_PREF, UI_VERSION);
   },
 
   /**
@@ -207,6 +242,44 @@ var MailMigrator = {
   },
 
   /**
+   * A helper function to set the property for a resource in the localstore.rdf.
+   * This function also automatically adds the property to the list of properties
+   * being persisted for the aSource.
+   *
+   * @param aSource the resource that we want to set persistence on
+   * @param aProperty the property that we're going to set the value of
+   * @param aTarget the value that we're going to set the property to
+   */
+  _setPersist: function MailMigrator__setPersist(aSource, aProperty, aTarget) {
+    try {
+      let oldTarget = this._dataSource.GetTarget(aSource, aProperty, true);
+      if (oldTarget) {
+        if (aTarget)
+          this._dataSource.Change(aSource, aProperty, oldTarget, this._rdf.GetLiteral(aTarget));
+        else
+          this._dataSource.Unassert(aSource, aProperty, oldTarget);
+      }
+      else {
+        this._dataSource.Assert(aSource, aProperty, this._rdf.GetLiteral(aTarget), true);
+      }
+
+      // Add the entry to the persisted set for this document if it's not there.
+      // This code is mostly borrowed from nsXULDocument::Persist.
+      let docURL = aSource.ValueUTF8.split("#")[0];
+      let docResource = this._rdf.GetResource(docURL);
+      let persistResource = this._rdf.GetResource("http://home.netscape.com/NC-rdf#persist");
+      if (!this._dataSource.HasAssertion(docResource, persistResource, aSource, true)) {
+        this._dataSource.Assert(docResource, persistResource, aSource, true);
+      }
+    }
+    catch(e) {
+      // Something's gone horribly wrong - report it in the Error Console
+      Cu.reportError(e);
+      throw(e);
+    }
+  },
+
+  /**
    * A helper function to unassert a property from a resource.  This function
    * should only be called by _migrateUI.
    *
@@ -222,6 +295,7 @@ var MailMigrator = {
     catch(e) {
       // If something's gone wrong here, report it in the Error Console.
       Cu.reportError(e);
+      throw(e);
     }
   },
 };

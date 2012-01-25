@@ -967,7 +967,7 @@
 #ifdef XP_MACOSX
            defaultset="menubar-items"
 #else
-          defaultset="menubar-items,spring,throbber-box"
+          defaultset="menubar-items,spring"
 #endif
 #ifdef XP_WIN
           toolbarname="&menubarCmd.label;"
@@ -1971,7 +1971,7 @@
            context="toolbar-context-menu"
 #ifdef XP_MACOSX
            iconsize="small"
-           defaultset="button-getmsg,button-newmsg,button-address,spacer,button-tag,spring,gloda-search,throbber-box">
+           defaultset="button-getmsg,button-newmsg,button-address,spacer,button-tag,spring,gloda-search">
 #else
            defaultset="button-getmsg,button-newmsg,button-address,separator,button-tag,spring,gloda-search">
 #endif
