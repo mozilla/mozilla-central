@@ -56,7 +56,7 @@
     var linkNode = isKeyCommand ? document.commandDispatcher.focusedElement
                                 : event.originalTarget;
 
-    while (linkNode) {
+    while (linkNode instanceof Element) {
       if (linkNode instanceof HTMLAnchorElement ||
           linkNode instanceof HTMLAreaElement ||
           linkNode instanceof HTMLLinkElement) {
@@ -65,12 +65,11 @@
           break;
       }
       // Try MathML href
-      else if (linkNode.namespaceURI == "http://www.w3.org/1998/Math") {
+      else if (linkNode.namespaceURI == "http://www.w3.org/1998/Math/MathML" &&
+               linkNode.hasAttribute("href")) {
         href = linkNode.getAttribute("href");
-        if (href) {
-          href = makeURLAbsolute(linkNode.baseURI, href);
-          break;
-        }
+        href = makeURLAbsolute(linkNode.baseURI, href);
+        break;
       }
       // Try simple XLink
       else if (linkNode.hasAttributeNS("http://www.w3.org/1999/xlink", "href")) {
