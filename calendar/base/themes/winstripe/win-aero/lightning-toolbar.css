@@ -102,3 +102,10 @@
   list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
   -moz-image-region: rect(0px 180px 18px 162px);
 }
+
+@media all and (-moz-windows-compositor) {
+    #tabbar-toolbar #lightning-button-calendar,
+    #tabbar-toolbar #lightning-button-tasks {
+      list-style-image: url(chrome://lightning/skin/mode-switch-icons-inverted.png);
+  }
+}

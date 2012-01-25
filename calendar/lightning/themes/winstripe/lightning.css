@@ -76,55 +76,6 @@ radio[pane=paneLightning] {
     -moz-image-region: rect(0px, 32px, 32px, 0px);
 }
 
-/* ::::: tabs ::::: */
-
-/* ::: new tab buttons ::: */
-#calendar-tab-button {
-    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
-    -moz-image-region: rect(0px 64px 16px 48px);
-}
-
-#calendar-tab-button:hover {
-    -moz-image-region: rect(16px 64px 32px 48px);
-}
-
-#calendar-tab-button[disabled] {
-    -moz-image-region: rect(32px 64px 48px 48px);
-}
-
-#task-tab-button {
-    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
-    -moz-image-region: rect(0px 80px 16px 64px);
-}
-
-#task-tab-button:hover {
-    -moz-image-region: rect(16px 80px 32px 64px);
-}
-
-#task-tab-button[disabled] {
-    -moz-image-region: rect(32px 80px 48px 64px);
-}
-
-/* ::: tab icons ::: */
-.tabmail-tab[type="calendar"] {
-    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
-    -moz-image-region: rect(0px 64px 16px 48px);
-}
-
-.tabmail-tab[type="calendar"][selected="true"] {
-    -moz-image-region: rect(16px 64px 32px 48px);
-}
-
-.tabmail-tab[type="tasks"] {
-    list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
-    -moz-image-region: rect(0px 80px 16px 64px);
-}
-
-.tabmail-tab[type="tasks"][selected="true"] {
-    -moz-image-region: rect(16px 80px 32px 64px);
-}
-
-
 /* Lightning sidebar background in calendar and task mode */
 #ltnSidebar {
   background-color: -moz-field;  

@@ -1,0 +1,35 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* ::::: tabs ::::: */
+
+/* ::: new tab buttons ::: */
+#calendar-tab-button {
+  list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
+  -moz-image-region: rect(0px 64px 16px 48px);
+}
+
+#calendar-tab-button[disabled] {
+  -moz-image-region: rect(32px 64px 48px 48px);
+}
+
+#task-tab-button {
+  list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
+  -moz-image-region: rect(0px 80px 16px 64px);
+}
+
+#task-tab-button[disabled] {
+  -moz-image-region: rect(32px 80px 48px 64px);
+}
+
+/* ::: tab icons ::: */
+.tabmail-tab[type="calendar"] {
+  list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
+  -moz-image-region: rect(0px 64px 16px 48px);
+}
+
+.tabmail-tab[type="tasks"] {
+  list-style-image: url(chrome://lightning/skin/mode-switch-icons.png);
+  -moz-image-region: rect(0px 80px 16px 64px);
+}
