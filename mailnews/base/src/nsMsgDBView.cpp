@@ -3563,8 +3563,36 @@ nsMsgDBView::PerformActionsOnJunkMsgs(bool msgsAreJunk)
     }
     else if (msgsAreJunk)
     {
-      rv = srcFolder->DeleteMessages(mJunkHdrs, msgWindow, false, false,
-                                     nsnull, true);
+      if (mDeleteModel == nsMsgImapDeleteModels::IMAPDelete)
+      {
+        // Unfortunately the DeleteMessages in this case is interpreted by IMAP as
+        //  a delete toggle. So what we have to do is to assemble a new delete
+        //  array, keeping only those that are not deleted.
+        // 
+        nsCOMPtr<nsIMutableArray> hdrsToDelete = do_CreateInstance("@mozilla.org/array;1", &rv);
+        NS_ENSURE_SUCCESS(rv, rv);
+        PRUint32 cnt;
+        rv = mJunkHdrs->GetLength(&cnt);
+        for (PRUint32 i = 0; i < cnt; i++)
+        {
+          nsCOMPtr<nsIMsgDBHdr> msgHdr = do_QueryElementAt(mJunkHdrs, i);
+          if (msgHdr)
+          {
+            PRUint32 flags;
+            msgHdr->GetFlags(&flags);
+            if (!(flags & nsMsgMessageFlags::IMAPDeleted))
+              hdrsToDelete->AppendElement(msgHdr, false);
+          }
+        }
+        hdrsToDelete->GetLength(&cnt);
+        if (cnt)
+          rv = srcFolder->DeleteMessages(hdrsToDelete, msgWindow, PR_FALSE, PR_FALSE,
+                                         nsnull, PR_TRUE);
+      }
+      else
+        rv = srcFolder->DeleteMessages(mJunkHdrs, msgWindow, PR_FALSE, PR_FALSE,
+                                       nsnull, PR_TRUE);
+
     }
     else if (mDeleteModel == nsMsgImapDeleteModels::IMAPDelete)
     {
