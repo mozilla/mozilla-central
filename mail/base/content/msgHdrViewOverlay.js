@@ -2543,7 +2543,7 @@ nsDummyMsgHeader.prototype =
   messageSize : 0,
   recipients : null,
   from : null,
-  subject : null,
+  subject : "",
   get mime2DecodedSubject() { return this.subject; },
   ccList : null,
   listPost : null,
