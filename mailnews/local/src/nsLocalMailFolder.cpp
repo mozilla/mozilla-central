@@ -1947,7 +1947,8 @@ nsresult nsMsgLocalMailFolder::WriteStartOfNewMessage()
   // CopyFileMessage() and CopyMessages() from servers other than pop3
   if (mCopyState->m_parseMsgState)
   {
-    mCopyState->m_parseMsgState->m_newMsgHdr->GetMessageKey(&mCopyState->m_curDstKey);
+    if (mCopyState->m_parseMsgState->m_newMsgHdr)
+      mCopyState->m_parseMsgState->m_newMsgHdr->GetMessageKey(&mCopyState->m_curDstKey);
     mCopyState->m_parseMsgState->SetEnvelopePos(filePos);
     mCopyState->m_parseMsgState->SetState(nsIMsgParseMailMsgState::ParseHeadersState);
   }
