@@ -18,7 +18,7 @@ var setupModule = function(module) {
   fdh.installInto(module);
   let wh = collector.getModule("window-helpers");
   wh.installInto(module);
-}
+};
 
 function check_eml_window_title(subject, eml) {
   let file = os.getFileForPath(os.abspath(eml, os.getFileForPath(__file__)));
@@ -26,16 +26,21 @@ function check_eml_window_title(subject, eml) {
 
   let brandBundle = new StringBundle("chrome://branding/locale/brand.properties");
   let productName = brandBundle.get("brandShortName");
-  let expectedTitle = subject ? subject + " - " + productName : productName;
+  let expectedTitle = subject;
+  if (expectedTitle && !Application.platformIsMac)
+    expectedTitle += " - ";
+
+  if (!expectedTitle || !Application.platformIsMac)
+    expectedTitle += productName;
 
   assert_equals(msgc.window.document.title, expectedTitle);
   close_window(msgc);
 }
 
 function test_eml_empty_subject() {
-  check_eml_window_title(null, "./emptySubject.eml")
+  check_eml_window_title("", "./emptySubject.eml");
 }
 
 function test_eml_normal_subject() {
-  check_eml_window_title("An email", "./evil.eml")
+  check_eml_window_title("An email", "./evil.eml");
 }
