@@ -60,7 +60,7 @@ function setupModule(module) {
   // The Mac has different settings for the toolbar, so adjust for that.
   if (Application.platformIsMac) {
     DEFAULT_TB2_SET = "button-getmsg,button-newmsg,button-address,spacer,button-reply,button-replyall,button-replylist,button-forward,spacer,button-tag,button-delete,button-junk,button-print,spacer,button-goback,button-goforward,spring,gloda-search,throbber-box";
-    DEFAULT_TB3_SET = "button-getmsg,button-newmsg,button-address,spacer,button-tag,spring,gloda-search,throbber-box";
+    DEFAULT_TB3_SET = "button-getmsg,button-newmsg,button-address,spacer,button-tag,spring,gloda-search";
     DEFAULT_TB3_ICONSIZE = "small";
   }
 }
