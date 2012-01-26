@@ -82,7 +82,6 @@ function setupModule(module) {
 
   let crashReporter = Cc["@mozilla.org/toolkit/crash-reporter;1"]
                         .getService(Ci.nsICrashReporter);
-  crashReporter.enabled = true;
 
   /* Bug 689580 - these crash tests fail randomly on 64-bit OSX.  We'll
    * disable them for now, until we can figure out what's going on.
