@@ -1,0 +1,55 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+#event-toolbox {
+  -moz-appearance: none;
+  border-top: none;
+  background-color: -moz-Dialog;
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
+                    rgba(255, 255, 255, .0) 10%, rgba(0, 0, 0, .03) 50%,
+                    rgba(0, 0, 0, .1) 90%, rgba(0, 0, 0, .2));
+}
+
+@media (-moz-windows-default-theme) {
+  #event-toolbox {
+    background-color: rgb(227, 237, 246);
+  }
+}
+
+#event-menubar,
+#event-toolbar {
+  -moz-appearance: none;
+  border-style: none;
+  background-color: transparent
+}
+
+#event-toolbar[iconsize="small"] .toolbarbutton-1 .toolbarbutton-icon {
+  margin: 0;
+  width: 18px;
+  height: 18px;
+}
+
+.cal-event-toolbarbutton {
+  list-style-image: url(chrome://calendar/skin/calendar-event-dialog-toolbar-aero.png);
+}
+
+#button-save {
+  -moz-image-region: rect(0 108px 18px 90px);
+}
+
+#button-attendees {
+  -moz-image-region: rect(0 36px 18px 18px);
+}
+
+#button-privacy {
+  -moz-image-region: rect(0 90px 18px 72px);
+}
+
+#button-url {
+  -moz-image-region: rect(0 72px 18px 54px);
+}
+
+#button-delete {
+  -moz-image-region: rect(0 306px 18px 288px);
+}

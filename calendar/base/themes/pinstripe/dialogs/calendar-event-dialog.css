@@ -133,60 +133,22 @@ toolbar[iconsize="small"] .cal-event-toolbarbutton {
   -moz-image-region: rect(0px 64px 32px 32px);
 }
 #button-attendees[disabled="true"],
-#button-attendees[disabled="true"]:hover,
-#button-attendees[disabled="true"]:hover:active {
+#button-attendees[disabled="true"]:hover {
   -moz-image-region: rect(64px 64px 96px 32px);
 }
 #button-attendees:hover {
   -moz-image-region: rect(32px 64px 64px 32px);
-}
-#button-attendees:hover:active {
 }
 
 toolbar[iconsize="small"] #button-attendees {
   -moz-image-region: rect(0px 48px 24px 24px);
 }
 toolbar[iconsize="small"] #button-attendees[disabled="true"],
-toolbar[iconsize="small"] #button-attendees[disabled="true"]:hover,
-toolbar[iconsize="small"] #button-attendees[disabled="true"]:hover:active {
+toolbar[iconsize="small"] #button-attendees[disabled="true"]:hover {
   -moz-image-region: rect(48px 48px 72px 24px);
 }
 toolbar[iconsize="small"] #button-attendees:hover {
   -moz-image-region: rect(24px 48px 48px 24px);
-}
-toolbar[iconsize="small"] #button-attendees:hover:active {
-}
-
-/*--------------------------------------------------------------------
- *   spellcheck button
- *-------------------------------------------------------------------*/
-
-#button-spellcheck {
-  -moz-image-region: rect(0px 96px 32px 64px);
-}
-#button-spellcheck[disabled="true"],
-#button-spellcheck[disabled="true"]:hover,
-#button-spellcheck[disabled="true"]:hover:active {
-  -moz-image-region: rect(64px 96px 96px 64px);
-}
-#button-spellcheck:hover {
-  -moz-image-region: rect(32px 96px 64px 64px);
-}
-#button-spellcheck:hover:active {
-}
-
-toolbar[iconsize="small"] #button-spellcheck {
-  -moz-image-region: rect(0px 72px 24px 48px);
-}
-toolbar[iconsize="small"] #button-spellcheck[disabled="true"],
-toolbar[iconsize="small"] #button-spellcheck[disabled="true"]:hover,
-toolbar[iconsize="small"] #button-spellcheck[disabled="true"]:hover:active {
-  -moz-image-region: rect(48px 72px 72px 48px);
-}
-toolbar[iconsize="small"] #button-spellcheck:hover {
-  -moz-image-region: rect(24px 72px 48px 48px);
-}
-toolbar[iconsize="small"] #button-spellcheck:hover:active {
 }
 
 /*--------------------------------------------------------------------
@@ -197,28 +159,22 @@ toolbar[iconsize="small"] #button-spellcheck:hover:active {
   -moz-image-region: rect(0px 128px 32px 96px);
 }
 #button-url[disabled="true"],
-#button-url[disabled="true"]:hover,
-#button-url[disabled="true"]:hover:active {
+#button-url[disabled="true"]:hover {
   -moz-image-region: rect(64px 128px 96px 96px);
 }
 #button-url:hover {
   -moz-image-region: rect(32px 128px 64px 96px);
-}
-#button-url:hover:active {
 }
 
 toolbar[iconsize="small"] #button-url {
   -moz-image-region: rect(0px 96px 24px 72px);
 }
 toolbar[iconsize="small"] #button-url[disabled="true"],
-toolbar[iconsize="small"] #button-url[disabled="true"]:hover,
-toolbar[iconsize="small"] #button-url[disabled="true"]:hover:active {
+toolbar[iconsize="small"] #button-url[disabled="true"]:hover {
   -moz-image-region: rect(48px 96px 72px 72px);
 }
 toolbar[iconsize="small"] #button-url:hover {
   -moz-image-region: rect(24px 96px 48px 72px);
-}
-toolbar[iconsize="small"] #button-url:hover:active {
 }
 
 /*--------------------------------------------------------------------
@@ -229,28 +185,22 @@ toolbar[iconsize="small"] #button-url:hover:active {
   -moz-image-region: rect(0px 160px 32px 128px);
 }
 #button-privacy[disabled="true"],
-#button-privacy[disabled="true"]:hover,
-#button-privacy[disabled="true"]:hover:active {
+#button-privacy[disabled="true"]:hover {
   -moz-image-region: rect(64px 160px 96px 128px);
 }
 #button-privacy:hover {
   -moz-image-region: rect(32px 160px 64px 128px);
-}
-#button-privacy:hover:active {
 }
 
 toolbar[iconsize="small"] #button-privacy {
   -moz-image-region: rect(0px 120px 24px 96px);
 }
 toolbar[iconsize="small"] #button-privacy[disabled="true"],
-toolbar[iconsize="small"] #button-privacy[disabled="true"]:hover,
-toolbar[iconsize="small"] #button-privacy[disabled="true"]:hover:active {
+toolbar[iconsize="small"] #button-privacy[disabled="true"]:hover {
   -moz-image-region: rect(48px 120px 72px 96px);
 }
 toolbar[iconsize="small"] #button-privacy:hover {
   -moz-image-region: rect(24px 120px 48px 96px);
-}
-toolbar[iconsize="small"] #button-privacy:hover:active {
 }
 
 /*--------------------------------------------------------------------
@@ -261,28 +211,22 @@ toolbar[iconsize="small"] #button-privacy:hover:active {
   -moz-image-region: rect(0px 192px 32px 160px);
 }
 #button-save[disabled="true"],
-#button-save[disabled="true"]:hover,
-#button-save[disabled="true"]:hover:active {
+#button-save[disabled="true"]:hover {
   -moz-image-region: rect(64px 192px 96px 160px);
 }
 #button-save:hover {
   -moz-image-region: rect(32px 192px 64px 160px);
-}
-#button-save:hover:active {
 }
 
 toolbar[iconsize="small"] #button-save {
   -moz-image-region: rect(0px 144px 24px 120px);
 }
 toolbar[iconsize="small"] #button-save[disabled="true"],
-toolbar[iconsize="small"] #button-save[disabled="true"]:hover,
-toolbar[iconsize="small"] #button-save[disabled="true"]:hover:active {
+toolbar[iconsize="small"] #button-save[disabled="true"]:hover {
   -moz-image-region: rect(48px 144px 72px 120px);
 }
 toolbar[iconsize="small"] #button-save:hover {
   -moz-image-region: rect(24px 144px 48px 120px);
-}
-toolbar[iconsize="small"] #button-save:hover:active {
 }
 
 /*--------------------------------------------------------------------
@@ -293,60 +237,22 @@ toolbar[iconsize="small"] #button-save:hover:active {
     -moz-image-region: rect(0px 544px 32px 512px);
 }
 #button-delete[disabled="true"],
-#button-delete[disabled="true"]:hover,
-#button-delete[disabled="true"]:hover:active {
+#button-delete[disabled="true"]:hover {
     -moz-image-region: rect(64px 544px 96px 512px);
 }
 #button-delete:hover {
     -moz-image-region: rect(32px 544px 64px 512px);
-}
-#button-delete:hover:active {
 }
 
 toolbar[iconsize="small"] #button-delete {
     -moz-image-region: rect(0px 408px 24px 384px);
 }
 toolbar[iconsize="small"] #button-delete[disabled="true"],
-toolbar[iconsize="small"] #button-delete[disabled="true"]:hover,
-toolbar[iconsize="small"] #button-delete[disabled="true"]:hover:active {
+toolbar[iconsize="small"] #button-delete[disabled="true"]:hover {
     -moz-image-region: rect(48px 408px 72px 384px);
 }
 toolbar[iconsize="small"] #button-delete:hover {
     -moz-image-region: rect(24px 408px 48px 384px);
-}
-toolbar[iconsize="small"] #button-delete:hover:active {
-}
-
-/*--------------------------------------------------------------------
- *   print button
- *-------------------------------------------------------------------*/
-
-#button-print {
-  -moz-image-region: rect(0px 608px 32px 576px);
-}
-#button-print[disabled="true"],
-#button-print[disabled="true"]:hover,
-#button-print[disabled="true"]:hover:active {
-  -moz-image-region: rect(64px 608px 96px 576px);
-}
-#button-print:hover {
-  -moz-image-region: rect(32px 608px 64px 576px);
-}
-#button-print:hover:active {
-}
-
-toolbar[iconsize="small"] #button-print {
-  -moz-image-region: rect(0px 456px 24px 432px);
-}
-toolbar[iconsize="small"] #button-print[disabled="true"],
-toolbar[iconsize="small"] #button-print[disabled="true"]:hover,
-toolbar[iconsize="small"] #button-print[disabled="true"]:hover:active {
-  -moz-image-region: rect(48px 456px 72px 432px);
-}
-toolbar[iconsize="small"] #button-print:hover {
-  -moz-image-region: rect(24px 456px 48px 432px);
-}
-toolbar[iconsize="small"] #button-print:hover:active {
 }
 
 /*--------------------------------------------------------------------
@@ -357,28 +263,22 @@ toolbar[iconsize="small"] #button-print:hover:active {
   -moz-image-region: rect(0px 768px 32px 736px);
 }
 #button-question[disabled="true"],
-#button-question[disabled="true"]:hover,
-#button-question[disabled="true"]:hover:active {
+#button-question[disabled="true"]:hover {
   -moz-image-region: rect(64px 768px 96px 736px);
 }
 #button-question:hover {
   -moz-image-region: rect(32px 768px 64px 736px);
-}
-#button-question:hover:active {
 }
 
 toolbar[iconsize="small"] #button-question {
   -moz-image-region: rect(0px 576px 24px 552px);
 }
 toolbar[iconsize="small"] #button-question[disabled="true"],
-toolbar[iconsize="small"] #button-question[disabled="true"]:hover,
-toolbar[iconsize="small"] #button-question[disabled="true"]:hover:active {
+toolbar[iconsize="small"] #button-question[disabled="true"]:hover {
   -moz-image-region: rect(48px 576px 72px 552px);
 }
 toolbar[iconsize="small"] #button-question:hover {
   -moz-image-region: rect(24px 576px 48px 552px);
-}
-toolbar[iconsize="small"] #button-question:hover:active {
 }
 
 /*--------------------------------------------------------------------
@@ -398,12 +298,6 @@ toolbar[iconsize="small"] #button-question:hover:active {
 #button-privacy-public {
   -moz-image-region: rect(0px 28px 16px 0px);
 }
-#button-privacy-public:hover:active {
-  -moz-image-region: rect(0px 28px 16px 0px);
-}
-#button-privacy-public[disabled="true"] {
-  -moz-image-region: rect(0px 28px 16px 0px);
-}
 
 /*--------------------------------------------------------------------
  *   privacy "private" image
@@ -411,10 +305,6 @@ toolbar[iconsize="small"] #button-question:hover:active {
 
 #button-privacy-private {
   -moz-image-region: rect(0px 56px 16px 28px);
-}
-#button-privacy-private:hover:active {
-}
-#button-privacy-private[disabled="true"] {
 }
 
 /*--------------------------------------------------------------------
@@ -424,10 +314,6 @@ toolbar[iconsize="small"] #button-question:hover:active {
 #button-privacy-confidential {
   -moz-image-region: rect(0px 84px 16px 56px);
 }
-#button-privacy-confidential:hover:active {
-}
-#button-privacy-confidential[disabled="true"] {
-}
 
 /*--------------------------------------------------------------------
  *   importance "low" image
@@ -435,10 +321,6 @@ toolbar[iconsize="small"] #button-question:hover:active {
 
 #button-importance-low {
   -moz-image-region: rect(0px 100px 16px 84px);
-}
-#button-importance-low:hover:active {
-}
-#button-importance-low[disabled="true"] {
 }
 
 /*--------------------------------------------------------------------
@@ -448,10 +330,6 @@ toolbar[iconsize="small"] #button-question:hover:active {
 #button-importance-medium {
   -moz-image-region: rect(0px 116px 16px 100px);
 }
-#button-importance-medium:hover:active {
-}
-#button-importance-medium[disabled="true"] {
-}
 
 /*--------------------------------------------------------------------
  *   importance "high" image
@@ -459,10 +337,6 @@ toolbar[iconsize="small"] #button-question:hover:active {
 
 #button-importance-high {
   -moz-image-region: rect(0px 132px 16px 116px);
-}
-#button-importance-high:hover:active {
-}
-#button-importance-high[disabled="true"] {
 }
 
 /*--------------------------------------------------------------------

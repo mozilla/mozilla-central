@@ -165,14 +165,16 @@ calendar.jar:
 
 # The following files are added for aero support on windows.
 #ifdef XP_WIN
-% style chrome://calendar/content/calendar-event-dialog.xul chrome://calendar-windows/skin/calendar.css os=WINNT osversion>=6
+% style chrome://calendar/content/calendar-event-dialog.xul chrome://calendar-windows/skin/calendar-event-dialog.css os=WINNT
 % style chrome://calendar/content/calendar-occurrence-prompt.xul chrome://calendar-windows/skin/calendar.css os=WINNT osversion>=6
 % skin calendar-windows classic/1.0 chrome/calendar/skin/calendar/win-classic/ os=WINNT osversion<6
 % skin calendar-windows classic/1.0 chrome/calendar/skin/calendar/win-aero/ os=WINNT osversion>=6
     skin/calendar/win-classic/calendar.css                 (themes/@THEME@/win-classic/calendar.css)
+    skin/calendar/win-classic/calendar-event-dialog.css    (themes/@THEME@/win-classic/calendar-event-dialog.css)
     skin/calendar/win-classic/lightning.css                (themes/@THEME@/win-classic/lightning.css)
     skin/calendar/win-classic/lightning-toolbar.css        (themes/@THEME@/win-classic/lightning-toolbar.css)
     skin/calendar/win-aero/calendar.css                    (themes/@THEME@/win-aero/calendar.css)
+    skin/calendar/win-aero/calendar-event-dialog.css       (themes/@THEME@/win-aero/calendar-event-dialog.css)
     skin/calendar/win-aero/lightning.css                   (themes/@THEME@/win-aero/lightning.css)
     skin/calendar/win-aero/lightning-toolbar.css           (themes/@THEME@/win-aero/lightning-toolbar.css)
     skin/calendar/calendar-event-dialog-toolbar-aero.png   (themes/@THEME@/dialogs/images/calendar-event-dialog-toolbar-aero.png)

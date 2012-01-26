@@ -1,0 +1,121 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+.cal-event-toolbarbutton {
+  list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar.png");
+}
+
+toolbar[iconsize="small"] .cal-event-toolbarbutton {
+  list-style-image: url("chrome://calendar/skin/calendar-event-dialog-toolbar-small.png");
+}
+
+#button-attendees {
+  -moz-image-region: rect(0px 48px 24px 24px);
+}
+#button-attendees[disabled="true"],
+#button-attendees[disabled="true"]:hover {
+  -moz-image-region: rect(48px 48px 72px 24px);
+}
+#button-attendees:hover {
+  -moz-image-region: rect(24px 48px 48px 24px);
+}
+
+toolbar[iconsize="small"] #button-attendees {
+  -moz-image-region: rect(0px 32px 16px 16px);
+}
+toolbar[iconsize="small"] #button-attendees[disabled="true"],
+toolbar[iconsize="small"] #button-attendees[disabled="true"]:hover {
+  -moz-image-region: rect(32px 32px 48px 16px);
+}
+toolbar[iconsize="small"] #button-attendees:hover {
+  -moz-image-region: rect(16px 32px 32px 16px);
+}
+
+#button-url {
+  -moz-image-region: rect(0px 96px 24px 72px);
+}
+#button-url[disabled="true"],
+#button-url[disabled="true"]:hover {
+  -moz-image-region: rect(48px 96px 72px 72px);
+}
+#button-url:hover {
+  -moz-image-region: rect(24px 96px 48px 72px);
+}
+
+toolbar[iconsize="small"] #button-url {
+  -moz-image-region: rect(0px 64px 16px 48px);
+}
+toolbar[iconsize="small"] #button-url[disabled="true"],
+toolbar[iconsize="small"] #button-url[disabled="true"]:hover {
+  -moz-image-region: rect(32px 64px 48px 48px);
+}
+toolbar[iconsize="small"] #button-url:hover {
+  -moz-image-region: rect(16px 64px 32px 48px);
+}
+
+#button-privacy {
+  -moz-image-region: rect(0px 120px 24px 96px);
+}
+#button-privacy[disabled="true"],
+#button-privacy[disabled="true"]:hover {
+  -moz-image-region: rect(48px 120px 72px 96px);
+}
+#button-privacy:hover {
+  -moz-image-region: rect(24px 120px 48px 96px);
+}
+
+toolbar[iconsize="small"] #button-privacy {
+  -moz-image-region: rect(0px 80px 16px 64px);
+}
+toolbar[iconsize="small"] #button-privacy[disabled="true"],
+toolbar[iconsize="small"] #button-privacy[disabled="true"]:hover {
+  -moz-image-region: rect(32px 80px 48px 64px);
+}
+toolbar[iconsize="small"] #button-privacy:hover {
+  -moz-image-region: rect(16px 80px 32px 64px);
+}
+
+#button-save {
+  -moz-image-region: rect(0px 144px 24px 120px);
+}
+#button-save[disabled="true"],
+#button-save[disabled="true"]:hover {
+  -moz-image-region: rect(48px 144px 72px 120px);
+}
+#button-save:hover {
+  -moz-image-region: rect(24px 144px 48px 120px);
+}
+
+toolbar[iconsize="small"] #button-save {
+  -moz-image-region: rect(0px 96px 16px 80px);
+}
+toolbar[iconsize="small"] #button-save[disabled="true"],
+toolbar[iconsize="small"] #button-save[disabled="true"]:hover {
+  -moz-image-region: rect(32px 96px 48px 80px);
+}
+toolbar[iconsize="small"] #button-save:hover {
+  -moz-image-region: rect(16px 96px 32px 80px);
+}
+
+#button-delete {
+  -moz-image-region: rect(0px 408px 24px 384px);
+}
+#button-delete[disabled="true"],
+#button-delete[disabled="true"]:hover {
+  -moz-image-region: rect(48px 408px 72px 384px);
+}
+#button-delete:hover {
+  -moz-image-region: rect(24px 408px 48px 384px);
+}
+
+toolbar[iconsize="small"] #button-delete {
+  -moz-image-region: rect(0px 272px 16px 256px);
+}
+toolbar[iconsize="small"] #button-delete[disabled="true"],
+toolbar[iconsize="small"] #button-delete[disabled="true"]:hover {
+  -moz-image-region: rect(32px 272px 48px 256px);
+}
+toolbar[iconsize="small"] #button-delete:hover {
+  -moz-image-region: rect(16px 272px 32px 256px);
+}
