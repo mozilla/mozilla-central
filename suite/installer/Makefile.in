@@ -108,6 +108,10 @@ ifdef MOZ_MOVEMAIL
 DEFINES += -DMOZ_MOVEMAIL=1
 endif
 
+ifneq (,$(filter WINNT Darwin Android,$(OS_TARGET)))
+DEFINES += -DMOZ_SHARED_MOZGLUE=1
+endif
+
 ifneq (en-US, $(AB_CD))
 DEFINES += -DLOCALE_BUILD=1
 endif
