@@ -655,6 +655,7 @@ xpicleanup@BIN_SUFFIX@
   components/smime-service.js
   components/glautocomp.js
   components/jsmimeemitter.js
+  components/Webapps.js
   components/browser.xpt
   components/interfaces.manifest
   components/mail.xpt
@@ -973,6 +974,7 @@ xpicleanup@BIN_SUFFIX@
   modules/traceHelper.js
   modules/utils.js
   modules/virtualFolderWrapper.js
+  modules/Webapps.jsm
   modules/WindowDraggingUtils.jsm
   modules/WorkerTest.jsm
   modules/WorkerTest_subworker.js
