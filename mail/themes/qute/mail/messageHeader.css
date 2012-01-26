@@ -50,6 +50,14 @@
   padding: 0.4ex;
 }
 
+/* :::::  message in a tab ::::: */
+
+#displayDeck[collapsed="true"] + splitter + #messagepaneboxwrapper 
+.main-header-area {
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
+                                         rgba(255, 255, 255, .5) 100%);
+}
+
 /* ::::: msg header toolbars ::::: */
 
 #expandedHeaderView[show_header_mode="all"] {
