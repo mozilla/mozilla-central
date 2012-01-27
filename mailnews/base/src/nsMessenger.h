@@ -90,8 +90,6 @@ protected:
   nsresult InitStringBundle();
   nsresult PromptIfDeleteAttachments(bool saveFirst, PRUint32 count, const char **displayNameArray);
 
-  void AddMsgUrlToNavigateHistory(const nsACString& aURL);
-
 private:
   nsresult GetLastSaveDirectory(nsILocalFile **aLastSaveAsDir);
   // if aLocalFile is a dir, we use it.  otherwise, we use the parent of aLocalFile.

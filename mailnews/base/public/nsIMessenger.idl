@@ -49,7 +49,7 @@ interface nsIMsgMessageService;
 interface nsIFile;
 interface nsIUrlListener;
 
-[scriptable, uuid(61f62ed0-dde4-11df-85ca-0800200c9a66)]
+[scriptable, uuid(4e36968b-b476-4f3e-b170-c19fe3d48d0b)]
 interface nsIMessenger : nsISupports {
 
     const long eUnknown = 0;
@@ -64,6 +64,7 @@ interface nsIMessenger : nsISupports {
 
     void setWindow(in nsIDOMWindow ptr, in nsIMsgWindow msgWindow);
 
+    void addMsgUrlToNavigateHistory(in ACString aURL);
     void openURL(in ACString aURL);
 
     /** load a custom message by url, e.g load a attachment as a email

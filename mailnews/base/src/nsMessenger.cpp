@@ -444,7 +444,8 @@ nsMessenger::PromptIfFileExists(nsILocalFile *file)
   return rv;
 }
 
-void nsMessenger::AddMsgUrlToNavigateHistory(const nsACString& aURL)
+NS_IMETHODIMP
+nsMessenger::AddMsgUrlToNavigateHistory(const nsACString& aURL)
 {
   // mNavigatingToUri is set to a url if we're already doing a back/forward,
   // in which case we don't want to add the url to the history list.
@@ -468,6 +469,7 @@ void nsMessenger::AddMsgUrlToNavigateHistory(const nsACString& aURL)
     // we may want to prune this history if it gets large, but I think it's
     // more interesting to prune the back and forward menu.
   }
+  return NS_OK;
 }
 
 NS_IMETHODIMP
