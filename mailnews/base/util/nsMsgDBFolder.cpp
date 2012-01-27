@@ -5692,10 +5692,10 @@ void nsMsgDBFolder::decodeMsgSnippet(const nsACString& aEncodingType, bool aIsCo
  */
 void nsMsgDBFolder::compressQuotesInMsgSnippet(const nsString& aMsgSnippet, nsAString& aCompressedQuotes)
 {
-  PRUint32 msgBodyStrLen = aMsgSnippet.Length();
+  PRInt32 msgBodyStrLen = aMsgSnippet.Length();
   bool lastLineWasAQuote = false;
-  PRUint32 offset = 0;
-  PRUint32 lineFeedPos = 0;
+  PRInt32 offset = 0;
+  PRInt32 lineFeedPos = 0;
   while (offset < msgBodyStrLen)
   {
     lineFeedPos = aMsgSnippet.FindChar('\n', offset);
