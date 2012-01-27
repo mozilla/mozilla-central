@@ -473,10 +473,36 @@ nsLDAPAutoCompleteSession::OnLDAPSearchEntry(nsILDAPMessage *aMessage)
         return NS_ERROR_FAILURE;
     }
 
-    rv = mResultsArray->AppendElement(item);
+  nsString itemValue;
+  item->GetValue(itemValue);
+
+  PRUint32 nbrOfItems;
+  rv = mResultsArray->Count(&nbrOfItems);
+  if (NS_FAILED(rv)) {
+    NS_ERROR("nsLDAPAutoCompleteSession::OnLDAPSearchEntry(): "
+             "mResultsArray->Count() failed");
+    return NS_ERROR_FAILURE;
+  }
+
+  PRInt32 insertPosition = 0;
+
+  nsCOMPtr<nsIAutoCompleteItem> currentItem;
+  for (; insertPosition < nbrOfItems; insertPosition++) {
+    currentItem = do_QueryElementAt(mResultsArray, insertPosition, &rv);
+
+    if (NS_FAILED(rv))
+      continue;
+
+    nsString currentItemValue;
+    currentItem->GetValue(currentItemValue);
+    if (itemValue < currentItemValue) 
+      break;
+  }
+
+  rv = mResultsArray->InsertElementAt(item, insertPosition);
     if (NS_FAILED(rv)) {
         NS_ERROR("nsLDAPAutoCompleteSession::OnLDAPSearchEntry(): "
-                 "mItems->AppendElement() failed");
+                 "mResultsArray->InsertElementAt() failed");
         return NS_ERROR_FAILURE;
     }
 
