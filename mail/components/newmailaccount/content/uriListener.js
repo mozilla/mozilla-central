@@ -64,8 +64,13 @@ Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/
 Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/MyBadCertHandler.js", accountCreationFuncs);
 
 /**
- * This is a listener that will take care of intercepting the right request and
- * creating the account accordingly.
+ * This is an observer that watches all HTTP requests for one where the
+ * response contentType contains text/xml.  Once that observation is
+ * made, we ensure that the associated window for that request matches
+ * the window belonging to the content tab for the account order form.
+ * If so, we attach an nsITraceableListener to read the contents of the
+ * request response, and react accordingly if the contents can be turned
+ * into an email account.
  *
  * @param aBrowser The XUL <browser> the request lives in.
  * @param aParams An object containing various bits of information.
@@ -73,108 +78,182 @@ Services.scriptloader.loadSubScript("chrome://messenger/content/accountcreation/
  * @param aParams.email The email address the person picked.
  * @param aParams.searchEngine The search engine associated to that provider.
  */
-function AccountProvisionerListener (aBrowser, aParams) {
+function httpRequestObserver(aBrowser, aParams) {
   this.browser = aBrowser;
   this.params = aParams;
 }
 
-AccountProvisionerListener.prototype = {
-  onStateChange: function (/* in nsIWebProgress */ aWebProgress,
-                           /* in nsIRequest */ aRequest,
-                           /* in unsigned long */ aStateFlags,
-                           /* in nsresult */ aStatus) {
-    // This is the earliest notification we get...
-    if ((aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_STOP) &&
-        (aStateFlags & Components.interfaces.nsIWebProgressListener.STATE_IS_WINDOW)) {
-      let channel = aRequest.QueryInterface(Ci.nsIHttpChannel);
-      let contentType = channel.getResponseHeader("Content-Type");
-      if (contentType == "text/xml") {
-        // Stop the request so that the user doesn't see the XML, and close the
-        // content tab while we're at it.
-        this.browser.stop();
-        let tabmail = window.document.getElementById("tabmail");
-        let myTabInfo = tabmail.tabInfo
-          .filter((function (x) {
-            return "browser" in x && x.browser == this.browser;
-          }).bind(this))[0];
-        tabmail.closeTab(myTabInfo);
+httpRequestObserver.prototype = {
+  observe: function(aSubject, aTopic, aData) {
+    if (aTopic != "http-on-examine-response")
+      return;
 
-        // Fire off a request to get the XML again, this time so that we can
-        // analyze it and get its contents.
-        aRequest.QueryInterface(Ci.nsIChannel);
-        let url = aRequest.URI;
-        let newChannel = NetUtil.newChannel(url);
-        let chunks = [];
-        let self = this;
-        let inputStream = newChannel.asyncOpen({
+    if (!(aSubject instanceof Ci.nsIHttpChannel)) {
+      Component.utils.reportError("Failed to get a nsIHttpChannel when "
+                                  + "observing http-on-examine-response");
+      return;
+    }
 
-          onStartRequest: function (/* nsIRequest */ aRequest,
-                                    /* nsISupports */ aContext) {
-          },
+    let contentType = "";
+    try {
+      contentType = aSubject.getResponseHeader("Content-Type");
+    } catch(e) {
+      // If we couldn't get the response header, which can happen,
+      // just swallow the exception and return.
+      return;
+    }
 
-          onStopRequest: function (/* nsIRequest */ aRequest,
-                                   /* nsISupports */ aContext,
-                                   /* int */ aStatusCode) {
-            try {
-              let data = chunks.join("");
-              let xml = new XML(data);
-              let accountConfig = accountCreationFuncs.readFromXML(xml);
-              accountCreationFuncs.replaceVariables(accountConfig,
-                self.params.realName,
-                self.params.email);
-              let account = accountCreationFuncs.createAccountInBackend(accountConfig);
-              NewMailAccountProvisioner(null, {
-                success: true,
-                search_engine: self.params.searchEngine,
-                account: account,
-              });
-            } catch (e) {
-              Components.utils.reportError("Problem interpreting provider XML: "+ e);
-            }
-          },
+    if (contentType.toLowerCase().indexOf("text/xml") != 0)
+      return;
 
-          onDataAvailable: function (/* nsIRequest */ aRequest,
-                                     /* nsISupports */ aContext,
-                                     /* nsIInputStream */ aStream,
-                                     /* int */ aOffset,
-                                     /* int */ aCount) {
-            let str = NetUtil.readInputStreamToString(aStream, aCount);
-            chunks.push(str);
-          },
+    let requestWindow = this._getWindowForRequest(aSubject);
+    if (!requestWindow || (requestWindow !== this.browser.contentWindow))
+      return;
 
-          QueryInterface: XPCOMUtils.generateQI([Ci.nsIStreamListener,
-                                                 Ci.nsIRequestObserver])
-
-        }, null);
-      }
+    // Ok, we've got a request that looks like a decent candidate.
+    // Let's attach our TracingListener.
+    if (aSubject instanceof Ci.nsITraceableChannel) {
+      let newListener = new TracingListener(this.browser, this.params);
+      newListener.oldListener = aSubject.setNewListener(newListener);
     }
   },
 
-  onProgressChange: function (/* in nsIWebProgress */ aWebProgress,
-                              /* in nsIRequest */ aRequest,
-                              /* in long */ aCurSelfProgress,
-                              /* in long */ aMaxSelfProgress,
-                              /* in long */ aCurTotalProgress,
-                              /* in long */ aMaxTotalProgress) {
+  /**
+   * _getWindowForRequest is an internal function that takes an nsIRequest,
+   * and returns the associated window for that request.  If it cannot find
+   * an associated window, the function returns null. On exception, the
+   * exception message is logged to the Error Console and null is returned.
+   *
+   * @param aRequest the nsIRequest to analyze
+   */
+  _getWindowForRequest: function(aRequest) {
+    try {
+      if (aRequest && aRequest.notificationCallbacks) {
+        return aRequest.notificationCallbacks
+                       .getInterface(Ci.nsILoadContext)
+                       .associatedWindow;
+      }
+      if (aRequest && aRequest.loadGroup
+          && aRequest.loadGroup.notificationCallbacks) {
+        return aRequest.loadGroup
+                       .notificationCallbacks
+                       .getInterface(Ci.nsILoadContext)
+                       .associatedWindow;
+      }
+    } catch(e) {
+      Components.utils.reportError("Could not find an associated window "
+                                   + "for an HTTP request. Error: " + e);
+    }
+    return null;
   },
 
-  onLocationChange: function (/* in nsIWebProgress */ aWebProgress,
-                              /* in nsIRequest */ aRequest,
-                              /* in nsIURI */ aLocation,
-                              /* in int */ aFlags) {
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver]),
+}
+
+/**
+ * TracingListener is an nsITracableChannel implementation that copies
+ * an incoming stream of data from a request.  The data flows through this
+ * nsITracableChannel transparently to the original listener. Once the
+ * response data is fully downloaded, an attempt is made to parse it
+ * as XML, and derive email account data from it.
+ *
+ * @param aBrowser The XUL <browser> the request lives in.
+ * @param aParams An object containing various bits of information.
+ * @param aParams.realName The real name of the person
+ * @param aParams.email The email address the person picked.
+ * @param aParams.searchEngine The search engine associated to that provider.
+ */
+function TracingListener(aBrowser, aParams) {
+  this.chunks = [];
+  this.browser = aBrowser;
+  this.params = aParams;
+  this.oldListener = null;
+}
+
+TracingListener.prototype = {
+
+  onStartRequest: function (/* nsIRequest */ aRequest,
+                            /* nsISupports */ aContext) {
+    this.oldListener.onStartRequest(aRequest, aContext);
   },
 
-  onStatusChange: function (/* in nsIWebProgress */ aWebProgress,
-                            /* in nsIRequest */ aRequest,
-                            /* in nsresult */ aStatus,
-                            /* in wstring */ aMessage) {
+  onStopRequest: function (/* nsIRequest */ aRequest,
+                           /* nsISupports */ aContext,
+                           /* int */ aStatusCode) {
+    try {
+      // Attempt to construct the downloaded data into XML
+      let data = this.chunks.join("");
+      let xml = new XML(data);
+
+      // Attempt to derive email account information
+      let accountConfig = accountCreationFuncs.readFromXML(xml);
+      accountCreationFuncs.replaceVariables(accountConfig,
+        this.params.realName,
+        this.params.email);
+      let account = accountCreationFuncs.createAccountInBackend(accountConfig);
+
+      // Switch to the mail tab
+      let tabmail = document.getElementById('tabmail');
+      tabmail.switchToTab(0);
+
+      // Find the tab associated with this browser, and close it.
+      let myTabInfo = tabmail.tabInfo
+        .filter((function (x) {
+              return "browser" in x && x.browser == this.browser;
+              }).bind(this))[0];
+      tabmail.closeTab(myTabInfo);
+
+      // Respawn the account provisioner to announce our success
+      NewMailAccountProvisioner(null, {
+        success: true,
+        search_engine: this.params.searchEngine,
+        account: account,
+      });
+    } catch (e) {
+      // Something went wrong.  Right now, we just dump the problem out
+      // to the Error Console.  We should really do something smarter and
+      // more user-facing, because if - for example - a provider passes
+      // some bogus XML, this routine silently fails.
+      Components.utils.reportError("Problem interpreting provider XML:" + e);
+    }
+
+    this.oldListener.onStopRequest(aRequest, aContext, aStatusCode);
   },
 
-  onSecurityChange: function (/* in nsIWebProgress */ aWebProgress,
-                              /* in nsIRequest */ aRequest,
-                              /* in unsigned long */ aState) {
+  onDataAvailable: function (/* nsIRequest */ aRequest,
+                             /* nsISupports */ aContext,
+                             /* nsIInputStream */ aStream,
+                             /* int */ aOffset,
+                             /* int */ aCount) {
+    // We want to read the stream of incoming data, but we also want
+    // to make sure it gets passed to the original listener. We do this
+    // by passing the input stream through an nsIStorageStream, writing
+    // the data to that stream, and passing it along to the next listener.
+    let binaryInputStream = Cc["@mozilla.org/binaryinputstream;1"]
+                           .createInstance(Ci.nsIBinaryInputStream);
+    let storageStream = Cc["@mozilla.org/storagestream;1"]
+                        .createInstance(Ci.nsIStorageStream);
+    let outStream = Cc["@mozilla.org/binaryoutputstream;1"]
+                    .createInstance(Ci.nsIBinaryOutputStream);
+
+    binaryInputStream.setInputStream(aStream);
+
+    // The segment size of 8192 is a little magical - more or less
+    // copied from nsITraceableChannel example code strewn about the
+    // web.
+    storageStream.init(8192, aCount, null);
+    outStream.setOutputStream(storageStream.getOutputStream(0));
+
+    let data = binaryInputStream.readBytes(aCount);
+    this.chunks.push(data);
+
+    outStream.writeBytes(data, aCount);
+    this.oldListener.onDataAvailable(aRequest, aContext,
+                                     storageStream.newInputStream(0),
+                                     aOffset, aCount);
   },
 
-  QueryInterface: XPCOMUtils.generateQI([Ci.nsISupportsWeakReference,
-                                         Ci.nsIWebProgressListener]),
-};
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIStreamListener,
+                                         Ci.nsIRequestObserver])
+
+}

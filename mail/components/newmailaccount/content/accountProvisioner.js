@@ -72,7 +72,7 @@ function isAccel (event) (isOSX && event.metaKey || event.ctrlKey)
  * @return {nsIDOMStorage} The localstorage for this page.
  */
 function getLocalStorage(page) {
-  var url = "http://example.com/" + page;
+  var url = "chrome://content/messenger/accountProvisionerStorage/" + page;
   var ssm = Cc["@mozilla.org/scriptsecuritymanager;1"]
     .getService(Ci.nsIScriptSecurityManager);
   var dsm = Cc["@mozilla.org/dom/storagemanager;1"]
@@ -457,26 +457,73 @@ var EmailAccountProvisioner = {
     let mail3Pane = Cc["@mozilla.org/appshell/window-mediator;1"]
           .getService(Ci.nsIWindowMediator)
           .getMostRecentWindow("mail:3pane");
+
     let tabmail = mail3Pane.document.getElementById("tabmail");
     tabmail.openTab("contentTab", {
       contentPage: url,
-      onListener: function(aBrowser, aListener) {
-        // We're passing the value of search_engine to the listener so that when
-        // we reopen that window, we don't have to wait for the re-parsing of
-        // the provider list to figure out what is the search engine name for
-        // that provider.
-        let progressListener = new mail3Pane.AccountProvisionerListener(
-          aBrowser, {
-            realName: firstName + " " + lastName,
-            email: email,
-            searchEngine: provider.search_engine,
-          });
-        aListener.addProgressListener(progressListener);
-      },
-      onLoad: function (event, aBrowser) {
+      onLoad: function (aEvent, aBrowser) {
+        // There are a few things we want to do once the tab content loads:
+        // 1.  We want to register an observer to watch for HTTP requests
+        //     where the contentType contains text/xml
+        // 2.  We want to register a tab monitor to watch for when the
+        //     tab we're opening closes, so that it can clean up the
+        //     observer.
+
+        // At this point, when onLoad is called, we run into some scoping
+        // issues.  Services and gLog are no longer in scope, so we have to
+        // redefine them.
+        Components.utils.import("resource://gre/modules/Services.jsm");
+        Components.utils.import("resource:///modules/gloda/log4moz.js");
+        let gLog = Log4Moz.getConfiguredLogger("mail.provider");
+
+        // We'll construct our special observer (defined in urlListener.js)
+        // that will watch for requests where the contentType contains
+        // text/xml.
+        let observer = new mail3Pane.httpRequestObserver(aBrowser, {
+          realName: firstName + " " + lastName,
+          email: email,
+          searchEngine: provider.search_engine,
+        });
+
+        // Register our observer
+        Services.obs.addObserver(observer, "http-on-examine-response",
+                                 false);
+        gLog.info("httpRequestObserver wired up.");
+
+        // The provisionerTabMonitor lets us clean up when the tab closes.
+        // This tab closure can occur from a variety of events (successful
+        // account transaction, user closes the tab, user quits Thunderbird,
+        // etc), and so the tab monitor allows us to catch all of those
+        // cases.
+        let provisionerTabMonitor = {
+          monitorName: "accountProvisionerMonitor",
+          onTabTitleChanged: function() {},
+          onTabSwitched: function(aTab, aOldTab) {},
+          onTabOpened: function(aTab, aIsFirstTab, aWasCurrentTab) {},
+          onTabClosing: function(aTab) {
+            if (aTab.browser === aBrowser) {
+              // Once again, due to scoping issues, we have to re-import
+              // Services.
+              Components.utils.import("resource://gre/modules/Services.jsm");
+              gLog.info("Performing account provisioner cleanup");
+              gLog.info("Unregistering tab monitor");
+              tabmail.unregisterTabMonitor(provisionerTabMonitor);
+              gLog.info("Removing httpRequestObserver");
+              Services.obs.removeObserver(observer, "http-on-examine-response");
+              gLog.info("Account provisioner cleanup is done.");
+            }
+          },
+          onTabPersist: function(aTab) {},
+          onTabRestored: function(aTab, aState, aIsFirstTab) {},
+        }
+
+        // Register the monitor.
+        tabmail.registerTabMonitor(provisionerTabMonitor);
+
         // Close the Account Provisioner window once the page
         // has loaded.
-        gLog.info("Handing off to the contentTab, and closing Email Account Provisioner.");
+        gLog.info("Handing off to the contentTab, and closing Email "
+                  + "Account Provisioner.")
         window.close();
       },
     });
