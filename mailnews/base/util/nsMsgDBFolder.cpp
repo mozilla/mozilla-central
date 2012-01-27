@@ -188,9 +188,6 @@ nsMsgDBFolder::nsMsgDBFolder(void)
 #endif
     initializeStrings();
     createCollationKeyGenerator();
-#ifdef MSG_FASTER_URI_PARSING
-    mParsingURL = do_CreateInstance(NS_STANDARDURL_CONTRACTID);
-#endif
     LL_I2L(gtimeOfLastPurgeCheck, 0);
   }
 
@@ -220,9 +217,6 @@ nsMsgDBFolder::~nsMsgDBFolder(void)
     NS_Free(kLocalizedJunkName);
     NS_Free(kLocalizedArchivesName);
     NS_Free(kLocalizedBrandShortName);
-#ifdef MSG_FASTER_URI_PARSING
-    mParsingURL = nsnull;
-#endif
   }
   //shutdown but don't shutdown children.
   Shutdown(false);
@@ -3126,37 +3120,14 @@ NS_IMETHODIMP nsMsgDBFolder::GetServer(nsIMsgIncomingServer ** aServer)
   return *aServer ? NS_OK : NS_ERROR_FAILURE;
 }
 
-#ifdef MSG_FASTER_URI_PARSING
-class nsMsgAutoBool {
-public:
-  nsMsgAutoBool() : mValue(nsnull) {}
-  void autoReset(bool *aValue) { mValue = aValue; }
-  ~nsMsgAutoBool() { if (mValue) *mValue = false; }
-private:
-  bool *mValue;
-};
-#endif
-
 nsresult
 nsMsgDBFolder::parseURI(bool needServer)
 {
   nsresult rv;
   nsCOMPtr<nsIURL> url;
 
-#ifdef MSG_FASTER_URI_PARSING
-  nsMsgAutoBool parsingUrlState;
-  if (mParsingURLInUse)
-    url = do_CreateInstance(NS_STANDARDURL_CONTRACTID, &rv);
-  else
-  {
-    url = mParsingURL;
-    mParsingURLInUse = true;
-    parsingUrlState.autoReset(&mParsingURLInUse);
-  }
-#else
   url = do_CreateInstance(NS_STANDARDURL_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
-#endif
 
   rv = url->SetSpec(mURI);
   NS_ENSURE_SUCCESS(rv, rv);

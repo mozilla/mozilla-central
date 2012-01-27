@@ -285,12 +285,6 @@ protected:
 
   static NS_MSG_BASE_STATIC_MEMBER_(nsICollation*) gCollationKeyGenerator;
 
-#ifdef MSG_FASTER_URI_PARSING
-  // cached parsing URL object
-  static NS_MSG_BASE_STATIC_MEMBER_(nsCOMPtr<nsIURL>) mParsingURL;
-  static NS_MSG_BASE_STATIC_MEMBER_(bool) mParsingURLInUse;
-#endif
-
   static const NS_MSG_BASE_STATIC_MEMBER_(nsStaticAtom) folder_atoms[];
 
   // store of keys that have a processing flag set
