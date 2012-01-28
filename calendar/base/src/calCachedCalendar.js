@@ -330,6 +330,10 @@ calCachedCalendar.prototype = {
         let completeListener = {
             modifiedTimes: {},
             hasRenewedCalendar: false,
+            getsCompleted: 0,
+            getsReceived: 0,
+            opCompleted: false,
+
             onGetResult: function cCC_oOC_cL_onGetResult(aCalendar,
                                                          aStatus,
                                                          aItemType,
@@ -344,12 +348,21 @@ calCachedCalendar.prototype = {
                         this_.setupCachedCalendar();
                         this.hasRenewedCalendar = true;
                     }
-                    for each (var item in aItems) {
+
+                    this.getsReceived++;
+                    cal.forEach(aItems, function(item) {
                         // Adding items recd from the Memory Calendar
                         // These may be different than what the cache has
-                        this.modifiedTimes[item.id] = item.lastModifiedTime;
+                        completeListener.modifiedTimes[item.id] = item.lastModifiedTime;
                         this_.mCachedCalendar.addItem(item, null);
-                    }
+                    }, function completed() {
+                        completeListener.getsCompleted++;
+                        if (completeListener.opCompleted) {
+                            // onOperationComplete was called, but we were not ready yet. call it now.
+                            completeListener.onOperationComplete.apply(completeListener, completeListener.opCompleted);
+                            completeListener.opCompleted = false;
+                        }
+                    });
                 }
             },
 
@@ -358,8 +371,15 @@ calCachedCalendar.prototype = {
                                                                          aOpType,
                                                                          aId,
                                                                          aDetail) {
+                if (this.getsCompleted < this.getsReceived) {
+                    // If not all of our gets have been processed, then save the
+                    // arguments and finish processing later.
+                    this.opCompleted = Array.slice(arguments);
+                    return;
+                }
+
                 if (Components.isSuccessCode(aStatus)) {
-                    for each (let item in this_.offlineCachedItems) {
+                    cal.forEach(this_.offlineCachedItems, function(item) {
                         switch (this_.offlineCachedItemFlags[item.hashId]) {
                             case cICL.OFFLINE_FLAG_CREATED_RECORD:
                                 // Created items are not present on the server, so its safe to adopt them
@@ -367,9 +387,9 @@ calCachedCalendar.prototype = {
                                 break;
                             case cICL.OFFLINE_FLAG_MODIFIED_RECORD:
                                 // Two Cases Here:
-                                if (item.id in this.modifiedTimes) {
+                                if (item.id in completeListener.modifiedTimes) {
                                     // The item is still on the server, we just retrieved it in the listener above.
-                                    if (item.lastModifiedTime.compare(this.modifiedTimes[item.id]) < 0) {
+                                    if (item.lastModifiedTime.compare(completeListener.modifiedTimes[item.id]) < 0) {
                                         // The item on the server has been modified, ask to overwrite
                                         cal.WARN("[calCachedCalendar] Item '" + item.title + "' at the server seems to be modified recently.");
                                         this_.promptOverwrite("modify", item, null, null);
@@ -386,9 +406,9 @@ calCachedCalendar.prototype = {
                                 }
                                 break;
                             case cICL.OFFLINE_FLAG_DELETED_RECORD:
-                                if (item.id in this.modifiedTimes) {
+                                if (item.id in completeListener.modifiedTimes) {
                                     // The item seems to exist on the server...
-                                    if (item.lastModifiedTime.compare(this.modifiedTimes[item.id]) < 0) {
+                                    if (item.lastModifiedTime.compare(completeListener.modifiedTimes[item.id]) < 0) {
                                         // ...and has been modified on the server. Ask to overwrite
                                         cal.WARN("[calCachedCalendar] Item '" + item.title + "' at the server seems to be modified recently.");
                                         this_.promptOverwrite("delete", item, null, null);
@@ -401,11 +421,16 @@ calCachedCalendar.prototype = {
                                 }
                                 break;
                         }
-                    }
-                    this_.offlineCachedItems = {};
-                    this_.offlineCachedItemFlags = {};
+                    },
+                    function completed() {
+                        this_.offlineCachedItems = {};
+                        this_.offlineCachedItemFlags = {};
+                        this_.playbackAddedItems(function() emptyQueue(aStatus));
+                    });
+                } else {
+                    this_.playbackAddedItems(function() {this_.mCachedObserver.onLoad(this_.mCachedCalendar);});
+                    emptyQueue(aStatus);
                 }
-                this_.playbackAddedItems(function() { emptyQueue(aStatus) });
             }
         };
 

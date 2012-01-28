@@ -35,6 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 Components.utils.import("resource://calendar/modules/calUtils.jsm");
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 EXPORTED_SYMBOLS = ["cal"]; // even though it's defined in calUtils.jsm, import needs this
 
@@ -60,6 +61,69 @@ cal.itemIterator = function cal_itemIterator(items) {
         }
     };
 };
+
+/**
+ * Runs the body() function once for each item in the iterator using the event
+ * queue to make sure other actions could run inbetween. When all iterations are
+ * done (and also when cal.forEach.BREAK is returned), calls the completed()
+ * function if passed.
+ *
+ * If you would like to break or continue inside the body(), return either
+ *     cal.forEach.BREAK or cal.forEach.CONTINUE
+ *
+ * Note since the event queue is used, this function will return immediately,
+ * before the iteration is complete. If you need to run actions after the real
+ * for each loop, use the optional completed() function.
+ *
+ * @param iter          The Iterator to go through in this loop.
+ * @param body          The function called for each iteration. Its parameter is
+ *                          the single item from the iterator.
+ * @param completed     [optional] The function called after the loop completes.
+ */
+cal.forEach = function cal_forEach(iter, body, completed) {
+    // This should be a const one day, lets keep it a pref for now though until we
+    // find a sane value.
+    let LATENCY = cal.getPrefSafe("calendar.threading.latency", 250);
+
+    let ourIter = iter;
+    if (!(iter instanceof Iterator)) {
+        // If its not an iterator, we need to use a generator expression to make
+        // sure calling this function feels right.
+        ourIter = (i for each (i in iter));
+    }
+
+    let currentThread = Services.tm.currentThread;
+
+    // This is our dispatcher, it will be used for the iterations
+    let dispatcher = {
+        run: function run() {
+            try {
+                let startTime = (new Date()).getTime();
+                while (((new Date()).getTime()  - startTime) < LATENCY) {
+                    let next = ourIter.next();
+                    let rc = body(next);
+                    if (rc == cal.forEach.BREAK) {
+                        throw StopIteration;
+                    }
+                }
+            } catch (e if e instanceof StopIteration) {
+                // Iterating is done, return early to avoid resubmitting to the
+                // event queue again. If there is a completed function, run it.
+                if (completed) {
+                    completed();
+                }
+                return;
+            }
+
+            currentThread.dispatch(this, currentThread.DISPATCH_NORMAL);
+        }
+    };
+
+    currentThread.dispatch(dispatcher, currentThread.DISPATCH_NORMAL);
+};
+
+cal.forEach.CONTINUE = 1;
+cal.forEach.BREAK = 2;
 
 /**
  * "ical" namespace. Used for all iterators (and possibly other functions) that
