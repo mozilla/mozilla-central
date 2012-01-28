@@ -190,15 +190,6 @@ class nsMsgComposeAndSend : public nsIMsgSend
 {
 public:
   //
-  // The exit method used when downloading attachments only.
-  // This still may be useful because of the fact that it is an
-  // internal callback only. This way, no thread boundry issues and
-  // we can get away without all of the listener array code.
-  //
-  void (*m_attachments_done_callback) (nsresult  status,
-        const PRUnichar *error_msg, nsMsgAttachedFile *attachments);
-
-  //
   // Define QueryInterface, AddRef and Release for this class
   //
   NS_DECL_ISUPPORTS
@@ -376,12 +367,6 @@ public:
   //
   // attachment states and other info...
   //
-  bool                    m_attachments_only_p;         // If set, then we don't construct a complete
-                                                        // MIME message; instead, we just retrieve the
-                                                        // attachments from the network, store them in
-                                                        // tmp files, and return a list of
-                                                        // nsMsgAttachedFile structs which describe them.
-
   bool                    m_pre_snarfed_attachments_p;  // If true, then the attachments were
                                                         // loaded by in the background and therefore
                                                         // we shouldn't delete the tmp files (but should

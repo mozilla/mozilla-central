@@ -295,7 +295,6 @@ nsMsgComposeAndSend::nsMsgComposeAndSend() :
   m_dont_deliver_p = false;
   m_deliver_mode = nsMsgDeliverNow;
 
-  m_attachments_only_p = false;
   m_pre_snarfed_attachments_p = false;
   m_digest_p = false;
   m_be_synchronous_p = false;
@@ -308,7 +307,6 @@ nsMsgComposeAndSend::nsMsgComposeAndSend() :
   m_attachment_pending_count = 0;
   m_attachments = nsnull;
   m_status = 0;
-  m_attachments_done_callback = nsnull;
   m_plaintext = nsnull;
   m_related_part = nsnull;
   m_related_body_part = nsnull;
@@ -527,64 +525,6 @@ nsMsgComposeAndSend::GatherMimeAttachments()
   status = m_status;
   if (status < 0)
     goto FAIL;
-
-  if (m_attachments_only_p)
-  {
-    /* If we get here, we should be fetching attachments only! */
-    if (m_attachments_done_callback)
-    {
-      nsMsgAttachedFile *attachments;
-
-      NS_ASSERTION(m_attachment_count > 0, "not more attachment");
-      if (m_attachment_count <= 0)
-      {
-        m_attachments_done_callback (nsnull, nsnull, nsnull);
-        m_attachments_done_callback = nsnull;
-        goto FAIL;
-      }
-
-      attachments = new nsMsgAttachedFile[m_attachment_count + 1];
-
-      if (!attachments)
-        goto FAILMEM;
-      for (i = 0; i < m_attachment_count; i++)
-      {
-        nsMsgAttachmentHandler *ma = &m_attachments[i];
-
-        attachments[i].m_origUrl = ma->mURL;
-        attachments[i].m_tmpFile = ma->mTmpFile;
-
-        attachments[i].m_type = ma->m_type;
-        attachments[i].m_encoding, ma->m_encoding;
-        attachments[i].m_description = ma->m_description;
-        attachments[i].m_xMacType = ma->m_xMacType;
-        attachments[i].m_xMacCreator = ma->m_xMacCreator;
-
-        attachments[i].m_size = ma->m_size;
-        attachments[i].m_unprintableCount = ma->m_unprintable_count;
-        attachments[i].m_highbitCount = ma->m_highbit_count;
-        attachments[i].m_ctlCount = ma->m_ctl_count;
-        attachments[i].m_nullCount = ma->m_null_count;
-        attachments[i].m_maxLineLength = ma->m_max_column;
-
-        /* Doesn't really matter, but let's not lie about encoding
-           in case it does someday. */
-        if (attachments[i].m_highbitCount > 0 &&
-            attachments[i].m_encoding.LowerCaseEqualsLiteral(ENCODING_7BIT))
-          attachments[i].m_encoding = ENCODING_8BIT;
-      }
-
-      m_attachments_done_callback(nsnull, nsnull, attachments);
-      PR_FREEIF(attachments);
-      m_attachments_done_callback = nsnull;
-    }
-    goto FAIL;
-  }
-
-
-  /* If we get here, we're generating a message, so there shouldn't be an
-     attachments callback. */
-  NS_ASSERTION(!m_attachments_done_callback, "shouldn't have an attachement callback!");
 
   if (!m_attachment1_type) {
     m_attachment1_type = PL_strdup(TEXT_PLAIN);
@@ -3757,14 +3697,6 @@ nsMsgComposeAndSend::Fail(nsresult failure_code, const PRUnichar * error_msg, ns
       if (failure_code != NS_ERROR_BUT_DONT_SHOW_ALERT)
         nsMsgDisplayMessageByID(prompt, NS_ERROR_SEND_FAILED);
     }
-  }
-
-  if (m_attachments_done_callback)
-  {
-    /* mime_free_message_state will take care of cleaning up the
-       attachment files and attachment structures */
-    m_attachments_done_callback (failure_code, error_msg, nsnull);
-    m_attachments_done_callback = nsnull;
   }
 
   if (m_status == NS_OK)
