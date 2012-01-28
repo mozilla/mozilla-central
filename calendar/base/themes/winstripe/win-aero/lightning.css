@@ -52,36 +52,15 @@
   -moz-image-region: rect(0px 80px 16px 64px);
 }
 
-#calendar-tab-button,
-#task-tab-button {
-  -moz-appearance: none;
-  margin-top: 3px;
-  border: none;
-}
-
-#calendar-tab-button:hover,
-#calendar-tab-button:hover:active,
-#task-tab-button:hover,
-#task-tab-button:hover:active {
-  padding: 3px;
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, 0),
-                    rgba(255, 255, 255, .5)),
-                    -moz-linear-gradient(transparent, rgba(0, 0, 0, .25) 30%),
-                    -moz-linear-gradient(transparent, rgba(0, 0, 0, .25) 30%);
-  background-position: 1px -1px, 0 -1px, 100% -1px;
-  background-size: -moz-calc(100% - 2px) 100%, 1px 100%, 1px 100%;
-  background-repeat: no-repeat;
-}
-
 #button-newmsg #newMsgButton-calendar-menuitem,
 #button-newmsg #newMsgButton-task-menuitem,
 #calendar-show-todaypane-panel > #calendar-status-todaypane-button > stack > .toolbarbutton-icon-begin {
   list-style-image: url(chrome://calendar/skin/toolbar-small-aero.png);
 }
 
-@media all and (-moz-windows-compositor) {
-    #calendar-tab-button,
-    #task-tab-button {
+@media (-moz-windows-compositor) {
+    #tabbar-toolbar > #calendar-tab-button,
+    #tabbar-toolbar > #task-tab-button {
       list-style-image: url(chrome://lightning/skin/mode-switch-icons-inverted.png);
   }
 }

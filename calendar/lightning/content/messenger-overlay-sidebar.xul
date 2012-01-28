@@ -123,10 +123,12 @@
   <toolbar id="tabbar-toolbar"
           defaultset="calendar-tab-button,task-tab-button,qfb-show-filter-bar">
     <toolbarbutton id="calendar-tab-button"
+                   class="toolbarbutton-1"
                    title="&lightning.toolbar.calendar.label;"
                    tooltiptext="&lightning.toolbar.calendar.tooltip;"
                    command="new_calendar_tab"/>
     <toolbarbutton id="task-tab-button"
+                   class="toolbarbutton-1"
                    title="&lightning.toolbar.task.label;"
                    tooltiptext="&lightning.toolbar.task.tooltip;"
                    command="new_task_tab"/>
