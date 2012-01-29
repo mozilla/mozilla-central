@@ -2353,7 +2353,10 @@ function onCommandSave(aIsClosing) {
             // Check if the current window has a calendarItem first, because in case of undo
             // window refers to the main window and we would get a 'calendarItem is undefined' warning.
             if ("calendarItem" in window) {
+                // If we changed the calendar of the item, onOperationComplete will be called multiple
+                // times. We need to make sure we're receiving the update on the right calendar.
                 if ((!window.calendarItem.id ||aId == window.calendarItem.id) &&
+                    (aCalendar.id == window.calendarItem.calendar.id) &&
                     Components.isSuccessCode(aStatus)) {
                     if (window.calendarItem.recurrenceId) {
                         // TODO This workaround needs to be removed in bug 396182
