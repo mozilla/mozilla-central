@@ -146,7 +146,6 @@
 @BINPATH@/components/autocomplete.xpt
 @BINPATH@/components/autoconfig.xpt
 @BINPATH@/components/caps.xpt
-@BINPATH@/components/chardet.xpt
 @BINPATH@/components/chrome.xpt
 @BINPATH@/components/commandhandler.xpt
 @BINPATH@/components/commandlines.xpt
