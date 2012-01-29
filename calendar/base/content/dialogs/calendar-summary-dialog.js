@@ -343,20 +343,14 @@ function updateAttendees() {
         for each (var attendee in attendees) {
             var itemNode = list[line];
             var listcell = itemNode.getElementsByTagName("listcell")[page];
-            var image = itemNode.getElementsByTagName("image")[page];
-            var label = itemNode.getElementsByTagName("label")[page];
             if (attendee.commonName && attendee.commonName.length) {
-                label.value = attendee.commonName;
-                // XXX While this is correct from a XUL standpoint, it doesn't
-                // seem to work on the listcell. Working around this would be an
-                // evil hack, so I'm waiting for it to be fixed in the core
-                // code instead.
-                listcell.setAttribute("tooltiptext", attendee.toString());
+                listcell.setAttribute("label", attendee.commonName);
             } else {
-                label.value = attendee.toString();
+                listcell.setAttribute("label",  attendee.toString());
             }
-            image.setAttribute("status", attendee.participationStatus);
-            image.removeAttribute("hidden");
+            listcell.setAttribute("tooltiptext", attendee.toString());
+            listcell.setAttribute("status", attendee.participationStatus);
+            listcell.removeAttribute("hidden");
 
             page++;
             if (page > 1) {
@@ -408,4 +402,22 @@ function sendMailToOrganizer() {
             sendMailTo(email, emailSubject);
         }
     }
+}
+
+/**
+ * This hack allows the attendees listbox to remain cropping when resized.
+ * To check if its still needed, remove the hack, open the summary dialog with
+ * at least two attendees with long names, then make the dialog wider and shrink
+ * it again. If the labels crop again, then go ahead and remove it.
+ * See bug 632355
+ */
+function fixAttendeesListbox() {
+    let left = document.getElementById("item-attendee-left-col");
+    let right = document.getElementById("item-attendee-right-col");
+
+    left.removeAttribute("flex");
+    right.removeAttribute("flex");
+
+    left.setAttribute("flex", "1");
+    right.setAttribute("flex", "1");
 }

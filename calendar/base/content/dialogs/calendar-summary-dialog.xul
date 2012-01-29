@@ -63,6 +63,7 @@
         onload="onLoad()"
         ondialogaccept="return onAccept();"
         ondialogcancel="return onCancel();"
+        onresize="fixAttendeesListbox()"
         persist="screenX screenY width height"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
@@ -273,18 +274,12 @@
       <spacer class="default-spacer"/>
       <listbox id="item-attendee-listbox" rows="6" flex="1" disabled="true">
         <listcols>
-          <listcol flex="1"/>
-          <listcol flex="1"/>
+          <listcol id="item-attendee-left-col" flex="1"/>
+          <listcol id="item-attendee-right-col" flex="1"/>
         </listcols>
         <listitem>
-          <listcell>
-            <image class="status-icon" hidden="true"/>
-            <label/>
-          </listcell>
-          <listcell>
-            <image class="status-icon" hidden="true"/>
-            <label/>
-          </listcell>
+          <listcell class="listcell-iconic status-icon" crop="end" hidden="true"/>
+          <listcell class="listcell-iconic status-icon" crop="end" hidden="true"/>
         </listitem>
       </listbox>
     </box>
