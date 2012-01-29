@@ -110,14 +110,13 @@ calFilter.prototype = {
             return (item.recurrenceInfo != null);
         },
         throughcurrent: function cF_filterThroughCurrent(item) {
-            if (!item.completedDate) {
-                return true;
-            }
-            // filter out tasks completed earlier than today
-            let today = cal.now();
-            today.isDate = true;
-
-            return (today.compare(item.completedDate) <= 0);
+            return completionIsCurrent(item);
+        },
+        throughtoday: function cF_filterThroughToday(item) {
+            return completionIsCurrent(item);
+        },
+        throughsevendays: function cF_filterThroughSevenDays(item) {
+            return completionIsCurrent(item);
         }
     },
 
@@ -292,6 +291,20 @@ function getDatesForFilter(aFilter, aSelectedDate) {
             endDate.addDuration(oneDay);
             break;
 
+        case "throughtoday":
+            endDate = cal.now();
+            endDate.isDate = true;
+            endDate.addDuration(oneDay);
+            break;
+
+        case "throughsevendays":
+            let dur = cal.createDuration();
+            dur.days = 8;
+            endDate = cal.now();
+            endDate.isDate = true;
+            endDate.addDuration(dur);
+            break;
+
         default:
             startDate = null;
             endDate = null;
@@ -377,6 +390,22 @@ function percentCompleted(item) {
     }
     return percent;
 } 
+
+/**
+ * Check if a task is still incomplete or was completed today.
+ */
+function completionIsCurrent(aItem) {
+    // tasks not completed yet are still current
+    if (!aItem.completedDate) {
+        return true;
+    }
+
+    // filter out tasks completed earlier than today
+    let today = cal.now();
+    today.isDate = true;
+
+    return (today.compare(aItem.completedDate) <= 0);
+}
 
 function filterAll(aItem) {
     return true;

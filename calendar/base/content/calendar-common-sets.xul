@@ -548,14 +548,14 @@
                     accesskey="&calendar.task.filter.current.accesskey;"/>
           <menuitem id="task-context-menu-filter-todaypane-today"
                     name="filtergrouptodaypane"
-                    value="today"
+                    value="throughtoday"
                     type="radio"
                     command="calendar_task_filter_todaypane_command"
                     label="&calendar.task.filter.today.label;"
                     accesskey="&calendar.task.filter.today.accesskey;"/>
           <menuitem id="task-context-menu-filter-todaypane-next7days"
                     name="filtergrouptodaypane"
-                    value="next7days"
+                    value="throughsevendays"
                     type="radio"
                     command="calendar_task_filter_todaypane_command"
                     label="&calendar.task.filter.next7days.label;"

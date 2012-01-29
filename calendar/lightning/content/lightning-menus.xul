@@ -235,14 +235,14 @@
                   accesskey="&calendar.task.filter.current.accesskey;"/>
         <menuitem id="ltnTasksViewFilterToday"
                   name="filtergroup"
-                  value="today"
+                  value="throughtoday"
                   type="radio"
                   command="calendar_task_filter_command"
                   label="&calendar.task.filter.today.label;"
                   accesskey="&calendar.task.filter.today.accesskey;"/>
         <menuitem id="ltnTasksViewFilterNext7days"
                   name="filtergroup"
-                  value="next7days"
+                  value="throughsevendays"
                   type="radio"
                   command="calendar_task_filter_command"
                   label="&calendar.task.filter.next7days.label;"
