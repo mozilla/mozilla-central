@@ -86,6 +86,9 @@
               <menuitem id="event-filter-current"
                         label="&calendar.events.filter.current.label;"
                         value="current"/>
+              <menuitem id="event-filter-currentview"
+                        label="&calender.events.filter.currentview.label;"
+                        value="currentview"/>
             </menupopup>
           </menulist>
         </box>

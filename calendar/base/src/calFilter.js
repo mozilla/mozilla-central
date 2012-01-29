@@ -277,6 +277,11 @@ function getDatesForFilter(aFilter, aSelectedDate) {
             endDate.addDuration(oneDay);
             break;
 
+        case "currentview":
+            startDate = currentView().startDay;
+            endDate = currentView().endDay;
+            break;
+
         case "throughcurrent":
         case "open":
         case "overdue":

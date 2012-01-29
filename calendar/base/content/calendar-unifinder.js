@@ -321,7 +321,7 @@ function finishCalendarUnifinder() {
  * Event listener for the view deck's dayselect event.
  */
 function unifinderDaySelect() {
-    if (getCurrentUnifinderFilter() == "current") {
+    if (getCurrentUnifinderFilter() == "current" || "currentview") {
         refreshEventTree();
     }
 }
