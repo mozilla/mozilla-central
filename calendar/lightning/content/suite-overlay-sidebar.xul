@@ -40,9 +40,16 @@
 <overlay id="suiteSidebarOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
+  <script type="application/javascript" src="chrome://lightning/content/suite-overlay-sidebar.js"/>
+
   <key id="openLightningKey" removeelement="true"/>
   <key id="openTasksKey" removeelement="true"/>
   <key id="calendar-new-event-key" removeelement="true"/>
   <key id="calendar-new-todo-key" removeelement="true"/>
+
+  <menuitem id="CustomizeCalendarToolbar"
+            oncommand="ltnSuiteUtils.customizeToolbar(this)"/>
+  <menuitem id="CustomizeTaskToolbar"
+            oncommand="ltnSuiteUtils.customizeToolbar(this)"/>
 
 </overlay>

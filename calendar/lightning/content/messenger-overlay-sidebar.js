@@ -220,10 +220,14 @@ function ltnOnLoad(event) {
     toolbox.customizeDone = function(aEvent) {
         MailToolboxCustomizeDone(aEvent, "CustomizeCalendarToolbar");
     };
-    let toolbox = document.getElementById("task-toolbox");
+    toolbox = document.getElementById("task-toolbox");
     toolbox.customizeDone = function(aEvent) {
         MailToolboxCustomizeDone(aEvent, "CustomizeTaskToolbar");
     };
+
+    Components.classes["@mozilla.org/observer-service;1"]
+              .getService(Components.interfaces.nsIObserverService)
+              .notifyObservers(window, "lightning-startup-done", false);
 
 }
 
