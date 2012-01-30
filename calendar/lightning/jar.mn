@@ -44,7 +44,6 @@ lightning.jar:
     content/lightning/messenger-overlay-preferences.js     (content/messenger-overlay-preferences.js)
     content/lightning/messenger-overlay-preferences.xul    (content/messenger-overlay-preferences.xul)
     content/lightning/suite-overlay-preferences.xul        (content/suite-overlay-preferences.xul)
-    content/lightning/suite-overlay-sidebar.js             (content/suite-overlay-sidebar.js)
     content/lightning/suite-overlay-sidebar.xul            (content/suite-overlay-sidebar.xul)
 % skin lightning classic/1.0 %skin/lightning/
 % style chrome://global/content/customizeToolbar.xul chrome://lightning/skin/lightning-toolbar.css
