@@ -154,7 +154,6 @@ bin\components\plugin.xpt
 bin\components\pref.xpt
 bin\components\prefetch.xpt
 bin\components\profile.xpt
-bin\components\proxyObject.xpt
 bin\components\rdf.xpt
 bin\components\satchel.xpt
 bin\components\saxparser.xpt

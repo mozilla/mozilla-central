@@ -590,7 +590,6 @@
 @BINPATH@/components/mozfind.xpt
 @BINPATH@/components/mimetype.xpt
 @BINPATH@/components/parentalcontrols.xpt
-@BINPATH@/components/proxyObject.xpt
 @BINPATH@/components/exthandler.xpt
 @BINPATH@/components/exthelper.xpt
 @BINPATH@/components/embed_base.xpt
