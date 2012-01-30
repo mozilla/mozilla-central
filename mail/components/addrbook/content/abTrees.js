@@ -152,11 +152,12 @@ directoryTreeView.prototype = {
       let file = Cc["@mozilla.org/file/directory_service;1"]
                  .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile);
       file.append(aJSONFile);
-      let foStream = Cc["@mozilla.org/network/file-output-stream;1"]
+      let foStream = Cc["@mozilla.org/network/safe-file-output-stream;1"]
                     .createInstance(Ci.nsIFileOutputStream);
 
       foStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
       foStream.write(data, data.length);
+      foStream.QueryInterface(Ci.nsISafeOutputStream).finish();
       foStream.close();
     }
   },

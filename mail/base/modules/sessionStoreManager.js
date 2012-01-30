@@ -166,10 +166,11 @@ var sessionStoreManager =
     // XXX ideally, we shouldn't be writing to disk on the UI thread,
     // but the session file should be small so it might not be too big a
     // problem.
-    let foStream = Cc["@mozilla.org/network/file-output-stream;1"]
+    let foStream = Cc["@mozilla.org/network/safe-file-output-stream;1"]
                    .createInstance(Ci.nsIFileOutputStream);
     foStream.init(this.sessionFile, -1, -1, 0);
     foStream.write(data, data.length);
+    foStream.QueryInterface(Ci.nsISafeOutputStream).finish();
     foStream.close();
 
     this._currentStateString = data;

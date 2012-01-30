@@ -232,11 +232,14 @@ let gFolderTreeView = {
       let file = Cc["@mozilla.org/file/directory_service;1"]
                     .getService(Ci.nsIProperties).get("ProfD", Ci.nsIFile);
       file.append(aJSONFile);
-      let foStream = Cc["@mozilla.org/network/file-output-stream;1"]
+      let foStream = Cc["@mozilla.org/network/safe-file-output-stream;1"]
                         .createInstance(Ci.nsIFileOutputStream);
 
       foStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0);
+      // safe-file-output-stream appears to throw an error if it doesn't write everything at once
+      // so we won't worry about looping to deal with partial writes
       foStream.write(data, data.length);
+      foStream.QueryInterface(Ci.nsISafeOutputStream).finish();
       foStream.close();
     }
   },
