@@ -1,3 +1,6 @@
+//
+// Common preferences.
+//
 // This set of prefs is copyied over the defaults that build-seamonkey-util.pl
 // sets up.
 user_pref("browser.dom.window.dump.enabled", true);
@@ -36,14 +39,23 @@ user_pref("mail.smtpserver.smtp1.username", "tinderbox");
 user_pref("mail.smtpservers", "smtp1");
 user_pref("mail.startup.enabledMailCheckOnce", true);
 user_pref("mailnews.start_page_override.mstone", "ignore");
-user_pref("mail.shell.checkDefaultClient", false);
-user_pref("mail.winsearch.enable", false);
-user_pref("mail.winsearch.firstRunDone", true);
-user_pref("mail.spotlight.enable", false);
-user_pref("mail.spotlight.firstRunDone", true);
 user_pref("mailnews.database.global.indexer.enabled", false);
 // Ensure OS X and Outlook/OE books are disabled
 user_pref("ldap_2.servers.osx.position", 0);
 user_pref("ldap_2.servers.oe.position", 0);
 // Suppress Telemetry opt-in prompt
 user_pref("toolkit.telemetry.prompted", true);
+
+//
+// SeaMonkey preferences.
+//
+user_pref("shell.checkDefaultClient", false);
+
+//
+// Thunderbird preferences.
+//
+user_pref("mail.shell.checkDefaultClient", false);
+user_pref("mail.spotlight.enable", false);
+user_pref("mail.spotlight.firstRunDone", true);
+user_pref("mail.winsearch.enable", false);
+user_pref("mail.winsearch.firstRunDone", true);
