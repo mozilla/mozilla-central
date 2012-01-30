@@ -90,7 +90,8 @@ source-package::
 upload::
 	@$(MAKE) -C suite/installer upload
 
-ifndef COMM_BUILD
+ifndef COMM_BUILD # Mozilla Makefile
+
 # mochitests need to be run from the Mozilla build system
 ifdef ENABLE_TESTS
 # Backend is implemented in mozilla/testing/testsuite-targets.mk.
@@ -104,4 +105,18 @@ mochitest:: mochitest-browser-chrome
 
 .PHONY: mochitest-browser-chrome
 endif
+
+else # toplevel Makefile
+
+ifdef ENABLE_TESTS
+# This part is copied from mail/testsuite-targets.mk,
+# SeaMonkey does not need to create a suite/testsuite-targets.mk yet.
+
+# "-mail : Open the mail folder view" (instead of "a browser window").
+BLOAT_EXTRA_ARG := -mail
+
+# Additional mailnews targets to call automated test suites.
+include $(topsrcdir)/mailnews/testsuite-targets.mk
 endif
+
+endif # COMM_BUILD
