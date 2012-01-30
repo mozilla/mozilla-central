@@ -43,7 +43,7 @@
 
 <!DOCTYPE overlay [
   <!ENTITY % mailOverlayDTD SYSTEM "chrome://messenger/locale/mailOverlay.dtd"> %mailOverlayDTD;
-  <!ENTITY % messengerDTD SYSTEM "chrome://messenger/locale/messenger.dtd"> %messengerDTD;
+  <!ENTITY % menuOverlayDTD SYSTEM "chrome://calendar/locale/menuOverlay.dtd" > %menuOverlayDTD;
   <!ENTITY % lightningDTD SYSTEM "chrome://lightning/locale/lightning.dtd"> %lightningDTD;
   <!ENTITY % calendarDTD SYSTEM "chrome://calendar/locale/calendar.dtd" > %calendarDTD;
   <!ENTITY % toolbarDTD SYSTEM "chrome://lightning/locale/lightning-toolbar.dtd" > %toolbarDTD;
@@ -56,14 +56,14 @@
   <popupset id="calendar-popupset">
     <menupopup id="calendar-toolbar-context">
       <menuitem id="CustomizeCalendarToolbar"
-                label="&customizeToolbar.label;"
-                accesskey="&customizeToolbar.accesskey;"
+                label="&calendar.menu.customize.label;"
+                accesskey="&calendar.menu.customize.accesskey;"
                 oncommand="CustomizeMailToolbar('calendar-toolbox', 'CustomizeCalendarToolbar')"/>
     </menupopup>
     <menupopup id="task-toolbar-context">
       <menuitem id="CustomizeTaskToolbar"
-                label="&customizeToolbar.label;"
-                accesskey="&customizeToolbar.accesskey;"
+                label="&calendar.menu.customize.label;"
+                accesskey="&calendar.menu.customize.accesskey;"
                 oncommand="CustomizeMailToolbar('task-toolbox', 'CustomizeTaskToolbar')"/>
     </menupopup>
   </popupset>
