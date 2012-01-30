@@ -43,13 +43,14 @@ endif
 
 SYMBOLS_PATH := --symbols-path=$(DIST)/crashreporter-symbols
 
-ifdef MOZ_SUITE
-EXTRA_BLOAT_ARGS := -mail
+# BLOAT_EXTRA_ARG lets an application add an extra startup argument.
+ifdef BLOAT_EXTRA_ARG
+BLOAT_EXTRA_STARTUP_ARG := --extra-startup-arg=$(BLOAT_EXTRA_ARG)
 endif
 
 mailbloat:
 	$(PYTHON) -u $(topsrcdir)/mozilla/config/pythonpath.py \
-        -I$(DIST)/../build -I$(MOZILLA_DIR)/build \
-        $(topsrcdir)/mailnews/test/performance/bloat/runtest.py \
-	--distdir=$(DIST) --bin=$(MOZ_APP_NAME) --brand=$(APP_NAME) \
-	$(SYMBOLS_PATH) $(EXTRA_BLOAT_ARGS)
+	  -I$(DIST)/../build -I$(MOZILLA_DIR)/build \
+	  $(topsrcdir)/mailnews/test/performance/bloat/runtest.py \
+	    --distdir=$(DIST) --bin=$(MOZ_APP_NAME) --brand=$(APP_NAME) \
+	    $(SYMBOLS_PATH) $(BLOAT_EXTRA_STARTUP_ARG)
