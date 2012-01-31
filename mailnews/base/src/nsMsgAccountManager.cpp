@@ -3140,15 +3140,28 @@ NS_IMETHODIMP nsMsgAccountManager::SaveVirtualFolders()
 {
   if (!m_virtualFoldersLoaded)
     return NS_OK;
-  nsIOutputStream *outputStream = nsnull;
 
-  m_incomingServers.Enumerate(saveVirtualFolders, &outputStream);
-  if (outputStream)
-  {
-    outputStream->Close();
-    outputStream->Release();
-  }
-  return NS_OK;
+  nsCOMPtr<nsILocalFile> file;
+  GetVirtualFoldersFile(file);
+
+  // Open a buffered, safe output stream
+  nsCOMPtr<nsIOutputStream> outStreamSink;
+  nsresult rv = NS_NewSafeLocalFileOutputStream(getter_AddRefs(outStreamSink),
+                                                file,
+                                                PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
+                                                0664);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  nsCOMPtr<nsIOutputStream> outStream;
+  rv = NS_NewBufferedOutputStream(getter_AddRefs(outStream), outStreamSink, 4096);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  WriteLineToOutputStream("version=", "1", outStream);
+  m_incomingServers.Enumerate(saveVirtualFolders, &outStream);
+
+  nsCOMPtr<nsISafeOutputStream> safeStream = do_QueryInterface(outStream, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+  return safeStream->Finish();
 }
 
 PLDHashOperator
@@ -3169,19 +3182,6 @@ nsMsgAccountManager::saveVirtualFolders(nsCStringHashKey::KeyType key,
       PRUint32 vfCount;
       virtualFolders->GetLength(&vfCount);
       nsIOutputStream *outputStream = * (nsIOutputStream **) data;
-      if (!outputStream)
-      {
-        nsCOMPtr<nsILocalFile> file;
-        GetVirtualFoldersFile(file);
-        rv = MsgNewBufferedFileOutputStream(&outputStream,
-                                            file,
-                                            PR_CREATE_FILE | PR_WRONLY | PR_TRUNCATE,
-                                            0664);
-        NS_ENSURE_SUCCESS(rv, PL_DHASH_STOP);
-        * (nsIOutputStream **) data = outputStream;
-        WriteLineToOutputStream("version=", "1", outputStream);
-
-      }
       for (PRUint32 folderIndex = 0; folderIndex < vfCount; folderIndex++)
       {
         nsCOMPtr <nsIRDFResource> folderRes (do_QueryElementAt(virtualFolders, folderIndex));
