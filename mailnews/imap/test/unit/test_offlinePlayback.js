@@ -213,7 +213,7 @@ function doTest(test)
   }
   else
   {
-    do_timeout_function(1000, endTest);
+    do_timeout(1000, endTest);
   }
 }
 
