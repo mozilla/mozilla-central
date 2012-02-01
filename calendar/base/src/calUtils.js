@@ -343,9 +343,9 @@ function userCanModifyItem(aItem) {
  * @return              True if there is a match
  */
 function attendeeMatchesAddresses(anAttendee, addresses) {
-    let attId = anAttendee.id.toLowerCase();
+    let attId = anAttendee.id.toLowerCase().replace(/^mailto:/, "");
     for each (let address in addresses) {
-        if (attId == address.toLowerCase()) {
+        if (attId == address.toLowerCase().replace(/^mailto:/, "")) {
             return true;
         }
     }

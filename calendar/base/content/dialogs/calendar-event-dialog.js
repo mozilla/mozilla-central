@@ -2308,7 +2308,7 @@ function saveItem() {
         if (userAddresses.length > 0
             && !cal.attendeeMatchesAddresses(item.organizer, userAddresses)) {
             let organizer = item.organizer.clone();
-            organizer.setProperty("SENT-BY", userAddresses[0]);
+            organizer.setProperty("SENT-BY", "mailto:" + userAddresses[0]);
             item.organizer = organizer;
         }
     }

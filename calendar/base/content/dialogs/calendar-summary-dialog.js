@@ -253,7 +253,7 @@ function updateInvitation() {
           let userAddresses = aclEntry.getUserAddresses({});
           if (userAddresses.length > 0
               && !cal.attendeeMatchesAddresses(window.attendee, userAddresses)) {
-              window.attendee.setProperty("SENT-BY", userAddresses[0]);
+              window.attendee.setProperty("SENT-BY", "mailto:" + userAddresses[0]);
           }
       }
 

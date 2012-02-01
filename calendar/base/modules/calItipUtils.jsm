@@ -600,7 +600,7 @@ cal.itip = {
                 if (userAddresses.length > 0
                     && !cal.attendeeMatchesAddresses(invitedAttendee, userAddresses)) {
                     invitedAttendee = invitedAttendee.clone();
-                    invitedAttendee.setProperty("SENT-BY", userAddresses[0]);
+                    invitedAttendee.setProperty("SENT-BY", "mailto:" + userAddresses[0]);
                 }
             }
 

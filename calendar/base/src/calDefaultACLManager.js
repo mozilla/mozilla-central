@@ -64,7 +64,7 @@ calDefaultACLManager.prototype = {
     _getCalendarEntryCached: function cDACLM__getCalendarEntryCached(aCalendar) {
         let calUri = aCalendar.uri.spec;
         if (!(calUri in this.mCalendarEntries)) {
-            this.mCalendarEntries[calUri] = new calDefaultCalendarACLEntry(this);
+            this.mCalendarEntries[calUri] = new calDefaultCalendarACLEntry(this, aCalendar);
         }
 
         return this.mCalendarEntries[calUri];
@@ -83,8 +83,9 @@ calDefaultACLManager.prototype = {
 
 };
 
-function calDefaultCalendarACLEntry(aMgr) {
+function calDefaultCalendarACLEntry(aMgr, aCalendar) {
     this.mACLManager = aMgr;
+    this.mCalendar = aCalendar;
 }
 
 calDefaultCalendarACLEntry.prototype = {
@@ -111,16 +112,22 @@ calDefaultCalendarACLEntry.prototype = {
     },
 
     getUserAddresses: function calDefaultCalendarACLEntry_getUserAddresses(aCount) {
-        let identities = this._getIdentities(aCount);
+        let identities = this.getUserIdentities(aCount);
         let addresses = [ id.email for each (id in identities) ];
         return addresses;
     },
 
     getUserIdentities: function calDefaultCalendarACLEntry_getUserIdentities(aCount) {
-        return this._getIdentities(aCount)
+        let identity = cal.getEmailIdentityOfCalendar(this.mCalendar);
+        if (identity) {
+            aCount.value = 1;
+            return [identity];
+        } else {
+            return this._getIdentities(aCount);
+        }
     },
     getOwnerIdentities: function calDefaultCalendarACLEntry_getOwnerIdentities(aCount) {
-        return this._getIdentities(aCount)
+        return this._getIdentities(aCount);
     },
 
     refresh: function calDefaultCalendarACLEntry_refresh() {
