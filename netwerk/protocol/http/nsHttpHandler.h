@@ -314,6 +314,7 @@ private:
     nsXPIDLCString mAppName;
     nsXPIDLCString mAppVersion;
     nsCString      mCompatFirefox;
+    nsXPIDLCString mCompatDevice;
 
     nsCString      mUserAgent;
     nsXPIDLCString mUserAgentOverride;
