@@ -139,7 +139,6 @@
 #include "nsRecentBadCerts.h"
 #include "nsNSSIOLayer.h"
 
-#include "mozilla/Assertions.h"
 #include "nsIThreadPool.h"
 #include "nsXPCOMCIDInternal.h"
 #include "nsComponentManagerUtils.h"
