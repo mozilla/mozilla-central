@@ -1,3 +1,4 @@
+// originally from m-c/browser/base/content/test/browser_pageInfo.js.
 function test() {
   waitForExplicitFinish();
 
@@ -6,24 +7,22 @@ function test() {
   gBrowser.selectedTab = gTestPage;
   gTestPage.linkedBrowser.addEventListener("load", handleLoad, true);
   content.location =
-    "http://mochi.test:8888/browser/suite/browser/test/feed_tab.html";
+    "http://example.com/browser/suite/browser/test/feed_tab.html";
   gTestPage.focus();
-  var obs = Components.classes["@mozilla.org/observer-service;1"]
-                      .getService(Components.interfaces.nsIObserverService);
 
   var observer = {
     observe: function(win, topic, data) {
       if (topic != "page-info-dialog-loaded")
         return;
 
-      obs.removeObserver(observer, "page-info-dialog-loaded");
+      Services.obs.removeObserver(observer, "page-info-dialog-loaded");
       handlePageInfo();
     }
   };
 
   function handleLoad() {
     gTestPage.linkedBrowser.removeEventListener("load", handleLoad, true);
-    obs.addObserver(observer, "page-info-dialog-loaded", false);
+    Services.obs.addObserver(observer, "page-info-dialog-loaded", false);
     pageInfo = BrowserPageInfo();
   }
 

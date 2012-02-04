@@ -64,9 +64,13 @@ var gPermObj = {
   },
   install: function getInstallDefaultPermission()
   {
-    if (Services.prefs.getBoolPref("xpinstall.whitelist.required"))
-      return BLOCK;
-    return ALLOW;
+    try {
+      if (!Services.prefs.getBoolPref("xpinstall.whitelist.required"))
+        return ALLOW;
+    }
+    catch (e) {
+    }
+    return BLOCK;
   },
   geo: function getGeoDefaultPermission()
   {
@@ -123,7 +127,10 @@ function initRow(aPartId)
     return;
   }
   checkbox.removeAttribute("disabled");
-  var perm = Services.perms.testPermission(gPermURI, aPartId);
+  var pm = Services.perms;
+  var perm = aPartId == "geo" ? pm.testExactPermission(gPermURI, aPartId) :
+                                pm.testPermission(gPermURI, aPartId);
+ 
   if (perm) {
     checkbox.checked = false;
     command.removeAttribute("disabled");
