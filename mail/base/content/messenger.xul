@@ -117,6 +117,8 @@
 <script type="application/javascript" src="chrome://messenger/content/selectionsummaries.js"/>
 <script type="application/javascript" src="chrome://messenger/content/msgMail3PaneWindow.js"/>
 <script type="application/javascript" src="chrome://messenger/content/specialTabs.js"/>
+<!-- accountProvisionerTab.js relies on code from specialTabs.js, and so much be loaded after it. -->
+<script type="application/javascript" src="chrome://messenger/content/newmailaccount/accountProvisionerTab.js"/>
 <script type="application/javascript" src="chrome://messenger/content/glodaFacetTab.js"/>
 <script type="application/javascript" src="chrome://messenger/content/searchBar.js"/>
 <script type="application/javascript" src="chrome://messenger/content/mail3PaneWindowCommands.js"/>

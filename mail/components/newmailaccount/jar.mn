@@ -1,4 +1,5 @@
 messenger.jar:
+    content/messenger/newmailaccount/accountProvisionerTab.js   (content/accountProvisionerTab.js)
     content/messenger/newmailaccount/accountProvisioner.xhtml   (content/accountProvisioner.xhtml)
     content/messenger/newmailaccount/accountProvisioner.js      (content/accountProvisioner.js)
     content/messenger/newmailaccount/uriListener.js             (content/uriListener.js)

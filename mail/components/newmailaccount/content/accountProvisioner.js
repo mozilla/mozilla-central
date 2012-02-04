@@ -459,74 +459,16 @@ var EmailAccountProvisioner = {
           .getMostRecentWindow("mail:3pane");
 
     let tabmail = mail3Pane.document.getElementById("tabmail");
-    tabmail.openTab("contentTab", {
+    tabmail.openTab("accountProvisionerTab", {
       contentPage: url,
+      realName: firstName + " " + lastName,
+      email: email,
+      searchEngine: provider.search_engine,
       onLoad: function (aEvent, aBrowser) {
-        // There are a few things we want to do once the tab content loads:
-        // 1.  We want to register an observer to watch for HTTP requests
-        //     where the contentType contains text/xml
-        // 2.  We want to register a tab monitor to watch for when the
-        //     tab we're opening closes, so that it can clean up the
-        //     observer.
-
-        // At this point, when onLoad is called, we run into some scoping
-        // issues.  Services and gLog are no longer in scope, so we have to
-        // redefine them.
-        Components.utils.import("resource://gre/modules/Services.jsm");
-        Components.utils.import("resource:///modules/gloda/log4moz.js");
-        let gLog = Log4Moz.getConfiguredLogger("mail.provider");
-
-        // We'll construct our special observer (defined in urlListener.js)
-        // that will watch for requests where the contentType contains
-        // text/xml.
-        let observer = new mail3Pane.httpRequestObserver(aBrowser, {
-          realName: firstName + " " + lastName,
-          email: email,
-          searchEngine: provider.search_engine,
-        });
-
-        // Register our observer
-        Services.obs.addObserver(observer, "http-on-examine-response",
-                                 false);
-        gLog.info("httpRequestObserver wired up.");
-
-        // The provisionerTabMonitor lets us clean up when the tab closes.
-        // This tab closure can occur from a variety of events (successful
-        // account transaction, user closes the tab, user quits Thunderbird,
-        // etc), and so the tab monitor allows us to catch all of those
-        // cases.
-        let provisionerTabMonitor = {
-          monitorName: "accountProvisionerMonitor",
-          onTabTitleChanged: function() {},
-          onTabSwitched: function(aTab, aOldTab) {},
-          onTabOpened: function(aTab, aIsFirstTab, aWasCurrentTab) {},
-          onTabClosing: function(aTab) {
-            if (aTab.browser === aBrowser) {
-              // Once again, due to scoping issues, we have to re-import
-              // Services.
-              Components.utils.import("resource://gre/modules/Services.jsm");
-              gLog.info("Performing account provisioner cleanup");
-              gLog.info("Unregistering tab monitor");
-              tabmail.unregisterTabMonitor(provisionerTabMonitor);
-              gLog.info("Removing httpRequestObserver");
-              Services.obs.removeObserver(observer, "http-on-examine-response");
-              gLog.info("Account provisioner cleanup is done.");
-            }
-          },
-          onTabPersist: function(aTab) {},
-          onTabRestored: function(aTab, aState, aIsFirstTab) {},
-        }
-
-        // Register the monitor.
-        tabmail.registerTabMonitor(provisionerTabMonitor);
-
-        // Close the Account Provisioner window once the page
-        // has loaded.
-        gLog.info("Handing off to the contentTab, and closing Email "
-                  + "Account Provisioner.")
         window.close();
       },
     });
+
     // Wait for the handler to close us.
     EmailAccountProvisioner.spinning(true);
     EmailAccountProvisioner.searchEnabled(false);

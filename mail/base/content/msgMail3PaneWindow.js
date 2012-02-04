@@ -427,6 +427,7 @@ function OnLoadMessenger()
   // This also registers the contentTabType ("contentTab")
   specialTabs.openSpecialTabsOnStartup();
   tabmail.registerTabType(webSearchTabType);
+  tabmail.registerTabType(accountProvisionerTabType);
 
   // Set up the summary frame manager to handle loading pages in the
   // multi-message pane
