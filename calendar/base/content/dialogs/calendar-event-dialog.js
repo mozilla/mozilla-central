@@ -1880,6 +1880,17 @@ function openAttachment() {
 }
 
 /**
+ * Copies the link location of the first selected attachment to the clipboard
+ */
+function copyAttachment() {
+    let documentLink = document.getElementById("attachment-link");
+    let attURI = documentLink.getSelectedItem(0).attachment.uri.spec;
+    let clipboard = Components.classes["@mozilla.org/widget/clipboardhelper;1"]
+                              .getService(Components.interfaces.nsIClipboardHelper);
+    clipboard.copyString(attURI);
+}
+
+/**
  * Handler function to handle pressing keys in the attachment listbox.
  *
  * @param event     The DOM event caused by the key press.

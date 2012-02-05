@@ -213,7 +213,9 @@
                  disable-on-readonly="true"
                  oncommand="attachURL()"/>
         <command id="cmd_openAttachment"
-                 oncommand="openAttachment()"/> 
+                 oncommand="openAttachment()"/>
+        <command id="cmd_copyAttachment"
+                 oncommand="copyAttachment()"/>
         <command id="cmd_deleteAttachment"
                  disable-on-readonly="true"
                  oncommand="deleteAttachment()"/>
@@ -1171,6 +1173,10 @@
                       label="&event.attachments.popup.open.label;"
                       accesskey="&event.attachments.popup.open.accesskey;"
                       command="cmd_openAttachment"/>
+            <menuitem id="attachment-popup-copy"
+                      label="&calendar.copylink.label;"
+                      accesskey="&calendar.copylink.accesskey;"
+                      command="cmd_copyAttachment"/>
             <menuitem id="attachment-popup-delete"
                       label="&event.attachments.popup.remove.label;"
                       accesskey="&event.attachments.popup.remove.accesskey;"

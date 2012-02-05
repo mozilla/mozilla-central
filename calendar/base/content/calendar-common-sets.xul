@@ -598,5 +598,13 @@
         </menupopup>
       </menu>
     </menupopup>
+
+    <!-- TASKVIEW LINK CONTEXT MENU -->
+    <menupopup id="taskview-link-context-menu">
+      <menuitem id="taskview-link-context-menu-copy"
+                label="&calendar.copylink.label;"
+                accesskey="&calendar.copylink.accesskey;"
+                oncommand="taskViewCopyLink(document.popupNode)"/>
+    </menupopup>
   </popupset>
 </overlay>
