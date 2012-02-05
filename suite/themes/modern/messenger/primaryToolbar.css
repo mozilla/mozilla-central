@@ -265,6 +265,33 @@ toolbarpaletteitem > #button-delete {
   -moz-image-region: rect(544px 199px 577px 150px) !important;
 }
 
+/* To workaround the mailnews icons are 33px tall and have no small versions */
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button,
+toolbar[iconsize="small"] > #print-button {
+  list-style-image: url("chrome://communicator/skin/icons/common.png");
+}
+
+toolbar[iconsize="small"] > toolbarpaletteitem > #print-button,
+toolbar[iconsize="small"] > #print-button,
+#print-button {
+  -moz-image-region: rect(5px 42px 38px 0);
+}
+
+toolbar[iconsize="small"] > #print-button:hover,
+#print-button:hover {
+  -moz-image-region: rect(5px 84px 38px 42px);
+}
+
+toolbar[iconsize="small"] > #print-button:hover:active,
+#print-button:hover:active {
+  -moz-image-region: rect(5px 126px 38px 84px);
+}
+
+toolbar[iconsize="small"] > #print-button[disabled="true"],
+#print-button[disabled="true"] {
+  -moz-image-region: rect(5px 168px 38px 126px) !important;
+}
+
 #button-stop {
   list-style-image: url("chrome://communicator/skin/icons/btn1.gif");
   -moz-image-region: rect(68px 49px 101px 0);
