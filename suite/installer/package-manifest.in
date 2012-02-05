@@ -107,9 +107,7 @@
 @BINPATH@/@MOZ_APP_NAME@.exe
 #else
 @BINPATH@/@MOZ_APP_NAME@-bin
-#ifndef XP_MACOSX
 @BINPATH@/@MOZ_APP_NAME@
-#endif
 #endif
 @BINPATH@/application.ini
 @BINPATH@/platform.ini
