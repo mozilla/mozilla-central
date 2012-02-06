@@ -21,7 +21,6 @@ function testBrokenCert() {
 
   // Tweak the expert mode pref
   Services.prefs.setBoolPref("browser.xul.error_pages.expert_bad_cert", true);
-  // Application.prefs.setValue("browser.xul.error_pages.expert_bad_cert", true);
 
   window.addEventListener("DOMContentLoaded", testExpertPref, true);
   getBrowser().reload();
@@ -39,6 +38,5 @@ function testExpertPref() {
   getBrowser().removeCurrentTab();
   if (Services.prefs.prefHasUserValue("browser.xul.error_pages.expert_bad_cert"))
     Services.prefs.clearUserPref("browser.xul.error_pages.expert_bad_cert");
-  // Application.prefs.get("browser.xul.error_pages.expert_bad_cert").reset();
   finish();
 }

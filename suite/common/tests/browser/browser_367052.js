@@ -36,32 +36,31 @@
 
 function test() {
   /** Test for Bug 367052 **/
-  
+
   waitForExplicitFinish();
-  
+
   // make sure that the next closed tab will increase getClosedTabCount
   let max_tabs_undo = Services.prefs.getIntPref("browser.sessionstore.max_tabs_undo");
   Services.prefs.setIntPref("browser.sessionstore.max_tabs_undo", max_tabs_undo + 1);
   let closedTabCount = ss.getClosedTabCount(window);
-  
+
   // restore a blank tab
   let tab = getBrowser().addTab("about:");
   tab.linkedBrowser.addEventListener("load", function(aEvent) {
     this.removeEventListener("load", arguments.callee, true);
-    
-    let browser = getBrowser().getBrowserForTab(tab);
-    let history = browser.webNavigation.sessionHistory;
+
+    let history = tab.linkedBrowser.webNavigation.sessionHistory;
     ok(history.count >= 1, "the new tab does have at least one history entry");
-    
+
     ss.setTabState(tab, '{ "entries": [] }');
     tab.linkedBrowser.addEventListener("load", function(aEvent) {
       this.removeEventListener("load", arguments.callee, true);
       ok(history.count == 0, "the tab was restored without any history whatsoever");
-      
+
       getBrowser().removeTab(tab);
       ok(ss.getClosedTabCount(window) == closedTabCount,
          "The closed blank tab wasn't added to Recently Closed Tabs");
-      
+
       // clean up
       if (Services.prefs.prefHasUserValue("browser.sessionstore.max_tabs_undo"))
         Services.prefs.clearUserPref("browser.sessionstore.max_tabs_undo");
