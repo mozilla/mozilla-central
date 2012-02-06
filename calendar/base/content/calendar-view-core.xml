@@ -295,7 +295,7 @@
             } else {
                 items = [this.mOccurrence];
             }
-            this.calendarView.setSelectedItems(items.length, items, true);
+            this.calendarView.setSelectedItems(items.length, items);
         ]]></body>
       </method>
       <method name="stopEditing">
