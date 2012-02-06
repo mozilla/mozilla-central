@@ -47,9 +47,16 @@
   <key id="calendar-new-event-key" removeelement="true"/>
   <key id="calendar-new-todo-key" removeelement="true"/>
 
+  <menuitem id="CustomizeTaskActionsToolbar"
+            oncommand="ltnSuiteUtils.customizeToolbar(this)"/>
   <menuitem id="CustomizeCalendarToolbar"
             oncommand="ltnSuiteUtils.customizeToolbar(this)"/>
   <menuitem id="CustomizeTaskToolbar"
             oncommand="ltnSuiteUtils.customizeToolbar(this)"/>
+
+  <toolbox id="task-actions-toolbox"
+           xpfe="false"/>
+  <toolbar id="task-actions-toolbar"
+           xpfe="false"/>
 
 </overlay>

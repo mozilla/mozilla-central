@@ -134,10 +134,13 @@
                       </menupopup>
 
                       <toolbox id="task-actions-toolbox"
-                               defaulticonsize="small"
                                minwidth="50px"
-                               defaultlabelalign="end"
-                               defaultmode="full">
+                               mode="full"
+                               iconsize="small"
+                               labelalign="end"
+                               defaultmode="full"
+                               defaulticonsize="small"
+                               defaultlabelalign="end">
                         <toolbarpalette id="task-actions-toolbar-palette">
                           <toolbarbutton id="task-actions-category"
                                          type="menu"
@@ -176,8 +179,12 @@
 
                         <toolbar id="task-actions-toolbar" align="start"
                                  class="inline-toolbar"
-                                 customizable="true" mode="full"
-                                 defaulticonsize="small" defaultmode="full"
+                                 customizable="true"
+                                 mode="full"
+                                 iconsize="small"
+                                 labelalign="end"
+                                 defaultmode="full"
+                                 defaulticonsize="small"
                                  context="task-actions-toolbar-context-menu"
                                  defaultset="task-actions-category,task-actions-markcompleted,task-actions-priority,calendar-delete-task-button"/>
                       </toolbox>
