@@ -223,7 +223,7 @@
         <tree id="imagetree" onselect="onImageSelect();" contextmenu="picontext"
               ondraggesture="onBeginLinkDrag(event,'image-address','image-alt')">
           <treecols>
-            <treecol sortSeparators="true" persist="hidden width" flex="10"
+            <treecol sortSeparators="true" primary="true" persist="width" flex="10"
                      width="10" id="image-address" label="&mediaAddress;"/>
             <splitter class="tree-splitter"/>
             <treecol sortSeparators="true" persist="hidden width" flex="2"
@@ -408,7 +408,7 @@
         <tree id="formtree" class="fixedsize" onselect="onFormSelect();" contextmenu="picontext">
           <treecols>
             <splitter class="tree-splitter"/>
-            <treecol sortSeparators="true" persist="hidden width" flex="1"
+            <treecol sortSeparators="true" primary="true" persist="width" flex="1"
                          width="1" id="form-name"   label="&formName;"/>
             <splitter class="tree-splitter"/>
             <treecol sortSeparators="true" persist="hidden width" flex="3"
@@ -444,7 +444,7 @@
           <label control="formpreview" class="header" value="&formFields;"/>
           <tree id="formpreview" flex="1" contextmenu="picontext">
             <treecols>
-              <treecol sortSeparators="true" persist="hidden width" flex="3"
+              <treecol sortSeparators="true" primary="true" persist="width" flex="3"
                            width="3" id="field-label"  label="&formLabel;"/>
               <splitter class="tree-splitter"/>
               <treecol sortSeparators="true" persist="hidden width" flex="3"
@@ -465,7 +465,7 @@
       <vbox>
         <tree id="linktree" flex="1" ondraggesture="onBeginLinkDrag(event,'link-address','link-name')" contextmenu="picontext">
           <treecols>
-            <treecol sortSeparators="true" persist="hidden width" flex="5"
+            <treecol sortSeparators="true" primary="true" persist="width" flex="5"
                          width="5" id="link-name"     label="&linkName;"/>
             <splitter class="tree-splitter"/>
             <treecol sortSeparators="true" persist="hidden width" flex="7"
