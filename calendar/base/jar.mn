@@ -104,6 +104,8 @@ calendar.jar:
 % style chrome://calendar/content/calendar-event-dialog.xul chrome://global/skin/toolbar.css
 % style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar-task-view.css
 % style chrome://global/content/customizeToolbar.xul chrome://calendar/skin/calendar-event-dialog.css
+% style chrome://calendar/content/calendar-event-dialog.xul chrome://calendar/skin/common/dialogs/calendar-event-dialog.css
+% style chrome://calendar/content/calendar-event-dialog-attendees.xul chrome://calendar/skin/common/dialogs/calendar-event-dialog.css
     skin/calendar/abcard.png                               (themes/common/images/abcard.png)
     skin/calendar/alarm-flashing.png                       (themes/common/images/alarm-flashing.png)
     skin/calendar/alarm-icons.png                          (themes/common/images/alarm-icons.png)
@@ -133,6 +135,15 @@ calendar.jar:
     skin/calendar/widgets/nav-today-hov.svg                (themes/common/widgets/images/nav-today-hov.svg)
     skin/calendar/widgets/view-navigation.svg              (themes/common/widgets/images/view-navigation.svg)
     skin/calendar/widgets/view-navigation-hov.svg          (themes/common/widgets/images/view-navigation-hov.svg)
+    skin/calendar/common/calendar-daypicker.css            (themes/common/calendar-daypicker.css)
+    skin/calendar/common/calendar-management.css           (themes/common/calendar-management.css)
+    skin/calendar/common/calendar-task-view.css            (themes/common/calendar-task-view.css)
+    skin/calendar/common/calendar-unifinder.css            (themes/common/calendar-unifinder.css)
+    skin/calendar/common/calendar-views.css                (themes/common/calendar-views.css)
+    skin/calendar/common/today-pane.css                    (themes/common/today-pane.css)
+    skin/calendar/common/dialogs/calendar-alarm-dialog.css (themes/common/dialogs/calendar-alarm-dialog.css)
+    skin/calendar/common/dialogs/calendar-event-dialog.css (themes/common/dialogs/calendar-event-dialog.css)
+    skin/calendar/common/widgets/calendar-widgets.css      (themes/common/widgets/calendar-widgets.css)
     skin/calendar/cal-icon32.png                           (themes/@THEME@/images/cal-icon32.png)
     skin/calendar/calendar-alarm-dialog.css                (themes/@THEME@/dialogs/calendar-alarm-dialog.css)
     skin/calendar/calendar-daypicker.css                   (themes/@THEME@/calendar-daypicker.css)
@@ -166,6 +177,7 @@ calendar.jar:
 # The following files are added for aero support on windows.
 #ifdef XP_WIN
 % style chrome://calendar/content/calendar-event-dialog.xul chrome://calendar-windows/skin/calendar-event-dialog.css os=WINNT
+% style chrome://calendar/content/calendar-event-dialog-attendees.xul chrome://calendar-windows/skin/calendar-event-dialog.css os=WINNT
 % style chrome://calendar/content/calendar-occurrence-prompt.xul chrome://calendar-windows/skin/calendar.css os=WINNT osversion>=6
 % skin calendar-windows classic/1.0 chrome/calendar/skin/calendar/win-classic/ os=WINNT osversion<6
 % skin calendar-windows classic/1.0 chrome/calendar/skin/calendar/win-aero/ os=WINNT osversion>=6

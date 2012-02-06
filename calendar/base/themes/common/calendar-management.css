@@ -1,0 +1,49 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+calendar-list-tree > tree > treechildren::-moz-tree-image(checkbox-treecol) {
+    list-style-image: url(chrome://calendar/skin/checkbox-images.png);
+}
+
+calendar-list-tree > tree > treechildren::-moz-tree-cell(color-treecol, color-default) {
+    background-color: #a8c2e1;
+}
+
+calendar-list-tree > tree > treechildren::-moz-tree-cell(color-treecol) {
+    margin: 1px;
+}
+
+calendar-list-tree > tree > treechildren::-moz-tree-cell(calendarname-treecol) {
+    -moz-margin-start: 1px;
+}
+
+calendar-list-tree > tree > treechildren::-moz-tree-image(status-treecol, readonly) {
+    list-style-image: url(chrome://calendar/skin/calendar-status.png);
+    -moz-image-region: rect(0px, 14px, 14px, 0px);
+}
+
+calendar-list-tree > tree > treechildren::-moz-tree-image(status-treecol, readfailed) {
+    list-style-image: url(chrome://calendar/skin/calendar-status.png);
+    -moz-image-region: rect(0px, 28px, 14px, 14px);
+}
+
+calendar-list-tree > tree {
+  border: none;
+  padding: 0;
+  margin: 4px 0;
+  -moz-border-top-colors: none;
+  -moz-border-right-colors: none;
+  -moz-border-bottom-colors: none;
+  -moz-border-left-colors: none;
+  -moz-appearance: none;
+}
+
+calendar-list-tree > tree > treecols > treecol[hideheader="true"],
+calendar-list-tree > tree > treecols > treecol[hideheader="true"] {
+  font-size: 0px;
+  border: none;
+  padding: 0;
+  max-height: 0px;
+  height: 0px;
+}

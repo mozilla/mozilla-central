@@ -1,0 +1,115 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* Bindings */
+calendar-alarm-widget {
+    -moz-binding: url(chrome://calendar/content/widgets/calendar-alarm-widget.xml#calendar-alarm-widget);
+}
+
+/* Alarm dialog styles */
+#alarm-richlist {
+    margin: 10px;
+}
+
+#alarm-actionbar {
+    min-width: 1px;
+    margin: 0 5px;
+}
+
+/* Alarm widget specific styles */
+calendar-alarm-widget {
+    border-bottom: 1px dotted #C0C0C0;
+    padding: 6px 7px;
+}
+
+calendar-alarm-widget[selected="true"] {
+    background-image: url(chrome://mozapps/skin/extensions/itemEnabledFader.png);
+    background-color: #a2bdd8;
+    padding: 0 5px;
+}
+
+calendar-alarm-widget[selected="true"] .alarm-title-label {
+   font-weight: bold;
+}
+
+calendar-alarm-widget[selected="true"] .alarm-action-buttons {
+    display: -moz-box;
+}
+
+calendar-alarm-widget[selected="true"] > hbox {
+    margin: 5px;
+}
+
+calendar-alarm-widget[selected="true"] .alarm-relative-date-label,
+.additional-information-box,
+.alarm-action-buttons {
+    display: none;
+}
+
+calendar-alarm-widget[selected="true"] .additional-information-box,
+calendar-alarm-widget[selected="true"] .action-buttons-box {
+    display: -moz-box;
+}
+
+.alarm-details-label {
+    text-decoration: underline;
+}
+
+calendar-alarm-widget[selected="true"] .alarm-calendar-image {
+    list-style-image: url(chrome://calendar/skin/cal-icon32.png);
+}
+
+.resizer-box {
+    min-height: 15px;
+}
+
+.snooze-popup-ok-button {
+    -moz-image-region: rect(0px, 14px, 14px, 0px);
+}
+
+.snooze-popup-ok-button:hover {
+    -moz-image-region: rect(14px, 14px, 28px, 0px);
+}
+
+.snooze-popup-ok-button:active {
+    -moz-image-region: rect(28px, 14px, 42px, 0px);
+}
+
+.snooze-popup-ok-button[disabled="true"] {
+    -moz-image-region: rect(42px, 14px, 56px, 0px);
+}
+
+.snooze-popup-cancel-button {
+    -moz-image-region: rect(0px, 28px, 14px, 14px);
+}
+
+.snooze-popup-cancel-button:hover {
+    -moz-image-region: rect(14px, 28px, 28px, 14px);
+}
+
+.snooze-popup-cancel-button:active {
+    -moz-image-region: rect(28px, 28px, 42px, 14px);
+}
+
+.snooze-popup-button {
+    list-style-image: url(chrome://calendar/skin/ok-cancel.png);
+    min-width: 0;
+    -moz-appearance: toolbarbutton;
+}
+
+.snooze-popup-button > .button-box > .button-icon {
+    margin: 0;
+}
+
+.snooze-popup-button > .button-box {
+    border: 0;
+    padding: 0;
+    -moz-box-pack: center;
+    -moz-box-align: center;
+}
+
+.snooze-popup-button:focus > .button-box {
+    border: 1px dotted ThreeDDarkShadow;
+    padding: 0;
+}

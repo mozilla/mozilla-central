@@ -163,7 +163,8 @@
                   // the height of the text blocks contained in the grid items needs
                   // to have the same height as the items of the attendee-list.
                   var height = template.boxObject.height - 1;
-                  stylesheet.insertRule(".freebusy-grid { min-height: " + height + "px; }", 0);
+                  stylesheet.insertRule(".freebusy-grid { min-height: " + height + "px; }",
+                                        stylesheet.cssRules.length);
                   break;
               }
           }

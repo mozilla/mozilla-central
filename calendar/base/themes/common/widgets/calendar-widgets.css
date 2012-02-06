@@ -1,0 +1,59 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+treenode-checkbox {
+  -moz-box-align: center;
+  padding-top: 4px;
+  -moz-padding-start: 4px;
+  -moz-padding-end: 4px;
+  font-weight: bold;
+}
+
+.checkbox-label-box {
+  -moz-margin-start: 4px;
+}
+
+.checkbox-icon {
+  -moz-margin-end: 2px;
+}
+
+.checkbox-label {
+  margin: 0 !important;
+}
+
+treenode-checkbox > .checkbox-label-center-box > .checkbox-label-box > .checkbox-label {
+  font-weight: bold;
+  border-bottom: 1px solid -moz-Dialog;
+}
+
+.view-navigation-button {
+  list-style-image: url(chrome://calendar/skin/widgets/view-navigation.svg);
+  -moz-user-focus: normal;
+}
+
+.view-navigation-button[disabled="true"] {
+  opacity: .3;
+}
+
+.view-navigation-button:-moz-locale-dir(ltr)[type="prev"],
+.view-navigation-button:-moz-locale-dir(rtl)[type="next"] {
+  -moz-transform: scaleX(-1);
+}
+
+.view-navigation-button > .toolbarbutton-icon {
+  margin: 0px !important;
+}
+
+.view-navigation-button > .toolbarbutton-text  {
+  display: none;
+}
+
+.selected-text {
+    font-weight: bold;
+}
+
+.selected-text:not([selected="true"]),
+.unselected-text[selected="true"] {
+    visibility: hidden;
+}

@@ -1,0 +1,44 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+daypicker {
+  -moz-binding: url(chrome://calendar/content/calendar-daypicker.xml#daypicker);
+  list-style-image: url("chrome://calendar/skin/daypicker-background.png");
+  -moz-image-region: rect(0px 31px 30px 0px);
+  background-color: -moz-Field;
+  text-align: center;
+}
+
+daypicker[mode="monthly-days"] {
+  width: 21px;
+  height: 15px;
+}
+
+daypicker:hover {
+  -moz-image-region: rect(0px 62px 30px 31px);
+  cursor: pointer;
+}
+
+daypicker:hover:active,
+daypicker[open="true"] {
+  -moz-image-region: rect(0px 93px 30px 62px);
+  cursor: pointer;
+}
+
+daypicker[disabled="true"],
+daypicker[disabled="true"][checked="true"],
+daypicker[disabled="true"]:hover,
+daypicker[disabled="true"]:hover:active,
+daypicker[disabled="true"][open="true"] {
+  -moz-image-region: rect(0px 31px 30px 0px);
+  color: GrayText;
+  cursor: default;
+  background-color: -moz-Dialog;
+}
+
+daypicker[checked="true"] {
+  -moz-image-region: rect(0px 124px 30px 93px);
+  background-color: Highlight;
+  color: HighlightText;
+}

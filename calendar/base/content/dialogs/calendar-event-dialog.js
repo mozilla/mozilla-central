@@ -1037,15 +1037,18 @@ function updateTitle() {
 function updateStyle() {
     const kDialogStylesheet = "chrome://calendar/skin/calendar-event-dialog.css";
 
-    for each (var stylesheet in document.styleSheets) {
+    for each (let stylesheet in document.styleSheets) {
         if (stylesheet.href == kDialogStylesheet) {
-            if (isSunbird()) {
-                stylesheet.insertRule(".lightning-only { display: none; }", 0);
+            if (cal.isSunbird()) {
+                stylesheet.insertRule(".lightning-only { display: none; }",
+                                      stylesheet.cssRules.length);
             }
-            if (isEvent(window.calendarItem)) {
-                stylesheet.insertRule(".todo-only { display: none; }", 0);
-            } else if (isToDo(window.calendarItem)) {
-                stylesheet.insertRule(".event-only { display: none; }", 0);
+            if (cal.isEvent(window.calendarItem)) {
+                stylesheet.insertRule(".todo-only { display: none; }",
+                                      stylesheet.cssRules.length);
+            } else if (cal.isToDo(window.calendarItem)) {
+                stylesheet.insertRule(".event-only { display: none; }",
+                                      stylesheet.cssRules.length);
             }
             return;
         }

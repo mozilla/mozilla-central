@@ -1,0 +1,46 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+/* only format Unifinder lists */
+#unifinder-search-results-tree > treechildren::-moz-tree-cell-text(highpriority) {
+   font-weight: bold;
+}
+
+#unifinder-search-results-tree > treechildren::-moz-tree-cell-text(lowpriority) {
+   font-style: italic;
+   color: GrayText !important;
+   background-color: -moz-field;
+}
+
+/* workaround to avoid Window Flick */
+#unifinder-search-results-tree {
+    -moz-appearance: none;
+    background-color: -moz-Field;
+    color: -moz-FieldText;
+    min-height: 92px;
+    border: 0;
+    -moz-border-bottom-colors: ThreeDHighlight ThreeDLightShadow;
+    -moz-border-top-colors: ThreeDShadow ThreeDDarkShadow;
+    border-bottom: 1px solid;
+    border-top: 1px solid;
+    margin: 0;
+}
+
+/* added for new id ..... search box ..... */
+#unifinder-searchBox {
+    height: 30px;
+}
+
+.unifinder-closebutton {
+    list-style-image: url("chrome://global/skin/icons/close.png");
+    -moz-image-region: rect(0 16px 16px 0);
+}
+
+.unifinder-closebutton:hover {
+    -moz-image-region: rect(0 32px 16px 16px);
+}
+
+.unifinder-closebutton:hover:active {
+    -moz-image-region: rect(0 48px 16px 32px);
+}
