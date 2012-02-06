@@ -656,6 +656,8 @@
       <parameter name="aBinding"/>
         <body><![CDATA[
           aBinding.adjustWeekdayLength();
+          // Delete the timer for the time indicator in day/week view.
+          timeIndicator.cancel();
         ]]></body>
       </method>
 

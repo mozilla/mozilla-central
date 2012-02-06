@@ -122,6 +122,9 @@ pref("calendar.view.dayendhour", 17);
 // number of visible hours for day and week views
 pref("calendar.view.visiblehours", 9);
 
+// time indicator update interval in minutes (0 = no indicator)
+pref("calendar.view.timeIndicatorInterval", 15);
+
 // If true, mouse scrolling via shift+wheel will be enabled
 pref("calendar.view.mousescroll", true);
 

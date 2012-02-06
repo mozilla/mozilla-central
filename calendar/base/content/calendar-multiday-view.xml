@@ -62,8 +62,10 @@
     -->
   <binding id="calendar-time-bar">
     <content>
-      <xul:box xbl:inherits="orient,width,height" flex="1" anonid="topbox">
-      </xul:box>
+      <xul:stack anonid="timebarboxstack" style="display: block; position: absolute" xbl:inherits="orient,width,height" flex="1">
+        <xul:box anonid="topbox" xbl:inherits="orient,width,height" flex="1"/>
+        <xul:box anonid="timeIndicatorBoxTimeBar" class="timeIndicator-timeBar" xbl:inherits="orient" hidden="true"/>
+      </xul:stack>
     </content>
 
     <implementation>
@@ -270,7 +272,9 @@
     <content>
       <xul:stack anonid="boxstack" flex="1" class="multiday-column-box-stack" style="min-width: 1px; min-height: 1px">
         <xul:box anonid="bgbox" flex="1" class="multiday-column-bg-box" style="min-width: 1px; min-height: 1px"/>
-        <xul:box xbl:inherits="context" anonid="topbox" flex="1" equalsize="always" class="multiday-column-top-box" style="min-width: 1px; min-height: 1px" mousethrough="always"/>
+        <xul:box anonid="topbox" class="multiday-column-top-box" flex="1" style="min-width: 1px; min-height: 1px"
+                 xbl:inherits="context" equalsize="always" mousethrough="always"/>
+        <xul:box anonid="timeIndicatorBox" xbl:inherits="orient" class="timeIndicator" mousethrough="always" hidden="true"/>
         <xul:box anonid="fgbox" flex="1" class="fgdragcontainer" style="min-width: 1px; min-height: 1px; overflow:hidden;">
           <xul:box anonid="fgdragspacer" style="display: inherit; overflow: hidden;">
             <xul:spacer flex="1"/>
@@ -418,6 +422,13 @@
               };
           }
           return this.mFgboxes;
+        ]]></getter>
+      </property>
+
+      <property name="timeIndicatorBox"
+        readonly="true">
+        <getter><![CDATA[
+          return document.getAnonymousElementByAttribute(this, "anonid", "timeIndicatorBox");
         ]]></getter>
       </property>
 
@@ -2448,6 +2459,11 @@
                        this, "anonid", "scrollbox");
         document.getAnonymousElementByAttribute(
             scrollbox, "class", "box-inherit scrollbox-innerbox").flex = "1";
+
+        // set the time interval for the time indicator timer
+        this.setTimeIndicatorInterval(getPrefSafe("calendar.view.timeIndicatorInterval", 15));
+        this.enableTimeIndicator();
+
         this.reorient();
       ]]></constructor>
 
@@ -2462,6 +2478,96 @@
       <property name="supportsRotation" readonly="true"
                 onget="return true"/>
 
+      <method name="setTimeIndicatorInterval">
+        <parameter name="aPrefInterval"/>
+        <body><![CDATA[
+          // If the preference just edited by the user is outside the valid
+          // range [0, 1440], we change it into the nearest limit (0 or 1440).
+          let newTimeInterval = Math.max(0, Math.min(1440, aPrefInterval));
+          if (newTimeInterval != aPrefInterval) {
+              cal.setPref("calendar.view.timeIndicatorInterval", newTimeInterval);
+          }
+
+          if (newTimeInterval != this.mTimeIndicatorInterval) {
+              this.mTimeIndicatorInterval = newTimeInterval;
+          }
+          if (this.mTimeIndicatorInterval == 0) {
+              timeIndicator.cancel();
+          }
+        ]]></body>
+      </method>
+
+      <method name="enableTimeIndicator">
+        <body><![CDATA[
+          // Hide or show the time indicator if the preference becomes 0 or greater than 0.
+          let hideIndicator = this.mTimeIndicatorInterval == 0;
+          setBooleanAttribute(this.timeBarTimeIndicator, "hidden", hideIndicator)
+          let todayColumn = this.findColumnForDate(this.today());
+          if (todayColumn) {
+              setBooleanAttribute(todayColumn.column.timeIndicatorBox, "hidden", hideIndicator)
+          }
+          // Update the timer but only under some circumstances, otherwise
+          // it will update the wrong view or it will start without need.
+          let currentMode = document.getElementById("modeBroadcaster").getAttribute("mode");
+          let currView = currentView().type;
+          if (currentMode == "calendar" && currView == this.type && !hideIndicator
+              && (currView == "day" || currView == "week")) {
+              this.updateTimeIndicatorPosition(true);
+          }
+        ]]></body>
+      </method>
+
+      <method name="updateTimeIndicatorPosition">
+        <parameter name="aUpdateTheTimer"/>
+        <parameter name="aPpmChanged"/>
+        <parameter name="aViewChanged"/>
+        <body><![CDATA[
+          let now = cal.now();
+          let nowMinutes = now.hour * 60 + now.minute;
+          if (aUpdateTheTimer) {
+              let prefInt = this.mTimeIndicatorInterval;
+              if (prefInt == 0) {
+                  timeIndicator.cancel()
+                  return;
+              }
+
+              // Increase the update interval if pixels per minute is small.
+              let oldPrefInt = prefInt;
+              if (aPpmChanged && this.mPixPerMin < 0.6) {
+                  prefInt = Math.round(prefInt / this.mPixPerMin);
+              }
+              if (!aPpmChanged || aViewChanged || oldPrefInt != prefInt) {
+                  // Synchronize the timer with a multiple of the interval.
+                  let firstInterval = (prefInt - nowMinutes % prefInt) * 60 - now.second;
+                  if (timeIndicator.timer) {
+                      timeIndicator.cancel();
+                  }
+                  timeIndicator.lastView = this.id;
+                  let self = this;
+                  timeIndicator.timer = setTimeout(function() {self.updateTimeIndicatorPosition(false);
+                                                               timeIndicator.start(prefInt * 60, self);},
+                                                   firstInterval * 1000);
+                  // Set the time for the first positioning of the indicator.
+                  let time = Math.floor(nowMinutes / prefInt) * prefInt;
+                  document.getElementById("day-view").mTimeIndicatorMinutes = time;
+                  document.getElementById("week-view").mTimeIndicatorMinutes = time;
+              }
+          } else if (aUpdateTheTimer === false) {
+              // Set the time for every positioning after the first
+              document.getElementById("day-view").mTimeIndicatorMinutes = nowMinutes;
+              document.getElementById("week-view").mTimeIndicatorMinutes = nowMinutes;
+          }
+          // Update the position of the indicator.
+          let position = Math.round(this.mPixPerMin * this.mTimeIndicatorMinutes) - 1;
+          let posAttr = (this.orient == "vertical" ? "top: " : "left: ");
+          this.timeBarTimeIndicator.setAttribute("style", posAttr + position + "px;");
+          let todayColumn = this.findColumnForDate(this.today());
+          if (todayColumn) {
+              todayColumn.column.timeIndicatorBox.setAttribute("style", "margin-" + posAttr + position + "px;");
+          }
+        ]]></body>
+      </method>
+
       <method name="handlePreference">
         <parameter name="aSubject"/>
         <parameter name="aTopic"/>
@@ -2473,7 +2579,6 @@
                 case "calendar.view.daystarthour":
                     this.setDayStartEndMinutes(aSubject.getIntPref(aPreference) * 60,
                                                this.mDayEndMin);
-
                     this.refreshView();
                     break;
 
@@ -2488,6 +2593,11 @@
                     this.refreshView();
                     break;
 
+                case "calendar.view.timeIndicatorInterval":
+                    this.setTimeIndicatorInterval(aSubject.getIntPref(aPreference));
+                    this.enableTimeIndicator();
+                    break;
+
                 default:
                     this.handleCommonPreference(aSubject, aTopic, aPreference);
                     break;
@@ -2499,27 +2609,39 @@
       <method name="onResize">
         <parameter name="aRealSelf"/>
         <body><![CDATA[
-          var self = this;
+          let self = this;
+          let isARelayout = true;
           if (aRealSelf) {
-            self = aRealSelf;
+              self = aRealSelf;
+              isARelayout = false;
           }
           let scrollbox = document.getAnonymousElementByAttribute(self, "anonid", "scrollbox");
-          var size;
+          let size;
           if (self.orient == "horizontal") {
-            size = scrollbox.boxObject.width;
+              size = scrollbox.boxObject.width;
           } else {
-            size = scrollbox.boxObject.height;
+              size = scrollbox.boxObject.height;
           }
-          var ppm = size / self.mVisibleMinutes;
+          let ppm = size / self.mVisibleMinutes;
           ppm = Math.floor(ppm * 1000) / 1000;
           if (ppm < self.mMinPixelsPerMinute) {
-            ppm = self.mMinPixelsPerMinute;
+              ppm = self.mMinPixelsPerMinute;
           }
+          let ppmChanged = (self.pixelsPerMinute != ppm);
           self.pixelsPerMinute = ppm;
           setTimeout(function(){self.scrollToMinute(self.mFirstVisibleMinute)}, 0);
 
           // Fit the weekday labels while scrolling.
           self.adjustWeekdayLength(self.getAttribute("orient") == "horizontal");
+
+          // Adjust the time indicator position and the related timer.
+          if (this.mTimeIndicatorInterval != 0) {
+              let viewChanged = isARelayout && (timeIndicator.lastView != this.id);
+              let currentMode = document.getElementById("modeBroadcaster").getAttribute("mode");
+              if (currentMode == "calendar" && (!timeIndicator.timer || ppmChanged || viewChanged)) {
+                  self.updateTimeIndicatorPosition(true, ppmChanged, viewChanged);
+              }
+          }
         ]]></body>
       </method>
 
@@ -2537,6 +2659,9 @@
       <field name="mDayEndMin">0</field>
       <field name="mVisibleMinutes">9*60</field>
       <field name="mClickedTime">null</field>
+      <field name="mTimeIndicatorInterval">15</field>
+      <field name="mModeHandler">null</field>
+      <field name="mTimeIndicatorMinutes">0</field>
 
       <method name="flashAlarm">
         <parameter name="aAlarmItem"/>
@@ -2998,6 +3123,13 @@
         <setter><![CDATA[this.setAttribute("orient", val); return val;]]></setter>
       </property>
 
+      <property name="timeBarTimeIndicator" readonly="true">
+        <getter><![CDATA[
+          let timebar = document.getAnonymousElementByAttribute(this, "anonid", "timebar");
+          return document.getAnonymousElementByAttribute(timebar, "anonid", "timeIndicatorBoxTimeBar");
+        ]]></getter>
+      </property>
+
       <method name="setAttribute">
         <parameter name="aAttr"/>
         <parameter name="aVal"/>
@@ -3137,6 +3269,7 @@
           var dayboxkids = daybox.childNodes;
           var headerboxkids = headerdaybox.childNodes;
           let labelboxkids = this.labeldaybox.childNodes;
+          let updateTimeIndicator = false;
 
           for each (var d in computedDateList) {
               var dayEventsBox;
@@ -3185,10 +3318,11 @@
                   this.labeldaybox.appendChild(labelbox);
                   labelbox.date = d;
               }
-              // Set attributes for date relations.
+              // Set attributes for date relations and for the time indicator.
               let headerDayBox = document.getAnonymousElementByAttribute(
                                      this, "anonid", "headerdaybox");
               headerDayBox.removeAttribute("todaylastinview");
+              dayEventsBox.timeIndicatorBox.setAttribute("hidden", "true");
               switch (d.compare(today)) {
                   case -1:
                       dayHeaderBox.setAttribute("relation", "past");
@@ -3200,6 +3334,8 @@
                       dayHeaderBox.setAttribute("relation", relation_);
                       dayEventsBox.setAttribute("relation", relation_);
                       labelbox.setAttribute("relation", relation_);
+                      setBooleanAttribute(dayEventsBox.timeIndicatorBox, "hidden", this.mTimeIndicatorInterval == 0)
+                      updateTimeIndicator = true;
 
                       // Due to equalsize=always being set on the dayboxes
                       // parent, there are a few issues showing the border of
@@ -3235,6 +3371,10 @@
           removeExtraKids(daybox);
           removeExtraKids(headerdaybox);
           removeExtraKids(this.labeldaybox);
+
+          if (updateTimeIndicator) {
+              this.updateTimeIndicatorPosition();
+          }
 
           // fix pixels-per-minute
           this.onResize();

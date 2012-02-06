@@ -839,3 +839,21 @@ cal.navigationBar = {
         viewTabs.selectedIndex = getViewDeck().selectedIndex;
     }
 };
+
+/*
+ * Timer for the time indicator in day and week view.
+ */
+var timeIndicator = {
+    timer: null,
+    start: function(aInterval, aThis) {
+        timeIndicator.timer = setInterval(function() {aThis.updateTimeIndicatorPosition(false);},
+                                          aInterval * 1000);
+    },
+    cancel: function() {
+        if (timeIndicator.timer) {
+            clearTimeout(timeIndicator.timer);
+            timeIndicator.timer = null;
+        }
+    },
+    lastView: null
+}
