@@ -137,7 +137,14 @@ var security = {
    */
   viewCookies : function()
   {
-    toDataManager(this._getSecurityInfo().hostName + '|cookies');
+    var hostName = "";
+    try {
+      hostName = gDocument.documentURIObject.asciiHost;
+    }
+    catch (e) {
+    }
+
+    toDataManager(hostName + '|cookies');
   },
 
   /**
@@ -210,10 +217,11 @@ function securityOnLoad() {
   var yesStr = pageInfoBundle.getString("yes");
   var noStr = pageInfoBundle.getString("no");
 
-  var hasCookies = hostHasCookies(info.hostName);
+  var uri = gDocument.documentURIObject;
+  var hasCookies = hostHasCookies(uri);
   setText("security-privacy-cookies-value", hasCookies ? yesStr : noStr);
   document.getElementById("security-view-cookies").disabled = !hasCookies;
-  var hasPasswords = realmHasPasswords(info.fullLocation);
+  var hasPasswords = realmHasPasswords(uri);
   setText("security-privacy-passwords-value", hasPasswords ? yesStr : noStr);
   document.getElementById("security-view-password").disabled = !hasPasswords;
 
@@ -293,9 +301,15 @@ function viewCertHelper(parent, cert)
 }
 
 /**
- * Return true iff we have cookies for hostName
+ * Return true iff we have cookies for uri.
  */
-function hostHasCookies(hostName) {
+function hostHasCookies(aUri) {
+  var hostName;
+  try {
+    hostName = aUri.asciiHost;
+  }
+  catch (e) {
+  }
   if (!hostName)
     return false;
 
@@ -303,14 +317,11 @@ function hostHasCookies(hostName) {
 }
 
 /**
- * Return true iff realm (proto://host:port) (extracted from location) has
+ * Return true iff realm (proto://host:port) (extracted from uri) has
  * saved passwords
  */
-function realmHasPasswords(location) {
-  if (!location) 
-    return false;
-  
-  return Services.logins.countLogins(makeURI(location).prePath, "", "") > 0;
+function realmHasPasswords(aUri) {
+  return Services.logins.countLogins(aUri.prePath, "", "") > 0;
 }
 
 /**
