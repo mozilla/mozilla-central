@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1328289666000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1328571589000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
                         <versionRange  minVersion="0" maxVersion="*">
@@ -50,6 +50,10 @@
                   </emItem>
       <emItem  blockID="i10" id="{8CE11043-9A15-4207-A565-0C94C42D590D}">
                         </emItem>
+      <emItem  blockID="i63" id="youtube@youtuber.com">
+                        <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i18" id="msntoolbar@msn.com">
                         <versionRange  minVersion=" " maxVersion="6.*">
                     </versionRange>
@@ -110,6 +114,10 @@
                   </emItem>
       <emItem  blockID="i47" id="youtube@youtube2.com">
                         </emItem>
+      <emItem  blockID="i62" id="jid0-EcdqvFOgWLKHNJPuqAnawlykCGZ@jetpack">
+                        <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i17" id="{3252b9ae-c69a-4eaf-9502-dc9c1f6c009e}">
                         <versionRange  minVersion="2.2" maxVersion="2.2">
                     </versionRange>
