@@ -14,7 +14,7 @@ function count(o)
 function get_test_plugin() {
   var ph = Components.classes["@mozilla.org/plugin/host;1"]
                      .getService(Components.interfaces.nsIPluginHost);
-  var tags = ph.getPluginTags({});
+  var tags = ph.getPluginTags();
 
   // Find the test plugin
   for (var i = 0; i < tags.length; i++) {
@@ -135,7 +135,12 @@ function test3() {
 
   new TabOpenListener("about:addons", test4, prepareTest5);
 
-  EventUtils.synthesizeMouse(gTestBrowser.contentDocument.getElementById("test"),
+  var pluginNode = gTestBrowser.contentDocument.getElementById("test");
+  ok(pluginNode, "Test 3, Found plugin in page");
+  var manageLink = gTestBrowser.contentDocument.getAnonymousElementByAttribute(pluginNode, "class", "managePluginsLink");
+  ok(manageLink, "Test 3, found 'manage' link in plugin-problem binding");
+
+  EventUtils.synthesizeMouse(manageLink,
                              5, 5, {}, gTestBrowser.contentWindow);
 }
 
