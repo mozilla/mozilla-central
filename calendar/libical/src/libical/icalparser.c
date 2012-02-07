@@ -1107,9 +1107,10 @@ icalcomponent* icalparser_add_line(icalparser* parser,
 		
 		icalproperty_kind prop_kind = icalproperty_isa(prop);
 		icalcomponent *tail = pvl_data(pvl_tail(parser->components));
+		const char* property_name = icalproperty_kind_to_string(prop_kind);
 		
 		snprintf(temp,sizeof(temp),"No value for %s property. Removing entire property",
-			icalproperty_kind_to_string(prop_kind));
+			property_name ? property_name : "(null)");
 
 		insert_error(tail, str, temp,
 			     ICAL_XLICERRORTYPE_VALUEPARSEERROR);
