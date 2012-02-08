@@ -220,7 +220,6 @@ nsOutlookCompose::nsOutlookCompose()
 {
   m_pListener = nsnull;
   m_pMsgFields = nsnull;
-  m_pIdentity = nsnull;
 
   m_optimizationBufferSize = 16*1024;
   m_optimizationBuffer = new char[m_optimizationBufferSize];
@@ -235,8 +234,6 @@ nsOutlookCompose::~nsOutlookCompose()
     NS_ASSERTION(NS_SUCCEEDED(rv),"failed to clear values");
     if (NS_FAILED(rv))
       return;
-
-    NS_RELEASE(m_pIdentity);
   }
   delete[] m_optimizationBuffer;
 }
