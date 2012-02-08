@@ -196,6 +196,8 @@
                   oncommand="openTopWin('http://hg.mozilla.org/mozilla-central/pushloghtml?startdate=24+hours+ago&amp;enddate=now');"/>
         <menuitem label="Tree Status"
                   oncommand="openTopWin('http://tinderbox.mozilla.org/showbuilds.cgi?tree=SeaMonkey');"/>
+        <menuitem label="TBPL"
+                  oncommand="openTopWin('http://build.mozillamessaging.com/tinderboxpushlog/?tree=SeaMonkey');"/>
 
         <menuseparator/>
 
