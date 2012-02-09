@@ -538,9 +538,9 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
             } else if(*src & 0x80) {
               goto error2;
             } else {
-              *dest++ = (PRUnichar) *src;
-              if(dest >= destEnd)
+              if (CHECK_OVERRUN(dest, destEnd, 1))
                 goto error1;
+              *dest++ = (PRUnichar) *src;
             }
           break;
           
@@ -554,7 +554,7 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
             } else if ('N' == *src)  { // for ISO-2022-JP-2
               mState = mState_ESC_4e;
             } else  {
-              if((dest+2) >= destEnd)
+              if (CHECK_OVERRUN(dest, destEnd, 2))
                 goto error1;
               *dest++ = (PRUnichar) 0x1b;
               if(0x80 & *src)
@@ -568,7 +568,7 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
             if( 'B' == *src) {
               mState = mState_ASCII;
               if (mRunLength == 0) {
-                if((dest+1) >= destEnd)
+                if (CHECK_OVERRUN(dest, destEnd, 1))
                   goto error1;
                 *dest++ = 0xFFFD;
               }
@@ -576,7 +576,7 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
             } else if ('J' == *src)  {
               mState = mState_JISX0201_1976Roman;
               if (mRunLength == 0 && mLastLegalState != mState_ASCII) {
-                if((dest+1) >= destEnd)
+                if (CHECK_OVERRUN(dest, destEnd, 1))
                   goto error1;
                 if (mErrBehavior == kOnError_Signal)
                   goto error2;
@@ -587,7 +587,7 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
               mState = mState_JISX0201_1976Kana;
               mRunLength = 0;
             } else  {
-              if((dest+3) >= destEnd)
+              if (CHECK_OVERRUN(dest, destEnd, 3))
                 goto error1;
               *dest++ = (PRUnichar) 0x1b;
               *dest++ = (PRUnichar) '(';
@@ -611,7 +611,7 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
             } else if ('(' == *src)  {
               mState = mState_ESC_24_28;
             } else  {
-              if((dest+3) >= destEnd)
+              if (CHECK_OVERRUN(dest, destEnd, 3))
                 goto error1;
               *dest++ = (PRUnichar) 0x1b;
               *dest++ = (PRUnichar) '$';
@@ -630,7 +630,7 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
               mState = mState_JISX0212_1990;
               mRunLength = 0;
             } else  {
-              if((dest+4) >= destEnd)
+              if (CHECK_OVERRUN(dest, destEnd, 4))
                 goto error1;
               *dest++ = (PRUnichar) 0x1b;
               *dest++ = (PRUnichar) '$';
@@ -652,10 +652,10 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
               // XXX We need to  decide how to handle \ and ~ here
               // we may need a if statement here for '\' and '~' 
               // to map them to Yen and Overbar
+              if (CHECK_OVERRUN(dest, destEnd, 1))
+                goto error1;
               *dest++ = (PRUnichar) *src;
               ++mRunLength;
-              if(dest >= destEnd)
-                goto error1;
             }
           break;
 
@@ -665,13 +665,13 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
               mState = mState_ESC;
             } else {
               if((0x21 <= *src) && (*src <= 0x5F)) {
+                if (CHECK_OVERRUN(dest, destEnd, 1))
+                  goto error1;
                 *dest++ = (0xFF61-0x0021) + *src;
                 ++mRunLength;
               } else {
                 goto error2;
               }
-              if(dest >= destEnd)
-                goto error1;
             }
           break;
 
@@ -758,12 +758,12 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
             } else {
                // XXX We need to map from JIS X 0208 1983 to 1987 
                // in the next line before pass to *dest++
-               *dest++ = gJapaneseMap[mData+off];
-               ++mRunLength;
+              if (CHECK_OVERRUN(dest, destEnd, 1))
+                goto error1;
+              *dest++ = gJapaneseMap[mData+off];
+              ++mRunLength;
             }
             mState = mState_JISX0208_1978;
-            if(dest >= destEnd)
-              goto error1;
           }
           break;
 
@@ -785,6 +785,8 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
               if (!mGB2312Decoder) {// failed creating a delegate converter
                 goto error2;
               } else {
+                if (CHECK_OVERRUN(dest, destEnd, 1))
+                  goto error1;
                 unsigned char gb[2];
                 PRUnichar uni;
                 PRInt32 gbLen = 2, uniLen = 1;
@@ -801,8 +803,6 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
               }
             }
             mState = mState_GB2312_1980;
-            if(dest >= destEnd)
-              goto error1;
           }
           break;
 
@@ -812,12 +812,12 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
             if(0xFF == off) {
                goto error2;
             } else {
-               *dest++ = gJapaneseMap[mData+off];
-               ++mRunLength;
+              if (CHECK_OVERRUN(dest, destEnd, 1))
+                goto error1;
+              *dest++ = gJapaneseMap[mData+off];
+              ++mRunLength;
             }
             mState = mState_JISX0208_1983;
-            if(dest >= destEnd)
-              goto error1;
           }
           break;
 
@@ -839,6 +839,8 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
               if (!mEUCKRDecoder) {// failed creating a delegate converter
                 goto error2;
               } else {              
+                if (CHECK_OVERRUN(dest, destEnd, 1))
+                  goto error1;
                 unsigned char ksc[2];
                 PRUnichar uni;
                 PRInt32 kscLen = 2, uniLen = 1;
@@ -855,8 +857,6 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
               }
             }
             mState = mState_KSC5601_1987;
-            if(dest >= destEnd)
-              goto error1;
           }
           break;
 
@@ -866,12 +866,12 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
             if(0xFF == off) {
                goto error2;
             } else {
-               *dest++ = gJapaneseMap[mData+off];
-               ++mRunLength;
+              if (CHECK_OVERRUN(dest, destEnd, 1))
+                goto error1;
+              *dest++ = gJapaneseMap[mData+off];
+              ++mRunLength;
             }
             mState = mState_JISX0212_1990;
-            if(dest >= destEnd)
-              goto error1;
           }
           break;
 
@@ -883,7 +883,7 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
             } else if ('F' == *src) {
               G2charset = G2_ISO88597;
             } else  {
-              if((dest+3) >= destEnd)
+              if (CHECK_OVERRUN(dest, destEnd, 3))
                 goto error1;
               *dest++ = (PRUnichar) 0x1b;
               *dest++ = (PRUnichar) '.';
@@ -900,6 +900,8 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
             mState = mLastLegalState;
             if((0x20 <= *src) && (*src <= 0x7F)) {
               if (G2_ISO88591 == G2charset) {
+                if (CHECK_OVERRUN(dest, destEnd, 1))
+                  goto error1;
                 *dest++ = *src | 0x80;
                 ++mRunLength;
               } else if (G2_ISO88597 == G2charset) {
@@ -915,6 +917,8 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
                 if (!mISO88597Decoder) {// failed creating a delegate converter
                   goto error2;
                 } else {
+                  if (CHECK_OVERRUN(dest, destEnd, 1))
+                    goto error1;
                   // Put one character with ISO-8859-7 encoding.
                   unsigned char gr = *src | 0x80;
                   PRUnichar uni;
@@ -928,10 +932,8 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
               } else {// G2charset is G2_unknown (not designated yet)
                 goto error2;
               }
-              if(dest >= destEnd)
-                goto error1;
             } else {
-              if((dest+3) >= destEnd)
+              if (CHECK_OVERRUN(dest, destEnd, 3))
                 goto error1;
               *dest++ = (PRUnichar) 0x1b;
               *dest++ = (PRUnichar) 'N';
@@ -954,10 +956,6 @@ NS_IMETHODIMP nsISO2022JPToUnicodeV2::Convert(
    return NS_OK;
 error1:
    *aDestLen = dest - aDest;
-   src++;
-   if ((mState == 0) && (src == srcEnd)) {
-     return NS_OK;
-   }
    *aSrcLen = src - (const unsigned char*)aSrc;
    return NS_OK_UDEC_MOREOUTPUT;
 error2:
