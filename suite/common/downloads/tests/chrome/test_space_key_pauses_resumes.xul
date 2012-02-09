@@ -152,7 +152,7 @@ function test()
 
     const nsIWBP = Components.interfaces.nsIWebBrowserPersist;
     var persist = Components.classes["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"]
-                            .createInstance(Components.interfaces.nsIWebBrowserPersist);
+                            .createInstance(nsIWBP);
     persist.persistFlags = nsIWBP.PERSIST_FLAGS_REPLACE_EXISTING_FILES |
                            nsIWBP.PERSIST_FLAGS_BYPASS_CACHE |
                            nsIWBP.PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION;
@@ -164,6 +164,7 @@ function test()
     if (destFile.exists())
       destFile.remove(false);
 
+    // SeaMonkey: Use a bigger file than "http://example.com/httpd.js". (Bug 595685)
     var dl = dm.addDownload(Components.interfaces.nsIDownloadManager.DOWNLOAD_TYPE_DOWNLOAD,
                             createURI("http://example.com/tests/fonts/mplus/mplus-1p-regular.ttf"),
                             createURI(destFile), null, null,

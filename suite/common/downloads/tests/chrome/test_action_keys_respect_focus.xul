@@ -185,7 +185,7 @@ function test()
 
     const nsIWBP = Components.interfaces.nsIWebBrowserPersist;
     var persist = Components.classes["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"]
-                            .createInstance(Components.interfaces.nsIWebBrowserPersist);
+                            .createInstance(nsIWBP);
     persist.persistFlags = nsIWBP.PERSIST_FLAGS_REPLACE_EXISTING_FILES |
                            nsIWBP.PERSIST_FLAGS_BYPASS_CACHE |
                            nsIWBP.PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION;
@@ -193,6 +193,7 @@ function test()
     var dirSvc = Components.classes["@mozilla.org/file/directory_service;1"]
                            .getService(Components.interfaces.nsIProperties);
     var destFile = dirSvc.get("ProfD", Components.interfaces.nsIFile);
+    // The "paused" part of this filename will be searched for later.
     destFile.append("download.paused");
     if (destFile.exists())
       destFile.remove(false);

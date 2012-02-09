@@ -222,9 +222,18 @@ var sanTests = {
       var dest = ios.newFileURI(file);
 
       this.dm = Components.classes["@mozilla.org/download-manager;1"]
-                          .createInstance(Components.interfaces.nsIDownloadManager);
+                          .getService(Components.interfaces.nsIDownloadManager);
+
+      const nsIWBP = Components.interfaces.nsIWebBrowserPersist;
+      var persist = Components.classes["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"]
+                              .createInstance(nsIWBP);
+      persist.persistFlags = nsIWBP.PERSIST_FLAGS_REPLACE_EXISTING_FILES |
+                             nsIWBP.PERSIST_FLAGS_BYPASS_CACHE |
+                             nsIWBP.PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION;
+
       this.dl = this.dm.addDownload(Components.interfaces.nsIDownloadManager.DOWNLOAD_CANCELED, uri,
-                                    dest, "Sanitizer!", null, Math.round(Date.now() * 1000), null, {});
+                                    dest, "Sanitizer!", null, Math.round(Date.now() * 1000), null, persist);
+
       // Stupid DM...
       this.dm.cancelDownload(this.dl.id);
       return this.check();
