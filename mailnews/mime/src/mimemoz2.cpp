@@ -527,10 +527,9 @@ BuildAttachmentList(MimeObject *anObject, nsMsgAttachmentData *aAttachData, cons
     MimeObject    *child = cobj->children[i];
     char          *ct = child->content_type;
 
-    // Skip attachments that are not being output
-    if (! child->output_p)
-      continue;
-    
+    // We're going to ignore the output_p attribute because we want to output
+    // any part with a name to work around bug 674473
+
     // Skip the first child that's being output if it's in fact a message body.
     // Start by assuming that it is, until proven otherwise in the code below.
     bool skip = true;

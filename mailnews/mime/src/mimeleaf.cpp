@@ -88,6 +88,11 @@ MimeLeaf_initialize (MimeObject *obj)
   /* This is an abstract class; it shouldn't be directly instantiated. */
   NS_ASSERTION(obj->clazz != (MimeObjectClass *) &mimeLeafClass, "1.1 <rhp@netscape.com> 19 Mar 1999 12:00");
 
+  // Initial size is -1 (meaning "unknown size") - we'll correct it in
+  // parse_buffer.
+  MimeLeaf *leaf = (MimeLeaf *) obj;
+  leaf->sizeSoFar = -1;
+
   return ((MimeObjectClass*)&MIME_SUPERCLASS)->initialize(obj);
 }
 
@@ -115,9 +120,6 @@ MimeLeaf_parse_begin (MimeObject *obj)
 {
   MimeLeaf *leaf = (MimeLeaf *) obj;
   MimeDecoderData *(*fn) (nsresult (*) (const char*, PRInt32, void*), void*) = 0;
-
-  // Initial size is zero
-  leaf->sizeSoFar = 0;
 
   /* Initialize a decoder if necessary.
    */
@@ -171,6 +173,9 @@ MimeLeaf_parse_buffer (const char *buffer, PRInt32 size, MimeObject *obj)
   return 0;
 
   int rv;
+  if (leaf->sizeSoFar == -1)
+    leaf->sizeSoFar = 0;
+
   if (leaf->decoder_data &&
       obj->options && 
       obj->options->format_out != nsMimeOutput::nsMimeMessageDecrypt
