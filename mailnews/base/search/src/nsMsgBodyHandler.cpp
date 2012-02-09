@@ -166,6 +166,8 @@ void nsMsgBodyHandler::OpenLocalFolder()
 {
   nsCOMPtr <nsIInputStream> inputStream;
   nsresult rv = m_scope->GetInputStream(m_msgHdr, getter_AddRefs(inputStream));
+  // Warn and return if GetInputStream fails
+  NS_ENSURE_SUCCESS(rv, );
   m_fileLineStream = do_QueryInterface(inputStream);
 }
 

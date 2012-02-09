@@ -543,7 +543,9 @@ NS_IMETHODIMP	nsIMAPHostSessionList::GetNamespaceNumberForHost(const char *serve
   return (host == NULL) ? NS_ERROR_ILLEGAL_VALUE : NS_OK;
 }
 
-nsresult nsIMAPHostSessionList::SetNamespacesPrefForHost(nsIImapIncomingServer *aHost, EIMAPNamespaceType type, char *pref)
+nsresult nsIMAPHostSessionList::SetNamespacesPrefForHost(nsIImapIncomingServer *aHost,
+                                                         EIMAPNamespaceType type,
+                                                         const char *pref)
 {
   if (type == kPersonalNamespace)
     aHost->SetPersonalNamespace(nsDependentCString(pref));

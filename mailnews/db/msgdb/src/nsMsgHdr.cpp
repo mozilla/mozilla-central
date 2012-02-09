@@ -629,8 +629,8 @@ NS_IMETHODIMP nsMsgHdr::GetMessageOffset(PRUint64 *result)
   NS_ENSURE_ARG(result);
 
   // if there is a message offset, use it, otherwise, we'll use the message key.
-  (void) GetUInt64Column(m_mdb->m_offlineMsgOffsetColumnToken, result, -1);
-  if (*result == -1)
+  (void) GetUInt64Column(m_mdb->m_offlineMsgOffsetColumnToken, result, (unsigned)-1);
+  if (*result == (unsigned)-1)
     *result = m_messageKey;
   return NS_OK;
 }

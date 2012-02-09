@@ -2263,10 +2263,10 @@ NS_IMETHODIMP nsMessenger::OnItemEvent(nsIMsgFolder *item, nsIAtom *event)
 // Detach/Delete Attachments
 ///////////////////////////////////////////////////////////////////////////////
 
-static char * GetAttachmentPartId(const char * aAttachmentUrl)
+static const char * GetAttachmentPartId(const char * aAttachmentUrl)
 {
   static const char partIdPrefix[] = "part=";
-  char * partId = PL_strstr(aAttachmentUrl, partIdPrefix);
+  const char * partId = PL_strstr(aAttachmentUrl, partIdPrefix);
   return partId ? (partId + sizeof(partIdPrefix) - 1) : nsnull;
 }
 
@@ -2282,8 +2282,8 @@ static int CompareAttachmentPartId(const char * aAttachUrlLeft, const char * aAt
   //   1  right is greater than left
   //   2  right is a parent of left
 
-  char * partIdLeft  = GetAttachmentPartId(aAttachUrlLeft);
-  char * partIdRight = GetAttachmentPartId(aAttachUrlRight);
+  const char * partIdLeft  = GetAttachmentPartId(aAttachUrlLeft);
+  const char * partIdRight = GetAttachmentPartId(aAttachUrlRight);
 
   // for detached attachments the URL does not contain any "part=xx"
   if(!partIdLeft)
@@ -2299,8 +2299,11 @@ static int CompareAttachmentPartId(const char * aAttachUrlLeft, const char * aAt
     NS_ABORT_IF_FALSE(partIdRight && IS_DIGIT(*partIdRight), "Invalid character in part id string");
 
     // if the part numbers are different then the numerically smaller one is first
-    idLeft  = strtol(partIdLeft, &partIdLeft, 10);
-    idRight = strtol(partIdRight, &partIdRight, 10);
+    char *fixConstLoss;
+    idLeft  = strtol(partIdLeft, &fixConstLoss, 10);
+    partIdLeft = fixConstLoss;
+    idRight = strtol(partIdRight, &fixConstLoss, 10);
+    partIdRight = fixConstLoss;
     if (idLeft != idRight)
       return idLeft < idRight ? -1 : 1;
 

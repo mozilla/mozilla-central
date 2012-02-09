@@ -190,7 +190,7 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
   {
     if (outParent)
       NS_ADDREF(*outParent = parent);
-    PRUint8 parentLevel = m_levels[parentIndex];
+    PRUint32 parentLevel = m_levels[parentIndex];
     nsMsgKey parentKey;
     parent->GetMessageKey(&parentKey);
     nsCOMPtr<nsIMsgFolder> parentFolder;
@@ -203,9 +203,10 @@ nsresult nsMsgXFViewThread::AddHdr(nsIMsgDBHdr *newHdr,
     nsCOMPtr<nsIMsgDBHdr> child;
     nsMsgViewIndex i;
     nsMsgViewIndex insertIndex = m_keys.Length();
-    PRUint8 insertLevel = parentLevel + 1;
+    PRUint32 insertLevel = parentLevel + 1;
     for (i = parentIndex; 
-         i < m_keys.Length() && (i == parentIndex ||  m_levels[i] >= parentLevel); i++)
+         i < m_keys.Length() && (i == (nsMsgViewIndex)parentIndex || m_levels[i] >= parentLevel);
+         i++)
     {
       GetChildHdrAt(i, getter_AddRefs(child));
       if (child)
@@ -378,7 +379,7 @@ NS_IMETHODIMP nsMsgXFViewThread::GetChild(nsMsgKey msgKey, nsIMsgDBHdr **aResult
 }
 
 
-PRUint32 nsMsgXFViewThread::HdrIndex(nsIMsgDBHdr *hdr)
+PRInt32 nsMsgXFViewThread::HdrIndex(nsIMsgDBHdr *hdr)
 {
   nsMsgKey msgKey;
   nsCOMPtr<nsIMsgFolder> folder;

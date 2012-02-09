@@ -1119,7 +1119,7 @@ NS_IMETHODIMP nsMsgSearchValidityManager::GetTable (int whichTable, nsIMsgSearch
 
 // mapping between ordered attribute values, and property strings
 // see search-attributes.properties
-struct
+static struct
 {
   nsMsgSearchAttribValue id;
   const char* property;

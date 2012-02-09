@@ -96,7 +96,7 @@ protected:
    // sum of the sizes of the messages, accumulated as we visit each msg.
   PRUint32 m_totalMsgSize;
 
-  PRInt32 m_curIndex; // index of the current copied message key in key array
+  PRUint32 m_curIndex; // index of the current copied message key in key array
   PRUint64 m_startOfNewMsg; // offset in mailbox of new message
   char m_dataBuffer[COMPACTOR_READ_BUFF_SIZE + 1]; // temp data buffer for copying message
   nsresult m_status; // the status of the copying operation

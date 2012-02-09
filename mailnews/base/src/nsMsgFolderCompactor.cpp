@@ -76,7 +76,7 @@ nsFolderCompactState::nsFolderCompactState()
 {
   m_fileStream = nsnull;
   m_size = 0;
-  m_curIndex = -1;
+  m_curIndex = 0;
   m_status = NS_OK;
   m_compactAll = false;
   m_compactOfflineAlso = false;

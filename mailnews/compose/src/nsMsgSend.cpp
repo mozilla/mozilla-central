@@ -1257,7 +1257,7 @@ mime_write_message_body(nsIMsgSend *state, const char *buf, PRInt32 size)
 
   PRUint32 n;
   nsresult rv = output->Write(buf, size, &n);
-  if (NS_FAILED(rv) || n != size)
+  if (NS_FAILED(rv) || n != (PRUint32)size)
   {
     return NS_MSG_ERROR_WRITING_FILE;
   }

@@ -773,7 +773,7 @@ void nsMsgThreadedDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   PRInt32 currentIndex;
   bool hasSelection = mTree && mTreeSelection &&
                         ((NS_SUCCEEDED(mTreeSelection->GetCurrentIndex(&currentIndex)) &&
-                         currentIndex >= 0 && currentIndex < GetSize()) ||
+                         currentIndex >= 0 && (PRUint32)currentIndex < GetSize()) ||
                          (NS_SUCCEEDED(mTreeSelection->GetRangeCount(&selectionCount)) &&
                           selectionCount > 0));
   if (hasSelection)

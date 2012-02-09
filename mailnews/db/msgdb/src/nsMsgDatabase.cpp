@@ -247,7 +247,7 @@ NS_IMETHODIMP nsMsgDBService::AsyncOpenFolderDB(nsIMsgFolder *aFolder,
 }
 
 NS_IMETHODIMP nsMsgDBService::OpenMore(nsIMsgDatabase *aDB,
-                                       PRInt32 aTimeHint,
+                                       PRUint32 aTimeHint,
                                        bool *_retval)
 {
   NS_ENSURE_ARG_POINTER(_retval);
@@ -549,14 +549,14 @@ void nsMsgDatabase::ClearEnumerators()
   nsTArray<nsMsgDBEnumerator *> copyEnumerators;
   copyEnumerators.SwapElements(m_enumerators);
 
-  PRInt32 numEnums = copyEnumerators.Length();
+  PRUint32 numEnums = copyEnumerators.Length();
   for (PRUint32 i = 0; i < numEnums; i++)
     copyEnumerators[i]->Clear();
 }
 
 nsMsgThread *nsMsgDatabase::FindExistingThread(nsMsgKey threadId)
 {
-  PRInt32 numThreads = m_threads.Length();
+  PRUint32 numThreads = m_threads.Length();
   for (PRUint32 i = 0; i < numThreads; i++)
     if (m_threads[i]->m_threadKey == threadId)
       return m_threads[i];
@@ -570,7 +570,7 @@ void nsMsgDatabase::ClearThreads()
   nsTArray<nsMsgThread *> copyThreads;
   copyThreads.SwapElements(m_threads);
 
-  PRInt32 numThreads = copyThreads.Length();
+  PRUint32 numThreads = copyThreads.Length();
   for (PRUint32 i = 0; i < numThreads; i++)
     copyThreads[i]->Clear();
 }
@@ -1041,7 +1041,6 @@ nsMsgDatabase::nsMsgDatabase()
         m_msgReferences(nsnull),
         m_cacheSize(kMaxHdrsInCache)
 {
-  static int dbCount = 0;
 }
 
 nsMsgDatabase::~nsMsgDatabase()
@@ -1923,7 +1922,7 @@ NS_IMETHODIMP nsMsgDatabase::DeleteHeader(nsIMsgDBHdr *msg, nsIDBChangeListener 
   // only need to do this for mail - will this speed up news expiration?
   SetHdrFlag(msg, true, nsMsgMessageFlags::Expunged);  // tell mailbox (mail)
 
-  bool hdrWasNew = m_newSet.BinaryIndexOf(key) != -1;
+  bool hdrWasNew = m_newSet.BinaryIndexOf(key) != m_newSet.NoIndex;
   m_newSet.RemoveElement(key);
 
   if (m_dbFolderInfo != NULL)
@@ -2040,7 +2039,8 @@ PRUint32  nsMsgDatabase::GetStatusFlags(nsIMsgDBHdr *msgHdr, PRUint32 origFlags)
 
   nsMsgKey key;
   (void)msgHdr->GetMessageKey(&key);
-  if (!m_newSet.IsEmpty() && m_newSet[m_newSet.Length() - 1] == key || m_newSet.BinaryIndexOf(key) != -1)
+  if (!m_newSet.IsEmpty() && m_newSet[m_newSet.Length() - 1] == key ||
+      m_newSet.BinaryIndexOf(key) != m_newSet.NoIndex)
     statusFlags |= nsMsgMessageFlags::New;
   if (IsHeaderRead(msgHdr, &isRead) == NS_OK && isRead)
     statusFlags |= nsMsgMessageFlags::Read;

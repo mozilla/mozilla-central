@@ -101,12 +101,12 @@ protected:
                                          nsIMutableArray *messageArray);
   virtual nsresult ListIdsInThread(nsIMsgThread *threadHdr, nsMsgViewIndex startOfThreadViewIndex, PRUint32 *pNumListed);
   virtual nsresult ListIdsInThreadOrder(nsIMsgThread *threadHdr,
-                                        nsMsgKey parentKey, PRInt32 level,
+                                        nsMsgKey parentKey, PRUint32 level,
                                         nsMsgViewIndex *viewIndex,
                                         PRUint32 *pNumListed);
   virtual nsresult ListIdsInThreadOrder(nsIMsgThread *threadHdr,
-                                        nsMsgKey parentKey, PRInt32 level,
-                                        PRInt32 callLevel,
+                                        nsMsgKey parentKey, PRUint32 level,
+                                        PRUint32 callLevel,
                                         nsMsgKey keyToSkip,
                                         nsMsgViewIndex *viewIndex,
                                         PRUint32 *pNumListed);

@@ -445,7 +445,7 @@ nsMsgPrintEngine::StartNextPrintOperation()
   mCurrentlyPrintingURI++;
 
   // First, check if we are at the end of this stuff!
-  if (mCurrentlyPrintingURI >= mURIArray.Length())
+  if (mCurrentlyPrintingURI >= (PRInt32)mURIArray.Length())
   {
     // This is the end...dum, dum, dum....my only friend...the end
     mWindow->Close();
@@ -490,7 +490,7 @@ nsMsgPrintEngine::FireThatLoadOperationStartup(const nsString& uri)
   nsresult rv     = NS_ERROR_FAILURE;
   // Don't show dialog if we are out of URLs
   //if ( mCurrentlyPrintingURI < mURIArray.Length() && !mIsDoingPrintPreview)
-  if ( mCurrentlyPrintingURI < mURIArray.Length())
+  if ( mCurrentlyPrintingURI < (PRInt32)mURIArray.Length())
     rv = ShowProgressDialog(!mIsDoingPrintPreview, notify);
   if (NS_FAILED(rv) || !notify) 
     return FireThatLoadOperation(uri);

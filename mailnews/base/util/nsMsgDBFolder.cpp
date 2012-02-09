@@ -5874,7 +5874,7 @@ NS_IMETHODIMP nsMsgDBFolder::RemoveKeywordsFromMessages(nsIArray *aMessages, con
             length++;
           }
           // but if the keyword is at the start then delete the following space
-          if (!startOffset && length < keywords.Length() &&
+          if (!startOffset && length < static_cast<PRInt32>(keywords.Length()) &&
               keywords.CharAt(length) == ' ')
             length++;
           keywords.Cut(startOffset, length);

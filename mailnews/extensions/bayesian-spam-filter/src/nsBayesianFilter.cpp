@@ -2865,8 +2865,6 @@ nsresult CorpusStore::ClearTrait(PRUint32 aTrait)
   // clear message counts
   setMessageCount(aTrait, 0);
 
-  // clear token counts
-  PRUint32 tokenCount = countTokens();
   TokenEnumeration tokens = getTokens();
   while (tokens.hasMoreTokens())
   {

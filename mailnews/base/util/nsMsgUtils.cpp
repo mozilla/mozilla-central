@@ -2315,17 +2315,17 @@ MsgDetectCharsetFromFile(nsILocalFile *aFile, nsACString &aCharset)
     rv = inputStream->Read(sniffBuf, sizeof(sniffBuf), &numRead);
 
     if (numRead >= 2 &&
-               sniffBuf[0] == 0xfe &&
-               sniffBuf[1] == 0xff) {
+               sniffBuf[0] == (char)0xfe &&
+               sniffBuf[1] == (char)0xff) {
       aCharset = "UTF-16BE";
     } else if (numRead >= 2 &&
-               sniffBuf[0] == 0xff &&
-               sniffBuf[1] == 0xfe) {
+               sniffBuf[0] == (char)0xff &&
+               sniffBuf[1] == (char)0xfe) {
       aCharset = "UTF-16LE";
     } else if (numRead >= 3 &&
-               sniffBuf[0] == 0xef &&
-               sniffBuf[1] == 0xbb &&
-               sniffBuf[2] == 0xbf) {
+               sniffBuf[0] == (char)0xef &&
+               sniffBuf[1] == (char)0xbb &&
+               sniffBuf[2] == (char)0xbf) {
       aCharset = "UTF-8";
     }
   }

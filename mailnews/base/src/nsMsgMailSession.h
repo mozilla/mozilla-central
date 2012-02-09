@@ -127,7 +127,7 @@ protected:
 private:
   nsCOMArray<nsIMsgShutdownTask> mShutdownTasks;
   nsCOMPtr<nsIMsgProgress>       mMsgProgress;
-  PRUint32                       mTaskIndex;
+  PRInt32                        mTaskIndex;
   PRUint32                       mQuitMode;
   bool mProcessedShutdown;
   bool mQuitForced;

@@ -160,7 +160,9 @@ public:
   PRMonitor *gCachedHostInfoMonitor;
   nsIMAPHostInfo *fHostInfoList;
 protected:
-  nsresult SetNamespacesPrefForHost(nsIImapIncomingServer *aHost, EIMAPNamespaceType type, char *pref);
+  nsresult SetNamespacesPrefForHost(nsIImapIncomingServer *aHost,
+                                    EIMAPNamespaceType type,
+                                    const char *pref);
   nsIMAPHostInfo *FindHost(const char *serverKey);
 };
 #endif

@@ -1248,7 +1248,7 @@ nsMsgSendLater::DeliverQueuedLine(char *line, PRInt32 length)
 
       PRUint32 n;
       rv = mOutFile->Write(m_headers, m_headersFP, &n);
-      if (NS_FAILED(rv) || n != m_headersFP)
+      if (NS_FAILED(rv) || n != (PRUint32)m_headersFP)
         return NS_MSG_ERROR_WRITING_FILE;
     }
     else

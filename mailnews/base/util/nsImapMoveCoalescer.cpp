@@ -80,7 +80,7 @@ nsresult nsImapMoveCoalescer::AddMove(nsIMsgFolder *folder, nsMsgKey key)
       return NS_ERROR_OUT_OF_MEMORY;
   }
 
-  if (keysToAdd->IndexOf(key) == -1)
+  if (keysToAdd->IndexOf(key) == nsTArray<nsMsgKey>::NoIndex)
     keysToAdd->AppendElement(key);
 
   return NS_OK;

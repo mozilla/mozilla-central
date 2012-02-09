@@ -601,7 +601,7 @@ void nsMsgSearchDBView::MoveThreadAt(nsMsgViewIndex threadIndex)
   PRInt32 currentIndex;
   bool hasSelection = mTree && mTreeSelection &&
                         ((NS_SUCCEEDED(mTreeSelection->GetCurrentIndex(&currentIndex)) &&
-                         currentIndex >= 0 && currentIndex < GetSize()) ||
+                         currentIndex >= 0 && (PRUint32)currentIndex < GetSize()) ||
                          (NS_SUCCEEDED(mTreeSelection->GetRangeCount(&selectionCount)) &&
                           selectionCount > 0));
 
@@ -1083,7 +1083,7 @@ nsMsgSearchDBView::OnStopCopy(nsresult aStatus)
   if (NS_SUCCEEDED(aStatus))
   {
     mCurIndex++;
-    if (mCurIndex < (PRUint32) m_uniqueFoldersSelected.Count())
+    if ((PRInt32) mCurIndex < m_uniqueFoldersSelected.Count())
     {
       nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));
       ProcessRequestsInOneFolder(msgWindow);
@@ -1268,7 +1268,7 @@ nsMsgViewIndex nsMsgSearchDBView::FindHdr(nsIMsgDBHdr *msgHdr, nsMsgViewIndex st
                                           bool allowDummy)
 {
   nsCOMPtr<nsIMsgDBHdr> curHdr;
-  PRInt32 index;
+  PRUint32 index;
   // it would be nice to take advantage of sorted views when possible.
   for (index = startIndex; index < GetSize(); index++)
   {

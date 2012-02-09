@@ -236,7 +236,7 @@ nsresult nsMsgGroupThread::ReparentNonReferenceChildrenOf(nsIMsgDBHdr *topLevelH
 NS_IMETHODIMP nsMsgGroupThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult)
 {
   NS_ENSURE_ARG_POINTER(aResult);
-  if (aIndex < 0 || aIndex >= m_keys.Length())
+  if (aIndex < 0 || (PRUint32)aIndex >= m_keys.Length())
     return NS_ERROR_INVALID_ARG;
   *aResult = m_keys[aIndex];
   return NS_OK;
@@ -244,7 +244,7 @@ NS_IMETHODIMP nsMsgGroupThread::GetChildKeyAt(PRInt32 aIndex, nsMsgKey *aResult)
 
 NS_IMETHODIMP nsMsgGroupThread::GetChildHdrAt(PRInt32 aIndex, nsIMsgDBHdr **aResult)
 {
-  if (aIndex < 0 || aIndex >= m_keys.Length())
+  if (aIndex < 0 || (PRUint32)aIndex >= m_keys.Length())
     return NS_MSG_MESSAGE_NOT_FOUND;
   return m_db->GetMsgHdrForKey(m_keys[aIndex], aResult);
 }
@@ -866,7 +866,7 @@ nsMsgViewIndex nsMsgXFGroupThread::FindMsgHdr(nsIMsgDBHdr *hdr)
   PRUint32 index = 0;
   while (true) {
     index = m_keys.IndexOf(msgKey, index);
-    if (index == -1 || m_folders[index] == folder)
+    if (index == m_keys.NoIndex || m_folders[index] == folder)
       break;
     index++;
   }

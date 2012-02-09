@@ -160,7 +160,6 @@ nsMsgFolderDataSource::nsMsgFolderDataSource()
   nsIRDFService* rdf = getRDFService();
 
   if (gFolderResourceRefCnt++ == 0) {
-    nsresult res = NS_OK;
     nsCOMPtr<nsIStringBundle> sMessengerStringBundle;
 
     rdf->GetResource(NS_LITERAL_CSTRING(NC_RDF_CHILD),   &kNC_Child);

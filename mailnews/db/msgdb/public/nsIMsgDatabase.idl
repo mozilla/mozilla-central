@@ -192,7 +192,7 @@ interface nsIMsgDBService : nsISupports
    *         be called again.
    * @see nsIMsgDBService::openFolderDB
    */
-  boolean openMore(in nsIMsgDatabase aDB, in long aTimeHint);
+  boolean openMore(in nsIMsgDatabase aDB, in unsigned long aTimeHint);
 
   /**
    * Creates a new database for the given folder.

@@ -275,7 +275,7 @@ NS_IMETHODIMP nsMsgSearchSession::Search(nsIMsgWindow *aWindow)
 
   nsCOMPtr<nsIMsgSearchNotify> listener;
   m_iListener = 0;
-  while (m_iListener != -1 && m_iListener < m_listenerList.Length())
+  while (m_iListener != -1 && m_iListener < (signed)m_listenerList.Length())
   {
     listener = m_listenerList[m_iListener];
     PRInt32 listenerFlags = m_listenerFlagList[m_iListener++];
@@ -586,7 +586,7 @@ NS_IMETHODIMP nsMsgSearchSession::AddSearchHit(nsIMsgDBHdr *aHeader,
 {
   nsCOMPtr<nsIMsgSearchNotify> listener;
   m_iListener = 0;
-  while (m_iListener != -1 && m_iListener < m_listenerList.Length())
+  while (m_iListener != -1 && m_iListener < (signed)m_listenerList.Length())
   {
     listener = m_listenerList[m_iListener];
     PRInt32 listenerFlags = m_listenerFlagList[m_iListener++];
@@ -605,7 +605,7 @@ nsresult nsMsgSearchSession::NotifyListenersDone(nsresult aStatus)
 
   nsCOMPtr<nsIMsgSearchNotify> listener;
   m_iListener = 0;
-  while (m_iListener != -1 && m_iListener < m_listenerList.Length())
+  while (m_iListener != -1 && m_iListener < (signed)m_listenerList.Length())
   {
     listener = m_listenerList[m_iListener];
     PRInt32 listenerFlags = m_listenerFlagList[m_iListener++];
