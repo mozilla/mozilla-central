@@ -1,5 +1,7 @@
-Components.utils.import("resource:///modules/Sanitizer.jsm");
-ok(typeof Sanitizer != "undefined", "Sanitizer module imported")
+let tempScope = {};
+Components.utils.import("resource:///modules/Sanitizer.jsm", tempScope);
+let Sanitizer = tempScope.Sanitizer;
+ok(typeof Sanitizer != "undefined", "Sanitizer module imported");
 
 function getWindows(aType, aSingle) {
   var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
