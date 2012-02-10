@@ -149,7 +149,7 @@ protected:
   // Returns a positive number for success, 0 for failure (not all the bytes were written to the
   // stream, etc). 
     // aSuppressLogging is a hint that sensitive data is being sent and should not be logged
-  virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging = false);
+  virtual nsresult SendData(const char * dataBuffer, bool aSuppressLogging = false);
 
   virtual nsresult PostMessage(nsIURI* url, nsIFile* aPostFile);
 
@@ -223,7 +223,7 @@ public:
   
   // over ride the following methods from the base class
   virtual nsresult SetupTransportState();
-  virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging = false);
+  virtual nsresult SendData(const char * dataBuffer, bool aSuppressLogging = false);
   nsCString mAsyncBuffer;
 
   // if we suspended the asynch write while waiting for more data to write then this will be TRUE

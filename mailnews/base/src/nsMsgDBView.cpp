@@ -5458,7 +5458,9 @@ nsMsgViewIndex nsMsgDBView::FindParentInThread(nsMsgKey parentKey, nsMsgViewInde
   return startOfThreadViewIndex;
 }
 
-nsresult nsMsgDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr, nsMsgKey parentKey, PRInt32 level, nsMsgViewIndex *viewIndex, PRUint32 *pNumListed)
+nsresult nsMsgDBView::ListIdsInThreadOrder(nsIMsgThread *threadHdr, nsMsgKey parentKey,
+                                           PRUint32 level, nsMsgViewIndex *viewIndex,
+                                           PRUint32 *pNumListed)
 {
   nsresult rv = NS_OK;
   nsCOMPtr <nsISimpleEnumerator> msgEnumerator;

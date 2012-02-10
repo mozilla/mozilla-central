@@ -209,7 +209,7 @@ private:
 
   // we have our own implementation of SendData which writes to the nntp log
   // and then calls the base class to transmit the data
-  PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging = false);
+  nsresult SendData(const char * dataBuffer, bool aSuppressLogging = false);
 
   nsresult CleanupAfterRunningUrl();
   void Cleanup(); //free char* member variables

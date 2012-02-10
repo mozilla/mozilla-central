@@ -564,9 +564,7 @@ PRInt32 nsSmtpProtocol::ExtensionLoginResponse(nsIInputStream * inputStream, PRU
   AppendHelloArgument(buffer);
   buffer += CRLF;
 
-  nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-
-  status = SendData(url, buffer.get());
+  status = SendData(buffer.get());
 
   m_nextState = SMTP_RESPONSE;
   m_nextStateAfterResponse = SMTP_SEND_EHLO_RESPONSE;
@@ -674,8 +672,7 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
   }
   buffer += CRLF;
 
-  nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-  status = SendData(url, buffer.get());
+  status = SendData(buffer.get());
 
   m_nextState = SMTP_RESPONSE;
 
@@ -689,7 +686,6 @@ PRInt32 nsSmtpProtocol::SendHeloResponse(nsIInputStream * inputStream, PRUint32 
 PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 length)
 {
     PRInt32 status = 0;
-    nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
 
     if (m_responseCode != 250)
     {
@@ -713,7 +709,7 @@ PRInt32 nsSmtpProtocol::SendEhloResponse(nsIInputStream * inputStream, PRUint32 
             AppendHelloArgument(buffer);
             buffer += CRLF;
 
-            status = SendData(url, buffer.get());
+            status = SendData(buffer.get());
 
             m_nextState = SMTP_RESPONSE;
             m_nextStateAfterResponse = SMTP_SEND_HELO_RESPONSE;
@@ -963,7 +959,6 @@ PRInt32 nsSmtpProtocol::ProcessAuth()
 {
     PRInt32 status = 0;
     nsCAutoString buffer;
-    nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
 
     if (!m_tlsEnabled)
     {
@@ -980,7 +975,7 @@ PRInt32 nsSmtpProtocol::ProcessAuth()
                 buffer = "STARTTLS";
                 buffer += CRLF;
 
-                status = SendData(url, buffer.get());
+                status = SendData(buffer.get());
 
                 m_tlsInitiated = true;
 
@@ -1013,7 +1008,7 @@ PRInt32 nsSmtpProtocol::ProcessAuth()
   {
     buffer = "AUTH EXTERNAL =";
     buffer += CRLF;
-    SendData(url, buffer.get());
+    SendData(buffer.get());
     m_nextState = SMTP_RESPONSE;
     m_nextStateAfterResponse = SMTP_AUTH_EXTERNAL_RESPONSE;
     SetFlag(SMTP_PAUSE_FOR_READ);
@@ -1220,8 +1215,7 @@ PRInt32 nsSmtpProtocol::AuthGSSAPIFirst()
   m_nextState = SMTP_RESPONSE;
   m_nextStateAfterResponse = SMTP_SEND_AUTH_GSSAPI_STEP;
   SetFlag(SMTP_PAUSE_FOR_READ);
-  nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-  return SendData(url, command.get());
+  return SendData(command.get());
 }
 
 // GSSAPI may consist of multiple round trips
@@ -1248,8 +1242,7 @@ PRInt32 nsSmtpProtocol::AuthGSSAPIStep()
   m_nextState = SMTP_RESPONSE;
   SetFlag(SMTP_PAUSE_FOR_READ);
 
-  nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-  return SendData(url, cmd.get());
+  return SendData(cmd.get());
 }
 
 
@@ -1269,7 +1262,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep0()
     m_nextStateAfterResponse = SMTP_AUTH_LOGIN_STEP0_RESPONSE;
     SetFlag(SMTP_PAUSE_FOR_READ);
 
-    return SendData(m_url, command.get());
+    return SendData(command.get());
 }
 
 PRInt32 nsSmtpProtocol::AuthLoginStep0Response()
@@ -1357,8 +1350,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep1()
   else
     return (NS_ERROR_COMMUNICATIONS_ERROR);
 
-  nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-  status = SendData(url, buffer, true);
+  status = SendData(buffer, true);
   m_nextState = SMTP_RESPONSE;
   m_nextStateAfterResponse = SMTP_AUTH_LOGIN_RESPONSE;
   SetFlag(SMTP_PAUSE_FOR_READ);
@@ -1447,8 +1439,7 @@ PRInt32 nsSmtpProtocol::AuthLoginStep2()
     else
       return NS_ERROR_COMMUNICATIONS_ERROR;
 
-    nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-    status = SendData(url, buffer, true);
+    status = SendData(buffer, true);
     m_nextState = SMTP_RESPONSE;
     m_nextStateAfterResponse = SMTP_AUTH_LOGIN_RESPONSE;
     SetFlag(SMTP_PAUSE_FOR_READ);
@@ -1549,8 +1540,7 @@ PRInt32 nsSmtpProtocol::SendMailResponse()
       buffer += ">";
       buffer += CRLF;
     }
-    nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-    status = SendData(url, buffer.get());
+    status = SendData(buffer.get());
 
     m_nextState = SMTP_RESPONSE;
     m_nextStateAfterResponse = SMTP_SEND_RCPT_RESPONSE;
@@ -1598,8 +1588,7 @@ PRInt32 nsSmtpProtocol::SendRecipientResponse()
   /* else send the DATA command */
   buffer = "DATA";
   buffer += CRLF;
-  nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-  status = SendData(url, buffer.get());
+  status = SendData(buffer.get());
 
   m_nextState = SMTP_RESPONSE;
   m_nextStateAfterResponse = SMTP_SEND_DATA_RESPONSE;
@@ -1609,7 +1598,7 @@ PRInt32 nsSmtpProtocol::SendRecipientResponse()
 }
 
 
-PRInt32 nsSmtpProtocol::SendData(nsIURI *url, const char *dataBuffer, bool aSuppressLogging)
+nsresult nsSmtpProtocol::SendData(const char *dataBuffer, bool aSuppressLogging)
 {
   if (!dataBuffer) return -1;
 
@@ -1618,7 +1607,7 @@ PRInt32 nsSmtpProtocol::SendData(nsIURI *url, const char *dataBuffer, bool aSupp
   } else {
       PR_LOG(SMTPLogModule, PR_LOG_ALWAYS, ("Logging suppressed for this command (it probably contained authentication information)"));
   }
-  return nsMsgAsyncWriteProtocol::SendData(url, dataBuffer);
+  return nsMsgAsyncWriteProtocol::SendData(dataBuffer);
 }
 
 
@@ -1721,8 +1710,7 @@ PRInt32 nsSmtpProtocol::SendMessageResponse()
 PRInt32 nsSmtpProtocol::SendQuit()
 {
   m_sendDone = true;
-  nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
-  SendData(url, "QUIT"CRLF); // send a quit command to close the connection with the server.
+  SendData("QUIT"CRLF); // send a quit command to close the connection with the server.
   m_nextState = SMTP_RESPONSE;
   m_nextStateAfterResponse = SMTP_DONE;
   return(0);
@@ -1967,9 +1955,8 @@ nsresult nsSmtpProtocol::LoadUrl(nsIURI * aURL, nsISupports * aConsumer )
     */
     if(status < 0 && m_nextState != SMTP_FREE)
     {
-      nsCOMPtr<nsIURI> url = do_QueryInterface(m_runningURL);
       // send a quit command to close the connection with the server.
-      if (SendData(url, "QUIT"CRLF) == NS_OK)
+      if (SendData("QUIT"CRLF) == NS_OK)
       {
         m_nextState = SMTP_RESPONSE;
         m_nextStateAfterResponse = SMTP_ERROR_DONE;

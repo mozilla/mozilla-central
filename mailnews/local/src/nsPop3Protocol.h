@@ -343,7 +343,7 @@ private:
 
   virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
                                         PRUint32 sourceOffset, PRUint32 length);
-  virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging = false);
+  virtual nsresult SendData(const char * dataBuffer, bool aSuppressLogging = false);
 
   virtual const char* GetType() {return "pop3";}
 

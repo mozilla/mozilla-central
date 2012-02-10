@@ -1352,21 +1352,21 @@ nsPop3Protocol::Error(PRInt32 err_code)
     return -1;
 }
 
-PRInt32 nsPop3Protocol::SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging)
+nsresult nsPop3Protocol::SendData(const char * dataBuffer, bool aSuppressLogging)
 {
   // remove any leftover bytes in the line buffer
   // this can happen if the last message line doesn't end with a (CR)LF
   // or a server sent two reply lines
   m_lineStreamBuffer->ClearBuffer();
 
-  PRInt32 result = nsMsgProtocol::SendData(aURL, dataBuffer);
+  nsresult result = nsMsgProtocol::SendData(dataBuffer);
 
   if (!aSuppressLogging)
       PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS, ("SEND: %s", dataBuffer));
   else
       PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS, ("Logging suppressed for this command (it probably contained authentication information)"));
 
-  if (result >= 0) // yeah this sucks...i need an error code....
+  if (NS_SUCCEEDED(result)) // yeah this sucks...i need an error code....
   {
     m_pop3ConData->pause_for_read = true;
     m_pop3ConData->next_state = POP3_WAIT_FOR_RESPONSE;
@@ -1377,7 +1377,7 @@ PRInt32 nsPop3Protocol::SendData(nsIURI * aURL, const char * dataBuffer, bool aS
     PR_LOG(POP3LOGMODULE, PR_LOG_ALWAYS, ("SendData faild: %lx", result));
   }
 
-  return 0;
+  return result;
 }
 
 /*
@@ -1392,7 +1392,7 @@ PRInt32 nsPop3Protocol::SendAuth()
   nsCAutoString command("AUTH" CRLF);
 
   m_pop3ConData->next_state_after_response = POP3_AUTH_RESPONSE;
-  return SendData(m_url, command.get());
+  return SendData(command.get());
 }
 
 PRInt32 nsPop3Protocol::AuthResponse(nsIInputStream* inputStream,
@@ -1486,7 +1486,7 @@ PRInt32 nsPop3Protocol::SendCapa()
     nsCAutoString command("CAPA" CRLF);
 
     m_pop3ConData->next_state_after_response = POP3_CAPA_RESPONSE;
-    return SendData(m_url, command.get());
+    return SendData(command.get());
 }
 
 PRInt32 nsPop3Protocol::CapaResponse(nsIInputStream* inputStream,
@@ -1778,7 +1778,7 @@ PRInt32 nsPop3Protocol::ProcessAuth()
             nsCAutoString command("STLS" CRLF);
 
             m_pop3ConData->next_state_after_response = POP3_TLS_RESPONSE;
-            return SendData(m_url, command.get());
+            return SendData(command.get());
         }
       }
       else if (m_socketType == nsMsgSocketType::alwaysSTARTTLS)
@@ -1986,7 +1986,7 @@ PRInt32 nsPop3Protocol::AuthLogin()
     m_pop3ConData->next_state_after_response = POP3_AUTH_LOGIN_RESPONSE;
     m_pop3ConData->pause_for_read = true;
 
-    return SendData(m_url, command.get());
+    return SendData(command.get());
 }
 
 PRInt32 nsPop3Protocol::AuthLoginResponse()
@@ -2018,7 +2018,7 @@ PRInt32 nsPop3Protocol::AuthNtlm()
     m_pop3ConData->next_state_after_response = POP3_AUTH_NTLM_RESPONSE;
     m_pop3ConData->pause_for_read = true;
 
-    return SendData(m_url, command.get());
+    return SendData(command.get());
 }
 
 PRInt32 nsPop3Protocol::AuthNtlmResponse()
@@ -2056,7 +2056,7 @@ PRInt32 nsPop3Protocol::AuthGSSAPI()
             m_GSSAPICache.Assign(cmd);
             m_pop3ConData->next_state_after_response = POP3_AUTH_GSSAPI_FIRST;
             m_pop3ConData->pause_for_read = true;
-            return SendData(m_url, "AUTH GSSAPI" CRLF);
+            return SendData("AUTH GSSAPI" CRLF);
         }
     }
 
@@ -2085,7 +2085,7 @@ PRInt32 nsPop3Protocol::AuthGSSAPIResponse(bool first)
 
     if (first) {
         m_GSSAPICache += CRLF;
-        rv = SendData(m_url, m_GSSAPICache.get());
+        rv = SendData(m_GSSAPICache.get());
         m_GSSAPICache.Truncate();
     }
     else {
@@ -2099,7 +2099,7 @@ PRInt32 nsPop3Protocol::AuthGSSAPIResponse(bool first)
             m_password_already_sent = true;
         }
         cmd += CRLF;
-        rv = SendData(m_url, cmd.get());
+        rv = SendData(cmd.get());
     }
 
     return rv;
@@ -2158,7 +2158,7 @@ PRInt32 nsPop3Protocol::SendUsername()
 
     m_pop3ConData->pause_for_read = true;
 
-    return SendData(m_url, cmd.get());
+    return SendData(cmd.get());
 }
 
 PRInt32 nsPop3Protocol::SendPassword()
@@ -2314,7 +2314,7 @@ PRInt32 nsPop3Protocol::SendPassword()
 
   m_password_already_sent = true;
   m_lastPasswordSent = m_passwordResult;
-  return SendData(m_url, cmd.get(), true);
+  return SendData(cmd.get(), true);
 }
 
 PRInt32 nsPop3Protocol::SendStatOrGurl(bool sendStat)
@@ -2330,7 +2330,7 @@ PRInt32 nsPop3Protocol::SendStatOrGurl(bool sendStat)
     cmd = "GURL" CRLF;
     m_pop3ConData->next_state_after_response = POP3_GURL_RESPONSE;
   }
-  return SendData(m_url, cmd.get());
+  return SendData(cmd.get());
 }
 
 
@@ -2485,7 +2485,7 @@ PRInt32 nsPop3Protocol::SendList()
         return(MK_OUT_OF_MEMORY);
     m_pop3ConData->next_state_after_response = POP3_GET_LIST;
     m_listpos = 0;
-    return SendData(m_url, "LIST"CRLF);
+    return SendData("LIST"CRLF);
 }
 
 
@@ -2659,7 +2659,7 @@ PRInt32 nsPop3Protocol::SendXtndXlstMsgid()
     m_pop3ConData->next_state_after_response = POP3_GET_XTND_XLST_MSGID;
     m_pop3ConData->pause_for_read = true;
     m_listpos = 0;
-    return SendData(m_url, "XTND XLST Message-Id" CRLF);
+    return SendData("XTND XLST Message-Id" CRLF);
   }
   else
     return HandleNoUidListAvailable();
@@ -2785,7 +2785,7 @@ PRInt32 nsPop3Protocol::SendUidlList()
       m_pop3ConData->next_state_after_response = POP3_GET_UIDL_LIST;
       m_pop3ConData->pause_for_read = true;
       m_listpos = 0;
-      return SendData(m_url,"UIDL" CRLF);
+      return SendData("UIDL" CRLF);
     }
     else
       return SendXtndXlstMsgid();
@@ -3205,7 +3205,7 @@ PRInt32 nsPop3Protocol::SendTop()
      * the next
      */
      m_bytesInMsgReceived = 0;
-     status = SendData(m_url,cmd);
+     status = SendData(cmd);
    }
    PR_Free(cmd);
    return status;
@@ -3220,7 +3220,7 @@ PRInt32 nsPop3Protocol::SendXsender()
   if (cmd)
   {
     m_pop3ConData->next_state_after_response = POP3_XSENDER_RESPONSE;
-    status = SendData(m_url, cmd);
+    status = SendData(cmd);
     PR_Free(cmd);
   }
   return status;
@@ -3286,7 +3286,7 @@ nsPop3Protocol::SendRetr()
         m_statusFeedback->ShowStatusString(finalString);
     }
 
-    status = SendData(m_url, cmd);
+    status = SendData(cmd);
   } // if cmd
   PR_Free(cmd);
   return status;
@@ -3645,7 +3645,7 @@ PRInt32 nsPop3Protocol::SendDele()
     if (cmd)
     {
       m_pop3ConData->next_state_after_response = POP3_DELE_RESPONSE;
-      status = SendData(m_url, cmd);
+      status = SendData(cmd);
     }
     PR_Free(cmd);
     return status;
@@ -4059,7 +4059,7 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
         }
       }
 
-      status = SendData(mailnewsurl, "QUIT" CRLF);
+      status = SendData("QUIT" CRLF);
       m_pop3ConData->next_state = POP3_WAIT_FOR_RESPONSE;
       m_pop3ConData->next_state_after_response = POP3_QUIT_RESPONSE;
       break;

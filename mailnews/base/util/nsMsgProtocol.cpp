@@ -369,16 +369,15 @@ nsresult nsMsgProtocol::CloseSocket()
 * No logging is done in the base implementation, so aSuppressLogging is ignored.
 */
 
-PRInt32 nsMsgProtocol::SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging)
+nsresult nsMsgProtocol::SendData(const char * dataBuffer, bool aSuppressLogging)
 {
   PRUint32 writeCount = 0;
-  PRInt32 status = 0;
 
-  //  NS_PRECONDITION(m_outputStream, "oops....we don't have an output stream...how did that happen?");
   if (dataBuffer && m_outputStream)
-    status = m_outputStream->Write(dataBuffer, PL_strlen(dataBuffer), &writeCount);
-
-  return status;
+    return m_outputStream->Write(dataBuffer, PL_strlen(dataBuffer), &writeCount);
+    // TODO make sure all the bytes in PL_strlen(dataBuffer) were written
+  else
+    return NS_ERROR_INVALID_ARG;
 }
 
 // Whenever data arrives from the connection, core netlib notifices the protocol by calling
@@ -875,7 +874,8 @@ nsresult nsMsgProtocol::PostMessage(nsIURI* url, nsIFile *postFile)
     // to make more room.
     if (outputBuffer.Length() > POST_DATA_BUFFER_SIZE || !more)
     {
-      SendData(url, outputBuffer.get());
+      rv = SendData(outputBuffer.get());
+      NS_ENSURE_SUCCESS(rv, rv);
       // does this keep the buffer around? That would be best.
       // Maybe SetLength(0) instead?
       outputBuffer.Truncate();
@@ -1334,7 +1334,9 @@ nsresult nsMsgAsyncWriteProtocol::UpdateSuspendedReadBytes(PRUint32 aNewBytes, b
 
 nsresult nsMsgAsyncWriteProtocol::PostDataFinished()
 {
-  SendData(nsnull, "." CRLF);
+  nsresult rv = SendData("." CRLF);
+  if (NS_FAILED(rv))
+    return rv;
   mGenerateProgressNotifications = false;
   mPostDataStream = nsnull;
   return NS_OK;
@@ -1554,11 +1556,10 @@ void nsMsgAsyncWriteProtocol::UpdateProgress(PRUint32 aNewBytes)
   return;
 }
 
-PRInt32 nsMsgAsyncWriteProtocol::SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging)
+nsresult nsMsgAsyncWriteProtocol::SendData(const char * dataBuffer, bool aSuppressLogging)
 {
   this->mAsyncBuffer.Append(dataBuffer);
-  mAsyncOutStream->AsyncWait(mProvider, 0, 0, mProviderThread);
-  return NS_OK;
+  return mAsyncOutStream->AsyncWait(mProvider, 0, 0, mProviderThread);
 }
 
 #define MSGS_URL    "chrome://messenger/locale/messenger.properties"

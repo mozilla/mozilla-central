@@ -114,7 +114,7 @@ public:
     virtual ~nsSmtpProtocol();
 
     virtual nsresult LoadUrl(nsIURI * aURL, nsISupports * aConsumer = nsnull);
-    virtual PRInt32 SendData(nsIURI * aURL, const char * dataBuffer, bool aSuppressLogging = false);
+    virtual nsresult SendData(const char * dataBuffer, bool aSuppressLogging = false);
 
     ////////////////////////////////////////////////////////////////////////////////////////
     // we suppport the nsIStreamListener interface 
