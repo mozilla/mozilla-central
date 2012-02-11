@@ -132,8 +132,8 @@ function test() {
         ok(compareFormValue(tab2, xpath, fieldList[xpath]),
            "The value for \"" + xpath + "\" was correctly restored");
       let browser = tab.linkedBrowser;
-      tab.linkedBrowser.addEventListener("pageshow", function(aEvent) {
-        browser.removeEventListener("pageshow", arguments.callee, true);
+      tab.linkedBrowser.addEventListener("load", function(aEvent) {
+        browser.removeEventListener("load", arguments.callee, true);
         let tab3 = tabbrowser.undoCloseTab(0);
         tab3.linkedBrowser.addEventListener("pageshow", function(aEvent) {
           for (let xpath in fieldList)
