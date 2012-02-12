@@ -53,6 +53,7 @@ lightning.jar:
     skin/lightning/lightning.css                           (themes/@THEME@/lightning.css)
     skin/lightning/lightning-toolbar.css                   (themes/@THEME@/lightning-toolbar.css)
     skin/lightning/lightning-widgets.css                   (themes/@THEME@/lightning-widgets.css)
+    skin/lightning/common/imip.css                         (themes/common/imip.css)
     skin/lightning/suite-accountCentral.css                (themes/common/suite-accountCentral.css)
     skin/lightning/mode-switch-icons.png                   (themes/common/images/mode-switch-icons.png)
 #ifdef XP_WIN

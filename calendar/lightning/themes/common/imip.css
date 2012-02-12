@@ -1,0 +1,38 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+table {
+       border: 3px solid -moz-default-color;
+       border-collapse: collapse;
+       width: 40em;
+       -moz-margin-start: auto;
+       -moz-margin-end: auto;
+}
+td {
+       padding: 3px;
+       vertical-align: top;
+       width: 2em;
+       text-align: left;
+}
+td.header {
+       background-color: Highlight;
+}
+td.description {
+       width: 9em;
+       text-align: right;
+       -moz-border-end: 1px solid rgba(255, 255, 255, 0.2);
+       background-color: rgba(0, 0, 0, 0.2);
+}
+td.content {
+       width: 29em;
+       background-color: -moz-default-background-color;
+}
+td.content p {
+       white-space: pre-wrap;
+}
+p.header {
+       color: HighlightText;
+       font-size: 1em;
+       font-weight: bold;
+}
