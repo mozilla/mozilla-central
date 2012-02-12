@@ -91,6 +91,9 @@ source-package::
 
 upload::
 	@$(MAKE) -C mail/installer upload
+ifdef MOZ_CALENDAR
+	@$(MAKE) -C calendar/lightning upload
+endif
 
 ifdef ENABLE_TESTS
 include $(srcdir)/mail/testsuite-targets.mk

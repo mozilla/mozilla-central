@@ -164,9 +164,14 @@ UPLOAD_FILES = \
   gdata-provider.xpi \
   $(NULL)
 
-upload:
+hack_l10n_upload:
+	[ -f $(DIST)/$(UNIVERSAL_PATH)xpi-stage/lighting-all.xpi ] && \
+	  cp -RL $(DIST)/$(UNIVERSAL_PATH)xpi-stage/lightning-all.xpi $(DIST)/$(MOZ_PKG_PLATFORM)/lightning.xpi || true
+
+stage_upload:
 	$(NSINSTALL) -D $(DIST)/$(MOZ_PKG_PLATFORM)
-	cp -RL $(DIST)/$(UNIVERSAL_PATH)xpi-stage/lightning-all.xpi $(DIST)/$(MOZ_PKG_PLATFORM)/lightning.xpi
-	$(INSTALL) $(IFLAGS1) $(DIST)/xpi-stage/gdata-provider.xpi $(DIST)/$(MOZ_PKG_PLATFORM)
+	$(INSTALL) $(IFLAGS1) $(addprefix $(DIST)/xpi-stage/,$(UPLOAD_FILES)) $(DIST)/$(MOZ_PKG_PLATFORM)
+
+upload: stage_upload hack_l10n_upload
 	$(PYTHON) $(MOZILLA_DIR)/build/upload.py --base-path $(DIST) \
 	  $(addprefix $(DIST)/$(MOZ_PKG_PLATFORM)/,$(UPLOAD_FILES))
