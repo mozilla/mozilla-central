@@ -53,8 +53,8 @@ function pageInfoTreeView(copycol)
   this.tree = null;
   this.data = [ ];
   this.selection = null;
-  this.sortcol = null;
-  this.sortdir = 0;
+  this.sortcol = -1;
+  this.sortdir = false;
 }
 
 pageInfoTreeView.prototype = {
@@ -119,13 +119,49 @@ pageInfoTreeView.prototype = {
     }
   },
 
+  cycleHeader: function cycleHeader(col)
+  {
+    this.doSort(col);
+  },
+
+  doSort: function doSort(col, comparator)
+  {
+    var ascending = col.index != this.sortcol || !this.sortdir;
+    this.sortdir = ascending;
+    this.sortcol = col.index;
+
+    Array.forEach(this.tree.columns, function(treecol) {
+      treecol.element.removeAttribute("sortActive");
+      treecol.element.removeAttribute("sortDirection");
+    });
+    col.element.setAttribute("sortActive", true);
+    col.element.setAttribute("sortDirection", ascending ?
+                                              "ascending" : "descending");
+
+    var index = col.index;
+    if (!comparator) {
+      comparator = function comparator(a, b) {
+        return a[index].toLowerCase().localeCompare(b[index].toLowerCase());
+      };
+    }
+
+    this.data.sort(comparator);
+    if (!ascending)
+      this.data.reverse();
+
+    this.tree.invalidate();
+    this.tree.view.selection.select(0);
+    this.tree.ensureRowIsVisible(0);
+
+  },
+
   getRowProperties: function(row, prop) { },
   getCellProperties: function(row, column, prop) { },
   getColumnProperties: function(column, prop) { },
   isContainer: function(index) { return false; },
   isContainerOpen: function(index) { return false; },
   isSeparator: function(index) { return false; },
-  isSorted: function() { },
+  isSorted: function() { return this.sortcol > -1 },
   canDrop: function(index, orientation) { return false; },
   drop: function(row, orientation) { return false; },
   getParentIndex: function(index) { return -1; },
@@ -135,7 +171,6 @@ pageInfoTreeView.prototype = {
   getProgressMode: function(row, column) { },
   getCellValue: function(row, column) { },
   toggleOpenState: function(index) { },
-  cycleHeader: function(col) { },
   selectionChanged: function() { },
   cycleCell: function(row, column) { },
   isEditable: function(row, column) { return false; },
@@ -156,6 +191,7 @@ const COL_IMAGE_ALT     = 3;
 const COL_IMAGE_COUNT   = 4;
 const COL_IMAGE_NODE    = 5;
 const COL_IMAGE_BG      = 6;
+const COL_IMAGE_SIZENUM = 7;
 
 // column number to copy from, second argument to pageInfoTreeView's constructor
 const COPYCOL_NONE = -1;
@@ -181,6 +217,21 @@ gImageView.getCellProperties = function(row, col, props) {
   if (gImageView.data[row][COL_IMAGE_SIZE] == gStrings.unknown &&
       !/^https:/.test(gImageView.data[row][COL_IMAGE_ADDRESS]))
     props.AppendElement(gBrokenAtom);
+};
+
+gImageView.cycleHeader = function(col)
+{
+  var index = col.index;
+  var comparator;
+  switch (col.index) {
+    case COL_IMAGE_SIZE:
+      index = COL_IMAGE_SIZENUM;
+    case COL_IMAGE_COUNT:
+      comparator = function numComparator(a, b) { return a[index] - b[index]; };
+      break;
+  }
+
+  this.doSort(col, comparator);
 };
 
 var gImageHash = { };
@@ -571,14 +622,15 @@ function addImage(url, type, alt, elem, isBg)
     }
 
     var sizeText;
+    var pageSize;
     if (cacheEntryDescriptor) {
-      var pageSize = cacheEntryDescriptor.dataSize;
+      pageSize = cacheEntryDescriptor.dataSize;
       var kbSize = Math.round(pageSize / 1024 * 100) / 100;
       sizeText = gBundle.getFormattedString("mediaFileSize", [formatNumber(kbSize)]);
     }
     else
       sizeText = gStrings.unknown;
-    gImageView.addRow([url, type, sizeText, alt, 1, elem, isBg]);
+    gImageView.addRow([url, type, sizeText, alt, 1, elem, isBg, pageSize]);
 
     // Add the observer, only once.
     if (gImageView.data.length == 1) {
@@ -609,7 +661,7 @@ function grabAll(elem)
     addImage(elem.src, gStrings.mediaImg,
              (elem.hasAttribute("alt")) ? elem.alt : gStrings.notSet, elem, false);
   else if (elem instanceof HTMLAreaElement)
-    gLinkView.addRow([elem.alt, elem.href, gStrings.linkArea, elem.target]);
+    gLinkView.addRow([elem.alt, elem.href, gStrings.linkArea, elem.target, ""]);
   else if (elem instanceof HTMLVideoElement)
     addImage(elem.currentSrc, gStrings.mediaVideo, "", elem, false);
   else if (elem instanceof HTMLAudioElement)
@@ -622,12 +674,12 @@ function grabAll(elem)
       if (/(?:^|\s)icon(?:\s|$)/i.test(rel))
         addImage(elem.href, gStrings.mediaLink, "", elem, false);
       else if (/(?:^|\s)stylesheet(?:\s|$)/i.test(rel))
-        gLinkView.addRow([elem.rel, elem.href, gStrings.linkStylesheet, elem.target]);
+        gLinkView.addRow([elem.rel, elem.href, gStrings.linkStylesheet, elem.target, ""]);
       else
-        gLinkView.addRow([elem.rel, elem.href, gStrings.linkRel, elem.target]);
+        gLinkView.addRow([elem.rel, elem.href, gStrings.linkRel, elem.target, ""]);
     }
     else
-      gLinkView.addRow([elem.rev, elem.href, gStrings.linkRev, elem.target]);
+      gLinkView.addRow([elem.rev, elem.href, gStrings.linkRev, elem.target, ""]);
   }
   else if (elem instanceof HTMLInputElement || elem instanceof HTMLButtonElement)
   {
@@ -640,11 +692,11 @@ function grabAll(elem)
         if ("form" in elem && elem.form)
         {
           gLinkView.addRow([elem.value || getValueText(elem) || gStrings.linkSubmit,
-                            elem.form.action, gStrings.linkSubmission, elem.form.target]);
+                            elem.form.action, gStrings.linkSubmission, elem.form.target, ""]);
         }
         else
-          gLinkView.addRow([elem.value || getValueText(elem) || gStrings.linkSubmit, '',
-                            gStrings.linkSubmission, '']);
+          gLinkView.addRow([elem.value || getValueText(elem) || gStrings.linkSubmit, "",
+                            gStrings.linkSubmission, "", ""]);
     }
   }
   else if (elem instanceof HTMLFormElement)
@@ -659,7 +711,7 @@ function grabAll(elem)
     try {
       url = makeURLAbsolute(elem.baseURI, url, elem.ownerDocument.characterSet);
     } catch (e) {}
-    gLinkView.addRow([getValueText(elem), url, gStrings.linkX, ""]);
+    gLinkView.addRow([getValueText(elem), url, gStrings.linkX, "", ""]);
   }
   else if (elem.hasAttributeNS(XLinkNS, "href"))
   {
@@ -671,10 +723,12 @@ function grabAll(elem)
     if (elem instanceof SVGImageElement)
       addImage(url, gStrings.mediaImg, "", elem, false);
     else
-      gLinkView.addRow([getValueText(elem), url, gStrings.linkX, ""]);
+      gLinkView.addRow([getValueText(elem), url, gStrings.linkX, "", ""]);
   }
   else if (elem instanceof HTMLScriptElement)
-    gLinkView.addRow([elem.type || elem.language, elem.src || gStrings.linkScriptInline, gStrings.linkScript]);
+    gLinkView.addRow([elem.type || elem.getAttribute("language") || gStrings.notSet,
+                      elem.src || gStrings.linkScriptInline,
+                      gStrings.linkScript, "", "", ""]);
 
   onProcessElement.forEach(function(func) { func(elem); });
 
@@ -867,7 +921,7 @@ function saveMedia()
       var item = gImageView.data[v][COL_IMAGE_NODE];
       var uriString = gImageView.data[v][COL_IMAGE_ADDRESS];
       var uri = makeURI(uriString);
- 
+
       try {
         uri.QueryInterface(Components.interfaces.nsIURL);
         dir.append(decodeURIComponent(uri.fileName));
