@@ -48,14 +48,6 @@
 
 /* ::::: Mail Toolbars and Menubars ::::: */
 
-window[windowtype="mail:messageWindow"] .mail-toolbox {
-  border-bottom: 0px;
-}
-
-window[windowtype="mail:messageWindow"] .mail-toolbox > toolbar {
-  -moz-appearance: toolbar;
-}
-
 .mail-toolbox {
   -moz-appearance: none;
   border-bottom: 1px solid rgba(0, 0, 0, 0.57);

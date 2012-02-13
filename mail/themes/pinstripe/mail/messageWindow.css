@@ -46,6 +46,20 @@
 
 @namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
 
+/* ::::: Mail Toolbars and Menubars ::::: */
+
+.mail-toolbox {
+  border-bottom: 0px;
+}
+
+.mail-toolbox:-moz-lwtheme {
+  background: none !important;
+}
+
+.mail-toolbox > toolbar:not(:-moz-lwtheme) {
+  -moz-appearance: toolbar;
+}
+
 /* ::::: message header borders ::::: */
 
 #messagepanebox {
