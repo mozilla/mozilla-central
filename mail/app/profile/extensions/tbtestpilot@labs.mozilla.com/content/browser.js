@@ -167,23 +167,8 @@ var TestPilotMenuUtils;
        * whether they opened with Firefox on startup or were opened later. */
 
       if (("TestPilotSetup" in window) && TestPilotSetup.startupComplete) {
-        Services.console.logStringMessage("Startup complete, that's funny.\n");
         TestPilotSetup.onWindowLoad(window);
       } else {
-        Services.console.logStringMessage("Initializing timer.\n");
-        // TODO only want to start this timer ONCE so we need some global state to
-        // remember whether we already started it (only a problem on multi-window systems)
-        // (that's essentially the problem the component solved) deal with this later.
-        window.setTimeout(function() {
-           Services.console.logStringMessage("Timer got called back!.\n");
-             Services.console.logStringMessage("Impoting setup");
-             Cu.import("resource://testpilot/modules/setup.js");
-             Services.console.logStringMessage("globally globalStartuping");
-             TestPilotSetup.globalStartup();
-             Services.console.logStringMessage("Did it.");
-        }, 10000);
-        Services.console.logStringMessage("Timer made.\n");
-
         let observerSvc = Cc["@mozilla.org/observer-service;1"]
                              .getService(Ci.nsIObserverService);
         let observer = {
@@ -192,7 +177,6 @@ var TestPilotMenuUtils;
             TestPilotSetup.onWindowLoad(window);
           }
         };
-        Services.console.logStringMessage("Registering observer for startup completion.\n");
         observerSvc.addObserver(observer, "testpilot:startup:complete", false);
       }
 

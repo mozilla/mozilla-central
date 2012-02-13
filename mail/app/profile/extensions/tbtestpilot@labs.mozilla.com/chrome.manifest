@@ -16,10 +16,9 @@ style	chrome://global/content/customizeToolbar.xul	chrome://testpilot/content/br
 overlay chrome://testpilot/content/all-studies-window.xul chrome://browser/content/macBrowserOverlay.xul application={ec8030f7-c20a-464f-9b0e-13a3a9e97384} os=Darwin
 
 
-# Remove the component for the Fennec version - don't think I need it:
-# component {e6e5e58f-7977-485a-b076-2f74bee2677b} components/TestPilot.js
-# contract @mozilla.org/testpilot/service;1 {e6e5e58f-7977-485a-b076-2f74bee2677b}
-# category profile-after-change testpilot @mozilla.org/testpilot/service;1
+component {e6e5e58f-7977-485a-b076-2f74bee2677b} components/TestPilot.js
+contract @mozilla.org/testpilot/service;1 {e6e5e58f-7977-485a-b076-2f74bee2677b}
+category profile-after-change testpilot @mozilla.org/testpilot/service;1
 
 # For the options on Fennec
 override chrome://testpilot/content/options.xul chrome://testpilot/content/fennec-options.xul application={a23983c0-fd0e-11dc-95ff-0800200c9a66}
