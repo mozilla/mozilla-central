@@ -38,6 +38,180 @@
 #
 # ***** END LICENSE BLOCK ******
 
+var Cc = Components.classes;
+var Ci = Components.interfaces;
+var Cr = Components.results;
+var Cu = Components.utils;
+
+Cu.import("resource:///modules/mailServices.js");
+Cu.import("resource:///modules/gloda/log4moz.js");
+Cu.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+
+var FeedUtils = {
+  kBiffMinutesDefault: 100,
+  kNewsBlogSuccess: 0,
+  // Usually means there was an error trying to parse the feed.
+  kNewsBlogInvalidFeed: 1,
+  // Generic networking failure when trying to download the feed.
+  kNewsBlogRequestFailure: 2,
+  kNewsBlogFeedIsBusy: 3,
+  // There are no new articles for this feed
+  kNewsBlogNoNewItems: 4,
+
+  // Progress glue code.  Acts as a go between the RSS back end and the mail
+  // window front end determined by the aMsgWindow parameter passed into
+  // nsINewsBlogFeedDownloader.
+  progressNotifier: {
+    mSubscribeMode: false,
+    mMsgWindow: null,
+    mStatusFeedback: null,
+    mFeeds: {},
+    // Keeps track of the total number of feeds we have been asked to download.
+    // This number may not reflect the # of entries in our mFeeds array because
+    // not all feeds may have reported in for the first time.
+    mNumPendingFeedDownloads: 0,
+
+    init: function(aMsgWindow, aSubscribeMode)
+    {
+      if (!this.mNumPendingFeedDownloads)
+      {
+        // If we aren't already in the middle of downloading feed items.
+        this.mStatusFeedback = aMsgWindow ? aMsgWindow.statusFeedback : null;
+        this.mSubscribeMode = aSubscribeMode;
+        this.mMsgWindow = aMsgWindow;
+
+        if (this.mStatusFeedback)
+        {
+          this.mStatusFeedback.startMeteors();
+          this.mStatusFeedback.showStatusString(
+            FeedUtils.strings.GetStringFromName(
+              aSubscribeMode ? "subscribe-validating-feed" :
+                               "newsblog-getNewMsgsCheck"));
+        }
+      }
+    },
+
+    downloaded: function(feed, aErrorCode)
+    {
+      FeedUtils.log.debug("downloaded: feed:errorCode - " +
+                          feed.name+" : "+aErrorCode);
+      if (this.mSubscribeMode && aErrorCode == FeedUtils.kNewsBlogSuccess)
+      {
+        // If we get here we should always have a folder by now, either in
+        // feed.folder or FeedItems created the folder for us.
+        updateFolderFeedUrl(feed.folder, feed.url, false);
+
+        // Add feed just adds the feed to the subscription UI and flushes the
+        // datasource.
+        addFeed(feed.url, feed.name, feed.folder);
+
+        // Nice touch: select the folder that now contains the newly subscribed
+        // feed.  This is particularly nice if we just finished subscribing
+        // to a feed URL that the operating system gave us.
+        this.mMsgWindow.windowCommands.selectFolder(feed.folder.URI);
+      }
+      else if (feed.folder && aErrorCode != FeedUtils.kNewsBlogFeedIsBusy)
+        // Free msgDatabase after new mail biff is set; if busy let the next
+        // result do the freeing.  Otherwise new messages won't be indicated.
+        feed.folder.msgDatabase = null;
+
+      if (this.mStatusFeedback)
+      {
+        if (aErrorCode == FeedUtils.kNewsBlogNoNewItems)
+          this.mStatusFeedback.showStatusString(
+            FeedUtils.strings.GetStringFromName("newsblog-noNewArticlesForFeed"));
+        else if (aErrorCode == FeedUtils.kNewsBlogInvalidFeed)
+          this.mStatusFeedback.showStatusString(
+            FeedUtils.strings.formatStringFromName("newsblog-feedNotValid",
+                                                   [feed.url], 1));
+        else if (aErrorCode == FeedUtils.kNewsBlogRequestFailure)
+          this.mStatusFeedback.showStatusString(
+            FeedUtils.strings.formatStringFromName("newsblog-networkError",
+                                                   [feed.url], 1));
+        this.mStatusFeedback.stopMeteors();
+      }
+
+      if (!--this.mNumPendingFeedDownloads)
+      {
+        this.mFeeds = {};
+        this.mSubscribeMode = false;
+
+        // Should we do this on a timer so the text sticks around for a little
+        // while?  It doesnt look like we do it on a timer for newsgroups so
+        // we'll follow that model.  Don't clear the status text if we just
+        // dumped an error to the status bar!
+        if (aErrorCode == FeedUtils.kNewsBlogSuccess && this.mStatusFeedback)
+          this.mStatusFeedback.showStatusString("");
+      }
+    },
+
+    // This gets called after the RSS parser finishes storing a feed item to
+    // disk. aCurrentFeedItems is an integer corresponding to how many feed
+    // items have been downloaded so far.  aMaxFeedItems is an integer
+    // corresponding to the total number of feed items to download
+    onFeedItemStored: function (feed, aCurrentFeedItems, aMaxFeedItems)
+    {
+      // We currently don't do anything here.  Eventually we may add status
+      // text about the number of new feed articles received.
+
+      if (this.mSubscribeMode && this.mStatusFeedback)
+      {
+        // If we are subscribing to a feed, show feed download progress.
+        this.mStatusFeedback.showStatusString(
+          FeedUtils.strings.formatStringFromName("subscribe-gettingFeedItems",
+                                                 [aCurrentFeedItems, aMaxFeedItems], 2));
+        this.onProgress(feed, aCurrentFeedItems, aMaxFeedItems);
+      }
+    },
+
+    onProgress: function(feed, aProgress, aProgressMax)
+    {
+      if (feed.url in this.mFeeds)
+        // Have we already seen this feed?
+        this.mFeeds[feed.url].currentProgress = aProgress;
+      else
+        this.mFeeds[feed.url] = {currentProgress: aProgress,
+                                 maxProgress: aProgressMax};
+
+      this.updateProgressBar();
+    },
+
+    updateProgressBar: function()
+    {
+      var currentProgress = 0;
+      var maxProgress = 0;
+      for (let index in this.mFeeds)
+      {
+        currentProgress += this.mFeeds[index].currentProgress;
+        maxProgress += this.mFeeds[index].maxProgress;
+      }
+
+      // If we start seeing weird "jumping" behavior where the progress bar
+      // goes below a threshold then above it again, then we can factor a
+      // fudge factor here based on the number of feeds that have not reported
+      // yet and the avg progress we've already received for existing feeds.
+      // Fortunately the progressmeter is on a timer and only updates every so
+      // often.  For the most part all of our request have initial progress
+      // before the UI actually picks up a progress value. 
+      if (this.mStatusFeedback)
+      {
+        let progress = (currentProgress * 100) / maxProgress;
+        this.mStatusFeedback.showProgress(progress);
+      }
+    }
+  }
+};
+
+XPCOMUtils.defineLazyGetter(FeedUtils, "log", function() {
+  return Log4Moz.getConfiguredLogger("Feeds");
+});
+
+XPCOMUtils.defineLazyGetter(FeedUtils, "strings", function() {
+  return Services.strings.createBundle(
+    "chrome://messenger-newsblog/locale/newsblog.properties");
+});
+
 // Whether or not to dump debugging messages to the console.
 const DEBUG = false;
 var debug;
@@ -202,13 +376,6 @@ function getFeedUrlsInFolder(aFolder)
     msgDb = aFolder.msgDatabase;
   }
   catch (ex) {}
-  if (!msgDb || !msgDb.dBFolderInfo) {
-    try {
-      msgDb = aFolder.QueryInterface(Components.interfaces.nsIMsgLocalMailFolder)
-                     .getDatabaseWOReparse();
-    }
-    catch (ex) {}
-  }
   if (msgDb && msgDb.dBFolderInfo) {
     feedurls = msgDb.dBFolderInfo.getCharProperty("feedUrl");
     // Clean up the feedUrl string.
@@ -220,6 +387,24 @@ function getFeedUrlsInFolder(aFolder)
 
     feedurls = feedUrlArray.join(kFeedUrlDelimiter);
     if (feedurls) {
+      // Do a onetime per folder re-sync of the feeds db here based on the
+      // urls in the feedUrl property.
+      let ds = getSubscriptionsDS(aFolder.server);
+      let resource = rdf.GetResource(aFolder.URI);
+      feedUrlArray.forEach(
+        function(url) {
+          let id = rdf.GetResource(url);
+          // Get the node for the current folder URI.
+          let node = ds.GetTarget(id, FZ_DESTFOLDER, true);
+          if (node)
+            ds.Change(id, FZ_DESTFOLDER, node, resource);
+          else
+            addFeed(url, resource.name, resource);
+          FeedUtils.log.debug("getFeedUrlsInFolder: sync folder:url - " +
+                              aFolder.name+" : "+url);
+      });
+      ds.QueryInterface(Ci.nsIRDFRemoteDataSource).Flush();
+
       // Set property on folder so we don't come here ever again.
       aFolder.setStringProperty("feedUrl", feedurls);
       aFolder.msgDatabase = null;
