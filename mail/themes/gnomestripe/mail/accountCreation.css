@@ -38,10 +38,10 @@ window {
   -moz-appearance: none;
 }
 
-vbox.icon {
-  width: 22px;
-  height: 22px;
-  background-repeat: no-repeat;
+image.warningicon {
+  width: 16px;
+  height: 16px;
+  background: url("chrome://global/skin/icons/warning-16.png") no-repeat;
 }
 
 image.insecureLarry {
@@ -179,11 +179,6 @@ menulist.host {
   margin-top: 4px !important;
 }
 
-textbox[disabled="true"] {
-  -moz-appearance: textfield;
-  color: -moz-DialogText;
-}
-
 .technical_details {
   cursor: pointer;
   margin: 0px;
@@ -196,12 +191,10 @@ textbox[disabled="true"] {
 }
 
 label.autoconfigLabel {
-  width: 100px;
   text-align: right;
 }
 
 label.textbox-label {
-  width: 58px;
   text-align: right;
 }
 

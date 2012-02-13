@@ -1,3 +1,5 @@
+@namespace html url("http://www.w3.org/1999/xhtml");
+
 /* ::::: BUTTONS ::::: */
 
 .important-button {
@@ -53,10 +55,10 @@ window {
   padding: 14px;
 }
 
-vbox.icon {
-  width: 22px;
-  height: 22px;
-  background-repeat: no-repeat;
+image.warningicon {
+  width: 16px;
+  height: 16px;
+  background: url("chrome://global/skin/icons/warning-16.png") no-repeat;
 }
 
 image.insecureLarry {
@@ -191,10 +193,6 @@ menulist.host {
   margin-top: 4px !important;
 }
 
-/* Missing:
- * textbox[disabled="true"]
- */
-
 .technical_details {
   cursor: pointer;
   margin: 0px;
@@ -207,12 +205,10 @@ menulist.host {
 }
 
 label.autoconfigLabel {
-  width: 80px;
   text-align: right;
 }
 
 label.textbox-label {
-  width: 58px;
   text-align: right;
 }
 
@@ -225,6 +221,9 @@ menulist[disabled="true"] {
   color: -moz-DialogText;
 }
 
+textbox.padded html|*.textbox-input:-moz-placeholder {
+  font-style: normal;
+}
 
 /* status area */
 

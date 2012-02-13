@@ -1456,6 +1456,7 @@ EmailConfigWizard.prototype =
       _show(which);
       _show(which + "icon");
       e(which).textContent = gStringsBundle.getString(msg_name);
+      window.sizeToContent();
     } catch (ex) { alertPrompt("missing error string", msg_name); }
   },
 

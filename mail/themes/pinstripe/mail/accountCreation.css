@@ -28,10 +28,10 @@ window {
   -moz-appearance: none;
 }
 
-vbox.icon {
-  width: 22px;
-  height: 22px;
-  background-repeat: no-repeat;
+image.warningicon {
+  width: 16px;
+  height: 16px;
+  background: url("chrome://global/skin/icons/warning-16.png") no-repeat;
 }
 
 image.insecureLarry {
@@ -131,10 +131,6 @@ checkbox.acknowledge_checkbox {
   max-width: 320px;
 }
 
-/* Missing:
- * label.textbox-label
- */
-
 .protocol {
   width: 8em;
 }
@@ -185,12 +181,10 @@ menulist.host {
 }
 
 label.autoconfigLabel {
-  width: 80px;
   text-align: right;
 }
 
 label.textbox-label {
-  width: 58px;
   text-align: right;
 }
 

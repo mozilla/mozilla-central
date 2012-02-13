@@ -157,66 +157,79 @@
   <spacer id="fullwidth"/>
 
   <vbox id="mastervbox" class="mastervbox" flex="1">
-    <groupbox id="initialSettings">
-      <hbox align="center">
-        <label accesskey="&name.accesskey;"
-               class="autoconfigLabel"
-               value="&name.label;"
-               control="realname"/>
-        <textbox id="realname"
-                 class="padded"
-                 placeholder="&name.placeholder;"
-                 oninput="gEmailConfigWizard.onInputRealname();"
-                 onblur="gEmailConfigWizard.onBlurRealname();"/>
-        <description id="nametext" class="initialDesc">&name.text;</description>
-        <image id="nameerroricon"
-               hidden="true"
-               src="chrome://global/skin/icons/warning-16.png"/>
-        <description id="nameerror" class="errordescription" hidden="true"/>
-      </hbox>
-      <hbox align="center">
-        <label accesskey="&email.accesskey;"
-               class="autoconfigLabel"
-               value="&email.label;"
-               control="email"/>
-        <textbox id="email"
-                 class="padded uri-element"
-                 placeholder="&email.placeholder;"
-                 oninput="gEmailConfigWizard.onInputEmail();"
-                 onblur="gEmailConfigWizard.onBlurEmail();"/>
-        <image id="emailerroricon"
-               hidden="true"
-               src="chrome://global/skin/icons/warning-16.png"/>
-        <description id="emailerror" class="errordescription" hidden="true"/>
-      </hbox>
-      <hbox align="center">
-        <!-- this starts out as text so the emptytext shows, but then
-             changes to type=password once it's not empty -->
-        <label accesskey="&password.accesskey;"
-               class="autoconfigLabel"
-               value="&password.label;"
-               control="password"
-               tooltip="optional-password"/>
-        <textbox id="password"
-                 class="padded"
-                 placeholder="&password.placeholder;"
-                 type="text"
-                 oninput="gEmailConfigWizard.onInputPassword();"
-                 onfocus="gEmailConfigWizard.onFocusPassword();"
-                 onblur="gEmailConfigWizard.onBlurPassword();"/>
-        <image id="passworderroricon"
-               hidden="true"
-               src="chrome://global/skin/icons/warning-16.png"/>
-        <description id="passworderror" class="errordescription" hidden="true"/>
-      </hbox>
-      <hbox align="center" pack="start">
-        <label class="autoconfigLabel"/>
-        <checkbox id="remember_password"
-                  label="&rememberPassword.label;"
-                  accesskey="&rememberPassword.accesskey;"
-                  checked="true"/>
-      </hbox>
-    </groupbox>
+    <grid id="initialSettings">
+      <columns>
+        <column/>
+        <column/>
+        <column/>
+      </columns>
+      <rows>
+        <row align="center">
+          <label accesskey="&name.accesskey;"
+                 class="autoconfigLabel"
+                 value="&name.label;"
+                 control="realname"/>
+          <textbox id="realname"
+                   class="padded"
+                   placeholder="&name.placeholder;"
+                   oninput="gEmailConfigWizard.onInputRealname();"
+                   onblur="gEmailConfigWizard.onBlurRealname();"/>
+          <hbox>
+            <description id="nametext" class="initialDesc">&name.text;</description>
+            <image id="nameerroricon"
+                   hidden="true"
+                   class="warningicon"/>
+            <description id="nameerror" class="errordescription" hidden="true"/>
+          </hbox>
+        </row>
+        <row align="center">
+          <label accesskey="&email.accesskey;"
+                 class="autoconfigLabel"
+                 value="&email.label;"
+                 control="email"/>
+          <textbox id="email"
+                   class="padded uri-element"
+                   placeholder="&email.placeholder;"
+                   oninput="gEmailConfigWizard.onInputEmail();"
+                   onblur="gEmailConfigWizard.onBlurEmail();"/>
+          <hbox>
+            <image id="emailerroricon"
+                   hidden="true"
+                   class="warningicon"/>
+            <description id="emailerror" class="errordescription" hidden="true"/>
+          </hbox>
+        </row>
+        <row align="center">
+          <!-- this starts out as text so the emptytext shows, but then
+               changes to type=password once it's not empty -->
+          <label accesskey="&password.accesskey;"
+                 class="autoconfigLabel"
+                 value="&password.label;"
+                 control="password"
+                 tooltip="optional-password"/>
+          <textbox id="password"
+                   class="padded"
+                   placeholder="&password.placeholder;"
+                   type="text"
+                   oninput="gEmailConfigWizard.onInputPassword();"
+                   onfocus="gEmailConfigWizard.onFocusPassword();"
+                   onblur="gEmailConfigWizard.onBlurPassword();"/>
+          <hbox>
+            <image id="passworderroricon"
+                   hidden="true"
+                   class="warningicon"/>
+            <description id="passworderror" class="errordescription" hidden="true"/>
+          </hbox>
+        </row>
+        <row align="center" pack="start">
+          <label class="autoconfigLabel"/>
+          <checkbox id="remember_password"
+                    label="&rememberPassword.label;"
+                    accesskey="&rememberPassword.accesskey;"
+                    checked="true"/>
+        </row>
+      </rows>
+    </grid>
     <spacer flex="1" />
 
      <hbox id="status_area" flex="1">
@@ -235,18 +248,29 @@
         <radio id="result_select_pop3" label="&pop3Long.label;" value="2"
                oncommand="gEmailConfigWizard.onResultIMAPOrPOP3();"/>
       </radiogroup>
-      <hbox>
-        <label class="textbox-label" value="&incoming.label;"/>
-        <description id="result-incoming" flex="1">&#160;</description>
-      </hbox>
-      <hbox>
-        <label class="textbox-label" value="&outgoing.label;"/>
-        <description id="result-outgoing" flex="1">&#160;</description>
-      </hbox>
-      <hbox>
-        <label class="textbox-label" value="&username.label;"/>
-        <description id="result-username" flex="1">&#160;</description>
-      </hbox>
+      <grid>
+        <columns>
+          <column/>
+          <column flex="1"/>
+        </columns>
+        <rows>
+          <row align="center">
+            <label class="textbox-label" value="&incoming.label;"
+                   control="result-incoming"/>
+            <textbox id="result-incoming" disabled="true" flex="1"/>
+          </row>
+          <row align="center">
+            <label class="textbox-label" value="&outgoing.label;"
+                   control="result-outgoing"/>
+            <textbox id="result-outgoing" disabled="true" flex="1"/>
+          </row>
+          <row align="center">
+            <label class="textbox-label" value="&username.label;"
+                   control="result-username"/>
+            <textbox id="result-username" disabled="true" flex="1"/>
+          </row>
+        </rows>
+      </grid>
     </groupbox>
 
     <groupbox id="manual-edit_area" hidden="true">
