@@ -57,7 +57,6 @@ _CHROME_FILES = \
     test_0_bug510634.xul \
     test_bug549192.xul \
     test_bug549491.xul \
-    perf_large_delete.xul \
     $(NULL)
 
 _BROWSER_FILES = \
@@ -73,8 +72,6 @@ _BROWSER_FILES = \
     browser_drag_bookmarks_on_toolbar.js \
     browser_library_views_liveupdate.js \
     browser_library_infoBox.js \
-    browser_ui_000_data.js \
-    browser_ui_history_menu.js \
     $(NULL)
 
 libs:: $(addprefix chrome/, $(_CHROME_FILES))
