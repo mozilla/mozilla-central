@@ -36,50 +36,23 @@
 
 // Test of setting keywords with CopyFileMessage
 
-const copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
 const bugmail11 = do_get_file("../../../data/bugmail11");
                      
 // main test
-
-var hdrs = [];
 
 // tag used with test messages
 var tag1 = "istag";
 
 function run_test()
 {
-
-  loadLocalMailAccount();
-  // CopyFileMessage is sync in this case, but in case that changes...
   do_test_pending();
-  // bugmail11 has no keywords.    
-  copyService.CopyFileMessage(bugmail11, gLocalInboxFolder, null, false, 0, tag1,
-                              copyListener, null);
-  return true;
+  copyFileMessageInLocalFolder(bugmail11, 0, tag1, null, test_keywords);
 }
 
-// nsIMsgCopyServiceListener implementation
-var copyListener = 
-{
-  OnStartCopy: function() {},
-  OnProgress: function(aProgress, aProgressMax) {},
-  SetMessageKey: function(aKey)
-  {
-    try {
-      hdrs.push(aKey);
-    } catch (ex) {dump(ex);}
-  },
-  SetMessageId: function(aMessageId) {},
-  OnStopCopy: function(aStatus)
-  {
-    try {
-    var copiedMessage = gLocalInboxFolder.GetMessageHeader(hdrs[0]);
-    do_check_eq(copiedMessage.getStringProperty("keywords"), tag1);
-    hdrs = null;
-    }
-    catch (ex) {dump(ex);}
-    do_test_finished();
-  }
-};
-
+function test_keywords(aMessageHeaderKeys, aStatus) {
+  let headerKeys = aMessageHeaderKeys;
+  do_check_neq(headerKeys, null);
+  let copiedMessage = gLocalInboxFolder.GetMessageHeader(headerKeys[0]);
+  do_check_eq(copiedMessage.getStringProperty("keywords"), tag1);
+  do_test_finished();
+}

@@ -35,6 +35,64 @@ function createPop3ServerAndLocalFolders() {
   return server;
 }
 
+var gCopyListener =
+{
+  callbackFunction: null,
+  copiedMessageHeaderKeys: [],
+  OnStartCopy: function() {},
+  OnProgress: function(aProgress, aProgressMax) {},
+  SetMessageKey: function(aKey) {
+    try {
+      this.copiedMessageHeaderKeys.push(aKey);
+    } catch (ex) {
+      dump(ex);
+    }
+  },
+  GetMessageId: function(aMessageId) {},
+  OnStopCopy: function(aStatus) {
+    if (this.callbackFunction) {
+      do_timeout_function(0, this.callbackFunction,
+                          null,
+                          [ this.copiedMessageHeaderKeys, aStatus ]);
+    }
+  }
+};
+
+/**
+ * copyFileMessageInLocalFolder
+ * A utility wrapper of nsIMsgCopyService.CopyFileMessage to copy a message
+ * into local inbox folder.
+ *
+ * @param aMessageFile     An instance of nsILocalFile to copy.
+ * @param aMessageFlags    Message flags which will be set after message is
+ *                         copied
+ * @param aMessageKeyword  Keywords which will be set for newly copied
+ *                         message
+ * @param aMessageWindow   Window for notification callbacks, can be null
+ * @param aCallback        Callback function which will be invoked after
+ *                         message is copied
+ */
+function copyFileMessageInLocalFolder(aMessageFile,
+                                      aMessageFlags,
+                                      aMessageKeywords,
+                                      aMessageWindow,
+                                      aCallback) {
+  // Set up local folders
+  loadLocalMailAccount();
+
+  gCopyListener.callbackFunction = aCallback;
+  // Copy a message into the local folder
+  Cc["@mozilla.org/messenger/messagecopyservice;1"]
+    .getService(Ci.nsIMsgCopyService)
+    .CopyFileMessage(aMessageFile,
+                     gLocalInboxFolder,
+                     null, false,
+                     aMessageFlags,
+                     aMessageKeywords,
+                     gCopyListener,
+                     aMessageWindow);
+}
+
 function do_check_transaction(real, expected) {
   // If we don't spin the event loop before starting the next test, the readers
   // aren't expired. In this case, the "real" real transaction is the last one.

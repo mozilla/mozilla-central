@@ -13,38 +13,18 @@
 
 // Take a multipart message as we're testing attachment URLs as well
 var gFile = do_get_file("../../../data/multipart-complex2");
-var gMessageKey;
 
 function run_test()
 {
-  // Set up local folders
-  loadLocalMailAccount();
-
-  // Copy a message into the local folder
-  Cc["@mozilla.org/messenger/messagecopyservice;1"]
-    .getService(Ci.nsIMsgCopyService)
-    .CopyFileMessage(gFile, gLocalInboxFolder, null, false, 0, "",
-                     gCopyListener, null);
-
   do_test_pending();
+  copyFileMessageInLocalFolder(gFile, 0, "", null, verifyContentLength);
 }
 
-var gCopyListener =
+function verifyContentLength(aMessageHeaderKeys, aStatus)
 {
-  OnStartCopy: function() {},
-  OnProgress: function(aProgress, aProgressMax) {},
-  SetMessageKey: function(aKey) { gMessageKey = aKey; },
-  GetMessageId: function(aMessageId) {},
-  OnStopCopy: function(aStatus) 
-  {
-    do_timeout_function(0, verifyContentLength);
-  }
-};
-
-function verifyContentLength()
-{
+  do_check_neq(aMessageHeaderKeys, null);
   // First get the message URI
-  let msgHdr = gLocalInboxFolder.GetMessageHeader(gMessageKey);
+  let msgHdr = gLocalInboxFolder.GetMessageHeader(aMessageHeaderKeys[0]);
   let messageUri = gLocalInboxFolder.getUriForMsg(msgHdr);
   // Convert this to a URI that necko can run
   let messenger = Cc["@mozilla.org/messenger;1"].createInstance(Ci.nsIMessenger);

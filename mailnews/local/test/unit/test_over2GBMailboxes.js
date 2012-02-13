@@ -43,18 +43,8 @@ function run_test()
   outputStream.close();
 
   // add mail data to over 2GB position for over 2G msgkey
-  gCopyService.CopyFileMessage(bugmail10, gLocalInboxFolder, null, false, 0,
-                               "", copyListener, null);
+  copyFileMessageInLocalFolder(bugmail10, 0, "", null, copyMessages);
 }
-
-var copyListener = {
-  OnStartCopy : function() {},
-  OnProgress: function(aProgress, aProgressMax) {},
-  SetMessageKey : function(aKey) {},
-  OnStopCopy : function(aStatus) {
-    do_timeout(0, copyMessages);
-  }
-};
 
 // get message whose msg key is over 2G
 function getMessageHdr()

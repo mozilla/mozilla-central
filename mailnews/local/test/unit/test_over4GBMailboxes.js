@@ -49,17 +49,6 @@ var dummyMsgWindow =
 };
 
 
-var copyListener = {
-  OnStartCopy: function() {},
-  OnProgress: function(aProgress, aProgressMax) {},
-  SetMessageKey: function(aMsgKey) {},
-  GetMessageId: function() {},
-  OnStopCopy: function(aStatus) {
-    do_check_false(Components.isSuccessCode(aStatus));
-  }
-};
-
-
 // If we're running out of memory parsing the folder, lowering the
 // block size might help, though it will slow the test down and consume
 // more disk space.
@@ -121,8 +110,10 @@ function run_test()
                       .getService(Ci.nsIMsgCopyService);
 
   try {
-    copyService.CopyFileMessage(file, gLocalInboxFolder, null, false, 0,
-                                "", copyListener, dummyMsgWindow);
+    copyFileMessageInLocalFolder(file, 0, "", dummyMsgWindow,
+                                 function(aMessageHeadersKeys, aStatus) {
+      do_check_false(Components.isSuccessCode(aStatus));
+    });
   } catch (ex) {
   }
   // Force the db closed, so that getDatabaseWithReparse will notice
