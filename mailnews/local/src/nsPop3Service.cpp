@@ -81,34 +81,37 @@ nsPop3Service::~nsPop3Service()
 {}
 
 NS_IMPL_ISUPPORTS3(nsPop3Service,
-                         nsIPop3Service,
-                         nsIProtocolHandler,
-                         nsIMsgProtocolInfo)
+                   nsIPop3Service,
+                   nsIProtocolHandler,
+                   nsIMsgProtocolInfo)
 
 NS_IMETHODIMP nsPop3Service::CheckForNewMail(nsIMsgWindow* aMsgWindow,
-                                             nsIUrlListener * aUrlListener,
+                                             nsIUrlListener *aUrlListener,
                                              nsIMsgFolder *aInbox,
                                              nsIPop3IncomingServer *aPopServer,
-                                             nsIURI ** aURL)
+                                             nsIURI **aURL)
 {
-  return GetMail(false /* don't download, just check */, aMsgWindow, aUrlListener, aInbox, aPopServer, aURL);
+  return GetMail(false /* don't download, just check */,
+                 aMsgWindow, aUrlListener, aInbox, aPopServer, aURL);
 }
 
 
-nsresult nsPop3Service::GetNewMail(nsIMsgWindow *aMsgWindow, nsIUrlListener * aUrlListener,
+nsresult nsPop3Service::GetNewMail(nsIMsgWindow *aMsgWindow,
+                                   nsIUrlListener *aUrlListener,
                                    nsIMsgFolder *aInbox,
                                    nsIPop3IncomingServer *aPopServer,
-                                   nsIURI ** aURL)
+                                   nsIURI **aURL)
 {
-  return GetMail(true /* download */, aMsgWindow, aUrlListener, aInbox, aPopServer, aURL);
+  return GetMail(true /* download */,
+                 aMsgWindow, aUrlListener, aInbox, aPopServer, aURL);
 }
 
 nsresult nsPop3Service::GetMail(bool downloadNewMail,
-                                nsIMsgWindow* aMsgWindow,
-                                nsIUrlListener * aUrlListener,
+                                nsIMsgWindow *aMsgWindow,
+                                nsIUrlListener *aUrlListener,
                                 nsIMsgFolder *aInbox,
                                 nsIPop3IncomingServer *aPopServer,
-                                nsIURI ** aURL)
+                                nsIURI **aURL)
 {
 
   NS_ENSURE_ARG_POINTER(aInbox);
@@ -120,7 +123,7 @@ nsresult nsPop3Service::GetMail(bool downloadNewMail,
   server = do_QueryInterface(aPopServer);
   NS_ENSURE_TRUE(server, NS_MSG_INVALID_OR_MISSING_SERVER);
 
-  nsCOMPtr <nsIMsgLocalMailFolder> destLocalFolder = do_QueryInterface(aInbox);
+  nsCOMPtr<nsIMsgLocalMailFolder> destLocalFolder = do_QueryInterface(aInbox);
   if (destLocalFolder)
   {
     bool destFolderTooBig;
@@ -156,15 +159,16 @@ nsresult nsPop3Service::GetMail(bool downloadNewMail,
       ? PR_smprintf("pop3://%s@%s:%d", escapedUsername.get(), popHost.get(), popPort)
       : PR_smprintf("pop3://%s@%s:%d/?check", escapedUsername.get(), popHost.get(), popPort);
     rv = BuildPop3Url(urlSpec, aInbox, aPopServer, aUrlListener, getter_AddRefs(url), aMsgWindow);
-    PR_Free(urlSpec);
+    PR_smprintf_free(urlSpec);
     NS_ENSURE_SUCCESS(rv, rv);
   }
 
+  NS_ENSURE_TRUE(url, rv);
 
-  if (NS_SUCCEEDED(rv) && url)
+  if (NS_SUCCEEDED(rv))
     rv = RunPopUrl(server, url);
 
-  if (aURL && url) // we already have a ref count on pop3url...
+  if (aURL) // we already have a ref count on pop3url...
     NS_IF_ADDREF(*aURL = url);
 
   return rv;
@@ -182,6 +186,7 @@ NS_IMETHODIMP nsPop3Service::VerifyLogon(nsIMsgIncomingServer *aServer,
 
   nsresult rv = aServer->GetHostName(popHost);
   NS_ENSURE_SUCCESS(rv, rv);
+
   if (popHost.IsEmpty())
     return NS_MSG_INVALID_OR_MISSING_SERVER;
 
@@ -190,23 +195,24 @@ NS_IMETHODIMP nsPop3Service::VerifyLogon(nsIMsgIncomingServer *aServer,
 
   rv = aServer->GetUsername(popUser);
   NS_ENSURE_SUCCESS(rv, rv);
+
   if (popUser.IsEmpty())
     return NS_MSG_SERVER_USERNAME_MISSING;
 
   nsCString escapedUsername;
   MsgEscapeString(popUser, nsINetUtil::ESCAPE_XALPHAS, escapedUsername);
 
-  nsCOMPtr <nsIPop3IncomingServer> popServer = do_QueryInterface(aServer, &rv);
+  nsCOMPtr<nsIPop3IncomingServer> popServer = do_QueryInterface(aServer, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
   // now construct a pop3 url...
   // we need to escape the username because it may contain
   // characters like / % or @
-  char * urlSpec = PR_smprintf("pop3://%s@%s:%d/?verifyLogon", 
+  char *urlSpec = PR_smprintf("pop3://%s@%s:%d/?verifyLogon",
                               escapedUsername.get(), popHost.get(), popPort);
-  if (!urlSpec)
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(urlSpec, NS_ERROR_OUT_OF_MEMORY);
+
   nsCOMPtr<nsIURI> url;
-  rv = BuildPop3Url(urlSpec, nsnull, popServer, aUrlListener, 
+  rv = BuildPop3Url(urlSpec, nsnull, popServer, aUrlListener,
                     getter_AddRefs(url), aMsgWindow);
   PR_smprintf_free(urlSpec);
 
@@ -220,21 +226,21 @@ NS_IMETHODIMP nsPop3Service::VerifyLogon(nsIMsgIncomingServer *aServer,
   return rv;
 }
 
-nsresult nsPop3Service::BuildPop3Url(const char * urlSpec,
+nsresult nsPop3Service::BuildPop3Url(const char *urlSpec,
                                      nsIMsgFolder *inbox,
                                      nsIPop3IncomingServer *server,
-                                     nsIUrlListener * aUrlListener,
-                                     nsIURI ** aUrl,
+                                     nsIUrlListener *aUrlListener,
+                                     nsIURI **aUrl,
                                      nsIMsgWindow *aMsgWindow)
 {
   nsresult rv;
 
-  nsPop3Sink * pop3Sink = new nsPop3Sink();
-  if (pop3Sink)
-  {
-    pop3Sink->SetPopServer(server);
-    pop3Sink->SetFolder(inbox);
-  }
+  nsPop3Sink *pop3Sink = new nsPop3Sink();
+
+  NS_ENSURE_TRUE(pop3Sink, NS_ERROR_OUT_OF_MEMORY);
+
+  pop3Sink->SetPopServer(server);
+  pop3Sink->SetFolder(inbox);
 
   // now create a pop3 url and a protocol instance to run the url....
   nsCOMPtr<nsIPop3URL> pop3Url = do_CreateInstance(kPop3UrlCID, &rv);
@@ -242,7 +248,7 @@ nsresult nsPop3Service::BuildPop3Url(const char * urlSpec,
 
   pop3Url->SetPop3Sink(pop3Sink);
 
-  rv = pop3Url->QueryInterface(NS_GET_IID(nsIURI), (void **) aUrl);
+  rv = CallQueryInterface(pop3Url, aUrl);
   NS_ENSURE_SUCCESS(rv,rv);
 
   rv = (*aUrl)->SetSpec(nsDependentCString(urlSpec));
@@ -260,53 +266,50 @@ nsresult nsPop3Service::BuildPop3Url(const char * urlSpec,
   return rv;
 }
 
-nsresult nsPop3Service::RunPopUrl(nsIMsgIncomingServer * aServer, nsIURI * aUrlToRun)
+nsresult nsPop3Service::RunPopUrl(nsIMsgIncomingServer *aServer, nsIURI *aUrlToRun)
 {
-  nsresult rv = NS_OK;
-  if (aServer && aUrlToRun)
+
+  NS_ENSURE_ARG_POINTER(aServer);
+  NS_ENSURE_ARG_POINTER(aUrlToRun);
+
+  nsCString userName;
+
+  // load up required server information
+  // we store the username unescaped in the server
+  // so there is no need to unescape it
+  nsresult rv = aServer->GetRealUsername(userName);
+
+  // find out if the server is busy or not...if the server is busy, we are
+  // *NOT* going to run the url
+  bool serverBusy = false;
+  rv = aServer->GetServerBusy(&serverBusy);
+
+  if (!serverBusy)
   {
-    nsCString userName;
-
-    // load up required server information
-    // we store the username unescaped in the server
-    // so there is no need to unescape it
-    rv = aServer->GetRealUsername(userName);
-
-    // find out if the server is busy or not...if the server is busy, we are
-    // *NOT* going to run the url
-    bool serverBusy = false;
-    rv = aServer->GetServerBusy(&serverBusy);
-
-    if (!serverBusy)
+    nsRefPtr<nsPop3Protocol> protocol = new nsPop3Protocol(aUrlToRun);
+    if (protocol)
     {
-      nsPop3Protocol * protocol = new nsPop3Protocol(aUrlToRun);
-      if (protocol)
-      {
-        NS_ADDREF(protocol);
-        // the protocol stores the unescaped username, so there is no need to escape it.
-        protocol->SetUsername(userName.get());
-        rv = protocol->LoadUrl(aUrlToRun);
-        NS_RELEASE(protocol);
-        if (NS_FAILED(rv))
-          aServer->SetServerBusy(false);
-      }
+      // the protocol stores the unescaped username, so there is no need to escape it.
+      protocol->SetUsername(userName.get());
+      rv = protocol->LoadUrl(aUrlToRun);
+      if (NS_FAILED(rv))
+        aServer->SetServerBusy(false);
     }
-    else
-    {
-      nsCOMPtr <nsIMsgMailNewsUrl> url = do_QueryInterface(aUrlToRun);
-      if (url)
-        AlertServerBusy(url);
-      rv = NS_ERROR_FAILURE;
-    }
-  } // if server
-
+  }
+  else
+  {
+    nsCOMPtr<nsIMsgMailNewsUrl> url = do_QueryInterface(aUrlToRun);
+    if (url)
+      AlertServerBusy(url);
+    rv = NS_ERROR_FAILURE;
+  }
   return rv;
 }
 
 
 NS_IMETHODIMP nsPop3Service::GetScheme(nsACString &aScheme)
 {
-    aScheme = "pop3";
+    aScheme.AssignLiteral("pop3");
     return NS_OK;
 }
 
@@ -344,34 +347,39 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
                                     nsIURI *aBaseURI,
                                     nsIURI **_retval)
 {
-    nsresult rv = NS_ERROR_FAILURE;
-    if (!_retval) return rv;
+    NS_ENSURE_ARG_POINTER(_retval);
+
     nsCAutoString folderUri(aSpec);
     nsCOMPtr<nsIRDFResource> resource;
     PRInt32 offset = folderUri.FindChar('?');
-    if (offset != -1)
-        folderUri.SetLength(offset);
+    if (offset != kNotFound)
+      folderUri.SetLength(offset);
 
     const char *uidl = PL_strstr(nsCString(aSpec).get(), "uidl=");
-    if (!uidl) return NS_ERROR_FAILURE;
+    NS_ENSURE_TRUE(uidl, NS_ERROR_FAILURE);
+
+    nsresult rv;
 
     nsCOMPtr<nsIRDFService> rdfService(do_GetService(kRDFServiceCID, &rv));
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
+
     rv = rdfService->GetResource(folderUri, getter_AddRefs(resource));
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
+
     nsCOMPtr<nsIMsgFolder> folder = do_QueryInterface(resource, &rv);
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
+
     nsCOMPtr<nsIMsgIncomingServer> server;
 
     nsLocalFolderScanState folderScanState;
     nsCOMPtr<nsIMsgLocalMailFolder> localFolder = do_QueryInterface(folder);
-    nsCOMPtr <nsIMailboxUrl> mailboxUrl = do_QueryInterface(aBaseURI);
+    nsCOMPtr<nsIMailboxUrl> mailboxUrl = do_QueryInterface(aBaseURI);
 
     if (mailboxUrl && localFolder)
     {
       rv = localFolder->GetFolderScanState(&folderScanState);
       NS_ENSURE_SUCCESS(rv, rv);
-      nsCOMPtr <nsIMsgDBHdr> msgHdr;
+      nsCOMPtr<nsIMsgDBHdr> msgHdr;
       nsMsgKey msgKey;
       mailboxUrl->GetMessageKey(&msgKey);
       folder->GetMessageHeader(msgKey, getter_AddRefs(msgHdr));
@@ -384,7 +392,7 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
                  do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
         if (accountManager)
         {
-          nsCOMPtr <nsIMsgAccount> account;
+          nsCOMPtr<nsIMsgAccount> account;
           accountManager->GetAccount(folderScanState.m_accountKey, getter_AddRefs(account));
           if (account)
             account->GetIncomingServer(getter_AddRefs(server));
@@ -393,10 +401,12 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
     }
 
     if (!server)
-    rv = folder->GetServer(getter_AddRefs(server));
-    if (NS_FAILED(rv)) return rv;
+      rv = folder->GetServer(getter_AddRefs(server));
+    NS_ENSURE_SUCCESS(rv, rv);
+
     nsCOMPtr<nsIPop3IncomingServer> popServer = do_QueryInterface(server,&rv);
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
+
     nsCString hostname;
     nsCString username;
     server->GetHostName(hostname);
@@ -420,76 +430,77 @@ NS_IMETHODIMP nsPop3Service::NewURI(const nsACString &aSpec,
     popSpec += "?";
     popSpec += uidl;
     nsCOMPtr<nsIUrlListener> urlListener = do_QueryInterface(folder, &rv);
-    if (NS_FAILED(rv)) return rv;
+    NS_ENSURE_SUCCESS(rv, rv);
+
     rv = BuildPop3Url(popSpec.get(), folder, popServer,
                       urlListener, _retval, nsnull);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(*_retval, &rv);
     if (NS_SUCCEEDED(rv))
     {
-        nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(*_retval, &rv);
-        if (NS_SUCCEEDED(rv))
-        {
-          // escape the username before we call SetUsername().  we do this because GetUsername()
-          // will unescape the username
-          mailnewsurl->SetUsername(escapedUsername);
-        }
-        nsCOMPtr<nsIPop3URL> popurl = do_QueryInterface(mailnewsurl, &rv);
-        if (NS_SUCCEEDED(rv))
-        {
-          nsCAutoString messageUri (aSpec);
-          if (!strncmp(messageUri.get(), "mailbox:", 8))
-            messageUri.Replace(0, 8, "mailbox-message:");
-          offset = messageUri.Find("?number=");
-          if (offset != -1)
-            messageUri.Replace(offset, 8, "#");
-          offset = messageUri.FindChar('&');
-          if (offset != -1)
-            messageUri.SetLength(offset);
-          popurl->SetMessageUri(messageUri.get());
-          nsCOMPtr<nsIPop3Sink> pop3Sink;
-          rv = popurl->GetPop3Sink(getter_AddRefs(pop3Sink));
-          if (NS_SUCCEEDED(rv))
-            pop3Sink->SetBuildMessageUri(true);
-        }
+      // escape the username before we call SetUsername().  we do this because GetUsername()
+      // will unescape the username
+      mailnewsurl->SetUsername(escapedUsername);
     }
-    return rv;
+
+    nsCOMPtr<nsIPop3URL> popurl = do_QueryInterface(mailnewsurl, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    nsCAutoString messageUri (aSpec);
+    if (!strncmp(messageUri.get(), "mailbox:", 8))
+      messageUri.Replace(0, 8, "mailbox-message:");
+    offset = messageUri.Find("?number=");
+    if (offset != kNotFound)
+      messageUri.Replace(offset, 8, "#");
+    offset = messageUri.FindChar('&');
+    if (offset != kNotFound)
+      messageUri.SetLength(offset);
+    popurl->SetMessageUri(messageUri.get());
+    nsCOMPtr<nsIPop3Sink> pop3Sink;
+    rv = popurl->GetPop3Sink(getter_AddRefs(pop3Sink));
+    NS_ENSURE_SUCCESS(rv, rv);
+
+    pop3Sink->SetBuildMessageUri(true);
+
+    return NS_OK;
 }
 
 void nsPop3Service::AlertServerBusy(nsIMsgMailNewsUrl *url)
 {
   nsresult rv;
   nsCOMPtr<nsIStringBundleService> bundleService(do_GetService("@mozilla.org/intl/stringbundle;1", &rv));
-  if (NS_FAILED(rv))
-    return;
+  NS_ENSURE_SUCCESS(rv, void(0));
+
   nsCOMPtr<nsIStringBundle> bundle;
   rv = bundleService->CreateBundle("chrome://messenger/locale/localMsgs.properties", getter_AddRefs(bundle));
-  if (NS_FAILED(rv))
-    return;
+  NS_ENSURE_SUCCESS(rv, void(0));
+
   nsCOMPtr<nsIMsgWindow> msgWindow;
   nsCOMPtr<nsIPrompt> dialog;
   rv = url->GetMsgWindow(getter_AddRefs(msgWindow)); //it is ok to have null msgWindow, for example when biffing
-  if (NS_SUCCEEDED(rv) && msgWindow)
-  {
-    rv = msgWindow->GetPromptDialog(getter_AddRefs(dialog));
-    if (NS_SUCCEEDED(rv))
-    {
-      nsString alertString;
-      bundle->GetStringFromID(POP3_MESSAGE_FOLDER_BUSY, getter_Copies(alertString));
-      if (!alertString.IsEmpty())
-        dialog->Alert(nsnull, alertString.get());
-    }
-  }
+  if (NS_FAILED(rv) || !msgWindow)
+    return;
+
+  rv = msgWindow->GetPromptDialog(getter_AddRefs(dialog));
+  NS_ENSURE_SUCCESS(rv, void(0));
+
+  nsString alertString;
+  bundle->GetStringFromID(POP3_MESSAGE_FOLDER_BUSY, getter_Copies(alertString));
+  if (!alertString.IsEmpty())
+    dialog->Alert(nsnull, alertString.get());
 }
 
 NS_IMETHODIMP nsPop3Service::NewChannel(nsIURI *aURI, nsIChannel **_retval)
 {
   NS_ENSURE_ARG_POINTER(aURI);
-  nsresult rv = NS_OK;
+  nsresult rv;
 
   nsCOMPtr<nsIMsgMailNewsUrl> url = do_QueryInterface(aURI, &rv);
   nsCString realUserName;
   if (NS_SUCCEEDED(rv) && url)
   {
-    nsCOMPtr <nsIMsgIncomingServer> server;
+    nsCOMPtr<nsIMsgIncomingServer> server;
     url->GetServer(getter_AddRefs(server));
     if (server)
     {
@@ -507,22 +518,15 @@ NS_IMETHODIMP nsPop3Service::NewChannel(nsIURI *aURI, nsIChannel **_retval)
     }
   }
 
-  nsPop3Protocol * protocol = new nsPop3Protocol(aURI);
-  if (protocol)
-  {
-    rv = protocol->Initialize(aURI);
-    if (NS_FAILED(rv))
-    {
-      delete protocol;
-      return rv;
-    }
-    protocol->SetUsername(realUserName.get());
-    rv = protocol->QueryInterface(NS_GET_IID(nsIChannel), (void **) _retval);
-  }
-  else
-    rv = NS_ERROR_NULL_POINTER;
+  nsRefPtr<nsPop3Protocol> protocol = new nsPop3Protocol(aURI);
+  NS_ENSURE_TRUE(protocol, NS_ERROR_OUT_OF_MEMORY);
 
-  return rv;
+  rv = protocol->Initialize(aURI);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  protocol->SetUsername(realUserName.get());
+
+  return CallQueryInterface(protocol, _retval);
 }
 
 
@@ -534,7 +538,7 @@ nsPop3Service::SetDefaultLocalPath(nsILocalFile *aPath)
 }
 
 NS_IMETHODIMP
-nsPop3Service::GetDefaultLocalPath(nsILocalFile ** aResult)
+nsPop3Service::GetDefaultLocalPath(nsILocalFile **aResult)
 {
     NS_ENSURE_ARG_POINTER(aResult);
     *aResult = nsnull;
@@ -565,7 +569,7 @@ nsPop3Service::GetDefaultLocalPath(nsILocalFile ** aResult)
 
 
 NS_IMETHODIMP
-nsPop3Service::GetServerIID(nsIID* *aServerIID)
+nsPop3Service::GetServerIID(nsIID **aServerIID)
 {
     *aServerIID = new nsIID(NS_GET_IID(nsIPop3IncomingServer));
     return NS_OK;
@@ -574,41 +578,41 @@ nsPop3Service::GetServerIID(nsIID* *aServerIID)
 NS_IMETHODIMP
 nsPop3Service::GetRequiresUsername(bool *aRequiresUsername)
 {
-        NS_ENSURE_ARG_POINTER(aRequiresUsername);
-        *aRequiresUsername = true;
-        return NS_OK;
+    NS_ENSURE_ARG_POINTER(aRequiresUsername);
+    *aRequiresUsername = true;
+    return NS_OK;
 }
 
 NS_IMETHODIMP
 nsPop3Service::GetPreflightPrettyNameWithEmailAddress(bool *aPreflightPrettyNameWithEmailAddress)
 {
-        NS_ENSURE_ARG_POINTER(aPreflightPrettyNameWithEmailAddress);
-        *aPreflightPrettyNameWithEmailAddress = true;
-        return NS_OK;
+    NS_ENSURE_ARG_POINTER(aPreflightPrettyNameWithEmailAddress);
+    *aPreflightPrettyNameWithEmailAddress = true;
+    return NS_OK;
 }
 
 NS_IMETHODIMP
 nsPop3Service::GetCanLoginAtStartUp(bool *aCanLoginAtStartUp)
 {
-        NS_ENSURE_ARG_POINTER(aCanLoginAtStartUp);
-        *aCanLoginAtStartUp = true;
-        return NS_OK;
+    NS_ENSURE_ARG_POINTER(aCanLoginAtStartUp);
+    *aCanLoginAtStartUp = true;
+    return NS_OK;
 }
 
 NS_IMETHODIMP
 nsPop3Service::GetCanDelete(bool *aCanDelete)
 {
-        NS_ENSURE_ARG_POINTER(aCanDelete);
-        *aCanDelete = true;
-        return NS_OK;
+    NS_ENSURE_ARG_POINTER(aCanDelete);
+    *aCanDelete = true;
+    return NS_OK;
 }
 
 NS_IMETHODIMP
 nsPop3Service::GetCanDuplicate(bool *aCanDuplicate)
 {
-        NS_ENSURE_ARG_POINTER(aCanDuplicate);
-        *aCanDuplicate = true;
-        return NS_OK;
+    NS_ENSURE_ARG_POINTER(aCanDuplicate);
+    *aCanDuplicate = true;
+    return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -639,14 +643,13 @@ NS_IMETHODIMP
 nsPop3Service::GetDefaultServerPort(bool isSecure, PRInt32 *aPort)
 {
     NS_ENSURE_ARG_POINTER(aPort);
-    nsresult rv = NS_OK;
 
-    if (isSecure)
-      *aPort = nsIPop3URL::DEFAULT_POP3S_PORT;
-    else
-      rv = GetDefaultPort(aPort);
+    if (!isSecure)
+      return GetDefaultPort(aPort);
 
-    return rv;
+    *aPort = nsIPop3URL::DEFAULT_POP3S_PORT;
+
+    return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -704,4 +707,3 @@ NS_IMETHODIMP nsPop3Service::RemoveListener(nsIPop3ServiceListener *aListener)
   mListeners.RemoveElement(aListener);
   return NS_OK;
 }
-
