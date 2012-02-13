@@ -36,17 +36,18 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
-const kDebug               = false;
-const kBundleURI         = "chrome://messenger/locale/offlineStartup.properties";
+const kDebug              = false;
 const kOfflineStartupPref = "offline.startup_state";
-var gStartingUp = true;
-var gOfflineStartupMode; //0 = remember last state, 1 = ask me, 2 == online, 3 == offline, 4 = automatic
-const kRememberLastState = 0;
-const kAskForOnlineState = 1;
-const kAlwaysOnline = 2;
-const kAlwaysOffline = 3;
+const kRememberLastState  = 0;
+const kAskForOnlineState  = 1;
+const kAlwaysOnline       = 2;
+const kAlwaysOffline      = 3;
+var   gStartingUp         = true;
+var   gOfflineStartupMode; //0 = remember last state, 1 = ask me, 2 == online, 3 == offline, 4 = automatic
+
 
 ////////////////////////////////////////////////////////////////////////
 //
@@ -67,73 +68,62 @@ var nsOfflineStartup =
   {
     debug("onProfileStartup");
 
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService2);
     if (gStartingUp)
     {
       gStartingUp = false;
       // if checked, the "work offline" checkbox overrides
-      if (ioService.offline && !ioService.manageOfflineStatus) 
+      if (Services.io.offline && !Services.io.manageOfflineStatus)
       {
         debug("already offline!");
         return;
       }
     }
 
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch);
-    var manageOfflineStatus = prefs.getBoolPref("offline.autoDetect");
-    gOfflineStartupMode = prefs.getIntPref(kOfflineStartupPref);
-    let wasOffline = !prefs.getBoolPref("network.online");
+    var manageOfflineStatus = Services.prefs.getBoolPref("offline.autoDetect");
+    gOfflineStartupMode = Services.prefs.getIntPref(kOfflineStartupPref);
+    let wasOffline = !Services.prefs.getBoolPref("network.online");
 
     if (gOfflineStartupMode == kAlwaysOffline)
     {
-      ioService.manageOfflineStatus = false;
-      ioService.offline = true;
+      Services.io.manageOfflineStatus = false;
+      Services.io.offline = true;
     }
     else if (gOfflineStartupMode == kAlwaysOnline)
     {
-      ioService.manageOfflineStatus = manageOfflineStatus;
+      Services.io.manageOfflineStatus = manageOfflineStatus;
       if (wasOffline)
-        prefs.setBoolPref("mailnews.playback_offline", true);
+        Services.prefs.setBoolPref("mailnews.playback_offline", true);
       // If we're managing the offline status, don't force online here... it may
       // be the network really is offline.
       if (!manageOfflineStatus)
-        ioService.offline = false;
+        Services.io.offline = false;
     }
     else if (gOfflineStartupMode == kRememberLastState)
     {
-      ioService.manageOfflineStatus = manageOfflineStatus && !wasOffline;
+      Services.io.manageOfflineStatus = manageOfflineStatus && !wasOffline;
       // If we are meant to be online, and managing the offline status
       // then don't force it - it may be the network really is offline.
       if (!manageOfflineStatus || wasOffline)
-        ioService.offline = wasOffline;
+        Services.io.offline = wasOffline;
     }
     else if (gOfflineStartupMode == kAskForOnlineState)
     {
-      var promptService = Components.
-        classes["@mozilla.org/embedcomp/prompt-service;1"].
-        getService(Components.interfaces.nsIPromptService);
-
-      var bundle = getBundle(kBundleURI);
-      if (!bundle)
-        return;
-
+      var bundle = Services.strings.createBundle("chrome://messenger/locale/offlineStartup.properties");
       var title = bundle.GetStringFromName("title");
       var desc = bundle.GetStringFromName("desc");
       var button0Text = bundle.GetStringFromName("workOnline");
       var button1Text = bundle.GetStringFromName("workOffline");
       var checkVal = {value:0};
 
-      var result = promptService.confirmEx(null, title, desc,
-        (promptService.BUTTON_POS_0 * promptService.BUTTON_TITLE_IS_STRING) +
-        (promptService.BUTTON_POS_1 * promptService.BUTTON_TITLE_IS_STRING),
+      var result = Services.prompt.confirmEx(null, title, desc,
+        (Services.prompt.BUTTON_POS_0 * Services.prompt.BUTTON_TITLE_IS_STRING) +
+        (Services.prompt.BUTTON_POS_1 * Services.prompt.BUTTON_TITLE_IS_STRING),
         button0Text, button1Text, null, null, checkVal);
       debug ("result = " + result + "\n");
-      ioService.manageOfflineStatus = manageOfflineStatus && result != 1;
-      ioService.offline = result == 1;
+      Services.io.manageOfflineStatus = manageOfflineStatus && result != 1;
+      Services.io.offline = result == 1;
       if (result != 1 && wasOffline)
-        prefs.setBoolPref("mailnews.playback_offline", true);
+        Services.prefs.setBoolPref("mailnews.playback_offline", true);
     }
   },
 
@@ -144,18 +134,12 @@ var nsOfflineStartup =
     if (aTopic == "profile-change-net-teardown")
     {
       debug("remembering offline state");
-      var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(Components.interfaces.nsIPrefBranch);
-      var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                                .getService(Components.interfaces.nsIIOService);
-      prefs.setBoolPref("network.online", !ioService.offline);
+      Services.prefs.setBoolPref("network.online", !Services.io.offline);
     }
     else if (aTopic == "app-startup")
     {
-      var observerService = Components.classes["@mozilla.org/observer-service;1"]
-                                      .getService(Components.interfaces.nsIObserverService);
-      observerService.addObserver(this, "profile-after-change", false);
-      observerService.addObserver(this, "profile-change-net-teardown", false);
+      Services.obs.addObserver(this, "profile-after-change", false);
+      Services.obs.addObserver(this, "profile-change-net-teardown", false);
     }
     else if (aTopic == "profile-after-change")
     {
@@ -199,30 +183,6 @@ nsOfflineStartupModule.prototype =
   }
 };
 
-function getBundle(aURI)
-{
-  if (!aURI)
-    return null;
-
-  debug(aURI);
-  var bundle = null;
-  try
-  {
-    var strBundleService = Components.
-      classes["@mozilla.org/intl/stringbundle;1"].
-      getService(Components.interfaces.nsIStringBundleService);
-    bundle = strBundleService.createBundle(aURI);
-  }
-  catch (ex)
-  {
-    bundle = null;
-    debug("Exception getting bundle " + aURI + ": " + ex);
-  }
-
-  return bundle;
-}
-
-
 ////////////////////////////////////////////////////////////////////////
 //
 //   Debug helper
@@ -232,7 +192,6 @@ if (!kDebug)
   debug = function(m) {};
 else
   debug = function(m) {dump("\t *** nsOfflineStartup: " + m + "\n");};
-  
+
 var components = [nsOfflineStartupModule];
 const NSGetFactory = XPCOMUtils.generateNSGetFactory(components);
-
