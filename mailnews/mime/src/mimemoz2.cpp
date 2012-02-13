@@ -2070,6 +2070,25 @@ MimeGetStringByID(PRInt32 stringID)
   return strdup("???");
 }
 
+extern "C"
+char *
+MimeGetStringByName(const PRUnichar *stringName)
+{
+  nsCOMPtr<nsIStringBundleService> stringBundleService =
+    do_GetService(NS_STRINGBUNDLE_CONTRACTID);
+
+  nsCOMPtr<nsIStringBundle> stringBundle;
+  stringBundleService->CreateBundle(MIME_URL, getter_AddRefs(stringBundle));
+  if (stringBundle)
+  {
+    nsString v;
+    if (NS_SUCCEEDED(stringBundle->GetStringFromName(stringName, getter_Copies(v))))
+      return ToNewUTF8String(v);
+  }
+
+  return strdup("???");
+}
+
 void
 ResetChannelCharset(MimeObject *obj)
 {

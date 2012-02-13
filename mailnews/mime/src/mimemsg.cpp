@@ -846,7 +846,7 @@ MimeMessage_write_headers_html (MimeObject *obj)
 
 static char *
 MimeMessage_partial_message_html(const char *data, void *closure,
-                 MimeHeaders *headers)
+                                 MimeHeaders *headers)
 {
   MimeMessage *msg = (MimeMessage *)closure;
   nsCAutoString orig_url(data);
@@ -854,7 +854,6 @@ MimeMessage_partial_message_html(const char *data, void *closure,
   char *msgId = MimeHeaders_get(headers, HEADER_MESSAGE_ID, false,
                   false);
   char *msgIdPtr = PL_strchr(msgId, '<');
-  int msgBase;
 
   PRInt32 pos = orig_url.Find("mailbox-message");
   if (pos != -1)
@@ -872,17 +871,30 @@ MimeMessage_partial_message_html(const char *data, void *closure,
   if (gtPtr)
     *gtPtr = 0;
 
-  msgBase = (msg->bodyLength > MSG_LINEBREAK_LEN) ? MIME_MSG_PARTIAL_FMT_1 : MIME_MSG_PARTIAL_FMT2_1;
+  bool msgBaseTruncated = (msg->bodyLength > MSG_LINEBREAK_LEN);
 
   nsCString partialMsgHtml;
   nsCString item;
 
-  item.Adopt(MimeGetStringByID(msgBase));
-  partialMsgHtml += item;
+  partialMsgHtml.AppendLiteral("<div style=\"margin: 1em auto; border: 1px solid black; width: 80%\">");
+  partialMsgHtml.AppendLiteral("<div style=\"margin: 5px; padding: 10px; border: 1px solid gray; font-weight: bold; text-align: center;\">");
 
-  item.Adopt(MimeGetStringByID(msgBase+1));
+  partialMsgHtml.AppendLiteral("<span style=\"font-size: 120%;\">");
+  if (msgBaseTruncated)
+    item.Adopt(MimeGetStringByName(NS_LITERAL_STRING("MIME_MSG_PARTIAL_TRUNCATED").get()));
+  else
+    item.Adopt(MimeGetStringByName(NS_LITERAL_STRING("MIME_MSG_PARTIAL_NOT_DOWNLOADED").get()));
   partialMsgHtml += item;
+  partialMsgHtml.AppendLiteral("</span><hr>");
 
+  if (msgBaseTruncated)
+    item.Adopt(MimeGetStringByName(NS_LITERAL_STRING("MIME_MSG_PARTIAL_TRUNCATED_EXPLANATION").get()));
+  else
+    item.Adopt(MimeGetStringByName(NS_LITERAL_STRING("MIME_MSG_PARTIAL_NOT_DOWNLOADED_EXPLANATION").get()));
+  partialMsgHtml += item;
+  partialMsgHtml.AppendLiteral("<br><br>");
+
+  partialMsgHtml.AppendLiteral("<a href=\"");
   partialMsgHtml.Append(orig_url);
 
   if (msgIdPtr) {
@@ -903,8 +915,12 @@ MimeMessage_partial_message_html(const char *data, void *closure,
     partialMsgHtml.Append(item);
   }
 
-  item.Adopt(MimeGetStringByID(msgBase+2));
+  partialMsgHtml.AppendLiteral("\">");
+  item.Adopt(MimeGetStringByName(NS_LITERAL_STRING("MIME_MSG_PARTIAL_CLICK_FOR_REST").get()));
   partialMsgHtml += item;
+  partialMsgHtml.AppendLiteral("</a>");
+
+  partialMsgHtml.AppendLiteral("</div></div>");
 
   return ToNewCString(partialMsgHtml);
 }

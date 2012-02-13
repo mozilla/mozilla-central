@@ -66,13 +66,7 @@
 #define  MIME_MSG_LINK_TO_DOCUMENT                 1026
 #define  MIME_MSG_DOCUMENT_INFO                    1027
 #define  MIME_MSG_ATTACHMENT                       1028
-#define MIME_MSG_PARTIAL_FMT_1                    1037
-#define MIME_MSG_PARTIAL_FMT_2                    1038
-#define MIME_MSG_PARTIAL_FMT_3                    1039
-#define MIME_MSG_DEFAULT_ATTACHMENT_NAME          1040
-#define MIME_FORWARDED_MESSAGE_HTML_USER_WROTE    1041
-#define MIME_MSG_PARTIAL_FMT2_1                   1042
-#define MIME_MSG_PARTIAL_FMT2_2                   1043
-#define MIME_MSG_PARTIAL_FMT2_3                   1044
+#define  MIME_MSG_DEFAULT_ATTACHMENT_NAME          1040
+#define  MIME_FORWARDED_MESSAGE_HTML_USER_WROTE    1041
 
 #endif /* _NAME_OF_THIS_HEADER_FILE__ */
