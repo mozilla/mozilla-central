@@ -81,7 +81,7 @@ gTests.push({
     var menuNode = PO._places.selectedNode.
                    QueryInterface(Ci.nsINavHistoryContainerResultNode);
     menuNode.containerOpen = true;
-    childNode = menuNode.getChild(0);
+    var childNode = menuNode.getChild(0);
     isnot(childNode, null, "Bookmarks menu child node exists.");
     var recentlyBookmarkedTitle = PlacesUIUtils.
                                   getString("recentlyBookmarkedTitle");
