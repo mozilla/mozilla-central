@@ -234,7 +234,7 @@ private:
   static nsresult WriteLineToOutputStream(const char *prefix, const char * line, nsIOutputStream *outputStream);
   void     ParseAndVerifyVirtualFolderScope(nsCString &buffer,
                                             nsIRDFService *rdf);
-  nsresult AddVFListenersForVF(nsIMsgFolder *virtualFolder, 
+  nsresult AddVFListenersForVF(nsIMsgFolder *virtualFolder,
                                const nsCString& srchFolderUris,
                                nsIRDFService *rdf,
                                nsIMsgDBService *msgDBService);
@@ -252,13 +252,12 @@ private:
 
   nsresult SetSendLaterUriPref(nsIMsgIncomingServer *server);
 
-  nsresult getPrefService();
   nsCOMPtr<nsIPrefBranch> m_prefs;
 
   //
   // root folder listener stuff
   //
-  
+
   // this array is for folder listeners that are supposed to be listening
   // on the root folders.
   // When a new server is created, all of the the folder listeners
@@ -266,9 +265,8 @@ private:
   // When a new listener is added, it should be added to all root folders.
   // similar for when servers are deleted or listeners removed
   nsCOMPtr<nsISupportsArray> mFolderListeners;
-  
+
   // folder listener enumerators
   static bool addListenerToFolder(nsISupports *element, void *data);
   static bool removeListenerFromFolder(nsISupports *element, void *data);
 };
-

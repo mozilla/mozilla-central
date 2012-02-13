@@ -211,6 +211,9 @@ nsresult nsMsgAccountManager::Init()
 {
   nsresult rv;
 
+  m_prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   m_identities.Init();
   m_incomingServers.Init();
 
@@ -334,16 +337,6 @@ NS_IMETHODIMP nsMsgAccountManager::Observe(nsISupports *aSubject, const char *aT
 
  return NS_OK;
 }
-
-nsresult
-nsMsgAccountManager::getPrefService()
-{
-  nsresult rv = NS_OK;
-  if (!m_prefs)
-    m_prefs = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
-  return rv;
-}
-
 
 void
 nsMsgAccountManager::getUniqueAccountKey(const char * prefix,
@@ -741,8 +734,8 @@ NS_IMETHODIMP
 nsMsgAccountManager::GetDefaultAccount(nsIMsgAccount **aDefaultAccount)
 {
   NS_ENSURE_ARG_POINTER(aDefaultAccount);
-  nsresult rv;
-  rv = LoadAccounts();
+
+  nsresult rv = LoadAccounts();
   NS_ENSURE_SUCCESS(rv, rv);
 
   PRUint32 count;
@@ -859,9 +852,6 @@ nsresult
 nsMsgAccountManager::setDefaultAccountPref(nsIMsgAccount* aDefaultAccount)
 {
   nsresult rv;
-
-  rv = getPrefService();
-  NS_ENSURE_SUCCESS(rv,rv);
 
   if (aDefaultAccount) {
     nsCString key;
@@ -1265,82 +1255,79 @@ nsMsgAccountManager::LoadAccounts()
 
   // mail.accountmanager.accounts is the main entry point for all accounts
   nsCString accountList;
-  rv = getPrefService();
-  if (NS_SUCCEEDED(rv)) {
-    rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS, getter_Copies(accountList));
+  rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS, getter_Copies(accountList));
 
-    /**
-     * Check to see if we need to add pre-configured accounts.
-     * Following prefs are important to note in understanding the procedure here.
-     *
-     * 1. pref("mailnews.append_preconfig_accounts.version", version number);
-     * This pref registers the current version in the user prefs file. A default value
-     * is stored in mailnews.js file. If a given vendor needs to add more preconfigured
-     * accounts, the default version number can be increased. Comparing version
-     * number from user's prefs file and the default one from mailnews.js, we
-     * can add new accounts and any other version level changes that need to be done.
-     *
-     * 2. pref("mail.accountmanager.appendaccounts", <comma separated account list>);
-     * This pref contains the list of pre-configured accounts that ISP/Vendor wants to
-     * to add to the existing accounts list.
-     */
-    nsCOMPtr<nsIPrefBranch> defaultsPrefBranch;
-    rv = prefservice->GetDefaultBranch(MAILNEWS_ROOT_PREF, getter_AddRefs(defaultsPrefBranch));
-    NS_ENSURE_SUCCESS(rv,rv);
+  /**
+   * Check to see if we need to add pre-configured accounts.
+   * Following prefs are important to note in understanding the procedure here.
+   *
+   * 1. pref("mailnews.append_preconfig_accounts.version", version number);
+   * This pref registers the current version in the user prefs file. A default value
+   * is stored in mailnews.js file. If a given vendor needs to add more preconfigured
+   * accounts, the default version number can be increased. Comparing version
+   * number from user's prefs file and the default one from mailnews.js, we
+   * can add new accounts and any other version level changes that need to be done.
+   *
+   * 2. pref("mail.accountmanager.appendaccounts", <comma separated account list>);
+   * This pref contains the list of pre-configured accounts that ISP/Vendor wants to
+   * to add to the existing accounts list.
+   */
+  nsCOMPtr<nsIPrefBranch> defaultsPrefBranch;
+  rv = prefservice->GetDefaultBranch(MAILNEWS_ROOT_PREF, getter_AddRefs(defaultsPrefBranch));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    nsCOMPtr<nsIPrefBranch> prefBranch;
-    rv = prefservice->GetBranch(MAILNEWS_ROOT_PREF, getter_AddRefs(prefBranch));
-    NS_ENSURE_SUCCESS(rv,rv);
+  nsCOMPtr<nsIPrefBranch> prefBranch;
+  rv = prefservice->GetBranch(MAILNEWS_ROOT_PREF, getter_AddRefs(prefBranch));
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    PRInt32 appendAccountsCurrentVersion=0;
-    PRInt32 appendAccountsDefaultVersion=0;
-    rv = prefBranch->GetIntPref(APPEND_ACCOUNTS_VERSION_PREF_NAME, &appendAccountsCurrentVersion);
-    NS_ENSURE_SUCCESS(rv,rv);
+  PRInt32 appendAccountsCurrentVersion=0;
+  PRInt32 appendAccountsDefaultVersion=0;
+  rv = prefBranch->GetIntPref(APPEND_ACCOUNTS_VERSION_PREF_NAME, &appendAccountsCurrentVersion);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = defaultsPrefBranch->GetIntPref(APPEND_ACCOUNTS_VERSION_PREF_NAME, &appendAccountsDefaultVersion);
-    NS_ENSURE_SUCCESS(rv,rv);
+  rv = defaultsPrefBranch->GetIntPref(APPEND_ACCOUNTS_VERSION_PREF_NAME, &appendAccountsDefaultVersion);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    // Update the account list if needed
-    if ((appendAccountsCurrentVersion <= appendAccountsDefaultVersion)) {
+  // Update the account list if needed
+  if ((appendAccountsCurrentVersion <= appendAccountsDefaultVersion)) {
 
-      // Get a list of pre-configured accounts
-      nsCString appendAccountList;
-      rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_APPEND_ACCOUNTS,
-                                getter_Copies(appendAccountList));
-      appendAccountList.StripWhitespace();
+    // Get a list of pre-configured accounts
+    nsCString appendAccountList;
+    rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_APPEND_ACCOUNTS,
+                              getter_Copies(appendAccountList));
+    appendAccountList.StripWhitespace();
 
-      // If there are pre-configured accounts, we need to add them to the
-      // existing list.
-      if (!appendAccountList.IsEmpty())
+    // If there are pre-configured accounts, we need to add them to the
+    // existing list.
+    if (!appendAccountList.IsEmpty())
+    {
+      if (!accountList.IsEmpty())
       {
-        if (!accountList.IsEmpty())
+        // Tokenize the data and add each account
+        // in the user's current mailnews account list
+        nsTArray<nsCString> accountsArray;
+        ParseString(accountList, ACCOUNT_DELIMITER, accountsArray);
+        PRUint32 i = accountsArray.Length();
+
+        // Append each account in the pre-configured account list
+        ParseString(appendAccountList, ACCOUNT_DELIMITER, accountsArray);
+
+        // Now add each account that does not already appear in the list
+        for (; i < accountsArray.Length(); i++)
         {
-          // Tokenize the data and add each account
-          // in the user's current mailnews account list
-          nsTArray<nsCString> accountsArray;
-          ParseString(accountList, ACCOUNT_DELIMITER, accountsArray);
-          PRUint32 i = accountsArray.Length();
-
-          // Append each account in the pre-configured account list
-          ParseString(appendAccountList, ACCOUNT_DELIMITER, accountsArray);
-
-          // Now add each account that does not already appear in the list
-          for (; i < accountsArray.Length(); i++)
+          if (accountsArray.IndexOf(accountsArray[i]) == i)
           {
-            if (accountsArray.IndexOf(accountsArray[i]) == i)
-            {
-              accountList.Append(ACCOUNT_DELIMITER);
-              accountList.Append(accountsArray[i]);
-            }
+            accountList.Append(ACCOUNT_DELIMITER);
+            accountList.Append(accountsArray[i]);
           }
         }
-        else
-        {
-          accountList = appendAccountList;
-        }
-        // Increase the version number so that updates will happen as and when needed
-        rv = prefBranch->SetIntPref(APPEND_ACCOUNTS_VERSION_PREF_NAME, appendAccountsCurrentVersion + 1);
       }
+      else
+      {
+        accountList = appendAccountList;
+      }
+      // Increase the version number so that updates will happen as and when needed
+      rv = prefBranch->SetIntPref(APPEND_ACCOUNTS_VERSION_PREF_NAME, appendAccountsCurrentVersion + 1);
     }
   }
 
@@ -1348,8 +1335,7 @@ nsMsgAccountManager::LoadAccounts()
   m_accountsLoaded = true;
   m_haveShutdown = false;
 
-  if (accountList.IsEmpty())
-    return NS_OK;
+  NS_ENSURE_FALSE(accountList.IsEmpty(), NS_OK);
 
   /* parse accountList and run loadAccount on each string, comma-separated */
   nsCOMPtr<nsIMsgAccount> account;
@@ -1655,9 +1641,7 @@ nsMsgAccountManager::createKeyedAccount(const nsCString& key,
     mAccountKeyList.Append(key);
   }
 
-  rv = getPrefService();
-  if (NS_SUCCEEDED(rv))
-    m_prefs->SetCharPref(PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS, mAccountKeyList.get());
+  m_prefs->SetCharPref(PREF_MAIL_ACCOUNTMANAGER_ACCOUNTS, mAccountKeyList.get());
   account.swap(*aAccount);
   return NS_OK;
 }
@@ -2330,9 +2314,8 @@ nsMsgAccountManager::RemoveRootFolderListener(nsIFolderListener *aListener)
 NS_IMETHODIMP nsMsgAccountManager::SetLocalFoldersServer(nsIMsgIncomingServer *aServer)
 {
   NS_ENSURE_ARG_POINTER(aServer);
-  nsresult rv;
   nsCString key;
-  rv = aServer->GetKey(key);
+  nsresult rv = aServer->GetKey(key);
   NS_ENSURE_SUCCESS(rv, rv);
 
   return m_prefs->SetCharPref(PREF_MAIL_ACCOUNTMANAGER_LOCALFOLDERSSERVER, key.get());
@@ -2341,12 +2324,10 @@ NS_IMETHODIMP nsMsgAccountManager::SetLocalFoldersServer(nsIMsgIncomingServer *a
 NS_IMETHODIMP nsMsgAccountManager::GetLocalFoldersServer(nsIMsgIncomingServer **aServer)
 {
   NS_ENSURE_ARG_POINTER(aServer);
-  nsresult rv;
+
   nsCString serverKey;
 
-  if (!m_prefs)
-    getPrefService();
-  rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_LOCALFOLDERSSERVER, getter_Copies(serverKey));
+  nsresult rv = m_prefs->GetCharPref(PREF_MAIL_ACCOUNTMANAGER_LOCALFOLDERSSERVER, getter_Copies(serverKey));
 
   if (NS_SUCCEEDED(rv) && !serverKey.IsEmpty())
   {
