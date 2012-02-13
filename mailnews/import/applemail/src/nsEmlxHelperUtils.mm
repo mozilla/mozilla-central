@@ -223,9 +223,14 @@ nsresult nsEmlxHelperUtils::AddEmlxMessageToStream(nsILocalFile *aMessage, nsIOu
   }
   
   // write out empty X-Mozilla_status2 header
-  char x_mozilla_status_2[40];
-  PR_snprintf(x_mozilla_status_2, sizeof(x_mozilla_status_2), X_MOZILLA_STATUS2_FORMAT MSG_LINEBREAK, 0);
-  rv = aOut->Write(x_mozilla_status_2, strlen(x_mozilla_status_2), &dummyRv);
+  buf.Adopt(PR_smprintf(X_MOZILLA_STATUS2_FORMAT MSG_LINEBREAK, 0));
+  NS_ASSERTION(!buf.IsEmpty(), "printf error with X-Mozilla-Status2 header");
+  if (buf.IsEmpty()) {
+    [pool release];
+    return NS_ERROR_OUT_OF_MEMORY;
+  }
+
+  rv = aOut->Write(buf.get(), buf.Length(), &dummyRv);
   if (NS_FAILED(rv)) {
     [pool release];
     return rv;
