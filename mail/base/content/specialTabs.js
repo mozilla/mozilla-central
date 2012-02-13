@@ -875,7 +875,7 @@ var specialTabs = {
   aboutClickHandler: function aboutClickHandler(aEvent) {
     // Don't handle events that: a) aren't trusted, b) have already been
     // handled or c) aren't left-click.
-    if (!aEvent.isTrusted || aEvent.getPreventDefault() || aEvent.button)
+    if (!aEvent.isTrusted || aEvent.defaultPrevented || aEvent.button)
       return true;
 
     let href = hRefForClickEvent(aEvent, true);
@@ -897,7 +897,7 @@ var specialTabs = {
   defaultClickHandler: function defaultClickHandler(aEvent) {
     // Don't handle events that: a) aren't trusted, b) have already been
     // handled or c) aren't left-click.
-    if (!aEvent.isTrusted || aEvent.getPreventDefault() || aEvent.button)
+    if (!aEvent.isTrusted || aEvent.defaultPrevented || aEvent.button)
       return true;
 
     let href = hRefForClickEvent(aEvent, true);
@@ -934,7 +934,7 @@ var specialTabs = {
   siteClickHandler: function siteClickHandler(aEvent, aSiteRegexp) {
     // Don't handle events that: a) aren't trusted, b) have already been
     // handled or c) aren't left-click.
-    if (!aEvent.isTrusted || aEvent.getPreventDefault() || aEvent.button)
+    if (!aEvent.isTrusted || aEvent.defaultPrevented || aEvent.button)
       return true;
 
     let href = hRefForClickEvent(aEvent, true);

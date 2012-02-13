@@ -2277,7 +2277,7 @@ function GenericSendMessage(msgType)
     var msgcomposeWindow = document.getElementById("msgcomposeWindow");
     msgcomposeWindow.setAttribute("msgtype", msgType);
     msgcomposeWindow.dispatchEvent(event);
-    if (event.getPreventDefault())
+    if (event.defaultPrevented)
       throw Components.results.NS_ERROR_ABORT;
 
     gAutoSaving = (msgType == nsIMsgCompDeliverMode.AutoSaveAsDraft);

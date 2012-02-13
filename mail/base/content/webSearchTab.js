@@ -182,7 +182,7 @@ let webSearchTabType = {
   siteClickHandler: function(aEvent) {
     // Don't handle events that: a) aren't trusted, b) have already been
     // handled or c) aren't left-click.
-    if (!aEvent.isTrusted || aEvent.getPreventDefault() || aEvent.button)
+    if (!aEvent.isTrusted || aEvent.defaultPrevented || aEvent.button)
       return true;
 
     let href = hRefForClickEvent(aEvent, true);
