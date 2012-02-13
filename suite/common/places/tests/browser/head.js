@@ -14,6 +14,15 @@ registerCleanupFunction(function(){
   }
 });
 
+function openLibrary(callback) {
+  var library = window.openDialog(
+    "chrome://communicator/content/bookmarks/bookmarksManager.xul",
+    "", "chrome,toolbar=yes,dialog=no,resizable");
+  waitForFocus(function () {
+    callback(library);
+  }, library);
+}
+
 /**
  * Waits for completion of a clear history operation, before
  * proceeding with aCallback.
