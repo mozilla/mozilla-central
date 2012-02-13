@@ -310,9 +310,13 @@ MimeHeaders_build_heads_list(MimeHeaders *hdrs)
     /* At this point, `s' points before a header-terminating newline.
      Move past that newline, and store that new position in `heads'.
      */
-    if (*s == '\r') 
+    if (*s == '\r')
       s++;
-    if (*s == '\n') 
+
+    if (s >= end)
+      break;
+
+    if (*s == '\n')
       s++;
 
     if (s < end)
