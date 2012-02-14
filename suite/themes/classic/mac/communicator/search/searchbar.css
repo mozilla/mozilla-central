@@ -31,7 +31,7 @@
 .toolbarbutton-icon {
   height: 16px;
   width: 16px;
-  list-style-image: url("chrome://global/skin/tree/item.png");
+  list-style-image: url("chrome://communicator/skin/icons//item.png");
 }
 
 .searchbar-engine-button {

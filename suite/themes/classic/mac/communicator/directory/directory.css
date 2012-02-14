@@ -50,7 +50,7 @@
 
 treechildren::-moz-tree-image(FilenameColumn) {
   -moz-margin-end: 2px;
-  list-style-image: url("chrome://global/skin/tree/item.png");
+  list-style-image: url("chrome://communicator/skin/icons/item.png");
 }
 
 treechildren::-moz-tree-image(FilenameColumn, container) {

@@ -43,6 +43,7 @@ classic.jar:
   skin/classic/communicator/icons/feedIcon16-disabled.png               (mac/communicator/icons/feedIcon16-disabled.png)
   skin/classic/communicator/icons/geolocation-16.png                    (mac/communicator/icons/geolocation-16.png)
   skin/classic/communicator/icons/geolocation-64.png                    (mac/communicator/icons/geolocation-64.png)
+  skin/classic/communicator/icons/item.png                              (mac/communicator/icons/item.png)
   skin/classic/communicator/toolbar/toolbar-gradient22.png              (mac/communicator/toolbar/toolbar-gradient22.png)
   skin/classic/communicator/toolbar/toolbar-gradient34.png              (mac/communicator/toolbar/toolbar-gradient34.png)
 #else
