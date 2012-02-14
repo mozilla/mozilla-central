@@ -53,6 +53,9 @@ function SummaryFrameManager(aFrame) {
   this.iframe.addEventListener("DOMContentLoaded", this._onLoad.bind(this),
                                true);
   this.pendingCallback = null;
+  this.pendingOrLoadedUrl = this.iframe.docShell
+    ? this.iframe.contentDocument.location.href
+    : "about:blank";
   this.callback = null;
   this.url = "";
 }
@@ -76,12 +79,13 @@ SummaryFrameManager.prototype = {
    */
   loadAndCallback: function(aUrl, aCallback) {
     this.url = aUrl;
-    if (this.iframe.contentDocument.location.href != aUrl) {
+    if (this.pendingOrLoadedUrl != aUrl) {
       // We're changing the document. Stash the callback that we want to call
       // when it's done loading
       this.pendingCallback = aCallback;
       this.callback = null; // clear it
       this.iframe.contentDocument.location.href = aUrl;
+      this.pendingOrLoadedUrl = aUrl;
     }
     else {
       // We're being called, but the document has been set already -- either
@@ -110,7 +114,11 @@ SummaryFrameManager.prototype = {
 
       this.callback = this.pendingCallback;
       this.pendingCallback = null;
-      if (this.callback)
+      if (this.pendingOrLoadedUrl != this.iframe.contentDocument.location.href)
+        Components.utils.reportError(
+          "Please do not load stuff in the multimessage browser directly, "+
+          "use the SummaryFrameManager instead.");
+      else if (this.callback)
         this.callback(true);
     }
     catch (e) {
