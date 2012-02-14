@@ -47,11 +47,8 @@ interface nsINntpIncomingServer;
 
 [ref] native nsMsgKeyArrayRef(nsTArray<nsMsgKey>);
 
-[scriptable, uuid(86a38356-6ab0-4117-8269-674cbb4f264f)]
+[scriptable, uuid(3bf5c65d-71bd-4560-a337-435797d249a6)]
 interface nsIMsgNewsFolder : nsISupports {
-  attribute ACString groupUsername;
-  attribute ACString groupPassword;
-
   readonly attribute AString unicodeName;
   /**|rawName| is an 8-bit string to represent the name of a newsgroup used by 
    * a news server. It's offered for the convenience of callers so that they 
@@ -66,12 +63,78 @@ interface nsIMsgNewsFolder : nsISupports {
   [noscript] readonly attribute ACString rawName;
   readonly attribute nsINntpIncomingServer nntpServer;
   attribute boolean saveArticleOffline;
-   
-  ACString getGroupPasswordWithUI(in AString aPromptString, in AString aPromptTitle, in nsIMsgWindow aMsgWindow);
-  ACString getGroupUsernameWithUI(in AString aPromptString, in AString aPromptTitle, in nsIMsgWindow aMsgWindow);
 
-  void forgetGroupUsername();
-  void forgetGroupPassword();
+  /**
+   * @name Authentication methods
+   * NNTP authentication is slightly wonky, due to edge cases that are not seen
+   * in other protocols. Authentication is not necessary; if authentication is
+   * used, it could be configured on a per-group basis or even require only a
+   * username and not a password.
+   *
+   * Since passwords could be per-group, it is necessary to refer to passwords
+   * using the methods on this interface and not nsIMsgIncomingServer. Passwords
+   * for the server as a whole are found via the root folder. If the server is
+   * configured to use single sign-on (the default), asking any group for its
+   * password will result in the server's password, otherwise, each group stores
+   * its password individually.
+   *
+   * Due to this setup, most of the password management functions on
+   * nsIMsgIncomingServer do not correctly work. The only one that would affect
+   * the passwords stored on folders correctly is forgetPassword; using any
+   * other on a news server would result in inconsistent state.
+   *
+   * Before requesting either the username or password for authentication, it is
+   * first necessary to call getAuthenticationCredentials. If the method returns
+   * true, then groupUsername and groupPassword are appropriately set up for
+   * necessary authentication; if not, then authentication must be stopped.
+   */
+  /// @{
+
+  /**
+   * Gets the authentication credentials, returning if the results are valid.
+   *
+   * If mustPrompt is true, then the user will always be asked for the
+   * credentials. Otherwise, if mayPrompt is true, then the user will be asked
+   * for credentials if there are no saved credentials. If mayPrompt is false,
+   * then no prompt will be shown, even if there are no saved credentials.
+   *
+   * If this method returns true, then groupUsername and groupPassword will
+   * contain non-empty results that could be used for authentication. If this
+   * method returns false, then the values of groupUsername and groupPassword
+   * will be cleared if they had previously been set. This could happen if
+   * mustPrompt were true and the user decided to cancel the authentication
+   * prompt.
+   *
+   * Note that this method will be executed synchronously; if an async prompt
+   * is wanted, it is the responsibility of the caller to manage it explicitly
+   * with nsIMsgAsyncPrompter.
+   */
+  bool getAuthenticationCredentials(in nsIMsgWindow aMsgWindow,
+    in bool mayPrompt, in bool mustPrompt);
+
+  /**
+   * Force migration of credentials from older versions of this codebase.
+   *
+   * This method is normally called during the creation of newsgroup folders,
+   * and it should not be necessary to call this method. This method also
+   * forcibly deletes the old credentials, so that passwords would not be
+   * leaked.
+   *
+   * It is expected that this method will be removed once it is decided that
+   * supporting migration from old versions of Thunderbird and SeaMonkey should
+   * not be supported.
+   */
+  void migrateLegacyCredentials();
+
+  /// The username that should be used for this group
+  attribute ACString groupUsername;
+
+  /// The password that should be used for this group
+  attribute ACString groupPassword;
+
+  /// Forgets saved authentication credentials permanently.
+  void forgetAuthenticationCredentials();
+  /// @}
   
   void moveFolder(in nsIMsgFolder aNewsgroupToMove, in nsIMsgFolder aRefNewsgroup, in PRInt32 aOrientation);
 

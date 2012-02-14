@@ -31,35 +31,25 @@ function run_test()
   var incomingServer = acctMgr.createIncomingServer(null, kHostname,
                                                     kProtocol);
 
+  // Force move to new credentials
+  incomingServer.rootFolder.QueryInterface(Ci.nsIMsgNewsFolder)
+                           .migrateLegacyCredentials();
+
   var i;
   var count = {};
 
   // Test - Check there is a password to begin with...
-  var logins = loginMgr.findLogins(count, kServerUrl, null,
-                                   kServerUrl + "/#password");
+  var logins = loginMgr.findLogins(count, kServerUrl, null, kServerUrl);
 
   do_check_eq(count.value, 1);
+  do_check_eq(logins[0].username, kUsername);
   do_check_eq(logins[0].password, kPassword);
-
-  // ...and a username.
-  var logins = loginMgr.findLogins(count, kServerUrl, null,
-                                   kServerUrl + "/#username");
-
-  do_check_eq(count.value, 1);
-  do_check_eq(logins[0].password, kUsername);
 
   // Test - Remove the news password login via the incoming server
   incomingServer.forgetPassword();
 
-  logins = logins = loginMgr.findLogins(count, kServerUrl, null,
-                                        kServerUrl + "/#password");
+  logins = loginMgr.findLogins(count, kServerUrl, null, kServerUrl);
 
   // should be no passwords left...
-  do_check_eq(count.value, 0);
-
-  logins = logins = loginMgr.findLogins(count, kServerUrl, null,
-                                        kServerUrl + "/#username");
-
-  // ...and no usernames left either.
   do_check_eq(count.value, 0);
 }

@@ -150,17 +150,18 @@ protected:
   nsCString mGroupUsername;
   nsCString mGroupPassword;
 
-  nsCString mPrevUsername;
-  nsCString mPrevPassword;
-
   // the name of the newsgroup.
   nsCString mRawName;
   PRInt32 mSortOrder;
 
 private:
-  nsresult CreateNewsgroupUsernameUrlForSignon(const nsACString& inUriStr, nsACString& result);
-  nsresult CreateNewsgroupPasswordUrlForSignon(const nsACString& inUriStr, nsACString& result);
-  nsresult CreateNewsgroupUrlForSignon(const nsACString& inUriStr, const char * ref, nsACString& result);
+  /**
+   * Constructs a signon url for use in login manager.
+   *
+   * @param ref    The URI ref (should be null unless working with legacy).
+   * @param result The result of the string
+   */
+  nsresult CreateNewsgroupUrlForSignon(const char *ref, nsAString &result);
   nsCOMPtr <nsIMsgFilterList> mFilterList;
 };
 

@@ -1412,9 +1412,7 @@ nsNntpIncomingServer::ForgetPassword()
     NS_ENSURE_SUCCESS(rv,rv);
     if (!newsFolder) return NS_ERROR_FAILURE;
 
-    rv = newsFolder->ForgetGroupUsername();
-    NS_ENSURE_SUCCESS(rv,rv);
-    rv = newsFolder->ForgetGroupPassword();
+    rv = newsFolder->ForgetAuthenticationCredentials();
     NS_ENSURE_SUCCESS(rv,rv);
 
     // clear password of all child folders
@@ -1434,9 +1432,7 @@ nsNntpIncomingServer::ForgetPassword()
         if (NS_SUCCEEDED(rv) && child) {
             newsFolder = do_QueryInterface(child, &rv);
             if (NS_SUCCEEDED(rv) && newsFolder) {
-                rv = newsFolder->ForgetGroupUsername();
-                if (NS_FAILED(rv)) return_rv = rv;
-                rv = newsFolder->ForgetGroupPassword();
+                rv = newsFolder->ForgetAuthenticationCredentials();
                 if (NS_FAILED(rv)) return_rv = rv;
             }
             else {

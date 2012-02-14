@@ -2385,55 +2385,29 @@ PRInt32 nsNNTPProtocol::BeginAuthorization()
   }
 
   NS_ASSERTION(m_newsFolder, "no m_newsFolder");
-  nsCString cachedUsername;
+  if (!m_newsFolder)
+    return MK_NNTP_AUTH_FAILED;
+  
+  // Force-grab the authentication details...
+  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
+  if (!m_msgWindow && mailnewsurl)
+    mailnewsurl->GetMsgWindow(getter_AddRefs(m_msgWindow));
+  bool validCredentials = false;
+  rv = m_newsFolder->GetAuthenticationCredentials(m_msgWindow, true, false,
+    &validCredentials);
+  if (NS_FAILED(rv) || !validCredentials)
+    return MK_NNTP_AUTH_FAILED;
+
   nsCString username;
-  if (m_newsFolder)
-    rv = m_newsFolder->GetGroupUsername(cachedUsername);
-
-  if (NS_FAILED(rv) || cachedUsername.IsEmpty()) {
-    rv = NS_OK;
-    NNTP_LOG_NOTE("ask for the news username");
-
-    nsString usernamePromptText;
-    GetNewsStringByName("enterUsername", getter_Copies(usernamePromptText));
-    nsString usernamePromptTitleText;
-    GetNewsStringByName("enterUsernameTitle",
-                        getter_Copies(usernamePromptTitleText));
-    if (m_newsFolder) {
-      if (!m_msgWindow) {
-        nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-        if (mailnewsurl)
-          rv = mailnewsurl->GetMsgWindow(getter_AddRefs(m_msgWindow));
-      }
-
-      rv = m_newsFolder->GetGroupUsernameWithUI(usernamePromptText,
-                                                usernamePromptTitleText,
-                                                m_msgWindow, username);
-    }
-    else
-      return(MK_NNTP_AUTH_FAILED);
-
-    if (NS_FAILED(rv)) {
-      AlertError(MK_NNTP_AUTH_FAILED, "Aborted by user");
-      return(MK_NNTP_AUTH_FAILED);
-    }
-  } // !username
-
-  if (NS_FAILED(rv) || (username.IsEmpty() && cachedUsername.IsEmpty()))
-    return(MK_NNTP_AUTH_FAILED);
+  rv = m_newsFolder->GetGroupUsername(username);
+  if (NS_FAILED(rv) || username.IsEmpty())
+    return MK_NNTP_AUTH_FAILED;
 
   NS_MsgSACopy(&command, "AUTHINFO user ");
-  if (!cachedUsername.IsEmpty()) {
-    PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) use %s as the username",this, cachedUsername.get()));
-    NS_MsgSACat(&command, cachedUsername.get());
-  }
-  else {
-    PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) use %s as the username",this, username.get()));
-    NS_MsgSACat(&command, username.get());
-  }
+  PR_LOG(NNTP, PR_LOG_ALWAYS,("(%p) use %s as the username", this, username.get()));
+  NS_MsgSACat(&command, username.get());
   NS_MsgSACat(&command, CRLF);
 
-  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
   if (mailnewsurl)
     status = SendData(mailnewsurl, command);
 
@@ -2451,7 +2425,6 @@ PRInt32 nsNNTPProtocol::AuthorizationResponse()
 {
   nsresult rv = NS_OK;
   PRInt32 status = 0;
-
 
   if (MK_NNTP_RESPONSE_AUTHINFO_OK == m_responseCode ||
     MK_NNTP_RESPONSE_AUTHINFO_SIMPLE_OK == m_responseCode)
@@ -2485,59 +2458,18 @@ PRInt32 nsNNTPProtocol::AuthorizationResponse()
   }
   else if (MK_NNTP_RESPONSE_AUTHINFO_CONT == m_responseCode)
   {
-    /* password required */
     char * command = 0;
+
+    // Since we had to have called BeginAuthorization to get here, we've already
+    // prompted for the authorization credentials. Just grab them without a
+    // further prompt.
     nsCString password;
-    nsCString cachedPassword;
-
-    NS_ASSERTION(m_newsFolder, "no newsFolder");
-    if (m_newsFolder)
-      rv = m_newsFolder->GetGroupPassword(cachedPassword);
-
-    if (NS_FAILED(rv) || cachedPassword.IsEmpty()) {
-      rv = NS_OK;
-      NNTP_LOG_NOTE("ask for the news password");
-
-      nsString passwordPromptText;
-      GetNewsStringByName("enterPassword", getter_Copies(passwordPromptText));
-      nsString passwordPromptTitleText;
-      GetNewsStringByName("enterPasswordTitle", getter_Copies(passwordPromptTitleText));
-
-      NS_ASSERTION(m_newsFolder, "no newsFolder");
-      if (m_newsFolder) {
-        if (!m_msgWindow) {
-          nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-          if (mailnewsurl)
-            rv = mailnewsurl->GetMsgWindow(getter_AddRefs(m_msgWindow));
-        }
-
-        rv = m_newsFolder->GetGroupPasswordWithUI(passwordPromptText, passwordPromptTitleText,
-                                                  m_msgWindow, password);
-      }
-      else {
-        NNTP_LOG_NOTE("we don't know the folder");
-        NNTP_LOG_NOTE("this can happen if someone gives us just an article url");
-        return(MK_NNTP_AUTH_FAILED);
-      }
-
-      if (NS_FAILED(rv)) {
-        AlertError(MK_NNTP_AUTH_FAILED,"Aborted by user");
-        return(MK_NNTP_AUTH_FAILED);
-      }
-    }
-
-    if(NS_FAILED(rv) || (password.IsEmpty() && cachedPassword.IsEmpty()))
-      return(MK_NNTP_AUTH_FAILED);
+    rv = m_newsFolder->GetGroupPassword(password);
+    if (NS_FAILED(rv) || password.IsEmpty())
+      return MK_NNTP_AUTH_FAILED;
 
     NS_MsgSACopy(&command, "AUTHINFO pass ");
-    if (!cachedPassword.IsEmpty()) {
-      PR_LOG(NNTP,PR_LOG_ALWAYS,("(%p) use cached password", this));
-      NS_MsgSACat(&command, cachedPassword.get());
-    }
-    else {
-      // *don't log the password!* PR_LOG(NNTP,PR_LOG_ALWAYS,("use %s as the password",(const char *)password));
-      NS_MsgSACat(&command, password.get());
-    }
+    NS_MsgSACat(&command, password.get());
     NS_MsgSACat(&command, CRLF);
 
     nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
@@ -3016,10 +2948,7 @@ void nsNNTPProtocol::HandleAuthenticationFailure()
   if (m_newsFolder)
   {
     if (!userHasAuthenticatedInThisSession)
-    {
-      (void) m_newsFolder->ForgetGroupUsername();
-      (void) m_newsFolder->ForgetGroupPassword();
-    }
+      m_newsFolder->ForgetAuthenticationCredentials();
     // we'll allow one failure before clearing out password,
     // but we need to handle the case where the password has
     // changed while the app is running, and
