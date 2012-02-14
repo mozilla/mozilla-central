@@ -45,8 +45,8 @@ function test() {
   let tab = getBrowser().addTab(testURL);
   let window = tab.ownerDocument.defaultView;
   
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function loadListener1(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", loadListener1, true);
     // enable all stylesheets and verify that they're correctly persisted
     Array.forEach(tab.linkedBrowser.contentDocument.styleSheets, function(aSS, aIx) {
       pendingCount++;
@@ -54,8 +54,8 @@ function test() {
       stylesheetSwitchAll(tab.linkedBrowser.contentWindow, ssTitle);
       
       let newTab = ss.duplicateTab(window,tab);
-      newTab.linkedBrowser.addEventListener("load", function(aEvent) {
-        tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+      newTab.linkedBrowser.addEventListener("load", function loadListener2(aEvent) {
+        newTab.linkedBrowser.removeEventListener("load", loadListener2, true);
         let states = Array.map(newTab.linkedBrowser.contentDocument.styleSheets,
                                function(aSS) !aSS.disabled);
         let correct = states.indexOf(true) == aIx && states.indexOf(true, aIx + 1) == -1;
@@ -74,8 +74,8 @@ function test() {
     // disable all styles and verify that this is correctly persisted
     tab.linkedBrowser.markupDocumentViewer.authorStyleDisabled = true;
     let newTab = ss.duplicateTab(window,tab);
-    newTab.linkedBrowser.addEventListener("load", function(aEvent) {
-      tab.linkedBrowser.removeEventListener("load", arguments.callee, true);
+    newTab.linkedBrowser.addEventListener("load", function loadListener3(aEvent) {
+      newTab.linkedBrowser.removeEventListener("load", loadListener3, true);
       is(newTab.linkedBrowser.markupDocumentViewer.authorStyleDisabled, true,
          "disabled all stylesheets");
       

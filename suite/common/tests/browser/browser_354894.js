@@ -77,7 +77,7 @@
  *  --> (The first -requested was canceled, so off-by-one)
  *  7) (Mac only) Mac version of Test 5 additionally preparing Test 6
  *
- * @see https://bugzilla.mozilla.org/show_bug.cgi?id=515006
+ * @see https://bugzilla.mozilla.org/show_bug.cgi?id=354894
  * @note It is implicitly tested that restoring the last window works when
  * non-browser windows are around. The "Run Tests" window as well as the main
  * browser window (wherein the test code gets executed) won't be considered
@@ -221,10 +221,10 @@ function test() {
 
     // Prepare a window; open it and add more tabs
     let newWin = openDialog(location, "_blank", CHROME_FEATURES, "about:config");
-    newWin.addEventListener("load", function(aEvent) {
-      newWin.removeEventListener("load", arguments.callee, false);
-      newWin.getBrowser().addEventListener("pageshow", function(aEvent) {
-        newWin.getBrowser().removeEventListener("pageshow", arguments.callee, true);
+    newWin.addEventListener("load", function loadListener1(aEvent) {
+      newWin.removeEventListener("load", loadListener1, false);
+      newWin.getBrowser().addEventListener("pageshow", function pageshowListener2(aEvent) {
+        newWin.getBrowser().removeEventListener("pageshow", pageshowListener2, true);
         for each (let url in TEST_URLS) {
           newWin.getBrowser().addTab(url);
         }
@@ -255,8 +255,8 @@ function test() {
       // Open a new window
       // The previously closed window should be restored
       newWin = openDialog(location, "_blank", CHROME_FEATURES, "about:blank");
-      newWin.addEventListener("load", function() {
-        newWin.removeEventListener("load", arguments.callee, false);
+      newWin.addEventListener("load", function loadListener3() {
+        newWin.removeEventListener("load", loadListener3, false);
         executeSoon(function() {
           is(newWin.getBrowser().browsers.length, TEST_URLS.length + 1,
              "Restored window in-session with otherpopup windows around");
@@ -281,10 +281,10 @@ function test() {
       // open some popups
       let popup = openDialog(location, "popup", POPUP_FEATURES, TEST_URLS[0]);
       let popup2 = openDialog(location, "popup2", POPUP_FEATURES, TEST_URLS[1]);
-      popup2.addEventListener("load", function() {
-        popup2.removeEventListener("load", arguments.callee, false);
-        popup2.getBrowser().addEventListener("pageshow", function() {
-          popup2.getBrowser().removeEventListener("pageshow", arguments.callee, true);
+      popup2.addEventListener("load", function loadListener4() {
+        popup2.removeEventListener("load", loadListener4, false);
+        popup2.getBrowser().addEventListener("pageshow", function pageshowListener5() {
+          popup2.getBrowser().removeEventListener("pageshow", pageshowListener5, true);
           popup2.getBrowser().addTab(TEST_URLS[0]);
           // close the window
           newWin.BrowserTryToCloseWindow();
@@ -296,8 +296,8 @@ function test() {
 
           // open a new window the previously closed window should be restored to
           newWin = openDialog(location, "_blank", CHROME_FEATURES, "about:blank");
-          newWin.addEventListener("load", function() {
-            newWin.removeEventListener("load", arguments.callee, false);
+          newWin.addEventListener("load", function loadListener6() {
+            newWin.removeEventListener("load", loadListener6, false);
             executeSoon(function() {
               is(newWin.getBrowser().browsers.length, TEST_URLS.length + 1,
                  "Restored window and associated tabs in session");
@@ -327,18 +327,18 @@ function test() {
     // This will cause nsSessionStore to restore a window the next time it
     // gets a chance.
     let popup = openDialog(location, "popup", POPUP_FEATURES, TEST_URLS[1]);
-    popup.addEventListener("load", function() {
-      this.removeEventListener("load", arguments.callee, true);
+    popup.addEventListener("load", function loadListener7() {
+      popup.removeEventListener("load", loadListener7, true);
       is(popup.getBrowser().browsers.length, 1,
          "Did not restore the popup window (1)");
       popup.BrowserTryToCloseWindow();
 
       // Real tests
       popup = openDialog(location, "popup", POPUP_FEATURES, TEST_URLS[1]);
-      popup.addEventListener("load", function() {
-        popup.removeEventListener("load", arguments.callee, false);
-        popup.getBrowser().addEventListener("pageshow", function() {
-          popup.getBrowser().removeEventListener("pageshow", arguments.callee, true);
+      popup.addEventListener("load", function loadListener8() {
+        popup.removeEventListener("load", loadListener8, false);
+        popup.getBrowser().addEventListener("pageshow", function pageshowListener9() {
+          popup.getBrowser().removeEventListener("pageshow", pageshowListener9, true);
           popup.getBrowser().addTab(TEST_URLS[0]);
 
           is(popup.getBrowser().browsers.length, 2,
@@ -350,8 +350,8 @@ function test() {
           popup.close();
 
           let newWin = openDialog(location, "_blank", CHROME_FEATURES, "about:blank");
-          newWin.addEventListener("load", function() {
-            newWin.removeEventListener("load", arguments.callee, true);
+          newWin.addEventListener("load", function loadListener10() {
+            newWin.removeEventListener("load", loadListener10, true);
             executeSoon(function() {
               isnot(newWin.getBrowser().browsers.length, 2,
                     "Did not restore the popup window");
@@ -386,8 +386,8 @@ function test() {
         newWin = undoCloseWindow(0);
 
         newWin2 = openDialog(location, "_blank", CHROME_FEATURES, "about:blank");
-        newWin2.addEventListener("load", function() {
-          newWin2.removeEventListener("load", arguments.callee, true);
+        newWin2.addEventListener("load", function loadListener11() {
+          newWin2.removeEventListener("load", loadListener11, true);
           executeSoon(function() {
             is(newWin2.getBrowser().browsers.length, 1,
                "Did not restore, as undoCloseWindow() was last called");

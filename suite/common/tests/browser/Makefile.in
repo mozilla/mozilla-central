@@ -52,8 +52,10 @@ _BROWSER_FILES = \
 	browser_346337.js \
 	browser_346337_sample.html \
 	browser_350525.js \
+	browser_354894.js \
 	browser_367052.js \
 	browser_393716.js \
+	browser_394759.js \
 	browser_408470.js \
 	browser_408470_sample.html \
 	browser_423132.js \
@@ -84,9 +86,7 @@ _BROWSER_FILES = \
 	browser_491168.js \
 	browser_493467.js \
 	browser_500328.js \
-	browser_bug510890.js \
 	browser_514751.js \
-	browser_bug515006.js \
 	browser_522545.js \
 	browser_524745.js \
 	browser_526613.js \
@@ -106,7 +106,7 @@ _BROWSER_FILES = \
 	browser_665702-state_session.js \
 	browser_687710.js \
 	browser_687710_2.js \
-        browser_694378.js \
+	browser_694378.js \
 	browser_isempty.js \
 	browser_markPageAsFollowedLink.js \
 	framedPage.html \
@@ -114,5 +114,5 @@ _BROWSER_FILES = \
 	frameRight.html \
 	$(NULL)
 
-libs::	$(_BROWSER_FILES)
+libs:: $(_BROWSER_FILES)
 	$(INSTALL) $(foreach f,$^,"$f") $(MOZDEPTH)/_tests/testing/mochitest/browser/$(relativesrcdir)

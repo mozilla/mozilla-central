@@ -121,21 +121,23 @@ function test() {
   let rootDir = getRootDirectory(gTestPath);
   let testURL = rootDir + "browser_346337_sample.html";
   let tab = tabbrowser.addTab(testURL);
-  tab.linkedBrowser.addEventListener("load", function(aEvent) {
-    this.removeEventListener("load", arguments.callee, true);
+  tab.linkedBrowser.addEventListener("load", function loadListener1(aEvent) {
+    tab.linkedBrowser.removeEventListener("load", loadListener1, true);
     for (let xpath in fieldList)
       setFormValue(tab, xpath, fieldList[xpath]);
 
     let tab2 = ss.duplicateTab(window,tab);
-    tab2.linkedBrowser.addEventListener("pageshow", function(aEvent) {
+    tab2.linkedBrowser.addEventListener("pageshow", function pageshowListener2(aEvent) {
+      tab2.linkedBrowser.removeEventListener("pageshow", pageshowListener2, true);
       for (let xpath in fieldList)
         ok(compareFormValue(tab2, xpath, fieldList[xpath]),
            "The value for \"" + xpath + "\" was correctly restored");
       let browser = tab.linkedBrowser;
-      tab.linkedBrowser.addEventListener("load", function(aEvent) {
-        browser.removeEventListener("load", arguments.callee, true);
+      browser.addEventListener("load", function pageshowListener3(aEvent) {
+        browser.removeEventListener("load", pageshowListener3, true);
         let tab3 = tabbrowser.undoCloseTab(0);
-        tab3.linkedBrowser.addEventListener("pageshow", function(aEvent) {
+        tab3.linkedBrowser.addEventListener("pageshow", function pageshowListener4(aEvent) {
+          tab3.linkedBrowser.removeEventListener("pageshow", pageshowListener4, true);
           for (let xpath in fieldList)
             if (fieldList[xpath])
               ok(!compareFormValue(tab3, xpath, fieldList[xpath]),

@@ -75,7 +75,9 @@ function test() {
 
   // open a window and add the above closed tab list
   let newWin = openDialog(location, "", "chrome,all,dialog=no");
-  newWin.addEventListener("load", function(aEvent) {
+  newWin.addEventListener("load", function loadListener(aEvent) {
+    newWin.removeEventListener("load", loadListener, false);
+
     Services.prefs.setIntPref("browser.sessionstore.max_tabs_undo",
                               test_state.windows[0]._closedTabs.length);
     ss.setWindowState(newWin, JSON.stringify(test_state), true);
@@ -108,7 +110,7 @@ function test() {
        "All tabs specifically forgotten were indeed removed");
     is(countByTitle(closedTabs, REMEMBER), remember_count,
        "... and tabs not specifically forgetten weren't.");
- 
+
     // clean up
     newWin.close();
     is(browserWindowsCount(), 1, "Only one browser window should be open eventually");
