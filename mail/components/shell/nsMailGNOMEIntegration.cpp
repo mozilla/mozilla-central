@@ -72,6 +72,19 @@ static const char* const sFeedProtocols[] = {
   "feed"
 };
 
+struct AppTypeAssociation {
+  PRUint16 type;
+  const char * const *protocols;
+  const char *mimeType;
+  const char *extensions;
+};
+
+static const AppTypeAssociation sAppTypes[] = {
+  { nsIShellService::MAIL, sMailProtocols, "message/rfc822", "eml" },
+  { nsIShellService::NEWS, sNewsProtocols },
+  { nsIShellService::RSS,  sFeedProtocols, "application/rss+xml", "rss" }
+};
+
 nsMailGNOMEIntegration::nsMailGNOMEIntegration(): 
                           mCheckedThisSession(false),
                           mAppIsInPath(false)
@@ -144,12 +157,12 @@ NS_IMETHODIMP
 nsMailGNOMEIntegration::IsDefaultClient(bool aStartupCheck, PRUint16 aApps, bool * aIsDefaultClient)
 {
   *aIsDefaultClient = true;
-  if (aApps & nsIShellService::MAIL)
-    *aIsDefaultClient &= checkDefault(sMailProtocols, NS_ARRAY_LENGTH(sMailProtocols));
-  if (aApps & nsIShellService::NEWS)
-    *aIsDefaultClient &= checkDefault(sNewsProtocols, NS_ARRAY_LENGTH(sNewsProtocols));
-  if (aApps & nsIShellService::RSS)
-    *aIsDefaultClient &= checkDefault(sFeedProtocols, NS_ARRAY_LENGTH(sFeedProtocols));
+
+  for (unsigned int i = 0; i < NS_ARRAY_LENGTH(sAppTypes); i++) {
+    if (aApps & sAppTypes[i].type)
+      *aIsDefaultClient &= checkDefault(sAppTypes[i].protocols,
+                                        NS_ARRAY_LENGTH(sAppTypes[i].protocols));
+  }
   
   // If this is the first mail window, maintain internal state that we've
   // checked this session (so that subsequent window opens don't show the 
@@ -163,13 +176,14 @@ NS_IMETHODIMP
 nsMailGNOMEIntegration::SetDefaultClient(bool aForAllUsers, PRUint16 aApps)
 {
   nsresult rv = NS_OK;
-  if (aApps & nsIShellService::MAIL)
-    rv |= MakeDefault(sMailProtocols, NS_ARRAY_LENGTH(sMailProtocols));
-  if (aApps & nsIShellService::NEWS)
-    rv |= MakeDefault(sNewsProtocols, NS_ARRAY_LENGTH(sNewsProtocols));
-  if (aApps & nsIShellService::RSS)
-    rv |= MakeDefault(sFeedProtocols, NS_ARRAY_LENGTH(sFeedProtocols));
-  
+  for (unsigned int i = 0; i < NS_ARRAY_LENGTH(sAppTypes); i++) {
+    if (aApps & sAppTypes[i].type)
+      rv |= MakeDefault(sAppTypes[i].protocols,
+                        NS_ARRAY_LENGTH(sAppTypes[i].protocols),
+                        sAppTypes[i].mimeType,
+                        sAppTypes[i].extensions);
+  }
+
   return rv;	
 }
 
@@ -275,7 +289,9 @@ nsMailGNOMEIntegration::checkDefault(const char* const *aProtocols, unsigned int
 
 nsresult
 nsMailGNOMEIntegration::MakeDefault(const char* const *aProtocols,
-                                    unsigned int aLength)
+                                    unsigned int aProtocolsLength,
+                                    const char *aMimeType,
+                                    const char *aExtensions)
 {
   nsCAutoString appKeyValue;
   nsCOMPtr<nsIGConfService> gconf = do_GetService(NS_GCONFSERVICE_CONTRACTID);
@@ -293,7 +309,7 @@ nsMailGNOMEIntegration::MakeDefault(const char* const *aProtocols,
 
   nsresult rv;
   if (gconf) {
-    for (unsigned int i = 0; i < aLength; ++i) {
+    for (unsigned int i = 0; i < aProtocolsLength; ++i) {
       rv = gconf->SetAppForProtocol(nsDependentCString(aProtocols[i]),
                                     appKeyValue);
       NS_ENSURE_SUCCESS(rv, rv);
@@ -320,8 +336,14 @@ nsMailGNOMEIntegration::MakeDefault(const char* const *aProtocols,
     rv = giovfs->CreateAppFromCommand(mAppPath, id, getter_AddRefs(app));
     NS_ENSURE_SUCCESS(rv, rv);
 
-    for (unsigned int i = 0; i < aLength; ++i) {
+    for (unsigned int i = 0; i < aProtocolsLength; ++i) {
       rv = app->SetAsDefaultForURIScheme(nsDependentCString(aProtocols[i]));
+      NS_ENSURE_SUCCESS(rv, rv);
+      if (aMimeType)
+        rv = app->SetAsDefaultForMimeType(nsDependentCString(aMimeType));
+      NS_ENSURE_SUCCESS(rv, rv);
+      if (aExtensions)
+        rv = app->SetAsDefaultForFileExtensions(nsDependentCString(aExtensions));
       NS_ENSURE_SUCCESS(rv, rv);
     }
   }
