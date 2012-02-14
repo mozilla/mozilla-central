@@ -41,8 +41,6 @@ var inputElementType = "";
 var gListCard;
 var gEditList;
 var oldListName = "";
-var gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
-var gHeaderParser = Components.classes["@mozilla.org/messenger/headerparser;1"].getService(Components.interfaces.nsIMsgHeaderParser);
 var gLoadListeners = [];
 var gSaveListeners = [];
 
@@ -66,12 +64,9 @@ function handleKeyPress(element, event)
 
 function mailingListExists(listname)
 {
-  var addressbook = Components.classes["@mozilla.org/abmanager;1"]
-                              .getService(Components.interfaces.nsIAbManager);
-
-  if (addressbook.mailListNameExists(listname))
+  if (MailServices.ab.mailListNameExists(listname))
   {
-    gPromptService.alert(window, 
+    Services.prompt.alert(window,
       gAddressBookBundle.getString("mailListNameExistsTitle"),
       gAddressBookBundle.getString("mailListNameExistsMessage"));
     return true;
@@ -118,7 +113,7 @@ function GetListValue(mailList, doAdd)
   {
 
     fieldValue = inputField.value;
-    
+
     if (doAdd || (!doAdd && pos >= oldTotal))
       cardproperty = Components.classes["@mozilla.org/addressbook/cardproperty;1"].createInstance();
     else
@@ -146,7 +141,7 @@ function GetListValue(mailList, doAdd)
         var addresses = {};
         var names = {};
         var fullNames = {};
-        var numAddresses = gHeaderParser.parseHeadersWithArray(fieldValue, addresses, names, fullNames);
+        var numAddresses = MailServices.headerParser.parseHeadersWithArray(fieldValue, addresses, names, fullNames);
         for (var j = 0; j < numAddresses; j++)
         {
           if (j > 0)
@@ -301,8 +296,8 @@ function OnLoadEditList()
       for ( var i = 0;  i < total; i++ )
       {
         var card = gEditList.addressLists.queryElementAt(i, Components.interfaces.nsIAbCard);
-        var address = gHeaderParser.makeFullAddress(card.displayName,
-                                                    card.primaryEmail);
+        let address = MailServices.headerParser.makeFullAddress(card.displayName,
+                                                                card.primaryEmail);
         SetInputValue(address, newListBoxNode, templateNode);
       }
       var parent = listbox.parentNode;
@@ -630,4 +625,3 @@ function NotifySaveListeners(aMailingList)
   for (let i = 0; i < gSaveListeners.length; i++)
     gSaveListeners[i](aMailingList, document);
 }
-

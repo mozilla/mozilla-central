@@ -35,8 +35,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-
 
 const ACR = Components.interfaces.nsIAutoCompleteResult;
 const nsIAbAutoCompleteResult = Components.interfaces.nsIAbAutoCompleteResult;
@@ -110,10 +111,8 @@ nsAbAutoCompleteSearch.prototype = {
   // 0 = no comment column, 1 = name of address book this card came from
   // Other numbers currently unused (hence default to zero)
   _commentColumn: 0,
-  _parser: Components.classes["@mozilla.org/messenger/headerparser;1"]
-                     .getService(Components.interfaces.nsIMsgHeaderParser),
-  _abManager: Components.classes["@mozilla.org/abmanager;1"]
-                        .getService(Components.interfaces.nsIAbManager),
+  _parser: MailServices.headerParser,
+  _abManager: MailServices.ab,
 
   // Private methods
 
@@ -393,12 +392,9 @@ nsAbAutoCompleteSearch.prototype = {
       return;
     }
 
-    var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(Components.interfaces.nsIPrefBranch);
-
     // Find out about the comment column
     try {
-      this._commentColumn = prefSvc.getIntPref("mail.autoComplete.commentColumn");
+      this._commentColumn = Services.prefs.getIntPref("mail.autoComplete.commentColumn");
     } catch(e) { }
 
     // Craft this by hand - we want the first item to contain the full string,

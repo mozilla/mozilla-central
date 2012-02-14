@@ -55,11 +55,8 @@
       <constructor>
         <![CDATA[
           // Init the address book cache.
-          const nsIAbManager = Components.interfaces.nsIAbManager;
           const nsIAbDirectory = Components.interfaces.nsIAbDirectory;
-          var abManager = Components.classes["@mozilla.org/abmanager;1"]
-                                    .getService(nsIAbManager);
-          var directories = abManager.directories;
+          let directories = MailServices.ab.directories;
           while (directories && directories.hasMoreElements()) {
             var ab = directories.getNext();
             if (ab instanceof nsIAbDirectory && this._matches(ab))
@@ -87,18 +84,16 @@
 
           const nsIAbListener = Components.interfaces.nsIAbListener;
           // Add a listener so we can update correctly if the list should change
-          abManager.addAddressBookListener(this,
-                                           nsIAbListener.itemAdded |
-                                           nsIAbListener.directoryRemoved |
-                                           nsIAbListener.itemChanged);
+          MailServices.ab.addAddressBookListener(this,
+                                                 nsIAbListener.itemAdded |
+                                                 nsIAbListener.directoryRemoved |
+                                                 nsIAbListener.itemChanged);
         ]]>
       </constructor>
 
       <destructor>
         <![CDATA[
-          Components.classes["@mozilla.org/abmanager;1"]
-                    .getService(Components.interfaces.nsIAbManager)
-                    .removeAddressBookListener(this);
+          MailServices.ab.removeAddressBookListener(this);
 
           // Empty out anything in the list.
           while (this.hasChildNodes())

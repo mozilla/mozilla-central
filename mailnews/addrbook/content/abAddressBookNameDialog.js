@@ -36,6 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource:///modules/mailServices.js");
+
 var gOkButton;
 var gNameInput;
 var gDirectory = null;
@@ -46,7 +48,7 @@ const kPABDirectory = 2; // defined in nsDirPrefs.h
 
 function abNameOnLoad()
 {
-  // Get the document elements.  
+  // Get the document elements.
   gOkButton = document.documentElement.getButton('accept');
   gNameInput = document.getElementById('name');
 
@@ -59,9 +61,6 @@ function abNameOnLoad()
 
   // Work out the window title (if we have a directory specified, then it's a
   // rename).
-  var strBundleService = Components.classes["@mozilla.org/intl/stringbundle;1"]
-    .getService(Components.interfaces.nsIStringBundleService);
-
   var bundle = document.getElementById("bundle_addressBook");
 
   document.title = bundle.getString(gDirectory ?
@@ -90,9 +89,7 @@ function abNameOKButton()
   if (gDirectory)
     gDirectory.dirName = newName;
   else
-    Components.classes["@mozilla.org/abmanager;1"]
-              .getService(Components.interfaces.nsIAbManager)
-              .newAddressBook(newName, "", kPABDirectory);
+    MailServices.ab.newAddressBook(newName, "", kPABDirectory);
 
   return true;
 }
