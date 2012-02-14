@@ -507,12 +507,12 @@ subclass(NNTP_Giganews_handler, NNTP_RFC2980_handler, {
 });
 
 function NNTP_RFC4643_extension(daemon) {
-  subconstructor(this, NNTP_RFC977_handler, daemon);
+  subconstructor(this, NNTP_RFC2980_handler, daemon);
 
   this.extraCommands += "\tAUTHINFO USER\n";
   this.extraCommands += "\tAUTHINFO PASS\n";
 }
-subclass(NNTP_RFC4643_extension, NNTP_RFC977_handler, {
+subclass(NNTP_RFC4643_extension, NNTP_RFC2980_handler, {
   expectedUsername : "testnews",
   expectedPassword : "newstest",
   requireBoth : true,
@@ -531,24 +531,30 @@ subclass(NNTP_RFC4643_extension, NNTP_RFC977_handler, {
       if (this.usernameReceived)
         return "502 Command unavailable";
 
-      if (param != this.expectedUsername)
+      var expectUsername = this.lastGroupTried
+        ? this._daemon.groupCredentials[this.lastGroupTried][0]
+        : this.expectedUsername;
+      if (param != expectUsername)
         return "481 Authentication failed";
 
       this.usernameReceived = true;
       if (this.requireBoth)
         return "381 Password required";
 
-      this.authenticated = true;
+      this.authenticated = this.lastGroupTried ? this.lastGroupTried : true;
       return "281 Authentication Accepted";
     }
     else if (action == "pass") {
       if (!this.requireBoth || !this.usernameReceived)
         return "482 Authetication commands issued out of sequence";
 
-      if (param != this.expectedPassword)
+      var expectPassword = this.lastGroupTried
+        ? this._daemon.groupCredentials[this.lastGroupTried][1]
+        : this.expectedPassword;
+      if (param != expectPassword)
         return "481 Authentication failed";
 
-      this.authenticated = true;
+      this.authenticated = this.lastGroupTried ? this.lastGroupTried : true;
       return "281 Authentication Accepted";
     }
     return "502 Invalid Command";
@@ -557,6 +563,14 @@ subclass(NNTP_RFC4643_extension, NNTP_RFC977_handler, {
     if (this.authenticated) {
       return this.parent.LIST(args);
     }
+    return "480 Authentication required";
+  },
+  GROUP : function (args) {
+    if ((this._daemon.groupCredentials != null && this.authenticated == args)
+        || (this._daemon.groupCredentials == null && this.authenticated))
+      return this.parent.GROUP(args);
+    if (this._daemon.groupCredentials != null)
+      this.lastGroupTried = args;
     return "480 Authentication required";
   }
 });
