@@ -43,6 +43,12 @@
 Components.utils.import("resource://gre/modules/InlineSpellChecker.jsm");
 Components.utils.import("resource:///modules/MailUtils.js");
 
+XPCOMUtils.defineLazyGetter(this, "PageMenu", function() {
+  let tmp = {};
+  Cu.import("resource://gre/modules/PageMenu.jsm", tmp);
+  return new tmp.PageMenu();
+});
+
 var gSpellChecker = new InlineSpellChecker();
 var gGlodaBundle = null;
 

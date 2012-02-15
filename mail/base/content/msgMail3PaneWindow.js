@@ -54,12 +54,6 @@ Components.utils.import("resource:///modules/sessionStoreManager.js");
 Components.utils.import("resource:///modules/summaryFrameManager.js");
 Components.utils.import("resource:///modules/mailInstrumentation.js");
 
-XPCOMUtils.defineLazyGetter(this, "PageMenu", function() {
-  let tmp = {};
-  Cu.import("resource://gre/modules/PageMenu.jsm", tmp);
-  return new tmp.PageMenu();
-});
-
 /* This is where functions related to the 3 pane window are kept */
 
 // from MailNewsTypes.h
