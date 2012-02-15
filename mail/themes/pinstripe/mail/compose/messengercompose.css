@@ -382,10 +382,9 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 /* ::::: attachment reminder ::::: */
 
 #attachmentNotificationBox > notification .messageImage {
-  width: 32px;
-  height: 32px;
-  background-image: url(chrome://messenger/skin/messengercompose/compose-toolbar.png);
-  background-position: -96px top;
+  width: 16px;
+  height: 16px;
+  background-image: url(chrome://messenger/skin/messengercompose/attachmentnotification.png);
 }
 
 #attachmentReminderText {
