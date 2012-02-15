@@ -64,12 +64,7 @@
 #include "nsIWinTaskbar.h"
 #include "nsISupportsPrimitives.h"
 #include <mbstring.h>
-#include "mozilla/ModuleUtils.h"
 #include "mozilla/Services.h"
-
-#ifdef MOZILLA_INTERNAL_API
-#define CaseInsensitiveCompare nsCaseInsensitiveStringComparator()
-#endif
 
 #ifdef _WIN32_WINNT
 #undef _WIN32_WINNT
@@ -981,27 +976,3 @@ nsWindowsShellService::GetDefaultFeedReader(nsILocalFile** _retval)
   NS_ADDREF(*_retval = defaultReader);
   return NS_OK;
 }
-
-#ifdef BUILD_STATIC_SHELL
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsWindowsShellService, Init)
-NS_DEFINE_NAMED_CID(NS_SUITEWININTEGRATION_CID);
-
-static const mozilla::Module::CIDEntry kSuiteShellCIDs[] = {
-  { &kNS_SUITEWININTEGRATION_CID, false, NULL, nsWindowsShellServiceConstructor },
-  { NULL }
-};
-
-static const mozilla::Module::ContractIDEntry kSuiteShellContracts[] = {
-  { NS_SUITESHELLSERVICE_CONTRACTID, &kNS_SUITEWININTEGRATION_CID },
-  { NS_SUITEFEEDSERVICE_CONTRACTID, &kNS_SUITEWININTEGRATION_CID },
-  { NULL }
-};
-
-static const mozilla::Module kSuiteShellModule = {
-  mozilla::Module::kVersion,
-  kSuiteShellCIDs,
-  kSuiteShellContracts
-};
-
-NSMODULE_DEFN(nsSuiteShellModule) = &kSuiteShellModule;
-#endif

@@ -41,7 +41,6 @@
 #include "nsGNOMEShellService.h"
 #include "nsServiceManagerUtils.h"
 #include "nsIGConfService.h"
-#include "mozilla/ModuleUtils.h"
 #include "nsIGnomeVFSService.h"
 #include "nsILocalFile.h"
 #include "nsIProcess.h"
@@ -149,27 +148,3 @@ nsGNOMEShellService::GetDefaultFeedReader(nsILocalFile** _retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
-
-#ifdef BUILD_STATIC_SHELL
-NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsGNOMEShellService, Init)
-NS_DEFINE_NAMED_CID(NS_SUITEGNOMEINTEGRATION_CID);
-
-static const mozilla::Module::CIDEntry kSuiteShellCIDs[] = {
-  { &kNS_SUITEGNOMEINTEGRATION_CID, false, NULL, nsGNOMEShellServiceConstructor },
-  { NULL }
-};
-
-static const mozilla::Module::ContractIDEntry kSuiteShellContracts[] = {
-  { NS_SUITEFEEDSERVICE_CONTRACTID, &kNS_SUITEGNOMEINTEGRATION_CID },
-  { NULL }
-};
-
-static const mozilla::Module kSuiteShellModule = {
-  mozilla::Module::kVersion,
-  kSuiteShellCIDs,
-  kSuiteShellContracts
-};
-
-NSMODULE_DEFN(nsSuiteShellModule) = &kSuiteShellModule;
-#endif
-

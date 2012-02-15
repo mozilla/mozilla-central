@@ -45,24 +45,20 @@
 #include "nsFeedSniffer.h"
 
 #if defined(XP_WIN)
-#if !defined(BUILD_STATIC_SHELL)
 #include "nsWindowsShellService.h"
-#endif
-#elif defined(XP_MACOSX) && !defined(BUILD_STATIC_SHELL)
+#elif defined(XP_MACOSX)
 #include "nsMacShellService.h"
-#elif defined(MOZ_WIDGET_GTK2) && !defined(BUILD_STATIC_SHELL)
+#elif defined(MOZ_WIDGET_GTK2)
 #include "nsGNOMEShellService.h"
 #endif
 
 /////////////////////////////////////////////////////////////////////////////
 
 #if defined(XP_WIN)
-#if !defined(BUILD_STATIC_SHELL)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsWindowsShellService, Init)
-#endif
-#elif defined(XP_MACOSX) && !defined(BUILD_STATIC_SHELL)
+#elif defined(XP_MACOSX)
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsMacShellService)
-#elif defined(MOZ_WIDGET_GTK2) && !defined(BUILD_STATIC_SHELL)
+#elif defined(MOZ_WIDGET_GTK2)
 NS_GENERIC_FACTORY_CONSTRUCTOR_INIT(nsGNOMEShellService, Init)
 #endif
 NS_GENERIC_FACTORY_CONSTRUCTOR(nsSuiteDirectoryProvider)
