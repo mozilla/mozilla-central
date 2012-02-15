@@ -613,7 +613,8 @@ var GlodaFundAttr = {
       // means yencode won't be supported. Oh, I feel really bad.
       let attachmentInfos = [];
       for each (let [, att] in Iterator(aMimeMsg.allUserAttachments)) {
-        attachmentInfos.push(this.glodaAttFromMimeAtt(aGlodaMessage, att));
+        attachmentInfos.push(this.glodaAttFromMimeAtt(aRawReps.trueGlodaRep,
+                                                      att));
       }
       aGlodaMessage.attachmentInfos = attachmentInfos;
     }
