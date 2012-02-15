@@ -172,8 +172,7 @@ ifdef MOZILLA_OFFICIAL
 DEFINES += -DMOZILLA_OFFICIAL
 endif
 
-APP_UA_NAME = $(shell echo $(MOZ_APP_DISPLAYNAME) | sed -e's/[^A-Za-z]//g')
-DEFINES += -DAPP_VERSION="$(MOZ_APP_VERSION)" -DAPP_UA_NAME="$(APP_UA_NAME)"
+DEFINES += -DAPP_VERSION="$(MOZ_APP_VERSION)"
 
 ifeq (cocoa,$(MOZ_WIDGET_TOOLKIT))
 LIBS	+= -framework CoreAudio -framework AudioToolbox -framework AudioUnit -framework Carbon

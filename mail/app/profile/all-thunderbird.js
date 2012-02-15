@@ -44,8 +44,6 @@
 #endif
 #endif
 
-pref("general.useragent.extra.thunderbird", "@APP_UA_NAME@/@APP_VERSION@");
-
 pref("general.useragent.locale", "@AB_CD@");
 pref("general.skins.selectedSkin", "classic/1.0");
 
