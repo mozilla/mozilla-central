@@ -253,6 +253,29 @@ if (logHelperHasInterestedListeners) {
     mark_action("glodaWrapped", "_messageFromRow", [rv]);
     return rv;
   };
+
+  let orig_updateMessageLocations = GlodaDatastore.updateMessageLocations;
+  GlodaDatastore.updateMessageLocations = function() {
+    mark_action("glodaWrapped", "updateMessageLocations",
+                ["ids", arguments[0], "keys", arguments[1], "dest folder",
+                 arguments[2], "do not notify?", arguments[3]]);
+    orig_updateMessageLocations.apply(GlodaDatastore, arguments);
+  };
+  let orig_updateMessageKeys = GlodaDatastore.updateMessageKeys;
+  GlodaDatastore.updateMessageKeys = function() {
+    mark_action("glodaWrapped", "updateMessageKeys"
+                ["ids", arguments[0], "keys", arguments[1]]);
+    orig_updateMessageKeys.apply(GlodaDatastore, arguments);
+  }
+
+  /* also, let us see the results of cache lookups so we can know if we are
+     performing cache unification when a load occurs. */
+  let orig_cacheLookupOne = GlodaCollectionManager.cacheLookupOne;
+  GlodaCollectionManager.cacheLookupOne = function() {
+    let rv = orig_cacheLookupOne.apply(GlodaCollectionManager, arguments);
+    mark_action("glodaWrapped", "cacheLookupOne", ["hit?", rv !== null]);
+    return rv;
+  }
 }
 
 const _wait_for_gloda_indexer_defaults = {
@@ -500,6 +523,7 @@ var _indexMessageState = {
         this._glodaMessagesByMessageId[synMsg.messageId] = null;
         if (verifier) {
           try {
+            mark_action("glodaTestHelper", "verifier", [synMsg, glodaMsg]);
             previousValue = verifier(synMsg, glodaMsg, previousValue);
           }
           catch (ex) {

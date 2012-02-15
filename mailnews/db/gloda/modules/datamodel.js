@@ -690,7 +690,8 @@ GlodaMessage.prototype = {
       if (folderMessage !== null) {
         // verify the message-id header matches what we expect...
         if (folderMessage.messageId != this._headerMessageID) {
-          LOG.info("Message with message key does not match expected " +
+          LOG.info("Message with message key " + this._messageKey +
+                   " in folder '" + folder.URI + "' does not match expected " +
                    "header! (" + this._headerMessageID + " expected, got " +
                    folderMessage.messageId + ")");
           folderMessage = null;

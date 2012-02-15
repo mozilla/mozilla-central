@@ -416,7 +416,7 @@ var fundamentalMsgSet;
 var fundamentalGlodaMsgAttachmentUrls;
 /**
  * Save the resulting gloda message id corresponding to the
- *  fundamentalSyntheticMessage.
+ *  fundamentalSyntheticMessage so we can use it to query the message from disk.
  */
 var fundamentalGlodaMessageId;
 
