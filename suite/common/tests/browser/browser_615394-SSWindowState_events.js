@@ -286,12 +286,12 @@ function test_setWindowState() {
 function test_setBrowserState() {
   // We'll track events per window so we are sure that they are each happening once
   // pre window.
-  let newWindow;
   let windowEvents = {};
   windowEvents[getOuterWindowID(window)] = { busyEventCount: 0, readyEventCount: 0 };
 
   // waitForBrowserState does it's own observing for windows, but doesn't attach
   // the listeners we want here, so do it ourselves.
+  let newWindow;
   function windowObserver(aSubject, aTopic, aData) {
     if (aTopic == "domwindowopened") {
       newWindow = aSubject.QueryInterface(Components.interfaces.nsIDOMWindow);
@@ -393,4 +393,3 @@ function test_undoCloseWindow() {
     runNextTest();
   }
 }
-

@@ -68,8 +68,9 @@ function test() {
     let newWin = openDialog(location, "", "chrome,all,dialog=no", testURL);
     newWin.addEventListener("load", function loadListener1(aEvent) {
       newWin.removeEventListener("load", loadListener1, false);
+
       newWin.getBrowser().selectedBrowser.addEventListener("load", function loadListener2(aEvent) {
-        newWin.getBrowser().selectedBrowser.removeEventListener("load", loadListener2, false);
+        newWin.getBrowser().selectedBrowser.removeEventListener("load", loadListener2, true);
 
         executeSoon(function() {
           newWin.getBrowser().addTab().linkedBrowser.stop();
@@ -100,6 +101,7 @@ function test() {
             let expectedTabs = data.tabs.length;
             newWin2.addEventListener("load", function loadListener3(aEvent) {
               newWin2.removeEventListener("load", loadListener3, false);
+
               newWin2.getBrowser().tabContainer.addEventListener("SSTabRestored", function sstabrestoredListener4(aEvent) {
                 if (++restoredTabs < expectedTabs)
                   return;
@@ -159,7 +161,8 @@ function test() {
       let url = "http://window" + windowsToOpen.length + ".example.com";
       let window = openDialog(location, "_blank", settings, url);
       window.addEventListener("load", function loadListener5(aEvent) {
-        window.removeEventListener("load", loadListener5, true);
+        window.removeEventListener("load", loadListener5, false);
+
         window.gBrowser.addEventListener("load", function loadListener6(aEvent) {
           window.gBrowser.removeEventListener("load", loadListener6, true);
           // the window _should_ have state with a tab of url, but it doesn't
@@ -174,7 +177,7 @@ function test() {
             });
           });
         }, true);
-      }, true);
+      }, false);
     }
 
     let windowsToOpen = [{isPopup: false},

@@ -14,9 +14,12 @@ function test() {
   is(gURLBar.value, URI, "location bar value matches test URI after switching tabs");
 
   waitForExplicitFinish();
-  gBrowser.selectedBrowser.addEventListener("load", function () {
+  gBrowser.selectedBrowser.addEventListener("load", function loadListener() {
+    gBrowser.selectedBrowser.removeEventListener("load", loadListener, true);
+
     is(gBrowser.userTypedValue, null, "userTypedValue is null as the page has loaded");
     is(gURLBar.value, URI, "location bar value matches test URI as the page has loaded");
+
     gBrowser.removeCurrentTab();
     finish();
   }, true);
