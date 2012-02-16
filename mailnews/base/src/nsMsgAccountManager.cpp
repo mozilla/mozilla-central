@@ -876,12 +876,12 @@ nsMsgAccountManager::hashUnloadServer(nsCStringHashKey::KeyType aKey, nsCOMPtr<n
 
   nsCOMPtr<nsIMsgFolder> rootFolder;
   rv = aServer->GetRootFolder(getter_AddRefs(rootFolder));
-
-  accountManager->mFolderListeners->EnumerateForwards(removeListenerFromFolder,
+  if (NS_SUCCEEDED(rv)) {
+    accountManager->mFolderListeners->EnumerateForwards(removeListenerFromFolder,
                                       (void *)(nsIMsgFolder*)rootFolder);
 
-  if(NS_SUCCEEDED(rv))
     rootFolder->Shutdown(true);
+  }
 
   return PL_DHASH_NEXT;
 }
