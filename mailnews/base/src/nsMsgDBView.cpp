@@ -882,6 +882,7 @@ nsresult nsMsgDBView::FetchPriority(nsIMsgDBHdr *aHdr, nsAString & aPriorityStri
 
 nsresult nsMsgDBView::FetchKeywords(nsIMsgDBHdr *aHdr, nsACString &keywordString)
 {
+  NS_ENSURE_ARG_POINTER(aHdr);
   nsresult rv = NS_OK;
   if (!mTagService)
   {
@@ -947,6 +948,7 @@ nsresult nsMsgDBView::FetchRowKeywords(nsMsgViewIndex aRow, nsIMsgDBHdr *aHdr,
 
 nsresult nsMsgDBView::FetchTags(nsIMsgDBHdr *aHdr, nsAString &aTagString)
 {
+  NS_ENSURE_ARG_POINTER(aHdr);
   nsresult rv = NS_OK;
   if (!mTagService)
   {
