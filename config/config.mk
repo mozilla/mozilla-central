@@ -222,7 +222,9 @@ endif
 
 endif # WINNT && !GNU_CC
 
-ifndef MOZ_GLUE_PROGRAM_LDFLAGS
+ifdef MOZ_GLUE_PROGRAM_LDFLAGS
+DEFINES += -DMOZ_GLUE_IN_PROGRAM
+else
 MOZ_GLUE_PROGRAM_LDFLAGS=$(MOZ_GLUE_LDFLAGS)
 endif
 
@@ -716,3 +718,21 @@ EXPAND_CC = $(EXPAND_LIBS_EXEC) --uselist -- $(CC)
 EXPAND_CCC = $(EXPAND_LIBS_EXEC) --uselist -- $(CCC)
 EXPAND_LD = $(EXPAND_LIBS_EXEC) --uselist -- $(LD)
 EXPAND_MKSHLIB = $(EXPAND_LIBS_EXEC) --uselist -- $(MKSHLIB)
+
+# EXPAND_LIBNAME - $(call EXPAND_LIBNAME,foo)
+# expands to $(LIB_PREFIX)foo.$(LIB_SUFFIX) or -lfoo, depending on linker
+# arguments syntax. Should only be used for system libraries
+
+# EXPAND_LIBNAME_PATH - $(call EXPAND_LIBNAME_PATH,foo,dir)
+# expands to dir/$(LIB_PREFIX)foo.$(LIB_SUFFIX)
+
+# EXPAND_MOZLIBNAME - $(call EXPAND_MOZLIBNAME,foo)
+# expands to $(DIST)/lib/$(LIB_PREFIX)foo.$(LIB_SUFFIX)
+
+ifdef GNU_CC
+EXPAND_LIBNAME = $(addprefix -l,$(1))
+else
+EXPAND_LIBNAME = $(foreach lib,$(1),$(LIB_PREFIX)$(lib).$(LIB_SUFFIX))
+endif
+EXPAND_LIBNAME_PATH = $(foreach lib,$(1),$(2)/$(LIB_PREFIX)$(lib).$(LIB_SUFFIX))
+EXPAND_MOZLIBNAME = $(foreach lib,$(1),$(DIST)/lib/$(LIB_PREFIX)$(lib).$(LIB_SUFFIX))
