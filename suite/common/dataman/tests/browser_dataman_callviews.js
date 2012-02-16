@@ -4,8 +4,6 @@
 
 // Test loading views in data manager.
 
-Components.utils.import("resource://gre/modules/Services.jsm");
-
 const DATAMAN_LOADED = "dataman-loaded";
 
 // See browser_dataman_basics.js.

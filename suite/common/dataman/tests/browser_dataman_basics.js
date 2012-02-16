@@ -4,8 +4,6 @@
 
 // Test basic functionality of the data manager.
 
-Components.utils.import("resource://gre/modules/Services.jsm");
-
 // Happens to match what's used in Data Manager itself.
 var gLocSvc = {
   fhist: Components.classes["@mozilla.org/satchel/form-history;1"]
