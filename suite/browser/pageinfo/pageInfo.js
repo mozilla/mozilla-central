@@ -150,9 +150,11 @@ pageInfoTreeView.prototype = {
       this.data.reverse();
 
     this.tree.invalidate();
+    // Note: we need to deselect before reselecting in order to trigger
+    // onselect handlers.
+    this.tree.view.selection.clearSelection();
     this.tree.view.selection.select(0);
     this.tree.ensureRowIsVisible(0);
-
   },
 
   getRowProperties: function(row, prop) { },
