@@ -1007,6 +1007,7 @@
             newBrowser.docShellIsActive = this.mCurrentTab.linkedBrowser.docShellIsActive;
             if (this.mCurrentBrowser) {
               this.mCurrentBrowser.droppedLinkHandler = null;
+              this.mCurrentBrowser.docShellIsActive = false;
               this.mCurrentBrowser.setAttribute("type", "content-targetable");
             }
 
