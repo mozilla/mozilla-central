@@ -24,6 +24,11 @@
   background-color: transparent
 }
 
+#event-toolbar {
+  -moz-margin-start: 0;
+  padding: 1px 0 2px;
+}
+
 #event-toolbar[iconsize="small"] .toolbarbutton-1 .toolbarbutton-icon {
   margin: 0;
   width: 18px;
