@@ -133,8 +133,11 @@
 }
 
 #agenda-listbox {
+  -moz-appearance: none;
   -moz-user-focus: normal;
-  margin: 3px;
+  margin: 3px 0 0;
+  border-top: 1px solid ThreeDShadow;
+  background-color: -moz-field;
 }
 
 agenda-checkbox-richlist-item {

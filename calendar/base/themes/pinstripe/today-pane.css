@@ -43,5 +43,10 @@
 }
 
 #agenda-listbox {
-  border: none;
+  border-top-color: #B8B8B8;
+}
+
+#today-pane-splitter {
+  min-height: 9px;
+  border-top: 1px solid #B8B8B8;
 }
