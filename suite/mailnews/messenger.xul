@@ -176,6 +176,20 @@
   <hbox id="tabmail-container" flex="1">
     <tabmail id="tabmail" flex="1" panelcontainer="tabpanelcontainer">
       <box id="tabmail-buttons" orientation="horizontal"/>
+      <toolbar id="tabbar-toolbar"
+               xpfe="false"
+               toolboxid="mail-toolbox"
+               toolbarname="&showTabsToolbarCmd.label;"
+               accesskey="&showTabsToolbarCmd.accesskey;"
+               customizable="true"
+               nowindowdrag="true"
+               mode="icons"
+               iconsize="small"
+               labelalign="end"
+               defaultmode="icons"
+               defaulticonsize="small"
+               defaultlabelalign="end"
+               context="toolbar-context-menu"/>
       <tabpanels id="tabpanelcontainer" flex="1" class="plain" selectedIndex="0">
         <!-- The main mail three pane frame -->
         <box id="mailContent" orient="vertical" flex="1">

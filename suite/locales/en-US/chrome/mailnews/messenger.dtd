@@ -152,6 +152,8 @@
 <!ENTITY showMessengerToolbarCmd.accesskey "M">
 <!ENTITY showSearchToolbarCmd.label "Search Bar">
 <!ENTITY showSearchToolbarCmd.accesskey "e">
+<!ENTITY showTabsToolbarCmd.label "Tabs Toolbar">
+<!ENTITY showTabsToolbarCmd.accesskey "T">
 
 <!ENTITY messagePaneLayoutStyle.label "Layout">
 <!ENTITY messagePaneLayoutStyle.accesskey "L">

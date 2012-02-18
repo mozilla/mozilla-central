@@ -258,3 +258,8 @@
 .tabmail-tab[type="folder"][IsServer="true"] {
   font-weight: bold;
 }
+
+#tabbar-toolbar {
+  -moz-appearance: none;
+  min-height: 0;
+}

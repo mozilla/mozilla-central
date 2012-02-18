@@ -170,3 +170,10 @@ tabpanels {
 .tabmail-tab:-moz-lwtheme {
   text-shadow: none;
 }
+
+#tabbar-toolbar {
+  -moz-appearance: none;
+  border-top-style: none;
+  border-bottom-style: none;
+  min-height: 0;
+}

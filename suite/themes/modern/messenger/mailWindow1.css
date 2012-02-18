@@ -169,3 +169,8 @@
 .alltabs-item[selected="true"] {
   font-weight: bold;
 }
+
+#tabbar-toolbar {
+  background-color: transparent;
+  min-height: 0;
+}
