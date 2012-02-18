@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1328822681000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1329585033000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
                         <versionRange  minVersion="0" maxVersion="*">
@@ -15,8 +15,12 @@
                   </emItem>
       <emItem  blockID="i43" id="supportaccessplugin@gmail.com">
                         </emItem>
-      <emItem  blockID="i19" id="{46551EC9-40F0-4e47-8E18-8E5CF550CFB8}">
-                        <versionRange  minVersion="1.1b1" maxVersion="1.1b1">
+      <emItem  blockID="i65" id="activity@facebook.com">
+                        <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i66" id="youtubeer@youtuber.com">
+                        <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i54" id="applebeegifts@mozilla.doslash.org">
@@ -73,6 +77,10 @@
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
                   </emItem>
+      <emItem  blockID="i67" id="youtube2@youtube2.com">
+                        <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
       <emItem  blockID="i60" id="youtb3@youtb3.com">
                         <versionRange  minVersion="0" maxVersion="*">
                     </versionRange>
@@ -117,6 +125,10 @@
                   </emItem>
       <emItem  blockID="i17" id="{3252b9ae-c69a-4eaf-9502-dc9c1f6c009e}">
                         <versionRange  minVersion="2.2" maxVersion="2.2">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i19" id="{46551EC9-40F0-4e47-8E18-8E5CF550CFB8}">
+                        <versionRange  minVersion="1.1b1" maxVersion="1.1b1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i3" id="langpack-vi-VN@firefox.mozilla.org">
