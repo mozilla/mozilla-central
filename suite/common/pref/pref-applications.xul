@@ -98,9 +98,12 @@
                   type="bool"/>
     </preferences>
 
-    <stringbundle id="bundleBrand" src="chrome://branding/locale/brand.properties"/>
-    <stringbundle id="bundlePrefApplications"
-                  src="chrome://communicator/locale/pref/pref-applications.properties"/>
+    <stringbundleset id="appBundleset">
+       <stringbundle id="bundleBrand"
+                     src="chrome://branding/locale/brand.properties"/>
+       <stringbundle id="bundlePrefApplications"
+                     src="chrome://communicator/locale/pref/pref-applications.properties"/>
+    </stringbundleset>
 
     <hbox align="center">
       <textbox id="filter"

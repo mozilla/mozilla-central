@@ -67,14 +67,12 @@
                   type="wstring"/>
     </preferences>
 
-    <stringbundle id="acceptedBundle"
-                  src="resource://gre/res/language.properties"/>
-    <stringbundle id="languagesBundle"
-                  src="chrome://global/locale/languageNames.properties"/>
-    <stringbundle id="regionsBundle"
-                  src="chrome://global/locale/regionNames.properties"/>
-    <stringbundle id="prefLangBundle"
-                  src="chrome://communicator/locale/pref/pref-languages.properties"/>
+    <stringbundleset id="langBundleset">
+      <stringbundle id="acceptedBundle"
+                    src="resource://gre/res/language.properties"/>
+      <stringbundle id="prefLangBundle"
+                    src="chrome://communicator/locale/pref/pref-languages.properties"/>
+    </stringbundleset>
 
     <groupbox flex="1">
       <caption label="&langtitle.label;"/>

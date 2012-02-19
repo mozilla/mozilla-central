@@ -80,8 +80,10 @@
                   type="bool"/>
     </preferences>
 
-    <stringbundle id="bundleJunkPreferences"
-                  src="chrome://messenger/locale/messenger.properties"/>
+    <stringbundleset id="junkBundleset">
+      <stringbundle id="bundleJunkPreferences"
+                    src="chrome://messenger/locale/messenger.properties"/>
+    </stringbundleset>
 
     <groupbox>
       <caption label="&junkSettings.caption;"/>

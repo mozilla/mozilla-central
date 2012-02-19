@@ -62,8 +62,10 @@
                   type="wstring"/>
     </preferences>
 
-    <stringbundle id="prefLangAddBundle"
-                  src="chrome://communicator/locale/pref/pref-languages.properties"/>
+    <stringbundleset id="langAddBundleset">
+      <stringbundle id="prefLangAddBundle"
+                    src="chrome://communicator/locale/pref/pref-languages.properties"/>
+    </stringbundleset>
  
     <description style="width: 1px;">&languages.customize.prefAddLangDescript;</description>
     <separator class="thin"/>

@@ -60,8 +60,14 @@
   <script type="application/javascript" src="chrome://communicator/content/utilityOverlay.js"/>
   <script type="application/javascript" src="chrome://communicator/content/tasksOverlay.js"/>
 
-  <stringbundle id="bundle_prefutilities"
-                src="chrome://communicator/locale/pref/prefutilities.properties"/>
+  <stringbundleset id="prefBundleset">
+    <stringbundle id="bundle_prefutilities"
+                  src="chrome://communicator/locale/pref/prefutilities.properties"/>
+    <stringbundle id="languageNamesBundle"
+                  src="chrome://global/locale/languageNames.properties"/>
+    <stringbundle id="regionNamesBundle"
+                  src="chrome://global/locale/regionNames.properties"/>
+  </stringbundleset>
 
   <tree id="prefsTree"
         style="width: 13em;"

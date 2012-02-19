@@ -50,11 +50,6 @@
             script="chrome://messenger/content/messengercompose/pref-composing_messages.js"
             onpaneload="this.PopulateFonts();">
 
-    <stringbundle id="languageBundle"
-                  src="chrome://global/locale/languageNames.properties"/>
-    <stringbundle id="regionBundle"
-                  src="chrome://global/locale/regionNames.properties"/>
-
     <preferences id="composing_messages_preferences">
       <preference id="mail.forward_message_mode"
                   name="mail.forward_message_mode"

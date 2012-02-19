@@ -66,9 +66,9 @@ function AddLanguage()
 function ReadAvailableLanguages()
 {
   var i = 0;
-  var languagesBundle = document.getElementById("languagesBundle");
+  var languagesBundle = document.getElementById("languageNamesBundle");
   var prefLangBundle = document.getElementById("prefLangBundle");
-  var regionsBundle = document.getElementById("regionsBundle");
+  var regionsBundle = document.getElementById("regionNamesBundle");
   var langStrings = document.getElementById("acceptedBundle").strings;
 
   while (langStrings.hasMoreElements())

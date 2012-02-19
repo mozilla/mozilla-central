@@ -52,8 +52,8 @@ function SwitchLocales_Load() {
   var cr = Components.classes["@mozilla.org/chrome/chrome-registry;1"]
                      .getService(Components.interfaces.nsIToolkitChromeRegistry);
 
-  var langNames = document.getElementById("langNamesBundle");
-  var regNames  = document.getElementById("regNamesBundle");
+  var langNames = document.getElementById("languageNamesBundle");
+  var regNames  = document.getElementById("regionNamesBundle");
 
   var locales = cr.getLocalesForPackage("global");
 

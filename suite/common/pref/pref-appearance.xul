@@ -63,13 +63,6 @@
                   type="string"/>
     </preferences>
 
-    <stringbundleset id="prefAppearanceBundleset">
-      <stringbundle id="langNamesBundle"
-                    src="chrome://global/locale/languageNames.properties"/>
-      <stringbundle id="regNamesBundle"
-                    src="chrome://global/locale/regionNames.properties"/>
-    </stringbundleset>
-
     <groupbox id="generalStartupPreferences" align="start">
       <caption label="&onStartLegend.label;"/>
 

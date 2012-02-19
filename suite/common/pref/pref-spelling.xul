@@ -11,11 +11,6 @@
             label="&prefSpelling.title;"
             script="chrome://communicator/content/pref/pref-spelling.js">
 
-    <stringbundle id="languageBundle"
-                  src="chrome://global/locale/languageNames.properties"/>
-    <stringbundle id="regionBundle"
-                  src="chrome://global/locale/regionNames.properties"/>
-
     <preferences id="spelling_preferences">
       <preference id="mail.SpellCheckBeforeSend"
                   name="mail.SpellCheckBeforeSend"
