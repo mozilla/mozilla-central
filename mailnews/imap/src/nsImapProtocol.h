@@ -545,6 +545,7 @@ private:
   void CreateMailbox(const char *mailboxName);
   void DeleteMailbox(const char *mailboxName);
   void RenameMailbox(const char *existingName, const char *newName);
+  void RemoveHierarchyDelimiter(nsCString &mailboxName);
   bool CreateMailboxRespectingSubscriptions(const char *mailboxName);
   bool DeleteMailboxRespectingSubscriptions(const char *mailboxName);
   bool    RenameMailboxRespectingSubscriptions(const char *existingName,

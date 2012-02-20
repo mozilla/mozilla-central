@@ -64,7 +64,7 @@ interface ImapOnlineCopyStateType
    const long kFailedMove = 9;
 };
 
-[scriptable, uuid(e16c3399-285a-4e1b-8940-c3352200aa9c)]
+[scriptable, uuid(525e1278-a39d-46d6-9dbc-b48c7e1d4faa)]
 interface nsIImapMailFolderSink : nsISupports {
   attribute boolean folderNeedsACLListed;
   attribute boolean folderNeedsSubscribing;
@@ -89,7 +89,7 @@ interface nsIImapMailFolderSink : nsISupports {
 
   /// Should we download all the rfc822 headers of messages, instead of subset.
   readonly attribute boolean shouldDownloadAllHeaders;
-  string GetOnlineDelimiter();
+  readonly attribute char onlineDelimiter;
   void OnNewIdleMessages();
   // Tell mail master about the newly selected mailbox
   void UpdateImapMailboxInfo(in nsIImapProtocol aProtocol,

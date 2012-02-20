@@ -6112,15 +6112,14 @@ char * nsImapProtocol::OnCreateServerSourceFolderPathString()
 {
   char *sourceMailbox = nsnull;
   char hierarchyDelimiter = 0;
-  char *onlineDelimiter = nsnull;
+  char onlineDelimiter = 0;
   m_runningUrl->GetOnlineSubDirSeparator(&hierarchyDelimiter);
   if (m_imapMailFolderSink)
-      m_imapMailFolderSink->GetOnlineDelimiter(&onlineDelimiter);
-  if (onlineDelimiter && *onlineDelimiter != kOnlineHierarchySeparatorUnknown
-      && *onlineDelimiter != hierarchyDelimiter)
-      m_runningUrl->SetOnlineSubDirSeparator (*onlineDelimiter);
-  if (onlineDelimiter)
-    NS_Free(onlineDelimiter);
+    m_imapMailFolderSink->GetOnlineDelimiter(&onlineDelimiter);
+
+  if (onlineDelimiter != kOnlineHierarchySeparatorUnknown &&
+      onlineDelimiter != hierarchyDelimiter)
+    m_runningUrl->SetOnlineSubDirSeparator(onlineDelimiter);
 
   m_runningUrl->CreateServerSourceFolderPathString(&sourceMailbox);
 
@@ -6146,7 +6145,7 @@ char * nsImapProtocol::GetFolderPathString()
       imapFolder->GetHierarchyDelimiter(&hierarchyDelimiter);
       if (hierarchyDelimiter != kOnlineHierarchySeparatorUnknown &&
           onlineSubDirDelimiter != hierarchyDelimiter)
-          m_runningUrl->SetOnlineSubDirSeparator(hierarchyDelimiter);
+        m_runningUrl->SetOnlineSubDirSeparator(hierarchyDelimiter);
     }
   }
   m_runningUrl->CreateServerSourceFolderPathString(&sourceMailbox);
@@ -6166,15 +6165,13 @@ char * nsImapProtocol::OnCreateServerDestinationFolderPathString()
 {
   char *destinationMailbox = nsnull;
   char hierarchyDelimiter = 0;
-  char *onlineDelimiter = nsnull;
+  char onlineDelimiter = 0;
   m_runningUrl->GetOnlineSubDirSeparator(&hierarchyDelimiter);
   if (m_imapMailFolderSink)
-      m_imapMailFolderSink->GetOnlineDelimiter(&onlineDelimiter);
-  if (onlineDelimiter && *onlineDelimiter != kOnlineHierarchySeparatorUnknown
-      && *onlineDelimiter != hierarchyDelimiter)
-      m_runningUrl->SetOnlineSubDirSeparator (*onlineDelimiter);
-  if (onlineDelimiter)
-      NS_Free(onlineDelimiter);
+    m_imapMailFolderSink->GetOnlineDelimiter(&onlineDelimiter);
+  if (onlineDelimiter != kOnlineHierarchySeparatorUnknown &&
+      onlineDelimiter != hierarchyDelimiter)
+    m_runningUrl->SetOnlineSubDirSeparator(onlineDelimiter);
 
   m_runningUrl->CreateServerDestinationFolderPathString(&destinationMailbox);
 
@@ -6187,7 +6184,9 @@ void nsImapProtocol::OnCreateFolder(const char * aSourceMailbox)
   if (created)
   {
     m_hierarchyNameState = kListingForCreate;
-    List(aSourceMailbox, false);
+    nsCString mailboxWODelim(aSourceMailbox);
+    RemoveHierarchyDelimiter(mailboxWODelim);
+    List(mailboxWODelim.get(), false);
     m_hierarchyNameState = kNoOperationInProgress;
   }
   else
@@ -7416,23 +7415,33 @@ void nsImapProtocol::MailboxDiscoveryFinished()
   }
 }
 
+// returns the mailboxName with the IMAP delimiter removed from the tail end
+void nsImapProtocol::RemoveHierarchyDelimiter(nsCString &mailboxName)
+{
+  char onlineDelimiter[2] = {0, 0};
+  if (m_imapMailFolderSink)
+    m_imapMailFolderSink->GetOnlineDelimiter(&onlineDelimiter[0]);
+  // take the hierarchy delimiter off the end, if any.
+  if (onlineDelimiter[0])
+    mailboxName.Trim(onlineDelimiter, false, true);
+}
+
 // returns true is the create succeeded (regardless of subscription changes)
 bool nsImapProtocol::CreateMailboxRespectingSubscriptions(const char *mailboxName)
 {
   CreateMailbox(mailboxName);
   bool rv = GetServerStateParser().LastCommandSuccessful();
-  if (rv)
+  if (rv && m_autoSubscribe) // auto-subscribe is on
   {
-    if (m_autoSubscribe) // auto-subscribe is on
-    {
-      // create succeeded - let's subscribe to it
-      bool reportingErrors = GetServerStateParser().GetReportingErrors();
-      GetServerStateParser().SetReportingErrors(false);
-      OnSubscribe(mailboxName);
-      GetServerStateParser().SetReportingErrors(reportingErrors);
-    }
+    // create succeeded - let's subscribe to it
+    bool reportingErrors = GetServerStateParser().GetReportingErrors();
+    GetServerStateParser().SetReportingErrors(false);
+    nsCString mailboxWODelim(mailboxName);
+    RemoveHierarchyDelimiter(mailboxWODelim);
+    OnSubscribe(mailboxWODelim.get());
+    GetServerStateParser().SetReportingErrors(reportingErrors);
   }
-  return (rv);
+  return rv;
 }
 
 void nsImapProtocol::CreateMailbox(const char *mailboxName)

@@ -1143,13 +1143,9 @@ NS_IMETHODIMP nsImapMailFolder::SetVerifiedAsOnlineFolder(bool aVerifiedAsOnline
   return NS_OK;
 }
 
-NS_IMETHODIMP nsImapMailFolder::GetOnlineDelimiter(char** onlineDelimiter)
+NS_IMETHODIMP nsImapMailFolder::GetOnlineDelimiter(char* onlineDelimiter)
 {
-  NS_ENSURE_ARG_POINTER(onlineDelimiter);
-  char delimiter[2] = {0, 0};
-  GetHierarchyDelimiter(delimiter);
-  *onlineDelimiter = NS_strdup(delimiter);
-  return NS_OK;
+  return GetHierarchyDelimiter(onlineDelimiter);
 }
 
 NS_IMETHODIMP nsImapMailFolder::SetHierarchyDelimiter(char aHierarchyDelimiter)
