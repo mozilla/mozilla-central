@@ -236,6 +236,11 @@ function getPreviewForEvent( aEvent) {
       boxAppendLabeledText(vbox, "tooltipStatus", statusString);
     }
 
+    if (event.organizer && event.getAttendees({}).length > 0) {
+      let organizer = event.organizer;
+      boxAppendLabeledText(vbox, "tooltipOrganizer", organizer);
+    }
+
     var description = event.getProperty("DESCRIPTION");
     if (description) {
       boxAppendBodySeparator(vbox);
