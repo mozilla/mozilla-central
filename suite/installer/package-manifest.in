@@ -324,9 +324,8 @@
 @BINPATH@/components/GPSDGeolocationProvider.manifest
 @BINPATH@/components/jsconsole-clhandler.js
 @BINPATH@/components/jsconsole-clhandler.manifest
-; This is not used yet, so don't package it at all
-;@BINPATH@/components/messageWakeupService.js
-;@BINPATH@/components/messageWakeupService.manifest
+@BINPATH@/components/messageWakeupService.js
+@BINPATH@/components/messageWakeupService.manifest
 @BINPATH@/components/NetworkGeolocationProvider.js
 @BINPATH@/components/NetworkGeolocationProvider.manifest
 @BINPATH@/components/nsAbout.js
