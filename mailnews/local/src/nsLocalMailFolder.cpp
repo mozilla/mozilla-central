@@ -3535,19 +3535,30 @@ nsMsgLocalMailFolder::GetUidlFromFolder(nsLocalFolderScanState *aState, nsIMsgDB
   return rv;
 }
 
-// this adds a message to the end of the folder, parsing it as it goes, and
-// applying filters, if applicable.
+/**
+ * Adds a message to the end of the folder, parsing it as it goes, and
+ * applying filters, if applicable.
+ */
 NS_IMETHODIMP
-nsMsgLocalMailFolder::AddMessage(const char *aMessage)
+nsMsgLocalMailFolder::AddMessage(const char *aMessage, nsIMsgDBHdr **aHdr)
 {
   const char *aMessages[] = {aMessage};
-  return AddMessageBatch(1, aMessages);
+  nsCOMPtr<nsIArray> hdrs;
+  nsresult rv = AddMessageBatch(1, aMessages, getter_AddRefs(hdrs));
+  NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIMsgDBHdr> hdr(do_QueryElementAt(hdrs, 0, &rv));
+  NS_ENSURE_SUCCESS(rv, rv);
+  hdr.forget(aHdr);
+  return rv;
 }
 
 NS_IMETHODIMP
 nsMsgLocalMailFolder::AddMessageBatch(PRUint32 aMessageCount,
-                                      const char **aMessages)
+                                      const char **aMessages,
+                                      nsIArray **aHdrArray)
 {
+  NS_ENSURE_ARG_POINTER(aHdrArray);
+
   nsCOMPtr<nsIMsgIncomingServer> server;
   nsresult rv = GetServer(getter_AddRefs(server));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -3573,6 +3584,9 @@ nsMsgLocalMailFolder::AddMessageBatch(PRUint32 aMessageCount,
 
   if (NS_SUCCEEDED(rv))
   {
+    nsCOMPtr<nsIMutableArray> hdrArray =
+      do_CreateInstance(NS_ARRAY_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, rv);
     for (PRUint32 i = 0; i < aMessageCount; i++)
     {
       nsRefPtr<nsParseNewMailState> newMailParser = new nsParseNewMailState;
@@ -3596,7 +3610,9 @@ nsMsgLocalMailFolder::AddMessageBatch(PRUint32 aMessageCount,
       outFileStream = nsnull;
       newMailParser->EndMsgDownload();
       newMailParser->OnStopRequest(nsnull, nsnull, NS_OK);
+      hdrArray->AppendElement(newHdr, false);
     }
+    NS_ADDREF(*aHdrArray = hdrArray);
   }
   ReleaseSemaphore(static_cast<nsIMsgLocalMailFolder*>(this));
   return rv;

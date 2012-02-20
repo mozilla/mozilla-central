@@ -101,7 +101,8 @@ function run_test() {
   // put a single message in folder1.
   let messageGenerator = new MessageGenerator();
   let message = messageGenerator.makeMessage();
-  folder1Local.addMessage(message.toMboxString());
+  let hdr = folder1Local.addMessage(message.toMboxString());
+  do_check_eq(message.messageId, hdr.messageId);
 
   folder3Local.copyFolderLocal(folder, true, null, null);
 

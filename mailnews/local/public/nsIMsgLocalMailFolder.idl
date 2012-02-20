@@ -56,14 +56,14 @@ interface nsIMsgCopyServiceListener;
 struct nsLocalFolderScanState;
 %}
 
-[scriptable, uuid(d3c496fa-9847-4f1c-94dd-0ce92b598ae3)]
+[scriptable, uuid(ebf7576c-e15f-4aba-b021-cc6e9266e90b)]
 interface nsIMsgLocalMailFolder : nsISupports {
   /**
-   * set the default flags on the subfolders of this folder, such as
-   * Drafts, Templates, etc
-   * you should bitwise OR all the flags all mailboxes you want to flag,
-   * this function will be smart and find the right names.
-   * like nsMsgFolderFlags::Inbox | nsMsgFolderFlags::Drafts | etc
+   * Set the default flags on the subfolders of this folder, such as
+   * Drafts, Templates, etc.
+   * @param flags bitwise OR matching the type of mailboxes you want to flag.
+   *              This function will be smart and find the right names.
+   *              E.g. nsMsgFolderFlags::Inbox | nsMsgFolderFlags::Drafts
    */
   void setFlagsOnDefaultMailboxes(in unsigned long flags);
 
@@ -74,7 +74,7 @@ interface nsIMsgLocalMailFolder : nsISupports {
 
   /*
    * This will kick off a url to reparse the db if it's out of date.
-   * If aReparseUrlListener isn ull, folder will use itself as the listener
+   * If aReparseUrlListener is null, folder will use itself as the listener
    */
   nsIMsgDatabase getDatabaseWithReparse(in nsIUrlListener aReparseUrlListener, in nsIMsgWindow aMsgWindow);
   void parseFolder(in nsIMsgWindow aMsgWindow, in nsIUrlListener listener);
@@ -83,21 +83,29 @@ interface nsIMsgLocalMailFolder : nsISupports {
   void onCopyCompleted(in nsISupports aSrcSupport, in boolean aMoveCopySucceeded);
   attribute boolean checkForNewMessagesAfterParsing;
   void markMsgsOnPop3Server(in nsIArray aMessages, in PRInt32 aMark);
-  void refreshSizeOnDisk(); // file size on disk has possibly changed - update and notify
+
+  /**
+   * File size on disk has possibly changed - update and notify.
+   */
+  void refreshSizeOnDisk();
 
   /**
    * Creates a subfolder to the current folder with the passed in folder name.
    * @param aFolderName name of the folder to create.
-   *
    * @return newly created folder.
    */
   nsIMsgFolder createLocalSubfolder(in AString aFolderName);
 
-  // this adds a message to the end of the folder, parsing it as it goes, and
-  // applying filters, if applicable.
-  void addMessage(in string aMessage);
   /**
-   * Add one or more messages to the end of the folder in a single batch.  Each
+   * Adds a message to the end of the folder, parsing it as it goes, and
+   * applying filters, if applicable.
+   * @param aMessage string containing the entire body of the message to add
+   * @return the nsIMsgDBHdr of the added message
+   */
+  nsIMsgDBHdr addMessage(in string aMessage);
+
+  /**
+   * Add one or more messages to the end of the folder in a single batch. Each
    * batch requires an fsync() on the mailbox file so it is a good idea to
    * try and minimize the number of calls you make to this method or addMessage.
    *
@@ -105,13 +113,14 @@ interface nsIMsgLocalMailFolder : nsISupports {
    *
    * @param aMessageCount The number of messages.
    * @param aMessages An array of pointers to strings containing entire message
-   *     bodies.
+   *                  bodies.
+   * @return an array of nsIMsgDBHdr of the added messages
    */
-  void addMessageBatch(in PRUint32 aMessageCount,
-                       [array, size_is(aMessageCount)] in string aMessages);
+  nsIArray addMessageBatch(in PRUint32 aMessageCount,
+                           [array, size_is(aMessageCount)] in string aMessages);
 
   /**
-   * functions for updating the UI while running DownloadMessagesForOffline:
+   * Functions for updating the UI while running DownloadMessagesForOffline:
    * delete the old message before adding its newly downloaded body, and
    * select the new message after it has replaced the old one
    */
@@ -120,8 +129,8 @@ interface nsIMsgLocalMailFolder : nsISupports {
   void notifyDelete();
 
   /**
-   * functions for grubbing thru a folder to find the Uidl for a
-   * given msgDBHdr
+   * Functions for grubbing through a folder to find the Uidl for a
+   * given msgDBHdr.
    */
   [noscript] void getFolderScanState(in nsLocalFolderScanState aState);
   [noscript] void getUidlFromFolder(in nsLocalFolderScanState aState, in nsIMsgDBHdr aMsgHdr);
