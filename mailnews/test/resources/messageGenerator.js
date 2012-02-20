@@ -465,6 +465,23 @@ SyntheticMessage.prototype = {
            '<' + aNameAndAddress[1] + '>';
   },
 
+  /**
+   * Given a mailbox, parse out name and email. The mailbox
+   * can (per rfc 2822) be of two forms:
+   *  1) Name <me@example.org>
+   *  2) me@example.org
+   * @return a tuple of name, email
+   **/
+  _parseMailbox: function(mailbox) {
+    let matcher = mailbox.match(/(.*)<(.+@.+)>/);
+    if (!matcher) // no match -> second form
+      return ["", mailbox];
+
+    let name = matcher[1].trim();
+    let email = matcher[2].trim();
+    return [name, email];
+  },
+
   /** @returns the name-and-address tuple used when setting the From header. */
   get from() { return this._from; },
   /**
@@ -474,8 +491,14 @@ SyntheticMessage.prototype = {
    * @param aNameAndAddress A list with two elements.  The first should be the
    *     display name (sans wrapping quotes).  The second element should be the
    *     e-mail address (sans wrapping greater-than/less-than).
+   *     Can also be a string, should then be a valid raw From: header value.
    */
   set from(aNameAndAddress) {
+    if (typeof aNameAndAddress === "string") {
+      this._from = this._parseMailbox(aNameAndAddress);
+      this.headers["From"] = aNameAndAddress;
+      return;
+    }
     this._from = aNameAndAddress;
     this.headers["From"] = this._formatMailFromNameAndAddress(aNameAndAddress);
   },
@@ -510,8 +533,19 @@ SyntheticMessage.prototype = {
    *     list with two elements.  The first should be the
    *     display name (sans wrapping quotes).  The second element should be the
    *     e-mail address (sans wrapping greater-than/less-than).
+   *     Can also be a string, should then be a valid raw To: header value.
    */
   set to(aNameAndAddresses) {
+    if (typeof aNameAndAddresses === "string") {
+      this._to = [];
+      let people = aNameAndAddresses.split(",");
+      for (let i = 0; i < people.length; i++) {
+        this._to.push(this._parseMailbox(people[i]));
+      }
+
+      this.headers["To"] = aNameAndAddresses;
+      return;
+    }
     this._to = aNameAndAddresses;
     this.headers["To"] = this._commaize(
                            [this._formatMailFromNameAndAddress(nameAndAddr)
@@ -535,8 +569,18 @@ SyntheticMessage.prototype = {
    *     list with two elements.  The first should be the
    *     display name (sans wrapping quotes).  The second element should be the
    *     e-mail address (sans wrapping greater-than/less-than).
+   *     Can also be a string, should then be a valid raw Cc: header value.
    */
   set cc(aNameAndAddresses) {
+    if (typeof aNameAndAddresses === "string") {
+      this._cc = [];
+      let people = aNameAndAddresses.split(",");
+      for (let i = 0; i < people.length; i++) {
+        this._cc.push(this._parseMailbox(people[i]));
+      }
+      this.headers["Cc"] = aNameAndAddresses;
+      return;
+    }
     this._cc = aNameAndAddresses;
     this.headers["Cc"] = this._commaize(
                            [this._formatMailFromNameAndAddress(nameAndAddr)
@@ -914,6 +958,10 @@ MessageGenerator.prototype = {
         // clobber helper...
         if (key == "From")
           msg._from = ["", ""];
+        if (key == "To")
+          msg._to = [["", ""]];
+        if (key == "Cc")
+          msg._cc = [["", ""]];
       }
     }
 

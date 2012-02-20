@@ -40,139 +40,101 @@
 var gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
                       .getService(Components.interfaces.nsIPromptService);
 
+/**
+ * Get the identity that most likely is the best one to use, given the hint.
+ * @param identities nsISupportsArray<nsIMsgIdentity> of identities
+ * @param optionalHint string containing comma separated mailboxes
+ */
 function getBestIdentity(identities, optionalHint)
 {
-  var identity = null;
+  let identityCount = identities.Count();
+  if (identityCount < 1)
+    return null;
 
-  var identitiesCount = identities.Count();
+  // If we have more than one identity and a hint to help us pick one.
+  if (identityCount > 1 && optionalHint) {
+    // Normalize case on the optional hint to improve our chances of
+    // finding a match.
+    optionalHint = optionalHint.toLowerCase();
+    let hints = optionalHint.toLowerCase().split(",");
 
-  try
-  {
-    // if we have more than one identity and a hint to help us pick one
-    if (identitiesCount > 1 && optionalHint) {
-      // normalize case on the optional hint to improve our chances of finding a match
-      optionalHint = optionalHint.toLowerCase();
-
-      var id;
-      // iterate over all of the identities
-      var tempID;
-
-      var lengthOfLongestMatchingEmail = 0;
-      for each (var tempID in fixIterator(identities,
-                                          Components.interfaces.nsIMsgIdentity)) {
-        if (optionalHint.indexOf(tempID.email.toLowerCase()) >= 0) {
-          // Be careful, the user can have several adresses with the same
-          // postfix e.g. aaa.bbb@ccc.ddd and bbb@ccc.ddd. Make sure we get the
-          // longest match.
-          if (tempID.email.length > lengthOfLongestMatchingEmail) {
-            identity = tempID;
-            lengthOfLongestMatchingEmail = tempID.email.length;
-          }
-        }
-      }
-
-      // if we could not find an exact email address match within the hint fields then maybe the message
-      // was to a mailing list. In this scenario, we won't have a match based on email address.
-      // Before we just give up, try and search for just a shared domain between the hint and
-      // the email addresses for our identities. Hey, it is better than nothing and in the case
-      // of multiple matches here, we'll end up picking the first one anyway which is what we would have done
-      // if we didn't do this second search. This helps the case for corporate users where mailing lists will have the same domain
-      // as one of your multiple identities.
-
-      if (!identity) {
-        let nsIMsgIdentity = Components.interfaces.nsIMsgIdentity;
-        for each (var tempID in fixIterator(identities, nsIMsgIdentity)) {
-          // extract out the partial domain
-          var start = tempID.email.lastIndexOf("@"); // be sure to include the @ sign in our search to reduce the risk of false positives
-          if (optionalHint.search(tempID.email.slice(start).toLowerCase()) >= 0) {
-            identity = tempID;
-            break;
-          }
-        }
+    for (let i = 0 ; i < hints.length; i++) {
+      for each (let identity in fixIterator(identities,
+                  Components.interfaces.nsIMsgIdentity)) {
+        if (!identity.email)
+          continue;
+        if (hints[i].trim() == identity.email.toLowerCase() ||
+            hints[i].indexOf("<" + identity.email.toLowerCase() + ">") != -1)
+          return identity;
       }
     }
   }
-  catch (ex) {dump (ex + "\n");}
 
-  // Still no matches ?
-  // Give up and pick the first one (if it exists), like we used to.
-  if (!identity && identitiesCount > 0)
-    identity = identities.GetElementAt(0).QueryInterface(Components.interfaces.nsIMsgIdentity);
-
-  return identity;
+  // Still no matches? Give up and pick the first one.
+  return identities.QueryElementAt(0, Components.interfaces.nsIMsgIdentity);
 }
 
 function getIdentityForServer(server, optionalHint)
 {
-    var identity = null;
-
-    if (server) {
-        // Get the identities associated with this server.
-        var identities = accountManager.GetIdentitiesForServer(server);
-        // dump("identities = " + identities + "\n");
-        // Try and find the best one.
-        identity = getBestIdentity(identities, optionalHint);
-    }
-
-    return identity;
+  var identities = accountManager.GetIdentitiesForServer(server);
+  return getBestIdentity(identities, optionalHint);
 }
 
+/**
+ * Get the identity for the given header.
+ * @param hdr nsIMsgHdr message header
+ * @param type nsIMsgCompType compose type the identity ise used for.
+ */
 function getIdentityForHeader(hdr, type)
 {
-  // If we treat reply from sent specially, do we check for that folder flag here?
-
-  var hintForIdentity = "";
-
-  // if the current mode is "reply-to-list"
-  if (type == Components.interfaces.nsIMsgCompType.ReplyToList) {
-    var key = "delivered-to";
-    var allIdentities = accountManager.allIdentities;
-
-    var tempIdentity = "";
-
+  function findDeliveredToIdentityEmail() {
     // Get the delivered-to headers.
-    var deliveredTos = new Array();
-    var index = 0;
-    while (tempIdentity = currentHeaderData[key]) {
-      deliveredTos.push(tempIdentity.headerValue.toLowerCase());
+    let key = "delivered-to";
+    let deliveredTos = new Array();
+    let index = 0;
+    let header = "";
+    while (header = currentHeaderData[key]) {
+      deliveredTos.push(header.headerValue.toLowerCase().trim());
       key = "delivered-to" + index++;
     }
 
     // Reverse the array so that the last delivered-to header will show at front.
     deliveredTos.reverse();
 
-    // Get the last "delivered-to" that is in the defined identities.
-    for (var i = 0; i < deliveredTos.length; i++) {
-      for each (var tempID in fixIterator(allIdentities,
-                Components.interfaces.nsIMsgIdentity)) {
-        // If the deliver-to header contains the defined identity
-        if (tempID.email &&
-            deliveredTos[i].indexOf(tempID.email.toLowerCase()) != -1) {
-          hintForIdentity = tempID.email;
-          break;
-        }
+    for (let i = 0; i < deliveredTos.length; i++) {
+      for each (let identity in fixIterator(accountManager.allIdentities,
+                                  Components.interfaces.nsIMsgIdentity)) {
+        if (!identity.email)
+          continue;
+        // If the deliver-to header contains the defined identity, that's it.
+        if (deliveredTos[i] == identity.email.toLowerCase() ||
+            deliveredTos[i].indexOf("<" + identity.email.toLowerCase() + ">") != -1)
+          return identity.email;
       }
-      // Identity has been found
-      if (hintForIdentity)
-        break;
     }
+    return "";
   }
+
+  let hintForIdentity = "";
+  if (type == Components.interfaces.nsIMsgCompType.ReplyToList)
+    hintForIdentity = findDeliveredToIdentityEmail();
   else if (type == Components.interfaces.nsIMsgCompType.Template)
     hintForIdentity = hdr.author;
   else
-    hintForIdentity = hdr.recipients + hdr.ccList;
+    hintForIdentity = hdr.recipients + "," + hdr.ccList + "," +
+                      findDeliveredToIdentityEmail();
 
-  var server = null;
-  var identity = null;
-  var folder = hdr.folder;
+  let server = null;
+  let identity = null;
+  let folder = hdr.folder;
   if (folder) {
     server = folder.server;
     identity = folder.customIdentity;
   }
 
-  var accountKey = hdr.accountKey;
+  let accountKey = hdr.accountKey;
   if (accountKey.length > 0) {
-    var account = accountManager.getAccount(accountKey);
+    let account = accountManager.getAccount(accountKey);
     if (account)
       server = account.incomingServer;
   }
@@ -180,10 +142,8 @@ function getIdentityForHeader(hdr, type)
   if (server && !identity)
     identity = getIdentityForServer(server, hintForIdentity);
 
-  if (!identity) {
-    var allIdentities = accountManager.allIdentities;
-    identity = getBestIdentity(allIdentities, hintForIdentity);
-  }
+  if (!identity)
+    identity = getBestIdentity(accountManager.allIdentities, hintForIdentity);
 
   return identity;
 }
