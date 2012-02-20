@@ -152,14 +152,11 @@ static void TranslateLineEnding(nsString& data)
 
   while (rPtr < ePtr)
   {
-    if (*rPtr == 0x0D)
-      if (rPtr + 1 < ePtr && *(rPtr + 1) == 0x0A)
-      {
-        *wPtr = 0x0A;
+    if (*rPtr == nsCRT::CR) {
+      *wPtr = nsCRT::LF;
+      if (rPtr + 1 < ePtr && *(rPtr + 1) == nsCRT::LF)
         rPtr ++;
-      }
-      else
-        *wPtr = 0x0A;
+    }
     else
       *wPtr = *rPtr;
 
@@ -5124,7 +5121,7 @@ nsresult nsMsgCompose::TagConvertible(nsIDOMNode *node,  PRInt32 *_retval)
                  !color.LowerCaseEqualsLiteral("#ffffff")) {
           *_retval = nsIMsgCompConvertible::Altering;
         }
-		else if (NS_SUCCEEDED(domElement->HasAttribute(NS_LITERAL_STRING("dir"), &hasAttribute))
+        else if (NS_SUCCEEDED(domElement->HasAttribute(NS_LITERAL_STRING("dir"), &hasAttribute))
             && hasAttribute)  // dir=rtl attributes should not downconvert
           *_retval = nsIMsgCompConvertible::No;
 

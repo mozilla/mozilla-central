@@ -403,7 +403,9 @@ nsresult nsEudoraWin32::ScanDescmap( nsIFile *pFolder, nsISupportsArray *pArray,
     pData++;
     pStart = pData;
     fieldLen = 0;
-    while ((pos < len) && (*pData != 0x0D) && (*pData != 0x0A) && (*pData != ','))
+    // Skip to next end of line, or ',' separator.
+    while ((pos < len) &&
+           (*pData != nsCRT::CR) && (*pData != nsCRT::LF) && (*pData != ','))
     {
       pos++;
       pData++;
@@ -413,7 +415,8 @@ nsresult nsEudoraWin32::ScanDescmap( nsIFile *pFolder, nsISupportsArray *pArray,
     if (fieldLen)
       flag.Append( pStart, fieldLen);
     flag.Trim( kWhitespace);
-    while ((pos < len) && ((*pData == 0x0D) || (*pData == 0x0A)))
+    // Skip over end of line(s).
+    while ((pos < len) && ((*pData == nsCRT::CR) || (*pData == nsCRT::LF)))
     {
       pos++;
       pData++;
@@ -1281,7 +1284,9 @@ void nsEudoraWin32::GetMimeTypeFromExtension( nsCString& ext, nsCString& mimeTyp
       pChar++;
       len++;
     }
-    if (!*pChar) return;
+    if (!*pChar)
+      return;
+
     tStr.Truncate();
     tStr.Append( pStart, len);
     tStr.Trim( kWhitespace);
@@ -1291,11 +1296,15 @@ void nsEudoraWin32::GetMimeTypeFromExtension( nsCString& ext, nsCString& mimeTyp
       pChar++;
       while (*pChar && (*pChar != ','))
         pChar++;
-      if (!*pChar) return;
+      if (!*pChar)
+        return;
+
       pChar++;
       while (*pChar && (*pChar != ','))
         pChar++;
-      if (!*pChar) return;
+      if (!*pChar)
+        return;
+
       pChar++;
       // Get the first mime type
       len = 0;
@@ -1305,28 +1314,39 @@ void nsEudoraWin32::GetMimeTypeFromExtension( nsCString& ext, nsCString& mimeTyp
         pChar++;
         len++;
       }
-      if (!*pChar) return;
+      if (!*pChar)
+        return;
+
       pChar++;
-      if (!len) continue;
+      if (!len)
+        continue;
+
       tStr.Truncate();
       tStr.Append( pStart, len);
       tStr.Trim( kWhitespace);
-      if (tStr.IsEmpty()) continue;
+      if (tStr.IsEmpty())
+        continue;
+
       mimeType.Truncate();
       mimeType.Append( tStr.get());
       mimeType.Append( "/");
       pStart = pChar;
       len = 0;
-      while (*pChar && (*pChar != 0x0D) && (*pChar != 0x0A))
+      // Skip to next end of line.
+      while (*pChar && (*pChar != nsCRT::CR) && (*pChar != nsCRT::LF))
       {
         pChar++;
         len++;
       }
-      if (!len) continue;
+      if (!len)
+        continue;
+
       tStr.Truncate();
       tStr.Append( pStart, len);
       tStr.Trim( kWhitespace);
-      if (tStr.IsEmpty()) continue;
+      if (tStr.IsEmpty())
+        continue;
+
       mimeType.Append( tStr.get());
 
       IMPORT_LOG1( "Found Mime Type: %s\n", mimeType.get());

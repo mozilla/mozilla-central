@@ -395,7 +395,7 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
       // If it does, throw it away and use our own
       if (IsFromLineKey( m_pInBuffer, cnt)) {
         // skip past the first line
-        while ((inIdx < cnt) && (m_pInBuffer[inIdx] != 0x0D))
+        while ((inIdx < cnt) && (m_pInBuffer[inIdx] != nsCRT::CR))
           inIdx++;
         while ((inIdx < cnt) && (IS_ANY_SPACE( m_pInBuffer[inIdx])))
           inIdx++;
@@ -438,13 +438,13 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
     cnt -= inIdx;
     inIdx = 0;
     while (cnt) {
-      if (*pIn == 0x0D) {
+      if (*pIn == nsCRT::CR) {
         // need more in buffer?
-        if ((cnt < 7) && numBytes) {
+        if ((cnt < 7) && numBytes)
           break;
-        }
-        else if (cnt > 6) {
-          if ((pIn[1] == 0x0A) && (IsFromLineKey( pIn + 2, cnt))) {
+
+        if (cnt > 6) {
+          if ((pIn[1] == nsCRT::LF) && IsFromLineKey(pIn + 2, cnt)) {
             inIdx += 2;
             // Match, escape it
             rv = m_dstFileOutputStream->Write( (const char *)pStart, (PRInt32)inIdx, &cntRead);
@@ -454,6 +454,7 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
               ReportWriteError( m_dstFile);
               return( false);
             }
+
             cnt -= 2;
             pIn += 2;
             inIdx = 0;
@@ -461,7 +462,8 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
             continue;
           }
         }
-      } // == 0x0D
+      } // == nsCRT::CR
+
       cnt--;
       inIdx++;
       pIn++;
@@ -471,6 +473,7 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
       ReportWriteError( m_dstFile);
       return( false);
     }
+
     if (cnt) {
       inIdx = cnt;
       memcpy( m_pInBuffer, pIn, cnt);
@@ -483,13 +486,13 @@ bool CMbxScanner::CopyMbxFileBytes(PRUint32 flags, PRUint32 numBytes)
   // it turns out that adding a proper EOL before the next
   // separator never really hurts so better to be safe
   // and always do it.
-  //  if ((last[0] != 0x0D) || (last[1] != 0x0A)) {
+  //  if ((last[0] != nsCRT::CR) || (last[1] != nsCRT::LF)) {
   rv = m_dstFileOutputStream->Write( "\x0D\x0A", 2, &cntRead);
   if (NS_FAILED( rv) || (cntRead != 2)) {
     ReportWriteError( m_dstFile);
     return( false);
   }
-  //  }
+  //  } // != nsCRT::CR || != nsCRT::LF
 
   return( true);
 }
@@ -667,4 +670,3 @@ void CIndexScanner::CleanUp( void)
   CMbxScanner::CleanUp();
   m_idxFileInputStream->Close();
 }
-

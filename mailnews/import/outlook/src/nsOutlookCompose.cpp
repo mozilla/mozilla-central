@@ -479,7 +479,7 @@ nsresult nsOutlookCompose::CopyComposedMessage(nsIFile *pSrc,
     EscapeFromSpaceLine(pDst, const_cast<char*>(line.get()), line.get()+line.Length());
   }
 
-  if (f.LastChar() != 0x0A) {
+  if (f.LastChar() != nsCRT::LF) {
     rv = pDst->Write( MSG_LINEBREAK, 2, &written);
     if (written != 2)
       rv = NS_ERROR_FAILURE;
@@ -717,8 +717,6 @@ nsresult CCompositionFile::EnsureHasDataInBuffer()
   return NS_OK;
 }
 
-const char CR = '\x0D', LF = '\x0A';
-
 class CTermGuard {
 public:
   CTermGuard(const char* term, int termSize)
@@ -731,7 +729,7 @@ public:
   inline bool IsTriggered() const {
     return m_termSize && (m_matchPos == m_termSize); }
   // indicates if the guard has something to check
-  inline bool IsChecking() const { return m_termSize; } 
+  inline bool IsChecking() const { return m_termSize; }
 
   bool Check(char c) // returns true only if the whole sequence passed
   {
@@ -760,7 +758,7 @@ nsresult CCompositionFile::ToDest(_OutFn dest, const char* term, int termSize)
 
 #ifdef MOZILLA_INTERNAL_API
   // We already know the required string size, so reduce future reallocations
-  if (!guard.IsChecking() && !m_convertCRs) 
+  if (!guard.IsChecking() && !m_convertCRs)
     dest.SetCapacity(m_fileSize - m_fileReadPos);
 #endif
 
@@ -776,10 +774,11 @@ nsresult CCompositionFile::ToDest(_OutFn dest, const char* term, int termSize)
         c = *m_fifoBufferReadPos;
         if (m_convertCRs && wasCR) {
           wasCR = false;
-          if (c != LF) {
-            dest.Append(&LF, 1);
-            if (guard.Check(LF)) {
-              c = LF; // save last char
+          if (c != nsCRT::LF) {
+            const char kTmpLF = nsCRT::LF;
+            dest.Append(&kTmpLF, 1);
+            if (guard.Check(nsCRT::LF)) {
+              c = nsCRT::LF; // save last char
               break;
             }
           }
@@ -790,7 +789,7 @@ nsresult CCompositionFile::ToDest(_OutFn dest, const char* term, int termSize)
         if (guard.Check(c))
           break;
 
-        if (m_convertCRs && (c == CR))
+        if (m_convertCRs && (c == nsCRT::CR))
           wasCR = true;
       }
       if (guard.IsTriggered())
@@ -800,8 +799,8 @@ nsresult CCompositionFile::ToDest(_OutFn dest, const char* term, int termSize)
 
   // check for trailing CR (only if caller didn't specify the terminating sequence that ends with CR -
   // in this case he knows what he does!)
-  if (m_convertCRs && !guard.IsTriggered() && (c == CR)) {
-    c = LF;
+  if (m_convertCRs && !guard.IsTriggered() && (c == nsCRT::CR)) {
+    c = nsCRT::LF;
     dest.Append(&c, 1);
   }
 

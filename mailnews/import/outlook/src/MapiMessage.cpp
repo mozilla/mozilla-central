@@ -487,7 +487,7 @@ const char* CpToCharset(unsigned int cp)
       {10079, "x-mac-icelandic"}, // Icelandic (Mac)
       {10081, "x-mac-turkish"}, // Turkish (Mac)
       {10082, "x-mac-croatian"}, // Croatian (Mac)
-      // Unicode UTF-32, little endian byte order; available only to managed applications 
+      // Unicode UTF-32, little endian byte order; available only to managed applications
       // impossible in 8-bit mail
       {12000, "utf-32"},
        // Unicode UTF-32, big endian byte order; available only to managed applications
@@ -629,7 +629,7 @@ bool CMapiMessage::CheckBodyInCharsetRange(const char* charset)
 
   // convert
   while (consumedLen < txtLen) {
-    srcLength = txtLen - consumedLen;  
+    srcLength = txtLen - consumedLen;
     dstLength = sizeof(localbuf)/sizeof(localbuf[0]);
     rv = encoder->Convert(currentSrcPtr, &srcLength, localbuf, &dstLength);
     if (rv == NS_ERROR_UENC_NOMAPPING)
@@ -1256,8 +1256,9 @@ char* dup(const char* begin, const char* end)
 }
 
 // See RFC822
-inline bool IsPrintableASCII(char c) { return (c > 32) && (c < 127); }
-inline bool IsWSP(char c) { return (c == 32) || (c == 9); }
+// 9 = '\t', 32 = ' '.
+inline bool IsPrintableASCII(char c) { return (c > ' ') && (c < 127); }
+inline bool IsWSP(char c) { return (c == ' ') || (c == '\t'); }
 
 CMapiMessageHeaders::CHeaderField::CHeaderField(const char* begin, int len)
   : m_fname(0), m_fbody(0), m_fbody_utf8(false)
@@ -1298,10 +1299,11 @@ void CMapiMessageHeaders::CHeaderField::GetUnfoldedString(nsString& dest,
   dest.Truncate();
   if (!m_fbody)
     return;
+
   nsCString unfolded;
   const char* pos = m_fbody;
   while (*pos) {
-    if ((*pos == '\x0D') && (*(pos+1) == '\x0A') && IsWSP(*(pos+2)))
+    if ((*pos == nsCRT::CR) && (*(pos+1) == nsCRT::LF) && IsWSP(*(pos+2)))
       pos += 2; // Skip CRLF if it is followed by SPACE or TAB
     else
       unfolded.Append(*(pos++));
@@ -1349,9 +1351,10 @@ void CMapiMessageHeaders::Assign(const char* headers)
   ClearHeaderFields();
   if (!headers)
     return;
+
   const char *start=headers, *end=headers;
   while (*end) {
-    if ((*end == '\x0D') && (*(end+1) == '\x0A')) { // CRLF
+    if ((*end == nsCRT::CR) && (*(end+1) == nsCRT::LF)) {
       if (!IsWSP(*(end+2))) { // Not SPACE nor TAB (avoid FSP) -> next header or EOF
         Add(new CHeaderField(start, end-start));
         start = ++end + 1;

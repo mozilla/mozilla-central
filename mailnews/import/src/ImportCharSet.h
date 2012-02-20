@@ -43,7 +43,7 @@
 
 // Some useful ASCII values
 //  'A' = 65, 0x41
-//   'Z' = 90, 0x5a
+//  'Z' = 90, 0x5a
 //  '_' = 95, 0x5f
 //  'a' = 97, 0x61
 //  'z' = 122, 0x7a

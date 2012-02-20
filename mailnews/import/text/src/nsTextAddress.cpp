@@ -237,9 +237,9 @@ nsresult nsTextAddress::ReadRecordNumber(nsIFile *aSrc, nsCString &aLine, PRInt3
 PRInt32 nsTextAddress::CountFields( const char *pLine, PRInt32 maxLen, char delim)
 {
     const char *pChar = pLine;
-    PRInt32        len = 0;
-    PRInt32        count = 0;
-    char        tab = 9;
+    PRInt32 len = 0;
+    PRInt32 count = 0;
+    char tab = '\t';
 
     if (delim == tab)
         tab = 0;
@@ -282,8 +282,8 @@ bool nsTextAddress::GetField( const char *pLine, PRInt32 maxLen, PRInt32 index, 
 {
     bool result = false;
     const char *pChar = pLine;
-    PRInt32        len = 0;
-    char        tab = 9;
+    PRInt32 len = 0;
+    char tab = '\t';
 
     field.Truncate();
 
@@ -437,7 +437,7 @@ nsresult nsTextAddress::DetermineDelim(nsIFile *aSrc)
   delete [] pLine;
 
   if (tabLines > commaLines)
-    m_delim = 9;
+    m_delim = '\t';
   else
     m_delim = ',';
 

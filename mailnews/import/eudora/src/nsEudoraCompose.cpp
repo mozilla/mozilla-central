@@ -308,7 +308,7 @@ void nsEudoraCompose::GetNthHeader( const char *pData, PRInt32 dataLen, PRInt32 
   }
   else {
     while (start < dataLen) {
-      if ((*pChar != ' ') && (*pChar != 9)) {
+      if ((*pChar != ' ') && (*pChar != '\t')) {
         if (n == index) {
           pStart = pChar;
           len = 0;
@@ -327,11 +327,15 @@ void nsEudoraCompose::GetNthHeader( const char *pData, PRInt32 dataLen, PRInt32 
           index++;
       }
 
-      while ((start < dataLen) && (*pChar != 0x0D) && (*pChar != 0x0A)) {
+      // Skip to next end of line.
+      while ((start < dataLen) &&
+             (*pChar != nsCRT::CR) && (*pChar != nsCRT::LF)) {
         start++;
         pChar++;
       }
-      while ((start < dataLen) && ((*pChar == 0x0D) || (*pChar == 0x0A))) {
+      // Skip over end of line(s).
+      while ((start < dataLen) &&
+             ((*pChar == nsCRT::CR) || (*pChar == nsCRT::LF))) {
         start++;
         pChar++;
       }
@@ -344,23 +348,29 @@ void nsEudoraCompose::GetNthHeader( const char *pData, PRInt32 dataLen, PRInt32 
   PRInt32 lineEnd;
   PRInt32 end = start;
   while (end < dataLen) {
-    while ((end < dataLen) && (*pChar != 0x0D) && (*pChar != 0x0A)) {
+    // Skip to next end of line.
+    while ((end < dataLen) && (*pChar != nsCRT::CR) && (*pChar != nsCRT::LF)) {
       end++;
       pChar++;
     }
+
     if (end > start) {
       val.Append( pData + start, end - start);
     }
 
     lineEnd = end;
     pStart = pChar;
-    while ((end < dataLen) && ((*pChar == 0x0D) || (*pChar == 0x0A))) {
+
+    // Skip over end of line(s).
+    while ((end < dataLen) &&
+           ((*pChar == nsCRT::CR) || (*pChar == nsCRT::LF))) {
       end++;
       pChar++;
     }
 
     start = end;
 
+    // Skip over space(s) and tab(s).
     while ((end < dataLen) && ((*pChar == ' ') || (*pChar == '\t'))) {
       end++;
       pChar++;
@@ -396,14 +406,19 @@ void nsEudoraCompose::GetHeaderValue( const char *pData, PRInt32 dataLen, const 
   }
   else {
     while (start < dataLen) {
-      while ((start < dataLen) && (*pChar != 0x0D) && (*pChar != 0x0A)) {
+      // Skip to next end of line.
+      while ((start < dataLen) &&
+             (*pChar != nsCRT::CR) && (*pChar != nsCRT::LF)) {
         start++;
         pChar++;
       }
-      while ((start < dataLen) && ((*pChar == 0x0D) || (*pChar == 0x0A))) {
+      // Skip over end of line(s).
+      while ((start < dataLen) &&
+             ((*pChar == nsCRT::CR) || (*pChar == nsCRT::LF))) {
         start++;
         pChar++;
       }
+
       if ((start < dataLen) && !PL_strncasecmp( pChar, pHeader, len))
         break;
     }
@@ -421,23 +436,29 @@ void nsEudoraCompose::GetHeaderValue( const char *pData, PRInt32 dataLen, const 
   pChar = pData + start;
 
   while (end < dataLen) {
-    while ((end < dataLen) && (*pChar != 0x0D) && (*pChar != 0x0A)) {
+    // Skip to next end of line.
+    while ((end < dataLen) && (*pChar != nsCRT::CR) && (*pChar != nsCRT::LF)) {
       end++;
       pChar++;
     }
+
     if (end > start) {
       val.Append( pData + start, end - start);
     }
 
     lineEnd = end;
     pStart = pChar;
-    while ((end < dataLen) && ((*pChar == 0x0D) || (*pChar == 0x0A))) {
+
+    // Skip over the end of line(s).
+    while ((end < dataLen) &&
+           ((*pChar == nsCRT::CR) || (*pChar == nsCRT::LF))) {
       end++;
       pChar++;
     }
 
     start = end;
 
+    // Skip over space(s) and tab(s).
     while ((end < dataLen) && ((*pChar == ' ') || (*pChar == '\t'))) {
       end++;
       pChar++;
@@ -727,21 +748,21 @@ bool SimpleBufferTonyRCopiedOnce::SpecialMemCpy( PRInt32 offset, const char *pDa
   *pWritten = len;
   PRInt32  sz = offset + len;
   if (offset) {
-    if ((m_pBuffer[offset - 1] == 0x0D) && (*pData != 0x0A)) {
+    if ((m_pBuffer[offset - 1] == nsCRT::CR) && (*pData != nsCRT::LF)) {
       sz++;
       if (!Grow( sz)) return( false);
-      m_pBuffer[offset] = 0x0A;
+      m_pBuffer[offset] = nsCRT::LF;
       offset++;
       (*pWritten)++;
     }
   }
   while (len > 0) {
-    if ((*pData == 0x0D) && (*(pData + 1) != 0x0A)) {
+    if ((*pData == nsCRT::CR) && (*(pData + 1) != nsCRT::LF)) {
       sz++;
       if (!Grow( sz)) return( false);
-      m_pBuffer[offset] = 0x0D;
+      m_pBuffer[offset] = nsCRT::CR;
       offset++;
-      m_pBuffer[offset] = 0x0A;
+      m_pBuffer[offset] = nsCRT::LF;
       (*pWritten)++;
     }
     else {
@@ -813,17 +834,19 @@ PRInt32 nsEudoraCompose::FindNextEndLine( SimpleBufferTonyRCopiedOnce& data)
   PRInt32 len = data.m_bytesInBuf - data.m_writeOffset;
   if (!len)
     return( -1);
-  PRInt32  count = 0;
-  const char *pData = data.m_pBuffer + data.m_writeOffset;
-  while (((*pData == 0x0D) || (*pData == 0x0A)) && (count < len)) {
-    pData++;
-    count++;
-  }
-  while ((*pData != 0x0D) && (*pData != 0x0A) && (count < len)) {
-    pData++;
-    count++;
-  }
 
+  PRInt32 count = 0;
+  const char *pData = data.m_pBuffer + data.m_writeOffset;
+  // Skip over end of line(s).
+  while ((count < len) && ((*pData == nsCRT::CR) || (*pData == nsCRT::LF))) {
+    pData++;
+    count++;
+  }
+  // Skip to next end of line.
+  while ((count < len) && (*pData != nsCRT::CR) && (*pData != nsCRT::LF)) {
+    pData++;
+    count++;
+  }
   if (count < len)
     return( count);
 
@@ -835,15 +858,20 @@ PRInt32 nsEudoraCompose::IsEndHeaders( SimpleBufferTonyRCopiedOnce& data)
   PRInt32 len = data.m_bytesInBuf - data.m_writeOffset;
   if (len < 2)
     return( -1);
+
   const char *pChar = data.m_pBuffer + data.m_writeOffset;
-  if ((*pChar == 0x0D) && (*(pChar + 1) == 0x0D))
+  // Double nsCRT::CR.
+  if ((*pChar == nsCRT::CR) && (*(pChar + 1) == nsCRT::CR))
     return( 2);
 
   if (len < 4)
     return( -1);
-  if ((*pChar == 0x0D) && (*(pChar + 1) == 0x0A) &&
-    (*(pChar + 2) == 0x0D) && (*(pChar + 3) == 0x0A))
+
+  // Double (nsCRT::CR + nsCRT::LF).
+  if ((*pChar == nsCRT::CR) && (*(pChar + 1) == nsCRT::LF) &&
+      (*(pChar + 2) == nsCRT::CR) && (*(pChar + 3) == nsCRT::LF))
     return( 4);
+
   return( -1);
 }
 
@@ -910,7 +938,7 @@ nsresult nsEudoraCompose::CopyComposedMessage( nsCString& fromLine, nsIFile *pSr
 
   state.pInputStream->Close();
 
-  if ((lastChar != 0x0A) && NS_SUCCEEDED( rv)) {
+  if ((lastChar != nsCRT::LF) && NS_SUCCEEDED(rv)) {
     rv = pDst->Write( "\x0D\x0A", 2, &written);
     if (written != 2)
       rv = NS_ERROR_FAILURE;

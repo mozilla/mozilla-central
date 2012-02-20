@@ -837,7 +837,7 @@ NS_IMETHODIMP nsAbLDIFService::IsLDIFFile(nsIFile *pSrc, bool *_retval)
         gotLDIF = false;
       }
                    
-      if (lineLen && (*pChar != ' ') && (*pChar != 9))
+      if (lineLen && (*pChar != ' ') && (*pChar != '\t'))
       {
         fLen = 0;
 

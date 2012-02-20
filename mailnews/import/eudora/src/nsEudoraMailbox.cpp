@@ -110,7 +110,6 @@ static const char *eudoraMonths[12] = {
   "Dec"
 };
 
-
 PRUint16 EudoraTOCEntry::GetMozillaStatusFlags()
 {
   // Return the mozilla equivalent of flags that Eudora supports.
@@ -171,7 +170,6 @@ PRUint16 EudoraTOCEntry::GetMozillaStatusFlags()
   return flags;
 }
 
-
 PRUint32 EudoraTOCEntry::GetMozillaStatus2Flags()
 {
 #ifdef XP_MACOSX
@@ -190,7 +188,6 @@ PRUint32 EudoraTOCEntry::GetMozillaStatus2Flags()
   return flags;
 #endif
 }
-
 
 nsEudoraMailbox::nsEudoraMailbox()
 : m_fromLen(0)
@@ -230,7 +227,6 @@ nsresult nsEudoraMailbox::DeleteFile( nsIFile *pFile)
   }
   return( rv);
 }
-
 
 #define kComposeErrorStr  "X-Eudora-Compose-Error: *****" "\x0D\x0A"
 #define kHTMLTag "<html>"
@@ -350,7 +346,6 @@ nsresult nsEudoraMailbox::ImportMailbox( PRUint32 *pBytes, bool *pAbort, const P
 #define  kMsgHeaderSize    218
 #define kMsgFirstOffset    104
 #endif
-
 
 nsresult nsEudoraMailbox::ImportMailboxUsingTOC(
   PRUint32 *pBytes,
@@ -532,7 +527,6 @@ nsresult nsEudoraMailbox::ReadTOCEntry(nsIInputStream *pToc, EudoraTOCEntry& toc
   return NS_OK;
 }
 
-
 nsresult nsEudoraMailbox::ImportMessage(
   SimpleBufferTonyRCopiedOnce &headers,
   SimpleBufferTonyRCopiedOnce &body,
@@ -601,9 +595,6 @@ nsresult nsEudoraMailbox::ImportMessage(
 
   return rv;
 }
-
-
-
 
 nsresult nsEudoraMailbox::ReadNextMessage( ReadFileState *pState, SimpleBufferTonyRCopiedOnce& copy,
                                           SimpleBufferTonyRCopiedOnce& header, SimpleBufferTonyRCopiedOnce& body,
@@ -723,7 +714,6 @@ nsresult nsEudoraMailbox::ReadNextMessage( ReadFileState *pState, SimpleBufferTo
     return( NS_ERROR_FAILURE);
   }
 
-
   copy.m_writeOffset += endLen;
   if (NS_FAILED( rv = FillMailBuffer( pState, copy))) {
     IMPORT_LOG0( "*** Error reading beginning of message body\n");
@@ -776,7 +766,6 @@ nsresult nsEudoraMailbox::ReadNextMessage( ReadFileState *pState, SimpleBufferTo
     }
     }
 
-
     while (((lineLen = FindStartLine( copy)) == -1) && copy.m_bytesInBuf) {
       copy.m_writeOffset = copy.m_bytesInBuf;
       if (!body.Write( copy.m_pBuffer, copy.m_writeOffset)) {
@@ -825,27 +814,27 @@ nsresult nsEudoraMailbox::ReadNextMessage( ReadFileState *pState, SimpleBufferTo
   return( NS_OK);
 }
 
-
-
 PRInt32  nsEudoraMailbox::FindStartLine( SimpleBufferTonyRCopiedOnce& data)
 {
   PRInt32 len = data.m_bytesInBuf - data.m_writeOffset;
   if (!len)
     return( -1);
-  PRInt32  count = 0;
+
+  PRInt32 count = 0;
   const char *pData = data.m_pBuffer + data.m_writeOffset;
-  while ((count < len) && (*pData != 0x0D) && (*pData != 0x0A)) {
+  // Skip to next end of line.
+  while ((count < len) && (*pData != nsCRT::CR) && (*pData != nsCRT::LF)) {
     pData++;
     count++;
   }
   if (count == len)
     return( -1);
 
-  while ((count < len) && ((*pData == 0x0D) || (*pData == 0x0A))) {
+  // Skip over end of line(s).
+  while ((count < len) && ((*pData == nsCRT::CR) || (*pData == nsCRT::LF))) {
     pData++;
     count++;
   }
-
   if (count < len)
     return( count);
 
@@ -857,44 +846,46 @@ PRInt32 nsEudoraMailbox::FindNextEndLine( SimpleBufferTonyRCopiedOnce& data)
   PRInt32 len = data.m_bytesInBuf - data.m_writeOffset;
   if (!len)
     return( -1);
-  PRInt32  count = 0;
-  const char *pData = data.m_pBuffer + data.m_writeOffset;
-  while ((count < len) && ((*pData == 0x0D) || (*pData == 0x0A))) {
-    pData++;
-    count++;
-  }
-  while ((count < len) && (*pData != 0x0D) && (*pData != 0x0A)) {
-    pData++;
-    count++;
-  }
 
+  PRInt32 count = 0;
+  const char *pData = data.m_pBuffer + data.m_writeOffset;
+  // Skip over end of line(s).
+  while ((count < len) && ((*pData == nsCRT::CR) || (*pData == nsCRT::LF))) {
+    pData++;
+    count++;
+  }
+  // Skip to next end of line.
+  while ((count < len) && (*pData != nsCRT::CR) && (*pData != nsCRT::LF)) {
+    pData++;
+    count++;
+  }
   if (count < len)
     return( count);
 
   return( -1);
 }
 
-
 PRInt32 nsEudoraMailbox::IsEndHeaders( SimpleBufferTonyRCopiedOnce& data)
 {
   PRInt32 len = data.m_bytesInBuf - data.m_writeOffset;
   if (len < 2)
     return( -1);
+
   const char *pChar = data.m_pBuffer + data.m_writeOffset;
-  if ((*pChar == 0x0D) && (*(pChar + 1) == 0x0D))
+  // Double nsCRT::CR.
+  if ((*pChar == nsCRT::CR) && (*(pChar + 1) == nsCRT::CR))
     return( 2);
 
   if (len < 4)
     return( -1);
-  if ((*pChar == 0x0D) && (*(pChar + 1) == 0x0A) &&
-    (*(pChar + 2) == 0x0D) && (*(pChar + 3) == 0x0A))
+
+  // Double (nsCRT::CR + nsCRT::LF).
+  if ((*pChar == nsCRT::CR) && (*(pChar + 1) == nsCRT::LF) &&
+      (*(pChar + 2) == nsCRT::CR) && (*(pChar + 3) == nsCRT::LF))
     return( 4);
 
   return( -1);
 }
-
-
-
 
 static const char *eudoraTag[] = {
   "<x-html>",
@@ -915,7 +906,6 @@ static PRInt32 eudoraTagLen[] = {
   0
 };
 
-
 static const char *TagContentType[] = {
   "text/html",
   "text/html",
@@ -924,7 +914,6 @@ static const char *TagContentType[] = {
   "text/plain",
   "text/plain",
 };
-
 
   // Determine if this line contains an eudora special tag
 bool    nsEudoraMailbox::IsEudoraTag( const char *pChar, PRInt32 maxLen, bool &insideEudoraTags, nsCString &bodyType, PRInt32 &tagLength)
@@ -972,11 +961,11 @@ PRInt32  nsEudoraMailbox::IsEudoraFromSeparator( const char *pChar, PRInt32 maxL
   // Determine the length of the line
   PRInt32      lineLen = len;
   const char *  pTok = pChar;
-  while ((lineLen < maxLen) && (*pTok != 0x0D) && (*pTok != 0x0A)) {
+  // Skip to next end of line.
+  while ((lineLen < maxLen) && (*pTok != nsCRT::CR) && (*pTok != nsCRT::LF)) {
     lineLen++;
     pTok++;
   }
-
   if (len >= lineLen)
     return( -1);
 
@@ -1131,28 +1120,31 @@ PRInt32  nsEudoraMailbox::IsEudoraFromSeparator( const char *pChar, PRInt32 maxL
     if (len == maxLen)
       return( -1);
 
-    if (*pChar == 0x0D) {
+    if (*pChar == nsCRT::CR) {
       len++;
       pChar++;
-      if (*pChar == 0x0A) {
+      if (*pChar == nsCRT::LF) {
         len++;
         pChar++;
       }
     }
-    else if (*pChar == 0x0A) {
+    else if (*pChar == nsCRT::LF) {
       len++;
       pChar++;
     }
     else
       return( -1);
+
     if (len >= maxLen)
       return( -1);
 
     while (len < maxLen) {
-      if ((*pChar == 0x0D) || (*pChar == 0x0A))
+      if ((*pChar == nsCRT::CR) || (*pChar == nsCRT::LF))
         return( -1);
+
       if ((*pChar != ' ') && (*pChar != '\t'))
         break;
+
       pChar++;
       len++;
     }
@@ -1183,7 +1175,6 @@ PRInt32 nsEudoraMailbox::AsciiToLong( const char *pChar, PRInt32 len)
   }
   return( num);
 }
-
 
 int nsEudoraMailbox::IsWeekDayStr( const char *pStr)
 {
@@ -1281,7 +1272,9 @@ nsresult nsEudoraMailbox::ExamineAttachment( SimpleBufferTonyRCopiedOnce& data)
         }
         else {
           pStart = pData;
-          while ((*pData != 0x0D) && (*pData != 0x0A) && (cnt < len)) {
+          // Skip to next end of line.
+          while ((cnt < len) &&
+                 (*pData != nsCRT::CR) && (*pData != nsCRT::LF)) {
             pData++;
             cnt++;
             nameLen++;
