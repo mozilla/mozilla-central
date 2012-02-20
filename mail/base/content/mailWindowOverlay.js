@@ -2657,7 +2657,7 @@ var gMessageNotificationBar =
                     1, // 1 << (kMsgNotificationPhishingBar - 1)
                     2, // 1 << (kMsgNotificationJunkBar - 1)
                     4, // 1 << (kMsgNotificationRemoteImages - 1)
-                    8  // 1 << (kMsgNotificationMSN - 1)
+                    8  // 1 << (kMsgNotificationMDN - 1)
                   ],
 
   get mMsgNotificationBar() {
@@ -2701,8 +2701,9 @@ var gMessageNotificationBar =
   setMDNMsg: function(aMdnGenerator, aMsgHeader, aMimeHdr)
   {
     this.mdnGenerator = aMdnGenerator;
-    this.msgHeader = aMsgHeader;
-    let mdnHdr = aMimeHdr.extractHeader("Disposition-Notification-To", false);
+    // Return receipts can be RFC 3798 or not.
+    let mdnHdr = aMimeHdr.extractHeader("Disposition-Notification-To", false) ||
+                 aMimeHdr.extractHeader("Return-Receipt-To", false); // not
     let fromHdr = aMimeHdr.extractHeader("From", false);
 
     let headerParser = Components.classes["@mozilla.org/messenger/headerparser;1"]
@@ -3036,11 +3037,7 @@ function HandleMDNResponse(aUrl)
 
   // After a msg is downloaded it's already marked READ at this point so we must check if
   // the msg has a "Disposition-Notification-To" header and no MDN report has been sent yet.
-  var msgFlags = msgHdr.flags;
-  if (!msgFlags)
-    return;
-  if ((msgFlags & Components.interfaces.nsMsgMessageFlags.IMAPDeleted) ||
-      (msgFlags & Components.interfaces.nsMsgMessageFlags.MDNReportSent))
+  if (msgHdr.flags & Components.interfaces.nsMsgMessageFlags.MDNReportSent)
     return;
 
   var DNTHeader = mimeHdr.extractHeader("Disposition-Notification-To", false);

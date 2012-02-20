@@ -727,5 +727,5 @@ toolbar[iconsize="small"] #button-archive[disabled] {
 }
 
 #mdnBarImage {
-  list-style-image: url("chrome://messenger/skin/icons/warning.png");
+  list-style-image: url("chrome://global/skin/icons/question-24.png");
 }
