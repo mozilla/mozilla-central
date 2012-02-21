@@ -239,9 +239,9 @@
          * particular nsIMsgFolder
          *
          * @param aItem  the nsIMsgFolder to check
-         * @param aMenu (optional) menu to look in, defaults to this._menu.
+         * @param aMenu  (optional) menu to look in, defaults to this._menu.
          * @returns      null if no child for that folder exists, otherwise the
-         *              menuitem for that child
+         *               menuitem for that child
          */
         _getChildForItem: function act__itemIsChild(aItem, aMenu) {
           aMenu = aMenu || this._menu;
@@ -250,10 +250,10 @@
 
            if (!(aItem instanceof Components.interfaces.nsIMsgFolder))
              return null;
-           for (var i = 0; i < aMenu.childNodes.length; i++) {
-             var folder = aMenu.childNodes[i]._folder;
+           for (let i = 0; i < aMenu.childNodes.length; i++) {
+             let folder = aMenu.childNodes[i]._folder;
              if (folder && folder.URI == aItem.URI)
-               return aItem;
+               return aMenu.childNodes[i];
            }
            return null;
         }
