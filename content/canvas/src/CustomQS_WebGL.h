@@ -343,7 +343,7 @@ nsIDOMWebGLRenderingContext_TexImage2D(JSContext *cx, uintN argc, jsval *vp)
             JS_GetProperty(cx, argv5, "data", &js_data);
             if (js_width  == JSVAL_VOID ||
                 js_height == JSVAL_VOID ||
-                js_data   == JSVAL_VOID)
+                !js_data.isObject())
             {
                 xpc_qsThrowBadArg(cx, NS_ERROR_FAILURE, vp, 5);
                 return JS_FALSE;
@@ -464,7 +464,7 @@ nsIDOMWebGLRenderingContext_TexSubImage2D(JSContext *cx, uintN argc, jsval *vp)
             JS_GetProperty(cx, argv6, "data", &js_data);
             if (js_width  == JSVAL_VOID ||
                 js_height == JSVAL_VOID ||
-                js_data   == JSVAL_VOID)
+                !js_data.isObject())
             {
                 xpc_qsThrowBadArg(cx, NS_ERROR_FAILURE, vp, 6);
                 return JS_FALSE;
