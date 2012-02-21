@@ -547,7 +547,7 @@
       </field>
       <field name="_prefBranch">
         Components.classes["@mozilla.org/preferences-service;1"]
-                  .getService(Components.interfaces.nsIPrefBranch2)
+                  .getService(Components.interfaces.nsIPrefBranch)
       </field>
       <field name="_inputBox">document.getAnonymousElementByAttribute(this,
           "anonid", "textbox-input-box");</field>

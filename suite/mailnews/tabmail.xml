@@ -264,7 +264,7 @@
 
       <field name="mPrefs">
         Components.classes["@mozilla.org/preferences-service;1"]
-                  .getService(Components.interfaces.nsIPrefBranch2);
+                  .getService(Components.interfaces.nsIPrefBranch);
       </field>
 
       <field name="currentTabInfo">
@@ -1109,7 +1109,7 @@
 
       <field name="mPrefs">
         Components.classes["@mozilla.org/preferences-service;1"]
-                  .getService(Components.interfaces.nsIPrefBranch2);
+                  .getService(Components.interfaces.nsIPrefBranch);
       </field>
 
       <field name="mTabstripWidth">0</field>

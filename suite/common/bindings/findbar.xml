@@ -24,7 +24,7 @@
       <constructor><![CDATA[
         var prefsvc =
           Components.classes["@mozilla.org/preferences-service;1"]
-                    .getService(Components.interfaces.nsIPrefBranch2);
+                    .getService(Components.interfaces.nsIPrefBranch);
 
         prefsvc.removeObserver("accessibility.typeaheadfind",
                                this._observer);
@@ -56,7 +56,7 @@
             return;
 
           var prefsvc =
-            aSubject.QueryInterface(Components.interfaces.nsIPrefBranch2);
+            aSubject.QueryInterface(Components.interfaces.nsIPrefBranch);
 
           switch (aPrefName) {
             case "accessibility.typeaheadfind.autostart":
@@ -91,7 +91,7 @@
 
           var prefsvc =
             Components.classes["@mozilla.org/preferences-service;1"]
-                      .getService(Components.interfaces.nsIPrefBranch2);
+                      .getService(Components.interfaces.nsIPrefBranch);
           prefsvc.removeObserver("accessibility.typeaheadfind.linksonly",
                                  this._observer);
           prefsvc.removeObserver("accessibility.typeaheadfind.casesensitive",

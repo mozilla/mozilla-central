@@ -229,7 +229,7 @@ var Sanitizer = {
       clear: function() {
         // Clear last URL of the Open Web Location dialog
         var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefBranch2);
+                              .getService(Components.interfaces.nsIPrefBranch);
         try {
           prefs.clearUserPref("general.open_location.last_url");
         } catch(ex) {}
@@ -245,7 +245,7 @@ var Sanitizer = {
 
       get canClear() {
         var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                              .getService(Components.interfaces.nsIPrefBranch2);
+                              .getService(Components.interfaces.nsIPrefBranch);
         if (!prefs.prefIsLocked("general.open_location.last_url") &&
             prefs.prefHasUserValue("general.open_location.last_url"))
           return true;

@@ -43,9 +43,7 @@
 
     <implementation>
       <constructor><![CDATA[
-        var pbi = this.mPrefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
-        if (pbi)
-          pbi.addObserver("browser.urlbar", this.mPrefObserver, false);
+        this.mPrefs.addObserver("browser.urlbar", this.mPrefObserver, false);
 
         this.updatePref("browser.urlbar.showPopup");
         this.updatePref("browser.urlbar.autoFill");
@@ -55,9 +53,7 @@
 
       <destructor><![CDATA[
         this.inputField.controllers.removeController(this._editItemsController);
-        var pbi = this.mPrefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
-        if (pbi)
-          pbi.removeObserver("browser.urlbar", this.mPrefObserver);
+        this.mPrefs.removeObserver("browser.urlbar", this.mPrefObserver);
       ]]></destructor>
 
       <field name="mPrefs">
@@ -229,19 +225,13 @@
     <implementation>
       <constructor><![CDATA[
         // listen for changes to default search engine
-        var pbi = this.mPrefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
-        if (pbi) {
-          pbi.addObserver("browser.search", this.mPrefObserver, false);
-          pbi.addObserver("browser.urlbar", this.mPrefObserver, false);
-        }
+        this.mPrefs.addObserver("browser.search", this.mPrefObserver, false);
+        this.mPrefs.addObserver("browser.urlbar", this.mPrefObserver, false);
       ]]></constructor>
 
       <destructor><![CDATA[
-        var pbi = this.mPrefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
-        if (pbi) {
-          pbi.removeObserver("browser.search", this.mPrefObserver);
-          pbi.removeObserver("browser.urlbar", this.mPrefObserver);
-        }
+        this.mPrefs.removeObserver("browser.search", this.mPrefObserver);
+        this.mPrefs.removeObserver("browser.urlbar", this.mPrefObserver);
       ]]></destructor>
 
       <property name="showSearch" onget="return this.mShowSearch;">

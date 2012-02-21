@@ -236,7 +236,6 @@
       <field name="prefs" readonly="true">
         Components.classes["@mozilla.org/preferences-service;1"]
                   .getService(Components.interfaces.nsIPrefService).getBranch(null)
-                  .QueryInterface(Components.interfaces.nsIPrefBranch2)
       </field>
 
       <method name="observe">

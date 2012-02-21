@@ -136,7 +136,7 @@
       </field>
       <field name="mPrefs" readonly="true">
         Components.classes['@mozilla.org/preferences-service;1']
-                  .getService(Components.interfaces.nsIPrefBranch2);
+                  .getService(Components.interfaces.nsIPrefBranch);
       </field>
       <field name="mURIFixup" readonly="true">
         Components.classes["@mozilla.org/docshell/urifixup;1"]
@@ -2952,7 +2952,7 @@
 
       <field name="mPrefs" readonly="true">
         Components.classes["@mozilla.org/preferences-service;1"]
-                  .getService(Components.interfaces.nsIPrefBranch2);
+                  .getService(Components.interfaces.nsIPrefBranch);
       </field>
 
       <field name="mTabstripWidth">0</field>

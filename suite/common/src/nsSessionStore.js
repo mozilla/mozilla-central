@@ -147,7 +147,7 @@ function debug(aMsg) {
 
 function SessionStoreService() {
   XPCOMUtils.defineLazyGetter(this, "_prefBranch", function () {
-    return Services.prefs.getBranch("browser.").QueryInterface(Components.interfaces.nsIPrefBranch2);
+    return Services.prefs.getBranch("browser.");
   });
 
   // minimal interval between two save operations (in milliseconds)

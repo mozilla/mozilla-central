@@ -65,7 +65,7 @@ const nsIPropertyBag = Components.interfaces.nsIPropertyBag;
 var handlerSvc = Components.classes["@mozilla.org/uriloader/handler-service;1"]
                            .getService(Components.interfaces.nsIHandlerService);
 var prefSvc = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch2);
+                        .getService(Components.interfaces.nsIPrefBranch);
 var categoryMgr = Components.classes["@mozilla.org/categorymanager;1"]
                             .getService(Components.interfaces.nsICategoryManager);
 var mimeSvc = Components.classes["@mozilla.org/mime;1"]

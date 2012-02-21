@@ -1153,7 +1153,7 @@ FeedWriter.prototype = {
     // Set up the subscription UI
     this._initSubscriptionUI();
     var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch2);
+                          .getService(Components.interfaces.nsIPrefBranch);
     prefs.addObserver(PREF_SELECTED_ACTION, this, false);
     prefs.addObserver(PREF_SELECTED_READER, this, false);
     prefs.addObserver(PREF_SELECTED_WEB, this, false);
@@ -1196,7 +1196,7 @@ FeedWriter.prototype = {
     this._document = null;
     this._window = null;
     var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch2);
+                          .getService(Components.interfaces.nsIPrefBranch);
     prefs.removeObserver(PREF_SELECTED_ACTION, this);
     prefs.removeObserver(PREF_SELECTED_READER, this);
     prefs.removeObserver(PREF_SELECTED_WEB, this);

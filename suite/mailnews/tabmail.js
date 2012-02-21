@@ -49,7 +49,7 @@ function GetPrefService()
 {
   if (!pref)
     pref = Components.classes["@mozilla.org/preferences-service;1"]
-                     .getService(Components.interfaces.nsIPrefBranch2);
+                     .getService(Components.interfaces.nsIPrefBranch);
   return pref;
 }
 
