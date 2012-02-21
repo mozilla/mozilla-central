@@ -2573,7 +2573,7 @@
         <parameter name="aTopic"/>
         <parameter name="aPreference"/>
         <body><![CDATA[
-            aSubject.QueryInterface(Components.interfaces.nsIPrefBranch2);
+            aSubject.QueryInterface(Components.interfaces.nsIPrefBranch);
             switch (aPreference) {
 
                 case "calendar.view.daystarthour":

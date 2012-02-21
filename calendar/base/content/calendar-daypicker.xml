@@ -155,14 +155,14 @@
       </property>
 
       <constructor><![CDATA[
-        var pb2 = Components.classes[
+        var pb = Components.classes[
             "@mozilla.org/preferences-service;1"]
                 .getService(
-                    Components.interfaces.nsIPrefBranch2);
+                    Components.interfaces.nsIPrefBranch);
         this.weekStartOffset = 0;
         try {
             this.weekStartOffset =
-                pb2.getIntPref("calendar.week.start");
+                pb.getIntPref("calendar.week.start");
         } catch (ex) {
         }
         var sbs = Components.classes[

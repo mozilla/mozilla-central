@@ -615,7 +615,7 @@ function setLocalizedPref(aPrefName, aString) {
  */
 function getLocalizedPref(aPrefName, aDefault) {
     const pb2 = Components.classes["@mozilla.org/preferences-service;1"].
-                getService(Components.interfaces.nsIPrefBranch2);
+                getService(Components.interfaces.nsIPrefBranch);
     var result;
     try {
         result = pb2.getComplexValue(aPrefName, Components.interfaces.nsISupportsString).data;

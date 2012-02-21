@@ -159,8 +159,7 @@
         // set up the preference observer
         let prefService = Components.classes["@mozilla.org/preferences-service;1"]
                                     .getService(Components.interfaces.nsIPrefService);
-        let branch = prefService.getBranch("")
-                                .QueryInterface(Components.interfaces.nsIPrefBranch2);
+        let branch = prefService.getBranch("");
         branch.addObserver("calendar.", this, false);
 
 
@@ -208,8 +207,7 @@
           // remove the preference observer
           let prefService = Components.classes["@mozilla.org/preferences-service;1"]
                                       .getService(Components.interfaces.nsIPrefService);
-          let branch = prefService.getBranch("")
-                                  .QueryInterface(Components.interfaces.nsIPrefBranch2);
+          let branch = prefService.getBranch("");
           branch.removeObserver("calendar.", this, false);
 
           let widths = "";

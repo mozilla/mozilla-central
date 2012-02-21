@@ -474,8 +474,7 @@
           // Add pref observer for calendar.week.start
           let prefService = Components.classes["@mozilla.org/preferences-service;1"]
                                       .getService(Components.interfaces.nsIPrefService);
-          let branch = prefService.getBranch("")
-                                  .QueryInterface(Components.interfaces.nsIPrefBranch2);
+          let branch = prefService.getBranch("");
           branch.addObserver("calendar.week.start", this, false);
       ]]></constructor>
       <destructor><![CDATA[
@@ -487,8 +486,7 @@
           // Remove pref observer for calendar.week.start
           let prefService = Components.classes["@mozilla.org/preferences-service;1"]
                                       .getService(Components.interfaces.nsIPrefService);
-          let branch = prefService.getBranch("")
-                                  .QueryInterface(Components.interfaces.nsIPrefBranch2);
+          let branch = prefService.getBranch("");
           branch.removeObserver("calendar.week.start", this, false);
       ]]></destructor>
 

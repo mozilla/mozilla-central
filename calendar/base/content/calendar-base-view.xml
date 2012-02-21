@@ -306,7 +306,7 @@
         this.viewBroadcaster.addEventListener(this.getAttribute("type") + "viewresized", this.mResizeHandler, true);
         // add a preference observer to monitor changes
         let pb2 = Components.classes["@mozilla.org/preferences-service;1"].
-                  getService(Components.interfaces.nsIPrefBranch2);
+                  getService(Components.interfaces.nsIPrefBranch);
 
         pb2.addObserver("calendar.", this.mPrefObserver, false);
         this.weekStartOffset = getPrefSafe("calendar.week.start", 0);
@@ -322,7 +322,7 @@
         alarmService.removeObserver(this.mObserver);
         this.viewBroadcaster.removeEventListener(this.getAttribute("type") + "viewresized", this.mResizeHandler, true);
         let pb2 = Components.classes["@mozilla.org/preferences-service;1"].
-                  getService(Components.interfaces.nsIPrefBranch2);
+                  getService(Components.interfaces.nsIPrefBranch);
         pb2.removeObserver("calendar.", this.mPrefObserver);
       ]]></destructor>
 

@@ -98,7 +98,7 @@ function initLogging() {
             }
         };
         var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                                   .getService(Components.interfaces.nsIPrefBranch2);
+                                   .getService(Components.interfaces.nsIPrefBranch);
         prefBranch.addObserver("calendar.wcap.log_level", initLogging.mLogPrefObserver, false);
         prefBranch.addObserver("calendar.wcap.log_file", initLogging.mLogPrefObserver, false);
         prefBranch.addObserver("calendar.debug.log", initLogging.mLogPrefObserver, false);

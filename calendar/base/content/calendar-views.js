@@ -534,8 +534,7 @@ var categoryManagement = {
     initCategories: function cM_initCategories() {
       let prefService = Components.classes["@mozilla.org/preferences-service;1"]
                                   .getService(Components.interfaces.nsIPrefService);
-      categoryPrefBranch = prefService.getBranch("calendar.category.color.")
-                                      .QueryInterface(Components.interfaces.nsIPrefBranch2);
+      categoryPrefBranch = prefService.getBranch("calendar.category.color.");
       let categories = categoryPrefBranch.getChildList("");
 
       // Fix illegally formatted category prefs.
@@ -563,8 +562,7 @@ var categoryManagement = {
     cleanupCategories: function cM_cleanupCategories() {
       let prefService = Components.classes["@mozilla.org/preferences-service;1"]
                                   .getService(Components.interfaces.nsIPrefService);
-      categoryPrefBranch = prefService.getBranch("calendar.category.color.")
-                                      .QueryInterface(Components.interfaces.nsIPrefBranch2);
+      categoryPrefBranch = prefService.getBranch("calendar.category.color.");
       categoryPrefBranch.removeObserver("", categoryManagement);
     },
 

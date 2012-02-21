@@ -137,7 +137,7 @@ function onLoad() {
         }
     }
     var pb2 = Components.classes["@mozilla.org/preferences-service;1"].
-              getService(Components.interfaces.nsIPrefBranch2);
+              getService(Components.interfaces.nsIPrefBranch);
     pb2.addObserver("calendar.", prefObserver, false);
     window.addEventListener("unload",
         function() {

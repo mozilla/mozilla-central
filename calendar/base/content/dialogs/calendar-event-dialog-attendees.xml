@@ -140,7 +140,6 @@
             this.mPrefs = Components.classes["@mozilla.org/preferences-service;1"]
                                     .getService(Components.interfaces.nsIPrefService)
                                     .getBranch(null);
-            this.mPrefs = this.mPrefs.QueryInterface(Components.interfaces.nsIPrefBranch2);
         } catch (ex) {
         }
 

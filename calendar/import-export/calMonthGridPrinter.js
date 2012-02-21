@@ -327,7 +327,7 @@ calMonthPrinter.prototype = {
                 let time = (!sDate.isDate ? cal.getDateFormatter().formatTime(sDate) : "");
                 let calColor = item.calendar.getProperty('color') || "#A8C2E1";
                 let pb2 = Components.classes["@mozilla.org/preferences-service;1"]
-                                    .getService(Components.interfaces.nsIPrefBranch2);
+                                    .getService(Components.interfaces.nsIPrefBranch);
                 let catColor;
                 for each (let cat in item.getCategories({})) {
                     try {

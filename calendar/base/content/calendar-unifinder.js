@@ -235,8 +235,7 @@ function prepareCalendarUnifinder() {
     // Add pref observer
     let prefService = Components.classes["@mozilla.org/preferences-service;1"]
                                 .getService(Components.interfaces.nsIPrefService);
-    let branch = prefService.getBranch("")
-                            .QueryInterface(Components.interfaces.nsIPrefBranch2);
+    let branch = prefService.getBranch("");
     branch.addObserver("calendar.", unifinderObserver, false);
 
     // Check if this is not the hidden window, which has no UI elements
@@ -295,8 +294,7 @@ function finishCalendarUnifinder() {
     // Remove pref observer
     let prefService = Components.classes["@mozilla.org/preferences-service;1"]
                                 .getService(Components.interfaces.nsIPrefService);
-    let branch = prefService.getBranch("")
-                            .QueryInterface(Components.interfaces.nsIPrefBranch2);
+    let branch = prefService.getBranch("");
     branch.removeObserver("calendar.", unifinderObserver, false);
 
     let viewDeck = getViewDeck();
