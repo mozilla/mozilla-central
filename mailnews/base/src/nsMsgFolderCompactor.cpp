@@ -1118,13 +1118,14 @@ nsFolderCompactState::EndCopy(nsISupports *url, nsresult aStatus)
   /**
    * Done with the current message; copying the existing message header
    * to the new database.
-   * XXX This will need to be changed when we support local mail folders
-   * > 4GB. We'll need to set the messageOffset attribute on the new header,
-   * and assign the nsMsgKey some other way.
    */
   if (m_curSrcHdr)
-    m_db->CopyHdrFromExistingHdr((nsMsgKey) m_startOfNewMsg, m_curSrcHdr, true,
-                               getter_AddRefs(newMsgHdr));
+  {
+    // if mbox is close to 4GB, auto-assign the msg key.
+    nsMsgKey key = m_startOfNewMsg > 0xFFFFFF00 ? nsMsgKey_None : (nsMsgKey) m_startOfNewMsg;
+    m_db->CopyHdrFromExistingHdr(key, m_curSrcHdr, true,
+                                 getter_AddRefs(newMsgHdr));
+  }
   m_curSrcHdr = nsnull;
   if (newMsgHdr)
   {
