@@ -89,7 +89,7 @@
   padding: 1px 0;
 }
 
-@media all and (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme) {
   .mail-toolbox:not(:-moz-lwtheme),
   #navigation-toolbox:not(:-moz-lwtheme) {
     background-color: rgb(207, 219, 236);
@@ -282,7 +282,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 #tabbar-toolbar .toolbarbutton-1,
 #tabbar-toolbar .toolbarbutton-menubutton-button,
 #tabbar-toolbar .toolbarbutton-menubutton-dropmarker {
-  margin: 3px 0 0;
+  margin: 0 0 -1px;
   border: none;
   border-radius: 0;
   background: none;
@@ -321,7 +321,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   background-position: 1px -1px, 100% -1px;
 }
 
-@media all and (-moz-windows-compositor) {
+@media (-moz-windows-compositor) {
   #messengerWindow {
     -moz-appearance: -moz-win-borderless-glass;
     background: transparent;
@@ -372,16 +372,6 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
 
   #tabbar-toolbar .toolbarbutton-1:not([disabled="true"]) .dropmarker-icon {
     list-style-image: url("chrome://messenger/skin/icons/arrow-dn-inverted.png");
-  }
-}
-
-@media not all and (-moz-windows-compositor) {
-  #print-preview-toolbar:not(:-moz-lwtheme) {
-    -moz-appearance: -moz-win-browsertabbar-toolbox;
-  }
-
-  .tabmail-tabs:not(:-moz-lwtheme) {
-  background-color: transparent !important;
   }
 }
 

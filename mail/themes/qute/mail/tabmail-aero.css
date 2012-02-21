@@ -43,13 +43,9 @@
 * Tabmail Tabs
 */
 
-@media all and (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme) {
   .tabmail-tabs {
     padding: 0 3px;
-  }
-
-  .tabmail-tabs:not(:-moz-lwtheme) {
-    background-color: rgb(227, 237, 246);
   }
 }
 
@@ -73,11 +69,10 @@
   background-size: -moz-calc(100% - 2px) -moz-calc(100% - 2px);
   background-repeat: no-repeat;
   margin: 0;
-  padding: 2px 0 3px;
+  padding: 2px 0 4px;
   border-width: 4px 3px 0;
   border-style: solid;
   -moz-border-image: url(icons/tab.png) 4 3 0 fill repeat stretch;
-  height: 26px;
   border-radius: 0;
 }
 
@@ -138,7 +133,7 @@
                     hsla(0, 0%, 60%, .5) 80%);
 }
 
-@media all and (-moz-windows-default-theme) {
+@media (-moz-windows-default-theme) {
   .tabmail-tab:not(:-moz-lwtheme):not([selected="true"]) {
     background-image: -moz-linear-gradient(bottom, transparent 1px, transparent),
                       -moz-linear-gradient(transparent, hsla(0, 0%, 45%, .1) 1px,
@@ -173,12 +168,6 @@
 
 .tabmail-tab[selected="true"] > .tab-image-middle > .tab-text {
   opacity: 1.0 !important;
-}
-
-@media all and (-moz-windows-compositor) {
-  .tabmail-tabs:not(:-moz-lwtheme) {
-    background: transparent;
-  }
 }
 
 .tab-throbber,
@@ -226,7 +215,6 @@ tabpanels {
 .tabs-closebutton {
   -moz-appearance: none;
   -moz-image-region: rect(0, 64px, 16px, 48px);
-  height: 24px;
   border: none !important;
   padding: 0 !important;
   cursor: default;
@@ -272,7 +260,7 @@ tabpanels {
 
 .tabmail-arrowscrollbox > .scrollbutton-up,
 .tabmail-arrowscrollbox > stack > .scrollbutton-down {
-  margin: 3px 0 0;
+  margin: 0;
   -moz-margin-end: 1px;
   list-style-image: url("chrome://messenger/skin/icons/tab-arrow-left.png");
   -moz-image-region: rect(0, 15px, 17px, 0);
@@ -300,20 +288,13 @@ tabpanels {
   opacity: .4;
 }
 
-.tabmail-arrowscrollbox > .scrollbutton-down-stack {
-  margin-top: 0;
-  margin-bottom: 0;
-  height: 22px;
-}
-
 /**
 * All Tabs Button
 */
 
 .tabs-alltabs-button {
-  margin: 3px 0 0;
+  margin-bottom: -1px;
   width: 18px;
-  height: 23px;
   list-style-image: url(chrome://messenger/skin/icons/mainwindow-dropdown-arrow.png);
   -moz-image-region: rect(0, 13px, 11px, 0);
 }
