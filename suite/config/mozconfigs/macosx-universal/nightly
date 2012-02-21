@@ -19,7 +19,7 @@ if test -n $oldtopsrcdir; then
 fi
 
 ac_add_options --enable-application=suite
-ac_add_options --enable-update-channel=nightly
+ac_add_options --enable-update-channel=${MOZ_UPDATE_CHANNEL}
 ac_add_options --enable-update-packaging
 ac_add_options --enable-tests
 ac_add_options --enable-codesighs
