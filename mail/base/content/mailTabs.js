@@ -694,9 +694,6 @@ let mailTabType = {
     document.getElementById("messagepaneboxwrapper").collapsed =
       !aLegalStates.message || !aVisibleStates.message;
 
-    // -- mail toolbox (collapsed mail-bar3 and any custom toolbars)
-    document.getElementById("mail-toolbox").collapsed = !displayDeckLegal;
-
     // we are responsible for updating the keybinding; view_init takes care of
     //  updating the menu item (on demand)
     let messagePaneToggleKey = document.getElementById("key_toggleMessagePane");
