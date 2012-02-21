@@ -711,14 +711,15 @@ let gFolderTreeView = {
         }
       }
     }
-    else if (Array.indexOf(types, "text/x-moz-url") != -1) {
-      // This is a potential rss feed to subscribe to
-      // and there's only one, so just get the 0th element.
-      let url = dt.mozGetDataAt("text/x-moz-url", 0);
+
+    if (Array.indexOf(types, "text/x-moz-url") != -1 && count == 1 &&
+        targetFolder.server.type == "rss") {
+      // This is a potential rss feed.  A link image as well as link text url
+      // should be handled.  There's only one, so just get the 0th element.
+      let url = dt.mozGetDataAt("text/x-moz-url-data", 0);
       let uri = Cc["@mozilla.org/network/io-service;1"]
                    .getService(Ci.nsIIOService).newURI(url, null, null);
-      if (!(uri.schemeIs("http") || uri.schemeIs("https")) ||
-             targetFolder.server.type != "rss")
+      if (!(uri.schemeIs("http") || uri.schemeIs("https")))
         return;
 
       Cc["@mozilla.org/newsblog-feed-downloader;1"]
