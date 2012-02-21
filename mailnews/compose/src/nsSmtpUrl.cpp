@@ -428,13 +428,11 @@ nsresult nsMailtoUrl::CleanupMailtoState()
     m_organizationPart = "";
     m_replyToPart = "";
     m_priorityPart = "";
-	return NS_OK;
+    return NS_OK;
 }
 
 nsresult nsMailtoUrl::ParseUrl()
 {
-  nsresult rv = NS_OK;
-
   // we can get the path from the simple url.....
   nsCString escapedPath;
   m_baseURL->GetPath(escapedPath);
@@ -459,7 +457,7 @@ nsresult nsMailtoUrl::ParseUrl()
     MsgUnescapeString(escapedPath, 0, m_toPart);
   }
 
-  return rv;
+  return NS_OK;
 }
 
 NS_IMETHODIMP
@@ -665,8 +663,7 @@ NS_IMETHODIMP nsMailtoUrl::Clone(nsIURI **_retval)
 
   nsRefPtr<nsMailtoUrl> clone = new nsMailtoUrl();
 
-  if (!clone)
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(clone, NS_ERROR_OUT_OF_MEMORY);
 
   nsresult rv = m_baseURL->Clone(getter_AddRefs(clone->m_baseURL));
   NS_ENSURE_SUCCESS(rv, rv);
@@ -674,11 +671,11 @@ NS_IMETHODIMP nsMailtoUrl::Clone(nsIURI **_retval)
   clone->ParseUrl();
   *_retval = clone.forget().get();
   return NS_OK;
-}	
+}
 
-NS_IMETHODIMP nsMailtoUrl::Resolve(const nsACString &relativePath, nsACString &result) 
+NS_IMETHODIMP nsMailtoUrl::Resolve(const nsACString &relativePath, nsACString &result)
 {
-	return m_baseURL->Resolve(relativePath, result);
+  return m_baseURL->Resolve(relativePath, result);
 }
 
 NS_IMETHODIMP nsMailtoUrl::SetRef(const nsACString &aRef)
@@ -813,20 +810,18 @@ nsSmtpUrl::GetDsnEnvid(nsACString &aDsnEnvid)
 }
 
 NS_IMETHODIMP
-nsSmtpUrl::GetSenderIdentity(nsIMsgIdentity * *aSenderIdentity)
+nsSmtpUrl::GetSenderIdentity(nsIMsgIdentity **aSenderIdentity)
 {
-  NS_ENSURE_ARG_POINTER(aSenderIdentity); 
-  
+  NS_ENSURE_ARG_POINTER(aSenderIdentity);
   *aSenderIdentity = m_senderIdentity;
   NS_ADDREF(*aSenderIdentity);
   return NS_OK;
 }
 
-NS_IMETHODIMP 
-nsSmtpUrl::SetSenderIdentity(nsIMsgIdentity * aSenderIdentity) 
+NS_IMETHODIMP
+nsSmtpUrl::SetSenderIdentity(nsIMsgIdentity *aSenderIdentity)
 {
   NS_ENSURE_ARG_POINTER(aSenderIdentity);
-  
   m_senderIdentity = aSenderIdentity;
   return NS_OK;
 }
@@ -843,7 +838,7 @@ NS_IMETHODIMP
 nsSmtpUrl::GetPrompt(nsIPrompt **aNetPrompt)
 {
     NS_ENSURE_ARG_POINTER(aNetPrompt);
-    if (!m_netPrompt) return NS_ERROR_NULL_POINTER;
+    NS_ENSURE_TRUE(m_netPrompt, NS_ERROR_NULL_POINTER);
     *aNetPrompt = m_netPrompt;
     NS_ADDREF(*aNetPrompt);
     return NS_OK;
@@ -861,7 +856,7 @@ NS_IMETHODIMP
 nsSmtpUrl::GetAuthPrompt(nsIAuthPrompt **aNetAuthPrompt)
 {
     NS_ENSURE_ARG_POINTER(aNetAuthPrompt);
-    if (!m_netAuthPrompt) return NS_ERROR_NULL_POINTER;
+    NS_ENSURE_TRUE(m_netAuthPrompt, NS_ERROR_NULL_POINTER);
     *aNetAuthPrompt = m_netAuthPrompt;
     NS_ADDREF(*aNetAuthPrompt);
     return NS_OK;
@@ -879,7 +874,7 @@ NS_IMETHODIMP
 nsSmtpUrl::GetNotificationCallbacks(nsIInterfaceRequestor** aCallbacks)
 {
     NS_ENSURE_ARG_POINTER(aCallbacks);
-    if (!m_callbacks) return NS_ERROR_NULL_POINTER;
+    NS_ENSURE_TRUE(m_callbacks, NS_ERROR_NULL_POINTER);
     *aCallbacks = m_callbacks;
     NS_ADDREF(*aCallbacks);
     return NS_OK;
@@ -897,7 +892,7 @@ NS_IMETHODIMP
 nsSmtpUrl::GetSmtpServer(nsISmtpServer ** aSmtpServer)
 {
     NS_ENSURE_ARG_POINTER(aSmtpServer);
-    if (!m_smtpServer) return NS_ERROR_NULL_POINTER;
+    NS_ENSURE_TRUE(m_smtpServer, NS_ERROR_NULL_POINTER);
     *aSmtpServer = m_smtpServer;
     NS_ADDREF(*aSmtpServer);
     return NS_OK;

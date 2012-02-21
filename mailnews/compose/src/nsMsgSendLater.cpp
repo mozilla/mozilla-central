@@ -355,23 +355,25 @@ nsMsgSendLater::BuildNewBuffer(const char* aBuf, PRUint32 aCount, PRUint32 *tota
 NS_IMETHODIMP
 nsMsgSendLater::OnDataAvailable(nsIRequest *request, nsISupports *ctxt, nsIInputStream *inStr, PRUint32 sourceOffset, PRUint32 count)
 {
+  NS_ENSURE_ARG_POINTER(inStr);
+
   // This is a little bit tricky since we have to chop random 
   // buffers into lines and deliver the lines...plus keeping the
   // leftovers for next time...some fun, eh?
   //
   nsresult    rv = NS_OK;
-  char        *startBuf; 
+  char        *startBuf;
   char        *endBuf;
   char        *lineEnd;
   char        *newbuf = nsnull;
-  PRUint32    size;  
+  PRUint32    size;
 
   PRUint32    aCount = count;
   char        *aBuf = (char *)PR_Malloc(aCount + 1);
 
   inStr->Read(aBuf, count, &aCount);
 
-  // First, create a new work buffer that will 
+  // First, create a new work buffer that will
   if (NS_FAILED(BuildNewBuffer(aBuf, aCount, &size))) // no leftovers...
   {
     startBuf = (char *)aBuf;
@@ -380,9 +382,9 @@ nsMsgSendLater::OnDataAvailable(nsIRequest *request, nsISupports *ctxt, nsIInput
   else  // yum, leftovers...new buffer created...sitting in mLeftoverBuffer
   {
     newbuf = mLeftoverBuffer;
-    startBuf = newbuf; 
+    startBuf = newbuf;
     endBuf = startBuf + size - 1;
-    mLeftoverBuffer = nsnull; // null out this 
+    mLeftoverBuffer = nsnull; // null out this
   }
 
   while (startBuf <= endBuf)
@@ -390,7 +392,7 @@ nsMsgSendLater::OnDataAvailable(nsIRequest *request, nsISupports *ctxt, nsIInput
     lineEnd = FindEOL(startBuf, endBuf);
     if (!lineEnd)
     {
-      rv = RebufferLeftovers(startBuf, (endBuf - startBuf) + 1);           
+      rv = RebufferLeftovers(startBuf, (endBuf - startBuf) + 1);
       break;
     }
 

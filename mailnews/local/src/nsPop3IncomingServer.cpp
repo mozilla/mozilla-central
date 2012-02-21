@@ -649,23 +649,21 @@ NS_IMETHODIMP nsPop3IncomingServer::GetRunningProtocol(nsIPop3Protocol **aProtoc
 
 NS_IMETHODIMP nsPop3IncomingServer::AddUidlToMark(const char *aUidl, PRInt32 aMark)
 {
-  Pop3UidlEntry *uidlEntry;
-  nsresult rv = NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_ARG_POINTER(aUidl);
 
-  uidlEntry = PR_NEWZAP(Pop3UidlEntry);
-  if (uidlEntry)
-  {
-    uidlEntry->uidl = strdup(aUidl);
-    if (uidlEntry->uidl)
-    {
-      uidlEntry->status = (aMark == POP3_DELETE) ? DELETE_CHAR :
-      (aMark == POP3_FETCH_BODY) ? FETCH_BODY : KEEP;
-      m_uidlsToMark.AppendElement(uidlEntry);
-      rv = NS_OK;
-    } else
-      PR_Free(uidlEntry);
+  Pop3UidlEntry *uidlEntry = PR_NEWZAP(Pop3UidlEntry);
+  NS_ENSURE_TRUE(uidlEntry, NS_ERROR_OUT_OF_MEMORY);
+
+  uidlEntry->uidl = strdup(aUidl);
+  if (NS_UNLIKELY(!uidlEntry->uidl)) {
+    PR_Free(uidlEntry);
+    return NS_ERROR_OUT_OF_MEMORY;
   }
-  return rv;
+
+  uidlEntry->status = (aMark == POP3_DELETE) ? DELETE_CHAR :
+                      (aMark == POP3_FETCH_BODY) ? FETCH_BODY : KEEP;
+  m_uidlsToMark.AppendElement(uidlEntry);
+  return NS_OK;
 }
 
 NS_IMETHODIMP nsPop3IncomingServer::MarkMessages()

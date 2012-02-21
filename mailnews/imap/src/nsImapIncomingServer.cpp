@@ -723,6 +723,8 @@ nsresult
 nsImapIncomingServer::GetImapConnection(nsIImapUrl * aImapUrl,
                                         nsIImapProtocol ** aImapConnection)
 {
+  NS_ENSURE_ARG_POINTER(aImapUrl);
+
   nsresult rv = NS_OK;
   bool canRunUrlImmediately = false;
   bool canRunButBusy = false;
@@ -2305,6 +2307,8 @@ NS_IMETHODIMP nsImapIncomingServer::GetManageMailAccountUrl(nsACString& manageMa
 NS_IMETHODIMP
 nsImapIncomingServer::StartPopulatingWithUri(nsIMsgWindow *aMsgWindow, bool aForceToServer /*ignored*/, const char *uri)
 {
+  NS_ENSURE_ARG_POINTER (uri);
+
   nsresult rv;
   mDoingSubscribeDialog = true;
 
