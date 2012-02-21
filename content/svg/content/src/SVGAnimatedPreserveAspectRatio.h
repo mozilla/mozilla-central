@@ -39,10 +39,17 @@
 #ifndef MOZILLA_SVGANIMATEDPRESERVEASPECTRATIO_H__
 #define MOZILLA_SVGANIMATEDPRESERVEASPECTRATIO_H__
 
-#include "nsIDOMSVGPresAspectRatio.h"
-#include "nsIDOMSVGAnimPresAspRatio.h"
-#include "nsSVGElement.h"
+#include "nsAutoPtr.h"
+#include "nsCycleCollectionParticipant.h"
 #include "nsDOMError.h"
+#include "nsError.h"
+#include "nsIDOMSVGAnimPresAspRatio.h"
+#include "nsIDOMSVGPresAspectRatio.h"
+#include "nsISMILAttr.h"
+#include "nsSVGElement.h"
+
+class nsISMILAnimationElement;
+class nsSMILValue;
 
 namespace mozilla {
 
@@ -111,7 +118,7 @@ public:
 
   nsresult SetBaseValueString(const nsAString& aValue,
                               nsSVGElement *aSVGElement);
-  void GetBaseValueString(nsAString& aValue);
+  void GetBaseValueString(nsAString& aValue) const;
 
   nsresult SetBaseAlign(PRUint16 aAlign, nsSVGElement *aSVGElement);
   nsresult SetBaseMeetOrSlice(PRUint16 aMeetOrSlice, nsSVGElement *aSVGElement);

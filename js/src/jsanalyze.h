@@ -1154,6 +1154,10 @@ class ScriptAnalysis
         /* Decompose the slot above. */
         bool arg;
         uint32_t index;
+
+        const Value **basePointer() const {
+            return arg ? &nesting->argArray : &nesting->varArray;
+        }
     };
     NameAccess resolveNameAccess(JSContext *cx, jsid id, bool addDependency = false);
 
@@ -1198,6 +1202,8 @@ class ScriptAnalysis
                            const Vector<uint32_t> &branchTargets);
     void mergeExceptionTarget(JSContext *cx, const SSAValue &value, uint32_t slot,
                               const Vector<uint32_t> &exceptionTargets);
+    void mergeAllExceptionTargets(JSContext *cx, SSAValue *values,
+                                  const Vector<uint32_t> &exceptionTargets);
     bool removeBranchTarget(Vector<uint32_t> &branchTargets,
                             Vector<uint32_t> &exceptionTargets,
                             uint32_t offset);

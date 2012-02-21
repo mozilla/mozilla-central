@@ -47,6 +47,7 @@
 #include "nsIURI.h"
 #include "nsThreadUtils.h"
 #include "nsProxyRelease.h"
+#include "mozilla/Telemetry.h"
 
 namespace mozilla {
 namespace places {
@@ -246,12 +247,10 @@ bool GetHiddenState(bool aIsRedirect,
  * Notifies a specified topic via the observer service.
  */
 class PlacesEvent : public nsRunnable
-                  , public mozIStorageCompletionCallback
 {
 public:
   NS_DECL_ISUPPORTS
   NS_DECL_NSIRUNNABLE
-  NS_DECL_MOZISTORAGECOMPLETIONCALLBACK
 
   PlacesEvent(const char* aTopic);
 protected:
@@ -260,6 +259,42 @@ protected:
   const char* const mTopic;
 };
 
+/**
+ * Used to notify a topic to system observers on async execute completion.
+ */
+class AsyncStatementCallbackNotifier : public AsyncStatementCallback
+{
+public:
+  AsyncStatementCallbackNotifier(const char* aTopic)
+    : mTopic(aTopic)
+  {
+  }
+
+  NS_IMETHOD HandleCompletion(PRUint16 aReason);
+
+private:
+  const char* mTopic;
+};
+
+/**
+ * Used to notify a topic to system observers on async execute completion.
+ */
+class AsyncStatementTelemetryTimer : public AsyncStatementCallback
+{
+public:
+  AsyncStatementTelemetryTimer(Telemetry::ID aHistogramId,
+                               TimeStamp aStart = TimeStamp::Now())
+    : mHistogramId(aHistogramId)
+    , mStart(aStart)
+  {
+  }
+
+  NS_IMETHOD HandleCompletion(PRUint16 aReason);
+
+private:
+  const Telemetry::ID mHistogramId;
+  const TimeStamp mStart;
+};
 } // namespace places
 } // namespace mozilla
 

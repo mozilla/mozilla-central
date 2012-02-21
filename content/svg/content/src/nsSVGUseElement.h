@@ -37,17 +37,16 @@
 #ifndef __NS_SVGUSEELEMENT_H__
 #define __NS_SVGUSEELEMENT_H__
 
-#include "nsIDOMSVGAnimatedString.h"
+#include "DOMSVGTests.h"
+#include "mozilla/dom/FromParser.h"
 #include "nsIDOMSVGURIReference.h"
 #include "nsIDOMSVGUseElement.h"
-#include "DOMSVGTests.h"
+#include "nsReferencedElement.h"
 #include "nsStubMutationObserver.h"
 #include "nsSVGGraphicElement.h"
 #include "nsSVGLength2.h"
 #include "nsSVGString.h"
 #include "nsTArray.h"
-#include "nsReferencedElement.h"
-#include "mozilla/dom/FromParser.h"
 
 class nsIContent;
 class nsINodeInfo;
@@ -104,7 +103,8 @@ public:
   void DestroyAnonymousContent();
 
   // nsSVGElement specializations:
-  virtual gfxMatrix PrependLocalTransformTo(const gfxMatrix &aMatrix) const;
+  virtual gfxMatrix PrependLocalTransformsTo(const gfxMatrix &aMatrix,
+                      TransformTypes aWhich = eAllTransforms) const;
 
   // nsIContent interface
   virtual nsresult Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const;

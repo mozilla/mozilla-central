@@ -58,7 +58,6 @@ import org.mozilla.gecko.sync.net.SyncStorageRecordRequest;
 import org.mozilla.gecko.sync.net.SyncStorageRequest;
 import org.mozilla.gecko.sync.net.SyncStorageRequestDelegate;
 import org.mozilla.gecko.sync.net.SyncStorageResponse;
-import org.mozilla.gecko.sync.repositories.RepositorySessionBundle;
 import org.mozilla.gecko.sync.stage.AndroidBrowserBookmarksServerSyncStage;
 import org.mozilla.gecko.sync.stage.AndroidBrowserHistoryServerSyncStage;
 import org.mozilla.gecko.sync.stage.CheckPreconditionsStage;
@@ -71,12 +70,11 @@ import org.mozilla.gecko.sync.stage.GlobalSyncStage;
 import org.mozilla.gecko.sync.stage.GlobalSyncStage.Stage;
 import org.mozilla.gecko.sync.stage.NoSuchStageException;
 
-import ch.boye.httpclientandroidlib.HttpResponse;
-
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import ch.boye.httpclientandroidlib.HttpResponse;
 
 public class GlobalSession implements CredentialsSource, PrefsSource {
   private static final String LOG_TAG = "GlobalSession";
@@ -150,7 +148,7 @@ public class GlobalSession implements CredentialsSource, PrefsSource {
                        KeyBundle syncKeyBundle,
                        GlobalSessionCallback callback,
                        Context context,
-                       Bundle persisted)
+                       Bundle extras)
                            throws SyncConfigurationException, IllegalArgumentException, IOException, ParseException, NonObjectJSONException {
     if (callback == null) {
       throw new IllegalArgumentException("Must provide a callback to GlobalSession constructor.");
@@ -160,7 +158,7 @@ public class GlobalSession implements CredentialsSource, PrefsSource {
       throw new SyncConfigurationException();
     }
 
-    Log.i(LOG_TAG, "GlobalSession initialized with bundle " + persisted);
+    Log.i(LOG_TAG, "GlobalSession initialized with bundle " + extras);
     URI serverURI;
     try {
       serverURI = (serverURL == null) ? null : new URI(serverURL);
@@ -183,10 +181,7 @@ public class GlobalSession implements CredentialsSource, PrefsSource {
     config.username      = username;
     config.password      = password;
     config.syncKeyBundle = syncKeyBundle;
-    // clusterURL and syncID are set through `persisted`, or fetched from the server.
 
-    // TODO: populate saved configurations. We'll amend these after processing meta/global.
-    this.synchronizerConfigurations = new SynchronizerConfigurations(persisted);
     prepareStages();
   }
 
@@ -695,24 +690,5 @@ public class GlobalSession implements CredentialsSource, PrefsSource {
       throw new MetaGlobalMissingEnginesException();
     }
     return this.config.metaGlobal.engines.get(engineName) != null;
-  }
-
-  /**
-   * Return enough information to be able to reconstruct a Synchronizer.
-   *
-   * @param engineName
-   * @return
-   */
-  public SynchronizerConfiguration configForEngine(String engineName) {
-    // TODO: we need an altogether better way of handling empty configs.
-    SynchronizerConfiguration stored = this.getSynchronizerConfigurations().forEngine(engineName);
-    if (stored == null) {
-      return new SynchronizerConfiguration(engineName, new RepositorySessionBundle(0), new RepositorySessionBundle(0));
-    }
-    return stored;
-  }
-  private SynchronizerConfigurations synchronizerConfigurations;
-  private SynchronizerConfigurations getSynchronizerConfigurations() {
-    return this.synchronizerConfigurations;
   }
 }

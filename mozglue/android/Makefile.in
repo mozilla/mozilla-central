@@ -45,6 +45,7 @@ include $(DEPTH)/config/autoconf.mk
 MODULE           = android
 LIBRARY_NAME     = android
 FORCE_STATIC_LIB = 1
+STL_FLAGS=
 
 DEFINES += \
   -DANDROID_PACKAGE_NAME='"$(ANDROID_PACKAGE_NAME)"' \
@@ -53,11 +54,14 @@ DEFINES += \
 CPPSRCS = \
   nsGeckoUtils.cpp \
   APKOpen.cpp \
+  SQLiteBridge.cpp \
   $(NULL)
 
 LOCAL_INCLUDES += -I$(srcdir)/../linker
 LOCAL_INCLUDES += -I$(topsrcdir)/toolkit/components/startup
+LOCAL_INCLUDES += -I$(topsrcdir)/db/sqlite3/src
 ifdef MOZ_OLD_LINKER
+DEFINES += -DMOZ_OLD_LINKER
 LOCAL_INCLUDES += -I$(topsrcdir)/other-licenses/android
 ifeq ($(CPU_ARCH),arm)
 DEFINES += -DANDROID_ARM_LINKER

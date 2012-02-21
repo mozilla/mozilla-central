@@ -68,8 +68,8 @@ class nsRootAccessible : public nsDocAccessibleWrap,
   NS_DECL_ISUPPORTS_INHERITED
 
 public:
-  nsRootAccessible(nsIDocument *aDocument, nsIContent *aRootContent,
-                   nsIWeakReference *aShell);
+  nsRootAccessible(nsIDocument* aDocument, nsIContent* aRootContent,
+                   nsIPresShell* aPresShell);
   virtual ~nsRootAccessible();
 
   // nsIAccessible
@@ -127,8 +127,7 @@ protected:
 
     PRUint32 GetChromeFlags();
 #endif
-    already_AddRefed<nsIDocShellTreeItem>
-           GetContentDocShell(nsIDocShellTreeItem *aStart);
+
     nsRefPtr<nsCaretAccessible> mCaretAccessible;
 };
 

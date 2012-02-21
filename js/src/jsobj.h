@@ -354,6 +354,7 @@ extern Class BooleanClass;
 extern Class CallableObjectClass;
 extern Class DateClass;
 extern Class ErrorClass;
+extern Class ElementIteratorClass;
 extern Class GeneratorClass;
 extern Class IteratorClass;
 extern Class JSONClass;
@@ -363,6 +364,7 @@ extern Class NormalArgumentsObjectClass;
 extern Class ObjectClass;
 extern Class ProxyClass;
 extern Class RegExpClass;
+extern Class RegExpStaticsClass;
 extern Class SlowArrayClass;
 extern Class StopIterationClass;
 extern Class StringClass;
@@ -376,8 +378,10 @@ class BlockObject;
 class BooleanObject;
 class ClonedBlockObject;
 class DeclEnvObject;
+class ElementIteratorObject;
 class GlobalObject;
 class NestedScopeObject;
+class NewObjectCache;
 class NormalArgumentsObject;
 class NumberObject;
 class ScopeObject;
@@ -495,6 +499,7 @@ struct JSObject : js::gc::Cell
   private:
     friend struct js::Shape;
     friend struct js::GCMarker;
+    friend class  js::NewObjectCache;
 
     /*
      * Shape of the object, encodes the layout of the object's properties and
@@ -669,9 +674,12 @@ struct JSObject : js::gc::Cell
 
     inline bool hasPropertyTable() const;
 
-    inline size_t structSize() const;
-    inline size_t slotsAndStructSize() const;
-    inline size_t dynamicSlotSize(JSMallocSizeOfFun mallocSizeOf) const;
+    inline size_t sizeOfThis() const;
+    inline size_t computedSizeOfThisSlotsElements() const;
+
+    inline void sizeOfExcludingThis(JSMallocSizeOfFun mallocSizeOf,
+                                    size_t *slotsSize, size_t *elementsSize,
+                                    size_t *miscSize) const;
 
     inline size_t numFixedSlots() const;
 
@@ -860,7 +868,7 @@ struct JSObject : js::gc::Cell
         return type_;
     }
 
-    const js::HeapPtr<js::types::TypeObject> &typeFromGC() const {
+    js::HeapPtr<js::types::TypeObject> &typeFromGC() {
         /* Direct field access for use by GC. */
         return type_;
     }
@@ -946,6 +954,7 @@ struct JSObject : js::gc::Cell
     inline bool hasPrivate() const;
     inline void *getPrivate() const;
     inline void setPrivate(void *data);
+    inline void initPrivate(void *data);
 
     /* Access private data for an object with a known number of fixed slots. */
     inline void *getPrivate(size_t nfixed) const;
@@ -989,22 +998,6 @@ struct JSObject : js::gc::Cell
 
     bool isSealed(JSContext *cx, bool *resultp) { return isSealedOrFrozen(cx, SEAL, resultp); }
     bool isFrozen(JSContext *cx, bool *resultp) { return isSealedOrFrozen(cx, FREEZE, resultp); }
-        
-    /*
-     * Primitive-specific getters and setters.
-     */
-
-  private:
-    static const uint32_t JSSLOT_PRIMITIVE_THIS = 0;
-
-  public:
-    inline const js::Value &getPrimitiveThis() const;
-    inline void setPrimitiveThis(const js::Value &pthis);
-
-    static size_t getPrimitiveThisOffset() {
-        /* All primitive objects have their value in a fixed slot. */
-        return getFixedSlotOffset(JSSLOT_PRIMITIVE_THIS);
-    }
 
     /* Accessors for elements. */
 
@@ -1040,6 +1033,8 @@ struct JSObject : js::gc::Cell
         return sizeof(JSObject) + sizeof(js::ObjectElements);
     }
 
+    inline js::ElementIteratorObject *asElementIterator();
+
     /*
      * Array-specific getters and setters (for both dense and slow arrays).
      */
@@ -1063,6 +1058,7 @@ struct JSObject : js::gc::Cell
     inline void copyDenseArrayElements(uintN dstStart, const js::Value *src, uintN count);
     inline void initDenseArrayElements(uintN dstStart, const js::Value *src, uintN count);
     inline void moveDenseArrayElements(uintN dstStart, uintN srcStart, uintN count);
+    inline void moveDenseArrayElementsUnbarriered(uintN dstStart, uintN srcStart, uintN count);
     inline bool denseArrayHasInlineSlots() const;
 
     /* Packed information for this array. */
@@ -1094,7 +1090,7 @@ struct JSObject : js::gc::Cell
     bool arrayGetOwnDataElement(JSContext *cx, size_t i, js::Value *vp);
 
   public:
-    bool allocateArrayBufferSlots(JSContext *cx, uint32_t size);
+    bool allocateArrayBufferSlots(JSContext *cx, uint32_t size, uint8_t *contents = NULL);
     inline uint32_t arrayBufferByteLength();
     inline uint8_t * arrayBufferDataOffset();
 
@@ -1354,14 +1350,13 @@ struct JSObject : js::gc::Cell
 
     static bool thisObject(JSContext *cx, const js::Value &v, js::Value *vp);
 
-    inline JSObject *getThrowTypeError() const;
-
     bool swap(JSContext *cx, JSObject *other);
 
     inline void initArrayClass();
 
     static inline void writeBarrierPre(JSObject *obj);
     static inline void writeBarrierPost(JSObject *obj, void *addr);
+    static inline void readBarrier(JSObject *obj);
     inline void privateWriteBarrierPre(void **oldval);
     inline void privateWriteBarrierPost(void **oldval);
 
@@ -1399,6 +1394,7 @@ struct JSObject : js::gc::Cell
     inline bool isArray() const;
     inline bool isDate() const;
     inline bool isDenseArray() const;
+    inline bool isElementIterator() const;
     inline bool isError() const;
     inline bool isFunction() const;
     inline bool isGenerator() const;
@@ -1410,6 +1406,7 @@ struct JSObject : js::gc::Cell
     inline bool isPrimitive() const;
     inline bool isProxy() const;
     inline bool isRegExp() const;
+    inline bool isRegExpStatics() const;
     inline bool isScope() const;
     inline bool isScript() const;
     inline bool isSlowArray() const;
@@ -1442,6 +1439,7 @@ struct JSObject : js::gc::Cell
     inline bool isCrossCompartmentWrapper() const;
 
     inline js::ArgumentsObject &asArguments();
+    inline const js::ArgumentsObject &asArguments() const;
     inline js::BlockObject &asBlock();
     inline js::BooleanObject &asBoolean();
     inline js::CallObject &asCall();
@@ -1459,6 +1457,10 @@ struct JSObject : js::gc::Cell
     inline js::WithObject &asWith();
 
     static inline js::ThingRootKind rootKind() { return js::THING_ROOT_OBJECT; }
+
+#ifdef DEBUG
+    void dump();
+#endif
 
   private:
     static void staticAsserts() {
@@ -1519,21 +1521,6 @@ struct JSObject_Slots16 : JSObject { js::Value fslots[16]; };
 
 #define JSSLOT_FREE(clasp)  JSCLASS_RESERVED_SLOTS(clasp)
 
-#ifdef JS_THREADSAFE
-
-/*
- * The GC runs only when all threads except the one on which the GC is active
- * are suspended at GC-safe points, so calling obj->getSlot() from the GC's
- * thread is safe when rt->gcRunning is set. See jsgc.cpp for details.
- */
-#define THREAD_IS_RUNNING_GC(rt, thread)                                      \
-    ((rt)->gcRunning && (rt)->gcThread == (thread))
-
-#define CX_THREAD_IS_RUNNING_GC(cx)                                           \
-    THREAD_IS_RUNNING_GC((cx)->runtime, (cx)->thread)
-
-#endif /* JS_THREADSAFE */
-
 class JSValueArray {
   public:
     jsval *array;
@@ -1551,18 +1538,8 @@ class ValueArray {
 };
 
 /* For manipulating JSContext::sharpObjectMap. */
-#define SHARP_BIT       ((jsatomid) 1)
-#define BUSY_BIT        ((jsatomid) 2)
-#define SHARP_ID_SHIFT  2
-#define IS_SHARP(he)    (uintptr_t((he)->value) & SHARP_BIT)
-#define MAKE_SHARP(he)  ((he)->value = (void *) (uintptr_t((he)->value)|SHARP_BIT))
-#define IS_BUSY(he)     (uintptr_t((he)->value) & BUSY_BIT)
-#define MAKE_BUSY(he)   ((he)->value = (void *) (uintptr_t((he)->value)|BUSY_BIT))
-#define CLEAR_BUSY(he)  ((he)->value = (void *) (uintptr_t((he)->value)&~BUSY_BIT))
-
-extern JSHashEntry *
-js_EnterSharpObject(JSContext *cx, JSObject *obj, JSIdArray **idap,
-                    jschar **sp);
+extern bool
+js_EnterSharpObject(JSContext *cx, JSObject *obj, JSIdArray **idap, bool *alreadySeen, bool *isSharp);
 
 extern void
 js_LeaveSharpObject(JSContext *cx, JSIdArray **idap);
@@ -1676,6 +1653,7 @@ class NewObjectCache
   private:
     inline bool lookup(Class *clasp, gc::Cell *key, gc::AllocKind kind, EntryIndex *pentry);
     inline void fill(EntryIndex entry, Class *clasp, gc::Cell *key, gc::AllocKind kind, JSObject *obj);
+    static inline void copyCachedToObject(JSObject *dst, JSObject *src);
 };
 
 } /* namespace js */
@@ -1991,12 +1969,6 @@ js_PrintObjectSlotName(JSTracer *trc, char *buf, size_t bufsize);
 extern bool
 js_ClearNative(JSContext *cx, JSObject *obj);
 
-extern bool
-js_GetReservedSlot(JSContext *cx, JSObject *obj, uint32_t index, js::Value *vp);
-
-extern bool
-js_SetReservedSlot(JSContext *cx, JSObject *obj, uint32_t index, const js::Value &v);
-
 extern JSBool
 js_ReportGetterOnlyAssignment(JSContext *cx);
 
@@ -2006,6 +1978,17 @@ js_InferFlags(JSContext *cx, uintN defaultFlags);
 /* Object constructor native. Exposed only so the JIT can know its address. */
 JSBool
 js_Object(JSContext *cx, uintN argc, js::Value *vp);
+
+/*
+ * If protoKey is not JSProto_Null, then clasp is ignored. If protoKey is
+ * JSProto_Null, clasp must non-null.
+ *
+ * If protoKey is constant and scope is non-null, use GlobalObject's prototype
+ * methods instead.
+ */
+extern JS_FRIEND_API(JSBool)
+js_GetClassPrototype(JSContext *cx, JSObject *scope, JSProtoKey protoKey,
+                     JSObject **protop, js::Class *clasp = NULL);
 
 namespace js {
 
@@ -2046,71 +2029,6 @@ NonNullObject(JSContext *cx, const Value &v);
 
 extern const char *
 InformalValueTypeName(const Value &v);
-
-/*
- * Report an error if call.thisv is not compatible with the specified class.
- *
- * NB: most callers should be calling or NonGenericMethodGuard,
- * HandleNonGenericMethodClassMismatch, or BoxedPrimitiveMethodGuard (so that
- * transparent proxies are handled correctly). Thus, any caller of this
- * function better have a good explanation for why proxies are being handled
- * correctly (e.g., by IsCallable) or are not an issue (E4X).
- */
-extern void
-ReportIncompatibleMethod(JSContext *cx, CallReceiver call, Class *clasp);
-
-/*
- * A non-generic method is specified to report an error if args.thisv is not an
- * object with a specific [[Class]] internal property (ES5 8.6.2).
- * NonGenericMethodGuard performs this checking. Canonical usage is:
- *
- *   CallArgs args = ...
- *   bool ok;
- *   JSObject *thisObj = NonGenericMethodGuard(cx, args, clasp, &ok);
- *   if (!thisObj)
- *     return ok;
- *
- * Specifically: if obj is a proxy, NonGenericMethodGuard will call the
- * object's ProxyHandler's nativeCall hook (which may recursively call
- * args.callee in args.thisv's compartment). Thus, there are three possible
- * post-conditions:
- *
- *   1. thisv is an object of the given clasp: the caller may proceed;
- *
- *   2. there was an error: the caller must return 'false';
- *
- *   3. thisv wrapped an object of the given clasp and the native was reentered
- *      and completed succesfully: the caller must return 'true'.
- *
- * Case 1 is indicated by a non-NULL return value; case 2 by a NULL return
- * value with *ok == false; and case 3 by a NULL return value with *ok == true.
- *
- * NB: since this guard may reenter the native, the guard must be placed before
- * any effectful operations are performed.
- */
-inline JSObject *
-NonGenericMethodGuard(JSContext *cx, CallArgs args, Native native, Class *clasp, bool *ok);
-
-/*
- * NonGenericMethodGuard tests args.thisv's class using 'clasp'. If more than
- * one class is acceptable (viz., isDenseArray() || isSlowArray()), the caller
- * may test the class and delegate to HandleNonGenericMethodClassMismatch to
- * handle the proxy case and error reporting. The 'clasp' argument is only used
- * for error reporting (clasp->name).
- */
-extern bool
-HandleNonGenericMethodClassMismatch(JSContext *cx, CallArgs args, Native native, Class *clasp);
-
-/*
- * Implement the extraction of a primitive from a value as needed for the
- * toString, valueOf, and a few other methods of the boxed primitives classes
- * Boolean, Number, and String (e.g., ES5 15.6.4.2). If 'true' is returned, the
- * extracted primitive is stored in |*v|. If 'false' is returned, the caller
- * must immediately 'return *ok'. For details, see NonGenericMethodGuard.
- */
-template <typename T>
-inline bool
-BoxedPrimitiveMethodGuard(JSContext *cx, CallArgs args, Native native, T *v, bool *ok);
 
 }  /* namespace js */
 

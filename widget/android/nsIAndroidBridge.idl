@@ -1,4 +1,5 @@
 #include "nsISupports.idl"
+#include "nsIDOMWindow.idl"
 
 [scriptable, uuid(38b5c83a-3e8d-45c2-8311-6e36bd5116c0)]
 interface nsIAndroidDrawMetadataProvider : nsISupports {
@@ -11,9 +12,15 @@ interface nsIAndroidDrawMetadataProvider : nsISupports {
   boolean paintingSuppressed();
 };
 
+[scriptable, uuid(d10377b4-1c90-493a-a532-63cb3f16ee2b)]
+interface nsIAndroidBrowserApp : nsISupports {
+  nsIDOMWindow getWindowForTab(in PRInt32 tabId);
+};
+
 [scriptable, uuid(7dd8441a-4f38-49b2-bd90-da69d02a96cf)]
 interface nsIAndroidBridge : nsISupports
 {
   AString handleGeckoMessage(in AString message);
   void setDrawMetadataProvider(in nsIAndroidDrawMetadataProvider provider);
+  attribute nsIAndroidBrowserApp browserApp;
 };

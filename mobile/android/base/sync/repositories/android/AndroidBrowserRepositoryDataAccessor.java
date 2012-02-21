@@ -51,7 +51,7 @@ public abstract class AndroidBrowserRepositoryDataAccessor {
 
   private static final String[] GUID_COLUMNS = new String[] { BrowserContract.SyncColumns.GUID };
   protected Context context;
-  protected String LOG_TAG = "AndroidBrowserRepositoryDataAccessor";
+  protected static String LOG_TAG = "BrowserDataAccessor";
   private final RepoUtils.QueryHelper queryHelper;
 
   public AndroidBrowserRepositoryDataAccessor(Context context) {
@@ -101,8 +101,19 @@ public abstract class AndroidBrowserRepositoryDataAccessor {
     Log.w(LOG_TAG, "Unexpectedly deleted " + deleted + " rows for guid " + guid);
   }
 
+  public void update(String guid, Record newRecord) {
+    String where  = BrowserContract.SyncColumns.GUID + " = ?";
+    String[] args = new String[] { guid };
+    ContentValues cv = getContentValues(newRecord);
+    int updated = context.getContentResolver().update(getUri(), cv, where, args);
+    if (updated != 1) {
+      Log.w(LOG_TAG, "Unexpectedly updated " + updated + " rows for guid " + guid);
+    }
+  }
+
   public Uri insert(Record record) {
     ContentValues cv = getContentValues(record);
+    Log.d(LOG_TAG, "INSERTING: " + cv.getAsString("guid"));
     return context.getContentResolver().insert(getUri(), cv);
   }
 

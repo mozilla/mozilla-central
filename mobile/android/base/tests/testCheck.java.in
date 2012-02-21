@@ -1,0 +1,52 @@
+#filter substitution
+package @ANDROID_PACKAGE_NAME@.tests;
+
+import @ANDROID_PACKAGE_NAME@.*;
+
+public class testCheck extends PixelTest {
+    private void pause(int length) {
+        try {
+            Thread.sleep(length);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void testCheck() {
+        setTestType("talos");
+        String url = getAbsoluteUrl("/startup_test/fennecmark/wikipedia.html");
+
+        mActions.expectGeckoEvent("Gecko:Ready").blockForEvent();
+
+        loadAndPaint(url);
+
+        mDriver.setupScrollHandling();
+
+        // Setup scrolling coordinates.
+        int midX = mDriver.getGeckoLeft() + mDriver.getGeckoWidth()/2;
+        int midY = mDriver.getGeckoTop() + mDriver.getGeckoHeight()/2;
+        int endY = mDriver.getGeckoTop() + mDriver.getGeckoHeight()/6;
+
+        mDriver.startCheckerboardRecording();
+
+        int i = 0;
+        // Scroll repeatedly downwards, then upwards. This test should take
+        // approximately 15 seconds.
+        do {
+            for (int j = 0; j < 3; j++) {
+                mActions.drag(midX, midX, midY, endY);
+                pause(500);
+            }
+            for (int j = 0; j < 3; j++) {
+                mActions.drag(midX, midX, endY, midY);
+                pause(500);
+            }
+            i++;
+        } while (i < 5);
+
+        float completeness = mDriver.stopCheckerboardRecording();
+        mAsserter.dumpLog("__start_report" + completeness + "__end_report");
+        long msecs = System.currentTimeMillis();
+        mAsserter.dumpLog("__startTimestamp" + msecs + "__endTimestamp");
+    }
+}

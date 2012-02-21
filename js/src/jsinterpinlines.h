@@ -44,13 +44,16 @@
 #include "jsapi.h"
 #include "jsbool.h"
 #include "jscompartment.h"
+#include "jsinfer.h"
 #include "jsinterp.h"
+#include "jslibmath.h"
 #include "jsnum.h"
 #include "jsprobes.h"
 #include "jsstr.h"
 #include "methodjit/MethodJIT.h"
 
 #include "jsfuninlines.h"
+#include "jsinferinlines.h"
 #include "jspropertycacheinlines.h"
 #include "jstypedarrayinlines.h"
 
@@ -150,28 +153,23 @@ ComputeThis(JSContext *cx, StackFrame *fp)
  * problem to the value at |spindex| on the stack.
  */
 JS_ALWAYS_INLINE JSObject *
-ValuePropertyBearer(JSContext *cx, const Value &v, int spindex)
+ValuePropertyBearer(JSContext *cx, StackFrame *fp, const Value &v, int spindex)
 {
     if (v.isObject())
         return &v.toObject();
 
-    JSProtoKey protoKey;
-    if (v.isString()) {
-        protoKey = JSProto_String;
-    } else if (v.isNumber()) {
-        protoKey = JSProto_Number;
-    } else if (v.isBoolean()) {
-        protoKey = JSProto_Boolean;
-    } else {
-        JS_ASSERT(v.isNull() || v.isUndefined());
-        js_ReportIsNullOrUndefined(cx, spindex, v, NULL);
-        return NULL;
-    }
+    GlobalObject &global = fp->scopeChain().global();
 
-    JSObject *pobj;
-    if (!js_GetClassPrototype(cx, NULL, protoKey, &pobj))
-        return NULL;
-    return pobj;
+    if (v.isString())
+        return global.getOrCreateStringPrototype(cx);
+    if (v.isNumber())
+        return global.getOrCreateNumberPrototype(cx);
+    if (v.isBoolean())
+        return global.getOrCreateBooleanPrototype(cx);
+
+    JS_ASSERT(v.isNull() || v.isUndefined());
+    js_ReportIsNullOrUndefined(cx, spindex, v, NULL);
+    return NULL;
 }
 
 inline bool
@@ -441,6 +439,50 @@ NameOperation(JSContext *cx, jsbytecode *pc, Value *vp)
 }
 
 inline bool
+DefVarOrConstOperation(JSContext *cx, JSObject &varobj, PropertyName *dn, uintN attrs)
+{
+    JS_ASSERT(varobj.isVarObj());
+    JS_ASSERT(!varobj.getOps()->defineProperty);
+
+    JSProperty *prop;
+    JSObject *obj2;
+    if (!varobj.lookupProperty(cx, dn, &obj2, &prop))
+        return false;
+
+    /* Steps 8c, 8d. */
+    if (!prop || (obj2 != &varobj && varobj.isGlobal())) {
+        if (!DefineNativeProperty(cx, &varobj, dn, UndefinedValue(),
+                                  JS_PropertyStub, JS_StrictPropertyStub, attrs, 0, 0))
+        {
+            return false;
+        }
+    } else {
+        /*
+         * Extension: ordinarily we'd be done here -- but for |const|.  If we
+         * see a redeclaration that's |const|, we consider it a conflict.
+         */
+        uintN oldAttrs;
+        if (!varobj.getPropertyAttributes(cx, dn, &oldAttrs))
+            return false;
+        if (attrs & JSPROP_READONLY) {
+            JSAutoByteString bytes;
+            if (js_AtomToPrintableString(cx, dn, &bytes)) {
+                JS_ALWAYS_FALSE(JS_ReportErrorFlagsAndNumber(cx, JSREPORT_ERROR,
+                                                             js_GetErrorMessage,
+                                                             NULL, JSMSG_REDECLARED_VAR,
+                                                             (oldAttrs & JSPROP_READONLY)
+                                                             ? "const"
+                                                             : "var",
+                                                             bytes.ptr()));
+            }
+            return false;
+        }
+    }
+
+    return true;
+}
+
+inline bool
 FunctionNeedsPrologue(JSContext *cx, JSFunction *fun)
 {
     /* Heavyweight functions need call objects created. */
@@ -510,6 +552,335 @@ InterpreterFrames::enableInterruptsIfRunning(JSScript *script)
     if (script == regs->fp()->script())
         enabler.enableInterrupts();
 }
+
+static JS_ALWAYS_INLINE bool
+AddOperation(JSContext *cx, const Value &lhs, const Value &rhs, Value *res)
+{
+    Value lval = lhs;
+    Value rval = rhs;
+
+    if (lval.isInt32() && rval.isInt32()) {
+        int32_t l = lval.toInt32(), r = rval.toInt32();
+        int32_t sum = l + r;
+        if (JS_UNLIKELY(bool((l ^ sum) & (r ^ sum) & 0x80000000))) {
+            res->setDouble(double(l) + double(r));
+            types::TypeScript::MonitorOverflow(cx);
+        } else {
+            res->setInt32(sum);
+        }
+    } else
+#if JS_HAS_XML_SUPPORT
+    if (IsXML(lval) && IsXML(rval)) {
+        if (!js_ConcatenateXML(cx, &lval.toObject(), &rval.toObject(), res))
+            return false;
+        types::TypeScript::MonitorUnknown(cx);
+    } else
+#endif
+    {
+        /*
+         * If either operand is an object, any non-integer result must be
+         * reported to inference.
+         */
+        bool lIsObject = lval.isObject(), rIsObject = rval.isObject();
+
+        if (!ToPrimitive(cx, &lval))
+            return false;
+        if (!ToPrimitive(cx, &rval))
+            return false;
+        bool lIsString, rIsString;
+        if ((lIsString = lval.isString()) | (rIsString = rval.isString())) {
+            js::AutoStringRooter lstr(cx), rstr(cx);
+            if (lIsString) {
+                lstr.setString(lval.toString());
+            } else {
+                lstr.setString(ToString(cx, lval));
+                if (!lstr.string())
+                    return false;
+            }
+            if (rIsString) {
+                rstr.setString(rval.toString());
+            } else {
+                rstr.setString(ToString(cx, rval));
+                if (!rstr.string())
+                    return false;
+            }
+            JSString *str = js_ConcatStrings(cx, lstr.string(), rstr.string());
+            if (!str)
+                return false;
+            if (lIsObject || rIsObject)
+                types::TypeScript::MonitorString(cx);
+            res->setString(str);
+        } else {
+            double l, r;
+            if (!ToNumber(cx, lval, &l) || !ToNumber(cx, rval, &r))
+                return false;
+            l += r;
+            if (!res->setNumber(l) &&
+                (lIsObject || rIsObject || (!lval.isDouble() && !rval.isDouble()))) {
+                types::TypeScript::MonitorOverflow(cx);
+            }
+        }
+    }
+    return true;
+}
+
+static JS_ALWAYS_INLINE bool
+SubOperation(JSContext *cx, const Value &lhs, const Value &rhs, Value *res)
+{
+    double d1, d2;
+    if (!ToNumber(cx, lhs, &d1) || !ToNumber(cx, rhs, &d2))
+        return false;
+    double d = d1 - d2;
+    if (!res->setNumber(d) && !(lhs.isDouble() || rhs.isDouble()))
+        types::TypeScript::MonitorOverflow(cx);
+    return true;
+}
+
+static JS_ALWAYS_INLINE bool
+MulOperation(JSContext *cx, const Value &lhs, const Value &rhs, Value *res)
+{
+    double d1, d2;
+    if (!ToNumber(cx, lhs, &d1) || !ToNumber(cx, rhs, &d2))
+        return false;
+    double d = d1 * d2;
+    if (!res->setNumber(d) && !(lhs.isDouble() || rhs.isDouble()))
+        types::TypeScript::MonitorOverflow(cx);
+    return true;
+}
+
+static JS_ALWAYS_INLINE bool
+DivOperation(JSContext *cx, const Value &lhs, const Value &rhs, Value *res)
+{
+    double d1, d2;
+    if (!ToNumber(cx, lhs, &d1) || !ToNumber(cx, rhs, &d2))
+        return false;
+    res->setNumber(NumberDiv(d1, d2));
+
+    if (d2 == 0 || (res->isDouble() && !(lhs.isDouble() || rhs.isDouble())))
+        types::TypeScript::MonitorOverflow(cx);
+    return true;
+}
+
+static JS_ALWAYS_INLINE bool
+ModOperation(JSContext *cx, const Value &lhs, const Value &rhs, Value *res)
+{
+    int32_t l, r;
+    if (lhs.isInt32() && rhs.isInt32() &&
+        (l = lhs.toInt32()) >= 0 && (r = rhs.toInt32()) > 0) {
+        int32_t mod = l % r;
+        res->setInt32(mod);
+        return true;
+    }
+
+    double d1, d2;
+    if (!ToNumber(cx, lhs, &d1) || !ToNumber(cx, rhs, &d2))
+        return false;
+
+    if (d2 == 0)
+        res->setDouble(js_NaN);
+    else
+        res->setDouble(js_fmod(d1, d2));
+    types::TypeScript::MonitorOverflow(cx);
+    return true;
+}
+
+static inline bool
+FetchElementId(JSContext *cx, JSObject *obj, const Value &idval, jsid &id, Value *vp)
+{
+    int32_t i_;
+    if (ValueFitsInInt32(idval, &i_) && INT_FITS_IN_JSID(i_)) {
+        id = INT_TO_JSID(i_);
+        return true;
+    }
+    return !!js_InternNonIntElementId(cx, obj, idval, &id, vp);
+}
+
+static JS_ALWAYS_INLINE bool
+ToIdOperation(JSContext *cx, const Value &objval, const Value &idval, Value *res)
+{
+    if (idval.isInt32()) {
+        *res = idval;
+        return true;
+    }
+
+    JSObject *obj = ValueToObject(cx, objval);
+    if (!obj)
+        return false;
+
+    jsid dummy;
+    if (!js_InternNonIntElementId(cx, obj, idval, &dummy, res))
+        return false;
+
+    if (!res->isInt32())
+        types::TypeScript::MonitorUnknown(cx);
+    return true;
+}
+
+static JS_ALWAYS_INLINE bool
+GetObjectElementOperation(JSContext *cx, JSObject *obj, const Value &rref, Value *res)
+{
+    JSScript *script;
+    jsbytecode *pc;
+    types::TypeScript::GetPcScript(cx, &script, &pc);
+
+    uint32_t index;
+    if (IsDefinitelyIndex(rref, &index)) {
+        do {
+            if (obj->isDenseArray()) {
+                if (index < obj->getDenseArrayInitializedLength()) {
+                    *res = obj->getDenseArrayElement(index);
+                    if (!res->isMagic())
+                        break;
+                }
+            } else if (obj->isArguments()) {
+                if (obj->asArguments().getElement(index, res))
+                    break;
+            }
+            if (!obj->getElement(cx, index, res))
+                return false;
+        } while(0);
+    } else {
+        if (script->hasAnalysis())
+            script->analysis()->getCode(pc).getStringElement = true;
+
+        SpecialId special;
+        *res = rref;
+        if (ValueIsSpecial(obj, res, &special, cx)) {
+            if (!obj->getSpecial(cx, obj, special, res))
+                return false;
+        } else {
+            JSAtom *name;
+            if (!js_ValueToAtom(cx, *res, &name))
+                return false;
+
+            if (name->isIndex(&index)) {
+                if (!obj->getElement(cx, index, res))
+                    return false;
+            } else {
+                if (!obj->getProperty(cx, name->asPropertyName(), res))
+                    return false;
+            }
+        }
+    }
+
+    assertSameCompartment(cx, *res);
+    types::TypeScript::Monitor(cx, script, pc, *res);
+    return true;
+}
+
+static JS_ALWAYS_INLINE bool
+GetElementOperation(JSContext *cx, const Value &lref, const Value &rref, Value *res)
+{
+    if (lref.isString() && rref.isInt32()) {
+        JSString *str = lref.toString();
+        int32_t i = rref.toInt32();
+        if (size_t(i) < str->length()) {
+            str = cx->runtime->staticStrings.getUnitStringForElement(cx, str, size_t(i));
+            if (!str)
+                return false;
+            res->setString(str);
+            types::TypeScript::Monitor(cx, *res);
+            return true;
+        }
+    }
+
+    if (lref.isMagic(JS_LAZY_ARGUMENTS)) {
+        if (rref.isInt32() && size_t(rref.toInt32()) < cx->regs().fp()->numActualArgs()) {
+            *res = cx->regs().fp()->canonicalActualArg(rref.toInt32());
+            types::TypeScript::Monitor(cx, *res);
+            return true;
+        }
+        types::MarkArgumentsCreated(cx, cx->fp()->script());
+        JS_ASSERT(!lref.isMagic(JS_LAZY_ARGUMENTS));
+    }
+
+    JSObject *obj = ValueToObject(cx, lref);
+    if (!obj)
+        return false;
+    return GetObjectElementOperation(cx, obj, rref, res);
+}
+
+static JS_ALWAYS_INLINE bool
+SetObjectElementOperation(JSContext *cx, JSObject *obj, jsid id, const Value &value)
+{
+    JSScript *script;
+    jsbytecode *pc;
+    types::TypeScript::GetPcScript(cx, &script, &pc);
+    types::TypeScript::MonitorAssign(cx, script, pc, obj, id, value);
+
+    do {
+        if (obj->isDenseArray() && JSID_IS_INT(id)) {
+            jsuint length = obj->getDenseArrayInitializedLength();
+            jsint i = JSID_TO_INT(id);
+            if ((jsuint)i < length) {
+                if (obj->getDenseArrayElement(i).isMagic(JS_ARRAY_HOLE)) {
+                    if (js_PrototypeHasIndexedProperties(cx, obj))
+                        break;
+                    if ((jsuint)i >= obj->getArrayLength())
+                        obj->setArrayLength(cx, i + 1);
+                }
+                obj->setDenseArrayElementWithType(cx, i, value);
+                return true;
+            } else {
+                if (script->hasAnalysis())
+                    script->analysis()->getCode(pc).arrayWriteHole = true;
+            }
+        }
+    } while (0);
+
+    Value tmp = value;
+    return obj->setGeneric(cx, id, &tmp, script->strictModeCode);
+}
+
+#define RELATIONAL_OP(OP)                                                     \
+    JS_BEGIN_MACRO                                                            \
+        Value lval = lhs;                                                     \
+        Value rval = rhs;                                                     \
+        /* Optimize for two int-tagged operands (typical loop control). */    \
+        if (lval.isInt32() && rval.isInt32()) {                               \
+            *res = lval.toInt32() OP rval.toInt32();                          \
+        } else {                                                              \
+            if (!ToPrimitive(cx, JSTYPE_NUMBER, &lval))                       \
+                return false;                                                 \
+            if (!ToPrimitive(cx, JSTYPE_NUMBER, &rval))                       \
+                return false;                                                 \
+            if (lval.isString() && rval.isString()) {                         \
+                JSString *l = lval.toString(), *r = rval.toString();          \
+                int32_t result;                                               \
+                if (!CompareStrings(cx, l, r, &result))                       \
+                    return false;                                             \
+                *res = result OP 0;                                           \
+            } else {                                                          \
+                double l, r;                                                  \
+                if (!ToNumber(cx, lval, &l) || !ToNumber(cx, rval, &r))       \
+                    return false;;                                            \
+                *res = (l OP r);                                              \
+            }                                                                 \
+        }                                                                     \
+        return true;                                                          \
+    JS_END_MACRO
+
+static JS_ALWAYS_INLINE bool
+LessThanOperation(JSContext *cx, const Value &lhs, const Value &rhs, bool *res) {
+    RELATIONAL_OP(<);
+}
+
+static JS_ALWAYS_INLINE bool
+LessThanOrEqualOperation(JSContext *cx, const Value &lhs, const Value &rhs, bool *res) {
+    RELATIONAL_OP(<=);
+}
+
+static JS_ALWAYS_INLINE bool
+GreaterThanOperation(JSContext *cx, const Value &lhs, const Value &rhs, bool *res) {
+    RELATIONAL_OP(>);
+}
+
+static JS_ALWAYS_INLINE bool
+GreaterThanOrEqualOperation(JSContext *cx, const Value &lhs, const Value &rhs, bool *res) {
+    RELATIONAL_OP(>=);
+}
+
+#undef RELATIONAL_OP
 
 }  /* namespace js */
 

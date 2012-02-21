@@ -39,7 +39,6 @@ package org.mozilla.gecko.sync;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.json.simple.parser.ParseException;
@@ -48,7 +47,6 @@ import org.mozilla.gecko.sync.repositories.RepositorySessionBundle;
 import android.os.Bundle;
 
 public class SynchronizerConfigurations {
-  private static final int CONFIGURATION_VERSION = 1;
   private HashMap<String, SynchronizerConfiguration> engines;
 
   protected HashMap<String, SynchronizerConfiguration> enginesMapFromBundleV1(Bundle engineBundle) throws IOException, ParseException, NonObjectJSONException {
@@ -89,15 +87,6 @@ public class SynchronizerConfigurations {
 
   private void initializeDefaultEnginesMap() {
     engines = new HashMap<String, SynchronizerConfiguration>();
-  }
-
-  public void fillBundle(Bundle bundle) {
-    Bundle contents = new Bundle();
-    for (Entry<String, SynchronizerConfiguration> entry : engines.entrySet()) {
-      contents.putStringArray(entry.getKey(), entry.getValue().toStringValues());
-    }
-    contents.putInt("version", CONFIGURATION_VERSION);
-    bundle.putBundle("engines", contents);
   }
 
   public SynchronizerConfiguration forEngine(String engineName) {

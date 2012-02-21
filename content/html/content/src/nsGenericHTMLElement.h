@@ -42,12 +42,10 @@
 #include "nsIDOMHTMLElement.h"
 #include "nsINameSpaceManager.h"  // for kNameSpaceID_None
 #include "nsIFormControl.h"
-#include "nsIDOMHTMLFrameElement.h"
 #include "nsFrameLoader.h"
 #include "nsGkAtoms.h"
 #include "nsContentCreatorFunctions.h"
 #include "nsDOMMemoryReporter.h"
-#include "nsIDOMMozBrowserFrameElement.h"
 
 class nsIDOMAttr;
 class nsIDOMEventListener;
@@ -544,6 +542,32 @@ public:
     return HasAttr(kNameSpaceID_None, nsGkAtoms::hidden);
   }
 
+  /**
+   * Shared cross-origin resource sharing attributes so they don't get
+   * duplicated on every CORS-enabled element
+   */
+
+  enum CORSMode {
+    /**
+     * The default of not using CORS to validate cross-origin loads.
+     */
+    CORS_NONE,
+
+    /**
+     * Validate cross-site loads using CORS, but do not send any credentials
+     * (cookies, HTTP auth logins, etc) along with the request.
+     */
+    CORS_ANONYMOUS,
+
+    /**
+     * Validate cross-site loads using CORS, and send credentials such as cookies
+     * and HTTP auth logins along with the request.
+     */
+    CORS_USE_CREDENTIALS
+  };
+
+  const static nsAttrValue::EnumTable kCORSAttributeTable[];
+
 protected:
   /**
    * Add/remove this element to the documents name cache
@@ -607,7 +631,7 @@ protected:
   bool IsEventName(nsIAtom* aName);
 
   virtual nsresult AfterSetAttr(PRInt32 aNamespaceID, nsIAtom* aName,
-                                const nsAString* aValue, bool aNotify);
+                                const nsAttrValue* aValue, bool aNotify);
 
   virtual nsEventListenerManager*
     GetEventListenerManagerForAttr(nsIAtom* aAttrName, bool* aDefer);
@@ -926,10 +950,11 @@ public:
 
 protected:
   virtual nsresult BeforeSetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
-                                 const nsAString* aValue, bool aNotify);
+                                 const nsAttrValueOrString* aValue,
+                                 bool aNotify);
 
   virtual nsresult AfterSetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
-                                const nsAString* aValue, bool aNotify);
+                                const nsAttrValue* aValue, bool aNotify);
 
   void UpdateEditableFormControlState(bool aNotify);
 
@@ -1012,79 +1037,6 @@ protected:
 
 // Make sure we have enough space for those bits
 PR_STATIC_ASSERT(ELEMENT_TYPE_SPECIFIC_BITS_OFFSET + 1 < 32);
-
-//----------------------------------------------------------------------
-
-/**
- * A helper class for frame elements
- */
-
-class nsGenericHTMLFrameElement : public nsGenericHTMLElement,
-                                  public nsIFrameLoaderOwner,
-                                  public nsIDOMMozBrowserFrameElement
-{
-public:
-  nsGenericHTMLFrameElement(already_AddRefed<nsINodeInfo> aNodeInfo,
-                            mozilla::dom::FromParser aFromParser)
-    : nsGenericHTMLElement(aNodeInfo)
-  {
-    mNetworkCreated = aFromParser == mozilla::dom::FROM_PARSER_NETWORK;
-  }
-  virtual ~nsGenericHTMLFrameElement();
-
-  NS_DECL_DOM_MEMORY_REPORTER_SIZEOF
-
-  // nsISupports
-  NS_IMETHOD QueryInterface(REFNSIID aIID, void** aInstancePtr);
-
-  // nsIFrameLoaderOwner
-  NS_DECL_NSIFRAMELOADEROWNER
-
-  // nsIContent
-  virtual bool IsHTMLFocusable(bool aWithMouse, bool *aIsFocusable, PRInt32 *aTabIndex);
-  virtual nsresult BindToTree(nsIDocument* aDocument, nsIContent* aParent,
-                              nsIContent* aBindingParent,
-                              bool aCompileEventHandlers);
-  virtual void UnbindFromTree(bool aDeep = true,
-                              bool aNullParent = true);
-  nsresult SetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
-                   const nsAString& aValue, bool aNotify)
-  {
-    return SetAttr(aNameSpaceID, aName, nsnull, aValue, aNotify);
-  }
-  virtual nsresult SetAttr(PRInt32 aNameSpaceID, nsIAtom* aName,
-                           nsIAtom* aPrefix, const nsAString& aValue,
-                           bool aNotify);
-  virtual void DestroyContent();
-
-  nsresult CopyInnerTo(nsGenericElement* aDest) const;
-
-  // nsIDOMHTMLElement 
-  NS_IMETHOD GetTabIndex(PRInt32 *aTabIndex);
-  NS_IMETHOD SetTabIndex(PRInt32 aTabIndex);
-
-  NS_DECL_CYCLE_COLLECTION_CLASS_INHERITED_NO_UNLINK(nsGenericHTMLFrameElement,
-                                                     nsGenericHTMLElement)
-
-  // nsIDOMMozBrowserFrameElement
-  NS_DECL_NSIDOMMOZBROWSERFRAMEELEMENT
-
-protected:
-  // This doesn't really ensure a frame loade in all cases, only when
-  // it makes sense.
-  nsresult EnsureFrameLoader();
-  nsresult LoadSrc();
-  nsresult GetContentDocument(nsIDOMDocument** aContentDocument);
-  nsresult GetContentWindow(nsIDOMWindow** aContentWindow);
-
-  nsresult BrowserFrameSecurityCheck();
-
-  nsRefPtr<nsFrameLoader> mFrameLoader;
-  // True when the element is created by the parser
-  // using NS_FROM_PARSER_NETWORK flag.
-  // If the element is modified, it may lose the flag.
-  bool                    mNetworkCreated;
-};
 
 //----------------------------------------------------------------------
 

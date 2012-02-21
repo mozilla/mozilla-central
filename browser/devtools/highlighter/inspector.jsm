@@ -222,9 +222,11 @@ InspectorUI.prototype = {
   openInspectorUI: function IUI_openInspectorUI(aNode)
   {
     // InspectorUI is already up and running. Lock a node if asked (via context).
-    if (this.isInspectorOpen && aNode) {
-      this.inspectNode(aNode);
-      this.stopInspecting();
+    if (this.isInspectorOpen) {
+      if (aNode) {
+        this.inspectNode(aNode);
+        this.stopInspecting();
+      }
       return;
     }
 
@@ -286,6 +288,8 @@ InspectorUI.prototype = {
 
     // initialize the highlighter
     this.highlighter = new Highlighter(this.chromeWin);
+
+    this.setupNavigationKeys();
     this.highlighterReady();
   },
 
@@ -350,6 +354,36 @@ InspectorUI.prototype = {
   },
 
   /**
+   * Browse nodes according to the breadcrumbs layout, only for some specific
+   * elements of the UI.
+   */
+   setupNavigationKeys: function IUI_setupNavigationKeys()
+   {
+     // UI elements that are arrow keys sensitive:
+     // - highlighter veil;
+     // - content window (when the highlighter `veil is pointer-events:none`;
+     // - the Inspector toolbar.
+
+     this.onKeypress = this.onKeypress.bind(this);
+
+     this.highlighter.highlighterContainer.addEventListener("keypress",
+       this.onKeypress, true);
+     this.win.addEventListener("keypress", this.onKeypress, true);
+     this.toolbar.addEventListener("keypress", this.onKeypress, true);
+   },
+
+  /**
+   * Remove the event listeners for the arrowkeys.
+   */
+   removeNavigationKeys: function IUI_removeNavigationKeys()
+   {
+      this.highlighter.highlighterContainer.removeEventListener("keypress",
+        this.onKeypress, true);
+      this.win.removeEventListener("keypress", this.onKeypress, true);
+      this.toolbar.removeEventListener("keypress", this.onKeypress, true);
+   },
+
+  /**
    * Close inspector UI and associated panels. Unhighlight and stop inspecting.
    * Remove event listeners for document scrolling, resize,
    * tabContainer.TabSelect and others.
@@ -374,6 +408,8 @@ InspectorUI.prototype = {
 
     this.closing = true;
     this.toolbar.hidden = true;
+
+    this.removeNavigationKeys();
 
     this.progressListener.destroy();
     delete this.progressListener;
@@ -592,6 +628,14 @@ InspectorUI.prototype = {
                                                          false);
         }
         break;
+      case "keypress":
+        switch (event.keyCode) {
+          case this.chromeWin.KeyEvent.DOM_VK_ESCAPE:
+            this.closeInspectorUI(false);
+            event.preventDefault();
+            event.stopPropagation();
+            break;
+      }
       case "pagehide":
         win = event.originalTarget.defaultView;
         // Skip iframes/frames.
@@ -611,17 +655,65 @@ InspectorUI.prototype = {
                                                          false);
         }
         break;
-      case "keypress":
-        switch (event.keyCode) {
-          case this.chromeWin.KeyEvent.DOM_VK_ESCAPE:
-            this.closeInspectorUI(false);
-            event.preventDefault();
-            event.stopPropagation();
-            break;
+    }
+  },
+
+  /*
+   * handles "keypress" events.
+  */
+  onKeypress: function IUI_onKeypress(event)
+  {
+    let node = null;
+    let bc = this.breadcrumbs;
+    switch (event.keyCode) {
+      case this.chromeWin.KeyEvent.DOM_VK_LEFT:
+        if (bc.currentIndex != 0)
+          node = bc.nodeHierarchy[bc.currentIndex - 1].node;
+        if (node && this.highlighter.isNodeHighlightable(node))
+          this.highlighter.highlight(node);
+        event.preventDefault();
+        event.stopPropagation();
+        break;
+      case this.chromeWin.KeyEvent.DOM_VK_RIGHT:
+        if (bc.currentIndex < bc.nodeHierarchy.length - 1)
+          node = bc.nodeHierarchy[bc.currentIndex + 1].node;
+        if (node && this.highlighter.isNodeHighlightable(node)) {
+          this.highlighter.highlight(node);
         }
+        event.preventDefault();
+        event.stopPropagation();
+        break;
+      case this.chromeWin.KeyEvent.DOM_VK_UP:
+        if (this.selection) {
+          // Find a previous sibling that is highlightable.
+          node = this.selection.previousSibling;
+          while (node && !this.highlighter.isNodeHighlightable(node)) {
+            node = node.previousSibling;
+          }
+        }
+        if (node && this.highlighter.isNodeHighlightable(node)) {
+          this.highlighter.highlight(node, true);
+        }
+        event.preventDefault();
+        event.stopPropagation();
+        break;
+      case this.chromeWin.KeyEvent.DOM_VK_DOWN:
+        if (this.selection) {
+          // Find a next sibling that is highlightable.
+          node = this.selection.nextSibling;
+          while (node && !this.highlighter.isNodeHighlightable(node)) {
+            node = node.nextSibling;
+          }
+        }
+        if (node && this.highlighter.isNodeHighlightable(node)) {
+          this.highlighter.highlight(node, true);
+        }
+        event.preventDefault();
+        event.stopPropagation();
         break;
     }
   },
+
 
   /////////////////////////////////////////////////////////////////////////
   //// CssRuleView methods
@@ -671,6 +763,9 @@ InspectorUI.prototype = {
       this.boundRuleViewChanged = this.ruleViewChanged.bind(this);
       this.ruleView.element.addEventListener("CssRuleViewChanged",
                                              this.boundRuleViewChanged);
+      this.cssRuleViewBoundCSSLinkClicked = this.ruleViewCSSLinkClicked.bind(this);
+      this.ruleView.element.addEventListener("CssRuleViewCSSLinkClicked",
+                                             this.cssRuleViewBoundCSSLinkClicked);
 
       doc.documentElement.appendChild(this.ruleView.element);
       this.ruleView.highlight(this.selection);
@@ -709,6 +804,30 @@ InspectorUI.prototype = {
   },
 
   /**
+   * When a css link is clicked this method is called in order to either:
+   *   1. Open the link in view source (for element style attributes)
+   *   2. Open the link in the style editor
+   *
+   * @param aEvent The event containing the style rule to act on
+   */
+  ruleViewCSSLinkClicked: function(aEvent)
+  {
+    if (!this.chromeWin) {
+      return;
+    }
+
+    let rule = aEvent.detail.rule;
+    let styleSheet = rule.sheet;
+
+    if (styleSheet) {
+      this.chromeWin.StyleEditor.openChrome(styleSheet, rule.ruleLine);
+    } else {
+      let href = rule.elementStyle.element.ownerDocument.location.href;
+      this.chromeWin.openUILinkIn("view-source:" + href, "window");
+    }
+  },
+
+  /**
    * Destroy the rule view.
    */
   destroyRuleView: function IUI_destroyRuleView()
@@ -719,6 +838,8 @@ InspectorUI.prototype = {
     if (this.ruleView) {
       this.ruleView.element.removeEventListener("CssRuleViewChanged",
                                                 this.boundRuleViewChanged);
+      this.ruleView.element.removeEventListener("CssRuleViewCSSLinkClicked",
+                                                this.cssRuleViewBoundCSSLinkClicked);
       delete boundRuleViewChanged;
       this.ruleView.clear();
       delete this.ruleView;
@@ -1720,6 +1841,8 @@ HTMLBreadcrumbs.prototype = {
     }
     if (aIdx > -1) {
       this.nodeHierarchy[aIdx].button.setAttribute("checked", "true");
+      if (this.hadFocus)
+        this.nodeHierarchy[aIdx].button.focus();
     }
     this.currentIndex = aIdx;
   },
@@ -1895,6 +2018,10 @@ HTMLBreadcrumbs.prototype = {
   {
     this.menu.hidePopup();
 
+    let cmdDispatcher = this.IUI.chromeDoc.commandDispatcher;
+    this.hadFocus = (cmdDispatcher.focusedElement &&
+                     cmdDispatcher.focusedElement.parentNode == this.container);
+
     let selection = this.IUI.selection;
     let idx = this.indexOf(selection);
 
@@ -1924,7 +2051,8 @@ HTMLBreadcrumbs.prototype = {
 
     // Make sure the selected node and its neighbours are visible.
     this.scroll();
-  }
+  },
+
 }
 
 /////////////////////////////////////////////////////////////////////////

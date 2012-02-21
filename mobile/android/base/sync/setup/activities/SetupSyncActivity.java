@@ -38,6 +38,8 @@
 
 package org.mozilla.gecko.sync.setup.activities;
 
+import java.util.HashMap;
+
 import org.json.simple.JSONObject;
 import org.mozilla.gecko.R;
 import org.mozilla.gecko.sync.jpake.JPakeClient;
@@ -53,6 +55,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -79,7 +82,9 @@ public class SetupSyncActivity extends AccountAuthenticatorActivity {
   private TextView            setupTitleView;
   private TextView            setupNoDeviceLinkTitleView;
   private TextView            setupSubtitleView;
-  private TextView            pinTextView;
+  private TextView            pinTextView1;
+  private TextView            pinTextView2;
+  private TextView            pinTextView3;
   private JPakeClient         jClient;
 
   // Android context.
@@ -94,6 +99,7 @@ public class SetupSyncActivity extends AccountAuthenticatorActivity {
   /** Called when the activity is first created. */
   @Override
   public void onCreate(Bundle savedInstanceState) {
+    setTheme(R.style.SyncTheme);
     Log.i(LOG_TAG, "Called SetupSyncActivity.onCreate.");
     super.onCreate(savedInstanceState);
 
@@ -134,9 +140,14 @@ public class SetupSyncActivity extends AccountAuthenticatorActivity {
         return;
       }
     }
-    // Display toast for "Only one account supported."
+    // Display toast for "Only one account supported." and redirect to account management.
     Toast toast = Toast.makeText(mContext, R.string.sync_notification_oneaccount, Toast.LENGTH_LONG);
     toast.show();
+
+    Intent intent = new Intent(Settings.ACTION_SYNC_SETTINGS);
+    intent.setFlags(Constants.FLAG_ACTIVITY_REORDER_TO_FRONT_NO_ANIMATION);
+    startActivity(intent);
+
     finish();
   }
 
@@ -202,20 +213,23 @@ public class SetupSyncActivity extends AccountAuthenticatorActivity {
     }
     // Format PIN for display.
     int charPerLine = pin.length() / 3;
-    String prettyPin = pin.substring(0, charPerLine) + "\n";
-    prettyPin += pin.substring(charPerLine, 2 * charPerLine) + "\n";
-    prettyPin += pin.substring(2 * charPerLine, pin.length());
+    final String pin1 = pin.substring(0, charPerLine);
+    final String pin2 = pin.substring(charPerLine, 2 * charPerLine);
+    final String pin3 = pin.substring(2 * charPerLine, pin.length());
 
-    final String toDisplay = prettyPin;
     runOnUiThread(new Runnable() {
       @Override
       public void run() {
-        TextView view = pinTextView;
-        if (view == null) {
+        TextView view1 = pinTextView1;
+        TextView view2 = pinTextView2;
+        TextView view3 = pinTextView3;
+        if (view1 == null || view2 == null || view3 == null) {
           Log.w(LOG_TAG, "Couldn't find view to display PIN.");
           return;
         }
-        view.setText(toDisplay);
+        view1.setText(pin1);
+        view2.setText(pin2);
+        view3.setText(pin3);
       }
     });
   }
@@ -256,11 +270,29 @@ public class SetupSyncActivity extends AccountAuthenticatorActivity {
     }
   }
 
+  @SuppressWarnings("unchecked")
+  protected JSONObject makeAccountJSON(String username, String password,
+                                       String syncKey, String serverURL) {
+
+    JSONObject jAccount = new JSONObject();
+
+    // Hack to try to keep Java 1.7 from complaining about unchecked types,
+    // despite the presence of SuppressWarnings.
+    HashMap<String, String> fields = (HashMap<String, String>) jAccount;
+
+    fields.put(Constants.JSON_KEY_SYNCKEY,  syncKey);
+    fields.put(Constants.JSON_KEY_ACCOUNT,  username);
+    fields.put(Constants.JSON_KEY_PASSWORD, password);
+    fields.put(Constants.JSON_KEY_SERVER,   serverURL);
+
+    Log.d(LOG_TAG, "Extracted account data: " + jAccount.toJSONString());
+    return jAccount;
+  }
+
   /**
    * Device has finished key exchange, waiting for remote device to set up or
    * link to a Sync account. Display "waiting for other device" dialog.
    */
-  @SuppressWarnings("unchecked")
   public void onPaired() {
     if (!pairWithPin) {
       runOnUiThread(new Runnable() {
@@ -288,13 +320,7 @@ public class SetupSyncActivity extends AccountAuthenticatorActivity {
     String syncKey   = mAccountManager.getUserData(account, Constants.OPTION_SYNCKEY);
     String serverURL = mAccountManager.getUserData(account, Constants.OPTION_SERVER);
 
-    JSONObject jAccount = new JSONObject();
-    jAccount.put(Constants.JSON_KEY_SYNCKEY,  syncKey);
-    jAccount.put(Constants.JSON_KEY_ACCOUNT,  username);
-    jAccount.put(Constants.JSON_KEY_PASSWORD, password);
-    jAccount.put(Constants.JSON_KEY_SERVER,   serverURL);
-
-    Log.d(LOG_TAG, "Extracted account data: " + jAccount.toJSONString());
+    JSONObject jAccount = makeAccountJSON(username, password, syncKey, serverURL);
     try {
       jClient.sendAndComplete(jAccount);
     } catch (JPakeNoActivePairingException e) {
@@ -475,7 +501,9 @@ public class SetupSyncActivity extends AccountAuthenticatorActivity {
     setupTitleView = ((TextView) findViewById(R.id.setup_title));
     setupSubtitleView = (TextView) findViewById(R.id.setup_subtitle);
     setupNoDeviceLinkTitleView = (TextView) findViewById(R.id.link_nodevice);
-    pinTextView = ((TextView) findViewById(R.id.text_pin));
+    pinTextView1 = ((TextView) findViewById(R.id.text_pin1));
+    pinTextView2 = ((TextView) findViewById(R.id.text_pin2));
+    pinTextView3 = ((TextView) findViewById(R.id.text_pin3));
 
     // UI checks.
     if (setupTitleView == null) {

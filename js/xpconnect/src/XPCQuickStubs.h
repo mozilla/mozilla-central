@@ -197,7 +197,7 @@ xpc_qsThrowMethodFailed(JSContext *cx, nsresult rv, jsval *vp);
 JSBool
 xpc_qsThrowMethodFailedWithCcx(XPCCallContext &ccx, nsresult rv);
 
-void
+bool
 xpc_qsThrowMethodFailedWithDetails(JSContext *cx, nsresult rv,
                                    const char *ifaceName,
                                    const char *memberName);
@@ -440,7 +440,6 @@ xpc_qsStringToJsstring(JSContext *cx, nsString &str, JSString **rval);
 nsresult
 getWrapper(JSContext *cx,
            JSObject *obj,
-           JSObject *callee,
            XPCWrappedNative **wrapper,
            JSObject **cur,
            XPCWrappedNativeTearOff **tearoff);
@@ -476,7 +475,6 @@ template <class T>
 inline JSBool
 xpc_qsUnwrapThis(JSContext *cx,
                  JSObject *obj,
-                 JSObject *callee,
                  T **ppThis,
                  nsISupports **pThisRef,
                  jsval *pThisVal,
@@ -485,7 +483,7 @@ xpc_qsUnwrapThis(JSContext *cx,
 {
     XPCWrappedNative *wrapper;
     XPCWrappedNativeTearOff *tearoff;
-    nsresult rv = getWrapper(cx, obj, callee, &wrapper, &obj, &tearoff);
+    nsresult rv = getWrapper(cx, obj, &wrapper, &obj, &tearoff);
     if (NS_SUCCEEDED(rv))
         rv = castNative(cx, wrapper, obj, tearoff, NS_GET_TEMPLATE_IID(T),
                         reinterpret_cast<void **>(ppThis), pThisRef, pThisVal,
@@ -502,7 +500,6 @@ xpc_qsUnwrapThis(JSContext *cx,
 inline nsISupports*
 castNativeFromWrapper(JSContext *cx,
                       JSObject *obj,
-                      JSObject *callee,
                       PRUint32 interfaceBit,
                       nsISupports **pRef,
                       jsval *pVal,
@@ -513,14 +510,14 @@ castNativeFromWrapper(JSContext *cx,
     XPCWrappedNativeTearOff *tearoff;
     JSObject *cur;
 
-    if (!callee && IS_WRAPPER_CLASS(js::GetObjectClass(obj))) {
+    if (IS_WRAPPER_CLASS(js::GetObjectClass(obj))) {
         cur = obj;
         wrapper = IS_WN_WRAPPER_OBJECT(cur) ?
                   (XPCWrappedNative*)xpc_GetJSPrivate(obj) :
                   nsnull;
         tearoff = nsnull;
     } else {
-        *rv = getWrapper(cx, obj, callee, &wrapper, &cur, &tearoff);
+        *rv = getWrapper(cx, obj, &wrapper, &cur, &tearoff);
         if (NS_FAILED(*rv))
             return nsnull;
     }
@@ -542,8 +539,8 @@ castNativeFromWrapper(JSContext *cx,
 
     NS_ASSERTION(IS_WRAPPER_CLASS(js::GetObjectClass(cur)), "Not a wrapper?");
 
-    XPCNativeScriptableSharedJSClass *clasp =
-      (XPCNativeScriptableSharedJSClass*)js::GetObjectClass(cur);
+    XPCWrappedNativeJSClass *clasp =
+      (XPCWrappedNativeJSClass*)js::GetObjectClass(cur);
     if (!(clasp->interfacesBitmap & (1 << interfaceBit)))
         return nsnull;
 
@@ -616,7 +613,7 @@ castNativeArgFromWrapper(JSContext *cx,
     if (!src)
         return nsnull;
 
-    return castNativeFromWrapper(cx, src, nsnull, bit, pArgRef, vp, nsnull, rv);
+    return castNativeFromWrapper(cx, src, bit, pArgRef, vp, nsnull, rv);
 }
 
 inline nsWrapperCache*

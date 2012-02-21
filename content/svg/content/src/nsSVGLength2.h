@@ -37,18 +37,22 @@
 #ifndef __NS_SVGLENGTH2_H__
 #define __NS_SVGLENGTH2_H__
 
-#include "nsIDOMSVGLength.h"
-#include "nsIDOMSVGAnimatedLength.h"
-#include "nsSVGUtils.h"
-#include "nsSVGElement.h"
+#include "nsAutoPtr.h"
+#include "nsCoord.h"
+#include "nsCycleCollectionParticipant.h"
 #include "nsDOMError.h"
-#include "nsMathUtils.h"
-
+#include "nsError.h"
+#include "nsIDOMSVGAnimatedLength.h"
+#include "nsIDOMSVGLength.h"
 #include "nsISMILAttr.h"
-class nsSMILValue;
-class nsISMILType;
+#include "nsMathUtils.h"
+#include "nsSVGElement.h"
+#include "nsSVGUtils.h"
 
 class nsIFrame;
+class nsISMILAnimationElement;
+class nsSMILValue;
+class nsSVGSVGElement;
 
 class nsSVGLength2
 {
@@ -78,8 +82,8 @@ public:
   nsresult SetBaseValueString(const nsAString& aValue,
                               nsSVGElement *aSVGElement,
                               bool aDoSetAttr);
-  void GetBaseValueString(nsAString& aValue);
-  void GetAnimValueString(nsAString& aValue);
+  void GetBaseValueString(nsAString& aValue) const;
+  void GetAnimValueString(nsAString& aValue) const;
 
   float GetBaseValue(nsSVGElement* aSVGElement) const
     { return mBaseVal / GetUnitScaleFactor(aSVGElement, mSpecifiedUnitType); }
@@ -144,8 +148,9 @@ private:
   float GetUnitScaleFactor(nsSVGSVGElement *aCtx, PRUint8 aUnitType) const;
 
   // SetBaseValue and SetAnimValue set the value in user units
-  void SetBaseValue(float aValue, nsSVGElement *aSVGElement);
-  void SetBaseValueInSpecifiedUnits(float aValue, nsSVGElement *aSVGElement);
+  void SetBaseValue(float aValue, nsSVGElement *aSVGElement, bool aDoSetAttr);
+  void SetBaseValueInSpecifiedUnits(float aValue, nsSVGElement *aSVGElement,
+                                    bool aDoSetAttr);
   void SetAnimValue(float aValue, nsSVGElement *aSVGElement);
   void SetAnimValueInSpecifiedUnits(float aValue, nsSVGElement *aSVGElement);
   nsresult NewValueSpecifiedUnits(PRUint16 aUnitType, float aValue,
@@ -176,7 +181,7 @@ private:
         if (!NS_finite(aValue)) {
           return NS_ERROR_ILLEGAL_VALUE;
         }
-        mVal->SetBaseValue(aValue, mSVGElement);
+        mVal->SetBaseValue(aValue, mSVGElement, true);
         return NS_OK;
       }
 
@@ -187,7 +192,7 @@ private:
         if (!NS_finite(aValue)) {
           return NS_ERROR_ILLEGAL_VALUE;
         }
-        mVal->SetBaseValueInSpecifiedUnits(aValue, mSVGElement);
+        mVal->SetBaseValueInSpecifiedUnits(aValue, mSVGElement, true);
         return NS_OK;
       }
 

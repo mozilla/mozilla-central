@@ -206,11 +206,13 @@ static NS_DEFINE_CID(kXTFServiceCID, NS_XTFSERVICE_CID);
 #include "nsIScriptElement.h"
 #include "nsIContentViewer.h"
 #include "nsIObjectLoadingContent.h"
-
+#include "nsCCUncollectableMarker.h"
 #include "mozilla/Base64.h"
 #include "mozilla/Preferences.h"
 
 #include "nsWrapperCacheInlines.h"
+#include "nsIDOMDocumentType.h"
+#include "nsIDOMWindowUtils.h"
 #include "nsCharSeparatedTokenizer.h"
 #include "nsUnicharUtils.h"
 
@@ -220,6 +222,17 @@ using namespace mozilla::widget;
 using namespace mozilla;
 
 const char kLoadAsData[] = "loadAsData";
+
+/**
+ * Default values for the ViewportInfo structure.
+ */
+static const float    kViewportMinScale = 0.0;
+static const float    kViewportMaxScale = 10.0;
+static const PRUint32 kViewportMinWidth = 200;
+static const PRUint32 kViewportMaxWidth = 10000;
+static const PRUint32 kViewportMinHeight = 223;
+static const PRUint32 kViewportMaxHeight = 10000;
+static const PRInt32  kViewportDefaultScreenWidth = 980;
 
 static const char kJSStackContractID[] = "@mozilla.org/js/xpc/ContextStack;1";
 static NS_DEFINE_CID(kParserServiceCID, NS_PARSERSERVICE_CID);
@@ -260,7 +273,6 @@ PRUint32 nsContentUtils::sDOMNodeRemovedSuppressCount = 0;
 #endif
 nsTArray< nsCOMPtr<nsIRunnable> >* nsContentUtils::sBlockedScriptRunners = nsnull;
 PRUint32 nsContentUtils::sRunnersCountAtFirstBlocker = 0;
-PRUint32 nsContentUtils::sScriptBlockerCountWhereRunnersPrevented = 0;
 nsIInterfaceRequestor* nsContentUtils::sSameOriginChecker = nsnull;
 
 bool nsContentUtils::sIsHandlingKeyBoardEvent = false;
@@ -279,7 +291,7 @@ bool nsContentUtils::sFullScreenKeyInputRestricted = true;
 
 PRUint32 nsContentUtils::sHandlingInputTimeout = 1000;
 
-nsHtml5Parser* nsContentUtils::sHTMLFragmentParser = nsnull;
+nsHtml5StringParser* nsContentUtils::sHTMLFragmentParser = nsnull;
 nsIParser* nsContentUtils::sXMLFragmentParser = nsnull;
 nsIFragmentContentSink* nsContentUtils::sXMLFragmentSink = nsnull;
 bool nsContentUtils::sFragmentParsingActive = false;
@@ -421,6 +433,8 @@ nsContentUtils::Init()
   Preferences::AddUintVarCache(&sHandlingInputTimeout,
                                "dom.event.handling-user-input-time-limit",
                                1000);
+
+  nsGenericElement::InitCCCallbacks();
 
   sInitialized = true;
 
@@ -1729,6 +1743,18 @@ nsContentUtils::ComparePoints(nsINode* aParent1, PRInt32 aOffset1,
 
   nsINode* child1 = parents1.ElementAt(--pos1);
   return parent->IndexOf(child1) < aOffset2 ? -1 : 1;
+}
+
+/* static */
+PRInt32
+nsContentUtils::ComparePoints(nsIDOMNode* aParent1, PRInt32 aOffset1,
+                              nsIDOMNode* aParent2, PRInt32 aOffset2,
+                              bool* aDisconnected)
+{
+  nsCOMPtr<nsINode> parent1 = do_QueryInterface(aParent1);
+  nsCOMPtr<nsINode> parent2 = do_QueryInterface(aParent2);
+  NS_ENSURE_TRUE(parent1 && parent2, -1);
+  return ComparePoints(parent1, aOffset1, parent2, aOffset2);
 }
 
 inline bool
@@ -3046,7 +3072,7 @@ static
 nsresult GetEventAndTarget(nsIDocument* aDoc, nsISupports* aTarget,
                            const nsAString& aEventName,
                            bool aCanBubble, bool aCancelable,
-                           nsIDOMEvent** aEvent,
+                           bool aTrusted, nsIDOMEvent** aEvent,
                            nsIDOMEventTarget** aTargetOut)
 {
   nsCOMPtr<nsIDOMDocument> domDoc = do_QueryInterface(aDoc);
@@ -3064,7 +3090,7 @@ nsresult GetEventAndTarget(nsIDocument* aDoc, nsISupports* aTarget,
   rv = event->InitEvent(aEventName, aCanBubble, aCancelable);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  rv = privateEvent->SetTrusted(true);
+  rv = privateEvent->SetTrusted(aTrusted);
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = privateEvent->SetTarget(target);
@@ -3082,10 +3108,32 @@ nsContentUtils::DispatchTrustedEvent(nsIDocument* aDoc, nsISupports* aTarget,
                                      bool aCanBubble, bool aCancelable,
                                      bool *aDefaultAction)
 {
+  return DispatchEvent(aDoc, aTarget, aEventName, aCanBubble, aCancelable,
+                       true, aDefaultAction);
+}
+
+// static
+nsresult
+nsContentUtils::DispatchUntrustedEvent(nsIDocument* aDoc, nsISupports* aTarget,
+                                       const nsAString& aEventName,
+                                       bool aCanBubble, bool aCancelable,
+                                       bool *aDefaultAction)
+{
+  return DispatchEvent(aDoc, aTarget, aEventName, aCanBubble, aCancelable,
+                       false, aDefaultAction);
+}
+
+// static
+nsresult
+nsContentUtils::DispatchEvent(nsIDocument* aDoc, nsISupports* aTarget,
+                              const nsAString& aEventName,
+                              bool aCanBubble, bool aCancelable,
+                              bool aTrusted, bool *aDefaultAction)
+{
   nsCOMPtr<nsIDOMEvent> event;
   nsCOMPtr<nsIDOMEventTarget> target;
   nsresult rv = GetEventAndTarget(aDoc, aTarget, aEventName, aCanBubble,
-                                  aCancelable, getter_AddRefs(event),
+                                  aCancelable, aTrusted, getter_AddRefs(event),
                                   getter_AddRefs(target));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -3104,7 +3152,7 @@ nsContentUtils::DispatchChromeEvent(nsIDocument *aDoc,
   nsCOMPtr<nsIDOMEvent> event;
   nsCOMPtr<nsIDOMEventTarget> target;
   nsresult rv = GetEventAndTarget(aDoc, aTarget, aEventName, aCanBubble,
-                                  aCancelable, getter_AddRefs(event),
+                                  aCancelable, true, getter_AddRefs(event),
                                   getter_AddRefs(target));
   NS_ENSURE_SUCCESS(rv, rv);
 
@@ -3391,6 +3439,31 @@ nsContentUtils::MaybeFireNodeRemoved(nsINode* aChild, nsINode* aParent,
   }
 }
 
+PLDHashOperator
+ListenerEnumerator(PLDHashTable* aTable, PLDHashEntryHdr* aEntry,
+                   PRUint32 aNumber, void* aArg)
+{
+  EventListenerManagerMapEntry* entry =
+    static_cast<EventListenerManagerMapEntry*>(aEntry);
+  if (entry) {
+    nsINode* n = static_cast<nsINode*>(entry->mListenerManager->GetTarget());
+    if (n && n->IsInDoc() &&
+        nsCCUncollectableMarker::InGeneration(n->OwnerDoc()->GetMarkedCCGeneration())) {
+      entry->mListenerManager->UnmarkGrayJSListeners();
+    }
+  }
+  return PL_DHASH_NEXT;
+}
+
+void
+nsContentUtils::UnmarkGrayJSListenersInCCGenerationDocuments(PRUint32 aGeneration)
+{
+  if (sEventListenerManagersHash.ops) {
+    PL_DHashTableEnumerate(&sEventListenerManagersHash, ListenerEnumerator,
+                           &aGeneration);
+  }
+}
+
 /* static */
 void
 nsContentUtils::TraverseListenerManager(nsINode *aNode,
@@ -3663,18 +3736,37 @@ nsContentUtils::ParseFragmentHTML(const nsAString& aSourceBuffer,
   mozilla::AutoRestore<bool> guard(nsContentUtils::sFragmentParsingActive);
   nsContentUtils::sFragmentParsingActive = true;
   if (!sHTMLFragmentParser) {
-    sHTMLFragmentParser =
-      static_cast<nsHtml5Parser*>(nsHtml5Module::NewHtml5Parser().get());
+    NS_ADDREF(sHTMLFragmentParser = new nsHtml5StringParser());
     // Now sHTMLFragmentParser owns the object
   }
   nsresult rv =
-    sHTMLFragmentParser->ParseHtml5Fragment(aSourceBuffer,
-                                            aTargetNode,
-                                            aContextLocalName,
-                                            aContextNamespace,
-                                            aQuirks,
-                                            aPreventScriptExecution);
-  sHTMLFragmentParser->Reset();
+    sHTMLFragmentParser->ParseFragment(aSourceBuffer,
+                                       aTargetNode,
+                                       aContextLocalName,
+                                       aContextNamespace,
+                                       aQuirks,
+                                       aPreventScriptExecution);
+  return rv;
+}
+
+/* static */
+nsresult
+nsContentUtils::ParseDocumentHTML(const nsAString& aSourceBuffer,
+                                  nsIDocument* aTargetDocument)
+{
+  if (nsContentUtils::sFragmentParsingActive) {
+    NS_NOTREACHED("Re-entrant fragment parsing attempted.");
+    return NS_ERROR_DOM_INVALID_STATE_ERR;
+  }
+  mozilla::AutoRestore<bool> guard(nsContentUtils::sFragmentParsingActive);
+  nsContentUtils::sFragmentParsingActive = true;
+  if (!sHTMLFragmentParser) {
+    NS_ADDREF(sHTMLFragmentParser = new nsHtml5StringParser());
+    // Now sHTMLFragmentParser owns the object
+  }
+  nsresult rv =
+    sHTMLFragmentParser->ParseDocument(aSourceBuffer,
+                                       aTargetDocument);
   return rv;
 }
 
@@ -4400,23 +4492,10 @@ nsContentUtils::AddScriptBlocker()
 
 /* static */
 void
-nsContentUtils::AddScriptBlockerAndPreventAddingRunners()
-{
-  AddScriptBlocker();
-  if (sScriptBlockerCountWhereRunnersPrevented == 0) {
-    sScriptBlockerCountWhereRunnersPrevented = sScriptBlockerCount;
-  }
-}
-
-/* static */
-void
 nsContentUtils::RemoveScriptBlocker()
 {
   NS_ASSERTION(sScriptBlockerCount != 0, "Negative script blockers");
   --sScriptBlockerCount;
-  if (sScriptBlockerCount < sScriptBlockerCountWhereRunnersPrevented) {
-    sScriptBlockerCountWhereRunnersPrevented = 0;
-  }
   if (sScriptBlockerCount) {
     return;
   }
@@ -4450,10 +4529,6 @@ nsContentUtils::AddScriptRunner(nsIRunnable* aRunnable)
   }
 
   if (sScriptBlockerCount) {
-    if (sScriptBlockerCountWhereRunnersPrevented > 0) {
-      NS_ERROR("Adding a script runner when that is prevented!");
-      return false;
-    }
     return sBlockedScriptRunners->AppendElement(aRunnable) != nsnull;
   }
   
@@ -4514,6 +4589,198 @@ static void ProcessViewportToken(nsIDocument *aDocument,
 
 #define IS_SEPARATOR(c) ((c == '=') || (c == ',') || (c == ';') || \
                          (c == '\t') || (c == '\n') || (c == '\r'))
+
+/* static */
+ViewportInfo
+nsContentUtils::GetViewportInfo(nsIDocument *aDocument)
+{
+  ViewportInfo ret;
+  ret.defaultZoom = 1.0;
+  ret.autoSize = true;
+  ret.allowZoom = true;
+  ret.autoScale = true;
+
+  // If the docType specifies that we are on a site optimized for mobile,
+  // then we want to return specially crafted defaults for the viewport info.
+  nsCOMPtr<nsIDOMDocument>
+    domDoc(do_QueryInterface(aDocument));
+
+  nsCOMPtr<nsIDOMDocumentType> docType;
+  nsresult rv = domDoc->GetDoctype(getter_AddRefs(docType));
+  if (NS_SUCCEEDED(rv) && docType) {
+    nsAutoString docId;
+    rv = docType->GetPublicId(docId);
+    if (NS_SUCCEEDED(rv)) {
+      if ((docId.Find("WAP") != -1) ||
+          (docId.Find("Mobile") != -1) ||
+          (docId.Find("WML") != -1))
+      {
+        return ret;
+      }
+    }
+  }
+
+  if (aDocument->IsXUL()) {
+    ret.autoScale = false;
+    return ret;
+  }
+
+  nsIDOMWindow* window = aDocument->GetWindow();
+  nsCOMPtr<nsIDOMWindowUtils> windowUtils(do_GetInterface(window));
+
+  if (!windowUtils) {
+    return ret;
+  }
+
+  nsAutoString handheldFriendly;
+  aDocument->GetHeaderData(nsGkAtoms::handheldFriendly, handheldFriendly);
+
+  if (handheldFriendly.EqualsLiteral("true")) {
+    return ret;
+  }
+
+  PRInt32 errorCode;
+
+  nsAutoString minScaleStr;
+  aDocument->GetHeaderData(nsGkAtoms::minimum_scale, minScaleStr);
+
+  float scaleMinFloat = minScaleStr.ToFloat(&errorCode);
+
+  if (errorCode) {
+    scaleMinFloat = kViewportMinScale;
+  }
+
+  scaleMinFloat = NS_MIN(scaleMinFloat, kViewportMaxScale);
+  scaleMinFloat = NS_MAX(scaleMinFloat, kViewportMinScale);
+
+  nsAutoString maxScaleStr;
+  aDocument->GetHeaderData(nsGkAtoms::maximum_scale, maxScaleStr);
+
+  // We define a special error code variable for the scale and max scale,
+  // because they are used later (see the width calculations).
+  PRInt32 scaleMaxErrorCode;
+  float scaleMaxFloat = maxScaleStr.ToFloat(&scaleMaxErrorCode);
+
+  if (scaleMaxErrorCode) {
+    scaleMaxFloat = kViewportMaxScale;
+  }
+
+  scaleMaxFloat = NS_MIN(scaleMaxFloat, kViewportMaxScale);
+  scaleMaxFloat = NS_MAX(scaleMaxFloat, kViewportMinScale);
+
+  nsAutoString scaleStr;
+  aDocument->GetHeaderData(nsGkAtoms::viewport_initial_scale, scaleStr);
+
+  PRInt32 scaleErrorCode;
+  float scaleFloat = scaleStr.ToFloat(&scaleErrorCode);
+  scaleFloat = NS_MIN(scaleFloat, scaleMaxFloat);
+  scaleFloat = NS_MAX(scaleFloat, scaleMinFloat);
+
+  nsAutoString widthStr, heightStr;
+
+  aDocument->GetHeaderData(nsGkAtoms::viewport_height, heightStr);
+  aDocument->GetHeaderData(nsGkAtoms::viewport_width, widthStr);
+
+  bool autoSize = false;
+
+  if (widthStr.EqualsLiteral("device-width")) {
+    autoSize = true;
+  }
+
+  if (widthStr.IsEmpty() &&
+     (heightStr.EqualsLiteral("device-height") ||
+          scaleFloat == 1.0))
+  {
+    autoSize = true;
+  }
+
+  // XXXjwir3:
+  // See bug 706918, comment 23 for more information on this particular section
+  // of the code. We're using "screen size" in place of the size of the content
+  // area, because on mobile, these are close or equal. This will work for our
+  // purposes (bug 706198), but it will need to be changed in the future to be
+  // more correct when we bring the rest of the viewport code into platform.
+  // We actually want the size of the content area, in the event that we don't
+  // have any metadata about the width and/or height. On mobile, the screen size
+  // and the size of the content area are very close, or the same value.
+  // In XUL fennec, the content area is the size of the <browser> widget, but
+  // in native fennec, the content area is the size of the Gecko LayerView
+  // object.
+
+  // TODO:
+  // Once bug 716575 has been resolved, this code should be changed so that it
+  // does the right thing on all platforms.
+  nsresult result;
+  PRInt32 screenLeft, screenTop, screenWidth, screenHeight;
+  nsCOMPtr<nsIScreenManager> screenMgr =
+    do_GetService("@mozilla.org/gfx/screenmanager;1", &result);
+
+  nsCOMPtr<nsIScreen> screen;
+  screenMgr->GetPrimaryScreen(getter_AddRefs(screen));
+  screen->GetRect(&screenLeft, &screenTop, &screenWidth, &screenHeight);
+
+  PRUint32 width = widthStr.ToInteger(&errorCode);
+  if (errorCode) {
+    if (autoSize) {
+      width = screenWidth;
+    } else {
+      width = Preferences::GetInt("browser.viewport.desktopWidth", 0);
+    }
+  }
+
+  width = NS_MIN(width, kViewportMaxWidth);
+  width = NS_MAX(width, kViewportMinWidth);
+
+  // Also recalculate the default zoom, if it wasn't specified in the metadata,
+  // and the width is specified.
+  if (scaleStr.IsEmpty() && !widthStr.IsEmpty()) {
+    scaleFloat = NS_MAX(scaleFloat, (float)(screenWidth/width));
+  }
+
+  PRUint32 height = heightStr.ToInteger(&errorCode);
+
+  if (errorCode) {
+    height = width * ((float)screenHeight / screenWidth);
+  }
+
+  // If height was provided by the user, but width wasn't, then we should
+  // calculate the width.
+  if (widthStr.IsEmpty() && !heightStr.IsEmpty()) {
+    width = (PRUint32) ((height * screenWidth) / screenHeight);
+  }
+
+  height = NS_MIN(height, kViewportMaxHeight);
+  height = NS_MAX(height, kViewportMinHeight);
+
+  // We need to perform a conversion, but only if the initial or maximum
+  // scale were set explicitly by the user.
+  if (!scaleStr.IsEmpty() && !scaleErrorCode) {
+    width = NS_MAX(width, (PRUint32)(screenWidth / scaleFloat));
+    height = NS_MAX(height, (PRUint32)(screenHeight / scaleFloat));
+  } else if (!maxScaleStr.IsEmpty() && !scaleMaxErrorCode) {
+    width = NS_MAX(width, (PRUint32)(screenWidth / scaleMaxFloat));
+    height = NS_MAX(height, (PRUint32)(screenHeight / scaleMaxFloat));
+  }
+
+  bool allowZoom = true;
+  nsAutoString userScalable;
+  aDocument->GetHeaderData(nsGkAtoms::viewport_user_scalable, userScalable);
+
+  if ((userScalable.EqualsLiteral("0")) ||
+      (userScalable.EqualsLiteral("no")) ||
+      (userScalable.EqualsLiteral("false"))) {
+    allowZoom = false;
+  }
+
+  ret.allowZoom = allowZoom;
+  ret.width = width;
+  ret.height = height;
+  ret.defaultZoom = scaleFloat;
+  ret.minZoom = scaleMinFloat;
+  ret.maxZoom = scaleMaxFloat;
+  ret.autoSize = autoSize;
+  return ret;
+}
 
 /* static */
 nsresult
@@ -4628,11 +4895,8 @@ nsContentUtils::SetDataTransferInEvent(nsDragEvent* aDragEvent)
   }
 
   // each event should use a clone of the original dataTransfer.
-  nsCOMPtr<nsIDOMNSDataTransfer> initialDataTransferNS =
-    do_QueryInterface(initialDataTransfer);
-  NS_ENSURE_TRUE(initialDataTransferNS, NS_ERROR_FAILURE);
-  initialDataTransferNS->Clone(aDragEvent->message, aDragEvent->userCancelled,
-                               getter_AddRefs(aDragEvent->dataTransfer));
+  initialDataTransfer->Clone(aDragEvent->message, aDragEvent->userCancelled,
+                             getter_AddRefs(aDragEvent->dataTransfer));
   NS_ENSURE_TRUE(aDragEvent->dataTransfer, NS_ERROR_OUT_OF_MEMORY);
 
   // for the dragenter and dragover events, initialize the drop effect
@@ -4640,14 +4904,10 @@ nsContentUtils::SetDataTransferInEvent(nsDragEvent* aDragEvent)
   // the event is fired based on the keyboard state.
   if (aDragEvent->message == NS_DRAGDROP_ENTER ||
       aDragEvent->message == NS_DRAGDROP_OVER) {
-    nsCOMPtr<nsIDOMNSDataTransfer> newDataTransfer =
-      do_QueryInterface(aDragEvent->dataTransfer);
-    NS_ENSURE_TRUE(newDataTransfer, NS_ERROR_FAILURE);
-
     PRUint32 action, effectAllowed;
     dragSession->GetDragAction(&action);
-    newDataTransfer->GetEffectAllowedInt(&effectAllowed);
-    newDataTransfer->SetDropEffectInt(FilterDropEffect(action, effectAllowed));
+    aDragEvent->dataTransfer->GetEffectAllowedInt(&effectAllowed);
+    aDragEvent->dataTransfer->SetDropEffectInt(FilterDropEffect(action, effectAllowed));
   }
   else if (aDragEvent->message == NS_DRAGDROP_DROP ||
            aDragEvent->message == NS_DRAGDROP_DRAGDROP ||
@@ -4656,13 +4916,9 @@ nsContentUtils::SetDataTransferInEvent(nsDragEvent* aDragEvent)
     // last value that the dropEffect had. This will have been set in
     // nsEventStateManager::PostHandleEvent for the last dragenter or
     // dragover event.
-    nsCOMPtr<nsIDOMNSDataTransfer> newDataTransfer =
-      do_QueryInterface(aDragEvent->dataTransfer);
-    NS_ENSURE_TRUE(newDataTransfer, NS_ERROR_FAILURE);
-
     PRUint32 dropEffect;
-    initialDataTransferNS->GetDropEffectInt(&dropEffect);
-    newDataTransfer->SetDropEffectInt(dropEffect);
+    initialDataTransfer->GetDropEffectInt(&dropEffect);
+    aDragEvent->dataTransfer->SetDropEffectInt(dropEffect);
   }
 
   return NS_OK;
@@ -5435,8 +5691,9 @@ public:
   }
   NS_IMETHOD_(void) NoteScriptChild(PRUint32 langID, void* child)
   {
-    if (langID == nsIProgrammingLanguage::JAVASCRIPT) {
-      mFound = child == mWrapper;
+    if (langID == nsIProgrammingLanguage::JAVASCRIPT &&
+        child == mWrapper) {
+      mFound = true;
     }
   }
   NS_IMETHOD_(void) NoteXPCOMChild(nsISupports *child)
@@ -5598,9 +5855,8 @@ nsContentUtils::PlatformToDOMLineBreaks(nsString &aString)
   }
 }
 
-static already_AddRefed<LayerManager>
-LayerManagerForDocumentInternal(nsIDocument *aDoc, bool aRequirePersistent,
-                                bool* aAllowRetaining)
+nsIWidget *
+nsContentUtils::WidgetForDocument(nsIDocument *aDoc)
 {
   nsIDocument* doc = aDoc;
   nsIDocument* displayDoc = doc->GetDisplayDocument();
@@ -5635,18 +5891,26 @@ LayerManagerForDocumentInternal(nsIDocument *aDoc, bool aRequirePersistent,
       if (rootView) {
         nsIView* displayRoot = nsIViewManager::GetDisplayRootFor(rootView);
         if (displayRoot) {
-          nsIWidget* widget = displayRoot->GetNearestWidget(nsnull);
-          if (widget) {
-            nsRefPtr<LayerManager> manager =
-              widget->
-                GetLayerManager(aRequirePersistent ? nsIWidget::LAYER_MANAGER_PERSISTENT : 
-                                                     nsIWidget::LAYER_MANAGER_CURRENT,
-                                aAllowRetaining);
-            return manager.forget();
-          }
+          return displayRoot->GetNearestWidget(nsnull);
         }
       }
     }
+  }
+
+  return nsnull;
+}
+
+static already_AddRefed<LayerManager>
+LayerManagerForDocumentInternal(nsIDocument *aDoc, bool aRequirePersistent,
+                                bool* aAllowRetaining)
+{
+  nsIWidget *widget = nsContentUtils::WidgetForDocument(aDoc);
+  if (widget) {
+    nsRefPtr<LayerManager> manager =
+      widget->GetLayerManager(aRequirePersistent ? nsIWidget::LAYER_MANAGER_PERSISTENT : 
+                              nsIWidget::LAYER_MANAGER_CURRENT,
+                              aAllowRetaining);
+    return manager.forget();
   }
 
   return nsnull;

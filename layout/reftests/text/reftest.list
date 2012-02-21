@@ -45,6 +45,7 @@ fails-if(Android) skip-if(d2d||cocoaWidget) == subpixel-glyphs-x-1a.html subpixe
 # subpixel.
 # D2D/DirectWrite results depend on the rendering mode chosen, so considering this as random for now.
 skip-if(!(d2d||cocoaWidget)) random-if(d2d) != subpixel-glyphs-x-2a.html subpixel-glyphs-x-2b.html
+HTTP(..) == subpixel-glyphs-x-3a.html subpixel-glyphs-x-3b.html
 # No platforms do subpixel positioning vertically
 == subpixel-glyphs-y-1a.html subpixel-glyphs-y-1b.html
 == subpixel-lineheight-1a.html subpixel-lineheight-1b.html
@@ -134,6 +135,10 @@ random-if(!cocoaWidget) == 577380.html 577380-ref.html
 HTTP(..) == arabic-shaping-1.html arabic-shaping-1-ref.html
 # check ligature in Arial Bold on Windows, for bug 644184; may fail on other platforms depending on fonts
 random-if(!winWidget) == arial-bold-lam-alef-1.html arial-bold-lam-alef-1-ref.html
+
+== 726392-1.html 726392-1-ref.html
+== 726392-2.html 726392-2-ref.html
+== 726392-3.html 726392-3-ref.html
 
 # tests to compare graphite to opentype (will trivially pass when graphite not enabled)
 HTTP(..) == graphite-05-ot-only.html graphite-05-ref.html

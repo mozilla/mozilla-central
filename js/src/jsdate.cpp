@@ -60,7 +60,6 @@
 #include "mozilla/Util.h"
 
 #include "jstypes.h"
-#include "jsstdint.h"
 #include "jsprf.h"
 #include "prmjtime.h"
 #include "jsutil.h"
@@ -80,6 +79,7 @@
 #include "jsobjinlines.h"
 #include "jsstrinlines.h"
 
+#include "vm/MethodGuard-inl.h"
 #include "vm/Stack-inl.h"
 
 using namespace mozilla;

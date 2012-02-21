@@ -37,9 +37,16 @@
 #ifndef __NS_SVGENUM_H__
 #define __NS_SVGENUM_H__
 
+#include "nsAutoPtr.h"
+#include "nsCycleCollectionParticipant.h"
+#include "nsError.h"
 #include "nsIDOMSVGAnimatedEnum.h"
+#include "nsISMILAttr.h"
 #include "nsSVGElement.h"
-#include "nsDOMError.h"
+
+class nsIAtom;
+class nsISMILAnimationElement;
+class nsSMILValue;
 
 typedef PRUint8 nsSVGEnumValue;
 
@@ -58,11 +65,8 @@ public:
     mIsBaseSet = false;
   }
 
-  nsresult SetBaseValueString(const nsAString& aValue,
-                              nsSVGElement *aSVGElement);
-  void GetBaseValueString(nsAString& aValue,
-                          nsSVGElement *aSVGElement);
-
+  nsresult SetBaseValueAtom(const nsIAtom* aValue, nsSVGElement *aSVGElement);
+  nsIAtom* GetBaseValueAtom(nsSVGElement *aSVGElement);
   nsresult SetBaseValue(PRUint16 aValue,
                         nsSVGElement *aSVGElement);
   PRUint16 GetBaseValue() const

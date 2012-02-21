@@ -109,7 +109,6 @@ _TEST_FILES = \
 		test_bug495300.html \
 		test_bug686942.html \
 		test_can_play_type.html \
-		test_closing_connections.html \
 		test_constants.html \
 		test_controls.html \
 		test_currentTime.html \
@@ -127,6 +126,7 @@ _TEST_FILES = \
 		test_loop.html \
 		test_media_selection.html \
 		test_mozLoadFrom.html \
+		test_no_load_event.html \
 		test_networkState.html \
 		test_new_audio.html \
 		test_paused.html \
@@ -150,6 +150,7 @@ _TEST_FILES = \
 		test_source_write.html \
 		test_standalone.html \
 		test_timeupdate_small_files.html \
+		test_too_many_elements.html \
 		test_volume.html \
 		test_video_to_canvas.html \
 		use_large_cache.js \
@@ -174,6 +175,8 @@ endif
 #   test_mixed_principals.html
 # Disabled since we don't play Wave files standalone, for now
 #		test_audioDocumentTitle.html
+# Bug 634564:
+#		test_closing_connections.html \
 
 # sample files
 _TEST_FILES += \
@@ -275,6 +278,7 @@ _TEST_FILES += \
 		test_audio_event_adopt.html \
 		test_framebuffer.html \
 		test_referer.html \
+		test_bug686137.html \
 		$(NULL)
 else
 _TEST_FILES += \

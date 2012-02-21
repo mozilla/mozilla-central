@@ -397,7 +397,7 @@ gfxMacFont::GetFontTable(PRUint32 aTag)
         return hb_blob_create((const char*)::CFDataGetBytePtr(dataRef),
                               ::CFDataGetLength(dataRef),
                               HB_MEMORY_MODE_READONLY,
-                              DestroyBlobFunc, (void*)dataRef);
+                              (void*)dataRef, DestroyBlobFunc);
     }
 
     if (mFontEntry->IsUserFont() && !mFontEntry->IsLocalUserFont()) {
@@ -504,8 +504,7 @@ gfxMacFont::GetScaledFont()
     NativeFont nativeFont;
     nativeFont.mType = NATIVE_FONT_MAC_FONT_FACE;
     nativeFont.mFont = GetCGFontRef();
-    mAzureFont =
-      mozilla::gfx::Factory::CreateScaledFontForNativeFont(nativeFont, GetAdjustedSize());
+    mAzureFont = mozilla::gfx::Factory::CreateScaledFontWithCairo(nativeFont, GetAdjustedSize(), mScaledFont);
   }
 
   return mAzureFont;

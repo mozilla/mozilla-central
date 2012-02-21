@@ -249,8 +249,7 @@ stubs::FixupArity(VMFrame &f, uint32_t nactual)
     /*
      * Grossssss! *move* the stack frame. If this ends up being perf-critical,
      * we can figure out how to spot-optimize it. Be careful to touch only the
-     * members that have been initialized by initJitFrameCallerHalf and the
-     * early prologue.
+     * members that have been initialized by the caller and early prologue.
      */
     InitialFrameFlags initial = oldfp->initialFlags();
     JSFunction *fun           = oldfp->fun();
@@ -547,10 +546,10 @@ js_InternalThrow(VMFrame &f)
                 switch (st) {
                 case JSTRAP_ERROR:
                     cx->clearPendingException();
-                    return NULL;
+                    break;
 
                 case JSTRAP_CONTINUE:
-                  break;
+                    break;
 
                 case JSTRAP_RETURN:
                     cx->clearPendingException();
@@ -626,7 +625,7 @@ js_InternalThrow(VMFrame &f)
      */
     if (cx->isExceptionPending()) {
         JS_ASSERT(JSOp(*pc) == JSOP_ENTERBLOCK);
-        StaticBlockObject &blockObj = script->getObject(GET_SLOTNO(pc))->asStaticBlock();
+        StaticBlockObject &blockObj = script->getObject(GET_UINT32_INDEX(pc))->asStaticBlock();
         Value *vp = cx->regs().sp + blockObj.slotCount();
         SetValueRangeToUndefined(cx->regs().sp, vp);
         cx->regs().sp = vp;
@@ -870,11 +869,6 @@ js_InternalInterpret(void *returnData, void *returnType, void *returnReg, js::VM
 
       case REJOIN_FALLTHROUGH:
         f.regs.pc = nextpc;
-        break;
-
-      case REJOIN_JUMP:
-        f.regs.pc = (jsbytecode *) returnReg;
-        JS_ASSERT(unsigned(f.regs.pc - script->code) < script->length);
         break;
 
       case REJOIN_NATIVE:

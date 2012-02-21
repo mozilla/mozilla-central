@@ -1989,7 +1989,6 @@ panel[dimmed="true"] {
 
 #inspector-toolbar[treepanel-open] {
   padding-top: 0;
-  -moz-padding-end: 0;
 }
 
 #devtools-side-splitter {
@@ -2007,50 +2006,31 @@ panel[dimmed="true"] {
   background-color: -moz-Field;
 }
 
-/* Highlighter - toolbar resizers */
-
-.inspector-resizer {
-  -moz-appearance: none;
-  cursor: n-resize;
-}
+/* Highlighter - toolbar resizer */
 
 #inspector-top-resizer {
+  -moz-appearance: none;
+  cursor: n-resize;
   background: none;
   height: 4px;
-}
-
-#inspector-end-resizer {
-  width: 12px;
-  height: 8px;
-  background-image: -moz-linear-gradient(top, black 1px, rgba(255,255,255,0.2) 1px);
-  background-size: 10px 2px;
-  background-clip: padding-box;
-  background-repeat: repeat-y;
-  border-width: 1px 1px 0;
-  border-style: solid;
-  border-color: rgba(255, 255, 255, 0.05);
-  margin: 7px 7px 8px;
 }
 
 /* Highlighter - Node Infobar */
 
 /* Highlighter - Node Infobar - text */
 
-#highlighter-nodeinfobar-tagname {
+html|*#highlighter-nodeinfobar-tagname {
   color: white;
 }
 
-#highlighter-nodeinfobar-id {
+html|*#highlighter-nodeinfobar-id {
   color: hsl(90, 79%, 52%);
-}
-
-.highlighter-nodeinfobar-class {
-  color: hsl(200, 100%, 65%);
 }
 
 /* Highlighter - Node Infobar - box & arrow */
 
 #highlighter-nodeinfobar {
+  color: hsl(200, 100%, 65%);
   border: 1px solid hsla(210, 19%, 63%, .5);
   border-radius: 3px;
   padding: 8px 16px;
@@ -2121,6 +2101,11 @@ panel[dimmed="true"] {
      This negative margin compensate the extra row of pixels created
      by the shadow.*/
   margin-bottom: -1px;
+}
+
+#inspector-breadcrumbs > .scrollbutton-up,
+#inspector-breadcrumbs > .scrollbutton-down {
+  -moz-appearance: none;
 }
 
 .inspector-breadcrumbs-button {

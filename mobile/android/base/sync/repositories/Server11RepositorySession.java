@@ -44,6 +44,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.json.simple.JSONArray;
 import org.mozilla.gecko.sync.CryptoRecord;
@@ -82,7 +83,7 @@ public class Server11RepositorySession extends RepositorySession {
     }
   }
 
-  public static final String LOG_TAG = "Server11RepositorySession";
+  public static final String LOG_TAG = "Server11Session";
 
   private static final int UPLOAD_BYTE_THRESHOLD = 1024 * 1024;    // 1MB.
   private static final int UPLOAD_ITEM_THRESHOLD = 50;
@@ -186,6 +187,20 @@ public class Server11RepositorySession extends RepositorySession {
 
 
   Server11Repository serverRepository;
+  AtomicLong uploadTimestamp = new AtomicLong(0);
+
+  private void bumpUploadTimestamp(long ts) {
+    while (true) {
+      long existing = uploadTimestamp.get();
+      if (existing > ts) {
+        return;
+      }
+      if (uploadTimestamp.compareAndSet(existing, ts)) {
+        return;
+      }
+    }
+  }
+
   public Server11RepositorySession(Repository repository) {
     super(repository);
     serverRepository = (Server11Repository) repository;
@@ -214,21 +229,34 @@ public class Server11RepositorySession extends RepositorySession {
   }
 
   protected void fetchWithParameters(long newer,
+                                     long limit,
                                      boolean full,
+                                     String sort,
                                      String ids,
-                                     SyncStorageRequestDelegate delegate) throws URISyntaxException {
+                                     SyncStorageRequestDelegate delegate)
+                                         throws URISyntaxException {
 
-    URI collectionURI = serverRepository.collectionURI(full, newer, ids);
+    URI collectionURI = serverRepository.collectionURI(full, newer, limit, sort, ids);
     SyncStorageCollectionRequest request = new SyncStorageCollectionRequest(collectionURI);
     request.delegate = delegate;
     request.get();
+  }
+
+  public void fetchSince(long timestamp, long limit, String sort, RepositorySessionFetchRecordsDelegate delegate) {
+    try {
+      this.fetchWithParameters(timestamp, limit, true, sort, null, new RequestFetchDelegateAdapter(delegate));
+    } catch (URISyntaxException e) {
+      delegate.onFetchFailed(e, null);
+    }
   }
 
   @Override
   public void fetchSince(long timestamp,
                          RepositorySessionFetchRecordsDelegate delegate) {
     try {
-      this.fetchWithParameters(timestamp, true, null, new RequestFetchDelegateAdapter(delegate));
+      long limit = serverRepository.getDefaultFetchLimit();
+      String sort = serverRepository.getDefaultSort();
+      this.fetchWithParameters(timestamp, limit, true, sort, null, new RequestFetchDelegateAdapter(delegate));
     } catch (URISyntaxException e) {
       delegate.onFetchFailed(e, null);
     }
@@ -245,7 +273,7 @@ public class Server11RepositorySession extends RepositorySession {
     // TODO: watch out for URL length limits!
     try {
       String ids = flattenIDs(guids);
-      this.fetchWithParameters(-1, true, ids, new RequestFetchDelegateAdapter(delegate));
+      this.fetchWithParameters(-1, -1, true, "index", ids, new RequestFetchDelegateAdapter(delegate));
     } catch (URISyntaxException e) {
       delegate.onFetchFailed(e, null);
     }
@@ -307,7 +335,7 @@ public class Server11RepositorySession extends RepositorySession {
   public void storeDone() {
     synchronized (recordsBufferMonitor) {
       flush();
-      super.storeDone();
+      storeDone(uploadTimestamp.get());
     }
   }
 
@@ -366,6 +394,10 @@ public class Server11RepositorySession extends RepositorySession {
             (success.size() > 0)) {
           Log.d(LOG_TAG, "Successful records: " + success.toString());
           // TODO: how do we notify without the whole record?
+
+          long ts = response.normalizedWeaveTimestamp();
+          Log.d(LOG_TAG, "Passing back upload X-Weave-Timestamp: " + ts);
+          bumpUploadTimestamp(ts);
         }
         if ((failed != null) &&
             (failed.object.size() > 0)) {

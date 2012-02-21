@@ -48,6 +48,7 @@
 #include "nsRenderingContext.h"
 #include "gfxRect.h"
 #include "gfxMatrix.h"
+#include "nsStyleStruct.h"
 
 class nsIDocument;
 class nsPresContext;
@@ -100,6 +101,9 @@ class Element;
 
 // If this bit is set, we are a <clipPath> element or descendant.
 #define NS_STATE_SVG_CLIPPATH_CHILD              NS_FRAME_STATE_BIT(23)
+
+// If this bit is set, redraw is suspended.
+#define NS_STATE_SVG_REDRAW_SUSPENDED            NS_FRAME_STATE_BIT(24)
 
 /**
  * Byte offsets of channels in a native packed gfxColor or cairo image surface.
@@ -326,9 +330,10 @@ public:
   static void InvalidateCoveredRegion(nsIFrame *aFrame);
 
   /*
-   * Update the area covered by the frame
+   * Update the area covered by the frame allowing for the frame to
+   * have moved.
    */
-  static void UpdateGraphic(nsISVGChildFrame *aSVGFrame);
+  static void UpdateGraphic(nsIFrame *aFrame);
 
   /*
    * Update the filter invalidation region for ancestor frames, if relevant.
@@ -424,19 +429,37 @@ public:
   NotifyChildrenOfSVGChange(nsIFrame *aFrame, PRUint32 aFlags);
 
   /*
+   * Tells child frames that redraw is suspended
+   */
+  static void
+  NotifyRedrawSuspended(nsIFrame *aFrame);
+
+  /*
+   * Tells child frames that redraw is no longer suspended
+   * @return true if any of the child frames are dirty
+   */
+  static void
+  NotifyRedrawUnsuspended(nsIFrame *aFrame);
+
+  /*
    * Get frame's covered region by walking the children and doing union.
    */
   static nsRect
   GetCoveredRegion(const nsFrameList &aFrames);
 
-  /*
-   * Convert a rect from device pixel units to app pixel units by inflation.
-   */
+  // Converts aPoint from an app unit point in outer-<svg> content rect space
+  // to an app unit point in a frame's SVG userspace. 
+  // This is a temporary helper we should no longer need after bug 614732 is
+  // fixed.
+  static nsPoint
+  TransformOuterSVGPointToChildFrame(nsPoint aPoint,
+                                     const gfxMatrix& aFrameToCanvasTM,
+                                     nsPresContext* aPresContext);
+
   static nsRect
-  ToAppPixelRect(nsPresContext *aPresContext,
-                 double xmin, double ymin, double xmax, double ymax);
-  static nsRect
-  ToAppPixelRect(nsPresContext *aPresContext, const gfxRect& rect);
+  TransformFrameRectToOuterSVG(const nsRect& aRect,
+                               const gfxMatrix& aMatrix,
+                               nsPresContext* aPresContext);
 
   /*
    * Convert a surface size to an integer for use by thebes
@@ -563,9 +586,11 @@ public:
    * This should die once bug 478152 is fixed.
    */
   static gfxRect PathExtentsToMaxStrokeExtents(const gfxRect& aPathExtents,
-                                               nsSVGGeometryFrame* aFrame);
+                                               nsSVGGeometryFrame* aFrame,
+                                               const gfxMatrix& aMatrix);
   static gfxRect PathExtentsToMaxStrokeExtents(const gfxRect& aPathExtents,
-                                               nsSVGPathGeometryFrame* aFrame);
+                                               nsSVGPathGeometryFrame* aFrame,
+                                               const gfxMatrix& aMatrix);
 
   /**
    * Convert a floating-point value to a 32-bit integer value, clamping to
@@ -586,6 +611,11 @@ public:
    * builds, it will trigger a false return-value as a safe fallback.)
    */
   static bool RootSVGElementHasViewbox(const nsIContent *aRootSVGElem);
+
+  static void GetFallbackOrPaintColor(gfxContext *aContext,
+                                      nsStyleContext *aStyleContext,
+                                      nsStyleSVGPaint nsStyleSVG::*aFillOrStroke,
+                                      float *aOpacity, nscolor *color);
 };
 
 #endif

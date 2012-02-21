@@ -93,7 +93,7 @@ nsIDOMWebGLRenderingContext_BufferData(JSContext *cx, uintN argc, jsval *vp)
     nsIDOMWebGLRenderingContext *self;
     xpc_qsSelfRef selfref;
     JS::AutoValueRooter tvr(cx);
-    if (!xpc_qsUnwrapThis(cx, obj, nsnull, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
+    if (!xpc_qsUnwrapThis(cx, obj, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
         return JS_FALSE;
 
     if (argc < 3)
@@ -166,7 +166,7 @@ nsIDOMWebGLRenderingContext_BufferSubData(JSContext *cx, uintN argc, jsval *vp)
     nsIDOMWebGLRenderingContext *self;
     xpc_qsSelfRef selfref;
     JS::AutoValueRooter tvr(cx);
-    if (!xpc_qsUnwrapThis(cx, obj, nsnull, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
+    if (!xpc_qsUnwrapThis(cx, obj, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
         return JS_FALSE;
 
     if (argc < 3)
@@ -224,6 +224,107 @@ nsIDOMWebGLRenderingContext_BufferSubData(JSContext *cx, uintN argc, jsval *vp)
 }
 
 /*
+ * CompressedTexImage2D takes:
+ *    CompressedTexImage2D(uint, int, uint, int, int, int, ArrayBufferView)
+ */
+static JSBool
+nsIDOMWebGLRenderingContext_CompressedTexImage2D(JSContext *cx, uintN argc, jsval *vp)
+{
+    XPC_QS_ASSERT_CONTEXT_OK(cx);
+    JSObject *obj = JS_THIS_OBJECT(cx, vp);
+    if (!obj)
+        return JS_FALSE;
+
+    nsresult rv;
+
+    nsIDOMWebGLRenderingContext *self;
+    xpc_qsSelfRef selfref;
+    JS::AutoValueRooter tvr(cx);
+    if (!xpc_qsUnwrapThis(cx, obj, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
+        return JS_FALSE;
+
+    if (argc != 7)
+        return xpc_qsThrow(cx, NS_ERROR_XPC_NOT_ENOUGH_ARGS);
+
+    jsval *argv = JS_ARGV(cx, vp);
+
+    GET_UINT32_ARG(argv0, 0);
+    GET_INT32_ARG(argv1, 1);
+    GET_UINT32_ARG(argv2, 2);
+    GET_INT32_ARG(argv3, 3);
+    GET_INT32_ARG(argv4, 4);
+    GET_INT32_ARG(argv5, 5);
+
+    if (!JSVAL_IS_PRIMITIVE(argv[6])) {
+        JSObject* argv6 = JSVAL_TO_OBJECT(argv[6]);
+        if (js_IsTypedArray(argv6)) {
+            rv = self->CompressedTexImage2D_array(argv0, argv1, argv2, argv3, argv4, argv5,
+                                                  js::TypedArray::getTypedArray(argv6));
+        } else {
+            xpc_qsThrowBadArg(cx, NS_ERROR_FAILURE, vp, 6);
+            return JS_FALSE;
+        }
+    } else {
+        xpc_qsThrow(cx, NS_ERROR_FAILURE);
+        return JS_FALSE;
+    }
+
+    *vp = JSVAL_VOID;
+    return JS_TRUE;
+}
+
+/*
+ * CompressedTexSubImage2D takes:
+ *    CompressedTexSubImage2D(uint, int, int, int, int, int, uint, ArrayBufferView)
+ */
+static JSBool
+nsIDOMWebGLRenderingContext_CompressedTexSubImage2D(JSContext *cx, uintN argc, jsval *vp)
+{
+    XPC_QS_ASSERT_CONTEXT_OK(cx);
+    JSObject *obj = JS_THIS_OBJECT(cx, vp);
+    if (!obj)
+        return JS_FALSE;
+
+    nsresult rv;
+
+    nsIDOMWebGLRenderingContext *self;
+    xpc_qsSelfRef selfref;
+    JS::AutoValueRooter tvr(cx);
+    if (!xpc_qsUnwrapThis(cx, obj, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
+        return JS_FALSE;
+
+    if (argc != 7)
+        return xpc_qsThrow(cx, NS_ERROR_XPC_NOT_ENOUGH_ARGS);
+
+    jsval *argv = JS_ARGV(cx, vp);
+
+    GET_UINT32_ARG(argv0, 0);
+    GET_INT32_ARG(argv1, 1);
+    GET_INT32_ARG(argv2, 2);
+    GET_INT32_ARG(argv3, 3);
+    GET_INT32_ARG(argv4, 4);
+    GET_INT32_ARG(argv5, 5);
+    GET_UINT32_ARG(argv6, 6);
+
+    if (!JSVAL_IS_PRIMITIVE(argv[7])) {
+        JSObject* argv7 = JSVAL_TO_OBJECT(argv[7]);
+        if (js_IsTypedArray(argv7)) {
+            rv = self->CompressedTexSubImage2D_array(argv0, argv1, argv2, argv3, argv4, argv5,
+                                                     argv6, js::TypedArray::getTypedArray(argv7));
+        } else {
+            xpc_qsThrowBadArg(cx, NS_ERROR_FAILURE, vp, 7);
+            return JS_FALSE;
+        }
+    } else {
+        xpc_qsThrow(cx, NS_ERROR_FAILURE);
+        return JS_FALSE;
+    }
+
+    *vp = JSVAL_VOID;
+    return JS_TRUE;
+}
+
+/*
  * ReadPixels takes:
  *    ReadPixels(int, int, int, int, uint, uint, ArrayBufferView)
  */
@@ -240,7 +341,7 @@ nsIDOMWebGLRenderingContext_ReadPixels(JSContext *cx, uintN argc, jsval *vp)
     nsIDOMWebGLRenderingContext *self;
     xpc_qsSelfRef selfref;
     JS::AutoValueRooter tvr(cx);
-    if (!xpc_qsUnwrapThis(cx, obj, nsnull, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
+    if (!xpc_qsUnwrapThis(cx, obj, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
         return JS_FALSE;
 
     if (argc < 7)
@@ -300,7 +401,7 @@ nsIDOMWebGLRenderingContext_TexImage2D(JSContext *cx, uintN argc, jsval *vp)
     nsIDOMWebGLRenderingContext *self;
     xpc_qsSelfRef selfref;
     JS::AutoValueRooter tvr(cx);
-    if (!xpc_qsUnwrapThis(cx, obj, nsnull, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
+    if (!xpc_qsUnwrapThis(cx, obj, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
         return JS_FALSE;
 
     if (argc < 6 || argc == 7 || argc == 8)
@@ -344,7 +445,7 @@ nsIDOMWebGLRenderingContext_TexImage2D(JSContext *cx, uintN argc, jsval *vp)
             JS_GetProperty(cx, argv5, "data", &js_data);
             if (js_width  == JSVAL_VOID ||
                 js_height == JSVAL_VOID ||
-                js_data   == JSVAL_VOID)
+                !js_data.isObject())
             {
                 xpc_qsThrowBadArg(cx, NS_ERROR_FAILURE, vp, 5);
                 return JS_FALSE;
@@ -421,7 +522,7 @@ nsIDOMWebGLRenderingContext_TexSubImage2D(JSContext *cx, uintN argc, jsval *vp)
     nsIDOMWebGLRenderingContext *self;
     xpc_qsSelfRef selfref;
     JS::AutoValueRooter tvr(cx);
-    if (!xpc_qsUnwrapThis(cx, obj, nsnull, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
+    if (!xpc_qsUnwrapThis(cx, obj, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
         return JS_FALSE;
 
     if (argc < 7 || argc == 8)
@@ -465,7 +566,7 @@ nsIDOMWebGLRenderingContext_TexSubImage2D(JSContext *cx, uintN argc, jsval *vp)
             JS_GetProperty(cx, argv6, "data", &js_data);
             if (js_width  == JSVAL_VOID ||
                 js_height == JSVAL_VOID ||
-                js_data   == JSVAL_VOID)
+                !js_data.isObject())
             {
                 xpc_qsThrowBadArg(cx, NS_ERROR_FAILURE, vp, 6);
                 return JS_FALSE;
@@ -532,7 +633,7 @@ helper_nsIDOMWebGLRenderingContext_Uniform_x_iv(JSContext *cx, uintN argc, jsval
     nsIDOMWebGLRenderingContext *self;
     xpc_qsSelfRef selfref;
     JS::AutoValueRooter tvr(cx);
-    if (!xpc_qsUnwrapThis(cx, obj, nsnull, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
+    if (!xpc_qsUnwrapThis(cx, obj, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
         return JS_FALSE;
 
     if (argc < 2)
@@ -606,7 +707,7 @@ helper_nsIDOMWebGLRenderingContext_Uniform_x_fv(JSContext *cx, uintN argc, jsval
     nsIDOMWebGLRenderingContext *self;
     xpc_qsSelfRef selfref;
     JS::AutoValueRooter tvr(cx);
-    if (!xpc_qsUnwrapThis(cx, obj, nsnull, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
+    if (!xpc_qsUnwrapThis(cx, obj, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
         return JS_FALSE;
 
     if (argc < 2)
@@ -678,7 +779,7 @@ helper_nsIDOMWebGLRenderingContext_UniformMatrix_x_fv(JSContext *cx, uintN argc,
     nsIDOMWebGLRenderingContext *self;
     xpc_qsSelfRef selfref;
     JS::AutoValueRooter tvr(cx);
-    if (!xpc_qsUnwrapThis(cx, obj, nsnull, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
+    if (!xpc_qsUnwrapThis(cx, obj, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
         return JS_FALSE;
 
     if (argc < 3)
@@ -751,7 +852,7 @@ helper_nsIDOMWebGLRenderingContext_VertexAttrib_x_fv(JSContext *cx, uintN argc, 
     nsIDOMWebGLRenderingContext *self;
     xpc_qsSelfRef selfref;
     JS::AutoValueRooter tvr(cx);
-    if (!xpc_qsUnwrapThis(cx, obj, nsnull, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
+    if (!xpc_qsUnwrapThis(cx, obj, &self, &selfref.ptr, tvr.jsval_addr(), nsnull))
         return JS_FALSE;
 
     if (argc < 2)

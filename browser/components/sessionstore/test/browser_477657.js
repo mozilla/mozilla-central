@@ -36,11 +36,6 @@
 
 function test() {
   /** Test for Bug 477657 **/
-
-  // Test fails randomly on OS X (bug 482975)
-  if ("nsILocalFileMac" in Ci)
-    return;
-
   waitForExplicitFinish();
   
   let newWin = openDialog(location, "_blank", "chrome,all,dialog=no");
@@ -64,8 +59,8 @@ function test() {
        "window value was set before the window was overwritten");
     ss.setWindowState(newWin, JSON.stringify(newState), true);
 
-    // use setTimeout(..., 0) to mirror sss_restoreWindowFeatures
-    setTimeout(function() {
+    // use newWin.setTimeout(..., 0) to mirror sss_restoreWindowFeatures
+    newWin.setTimeout(function() {
       is(ss.getWindowValue(newWin, uniqueKey), "",
          "window value was implicitly cleared");
 
@@ -78,7 +73,7 @@ function test() {
       delete newState.windows[0].sizemode;
       ss.setWindowState(newWin, JSON.stringify(newState), true);
 
-      setTimeout(function() {
+      newWin.setTimeout(function() {
         is(JSON.parse(ss.getClosedTabData(newWin)).length, 0,
            "closed tabs were implicitly cleared");
 
@@ -87,7 +82,7 @@ function test() {
         newState.windows[0].sizemode = "normal";
         ss.setWindowState(newWin, JSON.stringify(newState), true);
 
-        setTimeout(function() {
+        newWin.setTimeout(function() {
           isnot(newWin.windowState, newWin.STATE_MAXIMIZED,
                 "the window was explicitly unmaximized");
 

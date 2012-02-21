@@ -44,6 +44,7 @@
 #define mozilla_GuardObjects_h
 
 #include "mozilla/Assertions.h"
+#include "mozilla/Types.h"
 
 #ifdef __cplusplus
 
@@ -99,7 +100,7 @@ namespace detail {
  * For more details, and examples of using these macros, see
  * https://developer.mozilla.org/en/Using_RAII_classes_in_Mozilla
  */
-class GuardObjectNotifier
+class MOZ_EXPORT_API(GuardObjectNotifier)
 {
   private:
     bool* statementDone;
@@ -116,7 +117,7 @@ class GuardObjectNotifier
     }
 };
 
-class GuardObjectNotificationReceiver
+class MOZ_EXPORT_API(GuardObjectNotificationReceiver)
 {
   private:
     bool statementDone;
@@ -162,6 +163,8 @@ class GuardObjectNotificationReceiver
      , const mozilla::detail::GuardObjectNotifier& _notifier
 #  define MOZ_GUARD_OBJECT_NOTIFIER_PARAM_TO_PARENT \
      , _notifier
+#  define MOZ_GUARD_OBJECT_NOTIFIER_ONLY_PARAM_TO_PARENT \
+       _notifier
 #  define MOZ_GUARD_OBJECT_NOTIFIER_INIT \
      do { _mCheckNotUsedAsTemporary.init(_notifier); } while (0)
 #else
@@ -169,6 +172,7 @@ class GuardObjectNotificationReceiver
 #  define MOZ_GUARD_OBJECT_NOTIFIER_PARAM
 #  define MOZ_GUARD_OBJECT_NOTIFIER_ONLY_PARAM
 #  define MOZ_GUARD_OBJECT_NOTIFIER_PARAM_IN_IMPL
+#  define MOZ_GUARD_OBJECT_NOTIFIER_ONLY_PARAM_TO_PARENT
 #  define MOZ_GUARD_OBJECT_NOTIFIER_PARAM_TO_PARENT
 #  define MOZ_GUARD_OBJECT_NOTIFIER_INIT do { } while (0)
 #endif

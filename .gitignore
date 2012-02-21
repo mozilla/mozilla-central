@@ -23,7 +23,7 @@ ID
 security/manager/.nss.checkout
 
 # Build directories
-obj*/
+/obj*/
 
 # Build directories for js shell
 */_DBG.OBJ/
@@ -41,7 +41,7 @@ parser/html/java/htmlparser/
 parser/html/java/javaparser/
 
 # Ignore the files and directory that Eclipse IDE creates
-/.project
-/.cproject
-/.settings/
+.project
+.cproject
+.settings/
 

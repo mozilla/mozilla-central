@@ -37,8 +37,10 @@
 
 package org.mozilla.gecko.gfx;
 
+import android.graphics.Point;
 import android.graphics.Rect;
 import android.graphics.RectF;
+import android.graphics.Region;
 import android.opengl.GLES20;
 import android.util.Log;
 import javax.microedition.khronos.opengles.GL10;
@@ -145,8 +147,9 @@ public abstract class TileLayer extends Layer {
     protected boolean performUpdates(GL10 gl, RenderContext context) {
         super.performUpdates(gl, context);
 
-        if (mSkipTextureUpdate)
+        if (mSkipTextureUpdate) {
             return false;
+        }
 
         // Reallocate the texture if the size has changed
         validateTexture(gl);
@@ -156,10 +159,11 @@ public abstract class TileLayer extends Layer {
             return true;
 
         // If we haven't allocated a texture, assume the whole region is dirty
-        if (mTextureIDs == null)
+        if (mTextureIDs == null) {
             uploadFullTexture(gl);
-        else
+        } else {
             uploadDirtyRect(gl, mDirtyRect);
+        }
 
         mDirtyRect.setEmpty();
 
@@ -199,13 +203,13 @@ public abstract class TileLayer extends Layer {
 
         if (newlyCreated || dirtyRect.contains(bufferRect)) {
             if (mSize.equals(bufferSize)) {
-                gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, glInfo.internalFormat, mSize.width, mSize.height,
+                gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, glInfo.internalFormat, mSize.width, mSize.height,
                                 0, glInfo.format, glInfo.type, imageBuffer);
                 return;
             } else {
-                gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, glInfo.internalFormat, mSize.width, mSize.height,
+                gl.glTexImage2D(GL10.GL_TEXTURE_2D, 0, glInfo.internalFormat, mSize.width, mSize.height,
                                 0, glInfo.format, glInfo.type, null);
-                gl.glTexSubImage2D(gl.GL_TEXTURE_2D, 0, 0, 0, bufferSize.width, bufferSize.height,
+                gl.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, 0, bufferSize.width, bufferSize.height,
                                    glInfo.format, glInfo.type, imageBuffer);
                 return;
             }
@@ -213,8 +217,9 @@ public abstract class TileLayer extends Layer {
 
         // Make sure that the dirty region intersects with the buffer rect,
         // otherwise we'll end up with an invalid buffer pointer.
-        if (!Rect.intersects(dirtyRect, bufferRect))
+        if (!Rect.intersects(dirtyRect, bufferRect)) {
             return;
+        }
 
         /*
          * Upload the changed rect. We have to widen to the full width of the texture
@@ -232,7 +237,7 @@ public abstract class TileLayer extends Layer {
         }
 
         viewBuffer.position(position);
-        gl.glTexSubImage2D(gl.GL_TEXTURE_2D, 0, 0, dirtyRect.top, bufferSize.width,
+        gl.glTexSubImage2D(GL10.GL_TEXTURE_2D, 0, 0, dirtyRect.top, bufferSize.width,
                            Math.min(bufferSize.height - dirtyRect.top, dirtyRect.height()),
                            glInfo.format, glInfo.type, viewBuffer);
     }

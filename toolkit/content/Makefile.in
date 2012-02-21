@@ -77,19 +77,21 @@ ifeq (http,$(patsubst http%,http,$(SOURCE_REPO)))
 DEFINES += -DSOURCE_REPO="$(SOURCE_REPO)"
 endif
 
+BUILD_HOSTNAME = $(shell hostname -s || hostname)
+DEFINES += -DBUILD_HOSTNAME="$(BUILD_HOSTNAME)"
+
 ifdef MOZ_TOOLKIT_SEARCH
 DEFINES += -DMOZ_TOOLKIT_SEARCH
 endif
 
-ifdef ENABLE_TESTS
-DIRS += tests
-endif
+TEST_DIRS += tests
 
 EXTRA_JS_MODULES = \
   Geometry.jsm \
   InlineSpellChecker.jsm \
   PopupNotifications.jsm \
   Dict.jsm \
+  PropertyListUtils.jsm \
   $(NULL)
 
 EXTRA_PP_JS_MODULES = \

@@ -39,12 +39,13 @@
 
 #ifdef USE_CAIRO
 #include "DrawTargetCairo.h"
-#include "ScaledFontCairo.h"
+#include "ScaledFontBase.h"
 #endif
 
 #ifdef USE_SKIA
 #include "DrawTargetSkia.h"
 #include "ScaledFontBase.h"
+#include "ScaledFontFreetype.h"
 #endif
 
 #ifdef WIN32
@@ -97,7 +98,7 @@ Factory::CreateDrawTarget(BackendType aBackend, const IntSize &aSize, SurfaceFor
       }
       break;
     }
-#elif defined XP_MACOSX || defined ANDROID
+#elif defined XP_MACOSX || defined ANDROID || defined LINUX
 #ifdef USE_SKIA
   case BACKEND_SKIA:
     {
@@ -156,17 +157,35 @@ Factory::CreateScaledFontForNativeFont(const NativeFont &aNativeFont, Float aSiz
 #endif
   case NATIVE_FONT_SKIA_FONT_FACE:
     {
-      return new ScaledFontBase(static_cast<gfxFont*>(aNativeFont.mFont), aSize);
+      return new ScaledFontFreetype(static_cast<gfxFont*>(aNativeFont.mFont), aSize);
     }
 #endif
+#ifdef USE_CAIRO
   case NATIVE_FONT_CAIRO_FONT_FACE:
     {
-      return new ScaledFontCairo(static_cast<gfxFont*>(aNativeFont.mFont));
+      return new ScaledFontBase(aSize);
     }
+#endif
   default:
     gfxWarning() << "Invalid native font type specified.";
     return NULL;
   }
+}
+
+TemporaryRef<ScaledFont>
+Factory::CreateScaledFontWithCairo(const NativeFont& aNativeFont, Float aSize, cairo_scaled_font_t* aScaledFont)
+{
+#ifdef USE_CAIRO
+  // In theory, we could pull the NativeFont out of the cairo_scaled_font_t*,
+  // but that would require a lot of code that would be otherwise repeated in
+  // various backends.
+  // Therefore, we just reuse CreateScaledFontForNativeFont's implementation.
+  RefPtr<ScaledFont> font = CreateScaledFontForNativeFont(aNativeFont, aSize);
+  static_cast<ScaledFontBase*>(font.get())->SetCairoScaledFont(aScaledFont);
+  return font;
+#else
+  return NULL;
+#endif
 }
 
 #ifdef WIN32

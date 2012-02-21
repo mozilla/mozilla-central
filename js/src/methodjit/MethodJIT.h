@@ -309,9 +309,6 @@ enum RejoinState {
     /* State is coherent for the start of the next (fallthrough) bytecode. */
     REJOIN_FALLTHROUGH,
 
-    /* State is coherent for the start of the bytecode returned by the call. */
-    REJOIN_JUMP,
-
     /*
      * As for REJOIN_FALLTHROUGH, but holds a reference on the compartment's
      * orphaned native pools which needs to be reclaimed by InternalInterpret.
@@ -405,7 +402,7 @@ struct RecompilationMonitor
     unsigned frameExpansions;
 
     /* If a GC occurs it may discard jit code on the stack. */
-    unsigned gcNumber;
+    uint64_t gcNumber;
 
     RecompilationMonitor(JSContext *cx)
         : cx(cx),
@@ -476,7 +473,7 @@ class JaegerCompartment {
     void Finish();
 
   public:
-    bool Initialize();
+    bool Initialize(JSContext *cx);
 
     JaegerCompartment();
     ~JaegerCompartment() { Finish(); }
@@ -722,8 +719,8 @@ struct JITChunk
 
     void nukeScriptDependentICs();
 
-    /* |mallocSizeOf| can be NULL here, in which case the fallback size computation will be used. */
-    size_t scriptDataSize(JSMallocSizeOfFun mallocSizeOf);
+    size_t computedSizeOfIncludingThis();
+    size_t sizeOfIncludingThis(JSMallocSizeOfFun mallocSizeOf);
 
     ~JITChunk();
 
@@ -763,6 +760,14 @@ struct CrossChunkEdge
     /* Locations of the jump(s) for the source, NULL if not compiled. */
     void *sourceJump1;
     void *sourceJump2;
+
+#ifdef JS_CPU_X64
+    /*
+     * Location of a trampoline for the edge to perform an indirect jump if
+     * out of range, NULL if the source is not compiled.
+     */
+    void *sourceTrampoline;
+#endif
 
     /* Any jump table entries along this edge. */
     typedef Vector<void**,4,SystemAllocPolicy> JumpTableEntryVector;
@@ -845,7 +850,7 @@ struct JITScript
 
     jsbytecode *nativeToPC(void *returnAddress, CallSite **pinline);
 
-    size_t scriptDataSize(JSMallocSizeOfFun mallocSizeOf);
+    size_t sizeOfIncludingThis(JSMallocSizeOfFun mallocSizeOf);
 
     void destroy(JSContext *cx);
     void destroyChunk(JSContext *cx, unsigned chunkIndex, bool resetUses = true);

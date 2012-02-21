@@ -230,23 +230,14 @@ extern bool
 RunScript(JSContext *cx, JSScript *script, StackFrame *fp);
 
 extern bool
-CheckRedeclaration(JSContext *cx, JSObject *obj, jsid id, uintN attrs);
-
-inline bool
-CheckRedeclaration(JSContext *cx, JSObject *obj, PropertyName *name, uintN attrs)
-{
-    return CheckRedeclaration(cx, obj, ATOM_TO_JSID(name), attrs);
-}
+StrictlyEqual(JSContext *cx, const Value &lval, const Value &rval, bool *equal);
 
 extern bool
-StrictlyEqual(JSContext *cx, const Value &lval, const Value &rval, JSBool *equal);
-
-extern bool
-LooselyEqual(JSContext *cx, const Value &lval, const Value &rval, JSBool *equal);
+LooselyEqual(JSContext *cx, const Value &lval, const Value &rval, bool *equal);
 
 /* === except that NaN is the same as NaN and -0 is not the same as +0. */
 extern bool
-SameValue(JSContext *cx, const Value &v1, const Value &v2, JSBool *same);
+SameValue(JSContext *cx, const Value &v1, const Value &v2, bool *same);
 
 extern JSType
 TypeOfValue(JSContext *cx, const Value &v);

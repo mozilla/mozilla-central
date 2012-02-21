@@ -42,6 +42,7 @@
 #include "nsContentUtils.h" // NS_ENSURE_FINITE
 #include "nsSMILValue.h"
 #include "nsSMILFloatType.h"
+#include "nsIDOMSVGNumber.h"
 
 class DOMSVGNumber : public nsIDOMSVGNumber
 {
@@ -148,9 +149,12 @@ nsSVGNumber2::GetBaseValueString(nsAString & aValueAsString)
 }
 
 void
-nsSVGNumber2::SetBaseValue(float aValue,
-                           nsSVGElement *aSVGElement)
+nsSVGNumber2::SetBaseValue(float aValue, nsSVGElement *aSVGElement)
 {
+  if (mIsBaseSet && aValue == mBaseVal) {
+    return;
+  }
+
   mBaseVal = aValue;
   mIsBaseSet = true;
   if (!mIsAnimated) {
@@ -159,7 +163,7 @@ nsSVGNumber2::SetBaseValue(float aValue,
   else {
     aSVGElement->AnimationNeedsResample();
   }
-  aSVGElement->DidChangeNumber(mAttrEnum, true);
+  aSVGElement->DidChangeNumber(mAttrEnum);
 }
 
 void

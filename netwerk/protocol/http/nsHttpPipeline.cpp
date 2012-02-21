@@ -131,7 +131,7 @@ nsHttpPipeline::AddTransaction(nsAHttpTransaction *trans)
         trans->SetConnection(this);
 
         if (mRequestQ.Length() == 1)
-            mConnection->ResumeSend(trans);
+            mConnection->ResumeSend();
     }
 
     return NS_OK;
@@ -170,19 +170,19 @@ nsHttpPipeline::OnHeadersAvailable(nsAHttpTransaction *trans,
 }
 
 nsresult
-nsHttpPipeline::ResumeSend(nsAHttpTransaction *trans)
+nsHttpPipeline::ResumeSend()
 {
     if (mConnection)
-        return mConnection->ResumeSend(trans);
+        return mConnection->ResumeSend();
     return NS_ERROR_UNEXPECTED;
 }
 
 nsresult
-nsHttpPipeline::ResumeRecv(nsAHttpTransaction *trans)
+nsHttpPipeline::ResumeRecv()
 {
     NS_ASSERTION(PR_GetCurrentThread() == gSocketThread, "wrong thread");
     NS_ASSERTION(mConnection, "no connection");
-    return mConnection->ResumeRecv(trans);
+    return mConnection->ResumeRecv();
 }
 
 void
@@ -362,6 +362,33 @@ PRUint32
 nsHttpPipeline::Http1xTransactionCount()
 {
   return mHttp1xTransactionCount;
+}
+
+nsresult
+nsHttpPipeline::TakeSubTransactions(
+    nsTArray<nsRefPtr<nsAHttpTransaction> > &outTransactions)
+{
+    LOG(("nsHttpPipeline::TakeSubTransactions [this=%p]\n", this));
+
+    if (mResponseQ.Length() || mRequestIsPartial)
+        return NS_ERROR_ALREADY_OPENED;
+
+    // request queue could be empty if it was already canceled, in which
+    // case it is safe to treat this as a case without any
+    // sub-transactions.
+    if (!mRequestQ.Length())
+        return NS_ERROR_NOT_IMPLEMENTED;
+
+    PRInt32 i, count = mRequestQ.Length();
+    for (i = 0; i < count; ++i) {
+        nsAHttpTransaction *trans = Request(i);
+        outTransactions.AppendElement(trans);
+        NS_RELEASE(trans);
+    }
+    mRequestQ.Clear();
+
+    LOG(("   took %d\n", count));
+    return NS_OK;
 }
 
 //-----------------------------------------------------------------------------

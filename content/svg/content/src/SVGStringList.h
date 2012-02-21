@@ -38,8 +38,9 @@
 #ifndef MOZILLA_SVGSTRINGLIST_H__
 #define MOZILLA_SVGSTRINGLIST_H__
 
+#include "nsDebug.h"
 #include "nsTArray.h"
-#include "nsSVGElement.h"
+#include "nsString.h" // IWYU pragma: keep
 
 namespace mozilla {
 
@@ -53,10 +54,13 @@ class SVGStringList
 
 public:
 
-  SVGStringList() : mIsSet(false) {}
+  SVGStringList() : mIsSet(false), mIsCommaSeparated(false) {}
   ~SVGStringList(){}
 
-  nsresult SetValue(const nsAString& aValue, bool aIsCommaSeparated);
+  void SetIsCommaSeparated(bool aIsCommaSeparated) {
+    mIsCommaSeparated = aIsCommaSeparated;
+  }
+  nsresult SetValue(const nsAString& aValue);
 
   void Clear() {
     mStrings.Clear();
@@ -64,7 +68,7 @@ public:
   }
 
   /// This may return an incomplete string on OOM, but that's acceptable.
-  void GetValue(nsAString& aValue, bool aIsCommaSeparated) const;
+  void GetValue(nsAString& aValue) const;
 
   bool IsEmpty() const {
     return mStrings.IsEmpty();
@@ -90,9 +94,8 @@ public:
     mStrings.Compact();
   }
 
-  // Returns true if the animated value of this stringlist has been explicitly
-  // set by taking on the base value which has been explicitly set by markup
-  // or a DOM call, false otherwise.
+  // Returns true if the value of this stringlist has been explicitly
+  // set by markup or a DOM call, false otherwise.
   bool IsExplicitlySet() const
     { return mIsSet; }
 
@@ -167,6 +170,7 @@ protected:
    */
   nsTArray<nsString> mStrings;
   bool mIsSet;
+  bool mIsCommaSeparated;
 };
 
 } // namespace mozilla

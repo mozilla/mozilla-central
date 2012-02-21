@@ -26,6 +26,26 @@
 #ifndef WTF_Assertions_h
 #define WTF_Assertions_h
 
+#include "Platform.h"
+#include "mozilla/Assertions.h"
+
+#ifndef DEBUG
+   /*
+    * Prevent unused-variable warnings by defining the macro WTF uses to test
+    * for assertions taking effect.
+    */
+#  define ASSERT_DISABLED 1
+#endif
+
+#define ASSERT(assertion) MOZ_ASSERT(assertion)
+#define ASSERT_UNUSED(variable, assertion) (((void)variable), ASSERT(assertion))
+#define ASSERT_NOT_REACHED() MOZ_NOT_REACHED("")
+#define CRASH() MOZ_Crash()
+#define COMPILE_ASSERT(exp, name) MOZ_STATIC_ASSERT(exp, #name)
+
+#endif
+
+#if 0
 /*
    no namespaces because this file has to be includable from C and Objective-C
 

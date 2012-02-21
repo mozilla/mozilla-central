@@ -59,6 +59,8 @@
 #include <dlfcn.h>
 #include "nscore.h"
 
+#include <fcntl.h>
+
 #ifdef __SUNPRO_CC
 #include <stdio.h>
 #endif
@@ -110,20 +112,29 @@ x_error_handler(Display *, XErrorEvent *ev)
 
 static void glxtest()
 {
+  // we want to redirect to /dev/null stdout, stderr, and while we're at it,
+  // any PR logging file descriptors. To that effect, we redirect all positive
+  // file descriptors up to what open() returns here. In particular, 1 is stdout and 2 is stderr.
+  int fd = open("/dev/null", O_WRONLY);
+  for (int i = 1; i < fd; i++)
+    dup2(fd, i);
+  close(fd);
+
   ///// Open libGL and load needed symbols /////
 #ifdef __OpenBSD__
-  void *libgl = dlopen("libGL.so", RTLD_LAZY);
+  #define LIBGL_FILENAME "libGL.so"
 #else
-  void *libgl = dlopen("libGL.so.1", RTLD_LAZY);
+  #define LIBGL_FILENAME "libGL.so.1"
 #endif
+  void *libgl = dlopen(LIBGL_FILENAME, RTLD_LAZY);
   if (!libgl)
-    fatal_error("Unable to load libGL.so.1");
+    fatal_error("Unable to load " LIBGL_FILENAME);
   
   typedef void* (* PFNGLXGETPROCADDRESS) (const char *);
   PFNGLXGETPROCADDRESS glXGetProcAddress = cast<PFNGLXGETPROCADDRESS>(dlsym(libgl, "glXGetProcAddress"));
   
   if (!glXGetProcAddress)
-    fatal_error("Unable to find glXGetProcAddress in libGL.so.1");
+    fatal_error("Unable to find glXGetProcAddress in " LIBGL_FILENAME);
 
   typedef GLXFBConfig* (* PFNGLXQUERYEXTENSION) (Display *, int *, int *);
   PFNGLXQUERYEXTENSION glXQueryExtension = cast<PFNGLXQUERYEXTENSION>(glXGetProcAddress("glXQueryExtension"));
@@ -231,15 +242,6 @@ static void glxtest()
   if (length >= bufsize)
     fatal_error("GL strings length too large for buffer size");
 
-  ///// Check that no X error happened /////
-  // In case of X errors, our X error handler will exit() now.
-  // We really want to make sure that the system is able to create a GL context without generating X errors,
-  // as these would crash the application.
-  XSync(dpy, False);
-  
-  ///// Finally write data to the pipe /////
-  write(write_end_of_the_pipe, buf, length);
-
   ///// Clean up. Indeed, the parent process might fail to kill us (e.g. if it doesn't need to check GL info)
   ///// so we might be staying alive for longer than expected, so it's important to consume as little memory as
   ///// possible. Also we want to check that we're able to do that too without generating X errors.
@@ -249,6 +251,9 @@ static void glxtest()
   XFreePixmap(dpy, pixmap);
   XCloseDisplay(dpy);
   dlclose(libgl);
+
+  ///// Finally write data to the pipe
+  write(write_end_of_the_pipe, buf, length);
 }
 
 /** \returns true in the child glxtest process, false in the parent process */

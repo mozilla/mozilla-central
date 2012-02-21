@@ -71,7 +71,7 @@ class gfxTextRun;
 class nsIURI;
 class nsIAtom;
 
-extern mozilla::gfx::UserDataKey ThebesSurfaceKey;
+extern mozilla::gfx::UserDataKey kThebesSurfaceKey;
 void DestroyThebesSurface(void *data);
 
 extern cairo_user_data_key_t kDrawTarget;
@@ -158,6 +158,8 @@ GetBackendName(mozilla::gfx::BackendType aBackend)
         return "cairo";
       case mozilla::gfx::BACKEND_SKIA:
         return "skia";
+      case mozilla::gfx::BACKEND_NONE:
+        return "none";
       default:
         NS_ERROR("Invalid backend type!");
         return "";
@@ -308,6 +310,15 @@ public:
      */
     bool SanitizeDownloadedFonts();
 
+    /**
+     * True when hinting should be enabled.  This setting shouldn't
+     * change per gecko process, while the process is live.  If so the
+     * results are not defined.
+     *
+     * NB: this bit is only honored by the FT2 backend, currently.
+     */
+    virtual bool FontHintingEnabled() { return true; }
+
 #ifdef MOZ_GRAPHITE
     /**
      * Whether to use the SIL Graphite rendering engine
@@ -447,6 +458,9 @@ protected:
 
     // which scripts should be shaped with harfbuzz
     PRInt32 mUseHarfBuzzScripts;
+
+    // The preferred draw target backend to use
+    mozilla::gfx::BackendType mPreferredDrawTargetBackend;
 
 private:
     virtual qcms_profile* GetPlatformCMSOutputProfile();

@@ -351,7 +351,7 @@ nsCaret::GetGeometryForFrame(nsIFrame* aFrame,
   nscoord ascent = 0, descent = 0;
   nsRefPtr<nsFontMetrics> fm;
   nsLayoutUtils::GetFontMetricsForFrame(aFrame, getter_AddRefs(fm),
-    nsLayoutUtils::FontSizeInflationFor(aFrame));
+    nsLayoutUtils::FontSizeInflationFor(aFrame, nsLayoutUtils::eNotInReflow));
   NS_ASSERTION(fm, "We should be able to get the font metrics");
   if (fm) {
     ascent = fm->MaxAscent();
@@ -533,6 +533,14 @@ void nsCaret::PaintCaret(nsDisplayListBuilder *aBuilder,
 #endif
     GetCaretFrame(&contentOffset);
   NS_ASSERTION(frame == aForFrame, "We're referring different frame");
+  // If the offset falls outside of the frame, then don't paint the caret.
+  PRInt32 startOffset, endOffset;
+  if (aForFrame->GetType() == nsGkAtoms::textFrame &&
+      (NS_FAILED(aForFrame->GetOffsets(startOffset, endOffset)) ||
+      startOffset > contentOffset ||
+      endOffset < contentOffset)) {
+    return;
+  }
   nscolor foregroundColor = aForFrame->GetCaretColorAt(contentOffset);
 
   // Only draw the native caret if the foreground color matches that of

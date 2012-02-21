@@ -298,6 +298,11 @@ typedef PRUint64 nsFrameState;
 // This is only set during painting
 #define NS_FRAME_FORCE_DISPLAY_LIST_DESCEND_INTO    NS_FRAME_STATE_BIT(40)
 
+// Is this frame a container for font size inflation, i.e., is it a
+// frame whose width is used to determine the inflation factor for
+// everything whose nearest ancestor container for this frame?
+#define NS_FRAME_FONT_INFLATION_CONTAINER           NS_FRAME_STATE_BIT(41)
+
 // Box layout bits
 #define NS_STATE_IS_HORIZONTAL                      NS_FRAME_STATE_BIT(22)
 #define NS_STATE_IS_DIRECTION_NORMAL                NS_FRAME_STATE_BIT(31)
@@ -1242,8 +1247,12 @@ public:
    */
   bool Preserves3D() const;
 
+  bool HasPerspective() const;
+
   // Calculate the overflow size of all child frames, taking preserve-3d into account
   void ComputePreserve3DChildrenOverflow(nsOverflowAreas& aOverflowAreas, const nsRect& aBounds);
+
+  void RecomputePerspectiveChildrenOverflow(const nsIFrame* aStartFrame, const nsRect* aBounds);
 
   /**
    * Event handling of GUI events.
@@ -2424,7 +2433,7 @@ public:
    *         style context.  Null is permitted, and means that this frame's
    *         style context should be the root of the style context tree.
    */
-  virtual nsIFrame* GetParentStyleContextFrame() = 0;
+  virtual nsIFrame* GetParentStyleContextFrame() const = 0;
 
   /**
    * Determines whether a frame is visible for painting;

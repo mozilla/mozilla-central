@@ -67,7 +67,6 @@ HttpChannelParent::HttpChannelParent(PBrowserParent* iframeEmbedding)
   , mStoredStatus(0)
   , mStoredProgress(0)
   , mStoredProgressMax(0)
-  , mHeadersToSyncToChild(nsnull)
   , mSentRedirect1Begin(false)
   , mSentRedirect1BeginFailed(false)
   , mReceivedRedirect2Verify(false)
@@ -98,14 +97,13 @@ HttpChannelParent::ActorDestroy(ActorDestroyReason why)
 // HttpChannelParent::nsISupports
 //-----------------------------------------------------------------------------
 
-NS_IMPL_ISUPPORTS7(HttpChannelParent,
+NS_IMPL_ISUPPORTS6(HttpChannelParent,
                    nsIInterfaceRequestor,
                    nsIProgressEventSink,
                    nsIRequestObserver,
                    nsIStreamListener,
                    nsIParentChannel,
-                   nsIParentRedirectingChannel,
-                   nsIHttpHeaderVisitor)
+                   nsIParentRedirectingChannel)
 
 //-----------------------------------------------------------------------------
 // HttpChannelParent::nsIInterfaceRequestor
@@ -358,15 +356,15 @@ HttpChannelParent::RecvRedirect2Verify(const nsresult& result,
   if (!mRedirectCallback) {
     // Bug 621446 investigation (optimization turned off above)
     if (mReceivedRedirect2Verify)
-      ::PR_Abort();
+      NS_RUNTIMEABORT("Duplicate fire");
     if (mSentRedirect1BeginFailed)
-      ::PR_Abort();
+      NS_RUNTIMEABORT("Send to child failed");
     if (mSentRedirect1Begin && NS_FAILED(result))
-      ::PR_Abort();
+      NS_RUNTIMEABORT("Redirect failed");
     if (mSentRedirect1Begin && NS_SUCCEEDED(result))
-      ::PR_Abort();
+      NS_RUNTIMEABORT("Redirect succeeded");
     if (!mRedirectChannel)
-      ::PR_Abort();
+      NS_RUNTIMEABORT("Missing redirect channel");
   }
 
   mReceivedRedirect2Verify = true;
@@ -449,17 +447,11 @@ HttpChannelParent::OnStartRequest(nsIRequest *aRequest, nsISupports *aContext)
       NS_SerializeToString(secInfoSer, secInfoSerialization);
   }
 
-  // sync request headers to child, in case they've changed
-  RequestHeaderTuples headers;
-  mHeadersToSyncToChild = &headers;
-  requestHead->Headers().VisitHeaders(this);
-  mHeadersToSyncToChild = 0;
-
   nsHttpChannel *httpChan = static_cast<nsHttpChannel *>(mChannel.get());
   if (mIPCClosed || 
       !SendOnStartRequest(responseHead ? *responseHead : nsHttpResponseHead(), 
                           !!responseHead,
-                          headers,
+                          requestHead->Headers(),
                           isFromCache,
                           mCacheDescriptor ? true : false,
                           expirationTime, cachedCharset, secInfoSerialization,
@@ -621,23 +613,6 @@ HttpChannelParent::CompleteRedirect(bool succeeded)
   }
 
   mRedirectChannel = nsnull;
-  return NS_OK;
-}
-
-//-----------------------------------------------------------------------------
-// HttpChannelParent::nsIHttpHeaderVisitor
-//-----------------------------------------------------------------------------
-
-nsresult
-HttpChannelParent::VisitHeader(const nsACString &header, const nsACString &value)
-{
-  // Will be set unless some random code QI's us to nsIHttpHeaderVisitor
-  NS_ENSURE_STATE(mHeadersToSyncToChild);
-
-  RequestHeaderTuple* tuple = mHeadersToSyncToChild->AppendElement();
-  tuple->mHeader = header;
-  tuple->mValue  = value;
-  tuple->mMerge  = false;  // headers already merged:
   return NS_OK;
 }
 

@@ -174,7 +174,7 @@ BrowserGlue.prototype = {
         Services.obs.removeObserver(this, "browser-delayed-startup-finished");
         break;
       case "sessionstore-windows-restored":
-        this._onBrowserStartup();
+        this._onWindowsRestored();
         break;
       case "browser:purge-session-history":
         // reset the console service's error buffer
@@ -188,6 +188,13 @@ BrowserGlue.prototype = {
         // This pref must be set here because SessionStore will use its value
         // on quit-application.
         this._setPrefToSaveSession();
+        try {
+          let appStartup = Cc["@mozilla.org/toolkit/app-startup;1"].
+                           getService(Ci.nsIAppStartup);
+          appStartup.trackStartupCrashEnd();
+        } catch (e) {
+          Cu.reportError("Could not end startup crash tracking in quit-application-granted: " + e);
+        }
         break;
 #ifdef OBSERVE_LASTWINDOW_CLOSE_TOPICS
       case "browser-lastwindow-close-requested":
@@ -373,8 +380,8 @@ BrowserGlue.prototype = {
     this._sanitizer.onShutdown();
   },
 
-  // Browser startup complete. All initial windows have opened.
-  _onBrowserStartup: function BG__onBrowserStartup() {
+  // All initial windows have opened.
+  _onWindowsRestored: function BG__onWindowsRestored() {
     // Show about:rights notification, if needed.
     if (this._shouldShowRights()) {
       this._showRightsNotification();
@@ -415,6 +422,9 @@ BrowserGlue.prototype = {
         browser.selectedTab = browser.addTab("about:newaddon?id=" + aAddon.id);
       })
     });
+
+    let keywordURLUserSet = Services.prefs.prefHasUserValue("keyword.URL");
+    Services.telemetry.getHistogramById("FX_KEYWORD_URL_USERSET").add(keywordURLUserSet);
   },
 
   _onQuitRequest: function BG__onQuitRequest(aCancelQuit, aQuitType) {
@@ -1442,7 +1452,7 @@ BrowserGlue.prototype = {
   getMostRecentBrowserWindow: function BG_getMostRecentBrowserWindow() {
     function isFullBrowserWindow(win) {
       return !win.closed &&
-             !win.document.documentElement.getAttribute("chromehidden");
+             win.toolbar.visible;
     }
 
 #ifdef BROKEN_WM_Z_ORDER

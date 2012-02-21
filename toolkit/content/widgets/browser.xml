@@ -180,7 +180,7 @@
 
             if (aCharset) {
               try { 
-                this.documentCharsetInfo.parentCharset = this.mAtomService.getAtom(aCharset);
+                this.docShell.parentCharset = this.mAtomService.getAtom(aCharset);
               }
               catch (e) {
               }
@@ -436,10 +436,6 @@
 
       <property name="contentViewerFile"
                 onget="return this.docShell.contentViewer.QueryInterface(Components.interfaces.nsIContentViewerFile);"
-                readonly="true"/>
-
-      <property name="documentCharsetInfo"
-                onget="return this.docShell.documentCharsetInfo;"
                 readonly="true"/>
 
       <property name="contentDocument"
@@ -1303,14 +1299,11 @@
         let linkHandler = Components.classes["@mozilla.org/content/dropped-link-handler;1"].
                             getService(Components.interfaces.nsIDroppedLinkHandler);
         try {
-          var uri = linkHandler.dropLink(event, name);
+          // Pass true to prevent the dropping of javascript:/data: URIs
+          var uri = linkHandler.dropLink(event, name, true);
         } catch (ex) {
           return;
         }
-
-        // don't allow dropping javascript or data urls
-        if (/^\s*(javascript|data):/.test(uri))
-          return;
 
         if (uri) {
           this.droppedLinkHandler(event, uri, name.value);

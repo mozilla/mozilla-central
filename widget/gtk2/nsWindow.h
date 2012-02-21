@@ -191,6 +191,12 @@ public:
     NS_IMETHOD         MakeFullScreen(bool aFullScreen);
     NS_IMETHOD         HideWindowChrome(bool aShouldHide);
 
+    /**
+     * GetLastUserInputTime returns a timestamp for the most recent user input
+     * event.  This is intended for pointer grab requests (including drags).
+     */
+    static guint32     GetLastUserInputTime();
+
     // utility method, -1 if no change should be made, otherwise returns a
     // value that can be passed to gdk_window_set_decorations
     gint               ConvertBorderStyles(nsBorderStyle aStyle);
@@ -259,24 +265,26 @@ public:
     void               OnDragLeave(void);
     void               OnDragEnter(nscoord aX, nscoord aY);
 
-    virtual void       NativeResize(PRInt32 aWidth,
+private:
+    void               NativeResize(PRInt32 aWidth,
                                     PRInt32 aHeight,
                                     bool    aRepaint);
 
-    virtual void       NativeResize(PRInt32 aX,
+    void               NativeResize(PRInt32 aX,
                                     PRInt32 aY,
                                     PRInt32 aWidth,
                                     PRInt32 aHeight,
                                     bool    aRepaint);
 
-    virtual void       NativeShow  (bool    aAction);
+    void               NativeShow  (bool    aAction);
     void               SetHasMappedToplevel(bool aState);
     nsIntSize          GetSafeWindowSize(nsIntSize aSize);
 
     void               EnsureGrabs  (void);
-    void               GrabPointer  (void);
+    void               GrabPointer  (guint32 aTime);
     void               ReleaseGrabs (void);
 
+public:
     enum PluginType {
         PluginType_NONE = 0,   /* do not have any plugin */
         PluginType_XEMBED,     /* the plugin support xembed */

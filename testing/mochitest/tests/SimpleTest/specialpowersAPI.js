@@ -121,7 +121,7 @@ Observer.prototype = {
   cleanup: function() {
     if (this._isPref) {
       var os = Cc["@mozilla.org/preferences-service;1"].getService()
-               .QueryInterface(Ci.nsIPrefBranch2);
+               .QueryInterface(Ci.nsIPrefBranch);
       os.removeObserver(this._topic, this);
     } else {
       var os = Cc["@mozilla.org/observer-service;1"]
@@ -156,6 +156,9 @@ function doApply(fun, invocant, args) {
   return Function.prototype.apply.call(fun, invocant, args);
 }
 
+// Use a weak map to cache wrappers. This allows the wrappers to preserve identity.
+var wrapperCache = WeakMap();
+
 function wrapPrivileged(obj) {
 
   // Primitives pass straight through.
@@ -166,10 +169,15 @@ function wrapPrivileged(obj) {
   if (isWrapper(obj))
     throw "Trying to double-wrap object!";
 
+  // Try the cache.
+  if (wrapperCache.has(obj))
+    return wrapperCache.get(obj);
+
   // Make our core wrapper object.
   var handler = new SpecialPowersHandler(obj);
 
   // If the object is callable, make a function proxy.
+  var wrapper;
   if (typeof obj === "function") {
     var callTrap = function() {
       // The invocant and arguments may or may not be wrappers. Unwrap them if necessary.
@@ -193,11 +201,16 @@ function wrapPrivileged(obj) {
       return wrapPrivileged(new FakeConstructor());
     };
 
-    return Proxy.createFunction(handler, callTrap, constructTrap);
+    wrapper = Proxy.createFunction(handler, callTrap, constructTrap);
+  }
+  // Otherwise, just make a regular object proxy.
+  else {
+    wrapper = Proxy.create(handler);
   }
 
-  // Otherwise, just make a regular object proxy.
-  return Proxy.create(handler);
+  // Cache the wrapper and return it.
+  wrapperCache.set(obj, wrapper);
+  return wrapper;
 };
 
 function unwrapPrivileged(x) {
@@ -408,9 +421,6 @@ SpecialPowersAPI.prototype = {
    *
    * Known Issues:
    *
-   *  - The wrapping function does not preserve identity, so
-   *    SpecialPowers.wrap(foo) !== SpecialPowers.wrap(foo). See bug 718543.
-   *
    *  - The wrapper cannot see expando properties on unprivileged DOM objects.
    *    That is to say, the wrapper uses Xray delegation.
    *
@@ -466,7 +476,7 @@ SpecialPowersAPI.prototype = {
    * what we have set.
    *
    * prefs: {set|clear: [[pref, value], [pref, value, Iid], ...], set|clear: [[pref, value], ...], ...}
-   * ex: {'set': [['foo.bar', 2], ['browser.magic', '0xfeedface']], 'remove': [['bad.pref']] }
+   * ex: {'set': [['foo.bar', 2], ['browser.magic', '0xfeedface']], 'clear': [['bad.pref']] }
    *
    * In the scenario where our prefs specify the same pref more than once, we do not guarantee
    * the behavior.  
@@ -546,8 +556,21 @@ SpecialPowersAPI.prototype = {
     }
 
     if (pendingActions.length > 0) {
+      // The callback needs to be delayed twice. One delay is because the pref
+      // service doesn't guarantee the order it calls its observers in, so it
+      // may notify the observer holding the callback before the other
+      // observers have been notified and given a chance to make the changes
+      // that the callback checks for. The second delay is because pref
+      // observers often defer making their changes by posting an event to the
+      // event loop.
+      function delayedCallback() {
+        function delayAgain() {
+          content.window.setTimeout(callback, 0);
+        }
+        content.window.setTimeout(delayAgain, 0);
+      }
       this._prefEnvUndoStack.push(cleanupActions);
-      this._pendingPrefs.push([pendingActions, callback]);
+      this._pendingPrefs.push([pendingActions, delayedCallback]);
       this._applyPrefs();
     } else {
       content.window.setTimeout(callback, 0);
@@ -556,8 +579,16 @@ SpecialPowersAPI.prototype = {
 
   popPrefEnv: function(callback) {
     if (this._prefEnvUndoStack.length > 0) {
+      // See pushPrefEnv comment regarding delay.
+      function delayedCallback() {
+        function delayAgain() {
+          content.window.setTimeout(callback, 0);
+        }
+        content.window.setTimeout(delayAgain, 0);
+      }
+      let cb = callback ? delayedCallback : null; 
       /* Each pop will have a valid block of preferences */
-      this._pendingPrefs.push([this._prefEnvUndoStack.pop(), callback]);
+      this._pendingPrefs.push([this._prefEnvUndoStack.pop(), cb]);
       this._applyPrefs();
     } else {
       content.window.setTimeout(callback, 0);
@@ -604,7 +635,7 @@ SpecialPowersAPI.prototype = {
 
     if (aIsPref) {
       var os = Cc["@mozilla.org/preferences-service;1"].getService()
-               .QueryInterface(Ci.nsIPrefBranch2);	
+               .QueryInterface(Ci.nsIPrefBranch);	
       os.addObserver(aTopic, observer, false);
     } else {
       var os = Cc["@mozilla.org/observer-service;1"]
@@ -934,7 +965,7 @@ SpecialPowersAPI.prototype = {
 
   // :jdm gets credit for this.  ex: getPrivilegedProps(window, 'location.href');
   getPrivilegedProps: function(obj, props) {
-    parts = props.split('.');
+    var parts = props.split('.');
 
     for (var i = 0; i < parts.length; i++) {
       var p = parts[i];
@@ -1060,4 +1091,3 @@ SpecialPowersAPI.prototype = {
     return el.dispatchEvent(event);
   },
 };
-

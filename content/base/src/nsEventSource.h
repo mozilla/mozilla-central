@@ -48,7 +48,7 @@
 
 #include "nsIEventSource.h"
 #include "nsIJSNativeInitializer.h"
-#include "nsDOMEventTargetWrapperCache.h"
+#include "nsDOMEventTargetHelper.h"
 #include "nsIObserver.h"
 #include "nsIStreamListener.h"
 #include "nsIChannelEventSink.h"
@@ -69,7 +69,7 @@
 class AsyncVerifyRedirectCallbackFwr;
 class nsAutoClearFields;
 
-class nsEventSource: public nsDOMEventTargetWrapperCache,
+class nsEventSource: public nsDOMEventTargetHelper,
                      public nsIEventSource,
                      public nsIJSNativeInitializer,
                      public nsIObserver,
@@ -84,8 +84,8 @@ public:
   nsEventSource();
   virtual ~nsEventSource();
   NS_DECL_ISUPPORTS_INHERITED
-  NS_DECL_CYCLE_COLLECTION_CLASS_INHERITED(nsEventSource,
-                                           nsDOMEventTargetWrapperCache)
+  NS_DECL_CYCLE_COLLECTION_SKIPPABLE_SCRIPT_HOLDER_CLASS_INHERITED(nsEventSource,
+                                                                   nsDOMEventTargetHelper)
 
   NS_DECL_NSIEVENTSOURCE
 
@@ -216,6 +216,7 @@ protected:
   bool mErrorLoadOnRedirect;
   bool mGoingToDispatchAllMessages;
   bool mWithCredentials;
+  bool mWaitingForOnStopRequest;
 
   // used while reading the input streams
   nsCOMPtr<nsIUnicodeDecoder> mUnicodeDecoder;

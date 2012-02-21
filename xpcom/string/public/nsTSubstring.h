@@ -585,14 +585,24 @@ class nsTSubstring_CharT
         // XXXbz or can I just include nscore.h and use NS_BUILD_REFCNT_LOGGING?
 #if defined(DEBUG) || defined(FORCE_BUILD_REFCNT_LOGGING)
 #define XPCOM_STRING_CONSTRUCTOR_OUT_OF_LINE
-       nsTSubstring_CharT( char_type *data, size_type length, PRUint32 flags );
+      nsTSubstring_CharT( char_type *data, size_type length, PRUint32 flags );
 #else
 #undef XPCOM_STRING_CONSTRUCTOR_OUT_OF_LINE
-       nsTSubstring_CharT( char_type *data, size_type length, PRUint32 flags )
-         : mData(data),
-           mLength(length),
-           mFlags(flags) {}
+      nsTSubstring_CharT( char_type *data, size_type length, PRUint32 flags )
+        : mData(data),
+          mLength(length),
+          mFlags(flags) {}
 #endif /* DEBUG || FORCE_BUILD_REFCNT_LOGGING */
+
+      size_t SizeOfExcludingThisMustBeUnshared(nsMallocSizeOfFun mallocSizeOf)
+        const;
+      size_t SizeOfIncludingThisMustBeUnshared(nsMallocSizeOfFun mallocSizeOf)
+        const;
+
+      size_t SizeOfExcludingThisIfUnshared(nsMallocSizeOfFun mallocSizeOf)
+        const;
+      size_t SizeOfIncludingThisIfUnshared(nsMallocSizeOfFun mallocSizeOf)
+        const;
 
     protected:
 

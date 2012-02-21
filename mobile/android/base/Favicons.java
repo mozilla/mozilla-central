@@ -215,9 +215,9 @@ public class Favicons {
 
         // Cancel any pending tasks
         Set<Long> taskIds = mLoadTasks.keySet();
-        Iterator iter = taskIds.iterator();
+        Iterator<Long> iter = taskIds.iterator();
         while (iter.hasNext()) {
-            long taskId = (Long) iter.next();
+            long taskId = iter.next();
             cancelFaviconLoad(taskId);
         }
     }
@@ -229,7 +229,10 @@ public class Favicons {
         private OnFaviconLoadedListener mListener;
 
         public LoadFaviconTask(String pageUrl, String faviconUrl, OnFaviconLoadedListener listener) {
-            mId = ++mNextFaviconLoadId;
+            synchronized(this) {
+                mId = ++mNextFaviconLoadId;
+            }
+
             mPageUrl = pageUrl;
             mFaviconUrl = faviconUrl;
             mListener = listener;

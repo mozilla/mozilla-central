@@ -50,6 +50,7 @@
 #include "BasicLayers.h"
 #include "ImageLayers.h"
 
+#include "prprf.h"
 #include "nsTArray.h"
 #include "nsGUIEvent.h"
 #include "gfxContext.h"
@@ -244,6 +245,7 @@ public:
     // containers.
     gfxMatrix residual;
     gfx3DMatrix idealTransform = GetLocalTransform()*aTransformToSurface;
+    idealTransform.ProjectTo2D();
 
     if (!idealTransform.CanDraw2D()) {
       mEffectiveTransform = idealTransform;
@@ -762,7 +764,9 @@ BasicThebesLayer::PaintThebes(gfxContext* aContext,
   if (BasicManager()->IsTransactionIncomplete())
     return;
 
-  if (!IsHidden()) {
+  gfxRect clipExtents;
+  clipExtents = aContext->GetClipExtents();
+  if (!IsHidden() && !clipExtents.IsEmpty()) {
     AutoSetOperator setOperator(aContext, GetOperator());
     mBuffer.DrawTo(this, aContext, opacity);
   }
@@ -897,6 +901,8 @@ BasicImageLayer::GetAndPaintCurrentImage(gfxContext* aContext,
 {
   if (!mContainer)
     return nsnull;
+
+  mContainer->SetImageFactory(mManager->IsCompositingCheap() ? nsnull : BasicManager()->GetImageFactory());
 
   nsRefPtr<Image> image = mContainer->GetCurrentImage();
 
@@ -1199,6 +1205,11 @@ BasicCanvasLayer::PaintWithOpacity(gfxContext* aContext,
   NS_ASSERTION(BasicManager()->InDrawing(),
                "Can only draw in drawing phase");
 
+  if (!mSurface) {
+    NS_WARNING("No valid surface to draw!");
+    return;
+  }
+
   nsRefPtr<gfxPattern> pat = new gfxPattern(mSurface);
 
   pat->SetFilter(mFilter);
@@ -1308,6 +1319,8 @@ BasicLayerManager::BasicLayerManager() :
 #endif
   mWidget(nsnull)
   , mDoubleBuffering(BUFFER_NONE), mUsingDefaultTarget(false)
+  , mCachedSurfaceInUse(false)
+  , mTransactionIncomplete(false)
 {
   MOZ_COUNT_CTOR(BasicLayerManager);
 }
@@ -1936,16 +1949,22 @@ BasicLayerManager::PaintLayer(gfxContext* aTarget,
       NS_ABORT_IF_FALSE(untransformedSurface, 
                         "We should always allocate an untransformed surface with 3d transforms!");
 
-      gfxPoint offset;
-      bool dontBlit = needsClipToVisibleRegion || mTransactionIncomplete || 
-                        aLayer->GetEffectiveOpacity() != 1.0f;
-      nsRefPtr<gfxASurface> result = 
-        Transform3D(untransformedSurface, aTarget, bounds,
-                    effectiveTransform, offset, dontBlit);
+      // Temporary fast fix for bug 725886
+      // Revert these changes when 725886 is ready
+      gfxRect clipExtents;
+      clipExtents = aTarget->GetClipExtents();
+      if (!clipExtents.IsEmpty()) {
+        gfxPoint offset;
+        bool dontBlit = needsClipToVisibleRegion || mTransactionIncomplete ||
+                          aLayer->GetEffectiveOpacity() != 1.0f;
+        nsRefPtr<gfxASurface> result =
+          Transform3D(untransformedSurface, aTarget, bounds,
+                      effectiveTransform, offset, dontBlit);
 
-      blitComplete = !result;
-      if (result) {
-        aTarget->SetSource(result, offset);
+        blitComplete = !result;
+        if (result) {
+          aTarget->SetSource(result, offset);
+        }
       }
     }
     // If we're doing our own double-buffering, we need to avoid drawing
@@ -2399,7 +2418,12 @@ BasicShadowableThebesLayer::CreateBuffer(Buffer::ContentType aType,
   if (!BasicManager()->AllocBuffer(gfxIntSize(aSize.width, aSize.height),
                                    aType,
                                    &mBackBuffer)) {
-      NS_RUNTIMEABORT("creating ThebesLayer 'back buffer' failed!");
+      enum { buflen = 256 };
+      char buf[buflen];
+      PR_snprintf(buf, buflen,
+                  "creating ThebesLayer 'back buffer' failed! width=%d, height=%d, type=%x",
+                  aSize.width, aSize.height, int(aType));
+      NS_RUNTIMEABORT(buf);
   }
 
   NS_ABORT_IF_FALSE(!mIsNewBuffer,
@@ -2917,6 +2941,7 @@ public:
     // containers.
     gfxMatrix residual;
     gfx3DMatrix idealTransform = GetLocalTransform()*aTransformToSurface;
+    idealTransform.ProjectTo2D();
 
     if (!idealTransform.CanDraw2D()) {
       mEffectiveTransform = idealTransform;

@@ -110,10 +110,11 @@ public:
         nsRefPtr<gfxFontEntry> fe = aFontEntry;
         mAvailableFonts.AppendElement(fe);
         aFontEntry->SetFamily(this);
+        ResetCharacterMap();
     }
 
-    void ReplaceFontEntry(gfxFontEntry *aOldFontEntry, gfxFontEntry *aNewFontEntry) 
-    {
+    void ReplaceFontEntry(gfxFontEntry *aOldFontEntry,
+                          gfxFontEntry *aNewFontEntry) {
         PRUint32 numFonts = mAvailableFonts.Length();
         for (PRUint32 i = 0; i < numFonts; i++) {
             gfxFontEntry *fe = mAvailableFonts[i];
@@ -123,22 +124,37 @@ public:
                 // other reference to it except from its family
                 mAvailableFonts[i] = aNewFontEntry;
                 aNewFontEntry->SetFamily(this);
-                return;
+                break;
             }
         }
+        ResetCharacterMap();
     }
 
-    void RemoveFontEntry(gfxFontEntry *aFontEntry) 
-    {
+    void RemoveFontEntry(gfxFontEntry *aFontEntry) {
         PRUint32 numFonts = mAvailableFonts.Length();
         for (PRUint32 i = 0; i < numFonts; i++) {
             gfxFontEntry *fe = mAvailableFonts[i];
             if (fe == aFontEntry) {
                 aFontEntry->SetFamily(nsnull);
                 mAvailableFonts.RemoveElementAt(i);
-                return;
+                break;
             }
         }
+        ResetCharacterMap();
+    }
+
+    // clear family pointer for all entries and remove them from the family;
+    // we need to do this explicitly before inserting the entries into a new
+    // family, in case the old one is not actually deleted until later
+    void DetachFontEntries() {
+        PRUint32 i = mAvailableFonts.Length();
+        while (i--) {
+            gfxFontEntry *fe = mAvailableFonts[i];
+            if (fe) {
+                fe->SetFamily(nsnull);
+            }
+        }
+        mAvailableFonts.Clear();
     }
 
     // temp method to determine if all proxies are loaded

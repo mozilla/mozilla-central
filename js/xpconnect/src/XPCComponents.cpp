@@ -2625,7 +2625,7 @@ nsXPCComponents_Utils::LookupMethod(const JS::Value& object,
 
     JSObject* obj = JSVAL_TO_OBJECT(object);
     while (obj && !js::IsWrapper(obj) && !IS_WRAPPER_CLASS(js::GetObjectClass(obj)))
-        obj = JS_GetPrototype(cx, obj);
+        obj = JS_GetPrototype(obj);
 
     if (!obj)
         return NS_ERROR_XPC_BAD_CONVERT_JS;
@@ -3034,9 +3034,7 @@ xpc_CreateSandboxObject(JSContext * cx, jsval * vp, nsISupports *prinOrSop, JSOb
         }
 
         // Pass on ownership of sop to |sandbox|.
-        if (!JS_SetPrivate(cx, sandbox, sop.forget().get())) {
-            return NS_ERROR_XPC_UNEXPECTED;
-        }
+        JS_SetPrivate(sandbox, sop.forget().get());
 
         rv = xpc->InitClasses(cx, sandbox);
         if (NS_SUCCEEDED(rv) &&
@@ -3246,6 +3244,29 @@ nsXPCComponents_utils_Sandbox::CallOrConstruct(nsIXPConnectWrappedNative *wrappe
 
             identity = compartmentPrivate->key->GetPtr();
         }
+    }
+
+    // If there is no options object given, or no sandboxName property
+    // specified, use the caller's filename as sandboxName.
+    if (sandboxName.IsEmpty()) {
+        nsXPConnect* xpc = nsXPConnect::GetXPConnect();
+
+        if (!xpc)
+            return ThrowAndFail(NS_ERROR_XPC_UNEXPECTED, cx, _retval);
+
+        // Get the xpconnect native call context.
+        nsAXPCNativeCallContext *cc = nsnull;
+        xpc->GetCurrentNativeCallContext(&cc);
+
+        if (!cc)
+            return ThrowAndFail(NS_ERROR_INVALID_ARG, cx, _retval);
+
+        // Get the current source info from xpc.
+        nsCOMPtr<nsIStackFrame> frame;
+        xpc->GetCurrentJSStack(getter_AddRefs(frame));
+
+        if (frame)
+            frame->GetFilename(getter_Copies(sandboxName));
     }
 
     rv = xpc_CreateSandboxObject(cx, vp, prinOrSop, proto, wantXrays, sandboxName, identity);
@@ -3600,15 +3621,23 @@ nsXPCComponents_Utils::GetWeakReference(const JS::Value &object, JSContext *cx,
 NS_IMETHODIMP
 nsXPCComponents_Utils::ForceGC(JSContext *cx)
 {
-    JS_GC(cx);
+    js::GCForReason(cx, js::gcreason::COMPONENT_UTILS);
+    return NS_OK;
+}
+
+/* void forceShrinkingGC (); */
+NS_IMETHODIMP
+nsXPCComponents_Utils::ForceShrinkingGC(JSContext *cx)
+{
+    js::ShrinkingGC(cx, js::gcreason::COMPONENT_UTILS);
     return NS_OK;
 }
 
 class PreciseGCRunnable : public nsRunnable
 {
   public:
-    PreciseGCRunnable(JSContext *aCx, ScheduledGCCallback* aCallback)
-    : mCallback(aCallback), mCx(aCx) {}
+    PreciseGCRunnable(JSContext *aCx, ScheduledGCCallback* aCallback, bool aShrinking)
+    : mCallback(aCallback), mCx(aCx), mShrinking(aShrinking) {}
 
     NS_IMETHOD Run()
     {
@@ -3627,7 +3656,10 @@ class PreciseGCRunnable : public nsRunnable
             }
         }
 
-        JS_GC(mCx);
+        if (mShrinking)
+            js::ShrinkingGC(mCx, js::gcreason::COMPONENT_UTILS);
+        else
+            js::GCForReason(mCx, js::gcreason::COMPONENT_UTILS);
 
         mCallback->Callback();
         return NS_OK;
@@ -3636,13 +3668,22 @@ class PreciseGCRunnable : public nsRunnable
   private:
     nsRefPtr<ScheduledGCCallback> mCallback;
     JSContext *mCx;
+    bool mShrinking;
 };
 
 /* [inline_jscontext] void schedulePreciseGC(in ScheduledGCCallback callback); */
 NS_IMETHODIMP
 nsXPCComponents_Utils::SchedulePreciseGC(ScheduledGCCallback* aCallback, JSContext* aCx)
 {
-    nsRefPtr<PreciseGCRunnable> event = new PreciseGCRunnable(aCx, aCallback);
+    nsRefPtr<PreciseGCRunnable> event = new PreciseGCRunnable(aCx, aCallback, false);
+    return NS_DispatchToMainThread(event);
+}
+
+/* [inline_jscontext] void schedulePreciseShrinkingGC(in ScheduledGCCallback callback); */
+NS_IMETHODIMP
+nsXPCComponents_Utils::SchedulePreciseShrinkingGC(ScheduledGCCallback* aCallback, JSContext* aCx)
+{
+    nsRefPtr<PreciseGCRunnable> event = new PreciseGCRunnable(aCx, aCallback, true);
     return NS_DispatchToMainThread(event);
 }
 
@@ -3652,12 +3693,12 @@ nsXPCComponents_Utils::NondeterministicGetWeakMapKeys(const jsval &aMap,
                                                       JSContext *aCx,
                                                       jsval *aKeys)
 {
-    if(!JSVAL_IS_OBJECT(aMap)) {
+    if (!JSVAL_IS_OBJECT(aMap)) {
         *aKeys = JSVAL_VOID;
         return NS_OK; 
     }
     JSObject *objRet;
-    if(!JS_NondeterministicGetWeakMapKeys(aCx, JSVAL_TO_OBJECT(aMap), &objRet))
+    if (!JS_NondeterministicGetWeakMapKeys(aCx, JSVAL_TO_OBJECT(aMap), &objRet))
         return NS_ERROR_OUT_OF_MEMORY;
     *aKeys = objRet ? OBJECT_TO_JSVAL(objRet) : JSVAL_VOID;
     return NS_OK;

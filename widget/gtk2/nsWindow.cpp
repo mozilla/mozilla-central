@@ -160,8 +160,7 @@ using mozilla::layers::LayerManagerOGL;
 #define MAX_RECTS_IN_REGION 100
 
 /* utility functions */
-static bool       check_for_rollup(GdkWindow *aWindow,
-                                   gdouble aMouseX, gdouble aMouseY,
+static bool       check_for_rollup(gdouble aMouseX, gdouble aMouseY,
                                    bool aIsWheel, bool aAlwaysRollup);
 static bool       is_mouse_in_window(GdkWindow* aWindow,
                                      gdouble aMouseX, gdouble aMouseY);
@@ -283,25 +282,15 @@ static bool gdk_keyboard_get_modmap_masks(Display*  aDisplay,
 /* initialization static functions */
 static nsresult    initialize_prefs        (void);
 
-static void
-UpdateLastInputEventTime()
-{
-  nsCOMPtr<nsIdleService> idleService = do_GetService("@mozilla.org/widget/idleservice;1");
-  if (idleService) {
-    idleService->ResetIdleTimeOut();
-  }
-}
-
 // this is the last window that had a drag event happen on it.
 nsWindow *nsWindow::sLastDragMotionWindow = NULL;
 bool nsWindow::sIsDraggingOutOf = false;
 
-// This is the time of the last button press event.  The drag service
-// uses it as the time to start drags.
-guint32   nsWindow::sLastButtonPressTime = 0;
 // Time of the last button release event. We use it to detect when the
 // drag ended before we could properly setup drag and drop.
 guint32   nsWindow::sLastButtonReleaseTime = 0;
+static guint32 sLastUserInputTime = GDK_CURRENT_TIME;
+static guint32 sRetryGrabTime;
 
 static NS_DEFINE_IID(kCDragServiceCID,  NS_DRAGSERVICE_CID);
 
@@ -378,6 +367,29 @@ GetBitmapStride(PRInt32 width)
 #else
   return cairo_format_stride_for_width(CAIRO_FORMAT_A1, width);
 #endif
+}
+
+static inline bool TimestampIsNewerThan(guint32 a, guint32 b)
+{
+    // Timestamps are just the least significant bits of a monotonically
+    // increasing function, and so the use of unsigned overflow arithmetic.
+    return a - b <= G_MAXUINT32/2;
+}
+
+static void
+UpdateLastInputEventTime(void *aGdkEvent)
+{
+    nsCOMPtr<nsIdleService> idleService =
+        do_GetService("@mozilla.org/widget/idleservice;1");
+    if (idleService) {
+        idleService->ResetIdleTimeOut();
+    }
+
+    guint timestamp = gdk_event_get_time(static_cast<GdkEvent*>(aGdkEvent));
+    if (timestamp == GDK_CURRENT_TIME)
+        return;
+
+    sLastUserInputTime = timestamp;
 }
 
 nsWindow::nsWindow()
@@ -1426,7 +1438,28 @@ SetUserTimeAndStartupIDForActivatedWindow(GtkWidget* aWindow)
     sn_display_unref(snd);
 #endif
 
+    // If we used the startup ID, that already contains the focus timestamp;
+    // we don't want to reuse the timestamp next time we raise the window
+    GTKToolkit->SetFocusTimestamp(0);
     GTKToolkit->SetDesktopStartupID(EmptyCString());
+}
+
+/* static */ guint32
+nsWindow::GetLastUserInputTime()
+{
+    // gdk_x11_display_get_user_time tracks button and key presses,
+    // DESKTOP_STARTUP_ID used to start the app, drop events from external
+    // drags, WM_DELETE_WINDOW delete events, but not usually mouse motion nor
+    // button and key releases.  Therefore use the most recent of
+    // gdk_x11_display_get_user_time and the last time that we have seen.
+    guint32 timestamp =
+            gdk_x11_display_get_user_time(gdk_display_get_default());
+    if (sLastUserInputTime != GDK_CURRENT_TIME &&
+        TimestampIsNewerThan(sLastUserInputTime, timestamp)) {
+        return sLastUserInputTime;
+    }       
+
+    return timestamp;
 }
 
 NS_IMETHODIMP
@@ -1471,11 +1504,20 @@ nsWindow::SetFocus(bool aRaise)
         if (gRaiseWindows && owningWindow->mIsShown && owningWindow->mShell &&
             !gtk_window_is_active(GTK_WINDOW(owningWindow->mShell))) {
 
+            PRUint32 timestamp = GDK_CURRENT_TIME;
+
+            nsGTKToolkit* GTKToolkit = nsGTKToolkit::GetToolkit();
+            if (GTKToolkit)
+                timestamp = GTKToolkit->GetFocusTimestamp();
+
             LOGFOCUS(("  requesting toplevel activation [%p]\n", (void *)this));
             NS_ASSERTION(owningWindow->mWindowType != eWindowType_popup
                          || mParent,
                          "Presenting an override-redirect window");
-            gtk_window_present(GTK_WINDOW(owningWindow->mShell));
+            gtk_window_present_with_time(GTK_WINDOW(owningWindow->mShell), timestamp);
+
+            if (GTKToolkit)
+                GTKToolkit->SetFocusTimestamp(0);
         }
 
         return NS_OK;
@@ -1882,7 +1924,7 @@ nsWindow::CaptureMouse(bool aCapture)
 
     if (aCapture) {
         gtk_grab_add(widget);
-        GrabPointer();
+        GrabPointer(GetLastUserInputTime());
     }
     else {
         ReleaseGrabs();
@@ -1914,7 +1956,7 @@ nsWindow::CaptureRollupEvents(nsIRollupListener *aListener,
         // real grab is only done when there is no dragging
         if (!nsWindow::DragInProgress()) {
             gtk_grab_add(widget);
-            GrabPointer();
+            GrabPointer(GetLastUserInputTime());
         }
     }
     else {
@@ -2357,7 +2399,7 @@ nsWindow::OnConfigureEvent(GtkWidget *aWidget, GdkEventConfigure *aEvent)
         // Cygwin/X (bug 672103).
         if (mBounds.x != screenBounds.x ||
             mBounds.y != screenBounds.y) {
-            check_for_rollup(aEvent->window, 0, 0, false, true);
+            check_for_rollup(0, 0, false, true);
         }
     }
 
@@ -2740,8 +2782,7 @@ nsWindow::OnButtonPressEvent(GtkWidget *aWidget, GdkEventButton *aEvent)
             return;
     }
 
-    // Always save the time of this event
-    sLastButtonPressTime = aEvent->time;
+    // We haven't received the corresponding release event yet.
     sLastButtonReleaseTime = 0;
 
     nsWindow *containerWindow = GetContainerWindow();
@@ -2750,8 +2791,8 @@ nsWindow::OnButtonPressEvent(GtkWidget *aWidget, GdkEventButton *aEvent)
     }
 
     // check to see if we should rollup
-    bool rolledUp = check_for_rollup(aEvent->window, aEvent->x_root,
-                                       aEvent->y_root, false, false);
+    bool rolledUp =
+        check_for_rollup(aEvent->x_root, aEvent->y_root, false, false);
     if (gConsumeRollupEvent && rolledUp)
         return;
 
@@ -2915,7 +2956,7 @@ nsWindow::OnContainerFocusOutEvent(GtkWidget *aWidget, GdkEventFocus *aEvent)
         }
 
         if (shouldRollup) {
-            check_for_rollup(aEvent->window, 0, 0, false, true);
+            check_for_rollup(0, 0, false, true);
         }
     }
 
@@ -3274,8 +3315,8 @@ void
 nsWindow::OnScrollEvent(GtkWidget *aWidget, GdkEventScroll *aEvent)
 {
     // check to see if we should rollup
-    bool rolledUp =  check_for_rollup(aEvent->window, aEvent->x_root,
-                                        aEvent->y_root, true, false);
+    bool rolledUp =
+        check_for_rollup(aEvent->x_root, aEvent->y_root, true, false);
     if (gConsumeRollupEvent && rolledUp)
         return;
 
@@ -3389,10 +3430,12 @@ nsWindow::OnWindowStateEvent(GtkWidget *aWidget, GdkEventWindowState *aEvent)
 
     nsSizeModeEvent event(true, NS_SIZEMODE, this);
 
-    // We don't care about anything but changes in the maximized/icon
+    // We don't care about anything but changes in the maximized/icon/fullscreen
     // states
     if ((aEvent->changed_mask
-         & (GDK_WINDOW_STATE_ICONIFIED|GDK_WINDOW_STATE_MAXIMIZED)) == 0) {
+         & (GDK_WINDOW_STATE_ICONIFIED |
+            GDK_WINDOW_STATE_MAXIMIZED |
+            GDK_WINDOW_STATE_FULLSCREEN)) == 0) {
         return;
     }
 
@@ -3404,6 +3447,11 @@ nsWindow::OnWindowStateEvent(GtkWidget *aWidget, GdkEventWindowState *aEvent)
         DispatchMinimizeEventAccessible();
 #endif //ACCESSIBILITY
     }
+    else if (aEvent->new_window_state & GDK_WINDOW_STATE_FULLSCREEN) {
+        LOG(("\tFullscreen\n"));
+        event.mSizeMode = nsSizeMode_Fullscreen;
+        mSizeState = nsSizeMode_Fullscreen;
+    }
     else if (aEvent->new_window_state & GDK_WINDOW_STATE_MAXIMIZED) {
         LOG(("\tMaximized\n"));
         event.mSizeMode = nsSizeMode_Maximized;
@@ -3411,11 +3459,6 @@ nsWindow::OnWindowStateEvent(GtkWidget *aWidget, GdkEventWindowState *aEvent)
 #ifdef ACCESSIBILITY
         DispatchMaximizeEventAccessible();
 #endif //ACCESSIBILITY
-    }
-    else if (aEvent->new_window_state & GDK_WINDOW_STATE_FULLSCREEN) {
-        LOG(("\tFullscreen\n"));
-        event.mSizeMode = nsSizeMode_Fullscreen;
-        mSizeState = nsSizeMode_Fullscreen;
     }
     else {
         LOG(("\tNormal\n"));
@@ -4493,7 +4536,7 @@ void
 nsWindow::EnsureGrabs(void)
 {
     if (mRetryPointerGrab)
-        GrabPointer();
+        GrabPointer(sRetryGrabTime);
 }
 
 void
@@ -4882,11 +4925,13 @@ nsWindow::UpdateTranslucentWindowAlphaInternal(const nsIntRect& aRect,
 }
 
 void
-nsWindow::GrabPointer(void)
+nsWindow::GrabPointer(guint32 aTime)
 {
-    LOG(("GrabPointer %d\n", mRetryPointerGrab));
+    LOG(("GrabPointer time=0x%08x retry=%d\n",
+         (unsigned int)aTime, mRetryPointerGrab));
 
     mRetryPointerGrab = false;
+    sRetryGrabTime = aTime;
 
     // If the window isn't visible, just set the flag to retry the
     // grab.  When this window becomes visible, the grab will be
@@ -4910,11 +4955,17 @@ nsWindow::GrabPointer(void)
                                              GDK_POINTER_MOTION_HINT_MASK |
 #endif
                                              GDK_POINTER_MOTION_MASK),
-                              (GdkWindow *)NULL, NULL, GDK_CURRENT_TIME);
+                              (GdkWindow *)NULL, NULL, aTime);
 
-    if (retval != GDK_GRAB_SUCCESS) {
-        LOG(("GrabPointer: pointer grab failed\n"));
+    if (retval == GDK_GRAB_NOT_VIEWABLE) {
+        LOG(("GrabPointer: window not viewable; will retry\n"));
         mRetryPointerGrab = true;
+    } else if (retval != GDK_GRAB_SUCCESS) {
+        LOG(("GrabPointer: pointer grab failed: %i\n", retval));
+        // A failed grab indicates that another app has grabbed the pointer.
+        // Check for rollup now, because, without the grab, we likely won't
+        // get subsequent button press events.
+        check_for_rollup(0, 0, false, true);
     }
 }
 
@@ -5223,7 +5274,7 @@ nsWindow::HideWindowChrome(bool aShouldHide)
 }
 
 static bool
-check_for_rollup(GdkWindow *aWindow, gdouble aMouseX, gdouble aMouseY,
+check_for_rollup(gdouble aMouseX, gdouble aMouseY,
                  bool aIsWheel, bool aAlwaysRollup)
 {
     bool retVal = false;
@@ -5695,7 +5746,7 @@ GetFirstNSWindowForGDKWindow(GdkWindow *aGdkWindow)
 static gboolean
 motion_notify_event_cb(GtkWidget *widget, GdkEventMotion *event)
 {
-    UpdateLastInputEventTime();
+    UpdateLastInputEventTime(event);
 
     nsWindow *window = GetFirstNSWindowForGDKWindow(event->window);
     if (!window)
@@ -5712,7 +5763,7 @@ motion_notify_event_cb(GtkWidget *widget, GdkEventMotion *event)
 static gboolean
 button_press_event_cb(GtkWidget *widget, GdkEventButton *event)
 {
-    UpdateLastInputEventTime();
+    UpdateLastInputEventTime(event);
 
     nsWindow *window = GetFirstNSWindowForGDKWindow(event->window);
     if (!window)
@@ -5726,7 +5777,7 @@ button_press_event_cb(GtkWidget *widget, GdkEventButton *event)
 static gboolean
 button_release_event_cb(GtkWidget *widget, GdkEventButton *event)
 {
-    UpdateLastInputEventTime();
+    UpdateLastInputEventTime(event);
 
     nsWindow *window = GetFirstNSWindowForGDKWindow(event->window);
     if (!window)
@@ -5932,7 +5983,7 @@ key_press_event_cb(GtkWidget *widget, GdkEventKey *event)
 {
     LOG(("key_press_event_cb\n"));
 
-    UpdateLastInputEventTime();
+    UpdateLastInputEventTime(event);
 
     // find the window with focus and dispatch this event to that widget
     nsWindow *window = get_window_for_gtk_widget(widget);
@@ -5975,7 +6026,7 @@ key_release_event_cb(GtkWidget *widget, GdkEventKey *event)
 {
     LOG(("key_release_event_cb\n"));
 
-    UpdateLastInputEventTime();
+    UpdateLastInputEventTime(event);
 
     // find the window with focus and dispatch this event to that widget
     nsWindow *window = get_window_for_gtk_widget(widget);

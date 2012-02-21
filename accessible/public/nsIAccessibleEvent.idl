@@ -442,9 +442,14 @@ interface nsIAccessibleEvent : nsISupports
   const unsigned long EVENT_OBJECT_ATTRIBUTE_CHANGED = 0x0055;
 
   /**
+   * A cursorable's virtual cursor has changed.
+   */
+  const unsigned long EVENT_VIRTUALCURSOR_CHANGED = 0x0056;
+
+  /**
    * Help make sure event map does not get out-of-line.
    */
-  const unsigned long EVENT_LAST_ENTRY = 0x0056;
+  const unsigned long EVENT_LAST_ENTRY = 0x0057;
 
   /**
    * The type of event, based on the enumerated event values
@@ -522,6 +527,25 @@ interface nsIAccessibleTextChangeEvent : nsISupports
    * The inserted or removed text
    */
   readonly attribute DOMString modifiedText;
+};
+
+[scriptable, uuid(a2bd2eca-3afa-489b-afb2-f93ef32ad99c)]
+interface nsIAccessibleHideEvent: nsISupports
+{
+  /**
+   * Return an accessible that was a parent of the target.
+   */
+  readonly attribute nsIAccessible targetParent;
+
+  /**
+   * Return an accessible that was a next sibling of the target
+   */
+  readonly attribute nsIAccessible targetNextSibling;
+
+  /**
+   * Return an accessible that was a parent of the target
+   */
+  readonly attribute nsIAccessible targetPrevSibling;
 };
 
 [scriptable, uuid(5675c486-a230-4d85-a4bd-33670826d5ff)]

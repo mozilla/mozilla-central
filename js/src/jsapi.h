@@ -70,6 +70,8 @@
 
 /************************************************************************/
 
+#define JS_Assert MOZ_Assert
+
 #ifdef __cplusplus
 namespace JS {
 
@@ -567,6 +569,11 @@ class Value
     }
 
     JS_ALWAYS_INLINE
+    uint64_t asRawBits() const {
+        return data.asBits;
+    }
+
+    JS_ALWAYS_INLINE
     JSValueType extractNonDoubleType() const {
         return JSVAL_EXTRACT_NON_DOUBLE_TYPE_IMPL(data);
     }
@@ -813,10 +820,6 @@ class JS_PUBLIC_API(AutoCheckRequestDepth)
 
 #endif
 
-extern void
-MarkRuntime(JSTracer *trc);
-
-
 class JS_PUBLIC_API(AutoGCRooter) {
   public:
     AutoGCRooter(JSContext *cx, ptrdiff_t tag);
@@ -914,7 +917,6 @@ class AutoValueRooter : private AutoGCRooter
     }
 
     friend void AutoGCRooter::trace(JSTracer *trc);
-    friend void MarkRuntime(JSTracer *trc);
 
   private:
     Value val;
@@ -943,7 +945,6 @@ class AutoObjectRooter : private AutoGCRooter {
     }
 
     friend void AutoGCRooter::trace(JSTracer *trc);
-    friend void MarkRuntime(JSTracer *trc);
 
   private:
     JSObject *obj;
@@ -1028,7 +1029,7 @@ class AutoEnumStateRooter : private AutoGCRooter
   protected:
     void trace(JSTracer *trc);
 
-    JSObject * const obj;
+    JSObject *obj;
 
   private:
     Value stateValue;
@@ -1331,11 +1332,13 @@ typedef void
 (* JSFinalizeOp)(JSContext *cx, JSObject *obj);
 
 /*
- * Used by JS_AddExternalStringFinalizer and JS_RemoveExternalStringFinalizer
- * to extend and reduce the set of string types finalized by the GC.
+ * Finalizes external strings created by JS_NewExternalString.
  */
-typedef void
-(* JSStringFinalizeOp)(JSContext *cx, JSString *str);
+typedef struct JSStringFinalizer JSStringFinalizer;
+
+struct JSStringFinalizer {
+    void (*finalize)(const JSStringFinalizer *fin, jschar *chars);
+};
 
 /*
  * JSClass.checkAccess type: check whether obj[id] may be accessed per mode,
@@ -1425,8 +1428,11 @@ typedef JSBool
 (* JSContextCallback)(JSContext *cx, uintN contextOp);
 
 typedef enum JSGCStatus {
+    /* These callbacks happen outside the GC lock. */
     JSGC_BEGIN,
     JSGC_END,
+
+    /* These callbacks happen within the GC lock. */
     JSGC_MARK_END,
     JSGC_FINALIZE_END
 } JSGCStatus;
@@ -1857,7 +1863,11 @@ INTERNED_STRING_TO_JSID(JSContext *cx, JSString *str)
     jsid id;
     JS_ASSERT(str);
     JS_ASSERT(((size_t)str & JSID_TYPE_MASK) == 0);
+#ifdef DEBUG
     JS_ASSERT(JS_StringHasBeenInterned(cx, str));
+#else
+    (void)cx;
+#endif
     JSID_BITS(id) = (size_t)str;
     return id;
 }
@@ -2017,7 +2027,6 @@ class AutoIdRooter : private AutoGCRooter
     }
 
     friend void AutoGCRooter::trace(JSTracer *trc);
-    friend void MarkRuntime(JSTracer *trc);
 
   private:
     jsid id_;
@@ -2325,6 +2334,9 @@ JS_ShutDown(void);
 JS_PUBLIC_API(void *)
 JS_GetRuntimePrivate(JSRuntime *rt);
 
+extern JS_PUBLIC_API(JSRuntime *)
+JS_GetRuntime(JSContext *cx);
+
 JS_PUBLIC_API(void)
 JS_SetRuntimePrivate(JSRuntime *rt, void *data);
 
@@ -2345,7 +2357,10 @@ extern JS_PUBLIC_API(void)
 JS_ResumeRequest(JSContext *cx, jsrefcount saveDepth);
 
 extern JS_PUBLIC_API(JSBool)
-JS_IsInRequest(JSContext *cx);
+JS_IsInRequest(JSRuntime *rt);
+
+extern JS_PUBLIC_API(JSBool)
+JS_IsInSuspendedRequest(JSRuntime *rt);
 
 #ifdef __cplusplus
 JS_END_EXTERN_C
@@ -2427,14 +2442,14 @@ class JSAutoCheckRequest {
     JSAutoCheckRequest(JSContext *cx JS_GUARD_OBJECT_NOTIFIER_PARAM) {
 #if defined JS_THREADSAFE && defined DEBUG
         mContext = cx;
-        JS_ASSERT(JS_IsInRequest(cx));
+        JS_ASSERT(JS_IsInRequest(JS_GetRuntime(cx)));
 #endif
         JS_GUARD_OBJECT_NOTIFIER_INIT;
     }
 
     ~JSAutoCheckRequest() {
 #if defined JS_THREADSAFE && defined DEBUG
-        JS_ASSERT(JS_IsInRequest(mContext));
+        JS_ASSERT(JS_IsInRequest(JS_GetRuntime(mContext)));
 #endif
     }
 
@@ -2563,12 +2578,11 @@ JS_StringToVersion(const char *string);
 #define JSOPTION_PCCOUNT        JS_BIT(17)      /* Collect per-op execution counts */
 
 #define JSOPTION_TYPE_INFERENCE JS_BIT(18)      /* Perform type inference. */
-#define JSOPTION_SOFTEN         JS_BIT(19)      /* Disable JIT hardening. */
 
 /* Options which reflect compile-time properties of scripts. */
 #define JSCOMPILEOPTION_MASK    (JSOPTION_XML)
 
-#define JSRUNOPTION_MASK        (JS_BITMASK(20) & ~JSCOMPILEOPTION_MASK)
+#define JSRUNOPTION_MASK        (JS_BITMASK(19) & ~JSCOMPILEOPTION_MASK)
 #define JSALLOPTION_MASK        (JSCOMPILEOPTION_MASK | JSRUNOPTION_MASK)
 
 extern JS_PUBLIC_API(uint32_t)
@@ -2579,6 +2593,9 @@ JS_SetOptions(JSContext *cx, uint32_t options);
 
 extern JS_PUBLIC_API(uint32_t)
 JS_ToggleOptions(JSContext *cx, uint32_t options);
+
+extern JS_PUBLIC_API(void)
+JS_SetJitHardening(JSRuntime *rt, JSBool enabled);
 
 extern JS_PUBLIC_API(const char *)
 JS_GetImplementationVersion(void);
@@ -2673,6 +2690,18 @@ class JS_PUBLIC_API(JSAutoEnterCompartment)
 JS_BEGIN_EXTERN_C
 #endif
 
+typedef void (*JSIterateCompartmentCallback)(JSContext *cx, void *data,
+              JSCompartment *compartment);
+
+/*
+ * This function calls |compartmentCallback| on every compartment.  Beware that
+ * there is no guarantee that the compartment will survive after the callback
+ * returns.
+ */
+extern JS_PUBLIC_API(void)
+JS_IterateCompartments(JSContext *cx, void *data,
+                       JSIterateCompartmentCallback compartmentCallback);
+
 extern JS_PUBLIC_API(JSObject *)
 JS_GetGlobalObject(JSContext *cx);
 
@@ -2722,6 +2751,13 @@ extern JS_PUBLIC_API(JSBool)
 JS_GetClassObject(JSContext *cx, JSObject *obj, JSProtoKey key,
                   JSObject **objp);
 
+/*
+ * Returns the original value of |Object.prototype| from the global object in
+ * which |forObj| was created.
+ */
+extern JS_PUBLIC_API(JSObject *)
+JS_GetObjectPrototype(JSContext *cx, JSObject *forObj);
+
 extern JS_PUBLIC_API(JSObject *)
 JS_GetGlobalForObject(JSContext *cx, JSObject *obj);
 
@@ -2767,8 +2803,8 @@ typedef struct JSCTypesCallbacks JSCTypesCallbacks;
  * may safely be altered after calling this function and without having
  * to call this function again.
  */
-extern JS_PUBLIC_API(JSBool)
-JS_SetCTypesCallbacks(JSContext *cx, JSObject *ctypesObj, JSCTypesCallbacks *callbacks);
+extern JS_PUBLIC_API(void)
+JS_SetCTypesCallbacks(JSObject *ctypesObj, JSCTypesCallbacks *callbacks);
 #endif
 
 typedef JSBool
@@ -3081,7 +3117,7 @@ JSVAL_TRACE_KIND(jsval v)
  * wants to use the existing liveness of entries.
  */
 typedef void
-(* JSTraceCallback)(JSTracer *trc, void *thing, JSGCTraceKind kind);
+(* JSTraceCallback)(JSTracer *trc, void **thingp, JSGCTraceKind kind);
 
 struct JSTracer {
     JSRuntime           *runtime;
@@ -3223,105 +3259,6 @@ JS_DumpHeap(JSContext *cx, FILE *fp, void* startThing, JSGCTraceKind kind,
 #endif
 
 /*
- * Write barrier API.
- *
- * This API is used to inform SpiderMonkey of pointers to JS GC things in the
- * malloc heap. There is no need to use this API unless incremental GC is
- * enabled. When they are, the requirements for using the API are as follows:
- *
- * All pointers to JS GC things from the malloc heap must be registered and
- * unregistered with the API functions below. This is *in addition* to the
- * normal rooting and tracing that must be done normally--these functions will
- * not take care of rooting for you.
- *
- * Besides registration, the JS_ModifyReference function must be called to
- * change the value of these references. You should not change them using
- * assignment.
- *
- * Only the RT versions of these functions (which take a JSRuntime argument)
- * should be called during GC. Without a JSRuntime, it is not possible to know
- * if the object being barriered has already been finalized.
- *
- * To avoid the headache of using these API functions, the JSBarrieredObjectPtr
- * C++ class is provided--simply replace your JSObject* with a
- * JSBarrieredObjectPtr. It will take care of calling the registration and
- * modification APIs.
- *
- * For more explanation, see the comment in gc/Barrier.h.
- */
-
-/* These functions are to be used for objects and strings. */
-extern JS_PUBLIC_API(void)
-JS_RegisterReference(void **ref);
-
-extern JS_PUBLIC_API(void)
-JS_ModifyReference(void **ref, void *newval);
-
-extern JS_PUBLIC_API(void)
-JS_UnregisterReference(void **ref);
-
-extern JS_PUBLIC_API(void)
-JS_UnregisterReferenceRT(JSRuntime *rt, void **ref);
-
-/* These functions are for values. */
-extern JS_PUBLIC_API(void)
-JS_RegisterValue(jsval *val);
-
-extern JS_PUBLIC_API(void)
-JS_ModifyValue(jsval *val, jsval newval);
-
-extern JS_PUBLIC_API(void)
-JS_UnregisterValue(jsval *val);
-
-extern JS_PUBLIC_API(void)
-JS_UnregisterValueRT(JSRuntime *rt, jsval *val);
-
-extern JS_PUBLIC_API(JSTracer *)
-JS_GetIncrementalGCTracer(JSRuntime *rt);
-
-#ifdef __cplusplus
-JS_END_EXTERN_C
-
-namespace JS {
-
-class HeapPtrObject
-{
-    JSObject *value;
-
-  public:
-    HeapPtrObject() : value(NULL) { JS_RegisterReference((void **) &value); }
-
-    HeapPtrObject(JSObject *obj) : value(obj) { JS_RegisterReference((void **) &value); }
-
-    /* Always call finalize before the destructor. */
-    ~HeapPtrObject() { JS_ASSERT(!value); }
-
-    void finalize(JSRuntime *rt) {
-        JS_UnregisterReferenceRT(rt, (void **) &value);
-        value = NULL;
-    }
-    void finalize(JSContext *cx) { finalize(JS_GetRuntime(cx)); }
-
-    void init(JSObject *obj) { value = obj; }
-
-    JSObject *get() const { return value; }
-
-    HeapPtrObject &operator=(JSObject *obj) {
-        JS_ModifyReference((void **) &value, obj);
-        return *this;
-    }
-
-    JSObject &operator*() const { return *value; }
-    JSObject *operator->() const { return value; }
-    operator JSObject *() const { return value; }
-};
-
-} /* namespace JS */
-
-JS_BEGIN_EXTERN_C
-#endif
-
-/*
  * Garbage collector API.
  */
 extern JS_PUBLIC_API(void)
@@ -3343,7 +3280,7 @@ extern JS_PUBLIC_API(JSBool)
 JS_IsGCMarkingTracer(JSTracer *trc);
 
 extern JS_PUBLIC_API(JSBool)
-JS_IsAboutToBeFinalized(JSContext *cx, void *thing);
+JS_IsAboutToBeFinalized(void *thing);
 
 typedef enum JSGCParamKey {
     /* Maximum nominal heap before last ditch GC. */
@@ -3368,7 +3305,10 @@ typedef enum JSGCParamKey {
     JSGC_UNUSED_CHUNKS = 7,
 
     /* Total number of allocated GC chunks. */
-    JSGC_TOTAL_CHUNKS = 8
+    JSGC_TOTAL_CHUNKS = 8,
+
+    /* Max milliseconds to spend in an incremental GC slice. */
+    JSGC_SLICE_TIME_BUDGET = 9
 } JSGCParamKey;
 
 typedef enum JSGCMode {
@@ -3376,7 +3316,13 @@ typedef enum JSGCMode {
     JSGC_MODE_GLOBAL = 0,
 
     /* Perform per-compartment GCs until too much garbage has accumulated. */
-    JSGC_MODE_COMPARTMENT = 1
+    JSGC_MODE_COMPARTMENT = 1,
+
+    /*
+     * Collect in short time slices rather than all at once. Implies
+     * JSGC_MODE_COMPARTMENT.
+     */
+    JSGC_MODE_INCREMENTAL = 2
 } JSGCMode;
 
 extern JS_PUBLIC_API(void)
@@ -3401,82 +3347,33 @@ extern JS_PUBLIC_API(void)
 JS_FlushCaches(JSContext *cx);
 
 /*
- * Add a finalizer for external strings created by JS_NewExternalString (see
- * below) using a type-code returned from this function, and that understands
- * how to free or release the memory pointed at by JS_GetStringChars(str).
- *
- * Return a nonnegative type index if there is room for finalizer in the
- * global GC finalizers table, else return -1.  If the engine is compiled
- * JS_THREADSAFE and used in a multi-threaded environment, this function must
- * be invoked on the primordial thread only, at startup -- or else the entire
- * program must single-thread itself while loading a module that calls this
- * function.
- */
-extern JS_PUBLIC_API(intN)
-JS_AddExternalStringFinalizer(JSStringFinalizeOp finalizer);
-
-/*
- * Remove finalizer from the global GC finalizers table, returning its type
- * code if found, -1 if not found.
- *
- * As with JS_AddExternalStringFinalizer, there is a threading restriction
- * if you compile the engine JS_THREADSAFE: this function may be called for a
- * given finalizer pointer on only one thread; different threads may call to
- * remove distinct finalizers safely.
- *
- * You must ensure that all strings with finalizer's type have been collected
- * before calling this function.  Otherwise, string data will be leaked by the
- * GC, for want of a finalizer to call.
- */
-extern JS_PUBLIC_API(intN)
-JS_RemoveExternalStringFinalizer(JSStringFinalizeOp finalizer);
-
-/*
  * Create a new JSString whose chars member refers to external memory, i.e.,
- * memory requiring type-specific finalization.  The type code must be a
- * nonnegative return value from JS_AddExternalStringFinalizer.
+ * memory requiring application-specific finalization.
  */
 extern JS_PUBLIC_API(JSString *)
-JS_NewExternalString(JSContext *cx, const jschar *chars, size_t length, intN type);
-
-/*
- * Like JS_NewExternalString, except that 'closure' can be retrieved later via
- * JS_GetExternalStringClosure. This closure data is a black blox to the JS
- * engine and may be used by the embedding to associate extra data with an
- * external string. E.g., an embedding may want to associate a pointer to the
- * object that owns the chars of an external string so that, when this external
- * string is finalized, the owner object can be deleted.
- */
-extern JS_PUBLIC_API(JSString *)
-JS_NewExternalStringWithClosure(JSContext *cx, const jschar *chars, size_t length,
-                                intN type, void *closure);
+JS_NewExternalString(JSContext *cx, const jschar *chars, size_t length,
+                     const JSStringFinalizer *fin);
 
 /*
  * Return whether 'str' was created with JS_NewExternalString or
  * JS_NewExternalStringWithClosure.
  */
 extern JS_PUBLIC_API(JSBool)
-JS_IsExternalString(JSContext *cx, JSString *str);
+JS_IsExternalString(JSString *str);
 
 /*
  * Return the 'closure' arg passed to JS_NewExternalStringWithClosure or NULL
  * if the external string was created via JS_NewExternalString.
  */
-extern JS_PUBLIC_API(void *)
-JS_GetExternalStringClosure(JSContext *cx, JSString *str);
-
-/*
- * Deprecated. Use JS_SetNativeStackQuoata instead.
- */
-extern JS_PUBLIC_API(void)
-JS_SetThreadStackLimit(JSContext *cx, uintptr_t limitAddr);
+extern JS_PUBLIC_API(const JSStringFinalizer *)
+JS_GetExternalStringFinalizer(JSString *str);
 
 /*
  * Set the size of the native stack that should not be exceed. To disable
  * stack size checking pass 0.
  */
 extern JS_PUBLIC_API(void)
-JS_SetNativeStackQuota(JSContext *cx, size_t stackSize);
+JS_SetNativeStackQuota(JSRuntime *cx, size_t stackSize);
 
 /************************************************************************/
 
@@ -3520,6 +3417,8 @@ struct JSClass {
                                                    object in prototype chain
                                                    passed in via *objp in/out
                                                    parameter */
+#define JSCLASS_IMPLEMENTS_BARRIERS     (1<<5)  /* Correctly implements GC read
+                                                   and write barriers */
 #define JSCLASS_DOCUMENT_OBSERVER       (1<<6)  /* DOM document observer */
 
 /*
@@ -3539,7 +3438,12 @@ struct JSClass {
 #define JSCLASS_HIGH_FLAGS_SHIFT        (JSCLASS_RESERVED_SLOTS_SHIFT +       \
                                          JSCLASS_RESERVED_SLOTS_WIDTH)
 
-#define JSCLASS_INTERNAL_FLAG1          (1<<(JSCLASS_HIGH_FLAGS_SHIFT+0))
+/*
+ * Call the iteratorObject hook only to iterate over contents (for-of), not to
+ * enumerate properties (for-in, for-each, Object.keys, etc.)
+ */
+#define JSCLASS_FOR_OF_ITERATION        (1<<(JSCLASS_HIGH_FLAGS_SHIFT+0))
+
 #define JSCLASS_IS_ANONYMOUS            (1<<(JSCLASS_HIGH_FLAGS_SHIFT+1))
 #define JSCLASS_IS_GLOBAL               (1<<(JSCLASS_HIGH_FLAGS_SHIFT+2))
 #define JSCLASS_INTERNAL_FLAG2          (1<<(JSCLASS_HIGH_FLAGS_SHIFT+3))
@@ -3740,17 +3644,15 @@ JS_InitClass(JSContext *cx, JSObject *obj, JSObject *parent_proto,
              JSPropertySpec *ps, JSFunctionSpec *fs,
              JSPropertySpec *static_ps, JSFunctionSpec *static_fs);
 
-#ifdef JS_THREADSAFE
-extern JS_PUBLIC_API(JSClass *)
-JS_GetClass(JSContext *cx, JSObject *obj);
+/*
+ * Set up ctor.prototype = proto and proto.constructor = ctor with the
+ * right property flags.
+ */
+extern JS_PUBLIC_API(JSBool)
+JS_LinkConstructorAndPrototype(JSContext *cx, JSObject *ctor, JSObject *proto);
 
-#define JS_GET_CLASS(cx,obj) JS_GetClass(cx, obj)
-#else
 extern JS_PUBLIC_API(JSClass *)
 JS_GetClass(JSObject *obj);
-
-#define JS_GET_CLASS(cx,obj) JS_GetClass(obj)
-#endif
 
 extern JS_PUBLIC_API(JSBool)
 JS_InstanceOf(JSContext *cx, JSObject *obj, JSClass *clasp, jsval *argv);
@@ -3759,23 +3661,23 @@ extern JS_PUBLIC_API(JSBool)
 JS_HasInstance(JSContext *cx, JSObject *obj, jsval v, JSBool *bp);
 
 extern JS_PUBLIC_API(void *)
-JS_GetPrivate(JSContext *cx, JSObject *obj);
+JS_GetPrivate(JSObject *obj);
 
-extern JS_PUBLIC_API(JSBool)
-JS_SetPrivate(JSContext *cx, JSObject *obj, void *data);
+extern JS_PUBLIC_API(void)
+JS_SetPrivate(JSObject *obj, void *data);
 
 extern JS_PUBLIC_API(void *)
 JS_GetInstancePrivate(JSContext *cx, JSObject *obj, JSClass *clasp,
                       jsval *argv);
 
 extern JS_PUBLIC_API(JSObject *)
-JS_GetPrototype(JSContext *cx, JSObject *obj);
+JS_GetPrototype(JSObject *obj);
 
 extern JS_PUBLIC_API(JSBool)
 JS_SetPrototype(JSContext *cx, JSObject *obj, JSObject *proto);
 
 extern JS_PUBLIC_API(JSObject *)
-JS_GetParent(JSContext *cx, JSObject *obj);
+JS_GetParent(JSObject *obj);
 
 extern JS_PUBLIC_API(JSBool)
 JS_SetParent(JSContext *cx, JSObject *obj, JSObject *parent);
@@ -4145,15 +4047,30 @@ JS_NewPropertyIterator(JSContext *cx, JSObject *obj);
 extern JS_PUBLIC_API(JSBool)
 JS_NextProperty(JSContext *cx, JSObject *iterobj, jsid *idp);
 
+/*
+ * Create an object to iterate over the elements of obj in for-of order. This
+ * can be used to implement the iteratorObject hook for an array-like Class.
+ */
+extern JS_PUBLIC_API(JSObject *)
+JS_NewElementIterator(JSContext *cx, JSObject *obj);
+
+/*
+ * To make your array-like class iterable using the for-of loop, set the
+ * JSCLASS_FOR_OF_ITERATION bit in the class's flags field and set its
+ * .ext.iteratorObject hook to this function.
+ */
+extern JS_PUBLIC_API(JSObject *)
+JS_ElementIteratorStub(JSContext *cx, JSObject *obj, JSBool keysonly);
+
 extern JS_PUBLIC_API(JSBool)
 JS_CheckAccess(JSContext *cx, JSObject *obj, jsid id, JSAccessMode mode,
                jsval *vp, uintN *attrsp);
 
-extern JS_PUBLIC_API(JSBool)
-JS_GetReservedSlot(JSContext *cx, JSObject *obj, uint32_t index, jsval *vp);
+extern JS_PUBLIC_API(jsval)
+JS_GetReservedSlot(JSObject *obj, uint32_t index);
 
-extern JS_PUBLIC_API(JSBool)
-JS_SetReservedSlot(JSContext *cx, JSObject *obj, uint32_t index, jsval v);
+extern JS_PUBLIC_API(void)
+JS_SetReservedSlot(JSObject *obj, uint32_t index, jsval v);
 
 /************************************************************************/
 
@@ -4590,7 +4507,7 @@ extern JS_PUBLIC_API(void)
 JS_TriggerOperationCallback(JSContext *cx);
 
 extern JS_PUBLIC_API(void)
-JS_TriggerAllOperationCallbacks(JSRuntime *rt);
+JS_TriggerRuntimeOperationCallback(JSRuntime *rt);
 
 extern JS_PUBLIC_API(JSBool)
 JS_IsRunning(JSContext *cx);
@@ -5363,24 +5280,6 @@ extern JS_PUBLIC_API(intptr_t)
 JS_GetCurrentThread();
 
 /*
- * Associate the current thread with the given context.  This is done
- * implicitly by JS_NewContext.
- *
- * Returns the old thread id for this context, which should be treated as
- * an opaque value.  This value is provided for comparison to 0, which
- * indicates that ClearContextThread has been called on this context
- * since the last SetContextThread, or non-0, which indicates the opposite.
- */
-extern JS_PUBLIC_API(intptr_t)
-JS_GetContextThread(JSContext *cx);
-
-extern JS_PUBLIC_API(intptr_t)
-JS_SetContextThread(JSContext *cx);
-
-extern JS_PUBLIC_API(intptr_t)
-JS_ClearContextThread(JSContext *cx);
-
-/*
  * A JS runtime always has an "owner thread". The owner thread is set when the
  * runtime is created (to the current thread) and practically all entry points
  * into the JS engine check that a runtime (or anything contained in the
@@ -5443,8 +5342,10 @@ JS_IsConstructing(JSContext *cx, const jsval *vp)
         JSFunction *fun = JS_ValueToFunction(cx, JS_CALLEE(cx, vp));
         JS_ASSERT((JS_GetFunctionFlags(fun) & JSFUN_CONSTRUCTOR) != 0);
     } else {
-        JS_ASSERT(JS_GET_CLASS(cx, callee)->construct != NULL);
+        JS_ASSERT(JS_GetClass(callee)->construct != NULL);
     }
+#else
+    (void)cx;
 #endif
 
     return JSVAL_IS_MAGIC_IMPL(JSVAL_TO_IMPL(vp[1]));

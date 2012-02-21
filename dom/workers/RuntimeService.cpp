@@ -243,11 +243,6 @@ PrefCallback(const char* aPrefName, void* aClosure)
       newOptions |= JSOPTION_TYPE_INFERENCE;
     }
 
-    // This one is special, it's enabled by default and only needs to be unset.
-    if (!Preferences::GetBool(gPrefsToWatch[PREF_jit_hardening])) {
-      newOptions |= JSOPTION_SOFTEN;
-    }
-
     RuntimeService::SetDefaultJSContextOptions(newOptions);
     rts->UpdateAllWorkerJSContextOptions();
   }
@@ -293,6 +288,8 @@ CreateJSContextForWorker(WorkerPrivate* aWorkerPrivate)
   JS_SetGCParameter(runtime, JSGC_MAX_BYTES,
                     aWorkerPrivate->GetJSRuntimeHeapSize());
 
+  JS_SetNativeStackQuota(runtime, WORKER_CONTEXT_NATIVE_STACK_LIMIT);
+
   JSContext* workerCx = JS_NewContext(runtime, 0);
   if (!workerCx) {
     JS_DestroyRuntime(runtime);
@@ -305,8 +302,6 @@ CreateJSContextForWorker(WorkerPrivate* aWorkerPrivate)
   JS_SetErrorReporter(workerCx, ErrorReporter);
 
   JS_SetOperationCallback(workerCx, OperationCallback);
-
-  JS_SetNativeStackQuota(workerCx, WORKER_CONTEXT_NATIVE_STACK_LIMIT);
 
   NS_ASSERTION((aWorkerPrivate->GetJSContextOptions() &
                 kRequiredJSContextOptions) == kRequiredJSContextOptions,
@@ -512,7 +507,8 @@ class WorkerTaskRunnable : public WorkerRunnable
 {
 public:
   WorkerTaskRunnable(WorkerPrivate* aPrivate, WorkerTask* aTask)
-    : WorkerRunnable(aPrivate, WorkerThread, UnchangedBusyCount),
+    : WorkerRunnable(aPrivate, WorkerThread, UnchangedBusyCount,
+                     SkipWhenClearing),
       mTask(aTask)
   { }
 

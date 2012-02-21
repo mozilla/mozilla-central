@@ -38,6 +38,8 @@
 package org.mozilla.gecko.gfx;
 
 import org.mozilla.gecko.FloatUtils;
+import android.graphics.Point;
+import android.graphics.PointF;
 import android.graphics.Rect;
 import android.graphics.RectF;
 import org.json.JSONException;
@@ -99,6 +101,7 @@ public final class RectUtils {
                          y + (rect.height() * scale));
     }
 
+    /** Returns the nearest integer rect of the given rect. */
     public static Rect round(RectF rect) {
         return new Rect(Math.round(rect.left), Math.round(rect.top),
                         Math.round(rect.right), Math.round(rect.bottom));
@@ -108,16 +111,12 @@ public final class RectUtils {
         return new IntSize(rect.width(), rect.height());
     }
 
-    /* Returns a new RectF which restricts a source rect to the area inside a second destination rect.
-     * If the source rect is wider/taller than the destination rect, it's width/height will be shortened
-     * (and its aspect ratio will NOT be maintained).
-    */
-    public static RectF restrict(RectF rect, RectF dest) {
-        float width = Math.min(rect.width(), dest.width());
-        float height = Math.min(rect.height(), dest.height());
-        float x = Math.max(dest.left, Math.min(dest.right-width, rect.left));
-        float y = Math.max(dest.top, Math.min(dest.bottom-height, rect.top));
-        return new RectF(x, y, x+width, y+height);
+    public static Point getOrigin(Rect rect) {
+        return new Point(rect.left, rect.top);
+    }
+
+    public static PointF getOrigin(RectF rect) {
+        return new PointF(rect.left, rect.top);
     }
 
     /*

@@ -53,11 +53,15 @@
 #include "nsIObjectLoadingContent.h"
 #include "nsIRunnable.h"
 #include "nsIFrame.h"
+#include "nsPluginInstanceOwner.h"
+#include "nsIThreadInternal.h"
 
 class nsAsyncInstantiateEvent;
+class nsStopPluginRunnable;
 class AutoNotifier;
 class AutoFallback;
 class AutoSetInstantiatingToFalse;
+class nsObjectFrame;
 
 enum PluginSupportState {
   ePluginUnsupported,  // The plugin is not supported (e.g. not installed)
@@ -97,6 +101,8 @@ class nsObjectLoadingContent : public nsImageLoadingContent
   friend class AutoNotifier;
   friend class AutoFallback;
   friend class AutoSetInstantiatingToFalse;
+  friend class nsStopPluginRunnable;
+  friend class nsAsyncInstantiateEvent;
 
   public:
     // This enum's values must be the same as the constants on
@@ -139,6 +145,14 @@ class nsObjectLoadingContent : public nsImageLoadingContent
     {
       mNetworkCreated = aNetworkCreated;
     }
+
+    // Can flush layout.
+    nsresult InstantiatePluginInstance(const char* aMimeType, nsIURI* aURI);
+
+    void NotifyOwnerDocumentActivityChanged();
+
+    bool SrcStreamLoadInitiated() { return mSrcStreamLoadInitiated; };
+
   protected:
     /**
      * Load the object from the given URI.
@@ -227,7 +241,13 @@ class nsObjectLoadingContent : public nsImageLoadingContent
                          nsCycleCollectionTraversalCallback &cb);
 
     void CreateStaticClone(nsObjectLoadingContent* aDest) const;
+
+    static void DoStopPlugin(nsPluginInstanceOwner *aInstanceOwner, bool aDelayedStop);
+
   private:
+
+    void NotifyContentObjectWrapper();
+
     /**
      * Check whether the given request represents a successful load.
      */
@@ -288,25 +308,10 @@ class nsObjectLoadingContent : public nsImageLoadingContent
 
 
     /**
-     * Gets the frame that's associated with this content node in
-     * presentation 0. Always returns null if the node doesn't currently
-     * have a frame.
-     *
-     * @param aFlush When eFlushContent will flush content notifications
-     *               before returning a non-null value.
-     *               When eFlushLayout will flush layout and content
-     *               notifications before returning a non-null value.
-     *               When eDontFlush will never flush.
-     *         
-     *   eFlushLayout is needed in some cases by plug-ins to ensure
-     *   that NPP_SetWindow() gets called (from nsObjectFrame::DidReflow).
+     * Gets the frame that's associated with this content node.
+     * Does not flush.
      */
-    enum FlushType {
-      eFlushContent,
-      eFlushLayout,
-      eDontFlush
-    };
-    nsIObjectFrame* GetExistingFrame(FlushType aFlushType);
+    nsObjectFrame* GetExistingFrame();
 
     /**
      * Handle being blocked by a content policy.  aStatus is the nsresult
@@ -317,31 +322,13 @@ class nsObjectLoadingContent : public nsImageLoadingContent
                                            PRInt16 aRetval);
 
     /**
-     * Checks if we have a frame that's ready for instantiation, and
-     * if so, calls Instantiate(). Note that this can cause the frame
-     * to be deleted while we're instantiating the plugin.
-     */
-    nsresult TryInstantiate(const nsACString& aMIMEType, nsIURI* aURI);
-
-    /**
-     * Instantiates the plugin. This differs from
-     * GetFrame()->Instantiate() in that it ensures that the URI will
-     * be non-null, and that a MIME type will be passed. Note that
-     * this can cause the frame to be deleted while we're
-     * instantiating the plugin.
-     */
-    nsresult Instantiate(nsIObjectFrame* aFrame, const nsACString& aMIMEType, nsIURI* aURI);
-
-    /**
      * Get the plugin support state for the given content node and MIME type.
      * This is used for purposes of determining whether to fire PluginNotFound
      * events etc.  aContentType is the MIME type we ended up with.
      *
      * This should only be called if the type of this content is eType_Null.
      */
-    static PluginSupportState
-      GetPluginSupportState(nsIContent* aContent,
-                            const nsCString& aContentType);
+    PluginSupportState GetPluginSupportState(nsIContent* aContent, const nsCString& aContentType);
 
     /**
      * If the plugin for aContentType is disabled, return ePluginDisabled.
@@ -350,17 +337,17 @@ class nsObjectLoadingContent : public nsImageLoadingContent
      *
      * This should only be called if the type of this content is eType_Null.
      */
-    static PluginSupportState
-      GetPluginDisabledState(const nsCString& aContentType);
+    PluginSupportState GetPluginDisabledState(const nsCString& aContentType);
 
     /**
      * When there is no usable plugin available this will send UI events and
      * update the AutoFallback object appropriate to the reason for there being
      * no plugin available.
      */
-    static void
-      UpdateFallbackState(nsIContent* aContent, AutoFallback& fallback,
-                          const nsCString& aTypeHint);
+    void UpdateFallbackState(nsIContent* aContent, AutoFallback& fallback, const nsCString& aTypeHint);
+
+    nsresult IsPluginEnabledForType(const nsCString& aMIMEType);
+    bool IsPluginEnabledByExtension(nsIURI* uri, nsCString& mimeType);
 
     /**
      * The final listener to ship the data to (imagelib, uriloader, etc)
@@ -414,13 +401,16 @@ class nsObjectLoadingContent : public nsImageLoadingContent
     // This is used for click-to-play plugins.
     bool                        mShouldPlay : 1;
 
+    // Used to indicate that a stream for a src/data attribute has been
+    // initiated so that we don't do it twice.
+    bool mSrcStreamLoadInitiated;
+
     // A specific state that caused us to fallback
     PluginSupportState          mFallbackReason;
 
     nsWeakFrame                 mPrintFrame;
 
-    friend class nsAsyncInstantiateEvent;
+    nsRefPtr<nsPluginInstanceOwner> mInstanceOwner;
 };
-
 
 #endif

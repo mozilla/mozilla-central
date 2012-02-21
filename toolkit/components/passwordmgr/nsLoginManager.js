@@ -155,7 +155,6 @@ LoginManager.prototype = {
 
         // Preferences. Add observer so we get notified of changes.
         this._prefBranch = Services.prefs.getBranch("signon.");
-        this._prefBranch.QueryInterface(Ci.nsIPrefBranch2);
         this._prefBranch.addObserver("", this._observer, false);
 
         // Get current preference values.
@@ -843,7 +842,12 @@ LoginManager.prototype = {
         if (!this._remember)
             return;
 
-        var hostname      = this._getPasswordOrigin(doc.documentURI);
+        var hostname = this._getPasswordOrigin(doc.documentURI);
+        if (!hostname) {
+            this.log("(form submission ignored -- invalid hostname)");
+            return;
+        }
+
         var formSubmitURL = this._getActionOrigin(form)
         if (!this.getLoginSavingEnabled(hostname)) {
             this.log("(form submission ignored -- saving is " +

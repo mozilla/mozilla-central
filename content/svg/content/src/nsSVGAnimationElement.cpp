@@ -119,6 +119,14 @@ nsSVGAnimationElement::AsElement()
   return *this;
 }
 
+bool
+nsSVGAnimationElement::PassesConditionalProcessingTests()
+{
+  nsCOMPtr<DOMSVGTests> tests(do_QueryInterface(
+    static_cast<nsSVGElement*>(this)));
+  return tests->PassesConditionalProcessingTests();
+}
+
 const nsAttrValue*
 nsSVGAnimationElement::GetAnimAttr(nsIAtom* aName) const
 {
@@ -368,7 +376,7 @@ nsSVGAnimationElement::ParseAttribute(PRInt32 aNamespaceID,
 
 nsresult
 nsSVGAnimationElement::AfterSetAttr(PRInt32 aNamespaceID, nsIAtom* aName,
-                                    const nsAString* aValue, bool aNotify)
+                                    const nsAttrValue* aValue, bool aNotify)
 {
   nsresult rv =
     nsSVGAnimationElementBase::AfterSetAttr(aNamespaceID, aName, aValue,
@@ -381,7 +389,9 @@ nsSVGAnimationElement::AfterSetAttr(PRInt32 aNamespaceID, nsIAtom* aName,
     mHrefTarget.Unlink();
     AnimationTargetChanged();
   } else if (IsInDoc()) {
-    UpdateHrefTarget(this, *aValue);
+    NS_ABORT_IF_FALSE(aValue->Type() == nsAttrValue::eString,
+                      "Expected href attribute to be string type");
+    UpdateHrefTarget(this, aValue->GetStringValue());
   } // else: we're not yet in a document -- we'll update the target on
     // next BindToTree call.
 

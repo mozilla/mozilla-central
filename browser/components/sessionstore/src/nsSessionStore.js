@@ -130,6 +130,9 @@ Cu.import("resource://gre/modules/Services.jsm");
 // debug.js adds NS_ASSERT. cf. bug 669196
 Cu.import("resource://gre/modules/debug.js");
 
+Cu.import("resource:///modules/TelemetryTimestamps.jsm");
+Cu.import("resource:///modules/TelemetryStopwatch.jsm");
+
 XPCOMUtils.defineLazyGetter(this, "NetUtil", function() {
   Cu.import("resource://gre/modules/NetUtil.jsm");
   return NetUtil;
@@ -161,8 +164,7 @@ function debug(aMsg) {
 function SessionStoreService() {
   XPCOMUtils.defineLazyGetter(this, "_prefBranch", function () {
     return Cc["@mozilla.org/preferences-service;1"].
-           getService(Ci.nsIPrefService).getBranch("browser.").
-           QueryInterface(Ci.nsIPrefBranch2);
+           getService(Ci.nsIPrefService).getBranch("browser.");
   });
 
   // minimal interval between two save operations (in milliseconds)
@@ -251,6 +253,9 @@ SessionStoreService.prototype = {
 
   // whether to restore hidden tabs or not, pref controlled.
   _restoreHiddenTabs: null,
+  
+  // whether to restore app tabs on demand or not, pref controlled.
+  _restorePinnedTabsOnDemand: null,
 
   // The state from the previous session (after restoring pinned tabs). This
   // state is persisted and passed through to the next session during an app
@@ -291,6 +296,7 @@ SessionStoreService.prototype = {
    * Initialize the component
    */
   initService: function() {
+    TelemetryTimestamps.add("sessionRestoreInitialized");
     OBSERVING.forEach(function(aTopic) {
       Services.obs.addObserver(this, aTopic, true);
     }, this);
@@ -313,6 +319,10 @@ SessionStoreService.prototype = {
     this._restoreHiddenTabs =
       this._prefBranch.getBoolPref("sessionstore.restore_hidden_tabs");
     this._prefBranch.addObserver("sessionstore.restore_hidden_tabs", this, true);
+    
+    this._restorePinnedTabsOnDemand =
+      this._prefBranch.getBoolPref("sessionstore.restore_pinned_tabs_on_demand");
+    this._prefBranch.addObserver("sessionstore.restore_pinned_tabs_on_demand", this, true);
 
     // Make sure gRestoreTabsProgressListener has a reference to sessionstore
     // so that it can make calls back in
@@ -688,6 +698,10 @@ SessionStoreService.prototype = {
         this._restoreHiddenTabs =
           this._prefBranch.getBoolPref("sessionstore.restore_hidden_tabs");
         break;
+      case "sessionstore.restore_pinned_tabs_on_demand":
+        this._restorePinnedTabsOnDemand =
+          this._prefBranch.getBoolPref("sessionstore.restore_pinned_tabs_on_demand");
+        break;
       }
       break;
     case "timer-callback": // timer call back for delayed saving
@@ -822,7 +836,7 @@ SessionStoreService.prototype = {
       this._windows[aWindow.__SSi]._restoring = true;
     if (!aWindow.toolbar.visible)
       this._windows[aWindow.__SSi].isPopup = true;
-    
+
     // perform additional initialization when the first window is loading
     if (this._loadState == STATE_STOPPED) {
       this._loadState = STATE_RUNNING;
@@ -830,6 +844,7 @@ SessionStoreService.prototype = {
       
       // restore a crashed session resp. resume the last session if requested
       if (this._initialState) {
+        TelemetryTimestamps.add("sessionRestoreRestoring");
         // make sure that the restored tabs are first in the window
         this._initialState._firstTabs = true;
         this._restoreCount = this._initialState.windows ? this._initialState.windows.length : 0;
@@ -3187,7 +3202,8 @@ SessionStoreService.prototype = {
       return;
 
     // If it's not possible to restore anything, then just bail out.
-    if ((!this._tabsToRestore.priority.length && this._restoreOnDemand) ||
+    if ((this._restoreOnDemand &&
+        (this._restorePinnedTabsOnDemand || !this._tabsToRestore.priority.length)) ||
         this._tabsRestoringCount >= MAX_CONCURRENT_TAB_RESTORES)
       return;
 
@@ -3638,6 +3654,8 @@ SessionStoreService.prototype = {
     // if we crash.
     let pinnedOnly = this._loadState == STATE_RUNNING && !this._resume_from_crash;
 
+    TelemetryStopwatch.start("FX_SESSION_RESTORE_COLLECT_DATA_MS");
+
     var oState = this._getCurrentState(aUpdateAll, pinnedOnly);
     if (!oState)
       return;
@@ -3676,6 +3694,8 @@ SessionStoreService.prototype = {
     if (this._lastSessionState)
       oState.lastSessionState = this._lastSessionState;
 
+    TelemetryStopwatch.finish("FX_SESSION_RESTORE_COLLECT_DATA_MS");
+
     this._saveStateObject(oState);
   },
 
@@ -3683,9 +3703,11 @@ SessionStoreService.prototype = {
    * write a state object to disk
    */
   _saveStateObject: function sss_saveStateObject(aStateObj) {
+    TelemetryStopwatch.start("FX_SESSION_RESTORE_SERIALIZE_DATA_MS");
     var stateString = Cc["@mozilla.org/supports-string;1"].
                         createInstance(Ci.nsISupportsString);
     stateString.data = this._toJSONString(aStateObj);
+    TelemetryStopwatch.finish("FX_SESSION_RESTORE_SERIALIZE_DATA_MS");
 
     Services.obs.notifyObservers(stateString, "sessionstore-state-write", "");
 
@@ -3794,7 +3816,7 @@ SessionStoreService.prototype = {
     argString.data = "";
 
     // Build feature string
-    let features = "chrome,dialog=no,all";
+    let features = "chrome,dialog=no,macsuppressanimation,all";
     let winState = aState.windows[0];
     WINDOW_ATTRIBUTES.forEach(function(aFeature) {
       // Use !isNaN as an easy way to ignore sizemode and check for numbers
@@ -4412,6 +4434,7 @@ SessionStoreService.prototype = {
    *        String data
    */
   _writeFile: function sss_writeFile(aFile, aData) {
+    TelemetryStopwatch.start("FX_SESSION_RESTORE_WRITE_FILE_MS");
     // Initialize the file output stream.
     var ostream = Cc["@mozilla.org/network/safe-file-output-stream;1"].
                   createInstance(Ci.nsIFileOutputStream);
@@ -4427,6 +4450,7 @@ SessionStoreService.prototype = {
     var self = this;
     NetUtil.asyncCopy(istream, ostream, function(rc) {
       if (Components.isSuccessCode(rc)) {
+        TelemetryStopwatch.finish("FX_SESSION_RESTORE_WRITE_FILE_MS");
         Services.obs.notifyObservers(null,
                                      "sessionstore-state-write-complete",
                                      "");

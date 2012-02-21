@@ -138,16 +138,10 @@ nsSVGAFrame::AttributeChanged(PRInt32         aNameSpaceID,
                               nsIAtom*        aAttribute,
                               PRInt32         aModType)
 {
-  if (aNameSpaceID != kNameSpaceID_None)
-    return NS_OK;
+  if (aNameSpaceID == kNameSpaceID_None &&
+      aAttribute == nsGkAtoms::transform) {
 
-  if (aAttribute == nsGkAtoms::transform) {
-    // transform has changed
-
-    // make sure our cached transform matrix gets (lazily) updated
-    mCanvasTM = nsnull;
-    
-    nsSVGUtils::NotifyChildrenOfSVGChange(this, TRANSFORM_CHANGED);
+    NotifySVGChanged(TRANSFORM_CHANGED);
   }
 
  return NS_OK;
@@ -185,7 +179,7 @@ nsSVGAFrame::GetCanvasTM()
     nsSVGContainerFrame *parent = static_cast<nsSVGContainerFrame*>(mParent);
     nsSVGAElement *content = static_cast<nsSVGAElement*>(mContent);
 
-    gfxMatrix tm = content->PrependLocalTransformTo(parent->GetCanvasTM());
+    gfxMatrix tm = content->PrependLocalTransformsTo(parent->GetCanvasTM());
 
     mCanvasTM = new gfxMatrix(tm);
   }

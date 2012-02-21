@@ -191,7 +191,7 @@ public:
 
   /**
    * Scrolls the given frame to the point, used for implememntation of
-   * nsIAccessNode::scrollToPoint and nsIAccessibleText::scrollSubstringToPoint.
+   * nsIAccessible::scrollToPoint and nsIAccessibleText::scrollSubstringToPoint.
    *
    * @param aScrollableFrame  the scrollable frame
    * @param aFrame            the frame to scroll
@@ -255,12 +255,6 @@ public:
   static nsIPresShell *GetPresShellFor(nsINode *aNode)
   {
     return aNode->OwnerDoc()->GetShell();
-  }
-  static already_AddRefed<nsIWeakReference> GetWeakShellFor(nsINode *aNode)
-  {
-    nsCOMPtr<nsIWeakReference> weakShell =
-      do_GetWeakReference(GetPresShellFor(aNode));
-    return weakShell.forget();
   }
 
   /**

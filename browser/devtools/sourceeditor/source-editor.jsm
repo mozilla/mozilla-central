@@ -21,6 +21,7 @@
  *
  * Contributor(s):
  *   Mihai Sucan <mihai.sucan@gmail.com> (original author)
+ *   Spyros Livathinos <livathinos.spyros@gmail.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -51,7 +52,7 @@ var component = Services.prefs.getCharPref(PREF_EDITOR_COMPONENT);
 var obj = {};
 try {
   if (component == "ui") {
-    throw new Error("The UI editor component is not available.");
+    throw new Error("The ui editor component is not available.");
   }
   Cu.import("resource:///modules/source-editor-" + component + ".jsm", obj);
 } catch (ex) {
@@ -150,6 +151,40 @@ SourceEditor.EVENTS = {
    * Both ranges are objects which hold two properties: start and end.
    */
   SELECTION: "Selection",
+
+  /**
+   * The focus event is fired when the editor is focused.
+   */
+  FOCUS: "Focus",
+
+  /**
+   * The blur event is fired when the editor goes out of focus.
+   */
+  BLUR: "Blur",
+
+  /**
+   * The MouseMove event is sent when the user moves the mouse over a line
+   * annotation. The event object properties:
+   *   - event - the DOM mousemove event object.
+   *   - x and y - the mouse coordinates relative to the document being edited.
+   */
+  MOUSE_MOVE: "MouseMove",
+
+  /**
+   * The MouseOver event is sent when the mouse pointer enters a line
+   * annotation. The event object properties:
+   *   - event - the DOM mouseover event object.
+   *   - x and y - the mouse coordinates relative to the document being edited.
+   */
+  MOUSE_OVER: "MouseOver",
+
+  /**
+   * This MouseOut event is sent when the mouse pointer exits a line
+   * annotation. The event object properties:
+   *   - event - the DOM mouseout event object.
+   *   - x and y - the mouse coordinates relative to the document being edited.
+   */
+  MOUSE_OUT: "MouseOut",
 };
 
 /**

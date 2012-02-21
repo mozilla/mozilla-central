@@ -1452,6 +1452,7 @@ WriteStatusApplying()
   return true;
 }
 
+#ifdef MOZ_MAINTENANCE_SERVICE
 /* 
  * Read the update.status file and sets isPendingService to true if
  * the status is set to pending-service.
@@ -1486,7 +1487,9 @@ IsUpdateStatusPending(bool &isPendingService)
                              sizeof(kPendingService) - 1) == 0;
   return isPending;
 }
+#endif
 
+#ifdef XP_WIN
 /* 
  * Read the update.status file and sets isSuccess to true if
  * the status is set to succeeded.
@@ -1515,6 +1518,17 @@ IsUpdateStatusSucceeded(bool &isSucceeded)
                         sizeof(kSucceeded) - 1) == 0;
   return true;
 }
+
+static void 
+WaitForServiceFinishThread(void *param)
+{
+  // We wait at most 10 minutes, we already waited 5 seconds previously
+  // before deciding to show this UI.
+  WaitForServiceStop(SVC_NAME, 595);
+  LOG(("calling QuitProgressUI\n"));
+  QuitProgressUI();
+}
+#endif
 
 static void
 UpdateThreadFunc(void *param)
@@ -1591,10 +1605,6 @@ int NS_main(int argc, NS_tchar **argv)
   gSourcePath = argv[1];
 
 #ifdef XP_WIN
-  // Disable every privilege we don't need. Processes started using
-  // CreateProcess will use the same token as this process.
-  UACHelper::DisablePrivileges(NULL);
-
   bool useService = false;
   bool testOnlyFallbackKeyExists = false;
   bool noServiceFallback = getenv("MOZ_NO_SERVICE_FALLBACK") != NULL;
@@ -1714,6 +1724,23 @@ int NS_main(int argc, NS_tchar **argv)
                  sizeof(elevatedLockFilePath)/sizeof(elevatedLockFilePath[0]),
                  NS_T("%s/update_elevated.lock"), argv[1]);
 
+
+    // Even if a file has no sharing access, you can still get its attributes
+    bool startedFromUnelevatedUpdater =
+      GetFileAttributesW(elevatedLockFilePath) != INVALID_FILE_ATTRIBUTES;
+    
+    // If we're running from the service, then we were started with the same
+    // token as the service so the permissions are already dropped.  If we're
+    // running from an elevated updater that was started from an unelevated 
+    // updater, then we drop the permissions here. We do not drop the 
+    // permissions on the originally called updater because we use its token
+    // to start the callback application.
+    if(startedFromUnelevatedUpdater) {
+      // Disable every privilege we don't need. Processes started using
+      // CreateProcess will use the same token as this process.
+      UACHelper::DisablePrivileges(NULL);
+    }
+
     if (updateLockFileHandle == INVALID_HANDLE_VALUE || 
         (useService && testOnlyFallbackKeyExists && noServiceFallback)) {
       if (!_waccess(elevatedLockFilePath, F_OK) &&
@@ -1780,7 +1807,24 @@ int NS_main(int argc, NS_tchar **argv)
         useService = (ret == ERROR_SUCCESS);
         // If the command was launched then wait for the service to be done.
         if (useService) {
-          DWORD lastState = WaitForServiceStop(SVC_NAME, 600);
+          // We need to call this separately instead of allowing ShowProgressUI
+          // to initialize the strings because the service will move the
+          // ini file out of the way when running updater.
+          bool showProgressUI = !InitProgressUIStrings();
+
+          // Wait for the service to stop for 5 seconds.  If the service
+          // has still not stopped then show an indeterminate progress bar.
+          DWORD lastState = WaitForServiceStop(SVC_NAME, 5);
+          if (lastState != SERVICE_STOPPED) {
+            Thread t1;
+            if (t1.Run(WaitForServiceFinishThread, NULL) == 0 && 
+                showProgressUI) {
+              ShowProgressUI(true, false);
+            }
+            t1.Join();
+          }
+
+          lastState = WaitForServiceStop(SVC_NAME, 1);
           if (lastState != SERVICE_STOPPED) {
             // If the service doesn't stop after 10 minutes there is
             // something seriously wrong.
@@ -2513,7 +2557,6 @@ int DoUpdate()
   ActionList list;
   NS_tchar *line;
   bool isFirstAction = true;
-  bool isComplete = false;
 
   while((line = mstrtok(kNL, &rb)) != 0) {
     // skip comments
@@ -2530,7 +2573,6 @@ int DoUpdate()
       const NS_tchar *type = mstrtok(kQuote, &line);
       LOG(("UPDATE TYPE " LOG_S "\n", type));
       if (NS_tstrcmp(type, NS_T("complete")) == 0) {
-        isComplete = true;
         rv = AddPreCompleteActions(&list);
         if (rv)
           return rv;

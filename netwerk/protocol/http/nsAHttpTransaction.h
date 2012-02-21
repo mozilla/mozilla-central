@@ -39,6 +39,7 @@
 #define nsAHttpTransaction_h__
 
 #include "nsISupports.h"
+#include "nsTArray.h"
 
 class nsAHttpConnection;
 class nsAHttpSegmentReader;
@@ -101,6 +102,18 @@ public:
     // abstract object. Pipelines may have multiple, SPDY has 0,
     // normal http transactions have 1.
     virtual PRUint32 Http1xTransactionCount() = 0;
+
+    // called to remove the unused sub transactions from an object that can
+    // handle multiple transactions simultaneously (i.e. pipelines or spdy).
+    //
+    // Returns NS_ERROR_NOT_IMPLEMENTED if the object does not implement
+    // sub-transactions.
+    //
+    // Returns NS_ERROR_ALREADY_OPENED if the subtransactions have been
+    // at least partially written and cannot be moved.
+    //
+    virtual nsresult TakeSubTransactions(
+        nsTArray<nsRefPtr<nsAHttpTransaction> > &outTransactions) = 0;
 };
 
 #define NS_DECL_NSAHTTPTRANSACTION \
@@ -118,7 +131,8 @@ public:
     void     Close(nsresult reason);                                    \
     void     SetSSLConnectFailed();                                     \
     nsHttpRequestHead *RequestHead();                                   \
-    PRUint32 Http1xTransactionCount();
+    PRUint32 Http1xTransactionCount();                                  \
+    nsresult TakeSubTransactions(nsTArray<nsRefPtr<nsAHttpTransaction> > &outTransactions);
 
 //-----------------------------------------------------------------------------
 // nsAHttpSegmentReader
@@ -131,6 +145,20 @@ public:
     virtual nsresult OnReadSegment(const char *segment,
                                    PRUint32 count,
                                    PRUint32 *countRead) = 0;
+
+    // Ask the segment reader to commit to accepting size bytes of
+    // data from subsequent OnReadSegment() calls or throw hard
+    // (i.e. not wouldblock) exceptions. Implementations
+    // can return NS_ERROR_FAILURE if they never make commitments of that size
+    // (the default), NS_BASE_STREAM_WOULD_BLOCK if they cannot make
+    // the commitment now but might in the future, or NS_OK
+    // if they make the commitment.
+    //
+    // Spdy uses this to make sure frames are atomic.
+    virtual nsresult CommitToSegmentSize(PRUint32 size)
+    {
+        return NS_ERROR_FAILURE;
+    }
 };
 
 #define NS_DECL_NSAHTTPSEGMENTREADER \

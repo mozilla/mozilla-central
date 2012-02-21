@@ -40,7 +40,6 @@
 #define nsAccUtils_h_
 
 #include "nsIAccessible.h"
-#include "nsIAccessNode.h"
 #include "nsIAccessibleRole.h"
 #include "nsIAccessibleText.h"
 #include "nsIAccessibleTable.h"
@@ -157,11 +156,10 @@ public:
   /**
    * Return document accessible for the given presshell.
    */
-  static nsDocAccessible *GetDocAccessibleFor(nsIWeakReference *aWeakShell)
+  static nsDocAccessible* GetDocAccessibleFor(const nsIPresShell* aPresShell)
   {
-    nsCOMPtr<nsIPresShell> presShell(do_QueryReferent(aWeakShell));
-    return presShell ?
-      GetAccService()->GetDocAccessible(presShell->GetDocument()) : nsnull;
+    return aPresShell ?
+      GetAccService()->GetDocAccessible(aPresShell->GetDocument()) : nsnull;
   }
 
   /**

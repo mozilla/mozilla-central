@@ -74,6 +74,11 @@
   page-break-after: inherit;
   vertical-align: inherit; /* needed for inline-table */
   line-height: inherit; /* needed for vertical-align on inline-table */
+  /* Bug 722777 */
+  -moz-transform: inherit;
+  -moz-transform-origin: inherit;
+  /* Bug 724750 */
+  -moz-backface-visibility: inherit;
 }
 
 *|*::-moz-table-row {
@@ -144,6 +149,7 @@
   position: static ! important;
   float: none ! important;
   -moz-box-ordinal-group: inherit !important;
+  text-overflow: inherit;
 }
 
 *|*::-moz-scrolled-content, *|*::-moz-scrolled-canvas,

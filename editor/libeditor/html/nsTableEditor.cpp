@@ -62,7 +62,9 @@
 #include "nsHTMLEditUtils.h"
 #include "nsLayoutErrors.h"
 
+#include "mozilla/dom/Element.h"
 
+using namespace mozilla;
 
 /***************************************************************************
  * stack based helper class for restoring selection after table edit
@@ -811,7 +813,7 @@ nsHTMLEditor::DeleteTableCell(PRInt32 aNumber)
     res = GetCellIndexes(cell, &startRowIndex, &startColIndex);
     NS_ENSURE_SUCCESS(res, res);
 
-    // The setCaret object will call SetSelectionAfterTableEdit in it's destructor
+    // The setCaret object will call SetSelectionAfterTableEdit in its destructor
     nsSetSelectionAfterTableEdit setCaret(this, table, startRowIndex, startColIndex, ePreviousColumn, false);
     nsAutoTxnsConserveSelection dontChangeSelection(this);
 
@@ -947,7 +949,7 @@ nsHTMLEditor::DeleteTableCell(PRInt32 aNumber)
     {
       // More than 1 cell in the row
 
-      // The setCaret object will call SetSelectionAfterTableEdit in it's destructor
+      // The setCaret object will call SetSelectionAfterTableEdit in its destructor
       nsSetSelectionAfterTableEdit setCaret(this, table, startRowIndex, startColIndex, ePreviousColumn, false);
       nsAutoTxnsConserveSelection dontChangeSelection(this);
 
@@ -2334,7 +2336,7 @@ nsHTMLEditor::JoinTableCells(bool aMergeNonContiguousContents)
     if( spanAboveMergedCell > 0 )
     {
       // Cell we merged started in a row above the target cell
-      // Reduce rowspan to give room where target cell will extend it's colspan
+      // Reduce rowspan to give room where target cell will extend its colspan
       res = SetRowSpan(cell2, spanAboveMergedCell);
       NS_ENSURE_SUCCESS(res, res);
     }
@@ -3441,31 +3443,28 @@ nsHTMLEditor::AllCellsInColumnSelected(nsIDOMElement *aTable, PRInt32 aColIndex,
 bool 
 nsHTMLEditor::IsEmptyCell(nsIDOMElement *aCell)
 {
-  nsCOMPtr<nsIDOMNode> cellChild;
+  nsCOMPtr<dom::Element> cell = do_QueryInterface(aCell);
 
   // Check if target only contains empty text node or <br>
-  nsresult res = aCell->GetFirstChild(getter_AddRefs(cellChild));
-  NS_ENSURE_SUCCESS(res, false);
-
-  if (cellChild)
-  {
-    nsCOMPtr<nsIDOMNode> nextChild;
-    res = cellChild->GetNextSibling(getter_AddRefs(nextChild));
-    NS_ENSURE_SUCCESS(res, false);
-    if (!nextChild)
-    {
-      // We insert a single break into a cell by default
-      //   to have some place to locate a cursor -- it is dispensable
-      bool isEmpty = nsTextEditUtils::IsBreak(cellChild);
-      // Or check if no real content
-      if (!isEmpty)
-      {
-        res = IsEmptyNode(cellChild, &isEmpty, false, false);
-        NS_ENSURE_SUCCESS(res, false);
-      }
-
-      return isEmpty;
-    }
+  nsCOMPtr<nsINode> cellChild = cell->GetFirstChild();
+  if (!cellChild) {
+    return false;
   }
-  return false;
+
+  nsCOMPtr<nsINode> nextChild = cellChild->GetNextSibling();
+  if (nextChild) {
+    return false;
+  }
+
+  // We insert a single break into a cell by default
+  //   to have some place to locate a cursor -- it is dispensable
+  if (cellChild->IsElement() && cellChild->AsElement()->IsHTML(nsGkAtoms::br)) {
+    return true;
+  }
+
+  bool isEmpty;
+  // Or check if no real content
+  nsresult rv = IsEmptyNode(cellChild, &isEmpty, false, false);
+  NS_ENSURE_SUCCESS(rv, false);
+  return isEmpty;
 }

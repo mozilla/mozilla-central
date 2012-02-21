@@ -39,6 +39,7 @@
 #include "AccIterator.h"
 #include "nsAccCache.h"
 #include "nsAccessibilityService.h"
+#include "nsAccessiblePivot.h"
 #include "nsAccTreeWalker.h"
 #include "nsAccUtils.h"
 #include "nsRootAccessible.h"
@@ -101,11 +102,13 @@ static const PRUint32 kRelationAttrsLen = NS_ARRAY_LENGTH(kRelationAttrs);
 // Constructor/desctructor
 
 nsDocAccessible::
-  nsDocAccessible(nsIDocument *aDocument, nsIContent *aRootContent,
-                  nsIWeakReference *aShell) :
-  nsHyperTextAccessibleWrap(aRootContent, aShell),
+  nsDocAccessible(nsIDocument* aDocument, nsIContent* aRootContent,
+                  nsIPresShell* aPresShell) :
+  nsHyperTextAccessibleWrap(aRootContent, this),
   mDocument(aDocument), mScrollPositionChangedTicks(0),
-  mLoadState(eTreeConstructionPending), mLoadEventType(0)
+  mLoadState(eTreeConstructionPending), mLoadEventType(0),
+  mVirtualCursor(nsnull),
+  mPresShell(aPresShell)
 {
   mFlags |= eDocAccessible;
 
@@ -125,10 +128,15 @@ nsDocAccessible::
   // nsAccDocManager creates document accessible when scrollable frame is
   // available already, it should be safe time to add scroll listener.
   AddScrollListener();
+
+  // We provide a virtual cursor if this is a root doc or if it's a tab doc.
+  mIsCursorable = (!(mDocument->GetParentDocument()) ||
+                   nsCoreUtils::IsTabDocument(mDocument));
 }
 
 nsDocAccessible::~nsDocAccessible()
 {
+  NS_ASSERTION(!mPresShell, "LastRelease was never called!?!");
 }
 
 
@@ -142,6 +150,11 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(nsDocAccessible, nsAccessible)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NATIVE_MEMBER(mNotificationController,
                                                   NotificationController)
 
+  if (tmp->mVirtualCursor) {
+    NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NATIVE_MEMBER(mVirtualCursor,
+                                                    nsAccessiblePivot)
+  }
+
   PRUint32 i, length = tmp->mChildDocuments.Length();
   for (i = 0; i < length; ++i) {
     NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR_AMBIGUOUS(mChildDocuments[i],
@@ -154,6 +167,7 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN_INHERITED(nsDocAccessible, nsAccessible)
   NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mDocument)
   NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mNotificationController)
+  NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mVirtualCursor)
   NS_IMPL_CYCLE_COLLECTION_UNLINK_NSTARRAY(mChildDocuments)
   tmp->mDependentIDsHash.Clear();
   tmp->mNodeToAccessibleMap.Clear();
@@ -167,7 +181,10 @@ NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(nsDocAccessible)
   NS_INTERFACE_MAP_ENTRY(nsIMutationObserver)
   NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
   NS_INTERFACE_MAP_ENTRY(nsIObserver)
+  NS_INTERFACE_MAP_ENTRY(nsIAccessiblePivotObserver)
   NS_INTERFACE_MAP_ENTRY_AMBIGUOUS(nsISupports, nsIAccessibleDocument)
+  NS_INTERFACE_MAP_ENTRY_CONDITIONAL(nsIAccessibleCursorable,
+                                     mIsCursorable)
     foundInterface = 0;
 
   nsresult status;
@@ -192,7 +209,6 @@ NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(nsDocAccessible)
 
 NS_IMPL_ADDREF_INHERITED(nsDocAccessible, nsHyperTextAccessible)
 NS_IMPL_RELEASE_INHERITED(nsDocAccessible, nsHyperTextAccessible)
-
 
 ////////////////////////////////////////////////////////////////////////////////
 // nsIAccessible
@@ -362,7 +378,7 @@ NS_IMETHODIMP nsDocAccessible::TakeFocus()
     return NS_ERROR_FAILURE;
 
   // Focus the document.
-  nsCOMPtr<nsIFocusManager> fm = do_GetService(FOCUSMANAGER_CONTRACTID);
+  nsFocusManager* fm = nsFocusManager::GetFocusManager();
   NS_ENSURE_STATE(fm);
 
   nsCOMPtr<nsIDOMElement> newFocus;
@@ -516,6 +532,27 @@ nsDocAccessible::GetChildDocumentAt(PRUint32 aIndex,
   return *aDocument ? NS_OK : NS_ERROR_INVALID_ARG;
 }
 
+// nsIAccessibleVirtualCursor method
+NS_IMETHODIMP
+nsDocAccessible::GetVirtualCursor(nsIAccessiblePivot** aVirtualCursor)
+{
+  NS_ENSURE_ARG_POINTER(aVirtualCursor);
+  *aVirtualCursor = nsnull;
+
+  if (IsDefunct())
+    return NS_ERROR_FAILURE;
+
+  NS_ENSURE_TRUE(mIsCursorable, NS_ERROR_NOT_IMPLEMENTED);
+
+  if (!mVirtualCursor) {
+    mVirtualCursor = new nsAccessiblePivot(this);
+    mVirtualCursor->AddObserver(this);
+  }
+
+  NS_ADDREF(*aVirtualCursor = mVirtualCursor);
+  return NS_OK;
+}
+
 // nsIAccessibleHyperText method
 NS_IMETHODIMP nsDocAccessible::GetAssociatedEditor(nsIEditor **aEditor)
 {
@@ -586,8 +623,7 @@ nsDocAccessible::Init()
   NS_LOG_ACCDOCCREATE_FOR("document initialize", mDocument, this)
 
   // Initialize notification controller.
-  nsCOMPtr<nsIPresShell> shell(GetPresShell());
-  mNotificationController = new NotificationController(this, shell);
+  mNotificationController = new NotificationController(this, mPresShell);
   if (!mNotificationController)
     return false;
 
@@ -604,7 +640,7 @@ nsDocAccessible::Init()
 void
 nsDocAccessible::Shutdown()
 {
-  if (!mWeakShell) // already shutdown
+  if (!mPresShell) // already shutdown
     return;
 
   NS_LOG_ACCDOCDESTROY_FOR("document shutdown", mDocument, this)
@@ -622,7 +658,7 @@ nsDocAccessible::Shutdown()
   mDocument = nsnull;
 
   if (mParent) {
-    nsDocAccessible* parentDocument = mParent->GetDocAccessible();
+    nsDocAccessible* parentDocument = mParent->Document();
     if (parentDocument)
       parentDocument->RemoveChildDocument(this);
 
@@ -637,7 +673,12 @@ nsDocAccessible::Shutdown()
 
   mChildDocuments.Clear();
 
-  mWeakShell = nsnull;  // Avoid reentrancy
+  if (mVirtualCursor) {
+    mVirtualCursor->RemoveObserver(this);
+    mVirtualCursor = nsnull;
+  }
+
+  mPresShell = nsnull;  // Avoid reentrancy
 
   mDependentIDsHash.Clear();
   mNodeToAccessibleMap.Clear();
@@ -651,11 +692,9 @@ nsDocAccessible::Shutdown()
 nsIFrame*
 nsDocAccessible::GetFrame() const
 {
-  nsCOMPtr<nsIPresShell> shell(do_QueryReferent(mWeakShell));
-
   nsIFrame* root = nsnull;
-  if (shell)
-    root = shell->GetRootFrame();
+  if (mPresShell)
+    root = mPresShell->GetRootFrame();
 
   return root;
 }
@@ -713,8 +752,7 @@ nsresult nsDocAccessible::AddEventListeners()
   // 1) Set up scroll position listener
   // 2) Check for editor and listen for changes to editor
 
-  nsCOMPtr<nsIPresShell> presShell(GetPresShell());
-  NS_ENSURE_TRUE(presShell, NS_ERROR_FAILURE);
+  NS_ENSURE_TRUE(mPresShell, NS_ERROR_FAILURE);
 
   nsCOMPtr<nsISupports> container = mDocument->GetContainer();
   nsCOMPtr<nsIDocShellTreeItem> docShellTreeItem(do_QueryInterface(container));
@@ -742,7 +780,7 @@ nsresult nsDocAccessible::AddEventListeners()
     NS_ENSURE_TRUE(rootAccessible, NS_ERROR_FAILURE);
     nsRefPtr<nsCaretAccessible> caretAccessible = rootAccessible->GetCaretAccessible();
     if (caretAccessible) {
-      caretAccessible->AddDocSelectionListener(presShell);
+      caretAccessible->AddDocSelectionListener(mPresShell);
     }
   }
 
@@ -788,11 +826,8 @@ nsresult nsDocAccessible::RemoveEventListeners()
   nsRootAccessible* rootAccessible = RootAccessible();
   if (rootAccessible) {
     nsRefPtr<nsCaretAccessible> caretAccessible = rootAccessible->GetCaretAccessible();
-    if (caretAccessible) {
-      // Don't use GetPresShell() which can call Shutdown() if it sees dead pres shell
-      nsCOMPtr<nsIPresShell> presShell(do_QueryReferent(mWeakShell));
-      caretAccessible->RemoveDocSelectionListener(presShell);
-    }
+    if (caretAccessible)
+      caretAccessible->RemoveDocSelectionListener(mPresShell);
   }
 
   return NS_OK;
@@ -822,11 +857,10 @@ void nsDocAccessible::ScrollTimerCallback(nsITimer *aTimer, void *aClosure)
 // nsDocAccessible protected member
 void nsDocAccessible::AddScrollListener()
 {
-  nsCOMPtr<nsIPresShell> presShell(do_QueryReferent(mWeakShell));
-  if (!presShell)
+  if (!mPresShell)
     return;
 
-  nsIScrollableFrame* sf = presShell->GetRootScrollFrameAsScrollableExternal();
+  nsIScrollableFrame* sf = mPresShell->GetRootScrollFrameAsScrollableExternal();
   if (sf) {
     sf->AddScrollPositionListener(this);
     NS_LOG_ACCDOCCREATE_TEXT("add scroll listener")
@@ -836,11 +870,10 @@ void nsDocAccessible::AddScrollListener()
 // nsDocAccessible protected member
 void nsDocAccessible::RemoveScrollListener()
 {
-  nsCOMPtr<nsIPresShell> presShell(do_QueryReferent(mWeakShell));
-  if (!presShell)
+  if (!mPresShell)
     return;
  
-  nsIScrollableFrame* sf = presShell->GetRootScrollFrameAsScrollableExternal();
+  nsIScrollableFrame* sf = mPresShell->GetRootScrollFrameAsScrollableExternal();
   if (sf) {
     sf->RemoveScrollPositionListener(this);
   }
@@ -884,6 +917,20 @@ NS_IMETHODIMP nsDocAccessible::Observe(nsISupports *aSubject, const char *aTopic
       new AccStateChangeEvent(this, states::EDITABLE, true);
     FireDelayedAccessibleEvent(event);
   }
+
+  return NS_OK;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// nsIAccessiblePivotObserver
+
+NS_IMETHODIMP
+nsDocAccessible::OnPivotChanged(nsIAccessiblePivot* aPivot,
+                                nsIAccessible* aOldAccessible,
+                                PRInt32 aOldStart, PRInt32 aOldEnd)
+{
+  nsRefPtr<AccEvent> event = new AccEvent(nsIAccessibleEvent::EVENT_VIRTUALCURSOR_CHANGED, this);
+  nsEventShell::FireEvent(event);
 
   return NS_OK;
 }
@@ -1278,11 +1325,10 @@ nsDocAccessible::HandleAccEvent(AccEvent* aAccEvent)
 void*
 nsDocAccessible::GetNativeWindow() const
 {
-  nsCOMPtr<nsIPresShell> shell(do_QueryReferent(mWeakShell));
-  if (!shell)
+  if (!mPresShell)
     return nsnull;
 
-  nsIViewManager* vm = shell->GetViewManager();
+  nsIViewManager* vm = mPresShell->GetViewManager();
   if (!vm)
     return nsnull;
 
@@ -1469,8 +1515,8 @@ nsDocAccessible::CacheChildren()
 {
   // Search for accessible children starting from the document element since
   // some web pages tend to insert elements under it rather than document body.
-  nsAccTreeWalker walker(mWeakShell, mDocument->GetRootElement(),
-                         GetAllowsAnonChildAccessibles());
+  nsAccTreeWalker walker(this, mDocument->GetRootElement(),
+                         CanHaveAnonChildren());
 
   nsAccessible* child = nsnull;
   while ((child = walker.NextChild()) && AppendChild(child));
@@ -1825,8 +1871,8 @@ nsDocAccessible::UpdateTree(nsAccessible* aContainer, nsIContent* aChildNode,
     updateFlags |= UpdateTreeInternal(child, aIsInsert);
 
   } else {
-    nsAccTreeWalker walker(mWeakShell, aChildNode,
-                           aContainer->GetAllowsAnonChildAccessibles(), true);
+    nsAccTreeWalker walker(this, aChildNode,
+                           aContainer->CanHaveAnonChildren(), true);
 
     while ((child = walker.NextChild()))
       updateFlags |= UpdateTreeInternal(child, aIsInsert);

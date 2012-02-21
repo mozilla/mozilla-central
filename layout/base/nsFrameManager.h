@@ -82,18 +82,13 @@ class nsFrameManager : public nsFrameManagerBase
   typedef nsIFrame::ChildListID ChildListID;
 
 public:
-  nsFrameManager() NS_HIDDEN;
+  nsFrameManager(nsIPresShell *aPresShell) NS_HIDDEN {
+    mPresShell = aPresShell;
+  }
   ~nsFrameManager() NS_HIDDEN;
 
-  void* operator new(size_t aSize, nsIPresShell* aHost) {
-    NS_ASSERTION(aSize == sizeof(nsFrameManager), "Unexpected subclass");
-    NS_ASSERTION(aSize == sizeof(nsFrameManagerBase),
-                 "Superclass/subclass mismatch");
-    return aHost->FrameManager();
-  }
-
   // Initialization
-  NS_HIDDEN_(nsresult) Init(nsIPresShell* aPresShell, nsStyleSet* aStyleSet);
+  NS_HIDDEN_(nsresult) Init(nsStyleSet* aStyleSet);
 
   /*
    * After Destroy is called, it is an error to call any FrameManager methods.
@@ -103,7 +98,7 @@ public:
   NS_HIDDEN_(void) Destroy();
 
   // Placeholder frame functions
-  NS_HIDDEN_(nsPlaceholderFrame*) GetPlaceholderFrameFor(nsIFrame* aFrame);
+  NS_HIDDEN_(nsPlaceholderFrame*) GetPlaceholderFrameFor(const nsIFrame* aFrame);
   NS_HIDDEN_(nsresult)
     RegisterPlaceholderFrame(nsPlaceholderFrame* aPlaceholderFrame);
 

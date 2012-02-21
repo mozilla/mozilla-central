@@ -72,9 +72,15 @@ interface nsIMemoryReporter : nsISupports
 
   /*
    * The path that this memory usage should be reported under.  Paths are
-   * '/'-delimited, eg. "a/b/c".  There are three categories of paths.
+   * '/'-delimited, eg. "a/b/c".  If you want to include a '/' not as a path
+   * separator, e.g. because the path contains a URL, you need to convert
+   * each '/' in the URL to a '\'.  Consumers of the path will undo this
+   * change.  Any other '\' character in a path will also be changed.  This
+   * is clumsy but hasn't caused any problems so far.
    *
-   * - Paths starting with "explicit" represent regions of memory that have
+   * There are several categories of paths.
+   *
+   * - Paths starting with "explicit/" represent regions of memory that have
    *   been explicitly allocated with an OS-level allocation (eg.
    *   mmap/VirtualAlloc/vm_allocate) or a heap-level allocation (eg.
    *   malloc/calloc/operator new).
@@ -99,16 +105,21 @@ interface nsIMemoryReporter : nsISupports
    *   So in the example above, |a| may not count any allocations counted by
    *   |d|, and vice versa.
    *
-   * - Paths starting with "map" represent regions of virtual memory that the
-   *   process has mapped.  The reporter immediately beneath "map" describes
-   *   the type of measurement; for instance, the reporter "map/rss/[stack]"
-   *   might report how much of the process's stack is currently in physical
-   *   memory.
+   * - Paths starting with "smaps/" represent regions of virtual memory that the
+   *   process has mapped.  The rest of the path describes the type of
+   *   measurement; for instance, the reporter "smaps/rss/[stack]" might report
+   *   how much of the process's stack is currently in physical memory.
    *
    *   Reporters in this category must have kind NONHEAP and units BYTES.
    *
+   * - Paths starting with "compartments/" represent the names of JS
+   *   compartments.  Reporters in this category must paths of the form
+   *   "compartments/user/<name>" or "compartments/system/<name>", amount 1,
+   *   kind OTHER, units COUNT, and an empty description.
+   *
    * - All other paths represent cross-cutting values and may overlap with any
-   *   other reporter.
+   *   other reporter.  Reporters in this category must have paths that do not
+   *   contain '/' separators, and kind OTHER.
    */
   readonly attribute AUTF8String path;
 
@@ -118,17 +129,17 @@ interface nsIMemoryReporter : nsISupports
    *  - HEAP: memory allocated by the heap allocator, e.g. by calling malloc,
    *    calloc, realloc, memalign, operator new, or operator new[].  Reporters
    *    in this category must have units UNITS_BYTES and must have a path
-   *    starting with "explicit".
+   *    starting with "explicit/".
    *
    *  - NONHEAP: memory which the program explicitly allocated, but does not
    *    live on the heap.  Such memory is commonly allocated by calling one of
    *    the OS's memory-mapping functions (e.g. mmap, VirtualAlloc, or
    *    vm_allocate).  Reporters in this category must have units UNITS_BYTES
-   *    and must have a path starting with "explicit" or "map".
+   *    and must have a path starting with "explicit/" or "smaps/".
    *
    *  - OTHER: reporters which don't fit into either of these categories. Such
-   *    reporters must have a path that does not start with "explicit" or "map"
-   *    and may have any units.
+   *    reporters must have a path that does not start with "explicit/" or
+   *    "smaps/" and may have any units.
    */
   const PRInt32 KIND_NONHEAP = 0;
   const PRInt32 KIND_HEAP    = 1;
@@ -216,6 +227,16 @@ interface nsIMemoryMultiReporterCallback : nsISupports
 [scriptable, uuid(61d498d5-b460-4398-a8ea-7f75208534b4)]
 interface nsIMemoryMultiReporter : nsISupports
 {
+  /*
+   * The name of the multi-reporter.  Useful when only one multi-reporter
+   * needs to be run.  Must be unique;  if multi-reporters share names it's
+   * likely the wrong one will be called in certain circumstances.
+   */
+  readonly attribute ACString name;
+
+  /*
+   * Run the multi-reporter.
+   */
   void collectReports(in nsIMemoryMultiReporterCallback callback,
                       in nsISupports closure);
 
@@ -306,7 +327,7 @@ interface nsIMemoryReporterManager : nsISupports
  * Note that this defaults 'process' to "", which is usually what's desired.
  */
 #define NS_MEMORY_REPORTER_IMPLEMENT_HELPER(_classname, _path, _kind, _units, _amountFunction, _desc, _ts) \
-    class MemoryReporter_##_classname : public nsIMemoryReporter {                            \
+    class MemoryReporter_##_classname MOZ_FINAL : public nsIMemoryReporter {                  \
     public:                                                                                   \
       NS_DECL_ISUPPORTS                                                                       \
       NS_IMETHOD GetProcess(nsACString &process) { process.Truncate(); return NS_OK; } \
@@ -345,11 +366,8 @@ namespace mozilla {
 
 /*
  * Functions generated via this macro should be used by all traversal-based
- * memory reporters.  Such functions return moz_malloc_usable_size(ptr),
- * which will be 0 on obscure platforms that don't implement
- * malloc_usable_size() or an equivalent.
- *
- * XXX: bug 715453 will remove the unused |computedSize| argument.
+ * memory reporters.  Such functions return |moz_malloc_size_of(ptr)|;  this
+ * will always be zero on some obscure platforms.
  *
  * You might be wondering why we have a macro that creates multiple functions
  * distinguished only by |name|, instead of a single MemoryReporterMallocSizeOf
@@ -359,9 +377,9 @@ namespace mozilla {
  * the relevant memory reporter(s).
  */
 #define NS_MEMORY_REPORTER_MALLOC_SIZEOF_FUN(fn, name)                        \
-  size_t fn(const void *ptr, size_t computedSize)                             \
+  static size_t fn(const void *ptr)                                           \
   {                                                                           \
-      size_t usable = moz_malloc_usable_size((void*)ptr);                     \
+      size_t usable = moz_malloc_size_of(ptr);                                \
       VALGRIND_DMD_REPORT(ptr, usable, name);                                 \
       return usable;                                                          \
   }
@@ -371,9 +389,9 @@ namespace mozilla {
  * "unreport" message to DMD.
  */
 #define NS_MEMORY_REPORTER_MALLOC_SIZEOF_FUN_UN(fn)                           \
-  size_t fn(const void *ptr, size_t computedSize)                             \
+  static size_t fn(const void *ptr)                                           \
   {                                                                           \
-      size_t usable = moz_malloc_usable_size((void*)ptr);                     \
+      size_t usable = moz_malloc_size_of(ptr);                                \
       VALGRIND_DMD_UNREPORT(ptr);                                             \
       return usable;                                                          \
   }

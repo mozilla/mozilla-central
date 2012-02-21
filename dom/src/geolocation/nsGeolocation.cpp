@@ -67,7 +67,7 @@
 #include "nsIPermissionManager.h"
 #include "nsIObserverService.h"
 #include "nsIPrefService.h"
-#include "nsIPrefBranch2.h"
+#include "nsIPrefBranch.h"
 #include "nsIJSContextStack.h"
 #include "nsThreadUtils.h"
 #include "mozilla/Services.h"
@@ -86,6 +86,10 @@
 
 #ifdef MOZ_WIDGET_ANDROID
 #include "AndroidLocationProvider.h"
+#endif
+
+#ifdef MOZ_WIDGET_GONK
+#include "GonkGPSGeolocationProvider.h"
 #endif
 
 #include "nsIDOMDocument.h"
@@ -577,6 +581,13 @@ nsresult nsGeolocationService::Init()
   if (provider)
     mProviders.AppendObject(provider);
 #endif
+
+#ifdef MOZ_WIDGET_GONK
+  provider = GonkGPSGeolocationProvider::GetSingleton();
+  if (provider)
+    mProviders.AppendObject(provider);
+#endif
+
   return NS_OK;
 }
 

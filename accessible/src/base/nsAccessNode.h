@@ -43,7 +43,6 @@
 #ifndef _nsAccessNode_H_
 #define _nsAccessNode_H_
 
-#include "nsIAccessNode.h"
 #include "nsIAccessibleTypes.h"
 
 #include "a11yGeneric.h"
@@ -68,26 +67,15 @@ class nsIDocShellTreeItem;
 #define ACCESSIBLE_BUNDLE_URL "chrome://global-platform/locale/accessible.properties"
 #define PLATFORM_KEYS_BUNDLE_URL "chrome://global-platform/locale/platformKeys.properties"
 
-#define NS_ACCESSNODE_IMPL_CID                          \
-{  /* 2b07e3d7-00b3-4379-aa0b-ea22e2c8ffda */           \
-  0x2b07e3d7,                                           \
-  0x00b3,                                               \
-  0x4379,                                               \
-  { 0xaa, 0x0b, 0xea, 0x22, 0xe2, 0xc8, 0xff, 0xda }    \
-}
-
-class nsAccessNode: public nsIAccessNode
+class nsAccessNode: public nsISupports
 {
 public:
 
-  nsAccessNode(nsIContent *aContent, nsIWeakReference *aShell);
+  nsAccessNode(nsIContent* aContent, nsDocAccessible* aDoc);
   virtual ~nsAccessNode();
 
     NS_DECL_CYCLE_COLLECTING_ISUPPORTS
-    NS_DECL_CYCLE_COLLECTION_CLASS_AMBIGUOUS(nsAccessNode, nsIAccessNode)
-
-    NS_DECL_NSIACCESSNODE
-    NS_DECLARE_STATIC_IID_ACCESSOR(NS_ACCESSNODE_IMPL_CID)
+    NS_DECL_CYCLE_COLLECTION_CLASS(nsAccessNode)
 
     static void InitXPAccessibility();
     static void ShutdownXPAccessibility();
@@ -100,20 +88,12 @@ public:
   /**
    * Return the document accessible for this access node.
    */
-  nsDocAccessible *GetDocAccessible() const;
+  nsDocAccessible* Document() const { return mDoc; }
 
   /**
    * Return the root document accessible for this accessnode.
    */
   nsRootAccessible* RootAccessible() const;
-
-  /**
-   * Return focused node within accessible window.
-   *
-   * XXX: it shouldn't break us if we return focused node not depending on
-   * window so that we can turn this method into util method.
-   */
-  already_AddRefed<nsINode> GetCurrentFocus();
 
   /**
    * Initialize the access node object, add it to the cache.
@@ -134,18 +114,6 @@ public:
    * Return frame for the given access node object.
    */
   virtual nsIFrame* GetFrame() const;
-
-  /**
-   * Return DOM node associated with this accessible.
-   */
-  already_AddRefed<nsIDOMNode> GetDOMNode() const
-  {
-    nsIDOMNode *DOMNode = nsnull;
-    if (GetNode())
-      CallQueryInterface(GetNode(), &DOMNode);
-    return DOMNode;
-  }
-
   /**
    * Return DOM node associated with the accessible.
    */
@@ -172,16 +140,6 @@ public:
   }
 
   /**
-   * Return the corresponding press shell for this accessible.
-   */
-  already_AddRefed<nsIPresShell> GetPresShell();
-
-  /**
-   * Return presentation shell for the accessible.
-   */
-  nsIWeakReference* GetWeakShell() const { return mWeakShell; }
-
-  /**
    * Return the unique identifier of the accessible.
    */
   void* UniqueID() { return static_cast<void*>(this); }
@@ -196,10 +154,10 @@ public:
   virtual bool IsPrimaryForNode() const;
 
   /**
-   * Return the string bundle
+   * Interface methods on nsIAccessible shared with ISimpleDOM.
    */
-  static nsIStringBundle* GetStringBundle()
-    { return gStringBundle; }
+  void Language(nsAString& aLocale);
+  void ScrollTo(PRUint32 aType);
 
 protected:
     nsPresContext* GetPresContext();
@@ -207,7 +165,7 @@ protected:
     void LastRelease();
 
   nsCOMPtr<nsIContent> mContent;
-  nsCOMPtr<nsIWeakReference> mWeakShell;
+  nsDocAccessible* mDoc;
 
     /**
      * Notify global nsIObserver's that a11y is getting init'd or shutdown
@@ -220,15 +178,12 @@ protected:
     static bool gIsFormFillEnabled;
 
 private:
-  nsAccessNode();
-  nsAccessNode(const nsAccessNode&);
-  nsAccessNode& operator =(const nsAccessNode&);
+  nsAccessNode() MOZ_DELETE;
+  nsAccessNode(const nsAccessNode&) MOZ_DELETE;
+  nsAccessNode& operator =(const nsAccessNode&) MOZ_DELETE;
   
   static nsApplicationAccessible *gApplicationAccessible;
 };
-
-NS_DEFINE_STATIC_IID_ACCESSOR(nsAccessNode,
-                              NS_ACCESSNODE_IMPL_CID)
 
 #endif
 

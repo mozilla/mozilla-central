@@ -118,10 +118,6 @@ public:
   NS_IMETHOD PasteTransferable(nsITransferable *aTransferable);
   NS_IMETHOD CanPasteTransferable(nsITransferable *aTransferable, bool *aCanPaste);
 
-  NS_IMETHOD CanDrag(nsIDOMEvent *aDragEvent, bool *aCanDrag);
-  NS_IMETHOD DoDrag(nsIDOMEvent *aDragEvent);
-  NS_IMETHOD InsertFromDrop(nsIDOMEvent* aDropEvent);
-
   NS_IMETHOD OutputToString(const nsAString& aFormatType,
                             PRUint32 aFlags,
                             nsAString& aOutputString);
@@ -167,6 +163,15 @@ public:
                         PRInt32 aDestOffset,
                         bool aDoDeleteSelection);
 
+  virtual nsresult InsertFromDataTransfer(nsIDOMDataTransfer *aDataTransfer,
+                                          PRInt32 aIndex,
+                                          nsIDOMDocument *aSourceDoc,
+                                          nsIDOMNode *aDestinationNode,
+                                          PRInt32 aDestOffset,
+                                          bool aDoDeleteSelection);
+
+  virtual nsresult InsertFromDrop(nsIDOMEvent* aDropEvent);
+
   /**
    * Extends the selection for given deletion operation
    * If done, also update aAction to what's actually left to do after the
@@ -193,11 +198,11 @@ protected:
   // key event helpers
   NS_IMETHOD CreateBR(nsIDOMNode *aNode, PRInt32 aOffset, 
                       nsCOMPtr<nsIDOMNode> *outBRNode, EDirection aSelect = eNone);
-  NS_IMETHOD CreateBRImpl(nsCOMPtr<nsIDOMNode> *aInOutParent, 
-                         PRInt32 *aInOutOffset, 
-                         nsCOMPtr<nsIDOMNode> *outBRNode, 
-                         EDirection aSelect);
-  NS_IMETHOD InsertBR(nsCOMPtr<nsIDOMNode> *outBRNode);
+  nsresult CreateBRImpl(nsCOMPtr<nsIDOMNode>* aInOutParent,
+                        PRInt32* aInOutOffset,
+                        nsCOMPtr<nsIDOMNode>* outBRNode,
+                        EDirection aSelect);
+  nsresult InsertBR(nsCOMPtr<nsIDOMNode>* outBRNode);
 
   // factored methods for handling insertion of data from transferables (drag&drop or clipboard)
   NS_IMETHOD PrepareTransferable(nsITransferable **transferable);
@@ -205,8 +210,6 @@ protected:
                                         nsIDOMNode *aDestinationNode,
                                         PRInt32 aDestOffset,
                                         bool aDoDeleteSelection);
-  virtual nsresult SetupDocEncoder(nsIDocumentEncoder **aDocEncoder);
-  virtual nsresult PutDragDataInTransferable(nsITransferable **aTransferable);
 
   /** shared outputstring; returns whether selection is collapsed and resulting string */
   nsresult SharedOutputString(PRUint32 aFlags, bool* aIsCollapsed, nsAString& aResult);
@@ -214,12 +217,11 @@ protected:
   /* small utility routine to test the eEditorReadonly bit */
   bool IsModifiable();
 
-  //XXX Kludge: Used to suppress spurious drag/drop events (bug 50703)
-  bool     mIgnoreSpuriousDragEvent;
-  NS_IMETHOD IgnoreSpuriousDragEvent(bool aIgnoreSpuriousDragEvent) {mIgnoreSpuriousDragEvent = aIgnoreSpuriousDragEvent; return NS_OK;}
-
   bool CanCutOrCopy();
   bool FireClipboardEvent(PRInt32 aType);
+
+  bool UpdateMetaCharset(nsIDOMDocument* aDocument,
+                         const nsACString& aCharacterSet);
 
 // Data members
 protected:

@@ -399,7 +399,7 @@ Debugger::getHook(Hook hook) const
 }
 
 bool
-Debugger::hasAnyLiveHooks(JSContext *cx) const
+Debugger::hasAnyLiveHooks() const
 {
     if (!enabled)
         return false;
@@ -414,7 +414,7 @@ Debugger::hasAnyLiveHooks(JSContext *cx) const
 
     /* If any breakpoints are in live scripts, return true. */
     for (Breakpoint *bp = firstBreakpoint(); bp; bp = bp->nextInDebugger()) {
-        if (!IsAboutToBeFinalized(cx, bp->site->script))
+        if (!IsAboutToBeFinalized(bp->site->script))
             return true;
     }
 
@@ -1063,15 +1063,21 @@ Debugger::markKeysInCompartment(JSTracer *tracer)
     const ObjectMap &objStorage = objects;
     for (ObjectMap::Range r = objStorage.all(); !r.empty(); r.popFront()) {
         const HeapPtrObject &key = r.front().key;
-        if (key->compartment() == comp && IsAboutToBeFinalized(tracer->context, key))
-            gc::MarkObject(tracer, key, "cross-compartment WeakMap key");
+        if (key->compartment() == comp && IsAboutToBeFinalized(key)) {
+            HeapPtrObject tmp(key);
+            gc::MarkObject(tracer, &tmp, "cross-compartment WeakMap key");
+            JS_ASSERT(tmp == key);
+        }
     }
 
     const ObjectMap &envStorage = environments;
     for (ObjectMap::Range r = envStorage.all(); !r.empty(); r.popFront()) {
         const HeapPtrObject &key = r.front().key;
-        if (key->compartment() == comp && IsAboutToBeFinalized(tracer->context, key))
-            js::gc::MarkObject(tracer, key, "cross-compartment WeakMap key");
+        if (key->compartment() == comp && IsAboutToBeFinalized(key)) {
+            HeapPtrObject tmp(key);
+            js::gc::MarkObject(tracer, &tmp, "cross-compartment WeakMap key");
+            JS_ASSERT(tmp == key);
+        }
     }
 
     typedef HashMap<HeapPtrScript, HeapPtrObject, DefaultHasher<HeapPtrScript>, RuntimeAllocPolicy>
@@ -1079,8 +1085,11 @@ Debugger::markKeysInCompartment(JSTracer *tracer)
     const ScriptMap &scriptStorage = scripts;
     for (ScriptMap::Range r = scriptStorage.all(); !r.empty(); r.popFront()) {
         const HeapPtrScript &key = r.front().key;
-        if (key->compartment() == comp && IsAboutToBeFinalized(tracer->context, key))
-            gc::MarkScript(tracer, key, "cross-compartment WeakMap key");
+        if (key->compartment() == comp && IsAboutToBeFinalized(key)) {
+            HeapPtrScript tmp(key);
+            gc::MarkScript(tracer, &tmp, "cross-compartment WeakMap key");
+            JS_ASSERT(tmp == key);
+        }
     }
 }
 
@@ -1143,8 +1152,7 @@ Debugger::markAllIteratively(GCMarker *trc)
      * Find all Debugger objects in danger of GC. This code is a little
      * convoluted since the easiest way to find them is via their debuggees.
      */
-    JSContext *cx = trc->context;
-    JSRuntime *rt = cx->runtime;
+    JSRuntime *rt = trc->runtime;
     JSCompartment *comp = rt->gcCurrentCompartment;
     for (JSCompartment **c = rt->compartments.begin(); c != rt->compartments.end(); c++) {
         JSCompartment *dc = *c;
@@ -1159,6 +1167,8 @@ Debugger::markAllIteratively(GCMarker *trc)
         const GlobalObjectSet &debuggees = dc->getDebuggees();
         for (GlobalObjectSet::Range r = debuggees.all(); !r.empty(); r.popFront()) {
             GlobalObject *global = r.front();
+            if (IsAboutToBeFinalized(global))
+                continue;
 
             /*
              * Every debuggee has at least one debugger, so in this case
@@ -1166,7 +1176,7 @@ Debugger::markAllIteratively(GCMarker *trc)
              */
             const GlobalObject::DebuggerVector *debuggers = global->getDebuggers();
             JS_ASSERT(debuggers);
-            for (Debugger **p = debuggers->begin(); p != debuggers->end(); p++) {
+            for (Debugger * const *p = debuggers->begin(); p != debuggers->end(); p++) {
                 Debugger *dbg = *p;
 
                 /*
@@ -1175,17 +1185,17 @@ Debugger::markAllIteratively(GCMarker *trc)
                  *   - it isn't already marked
                  *   - it actually has hooks that might be called
                  */
-                const HeapPtrObject &dbgobj = dbg->toJSObject();
+                HeapPtrObject &dbgobj = dbg->toJSObjectRef();
                 if (comp && comp != dbgobj->compartment())
                     continue;
 
-                bool dbgMarked = !IsAboutToBeFinalized(cx, dbgobj);
-                if (!dbgMarked && dbg->hasAnyLiveHooks(cx)) {
+                bool dbgMarked = !IsAboutToBeFinalized(dbgobj);
+                if (!dbgMarked && dbg->hasAnyLiveHooks()) {
                     /*
                      * obj could be reachable only via its live, enabled
                      * debugger hooks, which may yet be called.
                      */
-                    MarkObject(trc, dbgobj, "enabled Debugger");
+                    MarkObject(trc, &dbgobj, "enabled Debugger");
                     markedAny = true;
                     dbgMarked = true;
                 }
@@ -1193,14 +1203,13 @@ Debugger::markAllIteratively(GCMarker *trc)
                 if (dbgMarked) {
                     /* Search for breakpoints to mark. */
                     for (Breakpoint *bp = dbg->firstBreakpoint(); bp; bp = bp->nextInDebugger()) {
-                        if (!IsAboutToBeFinalized(cx, bp->site->script)) {
+                        if (!IsAboutToBeFinalized(bp->site->script)) {
                             /*
                              * The debugger and the script are both live.
                              * Therefore the breakpoint handler is live.
                              */
-                            const HeapPtrObject &handler = bp->getHandler();
-                            if (IsAboutToBeFinalized(cx, handler)) {
-                                MarkObject(trc, bp->getHandler(), "breakpoint handler");
+                            if (IsAboutToBeFinalized(bp->getHandler())) {
+                                MarkObject(trc, &bp->getHandlerRef(), "breakpoint handler");
                                 markedAny = true;
                             }
                         }
@@ -1223,7 +1232,7 @@ void
 Debugger::trace(JSTracer *trc)
 {
     if (uncaughtExceptionHook)
-        MarkObject(trc, uncaughtExceptionHook, "hooks");
+        MarkObject(trc, &uncaughtExceptionHook, "hooks");
 
     /*
      * Mark Debugger.Frame objects. These are all reachable from JS, because the
@@ -1234,9 +1243,9 @@ Debugger::trace(JSTracer *trc)
      * frames.)
      */
     for (FrameMap::Range r = frames.all(); !r.empty(); r.popFront()) {
-        const HeapPtrObject &frameobj = r.front().value;
+        HeapPtrObject &frameobj = r.front().value;
         JS_ASSERT(frameobj->getPrivate());
-        MarkObject(trc, frameobj, "live Debugger.Frame");
+        MarkObject(trc, &frameobj, "live Debugger.Frame");
     }
 
     /* Trace the weak map from JSScript instances to Debugger.Script objects. */
@@ -1258,7 +1267,7 @@ Debugger::sweepAll(JSContext *cx)
     for (JSCList *p = &rt->debuggerList; (p = JS_NEXT_LINK(p)) != &rt->debuggerList;) {
         Debugger *dbg = Debugger::fromLinks(p);
 
-        if (IsAboutToBeFinalized(cx, dbg->object)) {
+        if (IsAboutToBeFinalized(dbg->object)) {
             /*
              * dbg is being GC'd. Detach it from its debuggees. In the case of
              * runtime-wide GC, the debuggee might be GC'd too. Since detaching
@@ -1279,7 +1288,7 @@ Debugger::sweepAll(JSContext *cx)
         GlobalObjectSet &debuggees = (*c)->getDebuggees();
         for (GlobalObjectSet::Enum e(debuggees); !e.empty(); e.popFront()) {
             GlobalObject *global = e.front();
-            if (IsAboutToBeFinalized(cx, global))
+            if (IsAboutToBeFinalized(global))
                 detachAllDebuggersFromGlobal(cx, global, &e);
         }
     }
@@ -1314,7 +1323,9 @@ Debugger::finalize(JSContext *cx, JSObject *obj)
 }
 
 Class Debugger::jsclass = {
-    "Debugger", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(JSSLOT_DEBUG_COUNT),
+    "Debugger",
+    JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS |
+    JSCLASS_HAS_RESERVED_SLOTS(JSSLOT_DEBUG_COUNT),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, Debugger::finalize,
     NULL,                 /* reserved0   */
@@ -1845,7 +1856,9 @@ DebuggerScript_trace(JSTracer *trc, JSObject *obj)
 }
 
 Class DebuggerScript_class = {
-    "Script", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(JSSLOT_DEBUGSCRIPT_COUNT),
+    "Script",
+    JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS |
+    JSCLASS_HAS_RESERVED_SLOTS(JSSLOT_DEBUGSCRIPT_COUNT),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     NULL,                 /* reserved0   */
@@ -2560,7 +2573,7 @@ DebuggerFrame_getOlder(JSContext *cx, uintN argc, Value *vp)
     THIS_FRAME(cx, argc, vp, "get this", args, thisobj, thisfp);
     Debugger *dbg = Debugger::fromChildJSObject(thisobj);
     for (StackFrame *fp = thisfp->prev(); fp; fp = fp->prev()) {
-        if (!fp->isDummyFrame() && dbg->observesFrame(fp))
+        if (dbg->observesFrame(fp))
             return dbg->getScriptFrame(cx, fp, vp);
     }
     args.rval().setNull();
@@ -2632,15 +2645,13 @@ DebuggerFrame_getArguments(JSContext *cx, uintN argc, Value *vp)
         /* Create an arguments object. */
         RootedVar<GlobalObject*> global(cx);
         global = &args.callee().global();
-        JSObject *proto;
-        if (!js_GetClassPrototype(cx, global, JSProto_Array, &proto))
+        JSObject *proto = global->getOrCreateArrayPrototype(cx);
+        if (!proto)
             return false;
         argsobj = NewObjectWithGivenProto(cx, &DebuggerArguments_class, proto, global);
-        if (!argsobj ||
-            !js_SetReservedSlot(cx, argsobj, JSSLOT_DEBUGARGUMENTS_FRAME, ObjectValue(*thisobj)))
-        {
+        if (!argsobj)
             return false;
-        }
+        SetReservedSlot(argsobj, JSSLOT_DEBUGARGUMENTS_FRAME, ObjectValue(*thisobj));
 
         JS_ASSERT(fp->numActualArgs() <= 0x7fffffff);
         int32_t fargc = int32_t(fp->numActualArgs());
@@ -2949,7 +2960,9 @@ DebuggerObject_trace(JSTracer *trc, JSObject *obj)
 }
 
 Class DebuggerObject_class = {
-    "Object", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(JSSLOT_DEBUGOBJECT_COUNT),
+    "Object",
+    JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS |
+    JSCLASS_HAS_RESERVED_SLOTS(JSSLOT_DEBUGOBJECT_COUNT),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     NULL,                 /* reserved0   */
@@ -3591,7 +3604,9 @@ DebuggerEnv_trace(JSTracer *trc, JSObject *obj)
 }
 
 Class DebuggerEnv_class = {
-    "Environment", JSCLASS_HAS_PRIVATE | JSCLASS_HAS_RESERVED_SLOTS(JSSLOT_DEBUGENV_COUNT),
+    "Environment",
+    JSCLASS_HAS_PRIVATE | JSCLASS_IMPLEMENTS_BARRIERS |
+    JSCLASS_HAS_RESERVED_SLOTS(JSSLOT_DEBUGENV_COUNT),
     JS_PropertyStub, JS_PropertyStub, JS_PropertyStub, JS_StrictPropertyStub,
     JS_EnumerateStub, JS_ResolveStub, JS_ConvertStub, NULL,
     NULL,                 /* reserved0   */
@@ -3792,7 +3807,8 @@ JS_DefineDebuggerObject(JSContext *cx, JSObject *obj)
         scriptProto(cx),
         objectProto(cx);
 
-    if (!js_GetClassPrototype(cx, obj, JSProto_Object, objProto.address()))
+    objProto = obj->asGlobal().getOrCreateObjectPrototype(cx);
+    if (!objProto)
         return false;
 
 

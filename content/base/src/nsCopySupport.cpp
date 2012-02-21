@@ -81,15 +81,15 @@
 
 #include "mozilla/dom/Element.h"
 
+#include "mozilla/Preferences.h"
+
+using namespace mozilla;
+
 nsresult NS_NewDomSelection(nsISelection **aDomSelection);
 
 static NS_DEFINE_CID(kCClipboardCID,           NS_CLIPBOARD_CID);
 static NS_DEFINE_CID(kCTransferableCID,        NS_TRANSFERABLE_CID);
 static NS_DEFINE_CID(kHTMLConverterCID,        NS_HTMLFORMATCONVERTER_CID);
-
-// private clipboard data flavors for html copy, used by editor when pasting
-#define kHTMLContext   "text/_moz_htmlcontext"
-#define kHTMLInfo      "text/_moz_htmlinfo"
 
 // copy string data onto the transferable
 static nsresult AppendString(nsITransferable *aTransferable,
@@ -727,14 +727,16 @@ nsCopySupport::FireClipboardEvent(PRInt32 aType, nsIPresShell* aPresShell, nsISe
     return false;
 
   // next, fire the cut or copy event
-  nsEventStatus status = nsEventStatus_eIgnore;
-  nsEvent evt(true, aType);
-  nsEventDispatcher::Dispatch(content, presShell->GetPresContext(), &evt, nsnull,
-                              &status);
-  // if the event was cancelled, don't do the clipboard operation
-  if (status == nsEventStatus_eConsumeNoDefault)
-    return false;
-
+  if (Preferences::GetBool("dom.event.clipboardevents.enabled", true)) {
+    nsEventStatus status = nsEventStatus_eIgnore;
+    nsEvent evt(true, aType);
+    nsEventDispatcher::Dispatch(content, presShell->GetPresContext(), &evt, nsnull,
+                                &status);
+    // if the event was cancelled, don't do the clipboard operation
+    if (status == nsEventStatus_eConsumeNoDefault)
+      return false;
+  }
+  
   if (presShell->IsDestroying())
     return false;
 

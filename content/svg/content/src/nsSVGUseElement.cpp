@@ -267,7 +267,7 @@ nsSVGUseElement::CreateAnonymousContent()
 
   LookupHref();
   nsIContent* targetContent = mSource.get();
-  if (!targetContent)
+  if (!targetContent || !targetContent->IsSVG())
     return nsnull;
 
   // make sure target is valid type for <use>
@@ -391,10 +391,7 @@ nsSVGUseElement::CreateAnonymousContent()
   nsCOMPtr<nsIURI> baseURI = targetContent->GetBaseURI();
   if (!baseURI)
     return nsnull;
-  nsCAutoString spec;
-  baseURI->GetSpec(spec);
-  newcontent->SetAttr(kNameSpaceID_XML, nsGkAtoms::base,
-                      NS_ConvertUTF8toUTF16(spec), false);
+  newcontent->SetExplicitBaseURI(baseURI);
 
   targetContent->AddMutationObserver(this);
   mClone = newcontent;
@@ -491,15 +488,27 @@ nsSVGUseElement::UnlinkSource()
 // nsSVGElement methods
 
 /* virtual */ gfxMatrix
-nsSVGUseElement::PrependLocalTransformTo(const gfxMatrix &aMatrix) const
+nsSVGUseElement::PrependLocalTransformsTo(const gfxMatrix &aMatrix,
+                                          TransformTypes aWhich) const
 {
-  // 'transform' attribute:
-  gfxMatrix matrix = nsSVGUseElementBase::PrependLocalTransformTo(aMatrix);
+  NS_ABORT_IF_FALSE(aWhich != eChildToUserSpace || aMatrix.IsIdentity(),
+                    "Skipping eUserSpaceToParent transforms makes no sense");
 
-  // now translate by our 'x' and 'y':
+  // 'transform' attribute:
+  gfxMatrix fromUserSpace =
+    nsSVGUseElementBase::PrependLocalTransformsTo(aMatrix, aWhich);
+  if (aWhich == eUserSpaceToParent) {
+    return fromUserSpace;
+  }
+  // our 'x' and 'y' attributes:
   float x, y;
   const_cast<nsSVGUseElement*>(this)->GetAnimatedLengthValues(&x, &y, nsnull);
-  return matrix.PreMultiply(gfxMatrix().Translate(gfxPoint(x, y)));
+  gfxMatrix toUserSpace = gfxMatrix().Translate(gfxPoint(x, y));
+  if (aWhich == eChildToUserSpace) {
+    return toUserSpace;
+  }
+  NS_ABORT_IF_FALSE(aWhich == eAllTransforms, "Unknown TransformTypes");
+  return toUserSpace * fromUserSpace;
 }
 
 nsSVGElement::LengthAttributesInfo

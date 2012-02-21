@@ -39,6 +39,8 @@
 
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 Components.utils.import("resource://gre/modules/Services.jsm");
+XPCOMUtils.defineLazyModuleGetter(this, "PlacesUtils",
+                                  "resource://gre/modules/PlacesUtils.jsm");
 
 ////////////////////////////////////////////////////////////////////////////////
 //// Constants
@@ -94,16 +96,17 @@ const kQueryIndexOpenPageCount = 10;
 const kQueryTypeKeyword = 0;
 const kQueryTypeFiltered = 1;
 
-// Autocomplete minimum time before query is executed
-const kAsyncQueriesWaitTime = 50;
-
 // This separator is used as an RTL-friendly way to split the title and tags.
 // It can also be used by an nsIAutoCompleteResult consumer to re-split the
 // "comment" back into the title and the tag.
 const kTitleTagsSeparator = " \u2013 ";
 
 const kBrowserUrlbarBranch = "browser.urlbar.";
-const kBrowserUrlbarAutofillPref = "browser.urlbar.autoFill";
+
+// Toggle autoFill.
+const kBrowserUrlbarAutofillPref = "autoFill";
+// Whether to search only typed entries.
+const kBrowserUrlbarAutofillTypedPref = "autoFill.typed";
 
 ////////////////////////////////////////////////////////////////////////////////
 //// Globals
@@ -320,6 +323,13 @@ function nsPlacesAutoComplete()
              DBConnection.
              clone(true);
 
+    // Autocomplete often fallbacks to a table scan due to lack of text indices.
+    // In such cases a larger cache helps reducing IO.  The default Storage
+    // value is MAX_CACHE_SIZE_BYTES in storage/src/mozStorageConnection.cpp.
+    let stmt = db.createAsyncStatement("PRAGMA cache_size = -6144"); // 6MiB
+    stmt.executeAsync();
+    stmt.finalize();
+
     // Create our in-memory tables for tab tracking.
     initTempTable(db);
 
@@ -511,17 +521,60 @@ nsPlacesAutoComplete.prototype = {
     // Stop the search in case the controller has not taken care of it.
     this.stopSearch();
 
-    // Unlike urlInlineComplete, we don't want this search to start
-    // synchronously. Wait kAsyncQueriesWaitTime before launching the query.
-    this._startTimer = Cc["@mozilla.org/timer;1"]
-                       .createInstance(Ci.nsITimer);
-    let timerCallback = (function() {
-      this._doStartSearch(aSearchString, aSearchParam,
-                          aPreviousResult, aListener);
-    }).bind(this);
-    this._startTimer.initWithCallback(timerCallback,
-                                      kAsyncQueriesWaitTime,
-                                      Ci.nsITimer.TYPE_ONE_SHOT);
+    // Note: We don't use aPreviousResult to make sure ordering of results are
+    //       consistent.  See bug 412730 for more details.
+
+    // We want to store the original string with no leading or trailing
+    // whitespace for case sensitive searches.
+    this._originalSearchString = aSearchString.trim();
+
+    this._currentSearchString =
+      fixupSearchText(this._originalSearchString.toLowerCase());
+
+    let searchParamParts = aSearchParam.split(" ");
+    this._enableActions = searchParamParts.indexOf("enable-actions") != -1;
+
+    this._listener = aListener;
+    let result = Cc["@mozilla.org/autocomplete/simple-result;1"].
+                 createInstance(Ci.nsIAutoCompleteSimpleResult);
+    result.setSearchString(aSearchString);
+    result.setListener(this);
+    this._result = result;
+
+    // If we are not enabled, we need to return now.
+    if (!this._enabled) {
+      this._finishSearch(true);
+      return;
+    }
+
+    // Reset our search behavior to the default.
+    if (this._currentSearchString) {
+      this._behavior = this._defaultBehavior;
+    }
+    else {
+      this._behavior = this._emptySearchDefaultBehavior;
+    }
+    // For any given search, we run up to four queries:
+    // 1) keywords (this._keywordQuery)
+    // 2) adaptive learning (this._adaptiveQuery)
+    // 3) open pages not supported by history (this._openPagesQuery)
+    // 4) query from this._getSearch
+    // (1) only gets ran if we get any filtered tokens from this._getSearch,
+    // since if there are no tokens, there is nothing to match, so there is no
+    // reason to run the query).
+    let {query, tokens} =
+      this._getSearch(this._getUnfilteredSearchTokens(this._currentSearchString));
+    let queries = tokens.length ?
+      [this._getBoundKeywordQuery(tokens), this._getBoundAdaptiveQuery(), this._getBoundOpenPagesQuery(tokens), query] :
+      [this._getBoundAdaptiveQuery(), this._getBoundOpenPagesQuery(tokens), query];
+
+    // Start executing our queries.
+    this._telemetryStartTime = Date.now();
+    this._executeQueries(queries);
+
+    // Set up our persistent state for the duration of the search.
+    this._searchTokens = tokens;
+    this._usedPlaces = {};
   },
 
   stopSearch: function PAC_stopSearch()
@@ -534,11 +587,6 @@ nsPlacesAutoComplete.prototype = {
     }
 
     this._finishSearch(false);
-
-    if (this._startTimer) {
-      this._startTimer.cancel();
-      delete this._startTimer;
-    }
   },
 
   //////////////////////////////////////////////////////////////////////////////
@@ -650,7 +698,7 @@ nsPlacesAutoComplete.prototype = {
       this._os.removeObserver(this, kTopicShutdown);
 
       // Remove our preference observer.
-      this._prefs.QueryInterface(Ci.nsIPrefBranch2).removeObserver("", this);
+      this._prefs.removeObserver("", this);
       delete this._prefs;
 
       // Finalize the statements that we have used.
@@ -689,68 +737,6 @@ nsPlacesAutoComplete.prototype = {
   get _databaseInitialized()
     Object.getOwnPropertyDescriptor(this, "_db").value !== undefined,
 
-  _doStartSearch: function PAC_doStartSearch(aSearchString, aSearchParam,
-                                             aPreviousResult, aListener)
-  {
-    this._startTimer.cancel();
-    delete this._startTimer;
-
-    // Note: We don't use aPreviousResult to make sure ordering of results are
-    //       consistent.  See bug 412730 for more details.
-
-    // We want to store the original string with no leading or trailing
-    // whitespace for case sensitive searches.
-    this._originalSearchString = aSearchString.trim();
-
-    this._currentSearchString =
-      fixupSearchText(this._originalSearchString.toLowerCase());
-
-    let searchParamParts = aSearchParam.split(" ");
-    this._enableActions = searchParamParts.indexOf("enable-actions") != -1;
-
-    this._listener = aListener;
-    let result = Cc["@mozilla.org/autocomplete/simple-result;1"].
-                 createInstance(Ci.nsIAutoCompleteSimpleResult);
-    result.setSearchString(aSearchString);
-    result.setListener(this);
-    this._result = result;
-
-    // If we are not enabled, we need to return now.
-    if (!this._enabled) {
-      this._finishSearch(true);
-      return;
-    }
-
-    // Reset our search behavior to the default.
-    if (this._currentSearchString) {
-      this._behavior = this._defaultBehavior;
-    }
-    else {
-      this._behavior = this._emptySearchDefaultBehavior;
-    }
-    // For any given search, we run up to four queries:
-    // 1) keywords (this._keywordQuery)
-    // 2) adaptive learning (this._adaptiveQuery)
-    // 3) open pages not supported by history (this._openPagesQuery)
-    // 4) query from this._getSearch
-    // (1) only gets ran if we get any filtered tokens from this._getSearch,
-    // since if there are no tokens, there is nothing to match, so there is no
-    // reason to run the query).
-    let {query, tokens} =
-      this._getSearch(this._getUnfilteredSearchTokens(this._currentSearchString));
-    let queries = tokens.length ?
-      [this._getBoundKeywordQuery(tokens), this._getBoundAdaptiveQuery(), this._getBoundOpenPagesQuery(tokens), query] :
-      [this._getBoundAdaptiveQuery(), this._getBoundOpenPagesQuery(tokens), query];
-
-    // Start executing our queries.
-    this._telemetryStartTime = Date.now();
-    this._executeQueries(queries);
-
-    // Set up our persistent state for the duration of the search.
-    this._searchTokens = tokens;
-    this._usedPlaces = {};
-  },
-
   /**
    * Generates the tokens used in searching from a given string.
    *
@@ -783,6 +769,7 @@ nsPlacesAutoComplete.prototype = {
     // Clear our state
     delete this._originalSearchString;
     delete this._currentSearchString;
+    delete this._strippedPrefix;
     delete this._searchTokens;
     delete this._listener;
     delete this._result;
@@ -857,8 +844,6 @@ nsPlacesAutoComplete.prototype = {
    */
   _loadPrefs: function PAC_loadPrefs(aRegisterObserver)
   {
-    let self = this;
-
     this._enabled = safePrefGetter(this._prefs, "autocomplete.enabled", true);
     this._matchBehavior = safePrefGetter(this._prefs,
                                          "matchBehavior",
@@ -1286,6 +1271,8 @@ nsPlacesAutoComplete.prototype = {
 
   classID: Components.ID("d0272978-beab-4adc-a3d4-04b76acfa4e7"),
 
+  _xpcom_factory: XPCOMUtils.generateSingletonFactory(nsPlacesAutoComplete),
+
   QueryInterface: XPCOMUtils.generateQI([
     Ci.nsIAutoCompleteSearch,
     Ci.nsIAutoCompleteSimpleResultListener,
@@ -1302,8 +1289,7 @@ nsPlacesAutoComplete.prototype = {
 function urlInlineComplete()
 {
   this._loadPrefs(true);
-  // register observers
-  Services.obs.addObserver(this, kTopicShutdown, false);
+  Services.obs.addObserver(this, kTopicShutdown, true);
 }
 
 urlInlineComplete.prototype = {
@@ -1316,10 +1302,8 @@ urlInlineComplete.prototype = {
   get _db()
   {
     if (!this.__db && this._autofill) {
-      this.__db = Cc["@mozilla.org/browser/nav-history-service;1"].
-        getService(Ci.nsPIPlacesDatabase).
-        DBConnection.
-        clone(true);
+      this.__db = PlacesUtils.history.QueryInterface(Ci.nsPIPlacesDatabase).
+                  DBConnection.clone(true);
     }
     return this.__db;
   },
@@ -1332,9 +1316,11 @@ urlInlineComplete.prototype = {
       // Add a trailing slash at the end of the hostname, since we always
       // want to complete up to and including a URL separator.
       this.__syncQuery = this._db.createStatement(
-        "SELECT host || '/' "
+          "/* do not warn (bug no): could index on (typed,frecency) but not worth it */ "
+        + "SELECT host || '/' "
         + "FROM moz_hosts "
         + "WHERE host BETWEEN :search_string AND :search_string || X'FFFF' "
+        + (this._autofillTyped ? "AND typed = 1 " : "")
         + "ORDER BY frecency DESC "
         + "LIMIT 1"
       );
@@ -1348,9 +1334,11 @@ urlInlineComplete.prototype = {
   {
     if (!this.__asyncQuery) {
       this.__asyncQuery = this._db.createAsyncStatement(
-        "SELECT h.url "
+          "/* do not warn (bug no): can't use an index */ "
+        + "SELECT h.url "
         + "FROM moz_places h "
         + "WHERE h.frecency <> 0 "
+        + (this._autofillTyped ? "AND h.typed = 1 " : "")
         +   "AND AUTOCOMPLETE_MATCH(:searchString, h.url, "
         +                          "h.title, '', "
         +                          "h.visit_count, h.typed, 0, 0, "
@@ -1378,6 +1366,11 @@ urlInlineComplete.prototype = {
     this._originalSearchString = aSearchString;
     this._currentSearchString =
       fixupSearchText(this._originalSearchString.toLowerCase());
+    // The protocol and the domain are lowercased by nsIURI, so it's fine to
+    // lowercase the typed prefix to add it back to the results later.
+    this._strippedPrefix = this._originalSearchString.slice(
+      0, this._originalSearchString.length - this._currentSearchString.length
+    ).toLowerCase();
 
     let result = Cc["@mozilla.org/autocomplete/simple-result;1"].
                  createInstance(Ci.nsIAutoCompleteSimpleResult);
@@ -1387,7 +1380,12 @@ urlInlineComplete.prototype = {
     this._result = result;
     this._listener = aListener;
 
-    if (this._currentSearchString.length == 0 || !this._db) {
+    // Don't autoFill if the search term is recognized as a keyword, otherwise
+    // it will override default keywords behavior.  Note that keywords are
+    // hashed on first use, so while the first query may delay a little bit,
+    // next ones will just hit the memory hash.
+    if (this._currentSearchString.length == 0 || !this._db ||
+        PlacesUtils.bookmarks.getURIForKeyword(this._currentSearchString)) {
       this._finishSearch();
       return;
     }
@@ -1412,8 +1410,7 @@ urlInlineComplete.prototype = {
 
       if (hasDomainResult) {
         // We got a match for a domain, we can add it immediately.
-        let appendResult = domain.slice(this._currentSearchString.length);
-        result.appendMatch(aSearchString + appendResult, "");
+        result.appendMatch(this._strippedPrefix + domain, "");
 
         this._finishSearch();
         return;
@@ -1469,11 +1466,15 @@ urlInlineComplete.prototype = {
    */
   _loadPrefs: function UIC_loadPrefs(aRegisterObserver)
   {
-    this._autofill = safePrefGetter(Services.prefs,
+    let prefBranch = Services.prefs.getBranch(kBrowserUrlbarBranch);
+    this._autofill = safePrefGetter(prefBranch,
                                     kBrowserUrlbarAutofillPref,
                                     true);
+    this._autofillTyped = safePrefGetter(prefBranch,
+                                         kBrowserUrlbarAutofillTypedPref,
+                                         true);
     if (aRegisterObserver) {
-      Services.prefs.addObserver(kBrowserUrlbarAutofillPref, this, true);
+      Services.prefs.addObserver(kBrowserUrlbarBranch, this, true);
     }
   },
 
@@ -1486,17 +1487,18 @@ urlInlineComplete.prototype = {
     let url = fixupSearchText(row.getResultByIndex(0));
 
     // We must complete the URL up to the next separator (which is /, ? or #).
-    let appendText = url.slice(this._currentSearchString.length);
-    let separatorIndex = appendText.search(/[\/\?\#]/);
+    let separatorIndex = url.slice(this._currentSearchString.length)
+                            .search(/[\/\?\#]/);
     if (separatorIndex != -1) {
-      if (appendText[separatorIndex] == "/") {
+      separatorIndex += this._currentSearchString.length;
+      if (url[separatorIndex] == "/") {
         separatorIndex++; // Include the "/" separator
       }
-      appendText = appendText.slice(0, separatorIndex);
+      url = url.slice(0, separatorIndex);
     }
 
     // Add the result
-    this._result.appendMatch(this._originalSearchString + appendText, "");
+    this._result.appendMatch(this._strippedPrefix + url, "");
 
     // handleCompletion() will cause the result listener to be called, and
     // will display the result in the UI.
@@ -1516,27 +1518,31 @@ urlInlineComplete.prototype = {
   //////////////////////////////////////////////////////////////////////////////
   //// nsIObserver
 
-  observe: function PAC_observe(aSubject, aTopic, aData)
+  observe: function UIC_observe(aSubject, aTopic, aData)
   {
     if (aTopic == kTopicShutdown) {
-      Services.obs.removeObserver(this, kTopicShutdown);
       this._closeDatabase();
     }
-    else if (aTopic == kPrefChanged) {
+    else if (aTopic == kPrefChanged &&
+             (aData.substr(kBrowserUrlbarBranch.length) == kBrowserUrlbarAutofillPref ||
+              aData.substr(kBrowserUrlbarBranch.length) == kBrowserUrlbarAutofillTypedPref)) {
+      let previousAutofillTyped = this._autofillTyped;
       this._loadPrefs();
       if (!this._autofill) {
         this.stopSearch();
         this._closeDatabase();
       }
+      else if (this._autofillTyped != previousAutofillTyped) {
+        // Invalidate the statements to update them for the new typed status.
+        this._invalidateStatements();
+      }
     }
   },
 
   /**
-   *
-   * Finalize and close the database safely
-   *
-   **/
-  _closeDatabase: function UIC_closeDatabase()
+   * Finalizes and invalidates cached statements.
+   */
+  _invalidateStatements: function UIC_invalidateStatements()
   {
     // Finalize the statements that we have used.
     let stmts = [
@@ -1551,6 +1557,14 @@ urlInlineComplete.prototype = {
         this[stmts[i]] = null;
       }
     }
+  },
+
+  /**
+   * Closes the database.
+   */
+  _closeDatabase: function UIC_closeDatabase()
+  {
+    this._invalidateStatements();
     if (this.__db) {
       this._db.asyncClose();
       this.__db = null;
@@ -1591,6 +1605,8 @@ urlInlineComplete.prototype = {
   //// nsISupports
 
   classID: Components.ID("c88fae2d-25cf-4338-a1f4-64a320ea7440"),
+
+  _xpcom_factory: XPCOMUtils.generateSingletonFactory(urlInlineComplete),
 
   QueryInterface: XPCOMUtils.generateQI([
     Ci.nsIAutoCompleteSearch,

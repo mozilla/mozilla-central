@@ -53,6 +53,7 @@
 #include "jsautooplen.h"
 
 #include "vm/ScopeObject-inl.h"
+#include "vm/StringObject-inl.h"
 
 #if defined JS_POLYIC
 
@@ -101,7 +102,7 @@ class PICStubCompiler : public BaseCompiler
     JSScript *script;
     ic::PICInfo &pic;
     void *stub;
-    uint32_t gcNumber;
+    uint64_t gcNumber;
 
   public:
     bool canCallHook;
@@ -944,7 +945,7 @@ class GetPropCompiler : public PICStubCompiler
 
         Jump notStringObj = masm.guardShape(pic.objReg, obj);
 
-        masm.loadPayload(Address(pic.objReg, JSObject::getPrimitiveThisOffset()), pic.objReg);
+        masm.loadPayload(Address(pic.objReg, StringObject::getPrimitiveValueOffset()), pic.objReg);
         masm.loadPtr(Address(pic.objReg, JSString::offsetOfLengthAndFlags()), pic.objReg);
         masm.urshift32(Imm32(JSString::LENGTH_SHIFT), pic.objReg);
         masm.move(ImmType(JSVAL_TYPE_INT32), pic.shapeReg);
@@ -1126,7 +1127,7 @@ class GetPropCompiler : public PICStubCompiler
     }
 
     void generateGetterStub(Assembler &masm, const Shape *shape,
-                            Label start, const Vector<Jump, 8> &shapeMismatches)
+                            Label start, Vector<Jump, 8> &shapeMismatches)
     {
         /*
          * Getter hook needs to be called from the stub. The state is fully
@@ -1304,7 +1305,7 @@ class GetPropCompiler : public PICStubCompiler
         return Lookup_Cacheable;
     }
 
-    void linkerEpilogue(LinkerHelper &buffer, Label start, const Vector<Jump, 8> &shapeMismatches)
+    void linkerEpilogue(LinkerHelper &buffer, Label start, Vector<Jump, 8> &shapeMismatches)
     {
         // The guard exit jumps to the original slow case.
         for (Jump *pj = shapeMismatches.begin(); pj != shapeMismatches.end(); ++pj)
@@ -1885,7 +1886,7 @@ GetPropMaybeCached(VMFrame &f, ic::PICInfo *pic, bool cached)
                     LookupStatus status = cc.generateStringObjLengthStub();
                     if (status == Lookup_Error)
                         THROW();
-                    JSString *str = obj->getPrimitiveThis().toString();
+                    JSString *str = obj->asString().unbox();
                     f.regs.sp[-1].setInt32(str->length());
                 }
                 return;
@@ -1928,7 +1929,7 @@ GetPropMaybeCached(VMFrame &f, ic::PICInfo *pic, bool cached)
 
     Value v;
     if (cached) {
-        if (!GetPropertyOperation(f.cx, f.pc(), ObjectValue(*obj), &v))
+        if (!GetPropertyOperation(f.cx, f.pc(), f.regs.sp[-1], &v))
             THROW();
     } else {
         if (!obj->getProperty(f.cx, name, &v))
@@ -2607,7 +2608,8 @@ GetElementIC::update(VMFrame &f, JSObject *obj, const Value &v, jsid id, Value *
      * indexes in the emitter, i.e. js_GetProtoIfDenseArray is only valid to
      * use when looking up non-integer identifiers.
      */
-    if (v.isString() && js_CheckForStringIndex(id) == id)
+    uint32_t dummy;
+    if (v.isString() && JSID_IS_ATOM(id) && !JSID_TO_ATOM(id)->isIndex(&dummy))
         return attachGetProp(f, obj, v, JSID_TO_ATOM(id)->asPropertyName(), vp);
 
     if (obj->isArguments())

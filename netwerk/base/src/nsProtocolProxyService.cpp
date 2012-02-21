@@ -52,7 +52,7 @@
 #include "nsICancelable.h"
 #include "nsIDNSService.h"
 #include "nsIPrefService.h"
-#include "nsIPrefBranch2.h"
+#include "nsIPrefBranch.h"
 #include "nsReadableUtils.h"
 #include "nsThreadUtils.h"
 #include "nsString.h"
@@ -340,7 +340,7 @@ nsProtocolProxyService::Init()
         return NS_ERROR_OUT_OF_MEMORY;
 
     // failure to access prefs is non-fatal
-    nsCOMPtr<nsIPrefBranch2> prefBranch =
+    nsCOMPtr<nsIPrefBranch> prefBranch =
             do_GetService(NS_PREFSERVICE_CONTRACTID);
     if (prefBranch) {
         // monitor proxy prefs
@@ -943,7 +943,8 @@ nsProtocolProxyService::NewProxyInfo(const nsACString &aType,
         kProxyType_HTTP,
         kProxyType_SOCKS,
         kProxyType_SOCKS4,
-        kProxyType_DIRECT
+        kProxyType_DIRECT,
+        kProxyType_UNKNOWN
     };
 
     // resolve type; this allows us to avoid copying the type string into each

@@ -43,7 +43,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
 import android.widget.TextView;
 
 import org.json.JSONObject;
@@ -53,7 +52,6 @@ public class DoorHanger extends LinearLayout implements Button.OnClickListener {
     private Context mContext;
     private LinearLayout mChoicesLayout;
     private TextView mTextView;
-    private Button mButton;
     static private LayoutParams mLayoutParams;
     public Tab mTab;
     // value used to identify the notification
@@ -97,7 +95,7 @@ public class DoorHanger extends LinearLayout implements Button.OnClickListener {
     }
 
     public void onClick(View v) {
-        GeckoEvent e = new GeckoEvent("Doorhanger:Reply", v.getTag().toString());
+        GeckoEvent e = GeckoEvent.createBroadcastEvent("Doorhanger:Reply", v.getTag().toString());
         GeckoAppShell.sendEventToGecko(e);
         mTab.removeDoorHanger(mValue);
 

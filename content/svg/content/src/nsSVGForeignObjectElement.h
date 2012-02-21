@@ -39,9 +39,9 @@
 #ifndef __NS_SVGFOREIGNOBJECTELEMENT_H__
 #define __NS_SVGFOREIGNOBJECTELEMENT_H__
 
-#include "nsSVGGraphicElement.h"
-#include "nsIDOMSVGForeignObjectElem.h"
 #include "DOMSVGTests.h"
+#include "nsIDOMSVGForeignObjectElem.h"
+#include "nsSVGGraphicElement.h"
 #include "nsSVGLength2.h"
 
 typedef nsSVGGraphicElement nsSVGForeignObjectElementBase;
@@ -69,7 +69,8 @@ public:
   NS_FORWARD_NSIDOMSVGELEMENT(nsSVGForeignObjectElementBase::)
 
   // nsSVGElement specializations:
-  virtual gfxMatrix PrependLocalTransformTo(const gfxMatrix &aMatrix) const;
+  virtual gfxMatrix PrependLocalTransformsTo(const gfxMatrix &aMatrix,
+                      TransformTypes aWhich = eAllTransforms) const;
 
   // nsIContent interface
   NS_IMETHOD_(bool) IsAttributeMapped(const nsIAtom* name) const;

@@ -103,8 +103,10 @@ WrapperFactory::WaiveXray(JSContext *cx, JSObject *obj)
         CompartmentPrivate *priv =
             (CompartmentPrivate *)JS_GetCompartmentPrivate(cx, js::GetObjectCompartment(obj));
         JSObject *wobj = nsnull;
-        if (priv && priv->waiverWrapperMap)
+        if (priv && priv->waiverWrapperMap) {
             wobj = priv->waiverWrapperMap->Find(obj);
+            xpc_UnmarkGrayObject(wobj);
+        }
 
         // No wrapper yet, make one.
         if (!wobj) {
@@ -269,7 +271,7 @@ WrapperFactory::Rewrap(JSContext *cx, JSObject *obj, JSObject *wrappedProto, JSO
                  GetProxyHandler(obj) == &WaiveXrayWrapperWrapper ||
                  js::GetObjectClass(obj)->ext.innerObject,
                  "wrapped object passed to rewrap");
-    NS_ASSERTION(JS_GET_CLASS(cx, obj) != &XrayUtils::HolderClass, "trying to wrap a holder");
+    NS_ASSERTION(JS_GetClass(obj) != &XrayUtils::HolderClass, "trying to wrap a holder");
 
     JSCompartment *origin = js::GetObjectCompartment(obj);
     JSCompartment *target = js::GetContextCompartment(cx);
@@ -456,7 +458,7 @@ JSObject *
 WrapperFactory::WrapSOWObject(JSContext *cx, JSObject *obj)
 {
     JSObject *wrapperObj =
-        Wrapper::New(cx, obj, JS_GetPrototype(cx, obj), JS_GetGlobalForObject(cx, obj),
+        Wrapper::New(cx, obj, JS_GetPrototype(obj), JS_GetGlobalForObject(cx, obj),
                      &FilteringWrapper<SameCompartmentSecurityWrapper,
                      OnlyIfSubjectIsSystem>::singleton);
     return wrapperObj;

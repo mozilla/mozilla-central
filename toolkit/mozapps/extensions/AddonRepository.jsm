@@ -57,27 +57,11 @@ const PREF_GETADDONS_CACHE_TYPES         = "extensions.getAddons.cache.types";
 const PREF_GETADDONS_CACHE_ID_ENABLED    = "extensions.%ID%.getAddons.cache.enabled"
 const PREF_GETADDONS_BROWSEADDONS        = "extensions.getAddons.browseAddons";
 const PREF_GETADDONS_BYIDS               = "extensions.getAddons.get.url";
+const PREF_GETADDONS_BYIDS_PERFORMANCE   = "extensions.getAddons.getWithPerformance.url";
 const PREF_GETADDONS_BROWSERECOMMENDED   = "extensions.getAddons.recommended.browseURL";
 const PREF_GETADDONS_GETRECOMMENDED      = "extensions.getAddons.recommended.url";
 const PREF_GETADDONS_BROWSESEARCHRESULTS = "extensions.getAddons.search.browseURL";
 const PREF_GETADDONS_GETSEARCHRESULTS    = "extensions.getAddons.search.url";
-
-const PREF_CHECK_COMPATIBILITY_BASE = "extensions.checkCompatibility";
-
-const BRANCH_REGEXP                   = /^([^\.]+\.[0-9]+[a-z]*).*/gi;
-
-XPCOMUtils.defineLazyGetter(this, "PREF_CHECK_COMPATIBILITY", function () {
-#ifdef MOZ_COMPATIBILITY_NIGHTLY
-  return PREF_CHECK_COMPATIBILITY_BASE + ".nightly";
-#else
-  return PREF_CHECK_COMPATIBILITY_BASE + "." +
-         Services.appinfo.version.replace(BRANCH_REGEXP, "$1");
-#endif
-});
-
-const PREF_EM_STRICT_COMPATIBILITY       = "extensions.strictCompatibility";
-// Note: This has to be kept in sync with the same constant in AddonManager.jsm
-const STRICT_COMPATIBILITY_DEFAULT       = true;
 
 const XMLURI_PARSE_ERROR  = "http://www.mozilla.org/newlayout/xml/parsererror.xml";
 
@@ -610,6 +594,10 @@ var AddonRepository = {
    *         The optional callback to call once complete
    */
   repopulateCache: function(aIds, aCallback) {
+    this._repopulateCache(aIds, aCallback, false);
+  },
+
+  _repopulateCache: function(aIds, aCallback, aSendPerformance) {
     // Completely remove cache if caching is not enabled
     if (!this.cacheEnabled) {
       this._addons = null;
@@ -628,7 +616,7 @@ var AddonRepository = {
         return;
       }
 
-      self.getAddonsByIDs(aAddons, {
+      self._beginGetAddons(aAddons, {
         searchSucceeded: function(aAddons) {
           self._addons = {};
           aAddons.forEach(function(aAddon) { self._addons[aAddon.id] = aAddon; });
@@ -639,7 +627,7 @@ var AddonRepository = {
           if (aCallback)
             aCallback();
         }
-      });
+      }, aSendPerformance);
     });
   },
 
@@ -747,6 +735,21 @@ var AddonRepository = {
    *         The callback to pass results to
    */
   getAddonsByIDs: function(aIDs, aCallback) {
+    return this._beginGetAddons(aIDs, aCallback, false);
+  },
+
+  /**
+   * Begins a search of add-ons, potentially sending performance data.
+   *
+   * @param  aIDs
+   *         Array of ids to search for.
+   * @param  aCallback
+   *         Function to pass results to.
+   * @param  aSendPerformance
+   *         Boolean indicating whether to send performance data with the
+   *         request.
+   */
+  _beginGetAddons: function(aIDs, aCallback, aSendPerformance) {
     let ids = aIDs.slice(0);
 
     let params = {
@@ -754,7 +757,34 @@ var AddonRepository = {
       IDS : ids.map(encodeURIComponent).join(',')
     };
 
-    let url = this._formatURLPref(PREF_GETADDONS_BYIDS, params);
+    let pref = PREF_GETADDONS_BYIDS;
+
+    if (aSendPerformance) {
+      let type = Services.prefs.getPrefType(PREF_GETADDONS_BYIDS_PERFORMANCE);
+      if (type == Services.prefs.PREF_STRING) {
+        pref = PREF_GETADDONS_BYIDS_PERFORMANCE;
+
+        let startupInfo = Cc["@mozilla.org/toolkit/app-startup;1"].
+                          getService(Ci.nsIAppStartup).
+                          getStartupInfo();
+
+        if (startupInfo.process) {
+          if (startupInfo.main) {
+            params.TIME_MAIN = startupInfo.main - startupInfo.process;
+          }
+          if (startupInfo.firstPaint) {
+            params.TIME_FIRST_PAINT = startupInfo.firstPaint -
+                                      startupInfo.process;
+          }
+          if (startupInfo.sessionRestored) {
+            params.TIME_SESSION_RESTORED = startupInfo.sessionRestored -
+                                           startupInfo.process;
+          }
+        }
+      }
+    }
+
+    let url = this._formatURLPref(pref, params);
 
     let self = this;
     function handleResults(aElements, aTotalResults, aCompatData) {
@@ -802,6 +832,23 @@ var AddonRepository = {
   },
 
   /**
+   * Performs the daily background update check.
+   *
+   * This API both searches for the add-on IDs specified and sends performance
+   * data. It is meant to be called as part of the daily update ping. It should
+   * not be used for any other purpose. Use repopulateCache instead.
+   *
+   * @param  aIDs
+   *         Array of add-on IDs to repopulate the cache with.
+   * @param  aCallback
+   *         Function to call when data is received. Function must be an object
+   *         with the keys searchSucceeded and searchFailed.
+   */
+  backgroundUpdateCheck: function(aIDs, aCallback) {
+    this._repopulateCache(aIDs, aCallback, true);
+  },
+
+  /**
    * Begins a search for recommended add-ons in this repository. Results will
    * be passed to the given callback.
    *
@@ -841,19 +888,10 @@ var AddonRepository = {
    *         The callback to pass results to
    */
   searchAddons: function(aSearchTerms, aMaxResults, aCallback) {
-    let checkCompatibility = true;
-    try {
-      checkCompatibility = Services.prefs.getBoolPref(PREF_CHECK_COMPATIBILITY);
-    } catch(e) { }
-    let strictCompatibility = STRICT_COMPATIBILITY_DEFAULT;
-    try {
-      strictCompatibility = Services.prefs.getBoolPref(PREF_EM_STRICT_COMPATIBILITY);
-    } catch(e) { }
-
     let compatMode = "normal";
-    if (!checkCompatibility)
+    if (!AddonManager.checkCompatibility)
       compatMode = "ignore";
-    else if (strictCompatibility)
+    else if (AddonManager.strictCompatibility)
       compatMode = "strict";
 
     let substitutions = {
@@ -1150,16 +1188,6 @@ var AddonRepository = {
     let self = this;
     let results = [];
 
-    let checkCompatibility = true;
-    try {
-      checkCompatibility = Services.prefs.getBoolPref(PREF_CHECK_COMPATIBILITY);
-    } catch(e) { }
-
-    let strictCompatibility = STRICT_COMPATIBILITY_DEFAULT;
-    try {
-      strictCompatibility = Services.prefs.getBoolPref(PREF_EM_STRICT_COMPATIBILITY);
-    } catch (e) {}
-
     function isSameApplication(aAppNode) {
       return self._getTextContent(aAppNode) == Services.appinfo.ID;
     }
@@ -1184,13 +1212,13 @@ var AddonRepository = {
 
         let currentVersion = Services.appinfo.version;
         return (Services.vc.compare(minVersion, currentVersion) <= 0 &&
-                ((!strictCompatibility) ||
+                ((!AddonManager.strictCompatibility) ||
                  Services.vc.compare(currentVersion, maxVersion) <= 0));
       });
 
       // Ignore add-ons not compatible with this Application
       if (!compatible) {
-        if (checkCompatibility)
+        if (AddonManager.checkCompatibility)
           continue;
 
         if (!Array.some(applications, isSameApplication))
@@ -1577,10 +1605,10 @@ var AddonDatabase = {
     }
 
     this.connection.executeSimpleSQL("PRAGMA locking_mode = EXCLUSIVE");
-    if (dbMissing)
-      this._createSchema();
 
+    // Any errors in here should rollback
     try {
+      this.connection.beginTransaction();
       switch (this.connection.schemaVersion) {
         case 0:
           LOG("Recreating database schema");
@@ -1603,14 +1631,15 @@ var AddonDatabase = {
                                       "appMinVersion TEXT, " +
                                       "appMaxVersion TEXT, " +
                                       "PRIMARY KEY (addon_internal_id, num)");
-            this._createIndices();
-            this._createTriggers();
-            this.connection.schemaVersion = DB_SCHEMA;
+          this._createIndices();
+          this._createTriggers();
+          this.connection.schemaVersion = DB_SCHEMA;
         case 3:
           break;
         default:
           return tryAgain();
       }
+      this.connection.commitTransaction();
     } catch (e) {
       ERROR("Failed to create database schema", e);
       this.logSQLError(this.connection.lastError, this.connection.lastErrorString);
@@ -2196,10 +2225,7 @@ var AddonDatabase = {
    */
   _createSchema: function AD__createSchema() {
     LOG("Creating database schema");
-    this.connection.beginTransaction();
 
-    // Any errors in here should rollback
-    try {
       this.connection.createTable("addon",
                                   "internal_id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                                   "id TEXT UNIQUE, " +
@@ -2262,13 +2288,6 @@ var AddonDatabase = {
       this._createTriggers();
 
       this.connection.schemaVersion = DB_SCHEMA;
-      this.connection.commitTransaction();
-    } catch (e) {
-      ERROR("Failed to create database schema", e);
-      this.logSQLError(this.connection.lastError, this.connection.lastErrorString);
-      this.connection.rollbackTransaction();
-      throw e;
-    }
   },
 
   /**

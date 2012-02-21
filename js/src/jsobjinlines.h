@@ -65,7 +65,12 @@
 
 #include "gc/Barrier.h"
 #include "js/TemplateLib.h"
+
+#include "vm/BooleanObject.h"
 #include "vm/GlobalObject.h"
+#include "vm/NumberObject.h"
+#include "vm/RegExpStatics.h"
+#include "vm/StringObject.h"
 
 #include "jsatominlines.h"
 #include "jsfuninlines.h"
@@ -76,6 +81,7 @@
 
 #include "gc/Barrier-inl.h"
 #include "vm/String-inl.h"
+#include "vm/RegExpStatics-inl.h"
 
 inline bool
 JSObject::hasPrivate() const
@@ -111,6 +117,12 @@ JSObject::setPrivate(void *data)
     privateWriteBarrierPre(pprivate);
     *pprivate = data;
     privateWriteBarrierPost(pprivate);
+}
+
+inline void
+JSObject::initPrivate(void *data)
+{
+    privateRef(numFixedSlots()) = data;
 }
 
 inline bool
@@ -434,20 +446,6 @@ JSObject::setReservedSlot(uintN index, const js::Value &v)
     setSlot(index, v);
 }
 
-inline const js::Value &
-JSObject::getPrimitiveThis() const
-{
-    JS_ASSERT(isPrimitive());
-    return getFixedSlot(JSSLOT_PRIMITIVE_THIS);
-}
-
-inline void
-JSObject::setPrimitiveThis(const js::Value &pthis)
-{
-    JS_ASSERT(isPrimitive());
-    setFixedSlot(JSSLOT_PRIMITIVE_THIS, pthis);
-}
-
 inline bool
 JSObject::hasContiguousSlots(size_t start, size_t count) const
 {
@@ -607,21 +605,44 @@ inline void
 JSObject::moveDenseArrayElements(uintN dstStart, uintN srcStart, uintN count)
 {
     JS_ASSERT(dstStart + count <= getDenseArrayCapacity());
-    JS_ASSERT(srcStart + count <= getDenseArrayCapacity());
+    JS_ASSERT(srcStart + count <= getDenseArrayInitializedLength());
 
     /*
-     * Use a custom write barrier here since it's performance sensitive. We
-     * only want to barrier the elements that are being overwritten.
-     */
-    uintN markStart, markEnd;
-    if (dstStart > srcStart) {
-        markStart = js::Max(srcStart + count, dstStart);
-        markEnd = dstStart + count;
+     * Using memmove here would skip write barriers. Also, we need to consider
+     * an array containing [A, B, C], in the following situation:
+     *
+     * 1. Incremental GC marks slot 0 of array (i.e., A), then returns to JS code.
+     * 2. JS code moves slots 1..2 into slots 0..1, so it contains [B, C, C].
+     * 3. Incremental GC finishes by marking slots 1 and 2 (i.e., C).
+     *
+     * Since normal marking never happens on B, it is very important that the
+     * write barrier is invoked here on B, despite the fact that it exists in
+     * the array before and after the move.
+    */
+    if (compartment()->needsBarrier()) {
+        if (dstStart < srcStart) {
+            js::HeapValue *dst = elements + dstStart;
+            js::HeapValue *src = elements + srcStart;
+            for (unsigned i = 0; i < count; i++, dst++, src++)
+                *dst = *src;
+        } else {
+            js::HeapValue *dst = elements + dstStart + count - 1;
+            js::HeapValue *src = elements + srcStart + count - 1;
+            for (unsigned i = 0; i < count; i++, dst--, src--)
+                *dst = *src;
+        }
     } else {
-        markStart = dstStart;
-        markEnd = js::Min(dstStart + count, srcStart);
+        memmove(elements + dstStart, elements + srcStart, count * sizeof(js::Value));
     }
-    prepareElementRangeForOverwrite(markStart, markEnd);
+}
+
+inline void
+JSObject::moveDenseArrayElementsUnbarriered(uintN dstStart, uintN srcStart, uintN count)
+{
+    JS_ASSERT(!compartment()->needsBarrier());
+
+    JS_ASSERT(dstStart + count <= getDenseArrayCapacity());
+    JS_ASSERT(srcStart + count <= getDenseArrayCapacity());
 
     memmove(elements + dstStart, elements + srcStart, count * sizeof(js::Value));
 }
@@ -913,6 +934,7 @@ inline bool JSObject::isCall() const { return hasClass(&js::CallClass); }
 inline bool JSObject::isClonedBlock() const { return isBlock() && !!getProto(); }
 inline bool JSObject::isDate() const { return hasClass(&js::DateClass); }
 inline bool JSObject::isDeclEnv() const { return hasClass(&js::DeclEnvClass); }
+inline bool JSObject::isElementIterator() const { return hasClass(&js::ElementIteratorClass); }
 inline bool JSObject::isError() const { return hasClass(&js::ErrorClass); }
 inline bool JSObject::isFunction() const { return hasClass(&js::FunctionClass); }
 inline bool JSObject::isFunctionProxy() const { return hasClass(&js::FunctionProxyClass); }
@@ -925,6 +947,7 @@ inline bool JSObject::isNumber() const { return hasClass(&js::NumberClass); }
 inline bool JSObject::isObject() const { return hasClass(&js::ObjectClass); }
 inline bool JSObject::isPrimitive() const { return isNumber() || isString() || isBoolean(); }
 inline bool JSObject::isRegExp() const { return hasClass(&js::RegExpClass); }
+inline bool JSObject::isRegExpStatics() const { return hasClass(&js::RegExpStaticsClass); }
 inline bool JSObject::isScope() const { return isCall() || isDeclEnv() || isNestedScope(); }
 inline bool JSObject::isStaticBlock() const { return isBlock() && !getProto(); }
 inline bool JSObject::isStopIteration() const { return hasClass(&js::StopIterationClass); }
@@ -1154,14 +1177,6 @@ JSObject::isNative() const
     return lastProperty()->isNative();
 }
 
-inline const js::Shape *
-JSObject::nativeLookup(JSContext *cx, jsid id)
-{
-    JS_ASSERT(isNative());
-    js::Shape **spp;
-    return js::Shape::search(cx, lastProperty(), id, &spp);
-}
-
 inline bool
 JSObject::nativeContains(JSContext *cx, jsid id)
 {
@@ -1199,32 +1214,50 @@ JSObject::hasPropertyTable() const
 }
 
 inline size_t
-JSObject::structSize() const
+JSObject::sizeOfThis() const
 {
     return arenaHeader()->getThingSize();
 }
 
 inline size_t
-JSObject::slotsAndStructSize() const
+JSObject::computedSizeOfThisSlotsElements() const
 {
-    return structSize() + dynamicSlotSize(NULL);
+    size_t n = sizeOfThis();
+
+    if (hasDynamicSlots())
+        n += numDynamicSlots() * sizeof(js::Value);
+
+    if (hasDynamicElements())
+        n += (js::ObjectElements::VALUES_PER_HEADER + getElementsHeader()->capacity) *
+             sizeof(js::Value);
+
+    return n;
 }
 
-inline size_t
-JSObject::dynamicSlotSize(JSMallocSizeOfFun mallocSizeOf) const
+inline void
+JSObject::sizeOfExcludingThis(JSMallocSizeOfFun mallocSizeOf,
+                              size_t *slotsSize, size_t *elementsSize,
+                              size_t *miscSize) const
 {
-    size_t size = 0;
+    *slotsSize = 0;
     if (hasDynamicSlots()) {
-        size_t bytes = numDynamicSlots() * sizeof(js::Value);
-        size += mallocSizeOf ? mallocSizeOf(slots, bytes) : bytes;
+        *slotsSize += mallocSizeOf(slots);
     }
+
+    *elementsSize = 0;
     if (hasDynamicElements()) {
-        size_t bytes =
-            (js::ObjectElements::VALUES_PER_HEADER +
-             getElementsHeader()->capacity) * sizeof(js::Value);
-        size += mallocSizeOf ? mallocSizeOf(getElementsHeader(), bytes) : bytes;
+        *elementsSize += mallocSizeOf(getElementsHeader());
     }
-    return size;
+
+    /* Other things may be measured in the future if DMD indicates it is worthwhile. */
+    *miscSize = 0;
+    if (isFunction()) {
+        *miscSize += toFunction()->sizeOfMisc(mallocSizeOf);
+    } else if (isArguments()) {
+        *miscSize += asArguments().sizeOfMisc(mallocSizeOf);
+    } else if (isRegExpStatics()) {
+        *miscSize += js::SizeOfRegExpStaticsData(this, mallocSizeOf);
+    }
 }
 
 inline JSBool
@@ -1564,7 +1597,7 @@ NewObjectCache::fill(EntryIndex entry_, Class *clasp, gc::Cell *key, gc::AllocKi
     entry->key = key;
     entry->kind = kind;
 
-    entry->nbytes = obj->structSize();
+    entry->nbytes = obj->sizeOfThis();
     js_memcpy(&entry->templateObject, obj, entry->nbytes);
 }
 
@@ -1590,6 +1623,16 @@ NewObjectCache::fillType(EntryIndex entry, Class *clasp, js::types::TypeObject *
     return fill(entry, clasp, type, kind, obj);
 }
 
+inline void
+NewObjectCache::copyCachedToObject(JSObject *dst, JSObject *src)
+{
+    js_memcpy(dst, src, dst->sizeOfThis());
+#ifdef JSGC_GENERATIONAL
+    Shape::writeBarrierPost(dst->shape_, &dst->shape_);
+    types::TypeObject::writeBarrierPost(dst->type_, &dst->type_);
+#endif
+}
+
 inline JSObject *
 NewObjectCache::newObjectFromHit(JSContext *cx, EntryIndex entry_)
 {
@@ -1598,7 +1641,7 @@ NewObjectCache::newObjectFromHit(JSContext *cx, EntryIndex entry_)
 
     JSObject *obj = js_TryNewGCObject(cx, entry->kind);
     if (obj) {
-        js_memcpy(obj, &entry->templateObject, entry->nbytes);
+        copyCachedToObject(obj, &entry->templateObject);
         Probes::createObject(cx, obj);
         return obj;
     }
@@ -1615,7 +1658,7 @@ NewObjectCache::newObjectFromHit(JSContext *cx, EntryIndex entry_)
 
     obj = js_NewGCObject(cx, entry->kind);
     if (obj) {
-        js_memcpy(obj, baseobj, nbytes);
+        copyCachedToObject(obj, baseobj);
         Probes::createObject(cx, obj);
         return obj;
     }
@@ -1872,71 +1915,6 @@ PropDesc::checkSetter(JSContext *cx)
     return true;
 }
 
-namespace detail {
-
-template<typename T> class PrimitiveBehavior { };
-
-template<>
-class PrimitiveBehavior<JSString *> {
-  public:
-    static inline bool isType(const Value &v) { return v.isString(); }
-    static inline JSString *extract(const Value &v) { return v.toString(); }
-    static inline Class *getClass() { return &StringClass; }
-};
-
-template<>
-class PrimitiveBehavior<bool> {
-  public:
-    static inline bool isType(const Value &v) { return v.isBoolean(); }
-    static inline bool extract(const Value &v) { return v.toBoolean(); }
-    static inline Class *getClass() { return &BooleanClass; }
-};
-
-template<>
-class PrimitiveBehavior<double> {
-  public:
-    static inline bool isType(const Value &v) { return v.isNumber(); }
-    static inline double extract(const Value &v) { return v.toNumber(); }
-    static inline Class *getClass() { return &NumberClass; }
-};
-
-} /* namespace detail */
-
-inline JSObject *
-NonGenericMethodGuard(JSContext *cx, CallArgs args, Native native, Class *clasp, bool *ok)
-{
-    const Value &thisv = args.thisv();
-    if (thisv.isObject()) {
-        JSObject &obj = thisv.toObject();
-        if (obj.getClass() == clasp) {
-            *ok = true;  /* quell gcc overwarning */
-            return &obj;
-        }
-    }
-
-    *ok = HandleNonGenericMethodClassMismatch(cx, args, native, clasp);
-    return NULL;
-}
-
-template <typename T>
-inline bool
-BoxedPrimitiveMethodGuard(JSContext *cx, CallArgs args, Native native, T *v, bool *ok)
-{
-    typedef detail::PrimitiveBehavior<T> Behavior;
-
-    const Value &thisv = args.thisv();
-    if (Behavior::isType(thisv)) {
-        *v = Behavior::extract(thisv);
-        return true;
-    }
-
-    if (!NonGenericMethodGuard(cx, args, native, Behavior::getClass(), ok))
-        return false;
-
-    *v = Behavior::extract(thisv.toObject().getPrimitiveThis());
-    return true;
-}
-
 inline bool
 ObjectClassIs(JSObject &obj, ESClassValue classValue, JSContext *cx)
 {
@@ -1948,9 +1926,18 @@ ObjectClassIs(JSObject &obj, ESClassValue classValue, JSContext *cx)
       case ESClass_Number: return obj.isNumber();
       case ESClass_String: return obj.isString();
       case ESClass_Boolean: return obj.isBoolean();
+      case ESClass_RegExp: return obj.isRegExp();
     }
     JS_NOT_REACHED("bad classValue");
     return false;
+}
+
+inline bool
+IsObjectWithClass(const Value &v, ESClassValue classValue, JSContext *cx)
+{
+    if (!v.isObject())
+        return false;
+    return ObjectClassIs(v.toObject(), classValue, cx);
 }
 
 static JS_ALWAYS_INLINE bool
@@ -2085,6 +2072,18 @@ JSObject::writeBarrierPre(JSObject *obj)
     if (comp->needsBarrier()) {
         JS_ASSERT(!comp->rt->gcRunning);
         MarkObjectUnbarriered(comp->barrierTracer(), obj, "write barrier");
+    }
+#endif
+}
+
+inline void
+JSObject::readBarrier(JSObject *obj)
+{
+#ifdef JSGC_INCREMENTAL
+    JSCompartment *comp = obj->compartment();
+    if (comp->needsBarrier()) {
+        JS_ASSERT(!comp->rt->gcRunning);
+        MarkObjectUnbarriered(comp->barrierTracer(), obj, "read barrier");
     }
 #endif
 }

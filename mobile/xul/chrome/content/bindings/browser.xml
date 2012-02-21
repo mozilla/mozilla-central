@@ -565,8 +565,7 @@
           this._contentViewManager = this._frameLoader.QueryInterface(Components.interfaces.nsIContentViewManager);
 
           let prefService = Components.classes["@mozilla.org/preferences-service;1"]
-                                              .getService(Components.interfaces.nsIPrefService)
-                                              .QueryInterface(Components.interfaces.nsIPrefBranch2);
+                                              .getService(Components.interfaces.nsIPrefBranch);
 
           this._cacheRatioWidth = Math.max(1, prefService.getIntPref("toolkit.browser.cacheRatioWidth") / 1000);
           this._cacheRatioHeight = Math.max(1, prefService.getIntPref("toolkit.browser.cacheRatioHeight") / 1000);
@@ -650,8 +649,15 @@
       </property>
 
       <property name="docShell"
-                onget="return null"
-                readonly="true"/>
+                readonly="true">
+         <getter><![CDATA[
+            return {
+               forcedCharset : this._charset,
+               parentCharset : "",
+               parentCharsetSource : 0
+            }
+         ]]></getter>
+      </property>
 
       <field name="_contentTitle">null</field>
 
@@ -682,18 +688,6 @@
       <property name="contentViewerFile"
                 onget="return null"
                 readonly="true"/>
-
-      <property name="documentCharsetInfo"
-                readonly="true">
-         <getter><![CDATA[
-            return {
-               forcedCharset : this._charset,
-               forcedDetector : false,
-               parentCharset : "",
-               parentCharsetSource : 0
-            }
-         ]]></getter>
-      </property>
 
       <field name="_charset"></field>
 

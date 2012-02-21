@@ -62,7 +62,6 @@ nsINameSpaceManager.h \
 nsINode.h \
 nsINodeInfo.h \
 nsINodeList.h \
-nsIRangeUtils.h \
 nsIScriptElement.h \
 nsIStyleSheetLinkingElement.h \
 nsIContentSerializer.h \
@@ -78,7 +77,6 @@ nsLineBreaker.h \
 nsReferencedElement.h \
 nsTreeSanitizer.h \
 nsXMLNameSpaceMap.h \
-nsDOMEventTargetWrapperCache.h \
 nsIXFormsUtilityService.h \
 $(NULL)
 

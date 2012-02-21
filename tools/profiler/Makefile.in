@@ -40,11 +40,7 @@
 DEPTH       = ../..
 topsrcdir	  = @top_srcdir@
 srcdir      = @srcdir@
-VPATH       = \
-  $(srcdir) \
-  $(srcdir)/sps \
-  $(srcdir)/public \
-  $(NULL)
+VPATH       = $(srcdir)
 
 include $(DEPTH)/config/autoconf.mk
 
@@ -89,16 +85,12 @@ CPPSRCS += \
   $(NULL)
 endif
 ifeq ($(OS_TARGET),Darwin)
-# For now we use platform-linux.cc because we can't unwind
-# another thread on mac using backtrace(), the implementation
-# for platform-macosx.cc is in the hg history and should be
-# used when we can stackwalk using a thread handle.
 
 DEFINES += -DMOZ_ENABLE_PROFILER_SPS
 
 CPPSRCS += \
   shared-libraries-macos.cc \
-  platform-linux.cc \
+  platform-macos.cc \
   TableTicker.cpp \
   $(NULL)
 endif
@@ -113,8 +105,6 @@ CPPSRCS += \
   TableTicker.cpp \
   $(NULL)
 endif
-
-
 
 include $(topsrcdir)/config/rules.mk
 

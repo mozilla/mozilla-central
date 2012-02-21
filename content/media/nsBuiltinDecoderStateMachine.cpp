@@ -45,9 +45,11 @@
 #include "mozilla/mozalloc.h"
 #include "VideoUtils.h"
 #include "nsTimeRanges.h"
+#include "nsDeque.h"
 
 #include "mozilla/Preferences.h"
 #include "mozilla/StdInt.h"
+#include "mozilla/Util.h"
 
 using namespace mozilla;
 using namespace mozilla::layers;
@@ -229,6 +231,17 @@ public:
     return mStateMachineThread;
   }
 
+  // Requests that a decode thread be created for aStateMachine. The thread
+  // may be created immediately, or after some delay, once a thread becomes
+  // available. The request can be cancelled using CancelCreateDecodeThread().
+  // It's the callers responsibility to not call this more than once for any
+  // given state machine.
+  nsresult RequestCreateDecodeThread(nsBuiltinDecoderStateMachine* aStateMachine);
+
+  // Cancels a request made by RequestCreateDecodeThread to create a decode
+  // thread for aStateMachine.
+  nsresult CancelCreateDecodeThread(nsBuiltinDecoderStateMachine* aStateMachine);
+
   // Maximum number of active decode threads allowed. When more
   // than this number are active the thread creation will fail.
   static const PRUint32 MAX_DECODE_THREADS = 25;
@@ -238,15 +251,16 @@ public:
   // call with any other monitor held to avoid deadlock.
   PRUint32 GetDecodeThreadCount();
 
-  // Keep track of the fact that a decode thread was created.
-  // Call on any thread. Holds the internal monitor so don't
-  // call with any other monitor held to avoid deadlock.
-  void NoteDecodeThreadCreated();
-
   // Keep track of the fact that a decode thread was destroyed.
   // Call on any thread. Holds the internal monitor so don't
   // call with any other monitor held to avoid deadlock.
   void NoteDecodeThreadDestroyed();
+
+#ifdef DEBUG
+  // Returns true if aStateMachine has a pending request for a
+  // decode thread.
+  bool IsQueued(nsBuiltinDecoderStateMachine* aStateMachine);
+#endif
 
 private:
   // Holds global instance of StateMachineTracker.
@@ -271,6 +285,10 @@ private:
   // only, read from the decoder threads. Synchronized via
   // the mMonitor.
   nsIThread* mStateMachineThread;
+
+  // Queue of state machines waiting for decode threads. Entries at the front
+  // get their threads first.
+  nsDeque mPending;
 };
 
 StateMachineTracker* StateMachineTracker::mInstance = nsnull;
@@ -290,13 +308,28 @@ void StateMachineTracker::EnsureGlobalStateMachine()
   ReentrantMonitorAutoEnter mon(mMonitor);
   if (mStateMachineCount == 0) {
     NS_ASSERTION(!mStateMachineThread, "Should have null state machine thread!");
-    nsresult res = NS_NewThread(&mStateMachineThread,
-                                nsnull);
-    NS_ABORT_IF_FALSE(NS_SUCCEEDED(res), "Can't create media state machine thread");
+    DebugOnly<nsresult> rv = NS_NewThread(&mStateMachineThread, nsnull);
+    NS_ABORT_IF_FALSE(NS_SUCCEEDED(rv), "Can't create media state machine thread");
   }
   mStateMachineCount++;
 }
- 
+
+#ifdef DEBUG
+bool StateMachineTracker::IsQueued(nsBuiltinDecoderStateMachine* aStateMachine)
+{
+  ReentrantMonitorAutoEnter mon(mMonitor);
+  PRInt32 size = mPending.GetSize();
+  for (int i = 0; i < size; ++i) {
+    nsBuiltinDecoderStateMachine* m =
+      static_cast<nsBuiltinDecoderStateMachine*>(mPending.ObjectAt(i));
+    if (m == aStateMachine) {
+      return true;
+    }
+  }
+  return false;
+}
+#endif
+
 void StateMachineTracker::CleanupGlobalStateMachine() 
 {
   NS_ASSERTION(NS_IsMainThread(), "Should be on main thread.");
@@ -305,6 +338,7 @@ void StateMachineTracker::CleanupGlobalStateMachine()
   mStateMachineCount--;
   if (mStateMachineCount == 0) {
     LOG(PR_LOG_DEBUG, ("Destroying media state machine thread"));
+    NS_ASSERTION(mPending.GetSize() == 0, "Shouldn't all requests be handled by now?");
     {
       ReentrantMonitorAutoEnter mon(mMonitor);
       nsCOMPtr<nsIRunnable> event = new ShutdownThreadEvent(mStateMachineThread);
@@ -319,22 +353,67 @@ void StateMachineTracker::CleanupGlobalStateMachine()
   }
 }
 
-void StateMachineTracker::NoteDecodeThreadCreated()
-{
-  ReentrantMonitorAutoEnter mon(mMonitor);
-  ++mDecodeThreadCount;
-}
-
 void StateMachineTracker::NoteDecodeThreadDestroyed()
 {
   ReentrantMonitorAutoEnter mon(mMonitor);
   --mDecodeThreadCount;
+  while (mDecodeThreadCount < MAX_DECODE_THREADS && mPending.GetSize() > 0) {
+    nsBuiltinDecoderStateMachine* m =
+      static_cast<nsBuiltinDecoderStateMachine*>(mPending.PopFront());
+    nsresult rv;
+    {
+      ReentrantMonitorAutoExit exitMon(mMonitor);
+      rv = m->StartDecodeThread();
+    }
+    if (NS_SUCCEEDED(rv)) {
+      ++mDecodeThreadCount;
+    }
+  }
 }
 
 PRUint32 StateMachineTracker::GetDecodeThreadCount()
 {
   ReentrantMonitorAutoEnter mon(mMonitor);
   return mDecodeThreadCount;
+}
+
+nsresult StateMachineTracker::CancelCreateDecodeThread(nsBuiltinDecoderStateMachine* aStateMachine) {
+  ReentrantMonitorAutoEnter mon(mMonitor);
+  PRInt32 size = mPending.GetSize();
+  for (PRInt32 i = 0; i < size; ++i) {
+    void* m = static_cast<nsBuiltinDecoderStateMachine*>(mPending.ObjectAt(i));
+    if (m == aStateMachine) {
+      mPending.RemoveObjectAt(i);
+      break;
+    }
+  }
+  NS_ASSERTION(!IsQueued(aStateMachine), "State machine should no longer have queued request.");
+  return NS_OK;
+}
+
+nsresult StateMachineTracker::RequestCreateDecodeThread(nsBuiltinDecoderStateMachine* aStateMachine)
+{
+  NS_ENSURE_STATE(aStateMachine);
+  ReentrantMonitorAutoEnter mon(mMonitor);
+  if (mPending.GetSize() > 0 || mDecodeThreadCount + 1 >= MAX_DECODE_THREADS) {
+    // If there's already state machines in the queue, or we've exceeded the
+    // limit, append the state machine to the queue of state machines waiting
+    // for a decode thread. This ensures state machines already waiting get
+    // their threads first.
+    mPending.Push(aStateMachine);
+    return NS_OK;
+  }
+  nsresult rv;
+  {
+    ReentrantMonitorAutoExit exitMon(mMonitor);
+    rv = aStateMachine->StartDecodeThread();
+  }
+  if (NS_SUCCEEDED(rv)) {
+    ++mDecodeThreadCount;
+  }
+  NS_ASSERTION(mDecodeThreadCount <= MAX_DECODE_THREADS,
+                "Should keep to thread limit!");
+  return NS_OK;
 }
 
 nsBuiltinDecoderStateMachine::nsBuiltinDecoderStateMachine(nsBuiltinDecoder* aDecoder,
@@ -367,6 +446,7 @@ nsBuiltinDecoderStateMachine::nsBuiltinDecoderStateMachine(nsBuiltinDecoder* aDe
   mDispatchedRunEvent(false),
   mDecodeThreadWaiting(false),
   mRealTime(aRealTime),
+  mRequestedNewDecodeThread(false),
   mEventManager(aDecoder)
 {
   MOZ_COUNT_CTOR(nsBuiltinDecoderStateMachine);
@@ -386,6 +466,10 @@ nsBuiltinDecoderStateMachine::~nsBuiltinDecoderStateMachine()
 {
   NS_ASSERTION(NS_IsMainThread(), "Should be on main thread.");
   MOZ_COUNT_DTOR(nsBuiltinDecoderStateMachine);
+  NS_ASSERTION(!StateMachineTracker::Instance().IsQueued(this),
+    "Should not have a pending request for a new decode thread");
+  NS_ASSERTION(!mRequestedNewDecodeThread,
+    "Should not have (or flagged) a pending request for a new decode thread");
   if (mTimer)
     mTimer->Cancel();
   mTimer = nsnull;
@@ -1132,7 +1216,7 @@ void nsBuiltinDecoderStateMachine::ResetPlayback()
 
 void nsBuiltinDecoderStateMachine::NotifyDataArrived(const char* aBuffer,
                                                      PRUint32 aLength,
-                                                     PRUint32 aOffset)
+                                                     PRInt64 aOffset)
 {
   NS_ASSERTION(NS_IsMainThread(), "Only call on main thread");
   mReader->NotifyDataArrived(aBuffer, aLength, aOffset);
@@ -1191,6 +1275,14 @@ void nsBuiltinDecoderStateMachine::StopDecodeThread()
 {
   NS_ASSERTION(OnStateMachineThread(), "Should be on state machine thread.");
   mDecoder->GetReentrantMonitor().AssertCurrentThreadIn();
+  if (mRequestedNewDecodeThread) {
+    // We've requested that the decode be created, but it hasn't been yet.
+    // Cancel that request.
+    NS_ASSERTION(!mDecodeThread,
+      "Shouldn't have a decode thread until after request processed");
+    StateMachineTracker::Instance().CancelCreateDecodeThread(this);
+    mRequestedNewDecodeThread = false;
+  }
   mStopDecodeThread = true;
   mDecoder->GetReentrantMonitor().NotifyAll();
   if (mDecodeThread) {
@@ -1203,6 +1295,10 @@ void nsBuiltinDecoderStateMachine::StopDecodeThread()
     mDecodeThread = nsnull;
     mDecodeThreadIdle = false;
   }
+  NS_ASSERTION(!mRequestedNewDecodeThread,
+    "Any pending requests for decode threads must be canceled and unflagged");
+  NS_ASSERTION(!StateMachineTracker::Instance().IsQueued(this),
+    "Any pending requests for decode threads must be canceled");
 }
 
 void nsBuiltinDecoderStateMachine::StopAudioThread()
@@ -1221,51 +1317,67 @@ void nsBuiltinDecoderStateMachine::StopAudioThread()
 }
 
 nsresult
-nsBuiltinDecoderStateMachine::StartDecodeThread()
+nsBuiltinDecoderStateMachine::ScheduleDecodeThread()
 {
   NS_ASSERTION(OnStateMachineThread(), "Should be on state machine thread.");
   mDecoder->GetReentrantMonitor().AssertCurrentThreadIn();
-  PRUint32 count = 0;
-  bool created = false;
-  {
-    ReentrantMonitorAutoExit mon(mDecoder->GetReentrantMonitor());
-    count = StateMachineTracker::Instance().GetDecodeThreadCount();
-  }
-
+ 
   mStopDecodeThread = false;
-  if ((mDecodeThread && !mDecodeThreadIdle) || mState >= DECODER_STATE_COMPLETED)
+  if (mState >= DECODER_STATE_COMPLETED) {
     return NS_OK;
-
-  if (!mDecodeThread && count > StateMachineTracker::MAX_DECODE_THREADS) {
-    // Have to run one iteration of the state machine loop to ensure the
-    // shutdown state is processed.
-    ScheduleStateMachine();
-    mState = DECODER_STATE_SHUTDOWN;
-    return NS_ERROR_FAILURE;
   }
-
-  if (!mDecodeThread) {
-    nsresult rv = NS_NewThread(getter_AddRefs(mDecodeThread),
-                               nsnull,
-                               MEDIA_THREAD_STACK_SIZE);
-    if (NS_FAILED(rv)) {
-      // Have to run one iteration of the state machine loop to ensure the
-      // shutdown state is processed.
-      ScheduleStateMachine();
-      mState = DECODER_STATE_SHUTDOWN;
-      return rv;
+  if (mDecodeThread) {
+    NS_ASSERTION(!mRequestedNewDecodeThread,
+      "Shouldn't have requested new decode thread when we have a decode thread");
+    // We already have a decode thread...
+    if (mDecodeThreadIdle) {
+      // ... and it's not been shutdown yet, wake it up.
+      nsCOMPtr<nsIRunnable> event =
+        NS_NewRunnableMethod(this, &nsBuiltinDecoderStateMachine::DecodeThreadRun);
+      mDecodeThread->Dispatch(event, NS_DISPATCH_NORMAL);
+      mDecodeThreadIdle = false;
     }
-    created = true;
+    return NS_OK;
+  } else if (!mRequestedNewDecodeThread) {
+  // We don't already have a decode thread, request a new one.
+    mRequestedNewDecodeThread = true;
+    ReentrantMonitorAutoExit mon(mDecoder->GetReentrantMonitor());
+    StateMachineTracker::Instance().RequestCreateDecodeThread(this);
   }
+  return NS_OK;
+}
+
+nsresult
+nsBuiltinDecoderStateMachine::StartDecodeThread()
+{
+  NS_ASSERTION(StateMachineTracker::Instance().GetDecodeThreadCount() <
+               StateMachineTracker::MAX_DECODE_THREADS,
+               "Should not have reached decode thread limit");
+
+  ReentrantMonitorAutoEnter mon(mDecoder->GetReentrantMonitor());
+  NS_ASSERTION(!StateMachineTracker::Instance().IsQueued(this),
+    "Should not already have a pending request for a new decode thread.");
+  NS_ASSERTION(OnStateMachineThread(), "Should be on state machine thread.");
+  NS_ASSERTION(!mDecodeThread, "Should not have decode thread yet");
+  NS_ASSERTION(mRequestedNewDecodeThread, "Should have requested this...");
+
+  mRequestedNewDecodeThread = false;
+
+  nsresult rv = NS_NewThread(getter_AddRefs(mDecodeThread),
+                              nsnull,
+                              MEDIA_THREAD_STACK_SIZE);
+  if (NS_FAILED(rv)) {
+    // Give up, report error to media element.
+    nsCOMPtr<nsIRunnable> event =
+      NS_NewRunnableMethod(mDecoder, &nsBuiltinDecoder::DecodeError);
+    NS_DispatchToMainThread(event, NS_DISPATCH_NORMAL);
+    return rv;
+  }
+
   nsCOMPtr<nsIRunnable> event =
     NS_NewRunnableMethod(this, &nsBuiltinDecoderStateMachine::DecodeThreadRun);
   mDecodeThread->Dispatch(event, NS_DISPATCH_NORMAL);
   mDecodeThreadIdle = false;
-
-  if (created) {
-    ReentrantMonitorAutoExit mon(mDecoder->GetReentrantMonitor());
-    StateMachineTracker::Instance().NoteDecodeThreadCreated();
-  }
 
   return NS_OK;
 }
@@ -1282,6 +1394,7 @@ nsBuiltinDecoderStateMachine::StartAudioThread()
                                nsnull,
                                MEDIA_THREAD_STACK_SIZE);
     if (NS_FAILED(rv)) {
+      LOG(PR_LOG_DEBUG, ("%p Changed state to SHUTDOWN because failed to create audio thread", mDecoder.get()));
       mState = DECODER_STATE_SHUTDOWN;
       return rv;
     }
@@ -1538,7 +1651,7 @@ void nsBuiltinDecoderStateMachine::DecodeSeek()
   // if we need to seek again.
 
   nsCOMPtr<nsIRunnable> stopEvent;
-  bool isLiveStream = mDecoder->GetStream()->GetLength() == -1;
+  bool isLiveStream = mDecoder->GetResource()->GetLength() == -1;
   if (GetMediaTime() == mEndTime && !isLiveStream) {
     // Seeked to end of media, move to COMPLETED state. Note we don't do
     // this if we're playing a live stream, since the end of media will advance
@@ -1608,8 +1721,8 @@ nsresult nsBuiltinDecoderStateMachine::RunStateMachine()
 {
   mDecoder->GetReentrantMonitor().AssertCurrentThreadIn();
 
-  nsMediaStream* stream = mDecoder->GetStream();
-  NS_ENSURE_TRUE(stream, NS_ERROR_NULL_POINTER);
+  MediaResource* resource = mDecoder->GetResource();
+  NS_ENSURE_TRUE(resource, NS_ERROR_NULL_POINTER);
 
   switch (mState) {
     case DECODER_STATE_SHUTDOWN: {
@@ -1639,7 +1752,7 @@ nsresult nsBuiltinDecoderStateMachine::RunStateMachine()
 
     case DECODER_STATE_DECODING_METADATA: {
       // Ensure we have a decode thread to decode metadata.
-      return StartDecodeThread();
+      return ScheduleDecodeThread();
     }
   
     case DECODER_STATE_DECODING: {
@@ -1663,7 +1776,7 @@ nsresult nsBuiltinDecoderStateMachine::RunStateMachine()
 
       // We're playing and/or our decode buffers aren't full. Ensure we have
       // an active decode thread.
-      if (NS_FAILED(StartDecodeThread())) {
+      if (NS_FAILED(ScheduleDecodeThread())) {
         NS_WARNING("Failed to start media decode thread!");
         return NS_ERROR_FAILURE;
       }
@@ -1689,13 +1802,13 @@ nsresult nsBuiltinDecoderStateMachine::RunStateMachine()
       // data to begin playback, or if we've not downloaded a reasonable
       // amount of data inside our buffering time.
       TimeDuration elapsed = now - mBufferingStart;
-      bool isLiveStream = mDecoder->GetStream()->GetLength() == -1;
+      bool isLiveStream = mDecoder->GetResource()->GetLength() == -1;
       if ((isLiveStream || !mDecoder->CanPlayThrough()) &&
             elapsed < TimeDuration::FromSeconds(mBufferingWait) &&
             (mQuickBuffering ? HasLowDecodedData(QUICK_BUFFERING_LOW_DATA_USECS)
                             : (GetUndecodedData() < mBufferingWait * USECS_PER_S / 1000)) &&
-            !stream->IsDataCachedToEndOfStream(mDecoder->mDecoderPosition) &&
-            !stream->IsSuspended())
+            !resource->IsDataCachedToEndOfResource(mDecoder->mDecoderPosition) &&
+            !resource->IsSuspended())
       {
         LOG(PR_LOG_DEBUG,
             ("%p Buffering: %.3lfs/%ds, timeout in %.3lfs %s",
@@ -1728,7 +1841,7 @@ nsresult nsBuiltinDecoderStateMachine::RunStateMachine()
 
     case DECODER_STATE_SEEKING: {
       // Ensure we have a decode thread to perform the seek.
-     return StartDecodeThread();
+     return ScheduleDecodeThread();
     }
 
     case DECODER_STATE_COMPLETED: {
@@ -1795,9 +1908,9 @@ void nsBuiltinDecoderStateMachine::RenderVideoFrame(VideoData* aData,
     return;
   }
 
-  nsRefPtr<Image> image = aData->mImage;
-  if (image) {
-    mDecoder->SetVideoData(aData->mDisplay, image, aTarget);
+  VideoFrameContainer* container = mDecoder->GetVideoFrameContainer();
+  if (container) {
+    container->SetCurrentFrame(aData->mDisplay, aData->mImage, aTarget);
   }
 }
 
@@ -1887,12 +2000,12 @@ void nsBuiltinDecoderStateMachine::AdvanceFrame()
 
   // Check to see if we don't have enough data to play up to the next frame.
   // If we don't, switch to buffering mode.
-  nsMediaStream* stream = mDecoder->GetStream();
+  MediaResource* resource = mDecoder->GetResource();
   if (mState == DECODER_STATE_DECODING &&
       mDecoder->GetState() == nsBuiltinDecoder::PLAY_STATE_PLAYING &&
       HasLowDecodedData(remainingTime + EXHAUSTED_DATA_MARGIN_USECS) &&
-      !stream->IsDataCachedToEndOfStream(mDecoder->mDecoderPosition) &&
-      !stream->IsSuspended() &&
+      !resource->IsDataCachedToEndOfResource(mDecoder->mDecoderPosition) &&
+      !resource->IsSuspended() &&
       (JustExitedQuickBuffering() || HasLowUndecodedData()))
   {
     if (currentFrame) {
@@ -2065,11 +2178,11 @@ void nsBuiltinDecoderStateMachine::StartBuffering()
 }
 
 nsresult nsBuiltinDecoderStateMachine::GetBuffered(nsTimeRanges* aBuffered) {
-  nsMediaStream* stream = mDecoder->GetStream();
-  NS_ENSURE_TRUE(stream, NS_ERROR_FAILURE);
-  stream->Pin();
+  MediaResource* resource = mDecoder->GetResource();
+  NS_ENSURE_TRUE(resource, NS_ERROR_FAILURE);
+  resource->Pin();
   nsresult res = mReader->GetBuffered(aBuffered, mStartTime);
-  stream->Unpin();
+  resource->Unpin();
   return res;
 }
 

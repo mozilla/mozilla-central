@@ -43,6 +43,7 @@
 #include "nsMargin.h"
 #include "nsStyleCoord.h"
 #include "nsIFrame.h"
+#include "mozilla/AutoRestore.h"
 
 class nsPresContext;
 class nsRenderingContext;
@@ -366,9 +367,15 @@ public:
                                      // and never insider a column frame
     PRUint16 mHeightDependsOnAncestorCell:1;   // Does frame height depend on
                                                // an ancestor table-cell?
-    
+    PRUint16 mIsColumnBalancing:1;   // nsColumnSetFrame is balancing columns
   } mFlags;
 
+private:
+
+  mozilla::AutoRestore<nsIFrame*> mRestoreCurrentInflationContainer;
+  mozilla::AutoRestore<nscoord> mRestoreCurrentInflationContainerWidth;
+
+public:
   // Note: The copy constructor is written by the compiler automatically. You
   // can use that and then override specific values if you want, or you can
   // call Init as desired...

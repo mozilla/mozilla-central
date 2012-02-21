@@ -40,6 +40,7 @@
 #define MOZILLA_SVGTRANSFORM_H__
 
 #include "gfxMatrix.h"
+#include "nsDebug.h"
 #include "nsIDOMSVGTransform.h"
 
 namespace mozilla {
@@ -96,7 +97,6 @@ public:
   nsresult SetSkewX(float aAngle);
   nsresult SetSkewY(float aAngle);
 
-protected:
   static bool MatricesEqual(const gfxMatrix& a, const gfxMatrix& b)
   {
     return a.xx == b.xx &&
@@ -107,6 +107,7 @@ protected:
            a.y0 == b.y0;
   }
 
+protected:
   gfxMatrix mMatrix;
   float mAngle, mOriginX, mOriginY;
   PRUint16 mType;

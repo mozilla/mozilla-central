@@ -170,10 +170,6 @@ pref("browser.chrome.image_icons.max_size", 1024);
 
 pref("browser.triple_click_selects_paragraph", true);
 
-// When loading <video> or <audio>, check for Access-Control-Allow-Origin
-// header, and disallow the connection if not present or permitted.
-pref("media.enforce_same_site_origin", false);
-
 // Media cache size in kilobytes
 pref("media.cache_size", 512000);
 
@@ -290,6 +286,9 @@ pref("accessibility.typeaheadfind.prefillwithselection", true);
 // use Mac OS X Appearance panel text smoothing setting when rendering text, disabled by default
 pref("gfx.use_text_smoothing_setting", false);
 
+// show checkerboard pattern on android, enabled by default (option exists for image analysis testing)
+pref("gfx.show_checkerboard_pattern", true);
+
 // loading and rendering of framesets and iframes
 pref("browser.frames.enabled", true);
 
@@ -322,6 +321,9 @@ pref("nglayout.events.dispatchLeftClickOnly", true);
 
 // whether or not to draw images while dragging
 pref("nglayout.enable_drag_images", true);
+
+// enable/disable paint flashing --- useful for debugging
+pref("nglayout.debug.paint_flashing", false);
 
 // scrollbar snapping region
 // 0 - off
@@ -632,6 +634,7 @@ pref("privacy.popups.disable_from_plugins", 2);
 pref("privacy.donottrackheader.enabled",    false);
 
 pref("dom.event.contextmenu.enabled",       true);
+pref("dom.event.clipboardevents.enabled",   true);
 
 pref("javascript.enabled",                  true);
 pref("javascript.options.strict",           false);
@@ -653,6 +656,8 @@ pref("javascript.options.typeinference", true);
 pref("javascript.options.mem.high_water_mark", 128);
 pref("javascript.options.mem.max", -1);
 pref("javascript.options.mem.gc_per_compartment", true);
+pref("javascript.options.mem.gc_incremental", true);
+pref("javascript.options.mem.gc_incremental_slice_ms", 10);
 pref("javascript.options.mem.log", false);
 pref("javascript.options.gc_on_memory_pressure", true);
 
@@ -805,7 +810,7 @@ pref("network.http.connection-retry-timeout", 250);
 pref("network.http.fast-fallback-to-IPv4", true);
 
 // Try and use SPDY when using SSL
-pref("network.http.spdy.enabled", false);
+pref("network.http.spdy.enabled", true);
 pref("network.http.spdy.chunk-size", 4096);
 pref("network.http.spdy.timeout", 180);
 pref("network.http.spdy.coalesce-hostnames", true);
@@ -1033,6 +1038,9 @@ pref("network.negotiate-auth.trusted-uris", "");
 // This list controls which URIs can support delegation.
 pref("network.negotiate-auth.delegation-uris", "");
 
+// Do not allow SPNEGO by default when challenged by a local server.
+pref("network.negotiate-auth.allow-non-fqdn", false);
+
 // Allow SPNEGO by default when challenged by a proxy server.
 pref("network.negotiate-auth.allow-proxies", true);
 
@@ -1063,6 +1071,7 @@ pref("network.auth.force-generic-ntlm", false);
 // Window's domain logon.  The trusted-uris pref follows the format of the
 // trusted-uris pref for negotiate authentication.
 pref("network.automatic-ntlm-auth.allow-proxies", true);
+pref("network.automatic-ntlm-auth.allow-non-fqdn", false);
 pref("network.automatic-ntlm-auth.trusted-uris", "");
 
 // This preference controls whether or not the LM hash will be included in
@@ -2737,7 +2746,9 @@ pref("font.name.monospace.he", "Droid Sans Mono");
 
 pref("font.name.serif.ja", "Droid Serif");
 pref("font.name.sans-serif.ja", "Droid Sans Japanese");
-pref("font.name.monospace.ja", "Droid Sans Mono");
+pref("font.name.monospace.ja", "MotoyaLMaru");
+pref("font.name-list.sans-serif.ja", "MotoyaLMaru, MotoyaLCedar, Droid Sans Japanese");
+pref("font.name-list.monospace.ja", "MotoyaLMaru, MotoyaLCedar");
 
 pref("font.name.serif.ko", "Droid Serif");
 pref("font.name.sans-serif.ko", "Droid Sans");
@@ -2754,38 +2765,44 @@ pref("font.name.monospace.tr", "Droid Sans Mono");
 pref("font.name.serif.x-baltic", "Droid Serif");
 pref("font.name.sans-serif.x-baltic", "Droid Sans");
 pref("font.name.monospace.x-baltic", "Droid Sans Mono");
+pref("font.name-list.sans-serif.x-baltic", "Roboto, Droid Sans");
 
 pref("font.name.serif.x-central-euro", "Droid Serif");
 pref("font.name.sans-serif.x-central-euro", "Droid Sans");
 pref("font.name.monospace.x-central-euro", "Droid Sans Mono");
+pref("font.name-list.sans-serif.x-central-euro", "Roboto, Droid Sans");
 
 pref("font.name.serif.x-cyrillic", "Droid Serif");
 pref("font.name.sans-serif.x-cyrillic", "Droid Sans");
 pref("font.name.monospace.x-cyrillic", "Droid Sans Mono");
+pref("font.name-list.sans-serif.x-cyrillic", "Roboto, Droid Sans");
 
 pref("font.name.serif.x-unicode", "Droid Serif");
 pref("font.name.sans-serif.x-unicode", "Droid Sans");
 pref("font.name.monospace.x-unicode", "Droid Sans Mono");
+pref("font.name-list.sans-serif.x-unicode", "Roboto, Droid Sans");
 
 pref("font.name.serif.x-user-def", "Droid Serif");
 pref("font.name.sans-serif.x-user-def", "Droid Sans");
 pref("font.name.monospace.x-user-def", "Droid Sans Mono");
+pref("font.name-list.sans-serif.x-user-def", "Roboto, Droid Sans");
 
 pref("font.name.serif.x-western", "Droid Serif");
 pref("font.name.sans-serif.x-western", "Droid Sans");
 pref("font.name.monospace.x-western", "Droid Sans Mono");
+pref("font.name-list.sans-serif.x-western", "Roboto, Droid Sans");
 
 pref("font.name.serif.zh-CN", "Droid Serif");
 pref("font.name.sans-serif.zh-CN", "Droid Sans");
 pref("font.name.monospace.zh-CN", "Droid Sans Mono");
 
-// ming_uni.ttf (HKSCS-2001) 
-// http://www.info.gov.hk/digital21/eng/hkscs/download/uime.exe
 pref("font.name.serif.zh-HK", "Droid Serif");
 pref("font.name.sans-serif.zh-HK", "Droid Sans");
 pref("font.name.monospace.zh-HK", "Droid Sans Mono");
 
-// zh-TW
+pref("font.name.serif.zh-TW", "Droid Serif");
+pref("font.name.sans-serif.zh-TW", "Droid Sans");
+pref("font.name.monospace.zh-TW", "Droid Sans Mono");
 
 pref("font.default.ar", "sans-serif");
 pref("font.size.variable.ar", 16);

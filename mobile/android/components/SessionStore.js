@@ -19,6 +19,7 @@
  *
  * Contributor(s):
  *   Mark 'evil' Finkle <mfinkle@mozilla.com>
+ *   Brian Nicholson <bnicholson@mozilla.com>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -93,20 +94,15 @@ SessionStore.prototype = {
     this._loadState = STATE_STOPPED;
 
     try {
-      if (this._sessionFileBackup.exists()) {
-        this._shouldRestore = true;
-        this._sessionFileBackup.remove(false);
-      }
-
       if (this._sessionFile.exists()) {
-        // Disable crash recovery if we have exceeded the timeout
+        // We move sessionstore.js -> sessionstore.bak on quit, so the
+        // existence of sessionstore.js indicates a crash
         this._lastSessionTime = this._sessionFile.lastModifiedTime;
         let delta = Date.now() - this._lastSessionTime;
         let timeout = Services.prefs.getIntPref("browser.sessionstore.resume_from_crash_timeout");
-        if (delta > (timeout * 60000))
-          this._shouldRestore = false;
-
-        this._sessionFile.copyTo(null, this._sessionFileBackup.leafName);
+        // Disable crash recovery if we have exceeded the timeout
+        this._shouldRestore = (delta <= (timeout * 60000));
+        this._sessionFile.clone().moveTo(null, this._sessionFileBackup.leafName);
       }
 
       if (!this._sessionCache.exists() || !this._sessionCache.isDirectory())
@@ -239,9 +235,11 @@ SessionStore.prototype = {
         // Freeze the data at what we've got (ignoring closing windows)
         this._loadState = STATE_QUITTING;
 
-        // No need for this back up, we are shutting down just fine
-        if (this._sessionFileBackup.exists())
-          this._sessionFileBackup.remove(false);
+        // Move this session to sessionstore.bak so that:
+        //   1) we can get "tabs from last time" from sessionstore.bak
+        //   2) if sessionstore.js exists on next start, we know we crashed
+        if (this._sessionFile.exists())
+          this._sessionFile.moveTo(null, this._sessionFileBackup.leafName);
 
         observerService.removeObserver(this, "domwindowopened");
         observerService.removeObserver(this, "domwindowclosed");
@@ -274,6 +272,8 @@ SessionStore.prototype = {
           // Save the purged state immediately
           this.saveStateNow();
         }
+
+        Services.obs.notifyObservers(null, "sessionstore-state-purge-complete", "");
         break;
       case "timer-callback":
         // Timer call back for delayed saving
@@ -457,7 +457,7 @@ SessionStore.prototype = {
     if (aBrowser.__SS_restore) {
       let data = aBrowser.__SS_data;
       if (data.entries.length > 0)
-        aBrowser.loadURI(data.entries[data.index - 1].url);
+        this._restoreHistory(data, aBrowser.sessionHistory);
 
       delete aBrowser.__SS_restore;
     }
@@ -914,16 +914,28 @@ SessionStore.prototype = {
     return this._shouldRestore;
   },
 
-  restoreLastSession: function ss_restoreLastSession(aBringToFront) {
+  restoreLastSession: function ss_restoreLastSession(aBringToFront, aForceRestore) {
     let self = this;
     function notifyObservers(aMessage) {
       self._clearCache();
       Services.obs.notifyObservers(null, "sessionstore-windows-restored", aMessage || "");
     }
 
+    if (!aForceRestore) {
+      let maxCrashes = Services.prefs.getIntPref("browser.sessionstore.max_resumed_crashes");
+      let recentCrashes = Services.prefs.getIntPref("browser.sessionstore.recent_crashes") + 1;
+      Services.prefs.setIntPref("browser.sessionstore.recent_crashes", recentCrashes);
+      Services.prefs.savePrefFile(null);
+
+      if (recentCrashes > maxCrashes) {
+        notifyObservers("fail");
+        return;
+      }
+    }
+
     // The previous session data has already been renamed to the backup file
     if (!this._sessionFileBackup.exists()) {
-      notifyObservers("fail")
+      notifyObservers("fail");
       return;
     }
 
@@ -965,21 +977,22 @@ SessionStore.prototype = {
 
         for (let i=0; i<tabs.length; i++) {
           let tabData = tabs[i];
-          let isSelected = (i + 1 <= selected) && aBringToFront;
+          let isSelected = (i + 1 == selected) && aBringToFront;
           let entry = tabData.entries[tabData.index - 1];
 
           // Add a tab, but don't load the URL until we need to
-          let params = { selected: isSelected, delayLoad: !isSelected, title: entry.title };
+          let params = { selected: isSelected, delayLoad: true, title: entry.title };
           let tab = window.BrowserApp.addTab(entry.url, params);
 
-          if (!isSelected) {
+          if (isSelected) {
+            self._restoreHistory(tabData, tab.browser.sessionHistory);
+          } else {
             // Make sure the browser has its session data for the delay reload
             tab.browser.__SS_data = tabData;
             tab.browser.__SS_restore = true;
           }
 
           tab.browser.__SS_extdata = tabData.extData;
-          self._restoreHistory(tabData, tab.browser.sessionHistory);
         }
 
         notifyObservers();

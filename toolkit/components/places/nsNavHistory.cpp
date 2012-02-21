@@ -151,14 +151,6 @@ static const PRInt64 USECS_PER_DAY = LL_INIT(20, 500654080);
 // character-set annotation
 #define CHARSET_ANNO NS_LITERAL_CSTRING("URIProperties/characterSet")
 
-// Download destination file URI annotation
-#define DESTINATIONFILEURI_ANNO \
-  NS_LITERAL_CSTRING("downloads/destinationFileURI")
-
-// Download destination file name annotation
-#define DESTINATIONFILENAME_ANNO \
-  NS_LITERAL_CSTRING("downloads/destinationFileName")
-
 // These macros are used when splitting history by date.
 // These are the day containers and catch-all final container.
 #define HISTORY_ADDITIONAL_DATE_CONT_NUM 3
@@ -219,7 +211,6 @@ NS_IMPL_CLASSINFO(nsNavHistory, NULL, nsIClassInfo::SINGLETON,
 NS_INTERFACE_MAP_BEGIN(nsNavHistory)
   NS_INTERFACE_MAP_ENTRY(nsINavHistoryService)
   NS_INTERFACE_MAP_ENTRY(nsIGlobalHistory2)
-  NS_INTERFACE_MAP_ENTRY(nsIDownloadHistory)
   NS_INTERFACE_MAP_ENTRY(nsIBrowserHistory)
   NS_INTERFACE_MAP_ENTRY(nsIObserver)
   NS_INTERFACE_MAP_ENTRY(nsISupportsWeakReference)
@@ -231,11 +222,10 @@ NS_INTERFACE_MAP_BEGIN(nsNavHistory)
 NS_INTERFACE_MAP_END
 
 // We don't care about flattening everything
-NS_IMPL_CI_INTERFACE_GETTER4(
+NS_IMPL_CI_INTERFACE_GETTER3(
   nsNavHistory
 , nsINavHistoryService
 , nsIGlobalHistory2
-, nsIDownloadHistory
 , nsIBrowserHistory
 )
 
@@ -286,36 +276,6 @@ public:
 protected:
   nsNavHistory& mNavHistory;
 };
-
-
-// Used to notify a topic to system observers on async execute completion.
-class AsyncStatementCallbackNotifier : public AsyncStatementCallback
-{
-public:
-  AsyncStatementCallbackNotifier(const char* aTopic)
-    : mTopic(aTopic)
-  {
-  }
-
-  NS_IMETHOD HandleCompletion(PRUint16 aReason);
-
-private:
-  const char* mTopic;
-};
-
-NS_IMETHODIMP
-AsyncStatementCallbackNotifier::HandleCompletion(PRUint16 aReason)
-{
-  if (aReason != mozIStorageStatementCallback::REASON_FINISHED)
-    return NS_ERROR_UNEXPECTED;
-
-  nsCOMPtr<nsIObserverService> obs = services::GetObserverService();
-  if (obs) {
-    (void)obs->NotifyObservers(nsnull, mTopic, nsnull);
-  }
-
-  return NS_OK;
-}
 
 } // anonymouse namespace
 
@@ -3784,80 +3744,6 @@ nsNavHistory::OnEndVacuum(bool aSucceeded)
 
 
 ////////////////////////////////////////////////////////////////////////////////
-//// nsIDownloadHistory
-
-NS_IMETHODIMP
-nsNavHistory::AddDownload(nsIURI* aSource, nsIURI* aReferrer,
-                          PRTime aStartTime, nsIURI* aDestination)
-{
-  NS_ASSERTION(NS_IsMainThread(), "This can only be called on the main thread");
-  NS_ENSURE_ARG(aSource);
-
-  // don't add when history is disabled and silently fail
-  if (IsHistoryDisabled())
-    return NS_OK;
-
-  PRInt64 visitID;
-  nsresult rv = AddVisit(aSource, aStartTime, aReferrer, TRANSITION_DOWNLOAD,
-                         false, 0, &visitID);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  if (!aDestination) {
-    return NS_OK;
-  }
-
-  // Exit silently if the download destination is not a local file.
-  nsCOMPtr<nsIFileURL> destinationFileURL = do_QueryInterface(aDestination);
-  if (!destinationFileURL) {
-    return NS_OK;
-  }
-
-  nsCOMPtr<nsIFile> destinationFile;
-  rv = destinationFileURL->GetFile(getter_AddRefs(destinationFile));
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsAutoString destinationFileName;
-  rv = destinationFile->GetLeafName(destinationFileName);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCAutoString destinationURISpec;
-  rv = destinationFileURL->GetSpec(destinationURISpec);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // Use annotations for storing the additional download metadata.
-  nsAnnotationService* annosvc = nsAnnotationService::GetAnnotationService();
-  NS_ENSURE_TRUE(annosvc, NS_ERROR_OUT_OF_MEMORY);
-
-  (void)annosvc->SetPageAnnotationString(
-    aSource,
-    DESTINATIONFILEURI_ANNO,
-    NS_ConvertUTF8toUTF16(destinationURISpec),
-    0,
-    nsIAnnotationService::EXPIRE_WITH_HISTORY
-  );
-
-  (void)annosvc->SetPageAnnotationString(
-    aSource,
-    DESTINATIONFILENAME_ANNO,
-    destinationFileName,
-    0,
-    nsIAnnotationService::EXPIRE_WITH_HISTORY
-  );
-
-  // In case we are downloading a file that does not correspond to a web
-  // page for which the title is present, we populate the otherwise empty
-  // history title with the name of the destination file, to allow it to be
-  // visible and searchable in history results.
-  nsAutoString title;
-  if (NS_SUCCEEDED(GetPageTitle(aSource, title)) && title.IsEmpty()) {
-    (void)SetPageTitle(aSource, destinationFileName);
-  }
-
-  return NS_OK;
-}
-
-
-////////////////////////////////////////////////////////////////////////////////
 //// nsPIPlacesDatabase
 
 NS_IMETHODIMP
@@ -4047,6 +3933,8 @@ nsNavHistory::DecayFrecency()
   // values of pages that haven't been visited for a while, i.e., they do
   // not get an updated frecency.  A scaling factor of .975 results in .5 the
   // original value after 28 days.
+  // When changing the scaling factor, ensure that the barrier in
+  // moz_places_afterupdate_frecency_trigger still ignores these changes.
   nsCOMPtr<mozIStorageAsyncStatement> decayFrecency = mDB->GetAsyncStatement(
     "UPDATE moz_places SET frecency = ROUND(frecency * .975) "
     "WHERE frecency > 0"
@@ -4072,8 +3960,10 @@ nsNavHistory::DecayFrecency()
     deleteAdaptive.get()
   };
   nsCOMPtr<mozIStoragePendingStatement> ps;
-  rv = mDB->MainConn()->ExecuteAsync(stmts, ArrayLength(stmts), nsnull,
-                                      getter_AddRefs(ps));
+  nsRefPtr<AsyncStatementTelemetryTimer> cb =
+    new AsyncStatementTelemetryTimer(Telemetry::PLACES_IDLE_FRECENCY_DECAY_TIME_MS);
+  rv = mDB->MainConn()->ExecuteAsync(stmts, ArrayLength(stmts), cb,
+                                     getter_AddRefs(ps));
   NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
@@ -5438,31 +5328,18 @@ nsNavHistory::UpdateFrecency(PRInt64 aPlaceId)
     "WHERE id = :page_id"
   );
   NS_ENSURE_STATE(updateFrecencyStmt);
+  nsresult rv = updateFrecencyStmt->BindInt64ByName(NS_LITERAL_CSTRING("page_id"),
+                                                    aPlaceId);
+  NS_ENSURE_SUCCESS(rv, rv);
   nsCOMPtr<mozIStorageAsyncStatement> updateHiddenStmt = mDB->GetAsyncStatement(
     "UPDATE moz_places "
     "SET hidden = 0 "
     "WHERE id = :page_id AND frecency <> 0"
   );
   NS_ENSURE_STATE(updateHiddenStmt);
-
-#define ASYNC_BIND(_stmt) \
-  PR_BEGIN_MACRO \
-    nsCOMPtr<mozIStorageBindingParamsArray> paramsArray; \
-    nsresult rv = _stmt->NewBindingParamsArray(getter_AddRefs(paramsArray)); \
-    NS_ENSURE_SUCCESS(rv, rv); \
-    nsCOMPtr<mozIStorageBindingParams> params; \
-    rv = paramsArray->NewBindingParams(getter_AddRefs(params)); \
-    NS_ENSURE_SUCCESS(rv, rv); \
-    rv = params->BindInt64ByName(NS_LITERAL_CSTRING("page_id"), aPlaceId); \
-    NS_ENSURE_SUCCESS(rv, rv); \
-    rv = paramsArray->AddParams(params); \
-    NS_ENSURE_SUCCESS(rv, rv); \
-    rv = _stmt->BindParameters(paramsArray); \
-    NS_ENSURE_SUCCESS(rv, rv); \
-  PR_END_MACRO
-
-  ASYNC_BIND(updateFrecencyStmt);
-  ASYNC_BIND(updateHiddenStmt);
+  rv = updateHiddenStmt->BindInt64ByName(NS_LITERAL_CSTRING("page_id"),
+                                         aPlaceId);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   mozIStorageBaseStatement *stmts[] = {
     updateFrecencyStmt.get()
@@ -5472,12 +5349,11 @@ nsNavHistory::UpdateFrecency(PRInt64 aPlaceId)
   nsRefPtr<AsyncStatementCallbackNotifier> cb =
     new AsyncStatementCallbackNotifier(TOPIC_FRECENCY_UPDATED);
   nsCOMPtr<mozIStoragePendingStatement> ps;
-  nsresult rv = mDB->MainConn()->ExecuteAsync(stmts, ArrayLength(stmts), cb,
-                                               getter_AddRefs(ps));
+  rv = mDB->MainConn()->ExecuteAsync(stmts, ArrayLength(stmts), cb,
+                                     getter_AddRefs(ps));
   NS_ENSURE_SUCCESS(rv, rv);
 
   return NS_OK;
-#undef ASYNC_BIND
 }
 
 

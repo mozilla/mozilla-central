@@ -198,6 +198,8 @@ static const char sPrintOptionsContractID[]         = "@mozilla.org/gfx/printset
 
 #include "mozilla/dom/Element.h"
 
+#include "jsfriendapi.h"
+
 using namespace mozilla;
 
 #ifdef NS_DEBUG
@@ -1287,7 +1289,7 @@ DocumentViewerImpl::PageHide(bool aIsUnload)
 
   if (aIsUnload) {
     // Poke the GC. The window might be collectable garbage now.
-    nsJSContext::PokeGC();
+    nsJSContext::PokeGC(js::gcreason::PAGE_HIDE);
 
     // if Destroy() was called during OnPageHide(), mDocument is nsnull.
     NS_ENSURE_STATE(mDocument);
@@ -2871,7 +2873,7 @@ DocumentViewerImpl::SetMinFontSize(PRInt32 aMinFontSize)
 
   // Now change our own min font
   nsPresContext* pc = GetPresContext();
-  if (pc && aMinFontSize != mPresContext->MinFontSize()) {
+  if (pc && aMinFontSize != mPresContext->MinFontSize(nsnull)) {
     pc->SetMinFontSize(aMinFontSize);
   }
 
@@ -2887,7 +2889,7 @@ DocumentViewerImpl::GetMinFontSize(PRInt32* aMinFontSize)
 {
   NS_ENSURE_ARG_POINTER(aMinFontSize);
   nsPresContext* pc = GetPresContext();
-  *aMinFontSize = pc ? pc->MinFontSize() : 0;
+  *aMinFontSize = pc ? pc->MinFontSize(nsnull) : 0;
   return NS_OK;
 }
 

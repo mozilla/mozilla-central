@@ -142,8 +142,8 @@ public:
     void     SetIsReusedAfter(PRUint32 afterMilliseconds);
     void     SetIdleTimeout(PRUint16 val) {mIdleTimeout = val;}
     nsresult PushBack(const char *data, PRUint32 length);
-    nsresult ResumeSend(nsAHttpTransaction *caller);
-    nsresult ResumeRecv(nsAHttpTransaction *caller);
+    nsresult ResumeSend();
+    nsresult ResumeRecv();
     PRInt64  MaxBytesRead() {return mMaxBytesRead;}
 
     static NS_METHOD ReadFromStream(nsIInputStream *, void *, const char *,
@@ -179,6 +179,9 @@ private:
     // Inform the connection manager of any SPDY Alternate-Protocol
     // redirections
     void     HandleAlternateProtocol(nsHttpResponseHead *);
+
+    // Start the Spdy transaction handler when NPN indicates spdy/2
+    void     StartSpdy();
 
     // Directly Add a transaction to an active connection for SPDY
     nsresult AddTransaction(nsAHttpTransaction *, PRInt32);

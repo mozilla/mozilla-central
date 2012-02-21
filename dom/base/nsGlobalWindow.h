@@ -327,6 +327,8 @@ public:
   virtual void OnFinalize(JSObject* aObject);
   virtual void SetScriptsEnabled(bool aEnabled, bool aFireTimeouts);
 
+  virtual bool IsBlackForCC();
+
   // nsIScriptObjectPrincipal
   virtual nsIPrincipal* GetPrincipal();
 
@@ -396,6 +398,7 @@ public:
   virtual NS_HIDDEN_(void) MaybeUpdateTouchState();
   virtual NS_HIDDEN_(void) UpdateTouchState();
   virtual NS_HIDDEN_(bool) DispatchCustomEvent(const char *aEventName);
+  virtual NS_HIDDEN_(nsresult) SetFullScreenInternal(bool aIsFullScreen, bool aRequireTrust);
 
   // nsIDOMStorageIndexedDB
   NS_DECL_NSIDOMSTORAGEINDEXEDDB
@@ -508,8 +511,8 @@ public:
 
   friend class WindowStateHolder;
 
-  NS_DECL_CYCLE_COLLECTION_SCRIPT_HOLDER_CLASS_AMBIGUOUS(nsGlobalWindow,
-                                                         nsIScriptGlobalObject)
+  NS_DECL_CYCLE_COLLECTION_SKIPPABLE_SCRIPT_HOLDER_CLASS_AMBIGUOUS(nsGlobalWindow,
+                                                                   nsIScriptGlobalObject)
 
   void InitJavaProperties();
 
@@ -574,7 +577,9 @@ public:
   }
 
   PRInt64 SizeOf() const;
+  size_t SizeOfStyleSheets(nsMallocSizeOfFun aMallocSizeOf) const;
 
+  void UnmarkGrayTimers();
 private:
   // Enable updates for the accelerometer.
   void EnableDeviceMotionUpdates();

@@ -77,17 +77,6 @@ function init(aEvent)
     document.getElementById("communityDesc").hidden = true;
   }
 
-#ifdef MOZ_OFFICIAL_BRANDING
-  // Hide the Charlton trademark attribution for non-en-US/en-GB
-  // DO NOT REMOVE without consulting people involved with bug 616193
-  let chromeRegistry = Components.classes["@mozilla.org/chrome/chrome-registry;1"].
-                       getService(Components.interfaces.nsIXULChromeRegistry);
-  let currentLocale = chromeRegistry.getSelectedLocale("global");
-  if (currentLocale != "en-US" && currentLocale != "en-GB") {
-    document.getElementById("extra-trademark").hidden = true;
-  }
-#endif
-
 #ifdef MOZ_UPDATER
   gAppUpdater = new appUpdater();
 
@@ -276,17 +265,17 @@ appUpdater.prototype =
       if (cancelQuit.data)
         return;
 
+      let appStartup = Components.classes["@mozilla.org/toolkit/app-startup;1"].
+                       getService(Components.interfaces.nsIAppStartup);
+
       // If already in safe mode restart in safe mode (bug 327119)
       if (Services.appinfo.inSafeMode) {
-        let env = Components.classes["@mozilla.org/process/environment;1"].
-                  getService(Components.interfaces.nsIEnvironment);
-        env.set("MOZ_SAFE_MODE_RESTART", "1");
+        appStartup.restartInSafeMode(Components.interfaces.nsIAppStartup.eAttemptQuit);
+        return;
       }
 
-      Components.classes["@mozilla.org/toolkit/app-startup;1"].
-      getService(Components.interfaces.nsIAppStartup).
-      quit(Components.interfaces.nsIAppStartup.eAttemptQuit |
-           Components.interfaces.nsIAppStartup.eRestart);
+      appStartup.quit(Components.interfaces.nsIAppStartup.eAttemptQuit |
+                      Components.interfaces.nsIAppStartup.eRestart);
       return;
     }
 

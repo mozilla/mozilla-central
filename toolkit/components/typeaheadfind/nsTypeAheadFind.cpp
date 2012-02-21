@@ -55,7 +55,6 @@
 #include "nsPIDOMWindow.h"
 #include "nsIDOMNSEvent.h"
 #include "nsIPrefBranch.h"
-#include "nsIPrefBranch2.h"
 #include "nsIPrefService.h"
 #include "nsString.h"
 #include "nsCRT.h"
@@ -110,13 +109,14 @@ nsTypeAheadFind::nsTypeAheadFind():
   mStartLinksOnlyPref(false),
   mCaretBrowsingOn(false),
   mLastFindLength(0),
-  mIsSoundInitialized(false)
+  mIsSoundInitialized(false),
+  mCaseSensitive(false)
 {
 }
 
 nsTypeAheadFind::~nsTypeAheadFind()
 {
-  nsCOMPtr<nsIPrefBranch2> prefInternal(do_GetService(NS_PREFSERVICE_CONTRACTID));
+  nsCOMPtr<nsIPrefBranch> prefInternal(do_GetService(NS_PREFSERVICE_CONTRACTID));
   if (prefInternal) {
     prefInternal->RemoveObserver("accessibility.typeaheadfind", this);
     prefInternal->RemoveObserver("accessibility.browsewithcaret", this);
@@ -126,12 +126,11 @@ nsTypeAheadFind::~nsTypeAheadFind()
 nsresult
 nsTypeAheadFind::Init(nsIDocShell* aDocShell)
 {
-  nsCOMPtr<nsIPrefBranch2> prefInternal(do_GetService(NS_PREFSERVICE_CONTRACTID));
+  nsCOMPtr<nsIPrefBranch> prefInternal(do_GetService(NS_PREFSERVICE_CONTRACTID));
   mSearchRange = new nsRange();
   mStartPointRange = new nsRange();
   mEndPointRange = new nsRange();
-  mFind = do_CreateInstance(NS_FIND_CONTRACTID);
-  if (!prefInternal || !mFind)
+  if (!prefInternal || !EnsureFind())
     return NS_ERROR_FAILURE;
 
   SetDocShell(aDocShell);
@@ -142,10 +141,6 @@ nsTypeAheadFind::Init(nsIDocShell* aDocShell)
 
   // ----------- Get initial preferences ----------
   PrefsReset();
-
-  // ----------- Set search options ---------------
-  mFind->SetCaseSensitive(false);
-  mFind->SetWordBreaker(nsnull);
 
   return rv;
 }
@@ -177,14 +172,20 @@ nsTypeAheadFind::PrefsReset()
 NS_IMETHODIMP
 nsTypeAheadFind::SetCaseSensitive(bool isCaseSensitive)
 {
-  mFind->SetCaseSensitive(isCaseSensitive);
+  mCaseSensitive = isCaseSensitive;
+
+  if (mFind) {
+    mFind->SetCaseSensitive(mCaseSensitive);
+  }
+
   return NS_OK;
 }
 
 NS_IMETHODIMP
 nsTypeAheadFind::GetCaseSensitive(bool* isCaseSensitive)
 {
-  mFind->GetCaseSensitive(isCaseSensitive);
+  *isCaseSensitive = mCaseSensitive;
+
   return NS_OK;
 }
 
@@ -203,12 +204,15 @@ nsTypeAheadFind::SetDocShell(nsIDocShell* aDocShell)
   mStartFindRange = nsnull;
   mStartPointRange = new nsRange();
   mSearchRange = new nsRange();
+  mEndPointRange = new nsRange();
 
   mFoundLink = nsnull;
   mFoundEditable = nsnull;
   mCurrentWindow = nsnull;
 
   mSelectionController = nsnull;
+
+  mFind = nsnull;
 
   return NS_OK;
 }
@@ -394,7 +398,7 @@ nsTypeAheadFind::FindItNow(nsIPresShell *aPresShell, bool aIsLinksOnly,
   // No need to wrap find in doc if starting at beginning
   bool hasWrapped = (rangeCompareResult < 0);
 
-  if (mTypeAheadBuffer.IsEmpty())
+  if (mTypeAheadBuffer.IsEmpty() || !EnsureFind())
     return NS_ERROR_FAILURE;
 
   mFind->SetFindBackwards(aFindPrev);
@@ -855,11 +859,11 @@ nsTypeAheadFind::RangeStartsInsideLink(nsIDOMRange *aRange,
     if (!parent)
       break;
 
-    nsIContent *parentsFirstChild = parent->GetChildAt(0);
+    nsIContent* parentsFirstChild = parent->GetFirstChild();
 
     // We don't want to look at a whitespace-only first child
     if (parentsFirstChild && parentsFirstChild->TextIsOnlyWhitespace()) {
-      parentsFirstChild = parent->GetChildAt(1);
+      parentsFirstChild = parentsFirstChild->GetNextSibling();
     }
 
     if (parentsFirstChild != startContent) {

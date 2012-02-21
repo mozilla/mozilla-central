@@ -203,7 +203,7 @@ class Debugger {
     static JSFunctionSpec methods[];
 
     JSObject *getHook(Hook hook) const;
-    bool hasAnyLiveHooks(JSContext *cx) const;
+    bool hasAnyLiveHooks() const;
 
     static JSTrapStatus slowPathOnEnterFrame(JSContext *cx, Value *vp);
     static void slowPathOnLeaveFrame(JSContext *cx);
@@ -236,6 +236,7 @@ class Debugger {
 
     bool init(JSContext *cx);
     inline const js::HeapPtrObject &toJSObject() const;
+    inline js::HeapPtrObject &toJSObjectRef();
     static inline Debugger *fromJSObject(JSObject *obj);
     static Debugger *fromChildJSObject(JSObject *obj);
 
@@ -431,6 +432,7 @@ class Breakpoint {
     Breakpoint *nextInDebugger();
     Breakpoint *nextInSite();
     const HeapPtrObject &getHandler() const { return handler; }
+    HeapPtrObject &getHandlerRef() { return handler; }
 };
 
 Debugger *
@@ -450,6 +452,13 @@ Debugger::firstBreakpoint() const
 
 const js::HeapPtrObject &
 Debugger::toJSObject() const
+{
+    JS_ASSERT(object);
+    return object;
+}
+
+js::HeapPtrObject &
+Debugger::toJSObjectRef()
 {
     JS_ASSERT(object);
     return object;
@@ -483,7 +492,7 @@ Debugger::observesGlobal(GlobalObject *global) const
 bool
 Debugger::observesFrame(StackFrame *fp) const
 {
-    return observesGlobal(&fp->scopeChain().global());
+    return !fp->isDummyFrame() && observesGlobal(&fp->scopeChain().global());
 }
 
 JSTrapStatus

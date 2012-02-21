@@ -41,11 +41,18 @@
 #ifndef MOZILLA_DOMSVGTRANSFORM_H__
 #define MOZILLA_DOMSVGTRANSFORM_H__
 
-#include "nsIDOMSVGTransform.h"
 #include "DOMSVGTransformList.h"
-#include "SVGTransform.h"
-#include "nsCycleCollectionParticipant.h"
 #include "nsAutoPtr.h"
+#include "nsCycleCollectionParticipant.h"
+#include "nsDebug.h"
+#include "nsID.h"
+#include "nsIDOMSVGTransform.h"
+#include "nsTArray.h"
+#include "SVGTransform.h"
+
+class nsSVGElement;
+
+struct gfxMatrix;
 
 // We make DOMSVGTransform a pseudo-interface to allow us to QI to it in order
 // to check that the objects that scripts pass in are our our *native* transform
@@ -199,7 +206,8 @@ private:
   SVGTransform& Transform() {
     return HasOwner() ? InternalItem() : *mTransform;
   }
-  void NotifyElementOfChange();
+  inline nsAttrValue NotifyElementWillChange();
+  void NotifyElementDidChange(const nsAttrValue& aEmptyOrOldValue);
 
   nsRefPtr<DOMSVGTransformList> mList;
 
@@ -227,6 +235,16 @@ private:
 };
 
 NS_DEFINE_STATIC_IID_ACCESSOR(DOMSVGTransform, MOZILLA_DOMSVGTRANSFORM_IID)
+
+nsAttrValue
+DOMSVGTransform::NotifyElementWillChange()
+{
+  nsAttrValue result;
+  if (HasOwner()) {
+    result = Element()->WillChangeTransformList();
+  }
+  return result;
+}
 
 } // namespace mozilla
 

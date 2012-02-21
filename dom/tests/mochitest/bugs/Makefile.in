@@ -73,6 +73,7 @@ _TEST_FILES	= \
 		test_bug384122.html \
 		test_bug389366.html \
 		test_bug393974.html \
+		test_bug394769.html \
 		test_bug396843.html \
 		test_bug397571.html \
 		test_bug400204.html \
@@ -143,6 +144,7 @@ _TEST_FILES	= \
 		test_bug642026.html \
 		test_bug648465.html \
 		test_bug654137.html \
+		test_bug664737.html \
 		test_bug684544.html \
 		test_bug698551.html \
 		test_window_bar.html \

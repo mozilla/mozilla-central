@@ -55,6 +55,7 @@
 #include "nsTArray.h"
 
 class nsIPrincipal;
+class nsIXPConnectWrappedJS;
 struct nsDOMClassInfoData;
 
 #ifndef BAD_TLS_INDEX
@@ -74,7 +75,8 @@ xpc_CreateMTGlobalObject(JSContext *cx, JSClass *clasp,
 
 #define XPCONNECT_GLOBAL_FLAGS                                                \
     JSCLASS_XPCONNECT_GLOBAL | JSCLASS_HAS_PRIVATE |                          \
-    JSCLASS_PRIVATE_IS_NSISUPPORTS | JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(1)
+    JSCLASS_PRIVATE_IS_NSISUPPORTS | JSCLASS_IMPLEMENTS_BARRIERS |            \
+    JSCLASS_GLOBAL_FLAGS_WITH_SLOTS(1)
 
 void
 TraceXPCGlobal(JSTracer *trc, JSObject *obj);
@@ -160,19 +162,15 @@ xpc_FastGetCachedWrapper(nsWrapperCache *cache, JSObject *scope)
 
 // The JS GC marks objects gray that are held alive directly or
 // indirectly by an XPConnect root. The cycle collector explores only
-// this subset of the JS heap.  JSStaticAtoms cause this to crash,
-// because they are statically allocated in the data segment and thus
-// are not really GCThings.
+// this subset of the JS heap.
 inline JSBool
 xpc_IsGrayGCThing(void *thing)
 {
-    return js_GCThingIsMarked(thing, js::gc::GRAY);
+    return js::GCThingIsMarkedGray(thing);
 }
 
-// The cycle collector only cares about JS objects and XML objects that
-// are held alive directly or indirectly by an XPConnect root.  This
-// version is preferred to xpc_IsGrayGCThing when it isn't known if thing
-// is a JSString or not. Implemented in nsXPConnect.cpp.
+// The cycle collector only cares about some kinds of GCthings that are
+// reachable from an XPConnect root. Implemented in nsXPConnect.cpp.
 extern JSBool
 xpc_GCThingIsGrayCCThing(void *thing);
 
@@ -185,9 +183,25 @@ xpc_UnmarkGrayObjectRecursive(JSObject* obj);
 inline void
 xpc_UnmarkGrayObject(JSObject *obj)
 {
-    if (obj && xpc_IsGrayGCThing(obj))
-        xpc_UnmarkGrayObjectRecursive(obj);
+    if (obj) {
+        if (xpc_IsGrayGCThing(obj))
+            xpc_UnmarkGrayObjectRecursive(obj);
+        else if (js::IsIncrementalBarrierNeededOnObject(obj))
+            js::IncrementalReferenceBarrier(obj);
+    }
 }
+
+// If aVariant is an XPCVariant, this marks the object to be in aGeneration.
+// This also unmarks the gray JSObject.
+extern void
+xpc_MarkInCCGeneration(nsISupports* aVariant, PRUint32 aGeneration);
+
+// Unmarks aWrappedJS's JSObject.
+extern void
+xpc_UnmarkGrayObject(nsIXPConnectWrappedJS* aWrappedJS);
+
+extern void
+xpc_UnmarkSkippableJSHolders();
 
 // No JS can be on the stack when this is called. Probably only useful from
 // xpcshell.
@@ -205,12 +219,15 @@ bool Base64Decode(JSContext *cx, JS::Value val, JS::Value *out);
  * Note, the ownership of the string buffer may be moved from str to rval.
  * If that happens, str will point to an empty string after this call.
  */
-bool StringToJsval(JSContext *cx, nsString &str, JS::Value *rval);
+bool StringToJsval(JSContext *cx, nsAString &str, JS::Value *rval);
+bool NonVoidStringToJsval(JSContext *cx, nsAString &str, JS::Value *rval);
 
 void *GetCompartmentName(JSContext *cx, JSCompartment *c);
 void DestroyCompartmentName(void *string);
-size_t JsMallocSizeOf(const void *ptr, size_t computedSize);
 
+#ifdef DEBUG
+void DumpJSHeap(FILE* file);
+#endif
 } // namespace xpc
 
 class nsIMemoryMultiReporterCallback;
@@ -219,10 +236,12 @@ namespace mozilla {
 namespace xpconnect {
 namespace memory {
 
+// This reports all the stats in |rtStats| that belong in the "explicit" tree,
+// (which isn't all of them).
 void
-ReportJSRuntimeStats(const JS::IterateData &data, const nsACString &pathPrefix,
-                     nsIMemoryMultiReporterCallback *callback,
-                     nsISupports *closure);
+ReportJSRuntimeExplicitTreeStats(const JS::RuntimeStats &rtStats, const nsACString &pathPrefix,
+                                 nsIMemoryMultiReporterCallback *callback,
+                                 nsISupports *closure);
 
 } // namespace memory
 } // namespace xpconnect

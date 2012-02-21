@@ -113,8 +113,8 @@ private:
   static void
   Finalize(JSContext* aCx, JSObject* aObj)
   {
-    JS_ASSERT(JS_GET_CLASS(aCx, aObj) == &sClass);
-    delete GetJSPrivateSafeish<DOMException>(aCx, aObj);
+    JS_ASSERT(JS_GetClass(aObj) == &sClass);
+    delete GetJSPrivateSafeish<DOMException>(aObj);
   }
 
   static JSBool
@@ -125,11 +125,11 @@ private:
       return false;
     }
 
-    JSClass* classPtr;
-    if (!obj || ((classPtr = JS_GET_CLASS(aCx, obj)) != &sClass)) {
+    JSClass* classPtr = JS_GetClass(obj);
+    if (classPtr != &sClass) {
       JS_ReportErrorNumber(aCx, js_GetErrorMessage, NULL,
                            JSMSG_INCOMPATIBLE_PROTO, sClass.name, "toString",
-                           classPtr ? classPtr->name : "object");
+                           classPtr->name);
       return false;
     }
 
@@ -141,11 +141,7 @@ private:
       return false;
     }
 
-    jsval name;
-    if (!JS_GetReservedSlot(aCx, obj, SLOT_name, &name)) {
-      return false;
-    }
-
+    jsval name = JS_GetReservedSlot(obj, SLOT_name);
     JS_ASSERT(JSVAL_IS_STRING(name));
 
     JSString* out = JS_ConcatStrings(aCx, classString, JSVAL_TO_STRING(name));
@@ -164,18 +160,17 @@ private:
 
     int32 slot = JSID_TO_INT(aIdval);
 
-    JSClass* classPtr = JS_GET_CLASS(aCx, aObj);
+    JSClass* classPtr = JS_GetClass(aObj);
 
-    if (classPtr != &sClass ||
-        !GetJSPrivateSafeish<DOMException>(aCx, aObj)) {
+    if (classPtr != &sClass || !GetJSPrivateSafeish<DOMException>(aObj)) {
       JS_ReportErrorNumber(aCx, js_GetErrorMessage, NULL,
                            JSMSG_INCOMPATIBLE_PROTO, sClass.name,
-                           sProperties[slot].name,
-                           classPtr ? classPtr->name : "object");
+                           sProperties[slot].name, classPtr->name);
       return false;
     }
 
-    return JS_GetReservedSlot(aCx, aObj, slot, aVp);
+    *aVp = JS_GetReservedSlot(aObj, slot);
+    return true;
   }
 
   static JSBool
@@ -271,16 +266,11 @@ DOMException::Create(JSContext* aCx, intN aCode)
     return NULL;
   }
 
-  if (!JS_SetReservedSlot(aCx, obj, SLOT_code, INT_TO_JSVAL(aCode)) ||
-      !JS_SetReservedSlot(aCx, obj, SLOT_name, STRING_TO_JSVAL(name))) {
-    return NULL;
-  }
+  JS_SetReservedSlot(obj, SLOT_code, INT_TO_JSVAL(aCode));
+  JS_SetReservedSlot(obj, SLOT_name, STRING_TO_JSVAL(name));
 
   DOMException* priv = new DOMException();
-  if (!SetJSPrivateSafeish(aCx, obj, priv)) {
-    delete priv;
-    return NULL;
-  }
+  SetJSPrivateSafeish(obj, priv);
 
   return obj;
 }
@@ -331,8 +321,8 @@ private:
   static void
   Finalize(JSContext* aCx, JSObject* aObj)
   {
-    JS_ASSERT(JS_GET_CLASS(aCx, aObj) == &sClass);
-    delete GetJSPrivateSafeish<FileException>(aCx, aObj);
+    JS_ASSERT(JS_GetClass(aObj) == &sClass);
+    delete GetJSPrivateSafeish<FileException>(aObj);
   }
 
   static JSBool
@@ -342,18 +332,17 @@ private:
 
     int32 slot = JSID_TO_INT(aIdval);
 
-    JSClass* classPtr = JS_GET_CLASS(aCx, aObj);
+    JSClass* classPtr = JS_GetClass(aObj);
 
-    if (classPtr != &sClass ||
-        !GetJSPrivateSafeish<FileException>(aCx, aObj)) {
+    if (classPtr != &sClass || !GetJSPrivateSafeish<FileException>(aObj)) {
       JS_ReportErrorNumber(aCx, js_GetErrorMessage, NULL,
                            JSMSG_INCOMPATIBLE_PROTO, sClass.name,
-                           sProperties[slot].name,
-                           classPtr ? classPtr->name : "object");
+                           sProperties[slot].name, classPtr->name);
       return false;
     }
 
-    return JS_GetReservedSlot(aCx, aObj, slot, aVp);
+    *aVp = JS_GetReservedSlot(aObj, slot);
+    return true;
   }
 
   static JSBool
@@ -419,16 +408,11 @@ FileException::Create(JSContext* aCx, intN aCode)
     return NULL;
   }
 
-  if (!JS_SetReservedSlot(aCx, obj, SLOT_code, INT_TO_JSVAL(aCode)) ||
-      !JS_SetReservedSlot(aCx, obj, SLOT_name, STRING_TO_JSVAL(name))) {
-    return NULL;
-  }
+  JS_SetReservedSlot(obj, SLOT_code, INT_TO_JSVAL(aCode));
+  JS_SetReservedSlot(obj, SLOT_name, STRING_TO_JSVAL(name));
 
   FileException* priv = new FileException();
-  if (!SetJSPrivateSafeish(aCx, obj, priv)) {
-    delete priv;
-    return NULL;
-  }
+  SetJSPrivateSafeish(obj, priv);
 
   return obj;
 }

@@ -37,9 +37,16 @@
 #ifndef __NS_SVGBOOLEAN_H__
 #define __NS_SVGBOOLEAN_H__
 
+#include "nsAutoPtr.h"
+#include "nsCycleCollectionParticipant.h"
+#include "nsError.h"
 #include "nsIDOMSVGAnimatedBoolean.h"
+#include "nsISMILAttr.h"
+#include "nsISupportsImpl.h"
 #include "nsSVGElement.h"
-#include "nsDOMError.h"
+
+class nsISMILAnimationElement;
+class nsSMILValue;
 
 class nsSVGBoolean
 {
@@ -51,9 +58,8 @@ public:
     mIsAnimated = false;
   }
 
-  nsresult SetBaseValueString(const nsAString& aValue,
-                              nsSVGElement *aSVGElement);
-  void GetBaseValueString(nsAString& aValue);
+  nsresult SetBaseValueAtom(const nsIAtom* aValue, nsSVGElement *aSVGElement);
+  nsIAtom* GetBaseValueAtom() const;
 
   void SetBaseValue(bool aValue, nsSVGElement *aSVGElement);
   bool GetBaseValue() const

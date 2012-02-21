@@ -60,6 +60,7 @@ class SubdocumentScrollHelper implements GeckoEventListener {
     private boolean mOverridePanning;
     private boolean mOverrideScrollAck;
     private boolean mOverrideScrollPending;
+    private boolean mScrollSucceeded;
 
     SubdocumentScrollHelper(PanZoomController controller) {
         mPanZoomController = controller;
@@ -91,7 +92,7 @@ class SubdocumentScrollHelper implements GeckoEventListener {
         } catch (JSONException e) {
             Log.e(LOGTAG, "Error forming subwindow scroll message: ", e);
         }
-        GeckoAppShell.sendEventToGecko(new GeckoEvent(MESSAGE_SCROLL, json.toString()));
+        GeckoAppShell.sendEventToGecko(GeckoEvent.createBroadcastEvent(MESSAGE_SCROLL, json.toString()));
 
         return true;
     }
@@ -102,6 +103,10 @@ class SubdocumentScrollHelper implements GeckoEventListener {
 
     boolean scrolling() {
         return mOverridePanning;
+    }
+
+    boolean lastScrollSucceeded() {
+        return mScrollSucceeded;
     }
 
     // GeckoEventListener implementation
@@ -116,10 +121,12 @@ class SubdocumentScrollHelper implements GeckoEventListener {
                         mOverridePanning = true;
                         mOverrideScrollAck = true;
                         mOverrideScrollPending = false;
+                        mScrollSucceeded = true;
                     } else if (MESSAGE_CANCEL_OVERRIDE.equals(event)) {
                         mOverridePanning = false;
                     } else if (MESSAGE_SCROLL_ACK.equals(event)) {
                         mOverrideScrollAck = true;
+                        mScrollSucceeded = message.getBoolean("scrolled");
                         if (mOverridePanning && mOverrideScrollPending) {
                             scrollBy(mPanZoomController.getDisplacement());
                         }

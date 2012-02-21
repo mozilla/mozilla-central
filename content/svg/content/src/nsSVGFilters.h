@@ -37,20 +37,20 @@
 #ifndef __NS_SVGFILTERSELEMENT_H__
 #define __NS_SVGFILTERSELEMENT_H__
 
-#include "nsSVGStylableElement.h"
+#include "gfxImageSurface.h"
+#include "gfxRect.h"
+#include "nsIDOMSVGFilters.h"
+#include "nsIDOMSVGURIReference.h"
+#include "nsIFrame.h"
+#include "nsImageLoadingContent.h"
 #include "nsSVGLength2.h"
 #include "nsSVGString.h"
-#include "nsIFrame.h"
-#include "gfxRect.h"
-#include "gfxImageSurface.h"
-#include "nsIDOMSVGFilters.h"
-#include "nsImageLoadingContent.h"
-#include "nsIDOMSVGURIReference.h"
+#include "nsSVGStylableElement.h"
 #include "SVGAnimatedPreserveAspectRatio.h"
 
+class nsSVGFilterInstance;
 class nsSVGFilterResource;
 class nsSVGNumberPair;
-class nsSVGFilterInstance;
 
 struct nsSVGStringInfo {
   nsSVGStringInfo(const nsSVGString* aString,
@@ -288,7 +288,7 @@ public:
   virtual nsresult Clone(nsINodeInfo *aNodeInfo, nsINode **aResult) const;
 
   virtual nsresult AfterSetAttr(PRInt32 aNamespaceID, nsIAtom* aName,
-                                const nsAString* aValue, bool aNotify);
+                                const nsAttrValue* aValue, bool aNotify);
   virtual nsresult BindToTree(nsIDocument* aDocument, nsIContent* aParent,
                               nsIContent* aBindingParent,
                               bool aCompileEventHandlers);

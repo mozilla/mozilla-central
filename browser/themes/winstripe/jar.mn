@@ -24,8 +24,6 @@ browser.jar:
         skin/classic/browser/keyhole-forward-mask.svg
         skin/classic/browser/KUI-background.png
         skin/classic/browser/KUI-close.png
-        skin/classic/browser/mainwindow-dropdown-arrow.png
-        skin/classic/browser/mainwindow-dropdown-arrow-inverted.png
         skin/classic/browser/pageInfo.css
         skin/classic/browser/pageInfo.png                            (pageInfo.png)
         skin/classic/browser/page-livemarks.png                      (feeds/feedIcon16.png)
@@ -37,7 +35,10 @@ browser.jar:
         skin/classic/browser/Secure24.png                            (Secure24.png)
         skin/classic/browser/Toolbar.png                             (Toolbar.png)
         skin/classic/browser/Toolbar-inverted.png
+        skin/classic/browser/toolbarbutton-dropdown-arrow.png
+        skin/classic/browser/toolbarbutton-dropdown-arrow-inverted.png
 *       skin/classic/browser/searchbar.css                           (searchbar.css)
+        skin/classic/browser/searchbar-dropdown-arrow.png
         skin/classic/browser/section_collapsed.png
         skin/classic/browser/section_collapsed-rtl.png
         skin/classic/browser/section_expanded.png
@@ -57,6 +58,9 @@ browser.jar:
         skin/classic/browser/feeds/videoFeedIcon16.png               (feeds/feedIcon16.png)
         skin/classic/browser/feeds/subscribe.css                     (feeds/subscribe.css)
         skin/classic/browser/feeds/subscribe-ui.css                  (feeds/subscribe-ui.css)
+        skin/classic/browser/newtab/newTab.css                       (newtab/newTab.css)
+        skin/classic/browser/newtab/strip.png                        (newtab/strip.png)
+        skin/classic/browser/newtab/toolbar.png                      (newtab/toolbar.png)
         skin/classic/browser/inspector.css
         skin/classic/browser/places/places.css                       (places/places.css)
 *       skin/classic/browser/places/organizer.css                    (places/organizer.css)
@@ -107,9 +111,11 @@ browser.jar:
         skin/classic/browser/tabview/tabview.css                    (tabview/tabview.css)
         skin/classic/browser/devtools/common.css                    (devtools/common.css)
         skin/classic/browser/devtools/arrows.png                    (devtools/arrows.png)
+        skin/classic/browser/devtools/commandline.png               (devtools/commandline.png)
         skin/classic/browser/devtools/goto-mdn.png                  (devtools/goto-mdn.png)
         skin/classic/browser/devtools/csshtmltree.css               (devtools/csshtmltree.css)
         skin/classic/browser/devtools/gcli.css                      (devtools/gcli.css)
+        skin/classic/browser/devtools/orion.css                     (devtools/orion.css)
         skin/classic/browser/devtools/toolbarbutton-close.png       (devtools/toolbarbutton-close.png)
         skin/classic/browser/devtools/webconsole.css                  (devtools/webconsole.css)
         skin/classic/browser/devtools/webconsole_networkpanel.css     (devtools/webconsole_networkpanel.css)
@@ -140,6 +146,7 @@ browser.jar:
         skin/classic/browser/devtools/breadcrumbs/rtl-start-selected.png           (devtools/breadcrumbs/rtl-start-selected.png)
         skin/classic/browser/devtools/splitview.css                 (devtools/splitview.css)
         skin/classic/browser/devtools/styleeditor.css               (devtools/styleeditor.css)
+        skin/classic/browser/devtools/debugger.css                  (devtools/debugger.css)
         skin/classic/browser/devtools/magnifying-glass.png          (devtools/magnifying-glass.png)
         skin/classic/browser/devtools/itemToggle.png                (devtools/itemToggle.png)
         skin/classic/browser/devtools/itemArrow-rtl.png             (devtools/itemArrow-rtl.png)
@@ -183,8 +190,6 @@ browser.jar:
         skin/classic/aero/browser/keyhole-forward-mask.svg
         skin/classic/aero/browser/KUI-background.png
         skin/classic/aero/browser/KUI-close.png
-        skin/classic/aero/browser/mainwindow-dropdown-arrow.png      (mainwindow-dropdown-arrow-aero.png)
-        skin/classic/aero/browser/mainwindow-dropdown-arrow-inverted.png
         skin/classic/aero/browser/pageInfo.css
         skin/classic/aero/browser/pageInfo.png                       (pageInfo-aero.png)
         skin/classic/aero/browser/page-livemarks.png                 (feeds/feedIcon16-aero.png)
@@ -196,7 +201,10 @@ browser.jar:
         skin/classic/aero/browser/Secure24.png                       (Secure24-aero.png)
         skin/classic/aero/browser/Toolbar.png
         skin/classic/aero/browser/Toolbar-inverted.png
+        skin/classic/aero/browser/toolbarbutton-dropdown-arrow.png
+        skin/classic/aero/browser/toolbarbutton-dropdown-arrow-inverted.png
 *       skin/classic/aero/browser/searchbar.css                      (searchbar.css)
+        skin/classic/aero/browser/searchbar-dropdown-arrow.png       (searchbar-dropdown-arrow-aero.png)
         skin/classic/aero/browser/section_collapsed.png
         skin/classic/aero/browser/section_collapsed-rtl.png
         skin/classic/aero/browser/section_expanded.png
@@ -216,6 +224,9 @@ browser.jar:
         skin/classic/aero/browser/feeds/videoFeedIcon16.png          (feeds/feedIcon16-aero.png)
         skin/classic/aero/browser/feeds/subscribe.css                (feeds/subscribe.css)
         skin/classic/aero/browser/feeds/subscribe-ui.css             (feeds/subscribe-ui.css)
+        skin/classic/aero/browser/newtab/newTab.css                  (newtab/newTab.css)
+        skin/classic/aero/browser/newtab/strip.png                   (newtab/strip.png)
+        skin/classic/aero/browser/newtab/toolbar.png                 (newtab/toolbar.png)
         skin/classic/aero/browser/inspector.css
 *       skin/classic/aero/browser/places/places.css                  (places/places-aero.css)
 *       skin/classic/aero/browser/places/organizer.css               (places/organizer-aero.css)
@@ -266,9 +277,11 @@ browser.jar:
         skin/classic/aero/browser/tabview/tabview.css                (tabview/tabview.css)
         skin/classic/aero/browser/devtools/common.css                (devtools/common.css)
         skin/classic/aero/browser/devtools/arrows.png                (devtools/arrows.png)
+        skin/classic/aero/browser/devtools/commandline.png           (devtools/commandline.png)
         skin/classic/aero/browser/devtools/goto-mdn.png              (devtools/goto-mdn.png)
         skin/classic/aero/browser/devtools/csshtmltree.css           (devtools/csshtmltree.css)
         skin/classic/aero/browser/devtools/gcli.css                  (devtools/gcli.css)
+        skin/classic/aero/browser/devtools/orion.css                 (devtools/orion.css)
         skin/classic/aero/browser/devtools/toolbarbutton-close.png   (devtools/toolbarbutton-close.png)
         skin/classic/aero/browser/devtools/webconsole.css                  (devtools/webconsole.css)
         skin/classic/aero/browser/devtools/webconsole_networkpanel.css     (devtools/webconsole_networkpanel.css)
@@ -299,6 +312,7 @@ browser.jar:
         skin/classic/aero/browser/devtools/breadcrumbs/rtl-start-selected.png           (devtools/breadcrumbs/rtl-start-selected.png)
         skin/classic/aero/browser/devtools/splitview.css             (devtools/splitview.css)
         skin/classic/aero/browser/devtools/styleeditor.css           (devtools/styleeditor.css)
+        skin/classic/aero/browser/devtools/debugger.css              (devtools/debugger.css)
         skin/classic/aero/browser/devtools/magnifying-glass.png      (devtools/magnifying-glass.png)
         skin/classic/aero/browser/devtools/itemToggle.png            (devtools/itemToggle.png)
         skin/classic/aero/browser/devtools/itemArrow-rtl.png         (devtools/itemArrow-rtl.png)

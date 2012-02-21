@@ -41,6 +41,7 @@ package org.mozilla.gecko.sync.repositories.android;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import org.mozilla.gecko.sync.Logger;
 import org.mozilla.gecko.sync.repositories.InactiveSessionException;
 import org.mozilla.gecko.sync.repositories.InvalidRequestException;
 import org.mozilla.gecko.sync.repositories.InvalidSessionTransitionException;
@@ -50,8 +51,9 @@ import org.mozilla.gecko.sync.repositories.NoStoreDelegateException;
 import org.mozilla.gecko.sync.repositories.NullCursorException;
 import org.mozilla.gecko.sync.repositories.ParentNotFoundException;
 import org.mozilla.gecko.sync.repositories.ProfileDatabaseException;
+import org.mozilla.gecko.sync.repositories.RecordFilter;
 import org.mozilla.gecko.sync.repositories.Repository;
-import org.mozilla.gecko.sync.repositories.RepositorySession;
+import org.mozilla.gecko.sync.repositories.StoreTrackingRepositorySession;
 import org.mozilla.gecko.sync.repositories.delegates.RepositorySessionBeginDelegate;
 import org.mozilla.gecko.sync.repositories.delegates.RepositorySessionFetchRecordsDelegate;
 import org.mozilla.gecko.sync.repositories.delegates.RepositorySessionGuidsSinceDelegate;
@@ -59,7 +61,7 @@ import org.mozilla.gecko.sync.repositories.delegates.RepositorySessionWipeDelega
 import org.mozilla.gecko.sync.repositories.domain.Record;
 
 import android.database.Cursor;
-import android.util.Log;
+import android.net.Uri;
 
 /**
  * You'll notice that all delegate calls *either*:
@@ -83,10 +85,10 @@ import android.util.Log;
  * @author rnewman
  *
  */
-public abstract class AndroidBrowserRepositorySession extends RepositorySession {
+public abstract class AndroidBrowserRepositorySession extends StoreTrackingRepositorySession {
 
   protected AndroidBrowserRepositoryDataAccessor dbHelper;
-  protected static final String LOG_TAG = "AndroidBrowserRepositorySession";
+  public static final String LOG_TAG = "BrowserRepoSession";
   private HashMap<String, String> recordToGuid;
 
   public AndroidBrowserRepositorySession(Repository repository) {
@@ -139,7 +141,7 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
       // is no way of knowing which call would be hit first.
       checkDatabase();
     } catch (ProfileDatabaseException e) {
-      Log.e(LOG_TAG, "ProfileDatabaseException from begin. Fennec must be launched once until this error is fixed");
+      Logger.error(LOG_TAG, "ProfileDatabaseException from begin. Fennec must be launched once until this error is fixed");
       deferredDelegate.onBeginFailed(e);
       return;
     } catch (NullCursorException e) {
@@ -149,15 +151,17 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
       deferredDelegate.onBeginFailed(e);
       return;
     }
+    storeTracker = createStoreTracker();
     deferredDelegate.onBeginSucceeded(this);
   }
 
   protected abstract String buildRecordString(Record record);
 
   protected void checkDatabase() throws ProfileDatabaseException, NullCursorException {
-    Log.i(LOG_TAG, "Checking database.");
+    Logger.info(LOG_TAG, "BEGIN: checking database.");
     try {
       dbHelper.fetch(new String[] { "none" }).close();
+      Logger.info(LOG_TAG, "END: checking database.");
     } catch (NullPointerException e) {
       throw new ProfileDatabaseException(e);
     }
@@ -210,7 +214,7 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
           cur.moveToNext();
         }
       } finally {
-        Log.d(LOG_TAG, "Closing cursor after guidsSince.");
+        Logger.debug(LOG_TAG, "Closing cursor after guidsSince.");
         cur.close();
       }
 
@@ -223,7 +227,7 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
   @Override
   public void fetch(String[] guids,
                     RepositorySessionFetchRecordsDelegate delegate) {
-    FetchRunnable command = new FetchRunnable(guids, now(), delegate);
+    FetchRunnable command = new FetchRunnable(guids, now(), null, delegate);
     delegateQueue.execute(command);
   }
 
@@ -234,8 +238,8 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
       this.delegate = delegate;
     }
 
-    protected void fetchFromCursor(Cursor cursor, long end) {
-      Log.d(LOG_TAG, "Fetch from cursor:");
+    protected void fetchFromCursor(Cursor cursor, RecordFilter filter, long end) {
+      Logger.debug(LOG_TAG, "Fetch from cursor:");
       try {
         try {
           if (!cursor.moveToFirst()) {
@@ -243,24 +247,28 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
             return;
           }
           while (!cursor.isAfterLast()) {
-            Log.d(LOG_TAG, "... one more record.");
-            Record r = transformRecord(recordFromMirrorCursor(cursor));
+            Record r = recordFromMirrorCursor(cursor);
             if (r != null) {
-              delegate.onFetchedRecord(r);
+              if (filter == null || !filter.excludeRecord(r)) {
+                Logger.trace(LOG_TAG, "Processing record " + r.guid);
+                delegate.onFetchedRecord(transformRecord(r));
+              } else {
+                Logger.debug(LOG_TAG, "Skipping filtered record " + r.guid);
+              }
             }
             cursor.moveToNext();
           }
           delegate.onFetchCompleted(end);
         } catch (NoGuidForIdException e) {
-          Log.w(LOG_TAG, "No GUID for ID.", e);
+          Logger.warn(LOG_TAG, "No GUID for ID.", e);
           delegate.onFetchFailed(e, null);
         } catch (Exception e) {
-          Log.w(LOG_TAG, "Exception in fetchFromCursor.", e);
+          Logger.warn(LOG_TAG, "Exception in fetchFromCursor.", e);
           delegate.onFetchFailed(e, null);
           return;
         }
       } finally {
-        Log.d(LOG_TAG, "Closing cursor after fetch.");
+        Logger.trace(LOG_TAG, "Closing cursor after fetch.");
         cursor.close();
       }
     }
@@ -269,13 +277,16 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
   class FetchRunnable extends FetchingRunnable {
     private String[] guids;
     private long     end;
+    private RecordFilter filter;
 
     public FetchRunnable(String[] guids,
                          long end,
+                         RecordFilter filter,
                          RepositorySessionFetchRecordsDelegate delegate) {
       super(delegate);
-      this.guids = guids;
-      this.end   = end;
+      this.guids  = guids;
+      this.end    = end;
+      this.filter = filter;
     }
 
     @Override
@@ -286,14 +297,14 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
       }
 
       if (guids == null || guids.length < 1) {
-        Log.e(LOG_TAG, "No guids sent to fetch");
+        Logger.error(LOG_TAG, "No guids sent to fetch");
         delegate.onFetchFailed(new InvalidRequestException(null), null);
         return;
       }
 
       try {
         Cursor cursor = dbHelper.fetch(guids);
-        this.fetchFromCursor(cursor, end);
+        this.fetchFromCursor(cursor, filter, end);
       } catch (NullCursorException e) {
         delegate.onFetchFailed(e, null);
       }
@@ -303,21 +314,28 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
   @Override
   public void fetchSince(long timestamp,
                          RepositorySessionFetchRecordsDelegate delegate) {
-    Log.i(LOG_TAG, "Running fetchSince(" + timestamp + ").");
-    FetchSinceRunnable command = new FetchSinceRunnable(timestamp, now(), delegate);
+    if (this.storeTracker == null) {
+      throw new IllegalStateException("Store tracker not yet initialized!");
+    }
+
+    Logger.info(LOG_TAG, "Running fetchSince(" + timestamp + ").");
+    FetchSinceRunnable command = new FetchSinceRunnable(timestamp, now(), this.storeTracker.getFilter(), delegate);
     delegateQueue.execute(command);
   }
 
   class FetchSinceRunnable extends FetchingRunnable {
     private long since;
     private long end;
+    private RecordFilter filter;
 
     public FetchSinceRunnable(long since,
                               long end,
+                              RecordFilter filter,
                               RepositorySessionFetchRecordsDelegate delegate) {
       super(delegate);
-      this.since = since;
-      this.end   = end;
+      this.since  = since;
+      this.end    = end;
+      this.filter = filter;
     }
 
     @Override
@@ -329,7 +347,7 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
 
       try {
         Cursor cursor = dbHelper.fetchSince(since);
-        this.fetchFromCursor(cursor, end);
+        this.fetchFromCursor(cursor, filter, end);
       } catch (NullCursorException e) {
         delegate.onFetchFailed(e, null);
         return;
@@ -348,7 +366,7 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
       throw new NoStoreDelegateException();
     }
     if (record == null) {
-      Log.e(LOG_TAG, "Record sent to store was null");
+      Logger.error(LOG_TAG, "Record sent to store was null");
       throw new IllegalArgumentException("Null record passed to AndroidBrowserRepositorySession.store().");
     }
 
@@ -363,66 +381,163 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
           return;
         }
 
-        // Check that the record is a valid type
-        // TODO Currently for bookmarks we only take care of folders
-        // and bookmarks, all other types are ignored and thrown away
+        // Check that the record is a valid type.
+        // Fennec only supports bookmarks and folders. All other types of records,
+        // including livemarks and queries, are simply ignored.
+        // See Bug 708149. This might be resolved by Fennec changing its database
+        // schema, or by Sync storing non-applied records in its own private database.
         if (!checkRecordType(record)) {
-          Log.d(LOG_TAG, "Ignoring record " + record.guid + " due to unknown record type.");
+          Logger.debug(LOG_TAG, "Ignoring record " + record.guid + " due to unknown record type.");
 
           // Don't throw: we don't want to abort the entire sync when we get a livemark!
           // delegate.onRecordStoreFailed(new InvalidBookmarkTypeException(null));
           return;
         }
 
-        // TODO:
-        // TODO: rnewman 2012-01-13: read and improve this code.
-        // TODO:
+
+        // TODO: lift these into the session.
+        // Temporary: this matches prior syncing semantics, in which only
+        // the relationship between the local and remote record is considered.
+        // In the future we'll track these two timestamps and use them to
+        // determine which records have changed, and thus process incoming
+        // records more efficiently.
+        long lastLocalRetrieval  = 0;      // lastSyncTimestamp?
+        long lastRemoteRetrieval = 0;      // TODO: adjust for clock skew.
+        boolean remotelyModified = record.lastModified > lastRemoteRetrieval;
+
         Record existingRecord;
         try {
-          existingRecord = findExistingRecord(record);
-
-          // If the record is new and not deleted, store it
-          if (existingRecord == null && !record.deleted) {
-            record.androidID = insert(record);
-          } else if (existingRecord != null) {
-
-            dbHelper.delete(existingRecord);
-            // Or clause: We won't store a remotely deleted record ever, but if it is marked deleted
-            // and our existing record has a newer timestamp, we will restore the existing record
-            if (!record.deleted || (record.deleted && existingRecord.lastModified > record.lastModified)) {
-              // Record exists already, need to figure out what to store
-              Record store = reconcileRecords(existingRecord, record);
-              record.androidID = insert(store);
+          // GUID matching only: deleted records don't have a payload with which to search.
+          existingRecord = recordForGUID(record.guid);
+          if (record.deleted) {
+            if (existingRecord == null) {
+              // We're done. Don't bother with a callback. That can change later
+              // if we want it to.
+              trace("Incoming record " + record.guid + " is deleted, and no local version. Bye!");
+              return;
             }
+
+            if (existingRecord.deleted) {
+              trace("Local record already deleted. Bye!");
+              return;
+            }
+
+            // Which one wins?
+            if (!remotelyModified) {
+              trace("Ignoring deleted record from the past.");
+              return;
+            }
+
+            boolean locallyModified = existingRecord.lastModified > lastLocalRetrieval;
+            if (!locallyModified) {
+              trace("Remote modified, local not. Deleting.");
+              storeRecordDeletion(record);
+              return;
+            }
+
+            trace("Both local and remote records have been modified.");
+            if (record.lastModified > existingRecord.lastModified) {
+              trace("Remote is newer, and deleted. Deleting local.");
+              storeRecordDeletion(record);
+              return;
+            }
+
+            trace("Remote is older, local is not deleted. Ignoring.");
+            if (!locallyModified) {
+              Logger.warn(LOG_TAG, "Inconsistency: old remote record is deleted, but local record not modified!");
+              // Ensure that this is tracked for upload.
+            }
+            return;
           }
+          // End deletion logic.
+
+          // Now we're processing a non-deleted incoming record.
+          if (existingRecord == null) {
+            trace("Looking up match for record " + record.guid);
+            existingRecord = findExistingRecord(record);
+          }
+
+          if (existingRecord == null) {
+            // The record is new.
+            trace("No match. Inserting.");
+            Record inserted = insert(record);
+            trackRecord(inserted);
+            delegate.onRecordStoreSucceeded(inserted);
+            return;
+          }
+
+          // We found a local dupe.
+          trace("Incoming record " + record.guid + " dupes to local record " + existingRecord.guid);
+
+          // Populate more expensive fields prior to reconciling.
+          existingRecord = transformRecord(existingRecord);
+          Record toStore = reconcileRecords(record, existingRecord, lastRemoteRetrieval, lastLocalRetrieval);
+
+          if (toStore == null) {
+            Logger.debug(LOG_TAG, "Reconciling returned null. Not inserting a record.");
+            return;
+          }
+
+          // TODO: pass in timestamps?
+          Logger.debug(LOG_TAG, "Replacing " + existingRecord.guid + " with record " + toStore.guid);
+          Record replaced = replace(toStore, existingRecord);
+
+          // Note that we don't track records here; deciding that is the job
+          // of reconcileRecords.
+          Logger.debug(LOG_TAG, "Calling delegate callback with guid " + replaced.guid +
+                                "(" + replaced.androidID + ")");
+          delegate.onRecordStoreSucceeded(replaced);
+          return;
+
         } catch (MultipleRecordsForGuidException e) {
-          Log.e(LOG_TAG, "Multiple records returned for given guid: " + record.guid);
+          Logger.error(LOG_TAG, "Multiple records returned for given guid: " + record.guid);
           delegate.onRecordStoreFailed(e);
           return;
         } catch (NoGuidForIdException e) {
-          Log.e(LOG_TAG, "Store failed for " + record.guid, e);
+          Logger.error(LOG_TAG, "Store failed for " + record.guid, e);
           delegate.onRecordStoreFailed(e);
           return;
         } catch (NullCursorException e) {
-          Log.e(LOG_TAG, "Store failed for " + record.guid, e);
+          Logger.error(LOG_TAG, "Store failed for " + record.guid, e);
           delegate.onRecordStoreFailed(e);
           return;
         } catch (Exception e) {
-          Log.e(LOG_TAG, "Store failed for " + record.guid, e);
+          Logger.error(LOG_TAG, "Store failed for " + record.guid, e);
           delegate.onRecordStoreFailed(e);
           return;
         }
-
-        // Invoke callback with result.
-        delegate.onRecordStoreSucceeded(record);
       }
     };
     storeWorkQueue.execute(command);
   }
-  
-  protected long insert(Record record) throws NoGuidForIdException, NullCursorException, ParentNotFoundException {
-    putRecordToGuidMap(buildRecordString(record), record.guid);
-    return RepoUtils.getAndroidIdFromUri(dbHelper.insert(record));
+
+  protected void storeRecordDeletion(final Record record) {
+    // TODO: we ought to mark the record as deleted rather than deleting it,
+    // in order to support syncing to multiple destinations. Bug 722607.
+    dbHelper.delete(record);      // TODO: mm?
+    delegate.onRecordStoreSucceeded(record);
+  }
+
+  protected Record insert(Record record) throws NoGuidForIdException, NullCursorException, ParentNotFoundException {
+    Record toStore = prepareRecord(record);
+    Uri recordURI = dbHelper.insert(toStore);
+    long id = RepoUtils.getAndroidIdFromUri(recordURI);
+    Logger.debug(LOG_TAG, "Inserted as " + id);
+
+    toStore.androidID = id;
+    updateBookkeeping(toStore);
+    Logger.debug(LOG_TAG, "insert() returning record " + toStore.guid);
+    return toStore;
+  }
+
+  protected Record replace(Record newRecord, Record existingRecord) throws NoGuidForIdException, NullCursorException, ParentNotFoundException {
+    Record toStore = prepareRecord(newRecord);
+
+    // newRecord should already have suitable androidID and guid.
+    dbHelper.update(existingRecord.guid, toStore);
+    updateBookkeeping(toStore);
+    Logger.debug(LOG_TAG, "replace() returning record " + toStore.guid);
+    return toStore;
   }
 
   protected Record recordForGUID(String guid) throws
@@ -451,29 +566,31 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
     }
   }
 
-  // Check if record already exists locally.
+  /**
+   * Attempt to find an equivalent record through some means other than GUID.
+   *
+   * @param record
+   *        The record for which to search.
+   * @return
+   *        An equivalent Record object, or null if none is found.
+   *
+   * @throws MultipleRecordsForGuidException
+   * @throws NoGuidForIdException
+   * @throws NullCursorException
+   * @throws ParentNotFoundException
+   */
   protected Record findExistingRecord(Record record) throws MultipleRecordsForGuidException,
     NoGuidForIdException, NullCursorException, ParentNotFoundException {
 
-    Log.d(LOG_TAG, "Finding existing record for GUID " + record.guid);
-    Record r = recordForGUID(record.guid);
-
-    // One result. (Multiple throws an exception.)
-    if (r != null) {
-      Log.d(LOG_TAG, "Found one by GUID.");
-      return r;
-    }
-
-    // Empty result.
-    // Check to see if record exists but with a different guid.
+    Logger.debug(LOG_TAG, "Finding existing record for incoming record with GUID " + record.guid);
     String recordString = buildRecordString(record);
-    Log.d(LOG_TAG, "Searching with record string " + recordString);
+    Logger.debug(LOG_TAG, "Searching with record string " + recordString);
     String guid = getRecordToGuidMap().get(recordString);
     if (guid != null) {
-      Log.d(LOG_TAG, "Found one. Returning computed record.");
+      Logger.debug(LOG_TAG, "Found one. Returning computed record.");
       return recordForGUID(guid);
     }
-    Log.d(LOG_TAG, "findExistingRecord failed to find one for " + record.guid);
+    Logger.debug(LOG_TAG, "findExistingRecord failed to find one for " + record.guid);
     return null;
   }
 
@@ -485,6 +602,7 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
   }
 
   private void createRecordToGuidMap() throws NoGuidForIdException, NullCursorException, ParentNotFoundException {
+    Logger.info(LOG_TAG, "BEGIN: creating record -> GUID map.");
     recordToGuid = new HashMap<String, String>();
     Cursor cur = dbHelper.fetchAll();
     try {
@@ -501,33 +619,21 @@ public abstract class AndroidBrowserRepositorySession extends RepositorySession 
     } finally {
       cur.close();
     }
+    Logger.info(LOG_TAG, "END: creating record -> GUID map.");
   }
 
-  public void putRecordToGuidMap(String guid, String recordString) throws NoGuidForIdException, NullCursorException, ParentNotFoundException {
+  public void putRecordToGuidMap(String recordString, String guid) throws NoGuidForIdException, NullCursorException, ParentNotFoundException {
     if (recordToGuid == null) {
       createRecordToGuidMap();
     }
-    recordToGuid.put(guid, recordString);
+    recordToGuid.put(recordString, guid);
   }
 
-  protected Record reconcileRecords(Record local, Record remote) {
-    Log.i(LOG_TAG, "Reconciling " + local.guid + " against " + remote.guid);
-
-    // Determine which record is newer since this is the one we will take in case of conflict.
-    // Yes, clock drift. *sigh*
-    Record newer;
-    if (local.lastModified > remote.lastModified) {
-      newer = local;
-    } else {
-      newer = remote;
-    }
-
-    if (newer.guid != remote.guid) {
-      newer.guid = remote.guid;
-    }
-    newer.androidID = local.androidID;
-
-    return newer;
+  protected abstract Record prepareRecord(Record record);
+  protected void updateBookkeeping(Record record) throws NoGuidForIdException,
+                                                 NullCursorException,
+                                                 ParentNotFoundException {
+    putRecordToGuidMap(buildRecordString(record), record.guid);
   }
 
   // Wipe method and thread.

@@ -68,7 +68,7 @@
 #include "nsMediaError.h"
 #include "nsICategoryManager.h"
 #include "nsCharSeparatedTokenizer.h"
-#include "nsMediaStream.h"
+#include "MediaResource.h"
 
 #include "nsIDOMHTMLVideoElement.h"
 #include "nsIContentPolicy.h"
@@ -243,10 +243,10 @@ public:
  * to an nsIChannel, which holds a reference to this listener.
  * We break the reference cycle in OnStartRequest by clearing mElement.
  */
-class nsHTMLMediaElement::MediaLoadListener : public nsIStreamListener,
-                                              public nsIChannelEventSink,
-                                              public nsIInterfaceRequestor,
-                                              public nsIObserver
+class nsHTMLMediaElement::MediaLoadListener MOZ_FINAL : public nsIStreamListener,
+                                                        public nsIChannelEventSink,
+                                                        public nsIInterfaceRequestor,
+                                                        public nsIObserver
 {
   NS_DECL_ISUPPORTS
   NS_DECL_NSIREQUESTOBSERVER
@@ -538,6 +538,7 @@ void nsHTMLMediaElement::AbortExistingLoads()
   mIsLoadingFromSourceChildren = false;
   mSuspendedAfterFirstFrame = false;
   mAllowSuspendAfterFirstFrame = true;
+  mHaveQueuedSelectResource = false;
   mLoadIsSuspended = false;
   mSourcePointer = nsnull;
 
@@ -625,11 +626,11 @@ void nsHTMLMediaElement::QueueLoadFromSourceTask()
 void nsHTMLMediaElement::QueueSelectResourceTask()
 {
   // Don't allow multiple async select resource calls to be queued.
-  if (mIsRunningSelectResource)
+  if (mHaveQueuedSelectResource)
     return;
-  mIsRunningSelectResource = true;
+  mHaveQueuedSelectResource = true;
   mNetworkState = nsIDOMHTMLMediaElement::NETWORK_NO_SOURCE;
-  AsyncAwaitStableState(this, &nsHTMLMediaElement::SelectResource);
+  AsyncAwaitStableState(this, &nsHTMLMediaElement::SelectResourceWrapper);
 }
 
 /* void load (); */
@@ -658,6 +659,13 @@ static bool HasSourceChildren(nsIContent *aElement)
   return false;
 }
 
+void nsHTMLMediaElement::SelectResourceWrapper()
+{
+  SelectResource();
+  mIsRunningSelectResource = false;
+  mHaveQueuedSelectResource = false;
+}
+
 void nsHTMLMediaElement::SelectResource()
 {
   if (!HasAttr(kNameSpaceID_None, nsGkAtoms::src) && !HasSourceChildren(this)) {
@@ -666,7 +674,6 @@ void nsHTMLMediaElement::SelectResource()
     mNetworkState = nsIDOMHTMLMediaElement::NETWORK_EMPTY;
     // This clears mDelayingLoadEvent, so AddRemoveSelfReference will be called
     ChangeDelayLoadStatus(false);
-    mIsRunningSelectResource = false;
     return;
   }
 
@@ -676,6 +683,12 @@ void nsHTMLMediaElement::SelectResource()
   // Load event was delayed, and still is, so no need to call
   // AddRemoveSelfReference, since it must still be held
   DispatchAsyncEvent(NS_LITERAL_STRING("loadstart"));
+
+  // Delay setting mIsRunningSeletResource until after UpdatePreloadAction
+  // so that we don't lose our state change by bailing out of the preload
+  // state update
+  UpdatePreloadAction();
+  mIsRunningSelectResource = true;
 
   // If we have a 'src' attribute, use that exclusively.
   nsAutoString src;
@@ -691,13 +704,11 @@ void nsHTMLMediaElement::SelectResource()
         // preload:none media, suspend the load here before we make any
         // network requests.
         SuspendLoad();
-        mIsRunningSelectResource = false;
         return;
       }
 
       rv = LoadResource();
       if (NS_SUCCEEDED(rv)) {
-        mIsRunningSelectResource = false;
         return;
       }
     } else {
@@ -710,7 +721,6 @@ void nsHTMLMediaElement::SelectResource()
     mIsLoadingFromSourceChildren = true;
     LoadFromSourceChildren();
   }
-  mIsRunningSelectResource = false;
 }
 
 void nsHTMLMediaElement::NotifyLoadError()
@@ -928,7 +938,7 @@ nsresult nsHTMLMediaElement::LoadResource()
   NS_ASSERTION(mDelayingLoadEvent,
                "Should delay load event (if in document) during load");
 
-  // If a previous call to mozSetup() was made, kill that media stream
+  // If a previous call to mozSetup() was made, kill that media resource
   // in order to use this new src instead.
   if (mAudioStream) {
     mAudioStream->Shutdown();
@@ -938,6 +948,16 @@ nsresult nsHTMLMediaElement::LoadResource()
   if (mChannel) {
     mChannel->Cancel(NS_BINDING_ABORTED);
     mChannel = nsnull;
+  }
+
+  // Set the media element's CORS mode only when loading a resource
+  // By default, it's CORS_NONE
+  mCORSMode = CORS_NONE;
+  const nsAttrValue* value = GetParsedAttr(nsGkAtoms::crossorigin);
+  if (value) {
+    NS_ASSERTION(value->Type() == nsAttrValue::eEnum,
+                 "Why is this not an enum value?");
+    mCORSMode = CORSMode(value->GetEnumValue());
   }
 
   nsHTMLMediaElement* other = LookupMediaElementURITable(mLoadingSrc);
@@ -1002,7 +1022,7 @@ nsresult nsHTMLMediaElement::LoadResource()
       new nsCORSListenerProxy(loadListener,
                               NodePrincipal(),
                               channel,
-                              false,
+                              GetCORSMode() == CORS_USE_CREDENTIALS,
                               &rv);
   } else {
     rv = nsContentUtils::GetSecurityManager()->
@@ -1344,7 +1364,7 @@ MediaElementTableCount(nsHTMLMediaElement* aElement, nsIURI* aURI)
 void
 nsHTMLMediaElement::AddMediaElementToURITable()
 {
-  NS_ASSERTION(mDecoder && mDecoder->GetStream(), "Call this only with decoder Load called");
+  NS_ASSERTION(mDecoder && mDecoder->GetResource(), "Call this only with decoder Load called");
   NS_ASSERTION(MediaElementTableCount(this, mLoadingSrc) == 0,
     "Should not have entry for element in element table before addition");
   if (!gElementTable) {
@@ -1392,12 +1412,11 @@ nsHTMLMediaElement::LookupMediaElementURITable(nsIURI* aURI)
   for (PRUint32 i = 0; i < entry->mElements.Length(); ++i) {
     nsHTMLMediaElement* elem = entry->mElements[i];
     bool equal;
-    // Look for elements that have the same principal.
-    // XXX when we implement crossorigin for video, we'll also need to check
-    // for the same crossorigin mode here. Ditto for anything else that could
-    // cause us to send different headers.
-    if (NS_SUCCEEDED(elem->NodePrincipal()->Equals(NodePrincipal(), &equal)) && equal) {
-      NS_ASSERTION(elem->mDecoder && elem->mDecoder->GetStream(), "Decoder gone");
+    // Look for elements that have the same principal and CORS mode.
+    // Ditto for anything else that could cause us to send different headers.
+    if (NS_SUCCEEDED(elem->NodePrincipal()->Equals(NodePrincipal(), &equal)) && equal &&
+        elem->mCORSMode == mCORSMode) {
+      NS_ASSERTION(elem->mDecoder && elem->mDecoder->GetResource(), "Decoder gone");
       return elem;
     }
   }
@@ -1432,13 +1451,15 @@ nsHTMLMediaElement::nsHTMLMediaElement(already_AddRefed<nsINodeInfo> aNodeInfo)
     mIsLoadingFromSourceChildren(false),
     mDelayingLoadEvent(false),
     mIsRunningSelectResource(false),
+    mHaveQueuedSelectResource(false),
     mSuspendedAfterFirstFrame(false),
     mAllowSuspendAfterFirstFrame(true),
     mHasPlayedOrSeeked(false),
     mHasSelfReference(false),
     mShuttingDown(false),
     mLoadIsSuspended(false),
-    mMediaSecurityVerified(false)
+    mMediaSecurityVerified(false),
+    mCORSMode(CORS_NONE)
 {
 #ifdef PR_LOGGING
   if (!gMediaElementLog) {
@@ -1458,6 +1479,9 @@ nsHTMLMediaElement::~nsHTMLMediaElement()
   NS_ASSERTION(!mHasSelfReference,
                "How can we be destroyed if we're still holding a self reference?");
 
+  if (mVideoFrameContainer) {
+    mVideoFrameContainer->ForgetElement();
+  }
   UnregisterFreezableElement();
   if (mDecoder) {
     RemoveMediaElementFromURITable();
@@ -1559,6 +1583,8 @@ NS_IMETHODIMP nsHTMLMediaElement::Play()
   return NS_OK;
 }
 
+NS_IMPL_STRING_ATTR(nsHTMLMediaElement, Crossorigin, crossorigin)
+
 bool nsHTMLMediaElement::ParseAttribute(PRInt32 aNamespaceID,
                                           nsIAtom* aAttribute,
                                           const nsAString& aValue,
@@ -1576,6 +1602,12 @@ bool nsHTMLMediaElement::ParseAttribute(PRInt32 aNamespaceID,
   if (aNamespaceID == kNameSpaceID_None) {
     if (ParseImageAttribute(aAttribute, aValue, aResult)) {
       return true;
+    }
+    if (aAttribute == nsGkAtoms::crossorigin) {
+      return aResult.ParseEnumValue(aValue, kCORSAttributeTable, false,
+                                    // default value is anonymous if aValue is
+                                    // not a value we understand
+                                    &kCORSAttributeTable[0]);
     }
     if (aAttribute == nsGkAtoms::preload) {
       return aResult.ParseEnumValue(aValue, kPreloadTable, false);
@@ -1989,8 +2021,8 @@ nsresult nsHTMLMediaElement::InitializeDecoderAsClone(nsMediaDecoder* aOriginal)
   NS_ASSERTION(mLoadingSrc, "mLoadingSrc must already be set");
   NS_ASSERTION(mDecoder == nsnull, "Shouldn't have a decoder");
 
-  nsMediaStream* originalStream = aOriginal->GetStream();
-  if (!originalStream)
+  MediaResource* originalResource = aOriginal->GetResource();
+  if (!originalResource)
     return NS_ERROR_FAILURE;
   nsRefPtr<nsMediaDecoder> decoder = aOriginal->Clone();
   if (!decoder)
@@ -1999,6 +2031,7 @@ nsresult nsHTMLMediaElement::InitializeDecoderAsClone(nsMediaDecoder* aOriginal)
   LOG(PR_LOG_DEBUG, ("%p Cloned decoder %p from %p", this, decoder.get(), aOriginal));
 
   if (!decoder->Init(this)) {
+    LOG(PR_LOG_DEBUG, ("%p Failed to init cloned decoder %p", this, decoder.get()));
     return NS_ERROR_FAILURE;
   }
 
@@ -2008,15 +2041,17 @@ nsresult nsHTMLMediaElement::InitializeDecoderAsClone(nsMediaDecoder* aOriginal)
     decoder->SetSeekable(aOriginal->IsSeekable());
   }
 
-  nsMediaStream* stream = originalStream->CloneData(decoder);
-  if (!stream) {
+  MediaResource* resource = originalResource->CloneData(decoder);
+  if (!resource) {
+    LOG(PR_LOG_DEBUG, ("%p Failed to cloned stream for decoder %p", this, decoder.get()));
     return NS_ERROR_FAILURE;
   }
 
   mNetworkState = nsIDOMHTMLMediaElement::NETWORK_LOADING;
 
-  nsresult rv = decoder->Load(stream, nsnull, aOriginal);
+  nsresult rv = decoder->Load(resource, nsnull, aOriginal);
   if (NS_FAILED(rv)) {
+    LOG(PR_LOG_DEBUG, ("%p Failed to load decoder/stream for decoder %p", this, decoder.get()));
     return rv;
   }
 
@@ -2046,16 +2081,16 @@ nsresult nsHTMLMediaElement::InitializeDecoderForChannel(nsIChannel *aChannel,
 
   mNetworkState = nsIDOMHTMLMediaElement::NETWORK_LOADING;
 
-  nsMediaStream* stream = nsMediaStream::Create(decoder, aChannel);
-  if (!stream)
+  MediaResource* resource = MediaResource::Create(decoder, aChannel);
+  if (!resource)
     return NS_ERROR_OUT_OF_MEMORY;
 
-  nsresult rv = decoder->Load(stream, aListener, nsnull);
+  nsresult rv = decoder->Load(resource, aListener, nsnull);
   if (NS_FAILED(rv)) {
     return rv;
   }
 
-  // Decoder successfully created, the decoder now owns the nsMediaStream
+  // Decoder successfully created, the decoder now owns the MediaResource
   // which owns the channel.
   mChannel = nsnull;
 
@@ -2066,17 +2101,13 @@ nsresult nsHTMLMediaElement::FinishDecoderSetup(nsMediaDecoder* aDecoder)
 {
   NS_ASSERTION(mLoadingSrc, "mLoadingSrc set up");
 
-  nsCAutoString src;
-  GetCurrentSpec(src);
-  printf("*** nsHTMLElement::FinishDecoderSetup() mDecoder=%p stream=%p src=%s\n",
-         aDecoder, aDecoder->GetStream(), src.get());
   mDecoder = aDecoder;
   AddMediaElementToURITable();
 
   // Force a same-origin check before allowing events for this media resource.
   mMediaSecurityVerified = false;
 
-  // The new stream has not been suspended by us.
+  // The new resource has not been suspended by us.
   mPausedForInactiveDocument = false;
   // But we may want to suspend it now.
   // This will also do an AddRemoveSelfReference.
@@ -2272,7 +2303,7 @@ void nsHTMLMediaElement::PlaybackEnded()
   AddRemoveSelfReference();
 
   if (mDecoder && mDecoder->IsInfinite()) {
-    LOG(PR_LOG_DEBUG, ("%p, got duration by reaching the end of the stream", this));
+    LOG(PR_LOG_DEBUG, ("%p, got duration by reaching the end of the resource", this));
     DispatchAsyncEvent(NS_LITERAL_STRING("durationchange"));
   }
 
@@ -2327,7 +2358,7 @@ void nsHTMLMediaElement::DownloadStalled()
 
 bool nsHTMLMediaElement::ShouldCheckAllowOrigin()
 {
-  return Preferences::GetBool("media.enforce_same_site_origin", true);
+  return mCORSMode != CORS_NONE;
 }
 
 void nsHTMLMediaElement::UpdateReadyStateForData(NextFrameStatus aNextFrame)
@@ -2454,10 +2485,10 @@ void nsHTMLMediaElement::NotifyAutoplayDataReady()
   }
 }
 
-ImageContainer* nsHTMLMediaElement::GetImageContainer()
+VideoFrameContainer* nsHTMLMediaElement::GetVideoFrameContainer()
 {
-  if (mImageContainer)
-    return mImageContainer;
+  if (mVideoFrameContainer)
+    return mVideoFrameContainer;
 
   // If we have a print surface, this is just a static image so
   // no image container is required
@@ -2469,16 +2500,9 @@ ImageContainer* nsHTMLMediaElement::GetImageContainer()
   if (!video)
     return nsnull;
 
-  nsRefPtr<LayerManager> manager =
-    nsContentUtils::PersistentLayerManagerForDocument(OwnerDoc());
-  if (!manager)
-    return nsnull;
-
-  mImageContainer = manager->CreateImageContainer();
-  if (manager->IsCompositingCheap()) {
-    mImageContainer->SetDelayedConversion(true);
-  }
-  return mImageContainer;
+  mVideoFrameContainer =
+    new VideoFrameContainer(this, LayerManager::CreateImageContainer());
+  return mVideoFrameContainer;
 }
 
 nsresult nsHTMLMediaElement::DispatchAudioAvailableEvent(float* aFrameBuffer,

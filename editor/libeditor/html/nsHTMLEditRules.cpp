@@ -60,7 +60,6 @@
 #include "nsISelectionPrivate.h"
 #include "nsISelectionController.h"
 #include "nsIDOMRange.h"
-#include "nsIRangeUtils.h"
 #include "nsIDOMCharacterData.h"
 #include "nsIEnumerator.h"
 #include "nsIDOMNamedNodeMap.h"
@@ -818,7 +817,7 @@ nsHTMLEditRules::GetAlignment(bool *aMixed, nsIHTMLEditor::EAlignment *aAlign)
   nsCOMPtr<nsISupports> isupports;
   if (bCollapsed)
   {
-    // if it is, we want to look at 'parent' and it's ancestors
+    // if it is, we want to look at 'parent' and its ancestors
     // for divs with alignment on them
     nodeToExamine = parent;
   }
@@ -848,8 +847,6 @@ nsHTMLEditRules::GetAlignment(bool *aMixed, nsIHTMLEditor::EAlignment *aAlign)
 
   NS_ENSURE_TRUE(nodeToExamine, NS_ERROR_NULL_POINTER);
 
-  bool useCSS;
-  mHTMLEditor->GetIsCSSEnabled(&useCSS);
   NS_NAMED_LITERAL_STRING(typeAttrName, "align");
   nsIAtom  *dummyProperty = nsnull;
   nsCOMPtr<nsIDOMNode> blockParent;
@@ -860,20 +857,18 @@ nsHTMLEditRules::GetAlignment(bool *aMixed, nsIHTMLEditor::EAlignment *aAlign)
 
   NS_ENSURE_TRUE(blockParent, NS_ERROR_FAILURE);
 
-  if (useCSS)
+  if (mHTMLEditor->IsCSSEnabled())
   {
     nsCOMPtr<nsIContent> blockParentContent = do_QueryInterface(blockParent);
     if (blockParentContent && 
-        mHTMLEditor->mHTMLCSSUtils->IsCSSEditableProperty(blockParent, dummyProperty, &typeAttrName))
+        mHTMLEditor->mHTMLCSSUtils->IsCSSEditableProperty(blockParentContent, dummyProperty, &typeAttrName))
     {
       // we are in CSS mode and we know how to align this element with CSS
       nsAutoString value;
       // let's get the value(s) of text-align or margin-left/margin-right
-      mHTMLEditor->mHTMLCSSUtils->GetCSSEquivalentToHTMLInlineStyleSet(blockParent,
-                                                     dummyProperty,
-                                                     &typeAttrName,
-                                                     value,
-                                                     COMPUTED_STYLE_TYPE);
+      mHTMLEditor->mHTMLCSSUtils->GetCSSEquivalentToHTMLInlineStyleSet(
+        blockParentContent, dummyProperty, &typeAttrName, value,
+        COMPUTED_STYLE_TYPE);
       if (value.EqualsLiteral("center") ||
           value.EqualsLiteral("-moz-center") ||
           value.EqualsLiteral("auto auto"))
@@ -972,8 +967,7 @@ nsHTMLEditRules::GetIndentState(bool *aCanIndent, bool *aCanOutdent)
   // if *any* of the selection is outdentable, rather than all of it.
   PRInt32 listCount = arrayOfNodes.Count();
   PRInt32 i;
-  bool useCSS;
-  mHTMLEditor->GetIsCSSEnabled(&useCSS);
+  bool useCSS = mHTMLEditor->IsCSSEnabled();
   for (i=listCount-1; i>=0; i--)
   {
     nsCOMPtr<nsIDOMNode> curNode = arrayOfNodes[i];
@@ -1115,7 +1109,7 @@ nsHTMLEditRules::GetParagraphState(bool *aMixed, nsAString &outFormat)
     else if (IsBlockNode(curNode))
     {
       // this is a div or some other non-format block.
-      // we should ignore it.  It's children were appended to this list
+      // we should ignore it.  Its children were appended to this list
       // by AppendInnerFormatNodes() call above.  We will get needed
       // info when we examine them instead.
       continue;
@@ -2437,21 +2431,20 @@ nsHTMLEditRules::WillDeleteSelection(nsISelection *aSelection,
       
           // now that we have the list, delete non table elements
           PRInt32 listCount = arrayOfNodes.Count();
-          PRInt32 j;
-
-          for (j = 0; j < listCount; j++)
-          {
+          for (PRInt32 j = 0; j < listCount; j++) {
             nsIDOMNode* somenode = arrayOfNodes[0];
             res = DeleteNonTableElements(somenode);
             arrayOfNodes.RemoveObjectAt(0);
             // If something visible is deleted, no need to join.
             // Visible means all nodes except non-visible textnodes and breaks.
             if (join && origCollapsed) {
-              if (mHTMLEditor->IsTextNode(somenode)) {
-                mHTMLEditor->IsVisTextNode(somenode, &join, true);
-              }
-              else {
-                join = nsTextEditUtils::IsBreak(somenode) && 
+              nsCOMPtr<nsIContent> content = do_QueryInterface(somenode);
+              if (!content) {
+                join = false;
+              } else if (content->NodeType() == nsIDOMNode::TEXT_NODE) {
+                mHTMLEditor->IsVisTextNode(content, &join, true);
+              } else {
+                join = content->IsHTML(nsGkAtoms::br) &&
                        !mHTMLEditor->IsVisBreak(somenode);
               }
             }
@@ -2602,7 +2595,7 @@ nsHTMLEditRules::GetGoodSelPointForNode(nsIDOMNode *aNode, nsIEditor::EDirection
 *    to the left element.  If the elements are the same type and not nested within each other, 
 *    JoinNodesSmart is called (example, joining two list items together into one).  If the elements
 *    are not the same type, or one is a descendant of the other, we instead destroy the right block
-*    placing it's children into leftblock.  DTD containment rules are followed throughout.
+*    placing its children into leftblock.  DTD containment rules are followed throughout.
 *         nsCOMPtr<nsIDOMNode> *aLeftBlock         pointer to the left block
 *         nsCOMPtr<nsIDOMNode> *aRightBlock        pointer to the right block; will have contents moved to left block
 *         bool *aCanceled                        return TRUE if we had to cancel operation
@@ -2852,7 +2845,7 @@ nsHTMLEditRules::MoveNodeSmart(nsIDOMNode *aSource, nsIDOMNode *aDest, PRInt32 *
   }
   else
   {
-    // if it can't, move it's children, and then delete it.
+    // if it can't, move its children, and then delete it.
     res = MoveContents(aSource, aDest, aOffset);
     NS_ENSURE_SUCCESS(res, res);
     res = mHTMLEditor->DeleteNode(aSource);
@@ -2942,10 +2935,10 @@ nsHTMLEditRules::DidDeleteSelection(nsISelection *aSelection,
   res = GetTopEnclosingMailCite(startNode, address_of(citeNode), 
                                 IsPlaintextEditor());
   NS_ENSURE_SUCCESS(res, res);
-  if (citeNode)
-  {
+  if (citeNode) {
+    nsCOMPtr<nsINode> cite = do_QueryInterface(citeNode);
     bool isEmpty = true, seenBR = false;
-    mHTMLEditor->IsEmptyNodeImpl(citeNode, &isEmpty, true, true, false, &seenBR);
+    mHTMLEditor->IsEmptyNodeImpl(cite, &isEmpty, true, true, false, &seenBR);
     if (isEmpty)
     {
       nsCOMPtr<nsIDOMNode> parent, brNode;
@@ -3526,11 +3519,8 @@ nsHTMLEditRules::DidMakeBasicBlock(nsISelection *aSelection,
 nsresult
 nsHTMLEditRules::WillIndent(nsISelection *aSelection, bool *aCancel, bool * aHandled)
 {
-  bool useCSS;
   nsresult res;
-  mHTMLEditor->GetIsCSSEnabled(&useCSS);
-  
-  if (useCSS) {
+  if (mHTMLEditor->IsCSSEnabled()) {
     res = WillCSSIndent(aSelection, aCancel, aHandled);
   }
   else {
@@ -3987,8 +3977,7 @@ nsHTMLEditRules::WillOutdent(nsISelection *aSelection, bool *aCancel, bool *aHan
   *aHandled = true;
   nsresult res = NS_OK;
   nsCOMPtr<nsIDOMNode> rememberedLeftBQ, rememberedRightBQ;
-  bool useCSS;
-  mHTMLEditor->GetIsCSSEnabled(&useCSS);
+  bool useCSS = mHTMLEditor->IsCSSEnabled();
 
   res = NormalizeSelection(aSelection);
   NS_ENSURE_SUCCESS(res, res);
@@ -4729,13 +4718,10 @@ nsHTMLEditRules::WillAlign(nsISelection *aSelection,
   // Ok, now go through all the nodes and give them an align attrib or put them in a div, 
   // or whatever is appropriate.  Wohoo!
 
-  PRInt32 i;
   nsCOMPtr<nsIDOMNode> curParent;
   nsCOMPtr<nsIDOMNode> curDiv;
-  bool useCSS;
-  mHTMLEditor->GetIsCSSEnabled(&useCSS);
-  for (i=0; i<listCount; i++)
-  {
+  bool useCSS = mHTMLEditor->IsCSSEnabled();
+  for (PRInt32 i = 0; i < listCount; ++i) {
     // here's where we actually figure out what to do
     nsCOMPtr<nsIDOMNode> curNode = arrayOfNodes[i];
 
@@ -4873,8 +4859,7 @@ nsHTMLEditRules::AlignBlockContents(nsIDOMNode *aNode, const nsAString *alignTyp
   nsresult res;
   nsCOMPtr <nsIDOMNode> firstChild, lastChild, divNode;
   
-  bool useCSS;
-  mHTMLEditor->GetIsCSSEnabled(&useCSS);
+  bool useCSS = mHTMLEditor->IsCSSEnabled();
 
   res = mHTMLEditor->GetFirstEditableChild(aNode, address_of(firstChild));
   NS_ENSURE_SUCCESS(res, res);
@@ -4887,7 +4872,7 @@ nsHTMLEditRules::AlignBlockContents(nsIDOMNode *aNode, const nsAString *alignTyp
   }
   else if ((firstChild==lastChild) && nsHTMLEditUtils::IsDiv(firstChild))
   {
-    // the cell already has a div containing all of it's content: just
+    // the cell already has a div containing all of its content: just
     // act on this div.
     nsCOMPtr<nsIDOMElement> divElem = do_QueryInterface(firstChild);
     if (useCSS) {
@@ -5238,7 +5223,7 @@ nsHTMLEditRules::ExpandSelectionForDeletion(nsISelection *aSelection)
   aSelection->Collapse(selStartNode, selStartOffset);
   
   // expand selection endpoint only if we didnt pass a br,
-  // or if we really needed to pass that br (ie, it's block is now 
+  // or if we really needed to pass that br (ie, its block is now 
   // totally selected)
   bool doEndExpansion = true;
   if (firstBRParent)
@@ -5258,7 +5243,7 @@ nsHTMLEditRules::ExpandSelectionForDeletion(nsISelection *aSelection)
     
     // check if block is entirely inside range
     nsCOMPtr<nsIContent> brContentBlock = do_QueryInterface(brBlock);
-    res = mHTMLEditor->sRangeHelper->CompareNodeToRange(brContentBlock, range, &nodeBefore, &nodeAfter);
+    res = nsRange::CompareNodeToRange(brContentBlock, range, &nodeBefore, &nodeAfter);
     
     // if block isn't contained, forgo grabbing the br in the expanded selection
     if (nodeBefore || nodeAfter)
@@ -5490,9 +5475,11 @@ nsHTMLEditRules::NormalizeSelection(nsISelection *inSelection)
   // then just leave things alone.
   
   PRInt16 comp;
-  comp = mHTMLEditor->sRangeHelper->ComparePoints(startNode, startOffset, newEndNode, newEndOffset);
+  comp = nsContentUtils::ComparePoints(startNode, startOffset,
+                                       newEndNode, newEndOffset);
   if (comp == 1) return NS_OK;  // new end before old start
-  comp = mHTMLEditor->sRangeHelper->ComparePoints(newStartNode, newStartOffset, endNode, endOffset);
+  comp = nsContentUtils::ComparePoints(newStartNode, newStartOffset,
+                                       endNode, endOffset);
   if (comp == 1) return NS_OK;  // new start after old end
   
   // otherwise set selection to new values.  
@@ -5852,9 +5839,6 @@ nsHTMLEditRules::GetNodesForOperation(nsCOMArray<nsIDOMRange>& inArrayOfRanges,
   PRInt32 i;
   nsCOMPtr<nsIDOMRange> opRange;
 
-  bool useCSS;
-  mHTMLEditor->GetIsCSSEnabled(&useCSS);
-
   nsresult res = NS_OK;
   
   // bust up any inlines that cross our range endpoints,
@@ -5965,7 +5949,7 @@ nsHTMLEditRules::GetNodesForOperation(nsCOMArray<nsIDOMRange>& inArrayOfRanges,
     }
   }
   // outdent should look inside of divs.
-  if (inOperationType == kOutdent && !useCSS) 
+  if (inOperationType == kOutdent && !mHTMLEditor->IsCSSEnabled()) 
   {
     PRInt32 listCount = outArrayOfNodes.Count();
     for (i=listCount-1; i>=0; i--)
@@ -6503,21 +6487,30 @@ nsHTMLEditRules::MakeTransitionList(nsCOMArray<nsIDOMNode>& inArrayOfNodes,
 //               Also stops on the active editor host (contenteditable).
 //               Also test if aNode is an li itself.
 //                       
-nsCOMPtr<nsIDOMNode> 
-nsHTMLEditRules::IsInListItem(nsIDOMNode *aNode)
+already_AddRefed<nsIDOMNode>
+nsHTMLEditRules::IsInListItem(nsIDOMNode* aNode)
 {
-  NS_ENSURE_TRUE(aNode, nsnull);  
-  if (nsHTMLEditUtils::IsListItem(aNode)) return aNode;
-  
-  nsCOMPtr<nsIDOMNode> parent, tmp;
-  aNode->GetParentNode(getter_AddRefs(parent));
-  
-  while (parent)
-  {
-    if (!mHTMLEditor->IsNodeInActiveEditor(parent)) return nsnull;
-    if (nsHTMLEditUtils::IsTableElement(parent)) return nsnull;
-    if (nsHTMLEditUtils::IsListItem(parent)) return parent;
-    tmp=parent; tmp->GetParentNode(getter_AddRefs(parent));
+  nsCOMPtr<nsINode> node = do_QueryInterface(aNode);
+  nsCOMPtr<nsIDOMNode> retval = do_QueryInterface(IsInListItem(node));
+  return retval.forget();
+}
+
+nsINode*
+nsHTMLEditRules::IsInListItem(nsINode* aNode)
+{
+  NS_ENSURE_TRUE(aNode, nsnull);
+  if (aNode->IsElement() && nsHTMLEditUtils::IsListItem(aNode->AsElement())) {
+    return aNode;
+  }
+
+  nsINode* parent = aNode->GetNodeParent();
+  while (parent && mHTMLEditor->IsNodeInActiveEditor(parent) &&
+         !(parent->IsElement() &&
+           nsHTMLEditUtils::IsTableElement(parent->AsElement()))) {
+    if (nsHTMLEditUtils::IsListItem(parent->AsElement())) {
+      return parent;
+    }
+    parent = parent->GetNodeParent();
   }
   return nsnull;
 }
@@ -6976,7 +6969,7 @@ nsHTMLEditRules::MakeBlockquote(nsCOMArray<nsIDOMNode>& arrayOfNodes)
   PRInt32 i;
   for (i=0; i<listCount; i++)
   {
-    // get the node to act on, and it's location
+    // get the node to act on, and its location
     curNode = arrayOfNodes[i];
     res = nsEditor::GetNodeLocation(curNode, address_of(curParent), &offset);
     NS_ENSURE_SUCCESS(res, res);
@@ -7052,7 +7045,7 @@ nsHTMLEditRules::RemoveBlockStyle(nsCOMArray<nsIDOMNode>& arrayOfNodes)
   PRInt32 i;
   for (i=0; i<listCount; i++)
   {
-    // get the node to act on, and it's location
+    // get the node to act on, and its location
     curNode = arrayOfNodes[i];
     res = nsEditor::GetNodeLocation(curNode, address_of(curParent), &offset);
     NS_ENSURE_SUCCESS(res, res);
@@ -7184,7 +7177,7 @@ nsHTMLEditRules::ApplyBlockStyle(nsCOMArray<nsIDOMNode>& arrayOfNodes, const nsA
   PRInt32 i;
   for (i=0; i<listCount; i++)
   {
-    // get the node to act on, and it's location
+    // get the node to act on, and its location
     curNode = arrayOfNodes[i];
     res = nsEditor::GetNodeLocation(curNode, address_of(curParent), &offset);
     NS_ENSURE_SUCCESS(res, res);
@@ -7462,11 +7455,9 @@ nsHTMLEditRules::CacheInlineStyles(nsIDOMNode *aNode)
 {
   NS_ENSURE_TRUE(aNode, NS_ERROR_NULL_POINTER);
 
-  bool useCSS;
-  mHTMLEditor->GetIsCSSEnabled(&useCSS);
+  bool useCSS = mHTMLEditor->IsCSSEnabled();
 
-  PRInt32 j;
-  for (j=0; j<SIZE_STYLE_TABLE; j++)
+  for (PRInt32 j = 0; j < SIZE_STYLE_TABLE; ++j)
   {
     bool isSet = false;
     nsAutoString outValue;
@@ -7504,8 +7495,7 @@ nsHTMLEditRules::ReapplyCachedStyles()
   mHTMLEditor->mTypeInState->Reset();
 
   // remember if we are in css mode
-  bool useCSS;
-  mHTMLEditor->GetIsCSSEnabled(&useCSS);
+  bool useCSS = mHTMLEditor->IsCSSEnabled();
 
   // get selection point
   nsCOMPtr<nsISelection>selection;
@@ -7516,9 +7506,7 @@ nsHTMLEditRules::ReapplyCachedStyles()
   res = mHTMLEditor->GetStartNodeAndOffset(selection, getter_AddRefs(selNode), &selOffset);
   NS_ENSURE_SUCCESS(res, res);
 
-  res = NS_OK;
-  PRInt32 j;
-  for (j=0; j<SIZE_STYLE_TABLE; j++)
+  for (PRInt32 j = 0; j < SIZE_STYLE_TABLE; ++j)
   {
     if (mCachedStyles[j].mPresent)
     {
@@ -7638,7 +7626,7 @@ nsHTMLEditRules::PinSelectionToNewBlock(nsISelection *aSelection)
   nsCOMPtr<nsIContent> block (do_QueryInterface(mNewBlock));
   NS_ENSURE_TRUE(block, NS_ERROR_NO_INTERFACE);
   bool nodeBefore, nodeAfter;
-  res = mHTMLEditor->sRangeHelper->CompareNodeToRange(block, range, &nodeBefore, &nodeAfter);
+  res = nsRange::CompareNodeToRange(block, range, &nodeBefore, &nodeAfter);
   NS_ENSURE_SUCCESS(res, res);
   
   if (nodeBefore && nodeAfter)
@@ -7992,11 +7980,11 @@ nsHTMLEditRules::RemoveEmptyNodes()
   // Since checking to see if a node is empty can be costly for nodes with many
   // descendants, there are some optimizations made.  I rely on the fact that the
   // iterator is post-order: it will visit children of a node before visiting the 
-  // parent node.  So if I find that a child node is not empty, I know that it's
+  // parent node.  So if I find that a child node is not empty, I know that its
   // parent is not empty without even checking.  So I put the parent on a "skipList"
   // which is just a voidArray of nodes I can skip the empty check on.  If I 
   // encounter a node on the skiplist, i skip the processing for that node and replace
-  // it's slot in the skiplist with that node's parent.
+  // its slot in the skiplist with that node's parent.
   // An interseting idea is to go ahead and regard parent nodes that are NOT on the
   // skiplist as being empty (without even doing the IsEmptyNode check) on the theory
   // that if they weren't empty, we would have encountered a non-empty child earlier
@@ -8029,7 +8017,7 @@ nsHTMLEditRules::RemoveEmptyNodes()
     if (idx != skipList.NoIndex)
     {
       // this node is on our skip list.  Skip processing for this node, 
-      // and replace it's value in the skip list with the value of it's parent
+      // and replace its value in the skip list with the value of its parent
       skipList[idx] = parent;
     }
     else
@@ -8413,7 +8401,7 @@ nsHTMLEditRules::UpdateDocChangeRange(nsIDOMRange *aRange)
   // first make sure aRange is in the document.  It might not be if
   // portions of our editting action involved manipulating nodes
   // prior to placing them in the document (e.g., populating a list item
-  // before placing it in it's list)
+  // before placing it in its list)
   nsCOMPtr<nsIDOMNode> startNode;
   res = aRange->GetStartContainer(getter_AddRefs(startNode));
   NS_ENSURE_SUCCESS(res, res);
@@ -8709,8 +8697,7 @@ nsHTMLEditRules::RemoveAlignment(nsIDOMNode * aNode, const nsAString & aAlignTyp
   {
     aNode->GetFirstChild(getter_AddRefs(child));
   }
-  bool useCSS;
-  mHTMLEditor->GetIsCSSEnabled(&useCSS);
+  bool useCSS = mHTMLEditor->IsCSSEnabled();
 
   while (child)
   {
@@ -8877,9 +8864,7 @@ nsHTMLEditRules::AlignBlock(nsIDOMElement * aElement, const nsAString * aAlignTy
   nsresult res = RemoveAlignment(node, *aAlignType, aContentsOnly);
   NS_ENSURE_SUCCESS(res, res);
   NS_NAMED_LITERAL_STRING(attr, "align");
-  bool useCSS;
-  mHTMLEditor->GetIsCSSEnabled(&useCSS);
-  if (useCSS) {
+  if (mHTMLEditor->IsCSSEnabled()) {
     // let's use CSS alignment; we use margin-left and margin-right for tables
     // and text-align for other block-level elements
     res = mHTMLEditor->SetAttributeOrEquivalent(aElement, attr, *aAlignType, false); 
@@ -8901,91 +8886,69 @@ nsHTMLEditRules::RelativeChangeIndentationOfElementNode(nsIDOMNode *aNode, PRInt
 {
   NS_ENSURE_ARG_POINTER(aNode);
 
-  if ( !( (aRelativeChange==1) || (aRelativeChange==-1) ) )
+  if (aRelativeChange != 1 && aRelativeChange != -1) {
     return NS_ERROR_ILLEGAL_VALUE;
+  }
 
   nsCOMPtr<nsIDOMElement> element = do_QueryInterface(aNode);
-  NS_ASSERTION(element, "not an element node");
-
-  if (element) {
-    nsIAtom* marginProperty = MarginPropertyAtomForIndent(mHTMLEditor->mHTMLCSSUtils, element);    
-    nsAutoString value;
-    nsresult res;
-    mHTMLEditor->mHTMLCSSUtils->GetSpecifiedProperty(aNode, marginProperty, value);
-    float f;
-    nsIAtom * unit;
-    mHTMLEditor->mHTMLCSSUtils->ParseLength(value, &f, &unit);
-    if (0 == f) {
-      NS_IF_RELEASE(unit);
-      nsAutoString defaultLengthUnit;
-      mHTMLEditor->mHTMLCSSUtils->GetDefaultLengthUnit(defaultLengthUnit);
-      unit = NS_NewAtom(defaultLengthUnit);
-    }
-    nsAutoString unitString;
-    unit->ToString(unitString);
-    if      (nsEditProperty::cssInUnit == unit)
-              f += NS_EDITOR_INDENT_INCREMENT_IN * aRelativeChange;
-    else if (nsEditProperty::cssCmUnit == unit)
-              f += NS_EDITOR_INDENT_INCREMENT_CM * aRelativeChange;
-    else if (nsEditProperty::cssMmUnit == unit)
-              f += NS_EDITOR_INDENT_INCREMENT_MM * aRelativeChange;
-    else if (nsEditProperty::cssPtUnit == unit)
-              f += NS_EDITOR_INDENT_INCREMENT_PT * aRelativeChange;
-    else if (nsEditProperty::cssPcUnit == unit)
-              f += NS_EDITOR_INDENT_INCREMENT_PC * aRelativeChange;
-    else if (nsEditProperty::cssEmUnit == unit)
-              f += NS_EDITOR_INDENT_INCREMENT_EM * aRelativeChange;
-    else if (nsEditProperty::cssExUnit == unit)
-              f += NS_EDITOR_INDENT_INCREMENT_EX * aRelativeChange;
-    else if (nsEditProperty::cssPxUnit == unit)
-              f += NS_EDITOR_INDENT_INCREMENT_PX * aRelativeChange;
-    else if (nsEditProperty::cssPercentUnit == unit)
-              f += NS_EDITOR_INDENT_INCREMENT_PERCENT * aRelativeChange;    
-
-    NS_IF_RELEASE(unit);
-
-    if (0 < f) {
-      nsAutoString newValue;
-      newValue.AppendFloat(f);
-      newValue.Append(unitString);
-      mHTMLEditor->mHTMLCSSUtils->SetCSSProperty(element, marginProperty, newValue, false);
-    }
-    else {
-      mHTMLEditor->mHTMLCSSUtils->RemoveCSSProperty(element, marginProperty, value, false);
-      // remove unnecessary DIV blocks:
-      // we could skip this section but that would cause a FAIL in
-      // editor/libeditor/html/tests/browserscope/richtext.html, which expects
-      // to unapply a CSS "indent" (<div style="margin-left: 40px;">) by
-      // removing the DIV container instead of just removing the CSS property.
-      nsCOMPtr<nsINode> node = do_QueryInterface(aNode);
-      if (nsHTMLEditUtils::IsDiv(aNode)
-          && (node != mHTMLEditor->GetActiveEditingHost())
-          && mHTMLEditor->IsNodeInActiveEditor(aNode)) {
-        // we deal with an editable DIV;
-        // let's see if it is useless and if we can remove it
-        nsCOMPtr<nsIDOMNamedNodeMap> attributeList;
-        res = element->GetAttributes(getter_AddRefs(attributeList));
-        NS_ENSURE_SUCCESS(res, res);
-        PRUint32 count;
-        attributeList->GetLength(&count);
-        if (!count) {
-          // the DIV has no attribute at all, let's remove it
-          res = mHTMLEditor->RemoveContainer(element);
-          NS_ENSURE_SUCCESS(res, res);
-        }
-        else if (1 == count) {
-          nsCOMPtr<nsIDOMNode> styleAttributeNode;
-          res = attributeList->GetNamedItem(NS_LITERAL_STRING("style"), 
-                                            getter_AddRefs(styleAttributeNode));
-          if (!styleAttributeNode) {
-            res = mHTMLEditor->RemoveContainer(element);
-            NS_ENSURE_SUCCESS(res, res);
-          }
-        }
-      }
-    }
+  if (!element) {
+    return NS_OK;
   }
-  return NS_OK;
+
+  nsIAtom* marginProperty = MarginPropertyAtomForIndent(mHTMLEditor->mHTMLCSSUtils, element);    
+  nsAutoString value;
+  mHTMLEditor->mHTMLCSSUtils->GetSpecifiedProperty(aNode, marginProperty, value);
+  float f;
+  nsCOMPtr<nsIAtom> unit;
+  mHTMLEditor->mHTMLCSSUtils->ParseLength(value, &f, getter_AddRefs(unit));
+  if (0 == f) {
+    nsAutoString defaultLengthUnit;
+    mHTMLEditor->mHTMLCSSUtils->GetDefaultLengthUnit(defaultLengthUnit);
+    unit = do_GetAtom(defaultLengthUnit);
+  }
+  if      (nsEditProperty::cssInUnit == unit)
+            f += NS_EDITOR_INDENT_INCREMENT_IN * aRelativeChange;
+  else if (nsEditProperty::cssCmUnit == unit)
+            f += NS_EDITOR_INDENT_INCREMENT_CM * aRelativeChange;
+  else if (nsEditProperty::cssMmUnit == unit)
+            f += NS_EDITOR_INDENT_INCREMENT_MM * aRelativeChange;
+  else if (nsEditProperty::cssPtUnit == unit)
+            f += NS_EDITOR_INDENT_INCREMENT_PT * aRelativeChange;
+  else if (nsEditProperty::cssPcUnit == unit)
+            f += NS_EDITOR_INDENT_INCREMENT_PC * aRelativeChange;
+  else if (nsEditProperty::cssEmUnit == unit)
+            f += NS_EDITOR_INDENT_INCREMENT_EM * aRelativeChange;
+  else if (nsEditProperty::cssExUnit == unit)
+            f += NS_EDITOR_INDENT_INCREMENT_EX * aRelativeChange;
+  else if (nsEditProperty::cssPxUnit == unit)
+            f += NS_EDITOR_INDENT_INCREMENT_PX * aRelativeChange;
+  else if (nsEditProperty::cssPercentUnit == unit)
+            f += NS_EDITOR_INDENT_INCREMENT_PERCENT * aRelativeChange;    
+
+  if (0 < f) {
+    nsAutoString newValue;
+    newValue.AppendFloat(f);
+    newValue.Append(nsDependentAtomString(unit));
+    mHTMLEditor->mHTMLCSSUtils->SetCSSProperty(element, marginProperty, newValue, false);
+    return NS_OK;
+  }
+
+  mHTMLEditor->mHTMLCSSUtils->RemoveCSSProperty(element, marginProperty, value, false);
+
+  // remove unnecessary DIV blocks:
+  // we could skip this section but that would cause a FAIL in
+  // editor/libeditor/html/tests/browserscope/richtext.html, which expects
+  // to unapply a CSS "indent" (<div style="margin-left: 40px;">) by
+  // removing the DIV container instead of just removing the CSS property.
+  nsCOMPtr<dom::Element> node = do_QueryInterface(aNode);
+  if (!node || !node->IsHTML(nsGkAtoms::div) ||
+      node == mHTMLEditor->GetActiveEditingHost() ||
+      !mHTMLEditor->IsNodeInActiveEditor(node) ||
+      nsHTMLEditor::HasAttributes(node)) {
+    return NS_OK;
+  }
+
+  return mHTMLEditor->RemoveContainer(element);
 }
 
 //

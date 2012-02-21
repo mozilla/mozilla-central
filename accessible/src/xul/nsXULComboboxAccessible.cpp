@@ -41,6 +41,7 @@
 #include "nsXULComboboxAccessible.h"
 
 #include "nsAccessibilityService.h"
+#include "nsDocAccessible.h"
 #include "nsCoreUtils.h"
 #include "Role.h"
 #include "States.h"
@@ -56,8 +57,8 @@ using namespace mozilla::a11y;
 ////////////////////////////////////////////////////////////////////////////////
 
 nsXULComboboxAccessible::
-  nsXULComboboxAccessible(nsIContent *aContent, nsIWeakReference *aShell) :
-  nsAccessibleWrap(aContent, aShell)
+  nsXULComboboxAccessible(nsIContent* aContent, nsDocAccessible* aDoc) :
+  nsAccessibleWrap(aContent, aDoc)
 {
   if (mContent->AttrValueIs(kNameSpaceID_None, nsGkAtoms::type,
                             nsGkAtoms::autocomplete, eIgnoreCase))
@@ -131,16 +132,15 @@ nsXULComboboxAccessible::Description(nsString& aDescription)
   menuListElm->GetSelectedItem(getter_AddRefs(focusedOptionItem));
   nsCOMPtr<nsIContent> focusedOptionContent =
     do_QueryInterface(focusedOptionItem);
-  if (focusedOptionContent) {
-    nsAccessible* focusedOptionAcc = GetAccService()->
-      GetAccessibleInWeakShell(focusedOptionContent, mWeakShell);
+  if (focusedOptionContent && mDoc) {
+    nsAccessible* focusedOptionAcc = mDoc->GetAccessible(focusedOptionContent);
     if (focusedOptionAcc)
       focusedOptionAcc->Description(aDescription);
   }
 }
 
 bool
-nsXULComboboxAccessible::GetAllowsAnonChildAccessibles()
+nsXULComboboxAccessible::CanHaveAnonChildren()
 {
   if (mContent->NodeInfo()->Equals(nsGkAtoms::textbox, kNameSpaceID_XUL) ||
       mContent->AttrValueIs(kNameSpaceID_None, nsGkAtoms::editable,

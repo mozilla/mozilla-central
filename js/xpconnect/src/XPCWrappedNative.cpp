@@ -171,7 +171,7 @@ XPCWrappedNative::NoteTearoffs(nsCycleCollectionTraversalCallback& cb)
     for (chunk = &mFirstChunk; chunk; chunk = chunk->mNextChunk) {
         XPCWrappedNativeTearOff* to = chunk->mTearOffs;
         for (int i = XPC_WRAPPED_NATIVE_TEAROFFS_PER_CHUNK-1; i >= 0; i--, to++) {
-            JSObject* jso = to->GetJSObject();
+            JSObject* jso = to->GetJSObjectPreserveColor();
             if (!jso) {
                 NS_CYCLE_COLLECTION_NOTE_EDGE_NAME(cb, "tearoff's mNative");
                 cb.NoteXPCOMChild(to->GetNative());
@@ -707,7 +707,7 @@ XPCWrappedNative::Morph(XPCCallContext& ccx,
     //       https://bugzilla.mozilla.org/show_bug.cgi?id=343141 is fixed.
 #if 0
     if (proto->GetScriptableInfo()->GetFlags().WantPreCreate()) {
-        JSObject* parent = JS_GetParent(ccx, existingJSObject);
+        JSObject* parent = JS_GetParent(existingJSObject);
         JSObject* plannedParent = parent;
         nsresult rv =
             proto->GetScriptableInfo()->GetCallback()->PreCreate(identity, ccx,
@@ -826,8 +826,6 @@ XPCWrappedNative::XPCWrappedNative(already_AddRefed<nsISupports> aIdentity,
     NS_ASSERTION(mSet, "bad ctor param");
 
     DEBUG_TrackNewWrapper(this);
-
-    JS_RegisterReference((void **) &mWrapperWord);
 }
 
 // This ctor is used if this object will NOT have a proto.
@@ -850,8 +848,6 @@ XPCWrappedNative::XPCWrappedNative(already_AddRefed<nsISupports> aIdentity,
     NS_ASSERTION(aSet, "bad ctor param");
 
     DEBUG_TrackNewWrapper(this);
-
-    JS_RegisterReference((void **) &mWrapperWord);
 }
 
 XPCWrappedNative::~XPCWrappedNative()
@@ -909,7 +905,8 @@ XPCWrappedNative::Destroy()
      * the first time because mWrapperWord isn't used afterwards.
      */
     if (XPCJSRuntime *rt = GetRuntime()) {
-        JS_UnregisterReferenceRT(rt->GetJSRuntime(), (void **) &mWrapperWord);
+        if (js::IsIncrementalBarrierNeeded(rt->GetJSRuntime()))
+            js::IncrementalReferenceBarrier(GetWrapperPreserveColor());
         mWrapperWord = WRAPPER_WORD_POISON;
     } else {
         MOZ_ASSERT(mWrapperWord == WRAPPER_WORD_POISON);
@@ -925,7 +922,7 @@ XPCWrappedNative::UpdateScriptableInfo(XPCNativeScriptableInfo *si)
 
     // Write barrier for incremental GC.
     JSRuntime* rt = GetRuntime()->GetJSRuntime();
-    if (JS_GetIncrementalGCTracer(rt))
+    if (js::IsIncrementalBarrierNeeded(rt))
         mScriptableInfo->Mark();
 
     mScriptableInfo = si;
@@ -936,12 +933,11 @@ XPCWrappedNative::SetProto(XPCWrappedNativeProto* p)
 {
     NS_ASSERTION(!IsWrapperExpired(), "bad ptr!");
 
+    MOZ_ASSERT(HasProto());
+
     // Write barrier for incremental GC.
-    if (HasProto()) {
-        JSRuntime* rt = GetRuntime()->GetJSRuntime();
-        if (JS_GetIncrementalGCTracer(rt))
-            GetProto()->TraceJS(JS_GetIncrementalGCTracer(rt));
-    }
+    JSRuntime* rt = GetRuntime()->GetJSRuntime();
+    GetProto()->WriteBarrierPre(rt);
 
     mMaybeProto = p;
 }
@@ -1095,7 +1091,7 @@ XPCWrappedNative::Init(XPCCallContext& ccx,
 
     // create our flatJSObject
 
-    JSClass* jsclazz = si ? si->GetJSClass() : Jsvalify(&XPC_WN_NoHelper_JSClass);
+    JSClass* jsclazz = si ? si->GetJSClass() : Jsvalify(&XPC_WN_NoHelper_JSClass.base);
 
     if (isGlobal) {
         // Resolving a global object's class can cause us to create a global's
@@ -1131,14 +1127,7 @@ XPCWrappedNative::Init(XPCCallContext& ccx,
     if (!mFlatJSObject)
         return false;
 
-    // In the current JS engine JS_SetPrivate can't fail. But if it *did*
-    // fail then we would not receive our finalizer call and would not be
-    // able to properly cleanup. So, if it fails we null out mFlatJSObject
-    // to indicate the invalid state of this object and return false.
-    if (!JS_SetPrivate(ccx, mFlatJSObject, this)) {
-        mFlatJSObject = nsnull;
-        return false;
-    }
+    JS_SetPrivate(mFlatJSObject, this);
 
     return FinishInit(ccx);
 }
@@ -1146,18 +1135,10 @@ XPCWrappedNative::Init(XPCCallContext& ccx,
 JSBool
 XPCWrappedNative::Init(XPCCallContext &ccx, JSObject *existingJSObject)
 {
-    // In the current JS engine JS_SetPrivate can't fail. But if it *did*
-    // fail then we would not receive our finalizer call and would not be
-    // able to properly cleanup. So, if it fails we null out mFlatJSObject
-    // to indicate the invalid state of this object and return false.
-    if (!JS_SetPrivate(ccx, existingJSObject, this)) {
-        mFlatJSObject = nsnull;
-        return false;
-    }
+    JS_SetPrivate(existingJSObject, this);
 
     // Morph the existing object.
-    if (!JS_SetReservedSlot(ccx, existingJSObject, 0, JSVAL_VOID))
-        return false;
+    JS_SetReservedSlot(existingJSObject, 0, JSVAL_VOID);
 
     mScriptableInfo = GetProto()->GetScriptableInfo();
     mFlatJSObject = existingJSObject;
@@ -1264,7 +1245,7 @@ NS_IMPL_THREADSAFE_RELEASE(XPCWrappedNative)
  */
 
 void
-XPCWrappedNative::FlatJSObjectFinalized(JSContext *cx)
+XPCWrappedNative::FlatJSObjectFinalized()
 {
     if (!IsValid())
         return;
@@ -1278,10 +1259,10 @@ XPCWrappedNative::FlatJSObjectFinalized(JSContext *cx)
     for (chunk = &mFirstChunk; chunk; chunk = chunk->mNextChunk) {
         XPCWrappedNativeTearOff* to = chunk->mTearOffs;
         for (int i = XPC_WRAPPED_NATIVE_TEAROFFS_PER_CHUNK-1; i >= 0; i--, to++) {
-            JSObject* jso = to->GetJSObject();
+            JSObject* jso = to->GetJSObjectPreserveColor();
             if (jso) {
-                NS_ASSERTION(JS_IsAboutToBeFinalized(cx, jso), "bad!");
-                JS_SetPrivate(cx, jso, nsnull);
+                NS_ASSERTION(JS_IsAboutToBeFinalized(jso), "bad!");
+                JS_SetPrivate(jso, nsnull);
                 to->JSObjectFinalized();
             }
 
@@ -1336,7 +1317,7 @@ XPCWrappedNative::FlatJSObjectFinalized(JSContext *cx)
 }
 
 void
-XPCWrappedNative::SystemIsBeingShutDown(JSContext* cx)
+XPCWrappedNative::SystemIsBeingShutDown()
 {
 #ifdef DEBUG_xpc_hacker
     {
@@ -1362,13 +1343,13 @@ XPCWrappedNative::SystemIsBeingShutDown(JSContext* cx)
     // We leak mIdentity (see above).
 
     // short circuit future finalization
-    JS_SetPrivate(cx, mFlatJSObject, nsnull);
+    JS_SetPrivate(mFlatJSObject, nsnull);
     mFlatJSObject = nsnull; // This makes 'IsValid()' return false.
 
     XPCWrappedNativeProto* proto = GetProto();
 
     if (HasProto())
-        proto->SystemIsBeingShutDown(cx);
+        proto->SystemIsBeingShutDown();
 
     if (mScriptableInfo &&
         (!HasProto() ||
@@ -1382,8 +1363,8 @@ XPCWrappedNative::SystemIsBeingShutDown(JSContext* cx)
     for (chunk = &mFirstChunk; chunk; chunk = chunk->mNextChunk) {
         XPCWrappedNativeTearOff* to = chunk->mTearOffs;
         for (int i = XPC_WRAPPED_NATIVE_TEAROFFS_PER_CHUNK-1; i >= 0; i--, to++) {
-            if (to->GetJSObject()) {
-                JS_SetPrivate(cx, to->GetJSObject(), nsnull);
+            if (JSObject *jso = to->GetJSObjectPreserveColor()) {
+                JS_SetPrivate(jso, nsnull);
                 to->SetJSObject(nsnull);
             }
             // We leak the tearoff mNative
@@ -1537,7 +1518,7 @@ XPCWrappedNative::ReparentWrapperIfFound(XPCCallContext& ccx,
                 if (!newobj)
                     return NS_ERROR_FAILURE;
 
-                JS_SetPrivate(ccx, flat, nsnull);
+                JS_SetPrivate(flat, nsnull);
 
                 JSObject *propertyHolder =
                     JS_NewObjectWithGivenProto(ccx, NULL, NULL, aNewParent);
@@ -1589,11 +1570,11 @@ XPCWrappedNative::ReparentWrapperIfFound(XPCCallContext& ccx,
                 }
             }
         } else {
-            if (!JS_SetReservedSlot(ccx, flat, 0,
-                                    PRIVATE_TO_JSVAL(newProto.get())) ||
-                !JS_SetPrototype(ccx, flat, newProto->GetJSProtoObject())) {
+            JS_SetReservedSlot(flat, 0,
+                               PRIVATE_TO_JSVAL(newProto.get()));
+            if (!JS_SetPrototype(ccx, flat, newProto->GetJSProtoObject())) {
                 // this is bad, very bad
-                JS_SetReservedSlot(ccx, flat, 0, JSVAL_NULL);
+                JS_SetReservedSlot(flat, 0, JSVAL_NULL);
                 NS_ERROR("JS_SetPrototype failed");
                 return NS_ERROR_FAILURE;
             }
@@ -1796,7 +1777,7 @@ XPCWrappedNative::FindTearOff(XPCCallContext& ccx,
              to < end;
              to++) {
             if (to->GetInterface() == aInterface) {
-                if (needJSObject && !to->GetJSObject()) {
+                if (needJSObject && !to->GetJSObjectPreserveColor()) {
                     AutoMarkingWrappedNativeTearOffPtr tearoff(ccx, to);
                     JSBool ok = InitTearOffJSObject(ccx, to);
                     // During shutdown, we don't sweep tearoffs.  So make sure
@@ -2033,9 +2014,10 @@ XPCWrappedNative::InitTearOffJSObject(XPCCallContext& ccx,
                                         GetScope()->GetPrototypeJSObject(),
                                         false, mFlatJSObject);
 
-    if (!obj || !JS_SetPrivate(ccx, obj, to))
+    if (!obj)
         return false;
 
+    JS_SetPrivate(obj, to);
     to->SetJSObject(obj);
     return true;
 }
@@ -2935,9 +2917,18 @@ XPCWrappedNative::GetObjectPrincipal() const
 {
     nsIPrincipal* principal = GetScope()->GetPrincipal();
 #ifdef DEBUG
+    // Because of inner window reuse, we can have objects with one principal
+    // living in a scope with a different (but same-origin) principal. So
+    // just check same-origin here.
     nsCOMPtr<nsIScriptObjectPrincipal> objPrin(do_QueryInterface(mIdentity));
-    NS_ASSERTION(!objPrin || objPrin->GetPrincipal() == principal,
-                 "Principal mismatch.  Expect bad things to happen");
+    if (objPrin) {
+        bool equal;
+        if (!principal)
+            equal = !objPrin->GetPrincipal();
+        else
+            principal->Equals(objPrin->GetPrincipal(), &equal);
+        NS_ASSERTION(equal, "Principal mismatch.  Expect bad things to happen");
+    }
 #endif
     return principal;
 }
@@ -3717,10 +3708,11 @@ ConstructSlimWrapper(XPCCallContext &ccx,
     wrapper = xpc_NewSystemInheritingJSObject(ccx, jsclazz,
                                               xpcproto->GetJSProtoObject(),
                                               false, parent);
-    if (!wrapper ||
-        !JS_SetPrivate(ccx, wrapper, identityObj) ||
-        !JS_SetReservedSlot(ccx, wrapper, 0, PRIVATE_TO_JSVAL(xpcproto.get())))
+    if (!wrapper)
         return false;
+
+    JS_SetPrivate(wrapper, identityObj);
+    JS_SetReservedSlot(wrapper, 0, PRIVATE_TO_JSVAL(xpcproto.get()));
 
     // Transfer ownership to the wrapper's private.
     aHelper.forgetCanonical();

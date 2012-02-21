@@ -4927,7 +4927,7 @@ GenerateNormal(float *N, const PRUint8 *data, PRInt32 stride,
                PRInt32 x, PRInt32 y, float surfaceScale)
 {
   // See this for source of constants:
-  //   http://www.w3.org/TR/SVG11/filters.html#feDiffuseLighting
+  //   http://www.w3.org/TR/SVG11/filters.html#feDiffuseLightingElement
   static const PRInt8 Kx[3][3][3][3] =
     { { { {  0,  0,  0}, { 0, -2,  2}, { 0, -1,  1} },
         { {  0,  0,  0}, {-2,  0,  2}, {-1,  0,  1} },
@@ -4956,6 +4956,15 @@ GenerateNormal(float *N, const PRUint8 *data, PRInt32 stride,
     { { 2.0 / 3.0, 1.0 / 2.0, 2.0 / 3.0 },
       { 1.0 / 3.0, 1.0 / 4.0, 1.0 / 3.0 },
       { 2.0 / 3.0, 1.0 / 2.0, 2.0 / 3.0 } };
+
+  // degenerate cases
+  if (surfaceWidth == 1 || surfaceHeight == 1) {
+    // just return a unit vector pointing towards the viewer
+    N[0] = 0;
+    N[1] = 0;
+    N[2] = 255;
+    return;
+  }
 
   PRInt8 xflag, yflag;
   if (x == 0) {
@@ -5552,7 +5561,7 @@ nsSVGFEImageElement::IsAttributeMapped(const nsIAtom* name) const
 
 nsresult
 nsSVGFEImageElement::AfterSetAttr(PRInt32 aNamespaceID, nsIAtom* aName,
-                                  const nsAString* aValue, bool aNotify)
+                                  const nsAttrValue* aValue, bool aNotify)
 {
   if (aNamespaceID == kNameSpaceID_XLink && aName == nsGkAtoms::href) {
 

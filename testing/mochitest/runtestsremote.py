@@ -39,6 +39,7 @@ import sys
 import os
 import time
 import tempfile
+import re
 
 sys.path.insert(0, os.path.abspath(os.path.realpath(os.path.dirname(sys.argv[0]))))
 
@@ -117,6 +118,11 @@ class RemoteOptions(MochitestOptions):
                     help = "Path to the folder where robocop.apk is located at.  Primarily used for ADB test running")
         defaults["robocopPath"] = ""
 
+        self.add_option("--robocop-ids", action = "store",
+                    type = "string", dest = "robocopIds",
+                    help = "name of the file containing the view ID map (fennec_ids.txt)")
+        defaults["robocopIds"] = ""
+
         defaults["remoteTestRoot"] = None
         defaults["logFile"] = "mochitest.log"
         defaults["autorun"] = True
@@ -188,6 +194,12 @@ class RemoteOptions(MochitestOptions):
                 return None
             options.robocopPath = os.path.abspath(options.robocopPath)
 
+        if options.robocopIds != "":
+            if not os.path.exists(options.robocopIds):
+                print "ERROR: Unable to find specified IDs file '%s'" % options.robocopIds
+                return None
+            options.robocopIds = os.path.abspath(options.robocopIds)
+
         return options
 
     def verifyOptions(self, options, mochitest):
@@ -210,6 +222,7 @@ class MochiRemote(Mochitest):
     _automation = None
     _dm = None
     localProfile = None
+    logLines = []
 
     def __init__(self, automation, devmgr, options):
         self._automation = automation
@@ -335,6 +348,65 @@ class MochiRemote(Mochitest):
     def getLogFilePath(self, logFile):             
         return logFile
 
+    # In the future we could use LogParser: http://hg.mozilla.org/automation/logparser/
+    def addLogData(self):
+        with open(self.localLog) as currentLog:
+            data = currentLog.readlines()
+
+        restart = re.compile('0 INFO SimpleTest START.*')
+        reend = re.compile('([0-9]+) INFO TEST-START . Shutdown.*')
+        start_found = False
+        end_found = False
+        for line in data:
+            if reend.match(line):
+                end_found = True
+                start_found = False
+                return
+
+            if start_found and not end_found:
+                # Append the line without the number to increment
+                self.logLines.append(' '.join(line.split(' ')[1:]))
+
+            if restart.match(line):
+                start_found = True
+
+    def printLog(self):
+        passed = 0
+        failed = 0
+        todo = 0
+        incr = 1
+        logFile = [] 
+        logFile.append("0 INFO SimpleTest START")
+        for line in self.logLines:
+            if line.startswith("INFO TEST-PASS"):
+                passed += 1
+            elif line.startswith("INFO TEST-UNEXPECTED"):
+                failed += 1
+            elif line.startswith("INFO TEST-KNOWN"):
+                todo += 1
+
+            logFile.append("%s %s" % (incr, line))
+            incr += 1
+
+        logFile.append("%s INFO TEST-START | Shutdown" % incr)
+        incr += 1
+        logFile.append("%s INFO Passed: %s" % (incr, passed))
+        incr += 1
+        logFile.append("%s INFO Failed: %s" % (incr, failed))
+        incr += 1
+        logFile.append("%s INFO Todo: %s" % (incr, todo))
+        incr += 1
+        logFile.append("%s INFO SimpleTest FINISHED" % incr)
+
+        # TODO: Consider not printing to stdout because we might be duplicating output
+        print '\n'.join(logFile)
+        with open(self.localLog, 'w') as localLog:
+            localLog.write('\n'.join(logFile))
+
+        if failed > 0:
+            return 1
+        return 0
+        
 def main():
     scriptdir = os.path.abspath(os.path.realpath(os.path.dirname(__file__)))
     dm_none = devicemanagerADB.DeviceManagerADB()
@@ -384,6 +456,7 @@ def main():
         fHandle = open("robotium.config", "w")
         fHandle.write("profile=%s\n" % (mochitest.remoteProfile))
         fHandle.write("logfile=%s\n" % (options.remoteLogFile))
+        fHandle.write("host=http://mochi.test:8888/tests\n")
         fHandle.close()
         deviceRoot = dm.getDeviceRoot()
       
@@ -392,8 +465,8 @@ def main():
         dm.removeFile("/sdcard/robotium.config")
         dm.pushFile("robotium.config", "/sdcard/robotium.config")
         fennec_ids = os.path.abspath("fennec_ids.txt")
-        if not os.path.exists(fennec_ids) and options.robocopPath:
-            fennec_ids = os.path.abspath(os.path.join(options.robocopPath, "fennec_ids.txt"))
+        if not os.path.exists(fennec_ids) and options.robocopIds:
+            fennec_ids = options.robocopIds
         dm.pushFile(fennec_ids, "/sdcard/fennec_ids.txt")
         options.extraPrefs.append('robocop.logfile="%s/robocop.log"' % deviceRoot)
 
@@ -401,6 +474,7 @@ def main():
           dm.checkCmd(["install", "-r", os.path.join(options.robocopPath, "robocop.apk")])
 
         appname = options.app
+        retVal = None
         for test in robocop_tests:
             if options.testPath and options.testPath != test['name']:
                 continue
@@ -412,8 +486,9 @@ def main():
 
             try:
                 retVal = mochitest.runTests(options)
+                mochitest.addLogData()
             except:
-                print "TEST-UNEXPECTED-ERROR | %s | Exception caught while running robocop tests." % sys.exc_info()[1]
+                print "TEST-UNEXPECTED-FAIL | %s | Exception caught while running robocop tests." % sys.exc_info()[1]
                 mochitest.stopWebServer(options)
                 mochitest.stopWebSocketServer(options)
                 try:
@@ -421,11 +496,16 @@ def main():
                 except:
                     pass
                 sys.exit(1)
+        if retVal is None:
+            print "No tests run. Did you pass an invalid TEST_PATH?"
+            retVal = 1
+
+        retVal = mochitest.printLog() 
     else:
       try:
         retVal = mochitest.runTests(options)
       except:
-        print "TEST-UNEXPECTED-ERROR | %s | Exception caught while running tests." % sys.exc_info()[1]
+        print "TEST-UNEXPECTED-FAIL | %s | Exception caught while running tests." % sys.exc_info()[1]
         mochitest.stopWebServer(options)
         mochitest.stopWebSocketServer(options)
         try:

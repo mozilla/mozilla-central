@@ -317,12 +317,6 @@ mozSanitizingHTMLSerializer::AddLeaf(const nsIParserNode& aNode)
 }
 
 NS_IMETHODIMP 
-mozSanitizingHTMLSerializer::AddDocTypeDecl(const nsIParserNode& aNode)
-{
-  return NS_OK;
-}
-
-NS_IMETHODIMP 
 mozSanitizingHTMLSerializer::SetDocumentCharset(nsACString& aCharset)
 {
   // No idea, if this works - it isn't invoked by |TestOutput|.
@@ -560,10 +554,9 @@ mozSanitizingHTMLSerializer::IsAllowedAttribute(nsHTMLTag aTag,
   NS_ENSURE_TRUE(attr_bag, false);
 
   bool allowed;
-  nsAutoString attr(anAttributeName);
-  ToLowerCase(attr);
-  rv = attr_bag->Has(NS_LossyConvertUTF16toASCII(attr).get(),
-                     &allowed);
+  nsCAutoString attr;
+  ToLowerCase(NS_ConvertUTF16toUTF8(anAttributeName), attr);
+  rv = attr_bag->Has(attr.get(), &allowed);
   if (NS_FAILED(rv))
     return false;
 

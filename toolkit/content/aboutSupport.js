@@ -51,11 +51,13 @@ const ELLIPSIS = Services.prefs.getComplexValue("intl.ellipsis",
 // under the "accessibility.*" branch.
 const PREFS_WHITELIST = [
   "accessibility.",
+  "browser.cache.",
   "browser.display.",
   "browser.fixup.",
   "browser.history_expire_",
   "browser.link.open_newwindow",
   "browser.places.",
+  "browser.sessionstore.",
   "browser.startup.homepage",
   "browser.tabs.",
   "browser.zoom.",
@@ -67,10 +69,12 @@ const PREFS_WHITELIST = [
   "general.useragent.",
   "gfx.",
   "html5.",
-  "layers.",
+  "image.mem.",
   "javascript.",
   "keyword.",
+  "layers.",
   "layout.css.dpi",
+  "media.",
   "mousewheel.",
   "network.",
   "permissions.default.image",
@@ -80,6 +84,8 @@ const PREFS_WHITELIST = [
   "print.",
   "privacy.",
   "security.",
+  "svg.",
+  "toolkit.startup.recent_crashes",
   "webgl."
 ];
 
@@ -110,6 +116,7 @@ window.onload = function () {
   populatePreferencesSection();
   populateExtensionsSection();
   populateGraphicsSection();
+  populateJavaScriptSection();
 }
 
 function populateExtensionsSection() {
@@ -376,17 +383,24 @@ function populateGraphicsSection() {
   ]);
 }
 
+function populateJavaScriptSection() {
+  let enabled = window.QueryInterface(Ci.nsIInterfaceRequestor)
+        .getInterface(Ci.nsIDOMWindowUtils)
+        .isIncrementalGCEnabled();
+  document.getElementById("javascript-incremental-gc").textContent = enabled ? "1" : "0";
+}
+
 function getPrefValue(aName) {
   let value = "";
   let type = Services.prefs.getPrefType(aName);
   switch (type) {
-    case Ci.nsIPrefBranch2.PREF_STRING:
+    case Ci.nsIPrefBranch.PREF_STRING:
       value = Services.prefs.getComplexValue(aName, Ci.nsISupportsString).data;
       break;
-    case Ci.nsIPrefBranch2.PREF_BOOL:
+    case Ci.nsIPrefBranch.PREF_BOOL:
       value = Services.prefs.getBoolPref(aName);
       break;
-    case Ci.nsIPrefBranch2.PREF_INT:
+    case Ci.nsIPrefBranch.PREF_INT:
       value = Services.prefs.getIntPref(aName);
       break;
   }

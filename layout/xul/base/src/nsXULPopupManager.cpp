@@ -1618,10 +1618,9 @@ nsXULPopupManager::SetCaptureState(nsIContent* aOldPopup)
 
   if (item) {
     nsMenuPopupFrame* popup = item->Frame();
-    nsCOMPtr<nsIWidget> widget = popup->GetWidget();
-    if (widget) {
-      widget->CaptureRollupEvents(this, true, popup->ConsumeOutsideClicks());
-      mWidget = widget;
+    mWidget = popup->GetWidget();
+    if (mWidget) {
+      mWidget->CaptureRollupEvents(this, true, popup->ConsumeOutsideClicks());
       popup->AttachedDismissalListener();
     }
   }
@@ -1671,10 +1670,9 @@ nsXULPopupManager::UpdateMenuItems(nsIContent* aPopup)
   // command attribute. If so, then several attributes must potentially be updated.
  
   nsCOMPtr<nsIDOMDocument> domDoc(do_QueryInterface(aPopup->GetDocument()));
-  PRUint32 count = aPopup->GetChildCount();
-  for (PRUint32 i = 0; i < count; i++) {
-    nsCOMPtr<nsIContent> grandChild = aPopup->GetChildAt(i);
-
+  for (nsCOMPtr<nsIContent> grandChild = aPopup->GetFirstChild();
+       grandChild;
+       grandChild = grandChild->GetNextSibling()) {
     if (grandChild->NodeInfo()->Equals(nsGkAtoms::menuitem, kNameSpaceID_XUL)) {
       // See if we have a command attribute.
       nsAutoString command;

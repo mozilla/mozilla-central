@@ -37,9 +37,11 @@ random == rotate-1b.html rotate-1-ref.html
 random == rotate-1c.html rotate-1-ref.html
 random == rotate-1d.html rotate-1-ref.html
 random == rotate-1e.html rotate-1-ref.html
+random == rotate-1f.html rotate-1-ref.html
 # rotate: 90deg rotations should be indistinguishable from objects constructed
 # to look the same.
 == rotate-2a.html rotate-2-ref.html
+== rotate-2b.html rotate-2-ref.html
 # -moz-transform-origin: We should NOT get the same images when using different
 # -moz-transform-origins.
 != origin-1a.html origin-1-ref.html
@@ -64,6 +66,8 @@ random == rotate-1e.html rotate-1-ref.html
 == abspos-1c.html abspos-1-ref.html
 == abspos-1d.html abspos-1-ref.html
 != abspos-1e.html abspos-1-ref.html
+== abspos-1f.html abspos-1-ref.html
+== abspos-1g.html abspos-1-ref.html
 # Origin can use "top" "right" etc.
 == origin-name-1a.html origin-name-1-ref.html
 == origin-name-1b.html origin-name-1-ref.html
@@ -108,3 +112,11 @@ fails-if(Android) == stresstest-1.html stresstest-1-ref.html
 # Bugs
 == 601894-1.html 601894-ref.html
 == 601894-2.html 601894-ref.html
+# Bug 722777
+== table-1a.html table-1-ref.html
+== table-1b.html table-1-ref.html
+== table-1c.html table-1-ref.html
+== table-2a.html table-2-ref.html
+== table-2b.html table-2-ref.html
+# Bug 722463
+== inline-1a.html inline-1-ref.html

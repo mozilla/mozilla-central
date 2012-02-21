@@ -8,33 +8,50 @@
 
     <!-- BrowserToolbar -->
     <style name="BrowserToolbar">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
         <item name="android:orientation">vertical</item>
     </style>
 
     <!-- Address bar -->
     <style name="AddressBar">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_width">fill_parent</item>
+        <item name="android:layout_height">fill_parent</item>
         <item name="android:orientation">horizontal</item>
-        <item name="android:background">@drawable/address_bar_bg</item>
     </style>
 
     <!-- Lists in AwesomeBar -->
     <style name="AwesomeBarList" parent="android:style/Widget.Holo.ListView">
-        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_width">fill_parent</item>
         <item name="android:layout_height">fill_parent</item>
         <item name="android:layout_weight">1</item>
     </style>
+ 
+    <!-- ActionBar -->
+    <style name="ActionBar" parent="android:style/Widget.Holo.ActionBar" />
 
-    <!-- TabWidget --> 
-    <style name="TabWidget">
-        <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">48dip</item>
-        <item name="android:background">@drawable/tabs_tray_bg_repeat</item>
-        <item name="android:divider">@android:color/transparent</item>
-        <item name="android:tabStripEnabled">false</item>
+    <!-- GeckoApp ActionBar -->
+    <style name="ActionBar.GeckoApp">
+         <item name="android:background">@drawable/gecko_actionbar_bg</item>
+         <item name="android:displayOptions">showCustom</item>
+         <item name="android:customNavigationLayout">@layout/browser_toolbar</item>
+    </style>
+ 
+    <!-- AwesomeBar ActionBar -->
+    <style name="ActionBar.AwesomeBar">
+         <item name="android:background">@android:color/transparent</item>
+         <item name="android:displayOptions">showCustom</item>
+         <item name="android:customNavigationLayout">@layout/awesomebar_search</item>
+    </style>
+ 
+    <!-- GeckoPreferences ActionBar -->
+    <style name="ActionBar.GeckoPreferences">
+         <item name="android:displayOptions">showHome|homeAsUp|showTitle</item>
+    </style>
+ 
+    <!-- TabsTray ActionBar -->
+    <style name="ActionBar.TabsTray">
+         <item name="android:visibility">gone</item>
     </style>
 
 </resources>

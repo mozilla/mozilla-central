@@ -108,9 +108,9 @@ NS_IMPL_RELEASE_INHERITED(nsRootAccessible, nsDocAccessible)
 // Constructor/desctructor
 
 nsRootAccessible::
-  nsRootAccessible(nsIDocument *aDocument, nsIContent *aRootContent,
-                   nsIWeakReference *aShell) :
-  nsDocAccessibleWrap(aDocument, aRootContent, aShell)
+  nsRootAccessible(nsIDocument* aDocument, nsIContent* aRootContent,
+                   nsIPresShell* aPresShell) :
+  nsDocAccessibleWrap(aDocument, aRootContent, aPresShell)
 {
   mFlags |= eRootAccessible;
 }
@@ -203,7 +203,7 @@ nsRootAccessible::NativeState()
     states |= states::MODAL;
 #endif
 
-  nsCOMPtr<nsIFocusManager> fm = do_GetService(FOCUSMANAGER_CONTRACTID);
+  nsFocusManager* fm = nsFocusManager::GetFocusManager();
   if (fm) {
     nsCOMPtr<nsIDOMWindow> rootWindow;
     GetWindow(getter_AddRefs(rootWindow));
@@ -371,23 +371,19 @@ nsRootAccessible::ProcessDOMEvent(nsIDOMEvent* aDOMEvent)
   nsAutoString eventType;
   aDOMEvent->GetType(eventType);
 
-  nsCOMPtr<nsIWeakReference> weakShell =
-    nsCoreUtils::GetWeakShellFor(origTargetNode);
-  if (!weakShell)
-    return;
-
   if (eventType.EqualsLiteral("popuphiding")) {
     HandlePopupHidingEvent(origTargetNode);
     return;
   }
 
-  nsAccessible* accessible =
-    GetAccService()->GetAccessibleOrContainer(origTargetNode, weakShell);
+  nsDocAccessible* targetDocument = GetAccService()->
+    GetDocAccessible(origTargetNode->OwnerDoc());
+  NS_ASSERTION(targetDocument, "No document while accessible is in document?!");
+
+  nsAccessible* accessible = 
+    targetDocument->GetAccessibleOrContainer(origTargetNode);
   if (!accessible)
     return;
-
-  nsDocAccessible* targetDocument = accessible->GetDocAccessible();
-  NS_ASSERTION(targetDocument, "No document while accessible is in document?!");
 
   nsINode* targetNode = accessible->GetNode();
 
@@ -568,63 +564,10 @@ void
 nsRootAccessible::Shutdown()
 {
   // Called manually or by nsAccessNode::LastRelease()
-  if (!mWeakShell)
+  if (!PresShell())
     return;  // Already shutdown
 
   nsDocAccessibleWrap::Shutdown();
-}
-
-// nsRootAccessible protected member
-already_AddRefed<nsIDocShellTreeItem>
-nsRootAccessible::GetContentDocShell(nsIDocShellTreeItem *aStart)
-{
-  if (!aStart) {
-    return nsnull;
-  }
-
-  PRInt32 itemType;
-  aStart->GetItemType(&itemType);
-  if (itemType == nsIDocShellTreeItem::typeContent) {
-    nsDocAccessible *accDoc = nsAccUtils::GetDocAccessibleFor(aStart);
-
-    // Hidden documents don't have accessibles (like SeaMonkey's sidebar),
-    // they are of no interest for a11y.
-    if (!accDoc)
-      return nsnull;
-
-    // If ancestor chain of accessibles is not completely visible,
-    // don't use this one. This happens for example if it's inside
-    // a background tab (tabbed browsing)
-    nsAccessible* parent = accDoc->Parent();
-    while (parent) {
-      if (parent->State() & states::INVISIBLE)
-        return nsnull;
-
-      if (parent == this)
-        break; // Don't check past original root accessible we started with
-
-      parent = parent->Parent();
-    }
-
-    NS_ADDREF(aStart);
-    return aStart;
-  }
-  nsCOMPtr<nsIDocShellTreeNode> treeNode(do_QueryInterface(aStart));
-  if (treeNode) {
-    PRInt32 subDocuments;
-    treeNode->GetChildCount(&subDocuments);
-    for (PRInt32 count = 0; count < subDocuments; count ++) {
-      nsCOMPtr<nsIDocShellTreeItem> treeItemChild, contentTreeItem;
-      treeNode->GetChildAt(count, getter_AddRefs(treeItemChild));
-      NS_ENSURE_TRUE(treeItemChild, nsnull);
-      contentTreeItem = GetContentDocShell(treeItemChild);
-      if (contentTreeItem) {
-        NS_ADDREF(aStart = contentTreeItem);
-        return aStart;
-      }
-    }
-  }
-  return nsnull;
 }
 
 // nsIAccessible method
@@ -634,14 +577,25 @@ nsRootAccessible::RelationByType(PRUint32 aType)
   if (!mDocument || aType != nsIAccessibleRelation::RELATION_EMBEDS)
     return nsDocAccessibleWrap::RelationByType(aType);
 
-  nsCOMPtr<nsIDocShellTreeItem> treeItem =
-    nsCoreUtils::GetDocShellTreeItemFor(mDocument);
-  nsCOMPtr<nsIDocShellTreeItem> contentTreeItem = GetContentDocShell(treeItem);
-  // there may be no content area, so we need a null check
-  if (!contentTreeItem)
-    return Relation();
+  nsIDOMWindow* rootWindow = mDocument->GetWindow();
+  if (rootWindow) {
+    nsCOMPtr<nsIDOMWindow> contentWindow;
+    rootWindow->GetContent(getter_AddRefs(contentWindow));
+    if (contentWindow) {
+      nsCOMPtr<nsIDOMDocument> contentDOMDocument;
+      contentWindow->GetDocument(getter_AddRefs(contentDOMDocument));
+      nsCOMPtr<nsIDocument> contentDocumentNode =
+        do_QueryInterface(contentDOMDocument);
+      if (contentDocumentNode) {
+        nsDocAccessible* contentDocument =
+          GetAccService()->GetDocAccessible(contentDocumentNode);
+        if (contentDocument)
+          return Relation(contentDocument);
+      }
+    }
+  }
 
-  return Relation(nsAccUtils::GetDocAccessibleFor(contentTreeItem));
+  return Relation();
 }
 
 ////////////////////////////////////////////////////////////////////////////////

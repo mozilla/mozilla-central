@@ -86,35 +86,27 @@ public:
 
     JSObject* obj = JS_NewObject(aCx, &sClass, NULL, NULL);
     if (obj) {
-      if (!JS_SetPrivate(aCx, obj, aBlob)) {
-        return NULL;
-      }
+      JS_SetPrivate(obj, aBlob);
       NS_ADDREF(aBlob);
     }
     return obj;
   }
 
   static nsIDOMBlob*
-  GetPrivate(JSContext* aCx, JSObject* aObj);
+  GetPrivate(JSObject* aObj);
 
 private:
   static nsIDOMBlob*
   GetInstancePrivate(JSContext* aCx, JSObject* aObj, const char* aFunctionName)
   {
-    JSClass* classPtr = NULL;
-
-    if (aObj) {
-      nsIDOMBlob* blob = GetPrivate(aCx, aObj);
-      if (blob) {
-        return blob;
-      }
-
-      classPtr = JS_GET_CLASS(aCx, aObj);
+    nsIDOMBlob* blob = GetPrivate(aObj);
+    if (blob) {
+      return blob;
     }
 
     JS_ReportErrorNumber(aCx, js_GetErrorMessage, NULL,
                          JSMSG_INCOMPATIBLE_PROTO, sClass.name, aFunctionName,
-                         classPtr ? classPtr->name : "Object");
+                         JS_GetClass(aObj)->name);
     return NULL;
   }
 
@@ -129,9 +121,9 @@ private:
   static void
   Finalize(JSContext* aCx, JSObject* aObj)
   {
-    JS_ASSERT(JS_GET_CLASS(aCx, aObj) == &sClass);
+    JS_ASSERT(JS_GetClass(aObj) == &sClass);
 
-    nsIDOMBlob* blob = GetPrivate(aCx, aObj);
+    nsIDOMBlob* blob = GetPrivate(aObj);
     NS_IF_RELEASE(blob);
   }
 
@@ -179,14 +171,14 @@ private:
   }
 
   static JSBool
-  MozSlice(JSContext* aCx, uintN aArgc, jsval* aVp)
+  Slice(JSContext* aCx, uintN aArgc, jsval* aVp)
   {
     JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
     if (!obj) {
       return false;
     }
 
-    nsIDOMBlob* blob = GetInstancePrivate(aCx, obj, "mozSlice");
+    nsIDOMBlob* blob = GetInstancePrivate(aCx, obj, "slice");
     if (!blob) {
       return false;
     }
@@ -205,10 +197,10 @@ private:
 
     PRUint8 optionalArgc = aArgc;
     nsCOMPtr<nsIDOMBlob> rtnBlob;
-    if (NS_FAILED(blob->MozSlice(static_cast<PRUint64>(start),
-                                 static_cast<PRUint64>(end),
-                                 contentType, optionalArgc,
-                                 getter_AddRefs(rtnBlob)))) {
+    if (NS_FAILED(blob->Slice(static_cast<PRUint64>(start),
+                              static_cast<PRUint64>(end),
+                              contentType, optionalArgc,
+                              getter_AddRefs(rtnBlob)))) {
       ThrowFileExceptionForCode(aCx, FILE_NOT_READABLE_ERR);
       return false;
     }
@@ -238,7 +230,7 @@ JSPropertySpec Blob::sProperties[] = {
 };
 
 JSFunctionSpec Blob::sFunctions[] = {
-  JS_FN("mozSlice", MozSlice, 1, JSPROP_ENUMERATE),
+  JS_FN("slice", Slice, 1, JSPROP_ENUMERATE),
   JS_FS_END
 };
 
@@ -266,21 +258,19 @@ public:
 
     JSObject* obj = JS_NewObject(aCx, &sClass, NULL, NULL);
     if (obj) {
-      if (!JS_SetPrivate(aCx, obj, aFile)) {
-        return NULL;
-      }
+      JS_SetPrivate(obj, aFile);
       NS_ADDREF(aFile);
     }
     return obj;
   }
 
   static nsIDOMFile*
-  GetPrivate(JSContext* aCx, JSObject* aObj)
+  GetPrivate(JSObject* aObj)
   {
     if (aObj) {
-      JSClass* classPtr = JS_GET_CLASS(aCx, aObj);
+      JSClass* classPtr = JS_GetClass(aObj);
       if (classPtr == &sClass) {
-        nsISupports* priv = static_cast<nsISupports*>(JS_GetPrivate(aCx, aObj));
+        nsISupports* priv = static_cast<nsISupports*>(JS_GetPrivate(aObj));
         nsCOMPtr<nsIDOMFile> file = do_QueryInterface(priv);
         JS_ASSERT_IF(priv, file);
         return file;
@@ -299,19 +289,14 @@ private:
   static nsIDOMFile*
   GetInstancePrivate(JSContext* aCx, JSObject* aObj, const char* aFunctionName)
   {
-    JSClass* classPtr = NULL;
-
-    if (aObj) {
-      nsIDOMFile* file = GetPrivate(aCx, aObj);
-      if (file) {
-        return file;
-      }
-      classPtr = JS_GET_CLASS(aCx, aObj);
+    nsIDOMFile* file = GetPrivate(aObj);
+    if (file) {
+      return file;
     }
 
     JS_ReportErrorNumber(aCx, js_GetErrorMessage, NULL,
                          JSMSG_INCOMPATIBLE_PROTO, sClass.name, aFunctionName,
-                         classPtr ? classPtr->name : "Object");
+                         JS_GetClass(aObj)->name);
     return NULL;
   }
 
@@ -326,9 +311,9 @@ private:
   static void
   Finalize(JSContext* aCx, JSObject* aObj)
   {
-    JS_ASSERT(JS_GET_CLASS(aCx, aObj) == &sClass);
+    JS_ASSERT(JS_GetClass(aObj) == &sClass);
 
-    nsIDOMFile* file = GetPrivate(aCx, aObj);
+    nsIDOMFile* file = GetPrivate(aObj);
     NS_IF_RELEASE(file);
   }
 
@@ -397,12 +382,12 @@ JSPropertySpec File::sProperties[] = {
 };
 
 nsIDOMBlob*
-Blob::GetPrivate(JSContext* aCx, JSObject* aObj)
+Blob::GetPrivate(JSObject* aObj)
 {
   if (aObj) {
-    JSClass* classPtr = JS_GET_CLASS(aCx, aObj);
+    JSClass* classPtr = JS_GetClass(aObj);
     if (classPtr == &sClass || classPtr == File::Class()) {
-      nsISupports* priv = static_cast<nsISupports*>(JS_GetPrivate(aCx, aObj));
+      nsISupports* priv = static_cast<nsISupports*>(JS_GetPrivate(aObj));
       nsCOMPtr<nsIDOMBlob> blob = do_QueryInterface(priv);
       JS_ASSERT_IF(priv, blob);
       return blob;
@@ -431,9 +416,9 @@ InitClasses(JSContext* aCx, JSObject* aGlobal)
 }
 
 nsIDOMBlob*
-GetDOMBlobFromJSObject(JSContext* aCx, JSObject* aObj)
+GetDOMBlobFromJSObject(JSObject* aObj)
 {
-  return Blob::GetPrivate(aCx, aObj);
+  return Blob::GetPrivate(aObj);
 }
 
 JSObject*
@@ -443,9 +428,9 @@ CreateFile(JSContext* aCx, nsIDOMFile* aFile)
 }
 
 nsIDOMFile*
-GetDOMFileFromJSObject(JSContext* aCx, JSObject* aObj)
+GetDOMFileFromJSObject(JSObject* aObj)
 {
-  return File::GetPrivate(aCx, aObj);
+  return File::GetPrivate(aObj);
 }
 
 } // namespace file

@@ -44,7 +44,7 @@
  *                    stable/frozen, please contact Benjamin Smedberg.
  */
 
-[scriptable, uuid(7685dac8-3637-4660-a544-928c5ec0e714)]
+[scriptable, uuid(cb0b8eda-4c83-4d0e-a63c-d3b65714bc85)]
 interface nsIXULRuntime : nsISupports
 {
   /**
@@ -115,4 +115,11 @@ interface nsIXULRuntime : nsISupports
    * @throw NS_ERROR_NOT_AVAILABLE if not available.
    */
   void ensureContentProcess();
+
+  /**
+   * Modification time of the profile lock before the profile was locked on
+   * this startup. Used to know the last time the profile was used and not
+   * closed cleanly. This is set to 0 if there was no existing profile lock.
+   */
+  readonly attribute PRInt64 replacedLockTime;
 };
