@@ -42,7 +42,6 @@
 #include "nsMsgFolderFlags.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
-#include "nsIPrefBranch2.h"
 #include "nsIPrefLocalizedString.h"
 #include "nsIObserver.h"
 #include "nsIObserverService.h"
@@ -135,12 +134,8 @@ NS_IMETHODIMP nsFolderCharsetObserver::Observe(nsISupports *aSubject, const char
   }
   else if (!strcmp(aTopic, NS_XPCOM_SHUTDOWN_OBSERVER_ID))
   {
-    nsCOMPtr<nsIPrefBranch2> pbi = do_QueryInterface(prefBranch);
-    if (pbi)
-    {
-      rv = pbi->RemoveObserver(kMAILNEWS_VIEW_DEFAULT_CHARSET, this);
-      rv = pbi->RemoveObserver(kMAILNEWS_DEFAULT_CHARSET_OVERRIDE, this);
-    }
+    rv = prefBranch->RemoveObserver(kMAILNEWS_VIEW_DEFAULT_CHARSET, this);
+    rv = prefBranch->RemoveObserver(kMAILNEWS_DEFAULT_CHARSET_OVERRIDE, this);
     NS_IF_RELEASE(gFolderCharsetObserver);
     delete gDefaultCharacterSet;
     gDefaultCharacterSet = nsnull;
@@ -231,11 +226,8 @@ nsDBFolderInfo::nsDBFolderInfo(nsMsgDatabase *mdb)
       if (gFolderCharsetObserver)
       {
         NS_ADDREF(gFolderCharsetObserver);
-        nsCOMPtr<nsIPrefBranch2> pbi = do_QueryInterface(prefBranch);
-        if (pbi) {
-          rv = pbi->AddObserver(kMAILNEWS_VIEW_DEFAULT_CHARSET, gFolderCharsetObserver, false);
-          rv = pbi->AddObserver(kMAILNEWS_DEFAULT_CHARSET_OVERRIDE, gFolderCharsetObserver, false);
-        }
+        rv = prefBranch->AddObserver(kMAILNEWS_VIEW_DEFAULT_CHARSET, gFolderCharsetObserver, false);
+        rv = prefBranch->AddObserver(kMAILNEWS_DEFAULT_CHARSET_OVERRIDE, gFolderCharsetObserver, false);
 
         // also register for shutdown
         nsCOMPtr<nsIObserverService> observerService =

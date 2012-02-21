@@ -961,7 +961,7 @@ var GlodaDatastore = {
     let prefService = Cc["@mozilla.org/preferences-service;1"].
                         getService(Ci.nsIPrefService);
     let branch = prefService.getBranch("mailnews.database.global.datastore.");
-    this._prefBranch = branch.QueryInterface(Ci.nsIPrefBranch2);
+    this._prefBranch = branch;
 
     // Not sure the weak reference really makes a difference given that we are a
     // GC root.

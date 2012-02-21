@@ -60,7 +60,6 @@
 #include "nsMsgMimeCID.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
-#include "nsIPrefBranch2.h"
 #include "nsIPrefLocalizedString.h"
 #include "nsIMsgSearchSession.h"
 #include "nsIMsgCopyService.h"

@@ -41,7 +41,7 @@
 /* directory server preferences (used to be dirprefs.c in 4.x) */
 
 #include "nsIPrefService.h"
-#include "nsIPrefBranch2.h"
+#include "nsIPrefBranch.h"
 #include "nsDirPrefs.h"
 #include "nsIPrefLocalizedString.h"
 #include "nsIObserver.h"
@@ -191,7 +191,7 @@ static nsresult DIR_GetDirServers()
     /* Register the preference call back if necessary. */
     if (NS_SUCCEEDED(rv) && !prefObserver)
     {
-      nsCOMPtr<nsIPrefBranch2> pbi(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+      nsCOMPtr<nsIPrefBranch> pbi(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
       if (NS_FAILED(rv))
         return rv;
       prefObserver = new DirPrefObserver();

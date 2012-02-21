@@ -39,7 +39,7 @@
 
 #include "nsMsgContentPolicy.h"
 #include "nsIPrefService.h"
-#include "nsIPrefBranch2.h"
+#include "nsIPrefBranch.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsIAbManager.h"
 #include "nsIAbDirectory.h"
@@ -87,7 +87,7 @@ nsMsgContentPolicy::~nsMsgContentPolicy()
 {
   // hey, we are going away...clean up after ourself....unregister our observer
   nsresult rv;
-  nsCOMPtr<nsIPrefBranch2> prefInternal = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+  nsCOMPtr<nsIPrefBranch> prefInternal = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   if (NS_SUCCEEDED(rv))
   {
     prefInternal->RemoveObserver(kBlockRemoteImages, this);
@@ -100,7 +100,7 @@ nsresult nsMsgContentPolicy::Init()
   nsresult rv;
 
   // register ourself as an observer on the mail preference to block remote images
-  nsCOMPtr<nsIPrefBranch2> prefInternal = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
+  nsCOMPtr<nsIPrefBranch> prefInternal = do_GetService(NS_PREFSERVICE_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   prefInternal->AddObserver(kBlockRemoteImages, this, true);
@@ -799,7 +799,7 @@ NS_IMETHODIMP nsMsgContentPolicy::Observe(nsISupports *aSubject, const char *aTo
 
     nsresult rv;
 
-    nsCOMPtr<nsIPrefBranch2> prefBranchInt = do_QueryInterface(aSubject, &rv);
+    nsCOMPtr<nsIPrefBranch> prefBranchInt = do_QueryInterface(aSubject, &rv);
     NS_ENSURE_SUCCESS(rv, rv);
 
     if (pref.Equals(kBlockRemoteImages))

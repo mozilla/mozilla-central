@@ -82,7 +82,7 @@ function run_test()
 
   var importedPrefs = [];
   var prefS = Cc["@mozilla.org/preferences-service;1"]
-               .getService(Ci.nsIPrefBranch2);
+               .getService(Ci.nsIPrefBranch);
   var obs = {
     QueryInterface: function QueryInterface(aIID) {
       if (aIID.equals(Ci.nsIObserver) || aaIID.equals(Ci.nsISupports))

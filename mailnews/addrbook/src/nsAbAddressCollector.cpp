@@ -44,7 +44,7 @@
 #include "nsAbBaseCID.h"
 #include "nsAbAddressCollector.h"
 #include "nsIPrefService.h"
-#include "nsIPrefBranch2.h"
+#include "nsIPrefBranch.h"
 #include "nsIMsgHeaderParser.h"
 #include "nsStringGlue.h"
 #include "prmem.h"
@@ -63,7 +63,7 @@ nsAbAddressCollector::nsAbAddressCollector()
 nsAbAddressCollector::~nsAbAddressCollector()
 {
   nsresult rv;
-  nsCOMPtr<nsIPrefBranch2> pPrefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  nsCOMPtr<nsIPrefBranch> pPrefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   if (NS_SUCCEEDED(rv))
     pPrefBranchInt->RemoveObserver(PREF_MAIL_COLLECT_ADDRESSBOOK, this);
 }
@@ -333,7 +333,7 @@ NS_IMETHODIMP
 nsAbAddressCollector::Observe(nsISupports *aSubject, const char *aTopic,
                               const PRUnichar *aData)
 {
-  nsCOMPtr<nsIPrefBranch2> prefBranch = do_QueryInterface(aSubject);
+  nsCOMPtr<nsIPrefBranch> prefBranch = do_QueryInterface(aSubject);
   if (!prefBranch) {
     NS_ASSERTION(prefBranch, "failed to get prefs");
     return NS_OK;
@@ -348,8 +348,8 @@ nsresult
 nsAbAddressCollector::Init(void)
 {
   nsresult rv;
-  nsCOMPtr<nsIPrefBranch2> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID,
-                                                    &rv));
+  nsCOMPtr<nsIPrefBranch> prefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID,
+                                                   &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = prefBranch->AddObserver(PREF_MAIL_COLLECT_ADDRESSBOOK, this, false);

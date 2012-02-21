@@ -71,7 +71,6 @@
 #include "nsIBaseWindow.h"
 #include "nsIPrefService.h"
 #include "nsIPrefBranch.h"
-#include "nsIPrefBranch2.h"
 #include "nsMsgBaseCID.h"
 #include "nsIMsgAccountManager.h"
 #include "nsIMimeMiscStatus.h"
@@ -201,7 +200,7 @@ nsresult nsMsgComposeService::Init()
   }
 
   // Register some pref observer
-  nsCOMPtr<nsIPrefBranch2> pbi = do_GetService(NS_PREFSERVICE_CONTRACTID);
+  nsCOMPtr<nsIPrefBranch> pbi = do_GetService(NS_PREFSERVICE_CONTRACTID);
   if (pbi)
     rv = pbi->AddObserver(PREF_MAIL_COMPOSE_MAXRECYCLEDWINDOWS, this, true);
 

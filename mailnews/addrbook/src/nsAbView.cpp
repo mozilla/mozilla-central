@@ -54,7 +54,7 @@
 #include "nsCRTGlue.h"
 #include "nsIMutableArray.h"
 #include "nsIPrefService.h"
-#include "nsIPrefBranch2.h"
+#include "nsIPrefBranch.h"
 #include "nsIStringBundle.h"
 #include "nsIPrefLocalizedString.h"
 #include "nsArrayUtils.h"
@@ -102,8 +102,8 @@ NS_IMETHODIMP nsAbView::ClearView()
   {
     nsresult rv;
     mInitialized = false;
-    nsCOMPtr<nsIPrefBranch2> pbi(do_GetService(NS_PREFSERVICE_CONTRACTID,
-                                               &rv));
+    nsCOMPtr<nsIPrefBranch> pbi(do_GetService(NS_PREFSERVICE_CONTRACTID,
+                                              &rv));
     NS_ENSURE_SUCCESS(rv,rv);
 
     rv = pbi->RemoveObserver(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, this);
@@ -152,7 +152,7 @@ nsresult nsAbView::RemoveCardAt(PRInt32 row)
 nsresult nsAbView::SetGeneratedNameFormatFromPrefs()
 {
   nsresult rv;
-  nsCOMPtr<nsIPrefBranch2> prefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  nsCOMPtr<nsIPrefBranch> prefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv,rv);
 
   return prefBranchInt->GetIntPref(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, &mGeneratedNameFormat);
@@ -172,7 +172,7 @@ nsresult nsAbView::Initialize()
   rv = abManager->AddAddressBookListener(this, nsIAbListener::all);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr<nsIPrefBranch2> pbi(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  nsCOMPtr<nsIPrefBranch> pbi(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = pbi->AddObserver(PREF_MAIL_ADDR_BOOK_LASTNAMEFIRST, this, false);
@@ -1181,7 +1181,7 @@ NS_IMETHODIMP nsAbView::SwapFirstNameLastName()
   bool displayNameAutoGeneration;
   bool displayNameLastnamefirst = false;
 
-  nsCOMPtr<nsIPrefBranch2> pPrefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
+  nsCOMPtr<nsIPrefBranch> pPrefBranchInt(do_GetService(NS_PREFSERVICE_CONTRACTID, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
   rv = pPrefBranchInt->GetBoolPref(PREF_MAIL_ADDR_BOOK_DISPLAYNAME_AUTOGENERATION, &displayNameAutoGeneration);
