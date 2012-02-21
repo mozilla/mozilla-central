@@ -36,6 +36,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
+
 const nsIFilePicker = Components.interfaces.nsIFilePicker;
 const nsILocalFile = Components.interfaces.nsILocalFile;
 const LOCALFILE_CTRID = "@mozilla.org/file/local;1";
@@ -62,21 +65,17 @@ function BrowseForLocalFolders()
     var selectedFolder = fp.file;
 
     // check that no other account/server has this same local directory
-    var allServers = Components.classes["@mozilla.org/messenger/account-manager;1"]
-                               .getService(Components.interfaces.nsIMsgAccountManager)
-                               .allServers;
+    var allServers = MailServices.accounts.allServers;
     for (var i = allServers.Count(); --i >= 0;)
     {
       var currentServer = allServers.QueryElementAt(i, Components.interfaces.nsIMsgIncomingServer);
       if (currentServer.key != gServer.key &&
           currentServer.localPath.equals(selectedFolder))
       {
-        var directoryAlreadyUsed =
-          top.gPrefsBundle.getFormattedString(
-            "directoryUsedByOtherAccount", [ currentServer.prettyName ]);
-        Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                  .getService(Components.interfaces.nsIPromptService)
-                  .alert(window, null, directoryAlreadyUsed);
+        var dirAlreadyUsed = top.document.getElementById("bundle_prefs")
+                                .getFormattedString("directoryUsedByOtherAccount",
+                                                    [currentServer.prettyName]);
+        Services.prompt.alert(window, null, dirAlreadyUsed);
         return;
       }
     }
