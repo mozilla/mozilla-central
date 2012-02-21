@@ -32,6 +32,20 @@ toolbar[iconsize="large"] #qfb-show-filter-bar[disabled="true"] {
   padding: 0 3px;
 }
 
+#mail-toolbox #qfb-show-filter-bar[checked="true"] {
+  color: white !important;
+  margin-top: 2px;
+  margin-bottom: 1px;
+  padding-top: 1px;
+  padding-bottom: 2px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-color: transparent;
+  border-radius: 4px;
+  box-shadow: 0 1px rgba(0, 0, 0, 0.4) inset, 1px 0 rgba(0, 0, 0, 0.3) inset,
+              0 1px rgba(255, 255, 255, 0.5);
+  text-shadow: 0 1px rgba(0, 0, 0, 0.4) !important;
+}
+
 /* :::: Filter Bar :::: */
 
 #quick-filter-bar {
