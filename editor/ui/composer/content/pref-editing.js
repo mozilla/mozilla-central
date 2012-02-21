@@ -37,7 +37,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch2);
+                             .getService(Components.interfaces.nsIPrefBranch);
 const browserPrefsObserver =
 {
   observe: function(aSubject, aTopic, aData)
