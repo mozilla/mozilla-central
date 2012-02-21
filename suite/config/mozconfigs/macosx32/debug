@@ -1,0 +1,22 @@
+# Don't use the standard mozconfig. We don't want universal for a debug build. 
+#if test -e "$topsrcdir/mozilla/build/macosx/universal/mozconfig"; then
+#. $topsrcdir/mozilla/build/macosx/universal/mozconfig
+#else
+#. $topsrcdir/build/macosx/universal/mozconfig
+#fi
+
+ac_add_options --with-macos-sdk=/Developer/SDKs/MacOSX10.5.sdk
+
+ac_add_options --disable-optimize
+ac_add_options --enable-debug
+
+ac_add_options --enable-application=suite
+ac_add_options --enable-tests
+ac_add_options --enable-trace-malloc
+
+# For NSS symbols
+export MOZ_DEBUG_SYMBOLS=1
+ac_add_options --enable-debug-symbols="-gdwarf-2"
+
+# Needed to enable breakpad in application.ini
+export MOZILLA_OFFICIAL=1
