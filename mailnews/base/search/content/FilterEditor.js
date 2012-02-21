@@ -41,9 +41,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-
-var gPromptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                     .getService(Components.interfaces.nsIPromptService);
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 // The actual filter that we're editing if it is a _saved_ filter or prefill;
 // void otherwise.
@@ -324,9 +322,9 @@ function saveFilter()
   // the duplicateFilterNameExists function will have picked up.
   if ((!gFilter || gFilter.filterName != filterName) && duplicateFilterNameExists(filterName))
   {
-    if (gPromptService)
-      gPromptService.alert(window,gFilterBundle.getString("cannotHaveDuplicateFilterTitle"),
-                           gFilterBundle.getString("cannotHaveDuplicateFilterMessage"));
+    Services.prompt.alert(window,
+                          gFilterBundle.getString("cannotHaveDuplicateFilterTitle"),
+                          gFilterBundle.getString("cannotHaveDuplicateFilterMessage"));
     return false;
   }
 
@@ -378,9 +376,9 @@ function saveFilter()
 
   if (!allValid)
   {
-    if (gPromptService)
-      gPromptService.alert(window, gFilterBundle.getString("searchTermsInvalidTitle"),
-                           gFilterBundle.getString("searchTermsInvalidMessage"));
+    Services.prompt.alert(window,
+                          gFilterBundle.getString("searchTermsInvalidTitle"),
+                          gFilterBundle.getString("searchTermsInvalidMessage"));
     return false;
   }
 

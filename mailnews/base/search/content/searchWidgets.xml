@@ -43,7 +43,6 @@
       -gFilterActionStrings from FilterEditor.js
       -gFilterList from FilterEditor.js
       -gFilter from FilterEditor.js
-      -gPromptService from FilterEditor.js
       -gCustomActions from FilterEditor.js
       -gFilterType from FilterEditor.js
       -gMessengerBundle from msgFolderPickerOverlay.js
@@ -402,7 +401,7 @@
                 for (var i = 0; i < gCustomActions.length; i++)
                   if (gCustomActions[i].id == filterActionString)
                   {
-                    customError = 
+                    customError =
                         gCustomActions[i].validateActionValue(
                           document.getAnonymousNodes(actionTarget)[0].value,
                           gFilterList.folder, gFilterType);
@@ -411,14 +410,11 @@
                 break;
             }
 
-            if (gPromptService)
-            {
-              errorString = errorString ?
-                              gFilterBundle.getString(errorString) :
-                              customError;
-              if (errorString)
-                gPromptService.alert(window, null, errorString);
-            }
+            errorString = errorString ?
+                          gFilterBundle.getString(errorString) :
+                          customError;
+            if (errorString)
+              Services.prompt.alert(window, null, errorString);
 
             return !errorString;
           ]]>

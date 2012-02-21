@@ -36,6 +36,8 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+
 var gPrefs;
 var gAddButton;
 var gOKButton;
@@ -82,7 +84,7 @@ function initializeDialog(hdrs)
   {
     hdrs = hdrs.replace(/\s+/g,'');  //remove white spaces before splitting
     gArrayHdrs = hdrs.split(":");
-    for (var i = 0; i< gArrayHdrs.length; i++) 
+    for (var i = 0; i < gArrayHdrs.length; i++)
       if (!gArrayHdrs[i])
         gArrayHdrs.splice(i,1);  //remove any null elements
     initializeRows();
@@ -91,7 +93,7 @@ function initializeDialog(hdrs)
 
 function initializeRows()
 {
-  for (var i = 0; i< gArrayHdrs.length; i++) 
+  for (var i = 0; i < gArrayHdrs.length; i++)
     addRow(TrimString(gArrayHdrs[i]));
 }
 
@@ -107,17 +109,17 @@ function enterKeyPressed()
   if (gHeaderInputElement.value != "" && !gAddButton.disabled)
   {
     onAddHeader();
-  } 
+  }
   else
   {
     // otherwise, the default action for the dialog is the OK button
-    if (! gOKButton.disabled) 
+    if (!gOKButton.disabled)
       doOKButton();
   }
 }
 
 function onOk()
-{  
+{
   if (gArrayHdrs.length)
   {
     var hdrs;
@@ -150,10 +152,7 @@ function customHeaderOverflow()
       gFilterBundle = document.getElementById("bundle_filter");
 
     var alertText = gFilterBundle.getString("customHeaderOverflow");
-    var promptService =
-      Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                .getService(Components.interfaces.nsIPromptService);
-    promptService.alert(window, null, alertText);
+    Services.prompt.alert(window, null, alertText);
     return true;
   }
   return false;
@@ -169,10 +168,7 @@ function onAddHeader()
       gCustomBundle = document.getElementById("bundle_custom");
 
     var alertText = gCustomBundle.getString("colonInHeaderName");
-    var promptService =
-      Components.classes["@mozilla.org/embedcomp/prompt-service;1"]
-                .getService(Components.interfaces.nsIPromptService);
-    promptService.alert(window, null, alertText);
+    Services.prompt.alert(window, null, alertText);
     return;
   }
 
@@ -193,12 +189,12 @@ function onAddHeader()
 function isRFC2822Header(hdr)
 {
   var charCode;
-  for (var i=0; i< hdr.length; i++)
+  for (var i = 0; i < hdr.length; i++)
   {
     charCode = hdr.charCodeAt(i);
     //58 is for colon and 33 and 126 are us-ascii bounds that should be used for header field name, as per rfc2822
 
-    if (charCode < 33 || charCode == 58 || charCode > 126) 
+    if (charCode < 33 || charCode == 58 || charCode > 126)
       return false;
   }
   return true;
@@ -206,7 +202,7 @@ function isRFC2822Header(hdr)
 
 function duplicateHdrExists(hdr)
 {
-  for (var i=0;i<gArrayHdrs.length; i++) 
+  for (var i = 0;i < gArrayHdrs.length; i++)
   {
     if (gArrayHdrs[i] == hdr)
       return true;
@@ -221,7 +217,7 @@ function onRemoveHeader()
   gHdrsList.removeChild(listitem);
   var selectedHdr = GetListItemAttributeStr(listitem);
   var j=0;
-  for (var i=0;i<gArrayHdrs.length; i++) 
+  for (var i = 0; i < gArrayHdrs.length; i++)
   {
     if (gArrayHdrs[i] == selectedHdr)
     {
@@ -235,7 +231,7 @@ function GetListItemAttributeStr(listitem)
 {
    if (listitem)
      return TrimString(listitem.getAttribute("label"));
- 
+
    return "";
 }
 
@@ -243,8 +239,8 @@ function addRow(newHdr)
 {
   var listitem = document.createElement("listitem");
   listitem.setAttribute("label", newHdr);
-  gHdrsList.appendChild(listitem); 
-  return listitem;  
+  gHdrsList.appendChild(listitem);
+  return listitem;
 }
 
 function updateAddButton(aDisable)
@@ -255,13 +251,13 @@ function updateAddButton(aDisable)
     gAddButton.disabled = aDisable;
     if (aDisable)
     {
-      gOKButton.setAttribute('default', true); 
+      gOKButton.setAttribute('default', true);
       gAddButton.removeAttribute('default');
     }
     else
     {
       gOKButton.removeAttribute('default');
-      gAddButton.setAttribute('default', true); 
+      gAddButton.setAttribute('default', true);
     }
   }
 }
