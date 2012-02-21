@@ -54,7 +54,7 @@ function onPreInit(account, accountValues)
 
 /*
  * Set the global radio element choices and initialize folder/account pickers.
- * Also, initialize other UI elements (bcc self, fcc picker controller checkboxes).
+ * Also, initialize other UI elements (cc, bcc, fcc picker controller checkboxes).
  */
 function onInit(aPageId, aServerId)
 {
@@ -90,8 +90,8 @@ function onInitCopiesAndFolders()
                      "identity.stationeryFolder",
                      "msgStationeryFolderPicker");
 
-    setupCcTextbox();
-    setupBccTextbox();
+    setupCcTextbox(true);
+    setupBccTextbox(true);
     setupFccItems();
     setupArchiveItems();
 
@@ -356,21 +356,41 @@ function setupFccItems()
 }
 
 // Disable CC textbox if CC checkbox is not checked
-function setupCcTextbox()
+function setupCcTextbox(init)
 {
     var ccChecked = document.getElementById("identity.doCc").checked;
     var ccTextbox = document.getElementById("identity.doCcList");
 
     ccTextbox.disabled = !ccChecked;
+
+    if (ccChecked) {
+        if (ccTextbox.value == "") {
+            ccTextbox.value = document.getElementById("identity.email").value;
+            if (!init)
+                ccTextbox.select();
+        }
+    } else if ((ccTextbox.value == document.getElementById("identity.email").value) ||
+               (init && ccTextbox.getAttribute("value") == ""))
+        ccTextbox.value = "";
 }
 
 // Disable BCC textbox if BCC checkbox is not checked
-function setupBccTextbox()
+function setupBccTextbox(init)
 {
     var bccChecked = document.getElementById("identity.doBcc").checked;
     var bccTextbox = document.getElementById("identity.doBccList");
 
     bccTextbox.disabled = !bccChecked;
+
+    if (bccChecked) {
+        if (bccTextbox.value == "") {
+            bccTextbox.value = document.getElementById("identity.email").value;
+            if (!init)
+                bccTextbox.select();
+        }
+    } else if ((bccTextbox.value == document.getElementById("identity.email").value) ||
+               (init && bccTextbox.getAttribute("value") == ""))
+        bccTextbox.value = "";
 }
 
 // Enable and disable pickers based on the radio element clicked
