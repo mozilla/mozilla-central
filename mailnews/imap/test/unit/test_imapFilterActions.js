@@ -261,7 +261,7 @@ const gTestArray =
     gAction.strValue = "TheTag";
     gChecks = function checkAddTag() {
       testCounts(true, 1, 1, 1);
-      do_check_eq(gHeader.getStringProperty("keywords"), "TheTag");
+      do_check_eq(gHeader.getStringProperty("keywords"), "thetag");
     }
     setupTest(gFilter, gAction);
   },
@@ -270,7 +270,7 @@ const gTestArray =
     gAction.strValue = "TheTag2";
     gChecks = function checkAddTagBody() {
       testCounts(true, 1, 1, 1);
-      do_check_eq(gHeader.getStringProperty("keywords"), "TheTag2");
+      do_check_eq(gHeader.getStringProperty("keywords"), "thetag2");
     }
     setupTest(gBodyFilter, gAction);
   },

@@ -262,8 +262,8 @@ public:
   const char* GetImapServerKey(); // return the user name from the incoming server;
 
   // state set by the imap parser...
-  void NotifyMessageFlags(imapMessageFlagsType flags, nsMsgKey key,
-                          PRUint64 highestModSeq);
+  void NotifyMessageFlags(imapMessageFlagsType flags, const nsACString &keywords,
+                          nsMsgKey key, PRUint64 highestModSeq);
   void NotifySearchHit(const char * hitLine);
 
   // Event handlers for the imap parser.

@@ -440,7 +440,7 @@ NS_SYNCRUNNABLEMETHOD4(ImapMessageSink, ParseAdoptedMsgLine, const char *, nsMsg
 NS_SYNCRUNNABLEMETHOD3(ImapMessageSink, NormalEndMsgWriteStream, nsMsgKey, bool, nsIImapUrl *)
 NS_SYNCRUNNABLEMETHOD0(ImapMessageSink, AbortMsgWriteStream)
 NS_SYNCRUNNABLEMETHOD0(ImapMessageSink, BeginMessageUpload)
-NS_SYNCRUNNABLEMETHOD3(ImapMessageSink, NotifyMessageFlags, PRUint32, nsMsgKey, PRUint64)
+NS_SYNCRUNNABLEMETHOD4(ImapMessageSink, NotifyMessageFlags, PRUint32, const nsACString &, nsMsgKey, PRUint64)
 NS_SYNCRUNNABLEMETHOD3(ImapMessageSink, NotifyMessageDeleted, const char *, bool, const char *)
 NS_SYNCRUNNABLEMETHOD2(ImapMessageSink, GetMessageSizeFromDB, const char *, PRUint32 *)
 NS_SYNCRUNNABLEMETHOD2(ImapMessageSink, SetContentModified, nsIImapUrl *, nsImapContentModifiedType)

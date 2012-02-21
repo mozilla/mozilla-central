@@ -372,7 +372,8 @@ protected:
   nsresult SyncFlags(nsIImapFlagAndUidState *flagState);
   nsresult HandleCustomFlags(nsMsgKey uidOfMessage, nsIMsgDBHdr *dbHdr,
                              PRUint16 userFlags, nsCString& keywords);
-  nsresult NotifyMessageFlagsFromHdr(nsIMsgDBHdr *dbHdr, nsMsgKey msgKey, PRUint32 flags);
+  nsresult NotifyMessageFlagsFromHdr(nsIMsgDBHdr *dbHdr, nsMsgKey msgKey,
+                                     PRUint32 flags);
 
   nsresult SetupHeaderParseStream(PRUint32 size, const nsACString& content_type, nsIMailboxSpec *boxSpec);
   nsresult  ParseAdoptedHeaderLine(const char *messageLine, PRUint32 msgKey);

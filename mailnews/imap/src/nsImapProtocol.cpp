@@ -4778,14 +4778,17 @@ nsImapProtocol::SetConnectionStatus(nsresult status)
 }
 
 void
-nsImapProtocol::NotifyMessageFlags(imapMessageFlagsType flags, 
+nsImapProtocol::NotifyMessageFlags(imapMessageFlagsType flags,
+                                   const nsACString &keywords,
                                    nsMsgKey key, PRUint64 highestModSeq)
 {
     if (m_imapMessageSink)
     {
       // if we're selecting the folder, don't need to report the flags; we've already fetched them.
-      if (m_imapAction != nsIImapUrl::nsImapSelectFolder && (m_imapAction != nsIImapUrl::nsImapMsgFetch || (flags & ~kImapMsgRecentFlag) != kImapMsgSeenFlag))
-        m_imapMessageSink->NotifyMessageFlags(flags, key, highestModSeq);
+      if (m_imapAction != nsIImapUrl::nsImapSelectFolder &&
+          (m_imapAction != nsIImapUrl::nsImapMsgFetch ||
+          (flags & ~kImapMsgRecentFlag) != kImapMsgSeenFlag))
+        m_imapMessageSink->NotifyMessageFlags(flags, keywords, key, highestModSeq);
     }
 }
 

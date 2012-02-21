@@ -766,7 +766,10 @@ void nsImapServerResponseParser::PostProcessEndOfLine()
   if (fCurrentLineContainedFlagInfo && CurrentResponseUID())
   {
     fCurrentLineContainedFlagInfo = false;
-    fServerConnection.NotifyMessageFlags(fSavedFlagInfo, CurrentResponseUID(), fHighestModSeq);
+    nsCString customFlags;
+    fFlagState->GetCustomFlags(CurrentResponseUID(), getter_Copies(customFlags));
+    fServerConnection.NotifyMessageFlags(fSavedFlagInfo, customFlags,
+                                         CurrentResponseUID(), fHighestModSeq);
   }
 }
 

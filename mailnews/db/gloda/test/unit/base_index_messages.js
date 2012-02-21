@@ -534,6 +534,7 @@ function test_moved_message_attributes() {
   // Don't ask me why, let destFolder = make_empty_folder would result in a
   // random error when running test_index_messages_imap_offline.js ...
   let [destFolder, ignoreSet] = make_folder_with_sets([{count: 2}]);
+  fundamentalFolderHandle = destFolder;
   yield wait_for_message_injection();
   yield wait_for_gloda_indexer([ignoreSet]);
 
@@ -1225,9 +1226,9 @@ var tests = [
   test_threading,
   test_attachment_flag,
   test_attributes_fundamental,
+  test_moved_message_attributes,
   test_attributes_fundamental_from_disk,
   test_attributes_explicit,
-  test_moved_message_attributes,
   test_attributes_cant_query,
 
   test_streamed_bodies_are_size_capped,

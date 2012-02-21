@@ -41,7 +41,7 @@
 
 interface nsIMsgMailNewsUrl;
 
-[scriptable, uuid(b2d287c5-e857-4fa2-9047-351f801fafb2)]
+[scriptable, uuid(6ffb6a92-e43a-405f-92ea-92cf81a5e17b)]
 
 interface nsIImapMessageSink : nsISupports {
   // set up messge download output stream
@@ -71,11 +71,13 @@ interface nsIImapMessageSink : nsISupports {
    *  Notify the message sink that one or more flags have changed
    *  For Condstore servers, also update the highestMod Sequence
    *  @param   aFlags         - The new flags for the message
+   *  @param   aKeywords        keywords for the message
    *  @param   aMessageKey    - The UID of the message that changed
    *  @param   aHighestModSeq - The highest mod seq the parser has seen
    *                            for this folder
   **/
-  void notifyMessageFlags(in unsigned long aFlags, in nsMsgKey aMessageKey,
+  void notifyMessageFlags(in unsigned long aFlags, in ACString aKeywords,
+                          in nsMsgKey aMessageKey,
                           in unsigned long long aHighestModSeq);
 
   void notifyMessageDeleted(in string aOnlineFolderName,in boolean aDeleteAllMsgs,in string aMsgIdString);

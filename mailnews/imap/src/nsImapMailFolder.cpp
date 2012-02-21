@@ -4866,7 +4866,9 @@ nsresult nsImapMailFolder::SyncFlags(nsIImapFlagAndUidState *flagState)
 }
 
 // helper routine to sync the flags on a given header
-nsresult nsImapMailFolder::NotifyMessageFlagsFromHdr(nsIMsgDBHdr *dbHdr, nsMsgKey msgKey, PRUint32 flags)
+nsresult
+nsImapMailFolder::NotifyMessageFlagsFromHdr(nsIMsgDBHdr *dbHdr,
+                                            nsMsgKey msgKey, PRUint32 flags)
 {
   mDatabase->MarkHdrRead(dbHdr, (flags & kImapMsgSeenFlag) != 0, nsnull);
   mDatabase->MarkHdrReplied(dbHdr, (flags & kImapMsgAnsweredFlag) != 0, nsnull);
@@ -4898,7 +4900,9 @@ nsresult nsImapMailFolder::NotifyMessageFlagsFromHdr(nsIMsgDBHdr *dbHdr, nsMsgKe
 // message flags operation - this is called from the imap protocol,
 // proxied over from the imap thread to the ui thread, when a flag changes
 NS_IMETHODIMP
-nsImapMailFolder::NotifyMessageFlags(PRUint32 aFlags, nsMsgKey aMsgKey, PRUint64 aHighestModSeq)
+nsImapMailFolder::NotifyMessageFlags(PRUint32 aFlags,
+                                     const nsACString &aKeywords,
+                                     nsMsgKey aMsgKey, PRUint64 aHighestModSeq)
 {
   if (NS_SUCCEEDED(GetDatabase()) && mDatabase)
   {
@@ -4931,9 +4935,14 @@ nsImapMailFolder::NotifyMessageFlags(PRUint32 aFlags, nsMsgKey aMsgKey, PRUint64
     if (NS_FAILED(rv) || !containsKey)
       return rv;
     rv = mDatabase->GetMsgHdrForKey(aMsgKey, getter_AddRefs(dbHdr));
-    if(NS_SUCCEEDED(rv) && dbHdr)
+    if (NS_SUCCEEDED(rv) && dbHdr)
+    {
+      PRUint32 supportedUserFlags;
+      GetSupportedUserFlags(&supportedUserFlags);
       NotifyMessageFlagsFromHdr(dbHdr, aMsgKey, aFlags);
-
+      nsCString keywords(aKeywords);
+      HandleCustomFlags(aMsgKey, dbHdr, supportedUserFlags, keywords);
+    }
   }
   return NS_OK;
 }
