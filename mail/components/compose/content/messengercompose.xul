@@ -639,7 +639,7 @@
 
     <toolbarbutton class="toolbarbutton-1" type="menu-button"
                id="spellingButton" label="&spellingButton.label;" 
-               tooltiptext="&spellingButton.tooltip;" disabled="true"
+               tooltiptext="&spellingButton.tooltip;"
                command="cmd_spelling">
       <!-- this popup gets dynamically generated -->
       <menupopup id="languageMenuList" oncommand="ChangeLanguage(event);"
