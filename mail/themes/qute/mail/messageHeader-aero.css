@@ -443,6 +443,10 @@ toolbarpaletteitem .msgHeaderView-button {
   min-height: 1ex;
 }
 
+.msgHeaderView-flat-button:-moz-system-metric(windows-classic) {
+  border: 2px solid transparent;
+}
+
 .msgHeaderView-flat-button[type="menu-button"] > .button-menubutton-button {
   -moz-appearance: none;
   background-color: rgb(211,215,207);
