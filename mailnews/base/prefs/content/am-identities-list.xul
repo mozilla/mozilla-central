@@ -41,12 +41,15 @@
 
 <!DOCTYPE dialog SYSTEM "chrome://messenger/locale/am-identities-list.dtd">
 
-<dialog 
+<dialog
   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
   xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
   onload="onLoad();"
   buttons="accept"
+  buttonlabelaccept="&identitiesListClose.label;"
+  buttonaccesskeyaccept="&identitiesListClose.accesskey;"
   ondialogaccept="return onOk();"
+  ondialogcancel="return onOk();"
   style="width: 40em;">
 
 <stringbundle id="bundle_prefs" src="chrome://messenger/locale/prefs.properties"/>

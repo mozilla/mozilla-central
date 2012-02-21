@@ -40,18 +40,15 @@ var gIdentityListBox;                 // the root <listbox> node
 var gAddButton;
 var gEditButton;
 var gDeleteButton;
-var gMessengerBundle;
 
 var gAccount = null;  // the account we are showing the identities for
 
 function onLoad()
 {
-  gMessengerBundle = document.getElementById("bundle_messenger");
-
   gIdentityListBox = document.getElementById("identitiesList");
-  gAddButton        = document.getElementById("addButton");
-  gEditButton       = document.getElementById("editButton");
-  gDeleteButton     = document.getElementById("deleteButton");
+  gAddButton       = document.getElementById("addButton");
+  gEditButton      = document.getElementById("editButton");
+  gDeleteButton    = document.getElementById("deleteButton");
 
   // extract the account
   gAccount = window.arguments[0].account;
@@ -60,7 +57,7 @@ function onLoad()
   document.title = document.getElementById("bundle_prefs")
                            .getFormattedString("identity-list-title", [accountName]);
 
-  // extract the account from 
+  // extract the account from
   refreshIdentityList();
 
   // try selecting the first identity
@@ -78,7 +75,7 @@ function refreshIdentityList()
   for (var j = 0; j < identitiesCount; j++) 
   {
     var identity = identities.QueryElementAt(j, Components.interfaces.nsIMsgIdentity);
-    if (identity.valid) 
+    if (identity.valid)
     {
       var listitem = document.createElement("listitem");
       listitem.setAttribute("label", identity.identityName);
@@ -92,7 +89,7 @@ function refreshIdentityList()
 // identity: pass in the identity (if any) to load in the dialog
 function openIdentityEditor(identity)
 {
-  var result = false; 
+  var result = false;
   var args = { identity: identity, account: gAccount, result: result };
 
   window.openDialog("am-identity-edit.xul", "", "chrome,modal,resizable=no,centerscreen", args);
@@ -101,7 +98,7 @@ function openIdentityEditor(identity)
 
   if (args.result)
   {
-    refreshIdentityList();   
+    refreshIdentityList();
     gIdentityListBox.selectedIndex = selectedItemIndex;
   }
 }
@@ -111,10 +108,10 @@ function getSelectedIdentity()
   var identityKey = gIdentityListBox.selectedItems[0].getAttribute("key");
   var identities = gAccount.identities;
   var identitiesCount = identities.Count();
-	for (var j = 0; j < identitiesCount; j++) 
+  for (var j = 0; j < identitiesCount; j++)
   {
     var identity = identities.QueryElementAt(j, Components.interfaces.nsIMsgIdentity);
-    if (identity.valid && identity.key == identityKey) 
+    if (identity.valid && identity.key == identityKey)
       return identity;
   }
 
@@ -129,12 +126,12 @@ function onEdit(event)
 
 function updateButtons()
 {
-  if (gIdentityListBox.selectedItems.length <= 0) 
+  if (gIdentityListBox.selectedItems.length <= 0)
   {
     gEditButton.setAttribute("disabled", "true");
     gDeleteButton.setAttribute("disabled", "true");
-  } 
-  else 
+  }
+  else
   {
     gEditButton.removeAttribute("disabled");
     if (gIdentityListBox.getRowCount() > 1)
@@ -149,17 +146,12 @@ function onDelete(event)
 
   gAccount.removeIdentity(getSelectedIdentity());
   // rebuild the list
-  refreshIdentityList(); 
+  refreshIdentityList();
 }
 
 function onOk()
 {
   window.arguments[0].result = true;
-  return true;
-}
-
-function onCancel()
-{
   return true;
 }
 
