@@ -75,14 +75,14 @@ rm -rf trunk
 mv webrtc_update/trunk trunk
 mv webrtc_update/.g* .
 rmdir webrtc_update
-(hg addremove --exclude "**.svn" --exclude "**.git" --exclude "**.pyc" --similarity 90 --dry-run trunk; hg status -m) | less
+(hg addremove --exclude "**.svn" --exclude "**.git" --exclude "**.pyc" --exclude "**.yuv" --similarity 90 --dry-run trunk; hg status -m) | less
 
 # FIX! Query user about add-removes better!!
 echo "Waiting 30 seconds - Hit ^C now to stop addremove and commit!"
 sleep 30  # let them ^C
 
 # Add/remove files, detect renames
-hg addremove --exclude "**.svn" --exclude "**.git" --exclude "**.pyc" --similarity 90 trunk
+hg addremove --exclude "**.svn" --exclude "**.git" --exclude "**.pyc" --exclude "**.yuv" --similarity 90 trunk
 
 # leave this for the user for now until we're comfortable it works safely
 
