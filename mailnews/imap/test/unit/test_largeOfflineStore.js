@@ -9,9 +9,6 @@ var gIMAPDaemon, gServer, gIMAPIncomingServer;
 Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
                            "@mozilla.org/msgstore/berkeleystore;1");
 
-const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
-                       .getService(Ci.nsIMsgMessageService);
-
 load("../../../resources/mailTestUtils.js");
 load("../../../resources/messageGenerator.js");
 

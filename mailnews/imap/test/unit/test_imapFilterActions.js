@@ -54,8 +54,6 @@ const gCopyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
                        .getService(Ci.nsIMsgCopyService);
 const gDbService = Components.classes["@mozilla.org/msgDatabase/msgDBService;1"]
                              .getService(Components.interfaces.nsIMsgDBService);
-const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
-                       .getService(Ci.nsIMsgMessageService);
 const gMailSession = Cc["@mozilla.org/messenger/services/session;1"]
                      .getService(Ci.nsIMsgMailSession);
 const kFiltersAppliedAtom = Cc["@mozilla.org/atom-service;1"]

@@ -7,9 +7,6 @@ Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
 
-const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
-                       .getService(Ci.nsIMsgMessageService);
-
 const kIDResponse = "(\"name\" \"GImap\" \"vendor\" \"Google, Inc.\" \"support-url\" \"http://mail.google.com/support\")";
 var gIMAPInbox;
 var gTest;

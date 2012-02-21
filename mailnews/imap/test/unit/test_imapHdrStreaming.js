@@ -85,8 +85,6 @@ function run_test() {
   async_run_tests(tests);
  }
 
-var gIMAPService;
-
 var tests = [
   test_updateFolder,
   test_downloadForOffline,

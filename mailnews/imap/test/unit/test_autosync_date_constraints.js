@@ -3,14 +3,8 @@
  * Test autosync date constraints
  */
 
-var gIMAPDaemon, gServer, gIMAPIncomingServer;
-
 load("../../../resources/messageGenerator.js");
 
-const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
-                       .getService(Ci.nsIMsgMessageService);
-
-// Globals
 var gRootFolder;
 var gIMAPInbox, gIMAPTrashFolder, gMsgImapInboxFolder;
 var gIMAPDaemon, gServer, gIMAPIncomingServer;

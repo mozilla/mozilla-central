@@ -4,11 +4,6 @@
  * with offline store locking correctly.
  */
 
-var gIMAPDaemon, gServer, gIMAPIncomingServer;
-
-const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
-                       .getService(Ci.nsIMsgMessageService);
-
 const nsIIOService = Cc["@mozilla.org/network/io-service;1"]
                        .getService(Ci.nsIIOService);
 

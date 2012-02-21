@@ -2,14 +2,8 @@
 // going to test copying local folders to imap servers, but other tests
 // could be added.
 
-var gIMAPDaemon, gServer, gIMAPIncomingServer;
-
 load("../../../resources/messageGenerator.js");
 
-const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
-                       .getService(Ci.nsIMsgMessageService);
-
-// Globals
 var gRootFolder;
 var gIMAPInbox, gIMAPTrashFolder;
 var gEmptyLocal1, gEmptyLocal2, gEmptyLocal3, gNotEmptyLocal4;

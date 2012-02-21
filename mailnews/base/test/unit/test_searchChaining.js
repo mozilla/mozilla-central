@@ -43,12 +43,6 @@
 load("../../../resources/messageGenerator.js");
 
 var gIMAPInbox;
-var gServer, gIMAPIncomingServer;
-
-const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
-                       .getService(Ci.nsIMsgMessageService);
-
-// Globals
 var gIMAPDaemon, gServer, gIMAPIncomingServer;
 
 function run_test()

@@ -11,12 +11,6 @@ load("../../../resources/POP3pump.js");
 Components.utils.import("resource:///modules/folderUtils.jsm");
 Components.utils.import("resource:///modules/iteratorUtils.jsm");
 
-var gIMAPDaemon, gServer, gIMAPIncomingServer;
-
-const gIMAPService = Cc["@mozilla.org/messenger/messageservice;1?type=imap"]
-                       .getService(Ci.nsIMsgMessageService);
-
-// Globals
 var gRootFolder;
 var gIMAPInbox, gIMAPTrashFolder;
 var gEmptyLocal1, gEmptyLocal2;
