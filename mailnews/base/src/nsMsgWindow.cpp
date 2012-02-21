@@ -53,7 +53,7 @@
 #include "nsIWebProgressListener.h"
 #include "nsPIDOMWindow.h"
 #include "nsIPrompt.h"
-#include "nsICharsetAlias.h"
+#include "nsICharsetConverterManager.h"
 #include "nsIChannel.h"
 #include "nsIRequestObserver.h"
 #include "netCore.h"
@@ -300,10 +300,12 @@ NS_IMETHODIMP nsMsgWindow::SetMailCharacterSet(const nsACString& aMailCharacterS
   // Convert to a canonical charset name instead of using the charset name from the message header as is.
   // This is needed for charset menu item to have a check mark correctly.
   nsresult rv;
-  nsCOMPtr<nsICharsetAlias> calias = do_GetService(NS_CHARSETALIAS_CONTRACTID, &rv);
+  nsCOMPtr <nsICharsetConverterManager> ccm =
+    do_GetService(NS_CHARSETCONVERTERMANAGER_CONTRACTID, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  return calias->GetPreferred(aMailCharacterSet,  mMailCharacterSet);
+  return ccm->GetCharsetAlias(PromiseFlatCString(aMailCharacterSet).get(),
+                              mMailCharacterSet);
 }
 
 NS_IMETHODIMP nsMsgWindow::GetCharsetOverride(bool *aCharsetOverride)

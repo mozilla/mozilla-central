@@ -42,7 +42,6 @@
 #endif
 
 #include "nsICharsetConverterManager.h"
-#include "nsICharsetAlias.h"
 #include "nsIPlatformCharset.h"
 #include "nsICharsetConverterManager.h"
 

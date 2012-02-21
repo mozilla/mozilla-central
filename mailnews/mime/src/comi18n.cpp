@@ -39,7 +39,6 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include "nsICharsetConverterManager.h"
-#include "nsICharsetAlias.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -219,11 +218,13 @@ PRInt32 generate_encodedwords(char *pUTF8, const char *charset, char method, cha
 
     // Resolve charset alias
     {
-      nsCOMPtr <nsICharsetAlias> calias = do_GetService(NS_CHARSETALIAS_CONTRACTID, &rv);
-      nsCOMPtr <nsIAtom> charsetAtom;
-      charset = !PL_strcasecmp(charset, "us-ascii") ? "ISO-8859-1" : charset;
-      rv = calias->GetPreferred(nsDependentCString(charset),
-                                _charset);
+      nsCOMPtr<nsICharsetConverterManager> ccm =
+        do_GetService(NS_CHARSETCONVERTERMANAGER_CONTRACTID, &rv);
+
+      if (NS_SUCCEEDED(rv)) {
+        charset = !PL_strcasecmp(charset, "us-ascii") ? "ISO-8859-1" : charset;
+        rv = ccm->GetCharsetAlias(charset, _charset);
+      }
       if (NS_FAILED(rv)) {
         if (_pUCS2)
           nsMemory::Free(_pUCS2);

@@ -38,7 +38,6 @@
 
 // as does this
 #include "nsICharsetConverterManager.h"
-#include "nsICharsetAlias.h"
 #include "nsIPlatformCharset.h"
 #include "nsIServiceManager.h"
 
@@ -426,13 +425,12 @@ nsresult nsMsgI18NSaveAsCharset(const char* contentType, const char *charset,
     return NS_ERROR_ILLEGAL_VALUE;  // not supported type
   }
 
-  nsCOMPtr <nsICharsetAlias> calias =
-    do_GetService(NS_CHARSETALIAS_CONTRACTID, &res);
+  nsCOMPtr <nsICharsetConverterManager> ccm =
+    do_GetService(NS_CHARSETCONVERTERMANAGER_CONTRACTID, &res);
   NS_ENSURE_SUCCESS(res, res);
 
   nsCAutoString charsetName;
-  res = calias->GetPreferred(nsDependentCString(charset),
-                             charsetName);
+  res = ccm->GetCharsetAlias(charset, charsetName);
   NS_ENSURE_SUCCESS(res, res);
 
   // charset converter plus entity, NCR generation

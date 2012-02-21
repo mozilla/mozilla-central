@@ -70,7 +70,6 @@
 #include "nsIImapUrl.h"
 #include "nsMsgI18N.h"
 #include "nsICharsetConverterManager.h"
-#include "nsICharsetAlias.h"
 #include "nsMimeTypes.h"
 #include "nsIIOService.h"
 #include "nsIURI.h"
