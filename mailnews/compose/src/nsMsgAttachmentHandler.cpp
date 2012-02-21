@@ -992,6 +992,13 @@ nsMsgAttachmentHandler::Abort()
 {
   nsCOMPtr<nsIRequest> saveRequest;
   saveRequest.swap(mRequest);
+
+  if (mTmpFile)
+  {
+    mTmpFile->Remove(false);
+    mTmpFile = nsnull;
+  }
+
   NS_ASSERTION(m_mime_delivery_state != nsnull, "not-null m_mime_delivery_state");
 
   if (m_done)
