@@ -116,5 +116,17 @@ function test_forward_eml_save_as_draft() {
   close_window(msgc); // close base .eml message
 }
 
+/**
+ * Test that MIME encoded subject is decoded when replying to an opened .eml.
+ */
+function test_reply_eml_subject() {
+  // Open an .eml file.
+  let file = os.getFileForPath(os.abspath("./mime-encoded-subject.eml", os.getFileForPath(__file__)));
+  let msgc = open_message_from_file(file);
 
+  let replyWin = composeHelper.open_compose_with_reply(msgc);
 
+  assert_equals(replyWin.e("msgSubject").value, "Re: \u2200a\u220aA");
+  close_compose_window(replyWin); // close compose window
+  close_window(msgc); // close base .eml message
+}
