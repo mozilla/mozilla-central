@@ -237,7 +237,7 @@ treechildren::-moz-tree-twisty(open) {
 treechildren::-moz-tree-cell-text(folderNameCol, newMessages-true) {
   font-weight: bold;
   margin-left: -16px;
-  padding-left: 16px;
+  padding-left: 21px;
   background-image: url("chrome://messenger/skin/icons/folder-new-star.png");
   background-repeat: no-repeat;
   background-position: left;
