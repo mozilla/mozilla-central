@@ -1781,8 +1781,6 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
   if (!uriList)
     return NS_ERROR_OUT_OF_MEMORY;
 
-  nsCOMPtr<nsIMimeConverter> mimeConverter = do_GetService(NS_MIME_CONVERTER_CONTRACTID);
-
   nsCString charset;
   // use a charset of the original message
   nsCString mailCharset;
@@ -1830,7 +1828,6 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
     }
     if (msgHdr)
     {
-      nsString subject;
       nsCString decodedCString;
 
       if (!charsetOverride && charset.IsEmpty())
@@ -1867,10 +1864,8 @@ nsresult nsMsgCompose::CreateMessage(const char * originalMsgURI,
       if (isFirstPass && !charset.IsEmpty())
         m_compFields->SetCharacterSet(charset.get());
 
-      nsCString subjectCStr;
-      (void) msgHdr->GetSubject(getter_Copies(subjectCStr));
-      rv = mimeConverter->DecodeMimeHeader(subjectCStr.get(), originCharset.get(),
-                                           charsetOverride, true, subject);
+      nsString subject;
+      rv = msgHdr->GetMime2DecodedSubject(subject);
       if (NS_FAILED(rv)) return rv;
 
       // Check if (was: is present in the subject
