@@ -44,7 +44,7 @@ var EXPORTED_SYMBOLS = ["setPropertyAtoms", "getSpecialFolderString",
 /**
  * Returns a string representation of a folder's "special" type
  *
- * @param aFolder  the folder whose special type should be returned
+ * @param aFolder  the nsIMsgFolder whose special type should be returned
  */
 function getSpecialFolderString(aFolder) {
   const Ci = Components.interfaces;

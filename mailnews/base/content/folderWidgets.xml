@@ -686,33 +686,15 @@
         <parameter name="aFolder"/>
         <parameter name="aMenuNode"/>
         <body><![CDATA[
-          const Ci = Components.interfaces;
+          Components.utils.import("resource:///modules/folderUtils.jsm");
           // First set the SpecialFolder attribute
-          if (aFolder.flags & Ci.nsMsgFolderFlags.Inbox)
-            aMenuNode.setAttribute("SpecialFolder", "Inbox");
-          else if (aFolder.flags & Ci.nsMsgFolderFlags.Trash)
-            aMenuNode.setAttribute("SpecialFolder", "Trash");
-          else if (aFolder.flags & Ci.nsMsgFolderFlags.Queue)
-            aMenuNode.setAttribute("SpecialFolder", "Outbox");
-          else if (aFolder.flags & Ci.nsMsgFolderFlags.SentMail)
-            aMenuNode.setAttribute("SpecialFolder", "Sent");
-          else if (aFolder.flags & Ci.nsMsgFolderFlags.Drafts)
-            aMenuNode.setAttribute("SpecialFolder", "Drafts");
-          else if (aFolder.flags & Ci.nsMsgFolderFlags.Templates)
-            aMenuNode.setAttribute("SpecialFolder", "Templates");
-          else if (aFolder.flags & Ci.nsMsgFolderFlags.Junk)
-            aMenuNode.setAttribute("SpecialFolder", "Junk");
-          else if (aFolder.flags & Ci.nsMsgFolderFlags.Archive)
-            aMenuNode.setAttribute("SpecialFolder", "Archive");
-          else if (aFolder.flags & Ci.nsMsgFolderFlags.Virtual)
-            aMenuNode.setAttribute("SpecialFolder", "Virtual");
-          else
-            aMenuNode.setAttribute("SpecialFolder", "none");
+          aMenuNode.setAttribute("SpecialFolder", getSpecialFolderString(aFolder));
 
           // Now set the biffState
-          var biffStates = ["NewMail", "NoMail", "UnknownMail"];
-          for each (var state in biffStates) {
-            if (aFolder.biffState == Ci.nsIMsgFolder["nsMsgBiffState_" + state]) {
+          let biffStates = ["NewMail", "NoMail", "UnknownMail"];
+          for each (let state in biffStates) {
+            if (aFolder.biffState ==
+                Components.interfaces.nsIMsgFolder["nsMsgBiffState_" + state]) {
               aMenuNode.setAttribute("BiffState", state);
               break;
             }
