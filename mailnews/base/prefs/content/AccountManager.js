@@ -255,7 +255,7 @@ function checkUserServerChanges(showAlert) {
         var alertTitle = document.getElementById("bundle_brand")
                                  .getString("brandShortName");
         var alertMsg = document.getElementById("bundle_prefs")
-                               .getString("enterValidHostname");
+                               .getString("enterValidServerName");
 
         Cc["@mozilla.org/embedcomp/prompt-service;1"]
           .getService(Ci.nsIPromptService).alert(window, alertTitle, alertMsg);

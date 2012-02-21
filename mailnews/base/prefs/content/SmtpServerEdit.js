@@ -66,7 +66,7 @@ function onAccept()
       var prefsBundle = document.getElementById("bundle_prefs");
       var brandBundle = document.getElementById("bundle_brand");
       var alertTitle = brandBundle.getString("brandShortName");
-      var alertMsg = prefsBundle.getString("enterValidHostname");
+      var alertMsg = prefsBundle.getString("enterValidServerName");
       var promptService = Components.classes["@mozilla.org/embedcomp/prompt-service;1"].getService(Components.interfaces.nsIPromptService);
       promptService.alert(window, alertTitle, alertMsg);
 
