@@ -926,7 +926,7 @@ var directoryServerObserver = {
 
 function AddDirectoryServerObserver(flag) {
   var branch = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch2);
+                         .getService(Components.interfaces.nsIPrefBranch);
   if (flag) {
     branch.addObserver("ldap_2.autoComplete.useDirectory",
                        directoryServerObserver, false);
@@ -945,7 +945,7 @@ function AddDirectoryServerObserver(flag) {
 function RemoveDirectoryServerObserver(prefstring)
 {
   var branch = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch2);
+                         .getService(Components.interfaces.nsIPrefBranch);
   if (!prefstring) {
     branch.removeObserver("ldap_2.autoComplete.useDirectory",
                           directoryServerObserver);
@@ -964,7 +964,7 @@ function RemoveDirectoryServerObserver(prefstring)
 function AddDirectorySettingsObserver()
 {
   var branch = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch2);
+                         .getService(Components.interfaces.nsIPrefBranch);
   branch.addObserver(gCurrentAutocompleteDirectory, directoryServerObserver,
                      false);
 }
@@ -972,7 +972,7 @@ function AddDirectorySettingsObserver()
 function RemoveDirectorySettingsObserver(prefstring)
 {
   var branch = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch2);
+                         .getService(Components.interfaces.nsIPrefBranch);
   branch.removeObserver(prefstring, directoryServerObserver);
 }
 

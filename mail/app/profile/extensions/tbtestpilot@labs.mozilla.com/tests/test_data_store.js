@@ -96,7 +96,7 @@ function clearAllPrefsForStudy(studyId) {
   output("Looking for prefs to delete...\n");
   let prefService = Cc["@mozilla.org/preferences-service;1"]
                      .getService(Ci.nsIPrefService)
-                     .QueryInterface(Ci.nsIPrefBranch2);
+                     .QueryInterface(Ci.nsIPrefBranch);
   let prefStem = "extensions.testpilot";
   let prefNames = prefService.getChildList(prefStem);
   for each (let prefName in prefNames) {

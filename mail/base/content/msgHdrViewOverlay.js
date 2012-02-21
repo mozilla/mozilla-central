@@ -177,7 +177,7 @@ function createHeaderEntry(prefix, headerListInfo)
 function initializeHeaderViewTables()
 {
   var prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch2);
+                             .getService(Components.interfaces.nsIPrefBranch);
   // iterate over each header in our header list arrays and create header entries
   // for each one. These header entries are then stored in the appropriate header table
   var index;
@@ -2012,7 +2012,7 @@ function displayAttachmentsForExpandedView()
     var attachmentList = document.getElementById("attachmentList");
 
     var viewMode = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch2)
+                             .getService(Components.interfaces.nsIPrefBranch)
                              .getIntPref("mailnews.attachments.display.view");
     var views = ["small", "large", "tile"];
     attachmentList.view = views[viewMode];
@@ -2559,7 +2559,7 @@ function onShowOtherActionsPopup()
 {
   // Enable/disable the Open Conversation button.
   let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch2);
+                             .getService(Components.interfaces.nsIPrefBranch);
   let glodaEnabled = prefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
 
   let openConversation = document.getElementById("otherActionsOpenConversation");
@@ -2596,7 +2596,7 @@ ConversationOpener.prototype = {
   },
   isSelectedMessageIndexed: function() {
     let prefBranch = Components.classes["@mozilla.org/preferences-service;1"]
-                               .getService(Components.interfaces.nsIPrefBranch2);
+                               .getService(Components.interfaces.nsIPrefBranch);
     let glodaEnabled = prefBranch.getBoolPref("mailnews.database.global.indexer.enabled");
 
     if (glodaEnabled && gFolderDisplay.selectedMessages.length > 0) {

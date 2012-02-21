@@ -1621,7 +1621,7 @@
         <![CDATA[
           var pb2 =
               Components.classes['@mozilla.org/preferences-service;1'].
-              getService(Components.interfaces.nsIPrefBranch2);
+              getService(Components.interfaces.nsIPrefBranch);
 
           try {
             this.mTabMinWidth = pb2.getIntPref("mail.tabs.tabMinWidth");
@@ -1669,7 +1669,7 @@
         <![CDATA[
           var pb2 =
               Components.classes['@mozilla.org/preferences-service;1'].
-              getService(Components.interfaces.nsIPrefBranch2);
+              getService(Components.interfaces.nsIPrefBranch);
           pb2.removeObserver("mail.tabs.", this._prefObserver);
 
           // Release timer to avoid reference cycles.
@@ -1800,7 +1800,7 @@
           if (!this._mPrefs) {
             this._mPrefs =
               Components.classes['@mozilla.org/preferences-service;1'].
-              getService(Components.interfaces.nsIPrefBranch2);
+              getService(Components.interfaces.nsIPrefBranch);
           }
           return this._mPrefs;
         ]]>

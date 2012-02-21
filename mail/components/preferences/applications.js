@@ -178,7 +178,7 @@ HandlerInfoWrapper.prototype = {
                          .getService(Components.interfaces.nsIHandlerService),
 
   _prefSvc: Components.classes["@mozilla.org/preferences-service;1"]
-                      .getService(Components.interfaces.nsIPrefBranch2),
+                      .getService(Components.interfaces.nsIPrefBranch),
 
   _categoryMgr: Components.classes["@mozilla.org/categorymanager;1"]
                           .getService(Components.interfaces.nsICategoryManager),
@@ -474,7 +474,7 @@ var gApplicationsPane = {
   _filter         : null,
 
   _prefSvc      : Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(Components.interfaces.nsIPrefBranch2),
+                            .getService(Components.interfaces.nsIPrefBranch),
 
   _mimeSvc      : Components.classes["@mozilla.org/mime;1"]
                             .getService(Components.interfaces.nsIMIMEService),

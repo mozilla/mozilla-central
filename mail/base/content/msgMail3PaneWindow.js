@@ -367,7 +367,6 @@ function OnLoadMessenger()
     document.documentElement.setAttribute("screenY", screen.availTop);
   }
 
-  gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
   gPrefBranch.addObserver("mail.pane_config.dynamic", MailPrefObserver, false);
   gPrefBranch.addObserver("mail.showCondensedAddresses", MailPrefObserver,
                           false);
@@ -606,7 +605,6 @@ function FindOther3PaneWindow()
 function OnUnloadMessenger()
 {
   accountManager.removeIncomingServerListener(gThreePaneIncomingServerListener);
-  gPrefBranch.QueryInterface(Components.interfaces.nsIPrefBranch2);
   gPrefBranch.removeObserver("mail.pane_config.dynamic", MailPrefObserver);
   gPrefBranch.removeObserver("mail.showCondensedAddresses", MailPrefObserver);
 

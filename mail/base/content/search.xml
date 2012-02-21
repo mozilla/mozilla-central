@@ -104,7 +104,7 @@
 
           var prefBranch =
               Components.classes['@mozilla.org/preferences-service;1'].
-              getService(Components.interfaces.nsIPrefBranch2);
+              getService(Components.interfaces.nsIPrefBranch);
           this.glodaCompleter =
             Components.classes["@mozilla.org/autocomplete/search;1?name=gloda"]
                       .getService()

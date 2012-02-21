@@ -89,7 +89,7 @@ function searchOnLoad()
   // initialize a flag for phonetic name search
   var prefService = Components.classes["@mozilla.org/preferences-service;1"]
                               .getService(Components.interfaces.nsIPrefService);
-  var prefBranch = prefService.getBranch(null).QueryInterface(Components.interfaces.nsIPrefBranch2);
+  var prefBranch = prefService.getBranch(null);
   gSearchPhoneticName =
         prefBranch.getComplexValue("mail.addr_book.show_phonetic_fields", 
                                    Components.interfaces.nsIPrefLocalizedString).data;

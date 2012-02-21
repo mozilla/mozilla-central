@@ -66,8 +66,7 @@ XPCOMUtils.defineLazyServiceGetter(this, "_winShellService",
                                    "nsIWindowsShellService");
 
 XPCOMUtils.defineLazyGetter(this, "_prefs", function() {
-  return Services.prefs.getBranch(PREF_TASKBAR_BRANCH)
-                       .QueryInterface(Ci.nsIPrefBranch2);
+  return Services.prefs.getBranch(PREF_TASKBAR_BRANCH);
 });
 
 function _getString(aName) {
