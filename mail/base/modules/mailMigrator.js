@@ -133,7 +133,7 @@ var MailMigrator = {
   _migrateUI: function MailMigrator__migrateUI() {
     // The code for this was ported from
     // mozilla/browser/components/nsBrowserGlue.js
-    const UI_VERSION = 2;
+    const UI_VERSION = 3;
     const MESSENGER_DOCURL = "chrome://messenger/content/messenger.xul#";
     const UI_VERSION_PREF = "mail.ui-rdf.version";
     let currentUIVersion = 0;
@@ -160,8 +160,8 @@ var MailMigrator = {
       // our users the first time.
       if (currentUIVersion < 2) {
         // We want to remove old settings that collapse the folderPaneBox
-        let fpbResource = this._rdf.GetResource(MESSENGER_DOCURL +
-                                                "folderPaneBox");
+        let fpbResource = this._rdf.GetResource(MESSENGER_DOCURL
+                                                + "folderPaneBox");
         let collapsedResource = this._rdf.GetResource("collapsed");
         let collapsed = this._getPersist(fpbResource, collapsedResource);
 
@@ -194,12 +194,52 @@ var MailMigrator = {
         }
       }
 
+      // In UI version 3, we move the QFB button from the tabbar toolbar to
+      // to the mail toolbar.
+      if (currentUIVersion < 3) {
+        let currentSetResource = this._rdf.GetResource("currentset");
+        let tbtResource = this._rdf.GetResource(MESSENGER_DOCURL
+                                                + "tabbar-toolbar");
+        if (tbtResource !== null) {
+          let currentSet = this._getPersist(tbtResource, currentSetResource);
+          if (currentSet
+              && currentSet.indexOf("qfb-show-filter-bar") != -1) {
+            dirty = true;
+            currentSet = currentSet.replace(/(^|,)qfb-show-filter-bar($|,)/,
+                                            "$1$2");
+            this._setPersist(tbtResource, currentSetResource, currentSet);
+          }
+        }
+
+        let barResource = this._rdf.GetResource(MESSENGER_DOCURL + "mail-bar3");
+        if (barResource !== null) {
+          let currentSet = this._getPersist(barResource, currentSetResource);
+
+          if (currentSet
+              && currentSet.indexOf("qfb-show-filter-bar") == -1) {
+
+            dirty = true;
+            if (currentSet.indexOf("gloda-search") != -1) {
+              // Put the QFB toggle before the gloda-search and any of
+              // spring / spacer / separator.
+              currentSet = currentSet.replace(/(^|,)([spring,|spacer,|separator,]*)gloda-search($|,)/,
+                                              "$1qfb-show-filter-bar,$2gloda-search$3");
+            } else {
+              // If there's no gloda-search, just put the QFB toggle at the end
+              currentSet = currentSet + ",qfb-show-filter-bar";
+            }
+            this._setPersist(barResource, currentSetResource, currentSet);
+          }
+        }
+      }
+
       // Update the migration version.
       Services.prefs.setIntPref(UI_VERSION_PREF, UI_VERSION);
 
     } catch(e) {
       Cu.reportError("Migrating from UI version " + currentUIVersion + " to "
-                     + UI_VERSION + " failed. Will reattempt on next start.");
+                     + UI_VERSION + " failed. Error message was: " + e + " -- "
+                     + "Will reattempt on next start.");
     } finally {
       if (dirty)
         this._dataSource.QueryInterface(Ci.nsIRDFRemoteDataSource).Flush();

@@ -326,7 +326,7 @@
                customizable="true"
                mode="icons" defaultmode="icons" lockmode="true"
                iconsize="small" defaulticonsize="small" lockiconsize="true"
-               defaultset="qfb-show-filter-bar"/>
+               defaultset=""/>
 
       <toolbarbutton class="tabs-alltabs-button"
                      id="alltabs-button"

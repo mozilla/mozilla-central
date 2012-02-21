@@ -16,6 +16,7 @@ message-window
 migration
 migration-from-tb2
 migration-to-rdf-ui-2
+migration-to-rdf-ui-3
 newmailaccount
 notification
 pref-window

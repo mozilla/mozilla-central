@@ -46,7 +46,7 @@ var MODULE_REQUIRES = ["folder-display-helpers", "migration-helpers"];
 
 // Use the Windows/Linux settings as the default, but check out setupModule.
 var DEFAULT_TB2_SET = "button-getmsg,button-newmsg,button-address,separator,button-reply,button-replyall,button-replylist,button-forward,separator,button-tag,button-delete,button-junk,button-print,separator,button-goback,button-goforward,spring,gloda-search";
-var DEFAULT_TB3_SET = "button-getmsg,button-newmsg,button-address,separator,button-tag,spring,gloda-search"
+var DEFAULT_TB3_SET = "button-getmsg,button-newmsg,button-address,separator,button-tag,qfb-show-filter-bar,spring,gloda-search"
 var CUSTOM_TB3_SET = "button-getmsg,button-newmsg,button-address,spacer,button-tag,spring,folder-location-container,gloda-search,throbber-box";
 var DEFAULT_TB3_ICONSIZE = "large";
 
@@ -60,7 +60,7 @@ function setupModule(module) {
   // The Mac has different settings for the toolbar, so adjust for that.
   if (Application.platformIsMac) {
     DEFAULT_TB2_SET = "button-getmsg,button-newmsg,button-address,spacer,button-reply,button-replyall,button-replylist,button-forward,spacer,button-tag,button-delete,button-junk,button-print,spacer,button-goback,button-goforward,spring,gloda-search,throbber-box";
-    DEFAULT_TB3_SET = "button-getmsg,button-newmsg,button-address,spacer,button-tag,spring,gloda-search";
+    DEFAULT_TB3_SET = "button-getmsg,button-newmsg,button-address,spacer,button-tag,qfb-show-filter-bar,spring,gloda-search";
     DEFAULT_TB3_ICONSIZE = "small";
   }
 }

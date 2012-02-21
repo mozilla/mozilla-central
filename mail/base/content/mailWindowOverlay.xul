@@ -1971,9 +1971,9 @@
            context="toolbar-context-menu"
 #ifdef XP_MACOSX
            iconsize="small"
-           defaultset="button-getmsg,button-newmsg,button-address,spacer,button-tag,spring,gloda-search">
+           defaultset="button-getmsg,button-newmsg,button-address,spacer,button-tag,qfb-show-filter-bar,spring,gloda-search">
 #else
-           defaultset="button-getmsg,button-newmsg,button-address,separator,button-tag,spring,gloda-search">
+           defaultset="button-getmsg,button-newmsg,button-address,separator,button-tag,qfb-show-filter-bar,spring,gloda-search">
 #endif
   </toolbar>
 
