@@ -895,6 +895,19 @@ mime_create (const char *content_type, MimeHeaders *hdrs,
         override_content_type = nsnull;
       PR_FREEIF(name);
 
+      // Workaroung for saving '.eml" file encoded with base64.
+      // Do not override with message/rfc822 whenever Transfer-Encoding is
+      // base64 since base64 encoding of message/rfc822 is invalid.
+      // Our MimeMessageClass has no capability to decode it.
+      if (!PL_strcasecmp(override_content_type, MESSAGE_RFC822)) {
+        nsCString encoding;
+        encoding.Adopt(MimeHeaders_get(hdrs,
+                                       HEADER_CONTENT_TRANSFER_ENCODING,
+                                       true, false));
+        if (encoding.EqualsLiteral(ENCODING_BASE64))
+          override_content_type = nsnull;
+      }
+
       // If we get here and it is not the unknown content type from the
       // file name, let's do some better checking not to inline something bad
       if (override_content_type &&
