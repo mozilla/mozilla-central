@@ -12,13 +12,19 @@ treechildren::-moz-tree-cell-text {
   padding: 1px 5px !important;
 }
 
-#searchInput {
+#searchInput,
+.remote-gloda-search {
   background-clip: padding-box;
   border: 1px solid ThreeDDarkShadow;
   -moz-border-radius: 3.5px;
   min-height: 24px;
   margin-top: 1px;
   margin-bottom: 1px;
+}
+
+.remote-gloda-search-container {
+  padding-top: 1px;
+  padding-bottom: 1px;
 }
 
 .foldersTree {
@@ -31,11 +37,14 @@ treechildren::-moz-tree-cell-text {
 }
 
 @media (-moz-windows-default-theme) {
-  #searchInput {
+  #searchInput,
+  .remote-gloda-search
+ {
     border-color: rgba(0, 0, 0, .32);
   }
 
-  #searchInput:-moz-lwtheme {
+  #searchInput:-moz-lwtheme,
+  .remote-gloda-search:-moz-lwtheme {
     background-color: rgba(255, 255, 255, .8);
     border-color: rgba(0, 0, 0, .32);
     color: black;
@@ -120,16 +129,19 @@ treechildren::-moz-tree-cell-text {
     background-color: -moz-dialog;
   }
 
-  #searchInput {
+  #searchInput,
+  .remote-gloda-search {
     background-color: rgba(255, 255, 255, .725);
     color: black;
   }
 
-  #searchInput:hover {
+  #searchInput:hover,
+  .remote-gloda-search:hover {
     background-color: rgba(255, 255, 255, .898);
   }
 
-  #searchInput[focused="true"] {
+  #searchInput[focused="true"],
+  .remote-gloda-search[focused="true"] {
     background-color: white;
   }
 }

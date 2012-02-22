@@ -46,13 +46,15 @@ menulist > menupopup > menu > .menu-iconic-left {
 
 /* ::::: Mail Toolbars and Menubars ::::: */
 
-.mail-toolbox {
+.mail-toolbox,
+.contentTabToolbox {
   -moz-appearance: none;
   border-bottom: 1px solid threedshadow;
   background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 19px);
 }
 
-.mail-toolbox > toolbar {
+.mail-toolbox > toolbar,
+.contentTabToolbox > toolbar {
   -moz-appearance: none;
   background: transparent;
 }
@@ -149,12 +151,19 @@ sidebarheader .toolbarbutton-text:not([value]) {
   display: none;
 }
 
-#searchInput {
+#searchInput,
+.remote-gloda-search {
   padding: 2px;
 }
 
-#searchInput:-moz-lwtheme:not([focused="true"]) {
+#searchInput:-moz-lwtheme:not([focused="true"]),
+.remote-gloda-search:-moz-lwtheme:not([focused="true"]) {
   opacity: .85;
+}
+
+.remote-gloda-search-container {
+  padding-top: 3px;
+  padding-bottom: 2px;
 }
 
 /* Stock icons for the menu bar items */

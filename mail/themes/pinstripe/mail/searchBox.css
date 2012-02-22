@@ -42,23 +42,32 @@
 }
 
 /* it looks like appearance: searchfield gets us our search icon... */
-#searchInput {
+#searchInput,
+.remote-gloda-search {
   margin: 3px 4px 4px !important;
   -moz-appearance: searchfield;
   font: icon;
   height: 22px !important;
 }
 
-#searchInput > .textbox-input-box {
+#searchInput > .textbox-input-box,
+.remote-gloda-search > .textbox-input-box {
   border: none;
   padding-top: 1px;
   height: 21px !important;
   margin: 0 !important;
 }
 
-#searchInput:-moz-lwtheme:not([focused="true"]) {
+#searchInput:-moz-lwtheme:not([focused="true"]),
+.remote-gloda-search:-moz-lwtheme:not([focused="true"]) {
   opacity: .9;
 }
+
+.remote-gloda-search-container {
+  padding-top: 1px;
+  padding-bottom: 1px;
+}
+
 
 /* things from xul.css that only exist if Thunderbird did not define
  * AUTOCOMPLETE_OLD_STYLE

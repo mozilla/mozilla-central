@@ -63,7 +63,8 @@
   -moz-box-ordinal-group: 10;
 }
 
-.mail-toolbox {
+.mail-toolbox,
+.contentTabToolbox {
   -moz-appearance: none;
   border-top: none;
   border-bottom: 1px solid threedshadow;
@@ -71,7 +72,8 @@
                     rgba(255, 255, 255, .1) 19px) !important;
 }
 
-.mail-toolbox > toolbar:-moz-lwtheme {
+.mail-toolbox > toolbar:-moz-lwtheme,
+.contentTabToolbox > toolbar:-moz-lwtheme {
   border-top: none;
 }
 

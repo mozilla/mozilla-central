@@ -49,13 +49,15 @@
 /* :::: Toolbar :::: */
 
 .mail-toolbox:not(:-moz-lwtheme),
-#navigation-toolbox:not(:-moz-lwtheme) {
+#navigation-toolbox:not(:-moz-lwtheme),
+.contentTabToolbox:not(:-moz-lwtheme) {
   -moz-appearance: none;
   border-top: none;
   background-color: -moz-Dialog;
 }
 
-.mail-toolbox {
+.mail-toolbox,
+.contentTabToolbox {
   border-bottom: 1px solid ThreeDShadow;
 }
 
@@ -65,7 +67,8 @@
 }
 
 .mail-toolbox > toolbar:not(:-moz-lwtheme),
-#navigation-toolbox > toolbar:not(:-moz-lwtheme) {
+#navigation-toolbox > toolbar:not(:-moz-lwtheme),
+.contentTabToolbox:not(:-moz-lwtheme) > toolbar:not(:-moz-lwtheme) {
   -moz-appearance: none;
   border-style: none;
   background-color: transparent;
@@ -79,7 +82,8 @@
   border-bottom: 1px solid transparent;
 }
 
-.mail-toolbox:-moz-lwtheme {
+.mail-toolbox:-moz-lwtheme,
+.contentTabToolbox:-moz-lwtheme {
   background-color: rgba(255, 255, 255, 0.3) !important;
   background-image: -moz-linear-gradient(rgba(255, 255, 255, 0.5),
                     rgba(255, 255, 255, 0) 28px) !important;
@@ -91,7 +95,8 @@
 
 @media (-moz-windows-default-theme) {
   .mail-toolbox:not(:-moz-lwtheme),
-  #navigation-toolbox:not(:-moz-lwtheme) {
+  #navigation-toolbox:not(:-moz-lwtheme),
+  .contentTabToolbox:not(:-moz-lwtheme) {
     background-color: rgb(207, 219, 236);
   }
 
@@ -100,7 +105,8 @@
   }
 }
 
-.mail-toolbox:not(:-moz-lwtheme) {
+.mail-toolbox:not(:-moz-lwtheme),
+.contentTabToolbox:not(:-moz-lwtheme) {
   background-image: -moz-linear-gradient(rgba(255, 255, 255, .5),
                     rgba(255, 255, 255, 0) 28px);
 }
@@ -334,14 +340,15 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   }
 
   #mail-toolbox:not(:-moz-lwtheme),
-  #navigation-toolbox:not(:-moz-lwtheme) {
+  #navigation-toolbox:not(:-moz-lwtheme),
+  .glodaTabToolbar {
     color: black;
     text-shadow: 0 0 .7em white, 0 0 .7em white, 0 1px 0 rgba(255, 255, 255, .4);
   }
 
   #mail-toolbar-menubar2 {
     padding-bottom: 1px;
-	padding-top: 2px;
+    padding-top: 2px;
   }
 
   #mail-toolbar-menubar2:-moz-lwtheme {

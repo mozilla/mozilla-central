@@ -124,7 +124,8 @@ sidebarheader .toolbarbutton-text:not([value]) {
   display: none;
 }
 
-#searchInput {
+#searchInput,
+.remote-gloda-search {
   -moz-appearance: none;
   min-height: 22px;
   border: 1px solid threedshadow;
@@ -132,9 +133,16 @@ sidebarheader .toolbarbutton-text:not([value]) {
   -moz-padding-start: 2px;
 }
 
-#searchInput:-moz-lwtheme:not([focused="true"]) {
+#searchInput:-moz-lwtheme:not([focused="true"]),
+.remote-gloda-search:-moz-lwtheme:not([focused="true"]) {
   opacity: .85;
 }
+
+.remote-gloda-search-container {
+  padding-top: 7px;
+  padding-bottom: 6px;
+}
+
 
 #status-bar:-moz-lwtheme {
   padding-bottom: 1px;

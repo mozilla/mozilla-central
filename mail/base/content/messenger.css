@@ -232,6 +232,14 @@ dummy.usesMailWidgets {
   -moz-binding: url("chrome://messenger/content/search.xml#glodaSearch");
 }
 
+.remote-gloda-search {
+  -moz-binding: url("chrome://messenger/content/search.xml#glodaSearch") !important;
+}
+
+.remote-gloda-search-container {
+  min-width: 10em;
+}
+
 .quick-search-button {
   -moz-binding: url("chrome://messenger/content/search.xml#searchBarDropMarker");
   cursor: default;

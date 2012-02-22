@@ -3069,6 +3069,21 @@ function IgnoreMDNResponse()
 
 function QuickSearchFocus()
 {
+  let tabmail = document.getElementById('tabmail');
+
+  // If we're currently viewing a Gloda tab, drill down to find the
+  // built-in search input, and select that.
+  if (tabmail
+      && tabmail.currentTabInfo.mode.name == "glodaFacet") {
+    let searchInput = tabmail.currentTabInfo
+                             .panel
+                             .querySelector(".remote-gloda-search");
+    if (searchInput)
+      searchInput.select();
+
+    return;
+  }
+
   var quickSearchTextBox = document.getElementById('searchInput');
   if (quickSearchTextBox)
     quickSearchTextBox.select();

@@ -572,6 +572,7 @@
     </tabmail>
     <vbox id="contentTab"/>
     <vbox id="chromeTab"/>
+    <vbox id="glodaTab"/>
   </hbox>
   <panel id="customizeToolbarSheetPopup" noautohide="true">
     <iframe id="customizeToolbarSheetIFrame"
