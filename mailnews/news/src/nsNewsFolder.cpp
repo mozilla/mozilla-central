@@ -90,6 +90,7 @@
 #include "nsNativeCharsetUtils.h"
 #include "nsIMsgAccountManager.h"
 #include "nsArrayUtils.h"
+#include "nsIMsgAsyncPrompter.h"
 #include "nsIMsgFolderNotificationService.h"
 #include "nsIMutableArray.h"
 #include "nsILoginInfo.h"
@@ -98,6 +99,7 @@
 #include "nsEmbedCID.h"
 #include "nsIDOMWindow.h"
 #include "mozilla/Services.h"
+#include "nsAutoPtr.h"
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
@@ -113,6 +115,53 @@ static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 
 ////////////////////////////////////////////////////////////////////////////////
 
+namespace {
+class AsyncAuthMigrator : public nsIMsgAsyncPromptListener {
+public:
+  AsyncAuthMigrator(nsIMsgNewsFolder *folder) : m_folder(folder) {}
+
+  NS_DECL_ISUPPORTS
+  NS_DECL_NSIMSGASYNCPROMPTLISTENER
+
+  void EnqueuePrompt();
+
+private:
+  nsCOMPtr<nsIMsgNewsFolder> m_folder;
+};
+
+NS_IMPL_ISUPPORTS1(AsyncAuthMigrator, nsIMsgAsyncPromptListener)
+
+NS_IMETHODIMP AsyncAuthMigrator::OnPromptStart(bool *retval)
+{
+  *retval = true;
+  return m_folder->MigrateLegacyCredentials();
+}
+
+NS_IMETHODIMP AsyncAuthMigrator::OnPromptAuthAvailable()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+NS_IMETHODIMP AsyncAuthMigrator::OnPromptCanceled()
+{
+  return NS_ERROR_NOT_IMPLEMENTED;
+}
+
+void AsyncAuthMigrator::EnqueuePrompt()
+{
+  nsCOMPtr<nsIMsgAsyncPrompter> prompter =
+    do_GetService(NS_MSGASYNCPROMPTER_CONTRACTID);
+
+  // Make up a fake unique key to prevent coalescing of prompts
+  // The address of this object should be sufficient
+  nsCAutoString queueKey;
+  queueKey.AppendInt((PRInt32)(PRUint64)this);
+  prompter->QueueAsyncAuthPrompt(queueKey, false, this);
+}
+
+}
+
+ 
 
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -221,7 +270,8 @@ nsMsgNewsFolder::AddNewsgroup(const nsACString &name, const nsACString& setStr,
   rv = newsFolder->SetReadSetFromStr(setStr);
 
   // I don't have a good time to do this, but this is as good as any...
-  newsFolder->MigrateLegacyCredentials();
+  nsRefPtr<AsyncAuthMigrator> delayedPrompt(new AsyncAuthMigrator(newsFolder));
+  delayedPrompt->EnqueuePrompt();
 
   rv = folder->SetParent(this);
   NS_ENSURE_SUCCESS(rv,rv);
@@ -1233,6 +1283,10 @@ nsMsgNewsFolder::MigrateLegacyCredentials()
   }
   NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(count, logins);
   NS_ENSURE_SUCCESS(rv, rv);
+
+  // If there is nothing to migrate, then do othing
+  if (username.IsEmpty() && password.IsEmpty())
+    return NS_OK;
 
   // Make and add the new logon
   nsCOMPtr<nsILoginInfo> newLogin = do_CreateInstance(NS_LOGININFO_CONTRACTID);

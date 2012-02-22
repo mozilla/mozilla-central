@@ -49,6 +49,7 @@
 
 #include "nsINNTPNewsgroupList.h"
 #include "nsINNTPArticleList.h"
+#include "nsIMsgAsyncPrompter.h"
 #include "nsIMsgNewsFolder.h"
 #include "nsIMsgWindow.h"
 
@@ -146,20 +147,23 @@ NEWS_POST_DONE,
 NEWS_ERROR,
 NNTP_ERROR,
 NEWS_FREE,
-NEWS_FINISHED
+NNTP_SUSPENDED
 } StatesEnum;
 
 class nsICacheEntryDescriptor;
 
-class nsNNTPProtocol : public nsINNTPProtocol, public nsITimerCallback, public nsICacheListener, public nsMsgProtocol
+class nsNNTPProtocol : public nsMsgProtocol,
+                       public nsINNTPProtocol,
+                       public nsITimerCallback,
+                       public nsICacheListener,
+                       public nsIMsgAsyncPromptListener
 {
 public:
   NS_DECL_ISUPPORTS_INHERITED
-    NS_DECL_NSINNTPPROTOCOL
-    NS_DECL_NSICACHELISTENER
-
-    // nsITimerCallback interfaces
-    NS_DECL_NSITIMERCALLBACK
+  NS_DECL_NSINNTPPROTOCOL
+  NS_DECL_NSICACHELISTENER
+  NS_DECL_NSITIMERCALLBACK
+  NS_DECL_NSIMSGASYNCPROMPTLISTENER
 
   // Creating a protocol instance requires the URL
   // need to call Initialize after we do a new of nsNNTPProtocol
@@ -181,7 +185,24 @@ public:
   nsresult LoadUrl(nsIURI * aURL, nsISupports * aConsumer);
 
 private:
-  // over-rides from nsMsgProtocol
+  /**
+   * Triggers the protocol state machine.
+   * Most of the time, this machine will read as much input as it can before
+   * closing.
+   *
+   * This method additionally handles some states not covered by other methods:
+   * NEWS_DONE: Alias for NEWS_FREE
+   * NEWS_POST_DONE: Alias for NEWS_FREE that cleans up the URL state
+   * NEWS_ERROR: An error which permits further use of the connection
+   * NNTP_ERROR: An error which does not permit further use of the connection
+   * NEWS_FREE: Cleans up from the current URL and prepares for the next one
+   * NNTP_SUSPENDED: A state where the state machine does not read input until
+   *                 reenabled by a non-network related callback
+   *
+   * @note Use of NNTP_SUSPENDED is dangerous: if input comes along the socket,
+   * the code will not read the input stream at all. Therefore, it is strongly
+   * advised to suspend the request before using this state.
+   */
   virtual nsresult ProcessProtocolState(nsIURI * url, nsIInputStream * inputStream,
     PRUint32 sourceOffset, PRUint32 length);
   virtual nsresult CloseSocket();
@@ -322,9 +343,34 @@ private:
   PRInt32 ReadArticle(nsIInputStream * inputStream, PRUint32 length);
   PRInt32 DisplayArticle(nsIInputStream * inputStream, PRUint32 length);
 
-  PRInt32 BeginAuthorization();
-  PRInt32 AuthorizationResponse();
+  //////////////////////////////////////////////////////////////////////////////
+  // News authentication code
+  //////////////////////////////////////////////////////////////////////////////
 
+  /**
+   * Sends the username via AUTHINFO USER, NNTP_BEGIN_AUTHORIZE.
+   * This also handles the step of getting authentication credentials; if this
+   * requires a prompt to run, the connection will be suspended and we will
+   * come back to this point.
+   * Followed by: NNTP_AUTHORIZE_RESPONSE if the username was sent
+   *              NNTP_SUSPENDED          if we need to wait for the password
+   */
+  PRInt32 BeginAuthorization();
+  /**
+   * Sends the password if necessary, the state NNTP_AUTHORIZE_RESPONSE.
+   * This also reads the result of the username.
+   * Followed by: NNTP_PASSWORD_RESPONSE  if a password is sent
+   *              NNTP_SEND_MODE_READER   if MODE READER needed auth
+   *              SEND_FIRST_NNTP_COMMAND if any other command needed auth
+   *              NNTP_ERROR              if the username was rejected
+   */
+  PRInt32 AuthorizationResponse();
+  /**
+   * This state, NNTP_PASSWORD_RESPONSE, reads the password.
+   * Followed by: NNTP_SEND_MODE_READER   if MODE READER needed auth
+   *              SEND_FIRST_NNTP_COMMAND if any other command needed auth
+   *              NNTP_ERROR              if the password was rejected
+   */
   PRInt32 PasswordResponse();
 
   PRInt32 BeginReadNewsList();

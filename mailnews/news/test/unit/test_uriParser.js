@@ -163,4 +163,11 @@ function run_test() {
       do_check_eq(e.result, Components.results.NS_ERROR_MALFORMED_URI);
     }
   }
+
+  // The password migration is async, so trigger an event to prevent the logon
+  // manager from trying to migrate after shutdown has started.
+  var gThreadManager = Cc["@mozilla.org/thread-manager;1"].getService();
+  var thread = gThreadManager.currentThread;
+  while (thread.hasPendingEvents())
+    thread.processNextEvent(true);
 }

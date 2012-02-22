@@ -234,7 +234,7 @@ const char *const stateLabels[] = {
 "NEWS_ERROR",
 "NNTP_ERROR",
 "NEWS_FREE",
-"NEWS_FINISHED"
+"NNTP_SUSPENDED"
 };
 
 
@@ -295,14 +295,8 @@ char *MSG_UnEscapeSearchUrl (const char *commandSpecificData)
 // END OF TEMPORARY HARD CODED FUNCTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-NS_IMPL_ADDREF_INHERITED(nsNNTPProtocol, nsMsgProtocol)
-NS_IMPL_RELEASE_INHERITED(nsNNTPProtocol, nsMsgProtocol)
-
-NS_INTERFACE_MAP_BEGIN(nsNNTPProtocol)
-  NS_INTERFACE_MAP_ENTRY(nsINNTPProtocol)
-  NS_INTERFACE_MAP_ENTRY(nsITimerCallback)
-  NS_INTERFACE_MAP_ENTRY(nsICacheListener)
-NS_INTERFACE_MAP_END_INHERITING(nsMsgProtocol)
+NS_IMPL_ISUPPORTS_INHERITED4(nsNNTPProtocol, nsMsgProtocol, nsINNTPProtocol,
+  nsITimerCallback, nsICacheListener, nsIMsgAsyncPromptListener)
 
 nsNNTPProtocol::nsNNTPProtocol(nsINntpIncomingServer *aServer, nsIURI *aURL,
                                nsIMsgWindow *aMsgWindow)
@@ -2387,27 +2381,53 @@ PRInt32 nsNNTPProtocol::BeginAuthorization()
   NS_ASSERTION(m_newsFolder, "no m_newsFolder");
   if (!m_newsFolder)
     return MK_NNTP_AUTH_FAILED;
-  
-  // Force-grab the authentication details...
-  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
-  if (!m_msgWindow && mailnewsurl)
-    mailnewsurl->GetMsgWindow(getter_AddRefs(m_msgWindow));
-  bool validCredentials = false;
-  rv = m_newsFolder->GetAuthenticationCredentials(m_msgWindow, true, false,
-    &validCredentials);
-  if (NS_FAILED(rv) || !validCredentials)
-    return MK_NNTP_AUTH_FAILED;
 
-  nsCString username;
+  // We want to get authentication credentials, but it is possible that the
+  // master password prompt will end up being synchronous. In that case, check
+  // to see if we already have the credentials stored.
+  nsCString username, password;
   rv = m_newsFolder->GetGroupUsername(username);
-  if (NS_FAILED(rv) || username.IsEmpty())
-    return MK_NNTP_AUTH_FAILED;
+  NS_ENSURE_SUCCESS(rv, MK_NNTP_AUTH_FAILED);
+  rv = m_newsFolder->GetGroupPassword(password);
+  NS_ENSURE_SUCCESS(rv, MK_NNTP_AUTH_FAILED);
+
+  // If we don't have either a username or a password, queue an asynchronous
+  // prompt.
+  if (username.IsEmpty() || password.IsEmpty())
+  {
+    nsCOMPtr<nsIMsgAsyncPrompter> asyncPrompter =
+      do_GetService(NS_MSGASYNCPROMPTER_CONTRACTID, &rv);
+    NS_ENSURE_SUCCESS(rv, MK_NNTP_AUTH_FAILED);
+
+    // Get the key to coalesce auth prompts.
+    bool singleSignon = false;
+    m_nntpServer->GetSingleSignon(&singleSignon);
+    
+    nsCString queueKey;
+    nsCOMPtr<nsIMsgIncomingServer> server = do_QueryInterface(m_nntpServer);
+    server->GetKey(queueKey);
+    if (!singleSignon)
+    {
+      nsCString groupName;
+      m_newsFolder->GetRawName(groupName);
+      queueKey += groupName;
+    }
+
+    rv = asyncPrompter->QueueAsyncAuthPrompt(queueKey, false, this);
+    NS_ENSURE_SUCCESS(rv, MK_NNTP_AUTH_FAILED);
+
+    m_nextState = NNTP_SUSPENDED;
+    if (m_request)
+      m_request->Suspend();
+    return 0;
+  }
 
   NS_MsgSACopy(&command, "AUTHINFO user ");
   PR_LOG(NNTP, PR_LOG_ALWAYS,("(%p) use %s as the username", this, username.get()));
   NS_MsgSACat(&command, username.get());
   NS_MsgSACat(&command, CRLF);
 
+  nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(m_runningURL);
   if (mailnewsurl)
     status = SendData(mailnewsurl, command);
 
@@ -2536,6 +2556,55 @@ PRInt32 nsNNTPProtocol::PasswordResponse()
 
   NS_ERROR("should never get here");
   return(-1);
+}
+
+NS_IMETHODIMP nsNNTPProtocol::OnPromptStart(bool *authAvailable)
+{
+  NS_ENSURE_ARG_POINTER(authAvailable);
+  NS_ENSURE_STATE(m_nextState == NNTP_SUSPENDED);
+  
+  if (!m_newsFolder)
+  {
+    // If we don't have a news folder, we may have been closed already.
+    NNTP_LOG_NOTE("Canceling queued authentication prompt");
+    *authAvailable = false;
+    return NS_OK;
+  }
+
+  nsresult rv = m_newsFolder->GetAuthenticationCredentials(m_msgWindow,
+    true, false, authAvailable);
+  NS_ENSURE_SUCCESS(rv, rv);
+
+  // What we do depends on whether or not we have valid credentials
+  return *authAvailable ? OnPromptAuthAvailable() : OnPromptCanceled();
+}
+
+NS_IMETHODIMP nsNNTPProtocol::OnPromptAuthAvailable()
+{
+  NS_ENSURE_STATE(m_nextState == NNTP_SUSPENDED);
+
+  // We previously suspended the request; now resume it to read input
+  if (m_request)
+    m_request->Resume();
+
+  // Now we have our password details accessible from the group, so just call
+  // into the state machine to start the process going again.
+  m_nextState = NNTP_BEGIN_AUTHORIZE;
+  return ProcessProtocolState(nsnull, nsnull, 0, 0);
+}
+
+NS_IMETHODIMP nsNNTPProtocol::OnPromptCanceled()
+{
+  NS_ENSURE_STATE(m_nextState == NNTP_SUSPENDED);
+ 
+  // We previously suspended the request; now resume it to read input
+  if (m_request)
+    m_request->Resume();
+
+  // Since the prompt was canceled, we can no longer continue the connection.
+  // Thus, we need to go to the NNTP_ERROR state.
+  m_nextState = NNTP_ERROR;
+  return ProcessProtocolState(nsnull, nsnull, 0, 0);
 }
 
 PRInt32 nsNNTPProtocol::DisplayNewsgroups()
@@ -2885,7 +2954,7 @@ PRInt32 nsNNTPProtocol::ReadNewsList(nsIInputStream * inputStream, PRUint32 leng
       return -1;
     }
 
-    m_nextState = NEWS_FINISHED;
+    m_nextState = NNTP_SUSPENDED;
 
     // suspend necko request until timeout
     // might not have a request if someone called CloseSocket()
@@ -4696,7 +4765,7 @@ nsresult nsNNTPProtocol::ProcessProtocolState(nsIURI * url, nsIInputStream * inp
       // Remember when we last used this connection
       m_lastActiveTimeStamp = PR_Now();
       CleanupAfterRunningUrl();
-    case NEWS_FINISHED:
+    case NNTP_SUSPENDED:
       return NS_OK;
       break;
     default:
