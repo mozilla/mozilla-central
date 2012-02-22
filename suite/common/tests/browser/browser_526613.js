@@ -38,8 +38,6 @@
 function test() {
   /** Test for Bug 526613, porting done in Bug 548211 **/
 
-  let os = Components.classes["@mozilla.org/observer-service;1"]
-                     .getService(Components.interfaces.nsIObserverService);
   waitForExplicitFinish();
 
   function browserWindowsCount(expected) {
@@ -65,7 +63,7 @@ function test() {
   let testState = {
     windows: [
       { tabs: [{ entries: [{ url: "http://example.com/" }] }], selected: 1 },
-      { tabs: [{ entries: [{ url: "about:robots"        }] }], selected: 1 },
+      { tabs: [{ entries: [{ url: "about:mozilla"       }] }], selected: 1 },
     ],
     // make sure the first window is focused, otherwise when restoring the
     // old state, the first window is closed and the test harness gets unloaded
@@ -74,8 +72,8 @@ function test() {
 
   let pass = 1;
   function observer(aSubject, aTopic, aData) {
-      is(aTopic, "sessionstore-browser-state-restored",
-         "The sessionstore-browser-state-restored notification was observed");
+    is(aTopic, "sessionstore-browser-state-restored",
+       "The sessionstore-browser-state-restored notification was observed");
 
     if (pass++ == 1) {
       browserWindowsCount(2);
@@ -96,9 +94,9 @@ function test() {
       browserWindowsCount(1);
       ok(!window.closed, "Restoring the old state should have left this window open");
       Services.obs.removeObserver(observer, "sessionstore-browser-state-restored");
-        finish();
-      }
+      finish();
     }
+  }
   Services.obs.addObserver(observer, "sessionstore-browser-state-restored", false);
 
   // set browser to test state
