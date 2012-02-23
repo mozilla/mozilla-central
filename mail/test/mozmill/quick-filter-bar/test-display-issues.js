@@ -83,7 +83,6 @@ function collapse_folder_pane(shouldBeCollapsed) {
                                                              : "open");
 }
 
-
 /**
  * When the window gets too narrow the collapsible button labels need to get
  *  gone.  Then they need to come back when we get large enough again.
@@ -160,6 +159,32 @@ function test_buttons_collapse_and_expand() {
   mc.sleep(0);
   logState("giant again!");
   assertExpanded(1200);
+}
+
+function test_buttons_collapse_and_expand_on_spawn_in_vertical_mode() {
+  // Assume we're in classic layout to start - since this is where we'll
+  // reset to once we're done.
+  assert_pane_layout(kClassicMailLayout);
+
+  // Put us in vertical mode
+  set_pane_layout(kVerticalMailLayout);
+
+  // Make our window nice and wide.
+  resize_to(1200, 600);
+  wait_for_resize(1200);
+
+  // Now expand the message pane to cause the QFB buttons to shrink
+  let messagePaneWrapper = mc.e("messagepaneboxwrapper");
+  messagePaneWrapper.width = 500;
+
+  // Now spawn a new 3pane...
+  let mc2 = open_folder_in_new_window(folder);
+  let qfb = mc2.e("quick-filter-bar-collapsible-buttons");
+  mc2.waitFor(function () (qfb.getAttribute("shrink") == "true"),
+              "New 3pane should have had a collapsed QFB");
+  close_window(mc2);
+
+  set_pane_layout(kClassicMailLayout);
 }
 
 function teardownModule() {

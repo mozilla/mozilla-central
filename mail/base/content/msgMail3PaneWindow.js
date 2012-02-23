@@ -282,12 +282,20 @@ function UpdateMailPaneConfig(aMsgWindowInitialized) {
       let threadPaneBox = document.getElementById("threadPaneBox");
       let overflowNodes =
         threadPaneBox.querySelectorAll("[onoverflow]");
+
       for (let iNode = 0; iNode < overflowNodes.length; iNode++) {
         let node = overflowNodes[iNode];
-        if (node.scrollWidth > node.clientWidth)
-          node.onoverflow();
-        else if (node.onresize)
-          node.onresize();
+
+        if (node.scrollWidth > node.clientWidth) {
+          let e = document.createEvent("HTMLEvents");
+          e.initEvent("overflow", false, false);
+          node.dispatchEvent(e);
+        }
+        else if (node.onresize) {
+          let e = document.createEvent("HTMLEvents");
+          e.initEvent("resize", false, false);
+          node.dispatchEvent(e);
+        }
       }
     }, 1500);
   }

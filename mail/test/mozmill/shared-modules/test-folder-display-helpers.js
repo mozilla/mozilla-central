@@ -542,6 +542,19 @@ function open_folder_in_new_tab(aFolder) {
 }
 
 /**
+ * Open a new mail:3pane window displaying a folder.
+ *
+ * @param aFolder the folder to be displayed in the new window
+ * @return the augmented controller for the new window
+ */
+function open_folder_in_new_window(aFolder) {
+  windowHelper.plan_for_new_window("mail:3pane");
+  mc.window.MsgOpenNewWindowForFolder(aFolder.URI);
+  let mail3pane = windowHelper.wait_for_new_window("mail:3pane");
+  return mail3pane;
+}
+
+/**
  * Open the selected message(s) by pressing Enter. The mail.openMessageBehavior
  * pref is supposed to determine how the messages are opened.
  *
