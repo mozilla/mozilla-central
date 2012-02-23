@@ -35,7 +35,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #ifdef DEBUG
-static const char CVS_ID[] = "@(#) $RCSfile: pki3hack.c,v $ $Revision: 1.102 $ $Date: 2011/04/13 00:10:26 $";
+static const char CVS_ID[] = "@(#) $RCSfile: pki3hack.c,v $ $Revision: 1.106 $ $Date: 2012/02/17 22:44:56 $";
 #endif /* DEBUG */
 
 /*
@@ -592,10 +592,6 @@ cert_trust_from_stan_trust(NSSTrust *t, PRArenaPool *arena)
     rvTrust->sslFlags |= client;
     rvTrust->emailFlags = get_nss3trust_from_nss4trust(t->emailProtection);
     rvTrust->objectSigningFlags = get_nss3trust_from_nss4trust(t->codeSigning);
-    /* The cert is a valid step-up cert (in addition to/lieu of trust above */
-    if (t->stepUpApproved) {
-	rvTrust->sslFlags |= CERTDB_GOVT_APPROVED_CA;
-    }
     return rvTrust;
 }
 
@@ -772,6 +768,22 @@ fill_CERTCertificateFields(NSSCertificate *c, CERTCertificate *cc, PRBool forced
     if (context) {
 	/* trust */
 	nssTrust = nssCryptoContext_FindTrustForCertificate(context, c);
+	if (!nssTrust) {
+	    /* chicken and egg issue:
+	     *
+	     * c->issuer and c->serial are empty at this point, but
+	     * nssTrustDomain_FindTrustForCertificate use them to look up
+	     * up the trust object, so we point them to cc->derIssuer and
+	     * cc->serialNumber.
+	     *
+	     * Our caller will fill these in with proper arena copies when we
+	     * return. */
+	    c->issuer.data = cc->derIssuer.data;
+	    c->issuer.size = cc->derIssuer.len;
+	    c->serial.data = cc->serialNumber.data;
+	    c->serial.size = cc->serialNumber.len;
+	    nssTrust = nssTrustDomain_FindTrustForCertificate(context->td, c);
+	}
 	if (nssTrust) {
             trust = cert_trust_from_stan_trust(nssTrust, cc->arena);
             if (trust) {
