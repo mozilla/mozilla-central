@@ -59,8 +59,8 @@
 }
 
 @media (-moz-windows-compositor) {
-    #tabbar-toolbar > #calendar-tab-button,
-    #tabbar-toolbar > #task-tab-button {
+    #tabbar-toolbar #calendar-tab-button,
+    #tabbar-toolbar #task-tab-button {
       list-style-image: url(chrome://lightning/skin/mode-switch-icons-inverted.png);
   }
 }
