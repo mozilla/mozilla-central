@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1329861323000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1329957691000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
                         <versionRange  minVersion="0" maxVersion="*">
@@ -108,6 +108,10 @@
                         </emItem>
       <emItem  blockID="i5" id="support@daemon-tools.cc">
                         <versionRange  minVersion=" " maxVersion="1.0.0.5">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i69" id="{977f3b97-5461-4346-92c8-a14c749b77c9}">
+                        <versionRange  minVersion="0" maxVersion="*" severity="1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i6" id="{3f963a5b-e555-4543-90e2-c3908898db71}">
