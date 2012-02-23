@@ -138,17 +138,23 @@ dnl ========================================================
 
 AC_ARG_WITH(android-ndk,
 [  --with-android-ndk=DIR
-                      location where the Android NDK can be found],
+                          location where the Android NDK can be found],
     android_ndk=$withval)
 
 AC_ARG_WITH(android-toolchain,
 [  --with-android-toolchain=DIR
-                            location of the android toolchain, default NDK/build/prebuilt/HOST/arm-eabi-4.4.0],
+                          location of the Android toolchain, default NDK/build/prebuilt/HOST/arm-eabi-4.4.0],
     android_toolchain=$withval)
+
+AC_ARG_WITH(android-version,
+[  --with-android-version=VER
+                          Android platform version, default 5],
+    android_version=$withval,
+    android_version=5)
 
 AC_ARG_WITH(android-platform,
 [  --with-android-platform=DIR
-                           location of platform dir, default NDK/build/platforms/android-5/arch-arm],
+                          location of platform dir, default NDK/build/platforms/android-5/arch-arm],
     android_platform=$withval)
 
 case "$target" in
@@ -166,6 +172,35 @@ i?86-*android*)
     ;;
 esac
 
+dnl ========================================================
+dnl = Gonk is a fork of Android used for Mozilla's B2G project.
+dnl = Configuration is done largely by the top level config
+dnl = and the specified gonk directory doesn't matter here.
+dnl ========================================================
+
+AC_ARG_WITH(gonk,
+[  --with-gonk=DIR         location of gonk dir],
+    gonkdir=$withval)
+
+if test -n "$gonkdir" ; then
+    dnl Most things are directly configured by env vars when building for gonk
+
+    dnl prevent cross compile section from using these flags as host flags
+    if test -z "$HOST_CPPFLAGS" ; then
+        HOST_CPPFLAGS=" "
+    fi
+    if test -z "$HOST_CFLAGS" ; then
+        HOST_CFLAGS=" "
+    fi
+    if test -z "$HOST_CXXFLAGS" ; then
+        HOST_CXXFLAGS=" "
+    fi
+    if test -z "$HOST_LDFLAGS" ; then
+        HOST_LDFLAGS=" "
+    fi
+
+    AC_DEFINE(ANDROID)
+else
 case "$target" in
 *-android*|*-linuxandroid*)
     if test -z "$android_ndk" ; then
@@ -194,11 +229,11 @@ case "$target" in
     if test -z "$android_platform" ; then
         AC_MSG_CHECKING([for android platform directory])
 
-        android_platform="$android_ndk"/build/platforms/android-5/arch-arm
+        android_platform="$android_ndk"/build/platforms/android-"$android_version"/arch-"$target_cpu"
 
         # With newer NDK, the platform path has changed.
         if ! test -d "$android_platform" ; then
-            android_platform="$android_ndk"/platforms/android-5/arch-arm
+            android_platform="$android_ndk"/platforms/android-"$android_version"/arch-"$target_cpu"
         fi
 
         if test -d "$android_platform" ; then
@@ -238,8 +273,10 @@ case "$target" in
     fi
 
     AC_DEFINE(ANDROID)
+    AC_DEFINE_UNQUOTED(ANDROID_VERSION, $android_version)
     ;;
 esac
+fi
 
 dnl ========================================================
 dnl =
@@ -1357,6 +1394,9 @@ case "$target" in
             else        
                 CPU_ARCH=i386
             fi
+            ;;
+        x86_64)
+            CPU_ARCH=x86_64
             ;;
         *)
             CPU_ARCH=ppc
@@ -2701,7 +2741,10 @@ dnl ========================================================
 dnl Checks for library functions.
 dnl ========================================================
 AC_PROG_GCC_TRADITIONAL
-AC_CHECK_FUNCS(lchown strerror)
+_SAVE_LIBS="$LIBS"
+LIBS="$LIBS $OS_LIBS"
+AC_CHECK_FUNCS(lchown strerror dladdr)
+LIBS="$_SAVE_LIBS"
 
 dnl AC_FUNC_MEMCMP
 dnl AC_FUNC_MMAP
@@ -3308,55 +3351,68 @@ dnl ========================================================
 dnl Generate output files.
 dnl ========================================================
 MAKEFILES="
-Makefile 
-config/Makefile
-config/autoconf.mk
-config/nsprincl.mk
-config/nsprincl.sh
-config/nspr-config
-lib/Makefile 
-lib/ds/Makefile 
-lib/libc/Makefile 
-lib/libc/include/Makefile 
-lib/libc/src/Makefile 
-lib/tests/Makefile
-pkg/Makefile
-pkg/linux/Makefile
-pkg/solaris/Makefile
-pkg/solaris/SUNWpr/Makefile
-pkg/solaris/SUNWprd/Makefile
-pr/Makefile 
-pr/include/Makefile 
-pr/include/md/Makefile 
-pr/include/obsolete/Makefile 
-pr/include/private/Makefile 
-pr/src/Makefile 
-pr/src/io/Makefile 
-pr/src/linking/Makefile 
-pr/src/malloc/Makefile 
-pr/src/md/Makefile 
-pr/src/md/${PR_MD_ARCH_DIR}/Makefile 
-pr/src/memory/Makefile 
-pr/src/misc/Makefile 
-pr/src/threads/Makefile 
-pr/tests/Makefile 
-pr/tests/dll/Makefile 
+    Makefile
+    config/Makefile
+    config/autoconf.mk
+    config/nsprincl.mk
+    config/nsprincl.sh
+    config/nspr-config
+    lib/Makefile
+    lib/ds/Makefile
+    lib/libc/Makefile
+    lib/libc/include/Makefile
+    lib/libc/src/Makefile
+    lib/tests/Makefile
+    pkg/Makefile
+    pr/Makefile
+    pr/include/Makefile
+    pr/include/md/Makefile
+    pr/include/obsolete/Makefile
+    pr/include/private/Makefile
+    pr/src/Makefile
+    pr/src/io/Makefile
+    pr/src/linking/Makefile
+    pr/src/malloc/Makefile
+    pr/src/md/Makefile
+    pr/src/md/${PR_MD_ARCH_DIR}/Makefile
+    pr/src/memory/Makefile
+    pr/src/misc/Makefile
+    pr/src/threads/Makefile
+    pr/tests/Makefile
+    pr/tests/dll/Makefile
 "
 
-dnl lib/tests/Makefile
-dnl pr/tests/w16gui/Makefile
-dnl tools/Makefile
+if test "$OS_TARGET" = "Linux"; then
+    MAKEFILES="$MAKEFILES
+        pkg/linux/Makefile
+    "
+elif test "$OS_TARGET" = "SunOS"; then
+    MAKEFILES="$MAKEFILES
+        pkg/solaris/Makefile
+        pkg/solaris/SUNWpr/Makefile
+        pkg/solaris/SUNWprd/Makefile
+    "
+fi
 
 if test -z "$USE_PTHREADS" && test -z "$USE_BTHREADS"; then
-    MAKEFILES="$MAKEFILES pr/src/threads/combined/Makefile"
+    MAKEFILES="$MAKEFILES
+        pr/src/threads/combined/Makefile
+    "
 elif test -n "$USE_PTHREADS"; then
-    MAKEFILES="$MAKEFILES pr/src/pthreads/Makefile"
+    MAKEFILES="$MAKEFILES
+        pr/src/pthreads/Makefile
+    "
 elif test -n "$USE_BTHREADS"; then
-    MAKEFILES="$MAKEFILES pr/src/bthreads/Makefile"
+    MAKEFILES="$MAKEFILES
+        pr/src/bthreads/Makefile
+    "
 fi
 
 if test -n "$USE_CPLUS"; then
-    MAKEFILES="$MAKEFILES pr/src/cplus/Makefile pr/src/cplus/tests/Makefile"
+    MAKEFILES="$MAKEFILES
+        pr/src/cplus/Makefile
+        pr/src/cplus/tests/Makefile
+    "
 fi
 
 echo $MAKEFILES > unallmakefiles
