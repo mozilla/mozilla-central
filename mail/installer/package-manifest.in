@@ -470,6 +470,7 @@
 @BINPATH@/components/dom_network.xpt
 @BINPATH@/components/dom_notification.xpt
 @BINPATH@/components/dom_offline.xpt
+@BINPATH@/componnets/dom_power.xpt
 @BINPATH@/components/dom_range.xpt
 @BINPATH@/components/dom_sidebar.xpt
 @BINPATH@/components/dom_sms.xpt
