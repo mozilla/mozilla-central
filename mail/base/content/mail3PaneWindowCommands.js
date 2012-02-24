@@ -162,13 +162,15 @@ var DefaultController =
       case "button_junk":
       case "cmd_shiftDelete":
       case "button_shiftDelete":
+      case "button_nextMsg":
       case "cmd_nextMsg":
       case "button_next":
-      case "button_previous":
       case "cmd_nextUnreadMsg":
       case "cmd_nextFlaggedMsg":
       case "cmd_nextUnreadThread":
+      case "button_previousMsg":
       case "cmd_previousMsg":
+      case "button_previous":
       case "cmd_previousUnreadMsg":
       case "cmd_previousFlaggedMsg":
       case "button_goForward":
@@ -433,13 +435,14 @@ var DefaultController =
         return CanMarkMsgAsRead(true);
       case "cmd_markAsUnread":
         return CanMarkMsgAsRead(false);
-      case "button_previous":
-      case "button_next":
-        return IsViewNavigationItemEnabled();
+      case "button_nextMsg":
       case "cmd_nextMsg":
+      case "button_next":
       case "cmd_nextUnreadMsg":
       case "cmd_nextUnreadThread":
+      case "button_previousMsg":
       case "cmd_previousMsg":
+      case "button_previous":
       case "cmd_previousUnreadMsg":
         return IsViewNavigationItemEnabled();
       case "button_goForward":
@@ -686,12 +689,14 @@ var DefaultController =
       case "cmd_nextUnreadThread":
         GoNextMessage(nsMsgNavigationType.nextUnreadThread, true);
         break;
+      case "button_nextMsg":
       case "cmd_nextMsg":
         GoNextMessage(nsMsgNavigationType.nextMessage, false);
         break;
       case "cmd_nextFlaggedMsg":
         GoNextMessage(nsMsgNavigationType.nextFlagged, true);
         break;
+      case "button_previousMsg":
       case "cmd_previousMsg":
         GoNextMessage(nsMsgNavigationType.previousMessage, false);
         break;

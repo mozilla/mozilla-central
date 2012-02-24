@@ -731,15 +731,17 @@ var MessageWindowController =
       case "cmd_viewPageSource":
       case "cmd_getMsgsForAuthAccounts":
       case "button_file":
+      case "button_previousMsg":
+      case "cmd_previousMsg":
+      case "button_previous":
+      case "cmd_previousUnreadMsg":
+      case "cmd_previousFlaggedMsg":
+      case "button_nextMsg":
       case "cmd_nextMsg":
       case "button_next":
-      case "button_previous":
       case "cmd_nextUnreadMsg":
       case "cmd_nextFlaggedMsg":
       case "cmd_nextUnreadThread":
-      case "cmd_previousMsg":
-      case "cmd_previousUnreadMsg":
-      case "cmd_previousFlaggedMsg":
       case "cmd_goForward":
       case "cmd_goBack":
       case "button_goForward":
@@ -891,13 +893,15 @@ var MessageWindowController =
         return MailOfflineMgr.isOnline();
       case "cmd_settingsOffline":
         return IsAccountOfflineEnabled();
+      case "button_nextMsg":
       case "cmd_nextMsg":
       case "button_next":
       case "cmd_nextUnreadMsg":
       case "cmd_nextFlaggedMsg":
       case "cmd_nextUnreadThread":
-      case "button_previous":
+      case "button_previousMsg":
       case "cmd_previousMsg":
+      case "button_previous":
       case "cmd_previousUnreadMsg":
       case "cmd_previousFlaggedMsg":
       case "cmd_findAgain":
@@ -1125,19 +1129,21 @@ var MessageWindowController =
       case "cmd_settingsOffline":
         MailOfflineMgr.openOfflineAccountSettings();
         return;
-      case "cmd_nextUnreadMsg":
       case "button_next":
+      case "cmd_nextUnreadMsg":
         performNavigation(nsMsgNavigationType.nextUnreadMessage);
         break;
       case "cmd_nextUnreadThread":
         performNavigation(nsMsgNavigationType.nextUnreadThread);
         break;
+      case "button_nextMsg":
       case "cmd_nextMsg":
         performNavigation(nsMsgNavigationType.nextMessage);
         break;
       case "cmd_nextFlaggedMsg":
         performNavigation(nsMsgNavigationType.nextFlagged);
         break;
+      case "button_previousMsg":
       case "cmd_previousMsg":
         performNavigation(nsMsgNavigationType.previousMessage);
         break;

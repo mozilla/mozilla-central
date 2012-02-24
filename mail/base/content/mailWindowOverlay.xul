@@ -289,7 +289,9 @@
   <command id="button_getNewMessages"/>
   <command id="button_print"/>
   <command id="button_previous"/>
+  <command id="button_previousMsg"/>
   <command id="button_next"/>
+  <command id="button_nextMsg"/>
   <command id="button_goBack"/>
   <command id="button_goForward"/>
   <command id="button_file"/>
@@ -1813,18 +1815,40 @@
         <menuseparator id="button-goForwardSeparator"/>
       </menupopup>
     </toolbarbutton>
-    <toolbarbutton id="button-previous"
+    <toolbaritem id="button-previous"
+                 title="&previousButtonToolbarItem.label;"
+                 align="center"
+                 class="chromeclass-toolbar-additional">
+      <toolbarbutton id="button-previousUnread"
+                     class="toolbarbutton-1"
+                     label="&previousButton.label;"
+                     oncommand="goDoCommand('button_previous')"
+                     tooltiptext="&previousButton.tooltip;"
+                     observes="button_previous"/>
+    </toolbaritem>
+    <toolbarbutton id="button-previousMsg"
                    class="toolbarbutton-1"
-                   label="&previousButton.label;"
-                   oncommand="goDoCommand('button_previous')"
-                   tooltiptext="&previousButton.tooltip;"
-                   observes="button_previous"/>
-    <toolbarbutton id="button-next"
+                   label="&previousMsgButton.label;"
+                   oncommand="goDoCommand('button_previousMsg')"
+                   tooltiptext="&previousMsgButton.tooltip;"
+                   observes="button_previousMsg"/>
+    <toolbaritem id="button-next"
+                 title="&nextButtonToolbarItem.label;"
+                 align="center"
+                 class="chromeclass-toolbar-additional">
+      <toolbarbutton id="button-nextUnread"
+                     class="toolbarbutton-1"
+                     label="&nextButton.label;"
+                     oncommand="goDoCommand('button_next')"
+                     tooltiptext="&nextButton.tooltip;"
+                     observes="button_next"/>
+    </toolbaritem>
+    <toolbarbutton id="button-nextMsg"
                    class="toolbarbutton-1"
-                   label="&nextButton.label;"
-                   oncommand="goDoCommand('button_next')"
-                   tooltiptext="&nextButton.tooltip;"
-                   observes="button_next"/>
+                   label="&nextMsgButton.label;"
+                   oncommand="goDoCommand('button_nextMsg');"
+                   tooltiptext="&nextMsgButton.tooltip;"
+                   observes="button_nextMsg"/>
     <toolbaritem id="button-junk" title="&junkItem.title;">
       <deck id="junk-deck" observes="button_junk">
         <toolbarbutton id="button-isJunk"

@@ -255,8 +255,9 @@ toolbar[iconsize="small"] .toolbarbutton-1 > .toolbarbutton-icon {
 :-moz-any(
     #button-getmsg, #button-newmsg, #button-address, #button-reply,
     #button-replyall, #button-replylist, #button-forward, .delete-button,
-    .junk-button, #button-print, #button-stop, #button-file, #button-next,
-    #button-previous, #button-mark, #button-tag, #button-goback,
+    .junk-button, #button-print, #button-stop, #button-file, #button-nextUnread,
+    #button-nextMsg, #button-previousUnread, #button-previousMsg,
+    #button-mark, #button-tag, #button-goback,
     #button-goforward, #button-compact, #button-archive, #hdrArchiveButton,
     #hdrReplyButton, #hdrReplyToSenderButton, #hdrReplyAllButton,
     #hdrReplyOnlyButton, #hdrReplyListButton, #hdrForwardButton,
@@ -442,12 +443,12 @@ toolbox[labelalign="end"] > toolbar[mode="full"] .toolbarbutton-1[type="menu"] {
   -moz-image-region: rect(0px 216px 18px 198px);
 }
 
-#button-next {
+#button-nextUnread, #button-nextMsg {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 234px 18px 216px);
 }
 
-#button-previous {
+#button-previousUnread, #button-previousMsg {
   list-style-image: url("chrome://messenger/skin/icons/mail-toolbar.png");
   -moz-image-region: rect(0px 252px 18px 234px);
 }
