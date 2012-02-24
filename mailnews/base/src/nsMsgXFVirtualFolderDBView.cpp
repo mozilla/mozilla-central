@@ -324,6 +324,8 @@ nsMsgXFVirtualFolderDBView::OnSearchHit(nsIMsgDBHdr* aMsgHdr, nsIMsgFolder *aFol
 NS_IMETHODIMP
 nsMsgXFVirtualFolderDBView::OnSearchDone(nsresult status)
 {
+  NS_ENSURE_TRUE(m_viewFolder, NS_ERROR_NOT_INITIALIZED);
+
   // handle any non verified hits we haven't handled yet.
   if (NS_SUCCEEDED(status) && !m_doingQuickSearch && status != NS_MSG_SEARCH_INTERRUPTED)
     UpdateCacheAndViewForPrevSearchedFolders(nsnull);
@@ -402,8 +404,7 @@ nsMsgXFVirtualFolderDBView::OnNewSearch()
 
   PRInt32 scopeCount;
   nsCOMPtr<nsIMsgSearchSession> searchSession = do_QueryReferent(m_searchSession);
-  if (!searchSession)
-    return NS_OK; // just ignore
+  NS_ENSURE_TRUE(searchSession, NS_OK); // just ignore
   nsCOMPtr<nsIMsgDBService> msgDBService = do_GetService(NS_MSGDB_SERVICE_CONTRACTID);
   searchSession->CountSearchScopes(&scopeCount);
 

@@ -71,7 +71,9 @@ nsMsgMailView::~nsMsgMailView()
 
 NS_IMETHODIMP nsMsgMailView::GetMailViewName(PRUnichar ** aMailViewName)
 {
-    *aMailViewName = ToNewUnicode(mName); 
+    NS_ENSURE_ARG_POINTER(aMailViewName);
+
+    *aMailViewName = ToNewUnicode(mName);
     return NS_OK;
 }
 
@@ -83,6 +85,8 @@ NS_IMETHODIMP nsMsgMailView::SetMailViewName(const PRUnichar * aMailViewName)
 
 NS_IMETHODIMP nsMsgMailView::GetPrettyName(PRUnichar ** aMailViewName)
 {
+    NS_ENSURE_ARG_POINTER(aMailViewName);
+
     nsresult rv = NS_OK;
     if (!mBundle)
     {
@@ -98,17 +102,17 @@ NS_IMETHODIMP nsMsgMailView::GetPrettyName(PRUnichar ** aMailViewName)
     // see if mName has an associated pretty name inside our string bundle and if so, use that as the pretty name
     // otherwise just return mName
     if (mName.EqualsLiteral(kDefaultViewPeopleIKnow))
-        rv = mBundle->GetStringFromName(NS_LITERAL_STRING("mailViewPeopleIKnow").get(), aMailViewName);    
+        rv = mBundle->GetStringFromName(NS_LITERAL_STRING("mailViewPeopleIKnow").get(), aMailViewName);
     else if (mName.EqualsLiteral(kDefaultViewRecent))
-        rv = mBundle->GetStringFromName(NS_LITERAL_STRING("mailViewRecentMail").get(), aMailViewName);  
+        rv = mBundle->GetStringFromName(NS_LITERAL_STRING("mailViewRecentMail").get(), aMailViewName);
     else if (mName.EqualsLiteral(kDefaultViewFiveDays))
-        rv = mBundle->GetStringFromName(NS_LITERAL_STRING("mailViewLastFiveDays").get(), aMailViewName);  
+        rv = mBundle->GetStringFromName(NS_LITERAL_STRING("mailViewLastFiveDays").get(), aMailViewName);
     else if (mName.EqualsLiteral(kDefaultViewNotJunk))
-        rv = mBundle->GetStringFromName(NS_LITERAL_STRING("mailViewNotJunk").get(), aMailViewName); 
+        rv = mBundle->GetStringFromName(NS_LITERAL_STRING("mailViewNotJunk").get(), aMailViewName);
     else if (mName.EqualsLiteral(kDefaultViewHasAttachments))
-        rv = mBundle->GetStringFromName(NS_LITERAL_STRING("mailViewHasAttachments").get(), aMailViewName); 
+        rv = mBundle->GetStringFromName(NS_LITERAL_STRING("mailViewHasAttachments").get(), aMailViewName);
     else
-        *aMailViewName = ToNewUnicode(mName); 
+        *aMailViewName = ToNewUnicode(mName);
 
     return rv;
 }
@@ -160,6 +164,8 @@ nsMsgMailViewList::~nsMsgMailViewList()
 
 NS_IMETHODIMP nsMsgMailViewList::GetMailViewCount(PRUint32 * aCount)
 {
+    NS_ENSURE_ARG_POINTER(aCount);
+
     if (m_mailViews)
        m_mailViews->Count(aCount);
     else
@@ -171,7 +177,7 @@ NS_IMETHODIMP nsMsgMailViewList::GetMailViewAt(PRUint32 aMailViewIndex, nsIMsgMa
 {
     NS_ENSURE_ARG_POINTER(aMailView);
     NS_ENSURE_TRUE(m_mailViews, NS_ERROR_FAILURE);
-    
+
     PRUint32 mailViewCount;
     m_mailViews->Count(&mailViewCount);
     NS_ENSURE_TRUE(mailViewCount >= aMailViewIndex, NS_ERROR_FAILURE);
@@ -191,6 +197,9 @@ NS_IMETHODIMP nsMsgMailViewList::AddMailView(nsIMsgMailView * aMailView)
 
 NS_IMETHODIMP nsMsgMailViewList::RemoveMailView(nsIMsgMailView * aMailView)
 {
+    NS_ENSURE_ARG_POINTER(aMailView);
+    NS_ENSURE_TRUE(m_mailViews, NS_ERROR_FAILURE);
+
     m_mailViews->RemoveElement(static_cast<nsISupports*>(aMailView));
     return NS_OK;
 }
@@ -202,7 +211,7 @@ NS_IMETHODIMP nsMsgMailViewList::CreateMailView(nsIMsgMailView ** aMailView)
     nsMsgMailView * mailView = new nsMsgMailView;
     NS_ENSURE_TRUE(mailView, NS_ERROR_OUT_OF_MEMORY);
 
-    NS_IF_ADDREF(*aMailView = mailView);    
+    NS_IF_ADDREF(*aMailView = mailView);
     return NS_OK;
 }
 
@@ -211,8 +220,9 @@ NS_IMETHODIMP nsMsgMailViewList::Save()
     // brute force...remove all the old filters in our filter list, then we'll re-add our current
     // list
     nsCOMPtr<nsIMsgFilter> msgFilter;
-    PRUint32 numFilters;
-    mFilterList->GetFilterCount(&numFilters);
+    PRUint32 numFilters = 0;
+    if (mFilterList)
+      mFilterList->GetFilterCount(&numFilters);
     while (numFilters)
     {
         mFilterList->RemoveFilterAt(numFilters - 1);
@@ -223,13 +233,15 @@ NS_IMETHODIMP nsMsgMailViewList::Save()
     ConvertMailViewListToFilterList();
 
     // now save the filters to our file
-    return mFilterList->SaveToDefaultFile();
+    return mFilterList ? mFilterList->SaveToDefaultFile() : NS_ERROR_FAILURE;
 }
 
 nsresult nsMsgMailViewList::ConvertMailViewListToFilterList()
 {
   PRUint32 mailViewCount = 0;
-  m_mailViews->Count(&mailViewCount);
+
+  if (m_mailViews)
+    m_mailViews->Count(&mailViewCount);
   nsCOMPtr<nsIMsgMailView> mailView;
   nsCOMPtr<nsIMsgFilter> newMailFilter;
   nsString mailViewName;

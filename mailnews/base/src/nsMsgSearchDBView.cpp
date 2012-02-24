@@ -203,8 +203,8 @@ void nsMsgSearchDBView::InternalClose()
 
 NS_IMETHODIMP nsMsgSearchDBView::GetCellText(PRInt32 aRow, nsITreeColumn* aCol, nsAString& aValue)
 {
-  if (!IsValidIndex(aRow))
-    return NS_MSG_INVALID_DBVIEW_INDEX;
+  NS_ENSURE_TRUE(IsValidIndex(aRow), NS_MSG_INVALID_DBVIEW_INDEX);
+  NS_ENSURE_ARG_POINTER(aCol);
 
   const PRUnichar* colID;
   aCol->GetIdConst(&colID);
@@ -416,6 +416,7 @@ nsresult nsMsgSearchDBView::GetMsgHdrForViewIndex(nsMsgViewIndex index,
 NS_IMETHODIMP nsMsgSearchDBView::GetFolderForViewIndex(nsMsgViewIndex index, nsIMsgFolder **aFolder)
 {
   NS_ENSURE_ARG_POINTER(aFolder);
+
   if (index == nsMsgViewIndex_None || index >= (PRUint32) m_folders.Count())
     return NS_MSG_INVALID_DBVIEW_INDEX;
   NS_IF_ADDREF(*aFolder = m_folders[index]);
@@ -749,7 +750,6 @@ nsMsgSearchDBView::OnNewSearch()
     m_dbToUseList[j]->RemoveListener(this);
 
   m_dbToUseList.Clear();
-
   m_folders.Clear();
   m_keys.Clear();
   m_levels.Clear();
@@ -1083,7 +1083,6 @@ nsMsgSearchDBView::OnStopCopy(nsresult aStatus)
   if (NS_SUCCEEDED(aStatus))
   {
     mCurIndex++;
-    PRUint32 numFolders = 0;
     if (mCurIndex < (PRUint32) m_uniqueFoldersSelected.Count())
     {
       nsCOMPtr<nsIMsgWindow> msgWindow(do_QueryReferent(mMsgWindowWeak));
@@ -1290,6 +1289,8 @@ nsresult nsMsgSearchDBView::GetXFThreadFromMsgHdr(nsIMsgDBHdr *msgHdr,
                                                   nsIMsgThread **pThread,
                                                   bool *foundByMessageId)
 {
+  NS_ENSURE_ARG_POINTER(pThread);
+
   nsCAutoString messageId;
   msgHdr->GetMessageId(getter_Copies(messageId));
   *pThread = nsnull;
@@ -1352,6 +1353,8 @@ nsresult nsMsgSearchDBView::AddRefToHash(nsCString &reference,
 nsresult nsMsgSearchDBView::AddMsgToHashTables(nsIMsgDBHdr *msgHdr,
                                                nsIMsgThread *thread)
 {
+  NS_ENSURE_ARG_POINTER(msgHdr);
+
   PRUint16 numReferences = 0;
   nsresult rv;
 
@@ -1359,7 +1362,7 @@ nsresult nsMsgSearchDBView::AddMsgToHashTables(nsIMsgDBHdr *msgHdr,
   for (PRInt32 i = 0; i < numReferences; i++)
   {
     nsCAutoString reference;
-    
+
     msgHdr->GetStringReference(i, reference);
     if (reference.IsEmpty())
       break;
@@ -1389,6 +1392,8 @@ nsresult nsMsgSearchDBView::RemoveRefFromHash(nsCString &reference)
 
 nsresult nsMsgSearchDBView::RemoveMsgFromHashTables(nsIMsgDBHdr *msgHdr)
 {
+  NS_ENSURE_ARG_POINTER(msgHdr);
+
   PRUint16 numReferences = 0;
   nsresult rv = NS_OK;
 
@@ -1440,11 +1445,13 @@ NS_IMETHODIMP nsMsgSearchDBView::GetThreadContainingMsgHdr(nsIMsgDBHdr *msgHdr,
 }
 
 nsresult
-nsMsgSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr, 
-                                   nsMsgViewIndex startOfThreadViewIndex, 
+nsMsgSearchDBView::ListIdsInThread(nsIMsgThread *threadHdr,
+                                   nsMsgViewIndex startOfThreadViewIndex,
                                    PRUint32 *pNumListed)
 {
-  NS_ENSURE_ARG(threadHdr);
+  NS_ENSURE_ARG_POINTER(threadHdr);
+  NS_ENSURE_ARG_POINTER(pNumListed);
+
   // these children ids should be in thread order.
   PRUint32 i;
   nsMsgViewIndex viewIndex = startOfThreadViewIndex + 1;

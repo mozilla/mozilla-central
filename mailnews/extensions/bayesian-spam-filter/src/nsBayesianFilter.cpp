@@ -1107,13 +1107,11 @@ NS_IMETHODIMP TokenStreamListener::GetProperties(nsIWritablePropertyBag2 * *aPro
 NS_IMETHODIMP TokenStreamListener::OnStartRequest(nsIRequest *aRequest, nsISupports *aContext)
 {
     mLeftOverCount = 0;
-    if (!mTokenizer)
-        return NS_ERROR_OUT_OF_MEMORY;
+    NS_ENSURE_TRUE(mTokenizer, NS_ERROR_OUT_OF_MEMORY);
     if (!mBuffer)
     {
         mBuffer = new char[mBufferSize];
-        if (!mBuffer)
-            return NS_ERROR_OUT_OF_MEMORY;
+        NS_ENSURE_TRUE(mBuffer, NS_ERROR_OUT_OF_MEMORY);
     }
 
     // get the url for the channel and set our nsIMsgHeaderSink on it so we get notified
@@ -1151,8 +1149,7 @@ NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupp
         if (!mBuffer)
         {
           mBuffer = new char[mBufferSize];
-          if (!mBuffer)
-            return NS_ERROR_OUT_OF_MEMORY;
+          NS_ENSURE_TRUE(mBuffer, NS_ERROR_OUT_OF_MEMORY);
         }
 
         char* buffer = mBuffer;
@@ -1194,7 +1191,7 @@ NS_IMETHODIMP TokenStreamListener::OnDataAvailable(nsIRequest *aRequest, nsISupp
             if (totalCount >= (mBufferSize / 2)) {
                 PRUint32 newBufferSize = mBufferSize * 2;
                 char* newBuffer = new char[newBufferSize];
-                if (!newBuffer) return NS_ERROR_OUT_OF_MEMORY;
+                NS_ENSURE_TRUE(newBuffer, NS_ERROR_OUT_OF_MEMORY);
                 memcpy(newBuffer, mBuffer, mLeftOverCount);
                 delete[] mBuffer;
                 mBuffer = newBuffer;
@@ -1427,6 +1424,7 @@ private:
 
 nsresult nsBayesianFilter::tokenizeMessage(const char* aMessageURI, nsIMsgWindow *aMsgWindow, TokenAnalyzer* aAnalyzer)
 {
+    NS_ENSURE_ARG_POINTER(aMessageURI);
 
     nsCOMPtr <nsIMsgMessageService> msgService;
     nsresult rv = GetMessageServiceFromURI(nsDependentCString(aMessageURI), getter_AddRefs(msgService));
@@ -1881,11 +1879,9 @@ NS_IMETHODIMP nsBayesianFilter::GetShouldDownloadAllHeaders(bool *aShouldDownloa
 NS_IMETHODIMP nsBayesianFilter::ClassifyMessage(const char *aMessageURL, nsIMsgWindow *aMsgWindow, nsIJunkMailClassificationListener *aListener)
 {
     MessageClassifier* analyzer = new MessageClassifier(this, aListener, aMsgWindow, 1, &aMessageURL);
-    if (!analyzer)
-      return NS_ERROR_OUT_OF_MEMORY;
+    NS_ENSURE_TRUE(analyzer, NS_ERROR_OUT_OF_MEMORY);
     TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
-    if (!tokenListener)
-      return NS_ERROR_OUT_OF_MEMORY;
+    NS_ENSURE_TRUE(tokenListener, NS_ERROR_OUT_OF_MEMORY);
     analyzer->setTokenListener(tokenListener);
     return tokenizeMessage(aMessageURL, aMsgWindow, analyzer);
 }
@@ -1893,12 +1889,12 @@ NS_IMETHODIMP nsBayesianFilter::ClassifyMessage(const char *aMessageURL, nsIMsgW
 /* void classifyMessages (in unsigned long aCount, [array, size_is (aCount)] in string aMsgURLs, in nsIJunkMailClassificationListener aListener); */
 NS_IMETHODIMP nsBayesianFilter::ClassifyMessages(PRUint32 aCount, const char **aMsgURLs, nsIMsgWindow *aMsgWindow, nsIJunkMailClassificationListener *aListener)
 {
+    NS_ENSURE_ARG_POINTER(aMsgURLs);
+
     TokenAnalyzer* analyzer = new MessageClassifier(this, aListener, aMsgWindow, aCount, aMsgURLs);
-    if (!analyzer)
-      return NS_ERROR_OUT_OF_MEMORY;
+    NS_ENSURE_TRUE(analyzer, NS_ERROR_OUT_OF_MEMORY);
     TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
-    if (!tokenListener)
-      return NS_ERROR_OUT_OF_MEMORY;
+    NS_ENSURE_TRUE(tokenListener, NS_ERROR_OUT_OF_MEMORY);
     analyzer->setTokenListener(tokenListener);
     return tokenizeMessage(aMsgURLs[0], aMsgWindow, analyzer);
 }
@@ -2000,12 +1996,10 @@ NS_IMETHODIMP nsBayesianFilter::ClassifyTraitsInMessages(
 
   MessageClassifier* analyzer = new MessageClassifier(this, aJunkListener,
     aTraitListener, nsnull, proTraits, antiTraits, aMsgWindow, aCount, aMsgURIs);
-  if (!analyzer)
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(analyzer, NS_ERROR_OUT_OF_MEMORY);
 
   TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
-  if (!tokenListener)
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(tokenListener, NS_ERROR_OUT_OF_MEMORY);
 
   analyzer->setTokenListener(tokenListener);
   return tokenizeMessage(aMsgURIs[0], aMsgWindow, analyzer);
@@ -2063,11 +2057,11 @@ NS_IMETHODIMP nsBayesianFilter::SetMsgTraitClassification(
 
   MessageObserver* analyzer = new MessageObserver(this, oldTraits,
     newTraits, aJunkListener, aTraitListener);
-  if (!analyzer)
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(analyzer, NS_ERROR_OUT_OF_MEMORY);
+
   TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
-  if (!tokenListener)
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(tokenListener, NS_ERROR_OUT_OF_MEMORY);
+
   analyzer->setTokenListener(tokenListener);
   return tokenizeMessage(aMsgURI, aMsgWindow, analyzer);
 }
@@ -2197,12 +2191,10 @@ NS_IMETHODIMP nsBayesianFilter::SetMessageClassification(
 
   MessageObserver* analyzer = new MessageObserver(this, oldClassifications,
     newClassifications, aListener, nsnull);
-  if (!analyzer)
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(analyzer, NS_ERROR_OUT_OF_MEMORY);
 
   TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
-  if (!tokenListener)
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(tokenListener, NS_ERROR_OUT_OF_MEMORY);
 
   analyzer->setTokenListener(tokenListener);
   return tokenizeMessage(aMsgURL, aMsgWindow, analyzer);
@@ -2226,12 +2218,10 @@ NS_IMETHODIMP nsBayesianFilter::DetailMessage(const char *aMsgURI,
 
   MessageClassifier* analyzer = new MessageClassifier(this, nsnull,
     nsnull, aDetailListener, proTraits, antiTraits, aMsgWindow, 1, &aMsgURI);
-  if (!analyzer)
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(analyzer, NS_ERROR_OUT_OF_MEMORY);
 
   TokenStreamListener *tokenListener = new TokenStreamListener(analyzer);
-  if (!tokenListener)
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(tokenListener, NS_ERROR_OUT_OF_MEMORY);
 
   analyzer->setTokenListener(tokenListener);
   return tokenizeMessage(aMsgURI, aMsgWindow, analyzer);
