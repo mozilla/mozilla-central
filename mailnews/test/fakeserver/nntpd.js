@@ -547,6 +547,8 @@ subclass(NNTP_RFC4643_extension, NNTP_RFC2980_handler, {
     else if (action == "pass") {
       if (!this.requireBoth || !this.usernameReceived)
         return "482 Authetication commands issued out of sequence";
+      
+      this.usernameReceived = false;
 
       var expectPassword = this.lastGroupTried
         ? this._daemon.groupCredentials[this.lastGroupTried][1]
