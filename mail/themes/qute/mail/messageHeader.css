@@ -374,6 +374,7 @@ toolbar[iconsize="small"] .hdrTrashButton {
 }
 
 .inline-toolbar {
+  -moz-appearance: none;
   -moz-box-pack: end;
 }
 
