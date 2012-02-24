@@ -158,7 +158,6 @@ private:
     PRUint32 mLastUpdatedTime;
     PRInt32 mVersion;
     bool mPostingAllowed;
-    bool m_userAuthenticated;
 
     nsCOMPtr<nsITimer> mNewsrcSaveTimer;
     nsCOMPtr <nsIMsgWindow> mMsgWindow;

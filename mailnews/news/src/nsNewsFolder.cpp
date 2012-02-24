@@ -1284,7 +1284,7 @@ nsMsgNewsFolder::MigrateLegacyCredentials()
   NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(count, logins);
   NS_ENSURE_SUCCESS(rv, rv);
 
-  // If there is nothing to migrate, then do othing
+  // If there is nothing to migrate, then do nothing
   if (username.IsEmpty() && password.IsEmpty())
     return NS_OK;
 
@@ -1464,6 +1464,10 @@ NS_IMETHODIMP nsMsgNewsFolder::ForgetAuthenticationCredentials()
   for (PRUint32 i = 0; i < count; ++i)
     loginMgr->RemoveLogin(logins[i]);
   NS_FREE_XPCOM_ISUPPORTS_POINTER_ARRAY(count, logins);
+
+  // Clear out the saved passwords for anyone else who tries to call.
+  mGroupUsername.Truncate();
+  mGroupPassword.Truncate();
 
   return NS_OK;
 }

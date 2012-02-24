@@ -136,7 +136,6 @@ nsNntpIncomingServer::nsNntpIncomingServer()
   mUniqueId = 0;
   mHasSeenBeginGroups = false;
   mPostingAllowed = false;
-  m_userAuthenticated = false;
   mLastUpdatedTime = 0;
 
   // these atoms are used for subscribe search
@@ -443,8 +442,6 @@ nsNntpIncomingServer::GetNewsrcHasChanged(bool *aNewsrcHasChanged)
     *aNewsrcHasChanged = mNewsrcHasChanged;
     return NS_OK;
 }
-
-NS_IMPL_GETSET(nsNntpIncomingServer, UserAuthenticated, bool, m_userAuthenticated)
 
 NS_IMETHODIMP
 nsNntpIncomingServer::CloseCachedConnections()

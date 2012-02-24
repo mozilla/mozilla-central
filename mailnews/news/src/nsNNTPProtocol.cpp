@@ -1370,11 +1370,6 @@ PRInt32 nsNNTPProtocol::NewsResponse(nsIInputStream * inputStream, PRUint32 leng
   else
     NS_MsgSACopy(&m_responseText, line);
 
-  /* login failed */
-  if (m_responseCode == MK_NNTP_RESPONSE_AUTHINFO_DENIED)
-    HandleAuthenticationFailure();
-
-
   /* authentication required can come at any time
   */
   if (MK_NNTP_RESPONSE_AUTHINFO_REQUIRE == m_responseCode ||
@@ -2413,7 +2408,12 @@ PRInt32 nsNNTPProtocol::BeginAuthorization()
       queueKey += groupName;
     }
 
-    rv = asyncPrompter->QueueAsyncAuthPrompt(queueKey, false, this);
+    // If we were called back from HandleAuthenticationFailure, we must have
+    // been handling the response of an authorization state. In that case,
+    // let's hurry up on the auth request
+    bool didAuthFail = m_nextStateAfterResponse == NNTP_AUTHORIZE_RESPONSE ||
+      m_nextStateAfterResponse == NNTP_PASSWORD_RESPONSE;
+    rv = asyncPrompter->QueueAsyncAuthPrompt(queueKey, didAuthFail, this);
     NS_ENSURE_SUCCESS(rv, MK_NNTP_AUTH_FAILED);
 
     m_nextState = NNTP_SUSPENDED;
@@ -2508,7 +2508,7 @@ PRInt32 nsNNTPProtocol::AuthorizationResponse()
   {
     /* login failed */
     HandleAuthenticationFailure();
-    return(MK_NNTP_AUTH_FAILED);
+    return status;
   }
 
   NS_ERROR("should never get here");
@@ -2545,13 +2545,12 @@ PRInt32 nsNNTPProtocol::PasswordResponse()
     else
       m_nextState = SEND_FIRST_NNTP_COMMAND;
 #endif /* HAVE_NNTP_EXTENSIONS */
-    m_nntpServer->SetUserAuthenticated(true);
     return(0);
   }
   else
   {
     HandleAuthenticationFailure();
-    return(MK_NNTP_AUTH_FAILED);
+    return 0;
   }
 
   NS_ERROR("should never get here");
@@ -2571,8 +2570,10 @@ NS_IMETHODIMP nsNNTPProtocol::OnPromptStart(bool *authAvailable)
     return NS_OK;
   }
 
+  bool didAuthFail = m_nextState == NNTP_AUTHORIZE_RESPONSE ||
+    m_nextState == NNTP_PASSWORD_RESPONSE;
   nsresult rv = m_newsFolder->GetAuthenticationCredentials(m_msgWindow,
-    true, false, authAvailable);
+    true, didAuthFail, authAvailable);
   NS_ENSURE_SUCCESS(rv, rv);
 
   // What we do depends on whether or not we have valid credentials
@@ -3007,24 +3008,36 @@ void nsNNTPProtocol::TimerCallback()
 
 void nsNNTPProtocol::HandleAuthenticationFailure()
 {
-  bool userHasAuthenticatedInThisSession;
-  m_nntpServer->GetUserAuthenticated(&userHasAuthenticatedInThisSession);
+  nsCOMPtr<nsIMsgIncomingServer> server(do_QueryInterface(m_nntpServer));
+  nsCString hostname;
+  server->GetRealHostName(hostname);
+  PRInt32 choice = 1;
+  MsgPromptLoginFailed(m_msgWindow, hostname, &choice);
 
-  /* login failed */
-  AlertError(MK_NNTP_AUTH_FAILED, m_responseText);
-
-  NS_ASSERTION(m_newsFolder, "no newsFolder");
-  if (m_newsFolder)
+  if (choice == 1) // Cancel
   {
-    if (!userHasAuthenticatedInThisSession)
-      m_newsFolder->ForgetAuthenticationCredentials();
-    // we'll allow one failure before clearing out password,
-    // but we need to handle the case where the password has
-    // changed while the app is running, and
-    // reprompt the user for the (potentially) new password.
-    // So clear the userAuthenticated flag.
-    m_nntpServer->SetUserAuthenticated(false);
+    // When the user requests to cancel the connection, we can't do anything
+    // anymore.
+    NNTP_LOG_NOTE("Password failed, user opted to cancel connection");
+    m_nextState = NNTP_ERROR;
+    return;
   }
+
+  if (choice == 2) // New password
+  {
+    NNTP_LOG_NOTE("Password failed, user opted to enter new password");
+    NS_ASSERTION(m_newsFolder, "no newsFolder");
+    m_newsFolder->ForgetAuthenticationCredentials();
+  }
+  else if (choice == 0) // Retry
+  {
+    NNTP_LOG_NOTE("Password failed, user opted to retry");
+  }
+
+  // At this point, we've either forgotten the password or opted to retry. In
+  // both cases, we need to try to auth with the password again, so return to
+  // the authentication state.
+  m_nextState = NNTP_BEGIN_AUTHORIZE;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
