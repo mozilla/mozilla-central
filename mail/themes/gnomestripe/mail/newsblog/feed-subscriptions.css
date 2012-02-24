@@ -39,6 +39,8 @@
 /* ::::: Feed Subscription styling :::::: */
 
 #subscriptionsDialog {
+  width: 40em;
+  height: 30em;
   padding: 0px;
 }
 
@@ -46,33 +48,14 @@
   margin: 9px 8px 5px;
 }
 
-#subscriptionChildren::-moz-tree-image(folderNameCol) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-pane.png");
-  -moz-image-region: rect(128px 16px 144px 0px);
-}
-
-#subscriptionChildren::-moz-tree-image(folderNameCol, container) {
-  background-position: center center;
-  background-repeat: no-repeat;
-  background-color: transparent;
-  background-attachment: scroll;
-  background-clip: border-box;
-  -moz-background-inline-policy: continuous;
-  -moz-background-origin: border;
-  background-image: url("moz-icon://stock/gtk-directory?size=menu");
-  list-style-image: url("chrome://messenger/skin/icons/folder-blank.png");
-
-  -moz-margin-end: 2px;
-}
-
 #rssFeedInfoBox {
   border: 1px solid ThreeDShadow;
-  border-radius: 0px;
   margin: 4px;
-  padding: 0px;
+  padding-top: 4px;
+  background-color: #EAE8E4;
 }
 
-#backgroundBox {
-  background-color: #FFFFFF;
-  opacity: 0.5;
+#statusContainerBox {
+  height: 24px;
 }
+

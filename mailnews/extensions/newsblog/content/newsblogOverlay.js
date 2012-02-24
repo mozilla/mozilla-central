@@ -37,29 +37,25 @@
 #
 # ***** END LICENSE BLOCK ******
 
-function openSubscriptionsDialog(aFolder, aServer)
+Components.utils.import("resource://gre/modules/Services.jsm");
+
+function openSubscriptionsDialog(aFolder)
 {
-  if (!aServer)
-    aServer = aFolder.server;
-  //check for an existing subscriptions window and focus it.
-  const kWindowMediatorContractID = "@mozilla.org/appshell/window-mediator;1";
-  const kWindowMediatorIID = Components.interfaces.nsIWindowMediator;
-  const kWindowMediator = Components.classes[kWindowMediatorContractID]
-                                    .getService(kWindowMediatorIID);
-  var lastSubscriptionWindow =
-    kWindowMediator.getMostRecentWindow("Mail:News-BlogSubscriptions");
-  
-  if (lastSubscriptionWindow)
+  // Check for an existing feed subscriptions window and focus it.
+  let subscriptionsWindow =
+    Services.wm.getMostRecentWindow("Mail:News-BlogSubscriptions");
+
+  if (subscriptionsWindow)
   {
     if (aFolder)
-      lastSubscriptionWindow.gFeedSubscriptionsWindow.selectFolder(aFolder);
-    lastSubscriptionWindow.focus();
+      subscriptionsWindow.gFeedSubscriptionsWindow.selectFolder(aFolder);
+    subscriptionsWindow.focus();
   }
   else
   {
-    window.openDialog("chrome://messenger-newsblog/content/feed-subscriptions.xul", "",
-                      "centerscreen,chrome,dialog=no,resizable",
-                      { server: aServer, folder: aFolder});
+    window.openDialog("chrome://messenger-newsblog/content/feed-subscriptions.xul",
+                      "", "centerscreen,chrome,dialog=no,resizable",
+                      { folder: aFolder});
   }
 }
 

@@ -116,6 +116,6 @@
       <spacer flex="1"/>
       <button label="&manageSubscriptions.label;"
               accesskey="&manageSubscriptions.accesskey;"
-              oncommand="openSubscriptionsDialog(null, gIncomingServer);"/>
+              oncommand="openSubscriptionsDialog(gIncomingServer.rootFolder);"/>
     </hbox>
 </page>

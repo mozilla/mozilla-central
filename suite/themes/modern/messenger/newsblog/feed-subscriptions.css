@@ -36,32 +36,24 @@
  *
  * ***** END LICENSE BLOCK ****** */
 
-/* ::::: Feed Subscription UI icons :::::: */
+/* ::::: Feed Subscription styling :::::: */
+
+#subscriptionsDialog {
+  width: 40em;
+  height: 30em;
+}
 
 #contentPane {
   padding: 14px;
 }
 
-#subscriptionChildren::-moz-tree-image(folderNameCol) {
-  -moz-margin-end: 2px;
-  list-style-image: url("chrome://messenger/skin/icons/folder-newsgroup.gif");
-}
-
-#subscriptionChildren::-moz-tree-image(folderNameCol, container) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-closed.gif");
-}
-
-#subscriptionChildren::-moz-tree-image(folderNameCol, container, open) {
-  list-style-image: url("chrome://messenger/skin/icons/folder-open.gif");
-}
-
 #rssFeedInfoBox {
   border: 1px solid #2D3B49;
-  border-radius: 0px;
   margin: 4px;
-  padding: 0px;
+  padding-top: 4px;
+  background-color: #BBC6D1;
 }
 
-#backgroundBox {
-  background-color: #BBC6D1;
+#statusContainerBox {
+  height: 24px;
 }

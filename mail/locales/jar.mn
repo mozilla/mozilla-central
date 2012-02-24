@@ -166,8 +166,6 @@
 % locale messenger-newsblog @AB_CD@ %locale/@AB_CD@/messenger-newsblog/
   locale/@AB_CD@/messenger-newsblog/newsblog.properties                 (%chrome/messenger-newsblog/newsblog.properties)
   locale/@AB_CD@/messenger-newsblog/feed-subscriptions.dtd              (%chrome/messenger-newsblog/feed-subscriptions.dtd)
-  locale/@AB_CD@/messenger-newsblog/feed-properties.dtd                 (%chrome/messenger-newsblog/feed-properties.dtd)
-  locale/@AB_CD@/messenger-newsblog/am-newsblog.properties              (%chrome/messenger-newsblog/am-newsblog.properties)
   locale/@AB_CD@/messenger-newsblog/am-newsblog.dtd                     (%chrome/messenger-newsblog/am-newsblog.dtd)
 % locale messenger-smime @AB_CD@ %locale/@AB_CD@/messenger-smime/
   locale/@AB_CD@/messenger-smime/msgCompSMIMEOverlay.dtd                (%chrome/messenger-smime/msgCompSMIMEOverlay.dtd)

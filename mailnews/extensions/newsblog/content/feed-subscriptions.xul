@@ -38,23 +38,22 @@
 # ***** END LICENSE BLOCK ******
 
 <?xml-stylesheet href="chrome://messenger/skin/" type="text/css"?>
+<?xml-stylesheet href="chrome://messenger/skin/folderPane.css" type="text/css"?>
 <?xml-stylesheet href="chrome://messenger-newsblog/skin/feed-subscriptions.css" type="text/css"?>
 
 <!DOCTYPE window SYSTEM "chrome://messenger-newsblog/locale/feed-subscriptions.dtd">
 
 <window id="subscriptionsDialog"
+        flex="1"
         title="&feedSubscriptions.label;"
-        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-#ifdef XP_MACOSX
-        style="width: 40em; height: 30em;"
-#else
-        style="width: 30em; height: 25em;"
-#endif
-        persist="width height screenX screenY sizemode"
-        onload="gFeedSubscriptionsWindow.init();"
-        onunload="return gFeedSubscriptionsWindow.uninit();"
         windowtype="Mail:News-BlogSubscriptions"
-        flex="1">
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xmlns:nc="http://home.netscape.com/NC-rdf#"
+        persist="width height screenX screenY sizemode"
+        onload="gFeedSubscriptionsWindow.onLoad();"
+        onunload="return gFeedSubscriptionsWindow.onUnload();"
+        onclick="gFeedSubscriptionsWindow.onClick(event);">
 
   <script type="application/javascript" src="utils.js"/>
   <script type="application/javascript" src="file-utils.js"/>
@@ -64,14 +63,22 @@
   <script type="application/javascript" src="FeedItem.js"/>
   <script type="application/javascript" src="feed-parser.js"/>
   <script type="application/javascript" src="chrome://global/content/nsDragAndDrop.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/widgetglue.js"/>
 
   <keyset id="extensionsKeys">
-    <key id="key_close"   key="&cmd.close.commandKey;" modifiers="accel" oncommand="window.close();"/>
-    <key id="key_close2"  keycode="VK_ESCAPE" oncommand="window.close();"/>
+    <key id="key_close"
+         key="&cmd.close.commandKey;"
+         modifiers="accel"
+         oncommand="window.close();"/>
+    <key id="key_close2"
+         keycode="VK_ESCAPE"
+         oncommand="window.close();"/>
   </keyset>
 
-  <stringbundle id="bundle_newsblog" src="chrome://messenger-newsblog/locale/newsblog.properties"/>
-  <stringbundle id="bundle_brand" src="chrome://branding/locale/brand.properties"/>
+  <stringbundle id="bundle_newsblog"
+                src="chrome://messenger-newsblog/locale/newsblog.properties"/>
+  <stringbundle id="bundle_brand"
+                src="chrome://branding/locale/brand.properties"/>
 
   <vbox flex="1" id="contentPane">
     <description control="rssSubscriptionsList">&subscriptionDesc.label;</description>
@@ -81,75 +88,172 @@
     <tree id="rssSubscriptionsList"
           treelines="true"
           flex="1"
-          style="height: 10em;"
           hidecolumnpicker="true"
           onselect="gFeedSubscriptionsWindow.onSelect();"
           onkeypress="gFeedSubscriptionsWindow.onKeyPress(event);"
           seltype="single">
       <treecols>
-        <treecol id="folderNameCol" flex="2" primary="true" hideheader="true"/>
+        <treecol id="folderNameCol"
+                 flex="2"
+                 primary="true"
+                 hideheader="true"/>
       </treecols>
       <treechildren id="subscriptionChildren"
-                    ondblclick="if (event.button == 0) gFeedSubscriptionsWindow.editFeed();"
                     ondraggesture="gFeedSubscriptionsWindow.beginDrag(event);"/>
     </tree>
 
     <hbox id="rssFeedInfoBox">
-      <stack flex="1">
-        <hbox id="backgroundBox" flex="1"/>
+      <vbox flex="1">
         <grid flex="1">
           <columns>
             <column/>
             <column flex="1"/>
           </columns>
           <rows>
-            <row align="center">
-              <hbox pack="end"><label id="nameLabel" control="nameValue" value="&feedTitle.label;"/></hbox>
-              <textbox id="nameValue" readonly="true" class="plain"/>
+            <row>
+              <hbox align="right" valign="middle">
+                <label id="nameLabel"
+                       accesskey="&feedTitle.accesskey;"
+                       control="nameValue"
+                       value="&feedTitle.label;"/>
+              </hbox>
+              <textbox id="nameValue"
+                       clickSelectsAll="true"/>
             </row>
-            <row align="center">
-              <hbox pack="end"><label id="locationLabel" control="locationValue" value="&location.label;"/></hbox>
-              <textbox id="locationValue" readonly="true" class="plain uri-element"/>
+            <row>
+              <hbox align="right" valign="middle">
+                <label id="locationLabel"
+                       accesskey="&feedLocation.accesskey;"
+                       control="locationValue"
+                       value="&feedLocation.label;"/>
+              </hbox>
+              <textbox id="locationValue"
+                       class="uri-element"
+                       placeholder="&feedLocation.placeholder;"
+                       clickSelectsAll="true"/>
+            </row>
+            <row>
+              <hbox align="right" valign="middle">
+                <label id="feedFolderLabel"
+                       value="&feedFolder.label;"
+                       accesskey="&feedFolder.accesskey;"
+                       control="selectFolder"/>
+              </hbox>
+              <menulist id="selectFolder"
+                    disabled="true"
+                    containment="http://home.netscape.com/NC-rdf#child"
+                    sortResource="http://home.netscape.com/NC-rdf#FolderTreeName"
+                    sortDirection="ascending"
+                    datasources="rdf:msgaccountmanager rdf:mailnewsfolders"
+                    ref="...">
+                  <menupopup>
+                    <menuitem id="rssAccountMenuItem"
+                              oncommand="gFeedSubscriptionsWindow.setFolderPicker(event.target.id)"/>
+                    <menuseparator/>
+                  </menupopup>
+
+                  <template>
+                    <!-- Cheat and use the CanRename property to make sure we
+                         don't list the Trash folder as a possible feed folder. -->
+                    <rule nc:CanFileMessages="true"
+                          iscontainer="true"
+                          isempty="false"
+                          nc:CanRename="true">
+                      <menupopup>
+                        <menu uri="..."
+                              class="folderMenuItem menu-iconic"
+                              oncommand="gFeedSubscriptionsWindow.setFolderPicker(event.target.id)"
+                              SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                              BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                              IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                              IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                              ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
+                              label="rdf:http://home.netscape.com/NC-rdf#Name">
+                          <menupopup class="menulist-menupopup">
+                            <menuitem label="rdf:http://home.netscape.com/NC-rdf#Name"
+                                      oncommand="gFeedSubscriptionsWindow.setFolderPicker(event.target.parentNode.parentNode.id)"/>
+                            <menuseparator/>
+                          </menupopup>
+                        </menu>
+                      </menupopup>
+                    </rule>
+                    <rule nc:CanFileMessages="true"
+                          nc:CanRename="true">
+                      <menupopup>
+                        <menuitem uri="..."
+                                  value="..."
+                                  class="folderMenuItem menuitem-iconic"
+                                  oncommand="gFeedSubscriptionsWindow.setFolderPicker(event.target.id)"
+                                  SpecialFolder="rdf:http://home.netscape.com/NC-rdf#SpecialFolder"
+                                  BiffState="rdf:http://home.netscape.com/NC-rdf#BiffState"
+                                  IsServer="rdf:http://home.netscape.com/NC-rdf#IsServer"
+                                  IsSecure="rdf:http://home.netscape.com/NC-rdf#IsSecure"
+                                  ServerType="rdf:http://home.netscape.com/NC-rdf#ServerType"
+                                  label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+                       </menupopup>
+                    </rule>
+                  </template>
+              </menulist>
             </row>
           </rows>
         </grid>
-      </stack>
+        <checkbox id="quickMode"
+                  accesskey="&quickMode.accesskey;"
+                  label="&quickMode.label;"/>
+      </vbox>
     </hbox>
 
-    <hbox id="statusContainerBox" align="center">
-      <label id="statusText" class="statusbarpanel-text" crop="right" flex="1"/>
-      <progressmeter id="progressMeter" collapsed="true" class="progressmeter-statusbar" style="-moz-margin-end: 5px;" mode="normal" value="0"/>
+    <hbox id="statusContainerBox"
+          align="center"
+          valign="middle">
+      <label id="statusText"
+             class="statusbarpanel-text"
+             crop="end"
+             value=""/>
+      <label id="validationText"
+             collapsed="true"
+             class="text-link"
+             crop="end"
+             value="&validateText.label;"
+             onclick="gFeedSubscriptionsWindow.checkValidation(event);"/>
+      <spacer flex="1"/>
+      <progressmeter id="progressMeter"
+                     collapsed="true"
+                     mode="normal"
+                     value="0"/>
     </hbox>
 
     <hbox align="end">
       <hbox class="actionButtons" flex="1">
         <button id="addFeed"
-                label="&button.addFeed.label;" accesskey="&button.addFeed.accesskey;"
+                label="&button.addFeed.label;"
+                accesskey="&button.addFeed.accesskey;"
                 oncommand="gFeedSubscriptionsWindow.addFeed();"/>
 
-        <button id="editFeed" disabled="true" default="true"
-                label="&button.editFeed.label;" accesskey="&button.editFeed.accesskey;"
+        <button id="editFeed"
+                disabled="true"
+                label="&button.editFeed.label;"
+                accesskey="&button.editFeed.accesskey;"
                 oncommand="gFeedSubscriptionsWindow.editFeed();"/>
 
-        <button id="removeFeed" disabled="true"
-                label="&button.removeFeed.label;" accesskey="&button.removeFeed.accesskey;"
-                oncommand="gFeedSubscriptionsWindow.removeFeed();"/>
+        <button id="removeFeed"
+                disabled="true"
+                label="&button.removeFeed.label;"
+                accesskey="&button.removeFeed.accesskey;"
+                oncommand="gFeedSubscriptionsWindow.removeFeed(true);"/>
+
+        <spacer flex="1"/>
 
         <button id="importOPML"
-                label="&button.importOPML.label;" accesskey="&button.importOPML.accesskey;"
+                label="&button.importOPML.label;"
+                accesskey="&button.importOPML.accesskey;"
                 oncommand="gFeedSubscriptionsWindow.importOPML();"/>
 
         <button id="exportOPML"
-                label="&button.exportOPML.label;" accesskey="&button.exportOPML.accesskey;"
+                label="&button.exportOPML.label;"
+                accesskey="&button.exportOPML.accesskey;"
                 oncommand="gFeedSubscriptionsWindow.exportOPML();"/>
-
-        <spacer flex="1"/>
       </hbox>
     </hbox>
   </vbox>
-
-  <hbox>
-    <spring flex="1"/>
-    <resizer dir="bottomright"/>
-  </hbox>
 </window>
