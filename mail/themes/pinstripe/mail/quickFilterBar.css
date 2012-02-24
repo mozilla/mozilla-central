@@ -46,6 +46,12 @@ toolbar[iconsize="large"] #qfb-show-filter-bar[disabled="true"] {
   text-shadow: 0 1px rgba(0, 0, 0, 0.4) !important;
 }
 
+#mail-toolbox #qfb-show-filter-bar[checked="true"]:-moz-lwtheme {
+  color: inherit !important;
+  background-color: rgba(0, 0, 0, 0.15);
+  text-shadow: inherit !important;
+}
+
 /* :::: Filter Bar :::: */
 
 #quick-filter-bar {
