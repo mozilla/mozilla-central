@@ -1402,9 +1402,8 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
     NS_ENSURE_SUCCESS(rv, rv);
     nsCAutoString turlC;
     CopyUTF16toUTF8(tUrl, turlC);
-    rv = nsMsgNewURL(getter_AddRefs(attachment->m_url), turlC.get());
-    NS_ENSURE_SUCCESS(rv, rv);
-
+    // ignore errors here.
+    (void) nsMsgNewURL(getter_AddRefs(attachment->m_url), turlC.get());
     rv = anchor->GetName(tName);
     NS_ENSURE_SUCCESS(rv, rv);
     LossyCopyUTF16toASCII(tName, attachment->m_realName);
@@ -1420,8 +1419,10 @@ nsMsgComposeAndSend::GetEmbeddedObjectInfo(nsIDOMNode *node, nsMsgAttachmentData
   // Before going further, check if we are dealing with a local file and
   // if it's the case be sure the file exist!
   bool schemeIsFile = false;
-  rv = attachment->m_url->SchemeIs("file", &schemeIsFile);
-  if (NS_SUCCEEDED(rv) && schemeIsFile)
+  if (attachment->m_url)
+    rv = attachment->m_url->SchemeIs("file", &schemeIsFile);
+
+  if (schemeIsFile && NS_SUCCEEDED(rv))
   {
     nsCOMPtr<nsIFileURL> fileUrl (do_QueryInterface(attachment->m_url));
     if (fileUrl)
