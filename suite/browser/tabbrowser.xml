@@ -962,6 +962,7 @@
             } catch (e) {
             }
 
+            document.title = newTitle;
             window.QueryInterface(Components.interfaces.nsIInterfaceRequestor)
                   .getInterface(Components.interfaces.nsIWebNavigation)
                   .QueryInterface(Components.interfaces.nsIBaseWindow).title = newTitle;
