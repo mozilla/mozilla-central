@@ -53,6 +53,10 @@
 }
 
 #attachmentBucket {
+  -moz-appearance: none;
+  border-top: 1px solid #A9B7C9; /* The same color as the splitters */
+  background-color: -moz-Field;
+  color: -moz-FieldText;
   width: 15em;
 }
 
@@ -408,7 +412,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 /* ::::: special toolbar colors ::::: */
 
 #appcontent {
-  border-top: 1px solid ThreeDShadow;
+  border-top: 1px solid #A9B7C9; /* The same color as the splitters */
 }
 
 #attachmentbucket-sizer {
@@ -418,10 +422,14 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   width: 5px;
   -moz-margin-end: -4px;
   -moz-border-end-width: 0;
-  -moz-border-start: 2px solid ThreeDShadow;
+  -moz-border-start: 1px solid #A9B7C9;
   -moz-border-left-colors: none;
   -moz-border-right-colors: none; /* for rtl -moz-border-start */
   background-color: transparent;
+}
+
+#attachmentBucketSize {
+  color: #888a85;
 }
 
 /* ::::: attachment reminder ::::: */
@@ -544,7 +552,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
 /* ::::: format toolbar ::::: */
 
 #FormatToolbar {
-  border-top: 1px solid ThreeDShadow !important;
+  border-bottom: 1px solid #A9B7C9 !important;
   background-color: -moz-Dialog;
 }
 

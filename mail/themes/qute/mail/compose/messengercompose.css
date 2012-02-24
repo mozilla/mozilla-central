@@ -333,12 +333,13 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 }
 
 #attachmentbucket-sizer {
-  border-top: none;
-  border-bottom: none;
+  border: none;
+  background-color: transparent;
 }
 
 #attachmentBucketSize {
-  color: #888a85;
+  opacity: 0.5; /* lower contrast */
+  -moz-padding-end: 1px;
 }
 
 /* ::::: attachment reminder ::::: */

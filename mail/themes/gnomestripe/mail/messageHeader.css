@@ -126,7 +126,8 @@
 /* ::::: attachment view ::::: */
 
 #attachmentList {
-  margin: 0;
+  -moz-appearance: none;
+  border-top: 1px solid ThreeDShadow;
   background-color: -moz-Field;
   color: -moz-FieldText;
 }

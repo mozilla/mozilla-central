@@ -123,7 +123,8 @@
 /* ::::: attachment view ::::: */
 
 #attachmentList {
-  margin: 0px;
+  -moz-appearance: none;
+  border-top: 1px solid ThreeDDarkShadow;
   background-color: -moz-Field;
   color: -moz-FieldText;
 }
@@ -179,7 +180,7 @@
 #attachmentSize {
   margin: 0;
   -moz-margin-start: 8px;
-  color: #888a85; /* the same color as .headerName */
+  opacity: 0.5; /* lower contrast */
 }
 
 #attachment-view-toolbox {
@@ -192,7 +193,7 @@
   -moz-image-region: rect(0px 192px 16px 176px);
 }
 
-#attachmentView {
+#attachment-splitter[collapsed="true"] #attachmentView {
   border-top: 1px solid ThreeDShadow;
 }
 

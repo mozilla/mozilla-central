@@ -128,7 +128,8 @@
 /* ::::: attachment view ::::: */
 
 #attachmentList {
-  margin: 0px;
+  -moz-appearance: none;
+  border-top: 1px solid #A9B7C9; /* The same color as the splitters */
   background-color: -moz-Field;
   color: -moz-FieldText;
 }
@@ -217,7 +218,7 @@
 }
 
 #attachmentView {
-  border-top: 1px solid ThreeDShadow;
+  border-top: 1px solid #A9B7C9; /* The same color as the splitters */
 }
 
 /* ::::: msg header captions ::::: */

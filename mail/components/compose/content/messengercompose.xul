@@ -789,7 +789,7 @@
         <vbox id="attachments-box" collapsed="true">
           <hbox>
             <label id="attachmentBucketCount" control="attachmentBucket"
-                   crop="right" accesskey="&attachments.accesskey;"/>
+                   crop="right" accesskey="&attachments.accesskey;" flex="1"/>
             <label id="attachmentBucketSize"/>
           </hbox>
           <attachmentlist orient="vertical" id="attachmentBucket"

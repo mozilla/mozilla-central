@@ -249,6 +249,7 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 
 #attachmentBucketSize {
   color: #888a85;
+  -moz-padding-end: 1px;
 }
 
 /* ::::: attachment reminder ::::: */
