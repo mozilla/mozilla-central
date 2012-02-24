@@ -191,7 +191,7 @@ NS_IMETHODIMP nsOutlookHTMLImageElement::HasChildNodes(bool *_retval)
 }
 
 // nsIDOMNode cloneNode (in boolean deep)
-NS_IMETHODIMP nsOutlookHTMLImageElement::CloneNode(bool deep, nsIDOMNode **_retval)
+NS_IMETHODIMP nsOutlookHTMLImageElement::CloneNode(bool deep, PRUint8 aOptionalArgc, nsIDOMNode **_retval)
 {
   return NS_ERROR_NOT_IMPLEMENTED;
 }
