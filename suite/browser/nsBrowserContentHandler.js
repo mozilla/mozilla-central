@@ -45,7 +45,6 @@ const nsICommandLine          = Components.interfaces.nsICommandLine;
 const nsICommandLineHandler   = Components.interfaces.nsICommandLineHandler;
 const nsICommandLineValidator = Components.interfaces.nsICommandLineValidator;
 const nsIComponentRegistrar   = Components.interfaces.nsIComponentRegistrar;
-const nsICategoryManager      = Components.interfaces.nsICategoryManager;
 const nsIContentHandler       = Components.interfaces.nsIContentHandler;
 const nsIDOMWindow            = Components.interfaces.nsIDOMWindow;
 const nsIFactory              = Components.interfaces.nsIFactory;
