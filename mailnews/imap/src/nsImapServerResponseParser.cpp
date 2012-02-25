@@ -2589,7 +2589,7 @@ void nsImapServerResponseParser::mime_header_data()
   char *partNumber = PL_strdup(fNextToken);
   if (partNumber)
   {
-    char *start = partNumber+5, *end = partNumber+5;	// 5 == nsCRT::strlen("BODY[")
+    char *start = partNumber + 5, *end = partNumber + 5; // 5 == strlen("BODY[")
     while (ContinueParse() && end && *end != 'M' && *end != 'm')
     {
       end++;
@@ -3136,7 +3136,6 @@ bool nsImapServerResponseParser::msg_fetch_literal(bool chunk, PRInt32 origin)
     {
       // move the lexical analyzer state to the end of this message because this message
       // fetch ends in the middle of this line.
-      //fCurrentTokenPlaceHolder = fLineOfTokens + nsCRT::strlen(fCurrentLine) - (charsReadSoFar - numberOfCharsInThisChunk);
       AdvanceTokenizerStartingPoint(strlen(fCurrentLine) - (charsReadSoFar - numberOfCharsInThisChunk));
       AdvanceToNextToken();
     }
