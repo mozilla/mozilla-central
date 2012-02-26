@@ -74,6 +74,8 @@
   border-style: solid;
   -moz-border-image: url(icons/tab.png) 4 3 0 fill repeat stretch;
   border-radius: 0;
+  color: -moz-dialogText;
+  text-shadow: none;
 }
 
 .tabmail-tab:hover {
@@ -83,34 +85,21 @@
                     -moz-linear-gradient(-moz-dialog, -moz-dialog);
 }
 
+.tabmail-tab[selected="true"] {
+  background-image: -moz-linear-gradient(rgba(255, 255, 255, .7),
+                    rgba(255, 255, 255, .5) 30%),
+                    -moz-linear-gradient(-moz-dialog, -moz-dialog);
+}
+
 .tabmail-tab:-moz-lwtheme {
   color: inherit;
+  text-shadow: inherit;
 }
 
 .tabmail-tab[selected="true"]:-moz-lwtheme {
   background-image: -moz-linear-gradient(rgba(255, 255, 255, .7),
                     rgba(255, 255, 255, .5) 50%);
   background-color: rgba(255, 255, 255, 0.3);
-}
-
-.tabmail-tab[selected="true"]:not(:-moz-lwtheme) {
-  background-image: -moz-linear-gradient(rgba(255, 255, 255, .7),
-                    rgba(255, 255, 255, .5) 30%),
-                    -moz-linear-gradient(-moz-dialog, -moz-dialog);
-  color: -moz-dialogText;
-}
-
-.tabmail-tab:not(:-moz-lwtheme):not([selected="true"]) {
-  background-image: -moz-linear-gradient(left, transparent, transparent 1px,
-                    rgba(255, 255, 255, .4) 1px, rgba(255, 255, 255, .4));
-  text-shadow: none;
-  color: black;
-  background-size: -moz-calc(100% - 2px) -moz-calc(100% - 3px) !important;
-}
-
-.tabmail-tab:not(:-moz-lwtheme):not([selected="true"]):hover  {
-  background-image: -moz-linear-gradient(left, transparent, transparent 1px,
-                    rgba(255, 255, 255, .6) 1px, rgba(255, 255, 255, .6));
 }
 
 .tabmail-tab:-moz-lwtheme-brighttext:not([selected="true"]) {
@@ -140,6 +129,7 @@
                                            hsla(0, 0%, 32%, .2) 80%,
                                            hsla(0, 0%, 0%, .2)),
                       -moz-linear-gradient(hsl(214, 44%, 87%), hsl(214, 44%, 87%));
+    background-size: -moz-calc(100% - 2px) -moz-calc(100% - 3px);
   }
 
   .tabmail-tab:not(:-moz-lwtheme):not([selected="true"]):hover {
