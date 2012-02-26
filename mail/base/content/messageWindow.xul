@@ -68,6 +68,7 @@
         persist="width height screenX screenY sizemode"
         toggletoolbar="true"
         windowtype="mail:messageWindow"
+        macanimationtype="document"
         lightweightthemes="true"
         lightweightthemesfooter="status-bar">
 

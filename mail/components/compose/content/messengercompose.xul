@@ -71,6 +71,7 @@
         onfocus="EditorOnFocus()"
         title="&msgComposeWindow.title;"
         windowtype="msgcompose"
+        macanimationtype="document"
         toggletoolbar="true"
         persist="screenX screenY width height sizemode"
         lightweightthemes="true"

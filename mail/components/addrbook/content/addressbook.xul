@@ -60,6 +60,7 @@
     id="addressbookWindow"
     title="&addressbookWindow.title;"
     windowtype="mail:addressbook"
+    macanimationtype="document"
     persist="width height screenX screenY sizemode"
     toggletoolbar="true"
     onload="OnLoadAddressBook()"

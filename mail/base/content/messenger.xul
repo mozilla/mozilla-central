@@ -85,6 +85,7 @@
         persist="width height screenX screenY sizemode"
         toggletoolbar="true"
         windowtype="mail:3pane"
+        macanimationtype="document"
         lightweightthemes="true"
         lightweightthemesfooter="status-bar">
 
