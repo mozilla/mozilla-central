@@ -177,9 +177,9 @@ var gFeedSubscriptionsWindow = {
     get currentItem() {
       // Get the current selection, if any.
       let seln = this.selection;
-      let currentSelectionIndex =  seln ? seln.currentIndex : null;
+      let currentSelectionIndex = seln ? seln.currentIndex : null;
       let item;
-      if (currentSelectionIndex)
+      if (currentSelectionIndex != null)
         item = this.getItemAtIndex(currentSelectionIndex);
 
       return item;
