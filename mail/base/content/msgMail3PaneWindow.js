@@ -1570,21 +1570,6 @@ var LightWeightThemeWebInstaller = {
     let pm = Components.classes["@mozilla.org/permissionmanager;1"]
       .getService(Components.interfaces.nsIPermissionManager);
 
-    let prefs = [["xpinstall.whitelist.add", pm.ALLOW_ACTION],
-                 ["xpinstall.whitelist.add.36", pm.ALLOW_ACTION],
-                 ["xpinstall.blacklist.add", pm.DENY_ACTION]];
-
-    prefs.forEach(function ([pref, permission]) {
-      let hosts = Application.prefs.getValue(pref, "");
-      if (hosts) {
-        hosts.split(",").forEach(function (host) {
-          pm.add(makeURI("http://" + host.trim()), "install", permission);
-        });
-
-        Application.prefs.setValue(pref, "");
-      }
-    });
-
     let uri = node.ownerDocument.documentURIObject;
     return pm.testPermission(uri, "install") == pm.ALLOW_ACTION;
   },

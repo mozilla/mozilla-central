@@ -207,12 +207,6 @@ var gPermissionManager = {
                        .getService(Components.interfaces.nsIObserverService);
     os.addObserver(this, "perm-changed", false);
 
-    if (this._type == "install") {
-      var enumerator = this._pm.enumerator;
-      if (!enumerator.hasMoreElements())
-        this._updatePermissions();
-    }
-
     this._loadPermissions();
 
     urlField.focus();
@@ -360,27 +354,6 @@ var gPermissionManager = {
                              aPermission.capability);
       this._permissions.push(p);
     }
-  },
-
-  _updatePermissions: function ()
-  {
-    var ioService = Components.classes["@mozilla.org/network/io-service;1"]
-                              .getService(Components.interfaces.nsIIOService);
-    var prefList = [["xpinstall.whitelist.add", this._pm.ALLOW_ACTION],
-                    ["xpinstall.whitelist.add.36", this._pm.ALLOW_ACTION],
-                    ["xpinstall.blacklist.add", this._pm.DENY_ACTION]];
-
-    prefList.forEach(function ([pref, permission]) {
-      var hosts = Application.prefs.getValue();
-      if (hosts) {
-        hosts.split(",").forEach(function (host) {
-          this._pm.add(ioService.newURI("http://" + host.trim(), null, null),
-                       "install", permission);
-        });
-
-        Application.prefs.setValue(pref, "");
-      }
-    });
   },
 
   setHost: function (aHost)
