@@ -95,9 +95,9 @@
                      timeout="200"
                      maxlength="192"
                      placeholder=""
-                     emptytextbase="&searchAllMessages.label.base;"
-                     keyLabelNonMac="&searchAllMessages.keyLabel2.nonmac;"
-                     keyLabelMac="&searchAllMessages.keyLabel2.mac;">
+                     emptytextbase="&search.label.base;"
+                     keyLabelNonMac="&search.keyLabel.nonmac;"
+                     keyLabelMac="&search.keyLabel.mac;">
               <hbox>
                 <image class="gloda-search-icon" />
               </hbox>

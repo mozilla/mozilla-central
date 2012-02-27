@@ -77,9 +77,9 @@
                  timeout="200"
                  maxlength="192"
                  placeholder=""
-                 emptytextbase="&searchAllMessages.label.base;"
-                 keyLabelNonMac="&searchAllMessages.keyLabel2.nonmac;"
-                 keyLabelMac="&searchAllMessages.keyLabel2.mac;"
+                 emptytextbase="&search.label.base;"
+                 keyLabelNonMac="&search.keyLabel.nonmac;"
+                 keyLabelMac="&search.keyLabel.mac;"
                  >
           <!-- Mimic the search/clear buttons of the standard search textbox,
                but adjust for the reality that clear doesn't make much sense
