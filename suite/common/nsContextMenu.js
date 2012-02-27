@@ -226,9 +226,10 @@ nsContextMenu.prototype = {
                                        (!this.inSyntheticDoc || this.inFrame));
     this.setItemAttr("context-viewvideo", "disabled", !this.mediaURL);
 
-    // View background image depends on whether there is one.
-    this.showItem("context-viewbgimage", showView && !this.onStandaloneImage);
-    this.showItem("context-sep-viewbgimage", showView && !this.onStandaloneImage);
+    // View background image depends on whether there is one, but don't make
+    // background images of a stand-alone media document available
+    this.showItem("context-viewbgimage", showView && !this.inSyntheticDoc);
+    this.showItem("context-sep-viewbgimage", showView && !this.inSyntheticDoc);
     this.setItemAttr("context-viewbgimage", "disabled", this.hasBGImage ? null : "true");
 
     // Hide Block and Unblock menuitems.
@@ -351,7 +352,8 @@ nsContextMenu.prototype = {
     this.showItem("context-delete", this.onTextInput);
     this.showItem("context-sep-paste", this.onTextInput);
     this.showItem("context-selectall", !(this.onLink || this.onImage ||
-                                         this.onVideo || this.onAudio));
+                                         this.onVideo || this.onAudio ||
+                                         this.inSyntheticDoc));
     this.showItem("context-sep-selectall",
                   this.isContentSelected && !this.onTextInput);
     // In a text area there will be nothing after select all, so we don't want a sep
