@@ -80,7 +80,6 @@ function(relAttribute, element)
 {
   var isFeed = false;
   switch (relAttribute.toLowerCase()) {
-    case "start":
     case "top":
     case "origin":
       return "top";
@@ -89,6 +88,7 @@ function(relAttribute, element)
     case "parent":
       return "up";
 
+    case "start":
     case "begin":
     case "first":
       return "first";
