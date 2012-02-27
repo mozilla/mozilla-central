@@ -489,41 +489,19 @@ WINSDK_TARGETVER=601
 MOZ_ARG_WITH_STRING(windows-version,
 [  --with-windows-version=WINSDK_TARGETVER
                           Highest Windows version to target using this SDK
-                              502: Windows Server 2003
-                              600: Windows Vista
                               601: Windows 7],
   WINSDK_TARGETVER=$withval)
 
 case "$WINSDK_TARGETVER" in
-502|600|601)
+601)
     MOZ_WINSDK_TARGETVER=0${WINSDK_TARGETVER}0000
     ;;
 
 *)
-    AC_MSG_ERROR([Invalid value for --with-windows-version ($WINSDK_TARGETVER), must be 502, 600 or 601]);
+    AC_MSG_ERROR([Invalid value for --with-windows-version ($WINSDK_TARGETVER), must be 601]);
     ;;
 
 esac
-
-dnl Vista SDK specific api (deprecated)
-MOZ_ARG_DISABLE_BOOL(vista-sdk-requirements,
-[  --disable-vista-sdk-requirements
-                           Do not build Vista SDK specific code],
-   MOZ_DISABLE_VISTA_SDK_REQUIREMENTS=1,
-   MOZ_DISABLE_VISTA_SDK_REQUIREMENTS=)
-if test -n "$COMPILE_ENVIRONMENT"; then
-if test -n "$MOZ_DISABLE_VISTA_SDK_REQUIREMENTS"; then
-    AC_MSG_WARN([--disable-vista-sdk-requirements is deprecated, use --with-windows-version=502 instead])
-    MOZ_WINSDK_TARGETVER=05020000
-fi
-
-if test "$MOZ_WINSDK_TARGETVER" -lt "06000000"; then
-    MOZ_DISABLE_VISTA_SDK_REQUIREMENTS=1
-    AC_DEFINE(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
-fi
-fi
-
-AC_SUBST(MOZ_DISABLE_VISTA_SDK_REQUIREMENTS)
 
 case "$target" in
 *-cygwin*|*-mingw*|*-msvc*|*-mks*|*-wince|*-winmo)
@@ -681,15 +659,8 @@ EOF
                            ])
             MOZ_WINSDK_MAXVER=${ac_cv_winsdk_maxver}
         else
-            # The Vista SDK is the only one to have sdkddkver.h but not
-            # WinSDKVer.h
-            AC_CHECK_HEADERS([sdkddkver.h])
-            if test "$ac_cv_header_sdkddkver_h" = "yes"; then
-                MOZ_WINSDK_MAXVER=0x06000000
-            else
-                # Assume the Server 2003 Platform SDK
-                MOZ_WINSDK_MAXVER=0x05020000
-            fi
+            # Any SDK which doesn't have WinSDKVer.h is too old.
+            AC_MSG_ERROR([Your SDK does not have WinSDKVer.h. It is probably too old. Please upgrade to a newer SDK or try running the Windows SDK Configuration Tool and selecting a newer SDK. See https://developer.mozilla.org/En/Windows_SDK_versions for more details on fixing this.])
         fi
 
         unset _MSVC_VER_FILTER
@@ -795,8 +766,7 @@ EOF
             AC_MSG_ERROR([windres version $WINDRES_VERSION or higher is required to build.])
         fi
 
-        # Server 2003 is the highest version supported
-        MOZ_WINSDK_MAXVER=0x05020000
+        MOZ_WINSDK_MAXVER=0x06010000
     fi # !GNU_CC
 
     AC_DEFINE_UNQUOTED(WINVER,0x$WINVER)

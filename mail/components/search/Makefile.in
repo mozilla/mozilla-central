@@ -52,9 +52,7 @@ DIRS += mdimporter
 endif
 
 ifneq (,$(filter windows, $(MOZ_WIDGET_TOOLKIT)))
-ifndef MOZ_DISABLE_VISTA_SDK_REQUIREMENTS
 DIRS += wsenable
-endif
 endif
 
 # If on Mac, build Spotlight integration
