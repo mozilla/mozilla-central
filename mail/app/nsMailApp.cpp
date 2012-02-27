@@ -38,7 +38,7 @@
 
 #include "nsXPCOMGlue.h"
 #include "nsXULAppAPI.h"
-#ifdef XP_WIN
+#if defined(XP_WIN)
 #include <windows.h>
 #include <stdlib.h>
 #elif defined(XP_UNIX)
@@ -58,14 +58,11 @@
 #include "nsStringGlue.h"
 
 #ifdef XP_WIN
-// we want to use the DLL blocklist if possible
-//#define XRE_WANT_DLL_BLOCKLIST
 // we want a wmain entry point
 #include "nsWindowsWMain.cpp"
 #define snprintf _snprintf
 #define strcasecmp _stricmp
 #endif
-
 #include "BinaryPath.h"
 
 #include "nsXPCOMPrivate.h" // for MAXPATHLEN and XPCOM_DLL
@@ -135,7 +132,7 @@ static int do_main(const char *exePath, int argc, char* argv[])
     return 255;
   }
 
-  appini->SetNativeLeafName(NS_LITERAL_CSTRING("application.ini"));
+  appini->AppendNative(NS_LITERAL_CSTRING("application.ini"));
 
   nsXREAppData *appData;
   rv = XRE_CreateAppData(appini, &appData);
@@ -193,6 +190,8 @@ int main(int argc, char* argv[])
     Output("Couldn't load XPCOM.\n");
     return 255;
   }
+  // Reset exePath so that it is the directory name and not the xpcom dll name
+  *lastSlash = 0;
 
   rv = XPCOMGlueLoadXULFunctions(kXULFuncs);
   if (NS_FAILED(rv)) {

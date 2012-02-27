@@ -55,24 +55,3 @@ BEGIN
 END
 
 //BITMAP IDB_SPLASH "splash.bmp"
-
-#ifdef MOZ_STATIC_BUILD
-#include "wdgtos2rc.h"
-
-POINTER IDC_SELECTANCHOR   "..\\..\\mozilla\\widget\\src\\os2\\res\\select.ptr"
-POINTER IDC_GRAB           "..\\..\\mozilla\\widget\\src\\os2\\res\\grab.ptr"
-POINTER IDC_GRABBING       "..\\..\\mozilla\\widget\\src\\os2\\res\\grabbing.ptr"
-POINTER IDC_CELL           "..\\..\\mozilla\\widget\\src\\os2\\res\\cell.ptr"
-POINTER IDC_COPY           "..\\..\\mozilla\\widget\\src\\os2\\res\\copy.ptr"
-POINTER IDC_ALIAS          "..\\..\\mozilla\\widget\\src\\os2\\res\\aliasb.ptr"
-POINTER IDC_ZOOMIN         "..\\..\\mozilla\\widget\\src\\os2\\res\\zoom_in.ptr"
-POINTER IDC_ZOOMOUT        "..\\..\\mozilla\\widget\\src\\os2\\res\\zoom_out.ptr"
-
-POINTER IDC_ARROWWAIT      "..\\..\\mozilla\\widget\\src\\os2\\res\\arrow_wait.ptr"
-POINTER IDC_CROSS          "..\\..\\mozilla\\widget\\src\\os2\\res\\crosshair.ptr"
-POINTER IDC_HELP           "..\\..\\mozilla\\widget\\src\\os2\\res\\help.ptr"
-POINTER IDC_NONE           "..\\..\\mozilla\\widget\\src\\os2\\res\\none.ptr"
-
-ICON    IDC_DNDURL         "..\\..\\mozilla\\widget\\src\\os2\\res\\dndurl.ico"
-ICON    IDC_DNDTEXT        "..\\..\\mozilla\\widget\\src\\os2\\res\\dndtext.ico"
-#endif

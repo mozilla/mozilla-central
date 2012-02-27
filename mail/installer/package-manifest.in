@@ -42,6 +42,7 @@
 @BINPATH@/updater.ini
 
 [xpcom]
+@BINPATH@/dependentlibs.list
 @BINPATH@/@DLL_PREFIX@xpcom@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@nspr4@DLL_SUFFIX@
 @BINPATH@/@DLL_PREFIX@plc4@DLL_SUFFIX@

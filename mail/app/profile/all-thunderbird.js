@@ -58,7 +58,7 @@ pref("mail.rights.version", 0);
 #ifdef DEBUG
 pref("mail.rights.override", true);
 #endif
-#ifndef OFFICIAL_BUILD
+#ifndef MOZILLA_OFFICIAL
 pref("mail.rights.override", true);
 #endif
 
