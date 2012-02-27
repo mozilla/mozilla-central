@@ -88,11 +88,9 @@
 #include <stdlib.h>
 #define PROFILE_COMMANDLINE_ARG " -profile "
 
-#define XP_SHSetUnreadMailCounts "SHSetUnreadMailCountW"
-#define XP_SHEnumerateUnreadMailAccounts "SHEnumerateUnreadMailAccountsW"
 #define NOTIFICATIONCLASSNAME "MailBiffNotificationMessageWindow"
 #define UNREADMAILNODEKEY "Software\\Microsoft\\Windows\\CurrentVersion\\UnreadMail\\"
-#define SHELL32_DLL "shell32.dll"
+#define SHELL32_DLL L"shell32.dll"
 #define DOUBLE_QUOTE "\""
 #define MAIL_COMMANDLINE_ARG " -mail"
 #define IDI_MAILBIFF 32576
@@ -118,11 +116,6 @@
 
 #ifndef NIN_BALOONUSERCLICK
 #define NIN_BALLOONUSERCLICK (WM_USER + 5)
-#endif
-
-#if _WIN32_IE < 0x600
-#undef NOTIFYICONDATAW_V2_SIZE
-#define NOTIFYICONDATAW_V2_SIZE sizeof(NOTIFYICONDATAW)
 #endif
 
 using namespace mozilla;
@@ -282,7 +275,6 @@ nsMessengerWinIntegration::nsMessengerWinIntegration()
   mTotalUnreadMessagesAtom = MsgGetAtom("TotalUnreadMessages");
 
   mUnreadTimerActive = false;
-  mStoreUnreadCounts = false;
 
   mBiffStateAtom = MsgGetAtom("BiffState");
   mBiffIconVisible = false;
@@ -366,41 +358,13 @@ nsMessengerWinIntegration::Init()
 {
   nsresult rv;
 
-  // get directory service to build path for shell dll
-  nsCOMPtr<nsIProperties> directoryService =
-    do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
+  // Get shell32.dll handle
+  HMODULE hModule = ::GetModuleHandleW(SHELL32_DLL);
 
-  // get path strings needed for unread mail count update
-  nsCOMPtr<nsIFile> systemDir;
-  rv = directoryService->Get(NS_OS_SYSTEM_DIR,
-                             NS_GET_IID(nsIFile),
-                             getter_AddRefs(systemDir));
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  // get path to shell dll.
-  nsCAutoString shellFile;
-  rv = systemDir->GetNativePath(shellFile);
-  NS_ENSURE_SUCCESS(rv,rv);
-
-  shellFile.AppendLiteral("\\" SHELL32_DLL);
-
-  // load shell dll. If no such dll found, return
-  HMODULE hModule = ::LoadLibrary(shellFile.get());
-  if (!hModule)
-    return NS_OK;
-
-  // get process addresses for the unread mail count functions
   if (hModule) {
-    mSHSetUnreadMailCount = (fnSHSetUnreadMailCount)GetProcAddress(hModule, XP_SHSetUnreadMailCounts);
-    mSHEnumerateUnreadMailAccounts = (fnSHEnumerateUnreadMailAccounts)GetProcAddress(hModule, XP_SHEnumerateUnreadMailAccounts);
+    // SHQueryUserNotificationState is available from Vista
     mSHQueryUserNotificationState = (fnSHQueryUserNotificationState)GetProcAddress(hModule, "SHQueryUserNotificationState");
   }
-
-  // if failed to get either of the process addresses, this is not XP platform
-  // so we aren't storing unread counts
-  if (mSHSetUnreadMailCount && mSHEnumerateUnreadMailAccounts)
-    mStoreUnreadCounts = true;
 
   nsCOMPtr <nsIMsgAccountManager> accountManager =
     do_GetService(NS_MSGACCOUNTMANAGER_CONTRACTID, &rv);
@@ -417,26 +381,27 @@ nsMessengerWinIntegration::Init()
   rv = mailSession->AddFolderListener(this, nsIFolderListener::boolPropertyChanged | nsIFolderListener::intPropertyChanged);
   NS_ENSURE_SUCCESS(rv,rv);
 
-  if (mStoreUnreadCounts)
-  {
-    // get current profile path for the commandliner
-    nsCOMPtr<nsIFile> profilePath;
-    rv = directoryService->Get(NS_APP_USER_PROFILE_50_DIR,
-                               NS_GET_IID(nsIFile),
-                               getter_AddRefs(profilePath));
-    NS_ENSURE_SUCCESS(rv,rv);
+  // get current profile path for the commandliner
+  nsCOMPtr<nsIProperties> directoryService =
+    do_GetService(NS_DIRECTORY_SERVICE_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv,rv);
 
-    rv = profilePath->GetPath(mProfilePath);
-    NS_ENSURE_SUCCESS(rv, rv);
+  nsCOMPtr<nsIFile> profilePath;
+  rv = directoryService->Get(NS_APP_USER_PROFILE_50_DIR,
+                             NS_GET_IID(nsIFile),
+                             getter_AddRefs(profilePath));
+  NS_ENSURE_SUCCESS(rv,rv);
 
-    // get application path
-    WCHAR appPath[_MAX_PATH] = {0};
-    ::GetModuleFileNameW(nsnull, appPath, sizeof(appPath));
-    mAppName.Assign((PRUnichar *)appPath);
+  rv = profilePath->GetPath(mProfilePath);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-    rv = ResetCurrent();
-    NS_ENSURE_SUCCESS(rv,rv);
-  }
+  // get application path
+  WCHAR appPath[_MAX_PATH] = {0};
+  ::GetModuleFileNameW(nsnull, appPath, sizeof(appPath));
+  mAppName.Assign((PRUnichar *)appPath);
+
+  rv = ResetCurrent();
+  NS_ENSURE_SUCCESS(rv,rv);
 
   return NS_OK;
 }
@@ -917,8 +882,6 @@ nsMessengerWinIntegration::OnItemIntPropertyChanged(nsIMsgFolder *aItem, nsIAtom
     }
   } // if the biff property changed
 
-  if (!mStoreUnreadCounts) return NS_OK; // don't do anything here if we aren't storing unread counts...
-
   if (aProperty == mTotalUnreadMessagesAtom) {
     nsCString itemURI;
     nsresult rv;
@@ -962,8 +925,6 @@ nsMessengerWinIntegration::OnUnreadCountUpdateTimer(nsITimer *timer, void *osInt
 nsresult
 nsMessengerWinIntegration::RemoveCurrentFromRegistry()
 {
-  if (!mStoreUnreadCounts) return NS_OK; // don't do anything here if we aren't storing unread counts...
-
   // If Windows XP, open the registry and get rid of old account registry entries
   // If there is a email prefix, get it and use it to build the registry key.
   // Otherwise, just the email address will be the registry key.
@@ -979,7 +940,7 @@ nsMessengerWinIntegration::RemoveCurrentFromRegistry()
   // Enumerate through registry entries to delete the key matching
   // currentUnreadMailCountKey
   int index = 0;
-  while (SUCCEEDED(mSHEnumerateUnreadMailAccounts(HKEY_CURRENT_USER,
+  while (SUCCEEDED(SHEnumerateUnreadMailAccountsW(HKEY_CURRENT_USER,
                                                   index,
                                                   registryUnreadMailCountKey,
                                                   sizeof(registryUnreadMailCountKey))))
@@ -1009,8 +970,6 @@ nsMessengerWinIntegration::RemoveCurrentFromRegistry()
 nsresult
 nsMessengerWinIntegration::UpdateRegistryWithCurrent()
 {
-  if (!mStoreUnreadCounts) return NS_OK; // don't do anything here if we aren't storing unread counts...
-
   if (mInboxURI.IsEmpty() || mEmail.IsEmpty())
     return NS_OK;
 
@@ -1046,7 +1005,7 @@ nsMessengerWinIntegration::UpdateRegistryWithCurrent()
       CopyASCIItoUTF16(mEmail, pBuffer);
 
     // Write the info into the registry
-    HRESULT hr = mSHSetUnreadMailCount(pBuffer.get(),
+    HRESULT hr = SHSetUnreadMailCountW(pBuffer.get(),
                                        mCurrentUnreadCount,
                                        commandLinerForAppLaunch.get());
   }
@@ -1061,7 +1020,6 @@ nsresult
 nsMessengerWinIntegration::SetupInbox()
 {
   nsresult rv;
-  if (!mStoreUnreadCounts) return NS_OK; // don't do anything here if we aren't storing unread counts...
 
   // get default account
   nsCOMPtr <nsIMsgAccountManager> accountManager =
@@ -1139,7 +1097,6 @@ nsresult
 nsMessengerWinIntegration::UpdateUnreadCount()
 {
   nsresult rv;
-  if (!mStoreUnreadCounts) return NS_OK; // don't do anything here if we aren't storing unread counts...
 
   if (mDefaultAccountMightHaveAnInbox && mInboxURI.IsEmpty()) {
     rv = SetupInbox();
@@ -1152,7 +1109,6 @@ nsMessengerWinIntegration::UpdateUnreadCount()
 nsresult
 nsMessengerWinIntegration::SetupUnreadCountUpdateTimer()
 {
-  if (!mStoreUnreadCounts) return NS_OK; // don't do anything here if we aren't storing unread counts...
   mUnreadTimerActive = true;
   if (mUnreadCountUpdateTimer)
     mUnreadCountUpdateTimer->Cancel();

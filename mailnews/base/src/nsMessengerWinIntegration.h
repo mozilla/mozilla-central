@@ -64,11 +64,9 @@ typedef enum tagMOZ_QUERY_USER_NOTIFICATION_STATE {
     QUNS_QUIET_TIME = 6
 } MOZ_QUERY_USER_NOTIFICATION_STATE;
 
-// this function is exported by shell32.dll version 5.60 or later (Windows XP or greater)
+// this function is exported by shell32.dll on Windows Vista or later
 extern "C"
 {
-typedef HRESULT (__stdcall *fnSHSetUnreadMailCount)(LPCWSTR pszMailAddress, DWORD dwCount, LPCWSTR pszShellExecuteCommand);
-typedef HRESULT (__stdcall *fnSHEnumerateUnreadMailAccounts)(HKEY hKeyUser, DWORD dwIndex, LPCWSTR pszMailAddress, int cchMailAddress);
 // Vista or later
 typedef HRESULT (__stdcall *fnSHQueryUserNotificationState)(MOZ_QUERY_USER_NOTIFICATION_STATE *pquns);
 }
@@ -115,8 +113,6 @@ private:
   nsCOMPtr<nsIAtom> mBiffStateAtom;
   PRUint32 mCurrentBiffState;
 
-  bool mStoreUnreadCounts;   // for windows XP, we do a lot of work to store the last unread count for the inbox
-                                     // this flag is set to true when we are doing that
   bool mBiffIconVisible;
   bool mBiffIconInitialized;
   bool mSuppressBiffIcon;
@@ -142,8 +138,6 @@ private:
   nsCOMPtr <nsIAtom> mTotalUnreadMessagesAtom;
   nsCOMPtr <nsITimer> mUnreadCountUpdateTimer;
 
-  fnSHSetUnreadMailCount mSHSetUnreadMailCount;
-  fnSHEnumerateUnreadMailAccounts mSHEnumerateUnreadMailAccounts;
   fnSHQueryUserNotificationState mSHQueryUserNotificationState;
 
   nsCString mInboxURI;
