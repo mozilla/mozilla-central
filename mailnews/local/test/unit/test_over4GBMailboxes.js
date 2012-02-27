@@ -106,9 +106,6 @@ function run_test()
   do_test_pending();
 
   let file = do_get_file("../../../data/multipart-complex2");
-  let copyService = Cc["@mozilla.org/messenger/messagecopyservice;1"]
-                      .getService(Ci.nsIMsgCopyService);
-
   try {
     copyFileMessageInLocalFolder(file, 0, "", dummyMsgWindow,
                                  function(aMessageHeadersKeys, aStatus) {
