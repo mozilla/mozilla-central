@@ -2099,7 +2099,6 @@ ia64*-hpux*)
     TARGET_COMPILER_ABI=msvc
     MOZ_TOOLS_DIR=`cd $MOZ_TOOLS && pwd -W`
     MOZ_BUILD_ROOT=`cd $MOZ_BUILD_ROOT && pwd -W`
-    L10NBASEDIR=`cd $L10NBASEDIR && pwd -W`
     AR_LIST="$AR -list"
     AR_EXTRACT=
     AR_DELETE="$AR d"
@@ -2314,7 +2313,6 @@ ia64*-hpux*)
 	CYGPATH_W=echo
 	CYGPATH_S=cat
 	MOZ_BUILD_ROOT=`cd $MOZ_BUILD_ROOT && pwd -W`
-	L10NBASEDIR=`cd $L10NBASEDIR && pwd -W`
 	;;
     *-cygwin*|*-msvc*|*-mks*)
 	CYGPATH_W="cygpath -a -w"
