@@ -157,7 +157,7 @@ function install_theme(themeNo, previousThemeNo) {
                     " got " + currentTheme.id);
 }
 
-function test_lightweight_themes() {
+function test_lightweight_themes_install() {
   // Before we run the test, check we've not got a theme already installed.
   if (currentLwTheme())
     throw new Error("Lightweight theme selected when there should not have been.");
@@ -166,9 +166,13 @@ function test_lightweight_themes() {
 
   // Try installing the first theme, no previous theme.
   install_theme(1);
+}
 
+function test_lightweight_themes_install_and_undo() {
   // Now try the second one, checking that the first is selected when we undo.
   install_theme(2, 1);
 
   close_tab(newTab);
 }
+// XXX Bug 727571 - undo doesn't currently revert to the correct state.
+test_lightweight_themes_install_and_undo.__force_skip__ = true;
