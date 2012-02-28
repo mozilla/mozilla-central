@@ -80,6 +80,7 @@ _BROWSER_FILES = browser_bug413915.js \
                  browser_relatedTabs.js \
                  browser_selectTabAtIndex.js \
                  browser_bug519216.js \
+                 browser_bug728651.js \
     $(NULL)
 
 ifneq (cocoa,$(MOZ_WIDGET_TOOLKIT))
