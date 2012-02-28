@@ -37,6 +37,8 @@
 #
 # ***** END LICENSE BLOCK ******
 
+Components.utils.import("resource://gre/modules/PluralForm.jsm");
+
 var gFeedSubscriptionsWindow = {
   get mTree() { return document.getElementById("rssSubscriptionsList"); },
 
@@ -1632,12 +1634,17 @@ var gFeedSubscriptionsWindow = {
       }
 
       if (outlines.length > feedsAdded)
-        statusReport = FeedUtils.strings.formatStringFromName(
-                         "subscribe-OPMLImportTotalFeeds",
-                         [feedsAdded, outlines.length], 2);
-      else
-        statusReport = FeedUtils.strings.formatStringFromName(
-                         "subscribe-OPMLImportNewFeeds", [feedsAdded], 1);
+        statusReport = FeedUtils.strings.formatStringFromName("subscribe-OPMLImportStatus",
+          [PluralForm.get(feedsAdded,
+                          FeedUtils.strings.GetStringFromName("subscribe-OPMLImportUniqueFeeds"))
+                     .replace("#1", feedsAdded),
+           PluralForm.get(outlines.length,
+                          FeedUtils.strings.GetStringFromName("subscribe-OPMLImportFoundFeeds"))
+                     .replace("#1", outlines.length)], 2);
+       else
+        statusReport = PluralForm.get(feedsAdded,
+          FeedUtils.strings.GetStringFromName("subscribe-OPMLImportFeedCount"))
+                           .replace("#1", feedsAdded);
     }
 
     this.clearStatusInfo();
