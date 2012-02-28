@@ -484,7 +484,7 @@ struct JSObject : js::gc::Cell {
      * number of slots in an object.
      */
     enum {
-        NSLOTS_BITS     = 29,
+        NSLOTS_BITS     = 28,
         NSLOTS_LIMIT    = JS_BIT(NSLOTS_BITS)
     };
 
