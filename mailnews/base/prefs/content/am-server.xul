@@ -180,13 +180,13 @@
     <hbox align="center">
       <checkbox wsm_persist="true" id="server.doBiff" label="&biffStart.label;"
                 accesskey="&biffStart.accesskey;"
-                oncommand="onCheckItem('server.biffMinutes', 'server.doBiff');"
+                oncommand="onCheckItem('server.biffMinutes', this.id);"
                 prefattribute="value"
                 prefstring="mail.server.%serverkey%.check_new_mail"/>
-      <textbox wsm_persist="true" id="server.biffMinutes" size="3"
+      <textbox wsm_persist="true" id="server.biffMinutes"
+               type="number" size="3" min="1" increment="1"
                aria-labelledby="server.doBiff server.biffMinutes biffEnd"
-               preftype="int" type="number"
-               onchange="onBiffMinChange(this.value);"
+               preftype="int"
                prefstring="mail.server.%serverkey%.check_time"/>
       <label id="biffEnd" control="server.biffMinutes" value="&biffEnd.label;"/>
     </hbox>
@@ -314,11 +314,11 @@
       <checkbox wsm_persist="true" id="nntp.notifyOn"
                 label="&maxMessagesStart.label;"
                 accesskey="&maxMessagesStart.accesskey;"
-                oncommand="onCheckItem('nntp.maxArticles', 'nntp.notifyOn');"
+                oncommand="onCheckItem('nntp.maxArticles', this.id);"
                 prefattribute="value"
                 prefstring="mail.server.%serverkey%.notify.on"/>
       <textbox wsm_persist="true" id="nntp.maxArticles"
-               size="4" type="number" min="1" increment="10"
+               type="number" size="4" min="1" increment="10"
                aria-labelledby="nntp.notifyOn nntp.maxArticles maxMessagesEnd"
                preftype="int"
                prefstring="mail.server.%serverkey%.max_articles"/>
