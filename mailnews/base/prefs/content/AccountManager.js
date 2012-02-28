@@ -937,12 +937,7 @@ function getFormElementValue(formElement) {
       }
       return null;
     }
-    if (type == "text") {
-      var val = formElement.getAttribute("value");
-      if (val) return val;
-      return null;
-    }
-    if ("value" in formElement) {
+    if ((type == "textbox") || ("value" in formElement)) {
       return formElement.value;
     }
     return null;
@@ -1005,12 +1000,12 @@ function setFormElementValue(formElement, value) {
         formElement.value = "";
     }
   }
-
-  else if (type == "text") {
-    if (value == null || value == undefined)
-      formElement.removeAttribute("value");
-    else
-      formElement.setAttribute("value",value);
+  else if (type == "textbox") {
+    if (value == null || value == undefined) {
+      formElement.value = null;
+    } else {
+      formElement.value = value;
+    }
   }
 
   // let the form figure out what to do with it
