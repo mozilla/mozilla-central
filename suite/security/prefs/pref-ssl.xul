@@ -79,13 +79,13 @@
       <caption label="&SSLProtocolVersions.caption;"/>
 
       <vbox flex="1" align="start">
-        <checkbox id="enableSSL3"
-                  label="&enable.ssl3;"
-                  accesskey="&enable.ssl3.accesskey;"
+        <checkbox id="enableSSL30"
+                  label="&enable.ssl30.label;"
+                  accesskey="&enable.ssl30.accesskey;"
                   preference="security.enable_ssl3"/>
-        <checkbox id="enableTLS"
-                  label="&enable.tls;"
-                  accesskey="&enable.tls.accesskey;"
+        <checkbox id="enableTLS10"
+                  label="&enable.tls10.label;"
+                  accesskey="&enable.tls10.accesskey;"
                   preference="security.enable_tls"/>
       </vbox>
 

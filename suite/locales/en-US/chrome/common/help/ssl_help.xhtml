@@ -47,14 +47,14 @@
   protocol is an IETF standard based on SSL. TLS 1.0 can be thought of as SSL
   3.1.</p>
 
-<p>You should normally leave these three checkboxes selected to ensure that
-  both older and newer web servers can work with the browser:</p>
+<p>You should normally leave all of the following checkboxes selected to ensure
+  that both older and newer web servers can work with the browser:</p>
 
 <ul>
-  <li><strong>Enable SSL version 3</strong>: Allows newer web servers to work
-    with the browser.</li>
-  <li><strong>Enable TLS</strong>: Allows web servers that support TLS to take
-    advantage of it.</li>
+  <li><strong>Enable SSL 3.0</strong>: Allows web servers that support SSL 3.0
+    to work with the browser.</li>
+  <li><strong>Enable TLS 1.0</strong>: Allows newer web servers that support TLS
+    to take advantage of it.</li>
 </ul>
 
 <p><strong>Important note regarding TLS</strong>: Some servers that do not
@@ -62,10 +62,10 @@
   software (such as the browser) that supports TLS. Such servers are known as
   <q>TLS intolerant</q>.</p>
 
-<p>When the Enable TLS option in the SSL preferences panel is selected, the
+<p>When the Enable TLS 1.0 option in the SSL preferences panel is selected, the
   browser attempts to use the TLS protocol when making secure connections with
   a server. If that connection fails because the server is TLS intolerant, the
-  browser will fall back to using SSL 3.0.</p>
+  browser will fall back to using SSL 3.0 (if enabled).</p>
 
 <h3 id="ssl_warnings">SSL Warnings</h3>
 
