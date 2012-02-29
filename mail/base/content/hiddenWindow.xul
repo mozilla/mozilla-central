@@ -103,7 +103,7 @@
        on a platform that wants to leave the app running, like the Mac.
   -->
 
-<toolbox id="mail-toolbox" class="toolbox-top"/>
+<toolbox id="navigation-toolbox" class="toolbox-top"/>
   
 </window>
 
