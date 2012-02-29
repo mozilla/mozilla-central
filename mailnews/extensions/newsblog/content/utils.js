@@ -94,24 +94,38 @@ var FeedUtils = {
 
     downloaded: function(feed, aErrorCode)
     {
-      FeedUtils.log.debug("downloaded: feed:errorCode - " +
+      FeedUtils.log.debug("downloaded: "+
+                          (this.mSubscribeMode ? "Subscribe " : "Update ") +
+                          "feed:errorCode - " +
                           feed.name+" : "+aErrorCode);
-      if (this.mSubscribeMode && aErrorCode == FeedUtils.kNewsBlogSuccess)
+      if (this.mSubscribeMode)
       {
-        // If we get here we should always have a folder by now, either in
-        // feed.folder or FeedItems created the folder for us.
-        updateFolderFeedUrl(feed.folder, feed.url, false);
+        if (aErrorCode == FeedUtils.kNewsBlogSuccess)
+        {
+          // If we get here we should always have a folder by now, either in
+          // feed.folder or FeedItems created the folder for us.
+          updateFolderFeedUrl(feed.folder, feed.url, false);
 
-        // Add feed just adds the feed to the subscription UI and flushes the
-        // datasource.
-        addFeed(feed.url, feed.name, feed.folder);
+          // Add feed just adds the feed to the subscription UI and flushes the
+          // datasource.
+          addFeed(feed.url, feed.name, feed.folder);
 
-        // Nice touch: select the folder that now contains the newly subscribed
-        // feed.  This is particularly nice if we just finished subscribing
-        // to a feed URL that the operating system gave us.
-        this.mMsgWindow.windowCommands.selectFolder(feed.folder.URI);
+          // Nice touch: select the folder that now contains the newly subscribed
+          // feed.  This is particularly nice if we just finished subscribing
+          // to a feed URL that the operating system gave us.
+          this.mMsgWindow.windowCommands.selectFolder(feed.folder.URI);
+        }
+        else
+        {
+          // Non success.  Remove intermediate traces from the feeds database.
+          if (feed && feed.url && feed.server)
+            deleteFeed(rdf.GetResource(feed.url),
+                       feed.server,
+                       feed.server.rootFolder);
+        }
       }
-      else if (feed.folder && aErrorCode != FeedUtils.kNewsBlogFeedIsBusy)
+
+      if (feed.folder && aErrorCode != FeedUtils.kNewsBlogFeedIsBusy)
         // Free msgDatabase after new mail biff is set; if busy let the next
         // result do the freeing.  Otherwise new messages won't be indicated.
         feed.folder.msgDatabase = null;
