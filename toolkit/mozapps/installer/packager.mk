@@ -881,7 +881,7 @@ ESCAPE_SPACE = $(subst $(space),\$(space),$(1))
 
 # This variable defines which OpenSSL algorithm to use to 
 # generate checksums for files that we upload
-CHECKSUM_ALGORITHM = 'sha512'
+CHECKSUM_ALGORITHM_PARAM = -d sha512 -d md5 -d sha1
 
 # This variable defines where the checksum file will be located
 CHECKSUM_FILE = "$(DIST)/$(PKG_PATH)/$(PKG_BASENAME).checksums"
@@ -918,7 +918,7 @@ checksum:
 	mkdir -p `dirname $(CHECKSUM_FILE)`
 	@$(PYTHON) $(MOZILLA_DIR)/build/checksums.py \
 		-o $(CHECKSUM_FILE) \
-		-d $(CHECKSUM_ALGORITHM) \
+		$(CHECKSUM_ALGORITHM_PARAM) \
 		-s $(call QUOTED_WILDCARD,$(DIST)) \
 		$(UPLOAD_FILES)
 	@echo "CHECKSUM FILE START"
