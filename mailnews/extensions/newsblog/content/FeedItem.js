@@ -97,8 +97,9 @@ FeedItem.prototype =
     catch(ex)
     {
       // The url as published or constructed can be a non url.  It's used as a
-      // feeditem identifier in feeditems.rdf and as a messageId.  Save as is.
-      this.mURL = aVal;
+      // feeditem identifier in feeditems.rdf, as a messageId, and as an href
+      // and for the content-base header.  Save as is; ensure not null.
+      this.mURL = aVal ? aVal : "";
     }
   },
 
