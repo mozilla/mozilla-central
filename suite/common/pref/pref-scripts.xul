@@ -80,9 +80,9 @@
                 label="&navigator.label;"
                 accesskey="&navigator.accesskey;"
                 preference="javascript.enabled"/>
-   
-      <separator/>
-    
+
+      <separator class="thin"/>
+
       <label control="AllowList"
              value="&allowScripts.label;" accesskey="&allowScripts.accesskey;"/>
 
