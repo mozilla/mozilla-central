@@ -53,6 +53,7 @@ EXPORTS	= \
 	GLContextProviderImpl.h \
 	nsCoreAnimationSupport.h \
 	EGLUtils.h \
+	ForceDiscreteGPUHelperCGL.h \
 	gfxSharedImageSurface.h \
 	$(NULL)
 
