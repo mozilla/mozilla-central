@@ -658,6 +658,11 @@ var gDomains = {
 
     // compare function for two domain items
     let compfunc = function domain_sort_compare(aOne, aTwo) {
+      // Make sure "*" is always first.
+      if (aOne == "*")
+        return -1;
+      if (aTwo == "*")
+        return 1;
       return aOne.displayTitle.localeCompare(aTwo.displayTitle);
     };
 
