@@ -202,6 +202,7 @@
 #endif
 @BINPATH@/components/find.xpt
 @BINPATH@/components/gfx.xpt
+@BINPATH@/components/html5.xpt
 @BINPATH@/components/htmlparser.xpt
 @BINPATH@/components/imgicon.xpt
 @BINPATH@/components/imglib2.xpt
