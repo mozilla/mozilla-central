@@ -83,14 +83,12 @@
 
 #calendar-edit-button,
 #task-edit-button {
-  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
-  -moz-image-region: rect(0 36px 18px 18px);
+  -moz-image-region: rect(0px 90px 18px 72px);
 }
 
 #calendar-delete-button,
 #task-delete-button {
-  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
-  -moz-image-region: rect(0 144px 18px 126px);
+  -moz-image-region: rect(0px 108px 18px 90px);
 }
 
 #calendar-goto-today-button {
@@ -99,8 +97,11 @@
 
 #calendar-print-button,
 #task-print-button {
-  list-style-image: url(chrome://messenger/skin/icons/mail-toolbar.png);
-  -moz-image-region: rect(0px 180px 18px 162px);
+  -moz-image-region: rect(0px 126px 18px 108px);
+}
+
+#calendar-unifinder-button {
+  -moz-image-region: rect(0px 144px 18px 126px);
 }
 
 @media all and (-moz-windows-compositor) {

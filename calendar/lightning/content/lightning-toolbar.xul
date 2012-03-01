@@ -142,6 +142,10 @@
                      class="toolbarbutton-1 calbar-toolbarbutton-1"
                      label="&lightning.toolbar.print.label;"
                      observes="cmd_print"/>
+      <toolbarbutton id="calendar-unifinder-button"
+                     class="toolbarbutton-1 calbar-toolbarbutton-1"
+                     label="&showUnifinderCmd.label;"
+                     observes="calendar_show_unifinder_command"/>
     </toolbarpalette>
 
     <toolbar id="calendar-toolbar2" class="inline-toolbar chromeclass-toolbar"

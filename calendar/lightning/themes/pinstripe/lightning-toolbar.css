@@ -80,6 +80,26 @@ toolbar[iconsize="small"] .calbar-toolbarbutton-1 {
   list-style-image: url(chrome://calendar/skin/toolbar-small.png);
 }
 
+.calbar-toolbarbutton-1[checked="true"] {
+  color: white !important;
+  margin-top: 2px;
+  margin-bottom: 1px;
+  padding-top: 1px;
+  padding-bottom: 2px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-color: transparent;
+  border-radius: 4px;
+  box-shadow: 0 1px rgba(0, 0, 0, 0.4) inset, 1px 0 rgba(0, 0, 0, 0.3) inset,
+              0 1px rgba(255, 255, 255, 0.5);
+  text-shadow: 0 1px rgba(0, 0, 0, 0.4) !important;
+}
+
+.calbar-toolbarbutton-1[checked="true"]:-moz-lwtheme {
+  color: inherit !important;
+  background-color: rgba(0, 0, 0, 0.15);
+  text-shadow: inherit !important;
+}
+
 #calendar-synchronize-button,
 #task-synchronize-button {
   -moz-image-region: rect(0px 864px 32px 832px);
@@ -282,4 +302,28 @@ toolbar[iconsize="small"] #task-print-button:hover:active {
 toolbar[iconsize="small"] #calendar-print-button[disabled],
 toolbar[iconsize="small"] #task-print-button[disabled] {
   -moz-image-region: rect(48px 360px 72px 336px) !important;
+}
+
+#calendar-unifinder-button {
+  -moz-image-region: rect(0px 704px 32px 672px);
+}
+
+#calendar-unifinder-button:hover:active {
+  -moz-image-region: rect(32px 704px 64px 672px);
+}
+
+#calendar-unifinder-button[disabled] {
+  -moz-image-region: rect(64px 704px 96px 672px);
+}
+
+toolbar[iconsize="small"] #calendar-unifinder-button {
+  -moz-image-region: rect(0px 528px 24px 504px);
+}
+
+toolbar[iconsize="small"] #calendar-unifinder-button:hover:active {
+  -moz-image-region: rect(24px 528px 48px 504px);
+}
+
+toolbar[iconsize="small"] #calendar-unifinder-button[disabled] {
+  -moz-image-region: rect(48px 528px 72px 504px);
 }

@@ -223,3 +223,19 @@ toolbar[iconsize="small"] #calendar-print-button[disabled],
 toolbar[iconsize="small"] #task-print-button[disabled] {
   list-style-image: url("moz-icon://stock/gtk-print?size=menu&state=disabled");
 }
+
+#calendar-unifinder-button {
+  -moz-image-region: rect(0px 528px 24px 504px);
+}
+
+#calendar-unifinder-button[disabled] {
+  -moz-image-region: rect(48px 528px 72px 504px);
+}
+
+toolbar[iconsize="small"] #calendar-unifinder-button {
+  -moz-image-region: rect(0px 352px 16px 336px);
+}
+
+toolbar[iconsize="small"] #calendar-unifinder-button[disabled] {
+  -moz-image-region: rect(32px 352px 48px 336px);
+}
