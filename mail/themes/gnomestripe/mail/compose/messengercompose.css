@@ -238,7 +238,6 @@ toolbar[iconsize="small"] #paste-button[disabled="true"] {
 /* ::::: special toolbar colors ::::: */
 
 #appcontent {
-  border-top: 1px solid ThreeDShadow;
   border-bottom: 1px solid ThreeDShadow;
 }
 
