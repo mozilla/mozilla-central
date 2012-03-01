@@ -342,6 +342,7 @@ toolbox[labelalign="end"] > toolbar[mode="full"] deck .toolbarbutton-text {
   background-clip: padding-box;
   border: 1px solid ThreeDDarkShadow;
   border-radius: 3.5px;
+  width: 20em;
 }
 
 @media all and (-moz-windows-default-theme) {
