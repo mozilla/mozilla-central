@@ -271,21 +271,6 @@ ValidateRealName(nsMsgAttachmentData *aAttach, MimeHeaders *aHdrs)
                        nsCaseInsensitiveCStringComparator()))
     return;
 
-  // Special case...if this is a enclosed RFC822 message, give it a nice
-  // name.
-  if (aAttach->m_realType.LowerCaseEqualsLiteral(MESSAGE_RFC822))
-  {
-    NS_ASSERTION(aHdrs, "How comes the object's headers is null!");
-    if (aHdrs && aHdrs->munged_subject)
-    {
-      aAttach->m_realName.Assign(aHdrs->munged_subject);
-      aAttach->m_realName.Append(".eml");
-    }
-    else
-      aAttach->m_realName = "ForwardedMessage.eml";
-    return;
-  }
-
   //
   // Now validate any other name we have for the attachment!
   //
@@ -496,7 +481,21 @@ GenerateAttachmentData(MimeObject *object, const char *aMessageURL, MimeDisplayO
     // Allows the JS mime emitter to figure out the part information.
     urlString.Append("?part=");
     urlString.Append(part);
+  } else if (tmp->m_realType.LowerCaseEqualsLiteral(MESSAGE_RFC822)) {
+    // Special case...if this is a enclosed RFC822 message, give it a nice
+    // name.
+    if (object->headers->munged_subject)
+    {
+      nsCString subject;
+      subject.Assign(object->headers->munged_subject);
+      MimeHeaders_convert_header_value(options, subject, false);
+      tmp->m_realName.Assign(subject);
+      tmp->m_realName.Append(".eml");
+    }
+    else
+      tmp->m_realName = "ForwardedMessage.eml";
   }
+
   nsresult rv = nsMimeNewURI(getter_AddRefs(tmp->m_url), urlString.get(), nsnull);
 
   PR_FREEIF(urlSpec);
