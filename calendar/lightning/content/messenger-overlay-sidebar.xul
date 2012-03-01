@@ -120,8 +120,7 @@
     <popupset id="calendar-popupset"/>
   </window>
 
-  <toolbar id="tabbar-toolbar"
-          defaultset="calendar-tab-button,task-tab-button,qfb-show-filter-bar">
+  <toolbar id="tabbar-toolbar">
     <toolbarbutton id="calendar-tab-button"
                    class="toolbarbutton-1"
                    title="&lightning.toolbar.calendar.label;"
