@@ -995,7 +995,8 @@ nsMsgAttachmentHandler::Abort()
 
   if (mTmpFile)
   {
-    mTmpFile->Remove(false);
+    if (mDeleteFile)
+      mTmpFile->Remove(false);
     mTmpFile = nsnull;
   }
 
