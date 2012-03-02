@@ -3962,6 +3962,11 @@ JSObject::TradeGuts(JSContext *cx, JSObject *a, JSObject *b, TradeGutsReserved &
 
     a->newType = newTypeA;
     b->newType = newTypeB;
+
+    if (a->inDictionaryMode())
+        a->isNative() && a->inDictionaryMode();
+    if (b->inDictionaryMode())
+        b->isNative() && b->inDictionaryMode();
 }
 
 /*
