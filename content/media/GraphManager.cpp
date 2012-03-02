@@ -263,10 +263,19 @@ GraphManagerImpl::ExtractPendingInput(InputStream* aStream)
     PRInt64 oldBufEnd = aStream->GetBufferEndTime();
     PRInt64 oldAudioEnd = aStream->mBuffer.GetAudioEnd();
     PRInt64 oldVideoEnd = aStream->mBuffer.GetVideoEnd();
+
     aStream->mBuffer.AppendAndConsumeBuffer(&aStream->mPending);
+
     PRInt64 newBufEnd = aStream->GetBufferEndTime();
     PRInt64 newAudioEnd = aStream->mBuffer.GetAudioEnd();
     PRInt64 newVideoEnd = aStream->mBuffer.GetVideoEnd();
+
+    for (PRUint32 j = 0; j < aStream->mListeners.Length(); ++j) {
+      StreamListener* l = aStream->mListeners[j];
+      l->NotifyQueued(mCurrentTime, oldBufEnd, aStream->mBufferStartTime,
+                      aStream->mBuffer);
+    }
+
     if (oldBufEnd < newBufEnd) {
       LOG(PR_LOG_DEBUG, ("Input media stream %p buffer end advanced from %f to %f",
                          aStream, oldBufEnd/1000000.0, newBufEnd/1000000.0));

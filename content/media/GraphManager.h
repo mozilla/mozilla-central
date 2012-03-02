@@ -102,8 +102,15 @@ public:
   // Notify that data has been queued. Due to buffering it may
   // not yet be time to play the data. If the stream is reset (e.g. because
   // a graph change invalidated buffered data), this data may never be played.
-  // TODO.
-  virtual void NotifyQueued(PRInt64 aCurrentTime, PRInt64 aQueuedTime, const StreamBuffer& aBuffer) {}
+  // aCurrentTime is the current media graph time.
+  // aQueuedTime is the time where the newly queued data starts.
+  // aBufferStartTime is the start time for aBuffer, so the end of the newly
+  // queued data is at aBufferStartTime + aBuffer->GetEnd().
+  // (Note that aBuffer->GetEnd() returns the latest time for which we have
+  // the data for all enabled tracks. Some tracks may have additional
+  // data in the StreamBuffer.)
+  virtual void NotifyQueued(PRInt64 aCurrentTime, PRInt64 aQueuedTime,
+                            PRInt64 aBufferStartTime, const StreamBuffer& aBuffer) {}
   // Notify that any queued but not played data after the given time has been flushed.
   // TODO.
   virtual void NotifyReset(PRInt64 aQueuedTime) {}
@@ -491,7 +498,6 @@ public:
   // are null, nothing is dispatched.
   // Note that this API can race with consumption of the stream, or even
   // Write calls.
-  // TODO
   bool HaveEnoughBufferedAudio();
   // Ensures that aSignalRunnable will be dispatched to aSignalThread when
   // we don't have "enough" buffered audio.
