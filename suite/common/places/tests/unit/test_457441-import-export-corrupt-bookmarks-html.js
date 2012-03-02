@@ -15,7 +15,7 @@
  *
  * The Original Code is Bug 457441 code.
  *
- * The Initial Developer of the Original Code is Mozilla Corp.
+ * The Initial Developer of the Original Code is the Mozilla Foundation.
  * Portions created by the Initial Developer are Copyright (C) 2008
  * the Initial Developer. All Rights Reserved.
  *
@@ -49,8 +49,6 @@ var bs = Cc["@mozilla.org/browser/nav-bookmarks-service;1"].
          getService(Ci.nsINavBookmarksService);
 var as = Cc["@mozilla.org/browser/annotation-service;1"].
          getService(Ci.nsIAnnotationService);
-var lms = Cc["@mozilla.org/browser/livemark-service;2"].
-          getService(Ci.nsILivemarkService);
 var icos = Cc["@mozilla.org/browser/favicon-service;1"].
            getService(Ci.nsIFaviconService);
 var ps = Cc["@mozilla.org/preferences-service;1"].
@@ -65,8 +63,9 @@ const POST_DATA_ANNO = "bookmarkProperties/POSTData";
 const TEST_FAVICON_PAGE_URL = "http://www.seamonkey-project.org/";
 const TEST_FAVICON_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH1QwCEiUG/+wAegAAAu5JREFUOMtlk01oXFUUx3/3vfte3kydmeeQJgUTMsEaKX40tREbDHYE6UIXnZVUujCIiu3GKl0EXRh3ol1EF8WutItuuum4sRTRRXFRFGUyRPxIyVe1mK+ZZD46d968e6+LSduoFw7/c+D+Dv8D5wj+984NDQ4mz6TT/iiAMWCMRanO1urqnaJSZy/u/i12F2H46Qe5XGo6DAOMscSxQWuL1t08imI2NlRpba05CVOz/2qQSJx7+/DhfTPAPUhrQxwbJl54mHemJnCkg20pxh67sFStqlGY2pZd/OOjIyPZmTi+D91t0N+/h/enn2NuFW78aXm6dRvfd3NBIItK8bwEGB5Oz3iei1IxWpt7lrW2vPjKKKoDv65bMr5m4kiOvr4kjUaUh0+OO/DRwSBwR5WKabc1Smnu5zGFwgjfLsIv69CKDL+vG44dGyaKNK5rJ+XAQCqfTifY3Gzumrurp04dom0dlrag3gZtBc2OIZPpIZVK0tubycuxsSfD44VnsQaMBbsTxsDBIx3O/2hRsSAbWFwBf21b8vmn6N83zvz8SijL5YhGo47rguOC0YZsVjI+nuAP7RNpCANLpREzkBYMZly+vhxRLivq9Ri5vLxdqlQaaA1as2MfTp7u4fqGS0dbDvVp6hlBJrD0bFkuXarheaBUpSS1Xii1WvsxJovWXfufnX+QK5uSB3xN0tGkfIdHeyFahddfqxIEAs+DZvPv0s4iXf1CiCcmoQvf2Bvw8oEYAazUBM/sFfz8XZsLnzdRyiKlwJg15uau5XYWafYMpAvvvvd4OD+U4PRDMeYO3F7QbP7W4c1ii1YLPA+CQCBExK1b5Wk4uywArLVDxZ+aX6qeZD5ZiXjrRAXP69qUsqueJ5ASoqjC4uIP07Xaqx8CONbaK9+v2KUDuT3sV2uFky99U3TdJkEgCAJBItFVKSNqtYWlmzevT96FAYS19iiwJYSY3X3S2ewjBd8PQinBcaBaXSnV62989d/j/wcgGYelT45hgQAAAABJRU5ErkJggg==";
 
-// main
 function run_test() {
+  do_test_pending();
+
   // avoid creating the places smart folder during tests
   ps.setIntPref("browser.places.smartBookmarksVersion", -1);
 
@@ -79,38 +78,41 @@ function run_test() {
   // Check that every bookmark is correct
   // Corrupt bookmarks should not have been imported
   database_check();
+  waitForAsyncUpdates(function() {
+    // Create corruption in database
+    var corruptItemId = bs.insertBookmark(bs.toolbarFolder,
+                                          uri("http://test.mozilla.org"),
+                                          bs.DEFAULT_INDEX, "We love belugas");
+    var stmt = dbConn.createStatement("UPDATE moz_bookmarks SET fk = NULL WHERE id = :itemId");
+    stmt.params.itemId = corruptItemId;
+    stmt.execute();
+    stmt.finalize();
 
-  // Create corruption in database
-  var corruptItemId = bs.insertBookmark(bs.toolbarFolder,
-                                        uri("http://test.mozilla.org"),
-                                        bs.DEFAULT_INDEX, "We love belugas");
-  var stmt = dbConn.createStatement("UPDATE moz_bookmarks SET fk = NULL WHERE id = :itemId");
-  stmt.params.itemId = corruptItemId;
-  stmt.execute();
-  stmt.finalize();
+    // Export bookmarks
+    var bookmarksFile = Services.dirsvc.get("ProfD", Ci.nsILocalFile);
+    bookmarksFile.append("bookmarks.exported.html");
+    if (bookmarksFile.exists())
+      bookmarksFile.remove(false);
+    bookmarksFile.create(Ci.nsILocalFile.NORMAL_FILE_TYPE, 0600);
+    if (!bookmarksFile.exists())
+      do_throw("couldn't create file: bookmarks.exported.html");
+    try {
+      ies.exportHTMLToFile(bookmarksFile);
+    } catch(ex) { do_throw("couldn't export to bookmarks.exported.html: " + ex); }
 
-  // Export bookmarks
-  var bookmarksFile = Services.dirsvc.get("ProfD", Ci.nsILocalFile);
-  bookmarksFile.append("bookmarks.exported.html");
-  if (bookmarksFile.exists())
-    bookmarksFile.remove(false);
-  bookmarksFile.create(Ci.nsILocalFile.NORMAL_FILE_TYPE, 0600);
-  if (!bookmarksFile.exists())
-    do_throw("couldn't create file: bookmarks.exported.html");
-  try {
-    ies.exportHTMLToFile(bookmarksFile);
-  } catch(ex) { do_throw("couldn't export to bookmarks.exported.html: " + ex); }
+    // Clear all bookmarks
+    remove_all_bookmarks();
 
-  // Clear all bookmarks
-  remove_all_bookmarks();
+    // Import bookmarks
+    try {
+      ies.importHTMLFromFile(bookmarksFile, true);
+    } catch(ex) { do_throw("couldn't import the exported file: " + ex); }
 
-  // Import bookmarks
-  try {
-    ies.importHTMLFromFile(bookmarksFile, true);
-  } catch(ex) { do_throw("couldn't import the exported file: " + ex); }
+    // Check that every bookmark is correct
+    database_check();
 
-  // Check that every bookmark is correct
-  database_check();
+    waitForAsyncUpdates(do_test_finished);
+  });
 }
 
 /*
@@ -192,14 +194,16 @@ function database_check() {
   var livemark = toolbar.getChild(DEFAULT_BOOKMARKS_ON_TOOLBAR - 1);
   // title
   do_check_eq("Latest Headlines", livemark.title);
-  // livemark check
-  do_check_true(lms.isLivemark(livemark.itemId));
-  // site url
-  do_check_eq("http://en-us.fxfeeds.mozilla.com/en-US/firefox/livebookmarks/",
-              lms.getSiteURI(livemark.itemId).spec);
-  // feed url
-  do_check_eq("http://en-us.fxfeeds.mozilla.com/en-US/firefox/headlines.xml",
-              lms.getFeedURI(livemark.itemId).spec);
+  PlacesUtils.livemarks.getLivemark(
+    { id: livemark.itemId },
+    function (aStatus, aLivemark) {
+      do_check_true(Components.isSuccessCode(aStatus));
+      do_check_eq("http://en-us.fxfeeds.mozilla.com/en-US/firefox/livebookmarks/",
+                  aLivemark.siteURI.spec);
+      do_check_eq("http://en-us.fxfeeds.mozilla.com/en-US/firefox/headlines.xml",
+                  aLivemark.feedURI.spec);
+    }
+  );
 
   // cleanup
   toolbar.containerOpen = false;
