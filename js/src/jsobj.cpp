@@ -3962,11 +3962,6 @@ JSObject::TradeGuts(JSContext *cx, JSObject *a, JSObject *b, TradeGutsReserved &
 
     a->newType = newTypeA;
     b->newType = newTypeB;
-
-    if (a->inDictionaryMode())
-        a->lastProp->listp = &a->lastProp;
-    if (b->inDictionaryMode())
-        b->lastProp->listp = &b->lastProp;
 }
 
 /*
