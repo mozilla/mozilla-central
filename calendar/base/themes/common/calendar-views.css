@@ -454,7 +454,7 @@ calendar-event-box[selected="true"] .calendar-color-box,
 calendar-editable-item[selected="true"] .calendar-color-box {
     color: #000000 !important;
     background-color: #FDF5A0 !important;
-    -moz-box-shadow: 1px 2px 5px rgba(30, 20, 0, 0.6);
+    box-shadow: 1px 2px 5px rgba(30, 20, 0, 0.6);
 }
 
 
@@ -836,7 +836,7 @@ calendar-month-day-box-item {
 
 calendar-month-day-box calendar-month-day-box-item[allday="true"] .calendar-color-box {
     border-color: rgba(0, 0, 0, 0.5);
-    -moz-box-shadow: inset -1px -1px 0 rgba(255, 255, 255, 0.7), inset 1px 1px 0 rgba(255, 255, 255, 0.7);
+    box-shadow: inset -1px -1px 0 rgba(255, 255, 255, 0.7), inset 1px 1px 0 rgba(255, 255, 255, 0.7);
 }
 
 .calendar-month-day-box-item-label {
@@ -863,7 +863,7 @@ window[systemcolors] .labeldaybox-container {
     margin: 1px;
     padding: 0px 1px;
     background-color: #FFA47D;
-    -moz-box-shadow: 1px 1px 3px rgba(68, 35, 0, 0.7) inset;
+    box-shadow: 1px 1px 3px rgba(68, 35, 0, 0.7) inset;
 }
 
 window[systemcolors] .dropshadow {
