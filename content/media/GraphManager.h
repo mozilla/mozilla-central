@@ -111,6 +111,7 @@ public:
 
 class GraphManagerImpl;
 class Stream;
+class InputStream;
 
 /**
  * This represents a message passed from the main thread to the graph manager.
@@ -151,6 +152,10 @@ protected:
  */
 class GraphManager {
 public:
+  // Control API.
+  // Create a stream that a media decoder can write to.
+  InputStream* CreateInputStream(nsDOMMediaStream* aWrapper);
+
   static void CheckForShutDown();
   static GraphManager* GetInstance();
 
@@ -189,6 +194,7 @@ protected:
   }
 
   friend class Stream;
+  friend class InputStream;
 
   void AppendMessage(ControlMessage* aMessage);
   void EnsureStableStateRunnablePosted();
@@ -311,6 +317,8 @@ public:
 
   friend class GraphManager;
   friend class GraphManagerImpl;
+
+  virtual InputStream* AsInputStream() { return nsnull; }
 
   // media thread only
   void Init(GraphManagerImpl* aManager);
@@ -443,6 +451,83 @@ protected:
   nsDOMMediaStream* mWrapper;
   PRInt64 mMainThreadCurrentTime;
   bool mMainThreadFinished;
+};
+
+/**
+ * This is a stream into which a decoder can write audio and video.
+ *
+ * Audio and video can be written on any thread, but you probably want to
+ * always write from the same thread to avoid unexpected interleavings.
+ *
+ * XXX This should probably be called SourceStream.
+ */
+class InputStream : public Stream {
+public:
+  InputStream(nsDOMMediaStream* aWrapper) :
+    Stream(aWrapper), mMutex("mozilla::media::InputStream"),
+    mPendingFinished(false),
+    mHaveEnoughAudio(false),
+    mHaveEnoughVideo(false)
+  {}
+
+  virtual InputStream* AsInputStream() { return this; }
+
+  // Call these on any thread.
+  void Init(PRInt32 aAudioSampleRate, PRInt32 aAudioChannels);
+  // Start or end the audio track. Initially there is no audio track.
+  void SetAudioEnabled(bool aEnabled);
+  // Start or end the video track. Initially there is no video track.
+  void SetVideoEnabled(bool aEnabled);
+  // This consumes aBuffer.
+  void WriteAudio(nsTArray<AudioFrame>* aBuffer);
+  // This consumes aBuffer.
+  void WriteVideo(nsTArray<VideoFrame>* aBuffer);
+  // Indicate that this stream should enter the "finished" state.
+  void Finish();
+  // Returns true if the buffer currently "enough"
+  // microseconds of audio data. If it returns true, then when the buffer drops
+  // below "enough", aSignalRunnable is dispatched to aSignalThread.
+  // This can be used to throttle decoding. If aSignalThread or aSignalRunnable
+  // are null, nothing is dispatched.
+  // Note that this API can race with consumption of the stream, or even
+  // Write calls.
+  // TODO
+  bool HaveEnoughBufferedAudio();
+  // Ensures that aSignalRunnable will be dispatched to aSignalThread when
+  // we don't have "enough" buffered audio.
+  void DispatchWhenNotEnoughBufferedAudio(nsIThread* aSignalThread, nsIRunnable* aSignalRunnable);
+  bool HaveEnoughBufferedVideo();
+  void DispatchWhenNotEnoughBufferedVideo(nsIThread* aSignalThread, nsIRunnable* aSignalRunnable);
+  // Clears the buffered data in aStream. Useful if, for example, a media
+  // element seeked somewhere else or started playing a new resource. Caller
+  // must take care that this does not race with WriteAudio/WriteVideo or results
+  // will be unpredictable.
+  // TODO
+  void Reset();
+
+  friend class GraphManager;
+  friend class GraphManagerImpl;
+
+  struct ThreadAndRunnable {
+    void Init(nsIThread* aThread, nsIRunnable* aRunnable)
+    {
+      mThread = aThread;
+      mRunnable = aRunnable;
+    }
+
+    nsCOMPtr<nsIThread> mThread;
+    nsCOMPtr<nsIRunnable> mRunnable;
+  };
+
+protected:
+  Mutex mMutex;
+  // protected by mMutex
+  StreamBuffer mPending;
+  nsAutoTArray<ThreadAndRunnable,1> mDispatchWhenNotEnoughAudio;
+  nsAutoTArray<ThreadAndRunnable,1> mDispatchWhenNotEnoughVideo;
+  bool mPendingFinished;
+  bool mHaveEnoughAudio;
+  bool mHaveEnoughVideo;
 };
 
 }

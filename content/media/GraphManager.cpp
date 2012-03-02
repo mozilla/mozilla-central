@@ -96,6 +96,8 @@ public:
   void PrepareUpdatesToMainThreadState();
   bool IsAlwaysExplicitlyBlocked(Stream* aStream);
   void FinishStream(Stream* aStream);
+  void ExtractPendingInput(InputStream* aStream);
+  void UpdateBufferSufficiencyState(InputStream* aStream);
   void ChooseActionTime();
   void PruneStreamData();
   PRInt64 CalculateTimeBlocked(Stream* aStream, PRInt64 aStart, PRInt64 aEnd);
@@ -246,6 +248,67 @@ public:
   // state for main-thread use.
   bool mNeedMainThreadStateUpdate;
 };
+
+void
+GraphManagerImpl::ExtractPendingInput(InputStream* aStream)
+{
+  bool finished;
+  {
+    MutexAutoLock lock(aStream->mMutex);
+    finished = aStream->mPendingFinished;
+    if (aStream->mBuffer.GetAudioSampleEnd() == 0) {
+      aStream->mBuffer.SetAudioSampleRate(aStream->mPending.GetAudioSampleRate());
+      aStream->mBuffer.SetAudioChannels(aStream->mPending.GetAudioChannels());
+    }
+    PRInt64 oldBufEnd = aStream->GetBufferEndTime();
+    PRInt64 oldAudioEnd = aStream->mBuffer.GetAudioEnd();
+    PRInt64 oldVideoEnd = aStream->mBuffer.GetVideoEnd();
+    aStream->mBuffer.AppendAndConsumeBuffer(&aStream->mPending);
+    PRInt64 newBufEnd = aStream->GetBufferEndTime();
+    PRInt64 newAudioEnd = aStream->mBuffer.GetAudioEnd();
+    PRInt64 newVideoEnd = aStream->mBuffer.GetVideoEnd();
+    if (oldBufEnd < newBufEnd) {
+      LOG(PR_LOG_DEBUG, ("Input media stream %p buffer end advanced from %f to %f",
+                         aStream, oldBufEnd/1000000.0, newBufEnd/1000000.0));
+    }
+    if (oldAudioEnd != newAudioEnd || oldVideoEnd != newVideoEnd) {
+      LOG(PR_LOG_DEBUG, ("Input media stream %p audio end at %lld, video end at %lld",
+                         aStream, newAudioEnd, newVideoEnd));
+    }
+  }
+  if (finished) {
+    FinishStream(aStream);
+  }
+}
+
+void
+GraphManagerImpl::UpdateBufferSufficiencyState(InputStream* aStream)
+{
+  PRInt64 desiredEnd = GetDesiredBufferEnd(aStream);
+  bool haveEnoughAudio = desiredEnd <= aStream->mBufferStartTime + aStream->mBuffer.GetAudioEnd();
+  bool haveEnoughVideo = desiredEnd <= aStream->mBufferStartTime + aStream->mBuffer.GetVideoEnd();
+  nsTArray<InputStream::ThreadAndRunnable> runnables;
+
+  {
+    MutexAutoLock lock(aStream->mMutex);
+    if (haveEnoughAudio != aStream->mHaveEnoughAudio) {
+      aStream->mHaveEnoughAudio = haveEnoughAudio;
+      if (!haveEnoughAudio) {
+        runnables.MoveElementsFrom(aStream->mDispatchWhenNotEnoughAudio);
+      }
+    }
+    if (haveEnoughVideo != aStream->mHaveEnoughVideo) {
+      aStream->mHaveEnoughVideo = haveEnoughVideo;
+      if (!haveEnoughVideo) {
+        runnables.MoveElementsFrom(aStream->mDispatchWhenNotEnoughVideo);
+      }
+    }
+  }
+
+  for (PRUint32 i = 0; i < runnables.Length(); ++i) {
+    runnables[i].mThread->Dispatch(runnables[i].mRunnable, 0);
+  }
+}
 
 PRInt64
 GraphManagerImpl::GetDesiredBufferEnd(Stream* aStream)
@@ -967,6 +1030,14 @@ GraphManagerImpl::RunThread()
       }
     }
 
+    // Grab pending ProcessingEngine results.
+    for (PRUint32 i = 0; i < mStreams.Length(); ++i) {
+      InputStream* is = mStreams[i]->AsInputStream();
+      if (is) {
+        ExtractPendingInput(is);
+      }
+    }
+
     RecomputeBlocking();
 
     // Figure out what each stream wants to do
@@ -976,6 +1047,14 @@ GraphManagerImpl::RunThread()
 
       PlayAudio(stream);
       PlayVideo(stream);
+    }
+
+    for (PRUint32 i = 0; i < mStreams.Length(); ++i) {
+      Stream* stream = mStreams[i];
+      InputStream* is = stream->AsInputStream();
+      if (is) {
+        UpdateBufferSufficiencyState(is);
+      }
     }
   }
 }
@@ -1193,6 +1272,97 @@ GraphManager::AppendMessage(ControlMessage* aMessage)
   EnsureStableStateRunnablePosted();
 }
 
+void
+InputStream::Init(PRInt32 aAudioSampleRate, PRInt32 aAudioChannels)
+{
+  MutexAutoLock lock(mMutex);
+  mPending.SetAudioSampleRate(aAudioSampleRate);
+  mPending.SetAudioChannels(aAudioChannels);
+  // No need to do a wakeup, nothing matters until audio is written
+}
+
+void
+InputStream::SetAudioEnabled(bool aEnabled)
+{
+  MutexAutoLock lock(mMutex);
+  mPending.SetAudioEnabled(aEnabled);
+  // No need to do a wakeup, nothing matters until audio is written
+}
+
+void
+InputStream::SetVideoEnabled(bool aEnabled)
+{
+  MutexAutoLock lock(mMutex);
+  mPending.SetVideoEnabled(aEnabled);
+  // No need to do a wakeup, nothing matters until video is written
+}
+
+void
+InputStream::WriteAudio(nsTArray<AudioFrame>* aBuffer)
+{
+  {
+    MutexAutoLock lock(mMutex);
+    mPending.AppendAudio(aBuffer);
+  }
+  gManager->WakeUp(ALLOW_DELAY_AFTER_OUTPUT_MS*1000);
+}
+
+void
+InputStream::WriteVideo(nsTArray<VideoFrame>* aBuffer)
+{
+  {
+    MutexAutoLock lock(mMutex);
+    mPending.AppendVideo(aBuffer);
+  }
+  gManager->WakeUp(ALLOW_DELAY_AFTER_OUTPUT_MS*1000);
+}
+
+bool
+InputStream::HaveEnoughBufferedAudio()
+{
+  MutexAutoLock lock(mMutex);
+  return mHaveEnoughAudio;
+}
+
+void
+InputStream::DispatchWhenNotEnoughBufferedAudio(nsIThread* aSignalThread, nsIRunnable* aSignalRunnable)
+{
+  MutexAutoLock lock(mMutex);
+  if (mHaveEnoughAudio) {
+    mDispatchWhenNotEnoughAudio.AppendElement()->Init(aSignalThread, aSignalRunnable);
+  } else {
+    aSignalThread->Dispatch(aSignalRunnable, 0);
+  }
+}
+
+bool
+InputStream::HaveEnoughBufferedVideo()
+{
+  MutexAutoLock lock(mMutex);
+  return mHaveEnoughVideo;
+}
+
+void
+InputStream::DispatchWhenNotEnoughBufferedVideo(nsIThread* aSignalThread, nsIRunnable* aSignalRunnable)
+{
+  MutexAutoLock lock(mMutex);
+  if (mHaveEnoughVideo) {
+    mDispatchWhenNotEnoughVideo.AppendElement()->Init(aSignalThread, aSignalRunnable);
+  } else {
+    aSignalThread->Dispatch(aSignalRunnable, 0);
+  }
+}
+
+void
+InputStream::Finish()
+{
+  {
+    MutexAutoLock lock(mMutex);
+    mPendingFinished = true;
+  }
+  gManager->WakeUp(ALLOW_DELAY_AFTER_OUTPUT_MS*1000);
+}
+
 /*
  * Control messages forwarded from main thread to graph manager thread
  */
@@ -1209,6 +1379,15 @@ public:
     aManager->AddStream(mStream);
   }
 };
+
+InputStream*
+GraphManager::CreateInputStream(nsDOMMediaStream* aWrapper)
+{
+  InputStream* stream = new InputStream(aWrapper);
+  NS_ADDREF(stream);
+  AppendMessage(new CreateMessage(stream));
+  return stream;
+}
 
 void
 Stream::Init(GraphManagerImpl* aManager)

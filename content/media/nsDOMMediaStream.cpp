@@ -40,3 +40,12 @@ nsDOMMediaStream::GetCurrentTime(double *aCurrentTime)
   *aCurrentTime = mStream ? double(mStream->GetCurrentTime())/1000000 : 0.0;
   return NS_OK;
 }
+
+already_AddRefed<nsDOMMediaStream>
+nsDOMMediaStream::CreateInputStream()
+{
+  nsRefPtr<nsDOMMediaStream> stream = new nsDOMMediaStream();
+  GraphManager* gm = GraphManager::GetInstance();
+  stream->mStream = gm->CreateInputStream(stream);
+  return stream.forget();
+}
