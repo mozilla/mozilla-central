@@ -81,11 +81,11 @@ var abResultsPaneObserver = {
   onDragOver: function (aEvent, aFlavour, aDragSession)
     {
     },
- 
+
   getSupportedFlavours: function ()
-	{
-     return null;
-  }
+    {
+      return null;
+    }
 };
 
 
@@ -136,7 +136,7 @@ var abDirTreeObserver = {
     if (srcURI.substring(0, targetURI.length) == targetURI)
       return false
 
-    // check if we can write to the target directory 
+    // check if we can write to the target directory
     // e.g. LDAP is readonly currently
     var targetDirectory = GetDirectoryFromURI(targetURI);
 
@@ -383,7 +383,7 @@ function DragAddressOverTargetControl(event)
 function DropAddressOverTargetControl(event)
 {
   var dragSession = gDragService.getCurrentSession();
-  
+
   var trans = Components.classes["@mozilla.org/widget/transferable;1"].createInstance(Components.interfaces.nsITransferable);
   trans.addDataFlavor("text/x-moz-address");
 
@@ -403,10 +403,10 @@ function DropAddressOverTargetControl(event)
     {
       continue;
     }
- 
-    if ( dataObj )  
+
+    if ( dataObj )
       dataObj = dataObj.value.QueryInterface(Components.interfaces.nsISupportsString);
-    if ( !dataObj ) 
+    if ( !dataObj )
       continue;
 
     // pull the address out of the data object

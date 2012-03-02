@@ -36,6 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 const NS_ABLDAPATTRIBUTEMAP_CID = Components.ID(
@@ -148,11 +149,8 @@ nsAbLDAPAttributeMap.prototype = {
   },
 
   setFromPrefs: function setFromPrefs(aPrefBranchName) {
-    var prefSvc = Components.classes["@mozilla.org/preferences-service;1"].
-      getService(Components.interfaces.nsIPrefService);
-
     // get the right pref branch
-    var branch = prefSvc.getBranch(aPrefBranchName + ".");
+    let branch = Services.prefs.getBranch(aPrefBranchName + ".");
 
     // get the list of children
     var childCount = {};

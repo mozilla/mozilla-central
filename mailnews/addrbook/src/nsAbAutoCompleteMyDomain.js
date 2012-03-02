@@ -34,6 +34,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
 
 function nsAbAutoCompleteMyDomain() {}
@@ -51,10 +52,7 @@ nsAbAutoCompleteMyDomain.prototype = {
     var address = null;
     if (aString && !/,/.test(aString)) {
       if (aParam != this.cachedParam) {
-        this.cachedIdentity =
-            Components.classes['@mozilla.org/messenger/account-manager;1']
-                      .getService(Components.interfaces.nsIMsgAccountManager)
-                      .getIdentity(aParam);
+        this.cachedIdentity = MailServices.accounts.getIdentity(aParam);
         this.cachedParam = aParam;
       }
       if (this.cachedIdentity.autocompleteToMyDomain)

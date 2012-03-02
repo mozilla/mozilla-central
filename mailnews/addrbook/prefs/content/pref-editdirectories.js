@@ -36,6 +36,9 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
+Components.utils.import("resource://gre/modules/Services.jsm");
+Components.utils.import("resource:///modules/mailServices.js");
+
 // Listener to refresh the list items if something changes. In all these
 // cases we just rebuild the list as it is easier than searching/adding in the
 // correct places an would be an infrequent operation.
@@ -63,10 +66,7 @@ function onInitEditDirectories()
   gAddressBookBundle = document.getElementById("bundle_addressBook");
 
   // If the pref is locked disable the "Add" button
-  var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
-
-  if (prefs.prefIsLocked("ldap_2.disable_button_add"))
+  if (Services.prefs.prefIsLocked("ldap_2.disable_button_add"))
     document.getElementById("addButton").setAttribute('disabled', true);
 
   // Fill out the directory list
@@ -74,19 +74,15 @@ function onInitEditDirectories()
 
   const nsIAbListener = Components.interfaces.nsIAbListener;
   // Add a listener so we can update correctly if the list should change
-  Components.classes["@mozilla.org/abmanager;1"]
-            .getService(Components.interfaces.nsIAbManager)
-            .addAddressBookListener(gAddressBookAbListener,
-                                    nsIAbListener.itemAdded |
-                                    nsIAbListener.directoryRemoved |
-                                    nsIAbListener.itemChanged);
+  MailServices.ab.addAddressBookListener(gAddressBookAbListener,
+                                         nsIAbListener.itemAdded |
+                                         nsIAbListener.directoryRemoved |
+                                         nsIAbListener.itemChanged);
 }
 
 function onUninitEditDirectories()
 {
-  Components.classes["@mozilla.org/abmanager;1"]
-            .getService(Components.interfaces.nsIAbManager)
-            .removeAddressBookListener(gAddressBookAbListener);
+  MailServices.ab.removeAddressBookListener(gAddressBookAbListener);
 }
 
 function fillDirectoryList()
@@ -98,13 +94,10 @@ function fillDirectoryList()
     abList.removeChild(abList.lastChild);
 
   // Init the address book list
-  var addressBooks = Components.classes["@mozilla.org/abmanager;1"]
-                               .getService(Components.interfaces.nsIAbManager)
-                               .directories;
-  var holdingArray = [];
-
-  while (addressBooks && addressBooks.hasMoreElements()) {
-    var ab = addressBooks.getNext();
+  let directories = MailServices.ab.directories;
+  let holdingArray = [];
+  while (directories && directories.hasMoreElements()) {
+    let ab = directories.getNext();
     if (ab instanceof Components.interfaces.nsIAbDirectory && ab.isRemote)
       holdingArray.push(ab);
   }
@@ -131,14 +124,10 @@ function selectDirectory()
 
     // If the disable delete button pref for the selected directory is set,
     // disable the delete button for that directory.
-    var disable = false;
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                          .getService(Components.interfaces.nsIPrefBranch);
-    var ab = Components.classes["@mozilla.org/abmanager;1"]
-                       .getService(Components.interfaces.nsIAbManager)
-                       .getDirectory(abList.value);
+    let disable = false;
+    let ab = MailServices.ab.getDirectory(abList.value);
     try {
-      disable = prefs.getBoolPref(ab.dirPrefId + ".disable_delete");
+      disable = Services.prefs.getBoolPref(ab.dirPrefId + ".disable_delete");
     }
     catch(ex){
       // If this preference is not set, it's ok.
@@ -168,10 +157,8 @@ function editDirectory()
   var abList = document.getElementById("directoriesList");
 
   if (abList && abList.selectedItem) {
-    var abURI = abList.value;
-    var ab = Components.classes["@mozilla.org/abmanager;1"]
-                       .getService(Components.interfaces.nsIAbManager)
-                       .getDirectory(abURI);
+    let abURI = abList.value;
+    let ab = MailServices.ab.getDirectory(abURI);
 
     window.openDialog(ab.propertiesChromeURI, "editDirectory",
                       "chrome,modal=yes,resizable=no",
