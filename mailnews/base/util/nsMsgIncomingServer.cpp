@@ -1214,9 +1214,9 @@ nsMsgIncomingServer::InternalSetHostName(const nsACString& aHostname, const char
 {
   nsCString hostname;
   hostname = aHostname;
-  PRInt32 colonPos = hostname.FindChar(':');
-  if (colonPos != -1)
+  if (hostname.CountChar(':') == 1)
   {
+    PRInt32 colonPos = hostname.FindChar(':');
     nsCAutoString portString(Substring(hostname, colonPos));
     hostname.SetLength(colonPos);
     nsresult err;
@@ -1296,7 +1296,7 @@ nsMsgIncomingServer::GetHostName(nsACString& aResult)
 {
   nsresult rv;
   rv = GetCharValue("hostname", aResult);
-  if (aResult.FindChar(':') != -1)
+  if (aResult.CountChar(':') == 1)
   {
     // gack, we need to reformat the hostname - SetHostName will do that
     SetHostName(aResult);
@@ -1316,7 +1316,7 @@ nsMsgIncomingServer::GetRealHostName(nsACString& aResult)
   if (aResult.IsEmpty())
     return GetHostName(aResult);
 
-  if (aResult.FindChar(':') != -1)
+  if (aResult.CountChar(':') == 1)
   {
     SetRealHostName(aResult);
     rv = GetCharValue("realhostname", aResult);
