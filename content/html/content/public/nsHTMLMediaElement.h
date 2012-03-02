@@ -50,12 +50,18 @@
 #include "nsIObserver.h"
 #include "nsAudioStream.h"
 #include "VideoFrameContainer.h"
+#include "nsDOMMediaStream.h"
+#include "mozilla/Mutex.h"
 
 // Define to output information on decoding and painting framerate
 /* #define DEBUG_FRAME_RATE 1 */
 
 typedef PRUint16 nsMediaNetworkState;
 typedef PRUint16 nsMediaReadyState;
+
+namespace mozilla {
+class MediaResource;
+}
 
 class nsHTMLMediaElement : public nsGenericHTMLElement,
                            public nsIObserver
@@ -64,6 +70,8 @@ public:
   typedef mozilla::TimeStamp TimeStamp;
   typedef mozilla::layers::ImageContainer ImageContainer;
   typedef mozilla::VideoFrameContainer VideoFrameContainer;
+  typedef mozilla::media::Stream Stream;
+  typedef mozilla::MediaResource MediaResource;
 
   enum CanPlayStatus {
     CANPLAY_NO,
@@ -358,8 +366,15 @@ public:
    */
   void FireTimeUpdate(bool aPeriodic);
 
+  Stream* MediaStream()
+  {
+    NS_ASSERTION(mStream, "Don't call this when not playing a stream");
+    return mStream->GetStream();
+  }
+
 protected:
   class MediaLoadListener;
+  class MediaStreamListener;
 
   /**
    * Logs a warning message to the web console to report various failures.
@@ -377,6 +392,15 @@ protected:
    * the poster hiding or showing immediately.
    */
   void SetPlayedOrSeeked(bool aValue);
+
+  /**
+   * Initialize the media element for playback of mSrcAttrStream
+   */
+  void SetupMediaStreamPlayback();
+  /**
+   * Stop playback on mStream.
+   */
+  void EndMediaStreamPlayback();
 
   /**
    * Create a decoder for the given aMIMEType. Returns null if we
@@ -403,7 +427,10 @@ protected:
    * Finish setting up the decoder after Load() has been called on it.
    * Called by InitializeDecoderForChannel/InitializeDecoderAsClone.
    */
-  nsresult FinishDecoderSetup(nsMediaDecoder* aDecoder);
+  nsresult FinishDecoderSetup(nsMediaDecoder* aDecoder,
+                              MediaResource* aStream,
+                              nsIStreamListener **aListener,
+                              nsMediaDecoder* aCloneDonor);
 
   /**
    * Call this after setting up mLoadingSrc and mDecoder.
@@ -576,11 +603,24 @@ protected:
   void ProcessMediaFragmentURI();
 
   // The current decoder. Load() has been called on this decoder.
+  // At most one of mDecoder and mStream can be non-null.
   nsRefPtr<nsMediaDecoder> mDecoder;
 
   // A reference to the VideoFrameContainer which contains the current frame
   // of video to display.
   nsRefPtr<VideoFrameContainer> mVideoFrameContainer;
+
+  // Holds a reference to the DOM wrapper for the MediaStream that has been
+  // set in the src attribute.
+  nsRefPtr<nsDOMMediaStream> mSrcAttrStream;
+
+  // Holds a reference to the DOM wrapper for the MediaStream that we're
+  // actually playing.
+  // At most one of mDecoder and mStream can be non-null.
+  nsRefPtr<nsDOMMediaStream> mStream;
+
+  // Holds a reference to the StreamListener attached to mStream. STRONG!
+  MediaStreamListener* mStreamListener;
 
   // Holds a reference to the first channel we open to the media resource.
   // Once the decoder is created, control over the channel passes to the

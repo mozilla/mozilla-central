@@ -90,6 +90,8 @@ CPPSRCS += \
   $(NULL)
 endif
 
+PARALLEL_DIRS =
+
 ifdef MOZ_RAW
 PARALLEL_DIRS += raw
 endif
