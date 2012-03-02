@@ -101,7 +101,7 @@ menulist > menupopup > menu > .menu-iconic-left {
 }
 
 toolbar:not(.inline-toolbar) toolbarbutton:not(:-moz-lwtheme) {
-  color: MenuText;
+  color: -moz-menubartext;
 }
 
 toolbar:not(.inline-toolbar) toolbarbutton[disabled="true"]:not(:-moz-lwtheme) {

@@ -89,7 +89,7 @@ tabpanels {
 }
 
 .tabmail-tab:not(:-moz-lwtheme) {
-  color: MenuText;
+  color: -moz-menubartext;
 }
 
 .tabmail-tab:hover {

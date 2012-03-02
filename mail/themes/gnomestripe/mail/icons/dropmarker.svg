@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg"
   width="8"
   height="8">
-  <polygon fill="MenuText" points="8,2 4,8 0,2"/>
+  <polygon fill="-moz-menubartext" points="8,2 4,8 0,2"/>
 </svg>
