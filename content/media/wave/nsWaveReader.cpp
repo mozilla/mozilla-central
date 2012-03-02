@@ -189,39 +189,43 @@ bool nsWaveReader::DecodeAudioData()
   PRInt64 readSize = NS_MIN(BLOCK_SIZE, remaining);
   PRInt64 frames = readSize / mFrameSize;
 
-  PR_STATIC_ASSERT(PRUint64(BLOCK_SIZE) < UINT_MAX / sizeof(AudioDataValue) / MAX_CHANNELS);
-  const size_t bufferSize = static_cast<size_t>(frames * mChannels);
-  nsAutoArrayPtr<AudioDataValue> sampleBuffer(new AudioDataValue[bufferSize]);
-
-  PR_STATIC_ASSERT(PRUint64(BLOCK_SIZE) < UINT_MAX / sizeof(char));
-  nsAutoArrayPtr<char> dataBuffer(new char[static_cast<size_t>(readSize)]);
-
+  char dataBuffer[BLOCK_SIZE];
   if (!ReadAll(dataBuffer, readSize)) {
     mAudioQueue.Finish();
     return false;
   }
 
-  // convert data to samples
-  const char* d = dataBuffer.get();
-  AudioDataValue* s = sampleBuffer.get();
+  const size_t bufferSize = static_cast<size_t>(frames * mChannels);
+  // Maximum number of VorbisPCMValues needed is when the data is one byte per sample
+  VorbisPCMValue values[BLOCK_SIZE];
+
+  // convert data to VorbisPCMValues
+  const char* d = dataBuffer;
+  VorbisPCMValue* s;
   for (int i = 0; i < frames; ++i) {
+    s = values + i;
     for (unsigned int j = 0; j < mChannels; ++j) {
       if (mSampleFormat == nsAudioStream::FORMAT_U8) {
         PRUint8 v =  ReadUint8(&d);
-#if defined(MOZ_SAMPLE_TYPE_S16LE)
-        *s++ = (v * (1.F/PR_UINT8_MAX)) * PR_UINT16_MAX + PR_INT16_MIN;
-#elif defined(MOZ_SAMPLE_TYPE_FLOAT32)
-        *s++ = (v * (1.F/PR_UINT8_MAX)) * 2.F - 1.F;
+#if defined(MOZ_VORBIS_PCM_INT32)
+        *s = MOZ_CONVERT_S16_LE_TO_VORBIS((v * (1.F/PR_UINT8_MAX)) * PR_UINT16_MAX + PR_INT16_MIN);
+#elif defined(MOZ_VORBIS_PCM_FLOAT32)
+        *s = (v * (1.F/PR_UINT8_MAX)) * 2.F - 1.F;
+#else
+#error "Unknown MOZ_VORBIS_PCM_ type"
 #endif
       }
       else if (mSampleFormat == nsAudioStream::FORMAT_S16_LE) {
         PRInt16 v =  ReadInt16LE(&d);
-#if defined(MOZ_SAMPLE_TYPE_S16LE)
-        *s++ = v;
-#elif defined(MOZ_SAMPLE_TYPE_FLOAT32)
-        *s++ = (PRInt32(v) - PR_INT16_MIN) / float(PR_UINT16_MAX) * 2.F - 1.F;
+#if defined(MOZ_VORBIS_PCM_INT32)
+        *s = MOZ_CONVERT_S16_LE_TO_VORBIS(v);
+#elif defined(MOZ_VORBIS_PCM_FLOAT32)
+        *s = (PRInt32(v) - PR_INT16_MIN) / float(PR_UINT16_MAX) * 2.F - 1.F;
+#else
+#error "Unknown MOZ_VORBIS_PCM_ type"
 #endif
       }
+      s += frames;
     }
   }
 
@@ -231,12 +235,14 @@ bool nsWaveReader::DecodeAudioData()
   NS_ASSERTION(readSizeTime <= INT64_MAX / USECS_PER_S, "readSizeTime overflow");
   NS_ASSERTION(frames < PR_INT32_MAX, "frames overflow");
 
-  mAudioQueue.Push(new AudioData(pos,
-                                 static_cast<PRInt64>(posTime * USECS_PER_S),
-                                 static_cast<PRInt64>(readSizeTime * USECS_PER_S),
-                                 static_cast<PRInt32>(frames),
-                                 sampleBuffer.forget(),
-                                 mChannels));
+  VorbisPCMValue* pcm[MAX_CHANNELS];
+  for (PRUint32 i = 0; i < mChannels; ++i) {
+    pcm[i] = values + frames*i;
+  }
+
+  PushAudioData(pos, static_cast<PRInt64>(posTime * USECS_PER_S),
+                static_cast<PRInt64>(readSizeTime * USECS_PER_S),
+                static_cast<PRInt32>(frames), mChannels, pcm);
 
   return true;
 }

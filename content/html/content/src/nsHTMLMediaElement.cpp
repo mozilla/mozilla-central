@@ -424,6 +424,9 @@ NS_IMPL_CYCLE_COLLECTION_TRAVERSE_BEGIN_INHERITED(nsHTMLMediaElement, nsGenericH
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mSourcePointer)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mLoadBlockedDoc)
   NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mSourceLoadCandidate)
+  for (PRUint32 i = 0; i < tmp->mOutputStreams.Length(); ++i) {
+    NS_IMPL_CYCLE_COLLECTION_TRAVERSE_NSCOMPTR(mOutputStreams[i].mStream);
+  }
 NS_IMPL_CYCLE_COLLECTION_TRAVERSE_END
 
 NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN_INHERITED(nsHTMLMediaElement, nsGenericHTMLElement)
@@ -432,6 +435,9 @@ NS_IMPL_CYCLE_COLLECTION_UNLINK_BEGIN_INHERITED(nsHTMLMediaElement, nsGenericHTM
   NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mSourcePointer)
   NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mLoadBlockedDoc)
   NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mSourceLoadCandidate)
+  for (PRUint32 i = 0; i < tmp->mOutputStreams.Length(); ++i) {
+    NS_IMPL_CYCLE_COLLECTION_UNLINK_NSCOMPTR(mOutputStreams[i].mStream);
+  }
 NS_IMPL_CYCLE_COLLECTION_UNLINK_END
 
 NS_INTERFACE_MAP_BEGIN_CYCLE_COLLECTION_INHERITED(nsHTMLMediaElement)
@@ -1425,6 +1431,41 @@ NS_IMETHODIMP nsHTMLMediaElement::SetMuted(bool aMuted)
   return NS_OK;
 }
 
+already_AddRefed<nsDOMMediaStream>
+nsHTMLMediaElement::CaptureStreamInternal(bool aFinishWhenEnded)
+{
+  OutputMediaStream* out = mOutputStreams.AppendElement();
+  out->mStream = nsDOMMediaStream::CreateInputStream();
+  out->mFinishWhenEnded = aFinishWhenEnded;
+
+  mAudioCaptured = true;
+  if (mDecoder) {
+    mDecoder->SetAudioCaptured(true);
+    mDecoder->AddOutputStream(
+        out->mStream->GetStream()->AsInputStream(), aFinishWhenEnded);
+  }
+  nsRefPtr<nsDOMMediaStream> result = out->mStream;
+  return result.forget();
+}
+
+NS_IMETHODIMP nsHTMLMediaElement::CaptureStream(nsIDOMMediaStream** aStream)
+{
+  *aStream = CaptureStreamInternal(false).get();
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsHTMLMediaElement::CaptureStreamUntilEnded(nsIDOMMediaStream** aStream)
+{
+  *aStream = CaptureStreamInternal(true).get();
+  return NS_OK;
+}
+
+NS_IMETHODIMP nsHTMLMediaElement::GetAudioCaptured(bool *aCaptured)
+{
+  *aCaptured = mAudioCaptured;
+  return NS_OK;
+}
+
 class MediaElementSetForURI : public nsURIHashKey {
 public:
   MediaElementSetForURI(const nsIURI* aKey) : nsURIHashKey(aKey) {}
@@ -1548,6 +1589,7 @@ nsHTMLMediaElement::nsHTMLMediaElement(already_AddRefed<nsINodeInfo> aNodeInfo)
     mAutoplayEnabled(true),
     mPaused(true),
     mMuted(false),
+    mAudioCaptured(false),
     mPlayingBeforeSeek(false),
     mPausedForInactiveDocument(false),
     mWaitingFired(false),
@@ -2204,7 +2246,13 @@ nsresult nsHTMLMediaElement::FinishDecoderSetup(nsMediaDecoder* aDecoder,
   // The new stream has not been suspended by us.
   mPausedForInactiveDocument = false;
 
+  aDecoder->SetAudioCaptured(mAudioCaptured);
   aDecoder->SetVolume(mMuted ? 0.0 : mVolume);
+  for (PRUint32 i = 0; i < mOutputStreams.Length(); ++i) {
+    OutputMediaStream* ms = &mOutputStreams[i];
+    aDecoder->AddOutputStream(ms->mStream->GetStream()->AsInputStream(),
+        ms->mFinishWhenEnded);
+  }
 
   nsresult rv = aDecoder->Load(aStream, aListener, aCloneDonor);
   if (NS_FAILED(rv)) {

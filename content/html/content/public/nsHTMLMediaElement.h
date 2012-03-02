@@ -402,6 +402,8 @@ protected:
    */
   void EndMediaStreamPlayback();
 
+  already_AddRefed<nsDOMMediaStream> CaptureStreamInternal(bool aFinishWhenEnded);
+
   /**
    * Create a decoder for the given aMIMEType. Returns null if we
    * were unable to create the decoder.
@@ -619,6 +621,14 @@ protected:
   // At most one of mDecoder and mStream can be non-null.
   nsRefPtr<nsDOMMediaStream> mStream;
 
+  // Holds references to the DOM wrappers for the MediaStreams that we're
+  // writing to.
+  struct OutputMediaStream {
+    nsRefPtr<nsDOMMediaStream> mStream;
+    bool mFinishWhenEnded;
+  };
+  nsTArray<OutputMediaStream> mOutputStreams;
+
   // Holds a reference to the StreamListener attached to mStream. STRONG!
   MediaStreamListener* mStreamListener;
 
@@ -757,6 +767,9 @@ protected:
 
   // True if the sound is muted
   bool mMuted;
+
+  // True if the sound is being captured
+  bool mAudioCaptured;
 
   // If TRUE then the media element was actively playing before the currently
   // in progress seeking. If FALSE then the media element is either not seeking

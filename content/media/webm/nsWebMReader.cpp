@@ -490,14 +490,6 @@ bool nsWebMReader::DecodeAudioPacket(nestegg_packet* aPacket, PRInt64 aOffset)
     VorbisPCMValue** pcm = 0;
     PRInt32 frames = 0;
     while ((frames = vorbis_synthesis_pcmout(&mVorbisDsp, &pcm)) > 0) {
-      nsAutoArrayPtr<AudioDataValue> buffer(new AudioDataValue[frames * mChannels]);
-      for (PRUint32 j = 0; j < mChannels; ++j) {
-        VorbisPCMValue* channel = pcm[j];
-        for (PRUint32 i = 0; i < PRUint32(frames); ++i) {
-          buffer[i*mChannels + j] = MOZ_CONVERT_VORBIS_SAMPLE(channel[i]);
-        }
-      }
-
       PRInt64 duration = 0;
       if (!FramesToUsecs(frames, rate, duration)) {
         NS_WARNING("Int overflow converting WebM audio duration");
@@ -511,12 +503,9 @@ bool nsWebMReader::DecodeAudioPacket(nestegg_packet* aPacket, PRInt64 aOffset)
       
       PRInt64 time = tstamp_usecs + total_duration;
       total_frames += frames;
-      mAudioQueue.Push(new AudioData(aOffset,
-                                     time,
-                                     duration,
-                                     frames,
-                                     buffer.forget(),
-                                     mChannels));
+
+      PushAudioData(aOffset, time, duration, frames, mChannels, pcm);
+
       mAudioFrames += frames;
       if (vorbis_synthesis_read(&mVorbisDsp, frames) != 0) {
         return false;
@@ -749,6 +738,7 @@ bool nsWebMReader::DecodeVideoFrame(bool &aKeyframeSkip,
       decoded++;
       NS_ASSERTION(decoded <= parsed,
         "Expect only 1 frame per chunk per packet in WebM...");
+      LOG(PR_LOG_DEBUG, ("%p Pushing video frame %lld", mDecoder, v->mTime));
       mVideoQueue.Push(v);
     }
   }

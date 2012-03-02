@@ -161,10 +161,16 @@ void nsAudioAvailableEventManager::QueueWrittenAudioData(AudioDataValue* aAudioD
     // Fill the signalBuffer.
     PRUint32 i;
     float *signalBuffer = mSignalBuffer.get() + mSignalBufferPosition;
-    for (i = 0; i < signalBufferTail; ++i) {
-      signalBuffer[i] = MOZ_CONVERT_AUDIO_SAMPLE(audioData[i]);
+    if (audioData) {
+      for (i = 0; i < signalBufferTail; ++i) {
+        signalBuffer[i] = MOZ_CONVERT_AUDIO_SAMPLE(audioData[i]);
+      }
+    } else {
+      memset(signalBuffer, 0, signalBufferTail*sizeof(signalBuffer[0]));
     }
-    audioData += signalBufferTail;
+    if (audioData) {
+      audioData += signalBufferTail;
+    }
     audioDataLength -= signalBufferTail;
 
     if (mPendingEvents.Length() > 0) {
@@ -202,8 +208,12 @@ void nsAudioAvailableEventManager::QueueWrittenAudioData(AudioDataValue* aAudioD
     // Add data to the signalBuffer.
     PRUint32 i;
     float *signalBuffer = mSignalBuffer.get() + mSignalBufferPosition;
-    for (i = 0; i < audioDataLength; ++i) {
-      signalBuffer[i] = MOZ_CONVERT_AUDIO_SAMPLE(audioData[i]);
+    if (audioData) {
+      for (i = 0; i < audioDataLength; ++i) {
+        signalBuffer[i] = MOZ_CONVERT_AUDIO_SAMPLE(audioData[i]);
+      }
+    } else {
+      memset(signalBuffer, 0, audioDataLength*sizeof(signalBuffer[0]));
     }
     mSignalBufferPosition += audioDataLength;
   }

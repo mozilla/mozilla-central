@@ -82,6 +82,29 @@ void nsBuiltinDecoder::SetVolume(double aVolume)
   }
 }
 
+void nsBuiltinDecoder::SetAudioCaptured(bool aCaptured)
+{
+  NS_ASSERTION(NS_IsMainThread(), "Should be on main thread.");
+  mInitialAudioCaptured = aCaptured;
+  if (mDecoderStateMachine) {
+    mDecoderStateMachine->SetAudioCaptured(aCaptured);
+  }
+}
+
+void nsBuiltinDecoder::AddOutputStream(InputStream* aStream, bool aFinishWhenEnded)
+{
+  NS_ASSERTION(NS_IsMainThread(), "Should be on main thread.");
+  ReentrantMonitorAutoEnter mon(mReentrantMonitor);
+  OutputMediaStream* ms = mOutputStreams.AppendElement();
+  ms->Init(PRInt64(mCurrentTime*USECS_PER_S), aStream, aFinishWhenEnded);
+
+  if (mDecoderStateMachine) {
+    // Queue data for this stream now in case the decode loop doesn't take
+    // any more steps for a while.
+    static_cast<nsBuiltinDecoderStateMachine*>(mDecoderStateMachine.get())->SendOutputStreamData();
+  }
+}
+
 double nsBuiltinDecoder::GetDuration()
 {
   NS_ASSERTION(NS_IsMainThread(), "Should be on main thread.");
