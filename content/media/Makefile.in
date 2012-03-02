@@ -44,6 +44,11 @@ include $(DEPTH)/config/autoconf.mk
 MODULE = content
 LIBRARY_NAME = gkconmedia_s
 LIBXUL_LIBRARY = 1
+XPIDL_MODULE = content_media
+
+XPIDLSRCS = \
+  nsIDOMMediaStream.idl \
+  $(NULL)
 
 EXPORTS = \
   GraphManager.h \
@@ -52,6 +57,7 @@ EXPORTS = \
   nsBuiltinDecoder.h \
   nsBuiltinDecoderStateMachine.h \
   nsBuiltinDecoderReader.h \
+  nsDOMMediaStream.h \
   nsMediaDecoder.h \
   nsMediaCache.h \
   StreamBuffer.h \
@@ -67,6 +73,7 @@ CPPSRCS = \
   nsBuiltinDecoder.cpp \
   nsBuiltinDecoderStateMachine.cpp \
   nsBuiltinDecoderReader.cpp \
+  nsDOMMediaStream.cpp \
   nsMediaDecoder.cpp \
   nsMediaCache.cpp \
   StreamBuffer.cpp \
@@ -113,3 +120,5 @@ INCLUDES += \
   -I$(srcdir)/../base/src \
   -I$(srcdir)/../html/content/src \
   $(NULL)
+
+DEFINES += -D_IMPL_NS_LAYOUT
