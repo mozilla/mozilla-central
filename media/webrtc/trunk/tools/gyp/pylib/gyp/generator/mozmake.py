@@ -1,3 +1,6 @@
+# Python 2.5 needs this for the with statement.
+from __future__ import with_statement
+
 import collections
 import gyp
 import gyp.common
