@@ -104,7 +104,7 @@ var TestPilotWelcomePage = {
     let mapLength = map.length;
     for (let i = 0; i < mapLength; i++) {
       let entry = map[i];
-      document.getElementById(entry.id).innerHTML =
+      document.getElementById(entry.id).textContent =
         stringBundle.GetStringFromName(entry.stringKey);
     }
   }

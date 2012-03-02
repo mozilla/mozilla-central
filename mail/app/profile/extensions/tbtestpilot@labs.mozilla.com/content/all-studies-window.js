@@ -101,15 +101,19 @@ var TestPilotXulWindow = {
     link.setAttribute("value", text);
     link.setAttribute("class", "text-link");
     if (openInTab) {
-      link.setAttribute(
-        "onclick",
-        "if (event.button==0) { " +
-        "TestPilotWindowUtils.openInTab('" + url + "'); }");
+      link.addEventListener("click",
+        function(event) {
+          if (event.button == 0) {
+            TestPilotWindowUtils.openInTab(url);
+          }
+        }, false);
     } else {
-      link.setAttribute(
-        "onclick",
-        "if (event.button==0) { " +
-        "TestPilotWindowUtils.openChromeless('" + url + "'); }");
+      link.addEventListener("click",
+        function(event) {
+          if (event.button == 0) {
+            TestPilotWindowUtils.openChromeless(url);
+          }
+        }, false);
     }
     linkContainer.appendChild(link);
     spacer.setAttribute("flex", "1");
@@ -181,9 +185,9 @@ var TestPilotXulWindow = {
 
   addButton: function(container, label, id, onClickHandler) {
     let button = document.createElement("button");
-    button.setAttribute("label", label);
+    button.setAttribute("label", this._stringBundle.getString(label));
     button.setAttribute("id", id);
-    button.setAttribute("oncommand", onClickHandler);
+    button.addEventListener("command", onClickHandler, false);
     container.appendChild(button);
   },
 
@@ -290,9 +294,9 @@ var TestPilotXulWindow = {
             "testpilot.studiesWindow.finishedOn",
             [(new Date(task.endDate)).toLocaleDateString()]));
         this.addButton(statusVbox,
-          this._stringBundle.getString("testpilot.submit"),
+          "testpilot.submit",
           "submit-button-" + task.id,
-          "TestPilotXulWindow.onSubmitButton(" + task.id + ");");
+          function() {TestPilotXulWindow.onSubmitButton(task.id)});
       }
       if (task.status == TaskConstants.STATUS_CANCELLED) {
         let hbox = document.createElement("hbox");
@@ -314,9 +318,9 @@ var TestPilotXulWindow = {
         if (task.taskType == TaskConstants.TYPE_SURVEY) {
           this.addButton(
             statusVbox,
-            this._stringBundle.getString("testpilot.takeSurvey"),
+            "testpilot.takeSurvey",
             "survey-button",
-            "TestPilotXulWindow.onTakeSurveyButton('" + task.id + "');");
+            function(){TestPilotXulWindow.onTakeSurveyButton(task.id)});
         } else if (task.taskType == TaskConstants.TYPE_EXPERIMENT) {
           if (task.startDate) {
             this.addLabel(
@@ -333,9 +337,9 @@ var TestPilotXulWindow = {
         if (task.taskType == TaskConstants.TYPE_SURVEY) {
           this.addButton(
             statusVbox,
-            this._stringBundle.getString("testpilot.takeSurvey"),
+            "testpilot.takeSurvey",
             "survey-button",
-            "TestPilotXulWindow.onTakeSurveyButton('" + task.id + "');");
+            function(){TestPilotXulWindow.onTakeSurveyButton(task.id)});
         } else if (task.taskType == TaskConstants.TYPE_EXPERIMENT) {
           this.addLabel(
             statusVbox,

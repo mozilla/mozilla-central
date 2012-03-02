@@ -95,7 +95,7 @@ XMLHttpRequest.prototype = {
   removeEventListener: function removeEventListener() {
     throw new Error("not implemented");
   },
-  set upload() {
+  set upload(ignored) {
     throw new Error("not implemented");
   },
   get onreadystatechange() {

@@ -75,7 +75,7 @@ var stringBundle;
     // Fill it first with a message about data being uploaded; if there's
     // an error, replace it with the error message.
     let uploadStatus = document.getElementById("upload-status");
-    uploadStatus.innerHTML =
+    uploadStatus.textContent =
       stringBundle.GetStringFromName("testpilot.statusPage.uploadingData");
     task.upload( function(success) {
       if (success) {
@@ -83,9 +83,9 @@ var stringBundle;
       } else {
         // Replace 'now uploading' message
         let errorParagraph = document.createElement("p");
-        errorParagraph.innerHTML = stringBundle.GetStringFromName("testpilot.statusPage.uploadErrorMsg");
+        errorParagraph.textContent = stringBundle.GetStringFromName("testpilot.statusPage.uploadErrorMsg");
         let willRetryParagraph = document.createElement("p");
-        willRetryParagraph.innerHTML = stringBundle.GetStringFromName("testpilot.statusPage.willRetry");
+        willRetryParagraph.textContent = stringBundle.GetStringFromName("testpilot.statusPage.willRetry");
         uploadStatus.innerHTML = "";
         uploadStatus.appendChild(errorParagraph);
         uploadStatus.appendChild(willRetryParagraph);
@@ -233,17 +233,17 @@ var stringBundle;
       return;
     }
     if (diff < 0) {
-      span.innerHTML =
+      span.textContent =
         stringBundle.GetStringFromName("testpilot.statusPage.endedAlready");
       return;
     }
     var hours = diff / (60 * 60 * 1000);
     if (hours < 24) {
-      span.innerHTML =
+      span.textContent =
         stringBundle.formatStringFromName(
 	  "testpilot.statusPage.todayAt", [endDate.toLocaleTimeString()], 1);
     } else {
-      span.innerHTML =
+      span.textContent =
         stringBundle.formatStringFromName(
 	  "testpilot.statusPage.endOn", [endDate.toLocaleString()], 1);
     }
@@ -255,20 +255,20 @@ var stringBundle;
     MetadataCollector.getMetadata(function(md) {
       var mdLocale = document.getElementById("md-locale");
       if (mdLocale)
-        mdLocale.innerHTML = md.location;
+        mdLocale.textContent = md.location;
       var mdVersion = document.getElementById("md-version");
       if (mdVersion)
-        mdVersion.innerHTML = md.version;
+        mdVersion.textContent = md.version;
       var mdOs = document.getElementById("md-os");
       if (mdOs)
-        mdOs.innerHTML = md.operatingSystem;
+        mdOs.textContent = md.operatingSystem;
       var mdNumExt = document.getElementById("md-num-ext");
       if (mdNumExt) {
         // This computes the correctly localized singular or plural string
         // of the number of extensions, e.g. "1 extension", "2 extensions", etc.
         let str = stringBundle.GetStringFromName("testpilot.statusPage.numExtensions");
         var numExt = md.extensions.length;
-        mdNumExt.innerHTML = PluralForm.get(numExt, str).replace("#1", numExt);
+        mdNumExt.textContent = PluralForm.get(numExt, str).replace("#1", numExt);
       }
     });
   }
@@ -279,7 +279,7 @@ var stringBundle;
     let eid = getUrlParam("eid");
     let task = TestPilotSetup.getTaskById(eid);
     let header = document.getElementById("about-quit-title");
-    header.innerHTML =
+    header.textContent =
       stringBundle.formatStringFromName(
 	"testpilot.quitPage.aboutToQuit", [task.title], 1);
 
@@ -330,14 +330,14 @@ var stringBundle;
       return;
     }
     let days = experiment._recurrenceInterval;
-    recurPrefSpan.innerHTML =
+    recurPrefSpan.textContent =
       stringBundle.formatStringFromName(
 	"testpilot.statusPage.recursEveryNumberOfDays", [days], 1);
 
     let controls = document.getElementById("recur-controls");
     let selector = document.createElement("select");
     controls.appendChild(selector);
-    selector.setAttribute("onchange", "updateRecurSettings();");
+    selector.addEventListener("change", updateRecurSettings, false);
     selector.setAttribute("id", "recur-selector");
 
     let option = document.createElement("option");
@@ -345,7 +345,7 @@ var stringBundle;
     if (experiment.recurPref == TaskConstants.ASK_EACH_TIME) {
       option.setAttribute("selected", "true");
     }
-    option.innerHTML =
+    option.textContent =
       stringBundle.GetStringFromName(
 	"testpilot.statusPage.askMeBeforeSubmitData");
     selector.appendChild(option);
@@ -355,7 +355,7 @@ var stringBundle;
     if (experiment.recurPref == TaskConstants.ALWAYS_SUBMIT) {
       option.setAttribute("selected", "true");
     }
-    option.innerHTML =
+    option.textContent =
       stringBundle.GetStringFromName(
 	"testpilot.statusPage.alwaysSubmitData");
     selector.appendChild(option);
@@ -365,7 +365,7 @@ var stringBundle;
     if (experiment.recurPref == TaskConstants.NEVER_SUBMIT) {
       option.setAttribute("selected", "true");
     }
-    option.innerHTML =
+    option.textContent =
       stringBundle.GetStringFromName(
 	"testpilot.statusPage.neverSubmitData");
     selector.appendChild(option);
@@ -482,7 +482,7 @@ var stringBundle;
         Services.console.logStringMessage("No elem as " + entry.id +".\n");
         continue;
       }
-      elem.innerHTML = stringBundle.GetStringFromName(entry.stringKey);
+      elem.textContent = stringBundle.GetStringFromName(entry.stringKey);
     }
   }
 

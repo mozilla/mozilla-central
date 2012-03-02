@@ -54,41 +54,46 @@ function onBuiltinSurveyLoad() {
   let explanation = document.getElementById("survey-explanation");
   if (!task) {
     // Tasks haven't all loaded yet.  Try again in a few seconds.
-    contentDiv.innerHTML =
+    contentDiv.textContent =
       stringBundle.GetStringFromName("testpilot.surveyPage.loading");
     window.setTimeout(function() { onBuiltinSurveyLoad(); }, 2000);
     return;
   }
 
   let title = document.getElementById("survey-title");
-  title.innerHTML = task.title;
+  title.textContent = task.title;
 
   let submitButton = document.getElementById("survey-submit");
   if (task.relatedStudyId) {
-     submitButton.innerHTML =
+     submitButton.textContent =
       stringBundle.GetStringFromName("testpilot.surveyPage.submitAnswers");
   } else {
-    submitButton.innerHTML =
+    submitButton.textContent =
       stringBundle.GetStringFromName("testpilot.surveyPage.saveAnswers");
   }
 
+  explanation.innerHTML = "";
+  contentDiv.innerHTML = "";
   if (task.status == TaskConstants.STATUS_SUBMITTED) {
-    contentDiv.innerHTML =
-      "<p>" +
-      stringBundle.GetStringFromName(
-        "testpilot.surveyPage.thankYouForFinishingSurvey") + "</p><p>" +
-      stringBundle.GetStringFromName(
-        "testpilot.surveyPage.reviewOrChangeYourAnswers") + "</p>";
-    explanation.innerHTML = "";
+    let thanks = document.createElement("p");
+    thanks.textContent =
+      stringBundle.GetStringFromName("testpilot.surveyPage.thankYouForFinishingSurvey");
+    contentDiv.appendElement(thanks);
+    let review = document.createElement("p");
+    review.textContent = 
+      stringBundle.GetStringFromName("testpilot.surveyPage.reviewOrChangeYourAnswers");
+    contentDiv.appendElement(review);
     submitButton.setAttribute("style", "display:none");
     let changeButton = document.getElementById("change-answers");
     changeButton.setAttribute("style", "");
   } else {
-    contentDiv.innerHTML = "";
     if (task.surveyExplanation) {
-      explanation.innerHTML = task.surveyExplanation;
-    } else {
-      explanation.innerHTML = "";
+      // parse and sanitize HTML for surveyExplanation
+      // https://developer.mozilla.org/en/XUL_School/DOM_Building_and_HTML_Insertion#Safely_Using_Remote_HTML
+      let expl = Components.classes["@mozilla.org/feed-unescapehtml;1"]  
+                   .getService(Components.interfaces.nsIScriptableUnescapeHTML)  
+                   .parseFragment(task.surveyExplanation, false, null, document);  
+      explanation.appendElement(expl);
     }
     drawSurveyForm(task, contentDiv);
     // Allow surveys to define arbitrary page load handlers - call them
@@ -120,12 +125,13 @@ function drawSurveyForm(task, contentDiv) {
     let elem, j;
 
     elem = document.createElement("h3");
-    elem.innerHTML = (i+1) + ". " + question;
+    elem.textContent = (i+1) + ". " + question;
     contentDiv.appendChild(elem);
     if (explanation) {
       elem = document.createElement("p");
       elem.setAttribute("class", "survey-question-explanation");
-      elem.innerHTML = explanation;
+      // XXX this might need to support HTML
+      elem.textContent = explanation;
       contentDiv.appendChild(elem);
     }
     // If you've done this survey before, preset all inputs using old answers
@@ -141,7 +147,7 @@ function drawSurveyForm(task, contentDiv) {
           newRadio.setAttribute("checked", "true");
         }
         let label = document.createElement("span");
-        label.innerHTML = choices[j];
+        label.textContent = choices[j];
         contentDiv.appendChild(newRadio);
         contentDiv.appendChild(label);
         contentDiv.appendChild(document.createElement("br"));
@@ -165,7 +171,7 @@ function drawSurveyForm(task, contentDiv) {
           }
         }
         let label = document.createElement("span");
-        label.innerHTML = choices[j];
+        label.textContent = choices[j];
         contentDiv.appendChild(newCheck);
         contentDiv.appendChild(label);
         contentDiv.appendChild(document.createElement("br"));
@@ -185,7 +191,7 @@ function drawSurveyForm(task, contentDiv) {
             }
           }, false);
         let label = document.createElement("span");
-        label.innerHTML = surveyQuestions[i].free_entry + "&nbsp:&nbsp";
+        label.textContent = surveyQuestions[i].free_entry + "&nbsp:&nbsp";
         let inputBox = document.createElement("textarea");
         inputBox.setAttribute("id", freeformId);
         inputBox.addEventListener(
@@ -214,7 +220,7 @@ function drawSurveyForm(task, contentDiv) {
       break;
     case SCALE:
       let label = document.createElement("span");
-      label.innerHTML = surveyQuestions[i].min_label;
+      label.textContent = surveyQuestions[i].min_label;
       contentDiv.appendChild(label);
       for (j = surveyQuestions[i].scale_minimum;
            j <= surveyQuestions[i].scale_maximum;
@@ -229,7 +235,7 @@ function drawSurveyForm(task, contentDiv) {
         contentDiv.appendChild(newRadio);
       }
       label = document.createElement("span");
-      label.innerHTML = surveyQuestions[i].max_label;
+      label.textContent = surveyQuestions[i].max_label;
       contentDiv.appendChild(label);
       break;
     case FREE_ENTRY:
@@ -259,7 +265,7 @@ function drawSurveyForm(task, contentDiv) {
             }
           }, false);
         let label = document.createElement("span");
-        label.innerHTML = choices[j];
+        label.textContent = choices[j];
         if (oldAnswers && oldAnswers[i] == String(j)) {
           newRadio.setAttribute("checked", "true");
           checked = true;
@@ -276,7 +282,7 @@ function drawSurveyForm(task, contentDiv) {
         newRadio.setAttribute("name", radioName);
         newRadio.setAttribute("value", freeformId);
         let label = document.createElement("span");
-        label.innerHTML = surveyQuestions[i].free_entry + "&nbsp:&nbsp";
+        label.textContent = surveyQuestions[i].free_entry + "&nbsp:&nbsp";
         let inputBox = document.createElement("textarea");
         inputBox.setAttribute("id", freeformId);
         inputBox.addEventListener(
@@ -367,7 +373,7 @@ function setStrings() {
   let mapLength = map.length;
   for (let i = 0; i < mapLength; i++) {
     let entry = map[i];
-    document.getElementById(entry.id).innerHTML =
+    document.getElementById(entry.id).textContent =
       stringBundle.GetStringFromName(entry.stringKey);
   }
 }

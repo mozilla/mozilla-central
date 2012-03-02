@@ -83,15 +83,15 @@ function fillAllStudiesPage() {
     let newRow = document.createElement("tr");
 
     let newCell = document.createElement("td");
-    newCell.innerHTML = task.title;
+    newCell.textContent = task.title;
     newRow.appendChild(newCell);
     newCell = document.createElement("td");
-    newCell.innerHTML = task.summary;
+    newCell.textContent = task.summary;
     newRow.appendChild(newCell);
 
     let link = document.createElement("a");
     link.setAttribute("href", task.defaultUrl);
-    link.innerHTML = "More Info";
+    link.textContent = "More Info";
 
     newCell = document.createElement("td");
     newCell.appendChild(link);
