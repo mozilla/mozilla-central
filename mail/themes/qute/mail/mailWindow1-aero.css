@@ -26,6 +26,12 @@ treechildren::-moz-tree-image(news, threadCol, watch) {
   -moz-margin-start: -2px;
 }
 
+#mailContent[layout="wide"] #threadPaneBox,
+#mailContent[layout="wide"] #folderPaneBox {
+  margin-bottom: 0;
+  border-bottom: 0;
+}
+
 #folderpane_splitter,
 #threadpane-splitter:not([orient="vertical"]) {
   border: none;
@@ -57,6 +63,10 @@ treechildren::-moz-tree-image(news, threadCol, watch) {
 
 #folderpane_splitter[state="collapsed"]:hover:-moz-locale-dir(rtl) {
   border-right: 4px solid highlight;
+}
+
+#mailContent[layout="wide"] #folderpane_splitter {
+  margin-bottom: 0;
 }
 
 #threadpane-splitter,
