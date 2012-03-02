@@ -166,14 +166,6 @@ EventTarget::AddEventListener(JSContext* aCx, uintN aArgc, jsval* aVp)
     return false;
   }
 
-  if (!EnsureObjectIsEventTarget(aCx, obj, "RemoveEventListener")) {
-    return false;
-  }
-
-  if (!EnsureObjectIsEventTarget(aCx, obj, "DispatchEvent")) {
-    return false;
-  }
-
   EventTarget* self = GetPrivate(aCx, obj);
   if (!self) {
     return true;
@@ -202,6 +194,10 @@ EventTarget::RemoveEventListener(JSContext* aCx, uintN aArgc, jsval* aVp)
 {
   JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
 
+  if (!EnsureObjectIsEventTarget(aCx, obj, "RemoveEventListener")) {
+    return false;
+  }
+
   EventTarget* self = GetPrivate(aCx, obj);
   if (!self) {
     return true;
@@ -229,6 +225,10 @@ JSBool
 EventTarget::DispatchEvent(JSContext* aCx, uintN aArgc, jsval* aVp)
 {
   JSObject* obj = JS_THIS_OBJECT(aCx, aVp);
+
+  if (!EnsureObjectIsEventTarget(aCx, obj, "DispatchEvent")) {
+    return false;
+  }
 
   EventTarget* self = GetPrivate(aCx, obj);
   if (!self) {
