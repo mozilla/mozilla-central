@@ -64,7 +64,6 @@ _BROWSER_FILES = browser_bug413915.js \
                  browser_bug562649.js \
                  browser_bug585511.js \
                  browser_bug595507.js \
-                 browser_checkAddonCompatibility.js \
                  browser_fayt.js \
                  browser_page_style_menu.js \
                  page_style_sample.html \
