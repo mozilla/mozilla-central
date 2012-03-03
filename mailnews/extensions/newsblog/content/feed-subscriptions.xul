@@ -53,7 +53,8 @@
         persist="width height screenX screenY sizemode"
         onload="gFeedSubscriptionsWindow.onLoad();"
         onunload="return gFeedSubscriptionsWindow.onUnload();"
-        onclick="gFeedSubscriptionsWindow.onClick(event);">
+        onkeypress="gFeedSubscriptionsWindow.onKeyPress(event);"
+        onmousedown="gFeedSubscriptionsWindow.onMouseDown(event);">
 
   <script type="application/javascript" src="utils.js"/>
   <script type="application/javascript" src="file-utils.js"/>
@@ -90,7 +91,6 @@
           flex="1"
           hidecolumnpicker="true"
           onselect="gFeedSubscriptionsWindow.onSelect();"
-          onkeypress="gFeedSubscriptionsWindow.onKeyPress(event);"
           seltype="single">
       <treecols>
         <treecol id="folderNameCol"
@@ -130,7 +130,9 @@
               <textbox id="locationValue"
                        class="uri-element"
                        placeholder="&feedLocation.placeholder;"
-                       clickSelectsAll="true"/>
+                       clickSelectsAll="true"
+                       onfocus="gFeedSubscriptionsWindow.setSummaryFocus();"
+                       onblur="gFeedSubscriptionsWindow.setSummaryFocus();"/>
             </row>
             <row>
               <hbox align="right" valign="middle">
@@ -199,7 +201,8 @@
         </grid>
         <checkbox id="quickMode"
                   accesskey="&quickMode.accesskey;"
-                  label="&quickMode.label;"/>
+                  label="&quickMode.label;"
+                  oncommand="gFeedSubscriptionsWindow.setSummary(this.checked)"/>
       </vbox>
     </hbox>
 

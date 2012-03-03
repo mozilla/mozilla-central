@@ -22,6 +22,7 @@
 # Contributor(s):
 #  Scott MacGregor <mscott@mozilla.org>
 #  Ian Neal <iann_bugzilla@blueyonder.co.uk>
+#  alta88 <alta88@gmail.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -338,7 +339,7 @@ var gFeedSubscriptionsWindow = {
         // Don't freeze the app that initiated the drop just because we are
         // in a loop waiting for the user to dimisss the add feed dialog.
         setTimeout(function() {
-          win.addFeed(results.url, null, true, win.kSubscribeMode);
+          win.addFeed(results.url, null, true, null, win.kSubscribeMode);
         }, 0);
         let folderItem = this.getItemAtIndex(aRow);
         FeedUtils.log.debug("drop: folder, url - " +
@@ -537,7 +538,6 @@ var gFeedSubscriptionsWindow = {
                           name     : aFolder.prettiestName,
                           level    : aCurrentLevel,
                           url      : aFolder.URI,
-                          //QueryInterface(Ci.nsIRDFResource).Value,
                           quickMode: defaultQuickMode,
                           open     : false,
                           container: true };
@@ -570,18 +570,17 @@ var gFeedSubscriptionsWindow = {
     let feeds = this.getFeedsInFolder(aFolder);
     for (let feed in feeds)
     {
-      // Special case, if a folder only has a single feed associated with it,
-      // then just use the feed in the view and don't show the folder at all.
-      // Note: split always adds an empty element to the array...
-//      if (feedUrlArray.length <= 2 && !aFolder.hasSubFolders)
-//        this.mFeedContainers[aCurrentLength] =
-//            this.makeFeedObject(feed, aCurrentLevel);
-//      else
-        // Now add any feed urls for the folder.
-        folderObject.children.push(this.makeFeedObject(feeds[feed],
-                                                       aFolder,
-                                                       aCurrentLevel + 1));
+      // Now add any feed urls for the folder.
+      folderObject.children.push(this.makeFeedObject(feeds[feed],
+                                                     aFolder,
+                                                     aCurrentLevel + 1));
     }
+
+    // Finally, set the folder's quickMode based on the its first feed's
+    // quickMode, since that is how the view determines summary mode, and now
+    // quickMode is updated to be the same for all feeds in a folder.
+    if (feeds)
+      folderObject.quickMode = feeds[0].quickMode;
 
     return folderObject;
   },
@@ -825,12 +824,51 @@ var gFeedSubscriptionsWindow = {
   setFolderPicker: function(aFolderURI)
   {
     let selectFolder = document.getElementById("selectFolder");
+    let editFeed = document.getElementById("editFeed");
+
     let msgFolder = GetMsgFolderFromUri(aFolderURI, true);
     if (!msgFolder)
-      return;
+      return editFeed.disabled = true;
 
+    editFeed.disabled = false;
     selectFolder.setAttribute("label", msgFolder.name);
     selectFolder.setAttribute("uri", msgFolder.URI);
+  },
+
+  setSummary: function(aChecked)
+  {
+    let item = this.mView.currentItem;
+    if (!item || !item.folder)
+      // Not a folder.
+      return;
+
+    if (item.folder.isServer)
+    {
+      if (document.getElementById("locationValue").value)
+        // Intent is to add a feed/folder to the account, so return.
+        return;
+
+      // An account folder.  If it changes, all non feed containing subfolders
+      // need to be updated with the new default.
+      item.folder.server.setBoolValue("quickMode", aChecked);
+      this.refreshSubscriptionView();
+    }
+    else if (!getFeedUrlsInFolder(item.folder))
+      // Not a folder with feeds.
+      return;
+    else
+    {
+      let feedsInFolder = this.getFeedsInFolder(item.folder);
+      // Update the feeds database, for each feed in the folder.
+      feedsInFolder.forEach(function(feed) { feed.quickMode = aChecked; });
+      // Update the folder's feeds properties in the tree map.
+      item.children.forEach(function(feed) { feed.quickMode = aChecked; });
+    }
+
+    // Update the folder in the tree map.
+    item.quickMode = aChecked;
+    let message = FeedUtils.strings.GetStringFromName("subscribe-feedUpdated");
+    this.updateStatusItem("statusText", message);
   },
 
   onKeyPress: function(aEvent)
@@ -847,6 +885,7 @@ var gFeedSubscriptionsWindow = {
     let isServer = item && item.folder && item.folder.isServer;
     let disable;
     this.updateFeedData(item);
+    this.setSummaryFocus();
     disable = !item || (!item.container || this.mActionMode == this.kMoveMode);
     document.getElementById("addFeed").disabled = disable;
     disable = !item || (item.container && this.mActionMode != this.kMoveMode);
@@ -856,12 +895,32 @@ var gFeedSubscriptionsWindow = {
     document.getElementById("exportOPML").disabled = !item || !isServer;
   },
 
-  onClick: function (aEvent)
+  onMouseDown: function (aEvent)
   {
     if (aEvent.button != 0)
       return;
 
     this.clearStatusInfo();
+  },
+
+  setSummaryFocus: function ()
+  {
+    let item = this.mView.currentItem;
+    let locationValue = document.getElementById("locationValue");
+    let quickMode = document.getElementById("quickMode");
+
+    if (item && item.folder &&
+        (locationValue.hasAttribute("focused") || locationValue.value ||
+         item.folder.isServer || getFeedUrlsInFolder(item.folder)))
+    {
+      // Enable summary for account folder or folder with feeds or focus/value
+      // in the feed url field of empty folders prior to add.
+      quickMode.disabled = false;
+    }
+    else
+    {
+      quickMode.disabled = true;
+    }
   },
 
   removeFeed: function (aPrompt)
@@ -893,8 +952,11 @@ var gFeedSubscriptionsWindow = {
                itemToRemove.parentFolder);
 
     // Now that we have removed the feed from the datasource, it is time to
-    // update our view layer.  Start by removing the child from its parent
-    // folder object.
+    // update our view layer.  Update parent folder's quickMode if necessary
+    // and remove the child from its parent folder object.
+    let parentIndex = this.mView.getParentIndex(seln.currentIndex);
+    let parentItem = this.mView.getItemAtIndex(parentIndex);
+    this.updateFolderQuickModeInView(itemToRemove, parentItem, true);
     this.mView.removeItemAtIndex(seln.currentIndex, false);
     let message = FeedUtils.strings.GetStringFromName("subscribe-feedRemoved");
     this.updateStatusItem("statusText", message);
@@ -916,18 +978,21 @@ var gFeedSubscriptionsWindow = {
    *                                     folder if null.
    * @param  [aParse] boolean          - if true (default) parse and download
    *                                     the feed's articles.
+   * @param  [aParams] object          - additional params.
    * @param  [aMode] integer           - action mode (default is kSubscribeMode)
    *                                     of the add.
    * 
    * @return success boolean           - true if edit checks passed and an
    *                                     async download has been initiated.
    */
-  addFeed: function(aFeedLocation, aFolder, aParse, aMode)
+  addFeed: function(aFeedLocation, aFolder, aParse, aParams, aMode)
   {
     let message;
     let parse = aParse == null ? true : aParse;
     let mode = aMode == null ? this.kSubscribeMode : aMode;
     let locationValue = document.getElementById("locationValue");
+    let quickMode = aParams && ("quickMode" in aParams) ?
+        aParams.quickMode : document.getElementById("quickMode").checked;
 
     if (aFeedLocation)
       locationValue.value = aFeedLocation;
@@ -971,7 +1036,6 @@ var gFeedSubscriptionsWindow = {
     }
 
     let name = document.getElementById("nameValue").value;
-    let quickMode = document.getElementById("quickMode").checked;
     let folderURI = addFolder.isServer ? null : addFolder.URI;
     let feedProperties = { feedName     : name,
                            feedLocation : feedLocation,
@@ -1041,7 +1105,7 @@ var gFeedSubscriptionsWindow = {
     {
       // Updating a url.  We need to add the new url and delete the old, to
       // ensure everything is cleaned up correctly.
-      this.addFeed(null, itemToEdit.parentFolder, false, this.kUpdateMode)
+      this.addFeed(null, itemToEdit.parentFolder, false, null, this.kUpdateMode)
       return;
     }
 
@@ -1138,9 +1202,10 @@ var gFeedSubscriptionsWindow = {
       // Moving to a new account.  If dropping on the account folder, a new
       // subfolder is created if necessary.
       accountMove = true;
+      let params = {quickMode: currentItem.quickMode};
       // Subscribe to the new folder first.  If it already exists in the
       // account or on error, return.
-      if (!this.addFeed(currentItem.url, newFolder, false, this.kMoveMode))
+      if (!this.addFeed(currentItem.url, newFolder, false, params, this.kMoveMode))
         return;
       // Unsubscribe the feed from the old folder, if add to the new folder
       // is successfull.
@@ -1149,7 +1214,9 @@ var gFeedSubscriptionsWindow = {
                  currentItem.parentFolder);
     }
 
-    // Finally, update our view layer.  Remove the old row.
+    // Finally, update our view layer.  Update old parent folder's quickMode
+    // and remove the old row.
+    this.updateFolderQuickModeInView(currentItem, currentParentItem, true);
     this.mView.removeItemAtIndex(aOldFeedIndex, true);
     if (aNewParentIndex > aOldFeedIndex)
       aNewParentIndex--;
@@ -1165,6 +1232,7 @@ var gFeedSubscriptionsWindow = {
     // Add the new row location to the view.
     currentItem.level = newParentItem.level + 1;
     currentItem.parentFolder = newFolder;
+    this.updateFolderQuickModeInView(currentItem, newParentItem, false);
     newParentItem.children.push(currentItem);
 
     if (newParentItem.open)
@@ -1176,6 +1244,34 @@ var gFeedSubscriptionsWindow = {
 
     let message = FeedUtils.strings.GetStringFromName("subscribe-feedMoved");
     this.updateStatusItem("statusText", message);
+  },
+
+  updateFolderQuickModeInView: function (aFeedItem, aParentItem, aRemove)
+  {
+    let feedItem = aFeedItem;
+    let parentItem = aParentItem;
+    let feedUrlArray = getFeedUrlsInFolder(feedItem.parentFolder);
+    let feedsInFolder = feedUrlArray ? feedUrlArray.length : 0;
+
+    if (aRemove && feedsInFolder < 1)
+      // Removed only feed in folder; set quickMode to server default.
+      parentItem.quickMode = parentItem.folder.server.getBoolValue("quickMode");
+
+    if (!aRemove)
+    {
+      // Just added a feed to a folder.  If there are already feeds in the
+      // folder, the feed must reflect the parent's quickMode.  If it is the
+      // only feed, update the parent folder to the feed's quickMode.
+      if (feedsInFolder > 1)
+      {
+        let feedResource = rdf.GetResource(feedItem.url);
+        let feed = new Feed(feedResource, feedItem.parentFolder.server);
+        feed.quickMode = parentItem.quickMode;
+        feedItem.quickMode = parentItem.quickMode;
+      }
+      else
+        parentItem.quickMode = feedItem.quickMode;
+    }
   },
 
   beginDrag: function (aEvent)
@@ -1227,7 +1323,7 @@ var gFeedSubscriptionsWindow = {
           {
             // Open the container, if it exists.
             let folderExists = win.selectFolder(feed.folder, true, curIndex);
-            if (!folderExists) //curItem.folder.isServer && 
+            if (!folderExists)
             {
               // This means a new folder was created.
               parentIndex = curIndex;
@@ -1256,6 +1352,7 @@ var gFeedSubscriptionsWindow = {
             newItem = win.makeFeedObject(feed, feed.folder, level);
           }
 
+          win.updateFolderQuickModeInView(newItem, parentItem, false);
           parentItem.children.push(newItem);
 
           if (win.mActionMode == win.kSubscribeMode)
