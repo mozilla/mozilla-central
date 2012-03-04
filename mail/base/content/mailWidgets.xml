@@ -236,9 +236,9 @@
       <method name="_fireOnSelect">
         <body><![CDATA[
           if (!this._suppressOnSelect && !this.suppressOnSelect) {
-            var event = document.createEvent("Events");
-            event.initEvent("select", false, true);
-            this.dispatchEvent(event);
+            let evt = document.createEvent("Events");
+            evt.initEvent("select", false, true);
+            this.dispatchEvent(evt);
           }
         ]]></body>
       </method>
@@ -287,9 +287,10 @@
       <handler event="keypress" keycode="VK_RETURN"><![CDATA[
         if (this.currentItem) {
           this.addItemToSelection(this.currentItem);
-          let event = document.createEvent("Events");
-          event.initEvent("command", true, true);
-          this.currentItem.dispatchEvent(event);
+          let evt = document.createEvent("XULCommandEvent");
+          evt.initCommandEvent("command", true, true, window, 0, event.ctrlKey,
+                               event.altKey, event.shiftKey, event.metaKey, null);
+          this.currentItem.dispatchEvent(evt);
         }
       ]]></handler>
       <handler event="click" button="0" phase="target"><![CDATA[
@@ -396,9 +397,10 @@
     </content>
     <handlers>
       <handler event="click" button="0" clickcount="2"><![CDATA[
-        let event = document.createEvent("Events");
-        event.initEvent("command", true, true);
-        this.dispatchEvent(event);
+        let evt = document.createEvent("XULCommandEvent");
+        evt.initCommandEvent("command", true, true, window, 0, event.ctrlKey,
+                             event.altKey, event.shiftKey, event.metaKey, null);
+        this.dispatchEvent(evt);
       ]]></handler>
     </handlers>
   </binding>
