@@ -150,6 +150,7 @@ pref("keyword.enabled", true);
 pref("keyword.URL", "");
 
 pref("browser.urlbar.autocomplete.enabled", true);
+pref("browser.urlbar.formatting.enabled", true);
 pref("browser.urlbar.clickSelectsAll", true);
 // when clickSelectsAll=true, does it also apply when the click is past end of text?
 pref("browser.urlbar.clickAtEndSelects", true);

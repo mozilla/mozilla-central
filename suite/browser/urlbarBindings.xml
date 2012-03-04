@@ -48,6 +48,7 @@
         this.updatePref("browser.urlbar.showPopup");
         this.updatePref("browser.urlbar.autoFill");
         this.updatePref("browser.urlbar.showSearch");
+        this.updatePref("browser.urlbar.formatting.enabled");
         this.inputField.controllers.insertControllerAt(0, this._editItemsController);
       ]]></constructor>
 
@@ -77,16 +78,71 @@
         <parameter name="aPref"/>
         <body><![CDATA[
           if (aPref == "browser.urlbar.showPopup") {
-            this.showPopup = this.mPrefs.getBoolPref("browser.urlbar.showPopup");
+            this.showPopup = this.mPrefs.getBoolPref(aPref);
           } else if (aPref == "browser.urlbar.autoFill") {
-            this.autoFill = this.mPrefs.getBoolPref("browser.urlbar.autoFill");
+            this.autoFill = this.mPrefs.getBoolPref(aPref);
           } else if (aPref == "browser.urlbar.showSearch") {
-            this.minResultsForPopup = this.mPrefs.getBoolPref("browser.urlbar.showSearch") ?
-                                      0 : 1;
+            this.minResultsForPopup = this.mPrefs.getBoolPref(aPref) ?  0 : 1;
+          } else if (aPref == "browser.urlbar.formatting.enabled") {
+            this._formattingEnabled = this.mPrefs.getBoolPref(aPref);
+            this._formatValue(this._formattingEnabled && !this.focused);
           }
         ]]></body>
       </method>
-      
+
+      <field name="_formattingEnabled">true</field>
+
+      <method name="_formatValue">
+        <parameter name="formattingEnabled"/>
+        <body><![CDATA[
+          var controller = this.editor.selectionController;
+          var selection = controller.getSelection(controller.SELECTION_URLSECONDARY);
+          selection.removeAllRanges();
+          if (!formattingEnabled)
+            return;
+
+          var textNode = this.editor.rootElement.firstChild;
+          var value = textNode.textContent;
+
+          var protocol = value.match(/^[a-z\d.+\-]+:(?=[^\d])/);
+          if (protocol && !/^https?:|ftp:/.test(protocol[0]))
+            return;
+          var matchedURL = value.match(/^((?:[a-z]+:\/\/)?(?:[^\/]+@)?)(.+?)(?::\d+)?(?:\/|$)/);
+          if (!matchedURL)
+            return;
+
+          var [, preDomain, domain] = matchedURL;
+          var subDomain = "";
+          // getBaseDomainFromHost doesn't recognize IPv6 literals in brackets as IPs (bug 667159)
+          if (domain[0] != "[") {
+            try {
+              var baseDomain = Services.eTLD.getBaseDomainFromHost(domain);
+              if (baseDomain != domain) {
+                function dots(s) { return s.replace(/[^.]*/g, "").length; }
+                var subSegments = dots(domain) - dots(baseDomain);
+                subDomain = domain.match(new RegExp("(?:[^.]*\.){" + subSegments + "}"))[0];
+              }
+            } catch (e) {}
+          }
+
+          var startLength = preDomain.length + subDomain.length;
+          if (startLength) {
+            var startRange = document.createRange();
+            startRange.setStart(textNode, 0);
+            startRange.setEnd(textNode, startLength);
+            selection.addRange(startRange);
+          }
+
+          var endLength = preDomain.length + domain.length;
+          if (endLength < value.length) {
+            var endRange = document.createRange();
+            endRange.setStart(textNode, endLength);
+            endRange.setEnd(textNode, value.length);
+            selection.addRange(endRange);
+          }
+        ]]></body>
+      </method>
+
       <method name="autoFillInput">
         <parameter name="aSessionName"/>
         <parameter name="aResults"/>
@@ -208,6 +264,22 @@
         })
       ]]></field>
     </implementation>
+
+    <handlers>
+      <handler event="ValueChange"><![CDATA[
+        if (this._formattingEnabled && !this.focused)
+          this._formatValue(true);
+      ]]></handler>
+
+      <handler event="blur"><![CDATA[
+        if (this._formattingEnabled)
+          this._formatValue(true);
+      ]]></handler>
+
+      <handler event="focus"><![CDATA[
+        this._formatValue(false);
+      ]]></handler>
+    </handlers>
   </binding>
 
   <binding id="autocomplete-result-popup" extends="chrome://global/content/autocomplete.xml#autocomplete-result-popup">
