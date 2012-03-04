@@ -111,9 +111,9 @@
       <method name="_fireOnSelect">
         <body><![CDATA[
           if (!this._suppressOnSelect && !this.suppressOnSelect) {
-            var event = document.createEvent("Events");
-            event.initEvent("select", false, true);
-            this.dispatchEvent(event);
+            let evt = document.createEvent("Events");
+            evt.initEvent("select", false, true);
+            this.dispatchEvent(evt);
           }
         ]]></body>
       </method>
