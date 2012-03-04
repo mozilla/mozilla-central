@@ -2,14 +2,13 @@ component {08bbb4af-7bff-4b16-8ff7-d62f3ec5aa0c} nsSuiteDownloadManagerUI.js
 contract @mozilla.org/download-manager-ui;1 {08bbb4af-7bff-4b16-8ff7-d62f3ec5aa0c}
 component {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f} nsAbout.js
 contract @mozilla.org/network/protocol/about;1?what= {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
-component {b24861fb-e91a-40dd-886d-68d26a9586c7} nsAboutCertError.js
-contract @mozilla.org/network/protocol/about;1?what=certerror {b24861fb-e91a-40dd-886d-68d26a9586c7}
-component {7a02e7fe-b32c-40ea-a790-246ca49b6061} nsAboutData.js
-contract @mozilla.org/network/protocol/about;1?what=data {7a02e7fe-b32c-40ea-a790-246ca49b6061}
-component {3d19bdd7-2200-4724-9c97-31797d4c9269} nsAboutLife.js
-contract @mozilla.org/network/protocol/about;1?what=life {3d19bdd7-2200-4724-9c97-31797d4c9269}
-component {a03c813e-abe8-41de-8d0c-5aa85f877696} nsAboutSessionRestore.js
-contract @mozilla.org/network/protocol/about;1?what=sessionrestore {a03c813e-abe8-41de-8d0c-5aa85f877696}
+contract @mozilla.org/network/protocol/about;1?what=certerror {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
+contract @mozilla.org/network/protocol/about;1?what=data {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
+contract @mozilla.org/network/protocol/about;1?what=feeds {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
+contract @mozilla.org/network/protocol/about;1?what=life {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
+contract @mozilla.org/network/protocol/about;1?what=rights {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
+contract @mozilla.org/network/protocol/about;1?what=sessionrestore {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
+contract @mozilla.org/network/protocol/about;1?what=sync-tabs {d54f2c89-8fd6-4eeb-a7a4-51d4dcdf460f}
 component {4e6c1112-57b6-44ba-adf9-99fb573b0a30} nsSessionStartup.js
 contract @mozilla.org/suite/sessionstartup;1 {4e6c1112-57b6-44ba-adf9-99fb573b0a30}
 category app-startup SessionStartup service,@mozilla.org/suite/sessionstartup;1
@@ -24,5 +23,3 @@ component {22117140-9c6e-11d3-aaf1-00805f8a4905} nsSidebar.js
 contract @mozilla.org/sidebar;1 {22117140-9c6e-11d3-aaf1-00805f8a4905}
 category JavaScript-global-property sidebar @mozilla.org/sidebar;1
 category JavaScript-global-property external @mozilla.org/sidebar;1
-component {145dc3f6-f44a-4517-806a-9bec989400b4} nsAboutSyncTabs.js
-contract @mozilla.org/network/protocol/about;1?what=sync-tabs {145dc3f6-f44a-4517-806a-9bec989400b4}

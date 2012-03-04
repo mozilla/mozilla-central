@@ -54,7 +54,6 @@ EXTRA_COMPONENTS = \
 	SuiteFeeds.manifest \
 	FeedConverter.js \
 	WebContentConverter.js \
-	nsAboutFeeds.js \
 	$(NULL)
 
 EXTRA_PP_COMPONENTS = \

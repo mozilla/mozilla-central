@@ -48,7 +48,6 @@ endif
 
 EXTRA_COMPONENTS = \
 	SuiteBrowser.manifest \
-	nsAboutRights.js \
 	nsBrowserContentHandler.js \
 	nsTypeAheadFind.js \
 	$(NULL)

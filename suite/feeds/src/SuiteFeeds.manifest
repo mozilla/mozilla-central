@@ -14,5 +14,3 @@ category JavaScript-global-constructor BrowserFeedWriter @mozilla.org/browser/fe
 component {792a7e82-06a0-437c-af63-b2d12e808acc} WebContentConverter.js
 contract @mozilla.org/embeddor.implemented/web-content-handler-registrar;1 {792a7e82-06a0-437c-af63-b2d12e808acc}
 category app-startup WebContentConverter service,@mozilla.org/embeddor.implemented/web-content-handler-registrar;1
-component {f3487aac-65a0-4101-88a4-f7450c231351} nsAboutFeeds.js
-contract @mozilla.org/network/protocol/about;1?what=feeds {f3487aac-65a0-4101-88a4-f7450c231351}
