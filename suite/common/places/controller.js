@@ -846,7 +846,7 @@ PlacesController.prototype = {
    */
   moveSelectedBookmarks: function PC_moveBookmarks() {
     window.openDialog("chrome://communicator/content/bookmarks/moveBookmarks.xul",
-                      "", "chrome, modal",
+                      "", "chrome,modal,resizable=yes",
                       this._view.selectedNodes);
   },
 
