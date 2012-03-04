@@ -307,6 +307,7 @@ modules/searchSpec.js
   #endif
 #endif
 @DLL_PREFIX@mozlcms@DLL_SUFFIX@
+omni.jar
 #ifdef XP_MACOSX
   ../Plug-Ins/PrintPDE.plugin/Contents/Info.plist
   ../Plug-Ins/PrintPDE.plugin/Contents/MacOS/PrintPDE
@@ -533,7 +534,6 @@ xpicleanup@BIN_SUFFIX@
 @DLL_PREFIX@xpistub@DLL_SUFFIX@
 
 #ifdef MOZ_OMNIJAR
-  omni.jar
   chrome/be.jar
   chrome/ca.jar
   chrome/cs.jar
@@ -576,6 +576,7 @@ xpicleanup@BIN_SUFFIX@
   components/amContentHandler.js
   components/amWebInstallListener.js
   components/ConsoleAPI.js
+  components/ContactManager.js
   components/contentAreaDropListener.js
   components/contentSecurityPolicy.js
   components/crypto-SDR.js
@@ -1032,7 +1033,6 @@ xpicleanup@BIN_SUFFIX@
   update.locale
 #else
   components/binary.manifest
-  omni.jar
   omni.ja
 #endif
 
