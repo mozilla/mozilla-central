@@ -1,0 +1,89 @@
+===============
+= Code Layout =
+===============
+
+This directory consists of a MIME parser which is primarily implemented in JS
+and is designed to use either HTML 5 specifications or texts that are intendend
+to become HTML 5 specifications.
+
+The MIME parser consists of three logical phases of translation:
+1. Build the MIME (and pseudo-MIME) tree.
+2. Convert the MIME tree into a body-and-attachments view.
+3. Use the result to drive the message view.
+
+The first stage is located in mimeParserCore.js. The later stages are not yet
+implemented in JS. This file should not be included directly by consumers, who
+should instead use mimeParser.jsm, which contains easier-to-use APIs and also
+necessary glue components for use in JS modules or component contexts.
+
+=============================
+= Underlying specifications =
+=============================
+
+The specification of MIME is complicated and is spread around a very large
+number of references. For a single guide to everywhere, what follows is a list
+of all references used in the course of this parser, structured roughly
+according to how they are used:
+[NOTE: specifications which are marked with an X instead are not integrated
+       in this version of the code, but will be supported in a later version]
+Basic format of bodies:
+* RFC 2045 -- MIME Part 1, Format of Internet Message Bodies
+* RFC 2046 -- MIME Part 2, Media Types
+
+Structured header interpretation:
+X RFC 2047 -- MIME Part 3, Message Header Extensions for Non-ASCII Text
+X RFC 2231 -- MIME Parameter Value and Encoded Word Extensions
+* RFC 5322 -- Internet Message Format (see also RFC 2822, RFC 822)
+* RFC 5536 -- Netnews Article Format (see also RFC 1036)
+X RFC 6532 -- Internationalized Email Headers (see also RFC 5335)
+
+Body decoding:
+X <http://pubs.opengroup.org/onlinepubs/7908799/xcu/uuencode.html> -- Uuencode
+X <http://www.yenc.org/yenc-draft.1.3.txt> -- yEnc
+X RFC 1741 -- BinHex
+X <http://msdn.microsoft.com/en-us/library/cc425498%28v=exchg.80%29.aspx> --
+  TNEF
+X RFC 3165 -- MIME security with PGP
+X RFC 4880 -- OpenPGP (see also RFC 2440)
+X RFC 5751 -- S/MIME (see also RFC 3851, RFC 2633)
+
+Other:
+X RFC 2387 -- multipart/related
+X RFC 2392 -- Content-ID and Message-ID  URLs
+X RFC 2557 -- MIME-encapsulated aggegrate documents
+* RFC 3501 -- IMAPv4rev1 [partial basis for part numbering]
+X RFC 3676 -- text/plain format (format=flowed) (see also RFC 2646)
+X RFC 3798 -- Message delivery notification (see also RFC 5337 and RFC 6533)
+
+While the above is a fairly comprehensive list of specifications, it turns
+out that a somewhat different structure can be found in practice. Following
+the general principle of "Be liberal in what you accept and conservative in
+what you send," this parser will attempt to make some sense of anything
+passed into it. Some pathologically bad cases that the specification gives no
+guidance to (such as having nested multipart/* bodies with the same boundary
+permitted) are likely to provide inconsistent results with different parsers.
+
+However, what follows is a list of modifications to the above specifications
+that are necessary to account for messages which have been observed to cause
+issues in the real world:
+* All three line conventions are treated as a CRLF (\r, \n, \r\n). In this
+  parser, it is possible to use a mixture of line endings in the same file,
+  although this is highly unlikely to come up in practice.
+* The input text need not be either ASCII or UTF-8 (permissible under the
+  newer EAI specifications). Some tools that are insufficiently aware of i18n
+  issues with respect to MIME may end up emitting non-ASCII (or non-UTF-8)
+  data. In this parser, all header data is passed through as-is. Header names
+  are canonicalized to lowercase using .toLowerCase(), which causes case
+  conversion for non-ASCII charsets as well. However, even under EAI, header
+  names are specified to be pure ASCII so this should not be an issue in
+  practice. The body is left alone unless a charset is specified and recoding
+  is explicitly requested.
+* CFWS is permitted in fewer places than the specifications require. This was
+  done to match other parsers (including the one this replaced, among others).
+  In particular, the Content-Type parameter needs to be a single run of text, so
+  "multipart / mixed" would be treated as an invalid type.
+* If the first line of a headers block starts with the Berkely mailbox delimiter
+  (From followed by a space), it is ignored.
+* A message/rfc822-like part may be encoded in quoted-printable or base64, while
+  RFC 6532 only permits this for message/global.
+* XXX: RFC 2047 encoded words may contain embedded spaces.

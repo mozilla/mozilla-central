@@ -18,5 +18,10 @@ ifdef ENABLE_TESTS
 PARALLEL_DIRS += test
 endif
 
+EXTRA_JS_MODULES = \
+  jsmime/mimeParser.jsm \
+  jsmime/mimeParserCore.js \
+  $(NULL)
+
 include $(topsrcdir)/config/rules.mk
 
