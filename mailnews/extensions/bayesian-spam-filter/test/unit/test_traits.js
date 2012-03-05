@@ -95,9 +95,11 @@ var tests =
    fileName: "spam2.eml",
    traitIds: [4],
    traitAntiIds: [3],
-   percents: [84, 84, 84, 16],
-   runnings: [84, 92, 95, 81],
-   tokens: ["lots", "money", "make", "your"]
+   percents: { lots: 84,
+               money: 84,
+               make: 84,
+               your: 16 },
+   runnings: [84, 92, 95, 81]
   },
   {command: kClass,
    fileName: "spam1.eml,spam2.eml,spam3.eml,spam4.eml",
@@ -181,10 +183,13 @@ var listener =
       print("Percent " + aTokenPercents[i] +
             " Running " + aRunningPercents[i] +
             " Token " + aTokenString[i]);
-      do_check_eq(aTokenString[i], gTest.tokens[i]);
-      do_check_eq(aTokenPercents[i], gTest.percents[i]);
-      do_check_eq(aRunningPercents[i], gTest.runnings[i]);
+      do_check_true(aTokenString[i] in gTest.percents);
+
+      do_check_eq(gTest.percents[aTokenString[i]], aTokenPercents[i]);
+      do_check_eq(gTest.runnings[i], aRunningPercents[i]);
+      delete gTest.percents[aTokenString[i]];
     }
+    do_check_eq(Object.keys(gTest.percents).length, 0);
     gTest.currentIndex++;
     startCommand();
   }
