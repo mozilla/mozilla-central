@@ -3561,6 +3561,12 @@
           if (!cols.length)
               return;
 
+          function isNotItem(a) {
+              return (a.hashId != aEvent.hashId);
+          }
+          var oldLength = this.mSelectedItems.length;
+          this.mSelectedItems = this.mSelectedItems.filter(isNotItem);
+
           for each (let col in cols) {
               var column = col.column;
               var header = col.header;
@@ -3573,16 +3579,9 @@
               }
           }
 
-          // See whether the item we are deleting was selected.  If it was, then
-          // fire the appropriate event so our watchers can update
-          var found = false;
-          for (var i = 0; i < this.mSelectedItems.length; i++) {
-              if (this.mSelectedItems[i].hashId == aEvent.hashId) {
-                  this.mSelectedItems.splice(i, 1);
-                  found = true;
-              }
-          }
-          if (found) {
+          // If a deleted event was selected, we need to announce that the
+          // selection changed.
+          if (oldLength != this.mSelectedItems.length) {
               this.fireEvent("itemselect", this.mSelectedItems);
           }
 
