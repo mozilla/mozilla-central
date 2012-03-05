@@ -673,13 +673,7 @@ cal.itip = {
 
                 let requestItem = aItem.clone();
                 if (!requestItem.organizer) {
-                    let organizer = cal.createAttendee();
-                    organizer.id = requestItem.calendar.getProperty("organizerId");
-                    organizer.commonName = requestItem.calendar.getProperty("organizerCN");
-                    organizer.role = "REQ-PARTICIPANT";
-                    organizer.participationStatus = "ACCEPTED";
-                    organizer.isOrganizer = true;
-                    requestItem.organizer = organizer;
+                    requestItem.organizer = createOrganizer(requestItem.calendar);
                 }
 
                 // Fix up our attendees for invitations using some good defaults
