@@ -102,6 +102,7 @@ function ClearDiskAndMemCache()
   Components.classes["@mozilla.org/network/cache-service;1"]
             .getService(Components.interfaces.nsICacheService)
             .evictEntries(Components.interfaces.nsICache.STORE_ANYWHERE);
+  updateActualCacheSize();
 }
 
 function updateCacheSizeUI(cacheSizeEnabled)
