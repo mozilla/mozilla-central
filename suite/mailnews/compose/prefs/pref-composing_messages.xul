@@ -82,6 +82,9 @@
       <preference id="msgcompose.background_color"
                   name="msgcompose.background_color"
                   type="string"/>
+      <preference id="mailnews.reply_header_type"
+                  name="mailnews.reply_header_type"
+                  type="int"/>
     </preferences>
 
     <groupbox>
@@ -137,6 +140,25 @@
                  preference="mailnews.wraplength"
                  aria-labelledby="wrapOutLabel wrapLength wrapOutEnd"/>
         <label id="wrapOutEnd" value="&char.label;"/>
+      </hbox>
+      <hbox align="center">
+        <label id="selectHeaderType"
+               value="&selectHeaderType.label;"
+               accesskey="&selectHeaderType.accesskey;"
+               control="mailNewsReplyList"/>
+        <menulist id="mailNewsReplyList"
+                  preference="mailnews.reply_header_type">
+          <menupopup>
+            <menuitem value="0"
+                      label="&noReplyOption.label;"/>
+            <menuitem value="1"
+                      label="&authorWroteOption.label;"/>
+            <menuitem value="2"
+                      label="&onDateWroteOption.label;"/>
+            <menuitem value="3"
+                      label="&authorOnDateWroteOption.label;"/>
+          </menupopup>
+        </menulist>
       </hbox>
     </groupbox>
   

@@ -67,3 +67,10 @@
 <!ENTITY fontColor.accesskey                  "T">
 <!ENTITY bgColor.label                        "Background:">
 <!ENTITY bgColor.accesskey                    "B">
+
+<!ENTITY selectHeaderType.label               "Select reply header type :">
+<!ENTITY selectHeaderType.accesskey           "e">
+<!ENTITY noReplyOption.label                  "No Reply Header">
+<!ENTITY authorWroteOption.label              "[Author] wrote:">
+<!ENTITY onDateWroteOption.label              "On [date] [author] wrote:">
+<!ENTITY authorOnDateWroteOption.label        "[Author] on [date] wrote:">
