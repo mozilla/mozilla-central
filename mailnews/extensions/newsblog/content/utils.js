@@ -407,15 +407,28 @@ function getFeedUrlsInFolder(aFolder)
       let resource = rdf.GetResource(aFolder.URI);
       feedUrlArray.forEach(
         function(url) {
-          let id = rdf.GetResource(url);
-          // Get the node for the current folder URI.
-          let node = ds.GetTarget(id, FZ_DESTFOLDER, true);
-          if (node)
-            ds.Change(id, FZ_DESTFOLDER, node, resource);
-          else
-            addFeed(url, resource.name, resource);
-          FeedUtils.log.debug("getFeedUrlsInFolder: sync folder:url - " +
-                              aFolder.name+" : "+url);
+          try {
+            let id = rdf.GetResource(url);
+            // Get the node for the current folder URI.
+            let node = ds.GetTarget(id, FZ_DESTFOLDER, true);
+            if (node)
+            {
+              ds.Change(id, FZ_DESTFOLDER, node, resource);
+              FeedUtils.log.debug("getFeedUrlsInFolder: sync update folder:url - " +
+                                  aFolder.filePath.path+" : "+url);
+            }
+            else
+            {
+              addFeed(url, null, aFolder);
+              FeedUtils.log.debug("getFeedUrlsInFolder: sync add folder:url - " +
+                                  aFolder.filePath.path+" : "+url);
+            }
+          }
+          catch (ex) {
+            FeedUtils.log.debug("getFeedUrlsInFolder: error - " + ex);
+            FeedUtils.log.debug("getFeedUrlsInFolder: sync failed for folder:url - " +
+                                aFolder.filePath.path+" : "+url);
+          }
       });
       ds.QueryInterface(Ci.nsIRDFRemoteDataSource).Flush();
 
@@ -434,14 +447,33 @@ function getFeedUrlsInFolder(aFolder)
   }
 
   // Get the list from the feeds database.
-  let ds = getSubscriptionsDS(aFolder.server);
-  let enumerator = ds.GetSources(FZ_DESTFOLDER, aFolder, true);
-  while (enumerator.hasMoreElements())
-  {
-    let containerArc = enumerator.getNext();
-    let uri = containerArc.QueryInterface(Components.interfaces.nsIRDFResource).Value;
-    feedUrlArray.push(uri);
+  try {
+    let ds = getSubscriptionsDS(aFolder.server);
+    let enumerator = ds.GetSources(FZ_DESTFOLDER, aFolder, true);
+    while (enumerator.hasMoreElements())
+    {
+      let containerArc = enumerator.getNext();
+      let uri = containerArc.QueryInterface(Ci.nsIRDFResource).Value;
+      feedUrlArray.push(uri);
+    }
   }
+  catch(ex)
+  {
+    FeedUtils.log.debug("getFeedUrlsInFolder: feeds db error - " + ex);
+    FeedUtils.log.debug("getFeedUrlsInFolder: feeds db error for folder - " +
+                        aFolder.filePath.path);
+  }
+
+  feedurls = feedUrlArray.join(kFeedUrlDelimiter);
+  if (feedurls)
+  {
+    aFolder.setStringProperty("feedUrl", feedurls);
+    FeedUtils.log.debug("getFeedUrlsInFolder: got urls from db, folder:feedUrl - " +
+                        aFolder.filePath.path+" : "+feedurls);
+  }
+  else
+    FeedUtils.log.debug("getFeedUrlsInFolder: no urls from db, folder - " +
+                        aFolder.filePath.path);
 
   return feedUrlArray.length ? feedUrlArray : null;
 }
