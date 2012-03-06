@@ -640,54 +640,42 @@ PRInt32 nsMailboxProtocol::ReadMessageResponse(nsIInputStream * inputStream, PRU
     
     if (msgurl)
       msgurl->GetCanonicalLineEnding(&canonicalLineEnding);
-    do
+
+    while ((line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData)) &&
+           !pauseForMoreData)
     {
-      char *saveLine;
-      saveLine = line = m_lineStreamBuffer->ReadNextLine(inputStream, status, pauseForMoreData);
-      
-      if (!line || (line[0] == '.' && line[1] == 0))
+      /* When we're sending this line to a converter (ie,
+      it's a message/rfc822) use the local line termination
+      convention, not CRLF.  This makes text articles get
+      saved with the local line terminators.  Since SMTP
+      and NNTP mandate the use of CRLF, it is expected that
+      the local system will convert that to the local line
+      terminator as it is read.
+      */
+      // mscott - the firstline hack is aimed at making sure we don't write
+      // out the dummy header when we are trying to display the message.
+      // The dummy header is the From line with the date tag on it.
+      if (m_msgFileOutputStream && TestFlag(MAILBOX_MSG_PARSE_FIRST_LINE))
       {
-        // we reached the end of the message!
-        ClearFlag(MAILBOX_PAUSE_FOR_READ);
-      } // otherwise process the line
-      else
-      {
-        if (line[0] == '.')
-          line++; // skip over the '.'
-        
-        /* When we're sending this line to a converter (ie,
-        it's a message/rfc822) use the local line termination
-        convention, not CRLF.  This makes text articles get
-        saved with the local line terminators.  Since SMTP
-        and NNTP mandate the use of CRLF, it is expected that
-        the local system will convert that to the local line
-        terminator as it is read.
-        */
-        // mscott - the firstline hack is aimed at making sure we don't write
-        // out the dummy header when we are trying to display the message.
-        // The dummy header is the From line with the date tag on it.
-        if (m_msgFileOutputStream && TestFlag(MAILBOX_MSG_PARSE_FIRST_LINE))
-        {
-          PRUint32 count = 0;
-          if (line)
-            rv = m_msgFileOutputStream->Write(line, PL_strlen(line),
-            &count);
-          if (NS_FAILED(rv)) break;
-          
-          if (canonicalLineEnding)
-            rv = m_msgFileOutputStream->Write(CRLF, 2, &count);
-          else
-            rv = m_msgFileOutputStream->Write(MSG_LINEBREAK,
-            MSG_LINEBREAK_LEN, &count);
-          
-          if (NS_FAILED(rv)) break;
-        }
+        PRUint32 count = 0;
+        rv = m_msgFileOutputStream->Write(line, PL_strlen(line), &count);
+        if (NS_FAILED(rv))
+          break;
+
+        if (canonicalLineEnding)
+          rv = m_msgFileOutputStream->Write(CRLF, 2, &count);
         else
-          SetFlag(MAILBOX_MSG_PARSE_FIRST_LINE);
-      } 
-      PR_Free(saveLine);
+          rv = m_msgFileOutputStream->Write(MSG_LINEBREAK,
+                                            MSG_LINEBREAK_LEN, &count);
+
+        if (NS_FAILED(rv))
+          break;
+      }
+      else
+        SetFlag(MAILBOX_MSG_PARSE_FIRST_LINE);
+      PR_Free(line);
     }
-    while (line && !pauseForMoreData);
+    PR_Free(line);
   }
   
   SetFlag(MAILBOX_PAUSE_FOR_READ); // wait for more data to become available...
