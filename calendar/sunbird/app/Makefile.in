@@ -118,12 +118,10 @@ TK_LIBS := -framework SystemConfiguration -framework CoreAudio -framework AudioT
 endif
 endif
 
-APP_XPCOM_LIBS = $(XPCOM_GLUE_LDOPTS)
-
 LIBS += \
 	$(STATIC_COMPONENTS_LINKER_PATH) \
 	$(EXTRA_DSO_LIBS) \
-	$(APP_XPCOM_LIBS) \
+	$(XPCOM_GLUE_LDOPTS) \
 	$(NSPR_LIBS) \
 	$(NULL)
 
