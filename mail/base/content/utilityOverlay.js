@@ -36,31 +36,12 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-/**
- * Communicator Shared Utility Library
- * for shared application glue for the Communicator suite of applications
- **/
-
-/*
-  Note: All Editor/Composer-related methods have been moved to editorApplicationOverlay.js,
-  so app windows that require those must include editorNavigatorOverlay.xul
-*/
-
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 var gShowBiDi = false;
 
 function getBrowserURL() {
-
-  try {
-    var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                         .getService(Components.interfaces.nsIPrefBranch);
-    var url = prefs.getCharPref("browser.chromeURL");
-    if (url)
-      return url;
-  } catch(e) {
-  }
-  return "chrome://navigator/content/navigator.xul";
+  return Services.prefs.getCharPref("browser.chromeURL");
 }
 
 // update menu items that rely on focus
