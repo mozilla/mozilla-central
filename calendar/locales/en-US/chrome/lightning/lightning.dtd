@@ -75,8 +75,6 @@
 <!ENTITY lightning.menu.eventtask.accesskey            "n">
 
 <!-- properties dialog, calendar creation wizard -->
-<!ENTITY lightning.calendarproperties.showevents.inagenda.label "Show Events in Today Pane">
-<!ENTITY lightning.calendarproperties.showtasks.label           "Show Tasks in Today Pane and Task Mode">
 <!ENTITY lightning.calendarproperties.email.label               "E-Mail:">
 
 <!-- iMIP Bar (meeting support) -->
