@@ -58,7 +58,6 @@ public:
     nsMovemailIncomingServer();
     virtual ~nsMovemailIncomingServer();
 
-    NS_IMETHOD GetIsSecureServer(bool *aIsSecureServer);
     NS_IMETHOD PerformBiff(nsIMsgWindow *aMsgWindow);
     NS_IMETHOD GetDownloadMessagesAtStartup(bool *getMessages);
     NS_IMETHOD GetCanBeDefaultServer(bool *canBeDefaultServer);

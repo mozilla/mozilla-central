@@ -333,15 +333,6 @@ nsMsgIncomingServer::GetCanEmptyTrashOnExit(bool *canEmptyTrashOnExit)
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsMsgIncomingServer::GetIsSecureServer(bool *isSecureServer)
-{
-  // derived class should override if they need to do this.
-  NS_ENSURE_ARG_POINTER(isSecureServer);
-  *isSecureServer = true;
-  return NS_OK;
-}
-
 // construct <localStoreType>://[<username>@]<hostname
 NS_IMETHODIMP
 nsMsgIncomingServer::GetServerURI(nsACString& aResult)

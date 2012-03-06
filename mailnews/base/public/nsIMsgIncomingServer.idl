@@ -60,7 +60,7 @@ interface nsIMsgPluggableStore;
  * often you will want to add extra interfaces that give you server-specific
  * attributes and methods.
  */
-[scriptable, uuid(ad2637ee-6dac-4fc3-a1da-19394f66cbc2)]
+[scriptable, uuid(7e03bc94-4e09-4c48-bee0-19d0d60c6767)]
 interface nsIMsgIncomingServer : nsISupports {
 
   /**
@@ -205,9 +205,6 @@ interface nsIMsgIncomingServer : nsISupports {
    * Same as "mail.server...socketType" pref
    */
   attribute nsMsgSocketTypeValue socketType;
-
-  /* dead code. */
-  readonly attribute boolean isSecureServer;
 
   /* empty trash on exit */
   attribute boolean emptyTrashOnExit;

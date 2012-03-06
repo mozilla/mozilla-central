@@ -2742,16 +2742,6 @@ nsImapIncomingServer::GetCanEmptyTrashOnExit(bool *canEmptyTrashOnExit)
   return NS_OK;
 }
 
-NS_IMETHODIMP
-nsImapIncomingServer::GetIsSecureServer(bool *isSecureServer)
-{
-  NS_ENSURE_ARG_POINTER(isSecureServer);
-  // Initialize isSecureServer true, a default value for IMAP
-  *isSecureServer = true;
-  GetPrefForServerAttribute("isSecureServer", isSecureServer);
-  return NS_OK;
-}
-
 nsresult
 nsImapIncomingServer::CreateHostSpecificPrefName(const char *prefPrefix, nsCAutoString &prefName)
 {

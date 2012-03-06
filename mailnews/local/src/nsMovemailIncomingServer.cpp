@@ -65,14 +65,6 @@ nsMovemailIncomingServer::~nsMovemailIncomingServer()
 {
 }
 
-NS_IMETHODIMP
-nsMovemailIncomingServer::GetIsSecureServer(bool *aIsSecureServer)
-{
-    NS_ENSURE_ARG_POINTER(aIsSecureServer);
-    *aIsSecureServer = false;
-    return NS_OK;
-}
-
 NS_IMETHODIMP 
 nsMovemailIncomingServer::PerformBiff(nsIMsgWindow *aMsgWindow)
 {
