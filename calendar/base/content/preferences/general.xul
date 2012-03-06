@@ -115,7 +115,7 @@
                          preference="calendar.alarms.defaultsnoozelength"
                          type="number"
                          min="0"
-                         maxlength="3"
+                         maxlength="4"
                          size="3"/>
                 <label value="&calendar.global.units.minutes;"/>
             </hbox>
