@@ -38,4 +38,5 @@
 <overlay id="messsenger-overlay-messageWindow"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
     <script type="application/javascript" src="chrome://calendar/content/calendar-statusbar.js"/>
+    <script type="application/javascript" src="chrome://calendar/content/calendar-item-editing.js"/>
 </overlay>
