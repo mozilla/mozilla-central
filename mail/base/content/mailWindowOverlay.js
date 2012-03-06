@@ -3288,7 +3288,7 @@ function FeedSetContentView(val)
       }
     }
   }
-  else if(contentBase.headerValue) {
+  else if (contentBase && contentBase.headerValue) {
     document.getElementById("messagepane")
             .loadURI(contentBase.headerValue, null, null);
     gShowFeedSummaryToggle = false;

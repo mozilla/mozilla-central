@@ -37,6 +37,8 @@
 #
 # ***** END LICENSE BLOCK ******
 
+Components.utils.import("resource:///modules/gloda/mimemsg.js");
+Components.utils.import("resource:///modules/mailServices.js");
 Components.utils.import("resource://gre/modules/Services.jsm");
 
 function openSubscriptionsDialog(aFolder)
@@ -59,25 +61,40 @@ function openSubscriptionsDialog(aFolder)
   }
 }
 
-// Special case attempts to reply/forward/edit as new RSS arrticles
-// Send the feed article URL instead of trying to load the feed inside of
-// an iframe. Bug #258278.
-function openComposeWindowForRSSArticle(msgHdr, type)
+// Special case attempts to reply/forward/edit as new RSS articles.  We are
+// here only if the message's account server is rss.  Feed messages moved to
+// other account types will have their summaries loaded, as viewing web pages
+// only happens in an rss account.  The user may choose whether to load a
+// summary or web page link by ensuring the current feed message is being
+// viewed as either a summary or web page.
+function openComposeWindowForRSSArticle(aMsgComposeWindow, aMsgHdr, aMessageUri,
+                                        aType, aFormat, aIdentity, aMsgWindow)
 {
-  var params = Components.classes["@mozilla.org/messengercompose/composeparams;1"]
-                         .createInstance(Components.interfaces.nsIMsgComposeParams);
-  if (!params)
-    return;
-
-  params.composeFields = Components.classes["@mozilla.org/messengercompose/composefields;1"]
-                                   .createInstance(Components.interfaces.nsIMsgCompFields);
-  if (params.composeFields)
+  if (gShowFeedSummary)
   {
-    // convert our messageId into a url..
-    var contentBase = msgHdr.messageId.replace("@localhost.localdomain", "");
-    params.composeFields.body = contentBase;
-    var subject = msgHdr.mime2DecodedSubject;
-    var msgComposeType = Components.interfaces.nsIMsgCompType;
+    // The user is viewing the summary.
+    MailServices.compose.OpenComposeWindow(aMsgComposeWindow, aMsgHdr, aMessageUri,
+                                           aType, aFormat, aIdentity, aMsgWindow);
+
+  }
+  else
+  {
+    // Set up the compose message and get the feed message's web page link.
+    let Cc = Components.classes;
+    let Ci = Components.interfaces;
+    let msgHdr = aMsgHdr;
+    let type = aType;
+    let msgComposeType = Ci.nsIMsgCompType;
+    let subject = msgHdr.mime2DecodedSubject;
+    let fwdPrefix = Services.prefs.getCharPref("mail.forward_subject_prefix");
+    fwdPrefix = fwdPrefix ? fwdPrefix + ": " : "";
+
+    let params = Cc["@mozilla.org/messengercompose/composeparams;1"].
+                 createInstance(Ci.nsIMsgComposeParams);
+
+    let composeFields = Cc["@mozilla.org/messengercompose/composefields;1"].
+                        createInstance(Ci.nsIMsgCompFields);
+
     if (type == msgComposeType.Reply ||
         type == msgComposeType.ReplyAll ||
         type == msgComposeType.ReplyToSender ||
@@ -87,28 +104,41 @@ function openComposeWindowForRSSArticle(msgHdr, type)
       subject = "Re: " + subject;
     }
     else if (type == msgComposeType.ForwardInline ||
-              type == msgComposeType.ForwardAsAttachment)
+             type == msgComposeType.ForwardAsAttachment)
     {
-      var perf = Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(Components.interfaces.nsIPrefBranch);
-      var fwdPrefix = pref.getCharPref("mail.forward_subject_prefix");
-      subject = fwdPrefix + ": " + subject;
+      subject = fwdPrefix + subject;
     }
+
+    params.composeFields = composeFields;
     params.composeFields.subject = subject;
     params.composeFields.characterSet = msgHdr.Charset;
-    params.bodyIsLink = true;
+    params.composeFields.body = "";
+    params.bodyIsLink = false;
+    params.identity = aIdentity;
 
-    if (msgComposeService)
+    try
     {
-      try
-      {
-        params.identity = msgComposeService.defaultIdentity;
-      }
-      catch (ex)
-      {
-        params.identity = null;
-      }
-      msgComposeService.OpenComposeWindowWithParams(null, params);
+      // The feed's web page url is stored in the Content-Base header.
+      MsgHdrToMimeMessage(msgHdr, null, function(aMsgHdr, aMimeMsg) {
+        if (aMimeMsg && aMimeMsg.headers["content-base"] &&
+            aMimeMsg.headers["content-base"][0])
+        {
+          params.composeFields.body = aMimeMsg.headers["content-base"];
+          params.bodyIsLink = true;
+          MailServices.compose.OpenComposeWindowWithParams(null, params);
+        }
+        else
+          // No content-base url, use the summary.
+          MailServices.compose.OpenComposeWindow(aMsgComposeWindow, aMsgHdr, aMessageUri,
+                                                 aType, aFormat, aIdentity, aMsgWindow);
+
+      });
+    }
+    catch (ex)
+    {
+      // Error getting header, use the summary.
+      MailServices.compose.OpenComposeWindow(aMsgComposeWindow, aMsgHdr, aMessageUri,
+                                             aType, aFormat, aIdentity, aMsgWindow);
     }
   }
 }
