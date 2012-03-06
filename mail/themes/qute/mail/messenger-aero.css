@@ -16,7 +16,7 @@ treechildren::-moz-tree-cell-text {
 .remote-gloda-search {
   background-clip: padding-box;
   border: 1px solid ThreeDDarkShadow;
-  -moz-border-radius: 3.5px;
+  border-radius: 3.5px;
   min-height: 24px;
   margin-top: 1px;
   margin-bottom: 1px;

@@ -54,7 +54,7 @@ button::-moz-focus-inner {
 
 input[type="submit"],
 button {
-  -moz-box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.75) inset;
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.75) inset;
   background-image: -moz-linear-gradient(center top , #EEEEEE 0%, #EEEEEE 50%, #E1E1E1 50%, #E1E1E1 100%);
   border-color: #AAAAAA #AAAAAA #888888;
   border-style: solid;
@@ -164,8 +164,8 @@ input[type="submit"][disabled="true"], input[type="submit"][disabled="true"]:hov
 #content,
 #existing {
   background-color: rgba(255,255,255,0.9);
-  -moz-border-radius: 5px;
-  -moz-box-shadow: 0 0 2px rgba(0,0,0,0.75) inset;
+  border-radius: 5px;
+  box-shadow: 0 0 2px rgba(0,0,0,0.75) inset;
   margin-bottom: 10px;
   overflow: visible;
 }
@@ -195,7 +195,7 @@ input[type="text"], input[type="password"], textarea {
   font: 1em sans-serif;
   padding: 8px 2px;
   border: 1px solid #aaa;
-  -moz-box-shadow: 0 1px 2px -1px rgba(0,0,0,0.25) inset;
+  box-shadow: 0 1px 2px -1px rgba(0,0,0,0.25) inset;
 }
 
 #search input[type="text"] {
@@ -205,7 +205,7 @@ input[type="text"], input[type="password"], textarea {
 }
 
 input[type="text"]:focus, input[type="password"]:focus, textarea:focus {
-  -moz-box-shadow: 0 0 0 3px #CCF1FF inset;
+  box-shadow: 0 0 0 3px #CCF1FF inset;
 }
 
 textarea { height: auto; }
@@ -334,7 +334,7 @@ input[type="submit"].search {
 }
 
 .pricing button.create {
-  -moz-border-radius: 12px;
+  border-radius: 12px;
 }
 
 .pricing span.create {
@@ -499,7 +499,7 @@ input[type="submit"].search {
   cursor: pointer;
   border: 1px solid #888a85;
   background: -moz-linear-gradient( center bottom, rgb(238,238,236) 16%, rgb(255,255,255) 76%);
-  -moz-border-radius: 5px;
+  border-radius: 5px;
 }
 
 #success-compose img, #success-addons img, #success-signature img {
