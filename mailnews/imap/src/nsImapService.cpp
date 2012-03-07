@@ -392,7 +392,8 @@ NS_IMETHODIMP nsImapService::OpenAttachment(const char *aContentType,
         nsCOMPtr<nsIMsgMailNewsUrl> mailUrl (do_QueryInterface(imapUrl));
         if (mailUrl)
         {
-          mailUrl->SetSpec(urlSpec);
+          rv = mailUrl->SetSpec(urlSpec);
+          NS_ENSURE_SUCCESS(rv, rv);
           if (aFileName)
             mailUrl->SetFileName(nsDependentCString(aFileName));
         }
@@ -618,15 +619,16 @@ nsresult nsImapService::FetchMimePart(nsIImapUrl *aImapUrl,
   {
     nsCOMPtr<nsIURI> url = do_QueryInterface(aImapUrl);
     url->GetSpec(urlSpec);
-    
+
     // rhp: If we are displaying this message for the purpose of printing, we
     // need to append the header=print option.
     //
     if (mPrintingOperation)
       urlSpec.Append("?header=print");
-    
+
     rv = url->SetSpec(urlSpec);
-    
+    NS_ENSURE_SUCCESS(rv, rv);
+
     rv = aImapUrl->SetImapAction(actionToUse /* nsIImapUrl::nsImapMsgFetch */);
     if (aImapMailFolder && aDisplayConsumer)
     {
@@ -1390,6 +1392,7 @@ nsresult nsImapService::CreateStartOfImapUrl(const nsACString &aImapURI,
     // *** jefft - force to parse the urlSpec in order to search for
     // the correct incoming server
     rv = mailnewsUrl->SetSpec(urlSpec);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     hierarchyDelimiter = kOnlineHierarchySeparatorUnknown;
     nsCOMPtr <nsIMsgImapMailFolder> imapFolder = do_QueryInterface(aImapMailFolder);

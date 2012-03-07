@@ -93,7 +93,8 @@ nsresult nsMailboxService::ParseMailbox(nsIMsgWindow *aMsgWindow, nsILocalFile *
     url->SetMsgWindow(aMsgWindow);
     nsCAutoString uriSpec("mailbox://");
     uriSpec.Append(buf);
-    url->SetSpec(uriSpec);
+    rv = url->SetSpec(uriSpec);
+    NS_ENSURE_SUCCESS(rv, rv);
 
     mailboxurl->SetMailboxParser(aMailboxParser);
     if (aUrlListener)
@@ -514,7 +515,9 @@ nsresult nsMailboxService::PrepareMessageUrl(const char * aSrcMsgMailboxURI, nsI
         urlSpec = PR_smprintf("mailbox://%s?number=%lu", buf.get(), msgKey);
 
       nsCOMPtr <nsIMsgMailNewsUrl> url = do_QueryInterface(*aMailboxUrl);
-      url->SetSpec(nsDependentCString(urlSpec));
+      rv = url->SetSpec(nsDependentCString(urlSpec));
+      NS_ENSURE_SUCCESS(rv, rv);
+
       PR_smprintf_free(urlSpec);
 
       (*aMailboxUrl)->SetMailboxAction(aMailboxAction);
@@ -586,14 +589,14 @@ NS_IMETHODIMP nsMailboxService::NewURI(const nsACString &aSpec,
     {
       nsCAutoString newSpec;
       rv = aBaseURI->Resolve(aSpec, newSpec);
-      if (NS_FAILED(rv))
-        return rv;
-      aMsgUri->SetSpec(newSpec);
+      NS_ENSURE_SUCCESS(rv, rv);
+      rv = aMsgUri->SetSpec(newSpec);
     }
     else
     {
-      aMsgUri->SetSpec(aSpec);
+      rv = aMsgUri->SetSpec(aSpec);
     }
+    NS_ENSURE_SUCCESS(rv, rv);
     aMsgUri.swap(*_retval);
   }
 

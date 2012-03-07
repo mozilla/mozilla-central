@@ -895,44 +895,43 @@ nsNntpService::PostMessage(nsIFile *aFileToPost, const char *newsgroupsNames, co
   // aMsgWindow might be null
   NS_ENSURE_ARG_POINTER(newsgroupsNames);
 
-  if (*newsgroupsNames == '\0') return NS_ERROR_INVALID_ARG;
+  NS_ENSURE_ARG(*newsgroupsNames);
 
   NS_LOCK_INSTANCE();
 
   nsresult rv;
 
   nsCOMPtr <nsINntpUrl> nntpUrl = do_CreateInstance(NS_NNTPURL_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = nntpUrl->SetNewsAction(nsINntpUrl::ActionPostArticle);
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCString newsUrlSpec;
   rv = SetUpNntpUrlForPosting(aAccountKey, getter_Copies(newsUrlSpec));
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIMsgMailNewsUrl> mailnewsurl = do_QueryInterface(nntpUrl, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-  if (!mailnewsurl) return NS_ERROR_FAILURE;
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  mailnewsurl->SetSpec(newsUrlSpec);
+  rv = mailnewsurl->SetSpec(newsUrlSpec);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   if (aUrlListener) // register listener if there is one...
     mailnewsurl->RegisterListener(aUrlListener);
 
-  nsCOMPtr <nsINNTPNewsgroupPost> post = do_CreateInstance(NS_NNTPNEWSGROUPPOST_CONTRACTID, &rv);
-  NS_ENSURE_SUCCESS(rv,rv);
-  if (!post) return NS_ERROR_FAILURE;
+  nsCOMPtr<nsINNTPNewsgroupPost> post = do_CreateInstance(NS_NNTPNEWSGROUPPOST_CONTRACTID, &rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = post->SetPostMessageFile(aFileToPost);
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   rv = nntpUrl->SetMessageToPost(post);
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
-  nsCOMPtr <nsIURI> url = do_QueryInterface(nntpUrl);
+  nsCOMPtr<nsIURI> url = do_QueryInterface(nntpUrl);
   rv = RunNewsUrl(url, aMsgWindow, nsnull /* consumer */);
-  NS_ENSURE_SUCCESS(rv,rv);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   if (_retval)
     rv = CallQueryInterface(nntpUrl, _retval);
@@ -954,7 +953,8 @@ nsNntpService::ConstructNntpUrl(const char *urlString, nsIUrlListener *aUrlListe
   mailnewsurl->SetMsgWindow(aMsgWindow);
   nsCOMPtr <nsIMsgMessageUrl> msgUrl = do_QueryInterface(nntpUrl);
   msgUrl->SetUri(originalMessageUri);
-  mailnewsurl->SetSpec(nsDependentCString(urlString));
+  rv = mailnewsurl->SetSpec(nsDependentCString(urlString));
+  NS_ENSURE_SUCCESS(rv, rv);
   nntpUrl->SetNewsAction(action);
 
   if (originalMessageUri)

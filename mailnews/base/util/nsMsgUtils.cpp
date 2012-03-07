@@ -196,7 +196,7 @@ nsresult CreateStartupUrl(const char *uri, nsIURI** aUrl)
       (void**) aUrl);
   }
   if (*aUrl)
-    (*aUrl)->SetSpec(nsDependentCString(uri));
+    rv = (*aUrl)->SetSpec(nsDependentCString(uri));
   return rv;
 }
 

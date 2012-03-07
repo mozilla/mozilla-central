@@ -62,7 +62,8 @@ NS_IMPL_ISUPPORTS2(nsAddbookUrl, nsIAddbookUrl, nsIURI)
 NS_IMETHODIMP 
 nsAddbookUrl::SetSpec(const nsACString &aSpec)
 {
-  m_baseURL->SetSpec(aSpec);
+  nsresult rv = m_baseURL->SetSpec(aSpec);
+  NS_ENSURE_SUCCESS(rv, rv);
   return ParseUrl();
 }
 

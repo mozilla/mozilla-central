@@ -205,7 +205,9 @@ nsresult NS_MsgBuildSmtpUrl(nsIFile * aFilePath,
   nsCOMPtr<nsIMsgMailNewsUrl> url(do_QueryInterface(smtpUrl, &rv));
   NS_ENSURE_SUCCESS(rv, rv);
 
-  url->SetSpec(urlSpec);
+  rv = url->SetSpec(urlSpec);
+  NS_ENSURE_SUCCESS(rv, rv);
+
   smtpUrl->SetRecipients(aRecipients);
   smtpUrl->SetRequestDSN(aRequestDSN);
   smtpUrl->SetPostMessageFile(aFilePath);
@@ -338,9 +340,10 @@ NS_IMETHODIMP nsSmtpService::NewURI(const nsACString &aSpec,
   // utf8Spec is filled up only when aOriginCharset is specified and
   // the conversion is successful. Otherwise, fall back to aSpec.
   if (aOriginCharset && NS_SUCCEEDED(rv))
-    mailtoUrl->SetSpec(utf8Spec);
+    rv = mailtoUrl->SetSpec(utf8Spec);
   else
-    mailtoUrl->SetSpec(aSpec);
+    rv = mailtoUrl->SetSpec(aSpec);
+  NS_ENSURE_SUCCESS(rv, rv);
 
   mailtoUrl.forget(_retval);
   return NS_OK;
