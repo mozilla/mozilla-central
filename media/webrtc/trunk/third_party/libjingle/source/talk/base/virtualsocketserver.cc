@@ -42,6 +42,16 @@
 #include "talk/base/timeutils.h"
 
 namespace talk_base {
+#ifdef WIN32
+const in_addr kInitialNextIPv4 = { {0x01, 0, 0, 0} };
+#else
+// This value is entirely arbitrary, hence the lack of concern about endianness.
+const in_addr kInitialNextIPv4 = { 0x01000000 };
+#endif
+// Starts at ::2 so as to not cause confusion with ::1.
+const in6_addr kInitialNextIPv6 = { { {
+      0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2
+    } } };
 
 const uint16 kFirstEphemeralPort = 49152;
 const uint16 kLastEphemeralPort = 65535;
@@ -105,7 +115,7 @@ class VirtualSocket : public AsyncSocket, public MessageHandler {
   VirtualSocket(VirtualSocketServer* server, int type, bool async)
       : server_(server), type_(type), async_(async), state_(CS_CLOSED),
         listen_queue_(NULL), write_enabled_(false), network_size_(0),
-        recv_buffer_size_(0), bound_(false) {
+        recv_buffer_size_(0), bound_(false), was_any_(false) {
     ASSERT((type_ == SOCK_DGRAM) || (type_ == SOCK_STREAM));
     ASSERT(async_ || (type_ != SOCK_STREAM));  // We only support async streams
   }
@@ -144,6 +154,7 @@ class VirtualSocket : public AsyncSocket, public MessageHandler {
       error_ = EADDRINUSE;
     } else {
       bound_ = true;
+      was_any_ = addr.IsAnyIP();
     }
     return result;
   }
@@ -317,6 +328,8 @@ class VirtualSocket : public AsyncSocket, public MessageHandler {
 
       // Set the new local address to the same as this server socket.
       socket->SetLocalAddress(local_addr_);
+      // Sockets made from a socket that 'was Any' need to inherit that.
+      socket->set_was_any(was_any_);
       SocketAddress remote_addr(listen_queue_->front());
       int result = socket->InitiateConnect(remote_addr, false);
       listen_queue_->pop_front();
@@ -408,6 +421,9 @@ class VirtualSocket : public AsyncSocket, public MessageHandler {
     }
   }
 
+  bool was_any() { return was_any_; }
+  void set_was_any(bool was_any) { was_any_ = was_any; }
+
  private:
   struct NetworkEntry {
     uint32 size;
@@ -426,7 +442,13 @@ class VirtualSocket : public AsyncSocket, public MessageHandler {
       return -1;
     }
     if (local_addr_.IsAny()) {
-      int result = Bind(SocketAddress());
+      // If there's no local address set, grab a random one in the correct AF.
+      int result = 0;
+      if (addr.ipaddr().family() == AF_INET) {
+        result = Bind(SocketAddress("0.0.0.0", 0));
+      } else if (addr.ipaddr().family() == AF_INET6) {
+        result = Bind(SocketAddress("::", 0));
+      }
       if (result != 0) {
         return result;
       }
@@ -514,6 +536,12 @@ class VirtualSocket : public AsyncSocket, public MessageHandler {
   // Is this socket bound?
   bool bound_;
 
+  // When we bind a socket to Any, VSS's Bind gives it another address. For
+  // dual-stack sockets, we want to distinguish between sockets that were
+  // explicitly given a particular address and sockets that had one picked
+  // for them by VSS.
+  bool was_any_;
+
   // Store the options that are set
   OptionsMap options_map_;
 
@@ -522,7 +550,8 @@ class VirtualSocket : public AsyncSocket, public MessageHandler {
 
 VirtualSocketServer::VirtualSocketServer(SocketServer* ss)
     : server_(ss), server_owned_(false), msg_queue_(NULL), stop_on_idle_(false),
-      network_delay_(Time()), next_ip_(1), next_port_(kFirstEphemeralPort),
+      network_delay_(Time()), next_ipv4_(kInitialNextIPv4),
+      next_ipv6_(kInitialNextIPv6), next_port_(kFirstEphemeralPort),
       bindings_(new AddressMap()), connections_(new ConnectionMap()),
       bandwidth_(0), network_capacity_(kDefaultNetworkCapacity),
       send_buffer_capacity_(kDefaultTcpBufferSize),
@@ -545,8 +574,18 @@ VirtualSocketServer::~VirtualSocketServer() {
   }
 }
 
-uint32 VirtualSocketServer::GetNextIP() {
-  return next_ip_++;
+IPAddress VirtualSocketServer::GetNextIP(int family) {
+  if (family == AF_INET) {
+    IPAddress next_ip(next_ipv4_);
+    next_ipv4_.s_addr = htonl(ntohl(next_ipv4_.s_addr) + 1);
+    return next_ip;
+  } else if (family == AF_INET6) {
+    IPAddress next_ip(next_ipv6_);
+    uint32* as_ints = reinterpret_cast<uint32*>(&next_ipv6_.s6_addr);
+    as_ints[3] += 1;
+    return next_ip;
+  }
+  return IPAddress();
 }
 
 uint16 VirtualSocketServer::GetNextPort() {
@@ -611,7 +650,10 @@ int VirtualSocketServer::Bind(VirtualSocket* socket,
   ASSERT(!IPIsAny(addr.ipaddr()));
   ASSERT(addr.port() != 0);
 
-  AddressMap::value_type entry(addr, socket);
+  // Normalize the address (turns v6-mapped addresses into v4-addresses).
+  SocketAddress normalized(addr.ipaddr().Normalized(), addr.port());
+
+  AddressMap::value_type entry(normalized, socket);
   return bindings_->insert(entry).second ? 0 : -1;
 }
 
@@ -619,8 +661,9 @@ int VirtualSocketServer::Bind(VirtualSocket* socket, SocketAddress* addr) {
   ASSERT(NULL != socket);
 
   if (IPIsAny(addr->ipaddr())) {
-    // TODO: An IPv6-ish version of this?
-    addr->SetIP(IPAddress(GetNextIP()));
+    addr->SetIP(GetNextIP(addr->ipaddr().family()));
+  } else {
+    addr->SetIP(addr->ipaddr().Normalized());
   }
 
   if (addr->port() == 0) {
@@ -636,14 +679,18 @@ int VirtualSocketServer::Bind(VirtualSocket* socket, SocketAddress* addr) {
 }
 
 VirtualSocket* VirtualSocketServer::LookupBinding(const SocketAddress& addr) {
-  AddressMap::iterator it = bindings_->find(addr);
+  SocketAddress normalized(addr.ipaddr().Normalized(),
+                           addr.port());
+  AddressMap::iterator it = bindings_->find(normalized);
   return (bindings_->end() != it) ? it->second : NULL;
 }
 
 int VirtualSocketServer::Unbind(const SocketAddress& addr,
                                 VirtualSocket* socket) {
-  ASSERT((*bindings_)[addr] == socket);
-  bindings_->erase(bindings_->find(addr));
+  SocketAddress normalized(addr.ipaddr().Normalized(),
+                           addr.port());
+  ASSERT((*bindings_)[normalized] == socket);
+  bindings_->erase(bindings_->find(normalized));
   return 0;
 }
 
@@ -652,7 +699,11 @@ void VirtualSocketServer::AddConnection(const SocketAddress& local,
                                         VirtualSocket* remote_socket) {
   // Add this socket pair to our routing table. This will allow
   // multiple clients to connect to the same server address.
-  SocketAddressPair address_pair(local, remote);
+  SocketAddress local_normalized(local.ipaddr().Normalized(),
+                                 local.port());
+  SocketAddress remote_normalized(remote.ipaddr().Normalized(),
+                                  remote.port());
+  SocketAddressPair address_pair(local_normalized, remote_normalized);
   connections_->insert(std::pair<SocketAddressPair,
                        VirtualSocket*>(address_pair, remote_socket));
 }
@@ -660,14 +711,22 @@ void VirtualSocketServer::AddConnection(const SocketAddress& local,
 VirtualSocket* VirtualSocketServer::LookupConnection(
     const SocketAddress& local,
     const SocketAddress& remote) {
-  SocketAddressPair address_pair(local, remote);
+  SocketAddress local_normalized(local.ipaddr().Normalized(),
+                                 local.port());
+  SocketAddress remote_normalized(remote.ipaddr().Normalized(),
+                                  remote.port());
+  SocketAddressPair address_pair(local_normalized, remote_normalized);
   ConnectionMap::iterator it = connections_->find(address_pair);
   return (connections_->end() != it) ? it->second : NULL;
 }
 
 void VirtualSocketServer::RemoveConnection(const SocketAddress& local,
                                            const SocketAddress& remote) {
-  SocketAddressPair address_pair(local, remote);
+  SocketAddress local_normalized(local.ipaddr().Normalized(),
+                                local.port());
+  SocketAddress remote_normalized(remote.ipaddr().Normalized(),
+                                 remote.port());
+  SocketAddressPair address_pair(local_normalized, remote_normalized);
   connections_->erase(address_pair);
 }
 
@@ -679,7 +738,13 @@ int VirtualSocketServer::Connect(VirtualSocket* socket,
                                  const SocketAddress& remote_addr,
                                  bool use_delay) {
   uint32 delay = use_delay ? GetRandomTransitDelay() : 0;
-  if (VirtualSocket* remote = LookupBinding(remote_addr)) {
+  VirtualSocket* remote = LookupBinding(remote_addr);
+  if (!CanInteractWith(socket, remote)) {
+    LOG(LS_INFO) << "Address family mismatch between "
+                 << socket->GetLocalAddress() << " and " << remote_addr;
+    return -1;
+  }
+  if (remote != NULL) {
     SocketAddress addr = socket->GetLocalAddress();
     msg_queue_->PostDelayed(delay, remote, MSG_ID_CONNECT,
                             new MessageAddress(addr));
@@ -710,8 +775,22 @@ int VirtualSocketServer::SendUdp(VirtualSocket* socket,
 
   VirtualSocket* recipient = LookupBinding(remote_addr);
   if (!recipient) {
+    // Make a fake recipient for address family checking.
+    scoped_ptr<VirtualSocket> dummy_socket(CreateSocketInternal(SOCK_DGRAM));
+    dummy_socket->SetLocalAddress(remote_addr);
+    if (!CanInteractWith(socket, dummy_socket.get())) {
+      LOG(LS_VERBOSE) << "Incompatible address families: "
+                      << socket->GetLocalAddress() << " and " << remote_addr;
+      return -1;
+    }
     LOG(LS_VERBOSE) << "No one listening at " << remote_addr;
     return static_cast<int>(data_size);
+  }
+
+  if (!CanInteractWith(socket, recipient)) {
+    LOG(LS_VERBOSE) << "Incompatible address families: "
+                    << socket->GetLocalAddress() << " and " << remote_addr;
+    return -1;
   }
 
   CritScope cs(&socket->crit_);
@@ -977,6 +1056,47 @@ double VirtualSocketServer::Evaluate(Function* f, double x) {
     double y2 = iter->second;
     return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
   }
+}
+
+bool VirtualSocketServer::CanInteractWith(VirtualSocket* local,
+                                          VirtualSocket* remote) {
+  if (!local || !remote) {
+    return false;
+  }
+  IPAddress local_ip = local->GetLocalAddress().ipaddr();
+  IPAddress remote_ip = remote->GetLocalAddress().ipaddr();
+  IPAddress local_normalized = local_ip.Normalized();
+  IPAddress remote_normalized = remote_ip.Normalized();
+  // Check if the addresses are the same family after Normalization (turns
+  // mapped IPv6 address into IPv4 addresses).
+  // This will stop unmapped V6 addresses from talking to mapped V6 addresses.
+  if (local_normalized.family() == remote_normalized.family()) {
+    return true;
+  }
+
+  // If ip1 is IPv4 and ip2 is :: and ip2 is not IPV6_V6ONLY.
+  int remote_v6_only = 0;
+  remote->GetOption(Socket::OPT_IPV6_V6ONLY, &remote_v6_only);
+  if (local_ip.family() == AF_INET && !remote_v6_only && IPIsAny(remote_ip)) {
+    return true;
+  }
+  // Same check, backwards.
+  int local_v6_only = 0;
+  local->GetOption(Socket::OPT_IPV6_V6ONLY, &local_v6_only);
+  if (remote_ip.family() == AF_INET && !local_v6_only && IPIsAny(local_ip)) {
+    return true;
+  }
+
+  // Check to see if either socket was explicitly bound to IPv6-any.
+  // These sockets can talk with anyone.
+  if (local_ip.family() == AF_INET6 && local->was_any()) {
+    return true;
+  }
+  if (remote_ip.family() == AF_INET6 && remote->was_any()) {
+    return true;
+  }
+
+  return false;
 }
 
 }  // namespace talk_base

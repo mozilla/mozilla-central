@@ -169,9 +169,8 @@ StreamAdapterInterface::~StreamAdapterInterface() {
 ///////////////////////////////////////////////////////////////////////////////
 
 StreamTap::StreamTap(StreamInterface* stream, StreamInterface* tap)
-: StreamAdapterInterface(stream), tap_(NULL), tap_result_(SR_SUCCESS),
-  tap_error_(0)
-{
+    : StreamAdapterInterface(stream), tap_(NULL), tap_result_(SR_SUCCESS),
+        tap_error_(0) {
   AttachTap(tap);
 }
 
@@ -223,24 +222,21 @@ StreamResult StreamTap::Write(const void* data, size_t data_len,
 ///////////////////////////////////////////////////////////////////////////////
 
 StreamSegment::StreamSegment(StreamInterface* stream)
-: StreamAdapterInterface(stream), start_(SIZE_UNKNOWN), pos_(0),
-  length_(SIZE_UNKNOWN)
-{
+    : StreamAdapterInterface(stream), start_(SIZE_UNKNOWN), pos_(0),
+    length_(SIZE_UNKNOWN) {
   // It's ok for this to fail, in which case start_ is left as SIZE_UNKNOWN.
   stream->GetPosition(&start_);
 }
 
 StreamSegment::StreamSegment(StreamInterface* stream, size_t length)
-: StreamAdapterInterface(stream), start_(SIZE_UNKNOWN), pos_(0),
-  length_(length)
-{
+    : StreamAdapterInterface(stream), start_(SIZE_UNKNOWN), pos_(0),
+    length_(length) {
   // It's ok for this to fail, in which case start_ is left as SIZE_UNKNOWN.
   stream->GetPosition(&start_);
 }
 
 StreamResult StreamSegment::Read(void* buffer, size_t buffer_len,
-                                 size_t* read, int* error)
-{
+                                 size_t* read, int* error) {
   if (SIZE_UNKNOWN != length_) {
     if (pos_ >= length_)
       return SR_EOS;
@@ -739,6 +735,12 @@ FifoBuffer::FifoBuffer(size_t size)
   // all events are done on the owner_ thread
 }
 
+FifoBuffer::FifoBuffer(size_t size, Thread *owner)
+    : state_(SS_OPEN), buffer_(new char[size]), buffer_length_(size),
+      data_length_(0), read_position_(0), owner_(owner) {
+  // all events are done on the owner_ thread
+}
+
 FifoBuffer::~FifoBuffer() {
 }
 
@@ -867,7 +869,7 @@ void* FifoBuffer::GetWriteBuffer(size_t* size) {
 
   const size_t write_position = (read_position_ + data_length_)
       % buffer_length_;
-  *size = (write_position >= read_position_) ?
+  *size = (write_position > read_position_ || data_length_ == 0) ?
       buffer_length_ - write_position : read_position_ - write_position;
   return &buffer_[write_position];
 }
@@ -945,8 +947,7 @@ StreamResult FifoBuffer::WriteOffsetLocked(const void* buffer,
 
 LoggingAdapter::LoggingAdapter(StreamInterface* stream, LoggingSeverity level,
                                const std::string& label, bool hex_mode)
-: StreamAdapterInterface(stream), level_(level), hex_mode_(hex_mode)
-{
+    : StreamAdapterInterface(stream), level_(level), hex_mode_(hex_mode) {
   set_label(label);
 }
 
@@ -969,7 +970,8 @@ StreamResult LoggingAdapter::Read(void* buffer, size_t buffer_len,
 
 StreamResult LoggingAdapter::Write(const void* data, size_t data_len,
                                    size_t* written, int* error) {
-  size_t local_written; if (!written) written = &local_written;
+  size_t local_written;
+  if (!written) written = &local_written;
   StreamResult result = StreamAdapterInterface::Write(data, data_len, written,
                                                       error);
   if (result == SR_SUCCESS) {
@@ -1002,13 +1004,11 @@ void LoggingAdapter::OnEvent(StreamInterface* stream, int events, int err) {
 ///////////////////////////////////////////////////////////////////////////////
 
 StringStream::StringStream(std::string& str)
-: str_(str), read_pos_(0), read_only_(false)
-{
+    : str_(str), read_pos_(0), read_only_(false) {
 }
 
 StringStream::StringStream(const std::string& str)
-: str_(const_cast<std::string&>(str)), read_pos_(0), read_only_(true)
-{
+    : str_(const_cast<std::string&>(str)), read_pos_(0), read_only_(true) {
 }
 
 StreamState StringStream::GetState() const {
@@ -1164,4 +1164,4 @@ StreamResult Flow(StreamInterface* source,
 
 ///////////////////////////////////////////////////////////////////////////////
 
-} // namespace talk_base
+}  // namespace talk_base

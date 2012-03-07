@@ -77,18 +77,18 @@ bool GetRtcpType(const void* data, size_t len, int* value) {
   return true;
 }
 
-// This should be called only for SR or RR RTCP packets.
+// This method returns SSRC first of RTCP packet, except if packet is SDES.
+// TODO - Fully implement RFC 5506. This standard doesn't restrict
+// to send non-compound packets only to feedback messages.
 bool GetRtcpSsrc(const void* data, size_t len, uint32* value) {
   // Packet should be at least of 8 bytes, to get SSRC from a RTCP packet.
   if (!data || len < kMinRtcpPacketLen + 4 || !value) return false;
   int pl_type;
   if (!GetRtcpType(data, len, &pl_type)) return false;
-  if (pl_type == kRtcpTypeSR || pl_type == kRtcpTypeRR) {
-    *value = talk_base::GetBE32(static_cast<const uint8*>(data) + 4);
-    return true;
-  }
-  return false;
+  // SDES packet parsing is not supported.
+  if (pl_type == kRtcpTypeSDES) return false;
+  *value = talk_base::GetBE32(static_cast<const uint8*>(data) + 4);
+  return true;
 }
 
 }  // namespace cricket
-

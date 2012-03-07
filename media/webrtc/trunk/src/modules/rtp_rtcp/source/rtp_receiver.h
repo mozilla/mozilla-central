@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -10,6 +10,8 @@
 
 #ifndef WEBRTC_MODULES_RTP_RTCP_SOURCE_RTP_RECEIVER_H_
 #define WEBRTC_MODULES_RTP_RTCP_SOURCE_RTP_RECEIVER_H_
+
+#include <map>
 
 #include "typedefs.h"
 #include "rtp_utility.h"
@@ -54,31 +56,32 @@ public:
     WebRtc_Word32 RegisterIncomingDataCallback(RtpData* incomingDataCallback);
     WebRtc_Word32 RegisterIncomingRTPCallback(RtpFeedback* incomingMessagesCallback);
 
-    WebRtc_Word32 RegisterReceivePayload( const WebRtc_Word8 payloadName[RTP_PAYLOAD_NAME_SIZE],
-                                        const WebRtc_Word8 payloadType,
-                                        const WebRtc_UWord32 frequency,
-                                        const WebRtc_UWord8 channels,
-                                        const WebRtc_UWord32 rate);
+    WebRtc_Word32 RegisterReceivePayload(
+        const char payloadName[RTP_PAYLOAD_NAME_SIZE],
+        const WebRtc_Word8 payloadType,
+        const WebRtc_UWord32 frequency,
+        const WebRtc_UWord8 channels,
+        const WebRtc_UWord32 rate);
 
     WebRtc_Word32 DeRegisterReceivePayload(const WebRtc_Word8 payloadType);
 
     WebRtc_Word32 ReceivePayloadType(
-        const WebRtc_Word8 payloadName[RTP_PAYLOAD_NAME_SIZE],
+        const char payloadName[RTP_PAYLOAD_NAME_SIZE],
         const WebRtc_UWord32 frequency,
         const WebRtc_UWord8 channels,
         const WebRtc_UWord32 rate,
         WebRtc_Word8* payloadType) const;
 
     WebRtc_Word32 ReceivePayload(const WebRtc_Word8 payloadType,
-                                 WebRtc_Word8 payloadName[RTP_PAYLOAD_NAME_SIZE],
+                                 char payloadName[RTP_PAYLOAD_NAME_SIZE],
                                  WebRtc_UWord32* frequency,
                                  WebRtc_UWord8* channels,
                                  WebRtc_UWord32* rate) const;
 
-    WebRtc_Word32 RemotePayload(WebRtc_Word8 payloadName[RTP_PAYLOAD_NAME_SIZE],
-                              WebRtc_Word8* payloadType,
-                              WebRtc_UWord32* frequency,
-                              WebRtc_UWord8* channels) const;
+    WebRtc_Word32 RemotePayload(char payloadName[RTP_PAYLOAD_NAME_SIZE],
+                                WebRtc_Word8* payloadType,
+                                WebRtc_UWord32* frequency,
+                                WebRtc_UWord8* channels) const;
 
     WebRtc_Word32 IncomingRTPPacket(WebRtcRTPHeader* rtpheader,
                                     const WebRtc_UWord8* incomingRtpPacket,
@@ -147,6 +150,12 @@ public:
 
     virtual WebRtc_UWord32 PayloadTypeToPayload(const WebRtc_UWord8 payloadType,
                                                 ModuleRTPUtility::Payload*& payload) const;
+    /*
+    *  RTX
+    */
+    void SetRTXStatus(const bool enable, const WebRtc_UWord32 SSRC);
+
+    void RTXStatus(bool* enable, WebRtc_UWord32* SSRC) const;
 
 protected:
     virtual WebRtc_Word32 CallbackOfReceivedPayloadData(const WebRtc_UWord8* payloadData,
@@ -202,8 +211,7 @@ private:
 
     WebRtc_Word8              _redPayloadType;
 
-    //
-    MapWrapper                _payloadTypeMap;
+    std::map<WebRtc_Word8, ModuleRTPUtility::Payload*> _payloadTypeMap;
     RtpHeaderExtensionMap     _rtpHeaderExtensionMap;
 
     // SSRCs
@@ -246,8 +254,10 @@ private:
     mutable WebRtc_UWord32    _lastReportJitter;
     mutable WebRtc_UWord32    _lastReportJitterTransmissionTimeOffset;
 
-    // NACK
-    NACKMethod          _nackMethod;
+    NACKMethod _nackMethod;
+
+    bool _RTX;
+    WebRtc_UWord32 _ssrcRTX;
 };
 } // namespace webrtc
 

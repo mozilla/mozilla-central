@@ -3,7 +3,7 @@
  *
  * Copyright 2009 Pierre Ossman <ossman@cendio.se> for Cendio AB
  * Copyright 2009-2011 D. R. Commander
- * 
+ *
  * Based on the x86 SIMD extension for IJG JPEG library,
  * Copyright (C) 1999-2006, MIYASAKA Masaru.
  * For conditions of distribution and use, see copyright notice in jsimdext.inc
@@ -61,6 +61,7 @@ init_simd (void)
     simd_support &= JSIMD_SSE2;
 }
 
+#ifndef JPEG_DECODE_ONLY
 GLOBAL(int)
 jsimd_can_rgb_ycc (void)
 {
@@ -82,6 +83,7 @@ jsimd_can_rgb_ycc (void)
 
   return 0;
 }
+#endif
 
 GLOBAL(int)
 jsimd_can_rgb_gray (void)
@@ -127,6 +129,7 @@ jsimd_can_ycc_rgb (void)
   return 0;
 }
 
+#ifndef JPEG_DECODE_ONLY
 GLOBAL(void)
 jsimd_rgb_ycc_convert (j_compress_ptr cinfo,
                        JSAMPARRAY input_buf, JSAMPIMAGE output_buf,
@@ -142,6 +145,7 @@ jsimd_rgb_ycc_convert (j_compress_ptr cinfo,
       mmxfct=jsimd_extrgb_ycc_convert_mmx;
       break;
     case JCS_EXT_RGBX:
+    case JCS_EXT_RGBA:
       sse2fct=jsimd_extrgbx_ycc_convert_sse2;
       mmxfct=jsimd_extrgbx_ycc_convert_mmx;
       break;
@@ -150,14 +154,17 @@ jsimd_rgb_ycc_convert (j_compress_ptr cinfo,
       mmxfct=jsimd_extbgr_ycc_convert_mmx;
       break;
     case JCS_EXT_BGRX:
+    case JCS_EXT_BGRA:
       sse2fct=jsimd_extbgrx_ycc_convert_sse2;
       mmxfct=jsimd_extbgrx_ycc_convert_mmx;
       break;
     case JCS_EXT_XBGR:
+    case JCS_EXT_ABGR:
       sse2fct=jsimd_extxbgr_ycc_convert_sse2;
       mmxfct=jsimd_extxbgr_ycc_convert_mmx;
       break;
     case JCS_EXT_XRGB:
+    case JCS_EXT_ARGB:
       sse2fct=jsimd_extxrgb_ycc_convert_sse2;
       mmxfct=jsimd_extxrgb_ycc_convert_mmx;
       break;
@@ -175,6 +182,7 @@ jsimd_rgb_ycc_convert (j_compress_ptr cinfo,
     mmxfct(cinfo->image_width, input_buf,
         output_buf, output_row, num_rows);
 }
+#endif
 
 GLOBAL(void)
 jsimd_rgb_gray_convert (j_compress_ptr cinfo,
@@ -191,6 +199,7 @@ jsimd_rgb_gray_convert (j_compress_ptr cinfo,
       mmxfct=jsimd_extrgb_gray_convert_mmx;
       break;
     case JCS_EXT_RGBX:
+    case JCS_EXT_RGBA:
       sse2fct=jsimd_extrgbx_gray_convert_sse2;
       mmxfct=jsimd_extrgbx_gray_convert_mmx;
       break;
@@ -199,14 +208,17 @@ jsimd_rgb_gray_convert (j_compress_ptr cinfo,
       mmxfct=jsimd_extbgr_gray_convert_mmx;
       break;
     case JCS_EXT_BGRX:
+    case JCS_EXT_BGRA:
       sse2fct=jsimd_extbgrx_gray_convert_sse2;
       mmxfct=jsimd_extbgrx_gray_convert_mmx;
       break;
     case JCS_EXT_XBGR:
+    case JCS_EXT_ABGR:
       sse2fct=jsimd_extxbgr_gray_convert_sse2;
       mmxfct=jsimd_extxbgr_gray_convert_mmx;
       break;
     case JCS_EXT_XRGB:
+    case JCS_EXT_ARGB:
       sse2fct=jsimd_extxrgb_gray_convert_sse2;
       mmxfct=jsimd_extxrgb_gray_convert_mmx;
       break;
@@ -240,6 +252,7 @@ jsimd_ycc_rgb_convert (j_decompress_ptr cinfo,
       mmxfct=jsimd_ycc_extrgb_convert_mmx;
       break;
     case JCS_EXT_RGBX:
+    case JCS_EXT_RGBA:
       sse2fct=jsimd_ycc_extrgbx_convert_sse2;
       mmxfct=jsimd_ycc_extrgbx_convert_mmx;
       break;
@@ -248,14 +261,17 @@ jsimd_ycc_rgb_convert (j_decompress_ptr cinfo,
       mmxfct=jsimd_ycc_extbgr_convert_mmx;
       break;
     case JCS_EXT_BGRX:
+    case JCS_EXT_BGRA:
       sse2fct=jsimd_ycc_extbgrx_convert_sse2;
       mmxfct=jsimd_ycc_extbgrx_convert_mmx;
       break;
     case JCS_EXT_XBGR:
+    case JCS_EXT_ABGR:
       sse2fct=jsimd_ycc_extxbgr_convert_sse2;
       mmxfct=jsimd_ycc_extxbgr_convert_mmx;
       break;
     case JCS_EXT_XRGB:
+    case JCS_EXT_ARGB:
       sse2fct=jsimd_ycc_extxrgb_convert_sse2;
       mmxfct=jsimd_ycc_extxrgb_convert_mmx;
       break;
@@ -274,6 +290,7 @@ jsimd_ycc_rgb_convert (j_decompress_ptr cinfo,
         input_row, output_buf, num_rows);
 }
 
+#ifndef JPEG_DECODE_ONLY
 GLOBAL(int)
 jsimd_can_h2v2_downsample (void)
 {
@@ -339,6 +356,7 @@ jsimd_h2v1_downsample (j_compress_ptr cinfo, jpeg_component_info * compptr,
         compptr->v_samp_factor, compptr->width_in_blocks,
         input_data, output_data);
 }
+#endif
 
 GLOBAL(int)
 jsimd_can_h2v2_upsample (void)
@@ -380,7 +398,7 @@ jsimd_can_h2v1_upsample (void)
 
 GLOBAL(void)
 jsimd_h2v2_upsample (j_decompress_ptr cinfo,
-                     jpeg_component_info * compptr, 
+                     jpeg_component_info * compptr,
                      JSAMPARRAY input_data,
                      JSAMPARRAY * output_data_ptr)
 {
@@ -394,7 +412,7 @@ jsimd_h2v2_upsample (j_decompress_ptr cinfo,
 
 GLOBAL(void)
 jsimd_h2v1_upsample (j_decompress_ptr cinfo,
-                     jpeg_component_info * compptr, 
+                     jpeg_component_info * compptr,
                      JSAMPARRAY input_data,
                      JSAMPARRAY * output_data_ptr)
 {
@@ -448,7 +466,7 @@ jsimd_can_h2v1_fancy_upsample (void)
 
 GLOBAL(void)
 jsimd_h2v2_fancy_upsample (j_decompress_ptr cinfo,
-                           jpeg_component_info * compptr, 
+                           jpeg_component_info * compptr,
                            JSAMPARRAY input_data,
                            JSAMPARRAY * output_data_ptr)
 {
@@ -463,7 +481,7 @@ jsimd_h2v2_fancy_upsample (j_decompress_ptr cinfo,
 
 GLOBAL(void)
 jsimd_h2v1_fancy_upsample (j_decompress_ptr cinfo,
-                           jpeg_component_info * compptr, 
+                           jpeg_component_info * compptr,
                            JSAMPARRAY input_data,
                            JSAMPARRAY * output_data_ptr)
 {
@@ -532,6 +550,7 @@ jsimd_h2v2_merged_upsample (j_decompress_ptr cinfo,
       mmxfct=jsimd_h2v2_extrgb_merged_upsample_mmx;
       break;
     case JCS_EXT_RGBX:
+    case JCS_EXT_RGBA:
       sse2fct=jsimd_h2v2_extrgbx_merged_upsample_sse2;
       mmxfct=jsimd_h2v2_extrgbx_merged_upsample_mmx;
       break;
@@ -540,14 +559,17 @@ jsimd_h2v2_merged_upsample (j_decompress_ptr cinfo,
       mmxfct=jsimd_h2v2_extbgr_merged_upsample_mmx;
       break;
     case JCS_EXT_BGRX:
+    case JCS_EXT_BGRA:
       sse2fct=jsimd_h2v2_extbgrx_merged_upsample_sse2;
       mmxfct=jsimd_h2v2_extbgrx_merged_upsample_mmx;
       break;
     case JCS_EXT_XBGR:
+    case JCS_EXT_ABGR:
       sse2fct=jsimd_h2v2_extxbgr_merged_upsample_sse2;
       mmxfct=jsimd_h2v2_extxbgr_merged_upsample_mmx;
       break;
     case JCS_EXT_XRGB:
+    case JCS_EXT_ARGB:
       sse2fct=jsimd_h2v2_extxrgb_merged_upsample_sse2;
       mmxfct=jsimd_h2v2_extxrgb_merged_upsample_mmx;
       break;
@@ -582,6 +604,7 @@ jsimd_h2v1_merged_upsample (j_decompress_ptr cinfo,
       mmxfct=jsimd_h2v1_extrgb_merged_upsample_mmx;
       break;
     case JCS_EXT_RGBX:
+    case JCS_EXT_RGBA:
       sse2fct=jsimd_h2v1_extrgbx_merged_upsample_sse2;
       mmxfct=jsimd_h2v1_extrgbx_merged_upsample_mmx;
       break;
@@ -590,14 +613,17 @@ jsimd_h2v1_merged_upsample (j_decompress_ptr cinfo,
       mmxfct=jsimd_h2v1_extbgr_merged_upsample_mmx;
       break;
     case JCS_EXT_BGRX:
+    case JCS_EXT_BGRA:
       sse2fct=jsimd_h2v1_extbgrx_merged_upsample_sse2;
       mmxfct=jsimd_h2v1_extbgrx_merged_upsample_mmx;
       break;
     case JCS_EXT_XBGR:
+    case JCS_EXT_ABGR:
       sse2fct=jsimd_h2v1_extxbgr_merged_upsample_sse2;
       mmxfct=jsimd_h2v1_extxbgr_merged_upsample_mmx;
       break;
     case JCS_EXT_XRGB:
+    case JCS_EXT_ARGB:
       sse2fct=jsimd_h2v1_extxrgb_merged_upsample_sse2;
       mmxfct=jsimd_h2v1_extxrgb_merged_upsample_mmx;
       break;
@@ -616,6 +642,7 @@ jsimd_h2v1_merged_upsample (j_decompress_ptr cinfo,
         in_row_group_ctr, output_buf);
 }
 
+#ifndef JPEG_DECODE_ONLY
 GLOBAL(int)
 jsimd_can_convsamp (void)
 {
@@ -835,6 +862,7 @@ jsimd_quantize_float (JCOEFPTR coef_block, FAST_FLOAT * divisors,
   else if (simd_support & JSIMD_3DNOW)
     jsimd_quantize_float_3dnow(coef_block, divisors, workspace);
 }
+#endif
 
 GLOBAL(int)
 jsimd_can_idct_2x2 (void)

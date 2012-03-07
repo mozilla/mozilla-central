@@ -1,12 +1,12 @@
 Name: libjpeg-turbo
 URL: http://sourceforge.net/projects/libjpeg-turbo/
-Version: 1.1.90
+Version: 1.2
 License File: LICENSE.txt
 Security Critical: yes
 
 Description:
 This consists of three components:
-* A partial copy of libjpeg-turbo 1.1.90 (r677);
+* A partial copy of libjpeg-turbo 1.2 (r733);
 * A build file (libjpeg.gyp), and;
 * Patched header files used by Chromium.
 
@@ -23,4 +23,4 @@ following changes which are not merged to upstream:
 * Supported motion-JPEG frames that do not have DHT markers.
 * Fixed valgrind errors.
 The 'google.patch' file represents our changes from the original
-libjpeg-turbo-1.1.90.
+libjpeg-turbo-1.2.

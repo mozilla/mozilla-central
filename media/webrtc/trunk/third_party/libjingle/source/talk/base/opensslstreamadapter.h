@@ -29,6 +29,8 @@
 #define TALK_BASE_OPENSSLSTREAMADAPTER_H__
 
 #include <string>
+#include <vector>
+
 #include "talk/base/buffer.h"
 #include "talk/base/sslstreamadapter.h"
 #include "talk/base/opensslidentity.h"
@@ -94,6 +96,24 @@ class OpenSSLStreamAdapter : public SSLStreamAdapter {
                              size_t* written, int* error);
   virtual void Close();
   virtual StreamState GetState() const;
+
+  // Key Extractor interface
+  virtual bool ExportKeyingMaterial(const std::string& label,
+                                    const uint8* context,
+                                    size_t context_len,
+                                    bool use_context,
+                                    uint8* result,
+                                    size_t result_len);
+
+
+  // DTLS-SRTP interface
+  virtual bool SetDtlsSrtpCiphers(const std::vector<std::string>& ciphers);
+  virtual bool GetDtlsSrtpCipher(std::string* cipher);
+
+  // Capabilities interfaces
+  static bool HaveDtls();
+  static bool HaveDtlsSrtp();
+  static bool HaveExporter();
 
  protected:
   virtual void OnEvent(StreamInterface* stream, int events, int err);
@@ -180,6 +200,9 @@ class OpenSSLStreamAdapter : public SSLStreamAdapter {
 
   // OpenSSLAdapter::custom_verify_callback_ result
   bool custom_verification_succeeded_;
+
+  // The DtlsSrtp ciphers
+  std::string srtp_ciphers_;
 
   // Do DTLS or not
   SSLMode ssl_mode_;

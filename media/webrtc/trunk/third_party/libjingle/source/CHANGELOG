@@ -1,5 +1,36 @@
 Libjingle
 
+0.6.12 - Feb 07, 2012
+  - PeerConnection client for windows.
+  - Bug fixes.
+
+0.6.11 - Jan 24, 2012
+  - Improved ipv6 support.
+  - Initial DTLS support.
+  - Initial BUNDLE support.
+  - Update Jingle protocol to multistream.
+  - WebRTC Bug fixes.
+
+0.6.10 - Jan 11, 2012
+  - Support fullscreen screencasting of secondary displays.
+  - Add IPv6 support for libjingle's STUN components.
+  - Enable SRTP in PeerConnection v1.
+  - Bug fixes.
+
+0.6.9 - Jan 09, 2012
+  - Enable SRTP in PeerConnection.
+  - Bug fixes.
+
+0.6.8 - Dec 22, 2011
+  - Add a lot of unit tests
+  - Add a lot of older files to base/ and xmpp/
+  - Add examples/pcp add examples/peerconnection
+  - Improve support for IPV6
+
+0.6.7 - Dec 21, 2011
+  - Release new PeerConnection implementation to app/webrtc.
+  - Bug fixes.
+
 0.6.6 - Dec 14, 2011
   - Fix support for rtcp multiplexing (aka rtcp-mux).
   - Add more support for FreeBSD and OpenBSD.

@@ -11,6 +11,7 @@
 #include "video_engine/vie_channel.h"
 
 #include <algorithm>
+#include <vector>
 
 #include "modules/rtp_rtcp/interface/rtp_rtcp.h"
 #include "modules/udp_transport/interface/udp_transport.h"
@@ -46,32 +47,33 @@ ViEChannel::ViEChannel(WebRtc_Word32 channel_id,
       callback_cs_(CriticalSectionWrapper::CreateCriticalSection()),
       rtp_rtcp_(*RtpRtcp::CreateRtpRtcp(ViEModuleId(engine_id, channel_id),
                                         false)),
+      default_rtp_rtcp_(NULL),
 #ifndef WEBRTC_EXTERNAL_TRANSPORT
       socket_transport_(*UdpTransport::Create(
           ViEModuleId(engine_id, channel_id), num_socket_threads_)),
 #endif
-  vcm_(*VideoCodingModule::Create(ViEModuleId(engine_id, channel_id))),
-  vie_receiver_(*(new ViEReceiver(engine_id, channel_id, rtp_rtcp_, vcm_))),
-  vie_sender_(*(new ViESender(engine_id, channel_id))),
-  vie_sync_(*(new ViESyncModule(ViEId(engine_id, channel_id), vcm_,
-                                rtp_rtcp_))),
-  module_process_thread_(module_process_thread),
-  codec_observer_(NULL),
-  do_key_frame_callbackRequest_(false),
-  rtp_observer_(NULL),
-  rtcp_observer_(NULL),
-  networkObserver_(NULL),
-  rtp_packet_timeout_(false),
-  using_packet_spread_(false),
-  external_transport_(NULL),
-  decoder_reset_(true),
-  wait_for_key_frame_(false),
-  decode_thread_(NULL),
-  external_encryption_(NULL),
-  effect_filter_(NULL),
-  color_enhancement_(true),
-  vcm_rttreported_(TickTime::Now()),
-  file_recorder_(channel_id) {
+      vcm_(*VideoCodingModule::Create(ViEModuleId(engine_id, channel_id))),
+      vie_receiver_(*(new ViEReceiver(engine_id, channel_id, rtp_rtcp_, vcm_))),
+      vie_sender_(*(new ViESender(engine_id, channel_id))),
+      vie_sync_(*(new ViESyncModule(ViEId(engine_id, channel_id), vcm_,
+                                    rtp_rtcp_))),
+      module_process_thread_(module_process_thread),
+      codec_observer_(NULL),
+      do_key_frame_callbackRequest_(false),
+      rtp_observer_(NULL),
+      rtcp_observer_(NULL),
+      networkObserver_(NULL),
+      rtp_packet_timeout_(false),
+      using_packet_spread_(false),
+      external_transport_(NULL),
+      decoder_reset_(true),
+      wait_for_key_frame_(false),
+      decode_thread_(NULL),
+      external_encryption_(NULL),
+      effect_filter_(NULL),
+      color_enhancement_(true),
+      vcm_rttreported_(TickTime::Now()),
+      file_recorder_(channel_id) {
   WEBRTC_TRACE(kTraceMemory, kTraceVideo, ViEId(engine_id, channel_id),
                "ViEChannel::ViEChannel(channel_id: %d, engine_id: %d)",
                channel_id, engine_id);
@@ -731,24 +733,38 @@ WebRtc_Word32 ViEChannel::EnableKeyFrameRequestCallback(const bool enable) {
 }
 
 WebRtc_Word32 ViEChannel::SetSSRC(const WebRtc_UWord32 SSRC,
-                                  const StreamType /*usage*/,
-                                  const unsigned char simulcast_idx) {
-  // TODO(pwestin) add support for stream_type when we add RTX.
-  WEBRTC_TRACE(kTraceInfo, kTraceVideo, ViEId(engine_id_, channel_id_),
-               "%s(SSRC: %u, idx:%u)", __FUNCTION__, SSRC, simulcast_idx);
-
+                                  const StreamType usage,
+                                  const uint8_t simulcast_idx) {
+  WEBRTC_TRACE(webrtc::kTraceInfo,
+               webrtc::kTraceVideo,
+               ViEId(engine_id_, channel_id_),
+               "%s(usage:%d, SSRC: 0x%x, idx:%u)",
+               __FUNCTION__, usage, SSRC, simulcast_idx);
   if (simulcast_idx == 0) {
     return rtp_rtcp_.SetSSRC(SSRC);
   }
   std::list<RtpRtcp*>::const_iterator it = simulcast_rtp_rtcp_.begin();
-  for (int i = 1; i < simulcast_idx; i++) {
-    it++;
-    if (it == simulcast_rtp_rtcp_.end()) {
+  for (int i = 1; i < simulcast_idx; ++i, ++it) {
+    if (it ==  simulcast_rtp_rtcp_.end()) {
       return -1;
     }
   }
   RtpRtcp* rtp_rtcp = *it;
+  if (usage == kViEStreamTypeRtx) {
+    return rtp_rtcp->SetRTXSendStatus(true, true, SSRC);
+  }
   return rtp_rtcp->SetSSRC(SSRC);
+}
+
+WebRtc_Word32 ViEChannel::SetRemoteSSRCType(const StreamType usage,
+                                            const uint32_t SSRC) const {
+  WEBRTC_TRACE(webrtc::kTraceInfo,
+               webrtc::kTraceVideo,
+               ViEId(engine_id_, channel_id_),
+               "%s(usage:%d, SSRC: 0x%x)",
+               __FUNCTION__, usage, SSRC);
+
+  return rtp_rtcp_.SetRTXReceiveStatus(true, SSRC);
 }
 
 WebRtc_Word32 ViEChannel::GetLocalSSRC(WebRtc_UWord32& SSRC) {
@@ -927,16 +943,36 @@ WebRtc_Word32 ViEChannel::GetSendRtcpStatistics(WebRtc_UWord16& fraction_lost,
   //   RtpRtcp* rtp_rtcp = *it;
   // }
   WebRtc_UWord32 remoteSSRC = rtp_rtcp_.RemoteSSRC();
-  RTCPReportBlock remote_stat;
-  if (rtp_rtcp_.RemoteRTCPStat(remoteSSRC, &remote_stat) != 0) {
+
+  // Get all RTCP receiver report blocks that have been received on this
+  // channel. If we receive RTP packets from a remote source we know the
+  // remote SSRC and use the report block from him.
+  // Otherwise use the first report block.
+  std::vector<RTCPReportBlock> remote_stats;
+  if (rtp_rtcp_.RemoteRTCPStat(&remote_stats) != 0 || remote_stats.empty()) {
     WEBRTC_TRACE(kTraceWarning, kTraceVideo, ViEId(engine_id_, channel_id_),
                  "%s: Could not get remote stats", __FUNCTION__);
     return -1;
   }
-  fraction_lost = remote_stat.fractionLost;
-  cumulative_lost = remote_stat.cumulativeLost;
-  extended_max = remote_stat.extendedHighSeqNum;
-  jitter_samples = remote_stat.jitter;
+  std::vector<RTCPReportBlock>::const_iterator statistics =
+      remote_stats.begin();
+  for (; statistics != remote_stats.end(); ++statistics) {
+    if (statistics->remoteSSRC == remoteSSRC)
+      break;
+  }
+
+  if (statistics == remote_stats.end()) {
+    // If we have not received any RTCP packets from this SSRC it probably means
+    // we have not received any RTP packets.
+    // Use the first received report block instead.
+    statistics = remote_stats.begin();
+    remoteSSRC = statistics->remoteSSRC;
+  }
+
+  fraction_lost = statistics->fractionLost;
+  cumulative_lost = statistics->cumulativeLost;
+  extended_max = statistics->extendedHighSeqNum;
+  jitter_samples = statistics->jitter;
 
   WebRtc_UWord16 dummy;
   WebRtc_UWord16 rtt = 0;
@@ -2490,10 +2526,6 @@ void ViEChannel::OnIncomingCSRCChanged(const WebRtc_Word32 id,
       rtp_observer_->IncomingCSRCChanged(channel_id_, CSRC, added);
     }
   }
-}
-
-WebRtc_Word32 ViEChannel::SetInverseH263Logic(const bool enable) {
-  return rtp_rtcp_.SetH263InverseLogic(enable);
 }
 
 }  // namespace webrtc

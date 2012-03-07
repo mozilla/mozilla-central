@@ -315,9 +315,7 @@ private:
     CodecInst                      _cngWB;
     CodecInst                      _cngSWB;
     CodecInst                      _RED;
-    bool                           _REDRegistered;
     CodecInst                      _DTMF;
-    bool                           _DTMFRegistered;
     bool                           _vadEnabled;
     bool                           _dtxEnabled;
     ACMVADMode                     _vadMode;
@@ -326,6 +324,8 @@ private:
     WebRtc_Word16                  _mirrorCodecIdx[ACMCodecDB::kMaxNumCodecs];
     bool                           _stereoReceive[ACMCodecDB::kMaxNumCodecs];
     bool                           _stereoSend;
+    int                            _prev_received_channel;
+    int                            _expected_channels;
     WebRtc_Word32                  _currentSendCodecIdx;
     bool                           _sendCodecRegistered;
     ACMResampler                   _inputResampler;

@@ -29,6 +29,7 @@
 #include "talk/base/helpers.h"
 #include "talk/base/logging.h"
 #include "talk/base/thread.h"
+#include "talk/p2p/base/parsing.h"
 #include "talk/session/phone/call.h"
 #include "talk/session/phone/mediasessionclient.h"
 
@@ -140,8 +141,8 @@ bool Call::SendViewRequest(Session* session,
   StaticVideoViews::const_iterator it;
   for (it = view_request.static_video_views.begin();
        it != view_request.static_video_views.end(); ++it) {
-    NamedSource found_source;
-    bool found = media_sources_.GetVideoSourceBySsrc(it->ssrc, &found_source);
+    StreamParams found_stream;
+    bool found = recv_streams_.GetVideoStreamBySsrc(it->ssrc, &found_stream);
     if (!found) {
       LOG(LS_WARNING) <<
           "Tried sending view request for bad ssrc: " << it->ssrc;
@@ -178,34 +179,41 @@ void Call::SetVideoRenderer(Session *session, uint32 ssrc,
   }
 }
 
-void Call::AddVoiceStream(Session *session, uint32 voice_ssrc) {
+
+
+
+void Call::AddAudioRecvStream(Session *session, const StreamParams& stream) {
   VoiceChannel *voice_channel = GetVoiceChannel(session);
-  if (voice_channel && voice_ssrc) {
-    voice_channel->AddStream(voice_ssrc);
+  if (voice_channel && stream.has_ssrcs()) {
+    voice_channel->AddRecvStream(stream);
   }
+  recv_streams_.AddAudioStream(stream);
 }
 
-void Call::AddVideoStream(Session *session, uint32 video_ssrc) {
+void Call::AddVideoRecvStream(Session *session, const StreamParams& stream) {
   VideoChannel *video_channel = GetVideoChannel(session);
-  if (video_channel && video_ssrc) {
-    // TODO: Do we need the audio_ssrc here?
-    // It doesn't seem to be used.
-    video_channel->AddStream(video_ssrc, 0U);
+  if (video_channel && stream.has_ssrcs()) {
+    video_channel->AddRecvStream(stream);
   }
+  recv_streams_.AddVideoStream(stream);
 }
 
-void Call::RemoveVoiceStream(Session *session, uint32 voice_ssrc) {
+void Call::RemoveAudioRecvStream(Session *session, const StreamParams& stream) {
   VoiceChannel *voice_channel = GetVoiceChannel(session);
-  if (voice_channel && voice_ssrc) {
-    voice_channel->RemoveStream(voice_ssrc);
+  // TODO: Change RemoveRecvStream to take a stream argument.
+  if (voice_channel && stream.has_ssrcs()) {
+    voice_channel->RemoveRecvStream(stream.first_ssrc());
   }
+  recv_streams_.RemoveAudioStreamByNickAndName(stream.nick, stream.name);
 }
 
-void Call::RemoveVideoStream(Session *session, uint32 video_ssrc) {
+void Call::RemoveVideoRecvStream(Session *session, const StreamParams& stream) {
   VideoChannel *video_channel = GetVideoChannel(session);
-  if (video_channel && video_ssrc) {
-    video_channel->RemoveStream(video_ssrc);
+  // TODO: Change RemoveRecvStream to take a stream argument.
+  if (video_channel && stream.has_ssrcs()) {
+    video_channel->RemoveRecvStream(stream.first_ssrc());
   }
+  recv_streams_.RemoveVideoStreamByNickAndName(stream.nick, stream.name);
 }
 
 void Call::OnMessage(talk_base::Message *message) {
@@ -239,13 +247,6 @@ bool Call::AddSession(Session *session, const SessionDescription* offer) {
   VoiceChannel *voice_channel = NULL;
   VideoChannel *video_channel = NULL;
 
-  // Generate a random string for the RTCP CNAME, as stated in RFC 6222.
-  // This string is only used for synchronization, and therefore is opaque.
-  std::string rtcp_cname;
-  if (!talk_base::CreateRandomString(16, &rtcp_cname)) {
-    return false;
-  }
-
   const ContentInfo* audio_offer = GetFirstAudioContent(offer);
   const ContentInfo* video_offer = GetFirstVideoContent(offer);
   video_ = (video_offer != NULL);
@@ -257,7 +258,6 @@ bool Call::AddSession(Session *session, const SessionDescription* offer) {
   // voice_channel can be NULL in case of NullVoiceEngine.
   if (voice_channel) {
     voice_channel_map_[session->id()] = voice_channel;
-    voice_channel->SetRtcpCName(rtcp_cname);
     voice_channel->SignalMediaMonitor.connect(this, &Call::OnMediaMonitor);
     voice_channel->StartMediaMonitor(kMediaMonitorInterval);
   } else {
@@ -271,7 +271,6 @@ bool Call::AddSession(Session *session, const SessionDescription* offer) {
     // video_channel can be NULL in case of NullVideoEngine.
     if (video_channel) {
       video_channel_map_[session->id()] = video_channel;
-      video_channel->SetRtcpCName(rtcp_cname);
       video_channel->SignalMediaMonitor.connect(this, &Call::OnMediaMonitor);
       video_channel->StartMediaMonitor(kMediaMonitorInterval);
     } else {
@@ -284,7 +283,10 @@ bool Call::AddSession(Session *session, const SessionDescription* offer) {
     sessions_.push_back(session);
     session->SignalState.connect(this, &Call::OnSessionState);
     session->SignalError.connect(this, &Call::OnSessionError);
-    session->SignalInfoMessage.connect(this, &Call::OnSessionInfo);
+    session->SignalInfoMessage.connect(
+        this, &Call::OnSessionInfoMessage);
+    session->SignalRemoteDescriptionUpdate.connect(
+        this, &Call::OnRemoteDescriptionUpdate);
     session->SignalReceivedTerminateReason
       .connect(this, &Call::OnReceivedTerminateReason);
 
@@ -553,11 +555,10 @@ void Call::OnAudioMonitor(VoiceChannel *channel, const AudioInfo& info) {
 }
 
 void Call::OnSpeakerMonitor(CurrentSpeakerMonitor* monitor, uint32 ssrc) {
-  NamedSource source;
-  source.ssrc = ssrc;
-  media_sources_.GetAudioSourceBySsrc(ssrc, &source);
+  StreamParams stream;
+  recv_streams_.GetAudioStreamBySsrc(ssrc, &stream);
   SignalSpeakerMonitor(this, static_cast<Session *>(monitor->session()),
-                       source);
+                       stream);
 }
 
 void Call::OnConnectionMonitor(VideoChannel *channel,
@@ -593,90 +594,134 @@ void Call::OnSessionError(BaseSession *session, Session::Error error) {
   SignalSessionError(this, static_cast<Session *>(session), error);
 }
 
-void Call::OnSessionInfo(Session *session,
-                         const buzz::XmlElement* action_elem) {
-  // We have a different list of "updates" because we only want to
-  // signal the sources that were added or removed.  We want to filter
-  // out un-changed sources.
-  cricket::MediaSources updates;
+void Call::OnSessionInfoMessage(Session *session,
+                                const buzz::XmlElement* action_elem) {
+  if (!IsJingleViewRequest(action_elem)) {
+    return;
+  }
 
-  if (IsSourcesNotify(action_elem)) {
-    MediaSources sources;
-    ParseError error;
-    if (!ParseSourcesNotify(action_elem, session->remote_description(),
-                            &sources, &error)) {
-      // TODO: Is there a way we can signal an IQ error
-      // back to the sender?
-      LOG(LS_WARNING) << "Invalid sources notify message: " << error.text;
-      return;
-    }
+  ViewRequest view_request;
+  ParseError error;
+  if (!ParseJingleViewRequest(action_elem, &view_request, &error)) {
+    LOG(LS_WARNING) << "Failed to parse view request: " << error.text;
+    return;
+  }
 
-    NamedSources::iterator it;
-    for (it = sources.mutable_audio()->begin();
-         it != sources.mutable_audio()->end(); ++it) {
-      bool found = false;
-      NamedSource found_source;
-      if (it->ssrc_set) {
-        found = media_sources_.GetAudioSourceBySsrc(it->ssrc, &found_source);
-      } else {
-        // For backwards compatibility, we remove by nick.
-        // TODO: Remove once all senders use explicit remove by ssrc.
-        found = media_sources_.GetFirstAudioSourceByNick(it->nick,
-                                                         &found_source);
-        if (found) {
-          it->SetSsrc(found_source.ssrc);
-          it->removed = true;
-        } else {
-          continue;  // No ssrc to remove.
-        }
-      }
-      if (it->removed && found) {
-        RemoveVoiceStream(session, found_source.ssrc);
-        media_sources_.RemoveAudioSourceBySsrc(it->ssrc);
-        updates.mutable_audio()->push_back(*it);
-        LOG(LS_INFO) << "Removed voice stream:  " << found_source.ssrc;
-      } else if (!it->removed && !found) {
-        AddVoiceStream(session, it->ssrc);
-        media_sources_.AddAudioSource(*it);
-        updates.mutable_audio()->push_back(*it);
-        LOG(LS_INFO) << "Added voice stream:  " << it->ssrc;
-      }
-    }
-    for (it = sources.mutable_video()->begin();
-         it != sources.mutable_video()->end(); ++it) {
-      bool found = false;
-      NamedSource found_source;
-      if (it->ssrc_set) {
-        found = media_sources_.GetVideoSourceBySsrc(it->ssrc, &found_source);
-      } else {
-        // For backwards compatibility, we remove by nick.
-        // TODO: Remove once all senders use explicit remove by ssrc.
-        found = media_sources_.GetFirstVideoSourceByNick(it->nick,
-                                                         &found_source);
-        if (found) {
-          it->SetSsrc(found_source.ssrc);
-          it->removed = true;
-        } else {
-          continue;  // No ssrc to remove.
-        }
-      }
-      if (it->removed && found) {
-        RemoveVideoStream(session, found_source.ssrc);
-        media_sources_.RemoveVideoSourceBySsrc(it->ssrc);
-        updates.mutable_video()->push_back(*it);
-        LOG(LS_INFO) << "Removed video stream:  " << found_source.ssrc;
-      } else if (!it->removed && !found) {
-        AddVideoStream(session, it->ssrc);
-        media_sources_.AddVideoSource(*it);
-        updates.mutable_video()->push_back(*it);
-        LOG(LS_INFO) << "Added video stream:  " << it->ssrc;
-      }
-    }
+  VideoChannel *video_channel = GetVideoChannel(session);
+  if (video_channel == NULL) {
+    LOG(LS_WARNING) << "Ignore view request since we have no video channel.";
+    return;
+  }
 
-    if (!updates.audio().empty() || !updates.video().empty()) {
-      SignalMediaSourcesUpdate(this, session, updates);
+  if (!video_channel->ApplyViewRequest(view_request)) {
+    LOG(LS_WARNING) << "Failed to ApplyViewRequest.";
+  }
+}
+
+void FindStreamChanges(const std::vector<StreamParams>& streams,
+                       const std::vector<StreamParams>& updates,
+                       std::vector<StreamParams>* added_streams,
+                       std::vector<StreamParams>* removed_streams) {
+  for (std::vector<StreamParams>::const_iterator update = updates.begin();
+       update != updates.end(); ++update) {
+    StreamParams stream;
+    if (GetStreamByNickAndName(streams, update->nick, update->name, &stream)) {
+      if (!update->has_ssrcs()) {
+        removed_streams->push_back(stream);
+      }
+    } else {
+      // There's a bug on reflector that will send <stream>s even
+      // though there is not ssrc (which means there isn't really a
+      // stream).  To work around it, we simply ignore new <stream>s
+      // that don't have any ssrcs.
+      if (update->has_ssrcs()) {
+        added_streams->push_back(*update);
+      }
     }
   }
+}
+
+void Call::OnRemoteDescriptionUpdate(BaseSession *base_session,
+                                     const ContentInfos& updated_contents) {
+  Session* session = static_cast<Session *>(base_session);
+
+  cricket::MediaStreams added_streams;
+  cricket::MediaStreams removed_streams;
+  std::vector<StreamParams>::const_iterator stream;
+
+  const ContentInfo* audio_content = GetFirstAudioContent(updated_contents);
+  if (audio_content) {
+    const AudioContentDescription* audio_update =
+        static_cast<const AudioContentDescription*>(audio_content->description);
+    if (!audio_update->codecs().empty()) {
+      UpdateVoiceChannelRemoteContent(session, audio_update);
+    }
+
+    FindStreamChanges(recv_streams_.audio(),
+                      audio_update->streams(),
+                      added_streams.mutable_audio(),
+                      removed_streams.mutable_audio());
+    for (stream = added_streams.audio().begin();
+         stream != added_streams.audio().end();
+         ++stream) {
+      AddAudioRecvStream(session, *stream);
+    }
+    for (stream = removed_streams.audio().begin();
+         stream != removed_streams.audio().end();
+         ++stream) {
+      RemoveAudioRecvStream(session, *stream);
+    }
+  }
+
+  const ContentInfo* video_content = GetFirstVideoContent(updated_contents);
+  if (video_content) {
+    const VideoContentDescription* video_update =
+        static_cast<const VideoContentDescription*>(video_content->description);
+    if (!video_update->codecs().empty()) {
+      UpdateVideoChannelRemoteContent(session, video_update);
+    }
+
+    FindStreamChanges(recv_streams_.video(),
+                      video_update->streams(),
+                      added_streams.mutable_video(),
+                      removed_streams.mutable_video());
+    for (stream = added_streams.video().begin();
+         stream != added_streams.video().end();
+         ++stream) {
+      AddVideoRecvStream(session, *stream);
+    }
+    for (stream = removed_streams.video().begin();
+         stream != removed_streams.video().end();
+         ++stream) {
+      RemoveVideoRecvStream(session, *stream);
+    }
+  }
+
+  if (!added_streams.empty() || !removed_streams.empty()) {
+    SignalMediaStreamsUpdate(this, session, added_streams, removed_streams);
+  }
+}
+
+bool Call::UpdateVoiceChannelRemoteContent(
+    Session* session, const AudioContentDescription* audio) {
+  VoiceChannel *voice_channel = GetVoiceChannel(session);
+  if (!voice_channel->SetRemoteContent(audio, CA_UPDATE)) {
+    LOG(LS_ERROR) << "Failure in audio SetRemoteContent with CA_UPDATE";
+    session->SetError(BaseSession::ERROR_CONTENT);
+    return false;
+  }
+  return true;
+}
+
+bool Call::UpdateVideoChannelRemoteContent(
+    Session* session, const VideoContentDescription* video) {
+  VideoChannel *video_channel = GetVideoChannel(session);
+  if (!video_channel->SetRemoteContent(video, CA_UPDATE)) {
+    LOG(LS_ERROR) << "Failure in video SetRemoteContent with CA_UPDATE";
+    session->SetError(BaseSession::ERROR_CONTENT);
+    return false;
+  }
+  return true;
 }
 
 void Call::OnReceivedTerminateReason(Session *session,

@@ -47,7 +47,6 @@ class PresenceOutTask;
 class MucInviteRecvTask;
 class MucInviteSendTask;
 class FriendInviteSendTask;
-class VoicemailJidRequester;
 class DiscoInfoQueryTask;
 class Muc;
 class Status;
@@ -74,7 +73,8 @@ class Receiver;
 class Call;
 class SessionManagerTask;
 struct CallOptions;
-struct NamedSource;
+struct MediaStreams;
+struct StreamParams;
 }
 
 struct RosterItem {
@@ -98,7 +98,9 @@ typedef std::vector<StaticRenderedView> StaticRenderedViews;
 
 class CallClient: public sigslot::has_slots<> {
  public:
-  explicit CallClient(buzz::XmppClient* xmpp_client);
+  CallClient(buzz::XmppClient* xmpp_client,
+             const std::string& caps_node,
+             const std::string& version);
   ~CallClient();
 
   cricket::MediaSessionClient* media_client() const { return media_client_; }
@@ -117,6 +119,13 @@ class CallClient: public sigslot::has_slots<> {
   void SetConsole(Console *console) {
     console_ = console;
   }
+  void SetPriority(int priority) {
+    my_status_.set_priority(priority);
+  }
+  void SendStatus() {
+    SendStatus(my_status_);
+  }
+  void SendStatus(const buzz::Status& status);
 
   void ParseLine(const std::string &str);
 
@@ -157,7 +166,6 @@ class CallClient: public sigslot::has_slots<> {
 
   void InitMedia();
   void InitPresence();
-  void RefreshStatus();
   void OnRequestSignaling();
   void OnSessionCreate(cricket::Session* session, bool initiate);
   void OnCallCreate(cricket::Call* call);
@@ -194,14 +202,13 @@ class CallClient: public sigslot::has_slots<> {
                                 const std::string& mutee_nick,
                                 const buzz::XmlElement* stanza);
   void OnDevicesChange();
-  void OnFoundVoicemailJid(const buzz::Jid& to, const buzz::Jid& voicemail);
-  void OnVoicemailJidError(const buzz::Jid& to);
-  void OnMediaSourcesUpdate(cricket::Call* call,
+  void OnMediaStreamsUpdate(cricket::Call* call,
                             cricket::Session* session,
-                            const cricket::MediaSources& sources);
+                            const cricket::MediaStreams& added,
+                            const cricket::MediaStreams& removed);
   void OnSpeakerChanged(cricket::Call* call,
                         cricket::Session* session,
-                        const cricket::NamedSource& speaker_source);
+                        const cricket::StreamParams& speaker_stream);
   void OnRoomLookupResponse(buzz::MucRoomLookupTask* task,
                             const buzz::MucRoomInfo& room_info);
   void OnRoomLookupError(buzz::IqTask* task,
@@ -225,7 +232,6 @@ class CallClient: public sigslot::has_slots<> {
   void PrintRoster();
   void MakeCallTo(const std::string& name, const cricket::CallOptions& options);
   void PlaceCall(const buzz::Jid& jid, const cricket::CallOptions& options);
-  void CallVoicemail(const std::string& name);
   void Accept(const cricket::CallOptions& options);
   void Reject();
   void Quit();

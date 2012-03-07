@@ -121,9 +121,9 @@ PresenceOutTask::TranslateStatus(const Status & s) {
     result->AddElement(new XmlElement(QN_PRIORITY));
     result->AddText(pri, 1);
 
-    if (s.know_capabilities() && s.is_google_client()) {
+    if (s.know_capabilities()) {
       result->AddElement(new XmlElement(QN_CAPS_C, true));
-      result->AddAttr(QN_NODE, GOOGLE_CLIENT_NODE, 1);
+      result->AddAttr(QN_NODE, s.caps_node(), 1);
       result->AddAttr(QN_VER, s.version(), 1);
 
       std::string caps;

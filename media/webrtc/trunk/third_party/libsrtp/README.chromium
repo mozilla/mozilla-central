@@ -1,0 +1,18 @@
+Name: Libsrtp library. Used for p2p voice and video communication.
+Short Name: libsrtp
+URL: http://srtp.sourceforge.net/srtp.html
+Version: 1.4.4
+License: BSD-based license
+License File: srtp/LICENSE
+Security Critical: Yes
+
+Description:
+  Libsrtp provides secure media transmission in a real
+  time communication. It's used with libjingle which
+  provides the p2p session setup.
+
+  Libsrtp is distributed under the following BSD-based license, detailed info
+  in srtp/LICENSE.
+
+Local Modifications:
+

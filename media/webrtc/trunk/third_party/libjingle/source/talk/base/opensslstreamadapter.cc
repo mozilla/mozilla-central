@@ -40,6 +40,8 @@
 #include <openssl/ssl.h>
 #include <openssl/x509v3.h>
 
+#include <vector>
+
 #include "talk/base/common.h"
 #include "talk/base/logging.h"
 #include "talk/base/stream.h"
@@ -50,6 +52,28 @@
 
 namespace talk_base {
 
+#if (OPENSSL_VERSION_NUMBER >= 0x10001000L)
+#define HAVE_DTLS_SRTP
+#endif
+
+#if (OPENSSL_VERSION_NUMBER >= 0x10000000L)
+#define HAVE_DTLS
+#endif
+
+#ifdef HAVE_DTLS_SRTP
+// SRTP cipher suite table
+struct SrtpCipherMapEntry {
+  const char* external_name;
+  const char* internal_name;
+};
+
+// This isn't elegant, but it's better than an external reference
+static SrtpCipherMapEntry SrtpCipherMap[] = {
+  {"AES_CM_128_HMAC_SHA1_80", "SRTP_AES128_CM_SHA1_80"},
+  {"AES_CM_128_HMAC_SHA1_32", "SRTP_AES128_CM_SHA1_32"},
+  {NULL, NULL}
+};
+#endif
 
 //////////////////////////////////////////////////////////////////////
 // StreamBIO
@@ -215,6 +239,95 @@ bool OpenSSLStreamAdapter::SetPeerCertificateDigest(const std::string
   return true;
 }
 
+// Key Extractor interface
+bool OpenSSLStreamAdapter::ExportKeyingMaterial(const std::string& label,
+                                                const uint8* context,
+                                                size_t context_len,
+                                                bool use_context,
+                                                uint8* result,
+                                                size_t result_len) {
+#ifdef HAVE_DTLS_SRTP
+  int i;
+
+  i = SSL_export_keying_material(ssl_, result, result_len,
+                                 label.c_str(), label.length(),
+                                 const_cast<uint8 *>(context),
+                                 context_len, use_context);
+
+  if (i != 1)
+    return false;
+
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool OpenSSLStreamAdapter::SetDtlsSrtpCiphers(
+    const std::vector<std::string>& ciphers) {
+  std::string internal_ciphers;
+
+  if (state_ != SSL_NONE)
+    return false;
+
+#ifdef HAVE_DTLS_SRTP
+  for (std::vector<std::string>::const_iterator cipher = ciphers.begin();
+       cipher != ciphers.end(); ++cipher) {
+    bool found = false;
+    for (SrtpCipherMapEntry *entry = SrtpCipherMap; entry->internal_name;
+         ++entry) {
+      if (*cipher == entry->external_name) {
+        found = true;
+        if (!internal_ciphers.empty())
+          internal_ciphers += ":";
+        internal_ciphers += entry->internal_name;
+        break;
+      }
+    }
+
+    if (!found) {
+      LOG(LS_ERROR) << "Could not find cipher: " << *cipher;
+      return false;
+    }
+  }
+
+  if (internal_ciphers.empty())
+    return false;
+
+  srtp_ciphers_ = internal_ciphers;
+  return true;
+#else
+  return false;
+#endif
+}
+
+bool OpenSSLStreamAdapter::GetDtlsSrtpCipher(std::string* cipher) {
+#ifdef HAVE_DTLS_SRTP
+  ASSERT(state_ == SSL_CONNECTED);
+  if (state_ != SSL_CONNECTED)
+    return false;
+
+  SRTP_PROTECTION_PROFILE *srtp_profile =
+      SSL_get_selected_srtp_profile(ssl_);
+
+  if (!srtp_profile)
+    return NULL;
+
+  for (SrtpCipherMapEntry *entry = SrtpCipherMap;
+       entry->internal_name; ++entry) {
+    if (!strcmp(entry->internal_name, srtp_profile->name)) {
+      *cipher = entry->external_name;
+      return true;
+    }
+  }
+
+  ASSERT(false);  // This should never happen
+
+  return false;
+#else
+  return false;
+#endif
+}
 
 int OpenSSLStreamAdapter::StartSSLWithServer(const char* server_name) {
   ASSERT(server_name != NULL && server_name[0] != '\0');
@@ -550,9 +663,9 @@ int OpenSSLStreamAdapter::ContinueSSL() {
       StreamAdapterInterface::OnEvent(stream(), SE_OPEN|SE_READ|SE_WRITE, 0);
       break;
 
-    case SSL_ERROR_WANT_READ:{
+    case SSL_ERROR_WANT_READ: {
         LOG(LS_INFO) << " -- error want read";
-#if defined(HAS_OPENSSL_1_0) && defined(LINUX)
+#ifdef HAVE_DTLS
         struct timeval timeout;
         if (DTLSv1_get_timeout(ssl_, &timeout)) {
           int delay = timeout.tv_sec * 1000 + timeout.tv_usec/1000;
@@ -614,7 +727,7 @@ void OpenSSLStreamAdapter::OnMessage(Message* msg) {
   // Process our own messages and then pass others to the superclass
   if (MSG_TIMEOUT == msg->message_id) {
     LOG(LS_INFO) << "DTLS timeout expired";
-#if defined(HAS_OPENSSL_1_0) && defined(LINUX)
+#ifdef HAVE_DTLS
     DTLSv1_handle_timeout(ssl_);
 #endif
     ContinueSSL();
@@ -626,15 +739,21 @@ void OpenSSLStreamAdapter::OnMessage(Message* msg) {
 SSL_CTX* OpenSSLStreamAdapter::SetupSSLContext() {
   SSL_CTX *ctx = NULL;
 
-#if defined(HAS_OPENSSL_1_0) && defined(LINUX)
   if (role_ == SSL_CLIENT) {
+#ifdef HAVE_DTLS
     ctx = SSL_CTX_new(ssl_mode_ == SSL_MODE_DTLS ?
         DTLSv1_client_method() : TLSv1_client_method());
+#else
+    ctx = SSL_CTX_new(TLSv1_client_method());
+#endif
   } else {
+#ifdef HAVE_DTLS
     ctx = SSL_CTX_new(ssl_mode_ == SSL_MODE_DTLS ?
         DTLSv1_server_method() : TLSv1_server_method());
-  }
+#else
+    ctx = SSL_CTX_new(TLSv1_server_method());
 #endif
+  }
   if (ctx == NULL)
     return NULL;
 
@@ -663,6 +782,15 @@ SSL_CTX* OpenSSLStreamAdapter::SetupSSLContext() {
                      SSLVerifyCallback);
   SSL_CTX_set_verify_depth(ctx, 4);
   SSL_CTX_set_cipher_list(ctx, "ALL:!ADH:!LOW:!EXP:!MD5:@STRENGTH");
+
+#ifdef HAVE_DTLS_SRTP
+  if (!srtp_ciphers_.empty()) {
+    if (SSL_CTX_set_tlsext_use_srtp(ctx, srtp_ciphers_.c_str())) {
+      SSL_CTX_free(ctx);
+      return NULL;
+    }
+  }
+#endif
 
   return ctx;
 }
@@ -781,8 +909,29 @@ bool OpenSSLStreamAdapter::SSLPostConnectionCheck(SSL* ssl,
   return ok;
 }
 
+bool OpenSSLStreamAdapter::HaveDtls() {
+#ifdef HAVE_DTLS
+  return true;
+#else
+  return false;
+#endif
+}
 
+bool OpenSSLStreamAdapter::HaveDtlsSrtp() {
+#ifdef HAVE_DTLS_SRTP
+  return true;
+#else
+  return false;
+#endif
+}
 
+bool OpenSSLStreamAdapter::HaveExporter() {
+#ifdef HAVE_DTLS_SRTP
+  return true;
+#else
+  return false;
+#endif
+}
 
 }  // namespace talk_base
 

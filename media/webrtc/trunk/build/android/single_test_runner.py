@@ -31,7 +31,8 @@ class SingleTestRunner(BaseTestRunner):
 
   def __init__(self, device, test_suite, gtest_filter, test_arguments, timeout,
                rebaseline, performance_test, cleanup_test_files, tool,
-               dump_debug_info=False):
+               dump_debug_info=False,
+               fast_and_loose=False):
     BaseTestRunner.__init__(self, device)
     self._running_on_emulator = self.device.startswith('emulator')
     self._gtest_filter = gtest_filter
@@ -42,6 +43,7 @@ class SingleTestRunner(BaseTestRunner):
            os.path.basename(test_suite), gtest_filter)
     else:
       self.dump_debug_info = None
+    self.fast_and_loose = fast_and_loose
 
     self.test_package = TestPackageExecutable(self.adb, device,
         test_suite, timeout, rebaseline, performance_test, cleanup_test_files,
@@ -205,7 +207,7 @@ class SingleTestRunner(BaseTestRunner):
     self.test_package.StripAndCopyExecutable()
     self.test_package.tool.CopyFiles()
     test_data = self.GetDataFilesForTestSuite()
-    if test_data:
+    if test_data and not self.fast_and_loose:
       if self.test_package.test_suite_basename == 'page_cycler_tests':
         # Since the test data for page cycler are huge (around 200M), we use
         # sdcard to store the data and create symbol links to map them to

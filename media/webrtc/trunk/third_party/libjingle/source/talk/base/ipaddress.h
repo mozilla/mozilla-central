@@ -124,6 +124,13 @@ bool IPIsAny(const IPAddress& ip);
 bool IPIsLoopback(const IPAddress& ip);
 bool IPIsPrivate(const IPAddress& ip);
 size_t HashIP(const IPAddress& ip);
+
+// Returns 'ip' truncated to be 'length' bits long.
+IPAddress TruncateIP(const IPAddress& ip, int length);
+// Returns the number of contiguously set bits, counting from the MSB in network
+// byte order, in this IPAddress. Bits after the first 0 encountered are not
+// counted.
+int CountIPMaskBits(IPAddress mask);
 }  // namespace talk_base
 
 #endif  // TALK_BASE_IPADDRESS_H_

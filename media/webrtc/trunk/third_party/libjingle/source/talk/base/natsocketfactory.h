@@ -38,6 +38,9 @@
 
 namespace talk_base {
 
+const size_t kNATEncodedIPv4AddressSize = 8U;
+const size_t kNATEncodedIPv6AddressSize = 20U;
+
 // Used by the NAT socket implementation.
 class NATInternalSocketFactory {
  public:
@@ -112,7 +115,7 @@ class NATSocketServer : public SocketServer, public NATInternalSocketFactory {
 
     Translator* GetTranslator(const SocketAddress& ext_ip);
     Translator* AddTranslator(const SocketAddress& ext_ip,
-                              const SocketAddress& int_ip, NATType type);      
+                              const SocketAddress& int_ip, NATType type);
     void RemoveTranslator(const SocketAddress& ext_ip);
 
     bool AddClient(const SocketAddress& int_ip);
@@ -164,6 +167,11 @@ class NATSocketServer : public SocketServer, public NATInternalSocketFactory {
   DISALLOW_EVIL_CONSTRUCTORS(NATSocketServer);
 };
 
+// Free-standing NAT helper functions.
+size_t PackAddressForNAT(char* buf, size_t buf_size,
+                         const SocketAddress& remote_addr);
+size_t UnpackAddressFromNAT(const char* buf, size_t buf_size,
+                            SocketAddress* remote_addr);
 }  // namespace talk_base
 
 #endif  // TALK_BASE_NATSOCKETFACTORY_H_

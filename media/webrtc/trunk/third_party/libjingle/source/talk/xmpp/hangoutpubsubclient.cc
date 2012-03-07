@@ -341,6 +341,10 @@ class PresenterStateClient : public PubSubStateClient<bool> {
         QN_PRESENTER_PRESENTATION_TYPE) != kNotPresenting);
     return true;
   }
+
+  virtual bool StatesEqual(bool state1, bool state2) {
+    return false;  // Make every item trigger an event, even if state doesn't change.
+  }
 };
 
 HangoutPubSubClient::HangoutPubSubClient(XmppTaskParentInterface* parent,
@@ -480,7 +484,7 @@ void HangoutPubSubClient::OnAudioMuteStateChange(
   }
 }
 
-const std::string& GetAudioMuteNickFromItem(const XmlElement* item) {
+const std::string GetAudioMuteNickFromItem(const XmlElement* item) {
   if (item != NULL) {
     const XmlElement* audio_mute_state =
         item->FirstNamed(QN_GOOGLE_MUC_AUDIO_MUTE);
@@ -488,7 +492,7 @@ const std::string& GetAudioMuteNickFromItem(const XmlElement* item) {
       return audio_mute_state->Attr(QN_NICK);
     }
   }
-  return EmptyStringRef();
+  return std::string();
 }
 
 const std::string GetBlockeeNickFromItem(const XmlElement* item) {
@@ -499,7 +503,7 @@ const std::string GetBlockeeNickFromItem(const XmlElement* item) {
       return media_block_state->Attr(QN_NICK);
     }
   }
-  return "";
+  return std::string();
 }
 
 void HangoutPubSubClient::OnAudioMutePublishResult(

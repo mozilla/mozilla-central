@@ -47,61 +47,48 @@ namespace cricket {
 
 struct StreamParams;
 
-// In a <notify> message, there are number of sources with names.
-// This represents one such named source.
-struct NamedSource {
-  NamedSource() : ssrc(0), ssrc_set(false), removed(false) {}
+// A collection of audio and video streams. Most of the methods are
+// merely for convenience. Many of these methods are keyed by ssrc,
+// which is the source identifier in the RTP spec
+// (http://tools.ietf.org/html/rfc3550).
+struct MediaStreams {
+ public:
+  MediaStreams() {}
+  void CopyFrom(const MediaStreams& sources);
 
-  void SetSsrc(uint32 ssrc) {
-    this->ssrc = ssrc;
-    this->ssrc_set = true;
+  bool empty() const {
+    return audio_.empty() && video_.empty();
   }
 
-  std::string nick;
-  std::string name;
-  uint32 ssrc;
-  bool ssrc_set;
-  bool removed;
-};
+  std::vector<StreamParams>* mutable_audio() { return &audio_; }
+  std::vector<StreamParams>* mutable_video() { return &video_; }
+  const std::vector<StreamParams>& audio() const { return audio_; }
+  const std::vector<StreamParams>& video() const { return video_; }
 
-// TODO: Remove this, according to c++ readability.
-typedef std::vector<NamedSource> NamedSources;
-
-// A collection of named audio sources and named video sources, as
-// would be found in a typical <notify> message.  Most of the methods
-// are merely for convenience. Many of these methods are keyed by
-// ssrc, which is the source identifier in the RTP spec
-// (http://tools.ietf.org/html/rfc3550).
-struct MediaSources {
- public:
-  MediaSources() {}
-  void CopyFrom(const MediaSources& sources);
-
-  NamedSources* mutable_audio() { return &audio_; }
-  NamedSources* mutable_video() { return &video_; }
-  const NamedSources& audio() const { return audio_; }
-  const NamedSources& video() const { return video_; }
-
+  // Remove the streams with the given name.  Names are only unique to
+  // nicks, so you need the nick as well.
+  bool GetAudioStreamByNickAndName(
+      const std::string& nick, const std::string& name, StreamParams* source);
+  bool GetVideoStreamByNickAndName(
+      const std::string& nick, const std::string& name, StreamParams* source);
   // Get the source with the given ssrc.  Returns true if found.
-  bool GetAudioSourceBySsrc(uint32 ssrc, NamedSource* source);
-  bool GetVideoSourceBySsrc(uint32 ssrc, NamedSource* source);
-  // Get the first source with the given nick.  Returns true if found.
-  // TODO: Remove the following two methods once all
-  // senders use explicit-remove by ssrc.
-  bool GetFirstAudioSourceByNick(const std::string& nick, NamedSource* source);
-  bool GetFirstVideoSourceByNick(const std::string& nick, NamedSource* source);
+  bool GetAudioStreamBySsrc(uint32 ssrc, StreamParams* source);
+  bool GetVideoStreamBySsrc(uint32 ssrc, StreamParams* source);
   // Add a source.
-  void AddAudioSource(const NamedSource& source);
-  void AddVideoSource(const NamedSource& source);
-  // Remove the source with the given ssrc.
-  void RemoveAudioSourceBySsrc(uint32 ssrc);
-  void RemoveVideoSourceBySsrc(uint32 ssrc);
+  void AddAudioStream(const StreamParams& source);
+  void AddVideoStream(const StreamParams& source);
+  // Remove the source with the given name.  Names are only unique to
+  // nicks, so you need the nick as well.
+  void RemoveAudioStreamByNickAndName(const std::string& nick,
+                                      const std::string& name);
+  void RemoveVideoStreamByNickAndName(const std::string& nick,
+                                      const std::string& name);
 
  private:
-  NamedSources audio_;
-  NamedSources video_;
+  std::vector<StreamParams> audio_;
+  std::vector<StreamParams> video_;
 
-  DISALLOW_COPY_AND_ASSIGN(MediaSources);
+  DISALLOW_COPY_AND_ASSIGN(MediaStreams);
 };
 
 // In a <view> message, there are a number of views specified.  This
@@ -129,12 +116,13 @@ struct ViewRequest {
   StaticVideoViews static_video_views;
 };
 
-// If the elems of a parent (usually <jingle>) constitute a view request.
-bool IsJingleViewRequest(const XmlElements& elems);
+// If the parent element (usually <jingle>) is a jingle view.
+bool IsJingleViewRequest(const buzz::XmlElement* action_elem);
 
-// Parses a view request from jingle contents (<view>s).  If it
-// fails, returns false and fills an error message.
-bool ParseJingleViewRequest(const XmlElements& elems,
+// Parses a view request from the parent element (usually
+// <jingle>). If it fails, it returns false and fills an error
+// message.
+bool ParseJingleViewRequest(const buzz::XmlElement* action_elem,
                             ViewRequest* view_request,
                             ParseError* error);
 
@@ -148,14 +136,6 @@ bool WriteJingleViewRequest(const std::string& content_name,
 // TODO: Get rid of legacy source notify and replace with
 // description-info as soon as reflector is capable of sending it.
 bool IsSourcesNotify(const buzz::XmlElement* action_elem);
-
-// Parses a notify message from XML.  If it fails, returns false and
-// fills in an error message.
-// The session_description is needed to map content_name => media type.
-bool ParseSourcesNotify(const buzz::XmlElement* action_elem,
-                        const SessionDescription* session_description,
-                        MediaSources* sources,
-                        ParseError* error);
 
 // If the given elem has <streams>.
 bool HasJingleStreams(const buzz::XmlElement* desc_elem);

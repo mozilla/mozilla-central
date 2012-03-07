@@ -91,18 +91,6 @@ const buzz::XmlElement* GetXmlChild(const buzz::XmlElement* parent,
   return NULL;
 }
 
-const buzz::XmlElement* GetXmlElement(const XmlElements& elems,
-                                      const buzz::QName& name) {
-  for (XmlElements::const_iterator iter = elems.begin();
-       iter != elems.end(); ++iter) {
-    const buzz::XmlElement* elem = *iter;
-    if (elem->Name() == name) {
-      return elem;
-    }
-  }
-  return NULL;
-}
-
 bool RequireXmlChild(const buzz::XmlElement* parent,
                      const std::string& name,
                      const buzz::XmlElement** child,

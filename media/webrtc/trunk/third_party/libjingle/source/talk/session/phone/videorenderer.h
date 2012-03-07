@@ -28,6 +28,10 @@
 #ifndef TALK_SESSION_PHONE_VIDEORENDERER_H_
 #define TALK_SESSION_PHONE_VIDEORENDERER_H_
 
+#ifdef _DEBUG
+#include <string>
+#endif  // _DEBUG
+
 namespace cricket {
 
 class VideoFrame;
@@ -40,6 +44,11 @@ class VideoRenderer {
   virtual bool SetSize(int width, int height, int reserved) = 0;
   // Called when a new frame is available for display.
   virtual bool RenderFrame(const VideoFrame *frame) = 0;
+
+#ifdef _DEBUG
+  // Allow renderer dumping out rendered frames.
+  virtual bool SetDumpPath(const std::string &path) { return true; }
+#endif  // _DEBUG
 };
 
 }  // namespace cricket

@@ -45,10 +45,6 @@ typedef struct
     unsigned char **base_src;
     int src;
     int src_stride;
-
-//  MV  enc_mv;
-    int force_empty;
-
 } BLOCK;
 
 typedef struct
@@ -107,7 +103,6 @@ typedef struct
     int mv_row_min;
     int mv_row_max;
 
-    int vector_range;    // Used to monitor limiting range of recent vectors to guide search.
     int skip;
 
     int encode_breakout;

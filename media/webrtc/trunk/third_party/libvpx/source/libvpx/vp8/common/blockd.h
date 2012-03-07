@@ -21,9 +21,6 @@ void vpx_log(const char *format, ...);
 #include "subpixel.h"
 #include "vpx_ports/mem.h"
 
-#define TRUE    1
-#define FALSE   0
-
 /*#define DCPRED 1*/
 #define DCPREDSIMTHRESH 0
 #define DCPREDCNTTHRESH 3
@@ -170,12 +167,23 @@ typedef struct
     union b_mode_info bmi[16];
 } MODE_INFO;
 
+#if CONFIG_MULTI_RES_ENCODING
+/* The information needed to be stored for higher-resolution encoder */
+typedef struct
+{
+    MB_PREDICTION_MODE mode;
+    MV_REFERENCE_FRAME ref_frame;
+    int_mv mv;
+    //union b_mode_info bmi[16];
+    int dissim;    // dissimilarity level of the macroblock
+} LOWER_RES_INFO;
+#endif
+
 typedef struct
 {
     short *qcoeff;
     short *dqcoeff;
     unsigned char  *predictor;
-    short *diff;
     short *dequant;
 
     /* 16 Y blocks, 4 U blocks, 4 V blocks each with 16 entries */
@@ -194,11 +202,15 @@ typedef struct
 
 typedef struct MacroBlockD
 {
-    DECLARE_ALIGNED(16, short, diff[400]);      /* from idct diff */
     DECLARE_ALIGNED(16, unsigned char,  predictor[384]);
     DECLARE_ALIGNED(16, short, qcoeff[400]);
     DECLARE_ALIGNED(16, short, dqcoeff[400]);
     DECLARE_ALIGNED(16, char,  eobs[25]);
+
+    DECLARE_ALIGNED(16, short,  dequant_y1[16]);
+    DECLARE_ALIGNED(16, short,  dequant_y1_dc[16]);
+    DECLARE_ALIGNED(16, short,  dequant_y2[16]);
+    DECLARE_ALIGNED(16, short,  dequant_uv[16]);
 
     /* 16 Y blocks, 4 U, 4 V, 1 DC 2nd order block, each with 16 entries. */
     BLOCKD block[25];

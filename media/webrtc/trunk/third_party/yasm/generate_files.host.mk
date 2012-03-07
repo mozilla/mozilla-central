@@ -7,9 +7,7 @@ quiet_cmd_generate_files_generate_x86_insn = ACTION Running source/patched-yasm/
 cmd_generate_files_generate_x86_insn = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/yasm; mkdir -p $(obj)/gen/third_party/yasm; python source/patched-yasm/modules/arch/x86/gen_x86_insn.py "$(obj)/gen/third_party/yasm"
 
 $(obj)/gen/third_party/yasm/x86insns.c: obj := $(abs_obj)
-
 $(obj)/gen/third_party/yasm/x86insns.c: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/yasm/x86insns.c: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/yasm/x86insns.c: third_party/yasm/source/patched-yasm/modules/arch/x86/gen_x86_insn.py FORCE_DO_CMD
 	$(call do_cmd,generate_files_generate_x86_insn)
@@ -24,9 +22,7 @@ quiet_cmd_generate_files_generate_version = ACTION Generating yasm version file:
 cmd_generate_files_generate_version = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/yasm; mkdir -p $(obj)/gen/third_party/yasm; "$(builddir)/genversion" "$(obj)/gen/third_party/yasm/version.mac"
 
 $(obj)/gen/third_party/yasm/version.mac: obj := $(abs_obj)
-
 $(obj)/gen/third_party/yasm/version.mac: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/yasm/version.mac: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/yasm/version.mac: $(builddir)/genversion FORCE_DO_CMD
 	$(call do_cmd,generate_files_generate_version)
@@ -37,9 +33,7 @@ action_generate_files_generate_version_outputs := $(obj)/gen/third_party/yasm/ve
 
 ### Generated for rule generate_files_generate_gperf:
 $(obj)/gen/third_party/yasm/x86cpu.c: obj := $(abs_obj)
-
 $(obj)/gen/third_party/yasm/x86cpu.c: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/yasm/x86cpu.c: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/yasm/x86cpu.c: third_party/yasm/source/patched-yasm/modules/arch/x86/x86cpu.gperf $(builddir)/genperf FORCE_DO_CMD
 	$(call do_cmd,generate_files_generate_gperf_0)
@@ -49,9 +43,7 @@ cmd_generate_files_generate_gperf_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(bui
 quiet_cmd_generate_files_generate_gperf_0 = RULE generate_files_generate_gperf_0 $@
 
 $(obj)/gen/third_party/yasm/x86regtmod.c: obj := $(abs_obj)
-
 $(obj)/gen/third_party/yasm/x86regtmod.c: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/yasm/x86regtmod.c: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/yasm/x86regtmod.c: third_party/yasm/source/patched-yasm/modules/arch/x86/x86regtmod.gperf $(builddir)/genperf FORCE_DO_CMD
 	$(call do_cmd,generate_files_generate_gperf_1)
@@ -67,12 +59,11 @@ rule_generate_files_generate_gperf_outputs := $(obj)/gen/third_party/yasm/x86cpu
 
 ### Finished generating for all rules
 
-DEFS_Debug := '-DNO_HEAPCHECKER' \
+DEFS_Debug := '-D_FILE_OFFSET_BITS=64' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
 	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
-	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
@@ -82,6 +73,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
 	'-DENABLE_REGISTER_PROTOCOL_HANDLER=1' \
+	'-DENABLE_WEB_INTENTS=1' \
+	'-DENABLE_PLUGIN_INSTALLATION=1' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
 	'-D_DEBUG'
@@ -89,13 +82,12 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 # Flags passed to all source files.
 CFLAGS_Debug := -pthread \
 	-fno-exceptions \
+	-fno-strict-aliasing \
 	-Wno-unused-parameter \
 	-Wno-missing-field-initializers \
-	-D_FILE_OFFSET_BITS=64 \
 	-fvisibility=hidden \
 	-pipe \
 	-fPIC \
-	-fno-strict-aliasing \
 	-Wno-format \
 	-Wno-unused-result \
 	-O0 \
@@ -112,12 +104,11 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := 
 
-DEFS_Release := '-DNO_HEAPCHECKER' \
+DEFS_Release := '-D_FILE_OFFSET_BITS=64' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
 	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
-	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
@@ -127,6 +118,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
 	'-DENABLE_REGISTER_PROTOCOL_HANDLER=1' \
+	'-DENABLE_WEB_INTENTS=1' \
+	'-DENABLE_PLUGIN_INSTALLATION=1' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=0'
@@ -134,13 +127,12 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 # Flags passed to all source files.
 CFLAGS_Release := -pthread \
 	-fno-exceptions \
+	-fno-strict-aliasing \
 	-Wno-unused-parameter \
 	-Wno-missing-field-initializers \
-	-D_FILE_OFFSET_BITS=64 \
 	-fvisibility=hidden \
 	-pipe \
 	-fPIC \
-	-fno-strict-aliasing \
 	-Wno-format \
 	-Wno-unused-result \
 	-O2 \

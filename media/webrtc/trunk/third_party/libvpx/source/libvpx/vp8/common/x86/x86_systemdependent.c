@@ -11,7 +11,6 @@
 
 #include "vpx_config.h"
 #include "vpx_ports/x86.h"
-#include "vp8/common/g_common.h"
 #include "vp8/common/subpixel.h"
 #include "vp8/common/loopfilter.h"
 #include "vp8/common/recon.h"
@@ -37,12 +36,14 @@ void vp8_arch_x86_common_init(VP8_COMMON *ctx)
 
     if (flags & HAS_MMX)
     {
+        rtcd->dequant.block               = vp8_dequantize_b_mmx;
+        rtcd->dequant.idct_add            = vp8_dequant_idct_add_mmx;
+        rtcd->dequant.idct_add_y_block    = vp8_dequant_idct_add_y_block_mmx;
+        rtcd->dequant.idct_add_uv_block   = vp8_dequant_idct_add_uv_block_mmx;
+
         rtcd->idct.idct16       = vp8_short_idct4x4llm_mmx;
         rtcd->idct.idct1_scalar_add = vp8_dc_only_idct_add_mmx;
         rtcd->idct.iwalsh16     = vp8_short_inv_walsh4x4_mmx;
-        rtcd->idct.iwalsh1     = vp8_short_inv_walsh4x4_1_mmx;
-
-
 
         rtcd->recon.copy8x8     = vp8_copy_mem8x8_mmx;
         rtcd->recon.copy8x4     = vp8_copy_mem8x4_mmx;
@@ -84,6 +85,13 @@ void vp8_arch_x86_common_init(VP8_COMMON *ctx)
             vp8_build_intra_predictors_mbuv_sse2;
         rtcd->recon.build_intra_predictors_mbuv_s =
             vp8_build_intra_predictors_mbuv_s_sse2;
+        rtcd->recon.build_intra_predictors_mby =
+            vp8_build_intra_predictors_mby_sse2;
+        rtcd->recon.build_intra_predictors_mby_s =
+            vp8_build_intra_predictors_mby_s_sse2;
+
+        rtcd->dequant.idct_add_y_block    = vp8_dequant_idct_add_y_block_sse2;
+        rtcd->dequant.idct_add_uv_block   = vp8_dequant_idct_add_uv_block_sse2;
 
         rtcd->idct.iwalsh16     = vp8_short_inv_walsh4x4_sse2;
 
@@ -127,6 +135,10 @@ void vp8_arch_x86_common_init(VP8_COMMON *ctx)
             vp8_build_intra_predictors_mbuv_ssse3;
         rtcd->recon.build_intra_predictors_mbuv_s =
             vp8_build_intra_predictors_mbuv_s_ssse3;
+        rtcd->recon.build_intra_predictors_mby =
+            vp8_build_intra_predictors_mby_ssse3;
+        rtcd->recon.build_intra_predictors_mby_s =
+            vp8_build_intra_predictors_mby_s_ssse3;
     }
 #endif
 

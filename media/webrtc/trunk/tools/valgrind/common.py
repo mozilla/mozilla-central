@@ -169,7 +169,6 @@ def BoringCallers(mangled, use_re_wildcards):
     ("MessageLoop::Run",     "_ZN11MessageLoop3RunEv"),
     ("MessageLoop::RunTask", "_ZN11MessageLoop7RunTask*"),
     ("RunnableMethod*",      "_ZN14RunnableMethod*"),
-    ("RunnableFunction*",    "_ZN16RunnableFunction*"),
     ("DispatchToMethod*",    "_Z*16DispatchToMethod*"),
     ("base::internal::Invoker*::DoInvoke*",
      "_ZN4base8internal8Invoker*DoInvoke*"),  # Invoker{1,2,3}

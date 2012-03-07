@@ -296,8 +296,10 @@ class WebRtcVoiceMediaChannel
   virtual bool SetSend(SendFlags send);
   bool PauseSend();
   bool ResumeSend();
-  virtual bool AddStream(uint32 ssrc);
-  virtual bool RemoveStream(uint32 ssrc);
+  virtual bool AddSendStream(const StreamParams& sp);
+  virtual bool RemoveSendStream(uint32 ssrc);
+  virtual bool AddRecvStream(const StreamParams& sp);
+  virtual bool RemoveRecvStream(uint32 ssrc);
   virtual bool GetActiveStreams(AudioInfo::StreamList* actives);
   virtual int GetOutputLevel();
   virtual bool SetOutputScaling(uint32 ssrc, double left, double right);
@@ -309,8 +311,6 @@ class WebRtcVoiceMediaChannel
 
   virtual void OnPacketReceived(talk_base::Buffer* packet);
   virtual void OnRtcpReceived(talk_base::Buffer* packet);
-  virtual void SetSendSsrc(uint32 id);
-  virtual bool SetRtcpCName(const std::string& cname);
   virtual bool Mute(bool mute);
   virtual bool SetSendBandwidth(bool autobw, int bps) { return false; }
   virtual bool GetStats(VoiceMediaInfo* info);
@@ -347,6 +347,7 @@ class WebRtcVoiceMediaChannel
   typedef std::map<uint32, int> ChannelMap;
   talk_base::scoped_ptr<WebRtcSoundclipStream> ringback_tone_;
   std::set<int> ringback_channels_;  // channels playing ringback
+  bool recv_codecs_set_;
   talk_base::scoped_ptr<webrtc::CodecInst> send_codec_;
   int channel_options_;
   bool agc_adjusted_;
@@ -355,12 +356,15 @@ class WebRtcVoiceMediaChannel
   bool playout_;
   SendFlags desired_send_;
   SendFlags send_;
+
+  uint32 local_ssrc_;
   ChannelMap mux_channels_;  // for multiple sources
   // mux_channels_ can be read from WebRtc callback thread.  Accesses off the
   // WebRtc thread must be synchronized with edits on the worker thread.  Reads
   // on the worker thread are ok.
   mutable talk_base::CriticalSection mux_channels_cs_;
 };
-}
+
+}  // namespace cricket
 
 #endif  // TALK_SESSION_PHONE_WEBRTCVOICEENGINE_H_

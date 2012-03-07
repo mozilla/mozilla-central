@@ -60,6 +60,11 @@ static bool BuildRtpMapParams(
     bool video,
     std::vector<Json::Value>* rtpmap);
 
+static void BuildCrypto(const cricket::ContentInfo& content_info,
+                        bool video,
+                        std::vector<Json::Value>* cryptos);
+
+
 static bool BuildAttributes(const std::vector<cricket::Candidate>& candidates,
                             bool video,
                             std::vector<Json::Value>* jcandidates);
@@ -72,6 +77,8 @@ static bool ParseAudioCodec(const Json::Value& value,
                             cricket::AudioContentDescription* content);
 static bool ParseVideoCodec(const Json::Value& value,
                             cricket::VideoContentDescription* content);
+static bool ParseCrypto(const Json::Value& content,
+                        cricket::MediaContentDescription* desc);
 static bool ParseIceCandidates(const Json::Value& value,
                                std::vector<cricket::Candidate>* candidates);
 
@@ -137,20 +144,26 @@ bool BuildMediaMessage(
     Append(params, "rtcp_mux", true);
   }
 
+  // rtpmap
   std::vector<Json::Value> rtpmap;
   if (!BuildRtpMapParams(content_info, video, &rtpmap)) {
     return false;
   }
-
   Append(params, "rtpmap", rtpmap);
 
+  // crypto
+  std::vector<Json::Value> crypto;
+  BuildCrypto(content_info, video, &crypto);
+  Append(params, "crypto", crypto);
+
+  // Candidates
   Json::Value attributes;
   std::vector<Json::Value> jcandidates;
-
   if (!BuildAttributes(candidates, video, &jcandidates)) {
     return false;
   }
   Append(&attributes, "candidate", jcandidates);
+
   Append(params, "attributes", attributes);
   return true;
 }
@@ -196,6 +209,24 @@ bool BuildRtpMapParams(const cricket::ContentInfo& content_info,
     }
   }
   return true;
+}
+
+void BuildCrypto(const cricket::ContentInfo& content_info,
+                 bool video,
+                 std::vector<Json::Value>* cryptos) {
+  const cricket::MediaContentDescription* content_desc =
+      static_cast<const cricket::MediaContentDescription*>(
+          content_info.description);
+  std::vector<cricket::CryptoParams>::const_iterator iter =
+      content_desc->cryptos().begin();
+  std::vector<cricket::CryptoParams>::const_iterator iter_end =
+      content_desc->cryptos().end();
+  for (; iter != iter_end; ++iter) {
+    Json::Value crypto;
+    Append(&crypto, "cipher_suite", iter->cipher_suite);
+    Append(&crypto, "key_params", iter->key_params);
+    cryptos->push_back(crypto);
+  }
 }
 
 bool BuildAttributes(const std::vector<cricket::Candidate>& candidates,
@@ -268,6 +299,9 @@ bool ParseJsonSignalingMessage(const std::string& signaling_message,
       audio_content->SortCodecs();
       (*sdp)->AddContent(cricket::CN_AUDIO,
                          cricket::NS_JINGLE_RTP, audio_content);
+      // crypto
+      if (!ParseCrypto(mlines[i], audio_content))
+        return false;
       ParseIceCandidates(mlines[i], candidates);
     } else {
       cricket::VideoContentDescription* video_content =
@@ -278,6 +312,8 @@ bool ParseJsonSignalingMessage(const std::string& signaling_message,
       video_content->SortCodecs();
       (*sdp)->AddContent(cricket::CN_VIDEO,
                          cricket::NS_JINGLE_RTP, video_content);
+      if (!ParseCrypto(mlines[i], video_content))
+        return false;
       ParseIceCandidates(mlines[i], candidates);
     }
   }
@@ -410,6 +446,31 @@ bool ParseIceCandidates(const Json::Value& value,
     cand.set_password(str);
 
     candidates->push_back(cand);
+  }
+  return true;
+}
+
+bool ParseCrypto(const Json::Value& content,
+                 cricket::MediaContentDescription* desc) {
+  std::vector<Json::Value> jcryptos(ReadValues(content, "crypto"));
+  std::vector<Json::Value>::const_iterator iter =
+      jcryptos.begin();
+  std::vector<Json::Value>::const_iterator iter_end =
+      jcryptos.end();
+  for (; iter != iter_end; ++iter) {
+    cricket::CryptoParams crypto;
+
+    std::string cipher_suite;
+    if (!GetStringFromJsonObject(*iter, "cipher_suite", &cipher_suite))
+      return false;
+    crypto.cipher_suite = cipher_suite;
+
+    std::string key_params;
+    if (!GetStringFromJsonObject(*iter, "key_params", &key_params))
+      return false;
+    crypto.key_params= key_params;
+
+    desc->AddCrypto(crypto);
   }
   return true;
 }

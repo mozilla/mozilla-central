@@ -29,6 +29,7 @@
 #define TALK_BASE_SSLSTREAMADAPTER_H__
 
 #include <string>
+#include <vector>
 
 #include "talk/base/stream.h"
 #include "talk/base/sslidentity.h"
@@ -136,6 +137,42 @@ class SSLStreamAdapter : public StreamAdapterInterface {
   virtual bool SetPeerCertificateDigest(const std::string& digest_alg,
                                         const unsigned char* digest_val,
                                         size_t digest_len) = 0;
+
+  // Key Exporter interface from RFC 5705
+  // Arguments are:
+  // label               -- the exporter label.
+  //                        part of the RFC defining each exporter
+  //                        usage (IN)
+  // context/context_len -- a context to bind to for this connection;
+  //                        optional, can be NULL, 0 (IN)
+  // use_context         -- whether to use the context value
+  //                        (needed to distinguish no context from
+  //                        zero-length ones).
+  // result              -- where to put the computed value
+  // result_len          -- the length of the computed value
+  virtual bool ExportKeyingMaterial(const std::string& label,
+                                    const uint8* context,
+                                    size_t context_len,
+                                    bool use_context,
+                                    uint8* result,
+                                    size_t result_len) {
+    return false;  // Default is unsupported
+  }
+
+
+  // DTLS-SRTP interface
+  virtual bool SetDtlsSrtpCiphers(const std::vector<std::string>& ciphers) {
+    return false;
+  }
+
+  virtual bool GetDtlsSrtpCipher(std::string* cipher) {
+    return false;
+  }
+
+  // Capabilities testing
+  static bool HaveDtls();
+  static bool HaveDtlsSrtp();
+  static bool HaveExporter();
 
   // If true, the server certificate need not match the configured
   // server_name, and in fact missing certificate authority and other

@@ -95,7 +95,8 @@ int RawTransportChannel::GetError() {
 
 void RawTransportChannel::Connect() {
   // Create an allocator that only returns stun and relay ports.
-  allocator_session_ = allocator_->CreateSession(name(), content_type());
+  allocator_session_ = allocator_->CreateSession(
+      session_id(), name(), content_type());
 
   uint32 flags = PORTALLOCATOR_DISABLE_UDP | PORTALLOCATOR_DISABLE_TCP;
 

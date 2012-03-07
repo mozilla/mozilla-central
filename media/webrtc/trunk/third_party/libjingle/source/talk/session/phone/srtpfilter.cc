@@ -34,6 +34,7 @@
 
 #include "talk/base/base64.h"
 #include "talk/base/logging.h"
+#include "talk/base/stringencode.h"
 #include "talk/base/timeutils.h"
 #include "talk/session/phone/rtputils.h"
 
@@ -65,6 +66,8 @@ namespace cricket {
 const char CS_AES_CM_128_HMAC_SHA1_80[] = "AES_CM_128_HMAC_SHA1_80";
 const char CS_AES_CM_128_HMAC_SHA1_32[] = "AES_CM_128_HMAC_SHA1_32";
 const int SRTP_MASTER_KEY_BASE64_LEN = SRTP_MASTER_KEY_LEN * 4 / 3;
+const int SRTP_MASTER_KEY_KEY_LEN = 16;
+const int SRTP_MASTER_KEY_SALT_LEN = 14;
 
 #ifndef HAVE_SRTP
 
@@ -96,44 +99,41 @@ void EnableSrtpDebugging() {
 
 SrtpFilter::SrtpFilter()
     : state_(ST_INIT),
-      send_session_(new SrtpSession()),
-      recv_session_(new SrtpSession()) {
-  SignalSrtpError.repeat(send_session_->SignalSrtpError);
-  SignalSrtpError.repeat(recv_session_->SignalSrtpError);
+      signal_silent_time_in_ms_(0) {
 }
 
 SrtpFilter::~SrtpFilter() {
 }
 
 bool SrtpFilter::IsActive() const {
-  return (state_ == ST_ACTIVE);
+  return state_ >= ST_ACTIVE;
 }
 
 bool SrtpFilter::SetOffer(const std::vector<CryptoParams>& offer_params,
                           ContentSource source) {
-  bool ret = false;
-  if (state_ == ST_INIT) {
-    ret = StoreParams(offer_params, source);
-  } else {
-    LOG(LS_ERROR) << "Invalid state for SRTP offer";
+  if (state_ != ST_INIT && state_ != ST_ACTIVE) {
+    LOG(LS_ERROR) << "Wrong state to update SRTP offer";
+    return false;
   }
-  return ret;
+  return StoreParams(offer_params, source);
 }
 
 bool SrtpFilter::SetAnswer(const std::vector<CryptoParams>& answer_params,
                            ContentSource source) {
   bool ret = false;
   if ((state_ == ST_SENTOFFER && source == CS_REMOTE) ||
-      (state_ == ST_RECEIVEDOFFER && source == CS_LOCAL)) {
+      (state_ == ST_RECEIVEDOFFER && source == CS_LOCAL) ||
+      (state_ == ST_SENTUPDATEDOFFER && source == CS_REMOTE) ||
+      (state_ == ST_RECEIVEDUPDATEDOFFER && source == CS_LOCAL)) {
     // If the answer requests crypto, finalize the parameters and apply them.
     // Otherwise, complete the negotiation of a unencrypted session.
     if (!answer_params.empty()) {
       CryptoParams selected_params;
       ret = NegotiateParams(answer_params, &selected_params);
       if (ret) {
-        if (state_ == ST_SENTOFFER) {
+        if (state_ == ST_SENTOFFER || state_ == ST_SENTUPDATEDOFFER) {
           ret = ApplyParams(selected_params, answer_params[0]);
-        } else {  // ST_RECEIVEDOFFER
+        } else {  // ST_RECEIVEDOFFER || ST_RECEIVEDUPDATEDOFFER
           ret = ApplyParams(answer_params[0], selected_params);
         }
       }
@@ -144,6 +144,68 @@ bool SrtpFilter::SetAnswer(const std::vector<CryptoParams>& answer_params,
     LOG(LS_ERROR) << "Invalid state for SRTP answer";
   }
   return ret;
+}
+
+bool SrtpFilter::SetRtpParams(const std::string& send_cs,
+                              const uint8* send_key, int send_key_len,
+                              const std::string& recv_cs,
+                              const uint8* recv_key, int recv_key_len) {
+  if (state_ == ST_ACTIVE) {
+    LOG(LS_ERROR) << "Tried to set SRTP Params when filter already active";
+    return false;
+  }
+  CreateSrtpSessions();
+  if (!send_session_->SetSend(send_cs, send_key, send_key_len))
+    return false;
+
+  if (!recv_session_->SetRecv(recv_cs, recv_key, recv_key_len))
+    return false;
+
+  state_ = ST_ACTIVE;
+
+  LOG(LS_INFO) << "SRTP activated with negotiated parameters:"
+               << " send cipher_suite " << send_cs
+               << " recv cipher_suite " << recv_cs;
+
+  return true;
+}
+
+// This function is provided separately because DTLS-SRTP behaves
+// differently in RTP/RTCP mux and non-mux modes.
+//
+// - In the non-muxed case, RTP and RTCP are keyed with different
+//   keys (from different DTLS handshakes), and so we need a new
+//   SrtpSession.
+// - In the muxed case, they are keyed with the same keys, so
+//   this function is not needed
+bool SrtpFilter::SetRtcpParams(const std::string& send_cs,
+                               const uint8* send_key, int send_key_len,
+                               const std::string& recv_cs,
+                               const uint8* recv_key, int recv_key_len) {
+  // This can only be called once, but can be safely called after
+  // SetRtpParams
+  if (send_rtcp_session_.get() || send_rtcp_session_.get()) {
+    LOG(LS_ERROR) << "Tried to set SRTCP Params when filter already active";
+    return false;
+  }
+
+  send_rtcp_session_.reset(new SrtpSession());
+  SignalSrtpError.repeat(send_rtcp_session_->SignalSrtpError);
+  send_rtcp_session_->set_signal_silent_time(signal_silent_time_in_ms_);
+  if (!send_rtcp_session_->SetRecv(send_cs, send_key, send_key_len))
+    return false;
+
+  recv_rtcp_session_.reset(new SrtpSession());
+  SignalSrtpError.repeat(recv_rtcp_session_->SignalSrtpError);
+  recv_rtcp_session_->set_signal_silent_time(signal_silent_time_in_ms_);
+  if (!recv_rtcp_session_->SetRecv(recv_cs, recv_key, recv_key_len))
+    return false;
+
+  LOG(LS_INFO) << "SRTCP activated with negotiated parameters:"
+               << " send cipher_suite " << send_cs
+               << " recv cipher_suite " << recv_cs;
+
+  return true;
 }
 
 bool SrtpFilter::ProtectRtp(void* p, int in_len, int max_len, int* out_len) {
@@ -159,7 +221,11 @@ bool SrtpFilter::ProtectRtcp(void* p, int in_len, int max_len, int* out_len) {
     LOG(LS_WARNING) << "Failed to ProtectRtcp: SRTP not active";
     return false;
   }
-  return send_session_->ProtectRtcp(p, in_len, max_len, out_len);
+  if (send_rtcp_session_.get()) {
+    return send_rtcp_session_->ProtectRtcp(p, in_len, max_len, out_len);
+  } else {
+    return send_session_->ProtectRtcp(p, in_len, max_len, out_len);
+  }
 }
 
 bool SrtpFilter::UnprotectRtp(void* p, int in_len, int* out_len) {
@@ -175,19 +241,45 @@ bool SrtpFilter::UnprotectRtcp(void* p, int in_len, int* out_len) {
     LOG(LS_WARNING) << "Failed to UnprotectRtcp: SRTP not active";
     return false;
   }
-  return recv_session_->UnprotectRtcp(p, in_len, out_len);
+  if (recv_rtcp_session_.get()) {
+    return recv_rtcp_session_->UnprotectRtcp(p, in_len, out_len);
+  } else {
+    return recv_session_->UnprotectRtcp(p, in_len, out_len);
+  }
 }
 
 void SrtpFilter::set_signal_silent_time(uint32 signal_silent_time_in_ms) {
-  send_session_->set_signal_silent_time(signal_silent_time_in_ms);
-  recv_session_->set_signal_silent_time(signal_silent_time_in_ms);
+  signal_silent_time_in_ms_ = signal_silent_time_in_ms;
+  if (state_ == ST_ACTIVE) {
+    send_session_->set_signal_silent_time(signal_silent_time_in_ms);
+    recv_session_->set_signal_silent_time(signal_silent_time_in_ms);
+    if (send_rtcp_session_.get())
+      send_rtcp_session_->set_signal_silent_time(signal_silent_time_in_ms);
+    if (recv_rtcp_session_.get())
+      recv_rtcp_session_->set_signal_silent_time(signal_silent_time_in_ms);
+  }
 }
 
 bool SrtpFilter::StoreParams(const std::vector<CryptoParams>& params,
                              ContentSource source) {
   offer_params_ = params;
-  state_ = (source == CS_LOCAL) ? ST_SENTOFFER : ST_RECEIVEDOFFER;
+  if (state_ == ST_INIT) {
+    state_ = (source == CS_LOCAL) ? ST_SENTOFFER : ST_RECEIVEDOFFER;
+  } else {  // ST_ACTIVE
+    state_ =
+        (source == CS_LOCAL) ? ST_SENTUPDATEDOFFER : ST_RECEIVEDUPDATEDOFFER;
+  }
   return true;
+}
+
+void SrtpFilter::CreateSrtpSessions() {
+  send_session_.reset(new SrtpSession());
+  recv_session_.reset(new SrtpSession());
+  SignalSrtpError.repeat(send_session_->SignalSrtpError);
+  SignalSrtpError.repeat(recv_session_->SignalSrtpError);
+
+  send_session_->set_signal_silent_time(signal_silent_time_in_ms_);
+  recv_session_->set_signal_silent_time(signal_silent_time_in_ms_);
 }
 
 bool SrtpFilter::NegotiateParams(const std::vector<CryptoParams>& answer_params,
@@ -225,6 +317,7 @@ bool SrtpFilter::ApplyParams(const CryptoParams& send_params,
   ret = (ParseKeyParams(send_params.key_params, send_key, sizeof(send_key)) &&
          ParseKeyParams(recv_params.key_params, recv_key, sizeof(recv_key)));
   if (ret) {
+    CreateSrtpSessions();
     ret = (send_session_->SetSend(send_params.cipher_suite,
                                   send_key, sizeof(send_key)) &&
            recv_session_->SetRecv(recv_params.cipher_suite,
@@ -276,7 +369,6 @@ bool SrtpFilter::ParseKeyParams(const std::string& key_params,
 #ifdef HAVE_SRTP
 
 bool SrtpSession::inited_ = false;
-std::list<SrtpSession*> SrtpSession::sessions_;
 
 SrtpSession::SrtpSession()
     : session_(NULL),
@@ -284,12 +376,12 @@ SrtpSession::SrtpSession()
       rtcp_auth_tag_len_(0),
       srtp_stat_(new SrtpStat()),
       last_send_seq_num_(-1) {
-  sessions_.push_back(this);
+  sessions()->push_back(this);
   SignalSrtpError.repeat(srtp_stat_->SignalSrtpError);
 }
 
 SrtpSession::~SrtpSession() {
-  sessions_.erase(std::find(sessions_.begin(), sessions_.end(), this));
+  sessions()->erase(std::find(sessions()->begin(), sessions()->end(), this));
   if (session_) {
     srtp_dealloc(session_);
   }
@@ -489,13 +581,18 @@ void SrtpSession::HandleEvent(const srtp_event_data_t* ev) {
 }
 
 void SrtpSession::HandleEventThunk(srtp_event_data_t* ev) {
-  for (std::list<SrtpSession*>::iterator it = sessions_.begin();
-       it != sessions_.end(); ++it) {
+  for (std::list<SrtpSession*>::iterator it = sessions()->begin();
+       it != sessions()->end(); ++it) {
     if ((*it)->session_ == ev->session) {
       (*it)->HandleEvent(ev);
       break;
     }
   }
+}
+
+std::list<SrtpSession*>* SrtpSession::sessions() {
+  LIBJINGLE_DEFINE_STATIC_LOCAL(std::list<SrtpSession*>, sessions, ());
+  return &sessions;
 }
 
 #else   // !HAVE_SRTP

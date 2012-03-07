@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -20,7 +20,6 @@
 
 #define RTCP_CNAME_SIZE 256    // RFC 3550 page 44, including null termination
 #define IP_PACKET_SIZE 1500    // we assume ethernet
-#define RTP_PAYLOAD_NAME_SIZE 32
 #define MAX_NUMBER_OF_PARALLEL_TELEPHONE_EVENTS 10
 #define TIMEOUT_SEI_MESSAGES_MS 30000   // in milliseconds
 
@@ -37,6 +36,12 @@ enum RTPAliveType
     kRtpDead   = 0,
     kRtpNoRtp = 1,
     kRtpAlive  = 2
+};
+
+enum StorageType {
+  kDontStore,
+  kDontRetransmit,
+  kAllowRetransmission
 };
 
 enum RTPExtensionType
@@ -109,6 +114,9 @@ struct RTCPSenderInfo
 
 struct RTCPReportBlock
 {
+  // Fields as described by RFC 3550 6.4.2.
+    WebRtc_UWord32 remoteSSRC;  // SSRC of sender of this report.
+    WebRtc_UWord32 sourceSSRC;  // SSRC of the RTP packet sender.
     WebRtc_UWord8 fractionLost;
     WebRtc_UWord32 cumulativeLost;  // 24 bits valid
     WebRtc_UWord32 extendedHighSeqNum;
@@ -181,7 +189,7 @@ public:
     virtual WebRtc_Word32 OnInitializeDecoder(
         const WebRtc_Word32 id,
         const WebRtc_Word8 payloadType,
-        const WebRtc_Word8 payloadName[RTP_PAYLOAD_NAME_SIZE],
+        const char payloadName[RTP_PAYLOAD_NAME_SIZE],
         const int frequency,
         const WebRtc_UWord8 channels,
         const WebRtc_UWord32 rate) = 0;

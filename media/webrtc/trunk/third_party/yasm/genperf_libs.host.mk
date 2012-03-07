@@ -2,12 +2,11 @@
 
 TOOLSET := host
 TARGET := genperf_libs
-DEFS_Debug := '-DNO_HEAPCHECKER' \
+DEFS_Debug := '-D_FILE_OFFSET_BITS=64' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
 	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
-	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
@@ -17,6 +16,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
 	'-DENABLE_REGISTER_PROTOCOL_HANDLER=1' \
+	'-DENABLE_WEB_INTENTS=1' \
+	'-DENABLE_PLUGIN_INSTALLATION=1' \
 	'-DHAVE_CONFIG_H' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
@@ -25,13 +26,12 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 # Flags passed to all source files.
 CFLAGS_Debug := -pthread \
 	-fno-exceptions \
+	-fno-strict-aliasing \
 	-Wno-unused-parameter \
 	-Wno-missing-field-initializers \
-	-D_FILE_OFFSET_BITS=64 \
 	-fvisibility=hidden \
 	-pipe \
 	-fPIC \
-	-fno-strict-aliasing \
 	-std=gnu99 \
 	-ansi \
 	-pedantic \
@@ -52,12 +52,11 @@ CFLAGS_CC_Debug := -fno-rtti \
 INCS_Debug := -Ithird_party/yasm/source/config/linux \
 	-Ithird_party/yasm/source/patched-yasm
 
-DEFS_Release := '-DNO_HEAPCHECKER' \
+DEFS_Release := '-D_FILE_OFFSET_BITS=64' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
 	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
-	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
@@ -67,6 +66,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
 	'-DENABLE_REGISTER_PROTOCOL_HANDLER=1' \
+	'-DENABLE_WEB_INTENTS=1' \
+	'-DENABLE_PLUGIN_INSTALLATION=1' \
 	'-DHAVE_CONFIG_H' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
@@ -75,13 +76,12 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 # Flags passed to all source files.
 CFLAGS_Release := -pthread \
 	-fno-exceptions \
+	-fno-strict-aliasing \
 	-Wno-unused-parameter \
 	-Wno-missing-field-initializers \
-	-D_FILE_OFFSET_BITS=64 \
 	-fvisibility=hidden \
 	-pipe \
 	-fPIC \
-	-fno-strict-aliasing \
 	-std=gnu99 \
 	-ansi \
 	-pedantic \
@@ -117,8 +117,8 @@ $(OBJS): | $(obj).host/third_party/yasm/config_sources.stamp
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
 $(OBJS): TOOLSET := $(TOOLSET)
-$(OBJS): GYP_CFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE)) $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_C_$(BUILDTYPE))
-$(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE)) $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_CC_$(BUILDTYPE))
+$(OBJS): GYP_CFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_C_$(BUILDTYPE))
+$(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_CC_$(BUILDTYPE))
 
 # Suffix rules, putting all outputs into $(obj).
 
@@ -137,11 +137,13 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.c FORCE_DO_CMD
 ### Rules for final target.
 LDFLAGS_Debug := -pthread \
 	-Wl,-z,noexecstack \
-	-fPIC
+	-fPIC \
+	-B$(builddir)/../../third_party/gold
 
 LDFLAGS_Release := -pthread \
 	-Wl,-z,noexecstack \
 	-fPIC \
+	-B$(builddir)/../../third_party/gold \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections

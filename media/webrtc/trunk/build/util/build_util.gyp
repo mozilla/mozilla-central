@@ -8,7 +8,7 @@
       'target_name': 'lastchange',
       'type': 'none',
       'variables': {
-        'lastchange_out_path': '<(SHARED_INTERMEDIATE_DIR)/build/LASTCHANGE',
+        'lastchange_out_path': '<(DEPTH)/build/util/LASTCHANGE',
         'default_lastchange_path': '../LASTCHANGE.in',
       },
       'actions': [
@@ -20,7 +20,6 @@
             './lastchange.py',
           ],
           'outputs': [
-            '<(lastchange_out_path).always',
             '<(lastchange_out_path)',
           ],
           'action': [

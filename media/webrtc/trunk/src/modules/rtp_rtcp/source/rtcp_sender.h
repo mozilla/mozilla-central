@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -11,9 +11,11 @@
 #ifndef WEBRTC_MODULES_RTP_RTCP_SOURCE_RTCP_SENDER_H_
 #define WEBRTC_MODULES_RTP_RTCP_SOURCE_RTCP_SENDER_H_
 
+#include <map>
+
 #include "typedefs.h"
+#include "rtcp_utility.h"
 #include "rtp_utility.h"
-#include "map_wrapper.h"
 #include "rtp_rtcp_defines.h"
 #include "remote_rate_control.h"
 #include "tmmbr_help.h"
@@ -49,11 +51,11 @@ public:
 
     WebRtc_Word32 SetCameraDelay(const WebRtc_Word32 delayMS);
 
-    WebRtc_Word32 CNAME(WebRtc_Word8 cName[RTCP_CNAME_SIZE]);
-    WebRtc_Word32 SetCNAME(const WebRtc_Word8 cName[RTCP_CNAME_SIZE]);
+    WebRtc_Word32 CNAME(char cName[RTCP_CNAME_SIZE]);
+    WebRtc_Word32 SetCNAME(const char cName[RTCP_CNAME_SIZE]);
 
     WebRtc_Word32 AddMixedCNAME(const WebRtc_UWord32 SSRC,
-                              const WebRtc_Word8 cName[RTCP_CNAME_SIZE]);
+                                const char cName[RTCP_CNAME_SIZE]);
 
     WebRtc_Word32 RemoveMixedCNAME(const WebRtc_UWord32 SSRC);
 
@@ -133,6 +135,10 @@ public:
 
     WebRtc_UWord32 CalculateNewTargetBitrate(WebRtc_UWord32 RTT);
 
+    // Returns true if there is a valid estimate of the incoming bitrate, false
+    // otherwise.
+    bool ValidBitrateEstimate();
+
 private:
     WebRtc_Word32 SendToNetwork(const WebRtc_UWord8* dataBuffer,
                               const WebRtc_UWord16 length);
@@ -209,12 +215,12 @@ private:
 
     WebRtc_UWord32        _nextTimeToSendRTCP;
 
-    WebRtc_UWord32        _SSRC;
-    WebRtc_UWord32        _remoteSSRC;                    // SSRC that we receive on our RTP channel
-    WebRtc_UWord8         _CNAME[RTCP_CNAME_SIZE];
+    WebRtc_UWord32 _SSRC;
+    WebRtc_UWord32 _remoteSSRC;  // SSRC that we receive on our RTP channel
+    char _CNAME[RTCP_CNAME_SIZE];
 
-    MapWrapper             _reportBlocks;      // map of SSRC to RTCPReportBlock
-    MapWrapper             _csrcCNAMEs;        // map of SSRC to Cnames
+    std::map<WebRtc_UWord32, RTCPReportBlock*> _reportBlocks;
+    std::map<WebRtc_UWord32, RTCPUtility::RTCPCnameInformation*> _csrcCNAMEs;
 
     WebRtc_Word32         _cameraDelayMS;
 

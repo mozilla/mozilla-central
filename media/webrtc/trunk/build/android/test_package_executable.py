@@ -43,6 +43,7 @@ class TestPackageExecutable(TestPackage):
 
   def _GetGTestReturnCode(self):
     ret = None
+    ret_code = 1  # Assume failure if we can't find it
     ret_code_file = tempfile.NamedTemporaryFile()
     try:
       if not self.adb.Adb().Pull(
@@ -105,6 +106,9 @@ class TestPackageExecutable(TestPackage):
     cmd_helper.RunCmd(['chmod', '+x', sh_script_file.name])
     self.adb.PushIfNeeded(sh_script_file.name,
                           '/data/local/chrome_test_runner.sh')
+    logging.info('Conents of the test runner script: ')
+    for line in open(sh_script_file.name).readlines():
+      logging.info('  ' + line.rstrip())
 
   def RunTestsAndListResults(self):
     """Runs all the tests and checks for failures.

@@ -958,13 +958,6 @@
    fun:-[GTMWindowSheetController beginSheet:modalForView:modalDelegate:didEndSelector:contextInfo:]
 }
 {
-   bug_57268
-   Memcheck:Leak
-   fun:_Znw*
-   fun:_ZN4base17LoadNativeLibraryERK8FilePath
-   fun:_ZN5media22InitializeMediaLibraryERK8FilePath
-}
-{
    bug_58860_a
    Memcheck:Unaddressable
    fun:memcpy
@@ -1794,7 +1787,7 @@
    fun:_ZN3net11SSLHostInfo5ParseERKSs
    fun:_ZN3net25DiskCacheBasedSSLHostInfo22DoWaitForDataReadyDoneEv
    fun:_ZN3net25DiskCacheBasedSSLHostInfo6DoLoopEi
-   fun:_ZN3net25DiskCacheBasedSSLHostInfo12OnIOCompleteEi
+   fun:_ZN3net25DiskCacheBasedSSLHostInfo12OnIOCompleteEPNS0_22CacheOperationDataShimEi
 }
 {
    bug_97818
@@ -1947,8 +1940,8 @@
    fun:create
    fun:aquireColorWorldByAttributes
    fun:acquireColorWorld
-   fun:CMSTransformConvertComponents
-   fun:CGCMSInterfaceTransformConvertColorComponents
+   fun:CMSTransformConvert*
+   fun:CGCMSInterfaceTransformConvert*
 }
 {
    bug_105341_b
@@ -1959,20 +1952,8 @@
    fun:create
    fun:aquireColorWorldByAttributes
    fun:acquireColorWorld
-   fun:CMSTransformConvertComponents
-   fun:CGCMSInterfaceTransformConvertColorComponents
-}
-{
-   bug_105341_c
-   Memcheck:Leak
-   fun:malloc_zone_malloc
-   fun:_CFRuntimeCreateInstance
-   fun:allocWorld
-   fun:create
-   fun:aquireColorWorldByAttributes
-   fun:acquireColorWorld
-   fun:CMSTransformConvertRequired
-   fun:CGCMSInterfaceTransformConvertRequired
+   fun:CMSTransformConvert*
+   fun:CGCMSInterfaceTransformConvert*
 }
 {
    bug_105342
@@ -2170,12 +2151,16 @@
    fun:malloc_zone_malloc
    fun:malloc_set_zone_name
    fun:malloc_default_purgeable_zone
+   ...
    fun:_ZN4base30EnableTerminationOnOutOfMemoryEv
    fun:_ZN7leveldb12_GLOBAL__N_111ChromiumEnvC2Ev
+   ...
    fun:_ZN4base25DefaultLazyInstanceTraitsIN7leveldb12_GLOBAL__N_111ChromiumEnvEE3NewEPv
-   fun:_ZN4base12LazyInstanceIN7leveldb12_GLOBAL__N_111ChromiumEnvENS_23LeakyLazyInstanceTraitsIS3_EEE7PointerEv
+   ...
+   fun:_ZN4base12LazyInstanceIN7leveldb12_GLOBAL__N_111ChromiumEnvENS_*
+   ...
    fun:_ZN7leveldb7OptionsC2Ev
-   fun:_ZN7leveldb7OptionsC1Ev
+   ...
    fun:_ZN7fileapi27FileSystemDirectoryDatabase4InitEv
    fun:_ZN7fileapi27FileSystemDirectoryDatabase11GetFileInfoExPNS0_8FileInfoE
    fun:_ZN7fileapi59FileSystemDirectoryDatabaseTest_TestMissingFileGetInfo_Test8TestBodyEv
@@ -2189,7 +2174,7 @@
    fun:_ZN2v88internalL6InvokeEbNS0_6HandleINS0_10JSFunctionEEENS1_INS0_6ObjectEEEiPS5_Pb
    fun:_ZN2v88internal9Execution4CallENS0_6HandleINS0_6ObjectEEES4_iPS4_Pbb
    fun:_ZN2v86Script3RunEv
-   fun:_ZN7WebCore7V8Proxy9runScriptEN2v86HandleINS1_6ScriptEEEb
+   fun:_ZN7WebCore7V8Proxy9runScriptEN2v86HandleINS1_6ScriptE*
    fun:_ZN7WebCore7V8Proxy8evaluateERKNS_16ScriptSourceCodeEPNS_4NodeE
    fun:_ZN7WebCore16ScriptController8evaluateERKNS_16ScriptSourceCodeE
 }
@@ -2202,7 +2187,7 @@
    fun:_ZN2v88internalL6InvokeEbNS0_6HandleINS0_10JSFunctionEEENS1_INS0_6ObjectEEEiPS5_Pb
    fun:_ZN2v88internal9Execution4CallENS0_6HandleINS0_6ObjectEEES4_iPS4_Pbb
    fun:_ZN2v86Script3RunEv
-   fun:_ZN7WebCore7V8Proxy9runScriptEN2v86HandleINS1_6ScriptEEEb
+   fun:_ZN7WebCore7V8Proxy9runScriptEN2v86HandleINS1_6ScriptE*
    fun:_ZN7WebCore7V8Proxy8evaluateERKNS_16ScriptSourceCodeEPNS_4NodeE
    fun:_ZN7WebCore16ScriptController8evaluateERKNS_16ScriptSourceCodeE
 }
@@ -2242,7 +2227,9 @@
    fun:_ZN7WebCore10ImageFrame9setStatusENS0_11FrameStatusE
    fun:_ZN7WebCore15PNGImageDecoder11pngCompleteEv
    fun:_ZN7WebCoreL11pngCompleteEP14png_struct_defP15png_info_struct
+   ...
    fun:wk_png_push_read_chunk
+   ...
    fun:wk_png_process_data
    fun:_ZN7WebCore14PNGImageReader6decodeERKNS_12SharedBufferEb
    fun:_ZN7WebCore15PNGImageDecoder6decodeEb
@@ -2250,6 +2237,7 @@
    fun:_ZN7WebCore11ImageSource18createFrameAtIndexEm
    fun:_ZN6WebKit8WebImage8fromDataERKNS_7WebDataERKNS_7WebSizeE
    fun:_ZNK11webkit_glue12ImageDecoder6DecodeEPKhm
+   ...
 }
 {
    bug_107158
@@ -2318,13 +2306,55 @@
    fun:_ZN7WebCore11RenderBlock13paintContentsERNS_9PaintInfoERKNS_8IntPointE
    fun:_ZN7WebCore11RenderBlock11paintObjectERNS_9PaintInfoERKNS_8IntPointE
    fun:_ZN7WebCore11RenderBlock5paintERNS_9PaintInfoERKNS_8IntPointE
-   fun:_ZN7WebCore11RenderLayer10paintLayerEPS0_PNS_15GraphicsContextERKNS_7IntRectEjPNS_12RenderObjectEPNS_12RenderRegionEPN3WTF7HashMapIPNS_24OverlapTestRequestClientES4_NSB_7PtrHashISE_EENSB_10HashTraitsISE_EENSH_IS4_EEEEj
-   fun:_ZN7WebCore11RenderLayer9paintListEPN3WTF6VectorIPS0_Lm0EEES3_PNS_15GraphicsContextERKNS_7IntRectEjPNS_12RenderObjectEPNS_12RenderRegionEPNS1_7HashMapIPNS_24OverlapTestRequestClientES8_NS1_7PtrHashISH_EENS1_10HashTraitsISH_EENSK_IS8_EEEEj
-   fun:_ZN7WebCore11RenderLayer10paintLayerEPS0_PNS_15GraphicsContextERKNS_7IntRectEjPNS_12RenderObjectEPNS_12RenderRegionEPN3WTF7HashMapIPNS_24OverlapTestRequestClientES4_NSB_7PtrHashISE_EENSB_10HashTraitsISE_EENSH_IS4_EEEEj
+   ...
    fun:_ZN7WebCore11RenderLayer5paintEPNS_15GraphicsContextERKNS_7IntRectEjPNS_12RenderObjectEPNS_12RenderRegionEj
    fun:_ZN7WebCore9FrameView13paintContentsEPNS_15GraphicsContextERKNS_7IntRectE
    fun:_ZN7WebCore10ScrollView5paintEPNS_15GraphicsContextERKNS_7IntRectE
    fun:_ZN6WebKit12WebFrameImpl16paintWithContextERN7WebCore15GraphicsContextERKNS_7WebRectE
-   fun:_ZN6WebKit12WebFrameImpl5paintEP8SkCanvasRKNS_7WebRectE
-   fun:_ZN6WebKit11WebViewImpl5paintEP8SkCanvasRKNS_7WebRectE
+}
+{
+   bug_109994
+   Memcheck:Leak
+   ...
+   fun:_class_lookupMethodAndLoadCache
+   fun:objc_msgSend
+   ...
+   fun:_class_initialize
+   fun:_class_initialize
+   fun:_class_lookupMethodAndLoadCache
+   fun:objc_msgSend
+   fun:_ZN15ChromeTestSuite10InitializeEv
+   fun:_ZN4base9TestSuite3RunEv
+   fun:_ZN17UnitTestTestSuite3RunEv
+}
+{
+   bug_102920
+   Memcheck:Unaddressable
+   fun:MDItemCreate
+   fun:CSBackupSetItemExcluded
+   fun:_ZN4base3mac22SetFileBackupExclusionERK8FilePath
+   fun:_ZN7history17ThumbnailDatabase4InitERK8FilePathPKNS_16HistoryPublisherEPNS_11URLDatabaseE
+   fun:_ZN7history14HistoryBackend8InitImplERKSs
+   fun:_ZN7history14HistoryBackend4InitERKSsb
+}
+{
+   bug_112078
+   Memcheck:Uninitialized
+   fun:glViewport_Exec
+   fun:glViewport
+   fun:-[AcceleratedPluginView globalFrameDidChange:]
+   fun:-[AcceleratedPluginView renewGState]
+   fun:-[NSView _invalidateGStatesForTree]
+   fun:-[NSView(NSInternal) _setHidden:setNeedsDisplay:]
+   fun:-[NSView _setHidden:]
+   fun:_ZN23RenderWidgetHostViewMac17MovePluginWindowsERKSt6vectorIN6webkit5npapi17WebPluginGeometryESaIS3_EE
+   fun:_ZN27RenderWidgetHostViewMacTest24AddAcceleratedPluginViewEii
+   fun:_ZN53RenderWidgetHostViewMacTest_FocusAcceleratedView_Test8TestBodyEv
+}
+{
+   bug_112086
+   Memcheck:Uninitialized
+   fun:x_zone_size
+   fun:find_registered_purgeable_zone
+   fun:malloc_make_purgeable
 }

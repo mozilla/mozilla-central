@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -11,8 +11,10 @@
 #ifndef WEBRTC_MODULES_RTP_RTCP_SOURCE_RTCP_RECEIVER_H_
 #define WEBRTC_MODULES_RTP_RTCP_SOURCE_RTCP_RECEIVER_H_
 
+#include <map>
+#include <vector>
+
 #include "typedefs.h"
-#include "map_wrapper.h"
 #include "rtp_utility.h"
 #include "rtcp_utility.h"
 #include "rtp_rtcp_defines.h"
@@ -52,7 +54,7 @@ public:
 
     // get received cname
     WebRtc_Word32 CNAME(const WebRtc_UWord32 remoteSSRC,
-                        WebRtc_Word8 cName[RTCP_CNAME_SIZE]) const;
+                        char cName[RTCP_CNAME_SIZE]) const;
 
     // get received NTP
     WebRtc_Word32 NTP(WebRtc_UWord32 *ReceivedNTPsecs,
@@ -81,8 +83,9 @@ public:
         const WebRtc_UWord64 pitureID) const;
 
     // get statistics
-    WebRtc_Word32 StatisticsReceived(const WebRtc_UWord32 remoteSSRC,
-                                     RTCPReportBlock* receiveBlock) const;
+    WebRtc_Word32 StatisticsReceived(
+        std::vector<RTCPReportBlock>* receiveBlocks) const;
+
     // Get TMMBR
     WebRtc_Word32 TMMBRReceived(const WebRtc_UWord32 size,
                                 const WebRtc_UWord32 accNumCandidates,
@@ -186,33 +189,36 @@ protected:
     void HandleAPPItem(RTCPUtility::RTCPParserV2& rtcpParser,
                        RTCPHelp::RTCPPacketInformation& rtcpPacketInformation);
 
-private:
-    WebRtc_Word32           _id;
-    RtpRtcpClock&           _clock;
-    RTCPMethod              _method;
-    WebRtc_UWord32          _lastReceived;
-    ModuleRtpRtcpImpl&      _rtpRtcp;
+ private:
+  WebRtc_Word32           _id;
+  RtpRtcpClock&           _clock;
+  RTCPMethod              _method;
+  WebRtc_UWord32          _lastReceived;
+  ModuleRtpRtcpImpl&      _rtpRtcp;
 
-    CriticalSectionWrapper* _criticalSectionFeedbacks;
-    RtcpFeedback*           _cbRtcpFeedback;
-    RtpVideoFeedback*       _cbVideoFeedback;
+  CriticalSectionWrapper* _criticalSectionFeedbacks;
+  RtcpFeedback*           _cbRtcpFeedback;
+  RtpVideoFeedback*       _cbVideoFeedback;
 
-    CriticalSectionWrapper* _criticalSectionRTCPReceiver;
-    WebRtc_UWord32          _SSRC;
-    WebRtc_UWord32          _remoteSSRC;
+  CriticalSectionWrapper* _criticalSectionRTCPReceiver;
+  WebRtc_UWord32          _SSRC;
+  WebRtc_UWord32          _remoteSSRC;
 
-    // Received send report
-    RTCPSenderInfo      _remoteSenderInfo;
-    WebRtc_UWord32            _lastReceivedSRNTPsecs;     // when did we receive the last send report
-    WebRtc_UWord32            _lastReceivedSRNTPfrac;
+  // Received send report
+  RTCPSenderInfo _remoteSenderInfo;
+  // when did we receive the last send report
+  WebRtc_UWord32 _lastReceivedSRNTPsecs;
+  WebRtc_UWord32 _lastReceivedSRNTPfrac;
 
-    // Received report block
-    MapWrapper                 _receivedReportBlockMap;    // pair SSRC to report block
-    MapWrapper                 _receivedInfoMap;           // pair SSRC of sender to might not be a SSRC that have any data (i.e. a conference)
-    MapWrapper                 _receivedCnameMap;          // pair SSRC to Cname
+  // Received report blocks.
+  std::map<WebRtc_UWord32, RTCPHelp::RTCPReportBlockInformation*>
+      _receivedReportBlockMap;
+  std::map<WebRtc_UWord32, RTCPHelp::RTCPReceiveInformation*>
+      _receivedInfoMap;
+  std::map<WebRtc_UWord32, RTCPUtility::RTCPCnameInformation*>
+      _receivedCnameMap;
 
-    // timeout
-    WebRtc_UWord32            _packetTimeOutMS;
+  WebRtc_UWord32            _packetTimeOutMS;
 };
 } // namespace webrtc
 #endif // WEBRTC_MODULES_RTP_RTCP_SOURCE_RTCP_RECEIVER_H_

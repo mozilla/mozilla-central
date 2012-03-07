@@ -221,6 +221,7 @@ class ChannelManager : public talk_base::MessageHandler,
   std::string audio_in_device_;
   std::string audio_out_device_;
   int audio_options_;
+  int audio_output_volume_;
   std::string camera_device_;
   VideoEncoderConfig default_video_encoder_config_;
   VideoRenderer* local_renderer_;

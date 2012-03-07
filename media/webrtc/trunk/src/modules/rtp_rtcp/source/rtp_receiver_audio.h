@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -11,11 +11,12 @@
 #ifndef WEBRTC_MODULES_RTP_RTCP_SOURCE_RTP_RECEIVER_AUDIO_H_
 #define WEBRTC_MODULES_RTP_RTCP_SOURCE_RTP_RECEIVER_AUDIO_H_
 
+#include <set>
+
 #include "rtp_rtcp_defines.h"
 #include "rtp_utility.h"
 
 #include "typedefs.h"
-#include "map_wrapper.h"
 
 namespace webrtc {
 class CriticalSectionWrapper;
@@ -32,11 +33,12 @@ public:
 
     WebRtc_Word32 RegisterIncomingAudioCallback(RtpAudioFeedback* incomingMessagesCallback);
 
-    ModuleRTPUtility::Payload* RegisterReceiveAudioPayload(const WebRtc_Word8 payloadName[RTP_PAYLOAD_NAME_SIZE],
-                                                           const WebRtc_Word8 payloadType,
-                                                           const WebRtc_UWord32 frequency,
-                                                           const WebRtc_UWord8 channels,
-                                                           const WebRtc_UWord32 rate);
+    ModuleRTPUtility::Payload* RegisterReceiveAudioPayload(
+        const char payloadName[RTP_PAYLOAD_NAME_SIZE],
+        const WebRtc_Word8 payloadType,
+        const WebRtc_UWord32 frequency,
+        const WebRtc_UWord8 channels,
+        const WebRtc_UWord32 rate);
 
     WebRtc_UWord32 AudioFrequency() const;
 
@@ -77,8 +79,8 @@ private:
     bool                    _telephoneEvent;
     bool                    _telephoneEventForwardToDecoder;
     bool                    _telephoneEventDetectEndOfTone;
-    WebRtc_Word8              _telephoneEventPayloadType;
-    MapWrapper                 _telephoneEventReported;
+    WebRtc_Word8            _telephoneEventPayloadType;
+    std::set<WebRtc_UWord8> _telephoneEventReported;
 
     WebRtc_Word8              _cngNBPayloadType;
     WebRtc_Word8              _cngWBPayloadType;

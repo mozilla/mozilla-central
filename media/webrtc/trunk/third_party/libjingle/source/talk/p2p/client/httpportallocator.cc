@@ -286,7 +286,6 @@ void HttpPortAllocatorSession::OnRequestDone(talk_base::SignalThread* data) {
       std::find(requests_.begin(), requests_.end(), request);
   if (it != requests_.end()) {
     requests_.erase(it);
-    return;
   }
 
   if (request->response().scode != 200) {

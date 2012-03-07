@@ -57,12 +57,14 @@ class TestResults(object):
     self.unknown = []
     self.disabled = []
     self.unexpected_pass = []
+    self.timed_out = False
 
   @staticmethod
-  def FromOkAndFailed(ok, failed):
+  def FromOkAndFailed(ok, failed, timed_out=False):
     ret = TestResults()
     ret.ok = ok
     ret.failed = failed
+    ret.timed_out = timed_out
     return ret
 
   @staticmethod
@@ -76,6 +78,8 @@ class TestResults(object):
       ret.unknown += t.unknown
       ret.disabled += t.disabled
       ret.unexpected_pass += t.unexpected_pass
+      if t.timed_out:
+        ret.timed_out = True
     return ret
 
   def _Log(self, sorted_list):

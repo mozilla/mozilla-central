@@ -28,7 +28,6 @@
 #include "talk/base/gunit.h"
 #include "talk/base/ipaddress.h"
 
-
 namespace talk_base {
 
 static const unsigned int kIPv4AddrSize = 4;
@@ -162,6 +161,21 @@ bool BrokenIPStringFails(const std::string& broken) {
     return false;
   }
   return addr.family() == AF_UNSPEC;
+}
+
+bool CheckMaskCount(const std::string& mask, int expected_length) {
+  IPAddress addr;
+  return IPFromString(mask, &addr) &&
+      (expected_length == CountIPMaskBits(addr));
+}
+
+bool CheckTruncateIP(const std::string& initial, int truncate_length,
+                     const std::string& expected_result) {
+  IPAddress addr, expected;
+  IPFromString(initial, &addr);
+  IPFromString(expected_result, &expected);
+  IPAddress truncated = TruncateIP(addr, truncate_length);
+  return truncated == expected;
 }
 
 TEST(IPAddressTest, TestDefaultCtor) {
@@ -629,4 +643,123 @@ TEST(IPAddressTest, TestAsIPv6Address) {
   EXPECT_EQ(addr, addr2);
 }
 
+TEST(IPAddressTest, TestCountIPMaskBits) {
+  IPAddress mask;
+  // IPv4 on byte boundaries
+  EXPECT_PRED2(CheckMaskCount, "255.255.255.255", 32);
+  EXPECT_PRED2(CheckMaskCount, "255.255.255.0", 24);
+  EXPECT_PRED2(CheckMaskCount, "255.255.0.0", 16);
+  EXPECT_PRED2(CheckMaskCount, "255.0.0.0", 8);
+  EXPECT_PRED2(CheckMaskCount, "0.0.0.0", 0);
+
+  // IPv4 not on byte boundaries
+  EXPECT_PRED2(CheckMaskCount, "128.0.0.0", 1);
+  EXPECT_PRED2(CheckMaskCount, "224.0.0.0", 3);
+  EXPECT_PRED2(CheckMaskCount, "255.248.0.0", 13);
+  EXPECT_PRED2(CheckMaskCount, "255.255.224.0", 19);
+  EXPECT_PRED2(CheckMaskCount, "255.255.255.252", 30);
+
+  // V6 on byte boundaries
+  EXPECT_PRED2(CheckMaskCount, "::", 0);
+  EXPECT_PRED2(CheckMaskCount, "ff00::", 8);
+  EXPECT_PRED2(CheckMaskCount, "ffff::", 16);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ff00::", 24);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff::", 32);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ff00::", 40);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff::", 48);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ff00::", 56);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff::", 64);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ff00::", 72);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff::", 80);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ff00::", 88);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff::", 96);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ff00:0000", 104);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:0000", 112);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff00", 120);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff", 128);
+
+  // V6 not on byte boundaries.
+  EXPECT_PRED2(CheckMaskCount, "8000::", 1);
+  EXPECT_PRED2(CheckMaskCount, "ff80::", 9);
+  EXPECT_PRED2(CheckMaskCount, "ffff:fe00::", 23);
+  EXPECT_PRED2(CheckMaskCount, "ffff:fffe::", 31);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:e000::", 35);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffe0::", 43);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:f800::", 53);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:fff8::", 61);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:fc00::", 70);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:fffc::", 78);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:8000::", 81);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ff80::", 89);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:fe00::", 103);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:fffe:0000", 111);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fc00", 118);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:fffc", 126);
+
+  // Non-contiguous ranges. These are kind-of invalid but lets test them
+  // to make sure they don't crash anything or infinite loop or something.
+  EXPECT_PRED2(CheckMaskCount, "217.0.0.0", 2);
+  EXPECT_PRED2(CheckMaskCount, "255.185.0.0", 9);
+  EXPECT_PRED2(CheckMaskCount, "255.255.251.0", 21);
+  EXPECT_PRED2(CheckMaskCount, "255.255.251.255", 21);
+  EXPECT_PRED2(CheckMaskCount, "255.255.254.201", 23);
+  EXPECT_PRED2(CheckMaskCount, "::1", 0);
+  EXPECT_PRED2(CheckMaskCount, "fe80::1", 7);
+  EXPECT_PRED2(CheckMaskCount, "ff80::1", 9);
+  EXPECT_PRED2(CheckMaskCount, "ffff::1", 16);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ff00:1::1", 24);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff::ffff:1", 32);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ff00:1::", 40);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff::ff00", 48);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ff00:1234::", 56);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:0012::ffff", 64);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ff01::", 72);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:7f00::", 80);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ff7a::", 88);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:7f00:0000", 96);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ff70:0000", 104);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:0211", 112);
+  EXPECT_PRED2(CheckMaskCount, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff7f", 120);
+}
+
+TEST(IPAddressTest, TestTruncateIP) {
+  EXPECT_PRED3(CheckTruncateIP, "255.255.255.255", 24, "255.255.255.0");
+  EXPECT_PRED3(CheckTruncateIP, "255.255.255.255", 16, "255.255.0.0");
+  EXPECT_PRED3(CheckTruncateIP, "255.255.255.255", 8, "255.0.0.0");
+  EXPECT_PRED3(CheckTruncateIP, "202.67.7.255", 24, "202.67.7.0");
+  EXPECT_PRED3(CheckTruncateIP, "202.129.65.205", 16, "202.129.0.0");
+  EXPECT_PRED3(CheckTruncateIP, "55.25.2.77", 8, "55.0.0.0");
+  EXPECT_PRED3(CheckTruncateIP, "74.128.99.254", 1, "0.0.0.0");
+  EXPECT_PRED3(CheckTruncateIP, "106.55.99.254", 3, "96.0.0.0");
+  EXPECT_PRED3(CheckTruncateIP, "172.167.53.222", 13, "172.160.0.0");
+  EXPECT_PRED3(CheckTruncateIP, "255.255.224.0", 18, "255.255.192.0");
+  EXPECT_PRED3(CheckTruncateIP, "255.255.255.252", 28, "255.255.255.240");
+
+  EXPECT_PRED3(CheckTruncateIP, "fe80:1111:2222:3333:4444:5555:6666:7777", 1,
+               "8000::");
+  EXPECT_PRED3(CheckTruncateIP, "fff0:1111:2222:3333:4444:5555:6666:7777", 9,
+               "ff80::");
+  EXPECT_PRED3(CheckTruncateIP, "ffff:ff80:1111:2222:3333:4444:5555:6666", 23,
+               "ffff:fe00::");
+  EXPECT_PRED3(CheckTruncateIP, "2400:f9af:e456:1111:2222:3333:4444:5555", 35,
+               "2400:f9af:e000::");
+  EXPECT_PRED3(CheckTruncateIP, "9999:1111:2233:4444:5555:6666:7777:8888", 53,
+               "9999:1111:2233:4000::");
+  EXPECT_PRED3(CheckTruncateIP, "1111:2222:3333:4444:5555:6666:7777:8888", 68,
+               "1111:2222:3333:4444:5000::");
+  EXPECT_PRED3(CheckTruncateIP, "1111:2222:3333:4444:5555:6666:7777:8888", 92,
+               "1111:2222:3333:4444:5555:6660::");
+  EXPECT_PRED3(CheckTruncateIP, "1111:2222:3333:4444:5555:6666:7777:8888", 105,
+               "1111:2222:3333:4444:5555:6666:7700::");
+  EXPECT_PRED3(CheckTruncateIP, "1111:2222:3333:4444:5555:6666:7777:8888", 124,
+               "1111:2222:3333:4444:5555:6666:7777:8880");
+
+  // Slightly degenerate cases
+  EXPECT_PRED3(CheckTruncateIP, "202.165.33.127", 32, "202.165.33.127");
+  EXPECT_PRED3(CheckTruncateIP, "235.105.77.12", 0, "0.0.0.0");
+  EXPECT_PRED3(CheckTruncateIP, "1111:2222:3333:4444:5555:6666:7777:8888", 128,
+               "1111:2222:3333:4444:5555:6666:7777:8888");
+  EXPECT_PRED3(CheckTruncateIP, "1111:2222:3333:4444:5555:6666:7777:8888", 0,
+               "::");
+}
 }  // namespace talk_base

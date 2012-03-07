@@ -100,6 +100,8 @@ root_env.AppendUnique(locales = [
     'no', 'or', 'pl', 'pt-BR', 'pt-PT', 'ro', 'ru', 'sk', 'sl', 'sr', 'sv',
     'ta', 'te', 'th', 'tl', 'tr', 'uk', 'ur', 'vi', 'zh-CN', 'zh-TW'])
 
+AddTargetGroup('all_breakpads', 'breakpad files can be built')
+
 #-------------------------------------------------------------------------------
 # W I N D O W S
 #
@@ -311,6 +313,9 @@ mac_env = posix_env.Clone(
     #'fill_plist',
   ],
 )
+# Use static OpenSSL on mac so that we can use the latest APIs on all
+# supported mac platforms (10.5+).
+mac_env.SetBits('use_static_openssl')
 mac_env.Append(
   CPPDEFINES = [
     'OSX',
@@ -514,6 +519,89 @@ def gen_linux_x86(base_env, type_suffix, desc_suffix):
 
 gen_linux_x86(linux_x86_32_env, '32', '32-bit')
 gen_linux_x86(linux_x86_64_env, '64', '64-bit')
+
+#-------------------------------------------------------------------------------
+# L I N U X -- C R O S S -- B U I L D
+
+# Cross build requires the following tool names be provided by the environment:
+linux_cross_common_env = linux_common_env.Clone(
+  AR = os.environ.get("AR"),
+  AS = os.environ.get("AS"),
+  LD = os.environ.get("LD"),
+  NM = os.environ.get("NM"),
+  RANLIB = os.environ.get("RANLIB"),
+  CC = str(os.environ.get("CC")) +
+    ' --sysroot=' + str(os.environ.get("SYSROOT")),
+  CXX = str(os.environ.get("CXX")) +
+    ' --sysroot=' + str(os.environ.get("SYSROOT")),
+)
+
+# The rest of these paths and flags are optional:
+if os.environ.get("CPPPATH"):
+  linux_cross_common_env.Append(
+    CPPPATH = os.environ.get("CPPPATH").split(':'),
+  )
+if os.environ.get("LIBPATH"):
+  linux_cross_common_env.Append(
+    LIBPATH = os.environ.get("LIBPATH").split(':'),
+  )
+if os.environ.get("CFLAGS"):
+  linux_cross_common_env.Append(
+    CFLAGS = os.environ.get("CFLAGS").split(' '),
+  )
+if os.environ.get("CCFLAGS"):
+  linux_cross_common_env.Append(
+    CCFLAGS = os.environ.get("CCFLAGS").split(' '),
+  )
+if os.environ.get("CXXFLAGS"):
+  linux_cross_common_env.Append(
+    CXXFLAGS = os.environ.get("CXXFLAGS").split(' '),
+  )
+if os.environ.get("LIBFLAGS"):
+  linux_cross_common_env.Append(
+    _LIBFLAGS = os.environ.get("LIBFLAGS").split(' '),
+  )
+
+#-------------------------------------------------------------------------------
+# L I N U X -- C R O S S -- B U I L D -- A R M
+
+linux_cross_arm_env = linux_cross_common_env.Clone()
+linux_cross_arm_env.Append(
+  CPPDEFINES = [
+    'NACL_BUILD_ARCH=arm',
+    'DISABLE_EFFECTS=1',
+  ],
+  CCFLAGS = [
+    '-fPIC',
+  ],
+)
+DeclareBit('arm', 'ARM build')
+linux_cross_arm_env.SetBits('arm')
+
+# Detect NEON support from the -mfpu build flag.
+DeclareBit('arm_neon', 'ARM supporting neon')
+if '-mfpu=neon' in linux_cross_arm_env['CFLAGS'] or \
+   '-mfpu=neon' in linux_cross_arm_env['CCFLAGS'] or \
+   '-mfpu=neon' in linux_cross_arm_env['CXXFLAGS']:
+  print "Building with ARM NEON support."
+  linux_cross_arm_env.SetBits('arm_neon')
+
+
+linux_cross_arm_dbg_env = linux_cross_arm_env.Clone(
+  BUILD_TYPE = 'arm-dbg',
+  BUILD_TYPE_DESCRIPTION = 'Cross-compiled ARM debug build',
+  BUILD_GROUPS = ['arm'],
+  tools = ['target_debug'],
+)
+envs.append(linux_cross_arm_dbg_env)
+
+linux_cross_arm_opt_env = linux_cross_arm_env.Clone(
+  BUILD_TYPE = 'arm-opt',
+  BUILD_TYPE_DESCRIPTION = 'Cross-compiled ARM optimized build',
+  BUILD_GROUPS = ['arm'],
+  tools = ['target_optimized'],
+)
+envs.append(linux_cross_arm_opt_env)
 
 
 

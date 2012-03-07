@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-#  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+#  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
 #
 #  Use of this source code is governed by a BSD-style license
 #  that can be found in the LICENSE file in the root of the source
@@ -22,7 +22,7 @@ SVN_LOCATION = "http://webrtc.googlecode.com/svn/trunk"
 
 class WebRTCFactory(factory.BuildFactory):
   """A Build Factory affected by properties."""
-  
+
   def __init__(self, build_factory_properties=None, steps=None,
                enable_coverage=False, account=None):
     factory.BuildFactory.__init__(self, steps)
@@ -42,22 +42,32 @@ class WebRTCFactory(factory.BuildFactory):
     else:
       self.coverage_url = "http://www.corp.google.com/~%s" % self.account
       self.coverage_dir = "/home/%s/www" % self.account
-      
 
   def EnableBuild(self, force_sync):
     """Build the binary [must be overridden]."""
     pass
 
   def AddCommonTestSteps(self, test):
-    """Add common steps for test.[must be overridden]
-     
+    """Add common steps for test.
+
        test: test to be run.
     """
-    pass
+    self.AddCommonMakeStep(test)
+    self.AddCommonTestRunStep(test)
 
-  def AddCommonStep(self):
-    """Define common step [must be overridden]."""
-    pass
+  def AddCommonStep(self, cmd, descriptor="", workdir="build",
+                    warnOnFailure=False,):
+    """Define common step."""
+    if type(descriptor) is str:
+      descriptor = [descriptor]
+    warn = warnOnFailure
+    flunkOnFailure = not warn
+    self.addStep(shell.ShellCommand(command=cmd, workdir=workdir,
+                                    description=descriptor+["running..."],
+                                    descriptionDone=descriptor+["done..."],
+                                    warnOnFailure=warn,
+                                    flunkOnFailure=flunkOnFailure,
+                                    name="".join(descriptor)))
 
   def AddCommonTestRunStep(self):
     """Define common test run step [must be overridden]."""
@@ -67,13 +77,17 @@ class WebRTCFactory(factory.BuildFactory):
     """Define common make step [must be overridden]."""
     pass
 
-  def AddCommonGYPStep(self):
-    """Define common gyp step [must be overridden]."""
-    pass
+  def AddCommonGYPStep(self, gyp_file, gyp_params=[], descriptor="gyp"):
+    cmd = ["./build/gyp_chromium", "--depth=.", gyp_file]
+    cmd += gyp_params + self.gyp_params
+    self.addStep(shell.ShellCommand(command=cmd, workdir="build/trunk",
+                                    description=[descriptor, "running..."],
+                                    descriptionDone=[descriptor, "done..."],
+                                    name="gyp_%s" % descriptor))
 
   def EnableTest(self, test):
     """Enable Test to be run. [must be overridden]
-     
+
        test: test to be run.
     """
     pass
@@ -82,8 +96,10 @@ class WebRTCFactory(factory.BuildFactory):
     """Enable Test to be run.
 
        tests: list of test to be run.
-    """  
+    """
     print "Headless tests:%s" % self.headless_tests
+    if self.enable_coverage:
+      self.EnableBaseCoverage()
     for test in tests:
       self.EnableTest(test)
     if self.enable_coverage:
@@ -93,8 +109,12 @@ class WebRTCFactory(factory.BuildFactory):
     """Add headless (build only) tests.
 
        tests: list of headless test.
-    """  
+    """
     self.headless_tests += tests
+
+  def EnableBaseCoverage(self):
+    """Enable base coverage data [must be overridden]."""
+    pass
 
   def EnableCoverage(self):
     """Enable coverage data [must be overridden]."""
@@ -105,6 +125,7 @@ class GenerateCodeCoverage(ShellCommand):
   command = ["genhtml", "final.info", "--output-directory",
       WithProperties("/home/webrtc-cb/www/%(buildername)s_%(buildnumber)s")]
   name = "LCOV_GenHTML"
+  warnOnFailure = True
 
   def __init__(self, coverage_url=None, coverage_dir=None, **kwargs):
     if coverage_url is None or coverage_dir is None:
@@ -131,9 +152,69 @@ class GenerateCodeCoverage(ShellCommand):
       for f in files:
         os.chmod(os.path.join(root, f), 0777)
     self.addURL("coverage", coverage_url)
-  
+
   def start(self):
     ShellCommand.start(self)
+
+################################################################################
+class WebRTCAndroidFactory(WebRTCFactory):
+  """A Build Factory affected by properties."""
+
+  def __init__(self, build_factory_properties=None, steps=None,
+               enable_coverage=False, account=None):
+    WebRTCFactory.__init__(self, build_factory_properties, steps,
+                           enable_coverage, account)
+
+  def EnableBuild(self, product="toro"):
+    prefix = "rm -rf out/target/product/%s/obj/" % product
+    cleanup_list = [
+                    "rm -rf external/webrtc",
+                    prefix + "STATIC_LIBRARIES/libwebrtc_*",
+                    prefix + "SHARE_LIBRARIES/libwebrtc_*",
+                    prefix + "EXECUTABLES/webrtc_*"
+                    ]
+    cmd = " ; ".join(cleanup_list)
+    self.addStep(shell.Compile(command=(cmd), workdir="build/trunk",
+                 description=["cleanup", "running..."], haltOnFailure=False,
+                 warnOnFailure=True, flunkOnFailure =False,
+                 descriptionDone=["cleanup", "done..."], name="cleanup"))
+    cmd = "svn checkout http://webrtc.googlecode.com/svn/trunk/ external/webrtc"
+    self.addStep(shell.Compile(command=(cmd),
+        workdir="build/trunk", description=["svn", "running..."],
+        haltOnFailure=False, descriptionDone=["svn", "done..."], name="svn"))
+    cmd = ("source build/envsetup.sh && lunch full_%s-eng "
+           "&& mmm external/webrtc showcommands" % product)
+    self.addStep(shell.Compile(command=(cmd),
+        workdir="build/trunk", description=["build", "running..."],
+        haltOnFailure=False,
+        descriptionDone=["build", "done..."], name="build"))
+
+################################################################################
+
+################################################################################
+class WebRTCChromeFactory(WebRTCFactory):
+  """A Build Factory affected by properties."""
+
+  def __init__(self, build_factory_properties=None, steps=None,
+               enable_coverage=False, account=None):
+    WebRTCFactory.__init__(self, build_factory_properties, steps,
+                           enable_coverage, account)
+
+  def EnableBuild(self):
+    self.AddCommonStep(["rm", "-rf", "src"], descriptor="Cleanup")
+    cmd = ["gclient", "sync", "--force"]
+    self.AddCommonStep(cmd, descriptor="Sync")
+    self.AddCommonMakeStep("chrome")
+
+  def AddCommonMakeStep(self, make, descriptor="", make_extra=None):
+    make_descriptor = [make, descriptor]
+    cmd = ["make", make, "-j100"]
+    if make_extra is not None:
+      cmd.append(make_extra)
+    self.addStep(shell.ShellCommand(command=cmd,
+        workdir="build/src", description=["Making"]+make_descriptor,
+        descriptionDone=make_descriptor+["built"],
+        name="_".join(make_descriptor)))
 
 ################################################################################
 class WebRTCLinuxFactory(WebRTCFactory):
@@ -174,72 +255,79 @@ class WebRTCLinuxFactory(WebRTCFactory):
     if clang:
       self.AddCommonStep(["trunk/tools/clang/scripts/update.sh"],
                           descriptor="Update_Clang")
+
     if self.release:
       self.AddCommonMakeStep("all", make_extra="BUILDTYPE=Release")
     else:
       self.AddCommonMakeStep("all")
-
-  def AddCommonStep(self, cmd, descriptor="", workdir="build"):
-    self.addStep(shell.ShellCommand(command=cmd, workdir=workdir,
-                                    description=[descriptor, "running..."],
-                                    descriptionDone=[descriptor, "done..."],
-                                    name="%s" % descriptor))
 
   def AddCommonTestRunStep(self, test, descriptor="", cmd=None,
                            workdir="build/trunk"):
     if test in self.headless_tests:
       return
     test_folder = "Release" if self.release else "Debug"
-    test_descriptor = test + descriptor
+    test_descriptor = [test, descriptor]
     if cmd is None:
       cmd = ["out/%s/%s" % (test_folder, test)]
     self.addStep(shell.ShellCommand(command=cmd,
-        workdir=workdir, description=["Running", test_descriptor],
-        descriptionDone=[test_descriptor, "finished"],
-        name="run_test_%s" % test_descriptor))
+        workdir=workdir, description=["Running"]+test_descriptor,
+        descriptionDone=test_descriptor+["finished"],
+        name="_".join(test_descriptor)))
 
   def AddCommonMakeStep(self, make, descriptor="", make_extra=None):
-    make_descriptor = make + descriptor
+    make_descriptor = [make, descriptor]
     #cpu = `grep -i \"processor\" /proc/cpuinfo | sort -u | wc -l`
     cmd = ["make", make, "-j100"]
     if make_extra is not None:
       cmd.append(make_extra)
     self.addStep(shell.ShellCommand(command=cmd,
-        workdir="build/trunk", description=["Making", make_descriptor],
-        descriptionDone=[make_descriptor, "built"],
-        name="make_%s" % make_descriptor))
+        workdir="build/trunk", description=["Making"]+make_descriptor,
+        descriptionDone=make_descriptor+["built"],
+        name="_".join(make_descriptor)))
 
-  def AddCommonGYPStep(self, gyp_file, gyp_params=[], descriptor="gyp"):
-    cmd = ["./build/gyp_chromium", "--depth=.", gyp_file] 
-    cmd += gyp_params + self.gyp_params
-    self.addStep(shell.ShellCommand(command=cmd, workdir="build/trunk",
-                                    description=[descriptor, "running..."],
-                                    descriptionDone=[descriptor, "done..."],
-                                    name="gyp_%s" % descriptor))
+  def EnableBaseCoverage(self):
+    self.AddCommonStep(["lcov", "--directory", ".", "--zerocounters"],
+                       workdir="build/trunk",
+                       warnOnFailure=True,
+                       descriptor=["LCOV", "Zero"])
+    self.AddCommonStep(["lcov", "--directory", ".", "--capture", "-b",
+                        ".", "--initial",
+                        "--output-file", "webrtc_base.info"],
+                       workdir="build/trunk",
+                       warnOnFailure=True,
+                       descriptor=["LCOV", "Base", "Capture"])
+    self.AddCommonStep(['lcov', '--extract', 'webrtc_base.info', '*/src/*',
+                        '--output', 'filtered.info'],
+                       workdir="build/trunk",
+                       warnOnFailure=True,
+                       descriptor=["LCOV", "Base", "Extract"])
+    self.AddCommonStep(["lcov", "--remove", "filtered.info", "*/usr/include/*",
+                        "/third*", "/testing/*", "*/test/*", "*_unittest.*",
+                        "*/mock/*", "--output",
+                        "webrtc_base_filtered_final.info"],
+                       workdir="build/trunk",
+                       warnOnFailure=True,
+                       descriptor=["LCOV", "Base", "Filter"])
 
   def EnableCoverage(self):
-    """Enable coverage data [must be overridden]."""
+    """Enable coverage data."""
     self.AddCommonStep(["lcov", "--directory", ".", "--capture", "-b",
                         ".", "--output-file", "webrtc.info"],
-                       workdir="build/trunk", descriptor="LCOV_Capture")
+                       warnOnFailure=True,
+                       workdir="build/trunk", descriptor=["LCOV", "Capture"])
     self.AddCommonStep(['lcov', '--extract', 'webrtc.info', '*/src/*',
-                        '--output', 'test.info'],
-                       workdir="build/trunk", descriptor="LCOV_Extract")
+                        '--output', 'test.info'], warnOnFailure=True,
+                       workdir="build/trunk", descriptor=["LCOV", "Extract"])
     self.AddCommonStep(["lcov", "--remove", "test.info", "*/usr/include/*", 
-                        "/third*", "/testing/*", "--output",
-                        "final.info"],
-                       workdir="build/trunk", descriptor="LCOV_Filter")
+                        "/third*", "/testing/*", "*/test/*", "*_unittest.*",
+                        "*/mock/*", "--output",
+                        "final.info"], warnOnFailure=True,
+                       workdir="build/trunk", descriptor=["LCOV", "Filter"])
+    self.AddCommonStep(['lcov', '-a', 'webrtc_base_filtered_final.info', '-a',
+                        'final.info', '-o', 'final.info'], warnOnFailure=True,
+                       workdir="build/trunk", descriptor=["LCOV", "Merge"])
     self.addStep(GenerateCodeCoverage(coverage_url=self.coverage_url,
                                       coverage_dir=self.coverage_dir))
-
-
-  def AddCommonTestSteps(self, test):
-    """Add common steps for test.
-     
-       test: test to be run.
-    """
-    self.AddCommonMakeStep(test, descriptor="_test")  
-    self.AddCommonTestRunStep(test, descriptor="_test")
 
   def EnableTest(self, test):
     """Enable Test to be run.
@@ -247,66 +335,63 @@ class WebRTCLinuxFactory(WebRTCFactory):
        test: test to be run.
     """
     if test == "audioproc_unittest":
-      self.AddCommonMakeStep(test, descriptor="_test")
-      self.AddCommonTestRunStep(test,
-           cmd=["../../../out/Debug/audioproc_unittest"],
-           workdir="build/trunk/test/data/audio_processing")
-      # Fixed point run:
-      self.AddCommonGYPStep("src/modules/modules.gyp",
-                            gyp_params=["-Dprefer_fixed_point=1"],
-                            descriptor="tests_fp")
-      self.AddCommonMakeStep(test, "_test_(FP)")
-      self.AddCommonTestRunStep(test, descriptor="_(FP)",
-           cmd=["../../../out/Debug/audioproc_unittest"],
-           workdir="build/trunk/test/data/audio_processing")
+      self.AddCommonTestRunStep(test)
+      self.AddCommonGYPStep("webrtc.gyp", gyp_params=["-Dprefer_fixed_point=1"],
+                            descriptor="fixed_point")
+      self.AddCommonMakeStep(test, descriptor="make_fixed_point")
+      self.AddCommonTestRunStep(test, descriptor="fixed_point")
     elif test == "signal_processing_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "resampler_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "vad_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "rtp_rtcp_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "video_coding_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "test_bwe":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "audio_device_test_api":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "audio_device_test_func":
-      self.AddCommonTestRunStep(test, descriptor="_test")    
+      self.AddCommonTestRunStep(test)
     elif test == "audio_coding_module_test":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "video_processing_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "test_fec":
-      self.AddCommonTestSteps(test)
+      self.AddCommonTestRunStep(test)
     elif test == "system_wrappers_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "cng_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "g711_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "g722_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "pcm16b_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "audio_conference_mixer_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "media_file_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "udp_transport_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "webrtc_utility_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "neteq_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "vp8_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "libyuv_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "voice_engine_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
+    elif test == "video_engine_core_unittests":
+      self.AddCommonTestRunStep(test)
+    elif test == "audio_coding_unittests":
+      self.AddCommonTestRunStep(test)
     elif test == "vie_auto_test":
       self.addStep(shell.Compile(command=('xvfb-run --server-args="-screen 0 '
         '800x600x24 -extension Composite" out/Debug/vie_auto_test --automated '
@@ -320,7 +405,7 @@ class WebRTCLinuxFactory(WebRTCFactory):
         workdir="build/trunk", description=[test, "running..."],
         descriptionDone=[test, "done..."], name="%s" % test))
     else:
-      print "No supported tests are found..."
+      print "[Linux]: No supported tests are found for [%s]" % test
 
 
 ################################################################################
@@ -351,62 +436,41 @@ class WebRTCMacFactory(WebRTCFactory):
     if force_sync:
       cmd.append("--force")
     self.AddCommonStep(cmd, descriptor="Sync")
-    if self.build_type == "make" or self.build_type == "both":                             
+    if self.build_type == "make" or self.build_type == "both":
       self.AddCommonGYPStep("webrtc.gyp", gyp_params=["-f", "make"],
-                            descriptor="EnableMake")      
+                            descriptor="EnableMake")
     self.AddCommonMakeStep("all")
-
-  def AddCommonStep(self, cmd, descriptor="", workdir="build"):
-    self.addStep(shell.ShellCommand(command=cmd, workdir=workdir,
-                                    description=[descriptor, "running..."],
-                                    descriptionDone=[descriptor, "done..."],
-                                    name="%s" % descriptor))
 
   def AddCommonTestRunStep(self, test, descriptor="", cmd=None,
                            workdir="build/trunk"):
     if test in self.headless_tests:
       return
     test_folder = "Release" if self.release else "Debug"
-    test_descriptor = test + descriptor
+    test_descriptor = [test, descriptor]
     if cmd is None:
       if self.build_type == "xcode" or self.build_type == "both":
         cmd = ["xcodebuild/%s/%s" % (test_folder, test)]
-        self.AddCommonStep(cmd, descriptor=test_descriptor+"(xcode)",
+        self.AddCommonStep(cmd, descriptor=test_descriptor+["(xcode)"],
                            workdir="build/trunk")
       if self.build_type == "make" or self.build_type == "both":
         cmd = ["out/%s/%s" % (test_folder, test)]
-        self.AddCommonStep(cmd, descriptor=test_descriptor+"(make)",
+        self.AddCommonStep(cmd, descriptor=test_descriptor+["(make)"],
                            workdir="build/trunk")
 
   def AddCommonMakeStep(self, make, descriptor="", make_extra=None):
-    make_descriptor = make + descriptor
+    make_descriptor = [make, descriptor]
     cpu = "`sysctl -n hw.logicalcpu`"
     if self.build_type == "make" or self.build_type == "both":
       cmd = ["make", make, "-j100"]
       if make_extra is not None:
         cmd.append(make_extra)
-      self.AddCommonStep(cmd, descriptor=make_descriptor+"(make)",
+      self.AddCommonStep(cmd, descriptor=make_descriptor+["(make)"],
                          workdir="build/trunk")
     if self.build_type == "xcode" or self.build_type == "both":
       cmd = ["xcodebuild", "-project", "webrtc.xcodeproj", "-configuration", 
              "Debug", "-target", "All"]
-      self.AddCommonStep(cmd, descriptor=make_descriptor+"(xcode)",
+      self.AddCommonStep(cmd, descriptor=make_descriptor+["(xcode)"],
                          workdir="build/trunk")
-
-  def AddCommonGYPStep(self, gyp_file, gyp_params=[], descriptor="gyp"):
-    cmd = ["./build/gyp_chromium", "--depth=.", gyp_file] 
-    cmd += gyp_params + self.gyp_params
-    self.addStep(shell.ShellCommand(command=cmd, workdir="build/trunk",
-                                    description=[descriptor, "running..."],
-                                    descriptionDone=[descriptor, "done..."],
-                                    name="gyp_%s" % descriptor))
-
-  def AddCommonTestSteps(self, test):
-    """Add common steps for test.
-     
-       test: test to be run.
-    """
-    self.AddCommonTestRunStep(test, descriptor="_test")
 
   def EnableTest(self, test):
     """Enable Test to be run.
@@ -414,49 +478,53 @@ class WebRTCMacFactory(WebRTCFactory):
        test: test to be run.
     """
     if test == "audioproc_unittest":
-      print "Does not run on Mac now"
+      self.AddCommonTestRunStep(test)
     elif test == "signal_processing_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "resampler_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "vad_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "rtp_rtcp_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "video_coding_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "test_bwe":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "audio_device_test_api":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "audio_device_test_func":
-      self.AddCommonTestRunStep(test, descriptor="_test")       
+      self.AddCommonTestRunStep(test)
     elif test == "audio_coding_module_test":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "video_processing_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "test_fec":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "system_wrappers_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "audio_conference_mixer_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "media_file_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "udp_transport_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "webrtc_utility_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "neteq_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "vp8_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "libyuv_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "voice_engine_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
+    elif test == "video_engine_core_unittests":
+      self.AddCommonTestRunStep(test)
+    elif test == "audio_coding_unittests":
+      self.AddCommonTestRunStep(test)
     else:
-      print "No supported tests are found..."
+      print "[Mac]: No supported tests are found for [%s]" % test
 
 ################################################################################
 class WebRTCWinFactory(WebRTCFactory):
@@ -494,7 +562,7 @@ class WebRTCWinFactory(WebRTCFactory):
       if force_sync:
         cmd.append("--force")
       self.AddCommonStep(cmd, descriptor="Sync")
-    
+
     if self.configuration == "Debug" or self.configuration == "both":
       cmd = ["msbuild", "webrtc.sln", "/t:Clean",
              "/p:Configuration=Debug;Platform=%s" % (self.platform)]
@@ -510,25 +578,19 @@ class WebRTCWinFactory(WebRTCFactory):
              "/p:Configuration=Release;Platform=%s" % (self.platform)]
       self.AddCommonStep(cmd, descriptor="Build_Release", workdir="build/trunk")
 
-  def AddCommonStep(self, cmd, descriptor="", workdir="build"):
-    self.addStep(shell.ShellCommand(command=cmd, workdir=workdir,
-                                    description=[descriptor, "running..."],
-                                    descriptionDone=[descriptor, "done..."],
-                                    name="%s" % descriptor))
-
   def AddCommonTestRunStep(self, test, descriptor="", cmd=None,
                            workdir="build/trunk"):
     if test in self.headless_tests:
       return
-    test_descriptor = test + descriptor
+    test_descriptor = [test, descriptor]
     if cmd is None:
       if self.configuration == "Debug" or self.configuration == "both":
         cmd = ["build\Debug\%s.exe" % test]
-        self.AddCommonStep(cmd, descriptor=test_descriptor+"_Debug",
+        self.AddCommonStep(cmd, descriptor=test_descriptor+["Debug"],
                            workdir=workdir)
       if self.configuration == "Release" or self.configuration == "both":
         cmd = ["build\Release\%s.exe" % test]
-        self.AddCommonStep(cmd, descriptor=test_descriptor+"_Release",
+        self.AddCommonStep(cmd, descriptor=test_descriptor+["Release"],
                            workdir=workdir)
 
 
@@ -538,22 +600,26 @@ class WebRTCWinFactory(WebRTCFactory):
        test: test to be run.
     """
     if test == "audioproc_unittest":
-      print "Does not run on Mac now"
+      self.AddCommonTestRunStep(test)
     elif test == "resampler_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "vad_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "system_wrappers_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "neteq_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "vp8_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "libyuv_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
     elif test == "voice_engine_unittests":
-      self.AddCommonTestRunStep(test, descriptor="_test")
+      self.AddCommonTestRunStep(test)
+    elif test == "video_engine_core_unittests":
+      self.AddCommonTestRunStep(test)
+    elif test == "audio_coding_unittests":
+      self.AddCommonTestRunStep(test)
     else:
-      print "No supported tests are found..."
+      print "[Win]: No supported tests are found for [%s]" % test
 
 

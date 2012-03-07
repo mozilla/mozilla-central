@@ -38,106 +38,59 @@
 
 namespace buzz {
 
-Jid::Jid() : data_(NULL) {
+Jid::Jid() {
 }
 
-Jid::Jid(bool is_special, const std::string & special) {
-  data_ = is_special ? new Data(special, STR_EMPTY, STR_EMPTY) : NULL;
-}
-
-Jid::Jid(const std::string & jid_string) {
-  if (jid_string.empty()) {
-    data_ = NULL;
+Jid::Jid(const std::string& jid_string) {
+  if (jid_string.empty())
     return;
-  }
 
   // First find the slash and slice off that part
   size_t slash = jid_string.find('/');
-  std::string resource_name = (slash == std::string::npos ? STR_EMPTY :
+  resource_name_ = (slash == std::string::npos ? STR_EMPTY :
                     jid_string.substr(slash + 1));
 
   // Now look for the node
-  std::string node_name;
   size_t at = jid_string.find('@');
   size_t domain_begin;
   if (at < slash && at != std::string::npos) {
-    node_name = jid_string.substr(0, at);
+    node_name_ = jid_string.substr(0, at);
     domain_begin = at + 1;
   } else {
     domain_begin = 0;
   }
 
   // Now take what is left as the domain
-  size_t domain_length =
-    (  slash == std::string::npos
-     ? jid_string.length() - domain_begin
-     : slash - domain_begin);
+  size_t domain_length = (slash == std::string::npos) ?
+      (jid_string.length() - domain_begin) : (slash - domain_begin);
+  domain_name_ = jid_string.substr(domain_begin, domain_length);
 
-  // avoid allocating these constants repeatedly
-  std::string domain_name;
-
-  if (domain_length == 9  && jid_string.find("gmail.com", domain_begin) == domain_begin) {
-    domain_name = STR_GMAIL_COM;
-  }
-  else if (domain_length == 14 && jid_string.find("googlemail.com", domain_begin) == domain_begin) {
-    domain_name = STR_GOOGLEMAIL_COM;
-  }
-  else if (domain_length == 10 && jid_string.find("google.com", domain_begin) == domain_begin) {
-    domain_name = STR_GOOGLE_COM;
-  }
-  else {
-    domain_name = jid_string.substr(domain_begin, domain_length);
-  }
-
-  // If the domain is empty we have a non-valid jid and we should empty
-  // everything else out
-  if (domain_name.empty()) {
-    data_ = NULL;
-    return;
-  }
-
-  bool valid_node;
-  std::string validated_node = prepNode(node_name,
-      node_name.begin(), node_name.end(), &valid_node);
-  bool valid_domain;
-  std::string validated_domain = prepDomain(domain_name,
-      domain_name.begin(), domain_name.end(), &valid_domain);
-  bool valid_resource;
-  std::string validated_resource = prepResource(resource_name,
-      resource_name.begin(), resource_name.end(), &valid_resource);
-
-  if (!valid_node || !valid_domain || !valid_resource) {
-    data_ = NULL;
-    return;
-  }
-
-  data_ = new Data(validated_node, validated_domain, validated_resource);
+  ValidateOrReset();
 }
 
-Jid::Jid(const std::string & node_name,
-         const std::string & domain_name,
-         const std::string & resource_name) {
-  if (domain_name.empty()) {
-    data_ = NULL;
-    return;
-  }
+Jid::Jid(const std::string& node_name,
+         const std::string& domain_name,
+         const std::string& resource_name)
+    :  node_name_(node_name),
+       domain_name_(domain_name),
+       resource_name_(resource_name) {
+  ValidateOrReset();
+}
 
+void Jid::ValidateOrReset() {
   bool valid_node;
-  std::string validated_node = prepNode(node_name,
-      node_name.begin(), node_name.end(), &valid_node);
   bool valid_domain;
-  std::string validated_domain = prepDomain(domain_name,
-      domain_name.begin(), domain_name.end(), &valid_domain);
   bool valid_resource;
-  std::string validated_resource = prepResource(resource_name,
-      resource_name.begin(), resource_name.end(), &valid_resource);
+
+  node_name_ = PrepNode(node_name_, &valid_node);
+  domain_name_ = PrepDomain(domain_name_, &valid_domain);
+  resource_name_ = PrepResource(resource_name_, &valid_resource);
 
   if (!valid_node || !valid_domain || !valid_resource) {
-    data_ = NULL;
-    return;
+    node_name_.clear();
+    domain_name_.clear();
+    resource_name_.clear();
   }
-
-  data_ = new Data(validated_node, validated_domain, validated_resource);
 }
 
 std::string Jid::Str() const {
@@ -146,150 +99,85 @@ std::string Jid::Str() const {
 
   std::string ret;
 
-  if (!data_->node_name_.empty())
-    ret = data_->node_name_ + "@";
+  if (!node_name_.empty())
+    ret = node_name_ + "@";
 
-  ASSERT(data_->domain_name_ != STR_EMPTY);
-  ret += data_->domain_name_;
+  ASSERT(domain_name_ != STR_EMPTY);
+  ret += domain_name_;
 
-  if (!data_->resource_name_.empty())
-    ret += "/" + data_->resource_name_;
+  if (!resource_name_.empty())
+    ret += "/" + resource_name_;
 
   return ret;
 }
 
-bool
-Jid::IsEmpty() const {
-  return data_ == NULL ||
-      (data_->node_name_.empty() && data_->domain_name_.empty() &&
-       data_->resource_name_.empty());
+Jid::~Jid() {
 }
 
-bool
-Jid::IsValid() const {
-  return data_ != NULL && !data_->domain_name_.empty();
+bool Jid::IsEmpty() const {
+  return (node_name_.empty() && domain_name_.empty() &&
+          resource_name_.empty());
 }
 
-bool
-Jid::IsBare() const {
+bool Jid::IsValid() const {
+  return !domain_name_.empty();
+}
+
+bool Jid::IsBare() const {
   if (IsEmpty()) {
-    LOG(LS_VERBOSE) << "Warning: Calling IsBare() on the empty jid";
+    LOG(LS_VERBOSE) << "Warning: Calling IsBare() on the empty jid.";
     return true;
   }
-  return IsValid() &&
-         data_->resource_name_.empty();
+  return IsValid() && resource_name_.empty();
 }
 
-bool
-Jid::IsFull() const {
-  return IsValid() &&
-         !data_->resource_name_.empty();
+bool Jid::IsFull() const {
+  return IsValid() && !resource_name_.empty();
 }
 
-Jid
-Jid::BareJid() const {
+Jid Jid::BareJid() const {
   if (!IsValid())
     return Jid();
   if (!IsFull())
     return *this;
-  return Jid(data_->node_name_, data_->domain_name_, STR_EMPTY);
+  return Jid(node_name_, domain_name_, STR_EMPTY);
 }
 
-#if 0
-void
-Jid::set_node(const std::string & node_name) {
-    data_->node_name_ = node_name;
-}
-void
-Jid::set_domain(const std::string & domain_name) {
-    data_->domain_name_ = domain_name;
-}
-void
-Jid::set_resource(const std::string & res_name) {
-    data_->resource_name_ = res_name;
-}
-#endif
-
-bool
-Jid::BareEquals(const Jid & other) const {
-  return (other.data_ == data_ ||
-          (data_ != NULL &&
-          other.data_ != NULL &&
-          other.data_->node_name_ == data_->node_name_ &&
-          other.data_->domain_name_ == data_->domain_name_));
+bool Jid::BareEquals(const Jid& other) const {
+  return other.node_name_ == node_name_ &&
+      other.domain_name_ == domain_name_;
 }
 
-bool
-Jid::operator==(const Jid & other) const {
-  return (other.data_ == data_ ||
-          (data_ != NULL &&
-          other.data_ != NULL &&
-          other.data_->node_name_ == data_->node_name_ &&
-          other.data_->domain_name_ == data_->domain_name_ &&
-          other.data_->resource_name_ == data_->resource_name_));
+bool Jid::operator==(const Jid& other) const {
+  return other.node_name_ == node_name_ &&
+      other.domain_name_ == domain_name_ &&
+      other.resource_name_ == resource_name_;
 }
 
-int
-Jid::Compare(const Jid & other) const {
-  if (other.data_ == data_)
-    return 0;
-  if (data_ == NULL)
-    return -1;
-  if (other.data_ == NULL)
-    return 1;
-
+int Jid::Compare(const Jid& other) const {
   int compare_result;
-  compare_result = data_->node_name_.compare(other.data_->node_name_);
+  compare_result = node_name_.compare(other.node_name_);
   if (0 != compare_result)
     return compare_result;
-  compare_result = data_->domain_name_.compare(other.data_->domain_name_);
+  compare_result = domain_name_.compare(other.domain_name_);
   if (0 != compare_result)
     return compare_result;
-  compare_result = data_->resource_name_.compare(other.data_->resource_name_);
+  compare_result = resource_name_.compare(other.resource_name_);
   return compare_result;
-}
-
-uint32 Jid::ComputeLameHash() const {
-  uint32 hash = 0;
-  // Hash the node portion
-  {
-    const std::string &str = node();
-    for (int i = 0; i < static_cast<int>(str.size()); ++i) {
-      hash = ((hash << 2) + hash) + str[i];
-    }
-  }
-
-  // Hash the domain portion
-  {
-    const std::string &str = domain();
-    for (int i = 0; i < static_cast<int>(str.size()); ++i)
-      hash = ((hash << 2) + hash) + str[i];
-  }
-
-  // Hash the resource portion
-  {
-    const std::string &str = resource();
-    for (int i = 0; i < static_cast<int>(str.size()); ++i)
-      hash = ((hash << 2) + hash) + str[i];
-  }
-
-  return hash;
 }
 
 // --- JID parsing code: ---
 
 // Checks and normalizes the node part of a JID.
-std::string
-Jid::prepNode(const std::string str, std::string::const_iterator start,
-    std::string::const_iterator end, bool *valid) {
+std::string Jid::PrepNode(const std::string& node, bool* valid) {
   *valid = false;
   std::string result;
 
-  for (std::string::const_iterator i = start; i < end; i++) {
+  for (std::string::const_iterator i = node.begin(); i < node.end(); ++i) {
     bool char_valid = true;
     unsigned char ch = *i;
     if (ch <= 0x7F) {
-      result += prepNodeAscii(ch, &char_valid);
+      result += PrepNodeAscii(ch, &char_valid);
     }
     else {
       // TODO: implement the correct stringprep protocol for these
@@ -309,8 +197,7 @@ Jid::prepNode(const std::string str, std::string::const_iterator start,
 
 
 // Returns the appropriate mapping for an ASCII character in a node.
-char
-Jid::prepNodeAscii(char ch, bool *valid) {
+char Jid::PrepNodeAscii(char ch, bool* valid) {
   *valid = true;
   switch (ch) {
     case 'A': case 'B': case 'C': case 'D': case 'E': case 'F': case 'G':
@@ -336,17 +223,16 @@ Jid::prepNodeAscii(char ch, bool *valid) {
 
 
 // Checks and normalizes the resource part of a JID.
-std::string
-Jid::prepResource(const std::string str, std::string::const_iterator start,
-    std::string::const_iterator end, bool *valid) {
+std::string Jid::PrepResource(const std::string& resource, bool* valid) {
   *valid = false;
   std::string result;
 
-  for (std::string::const_iterator i = start; i < end; i++) {
+  for (std::string::const_iterator i = resource.begin();
+       i < resource.end(); ++i) {
     bool char_valid = true;
     unsigned char ch = *i;
     if (ch <= 0x7F) {
-      result += prepResourceAscii(ch, &char_valid);
+      result += PrepResourceAscii(ch, &char_valid);
     }
     else {
       // TODO: implement the correct stringprep protocol for these
@@ -362,8 +248,7 @@ Jid::prepResource(const std::string str, std::string::const_iterator start,
 }
 
 // Returns the appropriate mapping for an ASCII character in a resource.
-char
-Jid::prepResourceAscii(char ch, bool *valid) {
+char Jid::PrepResourceAscii(char ch, bool* valid) {
   *valid = true;
   switch (ch) {
     case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05:
@@ -380,15 +265,13 @@ Jid::prepResourceAscii(char ch, bool *valid) {
 }
 
 // Checks and normalizes the domain part of a JID.
-std::string
-Jid::prepDomain(const std::string str, std::string::const_iterator start,
-    std::string::const_iterator end, bool *valid) {
+std::string Jid::PrepDomain(const std::string& domain, bool* valid) {
   *valid = false;
   std::string result;
 
   // TODO: if the domain contains a ':', then we should parse it
   // as an IPv6 address rather than giving an error about illegal domain.
-  prepDomain(str, start, end, &result, valid);
+  PrepDomain(domain, &result, valid);
   if (!*valid) {
     return STR_EMPTY;
   }
@@ -402,12 +285,10 @@ Jid::prepDomain(const std::string str, std::string::const_iterator start,
 
 
 // Checks and normalizes an IDNA domain.
-void
-Jid::prepDomain(const std::string str, std::string::const_iterator start,
-    std::string::const_iterator end, std::string *buf, bool *valid) {
+void Jid::PrepDomain(const std::string& domain, std::string* buf, bool* valid) {
   *valid = false;
-  std::string::const_iterator last = start;
-  for (std::string::const_iterator i = start; i < end; i++) {
+  std::string::const_iterator last = domain.begin();
+  for (std::string::const_iterator i = domain.begin(); i < domain.end(); ++i) {
     bool label_valid = true;
     char ch = *i;
     switch (ch) {
@@ -417,7 +298,7 @@ Jid::prepDomain(const std::string str, std::string::const_iterator start,
       case 0xFF0E:
       case 0xFF61:
 #endif
-        prepDomainLabel(str, last, i, buf, &label_valid);
+        PrepDomainLabel(last, i, buf, &label_valid);
         *buf += '.';
         last = i + 1;
         break;
@@ -426,21 +307,21 @@ Jid::prepDomain(const std::string str, std::string::const_iterator start,
       return;
     }
   }
-  prepDomainLabel(str, last, end, buf, valid);
+  PrepDomainLabel(last, domain.end(), buf, valid);
 }
 
 // Checks and normalizes a domain label.
-void
-Jid::prepDomainLabel(const std::string str, std::string::const_iterator start,
-    std::string::const_iterator end, std::string *buf, bool *valid) {
+void Jid::PrepDomainLabel(
+    std::string::const_iterator start, std::string::const_iterator end,
+    std::string* buf, bool* valid) {
   *valid = false;
 
-  int startLen = buf->length();
-  for (std::string::const_iterator i = start; i < end; i++) {
+  int start_len = buf->length();
+  for (std::string::const_iterator i = start; i < end; ++i) {
     bool char_valid = true;
     unsigned char ch = *i;
     if (ch <= 0x7F) {
-      *buf += prepDomainLabelAscii(ch, &char_valid);
+      *buf += PrepDomainLabelAscii(ch, &char_valid);
     }
     else {
       // TODO: implement ToASCII for these
@@ -451,7 +332,7 @@ Jid::prepDomainLabel(const std::string str, std::string::const_iterator start,
     }
   }
 
-  int count = buf->length() - startLen;
+  int count = buf->length() - start_len;
   if (count == 0) {
     return;
   }
@@ -459,8 +340,8 @@ Jid::prepDomainLabel(const std::string str, std::string::const_iterator start,
     return;
   }
 
-  // Is this check needed? See comment in prepDomainLabelAscii.
-  if ((*buf)[startLen] == '-') {
+  // Is this check needed? See comment in PrepDomainLabelAscii.
+  if ((*buf)[start_len] == '-') {
     return;
   }
   if ((*buf)[buf->length() - 1] == '-') {
@@ -471,8 +352,7 @@ Jid::prepDomainLabel(const std::string str, std::string::const_iterator start,
 
 
 // Returns the appropriate mapping for an ASCII character in a domain label.
-char
-Jid::prepDomainLabelAscii(char ch, bool *valid) {
+char Jid::PrepDomainLabelAscii(char ch, bool* valid) {
   *valid = true;
   // TODO: A literal reading of the spec seems to say that we do
   // not need to check for these illegal characters (an "internationalized
@@ -507,4 +387,4 @@ Jid::prepDomainLabelAscii(char ch, bool *valid) {
   }
 }
 
-}
+}  // namespace buzz

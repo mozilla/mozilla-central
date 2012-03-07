@@ -47,6 +47,8 @@ class TransportChannel: public sigslot::has_slots<> {
         readable_(false), writable_(false) {}
   virtual ~TransportChannel() {}
 
+  // Returns the session id of this channel.
+  const std::string& session_id() const { return session_id_; }
   // Returns the name of this channel.
   const std::string& name() const { return name_; }
   const std::string& content_type() const { return content_type_; }
@@ -65,6 +67,12 @@ class TransportChannel: public sigslot::has_slots<> {
   // Sets a socket option on this channel.  Note that not all options are
   // supported by all transport types.
   virtual int SetOption(talk_base::Socket::Option opt, int value) = 0;
+
+  // Sets session id which created this transport channel.
+  // This is called from TransportProxy::GetOrCreateImpl.
+  void set_session_id(const std::string& session_id) {
+    session_id_ = session_id;
+  }
 
   // Returns the most recent error that occurred on this channel.
   virtual int GetError() = 0;
@@ -95,7 +103,9 @@ class TransportChannel: public sigslot::has_slots<> {
   // Sets the writable state, signaling if necessary.
   void set_writable(bool writable);
 
+
  private:
+  std::string session_id_;
   std::string name_;
   std::string content_type_;
   bool readable_;

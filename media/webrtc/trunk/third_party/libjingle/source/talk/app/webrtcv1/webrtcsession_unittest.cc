@@ -29,18 +29,23 @@
 
 #include <list>
 
-#include "base/gunit.h"
-#include "base/helpers.h"
 #include "talk/app/webrtcv1/unittest_utilities.h"
 #include "talk/app/webrtcv1/webrtcsession.h"
 #include "talk/base/fakenetwork.h"
+#include "talk/base/gunit.h"
+#include "talk/base/helpers.h"
 #include "talk/base/scoped_ptr.h"
 #include "talk/base/thread.h"
 #include "talk/p2p/base/fakesession.h"
 #include "talk/p2p/base/portallocator.h"
 #include "talk/p2p/base/sessiondescription.h"
 #include "talk/p2p/client/fakeportallocator.h"
+#include "talk/session/phone/dummydevicemanager.h"
+#include "talk/session/phone/fakewebrtcvcmfactory.h"
+#include "talk/session/phone/fakewebrtcvideocapturemodule.h"
 #include "talk/session/phone/mediasessionclient.h"
+#include "talk/session/phone/webrtcmediaengine.h"
+#include "talk/session/phone/webrtcvideocapturer.h"
 
 class WebRtcSessionTest
     : public sigslot::has_slots<>,
@@ -55,22 +60,21 @@ class WebRtcSessionTest
   };
 
   WebRtcSessionTest()
-      : callback_ids_(),
-        last_stream_id_(""),
-        last_was_video_(false),
+      : last_was_video_(false),
         last_description_ptr_(NULL),
-        last_candidates_(),
         session_(NULL),
-        id_(),
         receiving_(false),
         allocator_(NULL),
         channel_manager_(NULL),
+        video_capturer_(NULL),
         worker_thread_(NULL),
         signaling_thread_(NULL) {
   }
 
   ~WebRtcSessionTest() {
     session_.reset();
+    // Ensure the VideoCapturer be unregistered before destroyed.
+    channel_manager_->SetVideoCapturer(NULL, 0);
   }
 
   void OnAddStream(const std::string& stream_id, bool video) {
@@ -163,8 +167,24 @@ class WebRtcSessionTest
 
     allocator_.reset(static_cast<cricket::PortAllocator*>(fake_port_allocator));
 
-    channel_manager_.reset(new cricket::ChannelManager(worker_thread_));
+    cricket::DummyDeviceManager* device_manager(
+        new cricket::DummyDeviceManager());
+    cricket::WebRtcMediaEngine* webrtc_media_engine(
+        new cricket::WebRtcMediaEngine(NULL, NULL, NULL));
+    channel_manager_.reset(new cricket::ChannelManager(webrtc_media_engine,
+                                                       device_manager,
+                                                       worker_thread_));
     if (!channel_manager_->Init())
+      return false;
+
+    FakeWebRtcVideoCaptureModule* vcm =
+        new FakeWebRtcVideoCaptureModule(NULL, 123);
+    video_capturer_.reset(new cricket::WebRtcVideoCapturer);
+    if (!video_capturer_->Init(vcm)) {
+      return false;
+    }
+    // The SetVideoCapturer call doesn't transfer ownership.
+    if (!channel_manager_->SetVideoCapturer(video_capturer_.get(), 0))
       return false;
 
     talk_base::CreateRandomString(8, &id_);
@@ -267,6 +287,48 @@ class WebRtcSessionTest
   const std::vector<cricket::Candidate>& CallLocalCandidates() {
     return session_->local_candidates();
   }
+  cricket::ChannelManager* channel_manager() const {
+    return channel_manager_.get();
+  }
+  const cricket::SessionDescription* local_description() const {
+    return session_->local_description();
+  }
+  cricket::SessionDescription* remote_description() const {
+    return session_->remote_description();
+  }
+
+  void VerifyCryptoParams(const cricket::SessionDescription* sdp,
+                          bool offer) {
+    const cricket::ContentInfo* content = cricket::GetFirstAudioContent(sdp);
+    if (content) {
+      const cricket::AudioContentDescription* audio_content =
+          static_cast<const cricket::AudioContentDescription*>(
+              content->description);
+      ASSERT_TRUE(audio_content != NULL);
+      ASSERT_EQ(offer ? 2U : 1U, audio_content->cryptos().size());
+      // key(40) + inline string
+      ASSERT_EQ(47U, audio_content->cryptos()[0].key_params.size());
+      ASSERT_EQ("AES_CM_128_HMAC_SHA1_32",
+                audio_content->cryptos()[0].cipher_suite);
+      if (offer) {
+        ASSERT_EQ(47U, audio_content->cryptos()[1].key_params.size());
+        ASSERT_EQ("AES_CM_128_HMAC_SHA1_80",
+                  audio_content->cryptos()[1].cipher_suite);
+      }
+    }
+    content = cricket::GetFirstVideoContent(sdp);
+    if (content) {
+      ASSERT_TRUE(content != NULL);
+      const cricket::VideoContentDescription* video_content =
+          static_cast<const cricket::VideoContentDescription*>(
+              content->description);
+      ASSERT_TRUE(video_content != NULL);
+      ASSERT_EQ(1U, video_content->cryptos().size());
+      ASSERT_EQ("AES_CM_128_HMAC_SHA1_80",
+                video_content->cryptos()[0].cipher_suite);
+      ASSERT_EQ(47U, video_content->cryptos()[0].key_params.size());
+    }
+  }
 
  private:
   std::list<CallbackId> callback_ids_;
@@ -283,6 +345,7 @@ class WebRtcSessionTest
   talk_base::scoped_ptr<cricket::PortAllocator> allocator_;
 
   talk_base::scoped_ptr<cricket::ChannelManager> channel_manager_;
+  talk_base::scoped_ptr<cricket::WebRtcVideoCapturer> video_capturer_;
 
   talk_base::Thread* worker_thread_;
   talk_base::Thread* signaling_thread_;
@@ -369,7 +432,7 @@ TEST_F(WebRtcSessionTest, AudioReceiveCallSetUp) {
 
   std::vector<cricket::Candidate> candidates;
   cricket::SessionDescription* local_session =
-      GenerateFakeSession(video, &candidates);
+      GenerateFakeSession(channel_manager(), video, &candidates);
   ASSERT_FALSE(candidates.empty());
   ASSERT_FALSE(local_session == NULL);
   ASSERT_TRUE(CallInitiate());
@@ -377,11 +440,13 @@ TEST_F(WebRtcSessionTest, AudioReceiveCallSetUp) {
     delete local_session;
     FAIL();
   }
-  ASSERT_TRUE(CallConnect());
-  ASSERT_FALSE(CallbackReceived(this, 1000));
 
+  ASSERT_FALSE(CallbackReceived(this, 1000));
   ASSERT_TRUE(CallHasAudioChannel() &&
               !CallHasVideoChannel());
+  // Incoming call - local desc has the answer.
+  VerifyCryptoParams(local_description(), false);
+  VerifyCryptoParams(remote_description(), true);
 }
 
 TEST_F(WebRtcSessionTest, VideoReceiveCallSetUp) {
@@ -392,7 +457,7 @@ TEST_F(WebRtcSessionTest, VideoReceiveCallSetUp) {
 
   std::vector<cricket::Candidate> candidates;
   cricket::SessionDescription* local_session =
-      GenerateFakeSession(video, &candidates);
+      GenerateFakeSession(channel_manager(), video, &candidates);
   ASSERT_FALSE(candidates.empty());
   ASSERT_FALSE(local_session == NULL);
   ASSERT_TRUE(CallInitiate());
@@ -400,8 +465,11 @@ TEST_F(WebRtcSessionTest, VideoReceiveCallSetUp) {
     delete local_session;
     FAIL();
   }
-  ASSERT_TRUE(CallConnect());
+
   ASSERT_FALSE(CallbackReceived(this, 1000));
   ASSERT_TRUE(!CallHasAudioChannel() &&
               CallHasVideoChannel());
+  // Incoming call - local desc has the answer.
+  VerifyCryptoParams(local_description(), false);
+  VerifyCryptoParams(remote_description(), true);
 }

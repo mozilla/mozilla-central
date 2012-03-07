@@ -35,8 +35,16 @@ namespace cricket {
 const size_t kMinRtpPacketLen = 12;
 const size_t kMaxRtpPacketLen = 2048;
 const size_t kMinRtcpPacketLen = 4;
-const int kRtcpTypeSR = 200;  // PT of SR
-const int kRtcpTypeRR = 201;  // PT of RR
+
+enum RtcpTypes {
+  kRtcpTypeSR = 200,      // Sender report payload type.
+  kRtcpTypeRR = 201,      // Receiver report payload type.
+  kRtcpTypeSDES = 202,    // SDES payload type.
+  kRtcpTypeBye = 203,     // BYE payload type.
+  kRtcpTypeApp = 204,     // APP payload type.
+  kRtcpTypeRTPFB = 205,   // Transport layer Feedback message payload type.
+  kRtcpTypePSFB = 206,    // Payload-specific Feedback message payload type.
+};
 
 bool GetRtpPayloadType(const void* data, size_t len, int* value);
 bool GetRtpSeqNum(const void* data, size_t len, int* value);

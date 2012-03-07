@@ -382,21 +382,39 @@ TEST_F(ChannelManagerTest, GetVideoOptions) {
   EXPECT_EQ("video-in2", video_in);
 }
 
-TEST_F(ChannelManagerTest, GetSetOutputVolume) {
+TEST_F(ChannelManagerTest, GetSetOutputVolumeBeforeInit) {
   int level;
-  // Setting and getting should fail before Init.
+  // Before init, SetOutputVolume() remembers the volume but does not change the
+  // volume of the engine. GetOutputVolume() should fail.
   EXPECT_EQ(-1, fme_->output_volume());
   EXPECT_FALSE(cm_->GetOutputVolume(&level));
-  EXPECT_FALSE(cm_->SetOutputVolume(99));
+  EXPECT_FALSE(cm_->SetOutputVolume(-1));  // Invalid volume.
+  EXPECT_TRUE(cm_->SetOutputVolume(99));
   EXPECT_EQ(-1, fme_->output_volume());
-  // Setting and getting should work after Init.
+
+  // Init() will apply the remembered volume.
   EXPECT_TRUE(cm_->Init());
   EXPECT_TRUE(cm_->GetOutputVolume(&level));
-  EXPECT_EQ(fme_->output_volume(), level);
-  EXPECT_TRUE(cm_->SetOutputVolume(99));
-  EXPECT_EQ(99, fme_->output_volume());
-  EXPECT_TRUE(cm_->GetOutputVolume(&level));
   EXPECT_EQ(99, level);
+  EXPECT_EQ(level, fme_->output_volume());
+
+  EXPECT_TRUE(cm_->SetOutputVolume(60));
+  EXPECT_TRUE(cm_->GetOutputVolume(&level));
+  EXPECT_EQ(60, level);
+  EXPECT_EQ(level, fme_->output_volume());
+}
+
+TEST_F(ChannelManagerTest, GetSetOutputVolume) {
+  int level;
+  EXPECT_TRUE(cm_->Init());
+  EXPECT_TRUE(cm_->GetOutputVolume(&level));
+  EXPECT_EQ(level, fme_->output_volume());
+
+  EXPECT_FALSE(cm_->SetOutputVolume(-1));  // Invalid volume.
+  EXPECT_TRUE(cm_->SetOutputVolume(60));
+  EXPECT_EQ(60, fme_->output_volume());
+  EXPECT_TRUE(cm_->GetOutputVolume(&level));
+  EXPECT_EQ(60, level);
 }
 
 // Test that a value set before Init is applied properly.

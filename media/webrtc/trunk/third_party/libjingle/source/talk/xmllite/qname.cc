@@ -29,6 +29,9 @@
 
 namespace buzz {
 
+QName::QName() {
+}
+
 QName::QName(const QName& qname)
     : namespace_(qname.namespace_),
       local_part_(qname.local_part_) {
@@ -69,6 +72,10 @@ std::string QName::Merged() const {
   return result;
 }
 
+bool QName::IsEmpty() const {
+  return namespace_.empty() && local_part_.empty();
+}
+
 int QName::Compare(const StaticQName& other) const {
   int result = local_part_.compare(other.local);
   if (result != 0)
@@ -85,4 +92,4 @@ int QName::Compare(const QName& other) const {
   return namespace_.compare(other.namespace_);
 }
 
-}
+}  // namespace buzz

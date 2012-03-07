@@ -105,17 +105,6 @@ static bool SelectCrypto(const MediaContentDescription* offer,
   return false;
 }
 
-static const StreamParams* FindStreamParamsByName(
-    const StreamParamsVec& params_vec,
-    const std::string& name) {
-  for (StreamParamsVec::const_iterator it = params_vec.begin();
-       it != params_vec.end(); ++it) {
-    if (it->name == name)
-      return &*it;
-  }
-  return NULL;
-}
-
 static const StreamParams* FindFirstStreamParamsByCname(
     const StreamParamsVec& params_vec,
     const std::string& cname) {
@@ -123,21 +112,6 @@ static const StreamParams* FindFirstStreamParamsByCname(
        it != params_vec.end(); ++it) {
     if (cname == it->cname)
       return &*it;
-  }
-  return NULL;
-}
-
-static const StreamParams* FindStreamParamsBySsrc(
-    const StreamParamsVec& params_vec,
-    uint32 ssrc) {
-  for (StreamParamsVec::const_iterator stream_it = params_vec.begin();
-       stream_it != params_vec.end(); ++stream_it) {
-    const std::vector<uint32>& ssrcs = stream_it->ssrcs;
-    for (std::vector<uint32>::const_iterator ssrc_it = ssrcs.begin();
-         ssrc_it !=  ssrcs.end(); ++ssrc_it) {
-      if (ssrc == *ssrc_it)
-        return &*stream_it;
-    }
   }
   return NULL;
 }
@@ -158,10 +132,13 @@ static bool GenerateCname(const StreamParamsVec& params_vec,
        stream_it != streams.end() ; ++stream_it) {
     if (synch_label != stream_it->sync_label)
       continue;
-    const StreamParams* param = FindStreamParamsByName(params_vec,
-                                                       stream_it->name);
-    if (param) {
-      *cname = param->cname;
+
+    StreamParams param;
+    // nick is empty for StreamParams generated using
+    // MediaSessionDescriptionFactory.
+    if (GetStreamByNickAndName(params_vec, "", stream_it->name,
+                               &param)) {
+      *cname = param.cname;
       return true;
     }
   }
@@ -183,7 +160,7 @@ static uint32 GenerateSsrc(const StreamParamsVec& params_vec) {
   uint32 ssrc = 0;
   do {
     ssrc = talk_base::CreateRandomNonZeroId();
-  } while (FindStreamParamsBySsrc(params_vec, ssrc));
+  } while (GetStreamBySsrc(params_vec, ssrc, NULL));
   return ssrc;
 }
 
@@ -221,9 +198,11 @@ static bool AddStreamParams(
        stream_it != streams.end(); ++stream_it) {
     if (stream_it->type != media_type)
       continue;  // Wrong media type.
-    const StreamParams* params = FindStreamParamsByName(*current_params,
-                                                        stream_it->name);
-    if (!params) {
+
+    StreamParams param;
+    // nick is empty for StreamParams generated using
+    // MediaSessionDescriptionFactory.
+    if (!GetStreamByNickAndName(*current_params, "", stream_it->name, &param)) {
       // This is a new stream.
       // Get a CNAME. Either new or same as one of the other synched streams.
       std::string cname;
@@ -245,7 +224,7 @@ static bool AddStreamParams(
       // This is necessary so that we can use the CNAME for other media types.
       current_params->push_back(stream_param);
     } else {
-      content_description->AddStream(*params);
+      content_description->AddStream(param);
     }
   }
   return true;
@@ -275,12 +254,14 @@ void MediaSessionOptions::RemoveStream(MediaType type,
 }
 
 MediaSessionDescriptionFactory::MediaSessionDescriptionFactory()
-    : secure_(SEC_DISABLED) {
+    : secure_(SEC_DISABLED),
+      add_legacy_(true) {
 }
 
 MediaSessionDescriptionFactory::MediaSessionDescriptionFactory(
     ChannelManager* channel_manager)
-    : secure_(SEC_DISABLED) {
+    : secure_(SEC_DISABLED),
+      add_legacy_(true) {
   channel_manager->GetSupportedAudioCodecs(&audio_codecs_);
   channel_manager->GetSupportedVideoCodecs(&video_codecs_);
 }
@@ -305,10 +286,11 @@ SessionDescription* MediaSessionDescriptionFactory::CreateOffer(
       return NULL;  // Abort, something went seriously wrong.
     }
 
-    if (options.streams.empty()) {
+    if (options.streams.empty() && add_legacy_) {
       // TODO: Remove this legacy stream when all apps use StreamParams.
       audio->AddLegacyStream(talk_base::CreateRandomNonZeroId());
     }
+    audio->set_multistream(options.is_muc);
     audio->set_rtcp_mux(options.rtcp_mux_enabled);
     audio->set_lang(lang_);
 
@@ -357,10 +339,11 @@ SessionDescription* MediaSessionDescriptionFactory::CreateOffer(
       return NULL;  // Abort, something went seriously wrong.
     }
 
-    if (options.streams.empty()) {
+    if (options.streams.empty() && add_legacy_) {
       // TODO: Remove this legacy stream when all apps use StreamParams.
       video->AddLegacyStream(talk_base::CreateRandomNonZeroId());
     }
+    video->set_multistream(options.is_muc);
     video->set_bandwidth(options.video_bandwidth);
     video->set_rtcp_mux(options.rtcp_mux_enabled);
 
@@ -368,11 +351,9 @@ SessionDescription* MediaSessionDescriptionFactory::CreateOffer(
       CryptoParamsVec video_cryptos;
       if (current_description) {
         // Copy crypto parameters from the previous offer.
-        const ContentInfo* info =
-            GetFirstVideoContent(current_description);
-        if (info) {
-          const VideoContentDescription* desc =
-              static_cast<const VideoContentDescription*>(info->description);
+        const VideoContentDescription* desc =
+            GetFirstVideoContentDescription(current_description);
+        if (desc) {
           video_cryptos = desc->cryptos();
         }
       }
@@ -431,7 +412,7 @@ SessionDescription* MediaSessionDescriptionFactory::CreateAnswer(
       return NULL;  // Abort, something went seriously wrong.
     }
 
-    if (options.streams.empty()) {
+    if (options.streams.empty() && add_legacy_) {
       // TODO: Remove this legacy stream when all apps use StreamParams.
       audio_accept->AddLegacyStream(talk_base::CreateRandomNonZeroId());
     }
@@ -496,7 +477,7 @@ SessionDescription* MediaSessionDescriptionFactory::CreateAnswer(
       return NULL;  // Abort, something went seriously wrong.
     }
 
-    if (options.streams.empty()) {
+    if (options.streams.empty() && add_legacy_) {
       // TODO: Remove this legacy stream when all apps use StreamParams.
       video_accept->AddLegacyStream(talk_base::CreateRandomNonZeroId());
     }
@@ -512,10 +493,9 @@ SessionDescription* MediaSessionDescriptionFactory::CreateAnswer(
         if (current_description) {
           // Check if this crypto already exist in the previous
           // session description. Use it in that case.
-          const ContentInfo* info = GetFirstVideoContent(current_description);
-          if (info) {
-            const VideoContentDescription* desc =
-                static_cast<const VideoContentDescription*>(info->description);
+          const VideoContentDescription* desc =
+              GetFirstVideoContentDescription(current_description);
+          if (desc) {
             const CryptoParamsVec& cryptos = desc->cryptos();
             for (CryptoParamsVec::const_iterator it = cryptos.begin();
                  it != cryptos.end(); ++it) {
@@ -560,12 +540,8 @@ bool IsVideoContent(const ContentInfo* content) {
   return IsMediaContent(content, MEDIA_TYPE_VIDEO);
 }
 
-static const ContentInfo* GetFirstMediaContent(const SessionDescription* sdesc,
+static const ContentInfo* GetFirstMediaContent(const ContentInfos& contents,
                                                MediaType media_type) {
-  if (sdesc == NULL)
-    return NULL;
-
-  const ContentInfos& contents = sdesc->contents();
   for (ContentInfos::const_iterator content = contents.begin();
        content != contents.end(); content++) {
     if (IsMediaContent(&*content, media_type)) {
@@ -575,12 +551,42 @@ static const ContentInfo* GetFirstMediaContent(const SessionDescription* sdesc,
   return NULL;
 }
 
+const ContentInfo* GetFirstAudioContent(const ContentInfos& contents) {
+  return GetFirstMediaContent(contents, MEDIA_TYPE_AUDIO);
+}
+
+const ContentInfo* GetFirstVideoContent(const ContentInfos& contents) {
+  return GetFirstMediaContent(contents, MEDIA_TYPE_VIDEO);
+}
+
+static const ContentInfo* GetFirstMediaContent(const SessionDescription* sdesc,
+                                               MediaType media_type) {
+  if (sdesc == NULL)
+    return NULL;
+
+  return GetFirstMediaContent(sdesc->contents(), media_type);
+}
+
 const ContentInfo* GetFirstAudioContent(const SessionDescription* sdesc) {
   return GetFirstMediaContent(sdesc, MEDIA_TYPE_AUDIO);
 }
 
 const ContentInfo* GetFirstVideoContent(const SessionDescription* sdesc) {
   return GetFirstMediaContent(sdesc, MEDIA_TYPE_VIDEO);
+}
+
+const AudioContentDescription* GetFirstAudioContentDescription(
+    const SessionDescription* sdesc) {
+  const ContentInfo* content = GetFirstAudioContent(sdesc);
+  const ContentDescription* description = content ? content->description : NULL;
+  return static_cast<const AudioContentDescription*>(description);
+}
+
+const VideoContentDescription* GetFirstVideoContentDescription(
+    const SessionDescription* sdesc) {
+  const ContentInfo* content = GetFirstVideoContent(sdesc);
+  const ContentDescription* description = content ? content->description : NULL;
+  return static_cast<const VideoContentDescription*>(description);
 }
 
 }  // namespace cricket

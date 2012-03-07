@@ -31,24 +31,22 @@
 #include "talk/xmpp/jid.h"
 #include "talk/xmpp/constants.h"
 
-#define GOOGLE_CLIENT_NODE "http://www.google.com/xmpp/client/caps"
-
 namespace buzz {
 
 class Status {
 public:
-  Status() :
-    pri_(0),
-    show_(SHOW_NONE),
-    available_(false),
-    e_code_(0),
-    feedback_probation_(false),
-    know_capabilities_(false),
-    voice_capability_(false),
-    pmuc_capability_(false),
-    video_capability_(false),
-    camera_capability_(false),
-    is_google_client_(false) {}
+  Status()
+      : pri_(0),
+        show_(SHOW_NONE),
+        available_(false),
+        e_code_(0),
+        feedback_probation_(false),
+        know_capabilities_(false),
+        voice_capability_(false),
+        pmuc_capability_(false),
+        video_capability_(false),
+        camera_capability_(false) {
+  }
 
   ~Status() {}
 
@@ -66,29 +64,29 @@ public:
     SHOW_CHAT     = 6,
   };
 
-  const Jid & jid() const { return jid_; }
+  const Jid& jid() const { return jid_; }
   int priority() const { return pri_; }
   Show show() const { return show_; }
-  const std::string & status() const { return status_; }
-  const std::string & nick() const { return nick_; }
+  const std::string& status() const { return status_; }
+  const std::string& nick() const { return nick_; }
   bool available() const { return available_ ; }
   int error_code() const { return e_code_; }
-  const std::string & error_string() const { return e_str_; }
+  const std::string& error_string() const { return e_str_; }
   bool know_capabilities() const { return know_capabilities_; }
   bool voice_capability() const { return voice_capability_; }
   bool pmuc_capability() const { return pmuc_capability_; }
   bool video_capability() const { return video_capability_; }
   bool camera_capability() const { return camera_capability_; }
-  bool is_google_client() const { return is_google_client_; }
-  const std::string & version() const { return version_; }
+  const std::string& caps_node() const { return caps_node_; }
+  const std::string& version() const { return version_; }
   bool feedback_probation() const { return feedback_probation_; }
   const std::string& sent_time() const { return sent_time_; }
 
-  void set_jid(const Jid & jid) { jid_ = jid; }
+  void set_jid(const Jid& jid) { jid_ = jid; }
   void set_priority(int pri) { pri_ = pri; }
   void set_show(Show show) { show_ = show; }
-  void set_status(const std::string & status) { status_ = status; }
-  void set_nick(const std::string & nick) { nick_ = nick; }
+  void set_status(const std::string& status) { status_ = status; }
+  void set_nick(const std::string& nick) { nick_ = nick; }
   void set_available(bool a) { available_ = a; }
   void set_error(int e_code, const std::string e_str)
       { e_code_ = e_code; e_str_ = e_str; }
@@ -97,22 +95,22 @@ public:
   void set_pmuc_capability(bool f) { pmuc_capability_ = f; }
   void set_video_capability(bool f) { video_capability_ = f; }
   void set_camera_capability(bool f) { camera_capability_ = f; }
-  void set_is_google_client(bool f) { is_google_client_ = f; }
-  void set_version(const std::string & v) { version_ = v; }
+  void set_caps_node(const std::string& f) { caps_node_ = f; }
+  void set_version(const std::string& v) { version_ = v; }
   void set_feedback_probation(bool f) { feedback_probation_ = f; }
   void set_sent_time(const std::string& time) { sent_time_ = time; }
 
-  void UpdateWith(const Status & new_value) {
+  void UpdateWith(const Status& new_value) {
     if (!new_value.know_capabilities()) {
        bool k = know_capabilities();
-       bool i = is_google_client();
        bool p = voice_capability();
+       std::string node = caps_node();
        std::string v = version();
 
        *this = new_value;
 
        set_know_capabilities(k);
-       set_is_google_client(i);
+       set_caps_node(node);
        set_voice_capability(p);
        set_version(v);
     }
@@ -175,7 +173,7 @@ public:
     return result;
   }
 
-  static std::string TrimStatus(const std::string & st) {
+  static std::string TrimStatus(const std::string& st) {
     std::string s(st);
     int j = 0;
     bool collapsing = true;
@@ -220,7 +218,7 @@ private:
   bool pmuc_capability_;
   bool video_capability_;
   bool camera_capability_;
-  bool is_google_client_;
+  std::string caps_node_;
   std::string version_;
 
   std::string sent_time_; // from the jabber:x:delay element

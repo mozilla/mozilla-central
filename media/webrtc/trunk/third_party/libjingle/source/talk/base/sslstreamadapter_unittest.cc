@@ -38,6 +38,17 @@
 #include "talk/base/stream.h"
 
 static const int kBlockSize = 4096;
+static const char kAES_CM_HMAC_SHA1_80[] = "AES_CM_128_HMAC_SHA1_80";
+static const char kAES_CM_HMAC_SHA1_32[] = "AES_CM_128_HMAC_SHA1_32";
+static const char kExporterLabel[] = "label";
+static const unsigned char kExporterContext[] = "context";
+static int kExporterContextLen = sizeof(kExporterContext);
+
+#define MAYBE_SKIP_TEST(feature)                    \
+  if (!(talk_base::SSLStreamAdapter::feature())) {  \
+    LOG(LS_INFO) << "Feature disabled... skipping"; \
+    return;                                         \
+  }
 
 class SSLStreamAdapterTestBase;
 
@@ -300,6 +311,40 @@ class SSLStreamAdapterTestBase : public testing::Test,
     handshake_wait_ = wait;
   }
 
+  void SetDtlsSrtpCiphers(const std::vector<std::string> &ciphers,
+    bool client) {
+    if (client)
+      client_ssl_->SetDtlsSrtpCiphers(ciphers);
+    else
+      server_ssl_->SetDtlsSrtpCiphers(ciphers);
+  }
+
+  bool GetDtlsSrtpCipher(bool client, std::string *retval) {
+    if (client)
+      return client_ssl_->GetDtlsSrtpCipher(retval);
+    else
+      return server_ssl_->GetDtlsSrtpCipher(retval);
+  }
+
+  bool ExportKeyingMaterial(const char *label,
+                            const unsigned char *context,
+                            size_t context_len,
+                            bool use_context,
+                            bool client,
+                            unsigned char *result,
+                            size_t result_len) {
+    if (client)
+      return client_ssl_->ExportKeyingMaterial(label,
+                                               context, context_len,
+                                               use_context,
+                                               result, result_len);
+    else
+      return server_ssl_->ExportKeyingMaterial(label,
+                                               context, context_len,
+                                               use_context,
+                                               result, result_len);
+  }
+
   // To be implemented by subclasses.
   virtual void WriteData() = 0;
   virtual void ReadData(talk_base::StreamInterface *stream) = 0;
@@ -438,7 +483,7 @@ class SSLStreamAdapterTestDTLS : public SSLStreamAdapterTestBase {
     unsigned char *packet = new unsigned char[1600];
 
     do {
-      memset(packet, sent_ & 0xff, sizeof(packet));
+      memset(packet, sent_ & 0xff, packet_size_);
       *(reinterpret_cast<uint32_t *>(packet)) = sent_;
 
       size_t sent;
@@ -459,13 +504,13 @@ class SSLStreamAdapterTestDTLS : public SSLStreamAdapterTestBase {
   }
 
   virtual void ReadData(talk_base::StreamInterface *stream) {
-    unsigned char *buffer = new unsigned char[1600];
+    unsigned char *buffer = new unsigned char[2000];
     size_t bread;
     int err2;
     talk_base::StreamResult r;
 
     for (;;) {
-      r = stream->Read(buffer, sizeof(buffer),
+      r = stream->Read(buffer, 2000,
                        &bread, &err2);
 
       if (r == talk_base::SR_ERROR) {
@@ -569,21 +614,24 @@ TEST_F(SSLStreamAdapterTestTLS, TestTLSBogusPeerCertificate) {
 
 // Basic tests: DTLS
 // Test that we can make a handshake work
-TEST_F(SSLStreamAdapterTestDTLS, DISABLED_TestDTLSConnect) {
+TEST_F(SSLStreamAdapterTestDTLS, TestDTLSConnect) {
+  MAYBE_SKIP_TEST(HaveDtls);
   TestHandshake();
 };
 
 // Test that we can make a handshake work if the first packet in
 // each direction is lost. This gives us predictable loss
 // rather than having to tune random
-TEST_F(SSLStreamAdapterTestDTLS, DISABLED_TestDTLSConnectWithLostFirstPacket) {
+TEST_F(SSLStreamAdapterTestDTLS, TestDTLSConnectWithLostFirstPacket) {
+  MAYBE_SKIP_TEST(HaveDtls);
   SetLoseFirstPacket(true);
   TestHandshake();
 };
 
 // Test a handshake with loss and delay
 TEST_F(SSLStreamAdapterTestDTLS,
-       DISABLED_TestDTLSConnectWithLostFirstPacketDelay2s) {
+       TestDTLSConnectWithLostFirstPacketDelay2s) {
+  MAYBE_SKIP_TEST(HaveDtls);
   SetLoseFirstPacket(true);
   SetDelay(2000);
   SetHandshakeWait(20000);
@@ -592,19 +640,117 @@ TEST_F(SSLStreamAdapterTestDTLS,
 
 // Test a handshake with small MTU
 TEST_F(SSLStreamAdapterTestDTLS, TestDTLSConnectWithSmallMtu) {
+  MAYBE_SKIP_TEST(HaveDtls);
   SetMtu(700);
   TestHandshake();
 };
 
 // Test transfer -- trivial
-TEST_F(SSLStreamAdapterTestDTLS, DISABLED_TestDTLSTransfer) {
+TEST_F(SSLStreamAdapterTestDTLS, TestDTLSTransfer) {
+  MAYBE_SKIP_TEST(HaveDtls);
   TestHandshake();
   TestTransfer(100);
 };
 
-TEST_F(SSLStreamAdapterTestDTLS, DISABLED_TestDTLSTransferWithLoss) {
+TEST_F(SSLStreamAdapterTestDTLS, TestDTLSTransferWithLoss) {
+  MAYBE_SKIP_TEST(HaveDtls);
   TestHandshake();
   SetLoss(10);
   TestTransfer(100);
 };
 
+// Test DTLS-SRTP with all high ciphers
+TEST_F(SSLStreamAdapterTestDTLS, TestDTLSSrtpHigh) {
+  MAYBE_SKIP_TEST(HaveDtlsSrtp);
+  std::vector<std::string> high;
+  high.push_back(kAES_CM_HMAC_SHA1_80);
+  SetDtlsSrtpCiphers(high, true);
+  SetDtlsSrtpCiphers(high, false);
+  TestHandshake();
+
+  std::string client_cipher;
+  ASSERT_TRUE(GetDtlsSrtpCipher(true, &client_cipher));
+  std::string server_cipher;
+  ASSERT_TRUE(GetDtlsSrtpCipher(false, &server_cipher));
+
+  ASSERT_EQ(client_cipher, server_cipher);
+  ASSERT_EQ(client_cipher, kAES_CM_HMAC_SHA1_80);
+};
+
+// Test DTLS-SRTP with all low ciphers
+TEST_F(SSLStreamAdapterTestDTLS, TestDTLSSrtpLow) {
+  MAYBE_SKIP_TEST(HaveDtlsSrtp);
+  std::vector<std::string> low;
+  low.push_back(kAES_CM_HMAC_SHA1_32);
+  SetDtlsSrtpCiphers(low, true);
+  SetDtlsSrtpCiphers(low, false);
+  TestHandshake();
+
+  std::string client_cipher;
+  ASSERT_TRUE(GetDtlsSrtpCipher(true, &client_cipher));
+  std::string server_cipher;
+  ASSERT_TRUE(GetDtlsSrtpCipher(false, &server_cipher));
+
+  ASSERT_EQ(client_cipher, server_cipher);
+  ASSERT_EQ(client_cipher, kAES_CM_HMAC_SHA1_32);
+};
+
+
+// Test DTLS-SRTP with a mismatch -- should not converge
+TEST_F(SSLStreamAdapterTestDTLS, TestDTLSSrtpHighLow) {
+  MAYBE_SKIP_TEST(HaveDtlsSrtp);
+  std::vector<std::string> high;
+  high.push_back(kAES_CM_HMAC_SHA1_80);
+  std::vector<std::string> low;
+  low.push_back(kAES_CM_HMAC_SHA1_32);
+  SetDtlsSrtpCiphers(high, true);
+  SetDtlsSrtpCiphers(low, false);
+  TestHandshake();
+
+  std::string client_cipher;
+  ASSERT_FALSE(GetDtlsSrtpCipher(true, &client_cipher));
+  std::string server_cipher;
+  ASSERT_FALSE(GetDtlsSrtpCipher(false, &server_cipher));
+};
+
+// Test DTLS-SRTP with each side being mixed -- should select high
+TEST_F(SSLStreamAdapterTestDTLS, TestDTLSSrtpMixed) {
+  MAYBE_SKIP_TEST(HaveDtlsSrtp);
+  std::vector<std::string> mixed;
+  mixed.push_back(kAES_CM_HMAC_SHA1_80);
+  mixed.push_back(kAES_CM_HMAC_SHA1_32);
+  SetDtlsSrtpCiphers(mixed, true);
+  SetDtlsSrtpCiphers(mixed, false);
+  TestHandshake();
+
+  std::string client_cipher;
+  ASSERT_TRUE(GetDtlsSrtpCipher(true, &client_cipher));
+  std::string server_cipher;
+  ASSERT_TRUE(GetDtlsSrtpCipher(false, &server_cipher));
+
+  ASSERT_EQ(client_cipher, server_cipher);
+  ASSERT_EQ(client_cipher, kAES_CM_HMAC_SHA1_80);
+};
+
+// Test an exporter
+TEST_F(SSLStreamAdapterTestDTLS, TestDTLSExporter) {
+  MAYBE_SKIP_TEST(HaveExporter);
+  TestHandshake();
+  unsigned char client_out[20];
+  unsigned char server_out[20];
+
+  bool result;
+  result = ExportKeyingMaterial(kExporterLabel,
+                                kExporterContext, kExporterContextLen,
+                                true, true,
+                                client_out, sizeof(client_out));
+  ASSERT_TRUE(result);
+
+  result = ExportKeyingMaterial(kExporterLabel,
+                                kExporterContext, kExporterContextLen,
+                                true, false,
+                                server_out, sizeof(server_out));
+  ASSERT_TRUE(result);
+
+  ASSERT_TRUE(!memcmp(client_out, server_out, sizeof(client_out)));
+}

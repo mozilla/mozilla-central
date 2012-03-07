@@ -77,7 +77,7 @@ class XmppEngineImpl : public XmppEngine {
   virtual XmppReturnStatus SetSaslHandler(SaslHandler* sasl_handler);
 
   //! Sets whether TLS will be used within the connection (default true).
-  virtual XmppReturnStatus SetTls(TlsOptions useTls);
+  virtual XmppReturnStatus SetTls(TlsOptions use_tls);
 
   //! Sets an alternate domain from which we allows TLS certificates.
   //! This is for use in the case where a we want to allow a proxy to

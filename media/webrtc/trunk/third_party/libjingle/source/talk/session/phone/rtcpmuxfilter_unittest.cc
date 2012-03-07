@@ -81,3 +81,48 @@ TEST(RtcpMuxFilterTest, IsActiveReceiver) {
   filter.SetAnswer(true, cricket::CS_LOCAL);
   EXPECT_TRUE(filter.IsActive());
 }
+
+// Test that we can enable the filter in an update.
+// We can not disable the filter later since that would mean we need to
+// recreate a rtcp transport channel.
+TEST(RtcpMuxFilterTest, EnableFilterDuringUpdate) {
+  cricket::RtcpMuxFilter filter;
+  EXPECT_FALSE(filter.IsActive());
+  EXPECT_TRUE(filter.SetOffer(false, cricket::CS_REMOTE));
+  EXPECT_TRUE(filter.SetAnswer(false, cricket::CS_LOCAL));
+  EXPECT_FALSE(filter.IsActive());
+
+  EXPECT_TRUE(filter.SetOffer(true, cricket::CS_REMOTE));
+  EXPECT_TRUE(filter.SetAnswer(true, cricket::CS_LOCAL));
+  EXPECT_TRUE(filter.IsActive());
+
+  EXPECT_FALSE(filter.SetOffer(false, cricket::CS_REMOTE));
+  EXPECT_FALSE(filter.SetAnswer(false, cricket::CS_LOCAL));
+  EXPECT_TRUE(filter.IsActive());
+}
+
+// Test that the filter can be enabled twice.
+TEST(RtcpMuxFilterTest, EnableFilterTwiceDuringUpdate) {
+  cricket::RtcpMuxFilter filter;
+
+  EXPECT_TRUE(filter.SetOffer(true, cricket::CS_REMOTE));
+  EXPECT_TRUE(filter.SetAnswer(true, cricket::CS_LOCAL));
+  EXPECT_TRUE(filter.IsActive());
+
+  EXPECT_TRUE(filter.SetOffer(true, cricket::CS_REMOTE));
+  EXPECT_TRUE(filter.SetAnswer(true, cricket::CS_LOCAL));
+  EXPECT_TRUE(filter.IsActive());
+}
+
+// Test that the filter can be kept disabled during updates.
+TEST(RtcpMuxFilterTest, KeepFilterDisabledDuringUpdate) {
+  cricket::RtcpMuxFilter filter;
+
+  EXPECT_TRUE(filter.SetOffer(false, cricket::CS_REMOTE));
+  EXPECT_TRUE(filter.SetAnswer(false, cricket::CS_LOCAL));
+  EXPECT_FALSE(filter.IsActive());
+
+  EXPECT_TRUE(filter.SetOffer(false, cricket::CS_REMOTE));
+  EXPECT_TRUE(filter.SetAnswer(false, cricket::CS_LOCAL));
+  EXPECT_FALSE(filter.IsActive());
+}

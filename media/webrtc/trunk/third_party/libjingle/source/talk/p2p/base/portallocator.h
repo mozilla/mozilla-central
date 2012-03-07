@@ -47,18 +47,31 @@ const uint32 PORTALLOCATOR_DISABLE_STUN = 0x02;
 const uint32 PORTALLOCATOR_DISABLE_RELAY = 0x04;
 const uint32 PORTALLOCATOR_DISABLE_TCP = 0x08;
 const uint32 PORTALLOCATOR_ENABLE_SHAKER = 0x10;
+const uint32 PORTALLOCATOR_ENABLE_BUNDLE = 0x20;
 
 const uint32 kDefaultPortAllocatorFlags = 0;
 
+class PortAllocatorSessionMuxer;
+
 class PortAllocatorSession : public sigslot::has_slots<> {
  public:
-  explicit PortAllocatorSession(uint32 flags) : flags_(flags) {}
+  // TODO Remove session_type argument (and other places), as
+  // its not used.
+  explicit PortAllocatorSession(const std::string& name,
+                                const std::string& session_type,
+                                uint32 flags) :
+      name_(name),
+      session_type_(session_type),
+      flags_(flags) {
+  }
 
   // Subclasses should clean up any ports created.
   virtual ~PortAllocatorSession() {}
 
   uint32 flags() const { return flags_; }
   void set_flags(uint32 flags) { flags_ = flags; }
+  const std::string& name() const { return name_; }
+  const std::string& session_type() const { return session_type_; }
 
   // Prepares an initial set of ports to try.
   virtual void GetInitialPorts() = 0;
@@ -74,23 +87,33 @@ class PortAllocatorSession : public sigslot::has_slots<> {
 
   uint32 generation() { return generation_; }
   void set_generation(uint32 generation) { generation_ = generation; }
+  sigslot::signal1<PortAllocatorSession*> SignalDestroyed;
+
+ protected:
+  std::string name_;
+  std::string session_type_;
 
  private:
   uint32 flags_;
   uint32 generation_;
 };
 
-class PortAllocator {
+class PortAllocator : public sigslot::has_slots<> {
  public:
   PortAllocator() :
       flags_(kDefaultPortAllocatorFlags),
       min_port_(0),
       max_port_(0) {
   }
-  virtual ~PortAllocator() {}
+  virtual ~PortAllocator();
 
-  virtual PortAllocatorSession *CreateSession(const std::string &name,
-      const std::string &session_type) = 0;
+  PortAllocatorSession* CreateSession(
+      const std::string& sid,
+      const std::string& name,
+      const std::string& session_type);
+
+  PortAllocatorSessionMuxer* GetSessionMuxer(const std::string& sid) const;
+  void OnSessionMuxerDestroyed(PortAllocatorSessionMuxer* session);
 
   uint32 flags() const { return flags_; }
   void set_flags(uint32 flags) { flags_ = flags; }
@@ -116,11 +139,18 @@ class PortAllocator {
   }
 
  protected:
+  virtual PortAllocatorSession* CreateSession(const std::string &name,
+      const std::string &session_type) = 0;
+
+  typedef std::map<std::string, PortAllocatorSessionMuxer*> SessionMuxerMap;
+
   uint32 flags_;
   std::string agent_;
   talk_base::ProxyInfo proxy_;
   int min_port_;
   int max_port_;
+
+  SessionMuxerMap muxers_;
 };
 
 }  // namespace cricket

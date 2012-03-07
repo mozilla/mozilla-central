@@ -11,7 +11,6 @@
 #ifndef WEBRTC_MODULES_VIDEO_CODING_SESSION_INFO_H_
 #define WEBRTC_MODULES_VIDEO_CODING_SESSION_INFO_H_
 
-#include <cstddef>
 #include <list>
 
 #include "modules/interface/module_common_types.h"
@@ -24,7 +23,8 @@ class VCMSessionInfo {
  public:
   VCMSessionInfo();
 
-  void UpdateDataPointers(ptrdiff_t address_delta);
+  void UpdateDataPointers(const uint8_t* old_base_ptr,
+                          const uint8_t* new_base_ptr);
   // NACK - Building the NACK lists.
   // Build hard NACK list: Zero out all entries in list up to and including
   // _lowSeqNum.
@@ -69,7 +69,6 @@ class VCMSessionInfo {
   bool LayerSync() const;
   int Tl0PicId() const;
   bool NonReference() const;
-  int PrepareForDecode(uint8_t* frame_buffer);
   void SetPreviousFrameLoss() { previous_frame_loss_ = true; }
   bool PreviousFrameLoss() const { return previous_frame_loss_; }
 

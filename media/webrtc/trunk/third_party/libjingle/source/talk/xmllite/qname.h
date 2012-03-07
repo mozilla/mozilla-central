@@ -51,6 +51,7 @@ struct StaticQName {
 
 class QName {
  public:
+  QName();
   QName(const QName& qname);
   QName(const StaticQName& const_value);
   QName(const std::string& ns, const std::string& local);
@@ -60,6 +61,7 @@ class QName {
   const std::string& Namespace() const { return namespace_; }
   const std::string& LocalPart() const { return local_part_; }
   std::string Merged() const;
+  bool IsEmpty() const;
 
   int Compare(const StaticQName& other) const;
   int Compare(const QName& other) const;
@@ -93,6 +95,6 @@ inline bool StaticQName::operator!=(const QName& other) const {
   return other.Compare(*this) != 0;
 }
 
-}
+}  // namespace buzz
 
 #endif  // TALK_XMLLITE_QNAME_H_

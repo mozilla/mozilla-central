@@ -106,8 +106,11 @@ OutOfProcessPPAPITest.Instance
 OutOfProcessPPAPITest.CursorControl
 OutOfProcessPPAPITest.PostMessage*
 
+# Failing, may not be related to the tests above. http://crbug.com/109336
+OutOfProcessPPAPITest.View_PageHideShow
+
 # NaCl ui_tests fail on buildbots http://crbug.com/104517
-PPAPINaClTest.*
+PPAPINaClTest*
 
 # Flakily times out, http://crbug.com/92527
 NamedInterfaceTest.BasicNamedInterface
@@ -140,3 +143,9 @@ WidgetOwnershipTest.Ownership_ViewsNativeWidgetOwnsWidget_NativeDestroy
 # Leaks in audio tests http://crbug.com/106036
 PPAPITest.Audio_*
 OutOfProcessPPAPITest.Audio_*
+
+# Started failing since r114924 http://crbug.com/108014
+OutOfProcessPPAPITest.InputEvent
+
+# Fails on valgrind bots http://crbug.com/96767
+OutOfProcessPPAPITest.FlashFullscreen
