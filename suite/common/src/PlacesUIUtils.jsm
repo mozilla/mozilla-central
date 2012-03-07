@@ -460,7 +460,7 @@ var PlacesUIUtils = {
     else
       info.hiddenRows.push("keyword");
 
-    return this._showBookmarkDialog(info, true);
+    return this._showBookmarkDialog(info);
   },
 
   /**
@@ -551,7 +551,7 @@ var PlacesUIUtils = {
       if (!aShowPicker)
         info.hiddenRows.push("folderPicker");
     }
-    return this._showBookmarkDialog(info, true);
+    return this._showBookmarkDialog(info);
   },
 
   /**
@@ -572,7 +572,7 @@ var PlacesUIUtils = {
       hiddenRows: ["description"],
       URIList: aURIList
     };
-    return this._showBookmarkDialog(info, true);
+    return this._showBookmarkDialog(info);
   },
 
   /**
@@ -642,17 +642,10 @@ var PlacesUIUtils = {
    *
    * @return true if any transaction has been performed, false otherwise.
    */
-  _showBookmarkDialog: function PUIU__showBookmarkDialog(aInfo, aMinimalUI) {
-    var dialogURL = aMinimalUI ?
-                    "chrome://communicator/content/bookmarks/bm-props2.xul" :
-                    "chrome://communicator/content/bookmarks/bm-props.xul";
-
-    var features;
-    if (aMinimalUI)
-      features = "centerscreen,chrome,modal,resizable=yes";
-    else
-      features = "centerscreen,chrome,modal,resizable=no";
-    this._getCurrentActiveWin().openDialog(dialogURL, "",  features, aInfo);
+  _showBookmarkDialog: function PUIU__showBookmarkDialog(aInfo) {
+    var dialogURL = "chrome://communicator/content/bookmarks/bm-props.xul";
+    var features = "centerscreen,chrome,modal,resizable=yes";
+    this._getCurrentActiveWin().openDialog(dialogURL, "", features, aInfo);
     return ("performed" in aInfo && aInfo.performed);
   },
 

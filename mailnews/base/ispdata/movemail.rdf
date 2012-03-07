@@ -23,7 +23,7 @@
         </NC:identity>
 
         <NC:wizardHideIncoming>true</NC:wizardHideIncoming>
-        <NC:wizardSkipPanels>loginpage</NC:wizardSkipPanels>
+        <NC:wizardSkipPanels>incomingpage</NC:wizardSkipPanels>
         <NC:wizardShortName>Movemail</NC:wizardShortName>
         <NC:wizardLongName>Unix Mailspool (Movemail)</NC:wizardLongName>
         <NC:wizardLongNameAccesskey>U</NC:wizardLongNameAccesskey>

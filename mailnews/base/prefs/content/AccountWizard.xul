@@ -56,8 +56,8 @@
   <script type="application/javascript" src="chrome://messenger/content/ispUtils.js"/>
   <script type="application/javascript" src="chrome://messenger/content/aw-accounttype.js"/>
   <script type="application/javascript" src="chrome://messenger/content/aw-identity.js"/>
-  <script type="application/javascript" src="chrome://messenger/content/aw-server.js"/>
-  <script type="application/javascript" src="chrome://messenger/content/aw-login.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/aw-incoming.js"/>
+  <script type="application/javascript" src="chrome://messenger/content/aw-outgoing.js"/>
   <script type="application/javascript" src="chrome://messenger/content/aw-accname.js"/>
   <script type="application/javascript" src="chrome://messenger/content/aw-done.js"/>
 
@@ -138,12 +138,14 @@
     </vbox>
   </wizardpage>
 
-  <!-- Server page : User can choose to create mail account of his choice, POP3 or IMAP -->
-  <!-- Collects incoming server name. Outgoing server name is collected if there isn't one already -->
-  <wizardpage id="serverpage" pageid="serverpage" 
-              label="&serverTitle.label;"
-              onpageshow="return serverPageInit();"
-              onpageadvanced="return serverPageUnload();">
+  <!-- Incoming page : User can choose to create mail account of his choice, POP3 or IMAP -->
+  <!-- Collects incoming server name and login name. -->
+  <!-- Login name is prefilled with user id from the email address provided in identity page -->
+  <!-- User can enter a login name here if it is different from the user id of his/her email address -->
+  <wizardpage id="incomingpage" pageid="incomingpage"
+              label="&incomingTitle.label;"
+              onpageshow="return incomingPageInit();"
+              onpageadvanced="return incomingPageUnload();">
     <vbox flex="1">
         <vbox id="serverTypeBox">
         <label control="servertype">&incomingServerTypeDesc.label;</label>
@@ -167,11 +169,17 @@
         </vbox>
 
         <vbox id="incomingServerbox">
-          <description>&incomingServerNameDesc.label;</description>
+          <description>&incomingServer.description;</description>
           <hbox align="center" class="serverDataBox">
-            <label class="label, serverLabel" value="&incomingServerLabel.label;"
-                   accesskey="&incomingServerLabel.accesskey;" control="incomingServer"/>
-            <textbox wsm_persist="true" id="incomingServer" flex="1" class="uri-element" oninput="serverPageValidate();"/>
+            <label class="label, serverLabel"
+                   value="&incomingServer.label;"
+                   accesskey="&incomingServer.accesskey;"
+                   control="incomingServer"/>
+            <textbox wsm_persist="true"
+                     id="incomingServer"
+                     flex="1"
+                     class="uri-element"
+                     oninput="incomingPageValidate();"/>
           </hbox>
           <hbox id="leaveMsgsOnSrvrBox" class="indent">
             <checkbox id="leaveMessagesOnServer"
@@ -181,9 +189,23 @@
                       oncommand="setServerPrefs(this);"
                       checked="true"/>
           </hbox>
+          <separator/>
         </vbox>
-        <separator class="groove" id="incomingServerSeparator"/>
+        <description>&incomingUsername.description;</description>
+        <separator class="thin"/>
+        <hbox align="center">
+          <label class="label"
+                 value="&incomingUsername.label;"
+                 style="width: 8em;"
+                 accesskey="&incomingUsername.accesskey;"
+                 control="username"/>
+          <textbox id="username"
+                   wsm_persist="true"
+                   flex="1"
+                   oninput="incomingPageValidate();"/>
+        </hbox>
         <vbox id="deferStorageBox">
+            <separator class="groove"/>
             <description> &deferStorageDesc.label;</description>
             <hbox>
               <checkbox id="deferStorage"
@@ -193,48 +215,50 @@
                         wsm_persist="true"
                         oncommand="setServerPrefs(this);"/>
             </hbox>
-          <separator/>
-        </vbox>
-
-        <vbox id="noSmtp">
-          <description>&smtpServerDesc.label;</description>
-          <hbox align="center" class="serverDataBox">
-            <label class="label, serverLabel" value="&smtpServerLabel.label;"
-                   accesskey="&smtpServerLabel.accesskey;" control="smtphostname"/>
-            <textbox id="smtphostname" wsm_persist="true" flex="1" class="uri-element" oninput="serverPageValidate();"/>
-          </hbox>
-        </vbox>
-
-        <vbox id="haveSmtp">
-          <description id="smtpStaticText1" style="width: 200px;" prefix="&haveSmtp1.prefix;"
-                       suffix="&haveSmtp1.suffix3; &modifyOutgoing.suffix;">*</description>
         </vbox>
     </vbox>
   </wizardpage>
 
-  <!-- Login page : Login name is prefilled with user id from the email address provided in identity page -->
+  <!-- Outgoing page : Collects outgoing server name and login name. -->
+  <!-- Outgoing server name is collected if there isn't one already -->
+  <!-- Login name is prefilled with user id from the email address provided in identity page -->
   <!-- User can enter a login name here if it is different from the user id of his/her email address -->
-  <wizardpage id="loginpage" pageid="loginpage" 
-              label="&loginTitle.label;"
-              onpageshow="return loginPageInit();"
-              onpageadvanced="return loginPageUnload();">
+  <wizardpage id="outgoingpage" pageid="outgoingpage"
+              label="&outgoingTitle.label;"
+              onpageshow="return outgoingPageInit();"
+              onpageadvanced="return outgoingPageUnload();">
     <vbox flex="1">
-      <description>&usernameDesc.label; &usernameExample.label;</description>
-      <separator class="thin"/>
-      <hbox align="center">
-        <label class="label" value="&usernameLabel.label;" style="width: 8em;"
-               accesskey="&usernameLabel.accesskey;" control="username"/>
-        <textbox id="username" wsm_persist="true" flex="1" oninput="loginPageValidate();"/>
-      </hbox>
+      <vbox id="noSmtp">
+        <description>&outgoingServer.description;</description>
+        <hbox align="center" class="serverDataBox">
+          <label class="label, serverLabel"
+                 value="&outgoingServer.label;"
+                 accesskey="&outgoingServer.accesskey;"
+                 control="smtphostname"/>
+          <textbox id="smtphostname"
+                   wsm_persist="true"
+                   flex="1"
+                   class="uri-element"
+                   oninput="outgoingPageValidate();"/>
+        </hbox>
+      </vbox>
 
-      <separator/>
+      <vbox id="haveSmtp">
+        <description id="smtpStaticText1"
+                     style="width: 200px;"
+                     prefix="&haveSmtp1.prefix;"
+                     suffix="&haveSmtp1.suffix3; &modifyOutgoing.suffix;">*</description>
+      </vbox>
 
       <vbox id="loginSet1">
-        <description>&usernameSmtpDesc.label;</description>
+        <description>&outgoingUsername.description;</description>
         <separator class="thin"/>
         <hbox align="center">
-          <label class="label" value="&usernameSmtpLabel.label;" style="width: 8em;"
-                 accesskey="&usernameSmtpLabel.accesskey;" control="smtpusername"/>
+          <label class="label"
+                 value="&outgoingUsername.label;"
+                 style="width: 8em;"
+                 accesskey="&outgoingUsername.accesskey;"
+                 control="smtpusername"/>
           <textbox id="smtpusername" wsm_persist="true" flex="1"/>
         </hbox>
       </vbox>
@@ -254,15 +278,19 @@
 
   <!-- News Server page : Collects the News groups server name -->
   <wizardpage id="newsserver" pageid="newsserver"
-              label="&serverTitle.label;"
-              onpageshow="return serverPageInit();"
-              onpageadvanced="return serverPageUnload();">
+              label="&incomingTitle.label;"
+              onpageshow="return incomingPageInit();"
+              onpageadvanced="return incomingPageUnload();">
     <vbox flex="1">
       <description>&newsServerNameDesc.label;</description>
       <separator class="thin"/>
       <hbox align="center">
         <label control="newsServer" value="&newsServerLabel.label;" accesskey="&newsServerLabel.accesskey;" style="width: 8em;"/>
-        <textbox id="newsServer" wsm_persist="true" flex="1" class="uri-element" oninput="serverPageValidate();"/>
+        <textbox id="newsServer"
+                 wsm_persist="true"
+                 flex="1"
+                 class="uri-element"
+                 oninput="incomingPageValidate();"/>
       </hbox>
     </vbox>
   </wizardpage>
@@ -306,7 +334,7 @@
             <label class="label" id="identity.email.text"/>
           </row>
           <row align="center" id="server.username">
-            <label class="label" flex="1" id="server.username.label" value="&usernameLabel.label;"/>
+            <label class="label" flex="1" id="server.username.label" value="&incomingUsername.label;"/>
             <label class="label" id="server.username.text"/>
           </row>
           <row align="center" id="server.name">
@@ -326,7 +354,7 @@
             <label class="label" id="newsServer.name.text"/>
           </row>
           <row align="center" id="smtpServer.username">
-            <label class="label" flex="1" id="smtpServer.username.label" value="&usernameSmtpLabel.label;"/>
+            <label class="label" flex="1" id="smtpServer.username.label" value="&outgoingUsername.label;"/>
             <label class="label" id="smtpServer.username.text"/>
           </row>
           <row align="center" id="smtpServer.name">

@@ -37,7 +37,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var gPrefsBundle;
 var gOnMailServersPage;
 var gOnNewsServerPage;
 var gHideIncoming;
@@ -53,20 +52,13 @@ function hostnameIsIllegal(hostname)
   return !hostname || /[^A-Za-z0-9.-]/.test(hostname);
 }
 
-function serverPageValidate() 
+function incomingPageValidate()
 {
-  // If this is for a server that doesn't require a username, check if the
-  // account exists. For other types, we check after the user provides the
-  // username (see aw-login.js).
   var canAdvance = true;
 
   if (gOnMailServersPage) {
     var incomingServerName = document.getElementById("incomingServer").value;
-    var smtpserver = document.getElementById("smtphostname").value;
-
-    var usingDefaultSMTP = document.getElementById("noSmtp").hidden;
-    if ((!gHideIncoming && hostnameIsIllegal(incomingServerName)) ||
-        (!usingDefaultSMTP && hostnameIsIllegal(smtpserver)))
+    if (!gHideIncoming && hostnameIsIllegal(incomingServerName))
       canAdvance = false;
   }
   if (gOnNewsServerPage) {
@@ -74,7 +66,7 @@ function serverPageValidate()
     if (hostnameIsIllegal(newsServerName))
       canAdvance = false;
   }
-  if (canAdvance && gProtocolInfo && !gProtocolInfo.requiresUsername) {
+  if (canAdvance) {
     var pageData = parent.GetPageData();
     var serverType = parent.getCurrentServerType(pageData);
     var hostName;
@@ -83,14 +75,16 @@ function serverPageValidate()
     else if (gOnNewsServerPage)
       hostName = newsServerName;
 
-    if (parent.AccountExists(null, hostName, serverType))
+    var username = document.getElementById("username").value;
+    if (gProtocolInfo && gProtocolInfo.requiresUsername && !username ||
+        parent.AccountExists(username, hostName, serverType))
       canAdvance = false;
   }
 
   document.documentElement.canAdvance = canAdvance;
 }
 
-function serverPageUnload()
+function incomingPageUnload()
 {
   var pageData = parent.GetPageData();
 
@@ -101,10 +95,10 @@ function serverPageUnload()
       var incomingServerName = document.getElementById("incomingServer");
       setPageData(pageData, "server", "hostname", trim(incomingServerName.value));
     }
-    var smtpserver = document.getElementById("smtphostname");
-    setPageData(pageData, "server", "smtphostname", trim(smtpserver.value));
     var serverport = document.getElementById("serverPort").value;
     setPageData(pageData, "server", "port", serverport);
+    var username = document.getElementById("username").value;
+    setPageData(pageData, "login", "username", username);
   }
   else if (gOnNewsServerPage) {
     var newsServerName = document.getElementById("newsServer");
@@ -114,8 +108,8 @@ function serverPageUnload()
   return true;
 }
 
-function serverPageInit() {
-  gOnMailServersPage = (document.documentElement.currentPage.id == "serverpage");
+function incomingPageInit() {
+  gOnMailServersPage = (document.documentElement.currentPage.id == "incomingpage");
   gOnNewsServerPage = (document.documentElement.currentPage.id == "newsserver");
   if (gOnNewsServerPage)
   {
@@ -178,28 +172,8 @@ function serverPageInit() {
     setServerPrefs(deferStorage);
   }
   else if (isOtherAccount) {
-    document.getElementById("incomingServerSeparator").hidden = true;
     document.getElementById("deferStorageBox").hidden = true;
   }
-
-  gPrefsBundle = document.getElementById("bundle_prefs");
-  var smtpServer = null;
-  var smtpCreateNewServer = gCurrentAccountData && gCurrentAccountData.smtpCreateNewServer;
-
-  // Don't use the default smtp server if smtp server creation was explicitly
-  // requested in isp rdf.
-  // If we're reusing the default smtp we should not set the smtp hostname.
-  if (parent.smtpService.defaultServer && !smtpCreateNewServer) {
-    smtpServer = parent.smtpService.defaultServer;
-    reusingDefaultSmtp = true;
-    setPageData(pageData, "identity", "smtpServerKey", "");
-  }
-
-  var noSmtpBox = document.getElementById("noSmtp");
-  var haveSmtpBox = document.getElementById("haveSmtp");
-
-  var boxToHide;
-  var boxToShow;
 
   if (pageData.server && pageData.server.hostname) {
     var incomingServerTextBox = document.getElementById("incomingServer");
@@ -207,46 +181,25 @@ function serverPageInit() {
       incomingServerTextBox.value = pageData.server.hostname.value;
   }
 
-  if (pageData.server && pageData.server.smtphostname && smtpCreateNewServer) {
-    var smtpTextBox = document.getElementById("smtphostname");
-    if (smtpTextBox && smtpTextBox.value == "")
-      smtpTextBox.value = pageData.server.smtphostname.value;
-  }
-
-  if (smtpServer && smtpServer.hostname) {
-    // we have a hostname, so modify and show the static text and 
-    // store the value of the default smtp server in the textbox.
-    modifyStaticText(smtpServer.hostname, "1")
-    boxToShow = haveSmtpBox;
-    boxToHide = noSmtpBox;
-  }
-  else {
-    // no default hostname yet
-    boxToShow = noSmtpBox;
-    boxToHide = haveSmtpBox;
-  }
-
-  if (boxToHide)
-    boxToHide.setAttribute("hidden", "true");
-
-  if (boxToShow)
-    boxToShow.removeAttribute("hidden");
-
   var type = parent.getCurrentServerType(pageData);
   gProtocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type]
                             .getService(Components.interfaces.nsIMsgProtocolInfo);
-  serverPageValidate();
-}
+  var loginNameInput = document.getElementById("username");
 
-function modifyStaticText(smtpMod, smtpBox)
-{
-  // modify the value in the smtp display if we already have a 
-  // smtp server so that the single string displays the hostname
-  // or username for the smtp server.
-  var smtpStatic = document.getElementById("smtpStaticText"+smtpBox);
-  if (smtpStatic && smtpStatic.hasChildNodes())
-    smtpStatic.childNodes[0].nodeValue = smtpStatic.getAttribute("prefix") +
-                                         smtpMod + smtpStatic.getAttribute("suffix");  
+  if (loginNameInput.value == "") {
+    // retrieve data from previously entered pages
+    var type = parent.getCurrentServerType(pageData);
+
+    gProtocolInfo = Components.classes["@mozilla.org/messenger/protocol/info;1?type=" + type]
+                              .getService(Components.interfaces.nsIMsgProtocolInfo);
+
+    if (gProtocolInfo.requiresUsername) {
+      // since we require a username, use the uid from the email address
+      loginNameInput.value = parent.getUsernameFromEmail(pageData.identity.email.value, gCurrentAccountData &&
+                                                         gCurrentAccountData.incomingServerUserNameRequiresDomain);
+    }
+  }
+  incomingPageValidate();
 }
  
 function setServerType()
@@ -262,9 +215,9 @@ function setServerType()
 
   deferStorageBox.hidden = serverType == "imap";
   leaveMessages.hidden = serverType == "imap";
-  document.getElementById("incomingServerSeparator").hidden = false;
   setPageData(pageData, "server", "servertype", serverType);
   setPageData(pageData, "server", "port", port);
+  incomingPageValidate();
 }
 
 function setServerPrefs(aThis)

@@ -93,7 +93,7 @@ function setupWizardPanels() {
       if (skipPanels == "true") // Support old syntax of true/false for wizardSkipPanels
         wizardPanels = new Array("identitypage"); 
       else if (isMailAccount && isMailAccount.value)
-        wizardPanels = new Array("identitypage", "serverpage", "loginpage", "accnamepage");
+        wizardPanels = new Array("identitypage", "incomingpage", "outgoingpage", "accnamepage");
       else if (isNewsAccount && isNewsAccount.value)
         wizardPanels = new Array("identitypage", "newsserver", "accnamepage");
       else { // An account created by an extension and XUL overlays

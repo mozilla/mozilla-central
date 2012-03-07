@@ -26,7 +26,7 @@
         <NC:wizardAutoGenerateUniqueHostname>true</NC:wizardAutoGenerateUniqueHostname>
         <NC:wizardHideIncoming>true</NC:wizardHideIncoming>
         <NC:wizardAccountName>&feeds.accountName;</NC:wizardAccountName>
-        <NC:wizardSkipPanels>identitypage,serverpage,loginpage</NC:wizardSkipPanels>
+        <NC:wizardSkipPanels>identitypage,incomingpage,outgoingpage</NC:wizardSkipPanels>
         <NC:wizardShortName>&feeds.wizardShortName;</NC:wizardShortName>
         <NC:wizardLongName>&feeds.wizardLongName;</NC:wizardLongName>
         <NC:wizardLongNameAccesskey>&feeds.wizardLongName.accesskey;</NC:wizardLongNameAccesskey>

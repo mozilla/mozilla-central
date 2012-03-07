@@ -110,8 +110,6 @@ comm.jar:
    content/communicator/bookmarks/bm-panel.xul                      (bookmarks/bm-panel.xul)
    content/communicator/bookmarks/bm-props.js                       (bookmarks/bm-props.js)
    content/communicator/bookmarks/bm-props.xul                      (bookmarks/bm-props.xul)
-# Provide another URI for the bookmark properties dialog so we can persist the attributes separately
-% override chrome://communicator/content/bookmarks/bm-props2.xul chrome://communicator/content/bookmarks/bm-props.xul
    content/communicator/bookmarks/bookmarksManager.css              (bookmarks/bookmarksManager.css)
    content/communicator/bookmarks/bookmarksManager.js               (bookmarks/bookmarksManager.js)
    content/communicator/bookmarks/bookmarksManager.xul              (bookmarks/bookmarksManager.xul)

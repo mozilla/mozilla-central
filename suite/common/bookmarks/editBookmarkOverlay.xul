@@ -48,7 +48,7 @@
 <overlay id="editBookmarkOverlay"
          xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
 
-  <vbox id="editBookmarkPanelContent">
+  <vbox id="editBookmarkPanelContent" flex="1">
     <broadcaster id="paneElementsBroadcaster"/>
 
     <hbox id="editBMPanel_selectionCount" hidden="true" pack="center">
@@ -145,7 +145,7 @@
           </hbox>
         </row>
 
-        <row align="center" id="editBMPanel_folderTreeRow" collapsed="true">
+        <row id="editBMPanel_folderTreeRow" collapsed="true" flex="2">
           <spacer/>
           <vbox flex="1">
             <tree id="editBMPanel_folderTree"
@@ -153,6 +153,7 @@
                   type="places"
                   treelines="true"
                   height="150"
+                  flex="1"
                   editable="true"
                   onselect="gEditItemOverlay.onFolderTreeSelect();"
                   hidecolumnpicker="true"
@@ -201,12 +202,11 @@
           </hbox>
         </row>
 
-        <row id="editBMPanel_tagsSelectorRow"
-             align="center"
-             collapsed="true">
+        <row id="editBMPanel_tagsSelectorRow" collapsed="true" flex="2">
           <spacer/>
           <listbox id="editBMPanel_tagsSelector"
                    height="150"
+                   flex="1"
                    observes="paneElementsBroadcaster"/>
         </row>
 
@@ -222,7 +222,7 @@
                    observes="paneElementsBroadcaster"/>
         </row>
 
-        <row id="editBMPanel_descriptionRow">
+        <row id="editBMPanel_descriptionRow" flex="1">
           <observes element="additionalInfoBroadcaster" attribute="hidden"/>
           <label value="&editBookmarkOverlay.description.label;"
                  class="editBMPanel_rowLabel"
@@ -231,6 +231,7 @@
                  observes="paneElementsBroadcaster"/>
           <textbox id="editBMPanel_descriptionField"
                    multiline="true"
+                   flex="1"
                    onblur="gEditItemOverlay.onDescriptionFieldBlur();"
                    observes="paneElementsBroadcaster"/>
         </row>
