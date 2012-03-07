@@ -57,6 +57,10 @@ extern const char CS_AES_CM_128_HMAC_SHA1_32[];
 // Key is 128 bits and salt is 112 bits == 30 bytes. B64 bloat => 40 bytes.
 extern const int SRTP_MASTER_KEY_BASE64_LEN;
 
+// Needed for DTLS-SRTP
+extern const int SRTP_MASTER_KEY_KEY_LEN;
+extern const int SRTP_MASTER_KEY_SALT_LEN;
+
 class SrtpSession;
 class SrtpStat;
 
@@ -99,6 +103,17 @@ class SrtpFilter {
   bool SetAnswer(const std::vector<CryptoParams>& answer_params,
                  ContentSource source);
 
+  // Just set up both sets of keys directly.
+  // Used with DTLS-SRTP.
+  bool SetRtpParams(const std::string& send_cs,
+                    const uint8* send_key, int send_key_len,
+                    const std::string& recv_cs,
+                    const uint8* recv_key, int recv_key_len);
+  bool SetRtcpParams(const std::string& send_cs,
+                     const uint8* send_key, int send_key_len,
+                     const std::string& recv_cs,
+                     const uint8* recv_key, int recv_key_len);
+
   // Encrypts/signs an individual RTP/RTCP packet, in-place.
   // If an HMAC is used, this will increase the packet size.
   bool ProtectRtp(void* data, int in_len, int max_len, int* out_len);
@@ -114,8 +129,9 @@ class SrtpFilter {
   sigslot::repeater3<uint32, Mode, Error> SignalSrtpError;
 
  protected:
-  bool StoreParams(const std::vector<CryptoParams>& offer_params,
+  bool StoreParams(const std::vector<CryptoParams>& params,
                    ContentSource source);
+  void CreateSrtpSessions();
   bool NegotiateParams(const std::vector<CryptoParams>& answer_params,
                        CryptoParams* selected_params);
   bool ApplyParams(const CryptoParams& send_params,
@@ -124,11 +140,25 @@ class SrtpFilter {
   static bool ParseKeyParams(const std::string& params, uint8* key, int len);
 
  private:
-  enum State { ST_INIT, ST_SENTOFFER, ST_RECEIVEDOFFER, ST_ACTIVE };
+  enum State {
+    ST_INIT,           // SRTP filter unused.
+    ST_SENTOFFER,      // Offer with SRTP parameters sent.
+    ST_RECEIVEDOFFER,  // Offer with SRTP parameters received.
+    ST_ACTIVE,         // Offer and answer set.
+    // SRTP filter is active but new parameters are offered.
+    // When the answer is set, the state transitions to ST_ACTIVE or ST_INIT.
+    ST_SENTUPDATEDOFFER,
+    // SRTP filter is active but new parameters are received.
+    // When the answer is set, the state transitions back to ST_ACTIVE.
+    ST_RECEIVEDUPDATEDOFFER
+  };
   State state_;
+  uint32 signal_silent_time_in_ms_;
   std::vector<CryptoParams> offer_params_;
   talk_base::scoped_ptr<SrtpSession> send_session_;
   talk_base::scoped_ptr<SrtpSession> recv_session_;
+  talk_base::scoped_ptr<SrtpSession> send_rtcp_session_;
+  talk_base::scoped_ptr<SrtpSession> recv_rtcp_session_;
 };
 
 // Class that wraps a libSRTP session.
@@ -164,13 +194,13 @@ class SrtpSession {
   static bool Init();
   void HandleEvent(const srtp_event_data_t* ev);
   static void HandleEventThunk(srtp_event_data_t* ev);
+  static std::list<SrtpSession*>* sessions();
 
   srtp_t session_;
   int rtp_auth_tag_len_;
   int rtcp_auth_tag_len_;
   talk_base::scoped_ptr<SrtpStat> srtp_stat_;
   static bool inited_;
-  static std::list<SrtpSession*> sessions_;
   int last_send_seq_num_;
   DISALLOW_COPY_AND_ASSIGN(SrtpSession);
 };
@@ -228,7 +258,7 @@ class SrtpStat {
     FailureStat()
         : last_signal_time(0) {
     }
-    FailureStat(uint32 in_last_signal_time)
+    explicit FailureStat(uint32 in_last_signal_time)
         : last_signal_time(in_last_signal_time) {
     }
     void Reset() {

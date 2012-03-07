@@ -44,11 +44,9 @@ class DrMemoryError:
     if self._testcase:
       output += "The report came from the `%s` test.\n" % self._testcase
     output += "Suppression (error hash=#%016X#):\n" % self.ErrorHash()
+    output += ("  For more info on using suppressions see "
+        "http://dev.chromium.org/developers/how-tos/using-drmemory#TOC-Suppressing-error-reports-from-the-\n")
     output += "{\n%s\n}\n" % self._suppression
-
-    # TODO(timurrrr): docs on suppressing?
-    #output += ("  For more info on using suppressions see "
-    #           "http://dev.chromium.org/developers/how-tos/using-valgrind#TOC-Suppressing-Errors")
     return output
 
   # This is a device-independent hash identifying the suppression.
@@ -167,14 +165,14 @@ class DrMemoryAnalyzer:
       logging.info("PASS: No error reports found")
       return 0
 
-    logging.error("Found %i error reports" % len(to_report))
+    sys.stdout.flush()
     sys.stderr.flush()
+    logging.info("Found %i error reports" % len(to_report))
     for report in to_report:
       self.error_count += 1
       logging.info("Report #%d\n%s" % (self.error_count, report))
-      sys.stdout.flush()
-    logging.error("Total: %i error reports" % len(to_report))
-    sys.stderr.flush()
+    logging.info("Total: %i error reports" % len(to_report))
+    sys.stdout.flush()
     return -1
 
 

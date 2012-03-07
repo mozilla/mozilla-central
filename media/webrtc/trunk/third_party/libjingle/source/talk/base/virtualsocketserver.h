@@ -42,7 +42,8 @@ class SocketAddressPair;
 
 // Simulates a network in the same manner as a loopback interface.  The
 // interface can create as many addresses as you want.  All of the sockets
-// created by this network will be able to communicate with one another.
+// created by this network will be able to communicate with one another, unless
+// they are bound to addresses from incompatible families.
 class VirtualSocketServer : public SocketServer, public sigslot::has_slots<> {
  public:
   // TODO: Add "owned" parameter.
@@ -124,7 +125,7 @@ class VirtualSocketServer : public SocketServer, public sigslot::has_slots<> {
 
  protected:
   // Returns a new IP not used before in this network.
-  uint32 GetNextIP();
+  IPAddress GetNextIP(int family);
   uint16 GetNextPort();
 
   VirtualSocket* CreateSocketInternal(int type);
@@ -192,6 +193,24 @@ class VirtualSocketServer : public SocketServer, public sigslot::has_slots<> {
   // try to send Close messages for all connected sockets when we shutdown.
   void OnMessageQueueDestroyed() { msg_queue_ = NULL; }
 
+  // Determine if two sockets should be able to communicate.
+  // We don't (currently) specify an address family for sockets; instead,
+  // the currently bound address is used to infer the address family.
+  // Any socket that is not explicitly bound to an IPv4 address is assumed to be
+  // dual-stack capable.
+  // This function tests if two addresses can communicate, as well as the
+  // sockets to which they may be bound (the addresses may or may not yet be
+  // bound to the sockets).
+  // First the addresses are tested (after normalization):
+  // If both have the same family, then communication is OK.
+  // If only one is IPv4 then false, unless the other is bound to ::.
+  // This applies even if the IPv4 address is 0.0.0.0.
+  // The socket arguments are optional; the sockets are checked to see if they
+  // were explicitly bound to IPv6-any ('::'), and if so communication is
+  // permitted.
+  // NB: This scheme doesn't permit non-dualstack IPv6 sockets.
+  static bool CanInteractWith(VirtualSocket* local, VirtualSocket* remote);
+
  private:
   friend class VirtualSocket;
 
@@ -203,7 +222,8 @@ class VirtualSocketServer : public SocketServer, public sigslot::has_slots<> {
   MessageQueue* msg_queue_;
   bool stop_on_idle_;
   uint32 network_delay_;
-  uint32 next_ip_;
+  in_addr next_ipv4_;
+  in6_addr next_ipv6_;
   uint16 next_port_;
   AddressMap* bindings_;
   ConnectionMap* connections_;

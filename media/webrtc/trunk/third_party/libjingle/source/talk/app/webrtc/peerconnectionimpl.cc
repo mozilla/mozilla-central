@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2011, Google Inc.
+ * Copyright 2011, Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -27,199 +27,366 @@
 
 #include "talk/app/webrtc/peerconnectionimpl.h"
 
-#include "talk/app/webrtc/webrtcjson.h"
-#include "talk/app/webrtc/webrtcsession.h"
-#include "talk/base/basicpacketsocketfactory.h"
-#include "talk/base/helpers.h"
+#include <vector>
+
+#include "talk/app/webrtc/mediastreamhandler.h"
+#include "talk/app/webrtc/streamcollectionimpl.h"
 #include "talk/base/logging.h"
 #include "talk/base/stringencode.h"
-#include "talk/p2p/base/session.h"
-#include "talk/p2p/client/basicportallocator.h"
+#include "talk/session/phone/channelmanager.h"
+#include "talk/session/phone/webrtcvideocapturer.h"
+
+namespace {
+
+// The number of the tokens in the config string.
+static const size_t kConfigTokens = 2;
+static const size_t kServiceCount = 5;
+// The default stun port.
+static const int kDefaultPort = 3478;
+
+// NOTE: Must be in the same order as the ServiceType enum.
+static const char* kValidServiceTypes[kServiceCount] = {
+    "STUN", "STUNS", "TURN", "TURNS", "INVALID" };
+
+enum ServiceType {
+  STUN,     // Indicates a STUN server.
+  STUNS,    // Indicates a STUN server used with a TLS session.
+  TURN,     // Indicates a TURN server
+  TURNS,    // Indicates a TURN server used with a TLS session.
+  INVALID,  // Unknown.
+};
+
+enum {
+  MSG_COMMITSTREAMCHANGES = 1,
+  MSG_PROCESSSIGNALINGMESSAGE = 2,
+  MSG_RETURNREMOTEMEDIASTREAMS = 3,
+  MSG_CLOSE = 4,
+  MSG_READYSTATE = 5,
+  MSG_SDPSTATE = 6,
+  MSG_TERMINATE = 7
+};
+
+typedef webrtc::PortAllocatorFactoryInterface::StunConfiguration
+    StunConfiguration;
+typedef webrtc::PortAllocatorFactoryInterface::TurnConfiguration
+    TurnConfiguration;
+
+bool static ParseConfigString(const std::string& config,
+                              std::vector<StunConfiguration>* stun_config,
+                              std::vector<TurnConfiguration>* turn_config) {
+  std::vector<std::string> tokens;
+  talk_base::tokenize(config, ' ', &tokens);
+
+  if (tokens.size() != kConfigTokens) {
+    LOG(WARNING) << "Invalid config string";
+    return false;
+  }
+
+  ServiceType service_type = INVALID;
+
+  const std::string& type = tokens[0];
+  for (size_t i = 0; i < kServiceCount; ++i) {
+    if (type.compare(kValidServiceTypes[i]) == 0) {
+      service_type = static_cast<ServiceType>(i);
+      break;
+    }
+  }
+
+  if (service_type == INVALID) {
+    LOG(WARNING) << "Invalid service type: " << type;
+    return false;
+  }
+  std::string service_address = tokens[1];
+
+  int port;
+  tokens.clear();
+  talk_base::tokenize(service_address, ':', &tokens);
+  if (tokens.size() != kConfigTokens) {
+    port = kDefaultPort;
+  } else {
+    port = talk_base::FromString<int>(tokens[1]);
+    if (port <= 0 || port > 0xffff) {
+      LOG(WARNING) << "Invalid port: " << tokens[1];
+      return false;
+    }
+  }
+
+  // TODO: Currently the specification does not tell us how to parse
+  // multiple addresses, username and password from the configuration string.
+  switch (service_type) {
+    case STUN:
+      stun_config->push_back(StunConfiguration(service_address, port));
+      break;
+    case TURN:
+      turn_config->push_back(TurnConfiguration(service_address, port, "", ""));
+      break;
+    case TURNS:
+    case STUNS:
+    case INVALID:
+    default:
+      LOG(WARNING) << "Configuration not supported";
+      return false;
+  }
+  return true;
+}
+
+struct SignalingParams : public talk_base::MessageData {
+  SignalingParams(const std::string& msg,
+                  webrtc::StreamCollectionInterface* local_streams)
+      : msg(msg),
+        local_streams(local_streams) {}
+  const std::string msg;
+  talk_base::scoped_refptr<webrtc::StreamCollectionInterface> local_streams;
+};
+
+struct StreamCollectionParams : public talk_base::MessageData {
+  explicit StreamCollectionParams(webrtc::StreamCollectionInterface* streams)
+      : streams(streams) {}
+  talk_base::scoped_refptr<webrtc::StreamCollectionInterface> streams;
+};
+
+struct ReadyStateMessage : public talk_base::MessageData {
+  ReadyStateMessage() : state(webrtc::PeerConnectionInterface::kNew) {}
+  webrtc::PeerConnectionInterface::ReadyState state;
+};
+
+struct SdpStateMessage : public talk_base::MessageData {
+  SdpStateMessage() : state(webrtc::PeerConnectionInterface::kSdpNew) {}
+  webrtc::PeerConnectionInterface::SdpState state;
+};
+
+}  // namespace
 
 namespace webrtc {
 
-
-PeerConnectionImpl::PeerConnectionImpl(
-    cricket::PortAllocator* port_allocator,
-    cricket::ChannelManager* channel_manager,
-    talk_base::Thread* signaling_thread)
-  : port_allocator_(port_allocator),
-    channel_manager_(channel_manager),
-    signaling_thread_(signaling_thread),
-    event_callback_(NULL),
-    session_(NULL) {
+cricket::VideoCapturer* CreateVideoCapturer(VideoCaptureModule* vcm) {
+  cricket::WebRtcVideoCapturer* video_capturer =
+      new cricket::WebRtcVideoCapturer;
+  if (!video_capturer->Init(vcm)) {
+    delete video_capturer;
+    video_capturer = NULL;
+  }
+  return video_capturer;
 }
 
-PeerConnectionImpl::~PeerConnectionImpl() {
+PeerConnection::PeerConnection(PeerConnectionFactory* factory)
+    : factory_(factory),
+      observer_(NULL),
+      ready_state_(kNew),
+      sdp_state_(kSdpNew),
+      local_media_streams_(StreamCollection::Create()) {
 }
 
-bool PeerConnectionImpl::Init() {
-  std::string sid;
-  talk_base::CreateRandomString(8, &sid);
-  const bool incoming = false;
-  // default outgoing direction
-  session_.reset(CreateMediaSession(sid, incoming));
-  if (session_.get() == NULL) {
-    ASSERT(false && "failed to initialize a session");
+PeerConnection::~PeerConnection() {
+  signaling_thread()->Clear(this);
+  signaling_thread()->Send(this, MSG_TERMINATE);
+}
+
+// Clean up what needs to be cleaned up on the signaling thread.
+void PeerConnection::Terminate_s() {
+  stream_handler_.reset();
+  signaling_.reset();
+  session_.reset();
+  port_allocator_.reset();
+}
+
+bool PeerConnection::Initialize(const std::string& configuration,
+                                PeerConnectionObserver* observer) {
+  ASSERT(observer != NULL);
+  if (!observer)
     return false;
-  }
-  return true;
+  observer_ = observer;
+  std::vector<PortAllocatorFactoryInterface::StunConfiguration> stun_config;
+  std::vector<PortAllocatorFactoryInterface::TurnConfiguration> turn_config;
+
+  ParseConfigString(configuration, &stun_config, &turn_config);
+
+  port_allocator_.reset(factory_->port_allocator_factory()->CreatePortAllocator(
+      stun_config, turn_config));
+
+  session_.reset(new WebRtcSession(factory_->channel_manager(),
+                                   factory_->signaling_thread(),
+                                   factory_->worker_thread(),
+                                   port_allocator_.get()));
+  signaling_.reset(new PeerConnectionSignaling(factory_->signaling_thread(),
+                                               session_.get()));
+  stream_handler_.reset(new MediaStreamHandlers(session_.get()));
+
+  signaling_->SignalNewPeerConnectionMessage.connect(
+      this, &PeerConnection::OnNewPeerConnectionMessage);
+  signaling_->SignalRemoteStreamAdded.connect(
+      this, &PeerConnection::OnRemoteStreamAdded);
+  signaling_->SignalRemoteStreamRemoved.connect(
+      this, &PeerConnection::OnRemoteStreamRemoved);
+  signaling_->SignalStateChange.connect(
+      this, &PeerConnection::OnSignalingStateChange);
+  // Register with WebRtcSession
+  session_->RegisterObserver(signaling_.get());
+
+  // Initialize the WebRtcSession. It creates transport channels etc.
+  const bool result = session_->Initialize();
+  if (result)
+    ChangeReadyState(PeerConnectionInterface::kNegotiating);
+  return result;
 }
 
-void PeerConnectionImpl::RegisterObserver(PeerConnectionObserver* observer) {
-  // This assert is to catch cases where two observer pointers are registered.
-  // We only support one and if another is to be used, the current one must be
-  // cleared first.
-  ASSERT(observer == NULL || event_callback_ == NULL);
-  event_callback_ = observer;
+talk_base::scoped_refptr<StreamCollectionInterface>
+PeerConnection::local_streams() {
+  return local_media_streams_;
 }
 
-bool PeerConnectionImpl::SignalingMessage(
-    const std::string& signaling_message) {
-  // Deserialize signaling message
-  cricket::SessionDescription* incoming_sdp = NULL;
-  std::vector<cricket::Candidate> candidates;
-  if (!ParseJsonSignalingMessage(signaling_message,
-                                 &incoming_sdp, &candidates)) {
-    return false;
-  }
-
-  bool ret = false;
-  if (GetReadyState() == NEW) {
-    // set direction to incoming, as message received first
-    session_->set_incoming(true);
-    ret = session_->OnInitiateMessage(incoming_sdp, candidates);
-  } else {
-    ret = session_->OnRemoteDescription(incoming_sdp, candidates);
-  }
-  return ret;
+talk_base::scoped_refptr<StreamCollectionInterface>
+PeerConnection::remote_streams() {
+  StreamCollectionParams msg(NULL);
+  signaling_thread()->Send(this, MSG_RETURNREMOTEMEDIASTREAMS, &msg);
+  return msg.streams;
 }
 
-WebRtcSession* PeerConnectionImpl::CreateMediaSession(
-    const std::string& id, bool incoming) {
-  ASSERT(port_allocator_ != NULL);
-  WebRtcSession* session = new WebRtcSession(id, incoming,
-      port_allocator_, channel_manager_, signaling_thread_);
-
-  if (session->Initiate()) {
-    session->SignalAddStream.connect(
-        this,
-        &PeerConnectionImpl::OnAddStream);
-    session->SignalRemoveStream.connect(
-        this,
-        &PeerConnectionImpl::OnRemoveStream);
-    session->SignalLocalDescription.connect(
-        this,
-        &PeerConnectionImpl::OnLocalDescription);
-    session->SignalFailedCall.connect(
-        this,
-        &PeerConnectionImpl::OnFailedCall);
-  } else {
-    delete session;
-    session = NULL;
-  }
-  return session;
+void PeerConnection::ProcessSignalingMessage(const std::string& msg) {
+  SignalingParams* parameter(new SignalingParams(
+      msg, StreamCollection::Create(local_media_streams_)));
+  signaling_thread()->Post(this, MSG_PROCESSSIGNALINGMESSAGE, parameter);
 }
 
-bool PeerConnectionImpl::AddStream(const std::string& stream_id, bool video) {
-  bool ret = false;
-  if (session_->HasStream(stream_id)) {
-    ASSERT(false && "A stream with this name already exists");
-  } else {
-    if (!video) {
-      ret = !session_->HasAudioChannel() &&
-            session_->CreateVoiceChannel(stream_id);
-    } else {
-      ret = !session_->HasVideoChannel() &&
-            session_->CreateVideoChannel(stream_id);
+void PeerConnection::AddStream(LocalMediaStreamInterface* local_stream) {
+  local_media_streams_->AddStream(local_stream);
+}
+
+void PeerConnection::RemoveStream(LocalMediaStreamInterface* remove_stream) {
+  local_media_streams_->RemoveStream(remove_stream);
+}
+
+void PeerConnection::CommitStreamChanges() {
+  StreamCollectionParams* msg(new StreamCollectionParams(
+          StreamCollection::Create(local_media_streams_)));
+  signaling_thread()->Post(this, MSG_COMMITSTREAMCHANGES, msg);
+}
+
+void PeerConnection::Close() {
+  signaling_thread()->Send(this, MSG_CLOSE);
+}
+
+PeerConnectionInterface::ReadyState PeerConnection::ready_state() {
+  ReadyStateMessage msg;
+  signaling_thread()->Send(this, MSG_READYSTATE, &msg);
+  return msg.state;
+}
+
+PeerConnectionInterface::SdpState PeerConnection::sdp_state() {
+  SdpStateMessage msg;
+  signaling_thread()->Send(this, MSG_SDPSTATE, &msg);
+  return msg.state;
+}
+
+void PeerConnection::OnMessage(talk_base::Message* msg) {
+  talk_base::MessageData* data = msg->pdata;
+  switch (msg->message_id) {
+    case MSG_COMMITSTREAMCHANGES: {
+      if (ready_state_ != PeerConnectionInterface::kClosed ||
+          ready_state_ != PeerConnectionInterface::kClosing) {
+        StreamCollectionParams* param(
+            static_cast<StreamCollectionParams*> (data));
+        signaling_->CreateOffer(param->streams);
+        stream_handler_->CommitLocalStreams(param->streams);
+      }
+      delete data;  // Because it is Posted.
+      break;
     }
-  }
-  return ret;
-}
-
-bool PeerConnectionImpl::RemoveStream(const std::string& stream_id) {
-  return session_->RemoveStream(stream_id);
-}
-
-void PeerConnectionImpl::OnLocalDescription(
-    const cricket::SessionDescription* desc,
-    const std::vector<cricket::Candidate>& candidates) {
-  if (!desc) {
-    LOG(WARNING) << "no local SDP ";
-    return;
-  }
-
-  std::string message;
-  if (GetJsonSignalingMessage(desc, candidates, &message)) {
-    if (event_callback_) {
-      event_callback_->OnSignalingMessage(message);
+    case MSG_PROCESSSIGNALINGMESSAGE: {
+      if (ready_state_ != PeerConnectionInterface::kClosed) {
+        SignalingParams* params(static_cast<SignalingParams*> (data));
+        signaling_->ProcessSignalingMessage(params->msg, params->local_streams);
+      }
+      delete data;  // Because it is Posted.
+      break;
     }
+    case MSG_RETURNREMOTEMEDIASTREAMS: {
+      StreamCollectionParams* param(
+          static_cast<StreamCollectionParams*> (data));
+      param->streams = StreamCollection::Create(signaling_->remote_streams());
+      break;
+    }
+    case MSG_CLOSE: {
+      if (ready_state_ != PeerConnectionInterface::kClosed) {
+        ChangeReadyState(PeerConnectionInterface::kClosing);
+        signaling_->SendShutDown();
+      }
+      break;
+    }
+    case MSG_READYSTATE: {
+      ReadyStateMessage* msg(static_cast<ReadyStateMessage*> (data));
+      msg->state = ready_state_;
+      break;
+    }
+    case MSG_SDPSTATE: {
+      SdpStateMessage* msg(static_cast<SdpStateMessage*> (data));
+      msg->state = sdp_state_;
+      break;
+    }
+    case MSG_TERMINATE: {
+      Terminate_s();
+      break;
+    }
+    default:
+      ASSERT(!"NOT IMPLEMENTED");
+      break;
   }
 }
 
-void PeerConnectionImpl::OnFailedCall() {
-  // TODO: implement.
+void PeerConnection::OnNewPeerConnectionMessage(const std::string& message) {
+  observer_->OnSignalingMessage(message);
 }
 
-bool PeerConnectionImpl::SetAudioDevice(const std::string& wave_in_device,
-                                        const std::string& wave_out_device,
-                                        int opts) {
-  return channel_manager_->SetAudioOptions(wave_in_device,
-                                           wave_out_device,
-                                           opts);
+void PeerConnection::OnRemoteStreamAdded(MediaStreamInterface* remote_stream) {
+  stream_handler_->AddRemoteStream(remote_stream);
+  observer_->OnAddStream(remote_stream);
 }
 
-bool PeerConnectionImpl::SetLocalVideoRenderer(
-    cricket::VideoRenderer* renderer) {
-  return channel_manager_->SetLocalRenderer(renderer);
+void PeerConnection::OnRemoteStreamRemoved(
+    MediaStreamInterface* remote_stream) {
+  stream_handler_->RemoveRemoteStream(remote_stream);
+  observer_->OnRemoveStream(remote_stream);
 }
 
-bool PeerConnectionImpl::SetVideoRenderer(const std::string& stream_id,
-                                          cricket::VideoRenderer* renderer) {
-  return session_->SetVideoRenderer(stream_id, renderer);
-}
-
-bool PeerConnectionImpl::SetVideoCapture(const std::string& cam_device) {
-  return channel_manager_->SetVideoOptions(cam_device);
-}
-
-bool PeerConnectionImpl::Connect() {
-  return session_->Connect();
-}
-
-// TODO - Close is not used anymore, should be removed.
-bool PeerConnectionImpl::Close() {
-  session_->RemoveAllStreams();
-  return true;
-}
-
-void PeerConnectionImpl::OnAddStream(const std::string& stream_id,
-                                     bool video) {
-  if (event_callback_) {
-    event_callback_->OnAddStream(stream_id, video);
+void PeerConnection::OnSignalingStateChange(
+    PeerConnectionSignaling::State state) {
+  switch (state) {
+    case PeerConnectionSignaling::kInitializing:
+      break;
+    case PeerConnectionSignaling::kIdle:
+      if (ready_state_ == PeerConnectionInterface::kNegotiating)
+        ChangeReadyState(PeerConnectionInterface::kActive);
+      ChangeSdpState(PeerConnectionInterface::kSdpIdle);
+      break;
+    case PeerConnectionSignaling::kWaitingForAnswer:
+      ChangeSdpState(PeerConnectionInterface::kSdpWaiting);
+      break;
+    case PeerConnectionSignaling::kWaitingForOK:
+      ChangeSdpState(PeerConnectionInterface::kSdpWaiting);
+      break;
+    case PeerConnectionSignaling::kShutingDown:
+      ChangeReadyState(PeerConnectionInterface::kClosing);
+      break;
+    case PeerConnectionSignaling::kShutdownComplete:
+      ChangeReadyState(PeerConnectionInterface::kClosed);
+      signaling_thread()->Post(this, MSG_TERMINATE);
+      break;
+    default:
+      ASSERT(!"NOT IMPLEMENTED");
+      break;
   }
 }
 
-void PeerConnectionImpl::OnRemoveStream(const std::string& stream_id,
-                                        bool video) {
-  if (event_callback_) {
-    event_callback_->OnRemoveStream(stream_id, video);
-  }
+void PeerConnection::ChangeReadyState(
+    PeerConnectionInterface::ReadyState ready_state) {
+  ready_state_ = ready_state;
+  observer_->OnStateChange(PeerConnectionObserver::kReadyState);
 }
 
-PeerConnectionImpl::ReadyState PeerConnectionImpl::GetReadyState() {
-  ReadyState ready_state;
-  cricket::BaseSession::State state = session_->state();
-  if (state == cricket::BaseSession::STATE_INIT) {
-    ready_state = NEW;
-  } else if (state == cricket::BaseSession::STATE_INPROGRESS) {
-    ready_state = ACTIVE;
-  } else if (state == cricket::BaseSession::STATE_DEINIT) {
-    ready_state = CLOSED;
-  } else {
-    ready_state = NEGOTIATING;
-  }
-  return ready_state;
+void PeerConnection::ChangeSdpState(
+    PeerConnectionInterface::SdpState sdp_state) {
+  sdp_state_ = sdp_state;
+  observer_->OnStateChange(PeerConnectionObserver::kSdpState);
 }
 
 }  // namespace webrtc

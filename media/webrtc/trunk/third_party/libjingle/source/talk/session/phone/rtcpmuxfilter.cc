@@ -39,15 +39,18 @@ bool RtcpMuxFilter::IsActive() const {
 }
 
 bool RtcpMuxFilter::SetOffer(bool offer_enable, ContentSource source) {
-  bool ret = false;
-  if (state_ == ST_INIT) {
-    offer_enable_ = offer_enable;
-    state_ = (source == CS_LOCAL) ? ST_SENTOFFER : ST_RECEIVEDOFFER;
-    ret = true;
-  } else {
-    LOG(LS_ERROR) << "Invalid state for RTCP mux offer";
+  // Allow to SetOffer in |state_| ST_INIT. Also allow to call SetOffer in
+  // |state_| ST_ACTIVE if |offer_enable| is true.
+  // We can't disable the filter once it has been activated.
+  if ((state_ != ST_INIT && state_ != ST_ACTIVE) ||
+      (state_ == ST_ACTIVE  && offer_enable == false)) {
+    LOG(LS_ERROR) << "Invalid state for change of RTCP mux offer";
+    return false;
   }
-  return ret;
+
+  offer_enable_ = offer_enable;
+  state_ = (source == CS_LOCAL) ? ST_SENTOFFER : ST_RECEIVEDOFFER;
+  return true;
 }
 
 bool RtcpMuxFilter::SetAnswer(bool answer_enable, ContentSource source) {
@@ -66,6 +69,9 @@ bool RtcpMuxFilter::SetAnswer(bool answer_enable, ContentSource source) {
         LOG(LS_WARNING) << "Invalid parameters in RTCP mux answer";
       }
     }
+  } else if (state_ == ST_ACTIVE && answer_enable == offer_enable_) {
+    // It is ok as long as the answer state matches the current filter state.
+    ret = true;
   } else {
     LOG(LS_ERROR) << "Invalid state for RTCP mux answer";
   }

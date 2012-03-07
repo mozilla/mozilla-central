@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2011, Google Inc.
+ * Copyright 2011, Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -29,31 +29,33 @@
 #define TALK_APP_WEBRTC_WEBRTCJSON_H_
 
 #include <string>
+#include <vector>
+
+#ifdef WEBRTC_RELATIVE_PATH
+#include "json/json.h"
+#else
+#include "third_party/jsoncpp/json.h"
+#endif
 
 #include "talk/p2p/base/candidate.h"
-#include "talk/session/phone/codec.h"
-
-namespace Json {
-class Value;
-}
+#include "talk/p2p/base/sessiondescription.h"
 
 namespace cricket {
-class AudioContentDescription;
-class VideoContentDescription;
-struct ContentInfo;
 class SessionDescription;
 }
 
 namespace webrtc {
 
-bool GetJsonSignalingMessage(
+void JsonSerializeSessionDescription(
     const cricket::SessionDescription* sdp,
     const std::vector<cricket::Candidate>& candidates,
-    std::string* signaling_message);
+    Json::Value* media);
 
-bool ParseJsonSignalingMessage(const std::string& signaling_message,
-                               cricket::SessionDescription** sdp,
-                               std::vector<cricket::Candidate>* candidates);
-}
+bool JsonDeserializeSessionDescription(
+    const Json::Value& message,
+    cricket::SessionDescription* sdp,
+    std::vector<cricket::Candidate>* candidates);
+
+}  // namespace webrtc
 
 #endif  // TALK_APP_WEBRTC_WEBRTCJSON_H_

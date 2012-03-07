@@ -50,14 +50,34 @@ def _KillAllEmulators():
       return
     time.sleep(1)
 
+
+class PortPool(object):
+  """Pool for emulator port starting position that changes over time."""
+  _port_min = 5554
+  _port_max = 5585
+  _port_current_index = 0
+
+  @classmethod
+  def port_range(cls):
+    """Return a range of valid ports for emulator use.
+
+    The port must be an even number between 5554 and 5584.  Sometimes
+    a killed emulator "hangs on" to a port long enough to prevent
+    relaunch.  This is especially true on slow machines (like a bot).
+    Cycling through a port start position helps make us resilient."""
+    ports = range(cls._port_min, cls._port_max, 2)
+    n = cls._port_current_index
+    cls._port_current_index = (n + 1) % len(ports)
+    return ports[n:] + ports[:n]
+
+
 def _GetAvailablePort():
   """Returns an available TCP port for the console."""
   used_ports = []
   emulators = android_commands.GetEmulators()
   for emulator in emulators:
     used_ports.append(emulator.split('-')[1])
-  # The port must be an even number between 5554 and 5584.
-  for port in range(5554, 5585, 2):
+  for port in PortPool.port_range():
     if str(port) not in used_ports:
       return port
 
@@ -92,7 +112,14 @@ class Emulator(object):
   # Time to wait for a "wait for boot complete" (property set on device).
   _WAITFORBOOT_TIMEOUT = 300
 
-  def __init__(self):
+  def __init__(self, fast_and_loose=False):
+    """Init an Emulator.
+
+    Args:
+      fast_and_loose: Loosen up the rules for reliable running for speed.
+        Intended for quick testing or re-testing.
+
+    """
     try:
       android_sdk_root = os.environ['ANDROID_SDK_ROOT']
     except KeyError:
@@ -102,6 +129,7 @@ class Emulator(object):
     self.emulator = os.path.join(android_sdk_root, 'tools', 'emulator')
     self.popen = None
     self.device = None
+    self.fast_and_loose = fast_and_loose
 
   def _DeviceName(self):
     """Return our device name."""
@@ -114,7 +142,8 @@ class Emulator(object):
     If fails, an exception will be raised.
     """
     _KillAllEmulators()  # just to be sure
-    self._AggressiveImageCleanup()
+    if not self.fast_and_loose:
+      self._AggressiveImageCleanup()
     (self.device, port) = self._DeviceName()
     emulator_command = [
         self.emulator,
@@ -123,13 +152,16 @@ class Emulator(object):
         # The default /data size is 64M.
         # That's not enough for 4 unit test bundles and their data.
         '-partition-size', '256',
-        # ALWAYS wipe the data.  We've seen cases where an emulator
-        # gets 'stuck' if we don't do this (every thousand runs or
-        # so).
-        '-wipe-data',
         # Use a familiar name and port.
         '-avd', 'buildbot',
         '-port', str(port)]
+    if not self.fast_and_loose:
+      emulator_command.extend([
+          # Wipe the data.  We've seen cases where an emulator
+          # gets 'stuck' if we don't do this (every thousand runs or
+          # so).
+          '-wipe-data',
+          ])
     logging.info('Emulator launch command: %s', ' '.join(emulator_command))
     self.popen = subprocess.Popen(args=emulator_command,
                                   stderr=subprocess.STDOUT)
@@ -146,6 +178,8 @@ class Emulator(object):
     """
     logging.info('Aggressive Image Cleanup')
     emulator_imagedir = '/tmp/android-%s' % os.environ['USER']
+    if not os.path.exists(emulator_imagedir):
+      return
     for image in os.listdir(emulator_imagedir):
       full_name = os.path.join(emulator_imagedir, image)
       if 'emulator' in full_name:

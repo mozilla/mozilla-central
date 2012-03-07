@@ -107,7 +107,6 @@ class Port : public talk_base::MessageHandler, public sigslot::has_slots<> {
   const std::string& password() const { return password_; }
   void set_password(const std::string& password) { password_ = password; }
 
-
   // A value in [0,1] that indicates the preference for this port versus other
   // ports on this client.  (Larger indicates more preference.)
   float preference() const { return preference_; }
@@ -141,7 +140,8 @@ class Port : public talk_base::MessageHandler, public sigslot::has_slots<> {
   const AddressMap& connections() { return connections_; }
 
   // Returns the connection to the given address or NULL if none exists.
-  Connection* GetConnection(const talk_base::SocketAddress& remote_addr);
+  virtual Connection* GetConnection(
+      const talk_base::SocketAddress& remote_addr);
 
   // Creates a new connection to the given address.
   enum CandidateOrigin { ORIGIN_THIS_PORT, ORIGIN_OTHER_PORT, ORIGIN_MESSAGE };
@@ -160,15 +160,15 @@ class Port : public talk_base::MessageHandler, public sigslot::has_slots<> {
   // Indicates that we received a successful STUN binding request from an
   // address that doesn't correspond to any current connection.  To turn this
   // into a real connection, call CreateConnection.
-  sigslot::signal4<Port*, const talk_base::SocketAddress&, StunMessage*,
-                   const std::string&> SignalUnknownAddress;
+  sigslot::signal5<Port*, const talk_base::SocketAddress&, StunMessage*,
+                   const std::string&, bool> SignalUnknownAddress;
 
   // Sends a response message (normal or error) to the given request.  One of
   // these methods should be called as a response to SignalUnknownAddress.
   // NOTE: You MUST call CreateConnection BEFORE SendBindingResponse.
-  void SendBindingResponse(StunMessage* request,
-                           const talk_base::SocketAddress& addr);
-  void SendBindingErrorResponse(
+  virtual void SendBindingResponse(StunMessage* request,
+                                   const talk_base::SocketAddress& addr);
+  virtual void SendBindingErrorResponse(
       StunMessage* request, const talk_base::SocketAddress& addr,
       int error_code, const std::string& reason);
 
@@ -211,6 +211,9 @@ class Port : public talk_base::MessageHandler, public sigslot::has_slots<> {
 
   // Debugging description of this port
   std::string ToString() const;
+  talk_base::IPAddress& ip() { return ip_; }
+  int min_port() { return min_port_; }
+  int max_port() { return max_port_; }
 
  protected:
   // Fills in the local address of the port.

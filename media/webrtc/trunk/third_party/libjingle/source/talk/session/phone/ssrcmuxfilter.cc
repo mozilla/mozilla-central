@@ -29,7 +29,6 @@
 
 #include <algorithm>
 
-#include "talk/base/byteorder.h"
 #include "talk/base/logging.h"
 #include "talk/session/phone/rtputils.h"
 
@@ -37,48 +36,14 @@ namespace cricket {
 
 static const uint32 kSsrc01 = 0x01;
 
-SsrcMuxFilter::SsrcMuxFilter()
-    : state_(ST_INIT),
-      enabled_(false) {
+SsrcMuxFilter::SsrcMuxFilter() {
 }
 
 SsrcMuxFilter::~SsrcMuxFilter() {
 }
 
-bool SsrcMuxFilter::SetOffer(bool offer_enable, ContentSource src) {
-  bool ret = false;
-  if (state_ == ST_INIT) {
-    enabled_ = offer_enable;
-    state_ = (src == CS_LOCAL) ? ST_SENTOFFER : ST_RECEIVEDOFFER;
-    ret = true;
-  } else {
-    LOG(LS_ERROR) << "Invalid state for SSRC mux offer";
-  }
-  return ret;
-}
-
-bool SsrcMuxFilter::SetAnswer(bool answer_enable, ContentSource src) {
-  bool ret = false;
-  if ((state_ == ST_SENTOFFER && src == CS_REMOTE) ||
-      (state_ == ST_RECEIVEDOFFER && src == CS_LOCAL)) {
-    if (enabled_ && answer_enable) {
-      state_ = ST_ACTIVE;
-      ret = true;
-    } else if (!answer_enable || !enabled_) {
-      // If offer is not enabled, SSRC mux shouldn't be enabled.
-      state_ = ST_INIT;
-      ret = true;
-    } else {
-      LOG(LS_WARNING) << "Invalid parameters for SSRC mux answer";
-    }
-  } else {
-    LOG(LS_ERROR) << "Invalid state for SSRC mux answer";
-  }
-  return ret;
-}
-
 bool SsrcMuxFilter::IsActive() const {
-  return (state_ == ST_ACTIVE);
+  return !streams_.empty();
 }
 
 bool SsrcMuxFilter::DemuxPacket(const char* data, size_t len, bool rtcp) {
@@ -88,8 +53,11 @@ bool SsrcMuxFilter::DemuxPacket(const char* data, size_t len, bool rtcp) {
   } else {
     int pl_type = 0;
     if (!GetRtcpType(data, len, &pl_type)) return false;
-    if (pl_type == kRtcpTypeSR || pl_type == kRtcpTypeRR) {
-      // Getting SSRC from the report packets.
+    if (pl_type == kRtcpTypeSDES) {
+      // SDES packet parsing not supported.
+      LOG(LS_INFO) << "SDES packet received for demux.";
+      return true;
+    } else {
       if (!GetRtcpSsrc(data, len, &ssrc)) return false;
       if (ssrc == kSsrc01) {
         // SSRC 1 has a special meaning and indicates generic feedback on
@@ -97,44 +65,26 @@ bool SsrcMuxFilter::DemuxPacket(const char* data, size_t len, bool rtcp) {
         // incorrectly it will be ignored by lower layers anyway.
         return true;
       }
-    } else {
-      // All other RTCP packets are handled by the all channels.
-      // TODO: Add SSRC parsing to all RTCP messages.
-      LOG(LS_INFO) << "Non RTCP report packet received for demux.";
-      return true;
     }
   }
   return FindStream(ssrc);
 }
 
-bool SsrcMuxFilter::AddStream(uint32 ssrc) {
-  if (FindStream(ssrc)) {
-    LOG(LS_WARNING) << "SSRC is already added to filter";
-    return false;
+bool SsrcMuxFilter::AddStream(const StreamParams& stream) {
+  if (GetStreamBySsrc(streams_, stream.first_ssrc(), NULL)) {
+      LOG(LS_WARNING) << "Stream already added to filter";
+      return false;
   }
-  mux_ssrcs_.insert(ssrc);
+  streams_.push_back(stream);
   return true;
 }
 
 bool SsrcMuxFilter::RemoveStream(uint32 ssrc) {
-  if (!FindStream(ssrc)) {
-    LOG(LS_WARNING) << "SSRC is not added added to filter";
-    return false;
-  }
-  bool ret = false;
-  std::set<uint32>::iterator iter =
-      std::find(mux_ssrcs_.begin(), mux_ssrcs_.end(), ssrc);
-  if (iter != mux_ssrcs_.end()) {
-    mux_ssrcs_.erase(iter);
-    ret = true;
-  }
-  return ret;
+  return RemoveStreamBySsrc(&streams_, ssrc);
 }
 
 bool SsrcMuxFilter::FindStream(uint32 ssrc) const {
-  std::set<uint32>::const_iterator citer =
-      std::find(mux_ssrcs_.begin(), mux_ssrcs_.end(), ssrc);
-  return citer != mux_ssrcs_.end();
+  return (GetStreamBySsrc(streams_, ssrc, NULL));
 }
 
 }  // namespace cricket

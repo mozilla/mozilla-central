@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -188,8 +188,8 @@ typedef struct ExpandInst_t_
  * These function pointers match the definitions of WebRtc VAD functions WebRtcVad_Init,
  * WebRtcVad_set_mode and WebRtcVad_Process, respectively, all found in webrtc_vad.h.
  */
-typedef WebRtc_Word16 (*VADInitFunction)(void *VAD_inst);
-typedef WebRtc_Word16 (*VADSetmodeFunction)(void *VAD_inst, WebRtc_Word16 mode);
+typedef int (*VADInitFunction)(void *VAD_inst);
+typedef int (*VADSetmodeFunction)(void *VAD_inst, WebRtc_Word16 mode);
 typedef WebRtc_Word16 (*VADFunction)(void *VAD_inst, WebRtc_Word16 fs, WebRtc_Word16 *frame,
                                      WebRtc_Word16 frameLen);
 

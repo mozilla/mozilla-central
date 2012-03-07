@@ -56,8 +56,8 @@ void CurrentSpeakerMonitor::Start() {
   if (!started_) {
     call_->SignalAudioMonitor.connect(
         this, &CurrentSpeakerMonitor::OnAudioMonitor);
-    call_->SignalMediaSourcesUpdate.connect(
-        this, &CurrentSpeakerMonitor::OnMediaSourcesUpdate);
+    call_->SignalMediaStreamsUpdate.connect(
+        this, &CurrentSpeakerMonitor::OnMediaStreamsUpdate);
 
     started_ = true;
   }
@@ -66,7 +66,7 @@ void CurrentSpeakerMonitor::Start() {
 void CurrentSpeakerMonitor::Stop() {
   if (started_) {
     call_->SignalAudioMonitor.disconnect(this);
-    call_->SignalMediaSourcesUpdate.disconnect(this);
+    call_->SignalMediaStreamsUpdate.disconnect(this);
 
     started_ = false;
     ssrc_to_speaking_state_map_.clear();
@@ -187,21 +187,20 @@ void CurrentSpeakerMonitor::OnAudioMonitor(Call* call, const AudioInfo& info) {
   }
 }
 
-void CurrentSpeakerMonitor::OnMediaSourcesUpdate(Call* call,
+void CurrentSpeakerMonitor::OnMediaStreamsUpdate(Call* call,
                                                  Session* session,
-                                                 const MediaSources& sources) {
+                                                 const MediaStreams& added,
+                                                 const MediaStreams& removed) {
   if (call == call_ && session == session_) {
-    // Update the speaking state map based on new or removed sources.
-    NamedSources::const_iterator it;
-    for (it = sources.audio().begin(); it != sources.audio().end(); it++) {
-      if (it->ssrc_set) {
-        if (it->removed) {
-          ssrc_to_speaking_state_map_.erase(it->ssrc);
-        } else if (ssrc_to_speaking_state_map_.find(it->ssrc) ==
-            ssrc_to_speaking_state_map_.begin()) {
-          ssrc_to_speaking_state_map_[it->ssrc] = SS_NOT_SPEAKING;
-        }
-      }
+    // Update the speaking state map based on added and removed streams.
+    for (std::vector<cricket::StreamParams>::const_iterator
+           it = removed.video().begin(); it != removed.video().end(); ++it) {
+      ssrc_to_speaking_state_map_.erase(it->first_ssrc());
+    }
+
+    for (std::vector<cricket::StreamParams>::const_iterator
+           it = added.video().begin(); it != added.video().end(); ++it) {
+      ssrc_to_speaking_state_map_[it->first_ssrc()] = SS_NOT_SPEAKING;
     }
   }
 }

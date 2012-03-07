@@ -35,7 +35,7 @@ Advanced options:
   ${toggle_internal_stats}        output of encoder internal stats for debug, if supported (encoders)
   ${toggle_mem_tracker}           track memory usage
   ${toggle_postproc}              postprocessing
-  ${toggle_multithread}           multithreaded encoding and decoding.
+  ${toggle_multithread}           multithreaded encoding and decoding
   ${toggle_spatial_resampling}    spatial sampling (scaling) support
   ${toggle_realtime_only}         enable this option while building for real-time encoding
   ${toggle_error_concealment}     enable this option to get a decoder which is able to conceal losses
@@ -44,6 +44,7 @@ Advanced options:
   ${toggle_static}                static library support
   ${toggle_small}                 favor smaller size over speed
   ${toggle_postproc_visualizer}   macro block / block level visualizers
+  ${toggle_multi_res_encoding}    enable multiple-resolution encoding
 
 Codecs:
   Codecs can be selectively enabled or disabled individually, or by family:
@@ -82,16 +83,10 @@ EOF
 all_platforms="${all_platforms} armv5te-linux-rvct"
 all_platforms="${all_platforms} armv5te-linux-gcc"
 all_platforms="${all_platforms} armv5te-none-rvct"
-all_platforms="${all_platforms} armv5te-symbian-gcc"
 all_platforms="${all_platforms} armv6-darwin-gcc"
 all_platforms="${all_platforms} armv6-linux-rvct"
 all_platforms="${all_platforms} armv6-linux-gcc"
 all_platforms="${all_platforms} armv6-none-rvct"
-all_platforms="${all_platforms} armv6-symbian-gcc"
-all_platforms="${all_platforms} iwmmxt-linux-rvct"
-all_platforms="${all_platforms} iwmmxt-linux-gcc"
-all_platforms="${all_platforms} iwmmxt2-linux-rvct"
-all_platforms="${all_platforms} iwmmxt2-linux-gcc"
 all_platforms="${all_platforms} armv7-darwin-gcc"    #neon Cortex-A8
 all_platforms="${all_platforms} armv7-linux-rvct"    #neon Cortex-A8
 all_platforms="${all_platforms} armv7-linux-gcc"     #neon Cortex-A8
@@ -118,9 +113,11 @@ all_platforms="${all_platforms} x86-win32-vs8"
 all_platforms="${all_platforms} x86-win32-vs9"
 all_platforms="${all_platforms} x86_64-darwin9-gcc"
 all_platforms="${all_platforms} x86_64-darwin10-gcc"
+all_platforms="${all_platforms} x86_64-darwin11-gcc"
 all_platforms="${all_platforms} x86_64-linux-gcc"
 all_platforms="${all_platforms} x86_64-linux-icc"
 all_platforms="${all_platforms} x86_64-solaris-gcc"
+all_platforms="${all_platforms} x86_64-win64-gcc"
 all_platforms="${all_platforms} x86_64-win64-vs8"
 all_platforms="${all_platforms} x86_64-win64-vs9"
 all_platforms="${all_platforms} universal-darwin8-gcc"
@@ -195,8 +192,6 @@ ARCH_EXT_LIST="
     armv5te
     armv6
     armv7
-    iwmmxt
-    iwmmxt2
 
     mips32
 
@@ -261,6 +256,7 @@ CONFIG_LIST="
     postproc_visualizer
     os_support
     unit_tests
+    multi_res_encoding
 "
 CMDLINE_SELECT="
     extra_warnings
@@ -303,6 +299,7 @@ CMDLINE_SELECT="
     small
     postproc_visualizer
     unit_tests
+    multi_res_encoding
 "
 
 process_cmdline() {

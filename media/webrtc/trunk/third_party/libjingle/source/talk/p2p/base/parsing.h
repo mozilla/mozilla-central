@@ -112,8 +112,6 @@ bool SetXmlBody(buzz::XmlElement* elem, const T& val) {
 
 const buzz::XmlElement* GetXmlChild(const buzz::XmlElement* parent,
                                     const std::string& name);
-const buzz::XmlElement* GetXmlElement(const XmlElements& elems,
-                                      const buzz::QName& name);
 
 bool RequireXmlChild(const buzz::XmlElement* parent,
                      const std::string& name,

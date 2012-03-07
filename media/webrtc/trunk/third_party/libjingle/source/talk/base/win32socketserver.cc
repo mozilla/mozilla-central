@@ -168,7 +168,7 @@ class Win32Socket::EventSink : public Win32Window {
 
   virtual bool OnMessage(UINT uMsg, WPARAM wParam, LPARAM lParam,
                          LRESULT& result);
-  virtual void OnFinalMessage(HWND hWnd);
+  virtual void OnNcDestroy();
 
  private:
   bool OnSocketNotify(UINT uMsg, WPARAM wParam, LPARAM lParam, LRESULT& result);
@@ -226,8 +226,13 @@ bool Win32Socket::EventSink::OnDnsNotify(WPARAM wParam, LPARAM lParam,
   return true;
 }
 
-void Win32Socket::EventSink::OnFinalMessage(HWND hWnd) {
-  delete this;
+void Win32Socket::EventSink::OnNcDestroy() {
+  if (parent_) {
+    LOG(LS_ERROR) << "EventSink hwnd is being destroyed, but the event sink"
+                     " hasn't yet been disposed.";
+  } else {
+    delete this;
+  }
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -741,7 +746,10 @@ bool Win32SocketServer::Wait(int cms, bool process_io) {
       // was a message for the dialog that it handled internally.
       // Otherwise, dispatch as usual via Translate/DispatchMessage.
       b = GetMessage(&msg, NULL, 0, 0);
-      if (b) {
+      if (b == -1) {
+        LOG_GLE(LS_ERROR) << "GetMessage failed.";
+        return false;
+      } else if(b) {
         if (!hdlg_ || !IsDialogMessage(hdlg_, &msg)) {
           TranslateMessage(&msg);
           DispatchMessage(&msg);

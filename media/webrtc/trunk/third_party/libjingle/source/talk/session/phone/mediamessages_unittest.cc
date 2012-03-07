@@ -48,11 +48,6 @@ static const char kViewVideoNoneXml[] =
     "  type='none'"
     "/>";
 
-static const char kNotifyEmptyXml[] =
-    "<notify xmlns='google:jingle'"
-    "  name='video1'"
-    "/>";
-
 class MediaMessagesTest : public testing::Test {
  public:
   // CreateMediaSessionDescription uses a static variable cricket::NS_JINGLE_RTP
@@ -76,55 +71,6 @@ class MediaMessagesTest : public testing::Test {
              "    preference='0'"
              "  />"
              "</view>";
-  }
-
-  static std::string NotifyAddXml(const std::string& content_name,
-                                  const std::string& nick,
-                                  const std::string& name,
-                                  const std::string& ssrc) {
-    return "<notify xmlns='google:jingle'"
-           "  name='" + content_name + "'"
-           ">"
-           "  <source"
-           "    nick='" + nick + "'"
-           "    name='" + name + "'"
-           "  >"
-           "    <ssrc>" + ssrc + "</ssrc>"
-           "  </source>"
-           "</notify>";
-  }
-
-  static std::string NotifyTwoSourceXml(const std::string& name,
-                                        const std::string& nick1,
-                                        const std::string& ssrc1,
-                                        const std::string& nick2,
-                                        const std::string& ssrc2) {
-    return "<notify xmlns='google:jingle'"
-           "  name='" + name + "'"
-           ">"
-           "  <source"
-           "    nick='" + nick1 + "'"
-           "  >"
-           "    <ssrc>" + ssrc1 + "</ssrc>"
-           "  </source>"
-           "  <source"
-           "    nick='" + nick2 + "'"
-           "  >"
-           "    <ssrc>" + ssrc2 + "</ssrc>"
-           "  </source>"
-           "</notify>";
-  }
-
-  static std::string NotifyImplicitRemoveXml(const std::string& content_name,
-                                             const std::string& nick) {
-    return "<notify xmlns='google:jingle'"
-           "  name='" + content_name + "'"
-           ">"
-           "  <source"
-           "    nick='" + nick + "'"
-           "  >"
-           "  </source>"
-           "</notify>";
   }
 
   static cricket::StreamParams CreateStream(const std::string& nick,
@@ -197,14 +143,19 @@ class MediaMessagesTest : public testing::Test {
 
 // Test serializing/deserializing an empty <view> message.
 TEST_F(MediaMessagesTest, ViewNoneToFromXml) {
-  talk_base::scoped_ptr<buzz::XmlElement> expected_view_elem(
-      buzz::XmlElement::ForStr(kViewVideoNoneXml));
+  buzz::XmlElement* expected_view_elem =
+      buzz::XmlElement::ForStr(kViewVideoNoneXml);
+  talk_base::scoped_ptr<buzz::XmlElement> action_elem(
+      new buzz::XmlElement(QN_JINGLE));
+
+  EXPECT_FALSE(cricket::IsJingleViewRequest(action_elem.get()));
+  action_elem->AddElement(expected_view_elem);
+  EXPECT_TRUE(cricket::IsJingleViewRequest(action_elem.get()));
 
   cricket::ViewRequest view_request;
   cricket::XmlElements actual_view_elems;
   cricket::WriteError error;
 
-  EXPECT_FALSE(cricket::IsJingleViewRequest(actual_view_elems));
   ASSERT_TRUE(cricket::WriteJingleViewRequest(
       "video1", view_request, &actual_view_elems, &error));
 
@@ -212,18 +163,22 @@ TEST_F(MediaMessagesTest, ViewNoneToFromXml) {
   EXPECT_EQ(expected_view_elem->Str(), actual_view_elems[0]->Str());
 
   cricket::ParseError parse_error;
-  EXPECT_TRUE(cricket::IsJingleViewRequest(actual_view_elems));
+  EXPECT_TRUE(cricket::IsJingleViewRequest(action_elem.get()));
   ASSERT_TRUE(cricket::ParseJingleViewRequest(
-      actual_view_elems, &view_request, &parse_error));
+      action_elem.get(), &view_request, &parse_error));
   EXPECT_EQ(0U, view_request.static_video_views.size());
 }
 
 // Test serializing/deserializing an a simple vga <view> message.
 TEST_F(MediaMessagesTest, ViewVgaToFromXml) {
-  talk_base::scoped_ptr<buzz::XmlElement> expected_view_elem1(
-      buzz::XmlElement::ForStr(ViewVideoStaticVgaXml("1234")));
-  talk_base::scoped_ptr<buzz::XmlElement> expected_view_elem2(
-      buzz::XmlElement::ForStr(ViewVideoStaticVgaXml("2468")));
+  talk_base::scoped_ptr<buzz::XmlElement> action_elem(
+      new buzz::XmlElement(QN_JINGLE));
+  buzz::XmlElement* expected_view_elem1 =
+      buzz::XmlElement::ForStr(ViewVideoStaticVgaXml("1234"));
+  buzz::XmlElement* expected_view_elem2 =
+      buzz::XmlElement::ForStr(ViewVideoStaticVgaXml("2468"));
+  action_elem->AddElement(expected_view_elem1);
+  action_elem->AddElement(expected_view_elem2);
 
   cricket::ViewRequest view_request;
   cricket::XmlElements actual_view_elems;
@@ -243,9 +198,9 @@ TEST_F(MediaMessagesTest, ViewVgaToFromXml) {
 
   view_request.static_video_views.clear();
   cricket::ParseError parse_error;
-  EXPECT_TRUE(cricket::IsJingleViewRequest(actual_view_elems));
+  EXPECT_TRUE(cricket::IsJingleViewRequest(action_elem.get()));
   ASSERT_TRUE(cricket::ParseJingleViewRequest(
-      actual_view_elems, &view_request, &parse_error));
+      action_elem.get(), &view_request, &parse_error));
   EXPECT_EQ(2U, view_request.static_video_views.size());
   EXPECT_EQ(1234U, view_request.static_video_views[0].ssrc);
   EXPECT_EQ(640, view_request.static_video_views[0].width);
@@ -256,128 +211,18 @@ TEST_F(MediaMessagesTest, ViewVgaToFromXml) {
 
 // Test deserializing bad view XML.
 TEST_F(MediaMessagesTest, ParseBadViewXml) {
-  talk_base::scoped_ptr<buzz::XmlElement> view_elem(
-      buzz::XmlElement::ForStr(ViewVideoStaticVgaXml("not-an-ssrc")));
-  XmlElements view_elems;
-  view_elems.push_back(view_elem.get());
+  talk_base::scoped_ptr<buzz::XmlElement> action_elem(
+      new buzz::XmlElement(QN_JINGLE));
+  buzz::XmlElement* view_elem =
+      buzz::XmlElement::ForStr(ViewVideoStaticVgaXml("not-an-ssrc"));
+  action_elem->AddElement(view_elem);
 
   cricket::ViewRequest view_request;
   cricket::ParseError parse_error;
   ASSERT_FALSE(cricket::ParseJingleViewRequest(
-      view_elems, &view_request, &parse_error));
+      action_elem.get(), &view_request, &parse_error));
 }
 
-// Test serializing/deserializing an empty session-info message.
-TEST_F(MediaMessagesTest, NotifyFromEmptyXml) {
-  talk_base::scoped_ptr<buzz::XmlElement> action_elem(
-      new buzz::XmlElement(cricket::QN_JINGLE));
-  EXPECT_FALSE(cricket::IsSourcesNotify(action_elem.get()));
-}
-
-// Test serializing/deserializing an empty <notify> message.
-TEST_F(MediaMessagesTest, NotifyEmptyFromXml) {
-  talk_base::scoped_ptr<buzz::XmlElement> action_elem(
-      new buzz::XmlElement(cricket::QN_JINGLE));
-  action_elem->AddElement(
-      buzz::XmlElement::ForStr(kNotifyEmptyXml));
-
-  cricket::MediaSources sources;
-  cricket::ParseError error;
-
-  EXPECT_TRUE(cricket::IsSourcesNotify(action_elem.get()));
-  ASSERT_TRUE(cricket::ParseSourcesNotify(action_elem.get(),
-                                          remote_description_.get(),
-                                          &sources, &error));
-
-  EXPECT_EQ(0U, sources.audio().size());
-  EXPECT_EQ(0U, sources.video().size());
-}
-
-// Test serializing/deserializing a complex <notify> message.
-TEST_F(MediaMessagesTest, NotifyFromXml) {
-  talk_base::scoped_ptr<buzz::XmlElement> action_elem(
-      new buzz::XmlElement(cricket::QN_JINGLE));
-  action_elem->AddElement(
-      buzz::XmlElement::ForStr(NotifyAddXml(
-          "video1", "Joe", "Facetime", "1234")));
-  action_elem->AddElement(
-      buzz::XmlElement::ForStr(NotifyAddXml(
-          "video1", "Bob", "Microsoft Word", "2468")));
-  action_elem->AddElement(
-      buzz::XmlElement::ForStr(NotifyAddXml(
-          "video1", "Bob", "", "3692")));
-  action_elem->AddElement(
-      buzz::XmlElement::ForStr(NotifyImplicitRemoveXml(
-          "audio1", "Joe")));
-  action_elem->AddElement(
-      buzz::XmlElement::ForStr(NotifyAddXml(
-          "audio1", "Bob", "", "3692")));
-  action_elem->AddElement(
-      buzz::XmlElement::ForStr(NotifyTwoSourceXml(
-          "video1", "Joe", "1234", "Bob", "2468")));
-
-  cricket::MediaSources sources;
-  cricket::ParseError error;
-
-  EXPECT_TRUE(cricket::IsSourcesNotify(action_elem.get()));
-  ASSERT_TRUE(cricket::ParseSourcesNotify(action_elem.get(),
-                                          remote_description_.get(),
-                                          &sources, &error));
-
-  ASSERT_EQ(5U, sources.video().size());
-  ASSERT_EQ(2U, sources.audio().size());
-
-  EXPECT_EQ("Joe", sources.video()[0].nick);
-  EXPECT_EQ("Facetime", sources.video()[0].name);
-  EXPECT_EQ(1234U, sources.video()[0].ssrc);
-  EXPECT_TRUE(sources.video()[0].ssrc_set);
-  EXPECT_FALSE(sources.video()[0].removed);
-
-  EXPECT_EQ("Bob", sources.video()[1].nick);
-  EXPECT_EQ("Microsoft Word", sources.video()[1].name);
-  EXPECT_EQ(2468U, sources.video()[1].ssrc);
-  EXPECT_TRUE(sources.video()[1].ssrc_set);
-  EXPECT_FALSE(sources.video()[0].removed);
-
-  EXPECT_EQ("Bob", sources.video()[2].nick);
-  EXPECT_EQ(3692U, sources.video()[2].ssrc);
-  EXPECT_TRUE(sources.video()[2].ssrc_set);
-  EXPECT_EQ("", sources.video()[2].name);
-  EXPECT_FALSE(sources.video()[0].removed);
-
-  EXPECT_EQ("Joe", sources.video()[3].nick);
-  EXPECT_EQ(1234U, sources.video()[3].ssrc);
-
-  EXPECT_EQ("Bob", sources.video()[4].nick);
-  EXPECT_EQ(2468U, sources.video()[4].ssrc);
-
-  EXPECT_EQ("Joe", sources.audio()[0].nick);
-  EXPECT_FALSE(sources.audio()[0].ssrc_set);
-  EXPECT_FALSE(sources.video()[0].removed);
-}
-
-// Test serializing/deserializing a malformed <notify> message.
-TEST_F(MediaMessagesTest, NotifyFromBadXml) {
-  MediaSources sources;
-  ParseError error;
-
-  // Bad ssrc
-  talk_base::scoped_ptr<buzz::XmlElement> action_elem(
-      new buzz::XmlElement(cricket::QN_JINGLE));
-  action_elem->AddElement(
-      buzz::XmlElement::ForStr(NotifyAddXml("video1", "Joe", "", "XYZ")));
-  EXPECT_TRUE(cricket::IsSourcesNotify(action_elem.get()));
-  EXPECT_FALSE(cricket::ParseSourcesNotify(
-      action_elem.get(), remote_description_.get(), &sources, &error));
-
-  // Bad nick
-  action_elem.reset(new buzz::XmlElement(cricket::QN_JINGLE));
-  action_elem->AddElement(
-      buzz::XmlElement::ForStr(NotifyAddXml("video1", "", "", "1234")));
-  EXPECT_TRUE(cricket::IsSourcesNotify(action_elem.get()));
-  EXPECT_FALSE(cricket::ParseSourcesNotify(
-      action_elem.get(), remote_description_.get(), &sources, &error));
-}
 
 // Test serializing/deserializing typical streams xml.
 TEST_F(MediaMessagesTest, StreamsToFromXml) {

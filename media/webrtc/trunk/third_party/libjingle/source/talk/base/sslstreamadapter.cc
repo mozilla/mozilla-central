@@ -65,6 +65,23 @@ SSLStreamAdapter* SSLStreamAdapter::Create(StreamInterface* stream) {
 #endif  // !SSL_USE_OPENSSL && !SSL_USE_SCHANNEL
 }
 
+// Note: this matches the logic above with SCHANNEL dominating
+#if SSL_USE_SCHANNEL || !SSL_USE_OPENSSL
+bool SSLStreamAdapter::HaveDtls() { return false; }
+bool SSLStreamAdapter::HaveDtlsSrtp() { return false; }
+bool SSLStreamAdapter::HaveExporter() { return false; }
+#else
+bool SSLStreamAdapter::HaveDtls() {
+  return OpenSSLStreamAdapter::HaveDtls();
+}
+bool SSLStreamAdapter::HaveDtlsSrtp() {
+  return OpenSSLStreamAdapter::HaveDtlsSrtp();
+}
+bool SSLStreamAdapter::HaveExporter() {
+  return OpenSSLStreamAdapter::HaveExporter();
+}
+#endif  // !SSL_USE_OPENSSL && !SSL_USE_SCHANNEL
+
 ///////////////////////////////////////////////////////////////////////////////
 
 }  // namespace talk_base

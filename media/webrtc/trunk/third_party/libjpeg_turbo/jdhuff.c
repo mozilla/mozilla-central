@@ -742,7 +742,7 @@ decode_mcu_fast (j_decompress_ptr cinfo, JBLOCKROW *MCU_data)
  * this module, since we'll just re-assign them on the next call.)
  */
 
-#define BUFSIZE (DCTSIZE2 * 2)
+#define BUFSIZE (DCTSIZE2 * 2u)
 
 METHODDEF(boolean)
 decode_mcu (j_decompress_ptr cinfo, JBLOCKROW *MCU_data)

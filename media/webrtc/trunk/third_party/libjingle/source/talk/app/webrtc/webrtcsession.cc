@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2011, Google Inc.
+ * Copyright 2011, Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -27,511 +27,408 @@
 
 #include "talk/app/webrtc/webrtcsession.h"
 
-#include <string>
-#include <vector>
-
-#include "talk/base/common.h"
-#include "talk/base/scoped_ptr.h"
-#include "talk/p2p/base/constants.h"
-#include "talk/p2p/base/sessiondescription.h"
-#include "talk/p2p/base/p2ptransport.h"
+#include "talk/app/webrtc/mediastream.h"
+#include "talk/app/webrtc/peerconnection.h"
+#include "talk/app/webrtc/peerconnectionsignaling.h"
+#include "talk/base/helpers.h"
+#include "talk/base/logging.h"
 #include "talk/session/phone/channel.h"
 #include "talk/session/phone/channelmanager.h"
-#include "talk/session/phone/mediasessionclient.h"
-#include "talk/session/phone/voicechannel.h"
+#include "talk/session/phone/mediasession.h"
+#include "talk/session/phone/videocapturer.h"
+
+using cricket::MediaContentDescription;
 
 namespace webrtc {
 
 enum {
   MSG_CANDIDATE_TIMEOUT = 101,
+  MSG_CANDIDATE_DISCOVERY_TIMEOUT = 102,
 };
 
-static const int kAudioMonitorPollFrequency = 100;
-static const int kMonitorPollFrequency = 1000;
-
-// We allow 30 seconds to establish a connection; beyond that we consider
-// it an error
+// We allow 30 seconds to establish a connection, otherwise it's an error.
 static const int kCallSetupTimeout = 30 * 1000;
-// A loss of connectivity is probably due to the Internet connection going
-// down, and it might take a while to come back on wireless networks, so we
-// use a longer timeout for that.
-static const int kCallLostTimeout = 60 * 1000;
+static const int kCandidateDiscoveryTimeout = 2000;
 
-static const char kVideoStream[] = "video_rtp";
-static const char kAudioStream[] = "rtp";
+// TODO - These are magic string used by cricket::VideoChannel.
+// These should be moved to a common place.
+static const char kRtpVideoChannelStr[] = "video_rtp";
+static const char kRtcpVideoChannelStr[] = "video_rtcp";
 
+// Constants for setting the default encoder size.
+// TODO: Implement proper negotiation of video resolution.
 static const int kDefaultVideoCodecId = 100;
 static const int kDefaultVideoCodecFramerate = 30;
 static const char kDefaultVideoCodecName[] = "VP8";
+static const int kDefaultVideoCodecWidth = 640;
+static const int kDefaultVideoCodecHeight = 480;
 
-WebRtcSession::WebRtcSession(const std::string& id,
-                             bool incoming,
-                             cricket::PortAllocator* allocator,
-                             cricket::ChannelManager* channelmgr,
-                             talk_base::Thread* signaling_thread)
-    : BaseSession(signaling_thread, channelmgr->worker_thread(),
-                  allocator, id, "", !incoming),
-      transport_(NULL),
-      channel_manager_(channelmgr),
-      transports_writable_(false),
-      muted_(false),
-      camera_muted_(false),
-      setup_timeout_(kCallSetupTimeout),
-      signaling_thread_(signaling_thread),
-      incoming_(incoming),
-      port_allocator_(allocator),
-      desc_factory_(channel_manager_) {
-}
+// MediaSessionDescriptionFactory always creates one StreamParams for
+// legacy reasons even if options don't contain any streams.
+// We need to remove it in that case since here options contains all streams
+// we want to send.
+// TODO: This is placed in the wrong file. Can we solve this problem by
+// adding a method MediaSessionDescriptionFactory::set_add_legacy_streams(false)
+// to prevent it from creating legacy streams.
+static void RemoveLegacyStreams(const cricket::MediaSessionOptions& options,
+                                cricket::SessionDescription* description) {
+  bool found_audio_stream = false;
+  bool found_video_stream = false;
+  for (cricket::MediaSessionOptions::Streams::const_iterator it =
+      options.streams.begin();
+       it != options.streams.end(); ++it) {
+    if (it->type == cricket::MEDIA_TYPE_AUDIO)
+      found_audio_stream = true;
 
-WebRtcSession::~WebRtcSession() {
-  RemoveAllStreams();
-  // TODO: Do we still need Terminate?
-  // if (state_ != STATE_RECEIVEDTERMINATE) {
-  //   Terminate();
-  // }
-  if (transport_) {
-    delete transport_;
-    transport_ = NULL;
+    if (it->type == cricket::MEDIA_TYPE_VIDEO)
+      found_video_stream = true;
+  }
+  if (found_audio_stream == false) {
+    const cricket::ContentInfo* audio_info =
+        cricket::GetFirstAudioContent(description);
+      if (audio_info) {
+        const cricket::MediaContentDescription* const_media_desc =
+            static_cast<const cricket::MediaContentDescription*>(
+            audio_info->description);
+        cricket::MediaContentDescription* media_desc =
+            const_cast<cricket::MediaContentDescription*> (const_media_desc);
+        media_desc->mutable_streams().clear();
+      }
+  }
+  if (found_video_stream == false) {
+    const cricket::ContentInfo* video_info =
+        cricket::GetFirstVideoContent(description);
+      if (video_info) {
+        const cricket::MediaContentDescription* const_media_desc =
+            static_cast<const cricket::MediaContentDescription*>(
+                video_info->description);
+        cricket::MediaContentDescription* media_desc =
+               const_cast<cricket::MediaContentDescription*> (const_media_desc);
+        media_desc->mutable_streams().clear();
+      }
   }
 }
 
-bool WebRtcSession::Initiate() {
+WebRtcSession::WebRtcSession(cricket::ChannelManager* channel_manager,
+                             talk_base::Thread* signaling_thread,
+                             talk_base::Thread* worker_thread,
+                             cricket::PortAllocator* port_allocator)
+    : cricket::BaseSession(signaling_thread, worker_thread, port_allocator,
+          talk_base::ToString(talk_base::CreateRandomId()),
+          cricket::NS_JINGLE_RTP, true),
+      channel_manager_(channel_manager),
+      observer_(NULL),
+      session_desc_factory_(channel_manager),
+      offer_sent_(false) {
+}
+
+WebRtcSession::~WebRtcSession() {
+  Terminate();
+}
+
+bool WebRtcSession::Initialize() {
+  // By default SRTP-SDES is enabled in WebRtc.
+  set_secure_policy(cricket::SEC_REQUIRED);
+
   const cricket::VideoCodec default_codec(kDefaultVideoCodecId,
       kDefaultVideoCodecName, kDefaultVideoCodecWidth, kDefaultVideoCodecHeight,
       kDefaultVideoCodecFramerate, 0);
   channel_manager_->SetDefaultVideoEncoderConfig(
       cricket::VideoEncoderConfig(default_codec));
 
-  if (signaling_thread_ == NULL)
+  return CreateChannels();
+}
+
+void WebRtcSession::Terminate() {
+  if (voice_channel_.get()) {
+    channel_manager_->DestroyVoiceChannel(voice_channel_.release());
+  }
+  if (video_channel_.get()) {
+    channel_manager_->DestroyVideoChannel(video_channel_.release());
+  }
+}
+
+void WebRtcSession::set_secure_policy(
+    cricket::SecureMediaPolicy secure_policy) {
+  session_desc_factory_.set_secure(secure_policy);
+}
+
+bool WebRtcSession::CreateChannels() {
+  voice_channel_.reset(channel_manager_->CreateVoiceChannel(
+      this, cricket::CN_AUDIO, true));
+  if (!voice_channel_.get()) {
+    LOG(LS_ERROR) << "Failed to create voice channel";
     return false;
+  }
 
-  transport_ = CreateTransport();
-
-  if (transport_ == NULL)
+  video_channel_.reset(channel_manager_->CreateVideoChannel(
+      this, cricket::CN_VIDEO, true, voice_channel_.get()));
+  if (!video_channel_.get()) {
+    LOG(LS_ERROR) << "Failed to create video channel";
     return false;
+  }
 
-  transport_->set_allow_local_ips(true);
-
-  // start transports
-  transport_->SignalRequestSignaling.connect(
-      this, &WebRtcSession::OnRequestSignaling);
-  transport_->SignalCandidatesReady.connect(
-      this, &WebRtcSession::OnCandidatesReady);
-  transport_->SignalWritableState.connect(
-      this, &WebRtcSession::OnWritableState);
-  // Limit the amount of time that setting up a call may take.
-  StartTransportTimeout(kCallSetupTimeout);
+  // TransportProxies and TransportChannels will be created when
+  // CreateVoiceChannel and CreateVideoChannel are called.
+  // Try connecting all transport channels. This is necessary to generate
+  // ICE candidates.
+  SpeculativelyConnectAllTransportChannels();
+  signaling_thread()->PostDelayed(
+      kCandidateDiscoveryTimeout, this, MSG_CANDIDATE_DISCOVERY_TIMEOUT);
   return true;
 }
 
-cricket::Transport* WebRtcSession::CreateTransport() {
+// Enabling voice and video channel.
+void WebRtcSession::EnableChannels() {
+  if (!voice_channel_->enabled())
+    voice_channel_->Enable(true);
+
+  if (!video_channel_->enabled())
+    video_channel_->Enable(true);
+}
+
+void WebRtcSession::OnTransportRequestSignaling(
+    cricket::Transport* transport) {
   ASSERT(signaling_thread()->IsCurrent());
-  return new cricket::P2PTransport(
-      talk_base::Thread::Current(),
-      channel_manager_->worker_thread(), port_allocator());
-}
-
-bool WebRtcSession::CreateVoiceChannel(const std::string& stream_id) {
-  // RTCP disabled
-  cricket::VoiceChannel* voice_channel =
-      channel_manager_->CreateVoiceChannel(this, stream_id, true);
-  if (voice_channel == NULL) {
-    LOG(LERROR) << "Unable to create voice channel.";
-    return false;
-  }
-  StreamInfo* stream_info = new StreamInfo(stream_id);
-  stream_info->channel = voice_channel;
-  stream_info->video = false;
-  streams_.push_back(stream_info);
-  return true;
-}
-
-bool WebRtcSession::CreateVideoChannel(const std::string& stream_id) {
-  // RTCP disabled
-  cricket::VideoChannel* video_channel =
-      channel_manager_->CreateVideoChannel(this, stream_id, true, NULL);
-  if (video_channel == NULL) {
-    LOG(LERROR) << "Unable to create video channel.";
-    return false;
-  }
-  StreamInfo* stream_info = new StreamInfo(stream_id);
-  stream_info->channel = video_channel;
-  stream_info->video = true;
-  streams_.push_back(stream_info);
-  return true;
-}
-
-cricket::TransportChannel* WebRtcSession::CreateChannel(
-    const std::string& content_name,
-    const std::string& name) {
-  if (!transport_) {
-    return NULL;
-  }
-  std::string type;
-  if (content_name.compare(kVideoStream) == 0) {
-    type = cricket::NS_GINGLE_VIDEO;
-  } else {
-    type = cricket::NS_GINGLE_AUDIO;
-  }
-  cricket::TransportChannel* transport_channel =
-      transport_->CreateChannel(name, type);
-  ASSERT(transport_channel != NULL);
-  return transport_channel;
-}
-
-cricket::TransportChannel* WebRtcSession::GetChannel(
-    const std::string& content_name, const std::string& name) {
-  if (!transport_)
-    return NULL;
-
-  return transport_->GetChannel(name);
-}
-
-void WebRtcSession::DestroyChannel(
-    const std::string& content_name, const std::string& name) {
-  if (!transport_)
-    return;
-
-  transport_->DestroyChannel(name);
-}
-
-void WebRtcSession::OnMessage(talk_base::Message* message) {
-  switch (message->message_id) {
-    case MSG_CANDIDATE_TIMEOUT:
-      if (transport_->writable()) {
-        // This should never happen: The timout triggered even
-        // though a call was successfully set up.
-        ASSERT(false);
-      }
-      SignalFailedCall();
-      break;
-    default:
-      cricket::BaseSession::OnMessage(message);
-      break;
-  }
-}
-
-bool WebRtcSession::Connect() {
-  if (streams_.empty()) {
-    // nothing to initiate
-    return false;
-  }
-  // lets connect all the transport channels created before for this session
-  transport_->ConnectChannels();
-
-  // create an offer now. This is to call SetState
-  // Actual offer will be send when OnCandidatesReady callback received
-  cricket::SessionDescription* offer = CreateOffer();
-  set_local_description(offer);
-  SetState((incoming()) ? STATE_SENTACCEPT : STATE_SENTINITIATE);
-
-  // Enable all the channels
-  EnableAllStreams();
-  SetVideoCapture(true);
-  return true;
-}
-
-bool WebRtcSession::SetVideoRenderer(const std::string& stream_id,
-                                     cricket::VideoRenderer* renderer) {
-  bool ret = false;
-  StreamMap::iterator iter;
-  for (iter = streams_.begin(); iter != streams_.end(); ++iter) {
-    StreamInfo* stream_info = (*iter);
-    if (stream_info->stream_id.compare(stream_id) == 0) {
-      ASSERT(stream_info->channel != NULL);
-      ASSERT(stream_info->video);
-      cricket::VideoChannel* channel = static_cast<cricket::VideoChannel*>(
-          stream_info->channel);
-      ret = channel->SetRenderer(0, renderer);
-      break;
-    }
-  }
-  return ret;
-}
-
-bool WebRtcSession::SetVideoCapture(bool capture) {
-  channel_manager_->SetVideoCapture(capture);
-  return true;
-}
-
-bool WebRtcSession::RemoveStream(const std::string& stream_id) {
-  bool ret = false;
-  StreamMap::iterator iter;
-  for (iter = streams_.begin(); iter != streams_.end(); ++iter) {
-    StreamInfo* sinfo = (*iter);
-    if (sinfo->stream_id.compare(stream_id) == 0) {
-      if (!sinfo->video) {
-        cricket::VoiceChannel* channel = static_cast<cricket::VoiceChannel*> (
-            sinfo->channel);
-        channel->Enable(false);
-        // Note: If later the channel is used by multiple streams, then we
-        // should not destroy the channel until all the streams are removed.
-        channel_manager_->DestroyVoiceChannel(channel);
-      } else {
-        cricket::VideoChannel* channel = static_cast<cricket::VideoChannel*> (
-            sinfo->channel);
-        channel->Enable(false);
-        // Note: If later the channel is used by multiple streams, then we
-        // should not destroy the channel until all the streams are removed.
-        channel_manager_->DestroyVideoChannel(channel);
-      }
-      // channel and transport will be deleted in
-      // DestroyVoiceChannel/DestroyVideoChannel
-      streams_.erase(iter);
-      ret = true;
-      break;
-    }
-  }
-  if (!ret) {
-    LOG(LERROR) << "No streams found for stream id " << stream_id;
-    // TODO: trigger onError callback
-  }
-  return ret;
-}
-
-void WebRtcSession::EnableAllStreams() {
-  StreamMap::const_iterator i;
-  for (i = streams_.begin(); i != streams_.end(); ++i) {
-    cricket::BaseChannel* channel = (*i)->channel;
-    if (channel)
-      channel->Enable(true);
-  }
-}
-
-void WebRtcSession::RemoveAllStreams() {
-  SetState(STATE_RECEIVEDTERMINATE);
-
-  // signaling_thread_->Post(this, MSG_RTC_REMOVEALLSTREAMS);
-  // First build a list of streams to remove and then remove them.
-  // The reason we do this is that if we remove the streams inside the
-  // loop, a stream might get removed while we're enumerating and the iterator
-  // will become invalid (and we crash).
-  // streams_ entry will be removed from ChannelManager callback method
-  // DestroyChannel
-  std::vector<std::string> streams_to_remove;
-  StreamMap::iterator iter;
-  for (iter = streams_.begin(); iter != streams_.end(); ++iter)
-    streams_to_remove.push_back((*iter)->stream_id);
-
-  for (std::vector<std::string>::iterator i = streams_to_remove.begin();
-       i != streams_to_remove.end(); ++i) {
-    RemoveStream(*i);
-  }
-}
-
-bool WebRtcSession::HasStream(const std::string& stream_id) const {
-  StreamMap::const_iterator iter;
-  for (iter = streams_.begin(); iter != streams_.end(); ++iter) {
-    StreamInfo* sinfo = (*iter);
-    if (stream_id.compare(sinfo->stream_id) == 0) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool WebRtcSession::HasChannel(bool video) const {
-  StreamMap::const_iterator iter;
-  for (iter = streams_.begin(); iter != streams_.end(); ++iter) {
-    StreamInfo* sinfo = (*iter);
-    if (sinfo->video == video) {
-      return true;
-    }
-  }
-  return false;
-}
-
-bool WebRtcSession::HasAudioChannel() const {
-  return HasChannel(false);
-}
-
-bool WebRtcSession::HasVideoChannel() const {
-  return HasChannel(true);
-}
-
-void WebRtcSession::OnRequestSignaling(cricket::Transport* transport) {
   transport->OnSignalingReady();
 }
 
-void WebRtcSession::OnWritableState(cricket::Transport* transport) {
-  ASSERT(transport == transport_);
-  const bool transports_writable = transport_->writable();
-  if (transports_writable) {
-    if (transports_writable != transports_writable_) {
-      signaling_thread_->Clear(this, MSG_CANDIDATE_TIMEOUT);
-    } else {
-      // At one point all channels were writable and we had full connectivity,
-      // but then we lost it. Start the timeout again to kill the call if it
-      // doesn't come back.
-      StartTransportTimeout(kCallLostTimeout);
-    }
-    transports_writable_ = transports_writable;
+void WebRtcSession::OnTransportConnecting(cricket::Transport* transport) {
+  ASSERT(signaling_thread()->IsCurrent());
+  // start monitoring for the write state of the transport.
+  OnTransportWritable(transport);
+}
+
+void WebRtcSession::OnTransportWritable(cricket::Transport* transport) {
+  ASSERT(signaling_thread()->IsCurrent());
+  // If the transport is not in writable state, start a timer to monitor
+  // the state. If the transport doesn't become writable state in 30 seconds
+  // then we are assuming call can't be continued.
+  signaling_thread()->Clear(this, MSG_CANDIDATE_TIMEOUT);
+  if (transport->HasChannels() && !transport->writable()) {
+    signaling_thread()->PostDelayed(
+        kCallSetupTimeout, this, MSG_CANDIDATE_TIMEOUT);
   }
-  NotifyTransportState();
-  return;
 }
 
-void WebRtcSession::StartTransportTimeout(int timeout) {
-  talk_base::Thread::Current()->PostDelayed(timeout, this,
-                                            MSG_CANDIDATE_TIMEOUT,
-                                            NULL);
+void WebRtcSession::OnTransportCandidatesReady(
+    cricket::Transport* transport, const cricket::Candidates& candidates) {
+  ASSERT(signaling_thread()->IsCurrent());
+  // Any new candidates after offer is sent will be dropped here.
+  if (offer_sent_)
+    return;
+  InsertTransportCandidates(candidates);
 }
 
-void WebRtcSession::NotifyTransportState() {
+void WebRtcSession::SendCandidates() {
+  ASSERT(!local_candidates_.empty());
+  observer_->OnCandidatesReady(local_candidates_);
+  offer_sent_ = true;
 }
 
-bool WebRtcSession::OnInitiateMessage(
-    cricket::SessionDescription* offer,
-    const std::vector<cricket::Candidate>& candidates) {
-  if (!offer) {
-    LOG(LERROR) << "No SessionDescription from peer";
+void WebRtcSession::OnTransportChannelGone(cricket::Transport* transport,
+                                           const std::string& name) {
+  ASSERT(signaling_thread()->IsCurrent());
+}
+
+void WebRtcSession::OnMessage(talk_base::Message* msg) {
+  switch (msg->message_id) {
+    case MSG_CANDIDATE_TIMEOUT:
+      LOG(LS_ERROR) << "Transport is not in writable state.";
+      SignalError();
+      break;
+    case MSG_CANDIDATE_DISCOVERY_TIMEOUT:
+      SendCandidates();
+      break;
+    default:
+      break;
+  }
+}
+
+void WebRtcSession::InsertTransportCandidates(
+    const cricket::Candidates& candidates) {
+  for (cricket::Candidates::const_iterator citer = candidates.begin();
+       citer != candidates.end(); ++citer) {
+    local_candidates_.push_back(*citer);
+  }
+}
+
+bool WebRtcSession::SetCaptureDevice(const std::string& name,
+                                     cricket::VideoCapturer* camera) {
+  // should be called from a signaling thread
+  ASSERT(signaling_thread()->IsCurrent());
+
+  // TODO: Refactor this when there is support for multiple cameras.
+  const uint32 dummy_ssrc = 0;
+  if (!channel_manager_->SetVideoCapturer(camera, dummy_ssrc)) {
+    LOG(LS_ERROR) << "Failed to set capture device.";
     return false;
   }
 
-  // Get capabilities from offer before generating an answer to it.
-  cricket::MediaSessionOptions options;
-  if (GetFirstAudioContent(offer))
-    options.has_audio = true;
-  if (GetFirstVideoContent(offer))
-    options.has_video = true;
-
-  talk_base::scoped_ptr<cricket::SessionDescription> answer;
-  answer.reset(CreateAnswer(offer, options));
-
-  if (!answer.get()) {
+  // Start the capture
+  cricket::CaptureResult ret = channel_manager_->SetVideoCapture(true);
+  if (ret != cricket::CR_SUCCESS && ret != cricket::CR_PENDING) {
+    LOG(LS_ERROR) << "Failed to start the capture device.";
     return false;
   }
 
-  const cricket::ContentInfo* audio_content = GetFirstAudioContent(
-      answer.get());
-  const cricket::ContentInfo* video_content = GetFirstVideoContent(
-      answer.get());
+  return true;
+}
 
-  if (!audio_content && !video_content) {
-    return false;
+void WebRtcSession::SetLocalRenderer(const std::string& name,
+                                     cricket::VideoRenderer* renderer) {
+  ASSERT(signaling_thread()->IsCurrent());
+  // TODO: Fix SetLocalRenderer.
+  // video_channel_->SetLocalRenderer(0, renderer);
+}
+
+void WebRtcSession::SetRemoteRenderer(const std::string& name,
+                                      cricket::VideoRenderer* renderer) {
+  ASSERT(signaling_thread()->IsCurrent());
+
+  const cricket::ContentInfo* video_info =
+      cricket::GetFirstVideoContent(remote_description());
+  if (!video_info) {
+    LOG(LS_ERROR) << "Video not received in this call";
   }
 
-  bool ret = true;
-  if (audio_content) {
-    ret = !HasAudioChannel() &&
-          CreateVoiceChannel(audio_content->name);
-    if (!ret) {
-      LOG(LERROR) << "Failed to create voice channel for "
-                  << audio_content->name;
-      return false;
-    }
-  }
-
-  if (video_content) {
-    ret = !HasVideoChannel() &&
-          CreateVideoChannel(video_content->name);
-    if (!ret) {
-      LOG(LERROR) << "Failed to create video channel for "
-                  << video_content->name;
-      return false;
-    }
-  }
-  // Provide remote candidates to the transport
-  transport_->OnRemoteCandidates(candidates);
-
-  set_remote_description(offer);
-  SetState(STATE_RECEIVEDINITIATE);
-
-  transport_->ConnectChannels();
-  EnableAllStreams();
-
-  set_local_description(answer.release());
-
-  // AddStream called only once with Video label
-  if (video_content) {
-    SignalAddStream(video_content->name, true);
+  const cricket::MediaContentDescription* video_content =
+      static_cast<const cricket::MediaContentDescription*>(
+          video_info->description);
+  cricket::StreamParams stream;
+  if (cricket::GetStreamByNickAndName(video_content->streams(), "", name,
+                                      &stream)) {
+    video_channel_->SetRenderer(stream.first_ssrc(), renderer);
   } else {
-    SignalAddStream(audio_content->name, false);
+    // Allow that |stream| does not exist if renderer is null but assert
+    // otherwise.
+    VERIFY(renderer == NULL);
   }
-  SetState(STATE_SENTACCEPT);
-  return true;
 }
 
-bool WebRtcSession::OnRemoteDescription(
-    cricket::SessionDescription* desc,
-    const std::vector<cricket::Candidate>& candidates) {
-  if (state() == STATE_SENTACCEPT ||
-      state() == STATE_RECEIVEDACCEPT ||
-      state() == STATE_INPROGRESS) {
-    transport_->OnRemoteCandidates(candidates);
-    return true;
+cricket::SessionDescription* WebRtcSession::CreateOffer(
+    const cricket::MediaSessionOptions& options) {
+  if (!options.has_video) {
+    LOG(LS_WARNING) << "To receive video, has_video flag must be set to true";
+    return NULL;
   }
-  // Session description is always accepted.
-  set_remote_description(desc);
-  SetState(STATE_RECEIVEDACCEPT);
-  // Will trigger OnWritableState() if successful.
-  transport_->OnRemoteCandidates(candidates);
 
-  if (!incoming()) {
-    // Trigger OnAddStream callback at the initiator
-    const cricket::ContentInfo* video_content = GetFirstVideoContent(desc);
-    if (video_content && !SendSignalAddStream(true)) {
-      LOG(LERROR) << "Video stream unexpected in answer.";
-      return false;
-    } else {
-      const cricket::ContentInfo* audio_content = GetFirstAudioContent(desc);
-      if (audio_content && !SendSignalAddStream(false)) {
-        LOG(LERROR) << "Audio stream unexpected in answer.";
-        return false;
-      }
-    }
-  }
-  return true;
-}
+  cricket::SessionDescription* offer(
+      session_desc_factory_.CreateOffer(options, local_description()));
 
-// Send the SignalAddStream with the stream_id based on the content type.
-bool WebRtcSession::SendSignalAddStream(bool video) {
-  StreamMap::const_iterator iter;
-  for (iter = streams_.begin(); iter != streams_.end(); ++iter) {
-    StreamInfo* sinfo = (*iter);
-    if (sinfo->video == video) {
-      SignalAddStream(sinfo->stream_id, video);
-      return true;
-    }
-  }
-  return false;
-}
-
-cricket::SessionDescription* WebRtcSession::CreateOffer() {
-  cricket::MediaSessionOptions options;
-  options.has_audio = false;  // disable default option
-  StreamMap::const_iterator iter;
-  for (iter = streams_.begin(); iter != streams_.end(); ++iter) {
-    if ((*iter)->video) {
-      options.has_video = true;
-    } else {
-      options.has_audio = true;
-    }
-  }
-  // We didn't save the previous offer.
-  const cricket::SessionDescription* previous_offer = NULL;
-  return desc_factory_.CreateOffer(options, previous_offer);
+  // MediaSessionDescriptionFactory always creates one StreamParams for
+  // legacy reasons even if options don't contain any streams.
+  // We need to remove it in that case since here options contains all streams
+  // we want to send.
+  RemoveLegacyStreams(options, offer);
+  return offer;
 }
 
 cricket::SessionDescription* WebRtcSession::CreateAnswer(
     const cricket::SessionDescription* offer,
     const cricket::MediaSessionOptions& options) {
-  // We didn't save the previous answer.
-  const cricket::SessionDescription* previous_answer = NULL;
-  return desc_factory_.CreateAnswer(offer, options, previous_answer);
+  cricket::SessionDescription* answer(
+      session_desc_factory_.CreateAnswer(offer, options,
+                                         local_description()));
+  // MediaSessionDescriptionFactory always creates one StreamParams for
+  // legacy reasons even if options don't contain any streams.
+  // We need to remove it in that case since here options contains all streams
+  // we want to send.
+  RemoveLegacyStreams(options, answer);
+  return answer;
 }
 
-void WebRtcSession::SetError(Error error) {
-  BaseSession::SetError(error);
-}
-
-void WebRtcSession::OnCandidatesReady(
-    cricket::Transport* transport,
-    const std::vector<cricket::Candidate>& candidates) {
-  std::vector<cricket::Candidate>::const_iterator iter;
-  for (iter = candidates.begin(); iter != candidates.end(); ++iter) {
-    local_candidates_.push_back(*iter);
+void WebRtcSession::SetLocalDescription(const cricket::SessionDescription* desc,
+                                        cricket::ContentAction type) {
+  if (!VERIFY((type == cricket::CA_ANSWER &&
+               state() == STATE_RECEIVEDINITIATE) ||
+              (type == cricket::CA_OFFER &&
+               (state() != STATE_RECEIVEDINITIATE &&
+                state() != STATE_SENTINITIATE)))) {
+    LOG(LS_ERROR) << "SetLocalDescription called with action in wrong state, "
+                  << "action: " << type << " state: " << state();
+    return;
   }
-  SignalLocalDescription(local_description(), candidates);
+
+  set_local_description(desc);
+  if (type == cricket::CA_ANSWER) {
+    EnableChannels();
+    SetState(STATE_SENTACCEPT);
+  } else {
+    SetState(STATE_SENTINITIATE);
+  }
 }
-} /* namespace webrtc */
+
+void WebRtcSession::SetRemoteDescription(cricket::SessionDescription* desc,
+                                         cricket::ContentAction type) {
+  if (!VERIFY((type == cricket::CA_ANSWER &&
+               state() == STATE_SENTINITIATE) ||
+              (type == cricket::CA_OFFER &&
+               (state() != STATE_RECEIVEDINITIATE &&
+                state() != STATE_SENTINITIATE)))) {
+    LOG(LS_ERROR) << "SetRemoteDescription called with action in wrong state, "
+                  << "action: " << type << " state: " << state();
+    return;
+  }
+  set_remote_description(desc);
+
+  if (type  == cricket::CA_ANSWER) {
+    EnableChannels();
+    SetState(STATE_RECEIVEDACCEPT);
+  } else {
+    SetState(STATE_RECEIVEDINITIATE);
+  }
+}
+
+void WebRtcSession::SetRemoteCandidates(
+    const cricket::Candidates& candidates) {
+  // First partition the candidates for the proxies. During creation of channels
+  // we created CN_AUDIO (audio) and CN_VIDEO (video) proxies.
+  cricket::Candidates audio_candidates;
+  cricket::Candidates video_candidates;
+  for (cricket::Candidates::const_iterator citer = candidates.begin();
+       citer != candidates.end(); ++citer) {
+    if (((*citer).name().compare(kRtpVideoChannelStr) == 0) ||
+        ((*citer).name().compare(kRtcpVideoChannelStr)) == 0) {
+      // Candidate names for video rtp and rtcp channel
+      video_candidates.push_back(*citer);
+    } else {
+      // Candidates for audio rtp and rtcp channel
+      // Channel name will be "rtp" and "rtcp"
+      audio_candidates.push_back(*citer);
+    }
+  }
+
+  // TODO: Justins comment:This is bad encapsulation, suggest we add a
+  // helper to BaseSession to allow us to
+  // pass in candidates without touching the transport proxies.
+  if (!audio_candidates.empty()) {
+    cricket::TransportProxy* audio_proxy = GetTransportProxy(cricket::CN_AUDIO);
+    if (audio_proxy) {
+      // CompleteNegotiation will set actual impl's in Proxy.
+      if (!audio_proxy->negotiated())
+        audio_proxy->CompleteNegotiation();
+      // TODO - Add a interface to TransportProxy to accept
+      // remote candidate list.
+      audio_proxy->impl()->OnRemoteCandidates(audio_candidates);
+    } else {
+      LOG(LS_INFO) << "No audio TransportProxy exists";
+    }
+  }
+
+  if (!video_candidates.empty()) {
+    cricket::TransportProxy* video_proxy = GetTransportProxy(cricket::CN_VIDEO);
+    if (video_proxy) {
+      // CompleteNegotiation will set actual impl's in Proxy.
+      if (!video_proxy->negotiated())
+        video_proxy->CompleteNegotiation();
+      // TODO - Add a interface to TransportProxy to accept
+      // remote candidate list.
+      video_proxy->impl()->OnRemoteCandidates(video_candidates);
+    } else {
+      LOG(LS_INFO) << "No video TransportProxy exists";
+    }
+  }
+}
+
+}  // namespace webrtc

@@ -236,8 +236,9 @@ class TsanAnalyzer(object):
 
     retcode = 0
     if reports:
-      logging.error("FAIL! Found %i report(s)" % len(reports))
+      sys.stdout.flush()
       sys.stderr.flush()
+      logging.info("FAIL! Found %i report(s)" % len(reports))
       for report in reports:
         logging.info('\n' + report)
       sys.stdout.flush()

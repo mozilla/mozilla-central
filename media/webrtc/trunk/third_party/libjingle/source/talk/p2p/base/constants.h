@@ -118,7 +118,7 @@ extern const char CN_VIDEO[];
 extern const char CN_OTHER[];
 // other SDP related strings
 // GN stands for group name
-extern const char GN_TOGETHER[];
+extern const char GN_BUNDLE[];
 
 extern const char NS_JINGLE_RTP[];
 extern const buzz::StaticQName QN_JINGLE_RTP_CONTENT;

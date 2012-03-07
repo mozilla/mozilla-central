@@ -123,7 +123,8 @@ class TestChannel : public sigslot::has_slots<> {
   }
 
   void OnUnknownAddress(Port* port, const SocketAddress& addr,
-                        StunMessage* msg, const std::string& rf) {
+                        StunMessage* msg, const std::string& rf,
+                        bool /*port_muxed*/) {
     ASSERT_EQ(src_.get(), port);
     if (!remote_address_.IsAny()) {
       ASSERT_EQ(remote_address_, addr);

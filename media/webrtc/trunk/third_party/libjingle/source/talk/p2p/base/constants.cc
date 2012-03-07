@@ -99,7 +99,7 @@ const char CN_AUDIO[] = "audio";
 const char CN_VIDEO[] = "video";
 const char CN_OTHER[] = "main";
 // other SDP related strings
-const char GN_TOGETHER[] = "TOGETHER";
+const char GN_BUNDLE[] = "BUNDLE";
 
 const char NS_JINGLE_RTP[] = "urn:xmpp:jingle:apps:rtp:1";
 const buzz::StaticQName QN_JINGLE_RTP_CONTENT =

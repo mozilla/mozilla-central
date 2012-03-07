@@ -46,7 +46,6 @@ class ChannelManager;
 typedef std::vector<AudioCodec> AudioCodecs;
 typedef std::vector<VideoCodec> VideoCodecs;
 typedef std::vector<CryptoParams> CryptoParamsVec;
-typedef std::vector<StreamParams> StreamParamsVec;
 
 // SEC_ENABLED and SEC_REQUIRED should only be used if the session
 // was negotiated over TLS, to protect the inline crypto material
@@ -120,10 +119,13 @@ class MediaContentDescription : public ContentDescription {
         bandwidth_(kAutoBandwidth),
         crypto_required_(false),
         rtp_header_extensions_set_(false),
-        multistream_(false) {
+        multistream_(false),
+        conference_mode_(false),
+        partial_(false) {
   }
 
   virtual MediaType type() const = 0;
+  virtual bool has_codecs() const = 0;
 
   bool rtcp_mux() const { return rtcp_mux_; }
   void set_rtcp_mux(bool mux) { rtcp_mux_ = mux; }
@@ -177,7 +179,15 @@ class MediaContentDescription : public ContentDescription {
   void AddLegacyStream(uint32 ssrc) {
     streams_.push_back(StreamParams::CreateLegacy(ssrc));
   }
-
+  // Sets the CNAME of all StreamParams if it have not been set.
+  // This can be used to set the CNAME of legacy streams.
+  void SetCnameIfEmpty(const std::string& cname) {
+    for (cricket::StreamParamsVec::iterator it = streams_.begin();
+         it != streams_.end(); ++it) {
+      if (it->cname.empty())
+        it->cname = cname;
+    }
+  }
   uint32 first_ssrc() const {
     if (streams_.empty()) {
       return 0;
@@ -191,6 +201,12 @@ class MediaContentDescription : public ContentDescription {
     return streams_[0].has_ssrcs();
   }
 
+  void set_conference_mode(bool enable) { conference_mode_ = enable; }
+  bool conference_mode() const { return conference_mode_; }
+
+  void set_partial(bool partial) { partial_ = partial; }
+  bool partial() const { return partial_;  }
+
  protected:
   bool rtcp_mux_;
   int bandwidth_;
@@ -200,6 +216,8 @@ class MediaContentDescription : public ContentDescription {
   bool rtp_header_extensions_set_;
   bool multistream_;
   StreamParamsVec streams_;
+  bool conference_mode_;
+  bool partial_;
 };
 
 template <class C>
@@ -210,6 +228,8 @@ class MediaContentDescriptionImpl : public MediaContentDescription {
   };
 
   const std::vector<C>& codecs() const { return codecs_; }
+  void set_codecs(const std::vector<C>& codecs) { codecs_ = codecs; }
+  virtual bool has_codecs() const { return !codecs_.empty(); }
   void AddCodec(const C& codec) {
     codecs_.push_back(codec);
   }
@@ -224,15 +244,9 @@ class MediaContentDescriptionImpl : public MediaContentDescription {
 class AudioContentDescription : public MediaContentDescriptionImpl<AudioCodec> {
  public:
   AudioContentDescription() :
-      agc_minus_10db_(false),
-      conference_mode_(false) {}
+      agc_minus_10db_(false) {}
 
   virtual MediaType type() const { return MEDIA_TYPE_AUDIO; }
-
-  bool conference_mode() const { return conference_mode_; }
-  void set_conference_mode(bool enable) {
-    conference_mode_ = enable;
-  }
 
   const std::string &lang() const { return lang_; }
   void set_lang(const std::string &lang) { lang_ = lang; }
@@ -246,7 +260,6 @@ class AudioContentDescription : public MediaContentDescriptionImpl<AudioCodec> {
   bool agc_minus_10db_;
 
  private:
-  bool conference_mode_;
   std::string lang_;
 };
 
@@ -272,15 +285,15 @@ class MediaSessionDescriptionFactory {
   void set_video_codecs(const VideoCodecs& codecs) { video_codecs_ = codecs; }
   SecureMediaPolicy secure() const { return secure_; }
   void set_secure(SecureMediaPolicy s) { secure_ = s; }
-
+  // Decides if a StreamParams shall be added to the audio and video media
+  // content in SessionDescription when CreateOffer and CreateAnswer is called
+  // even if |options| don't include a Stream. This is needed to support legacy
+  // applications. |add_legacy_| is true per default.
+  void set_add_legacy_streams(bool add_legacy) { add_legacy_ = add_legacy; }
 
   SessionDescription* CreateOffer(
       const MediaSessionOptions& options,
       const SessionDescription* current_description);
-
-
-
-
 
   SessionDescription* CreateAnswer(
         const SessionDescription* offer,
@@ -291,14 +304,21 @@ class MediaSessionDescriptionFactory {
   AudioCodecs audio_codecs_;
   VideoCodecs video_codecs_;
   SecureMediaPolicy secure_;
+  bool add_legacy_;
   std::string lang_;
 };
 
 // Convenience functions.
 bool IsAudioContent(const ContentInfo* content);
 bool IsVideoContent(const ContentInfo* content);
+const ContentInfo* GetFirstAudioContent(const ContentInfos& contents);
+const ContentInfo* GetFirstVideoContent(const ContentInfos& contents);
 const ContentInfo* GetFirstAudioContent(const SessionDescription* sdesc);
 const ContentInfo* GetFirstVideoContent(const SessionDescription* sdesc);
+const AudioContentDescription* GetFirstAudioContentDescription(
+    const SessionDescription* sdesc);
+const VideoContentDescription* GetFirstVideoContentDescription(
+    const SessionDescription* sdesc);
 
 }  // namespace cricket
 

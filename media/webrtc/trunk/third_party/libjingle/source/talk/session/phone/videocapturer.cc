@@ -105,6 +105,7 @@ bool VideoCapturer::GetBestCaptureFormat(const VideoFormat& desired,
     }
   }
   if (supported_formats_->end() == best) {
+    LOG(LS_ERROR) << " No acceptable camera format found";
     return false;
   }
 
@@ -207,10 +208,11 @@ int64 VideoCapturer::GetFormatDistance(const VideoFormat& desired,
   if (delta_fps < 0) {
     // For same resolution, prefer higher framerate but accept lower.
     // Otherwise prefer higher resolution.
-    distance |= static_cast<int64>(1) << 15;
     delta_fps = -delta_fps;
-    if (supported_fps <  kMinDesirableFps) {
-      distance |= kMaxDistance;
+    if (supported_fps < kMinDesirableFps) {
+      distance |= static_cast<int64>(1) << 62;
+    } else {
+      distance |= static_cast<int64>(1) << 15;
     }
   }
 

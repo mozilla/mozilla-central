@@ -591,7 +591,13 @@ class PosixSignalHandler {
   // for 128.
   static const int kNumPosixSignals = 128;
 
-  static PosixSignalHandler *Instance() { return &instance_; }
+  // There is just a single global instance. (Signal handlers do not get any
+  // sort of user-defined void * parameter, so they can't access anything that
+  // isn't global.)
+  static PosixSignalHandler* Instance() {
+    LIBJINGLE_DEFINE_STATIC_LOCAL(PosixSignalHandler, instance, ());
+    return &instance;
+  }
 
   // Returns true if the given signal number is set.
   bool IsSignalSet(int signum) const {
@@ -674,11 +680,6 @@ class PosixSignalHandler {
     close(fd2);
   }
 
-  // There is just a single global instance. (Signal handlers do not get any
-  // sort of user-defined void * parameter, so they can't access anything that
-  // isn't global.)
-  static PosixSignalHandler instance_;
-
   int afd_[2];
   // These are boolean flags that will be set in our signal handler and read
   // and cleared from Wait(). There is a race involved in this, but it is
@@ -692,8 +693,6 @@ class PosixSignalHandler {
   // so I've marked it as such.
   volatile uint8 received_signal_[kNumPosixSignals];
 };
-
-PosixSignalHandler PosixSignalHandler::instance_;
 
 class PosixSignalDispatcher : public Dispatcher {
  public:

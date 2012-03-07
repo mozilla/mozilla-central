@@ -2,12 +2,11 @@
 
 TOOLSET := target
 TARGET := rtp_rtcp_unittests
-DEFS_Debug := '-DNO_HEAPCHECKER' \
+DEFS_Debug := '-D_FILE_OFFSET_BITS=64' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
 	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
-	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
@@ -17,6 +16,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
 	'-DENABLE_REGISTER_PROTOCOL_HANDLER=1' \
+	'-DENABLE_WEB_INTENTS=1' \
+	'-DENABLE_PLUGIN_INSTALLATION=1' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
@@ -31,14 +32,16 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 CFLAGS_Debug := -Werror \
 	-pthread \
 	-fno-exceptions \
+	-fno-strict-aliasing \
 	-Wall \
 	-Wno-unused-parameter \
 	-Wno-missing-field-initializers \
-	-D_FILE_OFFSET_BITS=64 \
 	-fvisibility=hidden \
 	-pipe \
 	-fPIC \
-	-fno-strict-aliasing \
+	-Wextra \
+	-Wno-unused-parameter \
+	-Wno-missing-field-initializers \
 	-O0 \
 	-g
 
@@ -60,12 +63,11 @@ INCS_Debug := -Isrc \
 	-Itesting/gtest/include \
 	-Isrc/system_wrappers/interface
 
-DEFS_Release := '-DNO_HEAPCHECKER' \
+DEFS_Release := '-D_FILE_OFFSET_BITS=64' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
 	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
-	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
@@ -75,6 +77,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
 	'-DENABLE_REGISTER_PROTOCOL_HANDLER=1' \
+	'-DENABLE_WEB_INTENTS=1' \
+	'-DENABLE_PLUGIN_INSTALLATION=1' \
 	'-DWEBRTC_TARGET_PC' \
 	'-DWEBRTC_LINUX' \
 	'-DWEBRTC_THREAD_RR' \
@@ -89,14 +93,16 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 CFLAGS_Release := -Werror \
 	-pthread \
 	-fno-exceptions \
+	-fno-strict-aliasing \
 	-Wall \
 	-Wno-unused-parameter \
 	-Wno-missing-field-initializers \
-	-D_FILE_OFFSET_BITS=64 \
 	-fvisibility=hidden \
 	-pipe \
 	-fPIC \
-	-fno-strict-aliasing \
+	-Wextra \
+	-Wno-unused-parameter \
+	-Wno-missing-field-initializers \
 	-O2 \
 	-fno-ident \
 	-fdata-sections \
@@ -123,10 +129,13 @@ INCS_Release := -Isrc \
 OBJS := $(obj).target/$(TARGET)/src/modules/rtp_rtcp/source/rtp_format_vp8_unittest.o \
 	$(obj).target/$(TARGET)/src/modules/rtp_rtcp/source/rtp_format_vp8_test_helper.o \
 	$(obj).target/$(TARGET)/src/modules/rtp_rtcp/source/rtcp_format_remb_unittest.o \
+	$(obj).target/$(TARGET)/src/modules/rtp_rtcp/source/rtp_packet_history_test.o \
 	$(obj).target/$(TARGET)/src/modules/rtp_rtcp/source/rtp_utility_test.o \
 	$(obj).target/$(TARGET)/src/modules/rtp_rtcp/source/rtp_header_extension_test.o \
 	$(obj).target/$(TARGET)/src/modules/rtp_rtcp/source/rtp_sender_test.o \
-	$(obj).target/$(TARGET)/src/modules/rtp_rtcp/source/rtcp_sender_test.o
+	$(obj).target/$(TARGET)/src/modules/rtp_rtcp/source/rtcp_sender_test.o \
+	$(obj).target/$(TARGET)/src/modules/rtp_rtcp/source/transmission_bucket_test.o \
+	$(obj).target/$(TARGET)/src/modules/rtp_rtcp/source/vp8_partition_aggregator_unittest.o
 
 # Add to the list of files we specially track dependencies for.
 all_deps += $(OBJS)
@@ -137,8 +146,8 @@ $(OBJS): | $(obj).target/src/modules/librtp_rtcp.a $(obj).target/testing/libgtes
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
 $(OBJS): TOOLSET := $(TOOLSET)
-$(OBJS): GYP_CFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE)) $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_C_$(BUILDTYPE))
-$(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE)) $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_CC_$(BUILDTYPE))
+$(OBJS): GYP_CFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_C_$(BUILDTYPE))
+$(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_CC_$(BUILDTYPE))
 
 # Suffix rules, putting all outputs into $(obj).
 
@@ -157,11 +166,13 @@ $(obj).$(TOOLSET)/$(TARGET)/%.o: $(obj)/%.cc FORCE_DO_CMD
 ### Rules for final target.
 LDFLAGS_Debug := -pthread \
 	-Wl,-z,noexecstack \
-	-fPIC
+	-fPIC \
+	-B$(builddir)/../../third_party/gold
 
 LDFLAGS_Release := -pthread \
 	-Wl,-z,noexecstack \
 	-fPIC \
+	-B$(builddir)/../../third_party/gold \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections
@@ -179,8 +190,4 @@ all_deps += $(builddir)/rtp_rtcp_unittests
 # Add target alias
 .PHONY: rtp_rtcp_unittests
 rtp_rtcp_unittests: $(builddir)/rtp_rtcp_unittests
-
-# Add executable to "all" target.
-.PHONY: all
-all: $(builddir)/rtp_rtcp_unittests
 

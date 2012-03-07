@@ -28,6 +28,7 @@
 #ifndef TALK_SESSION_PHONE_WEBRTCVIDEOENGINE_H_
 #define TALK_SESSION_PHONE_WEBRTCVIDEOENGINE_H_
 
+#include <map>
 #include <vector>
 
 #include "talk/base/scoped_ptr.h"
@@ -49,8 +50,9 @@ class ViEExternalCapture;
 
 namespace cricket {
 struct CapturedFrame;
+class WebRtcVideoChannelInfo;
 struct Device;
-class LocalStreamInfo;
+class WebRtcLocalStreamInfo;
 class VideoCapturer;
 class VideoFrame;
 class VideoProcessor;
@@ -127,9 +129,9 @@ class WebRtcVideoEngine : public sigslot::has_slots<>,
   void RegisterChannel(WebRtcVideoMediaChannel* channel);
   void UnregisterChannel(WebRtcVideoMediaChannel* channel);
   void ConvertToCricketVideoCodec(const webrtc::VideoCodec& in_codec,
-                                  VideoCodec& out_codec);
+                                  VideoCodec*  out_codec);
   bool ConvertFromCricketVideoCodec(const VideoCodec& in_codec,
-                                    webrtc::VideoCodec& out_codec);
+                                    webrtc::VideoCodec* out_codec);
   // Check whether the supplied trace should be ignored.
   bool ShouldIgnoreTrace(const std::string& trace);
   int GetNumOfChannels();
@@ -156,7 +158,7 @@ class WebRtcVideoEngine : public sigslot::has_slots<>,
                  WebRtcVoiceEngine* voice_engine);
   bool SetDefaultCodec(const VideoCodec& codec);
   bool RebuildCodecList(const VideoCodec& max_codec);
-  void ApplyLogging();
+  void ApplyLogging(const std::string& log_filter);
   bool InitVideoEngine();
   bool SetCapturer(VideoCapturer* capturer, bool own_capturer);
 
@@ -208,13 +210,17 @@ class WebRtcVideoMediaChannel : public VideoMediaChannel,
   // VideoMediaChannel implementation
   virtual bool SetRecvCodecs(const std::vector<VideoCodec> &codecs);
   virtual bool SetSendCodecs(const std::vector<VideoCodec> &codecs);
+  virtual bool SetSendStreamFormat(uint32 ssrc, const VideoFormat& format);
   virtual bool SetRender(bool render);
   virtual bool SetSend(bool send);
-  virtual bool AddStream(uint32 ssrc, uint32 voice_ssrc);
-  virtual bool RemoveStream(uint32 ssrc);
+
+  virtual bool AddSendStream(const StreamParams& sp);
+  virtual bool RemoveSendStream(uint32 ssrc);
+  virtual bool AddRecvStream(const StreamParams& sp);
+  virtual bool RemoveRecvStream(uint32 ssrc);
   virtual bool SetRenderer(uint32 ssrc, VideoRenderer* renderer);
   virtual bool GetStats(VideoMediaInfo* info);
-  virtual bool AddScreencast(uint32 ssrc, talk_base::WindowId id) {
+  virtual bool AddScreencast(uint32 ssrc, const ScreencastId& id) {
     return false;
   }
   virtual bool RemoveScreencast(uint32 ssrc) {
@@ -225,8 +231,6 @@ class WebRtcVideoMediaChannel : public VideoMediaChannel,
 
   virtual void OnPacketReceived(talk_base::Buffer* packet);
   virtual void OnRtcpReceived(talk_base::Buffer* packet);
-  virtual void SetSendSsrc(uint32 id);
-  virtual bool SetRtcpCName(const std::string& cname);
   virtual bool Mute(bool on);
   virtual bool SetRecvRtpHeaderExtensions(
       const std::vector<RtpHeaderExtension>& extensions) {
@@ -242,10 +246,7 @@ class WebRtcVideoMediaChannel : public VideoMediaChannel,
 
   // Public functions for use by tests and other specialized code.
   uint32 send_ssrc() const { return 0; }
-  bool GetRenderer(uint32 ssrc, VideoRenderer** renderer) {
-    *renderer = NULL;
-    return false;
-  }
+  bool GetRenderer(uint32 ssrc, VideoRenderer** renderer);
   bool SendFrame(uint32 ssrc, const VideoFrame* frame);
 
   // Thunk functions for use with HybridVideoEngine
@@ -261,16 +262,31 @@ class WebRtcVideoMediaChannel : public VideoMediaChannel,
   virtual int SendRTCPPacket(int channel, const void* data, int len);
 
  private:
-  bool EnableRtcp();
-  bool EnablePli();
-  bool EnableTmmbr();
-  bool EnableNack();
-  bool SetNackFec(int red_payload_type, int fec_payload_type);
+  typedef std::map<uint32, WebRtcVideoChannelInfo*> ChannelMap;
+
+  // Creates and initializes a WebRtc video channel.
+  bool ConfigureChannel(int channel_id);
+  bool ConfigureReceiving(int channel_id, uint32 remote_ssrc);
+  bool SetNackFec(int channel_id, int red_payload_type, int fec_payload_type);
   bool SetSendCodec(const webrtc::VideoCodec& codec,
                     int min_bitrate,
                     int start_bitrate,
                     int max_bitrate);
-  bool ResetRecvCodecs(int channel);
+  // Prepares the channel with channel id |channel_id| to receive all codecs in
+  // |receive_codecs_| and start receive packets.
+  bool SetReceiveCodecs(int channel_id);
+  // Returns the channel number that receives the stream with SSRC |ssrc|.
+  int GetChannelNum(uint32 ssrc);
+  // Given captured video frame size, checks if we need to reset vie send codec.
+  // |reset| is set to whether resetting has happened on vie or not.
+  // Returns false on error.
+  bool MaybeResetVieSendCodec(int new_width, int new_height, bool* reset);
+  // Call Webrtc function to start sending media on |vie_channel_|.
+  // Does not affect |sending_|.
+  bool StartSend();
+  // Call Webrtc function to stop sending media on |vie_channel_|.
+  // Does not affect |sending_|.
+  bool StopSend();
 
   WebRtcVideoEngine* engine_;
   VoiceMediaChannel* voice_channel_;
@@ -280,14 +296,19 @@ class WebRtcVideoMediaChannel : public VideoMediaChannel,
   bool sending_;
   bool render_started_;
   bool muted_;  // Flag to tell if we need to mute video.
+  // Our local SSRC. Currently only one send stream is supported.
+  uint32 local_ssrc_;
+  uint32 first_receive_ssrc_;
   int send_min_bitrate_;
   int send_start_bitrate_;
   int send_max_bitrate_;
   talk_base::scoped_ptr<webrtc::VideoCodec> send_codec_;
-  talk_base::scoped_ptr<WebRtcRenderAdapter> remote_renderer_;
-  talk_base::scoped_ptr<WebRtcDecoderObserver> decoder_observer_;
+  std::vector<webrtc::VideoCodec> receive_codecs_;
   talk_base::scoped_ptr<WebRtcEncoderObserver> encoder_observer_;
-  talk_base::scoped_ptr<LocalStreamInfo> local_stream_info_;
+  talk_base::scoped_ptr<WebRtcLocalStreamInfo> local_stream_info_;
+  int channel_options_;
+
+  ChannelMap mux_channels_;  // Contains all receive channels.
 };
 
 }  // namespace cricket

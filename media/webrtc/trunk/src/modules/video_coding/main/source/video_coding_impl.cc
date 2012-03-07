@@ -1308,8 +1308,8 @@ VideoCodingModuleImpl::ResetDecoder()
     {
         _receiver.Initialize();
         _timing.Reset();
-        return _decoder->Reset();
         _scheduleKeyRequest = false;
+        _decoder->Reset();
     }
     if (_dualReceiver.State() != kPassive)
     {
@@ -1401,32 +1401,6 @@ VideoCodingModuleImpl::IncomingPacket(const WebRtc_UWord8* incomingPayload,
       ResetDecoder();
     } else if (ret < 0) {
       return ret;
-    }
-    return VCM_OK;
-}
-
-// Set codec config parameters
-WebRtc_Word32
-VideoCodingModuleImpl::SetCodecConfigParameters(WebRtc_UWord8 payloadType,
-                                                const WebRtc_UWord8* buffer,
-                                                WebRtc_Word32 length)
-{
-    WEBRTC_TRACE(webrtc::kTraceModuleCall,
-                 webrtc::kTraceVideoCoding,
-                 VCMId(_id),
-                 "SetCodecConfigParameters()");
-    CriticalSectionScoped cs(_receiveCritSect);
-
-    WebRtc_Word32 ret = _codecDataBase.SetCodecConfigParameters(payloadType,
-                                                                buffer,
-                                                                length);
-    if (ret < 0)
-    {
-        WEBRTC_TRACE(webrtc::kTraceError,
-                     webrtc::kTraceVideoCoding,
-                     VCMId(_id),
-                     "SetCodecConfigParameters() failed, %d", ret);
-        return ret;
     }
     return VCM_OK;
 }

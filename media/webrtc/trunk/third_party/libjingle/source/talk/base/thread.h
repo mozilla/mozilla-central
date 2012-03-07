@@ -53,10 +53,10 @@ class ThreadManager {
   ThreadManager();
   ~ThreadManager();
 
-  static Thread *CurrentThread();
-  static void SetCurrent(Thread *thread);
-  void Add(Thread *thread);
-  void Remove(Thread *thread);
+  static ThreadManager* Instance();
+
+  Thread* CurrentThread();
+  void SetCurrentThread(Thread* thread);
 
   // Returns a thread object with its thread_ ivar set
   // to whatever the OS uses to represent the thread.
@@ -71,22 +71,16 @@ class ThreadManager {
   // shame to break it.  It is also conceivable on Win32 that we won't even
   // be able to get synchronization privileges, in which case the result
   // will have a NULL handle.
-  static Thread *WrapCurrentThread();
-  static void UnwrapCurrentThread();
-
-  static void StopAllThreads_();  // Experimental
+  Thread *WrapCurrentThread();
+  void UnwrapCurrentThread();
 
  private:
-  Thread *main_thread_;
-  std::vector<Thread *> threads_;
-  CriticalSection crit_;
-
 #ifdef POSIX
-  static pthread_key_t key_;
+  pthread_key_t key_;
 #endif
 
 #ifdef WIN32
-  static DWORD key_;
+  DWORD key_;
 #endif
 
   DISALLOW_COPY_AND_ASSIGN(ThreadManager);
@@ -126,11 +120,11 @@ class Thread : public MessageQueue {
   virtual ~Thread();
 
   static inline Thread* Current() {
-    return ThreadManager::CurrentThread();
+    return ThreadManager::Instance()->CurrentThread();
   }
 
   bool IsCurrent() const {
-    return (ThreadManager::CurrentThread() == this);
+    return ThreadManager::Instance()->CurrentThread() == this;
   }
 
   // Sleeps the calling thread for the specified number of milliseconds, during
@@ -214,6 +208,11 @@ class Thread : public MessageQueue {
 
  private:
   static void *PreRun(void *pv);
+
+  // ThreadManager calls this instead WrapCurrent() because
+  // ThreadManager::Instance() cannot be used while ThreadManager is
+  // being created.
+  bool WrapCurrentWithThreadManager(ThreadManager* thread_manager);
 
   std::list<_SendMessage> sendlist_;
   std::string name_;

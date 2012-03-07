@@ -13,7 +13,6 @@
 
 #include "bwe_defines.h"
 #include "typedefs.h"
-#include "list_wrapper.h"
 
 #ifdef MATLAB
 #include "../test/BWEStandAlone/MatlabPlot.h"
@@ -30,6 +29,10 @@ public:
     RateControlRegion Update(const RateControlInput& input, bool& firstOverUse,
                              WebRtc_Word64 nowMS);
     void Reset();
+
+    // Returns true if there is a valid estimate of the incoming bitrate, false
+    // otherwise.
+    bool ValidEstimate();
 
 private:
     WebRtc_UWord32 ChangeBitRate(WebRtc_UWord32 currentBitRate,
@@ -63,9 +66,6 @@ private:
     float               _avgChangePeriod;
     WebRtc_Word64         _lastChangeMs;
     float               _beta;
-#ifdef DEBUG_DELAY_SAMPLES
-    FILE*               _delayFile;
-#endif
 #ifdef MATLAB
     MatlabPlot          *_plot1;
     MatlabPlot          *_plot2;

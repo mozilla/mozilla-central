@@ -67,6 +67,8 @@ enum {
   MSG_SETVIDEOCAPTURER = 26,
 };
 
+static const int kNotSetOutputVolume = -1;
+
 struct CreationParams : public talk_base::MessageData {
   CreationParams(BaseSession* session, const std::string& content_name,
                  bool rtcp, VoiceChannel* voice_channel)
@@ -171,6 +173,7 @@ ChannelManager::ChannelManager(talk_base::Thread* worker_thread)
       audio_in_device_(DeviceManagerInterface::kDefaultDeviceName),
       audio_out_device_(DeviceManagerInterface::kDefaultDeviceName),
       audio_options_(MediaEngineInterface::DEFAULT_AUDIO_OPTIONS),
+      audio_output_volume_(kNotSetOutputVolume),
       local_renderer_(NULL),
       capturing_(false),
       monitoring_(false) {
@@ -188,6 +191,7 @@ ChannelManager::ChannelManager(MediaEngineInterface* me,
       audio_in_device_(DeviceManagerInterface::kDefaultDeviceName),
       audio_out_device_(DeviceManagerInterface::kDefaultDeviceName),
       audio_options_(MediaEngineInterface::DEFAULT_AUDIO_OPTIONS),
+      audio_output_volume_(kNotSetOutputVolume),
       local_renderer_(NULL),
       capturing_(false),
       monitoring_(false) {
@@ -198,8 +202,6 @@ void ChannelManager::Construct() {
   // Init the device manager immediately, and set up our default video device.
   SignalDevicesChange.repeat(device_manager_->SignalDevicesChange);
   device_manager_->Init();
-  // Set camera_device_ to the name of the default video capturer.
-  SetVideoOptions(DeviceManagerInterface::kDefaultDeviceName);
 
   // Camera is started asynchronously, request callbacks when startup
   // completes to be able to forward them to the rendering manager.
@@ -281,6 +283,14 @@ bool ChannelManager::Init() {
                         << " microphone: " << audio_in_device_
                         << " speaker: " << audio_out_device_
                         << " options: " << audio_options_;
+      }
+
+      // If audio_output_volume_ has been set via SetOutputVolume(), set the
+      // audio output volume of the engine.
+      if (kNotSetOutputVolume != audio_output_volume_ &&
+          !SetOutputVolume(audio_output_volume_)) {
+        LOG(LS_WARNING) << "Failed to SetOutputVolume to "
+                        << audio_output_volume_;
       }
       if (!SetVideoOptions(camera_device_) && !camera_device_.empty()) {
         LOG(LS_WARNING) << "Failed to SetVideoOptions with camera: "
@@ -534,8 +544,17 @@ bool ChannelManager::GetOutputVolume_w(int* level) {
 }
 
 bool ChannelManager::SetOutputVolume(int level) {
-  VolumeLevel volume(level);
-  return (Send(MSG_SETOUTPUTVOLUME, &volume) && volume.result);
+  bool ret = level >= 0 && level <= 255;
+  if (initialized_) {
+    VolumeLevel volume(level);
+    ret &= Send(MSG_SETOUTPUTVOLUME, &volume) && volume.result;
+  }
+
+  if (ret) {
+    audio_output_volume_ = level;
+  }
+
+  return ret;
 }
 
 bool ChannelManager::SetOutputVolume_w(int level) {
@@ -545,22 +564,33 @@ bool ChannelManager::SetOutputVolume_w(int level) {
 }
 
 bool ChannelManager::GetVideoOptions(std::string* cam_name) {
+  if (camera_device_.empty()) {
+    // Initialize camera_device_ with default.
+    Device device;
+    if (!device_manager_->GetVideoCaptureDevice(
+        DeviceManagerInterface::kDefaultDeviceName, &device)) {
+      LOG(LS_WARNING) << "Device manager can't find default camera: " <<
+          DeviceManagerInterface::kDefaultDeviceName;
+      return false;
+    }
+    camera_device_ = device.name;
+  }
   *cam_name = camera_device_;
   return true;
 }
 
 bool ChannelManager::SetVideoOptions(const std::string& cam_name) {
   Device device;
+  bool ret = true;
   if (!device_manager_->GetVideoCaptureDevice(cam_name, &device)) {
     if (!cam_name.empty()) {
       LOG(LS_WARNING) << "Device manager can't find camera: " << cam_name;
     }
-    return false;
+    ret = false;
   }
 
   // If we're running, tell the media engine about it.
-  bool ret = true;
-  if (initialized_) {
+  if (initialized_ && ret) {
     VideoOptions options(&device);
     ret = (Send(MSG_SETVIDEOOPTIONS, &options) && options.result);
   }
@@ -568,7 +598,18 @@ bool ChannelManager::SetVideoOptions(const std::string& cam_name) {
   // If everything worked, retain the name of the selected camera.
   if (ret) {
     camera_device_ = device.name;
+  } else if (camera_device_.empty()) {
+    // When video option setting fails, we still want camera_device_ to be in a
+    // good state, so we initialize it with default if it's empty.
+    Device default_device;
+    if (!device_manager_->GetVideoCaptureDevice(
+        DeviceManagerInterface::kDefaultDeviceName, &default_device)) {
+      LOG(LS_WARNING) << "Device manager can't find default camera: " <<
+          DeviceManagerInterface::kDefaultDeviceName;
+    }
+    camera_device_ = default_device.name;
   }
+
   return ret;
 }
 

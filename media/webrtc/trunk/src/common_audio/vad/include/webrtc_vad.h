@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -110,7 +110,7 @@ WebRtc_Word16 WebRtcVad_Free(VadInst *vad_inst);
  * Return value         :  0 - Ok
  *                        -1 - Error
  */
-WebRtc_Word16 WebRtcVad_Init(VadInst *vad_inst);
+int WebRtcVad_Init(VadInst *vad_inst);
 
 /****************************************************************************
  * WebRtcVad_set_mode(...)
@@ -127,7 +127,7 @@ WebRtc_Word16 WebRtcVad_Init(VadInst *vad_inst);
  * Return value         :  0 - Ok
  *                        -1 - Error
  */
-WebRtc_Word16 WebRtcVad_set_mode(VadInst *vad_inst, WebRtc_Word16 mode);
+int WebRtcVad_set_mode(VadInst *vad_inst, WebRtc_Word16 mode);
 
 /****************************************************************************
  * WebRtcVad_Process(...)

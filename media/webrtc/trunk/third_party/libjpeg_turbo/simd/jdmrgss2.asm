@@ -476,7 +476,7 @@ EXTN(jsimd_h2v1_merged_upsample_sse2):
 	cmp	ecx, byte SIZEOF_XMMWORD/8
 	jb	short .column_st7
 	movq	MMWORD [edi], xmmA
-	add	edi, byte SIZEOF_XMMWORD/8*4
+	add	edi, byte SIZEOF_XMMWORD/2
 	sub	ecx, byte SIZEOF_XMMWORD/8
 	psrldq	xmmA, SIZEOF_XMMWORD/8*4
 .column_st7:

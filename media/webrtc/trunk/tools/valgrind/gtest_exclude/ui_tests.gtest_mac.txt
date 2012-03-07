@@ -271,3 +271,6 @@ OutOfProcessPPAPITest.*
 # Crashes intermittently.
 LoadtimesExtensionBindingsUITest.LoadTimesSameAfterClientInDocNavigation
 LoadtimesExtensionBindingsUITest.LoadTimesSameAfterUserInDocNavigation
+
+# crbug.com/110612
+IndexedDBUILayoutTest.LayoutTests

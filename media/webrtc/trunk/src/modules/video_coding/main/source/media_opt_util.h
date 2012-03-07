@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -23,8 +23,6 @@
 
 namespace webrtc
 {
-class ListWrapper;
-
 // Number of time periods used for (max) window filter for packet loss
 // TODO (marpan): set reasonable window size for filtered packet loss,
 // adjustment should be based on logged/real data of loss stats/correlation.
@@ -32,6 +30,14 @@ enum { kLossPrHistorySize = 10 };
 
 // 1000 ms, total filter length is (kLossPrHistorySize * 1000) ms
 enum { kLossPrShortFilterWinMs = 1000 };
+
+// The type of filter used on the received packet loss reports.
+enum FilterPacketLossMode {
+  kNoFilter,    // No filtering on received loss.
+  kAvgFilter,   // Recursive average filter.
+  kMaxFilter    // Max-window filter, over the time interval of:
+                // (kLossPrHistorySize * kLossPrShortFilterWinMs) ms.
+};
 
 // Thresholds for hybrid NACK/FEC
 // common to media optimization and the jitter buffer.
@@ -249,13 +255,6 @@ public:
     //                                  effective loss after FEC recovery
     void UpdateResidualPacketLoss(float _residualPacketLoss);
 
-    // Update the loss probability.
-    //
-    // Input:
-    //          - lossPr255        : The packet loss probability [0, 255],
-    //                               reported by RTCP.
-    void UpdateLossPr(WebRtc_UWord8 lossPr255, int64_t nowMs);
-
     // Update the filtered packet loss.
     //
     // Input:
@@ -330,10 +329,14 @@ public:
     // Return the protection type of the currently selected method
     VCMProtectionMethodEnum SelectedType() const;
 
-    // Returns the filtered loss probability in the interval [0, 255].
-    //
+    // Updates the filtered loss for the average and max window packet loss,
+    // and returns the filtered loss probability in the interval [0, 255].
+    // The returned filtered loss value depends on the parameter |filter_mode|.
+    // The input parameter |lossPr255| is the received packet loss.
+
     // Return value                 : The filtered loss probability
-    WebRtc_UWord8 FilteredLoss(int64_t nowMs) const;
+    WebRtc_UWord8 FilteredLoss(int64_t nowMs, FilterPacketLossMode filter_mode,
+                               WebRtc_UWord8 lossPr255);
 
     void Reset(int64_t nowMs);
 

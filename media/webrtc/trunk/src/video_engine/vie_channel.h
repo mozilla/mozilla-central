@@ -221,6 +221,8 @@ class ViEChannel
                               WebRtc_Word8* ip_address,
                               WebRtc_UWord32 ip_address_length);
 
+  WebRtc_Word32 SetRemoteSSRCType(const StreamType usage,
+                                  const uint32_t SSRC) const;
 
   WebRtc_Word32 StartSend();
   WebRtc_Word32 StopSend();
@@ -331,8 +333,6 @@ class ViEChannel
   virtual int FrameCallbackChanged() {return -1;}
 
   WebRtc_Word32 RegisterEffectFilter(ViEEffectFilter* effect_filter);
-
-  WebRtc_Word32 SetInverseH263Logic(const bool enable);
 
   ViEFileRecorder& GetIncomingFileRecorder();
   void ReleaseIncomingFileRecorder();

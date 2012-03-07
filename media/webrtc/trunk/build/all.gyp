@@ -1,4 +1,4 @@
-# Copyright (c) 2011 The Chromium Authors. All rights reserved.
+# Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -48,7 +48,7 @@
         '../third_party/npapi/npapi.gyp:*',
         '../third_party/ots/ots.gyp:*',
         '../third_party/sqlite/sqlite.gyp:*',
-        '../third_party/WebKit/Source/WebKit/chromium/WebKit.gyp:*',
+        '../third_party/WebKit/Source/WebKit/chromium/All.gyp:*',
         '../third_party/zlib/zlib.gyp:*',
         '../v8/tools/gyp/v8.gyp:*',
         '../webkit/support/webkit_support.gyp:*',
@@ -134,7 +134,7 @@
         ['use_aura==1', {
           'dependencies': [
             '../ui/aura/aura.gyp:*',
-            '../ui/aura_shell/aura_shell.gyp:*',
+            '../ash/ash.gyp:*',
           ],
         }],
         ['remoting==1', {
@@ -208,7 +208,7 @@
             '../sandbox/sandbox.gyp:sbox_integration_tests',
             '../sandbox/sandbox.gyp:sbox_unittests',
             '../sandbox/sandbox.gyp:sbox_validation_tests',
-            '../third_party/WebKit/Source/WebKit/chromium/WebKit.gyp:copy_TestNetscapePlugIn',
+            '../webkit/webkit.gyp:pull_in_copy_TestNetscapePlugIn',
             '../ui/views/views.gyp:views_unittests',
             # TODO(nsylvain) ui_tests.exe depends on test_shell_common.
             # This should:
@@ -239,6 +239,7 @@
       'type': 'none',
       'dependencies': [
         'chromium_builder_qa', # needed for pyauto
+        '../chrome/chrome.gyp:performance_browser_tests',
         '../chrome/chrome.gyp:performance_ui_tests',
         '../chrome/chrome.gyp:plugin_tests',
         '../chrome/chrome.gyp:sync_performance_tests',
@@ -250,8 +251,9 @@
       'type': 'none',
       'dependencies': [
         '../chrome/chrome.gyp:gpu_tests',
+        '../chrome/chrome.gyp:performance_browser_tests',
         '../chrome/chrome.gyp:performance_ui_tests',
-        '../third_party/WebKit/Source/WebKit/chromium/WebKit.gyp:DumpRenderTree',
+        '../webkit/webkit.gyp:pull_in_DumpRenderTree',
       ],
     }, # target_name: chromium_gpu_builder
     {
@@ -261,7 +263,9 @@
         '../chrome/chrome.gyp:chromedriver',
       ],
       'conditions': [
-        ['OS=="mac" or OS=="win" or (os_posix==1 and target_arch==python_arch)', {
+        # If you change this condition, make sure you also change it
+        # in chrome_tests.gypi
+        ['OS=="mac" or OS=="win" or (os_posix==1 and OS != "android" and target_arch==python_arch)', {
           'dependencies': [
             '../chrome/chrome.gyp:pyautolib',
           ],
@@ -315,6 +319,7 @@
           'type': 'none',
           'dependencies': [
             '../chrome/chrome.gyp:browser_tests',
+            '../chrome/chrome.gyp:performance_browser_tests',
             '../chrome/chrome.gyp:performance_ui_tests',
             '../chrome/chrome.gyp:plugin_tests',
             '../chrome/chrome.gyp:safe_browsing_tests',
@@ -392,6 +397,7 @@
             '../chrome/chrome.gyp:installer_util_unittests',
             '../chrome/chrome.gyp:interactive_ui_tests',
             '../chrome/chrome.gyp:mini_installer_test',
+            '../chrome/chrome.gyp:performance_browser_tests',
             '../chrome/chrome.gyp:performance_ui_tests',
             '../chrome/chrome.gyp:plugin_tests',
             '../chrome/chrome.gyp:safe_browsing_tests',
@@ -421,7 +427,7 @@
             '../sql/sql.gyp:sql_unittests',
             '../third_party/cacheinvalidation/cacheinvalidation.gyp:cacheinvalidation_unittests',
             '../third_party/libphonenumber/libphonenumber.gyp:libphonenumber_unittests',
-            '../third_party/WebKit/Source/WebKit/chromium/WebKit.gyp:copy_TestNetscapePlugIn',
+            '../webkit/webkit.gyp:pull_in_copy_TestNetscapePlugIn',
             '../ui/views/views.gyp:views_unittests',
             # TODO(nsylvain) ui_tests.exe depends on test_shell_common.
             # This should:
@@ -491,6 +497,7 @@
                 '../chrome/chrome.gyp:chromedriver',
                 '../chrome/chrome.gyp:crash_service',
                 '../chrome/chrome.gyp:crash_service_win64',
+                '../chrome/chrome.gyp:performance_ui_tests',
                 '../chrome/chrome.gyp:policy_templates',
                 '../chrome/chrome.gyp:pyautolib',
                 '../chrome/chrome.gyp:reliability_tests',
@@ -500,7 +507,7 @@
                 '../courgette/courgette.gyp:courgette',
                 '../courgette/courgette.gyp:courgette64',
                 '../cloud_print/virtual_driver/virtual_driver.gyp:virtual_driver',
-                '../remoting/remoting.gyp:webapp_it2me',
+                '../remoting/remoting.gyp:remoting_webapp',
                 '../third_party/adobe/flash/flash_player.gyp:flash_player',
               ],
               'conditions': [
@@ -520,39 +527,41 @@
         {
           'target_name': 'chromeos_builder',
           'type': 'none',
-          'sources': [
-            # TODO(bradnelson): This is here to work around gyp issue 137.
-            #     Remove this sources list when that issue has been fixed.
-            'all.gyp',
-          ],
           'dependencies': [
+            '../ash/ash.gyp:ash_shell',
+            '../ash/ash.gyp:aura_shell_unittests',
             '../base/base.gyp:base_unittests',
-            '../chrome/chrome.gyp:browser_tests',
+            #'../chrome/chrome.gyp:browser_tests',
             '../chrome/chrome.gyp:chrome',
-            '../chrome/chrome.gyp:interactive_ui_tests',
-            '../chrome/chrome.gyp:performance_ui_tests',
-            '../chrome/chrome.gyp:safe_browsing_tests',
+            #'../chrome/chrome.gyp:interactive_ui_tests',
+            #'../chrome/chrome.gyp:performance_browser_tests',
+            #'../chrome/chrome.gyp:performance_ui_tests',
+            #'../chrome/chrome.gyp:safe_browsing_tests',
+            #'../chrome/chrome.gyp:sync_integration_tests',
             '../chrome/chrome.gyp:sync_unit_tests',
-            '../chrome/chrome.gyp:sync_integration_tests',
             '../chrome/chrome.gyp:ui_tests',
             '../chrome/chrome.gyp:unit_tests',
-            '../content/content.gyp:content_browsertests',
+            #'../content/content.gyp:content_browsertests',
             '../content/content.gyp:content_unittests',
-            '../crypto/crypto.gyp:crypto_unittests',
-            '../dbus/dbus.gyp:dbus_unittests',
-            '../ui/ui.gyp:gfx_unittests',
+            #'../crypto/crypto.gyp:crypto_unittests',
+            #'../dbus/dbus.gyp:dbus_unittests',
             '../ipc/ipc.gyp:ipc_tests',
-            '../jingle/jingle.gyp:jingle_unittests',
-            '../media/media.gyp:ffmpeg_tests',
-            '../media/media.gyp:media_unittests',
-            '../net/net.gyp:net_unittests',
-            '../printing/printing.gyp:printing_unittests',
-            '../remoting/remoting.gyp:remoting_unittests',
+            #'../jingle/jingle.gyp:jingle_unittests',
+            #'../media/media.gyp:ffmpeg_tests',
+            #'../media/media.gyp:media_unittests',
+            #'../net/net.gyp:net_unittests',
+            #'../printing/printing.gyp:printing_unittests',
+            #'../remoting/remoting.gyp:remoting_unittests',
             '../sql/sql.gyp:sql_unittests',
-            '../third_party/cacheinvalidation/cacheinvalidation.gyp:cacheinvalidation_unittests',
-            '../third_party/libphonenumber/libphonenumber.gyp:libphonenumber_unittests',
+            #'../third_party/cacheinvalidation/cacheinvalidation.gyp:cacheinvalidation_unittests',
+            #'../third_party/libphonenumber/libphonenumber.gyp:libphonenumber_unittests',
+            '../ui/aura/aura.gyp:*',
+            '../ui/gfx/compositor/compositor.gyp:*',
+            '../ui/ui.gyp:gfx_unittests',
+            '../ui/views/views.gyp:views',
             '../ui/views/views.gyp:views_unittests',
-            'temp_gyp/googleurl.gyp:googleurl_unittests',
+            '../webkit/webkit.gyp:pull_in_webkit_unit_tests',
+            #'temp_gyp/googleurl.gyp:googleurl_unittests',
           ],
         },
       ],  # targets
@@ -563,11 +572,11 @@
           'target_name': 'aura_builder',
           'type': 'none',
           'dependencies': [
+            '../ash/ash.gyp:ash_shell',
+            '../ash/ash.gyp:aura_shell_unittests',
             '../chrome/chrome.gyp:chrome',
             '../chrome/chrome.gyp:unit_tests',
             '../chrome/chrome.gyp:ui_tests',
-            '../ui/aura_shell/aura_shell.gyp:aura_shell_exe',
-            '../ui/aura_shell/aura_shell.gyp:aura_shell_unittests',
             '../ui/aura/aura.gyp:*',
             '../ui/gfx/compositor/compositor.gyp:*',
             '../ui/views/views.gyp:views',
@@ -597,6 +606,15 @@
                 '../ipc/ipc.gyp:ipc_tests',
                 '../sql/sql.gyp:sql_unittests',
                 '../ui/ui.gyp:gfx_unittests',
+              ],
+            }],
+            ['OS=="mac"', {
+              # Exclude dependencies that are not currently implemented.
+              'dependencies!': [
+                '../chrome/chrome.gyp:chrome',
+                '../chrome/chrome.gyp:unit_tests',
+                '../chrome/chrome.gyp:ui_tests',
+                '../ui/views/views.gyp:views_unittests',
               ],
             }],
           ],

@@ -218,7 +218,7 @@ class TestVirtualSocketServer : public VirtualSocketServer {
   explicit TestVirtualSocketServer(SocketServer* ss)
       : VirtualSocketServer(ss) {}
   // Expose this publicly
-  uint32 GetNextIP() { return VirtualSocketServer::GetNextIP(); }
+  IPAddress GetNextIP(int af) { return VirtualSocketServer::GetNextIP(af); }
 };
 
 TEST(NatTest, TestVirtual) {
@@ -227,10 +227,11 @@ TEST(NatTest, TestVirtual) {
   TestVirtualSocketServer* ext_vss = new TestVirtualSocketServer(
       new PhysicalSocketServer());
 
+  // TODO: IPv6ize this test when the NAT stuff is v6ed.
   SocketAddress int_addr, ext_addrs[4];
-  int_addr.SetIP(IPAddress(int_vss->GetNextIP()));
-  ext_addrs[0].SetIP(IPAddress(ext_vss->GetNextIP()));
-  ext_addrs[1].SetIP(IPAddress(ext_vss->GetNextIP()));
+  int_addr.SetIP(int_vss->GetNextIP(int_addr.ipaddr().family()));
+  ext_addrs[0].SetIP(ext_vss->GetNextIP(int_addr.ipaddr().family()));
+  ext_addrs[1].SetIP(ext_vss->GetNextIP(int_addr.ipaddr().family()));
   ext_addrs[2].SetIP(ext_addrs[0].ipaddr());
   ext_addrs[3].SetIP(ext_addrs[1].ipaddr());
 

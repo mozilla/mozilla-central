@@ -23,80 +23,82 @@ RtpHeaderExtensionMap::~RtpHeaderExtensionMap() {
 }
 
 void RtpHeaderExtensionMap::Erase() {
-  while (extensionMap_.Size() != 0) {
-    MapItem* item = extensionMap_.First();
-    assert(item);
-    HeaderExtension* extension = (HeaderExtension*)item->GetItem();
-    extensionMap_.Erase(item);
-    delete extension;
+  while (!extensionMap_.empty()) {
+    std::map<uint8_t, HeaderExtension*>::iterator it =
+        extensionMap_.begin();
+    delete it->second;
+    extensionMap_.erase(it);
   }
 }
 
-WebRtc_Word32 RtpHeaderExtensionMap::Register(const RTPExtensionType type,
-                                              const WebRtc_UWord8 id) {
+int32_t RtpHeaderExtensionMap::Register(const RTPExtensionType type,
+                                        const uint8_t id) {
   if (id < 1 || id > 14) {
     return -1;
   }
-  MapItem* item = extensionMap_.Find(id);
-  if (item != NULL) {
+  std::map<uint8_t, HeaderExtension*>::iterator it =
+      extensionMap_.find(id);
+  if (it != extensionMap_.end()) {
     return -1;
   }
-  HeaderExtension* extension = new HeaderExtension(type);
-  extensionMap_.Insert(id, extension);
+  extensionMap_[id] = new HeaderExtension(type);
   return 0;
 }
 
-WebRtc_Word32 RtpHeaderExtensionMap::Deregister(const RTPExtensionType type) {
-  WebRtc_UWord8 id;
+int32_t RtpHeaderExtensionMap::Deregister(const RTPExtensionType type) {
+  uint8_t id;
   if (GetId(type, &id) != 0) {
     return -1;
   }
-  MapItem* item = extensionMap_.Find(id);
-  if (item == NULL) {
+  std::map<uint8_t, HeaderExtension*>::iterator it =
+      extensionMap_.find(id);
+  if (it == extensionMap_.end()) {
     return -1;
   }
-  HeaderExtension* extension = (HeaderExtension*)item->GetItem();
-  extensionMap_.Erase(item);
-  delete extension;
+  delete it->second;
+  extensionMap_.erase(it);
   return 0;
 }
 
-WebRtc_Word32 RtpHeaderExtensionMap::GetType(const WebRtc_UWord8 id,
-                                             RTPExtensionType* type) const {
+int32_t RtpHeaderExtensionMap::GetType(const uint8_t id,
+                                       RTPExtensionType* type) const {
   assert(type);
-  MapItem* item = extensionMap_.Find(id);
-  if (item == NULL) {
+  std::map<uint8_t, HeaderExtension*>::const_iterator it =
+      extensionMap_.find(id);
+  if (it == extensionMap_.end()) {
     return -1;
   }
-  HeaderExtension* extension = (HeaderExtension*)item->GetItem();
+  HeaderExtension* extension = it->second;
   *type = extension->type;
   return 0;
 }
 
-WebRtc_Word32 RtpHeaderExtensionMap::GetId(const RTPExtensionType type,
-                                           WebRtc_UWord8* id) const {
+int32_t RtpHeaderExtensionMap::GetId(const RTPExtensionType type,
+                                     uint8_t* id) const {
   assert(id);
-  MapItem* item = extensionMap_.First();
-  while (item != NULL) {
-    HeaderExtension* extension = (HeaderExtension*)item->GetItem();
+  std::map<uint8_t, HeaderExtension*>::const_iterator it =
+      extensionMap_.begin();
+
+  while (it != extensionMap_.end()) {
+    HeaderExtension* extension = it->second;
     if (extension->type == type) {
-      *id = item->GetId();
+      *id = it->first;
       return 0;
     }
-    item = extensionMap_.Next(item);
+    it++;
   }
   return -1;
 }
 
-WebRtc_UWord16 RtpHeaderExtensionMap::GetTotalLengthInBytes() const
-{
+uint16_t RtpHeaderExtensionMap::GetTotalLengthInBytes() const {
   // Get length for each extension block.
-  WebRtc_UWord16 length = 0;
-  MapItem* item = extensionMap_.First();
-  while (item != NULL) {
-    HeaderExtension* extension = (HeaderExtension*)item->GetItem();
+  uint16_t length = 0;
+  std::map<uint8_t, HeaderExtension*>::const_iterator it =
+      extensionMap_.begin();
+  while (it != extensionMap_.end()) {
+    HeaderExtension* extension = it->second;
     length += extension->length;
-    item = extensionMap_.Next(item);
+    it++;
   }
   // Add RTP extension header length.
   if (length > 0) {
@@ -105,44 +107,70 @@ WebRtc_UWord16 RtpHeaderExtensionMap::GetTotalLengthInBytes() const
   return length;
 }
 
-WebRtc_Word32 RtpHeaderExtensionMap::Size() const {
-  return extensionMap_.Size();
+int32_t RtpHeaderExtensionMap::GetLengthUntilBlockStartInBytes(
+    const RTPExtensionType type) const {
+  uint8_t id;
+  if (GetId(type, &id) != 0) {
+    // Not registered.
+    return -1;
+  }
+  // Get length until start of extension block type.
+  uint16_t length = RTP_ONE_BYTE_HEADER_LENGTH_IN_BYTES;
+
+  std::map<uint8_t, HeaderExtension*>::const_iterator it =
+      extensionMap_.begin();
+  while (it != extensionMap_.end()) {
+    HeaderExtension* extension = it->second;
+    if (extension->type == type) {
+      break;
+    } else {
+      length += extension->length;
+    }
+    it++;
+  }
+  return length;
+}
+
+int32_t RtpHeaderExtensionMap::Size() const {
+  return extensionMap_.size();
 }
 
 RTPExtensionType RtpHeaderExtensionMap::First() const {
-  MapItem* item = extensionMap_.First();
-  if (item == NULL) {
+  std::map<uint8_t, HeaderExtension*>::const_iterator it =
+      extensionMap_.begin();
+  if (it == extensionMap_.end()) {
      return kRtpExtensionNone;
   }
-  HeaderExtension* extension = (HeaderExtension*)item->GetItem();
+  HeaderExtension* extension = it->second;
   return extension->type;
 }
 
-RTPExtensionType RtpHeaderExtensionMap::Next(RTPExtensionType type) const
-{
-  WebRtc_UWord8 id;
+RTPExtensionType RtpHeaderExtensionMap::Next(RTPExtensionType type) const {
+  uint8_t id;
   if (GetId(type, &id) != 0) {
     return kRtpExtensionNone;
   }
-  MapItem* item = extensionMap_.Find(id);
-  if (item == NULL) {
+  std::map<uint8_t, HeaderExtension*>::const_iterator it =
+      extensionMap_.find(id);
+  if (it == extensionMap_.end()) {
     return kRtpExtensionNone;
   }
-  item = extensionMap_.Next(item);
-  if (item == NULL) {
+  it++;
+  if (it == extensionMap_.end()) {
     return kRtpExtensionNone;
   }
-  HeaderExtension* extension = (HeaderExtension*)item->GetItem();
+  HeaderExtension* extension = it->second;
   return extension->type;
 }
 
 void RtpHeaderExtensionMap::GetCopy(RtpHeaderExtensionMap* map) const {
   assert(map);
-  MapItem* item = extensionMap_.First();
-  while (item != NULL) {
-    HeaderExtension* extension = (HeaderExtension*)item->GetItem();
-    map->Register(extension->type, item->GetId());
-    item = extensionMap_.Next(item);
+  std::map<uint8_t, HeaderExtension*>::const_iterator it =
+      extensionMap_.begin();
+  while (it != extensionMap_.end()) {
+    HeaderExtension* extension = it->second;
+    map->Register(extension->type, it->first);
+    it++;
   }
 }
 } // namespace webrtc

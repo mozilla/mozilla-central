@@ -248,6 +248,54 @@ TEST(VideoCapturerTest, TestStrangeFormats) {
   }
 }
 
+// Some cameras only have very low fps. Verify we choose something sensible.
+TEST(VideoCapturerTest, TestPoorFpsFormats) {
+  FakeVideoCapturer capturer;
+  // all formats are low framerate
+  std::vector<cricket::VideoFormat> supported_formats;
+  supported_formats.push_back(cricket::VideoFormat(320, 240,
+      cricket::VideoFormat::FpsToInterval(10), cricket::FOURCC_I420));
+  supported_formats.push_back(cricket::VideoFormat(640, 480,
+      cricket::VideoFormat::FpsToInterval(7), cricket::FOURCC_I420));
+  supported_formats.push_back(cricket::VideoFormat(1280, 720,
+      cricket::VideoFormat::FpsToInterval(2), cricket::FOURCC_I420));
+  capturer.ResetSupportedFormats(supported_formats);
+
+  std::vector<cricket::VideoFormat> required_formats;
+  required_formats.push_back(cricket::VideoFormat(320, 240,
+      cricket::VideoFormat::FpsToInterval(30), cricket::FOURCC_I420));
+  required_formats.push_back(cricket::VideoFormat(640, 480,
+      cricket::VideoFormat::FpsToInterval(30), cricket::FOURCC_I420));
+  cricket::VideoFormat best;
+  for (size_t i = 0; i < required_formats.size(); ++i) {
+    EXPECT_TRUE(capturer.GetBestCaptureFormat(required_formats[i], &best));
+#ifdef OSX
+    EXPECT_EQ(640, best.width);
+    EXPECT_EQ(480, best.height);
+#else
+    EXPECT_EQ(required_formats[i].width, best.width);
+    EXPECT_EQ(required_formats[i].height, best.height);
+#endif
+  }
+
+  // Increase framerate of 320x240.  Expect low fps VGA avoided.
+  // Except on Mac, where QVGA is avoid due to aspect ratio.
+  supported_formats.clear();
+  supported_formats.push_back(cricket::VideoFormat(320, 240,
+      cricket::VideoFormat::FpsToInterval(15), cricket::FOURCC_I420));
+  supported_formats.push_back(cricket::VideoFormat(640, 480,
+      cricket::VideoFormat::FpsToInterval(7), cricket::FOURCC_I420));
+  supported_formats.push_back(cricket::VideoFormat(1280, 720,
+      cricket::VideoFormat::FpsToInterval(2), cricket::FOURCC_I420));
+  capturer.ResetSupportedFormats(supported_formats);
+
+  for (size_t i = 0; i < required_formats.size(); ++i) {
+    EXPECT_TRUE(capturer.GetBestCaptureFormat(required_formats[i], &best));
+    EXPECT_EQ(320, best.width);
+    EXPECT_EQ(240, best.height);
+  }
+}
+
 // Some cameras support same size with different frame rates. Verify we choose
 // the frame rate properly.
 TEST(VideoCapturerTest, TestSameSizeDifferentFpsFormats) {

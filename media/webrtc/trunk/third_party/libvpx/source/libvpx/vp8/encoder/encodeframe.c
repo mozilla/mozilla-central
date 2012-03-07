@@ -39,7 +39,12 @@
 #define IF_RTCD(x)  NULL
 #endif
 extern void vp8_stuff_mb(VP8_COMP *cpi, MACROBLOCKD *x, TOKENEXTRA **t) ;
-
+extern void vp8_calc_ref_frame_costs(int *ref_frame_cost,
+                                     int prob_intra,
+                                     int prob_last,
+                                     int prob_garf
+                                    );
+extern void vp8_convert_rfct_to_prob(VP8_COMP *const cpi);
 extern void vp8cx_initialize_me_consts(VP8_COMP *cpi, int QIndex);
 extern void vp8_auto_select_speed(VP8_COMP *cpi);
 extern void vp8cx_init_mbrthread_data(VP8_COMP *cpi,
@@ -49,8 +54,8 @@ extern void vp8cx_init_mbrthread_data(VP8_COMP *cpi,
                                       int count);
 void vp8_build_block_offsets(MACROBLOCK *x);
 void vp8_setup_block_ptrs(MACROBLOCK *x);
-int vp8cx_encode_inter_macroblock(VP8_COMP *cpi, MACROBLOCK *x, TOKENEXTRA **t, int recon_yoffset, int recon_uvoffset);
-int vp8cx_encode_intra_macro_block(VP8_COMP *cpi, MACROBLOCK *x, TOKENEXTRA **t);
+int vp8cx_encode_inter_macroblock(VP8_COMP *cpi, MACROBLOCK *x, TOKENEXTRA **t, int recon_yoffset, int recon_uvoffset, int mb_row, int mb_col);
+int vp8cx_encode_intra_macro_block(VP8_COMP *cpi, MACROBLOCK *x, TOKENEXTRA **t, int mb_row, int mb_col);
 static void adjust_act_zbin( VP8_COMP *cpi, MACROBLOCK *x );
 
 #ifdef MODE_STATS
@@ -475,14 +480,14 @@ void encode_mb_row(VP8_COMP *cpi,
 
         if (cm->frame_type == KEY_FRAME)
         {
-            *totalrate += vp8cx_encode_intra_macro_block(cpi, x, tp);
+            *totalrate += vp8cx_encode_intra_macro_block(cpi, x, tp, mb_row, mb_col);
 #ifdef MODE_STATS
             y_modes[xd->mbmi.mode] ++;
 #endif
         }
         else
         {
-            *totalrate += vp8cx_encode_inter_macroblock(cpi, x, tp, recon_yoffset, recon_uvoffset);
+            *totalrate += vp8cx_encode_inter_macroblock(cpi, x, tp, recon_yoffset, recon_uvoffset, mb_row, mb_col);
 
 #ifdef MODE_STATS
             inter_y_modes[xd->mbmi.mode] ++;
@@ -590,8 +595,6 @@ void init_encode_frame_mb_context(VP8_COMP *cpi)
     // Activity map pointer
     x->mb_activity_ptr = cpi->mb_activity_map;
 
-    x->vector_range = 32;
-
     x->act_zbin_adj = 0;
 
     x->partition_info = x->pi;
@@ -636,55 +639,23 @@ void init_encode_frame_mb_context(VP8_COMP *cpi)
     vpx_memset(cm->above_context, 0,
                sizeof(ENTROPY_CONTEXT_PLANES) * cm->mb_cols);
 
-    xd->ref_frame_cost[INTRA_FRAME]   = vp8_cost_zero(cpi->prob_intra_coded);
-
     // Special case treatment when GF and ARF are not sensible options for reference
     if (cpi->ref_frame_flags == VP8_LAST_FLAG)
-    {
-        xd->ref_frame_cost[LAST_FRAME]    = vp8_cost_one(cpi->prob_intra_coded)
-                                        + vp8_cost_zero(255);
-        xd->ref_frame_cost[GOLDEN_FRAME]  = vp8_cost_one(cpi->prob_intra_coded)
-                                        + vp8_cost_one(255)
-                                        + vp8_cost_zero(128);
-        xd->ref_frame_cost[ALTREF_FRAME]  = vp8_cost_one(cpi->prob_intra_coded)
-                                        + vp8_cost_one(255)
-                                        + vp8_cost_one(128);
-    }
+        vp8_calc_ref_frame_costs(xd->ref_frame_cost,
+                                 cpi->prob_intra_coded,255,128);
     else if ((cpi->oxcf.number_of_layers > 1) &&
                (cpi->ref_frame_flags == VP8_GOLD_FLAG))
-    {
-        xd->ref_frame_cost[LAST_FRAME]    = vp8_cost_one(cpi->prob_intra_coded)
-                                        + vp8_cost_zero(1);
-        xd->ref_frame_cost[GOLDEN_FRAME]  = vp8_cost_one(cpi->prob_intra_coded)
-                                        + vp8_cost_one(1)
-                                        + vp8_cost_zero(255);
-        xd->ref_frame_cost[ALTREF_FRAME]  = vp8_cost_one(cpi->prob_intra_coded)
-                                        + vp8_cost_one(1)
-                                        + vp8_cost_one(255);
-    }
+        vp8_calc_ref_frame_costs(xd->ref_frame_cost,
+                                 cpi->prob_intra_coded,1,255);
     else if ((cpi->oxcf.number_of_layers > 1) &&
                 (cpi->ref_frame_flags == VP8_ALT_FLAG))
-    {
-        xd->ref_frame_cost[LAST_FRAME]    = vp8_cost_one(cpi->prob_intra_coded)
-                                        + vp8_cost_zero(1);
-        xd->ref_frame_cost[GOLDEN_FRAME]  = vp8_cost_one(cpi->prob_intra_coded)
-                                        + vp8_cost_one(1)
-                                        + vp8_cost_zero(1);
-        xd->ref_frame_cost[ALTREF_FRAME]  = vp8_cost_one(cpi->prob_intra_coded)
-                                        + vp8_cost_one(1)
-                                        + vp8_cost_one(1);
-    }
+        vp8_calc_ref_frame_costs(xd->ref_frame_cost,
+                                 cpi->prob_intra_coded,1,1);
     else
-    {
-        xd->ref_frame_cost[LAST_FRAME]    = vp8_cost_one(cpi->prob_intra_coded)
-                                        + vp8_cost_zero(cpi->prob_last_coded);
-        xd->ref_frame_cost[GOLDEN_FRAME]  = vp8_cost_one(cpi->prob_intra_coded)
-                                        + vp8_cost_one(cpi->prob_last_coded)
-                                        + vp8_cost_zero(cpi->prob_gf_coded);
-        xd->ref_frame_cost[ALTREF_FRAME]  = vp8_cost_one(cpi->prob_intra_coded)
-                                        + vp8_cost_one(cpi->prob_last_coded)
-                                        + vp8_cost_one(cpi->prob_gf_coded);
-    }
+        vp8_calc_ref_frame_costs(xd->ref_frame_cost,
+                                 cpi->prob_intra_coded,
+                                 cpi->prob_last_coded,
+                                 cpi->prob_gf_coded);
 
     xd->fullpixel_mask = 0xffffffff;
     if(cm->full_pixel)
@@ -966,31 +937,7 @@ void vp8_encode_frame(VP8_COMP *cpi)
     if ((cm->frame_type != KEY_FRAME) && ((cpi->oxcf.number_of_layers > 1) ||
         (!cm->refresh_alt_ref_frame && !cm->refresh_golden_frame)))
     {
-        const int *const rfct = cpi->count_mb_ref_frame_usage;
-        const int rf_intra = rfct[INTRA_FRAME];
-        const int rf_inter = rfct[LAST_FRAME] + rfct[GOLDEN_FRAME] + rfct[ALTREF_FRAME];
-
-        if ((rf_intra + rf_inter) > 0)
-        {
-            cpi->prob_intra_coded = (rf_intra * 255) / (rf_intra + rf_inter);
-
-            if (cpi->prob_intra_coded < 1)
-                cpi->prob_intra_coded = 1;
-
-            if ((cm->frames_since_golden > 0) || cpi->source_alt_ref_active)
-            {
-                cpi->prob_last_coded = rf_inter ? (rfct[LAST_FRAME] * 255) / rf_inter : 128;
-
-                if (cpi->prob_last_coded < 1)
-                    cpi->prob_last_coded = 1;
-
-                cpi->prob_gf_coded = (rfct[GOLDEN_FRAME] + rfct[ALTREF_FRAME])
-                                     ? (rfct[GOLDEN_FRAME] * 255) / (rfct[GOLDEN_FRAME] + rfct[ALTREF_FRAME]) : 128;
-
-                if (cpi->prob_gf_coded < 1)
-                    cpi->prob_gf_coded = 1;
-            }
-        }
+      vp8_convert_rfct_to_prob(cpi);
     }
 
 #if 0
@@ -1142,8 +1089,10 @@ static void adjust_act_zbin( VP8_COMP *cpi, MACROBLOCK *x )
 #endif
 }
 
-int vp8cx_encode_intra_macro_block(VP8_COMP *cpi, MACROBLOCK *x, TOKENEXTRA **t)
+int vp8cx_encode_intra_macro_block(VP8_COMP *cpi, MACROBLOCK *x, TOKENEXTRA **t,
+                                   int mb_row, int mb_col)
 {
+    MACROBLOCKD *xd = &x->e_mbd;
     int rate;
 
     if (cpi->sf.RD && cpi->compressor_speed != 2)
@@ -1163,14 +1112,17 @@ int vp8cx_encode_intra_macro_block(VP8_COMP *cpi, MACROBLOCK *x, TOKENEXTRA **t)
         vp8_encode_intra16x16mby(IF_RTCD(&cpi->rtcd), x);
 
     vp8_encode_intra16x16mbuv(IF_RTCD(&cpi->rtcd), x);
+
     sum_intra_stats(cpi, x);
     vp8_tokenize_mb(cpi, &x->e_mbd, t);
 
-    if (x->e_mbd.mode_info_context->mbmi.mode != B_PRED)
-        vp8_inverse_transform_mby(IF_RTCD(&cpi->rtcd.common->idct), &x->e_mbd);
+    if (xd->mode_info_context->mbmi.mode != B_PRED)
+        vp8_inverse_transform_mby(xd, IF_RTCD(&cpi->common.rtcd));
 
-    vp8_inverse_transform_mbuv(IF_RTCD(&cpi->rtcd.common->idct), &x->e_mbd);
-
+    DEQUANT_INVOKE (&cpi->common.rtcd.dequant, idct_add_uv_block)
+                    (xd->qcoeff+16*16, xd->dequant_uv,
+                     xd->dst.u_buffer, xd->dst.v_buffer,
+                     xd->dst.uv_stride, xd->eobs+16);
     return rate;
 }
 #ifdef SPEEDSTATS
@@ -1182,7 +1134,8 @@ extern void vp8_fix_contexts(MACROBLOCKD *x);
 int vp8cx_encode_inter_macroblock
 (
     VP8_COMP *cpi, MACROBLOCK *x, TOKENEXTRA **t,
-    int recon_yoffset, int recon_uvoffset
+    int recon_yoffset, int recon_uvoffset,
+    int mb_row, int mb_col
 )
 {
     MACROBLOCKD *const xd = &x->e_mbd;
@@ -1230,8 +1183,10 @@ int vp8cx_encode_inter_macroblock
 
     }
     else
+    {
         vp8_pick_inter_mode(cpi, x, recon_yoffset, recon_uvoffset, &rate,
-                            &distortion, &intra_error);
+                            &distortion, &intra_error, mb_row, mb_col);
+    }
 
     cpi->prediction_error += distortion;
     cpi->intra_error += intra_error;
@@ -1345,12 +1300,14 @@ int vp8cx_encode_inter_macroblock
     if (!x->skip)
     {
         vp8_tokenize_mb(cpi, xd, t);
-        if (x->e_mbd.mode_info_context->mbmi.mode != B_PRED)
-        {
-          vp8_inverse_transform_mby(IF_RTCD(&cpi->rtcd.common->idct),
-                                      &x->e_mbd);
-        }
-        vp8_inverse_transform_mbuv(IF_RTCD(&cpi->rtcd.common->idct), &x->e_mbd);
+
+        if (xd->mode_info_context->mbmi.mode != B_PRED)
+            vp8_inverse_transform_mby(xd, IF_RTCD(&cpi->common.rtcd));
+
+        DEQUANT_INVOKE (&cpi->common.rtcd.dequant, idct_add_uv_block)
+                        (xd->qcoeff+16*16, xd->dequant_uv,
+                         xd->dst.u_buffer, xd->dst.v_buffer,
+                         xd->dst.uv_stride, xd->eobs+16);
     }
     else
     {

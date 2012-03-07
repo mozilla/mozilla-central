@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -15,8 +15,6 @@
 #include "rtp_utility.h"
 
 #include "typedefs.h"
-#include "map_wrapper.h"
-#include "list_wrapper.h"
 
 #include "overuse_detector.h"
 #include "remote_rate_control.h"
@@ -25,12 +23,12 @@
 namespace webrtc {
 class ReceiverFEC;
 class ModuleRtpRtcpImpl;
+class CriticalSectionWrapper;
 
 class RTPReceiverVideo
 {
 public:
-    RTPReceiverVideo(const WebRtc_Word32 id,
-                     ModuleRtpRtcpImpl* owner);
+    RTPReceiverVideo(const WebRtc_Word32 id, ModuleRtpRtcpImpl* owner);
 
     virtual ~RTPReceiverVideo();
 
@@ -46,7 +44,7 @@ public:
                                    const WebRtc_UWord16 roundTripTimeMs);
 
     ModuleRTPUtility::Payload* RegisterReceiveVideoPayload(
-        const WebRtc_Word8 payloadName[RTP_PAYLOAD_NAME_SIZE],
+        const char payloadName[RTP_PAYLOAD_NAME_SIZE],
         const WebRtc_Word8 payloadType,
         const WebRtc_UWord32 maxRate);
 
@@ -59,8 +57,6 @@ public:
         const WebRtc_UWord8* incomingRtpPacket,
         const WebRtc_UWord16 incomingRtpPacketSize,
         const WebRtc_Word64 nowMS);
-
-    WebRtc_Word32 SetH263InverseLogic(const bool enable);
 
     WebRtc_Word32 ReceiveRecoveredPacketCallback(
         WebRtcRTPHeader* rtpHeader,
@@ -105,22 +101,6 @@ protected:
                                       const WebRtc_UWord8* payloadData,
                                       const WebRtc_UWord16 payloadDataLength);
 
-    WebRtc_Word32 ReceiveH263Codec(WebRtcRTPHeader *rtpHeader,
-                                   const WebRtc_UWord8* payloadData,
-                                   const WebRtc_UWord16 payloadDataLength);
-
-    WebRtc_Word32 ReceiveH2631998Codec(WebRtcRTPHeader *rtpHeader,
-                                       const WebRtc_UWord8* payloadData,
-                                       const WebRtc_UWord16 payloadDataLength);
-
-    WebRtc_Word32 ReceiveH263CodecCommon(
-        ModuleRTPUtility::RTPPayload& parsedPacket,
-        WebRtcRTPHeader* rtpHeader);
-
-    WebRtc_Word32 ReceiveMPEG4Codec(WebRtcRTPHeader *rtpHeader,
-                                    const WebRtc_UWord8* payloadData,
-                                    const WebRtc_UWord16 payloadDataLength);
-
     WebRtc_Word32 ReceiveVp8Codec(WebRtcRTPHeader *rtpHeader,
                                   const WebRtc_UWord8* payloadData,
                                   const WebRtc_UWord16 payloadDataLength);
@@ -146,9 +126,6 @@ private:
       // FEC
     bool                      _currentFecFrameDecoded;
     ReceiverFEC*              _receiveFEC;
-
-    // H263
-    bool                      _h263InverseLogic;
 
     // BWE
     OverUseDetector           _overUseDetector;

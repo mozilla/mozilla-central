@@ -48,14 +48,15 @@
 
 namespace talk_base {
 
-ThreadManager g_thmgr;
+ThreadManager* ThreadManager::Instance() {
+  LIBJINGLE_DEFINE_STATIC_LOCAL(ThreadManager, thread_manager, ());
+  return &thread_manager;
+}
 
 #ifdef POSIX
-pthread_key_t ThreadManager::key_;
-
 ThreadManager::ThreadManager() {
   pthread_key_create(&key_, NULL);
-  main_thread_ = WrapCurrentThread();
+  WrapCurrentThread();
 #ifdef USE_COCOA_THREADING
   InitCocoaMultiThreading();
 #endif
@@ -69,7 +70,6 @@ ThreadManager::~ThreadManager() {
   ScopedAutoreleasePool pool;
 #endif
   UnwrapCurrentThread();
-  // Unwrap deletes main_thread_ automatically.
   pthread_key_delete(key_);
 }
 
@@ -77,17 +77,15 @@ Thread *ThreadManager::CurrentThread() {
   return static_cast<Thread *>(pthread_getspecific(key_));
 }
 
-void ThreadManager::SetCurrent(Thread *thread) {
+void ThreadManager::SetCurrentThread(Thread *thread) {
   pthread_setspecific(key_, thread);
 }
 #endif
 
 #ifdef WIN32
-DWORD ThreadManager::key_;
-
 ThreadManager::ThreadManager() {
   key_ = TlsAlloc();
-  main_thread_ = WrapCurrentThread();
+  WrapCurrentThread();
 }
 
 ThreadManager::~ThreadManager() {
@@ -99,7 +97,7 @@ Thread *ThreadManager::CurrentThread() {
   return static_cast<Thread *>(TlsGetValue(key_));
 }
 
-void ThreadManager::SetCurrent(Thread *thread) {
+void ThreadManager::SetCurrentThread(Thread *thread) {
   TlsSetValue(key_, thread);
 }
 #endif
@@ -109,7 +107,7 @@ Thread *ThreadManager::WrapCurrentThread() {
   Thread* result = CurrentThread();
   if (NULL == result) {
     result = new Thread();
-    result->WrapCurrent();
+    result->WrapCurrentWithThreadManager(this);
   }
   return result;
 }
@@ -120,25 +118,6 @@ void ThreadManager::UnwrapCurrentThread() {
   if (t && !(t->IsOwned())) {
     t->UnwrapCurrent();
     delete t;
-  }
-}
-
-void ThreadManager::Add(Thread *thread) {
-  CritScope cs(&crit_);
-  threads_.push_back(thread);
-}
-
-void ThreadManager::Remove(Thread *thread) {
-  CritScope cs(&crit_);
-  threads_.erase(std::remove(threads_.begin(), threads_.end(), thread),
-                 threads_.end());
-}
-
-void ThreadManager::StopAllThreads_() {
-  // TODO: In order to properly implement, Threads need to be ref-counted.
-  CritScope cs(&g_thmgr.crit_);
-  for (size_t i = 0; i < g_thmgr.threads_.size(); ++i) {
-    g_thmgr.threads_[i]->Stop();
   }
 }
 
@@ -157,7 +136,6 @@ Thread::Thread(SocketServer* ss)
 #endif
       owned_(true),
       delete_self_when_complete_(false) {
-  g_thmgr.Add(this);
   SetName("Thread", this);  // default name
 }
 
@@ -165,7 +143,6 @@ Thread::~Thread() {
   Stop();
   if (active_)
     Clear(NULL);
-  g_thmgr.Remove(this);
 }
 
 bool Thread::SleepMs(int milliseconds) {
@@ -230,6 +207,10 @@ bool Thread::Start(Runnable* runnable) {
   if (!owned_) return false;
   ASSERT(!started_);
   if (started_) return false;
+
+  // Make sure that ThreadManager is created on the main thread before
+  // we start a new thread.
+  ThreadManager::Instance();
 
   ThreadInit* init = new ThreadInit;
   init->thread = this;
@@ -334,7 +315,7 @@ void SetThreadName(DWORD dwThreadID, LPCSTR szThreadName) {
 
 void* Thread::PreRun(void* pv) {
   ThreadInit* init = static_cast<ThreadInit*>(pv);
-  ThreadManager::SetCurrent(init->thread);
+  ThreadManager::Instance()->SetCurrentThread(init->thread);
 #if defined(WIN32)
   SetThreadName(GetCurrentThreadId(), init->thread->name_.c_str());
 #elif defined(POSIX)
@@ -509,6 +490,10 @@ bool Thread::ProcessMessages(int cmsLoop) {
 }
 
 bool Thread::WrapCurrent() {
+  return WrapCurrentWithThreadManager(ThreadManager::Instance());
+}
+
+bool Thread::WrapCurrentWithThreadManager(ThreadManager* thread_manager) {
   if (started_)
     return false;
 #if defined(WIN32)
@@ -524,13 +509,13 @@ bool Thread::WrapCurrent() {
 #endif
   owned_ = false;
   started_ = true;
-  ThreadManager::SetCurrent(this);
+  thread_manager->SetCurrentThread(this);
   return true;
 }
 
 void Thread::UnwrapCurrent() {
   // Clears the platform-specific thread-specific storage.
-  ThreadManager::SetCurrent(NULL);
+  ThreadManager::Instance()->SetCurrentThread(NULL);
 #ifdef WIN32
   if (!CloseHandle(thread_)) {
     LOG_GLE(LS_ERROR) << "When unwrapping thread, failed to close handle.";
@@ -541,14 +526,14 @@ void Thread::UnwrapCurrent() {
 
 
 AutoThread::AutoThread(SocketServer* ss) : Thread(ss) {
-  if (!ThreadManager::CurrentThread()) {
-    ThreadManager::SetCurrent(this);
+  if (!ThreadManager::Instance()->CurrentThread()) {
+    ThreadManager::Instance()->SetCurrentThread(this);
   }
 }
 
 AutoThread::~AutoThread() {
-  if (ThreadManager::CurrentThread() == this) {
-    ThreadManager::SetCurrent(NULL);
+  if (ThreadManager::Instance()->CurrentThread() == this) {
+    ThreadManager::Instance()->SetCurrentThread(NULL);
   }
 }
 

@@ -116,11 +116,12 @@ class P2PTransportChannel : public TransportChannelImpl,
                          bool readable);
   bool CreateConnection(Port* port, const Candidate& remote_candidate,
                         Port* origin_port, bool readable);
+  bool FindConnection(cricket::Connection* connection) const;
   void RememberRemoteCandidate(const Candidate& remote_candidate,
                                Port* origin_port);
   void OnUnknownAddress(Port *port, const talk_base::SocketAddress &addr,
                         StunMessage *stun_msg,
-                        const std::string &remote_username);
+                        const std::string &remote_username, bool port_muxed);
   void OnPortReady(PortAllocatorSession *session, Port* port);
   void OnCandidatesReady(PortAllocatorSession *session,
                          const std::vector<Candidate>& candidates);

@@ -28,10 +28,10 @@
 #ifndef TALK_SESSION_PHONE_SSRCMUXFILTER_H_
 #define TALK_SESSION_PHONE_SSRCMUXFILTER_H_
 
-#include <set>
+#include <vector>
 
 #include "talk/base/basictypes.h"
-#include "talk/p2p/base/sessiondescription.h"
+#include "talk/session/phone/streamparams.h"
 
 namespace cricket {
 
@@ -46,33 +46,20 @@ class SsrcMuxFilter {
   SsrcMuxFilter();
   ~SsrcMuxFilter();
 
-  // Whether the rtp mux is active for a sdp session through proper
-  // negotiation.
+  // Whether the rtp mux is active for a sdp session.
+  // Returns true if the filter contains a stream.
   bool IsActive() const;
-  // Set based on what offer indicates use of RTP mux.
-  bool SetOffer(bool offer_enable, ContentSource src);
-  // Set based on what answer indiacates use of RTP mux.
-  bool SetAnswer(bool answer_enable, ContentSource src);
   // Determines packet belongs to valid cricket::BaseChannel.
   bool DemuxPacket(const char* data, size_t len, bool rtcp);
   // Adding a valid source to the filter.
-  bool AddStream(uint32 ssrc);
+  bool AddStream(const StreamParams& stream);
   // Removes source from the filter.
   bool RemoveStream(uint32 ssrc);
   // Utility method added for unitest.
   bool FindStream(uint32 ssrc) const;
 
  private:
-  enum State {
-    ST_INIT = 0,
-    ST_SENTOFFER,
-    ST_RECEIVEDOFFER,
-    ST_ACTIVE
-  };
-
-  State state_;
-  bool enabled_;
-  std::set<uint32> mux_ssrcs_;
+  std::vector<StreamParams> streams_;
 };
 
 }  // namespace cricket

@@ -121,6 +121,8 @@ bool WebRtcSession::Initiate() {
       this, &WebRtcSession::OnWritableState);
   // Limit the amount of time that setting up a call may take.
   StartTransportTimeout(kCallSetupTimeout);
+  // Set default secure option to SEC_REQUIRED.
+  desc_factory_.set_secure(cricket::SEC_REQUIRED);
   return true;
 }
 
@@ -227,8 +229,7 @@ bool WebRtcSession::Connect() {
 
   // Enable all the channels
   EnableAllStreams();
-  SetVideoCapture(true);
-  return true;
+  return SetVideoCapture(true);
 }
 
 bool WebRtcSession::SetVideoRenderer(const std::string& stream_id,
@@ -250,7 +251,11 @@ bool WebRtcSession::SetVideoRenderer(const std::string& stream_id,
 }
 
 bool WebRtcSession::SetVideoCapture(bool capture) {
-  channel_manager_->SetVideoCapture(capture);
+  cricket::CaptureResult ret = channel_manager_->SetVideoCapture(capture);
+  if (ret != cricket::CR_SUCCESS && ret != cricket::CR_PENDING) {
+    LOG(LS_ERROR) << "Failed to SetVideoCapture(" << capture << ").";
+    return false;
+  }
   return true;
 }
 
@@ -439,6 +444,7 @@ bool WebRtcSession::OnInitiateMessage(
 
   transport_->ConnectChannels();
   EnableAllStreams();
+  SetVideoCapture(true);
 
   set_local_description(answer.release());
 

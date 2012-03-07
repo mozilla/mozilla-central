@@ -81,8 +81,12 @@ typedef std::map<std::string, TransportChannelProxy*> ChannelMap;
 
 class TransportProxy {
  public:
-  TransportProxy(const std::string& content_name, Transport* transport)
-      : content_name_(content_name),
+  TransportProxy(
+      const std::string& sid,
+      const std::string& content_name,
+      Transport* transport)
+      : sid_(sid),
+        content_name_(content_name),
         transport_(transport),
         owner_(true),
         state_(STATE_INIT),
@@ -126,6 +130,7 @@ class TransportProxy {
                                         const std::string& content_type);
   void SetProxyImpl(const std::string& name, TransportChannelProxy* proxy);
 
+  std::string sid_;
   std::string content_name_;
   Transport* transport_;
   bool owner_;
@@ -241,12 +246,12 @@ class BaseSession : public sigslot::has_slots<>,
   // Returns the current state of the session.  See the enum above for details.
   // Each time the state changes, we will fire this signal.
   State state() const { return state_; }
-  sigslot::signal2<BaseSession *, State> SignalState;
+  sigslot::signal2<BaseSession* , State> SignalState;
 
   // Returns the last error in the session.  See the enum above for details.
   // Each time the an error occurs, we will fire this signal.
   Error error() const { return error_; }
-  sigslot::signal2<BaseSession *, Error> SignalError;
+  sigslot::signal2<BaseSession* , Error> SignalError;
 
   // Updates the state, signaling if necessary.
   virtual void SetState(State state);
@@ -254,8 +259,10 @@ class BaseSession : public sigslot::has_slots<>,
   // Updates the error state, signaling if necessary.
   virtual void SetError(Error error);
 
-  // Fired when the remote description is updated.
-  sigslot::signal1<BaseSession *> SignalRemoteDescriptionUpdate;
+  // Fired when the remote description is updated, with the updated
+  // contents.
+  sigslot::signal2<BaseSession* , const ContentInfos&>
+      SignalRemoteDescriptionUpdate;
 
   // Returns the transport that has been negotiated or NULL if
   // negotiation is still in progress.
@@ -534,7 +541,7 @@ class Session : public BaseSession {
   // sending of each message.  When messages are received by the other client,
   // they should be handed to OnIncomingMessage.
   // (These are called only by SessionManager.)
-  sigslot::signal2<Session *, const buzz::XmlElement*> SignalOutgoingMessage;
+  sigslot::signal2<Session* , const buzz::XmlElement*> SignalOutgoingMessage;
   void OnIncomingMessage(const SessionMessage& msg);
 
   void OnIncomingResponse(const buzz::XmlElement* orig_stanza,

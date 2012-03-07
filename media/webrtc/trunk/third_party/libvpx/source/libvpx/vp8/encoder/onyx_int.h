@@ -58,6 +58,9 @@
 
 #define MAX_PERIODICITY 16
 
+#define MAX(x,y) (((x)>(y))?(x):(y))
+#define MIN(x,y) (((x)<(y))?(x):(y))
+
 typedef struct
 {
     int kf_indicated;
@@ -133,32 +136,32 @@ typedef struct
 
 typedef enum
 {
-    THR_ZEROMV         = 0,
+    THR_ZERO1          = 0,
     THR_DC             = 1,
 
-    THR_NEARESTMV      = 2,
-    THR_NEARMV         = 3,
+    THR_NEAREST1       = 2,
+    THR_NEAR1          = 3,
 
-    THR_ZEROG          = 4,
-    THR_NEARESTG       = 5,
+    THR_ZERO2          = 4,
+    THR_NEAREST2       = 5,
 
-    THR_ZEROA          = 6,
-    THR_NEARESTA       = 7,
+    THR_ZERO3          = 6,
+    THR_NEAREST3       = 7,
 
-    THR_NEARG          = 8,
-    THR_NEARA          = 9,
+    THR_NEAR2          = 8,
+    THR_NEAR3          = 9,
 
     THR_V_PRED         = 10,
     THR_H_PRED         = 11,
     THR_TM             = 12,
 
-    THR_NEWMV          = 13,
-    THR_NEWG           = 14,
-    THR_NEWA           = 15,
+    THR_NEW1           = 13,
+    THR_NEW2           = 14,
+    THR_NEW3           = 15,
 
-    THR_SPLITMV        = 16,
-    THR_SPLITG         = 17,
-    THR_SPLITA         = 18,
+    THR_SPLIT1         = 16,
+    THR_SPLIT2         = 17,
+    THR_SPLIT3         = 18,
 
     THR_B_PRED         = 19,
 }
@@ -250,13 +253,16 @@ typedef struct
     int starting_buffer_level;
     int optimal_buffer_level;
     int maximum_buffer_size;
+    int starting_buffer_level_in_ms;
+    int optimal_buffer_level_in_ms;
+    int maximum_buffer_size_in_ms;
 
     int avg_frame_size_for_layer;
 
     int buffer_level;
     int bits_off_target;
 
-    long long total_actual_bits;
+    int64_t total_actual_bits;
     int total_target_vs_actual;
 
     int worst_quality;
@@ -276,7 +282,7 @@ typedef struct
     int zbin_over_quant;
 
     int inter_frame_target;
-    INT64 total_byte_count;
+    int64_t total_byte_count;
 
     int filter_level;
 
@@ -314,8 +320,7 @@ typedef struct VP8_COMP
 
     MACROBLOCK mb;
     VP8_COMMON common;
-    vp8_writer bc, bc2;
-    // bool_writer *bc2;
+    vp8_writer bc[9]; // one boolcoder for each partition
 
     VP8_CONFIG oxcf;
 
@@ -337,7 +342,7 @@ typedef struct VP8_COMP
     int gold_is_alt;  // don't do both alt and gold search ( just do gold).
 
     //int refresh_alt_ref_frame;
-    YV12_BUFFER_CONFIG last_frame_uf;
+    YV12_BUFFER_CONFIG pick_lf_lvl_frame;
 
     TOKENEXTRA *tok;
     unsigned int tok_count;
@@ -419,6 +424,7 @@ typedef struct VP8_COMP
     int buffered_mode;
 
     double frame_rate;
+    double ref_frame_rate;
     int64_t buffer_level;
     int bits_off_target;
 
@@ -566,16 +572,21 @@ typedef struct VP8_COMP
 
     int base_skip_false_prob[128];
 
+    FRAME_CONTEXT lfc_n; /* last frame entropy */
+    FRAME_CONTEXT lfc_a; /* last alt ref entropy */
+    FRAME_CONTEXT lfc_g; /* last gold ref entropy */
+
+
     struct twopass_rc
     {
         unsigned int section_intra_rating;
         double section_max_qfactor;
         unsigned int next_iiratio;
         unsigned int this_iiratio;
-        FIRSTPASS_STATS *total_stats;
-        FIRSTPASS_STATS *this_frame_stats;
+        FIRSTPASS_STATS total_stats;
+        FIRSTPASS_STATS this_frame_stats;
         FIRSTPASS_STATS *stats_in, *stats_in_end, *stats_in_start;
-        FIRSTPASS_STATS *total_left_stats;
+        FIRSTPASS_STATS total_left_stats;
         int first_pass_done;
         int64_t bits_left;
         int64_t clip_bits_total;
@@ -666,8 +677,8 @@ typedef struct VP8_COMP
     unsigned int current_layer;
     LAYER_CONTEXT layer_context[MAX_LAYERS];
 
-    long long frames_in_layer[MAX_LAYERS];
-    long long bytes_in_layer[MAX_LAYERS];
+    int64_t frames_in_layer[MAX_LAYERS];
+    int64_t bytes_in_layer[MAX_LAYERS];
     double sum_psnr[MAX_LAYERS];
     double sum_psnr_p[MAX_LAYERS];
     double total_error2[MAX_LAYERS];
@@ -679,6 +690,11 @@ typedef struct VP8_COMP
     double total_ssimg_u_in_layer[MAX_LAYERS];
     double total_ssimg_v_in_layer[MAX_LAYERS];
     double total_ssimg_all_in_layer[MAX_LAYERS];
+
+#if CONFIG_MULTI_RES_ENCODING
+    /* Number of MBs per row at lower-resolution level */
+    int    mr_low_res_mb_cols;
+#endif
 
 } VP8_COMP;
 

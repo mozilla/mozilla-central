@@ -66,6 +66,14 @@ from test_result import BaseTestResult, TestResults
 _TEST_SUITES = ['base_unittests', 'sql_unittests', 'ipc_tests', 'net_unittests']
 
 
+def FullyQualifiedTestSuites():
+  """Return a fully qualified list that represents all known suites."""
+  # If not specified, assume the test suites are in out/Release
+  test_suite_dir = os.path.abspath(os.path.join(run_tests_helper.CHROME_DIR,
+                                                'out', 'Release'))
+  return [os.path.join(test_suite_dir, t) for t in _TEST_SUITES]
+
+
 class TimeProfile(object):
   """Class for simple profiling of action, with logging of cost."""
 
@@ -132,7 +140,7 @@ class Xvfb(object):
 
 def RunTests(device, test_suite, gtest_filter, test_arguments, rebaseline,
              timeout, performance_test, cleanup_test_files, tool,
-             log_dump_name):
+             log_dump_name, fast_and_loose=False, annotate=False):
   """Runs the tests.
 
   Args:
@@ -146,6 +154,9 @@ def RunTests(device, test_suite, gtest_filter, test_arguments, rebaseline,
     cleanup_test_files: Whether or not to cleanup test files on device.
     tool: Name of the Valgrind tool.
     log_dump_name: Name of log dump file.
+    fast_and_loose: should we go extra-fast but sacrifice stability
+      and/or correctness?  Intended for quick cycle testing; not for bots!
+    annotate: should we print buildbot-style annotations?
 
   Returns:
     A TestResults object.
@@ -155,40 +166,103 @@ def RunTests(device, test_suite, gtest_filter, test_arguments, rebaseline,
   if test_suite:
     global _TEST_SUITES
     if not os.path.exists(test_suite):
-      logging.critical('Unrecognized test suite, supported: %s' %
-                       _TEST_SUITES)
+      logging.critical('Unrecognized test suite %s, supported: %s' %
+                       (test_suite, _TEST_SUITES))
       if test_suite in _TEST_SUITES:
         logging.critical('(Remember to include the path: out/Release/%s)',
                          test_suite)
       return TestResults.FromOkAndFailed([], [BaseTestResult(test_suite, '')])
-    _TEST_SUITES = [test_suite]
+    fully_qualified_test_suites = [test_suite]
   else:
-    # If not specified, assume the test suites are in out/Release
-    test_suite_dir = os.path.abspath(os.path.join(run_tests_helper.CHROME_DIR,
-        'out', 'Release'))
-    _TEST_SUITES = [os.path.join(test_suite_dir, t) for t in _TEST_SUITES]
+    fully_qualified_test_suites = FullyQualifiedTestSuites()
   debug_info_list = []
-  print _TEST_SUITES  # So it shows up in buildbot output
-  for t in _TEST_SUITES:
+  print 'Known suites: ' + str(_TEST_SUITES)
+  print 'Running these: ' + str(fully_qualified_test_suites)
+  for t in fully_qualified_test_suites:
+    if annotate:
+      print '@@@BUILD_STEP Test suite %s@@@' % os.path.basename(t)
     test = SingleTestRunner(device, t, gtest_filter, test_arguments,
                             timeout, rebaseline, performance_test,
-                            cleanup_test_files, tool, not not log_dump_name)
+                            cleanup_test_files, tool, not not log_dump_name,
+                            fast_and_loose=fast_and_loose)
     test.RunTests()
+
     results += [test.test_results]
     # Collect debug info.
     debug_info_list += [test.dump_debug_info]
     if rebaseline:
       test.UpdateFilter(test.test_results.failed)
     elif test.test_results.failed:
-      # Stop running test if encountering failed test.
       test.test_results.LogFull()
-      break
   # Zip all debug info outputs into a file named by log_dump_name.
   debug_info.GTestDebugInfo.ZipAndCleanResults(
       os.path.join(run_tests_helper.CHROME_DIR, 'out', 'Release',
           'debug_info_dumps'),
       log_dump_name, [d for d in debug_info_list if d])
+
+  if annotate:
+    if test.test_results.timed_out:
+      print '@@@STEP_WARNINGS@@@'
+    elif test.test_results.failed:
+      print '@@@STEP_FAILURE@@@'
+    else:
+      print 'Step success!'  # No annotation needed
+
   return TestResults.FromTestResults(results)
+
+
+def _RunATestSuite(options):
+  """Run a single test suite.
+
+  Helper for Dispatch() to allow stop/restart of the emulator across
+  test bundles.  If using the emulator, we start it on entry and stop
+  it on exit.
+
+  Args:
+    options: options for running the tests.
+
+  Returns:
+    0 if successful, number of failing tests otherwise.
+  """
+  attached_devices = []
+  buildbot_emulator = None
+
+  if options.use_emulator:
+    t = TimeProfile('Emulator launch')
+    buildbot_emulator = emulator.Emulator(options.fast_and_loose)
+    buildbot_emulator.Launch()
+    t.Stop()
+    attached_devices.append(buildbot_emulator.device)
+  else:
+    attached_devices = android_commands.GetAttachedDevices()
+
+  if not attached_devices:
+    logging.critical('A device must be attached and online.')
+    return 1
+
+  test_results = RunTests(attached_devices[0], options.test_suite,
+                          options.gtest_filter, options.test_arguments,
+                          options.rebaseline, options.timeout,
+                          options.performance_test,
+                          options.cleanup_test_files, options.tool,
+                          options.log_dump,
+                          fast_and_loose=options.fast_and_loose,
+                          annotate=options.annotate)
+
+  if buildbot_emulator:
+    buildbot_emulator.Shutdown()
+
+  # Another chance if we timed out?  At this point It is safe(r) to
+  # run fast and loose since we just uploaded all the test data and
+  # binary.
+  if test_results.timed_out and options.repeat:
+    logging.critical('Timed out; repeating in fast_and_loose mode.')
+    options.fast_and_loose = True
+    options.repeat = options.repeat - 1
+    logging.critical('Repeats left: ' + str(options.repeat))
+    return _RunATestSuite(options)
+  return len(test_results.failed)
+
 
 def Dispatch(options):
   """Dispatches the tests, sharding if possible.
@@ -205,38 +279,24 @@ def Dispatch(options):
   if options.test_suite == 'help':
     ListTestSuites()
     return 0
-  buildbot_emulator = None
-  attached_devices = []
 
   if options.use_xvfb:
     xvfb = Xvfb()
     xvfb.Start()
 
-  if options.use_emulator:
-    t = TimeProfile('Emulator launch')
-    buildbot_emulator = emulator.Emulator()
-    buildbot_emulator.Launch()
-    t.Stop()
-    attached_devices.append(buildbot_emulator.device)
+  if options.test_suite:
+    all_test_suites = [options.test_suite]
   else:
-    attached_devices = android_commands.GetAttachedDevices()
+    all_test_suites = FullyQualifiedTestSuites()
+  failures = 0
+  for suite in all_test_suites:
+    options.test_suite = suite
+    failures += _RunATestSuite(options)
 
-  if not attached_devices:
-    logging.critical('A device must be attached and online.')
-    return 1
-
-  test_results = RunTests(attached_devices[0], options.test_suite,
-                          options.gtest_filter, options.test_arguments,
-                          options.rebaseline, options.timeout,
-                          options.performance_test,
-                          options.cleanup_test_files, options.tool,
-                          options.log_dump)
-  if buildbot_emulator:
-    buildbot_emulator.Shutdown()
   if options.use_xvfb:
     xvfb.Stop()
+  return failures
 
-  return len(test_results.failed)
 
 def ListTestSuites():
   """Display a list of available test suites
@@ -249,14 +309,14 @@ def ListTestSuites():
 def main(argv):
   option_parser = run_tests_helper.CreateTestRunnerOptionParser(None,
       default_timeout=0)
-  option_parser.add_option('-s', dest='test_suite',
+  option_parser.add_option('-s', '--suite', dest='test_suite',
                            help='Executable name of the test suite to run '
                            '(use -s help to list them)')
   option_parser.add_option('-r', dest='rebaseline',
                            help='Rebaseline and update *testsuite_disabled',
                            action='store_true',
                            default=False)
-  option_parser.add_option('-f', dest='gtest_filter',
+  option_parser.add_option('-f', '--gtest_filter', dest='gtest_filter',
                            help='gtest filter')
   option_parser.add_option('-a', '--test_arguments', dest='test_arguments',
                            help='Additional arguments to pass to the test')
@@ -275,6 +335,20 @@ def main(argv):
   option_parser.add_option('-x', '--xvfb', dest='use_xvfb',
                            action='store_true', default=False,
                            help='Use Xvfb around tests (ignored if not Linux)')
+  option_parser.add_option('--fast', '--fast_and_loose', dest='fast_and_loose',
+                           action='store_true', default=False,
+                           help='Go faster (but be less stable), '
+                           'for quick testing.  Example: when tracking down '
+                           'tests that hang to add to the disabled list, '
+                           'there is no need to redeploy the test binary '
+                           'or data to the device again.  '
+                           'Don\'t use on bots by default!')
+  option_parser.add_option('--repeat', dest='repeat', type='int',
+                           default=2,
+                           help='Repeat count on test timeout')
+  option_parser.add_option('--annotate', default=True,
+                           help='Print buildbot-style annotate messages '
+                           'for each test suite.  Default=True')
   options, args = option_parser.parse_args(argv)
   if len(args) > 1:
     print 'Unknown argument:', args[1:]

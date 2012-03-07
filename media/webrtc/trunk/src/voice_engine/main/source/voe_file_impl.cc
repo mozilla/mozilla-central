@@ -638,7 +638,7 @@ int VoEFileImpl::StopRecordingMicrophone()
         _engineStatistics.SetLastError(VE_NOT_INITED, kTraceError);
         return -1;
     }
-    if ((NumOfSendingChannels() == 0)&&!_transmitMixerPtr->IsRecordingMic())
+    if ((NumOfSendingChannels() == 0)&&_audioDevicePtr->Recording())
     {
         // Stop audio-device recording if no channel is recording
         if (_audioDevicePtr->StopRecording() != 0)
@@ -1418,6 +1418,6 @@ int VoEFileImpl::GetPlaybackPosition(int channel, int& positionMs)
     return channelPtr->GetLocalPlayoutPosition(positionMs);
 }
 
-}  // namespace webrtc
-
 #endif  // #ifdef WEBRTC_VOICE_ENGINE_FILE_API
+
+}  // namespace webrtc

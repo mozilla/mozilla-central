@@ -33,9 +33,9 @@
 #include <vector>
 
 #include "talk/base/fileutils.h"
+#include "talk/base/gunit.h"
 #include "talk/base/pathutils.h"
 #include "talk/base/stream.h"
-#include "testing/base/public/gmock.h"
 
 namespace talk_base {
 
@@ -168,81 +168,81 @@ class FakeFileSystem : public FilesystemInterface {
     }
 
     bool CreatePrivateFile(const Pathname &filename) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool DeleteFile(const Pathname &filename) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool DeleteEmptyFolder(const Pathname &folder) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool DeleteFolderContents(const Pathname &folder) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool DeleteFolderAndContents(const Pathname &folder) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool CreateFolder(const Pathname &pathname) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool MoveFolder(const Pathname &old_path, const Pathname &new_path) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool MoveFile(const Pathname &old_path, const Pathname &new_path) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool CopyFile(const Pathname &old_path, const Pathname &new_path) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool IsFolder(const Pathname &pathname) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool IsFile(const Pathname &pathname) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool IsAbsent(const Pathname &pathname) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool IsTemporaryPath(const Pathname &pathname) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool GetTemporaryFolder(Pathname &path, bool create,
                             const std::string *append) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     std::string TempFilename(const Pathname &dir, const std::string &prefix) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return std::string();
     }
     bool GetFileSize(const Pathname &path, size_t *size) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool GetFileTime(const Pathname &path, FileTimeType which,
                      time_t* time) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool GetAppPathname(Pathname *path) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool GetAppDataFolder(Pathname *path, bool per_user) {
-      EXPECT_TRUE_M(per_user, "Unsupported operation");
+      EXPECT_TRUE(per_user) << "Unsupported operation";
 #ifdef WIN32
       path->SetPathname("c:\\Users\\test_user", "");
 #else
@@ -251,11 +251,11 @@ class FakeFileSystem : public FilesystemInterface {
       return true;
     }
     bool GetAppTempFolder(Pathname *path) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     bool GetDiskFreeSpace(const Pathname &path, int64 *freebytes) {
-      EXPECT_TRUE_M(false, "Unsupported operation");
+      EXPECT_TRUE(false) << "Unsupported operation";
       return false;
     }
     Pathname GetCurrentDirectory() {

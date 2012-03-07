@@ -57,6 +57,23 @@ static const unsigned char kInvalidPacketWithCsrcAndExtension2[] = {
     0xBE, 0xDE, 0x00, 0x02, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77
 };
 
+// PT = 206, FMT = 1, Sender SSRC  = 0x1111, Media SSRC = 0x1111
+// No FCI information is needed for PLI.
+static const unsigned char kNonCompoundRtcpPliFeedbackPacket[] = {
+    0x81, 0xCE, 0x00, 0x0C, 0x00, 0x00, 0x11, 0x11, 0x00, 0x00, 0x11, 0x11
+};
+
+// Packet has only mandatory fixed RTCP header
+// PT = 204, SSRC = 0x1111
+static const unsigned char kNonCompoundRtcpAppPacket[] = {
+    0x81, 0xCC, 0x00, 0x0C, 0x00, 0x00, 0x11, 0x11
+};
+
+// PT = 202, Source count = 0
+static const unsigned char kNonCompoundRtcpSDESPacket[] = {
+    0x80, 0xCA, 0x00, 0x00
+};
+
 TEST(RtpUtilsTest, GetRtp) {
   int pt;
   EXPECT_TRUE(GetRtpPayloadType(kPcmuFrame, sizeof(kPcmuFrame), &pt));
@@ -110,6 +127,17 @@ TEST(RtpUtilsTest, GetRtcp) {
   EXPECT_EQ(0xc9, pt);
 
   EXPECT_FALSE(GetRtcpType(kInvalidPacket, sizeof(kInvalidPacket), &pt));
+
+  uint32 ssrc;
+  EXPECT_TRUE(GetRtcpSsrc(kNonCompoundRtcpPliFeedbackPacket,
+                          sizeof(kNonCompoundRtcpPliFeedbackPacket),
+                          &ssrc));
+  EXPECT_TRUE(GetRtcpSsrc(kNonCompoundRtcpAppPacket,
+                          sizeof(kNonCompoundRtcpAppPacket),
+                          &ssrc));
+  EXPECT_FALSE(GetRtcpSsrc(kNonCompoundRtcpSDESPacket,
+                           sizeof(kNonCompoundRtcpSDESPacket),
+                           &ssrc));
 }
 
 }  // namespace cricket

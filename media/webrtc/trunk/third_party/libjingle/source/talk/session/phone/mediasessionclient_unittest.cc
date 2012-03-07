@@ -849,8 +849,9 @@ std::string JingleView(const std::string& ssrc,
       "</cli:iq>";
 }
 
-std::string JingleNotifyAdd(const std::string& content_name,
+std::string JingleStreamAdd(const std::string& content_name,
                             const std::string& nick,
+                            const std::string& name,
                             const std::string& ssrc) {
   return \
       "<iq"
@@ -861,21 +862,30 @@ std::string JingleNotifyAdd(const std::string& content_name,
       "  id='150'>"
       "  <jingle"
       "    xmlns='urn:xmpp:jingle:1'"
-      "    action='session-info'>"
-      "    <notify"
-      "      xmlns='google:jingle'"
+      "    action='description-info'>"
+      "    <content"
+      "      xmlns='urn:xmpp:jingle:1'"
       "      name='" + content_name + "'>"
-      "      <source"
-      "        nick='" + nick + "'>"
-      "        <ssrc>"  + ssrc + "</ssrc>"
-      "      </source>"
-      "    </notify>"
+      "      <description"
+      "        xmlns='urn:xmpp:jingle:apps:rtp:1'"
+      "        media='" + content_name + "'>"
+      "        <streams"
+      "          xmlns='google:jingle'>"
+      "          <stream"
+      "            nick='" + nick + "'"
+      "            name='" + name + "'>"
+      "            <ssrc>"  + ssrc + "</ssrc>"
+      "          </stream>"
+      "        </streams>"
+      "      </description>"
+      "    </content>"
       "  </jingle>"
       "</iq>";
 }
 
-std::string JingleNotifyImplicitRemove(const std::string& content_name,
-                                       const std::string& nick) {
+std::string JingleStreamAddWithoutSsrc(const std::string& content_name,
+                                       const std::string& nick,
+                                       const std::string& name) {
   return \
       "<iq"
       "  xmlns='jabber:client'"
@@ -885,14 +895,53 @@ std::string JingleNotifyImplicitRemove(const std::string& content_name,
       "  id='150'>"
       "  <jingle"
       "    xmlns='urn:xmpp:jingle:1'"
-      "    action='session-info'>"
-      "    <notify"
-      "      xmlns='google:jingle'"
+      "    action='description-info'>"
+      "    <content"
+      "      xmlns='urn:xmpp:jingle:1'"
       "      name='" + content_name + "'>"
-      "      <source"
-      "        nick='" + nick + "'>"
-       "      </source>"
-      "    </notify>"
+      "      <description"
+      "        xmlns='urn:xmpp:jingle:apps:rtp:1'"
+      "        media='" + content_name + "'>"
+      "        <streams"
+      "          xmlns='google:jingle'>"
+      "          <stream"
+      "            nick='" + nick + "'"
+      "            name='" + name + "'>"
+       "          </stream>"
+      "        </streams>"
+      "      </description>"
+      "    </content>"
+      "  </jingle>"
+      "</iq>";
+}
+
+std::string JingleStreamRemove(const std::string& content_name,
+                               const std::string& nick,
+                               const std::string& name) {
+  return \
+      "<iq"
+      "  xmlns='jabber:client'"
+      "  from='me@mydomain.com'"
+      "  to='user@domain.com/resource'"
+      "  type='set'"
+      "  id='150'>"
+      "  <jingle"
+      "    xmlns='urn:xmpp:jingle:1'"
+      "    action='description-info'>"
+      "    <content"
+      "      xmlns='urn:xmpp:jingle:1'"
+      "      name='" + content_name + "'>"
+      "      <description"
+      "        xmlns='urn:xmpp:jingle:apps:rtp:1'"
+      "        media='" + content_name + "'>"
+      "        <streams"
+      "          xmlns='google:jingle'>"
+      "          <stream"
+      "            nick='" + nick + "'"
+      "            name='" + name + "'/>"
+      "        </streams>"
+      "      </description>"
+      "    </content>"
       "  </jingle>"
       "</iq>";
 }
@@ -2015,9 +2064,7 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
       buzz::XmlElement* content_desc =
           content->FirstNamed(cricket::QN_JINGLE_RTP_CONTENT);
       ASSERT_TRUE(content_desc != NULL);
-      // TODO: Allow option for intiator to select ssrc.
-      // Right now, for MUC, we set it to a random value.
-      ASSERT_NE("", content_desc->Attr(cricket::QN_SSRC));
+      ASSERT_EQ("", content_desc->Attr(cricket::QN_SSRC));
     }
     delete stanzas_[0];
     stanzas_.clear();
@@ -2063,7 +2110,7 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
     jingle->SetAttr(cricket::QN_SID, call_->sessions()[0]->id());
   }
 
-  void TestSourceNotifiesAndViewRequests() {
+  void TestStreamsUpdateAndViewRequests() {
     cricket::CallOptions options;
     options.has_video = true;
     options.is_muc = true;
@@ -2071,8 +2118,10 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
     client_->CreateCall();
     call_->InitiateSession(buzz::Jid("me@mydomain.com"), options);
     ASSERT_EQ(1U, ClearStanzas());
-    ASSERT_EQ(0U, last_sources_update_.audio().size());
-    ASSERT_EQ(0U, last_sources_update_.video().size());
+    ASSERT_EQ(0U, last_streams_added_.audio().size());
+    ASSERT_EQ(0U, last_streams_added_.video().size());
+    ASSERT_EQ(0U, last_streams_removed_.audio().size());
+    ASSERT_EQ(0U, last_streams_removed_.video().size());
 
     talk_base::scoped_ptr<buzz::XmlElement> accept_stanza(
         buzz::XmlElement::ForStr(kJingleAcceptWithSsrcs));
@@ -2083,64 +2132,90 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
     ASSERT_EQ(1U, stanzas_.size());
     ASSERT_EQ(std::string(buzz::STR_RESULT), stanzas_[0]->Attr(buzz::QN_TYPE));
     ClearStanzas();
+    call_->sessions()[0]->SetState(cricket::Session::STATE_INPROGRESS);
 
-    talk_base::scoped_ptr<buzz::XmlElement> notify_stanza(
-        buzz::XmlElement::ForStr(JingleNotifyAdd("video", "Bob", "ABC")));
-    SetJingleSid(notify_stanza.get());
-    client_->session_manager()->OnIncomingMessage(notify_stanza.get());
+    talk_base::scoped_ptr<buzz::XmlElement> streams_stanza(
+        buzz::XmlElement::ForStr(
+            JingleStreamAdd("video", "Bob", "video1", "ABC")));
+    SetJingleSid(streams_stanza.get());
+    client_->session_manager()->OnIncomingMessage(streams_stanza.get());
     // First one is ignored because of bad syntax.
     ASSERT_EQ(1U, stanzas_.size());
     // TODO: Figure out how to make this an ERROR rather than RESULT.
-    ASSERT_EQ(std::string(buzz::STR_RESULT), stanzas_[0]->Attr(buzz::QN_TYPE));
+    ASSERT_EQ(std::string(buzz::STR_ERROR), stanzas_[0]->Attr(buzz::QN_TYPE));
     ClearStanzas();
-    ASSERT_EQ(0U, last_sources_update_.audio().size());
-    ASSERT_EQ(0U, last_sources_update_.video().size());
+    ASSERT_EQ(0U, last_streams_added_.audio().size());
+    ASSERT_EQ(0U, last_streams_added_.video().size());
+    ASSERT_EQ(0U, last_streams_removed_.audio().size());
+    ASSERT_EQ(0U, last_streams_removed_.video().size());
 
-    notify_stanza.reset(
-        buzz::XmlElement::ForStr(JingleNotifyAdd("audio", "Bob", "1234")));
-    SetJingleSid(notify_stanza.get());
-    client_->session_manager()->OnIncomingMessage(notify_stanza.get());
-    ASSERT_EQ(1U, last_sources_update_.audio().size());
-    ASSERT_EQ("Bob", last_sources_update_.audio()[0].nick);
-    ASSERT_TRUE(last_sources_update_.audio()[0].ssrc_set);
-    ASSERT_EQ(1234U, last_sources_update_.audio()[0].ssrc);
+    streams_stanza.reset(buzz::XmlElement::ForStr(
+        JingleStreamAdd("audio", "Bob", "audio1", "1234")));
+    SetJingleSid(streams_stanza.get());
+    client_->session_manager()->OnIncomingMessage(streams_stanza.get());
+    ASSERT_EQ(1U, last_streams_added_.audio().size());
+    ASSERT_EQ("Bob", last_streams_added_.audio()[0].nick);
+    ASSERT_EQ(1U, last_streams_added_.audio()[0].ssrcs.size());
+    ASSERT_EQ(1234U, last_streams_added_.audio()[0].first_ssrc());
 
-    notify_stanza.reset(
-        buzz::XmlElement::ForStr(JingleNotifyAdd("audio", "Joe", "2468")));
-    SetJingleSid(notify_stanza.get());
-    client_->session_manager()->OnIncomingMessage(notify_stanza.get());
-    ASSERT_EQ(1U, last_sources_update_.audio().size());
-    ASSERT_EQ("Joe", last_sources_update_.audio()[0].nick);
-    ASSERT_TRUE(last_sources_update_.audio()[0].ssrc_set);
-    ASSERT_EQ(2468U, last_sources_update_.audio()[0].ssrc);
+    // Ignores adds without ssrcs.
+    streams_stanza.reset(buzz::XmlElement::ForStr(
+        JingleStreamAddWithoutSsrc("audio", "Bob", "audioX")));
+    SetJingleSid(streams_stanza.get());
+    client_->session_manager()->OnIncomingMessage(streams_stanza.get());
+    ASSERT_EQ(1U, last_streams_added_.audio().size());
+    ASSERT_EQ(1234U, last_streams_added_.audio()[0].first_ssrc());
 
-    notify_stanza.reset(
-        buzz::XmlElement::ForStr(JingleNotifyAdd("video", "Bob", "5678")));
-    SetJingleSid(notify_stanza.get());
-    client_->session_manager()->OnIncomingMessage(notify_stanza.get());
-    ASSERT_EQ(1U, last_sources_update_.video().size());
-    ASSERT_EQ("Bob", last_sources_update_.video()[0].nick);
-    ASSERT_TRUE(last_sources_update_.video()[0].ssrc_set);
-    ASSERT_EQ(5678U, last_sources_update_.video()[0].ssrc);
+    // Ignores stream updates with unknown content names. (Don't terminate).
+    streams_stanza.reset(buzz::XmlElement::ForStr(
+        JingleStreamAddWithoutSsrc("foo", "Bob", "foo")));
+    SetJingleSid(streams_stanza.get());
+    client_->session_manager()->OnIncomingMessage(streams_stanza.get());
+
+    streams_stanza.reset(buzz::XmlElement::ForStr(
+        JingleStreamAdd("audio", "Joe", "audio1", "2468")));
+    SetJingleSid(streams_stanza.get());
+    client_->session_manager()->OnIncomingMessage(streams_stanza.get());
+    ASSERT_EQ(1U, last_streams_added_.audio().size());
+    ASSERT_EQ("Joe", last_streams_added_.audio()[0].nick);
+    ASSERT_EQ(1U, last_streams_added_.audio()[0].ssrcs.size());
+    ASSERT_EQ(2468U, last_streams_added_.audio()[0].first_ssrc());
+
+    streams_stanza.reset(buzz::XmlElement::ForStr(
+        JingleStreamAdd("video", "Bob", "video1", "5678")));
+    SetJingleSid(streams_stanza.get());
+    client_->session_manager()->OnIncomingMessage(streams_stanza.get());
+    ASSERT_EQ(1U, last_streams_added_.video().size());
+    ASSERT_EQ("Bob", last_streams_added_.video()[0].nick);
+    ASSERT_EQ(1U, last_streams_added_.video()[0].ssrcs.size());
+    ASSERT_EQ(5678U, last_streams_added_.video()[0].first_ssrc());
 
     // We're testing that a "duplicate" is effectively ignored.
-    last_sources_update_.mutable_video()->clear();
-    notify_stanza.reset(
-        buzz::XmlElement::ForStr(JingleNotifyAdd("video", "Bob", "5678")));
-    SetJingleSid(notify_stanza.get());
-    client_->session_manager()->OnIncomingMessage(notify_stanza.get());
-    ASSERT_EQ(0U, last_sources_update_.video().size());
+    last_streams_added_.mutable_video()->clear();
+    last_streams_removed_.mutable_video()->clear();
+    streams_stanza.reset(buzz::XmlElement::ForStr(
+        JingleStreamAdd("video", "Bob", "video1", "5678")));
+    SetJingleSid(streams_stanza.get());
+    client_->session_manager()->OnIncomingMessage(streams_stanza.get());
+    ASSERT_EQ(0U, last_streams_added_.video().size());
+    ASSERT_EQ(0U, last_streams_removed_.video().size());
+
+    streams_stanza.reset(buzz::XmlElement::ForStr(
+        JingleStreamAdd("video", "Bob", "video2", "5679")));
+    SetJingleSid(streams_stanza.get());
+    client_->session_manager()->OnIncomingMessage(streams_stanza.get());
+    ASSERT_EQ(1U, last_streams_added_.video().size());
+    ASSERT_EQ("Bob", last_streams_added_.video()[0].nick);
+    ASSERT_EQ(1U, last_streams_added_.video()[0].ssrcs.size());
+    ASSERT_EQ(5679U, last_streams_added_.video()[0].first_ssrc());
 
     cricket::FakeVoiceMediaChannel* voice_channel = fme_->GetVoiceChannel(0);
     ASSERT_TRUE(voice_channel != NULL);
-    ASSERT_TRUE(
-        voice_channel->streams().find(1234U) != voice_channel->streams().end());
-    ASSERT_TRUE(
-        voice_channel->streams().find(2468U) != voice_channel->streams().end());
+    ASSERT_TRUE(voice_channel->HasRecvStream(1234U));
+    ASSERT_TRUE(voice_channel->HasRecvStream(2468U));
     cricket::FakeVideoMediaChannel* video_channel = fme_->GetVideoChannel(0);
     ASSERT_TRUE(video_channel != NULL);
-    ASSERT_TRUE(
-        video_channel->streams().find(5678U) != video_channel->streams().end());
+    ASSERT_TRUE(video_channel->HasRecvStream(5678U));
     ClearStanzas();
 
     cricket::ViewRequest viewRequest;
@@ -2156,52 +2231,53 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
     ASSERT_EQ(expected_view_elem->Str(), stanzas_[0]->Str());
     ClearStanzas();
 
-    // Implicit removal of audio ssrc.
-    notify_stanza.reset(
-        buzz::XmlElement::ForStr(JingleNotifyImplicitRemove("audio", "Bob")));
-    SetJingleSid(notify_stanza.get());
-    client_->session_manager()->OnIncomingMessage(notify_stanza.get());
-    ASSERT_EQ(1U, last_sources_update_.audio().size());
-    ASSERT_TRUE(last_sources_update_.audio()[0].removed);
-    ASSERT_TRUE(last_sources_update_.audio()[0].ssrc_set);
-    ASSERT_EQ(1234U, last_sources_update_.audio()[0].ssrc);
+    streams_stanza.reset(buzz::XmlElement::ForStr(
+        JingleStreamRemove("audio", "Bob", "audio1")));
+    SetJingleSid(streams_stanza.get());
+    client_->session_manager()->OnIncomingMessage(streams_stanza.get());
+    ASSERT_EQ(1U, last_streams_removed_.audio().size());
+    ASSERT_EQ(1U, last_streams_removed_.audio()[0].ssrcs.size());
+    EXPECT_EQ(1234U, last_streams_removed_.audio()[0].first_ssrc());
 
-    // Implicit removal of video ssrc.
-    notify_stanza.reset(
-        buzz::XmlElement::ForStr(JingleNotifyImplicitRemove("video", "Bob")));
-    SetJingleSid(notify_stanza.get());
-    client_->session_manager()->OnIncomingMessage(notify_stanza.get());
-    ASSERT_EQ(1U, last_sources_update_.video().size());
-    ASSERT_TRUE(last_sources_update_.video()[0].removed);
-    ASSERT_TRUE(last_sources_update_.video()[0].ssrc_set);
-    ASSERT_EQ(5678U, last_sources_update_.video()[0].ssrc);
+    streams_stanza.reset(buzz::XmlElement::ForStr(
+        JingleStreamRemove("video", "Bob", "video1")));
+    SetJingleSid(streams_stanza.get());
+    client_->session_manager()->OnIncomingMessage(streams_stanza.get());
+    ASSERT_EQ(1U, last_streams_removed_.video().size());
+    ASSERT_EQ(1U, last_streams_removed_.video()[0].ssrcs.size());
+    EXPECT_EQ(5678U, last_streams_removed_.video()[0].first_ssrc());
 
-    // Implicit removal of non-existent audio ssrc: should be ignored.
-    last_sources_update_.mutable_audio()->clear();
-    notify_stanza.reset(
-        buzz::XmlElement::ForStr(JingleNotifyImplicitRemove("audio", "Bob")));
-    SetJingleSid(notify_stanza.get());
-    client_->session_manager()->OnIncomingMessage(notify_stanza.get());
-    ASSERT_EQ(0U, last_sources_update_.audio().size());
+    streams_stanza.reset(buzz::XmlElement::ForStr(
+        JingleStreamRemove("video", "Bob", "video2")));
+    SetJingleSid(streams_stanza.get());
+    client_->session_manager()->OnIncomingMessage(streams_stanza.get());
+    ASSERT_EQ(1U, last_streams_removed_.video().size());
+    ASSERT_EQ(1U, last_streams_removed_.video()[0].ssrcs.size());
+    EXPECT_EQ(5679U, last_streams_removed_.video()[0].first_ssrc());
 
-    // Implicit removal of non-existent video ssrc: should be ignored.
-    last_sources_update_.mutable_video()->clear();
-    notify_stanza.reset(
-        buzz::XmlElement::ForStr(JingleNotifyImplicitRemove("video", "Bob")));
-    SetJingleSid(notify_stanza.get());
-    client_->session_manager()->OnIncomingMessage(notify_stanza.get());
-    ASSERT_EQ(0U, last_sources_update_.video().size());
+    // Duplicate removal: should be ignored.
+    last_streams_removed_.mutable_audio()->clear();
+    streams_stanza.reset(buzz::XmlElement::ForStr(
+        JingleStreamRemove("audio", "Bob", "audio1")));
+    SetJingleSid(streams_stanza.get());
+    client_->session_manager()->OnIncomingMessage(streams_stanza.get());
+    ASSERT_EQ(0U, last_streams_removed_.audio().size());
+
+    // Duplicate removal: should be ignored.
+    last_streams_removed_.mutable_video()->clear();
+    streams_stanza.reset(buzz::XmlElement::ForStr(
+        JingleStreamRemove("video", "Bob", "video1")));
+    SetJingleSid(streams_stanza.get());
+    client_->session_manager()->OnIncomingMessage(streams_stanza.get());
+    ASSERT_EQ(0U, last_streams_removed_.video().size());
 
     voice_channel = fme_->GetVoiceChannel(0);
     ASSERT_TRUE(voice_channel != NULL);
-    ASSERT_FALSE(
-        voice_channel->streams().find(1234U) != voice_channel->streams().end());
-    ASSERT_TRUE(
-        voice_channel->streams().find(2468U) != voice_channel->streams().end());
+    ASSERT_FALSE(voice_channel->HasRecvStream(1234U));
+    ASSERT_TRUE(voice_channel->HasRecvStream(2468U));
     video_channel = fme_->GetVideoChannel(0);
     ASSERT_TRUE(video_channel != NULL);
-    ASSERT_FALSE(
-        video_channel->streams().find(5678U) != video_channel->streams().end());
+    ASSERT_FALSE(video_channel->HasRecvStream(5678U));
 
     // Fails because ssrc is now invalid.
     ASSERT_FALSE(
@@ -2243,18 +2319,20 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
 
   void OnCallCreate(cricket::Call *call) {
     call_ = call;
-    call->SignalMediaSourcesUpdate.connect(
-        this, &MediaSessionClientTest::OnMediaSourcesUpdate);
+    call->SignalMediaStreamsUpdate.connect(
+        this, &MediaSessionClientTest::OnMediaStreamsUpdate);
   }
 
   void OnCallDestroy(cricket::Call *call) {
     call_ = NULL;
   }
 
-  void OnMediaSourcesUpdate(cricket::Call *call,
+  void OnMediaStreamsUpdate(cricket::Call *call,
                             cricket::Session *session,
-                            const cricket::MediaSources& sources) {
-    last_sources_update_.CopyFrom(sources);
+                            const cricket::MediaStreams& added,
+                            const cricket::MediaStreams& removed) {
+    last_streams_added_.CopyFrom(added);
+    last_streams_removed_.CopyFrom(removed);
   }
 
   talk_base::NetworkManager* nm_;
@@ -2271,7 +2349,8 @@ class MediaSessionClientTest : public sigslot::has_slots<> {
   bool expect_outgoing_crypto_;
   int expected_video_bandwidth_;
   bool expected_video_rtcp_mux_;
-  cricket::MediaSources last_sources_update_;
+  cricket::MediaStreams last_streams_added_;
+  cricket::MediaStreams last_streams_removed_;
 };
 
 MediaSessionClientTest* GingleTest() {
@@ -2488,9 +2567,9 @@ TEST(MediaSessionTest, JingleIncomingAcceptWithSsrcs) {
   test->TestIncomingAcceptWithSsrcs(kJingleAcceptWithSsrcs);
 }
 
-TEST(MediaSessionTest, JingleNotifyAndView) {
+TEST(MediaSessionTest, JingleStreamsUpdateAndView) {
   talk_base::scoped_ptr<MediaSessionClientTest> test(JingleTest());
-  test->TestSourceNotifiesAndViewRequests();
+  test->TestStreamsUpdateAndViewRequests();
 }
 
 // Gingle tests

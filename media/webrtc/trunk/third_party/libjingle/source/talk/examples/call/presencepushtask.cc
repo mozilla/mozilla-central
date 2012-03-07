@@ -187,11 +187,8 @@ void PresencePushTask::FillStatus(const Jid& from, const XmlElement* stanza,
       std::string exts = caps->Attr(QN_EXT);
 
       s->set_know_capabilities(true);
-
-      if (node == GOOGLE_CLIENT_NODE) {
-        s->set_is_google_client(true);
-        s->set_version(ver);
-      }
+      s->set_caps_node(node);
+      s->set_version(ver);
 
       if (ListContainsToken(exts, "voice-v1")) {
         s->set_voice_capability(true);

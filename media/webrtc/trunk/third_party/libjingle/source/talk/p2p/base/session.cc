@@ -156,6 +156,7 @@ TransportChannelImpl* TransportProxy::GetOrCreateImpl(
   TransportChannelImpl* impl = transport_->GetChannel(name);
   if (impl == NULL) {
     impl = transport_->CreateChannel(name, content_type);
+    impl->set_session_id(sid_);
   }
   return impl;
 }
@@ -284,7 +285,7 @@ TransportProxy* BaseSession::GetOrCreateTransportProxy(
   transport->SignalChannelGone.connect(
       this, &BaseSession::OnTransportChannelGone);
 
-  transproxy = new TransportProxy(content_name, transport);
+  transproxy = new TransportProxy(sid_, content_name, transport);
   transports_[content_name] = transproxy;
 
   return transproxy;
@@ -363,8 +364,8 @@ bool BaseSession::ContentsGrouped() {
   // in SDP. It may be necessary to check content_names in groups of both
   // local and remote descriptions. Assumption here is that when this method
   // returns true, media contents can be muxed.
-  if (local_description()->HasGroup(GN_TOGETHER) &&
-      remote_description()->HasGroup(GN_TOGETHER)) {
+  if (local_description()->HasGroup(GN_BUNDLE) &&
+      remote_description()->HasGroup(GN_BUNDLE)) {
     return true;
   }
   return false;
@@ -378,7 +379,7 @@ bool BaseSession::MaybeEnableMuxingSupport() {
     // Always use first content name from the group for muxing. Hence ordering
     // of content names in SDP should match to the order in group.
     const ContentGroup* muxed_content_group =
-        local_description()->GetGroupByName(GN_TOGETHER);
+        local_description()->GetGroupByName(GN_BUNDLE);
     const std::string* content_name =
         muxed_content_group->FirstContentName();
     if (content_name) {
@@ -959,29 +960,33 @@ bool Session::OnDescriptionInfoMessage(const SessionMessage& msg,
   }
 
   ContentInfos updated_contents = description_info.ClearContents();
-  ContentInfos::iterator it;
 
+  // TODO: Currently, reflector sends back
+  // video stream updates even for an audio-only call, which causes
+  // this to fail.  Put this back once reflector is fixed.
+  //
+  // ContentInfos::iterator it;
   // First, ensure all updates are valid before modifying remote_description_.
-  for (it = updated_contents.begin(); it != updated_contents.end(); ++it) {
-    if (remote_description()->GetContentByName(it->name) == NULL) {
-      return false;
-    }
+  // for (it = updated_contents.begin(); it != updated_contents.end(); ++it) {
+  //   if (remote_description()->GetContentByName(it->name) == NULL) {
+  //     return false;
+  //   }
+  // }
 
-    // TODO: We should add a check to ensure that the updated
-    // contents are compatible with the original contents.
-  }
+  // TODO: We used to replace contents from an update, but
+  // that no longer works with partial updates.  We need to figure out
+  // a way to merge patial updates into contents.  For now, users of
+  // Session should listen to SignalRemoteDescriptionUpdate and handle
+  // updates.  They should not expect remote_description to be the
+  // latest value.
+  //
+  // for (it = updated_contents.begin(); it != updated_contents.end(); ++it) {
+  //     remote_description()->RemoveContentByName(it->name);
+  //     remote_description()->AddContent(it->name, it->type, it->description);
+  //   }
+  // }
 
-  // Merge the updates into the remote description.
-  // TODO: Merge streams instead of overwriting.
-  for (it = updated_contents.begin(); it != updated_contents.end(); ++it) {
-    LOG(LS_INFO) << "Updating content " << it->name;
-    remote_description()->RemoveContentByName(it->name);
-    remote_description()->AddContent(it->name, it->type, it->description);
-  }
-
-  // TODO: Add an argument that shows what streams were changed.
-  SignalRemoteDescriptionUpdate(this);
-
+  SignalRemoteDescriptionUpdate(this, updated_contents);
   return true;
 }
 

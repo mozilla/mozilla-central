@@ -126,7 +126,7 @@ class ViEWrapper {
   webrtc::ViENetwork* network() { return network_.get(); }
   webrtc::ViERender* render() { return render_.get(); }
   webrtc::ViERTP_RTCP* rtp() { return rtp_.get(); }
-  webrtc::ViEImageProcess* sync() { return image_.get(); }
+  webrtc::ViEImageProcess* image() { return image_.get(); }
   int error() { return base_->LastError(); }
 
  private:

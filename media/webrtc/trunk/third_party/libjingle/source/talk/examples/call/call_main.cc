@@ -222,6 +222,10 @@ int main(int argc, char **argv) {
   DEFINE_string(filterhost, NULL, "Filter out the host from all candidates.");
   DEFINE_string(pmuc, "groupchat.google.com", "The persistant muc domain.");
   DEFINE_string(s, "talk.google.com", "The connection server to use.");
+  DEFINE_string(capsnode, "http://code.google.com/p/libjingle/call",
+                "Caps node: A URI identifying the app.");
+  DEFINE_string(capsver, "0.6",
+                "Caps ver: A string identifying the version of the app.");
   DEFINE_string(voiceinput, NULL, "RTP dump file for voice input.");
   DEFINE_string(voiceoutput, NULL, "RTP dump file for voice output.");
   DEFINE_string(videoinput, NULL, "RTP dump file for video input.");
@@ -247,6 +251,8 @@ int main(int argc, char **argv) {
   std::string pmuc_domain = FLAG_pmuc;
   std::string server = FLAG_s;
   std::string secure = FLAG_secure;
+  std::string caps_node = FLAG_capsnode;
+  std::string caps_ver = FLAG_capsver;
   bool debugsrtp = FLAG_debugsrtp;
   bool render = FLAG_render;
 
@@ -361,7 +367,7 @@ int main(int argc, char **argv) {
 #if WIN32
   // Need to pump messages on our main thread on Windows.
   talk_base::Win32Thread w32_thread;
-  talk_base::ThreadManager::SetCurrent(&w32_thread);
+  talk_base::ThreadManager::Instance()->SetCurrentThread(&w32_thread);
 #endif
   talk_base::Thread* main_thread = talk_base::Thread::Current();
 #ifdef OSX
@@ -370,7 +376,7 @@ int main(int argc, char **argv) {
 #endif
 
   XmppPump pump;
-  CallClient *client = new CallClient(pump.client());
+  CallClient *client = new CallClient(pump.client(), caps_node, caps_ver);
 
   if (FLAG_voiceinput || FLAG_voiceoutput ||
       FLAG_videoinput || FLAG_videooutput) {

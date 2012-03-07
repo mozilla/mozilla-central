@@ -40,6 +40,7 @@
 #endif
 
 #include "talk/base/base64.h"
+#include "talk/base/basictypes.h"
 #include "talk/base/logging.h"
 #include "talk/base/scoped_ptr.h"
 #include "talk/base/timeutils.h"
@@ -205,9 +206,10 @@ namespace {
 
 // This round about way of creating a global RNG is to safe-guard against
 // indeterminant static initialization order.
-RandomGenerator*& GetGlobalRng() {
-  static RandomGenerator* g_rng = new SecureRandomGenerator();
-  return g_rng;
+scoped_ptr<RandomGenerator>& GetGlobalRng() {
+  LIBJINGLE_DEFINE_STATIC_LOCAL(scoped_ptr<RandomGenerator>, global_rng,
+                                (new SecureRandomGenerator()));
+  return global_rng;
 }
 
 RandomGenerator& Rng() {
@@ -218,9 +220,9 @@ RandomGenerator& Rng() {
 
 void SetRandomTestMode(bool test) {
   if (!test) {
-    GetGlobalRng() = new SecureRandomGenerator();
+    GetGlobalRng().reset(new SecureRandomGenerator());
   } else {
-    GetGlobalRng() = new TestRandomGenerator();
+    GetGlobalRng().reset(new TestRandomGenerator());
   }
 }
 

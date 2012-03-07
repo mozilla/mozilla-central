@@ -4,9 +4,7 @@ TOOLSET := target
 TARGET := libjpeg
 ### Generated for rule libjpeg_assemble:
 $(obj)/gen/third_party/libjpeg_turbo/jccolss2-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jccolss2-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jccolss2-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jccolss2-64.o: third_party/libjpeg_turbo/simd/jccolss2-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_0)
@@ -16,9 +14,7 @@ cmd_libjpeg_assemble_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libjpeg_assemble_0 = RULE libjpeg_assemble_0 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jcgrass2-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jcgrass2-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jcgrass2-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jcgrass2-64.o: third_party/libjpeg_turbo/simd/jcgrass2-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_1)
@@ -28,9 +24,7 @@ cmd_libjpeg_assemble_1 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libjpeg_assemble_1 = RULE libjpeg_assemble_1 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jcqnts2f-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jcqnts2f-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jcqnts2f-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jcqnts2f-64.o: third_party/libjpeg_turbo/simd/jcqnts2f-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_2)
@@ -40,9 +34,7 @@ cmd_libjpeg_assemble_2 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libjpeg_assemble_2 = RULE libjpeg_assemble_2 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jcqnts2i-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jcqnts2i-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jcqnts2i-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jcqnts2i-64.o: third_party/libjpeg_turbo/simd/jcqnts2i-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_3)
@@ -52,9 +44,7 @@ cmd_libjpeg_assemble_3 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libjpeg_assemble_3 = RULE libjpeg_assemble_3 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jcsamss2-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jcsamss2-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jcsamss2-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jcsamss2-64.o: third_party/libjpeg_turbo/simd/jcsamss2-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_4)
@@ -64,9 +54,7 @@ cmd_libjpeg_assemble_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libjpeg_assemble_4 = RULE libjpeg_assemble_4 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jdcolss2-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jdcolss2-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jdcolss2-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jdcolss2-64.o: third_party/libjpeg_turbo/simd/jdcolss2-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_5)
@@ -76,9 +64,7 @@ cmd_libjpeg_assemble_5 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libjpeg_assemble_5 = RULE libjpeg_assemble_5 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jdmerss2-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jdmerss2-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jdmerss2-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jdmerss2-64.o: third_party/libjpeg_turbo/simd/jdmerss2-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_6)
@@ -88,9 +74,7 @@ cmd_libjpeg_assemble_6 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libjpeg_assemble_6 = RULE libjpeg_assemble_6 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jdsamss2-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jdsamss2-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jdsamss2-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jdsamss2-64.o: third_party/libjpeg_turbo/simd/jdsamss2-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_7)
@@ -100,9 +84,7 @@ cmd_libjpeg_assemble_7 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libjpeg_assemble_7 = RULE libjpeg_assemble_7 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jfss2fst-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jfss2fst-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jfss2fst-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jfss2fst-64.o: third_party/libjpeg_turbo/simd/jfss2fst-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_8)
@@ -112,9 +94,7 @@ cmd_libjpeg_assemble_8 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libjpeg_assemble_8 = RULE libjpeg_assemble_8 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jfss2int-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jfss2int-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jfss2int-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jfss2int-64.o: third_party/libjpeg_turbo/simd/jfss2int-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_9)
@@ -124,9 +104,7 @@ cmd_libjpeg_assemble_9 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libjpeg_assemble_9 = RULE libjpeg_assemble_9 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jfsseflt-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jfsseflt-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jfsseflt-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jfsseflt-64.o: third_party/libjpeg_turbo/simd/jfsseflt-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_10)
@@ -136,9 +114,7 @@ cmd_libjpeg_assemble_10 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.t
 quiet_cmd_libjpeg_assemble_10 = RULE libjpeg_assemble_10 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jiss2flt-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jiss2flt-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jiss2flt-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jiss2flt-64.o: third_party/libjpeg_turbo/simd/jiss2flt-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_11)
@@ -148,9 +124,7 @@ cmd_libjpeg_assemble_11 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.t
 quiet_cmd_libjpeg_assemble_11 = RULE libjpeg_assemble_11 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jiss2fst-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jiss2fst-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jiss2fst-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jiss2fst-64.o: third_party/libjpeg_turbo/simd/jiss2fst-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_12)
@@ -160,9 +134,7 @@ cmd_libjpeg_assemble_12 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.t
 quiet_cmd_libjpeg_assemble_12 = RULE libjpeg_assemble_12 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jiss2int-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jiss2int-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jiss2int-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jiss2int-64.o: third_party/libjpeg_turbo/simd/jiss2int-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_13)
@@ -172,9 +144,7 @@ cmd_libjpeg_assemble_13 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.t
 quiet_cmd_libjpeg_assemble_13 = RULE libjpeg_assemble_13 $@
 
 $(obj)/gen/third_party/libjpeg_turbo/jiss2red-64.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libjpeg_turbo/jiss2red-64.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libjpeg_turbo/jiss2red-64.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libjpeg_turbo/jiss2red-64.o: third_party/libjpeg_turbo/simd/jiss2red-64.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libjpeg_assemble_14)
@@ -203,12 +173,11 @@ rule_libjpeg_assemble_outputs := $(obj)/gen/third_party/libjpeg_turbo/jccolss2-6
 
 ### Finished generating for all rules
 
-DEFS_Debug := '-DNO_HEAPCHECKER' \
+DEFS_Debug := '-D_FILE_OFFSET_BITS=64' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
 	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
-	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
@@ -218,6 +187,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
 	'-DENABLE_REGISTER_PROTOCOL_HANDLER=1' \
+	'-DENABLE_WEB_INTENTS=1' \
+	'-DENABLE_PLUGIN_INSTALLATION=1' \
 	'-DWITH_SIMD' \
 	'-DMOTION_JPEG_SUPPORTED' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
@@ -227,13 +198,12 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 # Flags passed to all source files.
 CFLAGS_Debug := -pthread \
 	-fno-exceptions \
+	-fno-strict-aliasing \
 	-Wno-unused-parameter \
 	-Wno-missing-field-initializers \
-	-D_FILE_OFFSET_BITS=64 \
 	-fvisibility=hidden \
 	-pipe \
 	-fPIC \
-	-fno-strict-aliasing \
 	-Wno-format \
 	-Wno-unused-result \
 	-O0 \
@@ -250,12 +220,11 @@ CFLAGS_CC_Debug := -fno-rtti \
 
 INCS_Debug := -Ithird_party/libjpeg_turbo
 
-DEFS_Release := '-DNO_HEAPCHECKER' \
+DEFS_Release := '-D_FILE_OFFSET_BITS=64' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
 	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
-	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
@@ -265,6 +234,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
 	'-DENABLE_REGISTER_PROTOCOL_HANDLER=1' \
+	'-DENABLE_WEB_INTENTS=1' \
+	'-DENABLE_PLUGIN_INSTALLATION=1' \
 	'-DWITH_SIMD' \
 	'-DMOTION_JPEG_SUPPORTED' \
 	'-DNDEBUG' \
@@ -274,13 +245,12 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 # Flags passed to all source files.
 CFLAGS_Release := -pthread \
 	-fno-exceptions \
+	-fno-strict-aliasing \
 	-Wno-unused-parameter \
 	-Wno-missing-field-initializers \
-	-D_FILE_OFFSET_BITS=64 \
 	-fvisibility=hidden \
 	-pipe \
 	-fPIC \
-	-fno-strict-aliasing \
 	-Wno-format \
 	-Wno-unused-result \
 	-O2 \
@@ -299,10 +269,8 @@ CFLAGS_CC_Release := -fno-rtti \
 
 INCS_Release := -Ithird_party/libjpeg_turbo
 
-OBJS := $(obj).target/$(TARGET)/third_party/libjpeg_turbo/jaricom.o \
-	$(obj).target/$(TARGET)/third_party/libjpeg_turbo/jcapimin.o \
+OBJS := $(obj).target/$(TARGET)/third_party/libjpeg_turbo/jcapimin.o \
 	$(obj).target/$(TARGET)/third_party/libjpeg_turbo/jcapistd.o \
-	$(obj).target/$(TARGET)/third_party/libjpeg_turbo/jcarith.o \
 	$(obj).target/$(TARGET)/third_party/libjpeg_turbo/jccoefct.o \
 	$(obj).target/$(TARGET)/third_party/libjpeg_turbo/jccolor.o \
 	$(obj).target/$(TARGET)/third_party/libjpeg_turbo/jcdctmgr.o \
@@ -318,7 +286,6 @@ OBJS := $(obj).target/$(TARGET)/third_party/libjpeg_turbo/jaricom.o \
 	$(obj).target/$(TARGET)/third_party/libjpeg_turbo/jcsample.o \
 	$(obj).target/$(TARGET)/third_party/libjpeg_turbo/jdapimin.o \
 	$(obj).target/$(TARGET)/third_party/libjpeg_turbo/jdapistd.o \
-	$(obj).target/$(TARGET)/third_party/libjpeg_turbo/jdarith.o \
 	$(obj).target/$(TARGET)/third_party/libjpeg_turbo/jdatadst.o \
 	$(obj).target/$(TARGET)/third_party/libjpeg_turbo/jdatasrc.o \
 	$(obj).target/$(TARGET)/third_party/libjpeg_turbo/jdcoefct.o \
@@ -360,8 +327,8 @@ $(OBJS): | $(rule_libjpeg_assemble_outputs)
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
 $(OBJS): TOOLSET := $(TOOLSET)
-$(OBJS): GYP_CFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE)) $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_C_$(BUILDTYPE))
-$(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE)) $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_CC_$(BUILDTYPE))
+$(OBJS): GYP_CFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_C_$(BUILDTYPE))
+$(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_CC_$(BUILDTYPE))
 
 # Suffix rules, putting all outputs into $(obj).
 
@@ -386,11 +353,13 @@ $(rule_libjpeg_assemble_outputs): | $(builddir)/yasm
 
 LDFLAGS_Debug := -pthread \
 	-Wl,-z,noexecstack \
-	-fPIC
+	-fPIC \
+	-B$(builddir)/../../third_party/gold
 
 LDFLAGS_Release := -pthread \
 	-Wl,-z,noexecstack \
 	-fPIC \
+	-B$(builddir)/../../third_party/gold \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections

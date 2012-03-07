@@ -48,12 +48,12 @@ void vp8_subtract_b_c(BLOCK *be, BLOCKD *bd, int pitch)
     }
 }
 
-void vp8_subtract_mbuv_c(short *diff, unsigned char *usrc, unsigned char *vsrc, unsigned char *pred, int stride)
+void vp8_subtract_mbuv_c(short *diff, unsigned char *usrc, unsigned char *vsrc,
+                         int src_stride, unsigned char *upred,
+                         unsigned char *vpred, int pred_stride)
 {
     short *udiff = diff + 256;
     short *vdiff = diff + 320;
-    unsigned char *upred = pred + 256;
-    unsigned char *vpred = pred + 320;
 
     int r, c;
 
@@ -65,8 +65,8 @@ void vp8_subtract_mbuv_c(short *diff, unsigned char *usrc, unsigned char *vsrc, 
         }
 
         udiff += 8;
-        upred += 8;
-        usrc  += stride;
+        upred += pred_stride;
+        usrc  += src_stride;
     }
 
     for (r = 0; r < 8; r++)
@@ -77,12 +77,13 @@ void vp8_subtract_mbuv_c(short *diff, unsigned char *usrc, unsigned char *vsrc, 
         }
 
         vdiff += 8;
-        vpred += 8;
-        vsrc  += stride;
+        vpred += pred_stride;
+        vsrc  += src_stride;
     }
 }
 
-void vp8_subtract_mby_c(short *diff, unsigned char *src, unsigned char *pred, int stride)
+void vp8_subtract_mby_c(short *diff, unsigned char *src, int src_stride,
+                        unsigned char *pred, int pred_stride)
 {
     int r, c;
 
@@ -94,8 +95,8 @@ void vp8_subtract_mby_c(short *diff, unsigned char *src, unsigned char *pred, in
         }
 
         diff += 16;
-        pred += 16;
-        src  += stride;
+        pred += pred_stride;
+        src  += src_stride;
     }
 }
 
@@ -103,8 +104,11 @@ static void vp8_subtract_mb(const VP8_ENCODER_RTCD *rtcd, MACROBLOCK *x)
 {
     BLOCK *b = &x->block[0];
 
-    ENCODEMB_INVOKE(&rtcd->encodemb, submby)(x->src_diff, *(b->base_src), x->e_mbd.predictor, b->src_stride);
-    ENCODEMB_INVOKE(&rtcd->encodemb, submbuv)(x->src_diff, x->src.u_buffer, x->src.v_buffer, x->e_mbd.predictor, x->src.uv_stride);
+    ENCODEMB_INVOKE(&rtcd->encodemb, submby)(x->src_diff, *(b->base_src),
+        b->src_stride, x->e_mbd.dst.y_buffer, x->e_mbd.dst.y_stride);
+    ENCODEMB_INVOKE(&rtcd->encodemb, submbuv)(x->src_diff, x->src.u_buffer,
+        x->src.v_buffer, x->src.uv_stride, x->e_mbd.dst.u_buffer,
+        x->e_mbd.dst.v_buffer, x->e_mbd.dst.uv_stride);
 }
 
 static void build_dcblock(MACROBLOCK *x)
@@ -621,7 +625,7 @@ void vp8_optimize_mbuv(MACROBLOCK *x, const VP8_ENCODER_RTCD *rtcd)
 
 void vp8_encode_inter16x16(const VP8_ENCODER_RTCD *rtcd, MACROBLOCK *x)
 {
-    vp8_build_inter_predictors_mb_e(&x->e_mbd);
+    vp8_build_inter_predictors_mb(&x->e_mbd);
 
     vp8_subtract_mb(rtcd, x);
 
@@ -631,7 +635,6 @@ void vp8_encode_inter16x16(const VP8_ENCODER_RTCD *rtcd, MACROBLOCK *x)
 
     if (x->optimize)
         optimize_mb(x, rtcd);
-
 }
 
 /* this funciton is used by first pass only */
@@ -639,14 +642,15 @@ void vp8_encode_inter16x16y(const VP8_ENCODER_RTCD *rtcd, MACROBLOCK *x)
 {
     BLOCK *b = &x->block[0];
 
-    vp8_build_inter16x16_predictors_mby(&x->e_mbd);
+    vp8_build_inter16x16_predictors_mby(&x->e_mbd, x->e_mbd.dst.y_buffer,
+                                        x->e_mbd.dst.y_stride);
 
-    ENCODEMB_INVOKE(&rtcd->encodemb, submby)(x->src_diff, *(b->base_src), x->e_mbd.predictor, b->src_stride);
+    ENCODEMB_INVOKE(&rtcd->encodemb, submby)(x->src_diff, *(b->base_src),
+        b->src_stride, x->e_mbd.dst.y_buffer, x->e_mbd.dst.y_stride);
 
     transform_mby(x);
 
     vp8_quantize_mby(x);
 
-    vp8_inverse_transform_mby(IF_RTCD(&rtcd->common->idct), &x->e_mbd);
-
+    vp8_inverse_transform_mby(&x->e_mbd, IF_RTCD(rtcd->common));
 }

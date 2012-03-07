@@ -31,6 +31,9 @@
 
 static const int kSsrc1 = 0x1111;
 static const int kSsrc2 = 0x2222;
+static const int kSsrc3 = 0x3333;
+
+using cricket::StreamParams;
 
 // SSRC = 0x1111
 static const unsigned char kRtpPacketSsrc1[] = {
@@ -96,44 +99,39 @@ static const unsigned char kRtcpPacketTooSmall[] = {
     0x80, 0xC8, 0x00, 0x00, 0x00, 0x00,
 };
 
-TEST(SsrcMuxFilterTest, TestOfferSetup) {
-  cricket::SsrcMuxFilter ssrc_filter;
-  EXPECT_TRUE(ssrc_filter.SetOffer(true, cricket::CS_LOCAL));
-  EXPECT_TRUE(ssrc_filter.SetAnswer(true, cricket::CS_REMOTE));
-  EXPECT_TRUE(ssrc_filter.IsActive());
-}
-
-TEST(SsrcMuxFilterTest, TestAnswerSetup) {
-  cricket::SsrcMuxFilter ssrc_filter;
-  EXPECT_TRUE(ssrc_filter.SetOffer(true, cricket::CS_REMOTE));
-  EXPECT_TRUE(ssrc_filter.SetAnswer(true, cricket::CS_LOCAL));
-  EXPECT_TRUE(ssrc_filter.IsActive());
-}
-
-TEST(SsrcMuxFilterTest, TestIncorrectOrder) {
-  cricket::SsrcMuxFilter ssrc_filter;
-  EXPECT_TRUE(ssrc_filter.SetOffer(true, cricket::CS_REMOTE));
-  EXPECT_FALSE(ssrc_filter.SetAnswer(true, cricket::CS_REMOTE));
-  EXPECT_FALSE(ssrc_filter.IsActive());
-}
+// PT = 206, FMT = 1, Sender SSRC  = 0x1111, Media SSRC = 0x1111
+// No FCI information is needed for PLI.
+static const unsigned char kRtcpPacketNonCompoundRtcpPliFeedback[] = {
+    0x81, 0xCE, 0x00, 0x0C, 0x00, 0x00, 0x11, 0x11, 0x00, 0x00, 0x11, 0x11,
+};
 
 TEST(SsrcMuxFilterTest, AddRemoveStreamTest) {
   cricket::SsrcMuxFilter ssrc_filter;
-  EXPECT_TRUE(ssrc_filter.AddStream(kSsrc1));
-  EXPECT_TRUE(ssrc_filter.AddStream(kSsrc2));
+  EXPECT_FALSE(ssrc_filter.IsActive());
+  EXPECT_TRUE(ssrc_filter.AddStream(StreamParams::CreateLegacy(kSsrc1)));
+  StreamParams stream2;
+  stream2.ssrcs.push_back(kSsrc2);
+  stream2.ssrcs.push_back(kSsrc3);
+  EXPECT_TRUE(ssrc_filter.AddStream(stream2));
+
+  EXPECT_TRUE(ssrc_filter.IsActive());
   EXPECT_TRUE(ssrc_filter.FindStream(kSsrc1));
   EXPECT_TRUE(ssrc_filter.FindStream(kSsrc2));
+  EXPECT_TRUE(ssrc_filter.FindStream(kSsrc3));
   EXPECT_TRUE(ssrc_filter.RemoveStream(kSsrc1));
   EXPECT_FALSE(ssrc_filter.FindStream(kSsrc1));
+  EXPECT_TRUE(ssrc_filter.RemoveStream(kSsrc3));
+  EXPECT_FALSE(ssrc_filter.RemoveStream(kSsrc2));  // Already removed.
+  EXPECT_FALSE(ssrc_filter.IsActive());
 }
 
 TEST(SsrcMuxFilterTest, RtpPacketTest) {
   cricket::SsrcMuxFilter ssrc_filter;
-  EXPECT_TRUE(ssrc_filter.AddStream(kSsrc1));
+  EXPECT_TRUE(ssrc_filter.AddStream(StreamParams::CreateLegacy(kSsrc1)));
   EXPECT_TRUE(ssrc_filter.DemuxPacket(
       reinterpret_cast<const char*>(kRtpPacketSsrc1),
       sizeof(kRtpPacketSsrc1), false));
-  EXPECT_TRUE(ssrc_filter.AddStream(kSsrc2));
+  EXPECT_TRUE(ssrc_filter.AddStream(StreamParams::CreateLegacy(kSsrc2)));
   EXPECT_TRUE(ssrc_filter.DemuxPacket(
       reinterpret_cast<const char*>(kRtpPacketSsrc2),
       sizeof(kRtpPacketSsrc2), false));
@@ -151,11 +149,11 @@ TEST(SsrcMuxFilterTest, RtpPacketTest) {
 
 TEST(SsrcMuxFilterTest, RtcpPacketTest) {
   cricket::SsrcMuxFilter ssrc_filter;
-  EXPECT_TRUE(ssrc_filter.AddStream(kSsrc1));
+  EXPECT_TRUE(ssrc_filter.AddStream(StreamParams::CreateLegacy(kSsrc1)));
   EXPECT_TRUE(ssrc_filter.DemuxPacket(
       reinterpret_cast<const char*>(kRtcpPacketCompoundSrSdesSsrc1),
       sizeof(kRtcpPacketCompoundSrSdesSsrc1), true));
-  EXPECT_TRUE(ssrc_filter.AddStream(kSsrc2));
+  EXPECT_TRUE(ssrc_filter.AddStream(StreamParams::CreateLegacy(kSsrc2)));
   EXPECT_TRUE(ssrc_filter.DemuxPacket(
       reinterpret_cast<const char*>(kRtcpPacketSrSsrc2),
       sizeof(kRtcpPacketSrSsrc2), true));
@@ -180,5 +178,7 @@ TEST(SsrcMuxFilterTest, RtcpPacketTest) {
   EXPECT_FALSE(ssrc_filter.DemuxPacket(
       reinterpret_cast<const char*>(kRtcpPacketTooSmall),
       sizeof(kRtcpPacketTooSmall), true));
+  EXPECT_TRUE(ssrc_filter.DemuxPacket(
+      reinterpret_cast<const char*>(kRtcpPacketNonCompoundRtcpPliFeedback),
+      sizeof(kRtcpPacketNonCompoundRtcpPliFeedback), true));
 }
-

@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -24,7 +24,6 @@ RTPReceiverAudio::RTPReceiverAudio(const WebRtc_Word32 id):
     _telephoneEventForwardToDecoder(false),
     _telephoneEventDetectEndOfTone(false),
     _telephoneEventPayloadType(-1),
-    _telephoneEventReported(),
     _cngNBPayloadType(-1),
     _cngWBPayloadType(-1),
     _cngSWBPayloadType(-1),
@@ -41,26 +40,22 @@ RTPReceiverAudio::~RTPReceiverAudio()
     delete _criticalSectionFeedback;
 }
 
-WebRtc_Word32
-RTPReceiverAudio::Init()
-{
-    _lastReceivedFrequency = 8000;
-    _telephoneEvent = false;
-    _telephoneEventForwardToDecoder = false;
-    _telephoneEventDetectEndOfTone = false;
-    _telephoneEventPayloadType = -1;
+WebRtc_Word32 RTPReceiverAudio::Init() {
+  _lastReceivedFrequency = 8000;
+  _telephoneEvent = false;
+  _telephoneEventForwardToDecoder = false;
+  _telephoneEventDetectEndOfTone = false;
+  _telephoneEventPayloadType = -1;
 
-    while(_telephoneEventReported.Size() > 0)
-    {
-        _telephoneEventReported.Erase(_telephoneEventReported.First());
-    }
-    _cngNBPayloadType = -1;
-    _cngWBPayloadType = -1;
-    _cngSWBPayloadType = -1;
-    _cngPayloadType = -1;
-    _G722PayloadType = -1;
-    _lastReceivedG722 = false;
-    return 0;
+  _telephoneEventReported.clear();
+
+  _cngNBPayloadType = -1;
+  _cngWBPayloadType = -1;
+  _cngSWBPayloadType = -1;
+  _cngPayloadType = -1;
+  _G722PayloadType = -1;
+  _lastReceivedG722 = false;
+  return 0;
 }
 
 void
@@ -207,92 +202,64 @@ RTPReceiverAudio::CNGPayloadType(const WebRtc_Word8 payloadType,
    G7221     frame         N/A
 */
 
-ModuleRTPUtility::Payload*
-RTPReceiverAudio::RegisterReceiveAudioPayload(const WebRtc_Word8 payloadName[RTP_PAYLOAD_NAME_SIZE],
-                                              const WebRtc_Word8 payloadType,
-                                              const WebRtc_UWord32 frequency,
-                                              const WebRtc_UWord8 channels,
-                                              const WebRtc_UWord32 rate)
-{
-    WebRtc_Word32 length = (WebRtc_Word32)strlen(payloadName);
-    if(length > RTP_PAYLOAD_NAME_SIZE)
-    {
-        assert(false);
-        return NULL;
+ModuleRTPUtility::Payload* RTPReceiverAudio::RegisterReceiveAudioPayload(
+    const char payloadName[RTP_PAYLOAD_NAME_SIZE],
+    const WebRtc_Word8 payloadType,
+    const WebRtc_UWord32 frequency,
+    const WebRtc_UWord8 channels,
+    const WebRtc_UWord32 rate) {
+  if (ModuleRTPUtility::StringCompare(payloadName, "telephone-event", 15)) {
+    _telephoneEventPayloadType = payloadType;
+  }
+  if (ModuleRTPUtility::StringCompare(payloadName, "cn", 2)) {
+    //  we can have three CNG on 8000Hz, 16000Hz and 32000Hz
+    if(frequency == 8000){
+      _cngNBPayloadType = payloadType;
+    } else if(frequency == 16000) {
+      _cngWBPayloadType = payloadType;
+    } else if(frequency == 32000) {
+      _cngSWBPayloadType = payloadType;
+    } else {
+      assert(false);
+      return NULL;
     }
-
-    if (ModuleRTPUtility::StringCompare(payloadName,"telephone-event",15))
-    {
-        _telephoneEventPayloadType = payloadType;
+  }
+  WebRtc_UWord8 bitsPerSample = 0; // zero implies frame based
+  if (ModuleRTPUtility::StringCompare(payloadName, "DVI4", 4)) {
+    bitsPerSample = 4;
+  } else if(ModuleRTPUtility::StringCompare(payloadName, "G722", 4)) {
+    if(ModuleRTPUtility::StringCompare(payloadName, "G7221", 5)) {
+      // frame based
+    } else {
+      _G722PayloadType = payloadType;
+      bitsPerSample = 4;
     }
-    if (ModuleRTPUtility::StringCompare(payloadName,"cn",2))
-    {
-        //  we can have three CNG on 8000Hz, 16000Hz and 32000Hz
-        if(frequency == 8000)
-        {
-            _cngNBPayloadType = payloadType;
-
-        } else if(frequency == 16000)
-        {
-            _cngWBPayloadType = payloadType;
-
-        } else if(frequency == 32000)
-        {
-            _cngSWBPayloadType = payloadType;
-        }else
-        {
-            assert(false);
-            return NULL;
-        }
-    }
-    WebRtc_UWord8 bitsPerSample = 0; // zero implies frame based
-    if (ModuleRTPUtility::StringCompare(payloadName,"DVI4",4))
-    {
-        bitsPerSample = 4;
-    } else if(ModuleRTPUtility::StringCompare(payloadName,"G722",4))
-    {
-        if(ModuleRTPUtility::StringCompare(payloadName,"G7221",5))
-        {
-            // frame based
-        } else
-        {
-            _G722PayloadType = payloadType;
-            bitsPerSample = 4;
-        }
-    } else if(ModuleRTPUtility::StringCompare(payloadName,"G726-40",7))
-    {
-        bitsPerSample = 5;
-    } else if(ModuleRTPUtility::StringCompare(payloadName,"G726-32",7))
-    {
-        bitsPerSample = 4;
-    } else if(ModuleRTPUtility::StringCompare(payloadName,"G726-24",7))
-    {
-        bitsPerSample = 3;
-    } else if(ModuleRTPUtility::StringCompare(payloadName,"G726-16",7))
-    {
-        bitsPerSample = 2;
-    } else if(ModuleRTPUtility::StringCompare(payloadName,"L8",2))
-    {
-        bitsPerSample = 8;
-    } else if(ModuleRTPUtility::StringCompare(payloadName,"L16",3))
-    {
-        bitsPerSample = 16;
-    } else if(ModuleRTPUtility::StringCompare(payloadName,"PCMU",4))
-    {
-        bitsPerSample = 8;
-    } else if(ModuleRTPUtility::StringCompare(payloadName,"PCMA",4))
-    {
-        bitsPerSample = 8;
-    }
-
-    ModuleRTPUtility::Payload* payload = new ModuleRTPUtility::Payload;
-    memcpy(payload->name, payloadName, length+1);
-    payload->typeSpecific.Audio.frequency = frequency;
-    payload->typeSpecific.Audio.channels = channels;
-    payload->typeSpecific.Audio.bitsPerSample = bitsPerSample;
-    payload->typeSpecific.Audio.rate = rate;
-    payload->audio = true;
-    return payload;
+  } else if(ModuleRTPUtility::StringCompare(payloadName,"G726-40",7)) {
+    bitsPerSample = 5;
+  } else if(ModuleRTPUtility::StringCompare(payloadName,"G726-32",7)) {
+    bitsPerSample = 4;
+  } else if(ModuleRTPUtility::StringCompare(payloadName,"G726-24",7)) {
+    bitsPerSample = 3;
+  } else if(ModuleRTPUtility::StringCompare(payloadName,"G726-16",7)) {
+    bitsPerSample = 2;
+  } else if(ModuleRTPUtility::StringCompare(payloadName,"L8",2)) {
+    bitsPerSample = 8;
+  } else if(ModuleRTPUtility::StringCompare(payloadName,"L16",3)) {
+    bitsPerSample = 16;
+  } else if(ModuleRTPUtility::StringCompare(payloadName,"PCMU",4)) {
+    bitsPerSample = 8;
+  } else if(ModuleRTPUtility::StringCompare(payloadName,"PCMA",4)) {
+    bitsPerSample = 8;
+  }
+  ModuleRTPUtility::Payload* payload = new ModuleRTPUtility::Payload;
+  payload->name[RTP_PAYLOAD_NAME_SIZE - 1] = 0;
+  strncpy(payload->name, payloadName, RTP_PAYLOAD_NAME_SIZE - 1);
+  payload->typeSpecific.Audio.frequency = frequency;
+  payload->typeSpecific.Audio.channels = channels;
+  payload->typeSpecific.Audio.bitsPerSample = bitsPerSample;
+  payload->typeSpecific.Audio.rate = rate;
+  payload->audio = true;
+  return payload;
 }
 
 // we are not allowed to have any critsects when calling CallbackOfReceivedPayloadData
@@ -342,14 +309,17 @@ RTPReceiverAudio::ParseAudioCodecSpecific(WebRtcRTPHeader* rtpHeader,
             {
                 bool end = (payloadData[(4*n)+1] & 0x80)? true:false;
 
-                if(_telephoneEventReported.Find(payloadData[4*n]) != NULL)
+                std::set<WebRtc_UWord8>::iterator event =
+                    _telephoneEventReported.find(payloadData[4*n]);
+
+                if(event != _telephoneEventReported.end())
                 {
                     // we have already seen this event
                     if(end)
                     {
                         removedEvents[numberOfRemovedEvents]= payloadData[4*n];
                         numberOfRemovedEvents++;
-                        _telephoneEventReported.Erase(payloadData[4*n]);
+                        _telephoneEventReported.erase(payloadData[4*n]);
                     }
                 }else
                 {
@@ -360,7 +330,7 @@ RTPReceiverAudio::ParseAudioCodecSpecific(WebRtcRTPHeader* rtpHeader,
                     {
                         newEvents[numberOfNewEvents] = payloadData[4*n];
                         numberOfNewEvents++;
-                        _telephoneEventReported.Insert(payloadData[4*n],NULL);
+                        _telephoneEventReported.insert(payloadData[4*n]);
                     }
                 }
             }
@@ -411,8 +381,9 @@ RTPReceiverAudio::ParseAudioCodecSpecific(WebRtcRTPHeader* rtpHeader,
             // don't forward event to decoder
             return 0;
         }
-        MapItem* first = _telephoneEventReported.First();
-        if(first && first->GetId() > 15)
+        std::set<WebRtc_UWord8>::iterator first =
+            _telephoneEventReported.begin();
+        if(first != _telephoneEventReported.end() && *first > 15)
         {
             // don't forward non DTMF events
             return 0;

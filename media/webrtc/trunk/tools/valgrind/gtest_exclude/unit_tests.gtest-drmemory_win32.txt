@@ -22,3 +22,6 @@ FirefoxImporterTest.Firefox*NSS3Decryptor
 
 # fails http://crbug.com/92144
 ServiceProcessStateTest.ForceShutdown
+
+# fails sporadically: http://crbug.com/108205
+MultiProcessLockTest.RecursiveLock

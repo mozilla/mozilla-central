@@ -301,7 +301,7 @@ void P2PTransportChannel::OnCandidatesReady(
 // Handle stun packets
 void P2PTransportChannel::OnUnknownAddress(
     Port *port, const talk_base::SocketAddress &address, StunMessage *stun_msg,
-    const std::string &remote_username) {
+    const std::string &remote_username, bool port_muxed) {
   ASSERT(worker_thread_ == talk_base::Thread::Current());
 
   // Port has received a valid stun packet from an address that no Connection
@@ -316,11 +316,17 @@ void P2PTransportChannel::OnUnknownAddress(
       break;
     }
   }
+
   if (candidate == NULL) {
+    if (port_muxed) {
+      // When Ports are muxed, SignalUnknownAddress is delivered to all
+      // P2PTransportChannel belong to a session. Return from here will
+      // save us from sending stun binding error message from incorrect channel.
+      return;
+    }
     // Don't know about this username, the request is bogus
     // This sometimes happens if a binding response comes in before the ACCEPT
     // message.  It is totally valid; the retry state machine will try again.
-
     port->SendBindingErrorResponse(stun_msg, address,
         STUN_ERROR_STALE_CREDENTIALS, STUN_ERROR_REASON_STALE_CREDENTIALS);
     delete stun_msg;
@@ -449,6 +455,13 @@ bool P2PTransportChannel::CreateConnection(Port* port,
     connection->ReceivedPing();
 
   return true;
+}
+
+bool P2PTransportChannel::FindConnection(
+    cricket::Connection* connection) const {
+  std::vector<Connection*>::const_iterator citer =
+      std::find(connections_.begin(), connections_.end(), connection);
+  return citer != connections_.end();
 }
 
 // Maintain our remote candidate list, adding this new remote one.
@@ -900,8 +913,11 @@ void P2PTransportChannel::OnReadPacket(Connection *connection,
                                        const char *data, size_t len) {
   ASSERT(worker_thread_ == talk_base::Thread::Current());
 
-  // Let the client know of an incoming packet
+  // Do not deliver, if packet doesn't belong to the correct transport channel.
+  if (!FindConnection(connection))
+    return;
 
+  // Let the client know of an incoming packet
   SignalReadPacket(this, data, len);
 }
 
@@ -933,7 +949,8 @@ int P2PTransportChannel::SetOption(talk_base::Socket::Option opt, int value) {
 void P2PTransportChannel::OnSignalingReady() {
   if (waiting_for_signaling_) {
     waiting_for_signaling_ = false;
-    AddAllocatorSession(allocator_->CreateSession(name(), content_type()));
+    AddAllocatorSession(allocator_->CreateSession(
+        session_id(), name(), content_type()));
     thread()->PostDelayed(kAllocatePeriod, this, MSG_ALLOCATE);
   }
 }
