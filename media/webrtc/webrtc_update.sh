@@ -39,29 +39,26 @@
 
 # First, get a new copy of the tree to play with
 # They both want to be named 'trunk'...
-cd media/webrtc
+#cd media/webrtc
 mkdir webrtc_update
 cd webrtc_update
 
 # Note: must be in trunk; won't work with --name (error during sync)
-gclient config http://webrtc.googlecode.com/svn/trunk
+gclient config --name trunk http://webrtc.googlecode.com/svn/trunk/peerconnection
 gclient sync --force
 export date=`date`
 
 cd trunk
 
-# build makefiles from .gyp - probably cruft since we do it by hand, but it
-# may do more than just that
-gclient runhooks --force
 export revision=`svn info | grep Revision:`
 
 echo "WebRTC revision = $revision"
 
 # put the output in the Mozilla object dir
-cd ..
-python trunk/build/gyp_chromium --depth=trunk -G output_dir='$(OBJDIR)/media/webrtc/out' trunk/webrtc.gyp
-cd ..
-
+#cd ..
+#python trunk/build/gyp_chromium --depth=trunk -G output_dir='$(OBJDIR)/media/webrtc/out' trunk/webrtc.gyp
+#cd ..
+cd ../../media/webrtc
 
 # safety - make it easy to find our way out of the forest
 hg tag -f -l old-tip
@@ -72,9 +69,9 @@ hg tag -f -l old-tip
 hg update --clean webrtc-import-last
 
 rm -rf trunk
-mv webrtc_update/trunk trunk
-mv webrtc_update/.g* .
-rmdir webrtc_update
+mv ../../webrtc_update/trunk trunk
+mv -f ../../webrtc_update/.g* .
+rmdir ../../webrtc_update
 (hg addremove --exclude "**.svn" --exclude "**.git" --exclude "**.pyc" --exclude "**.yuv" --similarity 90 --dry-run trunk; hg status -m) | less
 
 # FIX! Query user about add-removes better!!
