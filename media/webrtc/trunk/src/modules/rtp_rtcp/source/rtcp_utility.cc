@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -16,40 +16,24 @@
 
 
 namespace webrtc {
-RTCPUtility::RTCPCnameInformation::RTCPCnameInformation() :
-    length(0)
-{
-    memset(name, 0, sizeof(name));
-}
-
-RTCPUtility::RTCPCnameInformation::~RTCPCnameInformation()
-{
-}
-
-///////////
 // RTCPParserV2 : currently read only
 
-RTCPUtility::RTCPParserV2::RTCPParserV2( const WebRtc_UWord8* rtcpData,
+RTCPUtility::RTCPParserV2::RTCPParserV2(const WebRtc_UWord8* rtcpData,
                                         size_t rtcpDataLength,
                                         bool rtcpReducedSizeEnable)
-    :
-    _ptrRTCPDataBegin(rtcpData),
-    _RTCPReducedSizeEnable(rtcpReducedSizeEnable),
-    _ptrRTCPDataEnd(rtcpData + rtcpDataLength),
-
-    _validPacket(false),
-    _ptrRTCPData(rtcpData),
-
-    _state(State_TopLevel),
-    _numberOfBlocks(0),
-
-    _packetType(kRtcpNotValidCode)
-{
-    Validate();
+    : _ptrRTCPDataBegin(rtcpData),
+      _RTCPReducedSizeEnable(rtcpReducedSizeEnable),
+      _ptrRTCPDataEnd(rtcpData + rtcpDataLength),
+      _validPacket(false),
+      _ptrRTCPData(rtcpData),
+      _ptrRTCPBlockEnd(NULL),
+      _state(State_TopLevel),
+      _numberOfBlocks(0),
+      _packetType(kRtcpNotValidCode) {
+  Validate();
 }
 
-RTCPUtility::RTCPParserV2::~RTCPParserV2()
-{
+RTCPUtility::RTCPParserV2::~RTCPParserV2() {
 }
 
 ptrdiff_t
@@ -764,8 +748,8 @@ RTCPUtility::RTCPParserV2::ParseSDESItem()
                     EndCurrentBlock();
                     return false;
                 }
-
-                for (unsigned int i = 0; i < len; ++i)
+                WebRtc_UWord8 i = 0;
+                for (; i < len; ++i)
                 {
                     const WebRtc_UWord8 c = _ptrRTCPData[i];
                     if ((c < ' ') || (c > '{') || (c == '%') || (c == '\\'))
@@ -776,16 +760,14 @@ RTCPUtility::RTCPParserV2::ParseSDESItem()
                         EndCurrentBlock();
                         return false;
                     }
-
                     _packet.CName.CName[i] = c;
                 }
-
-                _packetType               = kRtcpSdesChunkCode;
-                _packet.CName.CNameLength = len;
+                // Make sure we are null terminated.
+                _packet.CName.CName[i] = 0;
+                _packetType = kRtcpSdesChunkCode;
 
                 foundCName = true;
             }
-
             _ptrRTCPData += len;
             itemOctetsRead += len;
         }
@@ -1475,17 +1457,15 @@ RTCPUtility::RTCPParserV2::ParseAPPItem()
     return true;
 }
 
-RTCPUtility::RTCPPacketIterator::RTCPPacketIterator(
-    WebRtc_UWord8* rtcpData,
-    size_t rtcpDataLength)
-    :
-    _ptrBegin(rtcpData),
-    _ptrEnd(rtcpData + rtcpDataLength)
-{
+RTCPUtility::RTCPPacketIterator::RTCPPacketIterator(WebRtc_UWord8* rtcpData,
+                                                    size_t rtcpDataLength)
+    : _ptrBegin(rtcpData),
+      _ptrEnd(rtcpData + rtcpDataLength),
+      _ptrBlock(NULL) {
+  memset(&_header, 0, sizeof(_header));
 }
 
-RTCPUtility::RTCPPacketIterator::~RTCPPacketIterator()
-{
+RTCPUtility::RTCPPacketIterator::~RTCPPacketIterator() {
 }
 
 const RTCPUtility::RTCPCommonHeader*

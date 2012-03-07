@@ -140,7 +140,7 @@ uint32 SocketAddress::ip() const {
   return ip_.v4AddressAsHostOrderInteger();
 }
 
-IPAddress SocketAddress::ipaddr() const {
+const IPAddress& SocketAddress::ipaddr() const {
   return ip_;
 }
 
@@ -299,45 +299,6 @@ size_t SocketAddress::Hash() const {
   return h;
 }
 
-size_t SocketAddress::Size_() const {
-  return ip_.Size() + sizeof(port_) + 2;
-}
-
-bool SocketAddress::Write_(char* buf, int len) const {
-  if (len < static_cast<int>(Size_()))
-    return false;
-  int family = ip_.family();
-  if (family != AF_INET && family != AF_INET6) {
-    return false;
-  }
-  buf[0] = 0;
-  SetBE16(buf + 2, port_);
-  if (family == AF_INET) {
-    buf[1] = kStunFamilyIPv4;
-    SetBE32(buf + 4, ip_.v4AddressAsHostOrderInteger());
-  } else if (family == AF_INET6) {
-    buf[1] = kStunFamilyIPv6;
-    in6_addr addr = ip_.ipv6_address();
-    memcpy((buf + 4), &addr.s6_addr, sizeof(addr.s6_addr));
-  }
-  return true;
-}
-
-bool SocketAddress::Read_(const char* buf, int len) {
-  if (len < static_cast<int>(Size_()) ||
-      (buf[1] != kStunFamilyIPv4 && buf[1] != kStunFamilyIPv6))
-    return false;
-  port_ = GetBE16(buf + 2);
-  if (buf[1] == kStunFamilyIPv4) {
-    ip_ = IPAddress(GetBE32(buf + 4));
-  } else if (buf[1] == kStunFamilyIPv6) {
-    in6_addr addr;
-    memcpy(&addr.s6_addr, (buf + 4), sizeof(addr.s6_addr));
-    ip_ = IPAddress(addr);
-  }
-  return true;
-}
-
 void SocketAddress::ToSockAddr(sockaddr_in* saddr) const {
   memset(saddr, 0, sizeof(*saddr));
   if (ip_.family() != AF_INET) {
@@ -363,13 +324,14 @@ bool SocketAddress::FromSockAddr(const sockaddr_in& saddr) {
 }
 
 static size_t ToSockAddrStorageHelper(sockaddr_storage* addr,
-                                    IPAddress ip, int port) {
+                                      IPAddress ip, int port, int scope_id) {
   memset(addr, 0, sizeof(sockaddr_storage));
   addr->ss_family = ip.family();
   if (addr->ss_family == AF_INET6) {
     sockaddr_in6* saddr = reinterpret_cast<sockaddr_in6*>(addr);
     saddr->sin6_addr = ip.ipv6_address();
     saddr->sin6_port = HostToNetwork16(port);
+    saddr->sin6_scope_id = scope_id;
     return sizeof(sockaddr_in6);
   } else if (addr->ss_family == AF_INET) {
     sockaddr_in* saddr = reinterpret_cast<sockaddr_in*>(addr);
@@ -381,11 +343,11 @@ static size_t ToSockAddrStorageHelper(sockaddr_storage* addr,
 }
 
 size_t SocketAddress::ToDualStackSockAddrStorage(sockaddr_storage *addr) const {
-  return ToSockAddrStorageHelper(addr, ip_.AsIPv6Address(), port_);
+  return ToSockAddrStorageHelper(addr, ip_.AsIPv6Address(), port_, scope_id_);
 }
 
 size_t SocketAddress::ToSockAddrStorage(sockaddr_storage* addr) const {
-  return ToSockAddrStorageHelper(addr, ip_, port_);
+  return ToSockAddrStorageHelper(addr, ip_, port_, scope_id_);
 }
 
 std::string SocketAddress::IPToString(uint32 ip_as_host_order_integer) {
@@ -479,6 +441,7 @@ bool SocketAddressFromSockAddrStorage(const sockaddr_storage& addr,
     const sockaddr_in6* saddr = reinterpret_cast<const sockaddr_in6*>(&addr);
     *out = SocketAddress(IPAddress(saddr->sin6_addr),
                          NetworkToHost16(saddr->sin6_port));
+    out->SetScopeID(saddr->sin6_scope_id);
     return true;
   }
   return false;

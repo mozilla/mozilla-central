@@ -87,8 +87,7 @@ void VideoFrame::StretchToPlanes(
 
 size_t VideoFrame::StretchToBuffer(size_t w, size_t h,
                                    uint8* buffer, size_t size,
-                                   bool interpolate,
-                                   bool vert_crop) const {
+                                   bool interpolate, bool vert_crop) const {
   if (!buffer) return 0;
 
   size_t needed = SizeOf(w, h);
@@ -103,8 +102,7 @@ size_t VideoFrame::StretchToBuffer(size_t w, size_t h,
 }
 
 void VideoFrame::StretchToFrame(VideoFrame *target,
-                                bool interpolate,
-                                bool vert_crop) const {
+                                bool interpolate, bool vert_crop) const {
   if (!target) return;
 
   StretchToPlanes(target->GetYPlane(),
@@ -118,6 +116,16 @@ void VideoFrame::StretchToFrame(VideoFrame *target,
                   interpolate, vert_crop);
   target->SetElapsedTime(GetElapsedTime());
   target->SetTimeStamp(GetTimeStamp());
+}
+
+VideoFrame* VideoFrame::Stretch(size_t w, size_t h,
+                                bool interpolate, bool vert_crop) const {
+  VideoFrame* dest = CreateEmptyFrame(w, h, GetPixelWidth(), GetPixelHeight(),
+                                      GetElapsedTime(), GetTimeStamp());
+  if (dest) {
+    StretchToFrame(dest, interpolate, vert_crop);
+  }
+  return dest;
 }
 
 bool VideoFrame::SetToBlack() {

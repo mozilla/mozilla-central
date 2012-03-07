@@ -68,6 +68,11 @@ class WebRtcVideoFrame : public VideoFrame {
   webrtc::VideoFrame* frame() { return &video_frame_; }
 
   // From base class VideoFrame.
+  virtual bool Reset(uint32 format, int w, int h, int dw, int dh,
+                   uint8* sample, size_t sample_size,
+                   size_t pixel_width, size_t pixel_height,
+                   int64 elapsed_time, int64 time_stamp, int rotation);
+
   virtual size_t GetWidth() const;
   virtual size_t GetHeight() const;
   virtual const uint8* GetYPlane() const;
@@ -97,14 +102,17 @@ class WebRtcVideoFrame : public VideoFrame {
   virtual bool MakeExclusive();
   virtual size_t CopyToBuffer(uint8* buffer, size_t size) const;
   virtual size_t ConvertToRgbBuffer(uint32 to_fourcc, uint8* buffer,
-                                    size_t size, size_t pitch_rgb) const;
-  virtual VideoFrame* Stretch(size_t w, size_t h, bool interpolate,
-                              bool vert_crop) const;
+                                    size_t size, int stride_rgb) const;
 
  private:
-  size_t GetChromaSize() const { return GetUPitch() * GetChromaHeight(); }
-  void CreateBuffer(int w, int h, size_t pixel_width, size_t pixel_height,
-                    int64 elapsed_time, int64 time_stamp);
+  virtual VideoFrame* CreateEmptyFrame(int w, int h,
+                                       size_t pixel_width, size_t pixel_height,
+                                       int64 elapsed_time,
+                                       int64 time_stamp) const;
+  void InitToEmptyBuffer(int w, int h,
+                         size_t pixel_width, size_t pixel_height,
+                         int64 elapsed_time, int64 time_stamp);
+
   webrtc::VideoFrame video_frame_;
   size_t pixel_width_;
   size_t pixel_height_;

@@ -1,4 +1,4 @@
-# Copyright (c) 2011 The Chromium Authors. All rights reserved.
+# Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -6,14 +6,16 @@
   'variables': {
     'shared_generated_dir': '<(SHARED_INTERMEDIATE_DIR)/third_party/libjpeg_turbo',
     'conditions': [
-      [ 'chromeos==1 or OS=="freebsd" or OS=="openbsd"', {
+      [ 'chromeos == 1 or (os_posix == 1 and \
+        OS != "mac" and OS != "linux" and OS != "android")', {
         # Link to system .so since we already use it due to GTK.
         # See crbug.com/30288 and 31427 for why we skip OS=="linux" above.
         'use_system_libjpeg%': 1,
-      }, {  # chromeos!=1 and OS!="freebsd" and OS!="openbsd"
+      }, {  # chromeos != 1 and (os_posix != 1 or
+            # OS == "mac" or OS == "linux" or OS == "android")
         # Mozilla has jpeg...
         # was 0
-        'use_system_libjpeg%': 1, 
+        'use_system_libjpeg%': 1,
       }],
       [ 'OS=="win"', {
         'object_suffix': 'obj',
@@ -21,8 +23,6 @@
         'object_suffix': 'o',
       }],
     ],
-
-    'use_system_yasm%': 0,
   },
   'conditions': [
     [ 'use_system_libjpeg==0', {
@@ -37,10 +37,8 @@
             'WITH_SIMD', 'MOTION_JPEG_SUPPORTED',
           ],
           'sources': [
-            'jaricom.c',
             'jcapimin.c',
             'jcapistd.c',
-            'jcarith.c',
             'jccoefct.c',
             'jccolor.c',
             'jcdctmgr.c',
@@ -58,7 +56,6 @@
             'jcsample.c',
             'jdapimin.c',
             'jdapistd.c',
-            'jdarith.c',
             'jdatadst.c',
             'jdatasrc.c',
             'jdcoefct.c',
@@ -103,6 +100,10 @@
             ],
           },
           'msvs_disabled_warnings': [4018, 4101],
+          # VS2010 does not correctly incrementally link obj files generated
+          # from asm files. This flag disables UseLibraryDependencyInputs to
+          # avoid this problem.
+          'msvs_2010_disable_uldi_when_referenced': 1,
           'conditions': [
             [ 'OS!="win"', {'product_name': 'jpeg_turbo'}],
             # Add target-specific source files.
@@ -164,10 +165,19 @@
                 'simd/jiss2red-64.asm',
               ],
             }],
+            # The ARM SIMD implementation requires the Neon instruction set.
             [ 'target_arch=="arm"', {
-              'sources': [
-                'simd/jsimd_arm.c',
-                'simd/jsimd_arm_neon.S',
+              'conditions': [
+                [ 'arm_neon==1', {
+                  'sources': [
+                    'simd/jsimd_arm.c',
+                    'simd/jsimd_arm_neon.S',
+                  ],
+                }, {
+                  'sources': [
+                    'jsimd_none.c',
+                  ],
+                }]
               ],
             }],
 
@@ -252,22 +262,26 @@
             {
               'rule_name': 'assemble',
               'extension': 'asm',
-              'inputs': [ '<(yasm_path)', ],
-              'outputs': [
-                '<(shared_generated_dir)/<(RULE_INPUT_ROOT).<(object_suffix)',
-              ],
-              'action': [
-                '<(yasm_path)',
-                '<(yasm_format)',
-                '<@(yasm_flags)',
-                '-DRGBX_FILLER_0XFF',
-                '-DSTRICT_MEMORY_ACCESS',
-                '-Isimd/',
-                '-o', '<(shared_generated_dir)/<(RULE_INPUT_ROOT).<(object_suffix)',
-                '<(RULE_INPUT_PATH)',
-              ],
-              'process_outputs_as_sources': 1,
-              'message': 'Building <(RULE_INPUT_ROOT).<(object_suffix)',
+              'conditions': [
+                [ 'target_arch!="arm"', {
+                  'inputs': [ '<(yasm_path)', ],
+                  'outputs': [
+                    '<(shared_generated_dir)/<(RULE_INPUT_ROOT).<(object_suffix)',
+                  ],
+                  'action': [
+                    '<(yasm_path)',
+                    '<(yasm_format)',
+                    '<@(yasm_flags)',
+                    '-DRGBX_FILLER_0XFF',
+                    '-DSTRICT_MEMORY_ACCESS',
+                    '-Isimd/',
+                    '-o', '<(shared_generated_dir)/<(RULE_INPUT_ROOT).<(object_suffix)',
+                    '<(RULE_INPUT_PATH)',
+                  ],
+                  'process_outputs_as_sources': 1,
+                  'message': 'Building <(RULE_INPUT_ROOT).<(object_suffix)',
+                }],
+              ]
             },
           ],
         },
@@ -276,7 +290,7 @@
       'targets': [
         {
           'target_name': 'libjpeg',
-          'type': 'settings',
+          'type': 'none',
           'direct_dependent_settings': {
             'defines': [
               'USE_SYSTEM_LIBJPEG',

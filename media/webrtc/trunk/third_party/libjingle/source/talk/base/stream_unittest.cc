@@ -35,14 +35,14 @@ namespace talk_base {
 ///////////////////////////////////////////////////////////////////////////////
 
 class TestStream : public StreamInterface {
-public:
+ public:
   TestStream() : pos_(0) { }
 
   virtual StreamState GetState() const { return SS_OPEN; }
   virtual StreamResult Read(void* buffer, size_t buffer_len,
                             size_t* read, int* error) {
     unsigned char* uc_buffer = static_cast<unsigned char*>(buffer);
-    for (size_t i=0; i<buffer_len; ++i) {
+    for (size_t i = 0; i < buffer_len; ++i) {
       uc_buffer[i] = pos_++;
     }
     if (read)
@@ -71,14 +71,14 @@ public:
     return false;
   }
 
-private:
+ private:
   unsigned char pos_;
 };
 
 bool VerifyTestBuffer(unsigned char* buffer, size_t len,
                       unsigned char value) {
   bool passed = true;
-  for (size_t i=0; i<len; ++i) {
+  for (size_t i = 0; i < len; ++i) {
     if (buffer[i] != value++) {
       passed = false;
       break;
@@ -393,6 +393,15 @@ TEST(FifoBufferTest, TestAll) {
   EXPECT_EQ(SR_EOS, stream->Read(out, kSize / 2, &bytes, NULL));
 }
 
+TEST(FifoBufferTest, FullBufferCheck) {
+  FifoBuffer buff(10);
+  buff.ConsumeWriteBuffer(10);
+
+  size_t free;
+  EXPECT_TRUE(buff.GetWriteBuffer(&free) != NULL);
+  EXPECT_EQ(0U, free);
+}
+
 TEST(FifoBufferTest, WriteOffsetAndReadOffset) {
   const size_t kSize = 16;
   const char in[kSize * 2 + 1] = "0123456789ABCDEFGHIJKLMNOPQRSTUV";
@@ -442,4 +451,4 @@ TEST(FifoBufferTest, WriteOffsetAndReadOffset) {
   EXPECT_EQ(SR_BLOCK, buf.ReadOffset(out, 10, 16, NULL));
 }
 
-} // namespace talk_base
+}  // namespace talk_base

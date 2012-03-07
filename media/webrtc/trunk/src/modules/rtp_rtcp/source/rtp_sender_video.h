@@ -11,23 +11,24 @@
 #ifndef WEBRTC_MODULES_RTP_RTCP_SOURCE_RTP_SENDER_VIDEO_H_
 #define WEBRTC_MODULES_RTP_RTCP_SOURCE_RTP_SENDER_VIDEO_H_
 
+#include <list>
+
 #include "typedefs.h"
 #include "common_types.h"               // Transport
 #include "rtp_rtcp_config.h"
 
 #include "rtp_rtcp_defines.h"
 #include "rtp_utility.h"
-#include "list_wrapper.h"
 
 #include "video_codec_information.h"
-#include "h263_information.h"
 #include "forward_error_correction.h"
 #include "Bitrate.h"
-
 #include "rtp_sender.h"
 
 namespace webrtc {
 class CriticalSectionWrapper;
+struct RtpPacket;
+
 class RTPSenderVideo
 {
 public:
@@ -43,10 +44,11 @@ public:
 
     WebRtc_UWord16 FECPacketOverhead() const;
 
-    WebRtc_Word32 RegisterVideoPayload(const WebRtc_Word8 payloadName[RTP_PAYLOAD_NAME_SIZE],
-                                     const WebRtc_Word8 payloadType,
-                                     const WebRtc_UWord32 maxBitRate,
-                                     ModuleRTPUtility::Payload*& payload);
+    WebRtc_Word32 RegisterVideoPayload(
+        const char payloadName[RTP_PAYLOAD_NAME_SIZE],
+        const WebRtc_Word8 payloadType,
+        const WebRtc_UWord32 maxBitRate,
+        ModuleRTPUtility::Payload*& payload);
 
     WebRtc_Word32 SendVideo(const RtpVideoCodecTypes videoType,
                           const FrameType frameType,
@@ -104,26 +106,6 @@ private:
                             const WebRtc_UWord8* payloadData,
                             const WebRtc_UWord32 payloadSize);
 
-    WebRtc_Word32 SendH263(const FrameType frameType,
-                         const WebRtc_Word8 payloadType,
-                         const WebRtc_UWord32 captureTimeStamp,
-                         const WebRtc_UWord8* payloadData,
-                         const WebRtc_UWord32 payloadSize,
-                         VideoCodecInformation* codecInfo);
-
-    WebRtc_Word32 SendH2631998(const FrameType frameType,
-                             const WebRtc_Word8 payloadType,
-                             const WebRtc_UWord32 captureTimeStamp,
-                             const WebRtc_UWord8* payloadData,
-                             const WebRtc_UWord32 payloadSize,
-                             VideoCodecInformation* codecInfo);
-
-    WebRtc_Word32 SendMPEG4(const FrameType frameType,
-                          const WebRtc_Word8 payloadType,
-                          const WebRtc_UWord32 captureTimeStamp,
-                          const WebRtc_UWord8* payloadData,
-                          const WebRtc_UWord32 payloadSize);
-
     WebRtc_Word32 SendVP8(const FrameType frameType,
                         const WebRtc_Word8 payloadType,
                         const WebRtc_UWord32 captureTimeStamp,
@@ -131,21 +113,6 @@ private:
                         const WebRtc_UWord32 payloadSize,
                         const RTPFragmentationHeader* fragmentation,
                         const RTPVideoTypeHeader* rtpTypeHdr);
-
-    // MPEG 4
-    WebRtc_Word32 FindMPEG4NALU(const WebRtc_UWord8* inData ,WebRtc_Word32 MaxPayloadLength);
-
-    // H263
-    WebRtc_Word32 SendH263MBs(const FrameType frameType,
-                            const WebRtc_Word8 payloadType,
-                            const WebRtc_UWord32 captureTimeStamp,
-                            WebRtc_UWord8* dataBuffer,
-                            const WebRtc_UWord8 *data,
-                            const WebRtc_UWord16 rtpHeaderLength,
-                            const WebRtc_UWord8 numOfGOB,
-                            const H263Info& info,
-                            const H263MBInfo& infoMB,
-                            const WebRtc_Word32 offset);
 
 private:
     WebRtc_Word32             _id;
@@ -169,17 +136,13 @@ private:
     WebRtc_UWord8             _fecProtectionFactor;
     bool                      _fecUseUepProtection;
     int                       _numberFirstPartition;
-    ListWrapper               _mediaPacketListFec;
-    ListWrapper               _rtpPacketListFec;
+    std::list<ForwardErrorCorrection::Packet*> _mediaPacketListFec;
+    std::list<RtpPacket*> _rtpPacketListFec;
     // Bitrate used for FEC payload, RED headers, RTP headers for FEC packets
     // and any padding overhead.
     Bitrate                   _fecOverheadRate;
     // Bitrate used for video payload and RTP headers
     Bitrate                   _videoBitrate;
-
-    // H263
-    WebRtc_UWord8             _savedByte;
-    WebRtc_UWord8             _eBit;
 };
 } // namespace webrtc
 

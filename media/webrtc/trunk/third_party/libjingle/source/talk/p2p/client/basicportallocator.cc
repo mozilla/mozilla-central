@@ -229,8 +229,8 @@ BasicPortAllocatorSession::BasicPortAllocatorSession(
     BasicPortAllocator *allocator,
     const std::string &name,
     const std::string &session_type)
-    : PortAllocatorSession(allocator->flags()), allocator_(allocator),
-      name_(name), session_type_(session_type), network_thread_(NULL),
+    : PortAllocatorSession(name, session_type, allocator->flags()),
+      allocator_(allocator), network_thread_(NULL),
       socket_factory_(allocator->socket_factory()), allocation_started_(false),
       network_manager_started_(false),
       running_(false) {

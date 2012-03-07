@@ -45,6 +45,7 @@
 #include "talk/base/logging.h"
 #include "talk/base/stringencode.h"
 #include "talk/base/stringutils.h"
+#include "talk/session/phone/streamparams.h"
 #include "talk/session/phone/voiceprocessor.h"
 #include "talk/session/phone/webrtcvoe.h"
 
@@ -381,17 +382,23 @@ bool WebRtcVoiceEngine::InitInternal() {
   // First check whether there is a valid sound device for playback.
   // TODO: Clean this up when we support setting the soundclip device.
 #ifdef WIN32
-  int num_of_devices = 0;
-  if (voe_wrapper_sc_->hw()->GetNumOfPlayoutDevices(num_of_devices) != -1 &&
-      num_of_devices > 0) {
-    if (voe_wrapper_sc_->hw()->SetPlayoutDevice(kDefaultSoundclipDeviceId)
-        == -1) {
-      LOG_RTCERR1_EX(SetPlayoutDevice, kDefaultSoundclipDeviceId,
-                      voe_wrapper_sc_->error());
-      return false;
+  // The SetPlayoutDevice may not be implemented in the case of external ADM.
+  // TODO: We should only check the adm_sc_ here, but current
+  // PeerConnection interface never set the adm_sc_, so need to check both
+  // in order to determine if the external adm is used.
+  if (!adm_ && !adm_sc_) {
+    int num_of_devices = 0;
+    if (voe_wrapper_sc_->hw()->GetNumOfPlayoutDevices(num_of_devices) != -1 &&
+        num_of_devices > 0) {
+      if (voe_wrapper_sc_->hw()->SetPlayoutDevice(kDefaultSoundclipDeviceId)
+          == -1) {
+        LOG_RTCERR1_EX(SetPlayoutDevice, kDefaultSoundclipDeviceId,
+                       voe_wrapper_sc_->error());
+        return false;
+      }
+    } else {
+      LOG(LS_WARNING) << "No valid sound playout device found.";
     }
-  } else {
-    LOG(LS_WARNING) << "No valid sound playout device found.";
   }
 #endif
 
@@ -494,7 +501,7 @@ bool WebRtcVoiceEngine::SetOptions(int options) {
   }
 
   // No typing detection support on iOS or Android.
-#endif // !IOS && !ANDROID
+#endif  // !IOS && !ANDROID
 
   return true;
 }
@@ -849,7 +856,7 @@ bool WebRtcVoiceEngine::ShouldIgnoreTrace(const std::string& trace) {
     "GetRTPStatistics() failed to measure RTT since no RTP packets have been received yet",  // NOLINT
     "GetRTPStatistics() failed to read RTP statistics from the RTP/RTCP module",
     "GetRTPStatistics() failed to retrieve RTT from the RTP/RTCP module",
-    "SenderInfoReceived No received SR",
+    "webrtc::RTCPReceiver::SenderInfoReceived No received SR",
     "StatisticsRTP() no statisitics availble",
     NULL
   };
@@ -933,13 +940,14 @@ bool WebRtcVoiceEngine::FindChannelNumFromSsrc(
       it != channels_.end(); ++it) {
     ASSERT(*it != NULL);
     uint32 local_ssrc;
-    if (voe()->rtp()->GetLocalSSRC((*it)->voe_channel(), local_ssrc) != -1) {
+    if ((direction & MPD_RX) != 0) {
+      *channel_num = (*it)->GetChannelNum(ssrc);
+    }
+    if (*channel_num == -1 &&
+        voe()->rtp()->GetLocalSSRC((*it)->voe_channel(), local_ssrc) != -1) {
       if (ssrc == local_ssrc) {
         *channel_num = (*it)->voe_channel();
       }
-    }
-    if (*channel_num == -1 && (direction & MPD_RX) != 0) {
-      *channel_num = (*it)->GetChannelNum(ssrc);
     }
     if (*channel_num != -1) {
       return true;
@@ -1072,7 +1080,7 @@ bool WebRtcVoiceEngine::RegisterProcessor(
   talk_base::CritScope cs(&signal_media_critical_);
   webrtc::ProcessingTypes processing_type;
   if (direction == MPD_RX) {
-    processing_type = webrtc::kPlaybackAllChannelsMixed;
+    processing_type = webrtc::kPlaybackPerChannel;
     if (SignalRxMediaFrame.is_empty()) {
       register_with_webrtc = true;
     }
@@ -1127,13 +1135,13 @@ bool WebRtcVoiceEngine::UnregisterProcessor(
     SignalRxMediaFrame.disconnect(voice_processor);
     if (SignalRxMediaFrame.is_empty()) {
       if (voe()->media()->DeRegisterExternalMediaProcessing(channel_id,
-          webrtc::kPlaybackAllChannelsMixed) != -1) {
+          webrtc::kPlaybackPerChannel) != -1) {
         LOG(LS_INFO) << "Media Processing DeRegistration Succeeded. channel:"
                      << channel_id;
       } else {
         LOG_RTCERR2(DeRegisterExternalMediaProcessing,
                     channel_id,
-                    webrtc::kPlaybackAllChannelsMixed);
+                    webrtc::kPlaybackPerChannel);
         success = false;
       }
     }
@@ -1169,7 +1177,7 @@ void WebRtcVoiceEngine::Process(const int channel,
   if (FindChannelAndSsrc(channel, &media_channel, &ssrc)) {
     talk_base::CritScope cs(&signal_media_critical_);
     AudioFrame frame(audio10ms, length, sampling_freq, is_stereo);
-    if (type == webrtc::kPlaybackAllChannelsMixed) {
+    if (type == webrtc::kPlaybackPerChannel) {
       SignalRxMediaFrame(ssrc, &frame);
     } else if (type == webrtc::kRecordingPerChannel) {
       SignalTxMediaFrame(ssrc, &frame);
@@ -1185,13 +1193,15 @@ WebRtcVoiceMediaChannel::WebRtcVoiceMediaChannel(WebRtcVoiceEngine *engine)
     : WebRtcMediaChannel<VoiceMediaChannel, WebRtcVoiceEngine>(
           engine,
           engine->voe()->base()->CreateChannel()),
+      recv_codecs_set_(false),
       channel_options_(0),
       agc_adjusted_(false),
       dtmf_allowed_(false),
       desired_playout_(false),
       playout_(false),
       desired_send_(SEND_NOTHING),
-      send_(SEND_NOTHING) {
+      send_(SEND_NOTHING),
+      local_ssrc_(0) {
   engine->RegisterChannel(this);
   LOG(LS_VERBOSE) << "WebRtcVoiceMediaChannel::WebRtcVoiceMediaChannel "
                   << voe_channel();
@@ -1204,9 +1214,6 @@ WebRtcVoiceMediaChannel::WebRtcVoiceMediaChannel(WebRtcVoiceEngine *engine)
 
   // Enable RTCP (for quality stats and feedback messages)
   EnableRtcp(voe_channel());
-
-  // Create a random but nonzero send SSRC
-  SetSendSsrc(talk_base::CreateRandomNonZeroId());
 
   // Reset all recv codecs; they will be enabled via SetRecvCodecs.
   ResetRecvCodecs(voe_channel());
@@ -1226,7 +1233,7 @@ WebRtcVoiceMediaChannel::~WebRtcVoiceMediaChannel() {
   engine()->UnregisterChannel(this);
   // Remove any remaining streams.
   while (!mux_channels_.empty()) {
-    RemoveStream(mux_channels_.begin()->first);
+    RemoveRecvStream(mux_channels_.begin()->first);
   }
 
   // Delete the primary channel.
@@ -1267,12 +1274,21 @@ bool WebRtcVoiceMediaChannel::SetRecvCodecs(
         LOG_RTCERR2(SetRecPayloadType, voe_channel(), ToString(voe_codec));
         ret = false;
       }
+      // Set the receive codecs on all receiving channels.
+      for (ChannelMap::iterator it = mux_channels_.begin();
+           it != mux_channels_.end() && ret; ++it) {
+        if (engine()->voe()->codec()->SetRecPayloadType(
+            it->second, voe_codec) == -1) {
+          LOG_RTCERR2(SetRecPayloadType, it->second, ToString(voe_codec));
+          ret = false;
+        }
+      }
     } else {
       LOG(LS_WARNING) << "Unknown codec " << ToString(*it);
       ret = false;
     }
   }
-
+  recv_codecs_set_ = ret;
   return ret;
 }
 
@@ -1462,7 +1478,9 @@ bool WebRtcVoiceMediaChannel::ChangePlayout(bool playout) {
 
 bool WebRtcVoiceMediaChannel::SetSend(SendFlags send) {
   desired_send_ = send;
-  return ChangeSend(desired_send_);
+  if (local_ssrc_ != 0)
+    return ChangeSend(desired_send_);
+  return true;
 }
 
 bool WebRtcVoiceMediaChannel::PauseSend() {
@@ -1573,8 +1591,64 @@ bool WebRtcVoiceMediaChannel::ChangeSend(SendFlags send) {
   return true;
 }
 
-bool WebRtcVoiceMediaChannel::AddStream(uint32 ssrc) {
+bool WebRtcVoiceMediaChannel::AddSendStream(const StreamParams& sp) {
+  if (local_ssrc_ != 0) {
+    LOG(LS_ERROR) << "WebRtcVoiceMediaChannel supports one sending channel.";
+    return false;
+  }
+
+  if (engine()->voe()->rtp()->SetLocalSSRC(voe_channel(), sp.first_ssrc())
+        == -1) {
+    LOG_RTCERR2(SetSendSSRC, voe_channel(), sp.first_ssrc());
+    return false;
+  }
+  // Set the SSRC on the receive channels.
+  // Receive channels have to have the same SSRC in order to send receiver
+  // reports with this SSRC.
+  for (ChannelMap::const_iterator it = mux_channels_.begin();
+       it != mux_channels_.end(); ++it) {
+    int channel_id = it->second;
+    if (engine()->voe()->rtp()->SetLocalSSRC(channel_id,
+                                             sp.first_ssrc()) != 0) {
+      LOG_RTCERR1(SetLocalSSRC, it->first);
+      return false;
+    }
+  }
+
+  if (engine()->voe()->rtp()->SetRTCP_CNAME(voe_channel(),
+                                            sp.cname.c_str()) == -1) {
+     LOG_RTCERR2(SetRTCP_CNAME, voe_channel(), sp.cname);
+     return false;
+  }
+
+  local_ssrc_ = sp.first_ssrc();
+  if (desired_send_ != send_)
+    return ChangeSend(desired_send_);
+  return true;
+}
+
+bool WebRtcVoiceMediaChannel::RemoveSendStream(uint32 ssrc) {
+  if (ssrc != local_ssrc_) {
+    return false;
+  }
+  local_ssrc_ = 0;
+  ChangeSend(SEND_NOTHING);
+  return true;
+}
+
+bool WebRtcVoiceMediaChannel::AddRecvStream(const StreamParams& sp) {
   talk_base::CritScope lock(&mux_channels_cs_);
+
+  // Reuse default channel for recv stream in 1:1 call.
+  if ((channel_options_ & OPT_CONFERENCE) == 0) {
+    LOG(LS_INFO) << "Recv stream " << sp.first_ssrc()
+                 << " reuse default channel";
+    return true;
+  }
+
+  if (!VERIFY(sp.ssrcs.size() == 1))
+    return false;
+  uint32 ssrc = sp.first_ssrc();
 
   if (mux_channels_.find(ssrc) != mux_channels_.end()) {
     return false;
@@ -1608,17 +1682,19 @@ bool WebRtcVoiceMediaChannel::AddStream(uint32 ssrc) {
 
   // Use the same recv payload types as our default channel.
   ResetRecvCodecs(channel);
-  int ncodecs = engine()->voe()->codec()->NumOfCodecs();
-  for (int i = 0; i < ncodecs; ++i) {
-    webrtc::CodecInst voe_codec;
-    if (engine()->voe()->codec()->GetCodec(i, voe_codec) != -1) {
-      voe_codec.rate = 0;  // Needed to make GetRecPayloadType work for ISAC
-      if (engine()->voe()->codec()->GetRecPayloadType(
-          voe_channel(), voe_codec) != -1) {
-        if (engine()->voe()->codec()->SetRecPayloadType(
-            channel, voe_codec) == -1) {
-          LOG_RTCERR2(SetRecPayloadType, channel, ToString(voe_codec));
-          return false;
+  if (recv_codecs_set_) {
+    int ncodecs = engine()->voe()->codec()->NumOfCodecs();
+    for (int i = 0; i < ncodecs; ++i) {
+      webrtc::CodecInst voe_codec;
+      if (engine()->voe()->codec()->GetCodec(i, voe_codec) != -1) {
+        voe_codec.rate = 0;  // Needed to make GetRecPayloadType work for ISAC
+        if (engine()->voe()->codec()->GetRecPayloadType(
+            voe_channel(), voe_codec) != -1) {
+          if (engine()->voe()->codec()->SetRecPayloadType(
+              channel, voe_codec) == -1) {
+            LOG_RTCERR2(SetRecPayloadType, channel, ToString(voe_codec));
+            return false;
+          }
         }
       }
     }
@@ -1644,7 +1720,7 @@ bool WebRtcVoiceMediaChannel::AddStream(uint32 ssrc) {
   return SetPlayout(channel, playout_);
 }
 
-bool WebRtcVoiceMediaChannel::RemoveStream(uint32 ssrc) {
+bool WebRtcVoiceMediaChannel::RemoveRecvStream(uint32 ssrc) {
   talk_base::CritScope lock(&mux_channels_cs_);
   ChannelMap::iterator it = mux_channels_.find(ssrc);
 
@@ -1888,22 +1964,6 @@ void WebRtcVoiceMediaChannel::OnRtcpReceived(talk_base::Buffer* packet) {
                                                     packet->length());
 }
 
-void WebRtcVoiceMediaChannel::SetSendSsrc(uint32 ssrc) {
-  if (engine()->voe()->rtp()->SetLocalSSRC(voe_channel(), ssrc)
-      == -1) {
-     LOG_RTCERR2(SetSendSSRC, voe_channel(), ssrc);
-  }
-}
-
-bool WebRtcVoiceMediaChannel::SetRtcpCName(const std::string& cname) {
-  if (engine()->voe()->rtp()->SetRTCP_CNAME(voe_channel(),
-                                                    cname.c_str()) == -1) {
-     LOG_RTCERR2(SetRTCP_CNAME, voe_channel(), cname);
-     return false;
-  }
-  return true;
-}
-
 bool WebRtcVoiceMediaChannel::Mute(bool muted) {
   if (engine()->voe()->volume()->SetInputMute(voe_channel(),
       muted) == -1) {
@@ -1978,7 +2038,6 @@ bool WebRtcVoiceMediaChannel::GetStats(VoiceMediaInfo* info) {
   sinfo.echo_delay_std_ms = -1;
   if (engine()->voe()->processing()->GetEcMetricsStatus(echo_metrics_on) !=
       -1 && echo_metrics_on) {
-
     // TODO: we may want to use VoECallReport::GetEchoMetricsSummary
     // here, but it appears to be unsuitable currently. Revisit after this is
     // investigated: http://b/issue?id=5666755

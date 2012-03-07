@@ -11,10 +11,12 @@
 #ifndef WEBRTC_VIDEO_ENGINE_VIE_FILE_PLAYER_H_
 #define WEBRTC_VIDEO_ENGINE_VIE_FILE_PLAYER_H_
 
+#include <list>
+#include <set>
+
 #include "common_types.h"
 #include "modules/media_file/interface/media_file_defines.h"
 #include "system_wrappers/interface/file_wrapper.h"
-#include "system_wrappers/interface/list_wrapper.h"
 #include "typedefs.h"
 #include "video_engine/vie_frame_provider_base.h"
 
@@ -91,6 +93,7 @@ class ViEFilePlayer
   virtual void RecordFileEnded(const WebRtc_Word32 /*id*/) {}
 
  private:
+  static const int kMaxDecodedAudioLength = 320;
   bool play_back_started_;
   ViEInputManager& input_manager_;
 
@@ -119,15 +122,15 @@ class ViEFilePlayer
   // Thread for decoding video (and audio if no audio clients connected).
   ThreadWrapper* decode_thread_;
   EventWrapper* decode_event_;
-  WebRtc_Word16 decoded_audio_[320];
+  WebRtc_Word16 decoded_audio_[kMaxDecodedAudioLength];
   WebRtc_UWord32 decoded_audio_length_;
 
   // Trick - list containing VoE buffer reading this file. Used if multiple
   // audio channels are sending.
-  ListWrapper audio_channel_buffers_;
+  std::list<void*> audio_channel_buffers_;
 
   // AudioChannels sending audio from this file.
-  MapWrapper audio_channels_sending_;
+  std::set<int> audio_channels_sending_;
 
   // Frame receiving decoded video from file.
   VideoFrame decoded_video_;

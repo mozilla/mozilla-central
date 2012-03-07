@@ -3,190 +3,158 @@
 TOOLSET := target
 TARGET := libvpx
 ### Generated for rule libvpx_assemble:
-$(obj)/gen/third_party/libvpx/idctllm_mmx.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/idctllm_mmx.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/idctllm_mmx.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/idctllm_mmx.o: third_party/libvpx/source/libvpx/vp8/common/x86/idctllm_mmx.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/dequantize_mmx.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/dequantize_mmx.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/dequantize_mmx.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/dequantize_mmx.o: third_party/libvpx/source/libvpx/vp8/common/x86/dequantize_mmx.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_0)
 
-all_deps += $(obj)/gen/third_party/libvpx/idctllm_mmx.o
-cmd_libvpx_assemble_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/idctllm_mmx.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/dequantize_mmx.o
+cmd_libvpx_assemble_0 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/dequantize_mmx.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_0 = RULE libvpx_assemble_0 $@
 
-$(obj)/gen/third_party/libvpx/idctllm_sse2.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/idctllm_sse2.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/idctllm_sse2.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/idctllm_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/idctllm_sse2.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/idctllm_mmx.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/idctllm_mmx.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/idctllm_mmx.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/idctllm_mmx.o: third_party/libvpx/source/libvpx/vp8/common/x86/idctllm_mmx.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_1)
 
-all_deps += $(obj)/gen/third_party/libvpx/idctllm_sse2.o
-cmd_libvpx_assemble_1 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/idctllm_sse2.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/idctllm_mmx.o
+cmd_libvpx_assemble_1 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/idctllm_mmx.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_1 = RULE libvpx_assemble_1 $@
 
-$(obj)/gen/third_party/libvpx/iwalsh_mmx.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/iwalsh_mmx.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/iwalsh_mmx.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/iwalsh_mmx.o: third_party/libvpx/source/libvpx/vp8/common/x86/iwalsh_mmx.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/idctllm_sse2.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/idctllm_sse2.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/idctllm_sse2.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/idctllm_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/idctllm_sse2.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_2)
 
-all_deps += $(obj)/gen/third_party/libvpx/iwalsh_mmx.o
-cmd_libvpx_assemble_2 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/iwalsh_mmx.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/idctllm_sse2.o
+cmd_libvpx_assemble_2 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/idctllm_sse2.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_2 = RULE libvpx_assemble_2 $@
 
-$(obj)/gen/third_party/libvpx/iwalsh_sse2.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/iwalsh_sse2.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/iwalsh_sse2.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/iwalsh_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/iwalsh_sse2.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/iwalsh_mmx.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/iwalsh_mmx.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/iwalsh_mmx.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/iwalsh_mmx.o: third_party/libvpx/source/libvpx/vp8/common/x86/iwalsh_mmx.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_3)
 
-all_deps += $(obj)/gen/third_party/libvpx/iwalsh_sse2.o
-cmd_libvpx_assemble_3 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/iwalsh_sse2.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/iwalsh_mmx.o
+cmd_libvpx_assemble_3 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/iwalsh_mmx.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_3 = RULE libvpx_assemble_3 $@
 
-$(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/loopfilter_block_sse2.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/iwalsh_sse2.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/iwalsh_sse2.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/iwalsh_sse2.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/iwalsh_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/iwalsh_sse2.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_4)
 
-all_deps += $(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o
-cmd_libvpx_assemble_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/iwalsh_sse2.o
+cmd_libvpx_assemble_4 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/iwalsh_sse2.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_4 = RULE libvpx_assemble_4 $@
 
-$(obj)/gen/third_party/libvpx/loopfilter_mmx.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/loopfilter_mmx.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/loopfilter_mmx.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/loopfilter_mmx.o: third_party/libvpx/source/libvpx/vp8/common/x86/loopfilter_mmx.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/loopfilter_block_sse2.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_5)
 
-all_deps += $(obj)/gen/third_party/libvpx/loopfilter_mmx.o
-cmd_libvpx_assemble_5 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/loopfilter_mmx.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o
+cmd_libvpx_assemble_5 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_5 = RULE libvpx_assemble_5 $@
 
-$(obj)/gen/third_party/libvpx/loopfilter_sse2.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/loopfilter_sse2.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/loopfilter_sse2.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/loopfilter_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/loopfilter_sse2.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/loopfilter_mmx.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/loopfilter_mmx.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/loopfilter_mmx.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/loopfilter_mmx.o: third_party/libvpx/source/libvpx/vp8/common/x86/loopfilter_mmx.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_6)
 
-all_deps += $(obj)/gen/third_party/libvpx/loopfilter_sse2.o
-cmd_libvpx_assemble_6 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/loopfilter_sse2.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/loopfilter_mmx.o
+cmd_libvpx_assemble_6 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/loopfilter_mmx.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_6 = RULE libvpx_assemble_6 $@
 
-$(obj)/gen/third_party/libvpx/postproc_mmx.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/postproc_mmx.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/postproc_mmx.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/postproc_mmx.o: third_party/libvpx/source/libvpx/vp8/common/x86/postproc_mmx.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/loopfilter_sse2.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/loopfilter_sse2.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/loopfilter_sse2.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/loopfilter_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/loopfilter_sse2.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_7)
 
-all_deps += $(obj)/gen/third_party/libvpx/postproc_mmx.o
-cmd_libvpx_assemble_7 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/postproc_mmx.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/loopfilter_sse2.o
+cmd_libvpx_assemble_7 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/loopfilter_sse2.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_7 = RULE libvpx_assemble_7 $@
 
-$(obj)/gen/third_party/libvpx/postproc_sse2.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/postproc_sse2.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/postproc_sse2.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/postproc_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/postproc_sse2.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/postproc_mmx.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/postproc_mmx.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/postproc_mmx.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/postproc_mmx.o: third_party/libvpx/source/libvpx/vp8/common/x86/postproc_mmx.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_8)
 
-all_deps += $(obj)/gen/third_party/libvpx/postproc_sse2.o
-cmd_libvpx_assemble_8 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/postproc_sse2.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/postproc_mmx.o
+cmd_libvpx_assemble_8 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/postproc_mmx.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_8 = RULE libvpx_assemble_8 $@
 
-$(obj)/gen/third_party/libvpx/recon_mmx.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/recon_mmx.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/recon_mmx.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/recon_mmx.o: third_party/libvpx/source/libvpx/vp8/common/x86/recon_mmx.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/postproc_sse2.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/postproc_sse2.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/postproc_sse2.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/postproc_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/postproc_sse2.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_9)
 
-all_deps += $(obj)/gen/third_party/libvpx/recon_mmx.o
-cmd_libvpx_assemble_9 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/recon_mmx.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/postproc_sse2.o
+cmd_libvpx_assemble_9 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/postproc_sse2.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_9 = RULE libvpx_assemble_9 $@
 
-$(obj)/gen/third_party/libvpx/recon_sse2.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/recon_sse2.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/recon_sse2.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/recon_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/recon_sse2.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/recon_mmx.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/recon_mmx.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/recon_mmx.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/recon_mmx.o: third_party/libvpx/source/libvpx/vp8/common/x86/recon_mmx.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_10)
 
-all_deps += $(obj)/gen/third_party/libvpx/recon_sse2.o
-cmd_libvpx_assemble_10 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/recon_sse2.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/recon_mmx.o
+cmd_libvpx_assemble_10 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/recon_mmx.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_10 = RULE libvpx_assemble_10 $@
 
-$(obj)/gen/third_party/libvpx/subpixel_mmx.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/subpixel_mmx.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/subpixel_mmx.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/subpixel_mmx.o: third_party/libvpx/source/libvpx/vp8/common/x86/subpixel_mmx.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/recon_sse2.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/recon_sse2.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/recon_sse2.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/recon_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/recon_sse2.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_11)
 
-all_deps += $(obj)/gen/third_party/libvpx/subpixel_mmx.o
-cmd_libvpx_assemble_11 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/subpixel_mmx.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/recon_sse2.o
+cmd_libvpx_assemble_11 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/recon_sse2.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_11 = RULE libvpx_assemble_11 $@
 
-$(obj)/gen/third_party/libvpx/subpixel_sse2.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/subpixel_sse2.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/subpixel_sse2.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/subpixel_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/subpixel_sse2.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/subpixel_mmx.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/subpixel_mmx.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/subpixel_mmx.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/subpixel_mmx.o: third_party/libvpx/source/libvpx/vp8/common/x86/subpixel_mmx.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_12)
 
-all_deps += $(obj)/gen/third_party/libvpx/subpixel_sse2.o
-cmd_libvpx_assemble_12 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/subpixel_sse2.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/subpixel_mmx.o
+cmd_libvpx_assemble_12 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/subpixel_mmx.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_12 = RULE libvpx_assemble_12 $@
 
-$(obj)/gen/third_party/libvpx/subpixel_ssse3.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/subpixel_ssse3.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/subpixel_ssse3.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/subpixel_ssse3.o: third_party/libvpx/source/libvpx/vp8/common/x86/subpixel_ssse3.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/subpixel_sse2.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/subpixel_sse2.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/subpixel_sse2.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/subpixel_sse2.o: third_party/libvpx/source/libvpx/vp8/common/x86/subpixel_sse2.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_13)
 
-all_deps += $(obj)/gen/third_party/libvpx/subpixel_ssse3.o
-cmd_libvpx_assemble_13 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/subpixel_ssse3.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/subpixel_sse2.o
+cmd_libvpx_assemble_13 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/subpixel_sse2.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_13 = RULE libvpx_assemble_13 $@
 
-$(obj)/gen/third_party/libvpx/dequantize_mmx.o: obj := $(abs_obj)
-
-$(obj)/gen/third_party/libvpx/dequantize_mmx.o: builddir := $(abs_builddir)
-
-$(obj)/gen/third_party/libvpx/dequantize_mmx.o: TOOLSET := $(TOOLSET)
-$(obj)/gen/third_party/libvpx/dequantize_mmx.o: third_party/libvpx/source/libvpx/vp8/decoder/x86/dequantize_mmx.asm $(builddir)/yasm FORCE_DO_CMD
+$(obj)/gen/third_party/libvpx/subpixel_ssse3.o: obj := $(abs_obj)
+$(obj)/gen/third_party/libvpx/subpixel_ssse3.o: builddir := $(abs_builddir)
+$(obj)/gen/third_party/libvpx/subpixel_ssse3.o: TOOLSET := $(TOOLSET)
+$(obj)/gen/third_party/libvpx/subpixel_ssse3.o: third_party/libvpx/source/libvpx/vp8/common/x86/subpixel_ssse3.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_14)
 
-all_deps += $(obj)/gen/third_party/libvpx/dequantize_mmx.o
-cmd_libvpx_assemble_14 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/dequantize_mmx.o" "$(abspath $<)"
+all_deps += $(obj)/gen/third_party/libvpx/subpixel_ssse3.o
+cmd_libvpx_assemble_14 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/subpixel_ssse3.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_14 = RULE libvpx_assemble_14 $@
 
 $(obj)/gen/third_party/libvpx/dct_mmx.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/dct_mmx.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/dct_mmx.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/dct_mmx.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/dct_mmx.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_15)
@@ -196,9 +164,7 @@ cmd_libvpx_assemble_15 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_15 = RULE libvpx_assemble_15 $@
 
 $(obj)/gen/third_party/libvpx/dct_sse2.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/dct_sse2.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/dct_sse2.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/dct_sse2.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/dct_sse2.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_16)
@@ -208,9 +174,7 @@ cmd_libvpx_assemble_16 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_16 = RULE libvpx_assemble_16 $@
 
 $(obj)/gen/third_party/libvpx/encodeopt.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/encodeopt.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/encodeopt.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/encodeopt.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/encodeopt.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_17)
@@ -220,9 +184,7 @@ cmd_libvpx_assemble_17 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_17 = RULE libvpx_assemble_17 $@
 
 $(obj)/gen/third_party/libvpx/fwalsh_sse2.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/fwalsh_sse2.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/fwalsh_sse2.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/fwalsh_sse2.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/fwalsh_sse2.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_18)
@@ -232,9 +194,7 @@ cmd_libvpx_assemble_18 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_18 = RULE libvpx_assemble_18 $@
 
 $(obj)/gen/third_party/libvpx/quantize_mmx.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/quantize_mmx.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/quantize_mmx.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/quantize_mmx.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/quantize_mmx.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_19)
@@ -244,9 +204,7 @@ cmd_libvpx_assemble_19 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_19 = RULE libvpx_assemble_19 $@
 
 $(obj)/gen/third_party/libvpx/quantize_sse2.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/quantize_sse2.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/quantize_sse2.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/quantize_sse2.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/quantize_sse2.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_20)
@@ -256,9 +214,7 @@ cmd_libvpx_assemble_20 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_20 = RULE libvpx_assemble_20 $@
 
 $(obj)/gen/third_party/libvpx/quantize_sse4.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/quantize_sse4.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/quantize_sse4.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/quantize_sse4.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/quantize_sse4.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_21)
@@ -268,9 +224,7 @@ cmd_libvpx_assemble_21 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_21 = RULE libvpx_assemble_21 $@
 
 $(obj)/gen/third_party/libvpx/quantize_ssse3.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/quantize_ssse3.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/quantize_ssse3.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/quantize_ssse3.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/quantize_ssse3.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_22)
@@ -280,9 +234,7 @@ cmd_libvpx_assemble_22 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_22 = RULE libvpx_assemble_22 $@
 
 $(obj)/gen/third_party/libvpx/sad_mmx.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/sad_mmx.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/sad_mmx.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/sad_mmx.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/sad_mmx.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_23)
@@ -292,9 +244,7 @@ cmd_libvpx_assemble_23 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_23 = RULE libvpx_assemble_23 $@
 
 $(obj)/gen/third_party/libvpx/sad_sse2.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/sad_sse2.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/sad_sse2.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/sad_sse2.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/sad_sse2.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_24)
@@ -304,9 +254,7 @@ cmd_libvpx_assemble_24 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_24 = RULE libvpx_assemble_24 $@
 
 $(obj)/gen/third_party/libvpx/sad_sse3.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/sad_sse3.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/sad_sse3.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/sad_sse3.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/sad_sse3.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_25)
@@ -316,9 +264,7 @@ cmd_libvpx_assemble_25 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_25 = RULE libvpx_assemble_25 $@
 
 $(obj)/gen/third_party/libvpx/sad_sse4.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/sad_sse4.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/sad_sse4.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/sad_sse4.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/sad_sse4.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_26)
@@ -328,9 +274,7 @@ cmd_libvpx_assemble_26 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_26 = RULE libvpx_assemble_26 $@
 
 $(obj)/gen/third_party/libvpx/sad_ssse3.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/sad_ssse3.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/sad_ssse3.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/sad_ssse3.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/sad_ssse3.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_27)
@@ -340,9 +284,7 @@ cmd_libvpx_assemble_27 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_27 = RULE libvpx_assemble_27 $@
 
 $(obj)/gen/third_party/libvpx/ssim_opt.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/ssim_opt.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/ssim_opt.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/ssim_opt.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/ssim_opt.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_28)
@@ -352,9 +294,7 @@ cmd_libvpx_assemble_28 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_28 = RULE libvpx_assemble_28 $@
 
 $(obj)/gen/third_party/libvpx/subtract_mmx.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/subtract_mmx.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/subtract_mmx.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/subtract_mmx.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/subtract_mmx.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_29)
@@ -364,9 +304,7 @@ cmd_libvpx_assemble_29 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_29 = RULE libvpx_assemble_29 $@
 
 $(obj)/gen/third_party/libvpx/subtract_sse2.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/subtract_sse2.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/subtract_sse2.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/subtract_sse2.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/subtract_sse2.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_30)
@@ -376,9 +314,7 @@ cmd_libvpx_assemble_30 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_30 = RULE libvpx_assemble_30 $@
 
 $(obj)/gen/third_party/libvpx/variance_impl_mmx.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/variance_impl_mmx.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/variance_impl_mmx.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/variance_impl_mmx.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/variance_impl_mmx.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_31)
@@ -388,9 +324,7 @@ cmd_libvpx_assemble_31 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_31 = RULE libvpx_assemble_31 $@
 
 $(obj)/gen/third_party/libvpx/variance_impl_sse2.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/variance_impl_sse2.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/variance_impl_sse2.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/variance_impl_sse2.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/variance_impl_sse2.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_32)
@@ -400,9 +334,7 @@ cmd_libvpx_assemble_32 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_32 = RULE libvpx_assemble_32 $@
 
 $(obj)/gen/third_party/libvpx/variance_impl_ssse3.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/variance_impl_ssse3.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/variance_impl_ssse3.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/variance_impl_ssse3.o: third_party/libvpx/source/libvpx/vp8/encoder/x86/variance_impl_ssse3.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_33)
@@ -412,9 +344,7 @@ cmd_libvpx_assemble_33 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_33 = RULE libvpx_assemble_33 $@
 
 $(obj)/gen/third_party/libvpx/emms.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/emms.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/emms.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/emms.o: third_party/libvpx/source/libvpx/vpx_ports/emms.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_34)
@@ -424,9 +354,7 @@ cmd_libvpx_assemble_34 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.ta
 quiet_cmd_libvpx_assemble_34 = RULE libvpx_assemble_34 $@
 
 $(obj)/gen/third_party/libvpx/x86_abi_support.o: obj := $(abs_obj)
-
 $(obj)/gen/third_party/libvpx/x86_abi_support.o: builddir := $(abs_builddir)
-
 $(obj)/gen/third_party/libvpx/x86_abi_support.o: TOOLSET := $(TOOLSET)
 $(obj)/gen/third_party/libvpx/x86_abi_support.o: third_party/libvpx/source/libvpx/vpx_ports/x86_abi_support.asm $(builddir)/yasm FORCE_DO_CMD
 	$(call do_cmd,libvpx_assemble_35)
@@ -435,7 +363,8 @@ all_deps += $(obj)/gen/third_party/libvpx/x86_abi_support.o
 cmd_libvpx_assemble_35 = LD_LIBRARY_PATH=$(builddir)/lib.host:$(builddir)/lib.target:$$LD_LIBRARY_PATH; export LD_LIBRARY_PATH; cd third_party/libvpx; mkdir -p $(obj)/gen/third_party/libvpx; "$(builddir)/yasm" -I source/config/linux/x64 -I source/libvpx -DPIC -felf64 -m amd64 -o "$(obj)/gen/third_party/libvpx/x86_abi_support.o" "$(abspath $<)"
 quiet_cmd_libvpx_assemble_35 = RULE libvpx_assemble_35 $@
 
-rule_libvpx_assemble_outputs := $(obj)/gen/third_party/libvpx/idctllm_mmx.o \
+rule_libvpx_assemble_outputs := $(obj)/gen/third_party/libvpx/dequantize_mmx.o \
+	$(obj)/gen/third_party/libvpx/idctllm_mmx.o \
 	$(obj)/gen/third_party/libvpx/idctllm_sse2.o \
 	$(obj)/gen/third_party/libvpx/iwalsh_mmx.o \
 	$(obj)/gen/third_party/libvpx/iwalsh_sse2.o \
@@ -449,7 +378,6 @@ rule_libvpx_assemble_outputs := $(obj)/gen/third_party/libvpx/idctllm_mmx.o \
 	$(obj)/gen/third_party/libvpx/subpixel_mmx.o \
 	$(obj)/gen/third_party/libvpx/subpixel_sse2.o \
 	$(obj)/gen/third_party/libvpx/subpixel_ssse3.o \
-	$(obj)/gen/third_party/libvpx/dequantize_mmx.o \
 	$(obj)/gen/third_party/libvpx/dct_mmx.o \
 	$(obj)/gen/third_party/libvpx/dct_sse2.o \
 	$(obj)/gen/third_party/libvpx/encodeopt.o \
@@ -476,12 +404,11 @@ rule_libvpx_assemble_outputs := $(obj)/gen/third_party/libvpx/idctllm_mmx.o \
 
 ### Finished generating for all rules
 
-DEFS_Debug := '-DNO_HEAPCHECKER' \
+DEFS_Debug := '-D_FILE_OFFSET_BITS=64' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
 	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
-	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
@@ -491,6 +418,8 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
 	'-DENABLE_REGISTER_PROTOCOL_HANDLER=1' \
+	'-DENABLE_WEB_INTENTS=1' \
+	'-DENABLE_PLUGIN_INSTALLATION=1' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=1' \
 	'-DWTF_USE_DYNAMIC_ANNOTATIONS=1' \
 	'-D_DEBUG'
@@ -498,13 +427,12 @@ DEFS_Debug := '-DNO_HEAPCHECKER' \
 # Flags passed to all source files.
 CFLAGS_Debug := -pthread \
 	-fno-exceptions \
+	-fno-strict-aliasing \
 	-Wno-unused-parameter \
 	-Wno-missing-field-initializers \
-	-D_FILE_OFFSET_BITS=64 \
 	-fvisibility=hidden \
 	-pipe \
 	-fPIC \
-	-fno-strict-aliasing \
 	-Wno-format \
 	-Wno-unused-result \
 	-O0 \
@@ -525,12 +453,11 @@ INCS_Debug := -Ithird_party/libvpx/source/config/linux/x64 \
 	-Ithird_party/libvpx/source/libvpx/vp8/decoder \
 	-Ithird_party/libvpx/source/libvpx/vp8/encoder
 
-DEFS_Release := '-DNO_HEAPCHECKER' \
+DEFS_Release := '-D_FILE_OFFSET_BITS=64' \
 	'-DCHROMIUM_BUILD' \
 	'-DUSE_NSS=1' \
 	'-DTOOLKIT_USES_GTK=1' \
 	'-DGTK_DISABLE_SINGLE_INCLUDES=1' \
-	'-DWEBUI_TASK_MANAGER=1' \
 	'-DENABLE_REMOTING=1' \
 	'-DENABLE_P2P_APIS=1' \
 	'-DENABLE_CONFIGURATION_POLICY' \
@@ -540,6 +467,8 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 	'-DENABLE_EGLIMAGE=1' \
 	'-DUSE_SKIA=1' \
 	'-DENABLE_REGISTER_PROTOCOL_HANDLER=1' \
+	'-DENABLE_WEB_INTENTS=1' \
+	'-DENABLE_PLUGIN_INSTALLATION=1' \
 	'-DNDEBUG' \
 	'-DNVALGRIND' \
 	'-DDYNAMIC_ANNOTATIONS_ENABLED=0'
@@ -547,13 +476,12 @@ DEFS_Release := '-DNO_HEAPCHECKER' \
 # Flags passed to all source files.
 CFLAGS_Release := -pthread \
 	-fno-exceptions \
+	-fno-strict-aliasing \
 	-Wno-unused-parameter \
 	-Wno-missing-field-initializers \
-	-D_FILE_OFFSET_BITS=64 \
 	-fvisibility=hidden \
 	-pipe \
 	-fPIC \
-	-fno-strict-aliasing \
 	-Wno-format \
 	-Wno-unused-result \
 	-O2 \
@@ -579,6 +507,7 @@ INCS_Release := -Ithird_party/libvpx/source/config/linux/x64 \
 OBJS := $(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/alloccommon.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/blockd.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/debugmodes.o \
+	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/dequantize.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/entropy.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/entropymode.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/entropymv.o \
@@ -586,8 +515,8 @@ OBJS := $(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/allo
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/filter.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/findnearmv.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/generic/systemdependent.o \
+	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/idct_blk.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/idctllm.o \
-	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/invtrans.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/loopfilter.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/loopfilter_filters.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/mbpitch.o \
@@ -601,6 +530,9 @@ OBJS := $(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/allo
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/setupintrarecon.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/swapyv12buffer.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/treecoder.o \
+	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/x86/filter_x86.o \
+	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/x86/idct_blk_mmx.o \
+	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/x86/idct_blk_sse2.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/x86/loopfilter_x86.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/x86/recon_wrapper_sse2.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/x86/vp8_asm_stubs.o \
@@ -608,16 +540,12 @@ OBJS := $(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/common/allo
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/dboolhuff.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/decodemv.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/decodframe.o \
-	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/dequantize.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/detokenize.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/error_concealment.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/generic/dsystemdependent.o \
-	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/idct_blk.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/onyxd_if.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/reconintra_mt.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/threading.o \
-	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/x86/idct_blk_mmx.o \
-	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/x86/idct_blk_sse2.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/decoder/x86/x86_dsystemdependent.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/encoder/bitstream.o \
 	$(obj).target/$(TARGET)/third_party/libvpx/source/libvpx/vp8/encoder/boolhuff.o \
@@ -674,8 +602,8 @@ $(OBJS): | $(rule_libvpx_assemble_outputs)
 # CFLAGS et al overrides must be target-local.
 # See "Target-specific Variable Values" in the GNU Make manual.
 $(OBJS): TOOLSET := $(TOOLSET)
-$(OBJS): GYP_CFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE)) $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_C_$(BUILDTYPE))
-$(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE)) $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_CC_$(BUILDTYPE))
+$(OBJS): GYP_CFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_C_$(BUILDTYPE))
+$(OBJS): GYP_CXXFLAGS := $(DEFS_$(BUILDTYPE)) $(INCS_$(BUILDTYPE))  $(CFLAGS_$(BUILDTYPE)) $(CFLAGS_CC_$(BUILDTYPE))
 
 # Suffix rules, putting all outputs into $(obj).
 
@@ -700,11 +628,13 @@ $(rule_libvpx_assemble_outputs): | $(builddir)/yasm
 
 LDFLAGS_Debug := -pthread \
 	-Wl,-z,noexecstack \
-	-fPIC
+	-fPIC \
+	-B$(builddir)/../../third_party/gold
 
 LDFLAGS_Release := -pthread \
 	-Wl,-z,noexecstack \
 	-fPIC \
+	-B$(builddir)/../../third_party/gold \
 	-Wl,-O1 \
 	-Wl,--as-needed \
 	-Wl,--gc-sections
@@ -714,7 +644,7 @@ LIBS :=
 $(obj).target/third_party/libvpx/libvpx.a: GYP_LDFLAGS := $(LDFLAGS_$(BUILDTYPE))
 $(obj).target/third_party/libvpx/libvpx.a: LIBS := $(LIBS)
 $(obj).target/third_party/libvpx/libvpx.a: TOOLSET := $(TOOLSET)
-$(obj).target/third_party/libvpx/libvpx.a: $(OBJS) $(obj)/gen/third_party/libvpx/idctllm_mmx.o $(obj)/gen/third_party/libvpx/idctllm_sse2.o $(obj)/gen/third_party/libvpx/iwalsh_mmx.o $(obj)/gen/third_party/libvpx/iwalsh_sse2.o $(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o $(obj)/gen/third_party/libvpx/loopfilter_mmx.o $(obj)/gen/third_party/libvpx/loopfilter_sse2.o $(obj)/gen/third_party/libvpx/postproc_mmx.o $(obj)/gen/third_party/libvpx/postproc_sse2.o $(obj)/gen/third_party/libvpx/recon_mmx.o $(obj)/gen/third_party/libvpx/recon_sse2.o $(obj)/gen/third_party/libvpx/subpixel_mmx.o $(obj)/gen/third_party/libvpx/subpixel_sse2.o $(obj)/gen/third_party/libvpx/subpixel_ssse3.o $(obj)/gen/third_party/libvpx/dequantize_mmx.o $(obj)/gen/third_party/libvpx/dct_mmx.o $(obj)/gen/third_party/libvpx/dct_sse2.o $(obj)/gen/third_party/libvpx/encodeopt.o $(obj)/gen/third_party/libvpx/fwalsh_sse2.o $(obj)/gen/third_party/libvpx/quantize_mmx.o $(obj)/gen/third_party/libvpx/quantize_sse2.o $(obj)/gen/third_party/libvpx/quantize_sse4.o $(obj)/gen/third_party/libvpx/quantize_ssse3.o $(obj)/gen/third_party/libvpx/sad_mmx.o $(obj)/gen/third_party/libvpx/sad_sse2.o $(obj)/gen/third_party/libvpx/sad_sse3.o $(obj)/gen/third_party/libvpx/sad_sse4.o $(obj)/gen/third_party/libvpx/sad_ssse3.o $(obj)/gen/third_party/libvpx/ssim_opt.o $(obj)/gen/third_party/libvpx/subtract_mmx.o $(obj)/gen/third_party/libvpx/subtract_sse2.o $(obj)/gen/third_party/libvpx/variance_impl_mmx.o $(obj)/gen/third_party/libvpx/variance_impl_sse2.o $(obj)/gen/third_party/libvpx/variance_impl_ssse3.o $(obj)/gen/third_party/libvpx/emms.o $(obj)/gen/third_party/libvpx/x86_abi_support.o FORCE_DO_CMD
+$(obj).target/third_party/libvpx/libvpx.a: $(OBJS) $(obj)/gen/third_party/libvpx/dequantize_mmx.o $(obj)/gen/third_party/libvpx/idctllm_mmx.o $(obj)/gen/third_party/libvpx/idctllm_sse2.o $(obj)/gen/third_party/libvpx/iwalsh_mmx.o $(obj)/gen/third_party/libvpx/iwalsh_sse2.o $(obj)/gen/third_party/libvpx/loopfilter_block_sse2.o $(obj)/gen/third_party/libvpx/loopfilter_mmx.o $(obj)/gen/third_party/libvpx/loopfilter_sse2.o $(obj)/gen/third_party/libvpx/postproc_mmx.o $(obj)/gen/third_party/libvpx/postproc_sse2.o $(obj)/gen/third_party/libvpx/recon_mmx.o $(obj)/gen/third_party/libvpx/recon_sse2.o $(obj)/gen/third_party/libvpx/subpixel_mmx.o $(obj)/gen/third_party/libvpx/subpixel_sse2.o $(obj)/gen/third_party/libvpx/subpixel_ssse3.o $(obj)/gen/third_party/libvpx/dct_mmx.o $(obj)/gen/third_party/libvpx/dct_sse2.o $(obj)/gen/third_party/libvpx/encodeopt.o $(obj)/gen/third_party/libvpx/fwalsh_sse2.o $(obj)/gen/third_party/libvpx/quantize_mmx.o $(obj)/gen/third_party/libvpx/quantize_sse2.o $(obj)/gen/third_party/libvpx/quantize_sse4.o $(obj)/gen/third_party/libvpx/quantize_ssse3.o $(obj)/gen/third_party/libvpx/sad_mmx.o $(obj)/gen/third_party/libvpx/sad_sse2.o $(obj)/gen/third_party/libvpx/sad_sse3.o $(obj)/gen/third_party/libvpx/sad_sse4.o $(obj)/gen/third_party/libvpx/sad_ssse3.o $(obj)/gen/third_party/libvpx/ssim_opt.o $(obj)/gen/third_party/libvpx/subtract_mmx.o $(obj)/gen/third_party/libvpx/subtract_sse2.o $(obj)/gen/third_party/libvpx/variance_impl_mmx.o $(obj)/gen/third_party/libvpx/variance_impl_sse2.o $(obj)/gen/third_party/libvpx/variance_impl_ssse3.o $(obj)/gen/third_party/libvpx/emms.o $(obj)/gen/third_party/libvpx/x86_abi_support.o FORCE_DO_CMD
 	$(call do_cmd,alink)
 
 all_deps += $(obj).target/third_party/libvpx/libvpx.a

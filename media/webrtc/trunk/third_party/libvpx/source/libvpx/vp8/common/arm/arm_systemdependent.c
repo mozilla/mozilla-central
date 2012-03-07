@@ -11,7 +11,6 @@
 
 #include "vpx_config.h"
 #include "vpx_ports/arm.h"
-#include "vp8/common/g_common.h"
 #include "vp8/common/pragmas.h"
 #include "vp8/common/subpixel.h"
 #include "vp8/common/loopfilter.h"
@@ -46,7 +45,6 @@ void vp8_arch_arm_common_init(VP8_COMMON *ctx)
         rtcd->subpix.bilinear4x4   = vp8_bilinear_predict4x4_armv6;
 
         rtcd->idct.idct16       = vp8_short_idct4x4llm_v6_dual;
-        rtcd->idct.iwalsh1      = vp8_short_inv_walsh4x4_1_v6;
         rtcd->idct.iwalsh16     = vp8_short_inv_walsh4x4_v6;
 
         rtcd->loopfilter.normal_mb_v = vp8_loop_filter_mbv_armv6;
@@ -64,6 +62,12 @@ void vp8_arch_arm_common_init(VP8_COMMON *ctx)
         rtcd->recon.copy8x8     = vp8_copy_mem8x8_v6;
         rtcd->recon.copy8x4     = vp8_copy_mem8x4_v6;
         rtcd->recon.intra4x4_predict = vp8_intra4x4_predict_armv6;
+
+        rtcd->dequant.block               = vp8_dequantize_b_v6;
+        rtcd->dequant.idct_add            = vp8_dequant_idct_add_v6;
+        rtcd->dequant.idct_add_y_block    = vp8_dequant_idct_add_y_block_v6;
+        rtcd->dequant.idct_add_uv_block   = vp8_dequant_idct_add_uv_block_v6;
+
     }
 #endif
 
@@ -80,7 +84,6 @@ void vp8_arch_arm_common_init(VP8_COMMON *ctx)
         rtcd->subpix.bilinear4x4   = vp8_bilinear_predict4x4_neon;
 
         rtcd->idct.idct16       = vp8_short_idct4x4llm_neon;
-        rtcd->idct.iwalsh1      = vp8_short_inv_walsh4x4_1_neon;
         rtcd->idct.iwalsh16     = vp8_short_inv_walsh4x4_neon;
 
         rtcd->loopfilter.normal_mb_v = vp8_loop_filter_mbv_neon;
@@ -99,6 +102,12 @@ void vp8_arch_arm_common_init(VP8_COMMON *ctx)
             vp8_build_intra_predictors_mby_neon;
         rtcd->recon.build_intra_predictors_mby_s =
             vp8_build_intra_predictors_mby_s_neon;
+
+        rtcd->dequant.block               = vp8_dequantize_b_neon;
+        rtcd->dequant.idct_add            = vp8_dequant_idct_add_neon;
+        rtcd->dequant.idct_add_y_block    = vp8_dequant_idct_add_y_block_neon;
+        rtcd->dequant.idct_add_uv_block   = vp8_dequant_idct_add_uv_block_neon;
+
     }
 #endif
 

@@ -42,7 +42,7 @@ class BaseSession;
 class Call;
 class Session;
 struct AudioInfo;
-struct MediaSources;
+struct MediaStreams;
 
 // Note that the call's audio monitor must be started before this is started.
 // It's recommended that the audio monitor be started with a 100 ms period.
@@ -68,9 +68,10 @@ class CurrentSpeakerMonitor : public sigslot::has_slots<> {
 
  private:
   void OnAudioMonitor(Call* call, const AudioInfo& info);
-  void OnMediaSourcesUpdate(Call* call,
+  void OnMediaStreamsUpdate(Call* call,
                             Session* session,
-                            const MediaSources& sources);
+                            const MediaStreams& added,
+                            const MediaStreams& removed);
 
   // These are states that a participant will pass through so that we gradually
   // recognize that they have started and stopped speaking.  This avoids

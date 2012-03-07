@@ -43,7 +43,6 @@
 #include "talk/examples/call/mucinvitesendtask.h"
 #include "talk/examples/call/friendinvitesendtask.h"
 #include "talk/examples/call/muc.h"
-#include "talk/examples/call/voicemailjidrequester.h"
 #include "talk/p2p/base/sessionmanager.h"
 #include "talk/p2p/client/basicportallocator.h"
 #include "talk/p2p/client/sessionmanagertask.h"
@@ -132,12 +131,12 @@ const char* CONSOLE_COMMANDS =
 "                      given JID and with optional bandwidth.\n"
 "  vcall [jid] [bw]    Initiates a video call to the user[/room] with\n"
 "                      the given JID and with optional bandwidth.\n"
-"  voicemail [jid]     Leave a voicemail for the user with the given JID.\n"
 "  join [room_jid]     Joins a multi-user-chat with room JID.\n"
 "  ljoin [room_name]   Joins a MUC by looking up JID from room name.\n"
 "  invite user [room]  Invites a friend to a multi-user-chat.\n"
 "  leave [room]        Leaves a multi-user-chat.\n"
 "  nick [nick]         Sets the nick.\n"
+"  priority [int]      Sets the priority.\n"
 "  getdevs             Prints the available media devices.\n"
 "  quit                Quits the application.\n"
 "";
@@ -263,19 +262,22 @@ void CallClient::ParseLine(const std::string& line) {
       LeaveMuc(GetWord(words, 1, ""));
     } else if (command == "nick") {
       SetNick(GetWord(words, 1, ""));
+    } else if (command == "priority") {
+      int priority = GetInt(words, 1, 0);
+      SetPriority(priority);
+      SendStatus();
     } else if (command == "getdevs") {
       GetDevices();
     } else if ((words.size() == 2) && (command == "setvol")) {
       SetVolume(words[1]);
-    } else if (command == "voicemail") {
-      CallVoicemail((words.size() >= 2) ? words[1] : "");
     } else {
       console_->PrintLine(CONSOLE_COMMANDS);
     }
   }
 }
 
-CallClient::CallClient(buzz::XmppClient* xmpp_client)
+CallClient::CallClient(buzz::XmppClient* xmpp_client,
+                       const std::string& caps_node, const std::string& version)
     : xmpp_client_(xmpp_client),
       worker_thread_(NULL),
       media_engine_(NULL),
@@ -295,6 +297,8 @@ CallClient::CallClient(buzz::XmppClient* xmpp_client)
       initial_protocol_(cricket::PROTOCOL_HYBRID),
       secure_policy_(cricket::SEC_DISABLED) {
   xmpp_client_->SignalStateChange.connect(this, &CallClient::OnStateChange);
+  my_status_.set_caps_node(caps_node);
+  my_status_.set_version(version);
 }
 
 CallClient::~CallClient() {
@@ -438,8 +442,8 @@ void CallClient::OnSessionCreate(cricket::Session* session, bool initiate) {
 
 void CallClient::OnCallCreate(cricket::Call* call) {
   call->SignalSessionState.connect(this, &CallClient::OnSessionState);
-  call->SignalMediaSourcesUpdate.connect(
-      this, &CallClient::OnMediaSourcesUpdate);
+  call->SignalMediaStreamsUpdate.connect(
+      this, &CallClient::OnMediaStreamsUpdate);
 }
 
 void CallClient::OnSessionState(cricket::Call* call,
@@ -485,18 +489,36 @@ void CallClient::OnSessionState(cricket::Call* call,
 
 void CallClient::OnSpeakerChanged(cricket::Call* call,
                                   cricket::Session* session,
-                                  const cricket::NamedSource& speaker) {
-  if (speaker.ssrc == 0) {
+                                  const cricket::StreamParams& speaker) {
+  if (!speaker.has_ssrcs()) {
     console_->PrintLine("Session %s has no current speaker.",
                         session->id().c_str());
   } else if (speaker.nick.empty()) {
     console_->PrintLine("Session %s speaker change to unknown (%u).",
-                        session->id().c_str(), speaker.ssrc);
+                        session->id().c_str(), speaker.first_ssrc());
   } else {
     console_->PrintLine("Session %s speaker changed to %s (%u).",
                         session->id().c_str(), speaker.nick.c_str(),
-                        speaker.ssrc);
+                        speaker.first_ssrc());
   }
+}
+
+void SetMediaCaps(int media_caps, buzz::Status* status) {
+  status->set_voice_capability((media_caps & cricket::AUDIO_RECV) != 0);
+  status->set_video_capability((media_caps & cricket::VIDEO_RECV) != 0);
+  status->set_camera_capability((media_caps & cricket::VIDEO_SEND) != 0);
+}
+
+void SetCaps(int media_caps, buzz::Status* status) {
+  status->set_know_capabilities(true);
+  status->set_pmuc_capability(true);
+  SetMediaCaps(media_caps, status);
+}
+
+void SetAvailable(const buzz::Jid& jid, buzz::Status* status) {
+  status->set_jid(jid);
+  status->set_available(true);
+  status->set_show(buzz::Status::SHOW_ONLINE);
 }
 
 void CallClient::InitPresence() {
@@ -510,7 +532,9 @@ void CallClient::InitPresence() {
   presence_push_->Start();
 
   presence_out_ = new buzz::PresenceOutTask(xmpp_client_);
-  RefreshStatus();
+  SetAvailable(xmpp_client_->jid(), &my_status_);
+  SetCaps(media_client_->GetCapabilities(), &my_status_);
+  SendStatus(my_status_);
   presence_out_->Start();
 
   muc_invite_recv_ = new buzz::MucInviteRecvTask(xmpp_client_);
@@ -525,23 +549,8 @@ void CallClient::InitPresence() {
   friend_invite_send_->Start();
 }
 
-void CallClient::RefreshStatus() {
-  int media_caps = media_client_->GetCapabilities();
-  my_status_.set_jid(xmpp_client_->jid());
-  my_status_.set_available(true);
-  my_status_.set_show(buzz::Status::SHOW_ONLINE);
-  my_status_.set_priority(0);
-  my_status_.set_know_capabilities(true);
-  my_status_.set_pmuc_capability(true);
-  my_status_.set_voice_capability(
-      (media_caps & cricket::AUDIO_RECV) != 0);
-  my_status_.set_video_capability(
-      (media_caps & cricket::VIDEO_RECV) != 0);
-  my_status_.set_camera_capability(
-      (media_caps & cricket::VIDEO_SEND) != 0);
-  my_status_.set_is_google_client(true);
-  my_status_.set_version("1.0.0.67");
-  presence_out_->Send(my_status_);
+void CallClient::SendStatus(const buzz::Status& status) {
+  presence_out_->Send(status);
 }
 
 void CallClient::OnStatusUpdate(const buzz::Status& status) {
@@ -619,10 +628,6 @@ void CallClient::MakeCallTo(const std::string& name,
     options.is_muc = true;
   } else if (name[0] == '+') {
     // if the first character is a +, assume it's a phone number
-    found_jid = callto_jid;
-    found = true;
-  } else if (callto_jid.resource() == "voicemail") {
-    // if the resource is /voicemail, allow that
     found_jid = callto_jid;
     found = true;
   } else {
@@ -767,31 +772,6 @@ void CallClient::OnHangoutRemoteMuteError(const std::string& task_id,
                                           const std::string& mutee_nick,
                                           const buzz::XmlElement* stanza) {
   console_->PrintLine("Failed to remote mute.");
-}
-
-void CallClient::CallVoicemail(const std::string& name) {
-  buzz::Jid jid(name);
-  if (!jid.IsValid() || jid.node() == "") {
-    console_->PrintLine("Invalid JID. JIDs should be in the form user@domain.");
-    return;
-  }
-  buzz::VoicemailJidRequester *request =
-      new buzz::VoicemailJidRequester(xmpp_client_, jid, my_status_.jid());
-  request->SignalGotVoicemailJid.connect(this,
-                                         &CallClient::OnFoundVoicemailJid);
-  request->SignalVoicemailJidError.connect(this,
-                                           &CallClient::OnVoicemailJidError);
-  request->Start();
-}
-
-void CallClient::OnFoundVoicemailJid(const buzz::Jid& to,
-                                     const buzz::Jid& voicemail) {
-  console_->PrintLine("Calling %s's voicemail.", to.Str().c_str());
-  PlaceCall(voicemail, cricket::CallOptions());
-}
-
-void CallClient::OnVoicemailJidError(const buzz::Jid& to) {
-  console_->PrintLine("Unable to voicemail %s.", to.Str().c_str());
 }
 
 void CallClient::Accept(const cricket::CallOptions& options) {
@@ -1124,31 +1104,36 @@ void CallClient::PrintDevices(const std::vector<std::string>& names) {
 
 void CallClient::OnDevicesChange() {
   console_->PrintLine("Devices changed.");
-  RefreshStatus();
+  SetMediaCaps(media_client_->GetCapabilities(), &my_status_);
+  SendStatus(my_status_);
 }
 
 void CallClient::SetVolume(const std::string& level) {
   media_client_->SetOutputVolume(strtol(level.c_str(), NULL, 10));
 }
 
-void CallClient::OnMediaSourcesUpdate(cricket::Call* call,
+void CallClient::OnMediaStreamsUpdate(cricket::Call* call,
                                       cricket::Session* session,
-                                      const cricket::MediaSources& sources) {
-  for (cricket::NamedSources::const_iterator it = sources.video().begin();
-       it != sources.video().end(); ++it) {
-    if (it->removed) {
-      RemoveStaticRenderedView(it->ssrc);
-    } else {
-      if (render_) {
+                                      const cricket::MediaStreams& added,
+                                      const cricket::MediaStreams& removed) {
+  if (call->video()) {
+    for (std::vector<cricket::StreamParams>::const_iterator
+         it = removed.video().begin(); it != removed.video().end(); ++it) {
+      RemoveStaticRenderedView(it->first_ssrc());
+    }
+
+    if (render_) {
+      for (std::vector<cricket::StreamParams>::const_iterator
+           it = added.video().begin(); it != added.video().end(); ++it) {
         // TODO: Make dimensions and positions more configurable.
         int offset = (50 * static_views_accumulated_count_) % 300;
-        AddStaticRenderedView(session, it->ssrc, 640, 400, 30,
+        AddStaticRenderedView(session, it->first_ssrc(), 640, 400, 30,
                               offset, offset);
       }
     }
-  }
 
-  SendViewRequest(session);
+    SendViewRequest(session);
+  }
 }
 
 // TODO: Would these methods to add and remove views make

@@ -131,27 +131,27 @@ const char* summaryFilename = "/tmp/VoiceEngineSummary.txt";
 
 int dummy = 0;  // Dummy used in different functions to avoid warnings
 
-MyRTPObserver::MyRTPObserver() {
+TestRtpObserver::TestRtpObserver() {
   Reset();
 }
 
-MyRTPObserver::~MyRTPObserver() {
+TestRtpObserver::~TestRtpObserver() {
 }
 
-void MyRTPObserver::Reset() {
+void TestRtpObserver::Reset() {
   for (int i = 0; i < 2; i++) {
-    _SSRC[i] = 0;
-    _CSRC[i][0] = 0;
-    _CSRC[i][1] = 0;
-    _added[i][0] = false;
-    _added[i][1] = false;
-    _size[i] = 0;
+    ssrc_[i] = 0;
+    csrc_[i][0] = 0;
+    csrc_[i][1] = 0;
+    added_[i][0] = false;
+    added_[i][1] = false;
+    size_[i] = 0;
   }
 }
 
-void MyRTPObserver::OnIncomingCSRCChanged(const int channel,
-                                          const unsigned int CSRC,
-                                          const bool added) {
+void TestRtpObserver::OnIncomingCSRCChanged(const int channel,
+                                            const unsigned int CSRC,
+                                            const bool added) {
   char msg[128];
   sprintf(msg, "=> OnIncomingCSRCChanged(channel=%d, CSRC=%u, added=%d)\n",
           channel, CSRC, added);
@@ -160,22 +160,22 @@ void MyRTPObserver::OnIncomingCSRCChanged(const int channel,
   if (channel > 1)
     return;  // Not enough memory.
 
-  _CSRC[channel][_size[channel]] = CSRC;
-  _added[channel][_size[channel]] = added;
+  csrc_[channel][size_[channel]] = CSRC;
+  added_[channel][size_[channel]] = added;
 
-  _size[channel]++;
-  if (_size[channel] == 2)
-    _size[channel] = 0;
+  size_[channel]++;
+  if (size_[channel] == 2)
+    size_[channel] = 0;
 }
 
-void MyRTPObserver::OnIncomingSSRCChanged(const int channel,
-                                          const unsigned int SSRC) {
+void TestRtpObserver::OnIncomingSSRCChanged(const int channel,
+                                            const unsigned int SSRC) {
   char msg[128];
   sprintf(msg, "\n=> OnIncomingSSRCChanged(channel=%d, SSRC=%u)\n", channel,
           SSRC);
   TEST_LOG("%s", msg);
 
-  _SSRC[channel] = SSRC;
+  ssrc_[channel] = SSRC;
 }
 
 void MyDeadOrAlive::OnPeriodicDeadOrAlive(const int /*channel*/,
@@ -316,24 +316,21 @@ void MyTraceCallback::Print(const TraceLevel level,
 }
 
 void RtcpAppHandler::OnApplicationDataReceived(
-    const int /*channel*/, const unsigned char subType, const unsigned int name,
-    const unsigned char* data, const unsigned short dataLengthInBytes) {
-  _lengthBytes = dataLengthInBytes;
-  memcpy(_data, &data[0], dataLengthInBytes);
-  _subType = subType;
-  _name = name;
+    const int /*channel*/, const unsigned char sub_type,
+    const unsigned int name, const unsigned char* data,
+    const unsigned short length_in_bytes) {
+  length_in_bytes_ = length_in_bytes;
+  memcpy(data_, &data[0], length_in_bytes);
+  sub_type_ = sub_type;
+  name_ = name;
 }
 
 void RtcpAppHandler::Reset() {
-  _lengthBytes = 0;
-  memset(_data, 0, sizeof(_data));
-  _subType = 0;
-  _name = 0;
+  length_in_bytes_ = 0;
+  memset(data_, 0, sizeof(data_));
+  sub_type_ = 0;
+  name_ = 0;
 }
-
-ErrorObserver obs;
-RtcpAppHandler myRtcpAppHandler;
-MyRTPObserver rtpObserver;
 
 void my_encryption::encrypt(int, unsigned char * in_data,
                             unsigned char * out_data,
@@ -882,7 +879,7 @@ int VoETestManager::ReleaseInterfaces() {
   return (releaseOK == true) ? 0 : -1;
 }
 
-int VoETestManager::SetUp() {
+int VoETestManager::SetUp(ErrorObserver* error_observer) {
   char char_buffer[1024];
 
   TEST_MUSTPASS(voe_base_->Init());
@@ -891,7 +888,7 @@ int VoETestManager::SetUp() {
   TEST_MUSTPASS(voe_hardware_->SetLoudspeakerStatus(false));
 #endif
 
-  TEST_MUSTPASS(voe_base_->RegisterVoiceEngineObserver(obs));
+  TEST_MUSTPASS(voe_base_->RegisterVoiceEngineObserver(*error_observer));
 
   TEST_LOG("Get version \n");
   TEST_MUSTPASS(voe_base_->GetVersion(char_buffer));
@@ -977,737 +974,15 @@ int VoETestManager::DoStandardTest() {
 
   TEST_LOG("\n\n+++ Base tests +++\n\n");
 
-  if (SetUp() != 0) return -1;
+  ErrorObserver error_observer;
+  if (SetUp(&error_observer) != 0) return -1;
 
-  // TODO(qhogpat): this gets verified way later - quite ugly. Make sure to
-  // put this into setup when rewriting the test that requires this.
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetRTCP_CNAME(0, "Niklas"));
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetLocalSSRC(0, 1234));
   voe_network_->SetSourceFilter(0, 0);
 
   FakeExternalTransport channel0_transport(voe_network_);
   if (TestStartStreaming(channel0_transport) != 0) return -1;
   if (TestStartPlaying() != 0) return -1;
 
-  /////////////////////////
-  // Start another channel
-
-#if defined(_TEST_RTP_RTCP_)
-  TEST_LOG("\n\n+++ Preparing another channel for"
-    " RTP/RTCP tests +++ \n\n");
-
-  TEST_LOG("Create one more channel and start it up\n");
-  TEST_MUSTPASS(!(1==voe_base_->CreateChannel()));
-#ifdef WEBRTC_EXTERNAL_TRANSPORT
-  FakeExternalTransport ch1transport(voe_network_);
-  TEST_MUSTPASS(voe_network_->RegisterExternalTransport(1, ch1transport));
-#else
-  TEST_MUSTPASS(voe_base_->SetSendDestination(1, 8002, "127.0.0.1"));
-  TEST_MUSTPASS(voe_base_->SetLocalReceiver(1, 8002));
-#endif
-  TEST_MUSTPASS(voe_base_->StartReceive(1));
-  TEST_MUSTPASS(voe_base_->StartPlayout(1));
-  // Ensures SSSR_ch1 = 5678.
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetLocalSSRC(1, 5678));
-  TEST_MUSTPASS(voe_base_->StartSend(1));
-  SLEEP(2000);
-#else
-  TEST_LOG("\n\n+++ Preparing another channel NOT NEEDED +++ \n");
-#endif // defined(_TEST_RTP_RTCP_)
-  /////////////////
-  // Conferencing
-
-#ifndef _TEST_BASE_
-
-  TEST_LOG("\n\n+++ (Base) tests NOT ENABLED +++\n");
-#endif // #ifdef _TEST_BASE_
-  ////////////////////////////////////////////////
-  // RTP/RTCP (test after streaming is activated)
-
-#if (defined(_TEST_RTP_RTCP_) && defined(_TEST_BASE_))
-
-  TEST_LOG("\n\n+++ More RTP/RTCP tests +++\n\n");
-
-  SLEEP(8000);
-
-  char char_buffer[256];
-  TEST_LOG("Check that we have gotten RTCP packet, and collected CName\n");
-  TEST_MUSTPASS(voe_rtp_rtcp_->GetRemoteRTCP_CNAME(0, char_buffer));
-  TEST_LOG("default cname is %s", char_buffer);
-  TEST_MUSTPASS(_stricmp("Niklas", char_buffer));
-
-  TEST_LOG("Check that we have received the right SSRC\n");
-  unsigned int ssrc1;
-  TEST_MUSTPASS(voe_rtp_rtcp_->GetLocalSSRC(0, ssrc1));
-  TEST_LOG("SSRC chan 0 = %lu \n", (long unsigned int) ssrc1);
-  TEST_MUSTPASS(voe_rtp_rtcp_->GetRemoteSSRC(0, ssrc1));
-  // the originally set 1234 should be maintained
-  TEST_MUSTPASS(1234 != ssrc1);
-
-  // RTCP APP tests
-  TEST_LOG("Check RTCP APP send/receive \n");
-  TEST_MUSTPASS(voe_rtp_rtcp_->RegisterRTCPObserver(0, myRtcpAppHandler));
-  SLEEP(100);
-  // send RTCP APP packet (fill up data message to multiple of 32 bits)
-  const char* data = "application-dependent data------"; // multiple of 32byte
-  unsigned short lenBytes(static_cast<unsigned short> (strlen(data)));
-  unsigned int name = static_cast<unsigned int> (0x41424344); // 'ABCD';
-  unsigned char subType = 1;
-  TEST_MUSTPASS(voe_rtp_rtcp_->SendApplicationDefinedRTCPPacket(0,
-          subType,
-          name,
-          data,
-          lenBytes));
-  TEST_LOG("Waiting for RTCP APP callback...\n");
-  SLEEP(8000); // ensures that RTCP is scheduled
-  TEST_MUSTPASS(strlen(data) != myRtcpAppHandler._lengthBytes);
-  TEST_MUSTPASS(memcmp(data, myRtcpAppHandler._data, lenBytes));
-  TEST_MUSTPASS(myRtcpAppHandler._name != name);
-  TEST_MUSTPASS(myRtcpAppHandler._subType != subType);
-  TEST_LOG("=> application-dependent data of size %d bytes was received\n",
-           lenBytes);
-  // disable the callback and verify that no callback is received this time
-  myRtcpAppHandler.Reset();
-  TEST_MUSTPASS(voe_rtp_rtcp_->DeRegisterRTCPObserver(0));
-
-  TEST_MUSTPASS(voe_rtp_rtcp_->SendApplicationDefinedRTCPPacket(0,
-          subType,
-          name,
-          data,
-          lenBytes));
-  TEST_LOG("RTCP APP callback should not be received since the observer "
-    "is disabled...\n");
-  SLEEP(5000); // ensures that RTCP is scheduled
-  TEST_MUSTPASS(myRtcpAppHandler._name != 0);
-  TEST_MUSTPASS(myRtcpAppHandler._subType != 0);
-
-#if !defined(WEBRTC_EXTERNAL_TRANSPORT)
-  printf("Tesing InsertExtraRTPPacket\n");
-
-  const char payloadData[8] = { 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H' };
-
-  // fail tests
-  // invalid channel
-  TEST_MUSTPASS(-1 != voe_rtp_rtcp_->InsertExtraRTPPacket(-1,
-          0,
-          false,
-          payloadData,
-          8));
-  // invalid payload type
-  TEST_MUSTPASS(-1 != voe_rtp_rtcp_->InsertExtraRTPPacket(0,
-          -1,
-          false,
-          payloadData,
-          8));
-  // invalid payload type
-  TEST_MUSTPASS(-1 != voe_rtp_rtcp_->InsertExtraRTPPacket(0,
-          128,
-          false,
-          payloadData,
-          8));
-  // invalid pointer
-  TEST_MUSTPASS(-1 != voe_rtp_rtcp_->InsertExtraRTPPacket(0,
-          99,
-          false,
-          NULL,
-          8));
-  // invalid size
-  TEST_MUSTPASS(-1 != voe_rtp_rtcp_->InsertExtraRTPPacket(0,
-          99,
-          false,
-          payloadData,
-          1500 - 28 + 1));
-
-  // transmit some extra RTP packets
-  for (int pt = 0; pt < 128; pt++) {
-    TEST_MUSTPASS(voe_rtp_rtcp_->InsertExtraRTPPacket(0,
-            pt,
-            false,
-            payloadData,
-            8));
-    TEST_MUSTPASS(voe_rtp_rtcp_->InsertExtraRTPPacket(0,
-            pt,
-            true,
-            payloadData,
-            8));
-  }
-#else
-  printf("Skipping InsertExtraRTPPacket tests -"
-      " WEBRTC_EXTERNAL_TRANSPORT is defined \n");
-#endif
-
-  TEST_LOG("Enable the RTP observer\n");
-  TEST_MUSTPASS(voe_rtp_rtcp_->RegisterRTPObserver(0, rtpObserver));
-  TEST_MUSTPASS(voe_rtp_rtcp_->RegisterRTPObserver(1, rtpObserver));
-  rtpObserver.Reset();
-
-  // Create two RTP-dump files (3 seconds long).
-  // Verify using rtpplay or NetEqRTPplay when test is done.
-  TEST_LOG("Creating two RTP-dump files...\n");
-  TEST_MUSTPASS(voe_rtp_rtcp_->StartRTPDump(0,
-          GetFilename("dump_in_3sec.rtp"),
-          kRtpIncoming));
-  MARK();
-  TEST_MUSTPASS(voe_rtp_rtcp_->StartRTPDump(0,
-          GetFilename("dump_out_3sec.rtp"),
-          kRtpOutgoing));
-  MARK();
-  SLEEP(3000);
-  TEST_MUSTPASS(voe_rtp_rtcp_->StopRTPDump(0, kRtpIncoming));
-  MARK();
-  TEST_MUSTPASS(voe_rtp_rtcp_->StopRTPDump(0, kRtpOutgoing));
-  MARK();
-
-  rtpObserver.Reset();
-
-  TEST_LOG("Verify the OnIncomingSSRCChanged callback\n");
-  TEST_MUSTPASS(voe_base_->StopSend(0));
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetLocalSSRC(0, 7777));
-  TEST_MUSTPASS(voe_base_->StartSend(0));
-  SLEEP(500);
-  TEST_MUSTPASS(rtpObserver._SSRC[0] != 7777);
-  TEST_MUSTPASS(voe_base_->StopSend(0));
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetLocalSSRC(0, 1234));
-  TEST_MUSTPASS(voe_base_->StartSend(0));
-  SLEEP(500);
-  TEST_MUSTPASS(rtpObserver._SSRC[0] != 1234);
-  rtpObserver.Reset();
-  if (voe_file_) {
-    TEST_LOG("Start playing a file as microphone again...\n");
-    TEST_MUSTPASS(voe_file_->StartPlayingFileAsMicrophone(0,
-            AudioFilename(),
-            true,
-            true));
-  }
-
-#ifdef WEBRTC_CODEC_RED
-  TEST_LOG("Enabling FEC \n");
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetFECStatus(0, true));
-  SLEEP(2000);
-
-  TEST_LOG("Disabling FEC\n");
-  TEST_MUSTPASS(voe_rtp_rtcp_->SetFECStatus(0, false));
-  SLEEP(2000);
-#else
-  TEST_LOG("Skipping FEC tests - WEBRTC_CODEC_RED not defined \n");
-#endif // #ifdef WEBRTC_CODEC_RED
-#else
-  TEST_LOG("\n\n+++ More RTP/RTCP tests NOT ENABLED +++\n");
-#endif // #ifdef _TEST_RTP_RTCP_
-  /////////////////////////
-  // Delete extra channel
-
-#if defined(_TEST_RTP_RTCP_)
-  TEST_LOG("\n\n+++ Delete extra channel +++ \n\n");
-
-  TEST_LOG("Delete channel 1, stopping everything\n");
-  TEST_MUSTPASS(voe_base_->DeleteChannel(1));
-#else
-  TEST_LOG("\n\n+++ Delete extra channel NOT NEEDED +++ \n");
-#endif // #if defined(WEBRTC_VOICE_ENGINE_CONFERENCING) && (define......
-  /////////////////////////////////////////////////
-  // Hardware (test after streaming is activated)
-
-#ifdef _TEST_HARDWARE_
-  TEST_LOG("\n\n+++ More hardware tests +++\n\n");
-
-  int nRec = 0, nPlay = 0;
-  char device_name[128] = {0};
-  char guid_name[128] = {0};
-#if !defined(MAC_IPHONE) && !defined(WEBRTC_ANDROID)
-#ifdef _WIN32
-  // should works also while already recording
-  TEST_MUSTPASS(voe_hardware_->SetRecordingDevice(-1));
-  // should works also while already playing
-  TEST_MUSTPASS(voe_hardware_->SetPlayoutDevice(-1));
-#else
-  TEST_MUSTPASS(voe_hardware_->SetRecordingDevice(0));
-  TEST_MUSTPASS(voe_hardware_->SetPlayoutDevice(0));
-#endif
-  TEST_MUSTPASS(voe_hardware_->GetRecordingDeviceName(0, device_name, guid_name));
-  TEST_MUSTPASS(voe_hardware_->GetPlayoutDeviceName(0, device_name, guid_name));
-
-  TEST_MUSTPASS(voe_hardware_->GetNumOfRecordingDevices(nRec));
-  TEST_MUSTPASS(voe_hardware_->GetNumOfPlayoutDevices(nPlay));
-#endif
-
-  int load = -1;
-
-#if defined(_WIN32)
-  TEST_MUSTPASS(voe_hardware_->GetCPULoad(load));
-  TEST_MUSTPASS(load == -1);
-  TEST_LOG("VE CPU load     = %d\n", load);
-#else
-  TEST_MUSTPASS(!voe_hardware_->GetCPULoad(load));
-#endif
-
-#if !defined(WEBRTC_MAC) && !defined(WEBRTC_ANDROID)
-  // Not supported on Mac yet
-  load = -1;
-  TEST_MUSTPASS(voe_hardware_->GetSystemCPULoad(load));
-  TEST_MUSTPASS(load == -1);
-  TEST_LOG("System CPU load = %d\n", load);
-#endif
-
-#ifdef MAC_IPHONE
-  // Reset sound device
-  TEST_LOG("Reset sound device \n");
-  TEST_MUSTPASS(voe_hardware_->ResetAudioDevice());
-  SLEEP(2000);
-#endif // #ifdef MAC_IPHONE
-  TEST_LOG("\nBuilt-in WASAPI AEC tests\n");
-  TEST_MUSTPASS(voe_base_->StopSend(0));
-  TEST_MUSTPASS(voe_base_->StopPlayout(0));
-
-  AudioLayers givenLayer;
-  TEST_MUSTPASS(voe_hardware_->GetAudioDeviceLayer(givenLayer));
-  if (givenLayer != kAudioWindowsCore) {
-    TEST_MUSTFAIL(voe_hardware_->EnableBuiltInAEC(true));
-    TEST_MUSTFAIL(voe_hardware_->EnableBuiltInAEC(false));
-  } else {
-    TEST_MUSTPASS(voe_base_->StartSend(0));
-    // Can't be set after StartSend().
-    TEST_MUSTFAIL(voe_hardware_->EnableBuiltInAEC(true));
-    TEST_MUSTFAIL(voe_hardware_->EnableBuiltInAEC(false));
-
-    TEST_MUSTPASS(voe_base_->StopSend(0));
-    TEST_MUSTPASS(voe_hardware_->EnableBuiltInAEC(true));
-
-    // Can't be called before StartPlayout().
-    TEST_MUSTFAIL(voe_base_->StartSend(0));
-
-    TEST_MUSTPASS(voe_base_->StartPlayout(0));
-    TEST_MUSTPASS(voe_base_->StartSend(0));
-    TEST_LOG("Processing capture data with built-in AEC...\n");
-    SLEEP(2000);
-
-    TEST_LOG("Looping through capture devices...\n");
-    int num_devs = 0;
-    char dev_name[128] = { 0 };
-    char guid_name[128] = { 0 };
-    TEST_MUSTPASS(voe_hardware_->GetNumOfRecordingDevices(num_devs));
-    for (int dev_index = 0; dev_index < num_devs; ++dev_index) {
-      TEST_MUSTPASS(voe_hardware_->GetRecordingDeviceName(dev_index,
-              dev_name,
-              guid_name));
-      TEST_LOG("%d: %s\n", dev_index, dev_name);
-      TEST_MUSTPASS(voe_hardware_->SetRecordingDevice(dev_index));
-      SLEEP(2000);
-    }
-
-    TEST_MUSTPASS(voe_hardware_->SetPlayoutDevice(-1));
-    TEST_MUSTPASS(voe_hardware_->SetRecordingDevice(-1));
-
-    TEST_LOG("Looping through render devices, restarting for each "
-      "device...\n");
-    TEST_MUSTPASS(voe_hardware_->GetNumOfPlayoutDevices(num_devs));
-    for (int dev_index = 0; dev_index < num_devs; ++dev_index) {
-      TEST_MUSTPASS(voe_hardware_->GetPlayoutDeviceName(dev_index,
-              dev_name,
-              guid_name));
-      TEST_LOG("%d: %s\n", dev_index, dev_name);
-      TEST_MUSTPASS(voe_hardware_->SetPlayoutDevice(dev_index));
-      SLEEP(2000);
-    }
-
-    TEST_LOG("Using default devices...\n");
-    TEST_MUSTPASS(voe_hardware_->SetRecordingDevice(-1));
-    TEST_MUSTPASS(voe_hardware_->SetPlayoutDevice(-1));
-    SLEEP(2000);
-
-    // Possible, but not recommended before StopSend().
-    TEST_MUSTPASS(voe_base_->StopPlayout(0));
-
-    TEST_MUSTPASS(voe_base_->StopSend(0));
-    TEST_MUSTPASS(voe_base_->StopPlayout(0));
-    SLEEP(2000); // To verify that there is no garbage audio.
-
-    TEST_LOG("Disabling built-in AEC.\n");
-    TEST_MUSTPASS(voe_hardware_->EnableBuiltInAEC(false));
-  }
-  TEST_MUSTPASS(voe_base_->StartSend(0));
-  TEST_MUSTPASS(voe_base_->StartPlayout(0));
-#else
-  TEST_LOG("\n\n+++ More hardware tests NOT ENABLED +++\n");
-#endif
-
-  ////////
-  // Dtmf
-
-#ifdef _TEST_DTMF_
-  TEST_LOG("\n\n+++ Dtmf tests +++\n\n");
-
-  TEST_LOG("Making sure Dtmf Feedback is enabled by default \n");
-  bool dtmfFeedback = false, dtmfDirectFeedback = true;
-  TEST_MUSTPASS(voe_dtmf_->GetDtmfFeedbackStatus(dtmfFeedback,
-          dtmfDirectFeedback));
-  TEST_MUSTPASS(!dtmfFeedback);
-  TEST_MUSTPASS(dtmfDirectFeedback);
-
-  // Add support when new 4.0 API is complete
-#if (defined(WEBRTC_DTMF_DETECTION) && !defined(_INSTRUMENTATION_TESTING_))
-  DtmfCallback *d = new DtmfCallback();
-
-  // Set codec to PCMU to make sure tones are not distorted
-  TEST_LOG("Setting codec to PCMU\n");
-  CodecInst ci;
-  ci.channels = 1;
-  ci.pacsize = 160;
-  ci.plfreq = 8000;
-  ci.pltype = 0;
-  ci.rate = 64000;
-  strcpy(ci.plname, "PCMU");
-  TEST_MUSTPASS(voe_codec_->SetSendCodec(0, ci));
-
-  // Loop the different detections methods
-  TelephoneEventDetectionMethods detMethod = kInBand;
-  for (int h=0; h<3; ++h)
-  {
-    if (0 == h)
-    {
-      TEST_LOG("Testing telephone-event (Dtmf) detection"
-          " using in-band method \n");
-      TEST_LOG("  In-band events should be detected \n");
-      TEST_LOG("  Out-of-band Dtmf events (0-15) should be"
-          " detected \n");
-      TEST_LOG("  Out-of-band non-Dtmf events (>15) should NOT be"
-          " detected \n");
-      detMethod = kInBand;
-    }
-    if (1 == h)
-    {
-      TEST_LOG("Testing telephone-event (Dtmf) detection using"
-          " out-of-band method\n");
-      TEST_LOG("  In-band events should NOT be detected \n");
-      TEST_LOG("  Out-of-band events should be detected \n");
-      detMethod = kOutOfBand;
-    }
-    if (2 == h)
-    {
-      TEST_LOG("Testing telephone-event (Dtmf) detection using both"
-          " in-band and out-of-band methods\n");
-      TEST_LOG("  In-band events should be detected \n");
-      TEST_LOG("  Out-of-band Dtmf events (0-15) should be detected"
-          " TWICE \n");
-      TEST_LOG("  Out-of-band non-Dtmf events (>15) should be detected"
-          " ONCE \n");
-      detMethod = kInAndOutOfBand;
-    }
-    TEST_MUSTPASS(voe_dtmf_->RegisterTelephoneEventDetection(0, detMethod, *d));
-#else
-  TEST_LOG("Skipping Dtmf detection tests - WEBRTC_DTMF_DETECTION not"
-    " defined or _INSTRUMENTATION_TESTING_ defined \n");
-#endif
-
-  TEST_MUSTPASS(voe_dtmf_->SetDtmfFeedbackStatus(false));
-  TEST_LOG("Sending in-band telephone events:");
-  for (int i = 0; i < 16; i++) {
-    TEST_LOG("\n  %d ", i);
-    fflush(NULL);
-    TEST_MUSTPASS(voe_dtmf_->SendTelephoneEvent(0, i, false, 160, 10));
-    SLEEP(500);
-  }
-#ifdef WEBRTC_CODEC_AVT
-  TEST_LOG("\nSending out-of-band telephone events:");
-  for (int i = 0; i < 16; i++) {
-    TEST_LOG("\n  %d ", i);
-    fflush(NULL);
-    TEST_MUSTPASS(voe_dtmf_->SendTelephoneEvent(0, i, true));
-    SLEEP(500);
-  }
-  // Testing 2 non-Dtmf events
-  int num = 32;
-  TEST_LOG("\n  %d ", num);
-  fflush(NULL);
-  TEST_MUSTPASS(voe_dtmf_->SendTelephoneEvent(0, num, true));
-  SLEEP(500);
-  num = 110;
-  TEST_LOG("\n  %d ", num);
-  fflush(NULL);
-  TEST_MUSTPASS(voe_dtmf_->SendTelephoneEvent(0, num, true));
-  SLEEP(500);
-  ANL();
-#endif
-#if (defined(WEBRTC_DTMF_DETECTION) && !defined(_INSTRUMENTATION_TESTING_))
-  TEST_MUSTPASS(voe_dtmf_->DeRegisterTelephoneEventDetection(0));
-  TEST_LOG("Detected %d events \n", d->counter);
-  int expectedCount = 32; // For 0 == h
-  if (1 == h) expectedCount = 18;
-  if (2 == h) expectedCount = 50;
-  TEST_MUSTPASS(d->counter != expectedCount);
-  d->counter = 0;
-} // for loop
-
-TEST_LOG("Testing no detection after disabling:");
-TEST_MUSTPASS(voe_dtmf_->DeRegisterTelephoneEventDetection(0));
-TEST_LOG(" 0");
-TEST_MUSTPASS(voe_dtmf_->SendTelephoneEvent(0, 0, false));
-SLEEP(500);
-TEST_LOG(" 1");
-TEST_MUSTPASS(voe_dtmf_->SendTelephoneEvent(0, 1, true));
-SLEEP(500);
-TEST_LOG("\nDtmf tones sent: 2, detected: %d \n", d->counter);
-TEST_MUSTPASS(0 != d->counter);
-delete d;
-
-TEST_MUSTPASS(voe_codec_->GetCodec(0, ci));
-TEST_LOG("Back to first codec in list: %s\n", ci.plname);
-TEST_MUSTPASS(voe_codec_->SetSendCodec(0, ci));
-#endif
-
-#ifndef MAC_IPHONE
-#ifdef WEBRTC_CODEC_AVT
-  TEST_LOG("Disabling Dtmf playout (no tone should be heard) \n");
-  TEST_MUSTPASS(voe_dtmf_->SetDtmfPlayoutStatus(0, false));
-  TEST_MUSTPASS(voe_dtmf_->SendTelephoneEvent(0, 0, true));
-  SLEEP(500);
-
-  TEST_LOG("Enabling Dtmf playout (tone should be heard) \n");
-  TEST_MUSTPASS(voe_dtmf_->SetDtmfPlayoutStatus(0, true));
-  TEST_MUSTPASS(voe_dtmf_->SendTelephoneEvent(0, 0, true));
-  SLEEP(500);
-#endif
-#endif
-
-  TEST_LOG("Playing Dtmf tone locally \n");
-  ///    TEST_MUSTPASS(dtmf->PlayDtmfTone(0, 300, 15));
-  SLEEP(500);
-#ifdef WEBRTC_CODEC_AVT
-  CodecInst c2;
-
-  TEST_LOG("Changing Dtmf payload type \n");
-
-  // Start by modifying the receiving side
-  if (voe_codec_) {
-    int nc = voe_codec_->NumOfCodecs();
-    for (int i = 0; i < nc; i++) {
-      TEST_MUSTPASS(voe_codec_->GetCodec(i, c2));
-      if (!_stricmp("telephone-event", c2.plname)) {
-        c2.pltype = 88; // use 88 instead of default 106
-        TEST_MUSTPASS(voe_base_->StopSend(0));
-        TEST_MUSTPASS(voe_base_->StopPlayout(0));
-        TEST_MUSTPASS(voe_base_->StopReceive(0));
-        TEST_MUSTPASS(voe_codec_->SetRecPayloadType(0, c2));
-        TEST_MUSTPASS(voe_base_->StartReceive(0));
-        TEST_MUSTPASS(voe_base_->StartPlayout(0));
-        TEST_MUSTPASS(voe_base_->StartSend(0));
-        TEST_LOG("Start playing a file as microphone again \n");
-        TEST_MUSTPASS(voe_file_->StartPlayingFileAsMicrophone(
-                0, AudioFilename(), true, true));
-        break;
-      }
-    }
-  }
-
-  SLEEP(500);
-
-  // Next, we must modify the sending side as well
-  TEST_MUSTPASS(voe_dtmf_->SetSendTelephoneEventPayloadType(0, c2.pltype));
-
-  TEST_LOG("Outband Dtmf test with modified Dtmf payload:");
-  for (int i = 0; i < 16; i++) {
-    TEST_LOG(" %d", i);
-    fflush(NULL);
-    TEST_MUSTPASS(voe_dtmf_->SendTelephoneEvent(0, i, true));
-    SLEEP(500);
-  }
-  ANL();
-#endif
-  TEST_MUSTPASS(voe_dtmf_->SetDtmfFeedbackStatus(true, false));
-#else
-  TEST_LOG("\n\n+++ Dtmf tests NOT ENABLED +++\n");
-#endif  // #ifdef _TEST_DTMF_
-  //////////
-  // Volume
-
-#ifdef _TEST_VOLUME_
-  TEST_LOG("\n\n+++ Volume tests +++\n\n");
-
-#if !defined(MAC_IPHONE)
-  // Speaker volume test
-  unsigned int vol = 1000;
-  TEST_LOG("Saving Speaker volume\n");
-  TEST_MUSTPASS(voe_volume_control_->GetSpeakerVolume(vol));
-  TEST_MUSTPASS(!(vol <= 255));
-  TEST_LOG("Setting speaker volume to 0\n");
-  TEST_MUSTPASS(voe_volume_control_->SetSpeakerVolume(0));
-  SLEEP(1000);
-  TEST_LOG("Setting speaker volume to 255\n");
-  TEST_MUSTPASS(voe_volume_control_->SetSpeakerVolume(255));
-  SLEEP(1000);
-  TEST_LOG("Setting speaker volume back to saved value\n");
-  TEST_MUSTPASS(voe_volume_control_->SetSpeakerVolume(vol));
-  SLEEP(1000);
-#endif // #if !defined(MAC_IPHONE)
-  if (voe_file_) {
-    TEST_LOG("==> Talk into the microphone \n");
-    TEST_MUSTPASS(voe_file_->StopPlayingFileAsMicrophone(0));
-    SLEEP(1000);
-  }
-
-#if (!defined(MAC_IPHONE) && !defined(WEBRTC_ANDROID))
-  // Mic volume test
-#if defined(_TEST_AUDIO_PROCESSING_) && defined(WEBRTC_VOICE_ENGINE_AGC)
-  bool agcTemp(true);
-  AgcModes agcModeTemp(kAgcAdaptiveAnalog);
-  TEST_MUSTPASS(voe_apm_->GetAgcStatus(agcTemp, agcModeTemp)); // current state
-  TEST_LOG("Turn off AGC\n");
-  TEST_MUSTPASS(voe_apm_->SetAgcStatus(false));
-#endif
-  TEST_LOG("Saving Mic volume\n");
-  TEST_MUSTPASS(voe_volume_control_->GetMicVolume(vol));
-  TEST_MUSTPASS(!(vol <= 255));
-  TEST_LOG("Setting Mic volume to 0\n");
-  TEST_MUSTPASS(voe_volume_control_->SetMicVolume(0));
-  SLEEP(1000);
-  TEST_LOG("Setting Mic volume to 255\n");
-  TEST_MUSTPASS(voe_volume_control_->SetMicVolume(255));
-  SLEEP(1000);
-  TEST_LOG("Setting Mic volume back to saved value\n");
-  TEST_MUSTPASS(voe_volume_control_->SetMicVolume(vol));
-  SLEEP(1000);
-#if defined(_TEST_AUDIO_PROCESSING_) && defined(WEBRTC_VOICE_ENGINE_AGC)
-  TEST_LOG("Reset AGC to previous state\n");
-  TEST_MUSTPASS(voe_apm_->SetAgcStatus(agcTemp, agcModeTemp));
-#endif
-#endif // #if (!defined(MAC_IPHONE) && !defined(WEBRTC_ANDROID))
-  // Input mute test
-  TEST_LOG("Enabling input muting\n");
-  bool mute = true;
-  TEST_MUSTPASS(voe_volume_control_->GetInputMute(0, mute));
-  TEST_MUSTPASS(mute);
-  TEST_MUSTPASS(voe_volume_control_->SetInputMute(0, true));
-  TEST_MUSTPASS(voe_volume_control_->GetInputMute(0, mute));
-  TEST_MUSTPASS(!mute);
-  SLEEP(1000);
-  TEST_LOG("Disabling input muting\n");
-  TEST_MUSTPASS(voe_volume_control_->SetInputMute(0, false));
-  TEST_MUSTPASS(voe_volume_control_->GetInputMute(0, mute));
-  TEST_MUSTPASS(mute);
-  SLEEP(1000);
-
-#if (!defined(MAC_IPHONE) && !defined(WEBRTC_ANDROID))
-  // System output mute test
-  TEST_LOG("Enabling system output muting\n");
-  bool outputMute = true;
-  TEST_MUSTPASS(voe_volume_control_->GetSystemOutputMute(outputMute));
-  TEST_MUSTPASS(outputMute);
-  TEST_MUSTPASS(voe_volume_control_->SetSystemOutputMute(true));
-  TEST_MUSTPASS(voe_volume_control_->GetSystemOutputMute(outputMute));
-  TEST_MUSTPASS(!outputMute);
-  SLEEP(1000);
-  TEST_LOG("Disabling system output muting\n");
-  TEST_MUSTPASS(voe_volume_control_->SetSystemOutputMute(false));
-  TEST_MUSTPASS(voe_volume_control_->GetSystemOutputMute(outputMute));
-  TEST_MUSTPASS(outputMute);
-  SLEEP(1000);
-
-  // System Input mute test
-  TEST_LOG("Enabling system input muting\n");
-  bool inputMute = true;
-  TEST_MUSTPASS(voe_volume_control_->GetSystemInputMute(inputMute));
-  TEST_MUSTPASS(inputMute);
-  TEST_MUSTPASS(voe_volume_control_->SetSystemInputMute(true));
-  // This is needed to avoid error using pulse
-  SLEEP(100);
-  TEST_MUSTPASS(voe_volume_control_->GetSystemInputMute(inputMute));
-  TEST_MUSTPASS(!inputMute);
-  SLEEP(1000);
-  TEST_LOG("Disabling system input muting\n");
-  TEST_MUSTPASS(voe_volume_control_->SetSystemInputMute(false));
-  // This is needed to avoid error using pulse
-  SLEEP(100);
-  TEST_MUSTPASS(voe_volume_control_->GetSystemInputMute(inputMute));
-  TEST_MUSTPASS(inputMute);
-  SLEEP(1000);
-#endif // #if (!defined(MAC_IPHONE) && !defined(WEBRTC_ANDROID))
-#if(!defined(MAC_IPHONE) && !defined(WEBRTC_ANDROID))
-  // Test Input & Output levels
-  TEST_LOG("Testing input & output levels for 10 seconds (dT=1 second)\n");
-  TEST_LOG("Speak in microphone to vary the levels...\n");
-  unsigned int inputLevel(0);
-  unsigned int outputLevel(0);
-  unsigned int inputLevelFullRange(0);
-  unsigned int outputLevelFullRange(0);
-
-  for (int t = 0; t < 5; t++) {
-    SLEEP(1000);
-    TEST_MUSTPASS(voe_volume_control_->GetSpeechInputLevel(inputLevel));
-    TEST_MUSTPASS(voe_volume_control_->GetSpeechOutputLevel(0, outputLevel));
-    TEST_MUSTPASS(voe_volume_control_->GetSpeechInputLevelFullRange(
-            inputLevelFullRange));
-    TEST_MUSTPASS(voe_volume_control_->GetSpeechOutputLevelFullRange(
-            0, outputLevelFullRange));
-    TEST_LOG("    warped levels (0-9)    : in=%5d, out=%5d\n",
-             inputLevel, outputLevel);
-    TEST_LOG("    linear levels (0-32768): in=%5d, out=%5d\n",
-             inputLevelFullRange, outputLevelFullRange);
-  }
-#endif // #if (!defined(MAC_IPHONE) && !defined(WEBRTC_ANDROID))
-  if (voe_file_) {
-    TEST_LOG("==> Start playing a file as microphone again \n");
-    TEST_MUSTPASS(voe_file_->StartPlayingFileAsMicrophone(0,
-            AudioFilename(),
-            true,
-            true));
-    SLEEP(1000);
-  }
-
-#if !defined(MAC_IPHONE)
-  // Channel scaling test
-  TEST_LOG("Channel scaling\n");
-  float scaling = -1.0;
-  TEST_MUSTPASS(voe_volume_control_->GetChannelOutputVolumeScaling(0, scaling));
-  TEST_MUSTPASS(1.0 != scaling);
-  TEST_MUSTPASS(voe_volume_control_->SetChannelOutputVolumeScaling(0,
-                                                                   (float)0.1));
-  TEST_MUSTPASS(voe_volume_control_->GetChannelOutputVolumeScaling(0, scaling));
-  TEST_MUSTPASS(!((scaling > 0.099) && (scaling < 0.101)));
-  SLEEP(1000);
-  TEST_MUSTPASS(voe_volume_control_->SetChannelOutputVolumeScaling(0,
-                                                                   (float)1.0));
-  TEST_MUSTPASS(voe_volume_control_->GetChannelOutputVolumeScaling(0, scaling));
-  TEST_MUSTPASS(1.0 != scaling);
-#endif // #if !defined(MAC_IPHONE)
-#if !defined(MAC_IPHONE) && !defined(WEBRTC_ANDROID)
-  // Channel panning test
-  TEST_LOG("Channel panning\n");
-  float left = -1.0, right = -1.0;
-  TEST_MUSTPASS(voe_volume_control_->GetOutputVolumePan(0, left, right));
-  TEST_MUSTPASS(!((left == 1.0) && (right == 1.0)));
-  TEST_LOG("Panning to left\n");
-  TEST_MUSTPASS(voe_volume_control_->SetOutputVolumePan(0, (float)0.8,
-                                                        (float)0.1));
-  TEST_MUSTPASS(voe_volume_control_->GetOutputVolumePan(0, left, right));
-  TEST_MUSTPASS(!((left > 0.799) && (left < 0.801)));
-  TEST_MUSTPASS(!((right > 0.099) && (right < 0.101)));
-  SLEEP(1000);
-  TEST_LOG("Back to center\n");
-  TEST_MUSTPASS(voe_volume_control_->SetOutputVolumePan(0, (float)1.0,
-                                                        (float)1.0));
-  SLEEP(1000);
-  left = -1.0;
-  right = -1.0;
-  TEST_MUSTPASS(voe_volume_control_->GetOutputVolumePan(0, left, right));
-  TEST_MUSTPASS(!((left == 1.0) && (right == 1.0)));
-  TEST_LOG("Panning channel to right\n");
-  TEST_MUSTPASS(voe_volume_control_->SetOutputVolumePan(0, (float)0.1,
-                                                        (float)0.8));
-  SLEEP(100);
-  TEST_MUSTPASS(voe_volume_control_->GetOutputVolumePan(0, left, right));
-  TEST_MUSTPASS(!((left > 0.099) && (left < 0.101)));
-  TEST_MUSTPASS(!((right > 0.799) && (right < 0.801)));
-  SLEEP(1000);
-  TEST_LOG("Channel back to center\n");
-  TEST_MUSTPASS(voe_volume_control_->SetOutputVolumePan(0, (float)1.0,
-                                                        (float)1.0));
-  SLEEP(1000);
-#else
-  TEST_LOG("Skipping stereo tests\n");
-#endif // #if !defined(MAC_IPHONE) && !defined(WEBRTC_ANDROID))
-#else
-  TEST_LOG("\n\n+++ Volume tests NOT ENABLED +++\n");
-#endif // #ifdef _TEST_VOLUME_
   ///////
   // AudioProcessing
 
@@ -2345,10 +1620,10 @@ TEST_MUSTPASS(voe_codec_->SetSendCodec(0, ci));
   SLEEP(3000);
 
 #if !defined(_INSTRUMENTATION_TESTING_)
-  TEST_LOG("obs.code is %d\n", obs.code);
-  TEST_MUSTPASS(obs.code != VE_RECEIVE_PACKET_TIMEOUT);
+  TEST_LOG("error_observer.code is %d\n", error_observer.code);
+  TEST_MUSTPASS(error_observer.code != VE_RECEIVE_PACKET_TIMEOUT);
 #endif
-  obs.code = -1;
+  error_observer.code = -1;
   TEST_MUSTPASS(voe_base_->StartSend(0));
   if (voe_file_) {
     TEST_LOG("Start playing a file as microphone again \n");
@@ -2360,17 +1635,17 @@ TEST_MUSTPASS(voe_codec_->SetSendCodec(0, ci));
   TEST_LOG("You should see runtime error %d\n", VE_PACKET_RECEIPT_RESTARTED);
   SLEEP(1000);
 #if !defined(_INSTRUMENTATION_TESTING_)
-  TEST_MUSTPASS(obs.code != VE_PACKET_RECEIPT_RESTARTED);
+  TEST_MUSTPASS(error_observer.code != VE_PACKET_RECEIPT_RESTARTED);
 #endif
 
 #if !defined(_INSTRUMENTATION_TESTING_)
   TEST_LOG("Disabling observer, no runtime error should be seen...\n");
   TEST_MUSTPASS(voe_base_->DeRegisterVoiceEngineObserver());
-  obs.code = -1;
+  error_observer.code = -1;
   TEST_MUSTPASS(voe_base_->StopSend(0));
   TEST_MUSTPASS(voe_network_->SetPacketTimeoutNotification(0, true, 2));
   SLEEP(2500);
-  TEST_MUSTPASS(obs.code != -1);
+  TEST_MUSTPASS(error_observer.code != -1);
   // disable notifications to avoid additional 8082 callbacks
   TEST_MUSTPASS(voe_network_->SetPacketTimeoutNotification(0, false, 2));
   TEST_MUSTPASS(voe_base_->StartSend(0));
@@ -2384,14 +1659,15 @@ TEST_MUSTPASS(voe_codec_->SetSendCodec(0, ci));
   SLEEP(1000);
   ///    TEST_MUSTPASS(obs.code != -1);
   TEST_LOG("Enabling observer again\n");
-  TEST_MUSTPASS(voe_base_->RegisterVoiceEngineObserver(obs));
+  TEST_MUSTPASS(voe_base_->RegisterVoiceEngineObserver(error_observer));
 #endif
 
   TEST_LOG("Enable dead-or-alive callbacks for 4 seconds (dT=1sec)...\n");
   TEST_LOG("You should see ALIVE messages\n");
 
-  MyDeadOrAlive obs;
-  TEST_MUSTPASS(voe_network_->RegisterDeadOrAliveObserver(0, obs));
+  MyDeadOrAlive dead_or_alive_observer;
+  TEST_MUSTPASS(voe_network_->RegisterDeadOrAliveObserver(
+      0, dead_or_alive_observer));
   TEST_MUSTPASS(voe_network_->SetPeriodicDeadOrAliveStatus(0, true, 1));
   SLEEP(4000);
 
@@ -2798,6 +2074,8 @@ TEST_MUSTPASS(voe_codec_->SetSendCodec(0, ci));
            nStats.meanWaitingTimeMs);
   TEST_LOG("    medianWaitingTimeMs       = %i \n",
            nStats.medianWaitingTimeMs);
+  TEST_LOG("    minWaitingTimeMs          = %i \n",
+           nStats.minWaitingTimeMs);
   TEST_LOG("    maxWaitingTimeMs          = %i \n",
            nStats.maxWaitingTimeMs);
 #else

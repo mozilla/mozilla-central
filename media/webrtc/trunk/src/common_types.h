@@ -25,6 +25,8 @@
     #define NULL 0
 #endif
 
+#define RTP_PAYLOAD_NAME_SIZE 32
+
 namespace webrtc {
 
 class InStream
@@ -203,7 +205,7 @@ protected:
 struct CodecInst
 {
     int pltype;
-    char plname[32];
+    char plname[RTP_PAYLOAD_NAME_SIZE];
     int plfreq;
     int pacsize;
     int channels;
@@ -271,6 +273,8 @@ struct NetworkStatistics           // NETEQ statistics
     int meanWaitingTimeMs;
     // median packet waiting time in the jitter buffer (ms)
     int medianWaitingTimeMs;
+    // min packet waiting time in the jitter buffer (ms)
+    int minWaitingTimeMs;
     // max packet waiting time in the jitter buffer (ms)
     int maxWaitingTimeMs;
 };
@@ -447,19 +451,6 @@ enum { kPayloadNameSize = 32};
 enum { kMaxSimulcastStreams = 4};
 enum { kMaxTemporalStreams = 4};
 
-// H.263 specific
-struct VideoCodecH263
-{
-    char quality;
-};
-
-// H.264 specific
-enum H264Packetization
-{
-    kH264SingleMode         = 0,
-    kH264NonInterleavedMode = 1
-};
-
 enum VideoCodecComplexity
 {
     kComplexityNormal = 0,
@@ -485,20 +476,6 @@ enum VP8ResilienceMode {
                      // within a frame.
 };
 
-struct VideoCodecH264
-{
-    H264Packetization          packetization;
-    VideoCodecComplexity       complexity;
-    VideoCodecProfile          profile;
-    char                       level;
-    char                       quality;
-
-    bool                       useFMO;
-
-    unsigned char              configParameters[kConfigParameterSize];
-    unsigned char              configParametersSize;
-};
-
 // VP8 specific
 struct VideoCodecVP8
 {
@@ -509,14 +486,6 @@ struct VideoCodecVP8
     unsigned char        numberOfTemporalLayers;
 };
 
-// MPEG-4 specific
-struct VideoCodecMPEG4
-{
-    unsigned char   configParameters[kConfigParameterSize];
-    unsigned char   configParametersSize;
-    char            level;
-};
-
 // Unknown specific
 struct VideoCodecGeneric
 {
@@ -525,10 +494,7 @@ struct VideoCodecGeneric
 // Video codec types
 enum VideoCodecType
 {
-    kVideoCodecH263,
-    kVideoCodecH264,
     kVideoCodecVP8,
-    kVideoCodecMPEG4,
     kVideoCodecI420,
     kVideoCodecRED,
     kVideoCodecULPFEC,
@@ -537,10 +503,7 @@ enum VideoCodecType
 
 union VideoCodecUnion
 {
-    VideoCodecH263      H263;
-    VideoCodecH264      H264;
     VideoCodecVP8       VP8;
-    VideoCodecMPEG4     MPEG4;
     VideoCodecGeneric   Generic;
 };
 

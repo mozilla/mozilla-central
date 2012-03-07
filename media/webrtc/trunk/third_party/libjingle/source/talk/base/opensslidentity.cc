@@ -268,11 +268,12 @@ bool OpenSSLCertificate::ComputeDigest(const X509 *x509,
 
 bool OpenSSLCertificate::GetDigestEVP(const std::string &algorithm,
                                       const EVP_MD **mdp) {
-#if defined(HAS_OPENSSL_1_0) && defined(LINUX)
   const EVP_MD *md;
   if (algorithm == DIGEST_SHA_1) {
     md = EVP_sha1();
-  } else if (algorithm == DIGEST_SHA_224) {
+  }
+#if OPENSSL_VERSION_NUMBER >= 0x10000000L
+  else if (algorithm == DIGEST_SHA_224) {
     md = EVP_sha224();
   } else if (algorithm == DIGEST_SHA_256) {
     md = EVP_sha256();
@@ -280,7 +281,9 @@ bool OpenSSLCertificate::GetDigestEVP(const std::string &algorithm,
     md = EVP_sha384();
   } else if (algorithm == DIGEST_SHA_512) {
     md = EVP_sha512();
-  } else {
+  }
+#endif
+  else {
     return false;
   }
 
@@ -288,9 +291,6 @@ bool OpenSSLCertificate::GetDigestEVP(const std::string &algorithm,
   ASSERT(EVP_MD_size(md) >= 20);
   *mdp = md;
   return true;
-#else
-  return false;
-#endif
 }
 
 OpenSSLCertificate::~OpenSSLCertificate() {

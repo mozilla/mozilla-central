@@ -37,7 +37,7 @@ namespace talk_base {
 
 inline static const char *GetDllError() {
 #ifdef LINUX
-  char *err = dlerror();
+  const char *err = dlerror();
   if (err) {
     return err;
   } else {
@@ -75,7 +75,7 @@ static bool LoadSymbol(DllHandle handle,
                        void **symbol) {
 #ifdef LINUX
   *symbol = dlsym(handle, symbol_name);
-  char *err = dlerror();
+  const char *err = dlerror();
   if (err) {
     LOG(LS_ERROR) << "Error loading symbol " << symbol_name << ": " << err;
     return false;

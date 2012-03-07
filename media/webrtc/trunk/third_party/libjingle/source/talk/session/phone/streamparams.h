@@ -43,8 +43,11 @@
 #ifndef TALK_SESSION_PHONE_STREAMPARAMS_H_
 #define TALK_SESSION_PHONE_STREAMPARAMS_H_
 
+#include <algorithm>
 #include <string>
 #include <vector>
+
+#include "talk/base/basictypes.h"
 
 namespace cricket {
 
@@ -94,6 +97,12 @@ struct StreamParams {
   bool has_ssrcs() const {
     return !ssrcs.empty();
   }
+  bool has_ssrc(uint32 ssrc) const {
+    return std::find(ssrcs.begin(), ssrcs.end(), ssrc) != ssrcs.end();
+  }
+  void add_ssrc(uint32 ssrc) {
+    ssrcs.push_back(ssrc);
+  }
 
   // Resource of the MUC jid of the participant of with this stream.
   // For 1:1 calls, should be left empty (which means remote streams
@@ -110,6 +119,29 @@ struct StreamParams {
   std::string cname;  // RTCP CNAME
   std::string sync_label;  // Friendly name of cname.
 };
+
+typedef std::vector<StreamParams> StreamParamsVec;
+
+// Finds the stream in streams with the specified ssrc.
+// If you are only interested in the stream exist it is ok to call this function
+// stream_out = NULL.
+bool GetStreamBySsrc(const StreamParamsVec& streams, uint32 ssrc,
+                     StreamParams* stream_out);
+
+// Finds the stream in streams with the specified nick and name.
+// If you are only interested in the stream exist it is ok to call this function
+// stream_out = NULL.
+bool GetStreamByNickAndName(const StreamParamsVec& streams,
+                            const std::string& nick,
+                            const std::string& name,
+                            StreamParams* stream_out);
+
+// Removes the stream with ssrc from streams. Returns true if a stream is
+// removed, false otherwise.
+bool RemoveStreamBySsrc(StreamParamsVec* streams, uint32 ssrc);
+bool RemoveStreamByNickAndName(StreamParamsVec* streams,
+                               const std::string& nick,
+                               const std::string& name);
 
 }  // namespace cricket
 

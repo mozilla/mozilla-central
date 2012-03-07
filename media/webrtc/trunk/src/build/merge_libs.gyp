@@ -10,14 +10,6 @@
   'includes': [ 'common.gypi', ],
   'targets': [
     {
-      'target_name': 'no_op_voice',
-      'type': 'executable',
-      'dependencies': [
-        '../voice_engine/voice_engine.gyp:voice_engine_core',
-      ],
-      'sources': [ 'no_op.cc', ],
-    },
-    {
       'target_name': 'no_op',
       'type': 'executable',
       'dependencies': [
@@ -25,30 +17,6 @@
       ],
       'sources': [ 'no_op.cc', ],
     },
-    {
-      'target_name': 'merged_lib_voice',
-      'type': 'none',
-      'dependencies': [
-        'no_op_voice',
-      ],
-      'actions': [
-        {
-          'variables': {
-            'output_lib_name': 'webrtc_voice_engine',
-            'output_lib': '<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)<(output_lib_name)_<(OS)<(STATIC_LIB_SUFFIX)',
-          },
-          'action_name': 'merge_libs',
-          'inputs': ['<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)no_op_voice<(EXECUTABLE_SUFFIX)'],
-          'outputs': ['<(output_lib)'],
-          'action': ['python',
-                     'merge_libs.py',
-                     '<(PRODUCT_DIR)',
-                     '<(output_lib)'],
-        },
-      ],
-    },
-#    'conditions': [
-#       [OS!="mac", {
     {
       'target_name': 'merged_lib',
       'type': 'none',
@@ -59,7 +27,7 @@
         {
           'variables': {
             'output_lib_name': 'webrtc',
-            'output_lib': '<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)<(output_lib_name)_<(OS)<(STATIC_LIB_SUFFIX)',
+            'output_lib': '<(PRODUCT_DIR)/<(STATIC_LIB_PREFIX)<(output_lib_name)_<(OS)_<(target_arch)_<(CONFIGURATION_NAME)<(STATIC_LIB_SUFFIX)',
           },
           'action_name': 'merge_libs',
           'inputs': ['<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)no_op<(EXECUTABLE_SUFFIX)'],
@@ -67,7 +35,7 @@
           'action': ['python',
                      'merge_libs.py',
                      '<(PRODUCT_DIR)',
-                     '<(output_lib)'],
+                     '<(output_lib)',],
         },
       ],
     },

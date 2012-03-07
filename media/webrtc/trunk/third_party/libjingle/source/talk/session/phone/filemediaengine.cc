@@ -34,6 +34,7 @@
 #include "talk/base/stream.h"
 #include "talk/session/phone/rtpdump.h"
 #include "talk/session/phone/rtputils.h"
+#include "talk/session/phone/streamparams.h"
 
 namespace cricket {
 
@@ -258,7 +259,8 @@ bool RtpSenderReceiver::SendRtpPacket(const void* data, size_t len) {
 FileVoiceChannel::FileVoiceChannel(
     talk_base::StreamInterface* input_file_stream,
     talk_base::StreamInterface* output_file_stream)
-    : rtp_sender_receiver_(new RtpSenderReceiver(this, input_file_stream,
+    : send_ssrc_(0),
+      rtp_sender_receiver_(new RtpSenderReceiver(this, input_file_stream,
                                                  output_file_stream)) {}
 
 FileVoiceChannel::~FileVoiceChannel() {}
@@ -272,8 +274,22 @@ bool FileVoiceChannel::SetSend(SendFlags flag) {
   return rtp_sender_receiver_->SetSend(flag != SEND_NOTHING);
 }
 
-void FileVoiceChannel::SetSendSsrc(uint32 ssrc) {
-  rtp_sender_receiver_->SetSendSsrc(ssrc);
+bool FileVoiceChannel::AddSendStream(const StreamParams& sp) {
+  if (send_ssrc_ != 0 || sp.ssrcs.size() != 1) {
+    LOG(LS_ERROR) << "FileVoiceChannel only supports one send stream.";
+    return false;
+  }
+  send_ssrc_ = sp.ssrcs[0];
+  rtp_sender_receiver_->SetSendSsrc(send_ssrc_);
+  return true;
+}
+
+bool FileVoiceChannel::RemoveSendStream(uint32 ssrc) {
+  if (ssrc != send_ssrc_)
+    return false;
+  send_ssrc_ = 0;
+  rtp_sender_receiver_->SetSendSsrc(send_ssrc_);
+  return true;
 }
 
 void FileVoiceChannel::OnPacketReceived(talk_base::Buffer* packet) {
@@ -286,7 +302,8 @@ void FileVoiceChannel::OnPacketReceived(talk_base::Buffer* packet) {
 FileVideoChannel::FileVideoChannel(
     talk_base::StreamInterface* input_file_stream,
     talk_base::StreamInterface* output_file_stream)
-    : rtp_sender_receiver_(new RtpSenderReceiver(this, input_file_stream,
+    : send_ssrc_(0),
+      rtp_sender_receiver_(new RtpSenderReceiver(this, input_file_stream,
                                                  output_file_stream)) {}
 
 FileVideoChannel::~FileVideoChannel() {}
@@ -300,8 +317,22 @@ bool FileVideoChannel::SetSend(bool send) {
   return rtp_sender_receiver_->SetSend(send);
 }
 
-void FileVideoChannel::SetSendSsrc(uint32 ssrc) {
-  rtp_sender_receiver_->SetSendSsrc(ssrc);
+bool FileVideoChannel::AddSendStream(const StreamParams& sp) {
+  if (send_ssrc_ != 0 || sp.ssrcs.size() != 1) {
+    LOG(LS_ERROR) << "FileVideoChannel only support one send stream.";
+    return false;
+  }
+  send_ssrc_ = sp.ssrcs[0];
+  rtp_sender_receiver_->SetSendSsrc(send_ssrc_);
+  return true;
+}
+
+bool FileVideoChannel::RemoveSendStream(uint32 ssrc) {
+  if (ssrc != send_ssrc_)
+    return false;
+  send_ssrc_ = 0;
+  rtp_sender_receiver_->SetSendSsrc(send_ssrc_);
+  return true;
 }
 
 void FileVideoChannel::OnPacketReceived(talk_base::Buffer* packet) {

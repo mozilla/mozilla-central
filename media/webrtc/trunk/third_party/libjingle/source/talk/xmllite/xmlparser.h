@@ -116,6 +116,6 @@ private:
   bool sentError_;
 };
 
-}
+}  // namespace buzz
 
 #endif  // TALK_XMLLITE_XMLPARSER_H_

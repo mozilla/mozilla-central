@@ -645,15 +645,15 @@ Channel::OnInitializeDecoder(
 
     assert(VoEChannelId(id) == _channelId);
 
-    CodecInst receiveCodec;
-    CodecInst dummyCodec;
+    CodecInst receiveCodec = {0};
+    CodecInst dummyCodec = {0};
 
     receiveCodec.pltype = payloadType;
-    strcpy(receiveCodec.plname, payloadName);
     receiveCodec.plfreq = frequency;
     receiveCodec.channels = channels;
     receiveCodec.rate = rate;
-
+    strncpy(receiveCodec.plname, payloadName, RTP_PAYLOAD_NAME_SIZE - 1);
+    
     _audioCodingModule.Codec(payloadName, dummyCodec, frequency);
     receiveCodec.pacsize = dummyCodec.pacsize;
 
@@ -829,12 +829,17 @@ WebRtc_Word32 Channel::GetAudioFrame(const WebRtc_Word32 id,
                  "Channel::GetAudioFrame(id=%d)", id);
 
     // Get 10ms raw PCM data from the ACM (mixer limits output frequency)
-    if (_audioCodingModule.PlayoutData10Ms(
-        audioFrame._frequencyInHz, (AudioFrame&)audioFrame) == -1)
+    if (_audioCodingModule.PlayoutData10Ms(audioFrame._frequencyInHz,
+                                           audioFrame) == -1)
     {
         WEBRTC_TRACE(kTraceError, kTraceVoice,
                      VoEId(_instanceId,_channelId),
                      "Channel::GetAudioFrame() PlayoutData10Ms() failed!");
+        // In all likelihood, the audio in this frame is garbage. We return an
+        // error so that the audio mixer module doesn't add it to the mix. As
+        // a result, it won't be played out and the actions skipped here are
+        // irrelevant.
+        return -1;
     }
 
     if (_RxVadDetection)
@@ -5330,39 +5335,45 @@ Channel::GetRemoteRTCPData(
 
     if (NULL != jitter || NULL != fractionLost)
     {
-        WebRtc_Word32 ret(-1);
-        RTCPReportBlock reportBlock;
-        WebRtc_Word32 remoteSSRC = _rtpRtcpModule.RemoteSSRC();
-        if (remoteSSRC > 0)
-        {
-            // We must feed the module with remote SSRC to get the correct
-            // report block.
-            ret = _rtpRtcpModule.RemoteRTCPStat(remoteSSRC, &reportBlock);
+        // Get all RTCP receiver report blocks that have been received on this
+        // channel. If we receive RTP packets from a remote source we know the
+        // remote SSRC and use the report block from him.
+        // Otherwise use the first report block.
+        std::vector<RTCPReportBlock> remote_stats;
+        if (_rtpRtcpModule.RemoteRTCPStat(&remote_stats) != 0 ||
+            remote_stats.empty()) {
+          WEBRTC_TRACE(kTraceWarning, kTraceVoice,
+                       VoEId(_instanceId, _channelId),
+                       "GetRemoteRTCPData() failed to measure statistics due"
+                       " to lack of received RTP and/or RTCP packets");
+          return -1;
         }
-        if ((remoteSSRC < 0) || (ret != 0))
-        {
-            reportBlock.jitter = 0;
-            reportBlock.fractionLost = 0;
-            WEBRTC_TRACE(kTraceWarning, kTraceVoice,
-                         VoEId(_instanceId, _channelId),
-                         "GetRemoteRTCPData() failed to measure statistics due"
-                         " to lack of received RTP and/or RTCP packets");
+
+        WebRtc_UWord32 remoteSSRC = _rtpRtcpModule.RemoteSSRC();
+        std::vector<RTCPReportBlock>::const_iterator it = remote_stats.begin();
+        for (; it != remote_stats.end(); ++it) {
+          if (it->remoteSSRC == remoteSSRC)
+            break;
         }
-        if (NULL != jitter)
-        {
-            *jitter = reportBlock.jitter;
-            WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
-                         VoEId(_instanceId, _channelId),
-                         "GetRemoteRTCPData() => jitter = %lu", *jitter);
+
+        if (it == remote_stats.end()) {
+          // If we have not received any RTCP packets from this SSRC it probably
+          // means that we have not received any RTP packets.
+          // Use the first received report block instead.
+          it = remote_stats.begin();
+          remoteSSRC = it->remoteSSRC;
         }
-        if (NULL != fractionLost)
-        {
-            *fractionLost = reportBlock.fractionLost;
-            WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
-                         VoEId(_instanceId, _channelId),
-                         "GetRemoteRTCPData() => fractionLost = %lu",
-                         *fractionLost);
-        }
+
+        *jitter = it->jitter;
+        WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
+                     VoEId(_instanceId, _channelId),
+                     "GetRemoteRTCPData() => jitter = %lu", *jitter);
+
+        *fractionLost = it->fractionLost;
+        WEBRTC_TRACE(kTraceStateInfo, kTraceVoice,
+                     VoEId(_instanceId, _channelId),
+                     "GetRemoteRTCPData() => fractionLost = %lu",
+                     *fractionLost);
     }
     return 0;
 }

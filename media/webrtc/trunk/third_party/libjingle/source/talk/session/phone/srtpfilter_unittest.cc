@@ -51,6 +51,10 @@ static const std::string kTestKeyParams1 =
     "inline:WVNfX19zZW1jdGwgKCkgewkyMjA7fQp9CnVubGVz";
 static const std::string kTestKeyParams2 =
     "inline:PS1uQCVeeCFCanVmcjkpPywjNWhcYD0mXXtxaVBR";
+static const std::string kTestKeyParams3 =
+    "inline:1234X19zZW1jdGwgKCkgewkyMjA7fQp9CnVubGVz";
+static const std::string kTestKeyParams4 =
+    "inline:4567QCVeeCFCanVmcjkpPywjNWhcYD0mXXtxaVBR";
 static const cricket::CryptoParams kTestCryptoParams1(
     1, "AES_CM_128_HMAC_SHA1_80", kTestKeyParams1, "");
 static const cricket::CryptoParams kTestCryptoParams2(
@@ -65,6 +69,10 @@ static int rtcp_auth_tag_len(const std::string& cs) {
 
 class SrtpFilterTest : public testing::Test {
  protected:
+  SrtpFilterTest()
+  // Need to initialize |sequence_number_|, the value does not matter.
+      : sequence_number_(1) {
+  }
   static std::vector<CryptoParams> MakeVector(const CryptoParams& params) {
     std::vector<CryptoParams> vec;
     vec.push_back(params);
@@ -80,26 +88,32 @@ class SrtpFilterTest : public testing::Test {
   }
   void TestProtectUnprotect(const std::string& cs1, const std::string& cs2) {
     char rtp_packet[sizeof(kPcmuFrame) + 10];
+    char original_rtp_packet[sizeof(kPcmuFrame)];
     char rtcp_packet[sizeof(kRtcpReport) + 4 + 10];
     int rtp_len = sizeof(kPcmuFrame), rtcp_len = sizeof(kRtcpReport), out_len;
     memcpy(rtp_packet, kPcmuFrame, rtp_len);
+    // In order to be able to run this test function multiple times we can not
+    // use the same sequence number twice. Increase the sequence number by one.
+    talk_base::SetBE16(reinterpret_cast<uint8*>(rtp_packet) + 2,
+                       ++sequence_number_);
+    memcpy(original_rtp_packet, rtp_packet, rtp_len);
     memcpy(rtcp_packet, kRtcpReport, rtcp_len);
 
     EXPECT_TRUE(f1_.ProtectRtp(rtp_packet, rtp_len,
                                sizeof(rtp_packet), &out_len));
     EXPECT_EQ(out_len, rtp_len + rtp_auth_tag_len(cs1));
-    EXPECT_NE(0, memcmp(rtp_packet, kPcmuFrame, rtp_len));
+    EXPECT_NE(0, memcmp(rtp_packet, original_rtp_packet, rtp_len));
     EXPECT_TRUE(f2_.UnprotectRtp(rtp_packet, out_len, &out_len));
     EXPECT_EQ(rtp_len, out_len);
-    EXPECT_EQ(0, memcmp(rtp_packet, kPcmuFrame, rtp_len));
+    EXPECT_EQ(0, memcmp(rtp_packet, original_rtp_packet, rtp_len));
 
     EXPECT_TRUE(f2_.ProtectRtp(rtp_packet, rtp_len,
                                sizeof(rtp_packet), &out_len));
     EXPECT_EQ(out_len, rtp_len + rtp_auth_tag_len(cs2));
-    EXPECT_NE(0, memcmp(rtp_packet, kPcmuFrame, rtp_len));
+    EXPECT_NE(0, memcmp(rtp_packet, original_rtp_packet, rtp_len));
     EXPECT_TRUE(f1_.UnprotectRtp(rtp_packet, out_len, &out_len));
     EXPECT_EQ(rtp_len, out_len);
-    EXPECT_EQ(0, memcmp(rtp_packet, kPcmuFrame, rtp_len));
+    EXPECT_EQ(0, memcmp(rtp_packet, original_rtp_packet, rtp_len));
 
     EXPECT_TRUE(f1_.ProtectRtcp(rtcp_packet, rtcp_len,
                                 sizeof(rtcp_packet), &out_len));
@@ -119,6 +133,7 @@ class SrtpFilterTest : public testing::Test {
   }
   cricket::SrtpFilter f1_;
   cricket::SrtpFilter f2_;
+  int sequence_number_;
 };
 
 // Test that we can set up the session and keys properly.
@@ -293,6 +308,119 @@ TEST_F(SrtpFilterTest, TestProtect_AES_CM_128_HMAC_SHA1_32) {
   answer[0].cipher_suite = CS_AES_CM_128_HMAC_SHA1_32;
   TestSetParams(offer, answer);
   TestProtectUnprotect(CS_AES_CM_128_HMAC_SHA1_32, CS_AES_CM_128_HMAC_SHA1_32);
+}
+
+// Test that we can change encryption parameters.
+TEST_F(SrtpFilterTest, TestChangeParameters) {
+  std::vector<CryptoParams> offer(MakeVector(kTestCryptoParams1));
+  std::vector<CryptoParams> answer(MakeVector(kTestCryptoParams2));
+
+  TestSetParams(offer, answer);
+  TestProtectUnprotect(CS_AES_CM_128_HMAC_SHA1_80, CS_AES_CM_128_HMAC_SHA1_80);
+
+  // Change the key parameters and cipher_suite.
+  offer[0].key_params = kTestKeyParams3;
+  offer[0].cipher_suite = CS_AES_CM_128_HMAC_SHA1_32;
+  answer[0].key_params = kTestKeyParams4;
+  answer[0].cipher_suite = CS_AES_CM_128_HMAC_SHA1_32;
+
+  EXPECT_TRUE(f1_.SetOffer(offer, CS_LOCAL));
+  EXPECT_TRUE(f2_.SetOffer(offer, CS_REMOTE));
+  EXPECT_TRUE(f1_.IsActive());
+  EXPECT_TRUE(f1_.IsActive());
+
+  // Test that the old keys are valid until the negotiation is complete.
+  TestProtectUnprotect(CS_AES_CM_128_HMAC_SHA1_80, CS_AES_CM_128_HMAC_SHA1_80);
+
+  // Complete the negotiation and test that we can still understand each other.
+  EXPECT_TRUE(f2_.SetAnswer(answer, CS_LOCAL));
+  EXPECT_TRUE(f1_.SetAnswer(answer, CS_REMOTE));
+
+  TestProtectUnprotect(CS_AES_CM_128_HMAC_SHA1_32, CS_AES_CM_128_HMAC_SHA1_32);
+}
+
+// Test that we can disable encryption.
+TEST_F(SrtpFilterTest, TestDisableEncryption) {
+  std::vector<CryptoParams> offer(MakeVector(kTestCryptoParams1));
+  std::vector<CryptoParams> answer(MakeVector(kTestCryptoParams2));
+
+  TestSetParams(offer, answer);
+  TestProtectUnprotect(CS_AES_CM_128_HMAC_SHA1_80, CS_AES_CM_128_HMAC_SHA1_80);
+
+  offer.clear();
+  answer.clear();
+  EXPECT_TRUE(f1_.SetOffer(offer, CS_LOCAL));
+  EXPECT_TRUE(f2_.SetOffer(offer, CS_REMOTE));
+  EXPECT_TRUE(f1_.IsActive());
+  EXPECT_TRUE(f2_.IsActive());
+
+  // Test that the old keys are valid until the negotiation is complete.
+  TestProtectUnprotect(CS_AES_CM_128_HMAC_SHA1_80, CS_AES_CM_128_HMAC_SHA1_80);
+
+  // Complete the negotiation.
+  EXPECT_TRUE(f2_.SetAnswer(answer, CS_LOCAL));
+  EXPECT_TRUE(f1_.SetAnswer(answer, CS_REMOTE));
+
+  EXPECT_FALSE(f1_.IsActive());
+  EXPECT_FALSE(f2_.IsActive());
+}
+
+// Test directly setting the params with AES_CM_128_HMAC_SHA1_80
+TEST_F(SrtpFilterTest, TestProtect_SetParamsDirect_AES_CM_128_HMAC_SHA1_80) {
+  EXPECT_TRUE(f1_.SetRtpParams(CS_AES_CM_128_HMAC_SHA1_80,
+                               kTestKey1, kTestKeyLen,
+                               CS_AES_CM_128_HMAC_SHA1_80,
+                               kTestKey2, kTestKeyLen));
+  EXPECT_TRUE(f2_.SetRtpParams(CS_AES_CM_128_HMAC_SHA1_80,
+                               kTestKey2, kTestKeyLen,
+                               CS_AES_CM_128_HMAC_SHA1_80,
+                               kTestKey1, kTestKeyLen));
+  EXPECT_TRUE(f1_.SetRtcpParams(CS_AES_CM_128_HMAC_SHA1_80,
+                                kTestKey1, kTestKeyLen,
+                                CS_AES_CM_128_HMAC_SHA1_80,
+                                kTestKey2, kTestKeyLen));
+  EXPECT_TRUE(f2_.SetRtcpParams(CS_AES_CM_128_HMAC_SHA1_80,
+                                kTestKey2, kTestKeyLen,
+                                CS_AES_CM_128_HMAC_SHA1_80,
+                                kTestKey1, kTestKeyLen));
+  EXPECT_TRUE(f1_.IsActive());
+  EXPECT_TRUE(f2_.IsActive());
+  TestProtectUnprotect(CS_AES_CM_128_HMAC_SHA1_80, CS_AES_CM_128_HMAC_SHA1_80);
+}
+
+// Test directly setting the params with AES_CM_128_HMAC_SHA1_32
+TEST_F(SrtpFilterTest, TestProtect_SetParamsDirect_AES_CM_128_HMAC_SHA1_32) {
+  EXPECT_TRUE(f1_.SetRtpParams(CS_AES_CM_128_HMAC_SHA1_32,
+                               kTestKey1, kTestKeyLen,
+                               CS_AES_CM_128_HMAC_SHA1_32,
+                               kTestKey2, kTestKeyLen));
+  EXPECT_TRUE(f2_.SetRtpParams(CS_AES_CM_128_HMAC_SHA1_32,
+                               kTestKey2, kTestKeyLen,
+                               CS_AES_CM_128_HMAC_SHA1_32,
+                               kTestKey1, kTestKeyLen));
+  EXPECT_TRUE(f1_.SetRtcpParams(CS_AES_CM_128_HMAC_SHA1_32,
+                                kTestKey1, kTestKeyLen,
+                                CS_AES_CM_128_HMAC_SHA1_32,
+                                kTestKey2, kTestKeyLen));
+  EXPECT_TRUE(f2_.SetRtcpParams(CS_AES_CM_128_HMAC_SHA1_32,
+                                kTestKey2, kTestKeyLen,
+                                CS_AES_CM_128_HMAC_SHA1_32,
+                                kTestKey1, kTestKeyLen));
+  EXPECT_TRUE(f1_.IsActive());
+  EXPECT_TRUE(f2_.IsActive());
+  TestProtectUnprotect(CS_AES_CM_128_HMAC_SHA1_32, CS_AES_CM_128_HMAC_SHA1_32);
+}
+
+// Test directly setting the params with bogus keys
+TEST_F(SrtpFilterTest, TestSetParamsKeyTooShort) {
+  EXPECT_FALSE(f1_.SetRtpParams(CS_AES_CM_128_HMAC_SHA1_80,
+                                kTestKey1, kTestKeyLen - 1,
+                                CS_AES_CM_128_HMAC_SHA1_80,
+                                kTestKey1, kTestKeyLen - 1));
+  EXPECT_FALSE(f1_.SetRtcpParams(CS_AES_CM_128_HMAC_SHA1_80,
+                                 kTestKey1, kTestKeyLen - 1,
+                                 CS_AES_CM_128_HMAC_SHA1_80,
+                                 kTestKey1, kTestKeyLen - 1));
 }
 
 class SrtpSessionTest : public testing::Test {

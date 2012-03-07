@@ -34,6 +34,7 @@
 #include "talk/base/stream.h"
 #include "talk/session/phone/filemediaengine.h"
 #include "talk/session/phone/rtpdump.h"
+#include "talk/session/phone/streamparams.h"
 #include "talk/session/phone/testutils.h"
 
 namespace cricket {
@@ -379,7 +380,7 @@ TEST_F(FileMediaEngineTest, TestVoiceChannelSendSsrc) {
                                       voice_output_filename_, "", "", 1));
   EXPECT_TRUE(NULL != voice_channel_.get());
   const uint32 send_ssrc = RtpTestUtility::kDefaultSsrc + 1;
-  voice_channel_->SetSendSsrc(send_ssrc);
+  voice_channel_->AddSendStream(StreamParams::CreateLegacy(send_ssrc));
 
   talk_base::MemoryStream net_dump;
   FileNetworkInterface net_interface(&net_dump, voice_channel_.get());

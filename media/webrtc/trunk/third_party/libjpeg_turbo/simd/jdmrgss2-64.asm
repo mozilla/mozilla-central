@@ -315,7 +315,7 @@ EXTN(jsimd_h2v1_merged_upsample_sse2):
 .column_st3:
 	; Store the lower 2 bytes of rax to the output when it has enough
 	; space.
-	movd	rax, xmmA
+	movd	eax, xmmA
 	cmp	rcx, byte SIZEOF_WORD
 	jb	short .column_st1
 	mov	WORD [rdi], ax

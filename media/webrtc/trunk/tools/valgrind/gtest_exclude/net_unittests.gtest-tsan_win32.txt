@@ -38,3 +38,6 @@ SSLClientSocketTest.*
 
 # See http://crbug.com/104805
 HostResolverImplTest.OnlyAbortExistingRequestsOnIPAddressChange
+
+# See http://crbug.com/50346
+DiskCacheEntryTest.*

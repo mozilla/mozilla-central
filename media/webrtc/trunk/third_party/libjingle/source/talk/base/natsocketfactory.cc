@@ -33,6 +33,54 @@
 
 namespace talk_base {
 
+// Packs the given socketaddress into the buffer in buf, in the quasi-STUN
+// format that the natserver uses.
+// Returns 0 if an invalid address is passed.
+size_t PackAddressForNAT(char* buf, size_t buf_size,
+                         const SocketAddress& remote_addr) {
+  const IPAddress& ip = remote_addr.ipaddr();
+  int family = ip.family();
+  buf[0] = 0;
+  buf[1] = family;
+  // Writes the port.
+  *(reinterpret_cast<uint16*>(&buf[2])) = htons(remote_addr.port());
+  if (family == AF_INET) {
+    ASSERT(buf_size >= kNATEncodedIPv4AddressSize);
+    in_addr v4addr = ip.ipv4_address();
+    std::memcpy(&buf[4], &v4addr, kNATEncodedIPv4AddressSize - 4);
+    return kNATEncodedIPv4AddressSize;
+  } else if (family == AF_INET6) {
+    ASSERT(buf_size >= kNATEncodedIPv6AddressSize);
+    in6_addr v6addr = ip.ipv6_address();
+    std::memcpy(&buf[4], &v6addr, kNATEncodedIPv6AddressSize - 4);
+    return kNATEncodedIPv6AddressSize;
+  }
+  return 0U;
+}
+
+// Decodes the remote address from a packet that has been encoded with the nat's
+// quasi-STUN format. Returns the length of the address (i.e., the offset into
+// data where the original packet starts).
+size_t UnpackAddressFromNAT(const char* buf, size_t buf_size,
+                            SocketAddress* remote_addr) {
+  ASSERT(buf_size >= 8);
+  ASSERT(buf[0] == 0);
+  int family = buf[1];
+  uint16 port = ntohs(*(reinterpret_cast<const uint16*>(&buf[2])));
+  if (family == AF_INET) {
+    const in_addr* v4addr = reinterpret_cast<const in_addr*>(&buf[4]);
+    *remote_addr = SocketAddress(IPAddress(*v4addr), port);
+    return kNATEncodedIPv4AddressSize;
+  } else if (family == AF_INET6) {
+    ASSERT(buf_size >= 20);
+    const in6_addr* v6addr = reinterpret_cast<const in6_addr*>(&buf[4]);
+    *remote_addr = SocketAddress(IPAddress(*v6addr), port);
+    return kNATEncodedIPv6AddressSize;
+  }
+  return 0U;
+}
+
+
 // NATSocket
 class NATSocket : public AsyncSocket, public sigslot::has_slots<> {
  public:
@@ -95,43 +143,44 @@ class NATSocket : public AsyncSocket, public sigslot::has_slots<> {
     return result;
   }
 
-  virtual int Send(const void *pv, size_t cb) {
+  virtual int Send(const void* data, size_t size) {
     ASSERT(connected_);
-    return SendTo(pv, cb, remote_addr_);
+    return SendTo(data, size, remote_addr_);
   }
 
-  virtual int SendTo(const void *pv, size_t cb, const SocketAddress& addr) {
+  virtual int SendTo(const void* data, size_t size, const SocketAddress& addr) {
     ASSERT(!connected_ || addr == remote_addr_);
     if (server_addr_.IsAny() || type_ == SOCK_STREAM) {
-      return socket_->SendTo(pv, cb, addr);
+      return socket_->SendTo(data, size, addr);
     }
-
-    size_t size = cb + addr.Size_();
-    scoped_array<char> buf(new char[size]);
-    Encode(static_cast<const char*>(pv), cb, buf.get(), size, addr);
-
-    int result = socket_->SendTo(buf.get(), size, server_addr_);
+    // This array will be too large for IPv4 packets, but only by 12 bytes.
+    scoped_array<char> buf(new char[size + kNATEncodedIPv6AddressSize]);
+    size_t addrlength = PackAddressForNAT(buf.get(),
+                                          size + kNATEncodedIPv6AddressSize,
+                                          addr);
+    size_t encoded_size = size + addrlength;
+    std::memcpy(buf.get() + addrlength, data, size);
+    int result = socket_->SendTo(buf.get(), encoded_size, server_addr_);
     if (result >= 0) {
-      ASSERT(result == static_cast<int>(size));
-      result = result - static_cast<int>(addr.Size_());
+      ASSERT(result == static_cast<int>(encoded_size));
+      result = result - static_cast<int>(addrlength);
     }
     return result;
   }
 
-  virtual int Recv(void *pv, size_t cb) {
+  virtual int Recv(void* data, size_t size) {
     SocketAddress addr;
-    return RecvFrom(pv, cb, &addr);
+    return RecvFrom(data, size, &addr);
   }
 
-  virtual int RecvFrom(void *pv, size_t cb, SocketAddress *paddr) {
+  virtual int RecvFrom(void* data, size_t size, SocketAddress *out_addr) {
     if (server_addr_.IsAny() || type_ == SOCK_STREAM) {
-      return socket_->RecvFrom(pv, cb, paddr);
+      return socket_->RecvFrom(data, size, out_addr);
     }
-
     // Make sure we have enough room to read the requested amount plus the
-    // header address.
+    // largest possible header address.
     SocketAddress remote_addr;
-    Grow(cb + remote_addr.Size_());
+    Grow(size + kNATEncodedIPv6AddressSize);
 
     // Read the packet from the socket.
     int result = socket_->RecvFrom(buf_, size_, &remote_addr);
@@ -145,14 +194,15 @@ class NATSocket : public AsyncSocket, public sigslot::has_slots<> {
 
       // Decode the wire packet into the actual results.
       SocketAddress real_remote_addr;
-      size_t real_size = cb;
-      Decode(buf_, result, pv, &real_size, &real_remote_addr);
+      size_t addrlength =
+          UnpackAddressFromNAT(buf_, result, &real_remote_addr);
+      std::memcpy(data, buf_ + addrlength, result - addrlength);
 
       // Make sure this packet should be delivered before returning it.
       if (!connected_ || (real_remote_addr == remote_addr_)) {
-        if (paddr)
-          *paddr = real_remote_addr;
-        result = real_size;
+        if (out_addr)
+          *out_addr = real_remote_addr;
+        result = result - addrlength;
       } else {
         LOG(LS_ERROR) << "Dropping packet from unknown remote address: "
                       << real_remote_addr.ToString();
@@ -243,8 +293,8 @@ class NATSocket : public AsyncSocket, public sigslot::has_slots<> {
   // Sends the destination address to the server to tell it to connect.
   void SendConnectRequest() {
     char buf[256];
-    remote_addr_.Write_(buf, ARRAY_SIZE(buf));
-    socket_->Send(buf, remote_addr_.Size_());
+    size_t length = PackAddressForNAT(buf, ARRAY_SIZE(buf), remote_addr_);
+    socket_->Send(buf, length);
   }
 
   // Handles the byte sent back from the server and fires the appropriate event.
@@ -257,26 +307,6 @@ class NATSocket : public AsyncSocket, public sigslot::has_slots<> {
       Close();
       SignalCloseEvent(this, code);
     }
-  }
-
-  // Encodes the given data and intended remote address into a packet to send
-  // to the NAT server.
-  static void Encode(const char* data, size_t data_size, char* buf,
-                     size_t buf_size, const SocketAddress& remote_addr) {
-    ASSERT(buf_size == data_size + remote_addr.Size_());
-    remote_addr.Write_(buf, static_cast<int>(buf_size));
-    std::memcpy(buf + remote_addr.Size_(), data, data_size);
-  }
-
-  // Decodes the given packet from the NAT server into the actual remote
-  // address and data.
-  static void Decode(const char* data, size_t data_size, void* buf,
-                     size_t* buf_size, SocketAddress* remote_addr) {
-    ASSERT(data_size >= remote_addr->Size_());
-    ASSERT(data_size <= *buf_size + remote_addr->Size_());
-    remote_addr->Read_(data, static_cast<int>(data_size));
-    *buf_size = data_size - remote_addr->Size_();
-    std::memcpy(buf, data + remote_addr->Size_(), *buf_size);
   }
 
   NATInternalSocketFactory* sf_;

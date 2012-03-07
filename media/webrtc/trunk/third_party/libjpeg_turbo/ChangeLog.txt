@@ -1,24 +1,51 @@
+1.2.0
+=====
+
+[1] Fixed build issue with YASM on Unix systems (the libjpeg-turbo build system
+was not adding the current directory to the assembler include path, so YASM
+was not able to find jsimdcfg.inc.)
+
+[2] Fixed out-of-bounds read in SSE2 SIMD code that occurred when decompressing
+a JPEG image to a bitmap buffer whose size was not a multiple of 16 bytes.
+This was more of an annoyance than an actual bug, since it did not cause any
+actual run-time problems, but the issue showed up when running libjpeg-turbo in
+valgrind.  See http://crbug.com/72399 for more information.
+
+[3] Added a compile-time macro (LIBJPEG_TURBO_VERSION) that can be used to
+check the version of libjpeg-turbo against which an application was compiled.
+
+[4] Added new RGBA/BGRA/ABGR/ARGB colorspace extension constants (libjpeg API)
+and pixel formats (TurboJPEG API), which allow applications to specify that,
+when decompressing to a 4-component RGB buffer, the unused byte should be set
+to 0xFF so that it can be interpreted as an opaque alpha channel.
+
+
 1.1.90 (1.2 beta1)
 ==================
 
-[1] Added a JNI wrapper for TurboJPEG/OSS.  See java/README for more details.
+[1] Added a Java wrapper for the TurboJPEG API.  See java/README for more
+details.
 
-[2] TurboJPEG/OSS can now scale down images during decompression.
+[2] The TurboJPEG API can now be used to scale down images during
+decompression.
 
 [3] Added SIMD routines for RGB-to-grayscale color conversion, which
 significantly improves the performance of grayscale JPEG compression from an
 RGB source image.
 
-[4] Improved performance for non-x86 machines.
+[4] Improved the performance of the C color conversion routines, which are used
+on platforms for which SIMD acceleration is not available.
 
-[5] Added a function to the TurboJPEG API which performs lossless transforms.
-This function uses the same back end as jpegtran, but it performs transcoding
-entirely in memory and allows multiple transforms and/or crop operations to be
-batched together, so the source coefficients only need to be read once.  This
-is useful when generating image tiles from a single source JPEG.
+[5] Added a function to the TurboJPEG API that performs lossless transforms.
+This function is implemented using the same back end as jpegtran, but it
+performs transcoding entirely in memory and allows multiple transforms and/or
+crop operations to be batched together, so the source coefficients only need to
+be read once.  This is useful when generating image tiles from a single source
+JPEG.
 
-[6] Modified jpgtest to benchmark the new scaled decompression and lossless
-transform features in TurboJPEG/OSS.
+[6] Added tests for the new TurboJPEG scaled decompression and lossless
+transform features to tjbench (the TurboJPEG benchmark, formerly called
+"jpgtest".)
 
 [7] Added support for 4:4:0 (transposed 4:2:2) subsampling in TurboJPEG, which
 was necessary in order for it to read 4:2:2 JPEG files that had been losslessly
@@ -29,14 +56,16 @@ libjpeg-turbo, in its entirety, to be re-licensed under a BSD-style license.
 
 [9] libjpeg-turbo can now be built with YASM.
 
-[10] Added SIMD-accelerated fast integer inverse DCT and YCbCr-to-RGB color
-conversion routines to accelerate JPEG decoding on ARM Linux and iOS platforms
-that have NEON instructions.
+[10] Added SIMD acceleration for ARM Linux and iOS platforms that support
+NEON instructions.
 
-[11] Refactored the TurboJPEG C API so that it uses pixel formats to define the
-size and component order of the uncompressed source/destination images as well
-as uses the libjpeg memory source and destination managers.  The latter allows
-the TurboJPEG compressor to grow the JPEG buffer as necessary.
+[11] Refactored the TurboJPEG C API and documented it using Doxygen.  The
+TurboJPEG 1.2 API uses pixel formats to define the size and component order of
+the uncompressed source/destination images, and it includes a more efficient
+version of TJBUFSIZE() that computes a worst-case JPEG size based on the level
+of chrominance subsampling.  The refactored implementation of TurboJPEG/OSS
+now uses the libjpeg memory source and destination managers, which allows the
+TurboJPEG compressor to grow the JPEG buffer as necessary.
 
 [12] Eliminated errors in the output of jpegtran on Windows that occurred when
 the application was invoked using I/O redirection
@@ -55,11 +84,13 @@ based on whether libjpeg v7 or v8 emulation was enabled.
 fail to compile if the Windows system headers were included before jpeglib.h.
 This issue was caused by a conflict in the definition of the INT32 type.
 
-[15] Implemented a more efficient version of TJBUFSIZE() which computes a
-worst-case JPEG size based on the level of chrominance subsampling.
-
-[16] Fixed 32-bit supplementary package for amd64 Debian systems which was
+[15] Fixed 32-bit supplementary package for amd64 Debian systems, which was
 broken by enhancements to the packaging system in 1.1.
+
+[16] When decompressing a JPEG image using an output colorspace of
+JCS_EXT_RGBX, JCS_EXT_BGRX, JCS_EXT_XBGR, or JCS_EXT_XRGB, libjpeg-turbo will
+now set the unused byte to 0xFF, which allows applications to interpret that
+byte as an alpha channel (0xFF = opaque).
 
 
 1.1.1

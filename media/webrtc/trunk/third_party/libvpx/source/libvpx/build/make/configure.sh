@@ -561,6 +561,10 @@ process_common_toolchain() {
                 tgt_isa=x86_64
                 tgt_os=darwin10
                 ;;
+            *darwin11*)
+                tgt_isa=x86_64
+                tgt_os=darwin11
+                ;;
             *mingw32*|*cygwin*)
                 [ -z "$tgt_isa" ] && tgt_isa=x86
                 tgt_os=win32
@@ -599,8 +603,8 @@ process_common_toolchain() {
 
     # Enable the architecture family
     case ${tgt_isa} in
-        arm*|iwmmxt*) enable arm;;
-    mips*)        enable mips;;
+        arm*) enable arm;;
+        mips*) enable mips;;
     esac
 
     # PIC is probably what we want when building shared libs
@@ -616,6 +620,9 @@ process_common_toolchain() {
     fi
     if [ -d "/Developer/SDKs/MacOSX10.6.sdk" ]; then
         osx_sdk_dir="/Developer/SDKs/MacOSX10.6.sdk"
+    fi
+    if [ -d "/Developer/SDKs/MacOSX10.7.sdk" ]; then
+        osx_sdk_dir="/Developer/SDKs/MacOSX10.7.sdk"
     fi
 
     case ${toolchain} in
@@ -637,6 +644,12 @@ process_common_toolchain() {
             add_ldflags "-isysroot ${osx_sdk_dir}"
             add_ldflags "-mmacosx-version-min=10.6"
             ;;
+        *-darwin11-*)
+            add_cflags  "-isysroot ${osx_sdk_dir}"
+            add_cflags  "-mmacosx-version-min=10.7"
+            add_ldflags "-isysroot ${osx_sdk_dir}"
+            add_ldflags "-mmacosx-version-min=10.7"
+            ;;
     esac
 
     # Handle Solaris variants. Solaris 10 needs -lposix4
@@ -652,37 +665,25 @@ process_common_toolchain() {
 
     # Process ARM architecture variants
     case ${toolchain} in
-    arm*|iwmmxt*)
-    # on arm, isa versions are supersets
-    enabled armv7a && soft_enable armv7 ### DEBUG
-    enabled armv7 && soft_enable armv6
-    enabled armv7 || enabled armv6 && soft_enable armv5te
-    enabled armv7 || enabled armv6 && soft_enable fast_unaligned
-    enabled iwmmxt2 && soft_enable iwmmxt
-    enabled iwmmxt && soft_enable armv5te
+    arm*)
+        # on arm, isa versions are supersets
+        enabled armv7a && soft_enable armv7 ### DEBUG
+        enabled armv7 && soft_enable armv6
+        enabled armv7 || enabled armv6 && soft_enable armv5te
+        enabled armv7 || enabled armv6 && soft_enable fast_unaligned
 
-    asm_conversion_cmd="cat"
+        asm_conversion_cmd="cat"
 
         case ${tgt_cc} in
         gcc)
-        if enabled iwmmxt || enabled iwmmxt2
-            then
-                CROSS=${CROSS:-arm-iwmmxt-linux-gnueabi-}
-            elif enabled symbian; then
-                CROSS=${CROSS:-arm-none-symbianelf-}
-            else
-                CROSS=${CROSS:-arm-none-linux-gnueabi-}
-            fi
+            CROSS=${CROSS:-arm-none-linux-gnueabi-}
             link_with_cc=gcc
             setup_gnu_toolchain
             arch_int=${tgt_isa##armv}
             arch_int=${arch_int%%te}
             check_add_asflags --defsym ARCHITECTURE=${arch_int}
             tune_cflags="-mtune="
-        if enabled iwmmxt || enabled iwmmxt2
-            then
-                check_add_asflags -mcpu=${tgt_isa}
-            elif enabled armv7
+            if enabled armv7
             then
                 check_add_cflags -march=armv7-a -mcpu=cortex-a8 -mfpu=neon -mfloat-abi=softfp  #-ftree-vectorize
                 check_add_asflags -mcpu=cortex-a8 -mfpu=neon -mfloat-abi=softfp  #-march=armv7-a
@@ -732,7 +733,7 @@ process_common_toolchain() {
             TOOLCHAIN_PATH=${SDK_PATH}/usr/bin
             CC=${TOOLCHAIN_PATH}/gcc
             AR=${TOOLCHAIN_PATH}/ar
-            LD=${TOOLCHAIN_PATH}/arm-apple-darwin10-gcc-4.2.1
+            LD=${TOOLCHAIN_PATH}/arm-apple-darwin10-llvm-gcc-4.2
             AS=${TOOLCHAIN_PATH}/as
             STRIP=${TOOLCHAIN_PATH}/strip
             NM=${TOOLCHAIN_PATH}/nm
@@ -746,13 +747,13 @@ process_common_toolchain() {
             add_cflags -arch ${tgt_isa}
             add_ldflags -arch_only ${tgt_isa}
 
-            add_cflags  "-isysroot ${SDK_PATH}/SDKs/iPhoneOS4.3.sdk"
+            add_cflags  "-isysroot ${SDK_PATH}/SDKs/iPhoneOS5.0.sdk"
 
             # This should be overridable
-            alt_libc=${SDK_PATH}/SDKs/iPhoneOS4.3.sdk
+            alt_libc=${SDK_PATH}/SDKs/iPhoneOS5.0.sdk
 
             # Add the paths for the alternate libc
-            for d in usr/include usr/include/gcc/darwin/4.2/ usr/lib/gcc/arm-apple-darwin10/4.2.1/include/; do
+            for d in usr/include; do
                 try_dir="${alt_libc}/${d}"
                 [ -d "${try_dir}" ] && add_cflags -I"${try_dir}"
             done
@@ -788,19 +789,6 @@ process_common_toolchain() {
                 enabled shared && add_cflags --shared
             fi
         ;;
-
-        symbian*)
-            enable symbian
-            # Add the paths for the alternate libc
-            for d in include/libc; do
-                try_dir="${alt_libc}/${d}"
-                [ -d "${try_dir}" ] && add_cflags -I"${try_dir}"
-            done
-            for d in release/armv5/urel; do
-                try_dir="${alt_libc}/${d}"
-                [ -d "${try_dir}" ] && add_ldflags -L"${try_dir}"
-            done
-            add_cflags -DIMPORT_C=
 
         esac
     ;;

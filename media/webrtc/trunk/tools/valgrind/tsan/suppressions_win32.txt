@@ -67,9 +67,9 @@
 {
   bug_81793b
   ThreadSanitizer:Race
+  ...
   fun:MessageLoop::CalculateDelayedRuntime
-  fun:MessageLoop::PostDelayedTask
-  fun:net::internal::ClientSocketPoolBaseHelper::Group::StartBackupSocketTimer
+  fun:MessageLoop::Post*Task
 }
 {
   bug_93932a
@@ -83,15 +83,7 @@
   ...
   fun:ff_mpeg4video_split
   fun:avcodec_close
-  fun:media::FFmpegVideoDecodeEngine::~FFmpegVideoDecodeEngine
-}
-{
-  bug_93932c
-  ThreadSanitizer:Race
-  ...
-  fun:ff_thread_decode_frame
-  fun:avcodec_decode_video2
-  fun:media::FFmpegVideoDecodeEngine::DecodeFrame
+  fun:media::FFmpegVideoDecoder::ReleaseFFmpegResources
 }
 {
   bug_93932d
@@ -106,3 +98,44 @@
   fun:ff_thread_finish_setup
   fun:ptw32_threadStart@4
 }
+{
+  bug_93932f
+  ThreadSanitizer:Race
+  ...
+  fun:ff_vp3_h_loop_filter_c
+  ...
+  fun:ff_thread_flush
+  fun:media::FFmpegVideoDecoder::Flush
+}
+{
+  bug_110514_a
+  ThreadSanitizer:Race
+  fun:memset
+  fun:_malloc_dbg
+  ...
+  fun:??2@YAPAXIABU_DebugHeapTag_t@std@@PADH@Z
+  fun:??0?$basic_streambuf@DU?$char_traits@D@std@@@std@@IAE@XZ
+}
+{
+  bug_110514_b
+  ThreadSanitizer:Race
+  fun:memset
+  fun:_malloc_dbg
+  ...
+  fun:??2@YAPAXIABU_DebugHeapTag_t@std@@PADH@Z
+  fun:?_Init@ios_base@std@@IAEXXZ
+}
+{
+  bug_110514_c
+  ThreadSanitizer:Race
+  fun:memset
+  fun:_free_dbg
+  ...
+  fun:??3@YAXPAX@Z
+  fun:??_V@YAXPAX@Z
+  fun:scoped_array::reset
+  fun:media::DataBuffer::DataBuffer
+  ...
+  fun:media::FFmpegAudioDecoder::DoDecodeBuffer
+}
+

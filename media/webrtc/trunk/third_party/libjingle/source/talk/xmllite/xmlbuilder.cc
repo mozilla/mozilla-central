@@ -52,7 +52,7 @@ XmlElement *
 XmlBuilder::BuildElement(XmlParseContext * pctx,
                               const char * name, const char ** atts) {
   QName tagName(pctx->ResolveQName(name, false));
-  if (tagName == QN_EMPTY)
+  if (tagName.IsEmpty())
     return NULL;
 
   XmlElement * pelNew = new XmlElement(tagName);
@@ -64,7 +64,7 @@ XmlBuilder::BuildElement(XmlParseContext * pctx,
 
   while (*atts) {
     QName attName(pctx->ResolveQName(*atts, true));
-    if (attName == QN_EMPTY) {
+    if (attName.IsEmpty()) {
       delete pelNew;
       return NULL;
     }
@@ -144,6 +144,4 @@ XmlBuilder::BuiltElement() {
 XmlBuilder::~XmlBuilder() {
 }
 
-
-
-}
+}  // namespace buzz

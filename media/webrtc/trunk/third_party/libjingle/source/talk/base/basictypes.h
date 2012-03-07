@@ -25,8 +25,8 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef TALK_BASE_BASICTYPES_H__
-#define TALK_BASE_BASICTYPES_H__
+#ifndef TALK_BASE_BASICTYPES_H_
+#define TALK_BASE_BASICTYPES_H_
 
 #include <stddef.h>  // for NULL, size_t
 
@@ -133,4 +133,9 @@ inline void Unused(const void *) { }
 #define GCC_ATTR(x)
 #endif  // !__GNUC__
 
-#endif // TALK_BASE_BASICTYPES_H__
+// Use these to declare and define a static local variable (static T;) so that
+// it is leaked so that its destructors are not called at exit.
+#define LIBJINGLE_DEFINE_STATIC_LOCAL(type, name, arguments) \
+  static type& name = *new type arguments
+
+#endif // TALK_BASE_BASICTYPES_H_

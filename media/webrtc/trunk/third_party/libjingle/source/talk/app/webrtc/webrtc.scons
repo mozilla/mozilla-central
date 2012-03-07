@@ -3,58 +3,68 @@ import talk
 
 Import('env')
 
-# local sources
-talk.Library(
-  env,
-  name = 'webrtc',
-  srcs = [
-    'peerconnectionimpl.cc',
-    'peerconnectionproxy.cc',
-    'peerconnectionfactory.cc',
-    'webrtcjson.cc',
-    'webrtcsession.cc',
-  ],
-)
+if env.Bit('have_webrtc_voice') and env.Bit('have_webrtc_video'):
+  # local sources
+  talk.Library(
+    env,
+    name = 'peerconnection',
+    srcs = [
+      'audiotrackimpl.cc',
+      'mediastreamhandler.cc',
+      'mediastreamimpl.cc',
+      'mediastreamproxy.cc',
+      'mediastreamtrackproxy.cc',
+      'peerconnectionfactoryimpl.cc',
+      'peerconnectionimpl.cc',
+      'peerconnectionsignaling.cc',
+      'portallocatorfactory.cc',
+      'roapmessages.cc',
+      'roapsession.cc',
+      'videorendererimpl.cc',
+      'videotrackimpl.cc',
+      'webrtcsdp.cc',
+      'webrtcsession.cc',
+    ],
+  )
 
-talk.Unittest(
-  env,
-  name = 'webrtc',
-  srcs = [
-    'peerconnection_unittest.cc',
-    'unittest_utilities.cc',
-    'webrtcsession_unittest.cc',
-  ],
-  libs = [
-    'base',
-    'expat',
-    'jpeg',
-    'json',
-    'webrtc',
-    'p2p',
-    'phone',
-    'srtp',
-    'xmpp',
-    'xmllite',
-    'yuvscaler'
-  ],
-  include_talk_media_libs = True,
-  mac_libs = [
-    'crypto',
-    'ssl',
-  ],
-  mac_FRAMEWORKS = [
-    'Foundation',
-    'IOKit',
-    'QTKit',
-  ],
-  win_link_flags = [('', '/nodefaultlib:libcmt')[env.Bit('debug')]],
-  lin_libs = [
-    'rt',
-    'dl',
-    'sound',
-    'X11',
-    'Xext',
-    'Xfixes',
-    'Xrandr'
-  ],
-)
+  talk.Unittest(
+    env,
+    name = 'peerconnection',
+    srcs = [
+      'test/fakevideocapturemodule.cc',
+      'test/fileframesource.cc',
+      'test/i420framesource.cc',
+      'test/staticframesource.cc',
+      'mediastream_unittest.cc',
+      'mediastreamhandler_unittest.cc',
+      'peerconnectionimpl_unittest.cc',
+      'peerconnection_unittest.cc',
+      'peerconnectionfactory_unittest.cc',
+      'peerconnectionsignaling_unittest.cc',
+      'roapmessages_unittest.cc',
+      'roapsession_unittest.cc',
+      'webrtcsdp_unittest.cc',
+      'webrtcsession_unittest.cc',
+    ],
+    libs = [
+      'base',
+      'expat',
+      'jpeg',
+      'json',
+      'p2p',
+      'phone',
+      'srtp',
+      'xmllite',
+      'xmpp',
+      'yuvscaler',
+      'peerconnection',
+    ],
+    win_link_flags = [('', '/nodefaultlib:libcmt')[env.Bit('debug')]],
+    lin_libs = [
+      'sound',
+    ],
+    mac_libs = [
+      'crypto',
+      'ssl',
+    ],
+   )

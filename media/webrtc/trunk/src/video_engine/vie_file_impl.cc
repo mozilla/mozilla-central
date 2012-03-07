@@ -366,6 +366,8 @@ int ViEFileImpl::StartRecordOutgoingVideo(const int video_channel,
   VoiceEngine* ve_ptr = NULL;
   if (audio_source != NO_AUDIO) {
     ViEChannel* vie_channel = cs.Channel(video_channel);
+    // Channel should exists since we have a ViEEncoder.
+    assert(vie_channel);
     ve_channel_id = vie_channel->VoiceChannel();
     ve_ptr = channel_manager_.GetVoiceEngine();
     if (!ve_ptr) {
@@ -531,47 +533,35 @@ int ViEFileImpl::GetRenderSnapshot(const int video_channel,
     return -1;
   }
 
-  const int JPEG_FORMAT = 0;
-  int format = JPEG_FORMAT;
-  switch (format) {
-    case JPEG_FORMAT: {
-      // JPEGEncoder writes the jpeg file for you (no control over it) and does
-      // not return you the buffer. Thus, we are not going to be writing to the
-      // disk here.
-      JpegEncoder jpeg_encoder;
-      RawImage input_image;
-      if (jpeg_encoder.SetFileName(file_nameUTF8) == -1) {
-        WEBRTC_TRACE(kTraceError, kTraceVideo, instance_id_,
-                     "\tCould not open output file '%s' for writing!",
-                     file_nameUTF8);
-        return -1;
-      }
+  // JPEGEncoder writes the jpeg file for you (no control over it) and does
+  // not return you the buffer. Thus, we are not going to be writing to the
+  // disk here.
+  JpegEncoder jpeg_encoder;
+  RawImage input_image;
+  if (jpeg_encoder.SetFileName(file_nameUTF8) == -1) {
+    WEBRTC_TRACE(kTraceError, kTraceVideo, instance_id_,
+                 "\tCould not open output file '%s' for writing!",
+                 file_nameUTF8);
+    return -1;
+  }
 
-      input_image._width = video_frame.Width();
-      input_image._height = video_frame.Height();
-      video_frame.Swap(input_image._buffer, input_image._length,
-                       input_image._size);
+  input_image._width = video_frame.Width();
+  input_image._height = video_frame.Height();
+  video_frame.Swap(input_image._buffer, input_image._length,
+                   input_image._size);
 
-      if (jpeg_encoder.Encode(input_image) == -1) {
-        WEBRTC_TRACE(kTraceError, kTraceVideo, instance_id_,
-                     "\tCould not encode i420 -> jpeg file '%s' for writing!",
-                     file_nameUTF8);
-        if (input_image._buffer) {
-          delete [] input_image._buffer;
-        }
-        return -1;
-      }
+  if (jpeg_encoder.Encode(input_image) == -1) {
+    WEBRTC_TRACE(kTraceError, kTraceVideo, instance_id_,
+                 "\tCould not encode i420 -> jpeg file '%s' for writing!",
+                 file_nameUTF8);
+    if (input_image._buffer) {
       delete [] input_image._buffer;
       input_image._buffer = NULL;
-      break;
     }
-    default: {
-      WEBRTC_TRACE(kTraceError, kTraceFile, instance_id_,
-                   "\tUnsupported file format for %s", __FUNCTION__);
-      return -1;
-      break;
-    }
+    return -1;
   }
+  delete [] input_image._buffer;
+  input_image._buffer = NULL;
   return 0;
 }
 
@@ -619,50 +609,37 @@ int ViEFileImpl::GetCaptureDeviceSnapshot(const int capture_id,
     return -1;
   }
 
-  const int JPEG_FORMAT = 0;
-  int format = JPEG_FORMAT;
-  switch (format) {
-    case JPEG_FORMAT: {
-      // JPEGEncoder writes the jpeg file for you (no control over it) and does
-      // not return you the buffer Thusly, we are not going to be writing to the
-      // disk here.
-      JpegEncoder jpeg_encoder;
-      RawImage input_image;
-      input_image._width = video_frame.Width();
-      input_image._height = video_frame.Height();
-      video_frame.Swap(input_image._buffer, input_image._length,
-                       input_image._size);
+  // JPEGEncoder writes the jpeg file for you (no control over it) and does
+  // not return you the buffer Thusly, we are not going to be writing to the
+  // disk here.
+  JpegEncoder jpeg_encoder;
+  RawImage input_image;
+  input_image._width = video_frame.Width();
+  input_image._height = video_frame.Height();
+  video_frame.Swap(input_image._buffer, input_image._length,
+                   input_image._size);
 
-      if (jpeg_encoder.SetFileName(file_nameUTF8) == -1) {
-        WEBRTC_TRACE(kTraceError, kTraceVideo, instance_id_,
-                     "\tCould not open output file '%s' for writing!",
-                     file_nameUTF8);
+  if (jpeg_encoder.SetFileName(file_nameUTF8) == -1) {
+    WEBRTC_TRACE(kTraceError, kTraceVideo, instance_id_,
+                 "\tCould not open output file '%s' for writing!",
+                 file_nameUTF8);
 
-        if (input_image._buffer) {
-          delete [] input_image._buffer;
-        }
-        return -1;
-      }
-      if (jpeg_encoder.Encode(input_image) == -1) {
-        WEBRTC_TRACE(kTraceError, kTraceVideo, instance_id_,
-                     "\tCould not encode i420 -> jpeg file '%s' for "
-                     "writing!", file_nameUTF8);
-        if (input_image._buffer) {
-          delete [] input_image._buffer;
-        }
-        return -1;
-      }
+    if (input_image._buffer) {
       delete [] input_image._buffer;
-      input_image._buffer = NULL;
-      break;
     }
-    default: {
-      WEBRTC_TRACE(kTraceError, kTraceFile, instance_id_,
-                   "\tUnsupported file format for %s", __FUNCTION__);
-      return -1;
-      break;
-    }
+    return -1;
   }
+  if (jpeg_encoder.Encode(input_image) == -1) {
+    WEBRTC_TRACE(kTraceError, kTraceVideo, instance_id_,
+                 "\tCould not encode i420 -> jpeg file '%s' for "
+                 "writing!", file_nameUTF8);
+    if (input_image._buffer) {
+      delete [] input_image._buffer;
+    }
+    return -1;
+  }
+  delete [] input_image._buffer;
+  input_image._buffer = NULL;
   return 0;
 }
 
@@ -949,7 +926,7 @@ VideoFrame& video_frame) {
 
 ViECaptureSnapshot::ViECaptureSnapshot()
     : crit_(CriticalSectionWrapper::CreateCriticalSection()),
-      condition_varaible_(*ConditionVariableWrapper::CreateConditionVariable()),
+      condition_varaible_(ConditionVariableWrapper::CreateConditionVariable()),
       video_frame_(NULL) {
 }
 
@@ -964,7 +941,7 @@ bool ViECaptureSnapshot::GetSnapshot(VideoFrame& video_frame,
                                      unsigned int max_wait_time) {
   crit_->Enter();
   video_frame_ = new VideoFrame();
-  if (condition_varaible_.SleepCS(*(crit_.get()), max_wait_time)) {
+  if (condition_varaible_->SleepCS(*(crit_.get()), max_wait_time)) {
     // Snapshot taken.
     video_frame.SwapFrame(*video_frame_);
     delete video_frame_;
@@ -984,7 +961,7 @@ const WebRtc_UWord32 CSRC[kRtpCsrcSize]) {
     return;
   }
   video_frame_->SwapFrame(video_frame);
-  condition_varaible_.WakeAll();
+  condition_varaible_->WakeAll();
   return;
 }
 

@@ -52,8 +52,13 @@ TEST_F(HardwareBeforeStreamingTest, ResetsAudioDeviceOnIphone) {
 #if !defined(MAC_IPHONE) & !defined(WEBRTC_ANDROID)
 
 TEST_F(HardwareBeforeStreamingTest, GetSystemCpuLoadSucceeds) {
-  int load_percent;
+#ifdef _WIN32
+  // This method needs some warm-up time on Windows. We sleep a good amount
+  // of time instead of retrying to make the test simpler.
+  Sleep(2000);
+#endif
 
+  int load_percent;
   EXPECT_EQ(0, voe_hardware_->GetSystemCPULoad(load_percent));
 }
 
@@ -77,7 +82,7 @@ TEST_F(HardwareBeforeStreamingTest,
   char device_name[128] = {0};
   char guid_name[128] = {0};
 
-#if defined(_WIN32)
+#ifdef _WIN32
   EXPECT_EQ(0, voe_hardware_->GetRecordingDeviceName(
       -1, device_name, guid_name));
   EXPECT_GT(strlen(device_name), 0u) << kNoDevicesErrorMessage;
@@ -96,7 +101,7 @@ TEST_F(HardwareBeforeStreamingTest,
   EXPECT_EQ(0, voe_hardware_->GetPlayoutDeviceName(
       0, device_name, guid_name));
   EXPECT_GT(strlen(device_name), 0u) << kNoDevicesErrorMessage;
-#endif // !WIN32
+#endif  // !WIN32
 }
 
 TEST_F(HardwareBeforeStreamingTest,

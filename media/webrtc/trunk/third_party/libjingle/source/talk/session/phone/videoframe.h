@@ -50,13 +50,24 @@ class VideoFrame {
 
  public:
   VideoFrame() : rendered_(false) {}
-
   virtual ~VideoFrame() {}
 
+  // Creates a frame from a raw sample with FourCC |format| and size |w| x |h|.
+  // |h| can be negative indicating a vertically flipped image.
+  // |dw| is destination width; can be less than |w| if cropping is desired.
+  // |dh| is destination height, like |dw|, but must be a positive number.
+  // Returns whether the function succeeded or failed.
+  virtual bool Reset(uint32 fourcc, int w, int h, int dw, int dh,
+                     uint8 *sample, size_t sample_size,
+                     size_t pixel_width, size_t pixel_height,
+                     int64 elapsed_time, int64 time_stamp, int rotation) = 0;
+
+  // Basic accessors.
   virtual size_t GetWidth() const = 0;
   virtual size_t GetHeight() const = 0;
   size_t GetChromaWidth() const { return (GetWidth() + 1) / 2; }
   size_t GetChromaHeight() const { return (GetHeight() + 1) / 2; }
+  size_t GetChromaSize() const { return GetUPitch() * GetChromaHeight(); }
   virtual const uint8 *GetYPlane() const = 0;
   virtual const uint8 *GetUPlane() const = 0;
   virtual const uint8 *GetVPlane() const = 0;
@@ -72,8 +83,6 @@ class VideoFrame {
   virtual size_t GetPixelWidth() const = 0;
   virtual size_t GetPixelHeight() const = 0;
 
-  // TODO: Add a fourcc format here and probably combine VideoFrame
-  // with CapturedFrame.
   virtual int64 GetElapsedTime() const = 0;
   virtual int64 GetTimeStamp() const = 0;
   virtual void SetElapsedTime(int64 elapsed_time) = 0;
@@ -102,10 +111,10 @@ class VideoFrame {
 
   // Converts the I420 data to RGB of a certain type such as ARGB and ABGR.
   // Returns the frame's actual size, regardless of whether it was written or
-  // not (like snprintf). Parameters size and pitch_rgb are in units of bytes.
+  // not (like snprintf). Parameters size and stride_rgb are in units of bytes.
   // If there is insufficient space, nothing is written.
   virtual size_t ConvertToRgbBuffer(uint32 to_fourcc, uint8 *buffer,
-                                    size_t size, size_t pitch_rgb) const = 0;
+                                    size_t size, int stride_rgb) const = 0;
 
   // Writes the frame into the given planes, stretched to the given width and
   // height. The parameter "interpolate" controls whether to interpolate or just
@@ -138,9 +147,9 @@ class VideoFrame {
   // just take the nearest-point. The parameter "crop" controls whether to crop
   // this frame to the aspect ratio of the given dimensions before stretching.
   virtual VideoFrame *Stretch(size_t w, size_t h, bool interpolate,
-                              bool crop) const = 0;
+                              bool crop) const;
 
-  // Set the video frame to black.
+  // Sets the video frame to black.
   bool SetToBlack();
 
   // Size of an I420 image of given dimensions when stored as a frame buffer.
@@ -149,6 +158,12 @@ class VideoFrame {
   }
 
  protected:
+  // Creates an empty frame.
+  virtual VideoFrame* CreateEmptyFrame(int w, int h,
+                                       size_t pixel_width, size_t pixel_height,
+                                       int64 elapsed_time,
+                                       int64 time_stamp) const = 0;
+
   // The frame needs to be rendered to magiccam only once.
   // TODO: Remove this flag once magiccam rendering is fully replaced
   // by client3d rendering.

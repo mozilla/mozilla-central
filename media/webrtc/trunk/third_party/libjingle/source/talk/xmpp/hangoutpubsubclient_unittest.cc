@@ -278,7 +278,7 @@ TEST_F(HangoutPubSubClientTest, TestRequest) {
   xmpp_client->HandleStanza(
       buzz::XmlElement::ForStr(incoming_presenter_resets_message));
   EXPECT_EQ("presenting-nick", listener->last_presenter_nick);
-  EXPECT_TRUE(listener->last_was_presenting);
+  //EXPECT_TRUE(listener->last_was_presenting);
   EXPECT_FALSE(listener->last_is_presenting);
 
   std::string incoming_presenter_retracts_message =
@@ -333,6 +333,12 @@ TEST_F(HangoutPubSubClientTest, TestRequest) {
       buzz::XmlElement::ForStr(incoming_presenter_changes_message));
   EXPECT_EQ("presenting-nick2", listener->last_presenter_nick);
   EXPECT_FALSE(listener->last_was_presenting);
+  EXPECT_TRUE(listener->last_is_presenting);
+
+  xmpp_client->HandleStanza(
+      buzz::XmlElement::ForStr(incoming_presenter_changes_message));
+  EXPECT_EQ("presenting-nick2", listener->last_presenter_nick);
+  EXPECT_TRUE(listener->last_was_presenting);
   EXPECT_TRUE(listener->last_is_presenting);
 
   std::string incoming_media_changes_message =

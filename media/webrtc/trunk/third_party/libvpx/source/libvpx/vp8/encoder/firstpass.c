@@ -267,8 +267,8 @@ static void avg_stats(FIRSTPASS_STATS *section)
 // Calculate a modified Error used in distributing bits between easier and harder frames
 static double calculate_modified_err(VP8_COMP *cpi, FIRSTPASS_STATS *this_frame)
 {
-    double av_err = ( cpi->twopass.total_stats->ssim_weighted_pred_err /
-                      cpi->twopass.total_stats->count );
+    double av_err = ( cpi->twopass.total_stats.ssim_weighted_pred_err /
+                      cpi->twopass.total_stats.count );
     double this_err = this_frame->ssim_weighted_pred_err;
     double modified_err;
 
@@ -373,7 +373,7 @@ static int frame_max_bits(VP8_COMP *cpi)
     else
     {
         // For VBR base this on the bits and frames left plus the two_pass_vbrmax_section rate passed in by the user
-        max_bits = (int)(((double)cpi->twopass.bits_left / (cpi->twopass.total_stats->count - (double)cpi->common.current_video_frame)) * ((double)cpi->oxcf.two_pass_vbrmax_section / 100.0));
+        max_bits = (int)(((double)cpi->twopass.bits_left / (cpi->twopass.total_stats.count - (double)cpi->common.current_video_frame)) * ((double)cpi->oxcf.two_pass_vbrmax_section / 100.0));
     }
 
     // Trap case where we are out of bits
@@ -385,12 +385,12 @@ static int frame_max_bits(VP8_COMP *cpi)
 
 void vp8_init_first_pass(VP8_COMP *cpi)
 {
-    zero_stats(cpi->twopass.total_stats);
+    zero_stats(&cpi->twopass.total_stats);
 }
 
 void vp8_end_first_pass(VP8_COMP *cpi)
 {
-    output_stats(cpi, cpi->output_pkt_list, cpi->twopass.total_stats);
+    output_stats(cpi, cpi->output_pkt_list, &cpi->twopass.total_stats);
 }
 
 static void zz_motion_search( VP8_COMP *cpi, MACROBLOCK * x, YV12_BUFFER_CONFIG * recon_buffer, int * best_motion_err, int recon_yoffset )
@@ -804,17 +804,17 @@ void vp8_first_pass(VP8_COMP *cpi)
                        - cpi->source->ts_start;
 
         // don't want to do output stats with a stack variable!
-        memcpy(cpi->twopass.this_frame_stats,
+        memcpy(&cpi->twopass.this_frame_stats,
                &fps,
                sizeof(FIRSTPASS_STATS));
-        output_stats(cpi, cpi->output_pkt_list, cpi->twopass.this_frame_stats);
-        accumulate_stats(cpi->twopass.total_stats, &fps);
+        output_stats(cpi, cpi->output_pkt_list, &cpi->twopass.this_frame_stats);
+        accumulate_stats(&cpi->twopass.total_stats, &fps);
     }
 
     // Copy the previous Last Frame into the GF buffer if specific conditions for doing so are met
     if ((cm->current_video_frame > 0) &&
-        (cpi->twopass.this_frame_stats->pcnt_inter > 0.20) &&
-        ((cpi->twopass.this_frame_stats->intra_error / cpi->twopass.this_frame_stats->coded_error) > 2.0))
+        (cpi->twopass.this_frame_stats.pcnt_inter > 0.20) &&
+        ((cpi->twopass.this_frame_stats.intra_error / cpi->twopass.this_frame_stats.coded_error) > 2.0))
     {
         vp8_yv12_copy_frame_ptr(lst_yv12, gld_yv12);
     }
@@ -861,7 +861,7 @@ double bitcost( double prob )
 {
     return -(log( prob ) / log( 2.0 ));
 }
-static long long estimate_modemvcost(VP8_COMP *cpi,
+static int64_t estimate_modemvcost(VP8_COMP *cpi,
                                      FIRSTPASS_STATS * fpstats)
 {
     int mv_cost;
@@ -1019,7 +1019,7 @@ static int estimate_max_q(VP8_COMP *cpi,
     // averaga q observed in clip for non kf/gf.arf frames
     // Give average a chance to settle though.
     if ( (cpi->ni_frames >
-                  ((unsigned int)cpi->twopass.total_stats->count >> 8)) &&
+                  ((unsigned int)cpi->twopass.total_stats.count >> 8)) &&
          (cpi->ni_frames > 150) )
     {
         cpi->twopass.maxq_max_limit = ((cpi->ni_av_qi + 32) < cpi->worst_quality)
@@ -1075,8 +1075,8 @@ static int estimate_cq( VP8_COMP *cpi,
     }
 
     // II ratio correction factor for clip as a whole
-    clip_iiratio = cpi->twopass.total_stats->intra_error /
-                   DOUBLE_DIVIDE_CHECK(cpi->twopass.total_stats->coded_error);
+    clip_iiratio = cpi->twopass.total_stats.intra_error /
+                   DOUBLE_DIVIDE_CHECK(cpi->twopass.total_stats.coded_error);
     clip_iifactor = 1.0 - ((clip_iiratio - 10.0) * 0.025);
     if (clip_iifactor < 0.80)
         clip_iifactor = 0.80;
@@ -1260,25 +1260,25 @@ void vp8_init_second_pass(VP8_COMP *cpi)
 
     double two_pass_min_rate = (double)(cpi->oxcf.target_bandwidth * cpi->oxcf.two_pass_vbrmin_section / 100);
 
-    zero_stats(cpi->twopass.total_stats);
-    zero_stats(cpi->twopass.total_left_stats);
+    zero_stats(&cpi->twopass.total_stats);
+    zero_stats(&cpi->twopass.total_left_stats);
 
     if (!cpi->twopass.stats_in_end)
         return;
 
-    *cpi->twopass.total_stats = *cpi->twopass.stats_in_end;
-    *cpi->twopass.total_left_stats = *cpi->twopass.total_stats;
+    cpi->twopass.total_stats = *cpi->twopass.stats_in_end;
+    cpi->twopass.total_left_stats = cpi->twopass.total_stats;
 
     // each frame can have a different duration, as the frame rate in the source
     // isn't guaranteed to be constant.   The frame rate prior to the first frame
     // encoded in the second pass is a guess.  However the sum duration is not.
     // Its calculated based on the actual durations of all frames from the first
     // pass.
-    vp8_new_frame_rate(cpi, 10000000.0 * cpi->twopass.total_stats->count / cpi->twopass.total_stats->duration);
+    vp8_new_frame_rate(cpi, 10000000.0 * cpi->twopass.total_stats.count / cpi->twopass.total_stats.duration);
 
     cpi->output_frame_rate = cpi->frame_rate;
-    cpi->twopass.bits_left = (int64_t)(cpi->twopass.total_stats->duration * cpi->oxcf.target_bandwidth / 10000000.0) ;
-    cpi->twopass.bits_left -= (int64_t)(cpi->twopass.total_stats->duration * two_pass_min_rate / 10000000.0);
+    cpi->twopass.bits_left = (int64_t)(cpi->twopass.total_stats.duration * cpi->oxcf.target_bandwidth / 10000000.0) ;
+    cpi->twopass.bits_left -= (int64_t)(cpi->twopass.total_stats.duration * two_pass_min_rate / 10000000.0);
 
     // Calculate a minimum intra value to be used in determining the IIratio
     // scores used in the second pass. We have this minimum to make sure
@@ -1301,7 +1301,7 @@ void vp8_init_second_pass(VP8_COMP *cpi)
             sum_iiratio += IIRatio;
         }
 
-        cpi->twopass.avg_iiratio = sum_iiratio / DOUBLE_DIVIDE_CHECK((double)cpi->twopass.total_stats->count);
+        cpi->twopass.avg_iiratio = sum_iiratio / DOUBLE_DIVIDE_CHECK((double)cpi->twopass.total_stats.count);
 
         // Reset file position
         reset_fpf_position(cpi, start_pos);
@@ -1376,7 +1376,7 @@ static int detect_transition_to_still(
     double loop_decay_rate,
     double decay_accumulator )
 {
-    BOOL trans_to_still = FALSE;
+    int trans_to_still = 0;
 
     // Break clause to detect very still sections after motion
     // For example a static image after a fade or other transition
@@ -1406,7 +1406,7 @@ static int detect_transition_to_still(
 
         // Only if it does do we signal a transition to still
         if ( j == still_interval )
-            trans_to_still = TRUE;
+            trans_to_still = 1;
     }
 
     return trans_to_still;
@@ -1415,14 +1415,14 @@ static int detect_transition_to_still(
 // This function detects a flash through the high relative pcnt_second_ref
 // score in the frame following a flash frame. The offset passed in should
 // reflect this
-static BOOL detect_flash( VP8_COMP *cpi, int offset )
+static int detect_flash( VP8_COMP *cpi, int offset )
 {
     FIRSTPASS_STATS next_frame;
 
-    BOOL flash_detected = FALSE;
+    int flash_detected = 0;
 
     // Read the frame data.
-    // The return is FALSE (no flash detected) if not a valid frame
+    // The return is 0 (no flash detected) if not a valid frame
     if ( read_frame_stats(cpi, &next_frame, offset) != EOF )
     {
         // What we are looking for here is a situation where there is a
@@ -1433,7 +1433,7 @@ static BOOL detect_flash( VP8_COMP *cpi, int offset )
         if ( (next_frame.pcnt_second_ref > next_frame.pcnt_inter) &&
              (next_frame.pcnt_second_ref >= 0.5 ) )
         {
-            flash_detected = TRUE;
+            flash_detected = 1;
 
             /*if (1)
             {
@@ -1548,7 +1548,7 @@ static int calc_arf_boost(
     double mv_in_out_accumulator = 0.0;
     double abs_mv_in_out_accumulator = 0.0;
     double r;
-    BOOL flash_detected = FALSE;
+    int flash_detected = 0;
 
     // Search forward from the proposed arf/next gf position
     for ( i = 0; i < f_frames; i++ )
@@ -1677,7 +1677,7 @@ static void define_gf_group(VP8_COMP *cpi, FIRSTPASS_STATS *this_frame)
     int alt_boost = 0;
     int f_boost = 0;
     int b_boost = 0;
-    BOOL flash_detected;
+    int flash_detected;
 
     cpi->twopass.gf_group_bits = 0;
     cpi->twopass.gf_decay_rate = 0;
@@ -1751,7 +1751,7 @@ static void define_gf_group(VP8_COMP *cpi, FIRSTPASS_STATS *this_frame)
                                          loop_decay_rate,
                                          decay_accumulator ) )
         {
-            allow_alt_ref = FALSE;
+            allow_alt_ref = 0;
             boost_score = old_boost_score;
             break;
         }
@@ -1923,7 +1923,7 @@ static void define_gf_group(VP8_COMP *cpi, FIRSTPASS_STATS *this_frame)
             int frames_bwd = cpi->oxcf.arnr_max_frames - 1;
             int frames_fwd = cpi->oxcf.arnr_max_frames - 1;
 
-            cpi->source_alt_ref_pending = TRUE;
+            cpi->source_alt_ref_pending = 1;
 
             // For alt ref frames the error score for the end frame of the
             // group (the alt ref frame) should not contribute to the group
@@ -1949,7 +1949,7 @@ static void define_gf_group(VP8_COMP *cpi, FIRSTPASS_STATS *this_frame)
             // Note: this_frame->frame has been updated in the loop
             // so it now points at the ARF frame.
             half_gf_int = cpi->baseline_gf_interval >> 1;
-            frames_after_arf = cpi->twopass.total_stats->count -
+            frames_after_arf = cpi->twopass.total_stats.count -
                                this_frame->frame - 1;
 
             switch (cpi->oxcf.arnr_type)
@@ -1989,13 +1989,13 @@ static void define_gf_group(VP8_COMP *cpi, FIRSTPASS_STATS *this_frame)
         }
         else
         {
-            cpi->source_alt_ref_pending = FALSE;
+            cpi->source_alt_ref_pending = 0;
             cpi->baseline_gf_interval = i;
         }
     }
     else
     {
-        cpi->source_alt_ref_pending = FALSE;
+        cpi->source_alt_ref_pending = 0;
         cpi->baseline_gf_interval = i;
     }
 
@@ -2005,7 +2005,7 @@ static void define_gf_group(VP8_COMP *cpi, FIRSTPASS_STATS *this_frame)
     // where cpi->twopass.kf_group_bits is tied to cpi->twopass.bits_left.
     // This is also important for short clips where there may only be one
     // key frame.
-    if (cpi->twopass.frames_to_key >= (int)(cpi->twopass.total_stats->count -
+    if (cpi->twopass.frames_to_key >= (int)(cpi->twopass.total_stats.count -
                                             cpi->common.current_video_frame))
     {
         cpi->twopass.kf_group_bits =
@@ -2296,7 +2296,7 @@ static void assign_std_frame_bits(VP8_COMP *cpi, FIRSTPASS_STATS *this_frame)
 void vp8_second_pass(VP8_COMP *cpi)
 {
     int tmp_q;
-    int frames_left = (int)(cpi->twopass.total_stats->count - cpi->common.current_video_frame);
+    int frames_left = (int)(cpi->twopass.total_stats.count - cpi->common.current_video_frame);
 
     FIRSTPASS_STATS this_frame = {0};
     FIRSTPASS_STATS this_frame_copy;
@@ -2341,7 +2341,7 @@ void vp8_second_pass(VP8_COMP *cpi)
             cpi->twopass.gf_group_error_left = cpi->twopass.kf_group_error_left;
             cpi->baseline_gf_interval = cpi->twopass.frames_to_key;
             cpi->frames_till_gf_update_due = cpi->baseline_gf_interval;
-            cpi->source_alt_ref_pending = FALSE;
+            cpi->source_alt_ref_pending = 0;
         }
 
     }
@@ -2411,7 +2411,7 @@ void vp8_second_pass(VP8_COMP *cpi)
 
     // Account for mv, mode and other overheads.
     overhead_bits = estimate_modemvcost(
-                        cpi, cpi->twopass.total_left_stats );
+                        cpi, &cpi->twopass.total_left_stats );
 
     // Special case code for first frame.
     if (cpi->common.current_video_frame == 0)
@@ -2425,7 +2425,7 @@ void vp8_second_pass(VP8_COMP *cpi)
 
             est_cq =
                 estimate_cq( cpi,
-                             cpi->twopass.total_left_stats,
+                             &cpi->twopass.total_left_stats,
                              (int)(cpi->twopass.bits_left / frames_left),
                              overhead_bits );
 
@@ -2440,7 +2440,7 @@ void vp8_second_pass(VP8_COMP *cpi)
 
         tmp_q = estimate_max_q(
                     cpi,
-                    cpi->twopass.total_left_stats,
+                    &cpi->twopass.total_left_stats,
                     (int)(cpi->twopass.bits_left / frames_left),
                     overhead_bits );
 
@@ -2463,16 +2463,16 @@ void vp8_second_pass(VP8_COMP *cpi)
     // radical adjustments to the allowed quantizer range just to use up a
     // few surplus bits or get beneath the target rate.
     else if ( (cpi->common.current_video_frame <
-                 (((unsigned int)cpi->twopass.total_stats->count * 255)>>8)) &&
+                 (((unsigned int)cpi->twopass.total_stats.count * 255)>>8)) &&
               ((cpi->common.current_video_frame + cpi->baseline_gf_interval) <
-                 (unsigned int)cpi->twopass.total_stats->count) )
+                 (unsigned int)cpi->twopass.total_stats.count) )
     {
         if (frames_left < 1)
             frames_left = 1;
 
         tmp_q = estimate_max_q(
                     cpi,
-                    cpi->twopass.total_left_stats,
+                    &cpi->twopass.total_left_stats,
                     (int)(cpi->twopass.bits_left / frames_left),
                     overhead_bits );
 
@@ -2489,13 +2489,13 @@ void vp8_second_pass(VP8_COMP *cpi)
     cpi->twopass.frames_to_key --;
 
     // Update the total stats remaining sturcture
-    subtract_stats(cpi->twopass.total_left_stats, &this_frame );
+    subtract_stats(&cpi->twopass.total_left_stats, &this_frame );
 }
 
 
-static BOOL test_candidate_kf(VP8_COMP *cpi,  FIRSTPASS_STATS *last_frame, FIRSTPASS_STATS *this_frame, FIRSTPASS_STATS *next_frame)
+static int test_candidate_kf(VP8_COMP *cpi,  FIRSTPASS_STATS *last_frame, FIRSTPASS_STATS *this_frame, FIRSTPASS_STATS *next_frame)
 {
-    BOOL is_viable_kf = FALSE;
+    int is_viable_kf = 0;
 
     // Does the frame satisfy the primary criteria of a key frame
     //      If so, then examine how well it predicts subsequent frames
@@ -2569,13 +2569,13 @@ static BOOL test_candidate_kf(VP8_COMP *cpi,  FIRSTPASS_STATS *last_frame, FIRST
 
         // If there is tolerable prediction for at least the next 3 frames then break out else discard this pottential key frame and move on
         if (boost_score > 5.0 && (i > 3))
-            is_viable_kf = TRUE;
+            is_viable_kf = 1;
         else
         {
             // Reset the file position
             reset_fpf_position(cpi, start_pos);
 
-            is_viable_kf = FALSE;
+            is_viable_kf = 0;
         }
     }
 
@@ -2611,7 +2611,7 @@ static void find_next_key_frame(VP8_COMP *cpi, FIRSTPASS_STATS *this_frame)
     cpi->this_key_frame_forced = cpi->next_key_frame_forced;
 
     // Clear the alt ref active flag as this can never be active on a key frame
-    cpi->source_alt_ref_active = FALSE;
+    cpi->source_alt_ref_active = 0;
 
     // Kf is always a gf so clear frames till next gf counter
     cpi->frames_till_gf_update_due = 0;
@@ -2727,10 +2727,10 @@ static void find_next_key_frame(VP8_COMP *cpi, FIRSTPASS_STATS *this_frame)
         // Reset to the start of the group
         reset_fpf_position(cpi, current_pos);
 
-        cpi->next_key_frame_forced = TRUE;
+        cpi->next_key_frame_forced = 1;
     }
     else
-        cpi->next_key_frame_forced = FALSE;
+        cpi->next_key_frame_forced = 0;
 
     // Special case for the last frame of the file
     if (cpi->twopass.stats_in >= cpi->twopass.stats_in_end)
@@ -3034,8 +3034,8 @@ static void find_next_key_frame(VP8_COMP *cpi, FIRSTPASS_STATS *this_frame)
 
     if (cpi->oxcf.allow_spatial_resampling)
     {
-        int resample_trigger = FALSE;
-        int last_kf_resampled = FALSE;
+        int resample_trigger = 0;
+        int last_kf_resampled = 0;
         int kf_q;
         int scale_val = 0;
         int hr, hs, vr, vs;
@@ -3053,14 +3053,14 @@ static void find_next_key_frame(VP8_COMP *cpi, FIRSTPASS_STATS *this_frame)
         double effective_size_ratio;
 
         if ((cpi->common.Width != cpi->oxcf.Width) || (cpi->common.Height != cpi->oxcf.Height))
-            last_kf_resampled = TRUE;
+            last_kf_resampled = 1;
 
         // Set back to unscaled by defaults
         cpi->common.horiz_scale = NORMAL;
         cpi->common.vert_scale = NORMAL;
 
         // Calculate Average bits per frame.
-        //av_bits_per_frame = cpi->twopass.bits_left/(double)(cpi->twopass.total_stats->count - cpi->common.current_video_frame);
+        //av_bits_per_frame = cpi->twopass.bits_left/(double)(cpi->twopass.total_stats.count - cpi->common.current_video_frame);
         av_bits_per_frame = cpi->oxcf.target_bandwidth / DOUBLE_DIVIDE_CHECK((double)cpi->frame_rate);
         //if ( av_bits_per_frame < 0.0 )
         //  av_bits_per_frame = 0.0
@@ -3117,21 +3117,21 @@ static void find_next_key_frame(VP8_COMP *cpi, FIRSTPASS_STATS *this_frame)
                 (last_kf_resampled && (projected_buffer_level < (cpi->oxcf.resample_up_water_mark * cpi->oxcf.optimal_buffer_level / 100))))
                 //( ((cpi->buffer_level < (cpi->oxcf.resample_down_water_mark * cpi->oxcf.optimal_buffer_level / 100))) &&
                 //  ((projected_buffer_level < (cpi->oxcf.resample_up_water_mark * cpi->oxcf.optimal_buffer_level / 100))) ))
-                resample_trigger = TRUE;
+                resample_trigger = 1;
             else
-                resample_trigger = FALSE;
+                resample_trigger = 0;
         }
         else
         {
-            int64_t clip_bits = (int64_t)(cpi->twopass.total_stats->count * cpi->oxcf.target_bandwidth / DOUBLE_DIVIDE_CHECK((double)cpi->frame_rate));
+            int64_t clip_bits = (int64_t)(cpi->twopass.total_stats.count * cpi->oxcf.target_bandwidth / DOUBLE_DIVIDE_CHECK((double)cpi->frame_rate));
             int64_t over_spend = cpi->oxcf.starting_buffer_level - cpi->buffer_level;
 
             if ((last_kf_resampled && (kf_q > cpi->worst_quality)) ||                                               // If triggered last time the threshold for triggering again is reduced
                 ((kf_q > cpi->worst_quality) &&                                                                  // Projected Q higher than allowed and ...
                  (over_spend > clip_bits / 20)))                                                               // ... Overspend > 5% of total bits
-                resample_trigger = TRUE;
+                resample_trigger = 1;
             else
-                resample_trigger = FALSE;
+                resample_trigger = 0;
 
         }
 

@@ -29,11 +29,8 @@
 #include "talk/xmpp/xmppclient.h"
 #include "talk/xmpp/xmppengine.h"
 #include "talk/xmpp/constants.h"
-#include "talk/xmpp/ratelimitmanager.h"
 
 namespace buzz {
-
-RateLimitManager task_rate_manager;
 
 XmppClientInterface::XmppClientInterface() {
 }
@@ -173,12 +170,6 @@ bool XmppTask::MatchRequestIq(const XmlElement* stanza,
     return false;
 
   return true;
-}
-
-bool XmppTask::VerifyTaskRateLimit(const std::string task_name, int max_count, 
-                                   int per_x_seconds) {
-  return task_rate_manager.VerifyRateLimit(task_name, max_count, 
-                                           per_x_seconds);
 }
 
 }

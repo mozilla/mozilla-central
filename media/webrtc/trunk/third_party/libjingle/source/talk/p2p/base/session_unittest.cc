@@ -561,9 +561,9 @@ std::string RedirectXml(SignalingProtocol protocol,
 class TestPortAllocatorSession : public cricket::PortAllocatorSession {
  public:
   TestPortAllocatorSession(const std::string& name,
+                           const std::string& session_type,
                            const int port_offset)
-      : PortAllocatorSession(0),
-        name_(name),
+      : PortAllocatorSession(name, session_type, 0),
         port_offset_(port_offset),
         ports_(kNumPorts),
         address_("127.0.0.1", 0),
@@ -618,7 +618,6 @@ class TestPortAllocatorSession : public cricket::PortAllocatorSession {
   }
 
  private:
-  std::string name_;
   int port_offset_;
   std::vector<cricket::Port*> ports_;
   talk_base::SocketAddress address_;
@@ -636,7 +635,7 @@ class TestPortAllocator : public cricket::PortAllocator {
   CreateSession(const std::string &name,
                 const std::string &content_type) {
     port_offset_ += 2;
-    return new TestPortAllocatorSession(name, port_offset_ - 2);
+    return new TestPortAllocatorSession(name, content_type, port_offset_ - 2);
   }
 
   int port_offset_;
@@ -984,7 +983,8 @@ class TestClient : public sigslot::has_slots<> {
     }
   }
 
-  void OnSessionRemoteDescriptionUpdate(cricket::BaseSession* session) {
+  void OnSessionRemoteDescriptionUpdate(cricket::BaseSession* session,
+      const cricket::ContentInfos& contents) {
     session_remote_description_update_count++;
   }
 
@@ -1338,14 +1338,23 @@ class SessionTest : public testing::Test {
           new_content_b->description;
       EXPECT_TRUE(new_content_desc_a != NULL);
       EXPECT_TRUE(new_content_desc_b != NULL);
-      EXPECT_NE(old_content_desc_a, new_content_desc_a);
 
-      if (content_name_a != content_name_b) {
-        // If content_name_a != content_name_b, then b's content description
-        // should not have changed since the description-info message only
-        // contained an update for content_name_a.
-        EXPECT_EQ(old_content_desc_b, new_content_desc_b);
-      }
+      // TODO: We used to replace contents from an update, but
+      // that no longer works with partial updates.  We need to figure out
+      // a way to merge patial updates into contents.  For now, users of
+      // Session should listen to SignalRemoteDescriptionUpdate and handle
+      // updates.  They should not expect remote_description to be the
+      // latest value.
+      // See session.cc OnDescriptionInfoMessage.
+
+      // EXPECT_NE(old_content_desc_a, new_content_desc_a);
+
+      // if (content_name_a != content_name_b) {
+      //   // If content_name_a != content_name_b, then b's content description
+      //   // should not have changed since the description-info message only
+      //   // contained an update for content_name_a.
+      //   EXPECT_EQ(old_content_desc_b, new_content_desc_b);
+      // }
 
       EXPECT_TRUE_WAIT(initiator->sent_stanza_count() > 0, kEventTimeout);
       initiator->ExpectSentStanza(
@@ -1998,7 +2007,7 @@ class SessionTest : public testing::Test {
         content_name_a, content_type,
         content_name_b, content_type);
     // Add group information to the offer
-    cricket::ContentGroup group(cricket::GN_TOGETHER);
+    cricket::ContentGroup group(cricket::GN_BUNDLE);
     group.AddContentName(content_name_a);
     group.AddContentName(content_name_b);
     EXPECT_TRUE(group.HasContentName(content_name_a));
@@ -2012,12 +2021,12 @@ class SessionTest : public testing::Test {
         content_name_b, content_type);
     // Check if group "TOGETHER" exists in the offer. If it's present then
     // remote supports muxing.
-    EXPECT_TRUE(offer->HasGroup(cricket::GN_TOGETHER));
+    EXPECT_TRUE(offer->HasGroup(cricket::GN_BUNDLE));
     const cricket::ContentGroup* group_offer =
-        offer->GetGroupByName(cricket::GN_TOGETHER);
+        offer->GetGroupByName(cricket::GN_BUNDLE);
     // Not creating new copy in answer, for test we can use this for test.
     answer->AddGroup(*group_offer);
-    EXPECT_TRUE(answer->HasGroup(cricket::GN_TOGETHER));
+    EXPECT_TRUE(answer->HasGroup(cricket::GN_BUNDLE));
 
     initiator->CreateSession();
     EXPECT_TRUE(initiator->session->Initiate(

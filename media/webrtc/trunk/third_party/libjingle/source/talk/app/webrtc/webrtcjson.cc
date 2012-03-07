@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2011, Google Inc.
+ * Copyright 2011, Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -27,19 +27,16 @@
 
 #include "talk/app/webrtc/webrtcjson.h"
 
-#ifdef WEBRTC_RELATIVE_PATH
-#include "json/json.h"
-#else
-#include "third_party/jsoncpp/json.h"
-#endif
+#include <stdio.h>
+#include <string>
+#include <vector>
 
-// TODO: Remove webrtcsession.h once we can get size from signaling.
-// webrtcsession.h is for kDefaultVideoCodecWidth and kDefaultVideoCodecHeight.
-#include "talk/app/webrtc/webrtcsession.h"
 #include "talk/base/json.h"
 #include "talk/base/logging.h"
 #include "talk/base/stringutils.h"
 #include "talk/session/phone/codec.h"
+#include "talk/session/phone/cryptoparams.h"
+#include "talk/session/phone/mediasession.h"
 #include "talk/session/phone/mediasessionclient.h"
 
 namespace webrtc {
@@ -49,37 +46,49 @@ static const int kIceFoundation = 1;
 static std::vector<Json::Value> ReadValues(const Json::Value& value,
                                            const std::string& key);
 
-static bool BuildMediaMessage(
+static void BuildContent(
+    const cricket::SessionDescription* sdp,
     const cricket::ContentInfo& content_info,
     const std::vector<cricket::Candidate>& candidates,
     bool video,
-    Json::Value* value);
+    Json::Value* content);
 
-static bool BuildRtpMapParams(
-    const cricket::ContentInfo& audio_offer,
-    bool video,
-    std::vector<Json::Value>* rtpmap);
+static void BuildCandidate(const std::vector<cricket::Candidate>& candidates,
+                           bool video,
+                           std::vector<Json::Value>* jcandidates);
 
-static bool BuildAttributes(const std::vector<cricket::Candidate>& candidates,
-                            bool video,
-                            std::vector<Json::Value>* jcandidates);
+static void BuildRtpMapParams(const cricket::ContentInfo& content_info,
+                              bool video,
+                              std::vector<Json::Value>* rtpmap);
 
-static std::string Serialize(const Json::Value& value);
-static bool Deserialize(const std::string& message, Json::Value* value);
+static void BuildCrypto(const cricket::ContentInfo& content_info,
+                        bool video,
+                        std::vector<Json::Value>* cryptos);
 
-static bool ParseRtcpMux(const Json::Value& value);
+static void BuildTrack(const cricket::SessionDescription* sdp,
+                       bool video,
+                       std::vector<Json::Value>* track);
+
+bool ParseContent(const Json::Value& jmessage,
+    cricket::SessionDescription* sdp,
+    std::vector<cricket::Candidate>* candidates);
+
 static bool ParseAudioCodec(const Json::Value& value,
                             cricket::AudioContentDescription* content);
 static bool ParseVideoCodec(const Json::Value& value,
                             cricket::VideoContentDescription* content);
-static bool ParseIceCandidates(const Json::Value& value,
-                               std::vector<cricket::Candidate>* candidates);
+static bool ParseCrypto(const Json::Value& content,
+                        cricket::MediaContentDescription* desc);
 
-static Json::Value ReadValue(const Json::Value& value, const std::string& key);
-static std::string ReadString(const Json::Value& value, const std::string& key);
-static uint32 ReadUInt(const Json::Value& value, const std::string& key);
+static bool ParseCandidates(const Json::Value& content,
+                            std::vector<cricket::Candidate>* candidates);
+
+static bool ParseTrack(const Json::Value& content,
+    cricket::MediaContentDescription* content_desc);
 
 static void Append(Json::Value* object, const std::string& key, bool value);
+static void Append(Json::Value* object, const std::string& key,
+                   const char* value);
 static void Append(Json::Value* object, const std::string& key, int value);
 static void Append(Json::Value* object, const std::string& key,
                    const std::string& value);
@@ -90,83 +99,91 @@ static void Append(Json::Value* object,
                    const std::string& key,
                    const std::vector<Json::Value>& values);
 
-bool GetJsonSignalingMessage(
+void JsonSerializeSessionDescription(
     const cricket::SessionDescription* sdp,
     const std::vector<cricket::Candidate>& candidates,
-    std::string* signaling_message) {
+    Json::Value* message) {
+
   const cricket::ContentInfo* audio_content = GetFirstAudioContent(sdp);
   const cricket::ContentInfo* video_content = GetFirstVideoContent(sdp);
 
-  std::vector<Json::Value> media;
+  std::vector<Json::Value> together;
+  together.push_back("audio");
+  together.push_back("video");
+
+  std::vector<Json::Value> contents;
+
   if (audio_content) {
-    Json::Value value;
-    BuildMediaMessage(*audio_content, candidates, false, &value);
-    media.push_back(value);
+    Json::Value content;
+    BuildContent(sdp, *audio_content, candidates, false, &content);
+    contents.push_back(content);
   }
 
   if (video_content) {
-    Json::Value value;
-    BuildMediaMessage(*video_content, candidates, true, &value);
-    media.push_back(value);
+    Json::Value content;
+    BuildContent(sdp, *video_content, candidates, true, &content);
+    contents.push_back(content);
   }
 
-  Json::Value signal;
-  Append(&signal, "media", media);
-
-  // Now serialize.
-  *signaling_message = Serialize(signal);
-
-  return true;
+  Append(message, "content", contents);
+  Append(message, "TOGETHER", together);
 }
 
-bool BuildMediaMessage(
+void BuildContent(
+    const cricket::SessionDescription* sdp,
     const cricket::ContentInfo& content_info,
     const std::vector<cricket::Candidate>& candidates,
     bool video,
-    Json::Value* params) {
+    Json::Value* content) {
+  std::string label("media");
+  // TODO: Use enum instead of bool video to prepare for other
+  // media types such as the data media stream.
   if (video) {
-    Append(params, "label", 2);  // always video 2
+    Append(content, label, "video");
   } else {
-    Append(params, "label", 1);  // always audio 1
+    Append(content, label, "audio");
   }
 
   const cricket::MediaContentDescription* media_info =
-  static_cast<const cricket::MediaContentDescription*> (
-      content_info.description);
+      static_cast<const cricket::MediaContentDescription*> (
+          content_info.description);
   if (media_info->rtcp_mux()) {
-    Append(params, "rtcp_mux", true);
+    Append(content, "rtcp_mux", true);
   }
 
+  // rtpmap
   std::vector<Json::Value> rtpmap;
-  if (!BuildRtpMapParams(content_info, video, &rtpmap)) {
-    return false;
-  }
+  BuildRtpMapParams(content_info, video, &rtpmap);
+  Append(content, "rtpmap", rtpmap);
 
-  Append(params, "rtpmap", rtpmap);
+  // crypto
+  std::vector<Json::Value> crypto;
+  BuildCrypto(content_info, video, &crypto);
+  Append(content, "crypto", crypto);
 
-  Json::Value attributes;
+  // candidate
   std::vector<Json::Value> jcandidates;
+  BuildCandidate(candidates, video, &jcandidates);
+  Append(content, "candidate", jcandidates);
 
-  if (!BuildAttributes(candidates, video, &jcandidates)) {
-    return false;
-  }
-  Append(&attributes, "candidate", jcandidates);
-  Append(params, "attributes", attributes);
-  return true;
+  // track
+  std::vector<Json::Value> track;
+  BuildTrack(sdp, video, &track);
+  Append(content, "track", track);
 }
 
-bool BuildRtpMapParams(const cricket::ContentInfo& content_info,
+void BuildRtpMapParams(const cricket::ContentInfo& content_info,
                        bool video,
                        std::vector<Json::Value>* rtpmap) {
   if (!video) {
-    const cricket::AudioContentDescription* audio_offer =
+    const cricket::AudioContentDescription* audio =
         static_cast<const cricket::AudioContentDescription*>(
             content_info.description);
 
     std::vector<cricket::AudioCodec>::const_iterator iter =
-        audio_offer->codecs().begin();
+        audio->codecs().begin();
     std::vector<cricket::AudioCodec>::const_iterator iter_end =
-        audio_offer->codecs().end();
+        audio->codecs().end();
     for (; iter != iter_end; ++iter) {
       Json::Value codec;
       std::string codec_str(std::string("audio/").append(iter->name));
@@ -178,14 +195,14 @@ bool BuildRtpMapParams(const cricket::ContentInfo& content_info,
       rtpmap->push_back(codec_id);
     }
   } else {
-    const cricket::VideoContentDescription* video_offer =
+    const cricket::VideoContentDescription* video =
         static_cast<const cricket::VideoContentDescription*>(
             content_info.description);
 
     std::vector<cricket::VideoCodec>::const_iterator iter =
-        video_offer->codecs().begin();
+        video->codecs().begin();
     std::vector<cricket::VideoCodec>::const_iterator iter_end =
-        video_offer->codecs().end();
+        video->codecs().end();
     for (; iter != iter_end; ++iter) {
       Json::Value codec;
       std::string codec_str(std::string("video/").append(iter->name));
@@ -195,12 +212,29 @@ bool BuildRtpMapParams(const cricket::ContentInfo& content_info,
       rtpmap->push_back(codec_id);
     }
   }
-  return true;
 }
 
-bool BuildAttributes(const std::vector<cricket::Candidate>& candidates,
-                     bool video,
-                     std::vector<Json::Value>* jcandidates) {
+void BuildCrypto(const cricket::ContentInfo& content_info,
+                 bool video,
+                 std::vector<Json::Value>* cryptos) {
+  const cricket::MediaContentDescription* content_desc =
+      static_cast<const cricket::MediaContentDescription*>(
+          content_info.description);
+  std::vector<cricket::CryptoParams>::const_iterator iter =
+      content_desc->cryptos().begin();
+  std::vector<cricket::CryptoParams>::const_iterator iter_end =
+      content_desc->cryptos().end();
+  for (; iter != iter_end; ++iter) {
+    Json::Value crypto;
+    Append(&crypto, "cipher_suite", iter->cipher_suite);
+    Append(&crypto, "key_params", iter->key_params);
+    cryptos->push_back(crypto);
+  }
+}
+
+void BuildCandidate(const std::vector<cricket::Candidate>& candidates,
+                    bool video,
+                    std::vector<Json::Value>* jcandidates) {
   std::vector<cricket::Candidate>::const_iterator iter =
       candidates.begin();
   std::vector<cricket::Candidate>::const_iterator iter_end =
@@ -210,95 +244,117 @@ bool BuildAttributes(const std::vector<cricket::Candidate>& candidates,
                   (!iter->name().compare("video_rtp")))) ||
         (!video && (!iter->name().compare("rtp") ||
                    (!iter->name().compare("rtcp"))))) {
-      Json::Value candidate;
-      Append(&candidate, "component", kIceComponent);
-      Append(&candidate, "foundation", kIceFoundation);
-      Append(&candidate, "generation", iter->generation());
-      Append(&candidate, "proto", iter->protocol());
-      Append(&candidate, "priority", iter->preference_str());
-      Append(&candidate, "ip", iter->address().IPAsString());
-      Append(&candidate, "port", iter->address().PortAsString());
-      Append(&candidate, "type", iter->type());
-      Append(&candidate, "name", iter->name());
-      Append(&candidate, "network_name", iter->network_name());
-      Append(&candidate, "username", iter->username());
-      Append(&candidate, "password", iter->password());
-      jcandidates->push_back(candidate);
+      Json::Value jcandidate;
+      Append(&jcandidate, "component", kIceComponent);
+      Append(&jcandidate, "foundation", kIceFoundation);
+      Append(&jcandidate, "generation", iter->generation());
+      Append(&jcandidate, "proto", iter->protocol());
+      Append(&jcandidate, "priority", iter->preference_str());
+      Append(&jcandidate, "ip", iter->address().IPAsString());
+      Append(&jcandidate, "port", iter->address().PortAsString());
+      Append(&jcandidate, "type", iter->type());
+      Append(&jcandidate, "name", iter->name());
+      Append(&jcandidate, "network_name", iter->network_name());
+      Append(&jcandidate, "username", iter->username());
+      Append(&jcandidate, "password", iter->password());
+      jcandidates->push_back(jcandidate);
     }
   }
-  return true;
 }
 
-std::string Serialize(const Json::Value& value) {
-  Json::StyledWriter writer;
-  return writer.write(value);
-}
+void BuildTrack(const cricket::SessionDescription* sdp,
+                bool video,
+                std::vector<Json::Value>* tracks) {
+  const cricket::ContentInfo* content;
+  if (video)
+    content = GetFirstVideoContent(sdp);
+  else
+    content = GetFirstAudioContent(sdp);
 
-bool Deserialize(const std::string& message, Json::Value* value) {
-  Json::Reader reader;
-  return reader.parse(message, *value);
-}
+  if (!content)
+    return;
 
-bool ParseJsonSignalingMessage(const std::string& signaling_message,
-                               cricket::SessionDescription** sdp,
-                               std::vector<cricket::Candidate>* candidates) {
-  ASSERT(!(*sdp));  // expect this to be NULL
-  // first deserialize message
-  Json::Value value;
-  if (!Deserialize(signaling_message, &value)) {
-    return false;
+  const cricket::MediaContentDescription* desc =
+      static_cast<const cricket::MediaContentDescription*>(
+          content->description);
+  for (cricket::StreamParamsVec::const_iterator it = desc->streams().begin();
+       it != desc->streams().end();
+       ++it) {
+    // TODO: Support ssrcsgroups.
+    Json::Value track;
+    Append(&track, "ssrc", it->ssrcs[0]);
+    Append(&track, "cname", it->cname);
+    Append(&track, "stream_label", it->sync_label);
+    Append(&track, "label", it->name);
+    tracks->push_back(track);
   }
+}
 
-  // get media objects
-  std::vector<Json::Value> mlines = ReadValues(value, "media");
-  if (mlines.empty()) {
-    // no m-lines found
+bool JsonDeserializeSessionDescription(
+    const Json::Value& message,
+    cricket::SessionDescription* sdp,
+    std::vector<cricket::Candidate>* candidates) {
+
+  ASSERT(sdp != NULL);
+  ASSERT(candidates != NULL);
+
+  if (sdp == NULL || candidates == NULL)
     return false;
-  }
 
-  *sdp = new cricket::SessionDescription();
-
-  // get codec information
-  for (size_t i = 0; i < mlines.size(); ++i) {
-    if (mlines[i]["label"].asInt() == 1) {
+  // Get content
+  std::vector<Json::Value> contents = ReadValues(message, "content");
+  if (contents.size() == 0)
+    return false;
+  for (size_t i = 0; i < contents.size(); ++i) {
+    Json::Value content = contents[i];
+    // candidates
+    if (!ParseCandidates(content, candidates))
+      return false;
+    // rtcp_mux
+    bool rtcp_mux;
+    if (!GetBoolFromJsonObject(content, "rtcp_mux", &rtcp_mux))
+      rtcp_mux = false;
+    // rtpmap
+    if (content["media"].asString().compare("audio") == 0) {
       cricket::AudioContentDescription* audio_content =
           new cricket::AudioContentDescription();
-      ParseAudioCodec(mlines[i], audio_content);
-      audio_content->set_rtcp_mux(ParseRtcpMux(mlines[i]));
+      if (!ParseAudioCodec(content, audio_content))
+        return false;
+      audio_content->set_rtcp_mux(rtcp_mux);
       audio_content->SortCodecs();
-      (*sdp)->AddContent(cricket::CN_AUDIO,
-                         cricket::NS_JINGLE_RTP, audio_content);
-      ParseIceCandidates(mlines[i], candidates);
-    } else {
+      // crypto
+      if (!ParseCrypto(content, audio_content))
+        return false;
+      // tracks
+      if (!ParseTrack(content, audio_content))
+        return false;
+      (sdp)->AddContent(cricket::CN_AUDIO,
+                        cricket::NS_JINGLE_RTP, audio_content);
+    } else if (content["media"].asString().compare("video") == 0) {
       cricket::VideoContentDescription* video_content =
           new cricket::VideoContentDescription();
-      ParseVideoCodec(mlines[i], video_content);
-
-      video_content->set_rtcp_mux(ParseRtcpMux(mlines[i]));
+      if (!ParseVideoCodec(content, video_content))
+        return false;
+      video_content->set_rtcp_mux(rtcp_mux);
       video_content->SortCodecs();
-      (*sdp)->AddContent(cricket::CN_VIDEO,
-                         cricket::NS_JINGLE_RTP, video_content);
-      ParseIceCandidates(mlines[i], candidates);
+      // crypto
+      if (!ParseCrypto(content, video_content))
+        return false;
+      if (!ParseTrack(content, video_content))
+        return false;
+      (sdp)->AddContent(cricket::CN_VIDEO,
+                        cricket::NS_JINGLE_RTP, video_content);
     }
   }
   return true;
-}
-
-bool ParseRtcpMux(const Json::Value& value) {
-  Json::Value rtcp_mux(ReadValue(value, "rtcp_mux"));
-  if (!rtcp_mux.empty()) {
-    if (rtcp_mux.asBool()) {
-      return true;
-    }
-  }
-  return false;
 }
 
 bool ParseAudioCodec(const Json::Value& value,
                      cricket::AudioContentDescription* content) {
   std::vector<Json::Value> rtpmap(ReadValues(value, "rtpmap"));
+  // When there's no codecs in common, rtpmap can be empty.
   if (rtpmap.empty())
-    return false;
+    return true;
 
   std::vector<Json::Value>::const_iterator iter =
       rtpmap.begin();
@@ -309,11 +365,13 @@ bool ParseAudioCodec(const Json::Value& value,
     std::string pltype(iter->begin().memberName());
     talk_base::FromString(pltype, &codec.id);
     Json::Value codec_info((*iter)[pltype]);
-    std::string codec_name(ReadString(codec_info, "codec"));
+    std::string codec_name;
+    if (!GetStringFromJsonObject(codec_info, "codec", &codec_name))
+      continue;
     std::vector<std::string> tokens;
     talk_base::split(codec_name, '/', &tokens);
     codec.name = tokens[1];
-    codec.clockrate = ReadUInt(codec_info, "clockrate");
+    GetIntFromJsonObject(codec_info, "clockrate", &codec.clockrate);
     content->AddCodec(codec);
   }
 
@@ -323,8 +381,9 @@ bool ParseAudioCodec(const Json::Value& value,
 bool ParseVideoCodec(const Json::Value& value,
                      cricket::VideoContentDescription* content) {
   std::vector<Json::Value> rtpmap(ReadValues(value, "rtpmap"));
+  // When there's no codecs in common, rtpmap can be empty.
   if (rtpmap.empty())
-    return false;
+    return true;
 
   std::vector<Json::Value>::const_iterator iter =
       rtpmap.begin();
@@ -338,22 +397,14 @@ bool ParseVideoCodec(const Json::Value& value,
     std::vector<std::string> tokens;
     talk_base::split(codec_info["codec"].asString(), '/', &tokens);
     codec.name = tokens[1];
-    // TODO: Remove once we can get size from signaling message.
-    codec.width = WebRtcSession::kDefaultVideoCodecWidth;
-    codec.height = WebRtcSession::kDefaultVideoCodecHeight;
     content->AddCodec(codec);
   }
   return true;
 }
 
-bool ParseIceCandidates(const Json::Value& value,
-                        std::vector<cricket::Candidate>* candidates) {
-  Json::Value attributes(ReadValue(value, "attributes"));
-  std::string ice_pwd(ReadString(attributes, "ice-pwd"));
-  std::string ice_ufrag(ReadString(attributes, "ice-ufrag"));
-
-  std::vector<Json::Value> jcandidates(ReadValues(attributes, "candidate"));
-
+bool ParseCandidates(const Json::Value& content,
+                     std::vector<cricket::Candidate>* candidates) {
+  std::vector<Json::Value> jcandidates(ReadValues(content, "candidate"));
   std::vector<Json::Value>::const_iterator iter =
       jcandidates.begin();
   std::vector<Json::Value>::const_iterator iter_end =
@@ -414,6 +465,68 @@ bool ParseIceCandidates(const Json::Value& value,
   return true;
 }
 
+bool ParseCrypto(const Json::Value& content,
+                 cricket::MediaContentDescription* desc) {
+  std::vector<Json::Value> jcryptos(ReadValues(content, "crypto"));
+  std::vector<Json::Value>::const_iterator iter =
+      jcryptos.begin();
+  std::vector<Json::Value>::const_iterator iter_end =
+      jcryptos.end();
+  for (; iter != iter_end; ++iter) {
+    cricket::CryptoParams crypto;
+
+    std::string cipher_suite;
+    if (!GetStringFromJsonObject(*iter, "cipher_suite", &cipher_suite))
+      return false;
+    crypto.cipher_suite = cipher_suite;
+
+    std::string key_params;
+    if (!GetStringFromJsonObject(*iter, "key_params", &key_params))
+      return false;
+    crypto.key_params= key_params;
+
+    desc->AddCrypto(crypto);
+  }
+  return true;
+}
+
+bool ParseTrack(const Json::Value& content,
+    cricket::MediaContentDescription* content_desc) {
+  ASSERT(content_desc != NULL);
+  if (!content_desc)
+    return false;
+
+  std::vector<Json::Value> tracks(ReadValues(content, "track"));
+  std::vector<Json::Value>::const_iterator iter =
+      tracks.begin();
+  std::vector<Json::Value>::const_iterator iter_end =
+      tracks.end();
+  for (; iter != iter_end; ++iter) {
+    uint32 ssrc;
+    std::string label;
+    std::string cname;
+    std::string stream_label;
+    if (!GetUIntFromJsonObject(*iter, "ssrc", &ssrc))
+        return false;
+    // label is optional, it will be empty string if doesn't exist
+    GetStringFromJsonObject(*iter, "label", &label);
+    if (!GetStringFromJsonObject(*iter, "cname", &cname))
+        return false;
+    // stream_label is optional, it will be the same as cname if it
+    // doesn't exist.
+    GetStringFromJsonObject(*iter, "stream_label", &stream_label);
+    if (stream_label.empty())
+      stream_label = cname;
+    cricket::StreamParams stream;
+    stream.name = label;
+    stream.cname = cname;
+    stream.sync_label = stream_label;
+    stream.ssrcs.push_back(ssrc);
+    content_desc->AddStream(stream);
+  }
+  return true;
+}
+
 std::vector<Json::Value> ReadValues(
     const Json::Value& value, const std::string& key) {
   std::vector<Json::Value> objects;
@@ -423,19 +536,11 @@ std::vector<Json::Value> ReadValues(
   return objects;
 }
 
-Json::Value ReadValue(const Json::Value& value, const std::string& key) {
-  return value[key];
-}
-
-std::string ReadString(const Json::Value& value, const std::string& key) {
-  return value[key].asString();
-}
-
-uint32 ReadUInt(const Json::Value& value, const std::string& key) {
-  return value[key].asUInt();
-}
-
 void Append(Json::Value* object, const std::string& key, bool value) {
+  (*object)[key] = Json::Value(value);
+}
+
+void Append(Json::Value* object, const std::string& key, const char* value) {
   (*object)[key] = Json::Value(value);
 }
 

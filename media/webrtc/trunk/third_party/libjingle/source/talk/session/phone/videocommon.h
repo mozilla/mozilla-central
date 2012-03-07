@@ -36,34 +36,26 @@
 namespace cricket {
 
 //////////////////////////////////////////////////////////////////////////////
-// Definition of fourcc.
+// Definition of FourCC codes
 //////////////////////////////////////////////////////////////////////////////
-// Convert four characters to a fourcc code.
+// Convert four characters to a FourCC code.
 // Needs to be a macro otherwise the OS X compiler complains when the kFormat*
 // constants are used in a switch.
-#define FOURCC(a, b, c, d) (\
+#define FOURCC(a, b, c, d) ( \
     (static_cast<uint32>(a)) | (static_cast<uint32>(b) << 8) | \
     (static_cast<uint32>(c) << 16) | (static_cast<uint32>(d) << 24))
 
-// Get the name, that is, string with four characters, of a fourcc code.
-inline std::string GetFourccName(uint32 fourcc) {
-  std::string name;
-  name.push_back(static_cast<char>(fourcc & 0xFF));
-  name.push_back(static_cast<char>((fourcc >> 8) & 0xFF));
-  name.push_back(static_cast<char>((fourcc >> 16) & 0xFF));
-  name.push_back(static_cast<char>((fourcc >> 24) & 0xFF));
-  return name;
-}
-
-// FourCC codes used in Google Talk.
-// Some good pages discussing FourCC codes:
-//   http://developer.apple.com/quicktime/icefloe/dispatch020.html
+// Some pages discussing FourCC codes:
 //   http://www.fourcc.org/yuv.php
+//   http://v4l2spec.bytesex.org/spec/book1.htm
+//   http://developer.apple.com/quicktime/icefloe/dispatch020.html
+
 enum FourCC {
   // Canonical fourcc codes used in our code.
   FOURCC_I420 = FOURCC('I', '4', '2', '0'),
   FOURCC_I422 = FOURCC('I', '4', '2', '2'),
   FOURCC_I444 = FOURCC('I', '4', '4', '4'),
+  FOURCC_I400 = FOURCC('I', '4', '0', '0'),
   FOURCC_YV12 = FOURCC('Y', 'V', '1', '2'),
   FOURCC_YV16 = FOURCC('Y', 'V', '1', '6'),
   FOURCC_YV24 = FOURCC('Y', 'V', '2', '4'),
@@ -75,6 +67,9 @@ enum FourCC {
   FOURCC_ABGR = FOURCC('A', 'B', 'G', 'R'),
   FOURCC_BGRA = FOURCC('B', 'G', 'R', 'A'),
   FOURCC_ARGB = FOURCC('A', 'R', 'G', 'B'),
+  FOURCC_RGBP = FOURCC('R', 'G', 'B', 'P'), // bgr565
+  FOURCC_RGBO = FOURCC('R', 'G', 'B', 'O'), // abgr1555
+  FOURCC_R444 = FOURCC('R', '4', '4', '4'), // argb4444
   FOURCC_MJPG = FOURCC('M', 'J', 'P', 'G'),
   FOURCC_RAW  = FOURCC('r', 'a', 'w', ' '),
   FOURCC_NV21 = FOURCC('N', 'V', '2', '1'),
@@ -109,6 +104,16 @@ enum FourCC {
 // Converts fourcc aliases into canonical ones.
 uint32 CanonicalFourCC(uint32 fourcc);
 
+// Get FourCC code as a string
+inline std::string GetFourccName(uint32 fourcc) {
+  std::string name;
+  name.push_back(static_cast<char>(fourcc & 0xFF));
+  name.push_back(static_cast<char>((fourcc >> 8) & 0xFF));
+  name.push_back(static_cast<char>((fourcc >> 16) & 0xFF));
+  name.push_back(static_cast<char>((fourcc >> 24) & 0xFF));
+  return name;
+}
+
 //////////////////////////////////////////////////////////////////////////////
 // Definition of VideoFormat.
 //////////////////////////////////////////////////////////////////////////////
@@ -117,35 +122,31 @@ uint32 CanonicalFourCC(uint32 fourcc);
 struct VideoFormatPod {
   int width;  // in number of pixels
   int height;  // in number of pixels
-  int framerate;
+  int64 interval;  // in nanoseconds
   uint32 fourcc;  // color space. FOURCC_ANY means that any color space is OK.
 };
 
-struct VideoFormat {
+struct VideoFormat : VideoFormatPod{
   static const int64 kMinimumInterval =
       talk_base::kNumNanosecsPerSec / 10000;  // 10k fps
 
-  VideoFormat() : width(0), height(0), interval(0), fourcc(0) {}
-
-  VideoFormat(int w, int h, int64 interval_ns, uint32 cc)
-      : width(w),
-        height(h),
-        interval(interval_ns),
-        fourcc(cc) {
+  VideoFormat() {
+    Construct(0, 0, 0, 0);
   }
 
-  VideoFormat(const VideoFormat& format)
-      : width(format.width),
-        height(format.height),
-        interval(format.interval),
-        fourcc(format.fourcc) {
+  VideoFormat(int w, int h, int64 interval_ns, uint32 cc) {
+    Construct(w, h, interval_ns, cc);
   }
 
-  explicit VideoFormat(const VideoFormatPod& format)
-      : width(format.width),
-        height(format.height),
-        interval(FpsToInterval(format.framerate)),
-        fourcc(format.fourcc) {
+  explicit VideoFormat(const VideoFormatPod& format) {
+    Construct(format.width, format.height, format.interval, format.fourcc);
+  }
+
+  void Construct(int w, int h, int64 interval_ns, uint32 cc) {
+    width = w;
+    height = h;
+    interval = interval_ns;
+    fourcc = cc;
   }
 
   static int64 FpsToInterval(int fps) {
@@ -190,11 +191,6 @@ struct VideoFormat {
 
   // Get a string presentation in the form of "fourcc width x height x fps"
   std::string ToString() const;
-
-  int    width;     // in number of pixels
-  int    height;    // in number of pixels
-  int64  interval;  // in nanoseconds
-  uint32 fourcc;    // color space. FOURCC_ANY means that any color space is OK.
 };
 
 // Result of video capturer start.

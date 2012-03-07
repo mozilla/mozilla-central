@@ -17,6 +17,8 @@ NSMenuItemAdditionsTest.TestMOnDifferentLayouts
 # Hangs
 # See http://crbug.com/75733
 BookmarkBarControllerTest.DeleteFromOffTheSideWhileItIsOpen
+BookmarkBarControllerTest.HideWhenShowBookmarkBarTrueButDisabled
+BookmarkBarControllerTest.HideWhenShowBookmarkBarFalse
 
 # Crashes, see http://crbug.com/86656
 MacSandboxTest.FileAccess

@@ -128,6 +128,7 @@ class TestPackage(object):
     """
     ok_tests = []
     failed_tests = []
+    timed_out = False
     re_run = re.compile('\[ RUN      \] ?(.*)\r\n')
     re_fail = re.compile('\[  FAILED  \] ?(.*)\r\n')
     re_ok = re.compile('\[       OK \] ?(.*)\r\n')
@@ -152,6 +153,7 @@ class TestPackage(object):
         if found == 3:  # pexpect.TIMEOUT
           logging.error('Test terminated after %d second timeout.',
                         self.timeout)
+          timed_out = True
         break
     p.close()
     if not self.rebaseline and ready_to_continue:
@@ -163,4 +165,4 @@ class TestPackage(object):
                                         '\npexpect.after: %s'
                                         % (p.before,
                                            p.after))]
-    return TestResults.FromOkAndFailed(ok_tests, failed_tests)
+    return TestResults.FromOkAndFailed(ok_tests, failed_tests, timed_out)

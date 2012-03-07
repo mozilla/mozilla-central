@@ -69,6 +69,7 @@ XmppEngineImpl::XmppEngineImpl()
     stanza_handlers_[i].reset(new StanzaHandlerVector());
   }
 
+  // Add XMPP namespaces to XML namespaces stack.
   xmlns_stack_.AddXmlns("stream", "http://etherx.jabber.org/streams");
   xmlns_stack_.AddXmlns("", "jabber:client");
 }
@@ -124,10 +125,10 @@ XmppReturnStatus XmppEngineImpl::ConnectionClosed(int subcode) {
   return XMPP_RETURN_OK;
 }
 
-XmppReturnStatus XmppEngineImpl::SetTls(TlsOptions useTls) {
+XmppReturnStatus XmppEngineImpl::SetTls(TlsOptions use_tls) {
   if (state_ != STATE_START)
     return XMPP_RETURN_BADSTATE;
-  tls_option_ = useTls;
+  tls_option_ = use_tls;
   return XMPP_RETURN_OK;
 }
 

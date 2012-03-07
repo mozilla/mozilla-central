@@ -41,6 +41,7 @@
 #include <stdio.h>
 
 #include "talk/base/ipaddress.h"
+#include "talk/base/byteorder.h"
 #include "talk/base/nethelpers.h"
 #include "talk/base/logging.h"
 #include "talk/base/win32.h"
@@ -292,5 +293,96 @@ size_t HashIP(const IPAddress& ip) {
     }
   }
   return 0;
+}
+
+IPAddress TruncateIP(const IPAddress& ip, int length) {
+  if (length < 0) {
+    return IPAddress();
+  }
+  if (ip.family() == AF_INET) {
+    if (length > 31) {
+      return ip;
+    }
+    if (length == 0) {
+      return IPAddress(INADDR_ANY);
+    }
+    int mask = (0xFFFFFFFF << (32 - length));
+    uint32 host_order_ip = NetworkToHost32(ip.ipv4_address().s_addr);
+    in_addr masked;
+    masked.s_addr = HostToNetwork32(host_order_ip & mask);
+    return IPAddress(masked);
+  } else if (ip.family() == AF_INET6) {
+    if (length > 127) {
+      return ip;
+    }
+    if (length == 0) {
+      return IPAddress(in6addr_any);
+    }
+    in6_addr v6addr = ip.ipv6_address();
+    int position = length / 32;
+    int inner_length = (length - (position * 32));
+    int inner_mask = (0xFFFFFFFF  << (32 - inner_length));
+    uint32* v6_as_ints =
+        reinterpret_cast<uint32*>(&v6addr.s6_addr);
+    in6_addr ip_addr = ip.ipv6_address();
+    for (int i = 0; i < 4; ++i) {
+      if (i == position) {
+        uint32 host_order_inner = NetworkToHost32(v6_as_ints[i]);
+        v6_as_ints[i] = HostToNetwork32(host_order_inner & inner_mask);
+      } else if (i > position) {
+        v6_as_ints[i] = 0;
+      }
+    }
+    return IPAddress(v6addr);
+  }
+  return IPAddress();
+}
+
+int CountIPMaskBits(IPAddress mask) {
+  // Doing this the lazy/simple way.
+  // Clever bit tricks welcome but please be careful re: byte order.
+  uint32 word_to_count = 0;
+  int bits = 0;
+  switch (mask.family()) {
+    case AF_INET: {
+      word_to_count = NetworkToHost32(mask.ipv4_address().s_addr);
+      break;
+    }
+    case AF_INET6: {
+      in6_addr v6addr = mask.ipv6_address();
+      const uint32* v6_as_ints =
+          reinterpret_cast<const uint32*>(&v6addr.s6_addr);
+      int i = 0;
+      for (; i < 4; ++i) {
+        if (v6_as_ints[i] != 0xFFFFFFFF) {
+          break;
+        }
+      }
+      if (i < 4) {
+        word_to_count = NetworkToHost32(v6_as_ints[i]);
+      }
+      bits = (i * 32);
+      break;
+    }
+    default: {
+      return 0;
+    }
+  }
+  // Check for byte boundaries before scanning.
+  if (word_to_count == 0) {
+    return bits;
+  } else if (word_to_count == 0xFF000000) {
+    return bits + 8;
+  } else if (word_to_count == 0xFFFF0000) {
+    return bits + 16;
+  } else if (word_to_count == 0xFFFFFF00) {
+    return bits + 24;
+  }
+
+  while (word_to_count & 0x80000000) {
+    word_to_count <<= 1;
+    ++bits;
+  }
+  return bits;
 }
 }  // Namespace talk base

@@ -1,4 +1,4 @@
-# Copyright (c) 2011 The Chromium Authors. All rights reserved.
+# Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -27,11 +27,11 @@
           # Whether we are using Views Toolkit
           'toolkit_views%': 0,
 
-          # Whether the compositor is enabled on views.
-          'views_compositor%': 0,
-
-          # Whether or not we are building with the Aura window manager.
+          # Whether or not we are using the Aura windowing framework.
           'use_aura%': 0,
+
+          # Whether or not we are building the Ash shell.
+          'use_ash%': 0,
 
           # Use OpenSSL instead of NSS. Under development: see http://crbug.com/62803
           'use_openssl%': 0,
@@ -45,8 +45,8 @@
         },
         # Copy conditionally-set variables out one scope.
         'chromeos%': '<(chromeos)',
-        'views_compositor%': '<(views_compositor)',
         'use_aura%': '<(use_aura)',
+        'use_ash%': '<(use_ash)',
         'use_openssl%': '<(use_openssl)',
         'use_virtual_keyboard%': '<(use_virtual_keyboard)',
         'use_skia_on_mac%': '<(use_skia_on_mac)',
@@ -63,23 +63,16 @@
               '<!(uname -m | sed -e "s/i.86/ia32/;s/x86_64/x64/;s/amd64/x64/;s/arm.*/arm/;s/i86pc/ia32/")',
           }],
 
-          # Set default value of toolkit_views based on OS.
+          # Ash and ChromeOS require Aura.
+          ['use_ash==1 or chromeos==1', {
+            'use_aura%': 1,
+          }],
+
+          # Set value of toolkit_views based on OS.
           ['OS=="win" or chromeos==1 or use_aura==1', {
             'toolkit_views%': 1,
           }, {
             'toolkit_views%': 0,
-          }],
-
-          # Use the views compositor when using the Aura window manager.
-          ['use_aura==1', {
-            'views_compositor%': 1,
-          }],
-
-          # Use the WebKit compositor for ui, when Aura is on.
-          ['use_aura==1', {
-            'use_webkit_compositor%': 1,
-          }, {
-            'use_webkit_compositor%': 0,
           }],
         ],
       },
@@ -88,9 +81,8 @@
       'chromeos%': '<(chromeos)',
       'host_arch%': '<(host_arch)',
       'toolkit_views%': '<(toolkit_views)',
-      'views_compositor%': '<(views_compositor)',
-      'use_webkit_compositor%': '<(use_webkit_compositor)',
       'use_aura%': '<(use_aura)',
+      'use_ash%': '<(use_ash)',
       'use_openssl%': '<(use_openssl)',
       'use_virtual_keyboard%': '<(use_virtual_keyboard)',
       'use_skia_on_mac%': '<(use_skia_on_mac)',
@@ -134,8 +126,8 @@
       # Disable file manager component extension by default.
       'file_manager_extension%': 0,
 
-      # Enable WebUI TaskManager by default.
-      'webui_task_manager%': 1,
+      # Disable WebUI TaskManager by default.
+      'webui_task_manager%': 0,
 
       # Python version.
       'python_ver%': '2.6',
@@ -175,9 +167,6 @@
       # Remoting compilation is enabled by default. Set to 0 to disable.
       'remoting%': 1,
 
-      # Threaded compositing
-      'use_threaded_compositing%': 0,
-
       # P2P APIs are compiled in by default. Set to 0 to disable.
       # Also note that this should be enabled for remoting to compile.
       'p2p_apis%': 1,
@@ -205,6 +194,12 @@
       # See https://sites.google.com/a/chromium.org/dev/developers/testing/addresssanitizer
       'asan%': 0,
 
+      # Use the provided profiled order file to link Chrome image with it.
+      # This makes Chrome faster by better using CPU cache when executing code.
+      # This is known as PGO (profile guided optimization).
+      # See https://sites.google.com/a/google.com/chrome-msk/dev/boot-speed-up-effort
+      'order_text_section%' : "",
+
       # Set to 1 compile with -fPIC cflag on linux. This is a must for shared
       # libraries on linux x86-64 and arm, plus ASLR.
       'linux_fpic%': 1,
@@ -212,8 +207,13 @@
       # Enable navigator.registerProtocolHandler and supporting UI.
       'enable_register_protocol_handler%': 1,
 
-      # Enable Web Intents and supporting UI.
-      'enable_web_intents%': 0,
+      # Enable Web Intents support in WebKit, dispatching of intents,
+      # and extensions Web Intents support.
+      'enable_web_intents%': 1,
+
+      # Enable Web Intents web content registration via HTML element
+      # and WebUI managing such registrations.
+      'enable_web_intents_tag%': 0,
 
       # Webrtc compilation is enabled by default. Set to 0 to disable.
       'enable_webrtc%': 1,
@@ -229,12 +229,34 @@
       # For example, use_xi2_mt=2 means XI2.2 or above version is required.
       'use_xi2_mt%': 0,
 
-      # Use of precompiled headers on Windows is off by default
-      # because of complications that it can cause with our
-      # infrastructure (trybots etc.).  Enable by setting to 1 in
-      # ~/.gyp/include.gypi or via the GYP command line for ~20-25%
-      # faster builds.
+      # Use of precompiled headers on Windows.
+      #
+      # This is on by default in VS 2010, but off by default for VS
+      # 2008 because of complications that it can cause with our
+      # trybots etc.
+      #
+      # This variable may be explicitly set to 1 (enabled) or 0
+      # (disabled) in ~/.gyp/include.gypi or via the GYP command line.
+      # This setting will override the default.
+      #
+      # Note that a setting of 1 is probably suitable for most or all
+      # Windows developers using VS 2008, since precompiled headers
+      # provide a build speedup of 20-25%.  There are a couple of
+      # small workarounds you may need to use when using VS 2008 (but
+      # not 2010), see
+      # http://code.google.com/p/chromium/wiki/WindowsPrecompiledHeaders
+      # for details.
       'chromium_win_pch%': 0,
+
+      # Enable plug-in installation by default.
+      'enable_plugin_installation%': 1,
+
+      # Specifies whether to use canvas_skia_skia.cc in place of platform
+      # specific implementations of CanvasSkia. Affects text drawing in the
+      # Chrome UI.
+      # TODO(asvitkine): Enable this on all platforms and delete this flag.
+      #                  http://crbug.com/105550
+      'use_canvas_skia_skia%': 0,
 
       'conditions': [
         # TODO(epoger): Figure out how to set use_skia=1 for Mac outside of
@@ -272,31 +294,32 @@
         # Flags to use X11 on non-Mac POSIX platforms
         ['OS=="win" or OS=="mac" or OS=="android"', {
           'use_glib%': 0,
-          'toolkit_uses_gtk%': 0,
           'use_x11%': 0,
         }, {
-          # TODO(dnicoara) Wayland build should have these disabled, but
-          # currently GTK and X is too spread and it's hard to completely
-          # remove every dependency.
+          # TODO(dnicoara/msb) Wayland build should have these disabled.
           'use_glib%': 1,
-          'toolkit_uses_gtk%': 1,
           'use_x11%': 1,
         }],
+
+        # Aura and most platforms never use GTK. 
+        ['use_aura==1 or OS=="win" or OS=="mac" or OS=="android"', {
+          'toolkit_uses_gtk%': 0,
+        }, {
+          'toolkit_uses_gtk%': 1,
+        }],
+
         # We always use skia text rendering in Aura on Windows, since GDI
         # doesn't agree with our BackingStore.
         # TODO(beng): remove once skia text rendering is on by default.
         ['use_aura==1 and OS=="win"', {
           'enable_skia_text%': 1,
         }],
-        ['use_aura==1 and OS!="win"', {
-          'toolkit_uses_gtk%': 0,
-        }],
 
         # A flag to enable or disable our compile-time dependency
         # on gnome-keyring. If that dependency is disabled, no gnome-keyring
         # support will be available. This option is useful
         # for Linux distributions and for Aura.
-        ['chromeos==1 or use_aura==1', {
+        ['use_aura==1', {
           'use_gnome_keyring%': 0,
         }, {
           'use_gnome_keyring%': 1,
@@ -308,26 +331,17 @@
         }],
 
         # Enable some hacks to support Flapper only on Chrome OS.
+        # Enable file manager extension on ChromeOS.
         ['chromeos==1', {
           'enable_flapper_hacks%': 1,
-        }, {
-          'enable_flapper_hacks%': 0,
-        }],
-
-        # Enable file manager extension on Chrome OS or Aura.
-        ['chromeos==1 or use_aura==1', {
           'file_manager_extension%': 1,
         }, {
+          'enable_flapper_hacks%': 0,
           'file_manager_extension%': 0,
         }],
 
-        # ... except on Windows even with Aura.
-        ['use_aura==1 and OS=="win"', {
-          'file_manager_extension%': 0,
-        }],
-
-        # Enable WebUI TaskManager always on Chrome OS or Aura.
-        ['chromeos==1 or use_aura==1', {
+        # Enable WebUI TaskManager on Aura.
+        ['use_aura==1', {
           'webui_task_manager%': 1,
         }],
 
@@ -338,10 +352,31 @@
 
         # Use GPU accelerated cross process image transport by default
         # on linux builds with the Aura window manager
-        ['views_compositor==1 and OS=="linux"', {
+        ['use_aura==1 and OS=="linux"', {
           'ui_compositor_image_transport%': 1,
         }, {
           'ui_compositor_image_transport%': 0,
+        }],
+
+        # Turn precompiled headers on by default for VS 2010.
+        ['OS=="win" and MSVS_VERSION=="2010"', {
+          'chromium_win_pch%': 1
+        }],
+
+        # No plugin installation allowed under Aura.
+        ['use_aura==1', {
+          'enable_plugin_installation%': 0,
+        }, {
+          'enable_plugin_installation%': 1,
+        }],
+
+        # Set to 0 to not use third_party/gold as the linker.
+        # On by default for x64 Linux.  Off for ChromeOS as cross-compiling
+        # makes things complicated.
+        ['chromeos==0 and host_arch=="x64"', {
+          'linux_use_gold_binary%': 1,
+        }, {
+          'linux_use_gold_binary%': 0,
         }],
       ],
     },
@@ -353,10 +388,9 @@
     'host_arch%': '<(host_arch)',
     'library%': 'static_library',
     'toolkit_views%': '<(toolkit_views)',
-    'views_compositor%': '<(views_compositor)',
     'ui_compositor_image_transport%': '<(ui_compositor_image_transport)',
-    'use_webkit_compositor%': '<(use_webkit_compositor)',
     'use_aura%': '<(use_aura)',
+    'use_ash%': '<(use_ash)',
     'use_openssl%': '<(use_openssl)',
     'use_nss%': '<(use_nss)',
     'os_bsd%': '<(os_bsd)',
@@ -388,7 +422,6 @@
     'use_titlecase_in_grd_files%': '<(use_titlecase_in_grd_files)',
     'use_third_party_translations%': '<(use_third_party_translations)',
     'remoting%': '<(remoting)',
-    'use_threaded_compositing%': '<(use_threaded_compositing)',
     'enable_webrtc%': '<(enable_webrtc)',
     'chromium_win_pch%': '<(chromium_win_pch)',
     'p2p_apis%': '<(p2p_apis)',
@@ -398,8 +431,13 @@
     'notifications%': '<(notifications)',
     'clang_use_chrome_plugins%': '<(clang_use_chrome_plugins)',
     'asan%': '<(asan)',
+    'order_text_section%': '<(order_text_section)',
     'enable_register_protocol_handler%': '<(enable_register_protocol_handler)',
     'enable_web_intents%': '<(enable_web_intents)',
+    'enable_web_intents_tag%': '<(enable_web_intents_tag)',
+    'enable_plugin_installation%': '<(enable_plugin_installation)',
+    'linux_use_gold_binary%': '<(linux_use_gold_binary)',
+    'use_canvas_skia_skia%': '<(use_canvas_skia_skia)',
     # Whether to build for Wayland display server
     'use_wayland%': 0,
 
@@ -587,7 +625,7 @@
       'am', 'ar', 'bg', 'bn', 'ca', 'cs', 'da', 'de', 'el', 'en-GB',
       'en-US', 'es-419', 'es', 'et', 'fa', 'fi', 'fil', 'fr', 'gu', 'he',
       'hi', 'hr', 'hu', 'id', 'it', 'ja', 'kn', 'ko', 'lt', 'lv',
-      'ml', 'mr', 'nb', 'nl', 'pl', 'pt-BR', 'pt-PT', 'ro', 'ru',
+      'ml', 'mr', 'ms', 'nb', 'nl', 'pl', 'pt-BR', 'pt-PT', 'ro', 'ru',
       'sk', 'sl', 'sr', 'sv', 'sw', 'ta', 'te', 'th', 'tr', 'uk',
       'vi', 'zh-CN', 'zh-TW',
     ],
@@ -601,32 +639,22 @@
 
     'grit_defines': [],
 
-    # Use Harfbuzz-NG instead of Harfbuzz.
-    # Under development: http://crbug.com/68551
-    'use_harfbuzz_ng%': 0,
-
     # If debug_devtools is set to 1, JavaScript files for DevTools are
     # stored as is and loaded from disk. Otherwise, a concatenated file
     # is stored in resources.pak. It is still possible to load JS files
     # from disk by passing --debug-devtools cmdline switch.
     'debug_devtools%': 0,
 
-    # Point to ICU directory.
-    'icu_src_dir': '../third_party/icu',
-
     # The Java Bridge is not compiled in by default.
     'java_bridge%': 0,
-
-    # TODO(dpranke): This determines whether we should attempt to build DRT
-    # et al. from WebKit/Source/WebKit.gyp or Tools/Tools.gyp. This
-    # flag should only be needed temporarily. See
-    # https://bugs.webkit.org/show_bug.cgi?id=68463.
-    'build_webkit_exes_from_webkit_gyp%': 1,
 
     # This flag is only used when disable_nacl==0 and disables all those
     # subcomponents which would require the installation of a native_client
     # untrusted toolchain.
     'disable_nacl_untrusted%': 0,
+
+    # Disable Dart by default.
+    'enable_dart%': 0,
 
     'conditions': [
       # Used to disable Native Client at compile time, for platforms where it
@@ -758,14 +786,14 @@
         ],
       }],  # OS=="mac"
 
-      # Whether to use multiple cores to compile with visual studio. This is
-      # optional because it sometimes causes corruption on VS 2005.
-      # It is on by default on VS 2008 and off on VS 2005.
       ['OS=="win"', {
         'conditions': [
           ['component=="shared_library"', {
             'win_use_allocator_shim%': 0,
           }],
+          # Whether to use multiple cores to compile with visual studio. This is
+          # optional because it sometimes causes corruption on VS 2005.
+          # It is on by default on VS 2008 and off on VS 2005.
           ['MSVS_VERSION=="2005"', {
             'msvs_multi_core_compile%': 0,
           },{
@@ -835,6 +863,9 @@
       ['use_aura==1', {
         'grit_defines': ['-D', 'use_aura'],
       }],
+      ['use_ash==1', {
+        'grit_defines': ['-D', 'use_ash'],
+      }],
       ['use_nss==1', {
         'grit_defines': ['-D', 'use_nss'],
       }],
@@ -879,8 +910,8 @@
         'grit_defines': ['-D', 'enable_register_protocol_handler'],
       }],
 
-      ['enable_web_intents==1', {
-        'grit_defines': ['-D', 'enable_web_intents'],
+      ['enable_web_intents_tag==1', {
+        'grit_defines': ['-D', 'enable_web_intents_tag'],
       }],
 
       ['asan==1', {
@@ -997,17 +1028,14 @@
       ['toolkit_views==1', {
         'defines': ['TOOLKIT_VIEWS=1'],
       }],
-      ['views_compositor==1', {
-        'defines': ['VIEWS_COMPOSITOR=1'],
-      }],
       ['ui_compositor_image_transport==1', {
         'defines': ['UI_COMPOSITOR_IMAGE_TRANSPORT'],
       }],
-      ['use_webkit_compositor==1', {
-        'defines': ['USE_WEBKIT_COMPOSITOR=1'],
-      }],
       ['use_aura==1', {
         'defines': ['USE_AURA=1'],
+      }],
+      ['use_ash==1', {
+        'defines': ['USE_ASH=1'],
       }],
       ['use_nss==1', {
         'defines': ['USE_NSS=1'],
@@ -1193,6 +1221,12 @@
       ['OS=="win" and branding=="Chrome"', {
         'defines': ['ENABLE_SWIFTSHADER'],
       }],
+      ['enable_dart==1', {
+        'defines': ['WEBKIT_USING_DART=1'],
+      }],
+      ['enable_plugin_installation==1', {
+        'defines': ['ENABLE_PLUGIN_INSTALLATION=1'],
+      }],
     ],  # conditions for 'target_defaults'
     'target_conditions': [
       ['enable_wexit_time_destructors==1', {
@@ -1234,17 +1268,12 @@
               '-Wsign-compare',
             ]
           }],
-          [ 'os_posix==1 and os_bsd!=1 and OS!="mac" and OS!="android" and chromeos==0', {
+          [ 'os_posix==1 and os_bsd!=1 and OS!="mac" and OS!="android"', {
             'cflags': [
               # Don't warn about ignoring the return value from e.g. close().
               # This is off by default in some gccs but on by default in others.
-              # Currently this option is not set for Chrome OS build because
-              # the current version of gcc (4.3.4) used for building Chrome in
-              # Chrome OS chroot doesn't support this option.
-              # BSD systems do not support this option either, since they are
-              # usually using gcc 4.2.1, which does not have this flag yet.
-              # TODO(mazda): remove the conditional for Chrome OS when gcc
-              # version is upgraded.
+              # BSD systems do not support this option, since they are usually
+              # using gcc 4.2.1, which does not have this flag yet.
               '-Wno-unused-result',
             ],
           }],
@@ -1278,65 +1307,17 @@
           }],
         ],
       }, {
+        'includes': [
+           # Rules for excluding e.g. foo_win.cc from the build on non-Windows.
+          'filename_rules.gypi',
+        ],
         # In Chromium code, we define __STDC_FORMAT_MACROS in order to get the
         # C99 macros on Mac and Linux.
         'defines': [
           '__STDC_FORMAT_MACROS',
         ],
         'conditions': [
-          ['OS!="win"', {
-            'sources/': [ ['exclude', '_win(_unittest)?\\.(h|cc)$'],
-                          ['exclude', '(^|/)win/'],
-                          ['exclude', '(^|/)win_[^/]*\\.(h|cc)$'] ],
-          }],
-          ['OS!="mac"', {
-            'sources/': [ ['exclude', '_(cocoa|mac)(_unittest)?\\.(h|cc)$'],
-                          ['exclude', '(^|/)(cocoa|mac)/'],
-                          ['exclude', '\\.mm?$' ] ],
-          }],
-          ['use_x11!=1', {
-            'sources/': [
-              ['exclude', '_(chromeos|x|x11)(_unittest)?\\.(h|cc)$'],
-              ['exclude', '(^|/)x11_[^/]*\\.(h|cc)$'],
-            ],
-          }],
-          ['toolkit_uses_gtk!=1', {
-            'sources/': [
-              ['exclude', '_gtk(_unittest)?\\.(h|cc)$'],
-              ['exclude', '(^|/)gtk/'],
-              ['exclude', '(^|/)gtk_[^/]*\\.(h|cc)$'],
-            ],
-          }],
-          ['OS!="linux" and OS!="openbsd" and OS!="freebsd"', {
-            'sources/': [
-              ['exclude', '_xdg(_unittest)?\\.(h|cc)$'],
-            ],
-          }],
-          ['use_wayland!=1', {
-            'sources/': [
-              ['exclude', '_(wayland)(_unittest)?\\.(h|cc)$'],
-              ['exclude', '(^|/)wayland/'],
-              ['exclude', '(^|/)(wayland)_[^/]*\\.(h|cc)$'],
-            ],
-          }],
-          # Do not exclude the linux files on *BSD since most of them can be
-          # shared at this point.
-          # In case a file is not needed, it is going to be excluded later on.
-          ['OS!="linux" and OS!="openbsd" and OS!="freebsd"', {
-            'sources/': [
-              ['exclude', '_linux(_unittest)?\\.(h|cc)$'],
-              ['exclude', '(^|/)linux/'],
-            ],
-          }],
-          ['OS!="android"', {
-            'sources/': [
-              ['exclude', '_android(_unittest)?\\.cc$'],
-              ['exclude', '(^|/)android/'],
-            ],
-          }],
-          # We use "POSIX" to refer to all non-Windows operating systems.
           ['OS=="win"', {
-            'sources/': [ ['exclude', '_posix(_unittest)?\\.(h|cc)$'] ],
             # turn on warnings for signed/unsigned mismatch on chromium code.
             'msvs_settings': {
               'VCCLCompilerTool': {
@@ -1348,23 +1329,6 @@
             'msvs_disabled_warnings': [
               4251,  # class 'std::xx' needs to have dll-interface.
             ],
-          }],
-          ['chromeos!=1', {
-            'sources/': [ ['exclude', '_chromeos\\.(h|cc)$'] ]
-          }],
-          ['toolkit_views==0', {
-            'sources/': [ ['exclude', '_views\\.(h|cc)$'] ]
-          }],
-          ['use_aura==0', {
-            'sources/': [ ['exclude', '_aura\\.(h|cc)$'],
-                          ['exclude', '(^|/)aura/'],
-            ]
-          }],
-          ['use_aura==0 or use_x11==0', {
-            'sources/': [ ['exclude', '_aurax11\\.(h|cc)$'] ]
-          }],
-          ['use_aura==0 or OS!="win"', {
-            'sources/': [ ['exclude', '_aurawin\\.(h|cc)$'] ]
           }],
         ],
       }],
@@ -1512,9 +1476,14 @@
         },
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'Optimization': '<(win_release_Optimization)',
             'RuntimeLibrary': '<(win_release_RuntimeLibrary)',
             'conditions': [
+              # In official builds, each target will self-select
+              # an optimization level.
+              ['buildtype!="Official"', {
+                  'Optimization': '<(win_release_Optimization)',
+                },
+              ],
               # According to MSVS, InlineFunctionExpansion=0 means
               # "default inlining", not "/Ob0".
               # Thus, we have to handle InlineFunctionExpansion==0 separately.
@@ -1610,20 +1579,16 @@
         # Enable -Werror by default, but put it in a variable so it can
         # be disabled in ~/.gyp/include.gypi on the valgrind builders.
         'variables': {
-          # Use -fno-strict-aliasing, see http://crbug.com/32204
-          'no_strict_aliasing%': 1,
-          'conditions': [
-            ['OS=="linux"', {
-              'werror%': '-Werror',
-              }, { # turn off -Werror on other Unices
-              'werror%': '',
-            }],
-          ],
+          'werror%': '-Werror',
         },
+        'defines': [
+          '_FILE_OFFSET_BITS=64',
+        ],
         'cflags': [
           '<(werror)',  # See note above about the werror variable.
           '-pthread',
           '-fno-exceptions',
+          '-fno-strict-aliasing',  # See http://crbug.com/32204
           '-Wall',
           # TODO(evan): turn this back on once all the builds work.
           # '-Wextra',
@@ -1631,7 +1596,6 @@
           '-Wno-unused-parameter',
           # Don't warn about the "struct foo f = {0};" initialization pattern.
           '-Wno-missing-field-initializers',
-          '-D_FILE_OFFSET_BITS=64',
           # Don't export any symbols (for example, to plugins we dlopen()).
           # Note: this is *required* to make some plugins work.
           '-fvisibility=hidden',
@@ -1893,10 +1857,12 @@
                           '-march=armv5te',
                           '-mtune=xscale',
                           '-msoft-float',
-                          '-D__ARM_ARCH_5__',
-                          '-D__ARM_ARCH_5T__',
-                          '-D__ARM_ARCH_5E__',
-                          '-D__ARM_ARCH_5TE__',
+                        ],
+                        'defines': [
+                          '__ARM_ARCH_5__',
+                          '__ARM_ARCH_5T__',
+                          '__ARM_ARCH_5E__',
+                          '__ARM_ARCH_5TE__',
                         ],
                       }],
                     ],
@@ -1957,6 +1923,15 @@
               # This (rightyfully) complains about 'override', which we use
               # heavily.
               '-Wno-c++11-extensions',
+
+              # Warns on switches on enums that cover all enum values but
+              # also contain a default: branch. Chrome is full of that.
+              '-Wno-covered-switch-default',
+
+              # TODO(thakis): Reenable once this no longer complains about
+              # Invalid() in gmocks's gmock-internal-utils.h
+              # http://crbug.com/111806
+              '-Wno-null-dereference',
             ],
             'cflags!': [
               # Clang doesn't seem to know know this flag.
@@ -1978,25 +1953,23 @@
               '-Xclang', '-add-plugin', '-Xclang', '<(clang_add_plugin)',
             ],
           }],
-          ['asan==1', {
-            # TODO(glider): -fasan is deprecated. Remove it when we stop using
-            # it.
+          ['clang==1 and "<(GENERATOR)"=="ninja"', {
             'cflags': [
-              '-fasan',
+              # See http://crbug.com/110262
+              '-fcolor-diagnostics',
+            ],
+          }],
+          ['asan==1', {
+            'cflags': [
               '-faddress-sanitizer',
+              '-fno-omit-frame-pointer',
               '-w',
             ],
             'ldflags': [
-              '-fasan',
               '-faddress-sanitizer',
             ],
             'defines': [
               'ADDRESS_SANITIZER',
-            ],
-          }],
-          ['no_strict_aliasing==1', {
-            'cflags': [
-              '-fno-strict-aliasing',
             ],
           }],
           ['linux_breakpad==1', {
@@ -2005,16 +1978,27 @@
           }],
           ['linux_use_heapchecker==1', {
             'variables': {'linux_use_tcmalloc%': 1},
+            'defines': ['USE_HEAPCHECKER'],
           }],
           ['linux_use_tcmalloc==0', {
             'defines': ['NO_TCMALLOC'],
           }],
-          ['linux_use_heapchecker==0', {
-            'defines': ['NO_HEAPCHECKER'],
-          }],
           ['linux_keep_shadow_stacks==1', {
             'defines': ['KEEP_SHADOW_STACKS'],
             'cflags': ['-finstrument-functions'],
+          }],
+          ['linux_use_gold_binary==1', {
+            'variables': {
+              # We pass the path to gold to the compiler.  gyp leaves
+              # unspecified what the cwd is when running the compiler,
+              # so the normal gyp path-munging fails us.  This hack
+              # gets the right path.
+              'gold_path': '<(PRODUCT_DIR)/../../third_party/gold',
+            },
+            'ldflags': [
+              # Put our gold binary in the search path for the linker.
+              '-B<(gold_path)',
+            ],
           }],
         ],
       },
@@ -2292,11 +2276,11 @@
               'CC': '$(SOURCE_ROOT)/<(clang_dir)/clang',
               'LDPLUSPLUS': '$(SOURCE_ROOT)/<(clang_dir)/clang++',
 
-	      # Don't use -Wc++0x-extensions, which Xcode 4 enables by default
-	      # when buliding with clang. This warning is triggered when the
-	      # override keyword is used via the OVERRIDE macro from
-	      # base/compiler_specific.h.
-	      'CLANG_WARN_CXX0X_EXTENSIONS': 'NO',
+              # Don't use -Wc++0x-extensions, which Xcode 4 enables by default
+              # when buliding with clang. This warning is triggered when the
+              # override keyword is used via the OVERRIDE macro from
+              # base/compiler_specific.h.
+              'CLANG_WARN_CXX0X_EXTENSIONS': 'NO',
 
               'GCC_VERSION': 'com.apple.compilers.llvm.clang.1_0',
               'WARNING_CFLAGS': [
@@ -2314,6 +2298,15 @@
                 # This (rightyfully) complains about 'override', which we use
                 # heavily.
                 '-Wno-c++11-extensions',
+
+                # Warns on switches on enums that cover all enum values but
+                # also contain a default: branch. Chrome is full of that.
+                '-Wno-covered-switch-default',
+
+                # TODO(thakis): Reenable once this no longer complains about
+                # Invalid() in gmock's gmock-internal-utils.h
+                # http://crbug.com/111806
+                '-Wno-null-dereference',
               ],
             }],
             ['clang==1 and clang_use_chrome_plugins==1', {
@@ -2331,6 +2324,12 @@
                 '-Xclang', '-add-plugin', '-Xclang', '<(clang_add_plugin)',
               ],
             }],
+            ['clang==1 and "<(GENERATOR)"=="ninja"', {
+              'OTHER_CFLAGS': [
+                # See http://crbug.com/110262
+                '-fcolor-diagnostics',
+              ],
+            }],
           ],
         },
         'conditions': [
@@ -2342,15 +2341,13 @@
           ['asan==1', {
             'xcode_settings': {
               'OTHER_CFLAGS': [
-                '-fasan',
                 '-faddress-sanitizer',
                 '-w',
               ],
               'OTHER_LDFLAGS': [
-                '-fasan',
                 '-faddress-sanitizer',
                 # The symbols below are referenced in the ASan runtime
-                # library (compiled on OS X 10.6), but may be unavailable 
+                # library (compiled on OS X 10.6), but may be unavailable
                 # on the prior OS X versions. Because Chromium is currently
                 # targeting 10.5.0, we need to explicitly mark these
                 # symbols as dynamic_lookup.
@@ -2502,6 +2499,57 @@
           '_HAS_TR1=0',
         ],
         'conditions': [
+          ['buildtype=="Official"', {
+              # In official builds, targets can self-select an optimization
+              # level by defining a variable named 'optimize', and setting it
+              # to one of
+              # - "size", optimizes for minimal code size - the default.
+              # - "speed", optimizes for speed over code size.
+              # - "max", whole program optimization and link-time code
+              #   generation. This is very expensive and should be used
+              #   sparingly.
+              'variables': {
+                'optimize%': 'size',
+              },
+              'target_conditions': [
+                ['optimize=="size"', {
+                    'msvs_settings': {
+                      'VCCLCompilerTool': {
+                        # 1, optimizeMinSpace, Minimize Size (/O1)
+                        'Optimization': '1',
+                        # 2, favorSize - Favor small code (/Os)
+                        'FavorSizeOrSpeed': '2',
+                      },
+                    },
+                  },
+                ],
+                ['optimize=="speed"', {
+                    'msvs_settings': {
+                      'VCCLCompilerTool': {
+                        # 2, optimizeMaxSpeed, Maximize Speed (/O2)
+                        'Optimization': '2',
+                        # 1, favorSpeed - Favor fast code (/Ot)
+                        'FavorSizeOrSpeed': '1',
+                      },
+                    },
+                  },
+                ],
+                ['optimize=="max"', {
+                    'msvs_settings': {
+                      'VCCLCompilerTool': {
+                        # 2, optimizeMaxSpeed, Maximize Speed (/O2)
+                        'Optimization': '2',
+                        # 1, favorSpeed - Favor fast code (/Ot)
+                        'FavorSizeOrSpeed': '1',
+                        # This implies link time code generation.
+                        'WholeProgramOptimization': 'true',
+                      },
+                    },
+                  },
+                ],
+              ],
+            },
+          ],
           ['component=="static_library"', {
             'defines': [
               '_HAS_EXCEPTIONS=0',
@@ -2637,6 +2685,7 @@
             'DelayLoadDLLs': [
               'dbghelp.dll',
               'dwmapi.dll',
+              'shell32.dll',
               'uxtheme.dll',
             ],
           },

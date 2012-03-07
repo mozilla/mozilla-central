@@ -49,13 +49,6 @@ namespace cricket {
 // First PulseAudio protocol version that supports PA_STREAM_ADJUST_LATENCY.
 static const uint32_t kAdjustLatencyProtocolVersion = 13;
 
-// We define this flag if it's missing from our headers, because we want to be
-// able to compile against old headers but still use PA_STREAM_ADJUST_LATENCY
-// if run against a recent version of the library.
-#ifndef PA_STREAM_ADJUST_LATENCY
-#define PA_STREAM_ADJUST_LATENCY 0x2000U
-#endif
-
 // Lookup table from the cricket format enum in soundsysteminterface.h to
 // Pulse's enums.
 static const pa_sample_format_t kCricketFormatToPulseFormatTable[] = {

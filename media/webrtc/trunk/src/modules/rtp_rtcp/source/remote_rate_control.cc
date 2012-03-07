@@ -41,27 +41,15 @@ _initializedBitRate(false),
 _avgChangePeriod(1000.0f),
 _lastChangeMs(-1),
 _beta(0.9f)
-#ifdef DEBUG_DELAY_SAMPLES
-,_delayFile(NULL)
-#endif
 #ifdef MATLAB
 ,_plot1(NULL),
 _plot2(NULL)
 #endif
 {
-#ifdef DEBUG_DELAY_SAMPLES
-    _delayFile = fopen("delaySamples.m", "w");
-    fprintf(_delayFile, "delays=[\n");
-#endif
 }
 
 RemoteRateControl::~RemoteRateControl()
 {
-#ifdef DEBUG_DELAY_SAMPLES
-    fprintf(_delayFile, "];");
-    fflush(_delayFile);
-    fclose(_delayFile);
-#endif
 #ifdef MATLAB
     eng.DeletePlot(_plot1);
     eng.DeletePlot(_plot2);
@@ -89,6 +77,10 @@ void RemoteRateControl::Reset()
     _updated = false;
     _timeFirstIncomingEstimate = -1;
     _initializedBitRate = false;
+}
+
+bool RemoteRateControl::ValidEstimate() {
+  return _initializedBitRate;
 }
 
 WebRtc_Word32 RemoteRateControl::SetConfiguredBitRates(WebRtc_UWord32 minBitRateBps, WebRtc_UWord32 maxBitRateBps)

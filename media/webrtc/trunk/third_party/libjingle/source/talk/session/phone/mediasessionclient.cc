@@ -311,7 +311,7 @@ bool ParseGingleEncryption(const buzz::XmlElement* desc,
 void ParseBandwidth(const buzz::XmlElement* parent_elem,
                     MediaContentDescription* media) {
   const buzz::XmlElement* bw_elem = GetXmlChild(parent_elem, LN_BANDWIDTH);
-  int bandwidth_kbps;
+  int bandwidth_kbps = -1;
   if (bw_elem && talk_base::FromString(bw_elem->BodyText(), &bandwidth_kbps)) {
     if (bandwidth_kbps >= 0) {
       media->set_bandwidth(bandwidth_kbps * 1000);

@@ -43,46 +43,10 @@ namespace cricket {
 
 namespace {
 
-bool GetFirstSourceByNick(const NamedSources& sources,
-                          const std::string& nick,
-                          NamedSource* source_out) {
-  for (NamedSources::const_iterator source = sources.begin();
-       source != sources.end(); ++source) {
-    if (source->nick == nick) {
-      *source_out = *source;
-      return true;
-    }
-  }
-  return false;
-}
-
-bool GetSourceBySsrc(const NamedSources& sources, uint32 ssrc,
-                     NamedSource* source_out) {
-  for (NamedSources::const_iterator source = sources.begin();
-       source != sources.end(); ++source) {
-    if (source->ssrc == ssrc) {
-      *source_out = *source;
-      return true;
-    }
-  }
-  return false;
-}
-
-// NOTE: There is no check here for duplicate sources, so check before
+// NOTE: There is no check here for duplicate streams, so check before
 // adding.
-void AddSource(NamedSources* sources, const NamedSource& source) {
-  sources->push_back(source);
-}
-
-void RemoveSourceBySsrc(uint32 ssrc, NamedSources* sources) {
-  for (NamedSources::iterator source = sources->begin();
-       source != sources->end(); ) {
-    if (source->ssrc == ssrc) {
-      source = sources->erase(source);
-    } else {
-      ++source;
-    }
-  }
+void AddStream(std::vector<StreamParams>* streams, const StreamParams& stream) {
+  streams->push_back(stream);
 }
 
 bool ParseSsrc(const std::string& string, uint32* ssrc) {
@@ -94,29 +58,6 @@ bool ParseSsrc(const buzz::XmlElement* element, uint32* ssrc) {
     return false;
   }
   return ParseSsrc(element->BodyText(), ssrc);
-}
-
-bool ParseNamedSource(const buzz::XmlElement* source_elem,
-                      NamedSource* named_source,
-                      ParseError* error) {
-  named_source->nick = source_elem->Attr(QN_NICK);
-  if (named_source->nick.empty()) {
-    return BadParse("Missing or invalid nick.", error);
-  }
-
-  named_source->name = source_elem->Attr(QN_NAME);
-
-  const buzz::XmlElement* ssrc_elem =
-      source_elem->FirstNamed(QN_JINGLE_DRAFT_SSRC);
-  if (ssrc_elem != NULL && !ssrc_elem->BodyText().empty()) {
-    uint32 ssrc;
-    if (!ParseSsrc(ssrc_elem->BodyText(), &ssrc)) {
-      return BadParse("Missing or invalid ssrc.", error);
-    }
-    named_source->SetSsrc(ssrc);
-  }
-
-  return true;
 }
 
 // Builds a <view> element according to the following spec:
@@ -157,47 +98,49 @@ buzz::XmlElement* CreateStaticVideoViewElem(const std::string& content_name,
 
 }  //  namespace
 
-bool MediaSources::GetFirstAudioSourceByNick(
-    const std::string& nick, NamedSource* source) {
-  return GetFirstSourceByNick(audio_, nick, source);
+bool MediaStreams::GetAudioStreamByNickAndName(
+    const std::string& nick, const std::string& name, StreamParams* stream) {
+  return GetStreamByNickAndName(audio_, nick, name, stream);
 }
 
-bool MediaSources::GetFirstVideoSourceByNick(
-    const std::string& nick, NamedSource* source) {
-  return GetFirstSourceByNick(video_, nick, source);
+bool MediaStreams::GetVideoStreamByNickAndName(
+    const std::string& nick, const std::string& name, StreamParams* stream) {
+  return GetStreamByNickAndName(video_, nick, name, stream);
 }
 
-void MediaSources::CopyFrom(const MediaSources& sources) {
-  audio_ = sources.audio_;
-  video_ = sources.video_;
+void MediaStreams::CopyFrom(const MediaStreams& streams) {
+  audio_ = streams.audio_;
+  video_ = streams.video_;
 }
 
-bool MediaSources::GetAudioSourceBySsrc(uint32 ssrc, NamedSource* source) {
-  return GetSourceBySsrc(audio_, ssrc, source);
+bool MediaStreams::GetAudioStreamBySsrc(uint32 ssrc, StreamParams* stream) {
+  return GetStreamBySsrc(audio_, ssrc, stream);
 }
 
-bool MediaSources::GetVideoSourceBySsrc(uint32 ssrc, NamedSource* source) {
-  return GetSourceBySsrc(video_, ssrc, source);
+bool MediaStreams::GetVideoStreamBySsrc(uint32 ssrc, StreamParams* stream) {
+  return GetStreamBySsrc(video_, ssrc, stream);
 }
 
-void MediaSources::AddAudioSource(const NamedSource& source) {
-  AddSource(&audio_, source);
+void MediaStreams::AddAudioStream(const StreamParams& stream) {
+  AddStream(&audio_, stream);
 }
 
-void MediaSources::AddVideoSource(const NamedSource& source) {
-  AddSource(&video_, source);
+void MediaStreams::AddVideoStream(const StreamParams& stream) {
+  AddStream(&video_, stream);
 }
 
-void MediaSources::RemoveAudioSourceBySsrc(uint32 ssrc) {
-  RemoveSourceBySsrc(ssrc, &audio_);
+void MediaStreams::RemoveAudioStreamByNickAndName(
+    const std::string& nick, const std::string& name) {
+  RemoveStreamByNickAndName(&audio_, nick, name);
 }
 
-void MediaSources::RemoveVideoSourceBySsrc(uint32 ssrc) {
-  RemoveSourceBySsrc(ssrc, &video_);
+void MediaStreams::RemoveVideoStreamByNickAndName(
+    const std::string& nick, const std::string& name) {
+  RemoveStreamByNickAndName(&video_, nick, name);
 }
 
-bool IsJingleViewRequest(const XmlElements& action_elems) {
-  return GetXmlElement(action_elems, QN_JINGLE_DRAFT_VIEW) != NULL;
+bool IsJingleViewRequest(const buzz::XmlElement* action_elem) {
+  return action_elem->FirstNamed(QN_JINGLE_DRAFT_VIEW) != NULL;
 }
 
 bool ParseStaticVideoView(const buzz::XmlElement* view_elem,
@@ -221,26 +164,25 @@ bool ParseStaticVideoView(const buzz::XmlElement* view_elem,
   return true;
 }
 
-bool ParseJingleViewRequest(const XmlElements& action_elems,
+bool ParseJingleViewRequest(const buzz::XmlElement* action_elem,
                             ViewRequest* view_request,
                             ParseError* error) {
-  for (XmlElements::const_iterator iter = action_elems.begin();
-       iter != action_elems.end(); ++iter) {
-    const buzz::XmlElement* view_elem = *iter;
-    if (view_elem->Name() == QN_JINGLE_DRAFT_VIEW) {
-      std::string type = view_elem->Attr(QN_TYPE);
-      if (STR_JINGLE_DRAFT_VIEW_TYPE_NONE == type) {
-        view_request->static_video_views.clear();
-        return true;
-      } else if (STR_JINGLE_DRAFT_VIEW_TYPE_STATIC == type) {
-        StaticVideoView static_video_view(0, 0, 0, 0);
-        if (!ParseStaticVideoView(view_elem, &static_video_view, error)) {
-          return false;
-        }
-        view_request->static_video_views.push_back(static_video_view);
-      } else {
-        LOG(LS_INFO) << "Ingnoring unknown view type: " << type;
+  for (const buzz::XmlElement* view_elem =
+           action_elem->FirstNamed(QN_JINGLE_DRAFT_VIEW);
+       view_elem != NULL;
+       view_elem = view_elem->NextNamed(QN_JINGLE_DRAFT_VIEW)) {
+    std::string type = view_elem->Attr(QN_TYPE);
+    if (STR_JINGLE_DRAFT_VIEW_TYPE_NONE == type) {
+      view_request->static_video_views.clear();
+      return true;
+    } else if (STR_JINGLE_DRAFT_VIEW_TYPE_STATIC == type) {
+      StaticVideoView static_video_view(0, 0, 0, 0);
+      if (!ParseStaticVideoView(view_elem, &static_video_view, error)) {
+        return false;
       }
+      view_request->static_video_views.push_back(static_video_view);
+    } else {
+      LOG(LS_INFO) << "Ingnoring unknown view type: " << type;
     }
   }
   return true;
@@ -259,48 +201,6 @@ bool WriteJingleViewRequest(const std::string& content_name,
       elems->push_back(CreateStaticVideoViewElem(content_name, *view));
     }
   }
-  return true;
-}
-
-bool IsSourcesNotify(const buzz::XmlElement* action_elem) {
-  return action_elem->FirstNamed(QN_JINGLE_LEGACY_NOTIFY) != NULL;
-}
-
-bool ParseSourcesNotify(const buzz::XmlElement* action_elem,
-                        const SessionDescription* session_description,
-                        MediaSources* sources,
-                        ParseError* error) {
-  for (const buzz::XmlElement* notify_elem =
-           action_elem->FirstNamed(QN_JINGLE_LEGACY_NOTIFY);
-       notify_elem != NULL;
-       notify_elem = notify_elem->NextNamed(QN_JINGLE_LEGACY_NOTIFY)) {
-    std::string content_name = notify_elem->Attr(QN_NAME);
-    for (const buzz::XmlElement* source_elem =
-             notify_elem->FirstNamed(QN_JINGLE_LEGACY_SOURCE);
-         source_elem != NULL;
-         source_elem = source_elem->NextNamed(QN_JINGLE_LEGACY_SOURCE)) {
-      NamedSource named_source;
-      if (!ParseNamedSource(source_elem, &named_source, error)) {
-        return false;
-      }
-
-      if (session_description == NULL) {
-        return BadParse("Unknown content name: " + content_name, error);
-      }
-      const ContentInfo* content =
-          FindContentInfoByName(session_description->contents(), content_name);
-      if (content == NULL) {
-        return BadParse("Unknown content name: " + content_name, error);
-      }
-
-      if (IsAudioContent(content)) {
-        sources->mutable_audio()->push_back(named_source);
-      } else if (IsVideoContent(content)) {
-        sources->mutable_video()->push_back(named_source);
-      }
-    }
-  }
-
   return true;
 }
 

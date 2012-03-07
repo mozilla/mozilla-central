@@ -124,9 +124,6 @@ class CustomThread : public talk_base::Thread {
   CustomThread() {}
   virtual ~CustomThread() {}
   bool Start() { return false; }
-
-  bool WrapCurrent() { return talk_base::Thread::WrapCurrent(); }
-  void UnwrapCurrent() { talk_base::Thread::UnwrapCurrent(); }
 };
 
 
@@ -220,7 +217,7 @@ TEST(ThreadTest, Priorities) {
 }
 
 TEST(ThreadTest, Wrap) {
-  Thread* current_thread = ThreadManager::CurrentThread();
+  Thread* current_thread = Thread::Current();
   current_thread->UnwrapCurrent();
   CustomThread* cthread = new CustomThread();
   EXPECT_TRUE(cthread->WrapCurrent());

@@ -1,4 +1,4 @@
-# Copyright (c) 2011 The Chromium Authors. All rights reserved.
+# Copyright (c) 2012 The Chromium Authors. All rights reserved.
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
@@ -158,11 +158,25 @@
       ],
       'defines': [ '<@(yasm_defines)' ],
       'cflags': [ '<@(yasm_cflags)', ],
+      'conditions': [
+        ['clang==1', {
+          'xcode_settings': {
+            'WARNING_CFLAGS': [
+              # yasm passes a `const elf_machine_sym*` through `void*`.
+              '-Wno-incompatible-pointer-types',
+            ],
+          },
+          'cflags': [
+            '-Wno-incompatible-pointer-types',
+          ],
+        }],
+      ],
       'rules': [
         {
           'rule_name': 'generate_gperf',
           'extension': 'gperf',
-          'inputs': [ '<(PRODUCT_DIR)/genperf' ],
+          'inputs': [ '<(PRODUCT_DIR)/'
+                      '<(EXECUTABLE_PREFIX)genperf<(EXECUTABLE_SUFFIX)' ],
           'outputs': [
             '<(generated_dir)/<(RULE_INPUT_ROOT).c',
           ],
@@ -177,7 +191,8 @@
         {
           'rule_name': 'generate_re2c',
           'extension': 're',
-          'inputs': [ '<(PRODUCT_DIR)/re2c' ],
+          'inputs': [ '<(PRODUCT_DIR)/'
+                      '<(EXECUTABLE_PREFIX)re2c<(EXECUTABLE_SUFFIX)' ],
           'outputs': [ '<(generated_dir)/<(RULE_INPUT_ROOT).c', ],
           'action': [
             '<(PRODUCT_DIR)/re2c',
@@ -201,7 +216,9 @@
             'varname': 'nasm_standard_mac',
             'outfile': '<(generated_dir)/nasm-macros.c',
           },
-          'inputs': [ '<(PRODUCT_DIR)/genmacro', '<(infile)', ],
+          'inputs': [ '<(PRODUCT_DIR)/'
+                      '<(EXECUTABLE_PREFIX)genmacro<(EXECUTABLE_SUFFIX)',
+                      '<(infile)', ],
           'outputs': [ '<(outfile)', ],
           'action': ['<(PRODUCT_DIR)/genmacro',
                      '<(outfile)', '<(varname)', '<(infile)', ],
@@ -217,7 +234,9 @@
             'varname': 'nasm_version_mac',
             'outfile': '<(generated_dir)/nasm-version.c',
           },
-          'inputs': [ '<(PRODUCT_DIR)/genmacro', '<(infile)', ],
+          'inputs': [ '<(PRODUCT_DIR)/'
+                      '<(EXECUTABLE_PREFIX)genmacro<(EXECUTABLE_SUFFIX)',
+                      '<(infile)', ],
           'outputs': [ '<(outfile)', ],
           'action': ['<(PRODUCT_DIR)/genmacro',
                      '<(outfile)', '<(varname)', '<(infile)',
@@ -234,7 +253,9 @@
             'varname': 'win64_gas_stdmac',
             'outfile': '<(generated_dir)/win64-gas.c',
           },
-          'inputs': [ '<(PRODUCT_DIR)/genmacro', '<(infile)', ],
+          'inputs': [ '<(PRODUCT_DIR)/'
+                      '<(EXECUTABLE_PREFIX)genmacro<(EXECUTABLE_SUFFIX)',
+                      '<(infile)', ],
           'outputs': [ '<(outfile)', ],
           'action': ['<(PRODUCT_DIR)/genmacro',
                      '<(outfile)', '<(varname)', '<(infile)',
@@ -251,7 +272,9 @@
             'varname': 'win64_nasm_stdmac',
             'outfile': '<(generated_dir)/win64-nasm.c',
           },
-          'inputs': [ '<(PRODUCT_DIR)/genmacro', '<(infile)', ],
+          'inputs': [ '<(PRODUCT_DIR)/'
+                      '<(EXECUTABLE_PREFIX)genmacro<(EXECUTABLE_SUFFIX)',
+                      '<(infile)', ],
           'outputs': [ '<(outfile)', ],
           'action': ['<(PRODUCT_DIR)/genmacro',
                      '<(outfile)',
@@ -274,7 +297,9 @@
             'varname': 'license_msg',
             'outfile': '<(generated_dir)/license.c',
           },
-          'inputs': [ '<(PRODUCT_DIR)/genstring', '<(infile)', ],
+          'inputs': [ '<(PRODUCT_DIR)/'
+                      '<(EXECUTABLE_PREFIX)genstring<(EXECUTABLE_SUFFIX)',
+                      '<(infile)', ],
           'outputs': [ '<(outfile)', ],
           'action': ['<(PRODUCT_DIR)/genstring',
                      '<(varname)',
@@ -297,7 +322,9 @@
             # The license file is #included by yasm.c.
             'outfile': '<(generated_dir)/lc3bid.c',
           },
-          'inputs': [ '<(PRODUCT_DIR)/re2c', '<(infile)', ],
+          'inputs': [ '<(PRODUCT_DIR)/'
+                      '<(EXECUTABLE_PREFIX)re2c<(EXECUTABLE_SUFFIX)',
+                      '<(infile)', ],
           'outputs': [ '<(outfile)', ],
           'action': [
             '<(PRODUCT_DIR)/re2c',
@@ -320,7 +347,7 @@
             'outfile': '<(generated_dir)/module.c',
           },
           'inputs': [
-            '<(PRODUCT_DIR)/genmodule',
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)genmodule<(EXECUTABLE_SUFFIX)',
             '<(module_in)',
             '<(makefile)'
           ],
@@ -362,7 +389,8 @@
         {
           'rule_name': 'generate_gperf',
           'extension': 'gperf',
-          'inputs': [ '<(PRODUCT_DIR)/genperf' ],
+          'inputs': [ '<(PRODUCT_DIR)/'
+                      '<(EXECUTABLE_PREFIX)genperf<(EXECUTABLE_SUFFIX)' ],
           'outputs': [ '<(shared_generated_dir)/<(RULE_INPUT_ROOT).c', ],
           'action': [
             '<(PRODUCT_DIR)/genperf',
@@ -396,7 +424,8 @@
         },
         {
           'action_name': 'generate_version',
-          'inputs': [ '<(PRODUCT_DIR)/genversion' ],
+          'inputs': [ '<(PRODUCT_DIR)/'
+                      '<(EXECUTABLE_PREFIX)genversion<(EXECUTABLE_SUFFIX)' ],
           'outputs': [ '<(shared_generated_dir)/<(version_file)', ],
           'action': [
             '<(PRODUCT_DIR)/genversion',
@@ -510,6 +539,19 @@
       ],
       'cflags': [
         '-std=gnu99',
+      ],
+      'conditions': [
+        ['clang==1', {
+          'xcode_settings': {
+            'WARNING_CFLAGS': [
+              # re2c is missing CLOSEVOP from one switch.
+              '-Wno-switch-enum',
+            ],
+          },
+          'cflags': [
+            '-Wno-switch-enum',
+          ],
+        }],
       ],
     },
     {

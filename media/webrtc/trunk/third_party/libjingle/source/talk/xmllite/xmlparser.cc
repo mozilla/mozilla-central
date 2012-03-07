@@ -228,7 +228,7 @@ XmlParser::ParseContext::ResolveQName(const char* qname, bool isAttr) {
       const std::pair<std::string, bool> result =
           xmlnsstack_.NsForPrefix(std::string(qname, c - qname));
       if (!result.second)
-        return QN_EMPTY;
+        return QName();
       return QName(result.first, c + 1);
     }
   }
@@ -237,7 +237,7 @@ XmlParser::ParseContext::ResolveQName(const char* qname, bool isAttr) {
 
   std::pair<std::string, bool> result = xmlnsstack_.NsForPrefix(STR_EMPTY);
   if (!result.second)
-    return QN_EMPTY;
+    return QName();
 
   return QName(result.first, qname);
 }
@@ -276,4 +276,4 @@ XmlParser::ParseContext::GetPosition(unsigned long * line,
 XmlParser::ParseContext::~ParseContext() {
 }
 
-}
+}  // namespace buzz

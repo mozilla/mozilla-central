@@ -180,9 +180,10 @@ class Socket {
 
   enum Option {
     OPT_DONTFRAGMENT,
-    OPT_RCVBUF,  // receive buffer size
-    OPT_SNDBUF,  // send buffer size
-    OPT_NODELAY  // whether Nagle algorithm is enabled
+    OPT_RCVBUF,      // receive buffer size
+    OPT_SNDBUF,      // send buffer size
+    OPT_NODELAY,     // whether Nagle algorithm is enabled
+    OPT_IPV6_V6ONLY  // Whether the socket is IPv6 only.
   };
   virtual int GetOption(Option opt, int* value) = 0;
   virtual int SetOption(Option opt, int value) = 0;

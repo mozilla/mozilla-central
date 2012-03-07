@@ -129,7 +129,7 @@ class StreamInterface : public MessageHandler {
   // latter operation but not the former.
   //
 
-  // The following four methods are used to avoid coping data multiple times.
+  // The following four methods are used to avoid copying data multiple times.
 
   // GetReadData returns a pointer to a buffer which is owned by the stream.
   // The buffer contains data_len bytes.  NULL is returned if no data is
@@ -560,6 +560,8 @@ class FifoBuffer : public StreamInterface {
  public:
   // Creates a FIFO buffer with the specified capacity.
   explicit FifoBuffer(size_t length);
+  // Creates a FIFO buffer with the specified capacity and owner
+  FifoBuffer(size_t length, Thread* owner);
   virtual ~FifoBuffer();
   // Gets the amount of data currently readable from the buffer.
   bool GetBuffered(size_t* data_len) const;

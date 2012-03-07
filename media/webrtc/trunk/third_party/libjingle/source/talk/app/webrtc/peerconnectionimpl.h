@@ -1,6 +1,6 @@
 /*
  * libjingle
- * Copyright 2004--2011, Google Inc.
+ * Copyright 2011, Google Inc.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
@@ -28,68 +28,83 @@
 #ifndef TALK_APP_WEBRTC_PEERCONNECTIONIMPL_H_
 #define TALK_APP_WEBRTC_PEERCONNECTIONIMPL_H_
 
+#include <map>
 #include <string>
-#include <vector>
 
 #include "talk/app/webrtc/peerconnection.h"
-#include "talk/base/sigslot.h"
+#include "talk/app/webrtc/peerconnectionfactoryimpl.h"
+#include "talk/app/webrtc/peerconnectionsignaling.h"
+#include "talk/app/webrtc/streamcollectionimpl.h"
+#include "talk/app/webrtc/webrtcsession.h"
 #include "talk/base/scoped_ptr.h"
-#include "talk/base/thread.h"
-#include "talk/session/phone/channelmanager.h"
-
-namespace cricket {
-class ChannelManager;
-class PortAllocator;
-class SessionDescription;
-}
+#include "talk/p2p/client/httpportallocator.h"
 
 namespace webrtc {
-class WebRtcSession;
+class MediaStreamHandlers;
 
-class PeerConnectionImpl : public PeerConnection,
-                           public sigslot::has_slots<> {
+// PeerConnectionImpl implements the PeerConnection interface.
+// It uses PeerConnectionSignaling and WebRtcSession to implement
+// the PeerConnection functionality.
+class PeerConnection : public PeerConnectionInterface,
+                       public talk_base::MessageHandler,
+                       public sigslot::has_slots<> {
  public:
-  PeerConnectionImpl(cricket::PortAllocator* port_allocator,
-                     cricket::ChannelManager* channel_manager,
-                     talk_base::Thread* signaling_thread);
-  virtual ~PeerConnectionImpl();
+  explicit PeerConnection(PeerConnectionFactory* factory);
 
-  // PeerConnection interfaces
-  virtual void RegisterObserver(PeerConnectionObserver* observer);
-  virtual bool SignalingMessage(const std::string& msg);
-  virtual bool AddStream(const std::string& stream_id, bool video);
-  virtual bool RemoveStream(const std::string& stream_id);
-  virtual bool Connect();
-  virtual bool Close();
-  virtual bool SetAudioDevice(const std::string& wave_in_device,
-                              const std::string& wave_out_device, int opts);
-  virtual bool SetLocalVideoRenderer(cricket::VideoRenderer* renderer);
-  virtual bool SetVideoRenderer(const std::string& stream_id,
-                                cricket::VideoRenderer* renderer);
-  virtual bool SetVideoCapture(const std::string& cam_device);
-  virtual ReadyState GetReadyState();
+  bool Initialize(const std::string& configuration,
+                  PeerConnectionObserver* observer);
 
-  cricket::ChannelManager* channel_manager() {
-    return channel_manager_;
+  virtual ~PeerConnection();
+
+  virtual void ProcessSignalingMessage(const std::string& msg);
+  virtual bool Send(const std::string& msg) {
+    // TODO: implement
+    ASSERT(false);
+    return false;
   }
-
-  // Callbacks from PeerConnectionImplCallbacks
-  void OnAddStream(const std::string& stream_id, bool video);
-  void OnRemoveStream(const std::string& stream_id, bool video);
-  void OnLocalDescription(
-      const cricket::SessionDescription* desc,
-      const std::vector<cricket::Candidate>& candidates);
-  void OnFailedCall();
-  bool Init();
+  virtual talk_base::scoped_refptr<StreamCollectionInterface> local_streams();
+  virtual talk_base::scoped_refptr<StreamCollectionInterface> remote_streams();
+  virtual void AddStream(LocalMediaStreamInterface* stream);
+  virtual void RemoveStream(LocalMediaStreamInterface* stream);
+  virtual void CommitStreamChanges();
+  virtual void Close();
+  virtual ReadyState ready_state();
+  virtual SdpState sdp_state();
 
  private:
-  WebRtcSession* CreateMediaSession(const std::string& id, bool incoming);
+  // Implement talk_base::MessageHandler.
+  void OnMessage(talk_base::Message* msg);
 
-  cricket::PortAllocator* port_allocator_;
-  cricket::ChannelManager* channel_manager_;
-  talk_base::Thread* signaling_thread_;
-  PeerConnectionObserver* event_callback_;
+  // Signals from PeerConnectionSignaling.
+  void OnNewPeerConnectionMessage(const std::string& message);
+  void OnRemoteStreamAdded(MediaStreamInterface* remote_stream);
+  void OnRemoteStreamRemoved(MediaStreamInterface* remote_stream);
+  void OnSignalingStateChange(PeerConnectionSignaling::State state);
+
+  void ChangeReadyState(PeerConnectionInterface::ReadyState ready_state);
+  void ChangeSdpState(PeerConnectionInterface::SdpState sdp_state);
+  void Terminate_s();
+
+  talk_base::Thread* signaling_thread() {
+    return factory_->signaling_thread();
+  }
+
+  // Storing the factory as a scoped reference pointer ensures that the memory
+  // in the PeerConnectionFactoryImpl remains available as long as the
+  // PeerConnection is running. It is passed to PeerConnection as a raw pointer.
+  // However, since the reference counting is done in the
+  // PeerConnectionFactoryInteface all instances created using the raw pointer
+  // will refer to the same reference count.
+  talk_base::scoped_refptr<PeerConnectionFactory> factory_;
+  PeerConnectionObserver* observer_;
+  ReadyState ready_state_;
+  SdpState sdp_state_;
+  talk_base::scoped_refptr<StreamCollection> local_media_streams_;
+
+  talk_base::scoped_ptr<cricket::PortAllocator> port_allocator_;
   talk_base::scoped_ptr<WebRtcSession> session_;
+  talk_base::scoped_ptr<PeerConnectionSignaling> signaling_;
+  talk_base::scoped_ptr<MediaStreamHandlers> stream_handler_;
 };
 
 }  // namespace webrtc

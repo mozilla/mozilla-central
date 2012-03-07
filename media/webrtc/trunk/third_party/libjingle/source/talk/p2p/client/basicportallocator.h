@@ -114,8 +114,6 @@ class BasicPortAllocatorSession : public PortAllocatorSession,
   ~BasicPortAllocatorSession();
 
   virtual BasicPortAllocator* allocator() { return allocator_; }
-  const std::string& name() const { return name_; }
-  const std::string& session_type() const { return session_type_; }
   talk_base::Thread* network_thread() { return network_thread_; }
   talk_base::PacketSocketFactory* socket_factory() { return socket_factory_; }
 
@@ -154,8 +152,6 @@ class BasicPortAllocatorSession : public PortAllocatorSession,
   void OnShake();
 
   BasicPortAllocator* allocator_;
-  std::string name_;
-  std::string session_type_;
   talk_base::Thread* network_thread_;
   talk_base::scoped_ptr<talk_base::PacketSocketFactory> owned_socket_factory_;
   talk_base::PacketSocketFactory* socket_factory_;

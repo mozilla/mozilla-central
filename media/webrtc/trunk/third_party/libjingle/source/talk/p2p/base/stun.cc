@@ -42,16 +42,17 @@ const char STUN_ERROR_REASON_STALE_CREDENTIALS[] = "STALE CREDENTIALS";
 const char STUN_ERROR_REASON_SERVER_ERROR[] = "SERVER ERROR";
 
 const char TURN_MAGIC_COOKIE_VALUE[] = { '\x72', '\xC6', '\x4B', '\xC6' };
+const char EMPTY_TRANSACTION_ID[] = "0000000000000000";
 
 StunMessage::StunMessage()
     : type_(0), length_(0),
-      transaction_id_("000000000000") {
+      transaction_id_(EMPTY_TRANSACTION_ID) {
   ASSERT(IsValidTransactionId(transaction_id_));
   attrs_ = new std::vector<StunAttribute*>();
 }
 
 StunMessage::~StunMessage() {
-  for (unsigned i = 0; i < attrs_->size(); i++)
+  for (size_t i = 0; i < attrs_->size(); i++)
     delete (*attrs_)[i];
   delete attrs_;
 }
@@ -63,14 +64,22 @@ bool StunMessage::IsLegacy() const {
   return false;
 }
 
-void StunMessage::SetTransactionID(const std::string& str) {
-  ASSERT(IsValidTransactionId(str));
+bool StunMessage::SetTransactionID(const std::string& str) {
+  if (!IsValidTransactionId(str)) {
+    return false;
+  }
   transaction_id_ = str;
+  return true;
 }
 
 void StunMessage::AddAttribute(StunAttribute* attr) {
   attrs_->push_back(attr);
-  length_ += attr->length() + 4;
+  attr->SetOwner(this);
+  size_t attr_length = attr->length();
+  if (attr_length % 4 != 0) {
+    attr_length += (4 - (attr_length % 4));
+  }
+  length_ += attr_length + 4;
 }
 
 const StunAddressAttribute*
@@ -138,7 +147,7 @@ const StunUInt16ListAttribute* StunMessage::GetUnknownAttributes() const {
 }
 
 const StunAttribute* StunMessage::GetAttribute(StunAttributeType type) const {
-  for (unsigned i = 0; i < attrs_->size(); i++) {
+  for (size_t i = 0; i < attrs_->size(); i++) {
     if ((*attrs_)[i]->type() == type)
       return (*attrs_)[i];
   }
@@ -176,7 +185,7 @@ bool StunMessage::Read(ByteBuffer* buf) {
   ASSERT(IsValidTransactionId(transaction_id));
   transaction_id_ = transaction_id;
 
-  if (length_ > buf->Length())
+  if (length_ != buf->Length())
     return false;
 
   attrs_->resize(0);
@@ -189,9 +198,13 @@ bool StunMessage::Read(ByteBuffer* buf) {
     if (!buf->ReadUInt16(&attr_length))
       return false;
 
-    StunAttribute* attr = StunAttribute::Create(attr_type, attr_length);
+    StunAttribute* attr = StunAttribute::Create(attr_type, attr_length,
+                                                this);
     if (!attr) {
       // Skip an unknown attribute.
+      if ((attr_length % 4) != 0) {
+        attr_length += (4 - (attr_length % 4));
+      }
       if (!buf->Consume(attr_length))
         return false;
     } else {
@@ -213,7 +226,7 @@ void StunMessage::Write(ByteBuffer* buf) const {
     buf->WriteUInt32(kStunMagicCookie);
   buf->WriteString(transaction_id_);
 
-  for (unsigned i = 0; i < attrs_->size(); i++) {
+  for (size_t i = 0; i < attrs_->size(); i++) {
     buf->WriteUInt16((*attrs_)[i]->type());
     buf->WriteUInt16((*attrs_)[i]->length());
     (*attrs_)[i]->Write(buf);
@@ -229,17 +242,19 @@ StunAttribute::StunAttribute(uint16 type, uint16 length)
     : type_(type), length_(length) {
 }
 
-StunAttribute* StunAttribute::Create(uint16 type, uint16 length) {
+StunAttribute* StunAttribute::Create(uint16 type,
+                                     uint16 length,
+                                     StunMessage* owner) {
   switch (type) {
     case STUN_ATTR_MAPPED_ADDRESS:
     case STUN_ATTR_DESTINATION_ADDRESS:
     case STUN_ATTR_SOURCE_ADDRESS2:
-      // TODO: Addresses may be different size for IPv6
-      // addresses, but we don't support IPv6 yet. Fix address parsing
-      // when IPv6 support is implemented.
-      if (length != StunAddressAttribute::SIZE)
+      if (length != StunAddressAttribute::SIZE_IP4 &&
+          length != StunAddressAttribute::SIZE_IP6) {
+        LOG(LS_WARNING) << "Invalid length specified for address attribute";
         return NULL;
-      return new StunAddressAttribute(type);
+      }
+      return new StunAddressAttribute(type, length);
 
     case STUN_ATTR_LIFETIME:
     case STUN_ATTR_BANDWIDTH:
@@ -250,13 +265,11 @@ StunAttribute* StunAttribute::Create(uint16 type, uint16 length) {
 
     case STUN_ATTR_USERNAME:
     case STUN_ATTR_MAGIC_COOKIE:
-      return (length % 4 == 0) ? new StunByteStringAttribute(type, length) : 0;
+    case STUN_ATTR_DATA:
+      return new StunByteStringAttribute(type, length);
 
     case STUN_ATTR_MESSAGE_INTEGRITY:
       return (length == 20) ? new StunByteStringAttribute(type, length) : 0;
-
-    case STUN_ATTR_DATA:
-      return new StunByteStringAttribute(type, length);
 
     case STUN_ATTR_ERROR_CODE:
       if (length < StunErrorCodeAttribute::MIN_SIZE)
@@ -267,15 +280,30 @@ StunAttribute* StunAttribute::Create(uint16 type, uint16 length) {
       return (length % 2 == 0) ? new StunUInt16ListAttribute(type, length) : 0;
 
     case STUN_ATTR_XOR_MAPPED_ADDRESS:
-      // TODO: Addresses may be different size for IPv6
-      // addresses, but we don't support IPv6 yet. Fix address parsing
-      // when IPv6 support is implemented.
-      if (length != StunAddressAttribute::SIZE)
+      if (length != StunAddressAttribute::SIZE_IP4 &&
+          length != StunAddressAttribute::SIZE_IP6) {
+        LOG(LS_WARNING) << "Invalid length specified for XOR address attribute";
         return NULL;
-      return new StunXorAddressAttribute(type);
+      }
+      return new StunXorAddressAttribute(type, length, owner);
 
     default:
       return NULL;
+  }
+}
+
+void StunAttribute::ConsumePadding(talk_base::ByteBuffer* buf) const {
+  int remainder = length_ % 4;
+  if (remainder > 0) {
+    buf->Consume(4 - remainder);
+  }
+}
+
+void StunAttribute::WritePadding(talk_base::ByteBuffer* buf) const {
+  int remainder = length_ % 4;
+  if (remainder > 0) {
+    char zeroes[4] = {0};
+    buf->WriteBytes(zeroes, 4 - remainder);
   }
 }
 
@@ -284,10 +312,10 @@ StunAddressAttribute* StunAttribute::CreateAddress(uint16 type) {
     case STUN_ATTR_MAPPED_ADDRESS:
     case STUN_ATTR_DESTINATION_ADDRESS:
     case STUN_ATTR_SOURCE_ADDRESS2:
-      return new StunAddressAttribute(type);
+      return new StunAddressAttribute(type, StunAddressAttribute::SIZE_IP4);
 
     case STUN_ATTR_XOR_MAPPED_ADDRESS:
-      return new StunXorAddressAttribute(type);
+      return new StunXorAddressAttribute(type, StunAddressAttribute::SIZE_IP4);
 
   default:
     ASSERT(false);
@@ -331,71 +359,146 @@ StunUInt16ListAttribute* StunAttribute::CreateUnknownAttributes() {
   return new StunUInt16ListAttribute(STUN_ATTR_UNKNOWN_ATTRIBUTES, 0);
 }
 
-StunAddressAttribute::StunAddressAttribute(uint16 type)
-    : StunAttribute(type, SIZE), family_(STUN_ADDRESS_IPV4), port_(0), ip_(0) {
-}
-
-void StunAddressAttribute::SetFamily(StunAddressFamily family) {
-  family_ = family;
-}
+StunAddressAttribute::StunAddressAttribute(uint16 type, uint16 length)
+    : StunAttribute(type, length) { }
 
 bool StunAddressAttribute::Read(ByteBuffer* buf) {
   uint8 dummy;
   if (!buf->ReadUInt8(&dummy))
     return false;
 
-  uint8 family;
-  // We don't expect IPv6 address here because IPv6 addresses would
-  // not pass the attribute size check in StunAttribute::Create().
-  // TODO: Support IPv6 addresses.
-  if (!buf->ReadUInt8(&family) || family != STUN_ADDRESS_IPV4) {
+  uint8 stun_family;
+  if (!buf->ReadUInt8(&stun_family)) {
     return false;
   }
-  family_ = static_cast<StunAddressFamily>(family);
-
-  if (!buf->ReadUInt16(&port_))
+  uint16 port;
+  if (!buf->ReadUInt16(&port))
     return false;
-  uint32 ip;
-  if (!buf->ReadUInt32(&ip))
+  if (stun_family == STUN_ADDRESS_IPV4) {
+    in_addr v4addr;
+    if (length() != SIZE_IP4) {
+      return false;
+    }
+    if (!buf->ReadBytes(reinterpret_cast<char*>(&v4addr), sizeof(v4addr))) {
+      return false;
+    }
+    talk_base::IPAddress ipaddr(v4addr);
+    SetAddress(talk_base::SocketAddress(ipaddr, port));
+  } else if (stun_family == STUN_ADDRESS_IPV6) {
+    in6_addr v6addr;
+    if (length() != SIZE_IP6) {
+      return false;
+    }
+    if (!buf->ReadBytes(reinterpret_cast<char*>(&v6addr), sizeof(v6addr))) {
+      return false;
+    }
+    talk_base::IPAddress ipaddr(v6addr);
+    SetAddress(talk_base::SocketAddress(ipaddr, port));
+  } else {
     return false;
-  SetIP(talk_base::IPAddress(ip));
-
+  }
   return true;
 }
 
 void StunAddressAttribute::Write(ByteBuffer* buf) const {
-  // Only IPv4 address family is currently supported.
-  ASSERT(family_ == STUN_ADDRESS_IPV4);
-
+  StunAddressFamily address_family = family();
+  if (address_family == STUN_ADDRESS_UNDEF) {
+    LOG(LS_ERROR) << "Error writing address attribute: unknown family.";
+    return;
+  }
   buf->WriteUInt8(0);
-  buf->WriteUInt8(family_);
-  buf->WriteUInt16(port_);
-  buf->WriteUInt32(ip_.v4AddressAsHostOrderInteger());
+  buf->WriteUInt8(address_family);
+  buf->WriteUInt16(address_.port());
+  switch (address_family) {
+    case STUN_ADDRESS_IPV4: {
+      in_addr v4addr = address_.ipaddr().ipv4_address();
+      buf->WriteBytes(reinterpret_cast<char*>(&v4addr), sizeof(v4addr));
+      break;
+    }
+    case STUN_ADDRESS_IPV6: {
+      in6_addr v6addr = address_.ipaddr().ipv6_address();
+      buf->WriteBytes(reinterpret_cast<char*>(&v6addr), sizeof(v6addr));
+      break;
+    }
+  }
 }
 
-StunXorAddressAttribute::StunXorAddressAttribute(uint16 type)
-    : StunAddressAttribute(type) {
+StunXorAddressAttribute::StunXorAddressAttribute(uint16 type, uint16 length)
+    : StunAddressAttribute(type, length), owner_(NULL) { }
+
+StunXorAddressAttribute::StunXorAddressAttribute(uint16 type,
+                                                 uint16 length,
+                                                 StunMessage* owner)
+    : StunAddressAttribute(type, length), owner_(owner) { }
+
+talk_base::IPAddress StunXorAddressAttribute::GetXoredIP() const {
+  if (owner_) {
+    talk_base::IPAddress ip = ipaddr();
+    switch (ip.family()) {
+      case AF_INET: {
+        in_addr v4addr = ip.ipv4_address();
+        v4addr.s_addr =
+            (v4addr.s_addr ^ talk_base::HostToNetwork32(kStunMagicCookie));
+        return talk_base::IPAddress(v4addr);
+        break;
+      }
+      case AF_INET6: {
+        in6_addr v6addr = ip.ipv6_address();
+        const std::string& transaction_id = owner_->transaction_id();
+        if (transaction_id.length() == 12) {
+          uint32 transactionid_as_ints[3];
+          memcpy(&transactionid_as_ints[0], transaction_id.c_str(),
+                 transaction_id.length());
+          uint32* ip_as_ints = reinterpret_cast<uint32*>(&v6addr.s6_addr);
+          // Transaction ID is in network byte order, but magic cookie
+          // is stored in host byte order.
+          ip_as_ints[0] =
+              (ip_as_ints[0] ^ talk_base::HostToNetwork32(kStunMagicCookie));
+          ip_as_ints[1] = (ip_as_ints[1] ^ transactionid_as_ints[0]);
+          ip_as_ints[2] = (ip_as_ints[2] ^ transactionid_as_ints[1]);
+          ip_as_ints[3] = (ip_as_ints[3] ^ transactionid_as_ints[2]);
+          return talk_base::IPAddress(v6addr);
+        }
+        break;
+      }
+    }
+  }
+  // Invalid ip family or transaction ID, or missing owner.
+  // Return an AF_UNSPEC address.
+  return talk_base::IPAddress();
 }
 
 bool StunXorAddressAttribute::Read(ByteBuffer* buf) {
   if (!StunAddressAttribute::Read(buf))
     return false;
-
-  SetPort(port() ^ (kStunMagicCookie >> 16));
-  uint32 ip = ipaddr().v4AddressAsHostOrderInteger();
-  SetIP(talk_base::IPAddress(ip ^ kStunMagicCookie));
-
+  uint16 xoredport = port() ^ (kStunMagicCookie >> 16);
+  talk_base::IPAddress xored_ip = GetXoredIP();
+  SetAddress(talk_base::SocketAddress(xored_ip, xoredport));
   return true;
 }
 
 void StunXorAddressAttribute::Write(ByteBuffer* buf) const {
-  // Only IPv4 address family is currently supported.
-  ASSERT(family() == STUN_ADDRESS_IPV4);
-
+  StunAddressFamily address_family = family();
+  if (address_family == STUN_ADDRESS_UNDEF) {
+    LOG(LS_ERROR) << "Error writing xor-address attribute: unknown family.";
+    return;
+  }
   buf->WriteUInt8(0);
   buf->WriteUInt8(family());
   buf->WriteUInt16(port() ^ (kStunMagicCookie >> 16));
-  buf->WriteUInt32(ipaddr().v4AddressAsHostOrderInteger() ^ kStunMagicCookie);
+  talk_base::IPAddress xored_ip = GetXoredIP();
+  switch (xored_ip.family()) {
+    case AF_INET: {
+      in_addr v4addr = xored_ip.ipv4_address();
+      buf->WriteBytes(reinterpret_cast<const char*>(&v4addr), sizeof(v4addr));
+      break;
+    }
+    case AF_INET6: {
+      in6_addr v6addr = xored_ip.ipv6_address();
+      buf->WriteBytes(reinterpret_cast<const char*>(&v6addr), sizeof(v6addr));
+      break;
+    }
+  }
 }
 
 StunUInt32Attribute::StunUInt32Attribute(uint16 type)
@@ -461,13 +564,18 @@ void StunByteStringAttribute::SetByte(int index, uint8 value) {
 
 bool StunByteStringAttribute::Read(ByteBuffer* buf) {
   bytes_ = new char[length()];
-  if (!buf->ReadBytes(bytes_, length()))
+  if (!buf->ReadBytes(bytes_, length())) {
     return false;
+  }
+
+  ConsumePadding(buf);
+
   return true;
 }
 
 void StunByteStringAttribute::Write(ByteBuffer* buf) const {
   buf->WriteBytes(bytes_, length());
+  WritePadding(buf);
 }
 
 StunErrorCodeAttribute::StunErrorCodeAttribute(uint16 type, uint16 length)
@@ -499,6 +607,7 @@ bool StunErrorCodeAttribute::Read(ByteBuffer* buf) {
 
   if (!buf->ReadString(&reason_, length() - 4))
     return false;
+  ConsumePadding(buf);
 
   return true;
 }
@@ -506,6 +615,7 @@ bool StunErrorCodeAttribute::Read(ByteBuffer* buf) {
 void StunErrorCodeAttribute::Write(ByteBuffer* buf) const {
   buf->WriteUInt32(error_code());
   buf->WriteString(reason_);
+  WritePadding(buf);
 }
 
 StunUInt16ListAttribute::StunUInt16ListAttribute(uint16 type, uint16 length)
@@ -541,12 +651,20 @@ bool StunUInt16ListAttribute::Read(ByteBuffer* buf) {
       return false;
     attr_types_->push_back(attr);
   }
+  // Padding of these attributes is done in RFC 5389 style. This is
+  // slightly different from RFC3489, but it shouldn't be important.
+  // RFC3489 pads out to a 32 bit boundary by duplicating one of the
+  // entries in the list (not necessarily the last one - it's unspecified).
+  // RFC5389 pads on the end, and the bytes are always ignored.
+  ConsumePadding(buf);
   return true;
 }
 
 void StunUInt16ListAttribute::Write(ByteBuffer* buf) const {
-  for (unsigned i = 0; i < attr_types_->size(); i++)
+  for (size_t i = 0; i < attr_types_->size(); i++) {
     buf->WriteUInt16((*attr_types_)[i]);
+  }
+  WritePadding(buf);
 }
 
 StunMessageType GetStunResponseType(StunMessageType request_type) {
@@ -575,4 +693,4 @@ StunMessageType GetStunErrorResponseType(StunMessageType request_type) {
   }
 }
 
-} // namespace cricket
+}  // namespace cricket

@@ -212,7 +212,7 @@ void Port::OnReadPacket(
   } else if (!msg) {
     // STUN message handled already
   } else if (msg->type() == STUN_BINDING_REQUEST) {
-    SignalUnknownAddress(this, addr, msg, remote_username);
+    SignalUnknownAddress(this, addr, msg, remote_username, false);
   } else {
     // NOTE(tschmelcher): STUN_BINDING_RESPONSE is benign. It occurs if we
     // pruned a connection for this port while it had STUN requests in flight,

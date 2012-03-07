@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2011 The WebRTC project authors. All Rights Reserved.
+ *  Copyright (c) 2012 The WebRTC project authors. All Rights Reserved.
  *
  *  Use of this source code is governed by a BSD-style license
  *  that can be found in the LICENSE file in the root of the source
@@ -68,10 +68,6 @@ VCMEncodeCompleteCallback::SendData(
     rtpInfo.type.Video.width = (WebRtc_UWord16)_width;
     switch (_codecType)
     {
-    case webrtc::kRTPVideoH263:
-        rtpInfo.type.Video.codecHeader.H263.bits = false;
-        rtpInfo.type.Video.codecHeader.H263.independentlyDecodable = false;
-        break;
     case webrtc::kRTPVideoVP8:
         rtpInfo.type.Video.codecHeader.VP8.InitRTPVideoHeaderVP8();
         rtpInfo.type.Video.codecHeader.VP8.nonReference =
@@ -229,11 +225,11 @@ RTPSendCompleteCallback::~RTPSendCompleteCallback()
         RtpDump::DestroyRtpDump(_rtpDump);
     }
     // Delete remaining packets
-    while (!_rtpPackets.Empty())
+    while (!_rtpPackets.empty())
     {
-         // Take first packet in list
-         delete static_cast<rtpPacket*>((_rtpPackets.First())->GetItem());
-         _rtpPackets.PopFront();
+        // Take first packet in list
+        delete _rtpPackets.front();
+        _rtpPackets.pop_front();
     }
 }
 
@@ -258,7 +254,7 @@ RTPSendCompleteCallback::SendPacket(int channel, const void *data, int len)
     // Insert outgoing packet into list
     if (transmitPacket)
     {
-        rtpPacket* newPacket = new rtpPacket();
+        RtpPacket* newPacket = new RtpPacket();
         memcpy(newPacket->data, data, len);
         newPacket->length = len;
         // Simulate receive time = network delay + packet jitter
@@ -268,16 +264,16 @@ RTPSendCompleteCallback::SendPacket(int channel, const void *data, int len)
         simulatedDelay = (WebRtc_Word32)NormalDist(_networkDelayMs,
                                                    sqrt(_jitterVar));
         newPacket->receiveTime = now + simulatedDelay;
-        _rtpPackets.PushBack(newPacket);
+        _rtpPackets.push_back(newPacket);
     }
 
     // Are we ready to send packets to the receiver?
-    rtpPacket* packet = NULL;
+    RtpPacket* packet = NULL;
 
-    while (!_rtpPackets.Empty())
+    while (!_rtpPackets.empty())
     {
         // Take first packet in list
-        packet = static_cast<rtpPacket*>((_rtpPackets.First())->GetItem());
+        packet = _rtpPackets.front();
         WebRtc_Word64 timeToReceive = packet->receiveTime - now;
         if (timeToReceive > 0)
         {
@@ -285,7 +281,7 @@ RTPSendCompleteCallback::SendPacket(int channel, const void *data, int len)
             break;
         }
 
-        _rtpPackets.PopFront();
+        _rtpPackets.pop_front();
         // Send to receive side
         if (_rtp->IncomingPacket((const WebRtc_UWord8*)packet->data,
                                  packet->length) < 0)
