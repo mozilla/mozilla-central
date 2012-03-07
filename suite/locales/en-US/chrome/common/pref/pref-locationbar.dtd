@@ -23,12 +23,16 @@
 <!ENTITY autoCompleteMatchWords                "Only on word boundaries">
 <!ENTITY autoCompleteMatchStart                "Only at the beginning of the location or title">
 
+<!ENTITY formatting.label                      "Formatting">
+<!ENTITY domainFormatting.label                "Highlight the effective domain for websites and FTP servers">
+<!ENTITY domainFormatting.accesskey            "d">
+
 <!ENTITY searchEngine.label                    "Internet Search Engine">
 <!ENTITY showSearchEngine.label                "Show default search engine">
 <!ENTITY showSearchEngine.accesskey            "e">
 
 <!ENTITY unknownLocations.label                "Unknown Locations">
 <!ENTITY domainGuessing.label                  "Add &quot;www.&quot; and &quot;.com&quot; to the location if a web page is not found">
-<!ENTITY domainGuessing.accesskey              "d">
+<!ENTITY domainGuessing.accesskey              "w">
 <!ENTITY keywords.label                        "Perform a web search when entered text is not a web location">
 <!ENTITY keywords.accesskey                    "P">

@@ -66,6 +66,9 @@
                   name="browser.urlbar.showPopup"
                   type="bool"
                   onchange="updateMatchPrefs();"/>
+      <preference id="browser.urlbar.formatting.enabled"
+                  name="browser.urlbar.formatting.enabled"
+                  type="bool"/>
       <preference id="browser.urlbar.showSearch"
                   name="browser.urlbar.showSearch"
                   type="bool"/>
@@ -120,6 +123,14 @@
                 label="&autoCompleteShowPopup.label;"
                 accesskey="&autoCompleteShowPopup.accesskey;"
                 preference="browser.urlbar.showPopup"/>
+    </groupbox>
+
+    <groupbox>
+      <caption label="&formatting.label;"/>
+      <checkbox id="domainFormattingEnabled"
+                label="&domainFormatting.label;"
+                accesskey="&domainFormatting.accesskey;"
+                preference="browser.urlbar.formatting.enabled"/>
     </groupbox>
 
     <groupbox>
