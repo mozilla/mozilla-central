@@ -382,6 +382,7 @@ var BookmarkPropertiesPanel = {
     }
 
     window.sizeToContent();
+    window.addEventListener("resize", this, false);
   },
 
   // nsIDOMEventListener
@@ -400,6 +401,14 @@ var BookmarkPropertiesPanel = {
         }
         break;
 
+      case "resize":
+        ["folderTree", "tagsSelector", "description"].forEach(function(e) {
+          var el = document.getElementById("editBMPanel_" + e + "Row");
+          if (el.boxObject.height)
+            el.height = el.boxObject.height;
+        });
+        break;
+
       case "DOMAttrModified":
         // this is called when collapsing a node, but also its direct children,
         // we only need to resize when the original node changes.
@@ -407,16 +416,10 @@ var BookmarkPropertiesPanel = {
              target.id == "editBMPanel_folderTreeRow") &&
             aEvent.attrName == "collapsed" &&
             target == aEvent.originalTarget) {
-          var id = target.id;
-          var newHeight = window.outerHeight;
-          if (aEvent.newValue) // is collapsed
-            newHeight -= this._elementsHeight[id];
-          else {
-            this._elementsHeight[id] = target.boxObject.height;
-            newHeight += this._elementsHeight[id];
-          }
-
-          window.resizeTo(window.outerWidth, newHeight);
+          var el = document.getElementById("editBookmarkPanelContent");
+          var width = el.boxObject.width;
+          window.sizeToContent();
+          window.outerWidth -= el.boxObject.width - width;
         }
         break;
     }
@@ -471,6 +474,7 @@ var BookmarkPropertiesPanel = {
   },
 
   onDialogUnload: function BPP_onDialogUnload() {
+    window.removeEventListener("resize", this, false);
     // gEditItemOverlay does not exist anymore here, so don't rely on it.
     // Calling removeEventListener with arguments which do not identify any
     // currently registered EventListener on the EventTarget has no effect.
