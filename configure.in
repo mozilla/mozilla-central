@@ -9115,7 +9115,7 @@ if test -n "$MOZ_WEBRTC"; then
      $EXTRA_GYP_DEFINES \
      --generator-output=${_objdir}/media/webrtc/trunk \
      --toplevel-dir=${srcdir} \
-     ${srcdir}/media/webrtc/trunk/webrtc.gyp
+     ${srcdir}/media/webrtc/trunk/peerconnection.gyp
    if test "$?" != 0; then
       AC_MSG_ERROR([failed to generate WebRTC Makefiles])
    fi

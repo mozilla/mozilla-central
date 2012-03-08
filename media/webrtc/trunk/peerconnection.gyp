@@ -12,6 +12,29 @@
     'peerconnection_sample': 'third_party/libjingle/source/talk/examples/peerconnection',
   },  
 
+  'conditions': [
+    # for mozilla, we want to force stuff to build but we don't want peerconnection_client or server
+    [ 'build_with_mozilla==1', {
+        'dependencies': [
+	  'third_party/libjingle/libjingle.gyp:libjingle_app',
+        ],
+        'cflags': [
+          '<!@(pkg-config --cflags gtk+-2.0)',
+        ],
+        'link_settings': {
+          'ldflags': [
+            '<!@(pkg-config --libs-only-L --libs-only-other gtk+-2.0 gthread-2.0)',
+          ],
+          'libraries': [
+            '<!@(pkg-config --libs-only-l gtk+-2.0 gthread-2.0)',
+            '-lX11',
+            '-lXext',
+          ],
+        },
+    }, ],
+  ],
+  'conditions': [
+    [build_with_mozilla==0', {
   'targets': [
     {
       'target_name': 'peerconnection_server',
@@ -109,5 +132,7 @@
       ],  # targets
     }, ],  # OS="linux"
   ],
+  }, ],
+  },
 
 }
