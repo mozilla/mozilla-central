@@ -1708,9 +1708,11 @@ nsNntpService::HandleContent(const char * aContentType, nsIInterfaceRequestor* a
       nsCString folderURL;
       rv = msgFolder->GetURI(folderURL);
       NS_ENSURE_SUCCESS(rv, rv);
-      // this is all we need for listing newsgroup ids, I think.
+
+      // this is all we need for listing newsgroup ids.
       if (!PL_strcasecmp(aContentType, "x-application-newsgroup-listids"))
-        return rv;
+        return NS_OK;
+
       nsCOMPtr<nsIMsgWindow> msgWindow;
       mailUrl->GetMsgWindow(getter_AddRefs(msgWindow));
       if (!msgWindow)
