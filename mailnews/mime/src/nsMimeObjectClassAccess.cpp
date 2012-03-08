@@ -39,9 +39,9 @@
 #include "nscore.h"
 #include "nsMimeObjectClassAccess.h"
 
-/* 
- * The following macros actually implement addref, release and 
- * query interface for our component. 
+/*
+ * The following macros actually implement addref, release and
+ * query interface for our component.
  */
 NS_IMPL_ISUPPORTS1(nsMimeObjectClassAccess, nsIMimeObjectClassAccess)
 
@@ -61,61 +61,60 @@ nsMimeObjectClassAccess::~nsMimeObjectClassAccess()
 }
 
 nsresult
-nsMimeObjectClassAccess::MimeObjectWrite(void *mimeObject, 
-                                char *data, 
-                                PRInt32 length, 
-                                bool user_visible_p)
+nsMimeObjectClassAccess::MimeObjectWrite(void *mimeObject,
+                                         char *data,
+                                         PRInt32 length,
+                                         bool user_visible_p)
 {
   int rc = XPCOM_MimeObject_write(mimeObject, data, length, user_visible_p);
-  if (rc < 0)
-    return NS_ERROR_FAILURE;
-  else
-    return NS_OK;
+  NS_ENSURE_FALSE(rc < 0, NS_ERROR_FAILURE);
+
+  return NS_OK;
 }
 
-nsresult 
+nsresult
 nsMimeObjectClassAccess::GetmimeInlineTextClass(void **ptr)
 {
   *ptr = XPCOM_GetmimeInlineTextClass();
   return NS_OK;
 }
 
-nsresult 
+nsresult
 nsMimeObjectClassAccess::GetmimeLeafClass(void **ptr)
 {
   *ptr = XPCOM_GetmimeLeafClass();
   return NS_OK;
 }
 
-nsresult 
+nsresult
 nsMimeObjectClassAccess::GetmimeObjectClass(void **ptr)
 {
   *ptr = XPCOM_GetmimeObjectClass();
   return NS_OK;
 }
 
-nsresult 
+nsresult
 nsMimeObjectClassAccess::GetmimeContainerClass(void **ptr)
 {
   *ptr = XPCOM_GetmimeContainerClass();
   return NS_OK;
 }
 
-nsresult 
+nsresult
 nsMimeObjectClassAccess::GetmimeMultipartClass(void **ptr)
 {
   *ptr = XPCOM_GetmimeMultipartClass();
   return NS_OK;
 }
 
-nsresult 
+nsresult
 nsMimeObjectClassAccess::GetmimeMultipartSignedClass(void **ptr)
 {
   *ptr = XPCOM_GetmimeMultipartSignedClass();
   return NS_OK;
 }
 
-nsresult 
+nsresult
 nsMimeObjectClassAccess::GetmimeEncryptedClass(void **ptr)
 {
   *ptr = XPCOM_GetmimeEncryptedClass();

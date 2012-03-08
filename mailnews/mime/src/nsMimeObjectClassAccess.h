@@ -34,11 +34,11 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
 /*
- * This interface is implemented by libmime. This interface is used by 
- * a Content-Type handler "Plug In" (i.e. vCard) for accessing various 
- * internal information about the object class system of libmime. When 
+ * This interface is implemented by libmime. This interface is used by
+ * a Content-Type handler "Plug In" (i.e. vCard) for accessing various
+ * internal information about the object class system of libmime. When
  * libmime progresses to a C++ object class, this would probably change.
  */
 #ifndef nsMimeObjectClassAccess_h_
@@ -49,20 +49,20 @@
 #include "nsIMimeObjectClassAccess.h"
 
 class nsMimeObjectClassAccess : public nsIMimeObjectClassAccess {
-public: 
+public:
   nsMimeObjectClassAccess();
   virtual ~nsMimeObjectClassAccess();
-       
-  /* this macro defines QueryInterface, AddRef and Release for this class */
-  NS_DECL_ISUPPORTS 
 
-  // These methods are all implemented by libmime to be used by 
-  // content type handler plugins for processing stream data. 
+  /* this macro defines QueryInterface, AddRef and Release for this class */
+  NS_DECL_ISUPPORTS
+
+  // These methods are all implemented by libmime to be used by
+  // content type handler plugins for processing stream data.
 
   // This is the write call for outputting processed stream data.
-  NS_IMETHOD    MimeObjectWrite(void *mimeObject, 
-                                char *data, 
-                                PRInt32 length, 
+  NS_IMETHOD    MimeObjectWrite(void *mimeObject,
+                                char *data,
+                                PRInt32 length,
                                 bool user_visible_p);
 
   // The following group of calls expose the pointers for the object
@@ -76,6 +76,6 @@ public:
   NS_IMETHOD    GetmimeEncryptedClass(void **ptr);
 
   NS_IMETHOD    MimeCreate(char *content_type, void * hdrs, void * opts, void**ptr);
-}; 
+};
 
 #endif /* nsMimeObjectClassAccess_h_ */

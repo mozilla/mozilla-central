@@ -59,13 +59,13 @@
 #include "nsCOMPtr.h"
 
 class nsMimeConverter : public nsIMimeConverter {
-public: 
+public:
   nsMimeConverter();
   virtual ~nsMimeConverter();
-       
+
   /* this macro defines QueryInterface, AddRef and Release for this class */
-  NS_DECL_ISUPPORTS 
+  NS_DECL_ISUPPORTS
   NS_DECL_NSIMIMECONVERTER
-}; 
+};
 
 #endif /* nsMimeConverter_h_ */

@@ -93,7 +93,7 @@ GatherLine(const char *line, PRInt32 length, MimeObject *obj)
         !obj->options->output_fn) {
         return 0;
     }
-    
+
     if (!obj->options->write_html_p)
         return MimeObject_write(obj, line, length, true);
 
@@ -108,22 +108,22 @@ EndGather(MimeObject *obj, bool abort_p)
 
     if (obj->closed_p)
         return 0;
-    
+
     int status = ((MimeObjectClass *)MIME_GetmimeInlineTextClass())->parse_eof(obj, abort_p);
     if (status < 0)
         return status;
 
     if (ssobj->buffer->IsEmpty())
         return 0;
-    
-     mime_stream_data  *msd = (mime_stream_data *) (obj->options->stream_closure);
-     nsIChannel *channel = msd->channel;  // note the lack of ref counting...
-     if (channel)
-     {
-       nsCOMPtr<nsIURI> uri;
-       channel->GetURI(getter_AddRefs(uri));
-       ssobj->innerScriptable->SetUri(uri);
-     }
+
+    mime_stream_data  *msd = (mime_stream_data *) (obj->options->stream_closure);
+    nsIChannel *channel = msd->channel;  // note the lack of ref counting...
+    if (channel)
+    {
+        nsCOMPtr<nsIURI> uri;
+        channel->GetURI(getter_AddRefs(uri));
+        ssobj->innerScriptable->SetUri(uri);
+    }
     nsCString asHTML;
     nsresult rv = ssobj->innerScriptable->ConvertToHTML(nsDependentCString(obj->content_type),
                                                         *ssobj->buffer,
@@ -144,26 +144,27 @@ EndGather(MimeObject *obj, bool abort_p)
 static int
 Initialize(MimeObject *obj)
 {
-  MimeSimpleStub *ssobj = (MimeSimpleStub *)obj;
+    MimeSimpleStub *ssobj = (MimeSimpleStub *)obj;
 
-  nsresult rv;
-  nsCOMPtr<nsICategoryManager> catman =
-    do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
-  if (NS_FAILED(rv))
-    return -1;
+    nsresult rv;
+    nsCOMPtr<nsICategoryManager> catman =
+        do_GetService(NS_CATEGORYMANAGER_CONTRACTID, &rv);
+    if (NS_FAILED(rv))
+        return -1;
 
-  nsCString value;
-  rv = catman->GetCategoryEntry(NS_SIMPLEMIMECONVERTERS_CATEGORY,
-                                obj->content_type, getter_Copies(value));
-  if (NS_FAILED(rv) || value.IsEmpty())
-    return -1;
+    nsCString value;
+    rv = catman->GetCategoryEntry(NS_SIMPLEMIMECONVERTERS_CATEGORY,
+                                  obj->content_type, getter_Copies(value));
+    if (NS_FAILED(rv) || value.IsEmpty())
+        return -1;
 
-  ssobj->innerScriptable = do_CreateInstance(value.get(), &rv);
-  if (NS_FAILED(rv) || !ssobj->innerScriptable)
-    return -1;
-  ssobj->buffer = new nsCString();
-  ((MimeObjectClass *)XPCOM_GetmimeLeafClass())->initialize(obj);
-  return 0;
+    ssobj->innerScriptable = do_CreateInstance(value.get(), &rv);
+    if (NS_FAILED(rv) || !ssobj->innerScriptable)
+        return -1;
+    ssobj->buffer = new nsCString();
+    ((MimeObjectClass *)XPCOM_GetmimeLeafClass())->initialize(obj);
+
+    return 0;
 }
 
 static void
@@ -213,10 +214,11 @@ nsSimpleMimeConverterStub::CreateContentTypeHandlerClass(const char *contentType
                                                      contentTypeHandlerInitStruct *initStruct,
                                                          MimeObjectClass **objClass)
 {
+    NS_ENSURE_ARG_POINTER(objClass);
+
     *objClass = (MimeObjectClass *)&mimeSimpleStubClass;
     (*objClass)->superclass = (MimeObjectClass *)XPCOM_GetmimeInlineTextClass();
-    if (!(*objClass)->superclass)
-        return NS_ERROR_UNEXPECTED;;
+    NS_ENSURE_TRUE((*objClass)->superclass, NS_ERROR_UNEXPECTED);
 
     initStruct->force_inline_display = true;
     return NS_OK;;
@@ -227,7 +229,7 @@ MIME_NewSimpleMimeConverterStub(const char *aContentType,
                                 nsIMimeContentTypeHandler **aResult)
 {
     nsRefPtr<nsSimpleMimeConverterStub> inst = new nsSimpleMimeConverterStub(aContentType);
-    if (!inst)
-        return NS_ERROR_OUT_OF_MEMORY;
+    NS_ENSURE_TRUE(inst, NS_ERROR_OUT_OF_MEMORY);
+
     return CallQueryInterface(inst.get(), aResult);
 }

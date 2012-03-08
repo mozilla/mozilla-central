@@ -36,9 +36,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 /********************************************************************************************************
- 
+
    Interface for parsing RFC-822 addresses.
- 
+
 *********************************************************************************************************/
 
 #ifndef nsMSGRFCPARSER_h__
@@ -50,19 +50,19 @@
 #include "comi18n.h"
 #include "nsCOMPtr.h"
 
- /* 
+ /*
   * RFC-822 parser
-  */ 
+  */
 
 class nsMsgHeaderParser: public nsIMsgHeaderParser 
 {
-public: 
+public:
   nsMsgHeaderParser();
   virtual ~nsMsgHeaderParser();
 
   /* this macro defines QueryInterface, AddRef and Release for this class */
   NS_DECL_ISUPPORTS
   NS_DECL_NSIMSGHEADERPARSER
-}; 
+};
 
 #endif /* nsMSGRFCPARSER_h__ */

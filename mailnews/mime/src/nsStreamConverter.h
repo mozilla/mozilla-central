@@ -38,9 +38,9 @@
 #ifndef nsStreamConverter_h_
 #define nsStreamConverter_h_
 
-#include "nsIStreamConverter.h" 
+#include "nsIStreamConverter.h"
 #include "nsIMimeStreamConverter.h"
-#include "nsIMimeEmitter.h" 
+#include "nsIMimeEmitter.h"
 #include "nsIURI.h"
 #include "nsIAsyncInputStream.h"
 #include "nsIAsyncOutputStream.h"
@@ -53,7 +53,7 @@ public:
   nsStreamConverter();
   virtual ~nsStreamConverter();
 
-  NS_DECL_ISUPPORTS 
+  NS_DECL_ISUPPORTS
 
   // nsIMimeStreamConverter support
   NS_DECL_NSIMIMESTREAMCONVERTER
@@ -96,7 +96,7 @@ private:
   nsCString                     mRealContentType; // if we know the content type for real, this will be set (used by attachments)
 
   nsCString                     mOverrideFormat;  // this is a possible override for emitter creation
-  bool                          mWrapperOutput;   // Should we output the frame split message display 
+  bool                          mWrapperOutput;   // Should we output the frame split message display
 
   nsCOMPtr<nsIMimeStreamConverterListener>  mMimeStreamConverterListener;
   bool                          mForwardInline;
@@ -109,7 +109,7 @@ private:
 
   nsCString                     mFromType;
   nsCString                     mToType;
-#ifdef DEBUG_mscott  
+#ifdef DEBUG_mscott
   PRTime mConvertContentTime;
 #endif
   nsIRequest *                  mPendingRequest;  // used when we need to delay to fire onStartRequest

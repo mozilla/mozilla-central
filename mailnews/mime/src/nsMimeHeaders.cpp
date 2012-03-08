@@ -53,7 +53,7 @@ nsMimeHeaders::~nsMimeHeaders()
 
 NS_IMPL_ISUPPORTS1(nsMimeHeaders, nsIMimeHeaders)
 
-nsresult nsMimeHeaders::Initialize(const char * aAllHeaders, PRInt32 allHeadersSize)
+nsresult nsMimeHeaders::Initialize(const char *aAllHeaders, PRInt32 allHeadersSize)
 {
   /* just in case we want to reuse the object, cleanup...*/
   if (mHeaders)
@@ -68,8 +68,8 @@ nsresult nsMimeHeaders::Initialize(const char * aAllHeaders, PRInt32 allHeadersS
 
 nsresult nsMimeHeaders::ExtractHeader(const char *headerName, bool getAllOfThem, char **_retval)
 {
-  if (! mHeaders)
-    return NS_ERROR_NOT_INITIALIZED;
+  NS_ENSURE_ARG_POINTER(_retval);
+  NS_ENSURE_TRUE(mHeaders, NS_ERROR_NOT_INITIALIZED);
 
   *_retval = MimeHeaders_get(mHeaders, headerName, false, getAllOfThem);
   return NS_OK;
@@ -77,20 +77,16 @@ nsresult nsMimeHeaders::ExtractHeader(const char *headerName, bool getAllOfThem,
 
 NS_IMETHODIMP nsMimeHeaders::GetAllHeaders(char **_retval)
 {
-    if (!mHeaders)
-        return NS_ERROR_NOT_INITIALIZED;
+  NS_ENSURE_ARG_POINTER(_retval);
+  NS_ENSURE_TRUE(mHeaders, NS_ERROR_NOT_INITIALIZED);
+  NS_ENSURE_TRUE(mHeaders->all_headers, NS_ERROR_NULL_POINTER);
 
-    if (!mHeaders->all_headers)
-        return NS_ERROR_NULL_POINTER;
+  char *allHeaders = (char *) NS_Alloc(mHeaders->all_headers_fp + 1);
+  NS_ENSURE_TRUE(allHeaders, NS_ERROR_OUT_OF_MEMORY);
 
-    char *allHeaders = (char *) PR_MALLOC(mHeaders->all_headers_fp + 1);
-    NS_ASSERTION (allHeaders, "nsMimeHeaders - out of memory");
-    if (!allHeaders)
-        return NS_ERROR_OUT_OF_MEMORY;
+  memcpy(allHeaders, mHeaders->all_headers, mHeaders->all_headers_fp);
+  *(allHeaders + mHeaders->all_headers_fp) = 0;
+  *_retval = allHeaders;
 
-    memcpy(allHeaders, mHeaders->all_headers, mHeaders->all_headers_fp);
-    *(allHeaders + mHeaders->all_headers_fp) = 0;
-    *_retval = allHeaders;
-
-    return NS_OK;
+  return NS_OK;
 }

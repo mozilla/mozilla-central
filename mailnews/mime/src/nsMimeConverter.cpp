@@ -74,14 +74,16 @@ nsMimeConverter::DecodeMimeHeaderToCharPtr(const char *header,
                                            bool eatContinuations,
                                            char **decodedString)
 {
-  *decodedString = MIME_DecodeMimeHeader(header, default_charset, 
-                                          override_charset,
-                                          eatContinuations);
+  NS_ENSURE_ARG_POINTER(decodedString);
+
+  *decodedString = MIME_DecodeMimeHeader(header, default_charset,
+                                         override_charset,
+                                         eatContinuations);
   return NS_OK;
 }
 
 // Decode routine (also converts output to unicode)
-nsresult 
+nsresult
 nsMimeConverter::DecodeMimeHeader(const char *header,
                                   const char *default_charset,
                                   bool override_charset,
@@ -90,12 +92,10 @@ nsMimeConverter::DecodeMimeHeader(const char *header,
 {
   NS_ENSURE_ARG_POINTER(header);
 
-  char *decodedCstr = nsnull;
-
   // apply MIME decode.
-  decodedCstr = MIME_DecodeMimeHeader(header, default_charset,
-                                      override_charset, eatContinuations);
-  if (nsnull == decodedCstr) {
+  char *decodedCstr = MIME_DecodeMimeHeader(header, default_charset,
+                                            override_charset, eatContinuations);
+  if (!decodedCstr) {
     CopyUTF8toUTF16(nsDependentCString(header), decodedString);
   } else {
     CopyUTF8toUTF16(nsDependentCString(decodedCstr), decodedString);
@@ -106,20 +106,22 @@ nsMimeConverter::DecodeMimeHeader(const char *header,
 }
 
 nsresult
-nsMimeConverter::EncodeMimePartIIStr(const char    *header, 
-                                           bool          structured, 
-                                           const char    *mailCharset, 
-                                           PRInt32       fieldnamelen,
-                                           PRInt32 encodedWordSize, 
-                                           char          **encodedString)
+nsMimeConverter::EncodeMimePartIIStr(const char       *header,
+                                           bool       structured,
+                                           const char *mailCharset,
+                                           PRInt32    fieldnamelen,
+                                           PRInt32    encodedWordSize,
+                                           char       **encodedString)
 {
+  NS_ENSURE_ARG_POINTER(encodedString);
 
   // Encoder needs utf-8 string.
   nsAutoString tempUnicodeString;
   nsresult rv = ConvertToUnicode(mailCharset, header, tempUnicodeString);
   NS_ENSURE_SUCCESS(rv, rv);
-  rv = EncodeMimePartIIStr_UTF8(NS_ConvertUTF16toUTF8(tempUnicodeString), structured, mailCharset, fieldnamelen, encodedWordSize, encodedString);
-  return rv;
+  return EncodeMimePartIIStr_UTF8(NS_ConvertUTF16toUTF8(tempUnicodeString),
+                                  structured, mailCharset, fieldnamelen,
+                                  encodedWordSize, encodedString);
 }
 
 nsresult
@@ -130,62 +132,64 @@ nsMimeConverter::EncodeMimePartIIStr_UTF8(const nsACString &header,
                                           PRInt32          encodedWordSize,
                                           char             **encodedString)
 {
+  NS_ENSURE_ARG_POINTER(encodedString);
+
   char *retString = MIME_EncodeMimePartIIStr(PromiseFlatCString(header).get(),
                                              structured, mailCharset,
                                              fieldnamelen, encodedWordSize);
-  if (retString == NULL)
-    return NS_ERROR_FAILURE;
-  else
-  {
-    *encodedString = retString;
-    return NS_OK;
-  }
+  NS_ENSURE_TRUE(retString, NS_ERROR_FAILURE);
+
+  *encodedString = retString;
+  return NS_OK;
 }
 
 
-nsresult 
-nsMimeConverter::B64EncoderInit(nsresult (*output_fn) (const char *buf, PRInt32 size, void *closure), void *closure, 
-                   MimeEncoderData **returnEncoderData) 
+nsresult
+nsMimeConverter::B64EncoderInit(nsresult (*output_fn) (const char *buf,
+                                PRInt32 size, void *closure), void *closure,
+                                MimeEncoderData **returnEncoderData)
 {
-MimeEncoderData   *ptr;
+  NS_ENSURE_ARG_POINTER(returnEncoderData);
+
+  MimeEncoderData   *ptr;
 
   ptr = MimeB64EncoderInit(output_fn, closure);
-  if (ptr)
-  {
-    *returnEncoderData = ptr;
-    return NS_OK;
-  }
-  else
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(ptr, NS_ERROR_OUT_OF_MEMORY);
+
+  *returnEncoderData = ptr;
+  return NS_OK;
 }
 
 nsresult
-nsMimeConverter::QPEncoderInit (nsresult (*output_fn) (const char *buf, 
-                      PRInt32 size, void *closure), void *closure, MimeEncoderData ** returnEncoderData) 
+nsMimeConverter::QPEncoderInit(nsresult (*output_fn) (const char *buf,
+                               PRInt32 size, void *closure), void *closure,
+                               MimeEncoderData **returnEncoderData)
 {
-MimeEncoderData   *ptr;
+  NS_ENSURE_ARG_POINTER(returnEncoderData);
+
+  MimeEncoderData *ptr;
 
   ptr = MimeQPEncoderInit(output_fn, closure);
-  if (ptr)
-  {
-    *returnEncoderData = ptr;
-    return NS_OK;
-  }
-  else
-    return NS_ERROR_OUT_OF_MEMORY;
+  NS_ENSURE_TRUE(ptr, NS_ERROR_OUT_OF_MEMORY);
+
+  *returnEncoderData = ptr;
+  return NS_OK;
 }
 
 nsresult
-nsMimeConverter::EncoderDestroy(MimeEncoderData *data, bool abort_p) 
+nsMimeConverter::EncoderDestroy(MimeEncoderData *data, bool abort_p)
 {
   MimeEncoderDestroy(data, abort_p);
   return NS_OK;
 }
 
 nsresult
-nsMimeConverter::EncoderWrite (MimeEncoderData *data, const char *buffer, PRInt32 size, PRInt32 *written) 
+nsMimeConverter::EncoderWrite(MimeEncoderData *data, const char *buffer,
+                              PRInt32 size, PRInt32 *written)
 {
-  PRInt32   writeCount;
+  NS_ENSURE_ARG_POINTER(written);
+
+  PRInt32 writeCount;
   writeCount = MimeEncoderWrite(data, buffer, size);
   *written = writeCount;
   return NS_OK;
