@@ -43,7 +43,7 @@ const EXPORTED_SYMBOLS = ["SuffixTree", "MultiSuffixTree"];
  */
 function MultiSuffixTree(aStrings, aItems) {
   if (aStrings.length != aItems.length)
-    throw Error("Array lengths need to be the same.");
+    throw new Error("Array lengths need to be the same.");
 
   let s = '';
   let offsetsToItems = [];

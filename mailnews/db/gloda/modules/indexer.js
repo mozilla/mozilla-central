@@ -96,6 +96,10 @@ function IndexingJob(aJobType, aID, aItems) {
   this.callbackThis = null;
 }
 IndexingJob.prototype = {
+  /**
+   * Invoke the callback associated with this job, passing through all arguments
+   *  received by this function to the callback function.
+   */
   safelyInvokeCallback: function() {
     if (!this.callback)
       return;
@@ -103,8 +107,7 @@ IndexingJob.prototype = {
       this.callback.apply(this.callbackThis, arguments);
     }
     catch(ex) {
-      GlodaIndexer._log.warning("job callback invocation problem: " +
-                                ex.fileName + ":" + ex.lineNumber + ": " + ex);
+      GlodaIndexer._log.warn("job callback invocation problem:", ex);
     }
   },
   toString: function IndexingJob_toString() {
@@ -491,6 +494,7 @@ var GlodaIndexer = {
       for each (let [iWorker, workerInfo] in Iterator(aIndexer.workers)) {
         let workerCode = workerInfo[0];
         let workerDef = workerInfo[1];
+        workerDef.name = workerCode;
         workerDef.indexer = aIndexer;
         this._indexerWorkerDefs[workerCode] = workerDef;
         if (!("recover" in workerDef))
@@ -1085,12 +1089,21 @@ var GlodaIndexer = {
           }
         }
         catch (ex) {
+          this._log.debug("Exception in batch processing:", ex);
           let workerDef = this._curIndexingJob._workerDef;
           if (workerDef.recover) {
-            let recoverToDepth =
+            let recoverToDepth;
+            try {
+              recoverToDepth =
               workerDef.recover.call(workerDef.indexer,
                                      this._curIndexingJob,
-                                     this._callbackHandle.contextStack);
+                                       this._callbackHandle.contextStack,
+                                       ex);
+            }
+            catch (ex2) {
+              this._log.error("Worker '" + workerDef.name +
+                              "' recovery function itself failed:", ex2);
+            }
             if (this._unitTestHookRecover)
               this._unitTestHookRecover(recoverToDepth, ex,
                                         this._curIndexingJob,
@@ -1104,7 +1117,13 @@ var GlodaIndexer = {
           // (we either did not have a recover handler or it couldn't recover)
           // call the cleanup helper if there is one
           if (workerDef.cleanup) {
+            try {
             workerDef.cleanup.call(workerDef.indexer, this._curIndexingJob);
+            }
+            catch (ex2) {
+              this._log.error("Worker '" + workerDef.name +
+                              "' cleanup function itself failed:", ex2);
+            }
             if (this._unitTestHookCleanup)
               this._unitTestHookCleanup(true, ex, this._curIndexingJob,
                                         this._callbackHandle);
@@ -1122,10 +1141,7 @@ var GlodaIndexer = {
           //  indicate that the failure is acceptable.
           this._callbackHandle.cleanup();
           this._log.warn("Problem during " + this._curIndexingJob +
-            ", bailing.  Problem was at " + ex.fileName + ":" +
-            ex.lineNumber + ": " + ex +
-            (ex.stack ? (". Stack:\n  " + ex.stack.replace("\n", "\n  ", "g"))
-                      : ""));
+            ", bailing:", ex);
           this._curIndexingJob = null;
           // the data must now be invalid
           this._workBatchData = undefined;

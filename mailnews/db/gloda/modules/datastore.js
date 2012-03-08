@@ -100,7 +100,7 @@ PostCommitHandler.prototype = {
       GlodaDatastore._asyncCompleted();
     }
     catch (e) {
-      PCH_LOG.error("Exception in handleCompletion: " + e);
+      PCH_LOG.error("Exception in handleCompletion:", e);
     }
 
   }
@@ -294,8 +294,7 @@ QueryFromQueryCallback.prototype = {
       }
     }
     catch (e) {
-      GlodaDatastore._log.error("Exception in handleResult: (" + e.fileName +
-                                ":" + e.lineNumber + "): " + e);
+      GlodaDatastore._log.error("Exception in handleResult:", e);
     }
   },
 
@@ -420,7 +419,7 @@ QueryFromQueryCallback.prototype = {
       }
       catch (e) {
         Components.utils.reportError(e);
-        QFQ_LOG.error("Exception: " + e);
+        QFQ_LOG.error("Exception:", e);
       }
     }
     finally {
@@ -1032,8 +1031,8 @@ var GlodaDatastore = {
           dbConnection = this._createDB(dbService, dbFile);
         }
         else {
-          this._log.error("Unexpected error when trying to open the database:" +
-                          " " + ex);
+          this._log.error("Unexpected error when trying to open the database:",
+                          ex);
           throw ex;
         }
       }
@@ -1403,7 +1402,7 @@ var GlodaDatastore = {
       statement = this.asyncConnection.createAsyncStatement(aSQLString);
     }
     catch(ex) {
-       throw("error creating async statement " + aSQLString + " - " +
+       throw new Error("error creating async statement " + aSQLString + " - " +
              this.asyncConnection.lastError + ": " +
              this.asyncConnection.lastErrorString + " - " + ex);
     }
@@ -1459,7 +1458,7 @@ var GlodaDatastore = {
       statement = this.syncConnection.createStatement(aSQLString);
     }
     catch(ex) {
-       throw("error creating sync statement " + aSQLString + " - " +
+       throw new Error("error creating sync statement " + aSQLString + " - " +
              this.syncConnection.lastError + ": " +
              this.syncConnection.lastErrorString + " - " + ex);
     }
@@ -1525,7 +1524,7 @@ var GlodaDatastore = {
         aStatement.bindDoubleParameter(aIndex, aVariant);
     }
     else
-      throw("Attempt to bind variant with unsupported type: " +
+      throw new Error("Attempt to bind variant with unsupported type: " +
             (typeof aVariant));
   },
 
@@ -1616,7 +1615,7 @@ var GlodaDatastore = {
           this._rollbackTransactionStatement.executeAsync(this.trackAsync());
       }
       catch (ex) {
-        this._log.error("Commit problem: " + ex);
+        this._log.error("Commit problem:", ex);
       }
       this._pendingPostCommitCallbacks = [];
     }
@@ -1634,7 +1633,7 @@ var GlodaDatastore = {
         this._rollbackTransactionStatement.executeAsync(this.trackAsync());
       }
       catch (ex) {
-        this._log.error("Rollback problem: " + ex);
+        this._log.error("Rollback problem:", ex);
       }
     }
   },
@@ -1664,7 +1663,7 @@ var GlodaDatastore = {
         GlodaDatastore._asyncCompleted();
       }
       catch (e) {
-        this._log.error("Exception in handleCompletion: " + e);
+        this._log.error("Exception in handleCompletion:", e);
       }
     }
   },
@@ -1976,7 +1975,7 @@ var GlodaDatastore = {
       return null;
     if (aFolderID in this._folderByID)
       return this._folderByID[aFolderID];
-    throw "Got impossible folder ID: " + aFolderID;
+    throw new Error("Got impossible folder ID: " + aFolderID);
   },
 
   /**
@@ -2346,7 +2345,7 @@ var GlodaDatastore = {
        ims.executeAsync(this.trackAsync());
     }
     catch(ex) {
-       throw("error executing statement... " +
+       throw new Error("error executing statement... " +
              this.asyncConnection.lastError + ": " +
              this.asyncConnection.lastErrorString + " - " + ex);
     }
@@ -2388,7 +2387,7 @@ var GlodaDatastore = {
       imts.executeAsync(this.trackAsync());
     }
     catch(ex) {
-      throw("error executing fulltext statement... " +
+      throw new Error("error executing fulltext statement... " +
             this.asyncConnection.lastError + ": " +
             this.asyncConnection.lastErrorString + " - " + ex);
     }
@@ -2500,7 +2499,7 @@ var GlodaDatastore = {
       umts.executeAsync(this.trackAsync());
     }
     catch(ex) {
-      throw("error executing fulltext statement... " +
+      throw new Error("error executing fulltext statement... " +
             this.asyncConnection.lastError + ": " +
             this.asyncConnection.lastErrorString + " - " + ex);
     }
@@ -2886,7 +2885,7 @@ var GlodaDatastore = {
       this._commitTransaction();
     }
     catch (ex) {
-      this._log.error("adjustMessageAttributes:" + ex.lineNumber + ": " + eX);
+      this._log.error("adjustMessageAttributes:", ex);
       this._rollbackTransaction();
       throw ex;
     }
@@ -2980,7 +2979,7 @@ var GlodaDatastore = {
       this._commitTransaction();
     }
     catch (ex) {
-      this._log.error("adjustAttributes:" + ex.lineNumber + ": " + eX);
+      this._log.error("adjustAttributes:", ex);
       this._rollbackTransaction();
       throw ex;
     }

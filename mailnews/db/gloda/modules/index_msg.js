@@ -1453,13 +1453,13 @@ var GlodaMsgIndexer = {
           continue;
 
         if (logDebug)
-          this._log.debug(">>>  _indexMessage");
+          this._log.debug(">>>  calling _indexMessage");
         yield aCallbackHandle.pushAndGo(
           this._indexMessage(msgHdr, aCallbackHandle),
           {what: "indexMessage", msgHdr: msgHdr});
         GlodaIndexer._indexedMessageCount++;
         if (logDebug)
-          this._log.debug("<<<  _indexMessage");
+          this._log.debug("<<<  back from _indexMessage");
       }
     }
 
@@ -1581,18 +1581,24 @@ var GlodaMsgIndexer = {
    * @param aContextStack The callbackHandle mechanism's context stack.  When we
    *     invoke pushAndGo for _indexMessage we put something in so we can
    *     detect when it is on the async stack.
+   * @param aException The exception that is necessitating we attempt to
+   *     recover.
    *
    * @return 1 if we were able to recover (because we want the call stack
    *     popped down to our worker), false if we can't.
    */
   _recover_indexMessage:
-      function gloda_index_recover_indexMessage(aJob, aContextStack) {
+      function gloda_index_recover_indexMessage(aJob, aContextStack,
+                                                aException) {
     // See if indexMessage is on the stack...
     if (aContextStack.length >= 2 &&
         aContextStack[1] &&
         ("what" in aContextStack[1]) &&
         aContextStack[1].what == "indexMessage") {
       // it is, so this is probably recoverable.
+
+      this._log.debug(
+        "Exception while indexing message, marking it bad (gloda id of 1).");
 
       // -- Mark the message as bad
       let msgHdr = aContextStack[1].msgHdr;
@@ -2115,8 +2121,7 @@ var GlodaMsgIndexer = {
         GlodaMsgIndexer._reindexChangedMessages(aMsgHdrs.enumerate(), false);
       }
       catch (ex) {
-        this.indexer._log.error("Explosion in msgsClassified handling: " +
-                                ex.stack);
+        this.indexer._log.error("Explosion in msgsClassified handling:", ex);
       }
     },
 
@@ -2387,8 +2392,8 @@ var GlodaMsgIndexer = {
           this.indexer.indexingSweepNeeded = true;
         }
       } catch (ex) {
-        this.indexer._log.error("Problem encountered during message move/copy" +
-          ": " + ex + "\n\n" + ex.stack + "\n\n");
+        this.indexer._log.error("Problem encountered during message move/copy:",
+                                ex.stack);
       }
     },
 

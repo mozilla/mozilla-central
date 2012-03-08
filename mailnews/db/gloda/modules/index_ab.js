@@ -291,7 +291,7 @@ var GlodaABAttrs = {
 
   process: function(aContact, aCard, aIsNew, aCallbackHandle) {
     if (aContact.NOUN_ID != Gloda.NOUN_CONTACT) {
-      this._log.warning("Somehow got a non-contact: " + aContact);
+      this._log.warn("Somehow got a non-contact: " + aContact);
       return; // this will produce an exception; we like.
     }
 

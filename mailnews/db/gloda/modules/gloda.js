@@ -2050,11 +2050,8 @@ var Gloda = {
       // the new canQuery property has to be explicitly set to generate entries
       // in the messageAttributes table, hence making the message query-able.
       if (!attrib.canQuery) {
-        this._log.debug("Not inserting attribute "+attrib.attributeName
-            +" into the db, since we don't plan on querying on it");
         continue;
       }
-      this._log.debug("Inserting attribute "+attrib.attributeName);
 
       // - database index attributes
 
