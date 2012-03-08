@@ -4,10 +4,6 @@ from __future__ import with_statement
 import collections
 import gyp
 import gyp.common
-try:
-    import json
-except ImportError:
-    import simplejson as json
 import sys
 import os
 import re
