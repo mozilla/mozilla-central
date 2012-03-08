@@ -102,7 +102,7 @@ var GlodaABIndexer = {
 
         this._log.debug("Found identity, processing card.");
         yield aCallbackHandle.pushAndGo(
-            Gloda.grokNounItem(identity.contact, card, false, false,
+            Gloda.grokNounItem(identity.contact, {card: card}, false, false,
                                aCallbackHandle));
         this._log.debug("Done processing card.");
       }
@@ -289,21 +289,22 @@ var GlodaABAttrs = {
     }
   },
 
-  process: function(aContact, aCard, aIsNew, aCallbackHandle) {
+  process: function(aContact, aRawReps, aIsNew, aCallbackHandle) {
+    let card = aRawReps.card;
     if (aContact.NOUN_ID != Gloda.NOUN_CONTACT) {
       this._log.warn("Somehow got a non-contact: " + aContact);
       return; // this will produce an exception; we like.
     }
 
     // update the name
-    if (aCard.displayName && aCard.displayName != aContact.name)
-      aContact.name = aCard.displayName;
+    if (card.displayName && card.displayName != aContact.name)
+      aContact.name = card.displayName;
 
     aContact.freeTags = [];
 
     let tags = null;
     try {
-      tags = aCard.getProperty("Categories", null);
+      tags = card.getProperty("Categories", null);
     } catch (ex) {
       this._log.error("Problem accessing property: " + ex);
     }

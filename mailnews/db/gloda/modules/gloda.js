@@ -478,7 +478,8 @@ var Gloda = {
       // (it will fix-up the name based on the card as appropriate)
       if (card)
         yield aCallbackHandle.pushAndGo(
-          Gloda.grokNounItem(contact, card, true, true, aCallbackHandle));
+          Gloda.grokNounItem(contact, {card: card}, true, true,
+                             aCallbackHandle));
       else // grokNounItem will issue the insert for us...
         GlodaDatastore.insertContact(contact);
 
