@@ -58,9 +58,6 @@ Components.utils.import("resource://gre/modules/Services.jsm");
 // MailServices
 Components.utils.import("resource:///modules/mailServices.js");
 
-Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
-                           "@mozilla.org/msgstore/berkeleystore;1");
-
 // Import the main scripts that mailnews tests need to set up and tear down
 load("../../../../resources/mailDirService.js");
 load("../../../../resources/mailTestUtils.js");

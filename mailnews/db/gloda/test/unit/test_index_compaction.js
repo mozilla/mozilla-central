@@ -62,6 +62,16 @@
 
 load("resources/glodaTestHelper.js");
 
+/*
+ * All the rest of the gloda tests (should) work with maildir, but this test
+ * only works/makes sense with mbox, so force it to always use mbox.  This
+ * allows developers to manually change the default to maildir and have the
+ * gloda tests run with that.
+ */
+Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
+                           "@mozilla.org/msgstore/berkeleystore;1");
+
+
 /**
  * Verify that the message keys match between the message headers and the
  *  (augmented on) gloda messages that correspond to the headers.
