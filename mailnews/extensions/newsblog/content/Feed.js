@@ -128,7 +128,8 @@ Feed.prototype =
     name = name.replace(/[\n\r\t]+/g, " ");
 
     // Make sure the feed doesn't end in a period to work around bug 117840.
-    name = name.replace(/\.+$/, "");
+    // Remove leading/trailing spaces for bug 547543.
+    name = name.replace(/\.+$/, "").trim();
 
     return name;
   },

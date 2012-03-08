@@ -897,7 +897,7 @@ var gFeedSubscriptionsWindow = {
 
   onMouseDown: function (aEvent)
   {
-    if (aEvent.button != 0)
+    if (aEvent.button != 0 || aEvent.target.id == "validationText")
       return;
 
     this.clearStatusInfo();

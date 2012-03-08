@@ -340,8 +340,10 @@ FeedItem.prototype =
                       .getService(Components.interfaces.nsIScriptableUnescapeHTML)
                       .unescape(title);
 
-    // Compress white space in the subject to make it look better.
-    title = title.replace(/[\t\r\n]+/g, " ");
+    // Compress white space in the subject to make it look better.  Trim
+    // leading/trailing spaces to prevent mbox header folding issue at just
+    // the right subject length.
+    title = title.replace(/[\t\r\n]+/g, " ").trim();
 
     this.title = this.mimeEncodeSubject(title, this.characterSet);
 
