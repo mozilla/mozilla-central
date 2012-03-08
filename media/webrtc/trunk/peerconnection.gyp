@@ -32,19 +32,6 @@
         'dependencies': [
 	  'third_party/libjingle/libjingle.gyp:libjingle_app',
         ],
-        'cflags': [
-          '<!@(pkg-config --cflags gtk+-2.0)',
-        ],
-        'link_settings': {
-          'ldflags': [
-            '<!@(pkg-config --libs-only-L --libs-only-other gtk+-2.0 gthread-2.0)',
-          ],
-          'libraries': [
-            '<!@(pkg-config --libs-only-l gtk+-2.0 gthread-2.0)',
-            '-lX11',
-            '-lXext',
-          ],
-        },
       }, ],
     ],
   }, ],
