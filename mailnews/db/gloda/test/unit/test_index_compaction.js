@@ -35,9 +35,6 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-Services.prefs.setCharPref("mail.serverDefaultStoreContractID",
-                           "@mozilla.org/msgstore/berkeleystore;1");
-
 /*
  * Test that gloda does the right things in terms of compaction.  Major cases:
  *

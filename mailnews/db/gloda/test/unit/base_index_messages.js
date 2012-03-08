@@ -697,7 +697,34 @@ function test_attributes_cant_query() {
   // -- Forwarded
 }
 
-/* ===== Fulltext Indexing ===== */
+/**
+ * Have the participants be in our addressbook prior to indexing so that we can
+ *  verify that the hand-off to the addressbook indexer does not cause breakage.
+ */
+function test_people_in_addressbook() {
+  var senderPair = msgGen.makeNameAndAddress(),
+      recipPair = msgGen.makeNameAndAddress();
+  
+  // - add both people to the address book
+  makeABCardForAddressPair(senderPair);
+  makeABCardForAddressPair(recipPair);
+
+  let [folder, msgSet] = make_folder_with_sets([
+    { count: 1, to: [recipPair], from: senderPair }]);
+  yield wait_for_message_injection();
+  yield wait_for_gloda_indexer(msgSet, {augment: true});
+  let gmsg = msgSet.glodaMessages[0],
+      senderIdentity = gmsg.from,
+      recipIdentity = gmsg.to[0];
+
+  do_check_neq(senderIdentity.contact, null);
+  do_check_true(senderIdentity.inAddressBook);
+
+  do_check_neq(recipIdentity.contact, null);
+  do_check_true(recipIdentity.inAddressBook);
+}
+
+/* ===== fulltexts Indexing ===== */
 
 /**
  * Make sure that we are using the saneBodySize flag.  This is basically the
@@ -1230,6 +1257,8 @@ var tests = [
   test_attributes_fundamental_from_disk,
   test_attributes_explicit,
   test_attributes_cant_query,
+
+  test_people_in_addressbook,
 
   test_streamed_bodies_are_size_capped,
 

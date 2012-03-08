@@ -142,6 +142,7 @@ function test_remove_card_cache_indication() {
 
 
 let tests = [
+  // - events update identity._hasAddressBookCard correctly
   setup_create_identity,
   test_add_card_cache_indication,
   test_remove_card_cache_indication,
