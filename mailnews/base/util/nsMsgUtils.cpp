@@ -98,15 +98,11 @@
 #include "nsICharsetDetector.h"
 #include "nsILineInputStream.h"
 #include "nsIPlatformCharset.h"
-#include "nsIParser.h"
-#include "nsParserCIID.h"
-#include "nsIHTMLToTextSink.h"
-#include "nsIContentSink.h"
+#include "nsIParserUtils.h"
 #include "nsICharsetConverterManager.h"
 #include "nsIDocumentEncoder.h"
 #include "mozilla/Services.h"
 
-static NS_DEFINE_CID(kCParserCID, NS_PARSER_CID);
 static NS_DEFINE_CID(kImapUrlCID, NS_IMAPURL_CID);
 static NS_DEFINE_CID(kCMailboxUrl, NS_MAILBOXURL_CID);
 static NS_DEFINE_CID(kCNntpUrlCID, NS_NNTPURL_CID);
@@ -2360,11 +2356,6 @@ ConvertBufToPlainText(nsString &aConBuf, bool formatFlowed /* = false */, bool f
   if (aConBuf.IsEmpty())
     return NS_OK;
 
-  nsresult rv;
-  nsCOMPtr<nsIParser> parser = do_CreateInstance(kCParserCID, &rv);
-  if (NS_FAILED(rv) || !parser)
-    return rv;
-
   PRInt32 wrapWidth = 72;
   nsCOMPtr<nsIPrefBranch> pPrefBranch(do_GetService(NS_PREFSERVICE_CONTRACTID));
 
@@ -2384,22 +2375,10 @@ ConvertBufToPlainText(nsString &aConBuf, bool formatFlowed /* = false */, bool f
   if (formatFlowed)
     converterFlags |= nsIDocumentEncoder::OutputFormatFlowed;
 
-  nsCOMPtr<nsIContentSink> sink = do_CreateInstance(NS_PLAINTEXTSINK_CONTRACTID);
-  NS_ENSURE_TRUE(sink, NS_ERROR_FAILURE);
-
-  nsCOMPtr<nsIHTMLToTextSink> textSink(do_QueryInterface(sink));
-  NS_ENSURE_TRUE(textSink, NS_ERROR_FAILURE);
-
-  nsAutoString convertedText;
-  textSink->Initialize(&convertedText, converterFlags, wrapWidth);
-
-  parser->SetContentSink(sink);
-
-  parser->Parse(aConBuf, 0, NS_LITERAL_CSTRING("text/html"), true);
-
-  // Now if we get here, we need to get from ASCII text to
-  // UTF-8 format or there is a problem downstream...
-  aConBuf = convertedText;
-
-  return NS_OK;
+  nsCOMPtr<nsIParserUtils> utils =
+    do_GetService(NS_PARSERUTILS_CONTRACTID);
+  return utils->ConvertToPlainText(aConBuf,
+                                   converterFlags,
+                                   wrapWidth,
+                                   aConBuf);
 }

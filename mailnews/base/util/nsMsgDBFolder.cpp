@@ -73,12 +73,8 @@
 #include "nsTextFormatter.h"
 #include "nsMsgDBCID.h"
 #include "nsReadLine.h"
-#include "nsParserCIID.h"
-#include "nsIParser.h"
-#include "nsIHTMLContentSink.h"
-#include "nsIContentSerializer.h"
 #include "nsLayoutCID.h"
-#include "nsIHTMLToTextSink.h"
+#include "nsIParserUtils.h"
 #include "nsIDocumentEncoder.h"
 #include "nsMsgI18N.h"
 #include "nsIMIMEHeaderParam.h"
@@ -118,7 +114,6 @@ const char *kUseServerRetentionProp = "useServerRetention";
 
 static NS_DEFINE_CID(kRDFServiceCID, NS_RDFSERVICE_CID);
 static NS_DEFINE_CID(kCMailDB, NS_MAILDB_CID);
-static NS_DEFINE_CID(kParserCID, NS_PARSER_CID);
 
 nsICollation * nsMsgDBFolder::gCollationKeyGenerator = nsnull;
 
@@ -5710,29 +5705,13 @@ void nsMsgDBFolder::compressQuotesInMsgSnippet(const nsString& aMsgSnippet, nsAS
 NS_IMETHODIMP nsMsgDBFolder::ConvertMsgSnippetToPlainText(
     const nsAString& aMessageText, nsAString& aOutText)
 {
-  nsString bodyText;
-  nsresult rv = NS_OK;
-
-  // Create a parser
-  nsCOMPtr<nsIParser> parser = do_CreateInstance(kParserCID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // Create the appropriate output sink
-  nsCOMPtr<nsIContentSink> sink = do_CreateInstance(NS_PLAINTEXTSINK_CONTRACTID,&rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIHTMLToTextSink> textSink(do_QueryInterface(sink));
-  NS_ENSURE_TRUE(textSink, NS_ERROR_FAILURE);
   PRUint32 flags = nsIDocumentEncoder::OutputLFLineBreak
                    | nsIDocumentEncoder::OutputNoScriptContent
                    | nsIDocumentEncoder::OutputNoFramesContent
                    | nsIDocumentEncoder::OutputBodyOnly;
-
-  textSink->Initialize(&bodyText, flags, 80);
-  parser->SetContentSink(sink);
-  rv = parser->Parse(aMessageText, 0, NS_LITERAL_CSTRING("text/html"), true);
-  aOutText.Assign(bodyText);
-  return rv;
+  nsCOMPtr<nsIParserUtils> utils =
+    do_GetService(NS_PARSERUTILS_CONTRACTID);
+  return utils->ConvertToPlainText(aMessageText, flags, 80, aOutText);
 }
 
 nsresult nsMsgDBFolder::GetMsgPreviewTextFromStream(nsIMsgDBHdr *msgHdr, nsIInputStream *stream)

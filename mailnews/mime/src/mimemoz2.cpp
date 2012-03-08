@@ -91,7 +91,7 @@
 #include "nsIContentSerializer.h"
 #include "nsLayoutCID.h"
 #include "nsIComponentManager.h"
-#include "nsIHTMLToTextSink.h"
+#include "nsIParserUtils.h"
 #include "mozISanitizingSerializer.h"
 // </for>
 #include "mozilla/Services.h"
@@ -2221,60 +2221,13 @@ nsresult GetMailNewsFont(MimeObject *obj, bool styleFixed,  PRInt32 *fontPixelSi
 
    flags: see nsIDocumentEncoder.h
 */
-// TODO: |printf|s?
-/* <copy from="mozilla/parser/htmlparser/test/outsinks/Convert.cpp"
-         author="akk"
-         adapted-by="Ben Bucksch"
-         comment=" 'This code would not have been possible without akk.' ;-P.
-                   No, really. "
-   > */
 nsresult
 HTML2Plaintext(const nsString& inString, nsString& outString,
                PRUint32 flags, PRUint32 wrapCol)
 {
-  nsresult rv = NS_OK;
-
-#if DEBUG_BenB
-  printf("Converting HTML to plaintext\n");
-  char* charstar = ToNewUTF8String(inString);
-  printf("HTML source is:\n--------------------\n%s--------------------\n",
-         charstar);
-  delete[] charstar;
-#endif
-
-  // Create a parser
-  nsCOMPtr<nsIParser> parser = do_CreateInstance(kParserCID);
-  NS_ENSURE_TRUE(parser, NS_ERROR_FAILURE);
-
-  // Create the appropriate output sink
-  nsCOMPtr<nsIContentSink> sink =
-                               do_CreateInstance(NS_PLAINTEXTSINK_CONTRACTID);
-  NS_ENSURE_TRUE(sink, NS_ERROR_FAILURE);
-
-  nsCOMPtr<nsIHTMLToTextSink> textSink(do_QueryInterface(sink));
-  NS_ENSURE_TRUE(textSink, NS_ERROR_FAILURE);
-
-  textSink->Initialize(&outString, flags, wrapCol);
-
-  parser->SetContentSink(sink);
-
-  rv = parser->Parse(inString, 0, NS_LITERAL_CSTRING("text/html"), true);
-
-  // Aah! How can NS_ERROR and NS_ABORT_IF_FALSE be no-ops in release builds???
-  if (NS_FAILED(rv))
-  {
-    NS_ERROR("Parse() failed!");
-    return rv;
-  }
-
-#if DEBUG_BenB
-  charstar = ToNewUTF8String(outString);
-  printf("Plaintext is:\n--------------------\n%s--------------------\n",
-         charstar);
-  delete[] charstar;
-#endif
-
-  return rv;
+  nsCOMPtr<nsIParserUtils> utils =
+    do_GetService(NS_PARSERUTILS_CONTRACTID);
+  return utils->ConvertToPlainText(inString, flags, wrapCol, outString);
 }
 // </copy>
 

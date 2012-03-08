@@ -82,7 +82,7 @@
 #include "nsIHTMLContentSink.h"
 #include "nsIContentSerializer.h"
 #include "nsLayoutCID.h"
-#include "nsIHTMLToTextSink.h"
+#include "nsIParserUtils.h"
 #include "nsIDocumentEncoder.h"
 
 #include "nsIncompleteGamma.h"
@@ -808,27 +808,13 @@ void Tokenizer::tokenize_japanese_word(char* chunk)
 
 nsresult Tokenizer::stripHTML(const nsAString& inString, nsAString& outString)
 {
-  nsresult rv = NS_OK;
-  // Create a parser
-  nsCOMPtr<nsIParser> parser = do_CreateInstance(kParserCID, &rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  // Create the appropriate output sink
-  nsCOMPtr<nsIContentSink> sink = do_CreateInstance(NS_PLAINTEXTSINK_CONTRACTID,&rv);
-  NS_ENSURE_SUCCESS(rv, rv);
-
-  nsCOMPtr<nsIHTMLToTextSink> textSink(do_QueryInterface(sink));
-  NS_ENSURE_TRUE(textSink, NS_ERROR_FAILURE);
   PRUint32 flags = nsIDocumentEncoder::OutputLFLineBreak
                  | nsIDocumentEncoder::OutputNoScriptContent
                  | nsIDocumentEncoder::OutputNoFramesContent
                  | nsIDocumentEncoder::OutputBodyOnly;
-
-  textSink->Initialize(&outString, flags, 80);
-
-  parser->SetContentSink(sink);
-
-  return parser->Parse(inString, 0, NS_LITERAL_CSTRING("text/html"), true);
+  nsCOMPtr<nsIParserUtils> utils =
+    do_GetService(NS_PARSERUTILS_CONTRACTID);
+  return utils->ConvertToPlainText(inString, flags, 80, outString);
 }
 
 void Tokenizer::tokenize(const char* aText)
