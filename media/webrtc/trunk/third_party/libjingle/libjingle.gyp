@@ -405,7 +405,10 @@
             'source/talk/base/winping.h',
           ],
         }],
-        ['os_posix == 1', {
+# Mozilla builds as posix on windows, and probably on mac
+# but mac doesn't support latebindingssymboltable
+#        ['os_posix == 1', {
+        ['OS=="linux"', {
           'sources': [
             'source/talk/base/latebindingsymboltable.cc',
             'source/talk/base/latebindingsymboltable.h',
