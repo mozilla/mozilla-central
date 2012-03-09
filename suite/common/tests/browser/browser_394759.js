@@ -158,7 +158,7 @@ function test() {
       let winData = windowsToOpen.shift();
       let settings = "chrome,dialog=no," +
                      (winData.isPopup ? "all=no" : "all");
-      let url = "http://window" + windowsToOpen.length + ".example.com";
+      let url = "http://example.com/?window=" + windowsToOpen.length;
       let window = openDialog(location, "_blank", settings, url);
       window.addEventListener("load", function loadListener5(aEvent) {
         window.removeEventListener("load", loadListener5, false);
