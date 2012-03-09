@@ -176,7 +176,7 @@ nsMsgDBFolder::nsMsgDBFolder(void)
 {
   if (mInstanceCount++ <=0) {
 #ifdef MOZILLA_INTERNAL_API //FIXME NS_RegisterStaticAtoms
-    NS_RegisterStaticAtoms(folder_atoms, NS_ARRAY_LENGTH(folder_atoms));
+    NS_RegisterStaticAtoms(folder_atoms);
 #else
 #define MSGDBFOLDER_ATOM(name_, value_) name_ = MsgNewPermanentAtom(value_);
 #include "nsMsgDBFolderAtomList.h"
