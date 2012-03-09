@@ -51,8 +51,6 @@ var as = Cc["@mozilla.org/browser/annotation-service;1"].
          getService(Ci.nsIAnnotationService);
 var icos = Cc["@mozilla.org/browser/favicon-service;1"].
            getService(Ci.nsIFaviconService);
-var ps = Cc["@mozilla.org/preferences-service;1"].
-         getService(Ci.nsIPrefBranch);
 var ies = Cc["@mozilla.org/browser/places/import-export-service;1"].
           getService(Ci.nsIPlacesImportExportService);
 
@@ -67,7 +65,7 @@ function run_test() {
   do_test_pending();
 
   // avoid creating the places smart folder during tests
-  ps.setIntPref("browser.places.smartBookmarksVersion", -1);
+  Services.prefs.setIntPref("browser.places.smartBookmarksVersion", -1);
 
   // import bookmarks from corrupt file
   var corruptBookmarksFile = do_get_file("bookmarks.corrupt.html");

@@ -41,16 +41,12 @@
  * by the user or by other components.
  */
 
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-
 // Initialize Places.
 var hs = Cc["@mozilla.org/browser/nav-history-service;1"].
          getService(Ci.nsINavHistoryService);
 var bs = Cc["@mozilla.org/browser/nav-bookmarks-service;1"].
          getService(Ci.nsINavBookmarksService);
 // Get other services.
-var ps = Cc["@mozilla.org/preferences-service;1"].
-         getService(Ci.nsIPrefBranch);
 var os = Cc["@mozilla.org/observer-service;1"].
          getService(Ci.nsIObserverService);
 var as = Cc["@mozilla.org/browser/annotation-service;1"].
@@ -99,7 +95,7 @@ tests.push({
     do_check_neq(bs.getIdForItemAt(bs.bookmarksMenuFolder, 0), -1);
 
     // Set preferences.
-    ps.setIntPref(PREF_SMART_BOOKMARKS_VERSION, 0);
+    Services.prefs.setIntPref(PREF_SMART_BOOKMARKS_VERSION, 0);
 
     rebuildSmartBookmarks();
 
@@ -110,7 +106,7 @@ tests.push({
                 SMART_BOOKMARKS_ON_MENU + DEFAULT_BOOKMARKS_ON_MENU);
 
     // Check version has been updated.
-    do_check_eq(ps.getIntPref(PREF_SMART_BOOKMARKS_VERSION),
+    do_check_eq(Services.prefs.getIntPref(PREF_SMART_BOOKMARKS_VERSION),
                 SMART_BOOKMARKS_VERSION);
 
     next_test();
@@ -137,7 +133,7 @@ tests.push({
                 SMART_BOOKMARKS_ON_MENU + DEFAULT_BOOKMARKS_ON_MENU);
 
     // Set preferences.
-    ps.setIntPref(PREF_SMART_BOOKMARKS_VERSION, 1);
+    Services.prefs.setIntPref(PREF_SMART_BOOKMARKS_VERSION, 1);
 
     rebuildSmartBookmarks();
 
@@ -154,7 +150,7 @@ tests.push({
     do_check_true(as.itemHasAnnotation(itemId, SMART_BOOKMARKS_ANNO));
 
     // Check version has been updated.
-    do_check_eq(ps.getIntPref(PREF_SMART_BOOKMARKS_VERSION),
+    do_check_eq(Services.prefs.getIntPref(PREF_SMART_BOOKMARKS_VERSION),
                 SMART_BOOKMARKS_VERSION);
 
     next_test();
@@ -176,7 +172,7 @@ tests.push({
                 SMART_BOOKMARKS_ON_MENU + DEFAULT_BOOKMARKS_ON_MENU);
 
     // Set preferences.
-    ps.setIntPref(PREF_SMART_BOOKMARKS_VERSION, 1);
+    Services.prefs.setIntPref(PREF_SMART_BOOKMARKS_VERSION, 1);
 
     rebuildSmartBookmarks();
 
@@ -188,7 +184,7 @@ tests.push({
                 SMART_BOOKMARKS_ON_MENU + DEFAULT_BOOKMARKS_ON_MENU);
 
     // Check version has been updated.
-    do_check_eq(ps.getIntPref(PREF_SMART_BOOKMARKS_VERSION),
+    do_check_eq(Services.prefs.getIntPref(PREF_SMART_BOOKMARKS_VERSION),
                 SMART_BOOKMARKS_VERSION);
 
     next_test();
@@ -207,7 +203,7 @@ tests.push({
                 SMART_BOOKMARKS_ON_MENU + DEFAULT_BOOKMARKS_ON_MENU);
 
     // Set preferences.
-    ps.setIntPref(PREF_SMART_BOOKMARKS_VERSION, 0);
+    Services.prefs.setIntPref(PREF_SMART_BOOKMARKS_VERSION, 0);
 
     rebuildSmartBookmarks();
 
@@ -219,7 +215,7 @@ tests.push({
                 SMART_BOOKMARKS_ON_MENU + DEFAULT_BOOKMARKS_ON_MENU);
 
     // Check version has been updated.
-    do_check_eq(ps.getIntPref(PREF_SMART_BOOKMARKS_VERSION),
+    do_check_eq(Services.prefs.getIntPref(PREF_SMART_BOOKMARKS_VERSION),
                 SMART_BOOKMARKS_VERSION);
 
     next_test();
@@ -275,16 +271,16 @@ function run_test() {
   bg.QueryInterface(Ci.nsIObserver).observe(null, "places-init-complete", null);
 
   // Ensure preferences status.
-  do_check_false(ps.getBoolPref(PREF_AUTO_EXPORT_HTML));
+  do_check_false(Services.prefs.getBoolPref(PREF_AUTO_EXPORT_HTML));
   // XXXkairo: might get set due to the different logic of SeaMonkey imports
   //           but there could be some real bug so import is set and restore not
   try {
-    do_check_false(ps.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
+    do_check_false(Services.prefs.getBoolPref(PREF_IMPORT_BOOKMARKS_HTML));
     // do_throw("importBookmarksHTML pref should not exist");
   }
   catch(ex) {}
   try {
-    do_check_false(ps.getBoolPref(PREF_RESTORE_DEFAULT_BOOKMARKS));
+    do_check_false(Services.prefs.getBoolPref(PREF_RESTORE_DEFAULT_BOOKMARKS));
   }
   catch(ex) {}
 

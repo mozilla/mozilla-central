@@ -113,10 +113,7 @@ function test() {
   waitForExplicitFinish();
 
   // make sure we don't save form data at all (except for tab duplication)
-  var gPrefService = Components.classes["@mozilla.org/preferences-service;1"]
-                        .getService(Components.interfaces.nsIPrefBranch);
-
-  gPrefService.setIntPref("browser.sessionstore.privacy_level", 2);
+  Services.prefs.setIntPref("browser.sessionstore.privacy_level", 2);
 
   let rootDir = getRootDirectory(gTestPath);
   let testURL = rootDir + "browser_346337_sample.html";
@@ -143,8 +140,8 @@ function test() {
               ok(!compareFormValue(tab3, xpath, fieldList[xpath]),
                  "The value for \"" + xpath + "\" was correctly discarded");
 
-        if (gPrefService.prefHasUserValue("browser.sessionstore.privacy_level"))
-          gPrefService.clearUserPref("browser.sessionstore.privacy_level");
+        if (Services.prefs.prefHasUserValue("browser.sessionstore.privacy_level"))
+          Services.prefs.clearUserPref("browser.sessionstore.privacy_level");
           // undoCloseTab can reuse a single blank tab, so we have to
           // make sure not to close the window when closing our last tab
           if (tabbrowser.tabContainer.childNodes.length == 1)

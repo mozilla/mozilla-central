@@ -91,8 +91,7 @@ function run_test() {
   var importer = Cc["@mozilla.org/browser/places/import-export-service;1"].getService(Ci.nsIPlacesImportExportService);
 
   // avoid creating the places smart folder during tests
-  Cc["@mozilla.org/preferences-service;1"].getService(Ci.nsIPrefBranch).
-  setIntPref("browser.places.smartBookmarksVersion", -1);
+  Services.prefs.setIntPref("browser.places.smartBookmarksVersion", -1);
 
   // file pointer to legacy bookmarks file
   var bookmarksFileOld = do_get_file("bookmarks.preplaces.html");

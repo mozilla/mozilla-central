@@ -75,11 +75,9 @@ function run_test() {
   do_check_true(testDistributionFile.exists());
 
   // Disable Smart Bookmarks creation.
-  let ps = Cc["@mozilla.org/preferences-service;1"].
-           getService(Ci.nsIPrefBranch);
-  ps.setIntPref(PREF_SMART_BOOKMARKS_VERSION, -1);
+  Services.prefs.setIntPref(PREF_SMART_BOOKMARKS_VERSION, -1);
   // Avoid migrateUI, we are just simulating a partial startup.
-  ps.setIntPref("browser.migration.version", 1);
+  Services.prefs.setIntPref("browser.migration.version", 1);
 
   // Initialize Places through the History Service.
   let hs = Cc["@mozilla.org/browser/nav-history-service;1"].
@@ -138,12 +136,10 @@ function continue_test() {
   do_check_eq(bs.getItemTitle(toolbarItemId), "Toolbar Link After");
 
   // Check the bmprocessed pref has been created.
-  let ps = Cc["@mozilla.org/preferences-service;1"].
-           getService(Ci.nsIPrefBranch);
-  do_check_true(ps.getBoolPref(PREF_BMPROCESSED));
+  do_check_true(Services.prefs.getBoolPref(PREF_BMPROCESSED));
 
   // Check distribution prefs have been created.
-  do_check_eq(ps.getCharPref(PREF_DISTRIBUTION_ID), "516444");
+  do_check_eq(Services.prefs.getCharPref(PREF_DISTRIBUTION_ID), "516444");
 
   do_test_finished();
 }

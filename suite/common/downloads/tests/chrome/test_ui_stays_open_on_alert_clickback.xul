@@ -64,9 +64,7 @@ function test()
   dm.DBConnection.executeSimpleSQL("DELETE FROM moz_downloads");
 
   var setClose = function(aVal)
-    Components.classes["@mozilla.org/preferences-service;1"]
-              .getService(Components.interfaces.nsIPrefBranch)
-              .setBoolPref("browser.download.manager.closeWhenDone", aVal);
+    Services.prefs.setBoolPref("browser.download.manager.closeWhenDone", aVal);
 
   // Close the UI if necessary
   var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]

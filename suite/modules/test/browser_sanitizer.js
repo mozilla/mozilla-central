@@ -81,9 +81,7 @@ var sanTests = {
   cookies: {
     desc: "Cookie",
     setup: function() {
-      var prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                            .getService(Components.interfaces.nsIPrefBranch);
-      prefs.setIntPref("network.cookie.cookieBehavior", 0);
+      Services.prefs.setIntPref("network.cookie.cookieBehavior", 0);
       var ios = Components.classes["@mozilla.org/network/io-service;1"]
                           .getService(Components.interfaces.nsIIOService);
       this.uri = ios.newURI("http://sanitizer.test/", null, null);
@@ -150,10 +148,8 @@ var sanTests = {
       var supStr = Components.classes["@mozilla.org/supports-string;1"]
                              .createInstance(Components.interfaces.nsISupportsString);
       supStr.data = "Sanitizer!";
-      this.prefs = Components.classes["@mozilla.org/preferences-service;1"]
-                             .getService(Components.interfaces.nsIPrefBranch);
-      this.prefs.setComplexValue("general.open_location.last_url",
-                                 Components.interfaces.nsISupportsString, supStr);
+      Services.prefs.setComplexValue("general.open_location.last_url",
+                                      Components.interfaces.nsISupportsString, supStr);
 
       return this.check(true);
     },
@@ -161,8 +157,8 @@ var sanTests = {
     check: function(aCheckAll) {
       var locDialog = false;
       try {
-        locDialog = (this.prefs.getComplexValue("general.open_location.last_url",
-                                                Components.interfaces.nsISupportsString).data == "Sanitizer!");
+        locDialog = (Services.prefs.getComplexValue("general.open_location.last_url",
+                                                     Components.interfaces.nsISupportsString).data == "Sanitizer!");
       } catch(ex) {}
 
       if (locDialog == !aCheckAll)
@@ -302,12 +298,9 @@ var sanTests = {
 };
 
 function fullSanitize() {
-  var psvc = Components.classes["@mozilla.org/preferences-service;1"]
-                       .getService(Components.interfaces.nsIPrefService);
-  var prefs = psvc.getBranch("privacy.item.");
+  var prefs = Services.prefs.getBranch("privacy.item.");
 
-  var poppref = psvc.getBranch("privacy.sanitize.");
-  poppref.setBoolPref("promptOnSanitize", false);
+  Services.prefs.setBoolPref("privacy.sanitize.promptOnSanitize", false);
 
   for (var testName in sanTests) {
     var test = sanTests[testName];
@@ -326,7 +319,7 @@ function fullSanitize() {
   }
 
   try {
-    poppref.clearUserPref("promptOnSanitize");
+    Services.prefs.clearUserPref("privacy.sanitize.promptOnSanitize");
   } catch(ex) {}
 }
 

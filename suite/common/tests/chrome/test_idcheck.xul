@@ -225,8 +225,7 @@
     function ExitTest()
     {
       // remove the mailnews data from the test profile
-      const kPrefService = "@mozilla.org/preferences-service;1";
-      Cc[kPrefService].getService(Ci.nsIPrefService).resetPrefs();
+      Services.prefs.resetPrefs();
     }
 
     function FinishTest()
