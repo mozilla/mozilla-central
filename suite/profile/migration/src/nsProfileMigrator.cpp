@@ -64,7 +64,7 @@
 #define MIGRATION_WIZARD_FE_FEATURES "chrome,dialog,modal,centerscreen,titlebar"
 
 NS_IMETHODIMP
-nsProfileMigrator::Migrate(nsIProfileStartup* aStartup)
+nsProfileMigrator::Migrate(nsIProfileStartup* aStartup, const nsACString& aKey)
 {
   nsCAutoString key;
   nsCOMPtr<nsISuiteProfileMigrator> spm;
