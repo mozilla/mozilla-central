@@ -764,3 +764,6 @@ pref("browser.search.update", false);
 
 // Check whether we need to perform engine updates every 6 hours
 pref("browser.search.update.interval", 21600);
+
+// Disable remote debugging protocol logging
+pref("devtools.debugger.log", false);
