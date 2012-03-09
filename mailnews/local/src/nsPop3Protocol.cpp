@@ -3934,6 +3934,10 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
         status = -1;
       break;
 
+    case POP3_OBTAIN_PASSWORD_BEFORE_USERNAME:
+      status = -1;
+      break;
+
     case POP3_FINISH_OBTAIN_PASSWORD_BEFORE_USERNAME:
       UpdateStatus(NS_LITERAL_STRING("hostContacted"));
       status = SendUsername();
@@ -4168,7 +4172,7 @@ nsresult nsPop3Protocol::ProcessProtocolState(nsIURI * url, nsIInputStream * aIn
       }
     default:
       NS_ERROR("Got to unexpected state in nsPop3Protocol::ProcessProtocolState");
-
+      status = -1;
     }  /* end switch */
 
     if((status < 0) && m_pop3ConData->next_state != POP3_FREE)
