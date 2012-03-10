@@ -148,7 +148,7 @@ libs:: $(FINAL_TARGET)/defaults/profile/panels.rdf ;
 libs:: $(addprefix generic/profile/,$(PROFILE_FILES))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/defaults/profile
 
-libs:: $(addprefix $(LOCALE_SRCDIR)/profile/chrome/,$(PROFILE_CHROME))
+libs:: $(call MERGE_FILES,$(addprefix profile/chrome/,$(PROFILE_CHROME)))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(FINAL_TARGET)/defaults/profile/chrome
 
 install:: $(DESTDIR)$(mozappdir)/defaults/profile/bookmarks.html ;
@@ -157,7 +157,7 @@ install:: $(DESTDIR)$(mozappdir)/defaults/profile/panels.rdf ;
 install:: $(addprefix generic/profile/,$(PROFILE_FILES))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/defaults/profile
 
-install:: $(addprefix $(LOCALE_SRCDIR)/profile/chrome/,$(PROFILE_CHROME))
+install:: $(call MERGE_FILES,$(addprefix profile/chrome/,$(PROFILE_CHROME)))
 	$(SYSINSTALL) $(IFLAGS1) $^ $(DESTDIR)$(mozappdir)/defaults/profile/chrome
 
 SEARCH_PLUGINS = $(shell cat $(call MERGE_FILE,searchplugins/list.txt))
