@@ -24,7 +24,7 @@
 !define AppRegNameMail        "SeaMonkey (Mail)"
 !define AppRegNameNews        "SeaMonkey (News)"
 
-!define MinSupportedVer       "Microsoft Windows 2000"
+!define MinSupportedVer       "Microsoft Windows XP SP2"
 
 # File details shared by both the installer and uninstaller
 VIProductVersion "1.0.0.0"
