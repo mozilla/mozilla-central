@@ -127,12 +127,21 @@
                        control="locationValue"
                        value="&feedLocation.label;"/>
               </hbox>
-              <textbox id="locationValue"
-                       class="uri-element"
-                       placeholder="&feedLocation.placeholder;"
-                       clickSelectsAll="true"
-                       onfocus="gFeedSubscriptionsWindow.setSummaryFocus();"
-                       onblur="gFeedSubscriptionsWindow.setSummaryFocus();"/>
+              <hbox align="center">
+                <textbox id="locationValue"
+                         flex="1"
+                         class="uri-element"
+                         placeholder="&feedLocation.placeholder;"
+                         clickSelectsAll="true"
+                         onfocus="gFeedSubscriptionsWindow.setSummaryFocus();"
+                         onblur="gFeedSubscriptionsWindow.setSummaryFocus();"/>
+                <label id="locationValidate"
+                       collapsed="true"
+                       class="text-link"
+                       crop="end"
+                       value="&locationValidate.label;"
+                       onclick="gFeedSubscriptionsWindow.checkValidation(event);"/>
+              </hbox>
             </row>
             <row>
               <hbox align="right" valign="middle">

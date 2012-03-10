@@ -273,6 +273,10 @@ var gFeedSubscriptionsWindow = {
       if (!itemToRemove)
         return;
 
+      if (itemToRemove.container && itemToRemove.open)
+        // Close it, if open container.
+        this.toggle(aRow);
+
       let parentIndex = this.getParentIndex(aRow);
       let hasNextSibling = this.hasNextSibling(aRow, aRow);
       if (parentIndex != this.kRowIndexUndefined)
@@ -398,7 +402,8 @@ var gFeedSubscriptionsWindow = {
         }
         else if (flavor.value == "text/x-moz-feed-index")
         {
-          sourceIndex = parseInt(sourceUri);
+          if (this.selection)
+            sourceIndex = this.selection.currentIndex;
           canDrop = true;
         }
       }  // if dataObj.value
@@ -777,6 +782,7 @@ var gFeedSubscriptionsWindow = {
 
     let nameValue = document.getElementById("nameValue");
     let locationValue = document.getElementById("locationValue");
+    let locationValidate = document.getElementById("locationValidate");
     let selectFolder = document.getElementById("selectFolder");
     let rssAccountMenuItem = document.getElementById("rssAccountMenuItem");
     let server, rootFolder, displayFolder;
@@ -786,6 +792,7 @@ var gFeedSubscriptionsWindow = {
       // A feed item.  Set the feed location and title info.
       nameValue.value = aItem.name;
       locationValue.value = aItem.url;
+      locationValidate.removeAttribute("collapsed");
 
       // Root the location picker to the news & blogs server.
       server = aItem.parentFolder.server;
@@ -798,6 +805,7 @@ var gFeedSubscriptionsWindow = {
       nameValue.value = "";
       nameValue.disabled = true;
       locationValue.value = "";
+      locationValidate.setAttribute("collapsed", true);
 
       server = aItem.folder.server;
       rootFolder = aItem.folder.rootFolder;

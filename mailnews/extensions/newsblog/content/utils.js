@@ -114,6 +114,12 @@ var FeedUtils = {
           // feed.  This is particularly nice if we just finished subscribing
           // to a feed URL that the operating system gave us.
           this.mMsgWindow.windowCommands.selectFolder(feed.folder.URI);
+
+          // Check for an existing feed subscriptions window and update it.
+          let subscriptionsWindow =
+              Services.wm.getMostRecentWindow("Mail:News-BlogSubscriptions");
+          if (subscriptionsWindow)
+            subscriptionsWindow.gFeedSubscriptionsWindow.refreshSubscriptionView();
         }
         else
         {

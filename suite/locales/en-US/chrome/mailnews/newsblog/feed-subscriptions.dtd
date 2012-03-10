@@ -15,6 +15,7 @@
 <!ENTITY quickMode.label             "Show the article summary instead of loading the web page">
 <!ENTITY quickMode.accesskey         "h">
 
+<!ENTITY locationValidate.label      "Validate">
 <!ENTITY validateText.label          "Check validation and retrieve a valid url.">
 
 <!ENTITY button.addFeed.label        "Add">
