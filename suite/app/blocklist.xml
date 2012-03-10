@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1330367012000">
+<blocklist xmlns="http://www.mozilla.org/2006/addons-blocklist" lastupdate="1331241604000">
   <emItems>
       <emItem  blockID="i58" id="webmaster@buzzzzvideos.info">
                         <versionRange  minVersion="0" maxVersion="*">
@@ -63,6 +63,10 @@
                         </emItem>
       <emItem  blockID="i64" id="royal@facebook.com">
                         <versionRange  minVersion="0" maxVersion="*">
+                    </versionRange>
+                  </emItem>
+      <emItem  blockID="i72" id="{4ED1F68A-5463-4931-9384-8FFF5ED91D92}">
+                        <versionRange  minVersion="0" maxVersion="3.4.1.194" severity="1">
                     </versionRange>
                   </emItem>
       <emItem  blockID="i40" id="{28387537-e3f9-4ed7-860c-11e69af4a8a0}">
@@ -164,20 +168,6 @@
   <pluginItems>
       <pluginItem  blockID="p28">
                   <match name="filename" exp="NPFFAddOn.dll" />              <versionRange >
-                  </versionRange>
-          </pluginItem>
-      <pluginItem  blockID="p29">
-      <match name="name" exp="^Yahoo Application State Plugin$" />      <match name="description" exp="^Yahoo Application State Plugin$" />      <match name="filename" exp="npYState.dll" />              <versionRange >
-                      <targetApplication id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
-              <versionRange  minVersion="1.0.0.5" maxVersion="*" />
-            </targetApplication>
-                  </versionRange>
-          </pluginItem>
-      <pluginItem  blockID="p30">
-      <match name="name" exp="QuickTime Plug-in 7[.]1[.]" />            <match name="filename" exp="npqtplugin.?[.]dll" />              <versionRange >
-                      <targetApplication id="{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}">
-              <versionRange  minVersion="1.0.0.5" maxVersion="*" />
-            </targetApplication>
                   </versionRange>
           </pluginItem>
       <pluginItem  blockID="p31">
