@@ -1631,16 +1631,23 @@ nsNntpService::GetListOfGroupsOnServer(nsINntpIncomingServer *aNntpServer, nsIMs
 
   nsCString serverUri;
   rv = server->GetServerURI(serverUri);
+  nsNewsAction newsAction;
   if (aGetOnlyNew)
+  {
     serverUri.AppendLiteral("/?newgroups");
+    newsAction = nsINntpUrl::ActionListNewGroups;
+  }
   else
+  {
     serverUri.AppendLiteral("/*");
+    newsAction = nsINntpUrl::ActionListGroups;
+  }
 
   nsCOMPtr <nsIUrlListener> listener = do_QueryInterface(aNntpServer, &rv);
   NS_ENSURE_SUCCESS(rv, rv);
 
   nsCOMPtr<nsIURI> url;
-  rv = ConstructNntpUrl(serverUri.get(), listener, aMsgWindow, nsnull, nsINntpUrl::ActionListGroups, getter_AddRefs(url));
+  rv = ConstructNntpUrl(serverUri.get(), listener, aMsgWindow, nsnull, newsAction, getter_AddRefs(url));
   NS_ENSURE_SUCCESS(rv, rv);
 
   // now run the url to add the rest of the groups
