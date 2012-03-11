@@ -58,9 +58,8 @@ ObservationRecorder.prototype = {
    *                be resetting observations for.  You can also
    *                pass in an Array of strings.
    *
-   * Example:  obs.resetTopic("mail:attachmentsRenamed");
-   *           obs.resetTopic(["mail:attachmentRenamed",
-   *                           "mail:attachmentsDeleted"]);
+   * Example:  obs.resetTopic("topic");
+   *           obs.resetTopic(["topic1", "topic2"]);
    */
   resetTopic: function OR_resetTopic(aTopics) {
     if (!Array.isArray(aTopics))
@@ -85,9 +84,8 @@ ObservationRecorder.prototype = {
    *                should be observing.  You can also pass in an Array of
    *                strings.
    *
-   * Example:  obs.planFor("mail:attachmentsAdded");
-   *           obs.planFor(["mail:attachmentsAdded",
-   *                        "mail:attachmentRenamed"]);
+   * Example:  obs.planFor("topic");
+   *           obs.planFor(["topic1", "topic2"]);
    */
   planFor: function OR_planFor(aTopics) {
     if (!Array.isArray(aTopics))
@@ -105,9 +103,8 @@ ObservationRecorder.prototype = {
    *                is already observing.  You can also pass in an Array of
    *                strings.
    *
-   * Example:  obs.stopNoticing("mail:attachmentsAdded");
-   *           obs.stopNoticing(["mail:attachmentsAdded",
-   *                             "mail:attachmentRenamed"]);
+   * Example:  obs.stopNoticing("topic");
+   *           obs.stopNoticing(["topic1", "topic2"]);
    */
   stopNoticing: function OR_stopNoticing(aTopics) {
     if (!Array.isArray(aTopics))

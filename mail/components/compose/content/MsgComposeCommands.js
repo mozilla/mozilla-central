@@ -3082,8 +3082,9 @@ function AddAttachments(aAttachments)
     gContentChanged = true;
 
     UpdateAttachmentBucket(true);
-    Services.obs.notifyObservers(addedAttachments, "mail:attachmentsAdded",
-                                 null);
+    let event = document.createEvent("CustomEvent");
+    event.initCustomEvent("attachments-added", true, true, addedAttachments);
+    bucket.dispatchEvent(event);
   }
 }
 
@@ -3186,8 +3187,9 @@ function RemoveAllAttachments()
     child.attachment = null;
   }
 
-  Services.obs.notifyObservers(removedAttachments, "mail:attachmentsRemoved",
-                               null);
+  let event = document.createEvent("CustomEvent");
+  event.initCustomEvent("attachments-removed", true, true, removedAttachments);
+  bucket.dispatchEvent(event);
 
   UpdateAttachmentBucket(false);
   CheckForAttachmentNotification(null);
@@ -3240,8 +3242,11 @@ function RemoveSelectedAttachment()
     }
 
     gContentChanged = true;
-    Services.obs.notifyObservers(removedAttachments, "mail:attachmentsRemoved",
-                                 null);
+
+    let event = document.createEvent("CustomEvent");
+    event.initCustomEvent("attachments-removed", true, true,
+                          removedAttachments);
+    bucket.dispatchEvent(event);
   }
   CheckForAttachmentNotification(null);
 }
@@ -3270,8 +3275,10 @@ function RenameSelectedAttachment()
     item.setAttribute("name", attachmentName.value);
 
     gContentChanged = true;
-    Services.obs.notifyObservers(item.attachment, "mail:attachmentRenamed",
-                                 originalName);
+
+    let event = document.createEvent("CustomEvent");
+    event.initCustomEvent("attachment-renamed", true, true, originalName);
+    item.dispatchEvent(event);
   }
 }
 

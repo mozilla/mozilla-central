@@ -11,7 +11,7 @@ const MODULE_NAME = 'test-attachment-events';
 const RELATIVE_ROOT = '../shared-modules';
 const MODULE_REQUIRES = ['folder-display-helpers', 'compose-helpers',
                          'window-helpers', 'attachment-helpers',
-                         'prompt-helpers', 'observer-helpers'];
+                         'prompt-helpers'];
 
 let elib = {};
 Cu.import('resource://mozmill/modules/elementslib.js', elib);
@@ -23,9 +23,9 @@ Cu.import('resource://mozmill/stdlib/os.js', os);
 Cu.import('resource://gre/modules/Services.jsm');
 Cu.import('resource:///modules/iteratorUtils.jsm');
 
-const kAttachmentsAdded = "mail:attachmentsAdded";
-const kAttachmentsRemoved = "mail:attachmentsRemoved";
-const kAttachmentRenamed = "mail:attachmentRenamed";
+const kAttachmentsAdded = "attachments-added";
+const kAttachmentsRemoved = "attachments-removed";
+const kAttachmentRenamed = "attachment-renamed";
 
 let gPath;
 
@@ -76,26 +76,30 @@ function select_attachments(aController, aIndexStart, aIndexEnd) {
 }
 
 /**
- * Test that the mail:attachmentsAdded event is fired when we add a single
+ * Test that the attachments-added event is fired when we add a single
  * attachment.
  */
-function test_attachmentsAdded_on_single() {
-  // Prepare to observe mail:attachmentsAdded
-  let obs = new ObservationRecorder();
-  obs.planFor(kAttachmentsAdded);
-  Services.obs.addObserver(obs, kAttachmentsAdded,
-                           false);
+function test_attachments_added_on_single() {
+  // Prepare to listen for attachments-added
+  let eventCount = 0;
+  let lastEvent;
+  let listener = function(event) {
+    eventCount++;
+    lastEvent = event;
+  }
 
   // Open up the compose window
   let cw = open_compose_new_mail(mc);
+  cw.e("attachmentBucket").addEventListener(kAttachmentsAdded, listener, false);
+
   // Attach a single file
   add_attachment(cw, "http://www.example.com/1", 0);
 
   // Make sure we only saw the event once
-  assert_equals(1, obs.numSightings(kAttachmentsAdded));
+  assert_equals(1, eventCount);
 
   // Make sure that we were passed the right subject
-  let subjects = obs.subject[kAttachmentsAdded][0];
+  let subjects = lastEvent.detail;
   assert_true(subjects instanceof Ci.nsIMutableArray);
   assert_equals("http://www.example.com/1",
                 subjects.queryElementAt(0, Ci.nsIMsgAttachment).url);
@@ -103,8 +107,8 @@ function test_attachmentsAdded_on_single() {
   // Make sure that we can get that event again if we
   // attach more files.
   add_attachment(cw, "http://www.example.com/2", 0);
-  assert_equals(2, obs.numSightings(kAttachmentsAdded));
-  subjects = obs.subject[kAttachmentsAdded][1];
+  assert_equals(2, eventCount);
+  subjects = lastEvent.detail;
   assert_true(subjects instanceof Ci.nsIMutableArray);
   assert_equals("http://www.example.com/2",
                 subjects.queryElementAt(0, Ci.nsIMsgAttachment).url);
@@ -112,21 +116,24 @@ function test_attachmentsAdded_on_single() {
   // And check that we don't receive the event if we try to attach a file
   // that's already attached.
   add_attachment(cw, "http://www.example.com/2");
-  assert_equals(2, obs.numSightings(kAttachmentsAdded));
+  assert_equals(2, eventCount);
 
-  Services.obs.removeObserver(obs, kAttachmentsAdded);
+  cw.e("attachmentBucket").removeEventListener(kAttachmentsAdded, listener,
+                                               false);
 }
 
 /**
- * Test that the mail:attachmentsAdded event is fired when we add a series
+ * Test that the attachments-added event is fired when we add a series
  * of files all at once.
  */
-function test_attachmentsAdded_on_multiple() {
-  // Prepare to observe mail:attachmentsAdded
-  let obs = new ObservationRecorder();
-  obs.planFor(kAttachmentsAdded);
-  Services.obs.addObserver(obs, kAttachmentsAdded,
-                           false);
+function test_attachments_added_on_multiple() {
+  // Prepare to listen for attachments-added
+  let eventCount = 0;
+  let lastEvent;
+  let listener = function(event) {
+    eventCount++;
+    lastEvent = event;
+  }
 
   // Prepare the attachments - we store the names in attachmentNames to
   // make sure that we observed the right event subjects later on.
@@ -135,14 +142,16 @@ function test_attachmentsAdded_on_multiple() {
 
   // Open the compose window and add the attachments
   let cw = open_compose_new_mail(mc);
+  cw.e("attachmentBucket").addEventListener(kAttachmentsAdded, listener, false);
+
   add_attachments(cw, attachmentUrls);
 
-  // Make sure we only saw a single mail:attachmentsAdded for this group
+  // Make sure we only saw a single attachments-added for this group
   // of files.
-  assert_equals(1, obs.numSightings(kAttachmentsAdded));
+  assert_equals(1, eventCount);
 
   // Now make sure we got passed the right subjects for the event
-  let subjects = obs.subject[kAttachmentsAdded][0];
+  let subjects = lastEvent.detail;
   assert_true(subjects instanceof Ci.nsIMutableArray);
   assert_equals(2, subjects.length);
 
@@ -158,13 +167,15 @@ function test_attachmentsAdded_on_multiple() {
                     "http://www.example.com/3"];
 
   // Open the compose window and attach the files, and ensure that we saw
-  // the mail:attachmentsAdded event
+  // the attachments-added event
   cw = open_compose_new_mail(mc);
+  cw.e("attachmentBucket").addEventListener(kAttachmentsAdded, listener, false);
+
   add_attachments(cw, attachmentUrls);
-  assert_equals(2, obs.numSightings(kAttachmentsAdded));
+  assert_equals(2, eventCount);
 
   // Make sure that we got the right subjects back
-  subjects = obs.subject[kAttachmentsAdded][1];
+  subjects = lastEvent.detail;
   assert_true(subjects instanceof Ci.nsIMutableArray);
   assert_equals(3, subjects.length);
 
@@ -175,24 +186,31 @@ function test_attachmentsAdded_on_multiple() {
   // Make sure we don't fire the event again if we try to attach the same
   // files.
   add_attachments(cw, attachmentUrls);
-  assert_equals(2, obs.numSightings(kAttachmentsAdded));
+  assert_equals(2, eventCount);
 
-  Services.obs.removeObserver(obs, kAttachmentsAdded);
+  cw.e("attachmentBucket").removeEventListener(kAttachmentsAdded, listener,
+                                               false);
 }
 
 /**
- * Test that the mail:attachmentsRemoved event is fired when removing a
+ * Test that the attachments-removed event is fired when removing a
  * single file.
  */
-function test_attachmentsRemoved_on_single() {
-  // Prepare our observer
-  let obs = new ObservationRecorder();
-  obs.planFor(kAttachmentsRemoved);
-  Services.obs.addObserver(obs, kAttachmentsRemoved,
-                           false);
+function test_attachments_removed_on_single() {
+  // Prepare to listen for attachments-removed
+  let eventCount = 0;
+  let lastEvent;
+  let listener = function(event) {
+    eventCount++;
+    lastEvent = event;
+  }
+
 
   // Open up the compose window, attach a file...
   let cw = open_compose_new_mail(mc);
+  cw.e("attachmentBucket").addEventListener(kAttachmentsRemoved, listener,
+                                            false);
+
   add_attachment(cw, "http://www.example.com/1");
 
   // Now select that attachment and delete it
@@ -202,10 +220,10 @@ function test_attachmentsRemoved_on_single() {
   let removedAttachment = removedAttachmentItem[0].attachment;
   cw.window.goDoCommand("cmd_delete");
   // Make sure we saw the event
-  assert_equals(1, obs.numSightings(kAttachmentsRemoved));
+  assert_equals(1, eventCount);
   // And make sure we were passed the right attachment item as the
   // subject.
-  let subjects = obs.subject[kAttachmentsRemoved][0];
+  let subjects = lastEvent.detail;
   assert_true(subjects instanceof Ci.nsIMutableArray);
   assert_equals(1, subjects.length);
   assert_equals(subjects.queryElementAt(0, Ci.nsIMsgAttachment).url,
@@ -218,29 +236,35 @@ function test_attachmentsRemoved_on_single() {
   removedAttachment = removedAttachmentItem[0].attachment;
   cw.window.goDoCommand("cmd_delete");
 
-  assert_equals(2, obs.numSightings(kAttachmentsRemoved));
-  subjects = obs.subject[kAttachmentsRemoved][1];
+  assert_equals(2, eventCount);
+  subjects = lastEvent.detail;
   assert_true(subjects instanceof Ci.nsIMutableArray);
   assert_equals(1, subjects.length);
   assert_equals(subjects.queryElementAt(0, Ci.nsIMsgAttachment).url,
                 "http://www.example.com/2");
 
-  Services.obs.removeObserver(obs, kAttachmentsRemoved);
+  cw.e("attachmentBucket").removeEventListener(kAttachmentsRemoved, listener,
+                                               false);
 }
 
 /**
- * Test that the mail:attachmentsRemoved event is fired when removing multiple
+ * Test that the attachments-removed event is fired when removing multiple
  * files all at once.
  */
-function test_attachmentsRemoved_on_multiple() {
-  // Prepare the event observer
-  let obs = new ObservationRecorder();
-  obs.planFor(kAttachmentsRemoved);
-  Services.obs.addObserver(obs, kAttachmentsRemoved,
-                           false);
+function test_attachments_removed_on_multiple() {
+  // Prepare to listen for attachments-removed
+  let eventCount = 0;
+  let lastEvent;
+  let listener = function(event) {
+    eventCount++;
+    lastEvent = event;
+  }
 
   // Open up the compose window and attach some files...
   let cw = open_compose_new_mail(mc);
+  cw.e("attachmentBucket").addEventListener(kAttachmentsRemoved, listener,
+                                            false);
+
   add_attachments(cw, ["http://www.example.com/1",
                        "http://www.example.com/2",
                        "http://www.example.com/3"]);
@@ -254,12 +278,12 @@ function test_attachmentsRemoved_on_multiple() {
 
   cw.window.goDoCommand("cmd_delete");
 
-  // We should have seen the mail:attachmentsRemoved event exactly once.
-  assert_equals(1, obs.numSightings(kAttachmentsRemoved));
+  // We should have seen the attachments-removed event exactly once.
+  assert_equals(1, eventCount);
 
   // Now let's make sure we got passed back the right attachment items
   // as the event subject
-  let subjects = obs.subject[kAttachmentsRemoved][0];
+  let subjects = lastEvent.detail;
   assert_true(subjects instanceof Ci.nsIMutableArray);
   assert_equals(3, subjects.length);
 
@@ -273,24 +297,30 @@ function test_attachmentsRemoved_on_multiple() {
 
   select_attachments(cw, 0, 1);
   cw.window.goDoCommand("cmd_delete");
-  assert_equals(2, obs.numSightings(kAttachmentsRemoved));
+  assert_equals(2, eventCount);
 
-  Services.obs.removeObserver(obs, kAttachmentsRemoved);
+  cw.e("attachmentBucket").removeEventListener(kAttachmentsRemoved, listener,
+                                               false);
 }
 
 /**
- * Test that we don't see the mail:attachmentsRemoved event if no attachments
+ * Test that we don't see the attachments-removed event if no attachments
  * are selected when hitting "Delete"
  */
-function test_no_attachmentsRemoved_on_none() {
-  // Prepare the observer.
-  let obs = new ObservationRecorder();
-  obs.planFor(kAttachmentsRemoved);
-  Services.obs.addObserver(obs, kAttachmentsRemoved,
-                           false);
+function test_no_attachments_removed_on_none() {
+  // Prepare to listen for attachments-removed
+  let eventCount = 0;
+  let lastEvent;
+  let listener = function(event) {
+    eventCount++;
+    lastEvent = event;
+  }
 
   // Open the compose window and add some attachments.
   let cw = open_compose_new_mail(mc);
+  cw.e("attachmentBucket").addEventListener(kAttachmentsRemoved, listener,
+                                            false);
+
   add_attachments(cw, ["http://www.example.com/1",
                        "http://www.example.com/2",
                        "http://www.example.com/3"]);
@@ -299,26 +329,29 @@ function test_no_attachmentsRemoved_on_none() {
   cw.e("attachmentBucket").clearSelection();
   // Run the delete command
   cw.window.goDoCommand("cmd_delete");
-  // Make sure we didn't see the mail:attachmentsRemoved event.
-  assert_false(obs.didSee(kAttachmentsRemoved));
-  Services.obs.removeObserver(obs, kAttachmentsRemoved);
+  // Make sure we didn't see the attachments_removed event.
+  assert_equals(0, eventCount);
+  cw.e("attachmentBucket").removeEventListener(kAttachmentsRemoved, listener,
+                                               false);
 }
 
 /**
- * Test that we see the mail:attachmentRenamed event when an attachments
+ * Test that we see the attachment-renamed event when an attachments
  * name is changed.
  */
-function test_attachmentRenamed() {
+function test_attachment_renamed() {
   // Here's what we'll rename some files to.
   const kRenameTo1 = "Renamed-1";
   const kRenameTo2 = "Renamed-2";
   const kRenameTo3 = "Renamed-3";
 
-  // Prepare our observer
-  let obs = new ObservationRecorder();
-  obs.planFor(kAttachmentRenamed);
-  Services.obs.addObserver(obs, kAttachmentRenamed,
-                           false);
+  // Prepare to listen for attachment-renamed
+  let eventCount = 0;
+  let lastEvent;
+  let listener = function(event) {
+    eventCount++;
+    lastEvent = event;
+  }
 
   // Renaming a file brings up a Prompt, so we'll mock the Prompt Service
   gMockPromptService.reset();
@@ -330,6 +363,9 @@ function test_attachmentRenamed() {
   // Open up the compose window, attach some files, choose the first
   // attachment, and choose to rename it.
   let cw = open_compose_new_mail(mc);
+  cw.e("attachmentBucket").addEventListener(kAttachmentRenamed, listener,
+                                            false);
+
   add_attachments(cw, ["http://www.example.com/1",
                        "http://www.example.com/2",
                        "http://www.example.com/3"]);
@@ -337,11 +373,11 @@ function test_attachmentRenamed() {
   select_attachments(cw, 0);
   cw.window.goDoCommand("cmd_renameAttachment");
 
-  // Ensure that we saw the mail:attachmentRenamed event
-  assert_true(obs.didSee(kAttachmentRenamed));
+  // Ensure that we saw the attachment-renamed event
+  assert_equals(1, eventCount);
   // Ensure that the event mentions the right attachment
-  let renamedAttachment1 = obs.subject[kAttachmentRenamed][0];
-  let originalName1 = obs.data[kAttachmentRenamed][0];
+  let renamedAttachment1 = lastEvent.target.attachment;
+  let originalName1 = lastEvent.detail;
   assert_true(renamedAttachment1 instanceof Ci.nsIMsgAttachment);
   assert_equals(kRenameTo1, renamedAttachment1.name);
   assert_true(renamedAttachment1.url.indexOf("http://www.example.com/1") != -1);
@@ -355,9 +391,9 @@ function test_attachmentRenamed() {
   select_attachments(cw, 0);
   cw.window.goDoCommand("cmd_renameAttachment");
 
-  assert_equals(2, obs.numSightings(kAttachmentRenamed));
-  let renamedAttachment2 = obs.subject[kAttachmentRenamed][1];
-  let originalName2 = obs.data[kAttachmentRenamed][1];
+  assert_equals(2, eventCount);
+  let renamedAttachment2 = lastEvent.target.attachment;
+  let originalName2 = lastEvent.detail;
   assert_true(renamedAttachment2 instanceof Ci.nsIMsgAttachment);
   assert_equals(kRenameTo2, renamedAttachment2.name);
   assert_true(renamedAttachment2.url.indexOf("http://www.example.com/1") != -1);
@@ -372,11 +408,11 @@ function test_attachmentRenamed() {
   select_attachments(cw, 1);
   cw.window.goDoCommand("cmd_renameAttachment");
 
-  // Ensure we saw the mail:attachmentRenamed event
-  assert_equals(3, obs.numSightings(kAttachmentRenamed));
+  // Ensure we saw the attachment-renamed event
+  assert_equals(3, eventCount);
   // Ensure that the event mentions the right attachment
-  let renamedAttachment3 = obs.subject[kAttachmentRenamed][2];
-  let originalName3 = obs.data[kAttachmentRenamed][2];
+  let renamedAttachment3 = lastEvent.target.attachment;
+  let originalName3 = lastEvent.detail;
   assert_true(renamedAttachment3 instanceof Ci.nsIMsgAttachment);
   assert_equals(kRenameTo3, renamedAttachment3.name);
   assert_true(renamedAttachment3.url.indexOf("http://www.example.com/2") != -1);
@@ -384,19 +420,22 @@ function test_attachmentRenamed() {
 
   // Unregister the Mock Prompt service, and remove our observer.
   gMockPromptService.unregister();
-  Services.obs.removeObserver(obs, kAttachmentRenamed);
+  cw.e("attachmentBucket").addEventListener(kAttachmentRenamed, listener,
+                                            false);
 }
 
 /**
- * Test that the mail:attachmentsRenamed event is not fired if we set the
+ * Test that the attachment-renamed event is not fired if we set the
  * filename to be blank.
  */
-function test_no_attachmentsRenamed_on_blank() {
-  // Set up our observer
-  let obs = new ObservationRecorder();
-  obs.planFor(kAttachmentRenamed);
-  Services.obs.addObserver(obs, kAttachmentRenamed,
-                           false);
+function test_no_attachment_renamed_on_blank() {
+  // Prepare to listen for attachment-renamed
+  let eventCount = 0;
+  let lastEvent;
+  let listener = function(event) {
+    eventCount++;
+    lastEvent = event;
+  }
 
   // Register the Mock Prompt Service to return the empty string when
   // prompted.
@@ -408,6 +447,9 @@ function test_no_attachmentsRenamed_on_blank() {
   // Open the compose window, attach some files, select one, and chooes to
   // rename it.
   let cw = open_compose_new_mail(mc);
+  cw.e("attachmentBucket").addEventListener(kAttachmentRenamed, listener,
+                                            false);
+
   add_attachments(cw, ["http://www.example.com/1",
                        "http://www.example.com/2",
                        "http://www.example.com/3"]);
@@ -415,8 +457,9 @@ function test_no_attachmentsRenamed_on_blank() {
   select_attachments(cw, 0);
   cw.window.goDoCommand("cmd_renameAttachment");
 
-  // Ensure that we didn't see the mail:attachmentRenamed event.
-  assert_false(obs.didSee(kAttachmentRenamed));
+  // Ensure that we didn't see the attachment-renamed event.
+  assert_equals(0, eventCount);
   gMockPromptService.unregister();
-  Services.obs.removeObserver(obs, kAttachmentRenamed);
+  cw.e("attachmentBucket").removeEventListener(kAttachmentRenamed, listener,
+                                               false);
 }
