@@ -553,9 +553,10 @@ var GlodaIndexer = {
       }
 
       // if we have not done an initial sweep, schedule scheduling one.
-      if (!this._initialSweepPerformed)
+      if (!this._initialSweepPerformed) {
         this._longTimer.initWithCallback(this._scheduleInitialSweep,
           this._INITIAL_SWEEP_DELAY, Ci.nsITimer.TYPE_ONE_SHOT);
+      }
     }
     else if (this._enabled && !aEnable) {
       for each (let [iIndexer, indexer] in Iterator(this._indexers)) {
@@ -1453,4 +1454,6 @@ var GlodaIndexer = {
 
 
 };
-GlodaIndexer._init();
+// we used to initialize here; now we have public.js do it for us after the
+//  indexers register themselves so we know about all our built-in indexers
+//  at init-time.

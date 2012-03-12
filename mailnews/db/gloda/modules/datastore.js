@@ -609,6 +609,13 @@ ExplainedStatementProcessor.prototype = {
   }
 };
 
+// See the documentation on GlodaDatastore._schemaVersion to understand these:
+const DB_SCHEMA_ACCEPT_LEAVE_LOW = 31,
+      DB_SCHEMA_ACCEPT_LEAVE_HIGH = 34,
+      DB_SCHEMA_ACCEPT_DOWNGRADE_LOW = 35,
+      DB_SCHEMA_ACCEPT_DOWNGRADE_HIGH = 39,
+      DB_SCHEMA_DOWNGRADE_DELTA = 5;
+
 /**
  * Database abstraction layer.  Contains explicit SQL schemas for our
  *  fundamental representations (core 'nouns', if you will) as well as
@@ -720,7 +727,87 @@ var GlodaDatastore = {
 
   /* ******************* SCHEMA ******************* */
 
-  _schemaVersion: 26,
+  /**
+   * Schema version policy. IMPORTANT!  We expect the following potential things
+   *  to happen in the life of gloda that can impact our schema and the ability
+   *  to move between different versions of Thunderbird:
+   *
+   * - Fundamental changes to the schema so that two versions of Thunderbird
+   *    cannot use the same global database.  To wit, Thunderbird N+1 needs to
+   *    blow away the database of Thunderbird N and reindex from scratch. 
+   *    Likewise, Thunderbird N will need to blow away Thunderbird N+1's
+   *    database because it can't understand it.  And we can't simply use a
+   *    different file because there would be fatal bookkeeping losses.
+   *
+   * - Bidirectional minor schema changes (rare).
+   *    Thunderbird N+1 does something that does not affect Thunderbird N's use
+   *    of the database, and a user switching back to Thunderbird N will not be
+   *    negatively impacted.  It will also be fine when they go back to N+1 and
+   *    N+1 will not be missing any vital data.  The historic example of this is
+   *    when we added a missing index that was important for performance.  In
+   *    that case, Thunderbird N could have potentially left the schema revision
+   *    intact (if there was a safe revision), rather than swapping it on the
+   *    downgrade, compelling N+1 to redo the transform on upgrade.
+   *
+   * - Backwards compatible, upgrade-transition minor schema changes.
+   *    Thunderbird N+1 does something that does not require nuking the
+   *    database / a full re-index, but does require processing on upgrade from
+   *    a version of the database previously used by Thunderbird.  These changes
+   *    do not impact N's ability to use the database.  For example, adding a
+   *    new indexed attribute that affects a small number of messages could be
+   *    handled by issuing a query on upgrade to dirty/index those messages.
+   *    However, if the user goes back to N from N+1, when they upgrade to N+1
+   *    again, we need to re-index.  In this case N would need to have downgrade
+   *    the schema revision.
+   *
+   * - Backwards incompatible, minor schema changes.
+   *    Thunderbird N+1 does something that does not require nuking the database
+   *    but will break Thunderbird N's ability to use the database.
+   *
+   * - Regression fixes.  Sometimes we may land something that screws up
+   *    databases, or the platform changes in a way that breaks our code and we
+   *    had insufficient unit test coverage and so don't detect it until some
+   *    databases have gotten messed up.
+   *
+   * Accordingly, every version of Thunderbird has a concept of potential schema
+   *  versions with associated semantics to prepare for the minor schema upgrade
+   *  cases were inter-op is possible.  These ranges and their semantics are:
+   * - accepts and leaves intact.  Covers:
+   *    - regression fixes that no longer exist with the landing of the upgrade
+   *       code as long as users never go back a build in the given channel.
+   *    - bidirectional minor schema changes.
+   * - accepts but downgrades version to self.  Covers:
+   *    - backwards compatible, upgrade-transition minor schema changes.
+   * - nuke range (anything beyond a specific revision needs to be nuked):
+   *    - backwards incompatible, minor scheme changes
+   *    - fundamental changes
+   *
+   *
+   * SO, YOU WANT TO CHANGE THE SCHEMA?
+   *
+   * Use the ranges below for Thunderbird 11 as a guide, bumping things as little
+   *  as possible.  If we start to use up the "accepts and leaves intact" range
+   *  without majorly changing things up, re-do the numbering acceptance range
+   *  to give us additional runway.
+   * 
+   * Also, if we keep needing non-nuking upgrades, consider adding an additional
+   *  table to the database that can tell older versions of Thunderbird what to
+   *  do when confronted with a newer database and where it can set flags to tell
+   *  the newer Thunderbird what the older Thunderbird got up to.  For example,
+   *  it would be much easier if we just tell Thunderbird N what to do when it's
+   *  confronted with the database.
+   *
+   *
+   * CURRENT STATE OF THE MIGRATION LOGIC:
+   *
+   * Thunderbird 11: uses 30 (regression fix from 26)
+   * - accepts and leaves intact: 31-34
+   * - accepts and downgrades by 5: 35-39
+   * - nukes: 40+
+   */
+  _schemaVersion: 30,
+  // what is the schema in the database right now?
+  _actualSchemaVersion: 0,
   _schema: {
     tables: {
 
@@ -1011,16 +1098,41 @@ var GlodaDatastore = {
                           getService(Ci.nsIFts3Tokenizer);
         tokenizer.registerTokenizer(dbConnection);
 
-        if (dbConnection.schemaVersion != this._schemaVersion) {
+        // -- database schema changes
+        let dbSchemaVersion = this._actualSchemaVersion =
+          dbConnection.schemaVersion;
+        // - database from the future!
+        if (dbSchemaVersion > this._schemaVersion) {
+          if (dbSchemaVersion >= DB_SCHEMA_ACCEPT_LEAVE_LOW &&
+              dbSchemaVersion <= DB_SCHEMA_ACCEPT_LEAVE_HIGH) {
+            this._log.debug("db from the future in acceptable range; leaving " +
+                            "version at: " + dbSchemaVersion);
+          }
+          else if (dbSchemaVersion >= DB_SCHEMA_ACCEPT_DOWNGRADE_LOW &&
+                   dbSchemaVersion <= DB_SCHEMA_ACCEPT_DOWNGRADE_HIGH) {
+            let newVersion = dbSchemaVersion - DB_SCHEMA_DOWNGRADE_DELTA;
+            this._log.debug("db from the future in downgrade range; setting " +
+                            "version to " + newVersion + " down from " +
+                            dbSchemaVersion);
+            dbConnection.schemaVersion = this._actualSchemaVersion = newVersion;
+          }
+          // too far from the future, nuke it.
+          else {
+            dbConnection = this._nukeMigration(dbConnection);
+          }
+        }
+        // - database from the past!  migrate it, possibly.
+        else if (dbSchemaVersion < this._schemaVersion) {
           this._log.debug("Need to migrate database.  (DB version: " +
-            dbConnection.schemaVersion + " desired version: " +
+            this._actualSchemaVersion + " desired version: " +
             this._schemaVersion);
           dbConnection = this._migrate(dbService, dbFile,
                                        dbConnection,
-                                       dbConnection.schemaVersion,
+                                       this._actualSchemaVersion,
                                        this._schemaVersion);
-          this._log.debug("Migration completed.");
+          this._log.debug("Migration call completed.");
         }
+        // else: this database is juuust right.
       }
       // Handle corrupt databases, other oddities
       catch (ex) {
@@ -1296,7 +1408,8 @@ var GlodaDatastore = {
       this._createTableSchema(aDBConnection, tableName, tableDef);
     }
 
-    aDBConnection.schemaVersion = this._schemaVersion;
+    aDBConnection.schemaVersion = this._actualSchemaVersion =
+      this._schemaVersion;
   },
 
   /**
@@ -1333,11 +1446,20 @@ var GlodaDatastore = {
     }
   },
 
+  _nukeMigration: function gloda_ds_nukeMigration(aDBConnection) {
+    aDBConnection.close();
+    aDBFile.remove(false);
+    this._log.warn("Global database has been purged due to schema change.  " + 
+                   "old version was " + this._actualSchemaVersion +
+                   ", new version is: " + this._schemaVersion);
+    return this._createDB(aDBService, aDBFile);
+  },
+
   /**
-   * Migrate the database _to the latest version_.  We only keep enough logic
-   *  around to get us to the recent version.  This code is not a time machine!
-   *  If we need to blow away the database to get to the most recent version,
-   *  then that's the sum total of the migration!
+   * Migrate the database _to the latest version_ from an older version.  We
+   *  only keep enough logic around to get us to the recent version.  This code
+   *  is not a time machine!  If we need to blow away the database to get to the
+   *  most recent version, then that's the sum total of the migration!
    */
   _migrate: function gloda_ds_migrate(aDBService, aDBFile, aDBConnection,
                                       aCurVersion, aNewVersion) {
@@ -1374,16 +1496,43 @@ var GlodaDatastore = {
     // version 21
     // - add the messagesAttribFastDeletion index we thought was already covered
     //  by an index we removed a while ago (migrate-able)
-    // (version 22-25 GAP being left for incremental, non-explodey change. jump
-    //  the schema to 26 if 22 is the next number but you have an explodey
-    //  change!)
     // version 26
-    // - bump page size and also cache size
+    // - bump page size and also cache size (blow away)
+    // version 30
+    // - recover from bug 732372 that affected TB 11 beta / TB 12 alpha / TB 13
+    //    trunk.  The fix is bug 734507.  The revision bump happens
+    //    asynchronously. (migrate-able)
+    
+    // nuke if prior to 26
+    if (aCurVersion < 26)
+      return this._nukeMigration(aDBConnection);
 
-    aDBConnection.close();
-    aDBFile.remove(false);
-    this._log.warn("Global database has been purged due to schema change.");
-    return this._createDB(aDBService, aDBFile);
+    // They must be desiring our "a.contact is undefined" fix!
+    // This fix runs asynchronously as the first indexing job the indexer ever
+    //  performs.  It is scheduled by the enabling of the message indexer and
+    //  it is the one that updates the schema version when done.
+    
+    // return the same DB connection since we didn't create a new one or do
+    //  anything.
+    return aDBConnection;
+  },
+
+  /**
+   * Asynchronously update the schema version; only for use by in-tree callers
+   *  who asynchronously perform migration work triggered by their initial
+   *  indexing sweep and who have properly updated the schema version in all
+   *  the appropriate locations in this file.
+   *
+   * This is done without doing anything about the current transaction state,
+   *  which is desired.
+   */
+  _updateSchemaVersion: function(newSchemaVersion) {
+    this._actualSchemaVersion = newSchemaVersion;
+    let stmt = this._createAsyncStatement(
+      // we need to concat; pragmas don't like "?1" binds
+      "PRAGMA user_version = " + newSchemaVersion, true);
+    stmt.executeAsync(this.trackAsync());
+    stmt.finalize();
   },
 
   _outstandingAsyncStatements: [],

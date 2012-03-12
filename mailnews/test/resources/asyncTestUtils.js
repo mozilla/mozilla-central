@@ -81,7 +81,7 @@ var asyncCopyListener = {
   }
 };
 
-var asyncGeneratorStack = [];
+var asyncGeneratorStack = [], asyncGeneratorSendValue = undefined;
 
 /**
  * Run a function that may or may not be a generator.  All functions, generator
@@ -132,7 +132,8 @@ function async_run(aArgs) {
  *  before we actually continue execution.  It also keeps our stack traces
  *  cleaner.
  */
-function async_driver() {
+function async_driver(val) {
+  asyncGeneratorSendValue = val;
   do_execute_soon(_async_driver);
   return false;
 }
@@ -152,8 +153,10 @@ function _async_driver() {
   while (asyncGeneratorStack.length) {
     curGenerator = asyncGeneratorStack[asyncGeneratorStack.length-1][0];
     try {
-      while (curGenerator.next()) {
+      while (curGenerator.send(asyncGeneratorSendValue)) {
+        asyncGeneratorSendValue = undefined;
       }
+      asyncGeneratorSendValue = undefined;
       return false;
     }
     catch (ex) {

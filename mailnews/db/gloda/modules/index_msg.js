@@ -87,8 +87,23 @@ const GLODA_DIRTY_PROPERTY = "gloda-dirty";
  * The sentinel GLODA_MESSAGE_ID_PROPERTY value indicating that a message fails
  *  to index and we should not bother trying again, at least not until a new
  *  release is made.
+ *
+ * This should ideally just flip between 1 and 2, with GLODA_OLD_BAD_MESSAGE_ID
+ *  flipping in the other direction.  If we start having more trailing badness,
+ *  _indexerGetEnumerator and GLODA_OLD_BAD_MESSAGE_ID will need to be altered.
+ *
+ * When flipping this, be sure to update glodaTestHelper.js's copy.
  */
-const GLODA_BAD_MESSAGE_ID = 1;
+const GLODA_BAD_MESSAGE_ID = 2;
+/**
+ * The gloda id we used to use to mark messages as bad, but now should be
+ *  treated as eligible for indexing.  This is only ever used for consideration
+ *  when creating msg header enumerators with `_indexerGetEnumerator` which
+ *  means we only will re-index such messages in an indexing sweep.  Accordingly
+ *  event-driven indexing will still treat such messages as unindexed (and
+ *  unindexable) until an indexing sweep picks them up.
+ */
+const GLODA_OLD_BAD_MESSAGE_ID = 1;
 const GLODA_FIRST_VALID_MESSAGE_ID = 32;
 
 const JUNK_SCORE_PROPERTY = "junkscore";
@@ -500,6 +515,8 @@ var GlodaMsgIndexer = {
 
     this._enabled = true;
 
+    this._considerSchemaMigration();
+
     this._log.info("Event-Driven Indexing is now " + this._enabled);
   },
   disable: function msg_indexer_disable() {
@@ -729,9 +746,15 @@ var GlodaMsgIndexer = {
     if (aEnumKind == this.kEnumMsgsToIndex) {
       // We need to create search terms for messages to index. Messages should
       //  be indexed if they're indexable (local or offline and not expunged)
-      //  and either haven't been indexed or are dirty.
+      //  and either: haven't been indexed, are dirty, or are marked with with
+      //  a former GLODA_BAD_MESSAGE_ID that is no longer our bad marker.  (Our
+      //  bad marker can change on minor schema revs so that we can try and
+      //  reindex those messages exactly once and without needing to go through
+      //  a pass to mark them as needing one more try.)
       // The basic search expression is:
-      //  ((GLODA_MESSAGE_ID_PROPERTY Is 0) || (GLODA_DIRTY_PROPERTY Isnt 0)) &&
+      //  ((GLODA_MESSAGE_ID_PROPERTY Is 0) ||
+      //   (GLODA_MESSAGE_ID_PROPERTY Is GLODA_OLD_BAD_MESSAGE_ID) ||
+      //   (GLODA_DIRTY_PROPERTY Isnt 0)) &&
       //  (JUNK_SCORE_PROPERTY Isnt 100)
       // If the folder !isLocal we add the terms:
       //  - if the folder is offline -- && (Status Is nsMsgMessageFlags.Offline)
@@ -761,7 +784,19 @@ var GlodaMsgIndexer = {
       searchTerm.hdrProperty = GLODA_MESSAGE_ID_PROPERTY;
       searchTerms.appendElement(searchTerm, false);
 
-      //  second term: || GLODA_DIRTY_PROPERTY Isnt 0 )
+      // second term: || GLODA_MESSAGE_ID_PROPERTY Is GLODA_OLD_BAD_MESSAGE_ID
+      searchTerm = searchSession.createTerm();
+      searchTerm.booleanAnd = false; // OR
+      searchTerm.attrib = nsMsgSearchAttrib.Uint32HdrProperty;
+      searchTerm.op = nsMsgSearchOp.Is;
+      value = searchTerm.value;
+      value.attrib = searchTerm.attrib;
+      value.status = GLODA_OLD_BAD_MESSAGE_ID;
+      searchTerm.value = value;
+      searchTerm.hdrProperty = GLODA_MESSAGE_ID_PROPERTY;
+      searchTerms.appendElement(searchTerm, false);
+
+      //  third term: || GLODA_DIRTY_PROPERTY Isnt 0 )
       searchTerm = searchSession.createTerm();
       searchTerm.booleanAnd = false;
       searchTerm.endsGrouping = true;
@@ -940,7 +975,21 @@ var GlodaMsgIndexer = {
       ["delete", {
          worker: this._worker_processDeletes,
        }],
+
+      ["fixMissingContacts", {
+        worker: this._worker_fixMissingContacts,
+       }],
     ];
+  },
+
+  _schemaMigrationInitiated: false,
+  _considerSchemaMigration: function() {
+    if (!this._schemaMigrationInitiated &&
+        GlodaDatastore._actualSchemaVersion === 26) {
+      let job = new IndexingJob("fixMissingContacts", null);
+      GlodaIndexer.indexJob(job);
+      this._schemaMigrationInitiated = true;
+    }
   },
 
   initialSweep: function() {
@@ -1688,6 +1737,98 @@ var GlodaMsgIndexer = {
     yield this.kWorkDone;
   },
 
+  _worker_fixMissingContacts: function(aJob, aCallbackHandle) {
+    let identityContactInfos = [], fixedContacts = {};
+
+    // -- asynchronously get a list of all identities without contacts
+    // The upper bound on the number of messed up contacts is the number of
+    //  contacts in the user's address book.  This should be small enough
+    //  (and the data size small enough) that this won't explode thunderbird.
+    let queryStmt = GlodaDatastore._createAsyncStatement(
+      "SELECT identities.id, identities.contactID, identities.value " +
+        "FROM identities " +
+        "LEFT JOIN contacts ON identities.contactID = contacts.id " +
+        "WHERE identities.kind = 'email' AND contacts.id IS NULL",
+      true);
+    queryStmt.executeAsync({
+      handleResult: function(aResultSet) {
+        let row;
+        while ((row = aResultSet.getNextRow())) {
+          identityContactInfos.push({
+            identityId: row.getInt64(0),
+            contactId: row.getInt64(1),
+            email: row.getString(2)
+          });
+        }
+      },
+      handleError: function(aError) {
+      },
+      handleCompletion: function(aReason) {
+        GlodaDatastore._asyncCompleted();
+        aCallbackHandle.wrappedCallback();
+      },
+    });
+    queryStmt.finalize();
+    GlodaDatastore._pendingAsyncStatements++;
+    yield this.kWorkAsync;
+
+    // -- perform fixes only if there were missing contacts
+    if (identityContactInfos.length) {
+      const yieldEvery = 64;
+      // - create the missing contacts
+      for (let i = 0; i < identityContactInfos.length; i++) {
+        if ((i % yieldEvery) === 0)
+          yield this.kWorkSync;
+
+        let info = identityContactInfos[i],
+            card = GlodaUtils.getCardForEmail(info.email),
+            contact = new GlodaContact(
+              GlodaDatastore, info.contactId,
+              null, null,
+              card ? (card.displayName || info.email) : info.email,
+              0, 0);
+        GlodaDatastore.insertContact(contact);
+
+        // update the in-memory rep of the identity to know about the contact
+        //  if there is one.
+        let identity = GlodaCollectionManager.cacheLookupOne(
+                         Gloda.NOUN_IDENTITY, info.identityId, false);
+        if (identity) {
+          // Unfortunately, although this fixes the (reachable) Identity and
+          //  exposes the Contact, it does not make the Contact reachable from
+          //  the collection manager.  This will make explicit queries that look
+          //  up the contact potentially see the case where
+          //  contact.identities[0].contact !== contact.  Alternately, that
+          //  may not happen and instead the "contact" object we created above
+          //  may become unlinked.  (I'd have to trace some logic I don't feel
+          //  like tracing.)  Either way, The potential fallout is minimal
+          //  since the object identity invariant will just lapse and popularity
+          //  on the contact may become stale, and neither of those meaningfully
+          //  affect the operation of anything in Thunderbird.
+          // If we really cared, we could find all the dominant collections
+          //  that reference the identity and update their corresponding
+          //  contact collection to make it reachable.  That use-case does not
+          //  exist outside of here, which is why we're punting.
+          identity._contact = contact;
+          contact._identities = [identity];
+        }
+
+        // NOTE: If the addressbook indexer did anything useful other than
+        //  adapting to name changes, we could schedule indexing of the cards at
+        //  this time.  However, as of this writing, it doesn't, and this task
+        //  is a one-off relevant only to the time of this writing.
+      }
+
+      // - mark all folders as dirty, initiate indexing sweep
+      this.dirtyAllKnownFolders();
+      this.indexingSweepNeeded = true;
+    }
+
+    // -- mark the schema upgrade, be done
+    GlodaDatastore._updateSchemaVersion(GlodaDatastore._schemaVersion);
+    yield this.kWorkDone;
+  },
+
   /**
    * Determine whether a folder is suitable for indexing.
    *
@@ -1878,6 +2019,26 @@ var GlodaMsgIndexer = {
     job.items = [[GlodaDatastore._mapFolder(fm[0]).id, fm[1]] for each
                  ([i, fm] in Iterator(aFoldersAndMessages))];
     GlodaIndexer.indexJob(job);
+  },
+
+  /**
+   * Mark all known folders as dirty so that the next indexing sweep goes
+   *  into all folders and checks their contents to see if they need to be
+   *  indexed.
+   *
+   * This is being added for the migration case where we want to try and reindex
+   *  all of the messages that had been marked with GLODA_BAD_MESSAGE_ID but
+   *  which is now GLODA_OLD_BAD_MESSAGE_ID and so we should attempt to reindex
+   *  them.
+   */
+  dirtyAllKnownFolders: function gloda_index_msg_dirtyAllKnownFolders() {
+    // Just iterate over the datastore's folder map and tell each folder to
+    //  be dirty if its priority is not disabled.
+    for each (let [folderID, glodaFolder] in
+              Iterator(GlodaDatastore._folderByID)) {
+      if (glodaFolder.indexingPriority !== glodaFolder.kIndexingNeverPriority)
+        glodaFolder._ensureFolderDirty();
+    }
   },
 
   /**

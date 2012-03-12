@@ -251,7 +251,16 @@ var Gloda = {
    */
   kIndexerIndexing: 1,
 
-  /** Synchronous activities performed, you can drive us more. */
+  /**
+   * Synchronous activities performed that can be thought of as one processing
+   *  token.  Potentially yield the event-loop and re-schedule for later based
+   *  on how long we've actually taken/etc.  The goal here is that code that
+   *  is doing stuff synchronously yields with kWorkSync periodically to make
+   *  sure that it doesn't dominate the event-loop.  Unless the processing
+   *  in question is particularly intensive, it should be reasonable to apply
+   *  some decimation factor (ex: 32 or 64) with the general goal of yielding
+   *  every 3-10 milliseconds.
+   */
   kWorkSync: 0,
   /**
    * Asynchronous activity performed, you need to relinquish flow control and
@@ -264,7 +273,11 @@ var Gloda = {
   kWorkDone: 2,
   /**
    * We are not done with our task, but we think it's a good idea to take a
-   *  breather.
+   *  breather because we believe we have tied up the event loop for a
+   *  non-trivial amount of time.  So please re-schedule us in the future.
+   *
+   * This is currently only used internally by the indexer's batching logic;
+   *  minor changes may be required if used by actual indexers.
    */
   kWorkPause: 3,
   /**

@@ -144,7 +144,8 @@ Log4Moz.repository.rootLogger.addAppender(throwingAppender);
 var LOG = Log4Moz.repository.getLogger("gloda.test");
 
 // index_msg does not export this, so we need to provide it.
-const GLODA_BAD_MESSAGE_ID = 1;
+const GLODA_BAD_MESSAGE_ID = 2,
+      GLODA_OLD_BAD_MESSAGE_ID = 1;
 
 // -- Add a hook that makes folders not filthy when we first see them.
 register_message_injection_listener({
@@ -1080,6 +1081,37 @@ _SqlExpectationListener.prototype = {
 };
 
 /**
+ * Asynchronously run a SQL statement against the gloda database.  This can grow
+ *  binding logic and data returning as needed.
+ *
+ * We run the statement asynchronously to get a consistent view of the database.
+ */
+function sqlRun(sql) {
+  let conn = GlodaDatastore.asyncConnection;
+  let stmt = conn.createAsyncStatement(sql), rows = null;
+
+  mark_action("glodaTestHelper", "running SQL", [sql]);
+  stmt.executeAsync({
+    handleResult: function(aResultSet) {
+      if (!rows)
+        rows = [];
+      let row;
+      while ((row = aResultSet.getNextRow())) {
+        rows.push(row);
+      }
+    },
+    handleError: function(aError) {
+      mark_failure(["SQL error! result:", aError, "SQL: ", sql]);
+    },
+    handleCompletion: function() {
+      async_driver(rows);
+    }
+  });
+  stmt.finalize();
+  return false;
+}
+
+/**
  * Resume execution when the db has run all the async statements whose execution
  *  was queued prior to this call.  We trigger a commit to accomplish this,
  *  although this could also be accomplished without a commit.  (Though we would
@@ -1306,6 +1338,11 @@ function nukeGlodaCachesAndCollections() {
 function makeABCardForAddressPair(nameAndAddress) {
   let abManager = Components.classes["@mozilla.org/abmanager;1"]
                             .getService(Components.interfaces.nsIAbManager);
+  // XXX bug 314448 demands that we trigger creation of the ABs...  If we don't
+  //  do this, then the call to addCard will fail if someone else hasn't tickled
+  //  this.
+  abManager.directories;
+
   // kPABData is from abSetup.js
   let addressBook = abManager.getDirectory(kPABData.URI);
 
