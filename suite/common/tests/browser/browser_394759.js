@@ -159,19 +159,19 @@ function test() {
       let settings = "chrome,dialog=no," +
                      (winData.isPopup ? "all=no" : "all");
       let url = "http://example.com/?window=" + windowsToOpen.length;
-      let window = openDialog(location, "_blank", settings, url);
-      window.addEventListener("load", function loadListener5(aEvent) {
-        window.removeEventListener("load", loadListener5, false);
+      let win = openDialog(location, "", settings, url);
+      win.addEventListener("load", function loadListener5(aEvent) {
+        win.removeEventListener("load", loadListener5, false);
 
-        window.gBrowser.addEventListener("load", function loadListener6(aEvent) {
-          window.gBrowser.removeEventListener("load", loadListener6, true);
+        win.getBrowser().selectedBrowser.addEventListener("DOMContentLoaded", function loadListener6(aEvent) {
+          win.getBrowser().selectedBrowser.removeEventListener("DOMContentLoaded", loadListener6, true);
           // the window _should_ have state with a tab of url, but it doesn't
           // always happend before window.close(). addTab ensure we don't treat
           // this window as a stateless window
-          window.gBrowser.addTab();
+          win.getBrowser().addTab();
 
           executeSoon(function() {
-            window.close();
+            win.close();
             executeSoon(function() {
               openWindowRec(windowsToOpen, expectedResults, recCallback);
             });
@@ -199,8 +199,11 @@ function test() {
     });
   }
 
+  is(browserWindowsCount(), 1, "Only one browser window should be open initially");
   test_basic(function() {
+    is(browserWindowsCount(), 1, "number of browser windows after test_basic");
     test_behavior(function() {
+      is(browserWindowsCount(), 1, "number of browser windows after test_behavior");
         finish();
     });
   });
